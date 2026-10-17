@@ -112,6 +112,23 @@ async function render() {
     [R.lastTake, lastPlaybackText()],
   ];
 
+  // The metronome: how much later the visuals show each beat, and the sync
+  // bar that sets it by eye and ear or from taps.
+  const m = ctl.metronome;
+  let metronome = null;
+  if (m) {
+    const out = el('b', {}, TEXT.common.ms(m.syncMs()));
+    const slider = el('input', { type: 'range', class: 'slider', id: 'ac-sync', min: -200, max: 500, step: 10, value: m.syncMs(), disabled: !m.usable || null });
+    slider.addEventListener('input', () => { m.setSync(Number(slider.value)); out.textContent = TEXT.common.ms(m.syncMs()); });
+    const open = el('button', { type: 'button', class: 'pill', id: 'ac-sync-open', disabled: !m.usable || null, onclick: () => m.openSync() }, TEXT.metronome.settings.openSync);
+    metronome = el('details', { class: 'ac-section', id: 'ac-metronome', open: metOpen ?? m.open },
+      el('summary', {}, A.metronome),
+      el('div', { class: `ac-section-body${m.usable ? '' : ' disabled'}` },
+        el('label', { class: 'row' }, el('span', {}, `${TEXT.metronome.settings.sync} `, out), slider),
+        open));
+    metronome.addEventListener('toggle', () => { metOpen = metronome.open; });
+  }
+
   body.replaceChildren(...[
     summary,
     steps,
@@ -119,6 +136,7 @@ async function render() {
     el('div', { class: 'ac-test' }, testBtn),
     el('label', { class: 'row' }, el('span', {}, A.microphone), micSelect),
     speaker,
+    metronome,
     el('details', { class: 'ac-details' }, el('summary', {}, A.reportTitle),
       el('dl', {}, rows.map(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]))),
   ].filter(Boolean));
@@ -263,8 +281,11 @@ export function renderMicTip(container, { collapsed, onToggle }) {
   set(collapsed);
 }
 
+let metOpen = null; // the Metronome section, as it was left while Audio check stays open
+
 export function openAudioCheck(controls) {
   ctl = controls;
+  metOpen = null;
   const dialog = $('audio-check');
   render();
   if (!dialog.open) dialog.showModal();

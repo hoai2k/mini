@@ -179,7 +179,10 @@ export const EN = {
       title: 'Metronome settings',
       timeSignature: 'Time signature',
       accent: 'Strong beat on 1',
-      subdivision: 'Clicks',
+      /** The extra notes between the beats: the switch says which. */
+      subAdd: { 2: 'Add eighth notes', 3: 'Add triplets', 4: 'Add sixteenth notes' },
+      subEdit: 'Choose the extra notes',
+      subTitle: 'Extra notes',
       subdivisions: {
         1: 'Quarter notes',
         2: 'Eighth notes',
@@ -389,6 +392,8 @@ export const EN = {
   },
 
   audioCheck: {
+    /** The metronome's section: how the visuals line up with the sound. */
+    metronome: 'Metronome',
     title: 'Audio check',
     reportProblem: 'Report a problem…',
     blocked: 'The microphone is blocked for this site, so the Playback Recorder can\'t listen. Allow it in your browser\'s site settings, then reload.',

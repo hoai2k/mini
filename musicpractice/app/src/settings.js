@@ -71,7 +71,7 @@ export const DEFAULTS = Object.freeze({
   meter: '4/4',
   accent: true,
   sound: 'wood',
-  volume: 0.8,
+  volume: 1,
   silenceSec: 3,
   sensitivity: 'medium',
   startOn: 'music',
@@ -80,7 +80,9 @@ export const DEFAULTS = Object.freeze({
   mic: 'auto', // or a deviceId (Audio check)
   speaker: 'default', // or a deviceId (Audio check, where the browser allows)
   syncMs: 0, // extra pendulum delay for Bluetooth speakers (Metronome settings)
-  subdivision: 1, // clicks per beat: 1 quarter notes, 2 eighths, 3 triplets, 4 sixteenths
+  subdivision: 1, // clicks per beat: 1 quarter notes, 2 eighths, 3 triplets, 4 sixteenths (subOn ? subKind : 1)
+  subOn: false, // Add eighth notes (or triplets, sixteenths)
+  subKind: 2, // which: 2 eighths, 3 triplets, 4 sixteenths, kept while off
   accentPattern: null,
   tempoGenre: 'classical', // the tempo picker's style
   tempoDefaults: {}, // a named tempo's button, where one was chosen from its list: { 'jazz:ballad': 66 } // custom strong beats for the current time signature: { meter, pos } (cleanPattern)
@@ -123,7 +125,7 @@ export function clampBpm(v) {
 
 export function sanitize(raw) {
   const s = raw && typeof raw === 'object' ? raw : {};
-  return {
+  const out = {
     // A theme counts only once someone has picked one: earlier saves stored
     // whatever the default was then. 'straight' is Classic's old name.
     theme: s.themeChosen === true ? oneOf(s.theme === 'straight' ? 'classic' : s.theme, THEMES.map((t) => t.id), DEFAULTS.theme) : DEFAULTS.theme,
@@ -135,7 +137,7 @@ export function sanitize(raw) {
     meter: oneOf(s.meter, METERS.map((m) => m.id), DEFAULTS.meter),
     accent: typeof s.accent === 'boolean' ? s.accent : DEFAULTS.accent,
     sound: oneOf(s.sound, SOUNDS.map((m) => m.id), DEFAULTS.sound),
-    volume: clamp(num(s.volume, DEFAULTS.volume), 0, 1),
+    volume: 1, // the metronome at full level: the device's own volume controls it
     silenceSec: clamp(Math.round(num(s.silenceSec, DEFAULTS.silenceSec) * 2) / 2, 1, 10),
     sensitivity: oneOf(s.sensitivity, ['low', 'medium', 'high'], DEFAULTS.sensitivity),
     startOn: oneOf(s.startOn, ['music', 'any'], DEFAULTS.startOn),
@@ -145,7 +147,9 @@ export function sanitize(raw) {
     speaker: typeof s.speaker === 'string' && s.speaker.length < 200 ? s.speaker : DEFAULTS.speaker,
     syncMs: clamp(Math.round(num(s.syncMs, DEFAULTS.syncMs) / 10) * 10, -200, 500),
     micTipCollapsed: s.micTipCollapsed === true,
-    subdivision: oneOf(s.subdivision, [1, 2, 3, 4], DEFAULTS.subdivision),
+    // The extra notes: a switch and a kind (saves from the Clicks list carry over).
+    subKind: oneOf(s.subKind, [2, 3, 4], oneOf(s.subdivision, [2, 3, 4], DEFAULTS.subKind)),
+    subOn: typeof s.subOn === 'boolean' ? s.subOn : [2, 3, 4].includes(s.subdivision),
     tempoGenre: oneOf(s.tempoGenre, GENRE_IDS, DEFAULTS.tempoGenre),
     tempoDefaults: cleanTempoDefaults(s.tempoDefaults),
     accentPattern: cleanPattern(s.accentPattern, oneOf(s.meter, METERS.map((m) => m.id), DEFAULTS.meter)),
@@ -172,6 +176,8 @@ export function sanitize(raw) {
     flats: s.flats === true,
     transpose: oneOf(s.transpose, ['C', 'Bb', 'Eb', 'F'], DEFAULTS.transpose),
   };
+  out.subdivision = out.subOn ? out.subKind : 1;
+  return out;
 }
 
 /**

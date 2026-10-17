@@ -1424,6 +1424,11 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 .ac-steps { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; }
 .ac-test { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .ac-details summary { cursor: pointer; font-weight: 700; }
+.ac-section { border: 2px solid var(--line); border-radius: 14px; padding: 10px 14px; }
+.ac-section summary { cursor: pointer; font-weight: 700; }
+.ac-section-body { display: flex; flex-direction: column; gap: 14px; margin-top: 12px; }
+.ac-section-body .pill { align-self: flex-start; }
+.ac-section-body.disabled { opacity: 0.45; }
 .ac-details dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 10px 0 0; font-size: 0.88rem; }
 .ac-details dt { color: var(--ink-3); }
 .ac-details dd { margin: 0; overflow-wrap: anywhere; }

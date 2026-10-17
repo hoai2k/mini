@@ -7,7 +7,7 @@ import { playSamples, primeFromTap, outputSettled, setSpeaker } from './player.j
 import { encodeMp3 } from './mp3.js';
 import { openAudioCheck, renderMicTip } from './audiocheck.js';
 import { diag, isWebKit, isIOS, micPermission } from './devices.js';
-import { Metronome, pendulumAngle, SUBDIVISIONS } from './metronome.js';
+import { Metronome, pendulumAngle } from './metronome.js';
 import { Recorder, freesMicForPlayback } from './recorder.js';
 import { setupTuner } from './tunerui.js';
 import { setupHomeOrder } from './homeorder.js';
@@ -415,8 +415,11 @@ meterSelect.addEventListener('change', () => {
   if (had || settings.accentPattern) settings.accent = true;
   metronomeConfigured();
 });
-chips($('sound-chips'), SOUNDS, () => settings.sound, (v) => {
-  settings.sound = v;
+const soundSelect = $('sound');
+soundSelect.replaceChildren(...SOUNDS.map((o) => new Option(o.label, o.id)));
+soundSelect.value = settings.sound;
+soundSelect.addEventListener('change', () => {
+  settings.sound = soundSelect.value;
   metronomeConfigured();
   // Let them hear it (through Web Audio, also in the apps).
   if (!metronome?.running) {
@@ -427,10 +430,26 @@ chips($('sound-chips'), SOUNDS, () => settings.sound, (v) => {
     preview.voice(ctx.currentTime + 0.02, 2);
   }
 });
-const subSelect = $('subdivision');
-subSelect.replaceChildren(...SUBDIVISIONS.map((n) => new Option(TEXT.metronome.settings.subdivisions[n], String(n))));
-subSelect.value = String(settings.subdivision);
-subSelect.addEventListener('change', () => { settings.subdivision = Number(subSelect.value); metronomeConfigured(); });
+// Extra notes between the beats: a switch saying which (Add eighth notes), and
+// a pencil to choose triplets or sixteenths instead.
+function showSub() {
+  $('sub-label').textContent = TEXT.metronome.settings.subAdd[settings.subKind];
+  $('sub-on').checked = settings.subOn;
+}
+function setSub(on, kind = settings.subKind) {
+  settings.subOn = on;
+  settings.subKind = kind;
+  settings.subdivision = on ? kind : 1;
+  showSub();
+  metronomeConfigured();
+}
+$('sub-on').addEventListener('change', () => setSub($('sub-on').checked));
+const syncSubChips = chips($('sub-chips'), [2, 3, 4].map((n) => ({ id: n, label: TEXT.metronome.settings.subdivisions[n] })), () => settings.subKind, (n) => {
+  setSub(true, n); // choosing one turns them on
+  $('sub-editor').close();
+});
+$('sub-edit').addEventListener('click', () => { syncSubChips(); $('sub-editor').showModal(); });
+showSub();
 $('accent').checked = settings.accent;
 $('accent').addEventListener('change', () => {
   settings.accent = $('accent').checked;
@@ -569,18 +588,11 @@ $('marking').addEventListener('click', () => {
   $('tempo-picker').showModal();
   $('tempo-list').querySelector('[aria-pressed="true"]')?.focus();
 });
-$('met-volume').value = settings.volume;
-$('met-volume').addEventListener('input', () => { settings.volume = Number($('met-volume').value); metronomeConfigured(); });
-
-// With the pendulum and the pulse both off (and no Visualizer) there are no visuals to sync.
-function syncControlsLive() {
-  const off = !settings.metMotion && !settings.metPulse && settings.metView !== 'bars';
-  $('met-sync').disabled = off;
-  $('sync-open').disabled = off;
-  $('met-sync').closest('.row').classList.toggle('disabled', off);
-}
+// With the pendulum and the pulse both off (and no Visualizer) there are no
+// visuals to sync: Audio check's sync controls are then off.
+const visualsShown = () => settings.metMotion || settings.metPulse || settings.metView === 'bars';
 $('met-motion').checked = settings.metMotion;
-$('met-motion').addEventListener('change', () => { settings.metMotion = $('met-motion').checked; persist(); syncControlsLive(); });
+$('met-motion').addEventListener('change', () => { settings.metMotion = $('met-motion').checked; persist(); });
 $('met-pulse-on').checked = settings.metPulse;
 $('met-pulse').hidden = !settings.metPulse;
 $('met-pulse-on').addEventListener('change', () => {
@@ -589,7 +601,6 @@ $('met-pulse-on').addEventListener('change', () => {
   $('met-pulse').hidden = !settings.metPulse;
   art.style.setProperty('--lit', '0');
   persist();
-  syncControlsLive();
 });
 
 /*
@@ -656,7 +667,6 @@ function showMetView() {
   $('met-view-chips').dataset.on = settings.metView;
   $('met-visual').setAttribute('aria-label', TEXT.metronome.switchTo[bars ? 'metronome' : 'bars']);
   for (const b of $('met-bars').querySelectorAll('.met-bar')) b.style.setProperty('--lit', '0');
-  syncControlsLive();
   fitPicture();
 }
 function setMetView(view) {
@@ -718,8 +728,6 @@ const syncBar = $('sync-bar');
 let taps = [];
 function showSync() {
   $('sync-val').textContent = TEXT.metronome.sync.value(settings.syncMs);
-  $('met-sync').value = settings.syncMs;
-  $('met-sync-val').textContent = TEXT.common.ms(settings.syncMs);
 }
 function setSync(ms) {
   settings.syncMs = Math.max(-200, Math.min(500, Math.round(ms / 10) * 10));
@@ -742,8 +750,6 @@ function closeSync() {
   document.querySelector('.met-controls').hidden = false;
   queueFit();
 }
-$('sync-open').addEventListener('click', openSync);
-$('met-sync').addEventListener('input', () => setSync(Number($('met-sync').value)));
 showSync();
 showMetView();
 $('sync-done').addEventListener('click', closeSync);
@@ -1551,6 +1557,18 @@ for (const b of document.querySelectorAll('.open-audio-check')) {
       settings,
       save: persist,
       recorder: () => recorder,
+      // The metronome's section: open when Audio check came from the metronome.
+      metronome: {
+        open: screen === 'metronome',
+        usable: visualsShown(),
+        syncMs: () => settings.syncMs,
+        setSync,
+        openSync: () => {
+          $('audio-check').close();
+          if (screen !== 'metronome') location.hash = '#metronome';
+          requestAnimationFrame(openSync);
+        },
+      },
       onMic: async (id) => {
         settings.mic = id;
         persist();
