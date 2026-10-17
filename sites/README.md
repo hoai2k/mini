@@ -51,17 +51,20 @@ at https://hoai2k.github.io/mini/sites/<name>/.
   https://hoai2k.github.io/mini/sites/langanfrostandwane/. Uses the band's
   own photographs and covers, copied into `assets/`; its README records
   where each came from, and `image-requests.md` lists hand-drawn art it
-  could take.
+  could take. Private: behind the invite gate and marked noindex (see
+  [`shared/`](shared/README.md#private-sites)).
 - [`stratfordtennisclub/`](stratfordtennisclub/) — a redesign prototype for
   the real Stratford Tennis Club's website, more professional and tennis-like
   while staying friendly and community-oriented, responsive on phone and
   desktop. Published at https://hoai2k.github.io/mini/sites/stratfordtennisclub/.
   Ten pages mirror the live site's 2026 content; `BOOKING.md` records what the
   club's JustBookIt booking system exposes and the options for integrating or
-  replacing it.
-- [`shared/`](shared/) — scripts more than one band page loads. Just
+  replacing it. Private: behind the invite gate and marked noindex (see
+  [`shared/`](shared/README.md#private-sites)).
+- [`shared/`](shared/) — scripts more than one site loads:
   `play-debug.js`, the `?debug=play` switch that turns the in-page players
-  back on. Its README also holds the recipe for putting a Spotify link on
+  back on, and `private-site.js` with its copy of the invite gate, which keeps
+  the test sites private. Its README also holds the recipe for putting a Spotify link on
   another song, which is one row edit and nothing else.
 - [`stats/`](stats/README.md) — visitor stats for every site here and for the
   Hopper game, at https://hoai2k.github.io/mini/sites/stats/: an overview of all

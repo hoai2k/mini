@@ -5,6 +5,10 @@ more professional and tennis-like, still friendly and community-oriented, and
 built to work equally well on a phone and a desktop. Published at
 https://hoai2k.github.io/mini/sites/stratfordtennisclub/.
 
+The site is private: every page is marked noindex and sits behind the
+invite gate, which the public-access switch does not open. See
+[`../shared/README.md`](../shared/README.md#private-sites).
+
 What is being tested here is the **design**. The content mirrors the live site
 as of September 2026 (2026 fees, schedules, board, the doubles championships
 recap), so the club can judge the new look with its real words and photos.

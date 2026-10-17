@@ -1,11 +1,13 @@
 # Shared site scripts
 
-Small scripts more than one band page loads. The folder has no `index.html`,
+Small scripts more than one site loads. The folder has no `index.html`,
 so `sites/publish.sh` copies it explicitly, the way it copies `music/`.
 
 | File | What it is |
 | --- | --- |
 | `play-debug.js` | The `?debug=play` switch: turns the in-page player back on |
+| `gate.js` | The shared invite gate, a byte-identical copy of the games' (`onemonster/game/src/gate/gate.js`). Change it there and copy it here |
+| `private-site.js` | Puts a page behind that gate, ignoring the public-access switch |
 
 ## `?debug=play`
 
@@ -90,3 +92,34 @@ Spotify row follows its link and a disabled row stays quiet.
 
 Pages that carry the flag: `space-tiber/`, `charlies-girl-dolls/`,
 `mechmayhem/`. Not `canagentsis/`, which has one song and plays it outright.
+
+## Private sites
+
+`private-site.js` keeps a test site off the open web. The pages that use it
+(every page of `langanfrostandwane/` and `stratfordtennisclub/`) carry, in
+their own HTML:
+
+```html
+<html class="site-locked" data-private-site="name" data-private-title="Title">
+<meta name="robots" content="noindex, nofollow" />
+<style>html.site-locked body>*:not(.gate-veil){visibility:hidden}</style>
+<script type="module" src="../shared/private-site.js"></script>
+```
+
+- `noindex, nofollow` asks search engines not to list the page. GitHub Pages
+  cannot send the `X-Robots-Tag` header, and a `robots.txt` would have to sit
+  at the domain root in the `hoai2k.github.io` repository, so the meta tag is
+  the tool here.
+- The page stays hidden until the invite gate lets the visitor through.
+  Anyone holding a pass from any game's invite gets straight in (the pass is
+  shared across the whole domain); everyone else sees the door. Sessions are
+  logged as `site:<name>` in the guest list.
+- **The public-access switch does not open these pages.** While the door
+  decides, `private-site.js` answers the request for `/public-access.json`
+  with "off" itself, so turning that switch on for the games never exposes a
+  private site.
+- As with the games, the door is off on localhost; add `?gatetest=1` to see
+  it locally. It is a doorman, not a lock: the HTML is still public to anyone
+  who reads the source.
+
+To make a site public again, take those four lines out of its pages.
