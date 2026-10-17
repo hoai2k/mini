@@ -396,6 +396,7 @@ class Game {
   }
   loadWorld(level, biome) {
     this.level = level; this.world = level.world; this.biome = biome;
+    this.rig.world = this.world;   // (cinematics keep clear of walls: camera.js)
     level.deco.solidify?.(this.world);   // (props a hero can't walk through: world/deco.js SOLID_PROPS)
     this.world.init(this.materials);
     this.scene.add(this.world.group);

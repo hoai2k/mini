@@ -3,6 +3,7 @@
 // rotation, trauma-based screen shake and scripted cinematic moves.
 import * as THREE from 'three/webgpu';
 import { clamp, damp, noise1, lerp, smooth } from './util.js';
+import { clearTurn } from './story/framing.js';
 
 const DEG = Math.PI / 180;
 
@@ -85,13 +86,26 @@ export class CameraRig {
     // ---- cinematic override
     if (this.cine) {
       const k = this.cine;
+      // the first frame: turn the whole orbit clear of walls and roofs between
+      // the camera and its centre (story/framing.js; this.world is set by main.js)
+      if (!k.fix) {
+        k.fix = { dyaw: 0, dpitch: 0 };
+        if (this.world && k.center) {
+          const poses = [], look = k.center.clone().setY(k.center.y + 0.8);
+          for (let i = 0; i <= 5; i++) {
+            const tt = Math.min(k.dur, 6) * i / 5, yy = yaw + (k.orbit || 0) * tt, cp = Math.cos(k.pitch);
+            poses.push({ pos: new THREE.Vector3(Math.sin(yy) * cp, Math.sin(k.pitch), Math.cos(yy) * cp).multiplyScalar(k.dist).add(k.center), look });
+          }
+          k.fix = clearTurn(this.world, poses);
+        }
+      }
       k.t += realDt;
       const inT = Math.min(1, k.t / 0.6), outT = Math.min(1, Math.max(0, (k.dur - k.t) / 0.8));
       const w = smooth(Math.min(inT, outT));
       this.cineBlend = w;
       if (k.center) focus.lerp(k.center, w);
-      yaw += (k.orbit || 0) * k.t * w;
-      pitch = lerp(pitch, k.pitch, w);
+      yaw += ((k.orbit || 0) * k.t + k.fix.dyaw) * w;
+      pitch = lerp(pitch, Math.min(80 * DEG, k.pitch + k.fix.dpitch), w);
       dist = lerp(dist, k.dist, w);
       if (k.t >= k.dur) { this.cine = null; this.cineBlend = 0; }
     }
