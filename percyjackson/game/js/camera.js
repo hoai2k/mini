@@ -13,7 +13,7 @@ export class CameraRig {
     this.yawBase = 45 * DEG; this.yawSteps = 0; this.yaw = 45 * DEG;
     this.pitch = 50 * DEG;
     this.minDist = 12; this.maxDist = 42;
-    this.zoomTarget = 24; this.dist = 24;
+    this.zoomTarget = 26; this.dist = 26;
     this.focus = new THREE.Vector3(); this.dead = new THREE.Vector3();
     this.look = new THREE.Vector3(); this.lookTarget = new THREE.Vector3();
     this.trauma = 0; this.shakeScale = 1; this.t = 0;

@@ -85,7 +85,7 @@ export function mainPath(L) {
 export function ambush(m, at, kinds, { radius = 7, color = 0xff3a2a } = {}) {
   const g = m.game;
   if (isGuest(m)) return [];
-  const cap = g.gr.preset.enemyCap, out = [];
+  const cap = g.enemyCap ?? 36, out = [];   // (world/encounters.js ENEMY_CAP, by way of main.js)
   kinds.forEach((kind, i) => {
     if (g.enemies.filter((e) => !e.dead && !e.isDummy && !e.def?.mortal).length >= cap) return;
     const a = (i / kinds.length) * Math.PI * 2 + Math.random();

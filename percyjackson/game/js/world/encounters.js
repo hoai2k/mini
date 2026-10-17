@@ -27,6 +27,12 @@
 
 export const NONE = -999;
 
+// Monsters up at once (the rest of a room waits in reserve). A gameplay rule,
+// the same on every machine: it used to come from the graphics tier (14 on
+// Low, 24 on Medium), so a desktop on an integrated GPU fought smaller
+// battles than one with a gaming card.
+export const ENEMY_CAP = 36;
+
 export const ENC = {
   size: { combat: [26, 29], side: [19, 23], trap: [14, 16], secret: [14, 16] },   // (combat and side rooms grew with the layout cell, 26 -> 34: the boards felt cramped)
   doorClear: 5,          // no pack member this close (blocks) to a door

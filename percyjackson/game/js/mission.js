@@ -37,6 +37,7 @@ import { chapterMissionDef, resolveBoss, resolveBiome } from './story/missionDef
 import { bundlesFrom } from './resources.js';
 import { Pack, packLoiter } from './entities/packRules.js';
 import { mulberry32 } from './util.js';
+import { ENEMY_CAP } from './world/encounters.js';
 
 const PRIME = 16;        // a room's monsters are there once a hero is this close to it (metres; past the edge of the view at the default zoom, 26)
 const TRAP_IN = 3;       // a trap springs once a hero is this far inside the room
@@ -436,7 +437,7 @@ export class Mission {
   // Bring in waiting members while there is room under the cap (idle at their
   // spot if their group hasn't been roused, else coming at the party).
   spawnReserve(room, first = false) {
-    const g = this.game, cap = g.gr.preset.enemyCap;
+    const g = this.game, cap = ENEMY_CAP;
     let live = this.activeCount();
     if (!first && live > cap - 2) return;
     while (room.reserve.length && live < cap) {
@@ -527,7 +528,7 @@ export class Mission {
     const wave = room.waves[room.waveIdx++];
     room.waveT = 2.5;
     const spots = room.trap?.points?.length ? room.trap.points : room.spawns.length ? room.spawns : [[room.center.x, room.center.y, room.center.z]];
-    const cap = g.gr.preset.enemyCap;
+    const cap = ENEMY_CAP;
     // Over the enemy cap, the rest of the wave waits for the next one (so a
     // room's kill total can always be met).
     const later = [];
