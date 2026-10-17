@@ -47,9 +47,9 @@ from `sites/`, `multiplayer/` and `local/`:
 | `widowsbay/` | Widow's Bay | https://hoai2k.github.io/mini/widowsbay/ |
 | `bronzedrum/` | Bronze Drum | https://hoai2k.github.io/mini/bronzedrum/ |
 | `tankwars/` | Tank Wars | https://hoai2k.github.io/mini/tankwars/ |
-| `gliders/` | Gliders (Superflight-style gliding, 1–4 players split screen) | https://hoai2k.github.io/mini/gliders/ |
+| `gliders/` | Gliders (Superflight-style gliding, 1–4 players split screen); in the prototype archive, behind the invite gate | https://hoai2k.github.io/mini/gliders/ |
 | `icecreamcone/` | The Ice-Cream Cone Coot (a field guide of rare birds from Arnold Lobel's book, with a minigame for each) | https://hoai2k.github.io/mini/icecreamcone/ |
-| `onemonster/` | One Monster After Another (after Mercer Mayer's book: play each monster as it snatches the letter from the last, as a side-scrolling Adventure or as minigames, alone or two players head to head); behind the invite gate | https://hoai2k.github.io/mini/onemonster/ |
+| `onemonster/` | One Monster After Another (after Mercer Mayer's book: play each monster as it snatches the letter from the last, as a side-scrolling Adventure or as minigames, alone or two players head to head); in the prototype archive, behind the invite gate | https://hoai2k.github.io/mini/onemonster/ |
 | `fibreart/` | Fibre Art (a shifting collage after the fibre art, paintings and drawings of Hanneke de Neve: controllers move, stretch, swirl and dissolve the parts of her pictures) | https://hoai2k.github.io/mini/fibreart/ |
 | `percyjackson/` | Half-Blood Quests (a Percy Jackson co-op dungeon crawler in the style of Minecraft Dungeons; style references in `reference/` are private) | https://hoai2k.github.io/mini/percyjackson/ |
 | `aiching/` | Ai-Ching (an I Ching reader styled like an AI prompt: a question seeds the cast and shapes the reading) | https://hoai2k.github.io/mini/aiching/ |
@@ -81,6 +81,16 @@ from `sites/`, `multiplayer/` and `local/`:
   Ai-Ching, Music Practice, Bookzam and Stocks) go on its mini apps shelf below the games; Games Chat stays
   with the games. Games that haven't turned out as hoped yet are listed as
   plain links in its Prototype archive, at the bottom. `GAME_GUIDELINES.md` applies to every game.
+- **The Prototype archive is code-locked.** The library shows it only to
+  visitors holding an invite pass, and every game or app listed there sits
+  behind the shared invite gate opened with `ignorePublicAccess: true`, so the
+  owner's public-access switch (`/public-access.json` in `hoai2k.github.io`)
+  never opens a prototype. Moving a game or app into the archive means adding
+  that gate (copy `onemonster/game/src/gate/gate.js` byte for byte, open it
+  from a `boot.js` the way One Monster and Gliders do); moving one out to a
+  shelf means dropping `ignorePublicAccess` (or the gate) as the owner wants.
+  The private test sites in `sites/` (see `sites/shared/README.md`) follow
+  the same rule.
   `MULTIPLAYER.md` explains how a game adds online play through `multiplayer/`. `.github/workflows/pages.yml`
   builds and publishes everything.
 

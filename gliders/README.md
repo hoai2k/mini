@@ -53,6 +53,15 @@ pulls the nose up), hold Tuck or Flare on the right, and tap ⏸ to pause.
 On the glider screen each player joins with A (or Space / Enter), then ◀ ▶
 glider, ▲ ▼ colours, Y (F / \ on keyboards) inverts pitch, A ready, B back.
 
+## Invite gate
+
+Gliders is in the library's prototype archive, so it sits behind the shared
+invite gate (`game/src/gate/gate.js`, a byte-identical copy of the one in the
+`hoai2k.github.io` repository): `src/boot.js` opens the door, then imports
+`main.js`. It passes `ignorePublicAccess: true`, so the owner's public-access
+switch for the finished games does not open it; only an invite pass does. The
+door is off on localhost (add `?gatetest=1` to see it).
+
 ## Run and check
 
 ```sh
