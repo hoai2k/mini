@@ -17,6 +17,11 @@
 //                                          Ai-Ching reading (src/oracle.js)
 //   POST /transcribe  (audio body)         speech to text for a spoken
 //                                          Ai-Ching question (src/transcribe.js)
+//   POST /bookzam/scan  {image, width, height}
+//                                          the books and board games in a photo
+//   POST /bookzam/find  {image, width, height, query}
+//                                          where one book is in a photo, for
+//                                          Bookzam (src/bookzam.js)
 //
 // Each room is one Durable Object (`Room`). It relays two kinds of message
 // between the players in it, mirroring the presence/topics model the games
@@ -42,6 +47,7 @@
 import { DurableObject } from "cloudflare:workers";
 import { handleOracle } from "./oracle.js";
 import { handleTranscribe } from "./transcribe.js";
+import { handleBookzam } from "./bookzam.js";
 
 const MAX_MESSAGE_BYTES = 64 * 1024;
 const MAX_CAPACITY = 16;
@@ -109,7 +115,7 @@ export default {
     const url = new URL(request.url);
     if (request.method === "OPTIONS") return new Response(null, { headers: CORS });
     const parts = url.pathname.split("/").filter(Boolean);
-    if ((parts[0] === "lobby" || parts[0] === "room" || parts[0] === "votes" || parts[0] === "turn" || parts[0] === "oracle" || parts[0] === "transcribe") && !originAllowed(request, env)) {
+    if ((parts[0] === "lobby" || parts[0] === "room" || parts[0] === "votes" || parts[0] === "turn" || parts[0] === "oracle" || parts[0] === "transcribe" || parts[0] === "bookzam") && !originAllowed(request, env)) {
       return new Response("Origin not allowed", { status: 403, headers: CORS });
     }
 
@@ -124,6 +130,10 @@ export default {
 
     if (parts[0] === "transcribe" && parts.length === 1) {
       return handleTranscribe(request, env, { ...CORS, "Cache-Control": "no-store" });
+    }
+
+    if (parts[0] === "bookzam" && parts.length === 2) {
+      return handleBookzam(request, env, parts[1], { ...CORS, "Cache-Control": "no-store" });
     }
 
     if (parts[0] === "turn" && parts.length === 1) {
