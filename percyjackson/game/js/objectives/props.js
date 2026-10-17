@@ -12,7 +12,7 @@ export function makeStatue() {
   const grp = new THREE.Group();
   box(grp, 1.5, 0.5, 1.5, 0, 0.25, 0, mat(0x6e6a62, { r: 0.9 }));
   const rig = buildHeroModel('grover');
-  rig.root.position.y = 0.5; rig.root.scale.setScalar(0.95); grp.add(rig.root);
+  rig.root.position.y = 0.5; rig.root.scale.multiplyScalar(0.95); grp.add(rig.root);
   rig.armR.rotation.x = -2.2; rig.armL.rotation.x = -1.2; rig.armL.rotation.z = 0.5;
   const saved = [];
   rig.root.traverse((o) => { if (o.isMesh) { saved.push([o, o.material]); o.material = STONE; } });

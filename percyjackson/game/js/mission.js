@@ -138,7 +138,7 @@ export class Mission {
     const g = this.game;
     const grp = new THREE.Group(); grp.position.copy(it.pos);
     const student = buildHeroModel(['percy', 'annabeth', 'grover'][this.obj.items.indexOf(it) % 3]);
-    student.root.scale.setScalar(0.95); grp.add(student.root);
+    student.root.scale.multiplyScalar(0.95); grp.add(student.root);
     student.armR.rotation.x = -2.6; student.armL.rotation.x = -2.4;
     const bars = new THREE.MeshStandardNodeMaterial({ color: 0xffe0a0, emissive: 0xffc860, emissiveIntensity: 1.5, transparent: true, opacity: 0.8 });
     for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; const bar = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.6, 0.12), bars); bar.position.set(Math.cos(a) * 0.9, 1.3, Math.sin(a) * 0.9); grp.add(bar); }

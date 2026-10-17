@@ -394,7 +394,7 @@ export class Enemy {
     if (this.dead) {
       this.deathT += dt;
       this.rig.swap(null);
-      this.object.scale.setScalar(Math.max(0.01, 1 - this.deathT * 2.2) * (this.rig.spec.scale ?? 1));
+      this.object.scale.setScalar(Math.max(0.01, 1 - this.deathT * 2.2) * (this.rig.baseScale ?? this.rig.spec.scale ?? 1));
       this.object.position.y -= dt * 0.8;
       this.rig.animate({ dt, speed: 0, vel: this.vel, action: { type: 'death', t: Math.min(1, this.deathT * 2) } });
       return this.deathT < 0.5;
@@ -834,7 +834,8 @@ export class Enemy {
     if (this.rig.blob) {
       const inflate = this.state === 'windup' && a ? 1 + this.stateT / a.windup * 0.5 : 1;
       const sq = 1 + Math.sin(this.stateT * 12) * 0.08 * speed;
-      this.rig.root.scale.set(inflate * sq * 0.9, inflate / sq * 0.9, inflate * sq * 0.9);
+      const b = (this.rig.baseScale ?? 1) * 0.9;
+      this.rig.root.scale.set(inflate * sq * b, inflate / sq * b, inflate * sq * b);
     }
     rigOffsets(this.rig, -1);   // hunch and arm spread ride on top of the pose
     this.rig.animate({ dt, speed: Math.min(1, speed), vel: this.vel, action: act });

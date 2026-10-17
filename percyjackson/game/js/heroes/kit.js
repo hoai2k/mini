@@ -226,8 +226,9 @@ export class Kit {
   }
   canCast() { const a = this.p.action; return this.p.dodgeT <= 0 && !(a && a.type === 'cast' && a.lock); }
   cast(dur = 0.35, both = false, extra = {}) { this.p.action = { type: 'cast', dur, elapsed: 0, t: 0, both, moveScale: 0.35, ...extra }; this.p.facing = Math.atan2(this.p.aimDir.x, this.p.aimDir.z); }
+  // where a cast leaves the hand (1.1 m: the hand of a hero drawn at CHAR_SCALE, entities/character.js)
   handPos(out = new THREE.Vector3()) {
-    const p = this.p; return out.set(p.pos.x + Math.sin(p.facing) * 0.6, p.pos.y + 1.35, p.pos.z + Math.cos(p.facing) * 0.6);
+    const p = this.p; return out.set(p.pos.x + Math.sin(p.facing) * 0.6, p.pos.y + 1.1, p.pos.z + Math.cos(p.facing) * 0.6);
   }
   aimTarget() { return this.p.autoTarget || this.game.nearestEnemy(this.p.aimPoint, 3.5); }
   // Nearest living enemy roughly in the aim direction (falls back to the nearest close one).
