@@ -6,8 +6,8 @@ so `sites/publish.sh` copies it explicitly, the way it copies `music/`.
 | File | What it is |
 | --- | --- |
 | `play-debug.js` | The `?debug=play` switch: turns the in-page player back on |
-| `gate.js` | The shared invite gate, a byte-identical copy of the games' (`onemonster/game/src/gate/gate.js`). Change it there and copy it here |
-| `private-site.js` | Puts a page behind that gate, ignoring the public-access switch |
+| `gate.js` | The shared invite gate, byte-identical to the games' copies (`onemonster/`, `bronzedrum/`, `icecreamcone/` under `game/src/gate/gate.js`). Change all four together |
+| `private-site.js` | Puts a page behind that gate with `privateSite: true`, so the public-access switch never opens it |
 
 ## `?debug=play`
 
@@ -114,12 +114,16 @@ their own HTML:
   Anyone holding a pass from any game's invite gets straight in (the pass is
   shared across the whole domain); everyone else sees the door. Sessions are
   logged as `site:<name>` in the guest list.
-- **The public-access switch does not open these pages.** While the door
-  decides, `private-site.js` answers the request for `/public-access.json`
-  with "off" itself, so turning that switch on for the games never exposes a
-  private site.
+- **The public-access switch does not open these pages.** `private-site.js`
+  opens the gate with `privateSite: true`, which skips the switch entirely,
+  so turning it on for the games never exposes a private site.
 - As with the games, the door is off on localhost; add `?gatetest=1` to see
   it locally. It is a doorman, not a lock: the HTML is still public to anyone
   who reads the source.
 
 To make a site public again, take those four lines out of its pages.
+
+The `privateSite` option was added to the gate in this repository first. The
+reference copies in the `hoai2k.github.io` repository (`gate.js` beside
+`Code.gs`, and `src/gate/gate.ts`) still need the same change; until then
+they lack an option nothing there uses, and the games behave the same.
