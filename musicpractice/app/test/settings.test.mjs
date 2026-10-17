@@ -132,10 +132,13 @@ test('the drone fifth is on by default; switching it off is kept, an old save\'s
   assert.equal(sanitize({ droneFifth: false, droneFifthChosen: true }).droneFifth, false);
 });
 
-test('the visual pulse is off by default; switching it on is kept, an old save\'s on is not', () => {
-  assert.equal(DEFAULTS.metPulse, false);
-  assert.equal(sanitize({ metPulse: true }).metPulse, false); // an earlier save's default
-  assert.equal(sanitize({ metPulse: true, metPulseChosen: true }).metPulse, true);
+test('the pendulum on each beat: swing by default; saves from the two switches carry over', () => {
+  assert.equal(DEFAULTS.pendulumMode, 'swing');
+  assert.equal(sanitize({ pendulumMode: 'pulse' }).pendulumMode, 'pulse');
+  assert.equal(sanitize({ pendulumMode: 'spin' }).pendulumMode, 'swing');
+  assert.equal(sanitize({ metMotion: true, metPulse: true }).pendulumMode, 'swing'); // the old default pulse, never chosen
+  assert.equal(sanitize({ metMotion: true, metPulse: true, metPulseChosen: true }).pendulumMode, 'pulse');
+  assert.equal(sanitize({ metMotion: false, metPulse: false }).pendulumMode, 'off');
 });
 
 test('metronome clicks and view: quarter notes and the metronome by default, kept, bad values fall back', () => {
@@ -146,8 +149,8 @@ test('metronome clicks and view: quarter notes and the metronome by default, kep
   assert.equal(sanitize({ subdivision: 5 }).subdivision, 1);
   assert.equal(sanitize({ subdivision: '2' }).subdivision, 1);
   assert.equal(sanitize({ metView: 'disco' }).metView, 'metronome');
-  assert.deepEqual([DEFAULTS.vizBars, DEFAULTS.vizTrail], [4, true]);
-  assert.deepEqual([sanitize({ vizBars: 8, vizTrail: false }).vizBars, sanitize({ vizBars: 8, vizTrail: false }).vizTrail], [8, false]);
+  assert.equal(DEFAULTS.vizBars, 4);
+  assert.equal(sanitize({ vizBars: 8 }).vizBars, 8);
   assert.equal(sanitize({ vizBars: 3 }).vizBars, 4);
 });
 

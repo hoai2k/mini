@@ -119,14 +119,13 @@ when the Art Deco art arrives, measure and record its own.
   reads as the pendulum striking the end; a real pendulum's ease, slowest at
   the ends and fastest through the middle, made the middle look like the
   beat (`SWING_SHAPE`: x mixed with x³, speed 1.8 at the ends against 0.6
-  in the middle). Dots under it show the beat of the bar. **Visual pulse**
-  (off by default; saves from before keep it off unless it was switched at
-  the setting) makes the whole metronome flash on each beat, on the same
-  frame as the pendulum strikes an end: it brightens, swells a little and
-  glows round its own outline, red on the downbeat and a warm white
-  otherwise, so it can be seen from across a room, and the red glass lamp
-  mounted on its tip lights with it (dark glass between beats).
-  **Swinging pendulum** in the settings stops the swing.
+  in the middle). Dots under it show the beat of the bar. **On each beat**
+  (in the Pendulum tab) is **Swing** (the default), **Pulse** or **Off**,
+  never swinging and pulsing together (`pendulumMode`; saves from the two
+  switches it replaced carry over, a pulse someone turned on winning).
+  Pulse leaves the metronome as it is and flashes the page behind it on
+  each beat, in the theme's colours (the strong beat's on strong beats), so
+  it can be seen from across a room.
 - The clicks are loud: each is driven into a soft clipper (tanh) after
   the voice and before the volume, so the whole click sits near full scale
   rather than only its first instant, and ordinary beats sit just under the
@@ -189,13 +188,13 @@ when the Art Deco art arrives, measure and record its own.
   mixers take the click for every position (`slots`).
 - **Display** (metronome settings): two tabs, **Pendulum** (the default)
   and **Visualizer**; the chosen one opens, like a folder tab, into a
-  rounded box round its own options: Swinging pendulum and Visual pulse, or
-  **Bars shown** (1, 2, 4 or 8) and **Keep played beats lit**. Tapping the
+  rounded box round its own options: **On each beat** (Swing, Pulse or Off),
+  or **Bars shown** (1, 2, 4 or 8). Tapping the
   picture also switches between them. The Visualizer, its heading
   **Visualizer** right above it, shows a few bars of music at a time: a row
   per bar and a horizontal shape per beat, read left to right and down.
   Each beat's shape lights on its beat and fades, to a faint glow while
-  that pass is being played if beats are kept lit. The colours are the
+  that pass is being played. The colours are the
   theme's own, a pair per theme and mode (`--viz-strong`, `--viz-beat`):
   ember and brass for Classic, orange and teal for the 60s, magenta and
   cyan for Robot Future and so on, each faintly tinted when unlit.

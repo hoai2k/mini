@@ -88,10 +88,9 @@ export const DEFAULTS = Object.freeze({
   tempoDefaults: {}, // a named tempo's button, where one was chosen from its list: { 'jazz:ballad': 66 } // custom strong beats for the current time signature: { meter, pos } (cleanPattern)
   metView: 'metronome', // or 'bars' (the Visualizer)
   vizBars: 4, // the Visualizer's rows: bars of music shown at a time
-  vizTrail: true, // the beats already played in this pass stay faintly lit
-  metMotion: true, // the pendulum swings
-  metPulse: false, // the whole metronome flashes on each beat (seen from across a room)
-  metPulseChosen: false,
+  // The pendulum on each beat: 'swing', 'pulse' (the background flashes, to be
+  // seen from across a room) or 'off'; never both swing and pulse.
+  pendulumMode: 'swing',
   micTipCollapsed: false, // the iPhone microphone tip folded to its title
   homeOrder: ['metronome', 'tuner', 'drone', 'record'], // the home screen's buttons, hold and drag to reorder
   droneMidi: 48, // C3
@@ -121,6 +120,13 @@ const oneOf = (v, list, d) => (list.includes(v) ? v : d);
 export function clampBpm(v) {
   const n = Math.round(Number(v));
   return Number.isFinite(n) ? clamp(n, BPM_MIN, BPM_MAX) : DEFAULTS.bpm;
+}
+
+/** Saves from before the one choice had two switches: a pulse someone turned on wins, as swinging and pulsing are never together now. */
+function fromSwitches(s) {
+  if (s.metPulseChosen === true && s.metPulse === true) return 'pulse';
+  if (s.metMotion === false) return 'off';
+  return DEFAULTS.pendulumMode;
 }
 
 export function sanitize(raw) {
@@ -155,11 +161,7 @@ export function sanitize(raw) {
     accentPattern: cleanPattern(s.accentPattern, oneOf(s.meter, METERS.map((m) => m.id), DEFAULTS.meter)),
     metView: oneOf(s.metView, ['metronome', 'bars'], DEFAULTS.metView),
     vizBars: oneOf(s.vizBars, VIZ_BARS, DEFAULTS.vizBars),
-    vizTrail: typeof s.vizTrail === 'boolean' ? s.vizTrail : DEFAULTS.vizTrail,
-    metMotion: typeof s.metMotion === 'boolean' ? s.metMotion : DEFAULTS.metMotion,
-    // Saves from before the pulse was off by default stored it on without anyone choosing it.
-    metPulse: s.metPulseChosen === true && typeof s.metPulse === 'boolean' ? s.metPulse : DEFAULTS.metPulse,
-    metPulseChosen: s.metPulseChosen === true,
+    pendulumMode: oneOf(s.pendulumMode, ['swing', 'pulse', 'off'], fromSwitches(s)),
     homeOrder: homeOrder(s.homeOrder),
     droneMidi: clamp(Math.round(num(s.droneMidi, DEFAULTS.droneMidi)), 36, 59),
     droneVoice: oneOf(s.droneVoice, DRONE_VOICES, DEFAULTS.droneVoice),

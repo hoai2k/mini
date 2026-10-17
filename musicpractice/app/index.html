@@ -144,7 +144,6 @@
       <div class="met-body">
         <div class="met-visual" id="met-visual" role="button" tabindex="0">
           <div class="metronome" id="metronome-art" aria-hidden="true">
-            <div class="met-pulse" id="met-pulse"></div>
             <div class="met-layer met-case" id="metronome-case" data-asset="metronome-body"></div>
             <div class="met-layer met-pendulum" id="pendulum" data-asset="metronome-pendulum"></div>
           </div>
@@ -207,12 +206,10 @@
             <div class="met-tabs" id="met-view-chips" data-text-aria-label="metronome.settings.display"></div>
             <div class="met-tab-panel">
             <div class="met-art-opts" id="met-art-opts">
-              <label class="row toggle"><span data-text="metronome.settings.motion"></span><input type="checkbox" id="met-motion" role="switch"></label>
-              <label class="row toggle"><span data-text="metronome.settings.pulse"></span><input type="checkbox" id="met-pulse-on" role="switch"></label>
+              <div class="row"><span data-text="metronome.settings.pendulumMode"></span><div class="chips" id="pend-mode"></div></div>
             </div>
             <div class="met-viz-opts" id="met-viz-opts">
               <label class="row toggle"><span data-text="metronome.settings.vizBars"></span><select class="select" id="viz-bars"></select></label>
-              <label class="row toggle"><span data-text="metronome.settings.vizTrail"></span><input type="checkbox" id="viz-trail" role="switch"></label>
             </div>
             </div>
           </div>

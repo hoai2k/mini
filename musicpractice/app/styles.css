@@ -192,42 +192,22 @@ button { cursor: pointer; }
 .metronome {
   position: relative;
   /* main.js measures the height the controls leave (--pic-h); until it has,
-     40% of the screen. Room above for the lamp's top half. */
-  height: var(--pic-h, clamp(120px, calc(40dvh - var(--dot) / 2 - 4px), 460px));
+     40% of the screen. */
+  height: var(--pic-h, clamp(120px, 40dvh, 460px));
   aspect-ratio: 800 / 1200;
-  /* The visual pulse: the whole metronome brightens, swells a little and
-     glows round its own outline on each beat (--lit, 0 to 1, from main.js),
-     red on the downbeat and a warm white otherwise, so it reads from across
-     a room. At rest (--lit 0) this is exactly the picture. */
-  --flash: rgba(255, 214, 140, 0.95);
-  filter: brightness(calc(1 + 0.4 * var(--lit, 0))) drop-shadow(0 0 calc(34px * var(--lit, 0)) var(--flash)) drop-shadow(0 0 calc(10px * var(--lit, 0)) var(--flash));
-  transform: scale(calc(1 + 0.035 * var(--lit, 0)));
-  transform-origin: 50% 85%;
 }
-.metronome.strong { --flash: rgba(255, 56, 40, 0.95); }
 .met-layer { position: absolute; }
-/* The pulse: a red glass lamp mounted on the metronome's tip (every theme's
-   tip is at the top centre of its picture), part of the metronome: dark
-   glass in a metal rim between beats, lit on each beat (--lit, 0 to 1, set
-   from main.js) with its glow thrown over the top of the case, brightest on
-   the downbeat. */
-.metronome { --dot: clamp(13px, 2.6dvh, 19px); margin-top: calc(var(--dot) / 2 + 4px); }
-.met-pulse {
-  position: absolute; left: 50%; top: calc(var(--dot) / -2 + 1px); z-index: 2;
-  width: var(--dot); height: var(--dot); margin-left: calc(var(--dot) / -2);
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #c0605a, #6a1712 55%, #2e0806 100%);
-  box-shadow: 0 0 0 2px #2a221c, 0 0 0 3px rgba(255, 255, 255, 0.25), 0 1px 3px 1px rgba(0, 0, 0, 0.45);
-  pointer-events: none;
+/* The pulse (Pendulum, On each beat: Pulse): the page behind the metronome
+   flashes on each beat in the theme's colours (--lit, 0 to 1, from main.js),
+   the strong beat's colour on strong beats, so it reads from across a room.
+   The metronome itself stays as it is. */
+#metronome::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none;
+  background: var(--viz-beat, #2f8cff);
+  opacity: calc(0.42 * var(--lit, 0));
 }
-.met-pulse::after {
-  content: ""; position: absolute; inset: 0; border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #ffe0d8, #ff4a3a 40%, #c8160c 100%);
-  box-shadow: 0 0 calc(var(--dot) * 1.4) calc(var(--dot) * 0.5) rgba(255, 52, 36, 0.75), 0 calc(var(--dot) * 0.9) calc(var(--dot) * 2) rgba(255, 70, 40, 0.35);
-  opacity: var(--lit, 0);
-  will-change: opacity;
-}
-.met-pulse.strong::after { background: radial-gradient(circle at 35% 30%, #fff1ec, #ff5a48 40%, #d81c10 100%); }
+#metronome.strong::before { background: var(--viz-strong, #ff3b30); }
+#metronome > :not(dialog) { position: relative; z-index: 1; }
 .sync-bar { width: min(100%, 440px); display: flex; flex-direction: column; align-items: stretch; gap: 8px; text-align: center; }
 .sync-title { margin: 0; font: 700 1.15rem var(--display); }
 .sync-val { min-width: 5.5ch; font: 700 clamp(1.8rem, 7vw, 2.4rem)/1 var(--display); font-variant-numeric: tabular-nums; }

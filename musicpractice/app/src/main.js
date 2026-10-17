@@ -291,7 +291,7 @@ function stopMetronome() {
   pendulum.style.transform = 'rotate(0deg)';
   for (const li of $('beats').children) li.classList.remove('on');
   for (const b of $('met-bars').querySelectorAll('.met-bar')) b.style.setProperty('--lit', '0');
-  $('met-pulse').style.setProperty('--lit', '0');
+  $('metronome').style.setProperty('--lit', '0');
   $('metronome-art').style.setProperty('--lit', '0');
   $('met-toggle').setAttribute('aria-pressed', 'false');
   $('met-toggle-label').textContent = TEXT.metronome.start;
@@ -590,16 +590,12 @@ $('marking').addEventListener('click', () => {
 });
 // With the pendulum and the pulse both off (and no Visualizer) there are no
 // visuals to sync: Audio check's sync controls are then off.
-const visualsShown = () => settings.metMotion || settings.metPulse || settings.metView === 'bars';
-$('met-motion').checked = settings.metMotion;
-$('met-motion').addEventListener('change', () => { settings.metMotion = $('met-motion').checked; persist(); });
-$('met-pulse-on').checked = settings.metPulse;
-$('met-pulse').hidden = !settings.metPulse;
-$('met-pulse-on').addEventListener('change', () => {
-  settings.metPulse = $('met-pulse-on').checked;
-  settings.metPulseChosen = true;
-  $('met-pulse').hidden = !settings.metPulse;
-  art.style.setProperty('--lit', '0');
+const visualsShown = () => settings.pendulumMode !== 'off' || settings.metView === 'bars';
+// Pendulum, On each beat: Swing, Pulse or Off (never swinging and pulsing together).
+chips($('pend-mode'), ['swing', 'pulse', 'off'].map((id) => ({ id, label: TEXT.metronome.settings.pendulumModes[id] })), () => settings.pendulumMode, (id) => {
+  settings.pendulumMode = id;
+  $('metronome').style.setProperty('--lit', '0');
+  pendulum.style.transform = 'rotate(0deg)';
   persist();
 });
 
@@ -610,8 +606,7 @@ $('met-pulse-on').addEventListener('change', () => {
  * screen about a frame later. So the pendulum reaches the end of its swing,
  * the pulse flashes and the beat dot lights as each click is heard.
  */
-const pulse = $('met-pulse');
-const art = $('metronome-art');
+const metScreen = $('metronome');
 let lastFrame = 0;
 let frameSec = 1 / 60;
 function animateMetronome() {
@@ -621,20 +616,18 @@ function animateMetronome() {
   lastFrame = t;
   const now = metronome.native ? metronome.heardNow(frameSec) : heardNow(frameSec);
   const beat = metronome.beatAt(now);
-  const angle = settings.metMotion ? pendulumAngle(beat, now, metronome.period, swingOf(pendulum)) : 0;
+  const pendulumShown = settings.metView !== 'bars';
+  const angle = pendulumShown && settings.pendulumMode === 'swing' ? pendulumAngle(beat, now, metronome.period, swingOf(pendulum)) : 0;
   pendulum.style.transform = `rotate(${angle.toFixed(2)}deg)`;
-  // The pulse: the lamp at the top lights on the beat (the same moment the
-  // pendulum strikes an end) and dies away quickly, brightest on the downbeat.
+  // The pulse: the background flashes on the beat and dies away quickly,
+  // brightest on the downbeat.
   let k = 0;
-  if (settings.metPulse && beat) {
+  if (pendulumShown && settings.pendulumMode === 'pulse' && beat) {
     const since = now - beat.time;
     k = Math.exp(-since / Math.min(0.14, metronome.period * 0.3)) * [0.75, 0.85, 1][beat.strength];
   }
-  pulse.style.setProperty('--lit', k.toFixed(3));
-  pulse.classList.toggle('strong', !!beat && beat.strength === 2);
-  // And the whole metronome flashes with it, to be seen from across the room.
-  art.style.setProperty('--lit', k.toFixed(3));
-  art.classList.toggle('strong', !!beat && beat.strength === 2);
+  metScreen.style.setProperty('--lit', k.toFixed(3));
+  metScreen.classList.toggle('strong', !!beat && beat.strength === 2);
   const dots = $('beats').children;
   for (let i = 0; i < dots.length; i++) dots[i].classList.toggle('on', !!beat && beat.beat === i);
   // The Visualizer: read like music, left to right and down a row a bar. The
@@ -645,7 +638,7 @@ function animateMetronome() {
     const n = dots.length || 1;
     const at = beat ? (Math.floor((beat.count - beat.beat) / n) % settings.vizBars) * n + beat.beat : -1;
     const lit = beat ? Math.exp(-(now - beat.time) / Math.min(0.35, metronome.period * 0.55)) : 0;
-    const trail = settings.vizTrail ? VIZ_TRAIL : 0;
+    const trail = VIZ_TRAIL; // the beats played in this pass stay faintly lit
     for (let i = 0; i < cells.length; i++) {
       const v = i === at ? Math.max(lit, trail) : i < at ? trail : 0;
       cells[i].style.setProperty('--lit', v.toFixed(3));
@@ -714,8 +707,7 @@ const vizBars = $('viz-bars');
 vizBars.replaceChildren(...VIZ_BARS.map((n) => new Option(String(n), String(n))));
 vizBars.value = String(settings.vizBars);
 vizBars.addEventListener('change', () => { settings.vizBars = Number(vizBars.value); renderBeats(); persist(); });
-$('viz-trail').checked = settings.vizTrail;
-$('viz-trail').addEventListener('change', () => { settings.vizTrail = $('viz-trail').checked; persist(); });
+
 
 // ---------------------------------------------------------------- visual sync
 
