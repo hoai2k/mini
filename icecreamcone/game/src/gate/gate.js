@@ -60,8 +60,9 @@
  * on the very next load, with nothing to clear first. A friend who already
  * holds a real pass never reaches the check at all, and the switch never
  * touches theirs — see `publicAccessOn` and the top of `openGate`. A page
- * opened with `privateSite: true` (the private test sites under mini/sites/)
- * ignores the switch altogether.
+ * opened with `ignorePublicAccess: true` (an unfinished prototype, a private
+ * test site) never asks the switch: it stays code-locked even while the
+ * switch is on.
  */
 
 /** Where the guest list lives. Not a secret: it ships in this file either way. */
@@ -330,13 +331,13 @@ function buildDoor(opts) {
  * that cares must check `readPass()` rather than assume resolution means
  * admission.
  *
- * `opts.privateSite` keeps the door shut even while public access is on: the
- * switch exists to open games to everyone for a while, never the private test
- * sites, so for them the check is skipped and only a real pass gets through.
- * Unlike a patched request this cannot fail open — if the switch file ever
- * moved, a private site would still never ask it.
+ * `opts.ignorePublicAccess` keeps the door shut even while public access is
+ * on. The switch exists to open the finished games to everyone for a while,
+ * not unfinished prototypes or private test sites, so for those the check is
+ * skipped and only a real pass gets through. Because the switch is never
+ * asked, this cannot fail open whatever happens to the switch file.
  *
- * @param {{title: string, blurb: string, game: string, dismissible?: boolean, privateSite?: boolean, warm?: (signal: AbortSignal) => void}} opts
+ * @param {{title: string, blurb: string, game: string, dismissible?: boolean, ignorePublicAccess?: boolean, warm?: (signal: AbortSignal) => void}} opts
  */
 export function openGate(opts) {
   // A console escape hatch for the owner, always available: forget this
@@ -375,8 +376,8 @@ export function openGate(opts) {
     const warming = new AbortController();
     try { if (opts.warm) opts.warm(warming.signal); } catch (e) { console.warn('[gate] warm hook threw', e); }
 
-    // A private site never asks the switch: see `opts.privateSite`.
-    (opts.privateSite ? Promise.resolve(false) : publicAccessOn()).then((isPublic) => {
+    // Some pages never ask the switch: see `opts.ignorePublicAccess`.
+    (opts.ignorePublicAccess ? Promise.resolve(false) : publicAccessOn()).then((isPublic) => {
       if (isPublic) {
         // The owner's own switch, not an invite: nothing is written to
         // PASS_STORE, so a real friend's pass is untouched either way this
