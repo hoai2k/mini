@@ -67,9 +67,6 @@ are in [image-request-history.md](image-request-history.md).
 
 | Id | Image | Size | Status |
 | --- | --- | --- | --- |
-| `vox-spartoi` | Spartoi, the sown skeleton warriors | 2560 × 1440 | requested |
-| `vox-telekhine` | Telekhines, the seal-dog smiths with Greek fire | 2560 × 1440 | requested |
-| `vox-ow-map` | The open world round camp: the whole map | 2560 × 2560 | requested |
 | `vox-ow-fields` | Region: the Strawberry Fields | 2560 × 1440 | requested |
 | `vox-ow-woods` | Region: the Camp Woods | 2560 × 1440 | requested |
 | `vox-ow-shore` | Region: the North Shore | 2560 × 1440 | requested |
@@ -87,36 +84,7 @@ are in [image-request-history.md](image-request-history.md).
 | `vox-rt-towns-2` | Road-trip towns 2: Las Vegas to Santa Monica | 2560 × 1440 | requested |
 | `vox-rt-roadblocks` | Road-trip roadblocks, closed and opening | 2400 × 1600 | requested |
 
-### Round 4 · New monsters
-
-#### `vox-spartoi` — Spartoi, the sown skeleton warriors
-
-- **File:** `vox-spartoi.png`, 2560 × 1440 px, delivered to `design/concept/vox-spartoi.png`
-- **References:** `vox-key`, `vox-enemies`
-- **Use:** Reference for the spartoi model (entities/monsters.js, buildSkeleton with melee): steady sword-and-shield fodder in the desert, the Underworld and on the beach; not loaded by the game.
-- **Status:** requested
-
-> A monster model sheet in the blocky voxel 3D style of a Minecraft-Dungeons-like game, isometric three-quarter views on a flat parchment-cream background, every part built from chunky cubes with hand-painted pixel textures. Spartoi: skeleton warriors that grew from dragon's teeth sown in the earth, the size of a grown man. Old ivory bones with dark empty eye sockets, wearing tattered desert-tan military fatigues and boots over the bones, a dented bronze Greek helmet with a short crest, a curved bronze kopis sword in one hand and a round bronze hoplite shield in the other, painted with a black dragon-tooth emblem. Show one spartoi front, side and back; then in a ready stance behind the shield, mid-slash, and staggered back; then a squad of four marching in step, and one clawing up out of cracked earth. Menacing but readable, not gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
-
-#### `vox-telekhine` — Telekhines, the seal-dog smiths with Greek fire
-
-- **File:** `vox-telekhine.png`, 2560 × 1440 px, delivered to `design/concept/vox-telekhine.png`
-- **References:** `vox-key`, `vox-enemies`
-- **Use:** Reference for the telekhine model (entities/monsters.js): a lobber at Waterland that throws pots of Greek fire at a marked spot; not loaded by the game.
-- **Status:** requested
-
-> A monster model sheet in the blocky voxel 3D style of a Minecraft-Dungeons-like game, isometric three-quarter views on a flat parchment-cream background, every part built from chunky cubes with hand-painted pixel textures. Telekhines: ancient sea-demon smiths, half dog and half seal, about the size of a large dog. Sleek grey-blue hide with darker speckles and a pale belly, a dog's head with a blunt seal snout, small fangs and glowing orange eyes, flippers for front feet, a stubby seal tail, a leather smith's apron and a brass harness carrying a clay pot of glowing green-orange Greek fire on its back. Show one telekhine front, side and back; then rearing up to hurl a fire pot in a high arc, the pot landing on a glowing ring marked on the ground, and the splash of green-orange flame; then a pack of three waddling on their flippers. Sly and mischievous rather than frightening. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
-
 ### Round 5 · The open world
-
-#### `vox-ow-map` — The open world round camp: the whole map
-
-- **File:** `vox-ow-map.png`, 2560 × 2560 px, delivered to `design/concept/vox-ow-map.png`
-- **References:** `vox-key`, `vox-camp`, `map-camp`
-- **Use:** Layout and feel of the open world (world/owLayout.js): the eight regions and the roads between them. Generate this first in round 5.
-- **Status:** requested
-
-> A square top-down isometric overview map of a big blocky open world, like the world map of Minecraft Dungeons, sea along the whole left (west) edge. In the middle of the left side, Camp Half-Blood: cabins in a U round a green, the blue Big House, a lake, Half-Blood Hill with a great pine, and a road leaving it north. Around it, eight regions with distinct colours, joined by winding roads and dotted with glowing waystone pillars: north, the North Shore of Long Island Sound (white chalk cliffs, beaches, a red-and-white lighthouse, a shipwrecked Greek ship); north-east, Mount Othrys (grey crags, storm clouds and a ruined black-marble fortress on the summit); east of camp, the Strawberry Fields (patchwork farms, red barns, a windmill, orchards); far east, the Red Canyon (red mesas, slot canyons, a ghost town, a garden of stone statues); south-east of camp, the Camp Woods (dense pines, a creek, a huge fist-shaped pile of boulders); south, the Labyrinth (stone maze walls breaking out of the grass, bronze gates); far south-east, the Fields of Asphodel (grey ash plains, pale flowers, black poplars, the River Styx and a great black gate). 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
 #### `vox-ow-fields` — Region: the Strawberry Fields
 
