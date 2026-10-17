@@ -205,7 +205,8 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
   over, two need a jump from something lower. The field-trip bus in camp
   parks in open ground: its bonnet is a step and its roof a jump from there.
 - **The camera** starts a little further out (zoom 26, was 22; Settings →
-  Gameplay → Default zoom).
+  Gameplay → Default zoom). In a boss fight it also leans toward the boss and
+  pulls back to keep it in frame.
 - **Boss attacks are aimed or local:** lines, cones and target circles go
   where a hero is; rings round a boss are about 5 m (6 m for Mrs. Dodds's
   shriek), small enough to run out of in the wind-up. No boss charge or dash

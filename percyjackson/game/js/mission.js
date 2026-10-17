@@ -648,7 +648,7 @@ export class Mission {
     this.bossRoom = room;
     const boss = new Boss(g, resolveBoss(this.def.boss) ?? 'minotaur', pos, this.def.difficulty);
     g.scene.add(boss.object); g.enemies.push(boss);
-    this.boss = boss;
+    this.boss = boss; g.rig.subject = boss;   // (the camera keeps it in frame: camera.js)
     g.rig.cinematic({ center: pos.clone().setY(pos.y + 2), dur: 3, dist: 14, pitch: 32 * Math.PI / 180, orbit: 0.12 });
     g.targetDof = 0.25; setTimeout(() => { g.targetDof = 0; }, 2800);
     if (!holdTitle) toast(boss.B.title, 'title boss');

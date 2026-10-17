@@ -370,6 +370,7 @@ class Game {
   }
   // ---------------------------------------------------------------- level lifecycle
   clearLevel() {
+    if (this.rig) this.rig.subject = null;
     this.wipeLeft = 0;
     this.domainSys?.end();
     if (this.world) { this.scene.remove(this.world.group); this.releaseLater(this.world.group, { geometry: true }); }
