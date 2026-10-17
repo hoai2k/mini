@@ -576,9 +576,10 @@ session is set to `playback` only while no mic is held.
 
 **Audio check** (a button in every settings sheet, `app/src/audiocheck.js`)
 says nothing about how takes will play while all is well, and only when
-something is wrong (the microphone blocked, or kept open so Bluetooth can't
-be used) explains it, with the steps to allow the microphone and a Reload
-button; a test sound played the way takes are;
+something is wrong explains it: the microphone not yet set to Allow (so it
+is kept open and Bluetooth can't be used) gets the same short message the
+Playback Recorder shows, and a blocked microphone a line saying so, each
+with the pictured steps to allow it and a Reload button; a test sound played the way takes are;
 the microphone choice (Automatic, built-in preferred, or any listed mic,
 Bluetooth marked); the speaker choice where the browser allows one
 (desktop Chrome and Edge); and what the browser reports (engine, permission, mic state, devices, Bluetooth names, output
