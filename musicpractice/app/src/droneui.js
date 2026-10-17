@@ -200,14 +200,47 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
   });
   $('dr-toggle').addEventListener('click', () => (playing ? pause() : play()));
 
-  // ---- settings
+  // ---- volume: the upright slider beside the picture (drag the knob, or the
+  // track, up or down; arrow keys too), and the one in the settings.
   const vol = $('dr-volume');
-  vol.value = settings.droneVolume;
-  vol.addEventListener('input', () => {
-    settings.droneVolume = Number(vol.value);
+  const vs = $('dr-vol');
+  const track = vs.querySelector('.vslider-track');
+  function showVolume() {
+    vol.value = settings.droneVolume;
+    vs.style.setProperty('--v', settings.droneVolume);
+    vs.setAttribute('aria-valuenow', String(Math.round(settings.droneVolume * 100)));
+    vs.setAttribute('aria-valuetext', `${Math.round(settings.droneVolume * 100)}%`);
+  }
+  function setVolume(v) {
+    settings.droneVolume = Math.round(Math.max(0, Math.min(1, v)) * 100) / 100;
     persist();
+    showVolume();
     engine().setVolume(settings.droneVolume);
+  }
+  vol.addEventListener('input', () => setVolume(Number(vol.value)));
+  const fromPointer = (e) => {
+    const r = track.getBoundingClientRect();
+    return (r.bottom - e.clientY) / r.height;
+  };
+  vs.addEventListener('pointerdown', (e) => {
+    if (e.button) return;
+    e.preventDefault();
+    vs.focus({ preventScroll: true });
+    vs.setPointerCapture(e.pointerId);
+    setVolume(fromPointer(e));
   });
+  vs.addEventListener('pointermove', (e) => { if (vs.hasPointerCapture(e.pointerId)) setVolume(fromPointer(e)); });
+  vs.addEventListener('keydown', (e) => {
+    const step = { ArrowUp: 0.05, ArrowRight: 0.05, ArrowDown: -0.05, ArrowLeft: -0.05, PageUp: 0.2, PageDown: -0.2 }[e.key];
+    if (e.key === 'Home' || e.key === 'End') setVolume(e.key === 'End' ? 1 : 0);
+    else if (step) setVolume(settings.droneVolume + step);
+    else return;
+    e.preventDefault();
+    e.stopPropagation(); // not the page's arrow keys (which move the note)
+  });
+  showVolume();
+
+  // ---- settings
   const fifth = $('dr-fifth');
   fifth.checked = settings.droneFifth;
   fifth.addEventListener('change', () => {
@@ -287,6 +320,43 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
   document.querySelector('.dr-a4-down').addEventListener('click', () => setA4(settings.a4 - 1));
   document.querySelector('.dr-a4-up').addEventListener('click', () => setA4(settings.a4 + 1));
 
+  /*
+   * Size: on a phone or tablet held upright, the picture takes the height the
+   * controls leave (and as much width as there is), so the page fills the
+   * screen without scrolling. Measured, since the controls' height varies by
+   * theme, font and window; room is kept for the timer line, so it can come
+   * and go without moving anything. Side by side (a phone on its side), the
+   * stylesheet sizes it.
+   */
+  const scr = $('drone');
+  const body = $('drone-body');
+  const art = body.querySelector('.drone-art');
+  function fit() {
+    if (scr.hidden) return;
+    if (getComputedStyle(body).display !== 'flex') { scr.style.removeProperty('--art'); return; }
+    const cur = art.getBoundingClientRect().height;
+    if (!cur) return;
+    const timerEl = $('dr-timer');
+    const gap = parseFloat(getComputedStyle(body).rowGap) || 0;
+    const timerRoom = timerEl.hidden ? (parseFloat(getComputedStyle(timerEl).lineHeight) || 24) + gap : 0;
+    // The controls sit centred in the space, so measure them from the first to the last.
+    const shown = [...body.children].filter((e) => e.offsetParent).map((e) => e.getBoundingClientRect());
+    const used = Math.max(...shown.map((r) => r.bottom)) - Math.min(...shown.map((r) => r.top));
+    const pad = parseFloat(getComputedStyle(scr).paddingBottom) || 0;
+    const room = innerHeight - pad - body.getBoundingClientRect().top;
+    const tall = cur + room - used - timerRoom - 1;
+    const stage = body.querySelector('.drone-stage');
+    const extra = stage.getBoundingClientRect().width - cur; // the slider beside it, and its matching margin
+    const wide = body.getBoundingClientRect().width - extra;
+    scr.style.setProperty('--art', `${Math.round(Math.max(110, Math.min(820, tall, wide)))}px`);
+  }
+  let fitQueued = 0;
+  const queueFit = () => { cancelAnimationFrame(fitQueued); fitQueued = requestAnimationFrame(fit); };
+  addEventListener('resize', queueFit);
+  visualViewport?.addEventListener('resize', queueFit);
+  document.fonts?.ready.then(queueFit);
+  document.fonts?.addEventListener?.('loadingdone', queueFit);
+
   /** Bring the controls in line with the settings (also after the tuner changed A4 or spelling). */
   function refresh() {
     a4.value = settings.a4;
@@ -299,6 +369,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
 
   return {
     refresh,
+    fit: queueFit,
     stop: pause,
     toggle: () => (playing ? pause() : play()),
     step: (d) => setNote(settings.droneMidi + d),

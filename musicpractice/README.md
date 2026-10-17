@@ -192,7 +192,9 @@ when the Art Deco art arrives, measure and record its own.
   and **Visualizer**; the chosen one opens, like a folder tab, into a
   rounded box round its own options: **On each beat** (Swing, Pulse or Off),
   or **Bars shown** (1, 2, 4 or 8). Tapping the
-  picture also switches between them. The Visualizer, its heading
+  picture also switches between them, except the beat dots under the
+  pendulum: tapping one makes that beat strong or not (the same custom
+  strong beats as the pencil; the last one off turns the accent off). The Visualizer, its heading
   **Visualizer** right above it, shows a few bars of music at a time: a row
   per bar and a horizontal shape per beat, read left to right and down.
   Each beat's shape lights on its beat and fades, to a faint glow while
@@ -322,6 +324,12 @@ tones, scales over a tonic.
   instrument while it plays crossfades (about 1.5 s out); **Pause** stops at
   once, the sound and the hall's ring gone in about 50 ms (no click), the
   same on the web and in the apps' native mixers (`mobile/test` checks it).
+- The picture takes the height the controls leave and as much width as
+  there is (up to 820 px, so it is big on a tablet), with the controls
+  centred under it, measured as the metronome's picture is; a phone on its
+  side keeps it beside the controls. To its right, an upright **volume**
+  slider: drag the knob or the track up or down, or use the arrow keys (it
+  is the same volume as the one in the settings).
 - Instruments: **Cello** (the default), **Cello, soft** (sul tasto: darker),
   **Organ** and **Synth organ** (a synthesized pipe organ: 8', 4' and 16'
   pipes with a touch of wind, exactly in tune and perfectly steady). A voice

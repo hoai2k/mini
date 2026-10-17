@@ -141,6 +141,7 @@ function enter(name) {
     $('met-toggle').focus({ preventScroll: true });
     queueFit();
   }
+  if (name === 'drone') droneUI.fit();
   if (name === 'record') startRecorder();
   if (name === 'tuner') startTuner();
   if (name === 'drone') {
@@ -478,11 +479,9 @@ let editing = null; // { on: Set of positions, hidden: positions not on this gri
 function openAccents() {
   const m = meterOf(settings.meter);
   const sub = settings.subdivision;
-  const pattern = settings.accentPattern;
   const shown = new Set();
   for (let b = 0; b < m.beats; b++) for (let k = 0; k < sub; k++) shown.add(b * TICKS + (k * TICKS) / sub);
-  const current = !settings.accent ? [] : pattern ? pattern.pos
-    : beatStrengths(settings.meter, true).flatMap((s, b) => (s === 2 ? [b * TICKS] : []));
+  const current = strongPositions();
   editing = { on: new Set(current.filter((p) => shown.has(p))), hidden: current.filter((p) => !shown.has(p)) };
   const counts = TEXT.metronome.accents.counts[sub] || [];
   $('accent-grid').replaceChildren(...Array.from({ length: m.beats }, (_, b) => {
@@ -514,8 +513,14 @@ $('accent-clear').addEventListener('click', () => {
   editing.on.clear();
   for (const c of $('accent-grid').querySelectorAll('.accent-cell')) c.show();
 });
-$('accent-done').addEventListener('click', () => {
-  const pos = [...editing.on, ...editing.hidden];
+/** The strong positions as they are now (Strong beat on 1's, or the custom pattern's). */
+function strongPositions() {
+  if (!settings.accent) return [];
+  return settings.accentPattern ? settings.accentPattern.pos
+    : beatStrengths(settings.meter, true).flatMap((s, b) => (s === 2 ? [b * TICKS] : []));
+}
+/** Make these positions the strong ones (none turns Strong beat on 1 off). */
+function setStrong(pos) {
   if (!pos.length) {
     // Nothing strong: the switch goes off.
     settings.accent = false;
@@ -527,8 +532,21 @@ $('accent-done').addEventListener('click', () => {
     if (settings.accentPattern) customAccents.set(settings.meter, settings.accentPattern);
     else customAccents.delete(settings.meter);
   }
-  accentEditor.close();
   metronomeConfigured();
+}
+$('accent-done').addEventListener('click', () => {
+  setStrong([...editing.on, ...editing.hidden]);
+  accentEditor.close();
+});
+// Tapping a beat dot under the pendulum makes that beat strong, or not.
+// (The rest of the picture switches to the Visualizer.)
+$('beats').addEventListener('click', (e) => {
+  const dot = e.target.closest('li');
+  if (!dot) return;
+  e.stopPropagation();
+  const at = [...$('beats').children].indexOf(dot) * TICKS;
+  const pos = strongPositions();
+  setStrong(pos.includes(at) ? pos.filter((p) => p !== at) : [...pos, at]);
 });
 
 // ---------------------------------------------------------------- common tempos

@@ -357,7 +357,14 @@
         <button class="icon-btn" id="drone-settings-btn" data-text-aria-label="drone.settingsButton"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
       </header>
       <div class="drone-body" id="drone-body">
-        <div class="drone-art" aria-hidden="true"><div class="drone-glow"></div><span class="art" data-asset="home-drone"></span></div>
+        <div class="drone-stage">
+          <div class="drone-art" aria-hidden="true"><div class="drone-glow"></div><span class="art" data-asset="home-drone"></span></div>
+          <!-- Volume: drag the knob up or down (droneui.js). -->
+          <div class="vslider" id="dr-vol" role="slider" tabindex="0" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" data-text-aria-label="common.volume">
+            <svg class="vslider-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg>
+            <div class="vslider-track"><div class="vslider-fill"></div><div class="vslider-thumb"></div></div>
+          </div>
+        </div>
         <div class="drone-readout">
           <div class="tuner-note drone-note"><span id="dr-letter"></span><span class="acc" id="dr-acc"></span><span class="oct" id="dr-oct"></span></div>
           <p class="drone-hz" id="dr-hz"><span id="dr-hz-val"></span> <span class="drone-fifth-tag" id="dr-fifth-tag" data-text="drone.withFifth" hidden></span></p>
