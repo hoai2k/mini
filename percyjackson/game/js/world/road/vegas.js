@@ -77,7 +77,8 @@ export function roadside(ctx) {
         if (side === 'n' || side === 's') { for (let x = x0 + 2; x < x1 - 1; x += 3) if (W.get(x, y + 1, z)) W.set(x, y + 1, z, o.win ?? B.shop_window); }
         else for (let zz = z0 + 2; zz < z1 - 1; zz += 3) if (W.get(xs, y + 1, zz)) W.set(xs, y + 1, zz, o.win ?? B.shop_window);
       }
-      W.addRoof([x0, y + h, z0], [x1, y + h, z1], [[x0, y, z0], [x1, y + h - 1, z1]]);
+      // (o.cut: tall buildings fade their upper walls too when you go in, so the camera sees over the front)
+      W.addRoof([x0, y + (o.cut ?? h), z0], [x1, y + h, z1], [[x0 + 1, y, z0 + 1], [x1 - 1, y + Math.min(h, o.cut ?? h) - 1, z1 - 1]]);
     },
     // a gas station. road: which side the road is on ('s' = road to the south)
     gas(x0, z0, x1, z1, name, road = 's', o = {}) {
@@ -155,7 +156,8 @@ export function build(ctx) {
   const { k, deco, add, ROAD_Z, FY, W, rand } = ctx;
   const R = roadside(ctx), { S, P, bar, fill, board, COL } = R;
   // the Strip's sidewalks
-  ctx.flatten(322, 34, 431, 38, FY, B.sidewalk);
+  ctx.flatten(322, 34, 339, 38, FY, B.sidewalk);
+  ctx.flatten(349, 34, 431, 38, FY, B.sidewalk);
   ctx.flatten(349, 50, 431, 53, FY, B.sidewalk);
 
   // ------------------------------------------------------------ the Lotus Hotel and Casino
@@ -164,7 +166,7 @@ export function build(ctx) {
   k.room(x0, z0, x1, z1, FY, hP, B.lotus_panel, { trim: B.gold_trim, doors: [{ side: 's', at: 372, width: 5, height: 4 }] });
   fill(x0 + 1, FY - 1, z0 + 1, x1 - 1, FY - 1, z1 - 1, B.casino_carpet);
   fill(x0, FY + hP, z0, x1, FY + hP, z1, B.roof);
-  W.addRoof([x0, FY + hP, z0], [x1, FY + hP, z1], [[x0, FY, z0], [x1, FY + hP - 1, z1]]);
+  W.addRoof([x0, FY + 4, z0], [x1, FY + hP, z1], [[x0 + 1, FY, z0 + 1], [x1 - 1, FY + 3, z1 - 1]]);
   for (let x = x0 + 1; x < x1; x++) { W.set(x, FY + 4, z1, B.neon_bulbs); W.set(x, FY + 7, z1, x % 2 ? B.neon_green : B.neon_pink); }
   for (let x = x0 + 2; x < x1 - 1; x += 3) if (Math.abs(x - 372) > 3) for (let y = FY + 1; y < FY + 4; y++) W.set(x, y, z1, B.gold_marble);
   // the hotel tower over it, and the neon lotus on its face
@@ -181,6 +183,7 @@ export function build(ctx) {
     W.set(366 + c, top - 2 - r * 2, tz1, ch === 'P' ? B.neon_pink : ch === 'G' ? B.neon_green : B.neon_bulbs);
     W.set(366 + c, top - 3 - r * 2, tz1, ch === 'P' ? B.neon_pink : ch === 'G' ? B.neon_green : B.neon_bulbs);
   }
+  W.addRoof([tx0, FY + hP + 1, tz0], [tx1, top, tz1], [[x0 + 1, FY, z0 + 1], [x1 - 1, FY + 3, z1 - 1]]);   // (the tower fades too, so you can see the casino floor)
   W.addLight(372.5, top - 10, tz1 + 4, 0xff6ad0, 6, 22);
   W.addLight(372.5, top + 2, 22.5, 0x4affa0, 4, 16);
   // the porte-cochère over the doors (gold pillars, a canopy of bulbs)
@@ -236,7 +239,7 @@ export function build(ctx) {
   add.chest({ id: 'rt_vegas_pool', x: 389, z: 66, y: FY, rarity: 'common' });
   // the Olympus Palace: marble columns, gold, neon
   ctx.flatten(394, 52, 412, 68, FY, B.marble_floor);
-  R.building(396, 55, 411, 67, 10, B.marble_white, { trim: B.gold_trim, floor: B.casino_carpet, doors: [{ side: 'n', at: 403, width: 3, height: 4 }] });
+  R.building(396, 55, 411, 67, 10, B.marble_white, { trim: B.gold_trim, floor: B.casino_carpet, cut: 4, doors: [{ side: 'n', at: 403, width: 3, height: 4 }] });
   for (let x = 396; x <= 411; x += 3) fill(x, FY, 53, x, FY + 7, 53, B.column);
   fill(395, FY + 8, 53, 412, FY + 8, 54, B.marble_white); for (let x = 395; x <= 412; x++) W.set(x, FY + 8, 53, B.neon_bulbs);
   for (let z = 55; z <= 67; z += 2) { W.set(395, FY + 9, z, B.neon_pink); W.set(412, FY + 9, z, B.neon_pink); }
@@ -284,7 +287,7 @@ export function build(ctx) {
 
   // ------------------------------------------------------------ Sal the valet and his lost key tags
   add.npc({ id: 'rt_vegas_valet', x: 383, z: 36, model: 'mortal:bellhop', yaw: 0 });
-  for (const [i, x, z] of [[1, 335, 24], [2, 357, 58], [3, 388, 63], [4, 426, 12]]) add.item({ id: `rt_vegas_key${i}`, quest: 'rt_vegas_valet_keys', x, z });
+  for (const [i, x, z, y] of [[1, 335, 24], [2, 356, 59, FY], [3, 388, 63], [4, 426, 12]]) add.item({ id: `rt_vegas_key${i}`, quest: 'rt_vegas_valet_keys', x, z, y });
 }
 
 export const QUESTS = [
