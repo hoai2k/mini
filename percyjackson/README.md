@@ -286,6 +286,26 @@ remaining tracks are in [design/music-requests.md](design/music-requests.md).
 The full design, including the later chapters and books, is in
 [design/game-design.md](design/game-design.md).
 
+## Debug: jump to any scene
+
+For testing and auditing levels and cutscenes. Turn on Settings → Data →
+Debug; a **Debug: scenes** button then shows on the title, in the pause menu
+and in Settings. The menu jumps to:
+
+- any step of the opening: the Manhattan prologue, the three cutscenes, and
+  chapters 1 and 2 in their story form;
+- camp;
+- any chapter, with a chosen hero and difficulty, optionally after its story
+  cards, and optionally straight into the boss fight (its arena, the gates
+  open, the boss up; not for chapters 1, 3 and 8, whose bosses have their own
+  way in).
+
+Nothing is saved while debugging. The first jump swaps the save for one held
+in memory (every hero and chapter unlocked), and Continue's resume point and
+the save-slot list stop writing. A red **DEBUG · nothing is saved** badge
+stays on screen; **Leave** reloads the page with the real save as it was.
+`game/js/ui/debugMenu.js` has the code.
+
 ## Controls
 
 | Action | Xbox controller | Keyboard and mouse |

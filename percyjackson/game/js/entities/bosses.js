@@ -266,18 +266,9 @@ export class Boss {
   // sight, until he fell far enough to be put back at his start).
   *dashLine(dir, speed, ticks, dmg, { stopOnWall = false, hitR = 2.2, dust = 0x8a7a6a, trail = null } = {}) {
     const g = this.game, w = g.world, hit = new Set(), last = this.pos.clone();
-    const room = this.roomAt(), pad = this.radius + 0.6;
+    const room = this.roomAt();
     let stuck = 0;
     for (let k = 0; k < ticks; k++) {
-      // the next stretch: out of the room, or no floor within a step or two below?
-      const look = pad + speed * 0.06, ax = this.pos.x + dir.x * look, az = this.pos.z + dir.z * look;
-      const out = room && (ax < room.x0 + pad || ax > room.x1 + 1 - pad || az < room.z0 + pad || az > room.z1 + 1 - pad);
-      const gy = w.groundBelow(ax, az, this.pos.y + 1.5);
-      if (out || !isFinite(gy) || gy < this.pos.y - 2) {
-        if (stopOnWall && out && w.solidAt(ax, this.pos.y + 1.5, az)) { this.knock.set(0, 0, 0); this.vel.set(0, 0, 0); return 'wall'; }
-        this.knock.set(0, 0, 0); this.vel.multiplyScalar(0.2);
-        return 'edge';
-      }
       this.knock.copy(dir).multiplyScalar(speed);
       for (const p of g.hostileTargets()) { if (!p.dead && !hit.has(p) && p.pos.distanceTo(this.pos) < hitR + (p.radius ?? 0.3)) { hit.add(p); p.takeDamage(dmg, this, { knock: dir.clone().multiplyScalar(13).setY(4) }); } }
       if (dust) g.particles.burst(this.pos, { count: 3, color: dust, additive: false, speed: 2, life: 0.5, size: 0.6, sizeEnd: 1.6 });
@@ -290,6 +281,12 @@ export class Boss {
         stuck = this.hitWall && moved < speed * 0.01 ? stuck + 1 : 0;
         if (tall || stuck >= 2) { this.knock.set(0, 0, 0); this.vel.set(0, 0, 0); return 'wall'; }
       }
+      // the next step would leave the room it started in (a doorway, an open
+      // edge) or run off a drop: skid to a halt there
+      const look = this.radius + 0.3 + speed * 0.05, bx = this.pos.x + dir.x * look, bz = this.pos.z + dir.z * look;
+      const out = room && (bx < room.x0 || bx > room.x1 + 1 || bz < room.z0 || bz > room.z1 + 1);
+      const gy = w.groundBelow(bx, bz, this.pos.y + 1.5);
+      if (out || !isFinite(gy) || gy < this.pos.y - 2) { this.knock.set(0, 0, 0); this.vel.multiplyScalar(0.2); return 'edge'; }
       last.copy(this.pos);
       yield 0.04;
     }

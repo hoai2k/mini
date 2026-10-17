@@ -115,6 +115,8 @@ export function makeCharMaterial(map, opts = {}) {
   return m;
 }
 
+const _v1 = new THREE.Vector3(), _box = new THREE.Box3(), _m = new THREE.Matrix4(), _inv = new THREE.Matrix4();
+
 // ---------------------------------------------------------------- rig
 // The rest pose (radians): arms out to the sides and a touch forward, legs apart.
 const IDLE = { armZ: 0.22, armX: -0.06, legZ: 0.1 };
@@ -228,7 +230,7 @@ export class Rig {
         case 'dodge': {
           // forward roll: whole body tucks and rotates about X
           const rk = easeOutCubic(clamp(k, 0, 1));
-          T.rootX = rk * Math.PI * 2; T.lift = Math.sin(k * Math.PI) * 0.35;
+          T.rootX = rk * Math.PI * 2; T.lift = Math.sin(k * Math.PI) * 0.08;   // (the roll turns about the tucked body's centre: see rollAbout)
           T.legRX = -1.4; T.legLX = -1.2; T.armRX = -1.8; T.armLX = -1.8; T.headX = 0.4; T.torsoX = 0.6;
           snap = 50; break;
         }
@@ -267,10 +269,40 @@ export class Rig {
     L(this.armL, 'armLX', T.armLX, 'x'); L(this.armL, 'armLY', T.armLY, 'y'); L(this.armL, 'armLZ', T.armLZ, 'z');
     L(this.legR, 'legRX', T.legRX, 'x'); L(this.legL, 'legLX', T.legLX, 'x');
     L(this.legR, 'legRZ', T.legRZ, 'z'); L(this.legL, 'legLZ', T.legLZ, 'z');
-    // body roll (dodge) and death fall rotate the hips around their pivot
-    if (a && (a.type === 'dodge')) this.hips.rotation.x = T.rootX;
-    else this.hips.rotation.x = damp(this.hips.rotation.x % (Math.PI * 2), T.rootX, snap, dt);
+    // body roll (dodge): turns about the tucked body's centre of mass; the
+    // death fall rotates the hips around their pivot
+    if (a && (a.type === 'dodge')) this.rollAbout(T.rootX, T.lift);
+    else { this.hips.rotation.x = damp(this.hips.rotation.x % (Math.PI * 2), T.rootX, snap, dt); this.hips.position.z = damp(this.hips.position.z, 0, snap, dt); }
     this.physics(p);
+  }
+  // The roll turned the whole body about the hip joint, so the tucked body's
+  // centre (about 0.6 m up and 0.6 m forward of the hips) swung round a circle
+  // 1.7 m across, through the floor and back. Here the centre of mass, worked
+  // out from the posed pieces each frame (it shifts as the limbs tuck), stays
+  // where it was with the hips upright: on the line of travel, at one height.
+  rollAbout(theta, lift = 0) {
+    const c = this.massCentre(), cs = Math.cos(theta), sn = Math.sin(theta);
+    this.hips.rotation.x = theta;
+    this.hips.position.y = this.dims.legH * PX + lift - (c.y * cs - c.z * sn) + c.y;
+    this.hips.position.z = c.z - (c.y * sn + c.z * cs);
+  }
+  // Centre of mass of the body in hips space (pieces weighted by their box volume).
+  massCentre() {
+    const c = this._com ?? (this._com = new THREE.Vector3()), v = _v1, b = _box;
+    const rot = this.hips.rotation.x, pz = this.hips.position.z;
+    this.hips.rotation.x = 0; this.hips.position.z = 0;
+    this.hips.updateMatrixWorld(true);
+    _inv.copy(this.hips.matrixWorld).invert();
+    let m = 0; c.set(0, 0, 0);
+    this.hips.traverse((o) => {
+      if (!o.isMesh || !o.geometry) return;
+      if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+      b.copy(o.geometry.boundingBox).applyMatrix4(_m.multiplyMatrices(_inv, o.matrixWorld));
+      b.getSize(v); const w = Math.max(1e-6, v.x * v.y * v.z);
+      c.addScaledVector(b.getCenter(v), w); m += w;
+    });
+    this.hips.rotation.x = rot; this.hips.position.z = pz;
+    return m ? c.divideScalar(m) : c.set(0, 0, 0);
   }
   attackPose(T, a, k) {
     // wind-up (0..w), strike (w..s), recover (s..1)

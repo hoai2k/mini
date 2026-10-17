@@ -9,6 +9,7 @@ const DEFAULTS = {
   vibration: true,     // controller rumble
   rightStick: 'dodge', // controller right stick: 'dodge' (flick to roll, as in Minecraft Dungeons II) or 'aim'
   reduceMotion: false, // also honours the system "reduce motion" preference
+  debug: false,        // Settings → Data → Debug: a menu that jumps to any scene (ui/debugMenu.js); nothing is saved there
 };
 export const settings = { ...DEFAULTS };
 try { Object.assign(settings, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* ignore */ }

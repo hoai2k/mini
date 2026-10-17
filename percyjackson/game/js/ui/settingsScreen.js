@@ -4,6 +4,7 @@
 import { h, toast, confirmDialog } from './ui.js';
 import { settings, saveSettings, resetSettings } from '../settings.js';
 import { QUALITY_LABEL } from '../gfx/renderer.js';
+import { openDebugMenu } from './debugMenu.js';
 
 let tab = 'audio';
 
@@ -70,6 +71,9 @@ export function openSettings(game, onClose) {
           title: 'Skip the opening?', text: 'You go straight to Camp Half-Blood. Chapters 1 and 2 can still be played from their quest markers and the chapter map.', yes: 'Skip to camp', no: 'Keep the story',
           onYes: () => { game.opening.skip(); toast('The opening is skipped: welcome to camp'); if (ui.isOpen('settings')) ui.refresh('settings'); },
         }) }, 'Skip the opening…')) : null,
+        // for testing levels and cutscenes: the menu shows on the title and pause screens too
+        row('Debug (jump to any scene; nothing is saved)', check('debug', () => { ui.refresh('settings'); if (ui.isOpen('title')) ui.refresh('title'); })),
+        settings.debug ? row('Debug menu', h('button', { class: 'btn small', onclick: () => openDebugMenu(game) }, 'Scenes…')) : null,
         row('Erase progress', h('button', { class: 'btn small danger', onclick: () => confirmDialog(game, {
           title: 'Erase all progress?', text: 'The main profile of the active save loses its heroes, drachmas, loot and completed chapters. This cannot be undone.', yes: 'Erase everything', no: 'Keep my progress', danger: true,
           onYes: () => { game.save.reset(); toast('Progress erased'); if (ui.isOpen('title')) ui.refresh('title'); },

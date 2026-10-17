@@ -3,6 +3,8 @@
 // tree, camp store and the pause menu.
 import { h, toast, confirmDialog } from './ui.js';
 import { openSettings } from './settingsScreen.js';
+import { openDebugMenu } from './debugMenu.js';
+import { settings } from '../settings.js';
 import { openInstructions } from './instructions.js';
 import { openChapterMap } from './chapterMap.js';
 import { openProphecy } from './prophecy.js';
@@ -82,6 +84,7 @@ export function openPauseMenu(game, player = game.players?.[0]) {
       h('button', { class: 'btn primary', 'data-autofocus': true, onclick: resume }, 'Resume'),
       h('button', { class: 'btn', onclick: () => openInstructions(game) }, 'Instructions'),
       h('button', { class: 'btn', onclick: () => openSettings(game) }, 'Settings'),
+      settings.debug ? h('button', { class: 'btn', onclick: () => openDebugMenu(game) }, 'Debug: scenes') : null,
       h('button', { class: 'btn', onclick: () => openProphecy(game, bookId) }, 'Prophecy'),
       h('button', { class: 'btn', onclick: () => { ui.close('pause'); openInventory(game, player); } }, 'Inventory'),
       game.minimap?.level ? h('button', { class: 'btn', onclick: () => { ui.close('pause'); game.paused = false; game.openMap(); } }, 'Map') : null,

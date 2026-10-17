@@ -5,10 +5,11 @@
 // Menu/Start starts.
 import { h, padSnap } from './ui.js';
 import { openSettings } from './settingsScreen.js';
+import { openDebugMenu } from './debugMenu.js';
 import { openInstructions } from './instructions.js';
 import { openSelect } from './partySelect.js';
 import { isMobile } from '../util.js';
-import { saveSettings } from '../settings.js';
+import { saveSettings, settings } from '../settings.js';
 import { logoCanvas } from './art.js';
 
 const ICONS = {
@@ -97,6 +98,7 @@ export function openTitle(game) {
       h('div', { class: 'title-utils', role: 'group', 'aria-label': 'Options' },
         util('instructions', 'Instructions', ICONS.instructions, () => open(openInstructions)),
         util('settings', 'Settings', ICONS.settings, () => open(openSettings)),
+        settings.debug ? util('debug', 'Debug: scenes', ICONS.settings, () => openDebugMenu(game)) : null,
         util('sound', 'Sound on', ICONS.soundOn, toggleSound),
         util('fullscreen', 'Fullscreen', ICONS.fullscreen, toggleFs)));
     window.addEventListener('keydown', onKey);
