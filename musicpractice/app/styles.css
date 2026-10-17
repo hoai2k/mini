@@ -186,26 +186,32 @@ button { cursor: pointer; }
 .met-visual { display: flex; flex-direction: column; align-items: center; gap: 14px; }
 .metronome {
   position: relative;
-  height: clamp(200px, calc(40dvh - var(--dot) - 8px), 460px); /* room above for the lamp */
+  height: clamp(200px, calc(40dvh - var(--dot) / 2 - 4px), 460px); /* room above for the lamp's top half */
   aspect-ratio: 800 / 1200;
 }
 .met-layer { position: absolute; }
-/* The pulse: a red lamp just above the metronome's tip (every theme's tip is
-   at the top centre of its picture). Dim between beats, it lights on each
-   beat (--lit, 0 to 1, set from main.js), brightest on the downbeat. */
-.metronome { --dot: clamp(12px, 2.4dvh, 18px); margin-top: calc(var(--dot) + 8px); }
+/* The pulse: a red glass lamp mounted on the metronome's tip (every theme's
+   tip is at the top centre of its picture), part of the metronome: dark
+   glass in a metal rim between beats, lit on each beat (--lit, 0 to 1, set
+   from main.js) with its glow thrown over the top of the case, brightest on
+   the downbeat. */
+.metronome { --dot: clamp(13px, 2.6dvh, 19px); margin-top: calc(var(--dot) / 2 + 4px); }
 .met-pulse {
-  position: absolute; left: 50%; top: calc(-1 * var(--dot) - 6px); z-index: 2;
+  position: absolute; left: 50%; top: calc(var(--dot) / -2 + 1px); z-index: 2;
   width: var(--dot); height: var(--dot); margin-left: calc(var(--dot) / -2);
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 32%, #ffb3a8, #f0352a 45%, #9c120c 100%);
-  box-shadow: 0 0 0 1.5px rgba(40, 8, 6, 0.55),
-    0 0 calc(var(--dot) * 1.6 * var(--lit, 0)) calc(var(--dot) * 0.45 * var(--lit, 0)) rgba(255, 52, 36, 0.8);
-  opacity: calc(0.28 + 0.72 * var(--lit, 0));
-  transform: scale(calc(0.92 + 0.16 * var(--lit, 0)));
-  pointer-events: none; will-change: opacity, transform, box-shadow;
+  background: radial-gradient(circle at 35% 30%, #c0605a, #6a1712 55%, #2e0806 100%);
+  box-shadow: 0 0 0 2px #2a221c, 0 0 0 3px rgba(255, 255, 255, 0.25), 0 1px 3px 1px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
 }
-.met-pulse.strong { background: radial-gradient(circle at 35% 32%, #ffd0c8, #ff4a3c 45%, #b3160e 100%); }
+.met-pulse::after {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffe0d8, #ff4a3a 40%, #c8160c 100%);
+  box-shadow: 0 0 calc(var(--dot) * 1.4) calc(var(--dot) * 0.5) rgba(255, 52, 36, 0.75), 0 calc(var(--dot) * 0.9) calc(var(--dot) * 2) rgba(255, 70, 40, 0.35);
+  opacity: var(--lit, 0);
+  will-change: opacity;
+}
+.met-pulse.strong::after { background: radial-gradient(circle at 35% 30%, #fff1ec, #ff5a48 40%, #d81c10 100%); }
 .sync-bar { width: min(100%, 440px); display: flex; flex-direction: column; align-items: stretch; gap: 8px; text-align: center; }
 .sync-title { margin: 0; font: 700 1.15rem var(--display); }
 .sync-val { min-width: 5.5ch; font: 700 clamp(1.8rem, 7vw, 2.4rem)/1 var(--display); font-variant-numeric: tabular-nums; }
