@@ -31,6 +31,7 @@ public final class MixerTest {
         droneLevels();
         droneSeamless();
         droneSchedule();
+        droneStopQuick();
         droneSameNote();
         speed();
         writeForSwift();
@@ -273,6 +274,20 @@ public final class MixerTest {
         m.dronePlay("cello", 48, 440, false);
         render(m, 2);
         check(m.droneState()[0] == 1, "stopping cleared the schedule: playing again runs untimed");
+    }
+
+    static void droneStopQuick() {
+        System.out.println("drone: pausing stops at once (the long fades are for starting and changing note)");
+        PracticeMixer m = mixer();
+        m.dronePlay("cello", 48, 440, true);
+        float[][] on = render(m, 3);
+        double playing = rms(on[0], (int) (2 * SR), (int) (3 * SR));
+        m.droneStop();
+        float[][] off = render(m, 0.5);
+        double after = rms(off[0], (int) (0.1 * SR), (int) (0.5 * SR));
+        check(after < playing * 0.01, "100 ms after Stop, sound and hall are down " + String.format("%.0f", 20 * Math.log10(after / playing)) + " dB (more than 40)");
+        render(m, 0.5);
+        check(m.idle(), "and the mixer is idle within a second");
     }
 
     static void droneSameNote() {

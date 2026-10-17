@@ -15,7 +15,8 @@ import Foundation
 /// together.
 final class PracticeMixer {
     static let fadeIn = 0.65 // time constants, as drone.js: about 2 s in
-    static let fadeOut = 0.45 // and 1.5 s out
+    static let fadeOut = 0.45 // and 1.5 s out when moving to a new note
+    static let pauseFade = 0.012 // pausing: gone in about 50 ms, sound and hall
     // Measured against the web drone over all 24 notes (mobile/test/): the hall's level
     // and the web compressor's makeup gain.
     static let verbGain = 0.51
@@ -103,6 +104,7 @@ final class PracticeMixer {
     private var verb: Freeverb
     private var comp = Compressor()
     private var tail: Int64 = 0 // frames of reverb tail still to render
+    private var hall = 1.0, hallTarget = 1.0 // the hall's ring, cut short by a stop
 
     private var dronePlayingFlag = false
     private var droneVoice = ""
@@ -233,6 +235,7 @@ final class PracticeMixer {
             let same = dronePlayingFlag && voiceId == droneVoice && midi == droneMidi && a4 == droneA4 && fifth == droneFifth
             dronePlayingFlag = true
             stoppedByTimer = false
+            hallTarget = 1
             droneVoice = voiceId
             droneA4 = a4
             droneFifth = fifth
@@ -265,7 +268,11 @@ final class PracticeMixer {
     private func stopDrone() {
         dronePlayingFlag = false
         timed = false
-        fadeOutAll()
+        for l in layers {
+            l.target = 0
+            l.coef = coef(PracticeMixer.pauseFade)
+        }
+        hallTarget = 0
     }
 
     func droneVolume(_ v: Double) {
@@ -368,7 +375,7 @@ final class PracticeMixer {
         lock.lock()
         defer { lock.unlock() }
         advanceSchedule(frames)
-        let metCoef = coef(0.02), volCoef = coef(0.05), mixCoef = coef(0.5)
+        let metCoef = coef(0.02), volCoef = coef(0.05), mixCoef = coef(0.5), hallCoef = coef(PracticeMixer.pauseFade)
         let clickStep = clickSr / sr
         let droneOn = !layers.isEmpty || tail > 0
         let dg = testNoDry ? 0.0 : 1.0, wg = testNoWet ? 0.0 : PracticeMixer.verbGain
@@ -435,9 +442,10 @@ final class PracticeMixer {
                 }
                 wet += (wetTarget - wet) * mixCoef
                 dry += (dryTarget - dry) * mixCoef
+                hall += (hallTarget - hall) * hallCoef
                 let (vl, vr) = verb.process(bl, br)
-                let dl = bl * dry * dg + vl * wet * wg
-                let dr = br * dry * dg + vr * wet * wg
+                let dl = bl * dry * dg + vl * wet * wg * hall
+                let dr = br * dry * dg + vr * wet * wg * hall
                 droneGain += (droneVolumeTarget - droneGain) * volCoef
                 let (cl, cr) = comp.process(dl * droneGain, dr * droneGain)
                 l += cl
@@ -450,7 +458,7 @@ final class PracticeMixer {
         frameCount += Int64(frames)
         // Notes that have faded out go; the hall rings on a little longer.
         layers.removeAll { $0.target == 0 && $0.env < 1e-4 }
-        if !layers.isEmpty { tail = Int64(PracticeMixer.tailSec * sr) } else if tail > 0 { tail -= Int64(frames) }
+        if !layers.isEmpty { tail = Int64((hallTarget > 0 ? PracticeMixer.tailSec : 0.1) * sr) } else if tail > 0 { tail -= Int64(frames) }
     }
 
     private func startClick(_ kind: Int, _ pos: Double) {
