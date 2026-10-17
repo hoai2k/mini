@@ -649,11 +649,11 @@ function showMetView() {
   const bars = settings.metView === 'bars';
   $('metronome-art').hidden = bars;
   $('beats').hidden = bars;
-  $('met-bars').hidden = !bars;
+  $('met-viz').hidden = !bars;
   $('met-viz-opts').hidden = !bars;
   $('met-art-opts').hidden = bars;
   syncViewChips();
-  $('met-bars-title').hidden = !bars;
+  $('met-view-chips').dataset.on = settings.metView;
   $('met-visual').setAttribute('aria-label', TEXT.metronome.switchTo[bars ? 'metronome' : 'bars']);
   for (const b of $('met-bars').querySelectorAll('.met-bar')) b.style.setProperty('--lit', '0');
   syncControlsLive();
@@ -685,7 +685,7 @@ function fitPicture() {
   if (scr.hidden) return;
   const body = scr.querySelector('.met-body');
   if (getComputedStyle(body).flexDirection !== 'column') { scr.style.removeProperty('--pic-h'); return; }
-  const pic = settings.metView === 'bars' ? $('met-bars') : $('metronome-art');
+  const pic = settings.metView === 'bars' ? $('met-viz') : $('metronome-art');
   const cur = pic.getBoundingClientRect().height;
   if (!cur) return;
   const last = Math.max(...[...scr.querySelectorAll('.met-controls > *, .sync-bar > *')]
@@ -699,6 +699,7 @@ const queueFit = () => { cancelAnimationFrame(fitQueued); fitQueued = requestAni
 addEventListener('resize', queueFit);
 visualViewport?.addEventListener('resize', queueFit);
 document.fonts?.ready.then(queueFit);
+document.fonts?.addEventListener?.('loadingdone', queueFit); // a theme's fonts can arrive later
 const vizBars = $('viz-bars');
 vizBars.replaceChildren(...VIZ_BARS.map((n) => new Option(String(n), String(n))));
 vizBars.value = String(settings.vizBars);
