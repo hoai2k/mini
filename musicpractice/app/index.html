@@ -148,6 +148,8 @@
             <div class="met-layer met-case" id="metronome-case" data-asset="metronome-body"></div>
             <div class="met-layer met-pendulum" id="pendulum" data-asset="metronome-pendulum"></div>
           </div>
+          <!-- The Visualizer: a bar per beat of the bar, in place of the metronome (main.js). -->
+          <div class="met-bars" id="met-bars" aria-hidden="true" hidden></div>
           <ol class="beats" id="beats" aria-hidden="true"></ol>
         </div>
         <div class="met-controls">
@@ -167,7 +169,10 @@
             <svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
             <span id="met-toggle-label" data-text="metronome.start"></span>
           </button>
-          <p class="meter-note" id="meter-note"></p>
+          <div class="met-foot">
+            <p class="meter-note" id="meter-note"></p>
+            <button type="button" class="pill met-view" id="met-view" aria-pressed="false" data-text="metronome.visualizer"></button>
+          </div>
         </div>
         <!-- Line up the visuals with the sound (Bluetooth speakers play late). -->
         <div class="sync-bar" id="sync-bar" hidden>
@@ -190,6 +195,7 @@
           <header class="sheet-head"><h3 id="met-settings-title" data-text="metronome.settings.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
           <label class="row toggle"><span data-text="metronome.settings.timeSignature"></span><select class="select" id="meter"></select></label>
           <label class="row toggle"><span data-text="metronome.settings.accent"></span><input type="checkbox" id="accent" role="switch"></label>
+          <label class="row toggle"><span data-text="metronome.settings.subdivision"></span><select class="select" id="subdivision"></select></label>
           <fieldset>
             <legend data-text="metronome.settings.sound"></legend>
             <div class="chips" id="sound-chips"></div>

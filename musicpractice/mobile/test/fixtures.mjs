@@ -101,7 +101,7 @@ fs.writeFileSync(path.join(out, 'webhall.txt'), hall.join('\n') + '\n');
 
 fs.writeFileSync(path.join(out, 'index.json'), JSON.stringify(index, null, 1));
 // The same as plain lines, for the Java and Swift tests:
-//   click <sound> <weak> <mid> <strong>
+//   click <sound> <weak> <mid> <strong> <between the beats>
 //   voice <id> <level> <wet> <lowpass> <maxShift> then loop <hz> <rate> <channels> <file> per loop
 //   ref <voice> <midi> <fifth 0/1> <mix> <left> <right>
 const lines = [];

@@ -131,3 +131,13 @@ test('the drone fifth is on by default; switching it off is kept, an old save\'s
   assert.equal(sanitize({ droneFifth: false }).droneFifth, true); // an earlier save's default
   assert.equal(sanitize({ droneFifth: false, droneFifthChosen: true }).droneFifth, false);
 });
+
+test('metronome clicks and view: quarter notes and the metronome by default, kept, bad values fall back', () => {
+  assert.equal(DEFAULTS.subdivision, 1);
+  assert.equal(DEFAULTS.metView, 'metronome');
+  assert.equal(sanitize({ subdivision: 3, metView: 'bars' }).subdivision, 3);
+  assert.equal(sanitize({ subdivision: 3, metView: 'bars' }).metView, 'bars');
+  assert.equal(sanitize({ subdivision: 5 }).subdivision, 1);
+  assert.equal(sanitize({ subdivision: '2' }).subdivision, 1);
+  assert.equal(sanitize({ metView: 'disco' }).metView, 'metronome');
+});

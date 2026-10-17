@@ -161,8 +161,19 @@ when the Art Deco art arrives, measure and record its own.
   Italian marking (Largo … Prestissimo) shows under the number. Default 120.
 - Settings (gear): time signature (4/4, 3/4, 2/4, 5/4, 6/4, 7/4, 3/8, 5/8,
   6/8, 7/8, 9/8, 12/8, or no bars), a strong beat on 1 (on by default;
-  compound meters also lean lightly on each group of three), sound
-  (Woodblock, Click, Beep) and volume.
+  compound meters also lean lightly on each group of three), **Clicks**
+  (Quarter notes, the default; Eighth notes, Triplets or Sixteenth notes:
+  the extra clicks fall evenly between the beats, about 4.5 dB quieter than
+  an ordinary beat, 6 dB for Beep, and are not beats themselves: the
+  pendulum, lamp, dots and Visualizer keep to the beat; the apps' native
+  mixers play them the same way, `subdivision` and a fourth rendered
+  click), sound (Woodblock, Click, Beep) and volume.
+- **Visualizer**, a button beside the time signature under Start, swaps the
+  metronome and its lamp for a bar per beat of the bar: each lights on its
+  beat and fades, the strong beat red and the others blue, each faintly
+  tinted when unlit (remembered, `metView`). The picture, metronome or bars,
+  takes 40% of the screen's height but no more than the controls leave, so
+  a short phone shrinks it rather than scrolling.
 - Sounds are synthesized with Web Audio and scheduled 120 ms ahead from a
   worker, so the beat stays steady when the page is busy, and keeps going if
   you switch to another tab (it's a practice tool; a hidden-tab mute would

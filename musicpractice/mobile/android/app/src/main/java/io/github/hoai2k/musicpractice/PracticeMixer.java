@@ -33,7 +33,7 @@ public final class PracticeMixer {
 
     // ------------------------------------------------------------ metronome
 
-    private final float[][] clicks = new float[3][]; // weak, mid, strong
+    private final float[][] clicks = new float[4][]; // weak, mid, strong, between the beats
     private double clickSr = 48000;
     private boolean metRunning;
     private double bpm = 120;
@@ -42,6 +42,9 @@ public final class PracticeMixer {
     private double nextBeat; // the frame of the next beat (fractional)
     private int beat; // its place in the bar
     private long count; // beats since the start
+    private int subdivision = 1; // clicks per beat (quarters, eighths, triplets, sixteenths)
+    private double lastBeat; // the frame of the last beat, which the subdivisions count from
+    private int subIndex = 1; // the next subdivision of that beat
     private final int[] clickKind = new int[16];
     private final double[] clickPos = new double[16]; // in click samples
     private int clicksActive;
@@ -164,27 +167,42 @@ public final class PracticeMixer {
 
     // ------------------------------------------------------------ metronome API
 
-    /** The three clicks (weak, mid, strong), rendered by metronome.js at `sampleRate`. */
-    public synchronized void setClicks(float[] weak, float[] mid, float[] strong, double sampleRate) {
+    /** The clicks (weak, mid, strong, between the beats), rendered by metronome.js at `sampleRate`. */
+    public synchronized void setClicks(float[] weak, float[] mid, float[] strong, float[] sub, double sampleRate) {
         clicks[0] = weak;
         clicks[1] = mid;
         clicks[2] = strong;
+        clicks[3] = sub != null ? sub : weak; // an older page sends none: the weak click stands in
         clickSr = sampleRate;
     }
 
+    public synchronized void setClicks(float[] weak, float[] mid, float[] strong, double sampleRate) {
+        setClicks(weak, mid, strong, null, sampleRate);
+    }
+
     public synchronized void metronomeStart(double bpm, int[] strengths, double volume) {
-        metronomeUpdate(bpm, strengths, volume);
+        metronomeStart(bpm, strengths, 1, volume);
+    }
+
+    public synchronized void metronomeStart(double bpm, int[] strengths, int subdivision, double volume) {
+        metronomeUpdate(bpm, strengths, subdivision, volume);
         metGain = volume;
         metRunning = true;
         beat = 0;
         count = 0;
         nextBeat = frame + 0.05 * sr;
+        subIndex = Integer.MAX_VALUE; // no subdivisions before the first beat
         stopFade = 0;
     }
 
-    /** Tempo, bar and volume while running: a new tempo counts from the next beat. */
     public synchronized void metronomeUpdate(double bpm, int[] strengths, double volume) {
+        metronomeUpdate(bpm, strengths, subdivision, volume);
+    }
+
+    /** Tempo, bar, subdivision and volume while running: a new tempo counts from the next beat. */
+    public synchronized void metronomeUpdate(double bpm, int[] strengths, int subdivision, double volume) {
         this.bpm = Math.max(1, bpm);
+        this.subdivision = Math.max(1, Math.min(4, subdivision));
         this.strengths = strengths.length > 0 ? strengths : new int[] {0};
         metVolume = volume;
         if (beat >= this.strengths.length) beat %= this.strengths.length;
@@ -387,9 +405,19 @@ public final class PracticeMixer {
             if (metRunning && now >= nextBeat) {
                 int strength = strengths[beat % strengths.length];
                 startClick(Math.max(0, Math.min(2, strength)), (now - nextBeat) * clickStep);
+                lastBeat = nextBeat;
+                subIndex = 1;
                 nextBeat += 60 / bpm * sr;
                 beat = (beat + 1) % strengths.length;
                 count++;
+            }
+            // The clicks between the beats, evenly spaced from the last one.
+            if (metRunning && subIndex < subdivision) {
+                double at = lastBeat + subIndex * (60 / bpm * sr) / subdivision;
+                if (now >= at) {
+                    startClick(3, (now - at) * clickStep);
+                    subIndex++;
+                }
             }
             metGain += (metVolume - metGain) * metCoef;
             if (clicksActive > 0) {

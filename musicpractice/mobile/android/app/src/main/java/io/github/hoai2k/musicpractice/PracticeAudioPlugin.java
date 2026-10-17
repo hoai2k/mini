@@ -50,7 +50,7 @@ public class PracticeAudioPlugin extends Plugin {
     @PluginMethod
     public void metronomeStart(PluginCall call) {
         setClicks(call);
-        engine.mixer.metronomeStart(call.getDouble("bpm", 120.0), ints(call.getArray("strengths")), call.getDouble("volume", 0.8));
+        engine.mixer.metronomeStart(call.getDouble("bpm", 120.0), ints(call.getArray("strengths")), call.getInt("subdivision", 1), call.getDouble("volume", 0.8));
         engine.setLabels(call.getString("label"), null);
         askForNotifications();
         engine.ensureRunning();
@@ -60,7 +60,7 @@ public class PracticeAudioPlugin extends Plugin {
     @PluginMethod
     public void metronomeUpdate(PluginCall call) {
         setClicks(call);
-        engine.mixer.metronomeUpdate(call.getDouble("bpm", 120.0), ints(call.getArray("strengths")), call.getDouble("volume", 0.8));
+        engine.mixer.metronomeUpdate(call.getDouble("bpm", 120.0), ints(call.getArray("strengths")), call.getInt("subdivision", 1), call.getDouble("volume", 0.8));
         engine.setLabels(call.getString("label"), null);
         call.resolve();
     }
@@ -92,7 +92,7 @@ public class PracticeAudioPlugin extends Plugin {
         if (clicks == null || clicks.length() < 3) return;
         try {
             engine.mixer.setClicks(decode(clicks.getString(0)), decode(clicks.getString(1)), decode(clicks.getString(2)),
-                call.getDouble("clickRate", (double) engine.sampleRate));
+                clicks.length() > 3 ? decode(clicks.getString(3)) : null, call.getDouble("clickRate", (double) engine.sampleRate));
         } catch (JSONException ignored) {
             // keep the clicks it has
         }

@@ -33,7 +33,7 @@ final class PracticeMixer {
 
     // MARK: metronome
 
-    private var clicks: [[Float]] = [[], [], []] // weak, mid, strong
+    private var clicks: [[Float]] = [[], [], [], []] // weak, mid, strong, between the beats
     private var clickSr = 48000.0
     private var metRunning = false
     private var bpm = 120.0
@@ -42,6 +42,9 @@ final class PracticeMixer {
     private var nextBeat = 0.0 // the frame of the next beat (fractional)
     private var beat = 0 // its place in the bar
     private var count: Int64 = 0 // beats since the start
+    private var subdivision = 1 // clicks per beat (quarters, eighths, triplets, sixteenths)
+    private var lastBeat = 0.0 // the frame of the last beat, which the subdivisions count from
+    private var subIndex = 1 // the next subdivision of that beat
     private var clickKind = [Int](repeating: 0, count: 16)
     private var clickPos = [Double](repeating: 0, count: 16) // in click samples
     private var clicksActive = 0
@@ -167,33 +170,36 @@ final class PracticeMixer {
 
     // MARK: metronome API
 
-    /// The three clicks (weak, mid, strong), rendered by metronome.js at `sampleRate`.
-    func setClicks(weak: [Float], mid: [Float], strong: [Float], sampleRate: Double) {
+    /// The clicks (weak, mid, strong, between the beats), rendered by metronome.js at `sampleRate`.
+    /// An older page sends no `sub`: the weak click stands in.
+    func setClicks(weak: [Float], mid: [Float], strong: [Float], sub: [Float]? = nil, sampleRate: Double) {
         locked {
-            clicks = [weak, mid, strong]
+            clicks = [weak, mid, strong, sub ?? weak]
             clickSr = sampleRate
         }
     }
 
-    func metronomeStart(bpm: Double, strengths: [Int], volume: Double) {
+    func metronomeStart(bpm: Double, strengths: [Int], subdivision: Int = 1, volume: Double) {
         locked {
-            update(bpm: bpm, strengths: strengths, volume: volume)
+            update(bpm: bpm, strengths: strengths, subdivision: subdivision, volume: volume)
             metGain = volume
             metRunning = true
             beat = 0
             count = 0
             nextBeat = Double(frameCount) + 0.05 * sr
+            subIndex = Int.max // no subdivisions before the first beat
             stopFade = 0
         }
     }
 
     /// Tempo, bar and volume while running: a new tempo counts from the next beat.
-    func metronomeUpdate(bpm: Double, strengths: [Int], volume: Double) {
-        locked { update(bpm: bpm, strengths: strengths, volume: volume) }
+    func metronomeUpdate(bpm: Double, strengths: [Int], subdivision: Int = 1, volume: Double) {
+        locked { update(bpm: bpm, strengths: strengths, subdivision: subdivision, volume: volume) }
     }
 
-    private func update(bpm: Double, strengths: [Int], volume: Double) {
+    private func update(bpm: Double, strengths: [Int], subdivision: Int, volume: Double) {
         self.bpm = max(1, bpm)
+        self.subdivision = max(1, min(4, subdivision))
         self.strengths = strengths.isEmpty ? [0] : strengths
         metVolume = volume
         if beat >= self.strengths.count { beat %= self.strengths.count }
@@ -387,9 +393,19 @@ final class PracticeMixer {
             if metRunning && now >= nextBeat {
                 let strength = strengths[beat % strengths.count]
                 startClick(max(0, min(2, strength)), (now - nextBeat) * clickStep)
+                lastBeat = nextBeat
+                subIndex = 1
                 nextBeat += 60 / bpm * sr
                 beat = (beat + 1) % strengths.count
                 count += 1
+            }
+            // The clicks between the beats, evenly spaced from the last one.
+            if metRunning && subIndex < subdivision {
+                let at = lastBeat + Double(subIndex) * (60 / bpm * sr) / Double(subdivision)
+                if now >= at {
+                    startClick(3, (now - at) * clickStep)
+                    subIndex += 1
+                }
             }
             metGain += (metVolume - metGain) * metCoef
             if clicksActive > 0 {

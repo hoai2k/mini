@@ -41,7 +41,7 @@ public class PracticeAudioPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func metronomeStart(_ call: CAPPluginCall) {
         setClicks(call)
-        engine.mixer.metronomeStart(bpm: call.getDouble("bpm", 120), strengths: ints(call.getArray("strengths")), volume: call.getDouble("volume", 0.8))
+        engine.mixer.metronomeStart(bpm: call.getDouble("bpm", 120), strengths: ints(call.getArray("strengths")), subdivision: call.getInt("subdivision", 1), volume: call.getDouble("volume", 0.8))
         engine.setLabels(metronome: call.getString("label"), drone: nil)
         engine.ensureRunning()
         call.resolve()
@@ -49,7 +49,7 @@ public class PracticeAudioPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func metronomeUpdate(_ call: CAPPluginCall) {
         setClicks(call)
-        engine.mixer.metronomeUpdate(bpm: call.getDouble("bpm", 120), strengths: ints(call.getArray("strengths")), volume: call.getDouble("volume", 0.8))
+        engine.mixer.metronomeUpdate(bpm: call.getDouble("bpm", 120), strengths: ints(call.getArray("strengths")), subdivision: call.getInt("subdivision", 1), volume: call.getDouble("volume", 0.8))
         engine.setLabels(metronome: call.getString("label"), drone: nil)
         call.resolve()
     }
@@ -77,8 +77,8 @@ public class PracticeAudioPlugin: CAPPlugin, CAPBridgedPlugin {
 
     private func setClicks(_ call: CAPPluginCall) {
         guard let list = call.getArray("clicks"), list.count >= 3 else { return }
-        let c = list.prefix(3).map { decode($0 as? String) }
-        engine.mixer.setClicks(weak: c[0], mid: c[1], strong: c[2], sampleRate: call.getDouble("clickRate", engine.outputSampleRate()))
+        let c = list.prefix(4).map { decode($0 as? String) }
+        engine.mixer.setClicks(weak: c[0], mid: c[1], strong: c[2], sub: c.count > 3 ? c[3] : nil, sampleRate: call.getDouble("clickRate", engine.outputSampleRate()))
     }
 
     // MARK: drone
