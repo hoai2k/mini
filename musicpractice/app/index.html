@@ -149,8 +149,10 @@
             <div class="met-layer met-pendulum" id="pendulum" data-asset="metronome-pendulum"></div>
           </div>
           <!-- The Visualizer: rows of bars of music, in place of the metronome (main.js). -->
-          <h3 class="met-bars-title" id="met-bars-title" data-text="metronome.visualizerTitle" hidden></h3>
-          <div class="met-bars" id="met-bars" aria-hidden="true" hidden></div>
+          <div class="met-viz" id="met-viz" hidden>
+            <h3 class="met-bars-title" data-text="metronome.visualizerTitle"></h3>
+            <div class="met-bars" id="met-bars" aria-hidden="true"></div>
+          </div>
           <ol class="beats" id="beats" aria-hidden="true"></ol>
         </div>
         <div class="met-controls">
@@ -202,9 +204,9 @@
             <div class="chips" id="sound-chips"></div>
           </fieldset>
           <label class="row"><span data-text="common.volume"></span><input type="range" class="slider" id="met-volume" min="0" max="1" step="0.05"></label>
-          <fieldset class="met-display">
-            <legend data-text="metronome.settings.display"></legend>
-            <div class="chips" id="met-view-chips"></div>
+          <div class="met-display">
+            <div class="met-tabs" id="met-view-chips" data-text-aria-label="metronome.settings.display"></div>
+            <div class="met-tab-panel">
             <div class="met-art-opts" id="met-art-opts">
               <label class="row toggle"><span data-text="metronome.settings.motion"></span><input type="checkbox" id="met-motion" role="switch"></label>
               <label class="row toggle"><span data-text="metronome.settings.pulse"></span><input type="checkbox" id="met-pulse-on" role="switch"></label>
@@ -213,7 +215,8 @@
               <label class="row toggle"><span data-text="metronome.settings.vizBars"></span><select class="select" id="viz-bars"></select></label>
               <label class="row toggle"><span data-text="metronome.settings.vizTrail"></span><input type="checkbox" id="viz-trail" role="switch"></label>
             </div>
-          </fieldset>
+            </div>
+          </div>
           <label class="row"><span><span data-text="metronome.settings.sync"></span> <b id="met-sync-val"></b></span><input type="range" class="slider" id="met-sync" min="-200" max="500" step="10"></label>
           <button type="button" class="pill" id="sync-open" data-text="metronome.settings.openSync"></button>
           <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>

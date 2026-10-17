@@ -182,15 +182,18 @@ when the Art Deco art arrives, measure and record its own.
   Strong beat on 1, and going back during the same visit brings the pattern
   back; only the one in use is saved (`accentPattern`). The apps' native
   mixers take the click for every position (`slots`).
-- **Display** (metronome settings): **Pendulum** (the default) or
-  **Visualizer**, each with its own options beneath: Swinging pendulum and
-  Visual pulse, or **Bars shown** (1, 2, 4 or 8) and **Keep played beats
-  lit**. Tapping the picture also switches between them. The Visualizer,
-  headed **Visualizer**, shows a few bars of music at a time: a row per bar
-  and a horizontal shape per beat, read left to right and down. Each beat's
-  shape lights on its beat and fades, to a faint glow while that pass is
-  being played if beats are kept lit; strong beats red, the others blue,
-  each faintly tinted when unlit.
+- **Display** (metronome settings): two tabs, **Pendulum** (the default)
+  and **Visualizer**; the chosen one opens, like a folder tab, into a
+  rounded box round its own options: Swinging pendulum and Visual pulse, or
+  **Bars shown** (1, 2, 4 or 8) and **Keep played beats lit**. Tapping the
+  picture also switches between them. The Visualizer, its heading
+  **Visualizer** right above it, shows a few bars of music at a time: a row
+  per bar and a horizontal shape per beat, read left to right and down.
+  Each beat's shape lights on its beat and fades, to a faint glow while
+  that pass is being played if beats are kept lit. The colours are the
+  theme's own, a pair per theme and mode (`--viz-strong`, `--viz-beat`):
+  ember and brass for Classic, orange and teal for the 60s, magenta and
+  cyan for Robot Future and so on, each faintly tinted when unlit.
 - On a phone the picture, pendulum or Visualizer, takes all the height the
   controls leave (measured in `fitPicture`, `--pic-h`), so the page fills the
   screen without a gap below or scrolling; side by side, 62% of the height.

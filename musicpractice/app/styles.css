@@ -1,5 +1,6 @@
 :root,
 [data-theme="classic"] {
+  --viz-strong: #ff6a3d; --viz-beat: #f4c55f; /* the Visualizer's lit beats: strong, other */
   --display: Fraunces, Georgia, serif;
   --ui: Manrope, system-ui, -apple-system, "Segoe UI", sans-serif;
   --bg: #1d1510;
@@ -346,31 +347,46 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
    the metronome. A beat's shape lights on its beat (--lit, from main.js) and
    fades, to a faint glow while that pass is still being played (the trail);
    the strong beat red, the others blue, each faintly tinted when unlit. */
-.met-bars {
-  --red-bar: #ff3b30; --blue-bar: #2f8cff;
-  /* As tall as the metronome with its lamp and beat dots, which it stands in for. */
+.met-viz {
+  /* As tall as the metronome with its lamp and beat dots, which it stands in
+     for: the heading and the rows together, centred in that height. */
   --h: var(--pic-h, clamp(120px, 40dvh, 460px));
   height: var(--h);
   width: min(calc(100vw - 2 * var(--gutter)), 440px); /* its parent sizes to its contents, so not a % */
-  display: grid; align-content: center; gap: clamp(8px, 2.2dvh, 18px);
+  display: flex; flex-direction: column; justify-content: center; gap: 10px;
 }
-.met-bars[hidden] { display: none; }
+.met-viz[hidden] { display: none; }
+.met-bars { display: grid; gap: clamp(8px, 2.2dvh, 18px); }
 /* Metronome settings: the Visualizer's options, or the pendulum's and lamp's. */
-.met-display { display: flex; flex-direction: column; gap: 14px; }
-.met-display > legend { float: left; width: 100%; margin-bottom: 0; } /* a legend can't join the flex gap otherwise */
+/* Display: Pendulum or Visualizer as two tabs, the chosen one opening into
+   a rounded box round its own options, like a folder tab. */
+.met-display { display: flex; flex-direction: column; }
+.met-tabs { display: flex; position: relative; z-index: 1; }
+.met-display .met-tabs .chip {
+  flex: 1 1 0; min-height: 46px; margin: 0; border-radius: 14px 14px 0 0;
+  border: 2px solid transparent; border-bottom: 0; background: transparent; color: var(--ink-2);
+  font-weight: 700; letter-spacing: inherit;
+}
+.met-display .met-tabs .chip[aria-checked="true"] {
+  border-color: var(--line); background: var(--bg-2); color: var(--ink);
+  margin-bottom: -2px; padding-bottom: 2px; /* over the box's top edge, so the tab opens into it */
+}
+.met-tab-panel { border: 2px solid var(--line); border-radius: 14px; padding: 6px 14px 10px; display: flex; flex-direction: column; }
+.met-tabs[data-on="metronome"] + .met-tab-panel { border-top-left-radius: 0; }
+.met-tabs[data-on="bars"] + .met-tab-panel { border-top-right-radius: 0; }
 .met-viz-opts, .met-art-opts { display: flex; flex-direction: column; gap: 14px; }
 .met-visual { cursor: pointer; -webkit-tap-highlight-color: transparent; border-radius: 12px; }
 .met-visual:focus:not(:focus-visible) { outline: none; }
 .met-viz-opts[hidden], .met-art-opts[hidden] { display: none; }
 .met-measure { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: clamp(5px, 1.6vw, 10px); height: clamp(12px, calc(var(--h) / var(--rows, 4) * 0.42), 30px); }
 .met-bar {
-  --c: var(--blue-bar);
+  --c: var(--viz-beat, #2f8cff);
   border-radius: 999px;
   background: color-mix(in srgb, var(--c) 14%, var(--panel));
   border: 2px solid color-mix(in srgb, var(--c) 45%, var(--line));
   position: relative;
 }
-.met-bar.strong { --c: var(--red-bar); }
+.met-bar.strong { --c: var(--viz-strong, #ff3b30); }
 .met-bar::after {
   content: ""; position: absolute; inset: -2px; border-radius: 999px;
   background: linear-gradient(180deg, color-mix(in srgb, var(--c) 55%, #fff), var(--c) 50%, color-mix(in srgb, var(--c) 80%, #000));
@@ -661,6 +677,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
    frames, sunburst fans, diamonds and stepped hexagon buttons. */
 
 [data-theme="deco"] {
+  --viz-strong: #ff4f5a; --viz-beat: #f1d98a; /* the Visualizer's lit beats: strong, other */
   --display: "Poiret One", "Josefin Sans", "Century Gothic", sans-serif;
   --ui: "Josefin Sans", "Century Gothic", Futura, system-ui, sans-serif;
   --bg: #0b0c0f;
@@ -895,7 +912,8 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
    a striped band and polka dots. */
 
 [data-theme="sixties"] {
-  --display: Righteous, "Arial Rounded MT Bold", sans-serif;
+  --display
+  --viz-strong: #e0622a; --viz-beat: #2a9d97; /* the Visualizer's lit beats: strong, other */: Righteous, "Arial Rounded MT Bold", sans-serif;
   --ui: Nunito, "Avenir Next", system-ui, sans-serif;
   --bg: #f3e6c8; --bg-2: #fbf3e1; --panel: #fff8ea; --panel-2: #f0dfbd; --line: #c9a46a;
   --ink: #3b2a1e; --ink-2: #6b4f36; --ink-3: #7a5d40;
@@ -983,6 +1001,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
    double rules and a fleuron. */
 
 [data-theme="baroque"] {
+  --viz-strong: #a3243a; --viz-beat: #c08a2a; /* the Visualizer's lit beats: strong, other */
   --display: "IM Fell English", "Times New Roman", serif;
   --ui: "EB Garamond", Garamond, Georgia, serif;
   --bg: #f4ecd9; --bg-2: #fbf6ea; --panel: #fffaf0; --panel-2: #efe3c8; --line: #c9a86a;
@@ -1035,6 +1054,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
    a soft neon glow. */
 
 [data-theme="scifi"] {
+  --viz-strong: #ff3cac; --viz-beat: #3ef2ff; /* the Visualizer's lit beats: strong, other */
   --display: Orbitron, "Eurostile", system-ui, sans-serif;
   --ui: "Exo 2", system-ui, sans-serif;
   --bg: #060a14; --bg-2: #0b1222; --panel: #0e1628; --panel-2: #142039; --line: #1f4a63;
@@ -1087,6 +1107,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
    flowing lines of a Paris Métro entrance. */
 
 [data-theme="nouveau"] {
+  --viz-strong: #b54a68; --viz-beat: #5c8a55; /* the Visualizer's lit beats: strong, other */
   --display: Italiana, "Didot", serif;
   --ui: "Cormorant Garamond", Garamond, Georgia, serif;
   --bg: #eef0e4; --bg-2: #f8f6ec; --panel: #fbf9f1; --panel-2: #e3e7d2; --line: #b8a46a;
@@ -1140,6 +1161,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
    shadows, halftone dots and sparkles. */
 
 [data-theme="anime"] {
+  --viz-strong: #ff4f9a; --viz-beat: #3fb6ff; /* the Visualizer's lit beats: strong, other */
   --display: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", system-ui, sans-serif;
   --ui: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", system-ui, sans-serif;
   --bg: #fff4fa; --bg-2: #ffffff; --panel: #ffffff; --panel-2: #ffe3f0; --line: #2b2340;
@@ -1187,6 +1209,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
    typewritten face and engraved capitals. */
 
 [data-theme="steampunk"] {
+  --viz-strong: #ff6a3d; --viz-beat: #f0c56b; /* the Visualizer's lit beats: strong, other */
   --display: Cinzel, "Trajan Pro", Georgia, serif;
   --ui: "Special Elite", "Courier New", monospace;
   --bg: #1c130c; --bg-2: #261a10; --panel: #2e2014; --panel-2: #3a2918; --line: #7a5a2e;
@@ -1237,6 +1260,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 
 /* Classic by day: cream paper, walnut ink, darker brass. */
 [data-theme="classic"][data-mode="light"] {
+  --viz-strong: #d8401f; --viz-beat: #b5800f; /* the Visualizer's lit beats: strong, other */
   --bg: #f6efe2; --bg-2: #fcf8f0; --panel: #fffcf6; --panel-2: #f1e7d5; --line: #c9ae86;
   --ink: #2a1c11; --ink-2: #5a4430; --ink-3: #6e5842;
   --brass: #94600f; --brass-2: #c8963c; --red: #c4363c; --red-2: #d9474d; --focus: #8a5a0e;
@@ -1258,6 +1282,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 
 /* Art Deco by day: ivory and black lacquer trim, darker gold. */
 [data-theme="deco"][data-mode="light"] {
+  --viz-strong: #c42a35; --viz-beat: #a8841e; /* the Visualizer's lit beats: strong, other */
   --bg: #f3eee2; --bg-2: #faf7ef; --panel: #fffdf7; --panel-2: #ebe4d1; --line: #b39a5a;
   --ink: #15161c; --ink-2: #3b3a36; --ink-3: #5e5747;
   --brass: #a08020; --brass-2: #75590f; --red: #a3262f; --red-2: #c0313b; --focus: #75590f;
@@ -1276,6 +1301,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 
 /* Vintage 60s after dark: espresso and walnut, the same orange, mustard and teal turned up. */
 [data-theme="sixties"][data-mode="dark"] {
+  --viz-strong: #ff7a3d; --viz-beat: #4fc9c2; /* the Visualizer's lit beats: strong, other */
   --bg: #2a201a; --bg-2: #352820; --panel: #3e2f25; --panel-2: #4b392c; --line: #9a7a4e;
   --ink: #f8ecd4; --ink-2: #e3cfac; --ink-3: #c9ae88;
   --brass: #f07a43; --brass-2: #f2b54f; --red: #f0694f; --red-2: #ff7b5c; --focus: #57c9c3;
@@ -1298,6 +1324,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 
 /* 18th Century by candlelight: dark walnut, parchment ink, gilt and claret. */
 [data-theme="baroque"][data-mode="dark"] {
+  --viz-strong: #e05a6e; --viz-beat: #e8bb5c; /* the Visualizer's lit beats: strong, other */
   --bg: #1d1612; --bg-2: #261d17; --panel: #2e231c; --panel-2: #3a2c22; --line: #8a6c3a;
   --ink: #f0e3c8; --ink-2: #d8c5a2; --ink-3: #b8a27e;
   --brass: #c99a3f; --brass-2: #e0b660; --red: #a8384a; --red-2: #d0687a; --focus: #e0b660;
@@ -1313,6 +1340,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 
 /* Robot Future in a white lab: pale steel, deep cyan and magenta. */
 [data-theme="scifi"][data-mode="light"] {
+  --viz-strong: #d0157e; --viz-beat: #0a8fa0; /* the Visualizer's lit beats: strong, other */
   --bg: #e8f0f5; --bg-2: #f4f8fb; --panel: #ffffff; --panel-2: #dce8f0; --line: #8eb0c3;
   --ink: #0a1a2b; --ink-2: #2b475b; --ink-3: #46617a;
   --brass: #087583; --brass-2: #065e69; --red: #c0157a; --red-2: #d02a8b; --focus: #c0157a;
@@ -1328,6 +1356,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 
 /* French Nouveau in the evening: dark sage, cream, gold and rose. */
 [data-theme="nouveau"][data-mode="dark"] {
+  --viz-strong: #e2899f; --viz-beat: #9cc293; /* the Visualizer's lit beats: strong, other */
   --bg: #1a201a; --bg-2: #212921; --panel: #283128; --panel-2: #313c30; --line: #8a7a4c;
   --ink: #eee9d6; --ink-2: #d2d4bc; --ink-3: #adb299;
   --brass: #c9a75a; --brass-2: #dcbf78; --red: #d0849a; --red-2: #dd9cad; --focus: #dd9cad;
@@ -1348,6 +1377,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 
 /* Candy at night: grape and midnight, bright pink and sky blue. */
 [data-theme="anime"][data-mode="dark"] {
+  --viz-strong: #ff6fae; --viz-beat: #6fcdff; /* the Visualizer's lit beats: strong, other */
   --bg: #1c1530; --bg-2: #251d3e; --panel: #2c2348; --panel-2: #3a2e5e; --line: #f6e8f2;
   --ink: #fbeef6; --ink-2: #e2d3ef; --ink-3: #bcaed8;
   --brass: #ff6fae; --brass-2: #6fcdff; --red: #ff6b9c; --red-2: #ff6b9c; --focus: #6fcdff;
@@ -1363,6 +1393,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 
 /* Steam Punk in the drawing office: aged paper, brown ink, brass and copper. */
 [data-theme="steampunk"][data-mode="light"] {
+  --viz-strong: #c23d1f; --viz-beat: #9a6420; /* the Visualizer's lit beats: strong, other */
   --bg: #eee2c8; --bg-2: #f7eedb; --panel: #fbf4e4; --panel-2: #e8d8b8; --line: #a9824a;
   --ink: #2c1c0f; --ink-2: #4f3720; --ink-3: #6a5033;
   --brass: #9a6420; --brass-2: #7c4f14; --red: #b23a22; --red-2: #c8452c; --focus: #7c4f14;
