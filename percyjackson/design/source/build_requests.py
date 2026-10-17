@@ -977,6 +977,204 @@ REQUESTS += [
 ]
 
 
+# ---------------------------------------------------------------------------
+# Round 5: the open world round Camp Half-Blood (game/js/world/owLayout.js and
+# world/regions/*.js). Concept sheets the regions, people and champions are
+# built from; the game draws blocky stand-ins until they arrive.
+OW_GROUP = "Round 5 · The open world"
+OW_SCENE = (
+    "An isometric bird's-eye view, like a big open level of Minecraft Dungeons seen from the "
+    "game's high three-quarter camera, every part built from chunky blocks with hand-painted "
+    "pixel textures, a few small blocky heroes (Percy in his orange camp shirt, Annabeth, "
+    "Grover) for scale, monsters about, a glowing marble-and-gold waystone pillar somewhere on "
+    "a path. "
+)
+
+
+def ow_region(id_: str, title: str, body: str, use: str) -> dict:
+    return {
+        "id": id_, "group": OW_GROUP, "title": title, "size": "2560 × 1440",
+        "references": ["vox-key", "vox-camp", "vox-ow-map"],
+        "use": use,
+        "prompt": f"{OW_SCENE}{body} {VOXEL_STYLE} {NO_TEXT}",
+    }
+
+
+REQUESTS += [
+    {
+        "id": "vox-ow-map",
+        "group": OW_GROUP,
+        "title": "The open world round camp: the whole map",
+        "size": "2560 × 2560",
+        "references": ["vox-key", "vox-camp", "map-camp"],
+        "use": "Layout and feel of the open world (world/owLayout.js): the eight regions and the roads between them. Generate this first in round 5.",
+        "prompt": (
+            "A square top-down isometric overview map of a big blocky open world, like the world "
+            "map of Minecraft Dungeons, sea along the whole left (west) edge. In the middle of the "
+            "left side, Camp Half-Blood: cabins in a U round a green, the blue Big House, a lake, "
+            "Half-Blood Hill with a great pine, and a road leaving it north. Around it, eight "
+            "regions with distinct colours, joined by winding roads and dotted with glowing "
+            "waystone pillars: north, the North Shore of Long Island Sound (white chalk cliffs, "
+            "beaches, a red-and-white lighthouse, a shipwrecked Greek ship); north-east, Mount "
+            "Othrys (grey crags, storm clouds and a ruined black-marble fortress on the summit); "
+            "east of camp, the Strawberry Fields (patchwork farms, red barns, a windmill, "
+            "orchards); far east, the Red Canyon (red mesas, slot canyons, a ghost town, a "
+            "garden of stone statues); south-east of camp, the Camp Woods (dense pines, a creek, a "
+            "huge fist-shaped pile of boulders); south, the Labyrinth (stone maze walls breaking "
+            "out of the grass, bronze gates); far south-east, the Fields of Asphodel (grey ash "
+            "plains, pale flowers, black poplars, the River Styx and a great black gate). "
+            f"{VOXEL_STYLE} {NO_TEXT}"
+        ),
+    },
+    ow_region("vox-ow-fields", "Region: the Strawberry Fields",
+              "The Strawberry Fields east of Camp Half-Blood on a bright summer morning, monster "
+              "level 1 to 3: rolling patchwork farmland, rows of strawberry beds with campers "
+              "picking, a delivery van marked with a strawberry, two red barns (one half-ruined, "
+              "with a monster camp of hellhound pups and bronze spiders around a campfire inside), "
+              "a turning windmill, an apple orchard, beehives, a pumpkin patch, a scarecrow, a "
+              "farmhouse with a pond and a little water mill, hay bales, a stone shrine to Demeter "
+              "with sheaves of golden wheat, and a giant bronze-feathered Stymphalian bird circling "
+              "overhead (the region's champion).",
+              "Builds the Strawberry Fields region (world/regions/fields.js)."),
+    ow_region("vox-ow-woods", "Region: the Camp Woods",
+              "The Camp Woods south-east of Camp Half-Blood, dappled light, monster level 2 to 4: "
+              "deep pine and oak forest, a winding creek with a rope bridge and stepping stones, "
+              "Zeus's Fist (a giant heap of boulders shaped like a fist, with a hidden door at its "
+              "base), Bunker 9 (a secret workshop dug into a cliff face, glowing forge light from "
+              "a vast door), a huge old juniper tree with a tree nymph in green, a ring of "
+              "mushrooms, a monster den in hollow fallen logs, a stone shrine to Artemis with a "
+              "silver bow, and a hulking shadowy hellhound with a scarred muzzle (the region's "
+              "champion).",
+              "Builds the Camp Woods region (world/regions/woods.js)."),
+    ow_region("vox-ow-shore", "Region: the North Shore",
+              "The North Shore of Long Island Sound on a breezy afternoon, monster level 3 to 5: "
+              "sandy beaches and dunes with tall grass, white chalk sea cliffs, a red-and-white "
+              "striped lighthouse on a headland, an ancient Greek trireme wrecked on the rocks, sea "
+              "caves with glowing blue pools, tide pools, a fishing pier and a boathouse, harpy "
+              "nests of driftwood on the cliff tops, a stone shrine to Poseidon with a bronze "
+              "trident, and a great storm-grey harpy queen with a crown of feathers (the region's "
+              "champion).",
+              "Builds the North Shore region (world/regions/shore.js)."),
+    ow_region("vox-ow-canyon", "Region: the Red Canyon",
+              "The Red Canyon in hot afternoon light, a desert that has no business being on Long "
+              "Island, monster level 5 to 7: flat-topped red mesas, a dry river wash, slot canyons, "
+              "cactus and bones, a ghost town (a saloon, a water tower, a general store), the "
+              "Garden of Stone (people turned to grey statues among broken columns), a giant "
+              "scorpion's den in a cave under a mesa, a camp of silver tents of the Hunters of "
+              "Artemis on a mesa top, a stone shrine to Apollo with a golden sun disc, and a huge "
+              "crimson scorpion with a golden stinger (the region's champion).",
+              "Builds the Red Canyon region (world/regions/canyon.js)."),
+    ow_region("vox-ow-labyrinth", "Region: the Labyrinth",
+              "The Labyrinth breaking out of the ground south of camp, late afternoon, monster level "
+              "6 to 8: high crumbling walls of grey stone maze rising out of grassy hills, bronze "
+              "gates marked with a blue Greek Delta, sunken courtyards, collapsed colonnades, a "
+              "workshop with bronze wings hanging on the wall and half-built automatons, spider "
+              "webs across dark passages, a pit going down into darkness, a stone shrine to Athena "
+              "with an owl, and a giant bronze automaton warden with a glowing eye (the region's "
+              "champion).",
+              "Builds the Labyrinth region (world/regions/labyrinth.js)."),
+    ow_region("vox-ow-othrys", "Region: Mount Othrys",
+              "Mount Othrys under rolling storm clouds, monster level 8 to 10: grey crags and "
+              "scree slopes, a narrow pass with huge broken chains, a bridge over a chasm, a "
+              "Cyclops camp of rusty junk and forge fires, the ruined black-marble fortress of the "
+              "Titans on the summit with broken thrones and fallen columns, a silver tent camp of "
+              "the Hunters of Artemis in a sheltered hollow, a stone shrine to Zeus with a golden "
+              "lightning bolt, and a towering one-eyed Cyclops chieftain with a tree-trunk club "
+              "(the region's champion).",
+              "Builds the Mount Othrys region (world/regions/othrys.js)."),
+    ow_region("vox-ow-asphodel", "Region: the Fields of Asphodel",
+              "The Fields of Asphodel where the Underworld breaks through, eternal grey twilight, "
+              "monster level 9 to 12: grey ash plains carpeted with pale asphodel flowers, black "
+              "poplar trees, wandering ghostly shades, the River Styx with a ferry landing and "
+              "Charon's boat, braziers of green fire, a steep hill with a boulder being pushed up "
+              "it, the great black gates of Erebus with a huge empty dog collar beside them, a "
+              "stone shrine to Hades with a dark helm, and a pale armoured skeleton king with a "
+              "crown and a black sword (the region's champion). Eerie but not gory.",
+              "Builds the Fields of Asphodel region (world/regions/asphodel.js)."),
+    {
+        "id": "vox-ow-props",
+        "group": OW_GROUP,
+        "title": "Open-world kit: waystones, shrines, chests and monster camps",
+        "size": "2400 × 1600",
+        "references": ["vox-key", "vox-camp"],
+        "use": "Models for the pieces every region shares (world/openworld.js, openworld/runtime.js).",
+        "prompt": (
+            "A prop model sheet of blocky voxel objects on a flat light-grey background, each "
+            "from the front and the high three-quarter game angle: a waystone (a marble pillar "
+            "with a gold cap, glowing runes and a little marble platform; also shown lit up gold "
+            "when found and swirling with light as a hero teleports); a small stone shrine with "
+            "an altar and a gold flame, in seven versions for Demeter (wheat), Artemis (silver "
+            "bow), Poseidon (trident), Apollo (sun disc), Athena (owl), Zeus (lightning bolt) and "
+            "Hades (dark helm); treasure chests in three grades (plain wood, blue with silver, "
+            "purple with gold) closed and open with a spill of drachmas; a monster camp (ragged "
+            "hide tents, a bone totem, a campfire, crude banners); a gold \"!\" marker floating "
+            f"over a quest-giver; a glowing gold shard for quest items. {VOXEL_STYLE} {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "vox-ow-people-1",
+        "group": OW_GROUP,
+        "title": "Open-world people 1: campers and nature spirits",
+        "size": "2400 × 1600",
+        "references": ["vox-key", "vox-npcs", "char-camp"],
+        "use": "Models for the side-quest givers in the fields, the woods and the shore (openworld/quests.js).",
+        "prompt": (
+            "A line-up of blocky voxel characters at the same scale, each front-on and from the "
+            "high three-quarter game angle: Katie Gardner, a daughter of Demeter, brown braid, "
+            "straw hat, green overalls over the orange camp shirt, a trowel and a basket of "
+            "strawberries; Travis and Connor Stoll, sons of Hermes, lanky twin pranksters with "
+            "curly brown hair and mischievous grins, one holding a stolen bag; Juniper, a tree "
+            "nymph with green-tinged skin, leaf-green hair and a dress of juniper needles; Charles "
+            "Beckendorf, a big son of Hephaestus in a leather apron and goggles with a bronze "
+            "wrench; Lee Fletcher, a son of Apollo with sandy hair, a golden bow and a quiver; and "
+            "a Nereid, a sea nymph with sea-green hair, pearls and a robe like foam. "
+            f"{VOXEL_STYLE} Flat light-grey background, no cast shadow. {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "vox-ow-people-2",
+        "group": OW_GROUP,
+        "title": "Open-world people 2: wanderers, hunters and the dead",
+        "size": "2400 × 1600",
+        "references": ["vox-key", "vox-npcs", "char-gods"],
+        "use": "Models for the side-quest givers in the canyon, the Labyrinth, Othrys and Asphodel (openworld/quests.js).",
+        "prompt": (
+            "A line-up of blocky voxel characters at the same scale, each front-on and from the "
+            "high three-quarter game angle: Coach Gleeson Hedge, a short, loud satyr in a red "
+            "tracksuit and a baseball cap with a whistle and a wooden club; Zoë Nightshade, "
+            "lieutenant of the Hunters of Artemis, dark braided hair, silver circlet and parka, a "
+            "silver bow; Rachel Elizabeth Dare, a mortal girl with frizzy red hair in paint-"
+            "splattered jeans with a sketchbook; Quintus, a grizzled swordsman with grey hair and "
+            "a fencing sword (secretly the inventor Daedalus, with a faint bronze glint at the "
+            "neck); Phoebe and Bianca di Angelo, Hunters of Artemis in silver parkas; Charon, the "
+            "ferryman of the dead, in a sharp Italian suit and sunglasses with a boat pole; and "
+            "Sisyphus, a weary old Greek in a ragged tunic leaning on his boulder. "
+            f"{VOXEL_STYLE} Flat light-grey background, no cast shadow. {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "vox-ow-champions",
+        "group": OW_GROUP,
+        "title": "Open-world champions: one named monster per region",
+        "size": "2400 × 1600",
+        "references": ["vox-key", "vox-enemies", "vox-bosses-1"],
+        "use": "Models for the named champions that guard each region (openworld/runtime.js); bigger, decorated versions of the usual monsters.",
+        "prompt": (
+            "A sheet of seven blocky voxel champion monsters, each bigger and more decorated than "
+            "the ordinary kind and shown beside a small Percy outline for scale, from the high "
+            "three-quarter game angle: Bronzebeak, a huge Stymphalian bird with razor bronze "
+            "feathers and a red crest; Shadowfang, a scarred black hellhound with a broken iron "
+            "collar and smoking eyes; Queen Gale, a storm-grey harpy queen with a crown of "
+            "feathers and lightning in her talons; the Red King, a crimson giant scorpion with a "
+            "golden stinger and a crown of spines; the Bronze Warden, a hulking bronze automaton "
+            "with a single glowing blue eye and a shield; Gorgos, a Cyclops chieftain in bear "
+            "pelts with a tree-trunk club; and the Pale King, a skeleton king in tarnished armour "
+            "with a crown and a black sword, green fire in his eyes. Dramatic and fun for ages 8 "
+            f"to 14, never gory. {VOXEL_STYLE} Flat light-grey background. {NO_TEXT}"
+        ),
+    },
+]
+
 def path_for(item: dict) -> Path:
     if item.get("dest") == "game":
         return GAME / f"{item['id']}.png"
@@ -1026,6 +1224,13 @@ def build() -> str:
         "3. The monster and character sheets, then the places.",
         "4. The game art (`logo`, `title-bg`, `ui-hero-cards-2`) and the chapter cards",
         "   whenever convenient; the game draws stand-ins until they arrive.",
+        "",
+        "### Round 5: the open world",
+        "",
+        "Camp Half-Blood now sits in a big open world of eight regions. Generate",
+        "`vox-ow-map` first (the layout), then the region scenes, the shared kit",
+        "(`vox-ow-props`), the people who give side quests and the champions. The",
+        "game draws blocky stand-ins for all of them until the sheets arrive.",
         "",
         "Concept sheets land in `design/concept/`; files marked as game art land in",
         "`game/assets/`. Drop either kind in the intake folder.",
