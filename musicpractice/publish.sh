@@ -11,4 +11,6 @@ mkdir -p "$out"
 cp "$here/app/index.html" "$here/app/privacy.html" "$here/app/styles.css" "$here/app/manifest.webmanifest" "$out/"
 cp -R "$here/app/src" "$here/app/data" "$here/app/assets" "$here/app/icons" "$here/app/vendor" "$out/"
 rm -f "$out/icons/icon-1024.png" "$out/icons/icon-art-deco-1024.png" # master art stays in the repository
+# Addresses that change with each file, so no browser mixes two deploys (stamp.mjs).
+node "$here/stamp.mjs" "$out"
 echo "published Music Practice to $out/ ($(du -sh "$out" | cut -f1))"

@@ -232,19 +232,28 @@ button { cursor: pointer; }
   cursor: pointer; border-radius: 12px;
 }
 .metronome:focus:not(:focus-visible), .met-foot:focus:not(:focus-visible) { outline: none; }
-.beats {
-  position: absolute; left: 0; right: 0; bottom: 0; margin: 0 auto;
-  height: var(--foot); align-items: center; align-content: center;
-  transition: opacity 0.3s 0.25s, height var(--morph);
+.met-foot .beats {
+  /* Centred under the metronome (margin-inline, which the plain .beats rule
+     below would otherwise reset to 0 and leave the row at the left). */
+  position: absolute; left: 0; right: 0; bottom: 0; margin-inline: auto;
+  height: var(--dots); align-items: center; align-content: center;
+  /* One line always (twelve small dots fit), so dots growing or shrinking
+     between Pulse and the small row never wrap part way. */
+  flex-wrap: nowrap; max-width: none;
+  transition: height var(--morph), gap var(--morph);
 }
-.met-visual.bars .beats { opacity: 0; pointer-events: none; transition: opacity 0.2s, height var(--morph); }
+.met-visual.pulse .beats { height: var(--big); }
+/* Dots and Visualizer swap by a cross-zoom (main.js crossZoom): each fades
+   while it is drawn growing or shrinking into the other's box. These are
+   where each ends up. */
+.met-visual.bars .beats { opacity: 0; pointer-events: none; }
 /* Pulse: the dots grow big, as wide as the row allows, and the one whose
    beat it is swells and glows into it and eases away after (--g, 0 to 1,
    from main.js), red on a strong beat. */
 .met-visual.pulse .beats {
   --dgap: 14px;
   --dot: min(calc(var(--big) * 0.62), calc((var(--foot-w) - (var(--n, 4) - 1) * var(--dgap)) / var(--n, 4)), 110px);
-  flex-wrap: nowrap; max-width: none; gap: var(--dgap);
+  gap: var(--dgap);
 }
 .met-visual.pulse .beats li { width: calc(var(--dot) * 0.8); height: calc(var(--dot) * 0.8); }
 .met-visual.pulse .beats li.strong { width: var(--dot); height: var(--dot); }
@@ -380,23 +389,14 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
    fades, to a faint glow while that pass is still being played (the trail);
    the strong beat red, the others blue, each faintly tinted when unlit. */
 .met-viz {
-  /* As tall as its rows (--V, from main.js), at the bottom of the picture.
-     Closed, all but the dots' row of it is clipped away and it is faded out;
-     it opens by revealing upward out of the dots, its rows never squashed. */
+  /* As tall as its rows (--V, from main.js), at the bottom of the picture;
+     hidden (faded out) until the dots open into it. */
   position: absolute; left: 0; right: 0; bottom: 0;
   height: var(--V, 50%);
   display: flex; flex-direction: column; justify-content: flex-end;
-  clip-path: inset(calc(100% - var(--dots)) -24px -24px -24px);
   opacity: 0; pointer-events: none;
-  transition: clip-path var(--morph), opacity 0.25s 0.35s;
 }
-.met-visual.bars .met-viz {
-  /* Open to the gap above it (room for a lit bar's glow), no further, so its
-     top edge keeps pace with the metronome's foot all the way. */
-  clip-path: inset(calc(-1 * var(--gap)) -24px -24px -24px);
-  opacity: 1; pointer-events: auto;
-  transition: clip-path var(--morph), opacity 0.15s;
-}
+.met-visual.bars .met-viz { opacity: 1; pointer-events: auto; }
 @media (prefers-reduced-motion: reduce) {
   .met-visual, .met-visual * { --morph: 0s; }
 }
@@ -454,13 +454,15 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
 .met-viz-opts[hidden], .met-art-opts[hidden] { display: none; }
 .met-measure { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: clamp(5px, 1.6vw, 10px); height: var(--row, 26px); }
 .met-bar {
+  /* Unlit, a faint neutral outline (the strong beat's a touch of its colour,
+     so the bar still reads); the colour is for the beat being played. */
   --c: var(--viz-beat, #2f8cff);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--c) 14%, var(--panel));
-  border: 2px solid color-mix(in srgb, var(--c) 45%, var(--line));
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--ink) 14%, transparent);
   position: relative;
 }
-.met-bar.strong { --c: var(--viz-strong, #ff3b30); }
+.met-bar.strong { --c: var(--viz-strong, #ff3b30); border-color: color-mix(in srgb, var(--c) 40%, transparent); }
 .met-bar::after {
   content: ""; position: absolute; inset: -2px; border-radius: 999px;
   background: linear-gradient(180deg, color-mix(in srgb, var(--c) 55%, #fff), var(--c) 50%, color-mix(in srgb, var(--c) 80%, #000));
@@ -663,27 +665,38 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 .drone-fifth-tag { font-size: 0.85em; opacity: 0.4; transition: opacity 0.2s, color 0.2s; }
 .drone-fifth-tag.on { opacity: 0.95; color: var(--ink-2); }
 /* Bow as volume (tryout): the bow stands beside the cello as tall as it; its
-   hair (laid along it from the bow's frog and tip anchors, art.js alignBow)
-   is lit from the frog up to the volume, where a small rosin-gold marker sits. */
+   hair is laid along it from the bow's frog and tip anchors (art.js alignBow).
+   The level is a band of colour drawn behind the bow, from the hair to the
+   middle of the stick, from the frog up to the volume, so it shows only
+   through the gap between the hair and the stick and as a soft glow round
+   them: subtle, but there. A small gold marker sits on the hair at the level. */
+/* The bow and its small Volume label under it, together as tall as the picture. */
+.bow-col { --bow-label: 18px; flex: none; display: flex; flex-direction: column; align-items: center; height: var(--art, clamp(130px, 28dvh, 240px)); }
+.bow-col[hidden] { display: none; }
+.bow-label { height: var(--bow-label); line-height: var(--bow-label); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.04em; color: var(--ink-3); white-space: nowrap; }
 .bow-slider {
-  position: relative; flex: none; height: var(--art, clamp(130px, 28dvh, 240px)); aspect-ratio: 256 / 1024;
+  position: relative; flex: none; height: calc(100% - var(--bow-label)); aspect-ratio: 256 / 1024;
   touch-action: none; cursor: grab; -webkit-tap-highlight-color: transparent; border-radius: 8px;
+  isolation: isolate;
 }
-.bow-slider[hidden] { display: none; }
 .bow-slider:focus:not(:focus-visible) { outline: none; }
 .bow-slider.held { cursor: grabbing; }
-.bow-slider .art { position: absolute; inset: 0; display: block; }
+.bow-slider .art { position: absolute; inset: 0; display: block; z-index: 1; }
 .bow-slider .art > * { width: 100%; height: 100%; display: block; object-fit: contain; }
-.bow-hair { position: absolute; left: var(--hair-x, 34%); top: var(--hair-top, 3%); bottom: var(--hair-bottom, 3%); width: 0; }
+/* From the hair to about the middle of the stick: 9% of the bow's width (the stick sits 22-24 of 256 px from the hair in every delivered bow). */
+.bow-hair { position: absolute; left: var(--hair-x, 34%); top: var(--hair-top, 3%); bottom: var(--hair-bottom, 3%); width: 9%; }
 /* A wider invisible grip around the hair, so a finger finds it. */
-.bow-hair::before { content: ''; position: absolute; top: -12px; bottom: -12px; left: -22px; width: 44px; }
+.bow-hair::before { content: ''; position: absolute; top: -12px; bottom: -12px; left: -22px; width: 44px; z-index: 3; }
 .bow-lit {
-  position: absolute; left: -3px; width: 6px; bottom: 0; height: calc(var(--v, 0.8) * 100%); border-radius: 3px;
-  background: linear-gradient(to top, color-mix(in srgb, var(--brass-2) 70%, transparent), var(--brass-2));
-  box-shadow: 0 0 10px 2px color-mix(in srgb, var(--brass-2) 55%, transparent);
+  position: absolute; left: -1px; right: 0; bottom: 0; height: calc(var(--v, 0.8) * 100%); z-index: 0;
+  border-radius: 3px;
+  --lit: var(--brass); /* on a light page the deeper accent, or it fades into the pale hair */
+  background: linear-gradient(to top, color-mix(in srgb, var(--lit) 80%, transparent), var(--lit));
+  box-shadow: 0 0 10px 2px color-mix(in srgb, var(--lit) 55%, transparent);
 }
+[data-mode="dark"] .bow-lit { --lit: var(--brass-2); }
 .bow-mark {
-  position: absolute; left: 0; bottom: calc(var(--v, 0.8) * 100%); width: 22px; height: 22px; translate: -50% 50%;
+  position: absolute; left: 0; bottom: calc(var(--v, 0.8) * 100%); width: 22px; height: 22px; translate: -50% 50%; z-index: 2;
   border-radius: 50%; background: var(--brass-2); border: 3px solid var(--bg); box-shadow: 0 1px 4px rgba(0,0,0,.45);
   transition: scale 0.15s;
 }
@@ -698,7 +711,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   .drone-body { width: min(100%, 760px); display: grid; grid-template-columns: auto 1fr; align-items: center; justify-items: center; gap: 6px 28px; }
   .drone-stage { grid-row: 1 / span 5; padding-left: 0; }
   .drone-art { width: min(60dvh, 220px); }
-  .bow-slider { height: min(60dvh, 220px); }
+  .bow-col { height: min(60dvh, 220px); }
   .drone-body.bowed .drone-stage { padding-left: 0; }
   .drone-note { font-size: 3rem; }
 }
@@ -1556,6 +1569,13 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 
 /* Audio check */
 .open-audio-check { align-self: flex-start; }
+/* Audio check and Theme at the foot of each mini app's settings: two
+   separate global features, so at either end of the line rather than paired. */
+.sheet-links { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; }
+.sheet-links .open-audio-check { align-self: auto; }
+#theme-sheet-body { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+/* The sheet is titled Theme already: its tiles' own heading is for screen readers only there. */
+#theme-sheet #theme-field > legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .ac-status { margin: 0; padding: 12px 14px; border-radius: min(var(--radius), 12px); border: 1px solid var(--line); background: var(--panel); line-height: 1.45; }
 .ac-status.warn, div.ac-status.bad { border-color: var(--brass); display: grid; gap: 6px; }
 div.ac-status.bad { border-color: var(--red); justify-items: start; }

@@ -123,25 +123,36 @@ when the Art Deco art arrives, measure and record its own.
   It moves as a real pendulum does (simple harmonic motion, a cosine):
   easing to a stop at each end, where the click falls, and fastest through
   the middle. Dots under it show the beat of the bar. **On each beat** (in
-  the Pendulum tab) is **Swing** (the default), **Pulse** or **Off**
-  (`pendulumMode`; saves from the two switches it replaced carry over, a
-  pulse someone turned on winning). **Tapping the metronome** turns it off
-  and back to the last of Swing or Pulse (`pendulumLast`); the swing eases
+  the Pendulum tab) is a switch (on by default) and the effect it turns on,
+  **Swing** (the default) or **Pulse** (`pendulumMode` is the one showing or
+  Off, `pendulumLast` the effect chosen, kept while it is off; saves from
+  the two switches it replaced carry over, a pulse someone turned on
+  winning). Choosing an effect while it is off only chooses it. **Tapping
+  the metronome** flips the same switch, so it always turns the chosen
+  effect off or on; the swing eases
   in and out over about half a second rather than jumping. **Pulse** grows
   the dots big, as wide as the row allows (the metronome shrinking above to
   make room), so they can be seen from across a room: the beat's dot swells
   and glows into its beat, peaks on it and eases away (a bell, its tail half
   again as long as its lead-in), red on a strong beat, while the next starts
   to swell into its own.
+- The Visualizer's bars are a faint neutral outline until played (the
+  strong beat's a touch of its colour, so the bar still reads); the beat
+  being played flashes in its colour and the beats played so far in that
+  pass stay faintly lit.
 - The picture (the metronome over the dots) is always the same height, so
   the controls under it never move: its foot is the row of dots, Pulse's big
   dots or the Visualizer, which is exactly as tall as its rows (`sizeFoot`).
   The metronome scales down toward its top by just enough to make room (a
   transform, so it is never squashed or laid out again) while the
-  Visualizer is revealed upward out of the dots into the space it frees,
-  its top edge keeping pace with the metronome's foot; each change takes
-  0.6 s, eased (none with reduced motion, and none when the window is
-  resized).
+  dots and the Visualizer swap by a **cross-zoom** (`crossZoom`): the
+  outgoing one fades out while it is drawn growing or shrinking into the
+  incoming one's box, and the incoming one fades in (overlapping, so the
+  place never goes blank) while it grows or shrinks from the outgoing one's
+  box to its own, both about their bottom centres. Each change takes 0.6 s,
+  eased (none with reduced motion, and none when the window is resized).
+  The dots are centred under the metronome at every size, and stay on one
+  line (never wrapping part way while they grow or shrink for Pulse).
 - **Volume**, tucked away as a faint speaker at the picture's top right:
   grab it and drag up or down and the volume follows at once, the slider
   showing while it does and folding away a moment after; tap it and the
@@ -216,7 +227,7 @@ when the Art Deco art arrives, measure and record its own.
   mixers take the click for every position (`slots`).
 - **Display** (metronome settings): two tabs, **Pendulum** (the default)
   and **Visualizer**; the chosen one opens, like a folder tab, into a
-  rounded box round its own options: **On each beat** (Swing, Pulse or Off),
+  rounded box round its own options: **On each beat** (a switch, then Swing or Pulse),
   or **Bars shown** (1, 2, 4 or 8). **Tapping the dots** opens them into the
   Visualizer, the metronome shrinking (and still swinging) above it, and
   tapping the Visualizer folds it back into the dots. **Pressing and
@@ -325,7 +336,9 @@ Play a note and the tuner shows the nearest note (letter, accidental and
 octave), a needle on a ±50-cent gauge, the cents and hertz, and a hint: *Too
 low: tune up*, *Too high: tune down*, or *In tune* (within ±5 cents, when the
 needle, note and band turn green). The last note stays up, dimmed, for 1.5 s
-after the sound stops.
+after the sound stops. While the microphone is being opened nothing is said about
+it (no "microphone is off", no Try again), so opening the Tuner doesn't flash
+a message that then disappears; a refusal is shown once it is known.
 
 - **Instrument** (the dropdown on the screen): Chromatic (any note), or a
   set of strings: guitar (standard, drop D, DADGAD), bass (4 and 5 string),
@@ -371,18 +384,22 @@ tones, scales over a tonic.
   side keeps it beside the controls. To its right, an upright **volume**
   slider: drag the knob or the track up or down, or use the arrow keys (it
   is the same volume as the one in the settings).
-- **Bow as volume** (Drone settings, a tryout, off by default): the cello is
-  drawn without its bow and the bow stands beside it as the volume, its
-  hair lit from the frog up to the level with a small gold marker; drag
-  along it. The hair is placed from the bow's own `frog` and `tip` anchors
+- **Bow as volume** (Drone settings, on by default; off gives the plain
+  slider, and an off saved while it was a tryout is not kept): the cello is
+  drawn without its bow and the bow stands beside it as the volume: a band
+  of colour behind the bow, from the hair to the middle of the stick and
+  from the frog up to the level, shows through the gap between them and as
+  a soft glow round them (the theme's deeper accent on a light page, its
+  bright one on a dark page), with a small gold marker on the hair at the
+  level, and a small **Volume** label under it (the bow and label together
+  as tall as the picture); drag along it. The hair is placed from the bow's own `frog` and `tip` anchors
   (`alignBow` in `app/src/art.js`), so delivered art can draw the bow
   anywhere in its canvas. Round 7 delivers `drone-cello`, each theme's Drone
   image with the bow taken out, and `drone-bow`, the bow alone, upright, all
   eight themes delivered. Checked in the app: each `drone-cello` lies exactly
   on its `home-drone` (same extent, 99-100% overlap), so switching the tryout
   on does not move the cello, and each bow's anchors sit where its hair meets
-  the head and the frog, which the marker and the lit hair follow. The
-  plain slider stays the default while this is tried out.
+  the head and the frog, which the marker and the lit hair follow.
 - **Tapping the frequency** under the note adds or removes the fifth; "(+5th)"
   beside it is lit while the fifth plays and faint while it doesn't.
 - Instruments: **Cello** (the default), **Cello, soft** (sul tasto: darker),
@@ -518,7 +535,14 @@ file, on purpose: the privacy page, the device details Send feedback attaches
   `design/source/drone/` the tools that make the loops.
 - `design/source/make_icons.py`: makes `app/icons/icon-180/192/512.png`
   from the delivered `icon-1024.png`, or a drawn stand-in until then.
-- `publish.sh`: copies the app to `local/pages/musicpractice/`.
+- `publish.sh`: copies the app to `local/pages/musicpractice/`, then
+  `stamp.mjs` gives the copy addresses that change with each file's
+  contents: `src/main.js?v=<hash>` and `styles.css?v=<hash>`, and an import
+  map sending every module import to its own `?v=<hash>`. GitHub Pages lets
+  each file be cached for 10 minutes on its own, so without this a phone
+  could load a new `index.html` with an old cached `text-config.js` and show
+  a key (`common.themeButton`) in place of its text. The source is
+  untouched; the apps' copy (`mobile/copy-web.sh`) is stamped too.
 
 ## Checks
 
@@ -650,6 +674,12 @@ check, and nowhere else, say **Microphone is off for Music Practice** with
 an **Open Settings** button to the app's own page there; the note goes once
 it is back on. The page asks the phone without prompting (`micPermission`,
 `openAppSettings` in `app/src/devices.js`).
+
+**Theme…** sits at the right end of the line Audio check starts, at the foot
+of each mini app's settings (two separate global features): it opens
+the theme tiles and Dark Mode in a sheet of their own (the main settings'
+own controls, moved in while it is open), so the theme can be changed from
+anywhere.
 
 **Audio check** (a button in every settings sheet, `app/src/audiocheck.js`)
 says nothing about how takes will play while all is well, and only when

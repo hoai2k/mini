@@ -391,7 +391,11 @@ syncThemeControls();
 
 const appSettings = $('app-settings');
 $('app-settings-btn').addEventListener('click', () => {
-  // Load every theme's fonts so the tiles show them (only when this opens).
+  loadThemeFonts();
+  appSettings.showModal();
+});
+/** Every theme's fonts, so the tiles show them (only once a theme choice opens). */
+function loadThemeFonts() {
   if (!$('all-theme-fonts')) {
     const hrefs = isApp() ? THEMES.map(fontsHref) : [`https://fonts.googleapis.com/css2?${THEMES.map((t) => t.fonts).join('&')}&display=swap`];
     hrefs.forEach((href, i) => {
@@ -402,8 +406,29 @@ $('app-settings-btn').addEventListener('click', () => {
       document.head.append(link);
     });
   }
-  appSettings.showModal();
+}
+
+/*
+ * Theme, from any mini app's settings (the button beside Audio check): the
+ * main settings' own theme tiles and Dark Mode, moved into a sheet of their
+ * own while it is open and back when it closes, so there is one of each.
+ */
+const themeSheet = $('theme-sheet');
+function openThemeSheet(from) {
+  from?.close();
+  loadThemeFonts();
+  $('theme-sheet-body').append($('theme-field'), $('appearance-field'));
+  syncThemeControls();
+  themeSheet.showModal();
+  themeSheet.querySelector('.theme-tile[aria-checked="true"]')?.focus();
+}
+themeSheet.addEventListener('close', () => {
+  $('app-settings').querySelector('form').insertBefore($('appearance-field'), $('app-settings').querySelector('.open-audio-check'));
+  $('app-settings').querySelector('form').insertBefore($('theme-field'), $('appearance-field'));
 });
+for (const b of document.querySelectorAll('.open-theme')) {
+  b.addEventListener('click', () => openThemeSheet(b.closest('dialog')));
+}
 
 const metSettings = $('met-settings');
 $('met-settings-btn').addEventListener('click', () => metSettings.showModal());
@@ -624,8 +649,15 @@ $('marking').addEventListener('click', () => {
 // With the pendulum and the pulse both off (and no Visualizer) there are no
 // visuals to sync: Audio check's sync controls are then off.
 const visualsShown = () => settings.pendulumMode !== 'off' || settings.metView === 'bars';
-// Pendulum, On each beat: Swing, Pulse or Off (never swinging and pulsing together).
-const syncPendChips = chips($('pend-mode'), ['swing', 'pulse', 'off'].map((id) => ({ id, label: TEXT.metronome.settings.pendulumModes[id] })), () => settings.pendulumMode, setEffect);
+// Pendulum: On each beat, a switch, and the effect it turns on, Swing or
+// Pulse (never both). The effect is kept while the switch is off
+// (pendulumLast), so a tap on the metronome knows which one to turn on.
+const syncPendChips = chips($('pend-mode'), ['swing', 'pulse'].map((id) => ({ id, label: TEXT.metronome.settings.pendulumModes[id] })), () => settings.pendulumLast, (id) => {
+  if (settings.pendulumMode === 'off') { settings.pendulumLast = id; persist(); showMetView(); }
+  else setEffect(id);
+});
+$('pend-on').checked = settings.pendulumMode !== 'off';
+$('pend-on').addEventListener('change', () => setEffect($('pend-on').checked ? settings.pendulumLast : 'off'));
 /** On each beat: Swing, Pulse or Off. The swing eases in and out (animateMetronome); Pulse grows the dots (styles.css). */
 function setEffect(id) {
   morph();
@@ -633,6 +665,7 @@ function setEffect(id) {
   if (id !== 'off') settings.pendulumLast = id;
   persist();
   syncPendChips?.();
+  $('pend-on').checked = id !== 'off';
   showMetView();
   if (!metronome?.running) pendulum.style.transform = 'rotate(0deg)';
 }
@@ -713,7 +746,9 @@ function showMetView() {
   // The metronome shrinks as the dots open into the Visualizer under it,
   // or grow big for Pulse (styles.css), and back.
   $('met-visual').classList.toggle('bars', bars);
-  $('met-visual').classList.toggle('pulse', !bars && settings.pendulumMode === 'pulse');
+  // Pulse's big dots stay big under the Visualizer too (unseen), so the dots
+  // are the same size on either side of a change of view (crossZoom).
+  $('met-visual').classList.toggle('pulse', settings.pendulumMode === 'pulse');
   $('met-viz').inert = !bars;
   const effect = settings.pendulumMode === 'off' ? settings.pendulumLast : settings.pendulumMode;
   art.setAttribute('aria-label', TEXT.metronome.effectButton(effect, settings.pendulumMode !== 'off'));
@@ -733,10 +768,70 @@ function morph() {
   morphEnd = setTimeout(() => $('met-visual').classList.remove('morph'), 800);
 }
 function setMetView(view) {
+  const from = settings.metView;
   morph();
   settings.metView = view;
   persist();
   showMetView();
+  if (from !== view) crossZoom(view === 'bars');
+}
+
+/*
+ * Dots to Visualizer and back, as a cross-zoom: the outgoing one fades out
+ * (over the first half) while it is drawn growing (or shrinking) into the
+ * incoming one's box, and the incoming one fades in (overlapping, so the
+ * place never goes blank) while it grows (or shrinks) from the outgoing
+ * one's box to its own. Both sit on the bottom of the picture, so each is
+ * scaled about its bottom centre. The boxes are measured from layout
+ * (offsets, which no animation in progress changes): the dots' row as drawn,
+ * and the Visualizer's rows.
+ */
+const MORPH_MS = 600;
+const MORPH_EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
+function zoomBoxes() {
+  const beats = $('beats');
+  const dots = [...beats.children];
+  const fh = $('met-visual').offsetHeight; // the foot's bottom is the picture's
+  // Boxes as { cx, bottom (up from the foot's bottom), w, h } within each element too.
+  const left = Math.min(...dots.map((d) => d.offsetLeft));
+  const right = Math.max(...dots.map((d) => d.offsetLeft + d.offsetWidth));
+  const top = Math.min(...dots.map((d) => d.offsetTop));
+  const bottom = Math.max(...dots.map((d) => d.offsetTop + d.offsetHeight));
+  const d = { el: beats, cx: (left + right) / 2, by: bottom, w: right - left, h: bottom - top, x0: beats.offsetLeft, lift: beats.offsetHeight - bottom };
+  const viz = $('met-viz');
+  const rows = $('met-bars');
+  const v = { el: viz, cx: rows.offsetLeft + rows.offsetWidth / 2, by: rows.offsetTop + rows.offsetHeight, w: rows.offsetWidth, h: rows.offsetHeight, x0: viz.offsetLeft, lift: viz.offsetHeight - (rows.offsetTop + rows.offsetHeight) };
+  return [d, v, fh];
+}
+let zooms = [];
+function crossZoom(toBars) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches || !$('beats').children.length) return;
+  for (const a of zooms) a.cancel();
+  const [d, v] = zoomBoxes();
+  const [from, to] = toBars ? [d, v] : [v, d];
+  // Where `a`'s box is to be drawn as `b`'s: a scale about a's bottom centre,
+  // then a shift taking that point onto b's (in the foot, x from the left, y up from the bottom).
+  const onto = (a, b) => {
+    const sx = b.w / a.w, sy = b.h / a.h;
+    const dx = (b.x0 + b.cx) - (a.x0 + a.cx);
+    const dy = -(b.lift - a.lift);
+    return `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) scale(${sx.toFixed(3)}, ${sy.toFixed(3)})`;
+  };
+  const origin = (a) => `${a.cx.toFixed(1)}px ${a.by.toFixed(1)}px`;
+  const opts = { duration: MORPH_MS, easing: MORPH_EASE };
+  zooms = [
+    from.el.animate([
+      { transformOrigin: origin(from), transform: 'none', opacity: 1 },
+      { transformOrigin: origin(from), opacity: 0, offset: 0.55 },
+      { transformOrigin: origin(from), transform: onto(from, to), opacity: 0 },
+    ], opts),
+    to.el.animate([
+      { transformOrigin: origin(to), transform: onto(to, from), opacity: 0 },
+      { transformOrigin: origin(to), opacity: 0, offset: 0.12 },
+      { transformOrigin: origin(to), opacity: 1, offset: 0.75 },
+      { transformOrigin: origin(to), transform: 'none', opacity: 1 },
+    ], opts),
+  ];
 }
 // Display (metronome settings): Pendulum or Visualizer, each with its own options below.
 const syncViewChips = chips($('met-view-chips'), ['metronome', 'bars'].map((id) => ({ id, label: TEXT.metronome.settings.views[id] })), () => settings.metView, setMetView);
@@ -1645,18 +1740,24 @@ const tuner = setupTuner({ settings, persist, chips });
 let tunerError = '';
 
 /** Open the mic for the tuner: the same held mic as the recorder's, so no new prompt. */
+// While the mic is being opened the tuner shows nothing about it: neither
+// "the microphone is off" nor Try again, which would flash up for the moment
+// it takes and go (the answer is shown once there is one).
+let tunerStarting = false;
 async function startTuner() {
   setSession('auto');
   unlock();
   ensureRecorder();
   tunerError = '';
   tuner.reset();
+  tunerStarting = true;
   showTunerState();
   try {
     await recorder.tune();
   } catch (err) {
     tunerError = micError(err, true);
   }
+  tunerStarting = false;
   if (recorder.micOpen) markStale();
   showTunerState();
 }
@@ -1672,13 +1773,15 @@ function showTunerState() {
   const state = recorder?.state || 'off';
   const status = $('tuner-status');
   let text = '';
-  if (state === 'off') text = tunerError || TEXT.tuner.micOff;
+  const opening = tunerStarting && state === 'off';
+  if (opening) text = '';
+  else if (state === 'off') text = tunerError || TEXT.tuner.micOff;
   else if (needsTap) text = TEXT.tuner.tapToRestart;
   else if (audio().state !== 'running') text = TEXT.tuner.tapToHear;
   status.textContent = text;
   status.hidden = !text;
   status.classList.toggle('error', state === 'off');
-  $('tuner-retry').hidden = state !== 'off';
+  $('tuner-retry').hidden = state !== 'off' || opening;
   if (state === 'off') tuner.reset();
 }
 $('tuner-retry').addEventListener('click', () => {
