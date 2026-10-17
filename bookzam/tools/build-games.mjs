@@ -7,7 +7,8 @@
 //
 // The file is a list of rows (short keys keep it small):
 //   [wikidata id, name, aliases[], BGG id | null, year | null, min players | null,
-//    max players | null, designers[], picture file | null, Wikipedia articles]
+//    max players | null, designers[], picture file | null, Wikipedia articles,
+//    barcodes[] (GTIN/EAN/UPC on the box, digits)]
 // sorted by Wikipedia articles (a rough "how well known"), most first.
 
 import { readFile, writeFile } from 'node:fs/promises';
@@ -51,6 +52,12 @@ async function sparql(query) {
   return (await res.json()).results.bindings;
 }
 
+const BARCODES = `
+SELECT ?g ?gtin WHERE {
+  { ?g wdt:P2339 ?anyBgg . } UNION { VALUES ?type { ${TYPES} } ?g wdt:P31 ?type . }
+  ?g wdt:P3962 ?gtin .
+}`;
+
 const qid = (uri) => uri.split('/').pop();
 const v = (b, key) => b[key]?.value;
 
@@ -58,8 +65,9 @@ function check(rows) {
   if (!Array.isArray(rows) || rows.length < 1000) throw new Error(`expected over 1000 games, got ${rows?.length}`);
   const ids = new Set();
   for (const r of rows) {
-    if (!Array.isArray(r) || r.length !== 10) throw new Error(`bad row ${JSON.stringify(r)}`);
-    const [id, name, aliases, bgg, year, minP, maxP, designers, image, links] = r;
+    if (!Array.isArray(r) || r.length !== 11) throw new Error(`bad row ${JSON.stringify(r)}`);
+    const [id, name, aliases, bgg, year, minP, maxP, designers, image, links, barcodes] = r;
+    if (!Array.isArray(barcodes) || !barcodes.every((b) => /^\d{8,14}$/.test(b))) throw new Error(`${id}: bad barcodes`);
     if (!/^Q\d+$/.test(id) || ids.has(id)) throw new Error(`bad or repeated id ${id}`);
     ids.add(id);
     if (typeof name !== 'string' || !name) throw new Error(`${id}: no name`);
@@ -78,7 +86,7 @@ if (process.argv.includes('--check')) {
   process.exit(0);
 }
 
-const [games, aliases, designers] = [await sparql(GAMES), await sparql(ALIASES), await sparql(DESIGNERS)];
+const [games, aliases, designers, barcodes] = [await sparql(GAMES), await sparql(ALIASES), await sparql(DESIGNERS), await sparql(BARCODES)];
 const byId = new Map();
 for (const b of games) {
   const id = qid(v(b, 'g'));
@@ -89,7 +97,7 @@ for (const b of games) {
   if (prev && prev[3] && v(b, 'bgg') && Number(prev[3]) < Number(v(b, 'bgg'))) continue;
   byId.set(id, [
     id, v(b, 'label'), [], v(b, 'bgg') || prev?.[3] || null, year && year > 0 && year < 2100 ? year : null,
-    int('minP'), int('maxP'), [], v(b, 'image') ? decodeURIComponent(v(b, 'image').split('/').pop()) : null, Number(v(b, 'links')) || 0,
+    int('minP'), int('maxP'), [], v(b, 'image') ? decodeURIComponent(v(b, 'image').split('/').pop()) : null, Number(v(b, 'links')) || 0, [],
   ]);
 }
 for (const b of aliases) {
@@ -100,6 +108,11 @@ for (const b of aliases) {
 for (const b of designers) {
   const row = byId.get(qid(v(b, 'g')));
   if (row && !row[7].includes(v(b, 'name')) && row[7].length < 4) row[7].push(v(b, 'name'));
+}
+for (const b of barcodes) {
+  const row = byId.get(qid(v(b, 'g')));
+  const code = String(v(b, 'gtin') || '').replace(/\D/g, '');
+  if (row && /^\d{8,14}$/.test(code) && !row[10].includes(code)) row[10].push(code);
 }
 // Names that are only an id or a number aren't readable on a box.
 const rows = [...byId.values()].filter((r) => /\p{L}{2}/u.test(r[1]) && !/^Q\d+$/.test(r[1]));

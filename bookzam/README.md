@@ -31,8 +31,18 @@ too. Add it to the home screen for a full-screen app.
     never an item.
   - Text that was read clearly but isn't a book Open Library knows is kept as
     printed with a yellow **?**, to correct or delete.
+  - **Barcodes.** The barcode button (and "Or scan the barcodes…" on an
+    empty list) opens the camera: point it at the barcode on a book's back or a
+    game's box and each one is added as it's read, with a beep. A book's ISBN
+    is looked up on Open Library, so it's exactly that book; a game's barcode
+    is matched among the bundled games (about 550 of them carry their
+    barcodes), then Wikidata. Barcodes in photos added with **+** count too.
+  - **Looks.** Each spine a photo identifies is remembered by its look (a
+    small colour-and-layout fingerprint of its label area, and a picture of
+    it). A later photo where a known spine's title can't be read can still
+    recognise it ("recognised by its look"); see below for how often.
   - Tap an item to correct its title and author or designer (it's looked up
-    again),
+    again), see its remembered spine,
     move it between books and board games, delete it, see the photos it was
     found in, open it on Open Library, Goodreads, Google Books or
     BoardGameGeek, or **Find on shelf**.
@@ -53,6 +63,10 @@ too. Add it to the home screen for a full-screen app.
   - The circle goes round the text it read, so it sits on the right spine.
     A title from the catalogue also matches by its author and by how its
     spine read when it was catalogued.
+  - If the title can't be read, a catalogued item is looked for by its
+    remembered look among the places text was seen; a sure match is circled
+    and marked "recognised by its look, so check it". If it isn't found,
+    Find shows the remembered picture of its spine, to look for by eye.
 
 ## How photos are read
 
@@ -85,6 +99,31 @@ Everything runs on the phone; photos are never uploaded.
    word then any word, with the same checks. Small print (player counts, ages,
    playing time) is dropped before anything is looked up.
 
+5. **Barcodes** (`app/src/barcodes.js`): the browser's own BarcodeDetector
+   where there is one (Chrome on Android), else ZXing in WebAssembly
+   (`app/vendor/zxing/`, MIT, 1 MB, loaded the first time a barcode is
+   looked for). Only retail codes (EAN-13/8, UPC-A/E) with a valid check
+   digit; 978/979 codes are ISBNs.
+6. **Looks** (`app/src/looks.js`): a spine's label area (its text with a
+   margin), cut out upright at 1024 px and averaged into 8 x 32 cells of
+   brightness and two colour differences. Two looks compare by the cosine of
+   their patterns (each channel's mean removed, so exposure doesn't matter),
+   less a penalty for different colours, either way up. Up to three looks are
+   kept per item, with a 40 px picture. A look with too little detail (a plain
+   spine) isn't used.
+
+   Tested by taking looks from real shelf photos and searching copies of them
+   at half and a third of the size, darker and slightly blurred (titles
+   mostly unreadable), with looks from other shelves as books that aren't
+   there: comparing whole text places, a score of 0.8 with a 0.04 lead over the
+   next place found 14 spines across five such photos with no wrong spine and
+   no absent book matched. Searching spine-sized windows inside places, or
+   comparing at a coarser grid, found more but picked wrong spines (sibling
+   volumes in a series look alike), so neither is used. Cataloguing uses 0.85.
+   From further away or more blurred, the detector outlines different stretches
+   of text than before and looks stop matching; Find then shows the spine's
+   picture instead of guessing.
+
 Measured on five real photos (a dim bookcase photographed at an angle with a
 shallow depth of field, a children's shelf, a bookshop shelf, a mixed
 German/English shelf, picture books with tilted spines) against Cloudflare
@@ -110,11 +149,15 @@ steep angles lose books. Straight on, close and well lit works best.
     finding, rotated crops, CTC decoding), `engine.js` runs the models,
     `worker.js` the web worker, `spines.js` grouping and fuzzy matching,
     `identify.js` the Open Library step (all but the worker tested).
+  - `barcodes.js`: reading barcodes, ISBNs, Open Library by ISBN (tested).
+    `looks.js`: spines' looks, comparing and recognising them (tested).
   - `geometry.js`: photo sizes and the Find ring. `photo.js`: decoding
     (upright whatever the EXIF says), resizing, thumbnails. `games.js`:
     Wikidata board game search (tested). `lookup.js`: Open
     Library lookups after a title is edited. `store.js`: IndexedDB.
 - `app/models/`: the PaddleOCR models and their sources.
+- `app/vendor/zxing/`: zxing-wasm 3.1.5's reader (MIT), for barcodes where the
+  browser has no BarcodeDetector.
 - `app/data/games.json`: the bundled board games (Wikidata, CC0), rebuilt by
   `node bookzam/tools/build-games.mjs` (5,230 games, 390 KB, about 140 KB
   compressed; loaded only when a game is looked up). Each row is
@@ -126,8 +169,10 @@ steep angles lose books. Straight on, close and well lit works best.
 - `design/image-requests.md`: the art to generate.
 - `tools/browser-check.mjs`: a walk-through on a phone-sized Chromium with
   the real reader on photos it draws (a bookshelf with spines both ways up and
-  a book lying flat, added to Books; a stack of game boxes, added to Board
-  games), Open Library and Wikidata mocked.
+  a book lying flat, added to Books; the same shelf far away and out of focus,
+  for Find; a stack of game boxes, added to Board games; a book's barcode),
+  and Chromium's fake camera filming a barcode for the live scanner; Open
+  Library and Wikidata mocked. `tools/ean13.mjs` draws its barcodes.
 - `publish.sh`: copies the app to `local/pages/bookzam/`.
 
 ## Export format

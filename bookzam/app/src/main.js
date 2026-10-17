@@ -1,8 +1,11 @@
 // Bookzam: the page. Catalogue reads photos into book and board game lists;
 // Find Book circles one book in a photo of a shelf.
 
-import { mergeScan, removePhoto, moveItem, filterItems, sortItems, exportData, emptyCatalogue, newId } from './catalogue.js';
-import { readPhoto, scanLines, findInLines, warmUp } from './reader.js';
+import { mergeScan, removePhoto, moveItem, filterItems, sortItems, exportData, emptyCatalogue, newId, addLook } from './catalogue.js';
+import { readPhoto, scanLines, findInRead, warmUp, saveLook, lookAt } from './reader.js';
+import { isbnOf, bookByIsbn, readBarcodes } from './barcodes.js';
+import { gameByBarcode } from './games.js';
+import { prepare, recognise } from './looks.js';
 import { lookupBook } from './lookup.js';
 import { lookupGame } from './games.js';
 import { loadCatalogue, saveCatalogue, persist } from './store.js';
@@ -80,6 +83,8 @@ function renderList() {
   const games = ui.kind === 'games';
   $('toolbar').hidden = !items.length;
   $('fab').hidden = !items.length;
+  $('fab-scan').hidden = !items.length;
+  $('empty-scan').textContent = games ? 'Or scan the barcodes on the boxes' : 'Or scan the barcodes on their backs';
   $('fab').setAttribute('aria-label', games ? 'Add a photo of board games' : 'Add a photo of books');
   $('empty').hidden = items.length > 0;
   if (!items.length) {
@@ -140,7 +145,7 @@ function renderJob(job) {
   job.el.querySelector('.x')?.addEventListener('click', () => job.el.remove());
 }
 
-function summarize(added, existing, unreadable) {
+function summarize(added, existing, unreadable, recognised = 0) {
   const books = added.filter((i) => i.kind === 'book').length;
   const games = added.filter((i) => i.kind === 'game').length;
   const parts = [];
@@ -148,6 +153,7 @@ function summarize(added, existing, unreadable) {
   if (games) parts.push(`${games} board game${games === 1 ? '' : 's'}`);
   let s = parts.length ? `Added ${parts.join(' and ')}` : 'Nothing new';
   if (existing.length) s += `, ${existing.length} already here`;
+  if (recognised) s += ` (${recognised} recognised by ${recognised === 1 ? 'its' : 'their'} look)`;
   if (!added.length && !existing.length) s = unreadable ? "Couldn't make out any titles. Try closer, straighter on, with more light." : 'No titles found in that photo.';
   return `${s}.`;
 }
@@ -167,15 +173,32 @@ async function runJobs() {
       const read = await readPhoto(img, (p) => progress(progressText(p)));
       img.close?.();
       const scan = await scanLines(read.lines, { mode: job.mode, onProgress: (p) => progress(progressText(p)) });
+      await addBarcodes(scan, read.barcodes, job.mode);
       const photoId = newId('p');
-      const { added, existing } = mergeScan(cat, scan, photoId);
+      const { added, existing, pairs } = mergeScan(cat, scan, photoId);
+      // Keep each spine's look, to recognise it later when its title can't be read.
+      for (const { entry, item } of pairs) if (entry.group) addLook(item, saveLook(read, entry.group));
+      // Spines whose title couldn't be read, recognised by their look.
+      const seen = new Set(pairs.map((p) => p.item));
+      const known = (job.mode === 'games' ? cat.games : cat.books).filter((i) => i.looks?.length && !seen.has(i));
+      let recognised = 0;
+      if (known.length) {
+        for (const group of scan.leftovers) {
+          const match = recognise(prepare(lookAt(read, group)), known.filter((i) => !seen.has(i)));
+          if (!match) continue;
+          seen.add(match.item);
+          if (!match.item.photos.includes(photoId)) match.item.photos.push(photoId);
+          existing.push(match.item);
+          recognised++;
+        }
+      }
       cat.photos.unshift({ id: photoId, thumb: job.thumb, added: new Date().toISOString(), books: scan.books.length, games: scan.games.length });
       await save(true);
       for (const item of added) ui.fresh.add(item.id);
       if (added.length && ui.kind !== job.mode) showKind(job.mode);
       else renderList();
       job.state = 'done';
-      job.summary = summarize(added, existing, scan.unreadable);
+      job.summary = summarize(added, existing, scan.unreadable, recognised);
       renderJob(job);
       queueLookups();
       setTimeout(() => job.el?.remove(), 9000);
@@ -187,6 +210,33 @@ async function runJobs() {
     }
   }
   working = false;
+}
+
+/**
+ * Barcodes found in a photo, added to its scan: an ISBN is looked up on Open
+ * Library, a game's barcode in the bundled games (then Wikidata). A book's
+ * barcode in the Board games list (or a game's in Books) is left alone.
+ */
+async function addBarcodes(scan, barcodes, mode) {
+  const done = new Set();
+  for (const { code } of barcodes || []) {
+    if (done.has(code)) continue;
+    done.add(code);
+    const entry = await entryForBarcode(code, mode).catch(() => null);
+    if (entry) (mode === 'games' ? scan.games : scan.books).push(entry);
+  }
+}
+
+async function entryForBarcode(code, mode) {
+  const isbn = isbnOf(code);
+  if (mode === 'books') {
+    if (!isbn) return null;
+    const book = await bookByIsbn(isbn);
+    return book ? { ...book, kind: 'book', confidence: 1, barcode: isbn } : null;
+  }
+  if (isbn) return null;
+  const game = await gameByBarcode(code);
+  return game ? { kind: 'game', title: game.title, designer: game.designers[0] || null, year: game.year, confidence: 1, lookup: game, barcode: code } : null;
 }
 
 /** What the reader is doing, for a job card or the Find verdict. */
@@ -290,6 +340,7 @@ function fillItemSheet(item) {
   $('item-links').innerHTML = links.map(([name, href]) => `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(name)} ↗</a>`).join('');
   const photos = item.photos.map((id) => cat.photos.find((p) => p.id === id)).filter(Boolean);
   $('item-photos').innerHTML = photos.map((p) => `<img src="${p.thumb}" alt="A photo it was found in">`).join('');
+  $('item-spine').innerHTML = item.thumb ? `<span>Its spine${item.looks?.length ? ', which Bookzam remembers to recognise it by' : ''}</span><img src="${item.thumb}" alt="">` : '';
   $('item-move').textContent = game ? 'Move to books' : 'Move to board games';
 
 }
@@ -433,11 +484,12 @@ async function runFind() {
     }
     if (run !== find.run) return;
     $('frame').classList.remove('scanning');
-    const { lines, width, height } = find.read;
     const hint = catalogueHint(query);
-    const result = findInLines(lines, width, height, query, hint);
+    const result = findInRead(find.read, query, hint);
     if (!result.found) {
-      setVerdict(`Couldn't find <b>${esc(query)}</b> in this photo. <span class="where">Bookzam reads printed titles, so try closer, straighter on, or with more light.</span>`, 'missing');
+      // Show what it looks like, so the eye can do what the reader couldn't.
+      const spine = hint?.thumb ? `<span class="spine-hint">Its spine looks like this:<img src="${hint.thumb}" alt=""></span>` : '';
+      setVerdict(`Couldn't find <b>${esc(query)}</b> in this photo. <span class="where">Try closer, straighter on, or with more light.</span>${spine}`, 'missing');
       $('similar').innerHTML = result.similar.length
         ? `<span class="chips-label">Titles it could read here</span>${result.similar.map((t) => `<button type="button" class="chip" data-q="${esc(t)}">${esc(t)}</button>`).join('')}`
         : '';
@@ -448,7 +500,8 @@ async function runFind() {
     // A thin spine on a big shelf is easy to miss: zoom in on it after a moment.
     const size = (result.box.x1 - result.box.x0) * (result.box.y1 - result.box.y0);
     if (size < 0.02) setTimeout(() => { if (run === find.run) setZoom(true); }, 700);
-    setVerdict(`Found <b>${esc(result.title)}</b>. <span class="where">${esc(result.where)}</span><span class="tap-hint">Tap the photo to zoom in.</span>`, 'found');
+    const how = result.byLook ? '<span class="tap-hint">Recognised by its look: its title was too small to read, so check it.</span>' : '';
+    setVerdict(`Found <b>${esc(result.title)}</b>. <span class="where">${esc(result.where)}</span>${how}<span class="tap-hint">Tap the photo to zoom in.</span>`, 'found');
     navigator.vibrate?.(30);
   } catch (e) {
     if (run !== find.run) return;
@@ -464,7 +517,7 @@ function catalogueHint(query) {
   const q = query.toLowerCase().trim();
   const all = [...cat.books, ...cat.games];
   const item = all.find((i) => i.title.toLowerCase() === q) || all.find((i) => i.title.toLowerCase().startsWith(q) && q.length >= 4);
-  return item ? { title: item.title, author: item.author || item.lookup?.authors?.[0] || '', read: item.read || '' } : null;
+  return item ? { title: item.title, author: item.author || item.lookup?.authors?.[0] || '', read: item.read || '', looks: item.looks || [], thumb: item.thumb || null } : null;
 }
 
 async function loadFindPhoto(file) {
@@ -484,12 +537,119 @@ async function loadFindPhoto(file) {
   runFind();
 }
 
+// ---------- barcode scanner ----------
+
+const scanner = { stream: null, timer: 0, busy: false, seen: new Set(), mode: 'books' };
+
+async function openScanner() {
+  scanner.mode = ui.kind;
+  scanner.seen.clear();
+  const games = scanner.mode === 'games';
+  $('scan-title').textContent = games ? 'Scan game barcodes' : 'Scan book barcodes';
+  $('scan-hint').textContent = games
+    ? 'Point the camera at the barcode on a game box. Each one is added as soon as it is read; Bookzam knows the barcodes of about 550 games.'
+    : 'Point the camera at the barcode on the back of a book. Each one is added as soon as it is read.';
+  $('scan-list').innerHTML = '';
+  setScanStatus('Starting the camera…');
+  openSheet($('scan-sheet'));
+  try {
+    scanner.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+  } catch (e) {
+    console.warn(e);
+    setScanStatus("Bookzam can't use the camera. Allow camera access for this site, or photograph the barcodes with + instead.", 'error');
+    return;
+  }
+  const video = $('scan-video');
+  video.srcObject = scanner.stream;
+  await video.play().catch(() => {});
+  setScanStatus('Looking for a barcode…');
+  scanner.timer = setInterval(scanFrame, 280);
+}
+
+function closeScanner() {
+  clearInterval(scanner.timer);
+  scanner.timer = 0;
+  for (const track of scanner.stream?.getTracks() || []) track.stop();
+  scanner.stream = null;
+  $('scan-video').srcObject = null;
+}
+
+function setScanStatus(text, state = '') {
+  $('scan-status').textContent = text;
+  $('scan-status').dataset.state = state;
+}
+
+let scanCanvas = null;
+async function scanFrame() {
+  const video = $('scan-video');
+  if (scanner.busy || !scanner.stream || video.readyState < 2) return;
+  scanner.busy = true;
+  try {
+    const w = video.videoWidth, h = video.videoHeight;
+    scanCanvas ||= document.createElement('canvas');
+    scanCanvas.width = w;
+    scanCanvas.height = h;
+    const ctx = scanCanvas.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(video, 0, 0, w, h);
+    const codes = await readBarcodes(ctx.getImageData(0, 0, w, h));
+    for (const { code } of codes) {
+      if (scanner.seen.has(code)) continue;
+      scanner.seen.add(code);
+      beep();
+      setScanStatus(`Read ${code}, looking it up…`);
+      await addScanned(code);
+    }
+  } catch (e) {
+    console.warn(e);
+  } finally {
+    scanner.busy = false;
+  }
+}
+
+async function addScanned(code) {
+  const mode = scanner.mode;
+  let entry = null;
+  try { entry = await entryForBarcode(code, mode); } catch (e) { console.warn(e); }
+  const li = document.createElement('li');
+  if (!entry) {
+    const wrong = mode === 'books' ? !isbnOf(code) : Boolean(isbnOf(code));
+    li.innerHTML = `<span class="no">✕</span><span>${esc(code)}: ${wrong ? (mode === 'books' ? "not a book's barcode" : "a book's barcode, not a game's") : 'not found'}</span>`;
+    setScanStatus(wrong ? (mode === 'books' ? 'That barcode is not an ISBN.' : 'That is a book; scan it from the Books list.') : `Bookzam doesn't know ${code}. Photograph the title instead.`, 'error');
+  } else {
+    // Barcode items belong to no photo, so deleting a photo never removes them.
+    const { added } = mergeScan(cat, mode === 'games' ? { games: [entry] } : { books: [entry] }, 'barcode');
+    for (const item of added) { item.manual = true; ui.fresh.add(item.id); }
+    save();
+    renderList();
+    li.innerHTML = `<span class="ok">✓</span><span>${esc(entry.title)}${entry.author ? ` — ${esc(entry.author)}` : ''}${added.length ? '' : ' (already here)'}</span>`;
+    setScanStatus(added.length ? `Added ${entry.title}.` : `${entry.title} is already here.`);
+    navigator.vibrate?.(40);
+  }
+  $('scan-list').prepend(li);
+}
+
+let audio = null;
+function beep() {
+  try {
+    audio ||= new AudioContext();
+    const osc = audio.createOscillator(), gain = audio.createGain();
+    osc.frequency.value = 1320;
+    gain.gain.setValueAtTime(0.12, audio.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.12);
+    osc.connect(gain).connect(audio.destination);
+    osc.start();
+    osc.stop(audio.currentTime + 0.13);
+  } catch {}
+}
+
 // ---------- wiring ----------
 
 function wire() {
   for (const tab of document.querySelectorAll('.tabs [role=tab]')) tab.addEventListener('click', () => showView(tab.dataset.view));
   for (const seg of document.querySelectorAll('.segmented [role=tab]')) seg.addEventListener('click', () => showKind(seg.dataset.kind));
 
+  for (const btn of document.querySelectorAll('[data-scan]')) btn.addEventListener('click', openScanner);
+  $('scan-sheet').addEventListener('close', closeScanner);
   // Start fetching the reader while the photo picker is open.
   for (const btn of document.querySelectorAll('[data-add]')) btn.addEventListener('click', () => { warmUp(); $('add-input').click(); });
   $('add-input').addEventListener('change', (e) => {
