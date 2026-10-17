@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { planes, describe, spineRect, lookOf, pack, unpack, similarity, flip, prepare, bestMatch, isSure, recognise, detail } from '../src/looks.js';
 import { readingDirections } from '../src/ocr/core.js';
 import { groupLines } from '../src/ocr/spines.js';
-import { isbnOf, validCheckDigit, codeForms } from '../src/barcodes.js';
+import { isbnOf, validCheckDigit, codeForms, bookByIsbn } from '../src/barcodes.js';
 import { gameByBarcode, setLocalGames } from '../src/games.js';
 import { emptyCatalogue, mergeScan, addLook, removePhoto } from '../src/catalogue.js';
 import { readFileSync } from 'node:fs';
@@ -95,4 +95,18 @@ test('the catalogue keeps a few looks per item, and barcode items outlive photos
   cat.photos = [{ id: 'p1' }];
   removePhoto(cat, 'p1');
   assert.deepEqual(cat.books.map((b) => b.title), ['Emma']);
+});
+
+test("a barcode's book takes that edition's title", async () => {
+  const fetch = async (url) => {
+    assert.equal(new URL(url).searchParams.get('isbn'), '9780140449136');
+    return { ok: true, json: async () => ({ docs: [{ key: '/works/OL166894W', title: 'Преступление и наказание', author_name: ['Fyodor Dostoevsky'], editions: { docs: [{ key: '/books/OL7355481M', title: 'Crime and Punishment (Penguin Classics)' }] } }] }) };
+  };
+  const book = await bookByIsbn('9780140449136', { fetch });
+  assert.equal(book.title, 'Crime and Punishment');
+  assert.equal(book.author, 'Fyodor Dostoevsky');
+  assert.equal(book.lookup.isbn, '9780140449136');
+  assert.equal(book.lookup.edition, '/books/OL7355481M');
+  const noEdition = await bookByIsbn('9780140449136', { fetch: async () => ({ ok: true, json: async () => ({ docs: [{ key: '/works/OL1W', title: 'Dune', author_name: ['Frank Herbert'] }] }) }) });
+  assert.equal(noEdition.title, 'Dune');
 });

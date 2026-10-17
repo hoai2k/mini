@@ -65,9 +65,9 @@ const OPEN_LIBRARY = [
 // Books found by the ISBN on their barcodes.
 const BY_ISBN = {
   '9780441172719': { key: '/works/OL6W', title: 'Dune', author_name: ['Frank Herbert'], first_publish_year: 1965 },
-  '9780140449136': { key: '/works/OL7W', title: 'The Odyssey', author_name: ['Homer'], first_publish_year: -700 },
+  '9780140449136': { key: '/works/OL7W', title: 'Преступление и наказание', author_name: ['Fyodor Dostoevsky'], first_publish_year: 1866, editions: { docs: [{ key: '/books/OL7355481M', title: 'Crime and Punishment (Penguin Classics)' }] } },
 };
-// The fake camera films the barcode of The Odyssey.
+// The fake camera films the barcode of a Penguin Crime and Punishment.
 const cameraFile = join(out, 'camera.y4m');
 await writeFile(cameraFile, y4m(barcodeImage('9780140449136', { width: 640, height: 300, top: 90 })));
 
@@ -319,11 +319,11 @@ await page.click('#fab-scan');
 await page.waitForSelector('#scan-sheet[open]');
 await page.waitForSelector('#scan-list li', { timeout: 60000 });
 await page.screenshot({ path: join(out, '7-scanner.png') });
-check(/The Odyssey/.test(await page.textContent('#scan-list')), 'the live scanner reads a barcode from the camera and adds the book');
+check(/Crime and Punishment/.test(await page.textContent('#scan-list')), 'the live scanner reads a barcode from the camera and adds the book');
 await page.click('#scan-sheet .close');
 await page.waitForTimeout(400);
 check(await page.evaluate(() => !document.querySelector('#scan-video').srcObject), 'closing the scanner stops the camera');
-check((await page.$$eval('#items .item .title', (els) => els.map((e) => e.textContent.trim()))).includes('The Odyssey'), 'and the book is in the list');
+check((await page.$$eval('#items .item .title', (els) => els.map((e) => e.textContent.trim()))).includes('Crime and Punishment'), 'and the book is in the list');
 
 // Export and reload persistence.
 const bookCount = await page.locator('#items .item').count();
