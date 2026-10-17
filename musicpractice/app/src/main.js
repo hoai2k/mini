@@ -270,7 +270,7 @@ function stopMetronome() {
   pendulum.classList.add('resting');
   pendulum.style.transform = 'rotate(0deg)';
   for (const li of $('beats').children) li.classList.remove('on');
-  $('met-pulse').style.opacity = '0';
+  $('met-pulse').style.setProperty('--lit', '0');
   $('met-toggle').setAttribute('aria-pressed', 'false');
   $('met-toggle-label').textContent = TEXT.metronome.start;
   keepAwake(false);
@@ -411,7 +411,8 @@ function syncControlsLive() {
 $('met-motion').checked = settings.metMotion;
 $('met-motion').addEventListener('change', () => { settings.metMotion = $('met-motion').checked; persist(); syncControlsLive(); });
 $('met-pulse-on').checked = settings.metPulse;
-$('met-pulse-on').addEventListener('change', () => { settings.metPulse = $('met-pulse-on').checked; persist(); syncControlsLive(); });
+$('met-pulse').hidden = !settings.metPulse;
+$('met-pulse-on').addEventListener('change', () => { settings.metPulse = $('met-pulse-on').checked; $('met-pulse').hidden = !settings.metPulse; persist(); syncControlsLive(); });
 
 /*
  * Everything you see follows heardNow(): the time of the sound reaching your
@@ -432,14 +433,14 @@ function animateMetronome() {
   const beat = metronome.beatAt(now);
   const angle = settings.metMotion ? pendulumAngle(beat, now, metronome.period, swingOf(pendulum)) : 0;
   pendulum.style.transform = `rotate(${angle.toFixed(2)}deg)`;
-  // The pulse: a flash on the beat that dies away quickly, strongest on the downbeat.
+  // The pulse: the lamp at the top lights on the beat (the same moment the
+  // pendulum strikes an end) and dies away quickly, brightest on the downbeat.
   let k = 0;
   if (settings.metPulse && beat) {
     const since = now - beat.time;
-    k = Math.exp(-since / Math.min(0.11, metronome.period * 0.28)) * [0.6, 0.8, 1][beat.strength];
+    k = Math.exp(-since / Math.min(0.14, metronome.period * 0.3)) * [0.75, 0.85, 1][beat.strength];
   }
-  pulse.style.opacity = k.toFixed(3);
-  pulse.style.transform = `scale(${(0.86 + 0.18 * k).toFixed(3)})`;
+  pulse.style.setProperty('--lit', k.toFixed(3));
   pulse.classList.toggle('strong', !!beat && beat.strength === 2);
   const dots = $('beats').children;
   for (let i = 0; i < dots.length; i++) dots[i].classList.toggle('on', !!beat && beat.beat === i);
