@@ -257,12 +257,27 @@ export class Boss {
     });
     return out;
   }
+  // The room a boss stands in (its arena, or wherever Mrs. Dodds has flown).
+  roomAt(p = this.pos) { return this.game.mission?.L?.rooms?.find((r) => p.x >= r.x0 && p.x <= r.x1 + 1 && p.z >= r.z0 && p.z <= r.z1 + 1) ?? null; }
   // A straight dash along dir (swoop, charge, pounce). Returns 'wall' if a
-  // tall obstacle stopped it and stopOnWall is set.
+  // tall obstacle stopped it and stopOnWall is set, 'edge' where it would
+  // leave the room it started in or run off a drop: it skids to a halt there
+  // (a bull charge used to carry the Minotaur off Half-Blood Hill and out of
+  // sight, until he fell far enough to be put back at his start).
   *dashLine(dir, speed, ticks, dmg, { stopOnWall = false, hitR = 2.2, dust = 0x8a7a6a, trail = null } = {}) {
     const g = this.game, w = g.world, hit = new Set(), last = this.pos.clone();
+    const room = this.roomAt(), pad = this.radius + 0.6;
     let stuck = 0;
     for (let k = 0; k < ticks; k++) {
+      // the next stretch: out of the room, or no floor within a step or two below?
+      const look = pad + speed * 0.06, ax = this.pos.x + dir.x * look, az = this.pos.z + dir.z * look;
+      const out = room && (ax < room.x0 + pad || ax > room.x1 + 1 - pad || az < room.z0 + pad || az > room.z1 + 1 - pad);
+      const gy = w.groundBelow(ax, az, this.pos.y + 1.5);
+      if (out || !isFinite(gy) || gy < this.pos.y - 2) {
+        if (stopOnWall && out && w.solidAt(ax, this.pos.y + 1.5, az)) { this.knock.set(0, 0, 0); this.vel.set(0, 0, 0); return 'wall'; }
+        this.knock.set(0, 0, 0); this.vel.multiplyScalar(0.2);
+        return 'edge';
+      }
       this.knock.copy(dir).multiplyScalar(speed);
       for (const p of g.hostileTargets()) { if (!p.dead && !hit.has(p) && p.pos.distanceTo(this.pos) < hitR + (p.radius ?? 0.3)) { hit.add(p); p.takeDamage(dmg, this, { knock: dir.clone().multiplyScalar(13).setY(4) }); } }
       if (dust) g.particles.burst(this.pos, { count: 3, color: dust, additive: false, speed: 2, life: 0.5, size: 0.6, sizeEnd: 1.6 });
@@ -361,12 +376,14 @@ export class Boss {
   *screech() {
     const g = this.game;
     this.moving = false; this.anim = { type: 'raise', t: 0 };
-    const R = 9;
-    g.markers.spawn({ pos: this.pos, radius: R, dur: 0.9, color: 0xb05aff, follow: this });
+    // aimed: a cone at the nearest hero (a ring round her filled the room)
+    const R = 9, HALF = 0.6;
+    this.faceTarget(this.target());
+    g.markers.spawn({ pos: this.pos, radius: R, dur: 0.9, shape: 'cone', arc: HALF / Math.PI, facing: this.facing, color: 0xb05aff, follow: this });
     yield 0.9;
-    g.fx.shockwave(this.pos, 0xd8a0ff, R); g.fx.screenWave(this.pos, 0.8, 0.5); g.fx.chroma(0.6);
+    g.fx.slashArc(this.pos, this.facing, 0xd8a0ff, R, HALF * 2 / Math.PI, 0.3); g.fx.screenWave(this.pos, 0.8, 0.5); g.fx.chroma(0.6);
     g.audio?.tone({ freq: 1400, to: 2200, dur: 0.6, gain: 0.1, type: 'sawtooth', filter: 5000 }); g.audio?.tone({ freq: 1500, to: 900, dur: 0.6, gain: 0.07, type: 'square', filter: 4000, at: 0.05 });
-    for (const p of g.hostileTargets()) if (!p.dead && p.pos.distanceTo(this.pos) < R) { p.slowT = Math.max(p.slowT ?? 0, 2.5); p.takeDamage(this.dmg * 0.3, this, { knock: tmp.subVectors(p.pos, this.pos).setY(0).normalize().multiplyScalar(5) }); }
+    for (const p of g.hostileTargets()) if (!p.dead && p.pos.distanceTo(this.pos) < R && Math.abs(angleDiff(this.facing, Math.atan2(p.pos.x - this.pos.x, p.pos.z - this.pos.z))) < HALF) { p.slowT = Math.max(p.slowT ?? 0, 2.5); p.takeDamage(this.dmg * 0.3, this, { knock: tmp.subVectors(p.pos, this.pos).setY(0).normalize().multiplyScalar(5) }); }
     yield 0.6;
     this.anim = null; this.moving = true;
     yield 0.3;
@@ -388,6 +405,7 @@ export class Boss {
       g.audio?.impact(1.4);
       const r = yield* this.dashLine(dir, 20 + this.phase * 4, 22, this.dmg * 1.3, { stopOnWall: true, hitR: 2.4 });
       if (r === 'wall') { yield* this.stuck(dir); return; }
+      if (r === 'edge') g.particles.burst(this.pos, { count: 12, color: 0x8a7a6a, additive: false, speed: 3, life: 0.6, size: 0.6, sizeEnd: 1.6 });   // (a skid)
       this.anim = null;
       yield 0.5;
     }
@@ -427,7 +445,7 @@ export class Boss {
   *stomp() {
     const g = this.game;
     this.moving = false;
-    const R = 6.5;
+    const R = 5;   // (a ring you can run out of in the wind-up)
     g.markers.spawn({ pos: this.pos, radius: R, dur: 0.9, color: 0xff2a1a, follow: this });
     this.anim = { type: 'attack', t: 0.2, style: 'slam', windup: 0.3, strike: 0.5 };
     yield 0.9;

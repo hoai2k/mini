@@ -61,7 +61,7 @@ export const DODDS_DMG = 0.8;     // her blows here (the first boss of the game,
 export const STUN = 1.8;          // seconds the shriek paralyzes a hero
 export const STUN_IMMUNE = 3;     // seconds after a stun before another can land
 export const STUN_WINDUP = 1.3;   // the shriek's wind-up (a purple ring and a rising wail)
-export const SHRIEK_R = 13;       // the shriek's reach (the heroes still see her)
+export const SHRIEK_R = 6;        // the shriek's reach: a ring to get out of in the wind-up (13 filled the room and the screen)
 // The health floor for the next flight (as a fraction), or null after the third.
 export const nextFloor = (flights) => (flights < FLIGHT_AT.length ? FLIGHT_AT[flights] : null);
 // Hit by a shriek? Not while already held, not while immune, not when down.

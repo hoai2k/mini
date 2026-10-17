@@ -168,7 +168,7 @@ export const BOOK1_PATTERNS = {
   *howl() {
     const g = this.game;
     this.moving = false; this.anim = { type: 'raise', t: 0 };
-    const R = 9;
+    const R = 5;
     g.markers.spawn({ pos: this.pos, radius: R, dur: 0.9, color: 0xb05aff, follow: this });
     g.audio?.tone({ freq: 220, to: 440, dur: 0.9, gain: 0.12, type: 'sawtooth', filter: 1500 });
     yield 0.9;
@@ -479,11 +479,12 @@ export const BOOK1_PATTERNS = {
     this.moving = false; this.anim = { type: 'cast', t: 1, both: true };
     const lines = ['“Special offer, today only!”', '“Lie down, you look tired!”', '“Perfect fit, guaranteed!”', '“Everyone fits in the end!”'];
     toast(lines[Math.floor(Math.random() * lines.length)]);
-    g.markers.spawn({ pos: this.pos, radius: 10, dur: 0.8, color: 0xffd84a, follow: this });
+    const PULL = 6.5;
+    g.markers.spawn({ pos: this.pos, radius: PULL, dur: 0.8, color: 0xffd84a, follow: this });
     yield 0.8;
     // a pull toward him, then the axe
-    for (const p of g.hostileTargets()) { if (p.dead) continue; tmp.subVectors(this.pos, p.pos).setY(0); const d = tmp.length(); if (d < 10 && d > 2) { p.knock = (p.knock ?? new THREE.Vector3()).add(tmp.normalize().multiplyScalar(14)); } }
-    g.fx.shockwave(this.pos, 0xffd84a, 10, 0.5);
+    for (const p of g.hostileTargets()) { if (p.dead) continue; tmp.subVectors(this.pos, p.pos).setY(0); const d = tmp.length(); if (d < PULL && d > 2) { p.knock = (p.knock ?? new THREE.Vector3()).add(tmp.normalize().multiplyScalar(14)); } }
+    g.fx.shockwave(this.pos, 0xffd84a, PULL, 0.5);
     yield 0.35;
     yield* this.axe_sweep();
   },
@@ -628,11 +629,11 @@ export const BOOK1_PATTERNS = {
   *war_cry() {
     const g = this.game;
     this.moving = false; this.anim = { type: 'raise', t: 0 };
-    g.markers.spawn({ pos: this.pos, radius: 6, dur: 0.8, color: 0xff2a1a, follow: this });
+    g.markers.spawn({ pos: this.pos, radius: 5, dur: 0.8, color: 0xff2a1a, follow: this });
     yield 0.8;
     toast('Ares roars for battle!');
-    g.fx.shockwave(this.pos, 0xff3a14, 7); g.shake(0.6); g.audio?.impact(2);
-    this.hurtPlayers(this.pos, 6, this.dmg * 0.6, 14);
+    g.fx.shockwave(this.pos, 0xff3a14, 5.5); g.shake(0.6); g.audio?.impact(2);
+    this.hurtPlayers(this.pos, 5, this.dmg * 0.6, 14);
     this.rageT = 6;
     if (this.phase >= 1 && alive(this) < 4) this.summon(['skeleton', 'skeleton'], this.pos, 5, 0xff3a14);
     yield 0.6;

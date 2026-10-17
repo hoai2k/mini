@@ -87,13 +87,14 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
      before she shows herself and you can fight them early (they fight back
      once hit), and those stay gone. She fights you in her gallery; at 75%,
      50% and 25% of her health she draws a breath (a violet ring and a rising
-     wail for 1.3 s), shrieks, paralyzing every hero within 13 m for 1.8 s
+     wail for 1.3 s), shrieks, paralyzing every hero within 6 m for 1.8 s
      (never twice within three seconds), and flies off over the walls to
      another room (her bar reads "Mrs. Dodds — fled", the arrow and the
      footprints lead to her); come close and she fights on, until the last
      stretch ends with her down and her pets crumbling back into the Mist.
   2. *Half-Blood Hill*: a storm, then the Minotaur; make him charge into a
-     tree or a wall and he is stuck and takes double damage.
+     tree or a wall and he is stuck and takes double damage (a charge at the
+     open edge of the hilltop skids to a stop there).
   3. *Capture the Flag*: carry the Ares cabin's banner back across the creek,
      then a hellhound summoned into camp; Percy is claimed.
   4. *The Kindly Ones*: the three Furies at the wrecked Greyhound bus.
@@ -196,6 +197,10 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
     parts of the boards that lacked them.
 - **Battle Sense:** dodging the instant before a hit lands slows the monsters,
   but not the heroes. The jump slam has a 1.2 s cooldown.
+- **Boss attacks are aimed or local:** lines, cones and target circles go
+  where a hero is; rings round a boss are about 5 m (6 m for Mrs. Dodds's
+  shriek), small enough to run out of in the wind-up. No boss charge or dash
+  leaves the room it starts in.
 - **Healing and ammo, as in Minecraft Dungeons:**
   - Ambrosia (LT or E) is one square on a cooldown: a bite restores 65%
     of your health over 1.2 s, then it refills over 22 s (shown as a radial

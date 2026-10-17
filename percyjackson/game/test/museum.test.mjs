@@ -115,7 +115,7 @@ test('the paralyzing shriek is telegraphed, short, fair and can’t stack', () =
   assert.ok(STUN >= 1.5 && STUN <= 2.5, 'stunned 1.5–2.5 s');
   assert.ok(STUN_WINDUP >= 1, 'a wind-up you can see');
   assert.ok(STUN_IMMUNE >= 2, 'a moment of immunity after');
-  assert.ok(SHRIEK_R >= 8, 'the heroes can still see her');
+  assert.ok(SHRIEK_R >= 4 && SHRIEK_R <= STUN_WINDUP * 5.6, 'a ring a hero can run out of during the wind-up (5.6 m/s), not the whole room');
   assert.equal(stunnable({}), true);
   assert.equal(stunnable({ held: true }), false, 'not while held');
   assert.equal(stunnable({ down: true }), false);
