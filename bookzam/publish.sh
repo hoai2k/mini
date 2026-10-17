@@ -9,6 +9,6 @@ here="$(cd "$(dirname "$0")" && pwd)"
 rm -rf "$out"
 mkdir -p "$out"
 cp "$here/app/index.html" "$here/app/styles.css" "$here/app/manifest.webmanifest" "$out/"
-cp -R "$here/app/src" "$here/app/icons" "$here/app/models" "$here/app/vendor" "$out/"
+cp -R "$here/app/src" "$here/app/icons" "$here/app/models" "$here/app/vendor" "$here/app/data" "$out/"
 if [ -d "$here/app/assets" ]; then cp -R "$here/app/assets" "$out/"; fi
 echo "published Bookzam to $out/ ($(du -sh "$out" | cut -f1))"

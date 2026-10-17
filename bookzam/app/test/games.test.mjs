@@ -2,7 +2,8 @@
 // Wikidata mocked.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { searchGames, pickGame, toGameLookup, lookupGame, clearGameSearches } from '../src/games.js';
+import { searchGames, pickGame, toGameLookup, lookupGame, clearGameSearches, setLocalGames, matchLocalGame } from '../src/games.js';
+import { readFileSync } from 'node:fs';
 import { scanLines } from '../src/reader.js';
 import { readingDirections } from '../src/ocr/core.js';
 import { clearSearches } from '../src/ocr/identify.js';
@@ -36,8 +37,24 @@ function fakeWikidata() {
   return { fetch, calls };
 }
 
+const BUNDLED = JSON.parse(readFileSync(new URL('../data/games.json', import.meta.url), 'utf8'));
+
+test('the bundled games are matched with no network, through misreadings', async () => {
+  setLocalGames(BUNDLED);
+  const offline = async () => { throw new Error('no network in this test'); };
+  const wingspan = await matchLocalGame('WINGSPEN', { fetch: offline });
+  assert.equal(wingspan.lookup.title, 'Wingspan', 'a long one-word name survives a misread letter');
+  assert.equal(wingspan.lookup.bgg, '266192');
+  assert.equal((await matchLocalGame('TICKET TO RIDE Days of Wonder', { fetch: offline })).lookup.title, 'Ticket to Ride');
+  assert.equal((await matchLocalGame('Settlers of Catan', { fetch: offline })).lookup.title, 'The Settlers of Catan', 'aliases count');
+  assert.equal((await matchLocalGame('AZUL', { fetch: offline })).lookup.title, 'Azul');
+  assert.equal(await matchLocalGame('AZOL', { fetch: offline }), null, 'a short one-word name must be read exactly');
+  assert.equal(await matchLocalGame('Glimmerwick Hollow', { fetch: offline }), null);
+});
+
 test('games are searched on Wikidata among items with a BoardGameGeek ID', async () => {
   clearGameSearches();
+  setLocalGames([]);
   const wd = fakeWikidata();
   const games = await searchGames(['wingspan'], { fetch: wd.fetch });
   assert.equal(wd.calls[0].q, 'wingspan haswbstatement:P2339');
@@ -62,6 +79,7 @@ test('a game name matches one word exactly, or most of a longer name in order', 
 
 test('a game typed in by hand is looked up, with its designer named', async () => {
   clearGameSearches();
+  setLocalGames([]);
   const l = await lookupGame({ title: 'Wingspan' }, { fetch: fakeWikidata().fetch });
   assert.deepEqual(l.designers, ['Elizabeth Hargrave']);
 });
@@ -74,6 +92,7 @@ const line = (text, cx, cy, w, th, angle = 0, score = 0.95) => {
 test('a photo added to Board games is all games, its small print left out', async () => {
   clearGameSearches();
   clearSearches();
+  setLocalGames([]);
   const lines = [
     line('WINGSPAN', 300, 200, 300, 40),
     line('1-5 players ages 14+', 300, 260, 260, 14),

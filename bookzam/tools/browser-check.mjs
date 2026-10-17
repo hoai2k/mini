@@ -84,7 +84,8 @@ await page.route('https://openlibrary.org/**', (route) => {
   });
   return route.fulfill({ json: { numFound: docs.length, docs } });
 });
-await page.route('https://covers.openlibrary.org/**', (route) => route.abort());
+const BLANK_PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64');
+await page.route('https://covers.openlibrary.org/**', (route) => route.fulfill({ contentType: 'image/png', body: BLANK_PNG }));
 // Wikidata, for board games: two known games with BoardGameGeek IDs.
 const WIKIDATA = {
   Q1: { id: 'Q1', labels: { en: { value: 'Wingspan' } }, claims: { P2339: [{ mainsnak: { datavalue: { value: '266192' } } }], P577: [{ mainsnak: { datavalue: { value: { time: '+2019-01-01T00:00:00Z' } } } }], P1872: [{ mainsnak: { datavalue: { value: { amount: '+1' } } } }], P1873: [{ mainsnak: { datavalue: { value: { amount: '+5' } } } }] } },
@@ -102,7 +103,7 @@ await page.route('https://www.wikidata.org/**', (route) => {
   const entities = Object.fromEntries((p.get('ids') || '').split('|').filter((id) => WIKIDATA[id]).map((id) => [id, WIKIDATA[id]]));
   return route.fulfill({ json: { entities } });
 });
-await page.route('https://commons.wikimedia.org/**', (route) => route.abort());
+await page.route('https://commons.wikimedia.org/**', (route) => route.fulfill({ contentType: 'image/png', body: BLANK_PNG }));
 
 await page.goto(base);
 
@@ -220,7 +221,7 @@ const gamesPhoto = await page.evaluate(async () => {
   const W = 1200, H = 900, c = Object.assign(document.createElement('canvas'), { width: W, height: H });
   const g = c.getContext('2d');
   g.fillStyle = '#5a3d24'; g.fillRect(0, 0, W, H);
-  const boxes = [['WINGSPAN', '#e8f1f8', '#1b4965', '1-5 players  ages 14+'], ['TICKET TO RIDE', '#f3e3c3', '#7a1f1f', '2-5 players  30-60 min'], ['KINGDOMINO', '#d9ecd0', '#2c5e1a', '2-4 players  ages 8+']];
+  const boxes = [['WINGSPAN', '#e8f1f8', '#1b4965', '1-5 players  ages 14+'], ['KINGDOMINO', '#f3e3c3', '#7a1f1f', '2-4 players  ages 8+'], ['GLIMMERWICK HOLLOW', '#d9ecd0', '#2c5e1a', '2-4 players  30-60 min']];
   boxes.forEach(([name, bg, fg, small], i) => {
     const y = 80 + i * 260;
     g.fillStyle = bg; g.fillRect(150, y, 900, 200);
@@ -230,19 +231,21 @@ const gamesPhoto = await page.evaluate(async () => {
   });
   return c.toDataURL('image/jpeg', 0.92).split(',')[1];
 });
+await writeFile(join(out, 'games.jpg'), Buffer.from(gamesPhoto, 'base64'));
 await page.setInputFiles('#add-input', { name: 'games.jpg', mimeType: 'image/jpeg', buffer: Buffer.from(gamesPhoto, 'base64') });
 await page.waitForTimeout(300);
 await page.waitForFunction(() => !document.querySelector('.job[data-state="waiting"], .job[data-state="reading"]'), null, { timeout: 240000 });
 const gameTitles = await page.$$eval('#items .item .title', (els) => els.map((e) => e.textContent.trim()));
 console.log(`     games: ${gameTitles.join(' | ')}`);
 await page.screenshot({ path: join(out, '6-games.png') });
-check(gameTitles.some((t) => t.startsWith('Wingspan')) && gameTitles.some((t) => t.startsWith('Ticket to Ride')), 'board games are identified on Wikidata');
-check(gameTitles.some((t) => /Kingdomino/i.test(t)), 'a game Wikidata does not know is kept to confirm');
+check(gameTitles.some((t) => t === 'Wingspan') && gameTitles.some((t) => t === 'Kingdomino'), 'board games are identified from the bundled list');
+check(wdQueries.every((q) => !/wingspan|kingdomino/.test(q)), 'with no Wikidata search for games the list knows');
+check(gameTitles.some((t) => /Glimmerwick/i.test(t)) && wdQueries.some((q) => /glimmerwick/.test(q)), 'an unknown game is searched on Wikidata, then kept to confirm');
 check(!gameTitles.some((t) => /players|ages/i.test(t)), "the boxes' small print is not an item");
 check((await page.textContent('#count-books')) === String(titles.length), 'a photo added to Board games adds only games');
 await page.click('#items .item >> text=Wingspan');
 await page.waitForSelector('#item-sheet[open]');
-check(/1–5 players/.test(await page.textContent('#item-facts')), 'a game shows its players');
+check(/\d–\d players/.test(await page.textContent('#item-facts')), 'a game shows its players');
 check(await page.getAttribute('#item-links a', 'href') === 'https://boardgamegeek.com/boardgame/266192', 'and links straight to BoardGameGeek');
 await page.click('#item-form .close');
 

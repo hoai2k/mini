@@ -167,7 +167,7 @@ jobs:
         run: .github/scripts/build-game.sh bookzam 'bookzam/publish.sh local/pages/bookzam'
       - name: Bookzam tests
         if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
-        run: node --test bookzam/app/test/*.test.mjs
+        run: node --test bookzam/app/test/*.test.mjs && node bookzam/tools/build-games.mjs --check
       - name: Build Stocks
         run: .github/scripts/build-game.sh stocks 'stocks/publish.sh local/pages/stocks'
       - name: Stocks tests

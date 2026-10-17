@@ -4,7 +4,7 @@
 
 import { searchWords, matchScore, words, strongWords } from './spines.js';
 import { toLookup } from '../lookup.js';
-import { searchGames, pickGame, toGameLookup, nameDesigners } from '../games.js';
+import { findGame } from '../games.js';
 
 const STOP = new Set(['the', 'a', 'an', 'of', 'and', 'in', 'on', 'to', 'for', 'by', 'with', 'de', 'la', 'le', 'el', 'der', 'die', 'das', 'und']);
 const FIELDS = 'key,title,author_name,first_publish_year,isbn,cover_i,number_of_pages_median,publisher,subject,edition_count';
@@ -121,17 +121,16 @@ function bookItem(best, group) {
 }
 
 async function identifyGame(group, terms, options) {
-  let best = pickGame(group.text, await searchGames(terms, options));
-  if (!best && terms.length > 1) best = pickGame(group.text, await searchGames(terms, { ...options, any: true }));
-  if (!best) return unconfirmed(group, 'game', options.prominent);
-  const lookup = await nameDesigners(toGameLookup(best.game), options);
+  const found = await findGame(group.text, terms, options);
+  if (!found) return unconfirmed(group, 'game', options.prominent);
+  const { lookup, match } = found;
   return {
     kind: 'game',
     title: lookup.title,
     author: null,
     designer: lookup.designers[0] || null,
     year: lookup.year,
-    confidence: Math.round(best.match.score * 100) / 100,
+    confidence: Math.round(match.score * 100) / 100,
     lookup,
     read: group.text,
   };
