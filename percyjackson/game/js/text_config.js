@@ -17,6 +17,8 @@ import ow_labyrinth from './text/ow_labyrinth.js';
 import ow_othrys from './text/ow_othrys.js';
 import ow_asphodel from './text/ow_asphodel.js';
 import rt from './text/rt.js';
+import rt_east from './text/rt_east.js';
+import rt_west from './text/rt_west.js';
 
 export const TEXT = {
   // ======================================================================
@@ -429,7 +431,7 @@ export const TEXT = {
       title: 'The Kindly Ones',
       place: 'A Greyhound bus, New Jersey',
       objective: 'Get off the bus alive',
-      startPlace: 'the first milestone on the Road West',
+      startPlace: "the burning Greyhound on the New Jersey Turnpike",
       intro: [
         'The Oracle gives you a prophecy, and you go west: Annabeth, Grover and you, on a Greyhound bus out of New York.',
         'Three old ladies get on at the back. One of them is knitting. Another has a leather whip in her handbag.',
@@ -442,7 +444,7 @@ export const TEXT = {
       title: 'Aunty Em’s Garden Gnome Emporium',
       place: 'A statue garden',
       objective: 'Free the stone satyrs',
-      startPlace: 'a garden gnome by the Road West',
+      startPlace: "Aunty Em's Garden Gnome Emporium",
       intro: [
         'Hungry and lost, you smell burgers: Aunty Em’s Garden Gnome Emporium. The garden is full of statues, and they all look scared.',
         'Aunty Em wears a black veil. She says she only wants to take your picture.',
@@ -455,7 +457,7 @@ export const TEXT = {
       title: 'The Gateway Arch',
       place: 'St. Louis, the top of the Arch',
       objective: 'Climb to the top of the Arch',
-      startPlace: 'the river crossing on the Road West',
+      startPlace: "the Gateway Arch in St. Louis",
       intro: [
         'St. Louis. Annabeth wants to see the Gateway Arch, because it is a great piece of architecture.',
         'At the top, a fat lady in a denim dress gets in with her little dog. Her “Chihuahua” is called Sonny, and it has a snake for a tail.',
@@ -468,7 +470,7 @@ export const TEXT = {
       title: 'Waterland',
       place: 'An abandoned water park, Denver',
       objective: 'Shut Hephaestus’s traps',
-      startPlace: 'a water slide by the Road West',
+      startPlace: "Waterland, in Denver",
       intro: [
         'In a Denver diner, a biker in a red leather duster makes you an offer: fetch his shield from a water park, and he will get you a ride west.',
         'He is Ares, the god of war. Waterland has been closed for years. The Tunnel of Love has not.',
@@ -481,7 +483,7 @@ export const TEXT = {
       title: 'The Lotus Hotel and Casino',
       place: 'Las Vegas',
       objective: 'Get out of the Lotus Casino',
-      startPlace: 'a neon sign by the Road West',
+      startPlace: "the Lotus Hotel and Casino in Las Vegas",
       intro: [
         'The Lotus Hotel and Casino, Las Vegas. A free room, free games, and a green card with unlimited credit. Nobody ever wants to leave.',
         'The bellhops keep offering you lotus flowers. Every one makes you forget a little more, and the days slip by.',
@@ -494,7 +496,7 @@ export const TEXT = {
       title: 'Crusty’s Water Bed Palace',
       place: 'The Nevada desert',
       objective: 'Get past Crusty’s showroom',
-      startPlace: 'a water bed on the Road West',
+      startPlace: "Crusty's Water Bed Palace",
       intro: [
         'Crusty’s Water Bed Palace, in the Nevada desert. The salesman is huge, and his smile has too many teeth.',
         'He wants you to try a bed. They are all the perfect size. He makes sure of it.',
@@ -507,7 +509,7 @@ export const TEXT = {
       title: 'DOA Recording Studios',
       place: 'Los Angeles and the Underworld',
       objective: 'Close the rifts to Tartarus',
-      startPlace: 'a recording-studio door on the Road West',
+      startPlace: "DOA Recording Studios in Los Angeles",
       intro: [
         'DOA Recording Studios is the way into the Underworld. Charon the ferryman wants drachmas. Lots of them.',
         'Past the river Styx the Fields of Asphodel go on forever, and something deep in Tartarus is calling your name.',
@@ -520,7 +522,7 @@ export const TEXT = {
       title: 'The God of War',
       place: 'Santa Monica beach',
       objective: 'Duel Ares in the surf',
-      startPlace: 'the surf at the end of the Road West',
+      startPlace: "the beach at Santa Monica",
       intro: [
         'Santa Monica. Ares is waiting on the beach beside a black motorcycle. He set you up from the start.',
         'The god of war wants a fight. The Furies circle overhead, waiting to see who wins.',
@@ -533,7 +535,7 @@ export const TEXT = {
       title: 'The Six-Hundredth Floor',
       place: 'Olympus, then camp',
       objective: 'Return the master bolt',
-      startPlace: 'the last milestone on the Road West',
+      startPlace: "the end of Santa Monica Pier",
       intro: [
         'The six-hundredth floor of the Empire State Building. Zeus takes back his master bolt, and the war is called off.',
         'Back at camp, Luke asks you to walk with him in the woods. He says he has something to tell you.',
@@ -2032,7 +2034,7 @@ export const TEXT = {
   },
 };
 
-for (const part of [ow_camp, ow_fields, ow_woods, ow_shore, ow_canyon, ow_labyrinth, ow_othrys, ow_asphodel, rt]) deepMerge(TEXT, part);
+for (const part of [ow_camp, ow_fields, ow_woods, ow_shore, ow_canyon, ow_labyrinth, ow_othrys, ow_asphodel, rt, rt_east, rt_west]) deepMerge(TEXT, part);
 
 function deepMerge(into, from) {
   for (const [k, v] of Object.entries(from)) {

@@ -17,16 +17,23 @@
 //   override  a shove this fast (m/s) takes over from the monster's own
 //             walking; slower shoves fade its walking in proportion, so a
 //             monster can't simply walk through a hit
+//   soft/over a knock above `soft` counts only `over` of the rest, so the
+//             finishers (knock 9-15) throw three to five metres rather than
+//             across the room while the quick cuts (2-5) still show
 //   hopAt     a hit with knock above this (before scale) pops the monster
 //             off its feet a little
 //   resist    how much of def.knockResist applies (1 when a shield blocks)
 //   boss      share of a hit's knock a boss takes (bosses.js): a nudge
-export const KNOCK = { scale: 2.6, decay: 4.5, override: 9, hopAt: 6, resist: 0.8, boss: 0.15 };
+export const KNOCK = { scale: 2.6, decay: 4.5, override: 9, soft: 5, over: 0.4, hopAt: 6, resist: 0.8, boss: 0.15 };
 
 // The share of a hit's knock a monster with knockResist r keeps.
 export function knockKeep(r = 0, blocked = false) { return Math.max(0, 1 - r * (blocked ? 1 : KNOCK.resist)); }
-// How far (m) a hit with this knock slides a monster on flat ground.
-export function knockDistance(knock, r = 0) { return knock * KNOCK.scale * knockKeep(r) / KNOCK.decay; }
+// The speed (m/s) a monster is shoved at by a hit with this knock (after
+// its resistance): scaled, with the big ones softened past KNOCK.soft.
+export function knockSpeed(k) { return KNOCK.scale * (k <= KNOCK.soft ? k : KNOCK.soft + (k - KNOCK.soft) * KNOCK.over); }
+// How far (m) a hit with this knock slides a monster on flat ground (before
+// it walks back in: the game measures a little less on the quick cuts).
+export function knockDistance(knock, r = 0) { return knockSpeed(knock * knockKeep(r)) / KNOCK.decay; }
 // A hit's stagger, scaled by the monster's knockResist: light monsters
 // (r ≤ 0.3) flinch from every cut, heavy ones (r ≥ 0.5) only from big hits.
 // (A flat half for any resistance at all left serpents and skeletons, r 0.2,
@@ -39,11 +46,11 @@ export function walkKeep(k) { return Math.max(0, 1 - k / KNOCK.override); }
 // Each shot: speed (m/s), range (m; its lifetime is range / speed) and
 // knock (before KNOCK.scale). The ranged attack's slot uses these.
 export const RANGED = {
-  bolt: { speed: 28, range: 24, knock: 2.5 },     // the shared fallback (heroes/kit.js)
-  jet: { speed: 36, range: 24, knock: 3.5 },      // Percy's Water Jet
-  knife: { speed: 34, range: 23, knock: 2 },      // Annabeth's thrown knives
-  sentry: { speed: 28, range: 16, knock: 1.5, seek: 11 },   // her Sentry's darts
-  note: { speed: 20, range: 22, knock: 2, seek: 20 },       // Grover's Pipe Song (homes on a target within seek)
+  bolt: { speed: 28, range: 24, knock: 2 },     // the shared fallback (heroes/kit.js)
+  jet: { speed: 36, range: 24, knock: 2.8 },      // Percy's Water Jet
+  knife: { speed: 34, range: 23, knock: 1.6 },      // Annabeth's thrown knives
+  sentry: { speed: 28, range: 16, knock: 1.2, seek: 11 },   // her Sentry's darts
+  note: { speed: 20, range: 22, knock: 1.6, seek: 20 },       // Grover's Pipe Song (homes on a target within seek)
   boulder: { reach: 18, flight: 0.6, gravity: 20 },         // Tyson's lobbed Boulder: lands at the aim point, up to reach
   volt: { len: 8, perRank: 1.2, knock: 2 },                 // Clarisse's Spear Lightning: an instant line
 };

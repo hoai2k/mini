@@ -55,7 +55,7 @@ function baseImage(L) {
 
 export function openWorldMap(game, { at = null, tab = 'map' } = {}) {
   const g = game, ow = g.ow, L = g.level;
-  if (!ow || !L?.openWorld) { openMapTable(g); return; }
+  if (!ow || !L?.ow) { openMapTable(g); return; }
   const ui = g.ui, d = ow.data, lay = L.layout ?? OW_LAYOUT, G = geometry(L), here = L.roadTrip ? 'road' : 'camp';
   const close = () => { ui.close('worldmap'); g.paused = false; };
   g.paused = true;

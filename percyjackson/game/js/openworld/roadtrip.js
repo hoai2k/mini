@@ -375,7 +375,7 @@ export class CampBusStop {
   constructor(game, L) { this.game = game; this.L = L; this.props = []; }
   setup({ arrive = null } = {}) {
     const g = this.game, stop = this.L.busStop; if (!stop) return;
-    const bus = greyhound(); bus.position.copy(stop).add(V(1, 0, 3.4)); bus.rotation.y = 0.4;
+    const bus = greyhound(); bus.position.copy(clearSpot(g.world, stop, 13, 4) ?? stop.clone().add(V(1, 0, 3.4)));
     g.scene.add(bus); this.props.push(bus); this.bus = bus;
     g.interactables.push({ id: 'camp-bus', pos: stop.clone().add(V(1.5, 0, 1)), radius: 3.2, label: t('rt.bus.board'), action: () => this.go(), enabled: () => !g.online?.isGuest });
     if (arrive === 'bus') {
@@ -393,6 +393,24 @@ export class CampBusStop {
     busDeparts(g, this.bus, 1, () => g.goArea('road', { arrive: 'bus' }));
   }
   dispose() { for (const o of this.props) { this.game.scene.remove(o); this.game.releaseLater?.(o); } this.props = []; }
+}
+
+// Open, level ground near `near` for a w × d footprint along x (nothing in it three blocks up).
+function clearSpot(world, near, w, d) {
+  const y0 = Math.round(near.y);
+  const ok = (cx, cz) => {
+    for (let x = Math.floor(cx - w / 2); x <= Math.floor(cx + w / 2); x++) for (let z = Math.floor(cz - d / 2); z <= Math.floor(cz + d / 2); z++) {
+      const y = world.groundBelow(x + 0.5, z + 0.5, y0 + 2);
+      if (!isFinite(y) || Math.abs(y - y0) > 0.6) return false;
+      for (let k = 0; k < 4; k++) if (world.get(x, y0 + k, z)) return false;
+    }
+    return true;
+  };
+  for (let r = 3; r <= 20; r++) for (let a = 0; a < 16; a++) {
+    const cx = near.x + Math.cos(a / 16 * Math.PI * 2) * r, cz = near.z + Math.sin(a / 16 * Math.PI * 2) * r;
+    if (ok(cx, cz)) return V(cx, y0, cz);
+  }
+  return null;
 }
 
 // ------------------------------------------------------------------ roadblock looks

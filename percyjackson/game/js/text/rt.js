@@ -61,6 +61,6 @@ export default {
       opens: 'The road is open!',
     },
     gate: { foot: 'You can\'t cross this on foot.', train: 'Bridge out. Take the train from the station.', truck: 'The tunnel is trucks only. The zoo truck at the truck stop is heading west…', drive: 'Too hot and too far to walk. Grab a taxi at the rank.' },
-    map: { roadWest: 'The Road West', camp: 'Camp Half-Blood and around', otherArea: 'Travelling there takes the bus.' },
+    map: { startsOnRoad: 'On the Road West: {place}', roadWest: 'The Road West', camp: 'Camp Half-Blood and around', otherArea: 'Travelling there takes the bus.' },
   },
 };

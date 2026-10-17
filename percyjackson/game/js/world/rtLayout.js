@@ -80,7 +80,7 @@ export const RT_ANCHORS = {
 // x of each end's boarding spot (either end works, in either direction); z:
 // where the vehicle runs. kind: what it is (world/vehicles.js).
 export const RIDES = [
-  { id: 'amtrak_east', kind: 'train', from: 1120, to: 962, z: RAIL_Z, region: 'rt_river' },
+  { id: 'amtrak_east', kind: 'train', from: 1120, to: 960, z: RAIL_Z, region: 'rt_river' },
   { id: 'amtrak_west', kind: 'train', from: 830, to: 676, z: RAIL_Z, region: 'rt_plains' },
   { id: 'zoo_truck', kind: 'truck', from: 566, to: 430, z: ROAD_Z + 2, region: 'rt_rockies' },
 ];

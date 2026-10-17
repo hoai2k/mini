@@ -77,7 +77,7 @@ class GroverKit extends Kit {
     let wob = Math.random() * 6, lastWob = 0;
     const from = this.handPos();
     // aimed in 3D at the note's target (or as kit.js shotDir sees it)
-    const dir = target ? this.shotDir(from, undefined, { target, point: tmp.set(target.pos.x, target.pos.y + (target.height ?? 1.5) * 0.5, target.pos.z) }) : this.shotDir(from);
+    const dir = target ? this.shotDir(from, undefined, { target, point: this.clearPoint(from, target) }) : this.shotDir(from);
     const pr = g.projectiles.fire({ pos: from, vel: dir.multiplyScalar(R.speed), team: 'player', dmg, shape: 'orb', color: NOTE, life: lifeOf(R), light: 3, scale: 0.9, homing: target ? 3 : 0, target,
       trail: (q, dt) => {
         // the note bobs on its way (on top of its climb or dip and its homing)

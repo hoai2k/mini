@@ -249,15 +249,34 @@ export class Kit {
   shotAim(from) {
     const g = this.game, p = this.p, inp = p.remote ? null : p.input?.();
     const picked = p.autoTarget && !p.autoTarget.dead ? p.autoTarget : inp?.mouse ? this.cursorPick() : null;
-    if (picked) return { target: picked, point: bodyCentre(picked, new THREE.Vector3()) };
+    if (picked) return { target: picked, point: this.clearPoint(from, picked) };
     const flat = tmp2.set(p.aimDir.x, 0, p.aimDir.z); if (flat.lengthSq() < 1e-6) flat.set(Math.sin(p.facing), 0, Math.cos(p.facing)); flat.normalize();
     const onLine = lineTarget(from, flat, g.enemies);
-    if (onLine) return { target: onLine, point: bodyCentre(onLine, new THREE.Vector3()), keepYaw: true };
+    if (onLine) return { target: onLine, point: this.clearPoint(from, onLine), keepYaw: true };
     if (inp?.mouse) {
       const gp = this.cursorGround();
       if (gp && Math.hypot(gp.x - p.pos.x, gp.z - p.pos.z) > 1.5) return { target: null, point: gp.setY(gp.y + (from.y - p.pos.y)) };
     }
     return { target: null, point: null };
+  }
+  // Where on a monster's body to aim: its middle, or higher up when the
+  // edge of the ledge it stands on is in the way of a shot at its middle.
+  clearPoint(from, e) {
+    const c = bodyCentre(e, new THREE.Vector3()), h = e.height ?? 1.5;
+    if (c.y <= from.y + 0.3) return c;
+    for (const k of [0, 0.25, 0.4]) { c.y = e.pos.y + h * (0.5 + k); if (this.lineClear(from, c)) return c; }
+    c.y = e.pos.y + h * 0.5;
+    return c;
+  }
+  // No solid block on the straight line between two points, nor a hand's
+  // breadth under it (a shot's size, and Grover's notes bob).
+  lineClear(a, b) {
+    const w = this.game.world, d = a.distanceTo(b), n = Math.ceil(d / 0.35);
+    for (let i = 1; i < n; i++) {
+      const k = i / n, x = a.x + (b.x - a.x) * k, y = a.y + (b.y - a.y) * k, z = a.z + (b.z - a.z) * k;
+      if (w.solidAt(x, y, z) || w.solidAt(x, y - 0.25, z)) return false;
+    }
+    return true;
   }
   // A unit direction for a shot from `from`: toward shotAim's point (the
   // pitch held within AIM.maxPitch), or level along the ground ahead.

@@ -70,8 +70,8 @@ export function openChapterMap(game) {
         title,
         h('div', { class: 'cplace' }, ch.place),
         h('div', { class: 'cmist' }, h('span', {}, tx('chapterMap.mist')), mistRating(ch.mist)),
-        h('dl', { class: 'cfacts' }, h('dt', {}, tx('chapterMap.goal')), h('dd', {}, OBJECTIVES[ch.objective] ?? ch.objective), h('dt', {}, tx('chapterMap.boss')), h('dd', {}, bossName(ch.boss)), ch.start?.place ? h('dt', {}, tx('chapterMap.starts')) : null, ch.start?.place ? h('dd', {}, tx('chapterMap.inCamp', { place: ch.start.place })) : null),
-        !open ? h('p', { class: 'lockmsg' }, ch.ready ? tx('chapterMap.finishBefore') : tx('chapterMap.comingSoonDot')) : null,
+        h('dl', { class: 'cfacts' }, h('dt', {}, tx('chapterMap.goal')), h('dd', {}, OBJECTIVES[ch.objective] ?? ch.objText ?? ch.objective), h('dt', {}, tx('chapterMap.boss')), h('dd', {}, bossName(ch.boss)), ch.start?.place ? h('dt', {}, tx('chapterMap.starts')) : null, ch.start?.place ? h('dd', {}, tx(/^road\d$/.test(ch.start.at ?? '') ? 'rt.map.startsOnRoad' : 'chapterMap.inCamp', { place: ch.start.place })) : null),
+        !open ? h('p', { class: 'lockmsg' }, ch.ready ? tx('chapterMap.finishBefore') : tx('chapterMap.comingSoonDot')) : '',   // (DOM append writes a null as "null")
         h('div', { class: 'dlabel' }, tx('chapterMap.difficultyLabel'), h('b', {}, DIFFICULTIES[difficulty - 1][0])),
         diffRow, startBtn);
     };

@@ -74,7 +74,7 @@ import { scoldLine, mayScold, RECOIL, SETTLE } from './mistPeople.js';
 import { hiddenHitAllowed, HIDDEN_DMG } from '../story/museumRules.js';
 import { damp, dampAngle, clamp, angleDiff } from '../util.js';
 import { monsterDamage } from '../resources.js';
-import { KNOCK, knockKeep, staggerScale, walkKeep } from '../combatRules.js';
+import { KNOCK, knockKeep, knockSpeed, staggerScale, walkKeep } from '../combatRules.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0), TO = new THREE.Vector3(), SEP = new THREE.Vector3();
 let bonesHint = false;
@@ -240,10 +240,11 @@ export class Enemy {
     // knock-back (tuning: combatRules.js KNOCK): heavy monsters keep less of it
     if (o.knock) {
       const k = o.knock.clone().multiplyScalar(knockKeep(this.def.knockResist ?? 0, o.blocked));
-      this.knock.addScaledVector(k, KNOCK.scale);
+      const kl = k.length(), sp = kl > 1e-4 ? knockSpeed(kl) / kl : 0;
+      this.knock.addScaledVector(k, sp);
       // the blow moves it at once (a velocity that only eased toward the
       // knock lagged so far behind it that most of the shove never showed)
-      this.vel.x += k.x * KNOCK.scale; this.vel.z += k.z * KNOCK.scale;
+      this.vel.x += k.x * sp; this.vel.z += k.z * sp;
       if (k.length() > KNOCK.hopAt) this.vel.y = Math.max(this.vel.y, 4 + k.length() * 0.25);
     }
     const st = (o.stagger ?? 0.2) * staggerScale(this.def.knockResist ?? 0) * (this.elite ? 0.6 : 1);

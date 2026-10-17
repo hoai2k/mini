@@ -28,7 +28,7 @@ import { OpenWorld } from './openworld/runtime.js';
 import { buildRoadTrip } from './world/roadtrip.js';
 import { RoadTrip, CampBusStop } from './openworld/roadtrip.js';
 import { openWorldMap } from './ui/worldMap.js';
-import { owDifficulty } from './world/owLayout.js';
+import { owDifficulty, CAMP_AT } from './world/owLayout.js';
 import { Boats } from './world/boats.js';
 import { generateLevel } from './world/levelgen.js';
 import { Mission } from './mission.js';
@@ -62,7 +62,7 @@ import { mulberry32, releaseObject } from './util.js';
 import { ENEMY_CAP } from './world/encounters.js';
 import { ClimbingWall } from './minigames/climbingWall.js';
 import { HEROES } from './heroes/index.js';
-import { chapter as chapterDef, CHAPTERS } from './story/chapters.js';
+import { chapter as chapterDef, CHAPTERS, chapterPlayable, chapterOpen } from './story/chapters.js';
 import { placeQuestMarkers } from './story/questMarkers.js';
 import { buildHeroModel, buildNpc } from './entities/models.js';
 import { openPhotoMode } from './photo.js';
@@ -213,7 +213,7 @@ class Game {
     for (const p of this.players) this.removePlayer(p);
     this.players = [];
     if (this.mode !== 'hub' || this.area !== 'camp') this.loadHub({ area: 'camp' });
-    this.rig.cinematic({ center: new THREE.Vector3(56, 8, 40), dur: 1e9, dist: 42, pitch: 34 * Math.PI / 180, orbit: 0.05 });
+    this.rig.cinematic({ center: new THREE.Vector3(56 + (this.level?.openWorld ? CAMP_AT.x : 0), 8, 40 + (this.level?.openWorld ? CAMP_AT.z : 0)), dur: 1e9, dist: 42, pitch: 34 * Math.PI / 180, orbit: 0.05 });
     this.audio.setMusic('title');
     openTitle(this);
   }
@@ -281,6 +281,9 @@ class Game {
     if (!fromQuests && this.ow?.data.track) { this.ow.quests.trackGoal(); return; }   // (a tracked side quest comes first: openworld/quests.js)
     const d = this.save.data;
     const next = (this.questMarkers ?? []).find((m) => m.open && !d.completed[m.ch.id]);
+    // in camp with the next chapter out on the Road West: the way there is the Greyhound
+    const roadNext = !next && this.area === 'camp' && this.level?.busStop && CHAPTERS.find((c) => chapterPlayable(c) && /^road\d$/.test(c.start?.at ?? '') && !d.completed[c.id] && chapterOpen(d, c));
+    if (roadNext) { this.tracker?.setGoal({ title: t('game.nextQuest', { title: roadNext.title }), desc: t('rt.bus.board'), pos: this.level.busStop, radius: 3 }); return; }
     if (!next) { this.tracker?.setGoal(null); return; }
     const place = next.ch.start?.place ?? next.ch.place;
     this.tracker?.setGoal({ title: t('game.nextQuest', { title: next.ch.title }), desc: place[0].toUpperCase() + place.slice(1), pos: next.pos, radius: 2 });
@@ -929,7 +932,7 @@ class Game {
     // the party, they don't pull or zoom the view (falls back to everyone)
     const humans = this.players.filter((p) => !p.remote && !p.ai && !p.dead);
     const local = humans.length ? humans : this.players.filter((p) => !p.remote);
-    this.rig.update(dt, local.length ? local : [this.idleFocus ?? (this.idleFocus = { pos: new THREE.Vector3(19, 6, 24), vel: new THREE.Vector3(), aimDir: new THREE.Vector3(), dead: false })], realDt);
+    this.rig.update(dt, local.length ? local : [this.idleFocus ?? (this.idleFocus = { pos: new THREE.Vector3(19 + CAMP_AT.x, 6, 24 + CAMP_AT.z), vel: new THREE.Vector3(), aimDir: new THREE.Vector3(), dead: false })], realDt);
     if (this.cutscene) this.cutscene.applyCamera();
     U.camPos.value.copy(this.rig.camera.position);
     for (let i = 0; i < 4; i++) {
