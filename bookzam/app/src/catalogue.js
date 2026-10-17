@@ -42,11 +42,11 @@ export function emptyCatalogue() {
 
 /**
  * Merge one scan's answer into the catalogue (mutating it). An item already
- * there gains the photo; a new one is added at the top.
- * Returns {added: [items], existing: [items]}.
+ * there gains the photo; a new one is added at the top. Returns {added,
+ * existing, pairs: [{entry, item}]} (which item each entry became).
  */
 export function mergeScan(cat, scan, photoId, now = new Date().toISOString()) {
-  const added = [], existing = [];
+  const added = [], existing = [], pairs = [];
   const take = (list, entries, kind) => {
     for (const entry of entries || []) {
       if (!entry?.title) continue;
@@ -56,7 +56,8 @@ export function mergeScan(cat, scan, photoId, now = new Date().toISOString()) {
         if (!known.author && entry.author) known.author = entry.author;
         if (!known.lookup && entry.lookup) { known.lookup = entry.lookup; known.lookupStatus = 'matched'; }
         if (!known.read && entry.read) known.read = entry.read;
-        existing.push(known);
+        if (!existing.includes(known)) existing.push(known);
+        pairs.push({ entry, item: known });
         continue;
       }
       const item = {
@@ -77,11 +78,23 @@ export function mergeScan(cat, scan, photoId, now = new Date().toISOString()) {
       };
       list.unshift(item);
       added.push(item);
+      pairs.push({ entry, item });
     }
   };
   take(cat.books, scan.books, 'book');
   take(cat.games, scan.games, 'game');
-  return { added, existing };
+  return { added, existing, pairs };
+}
+
+const MAX_LOOKS = 3;
+
+/** Keep a look of an item's spine (a few, from different photos), and its picture. */
+export function addLook(item, saved) {
+  if (!saved?.look) return;
+  item.looks ||= [];
+  if (item.looks.length >= MAX_LOOKS) item.looks.shift();
+  item.looks.push(saved.look);
+  if (saved.thumb && !item.thumb) item.thumb = saved.thumb;
 }
 
 /** Remove a photo and every item that only that photo found. */

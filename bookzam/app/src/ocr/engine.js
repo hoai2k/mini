@@ -40,10 +40,11 @@ export class OcrEngine {
 
   /**
    * Every text line in the photo: [{text, score, box: {cx, cy, w, h, angle}, vertical}].
-   * Spines are read both ways up and the more confident reading kept.
+   * Spines are read both ways up and the more confident reading kept. With
+   * keepUnread, text that couldn't be read comes back too, as {text: '', unread: true}.
    * onProgress(done, total) reports the recognition step.
    */
-  async read(img, { limit, minScore = 0.5, onProgress } = {}) {
+  async read(img, { limit, minScore = 0.5, onProgress, keepUnread = false } = {}) {
     const boxes = await this.detect(img, limit);
     const lines = [];
     for (let i = 0; i < boxes.length; i++) {
@@ -56,6 +57,9 @@ export class OcrEngine {
       onProgress?.(i + 1, boxes.length);
       if (best && best.text && best.score >= minScore) {
         lines.push({ text: best.text, score: Math.round(best.score * 1000) / 1000, box, dir: best.dir });
+      } else if (keepUnread) {
+        // Text seen but not read: still a place a known spine's look can be matched.
+        lines.push({ text: '', score: Math.round((best?.score || 0) * 1000) / 1000, box, dir: best?.dir || readingDirections(box)[0], unread: true });
       }
     }
     return lines;

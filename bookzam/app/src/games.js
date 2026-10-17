@@ -5,6 +5,7 @@
 // Used where books use Open Library.
 
 import { matchScore, words, wordMatches } from './ocr/spines.js';
+import { codeForms } from './barcodes.js';
 
 const API = 'https://www.wikidata.org/w/api.php';
 const HEADERS = { 'Api-User-Agent': 'Bookzam/1.0 (https://hoai2k.github.io/mini/bookzam/)' };
@@ -41,9 +42,11 @@ export function setLocalGames(rows) {
 }
 
 function indexGames(rows) {
-  const games = rows.map(([id, label, aliases, bgg, year, minPlayers, maxPlayers, designers, image, links]) => ({
-    id, label, aliases, links, row: { bgg, year, minPlayers, maxPlayers, designers, image },
+  const games = rows.map(([id, label, aliases, bgg, year, minPlayers, maxPlayers, designers, image, links, barcodes = []]) => ({
+    id, label, aliases, links, row: { bgg, year, minPlayers, maxPlayers, designers, image, barcodes },
   }));
+  const byBarcode = new Map();
+  games.forEach((g) => { for (const b of g.row.barcodes) for (const form of codeForms(b)) byBarcode.set(form, g); });
   const index = new Map(); // word -> game numbers
   games.forEach((g, n) => {
     for (const name of [g.label, ...g.aliases]) {
@@ -61,7 +64,7 @@ function indexGames(rows) {
     if (!byLetter.has(w[0])) byLetter.set(w[0], []);
     byLetter.get(w[0]).push(w);
   }
-  return { games, index, byLetter };
+  return { games, index, byLetter, byBarcode };
 }
 
 function loadLocal(fetchFn) {
@@ -121,6 +124,24 @@ export async function findGame(text, terms, options = {}) {
   let best = pickGame(text, await searchGames(terms, options));
   if (!best && terms.length > 1) best = pickGame(text, await searchGames(terms, { ...options, any: true }));
   return best ? { lookup: await nameDesigners(toGameLookup(best.game), options), match: best.match } : null;
+}
+
+/**
+ * The game with this barcode on its box: from the bundled list, else Wikidata
+ * (property P3962, a product's GTIN). Its lookup, or null.
+ */
+export async function gameByBarcode(code, options = {}) {
+  const { byBarcode } = await loadLocal(options.fetch || fetch);
+  for (const form of codeForms(code)) if (byBarcode.has(form)) return localLookup(byBarcode.get(form));
+  for (const form of codeForms(code)) {
+    const found = await api({ action: 'query', list: 'search', srsearch: `haswbstatement:P3962=${form}`, srlimit: '1', srprop: '' }, options.fetch || fetch, options.signal);
+    const id = found.query?.search?.[0]?.title;
+    if (!id) continue;
+    const data = await api({ action: 'wbgetentities', ids: id, props: 'labels|aliases|claims', languages: 'en' }, options.fetch || fetch, options.signal);
+    const e = data.entities?.[id];
+    if (e?.labels?.en) return nameDesigners(toGameLookup({ id, label: e.labels.en.value, aliases: [], claims: e.claims || {} }), options);
+  }
+  return null;
 }
 
 // ---------- Wikidata's search ----------

@@ -15,6 +15,8 @@ import { existsSync, readdirSync } from 'node:fs';
 import { extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { ean13, barcodeImage, y4m } from './ean13.mjs';
+
 const root = resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const require = createRequire(join(root, 'local/tools/package.json'));
 const { chromium } = require('playwright-core');
@@ -48,10 +50,10 @@ const base = `http://127.0.0.1:${server.address().port}/`;
 
 // The shelf: spines with real titles (reading down and up), a book lying flat and a game box.
 const SPINES = [
-  { title: 'THE SELFISH GENE', by: 'DAWKINS', color: '#2b4c7e', up: false },
-  { title: 'ONTOGENY AND PHYLOGENY', by: 'GOULD', color: '#7a2e2e', up: false },
-  { title: 'A DROP OF BLOOD', by: 'SHOWERS', color: '#2e6b4f', up: true },
-  { title: 'GÖDEL, ESCHER, BACH', by: 'HOFSTADTER', color: '#5b3a7a', up: false },
+  { title: 'THE SELFISH GENE', by: 'DAWKINS', color: '#2b4c7e', band: '#101820', bands: [20, 560], up: false },
+  { title: 'ONTOGENY AND PHYLOGENY', by: 'GOULD', color: '#7a2e2e', band: '#2a0808', bands: [60, 470], up: false },
+  { title: 'A DROP OF BLOOD', by: 'SHOWERS', color: '#2e6b4f', band: '#0a2a10', bands: [120, 610], up: true },
+  { title: 'GÖDEL, ESCHER, BACH', by: 'HOFSTADTER', color: '#5b3a7a', band: '#100820', bands: [30, 380], up: false },
 ];
 const OPEN_LIBRARY = [
   { key: '/works/OL1W', title: 'The Selfish Gene', author_name: ['Richard Dawkins'], first_publish_year: 1976, isbn: ['9780198788607'] },
@@ -60,12 +62,23 @@ const OPEN_LIBRARY = [
   { key: '/works/OL4W', title: 'Gödel, Escher, Bach', author_name: ['Douglas R. Hofstadter'], first_publish_year: 1979 },
   { key: '/works/OL5W', title: 'Metamorphoses', author_name: ['Ovid'], first_publish_year: 8 },
 ];
+// Books found by the ISBN on their barcodes.
+const BY_ISBN = {
+  '9780441172719': { key: '/works/OL6W', title: 'Dune', author_name: ['Frank Herbert'], first_publish_year: 1965 },
+  '9780140449136': { key: '/works/OL7W', title: 'The Odyssey', author_name: ['Homer'], first_publish_year: -700 },
+};
+// The fake camera films the barcode of The Odyssey.
+const cameraFile = join(out, 'camera.y4m');
+await writeFile(cameraFile, y4m(barcodeImage('9780140449136', { width: 640, height: 300, top: 90 })));
 
 const failures = [];
 const check = (ok, what) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures.push(what); };
 
-const browser = await chromium.launch({ executablePath: chromiumPath() });
-const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+const browser = await chromium.launch({
+  executablePath: chromiumPath(),
+  args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', `--use-file-for-fake-video-capture=${cameraFile}`],
+});
+const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, permissions: ['camera'] });
 const page = await context.newPage();
 const errors = [];
 page.on('pageerror', (e) => errors.push(String(e)));
@@ -73,6 +86,8 @@ page.on('console', (m) => { if (m.type() === 'error' && !/cpuid_info|Unknown CPU
 
 const olQueries = [];
 await page.route('https://openlibrary.org/**', (route) => {
+  const isbn = new URL(route.request().url()).searchParams.get('isbn');
+  if (isbn) return route.fulfill({ json: { docs: BY_ISBN[isbn] ? [BY_ISBN[isbn]] : [] } });
   const q = new URL(route.request().url()).searchParams.get('q') || '';
   olQueries.push(q);
   const fold = (s) => s.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -117,6 +132,8 @@ const shelf = await page.evaluate(async ({ spines }) => {
     const x = 120 + i * 130, w = 110, y = 80, h = 760;
     xs.push([x / W, (x + w) / W]);
     g.fillStyle = s.color; g.fillRect(x, y, w, h);
+    // Bands and a block, as real spine designs have, different on each spine.
+    g.fillStyle = s.band; g.fillRect(x, y + s.bands[0], w, 46); g.fillRect(x, y + s.bands[1], w, 28);
     g.save();
     g.translate(x + w / 2, y + h / 2);
     g.rotate(s.up ? -Math.PI / 2 : Math.PI / 2);
@@ -213,6 +230,38 @@ await page.waitForSelector('#verdict[data-state="missing"]', { timeout: 60000 })
 await page.screenshot({ path: join(out, '5-missing.png') });
 check((await page.locator('.chip').count()) > 0, 'a missing book offers the titles it could read');
 
+// Find by look: the same shelf from much further away, its titles too small to read.
+const far = await page.evaluate(async (jpeg) => {
+  const img = new Image();
+  img.src = `data:image/jpeg;base64,${jpeg}`;
+  await img.decode();
+  const c = Object.assign(document.createElement('canvas'), { width: 1400, height: 1000 });
+  const g = c.getContext('2d');
+  g.fillStyle = '#4a3220'; g.fillRect(0, 0, 1400, 1000);
+  g.filter = 'blur(2.5px)';
+  g.drawImage(img, 385, 275, 630, 450); // under half the size and out of focus: text seen, not readable
+  return c.toDataURL('image/jpeg', 0.9).split(',')[1];
+}, shelf.jpeg);
+await writeFile(join(out, 'far.jpg'), Buffer.from(far, 'base64'));
+await page.fill('#find-query', 'Ontogeny and phylogeny');
+await page.setInputFiles('#find-input', { name: 'far.jpg', mimeType: 'image/jpeg', buffer: Buffer.from(far, 'base64') });
+await page.waitForFunction(() => {
+  const v = document.querySelector('#verdict');
+  return /Ontogeny/.test(v.textContent) && ['found', 'missing', 'error'].includes(v.dataset.state);
+}, null, { timeout: 240000 });
+await page.waitForTimeout(1200);
+await page.screenshot({ path: join(out, '5b-far.png') });
+const farVerdict = await page.textContent('#verdict');
+console.log(`     far away: ${farVerdict}`);
+if (/Found/.test(farVerdict)) {
+  check(/by its look/.test(farVerdict), 'a spine too small to read is recognised by its look');
+  const farRing = await page.evaluate(() => { const e = document.querySelector('.overlay ellipse.ring'); const vb = document.querySelector('.overlay').viewBox.baseVal; return e && e.cx.baseVal.value / vb.width; });
+  const [fx0, fx1] = shelf.xs[1].map((x) => 0.275 + x * 0.45);
+  check(farRing > fx0 && farRing < fx1, `and circled on the right spine (${farRing?.toFixed(3)} in ${fx0.toFixed(3)}–${fx1.toFixed(3)})`);
+} else {
+  check(await page.isVisible('.spine-hint img'), 'not recognised, it shows what the spine looks like');
+}
+
 // A photo of game boxes, added to Board games.
 await page.click('#tab-catalogue');
 await page.click('#seg-games');
@@ -249,15 +298,42 @@ check(/\d–\d players/.test(await page.textContent('#item-facts')), 'a game sho
 check(await page.getAttribute('#item-links a', 'href') === 'https://boardgamegeek.com/boardgame/266192', 'and links straight to BoardGameGeek');
 await page.click('#item-form .close');
 
-// Export and reload persistence.
+// Barcodes: one in a photo, one through the live scanner (Chromium's fake camera).
 await page.click('#seg-books');
+const barcodePhoto = await page.evaluate(async (bits) => {
+  const c = Object.assign(document.createElement('canvas'), { width: 900, height: 600 });
+  const g = c.getContext('2d');
+  g.fillStyle = '#d8c7a5'; g.fillRect(0, 0, 900, 600);
+  g.fillStyle = '#fff'; g.fillRect(180, 160, 540, 280);
+  g.fillStyle = '#000';
+  [...bits].forEach((b, i) => { if (b === '1') g.fillRect(212 + i * 5, 190, 5, 200); });
+  g.font = '24px sans-serif'; g.fillText('ISBN 978-0-441-17271-9', 300, 425);
+  return c.toDataURL('image/jpeg', 0.92).split(',')[1];
+}, ean13('9780441172719'));
+await page.setInputFiles('#add-input', { name: 'back.jpg', mimeType: 'image/jpeg', buffer: Buffer.from(barcodePhoto, 'base64') });
+await page.waitForTimeout(300);
+await page.waitForFunction(() => !document.querySelector('.job[data-state="waiting"], .job[data-state="reading"]'), null, { timeout: 240000 });
+check((await page.$$eval('#items .item .title', (els) => els.map((e) => e.textContent.trim()))).includes('Dune'), "a photo of a book's barcode adds the book (by its ISBN)");
+
+await page.click('#fab-scan');
+await page.waitForSelector('#scan-sheet[open]');
+await page.waitForSelector('#scan-list li', { timeout: 60000 });
+await page.screenshot({ path: join(out, '7-scanner.png') });
+check(/The Odyssey/.test(await page.textContent('#scan-list')), 'the live scanner reads a barcode from the camera and adds the book');
+await page.click('#scan-sheet .close');
+await page.waitForTimeout(400);
+check(await page.evaluate(() => !document.querySelector('#scan-video').srcObject), 'closing the scanner stops the camera');
+check((await page.$$eval('#items .item .title', (els) => els.map((e) => e.textContent.trim()))).includes('The Odyssey'), 'and the book is in the list');
+
+// Export and reload persistence.
+const bookCount = await page.locator('#items .item').count();
 await page.click('#menu-btn');
 const [download] = await Promise.all([page.waitForEvent('download'), page.click('#export-books')]);
 const exported = JSON.parse(await readFile(await download.path(), 'utf8'));
 check(exported.items.some((b) => b.openLibrary === 'https://openlibrary.org/works/OL1W' && b.isbn === '9780198788607'), 'books export as JSON with Open Library links and ISBNs');
 await page.reload();
 await page.waitForSelector('#items .item');
-check((await page.locator('#items .item').count()) === titles.length, 'the catalogue survives a reload');
+check((await page.locator('#items .item').count()) === bookCount, 'the catalogue survives a reload');
 
 check(!(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)), 'no sideways scrolling at 390 px');
 check(errors.length === 0, `no page errors${errors.length ? `: ${errors.join(' | ')}` : ''}`);

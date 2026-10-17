@@ -59,9 +59,16 @@
       </button>
       <h2 id="empty-title">Snap a shelf</h2>
       <p id="empty-text">Take a photo of your books, spines facing you. Everything Bookzam reads in it is added here as a book. Add as many photos as you like.</p>
+      <button type="button" class="link-btn" data-scan>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6v12M7 6v12M10 6v12M14 6v12M16 6v12M20 6v12"/></svg>
+        <span id="empty-scan">Or scan the barcodes on their backs</span>
+      </button>
     </div>
     <p class="none-match" id="none-match" hidden>Nothing matches that search.</p>
 
+    <button type="button" class="fab mini" id="fab-scan" data-scan aria-label="Scan barcodes" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6v12M7 6v12M10 6v12M14 6v12M16 6v12M20 6v12"/></svg>
+    </button>
     <button type="button" class="fab" id="fab" data-add aria-label="Add a photo" hidden>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
     </button>
@@ -129,6 +136,7 @@
     </div>
     <dl class="facts" id="item-facts"></dl>
     <div class="links" id="item-links"></div>
+    <div class="spine-pic" id="item-spine"></div>
     <div class="photo-strip" id="item-photos"></div>
     <div class="sheet-actions">
       <button type="button" class="btn primary" id="item-find">Find on shelf</button>
@@ -156,6 +164,22 @@
     <p class="muted small">Photos are read on this device and never uploaded; your catalogue stays here too. Bookzam only sends the words it reads to <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a>, to find which book they are and fetch covers.</p>
     <p class="muted small">Reading uses PaddleOCR's text models (Apache 2.0), downloaded once (about 25 MB).</p>
     <button type="submit" class="btn close">Close</button>
+  </form>
+</dialog>
+
+<!-- Barcode scanner -->
+<dialog class="sheet" id="scan-sheet" aria-labelledby="scan-title">
+  <form method="dialog" class="sheet-body">
+    <div class="grab" aria-hidden="true"></div>
+    <h2 id="scan-title">Scan barcodes</h2>
+    <p class="muted small" id="scan-hint">Point the camera at the barcode on the back of a book. Each one is added as soon as it's read.</p>
+    <div class="scan-view">
+      <video id="scan-video" playsinline muted></video>
+      <div class="scan-line" aria-hidden="true"></div>
+    </div>
+    <p class="scan-status" id="scan-status" aria-live="polite"></p>
+    <ul class="scan-list" id="scan-list"></ul>
+    <button type="submit" class="btn close">Done</button>
   </form>
 </dialog>
 

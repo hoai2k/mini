@@ -68,7 +68,7 @@ self.onmessage = async (event) => {
     const eng = await engine(report);
     report('detect', 0, 1);
     const image = { data: new Uint8ClampedArray(msg.image.data), width: msg.image.width, height: msg.image.height };
-    const lines = await eng.read(image, { limit: msg.limit, onProgress: (d, t) => report('recognise', d, t) });
+    const lines = await eng.read(image, { limit: msg.limit, keepUnread: Boolean(msg.keepUnread), onProgress: (d, t) => report('recognise', d, t) });
     self.postMessage({ type: 'result', id: msg.id, lines });
   } catch (e) {
     self.postMessage({ type: 'error', id: msg.id, message: String(e?.message || e) });
