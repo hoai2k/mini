@@ -393,7 +393,7 @@ $('met-pulse-on').addEventListener('change', () => { settings.metPulse = $('met-
 
 /*
  * Everything you see follows heardNow(): the time of the sound reaching your
- * ears (the output delay the browser knows, plus the Audio check / sync
+ * ears (the output delay the browser knows, plus the Pendulum sync
  * adjustment), looked one frame ahead because a frame drawn now appears on
  * screen about a frame later. So the pendulum reaches the end of its swing,
  * the pulse flashes and the beat dot lights as each click is heard.
@@ -434,6 +434,8 @@ const syncBar = $('sync-bar');
 let taps = [];
 function showSync() {
   $('sync-val').textContent = TEXT.metronome.sync.value(settings.syncMs);
+  $('met-sync').value = settings.syncMs;
+  $('met-sync-val').textContent = TEXT.common.ms(settings.syncMs);
 }
 function setSync(ms) {
   settings.syncMs = Math.max(-200, Math.min(500, Math.round(ms / 10) * 10));
@@ -455,6 +457,8 @@ function closeSync() {
   document.querySelector('.met-controls').hidden = false;
 }
 $('sync-open').addEventListener('click', openSync);
+$('met-sync').addEventListener('input', () => setSync(Number($('met-sync').value)));
+showSync();
 $('sync-done').addEventListener('click', closeSync);
 $('sync-down').addEventListener('click', () => setSync(settings.syncMs - 10));
 $('sync-up').addEventListener('click', () => setSync(settings.syncMs + 10));
@@ -1249,7 +1253,7 @@ store.list().then((saved) => {
   takes = [...takes, ...saved.filter((s) => !takes.some((t) => t.created === s.created))];
   renderTakes();
 });
-// Audio check choices: pendulum delay, speaker (where the browser allows).
+// The saved pendulum delay; Audio check sets the speaker (where the browser allows).
 setExtraDelay(settings.syncMs / 1000);
 if (settings.speaker !== 'default') setSpeaker(settings.speaker);
 
@@ -1274,11 +1278,6 @@ for (const b of document.querySelectorAll('.open-audio-check')) {
         const media = await setSpeaker(id);
         if (existingAudio()) await setContextSpeaker(id);
         return media;
-      },
-      onSync: (ms) => {
-        settings.syncMs = ms;
-        persist();
-        setExtraDelay(ms / 1000);
       },
     });
   });

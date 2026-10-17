@@ -93,7 +93,9 @@ when the Art Deco art arrives, measure and record its own.
   ahead because a frame drawn now appears about a frame later. Checked in
   Chromium: at 120 BPM the pulse peaks every 500 ms on the same frame as the
   pendulum reaching the end of its swing and the beat dot moving on.
-- **Line up visuals with the sound…** (metronome settings) is for Bluetooth
+- **Pendulum sync** (metronome settings) is a slider for how much later the
+  visuals show each beat, beyond the delay the browser reports.
+- **Manually sync sound and visuals…** (metronome settings) is for Bluetooth
   speakers and headphones, which play late and don't always say by how much:
   the controls give way to a sync bar while the metronome plays, with − / +
   (10 ms steps) to move the visuals until the flash meets the click, or
@@ -102,8 +104,7 @@ when the Art Deco art arrives, measure and record its own.
   and set the adjustment beyond what the browser already reports (a tap
   pattern spread over more than 150 ms is rejected). Checked with simulated
   taps 180 ms after each beat: it set +160 ms (the 20 ms difference is the
-  frame of look-ahead already allowed for). The setting is shared with Audio
-  check's pendulum sync.
+  frame of look-ahead already allowed for). The setting is the Pendulum sync slider's.
 - Tempo from 40 to 500 BPM: a slider, a number box (type any tempo; values
   outside the range are pulled in), and − / + buttons (hold to run). The
   Italian marking (Largo … Prestissimo) shows under the number. Default 120.
@@ -469,10 +470,10 @@ be used) explains it, with the steps to allow the microphone and a Reload
 button; a test sound played the way takes are;
 the microphone choice (Automatic, built-in preferred, or any listed mic,
 Bluetooth marked); the speaker choice where the browser allows one
-(desktop Chrome and Edge: System default is recommended, as it follows the
-system's switching); a pendulum sync adjustment; and what the browser
-reports (engine, permission, mic state, devices, Bluetooth names, output
-delay, Safari's audio mode).
+(desktop Chrome and Edge); and what the browser reports (engine, permission, mic state, devices, Bluetooth names, output
+delay, Safari's audio mode). The settings sheets carry no explanatory
+lines under their controls, apart from the Drone's and the Playback
+Recorder's, where they help.
 
 Audio check's "What the browser reports" shows both signs (the reported
 permission and how long the first request took) and the **last take
@@ -537,7 +538,7 @@ choose one.
 
 **Pendulum and Bluetooth delay**: the pendulum is drawn late by the output
 delay the browser reports (clamped to 0-0.6 s; Bluetooth is often
-0.15-0.3 s) plus the Audio check adjustment (-200 to +500 ms), so it lines
+0.15-0.3 s) plus the Pendulum sync adjustment (-200 to +500 ms), so it lines
 up with what is heard. Only the drawing moves; the sound is unchanged.
 
 ## Known limits
