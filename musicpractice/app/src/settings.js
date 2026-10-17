@@ -82,7 +82,8 @@ export const DEFAULTS = Object.freeze({
   droneMidi: 48, // C3
   droneVoice: 'cello',
   droneVolume: 0.8,
-  droneFifth: false, // add a pure fifth above
+  droneFifth: true, // add a pure fifth above (on unless switched off)
+  droneFifthChosen: false,
   droneTimed: false, // stop or move on after droneMinutes
   droneMinutes: 3,
   droneThen: 'stop', // or a sequence from SEQUENCES in drone.js
@@ -134,7 +135,9 @@ export function sanitize(raw) {
     droneMidi: clamp(Math.round(num(s.droneMidi, DEFAULTS.droneMidi)), 36, 59),
     droneVoice: oneOf(s.droneVoice, DRONE_VOICES, DEFAULTS.droneVoice),
     droneVolume: clamp(num(s.droneVolume, DEFAULTS.droneVolume), 0, 1),
-    droneFifth: s.droneFifth === true,
+    // Saves from before the fifth was on by default stored off without anyone choosing it.
+    droneFifth: s.droneFifthChosen === true && typeof s.droneFifth === 'boolean' ? s.droneFifth : DEFAULTS.droneFifth,
+    droneFifthChosen: s.droneFifthChosen === true,
     droneTimed: s.droneTimed === true,
     droneMinutes: clamp(Math.round(num(s.droneMinutes, DEFAULTS.droneMinutes) * 2) / 2, 0.5, 30),
     droneThen: oneOf(s.droneThen, DRONE_THEN, DEFAULTS.droneThen),

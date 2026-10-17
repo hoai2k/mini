@@ -249,7 +249,7 @@ tones, scales over a tonic.
   **Organ** and **Synth organ** (a synthesized pipe organ: 8', 4' and 16'
   pipes with a touch of wind, exactly in tune and perfectly steady). A voice
   saved before others were archived falls back to the cello.
-- Settings: volume; **Add a fifth above** (a pure 3:2 fifth); **Timed drone** (off by
+- Settings: volume; **Add a fifth above** (a pure 3:2 fifth, on by default); **Timed drone** (off by
   default; 0.5 to 20 minutes, 3 by default), and **When time's up**: stop,
   or move on to the next note chromatically up or down, up or down the major
   scale of the starting note, or up a fifth or a fourth (round all twelve
