@@ -2,7 +2,7 @@
 // place, Mist rating, completion / lock state), a difficulty picker and Start.
 import { h } from './ui.js';
 import { demigodText, GREEK } from './greekText.js';
-import { BOOKS, CHAPTERS, chaptersOf, chapterPlayable } from '../story/chapters.js';
+import { BOOKS, CHAPTERS, chaptersOf, chapterPlayable, chapterOpen } from '../story/chapters.js';
 import { t as tx } from '../text_config.js';
 
 export const DIFFICULTIES = ['mortal', 'demigod', 'hero', 'olympian'].map((id) => [tx(`chapterMap.difficulty.${id}.name`), tx(`chapterMap.difficulty.${id}.tip`)]);
@@ -17,12 +17,7 @@ export function mistRating(mist) {
   for (let i = 0; i < 5; i++) el.appendChild(h('span', { class: 'cl' + (i < n ? ' on' : ''), html: CLOUD }));
   return el;
 }
-export function isUnlocked(d, ch) {
-  if (!chapterPlayable(ch)) return false;
-  if (d.unlockAll) return true;
-  const list = chaptersOf(ch.book), i = list.indexOf(ch);
-  return i <= 0 || !!d.completed?.[list[i - 1].id];
-}
+export function isUnlocked(d, ch) { return chapterOpen(d, ch); }   // (story/chapters.js: all open but a book's final chapters)
 // The chapter's card picture (preloaded behind the loading screen, ui/art.js).
 // A picture that is genuinely missing leaves the frame empty.
 export function cardArt(ch, cls = '') {

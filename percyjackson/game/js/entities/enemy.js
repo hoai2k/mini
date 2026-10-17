@@ -101,7 +101,7 @@ const ELITE_AFFIX = {
 export class Enemy {
   constructor(game, kind, pos, { elite = null, level = 1, disguise = null } = {}) {
     kind = resolveKind(kind);
-    this.game = game; this.kind = kind; this.def = MONSTERS[kind];
+    this.game = game; this.kind = kind; this.def = MONSTERS[kind]; this.level = level;
     const d = this.def;
     this.pos = pos.clone(); this.vel = new THREE.Vector3(); this.knock = new THREE.Vector3();
     this.radius = d.radius; this.height = d.height;

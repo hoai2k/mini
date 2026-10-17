@@ -7,6 +7,16 @@
 // loads (names in data tables) take a pack only if it is set before the game
 // starts, so call setText before importing main.js.
 
+// (while the open world is being written, its regions' text lives in js/text/ow_*.js)
+import ow_camp from './text/ow_camp.js';
+import ow_fields from './text/ow_fields.js';
+import ow_woods from './text/ow_woods.js';
+import ow_shore from './text/ow_shore.js';
+import ow_canyon from './text/ow_canyon.js';
+import ow_labyrinth from './text/ow_labyrinth.js';
+import ow_othrys from './text/ow_othrys.js';
+import ow_asphodel from './text/ow_asphodel.js';
+
 export const TEXT = {
   // ======================================================================
   // Screens: the page, title, hero select, HUD, tracker, chapter map, prophecy, story cards, pause and store
@@ -1080,6 +1090,72 @@ export const TEXT = {
   },
 
   // ======================================================================
+  // The open world: regions, waystones, the world map, side quests, camps, chests and shrines
+  // ======================================================================
+  // Region names (shown on entering a region, on the map) and their subtitles
+  regions: {
+    camp: { name: 'Camp Half-Blood', sub: 'Long Island Sound, New York' },
+    fields: { name: 'Strawberry Fields', sub: 'The camp’s farms and orchards' },
+    woods: { name: 'The Camp Woods', sub: 'Stocked with monsters, for training' },
+    shore: { name: 'The North Shore', sub: 'Cliffs and beaches on Long Island Sound' },
+    canyon: { name: 'The Red Canyon', sub: 'Where the desert came to Long Island' },
+    labyrinth: { name: 'The Labyrinth', sub: 'Daedalus’s maze, breaking through' },
+    othrys: { name: 'Mount Othrys', sub: 'The Titans’ black fortress' },
+    asphodel: { name: 'The Fields of Asphodel', sub: 'Where the Underworld breaks through' },
+    levels: 'Monster level {a}–{b}',
+    entered: '{name}',
+  },
+  // Waystones: their names on the map and the teleport list
+  waystones: {
+    camp: 'The Campfire',
+    fields_crossroads: 'Farm Crossroads',
+    fields_orchard: 'The Orchard',
+    woods_creek: 'The Creek',
+    woods_fist: 'Zeus’s Fist',
+    shore_dunes: 'The Dunes',
+    shore_cliffs: 'Gull Cliffs',
+    canyon_wash: 'Dry Wash',
+    canyon_mesa: 'High Mesa',
+    labyrinth_gate: 'The Maze Gate',
+    labyrinth_heart: 'The Heart of the Maze',
+    othrys_pass: 'Titan’s Pass',
+    othrys_summit: 'The Black Summit',
+    asphodel_ferry: 'Charon’s Landing',
+    asphodel_gate: 'The Gates of Erebus',
+  },
+  // The open world: prompts, toasts, the map
+  ow: {
+    waystoneFound: 'Waystone found: {name}',
+    waystoneUse: 'Waystone: travel',
+    teleportTo: 'Travel to {name}',
+    teleporting: 'Travelling to {name}…',
+    notWithMonsters: 'Not with monsters this close',
+    hostTravels: 'The host chooses where the party travels',
+    map: {
+      title: 'Map',
+      waystones: 'Waystones',
+      none: 'Find waystones to travel between them.',
+      travel: 'Travel',
+      close: 'Close',
+      chapters: 'Chapters',
+      quests: 'Quests',
+      you: 'You',
+      unknown: 'Unexplored',
+      legend: '◆ waystone  ✦ chapter  ! quest  ▲ monster camp  ☠ champion  ◈ shrine',
+      hint: 'Pick a waystone to travel there.',
+    },
+    chest: { open: 'Open the chest', found: 'Treasure!' },
+    camp: { cleared: 'Monster camp cleared!', ambush: 'A monster camp!' },
+    champion: { appears: '{name} appears!', defeated: '{name} is defeated!', title: 'Champion' },
+    quest: {
+      talk: 'Talk to {name}', accept: 'I’ll help', later: 'Not now', handIn: 'Here you go', ok: 'OK',
+      nothing: 'Good luck out there, demigod.', allDone: 'Thanks again for everything.',
+      accepted: 'New quest: {title}', completed: 'Quest complete: {title} (+{xp} XP)', pickUp: 'Pick up',
+      none: 'No side quests yet. Look for people with a gold “!” over their heads.', doneShort: 'Done',
+    },
+    shrine: { start: 'Begin the trial', begin: 'The trial of {name} begins', wave: 'Wave {n} of {total}', won: 'Trial won!', rest: 'The shrine is resting', failed: 'The trial is lost' },
+  },
+  // ======================================================================
   // The world: monsters, bosses, mortal disguises, signs, levels, minigames, the Mist
   // ======================================================================
   monsters: {
@@ -1954,6 +2030,8 @@ export const TEXT = {
     close: 'Close',
   },
 };
+
+for (const part of [ow_camp, ow_fields, ow_woods, ow_shore, ow_canyon, ow_labyrinth, ow_othrys, ow_asphodel]) deepMerge(TEXT, part);
 
 function deepMerge(into, from) {
   for (const [k, v] of Object.entries(from)) {

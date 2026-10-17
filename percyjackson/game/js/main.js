@@ -23,7 +23,10 @@ import { settings, saveSettings } from './settings.js';
 import { Environment, BIOMES } from './world/biomes.js';
 import { makePropMaterials } from './world/deco.js';
 import { BLOCKS } from './world/blocks.js';
-import { buildCamp } from './world/camp.js';
+import { buildOpenWorld } from './world/openworld.js';
+import { OpenWorld } from './openworld/runtime.js';
+import { openWorldMap } from './ui/worldMap.js';
+import { owDifficulty } from './world/owLayout.js';
 import { Boats } from './world/boats.js';
 import { generateLevel } from './world/levelgen.js';
 import { Mission } from './mission.js';
@@ -272,7 +275,8 @@ class Game {
     if (this.state === 'playing') { this.hud.show(true); this.touch?.show(true); }
   }
   // In camp: the tracker points at the next chapter to play.
-  updateCampGoal() {
+  updateCampGoal(fromQuests = false) {
+    if (!fromQuests && this.ow?.data.track) { this.ow.quests.trackGoal(); return; }   // (a tracked side quest comes first: openworld/quests.js)
     const d = this.save.data;
     const next = (this.questMarkers ?? []).find((m) => m.open && !d.completed[m.ch.id]);
     if (!next) { this.tracker?.setGoal(null); return; }
@@ -372,6 +376,7 @@ class Game {
   }
   // ---------------------------------------------------------------- level lifecycle
   clearLevel() {
+    this.ow?.dispose(); this.ow = null;
     if (this.rig) this.rig.subject = null;
     this.wipeLeft = 0;
     this.domainSys?.end();
@@ -429,7 +434,7 @@ class Game {
     this.online?.loading?.();   // net: guests wait while the host builds camp
     if (!this.csBuilding) { this.endCutscene(); this.openingChapter = null; }
     this.clearLevel();
-    const L = buildCamp();
+    const L = buildOpenWorld();   // (Camp Half-Blood in the middle of the open world: world/openworld.js)
     this.loadWorld(L, BIOMES.camp);
     if (this.state === 'playing') this.audio.overrideMusic = null; this.audio.setMusic('hub');
     this.placePlayers(L.spawn);
@@ -471,6 +476,8 @@ class Game {
     this.mode = 'hub'; this.chapter = null;
     this.online?.sceneChanged();
     this.interactables.push({ id: 'iris', pos: (L.iris ?? L.mapTable.clone().add(new THREE.Vector3(3, 0, 0))), radius: 2.4, label: this.online?.active ? t('game.camp.irisActive') : t('game.camp.iris'), action: () => openOnline(this) });
+    // the open world: regions, waystones, camps, champions, shrines, chests, people and side quests
+    this.ow = new OpenWorld(this, L); this.ow.setup();
     // where to go next, and monsters in the woods and along the Road West (not while a cutscene is building camp as its set)
     if (!this.csBuilding && this.state === 'playing') { this.updateCampGoal(); this.roaming.configureCamp(); }
   }
@@ -649,7 +656,9 @@ class Game {
       if (k.procs.explode) { this.combat.aoe(e.pos, 2.6, e.maxHp * 0.2 * k.procs.explode, k, { knock: 6, blocks: false }); this.fx.explosion(e.pos, 0xff8a3a, 2.4); }
     }
     if (!e.isDummy) {
-      for (const sv of this.localSaves()) if (sv.addXp(e.def.xp ?? 3)) this.levelUp(sv);   // net: every player's profile
+      const xp = Math.round((e.def.xp ?? 3) * (1 + 0.3 * Math.max(0, (e.level ?? 1) - 1)) * (e.champion ? 4 : 1));   // (tougher monsters are worth more: the open world's regions rise in level)
+      for (const sv of this.localSaves()) if (sv.addXp(xp)) this.levelUp(sv);   // net: every player's profile
+      this.ow?.onKill(e);
       const [a, b] = e.def.coins ?? [1, 2];
       this.pickups.drop('coin', e.pos, a + Math.floor(Math.random() * (b - a + 1)));
       if (Math.random() < 0.08) this.pickups.drop('heal', e.pos, 1);
@@ -670,7 +679,7 @@ class Game {
   // Chests and bosses drop a separate item (or two) for every human player.
   onChestOpened(c) {
     this.audio?.sample?.('chest');
-    const diff = this.mission?.def.difficulty ?? 1;
+    const diff = this.mission?.def.difficulty ?? c.difficulty ?? 1;
     const humans = this.players.filter((q) => !q.ai && !q.remote);
     humans.forEach((q, n) => {
       const items = rollChest(diff, c.boss ? 'boss' : c.rarity, { level: this.saveFor(q).data.level, hero: q.hero });
@@ -683,12 +692,13 @@ class Game {
   // Elites and champions sometimes drop an item for the hero who beat them.
   maybeDropFromMonster(e) {
     const tier = e.def?.tier;
-    const chance = e.elite ? 0.18 : tier === 'champion' ? 0.5 : tier === 'elite' ? 0.06 : 0;
-    if (!chance || Math.random() > chance || !this.mission) return;
+    const chance = e.champion ? 1 : e.elite ? 0.18 : tier === 'champion' ? 0.5 : tier === 'elite' ? 0.06 : 0;
+    if (!chance || Math.random() > chance || (!this.mission && !this.ow)) return;
+    const diff = this.mission?.def.difficulty ?? owDifficulty(e.level);   // (the open world: from the monster's level)
     const k = e.lastAttacker;
     const q = k?.isPlayer && !k.ai && !k.remote ? k : this.players.find((x) => !x.ai && !x.remote);
     if (!q) return;
-    this.loot.drop(rollItem(powerFor(this.mission.def.difficulty, this.saveFor(q).data.level), { hero: q.hero }), e.pos, q);
+    this.loot.drop(rollItem(powerFor(diff, this.saveFor(q).data.level), { hero: q.hero, rarity: e.champion ? (Math.random() < 0.35 ? 'unique' : 'rare') : null }), e.pos, q);
   }
   onPlayerDied(p) {
     if (this.wipeLeft > 0 || !this.players.length || !this.players.every((q) => q.dead || q.downed)) return;
@@ -804,7 +814,7 @@ class Game {
     const anyQuest = playing && !cs && !this.ui.stack.length && this.players.some((p) => this.input.get(p.device).pressed.quest);   // J: the quest log (the chapter map)
     if (this.ui.stack.length) { this.ui.update(); if (anyMap && this.ui.isOpen('map')) { this.ui.close('map'); this.paused = false; } }
     else if (pausePlayer && !this.minigame?.el) this.pause(pausePlayer);
-    else if (anyMap || anyQuest) { if (this.mode === 'hub' && !this.online?.isGuest) openMapTable(this); else this.openMap(); }   // View / M: the level map; in camp the chapter map (the quest log)
+    else if (anyMap || anyQuest) { if (this.mode === 'hub' && this.ow) openWorldMap(this, { tab: anyQuest ? 'quests' : 'map' }); else if (this.mode === 'hub' && !this.online?.isGuest) openMapTable(this); else this.openMap(); }   // in camp: the world map (J: its quest list)   // View / M: the level map; in camp the chapter map (the quest log)
     if (playing && !cs && !this.ui.stack.length && !this.paused) {
       const handled = new Set();     // a switch hands the device to another hero: act once per device
       for (const p of [...this.players]) {
@@ -855,6 +865,7 @@ class Game {
       this.loot.update(dt);
       this.mission?.update(dt);
       this.roaming.update(dt);
+      this.ow?.update(dt);
       this.online.update(realDt);
     }
     this.domainSys.update(dt, this.paused ? 0 : realDt);
