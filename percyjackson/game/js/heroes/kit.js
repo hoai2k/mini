@@ -9,6 +9,7 @@ import { uniform, uv, vec3, vec4, float, sin, length, smoothstep, atan, mix } fr
 import { BASE_COMBO } from '../combat.js';
 import { U } from '../gfx/materials.js';
 import { shoot, ammoInfo } from '../resources.js';
+import { validLoadout, SLOTS } from './skillRules.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
 
@@ -166,6 +167,15 @@ export class Kit {
   dispose() { for (const o of this.owned ?? []) this.game.scene.remove(o); }
   own(o) { (this.owned || (this.owned = [])).push(o); this.game.scene.add(o); return o; }
   rank(id) { return this.p.skills?.[id] ?? 0; }
+  // a learned power's upgrades: its ranks after the first (which learns it)
+  up(id) { return Math.max(0, this.rank(id) - 1); }
+  // Slots 1 · 2 · 3 from the hero's equipped powers (the save's loadout,
+  // checked against what the hero knows); powers maps power id -> ability.
+  equipSlots(powers) {
+    const eq = validLoadout(this.p.hero, this.p.skills, this.p.loadout), out = {};
+    SLOTS.forEach((k, i) => { const a = powers[eq[i]]; if (a) out[k] = Object.assign(a, { power: eq[i] }); });
+    return out;
+  }
   get cdr() { return 1 - (this.p.stats.cdr ?? 0); }
   update(dt, inp) {
     statusTick(this.game, dt);

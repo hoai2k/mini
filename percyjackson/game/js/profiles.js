@@ -29,6 +29,7 @@
 // Pure apart from the optional storage and lock objects, so node can test it.
 import { Save, freshData, normalizeData, newId, cleanName, LEGACY_KEY, ID_RE } from './save.js';
 import { spentPoints } from './loot.js';
+import { mergeHero } from './heroes/skillRules.js';
 
 // (a save slot other than the first keeps its keys under its own prefix: see slots.js)
 export const INDEX_KEY = 'hbq-profiles-v2';
@@ -79,11 +80,9 @@ export function mergeProfiles(aIn, bIn) {
   const has = new Set(out.inventory.map((it) => it.uid));
   for (const id of new Set([...Object.keys(a.heroes), ...Object.keys(b.heroes)])) {
     const hn = newer.heroes[id], ho = older.heroes[id];
-    const skills = {};
-    for (const src of [ho?.skills, hn?.skills]) if (src) for (const [k, r] of Object.entries(src)) skills[k] = Math.max(skills[k] ?? 0, num(r));
     const pick = (i) => { for (const h of [hn, ho]) { const u = h?.gear?.[i]; if (u && has.has(u)) return u; } return null; };
-    const spent = Object.values(skills).reduce((s, r) => s + r, 0);
-    out.heroes[id] = { skills, skillPoints: Math.max(0, out.level - spent), gear: [0, 1, 2, 3].map(pick) };
+    // skills: both copies' ranks if together they fit the level and the rules, else the newer copy's
+    out.heroes[id] = { ...mergeHero(id, ho, hn, out.level), gear: [0, 1, 2, 3].map(pick) };
   }
   const spentAll = out.inventory.reduce((s, it) => { try { return s + spentPoints(it); } catch (e) { return s; } }, 0);
   out.enchantPoints = Math.max(0, out.level - spentAll);

@@ -6,10 +6,14 @@
 //        slows monsters.
 //   3    Maia!: winged sneakers carry him in a short flight over gaps and
 //        monsters (untouchable in the air).
+//   Learned in the skill tree (any power can go in any of 1 · 2 · 3):
+//        Briar Burst: thorns all round him hurt, slow and push monsters back.
+//        Lullaby: monsters near him fall asleep (bosses slow down).
+//        Tin-Can Snack: health and Power back.
 //   F    Panic: the voice of Pan — every monster flees from Grover in terror
 //        and takes damage as it runs.
 import * as THREE from 'three/webgpu';
-import { Kit, root, slow, fear, makeDisc } from './kit.js';
+import { Kit, root, slow, fear, stun, makeDisc } from './kit.js';
 import { registerKit } from './index.js';
 
 const GREEN = 0x5fae4a, LEAF = 0x9ad85a, NOTE = 0x8aff9a, PAN = 0x2e8b6e;
@@ -17,15 +21,7 @@ const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
 // pentatonic reed-pipe notes
 const SCALE = [587, 659, 784, 880, 988, 1175, 1319];
 
-export const GROVER_SKILLS = [
-  { id: 'hooves', name: 'Hoof Kick', desc: '+8% melee damage per rank.', max: 3 },
-  { id: 'pipes', name: 'Reed Pipes', desc: 'Pipe Song bolts hit harder.', max: 3 },
-  { id: 'vines', name: 'Wild Growth', desc: 'Tangle Vines cover more ground and hold longer.', max: 3 },
-  { id: 'song', name: 'Calming Song', desc: 'Calming Song heals more.', max: 3 },
-  { id: 'empathy', name: 'Empathy Link', desc: 'Calming Song also restores Power to the team.', max: 1, req: 'song' },
-  { id: 'maia', name: 'Maia!', desc: 'Flies further and lands with a stomp that hits harder.', max: 2 },
-  { id: 'panic', name: 'Voice of Pan', desc: 'Panic lasts 1s longer per rank.', max: 2 },
-];
+// The skill tree (and the new powers' numbers) is in skillRules.js.
 
 const vineMat = () => new THREE.MeshStandardNodeMaterial({ color: 0x3f8a2e, roughness: 0.8, emissive: 0x0a2a06, emissiveIntensity: 0.6 });
 const leafMat = () => new THREE.MeshStandardNodeMaterial({ color: 0x7acb4a, roughness: 0.7, emissive: 0x1a4a0a, emissiveIntensity: 0.6 });
@@ -43,9 +39,14 @@ class GroverKit extends Kit {
     this.p.stats.meleeMult += r('hooves') * 0.08;
     this.slots = {
       ranged: this.ability({ name: 'Pipe Song', icon: '🎵', cd: 0.5, ce: 0, use: () => this.songBolt() }),
-      t1: this.ability({ name: 'Tangle Vines', icon: '🌿', cd: 10, ce: 14, use: () => this.vines() }),
-      t2: this.ability({ name: 'Calming Song', icon: '🎶', cd: 16, ce: 18, use: () => this.calm() }),
-      t3: this.ability({ name: 'Maia!', icon: '🪽', cd: 6, ce: 8, use: () => this.maia() }),
+      ...this.equipSlots({
+        vines: this.ability({ name: 'Tangle Vines', icon: '🌿', cd: 10, ce: 14, use: () => this.vines() }),
+        calm: this.ability({ name: 'Calming Song', icon: '🎶', cd: 16, ce: 18, use: () => this.calm() }),
+        maia: this.ability({ name: 'Maia!', icon: '🪽', cd: 6, ce: 8, use: () => this.maia() }),
+        briar: this.ability({ name: 'Briar Burst', icon: '🌵', cd: 8, ce: 12, use: () => this.briar() }),
+        lullaby: this.ability({ name: 'Lullaby', icon: '💤', cd: 14, ce: 16, use: () => this.lullaby() }),
+        snack: this.ability({ name: 'Tin-Can Snack', icon: '🥫', cd: 20, ce: 0, use: () => this.snack() }),
+      }),
     };
     this.domain = {
       name: 'Panic', icon: '🐐', key: 'panic', world: false, sureHit: false, type: 0, color: PAN, sound: 'garden', flash: 0x9aff7a,
@@ -84,7 +85,7 @@ class GroverKit extends Kit {
   }
   // ---------------------------------------------------------------- Tangle Vines
   vines() {
-    const g = this.game, p = this.p, rk = this.rank('vines');
+    const g = this.game, p = this.p, rk = this.rank('vines_up');
     const to = p.aimPoint.clone(); tmp.subVectors(to, p.pos).setY(0);
     if (tmp.length() > 9) to.copy(p.pos).addScaledVector(tmp.normalize(), 9);
     const gy = this.groundAt(to.x, to.z, p.pos.y + 3);
@@ -179,7 +180,7 @@ class GroverKit extends Kit {
   }
   // ---------------------------------------------------------------- Maia!
   maia() {
-    const g = this.game, p = this.p, w = g.world, rk = this.rank('maia');
+    const g = this.game, p = this.p, w = g.world, rk = this.rank('maia_up');
     const range = 9 + rk * 2;
     const dir = p.aimDir.clone().setY(0).normalize();
     const start = p.pos.clone();
@@ -223,6 +224,57 @@ class GroverKit extends Kit {
       return false;
     });
   }
+  // ---------------------------------------------------------------- Briar Burst
+  // A get-off-me ring of thorns round Grover.
+  briar() {
+    const g = this.game, p = this.p, rk = this.up('briar');
+    const R = 4.5 + rk * 0.5;
+    this.cast(0.4, true);
+    for (const e of g.enemies) {
+      if (e.dead || e.pos.distanceTo(p.pos) > R + e.radius) continue;
+      g.combat.damageEnemy(e, 22 + rk * 9, p, { stagger: 0.5, knock: tmp.subVectors(e.pos, p.pos).setY(0).setLength(9) });
+      slow(e, 3);
+    }
+    // the thorns: dark green spikes thrown outwards
+    for (let i = 0; i < 36; i++) {
+      const a = i / 36 * Math.PI * 2, r = 0.6 + Math.random() * 0.4;
+      g.particles.glow.emit(p.pos.x + Math.cos(a) * r, p.pos.y + 0.3, p.pos.z + Math.sin(a) * r, Math.cos(a) * R * 2.2, 1 + Math.random() * 2, Math.sin(a) * R * 2.2, 0.4, 0.35, 0.9, 0.25, 0.16, 6, 1.4, 0.1, 3);
+    }
+    g.fx.shockwave(p.pos, LEAF, R + 0.5);
+    g.particles.burst(tmp.copy(p.pos).setY(p.pos.y + 0.3), { count: 24, color: 0x3f6a2a, additive: false, speed: 7, up: 1, life: 0.6, size: 0.16, gravity: 12, shape: 1 });
+    g.shake(0.2);
+    g.audio?.noise({ dur: 0.35, gain: 0.35, type: 'highpass', freq: 1200, sweep: 3000, q: 0.7 });
+    this.note(0.06, 0.2);
+  }
+  // ---------------------------------------------------------------- Lullaby
+  // A slow, sleepy tune: monsters nearby stop where they are and doze off.
+  lullaby() {
+    const g = this.game, p = this.p, rk = this.up('lullaby');
+    const R = 6 + rk, hold = 2.5 + rk * 0.5;
+    this.cast(0.7, true, { type: 'raise' });
+    let n = 0;
+    for (const e of g.enemies) {
+      if (e.dead || e.pos.distanceTo(p.pos) > R + e.radius) continue;
+      if (stun(e, hold)) { n++; g.particles.burst(tmp.copy(e.pos).setY(e.pos.y + (e.height ?? 1.5) + 0.3), { count: 5, color: 0xcfe0ff, speed: 0.6, up: 1, life: 1.2, size: 0.2, shape: 2 }); }
+      else slow(e, hold * 1.5);
+    }
+    g.fx.rings.spawn(tmp.set(p.pos.x, p.pos.y + 0.08, p.pos.z), { color: 0xcfe0ff, r0: 0.6, r1: R, dur: 1.2, thick: 0.05 });
+    g.fx.rings.spawn(tmp.set(p.pos.x, p.pos.y + 0.08, p.pos.z), { color: NOTE, r0: 0.6, r1: R * 0.8, dur: 1.5, thick: 0.04 });
+    for (let i = 0; i < 4; i++) this.note(0.05, 0.6, i * 0.28);
+    if (n) g.toast?.('Lullaby: the monsters doze off');
+  }
+  // ---------------------------------------------------------------- Tin-Can Snack
+  // Satyrs eat tin cans. Grover crunches one and feels much better.
+  snack() {
+    const g = this.game, p = this.p, rk = this.up('snack');
+    if (p.hp >= p.maxHp && p.ce >= p.maxCe) { g.audio?.ui('back'); return false; }
+    this.cast(0.6, false, { type: 'sign', moveScale: 0.5 });
+    p.heal(p.maxHp * (25 + rk * 8) / 100);
+    p.gainCE(15 + rk * 5);
+    g.particles.burst(this.handPos(tmp), { count: 10, color: 0xc8ccd4, additive: false, speed: 2, life: 0.5, size: 0.08, gravity: 8, shape: 3 });
+    for (let i = 0; i < 3; i++) g.audio?.noise({ dur: 0.07, gain: 0.18, type: 'bandpass', freq: 3200, sweep: 1200, q: 2, at: i * 0.13 });
+    g.audio?.energy('heal');
+  }
   // ---------------------------------------------------------------- Panic
   panicStart(g, d) {
     const p = this.p;
@@ -265,4 +317,4 @@ class GroverKit extends Kit {
   }
   dispose() { super.dispose(); if (this.panic) this.panicEnd(this.game); }
 }
-registerKit('grover', GroverKit, GROVER_SKILLS);
+registerKit('grover', GroverKit);
