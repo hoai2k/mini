@@ -88,11 +88,11 @@ export function setSession(type) {
 /**
  * How far behind the sound reaches the ears: the latency the browser reports
  * (large on Bluetooth: often 0.15-0.3 s; Safari doesn't report it) plus a
- * manual adjustment (Pendulum sync in Metronome settings). Clamped, so a strange report can't
+ * manual adjustment (Sound and visuals sync in Metronome settings). Clamped, so a strange report can't
  * throw the pendulum off.
  */
 let extraDelay = 0;
-/** The manual adjustment from Pendulum sync / the sync bar, in seconds. */
+/** The manual adjustment from Sound and visuals sync / the sync bar, in seconds. */
 export const extraDelaySec = () => extraDelay;
 export function setExtraDelay(sec) {
   extraDelay = Math.max(-0.2, Math.min(0.5, Number(sec) || 0));

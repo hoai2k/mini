@@ -82,7 +82,7 @@ when the Art Deco art arrives, measure and record its own.
   (`pendulumAngle` in `app/src/metronome.js`, corrected for output latency).
   Dots under it show the beat of the bar, and a glow behind it pulses on
   each beat (red on the downbeat, gold otherwise), dying away quickly.
-  **Swinging pendulum** and **Pulse on each beat** in the settings turn
+  **Swinging pendulum** and **Visual pulse** in the settings turn
   either off.
 - Everything you see follows one clock, `heardNow()` in `app/src/audio.js`:
   the time of the sound reaching your ears. It takes the smoother of the
@@ -93,8 +93,10 @@ when the Art Deco art arrives, measure and record its own.
   ahead because a frame drawn now appears about a frame later. Checked in
   Chromium: at 120 BPM the pulse peaks every 500 ms on the same frame as the
   pendulum reaching the end of its swing and the beat dot moving on.
-- **Pendulum sync** (metronome settings) is a slider for how much later the
-  visuals show each beat, beyond the delay the browser reports.
+- **Sound and visuals sync** (metronome settings) is a slider for how much
+  later the visuals show each beat, beyond the delay the browser reports. It
+  and the manual sync button are greyed out while the pendulum and the
+  visual pulse are both off.
 - **Manually sync sound and visuals…** (metronome settings) is for Bluetooth
   speakers and headphones, which play late and don't always say by how much:
   the controls give way to a sync bar while the metronome plays, with − / +
@@ -104,7 +106,7 @@ when the Art Deco art arrives, measure and record its own.
   and set the adjustment beyond what the browser already reports (a tap
   pattern spread over more than 150 ms is rejected). Checked with simulated
   taps 180 ms after each beat: it set +160 ms (the 20 ms difference is the
-  frame of look-ahead already allowed for). The setting is the Pendulum sync slider's.
+  frame of look-ahead already allowed for). The setting is the Sound and visuals sync slider's.
 - Tempo from 40 to 500 BPM: a slider, a number box (type any tempo; values
   outside the range are pulled in), and − / + buttons (hold to run). The
   Italian marking (Largo … Prestissimo) shows under the number. Default 120.
@@ -538,7 +540,7 @@ choose one.
 
 **Pendulum and Bluetooth delay**: the pendulum is drawn late by the output
 delay the browser reports (clamped to 0-0.6 s; Bluetooth is often
-0.15-0.3 s) plus the Pendulum sync adjustment (-200 to +500 ms), so it lines
+0.15-0.3 s) plus the Sound and visuals sync adjustment (-200 to +500 ms), so it lines
 up with what is heard. Only the drawing moves; the sound is unchanged.
 
 ## Known limits

@@ -1183,6 +1183,8 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   text-underline-offset: 3px; text-transform: none; letter-spacing: normal;
 }
 .link-btn:disabled { opacity: 0.5; }
+.row.disabled, #sync-open:disabled { opacity: 0.45; }
+#sync-open:disabled { cursor: default; }
 .takes-more { list-style: none; padding: 10px 4px; color: var(--ink-2); }
 .paywall .pw-have { margin: 0; font-weight: 700; color: var(--brass-2); }
 .pw-features { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }

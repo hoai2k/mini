@@ -386,14 +386,21 @@ $('accent').addEventListener('change', () => { settings.accent = $('accent').che
 $('met-volume').value = settings.volume;
 $('met-volume').addEventListener('input', () => { settings.volume = Number($('met-volume').value); metronomeConfigured(); });
 
+// With the pendulum and the pulse both off there are no visuals to sync.
+function syncControlsLive() {
+  const off = !settings.metMotion && !settings.metPulse;
+  $('met-sync').disabled = off;
+  $('sync-open').disabled = off;
+  $('met-sync').closest('.row').classList.toggle('disabled', off);
+}
 $('met-motion').checked = settings.metMotion;
-$('met-motion').addEventListener('change', () => { settings.metMotion = $('met-motion').checked; persist(); });
+$('met-motion').addEventListener('change', () => { settings.metMotion = $('met-motion').checked; persist(); syncControlsLive(); });
 $('met-pulse-on').checked = settings.metPulse;
-$('met-pulse-on').addEventListener('change', () => { settings.metPulse = $('met-pulse-on').checked; persist(); });
+$('met-pulse-on').addEventListener('change', () => { settings.metPulse = $('met-pulse-on').checked; persist(); syncControlsLive(); });
 
 /*
  * Everything you see follows heardNow(): the time of the sound reaching your
- * ears (the output delay the browser knows, plus the Pendulum sync
+ * ears (the output delay the browser knows, plus the Sound and visuals sync
  * adjustment), looked one frame ahead because a frame drawn now appears on
  * screen about a frame later. So the pendulum reaches the end of its swing,
  * the pulse flashes and the beat dot lights as each click is heard.
@@ -459,6 +466,7 @@ function closeSync() {
 $('sync-open').addEventListener('click', openSync);
 $('met-sync').addEventListener('input', () => setSync(Number($('met-sync').value)));
 showSync();
+syncControlsLive();
 $('sync-done').addEventListener('click', closeSync);
 $('sync-down').addEventListener('click', () => setSync(settings.syncMs - 10));
 $('sync-up').addEventListener('click', () => setSync(settings.syncMs + 10));

@@ -133,8 +133,8 @@ export const EN = {
       accent: 'Strong beat on 1',
       sound: 'Sound',
       motion: 'Swinging pendulum',
-      pulse: 'Pulse on each beat',
-      sync: 'Pendulum sync',
+      pulse: 'Visual pulse',
+      sync: 'Sound and visuals sync',
       openSync: 'Manually sync sound and visuals…',
     },
     sync: {
