@@ -15,6 +15,7 @@ import { buildAvenueSet, buildMontaukSet } from '../world/cutsceneSets.js';
 import { schoolBus, camaro, taxi, car, spin } from '../world/vehicles.js';
 import { buildHeroModel, buildNpc } from '../entities/models.js';
 import { buildMortal } from '../entities/mortals.js';
+import { CHAR_SCALE } from '../entities/character.js';
 import { move, follow } from './cutscene.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -62,7 +63,7 @@ function actor(game, rig, pos, yaw = 0) {
     rig.root.position.copy(a.pos);
     rig.root.rotation.y += Math.atan2(Math.sin(a.yaw - rig.root.rotation.y), Math.cos(a.yaw - rig.root.rotation.y)) * Math.min(1, dt * 10);
     rig.root.rotation.x = -a.lie * Math.PI / 2;
-    rig.root.position.y = a.pos.y + a.lie * 0.62;
+    rig.root.position.y = a.pos.y + a.lie * 0.62 * CHAR_SCALE;   // (lying: raised by about half a body depth)
     rig.animate({ dt, speed: sp, vel: a.vel });
   };
   a.dispose = () => game.scene.remove(rig.root);
@@ -248,7 +249,7 @@ export const CUTSCENES = {
           cam: move({ pos: [84, 34, 132], look: [54, 9, 90] }, { pos: [66, 20, 110], look: [52, 9, 88] }, { fov: 42 }),
           lines: [{ at: 0.4, text: 'You wake up on a porch, in the sun. Somebody is spooning something into your mouth. It tastes like your mom’s cookies.' }] },
         { dur: 6.3,
-          cam: move({ pos: [55.2, gy + 2.8, 98.2], look: [58, gy + 0.7, 92.4] }, { pos: [55.8, gy + 2.4, 97.2], look: [58.1, gy + 0.8, 92.4] }, { fov: 40 }),
+          cam: move({ pos: [54.9, gy + 2.3, 98.9], look: [58.2, gy + 1.05, 92.6] }, { pos: [55.4, gy + 2.1, 98], look: [58.3, gy + 1.1, 92.6] }, { fov: 40 }),   // (low enough to keep Annabeth's head in frame)
           lines: [{ at: 0.3, text: '“You drool when you sleep,” says a girl with curly blond hair and storm-grey eyes. Her name is Annabeth.' }],
           card: { src: 'assets/cards/scene-big-house.jpg', at: 0.5, dur: 5 } },
         { dur: 6.6,

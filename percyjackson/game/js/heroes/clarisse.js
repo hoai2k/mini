@@ -52,7 +52,7 @@ class ClarisseKit extends Kit {
       onEnd: (g) => this.furyEnd(g),
     };
   }
-  tip(out = new THREE.Vector3()) { const p = this.p; return out.set(p.pos.x + Math.sin(p.facing) * 1.8, p.pos.y + 1.3, p.pos.z + Math.cos(p.facing) * 1.8); }
+  tip(out = new THREE.Vector3()) { const p = this.p; return out.set(p.pos.x + Math.sin(p.facing) * 1.8, p.pos.y + 1.1, p.pos.z + Math.cos(p.facing) * 1.8); }
   onMeleeHit(e, step) {
     const g = this.game;
     if (this.frenzyT > 0) this.p.heal(2 + this.up('frenzy'), true);
@@ -69,7 +69,7 @@ class ClarisseKit extends Kit {
     p.action = { type: 'attack', step: { style: 'punch', strike: 0.45, windup: 0.3 }, style: 'punch', dur: 0.32, elapsed: 0, t: 0, windup: 0.3, strike: 0.45, struck: true, moveScale: 0.3 };
     const dir = p.aimDir.clone().setY(0).normalize();
     const L = 6.5 + rk * 1.2, dmg = 12 + rk * 3;
-    const from = p.pos.clone().setY(p.pos.y + 1.3).addScaledVector(dir, 1);
+    const from = p.pos.clone().setY(p.pos.y + 1.1).addScaledVector(dir, 1);
     let end = from.clone().addScaledVector(dir, L);
     // stop at walls
     for (let s = 0.5; s < L; s += 0.5) { const q = tmp.copy(from).addScaledVector(dir, s); if (g.world.solidAt(q.x, q.y, q.z)) { end = q.clone(); break; } }
@@ -158,7 +158,7 @@ class ClarisseKit extends Kit {
       if (this.zapT <= 0) {
         this.zapT = 0.5;
         const near = g.enemies.filter((e) => !e.dead && !e.untargetable && e.pos.distanceTo(p.pos) < 5.5).sort((a, b) => a.pos.distanceToSquared(p.pos) - b.pos.distanceToSquared(p.pos)).slice(0, 3);
-        const from = p.pos.clone().setY(p.pos.y + 2.2);
+        const from = p.pos.clone().setY(p.pos.y + 1.8);
         for (const e of near) { zap(g, from, e.pos.clone().setY(e.pos.y + (e.height ?? 1.5) * 0.6), VOLT, 0.12, 0.14, 4); g.combat.damageEnemy(e, 8 + this.up('hold') * 3, p, { stagger: 0.2, color: '#ffe24a', ceGain: 0.5 }); }
         if (near.length) g.audio?.noise({ dur: 0.12, gain: 0.15, type: 'highpass', freq: 3000, sweep: 6000, q: 0.7 });
       }
@@ -207,7 +207,7 @@ class ClarisseKit extends Kit {
     p.barrierT = Math.max(p.barrierT ?? 0, dur);   // (player.js: half damage while it lasts)
     this.cast(0.5, true, { type: 'raise' });
     g.fx.shockwave(p.pos, VOLT, 5.5);
-    zap(g, p.pos.clone().setY(p.pos.y + 9), p.pos.clone().setY(p.pos.y + 2.2), VOLT, 0.2, 0.2, 6);
+    zap(g, p.pos.clone().setY(p.pos.y + 9), p.pos.clone().setY(p.pos.y + 1.8), VOLT, 0.2, 0.2, 6);
     g.audio?.noise({ dur: 0.5, gain: 0.4, type: 'lowpass', freq: 3000, sweep: 100, rev: 0.4 });
   }
   // ---------------------------------------------------------------- Shield Bash

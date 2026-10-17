@@ -153,7 +153,7 @@ class TysonKit extends Kit {
     const g = this.game, p = this.p, big = this.rank('boulder') + (this.growing ? 1 : 0);
     p.action = { type: 'attack', step: { style: 'throw', strike: 0.5, windup: 0.3 }, style: 'throw', dur: 0.45, elapsed: 0, t: 0, windup: 0.3, strike: 0.5, struck: true, moveScale: 0.3 };
     p.facing = Math.atan2(p.aimDir.x, p.aimDir.z);
-    const from = p.pos.clone().setY(p.pos.y + 2.6);
+    const from = p.pos.clone().setY(p.pos.y + 2.1);
     g.fx.debris(p.pos.clone().setY(p.pos.y + 0.3), 0x8a7a6a, 3);
     const dist = Math.min(13, p.aimPoint.distanceTo(p.pos)) || 8;
     const flight = 0.6, grav = 20;

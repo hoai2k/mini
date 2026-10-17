@@ -40,7 +40,8 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
     camera the set would hide (a roof, a wall, a tree between it and what it
     looks at or the people in frame) is turned or raised clear
     (`game/js/story/framing.js`). Mortals are drawn to the heroes' size:
-    classmates at 1.14 (the heroes 1.18), grown-ups at 1.24.
+    classmates at 1.14 (the heroes 1.18), grown-ups at 1.24 (all times
+    CHAR_SCALE).
   - Cutscenes are in the engine (letterbox, subtitles in the story voice in
     plain English with time to read each, story-card pictures; people climb
     steps one at a time); hold A, Esc or the screen to skip. Each story beat
@@ -237,8 +238,13 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
   (`world/deco.js` `SOLID_PROPS`): one block high can be stepped or hopped
   over, two need a jump from something lower. The field-trip bus in camp
   parks in open ground: its bonnet is a step and its roof a jump from there.
-- **The camera** starts a little further out (zoom 26, was 22; Settings →
-  Gameplay → Default zoom). In a boss fight it also leans toward the boss and
+- **Character size:** every character is drawn at 0.8 of its model's scale
+  (`game/js/entities/character.js` `CHAR_SCALE`): a hero's head is 1.8 m up,
+  the top of the body that collides, in a world of 1 m blocks (it was 2.26 m,
+  hair to 3 m, and heroes filled the doorways). People, monsters and bosses
+  shrink with them; hitboxes, reach and ranges are unchanged.
+- **The camera** starts a little further out than it did (zoom 24, was 22;
+  Settings → Gameplay → Default zoom). In a boss fight it also leans toward the boss and
   pulls back to keep it in frame.
 - **Boss attacks are aimed or local:** lines, cones and target circles go
   where a hero is; rings round a boss are about 5 m (6 m for Mrs. Dodds's

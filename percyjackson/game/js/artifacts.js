@@ -9,7 +9,7 @@ const near = (g, pos, r, fn) => { let n = 0; for (const e of g.enemies) if (!e.d
 export function useArtifact(game, p, art) {
   const g = game, b = art.base;
   const power = 1 + (art.it.power - 10) * 0.03;
-  const from = p.pos.clone().setY(p.pos.y + 1.3);
+  const from = p.pos.clone().setY(p.pos.y + 1.1);
   const aim = p.aimDir.clone().setY(0).normalize();
   switch (b.act) {
     // ---------------------------------------------------------------- attacks

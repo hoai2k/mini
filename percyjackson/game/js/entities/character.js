@@ -8,6 +8,13 @@ import { damp, clamp, lerp, easeOutCubic, easeInCubic, easeOutBack, mulberry32 }
 import { U } from '../gfx/materials.js';
 
 export const PX = 0.058;          // world units per skin pixel
+// Every character (heroes, people, monsters, bosses) is drawn at this share of
+// its model's own scale. At 1 a hero's head was 2.26 m up (hair to 3 m) in a
+// world of 1 m blocks with a 1.8 m collision body, so heroes filled doorways
+// and the boards felt cramped; at 0.8 the head sits at the top of the body
+// that collides (1.8 m), and everyone keeps their size relative to the
+// heroes. Hitboxes, reach and ranges are unchanged.
+export const CHAR_SCALE = 0.8;
 const SKIN = 64;
 const LIMB_STRIPS = [[16, 16, 8, 12, 4], [16, 32, 8, 12, 4], [40, 16, 4, 12, 4], [40, 32, 4, 12, 4], [32, 48, 4, 12, 4], [48, 48, 4, 12, 4], [0, 16, 4, 12, 4], [16, 48, 4, 12, 4]];
 
@@ -128,8 +135,8 @@ export class Rig {
     this.root = new THREE.Group();
     this.material = spec.material;
     const M = this.material;
-    const s = spec.scale ?? 1;
-    this.root.scale.setScalar(s);
+    const s = (spec.scale ?? 1) * CHAR_SCALE;
+    this.root.scale.setScalar(s); this.baseScale = s;   // (code that resizes the rig for a moment goes back to baseScale)
     this.meshes = [];
     const mesh = (g, mat = M) => { const m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = true; m.userData.baseMat = mat; this.meshes.push(m); return m; };
     this.mesh = mesh;

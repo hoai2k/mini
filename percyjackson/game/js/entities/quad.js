@@ -11,7 +11,7 @@
 //   body   8x8x12 at (0,16)    leg 3x8x3 at (40,16)   ear 2x3x1 at (52,16)
 //   tail   2x2x6  at (40,32)   extra 8x6x8 at (0,40)  extra2 6x6x6 at (32,44)
 import * as THREE from 'three/webgpu';
-import { skinBox, PX } from './character.js';
+import { skinBox, PX, CHAR_SCALE } from './character.js';
 import { damp, clamp, easeOutCubic, easeInCubic } from '../util.js';
 
 export const QUV = {
@@ -64,7 +64,7 @@ export class QuadRig {
     this.material = spec.material;
     const M = this.material;
     this.root = new THREE.Group();
-    this.root.scale.setScalar(spec.scale ?? 1);
+    this.baseScale = (spec.scale ?? 1) * CHAR_SCALE; this.root.scale.setScalar(this.baseScale);   // (CHAR_SCALE: character.js)
     this.meshes = [];
     const mesh = (g, mat = M) => { const m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = true; m.userData.baseMat = mat; this.meshes.push(m); return m; };
     this.mesh = mesh;
