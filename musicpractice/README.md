@@ -126,6 +126,7 @@ when the Art Deco art arrives, measure and record its own.
   glows round its own outline, red on the downbeat and a warm white
   otherwise, so it can be seen from across a room, and the red glass lamp
   mounted on its tip lights with it (dark glass between beats).
+  **Swinging pendulum** in the settings stops the swing.
 - The clicks are loud: each is driven into a soft clipper (tanh) after
   the voice and before the volume, so the whole click sits near full scale
   rather than only its first instant, and ordinary beats sit just under the
@@ -133,8 +134,6 @@ when the Art Deco art arrives, measure and record its own.
   -10 dB (was -15 to -20), Click -11 to -13 (was -23 to -27), Beep -5 to
   -7 (was -8 to -13), every peak at -0.9 dBFS. The apps' clicks are
   rendered through the same chain.
-  **Swinging pendulum** and **Visual pulse** in the settings turn
-  either off.
 - Everything you see follows one clock, `heardNow()` in `app/src/audio.js`:
   the time of the sound reaching your ears. It takes the smoother of the
   context's output timestamp (`getOutputTimestamp`, which includes the
