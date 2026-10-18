@@ -122,20 +122,19 @@ when the Art Deco art arrives, measure and record its own.
   (`pendulumAngle` in `app/src/metronome.js`, corrected for output latency).
   It moves as a real pendulum does (simple harmonic motion, a cosine):
   easing to a stop at each end, where the click falls, and fastest through
-  the middle. Dots under it show the beat of the bar. **On each beat** (in
-  the Pendulum tab) is a switch (on by default) and the effect it turns on,
-  **Swing** (the default) or **Pulse** (`pendulumMode` is the one showing or
-  Off, `pendulumLast` the effect chosen, kept while it is off; saves from
-  the two switches it replaced carry over, a pulse someone turned on
-  winning). Choosing an effect while it is off only chooses it. **Tapping
-  the metronome** flips the same switch, so it always turns the chosen
-  effect off or on; the swing eases
-  in and out over about half a second rather than jumping. **Pulse** grows
-  the dots big, as wide as the row allows (the metronome shrinking above to
-  make room), so they can be seen from across a room: the beat's dot swells
-  and glows into its beat, peaks on it and eases away (a bell, its tail half
-  again as long as its lead-in), red on a strong beat, while the next starts
-  to swell into its own.
+  the middle. Dots under it show the beat of the bar.
+  **Tapping the metronome** starts or stops the swing (`swing`, on by
+  default; the same as Settings → **Pendulum swing**), which eases in and
+  out over about half a second rather than jumping. **Tapping the dots**
+  shows the next of three (`footView`): **small dots**, **big dots** and the
+  **Visualizer**, then small dots again. The big dots are as wide as the row
+  allows (the metronome shrinking above to make room), to be seen from
+  across a room: the beat's dot swells into its beat with a short rise,
+  brightest exactly on it, and fades after, red on a strong beat, while the
+  next starts to swell into its own. They are drawn straight from that
+  curve every frame: the small dots' quick colour fade, left on them, had
+  put the brightest moment 66 ms after the beat. A save from before carries
+  over: Swing, Pulse (now the big dots) or Off, and the Visualizer.
 - The Visualizer's bars are a faint neutral outline until played (the
   strong beat's a touch of its colour, so the bar still reads); the beat
   being played flashes in its colour and the beats played so far in that
@@ -225,12 +224,8 @@ when the Art Deco art arrives, measure and record its own.
   Strong beat on 1, and going back during the same visit brings the pattern
   back; only the one in use is saved (`accentPattern`). The apps' native
   mixers take the click for every position (`slots`).
-- **Display** (metronome settings): two tabs, **Pendulum** (the default)
-  and **Visualizer**; the chosen one opens, like a folder tab, into a
-  rounded box round its own options: **On each beat** (a switch, then Swing or Pulse),
-  or **Bars shown** (1, 2, 4 or 8). **Tapping the dots** opens them into the
-  Visualizer, the metronome shrinking (and still swinging) above it, and
-  tapping the Visualizer folds it back into the dots. **Pressing and
+- The metronome settings hold **Pendulum swing** and **Visualizer rows**
+  (1, 2, 4 or 8), each set whether or not it is showing. **Pressing and
   holding** the dots or the Visualizer opens the strong beats (as the
   pencil does). With no bars the dots and the Visualizer show four even
   beats, none strong. The Visualizer shows a few bars of music at a time: a

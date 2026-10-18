@@ -102,9 +102,11 @@ export const EN = {
   },
 
   metronome: {
-    switchTo: { metronome: 'Show the beat dots (press and hold for strong beats)', bars: 'Show the Visualizer (press and hold for strong beats)' },
+    /** The dots under the metronome as a button: what a tap shows next. */
+    footNext: { dots: 'Show big dots', big: 'Show the Visualizer', bars: 'Show small dots' },
+    footHold: '(press and hold for strong beats)',
     // The metronome as a button: its beat effect off, or back on.
-    effectButton: (effect, on) => `${on ? 'Turn off' : 'Turn on'} the ${effect === 'pulse' ? 'pulse' : 'swing'} on each beat`,
+    swingButton: (on) => `${on ? 'Stop' : 'Start'} the pendulum swinging`,
     title: 'Metronome',
     settingsButton: 'Metronome settings',
     slower: 'Slower by one',
@@ -191,15 +193,8 @@ export const EN = {
         4: 'Sixteenth notes',
       },
       sound: 'Sound',
-      display: 'Display',
-      views: {
-        metronome: 'Pendulum',
-        bars: 'Visualizer',
-      },
-      vizBars: 'Bars shown',
-      pendulumMode: 'On each beat',
-      pendulumEffect: 'Effect on each beat',
-      pendulumModes: { swing: 'Swing', pulse: 'Pulse' },
+      swing: 'Pendulum swing',
+      vizBars: 'Visualizer rows',
       sync: 'Sound and visuals sync',
       openSync: 'Manually sync sound and visuals…',
     },
