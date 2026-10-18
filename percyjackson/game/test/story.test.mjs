@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { GREEK, greekPlan, greekAt, settledBy, toGreek, LATINISH, LOOK } from '../js/ui/greekTiming.js';
 import { CHAPTERS } from '../js/story/chapters.js';
 import { t } from '../js/text_config.js';
-import { shotDuration } from '../js/story/subtitles.js';
+import { shotDuration, readTime, WORDS_PER_SECOND, MIN_READ } from '../js/story/subtitles.js';
 import { finishShot, PressGate, NEXT_COOL } from '../js/story/shotSkip.js';
 
 const GAME = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -70,11 +70,18 @@ test('Greek letters are Greek all the way through: no stand-in looks like a Lati
   }
 });
 
+test('a subtitle is read at a medium speed for ages 8 to 14', () => {
+  assert.ok(WORDS_PER_SECOND >= 2.5 && WORDS_PER_SECOND <= 3, `${WORDS_PER_SECOND} words a second`);
+  assert.ok(MIN_READ >= 1.2 && MIN_READ <= 2);
+  assert.equal(readTime('Go.'), MIN_READ, 'a short line still gets its moment');
+  assert.ok(Math.abs(readTime('one two three four five six seven eight nine ten eleven twelve') - 12 / WORDS_PER_SECOND) < 1e-9);
+});
+
 test('every cutscene subtitle stays up long enough to read', () => {
   for (const s of shots()) for (const [i, L] of s.lines.entries()) {
     const fadeOut = /fadeOut/.test(s.body);
     const until = s.lines[i + 1]?.at ?? shotDuration({ dur: s.dur, lines: s.lines, fadeOut }) - (fadeOut ? 0.4 : 0);   // (the player holds a shot until its last subtitle is read: story/subtitles.js)
-    const need = Math.max(2, L.text.length * 0.055);
+    const need = Math.max(MIN_READ, L.text.split(/\s+/).filter(Boolean).length / WORDS_PER_SECOND);   // (a medium reader of 8 to 14: about 3 words a second; B pauses for a slower one)
     assert.ok(until - L.at >= need, `${s.cut}: “${L.text.slice(0, 40)}…” has ${(until - L.at).toFixed(1)} s, needs ${need.toFixed(1)} s`);
   }
 });
@@ -193,9 +200,16 @@ test('the cutscene skips a shot with A, ends on the last, and keeps holding to s
   assert.match(C, /skipShot\(\) \{[\s\S]*?shots\.length - 1[\s\S]*?finish/, 'A on the last shot ends the cutscene');
   assert.match(C, /finishShot\(s, this,/, 'a skipped shot is run to its end');
   assert.match(C, /this\.hold >= HOLD/, 'holding still skips the whole cutscene');
-  assert.match(C, /cutscenes\.next\.(pad|touch|kbm)/, 'the hint for A');
-  for (const k of ['pad', 'touch', 'kbm']) { assert.ok(t(`cutscenes.next.${k}`)); assert.ok(t(`cutscenes.skip.${k}`)); }
+  assert.match(C, /cutscenes\.next\.\$\{dev\}/, 'the hint for A');
+  for (const k of ['pad', 'touch', 'kbm']) { assert.ok(t(`cutscenes.next.${k}`)); assert.equal(typeof t(`cutscenes.skip.${k}`), 'string'); }
   assert.match(CS, /if \(ctx\?\.ff\) return;/, 'no lightning flashes for a skipped shot');
+  // hold B to pause (Esc, Backspace, a long press): B is the pad's button 1 (padmap.js BTN.B), A button 0
+  assert.match(C, /PAUSE_KEYS = \['Escape', 'Backspace'\]/);
+  assert.match(C, /const paused = [^;]*this\.pad\(1\)/);
+  assert.match(C, /if \(paused\) \{[^}]*return; \}/, 'paused: the shot stands still');
+  assert.match(C, /holding = [^;]*this\.pad\(0\)/, 'holding A skips it all; B no longer does');
+  for (const k of ['pad', 'touch', 'kbm']) assert.ok(t(`cutscenes.pause.${k}`));
+  assert.ok(t('cutscenes.skip.button') && t('cutscenes.paused'));
   // online: the host's shot goes with its scene, guests behind it catch up
   assert.match(O, /mode: 'cut', id: [^}]*shot:/);
   assert.match(O, /cs\.syncShot\(/);

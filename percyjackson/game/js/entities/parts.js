@@ -183,3 +183,45 @@ export function rigOffsets(rig, k) {
   if (rig.hunch) rig.torso.rotation.x += k * rig.hunch;
   if (rig.armSpread && rig.armR) { rig.armR.rotation.z -= k * rig.armSpread; rig.armL.rotation.z += k * rig.armSpread; }
 }
+
+// Keep a part off the floor: after the pose is set (rig.onTick, which
+// enemy.js and the workbench run right after animate), turn group g back
+// about its x axis (rotation.x down) just as far as it takes for the meshes
+// under watch (default g; they must hang below g) to clear the ground under
+// the rig. A long club turns back toward the forearm, an arm lifts forward,
+// a head pitches up. Each watched mesh is tested at its 14 extreme vertices
+// (along the axes and the diagonals), found once, so a frame costs a few
+// dozen transforms. reset: start from the group's rest pitch every frame (a
+// held weapon); otherwise from where the animation left it (a limb, a head).
+const _ka = new THREE.Vector3(), _kb = new THREE.Vector3();
+const DIRS14 = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1], [1, 1, 1], [1, 1, -1], [1, -1, 1], [1, -1, -1], [-1, 1, 1], [-1, 1, -1], [-1, -1, 1], [-1, -1, -1]];
+function extremes(watch) {
+  const out = [];
+  for (const w of watch) w.traverse((m) => {
+    if (!m.isMesh || !m.geometry?.attributes?.position) return;
+    const P = m.geometry.attributes.position, seen = new Set();
+    for (const [dx, dy, dz] of DIRS14) {
+      let best = -Infinity, bi = 0;
+      for (let i = 0; i < P.count; i++) { const d = P.getX(i) * dx + P.getY(i) * dy + P.getZ(i) * dz; if (d > best) { best = d; bi = i; } }
+      if (!seen.has(bi)) { seen.add(bi); out.push({ m, v: new THREE.Vector3(P.getX(bi), P.getY(bi), P.getZ(bi)) }); }
+    }
+  });
+  return out;
+}
+export function keepAbove(rig, g, { watch = [g], reset = false, step = 0.1, max = 16, clear = 0.03 } = {}) {
+  const base = g.rotation.x, prev = rig.onTick;
+  let pts = null;
+  const low = () => { let y = Infinity; for (const p of pts) { const v = _kb.copy(p.v).applyMatrix4(p.m.matrixWorld).y; if (v < y) y = v; } return y; };
+  rig.onTick = (dt, e) => {
+    prev?.(dt, e);
+    if (reset) g.rotation.x = base;
+    if (e?.dead) return;
+    pts ??= extremes(watch);
+    const floor = rig.root.getWorldPosition(_ka).y + clear;
+    for (let i = 0; i < max; i++) {
+      g.updateWorldMatrix(true, true);
+      if (low() >= floor) break;
+      g.rotation.x -= step;
+    }
+  };
+}

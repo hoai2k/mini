@@ -133,12 +133,12 @@ export const CUTSCENES = {
         if (a.out && !a.up && t >= t0 + 0.8) { a.up = true; a.walk(i < 4 ? V(14.6 - (i % 2), L.top, L.MC + 5 + a.lane * 0.6) : V(21.5 - (i % 3) * 0.8, L.FY, L.MC + 3.5 + a.lane), 2.6); }   // (up on the terrace clear of the close-up of Mrs. Dodds; y follows the steps)
       });
       const shots = [
-        { dur: 5.8, fadeIn: 'black',
+        { dur: 6.3, fadeIn: 'black',
           cam: move({ pos: [66, 30, -6], look: [34, 4, 30] }, { pos: [54, 16, 26], look: [32, 5, 52] }, { fov: 40, fov2: 36 }),
           lines: [{ at: 0.3, text: t('cutscenes.bus.fieldTrip') }],
           card: { src: 'assets/cards/scene-field-trip.jpg', at: 0.6, dur: 4.8 },
           act: (k, dt) => drive(L.busFrom.z + 80, dt) },
-        { dur: 6,
+        { dur: 6.6,
           cam: follow(bus, [15, 5, -10], [-2, 1.6, 2], { offset2: [13, 4.2, 7], fov: 42 }),
           lines: [{ at: 0.2, text: t('cutscenes.bus.groverOnBus') }],
           card: { src: 'assets/cards/scene-bus-ride.jpg', at: 0.4, dur: 5.2, side: 'left' },   // (left: clear of the lettering on the bus)
@@ -152,10 +152,10 @@ export const CUTSCENES = {
           lines: [{ at: 0.8, text: t('cutscenes.bus.steps') }],
           card: { src: 'assets/cards/scene-museum-steps.jpg', at: 2.2, dur: 4 },
           act: (k, dt, t) => { drive(L.busStop.z, dt, 4); unload(t); if (t >= BUS_READ) readBus(); } },
-        { dur: 11, fadeOut: 'black',   // (two lines: her stare, then her word)
+        { dur: 11.4, fadeOut: 'black',   // (two lines: her stare, then her word)
           cam: move({ pos: [21, L.top + 2.2, L.MC + 2], look: [L.dodds.x, L.top + 1.6, L.dodds.z] }, { pos: [18.6, L.top + 1.9, L.MC + 0.6], look: [L.dodds.x, L.top + 1.7, L.dodds.z] }, { fov: 34, fov2: 28 }),
           enter: () => dodds.face(Math.atan2(20 - L.dodds.x, L.MC + 2 - L.dodds.z)),
-          lines: [{ at: 0.2, text: t('cutscenes.bus.dodds') }, { at: 6, text: t('cutscenes.bus.doddsWord') }] },   // (the one time her stare is told; her word in the galleries leads into chapter 1)
+          lines: [{ at: 0.2, text: t('cutscenes.bus.dodds') }, { at: 5.6, text: t('cutscenes.bus.doddsWord') }] },   // (the one time her stare is told; her word in the galleries leads into chapter 1)
       ];
       return {
         shots, actors,   // (actors: the figures, for the checks)
@@ -200,26 +200,26 @@ export const CUTSCENES = {
       };
       let flashT = 1.2;
       const shots = [
-        { dur: 5.4, fadeIn: 'black',
+        { dur: 6.3, fadeIn: 'black',
           cam: move({ pos: [10, 12, 82], look: [38, 4, 55] }, { pos: [16, 9, 72], look: [38, 4, 56] }, { fov: 42 }),
           lines: [{ at: 0.3, text: t('cutscenes.summer.cabin') }] },
-        { dur: 6,   // (Grover arrives in the first two seconds: the shot moves on once his line is read)
+        { dur: 6.3,   // (Grover arrives in the first two seconds: the shot moves on once his line is read)
           enter: () => { grover.rig.root.visible = true; grover.pos.set(L.door.x - 7, L.FY, L.door.z + 2); grover.walk(V(L.door.x - 1.6, L.FY, L.door.z), 3.6); flash(); },
           cam: move({ pos: [L.door.x - 6.5, L.FY + 3.2, L.door.z + 3.5], look: [L.door.x + 0.2, L.FY + 1.3, L.door.z] }, { pos: [L.door.x - 5.5, L.FY + 2.8, L.door.z + 3], look: [L.door.x + 0.3, L.FY + 1.4, L.door.z] }, { fov: 40 }), noFrame: true,   // (through the door, a metre clear of Grover: framed by hand)
           lines: [{ at: 0.3, text: t('cutscenes.summer.knock') }],
-          card: { src: 'assets/cards/scene-montauk.jpg', at: 1.0, dur: 4.6 } },
-        { dur: 5.8,
+          card: { src: 'assets/cards/scene-montauk.jpg', at: 1.0, dur: 4.8 } },
+        { dur: 6.2,
           enter: () => { grover.rig.root.visible = false; percy.rig.root.visible = false; mom.rig.root.visible = false; s = 0; },
           cam: follow(cm, [-11, 6.5, 9], [4, 0.8, -3], { offset2: [-9, 5.5, -9], fov: 44 }),
           lines: [{ at: 0.2, text: t('cutscenes.summer.drive') }],
           act: (k, dt) => { const v = 9; s = Math.min(total, s + v * dt); place(s); spin(cm, v * dt); } },   // (9 m/s: the road lasts both shots)
-        { dur: 8.8, fadeOut: 'white',   // (two lines: the hill, then the crash; the shot ends once the crash is read)
+        { dur: 10.3, fadeOut: 'white',   // (two lines: the hill, then the crash; the shot ends once the crash is read)
           cam: move({ pos: [68, 9, 44], look: [82, 5, 26] }, { pos: [72, 8, 36], look: [80, 7, 14] }, { fov: 42, fov2: 36 }),
           card: { src: 'assets/cards/scene-storm-drive.jpg', at: 0.4, dur: 3 },
-          lines: [{ at: 0.2, text: t('cutscenes.summer.lightning') }, { at: 3.8, text: t('cutscenes.summer.crash') }],
+          lines: [{ at: 0.2, text: t('cutscenes.summer.lightning') }, { at: 4.9, text: t('cutscenes.summer.crash') }],
           // the car slows and parks at the end of the road, at the foot of the hill, then the lightning hits
           enter: () => { cm.userData.s0 = s; },
-          act: (k, dt, t) => { const f = Math.min(1, t / 3.4), ns = cm.userData.s0 + (total - cm.userData.s0) * (1 - (1 - f) ** 2); spin(cm, ns - s); s = ns; place(s); if (t > 3.8 && !cm.userData.hit) { cm.userData.hit = true; flash(true); }
+          act: (k, dt, t) => { const f = Math.min(1, t / 4.4), ns = cm.userData.s0 + (total - cm.userData.s0) * (1 - (1 - f) ** 2); spin(cm, ns - s); s = ns; place(s); if (t > 4.9 && !cm.userData.hit) { cm.userData.hit = true; flash(true); }
             // the lightning flips the car onto its side, into the ditch (chapter 2 starts from there)
             if (cm.userData.hit) { const r = cm.userData.roll = Math.min(1, (cm.userData.roll ?? 0) + dt * 5); cm.rotation.x = r * Math.PI / 2; cm.position.y = L.FY + Math.sin(r * Math.PI / 2) * 0.97; } } },
       ];
@@ -251,19 +251,19 @@ export const CUTSCENES = {
       const chair = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.35, 1), new THREE.MeshStandardNodeMaterial({ color: 0x6a4a2a, roughness: 0.8 }));
       chair.position.set(57.2, gy + 0.2, 92.2); chair.castShadow = true; game.scene.add(chair);
       const shots = [
-        { dur: 7, fadeIn: 'white',
+        { dur: 8.1, fadeIn: 'white',
           cam: move({ pos: [84, 34, 132], look: [54, 9, 90] }, { pos: [66, 20, 110], look: [52, 9, 88] }, { fov: 42 }),
           lines: [{ at: 0.4, text: t('cutscenes.wake.porch') }] },
-        { dur: 6.3,
+        { dur: 7.3,
           cam: move({ pos: [54.9, gy + 2.3, 98.9], look: [58.2, gy + 1.05, 92.6] }, { pos: [55.4, gy + 2.1, 98], look: [58.3, gy + 1.1, 92.6] }, { fov: 40 }),   // (low enough to keep Annabeth's head in frame)
           lines: [{ at: 0.3, text: t('cutscenes.wake.annabeth') }],
           card: { src: 'assets/cards/scene-big-house.jpg', at: 0.5, dur: 5 } },
-        { dur: 6.6,
+        { dur: 7,
           enter: () => { chi.walk(V(60.6, gy, 92.6), 2.4); },
           act: (k) => { me.lie = Math.max(0, 1 - Math.max(0, k - 0.12) * 6); if (me.lie === 0 && !me.stood) { me.stood = true; me.pos.set(57.9, gy, 93.1); me.yaw = Math.atan2(60.6 - 57.9, 92.6 - 93.1); } },   // (gets up beside the chair, facing Chiron: no jump across the lawn)
           cam: move({ pos: [55.2, gy + 3.3, 97.8], look: [59, gy + 1.7, 92.4] }, { pos: [55.7, gy + 3.1, 97], look: [59.2, gy + 1.8, 92.4] }, { fov: 44 }),   // (Chiron's head in frame; the cabin wall at x 60 kept to the edge)
           lines: [{ at: 0.3, text: t('cutscenes.wake.chiron') }] },
-        { dur: 5.6, fadeOut: 'black',
+        { dur: 6.1, fadeOut: 'black',
           cam: move({ pos: [54, porchY + 3, pz + 6], look: [54, 8, pz + 30] }, { pos: [54, 34, pz - 6], look: [54, 6, pz + 36] }, { fov: 40, fov2: 48 }),
           lines: [{ at: 0.3, text: t('cutscenes.wake.welcome') }] },
       ];

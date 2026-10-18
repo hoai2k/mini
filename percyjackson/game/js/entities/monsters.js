@@ -14,7 +14,7 @@ import { Rig, PX, HOLD_PITCH, markTip, markHeld } from './character.js';
 import { QuadRig, paintQuad } from './quad.js';
 import { paintPerson } from './mortals.js';
 import { t as txt } from '../text_config.js';
-import { HS, solid, skinMat, prop, group, lavaCracks, fur, sway, rng, bruteLimbs, BUILD, withBuild, rigDensity, voxDensity } from './parts.js';
+import { HS, solid, skinMat, prop, group, lavaCracks, fur, sway, rng, bruteLimbs, BUILD, withBuild, rigDensity, voxDensity, keepAbove } from './parts.js';
 import { heroHair, cellMesh, footwear } from './herovox.js';
 import { FODDER_MONSTERS, fodderModels, blob, carve, flushBlobs, paintShade } from './fodder.js';
 
@@ -363,6 +363,7 @@ export function addWhip(rig, { segs = 7, len = 3.2, color = 0xff7a1a, hand = rig
   }
   K.done();
   rig.extras.whip = chain; rig.extras.whipTip = parent;
+  rig.whip = { hand, base: chain[0].parent, chain, len, phi0: 0.25, bend: new Float32Array(segs).fill(-0.5) };   // (posed by whipPose)
   return chain;
 }
 // Grid-voxel hair (herovox.heroHair) in the look's voxel material, so it
@@ -376,6 +377,58 @@ function gridHair(rig, vox, look = rig.material) {
   mesh.userData.baseMat = mat; rig.meshes.push(mesh); rig.head.add(mesh);
   rig.extras.hair = mesh;
   return mesh;
+}
+// The whip's shape, worked out in the rig's own space so it no longer hangs
+// from the fist wherever the arm points (it used to dangle straight down and
+// trail up to 2 m through the floor). The handle is turned against the hand's
+// own turn, so the chain lies in the body's upright plane (following the
+// torso's twist), and each segment's angle there (0 straight down, + toward
+// the front, -PI/2 straight back) eases toward one of four shapes:
+//   coil    at rest: down from the fist, then curling back and up in a loop
+//   trail   moving fast or swooping: streaming out behind and rising
+//   windup  thrown back over the shoulder, the lash drooping behind
+//   crack   lashed forward over the top in an arc and snapped out straight
+// Then, segment by segment from the fist, any that would end below the floor
+// (the entity's ground, e.visY, or else the rig's own soles) is bent up to
+// lie along it, so no pose takes the whip through the ground.
+const _wm = new THREE.Matrix4(), _wq = new THREE.Quaternion(), _wq2 = new THREE.Quaternion(), _wv = new THREE.Vector3(), _wE = new THREE.Euler();
+const wrapA = (a) => a - Math.PI * 2 * Math.round(a / (Math.PI * 2));
+function worldY(o) { let y = 0, s = 1; for (let p = o; p; p = p.parent) { y = p.position.y + p.scale.y * y; } for (let p = o; p; p = p.parent) s *= p.scale.y; return [y, s]; }
+function whipPose(rig, dt, e) {
+  const W = rig.whip, t = rig.t ?? 0, root = rig.root, n = W.chain.length, L = W.len * PX;
+  const anim = e?.anim, atk = anim?.type === 'attack';
+  const mode = e?.whipCrack > 0 || e?.state === 'recover' || (atk && !e?.swooping && anim.t >= (anim.windup ?? 0.25)) ? 'crack'
+    : e?.state === 'windup' || (atk && anim.t < (anim.windup ?? 0.25)) ? 'windup'
+    : e?.swooping || (e?.vel && Math.hypot(e.vel.x, e.vel.z) > 1.5) ? 'trail' : 'coil';
+  let p0, kb, kp;
+  if (mode === 'crack') { p0 = 1.45; kp = 22; kb = 16; }
+  else if (mode === 'windup') { p0 = -2.5; kp = 9; kb = 8; }
+  else if (mode === 'trail') { p0 = -1.0 + Math.sin(t * 6) * 0.1; kp = 6; kb = 7; }
+  else { p0 = 0.25 + Math.sin(t * 1.3) * 0.08; kp = 5; kb = 5; }
+  W.phi0 = wrapA(W.phi0 + wrapA(p0 - W.phi0) * (1 - Math.exp(-kp * dt)));
+  for (let i = 0; i < n; i++) {
+    const b = mode === 'crack' ? Math.sin(t * 14 - i) * 0.04 : mode === 'windup' ? 0.12 + Math.sin(t * 5 - i * 0.8) * 0.08
+      : mode === 'trail' ? -0.1 + Math.sin(t * 7 - i * 0.9) * 0.2 : -0.55 + Math.sin(t * 2.6 - i * 0.7) * 0.1;
+    W.bend[i] += (b - W.bend[i]) * (1 - Math.exp(-kb / (1 + i * 0.12) * dt));   // (the tip lags the handle: the lash travels down the chain)
+  }
+  // the fist in the rig's own space
+  _wm.identity(); _wq.identity();
+  for (let o = W.hand; o && o !== root; o = o.parent) { o.updateMatrix(); _wm.premultiply(o.matrix); _wq.premultiply(o.quaternion); }
+  _wv.set(0, -PX, 0).applyMatrix4(_wm);
+  // the handle: upright plane of the body, turned with the torso
+  _wE.set(-W.phi0, rig.torso?.rotation.y ?? 0, 0, 'YXZ');
+  _wq2.setFromEuler(_wE);
+  W.base.quaternion.copy(_wq.invert()).multiply(_wq2);
+  // the floor in the rig's own space
+  const [ry, rs] = worldY(root), floor = typeof e?.visY === 'number' ? e.visY : root.parent ? worldY(root.parent)[0] : 0;
+  const minY = (floor - ry) / rs + 1.8 * PX;
+  let y = _wv.y - 3 * PX * Math.cos(W.phi0), prev = W.phi0;
+  for (let i = 0; i < n; i++) {
+    let a = prev + W.bend[i], ny = y - L * Math.cos(a);
+    if (ny < minY) { const c = Math.max(-1, Math.min(1, (y - minY) / L)); a = (Math.sin(a) >= 0 ? 1 : -1) * Math.acos(c); a += Math.PI * 2 * Math.round((prev - a) / (Math.PI * 2)); ny = y - L * Math.cos(a); }
+    W.chain[i].rotation.set(-(a - prev), 0, Math.sin(t * 3.3 - i * 0.9) * 0.05);
+    prev = a; y = ny;
+  }
 }
 export function animateExtras(rig, dt, e) {
   const t = rig.t ?? 0;
@@ -403,11 +456,7 @@ export function animateExtras(rig, dt, e) {
       for (const w of W) { w.root.rotation.z = w.side * (0.25 + f * 0.55); w.elbow.rotation.z = w.side * (0.1 + Math.max(0, f) * 0.5); }
     }
   }
-  const C = rig.extras.whip;
-  if (C) {
-    const crack = e?.state === 'recover' || e?.whipCrack > 0 ? 1 : 0;
-    for (let i = 0; i < C.length; i++) { C[i].rotation.x = Math.sin(t * 5 - i * 0.7) * 0.25 + (crack ? -0.35 : 0.12); C[i].rotation.z = Math.sin(t * 3.3 - i * 0.9) * 0.2; }
-  }
+  if (rig.whip) whipPose(rig, dt, e);
   const T = rig.extras.tails;
   if (T) for (const tail of T) for (let i = 0; i < tail.segs.length; i++) tail.segs[i].rotation.y = Math.sin(t * 3 + i * 0.8 + tail.ph) * 0.35;
   const S = rig.extras.snakes;
@@ -1117,8 +1166,10 @@ export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, win
   const ws = Math.min(1.2, scale + 0.1);
   addWings(rig, { span: 27 * ws, chord: 15, mat: solid(wing, 0, 0.9), tip: solid(0x3a2418, 0, 0.9), kind: 'bat', y: 10.5, bone: solid(0x2a1a10), cols: { dark: 0x24160e }, seed: seed + 5, look: mat });
   addWhip(rig, { segs: 10, len: 3.6, look: mat });
+  rig.tick = (dt, e) => animateExtras(rig, dt, e);   // (the bosses built on her get the whip's pose too, even outside a fight)
   rig.hunch = 0.35;
   rig.float = 0.8;
+  rig.hoverMin = 11 * PX * rig.baseScale + 0.22;   // (the ragged hem hangs 11 px under the soles: a boss's swoop flies no lower, bob included)
   return rig;
 }
 
@@ -1572,27 +1623,6 @@ function buildTelekhine() {
   return rig;
 }
 
-// A long held weapon (a club along its own +y, the group's rest pitch in
-// rotation.x) kept off the floor: after the pose is set, the wrist turns it
-// back toward the forearm just as far as it takes for its far end (len skin
-// pixels out, reach thick) to clear the ground, so a slam that ends low
-// strikes the floor with the club instead of driving it through. Chained on
-// rig.onTick (enemy.js runs it right after animate).
-const _ga = new THREE.Vector3(), _gb = new THREE.Vector3();
-export function liftHeld(rig, g, len, reach = 2.5) {
-  const base = g.rotation.x, prev = rig.onTick;
-  rig.onTick = (dt, e) => {
-    prev?.(dt, e);
-    g.rotation.x = base;
-    const floor = rig.root.getWorldPosition(_ga).y + 0.03, R = reach * PX * rig.root.scale.y;
-    for (let i = 0; i < 14; i++) {
-      g.updateWorldMatrix(true, false);
-      const y = g.localToWorld(_gb.set(0, len * PX, 0)).y - R;
-      if (y >= floor) break;
-      g.rotation.x -= 0.12;
-    }
-  };
-}
 // Cyclops (vox-bosses-2, top left): a hulking giant with one huge blue eye
 // under a single heavy brow, a curly black mane and a bushy beard, a mouth
 // open in a roar, a white wool fleece over the left shoulder belted with gold
@@ -1703,7 +1733,7 @@ export function buildCyclops({ id = 'cyclops', pal = {} } = {}) {
   markTip(club, 0, 20.8, 0, 'club'); rig.extras.club = club;
   K.done();
   rig.hunch = 0.3;
-  liftHeld(rig, club, 20.8, 2.8);
+  keepAbove(rig, club, { reset: true });   // (a slam that ends low strikes the floor with the club instead of driving it through)
   return rig;
 }
 

@@ -205,7 +205,7 @@ export const BOOK1_PATTERNS = {
     tmp.subVectors(land, this.pos);
     for (let i = 0; i < 3; i++) F.lp[i].sub(tmp);   // the holder jumps to the landing spot; keep the others where they are
     this.pos.copy(land); this.visY = land.y;
-    this.hoverY = 0.4;
+    this.hoverY = Math.max(0.4, this.rig.hoverMin ?? 0);
     yield 1.0;
     g.fx.shockwave(this.pos, 0xff7a1a, 3.8); g.shake(0.5); g.audio?.impact(1.8);
     this.hurtPlayers(this.pos, 3.6, this.dmg * 1.1, 12);

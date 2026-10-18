@@ -329,7 +329,10 @@ export const TEXT = {
   cutscenes: {
     ariaLabel: 'Cutscene',
     next: { pad: 'A · next', touch: 'Tap · next', kbm: 'Enter · next' },   // (a press skips one shot)
-    skip: { pad: 'Hold A to skip all', touch: 'Hold the screen to skip all', kbm: 'Hold Esc to skip all' },
+    pause: { pad: 'hold B · pause', touch: 'hold · pause', kbm: 'hold Esc · pause' },   // (held: the cutscene stands still)
+    hintSep: '  ·  ',
+    skip: { pad: 'hold A · skip all', touch: '', kbm: 'hold Enter · skip all', button: 'Skip all' },   // (on a touch screen, the Skip all button)
+    paused: 'Paused',
     waitingOthers: 'Waiting for the others…',
     waitingHost: 'Waiting for the host…',
     // Cutscene: the bus to the museum

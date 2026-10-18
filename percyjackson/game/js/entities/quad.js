@@ -55,7 +55,36 @@ export function paintQuad(S, o) {
   o.custom?.(S);
 }
 
-const tmpV = new THREE.Vector3();
+const tmpV = new THREE.Vector3(), _qm = new THREE.Matrix4(), _qm2 = new THREE.Matrix4();
+// Up to 26 extreme points (along the axes, edges and corners) of the corners
+// of every visible mesh's box under o, in o's parent space when withSelf (o's
+// own matrix applied later by the caller), else in o's own space; subtrees in
+// skip are left out. null when there are none.
+const QDIRS = []; for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) for (let z = -1; z <= 1; z++) if (x || y || z) QDIRS.push([x, y, z]);
+function extremePts(o, skip, own = false) {
+  const pts = [];
+  const walk = (n, M) => {
+    for (const c of n.children) {
+      if (!c.visible || (skip && skip.has(c)) || c.userData.noLint) continue;
+      c.updateMatrix(); const m = new THREE.Matrix4().multiplyMatrices(M, c.matrix);
+      if (c.isMesh && c.geometry?.attributes?.position && !c.userData.shell) {
+        if (!c.geometry.boundingBox) c.geometry.computeBoundingBox();
+        const b = c.geometry.boundingBox;
+        for (let k = 0; k < 8; k++) pts.push(new THREE.Vector3(k & 1 ? b.max.x : b.min.x, k & 2 ? b.max.y : b.min.y, k & 4 ? b.max.z : b.min.z).applyMatrix4(m));
+      }
+      walk(c, m);
+    }
+  };
+  walk(o, new THREE.Matrix4());
+  if (!pts.length) return null;
+  const keep = new Set();
+  for (const [x, y, z] of QDIRS) { let bi = 0, bd = -Infinity; for (let i = 0; i < pts.length; i++) { const d = pts[i].x * x + pts[i].y * y + pts[i].z * z; if (d > bd) { bd = d; bi = i; } } keep.add(bi); }
+  const out = new Float32Array(keep.size * 3); let j = 0;
+  for (const i of keep) { out[j++] = pts[i].x; out[j++] = pts[i].y; out[j++] = pts[i].z; }
+  return out;
+}
+// the lowest y of the points under matrix M
+function lowest(P, M) { const e = M.elements; let y = Infinity; for (let i = 0; i < P.length; i += 3) { const v = e[1] * P[i] + e[5] * P[i + 1] + e[9] * P[i + 2] + e[13]; if (v < y) y = v; } return y; }
 
 export class QuadRig {
   // spec: { material, scale, bodyL, bodyW, bodyH, legH, legW, headS, legs(4|6|8), splay, footL (a lower leg below a knee), kneeOut (how far the lower leg leans out, rad), legY (leg root height from the body's underside), legSpread (extra sideways offset of the leg roots), tail(segments), tailLen, tailW, tailCurl, ears, snout, snoutS, neckUp, headZ, gait, jawOpen }
@@ -189,13 +218,65 @@ export class QuadRig {
     for (const g of this.legs) {
       const u = g.userData, front = u.row === 0;
       let x = Math.sin(cyc + u.phase) * T.legAmp + T.legBias * (front ? -1 : 1) * 0.5 + (front ? T.front : 0);
-      R(g, 'x', x);
-      // spider/beetle legs lift as they swing forward
-      const lift = this.spec.splay ? Math.max(0, Math.cos(cyc + u.phase)) * 0.35 * run : 0;
-      R(g, 'z', u.splay + u.side * lift);
+      if (this.spec.splay) {
+        // a splayed leg (spiders, ants, crabs) sweeps fore and aft about the
+        // upright, as a spider's does: swung about the body's x axis, a foot
+        // fanned out fore or aft (rotation.y) dipped up to 0.4 m into the floor
+        u.fanY ??= g.rotation.y;
+        R(g, 'y', u.fanY + u.side * x * 0.6);
+        // and lifts as it swings forward
+        R(g, 'z', u.splay + u.side * Math.max(0, Math.cos(cyc + u.phase)) * 0.35 * run);
+      } else R(g, 'x', x);
     }
     for (let i = 0; i < this.tail.length; i++) { const g = this.tail[i]; R(g, 'y', T.tailY * (0.5 + i * 0.3) + Math.sin(t * 4 + i) * 0.05); R(g, 'x', i === 0 ? T.tailX - T.torsoX : -0.15 + (this.spec.tailCurl ?? 0)); }   // (the tail keeps its angle to the ground as the body pitches: a rear-up no longer drove it into the floor)
     this.hips.rotation.z = damp(this.hips.rotation.z, T.rootZ, snap, dt);
+    if (!T.rootZ && Math.abs(this.hips.rotation.z) < 0.02) this.floorGuard();
+  }
+  // After the pose, nothing sinks through the floor (the soles, y = 0 in the
+  // rig's own space): the hips rise by the deepest dip of any foot (a big
+  // paw or a claw reaching fore of its leg dips as the leg swings, the way a
+  // boot's toe does on a humanoid: Rig.footLift), then the head pitches up
+  // just enough to keep its jaw and fangs out of the ground in a bite, hit or
+  // stagger, and each tail segment from the root lifts as far as it must
+  // (a tail laid along the ground while the body rears back). Each part is
+  // stood in for by up to 26 extreme corners, found once, in its own space;
+  // a frame costs a few hundred multiplies and nothing when all is clear.
+  floorGuard() {
+    const F = this._floor ??= this.floorParts();
+    const hy = this.hips.position.y;
+    let low = Infinity;
+    for (const l of F.legs) { l.g.updateMatrix(); low = Math.min(low, lowest(l.pts, l.g.matrix)); }
+    if (hy + low < 0) this.hips.position.y = hy - low;
+    const y0 = this.hips.position.y;
+    // head (and jaw)
+    if (F.head || F.mouth) {
+      const headLow = () => {
+        this.torso.updateMatrix(); this.neck.updateMatrix(); this.head.updateMatrix(); this.mouth.updateMatrix();
+        _qm.multiplyMatrices(this.torso.matrix, this.neck.matrix).multiply(this.head.matrix);
+        let y = F.head ? lowest(F.head, _qm) : Infinity;
+        if (F.mouth && this.mouth !== this.head) y = Math.min(y, lowest(F.mouth, _qm2.multiplyMatrices(_qm, this.mouth.matrix)));
+        return y;
+      };
+      for (let i = 0; i < 24 && y0 + headLow() < 0; i++) this.head.rotation.x -= 0.05;
+    }
+    // tail, segment by segment
+    if (F.tail.length) {
+      this.torso.updateMatrix(); const base = this.tail[0].parent; base.updateMatrix();
+      _qm.multiplyMatrices(this.torso.matrix, base.matrix);
+      for (let i = 0; i < F.tail.length; i++) {
+        const g = this.tail[i];
+        for (let k = 0; k < 16; k++) { g.updateMatrix(); _qm2.multiplyMatrices(_qm, g.matrix); if (!F.tail[i] || y0 + lowest(F.tail[i], _qm2) >= 0) break; g.rotation.x += 0.06; }
+        _qm.copy(_qm2);
+      }
+    }
+  }
+  floorParts() {
+    const skip = new Set([...this.legs, ...this.tail, this.mouth]);
+    return {
+      legs: this.legs.filter((g) => g.visible).map((g) => ({ g, pts: extremePts(g, null, true) })).filter((l) => l.pts),
+      head: extremePts(this.head, skip), mouth: this.mouth !== this.head ? extremePts(this.mouth, skip) : null,
+      tail: this.tail.map((g) => extremePts(g, skip)),
+    };
   }
   setFlash(v) { this.material.userData.flash.value = v; }
   swap(mat) { if (this._swapped === mat) return; this._swapped = mat; for (const m of this.meshes) m.material = mat || m.userData.baseMat; }

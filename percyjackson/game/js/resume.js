@@ -152,10 +152,11 @@ export class Resume {
       setTimeout(() => chests(), 2100);
     }
     m.stats.time = s.time ?? 0;
-    if (Array.isArray(r.cp)) {
-      const cp = new THREE.Vector3(...r.cp);
-      g.placePlayers(cp);
-      this.cp = r.cp;
+    if (Array.isArray(r.cp) && r.cp.every(Number.isFinite)) {
+      // only onto ground that is still there (the level may have been built
+      // differently since this checkpoint was saved): else the level's start
+      const cp = new THREE.Vector3(...r.cp), gy = g.world.groundBelow(cp.x, cp.z, cp.y + 1);
+      if (Number.isFinite(gy) && Math.abs(cp.y - gy) < 1.5 && !g.world.solidAt(cp.x, gy + 0.5, cp.z)) { cp.y = gy; g.placePlayers(cp); this.cp = r.cp; }
     }
     const party = r.party ?? [];
     for (const p of g.players) { const saved = party.find((x) => x.hero === p.hero); if (saved) p.hp = Math.max(1, p.maxHp * saved.hp); }

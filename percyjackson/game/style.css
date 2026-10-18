@@ -483,6 +483,9 @@ body.is-touch .sight { bottom: calc(120px + var(--safe-b)); left: 50%; }
 .cs-skip .ring { width: 18px; height: 18px; border-radius: 50%; background: conic-gradient(#ffd84a calc(var(--p, 0) * 360deg), rgba(255, 255, 255, .22) 0); -webkit-mask: radial-gradient(circle, transparent 5px, #000 6px); mask: radial-gradient(circle, transparent 5px, #000 6px); }
 .cs-skip.holding { color: #ffd84a; }
 .cs-skip .next { margin-right: 10px; color: rgba(248, 240, 220, .9); }
+.cs-skipall { position: absolute; right: calc(18px + var(--safe-r, 0px)); top: calc(2.6vh + var(--safe-t, 0px)); padding: 8px 14px; border: 1px solid rgba(248, 240, 220, .45); border-radius: 999px; background: rgba(0, 0, 0, .35); font: 700 13px var(--font); color: rgba(248, 240, 220, .9); }
+.cs-skip.touch .ring { display: none; }
+.cs-paused { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); padding: 6px 16px; border-radius: 999px; background: rgba(0, 0, 0, .45); font: 700 15px var(--font); letter-spacing: .12em; text-transform: uppercase; color: #ffd84a; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .cs-card img { animation: none; } .cs-bar { transition: none; } }
 
 /* ---------------------------------------------------------------- where to go (ui/tracker.js) */

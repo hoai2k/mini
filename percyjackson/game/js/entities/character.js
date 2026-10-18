@@ -148,6 +148,33 @@ export function markTip(weapon, x, y, z, label = 'weapon') {
 export function markHeld(g) { g.userData.heldProp = true; return g; }
 
 const _v1 = new THREE.Vector3(), _box = new THREE.Box3(), _m = new THREE.Matrix4(), _inv = new THREE.Matrix4();
+const _e1 = new THREE.Euler(), _q1 = new THREE.Quaternion(), _m2 = new THREE.Matrix4(), _gc = new Float64Array(64), _ga = new Float64Array(64), _gb = new Float64Array(64);
+// The extreme points (at most 64: along 26 directions, of the corners of
+// each visible mesh's box) of what a hand holds, in hand space without the
+// hand's own turn. null when it holds nothing.
+const GDIRS = []; for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) for (let z = -1; z <= 1; z++) if (x || y || z) GDIRS.push([x, y, z]);
+function gripPoints(hand) {
+  const pts = [];
+  const walk = (o, M) => {
+    for (const c of o.children) {
+      if (!c.visible || c.userData.noLint) continue;
+      c.updateMatrix(); const m = new THREE.Matrix4().multiplyMatrices(M, c.matrix);
+      if (c.isMesh && c.geometry?.attributes?.position && !c.userData.shell) {
+        if (!c.geometry.boundingBox) c.geometry.computeBoundingBox();
+        const b = c.geometry.boundingBox;
+        for (let k = 0; k < 8; k++) pts.push(new THREE.Vector3(k & 1 ? b.max.x : b.min.x, k & 2 ? b.max.y : b.min.y, k & 4 ? b.max.z : b.min.z).applyMatrix4(m));
+      }
+      walk(c, m);
+    }
+  };
+  walk(hand, new THREE.Matrix4());
+  if (!pts.length) return null;
+  const keep = new Set();
+  for (const [x, y, z] of GDIRS) { let bi = 0, bd = -Infinity; for (let i = 0; i < pts.length; i++) { const d = pts[i].x * x + pts[i].y * y + pts[i].z * z; if (d > bd) { bd = d; bi = i; } } keep.add(bi); }
+  const out = new Float32Array(keep.size * 3); let j = 0;
+  for (const i of keep) { out[j++] = pts[i].x; out[j++] = pts[i].y; out[j++] = pts[i].z; }
+  return out;
+}
 
 // ---------------------------------------------------------------- rig
 // The rest pose (radians): arms out to the sides and a touch forward, legs apart.
@@ -310,7 +337,43 @@ export class Rig {
     // death fall rotates the hips around their pivot
     if (a && (a.type === 'dodge')) this.rollAbout(T.rootX, T.lift);
     else { this.hips.rotation.x = damp(this.hips.rotation.x % (Math.PI * 2), T.rootX, snap, dt); this.hips.position.z = damp(this.hips.position.z, 0, snap, dt); }
+    if (this.wrist !== false) { this.gripGuard(this.handR); this.gripGuard(this.handL); }
     this.physics(p);
+  }
+  // A long weapon (a spear, a club, a trident) must not end a slam, a roll or
+  // a fall buried in the ground: after the pose, if anything held in the fist
+  // would sink below the soles, the wrist turns (about its own x axis, the
+  // way the attacks cock it) by the least angle that brings the lowest point
+  // up to the floor, so a slam's spear stops with its point on the ground in
+  // front, and a roll or a fall drags it along the floor. The held meshes are
+  // stood in for by their extreme corners in hand space, gathered again only
+  // when what the hand holds changes; a frame costs a few dozen multiplies.
+  gripGuard(hand) {
+    if (!hand?.children.length) return;
+    let sig = hand.children.length; for (const c of hand.children) sig = (sig * 31 + c.id * (c.visible ? 1 : 7)) % 1e9;
+    const G = hand.userData.grip ??= { sig: -1, pts: null };
+    if (G.sig !== sig) { G.sig = sig; G.pts = gripPoints(hand); }
+    const P = G.pts; if (!P) return;
+    // the fist's parent (the arm) in root space, and the fist's own turn without its pitch
+    _m.identity();
+    for (let o = hand.parent; o && o !== this.root; o = o.parent) { o.updateMatrix(); _m.premultiply(o.matrix); }
+    const e = _m.elements, a0 = e[1], a1 = e[5], a2 = e[9], ty = e[13] + a0 * hand.position.x + a1 * hand.position.y + a2 * hand.position.z;
+    _e1.set(0, hand.rotation.y, hand.rotation.z, hand.rotation.order); _q1.setFromEuler(_e1);
+    const n = P.length / 3, C = _gc, A = _ga, B = _gb;
+    for (let i = 0; i < n; i++) {
+      _v1.set(P[i * 3], P[i * 3 + 1], P[i * 3 + 2]).applyQuaternion(_q1);
+      C[i] = ty + a0 * _v1.x; A[i] = a1 * _v1.y + a2 * _v1.z; B[i] = a2 * _v1.y - a1 * _v1.z;
+    }
+    const floor = 0.4 * PX, low = (th) => { const c = Math.cos(th), s = Math.sin(th); let y = Infinity; for (let i = 0; i < n; i++) { const v = C[i] + A[i] * c + B[i] * s; if (v < y) y = v; } return y; };
+    const th0 = hand.rotation.x;
+    if (low(th0) >= floor) return;
+    let best = th0, bestY = -Infinity;
+    for (let k = 1; k <= 105; k++) for (const sg of [1, -1]) {
+      const th = th0 + sg * k * 0.03, y = low(th);
+      if (y >= floor) { hand.rotation.x = th; return; }
+      if (y > bestY) { bestY = y; best = th; }
+    }
+    hand.rotation.x = best;
   }
   // A foot that reaches further fore or aft than the leg is deep (a boot's
   // toe, a giant's stone slab) dips below the sole as the leg swings: the

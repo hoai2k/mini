@@ -348,7 +348,8 @@ export class Boss {
     this.anim = { type: 'raise', t: 0 }; this.hoverY = (this.B.hover ?? 0) + 1.2;
     g.audio?.tone({ freq: 700, to: 1400, dur: 0.5, gain: 0.07, type: 'sawtooth', filter: 3000 });
     yield 0.95;
-    this.swooping = true; this.hoverY = 0.3; this.anim = { type: 'attack', t: 0.6, style: 'slam', windup: 0.3, strike: 0.5 };
+    this.swooping = true; this.hoverY = Math.max(0.3, this.rig.hoverMin ?? 0);   // (rig.hoverMin: a Fury's hem would drag through the floor)
+    this.anim = { type: 'attack', t: 0.6, style: 'slam', windup: 0.3, strike: 0.5 };
     g.audio?.whoosh(1.6);
     yield* this.dashLine(dir, 24, 16, this.dmg * 1.1, { dust: 0x3a2a24, hitR: 2 });
     this.swooping = false; this.hoverY = this.B.hover ?? 0;

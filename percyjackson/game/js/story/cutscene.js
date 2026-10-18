@@ -7,8 +7,12 @@
 // act and the set's update reach by then (figures walked, the car driven, a
 // sign read) is where the next shot starts; on the last shot it ends the
 // cutscene. One press skips one shot (edge-triggered, with a short cooldown).
-// Holding A, Esc (or Space / Enter) or a finger on the screen skips it all;
-// a ring fills while you hold.
+// Holding B pauses it (Esc or Backspace, a long press on a touch screen):
+// the shot's clock, its figures, the camera and the subtitle stand still
+// until it is let go. Skipping the whole cutscene: hold A (Enter / Space, the
+// mouse button), or the Skip all button on a touch screen; a ring fills while
+// you hold. (B used to skip it all too; it pauses now, and Menu no longer
+// skips.) The on-screen hint follows the device last used.
 //
 // A cutscene definition (story/cutscenes.js) is { id, title, build(game,
 // ctx) } where build loads the set and returns { shots, update?(t, dt),
@@ -23,7 +27,8 @@
 // the host's shot when they fall behind (syncShot), so the host's presses of A
 // carry over. A guest's own press skips only its own view (it then waits for
 // the host at the end). A guest holding skip asks the host, and the host skips
-// when it holds skip itself or every guest has asked.
+// when it holds skip itself or every guest has asked. Pausing is for this
+// screen only: a paused guest catches up with the host's shot when it lets go.
 import * as THREE from 'three/webgpu';
 import { h } from '../ui/ui.js';
 import { prefersReducedMotion } from '../settings.js';
@@ -34,6 +39,8 @@ import { shotDuration } from './subtitles.js';
 import { finishShot, PressGate } from './shotSkip.js';
 
 const HOLD = 0.85;   // seconds of holding to skip
+const LONG = 0.35;   // a touch held this long is a long press (pause), not a tap (next)
+const PAUSE_KEYS = ['Escape', 'Backspace'], SKIP_KEYS = ['Space', 'Enter'];
 const ease = (k) => k * k * (3 - 2 * k);
 
 export class Cutscene {
@@ -42,7 +49,8 @@ export class Cutscene {
     this.remote = remote; this.onEnd = onEnd;
     this.t = 0; this.shotIdx = -1; this.shotT = 0; this.hold = 0; this.done = false; this.voted = false;
     this.cam = { pos: new THREE.Vector3(), look: new THREE.Vector3(), fov: 35 };
-    this.held = { key: false, ptr: false };
+    this.held = { key: false, ptr: false, pauseKey: false, touch: false };
+    this.touchT = 0; this.paused = false;
     this.votes = new Set();
     this.press = false; this.gate = new PressGate();   // (one press, one shot; a press already down as the cutscene starts never skips its first)
     this.padPrevA = new Set();
@@ -58,11 +66,13 @@ export class Cutscene {
     this.total = this.shots.reduce((s, x) => s + x.dur, 0);
     this.fov0 = g.rig.camera.fov;
     this.onKey = (e) => {
-      if (!['Escape', 'Space', 'Enter', 'KeyE'].includes(e.code)) return;
-      this.held.key = e.type === 'keydown';
-      if (e.type !== 'keydown') return;
+      const pause = PAUSE_KEYS.includes(e.code), skip = SKIP_KEYS.includes(e.code);
+      if (!pause && !skip) return;
+      const down = e.type === 'keydown';
+      if (pause) this.held.pauseKey = down; else this.held.key = down;
+      if (!down) return;
       e.preventDefault();
-      if (!e.repeat && (e.code === 'Space' || e.code === 'Enter')) this.press = true;   // (held keys repeat: only the first keydown is a press)
+      if (skip && !e.repeat) this.press = true;   // (held keys repeat: only the first keydown is a press)
     };
     this.padPrevA = this.padA();
     window.addEventListener('keydown', this.onKey, true); window.addEventListener('keyup', this.onKey, true);
@@ -75,9 +85,23 @@ export class Cutscene {
       this.cardEl = h('div', { class: 'cs-card hidden' }, this.cardImg = h('img', { alt: '', draggable: 'false' })),
       this.subEl = h('p', { class: 'cs-sub', 'aria-live': 'polite' }),
       this.fadeEl = h('div', { class: 'cs-fade' }),
-      this.skipEl = h('div', { class: 'cs-skip' }, this.nextEl = h('span', { class: 'next' }, this.nextText()), h('span', { class: 'ring' }), h('span', { class: 'txt' }, this.skipText())));
+      this.pausedEl = h('div', { class: 'cs-paused hidden' }, t('cutscenes.paused')),
+      this.skipEl = h('div', { class: 'cs-skip' }, this.nextEl = h('span', { class: 'next' }, this.nextText()), h('span', { class: 'ring' }), h('span', { class: 'txt' }, this.skipText())),
+      this.skipBtn = h('button', { class: 'cs-skipall hidden', type: 'button' }, t('cutscenes.skip.button')));
     this.hintDev = this.game.input?.lastDevice;
-    const down = (e) => { this.held.ptr = true; this.press = true; e.preventDefault(); }, up = () => { this.held.ptr = false; };
+    this.skipBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+    this.skipBtn.addEventListener('click', (e) => { e.stopPropagation(); if (!this.voted) { this.voted = true; this.requestSkip(); } });
+    this.skipBtn.classList.toggle('hidden', this.hintDev !== 'touch'); this.skipEl.classList.toggle('touch', this.hintDev === 'touch');
+    // a click (mouse, pen): the next shot, and held, the skip ring; a touch: a tap is the next shot, a long press pauses
+    const down = (e) => {
+      e.preventDefault();
+      if (e.pointerType === 'touch') { this.held.touch = true; this.touchT = 0; return; }
+      this.held.ptr = true; this.press = true;
+    };
+    const up = (e) => {
+      if (e.pointerType === 'touch') { if (this.held.touch && e.type === 'pointerup' && this.touchT < LONG) this.press = true; this.held.touch = false; return; }
+      this.held.ptr = false;
+    };
     el.addEventListener('pointerdown', down); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up); el.addEventListener('pointerleave', up);
     document.body.appendChild(el);
     requestAnimationFrame(() => el.classList.add('in'));
@@ -88,7 +112,8 @@ export class Cutscene {
   }
   nextText() {
     const pad = this.game.input?.lastDevice?.startsWith?.('pad'), touch = this.game.input?.lastDevice === 'touch';
-    return t(pad ? 'cutscenes.next.pad' : touch ? 'cutscenes.next.touch' : 'cutscenes.next.kbm');
+    const dev = pad ? 'pad' : touch ? 'touch' : 'kbm';
+    return t(`cutscenes.next.${dev}`) + t('cutscenes.hintSep') + t(`cutscenes.pause.${dev}`);
   }
   // the hints follow the device last used (as the game's other prompts do)
   refreshHints() {
@@ -97,6 +122,7 @@ export class Cutscene {
     this.hintDev = dev;
     this.nextEl.textContent = this.nextText();
     this.skipEl.querySelector('.txt').textContent = this.skipText();
+    this.skipBtn.classList.toggle('hidden', dev !== 'touch'); this.skipEl.classList.toggle('touch', dev === 'touch');
   }
   nextShot() {
     this.shotIdx++; this.shotT = 0;
@@ -145,8 +171,9 @@ export class Cutscene {
     this.subEl.textContent = text; this.subEl.classList.add('show');
     this.game.audio?.ui?.('move');
   }
-  pad() {
-    for (const p of navigator.getGamepads?.() ?? []) if (p && (p.buttons[0]?.pressed || p.buttons[9]?.pressed || p.buttons[1]?.pressed)) return true;
+  // a pad holding button i (A 0: skip all; B 1: pause; padmap.js BTN)
+  pad(i = 0) {
+    for (const p of navigator.getGamepads?.() ?? []) if (p?.buttons[i]?.pressed) return true;
     return false;
   }
   // the pads holding A now (by index), for the press of A (its down edge)
@@ -196,7 +223,7 @@ export class Cutscene {
   }
   // a guest: the host is on shot i; catch up when behind (never back)
   syncShot(i) {
-    if (!this.remote || this.done || !this.shots) return;
+    if (!this.remote || this.done || !this.shots || this.paused) return;   // (paused: it catches up once let go)
     i = Math.min(i, this.shots.length - 1);
     while (!this.done && this.shotIdx < i) this.advance();
   }
@@ -205,8 +232,13 @@ export class Cutscene {
     if (this.done) return;
     const g = this.game;
     let s = this.shots[this.shotIdx];
+    // pause: hold B (Esc, Backspace, a long press): nothing moves on, not the clock, the figures or the camera
+    if (this.held.touch) this.touchT += dt;
+    const paused = this.held.pauseKey || this.pad(1) || (this.held.touch && this.touchT >= LONG);
+    if (paused !== this.paused) { this.paused = paused; this.pausedEl.classList.toggle('hidden', !paused); this.el.classList.toggle('paused', paused); }
+    if (paused) { this.press = false; this.padPrevA = this.padA(); this.refreshHints(); return; }
     // skip
-    const holding = this.held.key || this.held.ptr || this.pad();
+    const holding = this.held.key || this.held.ptr || this.pad(0);
     this.hold = holding ? this.hold + dt : Math.max(0, this.hold - dt * 2);
     this.skipEl.style.setProperty('--p', Math.min(1, this.hold / HOLD).toFixed(3));
     this.skipEl.classList.toggle('holding', this.hold > 0.05);

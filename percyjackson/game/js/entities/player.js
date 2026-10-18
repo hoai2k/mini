@@ -448,6 +448,13 @@ export class Player {
     // off (a boss arena over the abyss cost companions dozens of falls and
     // most of their health in the comfort playthroughs).
     const lead = this.ai && g.players?.find((q) => !q.ai && !q.dead && !q.downed && q.grounded && !q.inLiquid);
+    // The last safe spot must still have ground under it (a Continue can bring
+    // back a checkpoint from an older build of the level): otherwise, or after
+    // a second fall within a few seconds, go back to the level's start instead
+    // of falling from the same spot again and again.
+    const now = performance.now(), again = now - (this.lastFallAt ?? -1e9) < 4000; this.lastFallAt = now;
+    const w = g.world, sp = this.safePos, gy = w?.groundBelow(sp.x, sp.z, sp.y + 1) ?? -Infinity;
+    if (!lead && (again || !Number.isFinite(gy) || sp.y - gy > 2) && g.level?.spawn) this.safePos.copy(g.level.spawn);
     this.spawn(lead ? lead.pos.clone().add(new THREE.Vector3(Math.sin(lead.facing + 2.4) * 1.2, 0.05, Math.cos(lead.facing + 2.4) * 1.2)) : this.safePos);
     if (lead && !this.edgeSafe()) this.spawn(lead.pos);
     this.iframes = 1;
