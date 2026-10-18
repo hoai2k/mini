@@ -1,0 +1,67 @@
+[
+  {
+    "id": "icon",
+    "file": "icons/icon-1024.png",
+    "status": "requested"
+  },
+  {
+    "id": "logo",
+    "file": "assets/ui/logo.webp",
+    "status": "requested"
+  },
+  {
+    "id": "cover",
+    "file": "assets/ui/cover.webp",
+    "status": "requested"
+  },
+  {
+    "id": "welcome",
+    "file": "assets/ui/welcome.webp",
+    "status": "requested"
+  },
+  {
+    "id": "artist",
+    "file": "assets/art/artist.webp",
+    "status": "requested"
+  },
+  {
+    "id": "art-1",
+    "file": "assets/art/art-1.webp",
+    "status": "requested"
+  },
+  {
+    "id": "art-2",
+    "file": "assets/art/art-2.webp",
+    "status": "requested"
+  },
+  {
+    "id": "art-3",
+    "file": "assets/art/art-3.webp",
+    "status": "requested"
+  },
+  {
+    "id": "art-4",
+    "file": "assets/art/art-4.webp",
+    "status": "requested"
+  },
+  {
+    "id": "art-5",
+    "file": "assets/art/art-5.webp",
+    "status": "requested"
+  },
+  {
+    "id": "art-6",
+    "file": "assets/art/art-6.webp",
+    "status": "requested"
+  },
+  {
+    "id": "art-7",
+    "file": "assets/art/art-7.webp",
+    "status": "requested"
+  },
+  {
+    "id": "art-8",
+    "file": "assets/art/art-8.webp",
+    "status": "requested"
+  }
+]
