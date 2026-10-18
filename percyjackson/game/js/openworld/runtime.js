@@ -88,6 +88,7 @@ export class OpenWorld {
     this.region = r;
     const b = BIOMES[r.biome] ?? BIOMES.camp;
     g.env.set(b, first);
+    g.biome = b;   // (its particles and, on Othrys, its storm: main.js updateStorm)
     g.audio?.setAmbience?.(b.ambience);
     U_wind(g, b.wind);
     if (!first || !this.data.seen[r.id]) {
