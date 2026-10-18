@@ -538,7 +538,7 @@ def round8_assets() -> list[dict]:
         folder = src.rsplit("/", 1)[0]
         out.append(dict(
             id="drone-organ", theme=theme, round=8, file=f"{folder}/drone-organ.webp",
-            size="1024×1024, transparent PNG (shipped as 512×512 WebP)", status="requested",
+            size="1024×1024, transparent PNG (shipped as 512×512 WebP)", status="delivered",
             group=f"{name} · Drone screen for the organ",
             prompt=(f"Using the attached image, musicpractice/app/{src} (this theme's Drone image, a "
                     "cello), as the reference for its style, colours, lighting, rendering, framing and "
@@ -554,8 +554,8 @@ def round8_assets() -> list[dict]:
                     "keyboard, no bench, no player, no music notes, no text, no letters, no numbers."),
             note=(f"The {name} Drone screen's picture while an organ voice plays (Organ or Synth organ), "
                   f"in place of the cello; the plain volume slider stands beside it. Made from "
-                  f"app/{src} so it matches the cello's style and place. Until it arrives the app draws "
-                  "a stand-in."),
+                  f"app/{src} so it matches the cello's style and place. Delivered PNG masters, "
+                  "prompts and exports: design/image-deliveries-round-8.json."),
         ))
     return out
 

@@ -20,7 +20,7 @@ Images belong to a theme (Settings → Theme); each theme has its own set.
 
 **Round 7 (Drone screen with the bow as volume, every theme):** delivered and in use.
 
-**Round 8 (Drone screen for the organ, every theme):** 8 images wanted: `assets/ui/drone-organ.webp`, `assets/ui/deco/drone-organ.webp`, `assets/ui/sixties/drone-organ.webp`, `assets/ui/baroque/drone-organ.webp`, `assets/ui/scifi/drone-organ.webp`, `assets/ui/nouveau/drone-organ.webp`, `assets/ui/anime/drone-organ.webp`, `assets/ui/steampunk/drone-organ.webp`.
+**Round 8 (Drone screen for the organ, every theme):** delivered and in use.
 
 **House styles** (already included in every prompt):
 
@@ -107,14 +107,14 @@ the measured ones for the delivered file in `build_requests.py`.
 | 7 | Candy | delivered | `drone-bow` | `app/assets/ui/anime/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
 | 7 | Steam Punk | delivered | `drone-cello` | `app/assets/ui/steampunk/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 7 | Steam Punk | delivered | `drone-bow` | `app/assets/ui/steampunk/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
-| 8 | Classic | requested | `drone-organ` | `app/assets/ui/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 8 | Art Deco | requested | `drone-organ` | `app/assets/ui/deco/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 8 | Vintage 60s | requested | `drone-organ` | `app/assets/ui/sixties/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 8 | 18th Century | requested | `drone-organ` | `app/assets/ui/baroque/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 8 | Robot Future | requested | `drone-organ` | `app/assets/ui/scifi/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 8 | French Nouveau | requested | `drone-organ` | `app/assets/ui/nouveau/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 8 | Candy | requested | `drone-organ` | `app/assets/ui/anime/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 8 | Steam Punk | requested | `drone-organ` | `app/assets/ui/steampunk/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 8 | Classic | delivered | `drone-organ` | `app/assets/ui/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 8 | Art Deco | delivered | `drone-organ` | `app/assets/ui/deco/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 8 | Vintage 60s | delivered | `drone-organ` | `app/assets/ui/sixties/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 8 | 18th Century | delivered | `drone-organ` | `app/assets/ui/baroque/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 8 | Robot Future | delivered | `drone-organ` | `app/assets/ui/scifi/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 8 | French Nouveau | delivered | `drone-organ` | `app/assets/ui/nouveau/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 8 | Candy | delivered | `drone-organ` | `app/assets/ui/anime/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 8 | Steam Punk | delivered | `drone-organ` | `app/assets/ui/steampunk/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 
 ## Home screen buttons
 
@@ -886,11 +886,11 @@ Using the bow in the attached image, musicpractice/app/assets/ui/steampunk/home-
 
 ## Classic · Drone screen for the organ
 
-### `drone-organ` · Classic · requested
+### `drone-organ` · Classic · delivered
 
 - File: `musicpractice/app/assets/ui/drone-organ.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Classic Drone screen's picture while an organ voice plays (Organ or Synth organ), in place of the cello; the plain volume slider stands beside it. Made from app/assets/ui/home-drone.webp so it matches the cello's style and place. Until it arrives the app draws a stand-in.
+- Note: The Classic Drone screen's picture while an organ voice plays (Organ or Synth organ), in place of the cello; the plain volume slider stands beside it. Made from app/assets/ui/home-drone.webp so it matches the cello's style and place. Delivered PNG masters, prompts and exports: design/image-deliveries-round-8.json.
 
 ```text
 Using the attached image, musicpractice/app/assets/ui/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, polished tin and brushed-brass pipes in a warm walnut case with cream inlay. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.
@@ -898,11 +898,11 @@ Using the attached image, musicpractice/app/assets/ui/home-drone.webp (this them
 
 ## Art Deco · Drone screen for the organ
 
-### `drone-organ` · Art Deco · requested
+### `drone-organ` · Art Deco · delivered
 
 - File: `musicpractice/app/assets/ui/deco/drone-organ.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Art Deco Drone screen's picture while an organ voice plays (Organ or Synth organ), in place of the cello; the plain volume slider stands beside it. Made from app/assets/ui/deco/home-drone.webp so it matches the cello's style and place. Until it arrives the app draws a stand-in.
+- Note: The Art Deco Drone screen's picture while an organ voice plays (Organ or Synth organ), in place of the cello; the plain volume slider stands beside it. Made from app/assets/ui/deco/home-drone.webp so it matches the cello's style and place. Delivered PNG masters, prompts and exports: design/image-deliveries-round-8.json.
 
 ```text
 Using the attached image, musicpractice/app/assets/ui/deco/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, gleaming gold-leaf pipes rising in a stepped ziggurat from a black lacquer case, with a small jade accent. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.
@@ -910,11 +910,11 @@ Using the attached image, musicpractice/app/assets/ui/deco/home-drone.webp (this
 
 ## Vintage 60s · Drone screen for the organ
 
-### `drone-organ` · Vintage 60s · requested
+### `drone-organ` · Vintage 60s · delivered
 
 - File: `musicpractice/app/assets/ui/sixties/drone-organ.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Vintage 60s Drone screen's picture while an organ voice plays (Organ or Synth organ), in place of the cello; the plain volume slider stands beside it. Made from app/assets/ui/sixties/home-drone.webp so it matches the cello's style and place. Until it arrives the app draws a stand-in.
+- Note: The Vintage 60s Drone screen's picture while an organ voice plays (Organ or Synth organ), in place of the cello; the plain volume slider stands beside it. Made from app/assets/ui/sixties/home-drone.webp so it matches the cello's style and place. Delivered PNG masters, prompts and exports: design/image-deliveries-round-8.json.
 
 ```text
 Using the attached image, musicpractice/app/assets/ui/sixties/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, chrome pipes in a rounded burnt-orange teak case with dark teal trim, flat screen-print colour. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.
@@ -922,11 +922,11 @@ Using the attached image, musicpractice/app/assets/ui/sixties/home-drone.webp (t
 
 ## 18th Century · Drone screen for the organ
 
-### `drone-organ` · 18th Century · requested
+### `drone-organ` · 18th Century · delivered
 
 - File: `musicpractice/app/assets/ui/baroque/drone-organ.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The 18th Century Drone screen's picture while an organ voice plays (Organ or Synth organ), in place of the cello; the plain volume slider stands beside it. Made from app/assets/ui/baroque/home-drone.webp so it matches the cello's style and place. Until it arrives the app draws a stand-in.
+- Note: The 18th Century Drone screen's picture while an organ voice plays (Organ or Synth organ), in place of the cello; the plain volume slider stands beside it. Made from app/assets/ui/baroque/home-drone.webp so it matches the cello's style and place. Delivered PNG masters, prompts and exports: design/image-deliveries-round-8.json.
 
 ```text
 Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, burnished gilt pipes in a carved walnut case with restrained acanthus ornament and a burgundy accent. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.
@@ -934,11 +934,11 @@ Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (t
 
 ## Robot Future · Drone screen for the organ
 
-### `drone-organ` · Robot Future · requested
+### `drone-organ` · Robot Future · delivered
 
 - File: `musicpractice/app/assets/ui/scifi/drone-organ.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Robot Future Drone screen's picture while an organ voice plays (Organ or Synth organ), in place of the cello; the plain volume slider stands beside it. Made from app/assets/ui/scifi/home-drone.webp so it matches the cello's style and place. Until it arrives the app draws a stand-in.
+- Note: The Robot Future Drone screen's picture while an organ voice plays (Organ or Synth organ), in place of the cello; the plain volume slider stands beside it. Made from app/assets/ui/scifi/home-drone.webp so it matches the cello's style and place. Delivered PNG masters, prompts and exports: design/image-deliveries-round-8.json.
 
 ```text
 Using the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, brushed titanium pipes with thin cyan edge lighting in a graphite case, a small magenta indicator. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.
@@ -946,11 +946,11 @@ Using the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (thi
 
 ## French Nouveau · Drone screen for the organ
 
-### `drone-organ` · French Nouveau · requested
+### `drone-organ` · French Nouveau · delivered
 
 - File: `musicpractice/app/assets/ui/nouveau/drone-organ.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The French Nouveau Drone screen's picture while an organ voice plays (Organ or Synth organ), in place of the cello; the plain volume slider stands beside it. Made from app/assets/ui/nouveau/home-drone.webp so it matches the cello's style and place. Until it arrives the app draws a stand-in.
+- Note: The French Nouveau Drone screen's picture while an organ voice plays (Organ or Synth organ), in place of the cello; the plain volume slider stands beside it. Made from app/assets/ui/nouveau/home-drone.webp so it matches the cello's style and place. Delivered PNG masters, prompts and exports: design/image-deliveries-round-8.json.
 
 ```text
 Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, muted-gold pipes entwined with a vine in a sage-green case, with a small iris accent. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.
@@ -958,11 +958,11 @@ Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (t
 
 ## Candy · Drone screen for the organ
 
-### `drone-organ` · Candy · requested
+### `drone-organ` · Candy · delivered
 
 - File: `musicpractice/app/assets/ui/anime/drone-organ.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Candy Drone screen's picture while an organ voice plays (Organ or Synth organ), in place of the cello; the plain volume slider stands beside it. Made from app/assets/ui/anime/home-drone.webp so it matches the cello's style and place. Until it arrives the app draws a stand-in.
+- Note: The Candy Drone screen's picture while an organ voice plays (Organ or Synth organ), in place of the cello; the plain volume slider stands beside it. Made from app/assets/ui/anime/home-drone.webp so it matches the cello's style and place. Delivered PNG masters, prompts and exports: design/image-deliveries-round-8.json.
 
 ```text
 Using the attached image, musicpractice/app/assets/ui/anime/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, pastel sky-blue and lilac pipes in a candy-pink case with a bold outline and tiny yellow sparkles. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.
@@ -970,11 +970,11 @@ Using the attached image, musicpractice/app/assets/ui/anime/home-drone.webp (thi
 
 ## Steam Punk · Drone screen for the organ
 
-### `drone-organ` · Steam Punk · requested
+### `drone-organ` · Steam Punk · delivered
 
 - File: `musicpractice/app/assets/ui/steampunk/drone-organ.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Steam Punk Drone screen's picture while an organ voice plays (Organ or Synth organ), in place of the cello; the plain volume slider stands beside it. Made from app/assets/ui/steampunk/home-drone.webp so it matches the cello's style and place. Until it arrives the app draws a stand-in.
+- Note: The Steam Punk Drone screen's picture while an organ voice plays (Organ or Synth organ), in place of the cello; the plain volume slider stands beside it. Made from app/assets/ui/steampunk/home-drone.webp so it matches the cello's style and place. Delivered PNG masters, prompts and exports: design/image-deliveries-round-8.json.
 
 ```text
 Using the attached image, musicpractice/app/assets/ui/steampunk/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, polished brass and copper pipes with rivets in a dark mahogany case, a small pressure gauge. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.
