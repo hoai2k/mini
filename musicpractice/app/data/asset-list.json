@@ -683,48 +683,48 @@
     "id": "drone-organ",
     "theme": "classic",
     "file": "assets/ui/drone-organ.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "drone-organ",
     "theme": "deco",
     "file": "assets/ui/deco/drone-organ.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "drone-organ",
     "theme": "sixties",
     "file": "assets/ui/sixties/drone-organ.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "drone-organ",
     "theme": "baroque",
     "file": "assets/ui/baroque/drone-organ.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "drone-organ",
     "theme": "scifi",
     "file": "assets/ui/scifi/drone-organ.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "drone-organ",
     "theme": "nouveau",
     "file": "assets/ui/nouveau/drone-organ.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "drone-organ",
     "theme": "anime",
     "file": "assets/ui/anime/drone-organ.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "drone-organ",
     "theme": "steampunk",
     "file": "assets/ui/steampunk/drone-organ.webp",
-    "status": "requested"
+    "status": "delivered"
   }
 ]

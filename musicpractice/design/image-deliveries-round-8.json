@@ -1,0 +1,175 @@
+{
+  "date": "2026-10-17",
+  "round": 8,
+  "scope": "Pipe-organ Drone screen artwork for all eight themes; used for Organ and Synth organ voices.",
+  "assets": [
+    {
+      "theme": "classic",
+      "id": "drone-organ",
+      "file": "musicpractice/app/assets/ui/drone-organ.webp",
+      "prompt": "Using the attached image, musicpractice/app/assets/ui/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, polished tin and brushed-brass pipes in a warm walnut case with cream inlay. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.\nReference roles: image 1 is the original RGBA theme reference. Image 2 shows that same reference composited on dark grey ONLY to reveal the true subtle transparency of its mist. Do NOT copy the grey backdrop; output a genuinely transparent PNG. Keep any mist as delicate, faint, airy, see-through filaments with semi-transparent alpha, matching image 2's visible treatment rather than opaque physical wings or fabric. Preserve graphic ribbon treatments in the graphic themes. Replace both cello AND bow with the organ; no cello, no bow. Target 1024x1024 square.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, polished tin and brushed-brass pipes in a warm walnut case with cream inlay. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.",
+      "generated_source": "exec-e4526adc-664a-48c5-af7f-387f8efdf3d3.png",
+      "source": "musicpractice/design/generated/round-8/classic-drone-organ.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "processing": "Preserve generated composition and visible alpha; clear imperceptible 1/255 alpha noise, resize square PNG master to 1024px and ship a 512px lossless WebP. No visible opacity changes to the sound ribbons."
+    },
+    {
+      "theme": "deco",
+      "id": "drone-organ",
+      "file": "musicpractice/app/assets/ui/deco/drone-organ.webp",
+      "prompt": "Using the attached image, musicpractice/app/assets/ui/deco/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, gleaming gold-leaf pipes rising in a stepped ziggurat from a black lacquer case, with a small jade accent. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.\nReference roles: image 1 is the original RGBA theme reference. Image 2 shows that same reference composited on dark grey ONLY to reveal the true subtle transparency of its mist. Do NOT copy the grey backdrop; output a genuinely transparent PNG. Keep any mist as delicate, faint, airy, see-through filaments with semi-transparent alpha, matching image 2's visible treatment rather than opaque physical wings or fabric. Preserve graphic ribbon treatments in the graphic themes. Replace both cello AND bow with the organ; no cello, no bow. Target 1024x1024 square.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/deco/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, gleaming gold-leaf pipes rising in a stepped ziggurat from a black lacquer case, with a small jade accent. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.",
+      "generated_source": "exec-310a3866-d262-4599-8cfc-535695b38705.png",
+      "source": "musicpractice/design/generated/round-8/deco-drone-organ.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "processing": "Preserve generated composition and visible alpha; clear imperceptible 1/255 alpha noise, resize square PNG master to 1024px and ship a 512px lossless WebP. No visible opacity changes to the sound ribbons."
+    },
+    {
+      "theme": "sixties",
+      "id": "drone-organ",
+      "file": "musicpractice/app/assets/ui/sixties/drone-organ.webp",
+      "prompt": "Using the attached image, musicpractice/app/assets/ui/sixties/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, chrome pipes in a rounded burnt-orange teak case with dark teal trim, flat screen-print colour. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.\nReference roles: image 1 is the original RGBA theme reference. Image 2 shows that same reference composited on dark grey ONLY to reveal the true subtle transparency of its mist. Do NOT copy the grey backdrop; output a genuinely transparent PNG. Keep any mist as delicate, faint, airy, see-through filaments with semi-transparent alpha, matching image 2's visible treatment rather than opaque physical wings or fabric. Preserve graphic ribbon treatments in the graphic themes. Replace both cello AND bow with the organ; no cello, no bow. Target 1024x1024 square.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/sixties/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, chrome pipes in a rounded burnt-orange teak case with dark teal trim, flat screen-print colour. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.",
+      "generated_source": "exec-cf77bd0d-6c61-4dc5-a432-2fc25d61894b.png",
+      "source": "musicpractice/design/generated/round-8/sixties-drone-organ.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "processing": "Preserve generated composition and visible alpha; clear imperceptible 1/255 alpha noise, resize square PNG master to 1024px and ship a 512px lossless WebP. No visible opacity changes to the sound ribbons."
+    },
+    {
+      "theme": "baroque",
+      "id": "drone-organ",
+      "file": "musicpractice/app/assets/ui/baroque/drone-organ.webp",
+      "prompt": "Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, burnished gilt pipes in a carved walnut case with restrained acanthus ornament and a burgundy accent. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.\nReference roles: image 1 is the original RGBA theme reference. Image 2 shows that same reference composited on dark grey ONLY to reveal the true subtle transparency of its mist. Do NOT copy the grey backdrop; output a genuinely transparent PNG. Keep any mist as delicate, faint, airy, see-through filaments with semi-transparent alpha, matching image 2's visible treatment rather than opaque physical wings or fabric. Preserve graphic ribbon treatments in the graphic themes. Replace both cello AND bow with the organ; no cello, no bow. Target 1024x1024 square.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, burnished gilt pipes in a carved walnut case with restrained acanthus ornament and a burgundy accent. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.",
+      "generated_source": "exec-cb0eeda3-eba0-4fb3-814d-859ff60baa2d.png",
+      "source": "musicpractice/design/generated/round-8/baroque-drone-organ.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "processing": "Preserve generated composition and visible alpha; clear imperceptible 1/255 alpha noise, resize square PNG master to 1024px and ship a 512px lossless WebP. No visible opacity changes to the sound ribbons."
+    },
+    {
+      "theme": "scifi",
+      "id": "drone-organ",
+      "file": "musicpractice/app/assets/ui/scifi/drone-organ.webp",
+      "prompt": "Using the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, brushed titanium pipes with thin cyan edge lighting in a graphite case, a small magenta indicator. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.\nReference roles: image 1 is the original RGBA theme reference. Image 2 shows that same reference composited on dark grey ONLY to reveal the true subtle transparency of its mist. Do NOT copy the grey backdrop; output a genuinely transparent PNG. Keep any mist as delicate, faint, airy, see-through filaments with semi-transparent alpha, matching image 2's visible treatment rather than opaque physical wings or fabric. Preserve graphic ribbon treatments in the graphic themes. Replace both cello AND bow with the organ; no cello, no bow. Target 1024x1024 square.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, brushed titanium pipes with thin cyan edge lighting in a graphite case, a small magenta indicator. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.",
+      "generated_source": "exec-5d7660b7-04c9-412b-9253-280f729248f7.png",
+      "source": "musicpractice/design/generated/round-8/scifi-drone-organ.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "processing": "Preserve generated composition and visible alpha; clear imperceptible 1/255 alpha noise, resize square PNG master to 1024px and ship a 512px lossless WebP. No visible opacity changes to the sound ribbons."
+    },
+    {
+      "theme": "nouveau",
+      "id": "drone-organ",
+      "file": "musicpractice/app/assets/ui/nouveau/drone-organ.webp",
+      "prompt": "Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, muted-gold pipes entwined with a vine in a sage-green case, with a small iris accent. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.\nReference roles: image 1 is the original RGBA theme reference. Image 2 shows that same reference composited on dark grey ONLY to reveal the true subtle transparency of its mist. Do NOT copy the grey backdrop; output a genuinely transparent PNG. Keep any mist as delicate, faint, airy, see-through filaments with semi-transparent alpha, matching image 2's visible treatment rather than opaque physical wings or fabric. Preserve graphic ribbon treatments in the graphic themes. Replace both cello AND bow with the organ; no cello, no bow. Target 1024x1024 square.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, muted-gold pipes entwined with a vine in a sage-green case, with a small iris accent. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.",
+      "generated_source": "exec-10e539e4-6807-47e1-9694-5dad3d1cea53.png",
+      "source": "musicpractice/design/generated/round-8/nouveau-drone-organ.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "processing": "Preserve generated composition and visible alpha; clear imperceptible 1/255 alpha noise, resize square PNG master to 1024px and ship a 512px lossless WebP. No visible opacity changes to the sound ribbons."
+    },
+    {
+      "theme": "anime",
+      "id": "drone-organ",
+      "file": "musicpractice/app/assets/ui/anime/drone-organ.webp",
+      "prompt": "Using the attached image, musicpractice/app/assets/ui/anime/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, pastel sky-blue and lilac pipes in a candy-pink case with a bold outline and tiny yellow sparkles. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.\nReference roles: image 1 is the original RGBA theme reference. Image 2 shows that same reference composited on dark grey ONLY to reveal the true subtle transparency of its mist. Do NOT copy the grey backdrop; output a genuinely transparent PNG. Keep any mist as delicate, faint, airy, see-through filaments with semi-transparent alpha, matching image 2's visible treatment rather than opaque physical wings or fabric. Preserve graphic ribbon treatments in the graphic themes. Replace both cello AND bow with the organ; no cello, no bow. Target 1024x1024 square.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/anime/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, pastel sky-blue and lilac pipes in a candy-pink case with a bold outline and tiny yellow sparkles. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.",
+      "generated_source": "exec-2c223db1-b22c-4f50-8930-d8bc08133f2d.png",
+      "source": "musicpractice/design/generated/round-8/anime-drone-organ.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "processing": "Preserve generated composition and visible alpha; clear imperceptible 1/255 alpha noise, resize square PNG master to 1024px and ship a 512px lossless WebP. No visible opacity changes to the sound ribbons."
+    },
+    {
+      "theme": "steampunk",
+      "id": "drone-organ",
+      "file": "musicpractice/app/assets/ui/steampunk/drone-organ.webp",
+      "prompt": "Using the attached image, musicpractice/app/assets/ui/steampunk/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, polished brass and copper pipes with rivets in a dark mahogany case, a small pressure gauge. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.\nReference roles: image 1 is the original RGBA theme reference. Image 2 shows that same reference composited on dark grey ONLY to reveal the true subtle transparency of its mist. Do NOT copy the grey backdrop; output a genuinely transparent PNG. Keep any mist as delicate, faint, airy, see-through filaments with semi-transparent alpha, matching image 2's visible treatment rather than opaque physical wings or fabric. Preserve graphic ribbon treatments in the graphic themes. Replace both cello AND bow with the organ; no cello, no bow. Target 1024x1024 square.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/steampunk/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, polished brass and copper pipes with rivets in a dark mahogany case, a small pressure gauge. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.",
+      "generated_source": "exec-9d0587b9-f646-43c3-bb53-286e2a901dea.png",
+      "source": "musicpractice/design/generated/round-8/steampunk-drone-organ.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "processing": "Preserve generated composition and visible alpha; clear imperceptible 1/255 alpha noise, resize square PNG master to 1024px and ship a 512px lossless WebP. No visible opacity changes to the sound ribbons."
+    }
+  ]
+}
