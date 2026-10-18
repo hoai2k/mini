@@ -1572,6 +1572,27 @@ function buildTelekhine() {
   return rig;
 }
 
+// A long held weapon (a club along its own +y, the group's rest pitch in
+// rotation.x) kept off the floor: after the pose is set, the wrist turns it
+// back toward the forearm just as far as it takes for its far end (len skin
+// pixels out, reach thick) to clear the ground, so a slam that ends low
+// strikes the floor with the club instead of driving it through. Chained on
+// rig.onTick (enemy.js runs it right after animate).
+const _ga = new THREE.Vector3(), _gb = new THREE.Vector3();
+export function liftHeld(rig, g, len, reach = 2.5) {
+  const base = g.rotation.x, prev = rig.onTick;
+  rig.onTick = (dt, e) => {
+    prev?.(dt, e);
+    g.rotation.x = base;
+    const floor = rig.root.getWorldPosition(_ga).y + 0.03, R = reach * PX * rig.root.scale.y;
+    for (let i = 0; i < 14; i++) {
+      g.updateWorldMatrix(true, false);
+      const y = g.localToWorld(_gb.set(0, len * PX, 0)).y - R;
+      if (y >= floor) break;
+      g.rotation.x -= 0.12;
+    }
+  };
+}
 // Cyclops (vox-bosses-2, top left): a hulking giant with one huge blue eye
 // under a single heavy brow, a curly black mane and a bushy beard, a mouth
 // open in a roar, a white wool fleece over the left shoulder belted with gold
@@ -1682,6 +1703,7 @@ export function buildCyclops({ id = 'cyclops', pal = {} } = {}) {
   markTip(club, 0, 20.8, 0, 'club'); rig.extras.club = club;
   K.done();
   rig.hunch = 0.3;
+  liftHeld(rig, club, 20.8, 2.8);
   return rig;
 }
 

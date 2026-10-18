@@ -328,7 +328,8 @@ export const TEXT = {
   // Cutscenes (subtitles, one line per shot)
   cutscenes: {
     ariaLabel: 'Cutscene',
-    skip: { pad: 'Hold A to skip', touch: 'Hold the screen to skip', kbm: 'Hold Esc to skip' },
+    next: { pad: 'A · next', touch: 'Tap · next', kbm: 'Enter · next' },   // (a press skips one shot)
+    skip: { pad: 'Hold A to skip all', touch: 'Hold the screen to skip all', kbm: 'Hold Esc to skip all' },
     waitingOthers: 'Waiting for the others…',
     waitingHost: 'Waiting for the host…',
     // Cutscene: the bus to the museum
@@ -345,7 +346,7 @@ export const TEXT = {
     summer: {
       title: 'Summer, and a storm',
       cabin: 'Summer. Mom takes you to the cabin at Montauk, on the beach where she first met your father.',
-      knock: 'In the middle of the night, during a particularly bad storm, someone bangs on the door. It’s Grover. He has no trousers on, and he has hooves instead of feet.',
+      knock: 'A storm, at midnight. Someone bangs on the door: Grover, with no trousers, and hooves instead of feet.',
       drive: '“Something is following us!” Mom drives the old Camaro into the storm, as fast as it will go.',
       lightning: 'Toward a hill on Long Island, and a great pine tree at the top.',
       crash: 'BOOM. The lightning hits, the world goes white, and the Camaro flips into a ditch.',

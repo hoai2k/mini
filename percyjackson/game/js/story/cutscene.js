@@ -2,7 +2,12 @@
 // along keyframes, letterbox bars, subtitles in the story voice (plain
 // English: narration never uses the Greek letters), an optional story-card
 // picture (shown once its image has loaded), fades.
-// Skippable: hold A, Esc (or Space / Enter) or hold a finger on the screen;
+// A press of A (or Enter / Space, a click, a tap) skips to the next shot: the
+// skipped shot is run to its end off screen (fastForward), so whatever its
+// act and the set's update reach by then (figures walked, the car driven, a
+// sign read) is where the next shot starts; on the last shot it ends the
+// cutscene. One press skips one shot (edge-triggered, with a short cooldown).
+// Holding A, Esc (or Space / Enter) or a finger on the screen skips it all;
 // a ring fills while you hold.
 //
 // A cutscene definition (story/cutscenes.js) is { id, title, build(game,
@@ -13,9 +18,12 @@
 // story/framing.js leaves it alone) }. Before a shot plays, a camera that the
 // set would hide is turned clear (frame below).
 //
-// Online the host drives (net/online.js shares the cutscene in its scene
-// setup): guests see the same cutscene; a guest holding skip asks the host,
-// and the host skips when it holds skip itself or every guest has asked.
+// Online the host drives (net/online.js shares the cutscene, and the shot it is
+// on, in its scene setup): guests see the same cutscene and are brought up to
+// the host's shot when they fall behind (syncShot), so the host's presses of A
+// carry over. A guest's own press skips only its own view (it then waits for
+// the host at the end). A guest holding skip asks the host, and the host skips
+// when it holds skip itself or every guest has asked.
 import * as THREE from 'three/webgpu';
 import { h } from '../ui/ui.js';
 import { prefersReducedMotion } from '../settings.js';
@@ -23,6 +31,7 @@ import { artReady } from '../ui/art.js';
 import { t } from '../text_config.js';
 import { clearTurn, turnAbout, seenAt } from './framing.js';
 import { shotDuration } from './subtitles.js';
+import { finishShot, PressGate } from './shotSkip.js';
 
 const HOLD = 0.85;   // seconds of holding to skip
 const ease = (k) => k * k * (3 - 2 * k);
@@ -35,6 +44,8 @@ export class Cutscene {
     this.cam = { pos: new THREE.Vector3(), look: new THREE.Vector3(), fov: 35 };
     this.held = { key: false, ptr: false };
     this.votes = new Set();
+    this.press = false; this.gate = new PressGate();   // (one press, one shot; a press already down as the cutscene starts never skips its first)
+    this.padPrevA = new Set();
   }
   start() {
     const g = this.game;
@@ -46,7 +57,14 @@ export class Cutscene {
     if (this.def.music) g.audio?.setOverride?.(this.def.music);
     this.total = this.shots.reduce((s, x) => s + x.dur, 0);
     this.fov0 = g.rig.camera.fov;
-    this.onKey = (e) => { if (['Escape', 'Space', 'Enter', 'KeyE'].includes(e.code)) { this.held.key = e.type === 'keydown'; if (e.type === 'keydown') e.preventDefault(); } };
+    this.onKey = (e) => {
+      if (!['Escape', 'Space', 'Enter', 'KeyE'].includes(e.code)) return;
+      this.held.key = e.type === 'keydown';
+      if (e.type !== 'keydown') return;
+      e.preventDefault();
+      if (!e.repeat && (e.code === 'Space' || e.code === 'Enter')) this.press = true;   // (held keys repeat: only the first keydown is a press)
+    };
+    this.padPrevA = this.padA();
     window.addEventListener('keydown', this.onKey, true); window.addEventListener('keyup', this.onKey, true);
     this.nextShot();
     this.update(0);
@@ -57,8 +75,9 @@ export class Cutscene {
       this.cardEl = h('div', { class: 'cs-card hidden' }, this.cardImg = h('img', { alt: '', draggable: 'false' })),
       this.subEl = h('p', { class: 'cs-sub', 'aria-live': 'polite' }),
       this.fadeEl = h('div', { class: 'cs-fade' }),
-      this.skipEl = h('div', { class: 'cs-skip' }, h('span', { class: 'ring' }), h('span', { class: 'txt' }, this.skipText())));
-    const down = (e) => { this.held.ptr = true; e.preventDefault(); }, up = () => { this.held.ptr = false; };
+      this.skipEl = h('div', { class: 'cs-skip' }, this.nextEl = h('span', { class: 'next' }, this.nextText()), h('span', { class: 'ring' }), h('span', { class: 'txt' }, this.skipText())));
+    this.hintDev = this.game.input?.lastDevice;
+    const down = (e) => { this.held.ptr = true; this.press = true; e.preventDefault(); }, up = () => { this.held.ptr = false; };
     el.addEventListener('pointerdown', down); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up); el.addEventListener('pointerleave', up);
     document.body.appendChild(el);
     requestAnimationFrame(() => el.classList.add('in'));
@@ -66,6 +85,18 @@ export class Cutscene {
   skipText() {
     const pad = this.game.input?.lastDevice?.startsWith?.('pad'), touch = this.game.input?.lastDevice === 'touch';
     return t(pad ? 'cutscenes.skip.pad' : touch ? 'cutscenes.skip.touch' : 'cutscenes.skip.kbm');
+  }
+  nextText() {
+    const pad = this.game.input?.lastDevice?.startsWith?.('pad'), touch = this.game.input?.lastDevice === 'touch';
+    return t(pad ? 'cutscenes.next.pad' : touch ? 'cutscenes.next.touch' : 'cutscenes.next.kbm');
+  }
+  // the hints follow the device last used (as the game's other prompts do)
+  refreshHints() {
+    const dev = this.game.input?.lastDevice;
+    if (dev === this.hintDev || this.voted || this.done) return;
+    this.hintDev = dev;
+    this.nextEl.textContent = this.nextText();
+    this.skipEl.querySelector('.txt').textContent = this.skipText();
   }
   nextShot() {
     this.shotIdx++; this.shotT = 0;
@@ -118,16 +149,76 @@ export class Cutscene {
     for (const p of navigator.getGamepads?.() ?? []) if (p && (p.buttons[0]?.pressed || p.buttons[9]?.pressed || p.buttons[1]?.pressed)) return true;
     return false;
   }
+  // the pads holding A now (by index), for the press of A (its down edge)
+  padA() {
+    const out = new Set();
+    for (const p of navigator.getGamepads?.() ?? []) if (p?.buttons[0]?.pressed) out.add(p.index);
+    return out;
+  }
+  // A was pressed (pad, Enter / Space, a click or a tap) since the last frame
+  pressed() {
+    const a = this.padA();
+    let edge = this.press;
+    for (const i of a) if (!this.padPrevA.has(i)) edge = true;
+    this.padPrevA = a; this.press = false;
+    return edge;
+  }
+  // Skip the shot on screen: run it to its end (off screen), then the next
+  // one starts; on the last shot, end the cutscene.
+  skipShot() {
+    if (this.done || !this.shots[this.shotIdx]) return;
+    if (this.shotIdx >= this.shots.length - 1) {
+      // the last shot: the host (or someone alone) ends it for everyone; a guest waits for the host
+      if (this.remote) this.finish(); else this.finish(true);
+      return;
+    }
+    this.advance();
+  }
+  // finish the shot on screen as if it had played to its end, and start the next
+  advance() {
+    this.fastForward();
+    this.fadingOut = false;
+    const next = this.shots[this.shotIdx + 1];
+    if (!next?.fadeIn) { const f = this.fadeEl; f.style.transition = 'opacity .15s ease'; f.style.opacity = '0'; }   // (a fade the skipped shot began never darkens the next)
+    this.cardEl.classList.add('hidden');
+    this.nextShot();
+  }
+  // Run the rest of the shot on screen in small steps, as update() would:
+  // its act (k up to 1), the set's update (figures, vehicles, traffic) and
+  // the painted signs. Nothing is shown (no subtitles, cards or fades), and
+  // the set can see ctx.ff to leave out its flashes and sounds.
+  fastForward() {
+    const s = this.shots[this.shotIdx];
+    if (!s) return;
+    this.ff = true;
+    try { finishShot(s, this, (t, dt) => { this.set.update?.(t, dt); this.game.signs?.update?.(dt); }); }
+    finally { this.ff = false; }
+  }
+  // a guest: the host is on shot i; catch up when behind (never back)
+  syncShot(i) {
+    if (!this.remote || this.done || !this.shots) return;
+    i = Math.min(i, this.shots.length - 1);
+    while (!this.done && this.shotIdx < i) this.advance();
+  }
   // every frame (real time): the shot, the camera target, the skip ring
   update(dt) {
     if (this.done) return;
-    const g = this.game, s = this.shots[this.shotIdx];
+    const g = this.game;
+    let s = this.shots[this.shotIdx];
     // skip
     const holding = this.held.key || this.held.ptr || this.pad();
     this.hold = holding ? this.hold + dt : Math.max(0, this.hold - dt * 2);
     this.skipEl.style.setProperty('--p', Math.min(1, this.hold / HOLD).toFixed(3));
     this.skipEl.classList.toggle('holding', this.hold > 0.05);
     if (this.hold >= HOLD && !this.voted) { this.voted = true; this.requestSkip(); }
+    if (this.done) return;
+    this.refreshHints();
+    // a press of A: the next shot
+    if (this.gate.take(dt, this.pressed()) && s) {
+      this.skipShot();
+      if (this.done) return;
+      s = this.shots[this.shotIdx];   // (the next shot from its start, this frame)
+    }
     if (!s) { this.finish(); return; }
     this.t += dt; this.shotT += dt;
     const k = Math.min(1, this.shotT / s.dur);

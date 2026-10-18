@@ -152,7 +152,7 @@ export const CUTSCENES = {
           lines: [{ at: 0.8, text: t('cutscenes.bus.steps') }],
           card: { src: 'assets/cards/scene-museum-steps.jpg', at: 2.2, dur: 4 },
           act: (k, dt, t) => { drive(L.busStop.z, dt, 4); unload(t); if (t >= BUS_READ) readBus(); } },
-        { dur: 11.4, fadeOut: 'black',   // (two lines: her stare, then her word)
+        { dur: 11, fadeOut: 'black',   // (two lines: her stare, then her word)
           cam: move({ pos: [21, L.top + 2.2, L.MC + 2], look: [L.dodds.x, L.top + 1.6, L.dodds.z] }, { pos: [18.6, L.top + 1.9, L.MC + 0.6], look: [L.dodds.x, L.top + 1.7, L.dodds.z] }, { fov: 34, fov2: 28 }),
           enter: () => dodds.face(Math.atan2(20 - L.dodds.x, L.MC + 2 - L.dodds.z)),
           lines: [{ at: 0.2, text: t('cutscenes.bus.dodds') }, { at: 6, text: t('cutscenes.bus.doddsWord') }] },   // (the one time her stare is told; her word in the galleries leads into chapter 1)
@@ -170,7 +170,7 @@ export const CUTSCENES = {
   // ------------------------------------------------------------------ summer, the storm, the drive
   summer: {
     id: 'summer', music: 'cutscene-storm', title: t('cutscenes.summer.title'),
-    build(game) {
+    build(game, ctx) {
       const L = buildMontaukSet();
       setLevel(game, L, BIOMES.storm_hill);
       const actors = [];
@@ -191,6 +191,7 @@ export const CUTSCENES = {
         cm.rotation.y += Math.atan2(Math.sin(yaw - cm.rotation.y), Math.cos(yaw - cm.rotation.y)) * 0.15;
       };
       const flash = (big = false) => {
+        if (ctx?.ff) return;   // (a shot skipped with A runs to its end off screen: no flashes or thunder for it)
         const f = game.rig.camera.position.clone().add(V(-10, 14, -12));
         game.fx?.flash?.(0xd8e8ff, big ? 0.9 : 0.4, big ? 0.5 : 0.2);
         game.lights?.flash?.(f, new THREE.Color(0xc8d8ff), big ? 60 : 30, 80, 0.3);
@@ -202,23 +203,23 @@ export const CUTSCENES = {
         { dur: 5.4, fadeIn: 'black',
           cam: move({ pos: [10, 12, 82], look: [38, 4, 55] }, { pos: [16, 9, 72], look: [38, 4, 56] }, { fov: 42 }),
           lines: [{ at: 0.3, text: t('cutscenes.summer.cabin') }] },
-        { dur: 6.8,
-          enter: () => { grover.rig.root.visible = true; grover.pos.set(L.door.x - 7, L.FY, L.door.z + 2); grover.walk(V(L.door.x - 1.6, L.FY, L.door.z), 4.6); flash(); },
+        { dur: 6,   // (Grover arrives in the first two seconds: the shot moves on once his line is read)
+          enter: () => { grover.rig.root.visible = true; grover.pos.set(L.door.x - 7, L.FY, L.door.z + 2); grover.walk(V(L.door.x - 1.6, L.FY, L.door.z), 3.6); flash(); },
           cam: move({ pos: [L.door.x - 6.5, L.FY + 3.2, L.door.z + 3.5], look: [L.door.x + 0.2, L.FY + 1.3, L.door.z] }, { pos: [L.door.x - 5.5, L.FY + 2.8, L.door.z + 3], look: [L.door.x + 0.3, L.FY + 1.4, L.door.z] }, { fov: 40 }), noFrame: true,   // (through the door, a metre clear of Grover: framed by hand)
-          lines: [{ at: 0.6, text: t('cutscenes.summer.knock') }],
-          card: { src: 'assets/cards/scene-montauk.jpg', at: 1.2, dur: 5 } },
+          lines: [{ at: 0.3, text: t('cutscenes.summer.knock') }],
+          card: { src: 'assets/cards/scene-montauk.jpg', at: 1.0, dur: 4.6 } },
         { dur: 5.8,
           enter: () => { grover.rig.root.visible = false; percy.rig.root.visible = false; mom.rig.root.visible = false; s = 0; },
           cam: follow(cm, [-11, 6.5, 9], [4, 0.8, -3], { offset2: [-9, 5.5, -9], fov: 44 }),
           lines: [{ at: 0.2, text: t('cutscenes.summer.drive') }],
           act: (k, dt) => { const v = 9; s = Math.min(total, s + v * dt); place(s); spin(cm, v * dt); } },   // (9 m/s: the road lasts both shots)
-        { dur: 9.4, fadeOut: 'white',   // (two lines: the hill, then the crash)
+        { dur: 8.8, fadeOut: 'white',   // (two lines: the hill, then the crash; the shot ends once the crash is read)
           cam: move({ pos: [68, 9, 44], look: [82, 5, 26] }, { pos: [72, 8, 36], look: [80, 7, 14] }, { fov: 42, fov2: 36 }),
           card: { src: 'assets/cards/scene-storm-drive.jpg', at: 0.4, dur: 3 },
-          lines: [{ at: 0.2, text: t('cutscenes.summer.lightning') }, { at: 4.3, text: t('cutscenes.summer.crash') }],
+          lines: [{ at: 0.2, text: t('cutscenes.summer.lightning') }, { at: 3.8, text: t('cutscenes.summer.crash') }],
           // the car slows and parks at the end of the road, at the foot of the hill, then the lightning hits
           enter: () => { cm.userData.s0 = s; },
-          act: (k, dt, t) => { const f = Math.min(1, t / 3.8), ns = cm.userData.s0 + (total - cm.userData.s0) * (1 - (1 - f) ** 2); spin(cm, ns - s); s = ns; place(s); if (t > 4.3 && !cm.userData.hit) { cm.userData.hit = true; flash(true); }
+          act: (k, dt, t) => { const f = Math.min(1, t / 3.4), ns = cm.userData.s0 + (total - cm.userData.s0) * (1 - (1 - f) ** 2); spin(cm, ns - s); s = ns; place(s); if (t > 3.8 && !cm.userData.hit) { cm.userData.hit = true; flash(true); }
             // the lightning flips the car onto its side, into the ditch (chapter 2 starts from there)
             if (cm.userData.hit) { const r = cm.userData.roll = Math.min(1, (cm.userData.roll ?? 0) + dt * 5); cm.rotation.x = r * Math.PI / 2; cm.position.y = L.FY + Math.sin(r * Math.PI / 2) * 0.97; } } },
       ];
