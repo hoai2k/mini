@@ -247,6 +247,9 @@ function renderBeats() {
     row.append(...strengths.map((s) => {
       const bar = document.createElement('i');
       bar.className = `met-bar${s === 2 ? ' strong' : s === 1 ? ' mid' : ''}`;
+      // The bar's shape is its child, so a theme can cut it (Art Deco's angled
+      // ends, Robot Future's chamfer) and the glow, drawn round the bar, still follows it.
+      bar.append(Object.assign(document.createElement('i'), { className: 'met-shape' }));
       return bar;
     }));
     return row;

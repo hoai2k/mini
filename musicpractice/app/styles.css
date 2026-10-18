@@ -457,21 +457,78 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
 .met-viz-opts[hidden], .met-art-opts[hidden] { display: none; }
 .met-measure { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: clamp(5px, 1.6vw, 10px); height: var(--row, 26px); }
 .met-bar {
-  /* Unlit, a faint neutral outline (the strong beat's a touch of its colour,
-     so the bar still reads); the colour is for the beat being played. */
+  /* A beat's bar: the shape inside it (.met-shape) is a faint neutral
+     outline until played (the strong beat's a touch of its colour, so the
+     bar still reads); played, it fills with its colour (--lit, 0 to 1) and
+     glows. The glow is a drop shadow of the bar, so it follows whatever shape
+     a theme cuts the bar to. Themes set the shape below (--bar-*). */
   --c: var(--viz-beat, #2f8cff);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--ink) 4%, transparent);
-  border: 1.5px solid color-mix(in srgb, var(--ink) 14%, transparent);
-  position: relative;
+  --bar-line: color-mix(in srgb, var(--ink) 14%, transparent);
+  position: relative; display: block;
+  filter: drop-shadow(0 0 var(--bar-glow, 7px) color-mix(in srgb, var(--c) calc(var(--lit, 0) * 85%), transparent));
 }
-.met-bar.strong { --c: var(--viz-strong, #ff3b30); border-color: color-mix(in srgb, var(--c) 40%, transparent); }
-.met-bar::after {
-  content: ""; position: absolute; inset: -2px; border-radius: 999px;
+.met-bar.strong { --c: var(--viz-strong, #ff3b30); --bar-line: color-mix(in srgb, var(--c) 40%, transparent); }
+.met-shape {
+  position: absolute; inset: 0; display: block;
+  border-radius: var(--bar-r, 999px);
+  clip-path: var(--bar-clip, none);
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  border: var(--bar-w, 1.5px) var(--bar-style, solid) var(--bar-line);
+}
+.met-shape::after {
+  content: ""; position: absolute; inset: var(--fill-inset, calc(-1 * var(--bar-w, 1.5px)));
+  border-radius: inherit;
   background: linear-gradient(180deg, color-mix(in srgb, var(--c) 55%, #fff), var(--c) 50%, color-mix(in srgb, var(--c) 80%, #000));
-  box-shadow: 0 0 16px 3px color-mix(in srgb, var(--c) 60%, transparent);
   opacity: var(--lit, 0);
   will-change: opacity;
+}
+
+/* The Visualizer in each theme's own shapes. Classic keeps the soft pill. */
+/* Art Deco: square bars with angled ends, as its Stop button, a fine gold line. */
+[data-theme="deco"] .met-bar {
+  --bar-r: 0; --bar-w: 0px;
+  --bar-clip: polygon(9px 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 9px 100%, 0 50%);
+  --bar-line: color-mix(in srgb, var(--brass) 45%, transparent);
+}
+[data-theme="deco"] .met-bar.strong { --bar-line: color-mix(in srgb, var(--c) 55%, transparent); }
+/* Clipped shapes are outlined by layering: the line colour underneath, the
+   page's own colour cut 1px smaller on top, then the fill. */
+[data-theme="deco"] .met-shape, [data-theme="scifi"] .met-shape { background: var(--bar-line); }
+[data-theme="deco"] .met-shape::before, [data-theme="scifi"] .met-shape::before {
+  content: ""; position: absolute; inset: 1px; clip-path: var(--bar-clip); background: var(--bg);
+}
+[data-theme="deco"] .met-shape::after, [data-theme="scifi"] .met-shape::after { inset: 0; }
+/* Robot Future: chamfered segments, like the lights of a readout, glowing. */
+[data-theme="scifi"] .met-bar {
+  --bar-r: 0; --bar-w: 0px; --bar-glow: 9px;
+  --bar-clip: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  --bar-line: color-mix(in srgb, var(--brass) 30%, transparent);
+}
+[data-theme="scifi"] .met-bar.strong { --bar-line: color-mix(in srgb, var(--c) 45%, transparent); }
+/* French Nouveau: the leaf shape of its chips. */
+[data-theme="nouveau"] .met-bar { --bar-r: 15px 4px 15px 4px; }
+/* 18th Century: near-square, a fine double gilt line. */
+[data-theme="baroque"] .met-bar { --bar-r: 3px; --bar-w: 3px; --bar-style: double; --bar-line: color-mix(in srgb, var(--brass-2) 50%, transparent); }
+[data-theme="baroque"] .met-bar.strong { --bar-line: color-mix(in srgb, var(--c) 45%, transparent); }
+/* Steam Punk: small brass plates in a copper rim, a rivet at each end; lit like a warm lamp. */
+[data-theme="steampunk"] .met-bar { --bar-r: 5px; --bar-w: 2px; --bar-line: color-mix(in srgb, #b8743a 42%, transparent); --bar-glow: 9px; }
+[data-theme="steampunk"] .met-shape {
+  background:
+    radial-gradient(circle at 7px 50%, color-mix(in srgb, #d9a44a 75%, transparent) 0 1.8px, transparent 2.4px),
+    radial-gradient(circle at calc(100% - 7px) 50%, color-mix(in srgb, #d9a44a 75%, transparent) 0 1.8px, transparent 2.4px),
+    color-mix(in srgb, #b8743a 8%, transparent);
+}
+/* Vintage 60s: its thick print outline, and the bar being played printed with the offset shadow. */
+[data-theme="sixties"] .met-bar { --bar-w: 2.5px; --bar-line: color-mix(in srgb, var(--outline) 35%, transparent); --bar-glow: 0px; }
+[data-theme="sixties"] .met-bar.strong { --bar-line: color-mix(in srgb, var(--c) 50%, transparent); }
+[data-theme="sixties"] .met-shape::after { background: var(--c); border: 2.5px solid var(--outline); box-shadow: 3px 3px 0 var(--print); }
+/* Candy: a bolder ink outline; the bar being played inked with a hard shadow, a sparkle on the strong beat. */
+[data-theme="anime"] .met-bar { --bar-w: 2.5px; --bar-line: color-mix(in srgb, var(--ink) 28%, transparent); --bar-glow: 0px; }
+[data-theme="anime"] .met-bar.strong { --bar-line: color-mix(in srgb, var(--c) 55%, transparent); }
+[data-theme="anime"] .met-shape::after { background: var(--c); border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+[data-theme="anime"] .met-bar.strong::after {
+  content: "\2726"; position: absolute; right: -4px; top: -9px; font-size: 14px; line-height: 1; color: #ffd84d;
+  -webkit-text-stroke: 1px var(--ink); opacity: var(--lit, 0); pointer-events: none;
 }
 
 /* Landscape phones and desktops: metronome left, controls right */
