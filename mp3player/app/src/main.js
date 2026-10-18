@@ -7,6 +7,7 @@ import * as store from './store.js';
 import { Player, probe } from './player.js';
 import { Queue } from './queue.js';
 import { readTags, fromFileName } from './tags.js';
+import { findArtwork, cleanAlbum, RateLimited } from './artwork.js';
 import { icon } from './icons.js';
 import {
   artistOf, albumArtistOf, albumOf, titleOf, albumKey, fold, reconcileOrder, sortTracks, SORTS, moveItem,
@@ -33,7 +34,7 @@ const SESSION_KEY = 'mp3player.session';
 const load = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } };
 const save = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private mode or full */ } };
 
-const prefs = { tab: 'songs', sort: 'custom', volume: 1, ...load(PREFS_KEY, {}) };
+const prefs = { tab: 'songs', sort: 'custom', volume: 1, onlineArt: true, ...load(PREFS_KEY, {}) };
 const savePrefs = () => save(PREFS_KEY, prefs);
 
 /** @type {Map<string, object>} */
@@ -819,6 +820,13 @@ async function settingsMenu() {
   const [{ usage, quota }, safe] = await Promise.all([store.estimate(), store.persisted()]);
   const all = visibleTracks();
   const total = all.reduce((s, t) => s + (t.duration || 0), 0);
+  const missingArt = all.filter((t) => !t.artKey).length;
+  const artStatus = () => {
+    if (!prefs.onlineArt) return 'Songs without cover art keep a stand-in cover.';
+    if (artJob.running) return `Looking… ${artJob.done} of ${artJob.total} songs, ${artJob.found} found`;
+    const online = all.filter((t) => t.artOnline).length;
+    return `${online ? `${plural(online, 'cover')} found online. ` : ''}Song titles and artists are sent to Apple’s iTunes Search to find covers.`;
+  };
   const v = await sheet(`<h3 class="sheet-title">Settings</h3>
     <div class="facts">
       <div><span>Library</span><b>${plural(all.length, 'song')}${total ? ` · ${formatTotal(total)}` : ''}</b></div>
@@ -826,6 +834,8 @@ async function settingsMenu() {
       <div><span>Kept safe</span><b>${safe ? 'Yes: the browser won’t clear your library to free space' : 'Not yet'}</b></div>
     </div>
     ${safe ? '' : item('persist', 'shield', 'Keep my library safe')}
+    <button class="sheet-item" type="button" data-v="online-art" aria-pressed="${prefs.onlineArt}">${icon('album')}<span>Find missing artwork online<small>${artStatus()}</small></span><b class="switch${prefs.onlineArt ? ' on' : ''}">${prefs.onlineArt ? 'On' : 'Off'}</b></button>
+    ${prefs.onlineArt && !artJob.running && missingArt ? item('find-art', 'search', `Look again for ${plural(missingArt, 'missing cover')}`) : ''}
     ${item('add', 'plus', 'Add music')}
     ${all.length ? item('clear', 'trash', 'Remove all songs', 'danger') : ''}
     <p class="sheet-body fine">Removing songs only deletes this app’s copies; the files on your device stay where they are.
@@ -833,7 +843,13 @@ async function settingsMenu() {
   if (v === 'persist') {
     const ok = await store.persist();
     toast(ok ? 'Your library is kept safe.' : 'The browser didn’t agree yet. Adding the app to your home screen usually helps.', { ms: 5000 });
-  } else if (v === 'add') addMenu();
+  } else if (v === 'online-art') {
+    prefs.onlineArt = !prefs.onlineArt;
+    savePrefs();
+    toast(prefs.onlineArt ? 'Finding missing artwork online' : 'Artwork stays as it is');
+    if (prefs.onlineArt) findMissingArt();
+  } else if (v === 'find-art') findMissingArt({ force: true, announce: true });
+  else if (v === 'add') addMenu();
   else if (v === 'clear') {
     if (await confirmSheet({ title: 'Remove all songs?', body: `All ${plural(all.length, 'song')} leave this app. The files on your device stay where they are.`, ok: 'Remove all', danger: true })) {
       player.stop();
@@ -995,6 +1011,110 @@ async function importFiles(files) {
   if (unplayable) notes.push(`${unplayable} this browser can’t play`);
   if (failed) notes.push(`${failed} couldn’t be read`);
   toast(`${added ? `Added ${plural(added, 'song')}` : 'No new songs'}${notes.length ? ` (${notes.join(', ')})` : ''}.`, { ms: 5000 });
+  if (added) findMissingArt();
+}
+
+// ---------------------------------------------------------------- artwork from the internet
+
+const RETRY_AFTER = 14 * 24 * 3600e3; // look again for songs with no match after two weeks
+const artJob = { running: false, done: 0, total: 0, found: 0, again: false };
+let lastSearch = 0;
+const pace = async () => {
+  const gap = 3100 - (Date.now() - lastSearch); // iTunes allows about 20 searches a minute
+  if (gap > 0) await new Promise((r) => setTimeout(r, gap));
+  lastSearch = Date.now();
+};
+
+/** Songs without art, grouped so an album is looked up once. */
+function artGroups(force) {
+  const groups = new Map();
+  for (const t of visibleTracks()) {
+    if (t.artKey) continue;
+    if (!force && t.artLookup && !t.artLookup.found && Date.now() - t.artLookup.at < RETRY_AFTER) continue;
+    const key = cleanAlbum(t.album) ? `a:${albumKey(t)}` : `t:${t.id}`;
+    if (!groups.has(key)) groups.set(key, { tracks: [] });
+    groups.get(key).tracks.push(t);
+  }
+  return [...groups.values()];
+}
+
+/**
+ * Find covers online for every song that has none (new and existing ones),
+ * a few seconds apart, in the background. Stem and edit versions are looked
+ * up as the original song (artwork.js).
+ */
+async function findMissingArt({ force = false, announce = false } = {}) {
+  if (!prefs.onlineArt) return;
+  if (artJob.running) { artJob.again = artJob.again || force; return; }
+  const groups = artGroups(force);
+  if (!groups.length) { if (announce) toast('Every song has its artwork.'); return; }
+  Object.assign(artJob, { running: true, done: 0, total: groups.reduce((n, g) => n + g.tracks.length, 0), found: 0, again: false });
+  let strikes = 0;
+  try {
+    for (let i = 0; i < groups.length && prefs.onlineArt; i++) {
+      const g = groups[i];
+      g.tracks = g.tracks.filter((t) => tracks.has(t.id) && !t.artKey);
+      if (!g.tracks.length) continue;
+      if (!navigator.onLine) { addEventListener('online', () => findMissingArt(), { once: true }); break; }
+      let hit;
+      try {
+        hit = await findArtwork(g, { wait: pace });
+      } catch (err) {
+        if (err instanceof RateLimited && strikes++ < 3) {
+          lastSearch = Date.now() + 60000; // back off a minute, then try this group again
+          i--;
+          continue;
+        }
+        if (err instanceof RateLimited) break;
+        hit = undefined; // a network hiccup: try this group another time
+      }
+      let artKey;
+      if (hit) {
+        try {
+          let res = await fetch(hit.url).catch(() => null);
+          if (!res?.ok) res = await fetch(hit.url);
+          if (res.ok) artKey = await saveArt(new Uint8Array(await res.arrayBuffer()), res.headers.get('content-type'));
+        } catch { /* leave it for next time */ }
+      }
+      for (const t of g.tracks) {
+        if (artKey) {
+          t.artKey = artKey;
+          t.artOnline = { from: hit.from, kind: hit.kind };
+          t.artLookup = { at: Date.now(), found: true };
+          artJob.found++;
+        } else if (hit !== undefined) {
+          t.artLookup = { at: Date.now(), found: false };
+        }
+        store.putTrack(t).catch(() => {});
+        if (artKey) showNewArt(t);
+      }
+      artJob.done += g.tracks.length;
+      strikes = 0;
+    }
+  } finally {
+    artJob.running = false;
+  }
+  if (announce || artJob.found) toast(artJob.found ? `Found artwork for ${plural(artJob.found, 'song')}.` : 'No more artwork found online; those songs keep their stand-in covers.', { ms: 4000 });
+  if (artJob.again) findMissingArt({ force: true });
+}
+
+let artRerender = 0;
+/** Put a newly found cover on screen without disturbing what the listener is doing. */
+function showNewArt(t) {
+  for (const el of document.querySelectorAll(`.row[data-id="${CSS.escape(t.id)}"] .art`)) {
+    el.dataset.art = t.artKey;
+    el.style.backgroundImage = '';
+    fillArt(el);
+  }
+  if (t.id === queue.current) updateTrackUI();
+  // Album and artist pictures come from their songs: redraw those views now and then.
+  const cards = ui.route.name !== 'library' || prefs.tab !== 'songs';
+  if (cards && !artRerender) {
+    artRerender = setTimeout(() => {
+      artRerender = 0;
+      if (!document.querySelector('.dragging') && $('sheet').hidden) rerender();
+    }, 1500);
+  }
 }
 
 function refreshAfterChange() {
@@ -1403,6 +1523,7 @@ async function boot() {
     updateTrackUI();
     startTrack(queue.current, { play: false, at: session?.time ?? 0 });
   }
+  setTimeout(() => findMissingArt(), 1500); // covers for songs already in the library
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 

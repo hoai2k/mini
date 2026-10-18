@@ -534,6 +534,10 @@ input[type="range"]:hover::-webkit-slider-runnable-track, input[type="range"]:fo
 .sheet-item:hover, .sheet-item:focus-visible { background: rgba(255, 255, 255, 0.07); }
 .sheet-item.on, .sheet-item.on .icon { color: var(--accent); }
 .sheet-item.danger, .sheet-item.danger .icon { color: var(--danger); }
+.sheet-item > span { flex: 1; display: flex; flex-direction: column; }
+.sheet-item small { color: var(--muted); font-size: 0.78rem; line-height: 1.3; }
+.switch { font-size: 0.78rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--raised-2); color: var(--muted); }
+.switch.on { background: var(--accent-grad); color: #1a0e08; }
 .sheet-track { display: flex; gap: 12px; align-items: center; padding: 4px 12px 12px; margin-bottom: 6px; border-bottom: 1px solid var(--line); }
 .sheet-buttons { display: flex; gap: 10px; justify-content: flex-end; padding: 8px 12px 0; }
 .facts { display: grid; gap: 10px; padding: 4px 12px 14px; }

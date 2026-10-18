@@ -42,6 +42,24 @@ on the device is never touched.
   `Artist/Album/song` folder layout. A `cover.jpg` or `folder.jpg` beside the
   songs is used for songs without art. Durations come from the tags or the
   MP3 frame headers, and are corrected when a song plays.
+- **Artwork from the internet** for every song whose file has none, new and
+  already in the library (Settings → Find missing artwork online, on by
+  default). `src/artwork.js` searches Apple's iTunes Search API (free, no key,
+  open to any web page) and downloads the 600 px cover into the library, so
+  it stays offline afterwards. Stem and edit versions are searched as the
+  original: labels such as `(Instrumental)`, `[Vocals Only]`, `- No Drums`,
+  `(Slowed + Reverb)`, `120 BPM`, featured artists and stem-splitter file
+  names (`song_vocals.wav`, `song.no_drums`, `htdemucs`) come off the title,
+  and covers, karaoke and tribute versions lose out to the original. It tries
+  the album (artist + album), then the song (artist + title), then, when the
+  artist is known, that artist's picture; the title alone is searched only
+  for songs with no artist, so a known artist never gets a stranger's
+  same-named song. Songs of one album are looked up once. Searches run in the
+  background about 3 seconds apart (Apple allows roughly 20 a minute), back
+  off when Apple says to slow down, wait for a connection when offline, and
+  don't repeat a search that found nothing for two weeks (Settings → Look
+  again forces it). Songs nothing is found for keep a stand-in cover. The
+  setting notes that titles and artists are sent to Apple.
 - **Removing**: ⋯ → Remove from library, or − in Edit, with Undo for 8
   seconds. Settings → Remove all songs empties the library.
 - **Playback** in the manner of Spotify: tap a song to play its list from
@@ -76,8 +94,9 @@ tab is hidden: background play is the point of a music player.
   reordering. `player.js`: the `<audio>` element and Media Session.
   `queue.js`: what plays next (pure). `library.js`: sorting, albums,
   artists, search, the custom order (pure). `tags.js`: tag reading (pure,
-  plus `readTags` for Files). `store.js`: IndexedDB. `icons.js`: inline SVG
-  icons.
+  plus `readTags` for Files). `artwork.js`: covers from iTunes Search (the
+  matching is pure, the fetch injectable). `store.js`: IndexedDB.
+  `icons.js`: inline SVG icons.
 - `app/data/asset-list.json`: which artwork is delivered (generated).
 - `app/assets/ui/` (logo, welcome picture, library card cover) and
   `app/assets/art/` (the artist placeholder, tinted per artist, and eight
