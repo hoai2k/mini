@@ -724,7 +724,7 @@ function buildKeres(K0) {
   const blk = 0x1a1216, blkL = 0x3a2a30, hairC = [0xe8e4e0, 0xc8c4c0, 0xffffff], pale = 0xe0d8d0, red = 0xff2a2a, redD = 0xa81a1a, RAG = [blk, blkL, 0x2a1e24];
   const mat = skinMat('keres', (S) => paintPerson(S, { skin: pale, hair: 0xe8e4e0, fringe: 2, hairSide: 4, hairBack: 8, eye: 0x0a0406, eyeWhite: 0x0a0406, brow: 0x8a8070, mouth: false, top: blk, sleeve: blk, hand: pale, pants: blk, shoes: false,
     face: (s, ey) => { for (const x of [9, 13]) { s.rect(x, ey - 1, 2, 2, 0x2a0408, 0); s.rect(x + 0.5, ey - 0.5, 1, 1, red, 0); } s.rect(11, ey + 1.5, 2, 1, 0x6a5a5a, 0); s.rect(9.5, ey + 3, 5, 1.5, 0x2a0408, 0); for (let x = 9.5; x < 14.5; x += 1) s.dot(x, ey + 3, 0xfff8f0, 0.6, 1); } }), { emit: 1.6 });
-  const rig = new Rig({ material: mat, scale: 0.95, armW: 2.6, bodyW: 7, jacket: false });
+  const rig = new Rig({ material: mat, scale: 1.1, armW: 2.6, bodyW: 7, jacket: false });
   const K = K0.kit(rig, mat, { seed: 173, rough: 0.9, emit: 0.9 });
   const T = rig.torso, Hd = rig.head, H8 = 8 * HS;
   dropAll(rig, T); dropOne(rig, hatOf(rig));
@@ -752,7 +752,7 @@ function buildKeres(K0) {
     for (let i = 0; i < 5; i++) { const h = 5 + K.r() * 5; K.box(root, X(1 + i * 2), -5 - h / 2, -0.2, 1.6, h, 0.4, K.tone(RAG, 0.1)); }
     K.box(elbow, 0, 0, 0, 2, 2, 2, blkL);
     for (let i = 0; i < 9; i++) {
-      const a = 1.35 - i * 0.24, L = 15 - Math.abs(i - 3) * 0.9 + K.r() * 2, ux = Math.cos(a), uy = Math.sin(a);
+      const a = 1.35 - i * 0.24, L = 19 - Math.abs(i - 3) * 1.1 + K.r() * 2.5, ux = Math.cos(a), uy = Math.sin(a);
       K.box(elbow, X(ux * L / 2), uy * L / 2, -0.1 - i * 0.04, L, 1.8, 0.45, K.tone(RAG, 0.12), 0, 0, side * a);
       if (i % 2 === 0) K.box(elbow, X(ux * L * 0.4), uy * L * 0.4, 0.15, L * 0.6, 0.35, 0.3, i % 4 ? redD : red, 0, 0, side * a);
     }
