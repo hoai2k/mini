@@ -8,29 +8,29 @@ Player controls (play, pause, skip, shuffle, repeat, queue and the rest) are
 drawn as inline SVG in the app and need no art; album covers come from the
 music files themselves.
 
-**Round 1:** 13 images wanted, marked `requested`.
+**Round 1:** delivered and in use.
 
 **House style** (already included in every prompt): Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
 
 | Status | Id | File | Size |
 | --- | --- | --- | --- |
-| requested | `icon` | `app/icons/icon-1024.png` | 1024×1024, PNG, full bleed, no transparency |
-| requested | `logo` | `app/assets/ui/logo.webp` | 1200×320, transparent PNG (shipped as WebP) |
-| requested | `cover` | `app/assets/ui/cover.webp` | 1200×900 (4:3), WebP |
-| requested | `welcome` | `app/assets/ui/welcome.webp` | 1200×900 (4:3), transparent PNG (shipped as WebP) |
-| requested | `artist` | `app/assets/art/artist.webp` | 512×512, PNG (shipped as 256×256 WebP) |
-| requested | `art-1` | `app/assets/art/art-1.webp` | 800×800, PNG (shipped as 512×512 WebP) |
-| requested | `art-2` | `app/assets/art/art-2.webp` | 800×800, PNG (shipped as 512×512 WebP) |
-| requested | `art-3` | `app/assets/art/art-3.webp` | 800×800, PNG (shipped as 512×512 WebP) |
-| requested | `art-4` | `app/assets/art/art-4.webp` | 800×800, PNG (shipped as 512×512 WebP) |
-| requested | `art-5` | `app/assets/art/art-5.webp` | 800×800, PNG (shipped as 512×512 WebP) |
-| requested | `art-6` | `app/assets/art/art-6.webp` | 800×800, PNG (shipped as 512×512 WebP) |
-| requested | `art-7` | `app/assets/art/art-7.webp` | 800×800, PNG (shipped as 512×512 WebP) |
-| requested | `art-8` | `app/assets/art/art-8.webp` | 800×800, PNG (shipped as 512×512 WebP) |
+| delivered | `icon` | `app/icons/icon-1024.png` | 1024×1024, PNG, full bleed, no transparency |
+| delivered | `logo` | `app/assets/ui/logo.webp` | 1200×320, transparent PNG (shipped as WebP, trimmed to the wordmark) |
+| delivered | `cover` | `app/assets/ui/cover.webp` | 1200×900 (4:3), WebP |
+| delivered | `welcome` | `app/assets/ui/welcome.webp` | 1200×900 (4:3), transparent PNG (shipped as WebP) |
+| delivered | `artist` | `app/assets/art/artist.webp` | 512×512, PNG (shipped as 256×256 WebP) |
+| delivered | `art-1` | `app/assets/art/art-1.webp` | 800×800, PNG (shipped as 512×512 WebP) |
+| delivered | `art-2` | `app/assets/art/art-2.webp` | 800×800, PNG (shipped as 512×512 WebP) |
+| delivered | `art-3` | `app/assets/art/art-3.webp` | 800×800, PNG (shipped as 512×512 WebP) |
+| delivered | `art-4` | `app/assets/art/art-4.webp` | 800×800, PNG (shipped as 512×512 WebP) |
+| delivered | `art-5` | `app/assets/art/art-5.webp` | 800×800, PNG (shipped as 512×512 WebP) |
+| delivered | `art-6` | `app/assets/art/art-6.webp` | 800×800, PNG (shipped as 512×512 WebP) |
+| delivered | `art-7` | `app/assets/art/art-7.webp` | 800×800, PNG (shipped as 512×512 WebP) |
+| delivered | `art-8` | `app/assets/art/art-8.webp` | 800×800, PNG (shipped as 512×512 WebP) |
 
 ## Brand
 
-### `icon` · requested
+### `icon` · delivered
 
 - File: `mp3player/app/icons/icon-1024.png`
 - Size: 1024×1024, PNG, full bleed, no transparency
@@ -40,17 +40,17 @@ music files themselves.
 An app icon for a personal music player: a glossy vinyl record turned slightly toward the viewer, its label a glowing coral-to-amber disc with a small white play triangle at its centre, a soft beam of warm light sweeping across the grooves, on a deep charcoal ground with a faint violet glow behind the record. Centred, bold, readable at 60 pixels, full bleed with the subject inside the middle 80% so rounded-corner masks never cut it. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
 ```
 
-### `logo` · requested
+### `logo` · delivered
 
 - File: `mp3player/app/assets/ui/logo.webp`
-- Size: 1200×320, transparent PNG (shipped as WebP)
+- Size: 1200×320, transparent PNG (shipped as WebP, trimmed to the wordmark)
 - Note: Shown in the app's header at about 140 px wide and on the welcome screen at about 320 px. The text title shows until it arrives, so it must read at 140 px.
 
 ```text
 The words “MP3 Player” as a clean modern wordmark: “MP3” in a heavy geometric sans serif with a coral-to-amber gradient fill, “Player” in the same face at a lighter weight in warm off-white, with the dot of a small vinyl record standing in for the counter of the “P” in “Player”. Crisp silhouette on a fully transparent background, centred, no other text.
 ```
 
-### `cover` · requested
+### `cover` · delivered
 
 - File: `mp3player/app/assets/ui/cover.webp`
 - Size: 1200×900 (4:3), WebP
@@ -62,7 +62,7 @@ Cover art for a music player app on a library shelf: a vinyl record and a phone 
 
 ## Screens
 
-### `welcome` · requested
+### `welcome` · delivered
 
 - File: `mp3player/app/assets/ui/welcome.webp`
 - Size: 1200×900 (4:3), transparent PNG (shipped as WebP)
@@ -72,7 +72,7 @@ Cover art for a music player app on a library shelf: a vinyl record and a phone 
 A friendly illustration for an empty music library: an open cardboard box of vinyl records and a phone beside it, songs flying from the phone into the box as small glowing album-cover squares and music notes, drawn in bold simple shapes. Isolated on a fully transparent background with a soft coral glow under the box. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
 ```
 
-### `artist` · requested
+### `artist` · delivered
 
 - File: `mp3player/app/assets/art/artist.webp`
 - Size: 512×512, PNG (shipped as 256×256 WebP)
@@ -84,7 +84,7 @@ A placeholder portrait for a music artist with no photo: a vintage microphone in
 
 ## Stand-in album covers
 
-### `art-1` · requested
+### `art-1` · delivered
 
 - File: `mp3player/app/assets/art/art-1.webp`
 - Size: 800×800, PNG (shipped as 512×512 WebP)
@@ -94,7 +94,7 @@ A placeholder portrait for a music artist with no photo: a vintage microphone in
 Abstract stand-in album cover: concentric vinyl grooves seen from above, a coral sun rising behind the record's edge. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
 ```
 
-### `art-2` · requested
+### `art-2` · delivered
 
 - File: `mp3player/app/assets/art/art-2.webp`
 - Size: 800×800, PNG (shipped as 512×512 WebP)
@@ -103,7 +103,7 @@ Abstract stand-in album cover: concentric vinyl grooves seen from above, a coral
 Abstract stand-in album cover: a single sound wave drawn as a ribbon of amber light curving across a dark field. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
 ```
 
-### `art-3` · requested
+### `art-3` · delivered
 
 - File: `mp3player/app/assets/art/art-3.webp`
 - Size: 800×800, PNG (shipped as 512×512 WebP)
@@ -112,7 +112,7 @@ Abstract stand-in album cover: a single sound wave drawn as a ribbon of amber li
 Abstract stand-in album cover: three overlapping translucent circles in coral, amber and violet, like stage lights. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
 ```
 
-### `art-4` · requested
+### `art-4` · delivered
 
 - File: `mp3player/app/assets/art/art-4.webp`
 - Size: 800×800, PNG (shipped as 512×512 WebP)
@@ -121,7 +121,7 @@ Abstract stand-in album cover: three overlapping translucent circles in coral, a
 Abstract stand-in album cover: a cassette tape's two reels abstracted into glowing rings on charcoal. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
 ```
 
-### `art-5` · requested
+### `art-5` · delivered
 
 - File: `mp3player/app/assets/art/art-5.webp`
 - Size: 800×800, PNG (shipped as 512×512 WebP)
@@ -130,7 +130,7 @@ Abstract stand-in album cover: a cassette tape's two reels abstracted into glowi
 Abstract stand-in album cover: a tall stack of equaliser bars in a coral-to-amber gradient, softly glowing. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
 ```
 
-### `art-6` · requested
+### `art-6` · delivered
 
 - File: `mp3player/app/assets/art/art-6.webp`
 - Size: 800×800, PNG (shipped as 512×512 WebP)
@@ -139,7 +139,7 @@ Abstract stand-in album cover: a tall stack of equaliser bars in a coral-to-ambe
 Abstract stand-in album cover: a pair of headphones reduced to one elegant arc of light over a violet haze. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
 ```
 
-### `art-7` · requested
+### `art-7` · delivered
 
 - File: `mp3player/app/assets/art/art-7.webp`
 - Size: 800×800, PNG (shipped as 512×512 WebP)
@@ -148,7 +148,7 @@ Abstract stand-in album cover: a pair of headphones reduced to one elegant arc o
 Abstract stand-in album cover: a night skyline melting into a horizon of sound-wave lines in amber. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
 ```
 
-### `art-8` · requested
+### `art-8` · delivered
 
 - File: `mp3player/app/assets/art/art-8.webp`
 - Size: 800×800, PNG (shipped as 512×512 WebP)

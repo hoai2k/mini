@@ -147,6 +147,17 @@ function coverColor(img) {
   return [r / wsum, gg / wsum, b / wsum].map(Math.round);
 }
 
+/** The player-background colour of a stand-in cover tile. */
+const tileColors = new Map();
+function tileColor(n) {
+  if (!tileColors.has(n)) {
+    const img = new Image();
+    img.src = `assets/art/art-${n}.webp`;
+    tileColors.set(n, img.decode().then(() => coverColor(img)).catch(() => null));
+  }
+  return tileColors.get(n);
+}
+
 /** Store cover art once per distinct image; returns its key. */
 async function saveArt(data, mime) {
   const key = hashBytes(data);
@@ -591,14 +602,16 @@ function updateNow() {
   $('nowArtist').textContent = artistOf(t);
   setArt($('nowArt'), t, 'full');
   const hue = hashIndex(albumOf(t), 360);
-  const paint = () => {
-    const c = artColors.get(t.artKey);
+  const tile = !t.artKey && delivered.has(`art-${hashIndex(albumOf(t), 8) + 1}`) ? hashIndex(albumOf(t), 8) + 1 : 0;
+  const paint = (tc) => {
+    const c = artColors.get(t.artKey) ?? tc;
     $('nowBg').style.background = c
       ? `linear-gradient(180deg, rgb(${c.join(',')}) 0%, rgba(${c.join(',')}, .35) 55%, var(--bg) 100%)`
       : `linear-gradient(180deg, hsl(${hue} 45% 32%) 0%, hsl(${hue} 40% 18% / .5) 55%, var(--bg) 100%)`;
   };
   paint();
-  artUrl(t.artKey, 'thumb').then(paint);
+  if (t.artKey) artUrl(t.artKey, 'thumb').then(() => paint());
+  else if (tile) tileColor(tile).then((c) => { if (c && queue.current === t.id) paint(c); });
   const shuffleBtn = $('shuffleBtn');
   shuffleBtn.innerHTML = icon('shuffle');
   shuffleBtn.setAttribute('aria-pressed', String(queue.shuffle));

@@ -56,7 +56,7 @@ TILES = [
 
 ASSETS = [
     # Brand
-    dict(id="icon", file="icons/icon-1024.png", size="1024×1024, PNG, full bleed, no transparency", status="requested", group="Brand",
+    dict(id="icon", file="icons/icon-1024.png", size="1024×1024, PNG, full bleed, no transparency", status="delivered", group="Brand",
          prompt="An app icon for a personal music player: a glossy vinyl record turned slightly toward "
                 "the viewer, its label a glowing coral-to-amber disc with a small white play triangle "
                 "at its centre, a soft beam of warm light sweeping across the grooves, on a deep "
@@ -65,7 +65,7 @@ ASSETS = [
                 "masks never cut it. " + STYLE,
          note="Home-screen and browser icon; the 512, 192 and 180 px sizes and the favicon are made from it. "
               "Until it arrives the app uses its SVG stand-in (app/icon.svg)."),
-    dict(id="logo", file="assets/ui/logo.webp", size="1200×320, transparent PNG (shipped as WebP)", status="requested", group="Brand",
+    dict(id="logo", file="assets/ui/logo.webp", size="1200×320, transparent PNG (shipped as WebP, trimmed to the wordmark)", status="delivered", group="Brand",
          prompt="The words “MP3 Player” as a clean modern wordmark: “MP3” in a heavy geometric sans "
                 "serif with a coral-to-amber gradient fill, “Player” in the same face at a lighter "
                 "weight in warm off-white, with the dot of a small vinyl record standing in for the "
@@ -73,7 +73,7 @@ ASSETS = [
                 "centred, no other text.",
          note="Shown in the app's header at about 140 px wide and on the welcome screen at about 320 px. "
               "The text title shows until it arrives, so it must read at 140 px."),
-    dict(id="cover", file="assets/ui/cover.webp", size="1200×900 (4:3), WebP", status="requested", group="Brand",
+    dict(id="cover", file="assets/ui/cover.webp", size="1200×900 (4:3), WebP", status="delivered", group="Brand",
          prompt="Cover art for a music player app on a library shelf: a vinyl record and a phone lying "
                 "side by side on a dark surface, ribbons of coral and amber light flowing out of the "
                 "phone's speaker and wrapping round the record, small floating album-cover squares "
@@ -82,19 +82,19 @@ ASSETS = [
          note="The card on the game library page (index.html). Until it arrives the card shows a gradient and the SVG icon."),
 
     # Screens
-    dict(id="welcome", file="assets/ui/welcome.webp", size="1200×900 (4:3), transparent PNG (shipped as WebP)", status="requested", group="Screens",
+    dict(id="welcome", file="assets/ui/welcome.webp", size="1200×900 (4:3), transparent PNG (shipped as WebP)", status="delivered", group="Screens",
          prompt="A friendly illustration for an empty music library: an open cardboard box of vinyl "
                 "records and a phone beside it, songs flying from the phone into the box as small "
                 "glowing album-cover squares and music notes, drawn in bold simple shapes. Isolated "
                 "on a fully transparent background with a soft coral glow under the box. " + STYLE,
          note="Shown above “Add your music” when the library is empty, at about 280 px wide on a phone."),
-    dict(id="artist", file="assets/art/artist.webp", size="512×512, PNG (shipped as 256×256 WebP)", status="requested", group="Screens",
+    dict(id="artist", file="assets/art/artist.webp", size="512×512, PNG (shipped as 256×256 WebP)", status="delivered", group="Screens",
          prompt="A placeholder portrait for a music artist with no photo: a vintage microphone in "
                 "silhouette, rim-lit in coral and amber against a soft violet haze, centred so it "
                 "survives a circular crop. " + STYLE,
          note="Artists have no pictures in music files, so every artist circle uses this (tinted per artist)."),
 ] + [
-    dict(id=tid, file=f"assets/art/{tid}.webp", size="800×800, PNG (shipped as 512×512 WebP)", status="requested", group="Stand-in album covers",
+    dict(id=tid, file=f"assets/art/{tid}.webp", size="800×800, PNG (shipped as 512×512 WebP)", status="delivered", group="Stand-in album covers",
          prompt=f"Abstract stand-in album cover: {desc}. " + TILE_STYLE,
          note="Songs and albums whose files carry no cover art get one of the eight tiles, chosen from the album name."
               if tid == "art-1" else None)
