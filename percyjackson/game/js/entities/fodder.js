@@ -11,7 +11,8 @@
 //   shade    a wispy grey-blue ghost of the dead in a tattered robe with a
 //            hollow face; slow, drifts in crowds
 // Cheap on purpose: few boxes, one merged mesh per moving part, the skin
-// shared per kind (no new shaders per spawn) and no ambient particle aura.
+// shared per kind (no new shaders per spawn; skins painted without a
+// read-back pass), and no ambient particle aura.
 // Each bursts into its own bits (straw, chitin, shell, wisps) on top of the
 // golden dust every monster leaves, with its own small sound.
 //
@@ -92,7 +93,6 @@ function buildKarpos(K0) {
         for (const x of [9, 13]) { s.rect(x, ey - 1, 2, 2, 0x1a1406, 0); s.rect(x, ey, 2, 1, eye, 0); }
         s.rect(10, ey + 3, 4, 1, twine, 0); for (const x of [10.5, 12, 13.5]) s.dot(x, ey + 2.5, twine, 1, 2);
       } });
-    S.saturate(1.15);
   }, { emit: 1.4 });
   const rig = new Rig({ material: mat, scale: 0.55, legH: 7, bodyH: 9, bodyW: 7, bodyD: 5, armW: 2.4, headS: 8, jacket: false });
   const K = K0.kit(rig, mat, { seed: 101, rough: 0.85, emit: 0.9 });
@@ -135,7 +135,7 @@ function buildKarpos(K0) {
 // abdomen and green dripping from the pincers.
 function buildMyrmex(K0, acid = false) {
   const blk = 0x1e1a18, blkL = 0x3a3430, brz = 0xc08a2c, brzD = 0x7a4e14, brzL = 0xe8b448, amber = 0xffa020, ACID = 0x9aff3a;
-  const mat = skinMat('myrmex', (S) => { paintQuad(S, { base: blk, dark: 0x0e0c0a, belly: 0x2a2420, back: blkL, eye: amber, eyeLow: 0xff6a10, plates: brz, teeth: false, nose: blk, noise: 0.12, speckles: 10 }); S.saturate(1.1); }, { rough: 0.3, emit: 1 });
+  const mat = skinMat('myrmex', (S) => { paintQuad(S, { base: blk, dark: 0x0e0c0a, belly: 0x2a2420, back: blkL, eye: amber, eyeLow: 0xff6a10, plates: brz, teeth: false, nose: blk, noise: 0.12, speckles: 10 }); }, { rough: 0.3, emit: 1 });
   const rig = new QuadRig({ material: mat, scale: 1.0, bodyL: 6, bodyW: 5, bodyH: 4, legH: 4.5, legW: 1.1, headS: 5, legs: 6, splay: 1.15, footL: 5, kneeOut: 0.35, legY: 1, snout: false, neckUp: 0.6, headZ: 0.6, gait: 1.9, ears: false });
   const K = K0.kit(rig, mat, { seed: acid ? 107 : 103, rough: 0.3, metal: 0.15, emit: 0.9 });
   const T = rig.torso, Hd = rig.head, M = rig.mouth, { hs, legW } = rig.dims;
@@ -181,7 +181,7 @@ function buildMyrmex(K0, acid = false) {
 function buildCrab(K0) {
   const red = 0xd04a20, redD = 0x8a2410, redL = 0xf07a3a, cream = 0xf0d8b0, tip = 0x2a1410, barn = 0xe8e0cc, barnD = 0xa8a090;
   const SHELL = [red, 0xc04018, 0xe05a28];
-  const mat = skinMat('crab', (S) => { paintQuad(S, { base: red, dark: redD, belly: cream, back: redL, eye: 0x0a0a0a, eyeLow: 0x0a0a0a, teeth: false, nose: redD, noise: 0.15, speckles: 30 }); S.saturate(1.15); }, { rough: 0.45, emit: 0.9 });
+  const mat = skinMat('crab', (S) => { paintQuad(S, { base: red, dark: redD, belly: cream, back: redL, eye: 0x0a0a0a, eyeLow: 0x0a0a0a, teeth: false, nose: redD, noise: 0.15, speckles: 30 }); }, { rough: 0.45, emit: 0.9 });
   const rig = new QuadRig({ material: mat, scale: 1.4, bodyL: 11, bodyW: 7, bodyH: 3.6, legH: 4, legW: 1.2, headS: 4, legs: 4, splay: 0, snout: false, neckUp: 0.4, headZ: -1.5, gait: 2.4, ears: false, jawOpen: 0.15 });
   const K = K0.kit(rig, mat, { seed: 109, rough: 0.45, emit: 0.8 });
   const T = rig.torso, Hd = rig.head, M = rig.mouth;

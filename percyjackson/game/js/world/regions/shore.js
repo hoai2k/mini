@@ -18,6 +18,7 @@
 // tops are reached from inland, where the ground rises gently.
 import { B } from '../blocks.js';
 import { coastAt, WORLD } from '../owLayout.js';
+import { gable } from '../rooms.js';
 
 const sm = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
 // 1 inside [a, b], easing to 0 over w blocks outside it
@@ -169,7 +170,7 @@ export function build(c) {
     for (let x = x0 + 1; x < x1; x++) { const w = half(x) - 1; for (let dz = -w; dz <= w; dz++) if (!((x === 50 || x === 51) && dz <= 0) && !(x === 33 && dz === 1)) put(x, deckY, zc + dz, (x + dz) % 4 ? B.planks : B.old_plank); }
     // a snapped mast, a torn sail, oars over the side, a rope ladder (stacked crates) up from the beach
     fill(41, deckY + 1, zc, 41, deckY + 8, zc, B.pine_log); fill(39, deckY + 7, zc, 44, deckY + 7, zc, B.log);
-    for (let y = deckY + 2; y <= deckY + 6; y++) for (let x = 38; x <= 45; x++) if (x !== 41 && !(y === deckY + 2 && (x === 38 || x === 45)) && (x + y * 3) % 11) put(x, y, zc + 1, (x >> 1) & 1 ? B.white_trim : B.barn_red);
+    for (let y = deckY + 2; y <= deckY + 6; y++) for (let x = 38; x <= 45; x++) if (x !== 41 && !(y === deckY + 2 && (x === 38 || x === 45)) && (x + y * 3) % 17) put(x, y, zc + 1, (x >> 1) & 1 ? B.white_trim : B.barn_red);
     put(42, deckY + 9, zc, B.pine_log); put(42, deckY + 10, zc, B.barn_red);
     for (let x = 32; x <= 52; x += 4) { put(x, deckY - 1, zc - half(x) - 1, B.log); put(x, deckY - 2, zc - half(x) - 2, B.log); put(x + 1, deckY - 1, zc + half(x + 1) + 1, B.log); }
     // crates stacked up the beach side, to climb aboard
@@ -218,10 +219,11 @@ export function build(c) {
     for (let x = bx0 + 2; x <= bx1 - 2; x++) for (let z = bz0 + 1; z <= bz0 + 4; z++) put(x, by - 1, z, B.water);       // the slip
     c.k.room(bx0, bz0, bx1, bz1, by, 4, B.barn_red, { trim: B.white_trim, doors: [{ side: 's', at: 90, width: 3, height: 3 }, { side: 'n', at: 90, width: 5, height: 3 }] });
     put(bx0, by + 1, bz0 + 4, B.window_day); put(bx1, by + 1, bz0 + 4, B.window_day);
-    fill(bx0 - 1, by + 4, bz0 - 1, bx1 + 1, by + 4, bz1 + 1, B.dark_planks);
-    for (let x = bx0 - 1; x <= bx1 + 1; x++) for (const z of [bz0 - 1, bz1 + 1]) if (x % 2) put(x, by + 5, z, B.old_plank);
+    const rt = gable(c.k, bx0, bz0, bx1, bz1, by + 4, B.roof, { axis: 'x', end: B.barn_red });
+    W.addRoof([bx0 - 1, by + 4, bz0 - 1], [bx1 + 1, rt, bz1 + 1], [[bx0, by, bz0], [bx1, by + 3, bz1]]);
     prop('canoe', 90, by - 0.6, bz0 + 2, { color: 0x2a6aa0, rot: Math.PI / 2 });
-    for (let i = 0; i < 4; i++) fill(bx1 + 2, by, bz1 - i, bx1 + 2, by + i, bz1 - i, B.crate);           // crates up to the roof deck
+    for (const [x, z] of [[bx1 + 2, bz1], [bx1 + 2, bz1 - 1], [bx1 + 3, bz1]]) put(x, by, z, (x + z) % 2 ? B.crate : B.barrel);
+    for (const z of [bz0 + 1, bz1 - 1]) c.k.torch(bx1, by + 1, z, [1, 0]);
     add.chest({ id: 'shore_c_boathouse', x: 92, z: bz0 + 1, rarity: 'common' });
     under(88, bz1 - 1, by, () => add.item({ id: 'shore_lens_boathouse', quest: 'shore_light', x: 88, z: bz1 - 1 }));
     prop('umbrella', 84, top(84, bz1 + 4), bz1 + 4, { color: 0x2a8ad8 }); prop('deck_chair', 85, top(85, bz1 + 5), bz1 + 5);
