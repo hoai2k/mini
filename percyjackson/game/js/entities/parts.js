@@ -46,7 +46,7 @@ export function skinMat(id, painter, opts = {}) {
   const key = `${id}@${res}`;
   if (skins.has(key)) return skins.get(key);
   let seed = 7; for (const ch of id) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
-  const S = new Skin(seed, res);
+  const S = new Skin(seed, res, opts.scale ? (opts.res ?? 1) : res);
   painter(S);
   const m = makeCharMaterial(S.texture(), { emitStrength: opts.emit ?? 3.2, roughness: opts.rough ?? 0.7, fill: opts.fill ?? 0.16 });
   m.alphaTest = 0.5;

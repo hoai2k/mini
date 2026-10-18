@@ -37,7 +37,7 @@ const ARMS = [[40, 16], [32, 48]], ARM_OVER = [[40, 32], [48, 48]], LEGS = [[0, 
 // legStripe. Every skin: shade (limbs darken toward the bottom; default on
 // for fine skins only, so glowing monster pixels keep their glow), saturate.
 export function paintPerson(S, o) {
-  const fine = S.res > 1, k = S.res;
+  const fine = S.res > 1, k = S.dres;
   const D = (x, y, c, n = 1, m = 1) => S.dot(x, y, c, n, m);
   const M = (x, y, c, n = 1, m = 1) => { D(x, y, c, n, m); D(24 - x - n / k, y, c, n, m); };   // mirrored across the face
   const skin = o.skin ?? 0xf0c8a8, skinD = shadeOf(skin, 0.84), skinDD = shadeOf(skin, 0.7);

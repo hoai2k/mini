@@ -14,7 +14,7 @@ import * as THREE from 'three/webgpu';
 import { Rig, PX, makeCharMaterial, HOLD_PITCH, markTip } from './character.js';
 import { paintPerson } from './mortals.js';
 import { skinMat, group, HS, bruteLimbs, sway, withBuild, voxDensity } from './parts.js';
-import { MONSTERS, HELLHOUND, buildMonsterModel, animateExtras, kit, dropMeshes, eagle, hound, buildScorpion, buildSkeleton, buildCyclops } from './monsters.js';
+import { MONSTERS, HELLHOUND, buildMonsterModel, animateExtras, kit, dropMeshes, eagle, hound, buildScorpion, buildSkeleton, buildCyclops, cycDensity } from './monsters.js';
 
 const GOLD = 0xf0b030, GOLD_D = 0xb87a14, GOLD_L = 0xffe070;
 
@@ -83,7 +83,7 @@ function buildBronzebeak() {
 // Shadowfang (woods): a scarred black hellhound, lava cracks all over, a
 // broken iron collar trailing chains, and smoking red eyes.
 function buildShadowfang() {
-  const rig = hound('champ_shadowfang', HELLHOUND, { fur: 220, cracks: 30, collar: false });
+  const rig = hound('champ_shadowfang', HELLHOUND, { fur: 110, cracks: 20, collar: false });
   const K = kit(rig, rig.material, { seed: 103, rough: 0.6, metal: 0.3, emit: 0.7 });
   const { hs, H, L, W } = rig.dims, IRON = [0x5a5a64, 0x3c3c46, 0x7a7a84];
   // the broken collar: heavy riveted iron plates round the neck, one gap
@@ -217,7 +217,7 @@ function buildBronzeWarden() {
 function buildGorgos() {
   const PELT = [0x6a4224, 0x5a3418, 0x7a4c28, 0x4a2a14];
   const rig = buildCyclops({ id: 'champ_gorgos', pal: { wool: PELT, iris: 0xff6a10, ram: false } });
-  const K = kit(rig, rig.material, { seed: 127, rough: 0.85, density: voxDensity(rig) });   // (at the cyclops's own voxel size)
+  const K = kit(rig, rig.material, { seed: 127, rough: 0.85, density: cycDensity(rig) });   // (at the cyclops's own voxel size)
   const T = rig.torso, Hd = rig.head, hs = (9 / 8) * HS, BONE = [0xe8e0c8, 0xd0c8b0];
   // the bear head hood: a furry dome on his head, a snout over his brow, ears and fangs
   const hood = group(Hd, 0, 10.4, 0);   // (on the mane: the rebuilt cyclops's head is sculpted, not the 8-pixel skin box)

@@ -7,6 +7,7 @@ import * as THREE from 'three/webgpu';
 import { Skin, Rig, makeCharMaterial, PX, markTip, markHeld } from './character.js';
 import { hashStr, mulberry32 } from '../util.js';
 import { heroHair, heroTail, cellMesh, partMaterial, partsMesh, footwear, band, beads, tatters, sleeveTatters } from './herovox.js';
+import { resFor } from './parts.js';
 
 export const CAMP_ORANGE = 0xf28c28;
 const INK = 0x17130f;
@@ -376,7 +377,7 @@ export const HERO_LOOKS = {
     paint: { skinTone: 0xd8824e, hair: 0x6a3418, fringe: 1, hairSide: 5, hairBack: 8, cyclops: true, eye: 0x8a4a1a, brow: 0x4a2414, ...TEE, jacket: 0xb42a1c, jacketPlaid: [0x4a120c, 0x1a0c0a], jacketSleeve: 5, pants: 0x4a6a92, torn: true, shoes: 0x5a3418, sole: 0x3a2414 },
     vox: { style: 'shaggy', base: 0x5e2a12, shade: 0x361606, light: 0x864020, seed: 41, shape: { fringe: 7.6, jag: 0, front: 4.2 } },
     outfit: { footwear: { kind: 'boot', upper: 0x5a3418, sole: 0x3a2414, lace: 0xc9963a, trim: 0xb08850 }, cuffs: 0x8a9ab0, tatters: [0xa8322a, 0x5a1610, 0x7a2018] },
-    accent: 0xff8a2a, scale: 1.75, wide: 1.35,
+    accent: 0xff8a2a, scale: 1.75, wide: 1.35, hairRes: 1.5,
   },
   clarisse: {
     paint: { skinTone: 0xcc7c4a, hair: 0x5a2c14, fringe: 2, hairSide: 5, hairBack: 8, eye: 0x3a2414, brow: 0x2a1408, scowl: true, lashes: true, mouth: 'frown', lip: 0xa85040, ...TEE, jacket: 0x4e5a30, camo: [0x2e3a1a, 0x6e7040, 0x2a2a18, 0x8a7a4a], jacketSleeve: 6, belt: 0x2a2018, pants: 0x4e5430, legCamo: [0x2e3a1a, 0x6e7040, 0x2a2a18], cargo: true, shorts: 5, socks: 0x1a1a1a, shoes: 0x141414 },
@@ -429,8 +430,9 @@ function fleeceCollar(rig, color) {
 function addHair(rig, look) {
   const hm = partMaterial();
   const hs = (rig.dims.headS / 8) * 1.12;
-  const { cells, solid } = heroHair(look.vox);
-  const mesh = cellMesh(cells, PX * hs, hm, solid);
+  // (a hero drawn bigger, Tyson, gets finer hair cells: look.hairRes)
+  const { cells, solid, res } = heroHair({ ...look.vox, res: look.hairRes ?? 1 });
+  const mesh = cellMesh(cells, PX * hs / res, hm, solid);
   mesh.userData.baseMat = hm; rig.meshes.push(mesh); rig.head.add(mesh);
   rig.extras.hair = mesh;
   if (look.tail) {
@@ -468,7 +470,9 @@ function addOutfit(rig, o) {
 
 export function buildHeroModel(id) {
   const look = HERO_LOOKS[id] ?? HERO_LOOKS.percy;
-  const S = new Skin(hashStr(id), 2);
+  // a hero drawn bigger than the others (Tyson) gets a finer skin, so his
+  // texels stay the size of everyone else's (parts.js resFor)
+  const S = new Skin(hashStr(id), look.scale ? Math.max(2, resFor(look.scale)) : 2, 2);
   paintHumanoid(S, look.paint);
   const map = S.texture();
   const material = makeCharMaterial(map, { emitStrength: 0 });

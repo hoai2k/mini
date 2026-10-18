@@ -67,7 +67,7 @@ const BOSSES = {
     ambient: (b, dt) => { const g = b.game; if (Math.random() < dt * 1.5) { const c = b.rig.extras.muzzle.getWorldPosition(tmp); g.particles.smoke.emit(c.x, c.y, c.z, Math.sin(b.facing) * 1.5, -0.2, Math.cos(b.facing) * 1.5, 0.7, 0.5, 0.5, 0.5, 0.25, -0.5, 2, 1.2, 0); } },
   },
   hellhound_alpha: {
-    name: txt('bosses.hellhound_alpha.name'), title: txt('bosses.hellhound_alpha.title'), hp: 1800, speed: 4.2, dmg: 20, color: 0xff4a1a, radius: 1.5, height: 3.4,
+    name: txt('bosses.hellhound_alpha.name'), title: txt('bosses.hellhound_alpha.title'), hp: 1800, speed: 4.2, dmg: 20, color: 0xff4a1a, radius: 1.8, height: 5.8,
     build: BOSS_MODELS.hellhound_alpha,
     phases: [['maul', 'lunge', 'shadow_travel', 'maul'], ['maul', 'shadow_travel', 'howl', 'lunge'], ['shadow_travel', 'lunge', 'howl', 'maul', 'shadow_travel']],
     ambient: (b, dt) => H.hellhoundSmoke(b, dt),

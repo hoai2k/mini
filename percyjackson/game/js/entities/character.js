@@ -24,8 +24,10 @@ const LIMB_STRIPS = [[16, 16, 8, 12, 4], [16, 32, 8, 12, 4], [40, 16, 4, 12, 4],
 // noise varies per fine texel, and dot / dots paint single fine texels at
 // fractional coordinates (steps of 1 / res) for detail finer than a skin pixel.
 export class Skin {
-  constructor(seed = 1, res = 1) {
-    this.res = res;
+  // dres: the res the painter's dot() detail was drawn for (a painter made
+  // for a 128 skin keeps its eyes and seams the same size on a finer one)
+  constructor(seed = 1, res = 1, dres = res) {
+    this.res = res; this.dres = dres;
     this.canvas = document.createElement('canvas');
     this.canvas.width = SKIN * res; this.canvas.height = SKIN * res;
     this.ctx = this.canvas.getContext('2d', { willReadFrequently: res > 1 });
@@ -35,7 +37,7 @@ export class Skin {
   fill(c) { this.ctx.fillStyle = typeof c === 'number' ? '#' + c.toString(16).padStart(6, '0') : c; }
   px(x, y, c) { this.fill(c); this.ctx.fillRect(x, y, 1, 1); }
   // one fine texel (or an n × m block of them) at a fractional position
-  dot(x, y, c, n = 1, m = n) { this.fill(c); this.ctx.fillRect(x, y, n / this.res, m / this.res); }
+  dot(x, y, c, n = 1, m = n) { this.fill(c); this.ctx.fillRect(x, y, n / this.dres, m / this.dres); }
   rect(x, y, w, h, c, noise = 0.08) {
     const k = this.res, base = new THREE.Color(c), col = new THREE.Color();
     for (let j = 0; j < h * k; j++) for (let i = 0; i < w * k; i++) {

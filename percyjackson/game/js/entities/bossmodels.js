@@ -8,9 +8,9 @@ import { vertexColor } from 'three/tsl';
 import { Rig, PX, HOLD_PITCH, markTip } from './character.js';
 import { QuadRig, paintQuad } from './quad.js';
 import { paintPerson } from './mortals.js';
-import { buildFury, bronzeSpider } from './monsters.js';
+import { buildFury, bronzeSpider, hound, HELLHOUND } from './monsters.js';
 import { heroHair, cellMesh, footwear } from './herovox.js';
-import { HS, solid, skinMat, group, lavaCracks, fur, sway, rng, bruteLimbs } from './parts.js';
+import { HS, solid, skinMat, group, lavaCracks, fur, sway, rng, bruteLimbs, withBuild } from './parts.js';
 
 
 // ---------------------------------------------------------------- voxel kit
@@ -55,6 +55,8 @@ const toCol = (c) => (c instanceof THREE.Color ? c : tmpC.set(c));
 // A palette pick: cols[] by smooth noise (clumps of tone), or a plain colour.
 const pick = (cols, x, y, z, seed = 0, f = 0.45) => { if (!Array.isArray(cols)) return cols; const t = Math.max(0, Math.min(0.999, (noise(x * f, y * f, z * f, seed) - 0.5) * 1.9 + 0.5)); return cols[Math.floor(t * cols.length)]; };
 
+// a cell's key in the cells map: i, j, k packed into one number (|i| < 1024)
+const ckey = (i, j, k) => ((i + 1024) * 2048 + (j + 1024)) * 2048 + (k + 1024);
 // Sculpt cells. shapes, in priority order:
 //   { e: [cx, cy, cz, rx, ry, rz] }   ellipsoid      { b: [x0, y0, z0, x1, y1, z1] }   box
 //   { cap: [x0, y0, z0, x1, y1, z1, r0, r1] }   a tapered capsule between two points
@@ -81,13 +83,35 @@ function cells(shapes, { v = 1, seed = 1, bump = 0.18, fuzz = 0.12, cellsIn = ne
     const r = q[6] + (q[7] - q[6]) * t, d = Math.hypot(x - q[0] - dx * t, y - q[1] - dy * t, z - q[2] - dz * t);
     return d < r * (1 + slack * 0.5);
   };
+  // each shape's reach (its bounds grown by the most its bump and fuzz can
+  // push it), so a cell only tests the shapes that can hold it and the
+  // empty corners of the grid cost no noise (a fine grid stays quick)
+  const reach = shapes.map((sh) => {
+    const sl = Math.max(0, (sh.bump ?? bump) + (sh.fuzz ?? fuzz)), [a, b] = ext(sh);
+    let g = 0.01;
+    if (sh.e) g = Math.max(sh.e[3], sh.e[4], sh.e[5]) * (Math.sqrt(1 + sl) - 1) + 0.01;
+    else if (sh.b) g = Math.abs(sh.bump ?? 0) / 2 + 0.01;
+    else g = Math.max(sh.cap[6], sh.cap[7]) * sl * 0.5 + 0.01;
+    return [a[0] - g, a[1] - g, a[2] - g, b[0] + g, b[1] + g, b[2] + g];
+  });
   const I0 = Math.floor(lo[0] / v) - 1, I1 = Math.ceil(hi[0] / v) + 1, J0 = Math.floor(lo[1] / v) - 1, J1 = Math.ceil(hi[1] / v) + 1, K0 = Math.floor(lo[2] / v) - 1, K1 = Math.ceil(hi[2] / v) + 1;
-  for (let i = I0; i < I1; i++) for (let j = J0; j < J1; j++) for (let k = K0; k < K1; k++) {
-    const x = (i + 0.5) * v, y = (j + 0.5) * v, z = (k + 0.5) * v;
+  for (let i = I0; i < I1; i++) {
+    const x = (i + 0.5) * v, SX = shapes.filter((sh, q) => x >= reach[q][0] && x <= reach[q][3]);
+    if (!SX.length) continue;
+    const RX = SX.map((sh) => reach[shapes.indexOf(sh)]);
+    for (let j = J0; j < J1; j++) {
+      const y = (j + 0.5) * v, SY = [], RY = [];
+      SX.forEach((sh, q) => { if (y >= RX[q][1] && y <= RX[q][4]) { SY.push(sh); RY.push(RX[q]); } });
+      if (!SY.length) continue;
+      for (let k = K0; k < K1; k++) {
+    const z = (k + 0.5) * v;
+    let any = false; for (let q = 0; q < SY.length; q++) if (z >= RY[q][2] && z <= RY[q][5]) { any = true; break; }
+    if (!any) continue;
     const n = noise(x * 0.42, y * 0.42, z * 0.42, seed), h = hash3(i, j, k, seed);
     let cut = false, hit = null;
-    for (const sh of shapes) {
-      if (!inside(sh, x, y, z, n, h)) continue;
+    for (let q = 0; q < SY.length; q++) {
+      const sh = SY[q];
+      if (z < RY[q][2] || z > RY[q][5] || !inside(sh, x, y, z, n, h)) continue;
       if (sh.cut) { cut = true; break; }
       let c = sh.col;
       let mi = MI[sh.m] ?? 0;
@@ -95,7 +119,9 @@ function cells(shapes, { v = 1, seed = 1, bump = 0.18, fuzz = 0.12, cellsIn = ne
       else c = pick(c, x, y, z, seed + 3, sh.f ?? 0.28);
       hit = [new THREE.Color(c).multiplyScalar(0.93 + h * 0.14), mi]; break;
     }
-    if (!cut && hit) C.set(`${i},${j},${k}`, hit);
+    if (!cut && hit) C.set(ckey(i, j, k), hit);
+      }
+    }
   }
   return C;
 }
@@ -107,13 +133,14 @@ function voxMesh(rig, parent, opts = {}) {
 }
 function kitGeometry({ cells: C = null, v = 1, boxes = [] } = {}, unit = PX) {
   const buf = [[], [], [], []].map(() => ({ P: [], N: [], Cc: [] }));
+  const Q6 = [0, 1, 2, 0, 2, 3];
   if (C) for (const [key, [col, mi]] of C) {
-    const [i, j, k] = key.split(',').map(Number), B = buf[mi];
+    const k = (key % 2048) - 1024, j = (Math.floor(key / 2048) % 2048) - 1024, i = Math.floor(key / 4194304) - 1024, B = buf[mi];
     for (const [n, vs, sh] of CF) {
-      if (C.has(`${i + n[0]},${j + n[1]},${k + n[2]}`)) continue;
-      const crev = n[1] === 0 && C.has(`${i + n[0]},${j + 1},${k + n[2]}`) ? 0.8 : 1;
-      const g = sh * crev;
-      for (const q of [0, 1, 2, 0, 2, 3]) { const a = vs[q]; B.P.push((i + a[0]) * v, (j + a[1]) * v, (k + a[2]) * v); B.N.push(...n); B.Cc.push(col.r * g, col.g * g, col.b * g); }
+      if (C.has(ckey(i + n[0], j + n[1], k + n[2]))) continue;
+      const crev = n[1] === 0 && C.has(ckey(i + n[0], j + 1, k + n[2])) ? 0.8 : 1;
+      const g = sh * crev, r = col.r * g, gg = col.g * g, b = col.b * g;
+      for (const q of Q6) { const a = vs[q]; B.P.push((i + a[0]) * v, (j + a[1]) * v, (k + a[2]) * v); B.N.push(n[0], n[1], n[2]); B.Cc.push(r, gg, b); }
     }
   }
   const e = new THREE.Euler(), M = new THREE.Matrix4(), V = new THREE.Vector3();
@@ -129,17 +156,20 @@ function kitGeometry({ cells: C = null, v = 1, boxes = [] } = {}, unit = PX) {
       }
     }
   }
-  const P = [], N = [], Cc = [], g = new THREE.BufferGeometry();
+  const tot = buf.reduce((a, B) => a + B.P.length, 0), P = new Float32Array(tot), N = new Float32Array(tot), Cc = new Float32Array(tot), g = new THREE.BufferGeometry();
   let start = 0;
-  buf.forEach((B, mi) => { const n = B.P.length / 3; if (!n) return; P.push(...B.P); N.push(...B.N); Cc.push(...B.Cc); g.addGroup(start, n, mi); start += n; });
-  g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
-  g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3));
-  g.setAttribute('color', new THREE.Float32BufferAttribute(Cc, 3));
+  buf.forEach((B, mi) => { const n = B.P.length / 3; if (!n) return; P.set(B.P, start * 3); N.set(B.N, start * 3); Cc.set(B.Cc, start * 3); g.addGroup(start, n, mi); start += n; });
+  g.setAttribute('position', new THREE.BufferAttribute(P, 3));
+  g.setAttribute('normal', new THREE.BufferAttribute(N, 3));
+  g.setAttribute('color', new THREE.BufferAttribute(Cc, 3));
   g.scale(unit, unit, unit);
   return g;
 }
 // sculpt + boxes in one call
-const vox = (rig, parent, shapes, opts = {}, boxes = []) => voxMesh(rig, parent, { cells: shapes.length ? cells(shapes, opts) : null, v: opts.v ?? 1, boxes });
+// rig.vd (voxel density): the sculpt grid is made that much finer, so a
+// boss made big with its rig scale is carved from more, smaller cells (the
+// shapes stay in skin pixels). Set per boss against its triangle budget.
+const vox = (rig, parent, shapes, opts = {}, boxes = []) => { const v = (opts.v ?? 1) / (rig.vd ?? 1); return voxMesh(rig, parent, { cells: shapes.length ? cells(shapes, { ...opts, v }) : null, v, boxes }); };
 // hide the rig's own skin boxes on a part (the sculpt replaces them)
 const hideSkin = (...parts) => { for (const p of parts) for (const c of p.children) if (c.isMesh) c.visible = false; };
 // points along a curve (for horns, tails, tentacles): f(t) -> [x, y, z]
@@ -248,8 +278,9 @@ const humanSkin = (id, o, opts = {}) => skinMat(id, (S) => { paintPerson(S, o); 
 // Grid-voxel hair (and beard) from the hero hair styles on a Rig head.
 function hairMesh(rig, vox) {
   const hs = (rig.dims.headS / 8) * HS;
-  const { cells: C, solid: inHead } = heroHair(vox);
-  const mat = kitMats()[0], mesh = cellMesh(C, PX * hs, mat, inHead);
+  // (the hair cells are as fine as the sculpt: rig.vd)
+  const { cells: C, solid: inHead, res } = heroHair({ ...vox, res: rig.vd ?? 1 });
+  const mat = kitMats()[0], mesh = cellMesh(C, PX * hs / res, mat, inHead);
   mesh.userData.baseMat = mat; rig.meshes.push(mesh); rig.head.add(mesh);
   rig.extras.hair = mesh;
   return mesh;
@@ -267,11 +298,16 @@ function bulk(rig, { w = 1, d = 1, h = 1, armThick = 1, armLen = 1, legThick = 1
 const kitBoxes = (list, dy = 0) => list.map((b) => ({ p: [b.at[0], b.at[1] + dy, b.at[2]], s: b.size, c: b.col }));
 
 // ---------------------------------------------------------------- builders
+// Sculpt grid density per boss (rig.vd, vox above): a hero's cube is about
+// 1.32 / (rig scale) of a boss's skin pixels, so the full hero density would
+// be vd = 1.32 / (scale * v). Each is set as close to that as its triangle
+// budget (about 40k for a boss) allows.
+const VD = { minotaur: 1.5, chimera: 1.55, cerberus: 1.22, procrustes: 1.5, ares: 1.5 };
 export const BOSS_MODELS = {
   // Alecto: Mrs. Dodds as she really is (vox-enemies, bottom right)
-  alecto: () => buildFury('alecto', { scale: 1.75, seed: 71 }),
-  megaera: () => buildFury('megaera', { scale: 1.6, skin: 0xa8ae98, hair: 0xb8b8b0, wing: 0x4a3424, seed: 72 }),
-  tisiphone: () => buildFury('tisiphone', { scale: 1.6, skin: 0xa8a2a8, hair: 0xf0f0ec, wing: 0x5a2a22, dress: 0x24141a, mouthGrin: false, seed: 73 }),
+  alecto: () => withBuild({ key: 'b:alecto' }, () => buildFury('alecto', { scale: 1.75, seed: 71 })),
+  megaera: () => withBuild({ key: 'b:megaera' }, () => buildFury('megaera', { scale: 1.6, skin: 0xa8ae98, hair: 0xb8b8b0, wing: 0x4a3424, seed: 72 })),
+  tisiphone: () => withBuild({ key: 'b:tisiphone' }, () => buildFury('tisiphone', { scale: 1.6, skin: 0xa8a2a8, hair: 0xf0f0ec, wing: 0x5a2a22, dress: 0x24141a, mouthGrin: false, seed: 73 })),
 
   // The Minotaur: a towering brown bull-man in white briefs with a gold belt
   // medallion, cream horns, a gold nose ring and red eyes.
@@ -279,6 +315,7 @@ export const BOSS_MODELS = {
     // the skin boxes are hidden under the sculpt; the material still carries the hit flash and glow
     const m = skinMat('boss_minotaur', (S) => paintPerson(S, { skin: 0x86391c, hair: 0x341810, top: 0x86391c, pants: 0x86391c, shoes: 0x2a2424 }), { emit: 3 });
     const rig = new Rig({ material: m, scale: 2.1, bodyW: 13, bodyH: 13, bodyD: 7, armW: 6, headS: 7.5, legH: 15 });
+    rig.vd = VD.minotaur;
     for (const [a, s] of [[rig.armR, -1], [rig.armL, 1]]) a.position.x = s * 12.2 * PX;
     bruteLimbs(rig, { armLen: 1.45, armThick: 1.15, legThick: 1.5, legX: 4.4 });
     rig.neck.position.z = 1.4 * PX;   // the head thrust forward, low between the shoulders
@@ -296,7 +333,8 @@ export const BOSS_MODELS = {
       { e: [0, 12.4, -0.6, 9.4, 3.6, 4.8], col: (x, y, z) => (z < -2.5 && Math.abs(x) < 3 ? furD[(Math.floor(x + y) & 1) + 1] : hide[Math.floor(hash3(Math.floor(x), Math.floor(y), Math.floor(z), 4) * 4)]) },
       { e: [0, 14, 1.2, 4.6, 2.4, 3.6], col: furD, fuzz: 0.4 },
       { e: [-5.4, 8, -0.6, 2.8, 4.6, 3.4], col: hide }, { e: [5.4, 8, -0.6, 2.8, 4.6, 3.4], col: hide },
-      { e: [0, 8, 0, 7.2, 5.2, 4.4], col: hide },
+      { e: [0, 8.4, 0, 6.6, 5.4, 4.2], col: hide },
+      { e: [0, 4, 0.2, 5.4, 4, 3.8], col: hide },
     ], { v: 1, seed: 11, bump: 0.12, fuzz: 0.1 }, [
       // the gold belt medallion
       { p: [0, 0.8, 5.2], s: [3.6, 3.6, 0.8], c: 0xe8b444, m: 'm' }, { p: [0, 0.8, 5.2], s: [3.6, 3.6, 0.8], c: 0xd8a032, m: 'm', r: [0, 0, Math.PI / 4] },
@@ -312,9 +350,9 @@ export const BOSS_MODELS = {
     for (const [arm, s] of [[rig.armR, -1], [rig.armL, 1]]) {
       vox(rig, arm, [
         { e: [s * 0.2, 0.6, 0, 4.6, 4.6, 4.8], col: hide },
-        { e: [0, -4.2, 0.6, 3.7, 4.6, 3.9], col: (x, y, z, n) => (z > 2 && n > 0.45 ? 0xa44c24 : hide[Math.floor(n * 3.99)]) },
-        { e: [0, -10, 0.3, 4.4, 4.8, 4.4], col: (x, y, z, n) => (z < -2 ? furD[Math.floor(n * 2.99)] : hide[Math.floor(n * 3.99)]), fuzz: 0.2 },
-        { e: [0, -16.4, 1, 4.6, 3.8, 4.8], col: (x, y, z, n) => (y < -18.4 && z > 2 ? 0x2a1610 : z > 3.6 && (Math.round(x) % 2 === 0) ? 0x9a4622 : 0x74301a), bump: 0.06 },
+        { e: [0, -4.2, 0.6, 3.3, 4.6, 3.5], col: (x, y, z, n) => (z > 2 && n > 0.45 ? 0xa44c24 : hide[Math.floor(n * 3.99)]) },
+        { cap: [0, -8.2, 0.3, 0, -13.4, 0.6, 4, 3.1], col: (x, y, z, n) => (z < -2 ? furD[Math.floor(n * 2.99)] : hide[Math.floor(n * 3.99)]), fuzz: 0.2 },
+        { e: [0, -16.4, 1, 4.2, 3.6, 4.4], col: (x, y, z, n) => (y < -18.4 && z > 2 ? 0x2a1610 : z > 3.6 && (Math.round(x) % 2 === 0) ? 0x9a4622 : 0x74301a), bump: 0.06 },
       ], { v: 1, seed: 20 + s, bump: 0.14 }, [-2.4, -0.8, 0.8, 2.4].map((dx) => ({ p: [dx * 1.1, -20.1, 3.6], s: [1.3, 1.5, 1.7], c: 0x1e1210, r: [0.5, 0, 0] })));
     }
     // legs: thick thighs, shaggy fetlocks and split dark hooves
@@ -358,13 +396,14 @@ export const BOSS_MODELS = {
         s.box(40, 32, 2, 2, 6, 0x5a4a2a, 0.1); for (let y = 32; y < 40; y += 2) s.rect(40, y, 16, 1, 0xe0c060, 0); for (let x = 41; x < 56; x += 3) s.rect(x, 33, 1, 6, 0x2a2010, 0);
         fur(s, 0, 16, 40, 20, 60, 0x9a8466, 0xe0c8a0); for (const x of [0, 20]) s.rect(x, 28, 6, 8, 0x8a8478, 0.15); s.rect(12, 16, 8, 6, 0x8a8478, 0.15); } }), { emit: 2.6 });
     const rig = new QuadRig({ material: m, scale: 2.5, bodyL: 14, bodyW: 7.5, bodyH: 7, legH: 7, legW: 3.2, headS: 7.5, ears: true, tail: 8, tailLen: 26, tailW: 2.2, tailCurl: 0.3, gait: 0.7 });
+    rig.vd = VD.chimera;
     const { W, H, L, legH, legW } = rig.dims;
     hideSkin(rig.torso, rig.head, rig.mouth, ...rig.legs, ...rig.tail);
     const tan = [0x9a5e26, 0xb07030, 0xc0803a, 0xcc9048], greyF = [0x4e4448, 0x5e5256, 0x6e6264, 0x7e7270];
     const maneC = [0x7a2404, 0x9a3606, 0xb84a0a, 0xd06410, 0xe88a1c];
     // a lion's chest and forequarters, a goat's shaggy grey haunches
     vox(rig, rig.torso, [
-      { e: [0, 1.6, L * 0.4, W * 0.82, H * 0.9, L * 0.2], col: maneC, fuzz: 0.5, bump: 0.3 },
+      { e: [0, 1.6, L * 0.4, W * 0.72, H * 0.84, L * 0.18], col: maneC, fuzz: 0.5, bump: 0.3 },
       { e: [0, 0.2, L * 0.2, W * 0.6, H * 0.66, L * 0.34], col: tan },
       { e: [0, 0.4, -L * 0.24, W * 0.58, H * 0.64, L * 0.34], col: greyF, fuzz: 0.35, bump: 0.22 },
       { e: [0, -0.6, 0, W * 0.5, H * 0.52, L * 0.48], col: (x, y, z, n) => (y < -2 ? 0xd8b080 : z > 0 ? tan[Math.floor(n * 3.99)] : greyF[Math.floor(n * 3.99)]) },
@@ -387,7 +426,7 @@ export const BOSS_MODELS = {
         { b: S([-1.8, -2.4, 6.2, 1.8, -1.6, 9.8]), col: 0xa01820, bump: 0, fuzz: 0 },
         { e: S([0, -0.4, 8, 2.6, 1.9, 2.6]), col: (x, y) => (y < -1 * k ? 0xf0d0a0 : [0xd8a060, 0xe0ac6c][Math.floor(hash3(Math.floor(x * 2), Math.floor(y * 2), 1, 1) * 2)]), bump: 0.05, fuzz: 0.05 },
         { e: S([0, 1, 2.6, 4.2, 4, 4]), col: tan },
-        { e: S([0, 0.6, 0.6, 7.6, 7.6, 4.6]), col: (x, y, z, n) => (z > 3.6 * k && Math.abs(x) < 4.4 * k && y > -3.4 * k ? null : maneC[Math.min(4, Math.floor(n * 5))]), fuzz: 0.5, bump: 0.3 },
+        { e: S([0, 0.6, 0.8, 6.8, 7, 4]), col: (x, y, z, n) => (z > 3.4 * k && Math.abs(x) < 4.2 * k && y > -3.4 * k ? null : maneC[Math.min(4, Math.floor(n * 5))]), fuzz: 0.5, bump: 0.3 },
       ], { v: 0.8, seed: 36 }, [
         ...[[1.4, 9.2, 1.9], [1.6, 7.4, 1.2]].flatMap(([x, z, l]) => [-1, 1].map((sx) => ({ p: [sx * x * k, (-2.2 - l / 2) * k, z * k], s: [0.7 * k, l * k, 0.7 * k], c: 0xfff4e0 }))),
         { p: [0, -1.6 * k, 7.6 * k], s: [2.2 * k, 0.8 * k, 3 * k], c: 0xffc040, m: 'e' },
@@ -438,20 +477,14 @@ export const BOSS_MODELS = {
   // A hellhound as big as a house: soot-black with lava running in its
   // cracks, a burning ridge, a gold spiked collar and a furnace for a mouth.
   hellhound_alpha: () => {
-    const m = skinMat('boss_hellhound_alpha', (S) => paintQuad(S, { base: 0x1c181c, dark: 0x0c0a0c, belly: 0x2a2226, back: 0x141014, eye: 0xff2a0a, eyeLow: 0xffb04a, nose: 0x050505, speckles: 40, brow: 0x0a0808, teeth: 0xfff0d0,
-      custom: (s) => { fur(s, 0, 16, 40, 20, 80, 0x0a0808, 0x3a3034); lavaCracks(s, 0, 16, 40, 20, 16, [0xd83a0a, 0xff6a1a]); lavaCracks(s, 40, 16, 12, 11, 2, [0xd83a0a, 0xff6a1a]); lavaCracks(s, 0, 0, 32, 8, 2, [0xd83a0a, 0xff6a1a]); s.box(48, 0, 4, 2, 4, 0x5a1008, 0.2); s.rect(52, 4, 4, 1, 0xff6a1a, 0); s.rect(36, 7, 4, 1, 0xff6a1a, 0); } }), { emit: 3.2 });
-    const rig = new QuadRig({ material: m, scale: 3.4, bodyL: 14, bodyW: 8, bodyH: 7.5, legH: 7.5, legW: 3.4, headS: 7.5, ears: true, tail: 5, tailLen: 10, tailW: 2, tailCurl: 0.4, gait: 0.7 });
-    // soot-black fur split by glowing lava veins, a burning ridge of spikes,
-    // a gold spiked collar, claws like coals and a furnace for a mouth
-    const furs = [0x0c0a0c, 0x151116, 0x1e181e, 0x2a2228, 0x3a2e34];
-    wolfBody(rig, { fur: furs, lava: true, seed: 41, spikes: 7, chest: 1.1 });
-    hideSkin(rig.head, rig.mouth);
-    wolfHead(rig, rig.head, rig.mouth, 8.6, { fur: furs, eye: 0xf04a08, inner: 0x6a1a10, lava: true, seed: 44, gape: 0.5 });
-    vox(rig, rig.neck, [{ e: [0, -1.2, -1.6, 4.6, 4.6, 4.4], col: (x, y, z, n, h) => (Math.abs(noise(x * 0.24, y * 0.2, z * 0.24, 79) - 0.5) < 0.028 ? [0xff3a00, 'e'] : furs[Math.floor(n * 4.99)]), fuzz: 0.45 }], { v: 1, seed: 45 }, collarBoxes(5.8, 14, { y: -2, z: 0.6, rx: -0.4, w: 2.6 }));
-    for (const g of rig.tail) hideSkin(g);
-    rig.tail.forEach((g, i) => vox(rig, g, [{ e: [0, 0, -1.2, 1.6 - i * 0.15, 1.6 - i * 0.15, 1.6], col: (x, y, z, n, h) => (h < 0.12 ? [0xff5a10, 'e'] : furs[Math.floor(n * 3.99)]), fuzz: 0.4 }], { v: 0.9, seed: 46 + i }, i === rig.tail.length - 1 ? [{ p: [0, 0.6, -2.6], s: [1.8, 2.6, 1.8], c: 0xff3a00, m: 'e' }, { p: [0, 1.8, -3], s: [1, 1.6, 1], c: 0xff8a10, m: 'e' }] : []));
-    // the glow inside the jaws
-    vox(rig, rig.mouth, [], {}, [{ p: [0, 0.4, 2], s: [2.4, 0.6, 2.6], c: 0xff6a1a, m: 'e' }]);
+    // Built like the elite hellhound (monsters.js bigHound, after
+    // vox-enemies) and never smaller than it: 15% bigger, with the coat, the
+    // cracks and the claws worked at that size (parts.js withBuild), so the
+    // pack leader is made of more blocks, not bigger ones; a burning ridge of
+    // spikes and more fire in its veins set it apart.
+    const k = 1.15;
+    const rig = withBuild({ k, key: 'b:hellhound_alpha' }, () => hound('boss_hellhound_alpha', HELLHOUND, { fur: 220, cracks: 24, collar: true, alpha: true }));
+    rig.baseScale *= k; rig.root.scale.setScalar(rig.baseScale);
     return rig;
   },
 
@@ -544,7 +577,8 @@ export const BOSS_MODELS = {
 
   // Hephaestus's mechanical queen: the bronze spider at boss size, with a
   // crown of spikes, gears turning in her abdomen and a furnace glow.
-  spiders: () => bronzeSpider('boss_spider_queen', { scale: 2.6, queen: true }),
+  // (each boss built through the kit keeps its geometry for the next build: withBuild key)
+  spiders: () => withBuild({ key: 'b:spiders' }, () => bronzeSpider('boss_spider_queen', { scale: 2.6, queen: true })),
 
   // Crusty: a big smooth salesman in a white suit and red tie with a red
   // robe over his shoulders, a huge grin and a woodsman's axe.
@@ -561,11 +595,13 @@ export const BOSS_MODELS = {
         D(25.5, 22, 0xfaf8f2, 2, 1); D(26, 21.5, red, 1, 1);
         for (const [u, v] of [[40, 16], [32, 48]]) { D(u, v + 4 + 8.5, 0xfaf8f2, 32, 1); D(u, v + 4 + 9, skin, 32, 6); }
         for (const [u, v] of [[0, 16], [16, 48]]) { D(u + 5.5, v + 4, creamD, 1, 10); D(u, v + 4 + 9.5, creamD, 32, 1); }
-      } });
+      } }, { scale: 2.1 });
     const redM = solid(0x9a1820, 0, 0.8);
     const rig = new Rig({ material: m, scale: 2.1, headS: 8.6, legH: 12, cape: { material: redM, segments: 4, length: 23, width: 15 } });   // (a cape of 26 hung through the floor)
-    bulk(rig, { w: 1.8, d: 1.8, armThick: 1.7, armLen: 1.1, legThick: 1.65, legX: 3.4 });
-    rig.cape[0].g.parent.position.z = -4 * PX;
+    rig.vd = VD.procrustes;
+    // big and smooth, as the sheet draws him: broad, not boxy
+    bulk(rig, { w: 1.55, d: 1.5, armThick: 1.45, armLen: 1.1, legThick: 1.45, legX: 3.1 });
+    rig.cape[0].g.parent.position.z = -3.4 * PX;
     hairMesh(rig, { style: 'mop', base: 0x1a1414, shade: 0x0a0808, light: 0x3a2e2a, seed: 81, shape: { c: [0, 7.8, -0.6], r: [4.9, 3, 5.1], bump: 0.15, shell: 1.2, fringe: 7, jag: 1, side: 5, back: 3, tuft: 0.25, spike: 0.03 } });
     // the red robe over his shoulders: a draped yoke and two long gold-edged panels down the front
     const reds = [0x8a1218, 0xa01820, 0xb4222a], gold = [0xd8a032, 0xe8b444];
@@ -578,9 +614,9 @@ export const BOSS_MODELS = {
       { b: [-2.4, 3, 3.3, -0.6, 10.6, 3.9], col: (x, y) => (Math.abs(x) > 2.3 - (10.6 - y) * 0.05 - 0.6 || y > 9 ? 0xd8c8a8 : null), bump: 0 }, { b: [0.6, 3, 3.3, 2.4, 10.6, 3.9], col: (x, y) => (Math.abs(x) > 2.3 - (10.6 - y) * 0.05 - 0.6 || y > 9 ? 0xd8c8a8 : null), bump: 0 },
     ], { v: 0.8, seed: 82 }, [
       { p: [0, 12.8, 3.6], s: [3.4, 1, 1], c: 0xfaf8f2 },
-    ]);
+    ]).scale.set(0.86, 1, 0.83);   // (drawn for a broader build: fitted to his)
     // shoe shine and trouser cuffs
-    for (const leg of [rig.legR, rig.legL]) vox(rig, leg, [], {}, [{ p: [0, -11.4, 0.8], s: [7.2, 1.4, 8.2], c: 0x2a1810 }, { p: [0, -10.2, 0.5], s: [7, 1.2, 7.6], c: 0x4a2c1a }, { p: [0, -9.3, 0], s: [7, 0.7, 7], c: creamD }]);
+    for (const leg of [rig.legR, rig.legL]) vox(rig, leg, [], {}, [{ p: [0, -11.4, 0.8], s: [7.2, 1.4, 8.2], c: 0x2a1810 }, { p: [0, -10.2, 0.5], s: [7, 1.2, 7.6], c: 0x4a2c1a }, { p: [0, -9.3, 0], s: [7, 0.7, 7], c: creamD }]).scale.set(0.88, 1, 0.9);
     // the axe: long haft, a broad steel head, a gold collar
     const axe = group(rig.handR, 0, -1, 1.5, HOLD_PITCH, 0, 0);   // (along +y: see the hand-axis convention in character.js)
     vox(rig, axe, [], {}, [
@@ -598,6 +634,7 @@ export const BOSS_MODELS = {
     const m = skinMat('boss_cerberus', (S) => paintQuad(S, { base: 0x1e1c26, dark: 0x0e0d14, belly: 0x2a2834, back: 0x16141c, eye: 0xff4a0a, eyeLow: 0xffa02a, nose: 0x050505, speckles: 50, brow: 0x0a0a10, teeth: 0xfff4e0,
       custom: (s) => { fur(s, 0, 16, 40, 20, 90, 0x0a0a10, 0x3a3848); fur(s, 0, 0, 32, 16, 30, 0x0a0a10, 0x3a3848); s.box(48, 0, 4, 2, 4, 0xa82030, 0.1); s.rect(52, 4, 4, 1, 0xf4f0e0, 0); s.rect(36, 6, 4, 2, 0xc8283a, 0.1); s.box(52, 16, 2, 3, 1, 0x8a2a3a, 0.1); } }), { emit: 3 });
     const rig = new QuadRig({ material: m, scale: 3.3, bodyL: 14, bodyW: 11, bodyH: 8, legH: 8, legW: 3.8, headS: 7.5, ears: true, tail: 4, tailLen: 9, tailW: 2.2, tailCurl: 0.2, gait: 0.65, neckUp: 4, headZ: 1 });
+    rig.vd = VD.cerberus;
     const furs = [0x0c0b12, 0x15131d, 0x1e1b28, 0x2a2636, 0x3a3448];
     wolfBody(rig, { fur: furs, seed: 51, chest: 1.05 });
     const heads = [];
@@ -634,10 +671,12 @@ export const BOSS_MODELS = {
         for (const [u, v] of [[40, 16], [32, 48]]) { D(u + 4, v + 4 + 3, shadeOf(skin, 0.85), 4, 4); D(u + 4, v + 4 + 9, 0x2a2224, 32, 3); }
         // cargo pockets, rips at the knees, boot tops
         for (const [u, v] of [[0, 16], [16, 48]]) { D(u, v + 4 + 2, 0x3a2a1c, 8, 4); D(u + 4.5, v + 4 + 5, skin, 3, 2); D(u + 5, v + 4 + 4.5, 0xc8b8a0, 2, 1); D(u, v + 4 + 7, 0x141214, 32, 5); D(u + 1, v + 4 + 3, 0x5a4432, 2, 2); }
-      } });
+      } }, { scale: 1.95 });
     const rig = new Rig({ material: m, scale: 1.95, headS: 7.6, legH: 13 });
-    const AT = 2.1, LT = 2, aw = 4 * AT, lw = 4 * LT;
-    bulk(rig, { w: 2, d: 1.8, h: 1.08, armThick: AT, armLen: 1.12, legThick: LT, legX: 4.3 });
+    rig.vd = VD.ares;
+    // a huge biker, but a man's build: less of a box than he was
+    const AT = 1.85, LT = 1.75, aw = 4 * AT, lw = 4 * LT;
+    bulk(rig, { w: 1.78, d: 1.6, h: 1.08, armThick: AT, armLen: 1.12, legThick: LT, legX: 3.9 });
     rig.armSpread = 0.2;
     hairMesh(rig, { style: 'spiky', base: 0x1a1210, shade: 0x0a0606, light: 0x3a2a22, seed: 91, shape: { c: [0, 7.6, -0.4], r: [4.8, 2.6, 5], bump: 0.12, shell: 1.1, fringe: 7.2, jag: 0.6, side: 4.6, back: 3, tuft: 0.2, spike: 0.03 }, beard: { length: 3, mouth: 1 } });
     const hs = HS;
@@ -658,7 +697,7 @@ export const BOSS_MODELS = {
       { p: [0, 0.6, 0], s: [16.6, 1.6, 7.8], c: 0x1e1a1a }, { p: [0, 0.6, 3.95], s: [2.6, 2, 0.6], c: silver, m: 'm' },
       ...[-6.4, -4.4, 4.4, 6.4].map((x) => ({ p: [x, 0.6, 3.95], s: [0.7, 0.7, 0.5], c: silver, m: 'm' })),
       ...[[-4.6, 10], [4.6, 10], [-4.8, 5.4], [4.8, 5.4]].map(([x, y]) => ({ p: [x, y, 3.85], s: [0.8, 0.8, 0.5], c: silver, m: 'm' })),
-    ]);
+    ]).scale.set(0.89, 1, 0.89);   // (drawn for a broader build: fitted to his)
     hideSkin(rig.armR, rig.armL);
     const skinT = [shadeOf(skin, 0.86), skin, shadeOf(skin, 1.1)];
     for (const [arm, sx] of [[rig.armR, -1], [rig.armL, 1]]) {
