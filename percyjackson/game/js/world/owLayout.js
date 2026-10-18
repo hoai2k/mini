@@ -38,11 +38,11 @@ export const REGIONS = [
   { id: 'shore', rects: [[0, 0, 210, 120]], level: [3, 5], biome: 'ow_shore',
     kinds: [['crab', 5], ['telekhine', 2], ['harpy', 2], ['king_crab', 0.8]], fodder: ['crab', 'crab', 'crab', 'telekhine'] },
   { id: 'canyon', rects: [[250, 130, 400, 290]], level: [5, 7], biome: 'ow_canyon',
-    kinds: [['myrmex', 3.5], ['basilisk', 2.5], ['spartoi', 2], ['stymphalian', 1], ['scorpion', 0.4], ['earthborn', 0.9]], fodder: ['myrmex', 'basilisk', 'spartoi'] },
+    kinds: [['myrmex', 3.5], ['myrmex_spitter', 2], ['spartoi', 2], ['stymphalian', 1], ['scorpion', 0.4], ['earthborn', 0.9]], fodder: ['myrmex', 'myrmex_spitter', 'spartoi'] },   // (the desert ants of Herodotus; the spitters keep a small ranged kind here now the basilisks live on Othrys)
   { id: 'labyrinth', rects: [[0, 330, 170, 400]], level: [6, 8], biome: 'ow_labyrinth',
     kinds: [['spartoi', 4], ['spider', 2.5], ['daedalus_drone', 2], ['automaton', 2.2]], fodder: ['spartoi', 'spartoi', 'spider', 'daedalus_drone'] },
   { id: 'othrys', rects: [[210, 0, 400, 130]], level: [8, 10], biome: 'ow_othrys',
-    kinds: [['spartoi', 4], ['telekhine', 2.5], ['harpy', 2], ['laistrygonian', 0.8]], fodder: ['spartoi', 'spartoi', 'telekhine'] },
+    kinds: [['spartoi', 3.5], ['basilisk', 2.5], ['telekhine', 2.5], ['harpy', 2], ['laistrygonian', 0.8]], fodder: ['spartoi', 'basilisk', 'telekhine'] },   // (basilisks fall in threes from the giant Polybotes's hair: small, fast fodder under the giants)
   { id: 'asphodel', rects: [[250, 290, 400, 400], [170, 330, 250, 400]], level: [9, 12], biome: 'ow_asphodel',
     kinds: [['shade', 4.5], ['keres', 2.5], ['spartoi', 1.5], ['ghost', 2.4]], fodder: ['shade', 'shade', 'keres', 'spartoi'] },
 ];

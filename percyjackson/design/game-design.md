@@ -248,7 +248,7 @@ can be replayed at any difficulty, from **Mortal** to **Olympian**.
 | 9 | **Crusty's Water Bed Palace** | The Nevada desert | Medium | Trick the salesman onto his own bed. | Procrustes |
 | 10 | **DOA Recording Studios** | Los Angeles and the Underworld | Light (rifts drain health) | Charon's ferry, Cerberus (play fetch with the red ball), the Fields of Asphodel, the pit of Tartarus calling. | Cerberus (calmed, not beaten); Hades's court |
 | 11 | **The God of War** | Santa Monica beach | None | Duel Ares in the surf; the Furies watch. | Ares: strike his heel from the water |
-| 12 | **The Six-Hundredth Floor** | The Empire State Building, Olympus, camp | None | Return the master bolt to Zeus. Back at camp, Luke's betrayal. | The pit scorpion |
+| 12 | **The Six-Hundredth Floor** | The Empire State Building, Olympus, camp | None | Return the master bolt to Zeus. Back at camp, Luke's betrayal. | Luke and his giant scorpion |
 
 ### Later books
 

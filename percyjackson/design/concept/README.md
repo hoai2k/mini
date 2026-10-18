@@ -264,3 +264,5 @@ Generated on 2026-10-17 with the built-in image generator. Per-asset prompts, re
 | [Open-world fodder, redrawn: myrmekes as ants and a huge king crab](vox-ow-fodder-fix.png) | [vox-ow-fodder-fix.json](generation-2026-10-17/vox-ow-fodder-fix.json) |
 
 The myrmekes in `vox-ow-fodder` and `-2` had eight legs (they read as spiders) and the king crab was no bigger than a crab, so `vox-ow-fodder-fix` drew them again. Its ants now have the three body segments of an ant, though the front views still show about eight legs; the game's models have six.
+
+The basilisk in `vox-ow-fodder-3` is a crowned lizard as big as Percy. The game now follows the books instead (*The Son of Neptune*: a little green snake as long as a man's arm, with a collar of white spikes) and keeps only the sheet's colours and crown; see `../size-audit.md`.

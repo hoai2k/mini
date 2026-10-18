@@ -9,10 +9,12 @@
 //   woods      myrmex (swarm melee), myrmex spitter (lobs acid),
 //              Calydonian boarlet (larger: charges)
 //   shore      crab (scuttles sideways), king crab (rare tank: crusher claw)
-//   canyon     basilisk (small, quick, spits venom), Earthborn (rare: a
+//   canyon     (myrmekes and spitters, as in the woods), Earthborn (rare: a
 //              six-armed clay giant lobbing mud)
 //   labyrinth  Daedalus drone (a bronze clockwork bird firing bolts)
-//   othrys     Laistrygonian (rare: a huge giant lobbing flaming balls)
+//   othrys     basilisk (the books' arm-long snake, in threes: fast, a puff
+//              of fire, a poison touch), Laistrygonian (rare: a huge giant
+//              lobbing flaming balls)
 //   asphodel   shade (slow, drifts in crowds), keres (fast swooping fliers)
 //
 // Every model is seen by the hundred, so each has a strong silhouette and a
@@ -59,7 +61,9 @@ export const FODDER_MONSTERS = {
   crab: { name: txt('monsters.crab.name'), tier: 'minor', role: 'fodder', hp: 28, speed: 4, dmg: 6, radius: 0.7, height: 0.9, ai: 'melee', range: 1.6, windup: 0.45, cd: 1.3, xp: 3, coins: [1, 3], model: 'crab', pitch: 1, voice: 'clack', armor: 0.1, knockResist: 0.3 },
   king_crab: { name: txt('monsters.king_crab.name'), tier: 'elite', role: 'tank', hp: 160, speed: 2.2, dmg: 16, radius: 1.8, height: 3.6, ai: 'tank', range: 2.4, windup: 0.9, cd: 2.4, xp: 10, coins: [4, 8], model: 'king_crab', pitch: 0.6, voice: 'clack', armor: 0.3, knockResist: 0.8, superArmor: true, slamR: 2.4 },
   // canyon
-  basilisk: { name: txt('monsters.basilisk.name'), tier: 'minor', role: 'ranged', hp: 16, speed: 5.6, dmg: 5, radius: 0.65, height: 1.5, ai: 'ranged', range: 8, keep: 5, windup: 0.75, cd: 3, xp: 2, coins: [0, 2], model: 'basilisk', pitch: 1.5, voice: 'hiss', projectile: 'acid', knockResist: 0, poison: { dps: 2, dur: 3 } },
+  basilisk: { name: txt('monsters.basilisk.name'), tier: 'minor', role: 'rusher', hp: 14, speed: 6, dmg: 5, radius: 0.35, height: 0.6, ai: 'melee', range: 1.6, windup: 0.5, cd: 1.6, xp: 2, coins: [0, 2], model: 'basilisk', pitch: 1.9, voice: 'hiss', knockResist: 0, poison: { dps: 2, dur: 3 }, slashColor: 0xff7a1a,
+    // (the books' arm-long snake: it rears and puffs a short burst of fire at the spot just ahead, its touch poisons; no projectile)
+    moves: [{ kind: 'sting', trigger: 1.9, at: 1.1, radius: 0.8, windup: 0.5, recover: 0.5, dmg: 1 }] },
   earthborn: { name: txt('monsters.earthborn.name'), tier: 'elite', role: 'lobber', hp: 170, speed: 2.4, dmg: 14, radius: 1, height: 3, ai: 'ranged', range: 13, keep: 8, windup: 1.1, cd: 4.9, xp: 12, coins: [5, 9], model: 'earthborn', pitch: 0.55, voice: 'grind', projectile: 'acid', lob: true, armor: 0.15, knockResist: 0.75, superArmor: true,
     // up close: a barrage of all six fists, one after another down the body (every second blow lands: about one lob's damage in all)
     pummel: { trigger: 3.4, range: 3, windup: 0.6, recover: 0.6, hits: 6, gap: 0.2, every: 2, dmg: 0.36 } },

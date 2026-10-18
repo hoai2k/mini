@@ -51,7 +51,7 @@ export const isFodder = (kind) => FODDER_KINDS.has(kind);
 // how many of a kind come at once, [fewest, most]; a kind not listed comes alone
 export const HORDE = {
   karpos: [6, 10], shade: [6, 10], rat: [5, 8], myrmex: [5, 8], keres: [4, 7], crab: [4, 7], pup: [4, 7], spider: [4, 7], spartoi: [4, 7],
-  basilisk: [3, 5], karpos_slinger: [2, 4], daedalus_drone: [2, 4], myrmex_spitter: [2, 3], telekhine: [2, 3],
+  basilisk: [3, 3], karpos_slinger: [2, 4], daedalus_drone: [2, 4], myrmex_spitter: [2, 3], telekhine: [2, 3],
   colchis_calf: [1, 2], boarlet: [1, 2], harpy: [2, 3], stymphalian: [2, 3], ghost: [2, 3], automaton: [2, 3], serpent: [1, 2],
 };
 // A roaming horde from a region's kinds ([[kind, weight]]): the kinds of its
