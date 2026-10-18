@@ -864,7 +864,7 @@ function buildEarthborn(K0) {
     dropAll(rig, leg);
     blob(K, leg, [0, -2.6, 0], [3, 3, 3], 1.1, stone(0.5), { pw: 2.6, run: [1, 2] });
     blob(K, leg, [0, -6.6, 0.2], [2.6, 2, 2.8], 1.1, stone(0.6), { pw: 3, run: [1, 2] });
-    K.box(leg, 0, -8.6, 1, 6.4, 1.6, 7.4, stD); K.clumps(leg, [0, -8.6, 1], [6.4, 1.6, 7.4], { n: 6, size: [1, 1.6], cols: MOSS, faces: 'tf', out: -0.3 });
+    K.box(leg, 0, -8.2, 1, 6.4, 1.6, 7.4, stD); K.clumps(leg, [0, -8.2, 1], [6.4, 1.6, 7.4], { n: 6, size: [1, 1.6], cols: MOSS, faces: 'tf', out: -0.3 });   // (the sole at the leg's end, -9: at -9.4 the feet stood in the ground)
   }
   rig.legR.position.x = -3.2 * PX; rig.legL.position.x = 3.2 * PX;
   // head: a lumpy stone head with a heavy brow, glowing eyes and moss on top

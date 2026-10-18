@@ -194,7 +194,7 @@ export class QuadRig {
       const lift = this.spec.splay ? Math.max(0, Math.cos(cyc + u.phase)) * 0.35 * run : 0;
       R(g, 'z', u.splay + u.side * lift);
     }
-    for (let i = 0; i < this.tail.length; i++) { const g = this.tail[i]; R(g, 'y', T.tailY * (0.5 + i * 0.3) + Math.sin(t * 4 + i) * 0.05); R(g, 'x', i === 0 ? T.tailX : -0.15 + (this.spec.tailCurl ?? 0)); }
+    for (let i = 0; i < this.tail.length; i++) { const g = this.tail[i]; R(g, 'y', T.tailY * (0.5 + i * 0.3) + Math.sin(t * 4 + i) * 0.05); R(g, 'x', i === 0 ? T.tailX - T.torsoX : -0.15 + (this.spec.tailCurl ?? 0)); }   // (the tail keeps its angle to the ground as the body pitches: a rear-up no longer drove it into the floor)
     this.hips.rotation.z = damp(this.hips.rotation.z, T.rootZ, snap, dt);
   }
   setFlash(v) { this.material.userData.flash.value = v; }

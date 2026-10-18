@@ -203,7 +203,9 @@ export class InGame {
     if (e.dead || e.bones) {
       e.dead = false; e.bones = false; e.regrew = false; e.deathT = 0; e.hp = e.maxHp; e.state = 'idle'; e.stateT = 0;
       e.object.scale.setScalar(this.baseScale);
+      e.rig.hips?.rotation.set(0, 0, 0);   // (back on its feet at once: in game a dead monster is gone)
     }
+    e.object.position.copy(e.pos);
   }
   // start the chosen attack (enemies; a boss starts its own through pickPattern)
   fire() {

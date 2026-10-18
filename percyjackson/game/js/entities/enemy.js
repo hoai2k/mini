@@ -1039,12 +1039,13 @@ export class Enemy {
     const g = this.game, fwd = new THREE.Vector3(Math.sin(this.facing), 0, Math.cos(this.facing));
     a.hit = (a.hit ?? 0) + 1;
     if (a.hit < a.hits) a.twinT = a.gap;
-    this.lunge = fwd.clone().multiplyScalar(1.6);
+    this.lunge = fwd.clone().multiplyScalar(2.4);   // (it walks into the hero as it beats)
     if (a.hit % a.every) { g.audio?.swing(0); return; }
+    const knock = a.hit >= a.hits ? 6 : 1.2;   // the last blow throws the hero back
     for (const p of g.hostileTargets()) {
       if (p.dead) continue;
       const to = TO.subVectors(p.pos, this.pos); const dist = to.setY(0).length();
-      if (dist < a.range + p.radius && Math.abs(angleDiff(this.facing, Math.atan2(to.x, to.z))) < 0.9) this.hitPlayer(p, this.dmg * a.dmgMul, fwd.clone().multiplyScalar(3), false);
+      if (dist < a.range + p.radius && Math.abs(angleDiff(this.facing, Math.atan2(to.x, to.z))) < 0.9) this.hitPlayer(p, this.dmg * a.dmgMul, fwd.clone().multiplyScalar(knock), false);
     }
     g.audio?.impact(0.9);
     if (this.big) g.shake(0.08);

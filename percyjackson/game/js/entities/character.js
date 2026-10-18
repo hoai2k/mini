@@ -295,7 +295,7 @@ export class Rig {
       }
     }
     const L = (obj, key, target, ax) => { obj.rotation[ax] = damp(obj.rotation[ax], target, snap, dt); };
-    this.hips.position.y = damp(this.hips.position.y, T.hipsY + T.lift, snap, dt);
+    this.hips.position.y = damp(this.hips.position.y, T.hipsY + T.lift + this.footLift(T.legRX, T.legLX), snap, dt);
     L(this.torso, 'torsoX', T.torsoX, 'x'); L(this.torso, 'torsoY', T.torsoY, 'y'); L(this.torso, 'torsoZ', T.torsoZ, 'z');
     L(this.head, 'headX', T.headX, 'x'); L(this.head, 'headY', T.headY, 'y');
     L(this.armR, 'armRX', T.armRX, 'x'); L(this.armR, 'armRY', T.armRY, 'y'); L(this.armR, 'armRZ', T.armRZ, 'z');
@@ -308,6 +308,22 @@ export class Rig {
     if (a && (a.type === 'dodge')) this.rollAbout(T.rootX, T.lift);
     else { this.hips.rotation.x = damp(this.hips.rotation.x % (Math.PI * 2), T.rootX, snap, dt); this.hips.position.z = damp(this.hips.position.z, 0, snap, dt); }
     this.physics(p);
+  }
+  // A foot that reaches further fore or aft than the leg is deep (a boot's
+  // toe, a giant's stone slab) dips below the sole as the leg swings: the
+  // hips rise by the deeper dip of the two legs, so the toe stays on the floor.
+  footLift(ra, la) {
+    if (this._foot === undefined) {   // the sole's height and its reach fore and aft, in leg space (once)
+      let y = Infinity; const boxes = [];
+      this.legR.updateMatrixWorld(true); _inv.copy(this.legR.matrixWorld).invert();
+      this.legR.traverse((o) => { if (!o.isMesh || !o.geometry) return; if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); const b = o.geometry.boundingBox.clone().applyMatrix4(_m.multiplyMatrices(_inv, o.matrixWorld)); boxes.push(b); y = Math.min(y, b.min.y); });
+      let z0 = 0, z1 = 0;
+      for (const b of boxes) if (b.min.y < y + 1.5 * PX) { z0 = Math.min(z0, b.min.z); z1 = Math.max(z1, b.max.z); }
+      this._foot = boxes.length ? { y, z0, z1 } : null;
+    }
+    const f = this._foot; if (!f) return 0;
+    const dip = (a) => { const c = Math.cos(a), s = Math.sin(a); return Math.max(0, f.y - Math.min(f.y * c - f.z0 * s, f.y * c - f.z1 * s)); };
+    return Math.max(dip(ra), dip(la));
   }
   // The roll turned the whole body about the hip joint, so the tucked body's
   // centre (about 0.6 m up and 0.6 m forward of the hips) swung round a circle
