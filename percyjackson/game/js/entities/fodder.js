@@ -1,6 +1,6 @@
-// The open world's fodder (design requests vox-ow-fodder, -2 and -3 in
-// design/source/build_requests.py; the art isn't drawn yet, so these follow
-// their descriptions): the monsters you plow through in the Minecraft
+// The open world's fodder (concept sheets design/concept/vox-ow-fodder.png,
+// -2, -3 and -fix, which replaces the earlier ants and king crab): the
+// monsters you plow through in the Minecraft
 // Dungeons way, in hordes, each region with a few kinds that play
 // differently (short and long range, small and large) and a tough rare one.
 //
@@ -17,10 +17,11 @@
 //
 // Every model is seen by the hundred, so each has a strong silhouette and a
 // bold accent that reads in a crowd (glowing eyes, a fire glow, a gold crown,
-// a red claw), and costs little: a handful of boxes merged into one mesh per
-// moving part (monsters.js's voxel kit), skins shared per kind (no shaders
-// built per spawn; painted without a read-back pass), no ambient aura, and
-// small parts cast no shadow. Each bursts into its own bits as it goes (on
+// a red claw), and costs little: rounded voxel masses (blob below: only the
+// cells' open faces) and boxes merged into one mesh per moving part
+// (monsters.js's voxel kit), geometry built once per kind and shared by every
+// spawn (kitOf), skins shared per kind (no shaders built per spawn; painted
+// without a read-back pass), no ambient aura, and small parts cast no shadow. Each bursts into its own bits as it goes (on
 // top of the golden dust every monster leaves) with its own small sound
 // (audio.js fodderVoice / fodderDie).
 //
@@ -883,9 +884,9 @@ function buildDrone(K0) {
     for (let i = 0; i < 6; i++) { const L = 7 + i * 0.9, x = X(1.4 + i * 1.4); K.box(root, x, -L / 2, -0.5, 1.5, L, 0.6, mix(K, FDARK, 0.1)); K.box(root, x, -L * 0.3, 0.1, 1.5, L * 0.6, 0.6, mix(K, FEATH, 0.1)); }
     K.box(elbow, X(3.6), 0.3, 0, 7.2, 1.5, 1.5, brzD);
     for (let i = 0; i < 9; i++) {
-      const a = 0.15 - i * 0.15, L = 15 - Math.abs(i - 2) * 0.7, ux = Math.cos(a), uy = Math.sin(a), bx = 1 + i * 0.85;
-      K.box(elbow, X(bx + ux * L * 0.32), uy * L * 0.32 - 0.6, -0.2 - i * 0.05, L * 0.64, 1.5, 0.6, mix(K, FEATH, 0.1), 0, 0, side * a);
-      K.box(elbow, X(bx + ux * L * 0.8), uy * L * 0.8 - 0.6, -0.25 - i * 0.05, L * 0.36, 1.3, 0.55, mix(K, i % 2 ? FDARK : [brzL, brz], 0.1), 0, 0, side * a);
+      const a = -0.05 - i * 0.11, L = 17 - Math.abs(i - 2) * 0.8, ux = Math.cos(a), uy = Math.sin(a), bx = 1 + i * 0.85;
+      K.box(elbow, X(bx + ux * L * 0.32), uy * L * 0.32 - 0.6, -0.2 - i * 0.05, L * 0.64, 2.1, 0.6, mix(K, FEATH, 0.1), 0, 0, side * a);
+      K.box(elbow, X(bx + ux * L * 0.8), uy * L * 0.8 - 0.6, -0.25 - i * 0.05, L * 0.36, 1.9, 0.55, mix(K, i % 2 ? FDARK : [brzL, brz], 0.1), 0, 0, side * a);
     }
     W.push({ root, elbow, side });
   }
@@ -1021,37 +1022,47 @@ function buildKeres(K0) {
   const blk = 0x1a1216, blkL = 0x3a2a30, hairC = [0xe8e4e0, 0xc8c4c0, 0xffffff], pale = 0xe0d8d0, red = 0xff2a2a, redD = 0xa81a1a, RAG = [blk, blkL, 0x2a1e24];
   const mat = skinMat('keres', (S) => paintPerson(S, { skin: pale, hair: 0xe8e4e0, fringe: 2, hairSide: 4, hairBack: 8, eye: 0x0a0406, eyeWhite: 0x0a0406, brow: 0x8a8070, mouth: false, top: blk, sleeve: blk, hand: pale, pants: blk, shoes: false,
     face: (s, ey) => { for (const x of [9, 13]) { s.rect(x, ey - 1, 2, 2, 0x2a0408, 0); s.rect(x + 0.5, ey - 0.5, 1, 1, red, 0); } s.rect(11, ey + 1.5, 2, 1, 0x6a5a5a, 0); s.rect(9.5, ey + 3, 5, 1.5, 0x2a0408, 0); for (let x = 9.5; x < 14.5; x += 1) s.dot(x, ey + 3, 0xfff8f0, 0.6, 1); } }), { emit: 1.6 });
-  const rig = new Rig({ material: mat, scale: 1.1, armW: 2.6, bodyW: 7, jacket: false });
-  const K = K0.kit(rig, mat, { seed: 173, rough: 0.9, emit: 0.9 });
+  const rig = new Rig({ material: mat, scale: 1.3, armW: 2.6, bodyW: 7, jacket: false });
+  const K = kitOf(K0, 'keres', rig, mat, { seed: 173, rough: 0.9, emit: 0.9, ao: 0.3 });
   const T = rig.torso, Hd = rig.head, H8 = 8 * HS;
   dropAll(rig, T); dropOne(rig, hatOf(rig));
   for (const leg of [rig.legR, rig.legL]) dropAll(rig, leg);
-  // a ragged black dress hanging in long strips, a red sash, bone at the collar
-  K.box(T, 0, 6, 0, 6.6, 12, 3.6, blk); K.box(T, 0, 4, 0, 7, 1, 4, redD); K.box(T, 0, 11, 1.85, 3, 1.2, 0.3, pale);
-  for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2, L = 9 + K.r() * 8; K.flare(T, Math.sin(a) * 3.4, -L / 2 + 2, Math.cos(a) * 2, 1.6, L, 0.5, K.tone(RAG, 0.12), a, 0.18); }
-  // the mane of wild white hair
-  K.clumps(Hd, [0, H8 * 0.7, -0.8], [H8 + 2, H8 * 0.8, H8 + 1], { n: 24, size: [1.6, 2.6], cols: hairC, faces: 'tlrk', out: 0.1 });
-  for (let i = 0; i < 8; i++) K.box(Hd, -4 + i * 1.15, H8 * 0.3 - (i % 3), -H8 / 2 - 1.2, 1.4, 4 + K.r() * 4, 1.4, K.tone(hairC, 0.08), 0.3, 0, (i - 3.5) * 0.12);
-  for (const sx of [-1, 1]) K.box(Hd, sx * (H8 / 2 + 1), H8 * 0.35, 0.4, 1.4, 5, 2.6, K.tone(hairC, 0.08), 0, 0, sx * 0.2);
-  for (const sx of [-1, 1]) K.box(Hd, sx * 1.9 * HS, 4.4 * HS, 4 * HS + 0.2, 1.2, 1.1, 0.3, red);
-  // long bony arms in black sleeves, long glowing red talons
+  // a ragged black dress hanging in long strips tipped with red, a red sash, a bone collar
+  blob(K, T, [0, 6.4, 0], [3.8, 6, 2.2], 0.8, (x, y) => (Math.abs(y + 0.3) < 0.1 ? redD : mix(K, RAG, 0.12)), { pw: 2.4, run: [1, 2] });
+  K.box(T, 0, 11.2, 1.85, 3.2, 1.2, 0.5, pale); for (const x of [-1, 0, 1]) K.box(T, x, 10.4, 2.1, 0.5, 0.9, 0.3, pale);
+  for (let i = 0; i < 16; i++) {
+    const a = i / 16 * Math.PI * 2, L = 9 + K.r() * 8, x = Math.sin(a) * 3.4, z = Math.cos(a) * 2;
+    K.flare(T, x, 2 - L / 2, z, 1.6, L, 0.5, K.tone(RAG, 0.12), a, 0.18);
+    if (i % 3 === 0) K.flare(T, x * (1 + L * 0.03), 2 - L - 0.6, z * (1 + L * 0.03), 0.8, 1.6, 0.4, i % 2 ? red : redD, a, 0.18);
+  }
+  // the mane of wild white hair, spilling down the back
+  K.clumps(Hd, [0, H8 * 0.7, -0.8], [H8 + 2, H8 * 0.8, H8 + 1], { n: 34, size: [1.6, 2.8], cols: hairC, faces: 'tlrk', out: 0.15 });
+  for (let i = 0; i < 10; i++) K.box(Hd, -4.6 + i * 1.02, H8 * 0.3 - (i % 3) * 1.2, -H8 / 2 - 1.2, 1.5, 5 + K.r() * 5, 1.5, K.tone(hairC, 0.08), 0.3, 0, (i - 4.5) * 0.12);
+  for (const sx of [-1, 1]) for (let k = 0; k < 2; k++) K.box(Hd, sx * (H8 / 2 + 1 + k * 0.8), H8 * 0.4 - k * 2, 0.4 - k, 1.5, 5, 2.6, K.tone(hairC, 0.08), 0, 0, sx * (0.2 + k * 0.25));
+  for (const sx of [-1, 1]) { K.box(Hd, sx * 1.9 * HS, 4.4 * HS, 4 * HS + 0.2, 1.4, 1.2, 0.3, red); K.box(Hd, sx * 1.9 * HS, 4.4 * HS + 0.7, 4 * HS + 0.15, 1.8, 0.5, 0.4, 0x6a5a5a); }
+  for (const x of [-1.2, -0.4, 0.4, 1.2]) K.box(Hd, x, 1.5, 4 * HS + 0.2, 0.4, 0.9, 0.2, 0xfff8f0);
+  // long bony arms in ragged sleeves, long glowing red talons
   for (const arm of [rig.armR, rig.armL]) {
     dropAll(rig, arm);
-    K.box(arm, 0, -2.4, 0, 2.8, 5, 2.8, blk); K.box(arm, 0, -7, 0, 1.6, 6, 1.6, pale); K.box(arm, 0, -4.6, 0, 3.2, 1.4, 3.2, K.tone(RAG, 0.1));
-    for (const dx of [-0.9, -0.3, 0.3, 0.9]) { K.box(arm, dx, -11.2, 0.6, 0.5, 3.6, 0.5, redD, 0.25, 0, dx * -0.2); K.box(arm, dx * 1.1, -13.6, 1.6, 0.4, 2.2, 0.4, red, 0.7, 0, dx * -0.2); }
+    K.box(arm, 0, -2.4, 0, 2.8, 5, 2.8, blk); for (let i = 0; i < 3; i++) K.box(arm, -0.9 + i * 0.9, -5.6 - K.r() * 1.4, -0.3, 1, 2.6 + K.r() * 2, 1.4, K.tone(RAG, 0.1));
+    K.box(arm, 0, -7.4, 0, 1.4, 5.4, 1.4, pale); K.box(arm, 0, -10.2, 0.2, 2.2, 1.2, 1.6, pale);
+    for (const dx of [-0.9, -0.3, 0.3, 0.9]) { K.box(arm, dx, -12, 0.6, 0.5, 2.6, 0.5, redD, 0.25, 0, dx * -0.2); K.box(arm, dx * 1.1, -14, 1.5, 0.45, 2.2, 0.45, red, 0.6, 0, dx * -0.2); K.box(arm, dx * 1.15, -15.4, 2.8, 0.3, 1.4, 0.3, 0xff8a8a, 1, 0, dx * -0.2); }
   }
   rig.extras.claws = [rig.handR, rig.handL];
-  // great bat wings, black membrane veined in red, ragged at the edge
+  // great bat wings: black membrane between bony fingers veined in glowing red, ragged at the trailing edge
   const W = [];
   for (const side of [-1, 1]) {
     const root = group(T, side * 2, 10.4, -2, 0, 0, side * -0.5), elbow = group(root, side * 10, 0, 0, 0, 0, side * -0.4), X = (v) => side * v;
-    K.box(root, X(5), 0, 0, 10, 1.4, 1.4, blkL); K.box(root, X(5), -3, -0.2, 10, 5, 0.5, blk); K.box(root, X(5), -1.6, 0.1, 9, 0.4, 0.4, red);
-    for (let i = 0; i < 5; i++) { const h = 5 + K.r() * 5; K.box(root, X(1 + i * 2), -5 - h / 2, -0.2, 1.6, h, 0.4, K.tone(RAG, 0.1)); }
-    K.box(elbow, 0, 0, 0, 2, 2, 2, blkL);
-    for (let i = 0; i < 9; i++) {
-      const a = 1.35 - i * 0.24, L = 19 - Math.abs(i - 3) * 1.1 + K.r() * 2.5, ux = Math.cos(a), uy = Math.sin(a);
-      K.box(elbow, X(ux * L / 2), uy * L / 2, -0.1 - i * 0.04, L, 1.8, 0.45, K.tone(RAG, 0.12), 0, 0, side * a);
-      if (i % 2 === 0) K.box(elbow, X(ux * L * 0.4), uy * L * 0.4, 0.15, L * 0.6, 0.35, 0.3, i % 4 ? redD : red, 0, 0, side * a);
+    K.box(root, X(5), 0, 0, 10, 1.4, 1.4, blkL); K.box(root, X(5), -3.2, -0.2, 10, 5.4, 0.45, blk); K.box(root, X(5), -1.6, 0.1, 9, 0.4, 0.4, red);
+    for (let i = 0; i < 5; i++) { const h = 4 + K.r() * 5; K.box(root, X(1 + i * 2), -5.6 - h / 2, -0.2, 1.6, h, 0.4, K.tone(RAG, 0.1)); }
+    K.box(elbow, 0, 0, 0, 2.2, 2.2, 2.2, blkL); K.box(elbow, X(0.4), 1.4, 0, 0.8, 1.6, 0.8, pale);
+    for (let i = 0; i < 7; i++) {
+      const a = 1.3 - i * 0.32, L = 18 - Math.abs(i - 2) * 1.2 + K.r() * 2, ux = Math.cos(a), uy = Math.sin(a), px = -uy, py = ux;
+      K.box(elbow, X(ux * L / 2), uy * L / 2, 0.1, L, 0.9, 0.5, blkL, 0, 0, side * a);   // the finger
+      K.box(elbow, X(ux * L * 0.3 - px * 1.4), uy * L * 0.3 - py * 1.4, -0.15, L * 0.6, 2.8, 0.35, K.tone(RAG, 0.12), 0, 0, side * a);   // the membrane behind it, widening outward
+      K.box(elbow, X(ux * L * 0.68 - px * 2.4), uy * L * 0.68 - py * 2.4, -0.17, L * 0.55, 4.8, 0.35, K.tone(RAG, 0.12), 0, 0, side * a);
+      K.box(elbow, X(ux * L * 0.4 - px * 1), uy * L * 0.4 - py * 1, 0.05, L * 0.6, 0.35, 0.3, i % 2 ? redD : red, 0, 0, side * a);   // a red vein
+      if (i > 2) K.box(elbow, X(ux * L * 0.7 - px * 3.6), uy * L * 0.7 - py * 3.6 - 1.5, -0.15, 0.9, 3 + K.r() * 3, 0.3, K.tone(RAG, 0.1));   // ragged strands at the trailing edge
     }
     W.push({ root, elbow, side });
   }
