@@ -93,9 +93,7 @@ test('home order: metronome, tuner, drone, recorder by default; a saved order is
 
 test('drone settings: defaults, kept, and bad values fall back', () => {
   const d = sanitize({});
-  assert.deepEqual([d.droneMidi, d.droneVoice, d.droneFifth, d.droneBow], [48, 'cello', false, true]);
-  assert.equal(sanitize({ droneBow: false }).droneBow, true); // the tryout's default, not a choice
-  assert.equal(sanitize({ droneBow: false, droneBowChosen: true }).droneBow, false);
+  assert.deepEqual([d.droneMidi, d.droneVoice, d.droneFifth], [48, 'cello', false]);
   // Continuous pitch, looping forever: no timer.
   assert.deepEqual([d.droneMode, d.droneLoop, d.droneLength, d.droneStep, d.droneSeq], ['continuous', true, 10, 2, 'chrom-up']);
   assert.deepEqual([d.droneTimed, d.droneMinutes, d.droneThen], [false, 10, 'stop']);
