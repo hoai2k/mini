@@ -38,6 +38,7 @@
 import * as THREE from 'three/webgpu';
 import { Rig, PX, markHeld } from './character.js';
 import { QuadRig, paintQuad } from './quad.js';
+import { SerpentRig } from './serpent.js';
 import { paintPerson } from './mortals.js';
 import { t as txt } from '../text_config.js';
 import { HS, skinMat, group, sway, BUILD, voxDensity, keepAbove } from './parts.js';
@@ -146,6 +147,16 @@ function behave(kind) {
     if (swoop) { const want = st === 'windup' || st === 'recover' ? 0.25 : 1.25; rig.float += (want - rig.float) * Math.min(1, dt * (want < rig.float ? 9 : 3)); }
     if (shot && prev === 'windup' && st === 'recover' && e.action?.kind === 'spit') restyleShots(e, shot);
     if (rig.extras.fists) pummel(rig, dt, e, g);
+    // the basilisk: sparks at its lips as it rears, then a short puff of fire at the marked spot as it strikes
+    if (kind === 'basilisk' && (st === 'windup' || (prev === 'windup' && st === 'recover' && e.action?.kind === 'sting'))) {
+      rig.mouth.getWorldPosition(_c);
+      if (st === 'windup') { if (Math.random() < dt * 12) g.particles?.burst(_c, { count: 1, color: fireHot, speed: 0.6, life: 0.3, size: 0.1, sizeEnd: 0.03, up: 0.6 }); }
+      else {
+        _f.set(Math.sin(e.facing), 0.15, Math.cos(e.facing));
+        g.particles?.burst(_c, { count: 14, color: fireCol, speed: 4, spread: 0.4, dir: _f, life: 0.35, size: 0.22, sizeEnd: 0.06, drag: 4 });
+        g.particles?.burst(_c, { count: 6, color: fireHot, speed: 3, spread: 0.3, dir: _f, life: 0.25, size: 0.14, sizeEnd: 0.04, drag: 4 });
+      }
+    }
   };
 }
 
@@ -915,59 +926,80 @@ function buildKingCrab(K0) {
 }
 
 // ---- basilisk ----------------------------------------------------------------------
-// (vox-ow-fodder-3, top left) A crowned serpent-lizard, its back at a hero's
-// chest and its crown above his head (design/size-audit.md): deep green and teal scales, a cream belly, a crown of gold spikes
-// fanning back from its head and gold spines down its back, glowing yellow
-// eyes, fanged jaws, gold claws, and a long tail that curls up over its back.
-// Quick on its feet; it spits venom.
+// The books' basilisk (The Son of Neptune, The Blood of Olympus): a little
+// green snake about as long as a man's arm, with an expandable collar of
+// white spikes, pale yellow eyes, fiery breath and a poisonous touch; the
+// "little king", so a small white crown. Built on the Mist Serpent's spine
+// (entities/serpent.js SerpentRig: it slithers, rears and strikes) at under
+// half its size, about 1.5 blocks long (a man's arm, stretched a little so a
+// trio reads at the game's distance), at the heroes' voxel size. What reads
+// in a crowd: the white spiked collar (the rig's hood: it flares in the
+// wind-up), the crown, glowing pale yellow eyes, an ember-hot mouth and a
+// flickering tongue of flame. The fire puff itself is behave() below.
 function buildBasilisk(K0) {
-  const grn = 0x1e7a4a, grnD = 0x124a2e, teal = 0x2a8a6a, belly = 0xe8d8a0, bellyD = 0xc8b47a, gold = 0xf0b020, goldD = 0xb87a10, goldL = 0xf8d050, eye = 0xffe020;
-  const SC = [grn, grnD, teal, 0x1a6a40, 0x2a9a5a];
-  const scale = (y, z) => (K.r() < 0.12 ? mix(K, [gold, goldD], 0.1) : mix(K, SC, 0.12));
-  const mat = skinMat('basilisk', flatQuad(grn, grnD, belly, eye), { rough: 0.5, emit: 1 });
-  const rig = new QuadRig({ material: mat, scale: 2.9, bodyL: 8, bodyW: 5, bodyH: 4.4, legH: 3.8, legW: 1.8, headS: 5, splay: 0.6, snout: false, neckUp: 4.2, headZ: 1, gait: 2, ears: false, tail: 6, tailLen: 18, tailW: 3, tailCurl: 0.72, jawOpen: 0.25 });
-  const K = kitOf(K0, 'basilisk', rig, mat, { seed: 151, rough: 0.5, emit: 0.9, ao: 0.35, density: BUILD.k * 1.35 });   // (size audit: built 1.35× bigger, its cells kept the same size)
-  const T = rig.torso, Hd = rig.head, M = rig.mouth, hs = 5;
-  dropAll(rig, T); dropAll(rig, Hd);
-  // body: a deep upright chest rising to the neck, a cream belly in plated rows, scales trimmed in gold
-  blob(K, T, [0, 1.4, 2], [2.9, 3.8, 3], 0.8, (x, y, z) => (z > 0.45 && Math.abs(x) < 0.62 ? ((Math.floor((y + 1) * 5) % 2) ? belly : bellyD) : scale()), { rx: -0.45, run: [1, 2] });
-  blob(K, T, [0, 0, -1.8], [2.7, 2.4, 3.2], 0.8, (x, y) => (y < -0.5 ? mix(K, [belly, bellyD], 0.08) : scale()), { run: [1, 2] });
-  for (let i = 0; i < 7; i++) { const z = 4.2 - i * 1.3, h = 3.2 - i * 0.25, y = 4.4 - i * 0.55; K.box(T, 0, y, z, 0.9, 0.9, 0.9, grnD, -0.5); K.box(T, 0, y + h / 2, z - 0.4, 0.8, h, 1, i % 2 ? goldD : gold, -0.6); K.box(T, 0, y + h + 0.1, z - 0.9, 0.5, 1, 0.5, goldL, -0.7); }
-  // head: a long scaled wedge, glowing eyes under gold brows, a crown of gold spikes fanning back, fangs
-  const hz = hs * 0.35;
-  blob(K, Hd, [0, 0.3, hz + 0.6], [2.8, 2.3, 3.4], 0.75, () => scale(), { pw: 2.6, run: [1, 2] });
-  K.box(Hd, 0, -0.3, hz + 4, hs - 1.4, hs * 0.5, 2.4, teal); K.box(Hd, 0, 0.6, hz + 4.4, hs - 2.4, 0.6, 1.6, grnD); for (const sx of [-1, 1]) K.box(Hd, sx * 0.7, 0.3, hz + 5.25, 0.5, 0.4, 0.2, 0x0a1a10);
+  const GRN = [0x3a9a3a, 0x2e8a32, 0x48aa42, 0x2a7a2e], DARK = 0x16401a, BELLY = 0xd8e0a0, BELLYD = 0xb8c480;
+  const SPIKE = 0xeef0e6, SPIKED = 0xc0c4b8, TIP = 0xffffff, EYE = 0xfff09a, SLIT = 0x1a1406, EMBER = 0xff5a10, FIRE = 0xff8a1a, FIREH = 0xffd040, FANG = 0xf6f0e0;
+  const mat = skinMat('basilisk', (S) => paintQuad(S, { base: GRN[0], dark: DARK, belly: BELLY, back: GRN[1], eye: EYE, eyeLow: FIREH, nose: DARK, teeth: FANG, speckles: 20 }), { emit: 1 });
+  const rig = new SerpentRig({ material: mat, scale: 0.5 });
+  const K = kitOf(K0, 'basilisk', rig, mat, { seed: 151, rough: 0.5, emit: 0.95, ao: 0.2, density: voxDensity(rig) });
+  const NN = rig.segs.indexOf(rig.neck) + 1, L = 3.6;
+  // ---- the body: chunky green segments over a pale belly, a dark saddle on every other one
+  rig.segs.forEach((g, j) => {
+    const w = g.userData.w, h = w * 0.86, ov = Math.min(1.6, w * 0.3);
+    g.userData.len = L;
+    K.box(g, 0, 0.1, L / 2, w, h - 0.2, L + ov, K.tone(GRN, 0.08));
+    K.box(g, 0, -h / 2 + 0.3, L / 2, w * 0.8, 0.6, L + ov, j % 2 ? BELLY : BELLYD);
+    if (w > 2 && j % 2) K.box(g, 0, h / 2 - 0.05, L / 2, w * 0.6, 0.4, L * 0.6, DARK);
+    if (j === rig.segs.length - 1) K.box(g, 0, -0.1, -0.9, w * 0.7, h * 0.7, 1.6, GRN[1]);
+  });
+  // ---- the collar: white spikes radiating round the neck on the two hood
+  // groups (rig.hoods: animate() spreads them sideways as it rears to strike)
+  const nw = rig.segs[1].userData.w / 2;
+  rig.hoods.forEach((Hg, i) => {
+    const z = i ? 2.4 : 1.2, len = i ? 4.2 : 3.4;
+    for (const a of [-1.9, -1.35, -0.8, -0.27, 0.27, 0.8, 1.35, 1.9]) {
+      const r = nw + len / 2 - 0.3, x = Math.sin(a) * r, y = Math.cos(a) * r * 0.9;
+      K.box(Hg, x, y, z, 1.2, len, 1.2, i ? SPIKE : SPIKED, 0, 0, -a);
+      K.box(Hg, Math.sin(a) * (nw + len), Math.cos(a) * (nw + len) * 0.9, z, 0.7, 0.9, 0.7, TIP, 0, 0, -a);
+    }
+  });
+  // ---- the head: a broad blunt wedge (bigger than the body's taper would
+  // give it, so its face reads), ember-hot inside the mouth
+  const H = rig.head, J = rig.mouth;
+  const hw = (z) => 8.4 - 0.5 * Math.max(0, z - 1), top = (z) => 3 - 0.16 * Math.max(0, z - 2);
+  for (let z = -1.2; z < 8.6; z += 1.2) {
+    const w = hw(z), t = top(z);
+    K.box(H, 0, (t + 0.3) / 2, z, w, t - 0.3, 1.25, K.tone(GRN, 0.06));
+    K.box(H, 0, 0.15, z, w - 1.2, 0.3, 1.25, z > 7.8 ? GRN[0] : EMBER);
+    if (z > -0.6) {
+      const jw = w - 0.6, jh = 1.6 - 0.06 * z;
+      K.box(J, 0, -(jh + 0.3) / 2, z, jw, jh - 0.3, 1.25, K.tone(GRN, 0.06));
+      K.box(J, 0, -jh + 0.1, z, jw * 0.7, 0.3, 1.25, BELLY);
+      K.box(J, 0, -0.15, z, jw - 1.2, 0.3, 1.25, z > 7.8 ? GRN[0] : EMBER);
+    }
+  }
+  // eyes: big glowing pale yellow, a dark slit
   for (const sx of [-1, 1]) {
-    K.box(Hd, sx * 2.5, 1, hz + 2.2, 0.5, 1.5, 1.9, eye); K.box(Hd, sx * 2.65, 1.2, hz + 2.6, 0.3, 0.6, 0.6, 0xfffff0); K.box(Hd, sx * 2.3, 2.2, hz + 2.2, 1.3, 0.6, 2.6, goldD, 0, 0, sx * -0.3);
-    K.box(Hd, sx * 3.1, 0.2, hz - 0.6, 0.6, 2.4, 3, gold, 0, sx * 0.6, 0); K.box(Hd, sx * 3.8, 0.6, hz - 2, 0.5, 1.4, 1.6, goldL, 0, sx * 0.8, 0);
+    const z = 4.2, w = hw(z), y = top(z);
+    K.box(H, sx * (w / 2 - 0.3), y + 0.1, z, 1.6, 0.6, 2.4, DARK);
+    K.box(H, sx * (w / 2 + 0.1), y - 1, z, 0.5, 1.6, 2, EYE);
+    K.box(H, sx * (w / 2 + 0.25), y - 1, z + 0.2, 0.3, 1.5, 0.45, SLIT);
   }
-  for (let i = 0; i < 11; i++) {
-    const a = (i - 5) * 0.27, L = 5.6 - Math.abs(i - 5) * 0.35 + (i % 2) * 1.2, sx = Math.sin(a), cy = Math.cos(a), bx = sx * 2, by = 2.4 + cy * 0.6, bz = hz - 0.4 - (i % 2) * 0.8;
-    K.box(Hd, bx, by, bz, 1.3, 1.3, 1.3, grnD, -0.7, 0, -a);
-    K.box(Hd, bx + sx * L * 0.42, by + cy * L * 0.36, bz - L * 0.3, 0.9, L * 0.75, 0.9, i % 2 ? goldD : gold, -0.75, 0, -a);
-    K.box(Hd, bx + sx * L * 0.8, by + cy * L * 0.7, bz - L * 0.58, 0.55, L * 0.3, 0.55, goldL, -0.75, 0, -a);
+  // the little crown: three white spikes on the crown of the head, the middle tallest, tips aglow
+  for (const [x, hgt] of [[-1.8, 2.2], [0, 3.2], [1.8, 2.2]]) {
+    const y = top(1.6) + hgt / 2 - 0.2;
+    K.box(H, x, y, 1.6, 1.1, hgt, 1.1, SPIKE, -0.35, 0, -x * 0.12);
+    K.box(H, x * 1.1, y + hgt / 2 + 0.2, 1.4, 0.6, 0.8, 0.6, TIP, -0.35, 0, -x * 0.12);
   }
-  K.box(M, 0, -0.5, 2.4, hs - 1.4, 0.9, 4.2, belly); K.box(M, 0, 0, 2, hs - 2, 0.3, 3, 0xc83a3a);
-  for (const sx of [-1, 1]) { K.box(M, sx * 1.4, 0.6, 3.8, 0.45, 1.4, 0.45, 0xfff8e0); K.box(M, sx * 1.6, 0.4, 2.4, 0.4, 1, 0.4, 0xfff8e0); }
-  K.box(Hd, 0, -1.6, hz + 4.6, 0.5, 1.2, 0.5, 0xfff8e0); for (const sx of [-1, 1]) K.box(Hd, sx * 1.4, -1.5, hz + 4.6, 0.45, 1.2, 0.45, 0xfff8e0);
-  // legs: scaly thighs with gold knee plates, big gold claws tipped dark
-  for (const leg of rig.legs) {
-    dropAll(rig, leg); const sd = leg.userData.side;
-    K.box(leg, 0, -1, 0, 2.8, 2.6, 2.8, mix(K, SC)); K.box(leg, sd * 1.5, -1, 0, 0.5, 1.8, 2, gold); K.box(leg, 0, -2.8, 0, 2, 1.6, 2, grnD);
-    for (const dx of [-0.8, 0, 0.8]) { K.box(leg, dx, -3.4, 1.1, 0.7, 0.7, 2, gold); K.box(leg, dx, -3.6, 2.3, 0.5, 0.5, 0.8, 0x3a2a10); }
-    K.box(leg, 0, -3.4, -1.1, 0.6, 0.6, 1, goldD);
-  }
-  // the tail: tapering scaled segments with gold spines, curling up over the back
-  for (const [i, seg] of rig.tail.entries()) {
-    dropAll(rig, seg);
-    const w = 3 * (1 - i * 0.12), l = 3;
-    K.box(seg, 0, 0, -l / 2, w, w, l + 0.2, mix(K, SC)); K.box(seg, 0, 0, -l / 2, w + 0.5, w - 0.8, l - 0.8, mix(K, SC)); K.box(seg, 0, -w / 2 + 0.2, -l / 2, w * 0.7, 0.5, l, belly);
-    K.box(seg, 0, w / 2 + 0.2, -l / 2, w * 0.6, 0.5, l, goldD);
-    K.box(seg, 0, w / 2 + 0.9, -l / 2, 0.8, 2, 1, gold, -0.4); K.box(seg, 0, w / 2 + 1.9, -l / 2 - 0.5, 0.5, 0.9, 0.5, goldL, -0.5);
-  }
-  K.box(rig.tailTip, 0, 0.6, -3.8, 1, 1, 1.4, gold); K.box(rig.tailTip, 0, 1.4, -4.4, 0.8, 2.2, 0.8, goldL, -0.6);
+  K.box(H, 0, top(1.6) + 0.1, 1.6, 4.6, 0.6, 1.4, SPIKED);   // (the crown's band)
+  // fangs (rig.fangs swing down as the jaw opens)
+  for (const sx of [-1, 1]) K.box(rig.fangs, sx * 1.4, -0.8, 0, 0.6, 1.6, 0.6, FANG, 0.2);
+  // the tongue: a flicker of flame, forked (the rig flicks it in and out)
+  K.box(rig.tongue, 0, 0, 1.3, 0.9, 0.6, 2.8, FIRE);
+  for (const sx of [-1, 1]) K.box(rig.tongue, sx * 0.45, 0.1, 3.1, 0.5, 0.5, 1.6, FIREH, 0, sx * 0.4, 0);
   K.done();
-  noShadow(rig, M, ...rig.legs, ...rig.tail);
+  noShadow(rig, rig.tongue, rig.fangs, ...rig.hoods);
+  rig.animate({ dt: 0, speed: 0, action: null });
   return finish(rig, 'basilisk');
 }
 

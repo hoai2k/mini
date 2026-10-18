@@ -99,7 +99,7 @@ test('the first shot waits a random moment; elites and champions are only a litt
 });
 
 test('fire rates: fodder shoots every 3-5 s or so, big lobbers slower, every shot with a wind-up tell', () => {
-  assert.ok(SHOOTERS.length >= 12);
+  assert.ok(SHOOTERS.length >= 11);   // (the basilisk puffs fire at close range now, as in the books: it no longer shoots)
   for (const [id, d] of SHOOTERS) {
     const every = d.cd + d.windup;   // (the cooldown runs from the shot; enemy.js release)
     assert.ok(d.windup >= 0.7, `${id}: a readable wind-up (${d.windup} s)`);

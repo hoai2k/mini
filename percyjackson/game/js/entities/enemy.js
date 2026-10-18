@@ -880,7 +880,7 @@ export class Enemy {
   // windup, recover, dmg (x the monster's damage), range (pinch), twin (a
   // second pinch this long after the first), at / radius (where the sting
   // lands) }; distances grow with a champion's size (sizeK).
-  get sizeK() { return this.height / this.def.height; }
+  get sizeK() { return this.attackK ?? this.height / this.def.height; }   // (attackK: a champion's attack scale, set apart from its hit height: champions.js applyChampionLook)
   nextMove() { const M = this.def.moves; return M[(this.moveIx ?? 0) % M.length]; }
   // A ranged shot, when the volley scheduler gives this one a turn at the
   // hero: the wind-up lasts until its slot (never shorter than the stat

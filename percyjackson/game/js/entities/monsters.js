@@ -124,7 +124,7 @@ function kitGeometry(list, extra = null) {
     const rot = b.rx || b.ry || b.rz;
     if (rot) { _q.setFromEuler(_e.set(b.rx, b.ry, b.rz, b.order ?? 'XYZ')); _m4.compose(_p.set(b.x, b.y, b.z), _q, _one); }
     for (let f = 0; f < 6; f++) {
-      if (hidden[bi * 6 + f]) continue;
+      if (hidden[bi * 6 + f] || (b.only != null && f !== b.only)) continue;   // (b.only: a flat decal, its one outward face)
       const [n, vs, sh] = KFACES[f];
       _n.set(n[0], n[1], n[2]); if (rot) _n.applyQuaternion(_q);
       const k = hot ? 1 : sh;
@@ -224,8 +224,14 @@ export class VoxKit {
     return this;
   }
   // Glowing cracks: short random walks of thin cells on the faces of a box.
-  cracks(p, c, s, { n = 4, len = [3, 6], cols = [0xff4a00, 0xff7a10], faces = 'tfklr', cell = 0.6 } = {}) {
+  // rim: a colour for a wider glowing edge under each cell (magma: a bright
+  // core in a deep red rim); then each cell is drawn as two flat decals, only
+  // their outward faces, which costs less than one plain crack cell. rimKit:
+  // another kit to draw the rims with (one with a lower emit, so the rim
+  // glows deep red under the tone mapping where the core glows bright).
+  cracks(p, c, s, { n = 4, len = [3, 6], cols = [0xff4a00, 0xff7a10], faces = 'tfklr', cell = 0.6, rim = null, rimKit = this } = {}) {
     const D = this.density; if (D !== 1) { cell /= D; len = [Math.round(len[0] * D), Math.round(len[1] * D)]; }
+    const rimC = rim != null ? toCol(rim) : null, FI = { r: 0, l: 1, t: 2, f: 4, k: 5 };
     for (let i = 0; i < n; i++) {
       const f = faces[Math.floor(this.r() * faces.length)];
       const L = len[0] + Math.floor(this.r() * (len[1] - len[0] + 1));
@@ -234,7 +240,16 @@ export class VoxKit {
       for (let k = 0; k < L; k++) {
         const col = toCol(cols[this.r() < 0.3 ? 1 : 0]);
         const t = 0.15;
-        if (f === 't') this.box(p, c[0] + u * s[0], c[1] + s[1] / 2 + t / 2, c[2] + v * s[2], cell, t, cell, col);
+        if (rimC) {
+          // the rim, wide and flush; the core, narrow and a hair proud of it
+          const at = (K, o, w, cc) => {
+            if (f === 't') K.box(p, c[0] + u * s[0], c[1] + s[1] / 2 + o, c[2] + v * s[2], w, t * 0.5, w, cc);
+            else if (f === 'f' || f === 'k') K.box(p, c[0] + u * s[0], c[1] + v * s[1], c[2] + (f === 'f' ? 1 : -1) * (s[2] / 2 + o), w, w, t * 0.5, cc);
+            else K.box(p, c[0] + (f === 'r' ? 1 : -1) * (s[0] / 2 + o), c[1] + v * s[1], c[2] + u * s[2], t * 0.5, w, w, cc);
+            K.lists.get(p).at(-1).only = FI[f];
+          };
+          at(rimKit, t * 0.25, cell * 2, rimC); at(this, t * 0.75, cell * 1.1, col);
+        } else if (f === 't') this.box(p, c[0] + u * s[0], c[1] + s[1] / 2 + t / 2, c[2] + v * s[2], cell, t, cell, col);
         else if (f === 'f' || f === 'k') this.box(p, c[0] + u * s[0], c[1] + v * s[1], c[2] + (f === 'f' ? 1 : -1) * (s[2] / 2 + t / 2), cell, cell, t, col);
         else this.box(p, c[0] + (f === 'r' ? 1 : -1) * (s[0] / 2 + t / 2), c[1] + v * s[1], c[2] + u * s[2], t, cell, cell, col);
         if (this.r() < 0.55) u += (this.r() < 0.5 ? 1 : -1) * cell / Math.max(1, f === 'l' || f === 'r' ? s[2] : s[0]); else v -= cell / Math.max(1, f === 't' ? s[2] : s[1]);
@@ -666,10 +681,14 @@ export function hound(id, spec, opts = {}) {
 // spec: HELLHOUND (big: true); opts as hound(). rig.dims match the QuadRig,
 // so the champions' add-ons (Shadowfang's collar, scars, eyes) still land.
 const DEEP = [0x1a1518, 0x231d21, 0x2c252a], SMOKE = [0x3a3438, 0x4e474c, 0x645c62];
+// (pass 4: the cracks as glowing magma, a bright orange-yellow core in a deep
+// red rim, both emissive (VoxKit cracks rim), drawn a little proud of the fur)
+const MAGMA = [0xff9a10, 0xffc030], MAGMA_RIM = 0xff2200;
 function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha = false } = {}) {
   const mat = skinMat(id, (S) => { lavaDog({ cracks, base: 0x2e2529 })(S); S.saturate(1.3); }, { emit: 0.5 });
   const rig = new QuadRig({ material: mat, ...spec });
-  const K = kit(rig, mat, { seed: 9 + (id.length % 7), emit: 1 });
+  const K = kit(rig, mat, { seed: 9 + (id.length % 7), emit: 1.2 });
+  const RK = kit(rig, mat, { seed: 77, emit: 0.4, fill: 0 });   // (the magma's deep red rims: a low emit keeps them red under the tone mapping)
   const { legH, legW, hs } = rig.dims, T = rig.torso, Hd = rig.head, M = rig.mouth, N = rig.neck, ly = legH / 34;
   for (const g of [T, Hd, M, ...rig.legs, ...rig.tail]) dropMeshes(rig, g);
   // the coat's budget: a hound built bigger (a champion or the alpha, parts.js
@@ -721,9 +740,9 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
     const l = 2.5 + K.r() * 3.5, y0 = z > 15.5 && Math.abs(x) < 12.5 ? -19 : -16; K.box(T, x + (K.r() - 0.5), y0 - l / 2 + 1.2, z, 2.2, l, 2.2, K.tone(FUR), 0.3);
   }
   // lava veins drawn over the fur (the source sheet's cracks read from afar)
-  K.cracks(T, [0, -1, 14], [35, 32, 31], { n: Math.round(cracks * 1.6), cols: LAVA, faces: 'lrf', len: [7, 14], cell: 1 });
-  K.cracks(T, [0, 3, -6], [32, 24, 14], { n: Math.round(cracks * 0.6), cols: LAVA, faces: 'lr', len: [5, 9], cell: 0.9 });
-  K.cracks(T, [0, 3, -23], [32.5, 26, 14.5], { n: Math.round(cracks * 0.9), cols: LAVA, faces: 'lrk', len: [5, 10], cell: 0.9 });
+  K.cracks(T, [0, -1, 14], [38, 33, 34], { n: Math.round(cracks * 2), cols: MAGMA, rim: MAGMA_RIM, rimKit: RK, faces: 'lrf', len: [7, 14], cell: 1 });
+  K.cracks(T, [0, 3, -6], [35, 24, 14], { n: Math.round(cracks * 0.8), cols: MAGMA, rim: MAGMA_RIM, rimKit: RK, faces: 'lr', len: [5, 9], cell: 0.9 });
+  K.cracks(T, [0, 3, -23], [35.5, 26, 17.5], { n: Math.round(cracks * 1.1), cols: MAGMA, rim: MAGMA_RIM, rimKit: RK, faces: 'lrk', len: [5, 10], cell: 0.9 });
   for (let z = 4; z < 27; z += 3) K.box(T, (K.r() - 0.5) * 8, z > 15.5 ? -19.2 : -16.2, z, 4 + K.r() * 7, 0.4, 0.8, LAVA[K.r() < 0.3 ? 1 : 0]);   // the furnace glows under the chest
   // ---- the mane: hackles down the spine, tallest over the shoulders, breaking into smoke
   const topAt = (z) => (z > -1 ? 18 : 17.5);
@@ -791,8 +810,8 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
   K.clumps(Hd, sc([0, -2.3, 23.5]), sc([11.4, 9, 13]), { n: Math.round(44 * fe), size: [0.8, 1.5], cols: [DEEP[0], DEEP[2], FUR[0], FUR[1]], faces: 'lrt', out: 0.2, keep: (x, y) => y / k > -5.2 });
   K.clumps(Hd, sc([0, 1, 7.5]), sc([19, 16, 19]), { n: Math.round(36 * fe), size: [1, 1.8], cols: FURL, faces: 'f', out: 0.2, keep: (x, y) => y / k > 8 || (y / k > -1.5 && Math.abs(Math.abs(x / k) - 5) > 3.6) });
   K.clumps(Hd, sc([0, -4, 5]), sc([21, 9, 11]), { n: Math.round(34 * fe), size: [1.6, 2.8], cols: FUR, faces: 'lrbk', stretch: [1, 1.3, 1.2] });   // cheek ruff
-  K.cracks(Hd, sc([0, 0, 7.5]), sc([21.5, 13, 19]), { n: Math.max(4, Math.round(cracks / 2.5)), cols: LAVA, faces: 'lr', len: [4, 8], cell: 0.9 });
-  K.cracks(N, [0, -4, -3.5], [18.5, 16, 15], { n: Math.max(3, Math.round(cracks / 3)), cols: LAVA, faces: 'lr', len: [4, 8], cell: 0.9 });
+  K.cracks(Hd, sc([0, 0, 7.5]), sc([22.5, 13, 19]), { n: Math.max(4, Math.round(cracks / 2.5)), cols: MAGMA, rim: MAGMA_RIM, rimKit: RK, faces: 'lr', len: [4, 8], cell: 0.9 });
+  K.cracks(N, [0, -4, -3.5], [21.5, 16, 15], { n: Math.max(3, Math.round(cracks / 3)), cols: MAGMA, rim: MAGMA_RIM, rimKit: RK, faces: 'lr', len: [4, 8], cell: 0.9 });
   // the muzzle
   HB(Hd, 0, -2.3, 23.5, 11.4, 9, 13, DEEP[1]);
   HB(Hd, 0, 2.4, 21, 8, 1.6, 7, DEEP[2], 0.12);
@@ -847,7 +866,7 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
       seg(leg, Y([-28, -3]), Y([-33, -0.5]), 6.6, 7.2, DEEP[1], 0.6);
       K.box(leg, 0, -28 * ly, -5.6, 3.6, 3.6, 2.8, FUR[2]);
     }
-    K.cracks(leg, [0, -17 * ly, 0], [10, 22 * ly, 10.5], { n: 5, cols: LAVA, faces: 'lrf', len: [4, 9], cell: 0.9 });
+    K.cracks(leg, [0, -17 * ly, 0], [12.5, 22 * ly, 12.5], { n: 6, cols: MAGMA, rim: MAGMA_RIM, rimKit: RK, faces: 'lrf', len: [4, 9], cell: 0.9 });
     const paw = group(leg, 0, b, 0, 0, 0, -(rig.spec.stance ?? 0) * leg.userData.side);   // (level, though the leg leans out)
     K.box(paw, 0, 2.2, 1.6, 10.6, 4.4, 11.4, DEEP[1]);
     K.box(paw, 0, 5, 0.6, 7.6, 2.4, 8, DEEP[0]);
@@ -868,7 +887,7 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
   const tip = rig.tailTip;
   K.box(tip, 0, 0, -tl - 1.2, 3, 3, 3, LAVA[0]); K.box(tip, 0, 1.6, -tl - 2.6, 2, 2.6, 2, LAVA[1]); K.box(tip, 0.6, 3.4, -tl - 2.2, 1.2, 2, 1.2, 0xffd040);
   K.box(tip, 0, 6, -tl - 3, 2.2, 2.2, 2.2, SMOKE[0]); K.box(tip, 0.6, 8.6, -tl - 3.6, 1.6, 1.6, 1.6, SMOKE[1]); K.box(tip, -0.3, 10.6, -tl - 4, 1.1, 1.1, 1.1, SMOKE[2]);
-  K.done();
+  K.done(); RK.done();
   return rig;
 }
 // A harpy as the 3D sheet draws it (vox-enemies, top row): an upright eagle
@@ -1653,8 +1672,8 @@ function buildTelekhine() {
   const lea = 0x8a4a22, leaD = 0x5a2e14, brass = 0xd8a030, brassD = 0x8a5a14, iron = 0x2a2624, ironL = 0x46403a;
   const mat = skinMat('telekhine', (S) => paintQuad(S, { base: hide, dark: hideD, belly: cream, back: 0x3a4866, eye: 0xffa01a, eyeLow: 0xff5a10, nose: 0x14161c, teeth: 0xf4ecd8, speckles: 70, stripes: null,
     custom: (s) => { for (let i = 0; i < 50; i++) s.px(Math.floor(s.r() * 40), 16 + Math.floor(s.r() * 20), i % 2 ? sp : hideL); s.rect(32, 0, 16, 8, cream, 0.1); } }), { emit: 0.9 });
-  const rig = new QuadRig({ material: mat, scale: 1.1, bodyL: 10, bodyW: 7, bodyH: 5, legH: 3.5, legW: 2.4, headS: 6, snoutS: 3.8, ears: false, tail: 2, tailLen: 3, tailW: 2.2, tailCurl: 0.1, neckUp: 8.4, headZ: -1.6, gait: 1.3, jawOpen: 0.3 });
-  const K = kit(rig, mat, { seed: 89, rough: 0.7, emit: 0.8 });
+  const rig = new QuadRig({ material: mat, scale: 2.85, bodyL: 10, bodyW: 7, bodyH: 5, legH: 3.5, legW: 2.4, headS: 6, snoutS: 3.8, ears: false, tail: 2, tailLen: 3, tailW: 2.2, tailCurl: 0.1, neckUp: 8.4, headZ: -1.6, gait: 1.3, jawOpen: 0.3 });
+  const K = kit(rig, mat, { seed: 89, rough: 0.7, emit: 0.8, density: BUILD.k * 1.8 });   // (size audit: built 2.6× bigger, adults "at least seven feet tall" as in The Battle of the Labyrinth; cells 1.45× a hero's to hold its triangles)
   const T = rig.torso;
   dropMeshes(rig, T);
   // the body: an upright chest, a sloping middle and a tapering hind end
@@ -2203,7 +2222,7 @@ export const MONSTERS = {
   // a spartoi: the steady melee fodder of the sown skeleton army (beach, underworld, desert)
   spartoi: { name: txt('monsters.spartoi.name'), tier: 'minor', role: 'fodder', hp: 52, speed: 3.3, dmg: 9, radius: 0.45, height: 2, ai: 'melee', range: 1.8, windup: 0.5, cd: 1.4, xp: 4, coins: [1, 3], model: 'spartoi', pitch: 1.2, voice: 'rattle', knockResist: 0.2 },
   // a telekhine: lobs Greek fire in an arc (a marked spot that burns a moment): keep moving
-  telekhine: { name: txt('monsters.telekhine.name'), tier: 'minor', role: 'lobber', hp: 38, speed: 3, dmg: 11, radius: 0.55, height: 1.3, ai: 'ranged', range: 12, keep: 8, windup: 1, cd: 4.4, xp: 5, coins: [1, 4], model: 'telekhine', pitch: 0.9, projectile: 'fire', lob: true, voice: 'bark', aura: 'greekfire' },
+  telekhine: { name: txt('monsters.telekhine.name'), tier: 'minor', role: 'lobber', hp: 38, speed: 3, dmg: 11, radius: 0.9, height: 2.3, ai: 'ranged', range: 12, keep: 8, windup: 1, cd: 4.4, xp: 5, coins: [1, 4], model: 'telekhine', pitch: 0.9, projectile: 'fire', lob: true, voice: 'bark', aura: 'greekfire' },
   gorgon_statue: { name: txt('monsters.gorgon_statue.name'), tier: 'elite', role: 'ambusher', hp: 150, speed: 2.6, dmg: 16, radius: 0.5, height: 2.1, ai: 'statue', range: 2.2, windup: 0.7, cd: 1.6, xp: 9, coins: [3, 6], model: 'gorgon_statue', armor: 0.35, knockResist: 0.6, pitch: 0.7, voice: 'grind', wake: 5 },
   cyclops: { name: txt('monsters.cyclops.name'), tier: 'champion', role: 'bruiser', hp: 620, speed: 2.3, dmg: 28, radius: 1.2, height: 4.2, ai: 'tank', range: 3.2, windup: 1.0, cd: 2.4, xp: 40, coins: [15, 25], model: 'cyclops', knockResist: 0.9, superArmor: true, pitch: 0.45, voice: 'roar', slamR: 3.6 },
 };

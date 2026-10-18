@@ -474,5 +474,26 @@ export function applyChampionLook(e, id) {
   parent?.add(e.object);
   const k = look.size ?? look.scale ?? 1.3;
   e.height = e.def.height * k; e.radius = e.def.radius * Math.min(1.5, k);
+  // its hit height (and so its health bar, half a block over it) is the model's
+  // own height, measured; its attacks keep the look's size (e.attackK, enemy.js sizeK)
+  e.attackK = k;
+  const top = modelTop(rig.root);
+  if (top > 0.3) e.height = top;
   return e;
+}
+
+// The top of a rig's visible solid meshes over its feet, in world units at its
+// own scale (glows, additive effects and hidden parts left out).
+const _bx = new THREE.Box3(), _bm = new THREE.Box3(), _bv = new THREE.Vector3();
+function modelTop(root) {
+  root.updateWorldMatrix(true, true); const p = root.getWorldPosition(_bv).y; _bx.makeEmpty();
+  root.traverse((o) => {
+    if (!o.isMesh || !o.geometry) return;
+    for (let x = o; x; x = x.parent) if (!x.visible) return;
+    const m = Array.isArray(o.material) ? o.material[0] : o.material;
+    if (m && (m.blending === THREE.AdditiveBlending || (m.transparent && !m.map && !m.vertexColors))) return;
+    if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+    _bx.union(_bm.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld));
+  });
+  return _bx.isEmpty() ? 0 : _bx.max.y - p;
 }

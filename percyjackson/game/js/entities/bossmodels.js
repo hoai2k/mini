@@ -314,21 +314,27 @@ function serpentTail(rig) {
 // so the muscles read against each other. o: { fur: [5 tones dark to light], seed }
 function cerberusBody(rig, o) {
   const { legH, legW } = rig.dims, F = o.fur, seed = o.seed ?? 9;
-  // a mass shaded by height within it, with noise: muscle against muscle
-  const mass = (cy, ry, base = 2) => (x, y, z, n) => F[Math.max(0, Math.min(F.length - 1, Math.round(base + 1 + (y - cy) / ry * 1.7 + (n - 0.5) * 1.6)))];
+  // a mass shaded by height within it, with noise: muscle against muscle;
+  // thin seams of magma wander through it (o.magma), a glowing orange-yellow
+  // core in a deep red rim, both on the glow material
+  const magma = (x, y, z) => { if (!o.magma) return null; const d = Math.abs(noise(x * 0.2, y * 0.17, z * 0.2, 78) - 0.5); return d < 0.012 ? [0xffa020, 'e'] : d < 0.02 ? [0x6a1006, 'e'] : null; };
+  const mass = (cy, ry, base = 2) => (x, y, z, n) => magma(x, y, z) ?? F[Math.max(0, Math.min(F.length - 1, Math.round(base + 1 + (y - cy) / ry * 1.7 + (n - 0.5) * 1.6)))];
   const E = (cx, cy, cz, rx, ry, rz, extra = {}) => ({ e: [cx, cy, cz, rx, ry, rz], col: mass(cy, ry, extra.base), ...extra });
   hideSkin(rig.torso);
   const both = (f) => [-1, 1].flatMap(f);
   vox(rig, rig.torso, [
-    E(0, 6.2, 4, 4.4, 2.6, 7.4, { base: 1.6, fuzz: 0.55, bump: 0.35 }),                 // hackles over the withers
-    ...both((s) => [E(s * 6.2, 3.2, 6.5, 4.2, 5.2, 5.2, { base: 2.4 })]),                 // shoulder blades
+    // (pass 4b: the sheet's massive hump over the shoulders, the back
+    // sloping from it down to a lower rump, the belly tucked well up)
+    E(0, 8.6, 4.5, 3.2, 1.7, 5, { base: 1.4, fuzz: 0.6, bump: 0.35 }),                   // hackles on the hump
+    E(0, 6.6, 5, 5.8, 3.2, 6.2, { base: 2.2, fuzz: 0.4 }),                               // the hump over the withers
+    ...both((s) => [E(s * 6.2, 4, 6.5, 4.3, 5.8, 5.2, { base: 2.4 })]),                   // shoulder blades
     ...both((s) => [E(s * 7.2, -2.4, 7.4, 3.4, 4.6, 4.2, { base: 2 })]),                  // triceps
     ...both((s) => [E(s * 3.4, -2.6, 10, 3.6, 5, 3.4, { base: 2.2 })]),                   // pectorals
-    E(0, 0.5, 6, 8.2, 7.2, 6.5, { base: 2, fuzz: 0.3 }),                                 // the deep chest
-    E(0, 1, -1.5, 7.6, 6.2, 6, { base: 2, fuzz: 0.25 }),                                 // the barrel of ribs
-    E(0, 1.8, -6, 6.2, 5, 4, { base: 1.8 }),                                             // the waist, tucked up
-    ...both((s) => [E(s * 5.2, 1.4, -8.2, 4.4, 5.6, 4.8, { base: 2.3 })]),                // haunches
-    E(0, 2.6, -9.4, 6.4, 4.6, 3.6, { base: 2.2 }),                                       // the rump
+    E(0, 0, 6.5, 8.2, 7.4, 6.5, { base: 2, fuzz: 0.3 }),                                 // the deep chest
+    E(0, 1.4, -1.5, 7.4, 6, 6, { base: 2, fuzz: 0.25 }),                                 // the barrel of ribs
+    E(0, 2.4, -6, 5.8, 4.2, 4, { base: 1.8 }),                                           // the waist, tucked up
+    ...both((s) => [E(s * 5.2, 0.8, -8.2, 4.4, 5, 4.8, { base: 2.3 })]),                  // haunches
+    E(0, 1.4, -9.6, 6, 4.2, 3.4, { base: 2.2 }),                                         // the rump, lower
     E(0, -4.6, 6, 6, 3, 6, { base: 0.6, fuzz: 0.5 }),                                    // shag under the chest
   ], { v: 1, seed, bump: 0.14, fuzz: 0.14 });
   const claw = 0xe8dcc0;
@@ -766,18 +772,18 @@ export const BOSS_MODELS = {
   cerberus: () => {
     const m = skinMat('boss_cerberus', (S) => paintQuad(S, { base: 0x1e1c26, dark: 0x0e0d14, belly: 0x2a2834, back: 0x16141c, eye: 0xff4a0a, eyeLow: 0xffa02a, nose: 0x050505, speckles: 50, brow: 0x0a0a10, teeth: 0xfff4e0,
       custom: (s) => { fur(s, 0, 16, 40, 20, 90, 0x0a0a10, 0x3a3848); fur(s, 0, 0, 32, 16, 30, 0x0a0a10, 0x3a3848); s.box(48, 0, 4, 2, 4, 0xa82030, 0.1); s.rect(52, 4, 4, 1, 0xf4f0e0, 0); s.rect(36, 6, 4, 2, 0xc8283a, 0.1); s.box(52, 16, 2, 3, 1, 0x8a2a3a, 0.1); } }), { emit: 3 });
-    const rig = new QuadRig({ material: m, scale: 6.1, bodyL: 22, bodyW: 19, bodyH: 12, legH: 9, legW: 5.6, legY: 1, legSpread: 1.6, stance: 0.2, legsOnTorso: true, headS: 6, ears: true, tail: 6, tailLen: 22, tailW: 2.6, tailCurl: 0.3, gait: 0.6, neckUp: 2.4, headZ: 1.4 });
+    const rig = new QuadRig({ material: m, scale: 6.1, bodyL: 22, bodyW: 19, bodyH: 12, legH: 9, legW: 5.6, legY: 1, legSpread: 1.6, stance: 0.2, legsOnTorso: true, headS: 6, ears: true, tail: 6, tailLen: 22, tailW: 2.6, tailCurl: 0.3, gait: 0.6, neckUp: 0, headZ: 2.2 });   // (the heads carried low and forward, under the hump)
     const { W, H, L } = rig.dims;
     rig.vd = VD.cerberus; rig.merge = true;
     const furs = [0x0c0b12, 0x15131d, 0x1e1b28, 0x2a2636, 0x3a3448];
-    cerberusBody(rig, { fur: [0x08070c, ...furs, 0x4c4660], seed: 51 });   // (two more tones, so the muscles read)
+    cerberusBody(rig, { fur: [0x08070c, ...furs, 0x4c4660], seed: 51, magma: true });   // (two more tones, so the muscles read)
     const heads = [];
     for (const side of [-1, 0, 1]) {
       let neck, head, mouth;
       const hs = side ? 5.6 : 6;   // (pass 4: heads in a giant dog's proportion, the body dominating)
       if (side === 0) { neck = rig.neck; head = rig.head; mouth = rig.mouth; hideSkin(head, mouth); }
       else {
-        neck = group(rig.torso, side * W * 0.36, H * 0.3 + 1.4, L / 2 - 0.4, 0, side * 0.5, side * -0.15);
+        neck = group(rig.torso, side * W * 0.36, H * 0.3 - 0.8, L / 2 + 0.4, 0, side * 0.5, side * -0.15);
         head = group(neck); mouth = group(head, 0, -hs * 0.42, hs * 0.75);
       }
       rig.vd = VD.cerberusHead;   // (the heads, where the eye goes, at a finer grid than the body)
