@@ -48,7 +48,6 @@ export const terrain = {
 };
 
 export function build(c) {
-  const __t0 = performance.now();   // TEMP timing
   const { W, k, deco, add, rand, bounds: b, trees, scatter, level, inRegion, top, FY, n } = c;
   const G = (x, z) => top(x, z);
   const keep = [];      // footprints the trees stay out of
@@ -436,7 +435,6 @@ export function build(c) {
   scatter([B.asphodel], ['asphodel', 'dry_grass', 'skull', 'dry_grass', 'bone'], 0.06);
   scatter([B.asphalt], ['dry_grass', 'dry_grass', 'bone', 'asphodel'], 0.05);
   scatter([B.underworld_rock, B.rock], ['dry_grass', 'bone', 'skull'], 0.04);
-  console.log('openworld asphodel build ms', Math.round(performance.now() - __t0));   // TEMP timing
 }
 
 // A grey slate gable over the pavilion (ridge along x).

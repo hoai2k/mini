@@ -92,7 +92,10 @@ export const QUESTS = [
 
 export function build(c) {
   const t0 = performance.now();
-  const { W, k, deco, add, rand, top, n, FY } = c;
+  const { W, k, deco, rand, top, n, FY } = c;
+  // every registered place, so the brush planted last keeps off them
+  const spots = [];
+  const add = Object.fromEntries(Object.entries(c.add).map(([key, f]) => [key, (o, ...r) => { spots.push(typeof o === 'object' ? [o.x, o.z] : [r[0], r[1]]); return f(o, ...r); }]));
   const put = (x, y, z, id) => W.set(x, y, z, id);
   const fill = (x0, y0, z0, x1, y1, z1, id) => W.fill(x0, y0, z0, x1, y1, z1, id);
   const disc = (cx, cz, r0, r1, fn) => { const R = Math.ceil(r1); for (let dz = -R; dz <= R; dz++) for (let dx = -R; dx <= R; dx++) { const d = Math.hypot(dx, dz); if (d > r0 && d <= r1) fn(cx + dx, cz + dz, d, Math.atan2(dz, dx)); } };
@@ -358,6 +361,7 @@ export function build(c) {
     const x = Math.floor(258 + rand() * 132), z = Math.floor(134 + rand() * 152), y = top(x, z);
     if (W.get(x, y - 1, z) !== B.desert_sand || !c.level(x, z, 3, 3, 1)) continue;
     if ((x > 294 && x < 346 && z > 244 && z < 272) || (x > 350 && x < 378 && z > 258 && z < 282)) continue;
+    if (spots.some(([sx, sz]) => Math.abs(sx - x) < 4 && Math.abs(sz - z) < 4)) continue;
     c.trees.oak(x, z, { h: 1 + Math.floor(rand() * 2), R: 1.4 + rand() * 0.7, leaves: B.pine_leaves });
   }
 

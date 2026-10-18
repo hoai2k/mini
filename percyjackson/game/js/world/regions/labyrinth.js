@@ -59,7 +59,6 @@ export const terrain = {
 };
 
 export function build(c) {
-  const __t0 = performance.now();   // TEMP timing
   const { W, k, deco, add, scatter, trees, inRegion, top, rand, n, road } = c;
   const S = (x, y, z, id) => { if (inRegion(x, z) && y >= 0 && y < W.sy) W.set(x, y, z, id); };
   const G = (x, y, z) => W.get(x, y, z);
@@ -526,7 +525,6 @@ export function build(c) {
   for (const [x, z] of [[56, 392], [60, 388], [64, 370], [96, 340], [104, 345]]) if (c.level(x, z, 3, 3, 1)) trees.boulder(x, z, 1.5, B.stone);
   scatter([B.grass, B.moss_floor], ['grass', 'tall_grass', 'fern', 'grass', 'flower_yellow', 'flower_red', 'tall_grass', 'flower_yellow'], 0.16);
   scatter([B.cobble, B.stone_brick], ['grass', 'fern', 'flower_yellow'], 0.03);
-  console.log('openworld labyrinth build ms', Math.round(performance.now() - __t0));   // TEMP timing
 }
 
 const lvl = { xp: 520, coins: 150 };

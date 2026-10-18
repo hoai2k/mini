@@ -84,7 +84,6 @@ export const terrain = {
 };
 
 export function build(c) {
-  const __t0 = performance.now();   // TEMP timing
   const { W, k, deco, add, scatter, trees, inRegion, top, rand, n, road } = c;
   const S = (x, y, z, id) => { if (inRegion(x, z) && y >= 0 && y < W.sy) W.set(x, y, z, id); };
   const G = (x, y, z) => W.get(x, y, z);
@@ -466,7 +465,6 @@ export function build(c) {
   }
   scatter([B.grass], ['grass', 'dry_grass', 'dry_grass', 'tall_grass'], 0.1);
   scatter([B.rock, B.gravel_path], ['dry_grass', 'chips'], 0.02);
-  console.log('openworld othrys build ms', Math.round(performance.now() - __t0));   // TEMP timing
 }
 
 export const QUESTS = [

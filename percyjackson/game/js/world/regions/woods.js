@@ -49,7 +49,6 @@ export const terrain = {
 };
 
 export function build(c) {
-  const t0 = performance.now();
   const { W, k, deco, add, top, rand, inRegion, FY } = c;
   const set = (x, y, z, id) => W.set(x, y, z, id);
   const fill = (x0, y0, z0, x1, y1, z1, id) => W.fill(x0, y0, z0, x1, y1, z1, id);
@@ -429,8 +428,6 @@ export function build(c) {
     }
   };
   cover(116, 220, 249, 329); cover(16, 304, 115, 329);
-
-  console.log('openworld woods build ms', Math.round(performance.now() - t0));
 
   // A monster camp's dressing: the shared kit (openworld.js regionContext).
   function campDressing(x, z, o = {}) { c.campDressing(x, z, { ground: B.dirt, ...o }); }

@@ -219,7 +219,7 @@ export function build(c) {
     for (let x = bx0 + 2; x <= bx1 - 2; x++) for (let z = bz0 + 1; z <= bz0 + 4; z++) put(x, by - 1, z, B.water);       // the slip
     c.k.room(bx0, bz0, bx1, bz1, by, 4, B.barn_red, { trim: B.white_trim, doors: [{ side: 's', at: 90, width: 3, height: 3 }, { side: 'n', at: 90, width: 5, height: 3 }] });
     put(bx0, by + 1, bz0 + 4, B.window_day); put(bx1, by + 1, bz0 + 4, B.window_day);
-    const rt = gable(c.k, bx0, bz0, bx1, bz1, by + 4, B.roof, { axis: 'x', end: B.barn_red });
+    const rt = gable(c.k, bx0, bz0, bx1, bz1, by + 4, B.dark_planks, { axis: 'x', end: B.barn_red });
     W.addRoof([bx0 - 1, by + 4, bz0 - 1], [bx1 + 1, rt, bz1 + 1], [[bx0, by, bz0], [bx1, by + 3, bz1]]);
     prop('canoe', 90, by - 0.6, bz0 + 2, { color: 0x2a6aa0, rot: Math.PI / 2 });
     for (const [x, z] of [[bx1 + 2, bz1], [bx1 + 2, bz1 - 1], [bx1 + 3, bz1]]) put(x, by, z, (x + z) % 2 ? B.crate : B.barrel);

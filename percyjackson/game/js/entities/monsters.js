@@ -364,7 +364,7 @@ const MODELS = {
   cyclops: () => buildCyclops(),
   gorgon_statue: () => buildStatue(),
   ghost: () => buildGhost(),
-  // the open world's swarm fodder: karpos, myrmex, acid myrmex, crab, shade (entities/fodder.js)
+  // the open world's and the Road West's fodder and their larger kin (entities/fodder.js)
   ...fodderModels({ kit }),
 };
 // Hellhounds (vox-enemies, left): soot-black shaggy fur in chunky clumps,

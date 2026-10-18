@@ -440,7 +440,7 @@ function buildCrab(K0, king = false) {
     for (const [dx, reach] of [[-1.8, 1.15], [1.6, 0.85]]) {
       const r = reach;
       K.box(leg, dx, 1, zs * 2.2 * r, 1.2, 1.2, 4.6 * r, dx > 0 ? red : redD, zs * -0.5, dx * 0.1 * zs, 0);
-      K.box(leg, dx * 1.2, -1.2, zs * 4.8 * r, 1, 4.4, 1, red, zs * 0.45); K.box(leg, dx * 1.25, -3.4, zs * 5.9 * r, 0.6, 1.2, 0.6, tip, zs * 0.45);
+      K.box(leg, dx * 1.15, -0.9, zs * (5.2 * r + 0.5), 1, 6, 1, red, -zs * 0.35); K.box(leg, dx * 1.2, -3.9, zs * (5.9 * r + 1.1), 0.6, 1.2, 0.6, tip, -zs * 0.35);
     }
   }
   K.done();
@@ -456,7 +456,7 @@ function buildCrab(K0, king = false) {
 function buildBasilisk(K0) {
   const grn = 0x3a8a3a, grnD = 0x1e4e22, grnL = 0x6ab04a, belly = 0xd8d08a, gold = 0xffc020, eye = 0xffe020, frill = 0xd83a1a;
   const mat = skinMat('basilisk', (S) => paintQuad(S, { base: grn, dark: grnD, belly, back: grnD, stripes: grnD, eye, teeth: false, nose: grnD, noise: 0.14, speckles: 30 }), { rough: 0.5, emit: 1 });
-  const rig = new QuadRig({ material: mat, scale: 1.0, bodyL: 8, bodyW: 4.4, bodyH: 3, legH: 3, legW: 1.4, headS: 4, splay: 0.9, snout: false, neckUp: 1, headZ: 0.4, gait: 2.4, ears: false, tail: 4, tailLen: 12, tailW: 2.2, tailCurl: 0.05 });
+  const rig = new QuadRig({ material: mat, scale: 1.35, bodyL: 8, bodyW: 4.4, bodyH: 3, legH: 3, legW: 1.4, headS: 4, splay: 0.9, snout: false, neckUp: 1, headZ: 0.4, gait: 2.4, ears: false, tail: 4, tailLen: 12, tailW: 2.2, tailCurl: 0.05 });
   const K = K0.kit(rig, mat, { seed: 151, rough: 0.5, emit: 0.9 });
   const T = rig.torso, Hd = rig.head, M = rig.mouth, hs = 4;
   dropAll(rig, Hd);
@@ -492,14 +492,14 @@ function buildEarthborn(K0) {
   const T = rig.torso, Hd = rig.head;
   dropOne(rig, hatOf(rig));
   // lumps all over the body, a hunched back, ember cracks
-  K.clumps(T, [0, 6.5, 0], [12, 13, 7], { n: 26, size: [2, 3.4], cols: CLAY, faces: 'tfklr', out: -0.25 });
+  K.clumps(T, [0, 6.5, 0], [12, 13, 7], { n: 26, size: [2, 3.4], cols: [clayL, clay, 0xc88a5a, clayD], faces: 'tfklr', out: -0.25 });
   K.box(T, 0, 11, -2.6, 10, 5, 4, clayD);
-  K.cracks(T, [0, 6, 0], [12, 12, 7], { n: 5, len: [3, 5], cols: [glow, 0xff6a10], faces: 'fk' });
+  K.cracks(T, [0, 6, 0], [12, 12, 7], { n: 9, len: [4, 7], cols: [glow, 0xff6a10], faces: 'fklr' });
   for (const sx of [-1, 1]) K.box(T, sx * 7, 12, 0, 4, 3.4, 5, clayL);   // shoulders up round the head
   // the two lower pairs of arms: lumpy stubs with knobbly fists, swinging
-  for (const [y, z, sx, ph] of [[7, 1.4, -1, 0], [7, 1.4, 1, 2], [3.4, 0.8, -1, 1], [3.4, 0.8, 1, 3]]) {
-    const a = group(T, sx * 7.2, y, z, 0, 0, sx * 0.5);
-    K.box(a, 0, -3, 0, 3.4, 6.4, 3.4, K.tone(CLAY, 0.1)); K.box(a, 0, -6.8, 0.4, 4, 3, 4, clayD);
+  for (const [y, z, sx, ph, rz] of [[8, 1.6, -1, 0, 0.95], [8, 1.6, 1, 2, 0.95], [4, 1, -1, 1, 0.6], [4, 1, 1, 3, 0.6]]) {
+    const a = group(T, sx * 6.6, y, z, 0, 0, sx * rz);
+    K.box(a, 0, -3.4, 0, 3.4, 7.4, 3.4, clayL); K.box(a, 0, -7.6, 0.4, 4.4, 3.4, 4.4, clayD); K.box(a, 0, -3.4, 1.75, 1, 3, 0.2, glow);
     sway(rig, a, 'x', 0.35, 2.2, ph);
   }
   // the upper arms (the rig's own) heave a boulder of mud overhead
@@ -511,7 +511,8 @@ function buildEarthborn(K0) {
   for (const leg of [rig.legR, rig.legL]) { dropAll(rig, leg); K.box(leg, 0, -4.4, 0, 5.4, 9, 5.4, clayD); K.box(leg, 0, -8.6, 1, 6, 1.6, 7, mud); }
   rig.legR.position.x = -3.2 * PX; rig.legL.position.x = 3.2 * PX;
   // head: a lump with a heavy brow
-  K.box(Hd, 0, 8 * HS * 7 / 8 + 0.6, -0.4, 8, 1.6, 8, clayD);
+  K.box(Hd, 0, 8 * HS * 7 / 8 * 0.62, 8 * HS * 7 / 16 + 0.5, 8.4, 1.4, 1.4, clayD);
+  K.clumps(Hd, [0, 8 * HS * 7 / 8, -0.5], [7.6, 1, 7], { n: 5, size: [1.6, 2.4], cols: CLAY, faces: 't', out: -0.4 });
   K.done();
   noShadow(rig, Hd);
   rig.hunch = 0.15;
@@ -526,7 +527,7 @@ function buildEarthborn(K0) {
 function buildDrone(K0) {
   const brz = 0xc08a2c, brzD = 0x7a4e14, brzL = 0xe8b448, blue = 0x5ad8ff, iron = 0x2a2a30;
   const mat = skinMat('daedalus_drone', (S) => paintPerson(S, { skin: brz, eye: blue, eyeWhite: blue, brow: brzD, mouth: false, top: brz, sleeve: brz, hand: brz, pants: brzD, shoes: false }), { rough: 0.35, emit: 1 });
-  const rig = new Rig({ material: mat, scale: 0.7, legH: 6, bodyH: 9, bodyW: 9, bodyD: 9, armW: 2, headS: 6, jacket: false });
+  const rig = new Rig({ material: mat, scale: 0.9, legH: 6, bodyH: 9, bodyW: 9, bodyD: 9, armW: 2, headS: 6, jacket: false });
   const K = K0.kit(rig, mat, { seed: 163, rough: 0.35, metal: 0.3, emit: 0.9 });
   const T = rig.torso, Hd = rig.head, H6 = 6 * HS * 6 / 8;
   dropAll(rig, T); dropAll(rig, Hd); dropAll(rig, rig.armR); dropAll(rig, rig.armL);
@@ -546,7 +547,7 @@ function buildDrone(K0) {
   // claw feet tucked under
   for (const leg of [rig.legR, rig.legL]) { dropAll(rig, leg); K.box(leg, 0, -1.6, 0, 1, 3.2, 1, iron); for (const dz of [-0.6, 0.8]) K.box(leg, 0, -3.4, dz, 0.6, 0.6, 1.4, brzD); }
   // wings: bronze blades on struts
-  wings(rig, K, { y: 7.4, z: -0.6, span: 18, chord: 6, cols: { bone: brzD, main: brz, tip: brzL }, flap: 2.6 });
+  wings(rig, K, { y: 7.4, z: -0.6, span: 24, chord: 7, cols: { bone: brzD, main: brz, tip: brzL }, flap: 2.6 });
   K.done();
   noShadow(rig, rig.legR, rig.legL, ...rig.extras.wings.flatMap((w) => [w.root, w.elbow]));
   rig.float = 1.5;
@@ -579,14 +580,15 @@ function buildLaistrygonian(K0) {
   for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; K.flare(rig.hips, Math.sin(a) * 5, -2.4, Math.cos(a) * 3, 3, 5.4, 0.8, K.tone(furC, 0.1), a, 0.15); }
   // head: a topknot, a wild beard in clumps, a heavy brow
   K.box(Hd, 0, H8 + 1.6, -1, 3, 3, 3, hair); K.box(Hd, 0, H8 + 3.4, -1.6, 2, 2.4, 2, hair, -0.3); K.box(Hd, 0, H8 + 0.6, -1, 3.4, 0.6, 3.4, brz);
-  K.clumps(Hd, [0, 1.4, H8 / 2], [H8, 3.4, 1.2], { n: 14, size: [1.4, 2.2], cols: [hair, 0x2a2018], faces: 'fb' });
-  K.box(Hd, 0, -1.6, H8 / 2 - 0.4, 4, 3, 2, hair);
+  K.box(Hd, 0, 0.6, H8 / 2 + 0.4, H8 - 1, 2, 1, hair); for (const sx of [-1, 1]) K.box(Hd, sx * (H8 / 2 - 0.2), 2, H8 / 2 - 0.6, 1.2, 4, 2, hair);
+  K.box(Hd, 0, -1.4, H8 / 2 - 0.2, 6, 3, 2.4, hair); K.box(Hd, 0, -3.4, H8 / 2 - 0.6, 3.6, 2, 2, 0x2a2018); K.box(Hd, 0, -3.8, H8 / 2 + 0.3, 1.4, 1, 0.6, brz);
   // arms: woad bands, leather wraps, bronze armbands
   for (const arm of [rig.armR, rig.armL]) { K.box(arm, 0, 0.6, 0, 4.6, 1, 4.6, brz); K.box(arm, 0, -7.6, 0, 4.6, 3.4, 4.6, lea); }
   // the flaming bronze ball in the right hand
   const ball = group(rig.handR, 0, -2.6, 0.6);
-  K.box(ball, 0, 0, 0, 4.4, 4.4, 4.4, brz); K.box(ball, 0, 0, 0, 5, 3, 3, brz); K.box(ball, 0, 0, 0, 3, 5, 3, brz);
-  for (let i = 0; i < 9; i++) { const a = K.r() * Math.PI * 2, t = K.r(); K.box(ball, Math.cos(a) * 1.8, 2 + t * 3, Math.sin(a) * 1.8, 1.6 - t, 1.8 - t, 1.6 - t, fire[Math.min(2, Math.floor(t * 3))]); }
+  const bD = 0x6a4410;
+  K.box(ball, 0, 0, 0, 4.4, 4.4, 4.4, bD); K.box(ball, 0, 0, 0, 5, 3, 3, bD); K.box(ball, 0, 0, 0, 3, 5, 3, bD); K.box(ball, 0, 0, 0, 3.2, 3.2, 5, fire[0]);
+  for (let i = 0; i < 14; i++) { const a = K.r() * Math.PI * 2, t = K.r(), r = 2.4 * (1 - t * 0.6); K.box(ball, Math.cos(a) * r, 1.6 + t * 5, Math.sin(a) * r, 2.2 - t * 1.4, 2.6 - t * 1.4, 2.2 - t * 1.4, fire[Math.min(2, Math.floor(t * 3))]); }
   rig.extras.ball = ball;
   // shins wrapped in leather and furs
   for (const leg of [rig.legR, rig.legL]) { K.box(leg, 0, -8, 0, 4.8, 5, 4.8, lea); K.box(leg, 0, -5.6, 0, 5.2, 1.2, 5.2, furC[1]); }

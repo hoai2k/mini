@@ -38,7 +38,6 @@ export const terrain = {
 };
 
 export function build(c) {
-  const t0 = performance.now();
   const { W, k, deco, add, top, rand, inRegion, FY } = c;
   const set = (x, y, z, id) => W.set(x, y, z, id);
   const fill = (x0, y0, z0, x1, y1, z1, id) => W.fill(x0, y0, z0, x1, y1, z1, id);
@@ -401,8 +400,6 @@ export function build(c) {
     const t = ['grass', 'tall_grass', 'flower_yellow', 'flower_red', 'grass', 'flower_blue', 'tall_grass'][Math.floor(k.r() * 7)];
     deco.add(t, x + 0.5 + k.rnd(-0.3, 0.3), y, z + 0.5 + k.rnd(-0.3, 0.3), { scale: t === 'tall_grass' ? 1.1 : 0.8, sway: 1 });
   }
-
-  console.log('openworld fields build ms', Math.round(performance.now() - t0));
 
   // A monster camp's dressing: the shared kit (openworld.js regionContext).
   function campDressing(x, z, o = {}) { c.campDressing(x, z, { ground: B.dirt, ...o }); }
