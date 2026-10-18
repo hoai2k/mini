@@ -336,7 +336,7 @@ export function build(c) {
     deco.prop('bench_marble', cx - 5.5, f, cz - 1.5, { rot: Math.PI / 2 }); deco.prop('bench_marble', cx + 5.5, f, cz - 1.5, { rot: Math.PI / 2 });
     k.lanternPost(cx - 6, cz - 6, f); k.lanternPost(cx + 6, cz - 6, f);
     for (const [dx, dz] of [[-6, 6], [6, 6], [-3, -6]]) deco.add('ivy', cx + dx + 0.5, f, cz + dz + 0.5, { scale: 1.1 });
-    add.shrine({ id: 'lab_athena_shrine', x: cx, z: cz, waves: [['skeleton', 'skeleton', 'spider'], ['automaton', 'spider', 'spider', 'skeleton'], ['automaton', 'automaton', 'fury']] });
+    add.shrine({ id: 'lab_athena_shrine', x: cx, z: cz, rot: Math.PI, waves: [['skeleton', 'skeleton', 'spider'], ['automaton', 'spider', 'spider', 'skeleton'], ['automaton', 'automaton', 'fury']] });
     add.landmark({ id: 'lab_court', x: cx, z: cz - 2 });
     add.chest({ id: 'lab_court_chest', x: cx + 6, z: cz + 6, rarity: 'common' });
     add.waystone('labyrinth_court', 38, 342);

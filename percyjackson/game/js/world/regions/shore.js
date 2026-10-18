@@ -58,7 +58,6 @@ export const QUESTS = [
 ];
 
 export function build(c) {
-  const t0 = performance.now();
   const { W, deco, add, rand, trees, scatter, level, top, n, FY } = c;
   const S = (x) => Math.round(seaLine(x, n));
   const put = (x, y, z, id) => W.set(x, y, z, id);
@@ -387,5 +386,4 @@ export function build(c) {
   }
   scatter([B.sand], ['tall_grass', 'dry_grass', 'shell', 'tall_grass', 'starfish', 'reeds', 'dry_grass', 'tall_grass'], 0.11, 0.6);
   scatter([B.grass], ['tall_grass', 'grass', 'dry_grass', 'flower_yellow', 'grass'], 0.11);
-  console.log('openworld shore build ms', Math.round(performance.now() - t0));
 }

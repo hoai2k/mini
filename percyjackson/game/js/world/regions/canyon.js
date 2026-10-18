@@ -91,7 +91,6 @@ export const QUESTS = [
 ];
 
 export function build(c) {
-  const t0 = performance.now();
   const { W, k, deco, rand, top, n, FY } = c;
   // every registered place, so the brush planted last keeps off them
   const spots = [];
@@ -375,5 +374,4 @@ export function build(c) {
   for (let i = 0; i < 26; i++) { const x = Math.floor(256 + rand() * 140), z = Math.floor(136 + rand() * 150), y = top(x, z); if (W.get(x, y - 1, z) === B.desert_sand && !W.get(x, y, z)) prop('boulder', x, y, z, { rot: rand() * 6.28, scale: 0.7 + rand() * 0.6 }); }
   c.scatter([B.desert_sand], ['dry_grass', 'dry_grass', 'bone', 'dry_grass', 'skull'], 0.045);
   c.scatter([B.red_rock], ['dry_grass'], 0.03);
-  console.log('openworld canyon build ms', Math.round(performance.now() - t0));
 }
