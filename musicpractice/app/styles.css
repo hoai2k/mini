@@ -258,6 +258,9 @@ button { cursor: pointer; }
 .met-visual.pulse .beats li { width: calc(var(--dot) * 0.8); height: calc(var(--dot) * 0.8); }
 .met-visual.pulse .beats li.strong { width: var(--dot); height: var(--dot); }
 .met-visual.pulse .beats li {
+  /* Drawn straight from --g every frame: the small dots' quick colour fade
+     would trail it and put the brightest moment after the beat. */
+  transition: width var(--morph), height var(--morph);
   --hot: var(--brass-2);
   scale: calc(1 + 0.14 * var(--g, 0));
   background: color-mix(in srgb, var(--hot) calc(var(--g, 0) * 100%), var(--panel-2));

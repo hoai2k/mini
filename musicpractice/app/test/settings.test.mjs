@@ -153,23 +153,28 @@ test('the drone fifth is off by default; a choice is kept, an old save\'s defaul
   assert.equal(sanitize({ droneFifth: false, droneFifthChosen: true }).droneFifth, false);
 });
 
-test('the pendulum on each beat: swing by default; saves from the two switches carry over', () => {
-  assert.equal(DEFAULTS.pendulumMode, 'swing');
-  assert.equal(sanitize({ pendulumMode: 'pulse' }).pendulumMode, 'pulse');
-  assert.equal(sanitize({ pendulumMode: 'spin' }).pendulumMode, 'swing');
-  assert.equal(sanitize({ metMotion: true, metPulse: true }).pendulumMode, 'swing'); // the old default pulse, never chosen
-  assert.equal(sanitize({ metMotion: true, metPulse: true, metPulseChosen: true }).pendulumMode, 'pulse');
-  assert.equal(sanitize({ metMotion: false, metPulse: false }).pendulumMode, 'off');
+test('the swing and the dots: on and small by default; every earlier save carries over', () => {
+  const look = (s) => { const o = sanitize(s); return [o.swing, o.footView]; };
+  assert.deepEqual(look({}), [true, 'dots']);
+  assert.deepEqual(look({ swing: false, footView: 'big' }), [false, 'big']);
+  assert.deepEqual(look({ footView: 'disco' }), [true, 'dots']);
+  // On each beat: Swing, Pulse or Off, and the Visualizer as a view of its own.
+  assert.deepEqual(look({ pendulumMode: 'swing' }), [true, 'dots']);
+  assert.deepEqual(look({ pendulumMode: 'pulse' }), [false, 'big']);
+  assert.deepEqual(look({ pendulumMode: 'off' }), [false, 'dots']);
+  assert.deepEqual(look({ pendulumMode: 'swing', metView: 'bars' }), [true, 'bars']);
+  assert.deepEqual(look({ pendulumMode: 'pulse', metView: 'bars' }), [false, 'bars']);
+  // Before that, two switches.
+  assert.deepEqual(look({ metMotion: true, metPulse: true }), [true, 'dots']); // the old default pulse, never chosen
+  assert.deepEqual(look({ metMotion: true, metPulse: true, metPulseChosen: true }), [false, 'big']);
+  assert.deepEqual(look({ metMotion: false, metPulse: false }), [false, 'dots']);
 });
 
 test('metronome clicks and view: quarter notes and the metronome by default, kept, bad values fall back', () => {
   assert.equal(DEFAULTS.subdivision, 1);
-  assert.equal(DEFAULTS.metView, 'metronome');
-  assert.equal(sanitize({ subdivision: 3, metView: 'bars' }).subdivision, 3);
-  assert.equal(sanitize({ subdivision: 3, metView: 'bars' }).metView, 'bars');
+  assert.equal(sanitize({ subdivision: 3, footView: 'bars' }).subdivision, 3);
   assert.equal(sanitize({ subdivision: 5 }).subdivision, 1);
   assert.equal(sanitize({ subdivision: '2' }).subdivision, 1);
-  assert.equal(sanitize({ metView: 'disco' }).metView, 'metronome');
   assert.equal(DEFAULTS.vizBars, 4);
   assert.equal(sanitize({ vizBars: 8 }).vizBars, 8);
   assert.equal(sanitize({ vizBars: 3 }).vizBars, 4);
