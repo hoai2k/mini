@@ -44,6 +44,8 @@ h3 { font-size: 13px; text-transform: uppercase; color: var(--gold); margin: 0 0
 #title { position: absolute; left: 14px; top: 10px; pointer-events: none; text-shadow: 0 2px 6px #000; }
 #t-name { font: 700 24px var(--head); color: var(--gold-hi); letter-spacing: .05em; display: block; }
 #t-sub { color: var(--text); opacity: .85; }
+#t-desc { margin: 6px 0 0; max-width: min(420px, calc(100vw - 28px)); max-height: calc(100vh - 230px); overflow: hidden; font-size: 12.5px; line-height: 1.4; color: var(--text); opacity: .92; overflow-wrap: break-word; }
+#t-desc:empty, body.capture #t-desc { display: none; }
 #vbar { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; width: max-content; max-width: calc(100% - 20px); }
 #status { position: absolute; right: 12px; top: 10px; color: var(--dim); font-size: 12px; pointer-events: none; text-align: right; text-shadow: 0 1px 3px #000; }
 .btn, #vbar button, #insp button { padding: 6px 12px; border: 1px solid var(--gold-lo); border-radius: 5px; background: rgba(23, 19, 15, .88); cursor: pointer; }
