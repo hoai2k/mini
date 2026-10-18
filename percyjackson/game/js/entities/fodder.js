@@ -659,7 +659,7 @@ function buildMyrmex(K0, spitter = false) {
     K.boxZ(k, 0, 0, 0, 2.3, 2.3, 2.3, org); K.boxZ(k, 0, 0.3, 0, 1.6, 1.6, 2.5, orgL);
     K.boxZ(k, 0, -2.2, 0, legW, 2.8, legW, blk); K.boxZ(k, 0, -3.7, 0, legW + 0.4, 0.7, legW + 0.4, org);
     K.boxZ(k, 0, -5, 0, legW * 0.85, 2.2, legW * 0.85, blkL); K.boxZ(k, 0, -6.2, 0, legW + 0.2, 0.6, legW + 0.2, orgD);
-    K.boxZ(k, 0, -7, 0, legW * 0.7, 1.2, legW * 0.7, blkD);
+    K.boxZ(k, 0, -6.75, 0, legW * 0.7, 0.9, legW * 0.7, blkD); K.boxZ(k, 0, -7.2, 0, legW * 0.36, 0.5, legW * 0.36, blkD);   // (a pointed tip: a wide end's corner dipped through the floor as the leaning shin swung)
   }
   K.done();
   noShadow(rig, Hd, M, ...rig.legs);
@@ -786,8 +786,8 @@ function crabLegs(K, rig, P, spikes = 0) {
     K.box(leg, knee[0], knee[1], 0, w + 0.7, w + 0.7, w + 0.7, P.org);
     seg(leg, knee, ank, w, row % 2 ? P.redM : P.red);
     K.box(leg, ank[0], ank[1], 0, w + 0.3, w + 0.3, w + 0.3, P.org);
-    seg(leg, ank, tip, w * 0.7, P.org, false);
-    K.box(leg, tip[0], tip[1] + 0.3, 0, w * 0.45, 1, w * 0.45, P.tip);
+    seg(leg, ank, [tip[0] - X(0.1), tip[1] + 1.2], w * 0.7, P.org, false);
+    K.box(leg, tip[0], tip[1] + 0.9, 0, w * 0.4, 1.2, w * 0.4, P.tip);   // (a pointed tip clear of the floor: a wide end's corner dipped through it in the walk)
     for (let k = 0; k < spikes; k++) K.box(leg, knee[0] + X(0.4 + k * 1.2), knee[1] + 0.9 - k * 0.6, 0, 0.5, 0.8, 0.5, P.pale, 0, 0, -s * 0.5);
   }
 }
