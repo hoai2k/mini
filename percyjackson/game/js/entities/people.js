@@ -2,9 +2,9 @@
 // servants and shades who hand out quests in the regions (world/regions/*.js)
 // and the locals at the Road West's stops (world/road/*.js). After the sheets
 // design/concept/vox-ow-people-1.png (Katie, Travis, Juniper, Beckendorf, Lee,
-// the Nereid) and vox-ow-people-2.png (Coach Hedge, Zoë, Rachel, Quintus,
-// Phoebe, Bianca, Charon, Sisyphus); Argus, Silena and the seven Road West
-// locals are stand-ins from the vox-ow-people-3 request until that sheet comes.
+// the Nereid), vox-ow-people-2.png (Coach Hedge, Zoë, Rachel, Quintus,
+// Phoebe, Bianca, Charon, Sisyphus) and vox-ow-people-3.png (Argus, Silena and
+// the seven Road West locals).
 //
 // Built like the mortals (mortals.js): a fine 128 × 128 painted skin, grid
 // voxel hair, and block clothing and props merged into one vertex-coloured
@@ -578,232 +578,312 @@ export const PEOPLE = {
       };
     },
   },
-  // ------------------------------------------------ stand-ins (vox-ow-people-3, not drawn yet)
-  // Argus, camp's hundred-eyed head of security: huge and blond, blue eyes all
-  // over (face, neck, arms), a white security polo, khakis and a ring of keys
+  // ------------------------------------------------ vox-ow-people-3
+  // Argus, camp's hundred-eyed head of security: huge, curly blond hair and
+  // beard, blue eyes all over his arms and face, a white polo with a trident,
+  // cargo khakis, a gold ring of big keys at his belt
   camp_argus: {
     painter: 'person', scale: 1.42, wide: 1.32, accent: 0x4a8aff,
-    paint: { skin: 0xf0c49e, hair: 0xe0c060, fringe: 1, hairSide: 2, hairBack: 5, eyeRow: 3, eye: 0x2a74e0, brow: 0xc8a040, mouth: 'small', top: 0xf6f6f2, shortSleeve: true, collar: 0xe8e8e4, buttons: 0xd0d0d0, pants: 0xc8b080, shoes: 0x5a3418, saturate: 1.1,
-      face: (S, ey) => { const D = (x, y, c, n, m) => S.dot(x, y, c, n, m); eyeAt(D, 8.5, ey + 1.6, 0xf0c49e); eyeAt(D, 14, ey + 1.6, 0xf0c49e); eyeAt(D, 11, ey - 2.4, 0xf0c49e); for (const x of [2, 5, 18, 21]) eyeAt(D, x, ey + 0.5, 0xf0c49e); eyeAt(D, 26.5, ey + 1, 0xf0c49e); eyeAt(D, 28.5, ey + 2, 0xf0c49e); },
+    paint: { skin: 0xf0b48a, hair: 0xd8b050, fringe: 1, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x2a74e0, brow: 0xb8902a, smile: true, beard: 0xd0a848, top: 0xece6d8, shortSleeve: true, collar: 0xf6f2e8, buttons: 0xc8c0b0, pants: 0x7a6a40, shoes: 0x5a3418, saturate: 1.1,
+      face: (S, ey) => { const D = (x, y, c, n, m) => S.dot(x, y, c, n, m); eyeAt(D, 11, ey - 2.4, 0xf0b48a); for (const x of [2, 5, 18, 21]) eyeAt(D, x, ey + 0.5, 0xf0b48a); eyeAt(D, 26.5, ey + 1, 0xf0b48a); eyeAt(D, 28.5, ey + 2, 0xf0b48a); },
       body: (S) => {
         const D = (x, y, c, n, m) => S.dot(x, y, c, n, m), r = mulberry32(3);
-        for (const [u, v] of [[40, 16], [32, 48]]) for (let i = 0; i < 9; i++) eyeAt(D, u + 0.5 + Math.floor(r() * 26) / 2, v + 4 + 5.5 + Math.floor(r() * 9) / 2, 0xf0c49e);
-        for (const [u, v] of [[40, 16], [32, 48]]) eyeAt(D, u + 8.5, v + 1, 0xf0c49e);
-        eyeAt(D, 23, 17, 0xf0c49e);
-        // a badge patch on the polo's left breast
-        S.rect(25, 22, 2, 2, 0x2a4a8a, 0.04); D(25.5, 22.5, 0xe0c060, 2, 2);
+        // eyes all down both arms, under the polo's short sleeves too
+        for (const [u, v] of [[40, 16], [32, 48]]) for (let i = 0; i < 12; i++) eyeAt(D, u + 0.5 + Math.floor(r() * 26) / 2, v + 4 + 5 + Math.floor(r() * 10) / 2, 0xf0b48a);
+        for (const [u, v] of [[40, 16], [32, 48]]) eyeAt(D, u + 8.5, v + 1, 0xf0b48a);
+        eyeAt(D, 22.5, 17, 0xf0b48a); eyeAt(D, 18, 21.5, 0xf0b48a);
       } },
-    hair: { c: [0, 7.2, -0.4], r: [4.8, 3.2, 5], bump: 0.2, shell: 1, shellBump: 0.6, fringe: 7, jag: 0.4, side: 4.4, back: 2.6, tuft: 0.1, tones: [0xb89838, 0xe0c060, 0xf4dc90] },
+    hair: { c: [0, 7, -0.6], r: [5.6, 4.4, 5.8], bump: 0.42, shell: 1.4, fringe: 7, jag: 0.8, side: 2.8, back: 0.6, tuft: 0.3, spike: 0.08, tones: [0xa88428, 0xd8b050, 0xf4d888] },
+    beard: [0xa88428, 0xd0a848, 0xf0d080],
     parts() {
-      const white = 0xf6f6f2, khaki = 0xc8b080, eye = (x, y, z, s) => [B([x, y, z], [s ? 0.3 : 1.4, 1, s ? 1.4 : 0.3], 0xfafaf6), B([x + (s || 0) * 0.15, y, z + (s ? 0 : 0.15)], [s ? 0.3 : 0.7, 0.7, s ? 0.7 : 0.3], 0x2a74e0)];
+      const white = 0xf6f2e8, khaki = 0x7a6a40, gold = 0xe0b030, eye = (x, y, z, s) => [B([x, y, z], [s ? 0.3 : 1.4, 1, s ? 1.4 : 0.3], 0xfafaf6), B([x + (s || 0) * 0.15, y, z + (s ? 0 : 0.15)], [s ? 0.3 : 0.7, 0.7, s ? 0.7 : 0.3], 0x2a74e0)];
+      const keys = [B([-2.4, -1.2, 2.6], [0.5, 2.2, 0.5], gold), ...ring(-3.4, 1.1, [gold], 5, { size: 0.5, step: 0.7, h: 0.5 }).map((b) => ({ ...b, at: [b.at[0] - 2.4, b.at[1], b.at[2] + 2.6] }))];
+      for (const [x, k] of [[-3.4, 0], [-2.6, 1], [-1.8, 2], [-3, 3]]) keys.push(B([x, -5.4 - (k % 2) * 0.6, 3 + (k % 2) * 0.3], [0.5, 2.6, 0.4], gold), B([x, -4.2 - (k % 2) * 0.6, 3 + (k % 2) * 0.3], [1, 1, 0.4], gold), B([x + 0.4, -6.2 - (k % 2) * 0.6, 3 + (k % 2) * 0.3], [0.5, 0.4, 0.4], gold));
       return {
-        head: [eye(-4.15, 2.6, 0.6, -1), eye(4.15, 2.6, 0.6, 1), eye(-1.2, 1, 4.15, 0)].flat(),
-        torso: [...mirrorX([B([-1.8, 12, 2.2], [2.6, 0.8, 1], white, [0, 0, -0.3])]), B([0, 1.2, 0], [8.9, 1.1, 4.9], 0x5a3418), B([0, 1.2, 2.5], [1.4, 1, 0.3], SILVER), B([2.6, 9.2, 2.45], [1.6, 1.8, 0.3], 0x2a4a8a), B([2.6, 9.2, 2.62], [0.8, 0.8, 0.1], 0xe0c060)],
-        // the big ring of keys on his belt
-        hips: [B([3.8, -0.8, 2.4], [0.4, 2.8, 0.4], SILVER), B([3.8, -2.4, 2.6], [2.6, 0.4, 0.4], SILVER), B([3.8, -4.6, 2.6], [2.6, 0.4, 0.4], SILVER), B([2.6, -3.5, 2.6], [0.4, 2.6, 0.4], SILVER), B([5, -3.5, 2.6], [0.4, 2.6, 0.4], SILVER),
-          ...[[2.4, -5.4, 0x8a8a90], [3.4, -5.8, GOLD], [4.4, -5.6, SILVER], [5.2, -5, 0x9aa0a8]].map(([x, y, c]) => B([x, y, 2.8], [0.5, 1.8, 0.3], c))],
-        armR: [band(-5.6, 0.6, khaki, 4.6), ...eye(-2.4, -6.8, 0.6, -1), ...eye(0, -8.2, 2.4, 0)],
-        armL: [...eye(2.4, -6.6, -0.4, 1), ...eye(0.6, -7, 2.4, 0), B([0, -8.4, 0], [4.7, 0.9, 4.7], 0x3a3a3a), B([0, -8.4, 2.4], [1.2, 1, 0.3], 0xd8d8d0)],
-        legR: [...shoes('boot', { upper: 0x5a3418, sole: 0x2a1a10, lace: 0xc8a060 }), band(-6.4, 1, shadeOf(khaki, 0.9), 4.8)],
-        legL: [...shoes('boot', { upper: 0x5a3418, sole: 0x2a1a10, lace: 0xc8a060 }), band(-6.4, 1, shadeOf(khaki, 0.9), 4.8)],
+        head: [eye(-4.15, 2.6, 0.6, -1), eye(4.15, 2.6, 0.6, 1)].flat(),
+        torso: [
+          ...mirrorX([B([-1.8, 12, 2.2], [2.6, 0.8, 1], white, [0, 0, -0.3])]),
+          // the trident on the polo's left breast
+          B([2.6, 8.8, 2.45], [0.4, 2.6, 0.2], 0xe08a20), B([2.6, 9.6, 2.45], [1.8, 0.4, 0.2], 0xe08a20), B([1.8, 10.2, 2.45], [0.4, 1, 0.2], 0xe08a20), B([3.4, 10.2, 2.45], [0.4, 1, 0.2], 0xe08a20),
+          B([0, 1.2, 0], [8.9, 1.2, 4.9], 0x1e1c1c), B([0, 1.2, 2.5], [1.6, 1.1, 0.3], SILVER), B([3.6, 0.6, 2.5], [1.6, 2.2, 1], 0x2a2420), B([-4.4, 0.6, 1.6], [1, 2.4, 2], 0x2a2420),
+        ],
+        hips: keys,
+        armR: [band(-1.4, 0.6, white, 4.7), ...eye(-2.4, -6.8, 0.6, -1), ...eye(0, -8.2, 2.4, 0)],
+        armL: [band(-1.4, 0.6, white, 4.7), ...eye(2.4, -6.6, -0.4, 1), ...eye(0.6, -7, 2.4, 0)],
+        legR: [...shoes('boot', { upper: 0x5a3418, sole: 0x2a1a10, lace: 0xc8a060 }), band(-6.4, 1, shadeOf(khaki, 0.9), 4.9), B([-2.45, -4, 0.4], [0.5, 2.6, 2.6], shadeOf(khaki, 0.85)), B([-2.6, -2.9, 0.4], [0.3, 0.4, 2.6], shadeOf(khaki, 0.7))],
+        legL: [...shoes('boot', { upper: 0x5a3418, sole: 0x2a1a10, lace: 0xc8a060 }), band(-6.4, 1, shadeOf(khaki, 0.9), 4.9), B([2.45, -4, 0.4], [0.5, 2.6, 2.6], shadeOf(khaki, 0.85)), B([2.6, -2.9, 0.4], [0.3, 0.4, 2.6], shadeOf(khaki, 0.7))],
       };
     },
   },
-  // Silena Beauregard, daughter of Aphrodite: long dark hair with a pink clip,
-  // pink lip gloss, a pink scarf over the camp shirt, a hand mirror
+  // Silena Beauregard, daughter of Aphrodite: long curly brown hair with a pink
+  // flower, gold hoops, a pink scarf over the camp shirt, denim shorts, sandals,
+  // gold bangles and a pink hand mirror
   camp_silena: {
     painter: 'hero', scale: KID, accent: 0xff7ab8,
-    paint: { skinTone: 0xf0bc98, hair: 0x2a1810, fringe: 2, hairSide: 5, hairBack: 8, eye: 0x3a6ac8, pupil: 0x0a1a4a, brow: 0x2a1810, lashes: true, mouth: 'smile', lip: 0xe8608a, blush: true, ...TEE, pants: 0x6a8ac0, shoes: 0xf090b8, sole: 0xf8f0f0 },
-    vox: { style: 'long', base: 0x2e1a10, shade: 0x140a06, light: 0x4e3020, seed: 211, shape: { helmetFront: false, top: 9.3, c: [0, 3.4, -1.2], tuft: 0.1, spike: 0.02, bump: 0.24, r: [6, 7.6, 5.8], side: -6, back: -7, fringe: 5.8 } },
+    paint: { skinTone: 0xe8a878, hair: 0x4a2814, fringe: 2, hairSide: 5, hairBack: 8, eye: 0x4a2a14, pupil: 0x140806, brow: 0x3a1c0a, lashes: true, mouth: 'smile', lip: 0xe0607a, blush: true, ...TEE, pants: 0x4a6a9a, shorts: 4, shoes: 0xe8a878 },
+    vox: { style: 'long', base: 0x4a2814, shade: 0x2a140a, light: 0x6e3e20, seed: 211, shape: { helmetFront: false, top: 9.6, c: [0, 3.4, -1.2], tuft: 0.3, spike: 0.1, bump: 0.46, r: [6.6, 7.8, 6.2], side: -6, back: -7, fringe: 5.8 } },
+    tail: { pivot: [0, 5, -4.6], base: 0x4a2814, shade: 0x2a140a, light: 0x6e3e20, length: 14, width: 4.4, back: 1 },
     parts() {
-      const pink = 0xf080b0, pinkD = 0xd85a90;
+      const pink = 0xf088b0, pinkD = 0xd85a8a, pinkL = 0xf8b8d0;
       return {
-        head: [B([-3.6, 8.6, 2.6], [1.6, 0.8, 1], pink), B([-3.6, 8.6, 3.1], [0.6, 0.6, 0.3], 0xffe0f0), ...mirrorX([B([-4.3, 2.6, 1.6], [0.5, 0.8, 0.5], 0xf8d0e0)])],
-        torso: [
-          // the pink scarf round the neck, one end hanging down the front
-          B([0, 12.1, 0], [9.2, 1.4, 5.2], pink), ...mirrorX([B([-3.4, 11.3, 2.2], [2.4, 1.2, 1.2], pinkD)]),
-          B([-1.6, 9, 2.7], [2, 4.4, 0.5], pink, [0, 0, -0.1]), B([-1.8, 6.4, 2.75], [2.2, 1, 0.5], pinkD), B([-1.8, 5.6, 2.75], [2.2, 0.5, 0.5], 0xf8c0d8),
-          B([0, 1.2, 0], [8.8, 1, 4.8], 0xe8e0e0), B([0.8, 1.2, 2.5], [1.2, 1, 0.3], 0xf0c0d8),
+        head: [
+          // a pink flower over her right ear, gold hoops
+          B([-4.9, 8, 2], [2.2, 2.2, 1], pink), B([-4.9, 8, 2.6], [1, 1, 0.4], 0xf8e070), B([-5.2, 6.8, 1.2], [1.4, 0.8, 1], 0x3a8a3a),
+          ...mirrorX([B([-4.4, 1.8, 1.6], [0.4, 1.6, 1.6], 0xe0b030), B([-4.4, 1.8, 1.6], [0.5, 0.8, 0.8], 0xe8a878)]),
         ],
-        // a gold hand mirror in her left hand
-        armL: [band(-6.6, 0.8, pink, 4.6), B([0, -11.2, 2.6], [0.9, 3, 0.9], 0xe0b040), B([0, -14, 2.6], [3.6, 3.6, 0.9], 0xe0b040), B([0, -14, 3.1], [2.8, 2.8, 0.2], 0xd8e8f0), B([-0.6, -13.4, 3.25], [0.8, 0.8, 0.1], 0xffffff)],
-        armR: [band(-6.6, 0.8, 0xf8d0e0, 4.6)],
-        legR: [...footwear('hitop', { upper: 0xf090b8, sole: 0xf8f0f0, lace: 0xffffff }), band(-7.2, 1.2, 0x7a9ad0, 4.8)],
-        legL: [...footwear('hitop', { upper: 0xf090b8, sole: 0xf8f0f0, lace: 0xffffff }), band(-7.2, 1.2, 0x7a9ad0, 4.8)],
+        torso: [
+          // the scarf round the neck, both ends hanging, fringed
+          B([0, 12.1, 0], [9.4, 1.6, 5.4], pink), ...mirrorX([B([-3.4, 11.2, 2.2], [2.4, 1.4, 1.4], pinkD)]),
+          B([-3.2, 7.4, 2.7], [2, 7, 0.5], pink), B([3.2, 8.4, 2.7], [2, 5, 0.5], pink), B([-3.2, 6, 2.95], [2, 0.6, 0.1], pinkL), B([3.2, 8, 2.95], [2, 0.6, 0.1], pinkL),
+          ...[-4, -3.4, -2.8, -2.4].map((x, i) => B([x, 3.6 - (i % 2) * 0.4, 2.7], [0.4, 0.9, 0.4], pinkD)), ...[2.4, 2.8, 3.4, 4].map((x, i) => B([x, 5.6 - (i % 2) * 0.4, 2.7], [0.4, 0.9, 0.4], pinkD)),
+          B([0, 1.2, 0], [8.8, 1, 4.8], 0x6a3a1e), B([0, 1.2, 2.5], [1.4, 1, 0.3], GOLD),
+        ],
+        // a pink hand mirror in a gold frame in her left hand, gold bangles on the right wrist
+        armL: [band(-7.2, 0.6, GOLD, 4.7), B([0, -9.5, 2.6], [0.9, 2.4, 0.9], 0xe0b030), B([0, -6.4, 2.6], [3.8, 4.4, 0.9], 0xe0b030), B([0, -6.4, 3.1], [2.8, 3.4, 0.2], 0xf0a0c0), B([-0.6, -5.6, 3.25], [0.8, 0.8, 0.1], 0xffe0f0)],
+        armR: [band(-7.4, 0.5, GOLD, 4.7), band(-6.7, 0.5, 0xe0b030, 4.75), band(-6, 0.4, pink, 4.7)],
+        legR: [...shoes('sandal', { upper: 0x6a3a1e, sole: 0x4a2a14 }), band(-8.6, 0.6, 0x6a3a1e, 4.6), band(-1.2, 1, shadeOf(0x4a6a9a, 1.15), 4.8)],
+        legL: [...shoes('sandal', { upper: 0x6a3a1e, sole: 0x4a2a14 }), band(-8.6, 0.6, 0x6a3a1e, 4.6), band(-1.2, 1, shadeOf(0x4a6a9a, 1.15), 4.8)],
       };
     },
   },
-  // Big Earl, trucker: burly and bearded, a red plaid shirt, suspenders,
-  // a trucker cap and a rubber chicken
+  // Big Earl, trucker: a red-and-white trucker cap, a big dark beard, a red
+  // plaid shirt with the sleeves rolled, suspenders, jeans, boots, a rubber chicken
   rt_turnpike_earl: {
     painter: 'person', scale: 1.34, wide: 1.32, accent: 0xff5a2a,
-    paint: { skin: 0xd8946a, hair: 0x5a3a20, fringe: 1, hairSide: 3, hairBack: 5, eyeRow: 3, eye: 0x3a5a7a, brow: 0x4a2e18, smile: true, nose: 0xd27a5c, beard: 0x6a4424, top: 0xb4281e, plaid: 0x4a100a, straps: 0x2a2a30, pants: 0x2c4a7a, shoes: 0x5a3820, saturate: 1.15 },
-    hair: { c: [0, 6.4, -0.6], r: [4.8, 3.6, 5], bump: 0.24, shell: 1.2, fringe: 6.6, jag: 0, side: 2.6, back: 1.2, top: 8.2, tuft: 0.12, tones: [0x3a2410, 0x5a3a20, 0x7a5432] },
-    beard: [0x4a2c14, 0x6a4424, 0x8a6038],
+    paint: { skin: 0xd8946a, hair: 0x2a1a10, fringe: 1, hairSide: 3, hairBack: 5, eyeRow: 3, eye: 0x3a2414, brow: 0x1e120a, grin: true, nose: 0xd27a5c, beard: 0x2a1a10, top: 0xc0281e, plaid: 0x4a100a, vneck: 0xf0e8d8, sleeve: 0xc0281e, pants: 0x2c4a7a, shoes: 0x5a3820, saturate: 1.15 },
+    hair: { c: [0, 6.4, -0.8], r: [5.6, 4, 5.8], bump: 0.4, shell: 1.4, fringe: 6.6, jag: 0.6, side: 1.4, back: 0, top: 8.2, tuft: 0.26, spike: 0.06, tones: [0x140c06, 0x2a1a10, 0x4a3020] },
+    beard: [0x140c06, 0x2a1a10, 0x3e2818],
     parts() {
-      const mesh = 0xf0ece0, red = 0xc8281e, navy = 0x1e2a4a;
-      // the chicken: yellow body, red comb, orange beak and feet, held by the legs
-      const chicken = [B([0, -12, 2.4], [0.5, 2.6, 0.5], 0xf0a020), B([0, -14.8, 2.4], [2.8, 3.6, 2.2], 0xf8e040), B([0, -17.2, 2.4], [1.8, 1.8, 1.8], 0xf8e040), B([0, -18.4, 3.4], [0.6, 0.8, 1], 0xf08020), B([0, -16.4, 2.4], [0.4, 1.4, 1.2], 0xe02a2a), B([0, -18, 1.4], [0.4, 1.2, 0.6], 0xe02a2a), B([-1, -17.2, 3], [0.3, 0.4, 0.4], INK), B([1, -17.2, 3], [0.3, 0.4, 0.4], INK), ...mirrorX([B([-1.6, -14.2, 2.4], [0.6, 2.4, 1.8], 0xf0d030)])];
+      const red = 0xc8281e, white = 0xf4f0e8, strap = 0x4a2a14;
+      // the rubber chicken, held round the middle, head up, legs dangling
+      const chicken = [B([0, -10.2, 3], [2.8, 4.4, 2.4], 0xf8d838), B([0, -7.4, 3], [1.8, 2.2, 1.8], 0xf8d838), B([0, -5.9, 3], [2, 1.8, 2], 0xf8e050), B([0, -6.1, 4.4], [0.8, 0.6, 1.4], 0xf08020),
+        B([0, -4.6, 2.8], [0.5, 1.2, 1.6], 0xe02a2a), B([0, -6.9, 4.1], [0.5, 0.9, 0.5], 0xe02a2a), B([-1.05, -5.6, 3.4], [0.2, 0.5, 0.5], INK), B([1.05, -5.6, 3.4], [0.2, 0.5, 0.5], INK),
+        ...mirrorX([B([-1.6, -10, 3], [0.6, 2.6, 1.8], 0xf0c828), B([-0.6, -13.4, 3], [0.4, 2.4, 0.4], 0xf08020), B([-0.6, -14.6, 3.4], [0.9, 0.3, 1.2], 0xf08020)])];
       return {
         head: [
-          B([0, 9.2, -0.4], [9.8, 2.4, 9.6], navy), B([0, 10.9, -0.5], [8.6, 1.2, 8.4], navy), B([0, 11.8, -0.6], [6.4, 0.8, 6.2], navy),
-          B([0, 9.8, 4.45], [8.6, 3.4, 0.7], mesh), B([0, 9.8, 4.85], [3.4, 1.8, 0.2], red), B([0, 8.2, 6.6], [9, 0.7, 4.8], red), B([0, 12.3, -0.6], [0.9, 0.5, 0.9], red),
+          B([0, 9.2, -0.4], [9.8, 2.4, 9.6], red), B([0, 10.9, -0.5], [8.6, 1.2, 8.4], red), B([0, 11.8, -0.6], [6.4, 0.8, 6.2], red),
+          B([0, 9.8, 4.45], [8.6, 3.4, 0.7], white), B([0, 9.8, 4.85], [1.4, 1.4, 0.2], red), B([0, 9.8, 4.85], [2.6, 0.5, 0.2], red), B([0, 8.2, 6.6], [9, 0.7, 4.8], red), B([0, 12.3, -0.6], [0.9, 0.5, 0.9], white),
         ],
-        torso: [B([0, 11.6, 0], [8.8, 0.8, 4.8], shadeOf(0xb4281e, 0.8)), ...mirrorX([B([-2.3, 6, 2.45], [1.2, 12, 0.4], 0x2a2a30), B([-2.3, 6, -2.45], [1.2, 12, 0.4], 0x2a2a30), B([-2.3, 1.4, 2.65], [0.9, 0.9, 0.3], SILVER)]), B([0, 0.8, 0], [8.9, 1, 4.9], 0x3a2416), B([0, 0.8, 2.5], [1.6, 1.2, 0.3], SILVER)],
-        armR: [band(-5.4, 1.4, shadeOf(0xb4281e, 0.8), 4.8), ...chicken],
-        armL: [band(-5.4, 1.4, shadeOf(0xb4281e, 0.8), 4.8), band(-7.8, 0.8, 0x2a2a2a, 4.7)],
-        legR: [...shoes('boot', { upper: 0x5a3820, sole: 0x2e1e12, lace: 0xc8a060 }), band(-6.2, 1.1, 0x3a5a8a, 4.8)],
-        legL: [...shoes('boot', { upper: 0x5a3820, sole: 0x2e1e12, lace: 0xc8a060 }), band(-6.2, 1.1, 0x3a5a8a, 4.8)],
+        torso: [
+          B([0, 11.8, 0], [8.9, 0.8, 4.9], shadeOf(0xc0281e, 0.8)), ...mirrorX([B([-2, 11.3, 2.45], [2, 1.2, 0.5], 0xc0281e, [0, 0, -0.4])]),
+          ...mirrorX([B([-2.5, 6, 2.5], [1.3, 12, 0.4], strap), B([-2.5, 6, -2.5], [1.3, 12, 0.4], strap), B([-2.5, 9.4, 2.75], [1, 1, 0.3], GOLD), B([-2.5, 1.8, 2.75], [1, 1, 0.3], GOLD)]),
+          B([0, 0.8, 0], [8.9, 1.1, 4.9], 0x3a2416), B([0, 0.8, 2.5], [1.8, 1.3, 0.3], GOLD), B([3.6, 0.4, 2.6], [1.6, 2.2, 1], strap), B([-3.6, 0.4, 2.6], [1.6, 2.2, 1], strap),
+        ],
+        // sleeves rolled to the elbow
+        armR: [band(-3.6, 1.8, 0xf0e0d0, 4.9), band(-3.1, 0.5, red, 5), ...chicken],
+        armL: [band(-3.6, 1.8, 0xf0e0d0, 4.9), band(-3.1, 0.5, red, 5)],
+        legR: [...shoes('boot', { upper: 0x6a4020, sole: 0x2e1e12, lace: 0xc8a060 }), band(-6.2, 1.1, 0x3a5a8a, 4.9)],
+        legL: [...shoes('boot', { upper: 0x6a4020, sole: 0x2e1e12, lace: 0xc8a060 }), band(-6.2, 1.1, 0x3a5a8a, 4.9)],
       };
     },
   },
-  // Mrs. Pruitt, a stout farm wife: a headscarf, a flowered apron over a blue
-  // dress, rubber boots, a garden gnome under her arm
+  // Mrs. Pruitt, a stout farm wife: a pink floral headscarf over curly brown
+  // hair, a blue flowered dress under a white apron of pink roses, green gloves
+  // and rubber boots, a garden gnome under her arm
   rt_auntyem_pruitt: {
-    painter: 'person', scale: ADULT_SCALE, wide: 1.2, accent: 0xff7a9a,
-    paint: { skin: 0xecb48e, hair: 0x8a7a6a, fringe: 1, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x4a6a3a, brow: 0x6a5a4a, smile: true, blush: 0xf09a8a, wrinkles: 0xc8907a, top: 0x5a7ab8, sleeve: 0x5a7ab8, collar: 0xf4ecd8, pants: 0x5a7ab8, skirt: 0x5a7ab8, skirtLen: 8, tights: 0xe0a888, shoes: 0x3a7a3a, saturate: 1.12 },
-    hair: { c: [0, 6.6, -0.6], r: [5, 3.8, 5.2], bump: 0.3, shell: 1.2, fringe: 6.8, jag: 0.4, side: 3.6, back: 1.6, top: 8.6, tuft: 0.1, tones: [0x6a5a4c, 0x8a7a6a, 0xaa9a8a] },
+    painter: 'person', scale: ADULT_SCALE, wide: 1.22, accent: 0xff7a9a,
+    paint: { skin: 0xe8a880, hair: 0x5a3418, fringe: 1, hairSide: 4, hairBack: 7, eyeRow: 3, eye: 0x3a2414, brow: 0x4a2810, smile: true, blush: 0xf08a7a, top: 0x5a7ab8, floral: [0xdce6f4, 0xf0d060, null], shortSleeve: true, collar: 0x4a6aa8, hand: 0x4a7a3a, pants: 0x5a7ab8, skirt: 0x5a7ab8, skirtLen: 9, tights: 0xe8a880, shoes: 0x4a7a3a, saturate: 1.12 },
+    hair: { c: [0, 6, -0.6], r: [6.2, 4.6, 6], bump: 0.46, shell: 1.4, fringe: 6.8, jag: 0.6, side: 0.6, back: -0.6, tuft: 0.34, spike: 0.08, tones: [0x3a200c, 0x5a3418, 0x7e4c28] },
     parts() {
-      const scarf = 0xc83a3a, dot = 0xf8f0e0, apron = 0xf6eedc, flowers = [0xf06aa0, 0xf0c030, 0x5a9ad8, 0xe84a3a];
-      const r = mulberry32(5), ap = [];
-      ap.push(B([0, 6.2, 2.45], [6, 8, 0.4], apron), ...mirrorX([B([-2.4, 11.2, 2.4], [1, 2.2, 0.4], apron), B([-3.2, 1.4, 0], [2, 0.9, 5], apron)]), B([0, 1.4, -2.5], [8.8, 0.9, 0.4], apron), B([0, 1.4, -2.9], [2, 1.6, 0.6], apron));
-      for (let i = 0; i < 9; i++) ap.push(B([-2.4 + r() * 4.8, 3 + r() * 6.6, 2.7], [0.7, 0.7, 0.2], flowers[i % 4]));
-      const skirtA = [B([0, -4, 2.75], [7.2, 8, 0.4], apron), B([0, -7.8, 2.8], [7.2, 0.4, 0.4], 0xe86a90)];
-      for (let i = 0; i < 10; i++) skirtA.push(B([-3 + r() * 6, -1 - r() * 6, 3], [0.7, 0.7, 0.2], flowers[i % 4]));
-      // the gnome: red hat, white beard, blue coat, held against her left hip
-      const gnome = [B([0, -11, 1.6], [3, 3.4, 3], 0x3a5ab0), B([0, -8.6, 1.6], [2.4, 1.8, 2.4], 0xf0c4a0), B([0, -9.4, 2.9], [2, 2, 0.8], 0xf8f8f4), B([0, -6.8, 1.6], [2.8, 1.4, 2.8], 0xd02a2a), B([0, -5.6, 1.6], [1.8, 1.4, 1.8], 0xd02a2a), B([0, -4.6, 1.4], [0.9, 1, 0.9], 0xd02a2a), B([0, -12.9, 1.6], [3, 0.6, 3], 0x5a3418), B([0, -8.3, 2.95], [0.5, 0.5, 0.4], 0xe08a7a)];
+      const scarf = 0xe88aa0, rose = [0xe85a7a, 0xf09ab0], leaf = 0x5a9a4a, apron = 0xf6efe0, blue = 0x5a7ab8;
+      const r = mulberry32(5), ap = [], skirtA = [];
+      ap.push(B([0, 6.2, 2.45], [6.2, 8, 0.4], apron), ...mirrorX([B([-2.4, 11.2, 2.4], [1, 2.2, 0.4], apron), B([-3.2, 1.4, 0], [2, 0.9, 5], apron)]), B([0, 1.4, -2.5], [8.8, 0.9, 0.4], apron), B([0, 1.4, -2.9], [2, 1.6, 0.6], apron));
+      const roseAt = (L, x, y, z) => L.push(B([x, y, z], [1.4, 1.4, 0.2], rose[0]), B([x, y, z + 0.1], [0.7, 0.7, 0.15], rose[1]), B([x + 0.9, y - 0.5, z], [0.8, 0.5, 0.15], leaf));
+      for (const [x, y] of [[-1.6, 8.6], [1.4, 6.4], [-1, 4]]) roseAt(ap, x, y, 2.7);
+      skirtA.push(B([0, -4.4, 2.75], [7.4, 8.8, 0.4], apron), B([0, -8.6, 2.8], [7.4, 0.5, 0.4], 0xe86a8a));
+      for (const [x, y] of [[-2.2, -2], [1.6, -3.4], [-0.6, -5.6], [2.4, -6.6], [-2.6, -7.2]]) roseAt(skirtA, x, y, 3);
+      // the gnome: red hat, white beard, blue coat, held against her left side
+      const gnome = [B([0, -11, 1.6], [3, 3.4, 3], 0x3a5ab0), B([0, -8.6, 1.6], [2.4, 1.8, 2.4], 0xf0c4a0), B([0, -9.4, 2.9], [2.2, 2.4, 0.8], 0xf8f8f4), B([0, -6.8, 1.6], [2.8, 1.4, 2.8], 0xd02a2a), B([0, -5.6, 1.6], [1.8, 1.4, 1.8], 0xd02a2a), B([0, -4.6, 1.4], [0.9, 1, 0.9], 0xd02a2a), B([0, -12.9, 1.6], [3, 0.6, 3], 0x5a3418), B([0, -8.3, 2.95], [0.5, 0.5, 0.4], 0xe08a7a), B([-0.6, -8.1, 2.9], [0.3, 0.3, 0.2], INK), B([0.6, -8.1, 2.9], [0.3, 0.3, 0.2], INK)];
+      const dots = [];
+      for (let i = 0; i < 14; i++) dots.push(B([(r() - 0.5) * 9.2, 8.8 + r() * 1.8, (r() - 0.5) * 9], [0.8, 0.8, 0.8], i % 3 ? 0xf8e0e8 : 0xd84a6a));
       return {
         head: [
-          // the headscarf over her hair, knotted under the chin
-          B([0, 8.6, -0.4], [9.6, 1.8, 9.4], scarf), B([0, 9.8, -0.6], [8, 1, 8], scarf), B([0, 5.6, -4.5], [9.4, 6, 0.8], scarf), ...mirrorX([B([-4.6, 5.8, -0.6], [0.8, 5, 7.4], scarf), B([-4.2, 1.6, 2.2], [1, 3, 1], scarf)]), B([0, -0.2, 3.6], [1.6, 1.2, 1.2], scarf),
-          ...[[-3, 9.4, 4.25], [1, 9.6, 4.25], [3, 8.8, 4.25], [-4.7, 6.6, 1], [4.7, 4.6, -1.6], [-1, 10.35, 0], [2.4, 10.35, -2.6], [-4.7, 3.6, -2.4]].map((p) => B(p, [0.8, 0.8, 0.3], dot)),
+          // the headscarf over the crown, knotted at the nape
+          B([0, 9, -0.6], [9.8, 1.8, 9.4], scarf), B([0, 10.2, -0.8], [8.2, 1, 7.8], scarf), B([0, 7.2, -4.8], [9.4, 3.6, 0.8], scarf), ...mirrorX([B([-4.7, 7.6, -1.2], [0.8, 2.8, 6.4], scarf)]),
+          B([0, 7.4, -5.6], [1.8, 1.6, 1.2], shadeOf(scarf, 0.85)), B([-0.8, 6, -5.8], [0.9, 2, 0.6], scarf), B([0.8, 6.2, -5.8], [0.9, 1.8, 0.6], scarf),
+          ...dots.filter((b) => b.at[2] < 3.8 || b.at[1] > 9.9),
+          ...mirrorX([B([-4.6, 2.2, 1.6], [0.4, 1.2, 1.2], 0xe0b030)]),
         ],
         torso: ap,
         hips: skirtA,
-        armL: [band(-1.6, 1, 0x5a7ab8, 4.6), ...gnome.map((b) => ({ ...b, at: [b.at[0] + 0.4, b.at[1] + 2.4, b.at[2]] }))],
-        legR: [...shoes('boot', { upper: 0x3a7a3a, sole: 0x24461a, lace: 0x3a7a3a }), band(-6.8, 1.2, 0x2e6a2e, 5)],
-        legL: [...shoes('boot', { upper: 0x3a7a3a, sole: 0x24461a, lace: 0x3a7a3a }), band(-6.8, 1.2, 0x2e6a2e, 5)],
+        armR: [band(-2.2, 1.2, blue, 4.8), band(-7.2, 0.8, 0x3a6a2a, 4.8)],
+        armL: [band(-2.2, 1.2, blue, 4.8), band(-7.2, 0.8, 0x3a6a2a, 4.8), ...gnome.map((b) => ({ ...b, at: [b.at[0] + 0.6, b.at[1] + 3, b.at[2] + 0.6] }))],
+        legR: [...shoes('boot', { upper: 0x4a7a3a, sole: 0x24461a, lace: 0x4a7a3a }), band(-6.6, 1.4, 0x3e6a30, 5), B([0, -9.4, 2.65], [0.8, 0.8, 0.2], 0xf09ab0), B([-2.65, -8.4, 0.6], [0.2, 0.8, 0.8], 0xf09ab0)],
+        legL: [...shoes('boot', { upper: 0x4a7a3a, sole: 0x24461a, lace: 0x4a7a3a }), band(-6.6, 1.4, 0x3e6a30, 5), B([0, -8.6, 2.65], [0.8, 0.8, 0.2], 0xf09ab0), B([2.65, -9.2, -0.4], [0.2, 0.8, 0.8], 0xf09ab0)],
       };
     },
   },
-  // Ranger Mae at the Gateway Arch: a green ranger uniform with a gold badge
-  // and patches, a flat-brimmed ranger hat, binoculars
+  // Ranger Mae at the Gateway Arch: long curly hair under a flat ranger hat
+  // with a gold badge, an olive uniform with patches and a badge, binoculars,
+  // a belt of pouches, cargo pants and boots
   rt_stlouis_mae: {
-    painter: 'person', scale: ADULT_SCALE, accent: 0x6ab04a,
-    paint: { skin: 0xc68a60, hair: 0x5a3418, fringe: 1, hairSide: 4, hairBack: 7, eyeRow: 3, eye: 0x3a2a14, brow: 0x4a2a10, grin: true, browUp: true, blush: 0xe08a6a, top: 0x8a9a6a, sleeve: 0x8a9a6a, pocket: 0x6a7a4a, collar: 0x7a8a5a, pants: 0x3e5232, shoes: 0x4a2a14, saturate: 1.15,
-      body: (S) => { for (const [u, v] of [[40, 16], [32, 48]]) { S.rect(u + 0, v + 5, 4, 3, 0x2e5a2a, 0.04); S.dot(u + 1, v + 5.5, 0xe0c060, 4, 2); } } },
-    hair: { c: [0, 6.2, -0.8], r: [5.2, 4, 5.4], bump: 0.3, shell: 1.3, fringe: 6.8, jag: 0.6, side: 2.6, back: 0.6, top: 8.4, tuft: 0.12, blobs: [{ c: [0, 3.4, -5.2], r: [1.8, 2.6, 1.6] }], tones: [0x3a200c, 0x5a3418, 0x7a4c28] },
+    painter: 'hero', scale: 1.2, accent: 0x6ab04a,
+    paint: { skinTone: 0xd89668, hair: 0x4a2814, fringe: 2, hairSide: 5, hairBack: 8, eye: 0x3a2214, pupil: 0x0a0604, brow: 0x3a1c0a, lashes: true, mouth: 'grin', lip: 0xc0605a, blush: true, top: 0x7a7a48, sleeve: 0x7a7a48, shortSleeve: 6, collar: 0x6a6a3c, pants: 0x4e5a30, cargo: true, shoes: 0x4a2a14, sole: 0x2a160a },
+    body(S, D) {
+      // shoulder patches, pocket flaps and a placket
+      for (const [u, v] of [[40, 16], [32, 48]]) { S.rect(u, v + 5, 4, 3, 0x2e5a2a, 0.04); D(u + 1, v + 5.5, 0xe0c060, 4, 2); }
+      D(20, 22, 0x5e5e34, 6, 3); D(25, 22, 0x5e5e34, 6, 3); D(23.5, 20, 0x5e5e34, 1, 24);
+    },
+    vox: { style: 'long', base: 0x4a2814, shade: 0x2a140a, light: 0x6e3e20, seed: 233, shape: { helmetFront: false, top: 8.4, c: [0, 3.6, -1.2], tuft: 0.3, spike: 0.1, bump: 0.46, r: [6.8, 7.6, 6.4], side: -6, back: -7 } },
     parts() {
-      const hat = 0xb08a50, band2 = 0x5a3418;
+      const hat = 0x8a7a4c, band2 = 0x4a2a14, lea = 0x6a3a1e;
       return {
         head: [
-          // the ranger hat: a flat round brim and a pinched crown
-          B([0, 8.4, 0], [14, 0.7, 14], hat), B([0, 8.4, 0], [10, 0.75, 15], hat), B([0, 8.4, 0], [15, 0.75, 10], hat),
-          B([0, 9.6, 0], [8.4, 1.8, 8.4], band2), B([0, 11.3, 0], [7.6, 2, 7.6], hat), ...[[0, 3.2], [0, -3.2], [3.2, 0], [-3.2, 0]].map(([x, z]) => B([x, 12.5, z], [x ? 1.6 : 3.4, 1.2, z ? 1.6 : 3.4], shadeOf(hat, 0.85))), B([0, 12.6, 0], [3, 1.2, 3], hat),
+          // the ranger hat: a flat round brim and a pinched crown, a gold badge
+          B([0, 8.4, 0], [15, 0.7, 15], hat), B([0, 8.4, 0], [11, 0.75, 16], hat), B([0, 8.4, 0], [16, 0.75, 11], hat),
+          B([0, 9.6, 0], [8.6, 1.6, 8.6], band2), B([0, 11.2, 0], [7.8, 2, 7.8], hat), ...[[0, 3.2], [0, -3.2], [3.2, 0], [-3.2, 0]].map(([x, z]) => B([x, 12.4, z], [x ? 1.6 : 3.4, 1.2, z ? 1.6 : 3.4], shadeOf(hat, 0.85))), B([0, 12.6, 0], [3, 1.2, 3], hat),
+          B([0, 10.6, 4.05], [1.6, 1.8, 0.4], 0xe0b030), B([-1, 11, 4.05], [0.8, 0.8, 0.3], 0xe0b030), B([1, 11, 4.05], [0.8, 0.8, 0.3], 0xe0b030),
+          ...mirrorX([B([-4.6, 2.2, 1.6], [0.4, 1.4, 1.4], 0xe0b030)]),
         ],
-        torso: [B([-2.6, 8.8, 2.45], [1.6, 1.8, 0.4], 0xe0b030), B([-2.6, 8.8, 2.65], [0.8, 0.8, 0.2], 0xf8e070), B([0, 1.2, 0], [8.8, 1.1, 4.8], 0x3a2414), B([0, 1.2, 2.5], [1.6, 1.1, 0.3], SILVER),
+        torso: [
+          B([2.4, 9, 2.45], [1.6, 1.8, 0.4], 0xe0b030), B([2.4, 9, 2.65], [0.8, 0.8, 0.2], 0xf8e070), ...mirrorX([B([-1.6, 11.8, 2.3], [1.8, 0.8, 0.4], 0x6a6a3c, [0, 0, -0.45])]),
           // binoculars on a strap
-          ...mirrorX([B([-1.8, 9.6, 2.4], [0.4, 4.4, 0.4], 0x2a2420, [0, 0, -0.6])]), B([-0.7, 6.8, 2.9], [1.2, 2, 1.2], 0x2a2a2a), B([0.7, 6.8, 2.9], [1.2, 2, 1.2], 0x2a2a2a), B([0, 7.2, 2.9], [0.6, 0.6, 0.8], 0x3a3a3a)],
-        armL: [band(-6.4, 0.8, 0x2a2a2a, 4.6)],
-        legR: [...shoes('boot', { upper: 0x4a2a14, sole: 0x2a160a, lace: 0x8a6a3a }), band(-6.4, 1, shadeOf(0x3e5232, 0.85), 4.8)],
-        legL: [...shoes('boot', { upper: 0x4a2a14, sole: 0x2a160a, lace: 0x8a6a3a }), band(-6.4, 1, shadeOf(0x3e5232, 0.85), 4.8)],
+          ...mirrorX([B([-1.8, 9.6, 2.4], [0.4, 4.4, 0.4], 0x2a2420, [0, 0, -0.6])]), B([-0.7, 6.6, 3], [1.3, 2.4, 1.4], 0x1e1e20), B([0.7, 6.6, 3], [1.3, 2.4, 1.4], 0x1e1e20), B([0, 7, 3], [0.6, 0.8, 0.8], 0x3a3a3a),
+          B([0, 1.2, 0], [8.8, 1.2, 4.8], lea), B([0, 1.2, 2.5], [1.6, 1.2, 0.3], GOLD), B([3.4, 0.4, 2.6], [1.6, 2.2, 1], lea), B([-3.4, 0.4, 2.6], [1.6, 2.2, 1], lea), B([4.6, 0.2, 0.6], [1.2, 2.6, 2], lea),
+        ],
+        armR: [band(-4.6, 1, 0x6a6a3c, 4.8)],
+        armL: [band(-4.6, 1, 0x6a6a3c, 4.8), band(-7.4, 0.6, 0x8a6a3a, 4.6)],
+        legR: [...shoes('boot', { upper: 0x4a2a14, sole: 0x2a160a, lace: 0x8a6a3a }), band(-6.4, 1.2, shadeOf(0x4e5a30, 0.85), 4.9)],
+        legL: [...shoes('boot', { upper: 0x4a2a14, sole: 0x2a160a, lace: 0x8a6a3a }), band(-6.4, 1.2, shadeOf(0x4e5a30, 0.85), 4.9)],
       };
     },
   },
-  // Chad, sunburnt ex-lifeguard: red swim shorts, a white tank top, zinc on
-  // his nose, a whistle, flip-flops and an inflatable flamingo ring
+  // Chad, sunburnt ex-lifeguard: a blond afro with sunglasses on top, shirtless,
+  // a whistle, red swim shorts with a white cross, flip-flops, a flamingo ring
   rt_denver_chad: {
-    painter: 'hero', scale: 1.14, accent: 0xff7aa8,
-    paint: { skinTone: 0xf0a07e, hair: 0xe8c870, fringe: 2, hairSide: 3, hairBack: 6, eye: 0x2a7ad8, pupil: 0x0a1a4a, brow: 0xc8a050, mouth: 'grin', cheeks: 0xe86a5a, top: 0xf6f6f2, sleeve: 0xf0a07e, shortSleeve: 0, collar: 0xf0a07e, pants: 0xd0261e, shorts: 6, shoes: 0xf0a07e },
-    body(S, D) { D(11, 13, 0xffffff, 4, 2); D(11.5, 12.5, 0xffffff, 2, 1); S.rect(16, 20, 2, 12, 0xf0a07e, 0.04); S.rect(30, 20, 2, 12, 0xf0a07e, 0.04); S.rect(16, 20, 24, 1, 0xf0a07e, 0.04); D(24, 23, 0xd0261e, 4, 4); },
-    vox: { style: 'messy', base: 0xe8c870, shade: 0xb8943a, light: 0xfae49a, seed: 223, shape: { tuft: 0.2, spike: 0.1, fringe: 6.4 } },
+    painter: 'hero', scale: 1.16, accent: 0xff7aa8,
+    paint: { skinTone: 0xf09470, hair: 0xe0b450, fringe: 2, hairSide: 3, hairBack: 6, eye: 0x4a2a14, pupil: 0x140806, brow: 0xb88a30, mouth: 'grin', cheeks: 0xe86a5a, top: 0xf09470, sleeve: 0xf09470, shortSleeve: 0, collar: false, hem: 0xf09470, pants: 0xc8241e, shorts: 6, shoes: 0xf09470 },
+    body(S, D) {
+      // a bare, sunburnt chest: pecs, a belly line, redder shoulders
+      D(20.5, 23.5, 0xd87850, 7, 1); D(25, 23.5, 0xd87850, 7, 1); D(23.5, 25, 0xd87850, 1, 10); D(22, 27.5, 0xe08860, 2, 1); D(25, 27.5, 0xe08860, 2, 1); D(22, 29.5, 0xe08860, 2, 1); D(25, 29.5, 0xe08860, 2, 1);
+      for (const [u, v] of [[40, 16], [32, 48]]) S.rect(u, v + 4, 16, 2, 0xe87858, 0.05);
+      // a white cross on the left leg of the shorts, a white stripe down the sides
+      D(25, 54.5, 0xffffff, 3, 1); D(25.5, 54, 0xffffff, 1, 3);
+      for (const [u, v, s] of [[0, 16, 0], [16, 48, 8]]) D(u + s + 1.5, v + 4, 0xf4f0e8, 1, 11);
+    },
+    vox: { style: 'afro', base: 0xe0b450, shade: 0xa87c24, light: 0xf8dc88, seed: 223, shape: { tuft: 0.26, spike: 0.08, bump: 0.36 } },
     parts() {
-      const pink = 0xf27aa8, pinkD = 0xd85a8a;
-      const ring = [];
-      for (let i = 0; i < 20; i++) { const a = (i / 20) * Math.PI * 2; ring.push(B([Math.cos(a) * 5.6, -1.2, Math.sin(a) * 4.2], [2.6, 2.6, 2.6], i % 2 ? pink : pinkD)); }
-      // the flamingo's neck and head at the front, beak dipped
-      ring.push(B([0, 1.6, 5.6], [1.6, 3.6, 1.6], pink), B([0, 4, 5.2], [1.6, 1.6, 1.6], pink), B([0, 4.8, 4.2], [1.6, 1.8, 1.8], pink), B([0, 4.4, 6.2], [1, 0.9, 1.6], 0x1a1a1a), B([0, 5.2, 6], [0.9, 0.9, 1.2], 0xf8f8f4), B([-0.85, 5, 4.4], [0.2, 0.5, 0.5], INK), B([0.85, 5, 4.4], [0.2, 0.5, 0.5], INK));
+      const pink = 0xf27aa8, pinkD = 0xd85a8a, pinkL = 0xf8a8c8, L = [];
+      // the flamingo ring under his left arm, on its side, the neck and head up at the front
+      for (let i = 0; i < 20; i++) { const a = (i / 20) * Math.PI * 2; L.push(B([4.2, -6 + Math.sin(a) * 4, 1 + Math.cos(a) * 4], [2.6, 2.6, 2.6], i % 3 === 0 ? pinkL : i % 2 ? pink : pinkD)); }
+      L.push(B([4.2, -0.6, 4.2], [1.7, 3.6, 1.7], pink), B([4.2, 1.8, 4.6], [1.7, 1.8, 2.2], pink), B([4.2, 1.6, 6.2], [1.1, 1, 1.6], 0xf0d030), B([4.2, 1.2, 7], [0.9, 0.8, 0.8], INK), B([3.3, 2.2, 4.8], [0.2, 0.6, 0.6], 0xffffff), B([5.1, 2.2, 4.8], [0.2, 0.6, 0.6], 0xffffff), B([3.25, 2.2, 4.9], [0.15, 0.3, 0.3], INK), B([5.15, 2.2, 4.9], [0.15, 0.3, 0.3], INK));
       return {
-        torso: [...line([-1.4, 11.8, 2.4], [0, 8.2, 2.4], 4, [0x1a1a1e], 3, 0.4, 0), ...line([1.4, 11.8, 2.4], [0, 8.2, 2.4], 4, [0x1a1a1e], 4, 0.4, 0), B([0, 7.4, 2.6], [1.2, 1.6, 0.8], 0xe8c040)],
-        hips: [...ring, B([0, 0.2, 0], [8.8, 0.8, 4.8], 0xf6f6f2)],
-        armL: [band(-6.4, 0.9, 0xe8c870, 4.6)],
-        head: [B([0, 8.6, 1.6], [6.6, 1, 2.4], 0x1a1a1e), B([-1.6, 8.7, 2.85], [2.4, 1.1, 0.2], 0x3ab0e8), B([1.6, 8.7, 2.85], [2.4, 1.1, 0.2], 0x3ab0e8)],
-        legR: [...shoes('sandal', { upper: 0x3a6ad8, sole: 0x1a1a1e }), band(-3.5, 0.5, 0xf6f6f2, 4.6)],
-        legL: [...shoes('sandal', { upper: 0x3a6ad8, sole: 0x1a1a1e }), band(-3.5, 0.5, 0xf6f6f2, 4.6)],
+        head: [
+          // sunglasses pushed up on the afro
+          B([0, 10.2, 3.6], [8.4, 0.6, 0.6], 0x141414), ...mirrorX([B([-2, 10.2, 4], [3.2, 2.2, 0.6], 0x141414), B([-2, 10.2, 4.35], [2.4, 1.4, 0.2], 0x2a4a5a)]),
+          ...mirrorX([B([-4.4, 2.6, 1.4], [0.4, 0.8, 0.8], 0xe0b030)]),
+        ],
+        torso: [...line([-1.6, 11.9, 2.4], [0, 7.4, 2.4], 5, [0x1a1a1e], 3, 0.4, 0), ...line([1.6, 11.9, 2.4], [0, 7.4, 2.4], 5, [0x1a1a1e], 4, 0.4, 0), B([0, 6.4, 2.6], [1.4, 1.8, 0.8], 0xe8c040), B([0, 7.4, 2.6], [0.8, 0.5, 0.5], 0xe8c040)],
+        hips: [B([0, 0.3, 0], [8.8, 0.8, 4.8], 0xa81c18), B([-0.5, -0.6, 2.5], [0.4, 1.8, 0.3], 0xf4f0e8), B([0.5, -0.6, 2.5], [0.4, 1.8, 0.3], 0xf4f0e8)],
+        armL: [band(-6.4, 0.9, 0xe8c870, 4.6), ...L.map((b) => ({ ...b, at: [b.at[0] + 0.8, b.at[1] - 2, b.at[2] - 1] }))],
+        armR: [band(-7, 0.7, 0x2a8ad8, 4.6)],
+        legR: [B([0, -11.6, 0.6], [4.9, 0.9, 6], 0x1a1a1e), B([0, -11.1, 0.6], [4.95, 0.25, 6.05], 0xf4f0e8), B([0, -10.4, 1.4], [4.75, 0.6, 1], 0xc8241e), B([0, -10.4, 2.4], [0.6, 0.6, 0.8], 0xc8241e)],
+        legL: [B([0, -11.6, 0.6], [4.9, 0.9, 6], 0x1a1a1e), B([0, -11.1, 0.6], [4.95, 0.25, 6.05], 0xf4f0e8), B([0, -10.4, 1.4], [4.75, 0.6, 1], 0xc8241e), B([0, -10.4, 2.4], [0.6, 0.6, 0.8], 0xc8241e)],
       };
     },
   },
-  // Sal the valet: a maroon uniform with gold buttons and braid, a pillbox
-  // cap, white gloves, slicked hair, and a ring of car keys on one finger
+  // Sal the valet: curly black hair under a maroon pillbox cap, a double-
+  // breasted maroon jacket with gold buttons and braid, a bow tie, white gloves,
+  // black trousers with a gold stripe, and a fistful of car keys
   rt_vegas_valet: {
     painter: 'person', scale: ADULT_SCALE, accent: 0xf0c850,
-    paint: { skin: 0xd8a07a, hair: 0x141010, fringe: 1, hairSide: 2, hairBack: 5, eyeRow: 3, eye: 0x3a2410, brow: 0x141010, smile: true, browUp: true, moustache: 0x1e1410, top: 0x6a1428, trim: 0x4e0e1c, buttons: 0xf0c850, sleeve: 0x6a1428, hand: 0xf6f6f2, pants: 0x18161e, legStripe: 0x6a1428, shoes: 0x0e0e10, saturate: 1.15,
-      body: (s) => { s.rect(16, 30, 24, 1, 0xe8c060, 0); for (const [u, v] of [[40, 16], [32, 48]]) s.rect(u, v + 11, 16, 1, 0xe8c060, 0); } },
-    hair: { c: [0, 7.2, 0], r: [4.8, 3.6, 5], bump: 0.1, shell: 1.1, shellBump: 0.9, fringe: 7, jag: 0, side: 4.2, back: 2.4, top: 8.6, tuft: 0.04, part: -2, blobs: [{ c: [0.6, 9, 2.8], r: [3.6, 1.6, 2.4], bump: 0.2 }], tones: [0x0a0808, 0x1a1414, 0x3a3236] },
+    paint: { skin: 0xdca078, hair: 0x18100e, fringe: 1, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x3a2410, brow: 0x141010, smile: true, browUp: true, top: 0x7a1828, collar: 0xf6f6f2, sleeve: 0x7a1828, hand: 0xf6f6f2, pants: 0x241818, legStripe: 0xd8a830, shoes: 0x0e0e10, saturate: 1.15,
+      body: (s) => { s.rect(16, 30, 24, 1, 0xd8a830, 0); for (const [u, v] of [[40, 16], [32, 48]]) s.rect(u, v + 11, 16, 1, 0xd8a830, 0); } },
+    hair: { c: [0, 7, -0.6], r: [5.4, 4, 5.6], bump: 0.4, shell: 1.3, fringe: 6.8, jag: 0.8, side: 2.6, back: 0.6, top: 9.6, tuft: 0.26, spike: 0.06, tones: [0x080606, 0x18100e, 0x302422] },
     parts() {
-      const m = 0x6a1428, gold = 0xf0c850;
+      const m = 0x7a1828, md = 0x5a1020, gold = 0xe0b030;
       return {
-        head: [B([-1.6, 10, -1.4], [5.4, 2.4, 5.4], m), B([-1.6, 11.3, -1.4], [5.6, 0.4, 5.6], gold), B([-1.6, 8.9, -1.4], [5.6, 0.6, 5.6], gold), B([-1.6, 10, 1.4], [1, 1, 0.3], gold)],
+        head: [B([0, 10.4, -0.4], [6.6, 3, 6.6], m), B([0, 9.2, -0.4], [6.8, 0.6, 6.8], gold), B([0, 11.95, -0.4], [6.7, 0.3, 6.7], shadeOf(m, 0.8)), B([0, 10.6, 2.95], [0.9, 0.9, 0.3], gold)],
         torso: [
-          B([0, 12, 0], [5.6, 1.2, 4.6], m), B([0, 12.65, 0], [5.7, 0.3, 4.7], gold),
-          ...mirrorX([B([-3.6, 12.1, 0], [2.2, 0.7, 3.8], gold), ...[3.2, 5.6, 8].map((y) => B([-1.6, y, 2.42], [0.7, 0.7, 0.3], gold)), B([-2.8, 10.6, 2.45], [1.2, 0.4, 0.3], gold)]),
-          B([2.6, 8.8, 2.45], [1.6, 0.6, 0.3], gold),
+          // the double-breasted front: overlapping panel, two columns of buttons, gold edges
+          B([0.6, 5.4, 2.45], [5.4, 10.8, 0.3], m), B([-2.1, 9.2, 2.65], [0.3, 3.2, 0.2], gold, [0, 0, -0.35]), B([3.3, 5.4, 2.65], [0.3, 10.8, 0.2], gold),
+          ...[3, 5.4, 7.8].flatMap((y) => [B([-1.2, y, 2.65], [0.7, 0.7, 0.3], gold), B([2.2, y, 2.65], [0.7, 0.7, 0.3], gold)]),
+          ...mirrorX([B([-1.2, 11.4, 2.3], [1.6, 0.8, 0.4], 0xf6f6f2, [0, 0, -0.45]), B([-3.6, 12.1, 0], [2.2, 0.7, 3.8], gold), B([-2.8, 2, 2.65], [1.8, 0.3, 0.2], gold)]),
+          // the bow tie
+          B([0, 11.1, 2.7], [0.8, 0.8, 0.4], 0x0e0e10), ...mirrorX([B([-0.9, 11.1, 2.65], [1.2, 1.2, 0.4], 0x141414)]),
+          B([0, 0.4, 0], [8.9, 1, 4.9], md),
         ],
-        armR: [band(-7.4, 0.9, gold, 4.7)],
-        // a key ring hooked on his left finger, fobs and keys dangling
-        armL: [band(-7.4, 0.9, gold, 4.7), B([0, -11, 2.4], [0.3, 2.2, 2.2], 0xd8d8e0), B([0, -12.6, 2.2], [0.4, 1.6, 0.6], SILVER), B([0, -12.8, 3.2], [0.4, 1.8, 0.6], gold), B([0, -13, 1.4], [0.5, 1.6, 0.9], 0x1a1a1e), B([0, -12.4, 1.4], [0.6, 0.4, 0.6], 0xc82a2a), B([0, -13.4, 3.6], [0.5, 1.4, 1], 0x2a2a6a)],
-        legR: shoes('loafer', { upper: 0x101012, sole: 0x060606 }), legL: shoes('loafer', { upper: 0x101012, sole: 0x060606 }),
+        hips: [B([0, -0.8, 2.3], [8, 1.6, 0.4], md), B([0, -0.8, -2.3], [8, 1.6, 0.4], md)],
+        armR: [band(-6.6, 0.8, gold, 4.8), band(-7.6, 0.9, 0xf6f6f2, 4.7)],
+        // a fistful of car keys and fobs on a gold ring
+        armL: [band(-6.6, 0.8, gold, 4.8), band(-7.6, 0.9, 0xf6f6f2, 4.7), ...ring(-11, 1.2, [gold], 9, { size: 0.45, step: 0.8, h: 0.45 }).map((b) => ({ ...b, at: [b.at[0], b.at[1], b.at[2] + 2.4] })),
+          ...[[-1, -12.8, 0x1a1a1e], [0, -13.4, 0x2a2a2e], [1, -12.6, 0x1a1a1e], [-0.4, -14, 0x141418]].map(([x, y, c]) => B([x, y, 2.8], [0.9, 1.8, 0.6], c)), ...[[-0.6, -12.2], [0.6, -12.4]].map(([x, y]) => B([x, y, 3.2], [0.4, 2, 0.3], 0xc8c8d0)), B([0, -12.9, 3.15], [0.4, 0.4, 0.1], 0xc82a2a)],
+        legR: [...shoes('loafer', { upper: 0x101012, sole: 0x060606 }), B([0, -10.2, 2.7], [1.6, 0.4, 0.3], gold)],
+        legL: [...shoes('loafer', { upper: 0x101012, sole: 0x060606 }), B([0, -10.2, 2.7], [1.6, 0.4, 0.3], gold)],
       };
     },
   },
-  // Trudy the tour guide: a sun visor, a ponytail, a star-print shirt, khaki
-  // capris, a lanyard, and her fold-out map of the stars' homes
+  // Trudy the tour guide: red curls in a ponytail, a white visor with sunglasses
+  // on it, gold hoops, a hibiscus shirt, a lanyard, a fanny pack, khaki shorts,
+  // high-tops, and her fold-out map of the stars' homes
   rt_la_guide: {
-    painter: 'person', scale: ADULT_SCALE, accent: 0xf0c840,
-    paint: { skin: 0xdca07a, hair: 0xa8502a, fringe: 2, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x2a6a4a, brow: 0x7a3a1a, grin: true, browUp: true, blush: 0xf0907a, lipstick: 0xd84a5a, top: 0x3a2e7a, shortSleeve: true, pants: 0xc8b080, shorts: true, shoes: 0xf4f4f0, socks: 0xf4f4f0, sockLen: 1, saturate: 1.15,
-      body: (S) => {
-        // little gold stars on the shirt
-        const r = mulberry32(4), D = (x, y, c, n, m) => S.dot(x, y, c, n, m);
-        const star = (x, y) => { D(x, y, 0xf8d040, 2, 2); D(x + 0.5, y - 0.5, 0xf8d040, 1, 1); D(x - 0.5, y + 0.5, 0xf8d040, 1, 1); D(x + 1, y + 0.5, 0xf8d040, 1, 1); D(x + 0.5, y + 1, 0xf8d040, 1, 1); };
-        for (let i = 0; i < 22; i++) star(16.5 + Math.floor(r() * 44) / 2, 20.5 + Math.floor(r() * 20) / 2);
-        for (const [u, v] of [[40, 16], [32, 48]]) for (let i = 0; i < 4; i++) star(u + 0.5 + Math.floor(r() * 28) / 2, v + 4.5 + Math.floor(r() * 6) / 2);
-      } },
-    hair: { c: [0, 6.6, -0.6], r: [5, 3.8, 5.2], bump: 0.24, shell: 1.2, fringe: 6.6, jag: 0.6, side: 3, back: 1.6, tuft: 0.1, blobs: [{ c: [0, 6.4, -5.4], r: [1.6, 1.6, 1.6] }, { c: [0, 3.6, -6], r: [1.4, 2.6, 1.4] }], tones: [0x7a3418, 0xa8502a, 0xc8743e] },
+    painter: 'hero', scale: 1.2, accent: 0xf0c840,
+    paint: { skinTone: 0xe8a478, hair: 0xb04a1a, fringe: 2, hairSide: 4, hairBack: 7, eye: 0x4a2a14, pupil: 0x140806, brow: 0x8a3410, lashes: true, mouth: 'grin', freckles: 0xd08a5a, top: 0xf0602a, shortSleeve: 4, collar: 0xe0501a, hem: 0xc8481a, pants: 0x8a8050, shorts: 5, cargo: true, socks: 0xf4f4f0, shoes: 0x1a1a1e, sole: 0xf4f0e8 },
+    body(S, D) {
+      // hibiscus flowers on the shirt and sleeves
+      const r = mulberry32(4), cols = [[0xf8d0e0, 0xf0e070], [0xffffff, 0xf0c040], [0xe83a6a, 0xf8e070]];
+      const flower = (x, y, [p, c]) => { D(x - 0.5, y, p, 3, 1); D(x, y - 0.5, p, 1, 3); D(x - 0.5, y - 0.5, p, 1, 1); D(x + 0.5, y + 0.5, p, 1, 1); D(x, y, c, 1, 1); };
+      for (let i = 0; i < 16; i++) flower(17 + Math.floor(r() * 44) / 2, 21 + Math.floor(r() * 20) / 2, cols[i % 3]);
+      for (const [u, v] of [[40, 16], [32, 48]]) for (let i = 0; i < 4; i++) flower(u + 1 + Math.floor(r() * 28) / 2, v + 4.5 + Math.floor(r() * 5) / 2, cols[i % 3]);
+    },
+    vox: { style: 'shaggy', base: 0xb04a1a, shade: 0x782a0a, light: 0xd8702e, seed: 241, shape: { r: [6.4, 5.4, 6.4], tuft: 0.3, spike: 0.1, bump: 0.46, top: 9.4, side: 0, back: -2 } },
+    tail: { pivot: [0, 7.6, -4.8], base: 0xb04a1a, shade: 0x782a0a, light: 0xd8702e, length: 10, width: 4, back: 1.4 },
     parts() {
-      const visor = 0x1aa0a0, white = 0xf4f4f0;
+      const white = 0xf6f4ee;
       return {
-        head: [B([0, 8.4, 0], [9.4, 1.4, 9.2], visor), B([0, 8.1, 6], [8.6, 0.6, 4], visor), B([0, 8.45, 4.55], [8.6, 0.5, 0.3], white)],
-        torso: [...mirrorX([B([-1.6, 9.8, 2.4], [0.4, 4.6, 0.4], 0xe84a3a, [0, 0, -0.35])]), B([0, 6.8, 2.5], [2, 2.6, 0.3], white), B([0, 7.3, 2.62], [1.6, 0.6, 0.1], 0xe84a3a), B([0, 1.2, 0], [8.8, 1, 4.8], 0x6a4a2a)],
-        // the fold-out star map, held open in both hands in front of her
-        armL: [B([-1.2, -10.4, 3.2], [6.4, 5, 0.3], 0xf4ead0, [0.25, -0.3, 0]), B([-1.2, -10.4, 3.4], [6.4, 0.2, 0.1], 0xc8b890, [0.25, -0.3, 0]), ...[[-3, -9.4], [-0.4, -10.8], [0.6, -9], [-2, -11.6], [-1.6, -9.8]].map(([x, y]) => B([x, y, 3.5], [0.6, 0.6, 0.1], 0xe0a020, [0.25, -0.3, 0])), B([-2.6, -10.2, 3.5], [1, 0.3, 0.1], 0x3a8ae8, [0.25, -0.3, 0])],
-        armR: [band(-6.4, 0.8, 0xe8c040, 4.6)],
-        legR: [...footwear('hitop', { upper: white, sole: 0xd8d8d0, lace: 0xe0e0d8 }), band(-6, 0.7, shadeOf(0xc8b080, 0.85), 4.8)],
-        legL: [...footwear('hitop', { upper: white, sole: 0xd8d8d0, lace: 0xe0e0d8 }), band(-6, 0.7, shadeOf(0xc8b080, 0.85), 4.8)],
+        head: [
+          // the visor: a white band and brim with a little yellow sun, sunglasses up on it
+          B([0, 8.4, 0], [9.8, 1.6, 9.6], white), B([0, 8, 6.2], [9, 0.6, 4.6], white), B([0, 8.6, 4.85], [1.4, 1.4, 0.2], 0xf0c030), B([0, 8.6, 5], [0.6, 0.6, 0.1], 0xe86a20),
+          B([0, 9.6, 3.2], [8, 0.5, 0.5], 0x141414), ...mirrorX([B([-2, 9.8, 3.4], [3, 1.8, 0.5], 0x141414)]),
+          ...mirrorX([B([-4.5, 2.2, 1.6], [0.4, 1.6, 1.6], 0xe0b030), B([-4.5, 2.2, 1.6], [0.5, 0.8, 0.8], 0xe8a478)]),
+        ],
+        torso: [
+          // a blue lanyard and badge, the fanny pack at her hip
+          ...mirrorX([B([-1.6, 9.8, 2.4], [0.4, 4.6, 0.4], 0x2a6ad8, [0, 0, -0.35])]), B([0, 6.6, 2.55], [1.8, 2.4, 0.3], white), B([0, 7.2, 2.72], [1.4, 0.6, 0.1], 0x2a6ad8), B([0, 6.2, 2.72], [1, 0.8, 0.1], 0xe8b088),
+          B([0, 0.8, 0], [8.9, 0.8, 4.9], 0x1a1a1e), B([1.6, 0.6, 2.9], [4, 2.2, 1.4], 0x2a2a2e), B([1.6, 1.4, 3.65], [3.6, 0.3, 0.2], 0xc8a040), B([3.2, 0.5, 3.65], [0.5, 0.8, 0.2], 0xc8a040),
+          ...mirrorX([B([-1.4, 11.6, 2.3], [1.6, 0.8, 0.4], 0xe0501a, [0, 0, -0.45])]),
+        ],
+        // the fold-out star map, open in her right hand
+        armR: [band(-7.2, 0.6, 0x2a2a2e, 4.6),
+          ...[[-2.6, 0xf4ead0], [0, 0xf0e4c4], [2.6, 0xf4ead0]].map(([z, c]) => B([0.6, -10.6, 2 + z], [0.3, 5, 2.6], c, [0, 0, 0.1])),
+          ...[[-9.6, -0.6, 0xe0a020], [-11, 0.4, 0xe8606a], [-9.8, 2.8, 0x3a8ae8], [-11.6, 4.4, 0x5ab04a], [-10, 4.8, 0xe0a020], [-12, -1.2, 0x3a8ae8]].map(([y, z, c]) => B([0.85, y, z], [0.1, 0.8, 0.8], c))],
+        armL: [band(-7.2, 0.6, 0x5a3a20, 4.6), band(-6.6, 0.4, 0xe0b030, 4.7)],
+        legR: [...footwear('hitop', { upper: 0x1a1a1e, sole: 0xf4f0e8, lace: 0xf4f0e8 }), band(-7.6, 1.4, 0xf4f4f0, 4.6), band(-0.6, 1, shadeOf(0x8a8050, 1.12), 4.8)],
+        legL: [...footwear('hitop', { upper: 0x1a1a1e, sole: 0xf4f0e8, lace: 0xf4f0e8 }), band(-7.6, 1.4, 0xf4f4f0, 4.6), band(-0.6, 1, shadeOf(0x8a8050, 1.12), 4.8)],
       };
     },
   },
-  // Grandma Mae, a tiny old fisherwoman: a yellow raincoat and bucket hat,
-  // glasses, green waders, a fishing rod and a tackle box
+  // Grandma Mae, a tiny old fisherwoman: grey curls under a yellow bucket hat
+  // with a white flower, a yellow raincoat over a striped sweater, olive
+  // trousers, green rubber boots, a fishing rod with a bobber, a tackle box
   rt_sm_fisher: {
     painter: 'person', scale: 1.02, accent: 0xf0c020,
-    paint: { skin: 0xe8c0a4, hair: 0xd8d4dc, fringe: 2, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x4a6a8a, brow: 0xa8a4b0, smile: true, wrinkles: 0xc49886, blush: 0xf09aa4, glasses: 0x5a3a2a, top: 0x3a6a8a, knit: true, jacket: 0xf0c020, lapel: 0xd8a810, sleeve: 0xf0c020, pants: 0x3a5a3a, shoes: 0x2e4a2e, saturate: 1.12 },
-    hair: { c: [0, 6.6, -0.5], r: [5.6, 4, 5.8], bump: 0.42, shell: 1.4, fringe: 6.8, jag: 0.6, side: 3, back: 1.6, top: 8.2, tuft: 0.3, tones: [0xa8a2b6, 0xd4d0de, 0xf4f2f8] },
+    paint: { skin: 0xe8b090, hair: 0xb8b4b8, fringe: 2, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x3a2414, brow: 0x9a969c, smile: true, wrinkles: 0xc49076, blush: 0xf09a94, top: 0x2e5a8a, knit: true, jacket: 0xf0c020, lapel: 0xd8a810, sleeve: 0xf0c020, pants: 0x5a5a34, shoes: 0x3e5a2e, saturate: 1.12,
+      body: (S) => {
+        // the sweater's stripes: navy, teal and cream
+        const D = (x, y, c, n, m) => S.dot(x, y, c, n, m);
+        for (let y = 20; y < 32; y += 3) { D(16, y, 0x3a8a9a, 48, 2); D(16, y + 1, 0xf0e8d0, 48, 1); }
+      } },
+    hair: { c: [0, 6.4, -0.6], r: [6.2, 4.4, 6], bump: 0.46, shell: 1.5, fringe: 6.8, jag: 0.6, side: 1.6, back: 0.6, top: 8.4, tuft: 0.36, spike: 0.08, tones: [0x8a8690, 0xb8b4b8, 0xe0dce0] },
     parts() {
       const y = 0xf0c020, yd = 0xc89a10, L = [];
-      // the bucket hat: a crown and a sloping brim, all yellow
-      L.push(B([0, 9.4, 0], [9.6, 2.6, 9.6], y), B([0, 11, 0], [8.4, 0.8, 8.4], yd));
-      for (const [x, z, w, d] of [[0, 5.4, 11.6, 2], [0, -5.4, 11.6, 2], [5.4, 0, 2, 9.6], [-5.4, 0, 2, 9.6]]) L.push(B([x, 8.1, z], [w, 0.6, d], yd, [z ? Math.sign(z) * 0.35 : 0, 0, x ? -Math.sign(x) * 0.35 : 0]));
+      // the bucket hat: a crown and a sloping brim, a white flower on the band
+      L.push(B([0, 9.4, 0], [9.8, 2.8, 9.8], y), B([0, 11.1, 0], [8.6, 0.8, 8.6], yd), B([0, 8.9, 0], [10, 0.6, 10], yd));
+      for (const [x, z, w, d] of [[0, 5.5, 12, 2.2], [0, -5.5, 12, 2.2], [5.5, 0, 2.2, 10], [-5.5, 0, 2.2, 10]]) L.push(B([x, 8.1, z], [w, 0.6, d], y, [z ? Math.sign(z) * 0.35 : 0, 0, x ? -Math.sign(x) * 0.35 : 0]));
+      L.push(B([2.4, 9.6, 4.95], [2, 0.7, 0.4], 0xf8f6ee), B([2.4, 9.6, 4.95], [0.7, 2, 0.4], 0xf8f6ee), B([2.4, 9.6, 5.2], [0.6, 0.6, 0.2], 0xf0c030));
       return {
         head: L,
-        torso: [B([0, 12, 0], [9.2, 1.4, 5.2], yd), ...[3, 6, 9].map((h) => B([-1.6, h, 2.5], [0.8, 0.8, 0.3], 0x2a2a2a))],
-        hips: [...mirrorX([B([-3, -3, 0.2], [3, 6, 4.8], y)]), B([0, -3, -2.3], [9, 6, 0.6], y), B([0, -6.1, 0], [9.2, 0.4, 5], yd)],
-        // the rod, angled up and forward, a reel and a line to a red float
-        armR: [band(-7.6, 1, yd, 4.8), ...turn([B([0, 0, 4], [0.7, 0.7, 24], 0x6a4a2a), B([0, 0, 15], [0.5, 0.5, 6], 0x2a2a2a), B([0, -1.2, 1.4], [1.8, 1.8, 1.2], 0xb8b8c0), B([0, 0, -1.4], [1, 1, 2.4], 0x2a2a2a)], [-0.7, 0, 0]).map((b) => ({ ...b, at: [b.at[0], b.at[1] - 10, b.at[2] + 1.6] })),
-          B([0, -6, 16.4], [0.15, 22, 0.15], 0xe0e0e0), B([0, -17.2, 16.4], [1, 1, 1], 0xe02a2a)],
+        torso: [B([0, 12, 0], [9.2, 1.4, 5.2], yd), ...[3, 6, 9].map((h) => B([-2.1, h, 2.5], [0.8, 0.8, 0.3], 0x5a4a2a)), ...mirrorX([B([-2.6, 4, 2.45], [1.6, 1.4, 0.3], yd)]),
+          B([0.2, 6.6, 2.45], [1, 13, 0.4], 0x6a3a1e, [0, 0, 0.52]), B([0.2, 6.6, -2.45], [1, 13, 0.4], 0x6a3a1e, [0, 0, 0.52])],
+        hips: [...mirrorX([B([-3, -2.6, 0.2], [3, 5.2, 4.8], y)]), B([0, -2.6, -2.3], [9, 5.2, 0.6], y), B([0, -5.3, 0], [9.2, 0.4, 5], yd), B([4.6, -1.4, 0.6], [1.4, 3, 3], 0x6a3a1e)],
+        // the rod, upright in her right fist: a reel, a red-and-white bobber hanging from the tip
+        armR: [band(-7.6, 1, yd, 4.8), B([0, -6, 2.4], [0.8, 34, 0.8], 0x6a4a2a), B([0, 11.6, 2.4], [0.5, 2, 0.5], 0x3a2a1a), B([0, -14, 2.4], [1.1, 4, 1.1], 0x3a2a1a),
+          B([-1.6, -11.4, 2.4], [2.4, 2.4, 2.4], 0x2a2a2a), B([-2.9, -11.4, 2.4], [0.4, 1.6, 1.6], 0xb8b8c0), B([0, 0, 2.4], [1, 0.6, 1], 0xc8a040), B([0, 6, 2.4], [1, 0.6, 1], 0xc8a040),
+          B([0, 6.4, 3.6], [0.15, 6, 0.15], 0xe0e0e0), B([0, 3.4, 3.6], [1.4, 0.8, 1.4], 0xf8f8f4), B([0, 2.6, 3.6], [1.4, 0.8, 1.4], 0xe02a2a), B([0, 4, 3.6], [0.3, 0.6, 0.3], 0xe02a2a)],
         // the green tackle box in her left hand
-        armL: [band(-7.6, 1, yd, 4.8), B([0, -10.8, 1.2], [0.6, 1.2, 2.4], 0x2a2a2a), B([0, -13.4, 1.2], [2.6, 3.6, 5], 0x2e7a4a), B([0, -11.8, 1.2], [2.7, 0.4, 5.1], 0x1e5a34), B([1.35, -12.4, 1.2], [0.2, 0.6, 0.8], SILVER)],
-        legR: [...shoes('boot', { upper: 0x2e4a2e, sole: 0x1a2a1a, lace: 0x2e4a2e }), band(-6.8, 1.2, 0x2e4a2e, 4.9)],
-        legL: [...shoes('boot', { upper: 0x2e4a2e, sole: 0x1a2a1a, lace: 0x2e4a2e }), band(-6.8, 1.2, 0x2e4a2e, 4.9)],
+        armL: [band(-7.6, 1, yd, 4.8), B([0, -10.8, 1.2], [0.6, 1.2, 2.4], 0x2a2a2a), B([0, -13.6, 1.2], [3, 4, 5.6], 0x3e6a3a), B([0, -12.2, 1.2], [3.1, 0.4, 5.7], 0x2a4a28), B([1.55, -12.8, 0.2], [0.2, 0.8, 0.8], GOLD), B([1.55, -12.8, 2.2], [0.2, 0.8, 0.8], GOLD)],
+        legR: [...shoes('boot', { upper: 0x3e5a2e, sole: 0x1a2a1a, lace: 0x3e5a2e }), band(-6.4, 1.4, 0x34502a, 5)],
+        legL: [...shoes('boot', { upper: 0x3e5a2e, sole: 0x1a2a1a, lace: 0x3e5a2e }), band(-6.4, 1.4, 0x34502a, 5)],
       };
     },
   },

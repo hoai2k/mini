@@ -43,7 +43,7 @@ export const terrain = {
     if (h >= 5 && n.value(x * 0.25, z * 0.25) > 0.6) return B.rock;
     const v = n.value(x * 0.15, z * 0.15);
     if (v > 0.78) return B.underworld_rock;
-    return n.value(x * 0.11 + 31, z * 0.11) < 0.45 ? B.obsidian : B.asphodel;   // dark ash earth in drifts between the pale grey fields
+    return n.value(x * 0.11 + 31, z * 0.11) < 0.45 ? B.asphalt : B.asphodel;   // dark ash earth in drifts between the pale grey fields
   },
 };
 
@@ -429,12 +429,12 @@ export function build(c) {
     if (v < 0.45 || rand() > (v - 0.45) * 1.6) continue;
     const y = G(x, z);
     const gb = isFinite(y) ? W.get(x, y - 1, z) : 0;
-    if ((gb !== B.asphodel && gb !== B.obsidian) || W.get(x, y, z)) continue;
+    if ((gb !== B.asphodel && gb !== B.asphalt) || W.get(x, y, z)) continue;
     deco.add('asphodel', x + 0.2 + rand() * 0.6, y, z + 0.2 + rand() * 0.6, { scale: 1.05 + rand() * 0.55, sway: 0.6, emit: 0.35 });
     if (v > 0.62) deco.add('asphodel', x + 0.1 + rand() * 0.8, y, z + 0.1 + rand() * 0.8, { scale: 0.8 + rand() * 0.4, sway: 0.6, emit: 0.35 });
   }
   scatter([B.asphodel], ['asphodel', 'dry_grass', 'skull', 'dry_grass', 'bone'], 0.06);
-  scatter([B.obsidian], ['dry_grass', 'dry_grass', 'bone', 'asphodel'], 0.05);
+  scatter([B.asphalt], ['dry_grass', 'dry_grass', 'bone', 'asphodel'], 0.05);
   scatter([B.underworld_rock, B.rock], ['dry_grass', 'bone', 'skull'], 0.04);
   console.log('openworld asphodel build ms', Math.round(performance.now() - __t0));   // TEMP timing
 }

@@ -285,7 +285,7 @@ export function build(c) {
     // a toppled bronze guardian: the Warden's broken twin
     for (let i = 0; i < 4; i++) S(hx - 3 + i, y, hz + 4, B.bronze);
     S(hx - 4, y, hz + 4, B.iron_plate); S(hx + 1, y, hz + 4, B.blue_energy);
-    add.champion({ id: 'lab_bronze_warden', x: hx, z: hz + 1, kind: 'automaton' });
+    add.champion({ id: 'lab_bronze_warden', x: hx, z: hz + 1, kind: 'dracaena' });   // (fights like a slow, heavy guard; its look is the bronze automaton: entities/champions.js)
     add.landmark({ id: 'lab_heart', x: hx, z: hz });
   }
   // the maze yard: a scrapheap where the broken guards gather
@@ -514,8 +514,10 @@ export function build(c) {
   // dark pines crowd the ruins (as on the sheet), a few broad oaks among them
   for (let i = 0, placed = 0; i < 260 && placed < 46; i++) {
     const x = 18 + Math.floor(rand() * 150), z = 332 + Math.floor(rand() * 66);
-    if (busy.some(([a, b, cc, d]) => x >= a && x <= cc && z >= b && z <= d) || !c.level(x, z, 3, 3, 1)) continue;
-    const g = top(x, z); if (G(x, g - 1, z) === B.stone_brick || G(x, g - 1, z) === B.cobble) continue;   // not on the roads
+    if (busy.some(([a, b, cc, d]) => x >= a - 3 && x <= cc + 3 && z >= b - 3 && z <= d + 3) || !c.level(x, z, 3, 3, 1)) continue;
+    let onRoad = false;   // keep the crowns off the roads
+    for (let dz = -3; dz <= 3 && !onRoad; dz += 3) for (let dx = -3; dx <= 3; dx += 3) { const gb = G(x + dx, top(x + dx, z + dz) - 1, z + dz); if (gb === B.stone_brick || gb === B.cobble) { onRoad = true; break; } }
+    if (onRoad) continue;
     if (rand() < 0.3) trees.oak(x, z); else trees.pine(x, z, { h: 7 + Math.floor(rand() * 5), R: 2.2 + rand() * 0.6 });
     placed++;
   }

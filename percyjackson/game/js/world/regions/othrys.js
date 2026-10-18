@@ -327,10 +327,9 @@ export function build(c) {
     const spire = (x, z, hh, w = 2) => {
       for (let dz = 0; dz < w; dz++) for (let dx = 0; dx < w; dx++) {
         const cut = w > 1 && dx + dz === 2 * (w - 1) ? 2 : w > 1 && dx + dz === 0 ? 1 : 0;   // a ragged, broken top
-        col(x + dx, z + dz, y - 1, y + hh - 1 - cut, (xx, yy) => ((yy - y) % 5 === 4 ? B.obsidian : B.black_marble));
+        col(x + dx, z + dz, y - 1, y + hh - 1 - cut, (xx, yy, zz) => ((yy - y) % 5 === 4 ? B.obsidian : n.hash(xx + yy, zz * 3) < 0.5 ? B.dark_brick : B.black_marble));
       }
       if (hh >= 13) {
-        for (let dz = -1; dz <= w; dz++) for (let dx = -1; dx <= w; dx++) if ((dx < 0 || dx >= w || dz < 0 || dz >= w) && (dx + dz) % 2 === 0) S(x + dx, y + hh - 5, z + dz, B.gold_trim);   // a gold collar
         deco.prop('fire', x + 0.5, y + hh - 1, z + 0.5); light(x, y + hh + 0.5, z, 0xff7a30, 5, 14); }
     };
     for (const [x, z, hh] of [[x0 - 1, z0 - 1, 16], [x1, z0 - 1, 15], [x0 - 1, z1, 14], [x1, z1, 13], [sx - 8, z0 - 1, 12], [sx + 7, z0 - 1, 10], [x0 - 1, sz - 4, 11], [x0 - 1, sz + 5, 9], [x1, sz - 6, 12], [x1, sz + 4, 10], [sx - 10, z1, 12], [sx + 9, z1, 11]]) spire(x, z, hh);
