@@ -495,7 +495,9 @@ export const BOOK1_PATTERNS = {
     const g = this.game, t = this.target(); if (!t) return;
     const H = this.rig.extras.heads;
     this.moving = false; this.faceTarget(t);
-    g.markers.spawn({ pos: this.pos, radius: 11, dur: 0.85, shape: 'cone', arc: 0.22, facing: this.facing, color: 0xff5a1a });
+    // (pass 4: his reach grown with his model, about 1.6 times bigger: the
+    // mouths now sit about 3.9 m ahead of his centre, not 2.4 m)
+    g.markers.spawn({ pos: this.pos, radius: 13, dur: 0.85, shape: 'cone', arc: 0.22, facing: this.facing, color: 0xff5a1a });
     this.headAct = [1, 0, 0];
     yield 0.85;
     g.audio?.energy('fire');
@@ -503,7 +505,7 @@ export const BOOK1_PATTERNS = {
       const dir = tmp2.set(Math.sin(this.facing), 0, Math.cos(this.facing));
       const from = H[0].mouth.getWorldPosition(new THREE.Vector3());
       g.particles.burst(from, { count: 10, color: k % 2 ? 0xff7a2a : 0xffc84a, speed: 16, spread: 0.25, dir, life: 0.6, size: 0.5, sizeEnd: 2.5, drag: 1.5, intensity: 3 });
-      if (k % 3 === 0) this.hurtCone(11.5, 0.7, this.dmg * 0.35, 4);
+      if (k % 3 === 0) this.hurtCone(13.5, 0.7, this.dmg * 0.35, 4);
       g.lights.flash(from.addScaledVector(dir, 4), 0xff6a1a, 8, 10, 0.1);
       yield 0.06;
     }
@@ -515,15 +517,15 @@ export const BOOK1_PATTERNS = {
     const g = this.game, t = this.target(); if (!t) return;
     this.moving = false; this.faceTarget(t);
     const tele = 0.7 - this.phase * 0.1;
-    g.markers.spawn({ pos: this.pos, radius: 6.5, dur: tele, shape: 'cone', arc: 0.25, facing: this.facing, color: 0xff2a1a, follow: this });
+    g.markers.spawn({ pos: this.pos, radius: 8.5, dur: tele, shape: 'cone', arc: 0.25, facing: this.facing, color: 0xff2a1a, follow: this });
     this.headAct = [0, 0.5, 0];
     this.anim = { type: 'attack', t: 0.15, style: 'bite', windup: 0.3, strike: 0.5 };
     yield tele;
     this.headAct = [0, 1, 0];
     this.anim = { type: 'attack', t: 0.5, style: 'bite', windup: 0.3, strike: 0.5 };
     this.knock.copy(this.fwd()).multiplyScalar(8);
-    g.fx.slashArc(this.pos, this.facing, 0xfff0d0, 6.5, 0.25, 0.2); g.audio?.impact(1.8); g.shake(0.35);
-    this.hurtCone(6.8, 0.8, this.dmg * 1.2, 11);
+    g.fx.slashArc(this.pos, this.facing, 0xfff0d0, 8.5, 0.25, 0.2); g.audio?.impact(1.8); g.shake(0.35);
+    this.hurtCone(8.8, 0.8, this.dmg * 1.2, 11);
     yield 0.45;
     this.headAct = [0, 0, 0]; this.anim = null; this.moving = true;
     yield 0.3;
@@ -532,12 +534,12 @@ export const BOOK1_PATTERNS = {
     const g = this.game, t = this.target(); if (!t) return;
     this.moving = false;
     const dir = this.faceTarget(t);
-    g.markers.spawn({ pos: this.pos.clone().setY(this.ground(this.pos)), shape: 'rect', width: 3.6, length: 14, facing: this.facing, dur: 0.85, color: 0xff2a1a });
+    g.markers.spawn({ pos: this.pos.clone().setY(this.ground(this.pos)), shape: 'rect', width: 5, length: 16, facing: this.facing, dur: 0.85, color: 0xff2a1a });
     this.headAct = [0, 0, 0.6];
     yield 0.85;
     this.headAct = [0, 0, 1];
     g.audio?.whoosh(1.6);
-    yield* this.dashLine(dir, 20, 12, this.dmg * 1.2, { dust: 0x3a3440, hitR: 2.8 });
+    yield* this.dashLine(dir, 20, 12, this.dmg * 1.2, { dust: 0x3a3440, hitR: 3.8 });
     this.headAct = [0, 0, 0]; this.moving = true;
     yield 0.4;
   },
@@ -546,7 +548,7 @@ export const BOOK1_PATTERNS = {
     yield* this.head_bite();
     if (this.phase >= 1) yield* this.head_lunge();
   },
-  *cerberus_stomp() { yield* this.stomp(); },
+  *cerberus_stomp() { yield* this.stomp(7); },
   // His heads droop: a window to strike for double damage.
   *sleepy() {
     const g = this.game;

@@ -103,7 +103,7 @@ const BOSSES = {
     damageMul: (b, src) => H.procrustesHit(b, src), onDie: (b) => H.procrustesDie(b),
   },
   cerberus: {
-    name: txt('bosses.cerberus.name'), title: txt('bosses.cerberus.title'), hp: 3200, speed: 2.8, dmg: 22, color: 0xff8a1a, radius: 2.0, height: 4.4,
+    name: txt('bosses.cerberus.name'), title: txt('bosses.cerberus.title'), hp: 3200, speed: 2.8, dmg: 22, color: 0xff8a1a, radius: 3.2, height: 7,   // (radius, height: pass 4, his model made about 1.6 times bigger)
     build: BOSS_MODELS.cerberus,
     phases: [['triple_attack', 'head_bite', 'sleepy', 'cerberus_stomp'], ['triple_attack', 'head_fire', 'head_lunge', 'sleepy', 'cerberus_stomp'], ['triple_attack', 'head_fire', 'head_lunge', 'triple_attack', 'sleepy', 'cerberus_stomp']],
     tick: (b, dt) => H.cerberusTick(b, dt), damageMul: (b) => (b.sleepyT > 0 ? 2 : 1),
@@ -442,10 +442,9 @@ export class Boss {
     this.anim = null; this.moving = true;
     yield 0.4;
   }
-  *stomp() {
+  *stomp(R = 5) {   // (R: a ring you can run out of in the wind-up; a bigger boss stamps a wider one)
     const g = this.game;
     this.moving = false;
-    const R = 5;   // (a ring you can run out of in the wind-up)
     g.markers.spawn({ pos: this.pos, radius: R, dur: 0.9, color: 0xff2a1a, follow: this });
     this.anim = { type: 'attack', t: 0.2, style: 'slam', windup: 0.3, strike: 0.5 };
     yield 0.9;

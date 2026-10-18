@@ -730,11 +730,14 @@ export const BOSS_MODELS = {
   // gold spiked collars on one enormous body, and a serpent for a tail.
   // (pass 4, the owner's review against vox-bosses-1: the body is far bigger
   // for its heads, broad and deep, crouched on thick legs planted wide;
-  // about as tall and as long as before, the heads a little smaller)
+  // and then the whole of him made about 1.6 times bigger, at the owner's
+  // asking, so he towers over every hellhound, the alpha and Shadowfang too:
+  // about 6.9 m tall, 8.8 m wide and 10.7 m long, tail included; bosses.js
+  // and bosses-book1.js size his stats and attacks to match)
   cerberus: () => {
     const m = skinMat('boss_cerberus', (S) => paintQuad(S, { base: 0x1e1c26, dark: 0x0e0d14, belly: 0x2a2834, back: 0x16141c, eye: 0xff4a0a, eyeLow: 0xffa02a, nose: 0x050505, speckles: 50, brow: 0x0a0a10, teeth: 0xfff4e0,
       custom: (s) => { fur(s, 0, 16, 40, 20, 90, 0x0a0a10, 0x3a3848); fur(s, 0, 0, 32, 16, 30, 0x0a0a10, 0x3a3848); s.box(48, 0, 4, 2, 4, 0xa82030, 0.1); s.rect(52, 4, 4, 1, 0xf4f0e0, 0); s.rect(36, 6, 4, 2, 0xc8283a, 0.1); s.box(52, 16, 2, 3, 1, 0x8a2a3a, 0.1); } }), { emit: 3 });
-    const rig = new QuadRig({ material: m, scale: 2.9, bodyL: 22, bodyW: 19, bodyH: 12, legH: 9, legW: 5.6, legY: 1, legSpread: 1, stance: 0.14, legsOnTorso: true, headS: 7.5, ears: true, tail: 6, tailLen: 22, tailW: 2.6, tailCurl: 0.3, gait: 0.6, neckUp: 3, headZ: 0 });
+    const rig = new QuadRig({ material: m, scale: 5, bodyL: 22, bodyW: 19, bodyH: 12, legH: 9, legW: 5.6, legY: 1, legSpread: 1, stance: 0.14, legsOnTorso: true, headS: 7.5, ears: true, tail: 6, tailLen: 22, tailW: 2.6, tailCurl: 0.3, gait: 0.6, neckUp: 3, headZ: 0 });
     const { W, H, L } = rig.dims;
     rig.vd = VD.cerberus; rig.merge = true;
     const furs = [0x0c0b12, 0x15131d, 0x1e1b28, 0x2a2636, 0x3a3448];
