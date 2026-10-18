@@ -322,7 +322,7 @@ export const KIND_LOOKS = {
   // blue-fire empousai
   empousa: { shell: 0x40c0ff, aura: { kind: 'embers', col: [0.4, 1.6, 2.6], at: 'head' }, scale: 1.3, remap: (c, hot) => { if (hueIn(c.h, 0.97, 0.12) && (hot || c.s > 0.75)) c.h = 0.56; } },
   harpy: { shell: 0xffd84a, aura: { kind: 'spark', col: [2.6, 2, 0.6] }, scale: 1.6 },
-  stymphalian: { shell: 0xff8a2a, aura: { kind: 'embers', col: [2.6, 1.2, 0.3] }, scale: 1.8 },
+  stymphalian: { shell: 0xff8a2a, aura: { kind: 'embers', col: [2.6, 1.2, 0.3] }, scale: 1.4 },   // (size audit, round 4: the bird itself grew ×1.36, so the champion stays near its old size, a wingspan about 3× Percy)
   scorpion: { shell: 0xffb020, aura: { kind: 'dust', col: [2.4, 1.6, 0.3] }, scale: 2 },
   cyclops: { shell: 0xff6a20, aura: { kind: 'embers', col: [2.6, 1, 0.2] }, scale: 1.08 },
 };

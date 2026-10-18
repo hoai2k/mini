@@ -8,7 +8,8 @@ import { vertexColor } from 'three/tsl';
 import { Rig, PX, HOLD_PITCH, markTip } from './character.js';
 import { QuadRig, paintQuad } from './quad.js';
 import { paintPerson } from './mortals.js';
-import { buildFury, bronzeSpider, hound, HELLHOUND } from './monsters.js';
+import { buildFury, bronzeSpider, hound, HELLHOUND, animateExtras } from './monsters.js';
+import { addFlames } from './flames.js';
 import { heroHair, cellMesh, footwear } from './herovox.js';
 import { HS, solid, skinMat, group, lavaCracks, fur, sway, rng, bruteLimbs, withBuild } from './parts.js';
 
@@ -873,14 +874,17 @@ export const BOSS_MODELS = {
     // the burning sword: gold guard, a blade of fire, flames licking off it
     const sword = group(rig.handR, 0, -1, 1, HOLD_PITCH, 0, 0);   // (along +y: see the hand-axis convention in character.js)
     const fl = rng(92), flames = [];
-    // (pass 3: a bigger blaze of loose fire cubes round the blade, as on the sheet)
-    for (let i = 0; i < 44; i++) { const t = fl(), y = 5 + t * 18, w = 0.8 + fl() * 1.8; flames.push({ p: [(fl() - 0.5) * 5.6 * (1 - t * 0.35), y + fl() * 2.4, (fl() - 0.5) * 1.6], s: [w, w * 1.3, w * 0.8], c: [0xff3a00, 0xff6a08, 0xffa020, 0xffd040][Math.floor(fl() * 4)], m: 'e' }); }
+    // (a few loose fire cubes hug the blade; the blaze itself is live fire, flames.js, below)
+    for (let i = 0; i < 14; i++) { const t = fl(), y = 5 + t * 17, w = 0.7 + fl() * 1.1; flames.push({ p: [(fl() - 0.5) * 3.4 * (1 - t * 0.35), y + fl() * 1.6, (fl() - 0.5) * 1.2], s: [w, w * 1.3, w * 0.8], c: [0xff3a00, 0xff6a08, 0xffa020, 0xffd040][Math.floor(fl() * 4)], m: 'e' }); }
     vox(rig, sword, [], {}, [
       { p: [0, 0, 0], s: [1.4, 5, 1.4], c: 0x2a1a10 }, { p: [0, -2.8, 0], s: [2, 1.4, 2], c: 0xd8a032, m: 'm' }, { p: [0, 3, 0], s: [6.4, 1.4, 1.8], c: 0xd8a032, m: 'm' }, { p: [0, 3.2, 0], s: [2, 2, 2], c: 0xe8b444, m: 'm' },
       { p: [0, 12.6, 0], s: [2.6, 18, 0.9], c: 0xff6a10, m: 'e' }, { p: [0, 12.4, 0], s: [1, 17, 1.1], c: 0xffc040, m: 'e' }, { p: [0, 22.4, 0], s: [1.6, 1.8, 0.9], c: 0xff8a10, m: 'e' },
       ...flames,
     ]);
     markTip(sword, 0, 23.3, 0, 'burning sword'); rig.extras.sword = sword;
+    // the blaze: live flames up the whole blade that trail behind a swing (and go out while the spear is drawn)
+    addFlames(rig, { cap: 64, palette: 'fire', rise: 26, turb: 30 }).source(sword, { at: [0, 5, 0], to: [0, 22.5, 0], r: 1.6, rate: 80, life: [0.3, 0.65], size: [1.1, 2.2], up: 7, spread: 3 });
+    rig.tick = (dt, e) => animateExtras(rig, dt, e);   // (the workbench ticks the rig itself; bosses.js keeps this one)
     // a spear for the thrust (a 'punch' with the right arm), in place of the sword while he needs it
     const spear = group(rig.handR, 0, -1, 1, HOLD_PITCH, 0, 0);
     vox(rig, spear, [], {}, [{ p: [0, 10, 0], s: [1.2, 40, 1.2], c: 0x3a2a1e }, { p: [0, 32, 0], s: [2.6, 6, 0.8], c: 0xd8dce4, m: 'm' }, { p: [0, 35.6, 0], s: [1.2, 2, 0.6], c: 0xd8dce4, m: 'm' }, { p: [0, 29, 0], s: [1.8, 1.2, 1.8], c: 0xd8a032, m: 'm' }]);

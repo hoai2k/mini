@@ -127,7 +127,7 @@ exaggerations"):
 | Laistrygonians | *The Sea of Monsters* ch. 1†. *The Ultimate Guide*: "eight-foot-tall cannibalistic giants with heavily tattooed arms" | ~1.4 |
 | Empousai | *The Battle of the Labyrinth*: Kelli, a cheerleader; women with one bronze and one donkey leg | ~1.0 |
 | Harpies | *The Sea of Monsters*: the camp's cleaning harpies, "crossbred with the dodo birds". *The Son of Neptune*: Ella, small and skinny. No height given | ~0.8–1.0 |
-| Stymphalian birds | *The Sea of Monsters* (chariot race): "monstrous pigeon-like birds"; no size found | small |
+| Stymphalian birds | *The Sea of Monsters* (chariot race): "monstrous pigeon-like birds"; no size found in the books. Pausanias 8.22.4–5: "man-eating birds", "of the size of a crane" (round 4) | ~0.7 standing, wingspan ~1.5–2 |
 | Karpoi | *The Son of Neptune*: "the size of toddlers, with rolls of baby fat", corn-husk wings. *The Hidden Oracle*: Peaches, a "Demon Diaper Baby" | ~0.5 |
 | Myrmekes | *The Demigod Files* ("The Bronze Dragon"), *The Hidden Oracle*: "the size of a full grown German Shepherd" | ~0.35 tall, ~0.6 long |
 | Telekhines | *The Battle of the Labyrinth* (Mount St. Helens): a Doberman, a human child and a sea lion blended; adults "at least seven feet tall" (Wiki) | ~1.2+ adults |
@@ -402,13 +402,13 @@ outside 0.82–1.19× except Tyson and Chiron, a centaur.
 | mortal | Mortal | 2.21 → 2.23 (1.01 → 1.02×) | 1.2 | 1.90 / 0.38 | 1.0 | a person | OK | — |
 | spider | Bronze Spider | 0.86 (0.39×) | 1.6 | 0.80 / 0.38 | ~0.3–0.4 | TLT ch. 14 (Waterland): tiny bronze spiders; design: "the size of a dog" | OK (design) | — |
 | harpy | Wild Harpy | 1.48 → 1.77 (0.68 → 0.81×) | 3.9 | 2.00 / 0.40 | ~0.8–1.0 | SoM: the camp's cleaning harpies, "crossbred with the dodo birds"; SoN: Ella, small and skinny (Riordan Wiki); no height given | was a little small (0.68×) | FIXED ×1.2 |
-| stymphalian | Stymphalian Bird | 1.12 → 1.13 (0.51×) | 3.6 | 1.70 / 0.45 | small | SoM: "monstrous pigeon-like birds" (Riordan Wiki; no size quote found); design draws them big | OK (stylised) | — |
+| stymphalian | Stymphalian Bird | 1.12 → 1.53 (0.51 → 0.70×, wings up); body 0.68 → 0.93, about Percy's length; wingspan 3.6 → 4.9 (1.64 → 2.24×) | 4.9 | 1.70 → 2.00 / 0.45 → 0.60 | crane-sized, a body near a 12-year-old's waist with a wingspan wider than he is tall | Pausanias 8.22.4–5 (tr. W. H. S. Jones): "man-eating birds", "quite as savage against men as lions or leopards", "of the size of a crane", pierce bronze and iron armour; SoM: "monstrous pigeon-like birds", Annabeth: "They'll strip everyone to bones" (Riordan Wiki); *The Sun and the Star*: a flock carries Will Solace off (Riordan Wiki); no size given in the books | was small for a man-eater (owner, round 4) | FIXED ×1.36 (scale 1.1 → 1.5, round 4); its champion look 1.8 → 1.4 so the champion stays its old size; Bronzebeak and the harpy build separately and are unchanged |
 | automaton | Greek-Fire Automaton | 1.04 (0.47×) | 0.9 | 1.10 / 0.55 | — | game invention (Greek-fire automaton) | OK | — |
 | ghost | Restless Spirit | 1.68 → 2.01 (0.77 → 0.92×) | 1.1 | 2.00 / 0.45 | ~1.0 | Riordan Wiki: ghosts are "physically identical to when they were alive" | was a little small (0.77×) | FIXED ×1.2 |
-| fury | Fury | 2.86 (1.31×) | 3.7 | 2.10 / 0.45 | ~1.0 + wings | TLT ch. 1: Mrs Dodds, "little", grows leathery bat wings | OK | — |
+| fury | Fury | 2.86 → 4.40 (whip tip to hair); her body 1.50 → 2.30 (0.69 → 1.05×) standing, and hovering (float 0.8 → 1.0) her head at 2.30 → 3.30 (1.05 → 1.51×); wingspan 3.7 → 6.2 | 6.2 | 2.10 → 3.20 / 0.45 → 0.65 | ~1.5 hovering (owner, round 4) | TLT ch. 1: Mrs Dodds, "little" in disguise, grows leathery bat wings; her true form a monster; vox-enemies: a looming winged hag, well over Percy | was smaller than Percy (owner, round 4; the old 2.86 counted the whip hanging under her) | FIXED ×1.5 (scale 1.0 → 1.5, round 4); under the boss sisters (Megaera and Tisiphone 1.6, Alecto 1.75, 5.10); hovers over 4-high doors, would graze a 3 × 3 camp door's lintel |
 | dracaena | Dracaena | 2.24 → 2.25 (1.02 → 1.03×) | 2.8 | 2.60 / 0.80 | ~1.0 | SoM/BotL: humanoid women with twin serpent trunks for legs (no height given) | OK | — |
 | hellhound | Hellhound | 5.13 → 4.81 (2.34 → 2.19×) | 7.0 | 5.00 / 1.60 | ~1.0–1.3 at the shoulder | TLT ch. 8: "the size of a rhino"; Riordan Wiki: grizzly-bear or rhino size, up to garbage-truck size (Mrs O'Leary, BotL: "bigger than a tank") | big (2.1×), kept by the owner | keep (owner) |
-| empousa | Empousa | 2.15 (0.98×) | 1.4 | 2.30 / 0.50 | ~1.0 | BotL ch. 1: Kelli, a cheerleader | OK | — |
+| empousa | Empousa | 2.15 → 2.55 with flames; head to foot without the flame mane 1.81 → 2.16 (0.83 → 0.99×) | 1.6 | 2.30 → 2.50 / 0.50 | ~1.0 | BotL ch. 1: Kelli, a cheerleader (a teenage girl's height); one bronze leg and one donkey leg | was short and short-legged (owner, round 4) | FIXED round 4: legs 12 → 16 px, torso 12 → 10 px, scale 1.1 → 1.25 |
 | scorpion | Giant Scorpion | 1.01 (0.46×) | 3.6 | 1.30 / 0.80 | — (game's giant scorpion) | BotL: Daedalus's giant scorpions (no size given); TLT ch. 22†: the pit scorpion is hand-sized, so it is now named Giant Scorpion | OK | ROUND 3: renamed Giant Scorpion |
 | skeleton | Skeleton Warrior | 1.68 → 1.94 (0.77 → 0.88×) | 1.3 | 2.00 / 0.45 | ~0.9–1.0 | TC: spartoi in uniforms pass as soldiers and guards (Riordan Wiki); the spartoi request: "the size of a grown man" | was too small (0.77×) | FIXED ×1.15 (round 1) |
 | spartoi | Spartoi | 1.93 → 1.94 (0.88×) | 1.2 | 2.00 / 0.45 | ~0.9–1.0 | myth: men sown from dragon's teeth (Apollodorus 1.9.23, 3.4.1) | OK | — |
@@ -463,9 +463,9 @@ outside 0.82–1.19× except Tyson and Chiron, a centaur.
 | kind:spartoi | Spartoi (Road West champion) | 2.70 (1.23×) | 1.6 | 2.80 / 0.63 | — | game champion: kind × look.scale | OK | — |
 | kind:spider | Bronze Spider (Road West champion) | 1.48 → 1.47 (0.68 → 0.67×) | 2.7 | 1.36 / 0.57 | — | game champion: kind × look.scale | OK | — |
 | kind:dracaena | Dracaena (Road West champion) | 2.91 → 2.92 (1.33×) | 3.6 | 3.38 / 1.04 | — | game champion: kind × look.scale | OK | — |
-| kind:empousa | Empousa (Road West champion) | 2.78 (1.27×) | 1.8 | 2.99 / 0.65 | — | game champion: kind × look.scale | OK | — |
+| kind:empousa | Empousa (Road West champion) | 2.78 → 3.29 (1.27 → 1.50×); 3.07 without flames | 2.0 | 2.99 → 3.25 / 0.65 | — | game champion: kind × look.scale | OK | follows the empousa (round 4) |
 | kind:harpy | Wild Harpy (Road West champion) | 2.52 → 3.04 (1.15 → 1.39×) | 6.4 | 3.20 / 0.60 | — | game champion: kind × look.scale | OK | — |
-| kind:stymphalian | Stymphalian Bird (Road West champion) | 2.02 (0.92×) | 6.5 | 3.06 / 0.68 | — | game champion: kind × look.scale | OK | — |
+| kind:stymphalian | Stymphalian Bird (Road West champion) | 2.02 → 2.15 (0.92 → 0.98×) | 6.5 → 6.9 | 3.06 → 2.80 / 0.68 → 0.84 | — | game champion: kind × look.scale | OK | look.scale 1.8 → 1.4 as the bird grew (round 4) |
 | kind:scorpion | Giant Scorpion (Road West champion) | 2.02 → 1.98 (0.92 → 0.91×) | 7.3 | 2.60 / 1.20 | — | game champion: kind × look.scale | OK | — |
 | kind:cyclops | Cyclops (Road West champion) | 4.84 → 4.85 (2.21×) | 3.7 | 4.54 / 1.30 | — | game champion: kind × look.scale | OK | — |
 

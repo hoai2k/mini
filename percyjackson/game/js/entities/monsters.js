@@ -18,6 +18,7 @@ import { HS, solid, skinMat, prop, group, lavaCracks, fur, sway, rng, bruteLimbs
 import { heroHair, cellMesh, footwear } from './herovox.js';
 import { FODDER_MONSTERS, fodderModels, blob, carve, flushBlobs, paintShade } from './fodder.js';
 import { buildSerpent } from './serpent.js';
+import { addFlames, tickFlames } from './flames.js';
 
 export { skinMat, blob, carve, paintShade, rigDensity, voxDensity };
 
@@ -515,6 +516,7 @@ export function animateExtras(rig, dt, e) {
   const Y = rig.extras.sway;
   if (Y) for (const s of Y) s.g.rotation[s.ax] = s.base + Math.sin(t * s.f + s.ph) * s.amp;
   if (rig.extras.flameHair) { const k = 1 + Math.sin(t * 13) * 0.04 + Math.sin(t * 7.3) * 0.03; rig.extras.flameHair.scale.set(1, k, 1); }
+  if (rig.flames) tickFlames(rig, dt, e);   // live voxel flames (flames.js), after the pose and the whip
   if (rig.extras.key) rig.extras.key.rotation.y += dt * 4;
   if (rig.extras.tongue) rig.extras.tongue.scale.z = Math.sin(t * 7) > 0.55 ? 1 : 0.15;   // the serpent tastes the air
   const B = rig.extras.breath;   // the hellhound's smoking breath: puffs roll out of the jaws, swell and rise
@@ -569,8 +571,14 @@ const MODELS = {
   automaton: () => buildAutomaton(),
   harpy: () => eagle('harpy', { scale: 1.2 }),   // (size audit: ×1.2, nearer a bird-woman's height)
   // Stymphalian bird: a level bronze bird of prey in knife feathers (bronzeHunter)
-  stymphalian: () => eagle('stymphalian', { scale: 1.1, metal: true, form: 'hunter' }),
-  fury: () => buildFury('fury', { scale: 1.0 }),
+  // (size audit, round 4: Pausanias's man-eaters are "of the size of a crane";
+  // ×1.36, a wingspan over twice Percy's height and a body the size of a big dog)
+  stymphalian: () => eagle('stymphalian', { scale: 1.5, metal: true, form: 'hunter' }),
+  // (size audit, round 4: the owner found her smaller than Percy; ×1.5, so she
+  // hovers with her head at about 1.5× his height, as the concept sheet's looming
+  // hag, and stays under the boss sisters, 1.6 to 1.75; she flies a little
+  // higher, so her longer hem clears the floor at the bottom of her bob)
+  fury: () => buildFury('fury', { scale: 1.5, float: 1.0 }),
   dracaena: () => buildDracaena(),
   empousa: () => buildEmpousa(),
   scorpion: () => buildScorpion(),
@@ -1236,7 +1244,7 @@ export function bronzeSpider(id, { scale = 1, queen = false } = {}) {
 // curls, burning yellow eyes and a fanged grin, in a long ragged black dress
 // that flares into torn strips, gold straps, belt and bracelets, clawed grey
 // feet, huge tattered leather wings and a whip of fire.
-export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, wing = 0x5a3a26, dress = 0x1a1416, mouthGrin = true, seed = 61 } = {}) {
+export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, wing = 0x5a3a26, dress = 0x1a1416, mouthGrin = true, seed = 61, float = 0.8 } = {}) {
   const gold = 0xd89a28;
   const mat = skinMat(id, (S) => {
     paintPerson(S, { skin, eye: 0xffd84a, eyeWhite: 0xffd84a, scowl: true, brow: 0x5a5a56, wrinkles: 0x7a7266, fangs: 0xf4f0e0, grin: mouthGrin, frown: !mouthGrin, top: dress, sleeve: skin, hand: skin, shortSleeve: true, pants: dress, skirt: dress, skirtLen: 12, shoes: false, collar: dress,
@@ -1295,7 +1303,7 @@ export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, win
   addWhip(rig, { segs: 10, len: 3.6, look: mat });
   rig.tick = (dt, e) => animateExtras(rig, dt, e);   // (the bosses built on her get the whip's pose too, even outside a fight)
   rig.hunch = 0.35;
-  rig.float = 0.8;
+  rig.float = float;
   rig.hoverMin = 11 * PX * rig.baseScale + 0.22;   // (the ragged hem hangs 11 px under the soles: a boss's swoop flies no lower, bob included)
   return rig;
 }
@@ -1427,7 +1435,11 @@ function buildEmpousa() {
       } });
     S.shadeLimbs(); S.saturate(1.2);
   }, { emit: 0.7, res: 2 });
-  const rig = new Rig({ material: mat, scale: 1.1, bodyW: 7, armW: 3 });
+  // (size audit, round 4: the owner wanted her longer-legged and as tall as
+  // Percy; the sheet's cheerleader is half legs: legs 16 px, a shorter torso,
+  // and Percy's height from her soles to the crown of her hair, flames aside)
+  const LEG = 16, f = LEG / 12;
+  const rig = new Rig({ material: mat, scale: 1.25, bodyW: 7, bodyH: 10, armW: 3, legH: LEG });
   const K = kit(rig, mat, { seed: 29, emit: 0.7 });
   // flaming hair: red locks under a mane of glowing flame cubes that licks upward
   const flame = group(rig.head, 0, 0, 0);
@@ -1454,18 +1466,20 @@ function buildEmpousa() {
   // the bronze leg: thigh plates, a riveted knee, a jointed shin and a pointed foot
   const bronze = [0xd08a20, 0xb06a14, 0xe8a830];
   dropMeshes(rig, rig.legR);
-  K.box(rig.legR, 0, -2.5, 0, 4.2, 5, 4.2, skin);
-  K.box(rig.legR, 0, -5.3, 0, 4.4, 1.2, 4.4, bronze[1]);
-  K.box(rig.legR, 0, -6.6, 0.2, 3.2, 2.2, 3.4, bronze[2]); for (const sx of [-1, 1]) K.box(rig.legR, sx * 1.7, -6.6, 0.2, 0.4, 1.2, 1.2, 0x5a3a10);
-  K.box(rig.legR, 0, -9.2, 0, 2.8, 4.2, 2.8, bronze[0]); K.box(rig.legR, 0, -9.2, 1.45, 1.2, 3.6, 0.3, bronze[1]);
-  K.box(rig.legR, 0, -11.4, 0.9, 3.4, 1.2, 4.6, bronze[1]); K.box(rig.legR, 0, -11.7, 3.4, 1.6, 0.6, 1.2, bronze[2]);
+  // (the leg's parts are laid out on a 12 px leg and stretched by f; the
+  // knee, bands and feet keep their size)
+  K.box(rig.legR, 0, -2.5 * f, 0, 4.2, 5 * f, 4.2, skin);
+  K.box(rig.legR, 0, -5.3 * f, 0, 4.4, 1.2, 4.4, bronze[1]);
+  K.box(rig.legR, 0, -6.6 * f, 0.2, 3.2, 2.2, 3.4, bronze[2]); for (const sx of [-1, 1]) K.box(rig.legR, sx * 1.7, -6.6 * f, 0.2, 0.4, 1.2, 1.2, 0x5a3a10);
+  K.box(rig.legR, 0, -9.2 * f, 0, 2.8, 4.2 * f, 2.8, bronze[0]); K.box(rig.legR, 0, -9.2 * f, 1.45, 1.2, 3.6 * f, 0.3, bronze[1]);
+  K.box(rig.legR, 0, -LEG + 0.6, 0.9, 3.4, 1.2, 4.6, bronze[1]); K.box(rig.legR, 0, -LEG + 0.3, 3.4, 1.6, 0.6, 1.2, bronze[2]);
   // the donkey leg: grey-brown shaggy fur from the knee and a dark split hoof
   dropMeshes(rig, rig.legL);
-  K.box(rig.legL, 0, -2.5, 0, 4.2, 5, 4.2, skin);
+  K.box(rig.legL, 0, -2.5 * f, 0, 4.2, 5 * f, 4.2, skin);
   const donk = [0x8a7a6a, 0x6a5a4c, 0x9a8a78, 0x5a4a3e];
-  K.box(rig.legL, 0, -7.5, 0, 3.6, 6, 3.6, donk[0]);
-  K.clumps(rig.legL, [0, -7, 0], [3.6, 6, 3.6], { n: 26, size: [1, 1.6], cols: donk, faces: 'lrfk', stretch: [1, 1.4, 1] });
-  K.box(rig.legL, 0, -11.1, 0.4, 3.4, 1.8, 3.8, 0x1e1612); K.box(rig.legL, 0, -11.1, 2.35, 0.5, 1.6, 0.2, 0x3a2a20);
+  K.box(rig.legL, 0, -7.5 * f, 0, 3.6, 6 * f, 3.6, donk[0]);
+  K.clumps(rig.legL, [0, -7 * f, 0], [3.6, 6 * f, 3.6], { n: 26, size: [1, 1.6], cols: donk, faces: 'lrfk', stretch: [1, 1.4, 1] });
+  K.box(rig.legL, 0, -LEG + 0.9, 0.4, 3.4, 1.8, 3.8, 0x1e1612); K.box(rig.legL, 0, -LEG + 0.9, 2.35, 0.5, 1.6, 0.2, 0x3a2a20);
   // pom-poms: a ball of orange and black tassel cubes in each hand
   for (const hand of [rig.handR, rig.handL]) {
     const pp = markHeld(group(hand, 0, -2.6, 0));
@@ -2007,12 +2021,18 @@ function buildAutomaton() {
   K.box(pot, 0, 7.3, 0, 3, 1.2, 3, ter); K.box(pot, 0, 8.1, 0, 3.8, 0.6, 3.8, blk);
   for (const sx of [-1, 1]) { K.box(pot, sx * 3.6, 6.2, 0, 0.8, 3.4, 0.8, ter); K.box(pot, sx * 2.8, 7.6, 0, 1.8, 0.8, 0.8, ter); }
   K.box(pot, 0, 0, 0, 7, 0.6, 7, B[1]); for (const sx of [-1, 1]) K.box(pot, sx * 3.3, 3, 0, 0.4, 6, 0.8, B[2]);
+  // the Greek fire itself: a small glowing core in the neck, and live green
+  // flames (flames.js) licking up out of it; in the wind-up before it bursts
+  // the fire leaks from the seams of its plates too
   const fire = group(pot, 0, 8.2, 0);
   const GF = [0x3aff1a, 0x8aff3a, 0xd8ff8a];
-  for (let i = 0; i < 24; i++) { const t = K.r(), a = K.r() * Math.PI * 2, r = (1 - t) * 1.6; const z = 1.4 - t * 0.8; K.box(fire, Math.cos(a) * r, t * 5.5, Math.sin(a) * r, z, z * 1.4, z, GF[Math.min(2, Math.floor(t * 2.4 + K.r() * 0.6))]); }
+  for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2, r = i % 2 ? 0.7 : 0.3; K.box(fire, Math.cos(a) * r, 0.3 + (i % 3) * 0.35, Math.sin(a) * r, 1.3 - (i % 3) * 0.25, 1.2, 1.3 - (i % 3) * 0.25, GF[i % 3]); }
   fire.scale.set(1.02, 0.6, 1.02);
   rig.extras.pot = pot; rig.extras.fire = fire;
   K.done();
+  const F = addFlames(rig, { cap: 44, palette: 'greek', rise: 30, turb: 34 });
+  F.source(pot, { at: [0, 8.6, 0], r: 1.3, rate: 50, life: [0.4, 0.8], size: [1.1, 2], up: 9, spread: 2.5 });
+  for (const sx of [-1, 1]) F.source(T, { at: [sx * 4.7, 2.9, -4], to: [sx * 4.7, 2.9, 4], r: 0.3, rate: 14, life: [0.25, 0.45], size: [0.5, 0.9], up: 6, spread: 1.5, when: (e) => (e?.state === 'windup' ? 1 : 0) });
   return rig;
 }
 
@@ -2208,13 +2228,13 @@ export const MONSTERS = {
   mortal: { name: txt('monsters.mortal.name'), tier: 'minor', role: 'none', hp: 100, speed: 1.4, dmg: 0, radius: 0.38, height: 1.9, ai: 'none', range: 0, windup: 1, cd: 1, xp: 0, coins: [0, 0], model: 'pup', mortal: true },
   spider: { name: txt('monsters.spider.name'), tier: 'minor', role: 'rusher', hp: 20, speed: 5.8, dmg: 5, radius: 0.38, height: 0.8, ai: 'melee', range: 1.3, windup: 0.35, cd: 1, xp: 2, coins: [0, 2], model: 'spider', pitch: 2.2, voice: 'click', aura: 'spark' },
   harpy: { name: txt('monsters.harpy.name'), tier: 'minor', role: 'ranged', hp: 40, speed: 3.8, dmg: 9, radius: 0.4, height: 2, ai: 'ranged', range: 10, keep: 6.5, windup: 0.85, cd: 3.4, xp: 5, coins: [2, 4], model: 'harpy', pitch: 1.3, projectile: 'feather', shots: 3, voice: 'screech' },
-  stymphalian: { name: txt('monsters.stymphalian.name'), tier: 'minor', role: 'ranged', hp: 34, speed: 4.4, dmg: 8, radius: 0.45, height: 1.7, ai: 'ranged', range: 11, keep: 7, windup: 0.8, cd: 3.4, xp: 4, coins: [1, 4], model: 'stymphalian', pitch: 1.7, projectile: 'feather', shots: 3, voice: 'screech' },
+  stymphalian: { name: txt('monsters.stymphalian.name'), tier: 'minor', role: 'ranged', hp: 34, speed: 4.4, dmg: 8, radius: 0.6, height: 2.0, ai: 'ranged', range: 11, keep: 7, windup: 0.8, cd: 3.4, xp: 4, coins: [1, 4], model: 'stymphalian', pitch: 1.7, projectile: 'feather', shots: 3, voice: 'screech' },
   automaton: { name: txt('monsters.automaton.name'), tier: 'minor', role: 'exploder', hp: 30, speed: 3.9, dmg: 16, radius: 0.55, height: 1.1, ai: 'blob', range: 1.8, windup: 0.9, cd: 0, xp: 4, coins: [1, 4], model: 'automaton', pitch: 1.8, aura: 'greekfire', blast: 0x6aff3a },
   ghost: { name: txt('monsters.ghost.name'), tier: 'minor', role: 'caster', hp: 38, speed: 3.2, dmg: 8, radius: 0.45, height: 2, ai: 'ranged', range: 10, keep: 6.5, windup: 0.9, cd: 3.6, xp: 4, coins: [1, 3], model: 'ghost', pitch: 0.9, projectile: 'wisp', voice: 'moan', aura: 'wisp', knockResist: 0.2 },
-  fury: { name: txt('monsters.fury.name'), tier: 'elite', role: 'trickster', hp: 95, speed: 3.8, dmg: 13, radius: 0.45, height: 2.1, ai: 'teleport', range: 2.2, windup: 0.45, cd: 1.6, xp: 10, coins: [4, 7], model: 'fury', pitch: 1.1, puff: 0x3a2a24, slashColor: 0xff8a2a, voice: 'screech' },
+  fury: { name: txt('monsters.fury.name'), tier: 'elite', role: 'trickster', hp: 95, speed: 3.8, dmg: 13, radius: 0.65, height: 3.2, ai: 'teleport', range: 2.2, windup: 0.45, cd: 1.6, xp: 10, coins: [4, 7], model: 'fury', pitch: 1.1, puff: 0x3a2a24, slashColor: 0xff8a2a, voice: 'screech' },
   dracaena: { name: txt('monsters.dracaena.name'), tier: 'elite', role: 'tank', hp: 190, speed: 2.4, dmg: 18, radius: 0.8, height: 2.6, ai: 'tank', range: 2.6, windup: 0.85, cd: 2.2, xp: 12, coins: [5, 9], model: 'dracaena', armor: 0.25, shield: true, knockResist: 0.75, pitch: 0.8, voice: 'hiss' },
   hellhound: { name: txt('monsters.hellhound.name'), tier: 'elite', role: 'bruiser', hp: 220, speed: 3.6, dmg: 20, radius: 1.6, height: 5, ai: 'melee', range: 3.7, windup: 0.7, cd: 1.8, xp: 14, coins: [6, 10], model: 'hellhound', knockResist: 0.7, superArmor: true, pitch: 0.5, aura: 'smoke', voice: 'bark' },
-  empousa: { name: txt('monsters.empousa.name'), tier: 'elite', role: 'summoner', hp: 160, speed: 2.6, dmg: 10, radius: 0.5, height: 2.3, ai: 'summon', range: 9, keep: 8, windup: 1.0, cd: 5, xp: 16, coins: [8, 14], model: 'empousa', knockResist: 0.4, pitch: 1.2, summons: 'pup', aura: 'fire', projectile: 'fire', voice: 'screech' },
+  empousa: { name: txt('monsters.empousa.name'), tier: 'elite', role: 'summoner', hp: 160, speed: 2.6, dmg: 10, radius: 0.5, height: 2.5, ai: 'summon', range: 9, keep: 8, windup: 1.0, cd: 5, xp: 16, coins: [8, 14], model: 'empousa', knockResist: 0.4, pitch: 1.2, summons: 'pup', aura: 'fire', projectile: 'fire', voice: 'screech' },
   scorpion: { name: txt('monsters.scorpion.name'), tier: 'elite', role: 'bruiser', hp: 140, speed: 3.4, dmg: 12, radius: 0.8, height: 1.3, ai: 'melee', range: 2.2, windup: 0.55, cd: 1.5, xp: 10, coins: [4, 8], model: 'scorpion', armor: 0.2, knockResist: 0.5, pitch: 1.4, voice: 'click', poison: { dps: 4, dur: 4 }, slashColor: 0x9aff3a,
     // alternates a one-two pinch of the claws with a slower, harder sting over its back (only the sting poisons; enemy.js startAttack)
     moves: [{ kind: 'pinch', trigger: 1.9, range: 2, windup: 0.5, recover: 0.55, dmg: 0.6, twin: 0.18 }, { kind: 'sting', trigger: 2.5, at: 1.5, radius: 0.9, windup: 0.85, recover: 0.65, dmg: 1.4 }] },
