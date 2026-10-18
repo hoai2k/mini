@@ -98,6 +98,7 @@ function behave(kind) {
   const shot = SHOTS[kind];
   const charger = kind === 'colchis_calf' || kind === 'boarlet', swoop = kind === 'keres';
   return (rig, dt, e) => {
+    if (!e?.game) return;   // (the model workbench ticks rigs with no game)
     rig.enemy = e;
     const st = e.state, prev = rig.st; rig.st = st;
     const g = e.game;
@@ -231,10 +232,13 @@ function buildKarpos(K0, slinger = false) {
     // a crown of wheat ears and husk leaves at the sides of the head
     K.box(Hd, 0, H8 + 0.4, 0, H8 - 0.6, 0.8, H8 - 0.6, goldL);
     for (const sx of [-1, 1]) { K.box(Hd, sx * (H8 / 2 + 0.4), H8 * 0.6, -0.5, 0.6, 5, 4, huskG, 0, 0, sx * 0.5); K.box(Hd, sx * (H8 / 2 + 0.2), H8 * 0.35, 1.2, 0.5, 3.5, 2.6, husk, 0, 0, sx * 0.7); }
+    // (a fan of tall ears splayed out from the crown: the kind's silhouette)
     for (let i = 0; i < 7; i++) {
-      const x = -3.6 + i * 1.2, tilt = (i - 3) * 0.2, L = 4 + K.r() * 2.5;
-      K.box(Hd, x, H8 + 0.8 + L / 2, -0.4 + (i % 2), 0.5, L, 0.5, huskD, 0, 0, -tilt);
-      K.box(Hd, x - Math.sin(tilt) * L, H8 + 1.6 + L + 1.2, -0.4 + (i % 2), 1.4, 3.2, 1.4, K.tone([goldL, gold], 0.1), 0, 0, -tilt);
+      const tilt = (i - 3) * 0.28, L = 6 + (3 - Math.abs(i - 3)) * 1.2 + K.r(), z = -0.6 + (i % 2) * 1.2;
+      const bx = (i - 3) * 0.9, sx = Math.sin(tilt), cy = Math.cos(tilt);
+      K.box(Hd, bx + sx * L / 2, H8 + 0.6 + cy * L / 2, z, 0.5, L, 0.5, huskD, 0, 0, -tilt);
+      K.box(Hd, bx + sx * (L + 1.6), H8 + 0.6 + cy * (L + 1.6), z, 1.6, 3.6, 1.6, K.tone([goldL, gold], 0.1), 0, 0, -tilt);
+      K.box(Hd, bx + sx * (L + 3.6), H8 + 0.6 + cy * (L + 3.6), z, 0.3, 1.6, 0.3, goldL, 0, 0, -tilt);
     }
   }
   // straw arms with three grabby fingers
@@ -284,8 +288,12 @@ function buildCalf(K0) {
   K.box(Hd, 0, 0, hz, hs + 0.6, hs, hs, brz); K.box(Hd, 0, hs * 0.42, hz + 0.4, hs + 1, 1.2, hs - 1, brzD);
   K.box(Hd, 0, -1.2, hz + hs / 2 + 1, hs - 0.6, 3.4, 2.4, brzL);
   for (const sx of [-1, 1]) {
-    K.box(Hd, sx * 1.2, -1, hz + hs / 2 + 2.25, 1, 1, 0.3, hot); K.box(Hd, sx * 2.2, 1.2, hz + hs / 2 + 0.05, 1.4, 1, 0.3, glow);
-    K.box(Hd, sx * (hs / 2 + 1.2), hs * 0.4, hz, 2.6, 1.4, 1.4, gold, 0, 0, sx * 0.25); K.box(Hd, sx * (hs / 2 + 2.6), hs * 0.4 + 1.2, hz + 0.6, 1, 2.2, 1, gold, 0.4, 0, sx * -0.3);
+    K.box(Hd, sx * 1.1, -1.2, hz + hs / 2 + 2.25, 0.9, 0.7, 0.3, iron); K.box(Hd, sx * 1.1, -1.2, hz + hs / 2 + 2.35, 0.5, 0.4, 0.3, hot);
+    K.box(Hd, sx * 1.9, 1.3, hz + hs / 2 + 0.05, 1.4, 0.8, 0.3, glow);
+    // horns: out from the brow, then curving forward to gold points
+    K.box(Hd, sx * (hs / 2 + 1.2), hs * 0.42, hz, 2.8, 1.6, 1.6, brzL, 0, 0, sx * 0.2);
+    K.box(Hd, sx * (hs / 2 + 2.6), hs * 0.42 + 1.4, hz + 0.8, 1.3, 2.6, 1.3, gold, 0.5, 0, sx * -0.25);
+    K.box(Hd, sx * (hs / 2 + 2.8), hs * 0.42 + 2.6, hz + 2.2, 0.8, 1.8, 0.8, 0xfff0a0, 1.1, 0, 0);
     K.box(Hd, sx * (hs / 2 + 0.6), hs * 0.1, hz - 1, 0.6, 1.8, 1.4, brzD);
   }
   rig.extras.nose = group(Hd, 0, -1, hz + hs / 2 + 2.6);
@@ -429,9 +437,10 @@ function buildCrab(K0, king = false) {
   for (const leg of rig.legs) {
     dropAll(rig, leg);
     const u = leg.userData, zs = u.row === 0 ? 1 : -1;
-    for (const dx of [-1.4, 1.4]) {
-      K.box(leg, dx, 0.9, zs * 2, 1.2, 1.2, 4.4, dx > 0 ? red : redD, zs * -0.45);
-      K.box(leg, dx, -1.4, zs * 4.4, 1, 4.6, 1, red, zs * 0.25); K.box(leg, dx, -3.7, zs * 5, 0.6, 1, 0.6, tip);
+    for (const [dx, reach] of [[-1.8, 1.15], [1.6, 0.85]]) {
+      const r = reach;
+      K.box(leg, dx, 1, zs * 2.2 * r, 1.2, 1.2, 4.6 * r, dx > 0 ? red : redD, zs * -0.5, dx * 0.1 * zs, 0);
+      K.box(leg, dx * 1.2, -1.2, zs * 4.8 * r, 1, 4.4, 1, red, zs * 0.45); K.box(leg, dx * 1.25, -3.4, zs * 5.9 * r, 0.6, 1.2, 0.6, tip, zs * 0.45);
     }
   }
   K.done();

@@ -60,11 +60,19 @@ export function build(ctx) {
   for (let z = tz0; z <= tz1; z++) W.set(tx0, top + 1, z, B.rust_metal);
   k.stairs(tx1, tz0 - 9, FY, 9, [0, 1], 2, B.rust_metal);
   k.pond(618, 79, 628, 84, FY, B.water, 2, B.pool_tile);
-  for (const sz of [tz0 + 1, tz1 - 1]) for (let i = 0; i <= 11; i++) {
+  // two tube slides, one blue and one red, side by side down to the splash pool (open on top, hooped every third block)
+  for (const [sz, tube] of [[tz0 + 1, B.teal_panel], [tz1 - 1, B.red_lacquer]]) for (let i = 0; i <= 11; i++) {
     const x = tx1 + 1 + i, y = top - Math.round(i * 7 / 11);
     W.set(x, y, sz, B.slide_glass);
-    if (i % 4 === 2) for (let yy = FY; yy < y; yy++) W.set(x, yy, sz, B.rust_metal);
+    for (const dz of [-1, 1]) W.set(x, y + 1, sz + dz, tube);
+    if (i % 3 === 1) for (let dz = -1; dz <= 1; dz++) W.set(x, y + 2, sz + dz, tube);
+    W.set(x, y - 1, sz, tube);
+    if (i % 4 === 2) for (let yy = FY; yy < y - 1; yy++) W.set(x, yy, sz, B.rust_metal);
   }
+  // the lookout roof over the platform: four posts, a red pyramid roof, a flag
+  for (const [x, z] of [[tx0, tz0], [tx1, tz0 + 2], [tx0, tz1], [tx1, tz1]]) for (let y = top + 1; y <= top + 3; y++) W.set(x, y, z, B.dark_planks);   // (none where the stairs come up)
+  for (let i = 0; i < 3; i++) R.fill(tx0 - 1 + i, top + 4 + i, tz0 - 1 + i, tx1 + 1 - i, top + 4 + i, tz1 + 1 - i, i === 2 ? B.white_trim : B.roof_terracotta);
+  deco.prop('flagpole', tx0 + 3.5, top + 7, tz0 + 2.5, { h: 3, color: 0x2aa8e0 });
   deco.prop('text_sign', tx0 + 3.5, top + 1.2, tz1 + 0.6, { text: S('dnSlide'), w: 4.2, h: 0.8, post: 0, bg: '#f2d040', fg: '#c4302a', border: '#c4302a' });
   add.chest({ id: 'rt_denver_slide', x: tx0 + 2, z: tz0 + 2, y: top + 1, rarity: 'rare' });
   // the Tunnel of Love: pink walls, a dark inside, a channel round an island, swan boats

@@ -152,6 +152,17 @@ const LOTUS = [
   '.GGGGGGGGGGG.',
 ];
 
+const LOTUS_BIG = [
+  '.......P.......',
+  '......PPP......',
+  '..P...PYP...P..',
+  '.PPP.PPYPP.PPP.',
+  '..PPPPPYPPPPP..',
+  'P..PPPPPPPPP..P',
+  '.PPPPPPPPPPPPP.',
+  '..GGGGGGGGGGG..',
+];
+
 export function build(ctx) {
   const { k, deco, add, ROAD_Z, FY, W, rand } = ctx;
   const R = roadside(ctx), { S, P, bar, fill, board, COL } = R;
@@ -192,6 +203,13 @@ export function build(ctx) {
   for (let x = 365; x <= 379; x++) W.set(x, FY + 5, 37, B.neon_bulbs);
   W.addRoof([365, FY + 5, 35], [379, FY + 5, 37], [[365, FY, 35], [379, FY + 4, 37]]);
   W.addLight(372.5, FY + 4, 36.5, 0xffd890, 3, 10);
+  // and on top of it the great neon lotus, in the round, over the doors
+  for (let r = 0; r < LOTUS_BIG.length; r++) for (let c = 0; c < LOTUS_BIG[r].length; c++) {
+    const ch = LOTUS_BIG[r][c]; if (ch === '.') continue;
+    const id = ch === 'P' ? B.neon_pink : ch === 'G' ? B.gold_trim : B.neon_bulbs, y = FY + 6 + LOTUS_BIG.length - 1 - r;
+    for (const z of Math.abs(c - 7) <= 3 || ch === 'G' ? [35, 36, 37] : [36]) W.set(365 + c, y, z, id);
+  }
+  W.addLight(372.5, FY + 10, 39.5, 0xff6ad0, 4, 14);
   board(358, 37, S('lotus'), { w: 6, h: 2.2, post: 4.6, rot: 0.25, bg: '#0a3a2a', fg: '#4affa0', border: '#d6aa4a', glow: true }); bar(356, 37, 5); bar(361, 36, 5);
   board(386, 37, S('lotusTag'), { w: 4.6, h: 1.2, post: 3.2, rot: 0.25, ...COL.neon }); bar(384, 37, 4); bar(388, 36, 4);
   // the casino floor: slots, card tables, the arcade, a lotus pool, a buffet; no clocks, no windows

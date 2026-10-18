@@ -229,8 +229,8 @@ export const BIOMES = {
     id: 'ow_othrys', name: txt('regions.othrys.name'), sub: txt('regions.othrys.sub'),
     // rolling storm clouds: a bruised violet sky, slate haze, cold light with a last warm edge to it
     skyTop: 0x1a1838, skyHorizon: 0x7a6a8a, fog: 0x6a6880, fogDensity: 0.0105,
-    hemiSky: 0xc4c0cc, hemiGround: 0x2e2826, hemiI: 0.95, sun: 0xffe2c8, sunI: 2.0,
-    grade: { tint: [1.0, 0.98, 1.02], lift: [0.01, 0.006, 0.02], sat: 1.0, contrast: 1.18, vignette: 0.4 },
+    hemiSky: 0xc8c4c0, hemiGround: 0x2e2826, hemiI: 0.95, sun: 0xffe0c0, sunI: 2.0,
+    grade: { tint: [1.02, 0.99, 0.98], lift: [0.01, 0.006, 0.016], sat: 1.0, contrast: 1.18, vignette: 0.4 },
     floor: B.rock, floor2: B.basalt, path: B.cobble, wall: B.black_marble, wall2: B.basalt, trim: B.bronze, pillar: B.black_marble, roof: B.basalt, ground: B.rock, accent: B.lantern, pit: B.basalt,
     ambience: 'wind', music: 'storm', particles: 'dust', wind: 2.0, storm: true,
   },

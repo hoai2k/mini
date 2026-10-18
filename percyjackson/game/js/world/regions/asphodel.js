@@ -43,7 +43,7 @@ export const terrain = {
     if (h >= 5 && n.value(x * 0.25, z * 0.25) > 0.6) return B.rock;
     const v = n.value(x * 0.15, z * 0.15);
     if (v > 0.78) return B.underworld_rock;
-    return n.value(x * 0.11 + 31, z * 0.11) < 0.45 ? B.asphalt : B.asphodel;   // dark ash earth in drifts between the pale grey fields
+    return n.value(x * 0.11 + 31, z * 0.11) < 0.52 ? B.asphalt : B.asphodel;   // dark ash earth in drifts between the pale grey fields
   },
 };
 
