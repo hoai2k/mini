@@ -25,7 +25,7 @@ test('rolled items have rows of choices and sensible power', () => {
   for (let n = 0; n < 400; n++) {
     const it = rollItem(powerFor(1 + (n % 4), 1 + (n % 20), rng), { rng });
     const b = itemInfo(it);
-    assert.ok(it.power >= 1 && it.power < 60);
+    assert.ok(it.power >= 1 && it.power < 80, 'area 1-4 and level 1-20: at most about gear level 5');
     const seen = new Set();
     for (const e of it.ench) {
       assert.ok(e.options.length >= 1);

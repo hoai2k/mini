@@ -255,7 +255,7 @@ export class Boss {
       const a = i / kinds.length * Math.PI * 2 + Math.random() * 0.6;
       const s = center.clone().add(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r)); s.y = this.ground(s);
       if (g.world.solidAt?.(s.x, s.y + 0.5, s.z)) return;
-      const e = g.spawnEnemy(kind, s, { summoned: true, level: g.mission?.def?.difficulty ?? this.level }); if (e) { g.fx.summonCircle(s, color); e.aggro = true; e.bossSummon = this; out.push(e); }
+      const e = g.spawnEnemy(kind, s, { summoned: true, level: g.mission?.def?.level ?? g.mission?.def?.difficulty ?? this.level }); if (e) { g.fx.summonCircle(s, color); e.aggro = true; e.bossSummon = this; out.push(e); }
     });
     return out;
   }
@@ -312,7 +312,7 @@ export class Boss {
     if (this.phase >= 2) kinds.push('pup', 'harpy');
     for (const kind of kinds) {
       const a = Math.random() * Math.PI * 2; const s = this.pos.clone().add(new THREE.Vector3(Math.cos(a) * 3.5, 0, Math.sin(a) * 3.5)); s.y = this.ground(s);
-      const e = g.spawnEnemy(kind, s, { summoned: true, level: g.mission?.def?.difficulty ?? 1 }); if (e) g.fx.summonCircle(s, this.B.color);
+      const e = g.spawnEnemy(kind, s, { summoned: true, level: g.mission?.def?.level ?? g.mission?.def?.difficulty ?? 1 }); if (e) g.fx.summonCircle(s, this.B.color);
     }
     g.audio?.energy('summon');
     yield 1.0;

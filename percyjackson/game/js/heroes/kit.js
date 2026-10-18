@@ -10,7 +10,7 @@ import { t } from '../text_config.js';
 import { BASE_COMBO } from '../combat.js';
 import { U } from '../gfx/materials.js';
 import { shoot, ammoInfo } from '../resources.js';
-import { validLoadout, SLOTS } from './skillRules.js';
+import { validLoadout, SLOTS, applyNodeStats } from './skillRules.js';
 import { RANGED, AIM, lifeOf, pitchTo, dirOf, bodyCentre, lineTarget, cursorTarget, groundPitch } from '../combatRules.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
@@ -165,6 +165,12 @@ export class Kit {
     this.domain = null;
     this.skills = {};   // skill-tree ranks, filled from save
     hookHero(player);
+    // the tree's capstones (skillRules.js `stat`): crit, ability damage, health…
+    const st = player.stats;
+    if (st) {
+      applyNodeStats(player.hero, player.skills, st);
+      if (st.maxHpPct > 0 && player.maxHp > 0) { const k = 1 + st.maxHpPct; player.maxHp *= k; player.hp = Math.min(player.maxHp, (player.hp ?? player.maxHp) * k); }
+    }
   }
   ability(o) { return { cdLeft: 0, charges: 1, ...o }; }
   dispose() { for (const o of this.owned ?? []) this.game.scene.remove(o); }

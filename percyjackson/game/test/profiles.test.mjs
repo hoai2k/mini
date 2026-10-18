@@ -9,6 +9,7 @@ import assert from 'node:assert/strict';
 import { Profiles, mergeProfiles, encodeProfile, decodeProfile, INDEX_KEY, PROFILE_KEY } from '../js/profiles.js';
 import { Save, freshData, LEGACY_KEY } from '../js/save.js';
 import { rollItem, spentPoints, enchCost } from '../js/loot.js';
+import { xpToReach } from '../js/progression.js';
 import { Slots, slotPrefix, SLOTS_KEY, RESUME_KEY } from '../js/slots.js';
 
 class Mem {
@@ -91,11 +92,11 @@ test('merging: union of chapters and unlocks, the higher level, union of items, 
   const base = freshData('Ana', 'anaanaana1'); base.updated = 1;
   const shared = rollItem(20); base.inventory.push(shared);
   const onA = played(base, (s, d) => {
-    s.addXp(500); d.coins = 50; d.completed = { lt1: 1, lt2: 3 }; d.unlockedHeroes = ['tyson']; d.prophecy = { book1: [0] };
+    s.addXp(xpToReach(4)); d.coins = 50; d.completed = { lt1: 1, lt2: 3 }; d.unlockedHeroes = ['tyson']; d.prophecy = { book1: [0] };
     d.inventory.push(rollItem(18)); s.hero('percy').skills = { riptide: 1 }; s.hero('percy').skillPoints -= 1; d.updated = 100; d.rev = 4;
   });
   const onB = played(base, (s, d) => {
-    s.addXp(200); d.coins = 80; d.completed = { lt1: 2 }; d.unlockedHeroes = ['clarisse']; d.prophecy = { book1: [1] };
+    s.addXp(xpToReach(3)); d.coins = 80; d.completed = { lt1: 2 }; d.unlockedHeroes = ['clarisse']; d.prophecy = { book1: [1] };
     d.inventory.push(rollItem(19)); s.hero('percy').skills = { jet: 2 }; s.hero('percy').skillPoints -= 2; d.updated = 200; d.rev = 2;
   });
   const m = mergeProfiles(onA, onB);

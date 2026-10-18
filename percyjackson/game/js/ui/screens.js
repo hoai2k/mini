@@ -13,6 +13,7 @@ import { openTitle } from './title.js';
 import { openSelect } from './partySelect.js';
 import { t as tx } from '../text_config.js';
 import { ENCHANTS, itemInfo, itemRarity, itemPrice, rollItem, powerFor, KIND_LABEL } from '../loot.js';
+import { expectedArea } from '../progression.js';
 
 export { openTitle, openSelect, openChapterMap, openProphecy, openStoryCards, openInstructions, openSettings };
 
@@ -30,7 +31,7 @@ export { openSkills };
 // ------------------------------------------------------------------ shop
 export function openShop(game, player) {
   const ui = game.ui, save = game.saveFor?.(player) ?? game.save, d = save.data;   // net: this player's profile
-  if (!d.shop || !d.shop.items?.length) d.shop = { items: [0, 1, 2, 3, 4, 5].map((i) => rollItem(powerFor(1 + Math.min(2, Math.floor(d.level / 6)), d.level), { kind: ['weapon', 'armor', 'artifact', 'artifact', 'weapon', null][i], hero: player.hero })) };
+  if (!d.shop || !d.shop.items?.length) d.shop = { items: [0, 1, 2, 3, 4, 5].map((i) => rollItem(powerFor(expectedArea(d.level), d.level, Math.random, 'shop'), { kind: ['weapon', 'armor', 'artifact', 'artifact', 'weapon', null][i], hero: player.hero })) };
   game.paused = true;
   const close = () => { ui.close('shop'); game.paused = false; };
   ui.open('shop', (el) => {
@@ -38,7 +39,7 @@ export function openShop(game, player) {
       const b = itemInfo(it), R = itemRarity(it), price = itemPrice(it);
       return h('button', { class: 'mission', style: 'width:100%;text-align:left;color:inherit', onclick: () => {
         if (d.coins < price) { toast(tx('screens.shop.notEnough')); game.audio?.ui('back'); return; }
-        d.coins -= price; d.inventory.push(it); d.shop.items.splice(i, 1); save.write(); game.audio?.ui('buy'); toast(tx('screens.shop.bought', { name: b.name })); ui.refresh('shop');
+        d.coins -= price; it.isNew = true; it.got = Date.now(); d.inventory.push(it); d.shop.items.splice(i, 1); save.write(); game.audio?.ui('buy'); toast(tx('screens.shop.bought', { name: b.name })); ui.refresh('shop');
       } }, h('div', { class: `mi item ${b.rarity}` }, b.icon), h('div', {}, h('div', { class: 'mt', style: `color:${R.color}` }, b.name), h('div', { class: 'md' }, tx('screens.shop.itemLine', { rarity: R.label, kind: KIND_LABEL[b.kind], power: it.power, desc: b.desc, enchants: it.ench.map((e) => e.options.map((o) => ENCHANTS[o].name).join(' / ')).join('; ') }))), h('div', { class: 'diff' }, tx('screens.shop.price', { n: price })));
     });
     el.appendChild(h('div', { class: 'panel', style: 'width:min(620px,96vw)' }, h('h2', {}, tx('screens.shop.title')),

@@ -173,11 +173,6 @@ jobs:
       - name: Stocks tests
         if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
         run: node --test stocks/app/test/*.test.mjs
-      - name: Build MP3 Player
-        run: .github/scripts/build-game.sh mp3player 'mp3player/publish.sh local/pages/mp3player'
-      - name: MP3 Player tests
-        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
-        run: node --test mp3player/app/test/*.test.mjs && python3 mp3player/design/source/build_requests.py --check
       - name: Fail only if no game built
         run: .github/scripts/check-games.sh
       - uses: actions/upload-pages-artifact@v3

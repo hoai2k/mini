@@ -92,7 +92,7 @@ export function ambush(m, at, kinds, { radius = 7, color = 0xff3a2a } = {}) {
     const p = at.clone().add(new THREE.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius));
     const gy = g.world.groundBelow(p.x, p.z, at.y + 4); if (!isFinite(gy) || Math.abs(gy - at.y) > 5) return;
     p.y = gy;
-    const e = g.spawnEnemy(kind, p, { level: m.def.difficulty });
+    const e = g.spawnEnemy(kind, p, { level: m.def.level ?? m.def.difficulty });
     if (e) { out.push(e); g.fx.summonCircle(p, color); }
   });
   if (out.length) g.audio?.energy('summon');

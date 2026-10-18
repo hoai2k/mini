@@ -3,13 +3,18 @@
 import * as THREE from 'three/webgpu';
 import { Ally } from './entities/ally.js';
 import { tn, t as tr } from './text_config.js';
+import { itemStrength } from './loot.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
 const near = (g, pos, r, fn) => { let n = 0; for (const e of g.enemies) if (!e.dead && !e.isDummy && !e.untargetable && e.pos.distanceTo(pos) < r) { fn(e); n++; } return n; };
 
 export function useArtifact(game, p, art) {
   const g = game, b = art.base;
-  const power = 1 + (art.it.power - 10) * 0.03;
+  // An item's strength (power × rarity, loot.js) against the gear's average:
+  // a hit also takes the hero's ability multiplier (techMult, which is that
+  // average, and an ally's hits count as the hero's), so `power` is the
+  // item's share on top; an ally's health takes the whole of it.
+  const full = itemStrength(art.it), power = full / Math.max(1, p.stats.gearScale ?? 1);
   const from = p.pos.clone().setY(p.pos.y + 1.1);
   const aim = p.aimDir.clone().setY(0).normalize();
   switch (b.act) {
@@ -189,7 +194,7 @@ export function useArtifact(game, p, art) {
     }
     case 'charm': { // Nectar Flask
       // (added to a heal already running, an Ambrosia sip, rather than replacing it)
-      for (const q of g.players) if (!q.dead && q.pos.distanceTo(p.pos) < 6) { const r = q.healOverTime; q.healOverTime = { left: (r?.left ?? 0) + q.maxHp * 0.3 * power, t: Math.max(4, r?.t ?? 0) }; g.fx.heal(q.pos, 0xffc84a); }
+      for (const q of g.players) if (!q.dead && q.pos.distanceTo(p.pos) < 6) { const r = q.healOverTime; q.healOverTime = { left: (r?.left ?? 0) + q.maxHp * 0.3 * Math.min(1.4, power), t: Math.max(4, r?.t ?? 0) }; g.fx.heal(q.pos, 0xffc84a); }
       g.audio?.energy('heal');
       break;
     }
@@ -223,7 +228,7 @@ export function useArtifact(game, p, art) {
     }
     case 'cornucopia': { // the horn of plenty
       g.pickups.drop('heal', p.pos, 3);
-      g.pickups.drop('coin', p.pos, 8 + Math.round(power * 4));
+      g.pickups.drop('coin', p.pos, 8 + Math.round(full * 4));
       g.pickups.drop('ce', p.pos, 2);
       g.audio?.loot?.('rare');
       break;
@@ -231,14 +236,14 @@ export function useArtifact(game, p, art) {
     case 'pegasus': // Pegasus Whistle: a diving ally
     case 'corpse': {
       const pos = p.pos.clone().addScaledVector(aim, 1.5);
-      g.allies.push(new Ally(g, p, 'nue', pos, { life: 12, hpMult: power, dmgMult: power, color: 0xf4f4ff }));
+      g.allies.push(new Ally(g, p, 'nue', pos, { life: 12, hpMult: full, dmgMult: power, color: 0xf4f4ff }));
       g.audio?.energy('summon');
       break;
     }
     case 'snakes': { // Caduceus: George and Martha
       for (const s of [-1, 1]) {
         const pos = p.pos.clone().add(new THREE.Vector3(Math.cos(p.facing) * s * 1.2, 0, -Math.sin(p.facing) * s * 1.2));
-        g.allies.push(new Ally(g, p, 'dog', pos, { life: 12, hpMult: power * 0.8, dmgMult: power, color: 0x4a9a4a }));
+        g.allies.push(new Ally(g, p, 'dog', pos, { life: 12, hpMult: full * 0.8, dmgMult: power, color: 0x4a9a4a }));
       }
       g.audio?.energy('summon');
       break;

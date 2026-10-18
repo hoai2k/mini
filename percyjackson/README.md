@@ -101,7 +101,9 @@ turn and zoom by touch (drag, pinch).
   - people with chains of side quests (kill, collect, reach, clear, beat, win,
     open, return).
 
-  XP grows with a monster's level. The map (M or View) veils the regions you
+  XP grows with a monster's level, as its health does (`js/progression.js`
+  paces the levels: about 2.6 hero levels per monster level, level 30-odd at
+  the end). The map (M or View) veils the regions you
   haven't seen, marks what you've found, and lists the side quests (J) and
   which one the tracker follows.
 
@@ -227,10 +229,17 @@ turn and zoom by touch (drag, pinch).
     Tin-Can Snack; Tyson Thunder Clap, Iron Skin and Call Rainbow; Clarisse
     Chain Lightning, Battle Frenzy and Hold the Line.
   - One point a level, for every hero alike. A rank costs 1; learning a power
-    costs 2 and each later rank of it 1. A tree costs about 30 points, so at
-    the end of Book 1 (around level 14) a hero has under half of it. A node
-    can need another first, and a tier-2 node needs 2 points spent in the
-    branch's tier-1 nodes (a tier-3 node, the godly power's upgrade, needs 5).
+    costs 2 and each later rank of it 1. A tree costs 33 to 36 points and
+    fills at about level 33, when the last region is done. A node can need
+    another first, and a tier-2 node needs 2 points spent in the branch's
+    tier-1 nodes (a tier-3 node needs 5). Tier 2 opens at level 3 and tier 3
+    at level 12 (a message says so).
+  - Every branch ends in tier 3: the godly power's upgrade, or a capstone
+    passive of two ranks that needs the branch's new power (Percy: Sword
+    Master, Lord of the Tides; Annabeth: Shadow Strike, Master Builder;
+    Grover: Heart of the Wild, Satyr Stamina; Tyson: Cyclops Might,
+    Forge-Born; Clarisse: Spear of Ares, Cabin Five Pride). Damage and health
+    passives multiply, so they stay worth having with level-12 gear.
   - **Equip:** the three slots are at the top of the screen; pick a slot, then
     any power the hero knows (one already slotted swaps over). A power keeps
     its own cooldown when it moves; one new to a slot takes over what was
@@ -362,8 +371,34 @@ turn and zoom by touch (drag, pinch).
     Demigod and Hero add their step on top. The prologue's rats bite for about
     6%.
 - **Gear:** in the Minecraft Dungeons style, from Greek myth.
-  - 61 weapons, armours and magic items.
+  - 68 weapons, armours and magic items, common, rare and legendary.
+  - Item power follows the monster level of the place (a chapter's level, a
+    chest's spot, the monster that dropped it), nudged toward your own
+    level, with more for a rare chest, a boss or a champion's epic chest
+    (`js/progression.js`). Power 10 at monster level 1, 13 more a level; an
+    item grows 2% stronger a point, so level-12 gear keeps pace with
+    level-12 monsters (about five times the health). Abilities, shots and
+    magic items scale with the average power of what you wear (your Power).
+  - Chapters take the monster level of the place they start (chapters 1-2
+    level 1, chapter 12 level 12), plus one a difficulty step.
+  - 30 enchantments, each with a plain-words line in the inventory: Vampire's
+    Kiss (life steal), Forge Flame (sets monsters on fire), Boreas's Chill
+    (slows, sometimes freezes solid), Chain Lightning, Poseidon's Shove (a
+    knock-back burst), Whirlwind, critical hits, Winged Heels (speed after a
+    magic item), Ambrosia Shield (half damage after a drink), cooldowns and
+    more (`js/gearEffects.js`, numbers in `loot.js` PROC).
+  - Some magic items hold charges (Greek Fire, the Master Bolt, the Boar
+    Tusk, the Winged Sneakers, the Stymphalian Feathers); one comes back
+    every cooldown.
   - Enchantment rows with choices, refunded when you salvage.
+  - The inventory: your Power, level, drachmas and points at the top; the
+    four slots you wear; tabs by kind; the stash with new finds first (they
+    glow), then the strongest; a green ▲ on anything better than what you
+    wear. Choose an item to see its power and every stat it changes (green
+    ▲ / red ▼, before → after) and its enchantments in plain words; press it
+    again (A, Enter, a second click or tap) to equip it: it flies into its
+    slot. X salvages (drachmas pop up to the counter), LB / RB or Q / E
+    change tabs.
   - Blessed items and hero favourites.
   - The forge: temper items and re-roll enchantment choices.
   - Loot drops separately for every player.
@@ -550,7 +585,7 @@ across every screen.
 | `game/workbench/models.html` | A turntable of every character model, to compare with the 3D sheets |
 | `game/workbench/` | The model workbench ([published](https://hoai2k.github.io/mini/percyjackson/workbench/)): a thumbnail grid of every character model, an orbit viewer and an inspector |
 | `game/assets/` | Web copies of the art: chapter cards, hero cards and portraits, title background, logo |
-| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, the battle cadence (rooms by role, groups and scouts placed from the seed, traps per chapter, room sizes, kill objectives a level can meet), boss health for the party, the prologue's rats and hints, the Greek-letter timings, the preloaded pictures, people in the Mist, chapter 1's museum (the calm walk, the reveal, hidden blows under the Mist, her three flights to rooms you can walk to, her lines in your device's words), the Ambrosia flask, the quiver and monster hit sizes, knock-back distances, shot reach and the 3D aim, the controller layout |
+| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, progression (the XP pacing over a play-through, chapter levels, drop power by area and player level, the gear curve against monster health and sane damage numbers, every enchantment's effect, magic-item charges, the stash order, skill trees with no dead levels), profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, the battle cadence (rooms by role, groups and scouts placed from the seed, traps per chapter, room sizes, kill objectives a level can meet), boss health for the party, the prologue's rats and hints, the Greek-letter timings, the preloaded pictures, people in the Mist, chapter 1's museum (the calm walk, the reveal, hidden blows under the Mist, her three flights to rooms you can walk to, her lines in your device's words), the Ambrosia flask, the quiver and monster hit sizes, knock-back distances, shot reach and the 3D aim, the controller layout |
 | `design/` | The design, image requests, concept art and the scripts that make the web copies |
 | `design/audit.md` | The October 2026 audit of gameplay, level design and performance: what was fixed and what is still to do |
 | `perf/` | The performance harness (headless Chromium): load times, frame CPU, draw calls, leaks, a smoke check of every chapter; not published |

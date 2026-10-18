@@ -51,7 +51,7 @@ class PercyKit extends Kit {
       { style: 'punch', dur: 0.32, windup: 0.3, strike: 0.5, dmg: 15, range: 3.1, arc: 0.8, lunge: 8, knock: 5, stop: 0.055, shake: 0.18, trail: SEA, sparkColor: FOAM },
       { style: 'spin', dur: 0.5, windup: 0.3, strike: 0.56, dmg: 25, range: 3.4, arc: Math.PI, lunge: 3, knock: 10, stop: 0.08, shake: 0.38, ring: true, ringColor: SEA, stagger: 0.55, trail: SEA, sparkColor: FOAM, splash: true },
     ];
-    this.p.stats.meleeMult += r('riptide') * 0.08;
+    this.p.stats.meleeMult *= 1 + r('riptide') * 0.08;   // (multiplies: worth as much on a level-12 sword)
     const jc = 1 + r('jet_charges');
     this.slots = {
       ranged: this.ability({ name: t('powers.percy.ranged'), icon: '💧', cd: 0.55, ce: 0, use: () => this.jet(), maxCharges: jc, chargesLeft: jc, gateTime: 0.3 }),

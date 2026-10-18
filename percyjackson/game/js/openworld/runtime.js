@@ -25,6 +25,7 @@ import { openWorldMap } from '../ui/worldMap.js';
 import { bundlesFrom } from '../resources.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { applyChampionLook } from '../entities/champions.js';
+import { shrineXp } from '../progression.js';
 
 export const RESPAWN = { camp: 8 * 60, champion: 15 * 60, shrine: 6 * 60 };   // seconds of play
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -162,7 +163,7 @@ export class OpenWorld {
     grp.add(body, lid, spill); grp.rotation.y = c.rot ?? ((c.x * 7 + c.z * 13) % 6);
     lid.rotation.x = opened ? -1.9 : 0;
     this.addProp(grp);
-    c.object = grp; c.lid = lid; c.opened = opened; c.difficulty = owDifficulty(this.lay.levelAt(this.lay.REGION[c.region], c.pos.x, c.pos.z, 0.6));
+    c.object = grp; c.lid = lid; c.opened = opened; c.level = c.level ?? this.lay.levelAt(this.lay.REGION[c.region], c.pos.x, c.pos.z, 0.6); c.difficulty = owDifficulty(c.level);   // (loot follows the spot's monster level: main.js onChestOpened)
     g.interactables.push({ id: 'owchest-' + c.id, pos: c.pos, radius: 2, label: t('ow.chest.open'), action: (p) => this.openChest(c, p), enabled: () => !c.opened });
   }
   openChest(c, p) {
@@ -179,8 +180,8 @@ export class OpenWorld {
     this.quests.onEvent({ type: 'chest', id: c.id });
   }
   // a chest that appears where a camp was cleared (not saved: it comes back with the camp)
-  dropChest(pos, rarity, region) {
-    const c = { id: null, x: Math.floor(pos.x), z: Math.floor(pos.z), pos: pos.clone(), rarity, region };
+  dropChest(pos, rarity, region, level = null) {
+    const c = { id: null, x: Math.floor(pos.x), z: Math.floor(pos.z), pos: pos.clone(), rarity, region, level };
     this.makeChest(c);
     this.game.fx.summonCircle(c.pos, 0xffd84a);
     return c;
@@ -265,7 +266,7 @@ export class OpenWorld {
         st.done = true; d.champs[c.id] = now(); g.save.write?.();
         toast(t('ow.champion.defeated', { name: c.name }), 'big');
         g.hud?.setBoss?.(null);
-        this.dropChest(st.e.pos.clone(), 'epic', c.region);
+        this.dropChest(st.e.pos.clone(), 'epic', c.region, st.e.level);   // (gear for the champion's own level)
         this.quests.onEvent({ type: 'champion', id: c.id });
       } else if (!st.e.dead && !near && !st.e.aggro) {
         this.removeEnemy(st.e); this.champState.delete(c.id); g.hud?.setBoss?.(null);
@@ -324,7 +325,7 @@ export class OpenWorld {
       toast(t('ow.shrine.won'), 'big');
       g.audio?.levelUp?.();
       this.dropChest(s.pos.clone().add(V(0, 0, 2.2)), T.waves.length >= 4 ? 'epic' : 'rare', s.region);
-      for (const sv of g.localSaves()) if (sv.addXp(40 * (this.lay.REGION[s.region].level[1]))) g.levelUp(sv);
+      for (const sv of g.localSaves()) if (sv.addXp(shrineXp(this.lay.REGION[s.region].level[1]))) g.levelUp(sv);
       this.quests.onEvent({ type: 'shrine', id: s.id });
       this.trial = null; return;
     }

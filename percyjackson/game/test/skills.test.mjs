@@ -10,6 +10,7 @@ import {
   knownPowers, defaultLoadout, validLoadout, canRank, rankUp, equip, respec, sanitizeSkills, migrateHero, mergeHero,
 } from '../js/heroes/skillRules.js';
 import { Save, freshData, normalizeData } from '../js/save.js';
+import { xpToReach } from '../js/progression.js';
 
 const HEROES = ['percy', 'annabeth', 'grover', 'tyson', 'clarisse'];
 const fresh = (hero) => ({ skills: {}, equip: defaultLoadout(hero), tree: TREE_VERSION, skillPoints: 0 });
@@ -140,7 +141,7 @@ test('a save loads, levels up and stays consistent through normalizeData', () =>
   const h = s.hero('grover');
   assert.deepEqual(h.equip, ['vines', 'calm', 'maia']);
   assert.equal(h.skillPoints, 1);
-  s.addXp(2000);
+  s.addXp(xpToReach(6));   // (progression.js: level 6)
   assert.equal(h.skillPoints, d.level, 'one point a level for every hero');
   assert.ok(rankUp('grover', h, d.level, 'hooves')); assert.ok(rankUp('grover', h, d.level, 'maia_up'));
   assert.ok(rankUp('grover', h, d.level, 'snack')); assert.ok(equip('grover', h, 0, 'snack'));

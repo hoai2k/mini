@@ -36,8 +36,8 @@ class TysonKit extends Kit {
       { style: 'uppercut', dur: 0.48, windup: 0.34, strike: 0.52, dmg: 22, range: 3.0, arc: 1.0, lunge: 5, knock: 7, stop: 0.09, shake: 0.3, trail: EMBER, launch: true, chainAt: 0.62 },
       { style: 'slam', dur: 0.66, windup: 0.46, strike: 0.62, dmg: 34, range: 3.6, arc: Math.PI, lunge: 4, knock: 15, stop: 0.11, shake: 0.55, ring: true, ringColor: BRONZE, stagger: 0.7, trail: BRONZE },
     ];
-    this.p.stats.meleeMult += r('fists') * 0.08;
-    this.p.maxHp += 30 + r('vitality') * 15; this.p.hp = Math.min(this.p.hp + 30 + r('vitality') * 15, this.p.maxHp);
+    this.p.stats.meleeMult *= 1 + r('fists') * 0.08;
+    { const k = 1.25 + r('vitality') * 0.12; this.p.maxHp *= k; this.p.hp = Math.min(this.p.hp * k, this.p.maxHp); }   // (a share, so it keeps pace with the armour)
     this.p.radius = 0.42;
     this.speedMul = 0.92;
     this.slots = {
