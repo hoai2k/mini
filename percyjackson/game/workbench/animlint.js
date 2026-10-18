@@ -1,14 +1,15 @@
 // Animation lint: plays every pose of a model (the hero poses the game uses
 // for its group, and each in-game attack, ingame.js) at 30 frames a second and
 // flags, with the frame each problem first shows on:
-//   floor    the lowest vertex sinks below the floor by more than FLOOR_TOL,
-//            or FLOOR_K x the model's height for a big one (a giant's toe
-//            dipping as its rigid leg swings back; the floor is y = 0; a floating rig is checked at its hover
-//            height). Not checked in a death, where every monster sinks
-//            into the ground in game on purpose (enemy.js update).
+//   floor    the lowest vertex sinks below the floor (y = 0) by more than
+//            FLOOR_TOL, or FLOOR_K x the model's height for a big one (a
+//            giant's toe dipping as a rigid leg swings). A floating rig is
+//            checked at its hover height. Not checked while a monster dies:
+//            in game every monster sinks into the ground on purpose.
 //   detached a part has moved further than FLY_K x the model's size (its
-//            longest side at rest) from where it sits at rest (in the model's own space, so a lunge or
-//            a charge doesn't count), or a transform is NaN or infinite.
+//            longest side at rest) from where it sits at rest, measured in
+//            the model's own space so a lunge or a charge doesn't count; or
+//            a transform is NaN or infinite.
 //   weapon   a weapon's tip (character.js markTip) points backward at the
 //            strike: its forward share along the facing stays under
 //            STRIKE_MIN all through the strike (the same measure as

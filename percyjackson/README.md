@@ -583,7 +583,7 @@ across every screen.
 | `game/js/save.js`, `profiles.js`, `slots.js`, `resume.js`, `ui/saves.js` | A profile's data, player profiles (merging, export codes), save slots, the resume point for Continue, the Saves screens |
 | `game/js/net/` | Online: `session.js` (rooms, identity, reconnects, host migration, clock), `online.js` (what is shared and who owns it), `interp.js` (smooth remote motion), `netfx.js` (effects seen by everyone), `lobby.js`, `nametags.js` |
 | `game/workbench/models.html` | A turntable of every character model, to compare with the 3D sheets |
-| `game/workbench/` | The model workbench ([published](https://hoai2k.github.io/mini/percyjackson/workbench/)): a thumbnail grid of every character model, an orbit viewer and an inspector |
+| `game/workbench/` | The model workbench ([published](https://hoai2k.github.io/mini/percyjackson/workbench/)): a thumbnail grid of every character model, an orbit viewer and an inspector. Monsters, champions and bosses also play their own attacks as the game runs them (`ingame.js`: a real Enemy or Boss on a flat floor, lunging at a training dummy), and `animlint.js` checks every pose (a count on the tile, the frames in the inspector) |
 | `game/assets/` | Web copies of the art: chapter cards, hero cards and portraits, title background, logo |
 | `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, progression (the XP pacing over a play-through, chapter levels, drop power by area and player level, the gear curve against monster health and sane damage numbers, every enchantment's effect, magic-item charges, the stash order, skill trees with no dead levels), profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, the battle cadence (rooms by role, groups and scouts placed from the seed, traps per chapter, room sizes, kill objectives a level can meet), boss health for the party, the prologue's rats and hints, the Greek-letter timings, the preloaded pictures, people in the Mist, chapter 1's museum (the calm walk, the reveal, hidden blows under the Mist, her three flights to rooms you can walk to, her lines in your device's words), the Ambrosia flask, the quiver and monster hit sizes, knock-back distances, shot reach and the 3D aim, the controller layout |
 | `design/` | The design, image requests, concept art and the scripts that make the web copies |
@@ -607,6 +607,20 @@ which makes `Math.random` a seeded generator, and tests that roll items pass
 their own seeded `rng`. To look for a test that only passes by luck, run the
 suite under other seeds, for example
 `for s in $(seq 1 50); do TEST_SEED=$s node --test test/*.test.mjs | grep '^not ok'; done`.
+
+When a change touches a model or how one moves (`game/js/entities/`), run the
+animation lint and the weapon check (headless Chromium; each prints a table
+and exits 1 on a failure):
+
+```sh
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/animlint.cjs   # bodies through the floor, parts flying off, weapons backward at the strike
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/weapons.cjs    # every weapon points forward, at rest and in each strike
+```
+
+The lint plays each model's poses as the game does, monsters' own attacks
+included, and the model workbench shows the same results on each tile and in
+the inspector. Problems it still lists that are known and not yet fixed are
+in [perf/README.md](perf/README.md#animation-lint).
 
 Performance and a browser smoke check of every chapter (not needed for every
 change; see [perf/README.md](perf/README.md)):

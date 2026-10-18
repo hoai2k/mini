@@ -293,7 +293,7 @@ export class Rig {
           const e = easeInCubic(clamp(k * 1.4, 0, 1));
           T.rootX = -Math.PI / 2 * e; T.lift = 0.1 * Math.sin(e * Math.PI); T.armRZ = 0.8 * e; T.armLZ = -0.8 * e; T.headX = -0.3 * e; snap = 25; break;
         }
-        case 'stagger': { T.torsoX = 0.4; T.headX = 0.5; T.armRX = 0.2; T.armLX = 0.2; T.armRZ = 0.4; T.armLZ = -0.4; T.handRX = T.handLX = -0.6; break; }   // (the wrists keep a held weapon's point off the floor as the body doubles over)
+        case 'stagger': { T.torsoX = 0.4; T.headX = 0.5; T.armRX = 0.2; T.armLX = 0.2; T.armRZ = 0.4; T.armLZ = -0.4; if (this.wrist !== false) T.handRX = T.handLX = -0.6; break; }   // (the wrists keep a held weapon's point off the floor as the body doubles over)
         case 'down': { T.rootX = -Math.PI / 2; T.lift = 0.05; T.armRZ = 0.8; T.armLZ = -0.8; snap = 12; break; }
       }
     }
