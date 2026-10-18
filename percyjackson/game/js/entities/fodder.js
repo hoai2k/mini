@@ -127,8 +127,9 @@ function behave(kind) {
     // the crab scuttles sideways, and turns to face you to pinch
     if (rig.sideways) { const run = Math.hypot(e.vel.x, e.vel.z) > 1.2 && st !== 'windup' && st !== 'recover'; const want = run ? Math.PI / 2 : 0; rig.hips.rotation.y += (want - rig.hips.rotation.y) * Math.min(1, dt * 8); }
     // the king crab raises its crusher high in the wind-up, slams it down, opens and shuts it
+    // (down to level: the head's own pitch in the slam brings it to the ground; pitched 0.35 further it sank 0.6 m into it)
     if (rig.extras.crusherArm) {
-      const A = rig.extras.crusherArm, want = st === 'windup' ? -1.3 : st === 'recover' && rig.stT < 0.25 ? 0.35 : 0, open = st === 'windup' ? 0.55 : 0.05;
+      const A = rig.extras.crusherArm, want = st === 'windup' ? -1.3 : 0, open = st === 'windup' ? 0.55 : 0.05;
       rig.stT = st === prev ? (rig.stT ?? 0) + dt : 0;
       A.rotation.x += (want - A.rotation.x) * Math.min(1, dt * (want > A.rotation.x ? 14 : 5));
       rig.extras.crusher.rotation.x += (open - rig.extras.crusher.rotation.x) * Math.min(1, dt * 10);
@@ -398,9 +399,10 @@ function buildKarpos(K0, slinger = false) {
   }
   if (slinger) {
     // the sling: two cords from the right hand to a glowing pod; a string of pods at the belt
-    const s = markHeld(group(rig.handR, 0, -3, 0));   // (a sling hangs: no point to aim)
-    K.box(s, -0.4, -3, 0, 0.35, 6, 0.35, twine, 0, 0, 0.12); K.box(s, 0.4, -3, 0, 0.35, 6, 0.35, twine, 0, 0, -0.12);
-    K.box(s, 0, -6.2, 0, 2.6, 1, 1.8, twine); K.box(s, 0, -5.4, 0, 2, 2, 2, pod); K.box(s, 0, -5.4, 0, 1.2, 2.6, 1.2, 0xfff0a0);
+    // (a sling hangs: no point to aim; short enough that its swing clears the ground)
+    const s = markHeld(group(rig.handR, 0, -1.4, 0));
+    K.box(s, -0.4, -1.8, 0, 0.35, 3.6, 0.35, twine, 0, 0, 0.12); K.box(s, 0.4, -1.8, 0, 0.35, 3.6, 0.35, twine, 0, 0, -0.12);
+    K.box(s, 0, -3.8, 0, 2.6, 1, 1.8, twine); K.box(s, 0, -3, 0, 2, 2, 2, pod); K.box(s, 0, -3, 0, 1.2, 2.6, 1.2, 0xfff0a0);
     sway(rig, s, 'x', 0.6, 7);
     for (const [x, y] of [[-2.6, 2.6], [-0.9, 2], [0.9, 2], [2.6, 2.6]]) { K.box(T, x, y, 3.1, 0.3, 1.2, 0.3, twine); K.box(T, x, y - 1.3, 3.2, 1.3, 1.3, 1.3, pod); }
     K.box(T, -2.6, 6, 0, 0.6, 9, 6.4, twine, 0, 0, 0.7);   // the sling's strap

@@ -563,7 +563,7 @@ export const BOSS_MODELS = {
         for (const [u, v] of [[0, 16], [16, 48]]) { D(u + 5.5, v + 4, creamD, 1, 10); D(u, v + 4 + 9.5, creamD, 32, 1); }
       } });
     const redM = solid(0x9a1820, 0, 0.8);
-    const rig = new Rig({ material: m, scale: 2.1, headS: 8.6, legH: 12, cape: { material: redM, segments: 4, length: 26, width: 15 } });
+    const rig = new Rig({ material: m, scale: 2.1, headS: 8.6, legH: 12, cape: { material: redM, segments: 4, length: 23, width: 15 } });   // (a cape of 26 hung through the floor)
     bulk(rig, { w: 1.8, d: 1.8, armThick: 1.7, armLen: 1.1, legThick: 1.65, legX: 3.4 });
     rig.cape[0].g.parent.position.z = -4 * PX;
     hairMesh(rig, { style: 'mop', base: 0x1a1414, shade: 0x0a0808, light: 0x3a2e2a, seed: 81, shape: { c: [0, 7.8, -0.6], r: [4.9, 3, 5.1], bump: 0.15, shell: 1.2, fringe: 7, jag: 1, side: 5, back: 3, tuft: 0.25, spike: 0.03 } });

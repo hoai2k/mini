@@ -246,7 +246,10 @@ export class Rig {
       // as on the hero sheets; running brings them back in
       armRX: -sw * 1.0 + IDLE.armX * (1 - run), armRZ: -IDLE.armZ * (1 - run) - 0.04 * run - Math.sin(t * 2.2) * 0.02 * (1 - run), armRY: 0,
       armLX: sw * 1.0 + IDLE.armX * (1 - run), armLZ: IDLE.armZ * (1 - run) + 0.04 * run + Math.sin(t * 2.2) * 0.02 * (1 - run), armLY: 0,
-      handRX: 0, handLX: 0,   // the wrists: attacks cock a held weapon forward (see HOLD_PITCH)
+      // the wrists: attacks cock a held weapon forward (see HOLD_PITCH); running,
+      // they turn against the arm's swing so a spear or club stays carried
+      // forward instead of swinging its point down through the floor
+      handRX: this.wrist === false ? 0 : sw * 0.8, handLX: this.wrist === false ? 0 : -sw * 0.8,
       legRX: sw * 1.0, legLX: -sw * 1.0, legRZ: -IDLE.legZ * (1 - run), legLZ: IDLE.legZ * (1 - run),
       rootX: 0, rootZ: 0, lift: 0,
     };
@@ -290,7 +293,7 @@ export class Rig {
           const e = easeInCubic(clamp(k * 1.4, 0, 1));
           T.rootX = -Math.PI / 2 * e; T.lift = 0.1 * Math.sin(e * Math.PI); T.armRZ = 0.8 * e; T.armLZ = -0.8 * e; T.headX = -0.3 * e; snap = 25; break;
         }
-        case 'stagger': { T.torsoX = 0.4; T.headX = 0.5; T.armRX = 0.2; T.armLX = 0.2; T.armRZ = 0.4; T.armLZ = -0.4; break; }
+        case 'stagger': { T.torsoX = 0.4; T.headX = 0.5; T.armRX = 0.2; T.armLX = 0.2; T.armRZ = 0.4; T.armLZ = -0.4; T.handRX = T.handLX = -0.6; break; }   // (the wrists keep a held weapon's point off the floor as the body doubles over)
         case 'down': { T.rootX = -Math.PI / 2; T.lift = 0.05; T.armRZ = 0.8; T.armLZ = -0.8; snap = 12; break; }
       }
     }

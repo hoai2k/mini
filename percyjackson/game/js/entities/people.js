@@ -539,11 +539,12 @@ export const PEOPLE = {
       color: 0x30d0ff, ei: 1.1,
       parts: () => {
         const L = [];
-        for (let i = 0; i < 26; i++) { const k = i / 26, a = k * Math.PI * 5; L.push(B([Math.cos(a) * 2.2, -16 + k * 30, 2.4 + Math.sin(a) * 2.2], [1, 1, 1], i % 2 ? 0x7ae8ff : 0x40c8f0)); }
+        for (let i = 0; i < 26; i++) { const k = i / 26, a = k * Math.PI * 5; L.push(B([Math.cos(a) * 2.2, -9.5 + k * 30, 2.4 + Math.sin(a) * 2.2], [1, 1, 1], i % 2 ? 0x7ae8ff : 0x40c8f0)); }
         return { armR: L };
       },
     },
-    extra: () => ({ armR: [B([0, -6, 2.4], [1.4, 34, 1.4], 0x6a3a1c), B([0, -24.4, 2.4], [2.6, 5, 0.8], 0x6a3a1c), B([0, -27.4, 2.4], [1.6, 1.2, 0.8], 0x5a3014), ...[2, 3.6].map((y) => B([0, y, 2.4], [1.7, 0.6, 1.7], 0x8a5a2a)), B([0, -10, 2.4], [1.7, 1.6, 1.7], 0x5a3014)] }),
+    // (the oar held 6.5 higher than first built: its blade stood a third of a metre in the ground)
+    extra: () => ({ armR: [B([0, 0.5, 2.4], [1.4, 34, 1.4], 0x6a3a1c), B([0, -17.9, 2.4], [2.6, 5, 0.8], 0x6a3a1c), B([0, -20.9, 2.4], [1.6, 1.2, 0.8], 0x5a3014), ...[8.5, 10.1].map((y) => B([0, y, 2.4], [1.7, 0.6, 1.7], 0x8a5a2a)), B([0, -3.5, 2.4], [1.7, 1.6, 1.7], 0x5a3014)] }),
   },
   // Sisyphus: an old strongman, grey curls and beard, a cream chiton over one
   // shoulder with a Greek-key hem, a rope belt, leather wrist straps, laced sandals
