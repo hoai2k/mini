@@ -162,7 +162,7 @@ export class QuadRig {
           } else if (style === 'spin') { // tail whip
             T.torsoY = ph === 0 ? 0.5 * e : -1.2 * e; T.tailY = ph === 0 ? -0.6 : 1.4; T.tailX = 0.1;
           } else { // bite / lunge: crouch back, then snap forward with the jaw open
-            if (ph === 0) { T.torsoX = -0.2 * e; T.headX = -0.35 * e; T.jaw = 0.5 * e; T.lift = -0.06 * e; T.legBias = -0.3 * e; }
+            if (ph === 0) { T.torsoX = -0.2 * e; T.headX = -0.35 * e; T.jaw = 0.5 * e; T.legBias = -0.3 * e; }   // (no drop of the hips: the legs are rigid, so a crouch pushed the feet through the floor)
             else { T.torsoX = 0.18; T.headX = 0.35; T.jaw = ph === 1 ? 0.05 : 0.4; T.legBias = 0.35; T.front = -0.5; }
           }
           snap = 34; break;

@@ -501,6 +501,7 @@ export class Enemy {
           if (this.retreating && (d >= keep || !back)) this.retreating = false;
           if (d > this.def.range) move.copy(this.steer(toT));
           else if (this.retreating) move.copy(this.steer(toT.negate(), 0.8));
+          else if (this.def.pummel && d < keep) move.copy(this.steer(toT, d > this.def.pummel.trigger * 0.7 ? 0.8 : 0.1));   // close in to pummel
           else { const side = TO.set(-toT.z, 0, toT.x).normalize().multiplyScalar(Math.sin(this.stateT * 0.8 + this.home.x) > 0 ? 1 : -1); move.copy(this.steer(side, 0.5)); }
           this.faceTo(t.pos, dt);
           // a ranged monster with def.pummel (the Earthborn) beats a hero who comes close with its fists instead

@@ -103,3 +103,10 @@ textarea { width: 100%; min-height: 90px; resize: vertical; background: #0f0c09;
 .src-lightbox img { display: block; width: auto; height: auto; max-width: min(96vw, 1600px); max-height: 86vh; border-radius: 8px; }
 .src-lightbox .src-mark { position: absolute; border: 3px solid #f0c867; border-radius: 6px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, .35); pointer-events: none; }
 .src-lightbox figcaption { color: #f4ead5; text-align: center; margin-top: 8px; font-size: 14px; }
+/* animation lint (animlint.js): a count on the tile, the list in the inspector */
+.tile .lint { position: absolute; top: 3px; right: 3px; min-width: 16px; padding: 0 4px; border-radius: 8px; background: var(--coral); color: #17130f; font: 700 11px/16px var(--font); z-index: 1; }
+.tile .lint[hidden] { display: none; }
+#insp button.hero-style { opacity: .7; border-style: dashed; }
+.lint-list li { margin: 3px 0; font-size: 13px; }
+.lint-list li.info { opacity: .7; }
+#insp .lint-list button.lint-pose { padding: 1px 6px; font-size: 12px; }

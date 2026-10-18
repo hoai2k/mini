@@ -339,9 +339,10 @@ const lavaDog = (o) => (S) => paintQuad(S, { base: o.base ?? 0x221d20, dark: 0x0
   } });
 
 // ---- model builders ----------------------------------------------------------
-// The full hellhound (bigHound below): built at rig scale 1, the heroes' own
-// voxel size, its dims in skin pixels (a hero is about 47 tall).
-export const HELLHOUND = { big: true, scale: 1, bodyL: 50, bodyW: 20, bodyH: 30, legH: 36, legW: 8.4, legSpread: 4, headS: 24, snoutS: 14, ears: true, tail: 5, tailLen: 30, tailW: 4.6, tailCurl: 0.8, gait: 0.55, neckUp: 12, headZ: -1, jawOpen: 0.42 };
+// The full hellhound (bigHound below): built at rig scale 1.18, the heroes'
+// own voxel size (Percy's root scale is 0.944 = 1.18 x CHAR_SCALE), its dims
+// in skin pixels (Percy stands about 40 of them tall).
+export const HELLHOUND = { big: true, scale: 1.18, bodyL: 50, bodyW: 20, bodyH: 30, legH: 36, legW: 8.4, legSpread: 4, headS: 24, snoutS: 14, ears: true, tail: 5, tailLen: 30, tailW: 4.6, tailCurl: 0.8, gait: 0.55, neckUp: 12, headZ: -1, jawOpen: 0.42 };
 const MODELS = {
   pup: () => hound('pup', { scale: 0.95, bodyL: 10, bodyW: 6, bodyH: 6, legH: 5.5, legW: 2.8, headS: 7, ears: true, tail: 3, tailLen: 6, tailW: 1.8, tailCurl: 0.55, neckUp: 2, jawOpen: 0.25 }, { fur: 60, cracks: 6, collar: false, pup: true }),
   // A New York sewer rat (the prologue): grey-brown fur, a pink nose, ears
@@ -362,7 +363,7 @@ const MODELS = {
   // head and hood, with a flickering forked tongue. Nothing like a person.
   serpent: () => {
     const rig = new QuadRig({ material: skinMat('serpent', (S) => paintQuad(S, { base: 0x3e7a2e, dark: 0x1e3e18, belly: 0xe0c870, back: 0x2e5a22, stripes: 0xd8b040, eye: 0xffd81a, eyeLow: 0xff8a10, nose: 0x1e3e18, teeth: 0xfff4d8, speckles: 30 })),
-      scale: 1.15, bodyL: 9, bodyW: 5, bodyH: 4, legH: 0.4, legW: 1, headS: 5.5, snoutS: 3.2, ears: false, tail: 7, tailLen: 30, tailW: 4.8, tailCurl: 0, neckUp: 4.5, gait: 1 });
+      scale: 1.15, bodyL: 9, bodyW: 5, bodyH: 4, legH: 0.4, legW: 1, headS: 5.5, snoutS: 3.2, ears: false, tail: 7, tailLen: 30, tailW: 4.8, tailCurl: 0.2, neckUp: 4.5, gait: 1 });   // (tailCurl: the tail sweeps down to the ground and lies along it; at 0 it bent on down through the floor)
     for (const l of rig.legs) l.visible = false;
     const hood = solid(0x2e6a24), gold = solid(0xd8b040, 0.2);
     for (const sx of [-1, 1]) { prop(rig, rig.neck, 0.8, 6.5, 4.5, hood, sx * 3.4, -0.5, -1.2, 0, 0, sx * 0.35); prop(rig, rig.neck, 0.9, 1.2, 2.4, gold, sx * 3.5, 1.4, -0.4, 0, 0, sx * 0.35); }
@@ -473,8 +474,8 @@ export function hound(id, spec, opts = {}) {
   return rig;
 }
 // The full-size hellhound (vox-enemies, middle row: "as big as a truck",
-// about twice Percy's height at the head). Not the pup scaled up: built at
-// the heroes' voxel size (rig scale 1, so one block is one hero skin pixel)
+// well over twice Percy's height). Not the pup scaled up: built at
+// the heroes' voxel size (rig scale 1.18, so one block is one hero skin pixel)
 // from many small blocks, so its size buys detail. A lean, long-legged hunter
 // with a deep chest and heavy shoulders, ribs showing down a tucked flank, a
 // hackled mane of black fur breaking into smoke along the spine, a big head
@@ -1076,7 +1077,7 @@ function buildDracaena() {
   const segs = [];
   let parent = group(base, 0, -9.7, -0.5);
   const shape = [[6.4, 4.6, 5.4], [6, 4.4, 5.4], [5.4, 4, 5.2], [4.8, 3.6, 5], [4, 3.2, 4.8], [3.2, 2.6, 4.4], [2.4, 2, 4], [1.6, 1.5, 3.4]];
-  const bend = [0.05, 0, 0, 0.05, 0.1, -0.35, -0.6, -0.6], yaw = [0.9, 0.85, 0.85, 0.8, 0.75, 0.4, 0.2, 0.2];
+  const bend = [0.05, 0, 0, 0.05, 0.1, 0.35, 0.6, 0.6], yaw = [0.9, 0.85, 0.85, 0.8, 0.75, 0.4, 0.2, 0.2];   // (bend +: up; the tip curls up off the ground)
   for (let i = 0; i < shape.length; i++) {
     const [w, h, d] = shape[i];
     const g = group(parent, 0, 0, i ? -shape[i - 1][2] + 0.4 : 0, bend[i], yaw[i], 0);
@@ -1855,7 +1856,7 @@ export const MONSTERS = {
   ghost: { name: txt('monsters.ghost.name'), tier: 'minor', role: 'caster', hp: 38, speed: 3.2, dmg: 8, radius: 0.45, height: 2, ai: 'ranged', range: 10, keep: 6.5, windup: 0.6, cd: 2.2, xp: 4, coins: [1, 3], model: 'ghost', pitch: 0.9, projectile: 'wisp', voice: 'moan', aura: 'wisp', knockResist: 0.2 },
   fury: { name: txt('monsters.fury.name'), tier: 'elite', role: 'trickster', hp: 95, speed: 3.8, dmg: 13, radius: 0.45, height: 2.1, ai: 'teleport', range: 2.2, windup: 0.45, cd: 1.6, xp: 10, coins: [4, 7], model: 'fury', pitch: 1.1, puff: 0x3a2a24, slashColor: 0xff8a2a, voice: 'screech' },
   dracaena: { name: txt('monsters.dracaena.name'), tier: 'elite', role: 'tank', hp: 190, speed: 2.4, dmg: 18, radius: 0.8, height: 2.6, ai: 'tank', range: 2.6, windup: 0.85, cd: 2.2, xp: 12, coins: [5, 9], model: 'dracaena', armor: 0.25, shield: true, knockResist: 0.75, pitch: 0.8, voice: 'hiss' },
-  hellhound: { name: txt('monsters.hellhound.name'), tier: 'elite', role: 'bruiser', hp: 220, speed: 3.6, dmg: 20, radius: 1.4, height: 4.2, ai: 'melee', range: 3.2, windup: 0.7, cd: 1.8, xp: 14, coins: [6, 10], model: 'hellhound', knockResist: 0.7, superArmor: true, pitch: 0.5, aura: 'smoke', voice: 'bark' },
+  hellhound: { name: txt('monsters.hellhound.name'), tier: 'elite', role: 'bruiser', hp: 220, speed: 3.6, dmg: 20, radius: 1.6, height: 5, ai: 'melee', range: 3.7, windup: 0.7, cd: 1.8, xp: 14, coins: [6, 10], model: 'hellhound', knockResist: 0.7, superArmor: true, pitch: 0.5, aura: 'smoke', voice: 'bark' },
   empousa: { name: txt('monsters.empousa.name'), tier: 'elite', role: 'summoner', hp: 160, speed: 2.6, dmg: 10, radius: 0.5, height: 2.3, ai: 'summon', range: 9, keep: 8, windup: 1.0, cd: 5, xp: 16, coins: [8, 14], model: 'empousa', knockResist: 0.4, pitch: 1.2, summons: 'pup', aura: 'fire', projectile: 'fire', voice: 'screech' },
   scorpion: { name: txt('monsters.scorpion.name'), tier: 'elite', role: 'bruiser', hp: 140, speed: 3.4, dmg: 12, radius: 0.8, height: 1.3, ai: 'melee', range: 2.2, windup: 0.55, cd: 1.5, xp: 10, coins: [4, 8], model: 'scorpion', armor: 0.2, knockResist: 0.5, pitch: 1.4, voice: 'click', poison: { dps: 4, dur: 4 }, slashColor: 0x9aff3a,
     // alternates a one-two pinch of the claws with a slower, harder sting over its back (only the sting poisons; enemy.js startAttack)

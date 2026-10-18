@@ -35,6 +35,8 @@ const [models, monsters, bosses, mortals, heroes, people, champions, text] = awa
 const PEOPLE = people.PEOPLE ?? {};
 const HEROES = heroes.HEROES ?? {}, HERO_LOOKS = models.HERO_LOOKS ?? {};
 const MONSTERS = monsters.MONSTERS ?? {}, BOSS_DEFS = bosses.BOSS_DEFS ?? {}, MORTALS = mortals.MORTALS ?? {};
+// the poses, the in-game attacks (a real Enemy or Boss in a small fake game) and the animation lint
+const [ingame, animlint] = await Promise.all([tryImport('./ingame.js'), tryImport('./animlint.js')]);
 
 const GROUPS = [
   { id: 'heroes', label: 'Heroes' }, { id: 'npcs', label: 'Camp NPCs' }, { id: 'monsters', label: 'Monsters' },
@@ -115,6 +117,7 @@ const ring = new THREE.Mesh(new THREE.RingGeometry(0.62, 0.635, 96).rotateX(-Mat
 const holder = new THREE.Group(); scene.add(holder);        // the model in the viewer
 const thumbHolder = new THREE.Group(); scene.add(thumbHolder); // a model being photographed
 const refGroup = new THREE.Group(); scene.add(refGroup);    // 1-block cube and a hero silhouette
+const percyGroup = new THREE.Group(); scene.add(percyGroup); // the Percy reference (toolbar): full colour, true size, draggable
 function applyBg() {
   const b = BGS[bgName];
   scene.background = b.bg; groundMat.color.setHex(b.ground); ringMat.color.setHex(b.ring);
@@ -188,12 +191,12 @@ async function photograph(item) {
     const dir = new THREE.Vector3(0.5, 0.28, 1).normalize();
     thumbCam.position.copy(m.center).addScaledVector(dir, m.r / Math.sin(THREE.MathUtils.degToRad(15)) * 1.04);
     thumbCam.lookAt(m.center); thumbCam.updateMatrixWorld();
-    const refVis = refGroup.visible; holder.visible = false; refGroup.visible = false;
+    const refVis = refGroup.visible, percyVis = percyGroup.visible; holder.visible = false; refGroup.visible = false; percyGroup.visible = false;
     const bg = scene.background; scene.background = null;
     renderer.setClearColor(0x000000, 0);
     renderer.setRenderTarget(thumbRT); renderer.render(scene, thumbCam); renderer.setRenderTarget(null);
     rig.root.removeFromParent();   // out of the scene before the async read-back, or the viewer draws it too
-    scene.background = bg; holder.visible = true; refGroup.visible = refVis;
+    scene.background = bg; holder.visible = true; refGroup.visible = refVis; percyGroup.visible = percyVis;
     if (current) { const f = viewFrame(); fitLights(f.c, f.r); }
     const buf = await renderer.readRenderTargetPixelsAsync(thumbRT, 0, 0, TS, TS);
     const px = buf instanceof Uint8Array || buf instanceof Uint8ClampedArray ? buf : Uint8Array.from(buf, (v) => Math.max(0, Math.min(255, v * 255)));
@@ -205,7 +208,7 @@ async function photograph(item) {
     return { url: canvas2d.toDataURL('image/png') };
   } catch (e) {
     console.warn('workbench: thumbnail failed for', item.key, e);
-    holder.visible = true; refGroup.visible = showRef; scene.background = BGS[bgName].bg; renderer.setRenderTarget(null);
+    holder.visible = true; refGroup.visible = showRef; percyGroup.visible = percyOn && !!current?.m; scene.background = BGS[bgName].bg; renderer.setRenderTarget(null);
     return { error: e.message };
   } finally { disposeRig(rig, item); }
 }
@@ -231,6 +234,48 @@ function want(item, front) {
   if (thumbs.has(item.key) || queued.has(item.key)) { if (front && queued.has(item.key)) { queue.splice(queue.indexOf(item), 1); queue.unshift(item); } return; }
   queued.add(item.key); front ? queue.unshift(item) : queue.push(item); pump();
 }
+// ------------------------------------------------------------------ animation lint
+// Each model's poses checked in the background (animlint.js: floor, detached
+// parts, weapons at the strike); a badge on its tile, the details in the inspector.
+const lints = new Map();            // key -> { problems, failing } | { error }
+const lintQueue = [];
+let linting = false;
+function wantLint(item, front) {
+  if (!animlint.lintModel || lints.has(item.key)) return;
+  const i = lintQueue.indexOf(item); if (i >= 0) lintQueue.splice(i, 1);
+  front ? lintQueue.unshift(item) : lintQueue.push(item);
+  if (!linting) { linting = true; setTimeout(lintNext, front ? 30 : 400); }
+}
+function lintNext() {
+  const item = lintQueue.shift();
+  if (!item) { linting = false; return; }
+  if (!lints.has(item.key)) {
+    let r;
+    try { r = animlint.lintModel({ group: item.group, id: item.id, build: item.build }, { heroStyles: true }); } catch (e) { r = { error: e.message, problems: [], failing: 0 }; console.warn('workbench: lint failed', item.key, e); }
+    lints.set(item.key, r); paintLint(item);
+    if (current?.item === item) renderInspector();
+  }
+  setTimeout(lintNext, queue.length ? 250 : 60);   // (thumbnails first)
+}
+function paintLint(item) {
+  const b = tileOf.get(item.key)?.querySelector('.lint'), r = lints.get(item.key);
+  if (!b || !r) return;
+  const n = r.failing, info = r.problems.filter((p) => p.info).length;
+  b.hidden = !n && !r.error; b.textContent = r.error ? '!' : String(n);
+  b.title = r.error ? `Lint failed: ${r.error}` : `${n} animation problem${n === 1 ? '' : 's'}: ${[...new Set(r.problems.filter((p) => !p.info).map((p) => `${p.label} (${p.check})`))].join(', ')}${info ? ` · ${info} more in hero styles` : ''}`;
+}
+function lintSection(item) {
+  const r = lints.get(item.key);
+  if (!animlint.lintModel) return null;
+  if (!r) return sect('Animation lint', el('div', { class: 'dim', text: 'Checking every pose…' }));
+  const row = (p) => el('li', { class: p.info ? 'info' : null }, el('button', { class: 'lint-pose', title: 'Show this pose at the frame', onclick: () => seekLint(p), text: p.label }), ' ', el('b', { text: p.check }), ' ', animlint.describe(p), el('small', { text: ` · frame ${p.frame} (${p.time} s)` }));
+  const real = r.problems.filter((p) => !p.info), hero = r.problems.filter((p) => p.info);
+  return sect(`Animation lint${real.length ? ` (${real.length})` : ''}`,
+    r.error ? el('div', { class: 'err', text: r.error }) : null,
+    real.length ? el('ul', { class: 'list lint-list' }, real.map(row)) : el('div', { class: 'dim', text: 'No problems in the poses the game plays.' }),
+    hero.length ? [el('div', { class: 'dim', text: 'In hero styles (never played on this model in game):' }), el('ul', { class: 'list lint-list' }, hero.map(row))] : null,
+    el('div', { class: 'dim', text: `Frames at 30 a second from the start of the pose. Floor: more than ${animlint.FLOOR_TOL} m (or ${animlint.FLOOR_K * 100}% of the height) under; deaths sink on purpose. Detached: further than ${animlint.FLY_K} x the model's size from rest, or NaN. Weapon: tip forward share under ${animlint.STRIKE_MIN} all through the strike.` }));
+}
 const io = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting) { const it = itemByKey(e.target.dataset.key); if (it) want(it, true); } }, { root: $('grid'), rootMargin: '120px' });
 
 // ------------------------------------------------------------------ left panel
@@ -253,8 +298,8 @@ function buildGrid() {
     grid.append(el('section', { class: 'group' }, el('h2', {}, g.label, el('span', { text: String(list.length) })),
       el('div', { class: 'tiles' }, list.map((it) => {
         const t = el('button', { class: 'tile', role: 'option', 'data-key': it.key, 'aria-selected': String(current?.item === it), title: `${it.name} (${it.id})`, onclick: () => select(it) },
-          el('span', { class: 'chip', style: `background:${it.chip}` }), el('span', { class: 'th wait' }), el('span', { class: 'nm', text: it.name }));
-        tileOf.set(it.key, t); if (thumbs.has(it.key)) queueMicrotask(() => paintTile(it)); io.observe(t); return t;
+          el('span', { class: 'chip', style: `background:${it.chip}` }), el('span', { class: 'lint', hidden: true }), el('span', { class: 'th wait' }), el('span', { class: 'nm', text: it.name }));
+        tileOf.set(it.key, t); if (thumbs.has(it.key)) queueMicrotask(() => paintTile(it)); if (lints.has(it.key)) queueMicrotask(() => paintLint(it)); io.observe(t); return t;
       }))));
   }
   if (!any) grid.append(el('p', { class: 'empty', text: items.length ? 'No model matches the filter.' : 'No models could be loaded.' }));
@@ -297,24 +342,53 @@ let anim = ANIM_FROM_URL();
 let animT = 0, animCycle = 0, animError = null;
 let wire = false, showBox = false, showRef = false, boxHelper = null;
 let trueScale = q.has('scale') ? q.get('scale') === 'true' : (() => { try { return localStorage.getItem('wb-true-scale') === '1'; } catch { return false; } })();
-const TRUE_C = new THREE.Vector3(-0.9, 1.7, 0), TRUE_R = 3.4;   // the fixed True scale frame: Percy and a model up to a full hellhound
+const TRUE_C = new THREE.Vector3(-1, 2.3, 0), TRUE_R = 4.3;   // the fixed True scale frame: Percy and a model up to a full hellhound
 let percyH = 0;                                                  // Percy's height in blocks, measured from the reference figure
 const wired = [];         // materials switched to wireframe, restored on switch
-const fakeEntity = { state: 'idle', swooping: false };
 function ANIM_FROM_URL() { return q.get('anim') || 'idle'; }
 
-const ANIMS = {
-  idle: { label: 'Idle', speed: 0 },
-  walk: { label: 'Walk', speed: 0.45 },
-  run: { label: 'Run', speed: 1 },
-  attack: { label: 'Attack', period: 1.3, action: (k, c) => ({ type: 'attack', t: k, style: ['swingR', 'swingL', 'punch', 'slam'][c % 4], windup: 0.3, strike: 0.5, step: c }) },
-  cast: { label: 'Cast', period: 1.8, action: (k) => ({ type: 'cast', t: Math.min(1, k * 3), both: false }) },
-  raise: { label: 'Raise', action: () => ({ type: 'raise', t: 0 }) },
-  hit: { label: 'Hit', period: 1.1, action: (k) => ({ type: 'hit', t: Math.min(1, k * 1.6) }) },
-  stagger: { label: 'Stagger', action: () => ({ type: 'stagger', t: 0 }) },
-  dodge: { label: 'Dodge', period: 1.4, action: (k) => ({ type: 'dodge', t: Math.min(1, k * 1.5) }) },
-  death: { label: 'Death', period: 3.2, action: (k) => ({ type: 'death', t: Math.min(1, k * 1.8) }) },
-};
+// The hero poses (ingame.js HERO_POSES). Monsters, champions and bosses also
+// get their own attacks as the game plays them ('game:<key>': an InGame
+// harness runs the real Enemy or Boss against a dummy on a flat floor).
+const ANIMS = ingame.HERO_POSES ?? { idle: { label: 'Idle', speed: 0 } };
+const animSt = { t: 0 };   // (ingame.js poseStep's clock)
+let game = null;           // the InGame harness while an in-game attack plays
+let paused = false;        // the pose held still (Pause, or a lint row's frame)
+const gameVariants = (item) => (ingame.inGameVariants && item ? ingame.inGameVariants(item.group, item.id) : []);
+function stopGame() {
+  if (!game) return;
+  game.dispose(); game = null; holder.rotation.y = 0;
+  if (current?.rig) current.rig.root.visible = true;
+}
+// Play a pose: a hero pose on the model itself, or an in-game attack in its harness.
+function setAnim(id) {
+  anim = id; animT = 0; animCycle = 0; animSt.t = 0; animError = null; setPaused(false);
+  const n = $('anim-err'); if (n) n.textContent = '';
+  stopGame();
+  if (id.startsWith('game:') && current?.rig) {
+    try {
+      game = new ingame.InGame(current.item.group, current.item.id, id.slice(5));
+      holder.add(game.group); current.rig.root.visible = false;
+    } catch (e) { animError = e; console.warn('workbench: in-game attack failed', e); if (n) n.textContent = `In-game attack failed: ${e.message}`; }
+    resetView();
+  } else if (current?.m) resetView();
+  document.querySelectorAll('[data-anim]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.anim === id)));
+}
+function setPaused(on) { paused = on; const b = $('anim-pause'); if (b) { b.setAttribute('aria-pressed', String(on)); b.textContent = on ? 'Play' : 'Pause'; } }
+// Show the frame a lint problem was found on: the pose from the same start
+// (animlint.js: SETTLE s at rest, then 30 frames a second), held there.
+function seekLint(p) {
+  setAnim(p.pose);
+  const rig = current?.rig, dt = 1 / 30;
+  if (!rig) return;
+  try {
+    const st = { t: 0 }, r = game ? game.rig : rig;
+    for (let t = 0; t < (animlint.SETTLE ?? 0.6); t += dt) ingame.poseStep(r, 'idle', st, dt);
+    animSt.t = 0;
+    for (let f = 0; f <= p.frame; f++) { if (game) game.step(dt); else ingame.poseStep(rig, anim, animSt, dt); }
+  } catch (e) { console.warn('workbench: seek failed', e); }
+  setPaused(true); status(`${p.label}: frame ${p.frame} (${p.time} s), paused`);
+}
 
 function setWire(on) {
   for (const m of wired.splice(0)) m.wireframe = false;
@@ -322,6 +396,7 @@ function setWire(on) {
   if (on && current?.rig) for (const mesh of meshesOf(current.rig.root)) for (const m of matsOf(mesh)) { if (!m.wireframe) { m.wireframe = true; wired.push(m); } }
 }
 function clearModel() {
+  stopGame();
   setWire(false);
   if (boxHelper) { boxHelper.removeFromParent(); boxHelper = null; }
   if (current?.rig) disposeRig(current.rig, current.item);
@@ -345,14 +420,18 @@ function buildRef() {
       r.root.updateMatrixWorld(true); percyH = new THREE.Box3().setFromObject(r.root).getSize(new THREE.Vector3()).y;
     } catch (e) { console.warn('workbench: reference hero failed', e); }
   }
-  if (silhouette) { silhouette.root.position.set(x - 1.3, 0, trueScale ? 0 : m.center.z); silhouette.root.rotation.y = 0.45; refGroup.add(silhouette.root); }
+  if (silhouette && !percyOn) { silhouette.root.position.set(x - 1.3, 0, trueScale ? 0 : m.center.z); silhouette.root.rotation.y = 0.45; refGroup.add(silhouette.root); }
   refGroup.visible = showRef || trueScale;
 }
 // The view's frame: fitted to the model, or in True scale one fixed frame
 // for every model (grown only when a model and Percy do not fit in it).
 function viewFrame() {
   const { m } = current;
-  if (!trueScale) return { c: m.center, r: m.r };
+  if (game) {   // an in-game attack: the monster and its target, with room for a lunge
+    const d = game.target.pos.z, r = Math.max(m.r * 1.15, d / 2 + m.r * 0.7);
+    return { c: new THREE.Vector3(0, Math.min(m.size.y * 0.5, r * 0.6), d / 2), r };
+  }
+  if (!trueScale) { const d = percyGroup.visible && percyRig ? percyRig.root.position.distanceTo(m.center) * 0.62 + 0.8 : 0; return { c: m.center, r: Math.max(m.r, d) }; }
   const box = m.box.clone(); refGroup.updateMatrixWorld(true); if (silhouette?.root.parent) box.expandByObject(silhouette.root);
   const pts = [box.min, box.max, new THREE.Vector3(box.min.x, box.min.y, box.max.z), new THREE.Vector3(box.max.x, box.max.y, box.min.z)];
   if (pts.every((p) => p.distanceTo(TRUE_C) <= TRUE_R)) return { c: TRUE_C, r: TRUE_R };
@@ -364,14 +443,65 @@ function resetView() {
   const { c, r } = viewFrame(), fov = THREE.MathUtils.degToRad(camera.fov / 2);
   const d = Math.max(r / Math.sin(fov), r / Math.sin(Math.atan(Math.tan(fov) * camera.aspect))) * (trueScale ? 1.1 : 1.3);
   controls.target.copy(c);
-  camera.position.copy(c).addScaledVector(new THREE.Vector3(0.45, 0.28, 1).normalize(), d);
+  camera.position.copy(c).addScaledVector((game ? new THREE.Vector3(1, 0.32, 0.3) : new THREE.Vector3(0.45, 0.28, 1)).normalize(), d);   // (an in-game attack from the side, so the lunge reads)
   controls.minDistance = r * 0.35; controls.maxDistance = r * 12; controls.update();
-  if (trueScale) fitLights(c, r);
+  if (trueScale || game) fitLights(c, r);
 }
 function setTrueScale(on) {
   trueScale = on; $('b-scale').setAttribute('aria-pressed', String(on));
   try { localStorage.setItem('wb-true-scale', on ? '1' : '0'); } catch { /* storage blocked */ }
   if (current?.m) { if (!on) fitLights(current.m.center, current.m.r); buildRef(); resetView(); renderInspector(); }
+}
+
+// ------------------------------------------------------------------ the Percy reference
+// Percy at his true size, standing on the edge of the ring and facing the
+// model, so every model's intended scale reads at a glance. Drag him about
+// the floor to look at a part up close (P toggles; it stays on between models).
+let percyOn = (() => { try { return localStorage.getItem('wb-percy-ref') === '1'; } catch { return false; } })();
+let percyRig = null, percyDrag = null;
+function placePercy() {
+  percyGroup.visible = percyOn && !!current?.m;
+  if (!percyGroup.visible) return;
+  if (!percyRig && models.buildHeroModel) {
+    try {
+      percyRig = models.buildHeroModel('percy');
+      percyRig.animate?.({ dt: 0, speed: 0, vel: new THREE.Vector3(), action: null });
+      percyRig.root.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.userData.percyRef = true; } });
+      percyGroup.add(percyRig.root);
+    } catch (e) { console.warn('workbench: Percy reference failed', e); return; }
+  }
+  const R = ring.scale.x * 0.6275, dir = new THREE.Vector3(-0.85, 0, 0.53).normalize();   // front-left of the model, where the default camera sees him
+  percyRig.root.position.set(dir.x * R, 0, dir.z * R);
+  facePercy();
+}
+function facePercy() { const p = percyRig.root.position, c = current?.m?.center ?? new THREE.Vector3(); percyRig.root.rotation.y = Math.atan2(c.x - p.x, c.z - p.z); }
+function setPercy(on) {
+  percyOn = on; $('b-percy').setAttribute('aria-pressed', String(on));
+  try { localStorage.setItem('wb-percy-ref', on ? '1' : '0'); } catch { /* storage blocked */ }
+  placePercy(); if (current?.m) { buildRef(); resetView(); }
+}
+{
+  // drag Percy along the floor: press on him, move, let go (the orbit controls wait meanwhile)
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), floor = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), hit = new THREE.Vector3();
+  const at = (e) => { const r = renderer.domElement.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, camera); };
+  renderer.domElement.addEventListener('pointerdown', (e) => {
+    if (!percyGroup.visible || !percyRig) return;
+    at(e);
+    if (!ray.intersectObject(percyRig.root, true).length || !ray.ray.intersectPlane(floor, hit)) return;
+    percyDrag = { id: e.pointerId, off: percyRig.root.position.clone().sub(hit) };
+    controls.enabled = false; renderer.domElement.setPointerCapture(e.pointerId); renderer.domElement.style.cursor = 'grabbing';
+    e.stopImmediatePropagation(); e.preventDefault();
+  }, { capture: true });
+  renderer.domElement.addEventListener('pointermove', (e) => {
+    if (!percyDrag) {
+      if (percyGroup.visible && percyRig && e.buttons === 0) { at(e); renderer.domElement.style.cursor = ray.intersectObject(percyRig.root, true).length ? 'grab' : ''; }
+      return;
+    }
+    at(e); if (!ray.ray.intersectPlane(floor, hit)) return;
+    percyRig.root.position.set(hit.x + percyDrag.off.x, 0, hit.z + percyDrag.off.z); facePercy();
+  });
+  const end = (e) => { if (!percyDrag || e.pointerId !== percyDrag.id) return; percyDrag = null; controls.enabled = true; renderer.domElement.style.cursor = ''; };
+  renderer.domElement.addEventListener('pointerup', end); renderer.domElement.addEventListener('pointercancel', end);
 }
 
 function select(item, { fromHash = false } = {}) {
@@ -380,10 +510,11 @@ function select(item, { fromHash = false } = {}) {
   const { rig, error } = safeBuild(item);
   current = { item, rig, error };
   if (rig) {
+    ingame.prepStatic?.(item.group, item.id, rig);
     rig.root.rotation.y = 0.45; holder.add(rig.root);
     current.m = measure(rig);
     fitLights(current.m.center, current.m.r);
-    buildRef(); resetView();
+    buildRef(); placePercy(); resetView();
     if (showBox) { boxHelper = new THREE.Box3Helper(current.m.box, 0x4ad0ff); scene.add(boxHelper); }
     if (wire) setWire(true);
     status('');
@@ -391,7 +522,10 @@ function select(item, { fromHash = false } = {}) {
   $('t-name').textContent = item.name; $('t-sub').textContent = `${GROUPS.find((g) => g.id === item.group)?.label ?? item.group} · ${item.id}`;
   document.querySelectorAll('.tile').forEach((t) => t.setAttribute('aria-selected', String(t.dataset.key === item.key)));
   setCursor(item);
+  if (anim.startsWith('game:') && !gameVariants(item).some((v) => `game:${v.key}` === anim)) anim = 'idle';
+  if (rig) setAnim(anim);
   renderInspector();
+  wantLint(item, true);
   if (!fromHash) { try { history.replaceState(null, '', `#id=${encodeURIComponent(item.key)}`); } catch { /* sandboxed frames */ } }
 }
 
@@ -493,8 +627,14 @@ function renderInspector() {
     box.append(sect('Geometry',
       table({ triangles: m.tris.toLocaleString(), meshes: m.meshes, materials: m.mats, 'size (blocks)': `${m.size.x.toFixed(2)} × ${m.size.y.toFixed(2)} × ${m.size.z.toFixed(2)}  (w × h × d)`, 'height vs Percy': percyH ? `× ${(m.size.y / percyH).toFixed(2)}` : '–', 'root scale': +rig.root.scale.x.toFixed(3), 'voxel (blocks)': +(rig.root.scale.x * PX).toFixed(4), parts: extras.length ? extras.join(', ') : '–' })));
     const can = typeof rig.animate === 'function';
-    box.append(sect('Animation', can ? el('div', { class: 'row', id: 'anim-row' }, Object.entries(ANIMS).map(([id, a]) => el('button', { 'data-anim': id, 'aria-pressed': String(anim === id), onclick: () => { anim = id; animT = 0; animCycle = 0; document.querySelectorAll('[data-anim]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.anim === id))); }, text: a.label })))
+    // the hero poses (for a monster, those the game never plays on it are marked as hero styles), then its in-game attacks
+    const used = ingame.GAME_POSES?.[item.group], monster = ingame.MONSTER_GROUPS?.has(item.group), vars = gameVariants(item);
+    const poseBtn = (id, label, hero) => el('button', { 'data-anim': id, class: hero ? 'hero-style' : null, title: hero ? 'A hero pose: the game never plays it on this model' : null, 'aria-pressed': String(anim === id), onclick: () => setAnim(id), text: label });
+    box.append(sect('Animation', can ? el('div', { class: 'row', id: 'anim-row' }, Object.entries(ANIMS).filter(([id]) => !monster || used?.includes(id)).map(([id, a]) => poseBtn(id, a.label)))
       : el('div', { class: 'dim', text: 'This model has no rig animation.' }),
+    can && vars.length ? [el('div', { class: 'dim', text: 'In game: its own attacks, run by the game\'s code against a dummy' }), el('div', { class: 'row' }, vars.map((v) => poseBtn(`game:${v.key}`, v.label)))] : null,
+    can && monster ? [el('div', { class: 'dim', text: 'Hero styles (never played on this model in game)' }), el('div', { class: 'row' }, Object.entries(ANIMS).filter(([id]) => !used?.includes(id)).map(([id, a]) => poseBtn(id, a.label, true)))] : null,
+    can ? el('button', { id: 'anim-pause', 'aria-pressed': String(paused), onclick: () => setPaused(!paused), text: paused ? 'Play' : 'Pause' }) : null,
     can ? el('label', { class: 'dim' }, 'Speed ', el('input', { type: 'range', id: 'anim-speed', min: '0.1', max: '2', step: '0.05', value: '1' })) : null,
     el('div', { class: 'err', id: 'anim-err' })));
     box.append(sect('View',
@@ -503,6 +643,7 @@ function renderInspector() {
       el('label', { class: 'chk' }, el('input', { type: 'checkbox', checked: showRef, onchange: (e) => { showRef = e.target.checked; refGroup.visible = showRef || trueScale; } }), 'Scale reference (1 block + Percy)'),
       el('label', { class: 'chk' }, el('input', { type: 'checkbox', checked: trueScale, onchange: (e) => setTrueScale(e.target.checked) }), 'True scale (fixed camera, Percy beside it)'),
       el('div', { class: 'dim', text: 'True Sight is not offered: character materials do not read the sight uniform.' })));
+    box.append(lintSection(item));
   }
   const key = `wb-notes:${item.key}`;
   let saved = ''; try { saved = localStorage.getItem(key) ?? ''; } catch { /* storage blocked */ }
@@ -517,6 +658,8 @@ $('b-turn').onclick = () => { turning = !turning; syncTurn(); };
 $('b-reset').onclick = resetView;
 $('b-scale').setAttribute('aria-pressed', String(trueScale));
 $('b-scale').onclick = () => setTrueScale(!trueScale);
+$('b-percy').setAttribute('aria-pressed', String(percyOn));
+$('b-percy').onclick = () => setPercy(!percyOn);
 $('b-bg').onclick = () => { const k = Object.keys(BGS); bgName = k[(k.indexOf(bgName) + 1) % k.length]; applyBg(); };
 $('b-link').onclick = async () => {
   if (!current) return;
@@ -538,7 +681,7 @@ addEventListener('keydown', (e) => {
   else if (k === 'Enter' && cursor && document.activeElement?.tagName !== 'BUTTON') select(cursor);
   else if (k === 'PageUp') { e.preventDefault(); cycleGroup(-1); } else if (k === 'PageDown') { e.preventDefault(); cycleGroup(1); }
   else if (k === ' ' && document.activeElement?.tagName !== 'BUTTON') { e.preventDefault(); $('b-turn').click(); }
-  else if (k === 'r' || k === 'R') resetView(); else if (k === 't' || k === 'T') setTrueScale(!trueScale); else if (k === 'b' || k === 'B') $('b-bg').click();
+  else if (k === 'r' || k === 'R') resetView(); else if (k === 't' || k === 'T') setTrueScale(!trueScale); else if (k === 'p' || k === 'P') setPercy(!percyOn); else if (k === 'b' || k === 'B') $('b-bg').click();
 });
 function fromHash() {
   const id = new URLSearchParams(location.hash.slice(1)).get('id');
@@ -584,17 +727,13 @@ renderer.setAnimationLoop(() => {
   pollPad(dt);
   const rig = current?.rig;
   if (rig) {
-    if (turning) rig.root.rotation.y += dt * 0.55;
-    if (typeof rig.animate === 'function' && !animError) {
-      const speedK = +($('anim-speed')?.value ?? 1), a = ANIMS[anim] ?? ANIMS.idle, adt = dt * speedK;
+    if (turning && !paused) { if (game) holder.rotation.y += dt * 0.3; else rig.root.rotation.y += dt * 0.55; }   // (an in-game attack turns the whole arena, slower)
+    if (typeof rig.animate === 'function' && !animError && !paused) {
+      const speedK = +($('anim-speed')?.value ?? 1), adt = dt * speedK;
       animT += adt;
-      let action = null;
-      if (a.action) { const k = (animT % (a.period ?? 1)) / (a.period ?? 1); action = a.action(k, Math.floor(animT / (a.period ?? 1))); }
       try {
-        if (rig.hunch) rig.torso.rotation.x -= rig.hunch;
-        rig.animate({ dt: adt, speed: a.speed ?? 0, vel: new THREE.Vector3(), action });
-        if (rig.hunch) rig.torso.rotation.x += rig.hunch;
-        rig.tick?.(adt, fakeEntity);
+        if (game) game.step(adt);
+        else if (ingame.poseStep) ingame.poseStep(rig, anim, animSt, adt);   // (the hunch and arm spread on top, a floating rig at its hover height)
       } catch (e) { animError = e; console.warn('workbench: animation failed', e); const n = $('anim-err'); if (n) n.textContent = `Animation failed: ${e.message}`; }
     }
   }
@@ -605,8 +744,10 @@ renderer.setAnimationLoop(() => {
 // ------------------------------------------------------------------ go
 buildTabs(); buildGrid();
 if (q.get('lazy') !== '1') setTimeout(() => { for (const it of items) want(it, false); }, 1500);   // then the rest, in the background
+if (q.get('lint') !== '0') setTimeout(() => { for (const it of items) wantLint(it, false); }, 2500);   // and the animation lint (?lint=0: only the selected model)
 if (loadErrors.length) status(`Some modules failed to load:\n${loadErrors.join('\n')}`);
 if (!fromHash()) { const first = items.find((i) => i.group === 'heroes') ?? items[0]; if (first) select(first, { fromHash: true }); else renderInspector(); }
 status(isGPU ? '' : '');
 stageEl.title = isGPU ? 'WebGPU' : 'WebGL2';
-window.__wb = { items, thumbs, camera, controls, select: (k) => select(itemByKey(k)), get current() { return current; }, backend: isGPU ? 'webgpu' : 'webgl2', queueLength: () => queue.length };
+window.__wbSeek = seekLint;
+window.__wb = { items, thumbs, lints, setAnim, seek: seekLint, get game() { return game; }, camera, controls, select: (k) => select(itemByKey(k)), get current() { return current; }, backend: isGPU ? 'webgpu' : 'webgl2', queueLength: () => queue.length };

@@ -730,7 +730,7 @@ export const BOOK1_HOOKS = {
   // ---- the Furies: three bodies, one health bar
   furiesInit(b) {
     const rigs = [b.rig, BOSS_MODELS.megaera(), BOSS_MODELS.tisiphone()];
-    b.furies = { rigs, names: [...t('bosses.furies.sisters')], active: 0, lp: rigs.map(() => new THREE.Vector3()), crack: [0, 0, 0], orbit: Math.random() * 6 };
+    b.furies = { rigs, names: [...txt('bosses.furies.sisters')], active: 0, lp: rigs.map(() => new THREE.Vector3()), crack: [0, 0, 0], orbit: Math.random() * 6 };
     for (let i = 1; i < 3; i++) { const r = rigs[i]; r.tick = (dt, e) => animateExtras(r, dt, e); b.object.add(r.root); b.furies.lp[i].set(i === 1 ? 7 : -7, 5, 0); rigs[i].root.position.copy(b.furies.lp[i]); }
   },
   furiesTick(b, dt) {
