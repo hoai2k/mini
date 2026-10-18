@@ -11,17 +11,47 @@ import { mulberry32 } from '../util.js';
 export const HS = 1.12;           // the Rig's head scale: one head pixel is PX * HS
 export const solid = solidMat;
 
-// One material per skin id, painted once. opts.res paints a finer skin (2 = 128 × 128).
+// ---- voxel density ----------------------------------------------------------------
+// A hero is drawn at rig scale 1.18 (root 0.944 = 1.18 x CHAR_SCALE): one skin
+// pixel is about 0.055 m, and its 128 x 128 skin (res 2) has two texels per
+// skin pixel. A model made big with its rig scale should keep those sizes, so
+// a big model is made of more blocks rather than bigger ones (the owner's rule).
+// density = how many hero pixels fit in one of the model's own skin pixels.
+export const HERO_SCALE = 1.18;
+// The build in progress: k is the extra scale a champion is built at (its
+// look.scale, champions.js buildChampionRig); key names the build for the
+// voxel kit's geometry cache (monsters.js); n counts the kits it made.
+export const BUILD = { k: 1, key: null, n: 0 };
+export function withBuild(opts, fn) {
+  const prev = { k: BUILD.k, key: BUILD.key, n: BUILD.n };
+  BUILD.k = opts.k ?? prev.k; BUILD.key = opts.key ?? null; BUILD.n = 0;
+  try { return fn(); } finally { Object.assign(BUILD, prev); }
+}
+// density of a model built at rig scale s (the champion factor included)
+export const densityFor = (s = HERO_SCALE) => (s / HERO_SCALE) * BUILD.k;
+export const rigDensity = (rig) => (rig.baseScale / (HERO_SCALE * 0.8)) * BUILD.k;
+// the same for loose cubes and cells: a hero's voxel hair and outfit cubes
+// are 1.12 of its skin pixels (the measured hero cube, 0.0615 m)
+export const HERO_CUBE = 1.12;
+export const voxDensity = (rig) => rigDensity(rig) / HERO_CUBE;
+// skin resolution (1, 2 or 4) whose texels match a hero's at rig scale s
+export const resFor = (s) => Math.max(1, Math.min(4, 2 ** Math.round(Math.log2(2 * densityFor(s)))));
+
+// One material per skin id and resolution, painted once. opts.res paints a
+// finer skin (2 = 128 x 128); opts.scale (the rig scale the builder is about
+// to pass) works the resolution out so the texels match a hero's (resFor).
 const skins = new Map();
 export function skinMat(id, painter, opts = {}) {
-  if (skins.has(id)) return skins.get(id);
+  const res = opts.scale ? Math.max(opts.res ?? 1, resFor(opts.scale)) : (opts.res ?? 1);
+  const key = `${id}@${res}`;
+  if (skins.has(key)) return skins.get(key);
   let seed = 7; for (const ch of id) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
-  const S = new Skin(seed, opts.res ?? 1);
+  const S = new Skin(seed, res);
   painter(S);
   const m = makeCharMaterial(S.texture(), { emitStrength: opts.emit ?? 3.2, roughness: opts.rough ?? 0.7, fill: opts.fill ?? 0.16 });
   m.alphaTest = 0.5;
   if (opts.dissolve) m.userData.dissolve.value = opts.dissolve;
-  skins.set(id, m);
+  skins.set(key, m);
   return m;
 }
 

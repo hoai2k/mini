@@ -38,7 +38,7 @@ import { Rig, PX, markHeld } from './character.js';
 import { QuadRig, paintQuad } from './quad.js';
 import { paintPerson } from './mortals.js';
 import { t as txt } from '../text_config.js';
-import { HS, skinMat, group, sway } from './parts.js';
+import { HS, skinMat, group, sway, BUILD } from './parts.js';
 
 // The new kinds (world/roamZones.js counts the small ones as fodder).
 export const FODDER_IDS = ['karpos', 'karpos_slinger', 'colchis_calf', 'myrmex', 'myrmex_spitter', 'boarlet', 'crab', 'king_crab', 'basilisk', 'earthborn', 'daedalus_drone', 'laistrygonian', 'shade', 'keres'];
@@ -243,10 +243,12 @@ function wings(rig, K, { y, z = -2, span, chord, cols, flap = 1, ragged = 0 }) {
 // kind shares those geometries and skips the box work (a horde of forty
 // builds one model's worth). The builds are seeded, so every spawn of a kind
 // lays down the same parts in the same order.
+// opts.density (default the champion's BUILD.k): the kit's and blobs' density
+// (monsters.js VoxKit); the cache is kept per kind and density.
 const GEO = new Map(), NOBOX = { order: 'XYZ' };
 function kitOf(K0, kind, rig, mat, opts) {
-  const K = K0.kit(rig, mat, opts), hit = GEO.get(kind), done = K.done.bind(K);
-  K.vfaces = new Map(); K.cached = !!hit;
+  const K = K0.kit(rig, mat, opts), key = `${kind}@${K.density.toFixed(3)}`, hit = GEO.get(key), done = K.done.bind(K);
+  K.nocache = true; K.ao = 0; K.cached = !!hit;   // (shaded below, once per kind)
   if (hit) K.box = function (p) { let L = this.lists.get(p); if (!L) this.lists.set(p, L = []); L.push(NOBOX); return this; };
   K.done = () => {
     const parts = [...K.lists.keys()];
@@ -256,14 +258,9 @@ function kitOf(K0, kind, rig, mat, opts) {
     }
     if (hit) throw new Error(`fodder ${kind}: parts changed between builds`);
     const n = rig.meshes.length; done();
-    const geos = rig.meshes.slice(n).map((m, i) => {
-      const F = K.vfaces.get(parts[i]); if (!F) return m.geometry;
-      const g = m.geometry, cat = (a, extra) => { const A = new Float32Array(a.array.length + extra.length); A.set(a.array); A.set(extra, a.array.length); return new THREE.Float32BufferAttribute(A, 3); };
-      for (const [k, extra] of [['position', F.P], ['normal', F.N], ['color', F.C]]) g.setAttribute(k, cat(g.attributes[k], extra));
-      return g;
-    });
+    const geos = rig.meshes.slice(n).map((m) => m.geometry);
     for (const g of geos) paintShade(g, opts.ao ?? 0.3);
-    GEO.set(kind, geos);
+    GEO.set(key, geos);
     return rig;
   };
   return K;
@@ -272,7 +269,7 @@ function kitOf(K0, kind, rig, mat, opts) {
 // underside (the sheets' soft occlusion), and no lit colour is left bright
 // enough to pass for a glowing one (only colours with a channel at full
 // strength glow).
-function paintShade(g, ao) {
+export function paintShade(g, ao) {
   const P = g.attributes.position.array, Cc = g.attributes.color.array;
   let lo = Infinity, hi = -Infinity;
   for (let i = 1; i < P.length; i += 3) { lo = Math.min(lo, P[i]); hi = Math.max(hi, P[i]); }
@@ -293,9 +290,96 @@ function paintShade(g, ao) {
 // lo/hi keep a slice of it (lo 0 is a dome), pw squares it off (2 is round,
 // 3 boxier), rx tilts it about x (rear up, nose down), keep(x, y, z) carves.
 const FACE6 = [[1, 0, 0, 0.9], [-1, 0, 0, 0.9], [0, 1, 0, 1.1], [0, -1, 0, 0.62], [0, 0, 1, 1], [0, 0, -1, 0.84]];
-function blob(K, p, c, r, cell, col, { lo = -1, hi = 1, pw = 2, rx = 0, run = [2, 4], keep = null } = {}) {
+// The cell shrinks with the kit's density (K.density), so a big model's
+// masses are made of hero-sized cells. Untilted blobs of one part share one
+// grid of cells (K.vgrid): a later blob paints over an earlier one where
+// they overlap, and only the faces of the whole sculpted mass that are open
+// to the air are drawn (flushBlobs, when the kit is done), so masses can be
+// stacked and carved freely without paying for the faces between them.
+export function blob(K, p, c, r, cell, col, { lo = -1, hi = 1, pw = 2, rx = 0, run = [2, 4], keep = null } = {}) {
   if (!K.lists.has(p)) K.lists.set(p, []);
   if (K.cached) return;
+  cell /= K.density ?? 1;
+  if (rx) return blobTilted(K, p, c, r, cell, col, { lo, hi, pw, rx, run, keep });
+  K.vgrid ??= new Map();
+  const gk = `${cell.toFixed(4)}`;
+  let parts = K.vgrid.get(p); if (!parts) K.vgrid.set(p, parts = new Map());
+  let G = parts.get(gk); if (!G) parts.set(gk, G = { cell, cells: new Map(), lo: [1e9, 1e9, 1e9], hi: [-1e9, -1e9, -1e9] });
+  const I0 = Math.floor((c[0] - r[0]) / cell), I1 = Math.ceil((c[0] + r[0]) / cell), J0 = Math.floor((c[1] - r[1]) / cell), J1 = Math.ceil((c[1] + r[1]) / cell), K0 = Math.floor((c[2] - r[2]) / cell), K1 = Math.ceil((c[2] + r[2]) / cell);
+  for (let k = K0; k < K1; k++) for (let j = J0; j < J1; j++) {
+    let colr = null, left = 0;
+    for (let i = I0; i < I1; i++) {
+      const x = ((i + 0.5) * cell - c[0]) / r[0], y = ((j + 0.5) * cell - c[1]) / r[1], z = ((k + 0.5) * cell - c[2]) / r[2];
+      if (y < lo || y > hi || Math.abs(x) ** pw + Math.abs(y) ** pw + Math.abs(z) ** pw >= 1 || (keep && !keep(x, y, z))) { left = 0; continue; }
+      if (left <= 0) { colr = toC(col(x, y, z)); left = run[0] + Math.floor(K.r() * (run[1] - run[0] + 1)); }
+      G.cells.set(gkey(i, j, k), colr); left--;
+      if (i < G.lo[0]) G.lo[0] = i; if (j < G.lo[1]) G.lo[1] = j; if (k < G.lo[2]) G.lo[2] = k;
+      if (i > G.hi[0]) G.hi[0] = i; if (j > G.hi[1]) G.hi[1] = j; if (k > G.hi[2]) G.hi[2] = k;
+    }
+  }
+}
+const GW = 4096, GO = 2048;
+const gkey = (i, j, k) => (i + GO) + GW * ((j + GO) + GW * (k + GO));
+// Carve cells out of a part's shared blob grid: every cell whose centre
+// passes cut(x, y, z) (in skin pixels) is removed (a mouth, a gap).
+export function carve(K, p, cut) {
+  for (const G of K.vgrid?.get(p)?.values() ?? []) for (const key of [...G.cells.keys()]) {
+    const i = key % GW - GO, j = Math.floor(key / GW) % GW - GO, k = Math.floor(key / (GW * GW)) - GO;
+    if (cut((i + 0.5) * G.cell, (j + 0.5) * G.cell, (k + 0.5) * G.cell)) G.cells.delete(key);
+  }
+}
+// Draw the shared blob grids: the open faces of every part's cells, merged
+// along x where neighbours share a colour (monsters.js VoxKit.done calls it).
+export function flushBlobs(K) {
+  if (!K.vgrid) return;
+  for (const [p, parts] of K.vgrid) for (const G of parts.values()) {
+    if (!G.cells.size) continue;
+    let F = K.vfaces.get(p); if (!F) K.vfaces.set(p, F = { P: [], N: [], C: [] });
+    const { cell, cells } = G, h = cell / 2;
+    const put = (x, y, z) => F.P.push(x * PX, y * PX, z * PX);
+    const quad = (Q, fx, fy, fz, cc, sh) => {
+      const hot = Math.max(cc.r, cc.g, cc.b) >= 0.999, g = hot ? 1 : sh;
+      for (const q of [0, 1, 2, 0, 2, 3]) { put(...Q[q]); F.N.push(fx, fy, fz); F.C.push(cc.r * g, cc.g * g, cc.b * g); }
+    };
+    for (const [fx, fy, fz, sh] of FACE6) {
+      if (fx) {
+        // faces along x: strips merged along z
+        for (let i = G.lo[0]; i <= G.hi[0]; i++) for (let j = G.lo[1]; j <= G.hi[1]; j++) {
+          let k = G.lo[2];
+          while (k <= G.hi[2]) {
+            const cc = cells.get(gkey(i, j, k));
+            if (!cc || cells.has(gkey(i + fx, j, k))) { k++; continue; }
+            let e = k + 1;
+            while (e <= G.hi[2] && cells.get(gkey(i, j, e)) === cc && !cells.has(gkey(i + fx, j, e))) e++;
+            const x = (i + 0.5) * cell + fx * h, y = (j + 0.5) * cell, z0 = k * cell, z1 = e * cell;
+            quad(fx > 0 ? [[x, y - h, z1], [x, y - h, z0], [x, y + h, z0], [x, y + h, z1]] : [[x, y - h, z0], [x, y - h, z1], [x, y + h, z1], [x, y + h, z0]], fx, 0, 0, cc, sh);
+            k = e;
+          }
+        }
+        continue;
+      }
+      // faces along y and z: strips merged along x
+      for (let k = G.lo[2]; k <= G.hi[2]; k++) for (let j = G.lo[1]; j <= G.hi[1]; j++) {
+        let i = G.lo[0];
+        while (i <= G.hi[0]) {
+          const cc = cells.get(gkey(i, j, k));
+          if (!cc || cells.has(gkey(i, j + fy, k + fz))) { i++; continue; }
+          let e = i + 1;
+          while (e <= G.hi[0] && cells.get(gkey(e, j, k)) === cc && !cells.has(gkey(e, j + fy, k + fz))) e++;
+          const x0 = i * cell, x1 = e * cell, y = (j + 0.5) * cell, z = (k + 0.5) * cell;
+          let Q;
+          if (fy) { const yy = y + fy * h; Q = fy > 0 ? [[x0, yy, z + h], [x1, yy, z + h], [x1, yy, z - h], [x0, yy, z - h]] : [[x0, yy, z - h], [x1, yy, z - h], [x1, yy, z + h], [x0, yy, z + h]]; }
+          else { const zz = z + fz * h; Q = fz > 0 ? [[x0, y - h, zz], [x1, y - h, zz], [x1, y + h, zz], [x0, y + h, zz]] : [[x1, y - h, zz], [x0, y - h, zz], [x0, y + h, zz], [x1, y + h, zz]]; }
+          quad(Q, 0, fy, fz, cc, sh);
+          i = e;
+        }
+      }
+    }
+  }
+  K.vgrid = null;
+}
+// (a blob tilted about x: drawn on its own, its open faces only)
+function blobTilted(K, p, c, r, cell, col, { lo = -1, hi = 1, pw = 2, rx = 0, run = [2, 4], keep = null } = {}) {
   const nx = Math.ceil(r[0] / cell), ny = Math.ceil(r[1] / cell), nz = Math.ceil(r[2] / cell), DX = 2 * nx + 2, DY = 2 * ny + 2;
   const key = (i, j, k) => (i + nx + 1) + DX * ((j + ny + 1) + DY * (k + nz + 1));
   const cells = new Map();
@@ -352,7 +436,7 @@ const KG = { gold: 0xe0b050, goldL: 0xf8d878, goldD: 0xa8782a, straw: 0xd0a048, 
 function karposSkin() {
   const { goldD, eye } = KG;
   return skinMat('karpos', (S) => paintPerson(S, { skin: 0x2a1c0c, eye: 0x140c04, eyeWhite: 0x140c04, brow: 0x2a1c0c, mouth: false, top: KG.gold, sleeve: KG.gold, hand: KG.gold, pants: goldD, shoes: false,
-    face: (s, ey) => { s.rect(8, ey - 3, 8, 8, 0x1e1408, 0.1); for (const x of [9, 13]) { s.rect(x, ey - 0.5, 2, 2, eye, 0); s.dot(x + 0.5, ey, 0xe8ffb0, 1, 1); } s.rect(10, ey + 3, 4, 1, 0x0e0804, 0); } }), { emit: 1.6 });
+    face: (s, ey) => { s.rect(8, ey - 3, 8, 8, 0x1e1408, 0.1); for (const x of [9, 13]) { s.rect(x, ey - 0.5, 2, 2, eye, 0); s.dot(x + 0.5, ey, 0xe8ffb0, 1, 1); } s.rect(10, ey + 3, 4, 1, 0x0e0804, 0); } }), { emit: 1.6, scale: 1.05 });
 }
 function buildKarpos(K0, slinger = false) {
   const kind = slinger ? 'karpos_slinger' : 'karpos';
@@ -1014,7 +1098,7 @@ function buildShade(K0) {
   const mat = skinMat('shade', (S) => {
     paintPerson(S, { skin: 0x1a2030, eye: dark, eyeWhite: dark, brow: 0x1a2230, mouth: false, top: SH[0], sleeve: SH[0], hand: bone, pants: SH[1], shoes: false,
       face: (s, ey) => { s.rect(8, ey - 3, 8, 8, 0x0e1420, 0.1); for (const x of [9, 13]) { s.rect(x, ey - 0.5, 2, 1.5, cyan, 0); s.dot(x + 0.5, ey, cyanL, 1, 1); } s.rect(10, ey + 2.5, 4, 2.5, 0x04060a, 0); s.rect(10.5, ey + 2.5, 3, 0.5, 0xc8d0d8, 0); } });
-  }, { emit: 2, fill: 0.4, dissolve: 0.18 });
+  }, { emit: 2, fill: 0.4, dissolve: 0.18, scale: 1.15 });
   const rig = new Rig({ material: mat, scale: 1.15, armW: 2.6, bodyW: 8, bodyH: 13, jacket: false });
   const K = kitOf(K0, 'shade', rig, mat, { seed: 113, fill: 0.4, emit: 0.9, ao: 0.35 });
   const T = rig.torso, Hd = rig.head, H8 = 8 * HS, FADE = [0x4a6a88, 0x5a7a98, 0x3a5a78], MOTE = [cyan, 0x9af0ff, cyanL];
@@ -1065,7 +1149,7 @@ function buildShade(K0) {
 function buildKeres(K0) {
   const blk = 0x1a1216, blkL = 0x3a2a30, hairC = [0xe8e4e0, 0xc8c4c0, 0xffffff], pale = 0xe0d8d0, red = 0xff2a2a, redD = 0xa81a1a, RAG = [blk, blkL, 0x2a1e24];
   const mat = skinMat('keres', (S) => paintPerson(S, { skin: pale, hair: 0xe8e4e0, fringe: 2, hairSide: 4, hairBack: 8, eye: 0x0a0406, eyeWhite: 0x0a0406, brow: 0x8a8070, mouth: false, top: blk, sleeve: blk, hand: pale, pants: blk, shoes: false,
-    face: (s, ey) => { for (const x of [9, 13]) { s.rect(x, ey - 1, 2, 2, 0x2a0408, 0); s.rect(x + 0.5, ey - 0.5, 1, 1, red, 0); } s.rect(11, ey + 1.5, 2, 1, 0x6a5a5a, 0); s.rect(9.5, ey + 3, 5, 1.5, 0x2a0408, 0); for (let x = 9.5; x < 14.5; x += 1) s.dot(x, ey + 3, 0xfff8f0, 0.6, 1); } }), { emit: 1.6 });
+    face: (s, ey) => { for (const x of [9, 13]) { s.rect(x, ey - 1, 2, 2, 0x2a0408, 0); s.rect(x + 0.5, ey - 0.5, 1, 1, red, 0); } s.rect(11, ey + 1.5, 2, 1, 0x6a5a5a, 0); s.rect(9.5, ey + 3, 5, 1.5, 0x2a0408, 0); for (let x = 9.5; x < 14.5; x += 1) s.dot(x, ey + 3, 0xfff8f0, 0.6, 1); } }), { emit: 1.6, scale: 1.3 });
   const rig = new Rig({ material: mat, scale: 1.3, armW: 2.6, bodyW: 7, jacket: false });
   const K = kitOf(K0, 'keres', rig, mat, { seed: 173, rough: 0.9, emit: 0.9, ao: 0.3 });
   const T = rig.torso, Hd = rig.head, H8 = 8 * HS;

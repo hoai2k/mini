@@ -13,7 +13,7 @@
 import * as THREE from 'three/webgpu';
 import { Rig, PX, makeCharMaterial, HOLD_PITCH, markTip } from './character.js';
 import { paintPerson } from './mortals.js';
-import { skinMat, group, HS, bruteLimbs, sway } from './parts.js';
+import { skinMat, group, HS, bruteLimbs, sway, withBuild, voxDensity } from './parts.js';
 import { MONSTERS, HELLHOUND, buildMonsterModel, animateExtras, kit, dropMeshes, eagle, hound, buildScorpion, buildSkeleton, buildCyclops } from './monsters.js';
 
 const GOLD = 0xf0b030, GOLD_D = 0xb87a14, GOLD_L = 0xffe070;
@@ -217,12 +217,12 @@ function buildBronzeWarden() {
 function buildGorgos() {
   const PELT = [0x6a4224, 0x5a3418, 0x7a4c28, 0x4a2a14];
   const rig = buildCyclops({ id: 'champ_gorgos', pal: { wool: PELT, iris: 0xff6a10, ram: false } });
-  const K = kit(rig, rig.material, { seed: 127, rough: 0.85 });
+  const K = kit(rig, rig.material, { seed: 127, rough: 0.85, density: voxDensity(rig) });   // (at the cyclops's own voxel size)
   const T = rig.torso, Hd = rig.head, hs = (9 / 8) * HS, BONE = [0xe8e0c8, 0xd0c8b0];
   // the bear head hood: a furry dome on his head, a snout over his brow, ears and fangs
-  const hood = group(Hd, 0, 10.6 * hs, 0.4);
+  const hood = group(Hd, 0, 10.4, 0);   // (on the mane: the rebuilt cyclops's head is sculpted, not the 8-pixel skin box)
   K.box(hood, 0, 0, 0, 13, 5, 12, PELT[0]);
-  K.clumps(hood, [0, 0, 0], [13, 5, 12], { n: 40, size: [1.4, 2.4], cols: PELT, faces: 'tlrfk' });
+  K.clumps(hood, [0, 0, 0], [13, 5, 12], { n: 12, size: [1.4, 2.4], cols: PELT, faces: 'tlrfk' });
   K.box(hood, 0, -0.6, 7.6, 6, 4, 4, PELT[2]); K.box(hood, 0, 0.4, 9.8, 3.4, 2, 1, 0x1a1008); K.box(hood, 0, -2, 8.6, 5, 1, 3, 0x5a1a10);
   for (const sx of [-1, 1]) {
     K.box(hood, sx * 5, 3.4, 1, 2.6, 2.6, 1.6, PELT[1]); K.box(hood, sx * 5, 3.4, 1.85, 1.4, 1.4, 0.2, 0x3a2010);
@@ -231,7 +231,7 @@ function buildGorgos() {
   }
   for (let i = 0; i < 7; i++) K.box(hood, -4.5 + i * 1.5, -4, -5.8, 1.6, 4 + (i % 3), 1.2, PELT[i % 4]);
   for (let i = 0; i < 9; i++) { const L = 6 + (i % 3) * 3; K.box(T, -5.4 + i * 1.35, 13 - L / 2, -3.6, 1.6, L, 1.2, PELT[i % 4]); }
-  K.shag(T, [0, 12, -0.5], [11, 1.4, 6.6], { cols: PELT, step: 1.6, len: [1.8, 3], low: 1, top: true, sides: true });
+  K.shag(T, [0, 12, -0.5], [11, 1.4, 6.6], { cols: PELT, step: 2.4, len: [1.8, 3], low: 1, top: true, sides: true });
   // a necklace of teeth and bones with three small skulls
   for (let i = 0; i < 11; i++) { const a = -1.1 + i * 0.22; K.box(T, Math.sin(a) * 4.8, 11.4 - Math.cos(a) * 2.6, 3.6, 0.8, 1.8, 0.8, BONE[i % 2], 0, 0, a); }
   for (const x of [-2.8, 0, 2.8]) {
@@ -425,16 +425,18 @@ function ringMat(color) {
 }
 
 // The champion's rig, scaled and with its outline glow and aura tick.
+// The champion is built at its size (look.scale, parts.js withBuild), so its
+// skin, voxel detail and blobs come out finer, not as the kind enlarged.
 export function buildChampionRig(id, kind) {
-  const look = championLook(id, kind);
-  let rig;
-  if (look.build) rig = look.build();
-  else {
-    rig = buildMonsterModel(MONSTERS[kind]?.model ?? kind);
-    if (look.remap) remapRig(rig, `champ:${kind}`, look.remap);
-    crownAny(rig);
-  }
-  rig.baseScale *= look.scale ?? 1.3;
+  const look = championLook(id, kind), ks = look.scale ?? 1.3;
+  const rig = withBuild({ k: ks, key: `c:${id ?? kind}` }, () => {
+    if (look.build) return look.build();
+    const r = buildMonsterModel(MONSTERS[kind]?.model ?? kind);
+    if (look.remap) remapRig(r, `champ:${kind}`, look.remap);
+    crownAny(r);
+    return r;
+  });
+  rig.baseScale *= ks;
   rig.root.scale.setScalar(rig.baseScale);
   // the glow: an emissive tint over its own skin and detail (only when the
   // material is the champion's own, never a kind's shared one) and a ring of
@@ -445,8 +447,9 @@ export function buildChampionRig(id, kind) {
   ring.rotation.x = -Math.PI / 2; ring.position.y = 0.04 / rig.baseScale; ring.scale.setScalar(R); ring.renderOrder = 2;
   rig.root.add(ring); rig.extras.ring = ring;
   rig.championLook = look;
+  // (rig.onTick is the kind's own behaviour, fodder.js: it used to be lost here)
   rig.tick = (dt, e) => {
-    animateExtras(rig, dt, e); auraTick(rig, look, dt, e);
+    animateExtras(rig, dt, e); rig.onTick?.(dt, e); auraTick(rig, look, dt, e);
     ring.visible = !e?.dead; ring.scale.setScalar(R * (1 + Math.sin((rig.t ?? 0) * 3) * 0.06));
   };
   return rig;
