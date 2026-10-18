@@ -63,7 +63,7 @@ export class LootDrops {
     const g = this.game, sv = g.saveFor?.(p) ?? g.save, save = sv.data;   // net: into that player's profile
     g.scene.remove(d.grp); g.lights.remove(d.light);
     const it = normalizeItem(d.item);
-    it.isNew = true; it.finder = p.hero;
+    it.isNew = true; it.finder = p.hero; it.got = Date.now();   // (the inventory sorts new finds by this)
     save.inventory.push(it);
     sv.write();
     g.mission?.stats.loot.push(it);

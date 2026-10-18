@@ -10,7 +10,7 @@
 import { h, toast, confirmDialog } from './ui.js';
 import { HEROES } from '../heroes/index.js';
 import { KEY_LABEL, PAD_LABEL } from '../padmap.js';
-import { treeOf, rankOf, canRank, rankUp, equip, respec, knownPowers, powerInfo, validLoadout, pointsFor, pointsLeft, branchPoints, treeCost, GATES, SLOTS } from '../heroes/skillRules.js';
+import { treeOf, rankOf, canRank, rankUp, equip, respec, knownPowers, powerInfo, validLoadout, pointsFor, pointsLeft, branchPoints, treeCost, GATES, TIER_LEVEL, SLOTS } from '../heroes/skillRules.js';
 import { t as tx, tn } from '../text_config.js';
 
 const KIND = { power: tx('skillsScreen.kind.power'), upgrade: tx('skillsScreen.kind.upgrade'), passive: tx('skillsScreen.kind.passive') };
@@ -71,7 +71,9 @@ export function openSkills(game, player) {
       const nodes = T.nodes.filter((n) => n.branch === b.id), tiers = [...new Set(nodes.map((n) => n.tier))].sort();
       return h('div', { class: 'branch' },
         h('div', { class: 'bh' }, h('div', { class: 'bn' }, b.name), h('div', { class: 'bd' }, tx('skillsScreen.branchSpent', { desc: b.desc, n: branchPoints(hero, S.skills, b.id) }))),
-        ...tiers.flatMap((t) => [t > 1 ? h('div', { class: 'gate' + (branchPoints(hero, S.skills, b.id, t) >= GATES[t - 1] ? ' met' : '') }, tx('skillsScreen.tierGate', { tier: t, n: GATES[t - 1] })) : null, ...nodes.filter((n) => n.tier === t).map(nodeBtn)]));
+        ...tiers.flatMap((t) => [t > 1 ? (level < (TIER_LEVEL[t - 1] ?? 1)
+          ? h('div', { class: 'gate' }, tx('skillsScreen.tierLevel', { tier: t, level: TIER_LEVEL[t - 1] }))   // (a tier opens at a level: heroes/skillRules.js)
+          : h('div', { class: 'gate' + (branchPoints(hero, S.skills, b.id, t) >= GATES[t - 1] ? ' met' : '') }, tx('skillsScreen.tierGate', { tier: t, n: GATES[t - 1] }))) : null, ...nodes.filter((n) => n.tier === t).map(nodeBtn)]));
     };
     const reset = inCamp
       ? h('button', { class: 'btn small', 'data-k': 'reset', onclick: () => confirmDialog(game, {

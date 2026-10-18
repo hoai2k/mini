@@ -9,6 +9,7 @@
 import { rollItem, normalizeItem } from './loot.js';
 import { migrateHero, defaultLoadout, pointsFor, TREE_VERSION } from './heroes/skillRules.js';
 import { t } from './text_config.js';
+import { xpFor } from './progression.js';
 
 export const LEGACY_KEY = 'half-blood-quests-save-v1';   // the single save of version 1
 export const VERSION = 2;
@@ -97,8 +98,10 @@ export class Save {
   }
   item(uid) { return this.data.inventory.find((i) => i.uid === uid) ?? null; }
   gearFor(id) { return this.hero(id).gear.map((u) => (u ? this.item(u) : null)); }
-  // XP curve: 120, 180, 240…
-  xpFor(level) { return 60 + level * 60; }
+  // XP to the next level (progression.js: 100 at level 1, about 2,000 at
+  // level 15, 4,000 at level 30). A save from the older, flatter curve keeps
+  // its level and XP; only the next levels cost more.
+  xpFor(level) { return xpFor(level); }
   addXp(n) {
     const d = this.data; let ups = 0;
     d.xp += n;

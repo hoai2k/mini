@@ -243,7 +243,7 @@ export class Online {
     const g = this.game;
     if (g.mode === 'mission' && g.mission) {
       const d = g.mission.def;
-      return { n: this.setupNonce, mode: 'mission', def: { biome: d.biome, objective: d.objective, boss: d.boss, difficulty: d.difficulty, seed: d.seed, chapter: d.chapter ?? null, mist: d.mist ?? 0, disguise: d.disguise ?? [], objText: d.objText ?? null, id: d.id ?? null } };
+      return { n: this.setupNonce, mode: 'mission', def: { biome: d.biome, objective: d.objective, boss: d.boss, difficulty: d.difficulty, level: d.level ?? d.difficulty, seed: d.seed, chapter: d.chapter ?? null, mist: d.mist ?? 0, disguise: d.disguise ?? [], objText: d.objText ?? null, id: d.id ?? null } };
     }
     // the opening: the Manhattan prologue, or a cutscene (guests play the same one)
     if (g.mode === 'prologue') return { n: this.setupNonce, mode: 'prologue' };
@@ -455,7 +455,7 @@ export class Online {
       if (g.minigame?.abort) g.minigame.abort();
       this.applied = id;
       this.clearPuppets();
-      const def = { biome: str(sc.def.biome, 24), objective: str(sc.def.objective, 24), boss: sc.def.boss ? str(sc.def.boss, 32) : null, difficulty: int(sc.def.difficulty, 1, 9, 1), seed: sc.def.seed, chapter: sc.def.chapter ? str(sc.def.chapter, 24) : null, mist: num(sc.def.mist, 0, 1), disguise: Array.isArray(sc.def.disguise) ? sc.def.disguise.map((x) => str(x, 24)).slice(0, 8) : [], objText: sc.def.objText ? str(sc.def.objText, 80) : null, remote: true };
+      const def = { biome: str(sc.def.biome, 24), objective: str(sc.def.objective, 24), boss: sc.def.boss ? str(sc.def.boss, 32) : null, difficulty: int(sc.def.difficulty, 1, 9, 1), level: int(sc.def.level ?? sc.def.difficulty, 1, 20, 1), seed: sc.def.seed, chapter: sc.def.chapter ? str(sc.def.chapter, 24) : null, mist: num(sc.def.mist, 0, 1), disguise: Array.isArray(sc.def.disguise) ? sc.def.disguise.map((x) => str(x, 24)).slice(0, 8) : [], objText: sc.def.objText ? str(sc.def.objText, 80) : null, remote: true };
       if (sc.def.id) def.id = str(sc.def.id, 32);
       g.ui.closeAll(); g.paused = false;
       g.endCutscene?.();
@@ -599,9 +599,9 @@ export class Online {
     let e;
     try {
       if (kind.startsWith('B:')) {
-        e = new Boss(g, kind.slice(2), pos, g.mission?.def.difficulty ?? 1);
+        e = new Boss(g, kind.slice(2), pos, g.mission?.def.level ?? g.mission?.def.difficulty ?? 1);
         if (g.mission) { g.mission.boss = e; g.mission.bossSpawned = true; g.hud.setBoss(e); g.mission.updateText(); }
-      } else e = new Enemy(g, kind, pos, { elite: elite || null, level: g.mission?.def.difficulty ?? 1, disguise: disguise || null });
+      } else e = new Enemy(g, kind, pos, { elite: elite || null, level: g.mission?.def.level ?? g.mission?.def.difficulty ?? 1, disguise: disguise || null });
     } catch (err) { console.warn('puppet', kind, err); return null; }
     e.netId = id;
     this.makePuppet(e);

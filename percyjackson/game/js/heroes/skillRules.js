@@ -15,8 +15,14 @@
 // Rules: a rank costs 1 point (learning a power costs 2); a node may need
 // another node first (`req`); a tier-2 node needs GATES[1] points spent in
 // its branch's tier-1 nodes, a tier-3 node GATES[2] in its tier-1 and tier-2
-// nodes. One point a level, every hero alike, so a level-14 hero has 14
-// points for a tree of about 30.
+// nodes, and each tier opens at a hero level (TIER_LEVEL). One point a
+// level, every hero alike; a tree costs 33-36 points, so it fills at about
+// level 33, when the last region (the Fields of Asphodel, monster levels
+// 9-12) is done (progression.js paces the levels).
+// Every branch ends in a tier-3 node: a capstone passive (`stat`: what each
+// rank adds to the hero's stats, applied by heroes/kit.js) or the godly
+// power's upgrade. Damage passives multiply (meleeMult ×, techMult ×), so
+// they stay worth having at any gear power.
 //
 // Pure module (no DOM, no Three.js), so the node tests can load it.
 import { t, tn } from '../text_config.js';
@@ -24,6 +30,7 @@ import { t, tn } from '../text_config.js';
 export const TREE_VERSION = 2;           // hero data with an older (or no) `tree` is migrated
 export const POWER_COST = 2;             // learning a new power
 export const GATES = [0, 2, 5];          // points in the branch's lower tiers, per tier
+export const TIER_LEVEL = [1, 3, 12];    // the hero level each tier opens at (tier 3: the capstones and the godly power's upgrade)
 export const SLOTS = ['t1', 't2', 't3'];
 
 // Node makers: U(pgrade), S (passive), P(ower). `at(r)` says what rank r gives.
@@ -31,6 +38,10 @@ const U = (id, name, branch, tier, max, desc, at, o = {}) => ({ id, name, branch
 const S = (id, name, branch, tier, max, desc, at, o = {}) => ({ id, name, branch, tier, max, kind: 'passive', desc, at, ...o });
 const P = (id, name, icon, branch, tier, max, desc, at, o = {}) => ({ id, name, icon, branch, tier, max, kind: 'power', desc, at, ...o });
 const pct = (n) => `+${Math.round(n)}%`;
+// A capstone: a tier-3 passive of two ranks that needs the branch's tier-2
+// power; `stat(s, r)` adds rank r's bonuses to the hero's stats.
+const C = (hero, id, branch, req, stat, at) => S(id, t(`skills.${hero}.${id}.name`), branch, 3, 2, t(`skills.${hero}.${id}.desc`), at, { req, stat });
+const mul = (s, k, v) => { s[k] = (s[k] ?? 1) * (1 + v); };
 
 // Every hero's starters, in slot order, and its tree. Upgrade nodes name the
 // power they improve in `power` (ranged / domain for the fixed moves).
@@ -51,13 +62,15 @@ export const TREES = {
       U('throw_up', t('skills.percy.throw_up.name'), 'blade', 1, 3, t('skills.percy.throw_up.desc'), (r) => t('skills.percy.throw_up.at', { metres: 10 + 1.5 * r, damage: 22 + 8 * r }), { power: 'throw', old: 'throw' }),
       P('disarm', t('skills.percy.disarm.name'), '⚔️', 'blade', 2, 3, t('skills.percy.disarm.desc'), (r) => t('skills.percy.disarm.at', { damage: 30 + 12 * (r - 1), seconds: (2 + 0.5 * (r - 1)).toFixed(1) })),
       U('jet', t('skills.percy.jet.name'), 'tides', 1, 3, t('skills.percy.jet.desc'), (r) => t('skills.percy.jet.at', { damage: 10 + 3 * r }), { power: 'ranged' }),
-      U('jet_charges', 'Fire Hose', 'tides', 1, 1, 'Water Jet holds two charges.', () => '2 charges', { power: 'ranged', req: 'jet' }),
+      U('jet_charges', t('skills.percy.jet_charges.name'), 'tides', 1, 1, t('skills.percy.jet_charges.desc'), () => t('skills.percy.jet_charges.at'), { power: 'ranged', req: 'jet' }),
       U('surge_up', t('skills.percy.surge_up.name'), 'tides', 1, 3, t('skills.percy.surge_up.desc'), (r) => t('skills.percy.surge_up.at', { metres: (7 + 1.2 * r).toFixed(1), damage: 24 + 8 * r }), { power: 'surge', old: 'surge' }),
       P('geyser', t('skills.percy.geyser.name'), '⛲', 'tides', 2, 3, t('skills.percy.geyser.desc'), (r) => t('skills.percy.geyser.at', { damage: 28 + 10 * (r - 1), metres: (2.6 + 0.4 * (r - 1)).toFixed(1) })),
       S('sea', t('skills.percy.sea.name'), 'sea', 1, 2, t('skills.percy.sea.desc'), (r) => t('skills.percy.sea.at', { n: 2 + 1.5 * r, pct: pct(25 + 10 * r) })),
       U('tide_up', t('skills.percy.tide_up.name'), 'sea', 1, 2, t('skills.percy.tide_up.desc'), (r) => t('skills.percy.tide_up.at', { metres: (3.6 + 0.6 * r).toFixed(1), seconds: 6 + 1.5 * r }), { power: 'tide', old: 'tide' }),
       P('bubble', t('skills.percy.bubble.name'), '🫧', 'sea', 2, 3, t('skills.percy.bubble.desc'), (r) => t('skills.percy.bubble.at', { seconds: 4 + (r - 1), metres: 5 + (r - 1) })),
       U('hurricane', t('skills.percy.hurricane.name'), 'sea', 3, 2, t('skills.percy.hurricane.desc'), (r) => t('skills.percy.hurricane.at', { seconds: 6 + 2 * r }), { power: 'domain' }),
+      C('percy', 'sword_master', 'blade', 'disarm', (s, r) => { s.crit += 0.05 * r; s.critDmg += 0.25 * r; }, (r) => t('skills.percy.sword_master.at', { crit: 5 * r, dmg: 25 * r })),
+      C('percy', 'tide_lord', 'tides', 'geyser', (s, r) => { mul(s, 'techMult', 0.1 * r); s.cdr = Math.min(0.6, s.cdr + 0.05 * r); }, (r) => t('skills.percy.tide_lord.at', { pct: 10 * r, cd: 5 * r })),
     ],
   },
   annabeth: {
@@ -80,9 +93,11 @@ export const TREES = {
       U('plan_up', t('skills.annabeth.plan_up.name'), 'strategy', 1, 2, t('skills.annabeth.plan_up.desc'), (r) => t('skills.annabeth.plan_up.at', { seconds: 8 + 2 * r, percent: 50 + 10 * r }), { power: 'plan', old: 'plan' }),
       P('orders', t('skills.annabeth.orders.name'), '📜', 'strategy', 2, 3, t('skills.annabeth.orders.desc'), (r) => t('skills.annabeth.orders.at', { seconds: 6 + (r - 1), power: 10 + 5 * (r - 1) })),
       U('gambit', t('skills.annabeth.gambit.name'), 'strategy', 3, 2, t('skills.annabeth.gambit.desc'), (r) => t('skills.annabeth.gambit.at', { seconds: 6 + 1.5 * r }), { power: 'domain' }),
-      U('knives', 'Twin Knives', 'workshop', 1, 1, 'Thrown Knife throws two blades.', () => '2 knives', { power: 'ranged' }),
+      U('knives', t('skills.annabeth.knives.name'), 'workshop', 1, 1, t('skills.annabeth.knives.desc'), () => t('skills.annabeth.knives.at'), { power: 'ranged' }),
       U('trap_up', t('skills.annabeth.trap_up.name'), 'workshop', 1, 2, t('skills.annabeth.trap_up.desc'), (r) => t('skills.annabeth.trap_up.at', { seconds: (2.8 + 0.8 * r).toFixed(1), damage: 18 + 8 * r }), { power: 'trap', old: 'trap' }),
       P('automaton', t('skills.annabeth.automaton.name'), '🤖', 'workshop', 2, 3, t('skills.annabeth.automaton.desc'), (r) => t('skills.annabeth.automaton.at', { seconds: 8 + 2 * (r - 1), damage: 9 + 3 * (r - 1) })),
+      C('annabeth', 'shadow_strike', 'stealth', 'flank', (s, r) => { s.crit += 0.05 * r; s.critDmg += 0.25 * r; }, (r) => t('skills.annabeth.shadow_strike.at', { crit: 5 * r, dmg: 25 * r })),
+      C('annabeth', 'master_builder', 'workshop', 'automaton', (s, r) => { mul(s, 'techMult', 0.1 * r); s.cdr = Math.min(0.6, s.cdr + 0.05 * r); }, (r) => t('skills.annabeth.master_builder.at', { pct: 10 * r, cd: 5 * r })),
     ],
   },
   grover: {
@@ -101,12 +116,14 @@ export const TREES = {
       P('briar', t('skills.grover.briar.name'), '🌵', 'wild', 2, 3, t('skills.grover.briar.desc'), (r) => t('skills.grover.briar.at', { damage: 22 + 9 * (r - 1), metres: 4.5 + 0.5 * (r - 1) })),
       U('pipes', t('skills.grover.pipes.name'), 'pipes', 1, 3, t('skills.grover.pipes.desc'), (r) => t('skills.grover.pipes.at', { damage: 9 + 3 * r }), { power: 'ranged' }),
       U('song', t('skills.grover.song.name'), 'pipes', 1, 3, t('skills.grover.song.desc'), (r) => t('skills.grover.song.at', { percent: 3 + r }), { power: 'calm' }),
-      U('empathy', 'Empathy Link', 'pipes', 1, 1, 'Calming Song also restores Power to the team.', () => '+2 Power every half second', { power: 'calm', req: 'song' }),
+      U('empathy', t('skills.grover.empathy.name'), 'pipes', 1, 1, t('skills.grover.empathy.desc'), () => t('skills.grover.empathy.at'), { power: 'calm', req: 'song' }),
       P('lullaby', t('skills.grover.lullaby.name'), '💤', 'pipes', 2, 3, t('skills.grover.lullaby.desc'), (r) => t('skills.grover.lullaby.at', { seconds: (2.5 + 0.5 * (r - 1)).toFixed(1), metres: 6 + (r - 1) })),
       U('panic', t('skills.grover.panic.name'), 'pipes', 3, 2, t('skills.grover.panic.desc'), (r) => t('skills.grover.panic.at', { seconds: 5 + r }), { power: 'domain' }),
       S('hooves', t('skills.grover.hooves.name'), 'satyr', 1, 3, t('skills.grover.hooves.desc'), (r) => t('skills.grover.hooves.at', { pct: pct(8 * r) })),
       U('maia_up', t('skills.grover.maia_up.name'), 'satyr', 1, 2, t('skills.grover.maia_up.desc'), (r) => t('skills.grover.maia_up.at', { metres: 9 + 2 * r, damage: 14 + 8 * r }), { power: 'maia', old: 'maia' }),
       P('snack', t('skills.grover.snack.name'), '🥫', 'satyr', 2, 3, t('skills.grover.snack.desc'), (r) => t('skills.grover.snack.at', { percent: 25 + 8 * (r - 1), power: 15 + 5 * (r - 1) })),
+      C('grover', 'wild_heart', 'wild', 'briar', (s, r) => { mul(s, 'techMult', 0.1 * r); s.regen += 1.5 * r; }, (r) => t('skills.grover.wild_heart.at', { pct: 10 * r, n: 1.5 * r })),
+      C('grover', 'satyr_stamina', 'satyr', 'snack', (s, r) => { s.speed += 0.06 * r; s.maxHpPct = (s.maxHpPct ?? 0) + 0.1 * r; }, (r) => t('skills.grover.satyr_stamina.at', { speed: 6 * r, health: 10 * r })),
     ],
   },
   tyson: {
@@ -126,13 +143,15 @@ export const TREES = {
       S('mighty_ce', t('skills.tyson.mighty_ce.name'), 'fists', 1, 2, t('skills.tyson.mighty_ce.desc'), (r) => t('skills.tyson.mighty_ce.at', { power: 4 * r }), { req: 'mighty' }),
       U('pound_up', t('skills.tyson.pound_up.name'), 'fists', 1, 2, t('skills.tyson.pound_up.desc'), (r) => t('skills.tyson.pound_up.at', { metres: (4 + 0.8 * r).toFixed(1), damage: 30 + 12 * r }), { power: 'pound', old: 'pound' }),
       P('clap', t('skills.tyson.clap.name'), '👏', 'fists', 2, 3, t('skills.tyson.clap.desc'), (r) => t('skills.tyson.clap.at', { damage: 26 + 10 * (r - 1), seconds: (1.2 + 0.3 * (r - 1)).toFixed(1) })),
-      S('vitality', t('skills.tyson.vitality.name'), 'hide', 1, 3, t('skills.tyson.vitality.desc'), (r) => t('skills.tyson.vitality.at', { health: 15 * r })),
+      S('vitality', t('skills.tyson.vitality.name'), 'hide', 1, 3, t('skills.tyson.vitality.desc'), (r) => t('skills.tyson.vitality.at', { health: 12 * r })),
       U('shield_up', t('skills.tyson.shield_up.name'), 'hide', 1, 2, t('skills.tyson.shield_up.desc'), (r) => t('skills.tyson.shield_up.at', { seconds: 3 + r }), { power: 'shield', old: 'shield' }),
       P('ironskin', t('skills.tyson.ironskin.name'), '🗿', 'hide', 2, 3, t('skills.tyson.ironskin.desc'), (r) => t('skills.tyson.ironskin.at', { seconds: 5 + (r - 1), power: 3 + (r - 1) })),
-      U('brother', 'Big Brother', 'hide', 3, 1, 'Big Brother lasts longer.', () => '10 s', { power: 'domain' }),
+      U('brother', t('skills.tyson.brother.name'), 'hide', 3, 1, t('skills.tyson.brother.desc'), () => t('skills.tyson.brother.at'), { power: 'domain' }),
       U('boulder', t('skills.tyson.boulder.name'), 'forge', 1, 2, t('skills.tyson.boulder.desc'), (r) => t('skills.tyson.boulder.at', { damage: 24 + 8 * r, metres: (2.2 + 0.8 * r).toFixed(1) }), { power: 'ranged' }),
       U('forge_up', t('skills.tyson.forge_up.name'), 'forge', 1, 2, t('skills.tyson.forge_up.desc'), (r) => t('skills.tyson.forge_up.at', { seconds: 8 + 2 * r }), { power: 'forge' }),
       P('rainbow', t('skills.tyson.rainbow.name'), '🐴', 'forge', 2, 3, t('skills.tyson.rainbow.desc'), (r) => t('skills.tyson.rainbow.at', { damage: 30 + 12 * (r - 1), metres: 12 + 2 * (r - 1) })),
+      C('tyson', 'cyclops_might', 'fists', 'clap', (s, r) => { mul(s, 'meleeMult', 0.08 * r); s.knock *= 1 + 0.15 * r; }, (r) => t('skills.tyson.cyclops_might.at', { pct: 8 * r, knock: 15 * r })),
+      C('tyson', 'forge_born', 'forge', 'rainbow', (s, r) => { mul(s, 'techMult', 0.1 * r); s.ceGain += 0.1 * r; }, (r) => t('skills.tyson.forge_born.at', { pct: 10 * r, ce: 10 * r })),
     ],
   },
   clarisse: {
@@ -154,9 +173,11 @@ export const TREES = {
       U('charge_up', t('skills.clarisse.charge_up.name'), 'ares', 1, 2, t('skills.clarisse.charge_up.desc'), (r) => t('skills.clarisse.charge_up.at', { damage: 22 + 10 * r }), { power: 'charge', old: 'charge' }),
       P('frenzy', t('skills.clarisse.frenzy.name'), '😤', 'ares', 2, 3, t('skills.clarisse.frenzy.desc'), (r) => t('skills.clarisse.frenzy.at', { seconds: 6 + (r - 1), n: 2 + (r - 1) })),
       U('fury', t('skills.clarisse.fury.name'), 'ares', 3, 2, t('skills.clarisse.fury.desc'), (r) => t('skills.clarisse.fury.at', { seconds: 8 + 1.5 * r, n: 10 + 4 * r }), { power: 'domain' }),
-      S('tough', t('skills.clarisse.tough.name'), 'cabin', 1, 3, t('skills.clarisse.tough.desc'), (r) => t('skills.clarisse.tough.at', { health: 10 * r, percent: 3 * r })),
+      S('tough', t('skills.clarisse.tough.name'), 'cabin', 1, 3, t('skills.clarisse.tough.desc'), (r) => t('skills.clarisse.tough.at', { health: 8 * r, percent: 3 * r })),
       U('bash_up', t('skills.clarisse.bash_up.name'), 'cabin', 1, 2, t('skills.clarisse.bash_up.desc'), (r) => t('skills.clarisse.bash_up.at', { seconds: (1.4 + 0.4 * r).toFixed(1) }), { power: 'bash', old: 'bash' }),
       P('hold', t('skills.clarisse.hold.name'), '🔱', 'cabin', 2, 3, t('skills.clarisse.hold.desc'), (r) => t('skills.clarisse.hold.at', { seconds: 4 + (r - 1), damage: 8 + 3 * (r - 1) })),
+      C('clarisse', 'spear_of_ares', 'spear', 'chain', (s, r) => { s.attackSpeed *= 1 + 0.06 * r; s.crit += 0.04 * r; }, (r) => t('skills.clarisse.spear_of_ares.at', { speed: 6 * r, crit: 4 * r })),
+      C('clarisse', 'cabin_pride', 'cabin', 'hold', (s, r) => { s.maxHpPct = (s.maxHpPct ?? 0) + 0.1 * r; s.armor = Math.min(0.7, s.armor + 0.04 * r); }, (r) => t('skills.clarisse.cabin_pride.at', { health: 10 * r, pct: 4 * r })),
     ],
   },
 };
@@ -205,6 +226,13 @@ export function validLoadout(hero, skills, equip) {
   return out;
 }
 
+// The stat bonuses of a hero's capstones (and any node with `stat`), on top
+// of the gear's (heroes/kit.js calls this as a kit is made).
+export function applyNodeStats(hero, skills, stats) {
+  for (const n of treeOf(hero).nodes) { const r = rankOf(skills, n.id); if (r > 0 && n.stat) n.stat(stats, Math.min(r, n.max)); }
+  return stats;
+}
+
 // ---------------------------------------------------------------- rules
 // Can the hero buy the next rank of a node? { ok, why, cost }.
 export function canRank(hero, h, level, id) {
@@ -212,6 +240,8 @@ export function canRank(hero, h, level, id) {
   const skills = h?.skills ?? {}, r = rankOf(skills, id), cost = nextCost(n, r);
   if (r >= n.max) return { ok: false, why: t('skills.reasons.fullyTrained'), cost };
   if (n.req && rankOf(skills, n.req) <= 0) return { ok: false, why: t('skills.reasons.needsSkill', { name: nodeOf(hero, n.req)?.name ?? n.req }), cost };
+  const lv = TIER_LEVEL[n.tier - 1] ?? 1;
+  if ((Number(level) || 1) < lv) return { ok: false, why: t('skills.reasons.needsLevel', { level: lv }), cost, gated: true, level: lv };
   const gate = GATES[n.tier - 1] ?? 0, have = branchPoints(hero, skills, n.branch, n.tier);
   if (have < gate) { const b = treeOf(hero).branches.find((x) => x.id === n.branch); return { ok: false, why: t('skills.reasons.needsBranchPoints', { gate, branch: b?.name ?? n.branch, have }), cost, gated: true }; }
   if (pointsLeft(hero, h, level) < cost) return { ok: false, why: tn('skills.reasons.needsPoints', cost), cost, poor: true };
@@ -254,6 +284,7 @@ export function sanitizeSkills(hero, skills, level) {
     if (!r) continue;
     if (n.req && !(out[n.req] > 0)) continue;
     if (branchPoints(hero, out, n.branch, n.tier) < (GATES[n.tier - 1] ?? 0)) continue;
+    if ((Number(level) || 1) < (TIER_LEVEL[n.tier - 1] ?? 1)) continue;
     while (r > 0 && spent + nodeSpent(n, r) > budget) r--;
     if (!r) continue;
     out[n.id] = r; spent += nodeSpent(n, r);

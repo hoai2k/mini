@@ -28,7 +28,7 @@ import { OpenWorld } from './openworld/runtime.js';
 import { buildRoadTrip } from './world/roadtrip.js';
 import { RoadTrip, CampBusStop } from './openworld/roadtrip.js';
 import { openWorldMap } from './ui/worldMap.js';
-import { owDifficulty, CAMP_AT } from './world/owLayout.js';
+import { CAMP_AT } from './world/owLayout.js';
 import { Boats } from './world/boats.js';
 import { generateLevel } from './world/levelgen.js';
 import { Mission } from './mission.js';
@@ -50,6 +50,8 @@ import { Profiles } from './profiles.js';
 import { Slots, slotPrefix } from './slots.js';
 import { Resume } from './resume.js';
 import { rollChest, rollItem, powerFor, itemInfo, RARITY } from './loot.js';
+import { killXp, chapterXp, bossXp } from './progression.js';
+import { TIER_LEVEL } from './heroes/skillRules.js';
 import * as Screens from './ui/screens.js';
 import { openTitle, openInventory, openForge, openSkills, openShop, openMapTable } from './ui/screens.js';
 import { Mist } from './mist.js';
@@ -602,7 +604,7 @@ class Game {
         for (const [hid, info] of Object.entries(HEROES)) if ((info.unlock === ch.id || (ch.book === 'book1' && info.unlock === 'ch' + ch.num)) && !(d.unlockedHeroes ??= []).includes(hid)) { d.unlockedHeroes.push(hid); if (sv === this.save) setTimeout(() => toast(t('game.joinsQuest', { name: info.full }), 'big'), 1200); }
       }
       d.stats.missions++; d.stats.kills += m.stats.kills;
-      if (sv.addXp(80 * m.def.difficulty)) levelled.push(sv);
+      if (sv.addXp(chapterXp(m.def.level ?? m.def.difficulty, m.def.difficulty))) levelled.push(sv);   // (progression.js: by the chapter's monster level)
       sv.write();
     }
     // the opening: the story goes on after the results (to the next cutscene)
@@ -708,22 +710,24 @@ class Game {
       if (k.procs.explode) { this.combat.aoe(e.pos, 2.6, e.maxHp * 0.2 * k.procs.explode, k, { knock: 6, blocks: false }); this.fx.explosion(e.pos, 0xff8a3a, 2.4); }
     }
     if (!e.isDummy) {
-      const xp = Math.round((e.def.xp ?? 3) * (1 + 0.3 * Math.max(0, (e.level ?? 1) - 1)) * (e.champion ? 4 : 1));   // (tougher monsters are worth more: the open world's regions rise in level)
+      const xp = killXp(e.def.xp ?? 3, e.level ?? 1, { elite: !!e.elite, champion: !!e.champion });   // (progression.js: XP grows with a monster's level as its health does)
       for (const sv of this.localSaves()) if (sv.addXp(xp)) this.levelUp(sv);   // net: every player's profile
       this.ow?.onKill(e);
       const [a, b] = e.def.coins ?? [1, 2];
-      this.pickups.drop('coin', e.pos, a + Math.floor(Math.random() * (b - a + 1)));
+      this.pickups.drop('coin', e.pos, Math.round((a + Math.floor(Math.random() * (b - a + 1))) * (1 + 0.15 * Math.max(0, (e.level ?? 1) - 1))));   // (more drachmas from tougher monsters: gear costs more at the forge)
       if (Math.random() < 0.08) this.pickups.drop('heal', e.pos, 1);
       if (Math.random() < 0.12) this.pickups.drop('ce', e.pos, 1);
       const nb = bundlesFrom(e.elite ? 'elite' : e.def.tier ?? 'minor'); if (nb) this.pickups.drop('arrows', e.pos, nb);   // ammo bundles (resources.js)
       this.maybeDropFromMonster(e);
     }
   }
-  onBossKilled(b) { this.mission?.onBossKilled(b); for (const sv of this.localSaves()) if (sv.addXp(150)) this.levelUp(sv); }
+  onBossKilled(b) { this.mission?.onBossKilled(b); for (const sv of this.localSaves()) if (sv.addXp(bossXp(b?.level ?? 1))) this.levelUp(sv); }
   levelUp(sv = this.save) {
     const d = sv.data;
     const many = this.localSaves().length > 1;
     toast(t(many ? 'game.levelUpNamed' : 'game.levelUp', { name: sv.name, level: d.level }), 'big');
+    const tier = TIER_LEVEL.findIndex((lv, i) => i > 0 && lv === d.level);   // a new tier of the skill tree opens
+    if (tier > 0) setTimeout(() => toast(t('game.tierOpen', { tier: tier + 1 })), 1600);
     this.audio.levelUp();
     for (const p of this.players) if (!p.remote && (this.saveFor(p) === sv || p.ai)) { this.fx.heal(p.pos, 0xffd23a); p.hp = p.maxHp; }
     sv.write();
@@ -731,7 +735,8 @@ class Game {
   // Chests and bosses drop a separate item (or two) for every human player.
   onChestOpened(c) {
     this.audio?.sample?.('chest');
-    const diff = this.mission?.def.difficulty ?? c.difficulty ?? 1;
+    // the place's monster level: the chapter's, or the chest's spot in the open world (progression.js)
+    const diff = this.mission ? (this.mission.def.level ?? this.mission.def.difficulty ?? 1) : (c.level ?? c.difficulty ?? 1);
     const humans = this.players.filter((q) => !q.ai && !q.remote);
     humans.forEach((q, n) => {
       const items = rollChest(diff, c.boss ? 'boss' : c.rarity, { level: this.saveFor(q).data.level, hero: q.hero });
@@ -746,11 +751,11 @@ class Game {
     const tier = e.def?.tier;
     const chance = e.champion ? 1 : e.elite ? 0.18 : tier === 'champion' ? 0.5 : tier === 'elite' ? 0.06 : 0;
     if (!chance || Math.random() > chance || (!this.mission && !this.ow)) return;
-    const diff = this.mission?.def.difficulty ?? owDifficulty(e.level);   // (the open world: from the monster's level)
+    const diff = e.level ?? this.mission?.def.level ?? 1;   // (gear for the monster's level: progression.js)
     const k = e.lastAttacker;
     const q = k?.isPlayer && !k.ai && !k.remote ? k : this.players.find((x) => !x.ai && !x.remote);
     if (!q) return;
-    this.loot.drop(rollItem(powerFor(diff, this.saveFor(q).data.level), { hero: q.hero, rarity: e.champion ? (Math.random() < 0.35 ? 'unique' : 'rare') : null }), e.pos, q);
+    this.loot.drop(rollItem(powerFor(diff, this.saveFor(q).data.level, Math.random, e.champion ? 'champion' : 'monster'), { hero: q.hero, rarity: e.champion ? (Math.random() < 0.35 ? 'unique' : 'rare') : null }), e.pos, q);
   }
   onPlayerDied(p) {
     if (this.wipeLeft > 0 || !this.players.length || !this.players.every((q) => q.dead || q.downed)) return;

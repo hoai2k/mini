@@ -231,7 +231,9 @@ export function itemRarity(it) { return it.blessed ? BLESSED : RARITY[itemInfo(i
 // How much stronger an item is than a power-10 one, with the favourite bonus.
 export function powerMult(it, hero = null) { const b = itemInfo(it); return strength(it.power) * (hero && b.hero === hero ? 1.1 : 1); }
 // An item's whole strength: power, favourite and rarity (what gearStats uses).
-export function itemStrength(it, hero = null) { return powerMult(it, hero) * itemRarity(it).mult; }
+// (A blessed item counts by its own rarity: BLESSED has no multiplier of its
+// own, and used to make a blessed weapon's damage NaN.)
+export function itemStrength(it, hero = null) { return powerMult(it, hero) * (RARITY[itemInfo(it).rarity]?.mult ?? 1); }
 export function spentPoints(it) { return it.ench.reduce((a, e) => a + (e.fixed || !e.pick ? 0 : Array.from({ length: e.level }, (_, i) => enchCost(e.pick, i + 1)).reduce((x, y) => x + y, 0)), 0); }
 export function salvageValue(it) { const b = itemInfo(it); return Math.round((b.rarity === 'unique' ? 60 : b.rarity === 'rare' ? 25 : 8) * (it.blessed ? 1.5 : 1) * Math.max(0.6, 1 + (it.power - 10) * 0.012)); }
 export function itemPrice(it) { return Math.round(salvageValue(it) * 3.2 + 10); }
@@ -264,7 +266,7 @@ export function activeEnchants(it) {
 //              the armour's health × its strength
 //   heroPower  the average power of what is equipped (shown in the inventory)
 export function gearStats(gear, hero = null) {
-  const s = { damage: 1, armor: 0, speed: 1, cdr: 0, ceGain: 1, crit: 0.08, critDmg: 0, lifesteal: 0, meleeMult: 1, meleePct: 0, committed: 0, techMult: 1, techPct: 0, healBonus: 0, attackSpeed: 1, reach: 1, arc: 1, knock: 1, maxHp: 100, bane: 0, thorns: 0, luck: 0, regen: 0, evade: 0, quiver: 0, flaskCdr: 0, heroPower: 0 };
+  const s = { damage: 1, armor: 0, speed: 1, cdr: 0, ceGain: 1, crit: 0.08, critDmg: 0, lifesteal: 0, meleeMult: 1, meleePct: 0, committed: 0, techMult: 1, techPct: 0, healBonus: 0, attackSpeed: 1, reach: 1, arc: 1, knock: 1, maxHp: 100, bane: 0, thorns: 0, luck: 0, regen: 0, evade: 0, quiver: 0, flaskCdr: 0, heroPower: 0, maxHpPct: 0, gearScale: 1 };
   const procs = {}; let weapon = null; const artifacts = []; let twin = false, pierce = false;
   let weaponMult = 1, armourPm = 1, sum = 0, sumPm = 0, n = 0;
   for (const it of gear) {
@@ -283,7 +285,8 @@ export function gearStats(gear, hero = null) {
   }
   s.maxHp += 100 * 0.25 * Math.max(0, armourPm - 1);
   s.meleeMult = weaponMult * (1 + s.meleePct);
-  s.techMult = Math.max(1, n ? sumPm / n : 1) * (1 + s.techPct);
+  s.gearScale = Math.max(1, n ? sumPm / n : 1);
+  s.techMult = s.gearScale * (1 + s.techPct);
   s.heroPower = n ? Math.round(sum / n) : 0;
   s.armor = Math.min(0.7, s.armor); s.cdr = Math.min(0.6, s.cdr); s.evade = Math.min(0.3, s.evade); s.flaskCdr = Math.min(0.6, s.flaskCdr); s.lifesteal = Math.min(0.15, s.lifesteal);
   return { s, procs, weapon, artifacts, twin, pierce };

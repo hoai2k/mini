@@ -310,6 +310,7 @@ export const TEXT = {
     equippedIn: 'Equipped in slot {n}',
     branchSpent: '{desc} · {n} spent',
     tierGate: 'Tier {tier} · {n} points in this branch\'s tiers above',
+    tierLevel: 'Tier {tier} · opens at level {level}',
     reset: {
       title: 'Reset the skill tree?',
       text: 'Every point comes back ({n} in all) and the three starting powers go back in their slots. Free in camp.',
@@ -720,6 +721,7 @@ export const TEXT = {
       needsSkill: 'Needs {name}',
       needsBranchPoints: 'Needs {gate} points in {branch} ({have} so far)',
       needsPoints: { one: 'Needs {n} point', other: 'Needs {n} points' },
+      needsLevel: 'Opens at level {level}',
     },
     // Percy Jackson
     percy: {
@@ -741,6 +743,9 @@ export const TEXT = {
       tide_up: { name: 'Deep Tide', desc: 'Healing Tide is wider, lasts longer and heals more.', at: '{metres} m, {seconds} s' },
       bubble: { name: 'Air Bubble', desc: 'A bubble of sea air round Percy and the heroes near him: half damage from every hit.', at: '{seconds} s, heroes within {metres} m' },
       hurricane: { name: 'Eye of the Storm', desc: 'Hurricane lasts longer.', at: '{seconds} s' },
+      jet_charges: { name: 'Fire Hose', desc: 'Water Jet holds two charges.', at: '2 charges' },
+      sword_master: { name: 'Sword Master', desc: 'More critical hits, and they hit harder.', at: '+{crit}% critical chance, +{dmg}% critical damage' },
+      tide_lord: { name: 'Lord of the Tides', desc: 'Powers hit harder and come back sooner.', at: '+{pct}% ability damage, -{cd}% cooldowns' },
     },
     // Annabeth Chase
     annabeth: {
@@ -761,6 +766,9 @@ export const TEXT = {
       orders: { name: 'Battle Orders', desc: 'Every hero near her runs faster and gains Power.', at: '+30% speed for {seconds} s, +{power} Power' },
       gambit: { name: 'Wisdom', desc: "Wisdom's Gambit lasts longer.", at: '{seconds} s' },
       trap_up: { name: 'Daedalus Workshop', desc: 'Traps root longer and hit harder.', at: '{seconds} s root, {damage} damage' },
+      knives: { name: 'Twin Knives', desc: 'Thrown Knife throws two blades.', at: '2 knives' },
+      shadow_strike: { name: 'Shadow Strike', desc: 'More critical hits, and they hit harder.', at: '+{crit}% critical chance, +{dmg}% critical damage' },
+      master_builder: { name: 'Master Builder', desc: 'Inventions and powers hit harder and come back sooner.', at: '+{pct}% ability damage, -{cd}% cooldowns' },
       automaton: { name: 'Bronze Automaton', desc: 'A little bronze sentry that throws knives at the monsters near it.', at: '{seconds} s, {damage} damage a knife' },
     },
     // Grover Underwood
@@ -781,6 +789,9 @@ export const TEXT = {
       panic: { name: 'Voice of Pan', desc: 'Panic lasts longer.', at: '{seconds} s' },
       hooves: { name: 'Hoof Kick', desc: 'Melee damage.', at: '{pct} melee damage' },
       maia_up: { name: 'Maia!', desc: 'Flies further and lands with a stomp that hits harder.', at: '{metres} m, {damage} damage stomp' },
+      empathy: { name: 'Empathy Link', desc: 'Calming Song also restores Power to the team.', at: '+2 Power every half second' },
+      wild_heart: { name: 'Heart of the Wild', desc: 'Powers hit harder, and Grover heals a little all the time.', at: '+{pct}% ability damage, heals {n} a second' },
+      satyr_stamina: { name: 'Satyr Stamina', desc: 'Quicker on his hooves and harder to knock out.', at: '+{speed}% move speed, +{health}% max health' },
       snack: { name: 'Tin-Can Snack', desc: 'Grover munches a tin can: health and Power back.', at: '{percent}% health, +{power} Power' },
     },
     // Tyson
@@ -798,7 +809,10 @@ export const TEXT = {
       mighty_ce: { name: "Smith's Rhythm", desc: 'Mighty Blows restore Power.', at: '+{power} Power a Mighty Blow' },
       pound_up: { name: 'Earthshaker', desc: 'Ground Pound covers more ground and hits harder.', at: '{metres} m, {damage} damage' },
       clap: { name: 'Thunder Clap', desc: 'He claps his hands: a shock wave in front of him that stuns.', at: '{damage} damage, {seconds} s stun' },
-      vitality: { name: 'Cyclops Hide', desc: 'Max health.', at: '+{health} max health' },
+      vitality: { name: 'Cyclops Hide', desc: 'Max health.', at: '+{health}% more max health' },
+      brother: { name: 'Big Brother', desc: 'Big Brother lasts longer.', at: '10 s' },
+      cyclops_might: { name: 'Cyclops Might', desc: 'Punches hit harder and throw monsters further.', at: '+{pct}% melee damage, +{knock}% knock-back' },
+      forge_born: { name: 'Forge-Born', desc: 'Powers hit harder and Power builds faster.', at: '+{pct}% ability damage, +{ce}% Power gain' },
       shield_up: { name: 'Hephaestus Steel', desc: 'Watch Shield lasts longer.', at: '{seconds} s' },
       ironskin: { name: 'Iron Skin', desc: 'Half damage and no knock-back for a while; every hit he takes gives Power.', at: '{seconds} s, +{power} Power a hit' },
       boulder: { name: 'Bigger Boulders', desc: 'Boulders are bigger and burst wider on landing.', at: '{damage} damage, {metres} m burst' },
@@ -822,7 +836,9 @@ export const TEXT = {
       charge_up: { name: 'Battering Ram', desc: 'Charge goes further and slams harder.', at: '{damage} damage slam' },
       frenzy: { name: 'Battle Frenzy', desc: 'Her melee hits deal more and heal her for a while.', at: '{seconds} s, +30% melee, {n} health a hit' },
       fury: { name: 'Blood of Ares', desc: "Ares's Fury lasts longer and burns hotter.", at: '{seconds} s, {n} burn a second' },
-      tough: { name: 'Cabin Five', desc: 'Max health and armour.', at: '+{health} max health, +{percent}% armour' },
+      tough: { name: 'Cabin Five', desc: 'Max health and armour.', at: '+{health}% max health, +{percent}% armour' },
+      spear_of_ares: { name: 'Spear of Ares', desc: 'Faster thrusts that find the weak spots.', at: '+{speed}% attack speed, +{crit}% critical chance' },
+      cabin_pride: { name: 'Cabin Five Pride', desc: 'Even tougher: more health and armour.', at: '+{health}% max health, +{pct}% armour' },
       bash_up: { name: 'Boar Shield', desc: 'Shield Bash is wider and stuns longer.', at: '{seconds} s stun' },
       hold: { name: 'Hold the Line', desc: 'She plants her spear: half damage, and lightning crackles into the monsters round her.', at: '{seconds} s, {damage} damage a zap' },
     },
@@ -972,6 +988,7 @@ export const TEXT = {
   loot: {
     kind: { weapon: 'Weapon', armor: 'Armour', artifact: 'Magic item' },
     blessedName: 'Blessed {name}',
+    fx: { frozen: 'Frozen!' },
     card: {
       newSlot: 'New slot!',
       power: 'Power {arrow}{n}',
@@ -1051,6 +1068,40 @@ export const TEXT = {
     salvageYes: 'Salvage',
     salvageNo: 'Keep',
     close: 'Close',
+    // The header chips
+    level: 'Level {n}',
+    coins: '◆ {n}',
+    points: { one: '✦ {n} point', other: '✦ {n} points' },
+    heroPower: '⚔ Power {n}',
+    heroPowerTip: '{hero}’s Power: the average power of everything {hero} wears',
+    // The stash
+    tabCount: '{label} · {n}',
+    sortHint: 'New finds first, then the strongest.',
+    better: 'Better than what you wear',
+    wornBy: 'Worn by {hero}',
+    // The item
+    wearing: 'You are wearing this',
+    powerVs: '{arrow} {n} power compared with {name}',
+    samePower: 'Same power as {name}',
+    fillsSlot: '▲ Fills your empty {slot} slot!',
+    cooldown: 'Cooldown {n} s.',
+    charges: '{n} uses before it recharges.',
+    equipBtn: 'Equip',
+    swapIn: 'Swap it in',
+    swapped: 'Swapped in {name}!',
+    unequipFirst: 'Take it off first, then salvage it.',
+    compareTitle: 'Swap it for {name} and you get:',
+    compareEmpty: 'Your {slot} slot is empty. You get:',
+    compareSame: 'About the same as now.',
+    fromTo: '{from} → {to}',
+    enchantHelp: 'Enchantments give gear special powers. Spend ✦ points to pick one, then level it up.',
+    salvageWorn: '{hero} is wearing it.',
+    coinsGained: '+◆{n}',
+    hints: {
+      pad: 'Ⓐ Look · Ⓐ again: Equip · Ⓧ Salvage · LB / RB Tabs · Ⓑ Close',
+      kbm: 'Click to look · Click again (or Enter) to equip · X Salvage · Q / E Tabs · Esc Close',
+      touch: 'Tap to look · Tap again to equip',
+    },
   },
 
   // The forge in camp (the inventory with tempering and re-rolling)
@@ -1062,7 +1113,8 @@ export const TEXT = {
     },
     noDrachmas: 'Not enough drachmas',
     reroll: 'Re-roll choices (◆{cost})',
-    temper: 'Temper +1 power (◆{cost})',
+    temper: 'Temper +{n} power (◆{cost})',
+    help: 'Temper makes an item stronger. Re-roll swaps the choices of an enchantment row you haven’t used.',
     temperCap: 'This item is as strong as the forge can make it for now',
   },
 
@@ -1943,6 +1995,7 @@ export const TEXT = {
     wave: 'Wave {n}',
     levelUp: 'LEVEL {level}! +1 enchantment point, +1 skill point',
     levelUpNamed: '{name}: LEVEL {level}! +1 enchantment point, +1 skill point',
+    tierOpen: 'New skills open in the skill tree: tier {tier}!',
     partyDefeated: 'Party defeated — respawning',
     revived: 'Revived',
     revivedRetry: 'Revived: try the fight again',

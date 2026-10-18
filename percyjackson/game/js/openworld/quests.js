@@ -124,7 +124,7 @@ export class Quests {
     g.pickups.drop('coin', giver, R.coins ?? 20 * lvl, 1);
     const humans = g.players.filter((p) => !p.ai && !p.remote);
     for (const p of humans) {
-      const it = rollItem(powerFor(Math.max(1, Math.min(4, Math.ceil(lvl / 3))), g.saveFor(p).data.level), { hero: p.hero, rarity: R.item === 'unique' ? 'unique' : R.item === 'rare' ? 'rare' : null });
+      const it = rollItem(powerFor(lvl, g.saveFor(p).data.level, Math.random, 'quest'), { hero: p.hero, rarity: R.item === 'unique' ? 'unique' : R.item === 'rare' ? 'rare' : null });
       setTimeout(() => g.loot.drop(it, giver, p), 400);
     }
     toast(t('ow.quest.completed', { title: t(`sq.${q.id}.title`), xp }), 'big');

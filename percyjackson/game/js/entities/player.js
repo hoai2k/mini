@@ -10,6 +10,8 @@ import { BASE_COMBO } from '../combat.js';
 import { createKit } from '../heroes/index.js';
 import { applyGear } from '../loot.js';
 import { useArtifact } from '../artifacts.js';
+import { tickArtifact, spendArtifact } from '../gearEffects.js';
+import { PROC } from '../loot.js';
 import { settings } from '../settings.js';
 import { t as txt } from '../text_config.js';
 import { FLASK, canDrink, drink, tickFlask, newQuiver, resizeQuiver, tickQuiver } from '../resources.js';
@@ -159,6 +161,8 @@ export class Player {
     const r = this.healOverTime;   // (on top of a heal still running: the Nectar Flask)
     this.healOverTime = { left: (r?.left ?? 0) + drink(this.flask, this.maxHp, this.stats), t: Math.max(FLASK.dur, r?.t ?? 0) };
     this.game.fx.heal(this.pos, 0x9affd8);
+    // Ambrosia Shield: half damage for a moment after a drink
+    if (this.procs.barrier) this.barrierT = Math.max(this.barrierT ?? 0, PROC.barrierFor(this.procs.barrier));
     this.game.audio?.energy('heal');
     this.action = { type: 'sign', dur: 0.6, elapsed: 0, t: 0, moveScale: 0.6, cancelable: true };
     this.game.toast?.(txt('enemies.player.ambrosia'));
@@ -179,8 +183,12 @@ export class Player {
     if (inp.pressed.heal) this.useHeal();
     this.barrierT = Math.max(0, (this.barrierT ?? 0) - dt); this.rampageT = Math.max(0, (this.rampageT ?? 0) - dt);
     this.artifacts.forEach((art, i) => {
-      art.cdLeft = Math.max(0, art.cdLeft - dt);
-      if (inp.pressed['art' + (i + 1)] && art.cdLeft <= 0 && this.dodgeT <= 0 && !(this.action && this.action.lock)) { art.cdLeft = art.cd * (1 - this.stats.cdr); useArtifact(g, this, art); }
+      tickArtifact(art, dt, this.stats.cdr);   // (charges come back one a cooldown: gearEffects.js)
+      if (inp.pressed['art' + (i + 1)] && this.dodgeT <= 0 && !(this.action && this.action.lock) && spendArtifact(art, this.stats.cdr)) {
+        useArtifact(g, this, art);
+        // Winged Heels: a burst of speed after a magic item
+        if (this.procs.haste) { this.speedBuffT = Math.max(this.speedBuffT ?? 0, PROC.hasteFor(this.procs.haste)); this.speedBuff = Math.max(this.speedBuff ?? 0, 0.3); }
+      }
     });
     if (this.barrierT > 0 && Math.random() < 0.4) g.particles.glow.emit(this.pos.x + (Math.random() - 0.5) * 1.2, this.pos.y + Math.random() * 2, this.pos.z + (Math.random() - 0.5) * 1.2, 0, 0.5, 0, 0.6, 2, 1.8, 0.8, 0.1, 0, 1, 1, 1);
     // strike moment. Checked before chaining: a fast step (or a long frame)

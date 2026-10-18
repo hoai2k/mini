@@ -35,6 +35,7 @@ import { makeStatue, makeTrap, makeRift } from './objectives/props.js';
 import { isGuest, sendAct, mainPath, doorBetween } from './objectives/common.js';
 import { chapter as chapterDef, chapterPlayable } from './story/chapters.js';
 import { chapterMissionDef, resolveBoss, resolveBiome } from './story/missionDef.js';
+import { missionLevel } from './progression.js';
 import { bundlesFrom } from './resources.js';
 import { Pack, packLoiter } from './entities/packRules.js';
 import { mulberry32 } from './util.js';
@@ -81,6 +82,7 @@ export class Mission {
   static resolveDef(def) {
     if (def.biome) def.biome = resolveBiome(def.biome);
     if (def.boss) def.boss = resolveBoss(def.boss);
+    if (def.level == null && def.chapter) def.level = missionLevel(def.chapter, def.difficulty ?? 1);   // (a Continue saved before chapters had levels)
     return def;
   }
   setup() {
@@ -203,7 +205,7 @@ export class Mission {
     for (let i = 0; i < n; i++) {
       const a = a0 + (i / n) * Math.PI * 2;
       const p = [10, 8, 6, 4, 2.5].map((d) => this.standAt(it.pos.x + Math.cos(a) * d, it.pos.y, it.pos.z + Math.sin(a) * d)).find((q) => q && it.room && q.x >= it.room.x0 && q.x <= it.room.x1 + 1 && q.z >= it.room.z0 && q.z <= it.room.z1 + 1) ?? it.pos.clone();
-      const e = g.spawnEnemy(kinds[i % kinds.length], p, { level: this.def.difficulty }); g.fx.summonCircle(p, 0xff2a4a);
+      const e = g.spawnEnemy(kinds[i % kinds.length], p, { level: this.def.level ?? this.def.difficulty }); g.fx.summonCircle(p, 0xff2a4a);
       if (e) e.aggro = true;
     }
   }
@@ -446,7 +448,7 @@ export class Mission {
       const at = new THREE.Vector3(...m.at);
       const pos = this.standAt(at.x, at.y, at.z) ?? at;
       const kind = disguise ? mistForm(this.def.mistForms, Math.random()) : m.kind;
-      const e = g.spawnEnemy(kind, pos, { elite: m.elite, level: this.def.difficulty, disguise });
+      const e = g.spawnEnemy(kind, pos, { elite: m.elite, level: this.def.level ?? this.def.difficulty, disguise });
       if (!e) break;
       live++;
       room.enemies.push(e);
@@ -543,7 +545,7 @@ export class Mission {
       const mist = this.def.mist ?? 0, kinds = this.def.disguise ?? [];
       const disguise = !s.elite && kinds.length && Math.random() < mist * 0.55 ? kinds[Math.floor(Math.random() * kinds.length)] : null;
       const kind = disguise ? mistForm(this.def.mistForms, Math.random()) : s.kind;
-      const e = g.spawnEnemy(kind, pos, { elite: s.elite, level: this.def.difficulty, disguise: room.trap ? null : disguise });
+      const e = g.spawnEnemy(kind, pos, { elite: s.elite, level: this.def.level ?? this.def.difficulty, disguise: room.trap ? null : disguise });
       if (e) { room.enemies.push(e); if (room.trap) e.aggro = true; if (!e.disguised) g.fx.summonCircle(pos, room.trap ? 0xff3a2a : e.elite ? 0xff9aff : 0xffc84a); } else later.push(s);
     });
     if (later.length === wave.length) { room.waveIdx--; room.waves[room.waveIdx] = later; room.waveT = 1; return; }   // (nobody came: try again in a moment)
@@ -619,7 +621,7 @@ export class Mission {
     // In the thickest Mist the boss waits in disguise until someone sees it.
     const disguise = (this.def.mist ?? 0) >= 0.9 && this.def.disguise?.[0];
     if (disguise && !this.revealedBoss) {
-      const stand = g.spawnEnemy(this.L.enemyKinds?.[0] ?? 'pup', pos, { disguise, level: this.def.difficulty });
+      const stand = g.spawnEnemy(this.L.enemyKinds?.[0] ?? 'pup', pos, { disguise, level: this.def.level ?? this.def.difficulty });
       if (stand?.disguised) {
         stand.bossStandIn = true; this.disguisedBoss = stand; this.bossRoom = room;
         g.rig.cinematic({ center: pos.clone().setY(pos.y + 1.5), dur: 2.4, dist: 10, pitch: 28 * Math.PI / 180, orbit: 0.08 });
@@ -648,7 +650,7 @@ export class Mission {
   spawnBoss(room, pos, { holdTitle = false } = {}) {
     const g = this.game;
     this.bossRoom = room;
-    const boss = new Boss(g, resolveBoss(this.def.boss) ?? 'minotaur', pos, this.def.difficulty);
+    const boss = new Boss(g, resolveBoss(this.def.boss) ?? 'minotaur', pos, this.def.level ?? this.def.difficulty);
     g.scene.add(boss.object); g.enemies.push(boss);
     this.boss = boss; g.rig.subject = boss;   // (the camera keeps it in frame: camera.js)
     g.rig.cinematic({ center: pos.clone().setY(pos.y + 2), dur: 3, dist: 14, pitch: 32 * Math.PI / 180, orbit: 0.12 });

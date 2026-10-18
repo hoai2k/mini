@@ -211,6 +211,108 @@ function wings(rig, K, { y, z = -2, span, chord, cols, flap = 1, ragged = 0 }) {
   return W;
 }
 
+// ---- the detail kit on top of monsters.js's -----------------------------------------
+// Geometry is built once per kind: the first spawn merges its boxes (one mesh
+// per moving part, as the kit does) and shades them; every later spawn of the
+// kind shares those geometries and skips the box work (a horde of forty
+// builds one model's worth). The builds are seeded, so every spawn of a kind
+// lays down the same parts in the same order.
+const GEO = new Map(), NOBOX = { order: 'XYZ' };
+function kitOf(K0, kind, rig, mat, opts) {
+  const K = K0.kit(rig, mat, opts), hit = GEO.get(kind), done = K.done.bind(K);
+  K.vfaces = new Map(); K.cached = !!hit;
+  if (hit) K.box = function (p) { let L = this.lists.get(p); if (!L) this.lists.set(p, L = []); L.push(NOBOX); return this; };
+  K.done = () => {
+    const parts = [...K.lists.keys()];
+    if (hit && hit.length === parts.length) {
+      parts.forEach((p, i) => { const m = new THREE.Mesh(hit[i], K.mat); m.castShadow = true; m.receiveShadow = true; m.userData.baseMat = K.mat; rig.meshes.push(m); p.add(m); });
+      K.lists.clear(); return rig;
+    }
+    if (hit) throw new Error(`fodder ${kind}: parts changed between builds`);
+    const n = rig.meshes.length; done();
+    const geos = rig.meshes.slice(n).map((m, i) => {
+      const F = K.vfaces.get(parts[i]); if (!F) return m.geometry;
+      const g = m.geometry, cat = (a, extra) => { const A = new Float32Array(a.array.length + extra.length); A.set(a.array); A.set(extra, a.array.length); return new THREE.Float32BufferAttribute(A, 3); };
+      for (const [k, extra] of [['position', F.P], ['normal', F.N], ['color', F.C]]) g.setAttribute(k, cat(g.attributes[k], extra));
+      return g;
+    });
+    for (const g of geos) paintShade(g, opts.ao ?? 0.3);
+    GEO.set(kind, geos);
+    return rig;
+  };
+  return K;
+}
+// Painted shading on the merged boxes: each part darkens toward its
+// underside (the sheets' soft occlusion), and no lit colour is left bright
+// enough to pass for a glowing one (only colours with a channel at full
+// strength glow).
+function paintShade(g, ao) {
+  const P = g.attributes.position.array, Cc = g.attributes.color.array;
+  let lo = Infinity, hi = -Infinity;
+  for (let i = 1; i < P.length; i += 3) { lo = Math.min(lo, P[i]); hi = Math.max(hi, P[i]); }
+  const span = Math.max(1e-4, hi - lo);
+  for (let i = 0; i < Cc.length; i += 3) {
+    const m = Math.max(Cc[i], Cc[i + 1], Cc[i + 2]);
+    if (Math.abs(m - 1) < 1e-6) continue;   // a glowing cell
+    const t = (P[i + 1] - lo) / span, k = (1 - ao) + ao * Math.sqrt(t), top = Math.min(1, 0.97 / Math.max(1e-4, m * k));
+    for (let c = 0; c < 3; c++) Cc[i + c] *= k * top;
+  }
+  g.attributes.color.needsUpdate = true;
+}
+// A rounded voxel mass, stepped like the sheets: an ellipsoid (centre c,
+// radii r, in skin pixels) filled with cells, only the faces open to the air
+// drawn (and merged along x where neighbours share a colour), added to the
+// part's merged mesh. col(x, y, z) (each -1..1 across the radii) paints a run
+// of a few cells along x, so bands, mottling and patches show as pixels.
+// lo/hi keep a slice of it (lo 0 is a dome), pw squares it off (2 is round,
+// 3 boxier), rx tilts it about x (rear up, nose down), keep(x, y, z) carves.
+const FACE6 = [[1, 0, 0, 0.9], [-1, 0, 0, 0.9], [0, 1, 0, 1.1], [0, -1, 0, 0.62], [0, 0, 1, 1], [0, 0, -1, 0.84]];
+function blob(K, p, c, r, cell, col, { lo = -1, hi = 1, pw = 2, rx = 0, run = [2, 4], keep = null } = {}) {
+  if (!K.lists.has(p)) K.lists.set(p, []);
+  if (K.cached) return;
+  const nx = Math.ceil(r[0] / cell), ny = Math.ceil(r[1] / cell), nz = Math.ceil(r[2] / cell), DX = 2 * nx + 2, DY = 2 * ny + 2;
+  const key = (i, j, k) => (i + nx + 1) + DX * ((j + ny + 1) + DY * (k + nz + 1));
+  const cells = new Map();
+  for (let k = -nz; k < nz; k++) for (let j = -ny; j < ny; j++) {
+    let colr = null, left = 0;
+    for (let i = -nx; i < nx; i++) {
+      const x = (i + 0.5) * cell / r[0], y = (j + 0.5) * cell / r[1], z = (k + 0.5) * cell / r[2];
+      if (y < lo || y > hi || Math.abs(x) ** pw + Math.abs(y) ** pw + Math.abs(z) ** pw >= 1 || (keep && !keep(x, y, z))) { left = 0; continue; }
+      if (left <= 0) { colr = toC(col(x, y, z)); left = run[0] + Math.floor(K.r() * (run[1] - run[0] + 1)); }
+      cells.set(key(i, j, k), colr); left--;
+    }
+  }
+  let F = K.vfaces.get(p); if (!F) K.vfaces.set(p, F = { P: [], N: [], C: [] });
+  const cs = Math.cos(rx), sn = Math.sin(rx), h = cell / 2;
+  const put = (x, y, z) => F.P.push((c[0] + x) * PX, (c[1] + y * cs - z * sn) * PX, (c[2] + y * sn + z * cs) * PX);
+  for (const [fx, fy, fz, sh] of FACE6) {
+    for (let k = -nz; k < nz; k++) for (let j = -ny; j < ny; j++) {
+      let i = -nx;
+      while (i < nx) {
+        const cc = cells.get(key(i, j, k));
+        if (!cc || cells.has(key(i + fx, j + fy, k + fz))) { i++; continue; }
+        // merge a strip along x of open faces of one colour (not for the x-facing ends)
+        let e = i + 1;
+        if (!fx) while (e < nx && cells.get(key(e, j, k)) === cc && !cells.has(key(e + fx, j + fy, k + fz))) e++;
+        const hot = Math.max(cc.r, cc.g, cc.b) >= 0.999, g = hot ? 1 : sh;
+        const x0 = i * cell, x1 = e * cell, y = (j + 0.5) * cell, z = (k + 0.5) * cell;
+        // the quad's corners, wound to face out
+        let Q;
+        if (fx) { const x = (i + 0.5) * cell + fx * h; Q = fx > 0 ? [[x, y - h, z + h], [x, y - h, z - h], [x, y + h, z - h], [x, y + h, z + h]] : [[x, y - h, z - h], [x, y - h, z + h], [x, y + h, z + h], [x, y + h, z - h]]; }
+        else if (fy) { const yy = y + fy * h; Q = fy > 0 ? [[x0, yy, z + h], [x1, yy, z + h], [x1, yy, z - h], [x0, yy, z - h]] : [[x0, yy, z - h], [x1, yy, z - h], [x1, yy, z + h], [x0, yy, z + h]]; }
+        else { const zz = z + fz * h; Q = fz > 0 ? [[x0, y - h, zz], [x1, y - h, zz], [x1, y + h, zz], [x0, y + h, zz]] : [[x1, y - h, zz], [x0, y - h, zz], [x0, y + h, zz], [x1, y + h, zz]]; }
+        const ny2 = fy * cs - fz * sn, nz2 = fy * sn + fz * cs;
+        for (const q of [0, 1, 2, 0, 2, 3]) { put(...Q[q]); F.N.push(fx, ny2, nz2); F.C.push(cc.r * g, cc.g * g, cc.b * g); }
+        i = e;
+      }
+    }
+  }
+}
+const _cols = new Map();
+const toC = (c) => { if (c instanceof THREE.Color) return c; if (!_cols.has(c)) _cols.set(c, new THREE.Color(c)); return _cols.get(c); };
+// a colour from a list with a little jitter, picked at random (a pixel mosaic)
+const mix = (K, cols, j = 0.14) => K.tone(cols, j);
+
 // ---- karpos and karpos slinger -----------------------------------------------------
 // (vox-ow-fodder, top left; vox-ow-fodder-2, top left) A gangly spirit of the
 // grain, about chest-high to a hero: a straw hood over a dark face with two
@@ -227,57 +329,69 @@ function karposSkin() {
     face: (s, ey) => { s.rect(8, ey - 3, 8, 8, 0x1e1408, 0.1); for (const x of [9, 13]) { s.rect(x, ey - 0.5, 2, 2, eye, 0); s.dot(x + 0.5, ey, 0xe8ffb0, 1, 1); } s.rect(10, ey + 3, 4, 1, 0x0e0804, 0); } }), { emit: 1.6 });
 }
 function buildKarpos(K0, slinger = false) {
-  const { gold, goldL, goldD, straw, leaf, leafD, twine, pod } = KG, STRAW = [gold, goldL, goldD, straw], LEAF = [leaf, leafD, 0x5aa03a];
+  const kind = slinger ? 'karpos_slinger' : 'karpos';
+  const { gold, goldL, goldD, straw, leaf, leafD, twine, pod } = KG, STRAW = [gold, goldL, goldD, straw, 0xc89038], LEAF = [leaf, leafD, 0x5aa03a, 0x2a7a2a];
   const mat = karposSkin();
-  const rig = new Rig({ material: mat, scale: 0.85, legH: 9, bodyH: 10, bodyW: 7, bodyD: 5, armW: 2.4, headS: 8, jacket: false });
-  const K = K0.kit(rig, mat, { seed: slinger ? 131 : 101, rough: 0.85, emit: 0.9 });
+  const rig = new Rig({ material: mat, scale: 1.05, legH: 8, bodyH: 9, bodyW: 8, bodyD: 5.4, armW: 2.8, headS: 8, jacket: false });
+  const K = kitOf(K0, kind, rig, mat, { seed: slinger ? 131 : 101, rough: 0.85, emit: 0.9, ao: 0.3 });
   const T = rig.torso, Hd = rig.head, H8 = 8 * HS;
   dropAll(rig, T); dropOne(rig, hatOf(rig));
-  // body: a sheaf of stalks, narrower at the waist, leaves woven in, twine bands
-  K.box(T, 0, 6, 0, 7.4, 8, 5, gold); K.box(T, 0, 1.4, 0, 5.6, 3, 4, goldD);
-  for (let x = -3.2; x <= 3.3; x += 1.3) K.box(T, x, 5.6, 2.55, 1, 9.6, 0.5, K.tone(STRAW, 0.12));
-  for (const y of [2.6, 8.4]) K.box(T, 0, y, 0, 7.8, 0.8, 5.4, twine);
-  for (let i = 0; i < 5; i++) K.box(T, -2.6 + i * 1.3, 6 - (i % 2) * 2, 2.8, 0.8, 4, 0.4, K.tone(LEAF, 0.1), 0, 0, (i - 2) * 0.3);
-  for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2, L = 4 + K.r() * 3; K.flare(T, Math.sin(a) * 3.2, -L / 2 + 0.6, Math.cos(a) * 2.2, 1.6, L, 0.6, i % 3 ? K.tone(STRAW, 0.1) : K.tone(LEAF, 0.1), a, 0.3); }
-  // the hood: straw all round a dark face, a pointed fringe over the brow
-  K.box(Hd, 0, H8 + 0.6, -0.4, H8 + 1.6, 1.4, H8 + 1.2, straw);
-  for (const sx of [-1, 1]) K.box(Hd, sx * (H8 / 2 + 0.6), H8 / 2 - 0.6, -0.2, 1.2, H8 + 2, H8 + 1.6, goldD);
-  K.box(Hd, 0, H8 / 2, -H8 / 2 - 0.7, H8 + 2.4, H8 + 1.6, 1.2, gold);
-  for (let x = -H8 / 2; x <= H8 / 2; x += 1.2) K.box(Hd, x, H8 - 0.6 - Math.abs(x) * 0.25, H8 / 2 + 0.5, 1.3, 2.4 + K.r(), 0.8, K.tone(STRAW, 0.12));
-  for (const sx of [-1, 1]) for (let i = 0; i < 3; i++) K.box(Hd, sx * (H8 / 2 + 0.3 - i * 0.5), -1 - i * 0.8, H8 / 2 + 0.2, 1, 2.6, 0.8, K.tone(STRAW, 0.12));
-  // the spray of wheat ears and green blades fanning up behind the head
-  const ears = slinger ? 7 : 9;
+  // body: a sheaf of bound stalks, leaves woven in, a straw fringe hanging over the hips
+  K.box(T, 0, 5, 0, 7.2, 8, 4.6, goldD);
+  for (let i = 0; i < 18; i++) { const a = i / 18 * Math.PI * 2, L = 9 + K.r() * 4; K.flare(T, Math.sin(a) * 3.9, 9 - L / 2, Math.cos(a) * 2.7, 1.5, L, 0.8, K.tone(STRAW, 0.14), a, 0.12 + K.r() * 0.1); }
+  for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2 + 0.3, L = 5 + K.r() * 4; K.flare(T, Math.sin(a) * 4.3, 3.4 - L / 2, Math.cos(a) * 3, 1.2, L, 0.5, K.tone(LEAF, 0.1), a, 0.3); }
+  for (const y of [3.4, 7.6]) K.box(T, 0, y, 0, 8.4, 0.9, 6, twine);
+  K.box(T, 0, 3.4, 3.05, 1.4, 1.6, 0.6, 0x5a3418);
+  // the hood: a rounded straw cowl round a dark face, streaked in stalks, a fringe over the brow
+  blob(K, Hd, [0, H8 * 0.52, -0.4], [H8 / 2 + 1.6, H8 / 2 + 1.5, H8 / 2 + 1.6], 0.9, (x) => mix(K, [STRAW[(Math.floor((x + 1) * 6) + 8) % 5]], 0.1),
+    { lo: -0.78, run: [1, 1], keep: (x, y, z) => !(z > -0.1 && Math.abs(x) < 0.66 && y < 0.5) });
+  for (let x = -H8 / 2 + 0.4; x <= H8 / 2; x += 1.1) K.box(Hd, x, H8 - 0.3 - Math.abs(x) * 0.2, H8 / 2 + 0.6, 1.2, 2.2 + K.r() * 1.4, 0.9, K.tone(STRAW, 0.12));
+  for (const sx of [-1, 1]) for (let i = 0; i < 4; i++) K.box(Hd, sx * (H8 / 2 + 0.4 - i * 0.3), 2 - i * 1.2, H8 / 2 + 0.3 - i * 0.3, 1.2, 2.6, 1, K.tone(STRAW, 0.12));
+  K.box(Hd, 0, H8 + 2.2, -0.4, 2.4, 1.4, 2.4, goldL); K.box(Hd, 0, H8 + 3, -0.6, 1.2, 1.2, 1.2, gold);
+  // the face: big glowing green eyes and a grin in the dark
+  for (const sx of [-1, 1]) { K.box(Hd, sx * 1.7, H8 * 0.52, H8 / 2 + 0.1, 2, 1.8, 0.3, KG.eye); K.box(Hd, sx * 1.5, H8 * 0.56, H8 / 2 + 0.25, 0.8, 0.7, 0.2, 0xe8ffb0); }
+  K.box(Hd, 0, H8 * 0.24, H8 / 2 + 0.1, 4, 1, 0.3, 0x0e0804); for (const x of [-1.4, -0.4, 0.6, 1.5]) K.box(Hd, x, H8 * 0.24 + 0.25, H8 / 2 + 0.2, 0.5, 0.5, 0.2, 0xe8d8a0);
+  // the spray of wheat ears fanning up behind the head: stalks, ears of zigzag grains with awns, green blades
+  const ears = slinger ? 9 : 11;
   for (let i = 0; i < ears; i++) {
-    const tilt = (i - (ears - 1) / 2) * (slinger ? 0.26 : 0.22), L = 7 + (1 - Math.abs(tilt)) * 4 + K.r() * 2, z = -2.6 - (i % 2) * 1.2;
-    const sx = Math.sin(tilt), cy = Math.cos(tilt), bx = sx * 2;
-    K.box(Hd, bx + sx * L / 2, H8 + cy * L / 2, z, 0.6, L, 0.6, goldD, 0, 0, -tilt);
-    for (let k = 0; k < 4; k++) { const d = L + 1 + k * 1.6; K.box(Hd, bx + sx * d + (k % 2 ? 0.5 : -0.5) * cy, H8 + cy * d, z, 2, 2, 2, k === 3 ? goldL : K.tone([gold, goldL], 0.1), 0, 0, -tilt); }
-    K.box(Hd, bx + sx * (L + 7.6), H8 + cy * (L + 7.6), z, 0.3, 2, 0.3, goldL, 0, 0, -tilt);
+    const tilt = (i - (ears - 1) / 2) * (slinger ? 0.26 : 0.23), L = 6 + (1 - Math.abs(tilt)) * 4 + K.r() * 2, z = -1.8 - (i % 3) * 1.6;
+    const sx = Math.sin(tilt), cy = Math.cos(tilt), bx = sx * 2.6;
+    K.box(Hd, bx + sx * L / 2, H8 * 0.7 + cy * L / 2, z, 0.7, L, 0.7, goldD, 0, 0, -tilt);
+    for (let k = 0; k < 5; k++) { const d = L + 0.8 + k * 1.3, w = k === 4 ? 1.2 : 1.5; for (const o of [-0.6, 0.6]) K.box(Hd, bx + sx * (d + (o > 0 ? 0.6 : 0)) + o * cy, H8 * 0.7 + cy * (d + (o > 0 ? 0.6 : 0)) - o * sx, z, w, 1.6, 1.5, K.tone(k > 2 ? [goldL, gold] : [gold, straw], 0.1), 0, 0, -tilt); }
+    K.box(Hd, bx + sx * (L + 8.6), H8 * 0.7 + cy * (L + 8.6), z, 0.3, 2.4, 0.3, goldL, 0, 0, -tilt);
   }
-  for (const [x, rz, L] of [[-4.6, 1.1, 8], [4.6, -1.1, 8], [-3, 0.6, 9], [3.2, -0.6, 8], [-1, 0.2, 10], [1.4, -0.25, 9]]) K.box(Hd, x - Math.sin(rz) * L * 0.3, H8 * 0.6 + Math.cos(rz) * L * 0.45, -1.6, 1.4, L, 0.5, K.tone(LEAF, 0.1), 0, 0, rz);
-  // long straw arms bound at the wrist, four long clawed fingers
+  for (const [x, rz, L] of [[-5, 1.2, 8], [5, -1.2, 8], [-3.4, 0.7, 9], [3.6, -0.7, 9], [-1.4, 0.3, 10], [1.6, -0.3, 9], [0, 0, 7]]) K.box(Hd, x - Math.sin(rz) * L * 0.3, H8 * 0.6 + Math.cos(rz) * L * 0.45, -1.4, 1.5, L, 0.5, K.tone(LEAF, 0.1), 0, 0, rz);
+  // long straw arms in bundles, bound at the wrist, big hands of four long clawed fingers
   for (const arm of [rig.armR, rig.armL]) {
     dropAll(rig, arm);
-    K.box(arm, 0, -1, 0, 2.8, 3, 2.8, goldD); K.box(arm, 0, -5.6, 0, 1.8, 9, 1.8, gold); K.box(arm, 0, -9.8, 0, 2.4, 1, 2.4, twine);
-    for (const [dx, rz] of [[-1, 0.3], [-0.35, 0.1], [0.35, -0.1], [1, -0.3]]) { K.box(arm, dx, -12, 0.3, 0.55, 3.6, 0.55, straw, 0.2, 0, rz); K.box(arm, dx * 1.25, -14, 1, 0.45, 1.8, 0.45, goldD, 0.9, 0, rz); }
+    K.box(arm, 0, -0.6, 0, 3.4, 3, 3.4, goldD);
+    for (const [dx, dz] of [[-0.6, -0.5], [0.6, -0.5], [0, 0.6]]) K.box(arm, dx, -5.4, dz, 1.4, 8.4, 1.4, K.tone(STRAW, 0.12));
+    K.box(arm, 0, -4, 0, 3, 0.7, 3, twine); K.box(arm, 0, -9.4, 0, 3.2, 1.1, 3.2, twine);
+    K.box(arm, 0, -11, 0.2, 3, 2.2, 2.4, gold);
+    for (const [dx, rz] of [[-1.2, 0.3], [-0.4, 0.1], [0.4, -0.1], [1.2, -0.3]]) { K.box(arm, dx, -13.4, 0.4, 0.7, 3.2, 0.7, straw, 0.15, 0, rz); K.box(arm, dx * 1.25, -15.4, 1.2, 0.6, 2, 0.6, gold, 0.7, 0, rz); K.box(arm, dx * 1.3, -16.2, 2.2, 0.45, 1, 0.45, 0x8a5a20, 1.2, 0, rz); }
+    K.box(arm, -1.6, -11.6, 1, 0.6, 2.4, 0.6, straw, 0.4, 0, 0.6);
   }
   if (slinger) {
     // the sling: two cords from the right hand to a glowing pod; a string of pods at the belt
     const s = group(rig.handR, 0, -3, 0);
     K.box(s, -0.4, -3, 0, 0.35, 6, 0.35, twine, 0, 0, 0.12); K.box(s, 0.4, -3, 0, 0.35, 6, 0.35, twine, 0, 0, -0.12);
-    K.box(s, 0, -6.2, 0, 2.4, 1, 1.6, twine); K.box(s, 0, -5.4, 0, 1.8, 1.8, 1.8, pod); K.box(s, 0, -5.4, 0, 1, 2.4, 1, 0xfff0a0);
+    K.box(s, 0, -6.2, 0, 2.6, 1, 1.8, twine); K.box(s, 0, -5.4, 0, 2, 2, 2, pod); K.box(s, 0, -5.4, 0, 1.2, 2.6, 1.2, 0xfff0a0);
     sway(rig, s, 'x', 0.6, 7);
-    for (const [x, y] of [[-2.4, 1.2], [-0.8, 0.6], [0.8, 0.6], [2.4, 1.2]]) { K.box(T, x, y, 2.9, 0.3, 1.2, 0.3, twine); K.box(T, x, y - 1.2, 3, 1.2, 1.2, 1.2, pod); }
+    for (const [x, y] of [[-2.6, 2.6], [-0.9, 2], [0.9, 2], [2.6, 2.6]]) { K.box(T, x, y, 3.1, 0.3, 1.2, 0.3, twine); K.box(T, x, y - 1.3, 3.2, 1.3, 1.3, 1.3, pod); }
+    K.box(T, -2.6, 6, 0, 0.6, 9, 6.4, twine, 0, 0, 0.7);   // the sling's strap
   }
   // legs: bundled stalks bound at the knee, splaying into root toes
   for (const leg of [rig.legR, rig.legL]) {
     dropAll(rig, leg);
-    K.box(leg, 0, -4, 0, 2.8, 8, 2.8, goldD); K.box(leg, 0, -4.4, 0, 3.2, 0.8, 3.2, twine);
-    for (const [dx, ry] of [[-0.9, 0.4], [0, 0], [0.9, -0.4]]) K.box(leg, dx, -8.6, 1.4, 0.8, 0.8, 3, straw, 0, ry, 0);
+    for (const [dx, dz] of [[-0.6, -0.4], [0.6, -0.4], [0, 0.6]]) K.box(leg, dx, -3.6, dz, 1.6, 7.4, 1.6, K.tone(STRAW, 0.12));
+    K.box(leg, 0, -3.8, 0, 3.4, 0.9, 3.4, twine);
+    for (const [dx, ry] of [[-1.1, 0.5], [0, 0], [1.1, -0.5]]) { K.box(leg, dx, -7.5, 1.4, 1, 0.9, 3.2, goldD, 0, ry, 0); K.box(leg, dx * 1.4, -7.7, 3, 0.7, 0.6, 1.2, 0x8a5a20, 0, ry, 0); }
+    K.box(leg, 0, -7.6, -1.4, 0.9, 0.8, 2, goldD);
   }
   K.done();
   noShadow(rig, rig.armR, rig.armL, rig.legR, rig.legL);
-  return finish(rig, slinger ? 'karpos_slinger' : 'karpos');
+  rig.hunch = 0.12; rig.armSpread = 0.45;
+  return finish(rig, kind);
 }
 
 // ---- Colchis bull calf -----------------------------------------------------------
@@ -287,49 +401,67 @@ function buildKarpos(K0, slinger = false) {
 // back, a jointed iron tail with a bronze knob; a broad brown head with cream
 // horns from bronze sockets, glowing orange eyes, a cream muzzle plate with
 // glowing nostrils. It paws, then charges with a jet of fire.
+// a riveted plate: a bronze slab with a lighter face, a dark lower lip and
+// four gold rivets, facing out along x (side 1/-1), up (side 0) or forward
+function plate(K, p, x, y, z, w, h, d, face, C) {
+  K.box(p, x, y, z, w, h, d, mix(K, C.brz, 0.1));
+  if (face === 'y') { K.box(p, x, y + h / 2 + 0.1, z + 0.2, w - 0.8, 0.2, d - 1, C.brzL); for (const [a, b] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) K.box(p, x + a * (w / 2 - 0.5), y + h / 2 + 0.15, z + b * (d / 2 - 0.5), 0.5, 0.3, 0.5, C.gold); K.box(p, x, y - h / 2 + 0.1, z - d / 2 - 0.1, w, 0.5, 0.3, C.brzD); return; }
+  if (face === 'z') { K.box(p, x, y + 0.2, z + d / 2 + 0.1, w - 0.8, h - 1, 0.2, C.brzL); for (const [a, b] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) K.box(p, x + a * (w / 2 - 0.5), y + b * (h / 2 - 0.5), z + d / 2 + 0.15, 0.5, 0.5, 0.3, C.gold); K.box(p, x, y - h / 2 + 0.25, z + d / 2 + 0.05, w, 0.5, 0.3, C.brzD); return; }
+  const sx = face, fx = x + sx * (w / 2 + 0.1);
+  K.box(p, fx, y + 0.2, z, 0.2, h - 1, d - 0.8, C.brzL);
+  for (const [a, b] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) K.box(p, fx + sx * 0.05, y + a * (h / 2 - 0.5), z + b * (d / 2 - 0.5), 0.3, 0.5, 0.5, C.gold);
+  K.box(p, fx - sx * 0.05, y - h / 2 + 0.25, z, 0.3, 0.5, d, C.brzD);
+}
 function buildCalf(K0) {
-  const brz = 0xc8902e, brzD = 0x7a5418, brzL = 0xe8b448, iron = 0x3a2a22, ironD = 0x241a14, gold = 0xf0c040, glow = 0xff8a1a, hot = 0xffd860, horn = 0xf0e0c0, head = 0x6a4428;
-  const mat = skinMat('colchis_calf', flatQuad(brz, brzD, iron, glow), { rough: 0.4, emit: 1 });
-  const rig = new QuadRig({ material: mat, scale: 1.7, bodyL: 12, bodyW: 8, bodyH: 7, legH: 7, legW: 3, headS: 5, snout: false, neckUp: -0.6, headZ: 1.6, gait: 1.2, ears: false, tail: 2, tailLen: 5, tailW: 1 });
-  const K = K0.kit(rig, mat, { seed: 137, rough: 0.4, metal: 0.25, emit: 0.9 });
+  const C = { brz: [0x9a6820, 0x8a5a1c, 0xa87428, 0x7a5018], brzD: 0x4a2e10, brzL: 0xc89038, gold: 0xf0c050 };
+  const iron = 0x3a2820, ironD = 0x22160f, ironL = 0x4a3428, glow = 0xff8a1a, hot = 0xffd860, horn = 0xf0e0c0, hornD = 0xc8b490, head = 0x6a4428, headD = 0x4a2e1a;
+  const mat = skinMat('colchis_calf', flatQuad(0xc8902e, 0x7a5418, iron, glow), { rough: 0.4, emit: 1 });
+  const rig = new QuadRig({ material: mat, scale: 2, bodyL: 12, bodyW: 8, bodyH: 7, legH: 7, legW: 3, headS: 5, snout: false, neckUp: -0.6, headZ: 1.6, gait: 1.2, ears: false, tail: 2, tailLen: 5, tailW: 1 });
+  const K = kitOf(K0, 'colchis_calf', rig, mat, { seed: 137, rough: 0.4, metal: 0.25, emit: 0.9, ao: 0.35 });
   const T = rig.torso, Hd = rig.head, M = rig.mouth, hs = 5;
   dropAll(rig, T); dropAll(rig, Hd);
-  // the frame and the plates: a raised shoulder, side panels with rivets, a hump
-  K.box(T, 0, 0, 0, 7.6, 6.6, 11, iron); K.box(T, 0, 1, 3.4, 8.8, 7.6, 4.4, brz); K.box(T, 0, 0.4, -2.6, 8.6, 6.4, 5.4, brz);
+  // the iron frame, then overlapping riveted plates: a high shoulder, banded back, side panels
+  K.box(T, 0, 0, 0, 7.4, 6.4, 11.4, iron); K.box(T, 0, -3.4, 0, 6, 0.8, 9.4, ironD);
   for (const sx of [-1, 1]) {
-    for (const [z, h] of [[3.4, 6], [-2.6, 5]]) { K.box(T, sx * 4.5, 0.6, z, 0.5, h, z > 0 ? 3.6 : 4.6, brzL); for (const [dy, dz] of [[h / 2 - 0.8, 1.4], [h / 2 - 0.8, -1.4], [-h / 2 + 0.8, 1.4], [-h / 2 + 0.8, -1.4]]) K.box(T, sx * 4.8, 0.6 + dy, z + dz, 0.3, 0.6, 0.6, gold); }
-    K.box(T, sx * 4.4, 0.4, 0.6, 0.6, 5.4, 1.2, ironD);
+    plate(K, T, sx * 4.1, 1.4, 3.8, 1, 6, 3.6, sx, C); plate(K, T, sx * 4.4, 0.2, 0.2, 1, 5, 3, sx, C); plate(K, T, sx * 4, 0.8, -3.6, 1, 5.4, 3.6, sx, C);
+    for (const z of [1.9, -1.6]) K.box(T, sx * 3.9, 0.6, z, 0.6, 6, 0.6, ironD); K.box(T, sx * 3.9, 3.6, 0, 0.6, 0.6, 11, ironD);
+    K.box(T, sx * 4.2, -2.6, 1.8, 0.8, 1.4, 9, ironL); for (let z = -4; z <= 4.5; z += 1.6) K.box(T, sx * 4.6, -2.6, z, 0.3, 0.6, 0.6, C.gold);
   }
-  K.box(T, 0, 4.6, 2.6, 6.4, 1.6, 5, brzD); K.box(T, 0, 4.2, -2.4, 7.4, 1.2, 4.6, brzL);
-  K.box(T, 0, 1, 5.7, 4, 3.4, 0.4, ironD); for (const y of [0, 1, 2]) K.box(T, 0, y, 5.9, 3.4, 0.45, 0.3, glow);   // the furnace grille
-  K.box(T, 0, -3.5, 0, 6, 0.6, 9, ironD);
+  for (const [y, z, w, d] of [[4.6, 3.8, 7.8, 3.2], [4.2, 0.9, 7.4, 2.8], [3.8, -1.9, 7, 2.8], [3.4, -4.6, 6.6, 2.6]]) { plate(K, T, 0, y, z, w, 1.4, d, 'y', C); K.box(T, 0, y - 0.3, z - d / 2 - 0.2, w - 0.4, 1, 0.6, ironD); }
+  plate(K, T, 0, 6, 3.8, 5.6, 1.4, 3, 'y', C); plate(K, T, 0, 7.1, 3.4, 3.6, 1, 2, 'y', C); K.box(T, 0, 5.4, 2, 6.6, 1.4, 1, ironD);
+  plate(K, T, 0, 0.6, 5.9, 7, 6, 0.8, 'z', C);
+  K.box(T, 0, 0.2, 6.5, 3.6, 3, 0.4, ironD); for (const y of [-0.8, 0.2, 1.2]) K.box(T, 0, y, 6.7, 3, 0.5, 0.3, y > 0.5 ? hot : glow);   // the furnace grille
+  K.box(T, 0, 1.4, -5.8, 6.8, 5, 0.6, mix(K, C.brz)); K.box(T, 0, 1.4, -6.1, 2.4, 2.4, 0.4, ironD);
   // two smoking vents on the back
-  const vents = group(T, 0, 5, -1);
-  for (const sx of [-1, 1]) { K.box(vents, sx * 1.8, 0.8, 0, 1.4, 2.4, 1.4, iron); K.box(vents, sx * 1.8, 2.1, 0, 1.8, 0.4, 1.8, brzD); K.box(vents, sx * 1.8, 2.25, 0, 0.9, 0.2, 0.9, 0x1a1210); }
+  const vents = group(T, 0, 5.6, -1);
+  for (const sx of [-1, 1]) { K.box(vents, sx * 1.8, 0.8, 0, 1.4, 2.4, 1.4, iron); K.box(vents, sx * 1.8, 2.1, 0, 1.8, 0.4, 1.8, C.brzD); K.box(vents, sx * 1.8, 2.25, 0, 0.9, 0.2, 0.9, 0x1a1210); K.box(vents, sx * 1.8, 0.2, 0, 2, 0.5, 2, C.gold); }
   rig.extras.vents = vents;
-  // head: broad brown head, bronze brow plate, glowing eyes, a cream muzzle plate, horns
-  const hz = hs * 0.35;
-  K.box(Hd, 0, 0, hz, hs + 0.6, hs, hs, head); K.box(Hd, 0, hs * 0.44, hz, hs + 1, 1.2, hs + 0.2, brz);
-  K.box(Hd, 0, -1.6, hz + hs / 2 + 0.9, hs - 1.2, 3.6, 1.8, horn); K.box(Hd, 0, -3.2, hz + hs / 2 + 0.6, hs - 2.4, 1, 1.4, 0xd8c8a8);
+  // head: a broad brown head under a bronze brow plate, glowing eyes, a cream muzzle, curving horns from bronze sockets
+  const hz = hs * 0.35, fz = hz + hs / 2;
+  blob(K, Hd, [0, 0, hz], [hs / 2 + 0.8, hs / 2 + 0.2, hs / 2 + 0.2], 0.8, () => mix(K, [head, headD, 0x5a3a20], 0.12), { pw: 3, run: [1, 2] }); for (const sx of [-1, 1]) plate(K, Hd, sx * (hs / 2 + 0.6), -0.4, hz + 0.6, 0.8, 2.6, 2.8, sx, C);
+  K.box(Hd, 0, hs * 0.44, hz + 0.2, hs + 1.4, 1.4, hs + 0.4, mix(K, C.brz)); K.box(Hd, 0, hs * 0.44 + 0.3, fz + 0.4, hs - 1, 1, 0.4, C.brzL);
+  for (const x of [-2.4, -0.8, 0.8, 2.4]) K.box(Hd, x, hs * 0.44 + 0.75, hz + 0.2, 0.4, 0.3, 0.4, C.gold);
+  K.box(Hd, 0, -1.4, fz + 0.9, hs - 1, 3.4, 1.8, horn); K.box(Hd, 0, -2.9, fz + 0.7, hs - 2, 1, 1.4, hornD); K.box(Hd, 0, 0.4, fz + 0.5, hs - 2.4, 0.8, 1, hornD);
   for (const sx of [-1, 1]) {
-    K.box(Hd, sx * 1.2, -1.6, hz + hs / 2 + 1.85, 1, 1.2, 0.3, ironD); K.box(Hd, sx * 1.2, -1.8, hz + hs / 2 + 1.95, 0.6, 0.6, 0.3, glow);
-    K.box(Hd, sx * 2.2, 1.2, hz + hs / 2 + 0.05, 1.6, 1.2, 0.3, glow); K.box(Hd, sx * 2.2, 1.2, hz + hs / 2 + 0.15, 0.7, 0.6, 0.3, hot);
-    K.box(Hd, sx * (hs / 2 + 0.8), hs * 0.42, hz, 1.8, 2, 2, brzD);
-    K.box(Hd, sx * (hs / 2 + 2.4), hs * 0.42 + 0.4, hz + 0.2, 2.8, 1.6, 1.6, horn, 0, 0, sx * 0.2);
-    K.box(Hd, sx * (hs / 2 + 4), hs * 0.42 + 2.2, hz + 0.8, 1.3, 3.4, 1.3, horn, 0.3, 0, sx * -0.15); K.box(Hd, sx * (hs / 2 + 4.1), hs * 0.42 + 4, hz + 1.6, 0.9, 1.6, 0.9, 0xfff8e8, 0.7, 0, 0);
-    K.box(Hd, sx * (hs / 2 + 0.2), hs * 0.2, hz - 1.2, 0.6, 2.2, 1.6, head);
+    K.box(Hd, sx * 1.1, -1.4, fz + 1.85, 1, 1.2, 0.3, ironD); K.box(Hd, sx * 1.1, -1.6, fz + 1.95, 0.6, 0.6, 0.3, glow);
+    K.box(Hd, sx * 2.3, 1, fz + 0.05, 1.8, 1.3, 0.4, ironD); K.box(Hd, sx * 2.3, 1, fz + 0.2, 1.4, 0.9, 0.3, glow); K.box(Hd, sx * 2.1, 1.15, fz + 0.3, 0.6, 0.5, 0.2, hot);
+    K.box(Hd, sx * (hs / 2 + 0.9), hs * 0.4, hz, 1.8, 2.2, 2.2, C.brzD); K.box(Hd, sx * (hs / 2 + 1.5), hs * 0.4, hz, 0.6, 1.6, 1.6, C.gold);
+    for (const [x, y, z, w, h, d, col, rz] of [[2.4, 0.3, 0.2, 2.6, 1.7, 1.7, horn, 0.15], [4.3, 0.9, 0.4, 1.8, 1.5, 1.5, horn, 0.35], [5.2, 2.2, 0.6, 1.4, 1.8, 1.3, hornD, -0.1], [5.4, 3.7, 0.8, 1.1, 1.6, 1.1, horn, -0.25], [5.3, 4.9, 1, 0.8, 1, 0.8, 0xfff8e8, -0.4]]) K.box(Hd, sx * (hs / 2 + x), hs * 0.4 + y, hz + z, w, h, d, col, 0, 0, sx * rz);
+    K.box(Hd, sx * (hs / 2 + 0.3), hs * 0.1, hz - 1.4, 0.6, 2.2, 1.6, mix(K, C.brz));
   }
-  rig.extras.nose = group(Hd, 0, -1.8, hz + hs / 2 + 2.2);
-  K.box(M, 0, -1, 1.6, hs - 2, 1.2, 2.2, head);
-  // legs: bronze thigh plates, iron knee discs, banded dark hooves
+  rig.extras.nose = group(Hd, 0, -1.8, fz + 2.2);
+  K.box(M, 0, -1, 1.6, hs - 2, 1.2, 2.2, head); K.box(M, 0, -1.6, 1.8, hs - 2.4, 0.4, 1.8, C.brzD);
+  // legs: bronze thigh plates with rivets, round iron knees, shin guards, banded dark hooves
   for (const leg of rig.legs) {
     dropAll(rig, leg);
-    K.box(leg, 0, -1.6, 0, 3.6, 3.6, 3.6, brz); K.box(leg, leg.userData.side * 1.9, -1.6, 0, 0.5, 2.4, 2.4, gold);
-    K.box(leg, 0, -3.6, 0, 2.8, 1.4, 2.8, ironD); K.box(leg, 0, -4.8, 0, 2.6, 1.6, 2.6, iron);
-    K.box(leg, 0, -6, 0, 2.4, 1.4, 2.4, iron); K.box(leg, 0, -6.6, 0.2, 3.4, 0.6, 3.6, gold); K.box(leg, 0, -7.1, 0.2, 3.2, 0.6, 3.4, ironD);
+    const sd = leg.userData.side;
+    K.box(leg, 0, -1.4, 0, 3.6, 3.8, 3.8, mix(K, C.brz)); K.box(leg, sd * 1.9, -1.4, 0, 0.4, 3, 3, C.brzL); for (const [a, b] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) K.box(leg, sd * 2.1, -1.4 + a * 1.2, b * 1.2, 0.3, 0.5, 0.5, C.gold);
+    K.box(leg, 0, -3.7, 0, 3, 1.6, 3, ironD); K.box(leg, 0, -3.7, 0, 3.4, 1, 2, ironL); K.box(leg, sd * 1.75, -3.7, 0, 0.3, 0.9, 0.9, C.gold);
+    K.box(leg, 0, -5.2, 0, 2.5, 2, 2.5, iron); K.box(leg, 0, -5, 1.3, 2.2, 1.8, 0.5, mix(K, C.brz));
+    K.box(leg, 0, -6.4, 0.2, 3.4, 0.6, 3.6, C.gold); K.box(leg, 0, -7, 0.2, 3.2, 0.8, 3.4, ironD); K.box(leg, 0, -7, 1.9, 0.5, 0.8, 0.3, 0x120c08);
   }
   for (const s of rig.tail) dropAll(rig, s);
-  K.box(rig.tail[0], 0, 0, -1.4, 0.9, 0.9, 2.8, iron); K.box(rig.tailTip, 0, 0, -1.6, 0.8, 0.8, 2.6, iron); K.box(rig.tailTip, 0, 0, -3.2, 1.8, 1.8, 1.4, brzL);
+  K.box(rig.tail[0], 0, 0, -1.4, 0.9, 0.9, 2.8, iron); K.box(rig.tail[0], 0, 0, -2.8, 1.3, 1.3, 0.8, C.gold); K.box(rig.tailTip, 0, 0, -1.6, 0.8, 0.8, 2.6, iron); K.box(rig.tailTip, 0, 0, -3.2, 1.8, 1.8, 1.4, C.brzL); K.box(rig.tailTip, 0, 0, -3.2, 1.2, 2.2, 0.8, C.gold);
   K.done();
   noShadow(rig, M, rig.tailTip, rig.tail[0], ...rig.legs);
   return finish(rig, 'colchis_calf');
@@ -345,59 +477,69 @@ function buildCalf(K0) {
 // glowing green sac striped in dark and pale green, its eyes burn green and
 // green drips from its jaws; it sprays an arc of acid that splashes.
 function buildMyrmex(K0, spitter = false) {
-  const blk = 0x1e1614, blkL = 0x3a2a22, org = 0xe08a1a, orgD = 0x9a5410, orgL = 0xffb040, eye = spitter ? 0x8aff3a : 0xff8a10, eyeL = spitter ? 0xe0ffb0 : 0xffe0a0;
-  const ACID = 0x5aff2a, ACIDD = 0x1e7a1a, ACIDL = 0xb8ff70;
+  const kind = spitter ? 'myrmex_spitter' : 'myrmex';
+  const blk = 0x1e1614, blkL = 0x3a2a24, blkD = 0x120e0c, org = 0xe08a1a, orgD = 0xa85a12, orgL = 0xffb040, eye = spitter ? 0x8aff3a : 0xff8a10, eyeL = spitter ? 0xe0ffb0 : 0xffe0a0;
+  const ACID = 0x5aff2a, ACIDD = 0x1e7a1a, ACIDM = 0x34b82a, ACIDL = 0xc8ff70;
+  const DARK = [blk, blkL, blkD, 0x2a1e1c, 0x261a22], ORG = [org, orgD, 0xc87818], SAC = [ACID, ACIDM, 0x48e030, ACIDL];
   const mat = skinMat('myrmex', flatQuad(blk, 0x0e0a08, 0x2a2018, 0xff8a10), { rough: 0.3, emit: 1 });
-  const rig = new QuadRig({ material: mat, scale: 1.6, bodyL: 4.6, bodyW: 4, bodyH: 3.6, legH: 6, legW: 1.5, headS: 7, legs: 6, splay: 0.95, footL: 7, kneeOut: 0.45, legY: 0.4, snout: false, neckUp: 1, headZ: 1.8, gait: 1.8, ears: false });
-  const K = K0.kit(rig, mat, { seed: spitter ? 107 : 103, rough: 0.3, metal: 0.15, emit: 0.9 });
+  const rig = new QuadRig({ material: mat, scale: 1.75, bodyL: 4.6, bodyW: 4, bodyH: 3.6, legH: 6.6, legW: 1.7, headS: 7, legs: 6, splay: 1.15, footL: 7.4, kneeOut: 0.3, legY: 0.4, snout: false, neckUp: 1, headZ: 1.8, gait: 1.8, ears: false });
+  const K = kitOf(K0, kind, rig, mat, { seed: spitter ? 107 : 103, rough: 0.3, metal: 0.15, emit: 0.9, ao: 0.4 });
   const T = rig.torso, Hd = rig.head, M = rig.mouth, { hs, legW } = rig.dims;
   dropAll(rig, T); dropAll(rig, Hd);
-  // the thorax: small and humped, edged in orange
-  K.box(T, 0, 0.2, 0.4, 4, 3.6, 4.8, blk); K.box(T, 0, 2, 0.6, 3, 0.8, 3.6, blkL); K.box(T, 0, 0.4, 2.6, 4.4, 3, 0.6, org);
-  // the narrow waist: two little knots
-  K.box(T, 0, 0.4, -2.5, 1.6, 1.6, 1.4, blkL); K.box(T, 0, 0.8, -3.6, 2.2, 2.4, 1.2, blk);
-  // the abdomen: a huge rounded egg, banded
-  const ab = group(T, 0, 1.6, -4.2, -0.18), S = spitter ? 1.3 : 1.1, c = -5.4 * S;
-  const body = spitter ? ACID : blk, band = spitter ? ACIDD : org;
-  for (const [w, h, d] of [[7.4, 6.6, 9.4], [8.8, 5.4, 7.4], [6, 7.8, 7.4], [5.4, 5, 11.6], [6.6, 3.6, 10.6], [3.6, 3.6, 12.2]]) K.box(ab, 0, 0, c, w * S, h * S, d * S, body);
-  for (const [dz, w, h] of [[-4.4, 6, 4.8], [-1.6, 8.6, 6.8], [1.2, 8.8, 7], [3.8, 7, 5.6]]) { K.box(ab, 0, 0, c + dz * S, w * S + 0.5, h * S + 0.5, 1.2 * S, band); K.box(ab, 0, 0, c + dz * S, w * S - 1.6, h * S + 1.6, 1.2 * S, band); K.box(ab, 0, 0, c + dz * S, w * S + 1.6, h * S - 1.6, 1.2 * S, band); }
-  if (spitter) { for (const dz of [-2.9, -0.2, 2.5]) K.box(ab, 0, 0, c + dz * S, 8.7 * S, 6.9 * S, 0.6 * S, ACIDL); }
-  else K.box(ab, 0, 3.85 * S, c + 1, 2.6 * S, 0.3, 3.4 * S, blkL);
-  // head: big and round, an orange band round the face, glowing eyes
-  const hz = hs * 0.35, fz = hz + hs / 2;
-  K.box(Hd, 0, 0, hz, hs, hs * 0.86, hs, blk); K.box(Hd, 0, 0, hz, hs + 0.8, hs * 0.6, hs - 1.4, blk); K.box(Hd, 0, 0, hz, hs - 1.4, hs * 0.86 + 0.8, hs - 1.4, blk);
-  K.box(Hd, 0, hs * 0.38, fz + 0.05, hs - 0.6, 0.8, 0.3, org); for (const sx of [-1, 1]) K.box(Hd, sx * (hs / 2 - 0.2), 0, fz + 0.05, 0.8, hs * 0.7, 0.3, org);
-  K.box(Hd, 0, hs * 0.47, hz - 0.4, hs * 0.6, 0.5, hs * 0.7, orgD);
-  for (const sx of [-1, 1]) { K.box(Hd, sx * 1.5, hs * 0.1, fz + 0.15, 1.8, 1.6, 0.4, eye); K.box(Hd, sx * 1.3, hs * 0.18, fz + 0.3, 0.7, 0.6, 0.3, eyeL); }
-  // elbowed antennae: a dark stalk up, an orange elbow, a banded whip forward, an orange tip
+  // the thorax: a rounded hump, orange collar and a ring at the middle
+  blob(K, T, [0, 0.6, 0.8], [2.7, 2.7, 3.6], 0.9, (x, y, z) => (z > 0.62 || Math.abs(z + 0.1) < 0.14 ? mix(K, ORG, 0.1) : mix(K, DARK)), { run: [1, 3] });
+  // the waist: two little knots, orange-ringed
+  blob(K, T, [0, 0.8, -3.3], [1.3, 1.3, 1.1], 0.8, () => mix(K, DARK), { run: [1, 2] });
+  K.box(T, 0, 1, -4.4, 2, 2, 0.6, org);
+  // the abdomen: a huge round ball, banded across (the spitter's a glowing acid sac)
+  const S = spitter ? 1.15 : 1, ac = [0, 2.4 * S, -4.6 - 6.8 * S];
+  blob(K, T, ac, [5.9 * S, 5.5 * S, 7 * S], 0.95, (x, y, z) => {
+    const band = Math.abs(z - 0.45) < 0.12 || Math.abs(z + 0.05) < 0.12 || Math.abs(z + 0.56) < 0.1;
+    if (spitter) return band ? mix(K, [ACIDD, 0x16601a], 0.1) : y > 0.55 && K.r() < 0.4 ? ACIDL : mix(K, SAC, 0.08);
+    return band ? mix(K, ORG, 0.12) : y > 0.5 && K.r() < 0.35 ? mix(K, [blkL, 0x4a3a30], 0.1) : mix(K, DARK);
+  }, { rx: -0.32, run: [1, 3] });
+  if (spitter) for (const [x, z] of [[-2.4, -1], [2.2, 0.6], [0, -2.4]]) K.box(T, ac[0] + x * S, ac[1] - 4.6 * S, ac[2] + z * S, 0.7, 1.4, 0.7, ACID);   // drips under the sac
+  // head: big and round, an orange ring round the face, big glowing eyes
+  const hz = hs * 0.35, fz = hz + 3.3;
+  blob(K, Hd, [0, 0.2, hz], [4, 3.6, 3.5], 0.8, (x, y, z) => (y > 0.55 ? mix(K, [blkL, blk], 0.1) : mix(K, DARK)), { run: [1, 2] });
+  // the orange ring round the face: a stepped frame proud of the front
+  for (const [x, y, w, h] of [[0, 2.9, 4.4, 0.9], [0, -2.1, 3.2, 0.9], [-3, 0.4, 0.9, 3.6], [3, 0.4, 0.9, 3.6], [-2.4, 2.3, 1.2, 1], [2.4, 2.3, 1.2, 1], [-2.2, -1.5, 1.2, 1], [2.2, -1.5, 1.2, 1]]) K.box(Hd, x, y, fz - 0.5 - Math.abs(x) * 0.25, w, h, 1, mix(K, ORG, 0.1));
+  K.box(Hd, 0, 0.3, fz - 0.2, 0.8, 2.4, 0.6, blkL);
   for (const sx of [-1, 1]) {
-    K.box(Hd, sx * 1.2, hs * 0.43 + 2, fz - 0.6, 0.7, 4.4, 0.7, blkL, 0.2, 0, sx * -0.3);
-    K.box(Hd, sx * 1.9, hs * 0.43 + 4.2, fz, 1.1, 1.1, 1.1, org);
-    K.box(Hd, sx * 2.4, hs * 0.43 + 4.8, fz + 2.6, 0.6, 0.6, 4.6, blk, -0.25, sx * 0.25, 0);
-    K.box(Hd, sx * 2.6, hs * 0.43 + 5.2, fz + 3.6, 0.8, 0.8, 0.8, org, -0.25, sx * 0.25, 0);
-    K.box(Hd, sx * 3, hs * 0.43 + 5.9, fz + 5.4, 1, 1, 1.4, orgL, -0.25, sx * 0.25, 0);
+    K.box(Hd, sx * 1.55, 0.7, fz - 0.3, 2.2, 1.8, 0.8, 0x2a1408); K.box(Hd, sx * 1.55, 0.7, fz, 1.8, 1.4, 0.6, eye); K.box(Hd, sx * 1.35, 0.95, fz + 0.25, 0.7, 0.6, 0.3, eyeL);
   }
-  // mandibles: big curved bronze pincers with dark tips
+  // elbowed antennae: a dark stalk up and out, an orange elbow, a banded whip forward, an orange club
   for (const sx of [-1, 1]) {
-    K.box(M, sx * 1.9, 0, 1.2, 1.6, 1.4, 2.6, org, 0, -sx * 0.2, 0);
-    K.box(M, sx * 1.8, 0, 3.2, 1.3, 1.2, 2.4, org, 0, sx * 0.45, 0);
-    K.box(M, sx * 1, 0, 4.6, 1.1, 1, 1.8, orgL, 0, sx * 0.95, 0); K.box(M, sx * 0.4, 0, 5.2, 0.8, 0.8, 0.8, 0x2a1408, 0, sx * 1.1, 0);
-    K.box(M, sx * 1.4, -0.7, 2.6, 0.4, 0.6, 0.4, 0xfff0d0);
-    if (spitter) { K.box(M, sx * 1.2, -1.4, 3.2, 0.5, 1.8, 0.5, ACID); K.box(M, sx * 1.2, -2.6, 3.2, 0.7, 0.7, 0.7, ACIDL); }
+    const bx = sx * 1.3, by = 3.2, bz = fz - 1.4;
+    K.box(Hd, bx, by, bz, 1.4, 1, 1.4, org);
+    K.box(Hd, bx + sx * 0.7, by + 2.4, bz - 0.4, 0.8, 4.4, 0.8, blkL, -0.15, 0, sx * -0.3);
+    K.box(Hd, bx + sx * 1.4, by + 4.6, bz - 0.7, 1.2, 1.2, 1.2, org);
+    for (let i = 0; i < 4; i++) K.box(Hd, bx + sx * (1.7 + i * 0.35), by + 5 + i * 0.25, bz + 0.5 + i * 1.5, 0.75, 0.75, 1.5, i % 2 ? orgD : blk, -0.18, sx * 0.22, 0);
+    K.box(Hd, bx + sx * 3.2, by + 6.1, bz + 6.8, 1.1, 1.1, 1.6, orgL, -0.18, sx * 0.22, 0);
   }
-  // six legs fanned fore and aft, dark with orange bands at the joints
+  // mandibles: big curved orange pincers, stepped, with dark tips and cream teeth inside
+  for (const sx of [-1, 1]) {
+    // a hook: out and forward from the jaw, then curling in to a dark point
+    const seg = [[2, 0.4, 0.6, 1.6, 1.5, 1.8, -0.3], [2.7, 0.2, 2, 1.3, 1.3, 1.9, -0.15], [2.9, 0, 3.6, 1.2, 1.2, 1.8, 0.2], [2.5, -0.1, 5, 1.1, 1.1, 1.6, 0.65], [1.6, -0.2, 5.9, 1, 1, 1.4, 1.1], [0.8, -0.2, 6.2, 0.8, 0.9, 1, 1.4]];
+    seg.forEach(([x, y, z, w, h, d, a], i) => K.box(M, sx * x, y, z, w, h, d, i === 5 ? 0x3a1a08 : i === 4 ? orgL : i % 2 ? orgD : org, 0, sx * a, 0));
+    for (const [x, z] of [[2.2, 2.4], [2.3, 3.8], [1.9, 5]]) K.box(M, sx * x, -0.1, z, 0.6, 0.7, 0.5, 0xfff0d0);
+    if (spitter) { K.box(M, sx * 1.4, -1.2, 3, 0.5, 1.8, 0.5, ACID); K.box(M, sx * 1.4, -2.4, 3, 0.7, 0.7, 0.7, ACIDL); }
+  }
+  if (spitter) K.box(M, 0, -0.6, 2.4, 1.4, 0.6, 1.4, ACID);
+  // six legs fanned fore and aft, thick and dark, orange bands at every joint
   for (const leg of rig.legs) {
     const u = leg.userData; leg.rotation.y = -u.side * (0.7 - u.row * 0.7);
     const k = u.knee; dropAll(rig, leg); dropAll(rig, k);
-    K.box(leg, 0, -3, 0, legW, 6, legW, blk); K.box(leg, 0, -0.3, 0, legW + 0.6, 1.2, legW + 0.6, org); K.box(leg, 0, -3, 0, legW + 0.3, 0.6, legW + 0.3, orgD);
-    K.boxZ(k, 0, 0, 0, 2, 2, 2, org);
-    K.boxZ(k, 0, -3.6, 0, legW * 0.9, 7, legW * 0.9, blkL);
-    for (const y of [-2, -4.6]) K.boxZ(k, 0, y, 0, legW + 0.4, 0.9, legW + 0.4, org);
-    K.boxZ(k, 0, -7, 0, 0.9, 1.2, 0.9, orgL);
+    K.box(leg, 0, -0.2, 0, legW + 0.8, 1.4, legW + 0.8, org);
+    K.box(leg, 0, -2, 0, legW + 0.3, 2.6, legW + 0.3, blkL); K.box(leg, 0, -3.5, 0, legW + 0.5, 0.6, legW + 0.5, orgD); K.box(leg, 0, -4.9, 0, legW + 0.1, 2.4, legW + 0.1, blk);
+    K.boxZ(k, 0, 0, 0, 2.3, 2.3, 2.3, org); K.boxZ(k, 0, 0.3, 0, 1.6, 1.6, 2.5, orgL);
+    K.boxZ(k, 0, -2.2, 0, legW, 2.8, legW, blk); K.boxZ(k, 0, -3.7, 0, legW + 0.4, 0.7, legW + 0.4, org);
+    K.boxZ(k, 0, -5, 0, legW * 0.85, 2.2, legW * 0.85, blkL); K.boxZ(k, 0, -6.2, 0, legW + 0.2, 0.6, legW + 0.2, orgD);
+    K.boxZ(k, 0, -7, 0, legW * 0.7, 1.2, legW * 0.7, blkD);
   }
   K.done();
   noShadow(rig, Hd, M, ...rig.legs);
-  return finish(rig, spitter ? 'myrmex_spitter' : 'myrmex');
+  return finish(rig, kind);
 }
 
 // ---- Calydonian boarlet ---------------------------------------------------------
@@ -407,35 +549,44 @@ function buildMyrmex(K0, spitter = false) {
 // silhouette), great curved cream tusks, glowing orange eyes, a pink-brown
 // snout, dark hooves banded in brass; it lowers its head and charges.
 function buildBoarlet(K0) {
-  const fur = 0x6a3a1e, furD = 0x3a2010, furL = 0x8a5a30, bone = 0xf0e0b8, spineB = 0x8a5a30, snout = 0x9a5a4a, eye = 0xffa020, hoof = 0x2a1a10, brass = 0xc89a3a;
-  const FUR = [fur, furD, furL, 0x5a3018];
+  const fur = 0x6a3a1e, furD = 0x3a2010, furL = 0x8a5a30, bone = 0xf0e0b8, boneD = 0xd0b88a, spineB = 0x7a4a26, snout = 0x9a5a4a, eye = 0xffa020, hoof = 0x2a1a10, band = 0xc89a5a;
+  const FUR = [fur, furD, furL, 0x5a3018, 0x7a4424], DARK = [furD, 0x2a180c, 0x4a2a16];
   const mat = skinMat('boarlet', flatQuad(fur, furD, 0x4a2a16, eye), { rough: 0.9, emit: 1 });
-  const rig = new QuadRig({ material: mat, scale: 1.85, bodyL: 12, bodyW: 8, bodyH: 7.5, legH: 4.5, legW: 2.6, headS: 7, snout: false, neckUp: -0.4, headZ: 0.6, gait: 1.4, ears: false, tail: 2, tailLen: 3, tailW: 0.8 });
-  const K = K0.kit(rig, mat, { seed: 139, rough: 0.9, emit: 0.9 });
+  const rig = new QuadRig({ material: mat, scale: 2.35, bodyL: 12, bodyW: 8, bodyH: 7.5, legH: 4.5, legW: 2.6, headS: 7, snout: false, neckUp: -0.4, headZ: 0.6, gait: 1.4, ears: false, tail: 2, tailLen: 3, tailW: 0.8 });
+  const K = kitOf(K0, 'boarlet', rig, mat, { seed: 139, rough: 0.9, emit: 0.9, ao: 0.4 });
   const T = rig.torso, Hd = rig.head, M = rig.mouth, hs = 7;
   dropAll(rig, T); dropAll(rig, Hd);
-  // body: a hunched forequarter sloping to the haunches, shaggy
-  K.box(T, 0, 0, -1.4, 7.6, 6.6, 9.4, fur); K.box(T, 0, 0.9, 3.4, 8.6, 8, 5, furD);
-  K.clumps(T, [0, 0.4, 0.6], [8.4, 7.4, 11], { n: 40, size: [1.4, 2.4], cols: FUR, faces: 'lrkbf', out: -0.15 });
-  // the mane of spines: tall over the shoulders, falling away along the back
-  for (let i = 0; i < 22; i++) {
-    const z = 5.8 - (i >> 1) * 1, sx = i % 2 ? 1 : -1, h = 7 - (i >> 1) * 0.55 + K.r() * 1.4, x = sx * (0.6 + K.r() * 2.2);
-    K.box(T, x, 3.4 + h * 0.3, z, 1.5, h * 0.62, 1.5, spineB, -0.5, 0, sx * 0.3);
-    K.box(T, x + sx * Math.sin(0.3) * h * 0.5, 3.4 + h * 0.72, z - h * 0.3, 1, h * 0.42, 1, bone, -0.5, 0, sx * 0.3);
+  // body: a hunched forequarter sloping to the haunches, in clumps of shaggy fur
+  blob(K, T, [0, 1.2, 2.4], [4.8, 5, 4.4], 1, () => mix(K, FUR, 0.14), { run: [1, 2] });
+  blob(K, T, [0, 0, -2.8], [4.3, 4, 4.4], 1, () => mix(K, FUR, 0.14), { run: [1, 2] });
+  K.shag(T, [0, 0.8, 0.4], [8.6, 7.4, 11], { cols: FUR, step: 1.7, len: [2, 3.4], w: 1.1, low: 0.85, top: false, sweep: 0.3 });
+  K.clumps(T, [0, -3.6, 0], [7, 1, 9], { n: 12, size: [1.2, 2], cols: DARK, faces: 'b', out: -0.2 });
+  // the mane of spines: tall over the shoulders, falling away along the back, dark at the root and cream at the tip
+  const SPB = [spineB, furD, 0x8a4a22, 0x5a3018];
+  for (let i = 0; i < 44; i++) {
+    const f = i / 44, z = 5.6 - f * 11, sx = i % 2 ? 1 : -1, wide = 0.3 + K.r() * (i % 3 ? 2.6 : 4), h = Math.max(2.2, 7.6 - f * 5 + K.r() * 1.8) * (wide > 2.6 ? 0.7 : 1), x = sx * wide, yb = (z > 0 ? 5.6 : 4.4 + z * 0.12) - (wide > 2.6 ? 1.2 : 0), tz = sx * (0.2 + wide * 0.1);
+    K.box(T, x, yb + h * 0.25, z, 1.3, h * 0.55, 1.3, mix(K, SPB, 0.1), -0.5, 0, tz);
+    if (K.r() < 0.7) K.box(T, x + sx * Math.sin(tz * sx) * h * 0.45, yb + h * 0.66, z - h * 0.26, 0.9, h * 0.4, 0.9, i % 4 ? bone : boneD, -0.5, 0, tz);
   }
-  // head: a long wedge with clumps of fur, glowing eyes, ears, a snout disc, tusks
-  const hz = hs * 0.35;
-  K.box(Hd, 0, 0.4, hz, hs, hs, hs, furD); K.box(Hd, 0, -0.8, hz + hs / 2 + 1.6, hs - 1.4, hs - 2, 3.2, fur);
-  K.clumps(Hd, [0, 0.4, hz - 0.6], [hs, hs, hs - 1], { n: 10, size: [1.2, 2], cols: FUR, faces: 'tlr', out: -0.2 });
-  K.box(Hd, 0, -1.2, hz + hs / 2 + 3.4, 4, 3.2, 0.8, snout); for (const sx of [-1, 1]) K.box(Hd, sx * 0.9, -1.2, hz + hs / 2 + 3.85, 0.8, 1, 0.2, 0x2a1410);
+  K.clumps(T, [0, 1, 0.4], [9, 6, 11], { n: 26, size: [1, 1.8], cols: FUR, faces: 'lrk', out: 0.2, stretch: [0.7, 0.7, 1.8] });
+  // head: a big shaggy wedge, dark ears, glowing eyes under heavy brows, a pig's snout, great curling tusks
+  const hz = hs * 0.35, fz = hz + hs / 2;
+  blob(K, Hd, [0, 0.4, hz], [3.9, 3.8, 3.7], 0.9, (x, y) => mix(K, y > 0.3 ? FUR : [fur, furL, 0x7a4a2a], 0.14), { run: [1, 2] });
+  K.box(Hd, 0, -0.9, fz + 1.4, hs - 1.6, hs - 2.6, 3, fur); K.box(Hd, 0, 0.4, fz + 1, hs - 2.6, 1.6, 2.6, furL);
+  K.box(Hd, 0, -1.2, fz + 3, 4.2, 3.4, 0.8, snout); K.box(Hd, 0, -1.2, fz + 3.3, 3.4, 2.6, 0.3, 0xb87060); for (const sx of [-1, 1]) K.box(Hd, sx * 0.85, -1.2, fz + 3.5, 0.9, 1.2, 0.2, 0x2a1410);
   for (const sx of [-1, 1]) {
-    K.box(Hd, sx * (hs / 2 - 0.4), 1.4, hz + hs / 2 + 0.05, 1.4, 1, 0.3, eye); K.box(Hd, sx * (hs / 2 - 0.4), 2.2, hz + hs / 2 + 0.1, 1.8, 0.6, 0.4, furD);
-    K.box(Hd, sx * (hs / 2 - 0.4), hs / 2 + 1.4, hz - 1, 1.8, 2.8, 1, furL, -0.3, 0, sx * 0.5);
-    K.box(M, sx * 2.6, 1, 2.8, 1.1, 1.1, 3.4, bone, -0.4, 0, 0); K.box(M, sx * 2.9, 3, 4.2, 1, 2.8, 1, bone, 0.3, 0, sx * 0.3); K.box(M, sx * 3.2, 4.6, 4, 0.7, 1.2, 0.7, 0xfff8e0, 0.8, 0, sx * 0.3);
+    K.box(Hd, sx * (hs / 2 - 0.7), 1.5, fz + 0.15, 1.6, 1.1, 0.3, eye); K.box(Hd, sx * (hs / 2 - 0.9), 1.6, fz + 0.3, 0.6, 0.5, 0.2, 0xffe0a0); K.box(Hd, sx * (hs / 2 - 0.6), 2.4, fz + 0.2, 2.2, 0.8, 0.8, furD, 0, 0, sx * -0.2);
+    K.box(Hd, sx * (hs / 2 - 0.2), hs / 2 + 1.6, hz - 0.8, 2, 3.2, 1.2, furD, -0.3, 0, sx * 0.45); K.box(Hd, sx * (hs / 2 + 0.3), hs / 2 + 3, hz - 1.2, 1.2, 1.6, 0.9, 0x2a180c, -0.3, 0, sx * 0.45);
+    // the tusks, from the jaw: out, then curling up and back
+    for (const [x, y, z, w, h, d, col, rz] of [[2.4, 0.6, 2.8, 1.3, 1.3, 2.4, boneD, 0], [3.2, 1.2, 4.2, 1.2, 1.6, 1.2, bone, 0.4], [3.8, 2.6, 4.4, 1.1, 1.8, 1.1, bone, 0.15], [3.9, 4, 4, 0.9, 1.4, 0.9, 0xfff8e0, -0.2], [3.7, 4.9, 3.6, 0.6, 0.9, 0.6, 0xfffcf0, -0.4]]) K.box(M, sx * x, y, z, w, h, d, col, 0, 0, sx * rz);
   }
-  K.box(M, 0, -0.4, 1.8, hs - 2.4, 1, 2.8, snout); K.box(M, 0, 0.3, 2.6, hs - 3, 0.5, 1.4, 0x8a1a1a);
-  // legs: shaggy thighs, banded dark hooves
-  for (const leg of rig.legs) { dropAll(rig, leg); K.box(leg, 0, -1.4, 0, 3.2, 3.4, 3.2, furD); K.box(leg, 0, -3.3, 0.1, 2.6, 0.6, 2.8, brass); K.box(leg, 0, -4, 0.2, 2.6, 1.2, 2.8, hoof); }
+  K.box(M, 0, -0.4, 1.8, hs - 2.4, 1, 2.8, snout); K.box(M, 0, 0.3, 2.6, hs - 3, 0.5, 1.4, 0x8a1a1a); K.box(M, 0, -1, 1.6, hs - 2, 0.8, 2.4, furD);
+  // legs: shaggy thighs, dark shins, banded split hooves
+  for (const leg of rig.legs) {
+    dropAll(rig, leg);
+    K.box(leg, 0, -1.2, 0, 3.2, 3, 3.2, furD); K.clumps(leg, [0, -1, 0], [3.2, 2.6, 3.2], { n: 6, size: [1, 1.6], cols: FUR, faces: 'lrfk', out: -0.2 });
+    K.box(leg, 0, -3.2, 0.1, 2.8, 0.7, 3, band); K.box(leg, 0, -4, 0.2, 2.8, 1.2, 3, hoof); K.box(leg, 0, -4, 1.75, 0.4, 1.2, 0.3, 0x0a0604);
+  }
   for (const s of rig.tail) dropAll(rig, s);
   K.box(rig.tailTip, 0, 0, -1, 0.7, 0.7, 2.4, furD); K.box(rig.tailTip, 0, -0.4, -2.4, 1.2, 1.6, 1, furL);
   K.done();
@@ -451,102 +602,119 @@ function buildBoarlet(K0) {
 // lower fingers are the rig's jaw: the bite snaps them), and eight jointed
 // legs. It scuttles sideways and turns to face you to pinch.
 function buildCrab(K0) {
-  const red = 0xd04020, redD = 0x8a1e10, redL = 0xf06a30, rimC = 0xf09a3a, cream = 0xf0d8b0, claw = 0xf06a30, clawD = 0xc0401c;
-  const tip = 0x2a1410, barn = 0xf0ece0, barnD = 0x8a8478, weed = 0x2a8a4a, weedD = 0x1a5a2a, eyeT = 0xffa020;
-  const mat = skinMat('crab', flatQuad(red, redD, cream, 0x0a0a0a), { rough: 0.45, emit: 0.9 });
-  const rig = new QuadRig({ material: mat, scale: 1.4, bodyL: 8, bodyW: 12, bodyH: 5, legH: 5, legW: 1.4, headS: 4, legs: 8, splay: 0.01, snout: false, neckUp: -1.6, headZ: -0.4, gait: 2.4, ears: false, jawOpen: 0.15 });
-  const K = K0.kit(rig, mat, { seed: 109, rough: 0.45, emit: 0.85 });
+  const P = { red: 0xd04020, redM: 0xb83218, redD: 0x8a1e10, org: 0xf08a3a, orgL: 0xffa860, pale: 0xf8d0a8, tip: 0x2a1410, barn: 0xf0ece0, barnL: 0xfffaf0, barnD: 0x9a9284 };
+  const cream = 0xf8e4c0, eyeT = 0xffa020, SHELL = [0xd04020, 0xc03418, 0xe0502a, 0xa82a14], RIM = [0xf08a3a, 0xe8702a, 0xffa050], BEIGE = [0xf0d8b0, 0xe0c498, 0xd0b088];
+  const CLAW = [0xe04a24, 0xd0381c], CLAWM = [0xf06a30, 0xff7a3a], CLAWL = [0xff9a50, 0xffb070], WEED = [0x2a8a4a, 0x1a5a2a, 0x3a9a5a];
+  const mat = skinMat('crab', flatQuad(P.red, P.redD, cream, 0x0a0a0a), { rough: 0.45, emit: 0.9 });
+  const rig = new QuadRig({ material: mat, scale: 1.65, bodyL: 8, bodyW: 12, bodyH: 5, legH: 5, legW: 1.5, headS: 4, legs: 8, splay: 0.01, legSpread: -2.4, snout: false, neckUp: -1.6, headZ: -0.4, gait: 2.4, ears: false, jawOpen: 0.15 });
+  const K = kitOf(K0, 'crab', rig, mat, { seed: 109, rough: 0.45, emit: 0.85, ao: 0.3 });
   const T = rig.torso, Hd = rig.head, M = rig.mouth;
   dropAll(rig, T); dropAll(rig, Hd);
-  // the shell: a wide dome with an orange rim, a cream face below the front edge
-  K.box(T, 0, 0, 0, 12, 4.4, 8, red); K.box(T, 0, 2.6, -0.2, 10, 1.6, 7, redD); K.box(T, 0, 3.6, -0.4, 7, 1, 5, red);
-  K.box(T, 0, 0.6, 0, 12.8, 0.9, 8.6, rimC);
-  for (let i = 0; i < 8; i++) K.box(T, -5 + i * 1.45, 1.4, 4.2, 1.2, 0.8, 0.5, i % 2 ? rimC : 0xffc060);
-  K.box(T, 0, -1.2, 4.1, 6, 2.6, 0.6, cream); K.box(T, 0, -1.6, 4.45, 3, 0.6, 0.3, tip);
-  for (let i = 0; i < 6; i++) { const x = -4 + i * 1.6; K.box(T, x, -3.2 - (i % 2), 3.4, 0.8, 2.4 + (i % 3), 0.5, i % 2 ? weed : weedD); }
-  for (const [x, z, s] of [[-3.2, 1.6, 1.3], [-1.4, 2.6, 1.1], [2.8, 1.8, 1.2], [4.2, -0.4, 1], [-4.2, -1.4, 1.1], [0.8, -2.2, 1], [1.2, 3, 0.9]]) { K.box(T, x, 3.4 + s * 0.4, z, s, s, s, barn); K.box(T, x, 3.5 + s * 0.9, z, s * 0.45, 0.2, s * 0.45, barnD); }
+  const clawCol = (y) => mix(K, y > 0.3 ? CLAW : y > -0.35 ? CLAWM : CLAWL, 0.1);
+  // a pale underside, an orange rim and a domed red shell, mottled darker on top
+  blob(K, T, [0, -0.4, 0.4], [5, 2.8, 3.8], 1, () => mix(K, BEIGE, 0.1), { hi: 0.4, run: [1, 3] });
+  blob(K, T, [0, 0.4, 0], [6.8, 1, 4.8], 1, () => mix(K, RIM, 0.1), { run: [1, 3] });
+  blob(K, T, [0, 0.8, 0], [6.4, 4.8, 4.6], 0.9, (x, y) => (y < 0.2 ? mix(K, RIM, 0.1) : K.r() < 0.15 ? P.redD : mix(K, SHELL, 0.12)), { lo: 0, run: [1, 2] });
+  const dome = (a, e) => [6.4 * Math.cos(e) * Math.sin(a), 0.8 + 4.8 * Math.sin(e), 4.6 * Math.cos(e) * Math.cos(a)];
+  for (const [a, e, sz] of [[0.6, 0.6, 1.2], [-0.9, 0.7, 1.1], [2.2, 0.6, 1.2], [-2.4, 0.5, 1.1], [0, 1.1, 1], [1.5, 0.9, 0.9]]) { const [x, y, z] = dome(a, e); barnacle(K, T, x, y, z, sz, P); }
+  for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2 + 0.2, L = 1.6 + K.r() * 2.6; K.box(T, Math.sin(a) * 6.6, 0.2 - L / 2, Math.cos(a) * 4.7, 0.8, L, 0.5, mix(K, WEED, 0.1)); }
+  // the face under the front edge: a dark mouth and pale mouth parts
+  K.box(T, 0, -0.6, 4.1, 3, 1, 0.4, P.tip); for (const sx of [-1, 1]) K.box(T, sx * 1.3, -1.4, 4, 1, 1.2, 0.5, cream);
   // eyes on stalks with glowing tips
-  for (const sx of [-1, 1]) { K.box(T, sx * 1.4, 4.4, 3.2, 0.8, 3.6, 0.8, redD); K.box(T, sx * 1.4, 6.6, 3.2, 1.3, 1.3, 1.3, tip); K.box(T, sx * 1.4, 6.8, 3.5, 1, 1, 1, eyeT); }
-  // the claws, held out in front: an arm, a fat palm and a fixed upper finger; the jaw carries the lower fingers
-  M.position.set(0, -1.4 * PX, 4.2 * PX);
-  const k = 1.3;
+  for (const sx of [-1, 1]) { K.box(T, sx * 1.6, 5, 3, 0.8, 3.4, 0.8, P.redD, 0.15); K.box(T, sx * 1.6, 7, 3.3, 1.4, 1.4, 1.4, P.tip); K.box(T, sx * 1.6, 7.1, 3.75, 1, 1, 0.6, eyeT); }
+  // the claws, held out in front: an arm, a round palm and a fixed upper finger; the jaw carries the lower fingers
+  M.position.set(0, -1.6 * PX, 4.2 * PX);
   for (const sx of [-1, 1]) {
-    K.box(Hd, sx * 4.4, 0, 0.4, 2 * k, 2 * k, 3.6 * k, clawD, 0, sx * -0.3, 0);
-    K.box(Hd, sx * 5.2, 0.4 * k, 3.4 * k, 4 * k, 4.4 * k, 5 * k, claw); K.box(Hd, sx * 5.2, 2.6 * k, 3.4 * k, 3.4 * k, 0.8, 4.4 * k, redL);
-    K.box(Hd, sx * 5.2, 1.6 * k, 7.2 * k, 3 * k, 1.6 * k, 3.6 * k, claw, -0.15); K.box(Hd, sx * 5.2, 1.2 * k, 9.2 * k, 2 * k, 1.2 * k, 1.4 * k, cream, -0.15);
-    for (const z of [6.2, 7.6]) K.box(Hd, sx * 5.2, 0.7 * k, z * k, 0.8 * k, 0.6 * k, 0.6 * k, cream);
-    K.box(Hd, sx * (5.2 + 2 * k), 1 * k, 3 * k, 1 * k, 1 * k, 1 * k, barn);
-    K.box(M, sx * 5.2, -0.8 * k, 4.6 * k, 2.6 * k, 1.4 * k, 4.4 * k, clawD); K.box(M, sx * 5.2, -0.4 * k, 7 * k, 1.6 * k, 1 * k, 1.4 * k, cream);
+    K.box(Hd, sx * 4.4, 0, 0.2, 2.2, 2.2, 3.4, P.redM, 0, sx * -0.3, 0); K.box(Hd, sx * 5.2, 0.2, 1.8, 2.6, 2.6, 1, P.org);
+    blob(K, Hd, [sx * 5.8, 0.4, 4.4], [3, 3.4, 3.6], 0.9, (x, y) => clawCol(y), { run: [1, 2] });
+    for (const [y, z, w, h, d, col] of [[1.2, 8, 2.4, 2.2, 2.4, CLAWM], [0.6, 9.8, 1.8, 1.8, 1.8, CLAWL], [-0.3, 11, 1.2, 1.4, 1.2, [cream]]]) K.box(Hd, sx * 5.8, y, z, w, h, d, mix(K, col, 0.08));
+    for (const z of [7.6, 9.2]) K.box(Hd, sx * 5.8, -0.1, z, 0.9, 0.9, 0.7, cream);
+    barnacle(K, Hd, sx * 6.8, 2.6, 4, 1, P);
+    for (const [y, z, w, h, d, col] of [[-0.3, 5.6, 2, 1.6, 2.4, CLAWM], [0, 7.4, 1.4, 1.3, 1.6, CLAWL], [0.6, 8.4, 1, 1.1, 1, [cream]]]) K.box(M, sx * 5.8, y, z, w, h, d, mix(K, col, 0.08));
+    K.box(M, sx * 5.8, 0.8, 6.6, 0.8, 0.8, 0.6, cream);
   }
-  crabLegs(K, rig, red, redD, rimC);
+  crabLegs(K, rig, P);
   K.done();
   noShadow(rig, M, ...rig.legs);
   rig.sideways = true;
   return finish(rig, 'crab');
 }
-// eight legs at the sides: up and out to a knee, then down to a pointed tip
-function crabLegs(K, rig, red, redD, band, bands = 0) {
+// eight legs at the sides: up and out to a knee, then down in tapering
+// segments to a pointed tip, red over orange with a pale underside
+function crabLegs(K, rig, P, spikes = 0) {
   for (const leg of rig.legs) {
     dropAll(rig, leg);
-    const s = leg.userData.side, row = leg.userData.row, L = rig.dims.legH;
-    leg.rotation.y = -s * (0.7 - row * 0.45);
-    K.box(leg, s * 2.2, 1.4, 0, 4.6, 1.3, 1.3, row % 2 ? red : redD, 0, 0, s * 0.4);
-    K.box(leg, s * 4.6, 2.6, 0, 1.6, 1.6, 1.6, band);
-    K.box(leg, s * 5.4, (2.6 - L) / 2, 0, 1.3, L + 2.6, 1.3, red, 0, 0, s * -0.18);
-    for (let b = 0; b < bands; b++) { const y = 0.6 - (b + 1) * (L + 2) / (bands + 1); K.box(leg, s * (5.4 - y * 0.18), y, 0, 1.6, 0.7, 1.6, band, 0, 0, s * -0.18); }
-    K.box(leg, s * 6.1, -L + 0.4, 0, 0.7, 1.4, 0.7, 0xe8a020, 0, 0, s * -0.18);
+    const s = leg.userData.side, row = leg.userData.row, L = rig.dims.legH, w = rig.dims.legW;
+    leg.rotation.y = -s * (0.75 - row * 0.5);
+    K.box(leg, s * 1.2, 0.6, 0, 2.2, w + 0.4, w + 0.4, P.redD);
+    K.box(leg, s * 2.8, 1.6, 0, 4, w + 0.2, w + 0.2, row % 2 ? P.red : P.redM, 0, 0, s * 0.42); K.box(leg, s * 2.8, 1.6 + w * 0.55, 0, 3.2, 0.5, w * 0.7, P.org, 0, 0, s * 0.42);
+    K.box(leg, s * 4.9, 2.9, 0, w + 0.6, w + 0.6, w + 0.6, P.org); K.box(leg, s * 4.9, 3.1, 0.2, w * 0.5, w * 0.5, w + 0.8, P.pale);
+    const a = s * -0.16, seg = [[0.4, L * 0.38, w + 0.1, P.red], [-L * 0.32, L * 0.36, w - 0.1, row % 2 ? P.redM : P.red], [-L * 0.66, L * 0.3, w * 0.75, P.org]];
+    for (const [y, h, ww, col] of seg) { K.box(leg, s * (5.4 - y * 0.16), y + 1.6 - h / 2, 0, ww, h, ww, col, 0, 0, a); K.box(leg, s * (5.4 - y * 0.16) - s * ww * 0.45, y + 1.6 - h / 2, 0, 0.3, h * 0.8, ww * 0.6, P.pale, 0, 0, a); }
+    K.box(leg, s * (5.4 + L * 0.14), -L + 0.6, 0, w * 0.45, 1.4, w * 0.45, P.tip, 0, 0, a);
+    for (let k = 0; k < spikes; k++) K.box(leg, s * (5.9 + k * 0.08), 1.6 - k * 1.8, 0, 0.5, 0.5, 0.5, P.pale);
   }
+}
+// a barnacle: a pale knobbed cone with a dark mouth on top
+function barnacle(K, p, x, y, z, sz, P) {
+  K.box(p, x, y, z, sz, sz * 0.8, sz, mix(K, [P.barn, P.barnL], 0.08)); K.box(p, x, y + sz * 0.45, z, sz * 0.62, sz * 0.25, sz * 0.62, P.barnD); K.box(p, x, y + sz * 0.5, z, sz * 0.3, sz * 0.2, sz * 0.3, 0x2a2420);
+  K.box(p, x, y - sz * 0.1, z, sz * 1.3, sz * 0.35, sz * 0.5, P.barn); K.box(p, x, y - sz * 0.1, z, sz * 0.5, sz * 0.35, sz * 1.3, P.barnL);
 }
 
 // ---- king crab ------------------------------------------------------------------------------
 // (vox-ow-fodder-fix, bottom row) A hulking crab twice a hero's height: a
 // shell like a mossy hill, crusted with barnacles, sprouting red coral and
-// hung all round with kelp; a cream underside, eyestalks with glowing orange
-// tips, red-banded legs; one giant crusher claw, red-orange with cream
-// teeth, held out in front and raised high when it attacks (then slammed
-// down), and a smaller second claw.
+// hung all round with kelp, over a round pale underside; eyestalks with
+// glowing orange tips, red-and-orange legs; one giant crusher claw, red
+// fading to orange with cream teeth, held out low in front and raised high
+// when it attacks (then slammed down), and a smaller second claw.
 function buildKingCrab(K0) {
-  const red = 0xc0381c, redD = 0x7a1e10, org = 0xf06a30, orgL = 0xffa060, cream = 0xf0d8b0, creamD = 0xd8b890, tip = 0x2a1410, band = 0xf0c8a0;
-  const MOSS = [0x4a7a2a, 0x6a8a3a, 0x3a6a2a, 0x5a8a3a], KELP = [0x2a8a4a, 0x1a5a2a, 0x3a9a6a, 0x4a7a2a], barn = 0xf0ece0, barnD = 0x8a8478, coral = 0xe8503a, eyeT = 0xffa020;
-  const mat = skinMat('king_crab', flatQuad(red, redD, cream, eyeT), { rough: 0.5, emit: 0.9 });
-  const rig = new QuadRig({ material: mat, scale: 2.8, bodyL: 9, bodyW: 12, bodyH: 6, legH: 5, legW: 1.6, headS: 4, legs: 8, splay: 0.01, snout: false, neckUp: -1, headZ: -0.6, gait: 1.3, ears: false, jawOpen: 0.1 });
-  const K = K0.kit(rig, mat, { seed: 149, rough: 0.5, emit: 0.85 });
+  const P = { red: 0xc8341a, redM: 0xb02a16, redD: 0x7a1e10, org: 0xf06a30, orgL: 0xff9a50, pale: 0xf8c8a0, tip: 0x3a1a10, barn: 0xe8e0d0, barnL: 0xfff8ec, barnD: 0x9a9080 };
+  const cream = 0xf8e4c0, creamD = 0xe0c098, eyeT = 0xffa020;
+  const MOSS = [0x4a7a2a, 0x6a8a3a, 0x3a6a2a, 0x5a8a3a, 0x7a9a4a, 0x2e5a26], DIRT = [0x8a7a5a, 0x6a5a40, 0x9a8a6a], KELP = [0x2a8a5a, 0x1a5a3a, 0x3a9a7a, 0x2a7a2a, 0x1e6a5a];
+  const BEIGE = [0xe0c8a0, 0xd0b088, 0xc8a070, 0xf0dcb8, 0xb89060], CLAW = [0xd0381c, 0xb82a14, 0xe04a24], CLAWM = [0xf06a30, 0xe85a28, 0xff7a3a], CLAWL = [0xff9a50, 0xffb070, 0xf8c090];
+  const mat = skinMat('king_crab', flatQuad(P.red, P.redD, cream, eyeT), { rough: 0.5, emit: 0.9 });
+  const rig = new QuadRig({ material: mat, scale: 3, bodyL: 9, bodyW: 12, bodyH: 6, legH: 6.4, legW: 1.5, headS: 4, legs: 8, splay: 0.01, legSpread: -3, snout: false, neckUp: -1, headZ: -0.6, gait: 1.3, ears: false, jawOpen: 0.1 });
+  const K = kitOf(K0, 'king_crab', rig, mat, { seed: 149, rough: 0.5, emit: 0.85, ao: 0.35 });
   const T = rig.torso, Hd = rig.head, M = rig.mouth;
   dropAll(rig, T); dropAll(rig, Hd);
-  // the body: a red rim round a cream underside, a face of mouth parts
-  K.box(T, 0, 0, 0, 12, 5, 9, red); K.box(T, 0, 0.8, 0, 12.8, 1, 9.6, org);
-  K.box(T, 0, -1.4, 4.6, 7, 3.2, 0.6, cream); K.box(T, 0, -1.6, 4.95, 3.6, 1, 0.3, tip); for (const sx of [-1, 1]) K.box(T, sx * 2.6, -0.6, 4.9, 1.2, 1.6, 0.3, creamD);
-  // the mossy hill of a shell: stepped moss, barnacles, coral, kelp hanging all round
-  for (const [y, w, d] of [[3, 11.4, 8.6], [4.4, 9.4, 7], [5.6, 6.8, 5], [6.5, 3.6, 2.8]]) K.box(T, 0, y, -0.2, w, 1.6, d, K.tone(MOSS, 0.12));
-  K.clumps(T, [0, 4.4, -0.2], [10, 3.4, 7.6], { n: 18, size: [1, 1.8], cols: MOSS, faces: 'tlrfk', out: -0.2 });
-  for (const [x, y, z, sz] of [[-3.6, 4.6, 2.4, 1.5], [2.8, 5.2, 2, 1.3], [4.6, 3.8, -1.4, 1.4], [-4.8, 3.6, -1.8, 1.2], [-1.2, 6.2, -1.6, 1.3], [1.4, 6.6, 0.6, 1.1], [-2.4, 5.2, -3.2, 1.2]]) {
-    K.box(T, x, y, z, sz, sz, sz, barn); K.box(T, x, y + sz / 2 + 0.05, z, sz * 0.45, 0.2, sz * 0.45, barnD);
-  }
-  for (const [x, z] of [[3.6, -2.6], [-1.6, 1.6]]) { K.box(T, x, 6.4, z, 0.6, 3, 0.6, coral); K.box(T, x + 0.7, 7.4, z, 0.5, 1.6, 0.5, coral, 0, 0, -0.6); K.box(T, x - 0.6, 7.2, z + 0.2, 0.5, 1.4, 0.5, coral, 0, 0, 0.6); }
-  for (let i = 0; i < 22; i++) { const a = i / 22 * Math.PI * 2, L = 4 + K.r() * 5; K.box(T, Math.sin(a) * 6.5, 2 - L / 2, Math.cos(a) * 4.9, 1.2, L, 0.6, K.tone(KELP, 0.1)); }
+  const clawCol = (y) => mix(K, y > 0.35 ? CLAW : y > -0.3 ? CLAWM : CLAWL, 0.1);
+  // the round pale underside, a red rim, and the hill of a shell: moss over red, with patches of bare dirt
+  blob(K, T, [0, 0, 0.6], [6.6, 4.8, 5.4], 1.1, () => mix(K, BEIGE, 0.1), { hi: 0.3, run: [1, 3] });
+  blob(K, T, [0, 1.2, -0.2], [8.6, 1.4, 7], 1, () => mix(K, [P.red, P.redM, P.org], 0.1), { run: [1, 3] });
+  blob(K, T, [0, 1.6, -0.3], [8.2, 6, 6.8], 0.9, (x, y) => (y < 0.22 ? mix(K, K.r() < 0.5 ? [P.red, P.redM] : MOSS, 0.1) : K.r() < 0.12 ? mix(K, DIRT) : K.r() < 0.03 ? (K.r() < 0.5 ? 0xffd040 : 0xff5a3a) : mix(K, MOSS, 0.16)), { lo: 0, run: [1, 2] });
+  const dome = (a, e) => [8.2 * Math.cos(e) * Math.sin(a), 1.6 + 6 * Math.sin(e), -0.3 + 6.8 * Math.cos(e) * Math.cos(a)];
+  K.clumps(T, [0, 5.4, -0.3], [11, 4, 9.4], { n: 26, size: [1, 1.8], cols: [...MOSS, ...DIRT], faces: 't', out: -0.3, keep: (x, y, z) => (x / 8) ** 2 + (z / 6.6) ** 2 < 0.55 });
+  for (const [a, e, sz] of [[0.3, 0.5, 1.8], [-0.6, 0.35, 1.6], [1.2, 0.3, 1.7], [-1.4, 0.4, 1.8], [2.2, 0.45, 1.5], [-2.4, 0.3, 1.6], [3, 0.5, 1.4], [0.9, 0.95, 1.6], [-1, 1, 1.5], [2.6, 0.95, 1.4], [-0.1, 1.25, 1.3], [1.7, 0.7, 1.3], [-1.9, 0.75, 1.4], [0.5, 0.2, 1.4], [-0.3, 0.75, 1.2]]) { const [x, y, z] = dome(a, e); barnacle(K, T, x, y, z, sz, P); }
+  for (const [a, e] of [[1.9, 0.9], [-2.1, 1], [0.2, 1.1]]) { const [x, y, z] = dome(a, e); K.box(T, x, y + 1.2, z, 0.6, 2.6, 0.6, 0xe8503a); K.box(T, x + 0.8, y + 2.2, z, 0.5, 1.6, 0.5, 0xff6a4a, 0, 0, -0.6); K.box(T, x - 0.7, y + 2, z + 0.2, 0.5, 1.4, 0.5, 0xe8503a, 0, 0, 0.6); K.box(T, x + 1.3, y + 3, z, 0.4, 0.4, 0.4, 0xff8a6a); }
+  // kelp hanging all round the rim
+  for (let i = 0; i < 34; i++) { const a = i / 34 * Math.PI * 2 + K.r() * 0.1, L = 3 + K.r() * 6, x = Math.sin(a) * 8.6, z = -0.2 + Math.cos(a) * 7, col = mix(K, KELP, 0.12); K.box(T, x, 1.4 - L * 0.3, z, 0.9, L * 0.6, 0.6, col); K.box(T, x + (K.r() - 0.5) * 0.8, 1.4 - L * 0.75, z, 0.8, L * 0.5, 0.6, col); if (K.r() < 0.4) K.box(T, x, 1.4 - L, z, 1, 1, 0.7, mix(K, KELP, 0.12)); }
+  // the face: a dark mouth slot and mouth parts under the rim
+  K.box(T, 0, -0.2, 5.7, 3.6, 1.2, 0.6, 0x3a1a10); for (const sx of [-1, 1]) K.box(T, sx * 1.6, -1.2, 5.6, 1.2, 1.6, 0.8, creamD);
   // eyestalks with glowing tips
-  for (const sx of [-1, 1]) { K.box(T, sx * 1.6, 5.6, 3.8, 0.9, 5, 0.9, redD); K.box(T, sx * 1.6, 8.4, 3.8, 1.4, 1.4, 1.4, tip); K.box(T, sx * 1.6, 8.6, 4.15, 1.1, 1.1, 1.1, eyeT); }
-  // the crusher, on a jointed arm: held out in front, raised high to attack
-  const arm = group(Hd, -4.6, 0.5, 0.5);
-  K.box(arm, 0, 0, 1.4, 2.8, 2.8, 3.6, red); K.box(arm, 0, 0, 3.2, 3.2, 3.2, 1, band);
-  const palm = [0, 0.6, 7];
-  K.box(arm, palm[0], palm[1], palm[2], 6, 6.6, 7, org); K.box(arm, 0, palm[1] + 0.2, palm[2], 6.6, 5.4, 6, red); K.box(arm, 0, palm[1] + 3.4, palm[2], 4.6, 0.6, 5.4, orgL);
-  for (const [y, z] of [[2.6, 5], [-1.6, 8.8], [3.2, 9.4]]) K.box(arm, -3.3, y, z, 1.2, 1.2, 1.2, barn);
+  for (const sx of [-1, 1]) { K.box(T, sx * 2, 7.6, 3.6, 1, 5, 1, P.redD, 0.15); K.box(T, sx * 2, 8, 3.7, 1.3, 0.5, 1.3, P.red, 0.15); K.box(T, sx * 2, 10.4, 4, 1.6, 1.6, 1.6, P.tip); K.box(T, sx * 2, 10.5, 4.45, 1.1, 1.1, 0.8, eyeT); }
+  // the crusher, on a jointed arm: held out low in front, raised high to attack
+  const arm = group(Hd, -5.4, -1.6, 0.4);
+  K.box(arm, 0.6, 0.4, 0.6, 3, 3, 3.6, P.red); K.box(arm, 0.2, 0, 2.6, 3.4, 3.4, 1.2, P.org);
+  blob(K, arm, [0, -1, 7], [3.8, 4.4, 5.6], 1, (x, y) => (K.r() < 0.04 ? cream : clawCol(y)), { run: [1, 2] });
+  for (const [y, z] of [[2.6, 5.4], [2, 8.4], [0.2, 3.8]]) barnacle(K, arm, -3.4, y, z, 1.6, P);
   // the fixed upper finger, curving down to a point, with cream teeth
-  K.box(arm, 0, 2, 12.2, 4.4, 3.4, 4.6, org); K.box(arm, 0, 1.2, 15.4, 3.4, 2.6, 2.8, org, 0.35); K.box(arm, 0, -0.2, 17.2, 2.2, 2, 1.8, cream, 0.8);
-  for (const z of [10.8, 12.4, 14]) K.box(arm, 0, 0.1, z, 1.2, 1.2, 0.9, cream);
+  for (const [y, z, w, h, d, col] of [[0.6, 12.2, 3.6, 3.4, 3, CLAWM], [-0.2, 14.4, 3, 3, 2.6, CLAWM], [-1.4, 16.2, 2.4, 2.6, 2.2, CLAWL], [-2.9, 17.3, 1.8, 2.2, 1.8, [cream]], [-4.2, 17.6, 1.2, 1.6, 1.2, [cream]]]) K.box(arm, 0, y, z, w, h, d, mix(K, col, 0.08));
+  for (const z of [11, 12.8, 14.6]) K.box(arm, 0, -1.4 - (z - 11) * 0.1, z, 1.4, 1.4, 1, cream);
   // the movable lower finger
-  const lo = group(arm, 0, -1.6, 10.2);
-  K.box(lo, 0, -0.6, 2.2, 3.6, 2.4, 4.6, red); K.box(lo, 0, 0.2, 5, 2.4, 1.8, 2, org, -0.5); K.box(lo, 0, 1.2, 6, 1.4, 1.4, 1, cream, -0.9);
-  for (const z of [1.2, 2.8]) K.box(lo, 0, 0.9, z, 1, 1, 0.8, cream);
-  arm.scale.setScalar(0.85);
+  const lo = group(arm, 0, -4.4, 10.4);
+  for (const [y, z, w, h, d, col] of [[-0.6, 1, 3.2, 2.4, 3, CLAWM], [-0.4, 3.4, 2.6, 2.2, 2.4, CLAWL], [0.2, 5.4, 2, 2, 2, CLAWL], [1.2, 6.8, 1.4, 1.8, 1.4, [cream]]]) K.box(lo, 0, y, z, w, h, d, mix(K, col, 0.08));
+  for (const z of [1.2, 3, 4.8]) K.box(lo, 0, 0.9, z, 1.1, 1.2, 0.9, cream);
+  arm.scale.setScalar(0.78);
   rig.extras.crusherArm = arm; rig.extras.crusher = lo;
-  // the smaller claw
-  K.box(Hd, 4.4, 0, 0.4, 2, 2, 3, red, 0, -0.3, 0);
-  K.box(Hd, 5, 0.4, 3.4, 3, 3.2, 3.8, org); K.box(Hd, 5, 1.2, 6, 2.2, 1.2, 2.6, org, -0.15); K.box(Hd, 5, 0.9, 7.4, 1.4, 1, 1, cream);
-  M.position.set(0, -1 * PX, 3.8 * PX);
-  K.box(M, 5, -0.6, 2.4, 2, 1, 3, red); K.box(M, 5, -0.4, 4.2, 1.2, 0.8, 1, cream);
-  crabLegs(K, rig, red, redD, band, 2);
+  // the smaller claw; its lower finger rides the jaw
+  K.box(Hd, 4.6, -0.6, 0.4, 2.4, 2.4, 3, P.red, 0, -0.3, 0);
+  blob(K, Hd, [6, -1.6, 3.8], [2.6, 3, 3.4], 1, (x, y) => clawCol(y), { run: [1, 2] });
+  for (const [y, z, w, h, d, col] of [[-0.6, 7.4, 2.4, 2.2, 2.2, CLAWM], [-1.2, 9, 1.8, 1.8, 1.8, CLAWL], [-2.1, 10, 1.2, 1.4, 1.2, [cream]]]) K.box(Hd, 6, y, z, w, h, d, mix(K, col, 0.08));
+  barnacle(K, Hd, 6.6, 1.4, 3.4, 1.3, P);
+  M.position.set(0, -2.6 * PX, 3.8 * PX);
+  for (const [y, z, w, h, d, col] of [[-0.8, 3.6, 2, 1.6, 2.4, CLAWM], [-0.4, 5.4, 1.4, 1.4, 1.6, CLAWL], [0.3, 6.4, 1, 1.2, 1, [cream]]]) K.box(M, 6, y, z, w, h, d, mix(K, col, 0.08));
+  crabLegs(K, rig, P, 2);
   K.done();
   noShadow(rig, M, ...rig.legs);
   return finish(rig, 'king_crab');
@@ -559,35 +727,51 @@ function buildKingCrab(K0) {
 // eyes, fanged jaws, gold claws, and a long tail that curls up over its back.
 // Quick on its feet; it spits venom.
 function buildBasilisk(K0) {
-  const grn = 0x1e7a4a, grnD = 0x124a2e, teal = 0x2a8a6a, belly = 0xe8d8a0, gold = 0xf0b020, goldD = 0xb87a10, eye = 0xffe020;
-  const SC = [grn, grnD, teal];
+  const grn = 0x1e7a4a, grnD = 0x124a2e, teal = 0x2a8a6a, belly = 0xe8d8a0, bellyD = 0xc8b47a, gold = 0xf0b020, goldD = 0xb87a10, goldL = 0xf8d050, eye = 0xffe020;
+  const SC = [grn, grnD, teal, 0x1a6a40, 0x2a9a5a];
+  const scale = (y, z) => (K.r() < 0.12 ? mix(K, [gold, goldD], 0.1) : mix(K, SC, 0.12));
   const mat = skinMat('basilisk', flatQuad(grn, grnD, belly, eye), { rough: 0.5, emit: 1 });
-  const rig = new QuadRig({ material: mat, scale: 1.95, bodyL: 8, bodyW: 5, bodyH: 4.4, legH: 3.8, legW: 1.8, headS: 5, splay: 0.6, snout: false, neckUp: 4.2, headZ: 1, gait: 2, ears: false, tail: 6, tailLen: 18, tailW: 3, tailCurl: 0.55, jawOpen: 0.25 });
-  const K = K0.kit(rig, mat, { seed: 151, rough: 0.5, emit: 0.9 });
+  const rig = new QuadRig({ material: mat, scale: 2.15, bodyL: 8, bodyW: 5, bodyH: 4.4, legH: 3.8, legW: 1.8, headS: 5, splay: 0.6, snout: false, neckUp: 4.2, headZ: 1, gait: 2, ears: false, tail: 6, tailLen: 18, tailW: 3, tailCurl: 0.72, jawOpen: 0.25 });
+  const K = kitOf(K0, 'basilisk', rig, mat, { seed: 151, rough: 0.5, emit: 0.9, ao: 0.35 });
   const T = rig.torso, Hd = rig.head, M = rig.mouth, hs = 5;
   dropAll(rig, T); dropAll(rig, Hd);
-  // body: a deep chest rising to the neck, a cream belly, banded scales, gold spines
-  K.box(T, 0, 0, 0, 5, 4.4, 8, grn); K.box(T, 0, 1.6, 3.4, 4.4, 5, 3, grn, -0.4); K.box(T, 0, -1.2, 1, 3.6, 2.4, 8.4, belly);
-  K.box(T, 0, 1.4, 4.6, 2.6, 4, 1, belly, -0.4);
-  for (let z = -3; z <= 2; z += 1.6) K.box(T, 0, 0.6, z, 5.3, 3, 0.6, grnD);
-  for (let i = 0; i < 6; i++) { const z = 4 - i * 1.6, h = 3 - i * 0.25; K.box(T, 0, 2.4 + h / 2, z, 0.7, h, 1.1, i % 2 ? goldD : gold, -0.5); }
-  // head: a long wedge, a crown of gold spikes fanning back, glowing eyes, fangs
+  // body: a deep upright chest rising to the neck, a cream belly in plated rows, scales trimmed in gold
+  blob(K, T, [0, 1.4, 2], [2.9, 3.8, 3], 0.8, (x, y, z) => (z > 0.45 && Math.abs(x) < 0.62 ? ((Math.floor((y + 1) * 5) % 2) ? belly : bellyD) : scale()), { rx: -0.45, run: [1, 2] });
+  blob(K, T, [0, 0, -1.8], [2.7, 2.4, 3.2], 0.8, (x, y) => (y < -0.5 ? mix(K, [belly, bellyD], 0.08) : scale()), { run: [1, 2] });
+  for (let i = 0; i < 7; i++) { const z = 4.2 - i * 1.3, h = 3.2 - i * 0.25, y = 4.4 - i * 0.55; K.box(T, 0, y, z, 0.9, 0.9, 0.9, grnD, -0.5); K.box(T, 0, y + h / 2, z - 0.4, 0.8, h, 1, i % 2 ? goldD : gold, -0.6); K.box(T, 0, y + h + 0.1, z - 0.9, 0.5, 1, 0.5, goldL, -0.7); }
+  // head: a long scaled wedge, glowing eyes under gold brows, a crown of gold spikes fanning back, fangs
   const hz = hs * 0.35;
-  K.box(Hd, 0, 0.2, hz + 0.6, hs, hs * 0.8, hs + 1.4, grn); K.box(Hd, 0, -0.2, hz + hs / 2 + 1.8, hs - 1, hs * 0.5, 2.4, teal);
-  for (const sx of [-1, 1]) { K.box(Hd, sx * (hs / 2 + 0.05), 1, hz + 1.6, 0.3, 1.2, 1.6, eye); K.box(Hd, sx * (hs / 2 + 0.15), 1.1, hz + 1.9, 0.2, 0.6, 0.5, 0xfffff0); K.box(Hd, sx * (hs / 2 - 0.2), 1.9, hz + 1.6, 1, 0.5, 2, grnD); }
-  for (let i = 0; i < 9; i++) { const a = (i - 4) * 0.3, L = 5 - Math.abs(i - 4) * 0.35; K.box(Hd, Math.sin(a) * 2.2, hs * 0.4 + 0.6 + Math.cos(a) * L / 2, hz - 1.4, 0.8, L, 0.8, i % 2 ? goldD : gold, -0.6, 0, -a); }
-  for (const sx of [-1, 1]) K.box(Hd, sx * (hs / 2 + 0.8), 0.2, hz - 1, 0.5, 2, 3, gold, 0, sx * 0.6, 0);
-  K.box(M, 0, -0.5, 2, hs - 1.2, 0.8, 3.6, belly); for (const sx of [-1, 1]) K.box(M, sx * 1.2, 0.4, 3.2, 0.4, 1, 0.4, 0xfff8e0); K.box(M, 0, 0, 1.6, 1.6, 0.3, 2.2, 0xc83a3a);
-  // legs: scaly thighs, gold claws
-  for (const leg of rig.legs) { dropAll(rig, leg); K.box(leg, 0, -1.4, 0, 2.4, 3.4, 2.4, grnD); for (const dx of [-0.7, 0, 0.7]) K.box(leg, dx, -3.2, 1, 0.5, 0.6, 1.8, gold); }
+  blob(K, Hd, [0, 0.3, hz + 0.6], [2.8, 2.3, 3.4], 0.75, () => scale(), { pw: 2.6, run: [1, 2] });
+  K.box(Hd, 0, -0.3, hz + 4, hs - 1.4, hs * 0.5, 2.4, teal); K.box(Hd, 0, 0.6, hz + 4.4, hs - 2.4, 0.6, 1.6, grnD); for (const sx of [-1, 1]) K.box(Hd, sx * 0.7, 0.3, hz + 5.25, 0.5, 0.4, 0.2, 0x0a1a10);
+  for (const sx of [-1, 1]) {
+    K.box(Hd, sx * 2.5, 1, hz + 2.2, 0.5, 1.5, 1.9, eye); K.box(Hd, sx * 2.65, 1.2, hz + 2.6, 0.3, 0.6, 0.6, 0xfffff0); K.box(Hd, sx * 2.3, 2.2, hz + 2.2, 1.3, 0.6, 2.6, goldD, 0, 0, sx * -0.3);
+    K.box(Hd, sx * 3.1, 0.2, hz - 0.6, 0.6, 2.4, 3, gold, 0, sx * 0.6, 0); K.box(Hd, sx * 3.8, 0.6, hz - 2, 0.5, 1.4, 1.6, goldL, 0, sx * 0.8, 0);
+  }
+  for (let i = 0; i < 11; i++) {
+    const a = (i - 5) * 0.27, L = 5.6 - Math.abs(i - 5) * 0.35 + (i % 2) * 1.2, sx = Math.sin(a), cy = Math.cos(a), bx = sx * 2, by = 2.4 + cy * 0.6, bz = hz - 0.4 - (i % 2) * 0.8;
+    K.box(Hd, bx, by, bz, 1.3, 1.3, 1.3, grnD, -0.7, 0, -a);
+    K.box(Hd, bx + sx * L * 0.42, by + cy * L * 0.36, bz - L * 0.3, 0.9, L * 0.75, 0.9, i % 2 ? goldD : gold, -0.75, 0, -a);
+    K.box(Hd, bx + sx * L * 0.8, by + cy * L * 0.7, bz - L * 0.58, 0.55, L * 0.3, 0.55, goldL, -0.75, 0, -a);
+  }
+  K.box(M, 0, -0.5, 2.4, hs - 1.4, 0.9, 4.2, belly); K.box(M, 0, 0, 2, hs - 2, 0.3, 3, 0xc83a3a);
+  for (const sx of [-1, 1]) { K.box(M, sx * 1.4, 0.6, 3.8, 0.45, 1.4, 0.45, 0xfff8e0); K.box(M, sx * 1.6, 0.4, 2.4, 0.4, 1, 0.4, 0xfff8e0); }
+  K.box(Hd, 0, -1.6, hz + 4.6, 0.5, 1.2, 0.5, 0xfff8e0); for (const sx of [-1, 1]) K.box(Hd, sx * 1.4, -1.5, hz + 4.6, 0.45, 1.2, 0.45, 0xfff8e0);
+  // legs: scaly thighs with gold knee plates, big gold claws tipped dark
+  for (const leg of rig.legs) {
+    dropAll(rig, leg); const sd = leg.userData.side;
+    K.box(leg, 0, -1, 0, 2.8, 2.6, 2.8, mix(K, SC)); K.box(leg, sd * 1.5, -1, 0, 0.5, 1.8, 2, gold); K.box(leg, 0, -2.8, 0, 2, 1.6, 2, grnD);
+    for (const dx of [-0.8, 0, 0.8]) { K.box(leg, dx, -3.4, 1.1, 0.7, 0.7, 2, gold); K.box(leg, dx, -3.6, 2.3, 0.5, 0.5, 0.8, 0x3a2a10); }
+    K.box(leg, 0, -3.4, -1.1, 0.6, 0.6, 1, goldD);
+  }
   // the tail: tapering scaled segments with gold spines, curling up over the back
   for (const [i, seg] of rig.tail.entries()) {
     dropAll(rig, seg);
     const w = 3 * (1 - i * 0.12), l = 3;
-    K.box(seg, 0, 0, -l / 2, w, w, l + 0.2, SC[i % 3]); K.box(seg, 0, -w / 2 + 0.3, -l / 2, w * 0.7, 0.5, l, belly);
-    K.box(seg, 0, w / 2 + 0.7, -l / 2, 0.7, 2, 1, gold, -0.4);
+    K.box(seg, 0, 0, -l / 2, w, w, l + 0.2, mix(K, SC)); K.box(seg, 0, 0, -l / 2, w + 0.5, w - 0.8, l - 0.8, mix(K, SC)); K.box(seg, 0, -w / 2 + 0.2, -l / 2, w * 0.7, 0.5, l, belly);
+    K.box(seg, 0, w / 2 + 0.2, -l / 2, w * 0.6, 0.5, l, goldD);
+    K.box(seg, 0, w / 2 + 0.9, -l / 2, 0.8, 2, 1, gold, -0.4); K.box(seg, 0, w / 2 + 1.9, -l / 2 - 0.5, 0.5, 0.9, 0.5, goldL, -0.5);
   }
-  K.box(rig.tailTip, 0, 0.8, -3.6, 0.8, 2, 1, gold, -0.6);
+  K.box(rig.tailTip, 0, 0.6, -3.8, 1, 1, 1.4, gold); K.box(rig.tailTip, 0, 1.4, -4.4, 0.8, 2.2, 0.8, goldL, -0.6);
   K.done();
   noShadow(rig, M, ...rig.legs, ...rig.tail);
   return finish(rig, 'basilisk');
@@ -600,39 +784,54 @@ function buildBasilisk(K0) {
 // arms with huge block fists, the top pair raised; it hurls balls of mud.
 function buildEarthborn(K0) {
   const st = 0x8a6a4a, stD = 0x5e4630, stL = 0xa8865e, moss = 0x6a7a2a, mossL = 0x8a9a3a, glow = 0xffa030, lea = 0x4a3020, brz = 0xc08a2c;
-  const STONE = [st, stD, stL, 0x7a5a3c];
+  const STONE = [st, stD, stL, 0x7a5a3c, 0x9a7a54, 0x6a4e36], MOSS = [moss, mossL, 0x5a6a22, 0x7a8a30];
   const mat = skinMat('earthborn', (S) => paintPerson(S, { skin: st, eye: 0x2a1408, eyeWhite: 0x2a1408, brow: stD, mouth: false, top: st, sleeve: st, hand: stD, pants: stD, shoes: false,
     face: (s, ey) => { s.rect(8, ey - 2, 8, 2, stD, 0.1); for (const x of [9, 13]) s.rect(x, ey, 2, 1.5, glow, 0); s.rect(9, ey + 3, 6, 1.5, 0x2a1408, 0); for (const x of [9.5, 11.5, 13.5]) s.dot(x, ey + 3, 0xe8dcc0, 1, 1); },
     body: (s) => { for (let i = 0; i < 60; i++) s.dot(16 + s.r() * 24, 20 + s.r() * 12, STONE[i % 4], 2, 2); } }), { emit: 1.2 });
-  const rig = new Rig({ material: mat, scale: 1.85, legH: 9, bodyH: 13, bodyW: 12, bodyD: 7, armW: 4.4, headS: 7, jacket: false });
-  const K = K0.kit(rig, mat, { seed: 157, rough: 0.95, emit: 0.9 });
+  const rig = new Rig({ material: mat, scale: 2.3, legH: 9, bodyH: 13, bodyW: 12, bodyD: 7, armW: 4.4, headS: 7, jacket: false });
+  const K = kitOf(K0, 'earthborn', rig, mat, { seed: 157, rough: 0.95, emit: 0.9, ao: 0.35 });
   const T = rig.torso, Hd = rig.head, H7 = 8 * HS * 7 / 8;
-  dropOne(rig, hatOf(rig));
-  // slabs of stone over the body, moss, a hunched back, a belt
-  K.clumps(T, [0, 7, 0], [12, 12, 7], { n: 28, size: [2.2, 3.6], cols: STONE, faces: 'tfklr', out: -0.25 });
-  K.clumps(T, [0, 9, 0], [12, 8, 7], { n: 10, size: [1.4, 2.4], cols: [moss, mossL], faces: 'tfk', out: -0.1 });
-  K.box(T, 0, 11, -2.8, 10, 5, 4, stD);
-  for (const sx of [-1, 1]) { K.box(T, sx * 6.8, 12, 0, 4.4, 3.6, 5.4, stL); K.box(T, sx * 6.8, 14, 0, 3, 1, 3.6, moss); }
-  K.box(T, 0, 1.6, 0, 12.6, 1.8, 7.6, lea); K.box(T, 0, 1.6, 3.9, 2.2, 2.2, 0.5, brz);
-  // the two lower pairs of arms: stone arms with block fists, swinging
+  dropAll(rig, T); dropOne(rig, hatOf(rig));
+  // stone in rounded lumps, mossy on top
+  const stone = (m = 0.5) => (x, y) => (y > m && K.r() < 0.6 ? mix(K, MOSS, 0.12) : mix(K, STONE, 0.16));
+  // the body: a barrel chest of boulders over a leather belt, a hunched mossy back, boulder shoulders
+  blob(K, T, [0, 8, 0.2], [6.6, 5.6, 4.2], 1.1, stone(0.45), { pw: 2.4, run: [1, 2] });
+  blob(K, T, [0, 3, 0], [5.6, 3.2, 3.6], 1.1, stone(0.9), { pw: 2.4, run: [1, 2] });
+  blob(K, T, [0, 10.4, -2.6], [5, 3.4, 3], 1.1, stone(0.1), { run: [1, 2] });
+  for (const sx of [-1, 1]) blob(K, T, [sx * 6.6, 11.6, 0], [3, 2.8, 3.2], 1.1, stone(0.2), { pw: 2.4, run: [1, 2] });
+  for (const [x, y] of [[-2.2, 9.6], [2.2, 9.6], [0, 6.8]]) K.box(T, x, y, 4.5, x ? 3.6 : 4.4, 2.6, 0.8, mix(K, STONE, 0.1));   // the slabs of a stone chest
+  K.box(T, 0, 1.6, 0, 12.4, 1.8, 7.8, lea); K.box(T, 0, 1.6, 4, 2.6, 2.4, 0.5, brz); K.box(T, 0, 1.6, 4.25, 1.2, 1, 0.3, 0x6a4a1a);
+  for (const x of [-4.4, 4.4]) K.box(T, x, 1.6, 4, 0.8, 1.8, 0.4, 0x2a1a10);
+  // the two lower pairs of arms: lumpy stone arms with block fists, swinging
   for (const [y, z, sx, ph, rz] of [[8.6, 1.6, -1, 0, 1.15], [8.6, 1.6, 1, 2, 1.15], [4.6, 1, -1, 1, 0.7], [4.6, 1, 1, 3, 0.7]]) {
     const a = group(T, sx * 6.6, y, z, 0, 0, sx * rz);
-    K.box(a, 0, -3.4, 0, 3.8, 7.4, 3.8, K.tone(STONE, 0.1)); K.box(a, 0, -8, 0.4, 5, 4.4, 5, stD); K.box(a, 0, -6.4, 0.4, 5.2, 0.8, 5.2, stL);
+    blob(K, a, [0, -3.2, 0], [2, 3.4, 2], 1.1, stone(0.6), { pw: 2.6, run: [1, 2] });
+    blob(K, a, [0, -8, 0.4], [2.8, 2.6, 2.8], 1.1, stone(0.7), { pw: 3, run: [1, 2] });
     K.box(a, sx * 1.9, -2.4, 0.6, 0.4, 2.4, 2, moss);
     sway(rig, a, 'x', 0.4, 2.2, ph);
   }
-  // the top pair (the rig's own arms): stone with mossy shoulders, huge fists
+  // the top pair (the rig's own arms): a boulder shoulder, an arm in two stones, a huge knuckled fist
   for (const arm of [rig.armR, rig.armL]) {
     dropAll(rig, arm);
-    K.box(arm, 0, -3.6, 0, 4.8, 10, 4.8, st); K.box(arm, 0, -10.2, 0.4, 6, 5, 6, stD); K.box(arm, 0, -8, 0.4, 6.2, 0.8, 6.2, stL);
-    K.clumps(arm, [0, -3, 0], [4.8, 8, 4.8], { n: 5, size: [1.6, 2.4], cols: [moss, stL, st], out: -0.3 });
+    blob(K, arm, [0, -1.2, 0], [3, 3, 3], 1.1, stone(0.2), { run: [1, 2] });
+    blob(K, arm, [0, -5.6, 0], [2.3, 2.6, 2.3], 1.1, stone(0.6), { pw: 2.6, run: [1, 2] });
+    K.box(arm, 0, -7.8, 0, 4.2, 0.9, 4.2, lea);
+    blob(K, arm, [0, -10.4, 0.4], [3.4, 2.8, 3.4], 1.1, stone(0.8), { pw: 3, run: [1, 2] });
+    for (const x of [-1.6, -0.5, 0.6, 1.7]) K.box(arm, x, -12.8, 2.2, 1.1, 1.2, 1.4, mix(K, STONE, 0.1));
   }
-  // stumpy stone legs
-  for (const leg of [rig.legR, rig.legL]) { dropAll(rig, leg); K.box(leg, 0, -4.4, 0, 5.6, 9, 5.6, stD); K.box(leg, 0, -2, 0, 6, 1.2, 6, st); K.box(leg, 0, -8.6, 1, 6.4, 1.6, 7.4, stD); }
+  // stone legs in stacked blocks, mossy feet
+  for (const leg of [rig.legR, rig.legL]) {
+    dropAll(rig, leg);
+    blob(K, leg, [0, -2.6, 0], [3, 3, 3], 1.1, stone(0.5), { pw: 2.6, run: [1, 2] });
+    blob(K, leg, [0, -6.6, 0.2], [2.6, 2, 2.8], 1.1, stone(0.6), { pw: 3, run: [1, 2] });
+    K.box(leg, 0, -8.6, 1, 6.4, 1.6, 7.4, stD); K.clumps(leg, [0, -8.6, 1], [6.4, 1.6, 7.4], { n: 6, size: [1, 1.6], cols: MOSS, faces: 'tf', out: -0.3 });
+  }
   rig.legR.position.x = -3.2 * PX; rig.legL.position.x = 3.2 * PX;
-  // head: a lumpy stone head with a heavy brow and moss on top
+  // head: a lumpy stone head with a heavy brow, glowing eyes and moss on top
+  blob(K, Hd, [0, H7 * 0.5, -0.2], [H7 / 2 + 1, H7 / 2 + 0.8, H7 / 2 + 0.8], 1, stone(0.4), { pw: 2.4, run: [1, 2], keep: (x, y, z) => !(z > 0 && Math.abs(x) < 0.7 && y < 0.55 && y > -0.75) });
   K.box(Hd, 0, H7 * 0.66, H7 / 2 + 0.6, H7 + 1, 1.6, 1.6, stD);
-  K.clumps(Hd, [0, H7, -0.4], [H7, 1, H7], { n: 6, size: [1.6, 2.4], cols: [moss, mossL, stL], faces: 't', out: -0.4 });
+  K.box(Hd, 0, H7 * 0.1, H7 / 2 + 0.5, H7 * 0.6, 1.4, 1, stD);
+  K.clumps(Hd, [0, H7, -0.4], [H7, 1, H7], { n: 9, size: [1.6, 2.4], cols: [...MOSS, stL], faces: 't', out: -0.4 });
   K.done();
   noShadow(rig, Hd);
   rig.hunch = 0.15; rig.armSpread = 0.45; rig.held = [-2.3, -2.3];
@@ -646,35 +845,48 @@ function buildEarthborn(K0) {
 // steel on its breast (the accent), a crested eagle's head with a hooked gold
 // beak and blue lens eyes, gold talons. It hovers and fires blue bolts.
 function buildDrone(K0) {
-  const brz = 0xc8902e, brzD = 0x6a4618, brzL = 0xf0c048, steel = 0x5a5a64, steelD = 0x2e2e36, blue = 0x5ad8ff, blueL = 0xd0f8ff, FEATH = [brz, brzD, brzL, 0x8a6a3a, steel];
+  const brz = 0xc8902e, brzD = 0x6a4618, brzL = 0xf0c048, brzM = 0xa87424, steel = 0x6a6a74, steelD = 0x2e2e36, steelL = 0x9a9aa4, blue = 0x5ad8ff, blueL = 0xd0f8ff, gold = 0xf8d060;
+  const BRZ = [brz, brzM, 0xb88028], FEATH = [brz, brzM, brzL, 0x8a6a3a], FDARK = [brzD, 0x4a3a2e, 0x5a4a3a];
   const mat = skinMat('daedalus_drone', (S) => paintPerson(S, { skin: brz, eye: blue, eyeWhite: blue, brow: brzD, mouth: false, top: brz, sleeve: brz, hand: brz, pants: brzD, shoes: false }), { rough: 0.35, emit: 1 });
-  const rig = new Rig({ material: mat, scale: 1.25, legH: 7, bodyH: 11, bodyW: 9, bodyD: 7, armW: 2, headS: 7, jacket: false });
-  const K = K0.kit(rig, mat, { seed: 163, rough: 0.35, metal: 0.3, emit: 0.9 });
+  const rig = new Rig({ material: mat, scale: 1.55, legH: 7, bodyH: 11, bodyW: 9, bodyD: 7, armW: 2, headS: 7, jacket: false });
+  const K = kitOf(K0, 'daedalus_drone', rig, mat, { seed: 163, rough: 0.35, metal: 0.3, emit: 0.9, ao: 0.3 });
   const T = rig.torso, Hd = rig.head, H7 = 8 * HS * 7 / 8;
   dropAll(rig, T); dropAll(rig, Hd); dropAll(rig, rig.armR); dropAll(rig, rig.armL);
-  // the body: a barrel of bronze plates, a steel-ringed blue core in the breast
-  K.box(T, 0, 5.5, 0, 8.4, 11, 6.6, brz); K.box(T, 0, 5.5, 0, 9.2, 8, 5.6, brzD); K.box(T, 0, 9.6, 0.4, 7, 2.4, 7, brzL);
-  for (let y = 1.6; y < 10; y += 2.2) K.box(T, 0, y, 3.35, 7, 0.5, 0.3, brzD);
-  K.box(T, 0, 6, 3.5, 5, 5, 0.6, steel); K.box(T, 0, 6, 3.8, 3.6, 3.6, 0.5, steelD); K.box(T, 0, 6, 4, 2.8, 2.8, 0.5, blue); K.box(T, 0, 6, 4.2, 1.2, 1.2, 0.4, blueL);
-  for (const sx of [-1, 1]) { K.box(T, sx * 3.6, 2, 3.4, 1.4, 1.4, 0.6, steelD); K.box(T, sx * 3.6, 2, 3.6, 0.8, 0.8, 0.4, blue); }
-  // tail: a fan of bronze plates
-  for (let i = -2; i <= 2; i++) K.box(T, i * 1.4, 0.4, -4.6, 1.3, 0.6, 6, i % 2 ? brzD : brzL, 0.5, i * 0.2, 0);
-  // head: a crested eagle head, blue lens eyes, a hooked gold beak
-  K.box(Hd, 0, H7 / 2, 0.2, H7, H7, H7, brz); K.box(Hd, 0, H7 * 0.66, H7 / 2 + 0.2, H7 + 0.6, 1.2, 0.8, brzD);
-  for (const sx of [-1, 1]) { K.box(Hd, sx * 1.8, H7 * 0.5, H7 / 2 + 0.6, 1.8, 1.4, 0.4, steelD); K.box(Hd, sx * 1.8, H7 * 0.5, H7 / 2 + 0.8, 1.2, 0.9, 0.3, blue); }
-  K.box(Hd, 0, H7 * 0.3, H7 / 2 + 1.6, 2.4, 2.2, 2.6, brzL); K.box(Hd, 0, H7 * 0.12, H7 / 2 + 3, 1.6, 2.4, 1.4, brzL, 0.4); K.box(Hd, 0, -0.8, H7 / 2 + 3.4, 1, 1.2, 0.8, brzD);
-  for (let i = 0; i < 4; i++) K.box(Hd, (i - 1.5) * 1.2, H7 + 1 + (1.5 - Math.abs(i - 1.5)) * 0.6, -0.6, 0.8, 2.6, 1.6, i % 2 ? brzL : brz, -0.3, 0, (i - 1.5) * -0.25);
+  // the body: a rounded barrel of bronze plates in bands, a steel-ringed blue core in the breast
+  blob(K, T, [0, 5.6, 0], [4.6, 5.8, 3.8], 0.9, (x, y) => (Math.floor((y + 1) * 4.5) % 2 ? mix(K, BRZ, 0.1) : mix(K, [brzD, brzM], 0.1)), { pw: 2.4, run: [2, 4] });
+  for (const [x, y, w, h] of [[0, 8.4, 5.6, 1], [0, 3.4, 5.6, 1], [-2.6, 5.9, 1, 4], [2.6, 5.9, 1, 4], [-2, 7.8, 1.2, 1.2], [2, 7.8, 1.2, 1.2], [-2, 4, 1.2, 1.2], [2, 4, 1.2, 1.2]]) K.box(T, x, y, 3.9, w, h, 0.8, steel);
+  K.box(T, 0, 5.9, 3.8, 4.4, 4, 0.6, steelD); K.box(T, 0, 5.9, 4.1, 3, 3, 0.5, blue); K.box(T, 0, 5.9, 4.3, 1.8, 1.8, 0.4, blueL); for (const [x, y] of [[-2.6, 8.4], [2.6, 8.4], [-2.6, 3.4], [2.6, 3.4]]) K.box(T, x, y, 4.35, 0.5, 0.5, 0.3, gold);
+  for (const sx of [-1, 1]) { K.box(T, sx * 4.2, 9, 0, 2.6, 2.6, 2.6, steel); K.box(T, sx * 5.4, 9, 0, 0.5, 1.6, 1.6, steelD); K.box(T, sx * 5.6, 9, 0, 0.4, 0.7, 0.7, blue); }
+  // tail: a fan of stepped bronze plates
+  for (let i = -3; i <= 3; i++) { K.box(T, i * 1.3, 0.6, -4.8, 1.3, 0.7, 6.4 - Math.abs(i) * 0.5, i % 2 ? brzD : brzL, 0.6, i * 0.16, 0); K.box(T, i * 1.3 + Math.sin(i * 0.16) * -3.4, -1.6, -7.8 + Math.abs(i) * 0.3, 1.3, 0.7, 1.4, steelD, 0.6, i * 0.16, 0); }
+  // head: a crested eagle's head, blue lens eyes ringed in steel, a hooked gold beak
+  blob(K, Hd, [0, H7 / 2, 0.2], [H7 / 2, H7 / 2, H7 / 2], 0.8, (x, y) => (y > 0.5 ? mix(K, [brzL, brz], 0.1) : mix(K, BRZ, 0.1)), { pw: 2.4, run: [1, 3] });
+  K.box(Hd, 0, H7 * 0.68, H7 / 2 + 0.3, H7 + 0.4, 1.2, 1, brzD);
+  for (const sx of [-1, 1]) { K.box(Hd, sx * 1.9, H7 * 0.5, H7 / 2 + 0.3, 2.2, 2, 0.6, steel); K.box(Hd, sx * 1.9, H7 * 0.5, H7 / 2 + 0.55, 1.4, 1.2, 0.4, blue); K.box(Hd, sx * 1.7, H7 * 0.55, H7 / 2 + 0.75, 0.6, 0.5, 0.2, blueL); }
+  for (const [y, z, w, h, d, rx] of [[H7 * 0.36, H7 / 2 + 1.4, 2.6, 2.2, 2.4, 0], [H7 * 0.24, H7 / 2 + 2.9, 2, 2, 1.6, 0.35], [H7 * 0.06, H7 / 2 + 3.6, 1.4, 1.8, 1.2, 0.7], [-0.4, H7 / 2 + 3.6, 0.8, 1.2, 0.8, 0.9]]) K.box(Hd, 0, y, z, w, h, d, z > H7 / 2 + 3.4 ? brzD : gold, rx);
+  for (let i = 0; i < 5; i++) K.box(Hd, (i - 2) * 1.1, H7 + 0.8 + (2 - Math.abs(i - 2)) * 0.7, -0.6 - Math.abs(i - 2) * 0.3, 0.8, 3, 1.6, i % 2 ? brzL : brz, -0.4, 0, (i - 2) * -0.25);
+  for (let i = 0; i < 3; i++) K.box(Hd, 0, H7 * 0.6 - i * 1.4, -H7 / 2 - 0.6 - i * 0.4, H7 - 1 - i, 1.2, 1.6, mix(K, FEATH, 0.1), 0.5);
   rig.extras.muzzle = group(T, 0, 6, 5);
-  // legs: steel shanks, gold talons
-  for (const leg of [rig.legR, rig.legL]) { dropAll(rig, leg); K.box(leg, 0, -2, 0, 2.2, 4, 2.2, brzD); K.box(leg, 0, -5, 0, 1.2, 3, 1.2, steel); for (const [dz, rx] of [[1.2, 0.5], [-0.8, -0.5]]) for (const dx of [-0.8, 0.8]) K.box(leg, dx, -6.6, dz, 0.6, 0.6, 2.4, brzL, rx); }
-  // wings: raised and spread, feather plates fanned off a jointed bone
+  // legs: steel thighs, round knee joints, bronze shins, gold talons with dark points
+  for (const leg of [rig.legR, rig.legL]) {
+    dropAll(rig, leg);
+    K.box(leg, 0, -1.6, 0, 2.8, 3.4, 2.8, brzD); K.box(leg, 0, -3.6, 0, 2.6, 2, 2.6, steel); K.box(leg, 0, -3.6, 0, 3, 1.2, 1.2, steelD);
+    K.box(leg, 0, -5.2, 0, 1.6, 2.4, 1.6, brz);
+    for (const [dz, ry] of [[1.4, -0.35], [1.6, 0], [1.4, 0.35], [-1.2, Math.PI]]) { const cz = Math.cos(ry), sz = Math.sin(ry); K.box(leg, sz * 1.2, -6.6, cz * 1.2 * (dz > 0 ? 1 : 1), 0.7, 0.8, 2, gold, 0, ry, 0); K.box(leg, sz * 2.3, -6.9, cz * 2.3, 0.5, 0.7, 0.7, 0x3a2a10, 0.5, ry, 0); }
+  }
+  // wings: raised and spread; a jointed bone, covert plates in two layers, long stepped primaries
   const W = [];
   for (const side of [-1, 1]) {
-    const root = group(T, side * 3.6, 9.6, -1.6, 0, 0, side * -0.35), elbow = group(root, side * 9, 0, 0, 0, 0, side * -0.25), X = (v) => side * v;
-    K.box(root, X(4.5), 0, 0, 9, 1.8, 1.8, brzD); K.box(root, X(9), 0, 0, 2.4, 2.4, 2.4, steel); K.box(root, X(9), 0, 0.6, 1.2, 1.2, 1.4, steelD);
-    for (let i = 0; i < 6; i++) { const L = 9 + i * 0.8; K.box(root, X(1.4 + i * 1.4), -L / 2, -0.2, 1.5, L, 0.6, K.tone(FEATH, 0.1)); }
-    K.box(elbow, X(4), 0.4, 0, 8, 1.4, 1.4, brzD);
-    for (let i = 0; i < 8; i++) { const a = 1.2 - i * 0.2, L = 14 - i * 0.7, ux = Math.cos(a), uy = Math.sin(a); K.box(elbow, X(2 + i * 0.9 + ux * L / 2), uy * L / 2 - 1, -0.2 - i * 0.05, L, 1.5, 0.6, K.tone(FEATH, 0.1), 0, 0, side * a); }
+    const root = group(T, side * 4.2, 9.4, -1.4), elbow = group(root, side * 9, 0, 0), X = (v) => side * v;
+    K.box(root, X(4.5), 0, 0, 9, 1.8, 1.8, brzD); K.box(root, X(4.5), 0.9, 0.2, 8, 0.5, 1.4, gold);
+    K.box(root, X(9), 0, 0, 2.8, 2.8, 2.8, steel); K.box(root, X(9), 0, 1.5, 1.6, 1.6, 0.4, steelD); K.box(root, X(9), 0, 1.7, 0.7, 0.7, 0.3, steelL);
+    for (let i = 0; i < 6; i++) { const L = 7 + i * 0.9, x = X(1.4 + i * 1.4); K.box(root, x, -L / 2, -0.5, 1.5, L, 0.6, mix(K, FDARK, 0.1)); K.box(root, x, -L * 0.3, 0.1, 1.5, L * 0.6, 0.6, mix(K, FEATH, 0.1)); }
+    K.box(elbow, X(3.6), 0.3, 0, 7.2, 1.5, 1.5, brzD);
+    for (let i = 0; i < 9; i++) {
+      const a = 0.75 - i * 0.16, L = 15 - Math.abs(i - 2) * 0.7, ux = Math.cos(a), uy = Math.sin(a), bx = 1 + i * 0.85;
+      K.box(elbow, X(bx + ux * L * 0.32), uy * L * 0.32 - 0.6, -0.2 - i * 0.05, L * 0.64, 1.5, 0.6, mix(K, FEATH, 0.1), 0, 0, side * a);
+      K.box(elbow, X(bx + ux * L * 0.8), uy * L * 0.8 - 0.6, -0.25 - i * 0.05, L * 0.36, 1.3, 0.55, mix(K, i % 2 ? FDARK : [brzL, brz], 0.1), 0, 0, side * a);
+    }
     W.push({ root, elbow, side });
   }
   rig.extras.wings = W; rig.wingFlap = 2.2;

@@ -23,11 +23,13 @@
 // Pure module (no DOM, no Three.js), so the node tests can load it.
 
 // ---------------------------------------------------------------- XP
-// XP to go from `level` to the next: 100 at level 1, then rising, a little
-// faster than linearly (the later regions pay more for every kill).
+// XP to go from `level` to the next: a quick first few levels (250, 470,
+// 740…), then about 180 more a level, levelling off past 40 (the later
+// regions pay much more for every kill and quest). Rounded to tens.
 export function xpFor(level) {
-  const L = Math.max(1, Math.floor(level));
-  return Math.round(100 + 40 * (L - 1) + 2.2 * (L - 1) * (L - 1));
+  const x = Math.min(45, Math.max(0, Math.floor(level) - 1));
+  const core = 560 + 180 * x - 2 * x * x;
+  return Math.round((core * Math.min(1, 0.45 + 0.18 * x)) / 10) * 10;
 }
 // Total XP to reach a level from level 1.
 export function xpToReach(level) { let s = 0; for (let l = 1; l < level; l++) s += xpFor(l); return s; }
@@ -71,7 +73,8 @@ export function gearLevel(area = 1, playerLevel = 1) {
   return Math.max(1, area + Math.max(-0.5, Math.min(1, pull * 0.35)));
 }
 // Item power for a gear level, and the extra a source adds (in gear levels).
-export const POWER_BASE = 10, POWER_STEP = 13;
+export const POWER_BASE = 10;
+export const POWER_STEP = 13;
 export const powerAt = (gl = 1) => POWER_BASE + POWER_STEP * (Math.max(1, gl) - 1);
 export const levelOfPower = (power = 10) => 1 + (power - POWER_BASE) / POWER_STEP;
 export const SOURCE_BONUS = { monster: 0, chest: 0, rare: 0.3, epic: 1, boss: 0.7, champion: 0.8, quest: 0.3, shop: -0.3, starter: -1 };
