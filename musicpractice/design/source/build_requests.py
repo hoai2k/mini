@@ -513,6 +513,55 @@ for asset in ASSETS:
         asset["anchors"] = delivery["anchors"]
     asset["note"] += " Delivered artwork and export details: design/image-deliveries-round-7.json."
 
+ORGAN_SUBJECT = {
+    "classic": "polished tin and brushed-brass pipes in a warm walnut case with cream inlay",
+    "deco": "gleaming gold-leaf pipes rising in a stepped ziggurat from a black lacquer case, with a small jade accent",
+    "sixties": "chrome pipes in a rounded burnt-orange teak case with dark teal trim, flat screen-print colour",
+    "baroque": "burnished gilt pipes in a carved walnut case with restrained acanthus ornament and a burgundy accent",
+    "scifi": "brushed titanium pipes with thin cyan edge lighting in a graphite case, a small magenta indicator",
+    "nouveau": "muted-gold pipes entwined with a vine in a sage-green case, with a small iris accent",
+    "anime": "pastel sky-blue and lilac pipes in a candy-pink case with a bold outline and tiny yellow sparkles",
+    "steampunk": "polished brass and copper pipes with rivets in a dark mahogany case, a small pressure gauge",
+}
+
+
+def round8_assets() -> list[dict]:
+    """The Drone screen's picture when an organ voice plays (Organ, Synth
+    organ): a small pipe organ per theme, drawn to stand in the same place as
+    that theme's cello, so the two swap in place."""
+    record = json.loads((ROOT / "design" / "image-deliveries-drone.json").read_text())
+    names = {t["id"]: t["name"] for t in THEMES}
+    out = []
+    for a in record["assets"]:
+        theme, name = a["theme"], names[a["theme"]]
+        src = a["file"].removeprefix("musicpractice/app/")
+        folder = src.rsplit("/", 1)[0]
+        out.append(dict(
+            id="drone-organ", theme=theme, round=8, file=f"{folder}/drone-organ.webp",
+            size="1024×1024, transparent PNG (shipped as 512×512 WebP)", status="requested",
+            group=f"{name} · Drone screen for the organ",
+            prompt=(f"Using the attached image, musicpractice/app/{src} (this theme's Drone image, a "
+                    "cello), as the reference for its style, colours, lighting, rendering, framing and "
+                    "canvas, draw a small pipe organ in place of the cello: a front of upright organ "
+                    f"pipes, {ORGAN_SUBJECT[theme]}. The pipes stand in a symmetrical row, tallest in "
+                    "the middle and stepping down to either side, each with its mouth (the small "
+                    "horizontal slot near its foot) clearly drawn, all set on the case. Keep the same "
+                    "two thin, smooth sound ribbons drifting gently outward from the sides, as in the "
+                    "reference, to suggest one sustained tone. The organ stands in the same place and "
+                    "at about the same height as the cello in the reference, centred, filling the "
+                    "canvas from top to bottom with the same small margin, so the two pictures swap in "
+                    "place. Seen from the front. A fully transparent background, no cast shadow, no "
+                    "keyboard, no bench, no player, no music notes, no text, no letters, no numbers."),
+            note=(f"The {name} Drone screen's picture while an organ voice plays (Organ or Synth organ), "
+                  f"in place of the cello; the plain volume slider stands beside it. Made from "
+                  f"app/{src} so it matches the cello's style and place. Until it arrives the app draws "
+                  "a stand-in."),
+        ))
+    return out
+
+
+ASSETS += round8_assets()
+
 def render() -> tuple[str, str]:
     theme_name = {t["id"]: t["name"] for t in THEMES}
     lines = [
@@ -529,7 +578,8 @@ def render() -> tuple[str, str]:
                        (3, ", ".join(t["name"] for t in MORE_THEMES) + " themes"),
                        (4, "revisions"), (5, "Tuner home icons, every theme"),
                        (6, "Drone home icons, every theme"),
-                       (7, "Drone screen with the bow as volume, every theme")):
+                       (7, "Drone screen with the bow as volume, every theme"),
+                       (8, "Drone screen for the organ, every theme")):
         wanted = [a for a in ASSETS if a["round"] == rnd and a["status"] in ("requested", "revise")]
         lines.append(f"**Round {rnd} ({title}):** "
                      + (f"{len(wanted)} image{'s' if len(wanted) != 1 else ''} wanted: " + ", ".join(f"`{a['file']}`" for a in wanted) + "."
