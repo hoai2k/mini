@@ -376,8 +376,6 @@ export const EN = {
       title: 'Drone settings',
       fifth: 'Add a fifth above',
       fifthHelp: 'A pure fifth over the drone note. Tapping the frequency under the note turns it on and off too.',
-      bow: 'Bow as volume',
-      bowHelp: 'The cello without its bow, and the bow beside it: slide along the bow to set the volume. Off: a plain volume slider instead.',
       timing: 'Timing',
       modes: { continuous: 'Continuous pitch', change: 'Change periodically' },
       loop: 'Loop forever',

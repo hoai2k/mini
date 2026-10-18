@@ -379,31 +379,27 @@ tones, scales over a tonic.
   side keeps it beside the controls. To its right, an upright **volume**
   slider: drag the knob or the track up or down, or use the arrow keys (it
   is the same volume as the one in the settings).
-- **Bow as volume** (Drone settings, on by default; off gives the plain
-  slider, and an off saved while it was a tryout is not kept): the cello is
-  drawn without its bow and the bow stands beside it as the volume: a band
-  of colour behind the bow, from the hair to the middle of the stick and
-  from the frog up to the level, shows through the gap between them and as
-  a soft glow round them (the theme's deeper accent on a light page, its
-  bright one on a dark page), with a small gold marker on the hair at the
-  level, and a small **Volume** label under it (the bow and label together
-  as tall as the picture); drag along it. The hair is placed from the bow's own `frog` and `tip` anchors
-  (`alignBow` in `app/src/art.js`), so delivered art can draw the bow
-  anywhere in its canvas. Round 7 delivers `drone-cello`, each theme's Drone
-  image with the bow taken out, and `drone-bow`, the bow alone, upright, all
-  eight themes delivered. Checked in the app: each `drone-cello` lies exactly
-  on its `home-drone` (same extent, 99-100% overlap), so switching the tryout
-  on does not move the cello, and each bow's anchors sit where its hair meets
-  the head and the frog, which the marker and the lit hair follow.
+- **The volume is the cello's bow**: the Drone screen draws the cello
+  without its bow (`drone-cello`) and the bow (`drone-bow`) stands beside
+  it. A band of colour behind the bow, from the hair to the middle of the
+  stick and from the frog up to the level, shows through the gap between
+  them and as a soft glow round them (the theme's deeper accent on a light
+  page, its bright one on a dark page), with a small gold marker on the
+  hair at the level and a small **Volume** label under it (the bow and label
+  together as tall as the picture); drag along it, or use the arrow keys.
+  The hair is placed from the bow's own `frog` and `tip` anchors (`alignBow`
+  in `app/src/art.js`). Each `drone-cello` lies exactly on its theme's
+  `home-drone` (same extent, 99-100% overlap). It was first a tryout beside
+  a plain upright slider, now retired.
 - **Tapping the frequency** under the note adds or removes the fifth; "(+5th)"
-  beside it is lit while the fifth plays and faint while it doesn't.
+  shows beside it while the fifth plays and is gone while it doesn't.
 - Instruments: **Cello** (the default), **Cello, soft** (sul tasto: darker),
   **Organ** and **Synth organ** (a synthesized pipe organ: 8', 4' and 16'
   pipes with a touch of wind, exactly in tune and perfectly steady). A voice
   saved before others were archived falls back to the cello.
 - Settings: volume; **Add a fifth above** (a pure 3:2 fifth, off by default,
   saves that had it on by default included; also toggled by tapping the
-  frequency); **Bow as volume** (above); and
+  frequency); and
   **Timing**, two tabs: **Continuous pitch** (the default) with **Loop
   forever** (on by default; off shows **Length**, 1 to 60 minutes, 10 by
   default, after which it stops), or **Change periodically** with **Time on
