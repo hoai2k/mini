@@ -4,7 +4,6 @@
 // registries at load, so a model added to a registry shows up on its own.
 // Deep link: #id=<id> (or #id=<group>:<id> when an id is used in two groups).
 // Options: ?turn=0 stops the turntable, ?bg=dark|light|sky, ?anim=run|attack|...
-// ?capture=1 hides the description overlay (for thumbnails of the page).
 // ?scale=true opens in True scale: one fixed camera for every model with Percy
 // standing beside it, so a hellhound dwarfs a pup (the default view fits each
 // model to the frame, which hides size).
@@ -46,7 +45,7 @@ const GROUPS = [
 ];
 // A real mortal (monsters.js 'mortal') is drawn in game as a person (Enemy builds the Mist's mortal look, never its placeholder 'pup' model), so the workbench builds the same: an ordinary museum visitor.
 const WB_MORTAL = 'tourist';
-// ?capture=1 (or ?thumb=1): a clean frame for a screenshot or page thumbnail, with no description overlay
+// ?capture=1 (or ?thumb=1): a clean frame for a screenshot or page thumbnail
 if (q.has('capture') || q.has('thumb')) document.body.classList.add('capture');
 const TIER_COLOR = { minor: '#9a9a8a', elite: '#4ad0ff', champion: '#ff9a2a', boss: '#e8664a' };
 const hex = (n) => '#' + (n >>> 0).toString(16).padStart(6, '0');
@@ -525,7 +524,6 @@ function select(item, { fromHash = false } = {}) {
     if (wire) setWire(true);
     status('');
   } else status(`Build error: ${error.message}`);
-  $('t-desc').textContent = DESCRIPTIONS[item.key] ?? '';
   $('t-name').textContent = item.name; $('t-sub').textContent = `${GROUPS.find((g) => g.id === item.group)?.label ?? item.group} · ${item.id}`;
   document.querySelectorAll('.tile').forEach((t) => t.setAttribute('aria-selected', String(t.dataset.key === item.key)));
   setCursor(item);
@@ -595,7 +593,8 @@ function renderInspector() {
   const { item, rig, m, error } = current, d = item.data ?? {};
   const grp = GROUPS.find((g) => g.id === item.group)?.label ?? item.group;
   box.append(el('section', {}, el('div', { class: 'name', text: item.name }), el('div', { class: 'sub', text: `${grp} · id ${item.id}` }),
-    el('div', { class: 'tags' }, [d.tier && el('span', { class: `tag ${d.tier}`, text: d.tier }), d.soon && el('span', { class: 'tag', text: 'not playable yet' }), d.title && item.group === 'heroes' && el('span', { class: 'tag', text: d.title })].filter(Boolean))));
+    el('div', { class: 'tags' }, [d.tier && el('span', { class: `tag ${d.tier}`, text: d.tier }), d.soon && el('span', { class: 'tag', text: 'not playable yet' }), d.title && item.group === 'heroes' && el('span', { class: 'tag', text: d.title })].filter(Boolean)),
+    DESCRIPTIONS[item.key] && el('p', { class: 'desc about', text: DESCRIPTIONS[item.key] })));   // what the creature is meant to be (workbench/descriptions.js)
   const srcSec = sourceSection(item); if (srcSec) box.append(srcSec);
   if (error) box.append(sect('Build error', el('div', { class: 'err', text: String(error.stack ?? error.message).split('\n').slice(0, 5).join('\n') })));
 
