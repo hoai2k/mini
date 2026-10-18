@@ -138,7 +138,7 @@ export function build(ctx) {
   R.roadSign(568, ROAD_Z - 7, S('trucksOnly'), { bg: '#f2d040', fg: '#1a1a1e', border: '#1a1a1e', w: 2.6, h: 1.2 });
 
   // ---------------- billboards, the gantry, signs, mile markers
-  R.gantry(600, S('dnGantryL'), S('dnGantryR'));
+  R.gantry(645, S('dnGantryL'), S('dnGantryR'));
   R.roadSign(684, ROAD_Z - 7, S('dnCityLimits'), { w: 3.2, h: 1.4 });
   R.billboard(652, 30, S('dnBbLotus'), { bg: '#1a3a2a', fg: '#f2d040', border: '#ff5fb0', glow: true });
   R.billboard(684, 78, S('dnBbWaterland'), { bg: '#2a8ac8', fg: '#ffffff', border: '#f2d040' });

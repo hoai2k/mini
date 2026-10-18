@@ -750,7 +750,7 @@ function blockModel(kind, b) {
         const p = petals.userData.P[pi++];
         p.x = fx + _a.x * len * s * 0.5; p.y = fy + _a.y * len * s * 0.55; p.z = fz + _a.z * len * s * 0.55;
         p.rx = _e.x; p.ry = _e.y; p.rz = _e.z; p.s = s; p.sx = 0.16; p.sy = len; p.sz = 0.5;
-        p.a = rnd(0, 0.55); p.vx = rnd(0.4, 2.6); p.vz = rnd(-1.6, 1.6); p.b = rnd(-3, 3);
+        p.a = rnd(0, 0.55); p.vx = rnd(0.2, 1.8); p.vz = rnd(-2.6, 2.6); p.b = rnd(-3, 3);
       }
     }
     flush(petals);
@@ -771,7 +771,7 @@ function blockModel(kind, b) {
       for (const p of petals.userData.P) {
         if (p.rest || u < 0.08 + p.a) continue;
         p.vy -= 9 * dt; p.vx *= 1 - dt * 1.5; p.x += p.vx * dt; p.y += Math.max(-3, p.vy) * dt; p.z += p.vz * dt; p.rz += p.b * dt; p.rx += p.b * 0.5 * dt;
-        if (p.y < 0.06) { p.y = 0.06; p.rest = true; p.rx = Math.PI / 2; p.ry = rnd(0, 3); p.rz = 0; }
+        if (p.y < 0.06) { p.y = 0.06; p.rest = true; p.rx = Math.PI / 2; p.ry = rnd(0, 3); p.rz = 0; p.sy *= 0.6; }
       }
       flush(petals);
       vines.forEach((v, i) => { const k = seg(u, 0.4 + i * 0.06, 0.95); v.position.y = -6.5 * k * k; v.rotation.x = (i < 2 ? -1 : 1) * 0.35 * k; v.position.x = 0.8 * k; });
