@@ -11,7 +11,7 @@
 //   buildChampionRig(id, kind)  the rig alone (the workbench uses it)
 //   applyChampionLook(e, id)    swap a spawned Enemy's rig for its champion look
 import * as THREE from 'three/webgpu';
-import { Rig, PX, makeCharMaterial } from './character.js';
+import { Rig, PX, makeCharMaterial, HOLD_PITCH, markTip } from './character.js';
 import { paintPerson } from './mortals.js';
 import { skinMat, group, HS, bruteLimbs, sway } from './parts.js';
 import { MONSTERS, HELLHOUND, buildMonsterModel, animateExtras, kit, dropMeshes, eagle, hound, buildScorpion, buildSkeleton, buildCyclops } from './monsters.js';
@@ -114,7 +114,7 @@ function buildShadowfang() {
 // crown of gold and white plumes, lightning crackling from her talons and
 // along her wings.
 function buildQueenGale() {
-  const rig = eagle('champ_queen_gale', { scale: 1, pal: { main: 0x4a4c66, light: 0x9a9cb8, dark: 0x22243a, breast: 0xd4d0dc, tip: 0xf0c840, edge: 0xc8a040, gold: 0xf0c040, goldD: 0xb08a20, eye: 0xffe040 } });
+  const rig = eagle('champ_queen_gale', { scale: 1, pal: { main: 0x4a4c66, light: 0x9a9cb8, dark: 0x22243a, breast: 0xd4d0dc, tip: 0xf0c840, edge: 0xc8a040, gold: 0xf0c040, goldD: 0xb08a20, eye: 0xffe040, skin: 0xb4b8bc, hair: 0xd4d4dc } });
   const K = kit(rig, rig.material, { seed: 107, rough: 0.6, emit: 0.9 });
   const Hd = rig.head, hk = HS * 7 / 8;
   const c = crown(K, Hd, { y: 7.4 * hk, cz: -0.3, w: 7.4, d: 7, spike: 3, gem: 0x3ad8ff });
@@ -140,8 +140,8 @@ function buildRedKing() {
     const z = 4 - i * 2.1;
     for (const sx of i % 2 ? [-1, 1] : [0]) { const x = sx * 2; K.box(T, x, 3.1, z, 1.2, 1.4, 1.2, GOLD_D); K.box(T, x, 4.2, z - 0.2, 0.8, 1.4, 0.8, GOLD); K.box(T, x, 5.2, z - 0.4, 0.45, 1, 0.45, GOLD_L); }
   }
-  for (const c of rig.extras.claws ?? []) { const pin = c.jawA.parent; K.box(pin, 0, 1.5, 1.8, 2.8, 0.6, 3.8, GOLD); for (const j of [c.jawA, c.jawB]) K.box(pin, j.position.x / PX, 0.9, 4.6, 0.6, 0.6, 2.8, GOLD_L); }
-  for (const seg of rig.tail) K.box(seg, 0, 1.9, -1.2, 0.6, 1.6, 0.6, GOLD, -0.3);
+  for (const c of rig.extras.claws ?? []) { const pin = c.jawA.parent; K.box(pin, 0, 1.5, 1.8, 2.8, 0.6, 3.8, GOLD); for (const j of [c.jawA, c.jawB]) K.box(j, 0, 0.9, 0.6, 0.6, 0.6, 2.8, GOLD_L); }   // (on the fingers, which open and close)
+  for (const seg of rig.tail) K.box(seg, 0, -2.1, -1.4, 0.6, 1.6, 0.6, GOLD, 0.3);   // (down the outside of the curl)
   K.done();
   return rig;
 }
@@ -188,10 +188,10 @@ function buildBronzeWarden() {
     K.clumps(leg, [0, -6, 0], [6, 10, 6], { n: 8, size: [0.8, 1.3], cols: VG, faces: 'lrfk', out: -0.3 });
   }
   // the war hammer
-  const ham = group(rig.handR, 0, -1, 1.4, -1.2, 0, 0);
+  const ham = group(rig.handR, 0, -1, 1.4, HOLD_PITCH - Math.PI / 2, 0, 0);   // (built along +z: see the hand-axis convention in character.js)
   K.box(ham, 0, 0, 3, 1.4, 1.4, 20, 0x4a3018); for (const z of [-5, 0, 5]) K.box(ham, 0, 0, z + 3, 1.8, 1.8, 0.8, BL);
   K.box(ham, 0, 0, 13.5, 4, 7.6, 5, B); K.box(ham, 0, 0, 13.5, 4.3, 1.2, 5.3, BL); for (const sy of [-1, 1]) K.box(ham, 0, sy * 4, 13.5, 3, 0.8, 3.6, BD);
-  rig.extras.hammer = ham;
+  markTip(ham, 0, 0, 16, 'war hammer'); rig.extras.hammer = ham;
   // the sun shield: a big round bronze shield, a teal field, gold rays and a face
   const sh = group(rig.armL, 1, -7.6, 4.6, 0, -0.25, 0), R = 9.5;
   for (let y = -R + 0.5; y < R; y += 1) {
@@ -275,12 +275,12 @@ function buildPaleKing() {
   for (let x = -5.2; x <= 5.3; x += 1.3) { const L = 18 + K.r() * 5; K.box(T, x, 12.5 - L / 2, -3.2 - Math.abs(x) * 0.05, 1.4, L, 0.6, K.tone([0x1a1c2c, 0x24263a, 0x12131c, 0x2a2440], 0.1)); }
   for (const sx of [-1, 1]) for (let i = 0; i < 4; i++) { const L = 8 + K.r() * 6; K.box(T, sx * 5.8, 12 - L / 2, -1.6 + i * 0.9, 0.6, L, 1, 0x1a1c2c); }
   // the black sword, edged in green flame (the muzzle is where his bolts leave)
-  const sw = group(rig.handR, 0, -1, 1, -1.2, 0, 0);
+  const sw = group(rig.handR, 0, -1, 1, HOLD_PITCH - Math.PI / 2, 0, 0);   // (built along +z)
   K.box(sw, 0, 0, -0.6, 1.2, 1.2, 3, 0x2a1a10); K.box(sw, 0, 0, -2.4, 1.6, 1.6, 1, 0xc89a30); K.box(sw, 0, 0, 1.2, 4.4, 1, 0.9, 0xc89a30);
   K.box(sw, 0, 0, 9, 0.6, 2, 15, 0x14141a); K.box(sw, 0, 0, 17, 0.6, 1.2, 1.4, 0x14141a);
   for (const sy of [-1, 1]) K.box(sw, 0, sy * 1.05, 9, 0.5, 0.3, 14, GF[0]);
   K.box(sw, 0, 0, 9, 0.7, 0.4, 13, 0x1ad84a);
-  rig.extras.blade = sw; rig.extras.muzzle = group(sw, 0, 0, 18);
+  markTip(sw, 0, 0, 17.7, 'black sword'); rig.extras.blade = sw; rig.extras.muzzle = group(sw, 0, 0, 18);
   for (const hand of [rig.handL]) for (let i = 0; i < 6; i++) K.box(hand, (K.r() - 0.5) * 2.4, -1 + K.r() * 2.4, (K.r() - 0.5) * 2.4, 0.9, 1.2, 0.9, GF[i % 3]);
   K.done();
   return rig;

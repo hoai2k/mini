@@ -122,6 +122,31 @@ export function makeCharMaterial(map, opts = {}) {
   return m;
 }
 
+// ---------------------------------------------------------------- holding things
+// Hand-local axes. rig.handR and rig.handL sit at the fist, the bottom of the
+// arm, and are not mirrored (the same axes in both hands). With the arm
+// hanging (idle): +y runs up the forearm toward the shoulder, -y down to the
+// ground, +z forward (the way the character faces), +x to the character's
+// left. Raising the arm forward (arm rotation.x = -PI/2) turns hand +z up and
+// hand -y forward. A positive rotation.x on a prop tips its +y toward +z
+// (forward); a negative one tips it back over the shoulder, which is how
+// weapons ended up held backwards (Ares, Luke, the cyclops, the spartoi).
+// Convention: build a weapon along its own +y, grip at the origin, and hang
+// it on the hand with rotation.x = HOLD_PITCH, so at rest it points forward,
+// a little above level (a weapon built along +z, like the heroes' kits, needs
+// no turn). In attacks the wrist (hand rotation.x, see attackPose) cocks it so
+// it points forward at the strike of every style. markTip() names the tip so
+// percyjackson/perf/weapons.cjs can check every armed model.
+export const HOLD_PITCH = Math.PI / 2 - 0.3;
+// Mark a weapon's tip (skin pixels, in the weapon's own space); label names it in the check.
+export function markTip(weapon, x, y, z, label = 'weapon') {
+  const o = new THREE.Object3D(); o.name = 'weaponTip'; o.userData.weaponTip = true; o.userData.label = label;
+  o.position.set(x * PX, y * PX, z * PX); weapon.add(o); return o;
+}
+// Mark something held that has no point to aim (a shield, pom-poms, panpipes,
+// a sling, a whip that trails), so the weapon check leaves it be.
+export function markHeld(g) { g.userData.heldProp = true; return g; }
+
 const _v1 = new THREE.Vector3(), _box = new THREE.Box3(), _m = new THREE.Matrix4(), _inv = new THREE.Matrix4();
 
 // ---------------------------------------------------------------- rig
@@ -221,6 +246,7 @@ export class Rig {
       // as on the hero sheets; running brings them back in
       armRX: -sw * 1.0 + IDLE.armX * (1 - run), armRZ: -IDLE.armZ * (1 - run) - 0.04 * run - Math.sin(t * 2.2) * 0.02 * (1 - run), armRY: 0,
       armLX: sw * 1.0 + IDLE.armX * (1 - run), armLZ: IDLE.armZ * (1 - run) + 0.04 * run + Math.sin(t * 2.2) * 0.02 * (1 - run), armLY: 0,
+      handRX: 0, handLX: 0,   // the wrists: attacks cock a held weapon forward (see HOLD_PITCH)
       legRX: sw * 1.0, legLX: -sw * 1.0, legRZ: -IDLE.legZ * (1 - run), legLZ: IDLE.legZ * (1 - run),
       rootX: 0, rootZ: 0, lift: 0,
     };
@@ -274,6 +300,7 @@ export class Rig {
     L(this.head, 'headX', T.headX, 'x'); L(this.head, 'headY', T.headY, 'y');
     L(this.armR, 'armRX', T.armRX, 'x'); L(this.armR, 'armRY', T.armRY, 'y'); L(this.armR, 'armRZ', T.armRZ, 'z');
     L(this.armL, 'armLX', T.armLX, 'x'); L(this.armL, 'armLY', T.armLY, 'y'); L(this.armL, 'armLZ', T.armLZ, 'z');
+    L(this.handR, 'handRX', T.handRX, 'x'); L(this.handL, 'handLX', T.handLX, 'x');
     L(this.legR, 'legRX', T.legRX, 'x'); L(this.legL, 'legLX', T.legLX, 'x');
     L(this.legR, 'legRZ', T.legRZ, 'z'); L(this.legL, 'legLZ', T.legLZ, 'z');
     // body roll (dodge): turns about the tucked body's centre of mass; the
@@ -317,34 +344,39 @@ export class Rig {
     const phase = k < w ? 0 : k < s ? 1 : 2;
     const e = phase === 0 ? easeOutCubic(k / w) : phase === 1 ? easeOutBack((k - w) / (s - w)) : 1 - easeInCubic((k - s) / (1 - s)) * 0.7;
     const style = a.style || ['swingR', 'swingL', 'slam'][a.step % 3];
+    const m = Math.min(1, e);
     T.legRX = 0.35; T.legLX = -0.35;
+    // (handRX / handLX: the wrist. A weapon held by the convention above points
+    // forward at rest; with the arm raised it would point up or back over the
+    // shoulder, so each style cocks the wrist to keep the blade forward at the
+    // strike, and the swings sweep it across the front.)
     switch (style) {
-      case 'swingR': // right hand horizontal swing / hook
-        if (phase === 0) { T.armRX = -1.3 * e; T.armRY = 0.9 * e; T.armRZ = 0.8 * e; T.torsoY = 0.6 * e; }
-        else { T.armRX = -1.5; T.armRY = lerp(0.9, -0.9, Math.min(1, e)); T.armRZ = lerp(0.8, -0.1, Math.min(1, e)); T.torsoY = lerp(0.6, -0.7, Math.min(1, e)); }
+      case 'swingR': // right hand horizontal swing / hook: from the left shoulder across the front, ending on the target
+        if (phase === 0) { T.armRX = -1.3 * e; T.armRY = 0.9 * e; T.armRZ = 0.8 * e; T.torsoY = 0.6 * e; T.handRX = 0.9 * e; }
+        else { T.armRX = -1.5; T.armRY = lerp(0.9, -0.2, m); T.armRZ = lerp(0.8, -0.1, m); T.torsoY = lerp(0.6, -0.35, m); T.handRX = lerp(0.9, 1.5, m); }
         T.armLX = -0.4; break;
       case 'swingL':
-        if (phase === 0) { T.armLX = -1.3 * e; T.armLY = -0.9 * e; T.armLZ = -0.8 * e; T.torsoY = -0.6 * e; }
-        else { T.armLX = -1.5; T.armLY = lerp(-0.9, 0.9, Math.min(1, e)); T.armLZ = lerp(-0.8, 0.1, Math.min(1, e)); T.torsoY = lerp(-0.6, 0.7, Math.min(1, e)); }
+        if (phase === 0) { T.armLX = -1.3 * e; T.armLY = -0.9 * e; T.armLZ = -0.8 * e; T.torsoY = -0.6 * e; T.handLX = 0.9 * e; }
+        else { T.armLX = -1.5; T.armLY = lerp(-0.9, 0.2, m); T.armLZ = lerp(-0.8, 0.1, m); T.torsoY = lerp(-0.6, 0.35, m); T.handLX = lerp(0.9, 1.5, m); }
         T.armRX = -0.4; break;
-      case 'punch': // straight jab with right
-        if (phase === 0) { T.armRX = -1.0 * e; T.armRZ = 0.3; T.torsoY = 0.5 * e; }
-        else { T.armRX = -1.57; T.armRZ = 0; T.torsoY = lerp(0.5, -0.4, Math.min(1, e)); T.torsoX = 0.2; }
+      case 'punch': // straight jab (a thrust) with right
+        if (phase === 0) { T.armRX = -1.0 * e; T.armRZ = 0.3; T.torsoY = 0.5 * e; T.handRX = 0.8 * e; }
+        else { T.armRX = -1.57; T.armRZ = 0; T.torsoY = lerp(0.5, -0.4, m); T.torsoX = 0.2; T.handRX = lerp(0.8, 1.4, m); }
         T.armLX = -1.1; T.armLY = -0.4; break;
-      case 'slam': // overhead two-handed slam
-        if (phase === 0) { T.armRX = -2.9 * e; T.armLX = -2.9 * e; T.torsoX = -0.25 * e; T.headX = -0.2 * e; }
-        else { T.armRX = lerp(-2.9, -0.9, Math.min(1, e)); T.armLX = lerp(-2.9, -0.9, Math.min(1, e)); T.torsoX = lerp(-0.25, 0.45, Math.min(1, e)); T.headX = 0.2; }
+      case 'slam': // overhead two-handed slam: raised up behind the head, brought down in front
+        if (phase === 0) { T.armRX = -2.9 * e; T.armLX = -2.9 * e; T.torsoX = -0.25 * e; T.headX = -0.2 * e; T.handRX = T.handLX = 1.2 * e; }
+        else { T.armRX = lerp(-2.9, -0.9, m); T.armLX = lerp(-2.9, -0.9, m); T.torsoX = lerp(-0.25, 0.45, m); T.headX = 0.2; T.handRX = T.handLX = lerp(1.2, 1.0, m); }
         T.lift = phase === 0 ? 0.12 * e : 0; break;
-      case 'uppercut':
+      case 'uppercut': // low behind, rising up in front
         if (phase === 0) { T.armRX = 0.4 * e; T.torsoX = 0.3 * e; T.lift = -0.08 * e; }
-        else { T.armRX = lerp(0.4, -2.8, Math.min(1, e)); T.torsoX = lerp(0.3, -0.3, Math.min(1, e)); T.lift = 0.15 * e; }
+        else { T.armRX = lerp(0.4, -2.4, m); T.torsoX = lerp(0.3, -0.3, m); T.lift = 0.15 * e; T.handRX = 2.0 * m; }
         break;
       case 'spin':
-        T.torsoY = (phase === 0 ? 0.4 * e : lerp(0.4, -Math.PI * 1.8, Math.min(1, e))); T.armRX = -1.5; T.armLX = -1.5; T.armRZ = 1.2; T.armLZ = -1.2; break;
+        T.torsoY = (phase === 0 ? 0.4 * e : lerp(0.4, -Math.PI * 1.8, m)); T.armRX = -1.5; T.armLX = -1.5; T.armRZ = 1.2; T.armLZ = -1.2; T.handRX = T.handLX = 1.4; break;
       case 'throw':
         if (phase === 0) { T.armRX = -2.6 * e; T.armRZ = 0.2; T.torsoY = 0.4 * e; }
-        else { T.armRX = lerp(-2.6, -1.2, Math.min(1, e)); T.torsoY = lerp(0.4, -0.3, Math.min(1, e)); }
-        T.armLX = -0.8; break;
+        else { T.armRX = lerp(-2.6, -1.2, m); T.torsoY = lerp(0.4, -0.3, m); }
+        T.handRX = 1.0; T.armLX = -0.8; break;
     }
   }
   physics(p) {

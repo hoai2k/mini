@@ -5,7 +5,7 @@
 // the parts the boss patterns move (whips, heads, beds, the motorcycle).
 import * as THREE from 'three/webgpu';
 import { vertexColor } from 'three/tsl';
-import { Rig, PX } from './character.js';
+import { Rig, PX, HOLD_PITCH, markTip } from './character.js';
 import { QuadRig, paintQuad } from './quad.js';
 import { paintPerson } from './mortals.js';
 import { buildFury, bronzeSpider } from './monsters.js';
@@ -582,12 +582,12 @@ export const BOSS_MODELS = {
     // shoe shine and trouser cuffs
     for (const leg of [rig.legR, rig.legL]) vox(rig, leg, [], {}, [{ p: [0, -11.4, 0.8], s: [7.2, 1.4, 8.2], c: 0x2a1810 }, { p: [0, -10.2, 0.5], s: [7, 1.2, 7.6], c: 0x4a2c1a }, { p: [0, -9.3, 0], s: [7, 0.7, 7], c: creamD }]);
     // the axe: long haft, a broad steel head, a gold collar
-    const axe = group(rig.handR, 0, -1, 1.5, -1.3, 0, 0);
+    const axe = group(rig.handR, 0, -1, 1.5, HOLD_PITCH, 0, 0);   // (along +y: see the hand-axis convention in character.js)
     vox(rig, axe, [], {}, [
       { p: [0, 8, 0], s: [1.6, 30, 1.6], c: 0x6a4022 }, { p: [0, -6, 0], s: [2, 2, 2], c: 0x4a2c16 },
       { p: [0, 20, 3.4], s: [1.2, 9, 7], c: 0xb8bcc4, m: 'm' }, { p: [0, 20, 7.2], s: [1.4, 11, 1.2], c: 0xe8ecf4, m: 'm' }, { p: [0, 20, -0.6], s: [2, 3, 3], c: 0xd8a032, m: 'm' },
     ]);
-    rig.extras.axe = axe;
+    markTip(axe, 0, 23, 0, 'axe'); rig.extras.axe = axe;
     rig.hunch = 0.05; rig.armSpread = 0.3;
     return rig;
   },
@@ -680,7 +680,7 @@ export const BOSS_MODELS = {
       { p: [lw / 2 - 1, -10.6, lw / 2 + 1.4], s: [1.3, 1.1, 0.4], c: silver, m: 'm' }, { p: [lw / 2 - 1, -8, lw / 2 + 0.4], s: [1.3, 1.1, 0.4], c: silver, m: 'm' },
     ]);
     // the burning sword: gold guard, a blade of fire, flames licking off it
-    const sword = group(rig.handR, 0, -1, 1, -1.35, 0, 0);
+    const sword = group(rig.handR, 0, -1, 1, HOLD_PITCH, 0, 0);   // (along +y: see the hand-axis convention in character.js)
     const fl = rng(92), flames = [];
     for (let i = 0; i < 26; i++) { const t = fl(), y = 5 + t * 18, w = 0.6 + fl() * 1.4; flames.push({ p: [(fl() - 0.5) * 3.4 * (1 - t * 0.4), y + fl() * 2, (fl() - 0.5) * 1.2], s: [w, w * 1.3, w * 0.8], c: [0xff3a00, 0xff6a08, 0xffa020][Math.floor(fl() * 3)], m: 'e' }); }
     vox(rig, sword, [], {}, [
@@ -688,11 +688,11 @@ export const BOSS_MODELS = {
       { p: [0, 12.6, 0], s: [2.6, 18, 0.9], c: 0xff6a10, m: 'e' }, { p: [0, 12.4, 0], s: [1, 17, 1.1], c: 0xffc040, m: 'e' }, { p: [0, 22.4, 0], s: [1.6, 1.8, 0.9], c: 0xff8a10, m: 'e' },
       ...flames,
     ]);
-    rig.extras.sword = sword;
-    // a spear for the thrust, slung on his back until he needs it
-    const spear = group(rig.handL, 0, -1, 1, -1.5, 0, 0);
+    markTip(sword, 0, 23.3, 0, 'burning sword'); rig.extras.sword = sword;
+    // a spear for the thrust (a 'punch' with the right arm), in place of the sword while he needs it
+    const spear = group(rig.handR, 0, -1, 1, HOLD_PITCH, 0, 0);
     vox(rig, spear, [], {}, [{ p: [0, 10, 0], s: [1.2, 40, 1.2], c: 0x3a2a1e }, { p: [0, 32, 0], s: [2.6, 6, 0.8], c: 0xd8dce4, m: 'm' }, { p: [0, 35.6, 0], s: [1.2, 2, 0.6], c: 0xd8dce4, m: 'm' }, { p: [0, 29, 0], s: [1.8, 1.2, 1.8], c: 0xd8a032, m: 'm' }]);
-    spear.visible = false; rig.extras.spear = spear;
+    markTip(spear, 0, 36.6, 0, 'spear'); spear.visible = false; rig.extras.spear = spear;
     // the motorcycle, only out for a charge
     const bike = new THREE.Group(); rig.root.add(bike); bike.visible = false; rig.extras.bike = bike;
     const blk = 0x141214, chrome = 0xd8dce4, tire = 0x0a0a0a;
@@ -728,12 +728,12 @@ export const BOSS_MODELS = {
       { p: [-4.6, 0, 1], s: [1.4, 13, 1.8], c: 0x5a3018, r: [0.25, 0, -0.12] }, { p: [-5.4, -6.2, 2.6], s: [1.6, 1.6, 2], c: 0xd8a032, m: 'm', r: [0.25, 0, -0.12] }, { p: [-3.8, 6.4, -0.6], s: [1.8, 1.2, 2.2], c: 0xd8a032, m: 'm', r: [0.25, 0, -0.12] },
     ]);
     // Backbiter: half steel, half celestial bronze
-    const sword = group(rig.handR, 0, -1, 1, -1.4, 0, 0);
+    const sword = group(rig.handR, 0, -1, 1, HOLD_PITCH, 0, 0);   // (along +y: see the hand-axis convention in character.js)
     vox(rig, sword, [], {}, [
       { p: [0, 0, 0], s: [1.2, 4.4, 1.2], c: 0x3a2418 }, { p: [0, -2.4, 0], s: [1.6, 1, 1.6], c: 0xd8a032, m: 'm' }, { p: [0, 2.6, 0], s: [5, 1, 1.4], c: 0x8a8a90, m: 'm' },
       { p: [-0.75, 11.5, 0], s: [1.5, 17, 0.7], c: 0xc8ccd8, m: 'm' }, { p: [0.75, 11.5, 0], s: [1.5, 17, 0.7], c: 0xe0a040, m: 'm' }, { p: [0, 20.4, 0], s: [1.6, 1.4, 0.6], c: 0xe0a040, m: 'm' },
     ]);
-    rig.extras.sword = sword;
+    markTip(sword, 0, 21.1, 0, 'Backbiter'); rig.extras.sword = sword;
     return rig;
   },
 };

@@ -4,7 +4,7 @@
 // pipes, Tyson's watch shield, Clarisse's electric spear and boar shield),
 // built on the shared Rig.
 import * as THREE from 'three/webgpu';
-import { Skin, Rig, makeCharMaterial, PX } from './character.js';
+import { Skin, Rig, makeCharMaterial, PX, markTip, markHeld } from './character.js';
 import { hashStr, mulberry32 } from '../util.js';
 import { heroHair, heroTail, cellMesh, partMaterial, partsMesh, footwear, band, beads, tatters, sleeveTatters } from './herovox.js';
 
@@ -278,6 +278,7 @@ export function buildRiptide() {
   [[1.4, 3, 3.6], [2.0, 3, 6.6], [2.5, 3.2, 9.6], [2.7, 3, 12.6], [2.2, 2.4, 15.3], [1.4, 2, 17.5], [0.6, 1.6, 19.2]]
     .forEach(([w, l, z]) => bx(g, w, 0.45, l, 0, 0, z, bronze));
   bx(g, 0.3, 0.55, 15, 0, 0, 10, gold);                  // fuller line
+  markTip(g, 0, 0, 20, 'Riptide');
   g.position.set(0, -1 * PX, 1 * PX);
   return g;
 }
@@ -286,6 +287,7 @@ function buildDagger() {
   const bronze = BRONZE(), grip = mat(0x3a2a1a, { rough: 0.8 });
   bx(g, 1.1, 1.1, 3.2, 0, 0, -0.6, grip); bx(g, 3.4, 1, 1, 0, 0, 1.4, bronze);
   [[1.5, 3, 3.4], [1.2, 2.4, 6], [0.5, 1.6, 7.8]].forEach(([w, l, z]) => bx(g, w, 0.4, l, 0, 0, z, bronze));
+  markTip(g, 0, 0, 8.6, 'dagger');
   g.position.set(0, -1 * PX, 0.8 * PX);
   return g;
 }
@@ -295,7 +297,7 @@ function buildPipes() {
   for (let i = 0; i < 6; i++) bx(g, 0.9, 7 - i * 0.8, 0.9, -2.5 + i, -(7 - i * 0.8) / 2 + 2, 0, reed);
   bx(g, 6.4, 0.8, 1.2, 0, 1, 0, band);
   g.position.set(0, -1.5 * PX, 1.6 * PX); g.rotation.y = 0.3;
-  return g;
+  return markHeld(g);
 }
 function buildSpear() {
   const g = new THREE.Group();
@@ -308,6 +310,7 @@ function buildSpear() {
   bx(g, 1.2, 1.2, 1.2, 0, 0, -14.5, bronze);
   g.position.set(0, -1 * PX, 0);
   g.userData.tip = new THREE.Vector3(0, -1 * PX, 32 * PX);
+  markTip(g, 0, 0, 33, 'spear');
   return g;
 }
 function buildBoarShield() {
@@ -503,7 +506,7 @@ export function buildHeroModel(id) {
   }
   if (id === 'tyson') {
     const watch = new THREE.Group(); bx(watch, 4.6, 1.6, 4.6, 0, -6.5, 0, BRONZE()); rig.armL.add(watch);
-    const sh = buildWatchShield(); sh.visible = false; rig.handL.add(sh); rig.extras.shield = sh;
+    const sh = markHeld(buildWatchShield()); sh.visible = false; rig.handL.add(sh); rig.extras.shield = sh;
   }
   if (id === 'clarisse') {
     const s = buildSpear(); rig.handR.add(s); rig.extras.weapon = s;
@@ -517,6 +520,7 @@ export function buildHeroModel(id) {
     const g = new THREE.Group(), stygian = mat(0x1a1424, { rough: 0.3, metal: 0.7, emissive: 0x3a1a6a, ei: 0.8 });
     bx(g, 1.1, 1.1, 3.2, 0, 0, -0.6, mat(0x2a2020)); bx(g, 4, 1, 1, 0, 0, 1.4, stygian);
     [[1.8, 3, 3.6], [1.8, 3, 6.6], [1.5, 3, 9.6], [0.8, 2, 12]].forEach(([w, l, z]) => bx(g, w, 0.5, l, 0, 0, z, stygian));
+    markTip(g, 0, 0, 13, 'Stygian sword');
     g.position.set(0, -1 * PX, 1 * PX); rig.handR.add(g); rig.extras.weapon = g;
   }
   rig.look = look;

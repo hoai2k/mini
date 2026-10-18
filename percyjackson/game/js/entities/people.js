@@ -16,10 +16,11 @@
 // A person: { painter: 'hero' | 'person', paint, body(S, D)?, hair (mortal hair
 // shape) | vox (hero hair style), beard (three tones), tail ({ pivot, ...heroTail }),
 // parts() { head, torso, hips, armR, armL, legR, legL: [boxes] }, glow
-// ({ color, ei, parts() }: boxes that shine), scale, wide, rig (Rig spec), accent }.
+// ({ color, ei, parts() }: boxes that shine), scale, wide, rig (Rig spec), accent,
+// tip ([slot, x, y, z, label]: where a held weapon points, for perf/weapons.cjs) }.
 // Units: skin pixels (head parts in head pixels; the head runs y 0..8, front +z).
 import * as THREE from 'three/webgpu';
-import { Skin, Rig, makeCharMaterial, PX } from './character.js';
+import { Skin, Rig, makeCharMaterial, PX, markTip } from './character.js';
 import { cellMesh, heroHair, heroTail, footwear, beads } from './herovox.js';
 import { paintHumanoid } from './models.js';
 import { paintPerson, ADULT_SCALE, B, mirrorX, turn, band, shoes, strawHat, hairCells, beardCells, boxGeometry, mergeGeometries, inHead, shadeOf } from './mortals.js';
@@ -375,7 +376,7 @@ export const PEOPLE = {
   // Coach Gleeson Hedge, satyr: a red tracksuit with white stripes, a whistle,
   // a cap with a red trident, a beard, horns, goat legs and a club
   canyon_hedge: {
-    painter: 'hero', scale: 1.08, wide: 1.15, accent: 0xff4a2a,
+    painter: 'hero', scale: 1.08, wide: 1.15, accent: 0xff4a2a, tip: ['armR', 0, 0.6, 2.6, 'club'],
     paint: { skinTone: 0xd8885a, hair: 0x3a2210, fringe: 2, hairSide: 4, hairBack: 7, eye: 0x3a2414, brow: 0x2a1408, scowl: true, mouth: 'grin', top: 0xf0e4c8, collar: false, jacket: 0xc8241e, jacketSleeve: 12, pants: 0xc8241e, shorts: 8, goat: [0x6a4020, 0x4a2a14], belt: 0x3a2214 },
     body(S, D) {
       // white stripes down the sleeves and trouser legs, zip edges, cuffs
@@ -456,7 +457,7 @@ export const PEOPLE = {
   // Quintus, the swordmaster (Daedalus in disguise): grey hair and beard, a
   // long navy coat over a brown waistcoat, a rapier, a glint of bronze at his throat
   quintus: {
-    painter: 'person', scale: ADULT_SCALE, accent: 0xff9a2a,
+    painter: 'person', scale: ADULT_SCALE, accent: 0xff9a2a, tip: ['armR', 0, -1.9, 16.8, 'rapier'],
     paint: { skin: 0xdc9c74, hair: 0xb8b4b0, fringe: 1, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x3a7a8a, brow: 0x6a6460, scowl: true, wrinkles: 0xb47c5a, beard: 0xc8c4c0, top: 0x8a4a1e, knit: true, vneck: 0xf0ece0, jacket: 0x1e2238, lapel: 0x2e3450, sleeve: 0x8a4a1e, pants: 0x4a2e1e, shoes: 0x3a2214, saturate: 1.12 },
     hair: { c: [0, 7, -0.6], r: [5.6, 4.4, 5.8], bump: 0.4, shell: 1.4, fringe: 6.6, jag: 1, side: 3, back: 0.4, tuft: 0.16, spike: 0.03, tones: [0x8a8684, 0xb8b4b0, 0xe0dcd8] },
     beard: [0x9a9692, 0xc8c4c0, 0xe8e4e0],
@@ -965,6 +966,8 @@ export function buildPerson(id) {
     for (const leg of [rig.legR, rig.legL]) for (const m of leg.children) if (m.isMesh) m.scale.set(1 + (w - 1) * 0.4, 1, 1 + (w - 1) * 0.4);
     for (const m of rig.hips.children) if (m.isMesh) m.scale.set(w, 1, 1 + (w - 1) * 0.6);
   }
+  // a weapon's tip (def.tip: [slot, x, y, z], skin pixels in that part), for perf/weapons.cjs
+  if (def.tip) markTip(rig[def.tip[0]], def.tip[1], def.tip[2], def.tip[3], def.tip[4]);
   rig.person = id;
   rig.look = { accent: def.accent ?? 0xc9963a };
   return rig;

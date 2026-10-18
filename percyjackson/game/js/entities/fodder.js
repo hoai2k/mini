@@ -34,7 +34,7 @@
 // monsters.js wires these in (fodderModels below takes its voxel kit, so this
 // module never imports monsters.js and there is no import cycle).
 import * as THREE from 'three/webgpu';
-import { Rig, PX } from './character.js';
+import { Rig, PX, markHeld } from './character.js';
 import { QuadRig, paintQuad } from './quad.js';
 import { paintPerson } from './mortals.js';
 import { t as txt } from '../text_config.js';
@@ -60,7 +60,9 @@ export const FODDER_MONSTERS = {
   king_crab: { name: txt('monsters.king_crab.name'), tier: 'elite', role: 'tank', hp: 160, speed: 2.2, dmg: 16, radius: 1.5, height: 2.4, ai: 'tank', range: 2.4, windup: 0.9, cd: 2.4, xp: 10, coins: [4, 8], model: 'king_crab', pitch: 0.6, voice: 'clack', armor: 0.3, knockResist: 0.8, superArmor: true, slamR: 2.4 },
   // canyon
   basilisk: { name: txt('monsters.basilisk.name'), tier: 'minor', role: 'ranged', hp: 16, speed: 5.6, dmg: 5, radius: 0.5, height: 1.1, ai: 'ranged', range: 8, keep: 5, windup: 0.45, cd: 2.2, xp: 2, coins: [0, 2], model: 'basilisk', pitch: 1.5, voice: 'hiss', projectile: 'acid', knockResist: 0, poison: { dps: 2, dur: 3 } },
-  earthborn: { name: txt('monsters.earthborn.name'), tier: 'elite', role: 'lobber', hp: 170, speed: 2.4, dmg: 14, radius: 1, height: 3, ai: 'ranged', range: 13, keep: 8, windup: 1, cd: 3, xp: 12, coins: [5, 9], model: 'earthborn', pitch: 0.55, voice: 'grind', projectile: 'acid', lob: true, armor: 0.15, knockResist: 0.75, superArmor: true },
+  earthborn: { name: txt('monsters.earthborn.name'), tier: 'elite', role: 'lobber', hp: 170, speed: 2.4, dmg: 14, radius: 1, height: 3, ai: 'ranged', range: 13, keep: 8, windup: 1, cd: 3, xp: 12, coins: [5, 9], model: 'earthborn', pitch: 0.55, voice: 'grind', projectile: 'acid', lob: true, armor: 0.15, knockResist: 0.75, superArmor: true,
+    // up close: a barrage of all six fists, one after another down the body (every second blow lands: about one lob's damage in all)
+    pummel: { trigger: 3.4, range: 3, windup: 0.55, recover: 0.6, hits: 6, gap: 0.15, every: 2, dmg: 0.36 } },
   // labyrinth
   daedalus_drone: { name: txt('monsters.daedalus_drone.name'), tier: 'minor', role: 'ranged', hp: 18, speed: 4.6, dmg: 6, radius: 0.5, height: 1.4, ai: 'ranged', range: 11, keep: 7, windup: 0.55, cd: 2.4, xp: 3, coins: [1, 3], model: 'daedalus_drone', pitch: 1.6, voice: 'whir', projectile: 'bullet', knockResist: 0.1 },
   // othrys
@@ -138,7 +140,25 @@ function behave(kind) {
     if (swoop && (st === 'windup' || st === 'recover') && Math.random() < dt * 24) { (Math.random() < 0.5 ? rig.handR : rig.handL).getWorldPosition(_c); g.particles?.burst(_c, { count: 1, color: redCol, speed: 0.2, life: 0.45, size: 0.18, sizeEnd: 0.04, drag: 3 }); }
     if (swoop) { const want = st === 'windup' || st === 'recover' ? 0.25 : 1.25; rig.float += (want - rig.float) * Math.min(1, dt * (want < rig.float ? 9 : 3)); }
     if (shot && prev === 'windup' && st === 'recover' && e.action?.kind === 'spit') restyleShots(e, shot);
+    if (rig.extras.fists) pummel(rig, dt, e, g);
   };
+}
+
+// The Earthborn's barrage (enemy.js punch): in the wind-up all six fists draw
+// back; then one after another, top pair to bottom, right then left, each
+// drives forward and draws back, kicking up a puff of dust where it lands.
+function pummel(rig, dt, e, g) {
+  const a = e.action, on = a?.kind === 'pummel' && (e.state === 'windup' || e.state === 'recover'), V = rig.pumV, F = rig.extras.fists;
+  const n = on ? a.hit ?? 0 : 0;
+  if (n !== rig.pumN) { rig.pumN = n; rig.pumT = 0; if (n > 0) { F[n - 1].fist.getWorldPosition(_c); _f.set(Math.sin(e.facing), 0, Math.cos(e.facing)); g.particles?.burst(_c, { count: n % 2 ? 4 : 8, color: dustCol, additive: false, speed: 2.2, spread: 0.8, dir: _f, life: 0.5, size: 0.3, sizeEnd: 0.8, drag: 3, up: 0.6 }); } }
+  else rig.pumT += dt;
+  for (let i = 0; i < 6; i++) {
+    const want = !on ? 0 : e.state === 'windup' ? 0.55 * Math.min(1, e.stateT / Math.max(0.1, a.windup)) : i === n - 1 && rig.pumT < 0.1 ? -1.5 : i < n ? -0.2 : 0.55;
+    V[i] += (want - V[i]) * Math.min(1, dt * (want < V[i] ? 32 : 9));
+  }
+  for (let i = 2; i < 6; i++) F[i].arm.rotation.x += V[i];
+  rig.pum = on || Math.abs(V[0]) + Math.abs(V[1]) > 0.02 ? (rig.pumTop ??= [0, 0]) : null;
+  if (rig.pum) { rig.pum[0] = V[0]; rig.pum[1] = V[1]; }
 }
 
 // ---- death bits: a burst of the kind's own stuff as it falls (Enemy.die
@@ -177,10 +197,14 @@ function finish(rig, kind) {
       g.audio?.fodderDie?.(kind);
     }
     // a held pose on top of the walk (the Laistrygonian's ball, the Earthborn's raised fists)
+    // (and the Earthborn's top fists in a pummel, rig.pum)
     const P = rig.held;
     if (rig.posed) { rig.armR.rotation.x -= rig.posed[0]; rig.armL.rotation.x -= rig.posed[1]; rig.posed = null; }
     anim(p);
-    if (P && !p.action) { rig.armR.rotation.x += P[0]; rig.armL.rotation.x += P[1]; rig.posed = P; }
+    let a0 = 0, a1 = 0, on = false;
+    if (P && !p.action) { a0 = P[0]; a1 = P[1]; on = true; }
+    if (rig.pum) { a0 += rig.pum[0]; a1 += rig.pum[1]; on = true; }
+    if (on) { rig.armR.rotation.x += a0; rig.armL.rotation.x += a1; rig.posed = rig.posedArr ??= [0, 0]; rig.posed[0] = a0; rig.posed[1] = a1; }
   };
   return rig;
 }
@@ -374,7 +398,7 @@ function buildKarpos(K0, slinger = false) {
   }
   if (slinger) {
     // the sling: two cords from the right hand to a glowing pod; a string of pods at the belt
-    const s = group(rig.handR, 0, -3, 0);
+    const s = markHeld(group(rig.handR, 0, -3, 0));   // (a sling hangs: no point to aim)
     K.box(s, -0.4, -3, 0, 0.35, 6, 0.35, twine, 0, 0, 0.12); K.box(s, 0.4, -3, 0, 0.35, 6, 0.35, twine, 0, 0, -0.12);
     K.box(s, 0, -6.2, 0, 2.6, 1, 1.8, twine); K.box(s, 0, -5.4, 0, 2, 2, 2, pod); K.box(s, 0, -5.4, 0, 1.2, 2.6, 1.2, 0xfff0a0);
     sway(rig, s, 'x', 0.6, 7);
@@ -816,12 +840,15 @@ function buildEarthborn(K0) {
   K.box(T, 0, 1.6, 0, 12.4, 1.8, 7.8, lea); K.box(T, 0, 1.6, 4, 2.6, 2.4, 0.5, brz); K.box(T, 0, 1.6, 4.25, 1.2, 1, 0.3, 0x6a4a1a);
   for (const x of [-4.4, 4.4]) K.box(T, x, 1.6, 4, 0.8, 1.8, 0.4, 0x2a1a10);
   // the two lower pairs of arms: lumpy stone arms with block fists, swinging
+  // (rig.extras.fists: all six, top to bottom, right then left, for the pummel)
+  const fists = [{ arm: rig.armR, fist: rig.handR }, { arm: rig.armL, fist: rig.handL }];
   for (const [y, z, sx, ph, rz] of [[8.6, 1.6, -1, 0, 1.15], [8.6, 1.6, 1, 2, 1.15], [4.6, 1, -1, 1, 0.7], [4.6, 1, 1, 3, 0.7]]) {
     const a = group(T, sx * 6.6, y, z, 0, 0, sx * rz);
     blob(K, a, [0, -3.2, 0], [2, 3.4, 2], 1.1, stone(0.6), { pw: 2.6, run: [1, 2] });
     blob(K, a, [0, -8, 0.4], [2.8, 2.6, 2.8], 1.1, stone(0.7), { pw: 3, run: [1, 2] });
     K.box(a, sx * 1.9, -2.4, 0.6, 0.4, 2.4, 2, moss);
     sway(rig, a, 'x', 0.4, 2.2, ph);
+    fists.push({ arm: a, fist: group(a, 0, -8, 0.4) });
   }
   // the top pair (the rig's own arms): a boulder shoulder, an arm in two stones, a huge knuckled fist
   for (const arm of [rig.armR, rig.armL]) {
@@ -847,6 +874,7 @@ function buildEarthborn(K0) {
   K.clumps(Hd, [0, H7, -0.4], [H7, 1, H7], { n: 9, size: [1.6, 2.4], cols: [...MOSS, stL], faces: 't', out: -0.4 });
   K.done();
   noShadow(rig, Hd);
+  rig.extras.fists = fists; rig.pumV = new Float32Array(6);
   rig.hunch = 0.15; rig.armSpread = 0.45; rig.held = [-2.3, -2.3];
   return finish(rig, 'earthborn');
 }
@@ -964,7 +992,7 @@ function buildLaistrygonian(K0) {
     K.box(leg, 0, -11.4, 1, 5.4, 1.4, 6.6, skinD); for (const x of [-1.8, -0.6, 0.6, 1.8]) K.box(leg, x, -11.6, 4.5, 1.1, 1, 1, skin);
   }
   // the flaming ball in the right hand
-  const ball = group(rig.handR, 0, -3.6, 0.6, 2.7);   // (turned so its flames stream up while the arm holds it high)
+  const ball = markHeld(group(rig.handR, 0, -3.6, 0.6, 2.7));   // (turned so its flames stream up while the arm holds it high)
   blob(K, ball, [0, 0, 0], [3.4, 3.4, 3.4], 0.9, () => (K.r() < 0.16 ? fire[K.r() < 0.5 ? 0 : 1] : mix(K, [ballC, 0x3a2010, 0x5a3418], 0.1)), { run: [1, 2] });
   for (let i = 0; i < 14; i++) { const a = K.r() * Math.PI * 2, t = K.r(), r = 2.6 * (1 - t * 0.6); K.box(ball, Math.cos(a) * r, 2.6 + t * 5, Math.sin(a) * r, 2 - t * 1.3, 2.4 - t * 1.3, 2 - t * 1.3, fire[Math.min(2, Math.floor(t * 3))]); }
   rig.extras.ball = ball;
