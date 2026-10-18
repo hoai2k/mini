@@ -1338,6 +1338,53 @@ REQUESTS += [
     },
 ]
 
+# More fodder, so each region has a few kinds that play differently (small and
+# fast, big and tough, ranged, lobbers, fliers), as in Minecraft Dungeons.
+FODDER_SHEET = (
+    "Each kind shown three times (front, side, mid-attack) beside a blocky Percy for scale, "
+    "readable from the high three-quarter camera, with a strong silhouette and a bold colour "
+    "accent so it reads in a crowd, and a cool, characterful design worth seeing a hundred times. "
+)
+REQUESTS += [
+    {
+        "id": "vox-ow-fodder-2",
+        "group": OW_GROUP,
+        "title": "Open-world fodder 2: the fields, the woods and the shore",
+        "size": "2400 × 1600",
+        "references": ["vox-key", "vox-enemies", "vox-ow-fodder"],
+        "use": "Models for the second and third fodder kinds of the fields, woods and shore (entities/fodder.js): karpos slingers, Colchis bull calves, myrmex spitters, Calydonian boarlets and king crabs.",
+        "prompt": (
+            "A sheet of five blocky voxel monster kinds: a karpos slinger, a wheat spirit with a "
+            "sling of seeds and a husk hood, flinging glowing seed pods from range; a Colchis bull "
+            "calf, a stocky bronze automaton bull calf with riveted plates, smoking nostrils and "
+            "a little jet of fire, lowering its horns to charge; a myrmex spitter, a giant "
+            "black-and-bronze ant with a swollen green abdomen spitting arcs of acid; a "
+            "Calydonian boarlet, a big bristly boar with tusks and a ridge of spines, mid-charge "
+            "with dirt flying; and a king crab, a hulking barnacled crab twice the size of the "
+            "others with a huge crusher claw and a shell like a rock. "
+            f"{FODDER_SHEET}{VOXEL_STYLE} Flat light-grey background. {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "vox-ow-fodder-3",
+        "group": OW_GROUP,
+        "title": "Open-world fodder 3: the canyon, the Labyrinth, Othrys and the Underworld",
+        "size": "2400 × 1600",
+        "references": ["vox-key", "vox-enemies", "vox-ow-fodder"],
+        "use": "Models for the fodder kinds of the canyon, Labyrinth, Othrys and Asphodel (entities/fodder.js): basilisks, Earthborn, Daedalus drones, Laistrygonians and keres.",
+        "prompt": (
+            "A sheet of five blocky voxel monster kinds: a basilisk, a small quick crowned lizard "
+            "with a crest and glowing yellow eyes spitting venom; an Earthborn, a big lumpy "
+            "six-armed clay giant hurling mud balls and rocks; a Daedalus drone, a bronze "
+            "clockwork bird with whirring wings and a glowing blue core, firing bolts; a "
+            "Laistrygonian, a huge tattooed cannibal giant in furs lobbing flaming bronze balls; "
+            "and keres, ragged black death spirits with skull faces, bat wings and red claws, "
+            "swooping fast in a flock. "
+            f"{FODDER_SHEET}{VOXEL_STYLE} Flat light-grey background. {NO_TEXT}"
+        ),
+    },
+]
+
 def path_for(item: dict) -> Path:
     if item.get("dest") == "game":
         return GAME / f"{item['id']}.png"

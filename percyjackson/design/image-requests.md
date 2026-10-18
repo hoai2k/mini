@@ -65,4 +65,27 @@ Character sheets use:
 Open requests only. Delivered ones, with the prompts they were made from,
 are in [image-request-history.md](image-request-history.md).
 
-Nothing is waiting: every request has been delivered.
+| Id | Image | Size | Status |
+| --- | --- | --- | --- |
+| `vox-ow-fodder-2` | Open-world fodder 2: the fields, the woods and the shore | 2400 × 1600 | requested |
+| `vox-ow-fodder-3` | Open-world fodder 3: the canyon, the Labyrinth, Othrys and the Underworld | 2400 × 1600 | requested |
+
+### Round 5 · The open world
+
+#### `vox-ow-fodder-2` — Open-world fodder 2: the fields, the woods and the shore
+
+- **File:** `vox-ow-fodder-2.png`, 2400 × 1600 px, delivered to `design/concept/vox-ow-fodder-2.png`
+- **References:** `vox-key`, `vox-enemies`, `vox-ow-fodder`
+- **Use:** Models for the second and third fodder kinds of the fields, woods and shore (entities/fodder.js): karpos slingers, Colchis bull calves, myrmex spitters, Calydonian boarlets and king crabs.
+- **Status:** requested
+
+> A sheet of five blocky voxel monster kinds: a karpos slinger, a wheat spirit with a sling of seeds and a husk hood, flinging glowing seed pods from range; a Colchis bull calf, a stocky bronze automaton bull calf with riveted plates, smoking nostrils and a little jet of fire, lowering its horns to charge; a myrmex spitter, a giant black-and-bronze ant with a swollen green abdomen spitting arcs of acid; a Calydonian boarlet, a big bristly boar with tusks and a ridge of spines, mid-charge with dirt flying; and a king crab, a hulking barnacled crab twice the size of the others with a huge crusher claw and a shell like a rock. Each kind shown three times (front, side, mid-attack) beside a blocky Percy for scale, readable from the high three-quarter camera, with a strong silhouette and a bold colour accent so it reads in a crowd, and a cool, characterful design worth seeing a hundred times. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.
+
+#### `vox-ow-fodder-3` — Open-world fodder 3: the canyon, the Labyrinth, Othrys and the Underworld
+
+- **File:** `vox-ow-fodder-3.png`, 2400 × 1600 px, delivered to `design/concept/vox-ow-fodder-3.png`
+- **References:** `vox-key`, `vox-enemies`, `vox-ow-fodder`
+- **Use:** Models for the fodder kinds of the canyon, Labyrinth, Othrys and Asphodel (entities/fodder.js): basilisks, Earthborn, Daedalus drones, Laistrygonians and keres.
+- **Status:** requested
+
+> A sheet of five blocky voxel monster kinds: a basilisk, a small quick crowned lizard with a crest and glowing yellow eyes spitting venom; an Earthborn, a big lumpy six-armed clay giant hurling mud balls and rocks; a Daedalus drone, a bronze clockwork bird with whirring wings and a glowing blue core, firing bolts; a Laistrygonian, a huge tattooed cannibal giant in furs lobbing flaming bronze balls; and keres, ragged black death spirits with skull faces, bat wings and red claws, swooping fast in a flock. Each kind shown three times (front, side, mid-attack) beside a blocky Percy for scale, readable from the high three-quarter camera, with a strong silhouette and a bold colour accent so it reads in a crowd, and a cool, characterful design worth seeing a hundred times. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.
