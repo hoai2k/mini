@@ -65,4 +65,17 @@ Character sheets use:
 Open requests only. Delivered ones, with the prompts they were made from,
 are in [image-request-history.md](image-request-history.md).
 
-Nothing is waiting: every request has been delivered.
+| Id | Image | Size | Status |
+| --- | --- | --- | --- |
+| `vox-harpy` | Harpies: the bird-women (and how they differ from Stymphalian birds) | 2400 × 1600 | requested |
+
+### Round 5 · The open world
+
+#### `vox-harpy` — Harpies: the bird-women (and how they differ from Stymphalian birds)
+
+- **File:** `vox-harpy.png`, 2400 × 1600 px, delivered to `design/concept/vox-harpy.png`
+- **References:** `vox-key`, `vox-enemies`, `vox-ow-champions`
+- **Use:** Model for the harpy (entities/monsters.js), clearly different from the Stymphalian bird.
+- **Status:** requested
+
+> A sheet of blocky voxel monsters beside a blocky Percy for scale, each shown front, side and mid-attack: a wild harpy, a scrawny bird-woman with a pale grey-green woman's face, wild tangled storm-grey hair, yellow eyes and a screeching mouth, big ragged dark feathered wings instead of arms, a feathered body in a torn rag, scaly yellow bird legs with black talons, diving with claws out; and for contrast a Stymphalian bird, a sleek bronze bird of prey with metal knife-feathers, a long sharp bronze beak, flinging feathers like darts. The two must never be confused. Each kind shown three times (front, side, mid-attack) beside a blocky Percy for scale, readable from the high three-quarter camera, with a strong silhouette and a bold colour accent so it reads in a crowd, and a cool, characterful design worth seeing a hundred times. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.
