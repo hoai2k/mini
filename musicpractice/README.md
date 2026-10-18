@@ -139,6 +139,16 @@ when the Art Deco art arrives, measure and record its own.
   strong beat's a touch of its colour, so the bar still reads); the beat
   being played flashes in its colour and the beats played so far in that
   pass stay faintly lit.
+- Each theme draws the Visualizer's bars in its own shapes (the bar's shape
+  is a child, `.met-shape`, set through `--bar-*`, and its glow a drop
+  shadow of the bar, so it follows a cut shape): Classic soft pills; Art
+  Deco square bars with angled ends like its Stop button and a fine gold
+  line; Robot Future chamfered segments, glowing; French Nouveau the leaf
+  shape of its chips; 18th Century near-square with a double gilt line;
+  Steam Punk small plates in a copper rim with a rivet at each end, lit like
+  a lamp; Vintage 60s its thick print outline, the bar being played printed
+  with the offset shadow; Candy a bolder ink outline, the bar being played
+  inked with a hard shadow and a sparkle on the strong beat.
 - The picture (the metronome over the dots) is always the same height, so
   the controls under it never move: its foot is the row of dots, Pulse's big
   dots or the Visualizer, which is exactly as tall as its rows (`sizeFoot`).
