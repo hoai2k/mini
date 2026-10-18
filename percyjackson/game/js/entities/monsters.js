@@ -404,10 +404,13 @@ export function addWhip(rig, { segs = 7, len = 3.2, color = 0xff7a1a, hand = rig
     const g = new THREE.Group(); g.position.y = (i === 0 ? -3 : -len) * PX; parent.add(g);
     const w = 1.1 - i * 0.06;
     K.box(g, 0, -len / 2, 0, w, len + 0.1, w, hot[i % 3 === 1 ? 2 : 0]);
-    for (let k = 0; k < 3; k++) { const z = 0.4 + K.r() * 0.6; K.box(g, (K.r() - 0.5) * 2, -K.r() * len, (K.r() - 0.5) * 2, z, z, z, hot[Math.floor(K.r() * 3)]); }
+    { const z = 0.4 + K.r() * 0.6; K.box(g, (K.r() - 0.5) * 1.6, -K.r() * len, (K.r() - 0.5) * 1.6, z, z, z, hot[Math.floor(K.r() * 3)]); }
     chain.push(g); parent = g;
   }
   K.done();
+  // the fire on it: live flames (flames.js) off every segment, trailing the lash
+  const F = addFlames(rig, { cap: 44, palette: 'fire', rise: 18, turb: 26, drag: 2.2 });
+  for (const g of chain) F.source(g, { at: [0, 0, 0], to: [0, -len, 0], r: 0.7, rate: 90 / segs, life: [0.25, 0.5], size: [0.8, 1.6], up: 4, spread: 2 });
   rig.extras.whip = chain; rig.extras.whipTip = parent;
   rig.whip = { hand, base: chain[0].parent, chain, len, phi0: 0.25, bend: new Float32Array(segs).fill(-0.5) };   // (posed by whipPose)
   return chain;
@@ -1451,12 +1454,14 @@ function buildEmpousa() {
     const x = Math.cos(a) * rad, z = Math.sin(a) * rad * 0.9 - 0.9;
     if (z > 2.6 && t < 0.3) continue;
     const y = 6.2 + t * 9 + (z < 0 ? 0 : -1), sz = (2.3 - t * 1.4 + K.r() * 0.6) / D;
+    if (t > 0.6) continue;   // (the mane's base: its licking top is live flame, below)
     K.box(flame, x * hk, y * hk, z * hk, sz, sz * 1.3, sz, FL[Math.min(3, Math.floor(t * 3.3 + K.r() * 0.8))]);
   }
   for (let i = 0; i < Math.round(34 * D * D); i++) K.box(flame, (K.r() - 0.5) * 9, 5 - K.r() * 9, -4.6 - K.r() * 1.2, 1.9 / D, 2.2 / D, 1.6 / D, i % 3 ? FL[Math.floor(K.r() * 3)] : 0xc8301a);
   K.clumps(rig.head, [0, 4 * hk + 1, -0.5], [8.6 * hk, 8 * hk, 8 * hk], { n: 40, size: [1.2, 2], cols: [0xb82a14, 0xd8401a, 0x9a200e], faces: 'tlrk' });
   for (let x = -3.5; x <= 3.5; x += 1.4) K.box(rig.head, x * hk, 7.6 * hk, 4.3 * hk, 1.6, 1.6 + (Math.abs(x) < 1 ? 0 : 1), 0.8, 0xd8401a);
   rig.extras.flameHair = flame;
+  addFlames(rig, { cap: 48, palette: 'fire', rise: 24, turb: 30 }).source(rig.head, { at: [0, 10.6 * hk, -0.9 * hk], r: 4.2, rate: 56, life: [0.35, 0.7], size: [1.2, 2.2], up: 8, spread: 2.5 });
   // pleated skirt: alternating orange and darker pleats with a white stripe
   for (let i = 0; i < 16; i++) {
     const a = i / 16 * Math.PI * 2, x = Math.sin(a) * 4.2, z = Math.cos(a) * 2.7;
@@ -1760,10 +1765,12 @@ function buildTelekhine() {
   K.box(pot, 0, 4.9, 0, 6.4, 0.4, 6.4, 0xff6a00);
   const fire = group(pot, 0, 5, 0);
   const GF = [0xff5a00, 0xff9a10, 0xffd040, 0x7aff2a, 0x3aff1a];
-  for (let i = 0; i < 30; i++) { const t = K.r(), a = K.r() * Math.PI * 2, r = (1 - t) * 2.6; const z = 1.6 - t * 0.9; K.box(fire, Math.cos(a) * r, t * 6, Math.sin(a) * r, z, z * 1.3, z, GF[Math.min(4, Math.floor(t * 3 + K.r() * 2))]); }
+  // (a low glowing bed of fire in the mouth; the flames over it are live, flames.js)
+  for (let i = 0; i < 12; i++) { const t = K.r() * 0.35, a = K.r() * Math.PI * 2, r = (1 - t) * 2.6; const z = 1.6 - t * 0.9; K.box(fire, Math.cos(a) * r, t * 6, Math.sin(a) * r, z, z * 1.3, z, GF[Math.min(4, Math.floor(t * 3 + K.r() * 2))]); }
   fire.scale.set(1, 0.65, 1);
   rig.extras.pot = pot; rig.extras.fire = fire;
   K.done();
+  addFlames(rig, { cap: 44, palette: 'forge', rise: 26, turb: 30 }).source(pot, { at: [0, 5.6, 0], r: 2.6, rate: 52, life: [0.4, 0.8], size: [1.1, 2], up: 8, spread: 2.5 });
   return rig;
 }
 

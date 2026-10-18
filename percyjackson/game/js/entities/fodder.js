@@ -42,6 +42,7 @@ import { SerpentRig } from './serpent.js';
 import { paintPerson } from './mortals.js';
 import { t as txt } from '../text_config.js';
 import { HS, skinMat, group, sway, BUILD, voxDensity, keepAbove } from './parts.js';
+import { addFlames } from './flames.js';
 
 // The new kinds (world/roamZones.js counts the small ones as fodder).
 export const FODDER_IDS = ['karpos', 'karpos_slinger', 'colchis_calf', 'myrmex', 'myrmex_spitter', 'boarlet', 'crab', 'king_crab', 'basilisk', 'earthborn', 'daedalus_drone', 'laistrygonian', 'shade', 'keres'];
@@ -998,6 +999,10 @@ function buildBasilisk(K0) {
   K.box(rig.tongue, 0, 0, 1.3, 0.9, 0.6, 2.8, FIRE);
   for (const sx of [-1, 1]) K.box(rig.tongue, sx * 0.45, 0.1, 3.1, 0.5, 0.5, 1.6, FIREH, 0, sx * 0.4, 0);
   K.done();
+  // live flame (flames.js): flickers off the forked tip while the tongue is out, and embers at the lips as it rears
+  addFlames(rig, { cap: 18, palette: 'fire', rise: 20, turb: 24, drag: 2.5 })
+    .source(rig.tongue, { at: [0, 0.1, 3.6], r: 0.5, rate: 34, life: [0.15, 0.32], size: [0.5, 0.9], up: 4, spread: 2, when: () => (rig.tongue.scale.z > 0.6 ? 1 : 0) })
+    .source(rig.mouth, { at: [0, 0, 6], r: 1.2, rate: 22, life: [0.2, 0.4], size: [0.5, 0.9], up: 5, spread: 2, when: (e) => (e?.state === 'windup' ? 1 : 0) });
   noShadow(rig, rig.tongue, rig.fangs, ...rig.hoods);
   rig.animate({ dt: 0, speed: 0, action: null });
   return finish(rig, 'basilisk');
@@ -1218,9 +1223,11 @@ function buildLaistrygonian(K0) {
   // the flaming ball in the right hand
   const ball = markHeld(group(rig.handR, 0, -3.6, 0.6, 2.7));   // (turned so its flames stream up while the arm holds it high)
   blob(K, ball, [0, 0, 0], [3.4, 3.4, 3.4], 1, () => (K.r() < 0.16 ? fire[K.r() < 0.5 ? 0 : 1] : [ballC, 0x3a2010, 0x5a3418][Math.floor(K.r() * 3)]), { run: [1, 2] });
-  for (let i = 0; i < 14; i++) { const a = K.r() * Math.PI * 2, t = K.r(), r = 2.6 * (1 - t * 0.6); K.box(ball, Math.cos(a) * r, 2.6 + t * 5, Math.sin(a) * r, 2 - t * 1.3, 2.4 - t * 1.3, 2 - t * 1.3, fire[Math.min(2, Math.floor(t * 3))]); }
+  // (a few low tongues of fire on it; the blaze streaming off it is live flame, flames.js)
+  for (let i = 0; i < 6; i++) { const a = K.r() * Math.PI * 2, t = K.r() * 0.3, r = 2.6 * (1 - t * 0.6); K.box(ball, Math.cos(a) * r, 2.6 + t * 5, Math.sin(a) * r, 2 - t * 1.3, 2.4 - t * 1.3, 2 - t * 1.3, fire[Math.min(2, Math.floor(t * 3))]); }
   rig.extras.ball = ball;
   K.done();
+  addFlames(rig, { cap: 40, palette: 'fire', rise: 24, turb: 28 }).source(ball, { at: [0, 1.6, 0], r: 2.4, rate: 50, life: [0.35, 0.7], size: [1.1, 2], up: 7, spread: 2.5 });
   noShadow(rig, Hd);
   rig.held = [-2.7, 0];
   finish(rig, 'laistrygonian');

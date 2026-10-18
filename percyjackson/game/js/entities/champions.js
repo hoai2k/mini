@@ -16,6 +16,7 @@ import { paintPerson } from './mortals.js';
 import { skinMat, group, HS, bruteLimbs, sway, withBuild, voxDensity } from './parts.js';
 import { MONSTERS, HELLHOUND, buildMonsterModel, animateExtras, kit, dropMeshes, eagle, hound, buildScorpion, buildSkeleton, buildCyclops, cycDensity } from './monsters.js';
 import { blob } from './fodder.js';
+import { addFlames, remapFlames } from './flames.js';
 
 const GOLD = 0xf0b030, GOLD_D = 0xb87a14, GOLD_L = 0xffe070;
 
@@ -272,8 +273,9 @@ function buildPaleKing() {
   for (const sx of [-1, 1]) { K.box(Hd, sx * 2.2 * HS, 4.3 * HS, H8 / 2 + 0.2, 1.6, 1.4, 0.3, GF[0]); K.box(Hd, sx * 2.2 * HS, 4.3 * HS, H8 / 2 + 0.3, 0.6, 0.6, 0.3, 0xe0ffe8); }
   // green flame licking up over the crown
   const flame = group(Hd, 0, H8 + 1, 0);
-  for (let i = 0; i < 18; i++) { const t = K.r(), a = K.r() * Math.PI * 2, r = 3.6 - t * 2; const z = 1.3 - t * 0.6; K.box(flame, Math.cos(a) * r, 1.5 + t * 5, Math.sin(a) * r, z, z * 1.4, z, GF[Math.floor(K.r() * 3)]); }
+  for (let i = 0; i < 10; i++) { const t = K.r() * 0.35, a = K.r() * Math.PI * 2, r = 3.6 - t * 2; const z = 1.3 - t * 0.6; K.box(flame, Math.cos(a) * r, 1.5 + t * 5, Math.sin(a) * r, z, z * 1.4, z, GF[Math.floor(K.r() * 3)]); }
   rig.extras.flameHair = flame;
+  addFlames(rig, { cap: 40, palette: 'greek', rise: 24, turb: 28 }).source(flame, { at: [0, 2.4, 0], r: 3.2, rate: 44, life: [0.35, 0.7], size: [0.9, 1.7], up: 7, spread: 2 });
   // armour: gold-trimmed pauldrons, a gorget, a skull-buckled belt
   for (const arm of [rig.armR, rig.armL]) { K.box(arm, 0, 1, 0, 5, 2.6, 5.4, IRON); K.box(arm, 0, -0.6, 0, 5.3, 1, 5.7, 0xa8842a); K.box(arm, 0, 2.4, 0, 3.6, 0.8, 4.2, 0xc89a30); for (const z of [-1.6, 0, 1.6]) K.box(arm, 0, 2.8, z, 0.6, 1.6, 0.6, 0xc89a30); }
   K.box(T, 0, 12.2, 0, 7, 1.4, 5.8, 0xa8842a);
@@ -379,6 +381,7 @@ export function remapRig(rig, key, fn) {
       m.geometry = g;
     }
   }
+  remapFlames(rig, (c) => remapColor(c, fn));   // (live flames, flames.js: blue-fire empousai)
   return rig;
 }
 // a crown on any rig's head (Rig: on top of the head box; QuadRig: on its head cube)

@@ -14,9 +14,9 @@
 // multiplier: above 1 the cube glows through the bloom).
 export const PALETTES = {
   // Greek fire: white-green core, bright green, green, dark teal
-  greek: [[0xc8ffa0, 1.45], [0x20ff10, 0.95], [0x08b030, 0.75], [0x044038, 0.45]],
-  // ordinary fire: pale yellow core, orange, red, a dark ember
-  fire: [[0xffe890, 1.45], [0xff9010, 1.0], [0xff3a08, 0.8], [0x601006, 0.45]],
+  greek: [[0xc8ffa0, 1.3], [0x20ff10, 0.95], [0x08b030, 0.75], [0x044038, 0.45]],
+  // ordinary fire: yellow core, orange, red, a dark ember
+  fire: [[0xffd060, 1.3], [0xff8010, 1.0], [0xff3a08, 0.8], [0x601006, 0.45]],
   // a telekhine's cauldron: orange at the mouth turning green as it climbs
   forge: [[0xffe890, 1.45], [0xff9010, 1.0], [0x30ff10, 0.85], [0x044a38, 0.45]],
 };

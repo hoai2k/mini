@@ -883,7 +883,7 @@ export const BOSS_MODELS = {
     ]);
     markTip(sword, 0, 23.3, 0, 'burning sword'); rig.extras.sword = sword;
     // the blaze: live flames up the whole blade that trail behind a swing (and go out while the spear is drawn)
-    addFlames(rig, { cap: 64, palette: 'fire', rise: 26, turb: 30 }).source(sword, { at: [0, 5, 0], to: [0, 22.5, 0], r: 1.6, rate: 80, life: [0.3, 0.65], size: [1.1, 2.2], up: 7, spread: 3 });
+    addFlames(rig, { cap: 64, palette: 'fire', rise: 26, turb: 30 }).source(sword, { at: [0, 5, 0], to: [0, 22.5, 0], r: 1.6, rate: 110, life: [0.3, 0.6], size: [1.3, 2.5], up: 7, spread: 3 });
     rig.tick = (dt, e) => animateExtras(rig, dt, e);   // (the workbench ticks the rig itself; bosses.js keeps this one)
     // a spear for the thrust (a 'punch' with the right arm), in place of the sword while he needs it
     const spear = group(rig.handR, 0, -1, 1, HOLD_PITCH, 0, 0);
