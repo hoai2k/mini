@@ -144,7 +144,8 @@ export function roadside(ctx) {
         const rx = x0 + i * 5;
         if (i) for (let yy = y; yy < y + h; yy++) for (let z = z0 + 1; z < z1; z++) W.set(rx, yy, z, o.wall ?? B.pink_plaster);
         const dx = rx + 2;
-        for (let yy = y; yy < y + 3; yy++) W.set(dx, yy, fz, 0);   // the door
+        for (let yy = y; yy < y + 3; yy++) W.set(dx, yy, fz, 0);   // the door, a teal lintel over it
+        W.set(dx, y + 3, fz, o.door ?? B.teal_panel);
         W.set(rx + 4, y + 1, fz, B.window_day);
         // the bed against the back wall, a lamp
         W.set(rx + 2, y, back, B.white_trim); W.set(rx + 3, y, back, B.white_trim);
@@ -163,7 +164,11 @@ export function roadside(ctx) {
     canopy(x0, z0, x1, z1, pumps, o = {}) {
       const y = o.y ?? FY, zc = Math.floor((z0 + z1) / 2);
       fill(x0, y + 5, z0, x1, y + 5, z1, o.roof ?? B.steel_panel);
-      for (let x = x0; x <= x1; x++) { W.set(x, y + 5, z0, o.stripe ?? B.barn_red); W.set(x, y + 5, z1, o.stripe ?? B.barn_red); }
+      // the fascia all round: a yellow band, the red stripe, a teal top
+      for (let x = x0; x <= x1; x++) for (let z = z0; z <= z1; z++) {
+        if (x !== x0 && x !== x1 && z !== z0 && z !== z1) continue;
+        W.set(x, y + 4, z, o.band ?? B.gold_trim); W.set(x, y + 5, z, o.stripe ?? B.barn_red); W.set(x, y + 6, z, o.top ?? B.teal_panel);
+      }
       for (const px of pumps) {
         for (let x = px - 1; x <= px + 1; x++) W.set(x, y - 1, zc, B.concrete);
         deco.prop('gas_pump', px + 0.5, y, zc + 0.5, { rot: 0 });
@@ -240,6 +245,7 @@ export function build(ctx) {
   W.set(1357, FY, MZ + 8, B.vending);
   deco.prop('text_sign', 1350.5, FY, 36.5, { text: S('tpDrachmaInn'), w: 4.2, h: 2.2, post: 4.6, glow: true, bg: '#1a1a2e', fg: '#ff5fb0', border: '#4affa0' });
   W.addLight(1350.5, FY + 5.5, 36.5, 0xff5fb0, 3, 10);
+  for (const [dx, dy] of [[0, 7], [0, 8], [0, 9], [-1, 8], [1, 8]]) W.set(1350 + dx, FY + dy, 36, dx || dy !== 8 ? B.neon_bulbs : B.gold_plate);   // the star on top
   // the pool, fenced
   k.pond(1342, 20, 1349, 28, FY, B.water, 2, B.pool_tile);
   R.fill(1341, FY - 1, 19, 1350, FY - 1, 19, B.pool_tile); R.fill(1341, FY - 1, 29, 1350, FY - 1, 30, B.pool_tile);
@@ -264,8 +270,13 @@ export function build(ctx) {
     windows: { id: B.glass, every: 2, sides: 'nsew', h: 2 },
     doors: [{ side: 'n', at: 1325, width: 3, height: 3 }, { side: 's', at: 1332, width: 1, height: 3 }],
   });
-  for (let x = dx0; x <= dx1; x++) for (const z of [dz0, dz1]) W.set(x, FY + 4, z, B.neon_pink);
-  for (let z = dz0; z <= dz1; z++) for (const x of [dx0, dx1]) W.set(x, FY + 4, z, B.neon_pink);
+  for (let x = dx0; x <= dx1; x++) for (const z of [dz0, dz1]) { W.set(x, FY + 4, z, B.neon_pink); W.set(x, FY + 3, z, B.barn_red); if (W.get(x, FY, z)) W.set(x, FY, z, B.barn_red); }
+  for (let z = dz0; z <= dz1; z++) for (const x of [dx0, dx1]) { W.set(x, FY + 4, z, B.neon_pink); W.set(x, FY + 3, z, B.barn_red); if (W.get(x, FY, z)) W.set(x, FY, z, B.barn_red); }
+  // its pylon: a teal column with a red stripe and a round neon sign on top
+  for (let y = FY; y < FY + 8; y++) { W.set(dx1 + 2, y, dz0, B.teal_panel); W.set(dx1 + 2, y, dz0 + 1, y % 2 ? B.barn_red : B.teal_panel); }
+  for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) W.set(dx1 + 2, FY + 9 + dy, dz0 + dz, dy || dz ? B.neon_bulbs : B.barn_red);
+  for (const [dy, dz] of [[2, 0], [-2, 0], [0, 2], [0, -2]]) W.set(dx1 + 2, FY + 9 + dy, dz0 + dz, B.neon_bulbs);
+  W.addLight(dx1 + 3.5, FY + 9, dz0 + 0.5, 0xffd060, 2.4, 9);
   // inside: the counter, stools, booths along the windows, the grill at the back
   for (let x = dx0 + 4; x <= dx1 - 4; x++) { W.set(x, FY, dz1 - 3, B.white_trim); }
   for (let x = dx0 + 2; x <= dx1 - 8; x++) W.set(x, FY, dz1 - 1, B.iron_plate);

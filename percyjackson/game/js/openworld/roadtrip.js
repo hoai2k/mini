@@ -530,7 +530,7 @@ function blockModel(kind, b) {
     const bus = burntBus(), A0 = Math.PI - 1.1; bus.rotation.y = A0; bus.position.set(0.6, 0, 0.3); g.add(bus);
     const head = (a) => [Math.cos(a), -Math.sin(a)];
     const [hx, hz] = head(A0), F0 = [0.6 + hx * 6, 0.3 + hz * 6];
-    for (const k of [-4.2, -1.6, 1.2, 3.8]) fire(0.6 + hx * k, 3.5 + Math.random() * 0.4, 0.3 + hz * k, 1.3 + Math.random() * 0.5);
+    for (const k of [-4.2, -1.6, 1.2, 3.8]) fire(0.6 + hx * k, 3.6 + Math.random() * 0.3, 0.3 + hz * k, 0.9 + Math.random() * 0.4);
     for (const [x, z, s] of [[-1.6, -3.4, 1.1], [2.8, 3.8, 1.3], [3.4, -0.6, 0.8], [-2.8, 2.6, 0.7], [1.6, 5.0, 0.6]]) fire(x, 0.5 * s, z, s);
     // what's strewn round it: suitcases, a tyre, metal, scorch marks, embers, cones and barrels
     const P = new Boxes(), soot = M(0x1c1a18, { r: 1 }), ember = M(0xff6a1a, { e: 0xff4a10, ei: 2 }), metal = M(0x9a9ea2, { m: 0.6, r: 0.4 }), tyre = M(0x141416, { r: 0.9 });
@@ -628,7 +628,7 @@ function blockModel(kind, b) {
     for (let i = 0; i < 10; i++) R.box(rnd(0.3, 0.6), 0.25, rnd(0.3, 0.6), rnd(-1.5, 1.8), 0.12, rnd(-5, 5), moss, rnd(0, 3));
     R.bake(g);
     const chunks = swarm(130, M(0xffffff, { r: 0.92 }), [0xb8b4ac, 0x9a968e, 0xc8c4bc, 0x8a867e, 0xaaa69e]); chunks.visible = false; g.add(chunks);
-    const dustM = mat(0xffffff, { r: 1, op: 0.6 }), dust = swarm(60, dustM, [0xd8d0c4, 0xc8c0b4, 0xe8e2d8]); dust.visible = false; g.add(dust);
+    const dustM = mat(0xffffff, { r: 1, op: 0.45 }), dust = swarm(44, dustM, [0x9a948a, 0x8a847a, 0xaaa49a]); dust.visible = false; g.add(dust);
     const SPAN = [[-3.3, 7], [-0.4, 5], [2.4, 5], [4.7, 3.2]];
     let broke = false;
     U.open = (u, dt) => {
@@ -643,7 +643,7 @@ function blockModel(kind, b) {
           p.x = rnd(-0.8, 0.9); p.y = rnd(0.4, h); p.z = z + rnd(-0.9, 0.9); p.s = rnd(0.25, 0.7); p.sx = rnd(0.7, 1.3); p.sy = rnd(0.6, 1.1); p.sz = rnd(0.7, 1.3);
           p.vx = rnd(-1.2, 2.6); p.vy = rnd(-0.5, 2.5); p.vz = Math.sign(z) * rnd(0.3, 2.4) + rnd(-0.6, 0.6); p.a = rnd(-4, 4); p.b = rnd(-4, 4);
         }
-        for (const p of dust.userData.P) { const [z, h] = SPAN[p.i % 4]; p.x = rnd(-1, 1.5); p.y = rnd(0.5, h * 0.8); p.z = z + rnd(-1, 1); p.s = rnd(0.5, 1.0); p.vx = rnd(-0.3, 1.2); p.vy = rnd(0.2, 0.9); p.vz = rnd(-0.8, 0.8); p.rx = rnd(0, 3); p.ry = rnd(0, 3); }
+        for (const p of dust.userData.P) { const [z, h] = SPAN[p.i % 4]; p.x = rnd(-1, 1.5); p.y = rnd(0.5, h * 0.8); p.z = z + rnd(-1, 1); p.s = rnd(0.3, 0.7); p.vx = rnd(-0.3, 1.2); p.vy = rnd(0.2, 0.9); p.vz = rnd(-0.8, 0.8); p.rx = rnd(0, 3); p.ry = rnd(0, 3); }
       }
       let moving = false;
       for (const p of chunks.userData.P) {
@@ -655,8 +655,8 @@ function blockModel(kind, b) {
       }
       if (moving) flush(chunks);
       const fade = 1 - lin(u, 0.55, 1);
-      dustM.opacity = 0.6 * fade;
-      for (const p of dust.userData.P) { p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; p.s += dt * 0.9; p.vx *= 1 - dt * 0.5; p.vz *= 1 - dt * 0.5; }
+      dustM.opacity = 0.45 * fade;
+      for (const p of dust.userData.P) { p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; p.s += dt * 0.45; p.vx *= 1 - dt * 0.5; p.vz *= 1 - dt * 0.5; }
       flush(dust);
       if (u >= 1) { dust.visible = false; if (!moving) U.fin = true; }
     };
@@ -694,8 +694,8 @@ function blockModel(kind, b) {
     const slabs = [];
     for (let j = 0; j < 4; j++) {
       const P = new Boxes(), z0 = -6 + j * 3;
-      for (let z = z0; z < z0 + 3 && z <= 5; z++) for (let x = -3; x <= 3; x++) {
-        const h = Math.max(0.3, 4.6 * (1 - Math.abs(x + 0.3) / 3.8) * (0.3 + 0.7 * (6 - z) / 12) + rnd(-0.4, 0.4));
+      for (let z = z0; z < z0 + 3 && z <= 5; z++) for (let x = -4; x <= 4; x++) {
+        const h = Math.max(0.3, 5.6 * (1 - Math.abs(x + 0.3) / 4.8) * (0.35 + 0.65 * (6 - z) / 12) + rnd(-0.4, 0.4));
         P.box(1.02, h, 1.02, x, h / 2, z + 0.4, (x + z) % 3 ? mudA : (x + z) % 2 ? mudB : dirt);
       }
       for (let k = 0; k < 2; k++) P.box(rnd(2.4, 3.6), 0.25, 0.3, rnd(-1.5, 1.5), rnd(1.6, 3.4) * (1 - j * 0.15), z0 + rnd(0.5, 2.5), wood, rnd(-0.8, 0.8), rnd(-0.4, 0.4), rnd(-0.5, 0.5));
@@ -723,10 +723,10 @@ function blockModel(kind, b) {
     // the Lotus's gate: green vines looped between the stone pillars, big pink lotus flowers glowing in them; it withers and falls apart
     U.dur = 4.5;
     const vineM = mat(0x2f7a2a, { r: 0.7 }), leafM = mat(0x4aa83a, { r: 0.7 }), coreM = M(0xffd84a, { e: 0xffb020, ei: 2 });
-    const petalM = mat(0xffffff, { r: 0.4, e: 0xff3aa8, ei: 1.6 });
+    const petalM = mat(0xffffff, { r: 0.4, e: 0xff2a98, ei: 2 });
     const vineG = [0, 1, 2, 3].map(() => new Boxes());
     const quarter = (z) => (z < -2.6 ? 0 : z < 0 ? 1 : z < 2.6 ? 2 : 3);
-    const vine = (z, y, i) => { const B2 = vineG[quarter(z)]; B2.box(0.42, 0.42, 0.42, (i % 2 ? 0.12 : -0.12), y, z, vineM, i * 0.3); if (i % 4 === 0) B2.box(0.55, 0.1, 0.38, 0.3, y + 0.15, z + 0.1, leafM, i, 0.4, 0.3); };
+    const vine = (z, y, i) => { const B2 = vineG[quarter(z)]; B2.box(0.55, 0.55, 0.55, (i % 2 ? 0.12 : -0.12), y, z, vineM, i * 0.3); if (i % 4 === 0) B2.box(0.55, 0.1, 0.38, 0.3, y + 0.15, z + 0.1, leafM, i, 0.4, 0.3); };
     let n = 0;
     for (const [base, amp, f, ph] of [[1.0, 0.8, 1.1, 0], [3.0, 1.2, 0.9, 2], [5.1, 0.5, 1.3, 1]]) for (let z = -5.3; z <= 5.3; z += 0.28) vine(z, base + amp * Math.sin(z * f + ph), n++);
     const LOOPS = [[-2.6, 3.0, 1.4], [2.5, 2.6, 1.6], [0, 4.4, 1.1]];
@@ -734,10 +734,10 @@ function blockModel(kind, b) {
     for (const z of [-4.9, 4.9]) for (let y = 0.2; y < 5.6; y += 0.3) vine(z + Math.sin(y * 2) * 0.25, y, n++);   // up the pillars
     const vines = vineG.map((B2) => { const v = B2.bake(); g.add(v); return v; });
     // the flowers: petals in a cup round each heart, facing the road east
-    const FLOWERS = [[0.45, 3.0, -2.6, 1.15], [0.45, 2.6, 2.5, 1.3], [0.45, 4.4, 0, 0.9], [0.4, 1.2, -4.3, 0.6], [0.4, 1.3, 4.1, 0.6], [0.35, 5.2, -3.6, 0.45], [0.35, 5.0, 3.6, 0.5], [0.35, 0.9, 0.2, 0.55], [0.35, 3.6, 1.0, 0.4], [0.35, 1.8, -1.2, 0.4]];
+    const FLOWERS = [[0.45, 3.0, -2.6, 1.5], [0.45, 2.6, 2.5, 1.6], [0.45, 4.6, 0, 1.2], [0.4, 1.2, -4.3, 0.6], [0.4, 1.3, 4.1, 0.6], [0.35, 5.2, -3.6, 0.45], [0.35, 5.0, 3.6, 0.5], [0.35, 0.9, 0.2, 0.55], [0.35, 3.6, 1.0, 0.4], [0.35, 1.8, -1.2, 0.4]];
     const per = (s) => (s > 0.8 ? [9, 5] : [6, 0]);
     const nPet = FLOWERS.reduce((t, f) => t + per(f[3])[0] + per(f[3])[1], 0);
-    const petals = swarm(nPet, petalM, [0xff7ad0, 0xffb0e4, 0xff5ab8]); g.add(petals);
+    const petals = swarm(nPet, petalM, [0xff4ab0, 0xff8ad0, 0xff2a98]); g.add(petals);
     const cores = new Boxes();
     let pi = 0;
     for (const [fx, fy, fz, s] of FLOWERS) {
@@ -761,11 +761,11 @@ function blockModel(kind, b) {
     const green = new THREE.Color(0x2f7a2a), brown = new THREE.Color(0x6a5030), leafG = new THREE.Color(0x4aa83a), leafB = new THREE.Color(0x9a7a40);
     b.lit = 0xff5ac8;
     let tt = 0;
-    U.idle = (dt) => { tt += dt; petalM.emissiveIntensity = 1.5 + Math.sin(tt * 2) * 0.35; twinkle(dt); };
+    U.idle = (dt) => { tt += dt; petalM.emissiveIntensity = 2 + Math.sin(tt * 2) * 0.45; twinkle(dt); };
     U.open = (u, dt) => {
       if (U.fin) return;
       const w = ease(u);
-      petalM.emissiveIntensity = 1.6 * (1 - w) + 0.1; U.litK = 1 - w;
+      petalM.emissiveIntensity = 2 * (1 - w) + 0.1; U.litK = 1 - w;
       vineM.color.copy(green).lerp(brown, seg(u, 0, 0.5)); leafM.color.copy(leafG).lerp(leafB, seg(u, 0, 0.5));
       coreMesh.visible = u < 0.4;
       for (const p of petals.userData.P) {

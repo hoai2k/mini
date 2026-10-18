@@ -77,7 +77,7 @@ export function build(ctx) {
 
   // ---------------- Pete's Last Gas: a rusty canopy, two pumps, a little shop, cars that never left
   ctx.flatten(1218, ROAD_Z + 6, 1252, ROAD_Z + 22, FY, B.asphalt);
-  R.canopy(1220, ROAD_Z + 8, 1234, ROAD_Z + 14, [1223, 1230], { roof: B.rust_metal, stripe: B.barn_red, pillar: B.rust_metal });
+  R.canopy(1220, ROAD_Z + 8, 1234, ROAD_Z + 14, [1223, 1230], { roof: B.rust_metal, stripe: B.barn_red, pillar: B.rust_metal, band: B.rust_metal, top: B.white_trim });
   R.building(1237, ROAD_Z + 9, 1247, ROAD_Z + 16, { h: 4, wall: B.white_trim, trim: B.barn_red, roof: B.rust_metal, windows: { id: B.shop_window, sides: 'n', every: 2 }, doors: [{ side: 'n', at: 1242, width: 1, height: 3 }] });
   W.set(1238, FY, ROAD_Z + 10, B.vending);
   deco.prop('text_sign', 1219.5, FY, ROAD_Z + 7.5, { text: S('aePetesGas'), w: 3.4, h: 2, post: 4.2, bg: '#f2efe6', fg: '#c4302a', border: '#c4302a' });

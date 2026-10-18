@@ -95,7 +95,8 @@ export function roadside(ctx) {
       const cx0 = x0 + 1, cx1 = Math.min(x1 - 1, x0 + 13);
       for (const x of [cx0, cx1]) for (const z of [cz0, cz1]) fill(x, FY, z, x, FY + 3, z, B.concrete_pillar);
       fill(cx0 - 1, FY + 4, cz0 - 1, cx1 + 1, FY + 4, cz1 + 1, B.steel_panel);
-      for (let x = cx0 - 1; x <= cx1 + 1; x++) { W.set(x, FY + 4, cz0 - 1, o.stripe ?? B.red_plank); W.set(x, FY + 4, cz1 + 1, o.stripe ?? B.red_plank); }
+      // the fascia all round: the stripe and a teal top band
+      for (let x = cx0 - 1; x <= cx1 + 1; x++) for (let z = cz0 - 1; z <= cz1 + 1; z++) if (x === cx0 - 1 || x === cx1 + 1 || z === cz0 - 1 || z === cz1 + 1) { W.set(x, FY + 4, z, o.stripe ?? B.red_plank); W.set(x, FY + 5, z, o.top ?? B.teal_panel); }
       W.addRoof([cx0 - 1, FY + 4, cz0 - 1], [cx1 + 1, FY + 4, cz1 + 1], [[cx0 - 1, FY, cz0 - 1], [cx1 + 1, FY + 3, cz1 + 1]]);
       const pz = Math.floor((cz0 + cz1) / 2);
       for (let x = cx0 + 3; x < cx1 - 1; x += 4) { P('gas_pump', x, pz, { rot: 0 }, FY); bar(x, pz, 2, FY); }
@@ -110,8 +111,9 @@ export function roadside(ctx) {
       const back = road === 'n' ? z1 : z0, dir = road === 'n' ? -1 : 1;
       const rz0 = Math.min(back, back + dir * 6), rz1 = Math.max(back, back + dir * 6);
       const doors = []; for (let x = x0 + 2; x < x1 - 1; x += 4) doors.push({ side: road, at: x, width: 1, height: 3 });
-      api.building(x0, rz0, x1, rz1, 4, o.wall ?? B.pink_plaster, { trim: o.trim ?? B.teal_panel, doors, floor: B.carpet_red });
+      api.building(x0, rz0, x1, rz1, 4, o.wall ?? B.pink_plaster, { trim: o.trim ?? B.teal_panel, doors, floor: B.carpet_red, roof: o.roof ?? B.roof_slate });
       for (let x = x0 + 4; x < x1 - 1; x += 4) W.set(x, FY + 1, road === 'n' ? rz0 : rz1, B.window);
+      for (const d of doors) W.set(d.at, FY + 3, road === 'n' ? rz0 : rz1, B.teal_panel);   // teal over each door
       // walkway awning along the doors
       const az = road === 'n' ? rz0 - 1 : rz1 + 1;
       fill(x0, FY + 3, az, x1, FY + 3, az, B.awning);
