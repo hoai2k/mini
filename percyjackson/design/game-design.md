@@ -208,8 +208,9 @@ order, then opens camp up:
 6. **Cutscene:** waking up on the lawn of the Big House; Annabeth; Chiron.
 7. **Camp Half-Blood**, the open hub.
 
-Cutscenes are shot in the engine on small sets and skippable (hold A / Esc /
-the screen). The save keeps the step, so Continue resumes the prologue or the
+Cutscenes are shot in the engine on small sets. A (Enter, a click or a tap)
+skips to the next shot, holding B (Esc) pauses, and holding A (Enter, the mouse
+button, or the Skip all button on touch) skips the whole cutscene. The save keeps the step, so Continue resumes the prologue or the
 cutscene. Settings can skip the opening.
 
 **Guidance everywhere:** one line in the objective ribbon names the goal; a

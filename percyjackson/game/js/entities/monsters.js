@@ -59,6 +59,7 @@ const _qi = new THREE.Quaternion(), _w = new THREE.Vector3();
 // corners are (pushed a hair out along the face's normal, so faces that only
 // meet a coplanar face stay). Boxes are found through a coarse grid.
 const HID_EPS = 0.02, HID_TOL = 0.002, GRID = 4;
+const UNION = true;
 function hiddenFaces(list) {
   const n = list.length, hidden = new Uint8Array(n * 6);
   if (n < 2) return hidden;
@@ -93,10 +94,22 @@ function hiddenFaces(list) {
       }
       const L = grid.get(cellKey(Math.floor(ctr[0] / GRID), Math.floor(ctr[1] / GRID), Math.floor(ctr[2] / GRID)));
       if (!L) continue;
+      let one = false;
       for (const o of L) {
         if (o === b) continue;
-        if (inside(o, ...C[0]) && inside(o, ...C[1]) && inside(o, ...C[2]) && inside(o, ...C[3])) { hidden[b * 6 + f] = 1; break; }
+        if (inside(o, ...C[0]) && inside(o, ...C[1]) && inside(o, ...C[2]) && inside(o, ...C[3])) { hidden[b * 6 + f] = 1; one = true; break; }
       }
+      // (or covered by several boxes together: a 4 x 4 grid of points over
+      // the face, each inside some other box)
+      if (one || !UNION) continue;
+      let all = true;
+      for (let u = 0; u < 4 && all; u++) for (let v = 0; v < 4 && all; v++) {
+        const fu = (u + 0.5) / 4, fv = (v + 0.5) / 4;
+        const x = C[0][0] + (C[1][0] - C[0][0]) * fu + (C[3][0] - C[0][0]) * fv, y = C[0][1] + (C[1][1] - C[0][1]) * fu + (C[3][1] - C[0][1]) * fv, z = C[0][2] + (C[1][2] - C[0][2]) * fu + (C[3][2] - C[0][2]) * fv;
+        let hit = false; for (const o of L) if (o !== b && inside(o, x, y, z)) { hit = true; break; }
+        all = hit;
+      }
+      if (all) hidden[b * 6 + f] = 1;
     }
   }
   return hidden;
@@ -1279,6 +1292,7 @@ function buildDracaena() {
   rig.extras.shield = shield;
   K.done();
   rig.hunch = 0.15;
+  keepAbove(rig, spear, { reset: true });   // (a slam that ends low grounds the spear point rather than driving it through the floor)
   return rig;
 }
 

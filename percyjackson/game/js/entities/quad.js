@@ -57,11 +57,10 @@ export function paintQuad(S, o) {
 
 const tmpV = new THREE.Vector3(), _qm = new THREE.Matrix4(), _qm2 = new THREE.Matrix4();
 // Up to 26 extreme points (along the axes, edges and corners) of the corners
-// of every visible mesh's box under o, in o's parent space when withSelf (o's
-// own matrix applied later by the caller), else in o's own space; subtrees in
-// skip are left out. null when there are none.
+// of every visible mesh's box under o, in o's own space (the caller applies
+// o's matrix); subtrees in skip are left out. null when there are none.
 const QDIRS = []; for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) for (let z = -1; z <= 1; z++) if (x || y || z) QDIRS.push([x, y, z]);
-function extremePts(o, skip, own = false) {
+function extremePts(o, skip) {
   const pts = [];
   const walk = (n, M) => {
     for (const c of n.children) {
@@ -246,6 +245,7 @@ export class QuadRig {
     const hy = this.hips.position.y;
     let low = Infinity;
     for (const l of F.legs) { l.g.updateMatrix(); low = Math.min(low, lowest(l.pts, l.g.matrix)); }
+    if (F.body) { this.torso.updateMatrix(); low = Math.min(low, lowest(F.body, this.torso.matrix)); }   // (the body's rear end as it rears back in a hit)
     if (hy + low < 0) this.hips.position.y = hy - low;
     const y0 = this.hips.position.y;
     // head (and jaw)
@@ -273,7 +273,8 @@ export class QuadRig {
   floorParts() {
     const skip = new Set([...this.legs, ...this.tail, this.mouth]);
     return {
-      legs: this.legs.filter((g) => g.visible).map((g) => ({ g, pts: extremePts(g, null, true) })).filter((l) => l.pts),
+      legs: this.legs.filter((g) => g.visible).map((g) => ({ g, pts: extremePts(g, null) })).filter((l) => l.pts),
+      body: extremePts(this.torso, new Set([...skip, this.neck, this.tail[0]?.parent])),
       head: extremePts(this.head, skip), mouth: this.mouth !== this.head ? extremePts(this.mouth, skip) : null,
       tail: this.tail.map((g) => extremePts(g, skip)),
     };

@@ -330,7 +330,7 @@ export const TEXT = {
     ariaLabel: 'Cutscene',
     next: { pad: 'A · next', touch: 'Tap · next', kbm: 'Enter · next' },   // (a press skips one shot)
     pause: { pad: 'hold B · pause', touch: 'hold · pause', kbm: 'hold Esc · pause' },   // (held: the cutscene stands still)
-    hintSep: '  ·  ',
+    hintSep: '\u00a0\u00a0·\u00a0\u00a0',
     skip: { pad: 'hold A · skip all', touch: '', kbm: 'hold Enter · skip all', button: 'Skip all' },   // (on a touch screen, the Skip all button)
     paused: 'Paused',
     waitingOthers: 'Waiting for the others…',

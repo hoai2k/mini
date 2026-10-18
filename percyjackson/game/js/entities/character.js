@@ -337,7 +337,13 @@ export class Rig {
     // death fall rotates the hips around their pivot
     if (a && (a.type === 'dodge')) this.rollAbout(T.rootX, T.lift);
     else { this.hips.rotation.x = damp(this.hips.rotation.x % (Math.PI * 2), T.rootX, snap, dt); this.hips.position.z = damp(this.hips.position.z, 0, snap, dt); }
-    if (this.wrist !== false) { this.gripGuard(this.handR); this.gripGuard(this.handL); }
+    if (this.wrist !== false) {
+      // (with the hunch and arm spread the callers add right after, parts.js rigOffsets)
+      const h = this.hunch ?? 0, sp = this.armSpread ?? 0;
+      this.torso.rotation.x += h; this.armR.rotation.z -= sp; this.armL.rotation.z += sp;
+      this.gripGuard(this.handR); this.gripGuard(this.handL);
+      this.torso.rotation.x -= h; this.armR.rotation.z += sp; this.armL.rotation.z -= sp;
+    }
     this.physics(p);
   }
   // A long weapon (a spear, a club, a trident) must not end a slam, a roll or
