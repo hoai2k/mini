@@ -247,6 +247,7 @@ export function addWhip(rig, { segs = 7, len = 3.2, color = 0xff7a1a, hand = rig
   const chain = [];
   const K = kit(rig, look, { seed: 19, emit: 0.8 });
   let parent = markHeld(new THREE.Group()); parent.position.set(0, -1 * PX, 0); hand.add(parent);   // (a whip trails: no point to aim)
+  rig.wrist = false;   // (the whip hangs from the fist: no wrist cock in the attacks, see character.js)
   K.box(parent, 0, -1, 0, 1.6, 4, 1.6, 0x3a2414); K.box(parent, 0, -3, 0, 2, 0.8, 2, 0xd8a028); K.box(parent, 0, 1.2, 0, 1.8, 0.7, 1.8, 0xd8a028);
   const c = new THREE.Color(color), hot = [c.clone(), new THREE.Color(0xff5a00), new THREE.Color(0xffb020)];
   for (const h of hot) { const m = Math.max(h.r, h.g, h.b); h.multiplyScalar(1 / m); }
@@ -580,33 +581,34 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true } = {}
   }
   K.shag(Hd, [0, 1, 7.5], [19, 16, 19], { cols: FUR, step: 1.8, len: [1.6, 2.8], low: 0.55, bristle: 0.9, sweep: 0.5 });
   K.clumps(Hd, [0, 1, 7.5], [19, 16, 19], { n: Math.round(40 * fe), size: [1, 1.8], cols: FURL, faces: 'lr', out: 0.2 });
-  K.clumps(Hd, [0, -2.5, 24], [11, 8, 15], { n: Math.round(44 * fe), size: [0.8, 1.5], cols: [DEEP[0], DEEP[2], FUR[0], FUR[1]], faces: 'lrt', out: 0.2, keep: (x, y) => y > -5.2 });
+  K.clumps(Hd, [0, -2.3, 23.5], [11.4, 9, 13], { n: Math.round(44 * fe), size: [0.8, 1.5], cols: [DEEP[0], DEEP[2], FUR[0], FUR[1]], faces: 'lrt', out: 0.2, keep: (x, y) => y > -5.2 });
   K.clumps(Hd, [0, 1, 7.5], [19, 16, 19], { n: Math.round(36 * fe), size: [1, 1.8], cols: FURL, faces: 'f', out: 0.2, keep: (x, y) => y > 5.5 || (y > -1.5 && Math.abs(Math.abs(x) - 5) > 3.6) });
   K.clumps(Hd, [0, -4, 5], [24, 9, 11], { n: Math.round(34 * fe), size: [1.6, 2.8], cols: FUR, faces: 'lrbk', stretch: [1, 1.3, 1.2] });   // cheek ruff
   K.cracks(Hd, [0, 0, 7.5], [21.5, 13, 19], { n: Math.max(4, Math.round(cracks / 2.5)), cols: LAVA, faces: 'lr', len: [4, 8], cell: 0.9 });
   K.cracks(N, [0, -4, -3.5], [21, 16, 15], { n: Math.max(3, Math.round(cracks / 3)), cols: LAVA, faces: 'lr', len: [4, 8], cell: 0.9 });
   // the muzzle
-  K.box(Hd, 0, -2.5, 24, 11, 8, 15, DEEP[1]);
-  K.box(Hd, 0, 2, 22.5, 7, 2, 12, DEEP[0], 0.1);
-  for (let i = 0; i < 4; i++) K.box(Hd, 0, 2.6 - i * 0.15, 18 + i * 2, 8.4, 0.6, 0.8, 0x0a0708);       // snarl wrinkles
-  K.box(Hd, 0, 0.2, 31.8, 6, 3.6, 2.6, 0x050404);                                                      // nose
+  K.box(Hd, 0, -2.3, 23.5, 11.4, 9, 13, DEEP[1]);
+  K.box(Hd, 0, 2.4, 21, 8, 1.6, 7, DEEP[2], 0.12);
+  for (let i = 0; i < 4; i++) K.box(Hd, 0, 2.8 - i * 0.2, 18 + i * 1.8, 8.6, 0.6, 0.8, 0x0a0708);       // snarl wrinkles
+  K.box(Hd, 0, 0.6, 30.2, 6.4, 3.8, 2.6, 0x050404);                                                    // nose
+  K.box(Hd, 0, 1.8, 31, 4, 1, 1, 0x2a2428);
   for (const sx of [-1, 1]) {
-    K.box(Hd, sx * 5.6, -6.1, 24, 0.5, 1, 14, LAVA[0]);                                                 // the furnace glows through the lips
-    K.box(Hd, sx * 4.4, -9.6, 29.6, 1.9, 6.6, 1.9, fang, 0.12);                                         // upper canines
-    for (let i = 0; i < 4; i++) K.box(Hd, sx * 5, -7.8, 27 - i * 2.2, 1, 2.4 - i * 0.25, 1, fang);
+    K.box(Hd, sx * 5.8, -6.1, 23.5, 0.5, 1, 12, LAVA[0]);                                               // the furnace glows through the lips
+    K.box(Hd, sx * 4.4, -9.8, 28, 2, 7, 2, fang, 0.12);                                                 // upper canines
+    for (let i = 0; i < 4; i++) K.box(Hd, sx * 5, -7.9, 25.6 - i * 2.1, 1, 2.5 - i * 0.25, 1, fang);
   }
-  for (let x = -2.4; x <= 2.41; x += 1.2) K.box(Hd, x, -7.6, 31, 0.9, 2, 0.9, fang);
-  K.box(Hd, 0, -6.9, 24, 9, 0.5, 14, 0xff5000);                                                         // the furnace inside
+  for (let x = -2.4; x <= 2.41; x += 1.2) K.box(Hd, x, -7.7, 29.4, 0.9, 2.2, 0.9, fang);
+  K.box(Hd, 0, -6.9, 23, 9, 0.5, 12, 0xff5000);                                                         // the furnace inside
   for (const sx of [-1, 1]) K.box(Hd, sx * 4.9, -8.6, 21, 0.4, 3, 10, 0xff7a10);                         // and in the cheeks
   // the jaw (QuadRig's mouth hinge): massive, its own row of fangs, a glowing tongue
-  K.box(M, 0, -2.2, 8, 10, 4, 17, DEEP[1]);
-  K.box(M, 0, -4.6, 11, 8, 2, 9, DEEP[0]);
-  K.box(M, 0, 0.2, 8, 7.6, 0.5, 14, 0xff6a00);
+  K.box(M, 0, -2.4, 7.5, 10.4, 4.6, 15, DEEP[1]);
+  K.box(M, 0, -5.2, 10, 8.4, 2, 8, DEEP[0]);
+  K.box(M, 0, 0.2, 7.5, 7.6, 0.5, 12.5, 0xff6a00);
   K.box(M, 0, 0.35, 2.5, 6, 0.6, 4, 0xffa800);
   for (const sx of [-1, 1]) {
-    K.box(M, sx * 3.9, 2.8, 15.2, 1.7, 5, 1.7, fang, -0.1);
-    for (let i = 0; i < 4; i++) K.box(M, sx * 4.2, 1, 12.8 - i * 2.2, 0.9, 1.8, 0.9, fang);
-    K.box(M, sx * 5.1, -0.3, 8, 0.4, 0.8, 14, LAVA[0]);
+    K.box(M, sx * 3.9, 2.9, 13.6, 1.8, 5.4, 1.8, fang, -0.1);
+    for (let i = 0; i < 4; i++) K.box(M, sx * 4.2, 1, 11.4 - i * 2, 0.9, 1.9, 0.9, fang);
+    K.box(M, sx * 5.3, -0.3, 7.5, 0.4, 0.8, 13, LAVA[0]);
     K.box(M, sx * 4.7, 1.8, 7, 0.4, 3, 9, 0xff7a10);
   }
   K.clumps(M, [0, -3, 7], [10, 5, 15], { n: Math.round(14 * fe), size: [1.3, 2.2], cols: FUR, faces: 'blr' });
@@ -648,7 +650,7 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true } = {}
   // ---- smoke on its breath: puffs that roll out of the jaws and rise (animateExtras)
   const breath = [];
   for (let i = 0; i < 4; i++) {
-    const g = group(Hd, 0, -7, 31);
+    const g = group(Hd, 0, -6, 30);
     g.userData.base = g.position.clone();
     K.box(g, 0, 0, 0, 2.6, 2.2, 2.6, SMOKE[i % 3]); K.box(g, 1, 1, -0.6, 1.8, 1.8, 1.8, SMOKE[(i + 1) % 3]); K.box(g, -1, 0.6, 0.8, 1.6, 1.6, 1.6, SMOKE[(i + 2) % 3]);
     if (i % 2 === 0) K.box(g, 0.4, -0.6, 1.4, 0.7, 0.7, 0.7, LAVA[1]);

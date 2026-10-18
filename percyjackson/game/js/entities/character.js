@@ -259,7 +259,7 @@ export class Rig {
     if (a) {
       const k = a.t;
       switch (a.type) {
-        case 'attack': this.attackPose(T, a, k); snap = 40; break;
+        case 'attack': this.attackPose(T, a, k); if (this.wrist === false) T.handRX = T.handLX = 0; snap = 40; break;   // (rig.wrist = false: a whip hangs from the fist, so the wrist stays straight)
         case 'dodge': {
           // forward roll: whole body tucks and rotates about X
           const rk = easeOutCubic(clamp(k, 0, 1));
