@@ -168,6 +168,19 @@ when the Art Deco art arrives, measure and record its own.
   growing to big dots and back animate their size, spacing and margins
   together. Each change takes 0.6 s,
   eased (none with reduced motion, and none when the window is resized).
+  What was drawn is measured on screen from the box of the element the zoom
+  moves (the dots' row, the Visualizer), never from the dots inside it, so a
+  theme can turn, scale or glow its dots (Art Deco's diamonds) without
+  moving a measurement; and a tap part way through a change starts the next
+  one from exactly where things are, at the opacity they have (big dots
+  still growing are held as drawn; turned back before they are gone, they
+  zoom back big and then shrink in place).
+- Nothing an animation does moves the page. Each screen clips what is drawn
+  outside it (`overflow: clip`), so a zoom's stretched, invisible box never
+  makes the page wider or taller: the page used to gain a scrollbar for a
+  moment on a desktop, or room to pan on a phone, and shake. The picture is
+  `contain: layout`, so nothing changing inside it lays out anything outside
+  it.
   The dots are centred under the metronome at every size, and stay on one
   line (never wrapping part way while they grow or shrink for Pulse).
 - **Volume**, tucked away as a faint speaker at the picture's top right:

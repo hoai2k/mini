@@ -756,23 +756,38 @@ function setFootView(view) {
   const from = settings.footView;
   if (from === view) return;
   const zoom = (from === 'bars' || view === 'bars') && !matchMedia('(prefers-reduced-motion: reduce)').matches && $('beats').children.length;
-  // A cross-zoom measures both boxes as drawn before the change, puts the
-  // dots at their new size at once, measures again, and animates between.
+  // A cross-zoom measures what is drawn now (part way through another one,
+  // if a tap came before it ended), puts the dots at their new size at once,
+  // measures where everything rests, and animates from the one to the other.
   const before = zoom ? zoomBoxes() : null;
+  // Turned back to the dots before big dots had gone into the Visualizer:
+  // they zoom back at the size they are drawn, then shrink in place.
+  const backFromBig = zoom && view === 'dots' && $('met-visual').classList.contains('pulse');
+  const keepBig = zoom && from === 'big';
   morph();
-  if (zoom) $('met-visual').classList.add('settle');
+  if (zoom) {
+    for (const a of zooms) a.cancel();
+    // Big dots going into the Visualizer stay as they are drawn, even part
+    // way through growing (their transitions are held where they are); any
+    // other cross-zoom puts the dots at their new size at once.
+    if (keepBig) for (const a of $('beats').getAnimations({ subtree: true })) a.pause();
+    else $('met-visual').classList.add('settle');
+  }
   settings.footView = view;
   persist();
   showMetView();
   // Big dots going into the Visualizer keep their own size while they zoom
   // away (the small row spaces its dots differently, so they could not be
   // drawn where they were from it); they are made small, unseen, once gone.
-  const keepBig = zoom && from === 'big';
-  if (keepBig) $('met-visual').classList.add('pulse');
+  if (keepBig || backFromBig) $('met-visual').classList.add('pulse');
   if (zoom) {
     const after = zoomBoxes(); // reading it lays the new view out now
     $('met-visual').classList.remove('settle');
     const [out] = crossZoom(view === 'bars', before, after);
+    if (backFromBig) {
+      void $('beats').offsetWidth;
+      $('met-visual').classList.remove('pulse'); // the dots' own transition shrinks them
+    }
     if (keepBig) {
       out.finished.then(() => {
         if (settings.footView === 'big') return;
@@ -791,56 +806,70 @@ const FOOT_CYCLE = { dots: 'big', big: 'bars', bars: 'dots' };
  * (over the first half) while it is drawn from the box it filled on screen
  * into the incoming one's box, and the incoming one fades in (overlapping, so
  * the place never goes blank) while it is drawn from the outgoing one's box
- * to its own. Every step is a transform of a layout that no longer changes
- * (the dots were put at their new size at once), so nothing jumps: the first
- * frame is what was drawn and the last is what will be. Both sit on the
- * bottom of the picture, so boxes are scaled about their bottom centres.
- * Boxes are measured from layout (offsets, which animations do not change).
+ * to its own. Every step is a transform and an opacity of a layout that no
+ * longer changes (the dots were put at their new size at once), so nothing
+ * jumps: the first frame is what was drawn and the last is what will be.
+ *
+ * What was drawn is measured on screen, through the zoom that may still be
+ * running, from the box of the element that zoom moves (the dots' row, the
+ * Visualizer) and never from what is inside it: a theme can turn, scale or
+ * glow its dots however it likes (Art Deco's diamonds) without moving a
+ * measurement. So a tap in the middle of a cross-zoom starts the next one
+ * from exactly where things were, at the opacity they had, rather than from
+ * where they would have rested.
  */
 const MORPH_MS = 600;
 const MORPH_EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
-/** The dots' row and the Visualizer's rows, as boxes in the foot: { cx, by, w, h, x0, lift } (x from the foot's left, lift up from its bottom). */
+/**
+ * The dots' row and the Visualizer's rows as drawn, in page pixels, each
+ * with the element that carries it, the content's place inside that element
+ * (local, unscaled pixels) and the element's opacity now.
+ */
 function zoomBoxes() {
-  const beats = $('beats');
-  const dots = [...beats.children];
-  const left = Math.min(...dots.map((d) => d.offsetLeft));
-  const right = Math.max(...dots.map((d) => d.offsetLeft + d.offsetWidth));
-  const top = Math.min(...dots.map((d) => d.offsetTop));
-  const bottom = Math.max(...dots.map((d) => d.offsetTop + d.offsetHeight));
-  const d = { el: beats, cx: (left + right) / 2, by: bottom, w: right - left, h: bottom - top, x0: beats.offsetLeft, lift: beats.offsetHeight - bottom };
-  const viz = $('met-viz');
-  const rows = $('met-bars');
-  const v = { el: viz, cx: rows.offsetLeft + rows.offsetWidth / 2, by: rows.offsetTop + rows.offsetHeight, w: rows.offsetWidth, h: rows.offsetHeight, x0: viz.offsetLeft, lift: viz.offsetHeight - (rows.offsetTop + rows.offsetHeight) };
-  return { d, v };
+  const box = (el, content) => {
+    // The content's box inside the element, from layout.
+    const lx = Math.min(...content.map((c) => c.offsetLeft));
+    const ly = Math.min(...content.map((c) => c.offsetTop));
+    const lw = Math.max(...content.map((c) => c.offsetLeft + c.offsetWidth)) - lx;
+    const lh = Math.max(...content.map((c) => c.offsetTop + c.offsetHeight)) - ly;
+    // The element on screen is its layout box through its zoom, a scale and
+    // a shift; carried through the same map, the content is where it is drawn.
+    const r = el.getBoundingClientRect();
+    const kx = r.width / (el.offsetWidth || 1), ky = r.height / (el.offsetHeight || 1);
+    return { el, lx, ly, lw, lh, x: r.left + lx * kx, y: r.top + ly * ky, w: lw * kx, h: lh * ky, op: +getComputedStyle(el).opacity };
+  };
+  return { d: box($('beats'), [...$('beats').children]), v: box($('met-viz'), [$('met-bars')]) };
 }
 let zooms = [];
 function crossZoom(toBars, before, after) {
   for (const a of zooms) a.cancel();
-  // Draw element `a` (laid out as box `a`) where box `b` is: a scale about
-  // a's bottom centre, then a shift taking that point onto b's.
+  // Draw element `a` (resting as box `a`) where box `b` is: a scale about
+  // the content's bottom centre, then a shift taking that point onto b's.
   const onto = (a, b) => {
     const sx = b.w / a.w, sy = b.h / a.h;
-    const dx = (b.x0 + b.cx) - (a.x0 + a.cx);
-    const dy = -(b.lift - a.lift);
-    return `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) scale(${sx.toFixed(3)}, ${sy.toFixed(3)})`;
+    const dx = (b.x + b.w / 2) - (a.x + a.w / 2);
+    const dy = (b.y + b.h) - (a.y + a.h);
+    return `translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px) scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`;
   };
-  const origin = (a) => `${a.cx.toFixed(1)}px ${a.by.toFixed(1)}px`;
+  const origin = (a) => `${(a.lx + a.lw / 2).toFixed(2)}px ${(a.ly + a.lh).toFixed(2)}px`;
   const out = toBars ? 'd' : 'v';
   const inn = toBars ? 'v' : 'd';
+  // The incoming one comes out of the outgoing one's box, unless it can
+  // still be seen (this tap turned a cross-zoom back): then from its own.
+  const from = before[inn].op > 0.01 ? before[inn] : before[out];
+  const o = after[out], i = after[inn];
   const opts = { duration: MORPH_MS, easing: MORPH_EASE };
   zooms = [
-    // The outgoing one: from where it was drawn into the incoming one's new box.
-    after[out].el.animate([
-      { transformOrigin: origin(after[out]), transform: onto(after[out], before[out]), opacity: 1 },
-      { transformOrigin: origin(after[out]), opacity: 0, offset: 0.55 },
-      { transformOrigin: origin(after[out]), transform: onto(after[out], after[inn]), opacity: 0 },
+    o.el.animate([
+      { transformOrigin: origin(o), transform: onto(o, before[out]), opacity: before[out].op },
+      { transformOrigin: origin(o), opacity: 0, offset: 0.55 },
+      { transformOrigin: origin(o), transform: onto(o, i), opacity: 0 },
     ], opts),
-    // The incoming one: from the outgoing one's drawn box to its own.
-    after[inn].el.animate([
-      { transformOrigin: origin(after[inn]), transform: onto(after[inn], before[out]), opacity: 0 },
-      { transformOrigin: origin(after[inn]), opacity: 0, offset: 0.12 },
-      { transformOrigin: origin(after[inn]), opacity: 1, offset: 0.75 },
-      { transformOrigin: origin(after[inn]), transform: 'none', opacity: 1 },
+    i.el.animate([
+      { transformOrigin: origin(i), transform: onto(i, from), opacity: before[inn].op },
+      { transformOrigin: origin(i), opacity: before[inn].op, offset: 0.12 },
+      { transformOrigin: origin(i), opacity: 1, offset: 0.75 },
+      { transformOrigin: origin(i), transform: 'none', opacity: 1 },
     ], opts),
   ];
   return zooms;
