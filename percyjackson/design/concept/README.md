@@ -252,3 +252,13 @@ Generated on 2026-10-17 with the built-in image generator. Per-asset prompts, re
 [![Nine quest givers: camp and Road West](vox-ow-people-3.png)](vox-ow-people-3.png)
 
 [Prompt, references and generation record](generation-2026-10-17/vox-ow-people-3.json).
+
+## Open-world fodder: the swarms you plow through
+
+| Asset | Generation record |
+| --- | --- |
+| [Open-world fodder: karpoi, myrmekes, giant crabs, shades](vox-ow-fodder.png) | [vox-ow-fodder.json](generation-2026-10-17/vox-ow-fodder.json) |
+| [Open-world fodder 2: karpos slingers, Colchis calves, myrmex spitters, Calydonian boarlets, king crabs](vox-ow-fodder-2.png) | [vox-ow-fodder-2.json](generation-2026-10-17/vox-ow-fodder-2.json) |
+| [Open-world fodder 3: basilisks, Earthborn, Daedalus drones, Laistrygonians, keres](vox-ow-fodder-3.png) | [vox-ow-fodder-3.json](generation-2026-10-17/vox-ow-fodder-3.json) |
+
+The myrmekes in `vox-ow-fodder` and `-2` have eight legs (read as spiders) and the king crab is no bigger than a crab: `vox-ow-fodder-fix` asks for them again.

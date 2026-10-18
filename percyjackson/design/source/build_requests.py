@@ -1385,6 +1385,30 @@ REQUESTS += [
     },
 ]
 
+# A redraw: the first fodder sheets drew the myrmekes with eight legs (they read
+# as spiders, which the woods already have) and the king crab no bigger than a crab.
+REQUESTS += [
+    {
+        "id": "vox-ow-fodder-fix",
+        "group": OW_GROUP,
+        "title": "Open-world fodder: myrmekes as real ants, and a truly huge king crab",
+        "size": "2400 × 1600",
+        "references": ["vox-key", "vox-ow-fodder", "vox-ow-fodder-2"],
+        "use": "Replaces the myrmex, myrmex spitter and king crab drawings of vox-ow-fodder and vox-ow-fodder-2 (entities/fodder.js).",
+        "prompt": (
+            "A sheet of three blocky voxel monster kinds beside a blocky Percy for scale, each shown "
+            "front, side and mid-attack: a myrmex, a dog-sized giant ANT (exactly six legs, three "
+            "clear body segments: head, narrow thorax, big round abdomen; elbowed antennae; big "
+            "bronze mandibles; glossy black armour with bronze edges), nothing like a spider; a "
+            "myrmex spitter, the same ant with a swollen glowing green abdomen arching an acid spray "
+            "over its head; and a king crab, a hulking barnacled crab TWICE Percy's height and twice "
+            "as wide as the small shore crabs, one enormous crusher claw the size of its body, a "
+            "shell like a mossy rock, small eyes on stalks. "
+            f"{FODDER_SHEET}{VOXEL_STYLE} Flat light-grey background. {NO_TEXT}"
+        ),
+    },
+]
+
 def path_for(item: dict) -> Path:
     if item.get("dest") == "game":
         return GAME / f"{item['id']}.png"
