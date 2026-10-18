@@ -117,11 +117,11 @@ test('an old timed drone becomes the matching timing', () => {
   assert.deepEqual([untimed.droneMode, untimed.droneLoop], ['continuous', true]);
 });
 
-test('Dark Mode: the system\'s by default; a choice made at the setting is kept', () => {
-  assert.equal(DEFAULTS.appearance, 'system');
-  assert.equal(sanitize({ appearance: 'default' }).appearance, 'system'); // an earlier save's default
-  assert.equal(sanitize({ appearance: 'default', appearanceChosen: true }).appearance, 'default');
-  assert.equal(sanitize({ appearance: 'sepia', appearanceChosen: true }).appearance, 'system');
+test('Dark Mode: each theme as designed by default; a choice made at the setting is kept', () => {
+  assert.equal(DEFAULTS.appearance, 'default');
+  assert.equal(sanitize({ appearance: 'system' }).appearance, 'default'); // an earlier save's default
+  assert.equal(sanitize({ appearance: 'system', appearanceChosen: true }).appearance, 'system');
+  assert.equal(sanitize({ appearance: 'sepia', appearanceChosen: true }).appearance, 'default');
   assert.equal(resolveMode('classic', 'default', false), 'dark');
   assert.equal(resolveMode('sixties', 'default', true), 'light');
   assert.equal(resolveMode('sixties', 'dark', false), 'dark');

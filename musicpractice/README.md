@@ -60,12 +60,12 @@ don't offer it. It switches the whole app's look:
 - **Steam Punk**: dark leather with brass and copper, Cinzel and Special
   Elite, riveted plates and a gear.
 
-**Dark Mode**, under the theme tiles, is **Default** (each theme as designed:
-Classic, Art Deco, Robot Future and Steam Punk dark, the other four light),
-**Light**, **Dark** or **System**, the default (follows the device, and
-switches while the app is open when the device does, at dusk for one; saves
-from before it was the default are moved onto it unless Dark Mode was
-chosen). Every
+**Dark Mode**, under the theme tiles, is **Default**, the default (each theme
+as designed: Classic, Art Deco, Robot Future and Steam Punk dark, the other
+four light), **Light**, **Dark** or **System** (follows the device, and
+switches while the app is open when the device does, at dusk for one). A
+save that never chose one shows Default; a choice made at the setting is
+kept. Every
 theme has its other mode: Classic by day (cream and walnut), Art Deco in
 ivory, 18th Century by candlelight, Robot Future in a white lab, French
 Nouveau in the evening, Candy at night, Steam Punk in the drawing office,
