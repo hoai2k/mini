@@ -13,6 +13,7 @@ import { useArtifact } from '../artifacts.js';
 import { settings } from '../settings.js';
 import { t as txt } from '../text_config.js';
 import { FLASK, canDrink, drink, tickFlask, newQuiver, resizeQuiver, tickQuiver } from '../resources.js';
+import { AIM } from '../combatRules.js';
 
 // the jump slam: damage before gear, radius in metres, knock-back, seconds
 // before the next (with no cooldown, jump-slamming over and over out-damaged
@@ -260,17 +261,19 @@ export class Player {
   input() { return this.game.input.get(this.device); }
 
   // Ranged aim help for a controller or touch: the nearest enemy within 20°
-  // of the aim line. Mouse and right-stick aim get none.
+  // of the aim line, as far as a shot flies (combatRules.js AIM). Mouse and
+  // right-stick aim get none (their shots still pitch up or down to a
+  // monster on the aim line: heroes/kit.js shotDir).
   rangedAssist() {
     const inp = this.input();
     if (inp.mouse || inp.aimStick || inp.virtual || this.ai) return null;
-    let best = null, bd = 16;
+    let best = null, bd = AIM.assist;
     const face = Math.atan2(this.aimDir.x, this.aimDir.z);
     for (const e of this.game.enemies) {
       if (e.dead || e.untargetable || e.disguised) continue;
       const dx = e.pos.x - this.pos.x, dz = e.pos.z - this.pos.z, d = Math.hypot(dx, dz);
       const off = Math.atan2(Math.sin(Math.atan2(dx, dz) - face), Math.cos(Math.atan2(dx, dz) - face));
-      if (d < bd && Math.abs(off) < 0.35) { bd = d; best = e; }
+      if (d < bd && Math.abs(off) < AIM.assistCone) { bd = d; best = e; }
     }
     return best;
   }
@@ -310,6 +313,8 @@ export class Player {
   update(dt) {
     const g = this.game, inp = this.input();
     if (this.dead) { this.animate(dt); return; }
+    // riding a train, the zoo truck or the Greyhound, or driving the taxi (openworld/roadtrip.js): the vehicle carries the hero
+    if (this.vehicle) { this.vehicle.carry(this, dt); this.animate(dt); return; }
     if (this.downed) {
       this.downT -= dt;
       const helper = g.players.find((p) => p !== this && !p.dead && !p.downed && p.pos.distanceTo(this.pos) < 2.2);

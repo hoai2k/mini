@@ -36,8 +36,8 @@ export const ROAM_RULES = {
   minDist: 15,        // never closer than this to any hero
   maxDist: 30,        // and within this of one of them (it should be met soon)
   despawn: 48,        // gone when every hero is this far away (for a few seconds)
-  capCamp: 9, capCity: 8,
-  everyCamp: [7, 12], everyCity: [5, 8],   // seconds between packs
+  capCamp: 9, capCity: 8, capOpen: 16,
+  everyCamp: [7, 12], everyCity: [5, 8], everyOpen: [4, 8],   // seconds between packs (everyOpen: out in the open world's regions)
 };
 
 // A pick from [[kind, weight]] with r() in [0, 1).

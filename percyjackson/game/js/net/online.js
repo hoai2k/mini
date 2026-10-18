@@ -249,7 +249,7 @@ export class Online {
     if (g.mode === 'prologue') return { n: this.setupNonce, mode: 'prologue' };
     // (between a cutscene and the chapter after it, the story cards: guests keep the cutscene's last picture)
     if (g.mode === 'cutscene') return { n: this.setupNonce, mode: 'cut', id: g.cutscene && !g.cutscene.done ? g.cutscene.id : 'end' };
-    const sc = { n: this.setupNonce, mode: 'hub' };
+    const sc = { n: this.setupNonce, mode: 'hub', area: g.area === 'road' ? 'road' : 'camp' };
     if (this.storyCh && g.ui.isOpen('story')) sc.st = this.storyCh;
     return sc;
   }
@@ -474,7 +474,8 @@ export class Online {
     } else if (sc.mode === 'hub') {
       this.applied = id;
       this.clearPuppets();
-      if (g.mode !== 'hub') { g.ui.closeAll(); g.paused = false; g.endCutscene?.(); g.loadHub(); toast(t('game.camp.name'), 'title'); this.joinNear(); }
+      const area = sc.area === 'road' ? 'road' : 'camp';   // (the open world round camp, or the Road West)
+      if (g.mode !== 'hub' || (g.area ?? 'camp') !== area) { g.ui.closeAll(); g.paused = false; g.endCutscene?.(); g.loadHub({ area }); toast(area === 'road' ? t('rt.area') : t('game.camp.name'), 'title'); this.joinNear(); }
     }
   }
   showStory(chId) {

@@ -6,7 +6,7 @@
 // story goes on. A chapter you can't play yet shows a grey marker that says
 // what to finish first. The Big House chapter map still lists everything.
 import * as THREE from 'three/webgpu';
-import { CHAPTERS, chapter as chapterDef, chapterPlayable } from './chapters.js';
+import { CHAPTERS, chapter as chapterDef, chapterPlayable, chapterOpen } from './chapters.js';
 import { h } from '../ui/ui.js';
 import { openingDone } from './opening.js';
 import { B } from '../world/blocks.js';
@@ -21,13 +21,11 @@ function cardTexture(src, fn) {
   whenArt(src, (img) => { const t = new THREE.Texture(img); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; t.needsUpdate = true; cardTex.set(src, t); fn(t); });
 }
 
+// Every chapter can be started from the open world (once the opening is
+// done), apart from a book's final chapters: those open when every earlier
+// chapter of the book is finished (world/owLayout.js FINAL_CHAPTERS).
 export function chapterUnlocked(game, ch) {
-  const d = game.save.data;
-  if (!chapterPlayable(ch)) return false;
-  if (d.unlockAll) return true;
-  const list = CHAPTERS.filter(chapterPlayable);
-  const i = list.indexOf(ch);
-  return i <= 0 || !!d.completed[list[i - 1].id];
+  return chapterOpen(game.save.data, ch);
 }
 
 // A little yellow school bus for the field trip, sized to the block world:
@@ -134,7 +132,7 @@ export function placeQuestMarkers(game, L) {
     if (open) game.lights.attach(grp, col.getHex(), 3, 7, { offsetY: 2 });
     let clock = Math.random() * 6;
     game.addUpdater((dt) => { clock += dt; card.position.y = 3.1 + Math.sin(clock * 1.6) * 0.15; card.rotation.y = game.rig.yaw ?? 0; ring.scale.setScalar(1 + Math.sin(clock * 3) * 0.05); return grp.parent != null; });
-    const list = CHAPTERS.filter(chapterPlayable), prev = list[list.indexOf(ch) - 1];
+    const list = CHAPTERS.filter(chapterPlayable), prev = list.slice(0, list.indexOf(ch)).find((c) => !game.save.data.completed?.[c.id]) ?? list[list.indexOf(ch) - 1];   // (a final chapter: the first earlier one still to do)
     game.interactables.push({
       id: 'quest-' + ch.id, pos, radius: 2.6,
       label: open ? t('quest.chapterTitle', { num: ch.num, title: ch.title }) + (done ? ' ✓' : '') : t('quest.locked', { title: prev?.title }),

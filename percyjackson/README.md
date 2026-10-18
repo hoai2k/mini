@@ -80,9 +80,61 @@ turn and zoom by touch (drag, pinch).
   the way out after the boss (in the Lotus Casino only once True Sight has
   found the door); clicking the left stick (middle click) shows footprints
   there for a few seconds. Chapter 1 points the way to Mrs. Dodds.
-- **Monsters while you walk around:** small packs of low-level monsters turn
-  up out of sight in the camp woods and along the Road West (pups, bronze
-  spiders, Stymphalian birds, scorpions on the far road), never inside the
+- **The open world:** Camp Half-Blood sits in a 400 × 400 country you can
+  walk across, in the spirit of Minecraft Dungeons. There are seven regions
+  round the camp, each with its own look, monster levels, and named places:
+  - Strawberry Fields (levels 1–3)
+  - the Camp Woods (2–4)
+  - the North Shore (3–5)
+  - the Red Canyon (5–7)
+  - the Labyrinth (6–8)
+  - Mount Othrys (8–10)
+  - the Fields of Asphodel (9–12)
+
+  Each region has:
+  - waystones: walk up to one to remember it, then teleport between the ones
+    you've found from its stone or the map;
+  - monster camps that leave a chest when cleared and come back later;
+  - a named champion (an elite at triple health with an epic chest);
+  - a shrine trial in waves;
+  - hidden chests;
+  - people with chains of side quests (kill, collect, reach, clear, beat, win,
+    open, return).
+
+  XP grows with a monster's level. The map (M or View) veils the regions you
+  haven't seen, marks what you've found, and lists the side quests (J) and
+  which one the tracker follows.
+
+  Every chapter can be started from the open world except a book's final two,
+  which open once every earlier chapter of the book is done. The layout is
+  `world/owLayout.js`. Each region is built by `world/regions/<id>.js`, the
+  whole world by `world/openworld.js`, and `openworld/` runs it.
+- **The Road West:** the quest's road trip is its own area, a 1440-block
+  strip from the New Jersey Turnpike to Santa Monica.
+  - The Greyhound from the bus stop past Half-Blood Hill takes you there, and
+    the Turnpike bus stop brings you back. Waystones also travel between the
+    two areas.
+  - You walk the stops: truck stops, Aunty Em's, St. Louis and the Gateway
+    Arch, Denver and Waterland, the Las Vegas Strip and the Lotus, Crusty's,
+    Los Angeles and DOA Recording, and Santa Monica Pier.
+  - You ride the stretches between some stops: the Amtrak over the river (the
+    highway bridge is out) and across the plains gorge, and the zoo truck
+    through the Rockies tunnel. Hold A or click to hurry a ride.
+  - You drive the taxi across the Nevada desert: the stick or WASD points the
+    way, and tumbleweeds bump you.
+  - Chapters 4 to 12 start at their stops. Each of chapters 4 to 10 also
+    clears a roadblock across the road after it (the burning Greyhound, a wall
+    of statues, the raised lift bridge, a rockslide, the Lotus gates, a heap of
+    waterbeds, a wall of shadow), which opens in front of you the first time
+    you come back.
+  - The layout is `world/rtLayout.js`. Each stop is built by
+    `world/road/<stop>.js`, the strip by `world/roadtrip.js`, and the rides
+    are run by `openworld/roadtrip.js`.
+  - Both areas mesh only the chunks near the party (`World.stream`) and batch
+    decorations by tile.
+- **Monsters while you walk around:** small packs of monsters turn up out of
+  sight in camp's woods and in every region of the open world and the Road
+  West, of that region's kinds and level, never inside the
   cabins, the Big House or the forge (a monster that strays there turns
   back), and not during minigames or cutscenes. Each is a little group with
   one posted a few metres toward you as a scout, which sees you first and runs
@@ -90,14 +142,14 @@ turn and zoom by touch (drag, pinch).
 - **Camp Half-Blood** is the home base, with Half-Blood Hill, the Big House,
   the twelve cabins, the forge, the store, the archery range and the lava
   climbing wall.
-  - Chapters 3 to 12 start from places in camp; chapters 1 and 2 are played
-    in the opening, and replayed from the field-trip bus by the camp road and
-    Thalia's pine on Half-Blood Hill. A chapter unlocks when the one before it
-    is finished.
+  - Chapter 3 starts at the edge of the camp woods, and chapters 4 to 12 on
+    the Road West. Chapters 1 and 2 are played in the opening, and replayed
+    from the field-trip bus by the camp road and from Thalia's pine on
+    Half-Blood Hill.
   - The chapter map on the Big House porch lists every book.
 - **All twelve chapters of Book 1, *The Lightning Thief*,** each started from
-  its own place in camp (the early ones near the cabins, the later ones along
-  the Road West out past Half-Blood Hill), each unlocked by the one before:
+  its own place: the early ones in camp, the later ones at their stops on the
+  Road West.
   1. *The Pre-Algebra Teacher*: the museum in thick Mist. You walk the
      galleries with no fighting (the gold arrow leads to Mrs. Dodds) until you
      see her: the Mist lifts on its own, she turns into the Fury Alecto and
@@ -272,6 +324,21 @@ turn and zoom by touch (drag, pinch).
   where a hero is; rings round a boss are about 5 m (6 m for Mrs. Dodds's
   shriek), small enough to run out of in the wind-up. No boss charge or dash
   leaves the room it starts in.
+- **Knock-back and reach, as in Minecraft Dungeons** (`game/js/combatRules.js`,
+  tested in `test/combat.test.mjs`): a quick cut shoves a light monster
+  about 1.5 to 2 m and a combo finisher 4 to 5 m; the blow moves it at once
+  and its own walking fades while it slides. Heavy monsters keep less of it
+  (a hellhound about half a metre from a cut, a cyclops under 2 m from a
+  finisher) and a boss only budges. Shots reach 22 to 24 m, well across the
+  screen, and nudge a monster about a metre.
+- **Shots aim up and down:** a ranged shot pitches (up to about 34°) to the
+  monster it is aimed at: the one under the mouse cursor, the aim assist's
+  pick on a controller, or the one standing on the aim line, so it climbs to
+  a monster on a ledge or a stair and dips to one below instead of hitting
+  the hill or flying over its head (it aims higher on the body when the
+  ledge's edge is in the way). With nothing to aim at, it follows the ground
+  under the cursor, or on a controller the ground just ahead; over a pit it
+  flies level. Tyson's boulder lands at the height of what it is thrown at.
 - **Healing and ammo, as in Minecraft Dungeons:**
   - Ambrosia (LT or E) is one square on a cooldown: a bite restores 65%
     of your health over 1.2 s, then it refills over 22 s (shown as a radial
@@ -462,6 +529,9 @@ across every screen.
 | `game/js/heroes/` | The hero kits; `skillRules.js` the skill trees and their rules (costs, requirements, gates, loadouts, reset, save migration), pure and tested; the screen is `game/js/ui/skills.js` |
 | `game/js/entities/` | Hero models and voxel hair, monsters, the four-legged rig, mortals, bosses |
 | `game/js/world/` | Camp Half-Blood, the biomes, room templates, the level generator |
+| `game/js/world/owLayout.js`, `openworld.js`, `regions/` | The open world round camp: its map and regions (pure, tested), how it is built, and each region's terrain, places, people and side quests |
+| `game/js/world/rtLayout.js`, `roadtrip.js`, `road/` | The Road West: its map, stretches, roadblocks, rides and stations (pure, tested), how it is built, and each stop |
+| `game/js/openworld/` | Both areas alive: regions, waystones and travel, camps, champions, shrines, chests (`runtime.js`), side quests (`quests.js`), and the Road West's roadblocks, rides, taxi and Greyhound (`roadtrip.js`); the map is `game/js/ui/worldMap.js` |
 | `game/js/world/encounters.js`, `game/js/entities/packRules.js` | The battle cadence: each room's part (group, battleground, strays, breather, guard, trap), group sizes and role mix, where groups and scouts stand; how a group notices you and joins in |
 | `game/js/story/` | Books and chapters, chapter start places in camp, the opening (`opening.js` steps, `openingFlow.js`), cutscenes (`cutscene.js` player, `cutscenes.js` the three of the opening) |
 | `game/js/world/manhattan.js`, `cutsceneSets.js`, `vehicles.js`, `roaming.js`, `roamZones.js` | The Manhattan prologue, the cutscene sets (Central Park West and the museum, Montauk), the bus and cars, roaming monsters and where they may go |
@@ -473,13 +543,14 @@ across every screen.
 | `game/js/ui/art.js` | The pictures preloaded behind the loading screen (and the logo, keyed out of its magenta) |
 | `game/js/mist.js`, `party.js`, `loot.js`, `lootdrops.js`, `artifacts.js`, `minigames/`, `net/` | True Sight, companions and switching, gear, loot beams, magic items, minigames, online play |
 | `game/js/padmap.js` | The Xbox controller layout (after Minecraft Dungeons II): buttons, the Y + LB chord, the right-stick flick dodge |
+| `game/js/combatRules.js` | Battle feel: knock-back (how far, how heavy monsters resist), the ranged shots' speed, reach and knock, and the 3D aim maths (pitch to a target, the aim line, cursor picking, following the ground); pure and tested |
 | `game/js/resources.js` | The Ambrosia flask's cooldown, the quiver (refill, size, bundle drops) and monster hit scaling by tier |
 | `game/js/save.js`, `profiles.js`, `slots.js`, `resume.js`, `ui/saves.js` | A profile's data, player profiles (merging, export codes), save slots, the resume point for Continue, the Saves screens |
 | `game/js/net/` | Online: `session.js` (rooms, identity, reconnects, host migration, clock), `online.js` (what is shared and who owns it), `interp.js` (smooth remote motion), `netfx.js` (effects seen by everyone), `lobby.js`, `nametags.js` |
 | `game/workbench/models.html` | A turntable of every character model, to compare with the 3D sheets |
 | `game/workbench/` | The model workbench ([published](https://hoai2k.github.io/mini/percyjackson/workbench/)): a thumbnail grid of every character model, an orbit viewer and an inspector |
 | `game/assets/` | Web copies of the art: chapter cards, hero cards and portraits, title background, logo |
-| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, the battle cadence (rooms by role, groups and scouts placed from the seed, traps per chapter, room sizes, kill objectives a level can meet), boss health for the party, the prologue's rats and hints, the Greek-letter timings, the preloaded pictures, people in the Mist, chapter 1's museum (the calm walk, the reveal, hidden blows under the Mist, her three flights to rooms you can walk to, her lines in your device's words), the Ambrosia flask, the quiver and monster hit sizes, the controller layout |
+| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, the battle cadence (rooms by role, groups and scouts placed from the seed, traps per chapter, room sizes, kill objectives a level can meet), boss health for the party, the prologue's rats and hints, the Greek-letter timings, the preloaded pictures, people in the Mist, chapter 1's museum (the calm walk, the reveal, hidden blows under the Mist, her three flights to rooms you can walk to, her lines in your device's words), the Ambrosia flask, the quiver and monster hit sizes, knock-back distances, shot reach and the 3D aim, the controller layout |
 | `design/` | The design, image requests, concept art and the scripts that make the web copies |
 | `design/audit.md` | The October 2026 audit of gameplay, level design and performance: what was fixed and what is still to do |
 | `perf/` | The performance harness (headless Chromium): load times, frame CPU, draw calls, leaks, a smoke check of every chapter; not published |

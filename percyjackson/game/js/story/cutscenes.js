@@ -152,10 +152,10 @@ export const CUTSCENES = {
           lines: [{ at: 0.8, text: t('cutscenes.bus.steps') }],
           card: { src: 'assets/cards/scene-museum-steps.jpg', at: 2.2, dur: 4 },
           act: (k, dt, t) => { drive(L.busStop.z, dt, 4); unload(t); if (t >= BUS_READ) readBus(); } },
-        { dur: 6, fadeOut: 'black',
+        { dur: 11.4, fadeOut: 'black',   // (two lines: her stare, then her word)
           cam: move({ pos: [21, L.top + 2.2, L.MC + 2], look: [L.dodds.x, L.top + 1.6, L.dodds.z] }, { pos: [18.6, L.top + 1.9, L.MC + 0.6], look: [L.dodds.x, L.top + 1.7, L.dodds.z] }, { fov: 34, fov2: 28 }),
           enter: () => dodds.face(Math.atan2(20 - L.dodds.x, L.MC + 2 - L.dodds.z)),
-          lines: [{ at: 0.2, text: t('cutscenes.bus.dodds') }] },   // (the one time her stare is told)
+          lines: [{ at: 0.2, text: t('cutscenes.bus.dodds') }, { at: 6, text: t('cutscenes.bus.doddsWord') }] },   // (the one time her stare is told; her word in the galleries leads into chapter 1)
       ];
       return {
         shots, actors,   // (actors: the figures, for the checks)
@@ -178,7 +178,7 @@ export const CUTSCENES = {
       // Percy in the doorway, Mom just behind him: both seen through the door from outside (they stood inside, behind the wall)
       const percy = actor(game, buildHeroModel('percy'), V(L.door.x + 0.7, L.FY, L.door.z), -Math.PI / 2); actors.push(percy);
       const mom = actor(game, buildMortal('tourist'), V(L.door.x + 1.8, L.FY, L.door.z - 0.3), -Math.PI / 2); actors.push(mom);
-      const cm = camaro(); cm.position.set(46, L.FY, 60.5); cm.rotation.y = 0; game.scene.add(cm);
+      const cm = camaro(); cm.rotation.order = 'YXZ'; cm.position.set(46, L.FY, 60.5); cm.rotation.y = 0; game.scene.add(cm);   // (YXZ: the crash rolls it over its own length)
       // the drive: along the road, then up toward the hill
       const pts = L.road; const segs = []; let total = 0;
       for (let i = 0; i < pts.length - 1; i++) { const len = pts[i].distanceTo(pts[i + 1]); segs.push({ a: pts[i], b: pts[i + 1], len, s0: total }); total += len; }
@@ -212,13 +212,15 @@ export const CUTSCENES = {
           cam: follow(cm, [-11, 6.5, 9], [4, 0.8, -3], { offset2: [-9, 5.5, -9], fov: 44 }),
           lines: [{ at: 0.2, text: t('cutscenes.summer.drive') }],
           act: (k, dt) => { const v = 9; s = Math.min(total, s + v * dt); place(s); spin(cm, v * dt); } },   // (9 m/s: the road lasts both shots)
-        { dur: 5.6, fadeOut: 'white',
+        { dur: 9.4, fadeOut: 'white',   // (two lines: the hill, then the crash)
           cam: move({ pos: [68, 9, 44], look: [82, 5, 26] }, { pos: [72, 8, 36], look: [80, 7, 14] }, { fov: 42, fov2: 36 }),
           card: { src: 'assets/cards/scene-storm-drive.jpg', at: 0.4, dur: 3 },
-          lines: [{ at: 0.2, text: t('cutscenes.summer.lightning') }],
+          lines: [{ at: 0.2, text: t('cutscenes.summer.lightning') }, { at: 4.3, text: t('cutscenes.summer.crash') }],
           // the car slows and parks at the end of the road, at the foot of the hill, then the lightning hits
           enter: () => { cm.userData.s0 = s; },
-          act: (k, dt, t) => { const f = Math.min(1, t / 3.8), ns = cm.userData.s0 + (total - cm.userData.s0) * (1 - (1 - f) ** 2); spin(cm, ns - s); s = ns; place(s); if (t > 4.3 && !cm.userData.hit) { cm.userData.hit = true; flash(true); } } },
+          act: (k, dt, t) => { const f = Math.min(1, t / 3.8), ns = cm.userData.s0 + (total - cm.userData.s0) * (1 - (1 - f) ** 2); spin(cm, ns - s); s = ns; place(s); if (t > 4.3 && !cm.userData.hit) { cm.userData.hit = true; flash(true); }
+            // the lightning flips the car onto its side, into the ditch (chapter 2 starts from there)
+            if (cm.userData.hit) { const r = cm.userData.roll = Math.min(1, (cm.userData.roll ?? 0) + dt * 5); cm.rotation.x = r * Math.PI / 2; cm.position.y = L.FY + Math.sin(r * Math.PI / 2) * 0.97; } } },
       ];
       return {
         shots, actors,   // (actors: the figures, for the checks)

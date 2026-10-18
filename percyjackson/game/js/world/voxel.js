@@ -126,22 +126,69 @@ export class World {
   }
 
   // ---------------------------------------------------------------- meshing
-  init(materials) {
+  // focus: where the action starts. A world with streaming on (stream(radius),
+  // for the open world) meshes only the chunks near it; the rest follow the
+  // action (streamTo, every frame) and far chunks are let go.
+  init(materials, focus = null) {
     this.materials = materials;
     this.buildLightGrid();
-    for (let ky = 0; ky < this.cy; ky++) for (let kz = 0; kz < this.cz; kz++) for (let kx = 0; kx < this.cx; kx++) this.dirty.add(kx + ',' + ky + ',' + kz);
-    this.flush(Infinity);
+    if (this.streamR && focus) this.prime(focus);
+    else {
+      for (let ky = 0; ky < this.cy; ky++) for (let kz = 0; kz < this.cz; kz++) for (let kx = 0; kx < this.cx; kx++) this.dirty.add(kx + ',' + ky + ',' + kz);
+      this.flush(Infinity);
+    }
     for (const r of this.roofs) this.buildRoof(r);
   }
   // Rebuild up to `budget` dirty chunks (streaming / destruction).
   flush(budget = 4) {
     let n = 0;
     for (const key of this.dirty) {
-      if (n++ >= budget) break;
+      if (n >= budget) break;
       this.dirty.delete(key);
+      if (this.streamR && !this.chunks.has(key)) continue;   // (not loaded: it is meshed fresh when the action comes near)
+      n++;
       const [kx, ky, kz] = key.split(',').map(Number);
       this.buildChunk(kx, ky, kz);
     }
+  }
+  // ---- streaming (big worlds)
+  stream(radius = 96) { this.streamR = radius; this.streamQ = []; this.streamAt = null; return this; }
+  // Mesh every chunk within `r` of pos now (a teleport, a load), the rest of the radius over the next frames.
+  prime(pos, r = Math.min(64, this.streamR)) {
+    const fx = pos.x / CS, fz = pos.z / CS, kr = r / CS;
+    for (let kz = Math.floor(fz - kr); kz <= Math.floor(fz + kr); kz++) for (let kx = Math.floor(fx - kr); kx <= Math.floor(fx + kr); kx++) {
+      if (kx < 0 || kz < 0 || kx >= this.cx || kz >= this.cz || Math.hypot(kx + 0.5 - fx, kz + 0.5 - fz) > kr + 0.7) continue;
+      for (let ky = 0; ky < this.cy; ky++) if (!this.chunks.has(kx + ',' + ky + ',' + kz)) this.buildChunk(kx, ky, kz);
+    }
+    this.streamAt = null;
+  }
+  // Per frame: queue the missing chunks near pos (nearest first), mesh `budget` of them, drop far ones.
+  streamTo(pos, budget = 3) {
+    if (!this.streamR || !this.materials) return;
+    const fx = Math.floor(pos.x / CS), fz = Math.floor(pos.z / CS), kr = Math.ceil(this.streamR / CS);
+    if (!this.streamAt || this.streamAt[0] !== fx || this.streamAt[1] !== fz) {
+      this.streamAt = [fx, fz];
+      for (const [key, ch] of this.chunks) {   // let go of chunks well outside the radius
+        const [kx, , kz] = key.split(',').map(Number);
+        if (Math.max(Math.abs(kx - fx), Math.abs(kz - fz)) > kr + 2) { this.dropChunk(ch); this.chunks.delete(key); }
+      }
+      const q = [];
+      for (let kz = fz - kr; kz <= fz + kr; kz++) for (let kx = fx - kr; kx <= fx + kr; kx++) {
+        if (kx < 0 || kz < 0 || kx >= this.cx || kz >= this.cz) continue;
+        const d = Math.hypot(kx - fx, kz - fz); if (d > kr + 0.5) continue;
+        for (let ky = 0; ky < this.cy; ky++) if (!this.chunks.has(kx + ',' + ky + ',' + kz)) q.push([d + ky * 0.01, kx, ky, kz]);
+      }
+      q.sort((a, b) => b[0] - a[0]);   // (popped from the end: nearest first)
+      this.streamQ = q;
+    }
+    for (let n = 0; n < budget && this.streamQ.length; n++) {
+      const [, kx, ky, kz] = this.streamQ.pop();
+      if (!this.chunks.has(kx + ',' + ky + ',' + kz)) this.buildChunk(kx, ky, kz); else n--;
+    }
+  }
+  dropChunk(ch) {
+    const g = this.group;
+    for (const m of [ch.mesh, ch.water, ...(ch.glow ?? [])]) { if (!m) continue; g.remove(m); m.geometry.dispose(); m.dispatchEvent({ type: 'dispose' }); }
   }
   remeshAll() {
     this.buildLightGrid();

@@ -18,6 +18,7 @@ import * as THREE from 'three/webgpu';
 import { uniform, uv, vec3, vec4, float, sin, smoothstep, mix } from 'three/tsl';
 import { Kit, makeDisc, zap, stun, mark } from './kit.js';
 import { registerKit } from './index.js';
+import { RANGED, lifeOf } from '../combatRules.js';
 import { buildRiptide } from '../entities/models.js';
 import { U } from '../gfx/materials.js';
 
@@ -111,12 +112,12 @@ class PercyKit extends Kit {
     const g = this.game, p = this.p;
     this.cast(0.26);
     const from = this.handPos();
-    const dmg = 10 + this.rank('jet') * 3;
-    const pr = g.projectiles.fire({ pos: from, vel: p.aimDir.clone().multiplyScalar(30), team: 'player', dmg, shape: 'arrow', color: SEA, emissive: 2.2, life: 0.55, radius: 0.5, scale: 0.9, light: 3,
+    const dmg = 10 + this.rank('jet') * 3, R = RANGED.jet;
+    const pr = g.projectiles.fire({ pos: from, vel: this.shotDir(from).multiplyScalar(R.speed), team: 'player', dmg, shape: 'arrow', color: SEA, emissive: 2.2, life: lifeOf(R), radius: 0.5, scale: 0.9, light: 3,
       trail: (q) => {
         for (let i = 0; i < 2; i++) g.particles.glow.emit(q.pos.x + (Math.random() - 0.5) * 0.2, q.pos.y + (Math.random() - 0.5) * 0.2, q.pos.z + (Math.random() - 0.5) * 0.2, (Math.random() - 0.5) * 2, Math.random() * 1.5, (Math.random() - 0.5) * 2, 0.4, 0.6, 1.8, 2.2, 0.12, 10, 1, 0.05, 1);
       },
-      onHit: (e, q) => { g.combat.damageEnemy(e, dmg, p, { knock: q.vel.clone().setLength(4.5), stagger: 0.25 }); g.fx.splash(q.pos, 1.5); g.fx.hitSpark(q.pos, null, { color: FOAM }); },
+      onHit: (e, q) => { g.combat.damageEnemy(e, dmg, p, { knock: q.vel.clone().setY(0).setLength(R.knock), stagger: 0.25 }); g.fx.splash(q.pos, 1.5); g.fx.hitSpark(q.pos, null, { color: FOAM }); },
       onExpire: (q, why) => { if (why === 'wall' || why === 'expire') g.fx.splash(q.pos, 1); } });
     if (!pr) return false;
     g.audio?.noise({ dur: 0.18, gain: 0.22, type: 'bandpass', freq: 2200, sweep: 900, q: 1.2 });

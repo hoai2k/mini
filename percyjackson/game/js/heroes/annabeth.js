@@ -16,6 +16,7 @@ import { t } from '../text_config.js';
 import * as THREE from 'three/webgpu';
 import { Kit, mark, root, teamBuff, clearBuff, makeDisc } from './kit.js';
 import { registerKit } from './index.js';
+import { RANGED, lifeOf } from '../combatRules.js';
 import { angleDiff } from '../util.js';
 
 const GOLD = 0xe0b04a, GREY = 0x8c96a3, NAVY = 0x1e2a4a, BLUEPRINT = 0x6ab4ff;
@@ -95,13 +96,15 @@ class AnnabethKit extends Kit {
   knife() {
     const g = this.game, p = this.p;
     this.cast(0.24);
-    const n = 1 + this.rank('knives');
-    const base = Math.atan2(p.aimDir.x, p.aimDir.z);
+    const n = 1 + this.rank('knives'), R = RANGED.knife;
+    // aimed in 3D (kit.js shotDir); a pair fans out to either side of it
+    const aim = this.shotDir(this.handPos());
+    const base = Math.atan2(aim.x, aim.z), pitch = Math.asin(Math.max(-1, Math.min(1, aim.y)));
     for (let i = 0; i < n; i++) {
       const a = base + (n > 1 ? (i - 0.5) * 0.14 : 0);
-      const pr = g.projectiles.fire({ pos: this.handPos(), vel: new THREE.Vector3(Math.sin(a), 0, Math.cos(a)).multiplyScalar(30), team: 'player', dmg: 11, shape: 'nail', color: GOLD, emissive: 1.2, life: 0.7, radius: 0.4, scale: 1.6,
+      const pr = g.projectiles.fire({ pos: this.handPos(), vel: new THREE.Vector3(Math.sin(a) * Math.cos(pitch), Math.sin(pitch), Math.cos(a) * Math.cos(pitch)).multiplyScalar(R.speed), team: 'player', dmg: 11, shape: 'nail', color: GOLD, emissive: 1.2, life: lifeOf(R), radius: 0.4, scale: 1.6,
         trail: (q) => { if (Math.random() < 0.6) g.particles.burst(q.pos, { count: 1, color: GOLD, speed: 0.2, life: 0.2, size: 0.07, shape: 3 }); },
-        onHit: (e, q) => { g.combat.damageEnemy(e, 11, p, { knock: q.vel.clone().setLength(2), stagger: 0.2 }); g.fx.hitSpark(q.pos, null, { color: GOLD }); } });
+        onHit: (e, q) => { g.combat.damageEnemy(e, 11, p, { knock: q.vel.clone().setY(0).setLength(R.knock), stagger: 0.2 }); g.fx.hitSpark(q.pos, null, { color: GOLD }); } });
       if (!pr) return false;
     }
     g.audio?.energy('nail');
@@ -277,14 +280,14 @@ class AnnabethKit extends Kit {
     g.addUpdater((dt) => {
       if (!alive) return false;
       t += dt; shotT -= dt;
-      const e = g.nearestEnemy(to, 10);
+      const e = g.nearestEnemy(to, RANGED.sentry.seek);
       if (e) head.rotation.y = Math.atan2(e.pos.x - to.x, e.pos.z - to.z);
       else head.rotation.y += dt;
       if (e && shotT <= 0) {
         shotT = 0.7;
         const from = tmp.set(to.x, to.y + 0.85, to.z).clone(), aim = tmp2.set(e.pos.x - from.x, e.pos.y + (e.height ?? 1.5) * 0.5 - from.y, e.pos.z - from.z).normalize();
-        g.projectiles.fire({ pos: from, vel: aim.multiplyScalar(26), team: 'player', dmg, shape: 'nail', color: GOLD, emissive: 1.2, life: 0.6, radius: 0.4, scale: 1.4,
-          onHit: (h, q) => { g.combat.damageEnemy(h, dmg, p, { knock: q.vel.clone().setLength(1.5), stagger: 0.15 }); g.fx.hitSpark(q.pos, null, { color: GOLD }); } });
+        g.projectiles.fire({ pos: from, vel: aim.multiplyScalar(RANGED.sentry.speed), team: 'player', dmg, shape: 'nail', color: GOLD, emissive: 1.2, life: lifeOf(RANGED.sentry), radius: 0.4, scale: 1.4,
+          onHit: (h, q) => { g.combat.damageEnemy(h, dmg, p, { knock: q.vel.clone().setY(0).setLength(RANGED.sentry.knock), stagger: 0.15 }); g.fx.hitSpark(q.pos, null, { color: GOLD }); } });
         g.audio?.tone({ freq: 900, to: 600, dur: 0.05, gain: 0.04, type: 'square', filter: 2500 });
       }
       if (t >= dur || p.dead) { end(); return false; }

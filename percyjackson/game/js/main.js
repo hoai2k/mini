@@ -23,7 +23,12 @@ import { settings, saveSettings } from './settings.js';
 import { Environment, BIOMES } from './world/biomes.js';
 import { makePropMaterials } from './world/deco.js';
 import { BLOCKS } from './world/blocks.js';
-import { buildCamp } from './world/camp.js';
+import { buildOpenWorld } from './world/openworld.js';
+import { OpenWorld } from './openworld/runtime.js';
+import { buildRoadTrip } from './world/roadtrip.js';
+import { RoadTrip, CampBusStop } from './openworld/roadtrip.js';
+import { openWorldMap } from './ui/worldMap.js';
+import { owDifficulty, CAMP_AT } from './world/owLayout.js';
 import { Boats } from './world/boats.js';
 import { generateLevel } from './world/levelgen.js';
 import { Mission } from './mission.js';
@@ -57,7 +62,7 @@ import { mulberry32, releaseObject } from './util.js';
 import { ENEMY_CAP } from './world/encounters.js';
 import { ClimbingWall } from './minigames/climbingWall.js';
 import { HEROES } from './heroes/index.js';
-import { chapter as chapterDef, CHAPTERS } from './story/chapters.js';
+import { chapter as chapterDef, CHAPTERS, chapterPlayable, chapterOpen } from './story/chapters.js';
 import { placeQuestMarkers } from './story/questMarkers.js';
 import { buildHeroModel, buildNpc } from './entities/models.js';
 import { openPhotoMode } from './photo.js';
@@ -207,8 +212,8 @@ class Game {
     this.hud.show(false); this.touch?.show(false);
     for (const p of this.players) this.removePlayer(p);
     this.players = [];
-    if (this.mode !== 'hub') this.loadHub();
-    this.rig.cinematic({ center: new THREE.Vector3(56, 8, 40), dur: 1e9, dist: 42, pitch: 34 * Math.PI / 180, orbit: 0.05 });
+    if (this.mode !== 'hub' || this.area !== 'camp') this.loadHub({ area: 'camp' });
+    this.rig.cinematic({ center: new THREE.Vector3(56 + (this.level?.openWorld ? CAMP_AT.x : 0), 8, 40 + (this.level?.openWorld ? CAMP_AT.z : 0)), dur: 1e9, dist: 42, pitch: 34 * Math.PI / 180, orbit: 0.05 });
     this.audio.setMusic('title');
     openTitle(this);
   }
@@ -272,9 +277,13 @@ class Game {
     if (this.state === 'playing') { this.hud.show(true); this.touch?.show(true); }
   }
   // In camp: the tracker points at the next chapter to play.
-  updateCampGoal() {
+  updateCampGoal(fromQuests = false) {
+    if (!fromQuests && this.ow?.data.track) { this.ow.quests.trackGoal(); return; }   // (a tracked side quest comes first: openworld/quests.js)
     const d = this.save.data;
     const next = (this.questMarkers ?? []).find((m) => m.open && !d.completed[m.ch.id]);
+    // in camp with the next chapter out on the Road West: the way there is the Greyhound
+    const roadNext = !next && this.area === 'camp' && this.level?.busStop && CHAPTERS.find((c) => chapterPlayable(c) && /^road\d$/.test(c.start?.at ?? '') && !d.completed[c.id] && chapterOpen(d, c));
+    if (roadNext) { this.tracker?.setGoal({ title: t('game.nextQuest', { title: roadNext.title }), desc: t('rt.bus.board'), pos: this.level.busStop, radius: 3 }); return; }
     if (!next) { this.tracker?.setGoal(null); return; }
     const place = next.ch.start?.place ?? next.ch.place;
     this.tracker?.setGoal({ title: t('game.nextQuest', { title: next.ch.title }), desc: place[0].toUpperCase() + place.slice(1), pos: next.pos, radius: 2 });
@@ -372,6 +381,8 @@ class Game {
   }
   // ---------------------------------------------------------------- level lifecycle
   clearLevel() {
+    this.ow?.dispose(); this.ow = null;
+    this.road?.dispose(); this.road = null;
     if (this.rig) this.rig.subject = null;
     this.wipeLeft = 0;
     this.domainSys?.end();
@@ -400,7 +411,7 @@ class Game {
     this.level = level; this.world = level.world; this.biome = biome;
     this.rig.world = this.world;   // (cinematics keep clear of walls: camera.js)
     level.deco.solidify?.(this.world);   // (props a hero can't walk through: world/deco.js SOLID_PROPS)
-    this.world.init(this.materials);
+    this.world.init(this.materials, level.spawn);
     this.scene.add(this.world.group);
     level.deco.build(this.world, this.materials, this.gr.preset.decoDensity);
     for (const s of level.deco.liveSigns ?? []) this.signs.add(s);
@@ -425,11 +436,19 @@ class Game {
     });
     this.rig.snap(at);
   }
-  loadHub() {
+  // opts.area: 'camp' (the open world round Camp Half-Blood) or 'road' (the
+  // Road West road trip); left out, the area this save was last in.
+  // opts.arrive: 'bus' (the Greyhound brings the heroes); opts.way: a waystone
+  // to arrive at; opts.fromChapter: back from a chapter (on the road, at its marker).
+  loadHub(opts = {}) {
     this.online?.loading?.();   // net: guests wait while the host builds camp
     if (!this.csBuilding) { this.endCutscene(); this.openingChapter = null; }
     this.clearLevel();
-    const L = buildCamp();
+    const area = opts.area ?? (this.csBuilding || this.state !== 'playing' ? 'camp' : this.save?.data.area) ?? 'camp';
+    this.area = area === 'road' && !this.csBuilding ? 'road' : 'camp';
+    if (this.state === 'playing' && !this.csBuilding && this.save?.data) this.save.data.area = this.area;
+    if (this.area === 'road') { this.loadRoad(opts); return; }
+    const L = buildOpenWorld();   // (Camp Half-Blood in the middle of the open world: world/openworld.js)
     this.loadWorld(L, BIOMES.camp);
     if (this.state === 'playing') this.audio.overrideMusic = null; this.audio.setMusic('hub');
     this.placePlayers(L.spawn);
@@ -471,8 +490,47 @@ class Game {
     this.mode = 'hub'; this.chapter = null;
     this.online?.sceneChanged();
     this.interactables.push({ id: 'iris', pos: (L.iris ?? L.mapTable.clone().add(new THREE.Vector3(3, 0, 0))), radius: 2.4, label: this.online?.active ? t('game.camp.irisActive') : t('game.camp.iris'), action: () => openOnline(this) });
+    // the open world: regions, waystones, camps, champions, shrines, chests, people and side quests
+    this.ow = new OpenWorld(this, L); this.ow.setup();
+    // the Greyhound to the Road West, at the bus stop past Half-Blood Hill
+    this.road = new CampBusStop(this, L); this.road.setup(opts);
+    if (opts.way) { const w = L.ow.waystones.find((q) => q.id === opts.way); if (w) this.ow.travel(w); }
     // where to go next, and monsters in the woods and along the Road West (not while a cutscene is building camp as its set)
     if (!this.csBuilding && this.state === 'playing') { this.updateCampGoal(); this.roaming.configureCamp(); }
+  }
+  // The Road West (world/roadtrip.js): the same open-world systems (regions,
+  // waystones, camps, chests, people) on the road trip's map, with its
+  // roadblocks, rides and the taxi (openworld/roadtrip.js).
+  loadRoad(opts = {}) {
+    const L = buildRoadTrip();
+    this.loadWorld(L, BIOMES.rt_turnpike);
+    if (this.state === 'playing') this.audio.overrideMusic = null; this.audio.setMusic('hub');
+    const d = this.save.data;
+    let at = L.spawn;
+    const way = opts.way ?? (!opts.arrive && !opts.fromChapter ? d.rt?.way : null);
+    const w = way && L.ow.waystones.find((q) => q.id === way);
+    if (w) at = w.pos;
+    this.placePlayers(at);
+    this.hubProps = [];
+    this.questMarkers = placeQuestMarkers(this, L);
+    const back = opts.fromChapter && this.questMarkers.find((m) => m.ch.id === opts.fromChapter);
+    if (back) this.placePlayers(back.pos.clone().add(new THREE.Vector3(2.5, 0, 2.5)));
+    this.wave = 0;
+    this.minimap.level = null;
+    this.hud.mini.classList.add('hidden');
+    this.hud.setObjective(t('rt.area'), t('regions.rt_turnpike.sub'));
+    this.mode = 'hub'; this.chapter = null;
+    this.online?.sceneChanged();
+    this.ow = new OpenWorld(this, L); this.ow.setup();
+    this.road = new RoadTrip(this, L); this.road.setup(opts);
+    if (!this.csBuilding && this.state === 'playing') { this.updateCampGoal(); this.roaming.configureCamp(); }
+  }
+  // Go to the other area (by the Greyhound, or a waystone there).
+  goArea(area, opts = {}) {
+    if (this.online?.isGuest) { toast(t('ow.hostTravels')); return; }
+    this.ui.closeAll(); this.paused = false;
+    this.loadHub({ ...opts, area });
+    if (!opts.arrive) toast(area === 'road' ? t('rt.area') : t('game.camp.name'), 'title');
   }
   // Play a chapter of a book: story cards, then its level.
   // { opening: true }: chapter 1 or 2 played as part of the opening (the story carries on after it)
@@ -509,6 +567,7 @@ class Game {
     this.ui.closeAll(); this.paused = false;
     this.clearLevel();
     this.chapter = def.chapter ? chapterDef(def.chapter) : null;
+    this.lastChapter = def.chapter ?? null;
     // build the level from its seed alone, so online guests get the same one
     const rnd = Math.random; Math.random = mulberry32((def.seed ?? 1) ^ 0x5bd1e995);
     let L;
@@ -579,7 +638,7 @@ class Game {
   returnToHub() {
     // net: online, a guest goes where the host goes
     if (this.online?.isGuest && this.mode !== 'hub') { this.ui.closeAll(); this.paused = false; toast(t('game.waitingForHost')); return; }
-    this.loadHub(); toast(t('game.camp.name'), 'title');
+    this.loadHub({ fromChapter: this.lastChapter ?? null }); toast(this.area === 'road' ? t('rt.area') : t('game.camp.name'), 'title');
   }
   openMap() {
     if (!this.minimap.level) return;
@@ -649,7 +708,9 @@ class Game {
       if (k.procs.explode) { this.combat.aoe(e.pos, 2.6, e.maxHp * 0.2 * k.procs.explode, k, { knock: 6, blocks: false }); this.fx.explosion(e.pos, 0xff8a3a, 2.4); }
     }
     if (!e.isDummy) {
-      for (const sv of this.localSaves()) if (sv.addXp(e.def.xp ?? 3)) this.levelUp(sv);   // net: every player's profile
+      const xp = Math.round((e.def.xp ?? 3) * (1 + 0.3 * Math.max(0, (e.level ?? 1) - 1)) * (e.champion ? 4 : 1));   // (tougher monsters are worth more: the open world's regions rise in level)
+      for (const sv of this.localSaves()) if (sv.addXp(xp)) this.levelUp(sv);   // net: every player's profile
+      this.ow?.onKill(e);
       const [a, b] = e.def.coins ?? [1, 2];
       this.pickups.drop('coin', e.pos, a + Math.floor(Math.random() * (b - a + 1)));
       if (Math.random() < 0.08) this.pickups.drop('heal', e.pos, 1);
@@ -670,7 +731,7 @@ class Game {
   // Chests and bosses drop a separate item (or two) for every human player.
   onChestOpened(c) {
     this.audio?.sample?.('chest');
-    const diff = this.mission?.def.difficulty ?? 1;
+    const diff = this.mission?.def.difficulty ?? c.difficulty ?? 1;
     const humans = this.players.filter((q) => !q.ai && !q.remote);
     humans.forEach((q, n) => {
       const items = rollChest(diff, c.boss ? 'boss' : c.rarity, { level: this.saveFor(q).data.level, hero: q.hero });
@@ -683,12 +744,13 @@ class Game {
   // Elites and champions sometimes drop an item for the hero who beat them.
   maybeDropFromMonster(e) {
     const tier = e.def?.tier;
-    const chance = e.elite ? 0.18 : tier === 'champion' ? 0.5 : tier === 'elite' ? 0.06 : 0;
-    if (!chance || Math.random() > chance || !this.mission) return;
+    const chance = e.champion ? 1 : e.elite ? 0.18 : tier === 'champion' ? 0.5 : tier === 'elite' ? 0.06 : 0;
+    if (!chance || Math.random() > chance || (!this.mission && !this.ow)) return;
+    const diff = this.mission?.def.difficulty ?? owDifficulty(e.level);   // (the open world: from the monster's level)
     const k = e.lastAttacker;
     const q = k?.isPlayer && !k.ai && !k.remote ? k : this.players.find((x) => !x.ai && !x.remote);
     if (!q) return;
-    this.loot.drop(rollItem(powerFor(this.mission.def.difficulty, this.saveFor(q).data.level), { hero: q.hero }), e.pos, q);
+    this.loot.drop(rollItem(powerFor(diff, this.saveFor(q).data.level), { hero: q.hero, rarity: e.champion ? (Math.random() < 0.35 ? 'unique' : 'rare') : null }), e.pos, q);
   }
   onPlayerDied(p) {
     if (this.wipeLeft > 0 || !this.players.length || !this.players.every((q) => q.dead || q.downed)) return;
@@ -804,7 +866,7 @@ class Game {
     const anyQuest = playing && !cs && !this.ui.stack.length && this.players.some((p) => this.input.get(p.device).pressed.quest);   // J: the quest log (the chapter map)
     if (this.ui.stack.length) { this.ui.update(); if (anyMap && this.ui.isOpen('map')) { this.ui.close('map'); this.paused = false; } }
     else if (pausePlayer && !this.minigame?.el) this.pause(pausePlayer);
-    else if (anyMap || anyQuest) { if (this.mode === 'hub' && !this.online?.isGuest) openMapTable(this); else this.openMap(); }   // View / M: the level map; in camp the chapter map (the quest log)
+    else if (anyMap || anyQuest) { if (this.mode === 'hub' && this.ow) openWorldMap(this, { tab: anyQuest ? 'quests' : 'map' }); else if (this.mode === 'hub' && !this.online?.isGuest) openMapTable(this); else this.openMap(); }   // in camp: the world map (J: its quest list)   // View / M: the level map; in camp the chapter map (the quest log)
     if (playing && !cs && !this.ui.stack.length && !this.paused) {
       const handled = new Set();     // a switch hands the device to another hero: act once per device
       for (const p of [...this.players]) {
@@ -855,6 +917,8 @@ class Game {
       this.loot.update(dt);
       this.mission?.update(dt);
       this.roaming.update(dt);
+      this.ow?.update(dt);
+      this.road?.update?.(dt);
       this.online.update(realDt);
     }
     this.domainSys.update(dt, this.paused ? 0 : realDt);
@@ -868,7 +932,7 @@ class Game {
     // the party, they don't pull or zoom the view (falls back to everyone)
     const humans = this.players.filter((p) => !p.remote && !p.ai && !p.dead);
     const local = humans.length ? humans : this.players.filter((p) => !p.remote);
-    this.rig.update(dt, local.length ? local : [this.idleFocus ?? (this.idleFocus = { pos: new THREE.Vector3(19, 6, 24), vel: new THREE.Vector3(), aimDir: new THREE.Vector3(), dead: false })], realDt);
+    this.rig.update(dt, local.length ? local : [this.idleFocus ?? (this.idleFocus = { pos: new THREE.Vector3(19 + CAMP_AT.x, 6, 24 + CAMP_AT.z), vel: new THREE.Vector3(), aimDir: new THREE.Vector3(), dead: false })], realDt);
     if (this.cutscene) this.cutscene.applyCamera();
     U.camPos.value.copy(this.rig.camera.position);
     for (let i = 0; i < 4; i++) {
@@ -877,6 +941,7 @@ class Game {
     }
     this.lights.update(dt, this.rig.focus);
     this.world.updateRoofs(this.players, realDt);
+    this.world.streamTo?.(this.rig.focus);   // (the open world meshes the chunks near the action as it moves)
     this.world.flush(2);
     this.env.update(realDt);
     if (!this.paused) this.fx.ambient(dt, this.biome.particles, this.rig.focus);

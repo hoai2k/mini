@@ -221,6 +221,9 @@ export class OpeningFlow {
     g.mode = 'hub';
     g.placePlayers(g.level.spawn);
     for (const p of g.players) p.object.visible = true;
+    // the region the party stands in counts as seen: its name would only repeat the cutscene's welcome
+    const r = g.ow?.lay?.regionAt?.(g.level.spawn.x, g.level.spawn.z);
+    if (r && !g.ow.region) { g.ow.data.seen[r.id] = true; g.save?.write?.(); }
     g.updateCampGoal?.();
     g.roaming?.configureCamp();
     g.online?.sceneChanged?.();
