@@ -349,7 +349,7 @@ export const TEXT = {
     summer: {
       title: 'Summer, and a storm',
       cabin: 'Summer. Mom takes you to the cabin at Montauk, on the beach where she first met your father.',
-      knock: 'A storm, at midnight. Someone bangs on the door: Grover, with no trousers, and hooves instead of feet.',
+      knock: 'Midnight, in a storm. Someone bangs on the door: Grover, with hooves instead of feet.',
       drive: '“Something is following us!” Mom drives the old Camaro into the storm, as fast as it will go.',
       lightning: 'Toward a hill on Long Island, and a great pine tree at the top.',
       crash: 'BOOM. The lightning hits, the world goes white, and the Camaro flips into a ditch.',

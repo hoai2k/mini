@@ -155,7 +155,7 @@ export const CUTSCENES = {
         { dur: 11.4, fadeOut: 'black',   // (two lines: her stare, then her word)
           cam: move({ pos: [21, L.top + 2.2, L.MC + 2], look: [L.dodds.x, L.top + 1.6, L.dodds.z] }, { pos: [18.6, L.top + 1.9, L.MC + 0.6], look: [L.dodds.x, L.top + 1.7, L.dodds.z] }, { fov: 34, fov2: 28 }),
           enter: () => dodds.face(Math.atan2(20 - L.dodds.x, L.MC + 2 - L.dodds.z)),
-          lines: [{ at: 0.2, text: t('cutscenes.bus.dodds') }, { at: 5.6, text: t('cutscenes.bus.doddsWord') }] },   // (the one time her stare is told; her word in the galleries leads into chapter 1)
+          lines: [{ at: 0.2, text: t('cutscenes.bus.dodds') }, { at: 5.8, text: t('cutscenes.bus.doddsWord') }] },   // (the one time her stare is told; her word in the galleries leads into chapter 1)
       ];
       return {
         shots, actors,   // (actors: the figures, for the checks)
@@ -203,11 +203,11 @@ export const CUTSCENES = {
         { dur: 6.3, fadeIn: 'black',
           cam: move({ pos: [10, 12, 82], look: [38, 4, 55] }, { pos: [16, 9, 72], look: [38, 4, 56] }, { fov: 42 }),
           lines: [{ at: 0.3, text: t('cutscenes.summer.cabin') }] },
-        { dur: 6.3,   // (Grover arrives in the first two seconds: the shot moves on once his line is read)
+        { dur: 5.1,   // (Grover arrives in the first two seconds: the shot moves on once his line is read, 1.7 s sooner than it first did)
           enter: () => { grover.rig.root.visible = true; grover.pos.set(L.door.x - 7, L.FY, L.door.z + 2); grover.walk(V(L.door.x - 1.6, L.FY, L.door.z), 3.6); flash(); },
           cam: move({ pos: [L.door.x - 6.5, L.FY + 3.2, L.door.z + 3.5], look: [L.door.x + 0.2, L.FY + 1.3, L.door.z] }, { pos: [L.door.x - 5.5, L.FY + 2.8, L.door.z + 3], look: [L.door.x + 0.3, L.FY + 1.4, L.door.z] }, { fov: 40 }), noFrame: true,   // (through the door, a metre clear of Grover: framed by hand)
           lines: [{ at: 0.3, text: t('cutscenes.summer.knock') }],
-          card: { src: 'assets/cards/scene-montauk.jpg', at: 1.0, dur: 4.8 } },
+          card: { src: 'assets/cards/scene-montauk.jpg', at: 1.0, dur: 3.7 } },
         { dur: 6.2,
           enter: () => { grover.rig.root.visible = false; percy.rig.root.visible = false; mom.rig.root.visible = false; s = 0; },
           cam: follow(cm, [-11, 6.5, 9], [4, 0.8, -3], { offset2: [-9, 5.5, -9], fov: 44 }),
