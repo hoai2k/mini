@@ -23,9 +23,10 @@ const pretty = (s) => String(s).replace(/[_-]+/g, ' ').replace(/\b\w/g, (c) => c
 // ------------------------------------------------------------------ registries
 const loadErrors = [];
 const tryImport = async (path) => { try { return await import(path); } catch (e) { loadErrors.push(`${path}: ${e.message}`); console.error('workbench: could not import', path, e); return {}; } };
-const [models, monsters, bosses, mortals, heroes, people] = await Promise.all([
+const [models, monsters, bosses, mortals, heroes, people, champions, text] = await Promise.all([
   tryImport('../js/entities/models.js'), tryImport('../js/entities/monsters.js'), tryImport('../js/entities/bosses.js'),
   tryImport('../js/entities/mortals.js'), tryImport('../js/heroes/index.js'), tryImport('../js/entities/people.js'),
+  tryImport('../js/entities/champions.js'), tryImport('../js/text_config.js'),
 ]);
 const PEOPLE = people.PEOPLE ?? {};
 const HEROES = heroes.HEROES ?? {}, HERO_LOOKS = models.HERO_LOOKS ?? {};
@@ -33,7 +34,7 @@ const MONSTERS = monsters.MONSTERS ?? {}, BOSS_DEFS = bosses.BOSS_DEFS ?? {}, MO
 
 const GROUPS = [
   { id: 'heroes', label: 'Heroes' }, { id: 'npcs', label: 'Camp NPCs' }, { id: 'monsters', label: 'Monsters' },
-  { id: 'bosses', label: 'Bosses' }, { id: 'mortals', label: 'Mortal disguises' }, { id: 'people', label: 'Open-world people' },
+  { id: 'bosses', label: 'Bosses' }, { id: 'champions', label: 'Champions' }, { id: 'mortals', label: 'Mortal disguises' }, { id: 'people', label: 'Open-world people' },
 ];
 const TIER_COLOR = { minor: '#9a9a8a', elite: '#4ad0ff', champion: '#ff9a2a', boss: '#e8664a' };
 const hex = (n) => '#' + (n >>> 0).toString(16).padStart(6, '0');
@@ -52,6 +53,12 @@ const add = (group, id, name, data, build, chip) => items.push({ group, id, name
   for (const id of mortals.MORTAL_IDS ?? Object.keys(MORTALS)) add('mortals', id, MORTALS[id].name ?? pretty(id), MORTALS[id], () => mortals.buildMortal(id), '#e4d4b8');
   // the open world's side-quest people (model 'npc:<id>' in world/regions and world/road)
   for (const id of people.PEOPLE_IDS ?? Object.keys(PEOPLE)) add('people', id, PEOPLE[id].name ?? pretty(id), PEOPLE[id], () => people.buildPerson(id), PEOPLE[id].accent != null ? hex(PEOPLE[id].accent) : '#c9963a');
+  // the open world's named champions, and the crowned look a Road West champion of each kind wears (entities/champions.js)
+  for (const id of champions.CHAMPION_SHOWCASE ?? []) {
+    const kind = id.startsWith('kind:') ? id.slice(5) : null;
+    const name = kind ? `${MONSTERS[kind]?.name ?? pretty(kind)} (Road West champion)` : (text.TEXT?.champions?.[id]?.name ?? pretty(id.replace(/^[a-z]+_/, '')));
+    add('champions', id, name, kind ? { ...MONSTERS[kind], blurb: 'The look a Road West champion of this kind wears: a crown, a glow and its own colours.' } : { tier: 'champion', blurb: 'A named champion of the open world (world/regions): triple health, an epic chest when beaten.' }, () => champions.buildShowcase(id), TIER_COLOR.champion);
+  }
   const seen = new Map(); for (const it of items) seen.set(it.id, (seen.get(it.id) ?? 0) + 1);
   for (const it of items) if (seen.get(it.id) > 1) it.key = `${it.group}:${it.id}`;
 }

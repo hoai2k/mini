@@ -82,12 +82,12 @@ export function build(ctx) {
   for (let x = dx0 + 1; x < dx1; x++) { if (Math.abs(x - 112) > 1) W.set(x, FY + 1, dz1, B.glass); for (const y of [FY + 6, FY + 9]) if (x % 2) W.set(x, y, dz1, B.steel_window); W.set(x, FY + 3, dz1, B.gold_trim); }
   for (const x of [dx0, dx1]) for (let y = FY; y < FY + dh; y++) W.set(x, y, dz1, B.gold_trim);
   // the gold record on its face, as big as a garage door
-  for (let x = 116; x <= 123; x++) for (let y = FY + 4; y <= FY + 11; y++) {
-    const d = Math.hypot(x + 0.5 - 120, y + 0.5 - (FY + 7.5));
-    if (d > 3.4) continue;
-    W.set(x, y, dz1 + 1, d > 2.7 ? B.gold_plate : d < 0.9 ? B.gold_trim : d > 1.6 && d < 2.0 ? B.black_marble : B.obsidian);
+  for (let x = 116; x <= 124; x++) for (let y = FY + 3; y <= FY + 12; y++) {
+    const d = Math.hypot(x + 0.5 - 120.5, y + 0.5 - (FY + 8));
+    if (d > 4.4) continue;
+    W.set(x, y, dz1 + 1, d > 3.5 ? B.gold_plate : d < 0.6 ? B.obsidian : d < 1.6 ? B.gold_trim : d > 2.3 && d < 2.8 ? B.black_marble : B.obsidian);
   }
-  W.addLight(120.5, FY + 7.5, dz1 + 3, 0xe8c870, 2, 7);
+  W.addLight(120.5, FY + 8, dz1 + 3, 0xe8c870, 2, 7);
   board(112, dz1 + 1, S('doa'), { y: FY + 4, post: 0, w: 10, h: 1.4, rot: 0, bg: '#0a0a0e', fg: '#e8c870', border: '#c9963a' });
   // the lobby: Charon's desk, the couches, the waiting dead, the elevator down
   fill(107, FY, 24, 117, FY, 24, B.black_marble); fill(107, FY + 1, 24, 117, FY + 1, 24, B.gold_trim);

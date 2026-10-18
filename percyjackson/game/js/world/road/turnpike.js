@@ -164,10 +164,10 @@ export function roadside(ctx) {
     canopy(x0, z0, x1, z1, pumps, o = {}) {
       const y = o.y ?? FY, zc = Math.floor((z0 + z1) / 2);
       fill(x0, y + 5, z0, x1, y + 5, z1, o.roof ?? B.steel_panel);
-      // the fascia all round: a yellow band, the red stripe, a teal top
+      // the fascia all round, hanging below the roof: a teal top, the red stripe, a yellow band
       for (let x = x0; x <= x1; x++) for (let z = z0; z <= z1; z++) {
         if (x !== x0 && x !== x1 && z !== z0 && z !== z1) continue;
-        W.set(x, y + 4, z, o.band ?? B.gold_trim); W.set(x, y + 5, z, o.stripe ?? B.barn_red); W.set(x, y + 6, z, o.top ?? B.teal_panel);
+        W.set(x, y + 5, z, o.top ?? B.teal_panel); W.set(x, y + 4, z, o.stripe ?? B.barn_red); W.set(x, y + 3, z, o.band ?? B.gold_trim);
       }
       for (const px of pumps) {
         for (let x = px - 1; x <= px + 1; x++) W.set(x, y - 1, zc, B.concrete);

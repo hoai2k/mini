@@ -1153,7 +1153,7 @@ export function buildCyclops({ id = 'cyclops', pal = {} } = {}) {
   K.box(T, 0, 5.5, 3.3, 4, 4, 0.8, skin);
   for (const leg of [rig.legR, rig.legL]) { K.box(leg, 0, -9.6, 0.6, 4.6, 0.8, 5.6, leather); for (const y of [-7.5, -8.6]) K.box(leg, 0, y, 0, 4.3, 0.5, 4.3, leather); }
   // the club: a knotted log thickening to a studded head
-  const club = group(rig.handR, 0, -1, 1, -1.2, 0, 0);
+  const club = group(rig.handR, 0, -1, 1, 0.5, 0, 0);
   K.box(club, 0, 4, 0, 2.6, 12, 2.6, 0x5a3418); K.box(club, 0, 11, 0, 3.4, 4, 3.4, 0x6a3e1e); K.box(club, 0, 16, 0, 4.8, 7, 4.8, 0x7a4a24); K.box(club, 0, 20, 0, 3.8, 1.6, 3.8, 0x6a3e1e);
   for (const [x, y, z] of [[2.6, 15, 0], [-2.6, 17.5, 0], [0, 16.5, 2.6], [0, 14, -2.6], [2.6, 19, 0.8], [-1.4, 13.5, 2.6], [0.6, 19, -2.6]]) K.box(club, x, y, z, 1.4, 1.4, 1.4, 0x8a8a94);
   K.box(club, 0, -2, 0, 3, 1.4, 3, leather);

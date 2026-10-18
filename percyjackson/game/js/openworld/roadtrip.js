@@ -722,7 +722,7 @@ function blockModel(kind, b) {
   } else if (kind === 'gate') {
     // the Lotus's gate: green vines looped between the stone pillars, big pink lotus flowers glowing in them; it withers and falls apart
     U.dur = 4.5;
-    const vineM = mat(0x2f7a2a, { r: 0.7 }), leafM = mat(0x4aa83a, { r: 0.7 }), coreM = M(0xffd84a, { e: 0xffb020, ei: 2 });
+    const vineM = mat(0x3a8a2a, { r: 0.7 }), leafM = mat(0x5ac040, { r: 0.7 }), coreM = M(0xffd84a, { e: 0xffb020, ei: 2 });
     const petalM = mat(0xffffff, { r: 0.4, e: 0xff2a98, ei: 2 });
     const vineG = [0, 1, 2, 3].map(() => new Boxes());
     const quarter = (z) => (z < -2.6 ? 0 : z < 0 ? 1 : z < 2.6 ? 2 : 3);
@@ -750,7 +750,7 @@ function blockModel(kind, b) {
         const p = petals.userData.P[pi++];
         p.x = fx + _a.x * len * s * 0.5; p.y = fy + _a.y * len * s * 0.55; p.z = fz + _a.z * len * s * 0.55;
         p.rx = _e.x; p.ry = _e.y; p.rz = _e.z; p.s = s; p.sx = 0.16; p.sy = len; p.sz = 0.5;
-        p.a = rnd(0, 0.55); p.vx = rnd(0.2, 1.4); p.vz = rnd(-0.6, 0.6); p.b = rnd(-3, 3);
+        p.a = rnd(0, 0.55); p.vx = rnd(0.4, 2.6); p.vz = rnd(-1.6, 1.6); p.b = rnd(-3, 3);
       }
     }
     flush(petals);
@@ -758,7 +758,7 @@ function blockModel(kind, b) {
     const sparks = swarm(34, M(0xffffff, { e: 0xff7ae0, ei: 2.5 }), [0xff9ae8, 0xd08aff, 0xffd0f0]); g.add(sparks);
     for (const p of sparks.userData.P) { p.a = rnd(-1, 1.5); p.b = rnd(-5, 5); p.c = rnd(0.3, 6); p.k = rnd(0.3, 0.8); p.t = rnd(0, 6); p.s = rnd(0.08, 0.16); }
     const twinkle = (dt, rise = 0) => { for (const p of sparks.userData.P) { p.t += dt * p.k; p.x = p.a + Math.sin(p.t * 1.3) * 0.3; p.y = p.c + Math.sin(p.t) * 0.4 + rise * (1 + p.k); p.z = p.b + Math.cos(p.t * 0.7) * 0.3; p.rx = p.ry = p.t; } flush(sparks); };
-    const green = new THREE.Color(0x2f7a2a), brown = new THREE.Color(0x6a5030), leafG = new THREE.Color(0x4aa83a), leafB = new THREE.Color(0x9a7a40);
+    const green = new THREE.Color(0x3a8a2a), brown = new THREE.Color(0x6a5030), leafG = new THREE.Color(0x5ac040), leafB = new THREE.Color(0x9a7a40);
     b.lit = 0xff5ac8;
     let tt = 0;
     U.idle = (dt) => { tt += dt; petalM.emissiveIntensity = 2 + Math.sin(tt * 2) * 0.45; twinkle(dt); };
@@ -827,14 +827,14 @@ function blockModel(kind, b) {
   } else if (kind === 'shadow') {
     // a wall of the Underworld's shadow between the fire pillars: black and purple swirls, never still; it parts like curtains
     U.dur = 4.5;
-    const dark = swarm(330, mat(0xffffff, { r: 0.9, e: 0x12061e, ei: 0.8, op: 0.94 }), [0x0a0610, 0x140a20, 0x1e0e30, 0x060408, 0x2a1448]);
+    const dark = swarm(460, mat(0xffffff, { r: 0.9, e: 0x1c0a36, ei: 1, op: 0.94 }), [0x08060e, 0x120a22, 0x1c0e34, 0x050408, 0x2a1450]);
     const glow = swarm(120, M(0xffffff, { e: 0x8a4aff, ei: 2.6 }), [0xb07aff, 0x8a4aff, 0xd0a0ff]);
     g.add(dark); g.add(glow);
     const VOR = [[-3.5, 4.4, 1.7, 1], [-0.9, 2.3, 1.6, -1], [1.5, 4.9, 1.4, 1], [3.7, 2.2, 1.7, -1], [0.4, 0.9, 0.9, 1], [-3.8, 1.2, 1.1, -1]];
     for (const [im, arms] of [[dark, false], [glow, true]]) for (const p of im.userData.P) {
       const v = VOR[p.i % VOR.length]; p.a = p.i % VOR.length;
-      if (!arms && p.i % 5 === 4) { p.a = -1; p.b = rnd(-5, 5); p.c = rnd(0, 8); p.k = rnd(0.3, 0.9); p.s = rnd(0.5, 1.1); }   // the murk round the swirls, drifting up
-      else { p.c = arms ? Math.sqrt(Math.random()) * v[2] : Math.random() * v[2] * 1.15; p.t = arms ? p.c * 2.6 + (p.i % 2) * Math.PI : rnd(0, 6.3); p.k = v[3] * rnd(0.7, 1.3) * (1.6 - p.c / v[2] * 0.6); p.s = arms ? rnd(0.16, 0.3) : rnd(0.35, 0.8); }
+      if (!arms && p.i % 3 === 2) { p.a = -1; p.b = rnd(-5.2, 5.2); p.c = rnd(0, 8); p.k = rnd(0.3, 0.9); p.s = rnd(0.6, 1.2); }   // the murk round the swirls, drifting up
+      else { p.c = arms ? Math.sqrt(Math.random()) * v[2] : Math.random() * v[2] * 1.15; p.t = arms ? p.c * 2.6 + (p.i % 2) * Math.PI : rnd(0, 6.3); p.k = v[3] * rnd(0.7, 1.3) * (1.6 - p.c / v[2] * 0.6); p.s = arms ? rnd(0.18, 0.34) : rnd(0.45, 0.95); }
       p.x = rnd(-0.9, 0.9); p.d = Math.random(); p.rx = rnd(0, 3); p.ry = rnd(0, 3);
     }
     let part = 0;

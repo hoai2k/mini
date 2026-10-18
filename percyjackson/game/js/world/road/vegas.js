@@ -95,8 +95,8 @@ export function roadside(ctx) {
       const cx0 = x0 + 1, cx1 = Math.min(x1 - 1, x0 + 13);
       for (const x of [cx0, cx1]) for (const z of [cz0, cz1]) fill(x, FY, z, x, FY + 3, z, B.concrete_pillar);
       fill(cx0 - 1, FY + 4, cz0 - 1, cx1 + 1, FY + 4, cz1 + 1, B.steel_panel);
-      // the fascia all round: the stripe and a teal top band
-      for (let x = cx0 - 1; x <= cx1 + 1; x++) for (let z = cz0 - 1; z <= cz1 + 1; z++) if (x === cx0 - 1 || x === cx1 + 1 || z === cz0 - 1 || z === cz1 + 1) { W.set(x, FY + 4, z, o.stripe ?? B.red_plank); W.set(x, FY + 5, z, o.top ?? B.teal_panel); }
+      // the fascia all round: a teal top band over the stripe
+      for (let x = cx0 - 1; x <= cx1 + 1; x++) for (let z = cz0 - 1; z <= cz1 + 1; z++) if (x === cx0 - 1 || x === cx1 + 1 || z === cz0 - 1 || z === cz1 + 1) { W.set(x, FY + 4, z, o.top ?? B.teal_panel); W.set(x, FY + 3, z, o.stripe ?? B.red_plank); }
       W.addRoof([cx0 - 1, FY + 4, cz0 - 1], [cx1 + 1, FY + 4, cz1 + 1], [[cx0 - 1, FY, cz0 - 1], [cx1 + 1, FY + 3, cz1 + 1]]);
       const pz = Math.floor((cz0 + cz1) / 2);
       for (let x = cx0 + 3; x < cx1 - 1; x += 4) { P('gas_pump', x, pz, { rot: 0 }, FY); bar(x, pz, 2, FY); }
@@ -208,7 +208,8 @@ export function build(ctx) {
   // and on top of it the great neon lotus, in the round, over the doors
   for (let r = 0; r < LOTUS_BIG.length; r++) for (let c = 0; c < LOTUS_BIG[r].length; c++) {
     const ch = LOTUS_BIG[r][c]; if (ch === '.') continue;
-    const id = ch === 'P' ? B.neon_pink : ch === 'G' ? B.gold_trim : B.neon_bulbs, y = FY + 6 + LOTUS_BIG.length - 1 - r;
+    const edge = ch === 'P' && [[0, 1], [0, -1], [1, 0], [-1, 0]].some(([dr, dc]) => (LOTUS_BIG[r + dr]?.[c + dc] ?? '.') === '.');
+    const id = ch === 'P' ? (edge ? B.neon_pink : B.satin_pink) : ch === 'G' ? B.gold_trim : B.neon_bulbs, y = FY + 6 + LOTUS_BIG.length - 1 - r;
     for (const z of Math.abs(c - 7) <= 3 || ch === 'G' ? [35, 36, 37] : [36]) W.set(365 + c, y, z, id);
   }
   W.addLight(372.5, FY + 10, 39.5, 0xff6ad0, 4, 14);
