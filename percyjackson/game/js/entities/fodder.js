@@ -148,7 +148,7 @@ function behave(kind) {
 const BITS = {
   karpos: [[C(0xe8c860), 16, false, 3.6, 0.13, 8], [C(0x9ab04a), 8, false, 2.6, 0.16, 6], [C(0x8aff3a), 5, true, 2, 0.12, -1]],
   karpos_slinger: [[C(0xe8c860), 14, false, 3.4, 0.13, 8], [C(0x3a8a2a), 8, false, 2.6, 0.16, 6], [C(0xffc030), 10, true, 3, 0.14, 4]],
-  colchis_calf: [[C(0xc08a2c), 14, false, 4, 0.18, 12], [C(0x5a3a1a), 8, false, 3, 0.16, 12], [C(0xff7a1a), 14, true, 3.5, 0.22, -1], [C(0x6a6a6a), 6, false, 1.4, 0.5, -2]],
+  colchis_calf: [[C(0x8a5a26), 14, false, 4, 0.18, 12], [C(0x5a3a1a), 8, false, 3, 0.16, 12], [C(0xff7a1a), 14, true, 3.5, 0.22, -1], [C(0x6a6a6a), 6, false, 1.4, 0.5, -2]],
   myrmex: [[C(0x241c16), 12, false, 3.2, 0.15, 11], [C(0xd8801a), 8, false, 3, 0.12, 11], [C(0xff8a10), 4, true, 2, 0.1, 2]],
   myrmex_spitter: [[C(0x241c16), 10, false, 3.2, 0.15, 11], [C(0x7aff2a), 18, true, 3.4, 0.16, 9]],
   boarlet: [[C(0x4a3424), 14, false, 3.4, 0.18, 10], [C(0xe8dcc0), 8, false, 3, 0.12, 12], [C(0x8a6a4a), 8, false, 2, 0.45, -0.5]],
@@ -414,10 +414,12 @@ function plate(K, p, x, y, z, w, h, d, face, C) {
   K.box(p, fx - sx * 0.05, y - h / 2 + 0.25, z, 0.3, 0.5, d, C.brzD);
 }
 function buildCalf(K0) {
-  const C = { brz: [0x9a6820, 0x8a5a1c, 0xa87428, 0x7a5018], brzD: 0x4a2e10, brzL: 0xc89038, gold: 0xf0c050 };
-  const iron = 0x3a2820, ironD = 0x22160f, ironL = 0x4a3428, glow = 0xff8a1a, hot = 0xffd860, horn = 0xf0e0c0, hornD = 0xc8b490, head = 0x6a4428, headD = 0x4a2e1a;
-  const mat = skinMat('colchis_calf', flatQuad(0xc8902e, 0x7a5418, iron, glow), { rough: 0.4, emit: 1 });
-  const rig = new QuadRig({ material: mat, scale: 2, bodyL: 12, bodyW: 8, bodyH: 7, legH: 7, legW: 3, headS: 5, snout: false, neckUp: -0.6, headZ: 1.6, gait: 1.2, ears: false, tail: 2, tailLen: 5, tailW: 1 });
+  // (darker than the old build: bronze-brown, copper and dark-iron plates in a
+  // patchwork, dull brass rivets, nothing yellow)
+  const C = { brz: [0x8a5a26, 0x6e4620, 0x94562c, 0x5e3c1c, 0x3a2e28], brzD: 0x34200e, brzL: 0xa0703a, gold: 0xb88840 };
+  const iron = 0x2c221e, ironD = 0x1a120e, ironL = 0x3c3028, glow = 0xff8a1a, hot = 0xffd860, horn = 0xe8dcc0, hornD = 0xbcaa88, head = 0x5a3a22, headD = 0x3e2816, snout = 0xb8987a;
+  const mat = skinMat('colchis_calf', flatQuad(0x7a5024, 0x3a2410, iron, glow), { rough: 0.4, emit: 1 });
+  const rig = new QuadRig({ material: mat, scale: 2, bodyL: 12, bodyW: 8, bodyH: 7, legH: 7, legW: 3.2, headS: 5, snout: false, neckUp: -1.3, headZ: 2, gait: 1.2, ears: false, tail: 2, tailLen: 5, tailW: 1 });
   const K = kitOf(K0, 'colchis_calf', rig, mat, { seed: 137, rough: 0.4, metal: 0.25, emit: 0.9, ao: 0.35 });
   const T = rig.torso, Hd = rig.head, M = rig.mouth, hs = 5;
   dropAll(rig, T); dropAll(rig, Hd);
@@ -429,12 +431,21 @@ function buildCalf(K0) {
     K.box(T, sx * 4.2, -2.6, 1.8, 0.8, 1.4, 9, ironL); for (let z = -4; z <= 4.5; z += 1.6) K.box(T, sx * 4.6, -2.6, z, 0.3, 0.6, 0.6, C.gold);
   }
   for (const [y, z, w, d] of [[4.6, 3.8, 7.8, 3.2], [4.2, 0.9, 7.4, 2.8], [3.8, -1.9, 7, 2.8], [3.4, -4.6, 6.6, 2.6]]) { plate(K, T, 0, y, z, w, 1.4, d, 'y', C); K.box(T, 0, y - 0.3, z - d / 2 - 0.2, w - 0.4, 1, 0.6, ironD); }
-  plate(K, T, 0, 6, 3.8, 5.6, 1.4, 3, 'y', C); plate(K, T, 0, 7.1, 3.4, 3.6, 1, 2, 'y', C); K.box(T, 0, 5.4, 2, 6.6, 1.4, 1, ironD);
+  // the great rounded shoulder hump, rising above the head: rows of plates (bronze,
+  // copper, dark iron) split by dark seams, studded with rivets
+  const HUMP = [0x9a6a2e, 0x7a4e22, 0xa0602e, 0x8a5a26, 0x3e322a, 0x946a34];
+  blob(K, T, [0, 3.4, 2.4], [5.3, 6, 5], 0.9, (x, y, z) => {
+    const band = Math.floor((z + 1) * 2.2), row = Math.floor((y + 1) * 2.4);
+    if ((z + 1) * 2.2 - band < 0.14) return ironD;
+    if ((y + 1) * 2.4 - row < 0.12) return iron;
+    if (K.r() < 0.06) return C.gold;
+    return HUMP[(band * 3 + row * 2 + (x > 0 ? 1 : 0)) % HUMP.length];
+  }, { lo: 0.02, pw: 2.3, run: [1, 3] });
   plate(K, T, 0, 0.6, 5.9, 7, 6, 0.8, 'z', C);
   K.box(T, 0, 0.2, 6.5, 3.6, 3, 0.4, ironD); for (const y of [-0.8, 0.2, 1.2]) K.box(T, 0, y, 6.7, 3, 0.5, 0.3, y > 0.5 ? hot : glow);   // the furnace grille
   K.box(T, 0, 1.4, -5.8, 6.8, 5, 0.6, mix(K, C.brz)); K.box(T, 0, 1.4, -6.1, 2.4, 2.4, 0.4, ironD);
   // two smoking vents on the back
-  const vents = group(T, 0, 5.6, -1);
+  const vents = group(T, 0, 4.8, -2.9);
   for (const sx of [-1, 1]) { K.box(vents, sx * 1.8, 0.8, 0, 1.4, 2.4, 1.4, iron); K.box(vents, sx * 1.8, 2.1, 0, 1.8, 0.4, 1.8, C.brzD); K.box(vents, sx * 1.8, 2.25, 0, 0.9, 0.2, 0.9, 0x1a1210); K.box(vents, sx * 1.8, 0.2, 0, 2, 0.5, 2, C.gold); }
   rig.extras.vents = vents;
   // head: a broad brown head under a bronze brow plate, glowing eyes, a cream muzzle, curving horns from bronze sockets
@@ -442,12 +453,12 @@ function buildCalf(K0) {
   blob(K, Hd, [0, 0, hz], [hs / 2 + 0.8, hs / 2 + 0.2, hs / 2 + 0.2], 0.8, () => mix(K, [head, headD, 0x5a3a20], 0.12), { pw: 3, run: [1, 2] }); for (const sx of [-1, 1]) plate(K, Hd, sx * (hs / 2 + 0.6), -0.4, hz + 0.6, 0.8, 2.6, 2.8, sx, C);
   K.box(Hd, 0, hs * 0.44, hz + 0.2, hs + 1.4, 1.4, hs + 0.4, mix(K, C.brz)); K.box(Hd, 0, hs * 0.44 + 0.3, fz + 0.4, hs - 1, 1, 0.4, C.brzL);
   for (const x of [-2.4, -0.8, 0.8, 2.4]) K.box(Hd, x, hs * 0.44 + 0.75, hz + 0.2, 0.4, 0.3, 0.4, C.gold);
-  K.box(Hd, 0, -1.4, fz + 0.9, hs - 1, 3.4, 1.8, horn); K.box(Hd, 0, -2.9, fz + 0.7, hs - 2, 1, 1.4, hornD); K.box(Hd, 0, 0.4, fz + 0.5, hs - 2.4, 0.8, 1, hornD);
+  K.box(Hd, 0, -1.4, fz + 0.9, hs - 1, 3.4, 1.8, snout); K.box(Hd, 0, -2.9, fz + 0.7, hs - 2, 1, 1.4, 0x8a6a50); K.box(Hd, 0, 0.4, fz + 0.5, hs - 2.4, 0.8, 1, 0x8a6a50);
   for (const sx of [-1, 1]) {
     K.box(Hd, sx * 1.1, -1.4, fz + 1.85, 1, 1.2, 0.3, ironD); K.box(Hd, sx * 1.1, -1.6, fz + 1.95, 0.6, 0.6, 0.3, glow);
     K.box(Hd, sx * 2.3, 1, fz + 0.05, 1.8, 1.3, 0.4, ironD); K.box(Hd, sx * 2.3, 1, fz + 0.2, 1.4, 0.9, 0.3, glow); K.box(Hd, sx * 2.1, 1.15, fz + 0.3, 0.6, 0.5, 0.2, hot);
     K.box(Hd, sx * (hs / 2 + 0.9), hs * 0.4, hz, 1.8, 2.2, 2.2, C.brzD); K.box(Hd, sx * (hs / 2 + 1.5), hs * 0.4, hz, 0.6, 1.6, 1.6, C.gold);
-    for (const [x, y, z, w, h, d, col, rz] of [[2.4, 0.3, 0.2, 2.6, 1.7, 1.7, horn, 0.15], [4.3, 0.9, 0.4, 1.8, 1.5, 1.5, horn, 0.35], [5.2, 2.2, 0.6, 1.4, 1.8, 1.3, hornD, -0.1], [5.4, 3.7, 0.8, 1.1, 1.6, 1.1, horn, -0.25], [5.3, 4.9, 1, 0.8, 1, 0.8, 0xfff8e8, -0.4]]) K.box(Hd, sx * (hs / 2 + x), hs * 0.4 + y, hz + z, w, h, d, col, 0, 0, sx * rz);
+    for (const [x, y, z, w, h, d, col, rz] of [[2.4, 0.3, 0.2, 2.6, 1.7, 1.7, horn, 0.15], [4.3, 0.9, 0.4, 1.8, 1.5, 1.5, horn, 0.35], [5.2, 2.2, 0.6, 1.4, 1.8, 1.3, hornD, -0.1], [5.4, 3.7, 0.8, 1.1, 1.6, 1.1, horn, -0.25], [5.3, 4.9, 1, 0.8, 1, 0.8, 0xf4ecdc, -0.4]]) K.box(Hd, sx * (hs / 2 + x), hs * 0.4 + y, hz + z, w, h, d, col, 0, 0, sx * rz);
     K.box(Hd, sx * (hs / 2 + 0.3), hs * 0.1, hz - 1.4, 0.6, 2.2, 1.6, mix(K, C.brz));
   }
   rig.extras.nose = group(Hd, 0, -1.8, fz + 2.2);
@@ -464,6 +475,7 @@ function buildCalf(K0) {
   for (const s of rig.tail) dropAll(rig, s);
   K.box(rig.tail[0], 0, 0, -1.4, 0.9, 0.9, 2.8, iron); K.box(rig.tail[0], 0, 0, -2.8, 1.3, 1.3, 0.8, C.gold); K.box(rig.tailTip, 0, 0, -1.6, 0.8, 0.8, 2.6, iron); K.box(rig.tailTip, 0, 0, -3.2, 1.8, 1.8, 1.4, C.brzL); K.box(rig.tailTip, 0, 0, -3.2, 1.2, 2.2, 0.8, C.gold);
   K.done();
+  rig.head.scale.setScalar(1.18);   // a heavy head, held low under the hump
   noShadow(rig, M, rig.tailTip, rig.tail[0], ...rig.legs);
   return finish(rig, 'colchis_calf');
 }

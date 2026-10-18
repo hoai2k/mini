@@ -39,7 +39,9 @@
 // A turntable of every character model, to compare with the 3D sheets in
 // design/concept/vox-*.png. ?set=heroes|monsters|mortals|bosses|people picks a row
 // (default heroes); ?only=<id> shows one; ?turn=0 stops turning; ?yaw=<rad>
-// sets the start angle; ?pose=attack|raise|cast|walk shows a pose; ?ui=0 hides
+// sets the start angle; ?pose=attack|raise|cast|walk shows a pose (an attack
+// loops every 1.6 s; ?style=<style> picks its style, e.g. the scorpion's pinch
+// or sting, and ?at=<0..1> holds it at one moment); ?ui=0 hides
 // the buttons; ?zoom=<k> moves the camera in or out; ?cam=high looks down;
 // ?with=percy stands a hero beside them for scale.
 import * as THREE from 'three/webgpu';
@@ -125,7 +127,7 @@ const fake = { state: 'idle', swooping: false };
 renderer.setAnimationLoop(() => {
   const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now; T += dt;
   const k = (T % 1.6) / 1.6;
-  const action = pose === 'attack' ? { type: 'attack', t: k, style: 'swingR', windup: 0.3, strike: 0.5 } : pose === 'raise' ? { type: 'raise', t: 0 } : pose === 'cast' ? { type: 'cast', t: 1 } : null;
+  const action = pose === 'attack' ? { type: 'attack', t: q.has('at') ? +q.get('at') : k, style: q.get('style') ?? 'swingR', windup: 0.3, strike: 0.5 } : pose === 'raise' ? { type: 'raise', t: 0 } : pose === 'cast' ? { type: 'cast', t: 1 } : null;
   for (const r of rigs) { if (turn) r.root.rotation.y += dt * 0.5; rigOffsets(r, -1); r.animate({ dt, speed: pose === 'walk' ? 1 : 0, vel: new THREE.Vector3(), action }); rigOffsets(r, 1); r.tick?.(dt, fake); }
   controls.update();
   renderer.render(scene, camera);

@@ -1321,8 +1321,17 @@ function buildAutomaton() {
 
 // Pit scorpion: a low armoured scorpion in dark red-brown chitin, banded
 // back plates, eight jointed legs, heavy serrated pincers on jointed arms,
-// four glowing eyes and a segmented tail curling over the back to a barbed
-// stinger dripping green venom.
+// four glowing eyes and a long segmented tail arcing high over the back to a
+// big bulbous stinger with a hooked barb dripping green venom.
+// It fights two ways, alternating (MONSTERS.scorpion.moves, enemy.js):
+//   pinch  the claws spread wide and open (the tell), then lunge one after
+//          the other and snap shut: a one-two at short range;
+//   sting  the tail coils back high and trembles (the tell), then whips
+//          forward over the body to stab the ground in front, and recoils.
+// Idle, the tail sways poised and the claws snap nervously. The rig reads
+// the attack from animate()'s action (style 'pinch' or 'sting'; any other
+// attack style reads as a pinch), so champion looks built on it, online
+// puppets and the workbench all move the same.
 // pal: { C: [three chitin tones], CD: dark, CL: light plates, VEN: venom, belly, sting: [bulb, inner, barb] }
 export function buildScorpion({ id = 'scorpion', pal = {} } = {}) {
   const C = pal.C ?? [0x4a2214, 0x5a2a16, 0x3a1a0e], CD = pal.CD ?? 0x1a0c06, CL = pal.CL ?? 0x7a3a1c, VEN = pal.VEN ?? 0x7aff1a;
@@ -1332,7 +1341,8 @@ export function buildScorpion({ id = 'scorpion', pal = {} } = {}) {
       custom: (s) => { s.box(40, 32, 2, 2, 6, C[1], 0.15); for (let x = 40; x < 56; x += 3) s.rect(x, 32, 1, 8, CD, 0); } });
     S.saturate(1.2);
   }, { rough: 0.35, emit: 1 });
-  const rig = new QuadRig({ material: mat, scale: 1.1, bodyL: 10, bodyW: 7, bodyH: 3.4, legH: 4, legW: 1.4, headS: 4.5, legs: 8, splay: 1.6, footL: 5, snout: false, neckUp: -1.2, gait: 1.5, tail: 6, tailLen: 15, tailW: 2.4, tailCurl: 0.62 });
+  const TN = 9, TL = 27;   // tail segments and length (skin px)
+  const rig = new QuadRig({ material: mat, scale: 1.25, bodyL: 10, bodyW: 7, bodyH: 3.4, legH: 4, legW: 1.4, headS: 4.5, legs: 8, splay: 1.6, footL: 5, snout: false, neckUp: -1.2, gait: 1.5, tail: TN, tailLen: TL, tailW: 2.8, tailCurl: 0.3 });
   const K = kit(rig, mat, { seed: 79, rough: 0.35, metal: 0.1, emit: 0.8 });
   const T = rig.torso, { legW } = rig.dims;
   // banded back plates with a ridge, and side armour
@@ -1351,7 +1361,8 @@ export function buildScorpion({ id = 'scorpion', pal = {} } = {}) {
   for (const [x, y, s] of [[-1, 0.6, 0.8], [1, 0.6, 0.8], [-1.8, 0, 0.5], [1.8, 0, 0.5]]) K.box(Hd, x, y, fz + 0.1, s, s, 0.3, 0xff3010);
   K.box(Hd, 0, 1.6, 1.6, 4.8, 0.8, 4.6, C[1]);
   for (const sx of [-1, 1]) K.box(rig.mouth, sx * 0.7, 0, 0.8, 0.8, 0.8, 1.6, CL);
-  // pincers on jointed arms: serrated jaws
+  // pincers on jointed arms: a heavy hand and two serrated fingers that open
+  // and close (jawA, jawB: groups of their own)
   rig.extras.claws = [];
   for (const sx of [-1, 1]) {
     const arm = group(T, sx * 3, 0, 4.5, 0, sx * 0.5, 0);
@@ -1359,22 +1370,115 @@ export function buildScorpion({ id = 'scorpion', pal = {} } = {}) {
     const fore = group(arm, 0, 0, 6, 0, -sx * 0.9, 0);
     K.box(fore, 0, 0, 2.5, 1.8, 1.8, 5, C[1]); K.box(fore, 0, 0, 0, 2.4, 2.4, 1.4, CD);
     const pin = group(fore, 0, 0, 5);
-    K.box(pin, 0, 0, 1.8, 3.8, 2.8, 4.4, C[0]); K.box(pin, 0, 1.5, 1.8, 2.6, 0.5, 3.6, CL);
+    K.box(pin, 0, 0, 1.8, 3.8, 2.8, 4.4, C[0]); K.box(pin, 0, 1.5, 1.8, 2.6, 0.5, 3.6, CL); K.box(pin, 0, 0, 3.8, 3.2, 2.2, 0.6, CD);
     const jawA = group(pin, -1.1, 0, 4, 0, 0.25, 0), jawB = group(pin, 1.1, 0, 4, 0, -0.25, 0);
-    for (const [j, s] of [[jawA, 1], [jawB, -1]]) { const o = [j.position.x / PX, 0, j.position.z / PX], ry = j.rotation.y; K.boxY(pin, o, ry, 0, 0, 2, 1.3, 1.6, 4.2, CD); for (let t = 0; t < 3; t++) K.boxY(pin, o, ry, s * 0.75, 0, 0.8 + t * 1.2, 0.4, 0.6, 0.5, CL); K.boxY(pin, o, ry + s * 0.4, s * 0.2, 0, 4.4, 0.8, 1, 0.8, CD); }
-    rig.extras.claws.push({ arm, jawA, jawB, side: sx });
-    sway(rig, arm, 'y', 0.15, 2.4);
+    for (const [j, s] of [[jawA, 1], [jawB, -1]]) {
+      K.box(j, 0, 0, 2, 1.3, 1.6, 4.2, CD);
+      for (let t = 0; t < 3; t++) K.box(j, s * 0.75, 0, 0.8 + t * 1.2, 0.4, 0.6, 0.5, CL);
+      K.boxY(j, [0, 0, 0], s * 0.4, s * 0.2, 0, 4.4, 0.8, 1, 0.8, CD);
+    }
+    rig.extras.claws.push({ arm, fore, jawA, jawB, side: sx, ph: sx > 0 ? 0 : 2.3 });
   }
-  // tail segments: banded rings with a dorsal spike
-  for (const [i, seg] of rig.tail.entries()) { const w = 2.4 * (1 - i * 0.12), l = 15 / 6; dropMeshes(rig, seg); K.box(seg, 0, 0, -l / 2, w, w, l + 0.1, C[2]); K.box(seg, 0, 0, -l / 2, w + 0.5, w + 0.4, l * 0.7, C[i % 2]); K.box(seg, 0, w / 2 + 0.4, -l / 2, 0.6, 0.8, 0.6, CL); K.box(seg, 0, 0, -0.1, w + 0.2, w + 0.2, 0.3, CD); }
-  // stinger at the tail tip, dripping venom
-  const sting = group(rig.tailTip, 0, 0, -2.6, -0.9);
-  K.box(sting, 0, 0, -1.2, 2.8, 2.8, 3.2, ST[0]); K.box(sting, 0, 0, -1.2, 2, 2, 3.4, ST[1]);
-  K.box(sting, 0, -0.6, -3.4, 1.1, 1.1, 2.2, ST[2], 0.5); K.box(sting, 0, -1.4, -4.6, 0.6, 0.6, 1.4, ST[2], 0.9);
-  K.box(sting, 0, -2.2, -4.9, 0.5, 0.9, 0.5, VEN);
-  rig.extras.sting = sting;
+  // the tail: thick banded rings tapering to the tip, a dark joint between
+  // each and a spike down the outside of the curl (local -y)
+  const sl = TL / TN;
+  for (const [i, seg] of rig.tail.entries()) {
+    const w = 2.9 * (1 - i * 0.055); dropMeshes(rig, seg);
+    K.box(seg, 0, 0, -sl / 2, w, w, sl + 0.1, C[2]); K.box(seg, 0, 0, -sl / 2, w + 0.5, w + 0.4, sl * 0.7, C[i % 2]);
+    K.box(seg, 0, -w / 2 - 0.4, -sl / 2, 0.6, 0.8, 0.6, CL); K.box(seg, 0, 0, -0.1, w + 0.2, w + 0.2, 0.3, CD);
+  }
+  // the stinger: a big bulb, then a barb hooking in under the curl (+y),
+  // a bead of venom at its point
+  const sting = group(rig.tailTip, 0, 0, -sl, 0.4);
+  K.box(sting, 0, 0, -2.2, 4, 3.8, 4.6, ST[0]); K.box(sting, 0, -0.2, -2.2, 3.2, 3.2, 5, ST[1]);
+  K.box(sting, 0, 0.6, -2.4, 4.4, 2.4, 3.6, ST[0]); K.box(sting, 0, 0, -0.2, 3, 3, 0.5, CD);
+  K.box(sting, 0, 0.6, -5.1, 1.8, 1.8, 1.8, ST[2], -0.4); K.box(sting, 0, 1.5, -6.2, 1.2, 1.2, 1.8, ST[2], -0.9); K.box(sting, 0, 2.6, -6.9, 0.7, 0.7, 1.6, ST[2], -1.3);
+  const venom = group(sting, 0, 3.5, -7.3);
+  K.box(venom, 0, 0, 0, 0.7, 0.9, 0.7, VEN);
+  rig.extras.sting = sting; rig.extras.venom = venom;
   K.done();
+  rig.extras.s0 = rig.baseScale;
+  // QuadRig.animate poses everything else (body, legs, head); the tail is
+  // hidden from it for the call so only scorpionPose moves it
+  const base = rig.animate.bind(rig), noTail = [], act = { type: 'attack', t: 0, style: 'bite', windup: 0.3, strike: 0.5 }, prm = { dt: 0, speed: 0, vel: null, action: null };
+  rig.animate = (p) => {
+    const a = p.action, atk = a?.type === 'attack' ? (a.style === 'sting' ? 'sting' : 'pinch') : null;
+    const tail = rig.tail; rig.tail = noTail;
+    if (atk) { act.t = a.t; act.windup = a.windup ?? 0.3; act.strike = a.strike ?? 0.5; prm.dt = p.dt; prm.speed = p.speed; prm.vel = p.vel; prm.action = act; base(prm); }
+    else base(p);
+    rig.tail = tail;
+    scorpionPose(rig, p.dt, p.speed ?? 0, a, atk);
+  };
   return rig;
+}
+// ---- the scorpion's tail and claws, posed from the attack's progress ----------
+// Tail poses: [root pitch, curl at the first joint, curl at the last joint,
+// stinger bend] (radians; the curl lifts each segment toward the back).
+const SC_IDLE = [0.95, 0.14, 0.42, 0.4], SC_COCK = [0.5, 0.1, 0.64, 0.75], SC_STRIKE = [2.4, 0.04, 0.27, 0.15], SC_RECOIL = [0.75, 0.16, 0.5, 0.6], SC_DROOP = [0.15, 0.06, 0.12, 0.2];
+const scTail = [0, 0, 0, 0], scK = (v) => (v < 0 ? 0 : v > 1 ? 1 : v), scOut = (v) => 1 - (1 - v) ** 3, scIn = (v) => v * v * v;
+function scBlend(A, B, k) { for (let i = 0; i < 4; i++) scTail[i] = A[i] + (B[i] - A[i]) * k; return scTail; }
+// claw poses: [arm yaw (outward), arm pitch (- raises), elbow (outward), fingers open]
+const CL_IDLE = [0.5, 0, 0.9, 0.08], CL_SPREAD = [1.05, -0.4, 1.35, 0.8], CL_LUNGE = [0.1, 0.12, 0.2, -0.05], CL_BRACE = [0.75, 0.15, 1.1, 0.35];
+const scClaw = [0, 0, 0, 0];
+function clawBlend(A, B, k) { for (let i = 0; i < 4; i++) scClaw[i] = A[i] + (B[i] - A[i]) * k; return scClaw; }
+// u runs 0..1 through the windup and 1..2 through the recovery
+function scorpionPose(rig, dt, speed, a, atk) {
+  const t = rig.t, k = scK(a?.t ?? 0), w = a?.windup ?? 0.3;
+  const u = !atk ? 0 : k < w ? scK(k / (w * 0.84)) : 1 + (k - w) / (1 - w);
+  const rate = atk ? 46 : 18, f = 1 - Math.exp(-rate * dt);
+  const D = (o, ax, v) => { o.rotation[ax] += (v - o.rotation[ax]) * f; };
+  // the tail
+  let P, shake = 0, lunge = 0;
+  if (a?.type === 'death' || a?.type === 'down') P = SC_DROOP;
+  else if (atk === 'sting') {
+    if (u < 0.72) { P = scBlend(SC_IDLE, SC_COCK, scOut(u / 0.72)); shake = u / 0.72; lunge = -0.12 * scOut(u / 0.72); }
+    else if (u < 0.95) { const e = scIn((u - 0.72) / 0.23); P = scBlend(SC_COCK, SC_STRIKE, e); lunge = -0.12 + 0.45 * e; }
+    else if (u < 1.3) { P = SC_STRIKE; lunge = 0.33 + Math.sin((u - 0.95) * 18) * 0.03; }
+    else if (u < 1.6) { const e = scOut((u - 1.3) / 0.3); P = scBlend(SC_STRIKE, SC_RECOIL, e); lunge = 0.33 * (1 - e); }
+    else P = scBlend(SC_RECOIL, SC_IDLE, scOut((u - 1.6) / 0.4));
+  } else if (atk === 'pinch') {
+    const e = u < 1 ? scOut(u) : 1 - scK((u - 1.4) / 0.6);
+    P = scBlend(SC_IDLE, SC_RECOIL, e * 0.5);
+  } else P = SC_IDLE;
+  const sway = atk === 'sting' ? 0.05 : 1;
+  const yaw = (Math.sin(t * 1.3) * 0.12 + Math.sin(t * 0.47) * 0.08) * sway, bob = Math.sin(t * 2.1) * 0.05 * sway - speed * 0.1;
+  const tr = shake * shake * Math.sin(t * 47) * 0.05;
+  const n = rig.tail.length;
+  for (let i = 0; i < n; i++) {
+    const g = rig.tail[i];
+    D(g, 'x', i === 0 ? P[0] + bob + tr : P[1] + (P[2] - P[1]) * (i - 1) / (n - 2) + tr * 0.5);
+    D(g, 'y', yaw * (i === 0 ? 1 : 0.35) + Math.sin(t * 2.6 - i * 0.6) * 0.03 * sway);
+  }
+  const S = rig.extras.sting; D(S, 'x', P[3]);
+  rig.extras.venom.scale.setScalar(1 + (atk === 'sting' && u < 0.95 ? shake * 0.9 : 0) + Math.max(0, Math.sin(t * 1.7)) * 0.25);
+  // the claws: each strikes at its own moment (the left at the release,
+  // the right a beat later)
+  for (const c of rig.extras.claws) {
+    let Q;
+    if (atk === 'pinch') {
+      const L = c.side < 0 ? 0.97 : 1.32;
+      if (u < 0.75) Q = clawBlend(CL_IDLE, CL_SPREAD, scOut(u / 0.75));
+      else if (u < L - 0.14) { Q = clawBlend(CL_SPREAD, CL_SPREAD, 0); Q[3] += Math.sin(t * 40 + c.ph) * 0.06; Q[0] += Math.sin(t * 31 + c.ph) * 0.03; }
+      else if (u < L) { const e = scIn((u - L + 0.14) / 0.14); Q = clawBlend(CL_SPREAD, CL_LUNGE, e); Q[3] = e < 0.7 ? CL_SPREAD[3] : CL_LUNGE[3]; }
+      else if (u < L + 0.22) { Q = clawBlend(CL_LUNGE, CL_LUNGE, 0); Q[3] = CL_LUNGE[3] + Math.max(0, Math.sin((u - L) * 60)) * 0.12; }
+      else Q = clawBlend(CL_LUNGE, CL_IDLE, scOut(scK((u - L - 0.22) / (2 - L - 0.22))));
+      if (u >= L - 0.14 && u < L + 0.3) lunge = Math.max(lunge, 0.2 * Math.sin(scK((u - L + 0.14) / 0.44) * Math.PI));
+    } else if (atk === 'sting') {
+      const e = u < 1 ? scOut(u) : 1 - scK((u - 1.3) / 0.7);
+      Q = clawBlend(CL_IDLE, CL_BRACE, e);
+    } else {
+      // nervous snapping: now and then a quick open-and-shut
+      Q = clawBlend(CL_IDLE, CL_IDLE, 0);
+      const s = (t * (0.9 + c.side * 0.13) + c.ph) % 1.7;
+      Q[3] = s < 0.16 ? 0.08 + Math.sin(s / 0.16 * Math.PI) * 0.6 : s > 0.5 && s < 0.6 ? 0.08 + Math.sin((s - 0.5) / 0.1 * Math.PI) * 0.35 : 0.08;
+      Q[0] += Math.sin(t * 2.4 + c.ph) * 0.12; Q[1] += Math.sin(t * 1.9 + c.ph) * 0.06;
+    }
+    D(c.arm, 'y', c.side * Q[0]); D(c.arm, 'x', Q[1]); D(c.fore, 'y', -c.side * Q[2]);
+    D(c.jawA, 'y', 0.25 - Q[3] * 0.7); D(c.jawB, 'y', -0.25 + Q[3] * 0.7);
+  }
+  // the body rocks back on the windup and lunges in on the strike
+  // (lunge in metres at the plain scorpion's size: a champion's grows with it)
+  rig.hips.position.z += (lunge / rig.extras.s0 - rig.hips.position.z) * f;
 }
 
 // ---- stat blocks -------------------------------------------------------------
