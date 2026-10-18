@@ -61,7 +61,7 @@ const BOSSES = {
     ambient: (b) => H.whipGlow(b),
   },
   minotaur: {
-    name: txt('bosses.minotaur.name'), title: txt('bosses.minotaur.title'), hp: 2200, speed: 2.6, dmg: 22, color: 0xffa040, radius: 1.2, height: 3.4,
+    name: txt('bosses.minotaur.name'), title: txt('bosses.minotaur.title'), hp: 2200, speed: 2.6, dmg: 22, color: 0xffa040, radius: 1.2, height: 4,
     build: BOSS_MODELS.minotaur,
     phases: [['bull_charge', 'horn_sweep', 'rock_throw', 'bull_charge'], ['bull_charge', 'stomp', 'horn_sweep', 'rock_throw', 'bull_charge'], ['bull_charge', 'stomp', 'rock_throw', 'horn_sweep']],
     ambient: (b, dt) => { const g = b.game; if (Math.random() < dt * 1.5) { const c = b.rig.extras.muzzle.getWorldPosition(tmp); g.particles.smoke.emit(c.x, c.y, c.z, Math.sin(b.facing) * 1.5, -0.2, Math.cos(b.facing) * 1.5, 0.7, 0.5, 0.5, 0.5, 0.25, -0.5, 2, 1.2, 0); } },
@@ -97,7 +97,7 @@ const BOSSES = {
     init: (b) => H.spidersInit(b), tick: (b, dt) => H.spidersTick(b, dt), onDie: (b) => H.spidersDie(b),
   },
   procrustes: {
-    name: txt('bosses.procrustes.name'), title: txt('bosses.procrustes.title'), hp: 2600, speed: 2.8, dmg: 22, color: 0xd8302a, radius: 1.2, height: 4.4,
+    name: txt('bosses.procrustes.name'), title: txt('bosses.procrustes.title'), hp: 2600, speed: 2.8, dmg: 22, color: 0xd8302a, radius: 1.2, height: 3.8,
     build: BOSS_MODELS.procrustes,
     phases: [['axe_sweep', 'grab_bed', 'axe_chop', 'axe_sweep'], ['axe_sweep', 'grab_bed', 'axe_chop', 'sales_pitch'], ['grab_bed', 'axe_sweep', 'axe_chop', 'sales_pitch', 'grab_bed']],
     damageMul: (b, src) => H.procrustesHit(b, src), onDie: (b) => H.procrustesDie(b),

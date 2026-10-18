@@ -552,7 +552,7 @@ const MODELS = {
   // (entities/serpent.js: a legless spine that slithers, rears and strikes)
   serpent: () => buildSerpent({ kit }),
   automaton: () => buildAutomaton(),
-  harpy: () => eagle('harpy', { scale: 1.0 }),
+  harpy: () => eagle('harpy', { scale: 1.2 }),   // (size audit: ×1.2, nearer a bird-woman's height)
   // Stymphalian bird: a level bronze bird of prey in knife feathers (bronzeHunter)
   stymphalian: () => eagle('stymphalian', { scale: 1.1, metal: true, form: 'hunter' }),
   fury: () => buildFury('fury', { scale: 1.0 }),
@@ -1913,7 +1913,7 @@ function buildGhost() {
       body: (s) => { for (let i = 0; i < 50; i++) s.dot(16 + s.r() * 24, 20 + s.r() * 12, s.r() < 0.5 ? 0x6aa0b4 : 0xb0e0ec, 1, 2); } });
     S.saturate(1.1);
   }, { emit: 3, fill: 0.7, dissolve: 0.3, res: 2 });
-  const rig = new Rig({ material: mat, scale: 1.0, armW: 3 });
+  const rig = new Rig({ material: mat, scale: 1.2, armW: 3 });   // (size audit: ×1.2, a spirit keeps the size it had alive)
   for (const leg of [rig.legR, rig.legL]) dropMeshes(rig, leg);
   const K = kit(rig, mat, { seed: 67, fill: 0.6, emit: 0.9 });
   const SH = [0x8ac0d4, 0x6aa0b4, 0xa8d8e8, 0x5a90a8], hk = HS;

@@ -300,7 +300,7 @@ export const CHAMPION_LOOKS = {
   woods_shadowfang: { kind: 'hellhound', build: buildShadowfang, glow: 0, shell: 0xff2a0a, aura: { kind: 'smoke', col: [2.6, 0.6, 0.1], at: 'head' }, scale: 1.3 },
   shore_queen_gale: { kind: 'harpy', build: buildQueenGale, shell: 0xffe040, aura: { kind: 'spark', col: [2.6, 2.4, 0.8] }, scale: 1.85 },
   canyon_red_king: { kind: 'scorpion', build: buildRedKing, shell: 0xffb020, aura: { kind: 'dust', col: [2.4, 1.6, 0.3] }, scale: 2.4 },
-  lab_bronze_warden: { kind: 'automaton', build: buildBronzeWarden, shell: 0x3ae8ff, aura: { kind: 'spark', col: [0.5, 2.2, 2.6] }, scale: 1, size: 2.4 },
+  lab_bronze_warden: { kind: 'automaton', build: buildBronzeWarden, shell: 0x3ae8ff, aura: { kind: 'spark', col: [0.5, 2.2, 2.6] }, scale: 1.6, size: 2.4 },   // (size audit: a giant automaton, about 1.85× a hero; its hall is a 15-block open ring)
   oth_gorgos: { kind: 'cyclops', build: buildGorgos, shell: 0xff6a20, aura: { kind: 'embers', col: [2.6, 1, 0.2], at: 'head' }, scale: 1.12 },
   asphodel_pale_king: { kind: 'skeleton', build: buildPaleKing, glow: 0.008, shell: 0x3aff7a, aura: { kind: 'wisp', col: [0.5, 2.6, 1.0] }, scale: 1.45 },
 };

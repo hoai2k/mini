@@ -54,7 +54,7 @@ export const FODDER_MONSTERS = {
   // woods
   myrmex: { name: txt('monsters.myrmex.name'), tier: 'minor', role: 'rusher', hp: 22, speed: 4.8, dmg: 6, radius: 0.55, height: 0.9, ai: 'melee', range: 1.4, windup: 0.4, cd: 1.2, xp: 2, coins: [0, 2], model: 'myrmex', pitch: 1.3, voice: 'chitter', knockResist: 0.1 },
   myrmex_spitter: { name: txt('monsters.myrmex_spitter.name'), tier: 'minor', role: 'lobber', hp: 18, speed: 4, dmg: 6, radius: 0.6, height: 1, ai: 'ranged', range: 9, keep: 6, windup: 0.9, cd: 3.6, xp: 3, coins: [1, 2], model: 'myrmex_spitter', pitch: 1.1, voice: 'chitter', projectile: 'acid', lob: true, knockResist: 0.1 },
-  boarlet: { name: txt('monsters.boarlet.name'), tier: 'minor', role: 'bruiser', hp: 50, speed: 5, dmg: 9, radius: 0.85, height: 1.4, ai: 'melee', range: 3.4, windup: 0.65, cd: 2, xp: 5, coins: [2, 4], model: 'boarlet', pitch: 0.9, voice: 'snort', knockResist: 0.5, slashColor: 0xf0e0c0 },
+  boarlet: { name: txt('monsters.boarlet.name'), tier: 'minor', role: 'bruiser', hp: 50, speed: 5, dmg: 9, radius: 0.85, height: 1.9, ai: 'melee', range: 3.4, windup: 0.65, cd: 2, xp: 5, coins: [2, 4], model: 'boarlet', pitch: 0.9, voice: 'snort', knockResist: 0.5, slashColor: 0xf0e0c0 },
   // shore
   crab: { name: txt('monsters.crab.name'), tier: 'minor', role: 'fodder', hp: 28, speed: 4, dmg: 6, radius: 0.7, height: 0.9, ai: 'melee', range: 1.6, windup: 0.45, cd: 1.3, xp: 3, coins: [1, 3], model: 'crab', pitch: 1, voice: 'clack', armor: 0.1, knockResist: 0.3 },
   king_crab: { name: txt('monsters.king_crab.name'), tier: 'elite', role: 'tank', hp: 160, speed: 2.2, dmg: 16, radius: 1.8, height: 3.6, ai: 'tank', range: 2.4, windup: 0.9, cd: 2.4, xp: 10, coins: [4, 8], model: 'king_crab', pitch: 0.6, voice: 'clack', armor: 0.3, knockResist: 0.8, superArmor: true, slamR: 2.4 },
@@ -64,7 +64,7 @@ export const FODDER_MONSTERS = {
     // up close: a barrage of all six fists, one after another down the body (every second blow lands: about one lob's damage in all)
     pummel: { trigger: 3.4, range: 3, windup: 0.6, recover: 0.6, hits: 6, gap: 0.2, every: 2, dmg: 0.36 } },
   // labyrinth
-  daedalus_drone: { name: txt('monsters.daedalus_drone.name'), tier: 'minor', role: 'ranged', hp: 18, speed: 4.6, dmg: 6, radius: 0.5, height: 1.4, ai: 'ranged', range: 11, keep: 7, windup: 0.8, cd: 3.2, xp: 3, coins: [1, 3], model: 'daedalus_drone', pitch: 1.6, voice: 'whir', projectile: 'bullet', knockResist: 0.1 },
+  daedalus_drone: { name: txt('monsters.daedalus_drone.name'), tier: 'minor', role: 'ranged', hp: 18, speed: 4.6, dmg: 6, radius: 0.5, height: 1.8, ai: 'ranged', range: 11, keep: 7, windup: 0.8, cd: 3.2, xp: 3, coins: [1, 3], model: 'daedalus_drone', pitch: 1.6, voice: 'whir', projectile: 'bullet', knockResist: 0.1 },
   // othrys
   laistrygonian: { name: txt('monsters.laistrygonian.name'), tier: 'elite', role: 'lobber', hp: 220, speed: 2.4, dmg: 18, radius: 1.1, height: 4.4, ai: 'ranged', range: 14, keep: 9, windup: 1.2, cd: 5, xp: 16, coins: [7, 12], model: 'laistrygonian', pitch: 0.45, voice: 'roar', projectile: 'fire', lob: true, armor: 0.1, knockResist: 0.85, superArmor: true },
   // asphodel
@@ -493,7 +493,7 @@ function buildKarpos(K0, slinger = false) {
   const kind = slinger ? 'karpos_slinger' : 'karpos';
   const { gold, goldL, goldD, straw, leaf, leafD, twine, pod } = KG, STRAW = [gold, goldL, goldD, straw, 0xc89038], LEAF = [leaf, leafD, 0x5aa03a, 0x2a7a2a];
   const mat = karposSkin();
-  const rig = new Rig({ material: mat, scale: 1.05, legH: 8, bodyH: 9, bodyW: 8, bodyD: 5.4, armW: 2.8, headS: 8, jacket: false });
+  const rig = new Rig({ material: mat, scale: 0.74, legH: 8, bodyH: 9, bodyW: 8, bodyD: 5.4, armW: 2.8, headS: 8, jacket: false });   // (size audit: ×0.7, toddler-sized as in The Son of Neptune, the wheat spray above a hero's chest)
   const K = kitOf(K0, kind, rig, mat, { seed: slinger ? 131 : 101, rough: 0.85, emit: 0.9, ao: 0.3 });
   const T = rig.torso, Hd = rig.head, H8 = 8 * HS;
   dropAll(rig, T); dropOne(rig, hatOf(rig));
@@ -657,7 +657,7 @@ function buildMyrmex(K0, spitter = false) {
   const ACID = 0x5aff2a, ACIDD = 0x1e7a1a, ACIDM = 0x34b82a, ACIDL = 0xc8ff70;
   const DARK = [blk, blkL, blkD, 0x2a1e1c, 0x261a22], ORG = [org, orgD, 0xc87818], SAC = [ACID, ACIDM, 0x48e030, ACIDL];
   const mat = skinMat('myrmex', flatQuad(blk, 0x0e0a08, 0x2a2018, 0xff8a10), { rough: 0.3, emit: 1 });
-  const rig = new QuadRig({ material: mat, scale: 1.75, bodyL: 4.6, bodyW: 4, bodyH: 3.6, legH: 6.6, legW: 1.7, headS: 7, legs: 6, splay: 1.15, footL: 7.4, kneeOut: 0.3, legY: 0.4, snout: false, neckUp: 1, headZ: 1.8, gait: 1.8, ears: false });
+  const rig = new QuadRig({ material: mat, scale: 1.14, bodyL: 4.6, bodyW: 4, bodyH: 3.6, legH: 6.6, legW: 1.7, headS: 7, legs: 6, splay: 1.15, footL: 7.4, kneeOut: 0.3, legY: 0.4, snout: false, neckUp: 1, headZ: 1.8, gait: 1.8, ears: false });
   const K = kitOf(K0, kind, rig, mat, { seed: spitter ? 107 : 103, rough: 0.3, metal: 0.15, emit: 0.9, ao: 0.4 });
   const T = rig.torso, Hd = rig.head, M = rig.mouth, { hs, legW } = rig.dims;
   dropAll(rig, T); dropAll(rig, Hd);
