@@ -153,7 +153,7 @@ function pummel(rig, dt, e, g) {
   if (n !== rig.pumN) { rig.pumN = n; rig.pumT = 0; if (n > 0) { F[n - 1].fist.getWorldPosition(_c); _f.set(Math.sin(e.facing), 0, Math.cos(e.facing)); g.particles?.burst(_c, { count: n % 2 ? 4 : 8, color: dustCol, additive: false, speed: 2.2, spread: 0.8, dir: _f, life: 0.5, size: 0.3, sizeEnd: 0.8, drag: 3, up: 0.6 }); } }
   else rig.pumT += dt;
   for (let i = 0; i < 6; i++) {
-    const want = !on ? 0 : e.state === 'windup' ? 0.55 * Math.min(1, e.stateT / Math.max(0.1, a.windup)) : i === n - 1 && rig.pumT < 0.1 ? -1.5 : i < n ? -0.2 : 0.55;
+    const want = !on ? 0 : e.state === 'windup' ? 0.55 * Math.min(1, e.stateT / Math.max(0.1, a.windup)) : i === n - 1 && rig.pumT < 0.1 ? (i < 2 ? -1.5 : -2.1) : i < n ? -0.2 : 0.55;
     V[i] += (want - V[i]) * Math.min(1, dt * (want < V[i] ? 32 : 9));
   }
   for (let i = 2; i < 6; i++) F[i].arm.rotation.x += V[i];

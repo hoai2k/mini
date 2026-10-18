@@ -487,7 +487,7 @@ const DEEP = [0x1a1518, 0x231d21, 0x2c252a], SMOKE = [0x3a3438, 0x4e474c, 0x645c
 function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true } = {}) {
   const mat = skinMat(id, (S) => { lavaDog({ cracks, base: 0x2e2529 })(S); S.saturate(1.3); }, { emit: 0.5 });
   const rig = new QuadRig({ material: mat, ...spec });
-  const K = kit(rig, mat, { seed: 9 + (id.length % 7), emit: 0.6 });
+  const K = kit(rig, mat, { seed: 9 + (id.length % 7), emit: 1 });
   const { legH, hs } = rig.dims, T = rig.torso, Hd = rig.head, M = rig.mouth, N = rig.neck;
   for (const g of [T, Hd, M, ...rig.legs, ...rig.tail]) dropMeshes(rig, g);
   const fe = nFur / 170, fang = 0xe6dcc0, claw = 0xe0a428;
@@ -568,11 +568,11 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true } = {}
   for (const sx of [-1, 1]) {
     K.box(Hd, sx * 9.6, -3, 9, 2.6, 10, 11, DEEP[1]);                                 // jaw muscles, shaggy
     K.clumps(Hd, [sx * 9.6, -3, 9], [2.6, 10, 11], { n: Math.round(22 * fe), size: [1.2, 2.2], cols: FURL, faces: sx < 0 ? 'lt' : 'rt', out: 0.25 });
-    for (let j = 0; j < 4; j++) K.box(Hd, sx * (1.4 + j * 2), 4.2 + j * 0.6, fz + 1.1 - j * 0.2, 2.3, 2.2, 2.8, K.tone([0x0e0b0d, 0x161215]));   // the scowling brow
-    K.box(Hd, sx * 5, 1.6, fz + 0.3, 6.4, 4, 0.6, 0x050304);                          // eye socket
-    K.box(Hd, sx * 5, 1.7, fz + 0.6, 5.2, 2.8, 0.4, 0xff3000);                        // molten eye
-    K.box(Hd, sx * 4.4, 1.9, fz + 0.85, 2.4, 1.4, 0.3, 0xffd040);
-    K.box(Hd, sx * 7, -0.4, fz + 0.6, 0.9, 2.4, 0.4, 0xff6a00);                       // a drip of fire
+    for (let j = 0; j < 4; j++) K.box(Hd, sx * (1.4 + j * 2), 6.6 + j * 0.6, fz + 1.1 - j * 0.2, 2.3, 2.2, 2.8, K.tone([0x0e0b0d, 0x161215]));   // the scowling brow
+    K.box(Hd, sx * 5, 4.2, fz + 0.3, 6.4, 4, 0.6, 0x050304);                          // eye socket
+    K.box(Hd, sx * 5, 4.3, fz + 0.6, 5.2, 2.8, 0.4, 0xff3000);                        // molten eye
+    K.box(Hd, sx * 4.4, 4.5, fz + 0.85, 2.4, 1.4, 0.3, 0xffd040);
+    K.box(Hd, sx * 7, 2.2, fz + 0.6, 0.9, 2.4, 0.4, 0xff6a00);                        // a drip of fire
     // ears laid back, ember-lined
     K.box(Hd, sx * 6.6, 11, 1.5, 5, 6, 2.6, DEEP[0], -0.4, 0, -sx * 0.22);
     K.box(Hd, sx * 7.3, 14.6, 0.2, 3.2, 4, 2.2, DEEP[0], -0.4, 0, -sx * 0.22);
@@ -582,7 +582,7 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true } = {}
   K.shag(Hd, [0, 1, 7.5], [19, 16, 19], { cols: FUR, step: 1.8, len: [1.6, 2.8], low: 0.55, bristle: 0.9, sweep: 0.5 });
   K.clumps(Hd, [0, 1, 7.5], [19, 16, 19], { n: Math.round(40 * fe), size: [1, 1.8], cols: FURL, faces: 'lr', out: 0.2 });
   K.clumps(Hd, [0, -2.3, 23.5], [11.4, 9, 13], { n: Math.round(44 * fe), size: [0.8, 1.5], cols: [DEEP[0], DEEP[2], FUR[0], FUR[1]], faces: 'lrt', out: 0.2, keep: (x, y) => y > -5.2 });
-  K.clumps(Hd, [0, 1, 7.5], [19, 16, 19], { n: Math.round(36 * fe), size: [1, 1.8], cols: FURL, faces: 'f', out: 0.2, keep: (x, y) => y > 5.5 || (y > -1.5 && Math.abs(Math.abs(x) - 5) > 3.6) });
+  K.clumps(Hd, [0, 1, 7.5], [19, 16, 19], { n: Math.round(36 * fe), size: [1, 1.8], cols: FURL, faces: 'f', out: 0.2, keep: (x, y) => y > 8 || (y > -1.5 && Math.abs(Math.abs(x) - 5) > 3.6) });
   K.clumps(Hd, [0, -4, 5], [24, 9, 11], { n: Math.round(34 * fe), size: [1.6, 2.8], cols: FUR, faces: 'lrbk', stretch: [1, 1.3, 1.2] });   // cheek ruff
   K.cracks(Hd, [0, 0, 7.5], [21.5, 13, 19], { n: Math.max(4, Math.round(cracks / 2.5)), cols: LAVA, faces: 'lr', len: [4, 8], cell: 0.9 });
   K.cracks(N, [0, -4, -3.5], [21, 16, 15], { n: Math.max(3, Math.round(cracks / 3)), cols: LAVA, faces: 'lr', len: [4, 8], cell: 0.9 });
@@ -1850,7 +1850,7 @@ export const MONSTERS = {
   ghost: { name: txt('monsters.ghost.name'), tier: 'minor', role: 'caster', hp: 38, speed: 3.2, dmg: 8, radius: 0.45, height: 2, ai: 'ranged', range: 10, keep: 6.5, windup: 0.6, cd: 2.2, xp: 4, coins: [1, 3], model: 'ghost', pitch: 0.9, projectile: 'wisp', voice: 'moan', aura: 'wisp', knockResist: 0.2 },
   fury: { name: txt('monsters.fury.name'), tier: 'elite', role: 'trickster', hp: 95, speed: 3.8, dmg: 13, radius: 0.45, height: 2.1, ai: 'teleport', range: 2.2, windup: 0.45, cd: 1.6, xp: 10, coins: [4, 7], model: 'fury', pitch: 1.1, puff: 0x3a2a24, slashColor: 0xff8a2a, voice: 'screech' },
   dracaena: { name: txt('monsters.dracaena.name'), tier: 'elite', role: 'tank', hp: 190, speed: 2.4, dmg: 18, radius: 0.8, height: 2.6, ai: 'tank', range: 2.6, windup: 0.85, cd: 2.2, xp: 12, coins: [5, 9], model: 'dracaena', armor: 0.25, shield: true, knockResist: 0.75, pitch: 0.8, voice: 'hiss' },
-  hellhound: { name: txt('monsters.hellhound.name'), tier: 'elite', role: 'bruiser', hp: 220, speed: 3.6, dmg: 20, radius: 1.1, height: 2.6, ai: 'melee', range: 2.6, windup: 0.7, cd: 1.8, xp: 14, coins: [6, 10], model: 'hellhound', knockResist: 0.7, superArmor: true, pitch: 0.5, aura: 'smoke', voice: 'bark' },
+  hellhound: { name: txt('monsters.hellhound.name'), tier: 'elite', role: 'bruiser', hp: 220, speed: 3.6, dmg: 20, radius: 1.4, height: 4.2, ai: 'melee', range: 3.2, windup: 0.7, cd: 1.8, xp: 14, coins: [6, 10], model: 'hellhound', knockResist: 0.7, superArmor: true, pitch: 0.5, aura: 'smoke', voice: 'bark' },
   empousa: { name: txt('monsters.empousa.name'), tier: 'elite', role: 'summoner', hp: 160, speed: 2.6, dmg: 10, radius: 0.5, height: 2.3, ai: 'summon', range: 9, keep: 8, windup: 1.0, cd: 5, xp: 16, coins: [8, 14], model: 'empousa', knockResist: 0.4, pitch: 1.2, summons: 'pup', aura: 'fire', projectile: 'fire', voice: 'screech' },
   scorpion: { name: txt('monsters.scorpion.name'), tier: 'elite', role: 'bruiser', hp: 140, speed: 3.4, dmg: 12, radius: 0.8, height: 1.3, ai: 'melee', range: 2.2, windup: 0.55, cd: 1.5, xp: 10, coins: [4, 8], model: 'scorpion', armor: 0.2, knockResist: 0.5, pitch: 1.4, voice: 'click', poison: { dps: 4, dur: 4 }, slashColor: 0x9aff3a,
     // alternates a one-two pinch of the claws with a slower, harder sting over its back (only the sting poisons; enemy.js startAttack)

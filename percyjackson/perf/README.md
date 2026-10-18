@@ -15,6 +15,7 @@ From the repository root:
 bash percyjackson/perf/run-all.sh            # everything, about 15 min
 QUICK=1 bash percyjackson/perf/run-all.sh    # auto tier, 4 scenes, about 4 min
 NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/smoke.cjs   # every chapter loads; the audit fixes hold
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/weapons.cjs # every weapon points forward, at rest and in each strike
 ```
 
 It needs Node, Playwright (`NODE_PATH` points at a global install; default
@@ -34,6 +35,7 @@ Environment: `PERF_PORT`, `PERF_W` / `PERF_H` (viewport, default 640 x 360),
 | `retainers.cjs` | Marks camp's world group, reloads camp twice, takes a heap snapshot and prints the retainer path | `retainers.json` |
 | `summarize.cjs` | Tables from every `run-*.json` | `summary.json`, `summary.md` |
 | `smoke.cjs` | Every Book 1 chapter loads and runs with no page errors; the tracker has a goal; a hero refresh keeps cooldowns and health; the marker pool and the party-wipe checkpoint | stdout |
+| `weapons.cjs [ids]` | Every armed model (heroes, bosses, monsters and fodder, champions, people, mortals) at rest and at the strike of each attack style: the weapon's tip (`markTip`, see the hand-axis convention in `game/js/entities/character.js`) must point forward of the hand along the model's facing, raised allowed at rest. Exits 1 on a failure | stdout |
 
 Scenes: `title`, `prologue` (Manhattan), `lt1` (museum), `hub` (camp), `combat`
 (camp plus 3 training waves, about 16 monsters), `lt2`, `lt4`, `lt10`,
