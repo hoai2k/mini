@@ -17,6 +17,7 @@ import { t as txt } from '../text_config.js';
 import { HS, solid, skinMat, prop, group, lavaCracks, fur, sway, rng, bruteLimbs, BUILD, withBuild, rigDensity, voxDensity, densityFor, keepAbove } from './parts.js';
 import { heroHair, cellMesh, footwear } from './herovox.js';
 import { FODDER_MONSTERS, fodderModels, blob, carve, flushBlobs, paintShade } from './fodder.js';
+import { buildSerpent } from './serpent.js';
 
 export { skinMat, blob, carve, paintShade, rigDensity, voxDensity };
 
@@ -523,9 +524,13 @@ const lavaDog = (o) => (S) => paintQuad(S, { base: o.base ?? 0x221d20, dark: 0x0
 // The full hellhound (bigHound below): built at rig scale 1.18, the heroes'
 // own voxel size (Percy's root scale is 0.944 = 1.18 x CHAR_SCALE), its dims
 // in skin pixels (Percy stands about 40 of them tall).
-// (pass 3: longer legs set in under a narrower chest, the head carried
-// lower, so it stands as a lean hunter, not a column; about as tall)
-export const HELLHOUND = { big: true, scale: 1.18, bodyL: 50, bodyW: 18, bodyH: 30, legH: 40, legW: 7.4, legSpread: 2, headS: 24, snoutS: 14, ears: true, tail: 5, tailLen: 30, tailW: 4.2, tailCurl: 0.8, gait: 0.55, neckUp: 8, headZ: -1, jawOpen: 0.42 };
+// (pass 4, after the owner's review against vox-enemies: a powerful
+// crouching dog, not a lean column. The trunk is wider than the head and
+// longer, with a deep chest; shorter, thicker legs planted wide, leaning a
+// little outward at rest (stance); the leg roots sit deep in the body
+// (legY) and hang from the torso (legsOnTorso), so a hind leg never parts
+// from the haunch however the body pitches in a walk, a run or a bite)
+export const HELLHOUND = { big: true, scale: 1.18, bodyL: 60, bodyW: 30, bodyH: 36, legH: 34, legW: 10, legY: 10, legSpread: 1, stance: 0.09, legsOnTorso: true, headS: 24, snoutS: 14, ears: true, tail: 6, tailLen: 36, tailW: 4.8, tailCurl: 0.8, gait: 0.5, neckUp: 10, headZ: -5, jawOpen: 0.42 };
 const MODELS = {
   pup: () => hound('pup', { scale: 0.95, bodyL: 10, bodyW: 6, bodyH: 6, legH: 5.5, legW: 2.8, headS: 7, ears: true, tail: 3, tailLen: 6, tailW: 1.8, tailCurl: 0.55, neckUp: 2, jawOpen: 0.25 }, { fur: 60, cracks: 6, collar: false, pup: true }),
   // A New York sewer rat (the prologue): grey-brown fur, a pink nose, ears
@@ -544,16 +549,8 @@ const MODELS = {
   // A serpent out of the Mist (what a "person" in the museum may really be,
   // entities/mistPeople.js): a long green snake banded in gold, rearing its
   // head and hood, with a flickering forked tongue. Nothing like a person.
-  serpent: () => {
-    const rig = new QuadRig({ material: skinMat('serpent', (S) => paintQuad(S, { base: 0x3e7a2e, dark: 0x1e3e18, belly: 0xe0c870, back: 0x2e5a22, stripes: 0xd8b040, eye: 0xffd81a, eyeLow: 0xff8a10, nose: 0x1e3e18, teeth: 0xfff4d8, speckles: 30 })),
-      scale: 1.15, bodyL: 9, bodyW: 5, bodyH: 4, legH: 0.4, legW: 1, headS: 5.5, snoutS: 3.2, ears: false, tail: 7, tailLen: 30, tailW: 4.8, tailCurl: 0.2, neckUp: 4.5, gait: 1 });   // (tailCurl: the tail sweeps down to the ground and lies along it; at 0 it bent on down through the floor)
-    for (const l of rig.legs) l.visible = false;
-    const hood = solid(0x2e6a24), gold = solid(0xd8b040, 0.2);
-    for (const sx of [-1, 1]) { prop(rig, rig.neck, 0.8, 6.5, 4.5, hood, sx * 3.4, -0.5, -1.2, 0, 0, sx * 0.35); prop(rig, rig.neck, 0.9, 1.2, 2.4, gold, sx * 3.5, 1.4, -0.4, 0, 0, sx * 0.35); }
-    for (let i = 0; i < 4; i++) prop(rig, rig.torso, 5.4, 4.4, 0.8, gold, 0, 0, 3.4 - i * 2.4);
-    rig.extras.tongue = prop(rig, rig.mouth, 0.5, 0.3, 3.2, solid(0xd8203a, 0.8), 0, 0.2, 2.4);
-    return rig;
-  },
+  // (entities/serpent.js: a legless spine that slithers, rears and strikes)
+  serpent: () => buildSerpent({ kit }),
   automaton: () => buildAutomaton(),
   harpy: () => eagle('harpy', { scale: 1.0 }),
   // Stymphalian bird: a level bronze bird of prey in knife feathers (bronzeHunter)
@@ -659,12 +656,13 @@ export function hound(id, spec, opts = {}) {
 // The full-size hellhound (vox-enemies, middle row: "as big as a truck",
 // well over twice Percy's height). Not the pup scaled up: built at
 // the heroes' voxel size (rig scale 1.18, so one block is one hero skin pixel)
-// from many small blocks, so its size buys detail. A lean, long-legged hunter
-// with a deep chest and heavy shoulders, ribs showing down a tucked flank, a
+// from many small blocks, so its size buys detail. A powerful crouching dog
+// with a deep, broad chest and heavy shoulders, ribs showing down the flank, a
 // hackled mane of black fur breaking into smoke along the spine, a big head
 // with a massive furnace jaw and long fangs, molten eyes under a scowling
 // brow, ember cracks all over, thick clawed paws with glowing amber claws,
-// a smouldering tail and smoke on its breath (extras.breath, animateExtras).
+// a smouldering tail. (pass 4: no smoke puffs at the jaws any more: they read
+// as a nose sticking out and wiggling; the smoke aura, enemy.js, stays.)
 // spec: HELLHOUND (big: true); opts as hound(). rig.dims match the QuadRig,
 // so the champions' add-ons (Shadowfang's collar, scars, eyes) still land.
 const DEEP = [0x1a1518, 0x231d21, 0x2c252a], SMOKE = [0x3a3438, 0x4e474c, 0x645c62];
@@ -672,7 +670,7 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
   const mat = skinMat(id, (S) => { lavaDog({ cracks, base: 0x2e2529 })(S); S.saturate(1.3); }, { emit: 0.5 });
   const rig = new QuadRig({ material: mat, ...spec });
   const K = kit(rig, mat, { seed: 9 + (id.length % 7), emit: 1 });
-  const { legH, hs } = rig.dims, T = rig.torso, Hd = rig.head, M = rig.mouth, N = rig.neck, ly = legH / 36;   // (the legs were drawn 36 long)
+  const { legH, legW, hs } = rig.dims, T = rig.torso, Hd = rig.head, M = rig.mouth, N = rig.neck;
   for (const g of [T, Hd, M, ...rig.legs, ...rig.tail]) dropMeshes(rig, g);
   // the coat's budget: a hound built bigger (a champion or the alpha, parts.js
   // BUILD.k) has its tufts and clumps made finer by the kit, which alone
@@ -693,42 +691,42 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
       K.box(p, x, y + u * c - zz * sn, z + u * sn + zz * c, sz, sz * 1.4, sz, K.tone(FUR, 0.16), rx);
     }
   };
-  // ---- trunk (body 20 x 30 x 50): a deep chest over the front legs, ribs
-  // down a lean flank, a tucked waist and narrower haunches
-  // (pass 3: thinner, as the owner asked and the sheets draw it: the chest
-  // keeps its depth but loses width, and the waist is pinched in and tucked
-  // well up, so the flank sweeps from a deep chest to slim haunches)
-  K.box(T, 0, 1, 13, 19, 32, 24, DEEP[1]);           // chest and shoulders
-  K.box(T, 0, -10, 23, 13, 14, 7, DEEP[0]);          // the brisket
-  K.box(T, 0, 4, -3, 15, 24, 10, DEEP[1]);           // ribcage
-  K.box(T, 0, 8, -12, 9, 14, 10, DEEP[2]);           // waist, tucked up
-  K.box(T, 0, 4.5, -20, 14, 21, 11, DEEP[1]);        // haunches
+  // ---- trunk (body 30 x 36 x 60): a deep, broad chest over the front
+  // legs, ribs down the flank, a waist only a little tucked and heavy
+  // haunches round the hind legs' roots
+  // (pass 4: wider than the head, a fifth longer and deeper in the chest, as
+  // vox-enemies draws it; the haunch reaches well below the hind legs' roots,
+  // QuadRig legY, so the thigh always enters the body)
+  K.box(T, 0, 1, 14, 30, 34, 30, DEEP[1]);           // chest and shoulders
+  K.box(T, 0, -14.5, 22, 22, 9, 12, DEEP[0]);        // the brisket
+  K.box(T, 0, 3, -6, 27, 29, 14, DEEP[1]);           // ribcage
+  K.box(T, 0, 5, -14, 23, 25, 6, DEEP[2]);           // waist
+  K.box(T, 0, 3, -23, 27, 30, 14, DEEP[1]);          // haunches
   for (const sx of [-1, 1]) {
-    K.clumps(T, [sx * 9.2, 7, 14], [2, 16, 14], { n: Math.round(26 * fe), size: [1.8, 3], cols: FURL, faces: sx < 0 ? 'l' : 'r', out: 0.3, stretch: [1, 1.2, 1] });   // shoulder blade
-    K.clumps(T, [sx * 9.2, -5, 19], [2.4, 14, 9], { n: Math.round(18 * fe), size: [1.8, 3], cols: FURL, faces: sx < 0 ? 'l' : 'r', out: 0.3 });               // upper-arm muscle
+    K.clumps(T, [sx * 15.2, 7, 15], [2, 18, 16], { n: Math.round(30 * fe), size: [2, 3.2], cols: FURL, faces: sx < 0 ? 'l' : 'r', out: 0.3, stretch: [1, 1.2, 1] });   // shoulder blade
+    K.clumps(T, [sx * 15.2, -7, 21], [2.4, 14, 11], { n: Math.round(22 * fe), size: [2, 3.2], cols: FURL, faces: sx < 0 ? 'l' : 'r', out: 0.3 });              // upper-arm muscle
     for (let i = 0; i < 5; i++) {                     // ribs, with embers glowing between them
-      K.box(T, sx * 7.9, 3 - i * 0.3, 1 - i * 2.2, 1, 15 - i * 1.6, 1.3, FUR[4]);
-      if (i % 2 === 0) K.box(T, sx * 7.65, 1.6 - i * 0.2, -0.1 - i * 2.2, 0.4, 7 - i, 0.6, LAVA[i % 4 ? 1 : 0]);
+      K.box(T, sx * 13.9, 3 - i * 0.3, 0 - i * 2.3, 1, 18 - i * 1.6, 1.4, FUR[4]);
+      if (i % 2 === 0) K.box(T, sx * 13.65, 1.6 - i * 0.2, -1.1 - i * 2.3, 0.4, 8 - i, 0.6, LAVA[i % 4 ? 1 : 0]);
     }
-    K.clumps(T, [sx * 7, 5, -20], [1.4, 15, 10], { n: Math.round(22 * fe), size: [1.6, 2.8], cols: FURL, faces: sx < 0 ? 'l' : 'r', out: 0.3 });     // haunch muscle
+    K.clumps(T, [sx * 13.6, 2, -23], [1.6, 20, 12], { n: Math.round(28 * fe), size: [1.8, 3], cols: FURL, faces: sx < 0 ? 'l' : 'r', out: 0.3 });     // haunch muscle
   }
-  K.shag(T, [0, 1, 13], [19, 32, 24], { cols: FUR, step: 2 * ss, len: [2.4, 4.2], w: 1.3, low: 0.8, ember: 0.08, embers: LAVA, top: false });
-  K.shag(T, [0, 4, -3], [15, 24, 10], { cols: FUR, step: 1.8 * ss, len: [1.4, 2.4], low: 0.3, top: false, sweep: 0.5 });
-  K.shag(T, [0, 8, -12], [9, 14, 10], { cols: FURL, step: 1.8 * ss, len: [1.2, 2], low: 0.75, top: false, sweep: 0.5 });
-  K.clumps(T, [0, 4, -3], [15, 24, 10], { n: Math.round(26 * fe), size: [1, 1.8], cols: FURL, faces: 'lrb', out: 0.2 });
-  K.shag(T, [0, 4.5, -20], [14, 21, 11], { cols: FUR, step: 1.8 * ss, len: [1.8, 3], low: 0.75, sweep: 0.4, bristle: 0.9 });
-  K.clumps(T, [0, -3, 26], [17, 24, 1], { n: Math.round(46 * fe), size: [1.6, 2.8], cols: FUR, faces: 'f', stretch: [1, 1.5, 1] });   // chest ruff
-  for (let z = 4; z < 26; z += 2.6) for (let x = -7.5; x <= 7.5; x += 3) {                                 // fringe hanging under the chest
-    const l = 2.5 + K.r() * 3.5; K.box(T, x + (K.r() - 0.5), -15 - l / 2 + 1.2, z, 2, l, 2, K.tone(FUR), 0.3);
+  K.shag(T, [0, 1, 14], [30, 34, 30], { cols: FUR, step: 2.3 * ss, len: [2.4, 4.2], w: 1.3, low: 0.8, ember: 0.08, embers: LAVA, top: false });
+  K.shag(T, [0, 3, -6], [27, 29, 14], { cols: FUR, step: 2.1 * ss, len: [1.4, 2.4], low: 0.3, top: false, sweep: 0.5 });
+  K.clumps(T, [0, 3, -6], [27, 29, 14], { n: Math.round(26 * fe), size: [1, 1.8], cols: FURL, faces: 'lrb', out: 0.2 });
+  K.shag(T, [0, 3, -23], [27, 30, 14], { cols: FUR, step: 2.1 * ss, len: [1.8, 3], low: 0.75, sweep: 0.4, bristle: 0.9 });
+  K.clumps(T, [0, -2, 29], [26, 28, 1], { n: Math.round(50 * fe), size: [1.8, 3], cols: FUR, faces: 'f', stretch: [1, 1.5, 1] });   // chest ruff
+  for (let z = 2; z < 28; z += 3) for (let x = -12; x <= 12; x += 3.4) {                                 // fringe hanging under the chest
+    const l = 2.5 + K.r() * 3.5, y0 = z > 15.5 && Math.abs(x) < 11 ? -19 : -16; K.box(T, x + (K.r() - 0.5), y0 - l / 2 + 1.2, z, 2.2, l, 2.2, K.tone(FUR), 0.3);
   }
   // lava veins drawn over the fur (the source sheet's cracks read from afar)
-  K.cracks(T, [0, -1, 13], [25, 26, 30], { n: Math.round(cracks * 1.2), cols: LAVA, faces: 'lrf', len: [7, 14], cell: 1 });
-  K.cracks(T, [0, 3, -3], [20, 16, 10], { n: Math.round(cracks * 0.4), cols: LAVA, faces: 'lr', len: [5, 9], cell: 0.9 });
-  K.cracks(T, [0, 3.5, -20], [19.5, 17, 15], { n: Math.round(cracks * 0.6), cols: LAVA, faces: 'lrk', len: [5, 10], cell: 0.9 });
-  for (let z = 6; z < 24; z += 3) K.box(T, (K.r() - 0.5) * 6, -14.6, z, 4 + K.r() * 6, 0.4, 0.8, LAVA[K.r() < 0.3 ? 1 : 0]);   // the furnace glows under the chest
+  K.cracks(T, [0, -1, 14], [31, 32, 31], { n: Math.round(cracks * 1.3), cols: LAVA, faces: 'lrf', len: [7, 14], cell: 1 });
+  K.cracks(T, [0, 3, -6], [28, 24, 14], { n: Math.round(cracks * 0.5), cols: LAVA, faces: 'lr', len: [5, 9], cell: 0.9 });
+  K.cracks(T, [0, 3, -23], [28.5, 26, 14.5], { n: Math.round(cracks * 0.7), cols: LAVA, faces: 'lrk', len: [5, 10], cell: 0.9 });
+  for (let z = 4; z < 27; z += 3) K.box(T, (K.r() - 0.5) * 8, z > 15.5 ? -19.2 : -16.2, z, 4 + K.r() * 7, 0.4, 0.8, LAVA[K.r() < 0.3 ? 1 : 0]);   // the furnace glows under the chest
   // ---- the mane: hackles down the spine, tallest over the shoulders, breaking into smoke
-  const topAt = (z) => (z > 1 ? 17 : z > -8 ? 16 : 15);
-  for (let z = 26; z > -20; z -= 1.7) {
+  const topAt = (z) => (z > -1 ? 18 : 17.5);
+  for (let z = 29; z > -28; z -= 1.9) {
     const k = Math.max(0.35, 1 - Math.abs(z - 14) / 36), top = topAt(z);
     for (const sx of [-1, 0, 1]) {
       const h = (sx ? 5 : 8.5) * k + K.r() * 2.5, x = sx * 2.4 + (K.r() - 0.5) * 0.8, lean = -0.6 - K.r() * 0.2;
@@ -742,7 +740,7 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
   // the alpha (the boss, bossmodels.js): a burning ridge of horn spikes down
   // its back, each split by a seam of fire and tipped with flame
   if (alpha) for (let i = 0; i < 9; i++) {
-    const z = 22 - i * 4.6, h = (9 - Math.abs(i - 2) * 0.9) * (1 - i * 0.04), top = topAt(z) + 1;
+    const z = 26 - i * 5.8, h = (9 - Math.abs(i - 2) * 0.9) * (1 - i * 0.04), top = topAt(z) + 1;
     K.box(T, 0, top + h / 2, z, 2.6, h, 3, DEEP[0], -0.55);
     K.box(T, 0, top + h / 2 + 0.4, z + 0.2, 2.7, h * 0.7, 0.5, LAVA[0], -0.55);
     K.box(T, 0, top + h * 0.98, z - h * 0.52, 1.4, 1.8, 1.4, LAVA[1], -0.55);
@@ -750,10 +748,10 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
   }
   // ---- neck: thick and short, rising from the chest, with a shaggy ruff;
   // the head is carried high over the chest, as the sheet draws it
-  K.box(N, 0, -6, -3, 13.5, 20, 14, DEEP[1], 0.2);
-  K.clumps(N, [0, -6, -3], [14.5, 20, 14], { n: Math.round(70 * fe), size: [1.8, 3.4], cols: FUR, faces: 'lrtb', stretch: [1, 1.4, 1.2] });
+  K.box(N, 0, -7, -4, 18, 22, 16, DEEP[1], 0.2);
+  K.clumps(N, [0, -7, -4], [19, 22, 16], { n: Math.round(70 * fe), size: [1.8, 3.4], cols: FUR, faces: 'lrtb', stretch: [1, 1.4, 1.2] });
   if (collar) {
-    const r = 10, n = 20, g = group(N, 0, -5, -1, -0.25);
+    const r = 12, n = 22, g = group(N, 0, -5, -1, -0.25);
     for (let i = 0; i < n; i++) {
       const a = i / n * Math.PI * 2, x = Math.sin(a) * r, y = Math.cos(a) * r;
       K.box(g, x, y, 0, 2 * Math.PI * r / n + 0.5, 2.4, 3, i % 2 ? 0xd09418 : 0xf0b428, 0, 0, -a);
@@ -787,63 +785,72 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
   K.clumps(Hd, sc([0, 1, 7.5]), sc([19, 16, 19]), { n: Math.round(40 * fe), size: [1, 1.8], cols: FURL, faces: 'lr', out: 0.2 });
   K.clumps(Hd, sc([0, -2.3, 23.5]), sc([11.4, 9, 13]), { n: Math.round(44 * fe), size: [0.8, 1.5], cols: [DEEP[0], DEEP[2], FUR[0], FUR[1]], faces: 'lrt', out: 0.2, keep: (x, y) => y / k > -5.2 });
   K.clumps(Hd, sc([0, 1, 7.5]), sc([19, 16, 19]), { n: Math.round(36 * fe), size: [1, 1.8], cols: FURL, faces: 'f', out: 0.2, keep: (x, y) => y / k > 8 || (y / k > -1.5 && Math.abs(Math.abs(x / k) - 5) > 3.6) });
-  K.clumps(Hd, sc([0, -4, 5]), sc([24, 9, 11]), { n: Math.round(34 * fe), size: [1.6, 2.8], cols: FUR, faces: 'lrbk', stretch: [1, 1.3, 1.2] });   // cheek ruff
+  K.clumps(Hd, sc([0, -4, 5]), sc([21, 9, 11]), { n: Math.round(34 * fe), size: [1.6, 2.8], cols: FUR, faces: 'lrbk', stretch: [1, 1.3, 1.2] });   // cheek ruff
   K.cracks(Hd, sc([0, 0, 7.5]), sc([21.5, 13, 19]), { n: Math.max(4, Math.round(cracks / 2.5)), cols: LAVA, faces: 'lr', len: [4, 8], cell: 0.9 });
   K.cracks(N, [0, -4, -3.5], [18.5, 16, 15], { n: Math.max(3, Math.round(cracks / 3)), cols: LAVA, faces: 'lr', len: [4, 8], cell: 0.9 });
   // the muzzle
   HB(Hd, 0, -2.3, 23.5, 11.4, 9, 13, DEEP[1]);
   HB(Hd, 0, 2.4, 21, 8, 1.6, 7, DEEP[2], 0.12);
   for (let i = 0; i < 4; i++) HB(Hd, 0, 2.8 - i * 0.2, 18 + i * 1.8, 8.6, 0.6, 0.8, 0x0a0708);       // snarl wrinkles
-  HB(Hd, 0, 0.6, 30.2, 6.4, 3.8, 2.6, 0x050404);                                                    // nose
-  HB(Hd, 0, 1.8, 31, 4, 1, 1, 0x2a2428);
+  HB(Hd, 0, 0.6, 29.6, 6.4, 3.8, 1.2, 0x050404);                                                    // nose, flush with the muzzle's tip
+  HB(Hd, 0, 1.8, 30.05, 4, 1, 0.3, 0x2a2428);
+  // the mouth (pass 4, the owner's note): a dark mouth, pink gums only
+  // along the top and bottom jaws, and the teeth standing out of them
+  const GUM = 0xb8344a, MAW = 0x1a0909;
   for (const sx of [-1, 1]) {
     HB(Hd, sx * 5.8, -6.1, 23.5, 0.5, 1, 12, LAVA[0]);                                               // the furnace glows through the lips
     HB(Hd, sx * 4.4, -9.8, 28, 2, 7, 2, fang, 0.12);                                                 // upper canines
     for (let i = 0; i < 4; i++) HB(Hd, sx * 5, -7.9, 25.6 - i * 2.1, 1, 2.5 - i * 0.25, 1, fang);
   }
   for (let x = -2.4; x <= 2.41; x += 1.2) HB(Hd, x, -7.7, 29.4, 0.9, 2.2, 0.9, fang);
-  HB(Hd, 0, -6.9, 23, 9, 0.5, 12, 0xff5000);                                                         // the furnace inside
-  for (const sx of [-1, 1]) HB(Hd, sx * 4.9, -8.6, 21, 0.4, 3, 10, 0xff7a10);                         // and in the cheeks
-  // the jaw (QuadRig's mouth hinge): massive, its own row of fangs, a glowing tongue
+  HB(Hd, 0, -6.9, 23, 9, 0.5, 12, MAW);                                                              // the roof of the mouth, dark
+  for (const sx of [-1, 1]) {
+    HB(Hd, sx * 4.9, -8.6, 21, 0.4, 3, 10, MAW);                                                     // the cheeks inside
+    HB(Hd, sx * 4.9, -7.15, 24, 1.9, 0.6, 11.6, GUM);                                                // the upper gums, along each side
+  }
+  HB(Hd, 0, -7.15, 29.3, 8.6, 0.6, 1.4, GUM);                                                       // and behind the front teeth
+  // the jaw (QuadRig's mouth hinge): massive, its own row of fangs over pink gums, a dark tongue
   HB(M, 0, -2.4, 7.5, 10.4, 4.6, 15, DEEP[1]);
   HB(M, 0, -5.2, 10, 8.4, 2, 8, DEEP[0]);
-  HB(M, 0, 0.2, 7.5, 7.6, 0.5, 12.5, 0xff6a00);
-  HB(M, 0, 0.35, 2.5, 6, 0.6, 4, 0xffa800);
+  HB(M, 0, 0.2, 7.5, 7.6, 0.5, 12.5, MAW);
+  HB(M, 0, 0.5, 6, 4.2, 0.6, 8, 0x5a1620);                                                           // the tongue
+  HB(M, 0, 0.45, 14.2, 8.2, 0.6, 1.4, GUM);
   for (const sx of [-1, 1]) {
     HB(M, sx * 3.9, 2.9, 13.6, 1.8, 5.4, 1.8, fang, -0.1);
-    for (let i = 0; i < 4; i++) HB(M, sx * 4.2, 1, 11.4 - i * 2, 0.9, 1.9, 0.9, fang);
+    for (let i = 0; i < 4; i++) HB(M, sx * 4.2, 1.1, 11.4 - i * 2, 1, 2.1, 1, fang);
+    HB(M, sx * 4.3, 0.45, 8, 1.9, 0.6, 12.6, GUM);
     HB(M, sx * 5.3, -0.3, 7.5, 0.4, 0.8, 13, LAVA[0]);
-    HB(M, sx * 4.7, 1.8, 7, 0.4, 3, 9, 0xff7a10);
+    HB(M, sx * 4.9, 1.6, 7, 0.4, 2.6, 9, MAW);
   }
   K.clumps(M, sc([0, -3, 7]), sc([10, 5, 15]), { n: Math.round(14 * fe), size: [1.3, 2.2], cols: FUR, faces: 'blr' });
-  // ---- legs: long and lean, heavy at the shoulder and thigh; the hind legs
-  // bend back at the hock; big paws spread on four toes with amber claws
+  // ---- legs: thick and powerful, heavy at the shoulder and thigh, their
+  // roots buried in the body (QuadRig legY: the top 10 of each is inside
+  // it); the hind legs bend back at the hock; big paws spread on four toes
+  // with amber claws, set flat on the ground though the leg leans out (stance)
   for (const leg of rig.legs) {
-    const front = leg.userData.row === 0, b = -legH;
-    // (pass 3: about a fifth thinner and a ninth longer, drawn at 36 and
-    // stretched to legH: a lean forearm and a slim pastern over the paw)
-    const Y = ([y, z]) => [y * ly, z];
+    const front = leg.userData.row === 0, b = -legH - legW * 0.2;
     if (front) {
-      seg(leg, [2, 0], Y([-10, 0.5]), 8.2, 9, DEEP[1], 1.4);
-      seg(leg, Y([-8, 0.5]), Y([-21, -1]), 6.4, 7, DEEP[1]);
-      seg(leg, Y([-21, -1]), Y([-32, 0.6]), 5.2, 5.8, DEEP[0], 0.7);
-      for (let y = -10; y > -24; y -= 2.2) K.box(leg, (K.r() - 0.5) * 2.4, y * ly, -4, 1.8, 3.4, 1.6, K.tone(FURL), 0.35);   // feathering down the back
+      seg(leg, [7, 0], [-12, 0.5], 11, 12, DEEP[1], 1.2);
+      seg(leg, [-11, 0.5], [-24, -0.5], 8.6, 9.2, DEEP[1]);
+      seg(leg, [-24, -0.5], [-31, 0.8], 7.2, 7.8, DEEP[0], 0.7);
+      for (let y = -12; y > -26; y -= 2.2) K.box(leg, (K.r() - 0.5) * 3, y, -5, 2, 3.4, 1.6, K.tone(FURL), 0.35);   // feathering down the back
     } else {
-      seg(leg, [7, -0.5], Y([-11, 0.5]), 8.6, 10.6, DEEP[1], 1.4);   // (the thigh reaches up into the haunch: no gap under the tucked waist)
-      seg(leg, Y([-9, 0.5]), Y([-17, 3.6]), 6.6, 7.4, DEEP[1]);
-      seg(leg, Y([-17, 3.6]), Y([-28, -3.6]), 5, 5.6, DEEP[0], 0.7);
-      seg(leg, Y([-28, -3.6]), Y([-34, -0.5]), 4.4, 5, DEEP[1], 0.6);
-      K.box(leg, 0, -28.5 * ly, -4.4, 3, 3, 2.4, FUR[2]);
+      seg(leg, [8, -1], [-12, 1], 12, 14, DEEP[1], 1.1);   // (the thigh reaches up into the haunch: it never leaves the body)
+      seg(leg, [-11, 1], [-19, 4], 9, 10, DEEP[1]);
+      seg(leg, [-19, 4], [-28, -3], 7.2, 7.8, DEEP[0], 0.7);
+      seg(leg, [-28, -3], [-33, -0.5], 6.6, 7.2, DEEP[1], 0.6);
+      K.box(leg, 0, -28, -5.6, 3.6, 3.6, 2.8, FUR[2]);
     }
-    K.cracks(leg, [0, -19 * ly, 0], [8, 20 * ly, 8.5], { n: 4, cols: LAVA, faces: 'lrf', len: [4, 9], cell: 0.9 });
-    K.box(leg, 0, b + 2.2, 1.6, 8.6, 4.4, 9.6, DEEP[1]);
-    K.box(leg, 0, b + 5, 0.6, 6, 2.4, 6.6, DEEP[0]);
-    for (const dx of [-3.1, -1.03, 1.03, 3.1]) {
-      K.box(leg, dx, b + 1.9, 6.8, 2, 3.8, 3.4, K.tone([FUR[0], DEEP[1]]));
-      K.box(leg, dx, b + 1.3, 9, 1.3, 2.4, 3, claw, 0.45);
-      K.box(leg, dx, b + 0.5, 10.3, 0.8, 1.2, 1.4, 0xffb000);
+    K.cracks(leg, [0, -17, 0], [10, 22, 10.5], { n: 5, cols: LAVA, faces: 'lrf', len: [4, 9], cell: 0.9 });
+    const paw = group(leg, 0, b, 0, 0, 0, -(rig.spec.stance ?? 0) * leg.userData.side);   // (level, though the leg leans out)
+    K.box(paw, 0, 2.2, 1.6, 10.6, 4.4, 11.4, DEEP[1]);
+    K.box(paw, 0, 5, 0.6, 7.6, 2.4, 8, DEEP[0]);
+    for (const dx of [-3.9, -1.3, 1.3, 3.9]) {
+      K.box(paw, dx, 1.9, 7.6, 2.4, 3.8, 3.8, K.tone([FUR[0], DEEP[1]]));
+      K.box(paw, dx, 1.3, 10, 1.5, 2.4, 3.2, claw, 0.45);
+      K.box(paw, dx, 0.5, 11.4, 0.9, 1.2, 1.4, 0xffb000);
     }
-    K.box(leg, 0, b + 1.5, -3.8, 2.6, 2.6, 2.2, DEEP[1]);   // the heel pad
+    K.box(paw, 0, 1.5, -4.6, 3, 2.8, 2.4, DEEP[1]);   // the heel pad
   }
   // ---- tail: a shaggy rope with a smouldering, smoking tip
   const tl = spec.tailLen / spec.tail;
@@ -855,16 +862,6 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
   const tip = rig.tailTip;
   K.box(tip, 0, 0, -tl - 1.2, 3, 3, 3, LAVA[0]); K.box(tip, 0, 1.6, -tl - 2.6, 2, 2.6, 2, LAVA[1]); K.box(tip, 0.6, 3.4, -tl - 2.2, 1.2, 2, 1.2, 0xffd040);
   K.box(tip, 0, 6, -tl - 3, 2.2, 2.2, 2.2, SMOKE[0]); K.box(tip, 0.6, 8.6, -tl - 3.6, 1.6, 1.6, 1.6, SMOKE[1]); K.box(tip, -0.3, 10.6, -tl - 4, 1.1, 1.1, 1.1, SMOKE[2]);
-  // ---- smoke on its breath: puffs that roll out of the jaws and rise (animateExtras)
-  const breath = [];
-  for (let i = 0; i < 4; i++) {
-    const g = group(Hd, 0, -6 * hs / 20, 30 * hs / 20);
-    g.userData.base = g.position.clone();
-    K.box(g, 0, 0, 0, 2.6, 2.2, 2.6, SMOKE[i % 3]); K.box(g, 1, 1, -0.6, 1.8, 1.8, 1.8, SMOKE[(i + 1) % 3]); K.box(g, -1, 0.6, 0.8, 1.6, 1.6, 1.6, SMOKE[(i + 2) % 3]);
-    if (i % 2 === 0) K.box(g, 0.4, -0.6, 1.4, 0.7, 0.7, 0.7, LAVA[1]);
-    breath.push(g);
-  }
-  rig.extras.breath = breath;
   K.done();
   return rig;
 }

@@ -4,6 +4,7 @@
 // registries at load, so a model added to a registry shows up on its own.
 // Deep link: #id=<id> (or #id=<group>:<id> when an id is used in two groups).
 // Options: ?turn=0 stops the turntable, ?bg=dark|light|sky, ?anim=run|attack|...
+// ?capture=1 hides the description overlay (for thumbnails of the page).
 // ?scale=true opens in True scale: one fixed camera for every model with Percy
 // standing beside it, so a hellhound dwarfs a pup (the default view fits each
 // model to the frame, which hides size).
@@ -45,6 +46,8 @@ const GROUPS = [
 ];
 // A real mortal (monsters.js 'mortal') is drawn in game as a person (Enemy builds the Mist's mortal look, never its placeholder 'pup' model), so the workbench builds the same: an ordinary museum visitor.
 const WB_MORTAL = 'tourist';
+// ?capture=1 (or ?thumb=1): a clean frame for a screenshot or page thumbnail, with no description overlay
+if (q.has('capture') || q.has('thumb')) document.body.classList.add('capture');
 const TIER_COLOR = { minor: '#9a9a8a', elite: '#4ad0ff', champion: '#ff9a2a', boss: '#e8664a' };
 const hex = (n) => '#' + (n >>> 0).toString(16).padStart(6, '0');
 const items = [];
@@ -183,10 +186,6 @@ const queue = [], queued = new Set();
 let flipRows = !isGPU;              // WebGL readback is bottom-up, WebGPU top-down
 const canvas2d = document.createElement('canvas'); canvas2d.width = canvas2d.height = TS;
 async function photograph(item) {
-  document.body.classList.add('capture');   // (the description overlay is hidden while a model is photographed)
-  try { return await photographModel(item); } finally { document.body.classList.remove('capture'); }
-}
-async function photographModel(item) {
   const { rig, error } = safeBuild(item);
   if (error) return { error: error.message };
   try {

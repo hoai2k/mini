@@ -60,7 +60,7 @@ const tmpV = new THREE.Vector3(), _qm = new THREE.Matrix4(), _qm2 = new THREE.Ma
 function lowest(P, M) { const e = M.elements; let y = Infinity; for (let i = 0; i < P.length; i += 3) { const v = e[1] * P[i] + e[5] * P[i + 1] + e[9] * P[i + 2] + e[13]; if (v < y) y = v; } return y; }
 
 export class QuadRig {
-  // spec: { material, scale, bodyL, bodyW, bodyH, legH, legW, headS, legs(4|6|8), splay, footL (a lower leg below a knee), kneeOut (how far the lower leg leans out, rad), legY (leg root height from the body's underside), legSpread (extra sideways offset of the leg roots), tail(segments), tailLen, tailW, tailCurl, ears, snout, snoutS, neckUp, headZ, gait, jawOpen }
+  // spec: { material, scale, bodyL, bodyW, bodyH, legH, legW, headS, legs(4|6|8), splay, footL (a lower leg below a knee), kneeOut (how far the lower leg leans out, rad), legY (leg root height from the body's underside), legSpread (extra sideways offset of the leg roots), stance (rad: unsplayed legs set leaning slightly outward, a big beast's planted stance), legsOnTorso (the legs hang from the torso, so they pitch and roll with the body and never part from it), tail(segments), tailLen, tailW, tailCurl, ears, snout, snoutS, neckUp, headZ, gait, jawOpen }
   constructor(spec) {
     this.spec = spec; this.isQuad = true;
     this.material = spec.material;
@@ -74,7 +74,8 @@ export class QuadRig {
     const nLegs = spec.legs ?? 4, splay = spec.splay ?? 0;
     const footL = spec.footL ?? 0;
     const kneeOut = spec.kneeOut ?? -0.12;
-    const standH = legH * Math.cos(splay) + footL * Math.cos(kneeOut) + H / 2 - (spec.legY ?? 0);
+    const tilt = splay || (spec.stance ?? 0);   // (a splayed leg, or a planted stance)
+    const standH = legH * Math.cos(tilt) + footL * Math.cos(kneeOut) + H / 2 - (spec.legY ?? 0);
     this.dims = { L, W, H, legH, legW, hs, standH, legH0: standH };
     // body
     this.hips = new THREE.Group(); this.hips.position.y = standH * PX; this.root.add(this.hips);
@@ -107,14 +108,14 @@ export class QuadRig {
       g.position.set(side * (W / 2 - legW / 2 + (splay ? 0.8 : 0) + (spec.legSpread ?? 0)) * PX, (-H / 2 + legW * 0.2 + (spec.legY ?? 0)) * PX, z * PX);
       const lm = mesh(quadPart('leg', legW, legH, legW, [0, -legH / 2, 0])); g.add(lm);
       g.userData = { side, row, phase: ((row % 2) ^ (side > 0 ? 1 : 0)) * Math.PI, splay: side * splay };
-      g.rotation.z = side * splay;   // splayed legs reach outward
+      g.rotation.z = side * tilt;   // splayed legs reach outward (and a stance leans a little out)
       // a knee: the lower leg turns back down so the foot meets the ground
       if (footL) {
         const knee = new THREE.Group(); knee.position.y = -legH * PX; knee.rotation.z = -side * (splay - kneeOut); g.add(knee);
         knee.add(mesh(quadPart('leg', legW * 0.8, footL, legW * 0.8, [0, -footL / 2, 0])));
         g.userData.knee = knee;
       }
-      this.hips.add(g); this.legs.push(g);
+      (spec.legsOnTorso ? this.torso : this.hips).add(g); this.legs.push(g);
     }
     // aliases so humanoid-minded code never trips
     this.legR = this.legs[0]; this.legL = this.legs[1]; this.armR = this.legs[2] ?? this.legs[0]; this.armL = this.legs[3] ?? this.legs[1];
@@ -218,7 +219,8 @@ export class QuadRig {
     const F = this._floor ??= this.floorParts();
     const hy = this.hips.position.y;
     let low = Infinity;
-    for (const l of F.legs) { l.g.updateMatrix(); low = Math.min(low, lowest(l.pts, l.g.matrix)); }
+    if (this.spec.legsOnTorso) this.torso.updateMatrix();
+    for (const l of F.legs) { l.g.updateMatrix(); low = Math.min(low, lowest(l.pts, l.g.parent === this.torso ? _qm.multiplyMatrices(this.torso.matrix, l.g.matrix) : l.g.matrix)); }
     if (F.body) { this.torso.updateMatrix(); low = Math.min(low, lowest(F.body, this.torso.matrix)); }   // (the body's rear end as it rears back in a hit)
     if (hy + low < 0) this.hips.position.y = -low;
     const y0 = this.hips.position.y;
