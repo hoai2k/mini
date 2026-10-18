@@ -65,17 +65,4 @@ Character sheets use:
 Open requests only. Delivered ones, with the prompts they were made from,
 are in [image-request-history.md](image-request-history.md).
 
-| Id | Image | Size | Status |
-| --- | --- | --- | --- |
-| `vox-ow-fodder-fix` | Open-world fodder: myrmekes as real ants, and a truly huge king crab | 2400 × 1600 | requested |
-
-### Round 5 · The open world
-
-#### `vox-ow-fodder-fix` — Open-world fodder: myrmekes as real ants, and a truly huge king crab
-
-- **File:** `vox-ow-fodder-fix.png`, 2400 × 1600 px, delivered to `design/concept/vox-ow-fodder-fix.png`
-- **References:** `vox-key`, `vox-ow-fodder`, `vox-ow-fodder-2`
-- **Use:** Replaces the myrmex, myrmex spitter and king crab drawings of vox-ow-fodder and vox-ow-fodder-2 (entities/fodder.js).
-- **Status:** requested
-
-> A sheet of three blocky voxel monster kinds beside a blocky Percy for scale, each shown front, side and mid-attack: a myrmex, a dog-sized giant ANT (exactly six legs, three clear body segments: head, narrow thorax, big round abdomen; elbowed antennae; big bronze mandibles; glossy black armour with bronze edges), nothing like a spider; a myrmex spitter, the same ant with a swollen glowing green abdomen arching an acid spray over its head; and a king crab, a hulking barnacled crab TWICE Percy's height and twice as wide as the small shore crabs, one enormous crusher claw the size of its body, a shell like a mossy rock, small eyes on stalks. Each kind shown three times (front, side, mid-attack) beside a blocky Percy for scale, readable from the high three-quarter camera, with a strong silhouette and a bold colour accent so it reads in a crowd, and a cool, characterful design worth seeing a hundred times. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.
+Nothing is waiting: every request has been delivered.
