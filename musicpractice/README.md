@@ -782,10 +782,10 @@ scroll, nothing cropped (the scrolls come close to the top edge), each in its
 theme's style.
 
 Round 7 delivers a bow-free cello and a separate upright bow for each theme,
-used by the Bow as volume option. The original home icons are unchanged;
+used on the Drone screen, where the bow is the volume. The original home
+icons are unchanged;
 the cello edits preserve their subtle mist with local repairs where the bow
 crossed it. `design/image-deliveries-round-7.json` records the prompts, source
 PNGs, exports and measured bow-hair anchors. PNG masters live in
 `design/generated/round-7/`; the app assets are `drone-cello.webp` (512×512)
-and `drone-bow.webp` (128×512), alongside each theme's home icon. Turn on
-Drone settings → Bow as volume to see them; the plain slider stays the default.
+and `drone-bow.webp` (128×512), alongside each theme's home icon.
