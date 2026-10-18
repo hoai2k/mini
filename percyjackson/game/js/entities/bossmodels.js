@@ -252,14 +252,15 @@ function wolfHead(rig, head, mouth, hs, o) {
   ]);
 }
 // A gold collar of slabs and cream spikes round an axis pointing along +z, as boxes.
-function collarBoxes(r, n, { x = 0, y = 0, z = 0, rx = 0, w = 2.2 } = {}) {
+// (spike: the spikes' size; Cerberus at his pass-4 size wears them smaller)
+function collarBoxes(r, n, { x = 0, y = 0, z = 0, rx = 0, w = 2.2, spike = 1 } = {}) {
   const B = [], M = new THREE.Matrix4().makeRotationX(rx).setPosition(x, y, z), V = new THREE.Vector3();
   for (let i = 0; i < n; i++) {
     const a = i / n * Math.PI * 2, seg = 2 * Math.PI * r / n + 0.5;
     V.set(Math.sin(a) * r, Math.cos(a) * r, 0).applyMatrix4(M);
-    B.push({ p: [V.x, V.y, V.z], s: [seg, 1.2, w], c: i % 2 ? 0xd8a032 : 0xc48a26, m: 'm', r: [rx, 0, -a] });
-    V.set(Math.sin(a) * (r + 1.3), Math.cos(a) * (r + 1.3), 0).applyMatrix4(M);
-    B.push({ p: [V.x, V.y, V.z], s: [1, 2, 1], c: 0xf0e2b8, m: 'm', r: [rx, 0, -a] });
+    B.push({ p: [V.x, V.y, V.z], s: [seg, 1.2 * spike, w], c: i % 2 ? 0xd8a032 : 0xc48a26, m: 'm', r: [rx, 0, -a] });
+    V.set(Math.sin(a) * (r + 1.3 * spike), Math.cos(a) * (r + 1.3 * spike), 0).applyMatrix4(M);
+    B.push({ p: [V.x, V.y, V.z], s: [spike, 2 * spike, spike], c: 0xf0e2b8, m: 'm', r: [rx, 0, -a] });
   }
   return B;
 }
@@ -280,12 +281,12 @@ function serpentTail(rig) {
   segs.forEach((g, i) => {
     hideSkin(g);
     const r = tw * 0.62 * (1 - i * 0.07);
-    vox(rig, g, [{ cap: [0, 0, 0.4, 0, 0, -seg - 0.4, r, r * 0.93], col: scale(r), bump: 0.04, fuzz: 0.04 }], { v: 0.7, seed: 120 + i });
+    vox(rig, g, [{ cap: [0, 0, 0.4, 0, 0, -seg - 0.4, r, r * 0.93], col: scale(r), bump: 0.04, fuzz: 0.04 }], { v: 0.9, seed: 120 + i });
   });
   // the snake's neck rears up and over from the tip, so its head looks
   // forward over Cerberus's back, the way a cobra rears
   const r = tw * 0.62 * (1 - (n - 1) * 0.07), nk = group(rig.tailTip, 0, 0, -seg, 1.1);
-  vox(rig, nk, [{ cap: [0, 0, 0.4, 0, 0, -3.2, r * 0.95, r * 0.9], col: scale(r), bump: 0.04, fuzz: 0.04 }], { v: 0.7, seed: 129 });
+  vox(rig, nk, [{ cap: [0, 0, 0.4, 0, 0, -3.2, r * 0.95, r * 0.9], col: scale(r), bump: 0.04, fuzz: 0.04 }], { v: 0.9, seed: 129 });
   const hd = group(nk, 0, 0, -3.2, 1.1);
   vox(rig, hd, [
     { e: [0, 0.2, -1.6, r * 1.25, r * 0.85, 2.4], col: scale(r * 1.1), bump: 0.04, fuzz: 0.04 },
@@ -302,26 +303,53 @@ function serpentTail(rig) {
   ]);
   rig.extras.serpent = hd;
 }
-// A shaggy quadruped body over a QuadRig: chest, haunches, hackles, legs with
-// claws. o: { fur, lava, seed, chest, spikes }
-function wolfBody(rig, o) {
-  const { W, H, L, legH, legW } = rig.dims, fur = o.fur, lava = o.lava;
-  const furCol = (x, y, z, n, h) => (lava && Math.abs(noise(x * 0.24, y * 0.2, z * 0.24, 78) - 0.5) < 0.028 ? [h < 0.5 ? 0xff2a00 : 0xff5a08, 'e'] : fur[Math.min(fur.length - 1, Math.floor(n * fur.length))]);
+// Cerberus's body (pass 4, after vox-bosses-1 and the owner's review: a
+// giant's body that dominates its three heads), sculpted muscle by muscle on
+// a QuadRig of body 19 x 12 x 22: a deep, broad chest with two pectorals
+// over the front legs, heavy shoulder blades and triceps, a shaggy ridge of
+// hackles over the withers, a barrel of ribs, a waist tucked up, round
+// haunches and a rump; thick legs, the front ones straight and columnar, the
+// hind ones bent at the stifle and hock, on great splayed paws with long
+// cream claws. Each mass is shaded from dark underneath to lighter on top,
+// so the muscles read against each other. o: { fur: [5 tones dark to light], seed }
+function cerberusBody(rig, o) {
+  const { legH, legW } = rig.dims, F = o.fur, seed = o.seed ?? 9;
+  // a mass shaded by height within it, with noise: muscle against muscle
+  const mass = (cy, ry, base = 2) => (x, y, z, n) => F[Math.max(0, Math.min(F.length - 1, Math.round(base + 1 + (y - cy) / ry * 1.7 + (n - 0.5) * 1.6)))];
+  const E = (cx, cy, cz, rx, ry, rz, extra = {}) => ({ e: [cx, cy, cz, rx, ry, rz], col: mass(cy, ry, extra.base), ...extra });
   hideSkin(rig.torso);
+  const both = (f) => [-1, 1].flatMap(f);
   vox(rig, rig.torso, [
-    { e: [0, H * 0.1, L * 0.3, W * 0.66 * (o.chest ?? 1), H * 0.78, L * 0.36], col: furCol, fuzz: 0.4 },
-    { e: [0, H * 0.45, L * 0.05, W * 0.45, H * 0.4, L * 0.45], col: furCol, fuzz: 0.35, bump: 0.3 },
-    { e: [0, 0, -L * 0.22, W * 0.55, H * 0.62, L * 0.36], col: furCol, fuzz: 0.3 },
-    { e: [0, H * 0.35, L * 0.48, W * 0.5, H * 0.55, L * 0.2], col: furCol, fuzz: 0.4 },
-  ], { v: 1, seed: o.seed ?? 9, bump: 0.16, fuzz: 0.12 }, o.spikes ? Array.from({ length: o.spikes }, (_, i) => ({ p: [0, H * 0.85 + (i % 2) * 0.4, L * 0.38 - i * L * 0.8 / o.spikes], s: [1.6, 3.2 + (i % 2), 1.6], c: fur[1], r: [-0.5, 0, 0] })).concat(lava ? Array.from({ length: o.spikes }, (_, i) => ({ p: [0, H * 0.85 + 1.6 + (i % 2) * 0.4, L * 0.38 - i * L * 0.8 / o.spikes - 0.9], s: [1, 1.2, 1], c: 0xff3a00, m: 'e', r: [-0.5, 0, 0] })) : []) : []);
+    E(0, 6.2, 4, 4.4, 2.6, 7.4, { base: 1.6, fuzz: 0.55, bump: 0.35 }),                 // hackles over the withers
+    ...both((s) => [E(s * 6.2, 3.2, 6.5, 4.2, 5.2, 5.2, { base: 2.4 })]),                 // shoulder blades
+    ...both((s) => [E(s * 7.2, -2.4, 7.4, 3.4, 4.6, 4.2, { base: 2 })]),                  // triceps
+    ...both((s) => [E(s * 3.4, -2.6, 10, 3.6, 5, 3.4, { base: 2.2 })]),                   // pectorals
+    E(0, 0.5, 6, 8.2, 7.2, 6.5, { base: 2, fuzz: 0.3 }),                                 // the deep chest
+    E(0, 1, -1.5, 7.6, 6.2, 6, { base: 2, fuzz: 0.25 }),                                 // the barrel of ribs
+    E(0, 1.8, -6, 6.2, 5, 4, { base: 1.8 }),                                             // the waist, tucked up
+    ...both((s) => [E(s * 5.2, 1.4, -8.2, 4.4, 5.6, 4.8, { base: 2.3 })]),                // haunches
+    E(0, 2.6, -9.4, 6.4, 4.6, 3.6, { base: 2.2 }),                                       // the rump
+    E(0, -4.6, 6, 6, 3, 6, { base: 0.6, fuzz: 0.5 }),                                    // shag under the chest
+  ], { v: 1, seed, bump: 0.14, fuzz: 0.14 });
+  const claw = 0xe8dcc0;
   for (const leg of rig.legs) {
     hideSkin(leg);
-    const front = leg.userData.row === 0, t = front ? 1.15 : 1;
-    vox(rig, leg, [
-      { b: [-legW * 0.6, -legH - 0.2, -legW * 0.5, legW * 0.6, -legH + 1.6, legW * 0.85], col: furCol, bump: 0.05 },
-      { e: [0, -legH * 0.62, 0.1, legW * 0.55 * t, legH * 0.38, legW * 0.6 * t], col: furCol, fuzz: 0.3 },
-      { e: [0, -legH * 0.15, 0, legW * 0.85 * t, legH * 0.45, legW * 0.9 * t], col: furCol, fuzz: 0.35 },
-    ], { v: 0.9, seed: (o.seed ?? 9) + 3 }, [-1, 0, 1].map((dx) => ({ p: [dx * legW * 0.36, -legH - 0.1, legW * 0.95], s: [0.8, 1.1, 1.6], c: lava ? 0xffa020 : 0xe8dcc0, m: lava ? 'e' : undefined, r: [0.4, 0, 0] })));
+    const front = leg.userData.row === 0, s = leg.userData.side;
+    vox(rig, leg, front ? [
+      { cap: [0, 2.4, 0.4, 0, -4.4, -0.6, 3.3, 2.7], col: mass(-1, 4.5, 2), fuzz: 0.25 },   // upper arm
+      { cap: [0, -4.2, -0.5, 0, -8.6, 0.3, 2.5, 2.1], col: mass(-6.5, 3, 1.6), fuzz: 0.2 },   // forearm
+      { e: [0, -6, -2.1, 1.6, 2.6, 1], col: F, fuzz: 0.6, bump: 0.3 },                         // feathering at the back
+    ] : [
+      { e: [0, -0.4, 0.6, 2.9, 4.6, 3.8], col: mass(-0.4, 4.6, 2.2), fuzz: 0.25 },            // thigh
+      { cap: [0, -3.6, -0.4, 0, -6.4, -2.4, 2.4, 1.8], col: mass(-5, 2.5, 1.7), fuzz: 0.2 },  // gaskin
+      { cap: [0, -6.4, -2.4, 0, -9, -0.6, 1.8, 1.7], col: mass(-7.7, 2, 1.4), fuzz: 0.15 },   // hock and cannon
+    ], { v: 1.05, seed: seed + 3 + leg.userData.row });
+    // the paw, level though the leg leans out (QuadRig stance)
+    const paw = group(leg, 0, -legH - legW * 0.2, 0, 0, 0, -(rig.spec.stance ?? 0) * s);
+    vox(rig, paw, [
+      { e: [0, 1.4, front ? 1 : 0.7, 3.3, 1.6, 3.3], col: mass(1.4, 1.6, 2.2), bump: 0.1, fuzz: 0.1 },
+      ...[-1.6, -0.55, 0.55, 1.6].map((dx) => ({ e: [dx * 1.3, 0.95, (front ? 3.7 : 3.4) - Math.abs(dx) * 0.35, 0.85, 1, 1.2], col: mass(0.95, 1, 2.6), bump: 0.05, fuzz: 0.05 })),
+    ], { v: 0.7, seed: seed + 7 }, [-1.6, -0.55, 0.55, 1.6].map((dx) => ({ p: [dx * 1.3, 0.55, (front ? 5.2 : 4.9) - Math.abs(dx) * 0.35], s: [0.5, 1, 1.9], c: claw, r: [0.55, 0, 0] })));
   }
 }
 
@@ -386,8 +414,8 @@ const kitBoxes = (list, dy = 0) => list.map((b) => ({ p: [b.at[0], b.at[1] + dy,
 // be vd = 1.32 / (scale * v). Each is set as close to that as its triangle
 // budget (about 40k for a boss) allows.
 // (cerberus: a coarser body and finer heads, pass 3; its cells are greedy-meshed, rig.merge;
-// pass 4: the body much bigger, so its grid coarser still)
-const VD = { minotaur: 1.5, chimera: 1.55, cerberus: 0.8, cerberusHead: 1.3, procrustes: 1.5, ares: 1.5 };
+// pass 4: re-sculpted at his new size, the heads smaller, both grids finer)
+const VD = { minotaur: 1.5, chimera: 1.55, cerberus: 1.25, cerberusHead: 1.15, procrustes: 1.5, ares: 1.5 };
 export const BOSS_MODELS = {
   // Alecto: Mrs. Dodds as she really is (vox-enemies, bottom right)
   alecto: () => withBuild({ key: 'b:alecto' }, () => buildFury('alecto', { scale: 1.75, seed: 71 })),
@@ -737,25 +765,26 @@ export const BOSS_MODELS = {
   cerberus: () => {
     const m = skinMat('boss_cerberus', (S) => paintQuad(S, { base: 0x1e1c26, dark: 0x0e0d14, belly: 0x2a2834, back: 0x16141c, eye: 0xff4a0a, eyeLow: 0xffa02a, nose: 0x050505, speckles: 50, brow: 0x0a0a10, teeth: 0xfff4e0,
       custom: (s) => { fur(s, 0, 16, 40, 20, 90, 0x0a0a10, 0x3a3848); fur(s, 0, 0, 32, 16, 30, 0x0a0a10, 0x3a3848); s.box(48, 0, 4, 2, 4, 0xa82030, 0.1); s.rect(52, 4, 4, 1, 0xf4f0e0, 0); s.rect(36, 6, 4, 2, 0xc8283a, 0.1); s.box(52, 16, 2, 3, 1, 0x8a2a3a, 0.1); } }), { emit: 3 });
-    const rig = new QuadRig({ material: m, scale: 5, bodyL: 22, bodyW: 19, bodyH: 12, legH: 9, legW: 5.6, legY: 1, legSpread: 1, stance: 0.14, legsOnTorso: true, headS: 7.5, ears: true, tail: 6, tailLen: 22, tailW: 2.6, tailCurl: 0.3, gait: 0.6, neckUp: 3, headZ: 0 });
+    const rig = new QuadRig({ material: m, scale: 5, bodyL: 22, bodyW: 19, bodyH: 12, legH: 9, legW: 5.6, legY: 1, legSpread: 1.6, stance: 0.2, legsOnTorso: true, headS: 6, ears: true, tail: 6, tailLen: 22, tailW: 2.6, tailCurl: 0.3, gait: 0.6, neckUp: 2.4, headZ: 1.4 });
     const { W, H, L } = rig.dims;
     rig.vd = VD.cerberus; rig.merge = true;
     const furs = [0x0c0b12, 0x15131d, 0x1e1b28, 0x2a2636, 0x3a3448];
-    wolfBody(rig, { fur: furs, seed: 51, chest: 1.05 });
+    cerberusBody(rig, { fur: [0x08070c, ...furs, 0x4c4660], seed: 51 });   // (two more tones, so the muscles read)
     const heads = [];
     for (const side of [-1, 0, 1]) {
       let neck, head, mouth;
-      const hs = side ? 7.6 : 8;
+      const hs = side ? 5.6 : 6;   // (pass 4: heads in a giant dog's proportion, the body dominating)
       if (side === 0) { neck = rig.neck; head = rig.head; mouth = rig.mouth; hideSkin(head, mouth); }
       else {
-        neck = group(rig.torso, side * W * 0.42, H * 0.3 + 1.6, L / 2 - 2.4, 0, side * 0.42, side * -0.12);
+        neck = group(rig.torso, side * W * 0.36, H * 0.3 + 1.4, L / 2 - 0.4, 0, side * 0.5, side * -0.15);
         head = group(neck); mouth = group(head, 0, -hs * 0.42, hs * 0.75);
       }
       rig.vd = VD.cerberusHead;   // (the heads, where the eye goes, at a finer grid than the body)
       wolfHead(rig, head, mouth, hs, { fur: furs, eye: 0xe84a08, inner: 0xa0182a, drool: true, seed: 60 + side * 3 });
       rig.vd = VD.cerberus;
-      // a thick shaggy neck and a gold spiked collar
-      vox(rig, neck, [{ e: [0, -1.4, -2.4, side ? 4 : 4.4, 4.6, 4.8], col: furs, fuzz: 0.4 }], { v: 1, seed: 70 + side }, collarBoxes(side ? 5 : 5.6, 14, { y: -1.8, z: side ? 0.6 : 1.4, rx: -0.3, w: 2.6 }));
+      // a thick shaggy neck rising out of the chest, and a gold spiked collar
+      const nr = side ? 3.3 : 3.6;
+      vox(rig, neck, [{ cap: [0, -4.4, -5, 0, -0.4, 0.6, nr * 1.2, nr], col: furs, fuzz: 0.4, bump: 0.2 }], { v: 1, seed: 70 + side }, collarBoxes(nr + 0.7, 14, { y: -1.4, z: -0.6, rx: -0.6, w: 1.4, spike: 0.6 }));
       heads.push({ neck, head, mouth, side, act: 0 });
     }
     rig.extras.heads = heads;

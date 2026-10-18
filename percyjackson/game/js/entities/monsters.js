@@ -530,7 +530,7 @@ const lavaDog = (o) => (S) => paintQuad(S, { base: o.base ?? 0x221d20, dark: 0x0
 // little outward at rest (stance); the leg roots sit deep in the body
 // (legY) and hang from the torso (legsOnTorso), so a hind leg never parts
 // from the haunch however the body pitches in a walk, a run or a bite)
-export const HELLHOUND = { big: true, scale: 1.18, bodyL: 60, bodyW: 34, bodyH: 36, legH: 34, legW: 10, legY: 10, legSpread: 2.5, stance: 0.12, legsOnTorso: true, headS: 24, snoutS: 14, ears: true, tail: 6, tailLen: 36, tailW: 4.8, tailCurl: 0.8, gait: 0.5, neckUp: 10, headZ: -5, jawOpen: 0.42 };
+export const HELLHOUND = { big: true, scale: 1.18, bodyL: 60, bodyW: 34, bodyH: 36, legH: 34, legW: 10, legY: 10, legSpread: 2.5, stance: 0.12, legsOnTorso: true, headS: 19, snoutS: 14, ears: true, tail: 6, tailLen: 36, tailW: 4.8, tailCurl: 0.8, gait: 0.5, neckUp: 12, headZ: -3, jawOpen: 0.42 };
 const MODELS = {
   pup: () => hound('pup', { scale: 0.95, bodyL: 10, bodyW: 6, bodyH: 6, legH: 5.5, legW: 2.8, headS: 7, ears: true, tail: 3, tailLen: 6, tailW: 1.8, tailCurl: 0.55, neckUp: 2, jawOpen: 0.25 }, { fur: 60, cracks: 6, collar: false, pup: true }),
   // A New York sewer rat (the prologue): grey-brown fur, a pink nose, ears
