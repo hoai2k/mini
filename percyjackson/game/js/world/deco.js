@@ -66,7 +66,14 @@ export class Decorations {
     };
     let seed = 1;
     const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
-    for (const it of this.items) {
+    // big worlds: one mesh per 64 × 64 tile, so the camera culls what is off screen
+    const tiled = world.sx * world.sz > 60000, TILE = 64, tiles = new Map();
+    const order = tiled ? [...this.items].sort((a, b) => tileOf(a) - tileOf(b)) : this.items;
+    function tileOf(it) { return Math.floor(it.z / TILE) * 1000 + Math.floor(it.x / TILE); }
+    let curTile = null;
+    const cut = () => { if (n) tiles.set(curTile, { pos: pos.splice(0), nrm: nrm.splice(0), uv: uv.splice(0), col: col.splice(0), sway: sway.splice(0), emit: emit.splice(0), idx: idx.splice(0) }); n = 0; };
+    for (const it of order) {
+      if (tiled && tileOf(it) !== curTile) { cut(); curTile = tileOf(it); }
       if (it.optional !== false && rnd() > density && (it.type === 'grass' || it.type === 'tall_grass' || it.type === 'fern')) continue;
       const s = it.scale ?? 1;
       const sprite = SI[it.type] ?? SI.grass;
@@ -96,20 +103,23 @@ export class Decorations {
         }
       }
     }
-    if (this.mesh) { world.group.remove(this.mesh); this.mesh.geometry.dispose(); }
-    if (n) {
+    cut();
+    for (const m of this.meshes ?? []) { world.group.remove(m); m.geometry.dispose(); }
+    this.meshes = [];
+    for (const a of tiles.values()) {
       const g = new THREE.BufferGeometry();
-      g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-      g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
-      g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-      g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-      g.setAttribute('sway', new THREE.Float32BufferAttribute(sway, 1));
-      g.setAttribute('emit', new THREE.Float32BufferAttribute(emit, 1));
-      g.setIndex(idx);
-      this.mesh = new THREE.Mesh(g, materials.deco);
-      this.mesh.receiveShadow = true; this.mesh.castShadow = false;
-      world.group.add(this.mesh);
+      g.setAttribute('position', new THREE.Float32BufferAttribute(a.pos, 3));
+      g.setAttribute('normal', new THREE.Float32BufferAttribute(a.nrm, 3));
+      g.setAttribute('uv', new THREE.Float32BufferAttribute(a.uv, 2));
+      g.setAttribute('color', new THREE.Float32BufferAttribute(a.col, 3));
+      g.setAttribute('sway', new THREE.Float32BufferAttribute(a.sway, 1));
+      g.setAttribute('emit', new THREE.Float32BufferAttribute(a.emit, 1));
+      g.setIndex(a.idx);
+      const mesh = new THREE.Mesh(g, materials.deco);
+      mesh.receiveShadow = true; mesh.castShadow = false;
+      world.group.add(mesh); this.meshes.push(mesh);
     }
+    this.mesh = this.meshes[0] ?? null;
     this.buildProps(world, materials);
   }
   buildProps(world, materials) {
@@ -120,15 +130,19 @@ export class Decorations {
     // Boxes are collected per material and merged into one mesh each (few draw calls).
     const batches = new Map();
     const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _v = new THREE.Vector3(), _s = new THREE.Vector3(1, 1, 1);
+    const tiled = world.sx * world.sz > 60000;
+    let tile = 0;   // (big worlds: batches per 64 × 64 tile as well, so the camera culls them)
     const put = (geo, mat, x, y, z, rx, ry, rz) => {
       _e.set(rx, ry, rz); _q.setFromEuler(_e); _m.compose(_v.set(x, y, z), _q, _s); geo.applyMatrix4(_m);
-      if (!batches.has(mat)) batches.set(mat, []);
-      batches.get(mat).push(geo);
+      const key = tiled ? tile + '|' + mat.uuid : mat;
+      if (!batches.has(key)) batches.set(key, { mat, geos: [] });
+      batches.get(key).geos.push(geo);
     };
     // legacy: world-space box rotated about its own centre
     const box = (w, h, d, x, y, z, mat, ry = 0) => put(new THREE.BoxGeometry(w, h, d), mat, x, y, z, 0, ry, 0);
     for (const p of this.props) {
       const { x, y, z } = p;
+      tile = Math.floor(z / 64) * 1000 + Math.floor(x / 64);
       const rot = p.rot ?? 0, sc = p.scale ?? 1, cr = Math.cos(rot), sr = Math.sin(rot);
       // prop-local box: offsets are rotated by the prop's yaw and scaled
       const lb = (w, h, d, lx, ly, lz, mat, ry = 0, rx = 0, rz = 0) => put(new THREE.BoxGeometry(w * sc, h * sc, d * sc), mat, x + (lx * cr + lz * sr) * sc, y + ly * sc, z + (-lx * sr + lz * cr) * sc, rx, rot + ry, rz);
@@ -495,7 +509,7 @@ export class Decorations {
         }
       }
     }
-    for (const [mat, geos] of batches) {
+    for (const { mat, geos } of batches.values()) {
       const g = mergeGeometries(geos, false); for (const x of geos) x.dispose();
       if (!g) continue;
       const m = new THREE.Mesh(g, mat); m.castShadow = !mat.transparent; m.receiveShadow = true; group.add(m);

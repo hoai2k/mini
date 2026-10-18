@@ -96,3 +96,72 @@ export function camaro() { return taxi({ color: 0x2a4a9a, sign: false }); }
 
 // A plain parked car in a colour.
 export function car(color = 0x8a2a2a) { return taxi({ color, sign: false }); }
+
+// A Greyhound coach (12 long, 2.6 wide): silver, the blue stripe, the dog
+// running down both sides; its door on the right (+z) side at the front.
+export function greyhound() {
+  const g = new THREE.Group(); const box = boxer(g);
+  const S = M(0xc8ccd2, { r: 0.35, m: 0.4 }), blue = M(0x2a5ab8, { r: 0.4 }), K = M(0x1a1a1e, { r: 0.7 }), glass = M(0x1e2a36, { r: 0.1, m: 0.3 });
+  const light = M(0xfff2c0, { e: 0xfff2c0, ei: 2.5 }), red = M(0xff3a2a, { e: 0xff2a1a, ei: 2 });
+  box(12, 2.9, 2.6, 0, 1.95, 0, S);
+  box(12.04, 0.5, 2.64, 0, 1.25, 0, blue);
+  box(11.4, 0.9, 2.66, -0.3, 2.55, 0, glass);
+  box(0.1, 1.5, 2.4, 6.0, 2.3, 0, glass);
+  box(11.8, 0.2, 2.5, 0, 3.45, 0, S);
+  box(1.0, 2.2, 0.06, 5.0, 1.7, 1.33, glass);
+  // the running dog, in blue on both sides
+  for (const z of [-1.33, 1.33]) { box(1.6, 0.35, 0.04, -1.5, 1.85, z, blue); box(0.5, 0.3, 0.04, -0.55, 2.0, z, blue); box(0.25, 0.5, 0.04, -2.3, 1.55, z, blue); box(0.25, 0.5, 0.04, -0.8, 1.55, z, blue); }
+  box(0.3, 0.45, 2.7, 6.1, 0.65, 0, K); box(0.3, 0.45, 2.7, -6.1, 0.65, 0, K);
+  for (const z of [-0.95, 0.95]) { box(0.1, 0.3, 0.45, 6.06, 1.1, z, light); box(0.1, 0.4, 0.3, -6.06, 1.2, z, red); }
+  wheelSet(g, box, [[4.3, 1.2], [4.3, -1.2], [-3.4, 1.2], [-3.4, -1.2], [-4.6, 1.2], [-4.6, -1.2]], 0.55, 0.4);
+  g.userData.door = new THREE.Vector3(5.0, 0, 1.9);
+  g.userData.length = 12.2;
+  return g;
+}
+
+// An Amtrak train: a locomotive and two carriages (about 33 long), silver
+// with red and blue bands, along local x (its front at +x).
+export function train({ cars = 2 } = {}) {
+  const g = new THREE.Group(); const box = boxer(g);
+  const S = M(0xd0d4da, { r: 0.3, m: 0.55 }), red = M(0xc8282a, { r: 0.4 }), blue = M(0x1e3a8a, { r: 0.4 }), K = M(0x1a1a1e, { r: 0.7 }), glass = M(0x1e2a36, { r: 0.1, m: 0.3 });
+  const light = M(0xfff2c0, { e: 0xfff2c0, ei: 3 });
+  const wheels = [];
+  // the locomotive (10 long), its nose sloping down at the front
+  box(9, 3.2, 2.8, 0, 2.2, 0, S); box(1.6, 2.2, 2.7, 5.2, 1.7, 0, S); box(0.9, 1.1, 2.6, 5.4, 3.0, 0, glass);
+  box(9.04, 0.3, 2.84, 0, 1.4, 0, red); box(9.04, 0.2, 2.84, 0, 1.1, 0, blue);
+  box(0.1, 0.4, 0.5, 6.02, 1.3, 0, light);
+  for (let i = 0; i < 4; i++) for (const z of [-1.41, 1.41]) box(0.9, 0.5, 0.04, -3.4 + i * 1.6, 2.8, z, glass);
+  for (const x of [3.2, -3.2]) for (const z of [-1.1, 1.1]) wheels.push([x, z]);
+  // the carriages
+  for (let c = 0; c < cars; c++) {
+    const cx = -11.5 - c * 11.5;
+    box(11, 3.2, 2.8, cx, 2.2, 0, S); box(11.04, 0.3, 2.84, cx, 1.4, 0, red); box(11.04, 0.2, 2.84, cx, 1.1, 0, blue);
+    for (let i = 0; i < 6; i++) for (const z of [-1.41, 1.41]) box(1.1, 0.7, 0.04, cx - 4.4 + i * 1.75, 2.6, z, glass);
+    box(0.6, 2.6, 2.2, cx + 5.8, 2.0, 0, K);   // the gangway between cars
+    for (const x of [cx + 3.8, cx - 3.8]) for (const z of [-1.1, 1.1]) wheels.push([x, z]);
+  }
+  wheelSet(g, box, wheels, 0.45, 0.3);
+  g.userData.length = 10 + cars * 11.5;
+  g.userData.door = new THREE.Vector3(-11.5, 0, 1.9);
+  return g;
+}
+
+// The zoo truck: a big rig with a trailer of animals (16 long) — Ares's ride
+// west, with a zebra, a lion and an antelope peering out of the slats.
+export function zooTruck() {
+  const g = new THREE.Group(); const box = boxer(g);
+  const cab = M(0xd8322a, { r: 0.4, m: 0.2 }), W = M(0xeeeae0, { r: 0.6 }), K = M(0x1a1a1e, { r: 0.7 }), glass = M(0x1e2a36, { r: 0.1, m: 0.3 }), chrome = M(0xd8dce0, { m: 0.8, r: 0.25 });
+  box(3.2, 2.6, 2.5, 6.2, 1.9, 0, cab); box(1.6, 1.3, 2.4, 8.4, 1.25, 0, cab); box(0.08, 1.0, 2.2, 7.82, 2.5, 0, glass);
+  for (const z of [-1.0, 1.0]) box(0.2, 2.8, 0.2, 4.7, 2.5, z, chrome);   // the stacks
+  box(11.6, 3.4, 2.6, -1.8, 2.4, 0, W);
+  for (let i = 0; i < 10; i++) for (const z of [-1.31, 1.31]) box(0.5, 1.2, 0.04, -6.8 + i * 1.1, 2.8, z, K);   // the slats
+  box(3.6, 0.3, 2.62, -1.8, 3.9, 0, M(0x2a8a3a));
+  // the animals: a zebra's head, a lion's mane, an antelope's horns
+  box(0.5, 0.5, 0.3, -5.0, 2.9, 1.2, M(0xf0f0f0)); box(0.5, 0.12, 0.32, -5.0, 3.0, 1.2, K);
+  box(0.8, 0.8, 0.3, -1.6, 2.9, 1.2, M(0xc88a2a)); box(0.4, 0.4, 0.32, -1.6, 2.9, 1.22, M(0xe0b060));
+  box(0.4, 0.4, 0.3, 1.8, 2.9, 1.2, M(0xb07a40)); for (const dx of [-0.12, 0.12]) box(0.06, 0.5, 0.06, 1.8 + dx, 3.35, 1.2, K);
+  wheelSet(g, box, [[8.0, 1.15], [8.0, -1.15], [5.4, 1.15], [5.4, -1.15], [-5.5, 1.15], [-5.5, -1.15], [-6.7, 1.15], [-6.7, -1.15]], 0.55, 0.4);
+  g.userData.length = 17;
+  g.userData.door = new THREE.Vector3(-7.8, 0, 0);
+  return g;
+}

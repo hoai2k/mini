@@ -48,6 +48,7 @@ import { damp, dampAngle, angleDiff } from '../util.js';
 import { toast } from '../ui/ui.js';
 import { t as txt } from '../text_config.js';
 import { monsterDamage } from '../resources.js';
+import { KNOCK } from '../combatRules.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
 const H = BOOK1_HOOKS;
@@ -172,7 +173,7 @@ export class Boss {
     const dmg = amount * mul * (this.stunT > 0 ? 2 : 1) * (this.mark > 0 ? 1.5 : 1);
     this.hp -= dmg; this.flashT = 0.08;
     if (this.hpFloor != null && this.hp <= this.hpFloor) { this.hp = this.hpFloor; const fn = this.onFloor; this.hpFloor = null; fn?.(this); return dmg; }
-    if (o.knock && this.stunT <= 0) this.knock.addScaledVector(o.knock, 0.08);
+    if (o.knock && this.stunT <= 0) this.knock.addScaledVector(o.knock, KNOCK.boss);   // a boss only budges (combatRules.js)
     const f = this.hp / this.maxHp;
     const want = f < 0.33 ? 2 : f < 0.66 ? 1 : 0;
     if (want > this.phase && this.hp > 0 && this.stunT <= 0) this.enterPhase(want);

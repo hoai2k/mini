@@ -37,7 +37,7 @@
 <div id="bar" role="toolbar" aria-label="Characters"></div>
 <script type="module">
 // A turntable of every character model, to compare with the 3D sheets in
-// design/concept/vox-*.png. ?set=heroes|monsters|mortals|bosses picks a row
+// design/concept/vox-*.png. ?set=heroes|monsters|mortals|bosses|people picks a row
 // (default heroes); ?only=<id> shows one; ?turn=0 stops turning; ?yaw=<rad>
 // sets the start angle; ?pose=attack|raise|cast|walk shows a pose; ?ui=0 hides
 // the buttons; ?zoom=<k> moves the camera in or out; ?cam=high looks down;
@@ -47,7 +47,9 @@ import { buildHeroModel, buildNpc, HERO_LOOKS } from '../js/entities/models.js';
 import { buildMonsterModel, MONSTERS, MONSTER_IDS } from '../js/entities/monsters.js';
 import { buildMortal, MORTAL_IDS } from '../js/entities/mortals.js';
 import { BOSS_DEFS, BOSS_IDS } from '../js/entities/bosses.js';
+import { buildPerson, PEOPLE_IDS } from '../js/entities/people.js';
 import { rigOffsets } from '../js/entities/parts.js';
+import { CHAMPION_SHOWCASE, buildShowcase } from '../js/entities/champions.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 const q = new URLSearchParams(location.search);
 const renderer = new THREE.WebGPURenderer({ antialias: true });
@@ -65,6 +67,8 @@ const SETS = {
   monsters: { ids: MONSTER_IDS, build: (id) => buildMonsterModel(MONSTERS[id].model) },
   mortals: { ids: MORTAL_IDS, build: (id) => buildMortal(id) },
   bosses: { ids: BOSS_IDS, build: (id) => BOSS_DEFS[id].build() },
+  champions: { ids: CHAMPION_SHOWCASE, build: (id) => buildShowcase(id) },
+  people: { ids: PEOPLE_IDS, build: (id) => buildPerson(id) },
 };
 let set = SETS[q.get('set')] ? q.get('set') : 'heroes';
 let shown = q.get('only') ? q.get('only').split(',') : SETS[set].ids, rigs = [];

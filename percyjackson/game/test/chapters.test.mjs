@@ -29,7 +29,7 @@ test('every chapter of book 1 has a start, story and a supported objective', () 
     assert.ok(ch.start && typeof ch.start.at === 'string' && ch.start.place, `${at}: has a start place in camp`);
     assert.ok(!anchors.has(ch.start.at) || ch.start.at === 'spawn', `${at}: its start anchor isn't shared`);
     anchors.add(ch.start.at);
-    assert.ok(Array.isArray(ch.intro) && ch.intro.length === 3 && ch.intro.every((l) => typeof l === 'string' && l.length > 10), `${at}: three intro lines`);
+    assert.ok(Array.isArray(ch.intro) && ch.intro.length >= 1 && ch.intro.length <= 3 && ch.intro.every((l) => typeof l === 'string' && l.length > 10), `${at}: one to three intro lines (fewer where a cutscene tells the rest)`);
     assert.ok(typeof ch.outro === 'string' && ch.outro.length > 10, `${at}: an outro`);
     assert.ok(typeof ch.objText === 'string' && ch.objText, `${at}: objective text`);
     assert.ok(ch.biome && ch.card, `${at}: biome and card`);

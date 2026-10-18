@@ -139,3 +139,13 @@ export const chapter = (id) => CHAPTERS.find((c) => c.id === id);
 export const previewPending = () => { try { return new URLSearchParams(globalThis.location?.search ?? '').has('pending'); } catch (e) { return false; } };
 export const chapterPlayable = (ch) => !!ch && (ch.ready || (!!ch.pending && previewPending()));
 export const chaptersOf = (bookId) => CHAPTERS.filter((c) => c.book === bookId);
+// Can this save start the chapter? Every playable chapter is open (they start
+// from places in the open world), apart from a book's final chapters
+// (FINAL_CHAPTERS), which open once every earlier chapter of the book is done.
+export const FINAL_CHAPTERS = new Set(['lt11', 'lt12']);
+export function chapterOpen(d, ch) {
+  if (!chapterPlayable(ch)) return false;
+  if (d?.unlockAll || !FINAL_CHAPTERS.has(ch.id)) return true;
+  const list = chaptersOf(ch.book).filter(chapterPlayable), i = list.indexOf(ch);
+  return list.slice(0, i).every((c) => !!d?.completed?.[c.id]);
+}

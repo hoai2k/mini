@@ -1,0 +1,30 @@
+{
+  "id": "vox-rt-towns-2",
+  "title": "Road-trip towns 2: Las Vegas to Santa Monica",
+  "prompt": "An isometric view from the high three-quarter camera of a Minecraft-Dungeons-like game, everything built from chunky blocks with hand-painted pixel textures, a long American highway running from right to left across the picture, small blocky heroes (Percy, Annabeth and Grover) walking along the shoulder for scale. Four town scenes in a two-by-two grid: the Las Vegas strip at dusk, neon everywhere and the Lotus Hotel and Casino with a glowing lotus sign; the Nevada desert with a lonely gas station and Crusty's Water Bed Palace, a warehouse with waterbeds in the yard; Los Angeles with palm trees, hills with big white letters (no readable word) and the black glass front of DOA Recording Studios; Santa Monica's pier with a Ferris wheel and the beach at sunset, a wild storm out at sea. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 \u00d7 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.",
+  "width": 2560,
+  "height": 1440,
+  "refs": [
+    "vox-key",
+    "vox-rt-map",
+    "scene-lotus",
+    "scene-procrustes",
+    "scene-underworld",
+    "scene-ares-beach"
+  ],
+  "destination": "design/concept/vox-rt-towns-2.png",
+  "generation_prompt": "Use case: stylized-concept. Generate a new 3D voxel game concept image. Attached images are style, layout and subject reference images in this order: vox-rt-map, scene-lotus, scene-procrustes, scene-underworld, scene-ares-beach. Use the attached voxel key or voxel map for 3D rendering style; any cartoon scenes supply landmarks only.\nAn isometric view from the high three-quarter camera of a Minecraft-Dungeons-like game, everything built from chunky blocks with hand-painted pixel textures, a long American highway running from right to left across the picture, small blocky heroes (Percy, Annabeth and Grover) walking along the shoulder for scale. Four town scenes in a two-by-two grid: the Las Vegas strip at dusk, neon everywhere and the Lotus Hotel and Casino with a glowing lotus sign; the Nevada desert with a lonely gas station and Crusty's Water Bed Palace, a warehouse with waterbeds in the yard; Los Angeles with palm trees, hills with big white letters (no readable word) and the black glass front of DOA Recording Studios; Santa Monica's pier with a Ferris wheel and the beach at sunset, a wild storm out at sea. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 \u00d7 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.\nOutput PNG at 2560 \u00d7 1440 pixels.",
+  "attached_references": [
+    "vox-rt-map",
+    "scene-lotus",
+    "scene-procrustes",
+    "scene-underworld",
+    "scene-ares-beach"
+  ],
+  "tool": "built-in image_gen",
+  "native_dimensions": [
+    1672,
+    941
+  ],
+  "sizing": "Lanczos resize to requested dimensions, no crop; original retained outside repository."
+}

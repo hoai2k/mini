@@ -15,6 +15,7 @@ import { t } from '../text_config.js';
 import * as THREE from 'three/webgpu';
 import { Kit, zap, stun, burn, teamBuff } from './kit.js';
 import { registerKit } from './index.js';
+import { RANGED } from '../combatRules.js';
 
 const RED = 0xd0402a, VOLT = 0xffd84a, FIRE = 0xff6a1a;
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
@@ -68,22 +69,31 @@ class ClarisseKit extends Kit {
     const g = this.game, p = this.p, rk = this.rank('volt');
     p.facing = Math.atan2(p.aimDir.x, p.aimDir.z);
     p.action = { type: 'attack', step: { style: 'punch', strike: 0.45, windup: 0.3 }, style: 'punch', dur: 0.32, elapsed: 0, t: 0, windup: 0.3, strike: 0.45, struck: true, moveScale: 0.3 };
-    const dir = p.aimDir.clone().setY(0).normalize();
-    const L = 6.5 + rk * 1.2, dmg = 12 + rk * 3;
-    const from = p.pos.clone().setY(p.pos.y + 1.1).addScaledVector(dir, 1);
-    let end = from.clone().addScaledVector(dir, L);
+    const R = RANGED.volt, L = R.len + rk * R.perRank, dmg = 12 + rk * 3;
+    // the bolt follows the aim in 3D (kit.js shotDir): up a slope or a stair
+    // to a monster on a ledge, down to one below
+    const start = p.pos.clone().setY(p.pos.y + 1.1);
+    const dir3 = this.shotDir(start);
+    const dir = dir3.clone().setY(0).normalize();
+    p.facing = Math.atan2(dir.x, dir.z);
+    const from = start.addScaledVector(dir3, 1);
+    let end = from.clone().addScaledVector(dir3, L);
     // stop at walls
-    for (let s = 0.5; s < L; s += 0.5) { const q = tmp.copy(from).addScaledVector(dir, s); if (g.world.solidAt(q.x, q.y, q.z)) { end = q.clone(); break; } }
+    for (let s = 0.5; s < L; s += 0.5) { const q = tmp.copy(from).addScaledVector(dir3, s); if (g.world.solidAt(q.x, q.y, q.z)) { end = q.clone(); break; } }
     zap(g, from, end, VOLT, 0.22, 0.18, 7);
     zap(g, from, end, 0xffffff, 0.08, 0.12, 5);
     const len = end.distanceTo(from);
     for (const e of g.enemies) {
       if (e.dead || e.untargetable) continue;
-      tmp.subVectors(e.pos, p.pos); const along = tmp.dot(dir);
-      if (along < 0 || along > len + 1) continue;
+      tmp.subVectors(e.pos, p.pos); const along = tmp.setY(0).dot(dir);
+      const reach = len * Math.hypot(dir3.x, dir3.z) + 1;   // (the line's length on the ground)
+      if (along < 0 || along > reach) continue;
       const lat = Math.abs(tmp.x * dir.z - tmp.z * dir.x);
       if (lat > 0.9 + e.radius) continue;
-      g.combat.damageEnemy(e, dmg, p, { knock: dir.clone().multiplyScalar(2), stagger: 0.3, color: '#ffe24a' });
+      // the bolt's height there must cross the monster's body
+      const y = from.y + dir3.y / Math.max(0.2, Math.hypot(dir3.x, dir3.z)) * (along - 1);
+      if (y < e.pos.y - 0.6 || y > e.pos.y + (e.height ?? 1.5) + 0.6) continue;
+      g.combat.damageEnemy(e, dmg, p, { knock: dir.clone().multiplyScalar(R.knock), stagger: 0.3, color: '#ffe24a' });
       stun(e, 0.7 + rk * 0.25);
       g.fx.hitSpark(tmp2.copy(e.pos).setY(e.pos.y + (e.height ?? 1.5) * 0.6), dir, { color: VOLT });
     }

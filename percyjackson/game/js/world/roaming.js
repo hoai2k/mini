@@ -1,6 +1,7 @@
-// Roaming monsters: small packs of low-level monsters that turn up as you walk
-// around, out of sight and never right on top of the heroes (the Minecraft
-// Dungeons feel). Two places use it:
+// Roaming monsters: packs of low-level monsters (out in the open world, hordes
+// of fodder: world/roamZones.js hordeFor) that turn up as you walk around,
+// out of sight and never right on top of the heroes (the Minecraft Dungeons
+// feel). Two places use it:
 //   city  the prologue's Manhattan (a training board): sewer rats that hang
 //         around the trash from the start (nests from world/manhattan.js,
 //         entities/ratRules.js); now and then one dashes at the lead hero,
@@ -14,7 +15,8 @@
 // drachmas and XP (main.js onEnemyKilled).
 import * as THREE from 'three/webgpu';
 import { standY } from '../ui/tracker.js';
-import { CAMP_CORE, CAMP_ROAM, ROAM_RULES, inAny, inRect, rectCenter, pickKind, packFor, spawnAllowed } from './roamZones.js';
+import { CAMP_CORE, CAMP_ROAM, ROAM_RULES, inAny, inRect, rectCenter, pickKind, packFor, hordeFor, isFodder, spawnAllowed, rect } from './roamZones.js';
+import { CAMP_AT, OW_LAYOUT } from './owLayout.js';
 import { RAT, pickDasher, beatAt } from '../entities/ratRules.js';
 import { lineOfSight } from '../entities/enemy.js';
 import { Pack, packLoiter } from '../entities/packRules.js';
@@ -32,8 +34,31 @@ export class Roaming {
     this.list = []; this.nested = []; this.placed = false;
     this.t = rand(RAT.holeEvery); this.dashT = 4 + Math.random() * 3;
   }
-  configureCamp() { this.kind = 'camp'; this.list = []; this.t = 6; }
-  get cap() { return this.kind === 'city' ? ROAM_RULES.capCity : ROAM_RULES.capCamp; }
+  // In the open world (world/openworld.js) the camp's zones move with the camp
+  // and every region outside it has monsters of its own kinds and level.
+  configureCamp() {
+    this.kind = 'camp'; this.list = []; this.t = 6;
+    const L = this.game.level, ow = !!(L?.openWorld || L?.roadTrip), ox = ow ? CAMP_AT.x : 0, oz = ow ? CAMP_AT.z : 0;
+    const mv = (r) => rect(r.x0 + ox, r.z0 + oz, r.x1 + ox, r.z1 + oz);
+    this.ow = ow; this.lay = L?.layout ?? OW_LAYOUT;   // (ow: the open world or the Road West, both laid out in regions)
+    // (the road trip has no camp in it: its safe spots are its own safe regions)
+    if (L?.roadTrip) { this.core = []; this.roam = []; return; }
+    this.core = CAMP_CORE.map(mv); this.roam = CAMP_ROAM.map((a) => ({ ...a, area: mv(a.area) }));
+  }
+  // the open world's regions and the Road West take a crowd; the camp's woods a few
+  get cap() {
+    if (this.kind === 'city') return ROAM_RULES.capCity;
+    const l = this.ow && this.lead(), r = l && this.lay.regionAt(l.pos.x, l.pos.z);
+    return r && !r.safe && r.kinds ? ROAM_RULES.capOpen : ROAM_RULES.capCamp;
+  }
+  // the roam area at a spot: a camp zone, or (open world) the region outside camp
+  areaAt(x, z) {
+    if (inAny(this.core, x, z)) return null;
+    const a = this.roam.find((q) => inRect(q.area, x, z)); if (a) return a;
+    if (!this.ow) return null;
+    const r = this.lay.regionAt(x, z);
+    return r && !r.safe && r.kinds ? { name: r.id, kinds: r.kinds, region: r } : null;
+  }
   live() { this.list = this.list.filter((e) => !e.dead && this.game.enemies.includes(e)); return this.list; }
   heroes() { return this.game.players.filter((p) => !p.dead && !p.downed && (!p.ai || !this.game.players.some((q) => !q.ai))); }
   active() {
@@ -50,7 +75,7 @@ export class Roaming {
     if (this.kind === 'city') { if (!this.placed) this.placeNests(); this.director(dt); }
     this.t -= dt;
     if (this.t > 0) return;
-    this.t = rand(this.kind === 'city' ? RAT.holeEvery : ROAM_RULES.everyCamp);
+    this.t = rand(this.kind === 'city' ? RAT.holeEvery : this.ow && !inAny(this.core, this.lead()?.pos.x ?? 0, this.lead()?.pos.z ?? 0) ? ROAM_RULES.everyOpen : ROAM_RULES.everyCamp);
     if (this.kind === 'city') { this.spawnCity(); return; }
     if (this.live().length >= this.cap) return;
     this.spawnCamp();
@@ -117,30 +142,41 @@ export class Roaming {
     const g = this.game, hs = this.heroes(); if (!hs.length) return 0;
     const pts = hs.map((p) => [p.pos.x, p.pos.z]);
     // only when someone is outside the core (or close to its edge)
-    const out = hs.filter((p) => !inAny(CAMP_CORE, p.pos.x, p.pos.z) || CAMP_ROAM.some((a) => inRect(grow(a.area, 10), p.pos.x, p.pos.z)));
+    const out = hs.filter((p) => !inAny(this.core, p.pos.x, p.pos.z) || this.roam.some((a) => inRect(grow(a.area, 10), p.pos.x, p.pos.z)));
     if (!out.length) return 0;
     const chapters = Object.keys(g.save?.data.completed ?? {}).length;
     for (let tries = 0; tries < 16; tries++) {
       const h = out[Math.floor(Math.random() * out.length)];
       const ang = Math.random() * Math.PI * 2, r = ROAM_RULES.minDist + 1 + Math.random() * (ROAM_RULES.maxDist - ROAM_RULES.minDist - 3);
       const x = Math.floor(h.pos.x + Math.cos(ang) * r) + 0.5, z = Math.floor(h.pos.z + Math.sin(ang) * r) + 0.5;
-      if (!spawnAllowed(x, z, pts)) continue;
+      if (!spawnAllowed(x, z, pts, { core: this.core, roam: null }) || !this.areaAt(x, z)) continue;
       const y = standY(g.world, Math.floor(x), Math.floor(z));
       if (y == null || g.world.liquidAt(x, y + 0.2, z) || g.world.liquidAt(x, y - 0.5, z)) continue;
       if (this.onScreen(tmp.set(x, y + 0.5, z))) continue;
-      const area = CAMP_ROAM.find((a) => inRect(a.area, x, z));
-      const kind = pickKind(area.kinds, Math.random());
-      const { count, level } = packFor(chapters, kind, Math.random());
-      // a little group milling about, with one posted a few metres toward the
+      const area = this.areaAt(x, z);
+      // camp's woods and roads: a small pack (packFor); out in the open
+      // world's regions and on the Road West: a horde of fodder, now and
+      // then round a tougher one (hordeFor)
+      let kinds, level;
+      if (area.region) {
+        kinds = hordeFor(area.kinds, Math.random, { room: this.cap - this.live().length });
+        level = this.lay.levelAt(area.region, x, z, Math.random());
+      } else {
+        const kind = pickKind(area.kinds, Math.random()), p = packFor(chapters, kind, Math.random());
+        kinds = Array(p.count).fill(kind); level = p.level;
+      }
+      const count = kinds.length, spread = 3 + Math.sqrt(count) * 1.4;
+      // a group milling about, with one posted a few metres toward the
       // hero as a scout (entities/packRules.js): it sees you first and runs back
       let made = 0;
       const pack = new Pack(new THREE.Vector3(x, y, z));
       const toH = tmp.set(h.pos.x - x, 0, h.pos.z - z); const hd = toH.length(); if (hd > 0.01) toH.multiplyScalar(1 / hd);
+      const scoutAt = count >= 3 ? Math.max(0, kinds.findIndex((k) => isFodder(k))) : -1;
       for (let i = 0; i < count; i++) {
-        const scout = i === 0 && count >= 3;
-        const px = scout ? x + toH.x * 6 + (Math.random() - 0.5) * 2 : x + (Math.random() - 0.5) * 3, pz = scout ? z + toH.z * 6 + (Math.random() - 0.5) * 2 : z + (Math.random() - 0.5) * 3;
+        const kind = kinds[i], scout = i === scoutAt;
+        const px = scout ? x + toH.x * 6 + (Math.random() - 0.5) * 2 : x + (Math.random() - 0.5) * spread, pz = scout ? z + toH.z * 6 + (Math.random() - 0.5) * 2 : z + (Math.random() - 0.5) * spread;
         const py = standY(g.world, Math.floor(px), Math.floor(pz));
-        if (py == null || Math.abs(py - y) > 1.5 || !spawnAllowed(px, pz, pts)) continue;
+        if (py == null || Math.abs(py - y) > 1.5 || !spawnAllowed(px, pz, pts, { core: this.core, roam: null }) || !this.areaAt(px, pz)) continue;
         const e = g.spawnEnemy(kind, new THREE.Vector3(px, py, pz), { level });
         if (!e) continue;
         e.roamer = true; e.spawnT = 0.5;
@@ -163,7 +199,7 @@ export class Roaming {
       e.farT = far > ROAM_RULES.despawn ? (e.farT ?? 0) + dt : 0;
       if (e.farT > 3) { this.remove(e); continue; }
       if (this.kind !== 'camp') continue;
-      const core = CAMP_CORE.find((r) => inRect(r, e.pos.x, e.pos.z));
+      const core = this.core.find((r) => inRect(r, e.pos.x, e.pos.z));
       if (core) {
         const [cx, cz] = rectCenter(core);
         e.status.fear = Math.max(e.status.fear, 0.6); e.fearFrom = new THREE.Vector3(cx, e.pos.y, cz);

@@ -389,7 +389,17 @@ function paintTile(name, px, r) {
       for (let i = 0; i < 4; i++) { const x = r() * 15 | 0, y = r() * 15 | 0; px.set(x, y, C(0x9aa86a), 0.8); px.set(x + 1, y, C(0xb4b878), 0.8); }
       break;
     }
-    case 'basalt': {
+    case 'basalt': {   // dark volcanic stone: columns and pits
+      noiseFill(px, r, [C(0x3a3634), C(0x332f2d), C(0x423d3a)], 0.15, 0.6);
+      for (let x = 0; x < 16; x += 4) for (let y = 0; y < 16; y++) px.set(x, y, C(0x26221f), 0.5);
+      for (let i = 0; i < 5; i++) px.set(r() * 16 | 0, r() * 16 | 0, C(0x1e1a18), 0.4);
+      break;
+    }
+    case 'poplar_leaves': each(px, () => {   // black poplars of the Underworld: near-black green
+      const v = r();
+      return [v < 0.16 ? C(0x060a08) : jitter(C(0x18261c), r, 0.35), v < 0.16 ? 0.1 : 0.45 + v * 0.4];
+    }); break;
+    case 'climb_wall': {   // the lava climbing wall: dark rock with coloured holds
       noiseFill(px, r, [C(0x3a3634), C(0x332f2d), C(0x423d3a)], 0.15, 0.6);
       const holds = [C(0xf28c28), C(0xffd84a), C(0x2e8b6e), C(0xe8664a)];
       for (let i = 0; i < 3; i++) { const x = 2 + r() * 11 | 0, y = 2 + r() * 11 | 0, c = holds[i % 4]; px.set(x, y, c, 1); px.set(x + 1, y, c, 1); px.set(x, y + 1, shade(c, 0.7), 0.9); px.set(x + 1, y + 1, shade(c, 0.7), 0.9); }
@@ -456,7 +466,7 @@ export const TILE_NAMES = [
   'marble_floor', 'gallery_wall', 'key_frieze', 'vase_frieze', 'glass', 'plinth', 'bronze', 'sea_stone',
   'red_plank', 'owl_stone', 'gold_plate', 'silver_plate', 'pink_plaster', 'old_plank', 'vine_wall', 'grass_roof',
   'iron_plate', 'gravel_path', 'strawberry_top', 'farm_soil', 'pine_leaves', 'pine_bark', 'forest_floor', 'rock',
-  'basalt', 'target_face', 'hay', 'awning', 'barn_red', 'dirt_road', 'teal_panel', 'carpet_red',
+  'basalt', 'poplar_leaves', 'climb_wall', 'target_face', 'hay', 'awning', 'barn_red', 'dirt_road', 'teal_panel', 'carpet_red',
   'navy_panel', 'shingle_green', 'mud', 'lightning_stone',
   // the Book 1 road-trip worlds (world/textures.js)
   ...EXTRA_TILES,

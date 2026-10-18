@@ -220,3 +220,45 @@ The [request document](../image-requests.md) contains the briefs. [generation.js
 ### scene-big-house
 
 [![Waking on the porch of the Big House](scene-big-house.png)](scene-big-house.png)
+
+## Rounds 4–5: monsters, open world, and Road West
+
+Generated on 2026-10-17 with the built-in image generator. Per-asset prompts, references, and sizing notes are in [generation records](generation-2026-10-17/).
+
+| Asset | Generation record |
+| --- | --- |
+| [Spartoi, the sown skeleton warriors](vox-spartoi.png) | [vox-spartoi.json](generation-2026-10-17/vox-spartoi.json) |
+| [Telekhines, the seal-dog smiths with Greek fire](vox-telekhine.png) | [vox-telekhine.json](generation-2026-10-17/vox-telekhine.json) |
+| [The open world round camp: the whole map](vox-ow-map.png) | [vox-ow-map.json](generation-2026-10-17/vox-ow-map.json) |
+| [Region: the Strawberry Fields](vox-ow-fields.png) | [vox-ow-fields.json](generation-2026-10-17/vox-ow-fields.json) |
+| [Region: the Camp Woods](vox-ow-woods.png) | [vox-ow-woods.json](generation-2026-10-17/vox-ow-woods.json) |
+| [Region: the North Shore](vox-ow-shore.png) | [vox-ow-shore.json](generation-2026-10-17/vox-ow-shore.json) |
+| [Region: the Red Canyon](vox-ow-canyon.png) | [vox-ow-canyon.json](generation-2026-10-17/vox-ow-canyon.json) |
+| [Region: the Labyrinth](vox-ow-labyrinth.png) | [vox-ow-labyrinth.json](generation-2026-10-17/vox-ow-labyrinth.json) |
+| [Region: Mount Othrys](vox-ow-othrys.png) | [vox-ow-othrys.json](generation-2026-10-17/vox-ow-othrys.json) |
+| [Region: the Fields of Asphodel](vox-ow-asphodel.png) | [vox-ow-asphodel.json](generation-2026-10-17/vox-ow-asphodel.json) |
+| [Open-world kit: waystones, shrines, chests and monster camps](vox-ow-props.png) | [vox-ow-props.json](generation-2026-10-17/vox-ow-props.json) |
+| [Open-world people 1: campers and nature spirits](vox-ow-people-1.png) | [vox-ow-people-1.json](generation-2026-10-17/vox-ow-people-1.json) |
+| [Open-world people 2: wanderers, hunters and the dead](vox-ow-people-2.png) | [vox-ow-people-2.json](generation-2026-10-17/vox-ow-people-2.json) |
+| [Open-world champions: one named monster per region](vox-ow-champions.png) | [vox-ow-champions.json](generation-2026-10-17/vox-ow-champions.json) |
+| [The Road West: the whole road trip, Long Island to Los Angeles](vox-rt-map.png) | [vox-rt-map.json](generation-2026-10-17/vox-rt-map.json) |
+| [Road-trip kit: truck stops, diners, motels and highway pieces](vox-rt-roadside.png) | [vox-rt-roadside.json](generation-2026-10-17/vox-rt-roadside.json) |
+| [Road-trip towns 1: New Jersey to Denver](vox-rt-towns-1.png) | [vox-rt-towns-1.json](generation-2026-10-17/vox-rt-towns-1.json) |
+| [Road-trip towns 2: Las Vegas to Santa Monica](vox-rt-towns-2.png) | [vox-rt-towns-2.json](generation-2026-10-17/vox-rt-towns-2.json) |
+| [Road-trip roadblocks, closed and opening](vox-rt-roadblocks.png) | [vox-rt-roadblocks.json](generation-2026-10-17/vox-rt-roadblocks.json) |
+
+## Open-world quest givers: additional locals
+
+[![Nine quest givers: camp and Road West](vox-ow-people-3.png)](vox-ow-people-3.png)
+
+[Prompt, references and generation record](generation-2026-10-17/vox-ow-people-3.json).
+
+## Open-world fodder: the swarms you plow through
+
+| Asset | Generation record |
+| --- | --- |
+| [Open-world fodder: karpoi, myrmekes, giant crabs, shades](vox-ow-fodder.png) | [vox-ow-fodder.json](generation-2026-10-17/vox-ow-fodder.json) |
+| [Open-world fodder 2: karpos slingers, Colchis calves, myrmex spitters, Calydonian boarlets, king crabs](vox-ow-fodder-2.png) | [vox-ow-fodder-2.json](generation-2026-10-17/vox-ow-fodder-2.json) |
+| [Open-world fodder 3: basilisks, Earthborn, Daedalus drones, Laistrygonians, keres](vox-ow-fodder-3.png) | [vox-ow-fodder-3.json](generation-2026-10-17/vox-ow-fodder-3.json) |
+
+The myrmekes in `vox-ow-fodder` and `-2` have eight legs (read as spiders) and the king crab is no bigger than a crab: `vox-ow-fodder-fix` asks for them again.

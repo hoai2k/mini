@@ -181,7 +181,85 @@ export const BIOMES = {
       grade: { tint: [0.95, 1.0, 1.07], lift: [0.0, 0.008, 0.024], sat: 0.95, contrast: 1.1, vignette: 0.4 },
     },
   },
+  // ---------------------------------------------------------------- the open world (world/owLayout.js)
+  // Daylight looks for the regions round camp: the sky, fog and light blend
+  // from one to the next as you walk across a border (Environment.set(b, false)).
+  ow_fields: {
+    id: 'ow_fields', name: txt('regions.fields.name'), sub: txt('regions.fields.sub'),
+    skyTop: 0x3a88dc, skyHorizon: 0xd8ecf4, fog: 0xd0e6ee, fogDensity: 0.005,
+    hemiSky: 0xe0f0ff, hemiGround: 0x8a7a44, hemiI: 1.15, sun: 0xfff2d0, sunI: 2.7,
+    grade: { tint: [1.05, 1.02, 0.95], lift: [0.012, 0.01, 0.0], sat: 1.16, contrast: 1.04, vignette: 0.16 },
+    floor: B.grass, floor2: B.farm_soil, path: B.dirt_road, wall: B.barn_red, wall2: B.planks, trim: B.white_trim, pillar: B.log, roof: B.roof_slate, ground: B.grass, accent: B.lantern, pit: B.dirt,
+    ambience: 'garden', music: 'camp', particles: 'pollen', wind: 1.1,
+  },
+  ow_woods: {
+    id: 'ow_woods', name: txt('regions.woods.name'), sub: txt('regions.woods.sub'),
+    skyTop: 0x3a78c0, skyHorizon: 0xb8d8c8, fog: 0x9ab8a4, fogDensity: 0.009,
+    hemiSky: 0xc8e8d8, hemiGround: 0x3a3a1e, hemiI: 1.05, sun: 0xfff0c8, sunI: 2.2,
+    grade: { tint: [0.98, 1.03, 0.96], lift: [0.004, 0.01, 0.004], sat: 1.08, contrast: 1.06, vignette: 0.28 },
+    floor: B.forest_floor, floor2: B.grass, path: B.dirt_path, wall: B.rock, wall2: B.mossy_brick, trim: B.rock, pillar: B.pine_log, roof: B.pine_leaves, ground: B.forest_floor, accent: B.lantern, pit: B.dirt,
+    ambience: 'forest', music: 'woods', particles: 'fireflies', wind: 1.0,
+  },
+  ow_shore: {
+    id: 'ow_shore', name: txt('regions.shore.name'), sub: txt('regions.shore.sub'),
+    skyTop: 0x2a70c8, skyHorizon: 0xd8e8f0, fog: 0xc8dce8, fogDensity: 0.006,
+    hemiSky: 0xd8e8ff, hemiGround: 0x6a6048, hemiI: 1.1, sun: 0xfff0d8, sunI: 2.5,
+    grade: { tint: [1.0, 1.01, 1.03], lift: [0.008, 0.01, 0.014], sat: 1.1, contrast: 1.05, vignette: 0.2 },
+    floor: B.sand, floor2: B.wet_sand, path: B.planks, wall: B.sea_stone, wall2: B.white_trim, trim: B.white_trim, pillar: B.log, roof: B.teal_panel, ground: B.grass, accent: B.lantern, pit: B.sand,
+    ambience: 'surf', music: 'beach', particles: 'spray', wind: 1.6,
+  },
+  ow_canyon: {
+    id: 'ow_canyon', name: txt('regions.canyon.name'), sub: txt('regions.canyon.sub'),
+    skyTop: 0x2a62b8, skyHorizon: 0xf2c48a, fog: 0xe8b886, fogDensity: 0.007,
+    hemiSky: 0xe0e4f0, hemiGround: 0x8a5230, hemiI: 1.0, sun: 0xffdca8, sunI: 2.4,
+    grade: { tint: [1.06, 1.0, 0.92], lift: [0.012, 0.005, 0.0], sat: 1.12, contrast: 1.08, vignette: 0.22 },
+    floor: B.desert_sand, floor2: B.sand, path: B.dirt_road, wall: B.red_rock, wall2: B.sand, trim: B.red_rock, pillar: B.red_rock, roof: B.roof_terracotta, ground: B.desert_sand, accent: B.lantern, pit: B.red_rock,
+    ambience: 'desert', music: 'desert', particles: 'sand', wind: 1.4,
+  },
+  ow_labyrinth: {
+    id: 'ow_labyrinth', name: txt('regions.labyrinth.name'), sub: txt('regions.labyrinth.sub'),
+    // late afternoon: a low golden sun, warm amber haze, violet-grey shade in the corridors
+    skyTop: 0x5a6aa8, skyHorizon: 0xf8c088, fog: 0xe4b88c, fogDensity: 0.0085,
+    hemiSky: 0xd8c8c0, hemiGround: 0x4a3a36, hemiI: 0.95, sun: 0xffc884, sunI: 2.5,
+    grade: { tint: [1.07, 1.0, 0.9], lift: [0.014, 0.006, 0.012], sat: 1.12, contrast: 1.1, vignette: 0.3 },
+    floor: B.cobble, floor2: B.stone_brick, path: B.stone_brick, wall: B.stone_brick, wall2: B.mossy_brick, trim: B.key_frieze, pillar: B.column, roof: B.stone_brick, ground: B.grass, accent: B.lantern, pit: B.stone,
+    ambience: 'wind', music: 'garden', particles: 'dust', wind: 0.8,
+  },
+  ow_othrys: {
+    id: 'ow_othrys', name: txt('regions.othrys.name'), sub: txt('regions.othrys.sub'),
+    // rolling storm clouds: a bruised violet sky, slate haze, cold light with a last warm edge to it
+    skyTop: 0x1a1838, skyHorizon: 0x7a6a8a, fog: 0x6a6880, fogDensity: 0.0105,
+    hemiSky: 0xc8c4c0, hemiGround: 0x2e2826, hemiI: 0.95, sun: 0xffe0c0, sunI: 2.0,
+    grade: { tint: [1.02, 0.99, 0.98], lift: [0.01, 0.006, 0.016], sat: 1.0, contrast: 1.18, vignette: 0.4 },
+    floor: B.rock, floor2: B.basalt, path: B.cobble, wall: B.black_marble, wall2: B.basalt, trim: B.bronze, pillar: B.black_marble, roof: B.basalt, ground: B.rock, accent: B.lantern, pit: B.basalt,
+    ambience: 'wind', music: 'storm', particles: 'dust', wind: 2.0, storm: true,
+  },
+  ow_asphodel: {
+    id: 'ow_asphodel', name: txt('regions.asphodel.name'), sub: txt('regions.asphodel.sub'),
+    // eternal twilight: a violet sky with a smouldering rose horizon, lilac mist low over the fields
+    skyTop: 0x1c1236, skyHorizon: 0x8a5a7c, fog: 0x4c3c66, fogDensity: 0.012,
+    hemiSky: 0xb8a8e4, hemiGround: 0x22182a, hemiI: 1.2, sun: 0xffc0a0, sunI: 1.35,
+    grade: { tint: [1.0, 0.95, 1.08], lift: [0.02, 0.008, 0.04], sat: 0.98, contrast: 1.12, vignette: 0.42 },
+    floor: B.asphodel, floor2: B.underworld_rock, path: B.basalt, wall: B.underworld_rock, wall2: B.obsidian, trim: B.basalt, pillar: B.basalt, roof: B.underworld_rock, ground: B.asphodel, accent: B.styx, pit: B.underworld_rock,
+    ambience: 'underworld', music: 'underworld', particles: 'ash', wind: 0.5,
+  },
 };
+
+// The Road West (world/rtLayout.js): each stop's look, from the chapter it
+// belongs to (or a region round camp), in daylight with a light haze.
+for (const [id, base, o] of [
+  ['rt_turnpike', 'ow_woods', { skyHorizon: 0xd8d8c8, fog: 0xc8ccc0, fogDensity: 0.006, ambience: 'forest', music: 'highway' }],
+  ['rt_auntyem', 'ow_fields', { fogDensity: 0.005, music: 'garden' }],
+  ['rt_river', 'ow_shore', { fogDensity: 0.006, ambience: 'wind', music: 'highway' }],
+  ['rt_stlouis', 'arch', { fogDensity: 0.006 }],
+  ['rt_plains', 'ow_canyon', { fogDensity: 0.006, music: 'arch' }],
+  ['rt_denver', 'ow_woods', { skyTop: 0x2a6ac8, skyHorizon: 0xe0e8f4, fog: 0xd0dce8, fogDensity: 0.005, music: 'waterland' }],
+  ['rt_rockies', 'ow_canyon', { fogDensity: 0.007, music: 'desert' }],
+  ['rt_vegas', 'casino', { skyTop: 0x1a1040, skyHorizon: 0xd86a5a, fog: 0x6a3a5a, fogDensity: 0.006, hemiI: 1.2, sunI: 1.6, indoor: false, dreamy: false, ambience: 'casino' }],
+  ['rt_desert', 'desert', { fogDensity: 0.005 }],
+  ['rt_la', 'desert', { skyHorizon: 0xf2c8a8, fog: 0xe0b8a0, fogDensity: 0.006, ambience: 'highway', music: 'underworld' }],
+  ['rt_santamonica', 'beach', { skyTop: 0x2a6ac8, skyHorizon: 0xf2c8a0, fog: 0xe8c8b0, fogDensity: 0.005 }],
+]) BIOMES[id] = { ...BIOMES[base], ...o, id, name: txt(`regions.${id}.name`), sub: txt(`regions.${id}.sub`), storm: false };
 
 // Domain Expansion overrides use the same structure.
 export const DOMAINS = {

@@ -36,6 +36,15 @@ hero and monster models are built from, so generate them in this order:
 4. The game art (`logo`, `title-bg`, `ui-hero-cards-2`) and the chapter cards
    whenever convenient; the game draws stand-ins until they arrive.
 
+### Round 5: the open world
+
+Camp Half-Blood now sits in a big open world of eight regions. Generate
+`vox-ow-map` first (the layout), then the region scenes, the shared kit
+(`vox-ow-props`), the people who give side quests and the champions. The
+Road West road trip has its own strip map (`vox-rt-map`), towns, roadside
+kit and roadblocks. The game draws blocky stand-ins for all of them until
+the sheets arrive.
+
 Concept sheets land in `design/concept/`; files marked as game art land in
 `game/assets/`. Drop either kind in the intake folder.
 
@@ -58,25 +67,15 @@ are in [image-request-history.md](image-request-history.md).
 
 | Id | Image | Size | Status |
 | --- | --- | --- | --- |
-| `vox-spartoi` | Spartoi, the sown skeleton warriors | 2560 × 1440 | requested |
-| `vox-telekhine` | Telekhines, the seal-dog smiths with Greek fire | 2560 × 1440 | requested |
+| `vox-ow-fodder-fix` | Open-world fodder: myrmekes as real ants, and a truly huge king crab | 2400 × 1600 | requested |
 
-### Round 4 · New monsters
+### Round 5 · The open world
 
-#### `vox-spartoi` — Spartoi, the sown skeleton warriors
+#### `vox-ow-fodder-fix` — Open-world fodder: myrmekes as real ants, and a truly huge king crab
 
-- **File:** `vox-spartoi.png`, 2560 × 1440 px, delivered to `design/concept/vox-spartoi.png`
-- **References:** `vox-key`, `vox-enemies`
-- **Use:** Reference for the spartoi model (entities/monsters.js, buildSkeleton with melee): steady sword-and-shield fodder in the desert, the Underworld and on the beach; not loaded by the game.
+- **File:** `vox-ow-fodder-fix.png`, 2400 × 1600 px, delivered to `design/concept/vox-ow-fodder-fix.png`
+- **References:** `vox-key`, `vox-ow-fodder`, `vox-ow-fodder-2`
+- **Use:** Replaces the myrmex, myrmex spitter and king crab drawings of vox-ow-fodder and vox-ow-fodder-2 (entities/fodder.js).
 - **Status:** requested
 
-> A monster model sheet in the blocky voxel 3D style of a Minecraft-Dungeons-like game, isometric three-quarter views on a flat parchment-cream background, every part built from chunky cubes with hand-painted pixel textures. Spartoi: skeleton warriors that grew from dragon's teeth sown in the earth, the size of a grown man. Old ivory bones with dark empty eye sockets, wearing tattered desert-tan military fatigues and boots over the bones, a dented bronze Greek helmet with a short crest, a curved bronze kopis sword in one hand and a round bronze hoplite shield in the other, painted with a black dragon-tooth emblem. Show one spartoi front, side and back; then in a ready stance behind the shield, mid-slash, and staggered back; then a squad of four marching in step, and one clawing up out of cracked earth. Menacing but readable, not gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
-
-#### `vox-telekhine` — Telekhines, the seal-dog smiths with Greek fire
-
-- **File:** `vox-telekhine.png`, 2560 × 1440 px, delivered to `design/concept/vox-telekhine.png`
-- **References:** `vox-key`, `vox-enemies`
-- **Use:** Reference for the telekhine model (entities/monsters.js): a lobber at Waterland that throws pots of Greek fire at a marked spot; not loaded by the game.
-- **Status:** requested
-
-> A monster model sheet in the blocky voxel 3D style of a Minecraft-Dungeons-like game, isometric three-quarter views on a flat parchment-cream background, every part built from chunky cubes with hand-painted pixel textures. Telekhines: ancient sea-demon smiths, half dog and half seal, about the size of a large dog. Sleek grey-blue hide with darker speckles and a pale belly, a dog's head with a blunt seal snout, small fangs and glowing orange eyes, flippers for front feet, a stubby seal tail, a leather smith's apron and a brass harness carrying a clay pot of glowing green-orange Greek fire on its back. Show one telekhine front, side and back; then rearing up to hurl a fire pot in a high arc, the pot landing on a glowing ring marked on the ground, and the splash of green-orange flame; then a pack of three waddling on their flippers. Sly and mischievous rather than frightening. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+> A sheet of three blocky voxel monster kinds beside a blocky Percy for scale, each shown front, side and mid-attack: a myrmex, a dog-sized giant ANT (exactly six legs, three clear body segments: head, narrow thorax, big round abdomen; elbowed antennae; big bronze mandibles; glossy black armour with bronze edges), nothing like a spider; a myrmex spitter, the same ant with a swollen glowing green abdomen arching an acid spray over its head; and a king crab, a hulking barnacled crab TWICE Percy's height and twice as wide as the small shore crabs, one enormous crusher claw the size of its body, a shell like a mossy rock, small eyes on stalks. Each kind shown three times (front, side, mid-attack) beside a blocky Percy for scale, readable from the high three-quarter camera, with a strong silhouette and a bold colour accent so it reads in a crowd, and a cool, characterful design worth seeing a hundred times. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.

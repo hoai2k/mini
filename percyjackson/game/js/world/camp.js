@@ -347,16 +347,16 @@ export function buildCamp() {
     for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) {
       const edge = Math.min(x - x0, x1 - x, z - z0, z1 - z);
       const h = 13 + Math.round(Math.sin(x * 0.9) * 1.5 + Math.cos(z * 1.3) * 1) + (edge > 1 ? 2 : 0);
-      W.fill(x, FY, z, x, FY + h, z, B.basalt);
+      W.fill(x, FY, z, x, FY + h, z, B.climb_wall);
     }
     // lava pours down the south face into a pool at the base
     for (const lx of [92, 93]) { const ht = top(lx, 12) - 1; for (let y = FY; y <= ht; y++) W.set(lx, y, z1 + 1, B.lava); W.set(lx, ht, z1, B.lava); W.set(lx, ht, z1 - 1, B.lava); }
     for (let y = FY + 2; y <= FY + 10; y++) W.set(96, y, z1 + 1, B.lava);
     for (let x = 90; x <= 97; x++) for (let z = z1 + 1; z <= z1 + 4; z++) {
       const rim = x === 90 || x === 97 || z === z1 + 4;
-      if (rim) W.set(x, FY, z, B.basalt); else { W.set(x, FY - 1, z, B.lava); W.set(x, FY - 2, z, B.basalt); }
+      if (rim) W.set(x, FY, z, B.climb_wall); else { W.set(x, FY - 1, z, B.lava); W.set(x, FY - 2, z, B.climb_wall); }
     }
-    for (let x = 90; x <= 97; x++) W.set(x, FY - 1, z1 + 4, B.basalt);
+    for (let x = 90; x <= 97; x++) W.set(x, FY - 1, z1 + 4, B.climb_wall);
     // the summit flag
     deco.prop('flagpole', 94.5, top(94, 11), 11.5, { h: 3, color: 0xf28c28 });
   }

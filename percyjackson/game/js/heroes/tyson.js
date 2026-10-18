@@ -18,6 +18,7 @@ import { t } from '../text_config.js';
 import * as THREE from 'three/webgpu';
 import { Kit, teamBuff, buffOn, stun } from './kit.js';
 import { registerKit } from './index.js';
+import { RANGED, lobVy } from '../combatRules.js';
 import { BLOCKS } from '../world/blocks.js';
 
 const BRONZE = 0xc9963a, FIRE = 0xff7a2a, EMBER = 0xffb04a;
@@ -156,9 +157,15 @@ class TysonKit extends Kit {
     p.facing = Math.atan2(p.aimDir.x, p.aimDir.z);
     const from = p.pos.clone().setY(p.pos.y + 2.1);
     g.fx.debris(p.pos.clone().setY(p.pos.y + 0.3), 0x8a7a6a, 3);
-    const dist = Math.min(13, p.aimPoint.distanceTo(p.pos)) || 8;
-    const flight = 0.6, grav = 20;
-    const vel = p.aimDir.clone().multiplyScalar(dist / flight); vel.y = 0.5 * grav * flight;
+    // lobbed to land on what the hero aims at, up or down a slope (kit.js shotAim)
+    const R = RANGED.boulder, flight = R.flight, grav = R.gravity, aim = this.shotAim(from);
+    const flat = aim.point && !aim.keepYaw ? new THREE.Vector3(aim.point.x - from.x, 0, aim.point.z - from.z) : p.aimDir.clone().setY(0);
+    const dist = Math.min(R.reach, aim.point ? Math.hypot(aim.point.x - from.x, aim.point.z - from.z) : p.aimPoint.distanceTo(p.pos)) || 8;
+    if (flat.lengthSq() < 1e-6) flat.set(Math.sin(p.facing), 0, Math.cos(p.facing));
+    flat.normalize();
+    const lx = from.x + flat.x * dist, lz = from.z + flat.z * dist;
+    const landY = aim.target ? aim.target.pos.y : this.groundAt(lx, lz, from.y + 4) ?? p.pos.y;
+    const vel = flat.multiplyScalar(dist / flight); vel.y = lobVy(landY + 0.4 - from.y, flight, grav);
     const pr = g.projectiles.fire({ pos: from, vel, team: 'player', shape: 'cube', color: 0x7a6a5a, emissive: 0.05, gravity: grav, life: 2, scale: 2 + big * 0.6, radius: 0.8,
       trail: (q) => { if (Math.random() < 0.3) g.particles.smoke.emit(q.pos.x, q.pos.y, q.pos.z, 0, 0, 0, 0.5, 0.5, 0.45, 0.4, 0.3, 0, 1, 0.8, 0); },
       onHit: (e, q) => { g.combat.damageEnemy(e, 24 + big * 8, p, { knock: q.vel.clone().setY(0).setLength(9), stagger: 0.7 }); },

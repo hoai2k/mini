@@ -18,7 +18,7 @@ const INK = 0x17130f;
 const ARMS = [[40, 16], [32, 48]], ARM_OVER = [[40, 32], [48, 48]];
 const LEGS = [[0, 16], [16, 48]];
 
-function paintHumanoid(S, o) {
+export function paintHumanoid(S, o) {
   const skin = o.skinTone ?? 0xf0c8a8;
   // ---- head
   S.box(0, 0, 8, 8, 8, skin, 0.05);

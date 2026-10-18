@@ -7,7 +7,7 @@ for reference and for regenerating an image. The open requests are in
 [image-requests.md](image-requests.md); the shared style both use is described
 there.
 
-53 delivered.
+76 delivered.
 
 | Id | Image | Size | Status |
 | --- | --- | --- | --- |
@@ -63,7 +63,30 @@ there.
 | `scene-montauk` | Montauk: Grover at the door in the storm | 2560 × 1440 | delivered |
 | `scene-storm-drive` | The drive through the storm | 2560 × 1440 | delivered |
 | `vox-manhattan` | 3D sheet: the Manhattan prologue kit and sewer rats | 2560 × 1440 | delivered |
+| `vox-spartoi` | Spartoi, the sown skeleton warriors | 2560 × 1440 | delivered |
+| `vox-telekhine` | Telekhines, the seal-dog smiths with Greek fire | 2560 × 1440 | delivered |
 | `scene-big-house` | Waking on the porch of the Big House | 2560 × 1440 | delivered |
+| `vox-ow-map` | The open world round camp: the whole map | 2560 × 2560 | delivered |
+| `vox-ow-fields` | Region: the Strawberry Fields | 2560 × 1440 | delivered |
+| `vox-ow-woods` | Region: the Camp Woods | 2560 × 1440 | delivered |
+| `vox-ow-shore` | Region: the North Shore | 2560 × 1440 | delivered |
+| `vox-ow-canyon` | Region: the Red Canyon | 2560 × 1440 | delivered |
+| `vox-ow-labyrinth` | Region: the Labyrinth | 2560 × 1440 | delivered |
+| `vox-ow-othrys` | Region: Mount Othrys | 2560 × 1440 | delivered |
+| `vox-ow-asphodel` | Region: the Fields of Asphodel | 2560 × 1440 | delivered |
+| `vox-ow-props` | Open-world kit: waystones, shrines, chests and monster camps | 2400 × 1600 | delivered |
+| `vox-ow-people-1` | Open-world people 1: campers and nature spirits | 2400 × 1600 | delivered |
+| `vox-ow-people-2` | Open-world people 2: wanderers, hunters and the dead | 2400 × 1600 | delivered |
+| `vox-ow-champions` | Open-world champions: one named monster per region | 2400 × 1600 | delivered |
+| `vox-rt-map` | The Road West: the whole road trip, Long Island to Los Angeles | 3200 × 1200 | delivered |
+| `vox-rt-roadside` | Road-trip kit: truck stops, diners, motels and highway pieces | 2400 × 1600 | delivered |
+| `vox-rt-towns-1` | Road-trip towns 1: New Jersey to Denver | 2560 × 1440 | delivered |
+| `vox-rt-towns-2` | Road-trip towns 2: Las Vegas to Santa Monica | 2560 × 1440 | delivered |
+| `vox-rt-roadblocks` | Road-trip roadblocks, closed and opening | 2400 × 1600 | delivered |
+| `vox-ow-people-3` | Open-world people 3: camp's quest givers and the Road West's locals | 2400 × 1600 | delivered |
+| `vox-ow-fodder` | Open-world fodder: the swarms you plow through | 2400 × 1600 | delivered |
+| `vox-ow-fodder-2` | Open-world fodder 2: the fields, the woods and the shore | 2400 × 1600 | delivered |
+| `vox-ow-fodder-3` | Open-world fodder 3: the canyon, the Labyrinth, Othrys and the Underworld | 2400 × 1600 | delivered |
 
 ### Style key
 
@@ -553,6 +576,28 @@ there.
 
 > A model sheet in the blocky voxel 3D style of a Minecraft-Dungeons-like game, warm morning light, isometric three-quarter views on a flat parchment-cream background, every object built from chunky cubes with hand-painted pixel textures: a New York brownstone (three storeys, a stoop of steps with black iron railings, tall windows, a pressed-metal cornice, a rooftop water tower); a red-brick boarding school front with white trim, two columns and a navy flag (Yancy Academy); a yellow school bus with black rub rails and a folding door; a yellow taxi; a hot-dog cart with a striped umbrella; a green subway entrance with globe lamps; a fire hydrant, a blue mailbox, a newsstand and a storm drain. Bottom row: a sewer rat monster seen front, side and back (grey-brown fur, pink ears, nose and long tail, glowing too-red eyes, a little bigger than a cat), plus a pack of three rats scurrying out of the storm drain, comic rather than scary. Clean silhouettes, no text on the signs. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
+### Round 4 · New monsters
+
+#### `vox-spartoi` — Spartoi, the sown skeleton warriors
+
+- **File:** `vox-spartoi.png`, 2560 × 1440 px, delivered to `design/concept/vox-spartoi.png`
+- **References:** `vox-key`, `vox-enemies`
+- **Use:** Reference for the spartoi model (entities/monsters.js, buildSkeleton with melee): steady sword-and-shield fodder in the desert, the Underworld and on the beach; not loaded by the game.
+- **Status:** delivered
+
+> A monster model sheet in the blocky voxel 3D style of a Minecraft-Dungeons-like game, isometric three-quarter views on a flat parchment-cream background, every part built from chunky cubes with hand-painted pixel textures. Spartoi: skeleton warriors that grew from dragon's teeth sown in the earth, the size of a grown man. Old ivory bones with dark empty eye sockets, wearing tattered desert-tan military fatigues and boots over the bones, a dented bronze Greek helmet with a short crest, a curved bronze kopis sword in one hand and a round bronze hoplite shield in the other, painted with a black dragon-tooth emblem. Show one spartoi front, side and back; then in a ready stance behind the shield, mid-slash, and staggered back; then a squad of four marching in step, and one clawing up out of cracked earth. Menacing but readable, not gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+#### `vox-telekhine` — Telekhines, the seal-dog smiths with Greek fire
+
+- **File:** `vox-telekhine.png`, 2560 × 1440 px, delivered to `design/concept/vox-telekhine.png`
+- **References:** `vox-key`, `vox-enemies`
+- **Use:** Reference for the telekhine model (entities/monsters.js): a lobber at Waterland that throws pots of Greek fire at a marked spot; not loaded by the game.
+- **Status:** delivered
+
+> A monster model sheet in the blocky voxel 3D style of a Minecraft-Dungeons-like game, isometric three-quarter views on a flat parchment-cream background, every part built from chunky cubes with hand-painted pixel textures. Telekhines: ancient sea-demon smiths, half dog and half seal, about the size of a large dog. Sleek grey-blue hide with darker speckles and a pale belly, a dog's head with a blunt seal snout, small fangs and glowing orange eyes, flippers for front feet, a stubby seal tail, a leather smith's apron and a brass harness carrying a clay pot of glowing green-orange Greek fire on its back. Show one telekhine front, side and back; then rearing up to hurl a fire pot in a high arc, the pot landing on a glowing ring marked on the ground, and the splash of green-orange flame; then a pack of three waddling on their flippers. Sly and mischievous rather than frightening. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+### Round 3 · The opening (cutscene cards)
+
 #### `scene-big-house` — Waking on the porch of the Big House
 
 - **File:** `scene-big-house.png`, 2560 × 1440 px, delivered to `design/concept/scene-big-house.png`
@@ -561,3 +606,194 @@ there.
 - **Status:** delivered
 
 > A sunny summer afternoon on the wraparound porch of a big blue four-storey farmhouse with white trim. Percy Jackson, twelve, son of Poseidon: slim, messy jet-black hair, sea-green eyes, a lopsided troublemaker grin; orange Camp Half-Blood T-shirt (a small black pegasus emblem), faded jeans, worn sneakers; Riptide, a leaf-shaped celestial-bronze sword that turns into a ballpoint pen when capped, bandaged and drowsy, sits up in a deck chair holding a Minotaur horn; Annabeth Chase, twelve, daughter of Athena: athletic, tanned, curly honey-blonde hair in a high ponytail, sharp storm-grey eyes, a confident, calculating look; orange Camp Half-Blood T-shirt, shorts, a clay-bead camp necklace, a bronze dagger at her belt and a navy New York Yankees-style baseball cap (no logo) that makes her invisible leans on the railing with her arms folded, judging him; a bearded teacher in a tweed jacket sits in a wheelchair beside a pinochle table, and a plump man in a leopard-print shirt sips a diet cola. Beyond the porch, Camp Half-Blood: cabins in a U, a lake with canoes, strawberry fields and the sea. Welcoming and golden. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+### Round 5 · The open world
+
+#### `vox-ow-map` — The open world round camp: the whole map
+
+- **File:** `vox-ow-map.png`, 2560 × 2560 px, delivered to `design/concept/vox-ow-map.png`
+- **References:** `vox-key`, `vox-camp`, `map-camp`
+- **Use:** Layout and feel of the open world (world/owLayout.js): the eight regions and the roads between them. Generate this first in round 5.
+- **Status:** delivered
+
+> A square top-down isometric overview map of a big blocky open world, like the world map of Minecraft Dungeons, sea along the whole left (west) edge. In the middle of the left side, Camp Half-Blood: cabins in a U round a green, the blue Big House, a lake, Half-Blood Hill with a great pine, and a road leaving it north. Around it, eight regions with distinct colours, joined by winding roads and dotted with glowing waystone pillars: north, the North Shore of Long Island Sound (white chalk cliffs, beaches, a red-and-white lighthouse, a shipwrecked Greek ship); north-east, Mount Othrys (grey crags, storm clouds and a ruined black-marble fortress on the summit); east of camp, the Strawberry Fields (patchwork farms, red barns, a windmill, orchards); far east, the Red Canyon (red mesas, slot canyons, a ghost town, a garden of stone statues); south-east of camp, the Camp Woods (dense pines, a creek, a huge fist-shaped pile of boulders); south, the Labyrinth (stone maze walls breaking out of the grass, bronze gates); far south-east, the Fields of Asphodel (grey ash plains, pale flowers, black poplars, the River Styx and a great black gate). 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+#### `vox-ow-fields` — Region: the Strawberry Fields
+
+- **File:** `vox-ow-fields.png`, 2560 × 1440 px, delivered to `design/concept/vox-ow-fields.png`
+- **References:** `vox-key`, `vox-camp`, `vox-ow-map`
+- **Use:** Builds the Strawberry Fields region (world/regions/fields.js).
+- **Status:** delivered
+
+> An isometric bird's-eye view, like a big open level of Minecraft Dungeons seen from the game's high three-quarter camera, every part built from chunky blocks with hand-painted pixel textures, a few small blocky heroes (Percy in his orange camp shirt, Annabeth, Grover) for scale, monsters about, a glowing marble-and-gold waystone pillar somewhere on a path. The Strawberry Fields east of Camp Half-Blood on a bright summer morning, monster level 1 to 3: rolling patchwork farmland, rows of strawberry beds with campers picking, a delivery van marked with a strawberry, two red barns (one half-ruined, with a monster camp of hellhound pups and bronze spiders around a campfire inside), a turning windmill, an apple orchard, beehives, a pumpkin patch, a scarecrow, a farmhouse with a pond and a little water mill, hay bales, a stone shrine to Demeter with sheaves of golden wheat, and a giant bronze-feathered Stymphalian bird circling overhead (the region's champion). 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+#### `vox-ow-woods` — Region: the Camp Woods
+
+- **File:** `vox-ow-woods.png`, 2560 × 1440 px, delivered to `design/concept/vox-ow-woods.png`
+- **References:** `vox-key`, `vox-camp`, `vox-ow-map`
+- **Use:** Builds the Camp Woods region (world/regions/woods.js).
+- **Status:** delivered
+
+> An isometric bird's-eye view, like a big open level of Minecraft Dungeons seen from the game's high three-quarter camera, every part built from chunky blocks with hand-painted pixel textures, a few small blocky heroes (Percy in his orange camp shirt, Annabeth, Grover) for scale, monsters about, a glowing marble-and-gold waystone pillar somewhere on a path. The Camp Woods south-east of Camp Half-Blood, dappled light, monster level 2 to 4: deep pine and oak forest, a winding creek with a rope bridge and stepping stones, Zeus's Fist (a giant heap of boulders shaped like a fist, with a hidden door at its base), Bunker 9 (a secret workshop dug into a cliff face, glowing forge light from a vast door), a huge old juniper tree with a tree nymph in green, a ring of mushrooms, a monster den in hollow fallen logs, a stone shrine to Artemis with a silver bow, and a hulking shadowy hellhound with a scarred muzzle (the region's champion). 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+#### `vox-ow-shore` — Region: the North Shore
+
+- **File:** `vox-ow-shore.png`, 2560 × 1440 px, delivered to `design/concept/vox-ow-shore.png`
+- **References:** `vox-key`, `vox-camp`, `vox-ow-map`
+- **Use:** Builds the North Shore region (world/regions/shore.js).
+- **Status:** delivered
+
+> An isometric bird's-eye view, like a big open level of Minecraft Dungeons seen from the game's high three-quarter camera, every part built from chunky blocks with hand-painted pixel textures, a few small blocky heroes (Percy in his orange camp shirt, Annabeth, Grover) for scale, monsters about, a glowing marble-and-gold waystone pillar somewhere on a path. The North Shore of Long Island Sound on a breezy afternoon, monster level 3 to 5: sandy beaches and dunes with tall grass, white chalk sea cliffs, a red-and-white striped lighthouse on a headland, an ancient Greek trireme wrecked on the rocks, sea caves with glowing blue pools, tide pools, a fishing pier and a boathouse, harpy nests of driftwood on the cliff tops, a stone shrine to Poseidon with a bronze trident, and a great storm-grey harpy queen with a crown of feathers (the region's champion). 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+#### `vox-ow-canyon` — Region: the Red Canyon
+
+- **File:** `vox-ow-canyon.png`, 2560 × 1440 px, delivered to `design/concept/vox-ow-canyon.png`
+- **References:** `vox-key`, `vox-camp`, `vox-ow-map`
+- **Use:** Builds the Red Canyon region (world/regions/canyon.js).
+- **Status:** delivered
+
+> An isometric bird's-eye view, like a big open level of Minecraft Dungeons seen from the game's high three-quarter camera, every part built from chunky blocks with hand-painted pixel textures, a few small blocky heroes (Percy in his orange camp shirt, Annabeth, Grover) for scale, monsters about, a glowing marble-and-gold waystone pillar somewhere on a path. The Red Canyon in hot afternoon light, a desert that has no business being on Long Island, monster level 5 to 7: flat-topped red mesas, a dry river wash, slot canyons, cactus and bones, a ghost town (a saloon, a water tower, a general store), the Garden of Stone (people turned to grey statues among broken columns), a giant scorpion's den in a cave under a mesa, a camp of silver tents of the Hunters of Artemis on a mesa top, a stone shrine to Apollo with a golden sun disc, and a huge crimson scorpion with a golden stinger (the region's champion). 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+#### `vox-ow-labyrinth` — Region: the Labyrinth
+
+- **File:** `vox-ow-labyrinth.png`, 2560 × 1440 px, delivered to `design/concept/vox-ow-labyrinth.png`
+- **References:** `vox-key`, `vox-camp`, `vox-ow-map`
+- **Use:** Builds the Labyrinth region (world/regions/labyrinth.js).
+- **Status:** delivered
+
+> An isometric bird's-eye view, like a big open level of Minecraft Dungeons seen from the game's high three-quarter camera, every part built from chunky blocks with hand-painted pixel textures, a few small blocky heroes (Percy in his orange camp shirt, Annabeth, Grover) for scale, monsters about, a glowing marble-and-gold waystone pillar somewhere on a path. The Labyrinth breaking out of the ground south of camp, late afternoon, monster level 6 to 8: high crumbling walls of grey stone maze rising out of grassy hills, bronze gates marked with a blue Greek Delta, sunken courtyards, collapsed colonnades, a workshop with bronze wings hanging on the wall and half-built automatons, spider webs across dark passages, a pit going down into darkness, a stone shrine to Athena with an owl, and a giant bronze automaton warden with a glowing eye (the region's champion). 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+#### `vox-ow-othrys` — Region: Mount Othrys
+
+- **File:** `vox-ow-othrys.png`, 2560 × 1440 px, delivered to `design/concept/vox-ow-othrys.png`
+- **References:** `vox-key`, `vox-camp`, `vox-ow-map`
+- **Use:** Builds the Mount Othrys region (world/regions/othrys.js).
+- **Status:** delivered
+
+> An isometric bird's-eye view, like a big open level of Minecraft Dungeons seen from the game's high three-quarter camera, every part built from chunky blocks with hand-painted pixel textures, a few small blocky heroes (Percy in his orange camp shirt, Annabeth, Grover) for scale, monsters about, a glowing marble-and-gold waystone pillar somewhere on a path. Mount Othrys under rolling storm clouds, monster level 8 to 10: grey crags and scree slopes, a narrow pass with huge broken chains, a bridge over a chasm, a Cyclops camp of rusty junk and forge fires, the ruined black-marble fortress of the Titans on the summit with broken thrones and fallen columns, a silver tent camp of the Hunters of Artemis in a sheltered hollow, a stone shrine to Zeus with a golden lightning bolt, and a towering one-eyed Cyclops chieftain with a tree-trunk club (the region's champion). 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+#### `vox-ow-asphodel` — Region: the Fields of Asphodel
+
+- **File:** `vox-ow-asphodel.png`, 2560 × 1440 px, delivered to `design/concept/vox-ow-asphodel.png`
+- **References:** `vox-key`, `vox-camp`, `vox-ow-map`
+- **Use:** Builds the Fields of Asphodel region (world/regions/asphodel.js).
+- **Status:** delivered
+
+> An isometric bird's-eye view, like a big open level of Minecraft Dungeons seen from the game's high three-quarter camera, every part built from chunky blocks with hand-painted pixel textures, a few small blocky heroes (Percy in his orange camp shirt, Annabeth, Grover) for scale, monsters about, a glowing marble-and-gold waystone pillar somewhere on a path. The Fields of Asphodel where the Underworld breaks through, eternal grey twilight, monster level 9 to 12: grey ash plains carpeted with pale asphodel flowers, black poplar trees, wandering ghostly shades, the River Styx with a ferry landing and Charon's boat, braziers of green fire, a steep hill with a boulder being pushed up it, the great black gates of Erebus with a huge empty dog collar beside them, a stone shrine to Hades with a dark helm, and a pale armoured skeleton king with a crown and a black sword (the region's champion). Eerie but not gory. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+#### `vox-ow-props` — Open-world kit: waystones, shrines, chests and monster camps
+
+- **File:** `vox-ow-props.png`, 2400 × 1600 px, delivered to `design/concept/vox-ow-props.png`
+- **References:** `vox-key`, `vox-camp`
+- **Use:** Models for the pieces every region shares (world/openworld.js, openworld/runtime.js).
+- **Status:** delivered
+
+> A prop model sheet of blocky voxel objects on a flat light-grey background, each from the front and the high three-quarter game angle: a waystone (a marble pillar with a gold cap, glowing runes and a little marble platform; also shown lit up gold when found and swirling with light as a hero teleports); a small stone shrine with an altar and a gold flame, in seven versions for Demeter (wheat), Artemis (silver bow), Poseidon (trident), Apollo (sun disc), Athena (owl), Zeus (lightning bolt) and Hades (dark helm); treasure chests in three grades (plain wood, blue with silver, purple with gold) closed and open with a spill of drachmas; a monster camp (ragged hide tents, a bone totem, a campfire, crude banners); a gold "!" marker floating over a quest-giver; a glowing gold shard for quest items. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+#### `vox-ow-people-1` — Open-world people 1: campers and nature spirits
+
+- **File:** `vox-ow-people-1.png`, 2400 × 1600 px, delivered to `design/concept/vox-ow-people-1.png`
+- **References:** `vox-key`, `vox-npcs`, `char-camp`
+- **Use:** Models for the side-quest givers in the fields, the woods and the shore (openworld/quests.js).
+- **Status:** delivered
+
+> A line-up of blocky voxel characters at the same scale, each front-on and from the high three-quarter game angle: Katie Gardner, a daughter of Demeter, brown braid, straw hat, green overalls over the orange camp shirt, a trowel and a basket of strawberries; Travis and Connor Stoll, sons of Hermes, lanky twin pranksters with curly brown hair and mischievous grins, one holding a stolen bag; Juniper, a tree nymph with green-tinged skin, leaf-green hair and a dress of juniper needles; Charles Beckendorf, a big son of Hephaestus in a leather apron and goggles with a bronze wrench; Lee Fletcher, a son of Apollo with sandy hair, a golden bow and a quiver; and a Nereid, a sea nymph with sea-green hair, pearls and a robe like foam. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background, no cast shadow. No lettering, logos, captions or watermark.
+
+#### `vox-ow-people-2` — Open-world people 2: wanderers, hunters and the dead
+
+- **File:** `vox-ow-people-2.png`, 2400 × 1600 px, delivered to `design/concept/vox-ow-people-2.png`
+- **References:** `vox-key`, `vox-npcs`, `char-gods`
+- **Use:** Models for the side-quest givers in the canyon, the Labyrinth, Othrys and Asphodel (openworld/quests.js).
+- **Status:** delivered
+
+> A line-up of blocky voxel characters at the same scale, each front-on and from the high three-quarter game angle: Coach Gleeson Hedge, a short, loud satyr in a red tracksuit and a baseball cap with a whistle and a wooden club; Zoë Nightshade, lieutenant of the Hunters of Artemis, dark braided hair, silver circlet and parka, a silver bow; Rachel Elizabeth Dare, a mortal girl with frizzy red hair in paint-splattered jeans with a sketchbook; Quintus, a grizzled swordsman with grey hair and a fencing sword (secretly the inventor Daedalus, with a faint bronze glint at the neck); Phoebe and Bianca di Angelo, Hunters of Artemis in silver parkas; Charon, the ferryman of the dead, in a sharp Italian suit and sunglasses with a boat pole; and Sisyphus, a weary old Greek in a ragged tunic leaning on his boulder. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background, no cast shadow. No lettering, logos, captions or watermark.
+
+#### `vox-ow-champions` — Open-world champions: one named monster per region
+
+- **File:** `vox-ow-champions.png`, 2400 × 1600 px, delivered to `design/concept/vox-ow-champions.png`
+- **References:** `vox-key`, `vox-enemies`, `vox-bosses-1`
+- **Use:** Models for the named champions that guard each region (openworld/runtime.js); bigger, decorated versions of the usual monsters.
+- **Status:** delivered
+
+> A sheet of seven blocky voxel champion monsters, each bigger and more decorated than the ordinary kind and shown beside a small Percy outline for scale, from the high three-quarter game angle: Bronzebeak, a huge Stymphalian bird with razor bronze feathers and a red crest; Shadowfang, a scarred black hellhound with a broken iron collar and smoking eyes; Queen Gale, a storm-grey harpy queen with a crown of feathers and lightning in her talons; the Red King, a crimson giant scorpion with a golden stinger and a crown of spines; the Bronze Warden, a hulking bronze automaton with a single glowing blue eye and a shield; Gorgos, a Cyclops chieftain in bear pelts with a tree-trunk club; and the Pale King, a skeleton king in tarnished armour with a crown and a black sword, green fire in his eyes. Dramatic and fun for ages 8 to 14, never gory. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.
+
+#### `vox-rt-map` — The Road West: the whole road trip, Long Island to Los Angeles
+
+- **File:** `vox-rt-map.png`, 3200 × 1200 px, delivered to `design/concept/vox-rt-map.png`
+- **References:** `vox-key`, `vox-ow-map`, `map-quest`
+- **Use:** Layout of the road-trip map (world/roadtrip.js): its towns in order and a roadblock between each.
+- **Status:** delivered
+
+> A long panoramic strip map of a blocky voxel highway running from the right edge (Long Island, a green on-ramp from Camp Half-Blood) to the left edge (the Pacific), in the style of a Minecraft Dungeons world map, the land changing from right to left: the New Jersey Turnpike with a Greyhound bus station and a truck-stop diner; back roads to a garden-gnome emporium full of stone statues; St. Louis with the silver Gateway Arch over the Mississippi bridge; the Rockies and Denver with a rusting water park; the neon Las Vegas strip with a lotus-shaped casino; the Nevada desert with a gas station and a waterbed store; Los Angeles with palm trees, hills and a recording studio; Santa Monica's pier and beach. Between each town a roadblock across the road (a burning wrecked bus, a wall of stone statues, a raised bridge, a mudslide, a neon lotus gate, a barricade of waterbeds, a wall of black shadow, a storm on the beach), and truck stops, motels, billboards and overpasses along the way. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+#### `vox-rt-roadside` — Road-trip kit: truck stops, diners, motels and highway pieces
+
+- **File:** `vox-rt-roadside.png`, 2400 × 1600 px, delivered to `design/concept/vox-rt-roadside.png`
+- **References:** `vox-key`, `vox-manhattan`
+- **Use:** Models for the roadside pieces along the Road West (world/roadtrip.js).
+- **Status:** delivered
+
+> A prop and building model sheet of blocky voxel roadside America on a flat parchment-cream background, from the high three-quarter game angle: a truck stop with gas pumps under a canopy and a big parked semi-truck; a chrome diner with a neon sign and booths; a one-storey motel with a row of doors, a pool and a tall sign; a rest area with picnic tables and a vending machine; billboards on posts; an overpass with concrete pillars; green highway signs; mile markers, traffic cones, jersey barriers and a highway patrol car; a water tower; a roadside fruit stand; an old pickup truck and a camper van. Warm, sunny, a little worn. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+#### `vox-rt-towns-1` — Road-trip towns 1: New Jersey to Denver
+
+- **File:** `vox-rt-towns-1.png`, 2560 × 1440 px, delivered to `design/concept/vox-rt-towns-1.png`
+- **References:** `vox-key`, `vox-rt-map`, `scene-bus`, `scene-medusa`, `scene-arch`, `scene-waterland`
+- **Use:** Layout of the first road-trip towns where chapters 4 to 7 start (world/roadtrip.js).
+- **Status:** delivered
+
+> An isometric view from the high three-quarter camera of a Minecraft-Dungeons-like game, everything built from chunky blocks with hand-painted pixel textures, a long American highway running from right to left across the picture, small blocky heroes (Percy, Annabeth and Grover) walking along the shoulder for scale. Four town scenes in a two-by-two grid: the New Jersey Turnpike with a Greyhound bus station, a truck stop and a burning wrecked bus blocking the road; Aunty Em's Garden Gnome Emporium on a back road, a warehouse surrounded by stone statues of frightened people and rows of gnomes; St. Louis with the silver Gateway Arch on the riverfront and a lift bridge over the brown Mississippi; Denver with snowy mountains behind a rusting abandoned water park full of slides. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+#### `vox-rt-towns-2` — Road-trip towns 2: Las Vegas to Santa Monica
+
+- **File:** `vox-rt-towns-2.png`, 2560 × 1440 px, delivered to `design/concept/vox-rt-towns-2.png`
+- **References:** `vox-key`, `vox-rt-map`, `scene-lotus`, `scene-procrustes`, `scene-underworld`, `scene-ares-beach`
+- **Use:** Layout of the last road-trip towns where chapters 8 to 12 start (world/roadtrip.js).
+- **Status:** delivered
+
+> An isometric view from the high three-quarter camera of a Minecraft-Dungeons-like game, everything built from chunky blocks with hand-painted pixel textures, a long American highway running from right to left across the picture, small blocky heroes (Percy, Annabeth and Grover) walking along the shoulder for scale. Four town scenes in a two-by-two grid: the Las Vegas strip at dusk, neon everywhere and the Lotus Hotel and Casino with a glowing lotus sign; the Nevada desert with a lonely gas station and Crusty's Water Bed Palace, a warehouse with waterbeds in the yard; Los Angeles with palm trees, hills with big white letters (no readable word) and the black glass front of DOA Recording Studios; Santa Monica's pier with a Ferris wheel and the beach at sunset, a wild storm out at sea. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+#### `vox-rt-roadblocks` — Road-trip roadblocks, closed and opening
+
+- **File:** `vox-rt-roadblocks.png`, 2400 × 1600 px, delivered to `design/concept/vox-rt-roadblocks.png`
+- **References:** `vox-key`, `vox-rt-map`
+- **Use:** How each roadblock on the Road West looks while closed and as it opens once its chapter is done (world/roadtrip.js).
+- **Status:** delivered
+
+> A sheet of eight blocky voxel roadblocks across a highway, each shown twice side by side, closed and in the middle of opening: a burning wrecked Greyhound bus (the fire dies and it is towed aside); a wall of grey stone statues (they crumble to rubble); a raised lift bridge (it lowers); a mudslide of rock and mud (it slides away); a gate of glowing neon lotus vines (they wither); a barricade of stacked waterbeds (they deflate); a wall of swirling black shadow (it parts like curtains); a sea storm breaking over the road (the sky clears). Clear and readable from above. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.
+
+#### `vox-ow-people-3` — Open-world people 3: camp's quest givers and the Road West's locals
+
+- **File:** `vox-ow-people-3.png`, 2400 × 1600 px, delivered to `design/concept/vox-ow-people-3.png`
+- **References:** `vox-key`, `vox-npcs`, `vox-ow-people-1`, `vox-ow-people-2`
+- **Use:** Models for the side-quest givers in camp (world/regions/camp.js) and at the Road West's stops (world/road/*.js), replacing the borrowed mortal models.
+- **Status:** delivered
+
+> A line-up of nine blocky voxel characters at the same scale as the earlier people sheets, each front-on and from the high three-quarter game angle: Argus, camp's huge blond security chief, covered all over in blue eyes (on his arms, neck and face), in a white camp-security polo and khakis with a big ring of keys; Silena Beauregard, a pretty daughter of Aphrodite with long dark hair, pink lip gloss, a pink scarf over her orange camp shirt and a hand mirror; Big Earl, a burly bearded trucker in a red plaid shirt, trucker cap and suspenders holding a rubber chicken; Mrs. Pruitt, a stout New Jersey farm wife in a flowered apron, headscarf and rubber boots with a garden gnome under her arm; Ranger Mae, a cheerful park ranger at the Gateway Arch in a green ranger uniform and flat hat; Chad, a sunburnt teenage ex-lifeguard in red swim shorts, a whistle and an inflatable flamingo floaty; Sal the Valet, a slick Las Vegas valet in a maroon uniform with gold buttons, a pillbox cap and a ring of car keys; Trudy the Tour Guide, a Hollywood tour guide in a sun visor, star-print shirt and a fold-out star map; and Grandma Mae, a tiny old fisherwoman in a yellow raincoat and bucket hat with a fishing rod and a tackle box. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background, no cast shadow. No lettering, logos, captions or watermark.
+
+#### `vox-ow-fodder` — Open-world fodder: the swarms you plow through
+
+- **File:** `vox-ow-fodder.png`, 2400 × 1600 px, delivered to `design/concept/vox-ow-fodder.png`
+- **References:** `vox-key`, `vox-enemies`, `vox-spartoi`
+- **Use:** Models for the weak swarm monsters of the open world and the Road West (entities/monsters.js): karpoi, myrmekes, giant crabs and shades.
+- **Status:** delivered
+
+> A sheet of four small blocky voxel monster kinds, each shown three times in a little pack (front, side, mid-attack) beside a blocky Percy for scale, readable from the high three-quarter camera: karpoi, knee-high grain spirits made of wheat stalks and corn husks with glowing green eyes and grabby straw hands, scampering in a mob; myrmekes, dog-sized giant ants in shiny black-and-bronze armour with pincers, one spitting a green acid blob; giant crabs, waist-high red-and-orange shore crabs with barnacles, one big claw raised; and shades, wispy grey-blue ghosts of the dead in tattered robes with hollow faces, drifting in a crowd. Each kind small and numerous-looking, clearly weaker than a hellhound. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.
+
+#### `vox-ow-fodder-2` — Open-world fodder 2: the fields, the woods and the shore
+
+- **File:** `vox-ow-fodder-2.png`, 2400 × 1600 px, delivered to `design/concept/vox-ow-fodder-2.png`
+- **References:** `vox-key`, `vox-enemies`, `vox-ow-fodder`
+- **Use:** Models for the second and third fodder kinds of the fields, woods and shore (entities/fodder.js): karpos slingers, Colchis bull calves, myrmex spitters, Calydonian boarlets and king crabs.
+- **Status:** delivered
+
+> A sheet of five blocky voxel monster kinds: a karpos slinger, a wheat spirit with a sling of seeds and a husk hood, flinging glowing seed pods from range; a Colchis bull calf, a stocky bronze automaton bull calf with riveted plates, smoking nostrils and a little jet of fire, lowering its horns to charge; a myrmex spitter, a giant black-and-bronze ant with a swollen green abdomen spitting arcs of acid; a Calydonian boarlet, a big bristly boar with tusks and a ridge of spines, mid-charge with dirt flying; and a king crab, a hulking barnacled crab twice the size of the others with a huge crusher claw and a shell like a rock. Each kind shown three times (front, side, mid-attack) beside a blocky Percy for scale, readable from the high three-quarter camera, with a strong silhouette and a bold colour accent so it reads in a crowd, and a cool, characterful design worth seeing a hundred times. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.
+
+#### `vox-ow-fodder-3` — Open-world fodder 3: the canyon, the Labyrinth, Othrys and the Underworld
+
+- **File:** `vox-ow-fodder-3.png`, 2400 × 1600 px, delivered to `design/concept/vox-ow-fodder-3.png`
+- **References:** `vox-key`, `vox-enemies`, `vox-ow-fodder`
+- **Use:** Models for the fodder kinds of the canyon, Labyrinth, Othrys and Asphodel (entities/fodder.js): basilisks, Earthborn, Daedalus drones, Laistrygonians and keres.
+- **Status:** delivered
+
+> A sheet of five blocky voxel monster kinds: a basilisk, a small quick crowned lizard with a crest and glowing yellow eyes spitting venom; an Earthborn, a big lumpy six-armed clay giant hurling mud balls and rocks; a Daedalus drone, a bronze clockwork bird with whirring wings and a glowing blue core, firing bolts; a Laistrygonian, a huge tattooed cannibal giant in furs lobbing flaming bronze balls; and keres, ragged black death spirits with skull faces, bat wings and red claws, swooping fast in a flock. Each kind shown three times (front, side, mid-attack) beside a blocky Percy for scale, readable from the high three-quarter camera, with a strong silhouette and a bold colour accent so it reads in a crowd, and a cool, characterful design worth seeing a hundred times. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.

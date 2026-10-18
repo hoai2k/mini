@@ -22,6 +22,7 @@ import { prefersReducedMotion } from '../settings.js';
 import { artReady } from '../ui/art.js';
 import { t } from '../text_config.js';
 import { clearTurn, turnAbout, seenAt } from './framing.js';
+import { shotDuration } from './subtitles.js';
 
 const HOLD = 0.85;   // seconds of holding to skip
 const ease = (k) => k * k * (3 - 2 * k);
@@ -40,6 +41,7 @@ export class Cutscene {
     this.buildOverlay();
     this.set = this.def.build(g, this) ?? { shots: [] };
     this.shots = this.set.shots ?? [];
+    for (const sh of this.shots) sh.dur = shotDuration(sh);   // (a longer subtitle in text_config.js holds its shot longer)
     // its music plays over the set's (story/cutscenes.js music keys; the generated music until a track arrives)
     if (this.def.music) g.audio?.setOverride?.(this.def.music);
     this.total = this.shots.reduce((s, x) => s + x.dur, 0);

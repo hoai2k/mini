@@ -1,0 +1,25 @@
+{
+  "id": "vox-ow-map",
+  "title": "The open world round camp: the whole map",
+  "prompt": "A square top-down isometric overview map of a big blocky open world, like the world map of Minecraft Dungeons, sea along the whole left (west) edge. In the middle of the left side, Camp Half-Blood: cabins in a U round a green, the blue Big House, a lake, Half-Blood Hill with a great pine, and a road leaving it north. Around it, eight regions with distinct colours, joined by winding roads and dotted with glowing waystone pillars: north, the North Shore of Long Island Sound (white chalk cliffs, beaches, a red-and-white lighthouse, a shipwrecked Greek ship); north-east, Mount Othrys (grey crags, storm clouds and a ruined black-marble fortress on the summit); east of camp, the Strawberry Fields (patchwork farms, red barns, a windmill, orchards); far east, the Red Canyon (red mesas, slot canyons, a ghost town, a garden of stone statues); south-east of camp, the Camp Woods (dense pines, a creek, a huge fist-shaped pile of boulders); south, the Labyrinth (stone maze walls breaking out of the grass, bronze gates); far south-east, the Fields of Asphodel (grey ash plains, pale flowers, black poplars, the River Styx and a great black gate). 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 \u00d7 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.",
+  "width": 2560,
+  "height": 2560,
+  "refs": [
+    "vox-key",
+    "vox-camp",
+    "map-camp"
+  ],
+  "destination": "design/concept/vox-ow-map.png",
+  "generation_prompt": "Use case: stylized-concept. Generate a new 3D voxel game concept image. Attached images are style, layout and subject reference images in this order: vox-key, vox-camp, map-camp. Use vox-key for 3D rendering style.\nA square top-down isometric overview map of a big blocky open world, like the world map of Minecraft Dungeons, sea along the whole left (west) edge. In the middle of the left side, Camp Half-Blood: cabins in a U round a green, the blue Big House, a lake, Half-Blood Hill with a great pine, and a road leaving it north. Around it, eight regions with distinct colours, joined by winding roads and dotted with glowing waystone pillars: north, the North Shore of Long Island Sound (white chalk cliffs, beaches, a red-and-white lighthouse, a shipwrecked Greek ship); north-east, Mount Othrys (grey crags, storm clouds and a ruined black-marble fortress on the summit); east of camp, the Strawberry Fields (patchwork farms, red barns, a windmill, orchards); far east, the Red Canyon (red mesas, slot canyons, a ghost town, a garden of stone statues); south-east of camp, the Camp Woods (dense pines, a creek, a huge fist-shaped pile of boulders); south, the Labyrinth (stone maze walls breaking out of the grass, bronze gates); far south-east, the Fields of Asphodel (grey ash plains, pale flowers, black poplars, the River Styx and a great black gate). 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 \u00d7 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.\nOutput PNG at 2560 \u00d7 2560 pixels.",
+  "attached_references": [
+    "vox-key",
+    "vox-camp",
+    "map-camp"
+  ],
+  "tool": "built-in image_gen",
+  "native_dimensions": [
+    1254,
+    1254
+  ],
+  "sizing": "Lanczos resize to requested dimensions, no crop; original retained outside repository."
+}

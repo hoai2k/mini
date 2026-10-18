@@ -391,7 +391,7 @@ tones, scales over a tonic.
   in `app/src/art.js`). Each `drone-cello` lies exactly on its theme's
   `home-drone` (same extent, 99-100% overlap). With an organ voice (Organ,
   Synth organ) the picture is a pipe organ (`drone-organ`, image requests
-  round 8, drawn stand-ins until it arrives) and the volume a plain upright
+  round 8, delivered for every theme) and the volume a plain upright
   slider beside it; both set the one volume.
 - **Tapping the frequency** under the note adds or removes the fifth; "(+5th)"
   shows beside it while the fifth plays and is gone while it doesn't.
@@ -790,3 +790,10 @@ crossed it. `design/image-deliveries-round-7.json` records the prompts, source
 PNGs, exports and measured bow-hair anchors. PNG masters live in
 `design/generated/round-7/`; the app assets are `drone-cello.webp` (512×512)
 and `drone-bow.webp` (128×512), alongside each theme's home icon.
+
+Round 8 delivers a pipe organ for every theme, shown for the Organ and Synth
+organ voices. Each has a symmetrical pipe front, visible pipe mouths and the
+theme's sound ribbons; the mist keeps its subtle transparency. PNG masters
+and a preview live in `design/generated/round-8/`; `drone-organ.webp` beside
+each theme's home icon is the 512×512 lossless WebP used by the app.
+`design/image-deliveries-round-8.json` records the references, prompts and exports.

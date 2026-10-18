@@ -165,7 +165,7 @@ def('gold_marble', 'gold_marble', { rough: 0.15 });
 def('elevator_door', { top: 'gold_plate', side: 'elevator_door' }, { metal: 0.7, rough: 0.25, step: 'metal' });
 def('neon_bulbs', 'neon_bulbs', { emit: 1.8, light: [0xffd070, 3, 8] });
 def('waystone', { top: 'gold_plate', side: 'marble_white' }, { rough: 0.25 });
-def('poplar_leaves', 'basalt', { step: 'grass', rough: 0.9 });
+def('poplar_leaves', 'poplar_leaves', { step: 'grass', rough: 0.9 });
 // cloud drifting round Olympus: drawn like cloud, but you fall through it (so it never
 // bridges two rooms or strands a hero below the floor)
 def('cloud_puff', 'cloud', { solid: false, rough: 0.95 });
@@ -176,6 +176,7 @@ def('shop_window', { top: 'dark_planks', side: 'window_day' }, { emit: 0.9, roug
 def('cornice', { top: 'roof_slate', side: 'dark_planks' }, { rough: 0.5 });
 // an invisible wall that shots fly through (a chain-link construction fence: its look is a deco prop)
 def('fence_barrier', 'stone', { opaque: false, shotThrough: true, invisible: true });
+def('climb_wall', 'climb_wall', { rough: 0.8 });   // the camp's lava climbing wall (dark rock with holds)
 
 export const BLOCKS = defs;
 export const isSolid = (id) => defs[id].solid;
