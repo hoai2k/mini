@@ -268,6 +268,15 @@ button { cursor: pointer; }
   box-shadow: 0 0 calc(var(--g, 0) * var(--dot) * 0.45) calc(var(--g, 0) * var(--dot) * 0.08) color-mix(in srgb, var(--hot) 70%, transparent);
 }
 .met-visual.pulse .beats li.strong { --hot: var(--red-2); }
+/* Art Deco's dots are squares turned into diamonds, which reach √2 wider
+   than their box, and 1.14 times that at the swell (1.62 in all): the box is
+   drawn that much smaller and given the difference as side margins, so the
+   row is laid out by what is drawn and big diamonds never overlap. */
+[data-theme="deco"] .met-visual.pulse .beats li {
+  --box: calc(var(--dot) * 0.8 / 1.62);
+  width: var(--box); height: var(--box); margin-inline: calc(var(--box) * 0.31);
+}
+[data-theme="deco"] .met-visual.pulse .beats li.strong { --box: calc(var(--dot) / 1.62); }
 .met-layer { position: absolute; }
 .metronome .met-layer { z-index: 1; }
 #metronome .bar { position: relative; z-index: 2; }

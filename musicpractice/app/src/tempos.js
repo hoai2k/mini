@@ -79,3 +79,28 @@ export function cleanTempoDefaults(d) {
   }
   return out;
 }
+
+/** The classical markings by tempo: each from its lower bound (the marking under the number). */
+const CLASSICAL_FROM = [[0, 'largo'], [60, 'larghetto'], [66, 'adagio'], [76, 'andante'], [108, 'moderato'], [120, 'allegro'], [156, 'vivace'], [176, 'presto'], [200, 'prestissimo']];
+
+/**
+ * The name for `bpm` in a style (genre), for under the number: the Italian
+ * marking in Classical; in the others, the name whose common tempos include
+ * it (`picked`, the name last chosen in this style, first, as two names can
+ * share a tempo), else the one whose range is nearest.
+ * @returns {string} a name's id in GENRES[genre]
+ */
+export function nameFor(genre, bpm, picked = null) {
+  if (genre === 'classical' || !GENRES[genre]) {
+    let id = CLASSICAL_FROM[0][1];
+    for (const [from, name] of CLASSICAL_FROM) if (bpm >= from) id = name;
+    return id;
+  }
+  const names = GENRES[genre];
+  const mine = names.find((n) => n.id === picked);
+  if (mine?.list.includes(bpm)) return mine.id;
+  const exact = names.find((n) => n.list.includes(bpm));
+  if (exact) return exact.id;
+  const off = (n) => Math.max(0, Math.min(...n.list) - bpm, bpm - Math.max(...n.list));
+  return names.reduce((best, n) => (off(n) < off(best) ? n : best)).id;
+}

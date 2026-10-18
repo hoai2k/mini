@@ -24,3 +24,20 @@ test('a name plays its usual tempo until another is chosen from its list', () =>
   assert.equal(mainTempo('jazz', 'ballad', { 'jazz:ballad': 73 }), 60); // not one of its tempos
   assert.deepEqual(cleanTempoDefaults({ 'jazz:ballad': 72, 'jazz:nope': 72, 'classical:largo': 300, x: 1 }), { 'jazz:ballad': 72 });
 });
+
+test('the name under the number follows the style', async () => {
+  const { nameFor } = await import('../src/tempos.js');
+  assert.equal(nameFor('classical', 132), 'allegro');
+  assert.equal(nameFor('classical', 40), 'largo');
+  assert.equal(nameFor('classical', 250), 'prestissimo');
+  assert.equal(nameFor('jazz', 132), 'mediumSwing'); // in its list
+  assert.equal(nameFor('jazz', 113), 'mediumSlow'); // inside no list: the nearest range (84-112, not 116-160)
+  assert.equal(nameFor('jazz', 115), 'mediumSwing');
+  assert.equal(nameFor('jazz', 400), 'burner');
+  assert.equal(nameFor('ballroom', 87), 'waltz');
+  // Two names share 90 in Electronic: the one picked keeps it, otherwise the first.
+  assert.equal(nameFor('electronic', 90), 'downtempo');
+  assert.equal(nameFor('electronic', 90, 'hipHop'), 'hipHop');
+  assert.equal(nameFor('electronic', 140, 'hipHop'), 'techno'); // the picked name doesn't hold 140: the first that does
+  assert.equal(nameFor('electronic', 140, 'dubstep'), 'dubstep');
+});

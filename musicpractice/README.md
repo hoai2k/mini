@@ -131,7 +131,9 @@ when the Art Deco art arrives, measure and record its own.
   allows (the metronome shrinking above to make room), to be seen from
   across a room: the beat's dot swells into its beat with a short rise,
   brightest exactly on it, and fades after, red on a strong beat, while the
-  next starts to swell into its own. They are drawn straight from that
+  next starts to swell into its own. Art Deco's diamonds (squares turned 45°)
+  are drawn smaller and spaced by what they cover at the swell's peak, so no
+  dots overlap in any theme. They are drawn straight from that
   curve every frame: the small dots' quick colour fade, left on them, had
   put the brightest moment 66 ms after the beat. A save from before carries
   over: Swing, Pulse (now the big dots) or Off, and the Visualizer.
@@ -249,6 +251,12 @@ when the Art Deco art arrives, measure and record its own.
   in `fitPicture`, `--pic-h`, from what is above and below it, so not
   thrown by a change of view in progress), so the page fills the screen
   without a gap below or scrolling; side by side, 62% of the height.
+- **The name under the number** speaks the tempo picker's chosen style
+  (`nameFor` in `app/src/tempos.js`): the Italian markings in Classical; in
+  the others, the name whose common tempos include the number (the one last
+  picked first, as two names can share a tempo: Downtempo and Hip hop both
+  have 90), else the name whose range is nearest. Choosing Medium swing shows
+  Medium swing, and changing the style renames the tempo at once.
 - **Common tempos:** tapping the marking under the number (Allegro, and so
   on) opens common tempos by **Style**: Classical (the Italian markings over
   the metronome's traditional marks), Jazz (ballad to burner), Ballroom
