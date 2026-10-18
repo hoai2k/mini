@@ -530,7 +530,7 @@ const lavaDog = (o) => (S) => paintQuad(S, { base: o.base ?? 0x221d20, dark: 0x0
 // little outward at rest (stance); the leg roots sit deep in the body
 // (legY) and hang from the torso (legsOnTorso), so a hind leg never parts
 // from the haunch however the body pitches in a walk, a run or a bite)
-export const HELLHOUND = { big: true, scale: 1.18, bodyL: 60, bodyW: 34, bodyH: 36, legH: 34, legW: 10, legY: 10, legSpread: 2.5, stance: 0.12, legsOnTorso: true, headS: 19, snoutS: 14, ears: true, tail: 6, tailLen: 36, tailW: 4.8, tailCurl: 0.8, gait: 0.5, neckUp: 12, headZ: -3, jawOpen: 0.42 };
+export const HELLHOUND = { big: true, scale: 1.18, bodyL: 60, bodyW: 34, bodyH: 36, legH: 39, legW: 10, legY: 10, legSpread: 2.5, stance: 0.12, legsOnTorso: true, headS: 19, snoutS: 14, ears: true, tail: 6, tailLen: 36, tailW: 4.8, tailCurl: 0.8, gait: 0.5, neckUp: 13, headZ: -3, jawOpen: 0.42 };
 const MODELS = {
   pup: () => hound('pup', { scale: 0.95, bodyL: 10, bodyW: 6, bodyH: 6, legH: 5.5, legW: 2.8, headS: 7, ears: true, tail: 3, tailLen: 6, tailW: 1.8, tailCurl: 0.55, neckUp: 2, jawOpen: 0.25 }, { fur: 60, cracks: 6, collar: false, pup: true }),
   // A New York sewer rat (the prologue): grey-brown fur, a pink nose, ears
@@ -670,7 +670,7 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
   const mat = skinMat(id, (S) => { lavaDog({ cracks, base: 0x2e2529 })(S); S.saturate(1.3); }, { emit: 0.5 });
   const rig = new QuadRig({ material: mat, ...spec });
   const K = kit(rig, mat, { seed: 9 + (id.length % 7), emit: 1 });
-  const { legH, legW, hs } = rig.dims, T = rig.torso, Hd = rig.head, M = rig.mouth, N = rig.neck;
+  const { legH, legW, hs } = rig.dims, T = rig.torso, Hd = rig.head, M = rig.mouth, N = rig.neck, ly = legH / 34;
   for (const g of [T, Hd, M, ...rig.legs, ...rig.tail]) dropMeshes(rig, g);
   // the coat's budget: a hound built bigger (a champion or the alpha, parts.js
   // BUILD.k) has its tufts and clumps made finer by the kit, which alone
@@ -750,18 +750,20 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
   // ---- neck: thick and short, rising from the chest, with a shaggy ruff;
   // the head is carried high over the chest, as the sheet draws it
   K.box(N, 0, -7, -4, 18, 22, 16, DEEP[1], 0.2);
-  K.clumps(N, [0, -7, -4], [19, 22, 16], { n: Math.round(70 * fe), size: [1.8, 3.4], cols: FUR, faces: 'lrtb', stretch: [1, 1.4, 1.2] });
+  K.clumps(N, [0, -7, -4], [17, 22, 16], { n: Math.round(70 * fe), size: [1.8, 3.4], cols: FUR, faces: 'lrtb', stretch: [1, 1.4, 1.2] });
   if (collar) {
     // (pass 4: a heavier ring standing proud of the neck's ruff, so the gold
     // spikes read all round as on the sheet)
-    const r = 13.2, n = 22, g = group(N, 0, -4.5, 2.5, -0.6);   // (tipped forward, so its lower arc lies on the chest in front of the neck)
+    const r = 11.4, n = 20, g = group(N, 0, -5.5, 1.5, -0.6);   // (tipped forward, so its lower arc lies on the chest in front of the neck)
     for (let i = 0; i < n; i++) {
       const a = i / n * Math.PI * 2, x = Math.sin(a) * r, y = Math.cos(a) * r;
       K.box(g, x, y, 0, 2 * Math.PI * r / n + 0.5, 3, 4, i % 2 ? 0xd09418 : 0xf0b428, 0, 0, -a);
-      if (y < r * 0.8) { K.box(g, Math.sin(a) * (r + 2.4), Math.cos(a) * (r + 2.4), 0, 2.2, 3.6, 2.2, 0xf8d870, 0, 0, -a); K.box(g, Math.sin(a) * (r + 4.6), Math.cos(a) * (r + 4.6), 0, 1.2, 1.6, 1.2, 0xfff0b0, 0, 0, -a); }
+      if (y < r * 0.8) { K.box(g, Math.sin(a) * (r + 2.2), Math.cos(a) * (r + 2.2), 0, 1.8, 3, 1.8, 0xf8d870, 0, 0, -a); K.box(g, Math.sin(a) * (r + 4), Math.cos(a) * (r + 4), 0, 1, 1.4, 1, 0xfff0b0, 0, 0, -a); }
     }
   }
-  // ---- head: a heavy skull, a scowling brow over molten eyes, jaw muscles,
+  // ---- head (pass 4: headS 24 -> 19, the owner's note: a large creature
+  // without a Minecraft head; the body dominates, the head on a thick neck):
+  // a heavy skull, a scowling brow over molten eyes, jaw muscles,
   // a long muzzle and a furnace mouth full of fangs (QuadRig head frame: the
   // skull centred on z = hs * 0.35, the face at z = hs * 0.85)
   // drawn at headS 20 and scaled up to the spec's head; only the structure
@@ -832,19 +834,20 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
   // with amber claws, set flat on the ground though the leg leans out (stance)
   for (const leg of rig.legs) {
     const front = leg.userData.row === 0, b = -legH - legW * 0.2;
+    const Y = ([y, z]) => [y < 0 ? y * ly : y, z];   // (drawn 34 long, stretched to legH below the joint)
     if (front) {
-      seg(leg, [7, 0], [-12, 0.5], 11, 12, DEEP[1], 1.2);
-      seg(leg, [-11, 0.5], [-24, -0.5], 8.6, 9.2, DEEP[1]);
-      seg(leg, [-24, -0.5], [-31, 0.8], 7.2, 7.8, DEEP[0], 0.7);
-      for (let y = -12; y > -26; y -= 2.2) K.box(leg, (K.r() - 0.5) * 3, y, -5, 2, 3.4, 1.6, K.tone(FURL), 0.35);   // feathering down the back
+      seg(leg, [7, 0], Y([-12, 0.5]), 11, 12, DEEP[1], 1.2);
+      seg(leg, Y([-11, 0.5]), Y([-24, -0.5]), 8.6, 9.2, DEEP[1]);
+      seg(leg, Y([-24, -0.5]), Y([-31, 0.8]), 7.2, 7.8, DEEP[0], 0.7);
+      for (let y = -12; y > -26; y -= 2.2) K.box(leg, (K.r() - 0.5) * 3, y * ly, -5, 2, 3.4, 1.6, K.tone(FURL), 0.35);   // feathering down the back
     } else {
-      seg(leg, [8, -1], [-12, 1], 12, 14, DEEP[1], 1.1);   // (the thigh reaches up into the haunch: it never leaves the body)
-      seg(leg, [-11, 1], [-19, 4], 9, 10, DEEP[1]);
-      seg(leg, [-19, 4], [-28, -3], 7.2, 7.8, DEEP[0], 0.7);
-      seg(leg, [-28, -3], [-33, -0.5], 6.6, 7.2, DEEP[1], 0.6);
-      K.box(leg, 0, -28, -5.6, 3.6, 3.6, 2.8, FUR[2]);
+      seg(leg, [8, -1], Y([-12, 1]), 12, 14, DEEP[1], 1.1);   // (the thigh reaches up into the haunch: it never leaves the body)
+      seg(leg, Y([-11, 1]), Y([-19, 4]), 9, 10, DEEP[1]);
+      seg(leg, Y([-19, 4]), Y([-28, -3]), 7.2, 7.8, DEEP[0], 0.7);
+      seg(leg, Y([-28, -3]), Y([-33, -0.5]), 6.6, 7.2, DEEP[1], 0.6);
+      K.box(leg, 0, -28 * ly, -5.6, 3.6, 3.6, 2.8, FUR[2]);
     }
-    K.cracks(leg, [0, -17, 0], [10, 22, 10.5], { n: 5, cols: LAVA, faces: 'lrf', len: [4, 9], cell: 0.9 });
+    K.cracks(leg, [0, -17 * ly, 0], [10, 22 * ly, 10.5], { n: 5, cols: LAVA, faces: 'lrf', len: [4, 9], cell: 0.9 });
     const paw = group(leg, 0, b, 0, 0, 0, -(rig.spec.stance ?? 0) * leg.userData.side);   // (level, though the leg leans out)
     K.box(paw, 0, 2.2, 1.6, 10.6, 4.4, 11.4, DEEP[1]);
     K.box(paw, 0, 5, 0.6, 7.6, 2.4, 8, DEEP[0]);

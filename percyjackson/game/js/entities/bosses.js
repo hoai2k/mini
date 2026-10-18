@@ -103,7 +103,7 @@ const BOSSES = {
     damageMul: (b, src) => H.procrustesHit(b, src), onDie: (b) => H.procrustesDie(b),
   },
   cerberus: {
-    name: txt('bosses.cerberus.name'), title: txt('bosses.cerberus.title'), hp: 3200, speed: 2.8, dmg: 22, color: 0xff8a1a, radius: 3.2, height: 7,   // (radius, height: pass 4, his model made about 1.6 times bigger)
+    name: txt('bosses.cerberus.name'), title: txt('bosses.cerberus.title'), hp: 3200, speed: 2.8, dmg: 22, color: 0xff8a1a, radius: 3.6, height: 7.7,   // (radius, height: pass 4, his model made far bigger, after the book)
     build: BOSS_MODELS.cerberus,
     phases: [['triple_attack', 'head_bite', 'sleepy', 'cerberus_stomp'], ['triple_attack', 'head_fire', 'head_lunge', 'sleepy', 'cerberus_stomp'], ['triple_attack', 'head_fire', 'head_lunge', 'triple_attack', 'sleepy', 'cerberus_stomp']],
     tick: (b, dt) => H.cerberusTick(b, dt), damageMul: (b) => (b.sleepyT > 0 ? 2 : 1),

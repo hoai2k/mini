@@ -495,8 +495,8 @@ export const BOOK1_PATTERNS = {
     const g = this.game, t = this.target(); if (!t) return;
     const H = this.rig.extras.heads;
     this.moving = false; this.faceTarget(t);
-    // (pass 4: his reach grown with his model, about 1.6 times bigger: the
-    // mouths now sit about 3.9 m ahead of his centre, not 2.4 m)
+    // (pass 4: his reach grown with his model, made far bigger: the mouths
+    // now sit about 4.1 to 4.8 m ahead of his centre)
     g.markers.spawn({ pos: this.pos, radius: 13, dur: 0.85, shape: 'cone', arc: 0.22, facing: this.facing, color: 0xff5a1a });
     this.headAct = [1, 0, 0];
     yield 0.85;
@@ -534,12 +534,12 @@ export const BOOK1_PATTERNS = {
     const g = this.game, t = this.target(); if (!t) return;
     this.moving = false;
     const dir = this.faceTarget(t);
-    g.markers.spawn({ pos: this.pos.clone().setY(this.ground(this.pos)), shape: 'rect', width: 5, length: 16, facing: this.facing, dur: 0.85, color: 0xff2a1a });
+    g.markers.spawn({ pos: this.pos.clone().setY(this.ground(this.pos)), shape: 'rect', width: 6, length: 16, facing: this.facing, dur: 0.85, color: 0xff2a1a });
     this.headAct = [0, 0, 0.6];
     yield 0.85;
     this.headAct = [0, 0, 1];
     g.audio?.whoosh(1.6);
-    yield* this.dashLine(dir, 20, 12, this.dmg * 1.2, { dust: 0x3a3440, hitR: 3.8 });
+    yield* this.dashLine(dir, 20, 12, this.dmg * 1.2, { dust: 0x3a3440, hitR: 4.4 });
     this.headAct = [0, 0, 0]; this.moving = true;
     yield 0.4;
   },
@@ -548,7 +548,7 @@ export const BOOK1_PATTERNS = {
     yield* this.head_bite();
     if (this.phase >= 1) yield* this.head_lunge();
   },
-  *cerberus_stomp() { yield* this.stomp(7); },
+  *cerberus_stomp() { yield* this.stomp(7.5); },
   // His heads droop: a window to strike for double damage.
   *sleepy() {
     const g = this.game;

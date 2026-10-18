@@ -89,7 +89,7 @@ function buildShadowfang() {
   const { hs, H, L, W } = rig.dims, IRON = [0x5a5a64, 0x3c3c46, 0x7a7a84];
   // the broken collar: heavy riveted iron plates round the neck, one gap
   // (the full hellhound is built at the heroes' voxel size: its neck ring is fitted, not scaled from the head)
-  const big = rig.spec.big, r = big ? 13.2 : hs * 0.78, n = big ? 18 : 12, col = big ? group(rig.neck, 0, -4.5, 2.5, -0.6) : group(rig.neck, 0, -1.2, 0.6, -0.3);
+  const big = rig.spec.big, r = big ? 11.6 : hs * 0.78, n = big ? 16 : 12, col = big ? group(rig.neck, 0, -5.5, 1.5, -0.6) : group(rig.neck, 0, -1.2, 0.6, -0.3);
   for (let i = 0; i < n; i++) {
     if (i === 3) continue;
     const a = i / n * Math.PI * 2, x = Math.sin(a) * r, y = Math.cos(a) * r;
