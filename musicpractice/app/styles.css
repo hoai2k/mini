@@ -623,6 +623,8 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 /* The picture takes the height the controls leave (droneui.js measures it,
    --art), beside the volume slider. */
 .drone-stage { display: flex; align-items: stretch; justify-content: center; gap: 8px; padding-left: calc(var(--art, 200px) * 0.25 + 8px); /* the bow's width, so the cello stays centred */ }
+.drone-body.organ .drone-stage { padding-left: 48px; /* the slider's width, so the organ stays centred */ }
+.drone-stage .vslider[hidden] { display: none; }
 .drone-art { position: relative; width: var(--art, clamp(130px, 28dvh, 240px)); aspect-ratio: 1; display: grid; place-items: center; }
 .vslider {
   flex: none; width: 40px; display: flex; flex-direction: column-reverse; align-items: center; gap: 8px;
@@ -712,6 +714,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 @media (orientation: landscape) and (max-height: 560px) {
   .drone-body { width: min(100%, 760px); display: grid; grid-template-columns: auto 1fr; align-items: center; justify-items: center; gap: 6px 28px; }
   .drone-stage { grid-row: 1 / span 5; padding-left: 0; }
+  .drone-body.organ .drone-stage { padding-left: 0; }
   .drone-art { width: min(60dvh, 220px); }
   .bow-col { height: min(60dvh, 220px); }
 

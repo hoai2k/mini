@@ -1,0 +1,25 @@
+{
+  "id": "vox-ow-fodder-2",
+  "title": "Open-world fodder 2: the fields, the woods and the shore",
+  "prompt": "A sheet of five blocky voxel monster kinds: a karpos slinger, a wheat spirit with a sling of seeds and a husk hood, flinging glowing seed pods from range; a Colchis bull calf, a stocky bronze automaton bull calf with riveted plates, smoking nostrils and a little jet of fire, lowering its horns to charge; a myrmex spitter, a giant black-and-bronze ant with a swollen green abdomen spitting arcs of acid; a Calydonian boarlet, a big bristly boar with tusks and a ridge of spines, mid-charge with dirt flying; and a king crab, a hulking barnacled crab twice the size of the others with a huge crusher claw and a shell like a rock. Each kind shown three times (front, side, mid-attack) beside a blocky Percy for scale, readable from the high three-quarter camera, with a strong silhouette and a bold colour accent so it reads in a crowd, and a cool, characterful design worth seeing a hundred times. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 \u00d7 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.",
+  "width": 2400,
+  "height": 1600,
+  "refs": [
+    "vox-key",
+    "vox-enemies",
+    "vox-ow-fodder"
+  ],
+  "destination": "design/concept/vox-ow-fodder-2.png",
+  "generation_prompt": "Use case: stylized-concept. Asset type: voxel monster modeling reference sheet. Attached images are reference images in this order: vox-key (3D rendering style), vox-enemies (monster construction and scale), vox-ow-fodder (series consistency).\nA sheet of five blocky voxel monster kinds: a karpos slinger, a wheat spirit with a sling of seeds and a husk hood, flinging glowing seed pods from range; a Colchis bull calf, a stocky bronze automaton bull calf with riveted plates, smoking nostrils and a little jet of fire, lowering its horns to charge; a myrmex spitter, a giant black-and-bronze ant with a swollen green abdomen spitting arcs of acid; a Calydonian boarlet, a big bristly boar with tusks and a ridge of spines, mid-charge with dirt flying; and a king crab, a hulking barnacled crab twice the size of the others with a huge crusher claw and a shell like a rock. Each kind shown three times (front, side, mid-attack) beside a blocky Percy for scale, readable from the high three-quarter camera, with a strong silhouette and a bold colour accent so it reads in a crowd, and a cool, characterful design worth seeing a hundred times. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 \u00d7 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.\nComposition: five clearly separated groups on a model reference sheet. Each kind has exactly three views: front, side, mid-attack, beside its own full-body Percy scale figure. No crowded overlaps; no text. Output PNG 2400 \u00d7 1600.",
+  "attached_references": [
+    "vox-key",
+    "vox-enemies",
+    "vox-ow-fodder"
+  ],
+  "tool": "built-in image_gen",
+  "native_dimensions": [
+    1536,
+    1024
+  ],
+  "sizing": "Lanczos resize to requested dimensions, no crop; original retained outside repository."
+}
