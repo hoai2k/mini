@@ -36,9 +36,37 @@ export const ROAM_RULES = {
   minDist: 15,        // never closer than this to any hero
   maxDist: 30,        // and within this of one of them (it should be met soon)
   despawn: 48,        // gone when every hero is this far away (for a few seconds)
-  capCamp: 9, capCity: 8, capOpen: 16,
-  everyCamp: [7, 12], everyCity: [5, 8], everyOpen: [4, 8],   // seconds between packs (everyOpen: out in the open world's regions)
+  capCamp: 9, capCity: 8, capOpen: 40,
+  everyCamp: [7, 12], everyCity: [5, 8], everyOpen: [3, 6],   // seconds between packs (everyOpen: out in the open world's regions and on the Road West)
 };
+
+// Out in the open world and on the Road West the roaming monsters come in
+// hordes (the Minecraft Dungeons feel): crowds of weak fodder to plow
+// through, with now and then a tougher one in the middle of them.
+// FODDER_KINDS: the swarm kinds (entities/fodder.js's, and the old minors
+// that fight the same way); about three quarters of every region's weight.
+export const FODDER_KINDS = new Set(['karpos', 'myrmex', 'myrmex_acid', 'crab', 'shade', 'spartoi', 'telekhine', 'rat', 'pup', 'spider']);
+export const isFodder = (kind) => FODDER_KINDS.has(kind);
+// how many of a kind come at once, [fewest, most]; a kind not listed comes alone
+export const HORDE = {
+  karpos: [6, 10], shade: [6, 10], rat: [5, 8], myrmex: [5, 8], crab: [4, 7], pup: [4, 7], spider: [4, 7], spartoi: [4, 7],
+  myrmex_acid: [2, 3], telekhine: [2, 3],
+  harpy: [2, 3], stymphalian: [2, 3], ghost: [2, 3], automaton: [2, 3], serpent: [1, 2],
+};
+// A roaming horde from a region's kinds ([[kind, weight]]): the kinds of its
+// members, the one picked first. A tough kind (not fodder) brings a crowd of
+// the region's fodder round it; a fodder horde now and then has a few of a
+// second fodder kind in it. rnd(): [0, 1). room: at most this many.
+export function hordeFor(kinds, rnd = Math.random, { room = Infinity } = {}) {
+  const lead = pickKind(kinds, rnd());
+  const fod = kinds.filter(([k]) => isFodder(k));
+  const [a, b] = HORDE[lead] ?? [1, 1];
+  const list = [];
+  for (let i = a + Math.floor(rnd() * (b - a + 1)); i > 0; i--) list.push(lead);
+  if (!isFodder(lead) && fod.length) for (let i = 3 + Math.floor(rnd() * 3); i > 0; i--) list.push(pickKind(fod, rnd()));
+  else if (fod.length > 1 && rnd() < 0.35) { const other = fod.filter(([k]) => k !== lead); const k2 = pickKind(other, rnd()); for (let i = 2 + Math.floor(rnd() * 2); i > 0; i--) list.push(k2); }
+  return list.slice(0, Math.max(0, room));
+}
 
 // A pick from [[kind, weight]] with r() in [0, 1).
 export function pickKind(kinds, r) {

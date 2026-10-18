@@ -107,8 +107,8 @@ export function build(c) {
     for (const side of [-2, 2]) for (let q = 0; q < 3; q++) {
       const [x, z] = along === 'z' ? [c + side, s + dir * q] : [s + dir * q, c + side];
       const y = Math.min(y0, top(x, z));
-      for (let yy = y; yy < y0 + 4; yy++) S(x, yy, z, yy === y0 + 3 ? B.gold_plate : (yy - y0 + q) % 2 ? B.bronze : B.gold_trim);
-      if (q !== 1) S(x, y0 + 4, z, B.gold_plate);   // spear tips
+      for (let yy = y; yy < y0 + 4; yy++) S(x, yy, z, yy === y0 + 3 || (yy === y0 + 1 && q === 1) ? B.gold_trim : B.bronze);
+      if (q !== 1) S(x, y0 + 4, z, B.gold_trim);   // spear tips
     }
   };
   // a ragged monster camp: hide tents, a bone totem, a fire, banners
@@ -183,14 +183,14 @@ export function build(c) {
     col(x, z, y, y + h - 1, (xx, yy, zz) => (yy >= y + h - 2 && n.hash(xx * 5 + yy, zz) < 0.45 ? B.mossy_brick : yy === y && n.hash(xx, zz * 7) < 0.3 ? B.dark_brick : brick(xx, yy, zz)));
     if (h >= 4 && n.hash(x, z * 3) < 0.08) S(x, y + h - 1, z, B.key_frieze);
     // grass and bushes run wild along the tops
-    else if (h >= 3 && n.hash(x * 7 + 1, z * 3) < 0.34) S(x, y + h, z, B.leaves);
+    else if (h >= 3 && n.hash(x * 7 + 1, z * 3) < 0.28) S(x, y + h, z, B.leaves);
   }
   // hanging ivy down the corridor walls, torches burning on the posts
   for (let j = 0; j < NZ; j++) for (let i = 0; i < NX; i++) {
     const x = MX0 + i * CS, z = MZ0 + j * CS, yb = mazeY, hv = n.hash(i * 13 + 5, j * 7 + 1);
     if (hv < 0.45 && G(x, yb + 3, z + 2) && !G(x + (hv < 0.3 ? 1 : -1), yb + 2, z + 2)) deco.add(hv < 0.22 ? 'vine' : 'ivy', x + (hv < 0.3 ? 1.03 : -0.03), yb + 2.6, z + 2.5, { mode: 'wall', facing: [hv < 0.3 ? 1 : -1, 0], scale: 2.2, sway: 0.15 });
     if (hv > 0.6 && G(x + 2, yb + 3, z) && !G(x + 2, yb + 2, z + (hv > 0.7 ? 1 : -1))) deco.add(hv > 0.8 ? 'vine' : 'ivy', x + 2.5, yb + 2.6, z + (hv > 0.7 ? 1.03 : -0.03), { mode: 'wall', facing: [0, hv > 0.7 ? 1 : -1], scale: 2.2, sway: 0.15 });
-    if (i > 0 && j > 0 && (i + j * 3) % 5 === 0 && G(x, yb + 4, z) && !(i >= HEART[0] && i <= HEART[2] + 1 && j >= HEART[1] && j <= HEART[3] + 1)) {
+    if (i > 0 && j > 0 && (i + j * 3) % 7 === 0 && G(x, yb + 4, z) && !(i >= HEART[0] && i <= HEART[2] + 1 && j >= HEART[1] && j <= HEART[3] + 1)) {
       let t = yb + 4; while (G(x, t, z) && t < yb + 9) t++;
       S(x, t - 1, z, B.lantern); S(x, t, z, 0);   // a fire bowl burning on the post
     }
@@ -236,8 +236,8 @@ export function build(c) {
     for (let dx = -4; dx <= 4; dx++) { S(gx + dx, y + 7, gz - 2, dx % 2 ? B.key_frieze : B.stone_brick); S(gx + dx, y + 7, gz, dx % 2 ? B.key_frieze : B.stone_brick); }
     for (let dx = -2; dx <= 2; dx++) S(gx + dx, y + 3, gz - 2, B.bronze);   // the bronze lintel the Delta sits on
     // a gilded frame round the arch: gold jambs, a gold cornice, the blue Delta on a bronze field
-    for (const dx of [-2, 2]) col(gx + dx, gz - 2, y, y + 6, (xx, yy) => (yy % 2 ? B.gold_plate : B.bronze));
-    for (let dx = -3; dx <= 3; dx++) S(gx + dx, y + 7, gz - 2, B.gold_plate);
+    for (const dx of [-2, 2]) col(gx + dx, gz - 2, y, y + 6, (xx, yy) => (yy === y + 3 ? B.gold_plate : B.bronze));
+    for (let dx = -3; dx <= 3; dx++) S(gx + dx, y + 7, gz - 2, B.gold_trim);
     for (let dx = -1; dx <= 1; dx++) for (let yy = y + 4; yy <= y + 6; yy++) S(gx + dx, yy, gz - 2, B.bronze);
     delta(gx, y + 4, gz - 2, 'x');
     gateLeaves(gx, gz - 3, y, 'z', -1);
@@ -253,16 +253,16 @@ export function build(c) {
   {
     const wz = MZ0 + GATES[1][1] * CS + 2, y = top(MX0 - 2, wz);
     for (let dz = -2; dz <= 2; dz++) col(MX0, wz + dz, y + 4, y + 5, B.bronze);
-    for (const dz of [-2, 2]) col(MX0, wz + dz, y, y + 3, (xx, yy) => (yy % 2 ? B.gold_plate : B.bronze));
-    for (let dz = -3; dz <= 3; dz++) S(MX0, y + 6, wz + dz, B.gold_plate);
+    for (const dz of [-2, 2]) col(MX0, wz + dz, y, y + 3, (xx, yy) => (yy === y + 3 ? B.gold_trim : B.bronze));
+    for (let dz = -3; dz <= 3; dz++) S(MX0, y + 6, wz + dz, B.gold_trim);
     delta(MX0, y + 4, wz, 'z', 3);
     apron(MX0 - 1, wz, y, [-1, 0], 3, B.cobble);
     gateLeaves(wz, MX0 - 1, y, 'x', -1);
     k.torch(MX0, y + 2, wz - 3, [-1, 0]); k.torch(MX0, y + 2, wz + 3, [-1, 0]);
     const ez = MZ0 + GATES[2][1] * CS + 2, y2 = top(MX1 + 2, ez);
     for (let dz = -2; dz <= 2; dz++) col(MX1, ez + dz, y2 + 4, y2 + 5, B.bronze);
-    for (const dz of [-2, 2]) col(MX1, ez + dz, y2, y2 + 3, (xx, yy) => (yy % 2 ? B.gold_plate : B.bronze));
-    for (let dz = -3; dz <= 3; dz++) S(MX1, y2 + 6, ez + dz, B.gold_plate);
+    for (const dz of [-2, 2]) col(MX1, ez + dz, y2, y2 + 3, (xx, yy) => (yy === y2 + 3 ? B.gold_trim : B.bronze));
+    for (let dz = -3; dz <= 3; dz++) S(MX1, y2 + 6, ez + dz, B.gold_trim);
     delta(MX1, y2 + 4, ez, 'z', 3);
     apron(MX1 + 1, ez, y2, [1, 0], 3, B.cobble);
     gateLeaves(ez, MX1 + 1, y2, 'x', 1);
@@ -488,7 +488,7 @@ export function build(c) {
     for (const [x, z] of [[145, 385], [149, 389], [145, 389]]) S(x, y - 1, z, B.cracked_brick);
     deco.prop('rubble', 147.5, 1, 389.5); web(146, y - 0.5, 386, 1.6);
     add.chest({ id: 'lab_pit_vault', x: 147, z: 387, rarity: 'epic', hidden: true });
-    add.npc({ id: 'quintus', x: 151, z: 376, y, model: 'mortal:teacher', yaw: Math.PI });
+    add.npc({ id: 'quintus', x: 151, z: 376, y, model: 'npc:quintus', yaw: Math.PI });
   }
 
   // ================================================================ a lookout ruin on the coast
@@ -505,7 +505,7 @@ export function build(c) {
   }
 
   // ================================================================ people
-  add.npc({ id: 'rachel', x: 62, z: 347, model: 'mortal:student', yaw: 2.3 });
+  add.npc({ id: 'rachel', x: 62, z: 347, model: 'npc:rachel', yaw: 2.3 });
   deco.prop('table', 60.5, top(60, 345), 345.5, { len: 2 });
   deco.add('paper', 60.6, top(60, 345) + 0.95, 345.4, { mode: 'flat', scale: 0.9 });
 

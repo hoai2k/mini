@@ -24,24 +24,27 @@ export const WORLD = { sx: 400, sy: 40, sz: 400 };
 export const CAMP_AT = { x: 0, z: 120, sx: 116, sz: 184 };
 
 // rects: [x0, z0, x1, z1) half-open. level: [first, last] monster level.
-// kinds: roaming monsters as [kind, weight]. biome: the look (world/biomes.js).
+// kinds: roaming monsters as [kind, weight], about three quarters of the weight
+// fodder (world/roamZones.js FODDER_KINDS: they come in hordes) and the tough
+// ones rare. fodder: the crowd round a monster camp (openworld/runtime.js).
+// biome: the look (world/biomes.js).
 // The first region whose rect holds a spot owns it.
 export const REGIONS = [
   { id: 'camp', rects: [[0, 120, 116, 304]], level: [1, 2], safe: true, biome: 'camp' },
   { id: 'fields', rects: [[116, 120, 250, 220]], level: [1, 3], biome: 'ow_fields',
-    kinds: [['pup', 4], ['spider', 3], ['stymphalian', 2], ['rat', 2]] },
+    kinds: [['karpos', 5], ['rat', 2], ['pup', 2], ['stymphalian', 2], ['serpent', 1]], fodder: ['karpos', 'karpos', 'rat', 'pup'] },
   { id: 'woods', rects: [[116, 220, 250, 330], [0, 304, 116, 330]], level: [2, 4], biome: 'ow_woods',
-    kinds: [['pup', 4], ['spider', 4], ['hellhound', 1], ['dracaena', 1], ['serpent', 1]] },
+    kinds: [['myrmex', 4], ['myrmex_acid', 1], ['pup', 2.5], ['spider', 2.5], ['serpent', 1.5], ['hellhound', 0.5], ['dracaena', 0.5]], fodder: ['myrmex', 'myrmex', 'myrmex_acid', 'pup', 'spider'] },
   { id: 'shore', rects: [[0, 0, 210, 120]], level: [3, 5], biome: 'ow_shore',
-    kinds: [['harpy', 3], ['stymphalian', 3], ['skeleton', 2], ['scorpion', 1]] },
+    kinds: [['crab', 7], ['telekhine', 1.5], ['harpy', 1.5], ['stymphalian', 0.5], ['skeleton', 0.5]], fodder: ['crab', 'crab', 'crab', 'telekhine'] },
   { id: 'canyon', rects: [[250, 130, 400, 290]], level: [5, 7], biome: 'ow_canyon',
-    kinds: [['scorpion', 3], ['empousa', 1], ['gorgon_statue', 2], ['stymphalian', 2], ['dracaena', 1]] },
+    kinds: [['myrmex', 4.5], ['myrmex_acid', 1.5], ['spartoi', 3], ['scorpion', 0.8], ['stymphalian', 1.4], ['gorgon_statue', 0.3], ['empousa', 0.2], ['dracaena', 0.2]], fodder: ['myrmex', 'myrmex', 'myrmex_acid', 'spartoi'] },
   { id: 'labyrinth', rects: [[0, 330, 170, 400]], level: [6, 8], biome: 'ow_labyrinth',
-    kinds: [['automaton', 3], ['spider', 3], ['skeleton', 2], ['fury', 1]] },
+    kinds: [['spartoi', 5], ['spider', 4], ['automaton', 2], ['skeleton', 0.6], ['fury', 0.4]], fodder: ['spartoi', 'spartoi', 'spider'] },
   { id: 'othrys', rects: [[210, 0, 400, 130]], level: [8, 10], biome: 'ow_othrys',
-    kinds: [['cyclops', 1], ['automaton', 2], ['harpy', 2], ['hellhound', 2], ['skeleton', 2]] },
+    kinds: [['spartoi', 5], ['telekhine', 3], ['harpy', 1.6], ['hellhound', 0.6], ['automaton', 0.4], ['skeleton', 0.4], ['cyclops', 0.15]], fodder: ['spartoi', 'spartoi', 'telekhine'] },
   { id: 'asphodel', rects: [[250, 290, 400, 400], [170, 330, 250, 400]], level: [9, 12], biome: 'ow_asphodel',
-    kinds: [['ghost', 4], ['skeleton', 3], ['fury', 2], ['hellhound', 2], ['empousa', 1]] },
+    kinds: [['shade', 6], ['spartoi', 3], ['ghost', 2], ['skeleton', 0.4], ['fury', 0.3], ['hellhound', 0.3], ['empousa', 0.2]], fodder: ['shade', 'shade', 'spartoi'] },
 ];
 export const REGION = Object.fromEntries(REGIONS.map((r) => [r.id, r]));
 export const REGION_IDS = REGIONS.map((r) => r.id);

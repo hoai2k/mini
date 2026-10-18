@@ -219,7 +219,7 @@ export const BIOMES = {
   ow_labyrinth: {
     id: 'ow_labyrinth', name: txt('regions.labyrinth.name'), sub: txt('regions.labyrinth.sub'),
     // late afternoon: a low golden sun, warm amber haze, violet-grey shade in the corridors
-    skyTop: 0x4a5c9a, skyHorizon: 0xf2b878, fog: 0xc8a07c, fogDensity: 0.0085,
+    skyTop: 0x5a6aa8, skyHorizon: 0xf8c088, fog: 0xe4b88c, fogDensity: 0.0085,
     hemiSky: 0xd8c8c0, hemiGround: 0x4a3a36, hemiI: 0.95, sun: 0xffc884, sunI: 2.5,
     grade: { tint: [1.07, 1.0, 0.9], lift: [0.014, 0.006, 0.012], sat: 1.12, contrast: 1.1, vignette: 0.3 },
     floor: B.cobble, floor2: B.stone_brick, path: B.stone_brick, wall: B.stone_brick, wall2: B.mossy_brick, trim: B.key_frieze, pillar: B.column, roof: B.stone_brick, ground: B.grass, accent: B.lantern, pit: B.stone,
@@ -227,17 +227,19 @@ export const BIOMES = {
   },
   ow_othrys: {
     id: 'ow_othrys', name: txt('regions.othrys.name'), sub: txt('regions.othrys.sub'),
-    skyTop: 0x2a3a6a, skyHorizon: 0x9aa8c0, fog: 0x8a96aa, fogDensity: 0.011,
-    hemiSky: 0xb8c4e0, hemiGround: 0x2a2620, hemiI: 1.0, sun: 0xf0e8e0, sunI: 1.9,
-    grade: { tint: [0.98, 1.0, 1.04], lift: [0.006, 0.008, 0.016], sat: 0.92, contrast: 1.12, vignette: 0.34 },
+    // rolling storm clouds: a bruised violet sky, slate haze, cold light with a last warm edge to it
+    skyTop: 0x1a1838, skyHorizon: 0x7a6a8a, fog: 0x6a6880, fogDensity: 0.0105,
+    hemiSky: 0xc4c0cc, hemiGround: 0x2e2826, hemiI: 0.95, sun: 0xffe2c8, sunI: 2.0,
+    grade: { tint: [1.0, 0.98, 1.02], lift: [0.01, 0.006, 0.02], sat: 1.0, contrast: 1.18, vignette: 0.4 },
     floor: B.rock, floor2: B.basalt, path: B.cobble, wall: B.black_marble, wall2: B.basalt, trim: B.bronze, pillar: B.black_marble, roof: B.basalt, ground: B.rock, accent: B.lantern, pit: B.basalt,
-    ambience: 'wind', music: 'storm', particles: 'dust', wind: 2.0,
+    ambience: 'wind', music: 'storm', particles: 'dust', wind: 2.0, storm: true,
   },
   ow_asphodel: {
     id: 'ow_asphodel', name: txt('regions.asphodel.name'), sub: txt('regions.asphodel.sub'),
-    skyTop: 0x141228, skyHorizon: 0x5a4a6a, fog: 0x3a3048, fogDensity: 0.013,
-    hemiSky: 0xb0a8d8, hemiGround: 0x1e1820, hemiI: 1.25, sun: 0xc8c0f0, sunI: 1.4,
-    grade: { tint: [0.97, 0.98, 1.06], lift: [0.014, 0.012, 0.03], sat: 0.8, contrast: 1.1, vignette: 0.42 },
+    // eternal twilight: a violet sky with a smouldering rose horizon, lilac mist low over the fields
+    skyTop: 0x1c1236, skyHorizon: 0x8a5a7c, fog: 0x4c3c66, fogDensity: 0.012,
+    hemiSky: 0xb8a8e4, hemiGround: 0x22182a, hemiI: 1.2, sun: 0xffc0a0, sunI: 1.35,
+    grade: { tint: [1.0, 0.95, 1.08], lift: [0.02, 0.008, 0.04], sat: 0.98, contrast: 1.12, vignette: 0.42 },
     floor: B.asphodel, floor2: B.underworld_rock, path: B.basalt, wall: B.underworld_rock, wall2: B.obsidian, trim: B.basalt, pillar: B.basalt, roof: B.underworld_rock, ground: B.asphodel, accent: B.styx, pit: B.underworld_rock,
     ambience: 'underworld', music: 'underworld', particles: 'ash', wind: 0.5,
   },

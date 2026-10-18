@@ -1202,6 +1202,21 @@ export const TEXT = {
     telekhine: {
       name: 'Telekhine',
     },
+    karpos: {
+      name: 'Karpos',
+    },
+    myrmex: {
+      name: 'Myrmex',
+    },
+    myrmex_acid: {
+      name: 'Acid Myrmex',
+    },
+    crab: {
+      name: 'Giant Crab',
+    },
+    shade: {
+      name: 'Shade',
+    },
     gorgon_statue: {
       name: 'Living Statue',
     },

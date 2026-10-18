@@ -74,10 +74,11 @@ export const terrain = {
     return Math.min(22, h);
   },
   surface(x, z, h, n) {
-    const v = n.value(x * 0.3, z * 0.3);
-    if (h >= 15) return v > 0.8 ? B.gravel_path : B.rock;
-    if (h >= 8) return v > 0.74 ? B.gravel_path : v < 0.26 ? B.basalt : B.rock;
-    if (h >= 4) return v > 0.5 ? B.rock : B.grass;
+    // grey crag and scree; grass only low down (the basalt tile carries coloured climbing holds, so not here)
+    const v = n.value(x * 0.3, z * 0.3), w = n.value(x * 0.9 + 7, z * 0.9);
+    if (h >= 15) return v > 0.7 ? B.stone : w > 0.8 ? B.cobble : B.rock;
+    if (h >= 8) return v > 0.66 ? B.stone : v < 0.24 ? B.cobble : w > 0.82 ? B.moss_floor : B.rock;
+    if (h >= 4) return v > 0.5 ? (w > 0.6 ? B.stone : B.rock) : B.grass;
     return v > 0.8 ? B.rock : B.grass;
   },
 };
@@ -89,7 +90,7 @@ export function build(c) {
   const G = (x, y, z) => W.get(x, y, z);
   const col = (x, z, y0, y1, id) => { for (let y = y0; y <= y1; y++) S(x, y, z, typeof id === 'function' ? id(x, y, z) : id); };
   const clearUp = (x, z, y0, h = 8) => { for (let y = y0; y < y0 + h; y++) S(x, y, z, 0); };
-  const marble = (x, y, z) => { const v = n.hash(x * 5 + y, z * 3 - y); return v < 0.18 ? B.basalt : v < 0.24 ? B.obsidian : B.black_marble; };
+  const marble = (x, y, z) => { const v = n.hash(x * 5 + y, z * 3 - y); return v < 0.18 ? B.underworld_rock : v < 0.26 ? B.obsidian : B.black_marble; };
   const pad = (x0, z0, x1, z1, y, id = null) => {
     for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) {
       if (!inRegion(x, z)) continue;
@@ -175,7 +176,7 @@ export function build(c) {
     tent(cx - 3, cz - 2, cy, 'x', B.old_plank); totem(cx + 3, cz - 3, cy); fire(cx, cz, cy); bones(cx + 2, cz + 2, cy);
     add.camp({ id: 'oth_pass_camp', x: cx, z: cz, kinds: ['hellhound', 'harpy', 'skeleton'], count: 5, radius: 8, chest: 'common' });
     add.waystone('othrys_pass', 244, 103);
-    add.npc({ id: 'bianca', x: 249, z: 106, model: 'hero:nico', yaw: 2.6 });
+    add.npc({ id: 'bianca', x: 249, z: 106, model: 'npc:bianca', yaw: 2.6 });
     deco.prop('flagpole', 251.5, top(251, 108), 108.5, { h: 4, color: 0xd8dce8 });
   }
 
@@ -190,7 +191,7 @@ export function build(c) {
         // ragged walls: the edges bite in and out
         if ((x === CH.x0 || x === CH.x1) && n.hash(x, z) < 0.25) continue;
         for (let y = floor; y < g + 2; y++) S(x, y, z, 0);
-        S(x, floor - 1, z, n.hash(x * 3, z) < 0.3 ? B.gravel_path : B.basalt);
+        S(x, floor - 1, z, n.hash(x * 3, z) < 0.3 ? B.cobble : B.stone);
       }
     }
     k.bridge(CH.x0 - 2, CH.mid - 2, CH.x1 + 2, CH.mid + 2, yb, B.planks, B.dark_planks);
@@ -201,6 +202,12 @@ export function build(c) {
     add.chest({ id: 'oth_chasm_chest', x: 302, z: 75, rarity: 'rare', hidden: true });
     bones(302, 73, 4, 4);
     light(302, 6, 75, 0x8ab0ff, 2, 7);
+    // two more chain pillars on the rims, their broken chains hanging down into the chasm
+    for (const [px, pz, ex, ez] of [[295, 55, 302, 60], [308, 79, 302, 85]]) {
+      const g = top(px, pz), hgt = 10;
+      for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) col(px + dx, pz + dz, g - 2, g + hgt, (xx, yy, zz) => (yy === g + hgt ? B.bronze : marble(xx, yy, zz)));
+      chain([px + Math.sign(ex - px) * 2, g + hgt - 1, pz + Math.sign(ez - pz)], [ex, 7, ez], 2);
+    }
   }
 
   // ================================================================ the Hunters' Hollow
@@ -213,9 +220,11 @@ export function build(c) {
     deco.prop('archery_target', hx - 2.5, top(hx - 3, hz + 9), hz + 9.5, { rot: Math.PI });
     deco.prop('archery_target', hx + 2.5, top(hx + 2, hz + 9), hz + 9.5, { rot: Math.PI });
     deco.prop('flagpole', hx + 0.5, y, hz - 7.5, { h: 6, color: 0xc8d0e0 });
+    for (const [dx, dz] of [[-10, -3], [10, -3], [-4, 8], [5, 8]]) deco.prop('flagpole', hx + dx + 0.5, top(hx + dx, hz + dz), hz + dz + 0.5, { h: 4, color: 0xe8ecf4 });
+    light(hx, y + 2, hz, 0xffb060, 4, 12);
     deco.add('em_artemis', hx + 0.5, y + 0.02, hz + 3.5, { mode: 'flat', scale: 1.4 });
     for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2 + 0.3, x = Math.round(hx + Math.cos(a) * 12), z = Math.round(hz + Math.sin(a) * 12); if (c.level(x, z, 3, 3, 2)) trees.pine(x, z, { h: 8 }); }
-    add.npc({ id: 'zoe', x: hx + 1, z: hz + 3, model: 'hero:thalia', yaw: Math.PI });
+    add.npc({ id: 'zoe', x: hx + 1, z: hz + 3, model: 'npc:zoe', yaw: Math.PI });
     add.chest({ id: 'oth_hollow_chest', x: hx + 9, z: hz - 2, rarity: 'common' });
     add.landmark({ id: 'oth_hollow', x: hx, z: hz - 2 });
     add.waystone('othrys_hollow', 256, 56);
@@ -260,7 +269,7 @@ export function build(c) {
   // ================================================================ the Titans' palace on the summit
   {
     const [sx, sz] = SUMMIT, x0 = sx - 13, x1 = sx + 13, z0 = sz - 13, z1 = sz + 13, y = top(sx, sz);
-    pad(x0 - 2, z0 - 3, x1 + 2, z1 + 2, y, B.basalt);
+    pad(x0 - 2, z0 - 3, x1 + 2, z1 + 2, y, B.obsidian);
     for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) S(x, y - 1, z, n.hash(x, z * 2) < 0.2 ? B.rock : (x + z) & 1 ? B.black_marble : B.obsidian);
     // the outer wall: broken, crenellated
     for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) {
@@ -311,9 +320,29 @@ export function build(c) {
       col(x, z, y, y + 8, marble);
       if ((dx === 0 || dx === 4 || dz === 0 || dz === 4) && (dx + dz) % 2 === 0 && !(dx === 0 && dz >= 3)) S(x, y + 9, z, B.black_marble);
     }
-    k.stairs(x1 - 4, z0 + 13, y, 9, [0, -1], 2, B.basalt);
+    k.stairs(x1 - 4, z0 + 13, y, 9, [0, -1], 2, B.obsidian);
     add.chest({ id: 'oth_tower_chest', x: x1 - 2, z: z0 + 2, rarity: 'rare' });
-    for (const [x, z] of [[sx - 6, sz + 11], [sx + 6, sz + 11]]) { deco.prop('brazier', x + 0.5, y, z + 0.5, { green: true }); light(x, y + 1.4, z, 0x7aff9a, 4, 10); }
+    for (const [x, z] of [[sx - 6, sz + 11], [sx + 6, sz + 11]]) { deco.prop('brazier', x + 0.5, y, z + 0.5); light(x, y + 1.4, z, 0xff8a3a, 4, 10); }
+    // the Titans' black spires: tall broken columns at the corners and along the walls, fire on the tallest
+    const spire = (x, z, hh, w = 2) => {
+      for (let dz = 0; dz < w; dz++) for (let dx = 0; dx < w; dx++) {
+        const cut = w > 1 && dx + dz === 2 * (w - 1) ? 2 : w > 1 && dx + dz === 0 ? 1 : 0;   // a ragged, broken top
+        col(x + dx, z + dz, y - 1, y + hh - 1 - cut, (xx, yy) => ((yy - y) % 5 === 4 ? B.obsidian : B.black_marble));
+      }
+      if (hh >= 13) {
+        for (let dz = -1; dz <= w; dz++) for (let dx = -1; dx <= w; dx++) if ((dx < 0 || dx >= w || dz < 0 || dz >= w) && (dx + dz) % 2 === 0) S(x + dx, y + hh - 5, z + dz, B.gold_trim);   // a gold collar
+        deco.prop('fire', x + 0.5, y + hh - 1, z + 0.5); light(x, y + hh + 0.5, z, 0xff7a30, 5, 14); }
+    };
+    for (const [x, z, hh] of [[x0 - 1, z0 - 1, 16], [x1, z0 - 1, 15], [x0 - 1, z1, 14], [x1, z1, 13], [sx - 8, z0 - 1, 12], [sx + 7, z0 - 1, 10], [x0 - 1, sz - 4, 11], [x0 - 1, sz + 5, 9], [x1, sz - 6, 12], [x1, sz + 4, 10], [sx - 10, z1, 12], [sx + 9, z1, 11]]) spire(x, z, hh);
+    for (const [x, z, hh] of [[sx - 11, sz - 9, 9], [sx + 8, sz - 10, 8], [sx - 11, sz + 9, 7], [sx + 11, sz + 9, 8]]) spire(x, z, hh, 1);
+    // red war banners of the Titans down the south wall and the gate towers, a gold eye on each
+    const banner = (x, z, fz) => { for (let yy = y + 2; yy <= y + 5; yy++) for (let dx = 0; dx <= 1; dx++) S(x + dx, yy, z + fz, yy === y + 4 && dx === 0 ? B.gold_trim : yy === y + 2 && dx === 1 ? 0 : B.red_lacquer); };
+    for (const x of [sx - 12, sx - 8, sx + 7, sx + 11]) if (G(x, y + 4, z1) && G(x + 1, y + 4, z1)) banner(x, z1, 1);
+    for (const tx of [sx - 4, sx + 4]) banner(tx - (tx < sx ? 1 : 0), z1 + 1, 1);
+    // the gate towers rise higher, crowned with gold and fire
+    for (const tx of [sx - 4, sx + 4]) { for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) col(tx + dx, z1 + dz, y + 8, y + 10, (xx, yy) => (yy === y + 10 && (dx + dz) % 2 ? 0 : yy === y + 8 ? B.gold_trim : B.black_marble)); deco.prop('fire', tx + 0.5, y + 11, z1 + 0.5); light(tx, y + 12, z1, 0xff7a30, 5, 14); }
+    // a cold purple light where Kronos's power lingers: on the cracked throne, and in the gate
+    light(sx, ty + 3, z0 + 5, 0xb060ff, 5, 12); light(sx, y + 2, z1 - 1, 0x9a50ff, 3, 8);
     add.camp({ id: 'oth_fortress_camp', x: sx, z: sz + 6, kinds: ['skeleton', 'automaton', 'skeleton', 'harpy'], count: 6, radius: 8, chest: 'rare' });
     add.landmark({ id: 'oth_fortress', x: sx, z: sz });
     add.waystone('othrys_summit', 334, 62);
@@ -327,7 +356,7 @@ export function build(c) {
     for (let z = fz - 4; z <= fz + 4; z++) for (let x = fx - 3; x <= fx + 4; x++) {
       const shell = x === fx - 3 || x === fx + 4 || z === fz - 4 || z === fz + 4;
       const hh = 7 - Math.max(0, Math.abs(z - fz) - 2) - (x > fx + 2 ? 1 : 0);
-      for (let yy = y; yy < y + hh; yy++) if (shell) S(x, yy, z, n.hash(x + yy, z) < 0.15 ? B.basalt : B.black_marble);
+      for (let yy = y; yy < y + hh; yy++) if (shell) S(x, yy, z, n.hash(x + yy, z) < 0.15 ? B.underworld_rock : B.black_marble);
       if (!shell && n.hash(x * 3, z) < 0.25) S(x, y, z, B.rock);
     }
     for (let dz = -1; dz <= 1; dz++) for (let yy = y; yy < y + 2; yy++) S(fx - 3, yy, fz + dz, 0);   // the mouth: the way in
@@ -360,6 +389,16 @@ export function build(c) {
     for (const [dx, dz] of [[-2, 4], [3, -1]]) { deco.prop('fire', fx + dx + 0.5, y, fz + dz + 0.5); light(fx + dx, y + 1, fz + dz, 0xff7a30, 4, 9); }
     for (let i = 0; i < 4; i++) S(fx - 3 + i, y, fz + 8, B.log);   // a spare club
     bones(fx, fz + 2, y, 4);
+    // the Cyclopes' red tents and a lookout of lashed logs, flying red rags
+    for (const [tx, tz, ax] of [[fx - 13, fz - 3, 'z'], [fx - 12, fz + 4, 'x']]) tent(tx, tz, top(tx, tz), ax, B.red_lacquer);
+    {
+      const ox = fx + 11, oz = fz - 10, oy = top(ox, oz), th = 5;
+      for (const [dx, dz] of [[0, 0], [2, 0], [0, 2], [2, 2]]) col(ox + dx, oz + dz, top(ox + dx, oz + dz), oy + th - 1, B.log);
+      for (let dz = 0; dz <= 2; dz++) for (let dx = 0; dx <= 2; dx++) S(ox + dx, oy + th, oz + dz, B.old_plank);
+      for (const [dx, dz] of [[0, 0], [2, 0], [0, 2], [2, 2]]) S(ox + dx, oy + th + 1, oz + dz, B.log);
+      for (let yy = oy + th + 1; yy <= oy + th + 3; yy++) S(ox + 1, yy, oz - 1, yy === oy + th + 1 ? 0 : B.red_lacquer);
+      deco.prop('fire', ox + 1.5, oy + th + 1, oz + 1.5, { scale: 0.7 }); light(ox + 1, oy + th + 2, oz + 1, 0xff7a30, 4, 12);
+    }
     add.camp({ id: 'oth_forge_camp', x: fx, z: fz + 1, kinds: ['cyclops', 'hellhound', 'hellhound', 'skeleton'], count: 5, radius: 8, chest: 'rare' });
     add.landmark({ id: 'oth_forge', x: fx, z: fz });
     // a hollow heap with a chest in it, its way in hidden on the far side
@@ -401,13 +440,29 @@ export function build(c) {
   for (const [i, x, z] of [[0, 284, 46], [1, 312, 52], [2, 262, 70], [3, 335, 30]]) add.item({ id: `oth_arrow_${i}`, quest: 'othrys_zoe_arrows', x, z });
 
   // ================================================================ boulders, a few hardy pines, grass in the low places
-  for (let i = 0, placed = 0; i < 90 && placed < 26; i++) {
+  // grey crags: jagged pinnacles of rock standing out of the slopes (the sheet's skyline), kept off the trails and places
+  const clear = [[...SUMMIT, 22], [...FORGE, 15], [...CRAG, 10], [...FACE, 9], [...GORGOS, 9], [...HOLLOW, 14], [...PASS, 8], [318, 30, 10], [302, 66, 9], [244, 103, 8], [256, 56, 6], [334, 62, 6], [325, 122, 6],
+    [228, 14, 4], [390, 30, 4], [284, 46, 3], [312, 52, 3], [262, 70, 3], [335, 30, 3], [302, 75, 6], [274, 79, 9]];
+  const free = (x, z, m = 0) => inRegion(x, z) && inRegion(x + 3, z + 3) && nearTrail(x, z)[0] > 5 + m && !clear.some(([a, b, r]) => Math.hypot(x - a, z - b) < r + m);
+  for (let i = 0, placed = 0; i < 320 && placed < 46; i++) {
+    const x = 214 + Math.floor(rand() * 180), z = 4 + Math.floor(rand() * 120);
+    if (!free(x, z, 3) || x < 222 && z > 100) continue;
+    const g = top(x, z), hh = 6 + Math.floor(rand() * 8) + (g - c.FY > 8 ? 4 : 0), w = 2 + Math.floor(rand() * 3);
+    for (let dz = 0; dz < w; dz++) for (let dx = 0; dx < w; dx++) {
+      const gg = top(x + dx, z + dz), e = Math.max(Math.abs(dx - (w - 1) / 2), Math.abs(dz - (w - 1) / 2));
+      const cap = hh - Math.round(e * 3) - Math.floor(n.hash(x + dx, z + dz) * 3);
+      for (let yy = gg - 2; yy < g + cap; yy++) S(x + dx, yy, z + dz, yy > g + cap - 3 && n.hash(x + dx, yy + z) < 0.35 ? B.stone : n.hash(x + dx + yy, z + dz) < 0.22 ? B.cobble : B.rock);
+    }
+    S(x - 1, top(x - 1, z), z, B.cobble); S(x + w, top(x + w, z + 1), z + 1, B.rock);   // scree at the foot
+    placed++;
+  }
+  for (let i = 0, placed = 0; i < 160 && placed < 56; i++) {
     const x = 214 + Math.floor(rand() * 182), z = 4 + Math.floor(rand() * 122);
-    if (!inRegion(x, z) || nearTrail(x, z)[0] < 4 || Math.hypot(x - SUMMIT[0], z - SUMMIT[1]) < 20 || Math.hypot(x - FORGE[0], z - FORGE[1]) < 12 || Math.hypot(x - CRAG[0], z - CRAG[1]) < 9 || Math.hypot(x - FACE[0], z - FACE[1]) < 8 || Math.hypot(x - GORGOS[0], z - GORGOS[1]) < 7 || Math.hypot(x - HOLLOW[0], z - HOLLOW[1]) < 11) continue;
+    if (!free(x, z, 1) || Math.hypot(x - SUMMIT[0], z - SUMMIT[1]) < 20 || Math.hypot(x - FORGE[0], z - FORGE[1]) < 12 || Math.hypot(x - CRAG[0], z - CRAG[1]) < 9 || Math.hypot(x - FACE[0], z - FACE[1]) < 8 || Math.hypot(x - GORGOS[0], z - GORGOS[1]) < 7 || Math.hypot(x - HOLLOW[0], z - HOLLOW[1]) < 11) continue;
     if (!c.level(x, z, 3, 3, 2)) continue;
     const g = top(x, z) - c.FY;
-    if (g < 6 && rand() < 0.6) trees.pine(x, z, { h: 6 + Math.floor(rand() * 4) });
-    else trees.boulder(x, z, 1.2 + rand() * 1.2, rand() < 0.5 ? B.rock : B.basalt);
+    if (g < 12 && rand() < 0.8) trees.pine(x, z, { h: 7 + Math.floor(rand() * 5), R: 2.2 + rand() * 0.5 });
+    else trees.boulder(x, z, 1.2 + rand() * 1.2, rand() < 0.6 ? B.rock : B.stone);
     placed++;
   }
   scatter([B.grass], ['grass', 'dry_grass', 'dry_grass', 'tall_grass'], 0.1);

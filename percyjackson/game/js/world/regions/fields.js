@@ -58,7 +58,7 @@ export function build(c) {
       const row = (z - z0) % 3 === 2;
       const y = ground(x, z);
       if (kind === 'berry') { set(x, y - 1, z, row ? B.farm_soil : B.strawberry_bed); if (!row && k.chance(0.5)) deco.add('strawberry', x + 0.5, y, z + 0.5, { scale: 0.9, sway: 0.5 }); }
-      else if (kind === 'wheat') { set(x, y - 1, z, B.farm_soil); if (!row && k.chance(0.8)) deco.add('dry_grass', x + 0.5, y, z + 0.5, { scale: 1.2, sway: 1 }); }
+      else if (kind === 'wheat') { set(x, y - 1, z, row ? B.farm_soil : B.hay); if (!row && k.chance(0.9)) deco.add('dry_grass', x + 0.5, y, z + 0.5, { scale: 1.4, sway: 1 }); }
       else if (kind === 'fallow') set(x, y - 1, z, row ? B.mud : B.farm_soil);
       else { set(x, y - 1, z, row ? B.farm_soil : B.grass); if (!row && k.chance(0.6)) deco.add('fern', x + 0.5, y, z + 0.5, { scale: 0.7, sway: 0.4 }); }
     }
@@ -105,7 +105,7 @@ export function build(c) {
       const r = L < 6 ? 2 : 1, y = yw + L;
       for (let dz = -r; dz <= r; dz++) for (let dx = -r; dx <= r; dx++) {
         if (Math.abs(dx) !== r && Math.abs(dz) !== r) continue;
-        set(HX + dx, y, HZ + dz, L < 2 ? B.cobble : (Math.abs(dx) === r && Math.abs(dz) === r) ? B.dark_planks : B.plaster);
+        set(HX + dx, y, HZ + dz, L < 4 ? (L === 3 ? B.stone_brick : B.cobble) : (Math.abs(dx) === r && Math.abs(dz) === r) ? B.dark_planks : B.planks);
       }
     }
     fill(HX - 1, yw + 10, HZ - 1, HX + 1, yw + 10, HZ + 1, B.roof); set(HX, yw + 11, HZ, B.roof);
@@ -162,7 +162,7 @@ export function build(c) {
     for (const yy of [y + 2]) for (const x of [194, 202]) { set(x, yy, z0, B.window_day); set(x, yy, z1, B.window_day); }
     // white X braces on the doors' sides
     for (let i = 0; i < 3; i++) { set(196 - i, y + i, z0, B.white_trim); set(200 + i, y + i, z0, B.white_trim); }
-    const rt = gable(k, x0, z0, x1, z1, y + 5, B.roof_slate, { axis: 'x', end: B.barn_red });
+    const rt = gable(k, x0, z0, x1, z1, y + 5, B.roof_terracotta, { axis: 'x', end: B.barn_red });
     W.addRoof([x0 - 1, y + 5, z0 - 1], [x1 + 1, rt, z1 + 1], [[x0, y, z0], [x1, y + 4, z1]]);
     // a hay loft inside, and hay bales stacked up the north wall to the eave (the way onto the roof)
     fill(x0 + 1, y, z0 + 1, x0 + 3, y + 1, z1 - 1, B.hay); fill(x1 - 2, y, z1 - 2, x1 - 1, y, z1 - 1, B.hay);
@@ -183,12 +183,13 @@ export function build(c) {
     // the farmhouse: white clapboard, a green roof and a porch
     const x0 = 210, z0 = 195, x1 = 219, z1 = 202;
     fill(x0, y - 1, z0, x1, y - 1, z1, B.floor_boards);
-    k.room(x0, z0, x1, z1, y, 4, B.clapboard, { trim: B.white_trim, doors: [{ side: 'n', at: 214, width: 1, height: 3 }] });
+    k.room(x0, z0, x1, z1, y, 4, B.plaster, { trim: B.dark_planks, doors: [{ side: 'n', at: 214, width: 1, height: 3 }] });
+    for (let x = x0; x <= x1; x++) for (let z = z0; z <= z1; z++) if ((x === x0 || x === x1 || z === z0 || z === z1) && W.get(x, y, z) === B.plaster) set(x, y, z, B.stone_brick);
     for (const x of [212, 217]) { set(x, y + 1, z0, B.window_day); set(x, y + 2, z0, B.window_day); set(x, y + 1, z1, B.window_day); }
     for (const z of [198, 199]) { set(x0, y + 1, z, B.window_day); set(x1, y + 1, z, B.window_day); }
-    const rt = gable(k, x0, z0, x1, z1, y + 4, B.shingle_green, { axis: 'x', end: B.clapboard });
+    const rt = gable(k, x0, z0, x1, z1, y + 4, B.roof_terracotta, { axis: 'x', end: B.plaster });
     W.addRoof([x0 - 1, y + 4, z0 - 1], [x1 + 1, rt, z1 + 1], [[x0, y, z0], [x1, y + 3, z1]]);
-    set(217, rt + 1, 198, B.red_brick); set(217, rt + 2, 198, B.red_brick);   // chimney
+    set(217, rt + 1, 198, B.stone_brick); set(217, rt + 2, 198, B.stone_brick);   // chimney
     fill(x0, y - 1, z0 - 2, x1, y - 1, z0 - 1, B.floor_boards);
     for (const x of [x0, x1]) { set(x, y, z0 - 2, B.white_trim); set(x, y + 1, z0 - 2, B.white_trim); set(x, y + 2, z0 - 2, B.white_trim); }
     deco.prop('bench', 212.5, y, 193.8, { rot: 0 });
@@ -336,8 +337,8 @@ export function build(c) {
   }
 
   // ---------------------------------------------------------------- people and the things they want found
-  add.npc({ id: 'fields_katie', x: 138, z: 147, model: 'mortal:tourist', yaw: Math.PI / 2 });
-  add.npc({ id: 'fields_travis', x: 189, z: 182, model: 'mortal:student', yaw: -Math.PI / 2 });
+  add.npc({ id: 'fields_katie', x: 138, z: 147, model: 'npc:fields_katie', yaw: Math.PI / 2 });
+  add.npc({ id: 'fields_travis', x: 189, z: 182, model: 'npc:fields_travis', yaw: -Math.PI / 2 });
   // Katie's seed packets, blown all over the farm
   for (const [i, x, z] of [[1, 163, 185], [2, 147, 200], [3, 186, 150], [4, 207, 208], [5, 230, 133]]) add.item({ id: 'fields_seed_' + i, quest: 'fields_seed_packets', x, z });
   // the Stolls' stash, hidden in odd places
@@ -352,6 +353,32 @@ export function build(c) {
   c.road([[200, 170], [214, 160], [224, 147]], B.dirt_path, 2);
   c.road([[138, 158], [138, 168], [150, 178]], B.dirt_path, 2);
   c.road([[178, 160], [180, 168]], B.dirt_path, 2);
+
+  // ---------------------------------------------------------------- lit stone posts along the lanes, sunflowers, lavender
+  {
+    const lane = new Set([B.dirt_road, B.dirt_path, B.gravel_path, B.cobble]);
+    const post = (x, z, lit) => {
+      for (const [dx, dz] of [[0, 0], [1, 0], [0, 1], [-1, 0], [0, -1]]) {
+        const px = x + dx, pz = z + dz, y = ground(px, pz);
+        if (!inRegion(px, pz) || !isFinite(y) || W.get(px, y, pz) || lane.has(W.get(px, y - 1, pz)) || W.get(px, y - 1, pz) === B.water) continue;
+        set(px, y, pz, B.stone_brick); deco.prop('torch', px + 0.5, y + 1, pz + 0.5);
+        if (lit) light(px, y + 1.9, pz, 0xffa848, 2.5, 7);
+        return;
+      }
+    };
+    [[175, 168], [187, 174], [197, 168], [183, 160], [188, 150], [168, 178], [167, 192], [165, 208], [203, 176], [211, 162], [220, 152], [141, 162], [146, 172], [176, 164]].forEach(([x, z], i) => post(x, z, i % 2 === 0));
+    // a patch of tall sunflowers and rows of lavender, as on the sheet
+    for (let z = 200; z <= 212; z++) for (let x = 151; x <= 162; x++) {
+      const y = ground(x, z); if (!isFinite(y) || W.get(x, y, z) || W.get(x, y - 1, z) !== B.grass || !k.chance(0.55)) continue;
+      deco.add('tall_grass', x + 0.5, y, z + 0.5, { scale: 1.4, sway: 0.5 }); deco.add('em_apollo', x + 0.5, y + 1.0, z + 0.5, { scale: 0.75, sway: 0.4 });
+    }
+    no(150, 199, 163, 213);
+    for (let z = 159; z <= 162; z++) for (let x = 119; x <= 134; x++) {
+      const y = ground(x, z); if (!isFinite(y) || W.get(x, y, z) || (z === 160 || z === 161 ? false : true)) continue;
+      setTop(x, z, B.farm_soil); deco.add('flower_blue', x + 0.5, y, z + 0.5, { scale: 1.2, sway: 0.8 }); deco.add('flower_blue', x + 0.2, y, z + 0.8, { scale: 1, sway: 0.8 });
+    }
+    no(118, 158, 135, 163);
+  }
 
   // ---------------------------------------------------------------- hedgerow trees, haystacks, ground cover
   const kept = (x, z, m = 2) => keep.some(([x0, z0, x1, z1]) => x >= x0 - m && x <= x1 + m && z >= z0 - m && z <= z1 + m);

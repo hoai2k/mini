@@ -18,28 +18,29 @@ export const ROAD_Z = 44;   // the highway's middle (seven wide)
 export const RAIL_Z = 66;   // the railway's middle
 
 // Each stretch of the road, east to west. level: monster levels; kinds:
-// roaming monsters as [kind, weight]; safe: no roaming monsters. ride: a
+// roaming monsters as [kind, weight] (mostly fodder, in hordes: as in
+// world/owLayout.js); fodder: the crowd round a monster camp; safe: no roaming monsters. ride: a
 // stretch you can't cross on foot, only on the train or the truck (from a
 // station or stop at each end); drive: one you cross in the car.
 export const RT_REGIONS = [
   { id: 'rt_turnpike', x: [1260, 1440], level: [3, 4], biome: 'rt_turnpike',
-    kinds: [['harpy', 2], ['pup', 3], ['hellhound', 1], ['fury', 1]] },
+    kinds: [['pup', 4], ['rat', 3], ['harpy', 1.5], ['hellhound', 0.4], ['fury', 0.3]], fodder: ['pup', 'pup', 'rat'] },
   { id: 'rt_auntyem', x: [1108, 1260], level: [4, 5], biome: 'rt_auntyem',
-    kinds: [['gorgon_statue', 2], ['pup', 2], ['spider', 2], ['dracaena', 1]] },
+    kinds: [['karpos', 6], ['pup', 1.5], ['serpent', 1], ['gorgon_statue', 0.8], ['dracaena', 0.3]], fodder: ['karpos', 'karpos', 'karpos', 'pup'] },
   { id: 'rt_river', x: [972, 1108], level: [5, 5], biome: 'rt_river', safe: true, ride: 'train' },
   { id: 'rt_stlouis', x: [818, 972], level: [5, 6], biome: 'rt_stlouis',
-    kinds: [['spider', 3], ['skeleton', 2], ['stymphalian', 2], ['empousa', 1]] },
+    kinds: [['spider', 3], ['myrmex', 3], ['rat', 1.5], ['stymphalian', 1.5], ['skeleton', 0.5], ['empousa', 0.4]], fodder: ['spider', 'myrmex', 'rat'] },
   { id: 'rt_plains', x: [690, 818], level: [6, 6], biome: 'rt_plains', safe: true, ride: 'train' },
   { id: 'rt_denver', x: [556, 690], level: [6, 7], biome: 'rt_denver',
-    kinds: [['skeleton', 2], ['hellhound', 2], ['spider', 2], ['stymphalian', 1]] },
+    kinds: [['spartoi', 5], ['pup', 2], ['stymphalian', 1], ['hellhound', 0.6], ['skeleton', 0.6]], fodder: ['spartoi', 'spartoi', 'pup'] },
   { id: 'rt_rockies', x: [436, 556], level: [7, 7], biome: 'rt_rockies', safe: true, ride: 'truck' },
   { id: 'rt_vegas', x: [318, 436], level: [7, 8], biome: 'rt_vegas',
-    kinds: [['empousa', 2], ['skeleton', 2], ['harpy', 2], ['scorpion', 1]] },
+    kinds: [['spartoi', 5], ['myrmex', 2], ['harpy', 1.2], ['empousa', 0.7], ['scorpion', 0.6]], fodder: ['spartoi', 'spartoi', 'myrmex'] },
   { id: 'rt_desert', x: [204, 318], level: [8, 9], biome: 'rt_desert', safe: true, drive: true },
   { id: 'rt_la', x: [70, 204], level: [9, 10], biome: 'rt_la',
-    kinds: [['skeleton', 3], ['ghost', 2], ['hellhound', 2], ['fury', 1]] },
+    kinds: [['shade', 6], ['spartoi', 2], ['ghost', 1.6], ['skeleton', 0.5], ['hellhound', 0.4], ['fury', 0.3]], fodder: ['shade', 'shade', 'spartoi'] },
   { id: 'rt_santamonica', x: [0, 70], level: [11, 12], biome: 'rt_santamonica',
-    kinds: [['harpy', 2], ['skeleton', 2], ['ghost', 1]] },
+    kinds: [['crab', 6], ['shade', 2], ['harpy', 1.5], ['skeleton', 0.6], ['ghost', 0.6]], fodder: ['crab', 'crab', 'shade'] },
 ].map((r) => ({ ...r, rects: [[r.x[0], 0, r.x[1], RT_WORLD.sz]] }));
 export const RT_REGION = Object.fromEntries(RT_REGIONS.map((r) => [r.id, r]));
 

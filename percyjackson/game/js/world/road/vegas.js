@@ -286,7 +286,7 @@ export function build(ctx) {
   add.waystone('rt_taxirank', 334, ROAD_Z + 9);
 
   // ------------------------------------------------------------ Sal the valet and his lost key tags
-  add.npc({ id: 'rt_vegas_valet', x: 383, z: 36, model: 'mortal:bellhop', yaw: 0 });
+  add.npc({ id: 'rt_vegas_valet', x: 383, z: 36, model: 'npc:rt_vegas_valet', yaw: 0 });
   for (const [i, x, z, y] of [[1, 335, 24], [2, 356, 59, FY], [3, 388, 63], [4, 426, 12]]) add.item({ id: `rt_vegas_key${i}`, quest: 'rt_vegas_valet_keys', x, z, y });
 }
 

@@ -49,6 +49,7 @@ import { buildMortal, MORTAL_IDS } from '../js/entities/mortals.js';
 import { BOSS_DEFS, BOSS_IDS } from '../js/entities/bosses.js';
 import { buildPerson, PEOPLE_IDS } from '../js/entities/people.js';
 import { rigOffsets } from '../js/entities/parts.js';
+import { CHAMPION_SHOWCASE, buildShowcase } from '../js/entities/champions.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 const q = new URLSearchParams(location.search);
 const renderer = new THREE.WebGPURenderer({ antialias: true });
@@ -66,6 +67,7 @@ const SETS = {
   monsters: { ids: MONSTER_IDS, build: (id) => buildMonsterModel(MONSTERS[id].model) },
   mortals: { ids: MORTAL_IDS, build: (id) => buildMortal(id) },
   bosses: { ids: BOSS_IDS, build: (id) => BOSS_DEFS[id].build() },
+  champions: { ids: CHAMPION_SHOWCASE, build: (id) => buildShowcase(id) },
   people: { ids: PEOPLE_IDS, build: (id) => buildPerson(id) },
 };
 let set = SETS[q.get('set')] ? q.get('set') : 'heroes';

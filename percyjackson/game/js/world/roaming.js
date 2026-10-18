@@ -1,6 +1,7 @@
-// Roaming monsters: small packs of low-level monsters that turn up as you walk
-// around, out of sight and never right on top of the heroes (the Minecraft
-// Dungeons feel). Two places use it:
+// Roaming monsters: packs of low-level monsters (out in the open world, hordes
+// of fodder: world/roamZones.js hordeFor) that turn up as you walk around,
+// out of sight and never right on top of the heroes (the Minecraft Dungeons
+// feel). Two places use it:
 //   city  the prologue's Manhattan (a training board): sewer rats that hang
 //         around the trash from the start (nests from world/manhattan.js,
 //         entities/ratRules.js); now and then one dashes at the lead hero,
@@ -14,7 +15,7 @@
 // drachmas and XP (main.js onEnemyKilled).
 import * as THREE from 'three/webgpu';
 import { standY } from '../ui/tracker.js';
-import { CAMP_CORE, CAMP_ROAM, ROAM_RULES, inAny, inRect, rectCenter, pickKind, packFor, spawnAllowed, rect } from './roamZones.js';
+import { CAMP_CORE, CAMP_ROAM, ROAM_RULES, inAny, inRect, rectCenter, pickKind, packFor, hordeFor, isFodder, spawnAllowed, rect } from './roamZones.js';
 import { CAMP_AT, OW_LAYOUT } from './owLayout.js';
 import { RAT, pickDasher, beatAt } from '../entities/ratRules.js';
 import { lineOfSight } from '../entities/enemy.js';
@@ -37,14 +38,19 @@ export class Roaming {
   // and every region outside it has monsters of its own kinds and level.
   configureCamp() {
     this.kind = 'camp'; this.list = []; this.t = 6;
-    const L = this.game.level, ow = !!L?.openWorld, ox = ow ? CAMP_AT.x : 0, oz = ow ? CAMP_AT.z : 0;
+    const L = this.game.level, ow = !!(L?.openWorld || L?.roadTrip), ox = ow ? CAMP_AT.x : 0, oz = ow ? CAMP_AT.z : 0;
     const mv = (r) => rect(r.x0 + ox, r.z0 + oz, r.x1 + ox, r.z1 + oz);
-    this.ow = ow; this.lay = L?.layout ?? OW_LAYOUT;
+    this.ow = ow; this.lay = L?.layout ?? OW_LAYOUT;   // (ow: the open world or the Road West, both laid out in regions)
     // (the road trip has no camp in it: its safe spots are its own safe regions)
     if (L?.roadTrip) { this.core = []; this.roam = []; return; }
     this.core = CAMP_CORE.map(mv); this.roam = CAMP_ROAM.map((a) => ({ ...a, area: mv(a.area) }));
   }
-  get cap() { return this.kind === 'city' ? ROAM_RULES.capCity : this.ow ? ROAM_RULES.capOpen : ROAM_RULES.capCamp; }
+  // the open world's regions and the Road West take a crowd; the camp's woods a few
+  get cap() {
+    if (this.kind === 'city') return ROAM_RULES.capCity;
+    const l = this.ow && this.lead(), r = l && this.lay.regionAt(l.pos.x, l.pos.z);
+    return r && !r.safe && r.kinds ? ROAM_RULES.capOpen : ROAM_RULES.capCamp;
+  }
   // the roam area at a spot: a camp zone, or (open world) the region outside camp
   areaAt(x, z) {
     if (inAny(this.core, x, z)) return null;
@@ -148,17 +154,27 @@ export class Roaming {
       if (y == null || g.world.liquidAt(x, y + 0.2, z) || g.world.liquidAt(x, y - 0.5, z)) continue;
       if (this.onScreen(tmp.set(x, y + 0.5, z))) continue;
       const area = this.areaAt(x, z);
-      const kind = pickKind(area.kinds, Math.random());
-      let { count, level } = packFor(chapters, kind, Math.random());
-      if (area.region) { level = this.lay.levelAt(area.region, x, z, Math.random()); if (level >= 6 && count < 4 && kind !== 'cyclops') count++; }
-      // a little group milling about, with one posted a few metres toward the
+      // camp's woods and roads: a small pack (packFor); out in the open
+      // world's regions and on the Road West: a horde of fodder, now and
+      // then round a tougher one (hordeFor)
+      let kinds, level;
+      if (area.region) {
+        kinds = hordeFor(area.kinds, Math.random, { room: this.cap - this.live().length });
+        level = this.lay.levelAt(area.region, x, z, Math.random());
+      } else {
+        const kind = pickKind(area.kinds, Math.random()), p = packFor(chapters, kind, Math.random());
+        kinds = Array(p.count).fill(kind); level = p.level;
+      }
+      const count = kinds.length, spread = 3 + Math.sqrt(count) * 1.4;
+      // a group milling about, with one posted a few metres toward the
       // hero as a scout (entities/packRules.js): it sees you first and runs back
       let made = 0;
       const pack = new Pack(new THREE.Vector3(x, y, z));
       const toH = tmp.set(h.pos.x - x, 0, h.pos.z - z); const hd = toH.length(); if (hd > 0.01) toH.multiplyScalar(1 / hd);
+      const scoutAt = count >= 3 ? Math.max(0, kinds.findIndex((k) => isFodder(k))) : -1;
       for (let i = 0; i < count; i++) {
-        const scout = i === 0 && count >= 3;
-        const px = scout ? x + toH.x * 6 + (Math.random() - 0.5) * 2 : x + (Math.random() - 0.5) * 3, pz = scout ? z + toH.z * 6 + (Math.random() - 0.5) * 2 : z + (Math.random() - 0.5) * 3;
+        const kind = kinds[i], scout = i === scoutAt;
+        const px = scout ? x + toH.x * 6 + (Math.random() - 0.5) * 2 : x + (Math.random() - 0.5) * spread, pz = scout ? z + toH.z * 6 + (Math.random() - 0.5) * 2 : z + (Math.random() - 0.5) * spread;
         const py = standY(g.world, Math.floor(px), Math.floor(pz));
         if (py == null || Math.abs(py - y) > 1.5 || !spawnAllowed(px, pz, pts, { core: this.core, roam: null }) || !this.areaAt(px, pz)) continue;
         const e = g.spawnEnemy(kind, new THREE.Vector3(px, py, pz), { level });

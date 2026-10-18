@@ -14,6 +14,7 @@ const MUSIC_FILES = { title: 'title', hub: 'camp', camp: 'camp', museum: 'museum
 // Ambiences with a recorded bed under assets/ambience/ (replacing the synthesised chirps).
 const AMB_FILES = { forest: 'crickets', night: 'crickets' };
 
+const FODDER_VOICES = new Set(['rustle', 'chitter', 'clack', 'wail']);
 export class Audio {
   constructor() {
     this.ctx = null; this.started = false;
@@ -127,9 +128,30 @@ export class Audio {
   }
   // monster voices by the bestiary's voice names
   voiceSample(kind, pitch = 1) {
+    if (FODDER_VOICES.has(kind)) { this.fodderVoice(kind, pitch); return true; }   // (synth only: the swarm fodder of entities/fodder.js)
     const id = { bark: 'bark', screech: 'screech', hiss: 'hiss', click: 'click', roar: 'roar', bull: 'roar', rattle: 'rattle', moan: 'moan', grind: 'grind' }[kind];
     if (!id || this.throttle('voice-' + id, 260)) return !!id;
     return this.sample(id, { gain: 0.7, rate: Math.max(0.6, Math.min(1.5, pitch)) });
+  }
+  // the swarm fodder's cries (entities/fodder.js), throttled per kind: a horde is a murmur, not a wall of noise
+  fodderVoice(kind, pitch = 1) {
+    if (!this.started || this.throttle('fv-' + kind, 180)) return;
+    const p = pitch, j = 0.9 + Math.random() * 0.2;
+    switch (kind) {
+      case 'rustle': this.noise({ dur: 0.14, gain: 0.1, type: 'bandpass', freq: 3200 * j, q: 1.5 }); this.tone({ freq: 1300 * p * j, to: 1900 * p * j, dur: 0.08, gain: 0.03, type: 'triangle', filter: 4000, at: 0.05 }); break;
+      case 'chitter': for (let i = 0; i < 3; i++) this.tone({ freq: (1800 + i * 300) * p * j, dur: 0.02, gain: 0.04, type: 'square', filter: 5000, at: i * 0.035 }); this.noise({ dur: 0.08, gain: 0.05, type: 'highpass', freq: 4000 }); break;
+      case 'clack': this.noise({ dur: 0.03, gain: 0.16, type: 'bandpass', freq: 2400 * j, q: 4 }); this.noise({ dur: 0.03, gain: 0.14, type: 'bandpass', freq: 2100 * j, q: 4, at: 0.08 }); this.tone({ freq: 220 * p, to: 160 * p, dur: 0.06, gain: 0.04, type: 'square', filter: 900 }); break;
+      case 'wail': this.tone({ freq: 430 * p * j, to: 300 * p * j, dur: 0.7, gain: 0.035, type: 'sine', filter: 1500, rev: 0.8 }); this.tone({ freq: 437 * p * j, to: 296 * p * j, dur: 0.7, gain: 0.025, type: 'triangle', filter: 1100, rev: 0.8, at: 0.04 }); break;
+    }
+  }
+  // the bits a fodder monster bursts into, as it goes (on top of enemyDie's dust)
+  fodderDie(kind) {
+    if (!this.started || this.throttle('fd-' + kind, 70)) return;
+    const j = 0.85 + Math.random() * 0.3;
+    if (kind === 'karpos') this.noise({ dur: 0.18, gain: 0.16, type: 'highpass', freq: 2600 * j, sweep: 5000 });
+    else if (kind === 'crab') { this.noise({ dur: 0.05, gain: 0.2, type: 'bandpass', freq: 1800 * j, q: 3 }); this.noise({ dur: 0.2, gain: 0.06, type: 'lowpass', freq: 900, at: 0.04, rev: 0.2 }); }
+    else if (kind === 'shade') this.tone({ freq: 520 * j, to: 900 * j, dur: 0.45, gain: 0.04, type: 'sine', rev: 0.8 });
+    else { this.noise({ dur: 0.06, gain: 0.16, type: 'bandpass', freq: 2800 * j, q: 2.5 }); if (kind === 'myrmex_acid') this.noise({ dur: 0.3, gain: 0.08, type: 'highpass', freq: 3000, at: 0.04 }); }
   }
   ui(kind) {
     if (!this.started) return;

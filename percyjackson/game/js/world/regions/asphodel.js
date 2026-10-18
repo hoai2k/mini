@@ -41,13 +41,15 @@ export const terrain = {
   surface: (x, z, h, n) => {
     if (h >= 9) return n.value(x * 0.3, z * 0.3) > 0.45 ? B.underworld_rock : B.rock;
     if (h >= 5 && n.value(x * 0.25, z * 0.25) > 0.6) return B.rock;
-    return n.value(x * 0.15, z * 0.15) > 0.74 ? B.rock : B.asphodel;
+    const v = n.value(x * 0.15, z * 0.15);
+    if (v > 0.78) return B.underworld_rock;
+    return n.value(x * 0.11 + 31, z * 0.11) < 0.45 ? B.obsidian : B.asphodel;   // dark ash earth in drifts between the pale grey fields
   },
 };
 
 export function build(c) {
   const __t0 = performance.now();   // TEMP timing
-  const { W, k, deco, add, rand, bounds: b, trees, scatter, level, inRegion, top, FY } = c;
+  const { W, k, deco, add, rand, bounds: b, trees, scatter, level, inRegion, top, FY, n } = c;
   const G = (x, z) => top(x, z);
   const keep = [];      // footprints the trees stay out of
   const kept = (x, z, m = 2) => keep.some(([a, bb, cc, d]) => x >= a - m && x <= cc + m && z >= bb - m && z <= d + m);
@@ -104,7 +106,7 @@ export function build(c) {
     for (let i = 0; i < 9; i++) shade(Math.round(bank - 9 - i * 1.3), Math.round(357 - i * 1.4), 0.6 + (rand() - 0.5) * 0.4);
     add.chest({ id: 'asphodel_chest_jetty', x: x1, z: 361, rarity: 'common' });
     add.landmark({ id: 'asphodel_landing', x: bank - 3, z: 361 });
-    add.npc({ id: 'asphodel_charon', x: bank - 6, z: 357, model: 'mortal:salesman', yaw: -Math.PI / 2 });
+    add.npc({ id: 'asphodel_charon', x: bank - 6, z: 357, model: 'npc:asphodel_charon', yaw: -Math.PI / 2 });
     keep.push([bank - 20, 340, x1 + 2, 368]);
   }
 
@@ -219,12 +221,21 @@ export function build(c) {
     for (const tx of [gx0 - 6, gx1 + 2]) {
       for (let x = tx; x < tx + 5; x++) for (let z = 355; z <= 361; z++) for (let y = FY - 3; y < FY + 13; y++) W.set(x, y, z, y >= FY + 11 || (y - FY) % 5 === 4 ? B.black_marble : B.obsidian);
       for (let x = tx; x < tx + 5; x += 2) W.set(x, FY + 13, 361, B.black_marble);
-      W.set(tx + 2, FY + 13, 358, B.neon_green); W.addLight(tx + 2.5, FY + 15, 358.5, 0x3aff7a, 5, 18);
       deco.add('skull', tx + 2.5, FY + 8, 362.02, { mode: 'wall', facing: [0, 1], scale: 2.2 });
+      // a great black hound's head crowns each tower, its eyes burning (Cerberus's kin keep the gate)
+      const hy = FY + 13;
+      W.fill(tx, hy, 356, tx + 4, hy + 3, 360, B.black_marble);
+      W.fill(tx + 1, hy, 361, tx + 3, hy + 1, 362, B.black_marble); W.fill(tx + 2, hy + 1, 363, tx + 2, hy + 1, 363, B.obsidian);   // the muzzle, the nose
+      W.fill(tx + 1, hy - 1, 362, tx + 3, hy - 1, 362, B.bone_block);                                                                  // fangs under the jaw
+      for (const ex of [tx, tx + 4]) { W.fill(ex, hy + 4, 357, ex, hy + 5, 358, B.obsidian); W.set(ex, hy + 6, 357, B.obsidian); }    // ears
+      for (const ex of [tx + 1, tx + 3]) W.set(ex, hy + 2, 361, B.lantern);                                                            // eyes
+      W.fill(tx + 1, hy + 2, 360, tx + 3, hy + 2, 360, B.black_marble);
+      W.addLight(tx + 2.5, hy + 2.5, 362.5, 0xff7a30, 5, 14);
+      for (const fx of [tx, tx + 4]) deco.prop('fire', fx + 0.5, W.get(fx, FY + 13, 361) ? FY + 14 : FY + 13, 361.5, { scale: 0.8 });
     }
     // the forecourt, paved in black, with green fire either side of the gate
     pave(368, 362, 398, 372, B.black_marble, 0.85);
-    brazier(gx0 - 1, 363); brazier(gx1 + 1, 363);
+    for (const x of [gx0 - 1, gx1 + 1]) { deco.prop('brazier', x + 0.5, G(x, 363), 363.5); W.addLight(x + 0.5, G(x, 363) + 1.6, 363.5, 0xff8a3a, 4, 10); }
     for (let i = 0; i < 6; i++) shade(374 + i * 3, 365 + (i % 2), Math.PI + (rand() - 0.5) * 0.6);
     // Cerberus's collar: a huge red leather ring with gold spikes, lying empty
     const [cx, cz] = [370, 377], cy = G(cx, cz);
@@ -280,7 +291,7 @@ export function build(c) {
     for (const x of [cx - 2, cx + 2]) deco.add('skull', x + 0.5, y0 + 1, z0 + 2.02, { mode: 'wall', facing: [0, 1], scale: 0.9 });
     add.shrine({ id: 'asphodel_hades', x: cx, z: cz + 2, waves: [['ghost', 'ghost', 'skeleton'], ['skeleton', 'skeleton', 'hellhound', 'ghost'], ['fury', 'hellhound', 'skeleton', 'ghost', 'empousa'], ['fury', 'fury', 'hellhound', 'skeleton', 'skeleton', 'empousa']] });
     add.chest({ id: 'asphodel_chest_shrine', x: cx + 1, z: z0 - 2, rarity: 'common' });
-    for (const [x, z] of [[x0 - 2, z0 - 1], [x1 + 2, z0 - 1], [x0 - 3, z0 + 4], [x1 + 3, z0 + 4]]) trees.pine(x, z, { trunk: B.bark_dark, leaves: B.poplar_leaves, h: 10 + Math.floor(rand() * 3), R: 1.5 });
+    for (const [x, z] of [[x0 - 2, z0 - 1], [x1 + 2, z0 - 1], [x0 - 3, z0 + 4], [x1 + 3, z0 + 4]]) trees.pine(x, z, { trunk: B.bark_dark, leaves: B.pine_leaves, h: 12 + Math.floor(rand() * 3), R: 1.3 });
     keep.push([x0 - 4, z0 - 4, x1 + 4, z1 + 3]);
   }
 
@@ -316,7 +327,7 @@ export function build(c) {
     add.chest({ id: 'asphodel_chest_summit', x: hx - 1, z: hz + 1, rarity: 'rare' });
     // the boulder, halfway up the rut, and its eternal pusher
     trees.boulder(215, 367, 2.1, B.cobble);
-    add.npc({ id: 'asphodel_sisyphus', x: 219, z: 364, model: 'mortal:farmer', yaw: Math.atan2(-4, 3) });
+    add.npc({ id: 'asphodel_sisyphus', x: 219, z: 364, model: 'npc:asphodel_sisyphus', yaw: Math.atan2(-4, 3) });
     add.landmark({ id: 'asphodel_sisyphus', x: hx, z: hz });
     // his camp at the foot: a lean-to and a pile of worn-out sandals
     const lx = 232, lz = 366, ly = G(lx, lz);
@@ -357,6 +368,7 @@ export function build(c) {
   const fares = [[300, 352], [303, 384], [283, 390], [268, 344], [330, 338]];
   fares.forEach(([x, z], i) => add.item({ id: `asphodel_fare_${i}`, quest: 'asphodel_charon_fares', x, z }));
   [[188, 392], [236, 384], [176, 364]].forEach(([x, z], i) => add.item({ id: `asphodel_wedge_${i}`, quest: 'asphodel_sisyphus_wedges', x, z }));
+  for (const [x, z] of [...fares, [188, 392], [236, 384], [176, 364], [296, 334], [360, 372], [346, 340], [229, 357]]) keep.push([x - 1, z - 1, x + 1, z + 1]);   // nothing grows on the pick-ups or the waystones
 
   // ------------------------------------------------------------ the shades wandering the meadows
   for (let i = 0; i < 26; i++) {
@@ -368,13 +380,13 @@ export function build(c) {
   for (const [x, z] of [[266, 336], [282, 346], [318, 334], [345, 330], [236, 350], [256, 340]]) if (level(x, z, 1, 1, 0)) brazier(x, z);
 
   // ------------------------------------------------------------ black poplars
-  const poplar = (x, z) => trees.pine(x, z, { trunk: B.bark_dark, leaves: B.poplar_leaves, h: 9 + Math.floor(rand() * 5), R: 1.3 + rand() * 0.6 });
+  const poplar = (x, z) => trees.pine(x, z, { trunk: B.bark_dark, leaves: rand() < 0.8 ? B.pine_leaves : B.obsidian, h: 11 + Math.floor(rand() * 6), R: 1.1 + rand() * 0.5 });
   const roadIds = new Set([B.basalt, B.gravel_path, B.dirt_path, B.black_marble, B.stone_brick]);
   const canPlant = (x, z) => inRegion(x, z) && !kept(x, z) && level(x, z, 3, 3, 1) && !roadIds.has(W.get(x, G(x, z) - 1, z)) && riverDist(x, z) > 5;
   // the grove round the mausoleum
   for (let i = 0; i < 260; i++) { const x = 172 + Math.floor(rand() * 76), z = 332 + Math.floor(rand() * 30); if (canPlant(x, z)) poplar(x, z); }
   // lines of them along the Styx, and a scatter over the plains
-  for (let i = 0; i < 420; i++) {
+  for (let i = 0; i < 520; i++) {
     const x = b.x0 + 3 + Math.floor(rand() * (b.x1 - b.x0 - 6)), z = b.z0 + 3 + Math.floor(rand() * (b.z1 - b.z0 - 6));
     const r = riverDist(x, z), p = r < 9 ? 0.7 : 0.22;
     if (rand() < p && canPlant(x, z)) poplar(x, z);
@@ -383,7 +395,46 @@ export function build(c) {
   for (let i = 0; i < 14; i++) { const x = b.x0 + Math.floor(rand() * (b.x1 - b.x0)), z = b.z0 + Math.floor(rand() * (b.z1 - b.z0)); if (canPlant(x, z)) trees.boulder(x, z, 1 + rand() * 0.8, rand() < 0.5 ? B.underworld_rock : B.basalt); }
 
   // ------------------------------------------------------------ ground cover
-  scatter([B.asphodel], ['asphodel', 'asphodel', 'asphodel', 'dry_grass', 'skull', 'dry_grass', 'bone'], 0.11);
+  // twisted dead trees standing bare among the poplars
+  const deadTree = (x, z) => {
+    const y = G(x, z), h = 5 + Math.floor(rand() * 3), s = rand() < 0.5 ? 1 : -1;
+    for (let i = 0; i < h; i++) W.set(x, y + i, z, B.bark_dark);
+    // crooked branches climbing as they reach out, one bent over at the top
+    for (const [dx, dz, up] of [[s, 0, h - 3], [-s, 0, h - 1], [0, s, h - 2]]) {
+      W.set(x + dx, y + up, z + dz, B.bark_dark); W.set(x + dx * 2, y + up + 1, z + dz * 2, B.bark_dark); W.set(x + dx * 2, y + up + 2, z + dz * 2, B.bark_dark);
+    }
+    W.set(x, y + h, z + s, B.bark_dark);
+  };
+  for (let i = 0, placed = 0; i < 200 && placed < 34; i++) { const x = b.x0 + 3 + Math.floor(rand() * (b.x1 - b.x0 - 6)), z = b.z0 + 3 + Math.floor(rand() * (b.z1 - b.z0 - 6)); if (canPlant(x, z)) { deadTree(x, z); placed++; } }
+  // the ruins of older kingdoms of the dead: broken black pillars, a lone arch here and there
+  for (let i = 0, placed = 0; i < 220 && placed < 30; i++) {
+    const x = b.x0 + 3 + Math.floor(rand() * (b.x1 - b.x0 - 6)), z = b.z0 + 3 + Math.floor(rand() * (b.z1 - b.z0 - 6));
+    if (!canPlant(x, z)) continue;
+    const y = G(x, z);
+    if (placed % 6 === 5 && level(x, z, 5, 1, 0) && canPlant(x + 2, z) && canPlant(x - 2, z)) {   // an arch over nothing
+      for (const dx of [-2, 2]) for (let i2 = 0; i2 < 4; i2++) W.set(x + dx, y + i2, z, i2 === 3 ? B.black_marble : B.dark_brick);
+      for (let dx = -1; dx <= 1; dx++) W.set(x + dx, y + 4, z, B.dark_brick); W.set(x - 2, y + 4, z, B.dark_brick);
+    } else {
+      const hh = 1 + Math.floor(rand() * 4);
+      for (let i2 = 0; i2 < hh; i2++) W.set(x, y + i2, z, rand() < 0.35 ? B.underworld_rock : B.dark_brick);
+      if (rand() < 0.5) W.set(x + (rand() < 0.5 ? 1 : -1), y, z, B.dark_brick);   // a fallen drum
+    }
+    placed++;
+  }
+  // green lanterns on posts down to Charon's jetty
+  for (const [x, z] of [[302, 349], [306, 354], [309, 357], [309, 365]]) if (level(x, z, 1, 1, 1)) { const y = G(x, z); for (let i = 0; i < 3; i++) W.set(x, y + i, z, B.dark_planks); W.set(x, y + 3, z, B.neon_green); }
+  // the pale asphodel itself: drifts of white flowers, faintly aglow in the dusk
+  for (let z = b.z0 + 1; z < b.z1 - 1; z++) for (let x = b.x0 + 1; x < b.x1 - 1; x++) {
+    const v = n.value(x * 0.21 + 5, z * 0.21);
+    if (v < 0.45 || rand() > (v - 0.45) * 1.6) continue;
+    const y = G(x, z);
+    const gb = isFinite(y) ? W.get(x, y - 1, z) : 0;
+    if ((gb !== B.asphodel && gb !== B.obsidian) || W.get(x, y, z)) continue;
+    deco.add('asphodel', x + 0.2 + rand() * 0.6, y, z + 0.2 + rand() * 0.6, { scale: 1.05 + rand() * 0.55, sway: 0.6, emit: 0.35 });
+    if (v > 0.62) deco.add('asphodel', x + 0.1 + rand() * 0.8, y, z + 0.1 + rand() * 0.8, { scale: 0.8 + rand() * 0.4, sway: 0.6, emit: 0.35 });
+  }
+  scatter([B.asphodel], ['asphodel', 'dry_grass', 'skull', 'dry_grass', 'bone'], 0.06);
+  scatter([B.obsidian], ['dry_grass', 'dry_grass', 'bone', 'asphodel'], 0.05);
   scatter([B.underworld_rock, B.rock], ['dry_grass', 'bone', 'skull'], 0.04);
   console.log('openworld asphodel build ms', Math.round(performance.now() - __t0));   // TEMP timing
 }

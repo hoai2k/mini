@@ -139,7 +139,7 @@ export function build(c) {
     for (let i = 0; i < 4; i++) fill(kx0 - 1 + i, ky + 4 + i, kz0 - 1, kx1 + 1 - i, ky + 4 + i, kz1 + 1, B.barn_red);
     W.addRoof([kx0 - 1, ky + 4, kz0 - 1], [kx1 + 1, ky + 8, kz1 + 1], [[kx0, ky, kz0], [kx1, ky + 3, kz1]]);
     prop('signpost', 109, top(109, 26), 26);
-    add.npc({ id: 'shore_lee', x: 108, z: 27, model: 'mortal:student', yaw: Math.PI });
+    add.npc({ id: 'shore_lee', x: 108, z: 27, model: 'npc:shore_lee', yaw: Math.PI });
   }
 
   // ------------------------------------------------------------ the wreck of the trireme
@@ -154,7 +154,7 @@ export function build(c) {
         // the keel and the floor of the hold
         put(x, FY - 3, z, B.dark_planks); put(x, FY - 2, z, Math.abs(dz) >= w - 1 ? B.dark_planks : B.sand);
         for (let y = FY - 1; y <= deckY; y++) put(x, y, z, edge ? ((y + x) % 3 ? B.dark_planks : B.old_plank) : 0);
-        put(x, deckY + 1, z, edge ? B.red_plank : 0);
+        put(x, deckY + 1, z, edge ? ((x & 3) ? B.dark_planks : B.old_plank) : 0);
       }
     }
     // the bronze ram at the bow (east, on the sand), a carved eye, the curled stern post
@@ -162,13 +162,15 @@ export function build(c) {
     fill(x0, deckY + 1, zc, x0, deckY + 4, zc, B.dark_planks); put(x0 + 1, deckY + 4, zc, B.dark_planks);
     // a hole in the hull on the beach side: the way into the hold (the chest is down there)
     for (let x = 45; x <= 47; x++) { fill(x, FY - 1, zc + half(x), x, FY + 1, zc + half(x), 0); put(x, FY - 2, zc + half(x), B.sand); }
+    for (const [x, z, h] of [[27, zc - 2, 2], [26, zc + 1, 1], [58, zc - 2, 2], [60, zc + 1, 1], [35, zc - 5, 1], [49, zc - 5, 2], [44, zc - 6, 1]]) if (!W.get(x, FY, z)) for (let y = FY - 3; y < FY + h; y++) put(x, y, z, y >= FY && (x + y) % 2 ? B.sea_stone : B.rock);
     add.chest({ id: 'shore_c_wreck', x: 38, z: zc, rarity: 'rare' });
     add.item({ id: 'shore_lens_wreck', quest: 'shore_light', x: 50, z: zc - 1 });
     // the deck, with broken boards
     for (let x = x0 + 1; x < x1; x++) { const w = half(x) - 1; for (let dz = -w; dz <= w; dz++) if (!((x === 50 || x === 51) && dz <= 0) && !(x === 33 && dz === 1)) put(x, deckY, zc + dz, (x + dz) % 4 ? B.planks : B.old_plank); }
     // a snapped mast, a torn sail, oars over the side, a rope ladder (stacked crates) up from the beach
     fill(41, deckY + 1, zc, 41, deckY + 8, zc, B.pine_log); fill(39, deckY + 7, zc, 44, deckY + 7, zc, B.log);
-    for (let y = deckY + 3; y <= deckY + 6; y++) for (let x = 40; x <= 43; x++) if ((x + y) % 5) put(x, y, zc + 1, (y + x) % 3 ? B.white_trim : B.barn_red);
+    for (let y = deckY + 2; y <= deckY + 6; y++) for (let x = 38; x <= 45; x++) if (x !== 41 && !(y === deckY + 2 && (x === 38 || x === 45)) && (x + y * 3) % 11) put(x, y, zc + 1, (x >> 1) & 1 ? B.white_trim : B.barn_red);
+    put(42, deckY + 9, zc, B.pine_log); put(42, deckY + 10, zc, B.barn_red);
     for (let x = 32; x <= 52; x += 4) { put(x, deckY - 1, zc - half(x) - 1, B.log); put(x, deckY - 2, zc - half(x) - 2, B.log); put(x + 1, deckY - 1, zc + half(x + 1) + 1, B.log); }
     // crates stacked up the beach side, to climb aboard
     const sw = zc + half(53);
@@ -193,7 +195,7 @@ export function build(c) {
     const ax = 72, az = zs + 5, ay = top(ax, az);
     add.chest({ id: 'shore_c_pools', x: ax, z: az, rarity: 'common' });
     fill(ax - 1, ay, az - 1, ax - 1, ay + 1, az + 1, B.rock); fill(ax + 1, ay, az - 1, ax + 1, ay + 1, az + 1, B.rock); fill(ax - 1, ay + 2, az - 1, ax + 1, ay + 2, az + 1, B.rock); fill(ax, ay, az + 1, ax, ay + 1, az + 1, B.rock);
-    add.npc({ id: 'shore_nereid', x: 64, z: zs + 7, model: 'hero:annabeth', yaw: Math.PI });
+    add.npc({ id: 'shore_nereid', x: 64, z: zs + 7, model: 'npc:shore_nereid', yaw: Math.PI });
     add.landmark({ id: 'shore_pools', x: 66, z: zs + 4 });
     for (const [i, x, z] of [[0, 61, zs + 2], [1, 69, zs + 6], [2, 63, zs + 1], [3, 52, S(52) + 3], [4, 26, S(26) + 5]]) add.item({ id: 'shore_pearl_' + i, quest: 'shore_pearls', x, z });
   }
@@ -206,13 +208,15 @@ export function build(c) {
     for (let z = 2; z <= zs + 3; z += 4) for (const x of [px0 - (z <= 5 ? 2 : 0), px1 + (z <= 5 ? 2 : 0)]) { fill(x, FY - 4, z, x, FY - 1, z, B.log); put(x, FY + 1, z, B.log); }
     put(px0 - 2, FY + 1, 1, B.barrel); put(px1 + 2, FY + 1, 1, B.crate); put(px1 + 2, FY + 1, 2, B.barrel);
     c.k.lanternPost(px0 - 2, 5, FY + 1);
+    for (let z = 8; z <= zs; z += 5) { put(px1 + 1, FY, z, B.log); c.k.lanternPost(px1 + 1, z, FY + 1); }
+    for (const [x, z, r] of [[75, 4, 0.2], [83, 7, -0.15], [75, 9, 0.1]]) prop('canoe', x, FY - 0.25, z, { color: 0x7a4a2a, rot: Math.PI / 2 + r });
     add.chest({ id: 'shore_c_pier', x: px1 + 1, z: 2, rarity: 'common' });
     add.landmark({ id: 'shore_pier', x: 79, z: zs + 1 });
     // the boathouse: half over the water on posts, a canoe inside, a lookout deck on the roof
     const bx0 = 86, bx1 = 94, bz0 = S(90) - 4, bz1 = S(90) + 3, by = FY + 1;
     for (let z = bz0; z <= bz1; z++) for (let x = bx0; x <= bx1; x++) { put(x, by - 1, z, B.floor_boards); if (top(x, z) < by - 1) fill(x, top(x, z), z, x, by - 2, z, (x + z) % 3 ? B.water : B.log); }
     for (let x = bx0 + 2; x <= bx1 - 2; x++) for (let z = bz0 + 1; z <= bz0 + 4; z++) put(x, by - 1, z, B.water);       // the slip
-    c.k.room(bx0, bz0, bx1, bz1, by, 4, B.old_plank, { doors: [{ side: 's', at: 90, width: 3, height: 3 }, { side: 'n', at: 90, width: 5, height: 3 }] });
+    c.k.room(bx0, bz0, bx1, bz1, by, 4, B.barn_red, { trim: B.white_trim, doors: [{ side: 's', at: 90, width: 3, height: 3 }, { side: 'n', at: 90, width: 5, height: 3 }] });
     put(bx0, by + 1, bz0 + 4, B.window_day); put(bx1, by + 1, bz0 + 4, B.window_day);
     fill(bx0 - 1, by + 4, bz0 - 1, bx1 + 1, by + 4, bz1 + 1, B.dark_planks);
     for (let x = bx0 - 1; x <= bx1 + 1; x++) for (const z of [bz0 - 1, bz1 + 1]) if (x % 2) put(x, by + 5, z, B.old_plank);
@@ -338,11 +342,36 @@ export function build(c) {
     for (const [x, z] of [[px - 9, pz - 6], [px + 9, pz + 5], [px - 8, pz + 7], [px + 10, pz - 4]]) if (level(x, z, 3, 3, 1)) trees.oak(x, z);
   }
 
+  // ------------------------------------------------------------ sea stacks and a chalk arch off the cliffs; chalk at the cliff edges
+  {
+    const stack = (x, z, R, h, chalk) => {
+      disc(x, z, -1, R, (xx, zz, d) => {
+        if (top(xx, zz) > FY) return;                                                   // only out in the water
+        const hh = Math.round(h - d * 1.2 + (rand() - 0.5) * 1.5);
+        for (let y = FY - 4; y < FY + hh; y++) put(xx, y, zz, y === FY + hh - 1 && d < R - 0.8 ? B.grass : chalk ? ((y + xx) % 4 ? B.plaster : B.marble_white) : ((y + zz) % 3 ? B.rock : B.sea_stone));
+      });
+    };
+    for (const [x, z, R, h, chalk] of [[134, 4, 2.2, 8, 1], [146, 2, 1.6, 6, 1], [176, 5, 2.4, 9, 1], [198, 3, 1.8, 7, 1], [205, 9, 1.4, 4, 0], [22, 5, 1.6, 4, 0], [64, 3, 1.5, 3, 0], [96, 6, 1.4, 3, 0], [126, 8, 1.3, 3, 0]]) stack(x, z, R, h, chalk);
+    // the arch: two chalk legs in the water and a span between them
+    { const ax = 160, az = 4;
+      for (const dx of [-3, 3]) disc(ax + dx, az, -1, 1.5, (xx, zz) => { for (let y = FY - 4; y < FY + 7; y++) put(xx, y, zz, (y + xx) % 4 ? B.plaster : B.marble_white); });
+      for (let x = ax - 4; x <= ax + 4; x++) for (let z = az - 1; z <= az + 1; z++) { for (let y = FY + 5; y < FY + 8; y++) put(x, y, z, (x + y) % 3 ? B.plaster : B.marble_white); put(x, FY + 8, z, B.grass); }
+    }
+    // white chalk breaking through the turf along the cliff tops' sea edge
+    for (let x = 132; x < 208; x++) {
+      const zs = S(x) + 8;
+      for (let z = zs; z < zs + 6; z++) { const y = top(x, z); if (y < FY + 6 || W.get(x, y, z)) continue; if (rand() < 0.55 - (z - zs) * 0.09) put(x, y - 1, z, rand() < 0.7 ? B.plaster : B.marble_white); }
+    }
+  }
+
   // ------------------------------------------------------------ trees, beach grass, driftwood
+  const PATHS = new Set([B.gravel_path, B.dirt_path, B.planks, B.dirt_road]);
+  const nearPath = (x, z) => { for (let dz = -4; dz <= 4; dz += 2) for (let dx = -4; dx <= 4; dx += 2) if (PATHS.has(W.get(x + dx, top(x + dx, z + dz) - 1, z + dz))) return true; return false; };
   for (let i = 0; i < 140; i++) {
     const x = Math.floor(20 + rand() * 186), z = Math.floor(48 + rand() * 66);
     if (x > 54 && x < 78 && z > 64) continue;                                          // the road from camp
     if (x > 124 && x < 152 && z > 80 && z < 104) continue;                             // the watchtower's dead grove
+    if (nearPath(x, z)) continue;
     if (level(x, z, 3, 3, 1) && W.get(x, top(x, z) - 1, z) === B.grass) { if (z > 78 && rand() < 0.35) trees.oak(x, z); else trees.pine(x, z, { h: 6 + Math.floor(rand() * 4) }); }
   }
   for (let i = 0; i < 26; i++) {                                                       // wind-bent pines along the cliff tops
@@ -354,7 +383,7 @@ export function build(c) {
     if (W.get(x, y - 1, z) !== B.sand || W.get(x, y, z)) continue;
     put(x, y, z, B.log); if (rand() < 0.6) put(x + 1, y, z, B.log);
   }
-  scatter([B.sand], ['tall_grass', 'dry_grass', 'shell', 'tall_grass', 'starfish', 'reeds'], 0.07, 0.6);
+  scatter([B.sand], ['tall_grass', 'dry_grass', 'shell', 'tall_grass', 'starfish', 'reeds', 'dry_grass', 'tall_grass'], 0.11, 0.6);
   scatter([B.grass], ['tall_grass', 'grass', 'dry_grass', 'flower_yellow', 'grass'], 0.11);
   console.log('openworld shore build ms', Math.round(performance.now() - t0));
 }

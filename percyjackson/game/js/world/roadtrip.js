@@ -171,19 +171,69 @@ export function buildRoadTrip({ seed = 11 } = {}) {
   }
 
   // ------------------------------------------------------------ the roadblocks' passes
-  // at each one the land closes in (cliffs, hedges, walls): the road is the only way on
-  const PASS = { wreck: B.rock, statues: B.leaves, bridge: null, rocks: B.rock, gate: B.concrete, beds: B.brownstone, shadow: B.black_marble };
+  // At each one the land closes in (cliffs, a hedged ruin, stone walls): the
+  // road is the only way on. A pass with a low wall (h) carries an invisible
+  // barrier above it, as high as the cliffs. Round each roadblock, the
+  // dressing of its sheet (vox-rt-roadblocks): fire pillars, broken columns,
+  // the lift bridge's gatehouses, the mud down the cliff, cones and posts.
+  const PASS = {
+    wreck: { id: B.rock }, statues: { id: B.mossy_brick, cap: B.leaves, h: 4 }, bridge: null, rocks: { id: B.rock },
+    gate: { id: B.stone_brick, cap: B.leaves, h: 4 }, beds: { id: B.brownstone }, shadow: { id: B.black_marble, cap: B.stone_brick, h: 4 },
+  };
   const blocks = ROADBLOCKS.map((rb) => ({ ...rb }));
+  // a stone pillar 3 along x by 2 deep beside the road (side -1 north, +1 south), a fire bowl on top
+  const pillar = (x, side, h, id, o = {}) => {
+    const z0 = side < 0 ? ROAD_Z - 7 : ROAD_Z + 6;
+    for (let xx = x - 1; xx <= x + 1; xx++) for (let z = z0; z <= z0 + 1; z++) {
+      for (let y = FY - 1; y < FY + h; y++) D[idx(xx, y, z)] = id;
+      D[idx(xx, FY + h, z)] = o.cap ?? id;
+      if (o.band) D[idx(xx, FY + h - 2, z)] = o.band;
+    }
+    for (let y = FY + h + 1; y < FY + 12; y++) for (let xx = x - 1; xx <= x + 1; xx++) for (let z = z0; z <= z0 + 1; z++) if (D[idx(xx, y, z)] === B.barrier) D[idx(xx, y, z)] = 0;
+    if (o.fire !== false) { deco.prop('brazier', x + 0.5, FY + h + 1, z0 + 1, { scale: 1.3 }); W.addLight(x + 0.5, FY + h + 3, z0 + 1, 0xffa040, 2.4, 11); }
+  };
+  // a post with a lantern on it, by the road
+  const post = (x, z, id = B.stone_brick, h = 2) => { const g0 = top(x, z), g = isFinite(g0) ? Math.floor(g0) : FY; for (let y = Math.min(g, FY) - 1; y < FY + h; y++) D[idx(x, y, z)] = id; D[idx(x, FY + h, z)] = B.lantern; };
   for (const rb of blocks) {
-    const id = PASS[rb.kind];
-    if (id) for (let x = rb.x - 2; x <= rb.x + 2; x++) for (let z = 1; z < sz - 1; z++) {
+    const P = PASS[rb.kind];
+    if (P) for (let x = rb.x - 2; x <= rb.x + 2; x++) for (let z = 1; z < sz - 1; z++) {
       if (Math.abs(z - ROAD_Z) <= 5) continue;
-      const g = top(x, z), hh = 9 + ((x * 7 + z * 3) % 3);
-      for (let y = Math.max(1, Math.floor(isFinite(g) ? g : FY) - 1); y < FY + hh; y++) D[idx(x, y, z)] = id;
+      const g = top(x, z), hh = 9 + ((x * 7 + z * 3) % 3), h = P.h ?? hh;
+      for (let y = Math.max(1, Math.floor(isFinite(g) ? g : FY) - 1); y < FY + hh; y++) D[idx(x, y, z)] = y < FY + h ? P.id : y === FY + h && P.cap ? P.cap : B.barrier;
     }
     // (the road itself: an invisible wall until the chapter is done: openworld/roadtrip.js lifts it)
     rb.wall = []; for (let z = ROAD_Z - 5; z <= ROAD_Z + 5; z++) for (let y = FY; y < FY + 8; y++) rb.wall.push([rb.x, y, z]);
     rb.pos = V(rb.x + 0.5, FY, ROAD_Z + 0.5);
+    const x = rb.x;
+    if (rb.kind === 'wreck') {
+      // cones and a sawhorse on the near side, the cliffs scorched by the road
+      for (const dz of [-4, -2, 2, 4]) deco.prop('cone', x + 5.5, FY, ROAD_Z + dz + 0.5);
+      deco.prop('sawhorse', x + 6.5, FY, ROAD_Z + 0.5, { rot: Math.PI / 2 });
+      for (let xx = x - 2; xx <= x + 2; xx++) for (const dz of [-6, 6]) for (let y = FY; y < FY + 4; y++) if ((xx + y) % 3) D[idx(xx, y, ROAD_Z + dz)] = B.basalt;
+    } else if (rb.kind === 'statues') {
+      // broken columns at the road's edges, more on the ruined walls
+      pillar(x, -1, 6, B.column, { cap: B.marble_white, fire: false });
+      pillar(x, 1, 3, B.column, { cap: B.marble_white, fire: false });
+      for (const [dx, dz, h] of [[-2, -10, 3], [2, -15, 2], [-1, 11, 3], [1, 17, 2], [0, -22, 2], [0, 24, 3]]) for (let y = FY + 4; y < FY + 4 + h; y++) D[idx(x + dx, y, ROAD_Z + dz)] = B.column;
+    } else if (rb.kind === 'rocks') {
+      // the mud came down the north cliff: a brown streak down its face and over its top
+      for (let xx = x - 2; xx <= x + 2; xx++) for (let z = ROAD_Z - 16; z <= ROAD_Z - 6; z++) {
+        const w = Math.abs(xx - x) + Math.abs(Math.sin(z * 0.7)) * 1.5; if (w > 2.2) continue;
+        for (let y = FY + 12; y >= FY; y--) { const id = D[idx(xx, y, z)]; if (id && id !== B.barrier) { D[idx(xx, y, z)] = B.mud; if (z !== ROAD_Z - 6) break; } }
+      }
+      for (const [dx, dz] of [[4, -5], [6, 5], [-4, 5], [-6, -5]]) deco.prop('boulder', x + dx + 0.5, FY, ROAD_Z + dz + 0.5, { rot: dx, scale: 1.2 });
+    } else if (rb.kind === 'gate') {
+      pillar(x, -1, 6, B.stone_brick, { cap: B.polished, band: B.gold_trim });
+      pillar(x, 1, 6, B.stone_brick, { cap: B.polished, band: B.gold_trim });
+    } else if (rb.kind === 'beds') {
+      // fence posts with lanterns, cones, a sawhorse
+      for (const dz of [-6, 6]) for (const dx of [3, -3]) post(x + dx, ROAD_Z + dz, B.old_plank, 2);
+      for (const dz of [-4, 4]) deco.prop('cone', x + 4.5, FY, ROAD_Z + dz + 0.5);
+      deco.prop('sawhorse', x + 5.5, FY, ROAD_Z + 0.5, { rot: Math.PI / 2 });
+    } else if (rb.kind === 'shadow') {
+      pillar(x, -1, 6, B.stone_brick, { cap: B.polished, band: B.black_marble });
+      pillar(x, 1, 6, B.stone_brick, { cap: B.polished, band: B.black_marble });
+    }
   }
   // St. Louis: the Mississippi across the whole strip, under the lift bridge
   const bridge = blocks.find((b) => b.kind === 'bridge');
@@ -199,7 +249,25 @@ export function buildRoadTrip({ seed = 11 } = {}) {
   }
   bridge.wall = [];
   for (const x of [bridge.x - 5, bridge.x + 5]) for (let z = ROAD_Z - 3; z <= ROAD_Z + 3; z++) for (let y = FY; y < FY + 4; y++) bridge.wall.push([x, y, z]);
-  for (const x of [bridge.x - 6, bridge.x + 6]) for (const dz of [-6, 6]) for (let y = 1; y < FY + 10; y++) D[idx(x, y, ROAD_Z + dz)] = B.steel_panel;   // the lift towers
+  // the gatehouses at the hinges: stone towers with teal roofs, a fire on top, a red banner over the water
+  for (const sx of [-1, 1]) for (const sz2 of [-1, 1]) {
+    const x0 = bridge.x + sx * 5, x1 = bridge.x + sx * 7, za = ROAD_Z + sz2 * 5, zb = ROAD_Z + sz2 * 7;
+    const [xl, xh] = [Math.min(x0, x1), Math.max(x0, x1)], [zl, zh] = [Math.min(za, zb), Math.max(za, zb)];
+    for (let x = xl; x <= xh; x++) for (let z = zl; z <= zh; z++) {
+      for (let y = 1; y < FY + 7; y++) D[idx(x, y, z)] = y < FY - 1 ? B.stone : (y === FY + 6 ? B.cornice : B.stone_brick);
+      D[idx(x, FY + 7, z)] = B.teal_panel;
+    }
+    D[idx(bridge.x + sx * 6, FY + 8, ROAD_Z + sz2 * 6)] = B.teal_panel;
+    for (let y = FY + 2; y < FY + 5; y++) D[idx(bridge.x + sx * 6, y, ROAD_Z + sz2 * 5)] = B.steel_window;   // a window over the road
+    deco.prop('brazier', bridge.x + sx * 6 + 0.5, FY + 9, ROAD_Z + sz2 * 6 + 0.5, { scale: 1.2 });
+    W.addLight(bridge.x + sx * 6 + 0.5, FY + 10.5, ROAD_Z + sz2 * 6 + 0.5, 0xffa040, 2.2, 11);
+    // the banner, hung on the outer face over the river
+    const bx = bridge.x + sx * 8;
+    for (let y = FY + 1; y <= FY + 5; y++) D[idx(bx, y, ROAD_Z + sz2 * 6)] = y === FY + 5 ? B.gold_trim : B.red_lacquer;
+    D[idx(bx, FY + 3, ROAD_Z + sz2 * 6)] = B.obsidian;
+    // torch posts on the approaches
+    post(bridge.x + sx * 10, ROAD_Z + sz2 * 6, B.stone_brick, 2);
+  }
 
   // ------------------------------------------------------------ edges
   for (let x = 0; x < sx; x++) for (const z of [0, sz - 1]) for (let y = 0; y < sy; y++) if (!D[idx(x, y, z)] || D[idx(x, y, z)] === B.water) D[idx(x, y, z)] = B.barrier;

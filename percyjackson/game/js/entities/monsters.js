@@ -16,6 +16,7 @@ import { paintPerson } from './mortals.js';
 import { t as txt } from '../text_config.js';
 import { HS, solid, skinMat, prop, group, lavaCracks, fur, sway, rng, bruteLimbs } from './parts.js';
 import { heroHair, cellMesh, footwear } from './herovox.js';
+import { FODDER_MONSTERS, fodderModels } from './fodder.js';
 
 export { skinMat };
 
@@ -363,6 +364,8 @@ const MODELS = {
   cyclops: () => buildCyclops(),
   gorgon_statue: () => buildStatue(),
   ghost: () => buildGhost(),
+  // the open world's swarm fodder: karpos, myrmex, acid myrmex, crab, shade (entities/fodder.js)
+  ...fodderModels({ kit }),
 };
 // Hellhounds (vox-enemies, left): soot-black shaggy fur in chunky clumps,
 // a hump of hackles over heavy shoulders, glowing lava cracks, a furnace in
@@ -1394,12 +1397,14 @@ export const MONSTERS = {
 // Old Cursed Dungeons kinds still requested by shared code (wave spawner,
 // level tables) map onto the Greek bestiary.
 export const LEGACY_KINDS = { swarmer: 'pup', imp: 'pup', spitter: 'harpy', blob: 'automaton', tank: 'dracaena', teleporter: 'fury', summoner: 'empousa' };
+// the open world's swarm fodder (entities/fodder.js)
+Object.assign(MONSTERS, FODDER_MONSTERS);
 for (const [old, now] of Object.entries(LEGACY_KINDS)) Object.defineProperty(MONSTERS, old, { value: MONSTERS[now], enumerable: false });
 export const MONSTER_IDS = Object.keys(MONSTERS);
 export const CURSES = MONSTERS;
 export const resolveKind = (kind) => (MONSTERS[kind] ? (LEGACY_KINDS[kind] ?? kind) : 'pup');
 
-export function buildMonsterModel(model) { const rig = (MODELS[model] ?? MODELS.pup)(); rig.tick = (dt, e) => animateExtras(rig, dt, e); return rig; }
+export function buildMonsterModel(model) { const rig = (MODELS[model] ?? MODELS.pup)(); rig.tick = (dt, e) => { animateExtras(rig, dt, e); rig.onTick?.(dt, e); }; return rig; }
 export const buildCurseModel = buildMonsterModel;
 
 // Golden dust: how every monster leaves the world.

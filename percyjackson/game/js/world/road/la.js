@@ -148,7 +148,7 @@ export function build(ctx) {
   W.addLight(160.5, FY + 3, 33.5, 0xff6ad0, 2.5, 9);
 
   // ------------------------------------------------------------ Trudy the tour guide and her star maps
-  add.npc({ id: 'rt_la_guide', x: 139, z: 36, model: 'mortal:tourist', yaw: 0 });
+  add.npc({ id: 'rt_la_guide', x: 139, z: 36, model: 'npc:rt_la_guide', yaw: 0 });
   for (const [i, x, z] of [[1, 92, 31], [2, 118, 75], [3, 165, 66], [4, 128, 14]]) add.item({ id: `rt_la_map${i}`, quest: 'rt_la_guide_maps', x, z });
 
   ctx.scatter([B.grass], ['grass', 'flower_red'], 0.04);

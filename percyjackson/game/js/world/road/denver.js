@@ -148,7 +148,7 @@ export function build(ctx) {
   add.camp({ id: 'rt_denver_waterland', x: 631, z: 79, kinds: ['spider', 'spider', 'hellhound'], count: 6 });
   add.champion({ id: 'rt_denver_rigor', x: 630, z: 66, kind: 'skeleton', level: 7, elite: 'armored' });
   add.chest({ id: 'rt_denver_peak', x: 660, z: 6, rarity: 'rare', hidden: true });
-  add.npc({ id: 'rt_denver_chad', x: 621, z: ROAD_Z + 9, model: 'mortal:student', yaw: Math.PI });
+  add.npc({ id: 'rt_denver_chad', x: 621, z: ROAD_Z + 9, model: 'npc:rt_denver_chad', yaw: Math.PI });
   for (const [i, x, z] of [[1, 612, 79], [2, 634, 82], [3, 603, 66], [4, 647, 62], [5, 659, 84]]) add.item({ id: 'rt_denver_floatie_' + i, quest: 'rt_denver_floaties', x, z });
 }
 

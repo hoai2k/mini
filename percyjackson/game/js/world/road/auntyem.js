@@ -146,7 +146,7 @@ export function build(ctx) {
   add.champion({ id: 'rt_auntyem_hissy', x: 1242, z: 20, kind: 'dracaena', level: 5, elite: 'swift' });
   add.chest({ id: 'rt_auntyem_back', x: 1200, z: 82, rarity: 'rare' });
   add.chest({ id: 'rt_auntyem_field', x: 1252, z: 12, rarity: 'common', hidden: true });
-  add.npc({ id: 'rt_auntyem_pruitt', x: 1238, z: ROAD_Z - 8, model: 'mortal:old_lady', yaw: Math.PI / 2 });
+  add.npc({ id: 'rt_auntyem_pruitt', x: 1238, z: ROAD_Z - 8, model: 'npc:rt_auntyem_pruitt', yaw: Math.PI / 2 });
   for (const [i, x, z] of [[1, 1166, 30], [2, 1253, ROAD_Z + 19], [3, 1209, 83], [4, 1226, 14], [5, 1194, 31]]) add.item({ id: 'rt_auntyem_gnome_' + i, quest: 'rt_auntyem_gnomes', x, z, look: 'gnome' });
 }
 

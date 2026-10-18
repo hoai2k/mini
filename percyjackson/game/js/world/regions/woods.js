@@ -45,7 +45,7 @@ export const terrain = {
     if (c < 4.5) h = Math.min(h, -2.2 + Math.max(0, c - 1.5) * 1.1);
     return h;
   },
-  surface: (x, z, h, n) => (h >= 7 ? B.grass : n.value(x * 0.12, z * 0.12) > 0.7 ? B.grass : B.forest_floor),
+  surface: (x, z, h, n) => { if (h >= 7) return B.grass; const v = n.value(x * 0.12, z * 0.12); return v > 0.48 ? B.grass : v > 0.36 ? B.moss_floor : B.forest_floor; },
 };
 
 export function build(c) {
@@ -91,6 +91,10 @@ export function build(c) {
     for (let x = 206; x <= 214; x++) for (let y = yb - 1; y <= yb + 5; y++) set(x, y, hz1 + 1, (x === 206 || x === 214 || y === yb + 5) ? B.iron_plate : y === yb - 1 ? B.stone_brick : 0);
     for (const x of [205, 215]) for (let z = hz1 + 2; z <= hz1 + 4; z++) for (let y = yb; y <= yb + 4; y++) set(x, y, z, z === hz1 + 4 ? B.bronze : B.iron_plate);
     for (let z = hz1 + 2; z <= hz1 + 5; z++) for (let x = 206; x <= 214; x++) setTop(x, z, B.gravel_path);
+    for (let x = 203; x <= 217; x++) set(x, yb + 6, hz1 + 1, B.log);                                   // the lintel beam over the door
+    for (const x of [203, 217]) for (let y = yb; y <= yb + 5; y++) set(x, y, hz1 + 1, B.log);
+    for (const [x, z] of [[201, hz1 + 3], [219, hz1 + 3]]) if (!W.get(x, ground(x, z), z)) k.lanternPost(x, z, ground(x, z));
+    for (const x of [207, 213]) light(x, yb + 2, hz1 + 3, 0xff7a2a, 3, 8);                             // forge glow spilling out
     // the forge: a lava trough under a capped chimney
     for (let x = 207; x <= 213; x++) for (let z = hz0; z <= hz0 + 2; z++) set(x, yb, z, B.stone_brick);
     for (let x = 208; x <= 212; x++) { set(x, yb, hz0 + 1, 0); set(x, yb - 1, hz0 + 1, B.lava); }
@@ -116,7 +120,7 @@ export function build(c) {
     add.landmark({ id: 'woods_bunker9', x: 210, z: 247 });
     // Beckendorf works outside, by the door
     deco.prop('anvil', 202.5, yb, 248.5);
-    add.npc({ id: 'woods_beckendorf', x: 203, z: 250, model: 'hero:tyson', yaw: Math.PI });
+    add.npc({ id: 'woods_beckendorf', x: 203, z: 250, model: 'npc:woods_beckendorf', yaw: Math.PI });
     // the waterfall: a spring on the hilltop spilling down the face into the creek's pool
     const fx0 = 219, fx1 = 220, hT = ground(219, 240);
     for (let x = fx0; x <= fx1; x++) {
@@ -174,6 +178,7 @@ export function build(c) {
     const dz0 = cz + 1, dz1 = cz + 8;
     for (let z = dz0; z <= dz1; z++) for (let x = cx - 1; x <= cx; x++) { for (let y = g; y <= g + 2; y++) set(x, y, z, 0); set(x, g - 1, z, B.stone_brick); }
     c.trees.boulder(cx + 2, cz + 10, 1.8, B.rock);
+    for (const x of [cx - 3, cx + 2]) { const z = cz + 9; if (!W.get(x, ground(x, z), z)) k.lanternPost(x, z, ground(x, z)); }
     // the chamber: a Labyrinth door marked with a glowing Delta, and a crack to the sky
     fill(cx - 3, g, cz - 3, cx + 3, g + 3, cz + 1, 0);
     fill(cx - 3, g - 1, cz - 3, cx + 3, g - 1, cz + 1, B.stone_brick);
@@ -206,6 +211,17 @@ export function build(c) {
     for (let i = 0; i < 4; i++) deco.add('chain', cx - 0.5 + i * 0.6, g + 0.05, cz + 5.5, { mode: 'flat', scale: 1.2 });
     deco.prop('fire', cx + 3.5, g, cz - 2.5, { smoke: true }); light(cx + 3, g + 1, cz - 3, 0xff5a2a, 3, 9);
     deco.prop('fire', cx - 5.5, g, cz - 1.5, { smoke: true });
+    {
+      const ox = cx + 1, oz = cz - 9, gy = ground(ox, oz);
+      for (let dz = -3; dz <= 0; dz++) for (let dx = -6; dx <= 6; dx++) {
+        const x = ox + dx, z = oz + dz; if (!inRegion(x, z)) continue;
+        const hgt = Math.round(7 - Math.abs(dx) * 0.6 + dz * 0.4 + (k.r() - 0.5) * 1.5); if (hgt <= 0) continue;
+        for (let y = Math.min(gy, ground(x, z)) - 1; y < gy + hgt; y++) set(x, y, z, (x + y + z) % 4 ? B.basalt : B.rock);
+      }
+      // the cracks: lava set into the south face, two blocks up and more (glowing, out of reach)
+      for (const [dx, h0, h1] of [[-3, 2, 3], [-2, 3, 4], [0, 2, 5], [1, 4, 4], [3, 2, 3], [4, 3, 3]]) for (let h = h0; h <= h1; h++) if (W.get(ox + dx, gy + h + 1, oz)) set(ox + dx, gy + h, oz, B.lava);
+      light(ox, ground(ox, oz + 4) + 2, oz + 4, 0xff5a1a, 4, 12);
+    }
     add.champion({ id: 'woods_shadowfang', x: cx, z: cz, kind: 'hellhound', elite: 'shadow' });
     add.landmark({ id: 'woods_hollow', x: cx, z: cz });
     no(cx, cz, 11);
@@ -226,11 +242,11 @@ export function build(c) {
     }
     for (const [dx, dz] of [[-1, 0], [2, 0], [0, -1], [0, 2], [-1, 1], [2, 1], [1, -1], [1, 2]]) {
       const len = 2 + (Math.abs(dx) + Math.abs(dz)) % 2;
-      for (let s = 1; s <= len; s++) { const rx = x + (dx < 0 ? -s + 1 : dx > 1 ? s : dx), rz = z + (dz < 0 ? -s + 1 : dz > 1 ? s : dz); if (s === 1 || !W.get(rx, ground(rx, rz), rz)) set(rx, ground(rx, rz) - (s > 2 ? 1 : 0), rz, B.log); }
+      for (let s = 1; s <= len; s++) { const rx = x + (dx < 0 ? -s + 1 : dx > 1 ? s : dx), rz = z + (dz < 0 ? -s + 1 : dz > 1 ? s : dz); const gy = W.groundBelow(rx + 0.5, rz + 0.5, y + 1); if (s === 1 || !W.get(rx, gy, rz)) set(rx, gy - (s > 2 ? 1 : 0), rz, B.log); }
     }
     for (let i = 0; i < 40; i++) { const a = k.r() * 6.28, r = 2 + k.r() * 4.5, hy = y + 5 + k.r() * 9; deco.add('flower_blue', x + 1 + Math.cos(a) * r, hy, z + 1 + Math.sin(a) * r, { mode: 'hang', scale: 0.6 }); }
     for (let i = 0; i < 30; i++) { const a = k.r() * 6.28, r = 5 + k.r() * 3, fx = Math.floor(x + 1 + Math.cos(a) * r), fz = Math.floor(z + 1 + Math.sin(a) * r); if (!W.get(fx, ground(fx, fz), fz)) deco.add(['flower_blue', 'flower_yellow', 'flower_red'][i % 3], fx + 0.5, ground(fx, fz), fz + 0.5, { scale: 0.9, sway: 1 }); }
-    add.npc({ id: 'woods_juniper', x: 153, z: 254, model: 'mortal:student', yaw: Math.PI * 0.75 });
+    add.npc({ id: 'woods_juniper', x: 153, z: 254, model: 'npc:woods_juniper', yaw: Math.PI * 0.75 });
     add.chest({ id: 'woods_juniper_roots', x: 139, z: 252, rarity: 'common' });
     add.landmark({ id: 'woods_juniper', x: 147, z: 247 });
     no(147, 247, 10);
@@ -329,6 +345,42 @@ export function build(c) {
     add.chest({ id: 'woods_border_tower', x: 32, z: 315, rarity: 'common' });
     add.landmark({ id: 'woods_border_post', x: 34, z: 316 });
     no(36, 316, 11);
+  }
+
+  // ---------------------------------------------------------------- the creek's rocky banks, giant mushrooms round Juniper
+  {
+    // mossy rocks along both banks, reeds and cattails at the water's edge
+    for (let i = 0; i < CREEK.length - 1; i++) {
+      const [ax, az] = CREEK[i], [bx, bz] = CREEK[i + 1], L = Math.hypot(bx - ax, bz - az), nx = -(bz - az) / L, nz = (bx - ax) / L;
+      for (let t = 0; t < L; t += 1) for (const side of [-1, 1]) {
+        const x = Math.round(ax + (bx - ax) * t / L + nx * side * (3.6 + k.r() * 1.2)), z = Math.round(az + (bz - az) * t / L + nz * side * (3.6 + k.r() * 1.2));
+        if (!inRegion(x, z) || (x >= 179 && x <= 183 && z >= 268 && z <= 284)) continue;   // the rope bridge's ends stay open
+        const y = ground(x, z); if (!isFinite(y) || W.get(x, y, z) || W.get(x, y - 1, z) === B.water || y > FY + 3) continue;
+        const r = k.r();
+        if (r < 0.32) { set(x, y, z, k.chance(0.5) ? B.mossy_brick : B.rock); if (k.chance(0.25)) set(x, y + 1, z, B.rock); }
+        else if (r < 0.6) deco.add('reeds', x + 0.5, y, z + 0.5, { scale: 1.2, sway: 1 });
+        else if (r < 0.7) deco.add('flower_blue', x + 0.5, y, z + 0.5, { scale: 0.9, sway: 1 });
+      }
+    }
+    // lanterns at the rope bridge's ends
+    for (const [x, z] of [[179, 269], [183, 283]]) { const y = ground(x, z); if (isFinite(y) && !W.get(x, y, z)) k.lanternPost(x, z, y); }
+    // red-capped toadstools as tall as a camper round Juniper's tree
+    for (const [x, z, h, R] of [[140, 241, 3, 1], [153, 243, 4, 2], [141, 254, 2, 1], [151, 239, 2, 1]]) {
+      const y = ground(x, z); if (!isFinite(y) || W.get(x, y, z)) continue;
+      for (let j = 0; j < h; j++) set(x, y + j, z, B.plaster);
+      for (let dz = -R; dz <= R; dz++) for (let dx = -R; dx <= R; dx++) if (Math.abs(dx) + Math.abs(dz) <= R + (R > 1 ? 1 : 0)) set(x + dx, y + h, z + dz, (dx * 3 + dz * 5) % 4 === 0 ? B.white_trim : B.barn_red);
+      if (R > 1) set(x, y + h + 1, z, B.barn_red);
+    }
+    for (let i = 0; i < 14; i++) { const x = 146 + k.rnd(-8, 8), z = 247 + k.rnd(-8, 8), y = W.groundBelow(x, z, FY + 4); if (isFinite(y) && !W.get(Math.floor(x), y, Math.floor(z))) deco.add('mushroom', x, y, z, { scale: 0.9 + k.r() * 0.6 }); }
+  }
+
+  // ---------------------------------------------------------------- lanterns along the trails
+  for (const [x, z] of [[166, 232], [172, 250], [186, 255], [173, 266], [184, 289], [196, 296], [141, 270], [208, 302], [50, 314]]) {
+    for (const [dx, dz] of [[0, 0], [2, 0], [-2, 0], [0, 2], [0, -2]]) {
+      const px = x + dx, pz = z + dz, y = ground(px, pz);
+      if (!inRegion(px, pz) || !isFinite(y) || W.get(px, y, pz) || [B.dirt_path, B.water].includes(W.get(px, y - 1, pz))) continue;
+      k.lanternPost(px, pz, y); no(px, pz, 2); break;
+    }
   }
 
   // ---------------------------------------------------------------- the things Juniper and Beckendorf want found

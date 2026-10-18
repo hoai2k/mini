@@ -31,9 +31,9 @@ export function build(c) {
   // Clarisse, outside the arena door, itching for a fight somewhere else
   person('camp_clarisse', 87, 255, 'hero:clarisse', -Math.PI / 2);
   // Argus, the camp's hundred-eyed head of security, at the foot of Half-Blood Hill
-  person('camp_argus', 36, 212, 'mortal:guard', Math.PI / 4);
+  person('camp_argus', 36, 212, 'npc:camp_argus', Math.PI / 4);
   // Silena Beauregard, by the canoe lake
-  person('camp_silena', 37, 236, 'mortal:student', -Math.PI / 2);
+  person('camp_silena', 37, 236, 'npc:camp_silena', -Math.PI / 2);
   // Silena's love letters, blown all over camp
   [[72, 276], [100, 238], [24, 270], [83, 200]].forEach(([x, z], i) => {
     const [px, pz] = openSpot(c, x, z, 14);

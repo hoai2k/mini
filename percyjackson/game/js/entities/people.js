@@ -44,6 +44,8 @@ function ring(y, w, cols, seed, { size = 1.3, step = 1.1, h = 1.6 } = {}) {
   }
   return L;
 }
+// scale a list of boxes about a point
+const grow = (list, k, [cx, cy, cz]) => list.map((b) => ({ ...b, at: [cx + (b.at[0] - cx) * k, cy + (b.at[1] - cy) * k, cz + (b.at[2] - cz) * k], size: b.size.map((v) => v * k) }));
 // a line of lumps from p to q (fur trims, vines, braids)
 function line(p, q, n, cols, seed, size = 1.2, jit = 0.25) {
   const r = mulberry32(seed), L = [];
@@ -120,14 +122,14 @@ function hunterParts({ seed = 1, belt = 0x5a3418, buckle = GOLD, bowSide = 0, qu
   return parts;
 }
 // a laurel circlet of silver leaves round the head, a gem at the front
-function circlet(col = SILVER, { y = 7.3, gem = null } = {}) {
+function circlet(col = SILVER, { y = 7.3, gem = null, r = 6.8 } = {}) {
+  // (only the front arc: round the back it would sit inside the hair)
   const L = [];
-  for (let i = 0; i < 18; i++) {
-    const a = (i / 18) * Math.PI * 2, x = Math.sin(a) * 4.7, z = Math.cos(a) * 4.7;
-    if (Math.abs(x) > 4.3 && Math.abs(z) > 4.3) continue;
-    L.push(B([x, y + (i % 2) * 0.3, z], [1.1, 0.6, 1.1], i % 2 ? col : shadeOf(col, 0.8), [0, a, 0.4]));
+  for (let i = -5; i <= 5; i++) {
+    const a = i * 0.2, x = Math.sin(a) * r, z = Math.cos(a) * r - 0.6;
+    L.push(B([x, y + 0.8 + (i % 2 ? 0.4 : 0), z], [1.5, 0.9, 1.1], i % 2 ? col : shadeOf(col, 0.8), [0, a, i % 2 ? 0.45 : -0.45]));
   }
-  if (gem) L.push(B([0, y + 0.4, 4.75], [1.2, 1.2, 0.5], col), B([0, y + 0.4, 5], [0.6, 0.6, 0.3], gem));
+  if (gem) L.push(B([0, y + 1.2, r - 0.2], [1.4, 1.4, 0.5], col), B([0, y + 1.2, r + 0.05], [0.7, 0.7, 0.3], gem));
   return L;
 }
 
@@ -138,7 +140,7 @@ export const PEOPLE = {
   // overalls over the camp shirt, a trowel and a basket of strawberries
   fields_katie: {
     painter: 'hero', scale: KID, accent: 0x5fae4a,
-    paint: { skinTone: 0xe6a070, hair: 0x6a3818, fringe: 2, hairSide: 4, hairBack: 7, eye: 0x6a3a1a, pupil: 0x1a0c06, brow: 0x5a2a10, lashes: true, mouth: 'smile', lip: 0xc0645a, freckles: 0xc4805a, ...TEE, pants: 0x5a6c38, shorts: 6, socks: 0xf0ead8, shoes: 0x6a3a1a, sole: 0xd8c8a0 },
+    paint: { skinTone: 0xe6a070, hair: 0x6a3818, fringe: 2, hairSide: 4, hairBack: 7, eye: 0x6a3a1a, pupil: 0x1a0c06, brow: 0x5a2a10, lashes: true, mouth: 'smile', lip: 0xc0645a, freckles: 0xc4805a, ...TEE, pants: 0x5a6c38, shorts: 4, shoes: 0x6a3a1a, sole: 0xd8c8a0 },
     body(S, D) {
       // overall bib and straps over the shirt, front and back
       const g = 0x5a6c38, gd = 0x44542a;
@@ -152,12 +154,13 @@ export const PEOPLE = {
     parts() {
       const braid = [0x6a3818, 0x40200c, 0x8e5028];
       const B2 = [];
-      for (let i = 0; i < 9; i++) B2.push(B([-3.3 + (i % 2) * 0.5, 2.4 - i * 1.35, 3.2 + i * 0.12], [1.8, 1.6, 1.5], braid[i % 3]));
-      B2.push(B([-3.1, -9.9, 4.3], [1.4, 0.6, 1.4], 0xe8c040), B([-3.1, -10.9, 4.3], [1.6, 1.4, 1.4], braid[2]));
+      // the braid: from behind her right ear, over the shoulder and down the front
+      for (let i = 0; i < 10; i++) { const k = i / 9, x = -4.7 + k * 1.3 + (i % 2) * 0.45, z = i < 3 ? 1 + i * 0.6 : 2.6; B2.push(B([x, 3 - i * 1.3, z], [1.8, 1.6, 1.6], braid[i % 3])); }
+      B2.push(B([-3.2, -10.2, 2.7], [1.4, 0.6, 1.4], 0xe8c040), B([-3.2, -11.2, 2.7], [1.7, 1.4, 1.5], braid[2]));
       return {
         head: [
-          ...strawHat({ brim: 15.4, crown: 9.2, crownH: 3.4, straw: 0xe4c27a, band: 0x3e7a3a, seed: 4 }),
-          B([-3.2, 10.3, 4.2], [2, 2, 0.6], 0xf8f6ee), B([-3.2, 10.3, 4.5], [0.8, 0.8, 0.3], 0xf0c020), B([-1.7, 9.9, 4.4], [1.4, 0.7, 0.4], 0x3a8a3a), B([-4.5, 9.7, 3.8], [1.2, 0.7, 0.8], 0x3a8a3a),
+          ...strawHat({ brim: 17.6, crown: 9.4, crownH: 3, straw: 0xe4c27a, band: 0x3e7a3a, seed: 4 }),
+          B([-2.8, 10.4, 5.05], [2.4, 0.8, 0.5], 0xf8f6ee), B([-2.8, 10.4, 5.05], [0.8, 2.4, 0.5], 0xf8f6ee), B([-2.8, 10.4, 5.35], [0.9, 0.9, 0.3], 0xf0c020), B([-1.2, 10, 4.9], [1.6, 0.8, 0.5], 0x3a8a3a), B([-4.2, 9.9, 4.8], [1.4, 0.8, 0.6], 0x3a8a3a),
           ...B2,
           ...mirrorX([B([-4.3, 3, 1.4], [0.4, 1, 0.5], 0x4a9a4a)]),
         ],
@@ -176,15 +179,17 @@ export const PEOPLE = {
         armL: [
           band(-6.4, 1.2, 0x3e6a3a, 4.6),
           // a wicker basket of strawberries and daisies hanging from the hand
+          ...grow([
           ...[-2.4, 2.4].map((z) => B([0, -11.4, 1.2 + z * 0.9], [0.6, 3.6, 0.6], 0x9a6a30)), B([0, -10, 1.2], [0.7, 0.6, 4.6], 0x9a6a30),
           ...Array.from({ length: 4 }, (_, i) => B([0, -13.5 - i * 0.9, 1.2], [5.6 - (i === 3 ? 0.6 : 0), 0.9, 5.4 - (i === 3 ? 0.6 : 0)], i % 2 ? 0xb88a48 : 0x9a6a30)),
           B([0, -12.9, 1.2], [5.8, 0.5, 5.6], 0x7a5228),
           ...[[-1.4, 0.2], [1, -0.6], [0.2, 1.8], [-1.6, 2.4], [1.6, 1.6]].map(([x, z]) => B([x, -12.3, 1.2 + z], [1.4, 1.5, 1.4], 0xd8202a)),
           ...[[-1.4, 0.2], [1, -0.6], [0.2, 1.8]].map(([x, z]) => B([x, -11.5, 1.2 + z], [0.9, 0.4, 0.9], 0x3a8a2a)),
           B([-2, -12.2, -0.6], [1.6, 0.8, 1.6], 0x3a8a2a), B([1.8, -12.2, 3], [1.6, 0.8, 1.4], 0x4a9a3a), B([1.2, -11.9, 0.4], [1.2, 0.4, 1.2], 0xf8f6ee), B([1.2, -11.7, 0.4], [0.5, 0.3, 0.5], 0xf0c020), B([-1.8, -11.9, 3.3], [1.2, 0.4, 1.2], 0xf8f6ee),
+          ], 1.3, [0, -10, 1.2]),
         ],
-        legR: [...shoes('boot', { upper: 0x7a4a24, sole: 0xd8c8a0, lace: GOLD }), band(-6.2, 1.8, 0xf0ead8, 4.6), band(-5.9, 0.5, 0x3e7a3a, 4.7)],
-        legL: [...shoes('boot', { upper: 0x7a4a24, sole: 0xd8c8a0, lace: GOLD }), band(-6.2, 1.8, 0xf0ead8, 4.6), band(-5.9, 0.5, 0x3e7a3a, 4.7), B([2.5, -8.4, 1.4], [0.4, 1.2, 1.2], 0x3a8a3a)],
+        legR: [...shoes('boot', { upper: 0x7a4a24, sole: 0xd8c8a0, lace: GOLD }), band(-6.1, 1.6, 0xf0ead8, 4.7), band(-5.8, 0.5, 0x3e7a3a, 4.8)],
+        legL: [...shoes('boot', { upper: 0x7a4a24, sole: 0xd8c8a0, lace: GOLD }), band(-6.1, 1.6, 0xf0ead8, 4.7), band(-5.8, 0.5, 0x3e7a3a, 4.8), B([2.5, -8.4, 1.4], [0.4, 1.2, 1.2], 0x3a8a3a)],
       };
     },
   },
@@ -197,7 +202,7 @@ export const PEOPLE = {
       // more rips in the jeans, and their faded knees
       for (const [u, v] of [[0, 16], [16, 48]]) { D(u + 4.5, v + 4 + 2, 0xd8d0c0, 4, 2); D(u + 5, v + 4 + 2.5, 0xe6a676, 2, 1); D(u + 9, v + 4 + 8, 0xd8d0c0, 3, 1); }
     },
-    vox: { style: 'mop', base: 0x5e3018, shade: 0x341808, light: 0x86502a, seed: 113, shape: { r: [6.9, 5.9, 6.9], tuft: 0.24, spike: 0.09, bump: 0.42, fringe: 6 } },
+    vox: { style: 'mop', base: 0x6e3818, shade: 0x3e1c0a, light: 0x9a5a2c, warm: 0xb06a34, seed: 113, shape: { r: [6.6, 5.6, 6.6], tuft: 0.36, spike: 0.16, bump: 0.5, fringe: 6 } },
     parts() {
       const strap = 0x4a2a14, bag = 0x6a4420;
       return {
@@ -232,7 +237,7 @@ export const PEOPLE = {
       // vines wound round the legs
       for (const [u, v] of [[0, 16], [16, 48]]) for (let y = v + 6; y < v + 15; y += 2.5) { D(u, y, 0x6a4020, 32, 1); D(u, y + 0.5, 0x4a8a2a, 8, 1); }
     },
-    vox: { style: 'long', base: 0x3e6e2a, shade: 0x22441a, light: 0x6a9a3a, warm: 0x8aa040, seed: 127, shape: { helmetFront: false, tuft: 0.26, spike: 0.1, bump: 0.5, r: [6.6, 7.4, 6.4], side: -4, back: -5, top: null } },
+    vox: { style: 'long', base: 0x3e6e2a, shade: 0x22441a, light: 0x6a9a3a, warm: 0x8aa040, seed: 127, shape: { helmetFront: false, tuft: 0.28, spike: 0.12, bump: 0.5, c: [0, 4, -1.2], r: [6.6, 7.4, 6.4], side: -4, back: -5, top: 10.6 } },
     parts() {
       const r = mulberry32(17), leaves = [0x2e5a1e, 0x3e7a2a, 0x5a9636, 0x24461a, 0x4a8a2a], L = [];
       // a crown of berries and little flowers in the hair
@@ -240,19 +245,19 @@ export const PEOPLE = {
       L.push(B([1.8, 10.2, 3.2], [0.8, 0.8, 0.8], 0xf0c030));
       // the skirt: overlapping leaf blades in rings to a jagged hem
       const skirt = [];
-      for (let ringI = 0; ringI < 4; ringI++) {
+      for (let ringI = 0; ringI < 3; ringI++) {
         const y = -0.6 - ringI * 2.2, w = 4.6 + ringI * 0.45, d = 2.6 + ringI * 0.4;
         for (let s = -w; s <= w; s += 1.2) for (const z of [d, -d]) skirt.push(B([s, y - r() * 0.8, z], [1.3, 2.8 + r() * 1.2, 0.7], leaves[Math.floor(r() * 5)], [0, 0, (r() - 0.5) * 0.4]));
         for (let s = -d; s <= d; s += 1.2) for (const x of [w, -w]) skirt.push(B([x, y - r() * 0.8, s], [0.7, 2.8 + r() * 1.2, 1.3], leaves[Math.floor(r() * 5)], [(r() - 0.5) * 0.4, 0, 0]));
       }
-      skirt.push(B([0, -3.4, 0], [8.6, 6.8, 4.6], 0x2e5a1e));
+      skirt.push(B([0, -2.8, 0], [8.6, 5.6, 4.6], 0x2e5a1e));
       skirt.push(B([-1, -2.2, 3.4], [1.2, 1.2, 0.6], 0xf4f0e0), B([-1, -2.2, 3.7], [0.5, 0.5, 0.3], 0xf0c030), B([2.6, -5.2, 3.6], [0.9, 0.9, 0.9], 0x3a3a9a));
       return {
         head: [...L, ...mirrorX([B([-4.5, 4.4, 0.6], [0.8, 1.6, 1.4], 0xb4c470), B([-4.9, 5.4, 0.2], [0.6, 1, 0.8], 0xb4c470)])],
         torso: [...line([-4.2, 11.6, 2.4], [4.2, 3, 2.4], 9, [0x6a4020, 0x5a3418], 3, 0.8, 0.15), ...line([3.6, 12, 2.3], [3.6, 12, -2.3], 4, leaves, 4, 1.4)],
         hips: skirt,
         // a sprig of juniper with berries in her right hand
-        armR: [band(-6, 0.7, 0x6a4020, 4.6), ...line([0, -10, 2.4], [0, -16, 6], 6, [0x6a4020], 9, 0.6, 0.1), ...line([0.8, -12, 3.6], [1.8, -16, 6.4], 5, leaves, 10, 1.1), ...[[0.4, -14.6, 5.4], [-0.6, -16.6, 6], [1.6, -15.6, 4.8]].map((p) => B(p, [0.9, 0.9, 0.9], 0x4a4aa8))],
+        armR: [band(-6, 0.7, 0x6a4020, 4.6), ...line([0, -10.5, 2.4], [0, -5, 7], 8, [0x6a4020, 0x5a3418], 9, 0.9, 0.1), ...line([0.8, -8, 4], [1.6, -4.4, 7.6], 5, leaves, 10, 1.3), ...line([-0.8, -6.6, 5.6], [-1.6, -4, 7.2], 3, leaves, 11, 1.2), ...[[0.6, -5.4, 6.2], [-0.8, -4.6, 7.4], [1.4, -6.8, 5]].map((p) => B(p, [1, 1, 1], 0x4a4aa8))],
         armL: [band(-6, 0.7, 0x6a4020, 4.6), B([2.3, -6, 1], [0.4, 0.8, 0.8], 0x4a8a2a)],
         legR: [...shoes('sandal', { upper: 0x6a4020, sole: 0x4a2a14 }), B([0, -9.2, 0], [4.6, 0.5, 4.6], 0x6a4020)],
         legL: [...shoes('sandal', { upper: 0x6a4020, sole: 0x4a2a14 }), B([0, -9.2, 0], [4.6, 0.5, 4.6], 0x6a4020)],
@@ -266,7 +271,7 @@ export const PEOPLE = {
     paint: { skinTone: 0x9a5a34, hair: 0x16100c, fringe: 2, hairSide: 3, hairBack: 6, eye: 0x2a1a10, pupil: 0x0a0604, brow: 0x140c08, mouth: 'grin', lip: 0x6a2a1a, ...TEE, collar: 0xe8e0c8, pants: 0x5a5638, cargo: true, shoes: 0x4a2a14, sole: 0x2a1a10 },
     vox: { style: 'afro', base: 0x1e1612, shade: 0x0c0806, light: 0x3a2c22, seed: 131, shape: { r: [5.6, 4.6, 5.8], c: [0, 7.4, -0.6], tuft: 0.2, spike: 0.06, bump: 0.36 } },
     parts() {
-      const lea = 0x6a3a1e, dk = 0x4a2814, bronze = 0xc9963a;
+      const lea = 0x6a3a1e, dk = 0x4a2814, bronze = 0xc08a24;
       return {
         head: [
           // goggles pushed up on the forehead, a strap round the head
@@ -292,8 +297,8 @@ export const PEOPLE = {
         armR: [band(-0.6, 1.2, 0xe8e0c8, 4.7), band(-7.6, 3.6, dk, 4.7), B([-2.4, -7, 1], [0.3, 0.8, 0.8], GOLD), B([0, -10, 2.6], [1.5, 4.4, 1.5], bronze), B([0, -6.2, 2.6], [1.6, 3.6, 1.6], bronze),
           B([0, -3.6, 2.6], [3.8, 2, 1.8], bronze), B([-1.2, -1.8, 2.6], [1.2, 2.4, 1.8], bronze), B([1.2, -1.8, 2.6], [1.2, 2.4, 1.8], bronze), B([0, -13, 2.6], [2.6, 1.6, 1.8], shadeOf(bronze, 0.8))],
         armL: [band(-0.6, 1.2, 0xe8e0c8, 4.7), band(-7.6, 3.6, dk, 4.7), B([2.4, -7, 1], [0.3, 0.8, 0.8], GOLD)],
-        legR: [...shoes('boot', { upper: 0x5a3418, sole: 0x2a1a10, lace: GOLD }), B([0, -10.4, 2.6], [4.8, 1.8, 1.4], 0xc8902a), band(-6.2, 1.4, 0x6a6448, 4.9), B([0, -8.2, 2.4], [1.2, 1, 0.4], GOLD)],
-        legL: [...shoes('boot', { upper: 0x5a3418, sole: 0x2a1a10, lace: GOLD }), B([0, -10.4, 2.6], [4.8, 1.8, 1.4], 0xc8902a), band(-6.2, 1.4, 0x6a6448, 4.9), B([0, -8.2, 2.4], [1.2, 1, 0.4], GOLD)],
+        legR: [...shoes('boot', { upper: 0x5a3418, sole: 0x2a1a10, lace: GOLD }), B([0, -10.4, 2.6], [4.8, 1.8, 1.4], 0xd09624), band(-6.2, 1.4, 0x6a6448, 4.9), B([0, -8.2, 2.4], [1.2, 1, 0.4], GOLD)],
+        legL: [...shoes('boot', { upper: 0x5a3418, sole: 0x2a1a10, lace: GOLD }), B([0, -10.4, 2.6], [4.8, 1.8, 1.4], 0xd09624), band(-6.2, 1.4, 0x6a6448, 4.9), B([0, -8.2, 2.4], [1.2, 1, 0.4], GOLD)],
       };
     },
   },
@@ -306,7 +311,7 @@ export const PEOPLE = {
     parts() {
       const lea = 0x6a3a1e;
       return {
-        head: [...[[-3.4, 9.4, 2.6], [-2.6, 10, 3.2], [-1.8, 10.2, 3.6], [-4, 8.8, 1.6]].map((p, i) => B(p, [1.4, 0.6, 0.9], i % 2 ? 0x3a7a2a : 0x5a9a3a, [0, 0.5, 0.3]))],
+        head: [...[[-4.6, 10.6, 4.4], [-3.4, 11.4, 4.8], [-2.2, 11.9, 5], [-5.4, 9.8, 3.6], [-1, 12.2, 5]].map((p, i) => B(p, [1.6, 0.7, 1], i % 2 ? 0x3a7a2a : 0x5a9a3a, [0, 0.5, 0.3]))],
         torso: [
           ...sash(lea, 1.1), B([-1.6, 9.3, 2.75], [2.2, 2.2, 0.4], GOLD), B([-1.6, 9.3, 2.95], [1.2, 1.2, 0.2], 0xf0c838),
           B([0, 1.2, 0], [8.8, 1.1, 4.8], lea), B([0.6, 1.2, 2.5], [1.6, 1.2, 0.3], GOLD),
@@ -319,7 +324,7 @@ export const PEOPLE = {
         legL: [...shoes('sandal', { upper: 0x6a3a1e, sole: 0x4a2a14 }), band(-8.4, 1.2, 0x6a3a1e, 4.7), B([0, -8.4, 2.4], [1.2, 1, 0.3], GOLD)],
       };
     },
-    glow: { color: 0xffc830, ei: 0.7, parts: () => ({ armL: bow(1, 0xe8b830, 0x8a5a20, 0xfff0a0, { len: 9, bend: 2.8 }) }) },
+    glow: { color: 0xffb820, ei: 1.1, parts: () => ({ armL: bow(1, 0xe8b830, 0x8a5a20, 0xfff0a0, { len: 9, bend: 2.8 }) }) },
   },
   // Galene, a Nereid: long sea-green curls crowned with pearls and a shell, a
   // foam-white robe with a sea-green drape, pearls, and the sea curling round her
@@ -327,18 +332,18 @@ export const PEOPLE = {
     painter: 'hero', scale: KID, accent: 0x4ad0ff,
     paint: { skinTone: 0xe6a478, hair: 0x1a8a7a, fringe: 2, hairSide: 5, hairBack: 8, eye: 0x1a8a9a, pupil: 0x0a2a30, brow: 0x147060, lashes: true, mouth: 'smile', lip: 0xd0705a, blush: true, top: 0xf2f0e8, sleeve: 0xe6a478, shortSleeve: 0, collar: false, pants: 0xe6a478, shoes: 0xe6a478 },
     body(S, D) { S.rect(16, 20, 24, 2, 0xe6a478, 0.04); D(16, 22, 0xd8d4c8, 48, 1); for (const [u, v] of [[0, 16], [16, 48]]) S.rect(u, v + 4, 16, 10, 0xe6a478, 0.04); },
-    vox: { style: 'long', base: 0x1a8a7a, shade: 0x0e5a50, light: 0x3ab0a0, seed: 149, shape: { helmetFront: false, top: null, tuft: 0.24, spike: 0.08, bump: 0.46, r: [6.6, 7.6, 6.4], side: -5, back: -7 } },
+    vox: { style: 'long', base: 0x1a8a7a, shade: 0x0e5a50, light: 0x3ab0a0, seed: 149, shape: { helmetFront: false, top: 9.8, c: [0, 3.6, -1.2], tuft: 0.24, spike: 0.08, bump: 0.46, r: [6.6, 7.6, 6.4], side: -5, back: -7 } },
     tail: { pivot: [0, 6, -4.4], base: 0x1a8a7a, shade: 0x0e5a50, light: 0x3ab0a0, length: 16, width: 4.4, back: 1 },
     parts() {
       const pearl = [0xf8f6ee, 0xe8e4dc], teal = 0x2a8a7a, foam = [0xf4f2ea, 0xe4f0ec, 0xfaf8f4];
       const robe = [], r = mulberry32(23);
       // the robe to the ankles, a sea-green drape over it, foam at the hem
-      robe.push(B([0, -5.5, 0], [8.8, 11, 4.8], 0xeeece4));
-      robe.push(B([0, -4.4, 2.5], [6.4, 7.6, 0.4], teal), B([1.6, -8.4, 2.55], [3.2, 1.8, 0.4], teal), B([-2.4, -4, -2.5], [4, 7, 0.4], teal));
-      for (let s = -4.4; s <= 4.4; s += 1.1) for (const z of [2.5, -2.5]) robe.push(B([s, -11.2 - r() * 0.6, z], [1.3, 1.2, 0.8], foam[Math.floor(r() * 3)]));
-      for (let s = -2.4; s <= 2.4; s += 1.2) for (const x of [4.5, -4.5]) robe.push(B([x, -11.2 - r() * 0.6, s], [0.8, 1.2, 1.3], foam[Math.floor(r() * 3)]));
-      robe.push(B([0, -0.2, 0], [9, 1, 5], 0xc9a040), B([0, -0.2, 2.6], [1.6, 1.6, 0.4], GOLD), B([-3, -0.5, 2.6], [1.6, 1.4, 0.3], 0xf0d0b8));
-      for (let i = 0; i < 8; i++) robe.push(B([-4 + i * 1.2, -1 - Math.sin(i / 7 * Math.PI) * 1.4, 2.65], [0.7, 0.7, 0.5], pearl[i % 2]));
+      robe.push(B([0, -5.5, 0], [9.6, 11, 5.4], 0xeeece4), B([0, -9.4, 0], [10.4, 3.4, 6], 0xf2f0ea));
+      robe.push(B([0, -4.4, 2.8], [6.4, 7.6, 0.4], teal), B([1.6, -8.4, 3.05], [3.2, 1.8, 0.4], teal), B([-2.4, -4, -2.8], [4, 7, 0.4], teal));
+      for (let s = -5; s <= 5; s += 1.1) for (const z of [3, -3]) robe.push(B([s, -11.2 - r() * 0.6, z], [1.3, 1.2, 0.8], foam[Math.floor(r() * 3)]));
+      for (let s = -2.8; s <= 2.8; s += 1.2) for (const x of [5.2, -5.2]) robe.push(B([x, -11.2 - r() * 0.6, s], [0.8, 1.2, 1.3], foam[Math.floor(r() * 3)]));
+      robe.push(B([0, -0.2, 0], [9.8, 1, 5.6], 0xc9a040), B([0, -0.2, 2.9], [1.6, 1.6, 0.4], GOLD), B([-3, -0.5, 2.9], [1.6, 1.4, 0.3], 0xf0d0b8));
+      for (let i = 0; i < 8; i++) robe.push(B([-4 + i * 1.2, -1 - Math.sin(i / 7 * Math.PI) * 1.4, 3.05], [0.7, 0.7, 0.5], pearl[i % 2]));
       return {
         head: [
           ...circlet(0xf8f6ee, { y: 8.2 }), B([0.6, 10.2, 2.4], [2.6, 2.2, 0.8], 0xf0d0b8), B([0.6, 10.2, 2.85], [2, 1.6, 0.2], 0xf8e4d0),
@@ -357,7 +362,7 @@ export const PEOPLE = {
     },
     // the sea, curling round her in a spiral of glassy blue cubes
     glow: {
-      color: 0x2a9aff, ei: 0.55,
+      color: 0x2a9aff, ei: 1.1,
       parts: () => {
         const L = [], r = mulberry32(61);
         for (let i = 0; i < 44; i++) { const k = i / 44, a = k * Math.PI * 3.4 + 0.6, rad = 6.6 + Math.sin(k * 9) * 0.6; L.push(B([Math.cos(a) * rad, -9 + k * 22, Math.sin(a) * rad * 0.8], [1.2, 1.2, 1.2], [0x8ad8ff, 0x5ab8ff, 0xc8f0ff][i % 3], [r() * 0.5, r(), 0])); }
@@ -414,7 +419,7 @@ export const PEOPLE = {
     painter: 'hero', scale: KID, accent: 0xc8d8ff,
     paint: { skinTone: 0xc68a60, hair: 0x1e1410, fringe: 2, hairSide: 5, hairBack: 8, eye: 0x3a2214, pupil: 0x0a0604, brow: 0x1a100a, lashes: true, scowl: true, mouth: 'small', lip: 0x8a4a3a, ...hunterPaint(0xc68a60) },
     body: hunterBody,
-    vox: { style: 'long', base: 0x24180e, shade: 0x0e0a06, light: 0x40301e, seed: 163, shape: { helmetFront: false, top: null, tuft: 0.2, spike: 0.06, bump: 0.44, r: [6.6, 7.4, 6.4], side: -4, back: -6 } },
+    vox: { style: 'long', base: 0x24180e, shade: 0x0e0a06, light: 0x40301e, seed: 163, shape: { helmetFront: false, top: 9.6, c: [0, 3.8, -1.2], tuft: 0.2, spike: 0.06, bump: 0.44, r: [6.6, 7.4, 6.4], side: -4, back: -6 } },
     parts() { const p = hunterParts({ seed: 70, bowSide: 1 }); p.head = circlet(SILVER, { y: 7.6, gem: 0xe8f0ff }); return p; },
   },
   // Rachel Elizabeth Dare: a mass of red curls, freckles, the camp shirt,
@@ -424,7 +429,7 @@ export const PEOPLE = {
     paint: { skinTone: 0xf0b88e, hair: 0xc8501a, fringe: 2, hairSide: 5, hairBack: 8, eye: 0x6a3a1a, pupil: 0x1a0c06, brow: 0xa8401a, lashes: true, mouth: 'smile', lip: 0xd0705a, freckles: 0xd08a5a, ...TEE, pants: 0x4a6aa8, shoes: 0xc8282e, sole: 0xf0ece0 },
     body(S, D) {
       const r = mulberry32(9), cols = [0xf0c020, 0xe83a3a, 0x3ab06a, 0xe878b0, 0x3a8ae8, 0xf08a20];
-      for (const [u, v] of [[0, 16], [16, 48]]) for (let i = 0; i < 9; i++) { const x = u + Math.floor(r() * 32) / 2, y = v + 4 + Math.floor(r() * 18) / 2, c = cols[Math.floor(r() * cols.length)]; D(x, y, c, 2, 2); D(x + 0.5, y - 0.5, c, 1, 1); D(x - 0.5, y + 0.5, c, 1, 1); D(x + 1, y + 1, c, 1, 1); }
+      for (const [u, v] of [[0, 16], [16, 48]]) for (let i = 0; i < 16; i++) { const x = u + Math.floor(r() * 32) / 2, y = v + 4 + Math.floor(r() * 18) / 2, c = cols[Math.floor(r() * cols.length)]; D(x, y, c, 3, 3); D(x + 0.5, y - 0.5, c, 1, 1); D(x - 0.5, y + 0.5, c, 1, 1); D(x + 1, y + 1, c, 1, 1); }
       for (let i = 0; i < 4; i++) D(16 + Math.floor(r() * 48) / 2, 22 + Math.floor(r() * 18) / 2, cols[Math.floor(r() * cols.length)], 1, 1);
     },
     vox: { style: 'shaggy', base: 0xc8501a, shade: 0x8a2a0a, light: 0xe8803a, seed: 173, shape: { r: [7, 6.6, 6.8], c: [0, 6, -0.8], tuft: 0.26, spike: 0.1, bump: 0.46, side: -1, back: -3, fringe: 6.2 } },
@@ -453,7 +458,7 @@ export const PEOPLE = {
   quintus: {
     painter: 'person', scale: ADULT_SCALE, accent: 0xff9a2a,
     paint: { skin: 0xdc9c74, hair: 0xb8b4b0, fringe: 1, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x3a7a8a, brow: 0x6a6460, scowl: true, wrinkles: 0xb47c5a, beard: 0xc8c4c0, top: 0x8a4a1e, knit: true, vneck: 0xf0ece0, jacket: 0x1e2238, lapel: 0x2e3450, sleeve: 0x8a4a1e, pants: 0x4a2e1e, shoes: 0x3a2214, saturate: 1.12 },
-    hair: { c: [0, 7, -0.6], r: [5.6, 4.4, 5.8], bump: 0.4, shell: 1.4, fringe: 6.6, jag: 1, side: 3, back: 0.4, tuft: 0.24, spike: 0.06, tones: [0x8a8684, 0xb8b4b0, 0xe0dcd8] },
+    hair: { c: [0, 7, -0.6], r: [5.6, 4.4, 5.8], bump: 0.4, shell: 1.4, fringe: 6.6, jag: 1, side: 3, back: 0.4, tuft: 0.16, spike: 0.03, tones: [0x8a8684, 0xb8b4b0, 0xe0dcd8] },
     beard: [0x9a9692, 0xc8c4c0, 0xe8e4e0],
     parts() {
       const navy = 0x1e2238, navyL = 0x2e3450, br = 0x5a3418;
@@ -497,7 +502,7 @@ export const PEOPLE = {
     parts() {
       const p = hunterParts({ seed: 90, bowSide: 1 });
       const bun = [], r = mulberry32(7), tones = [0x1a1416, 0x080608, 0x34303a];
-      for (let i = 0; i < 30; i++) { const a = r() * Math.PI * 2, e = r() * 1.2; bun.push(B([Math.cos(a) * (2.4 - e), 11.6 + (r() - 0.3) * 3, -1.8 + Math.sin(a) * (2.4 - e)], [1.4, 1.4, 1.4], tones[Math.floor(r() * 3)])); }
+      for (let i = 0; i < 30; i++) { const a = r() * Math.PI * 2, e = r() * 1.2; bun.push(B([Math.cos(a) * (2.6 - e), 10.4 + (r() - 0.3) * 2.6, -2.2 + Math.sin(a) * (2.6 - e)], [1.5, 1.5, 1.5], tones[Math.floor(r() * 3)])); }
       bun.push(...mirrorX([B([-4.4, 3.4, 2.2], [0.9, 3, 0.9], 0x1a1416), B([-4.5, 1.8, 2.6], [0.9, 1.2, 0.9], 0x34303a)]));
       p.head = [...circlet(SILVER, { y: 8.4 }), ...bun];
       return p;
@@ -509,7 +514,7 @@ export const PEOPLE = {
     painter: 'person', scale: 1.32, accent: 0x4ae0ff,
     paint: { skin: 0xb06c44, hair: 0x18100c, fringe: 1, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x2a1a10, brow: 0x18100c, glasses: 0x0a0a0c, beard: 0x1a120c, top: 0x1c1a1e, vneck: 0xf4f4f0, tie: 0x141416, jacket: 0x161418, lapel: 0x262428, pants: 0x161418, shoes: 0x0a0a0c, saturate: 1.1,
       face: (S, ey) => { S.dot(9, ey - 0.5, 0x0a0a0c, 6, 4); S.dot(13, ey - 0.5, 0x0a0a0c, 6, 4); S.dot(11.5, ey, 0x0a0a0c, 2, 1); S.dot(9.5, ey, 0x3a3a40, 1, 1); S.dot(13.5, ey, 0x3a3a40, 1, 1); } },
-    hair: { c: [0, 7.4, -0.8], r: [5.8, 4.6, 6], bump: 0.4, shell: 1.4, fringe: 7, jag: 0.6, side: 3, back: 0, tuft: 0.24, spike: 0.08, tones: [0x0c0806, 0x1e1612, 0x3a2e26] },
+    hair: { c: [0, 7, -1.2], r: [5, 3.8, 5.4], bump: 0.34, shell: 1.2, fringe: 7.2, jag: 0.4, side: 3.4, back: 0, tuft: 0.14, spike: 0.04, tones: [0x0c0806, 0x1e1612, 0x3a2e26] },
     beard: [0x0c0806, 0x1e1612, 0x2e241c],
     parts() {
       const blk = 0x161418, gold = 0xe0b040;
@@ -609,7 +614,7 @@ export const PEOPLE = {
   camp_silena: {
     painter: 'hero', scale: KID, accent: 0xff7ab8,
     paint: { skinTone: 0xf0bc98, hair: 0x2a1810, fringe: 2, hairSide: 5, hairBack: 8, eye: 0x3a6ac8, pupil: 0x0a1a4a, brow: 0x2a1810, lashes: true, mouth: 'smile', lip: 0xe8608a, blush: true, ...TEE, pants: 0x6a8ac0, shoes: 0xf090b8, sole: 0xf8f0f0 },
-    vox: { style: 'long', base: 0x2e1a10, shade: 0x140a06, light: 0x4e3020, seed: 211, shape: { helmetFront: false, top: null, tuft: 0.1, spike: 0.02, bump: 0.24, r: [6, 7.6, 5.8], side: -6, back: -7, fringe: 5.8 } },
+    vox: { style: 'long', base: 0x2e1a10, shade: 0x140a06, light: 0x4e3020, seed: 211, shape: { helmetFront: false, top: 9.3, c: [0, 3.4, -1.2], tuft: 0.1, spike: 0.02, bump: 0.24, r: [6, 7.6, 5.8], side: -6, back: -7, fringe: 5.8 } },
     parts() {
       const pink = 0xf080b0, pinkD = 0xd85a90;
       return {
@@ -738,7 +743,7 @@ export const PEOPLE = {
     parts() {
       const m = 0x6a1428, gold = 0xf0c850;
       return {
-        head: [B([-1.2, 10.4, -1], [5.4, 2.4, 5.4], m), B([-1.2, 11.7, -1], [5.6, 0.4, 5.6], gold), B([-1.2, 9.3, -1], [5.6, 0.6, 5.6], gold), B([-1.2, 10.4, 1.8], [1, 1, 0.3], gold)],
+        head: [B([-1.6, 10, -1.4], [5.4, 2.4, 5.4], m), B([-1.6, 11.3, -1.4], [5.6, 0.4, 5.6], gold), B([-1.6, 8.9, -1.4], [5.6, 0.6, 5.6], gold), B([-1.6, 10, 1.4], [1, 1, 0.3], gold)],
         torso: [
           B([0, 12, 0], [5.6, 1.2, 4.6], m), B([0, 12.65, 0], [5.7, 0.3, 4.7], gold),
           ...mirrorX([B([-3.6, 12.1, 0], [2.2, 0.7, 3.8], gold), ...[3.2, 5.6, 8].map((y) => B([-1.6, y, 2.42], [0.7, 0.7, 0.3], gold)), B([-2.8, 10.6, 2.45], [1.2, 0.4, 0.3], gold)]),

@@ -186,7 +186,7 @@ export function build(ctx) {
   add.camp({ id: 'rt_stlouis_rail', x: 887, z: ROAD_Z + 22, kinds: ['spider', 'skeleton', 'spider'], count: 6, chest: 'rare' });
   add.camp({ id: 'rt_stlouis_ballpark', x: 924, z: 74, kinds: ['skeleton', 'empousa', 'skeleton'], count: 6 });
   add.champion({ id: 'rt_stlouis_widow', x: 887, z: 84, kind: 'spider', level: 6, elite: 'shadow' });
-  add.npc({ id: 'rt_stlouis_mae', x: 904, z: ROAD_Z - 7, model: 'mortal:guard', yaw: 0 });
+  add.npc({ id: 'rt_stlouis_mae', x: 904, z: ROAD_Z - 7, model: 'npc:rt_stlouis_mae', yaw: 0 });
   for (const [i, x, z] of [[1, 896, 84], [2, 930, 80], [3, 946, ROAD_Z + 12], [4, 896, 9]]) add.item({ id: 'rt_stlouis_ticket_' + i, quest: 'rt_stlouis_tickets', x, z });
 }
 

@@ -59,7 +59,7 @@ export function build(ctx) {
   W.addLight(50, FY + 7, ROAD_Z + 0.5, 0xffd08a, 3, 12);
 
   // ------------------------------------------------------------ Grandma Mae, who fishes off the pier
-  add.npc({ id: 'rt_sm_fisher', x: 30, z: ROAD_Z + 0, model: 'mortal:old_lady', yaw: Math.PI });
+  add.npc({ id: 'rt_sm_fisher', x: 30, z: ROAD_Z + 0, model: 'npc:rt_sm_fisher', yaw: Math.PI });
   P('bench', 28, ROAD_Z, { rot: 0 }, FY);
   for (const [i, x, z] of [[1, 38, 64], [2, 55, 76], [3, 62, 58], [4, 44, 22]]) add.item({ id: `rt_sm_lure${i}`, quest: 'rt_sm_fisher_lures', x, z });
 

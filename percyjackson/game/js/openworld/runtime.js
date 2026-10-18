@@ -24,6 +24,7 @@ import { Quests } from './quests.js';
 import { openWorldMap } from '../ui/worldMap.js';
 import { bundlesFrom } from '../resources.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { applyChampionLook } from '../entities/champions.js';
 
 export const RESPAWN = { camp: 8 * 60, champion: 15 * 60, shrine: 6 * 60 };   // seconds of play
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -222,6 +223,19 @@ export class OpenWorld {
       e.owCamp = c.id; e.spawnT = 0.4;
       list.push(e);
     }
+    // a crowd of the region's fodder round the camp's own monsters (the
+    // region's fodder field, world/owLayout.js and rtLayout.js): six to nine,
+    // in a looser ring further out, all part of the camp (it clears when they're gone too)
+    const fod = r.fodder ?? [], nf = fod.length ? 6 + Math.floor(Math.random() * 4) : 0;
+    for (let i = 0; i < nf; i++) {
+      const a = (i / nf) * Math.PI * 2 + Math.random() * 0.8, rr = c.radius * 0.45 + Math.random() * (c.radius * 0.55 + 2);
+      const x = c.pos.x + Math.cos(a) * rr, z = c.pos.z + Math.sin(a) * rr;
+      const y = g.world.groundBelow(x, z, c.pos.y + 4); if (!isFinite(y) || Math.abs(y - c.pos.y) > 3) continue;
+      const e = g.spawnEnemy(fod[Math.floor(Math.random() * fod.length)], V(x, y, z), { level: c.level ?? this.lay.levelAt(r, x, z, Math.random()) });
+      if (!e) continue;
+      e.owCamp = c.id; e.spawnT = 0.4 + Math.random() * 0.3;
+      list.push(e);
+    }
     this.campState.set(c.id, { live: true, cleared: false, list });
     if (list.length) toast(t('ow.camp.ambush'));
   }
@@ -242,7 +256,7 @@ export class OpenWorld {
         const e = g.spawnEnemy(c.kind, c.pos.clone(), { level, elite: c.elite ?? 'armored' });
         if (!e) continue;
         e.champion = true; e.owChampion = c.id; e.maxHp *= 3; e.hp = e.maxHp; e.displayName = c.name;
-        e.object.scale.multiplyScalar(1.25);
+        applyChampionLook(e, c.id);   // its own model, size, glow and aura (entities/champions.js)
         this.champState.set(c.id, { e });
         toast(t('ow.champion.appears', { name: c.name }), 'big');
         g.hud?.setBoss?.(e);

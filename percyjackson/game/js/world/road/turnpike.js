@@ -315,7 +315,7 @@ export function build(ctx) {
   add.champion({ id: 'rt_turnpike_diesel', x: 1402, z: 17, kind: 'hellhound', level: 4, elite: 'armored' });
   add.chest({ id: 'rt_turnpike_woods', x: 1280, z: ROAD_Z - 30, rarity: 'rare' });
   add.chest({ id: 'rt_turnpike_billboard', x: 1313, z: ROAD_Z - 16, rarity: 'common', hidden: true });
-  add.npc({ id: 'rt_turnpike_earl', x: 1322, z: ROAD_Z + 8, model: 'mortal:farmer', yaw: Math.PI });
+  add.npc({ id: 'rt_turnpike_earl', x: 1322, z: ROAD_Z + 8, model: 'npc:rt_turnpike_earl', yaw: Math.PI });
   for (const [i, x, z] of [[1, 1347, 31], [2, 1398, ROAD_Z + 12], [3, 1292, ROAD_Z - 14], [4, 1362, ROAD_Z + 36], [5, 1430, 30]]) add.item({ id: 'rt_turnpike_chicken_' + i, quest: 'rt_turnpike_chickens', x, z });
 }
 

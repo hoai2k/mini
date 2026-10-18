@@ -147,6 +147,8 @@ export function build(c) {
     for (const [x, z] of [[cx - 5, cz - 3], [cx + 6, cz + 2], [cx - 3, cz + 5]]) { put(x, fy, z, B.red_rock); put(x + 1, fy, z, B.red_rock); }
     for (let i = 0; i < 14; i++) sprite(rand() < 0.4 ? 'skull' : 'bone', cx - 7 + Math.floor(rand() * 15), fy, cz - 5 + Math.floor(rand() * 11), { scale: 0.8, sway: 0 });
     W.addLight(cx + 0.5, fy + 2, cz + 0.5, 0xff7a3a, 3, 14);
+    for (const x of [cx - 3, cx + 3]) { prop('brazier', x, top(x, 187), 187); W.addLight(x + 0.5, top(x, 187) + 1.6, 187.5, 0xffa040, 3, 8); }
+    for (const [x, z] of [[cx - 8, cz], [cx + 8, cz - 1], [cx - 4, cz - 6], [cx + 5, cz + 5]]) prop('torch', x, fy, z);
     under(cx + 5, cz - 4, fy, () => add.chest({ id: 'canyon_c_den', x: cx + 5, z: cz - 4, rarity: 'rare' }));
     add.landmark({ id: 'canyon_den', x: cx, z: 189 });
     // on top, up the western ramp
@@ -163,20 +165,28 @@ export function build(c) {
   // ------------------------------------------------------------ Hunters' Mesa: the silver tents of Artemis
   {
     const y = top(367, 169);
-    const tent = (x, z, along = 'z') => {
-      for (let i = 0; i < 4; i++) {
-        const [ax, az] = along === 'z' ? [x, z + i] : [x + i, z];
-        const [px, pz] = along === 'z' ? [1, 0] : [0, 1];
-        put(ax - px, y, az - pz, B.silver_plate); put(ax + px, y, az + pz, B.silver_plate); put(ax, y + 1, az, B.silver_plate);
-      }
+    // the Hunters' tents: round white bell tents, each with a pole through its peak, the door to the fire
+    const tent = (x, z) => {
+      const fa = Math.atan2(170 - z, 368 - x);
+      disc(x, z, -1, 2.3, (xx, zz, d, a) => { if (Math.abs(Math.atan2(Math.sin(a - fa), Math.cos(a - fa))) < 0.45 && d > 1.2) return; put(xx, y, zz, d > 1.6 ? B.white_trim : B.plaster); });
+      disc(x, z, -1, 1.5, (xx, zz) => put(xx, y + 1, zz, B.white_trim));
+      put(x, y + 2, z, B.plaster); put(x, y + 3, z, B.log); put(x, y + 4, z, B.silver_plate);
     };
-    tent(360, 162); tent(373, 160, 'x'); tent(376, 172); tent(362, 175, 'x');
+    tent(360, 163); tent(374, 161); tent(376, 174); tent(361, 177);
+    // moon banners on tall poles, and two lookout towers at the mesa's edge
+    for (const [x, z] of [[364, 157], [371, 157], [380, 166], [380, 171]]) { fill(x, y, z, x, y + 4, z, B.log); put(x, y + 5, z, B.silver_plate); sprite('banner', x, y + 3.6, z + 1, { mode: 'wall', facing: [0, 1], scale: 1.5, sway: 0.3 }); }
+    for (const [x, z] of [[357, 160], [377, 179]]) {
+      for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) fill(x + dx, y, z + dz, x + dx, y + 3, z + dz, B.log);
+      fill(x - 1, y + 4, z - 1, x + 1, y + 4, z + 1, B.planks);
+      for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) put(x + dx, y + 5, z + dz, B.log);
+      prop('brazier', x, y + 5, z); W.addLight(x + 0.5, y + 6.6, z + 0.5, 0xffb050, 3, 10);
+    }
     prop('campfire', 368, y, 170); W.addLight(368.5, y + 1, 170.5, 0xc8d8ff, 3.5, 11);
     prop('archery_target', 356, y, 170, { rot: Math.PI / 2 }); prop('archery_target', 356, y, 166, { rot: Math.PI / 2 });
     prop('flagpole', 366, y, 158, { h: 5, color: 0xd8e0f0 });
     prop('table', 371, y, 176, { len: 3 });
     sprite('em_artemis', 366, y + 3.5, 158, { scale: 1.3, sway: 0.3 });
-    add.npc({ id: 'canyon_phoebe', x: 363, z: 170, model: 'hero:thalia', yaw: Math.PI / 2 });
+    add.npc({ id: 'canyon_phoebe', x: 363, z: 170, model: 'npc:canyon_phoebe', yaw: Math.PI / 2 });
     add.chest({ id: 'canyon_c_hunters', x: 380, z: 167, rarity: 'rare' });
     add.landmark({ id: 'canyon_hunters', x: 366, z: 169 });
   }
@@ -277,7 +287,7 @@ export function build(c) {
     fill(296, y, 263, 299, y, 264, B.planks); put(296, y, 262, B.log); put(299, y, 262, B.log); put(296, y, 265, B.log);
     for (let i = 0; i < 12; i++) sprite('dry_grass', 298 + Math.floor(rand() * 44), y, 256 + Math.floor(rand() * 5), { scale: 1.1 });
     add.camp({ id: 'canyon_town_camp', x: 313, z: 258, kinds: ['skeleton', 'empousa', 'skeleton'], count: 5, chest: 'common', radius: 8 });
-    add.npc({ id: 'canyon_hedge', x: 327, z: 257, model: 'hero:grover', yaw: 0 });
+    add.npc({ id: 'canyon_hedge', x: 327, z: 257, model: 'npc:canyon_hedge', yaw: 0 });
     for (const [i, x, z] of [[0, 302, 252], [1, 318, 266], [2, 328, 262], [3, 296, Math.round(washZ(296))], [4, 352, Math.round(washZ(352))]]) add.item({ id: 'canyon_can_' + i, quest: 'canyon_cans', x, z });
   }
 
@@ -310,6 +320,7 @@ export function build(c) {
     for (let i = 0; i < 12; i++) { const x = 354 + Math.floor(rand() * 21), z = 262 + Math.floor(rand() * 17); if (Math.abs(x - gx) < 4 && Math.abs(z - gz) < 4) continue; if (!W.get(x, y, z)) prop('stone_person', x, y, z, { pose: Math.floor(rand() * 5), rot: rand() * 6.28 }); }
     for (let i = 0; i < 7; i++) { const x = 354 + Math.floor(rand() * 21), z = 262 + Math.floor(rand() * 17); if (!W.get(x, y, z)) prop('gnome', x, y, z, { rot: rand() * 6.28 }); }
     prop('text_sign', 351, y, 270, { text: 'AUNTY EM’S GARDEN GNOME EMPORIUM', w: 5, h: 1.1, post: 1.4, bg: '#e8dcc0', fg: '#6a3a1a', rot: -Math.PI / 2 });
+    for (const [x, z] of [[355, 261], [374, 262], [354, 279], [375, 278], [360, 268]]) if (!W.get(x, y, z)) c.trees.pine(x, z, { h: 6, R: 1.3 });
     add.camp({ id: 'canyon_garden_camp', x: gx, z: gz + 4, kinds: ['gorgon_statue', 'gorgon_statue', 'dracaena', 'gorgon_statue', 'dracaena'], count: 5, chest: 'rare', radius: 9 });
     add.chest({ id: 'canyon_c_garden', x: gx + 1, z: gz - 1, rarity: 'rare' });
     add.landmark({ id: 'canyon_garden', x: gx, z: gz });
@@ -334,6 +345,21 @@ export function build(c) {
     add.landmark({ id: 'canyon_spires', x: 334, z: 170 });
   }
   for (const [i, x, z] of [[0, 335, 160], [1, 343, 187], [2, 381, 205], [3, 297, 253], [4, 336, 234]]) add.item({ id: 'canyon_arrow_' + i, quest: 'canyon_arrows', x, z });
+
+  // ------------------------------------------------------------ a trickle of water down the wash, green brush along it; junipers on the flats
+  for (let x = 262; x <= 388; x++) {
+    if (x >= 300 && x <= 312) continue;                                                   // the cow's bones and the chest under them
+    const z = Math.round(washZ(x)), y = top(x, z);
+    if (W.get(x, y - 1, z) !== B.gravel_path || W.get(x, y, z) || y > FY + 2) continue;
+    put(x, y - 1, z, B.water); put(x, y - 2, z, B.gravel_path);
+    if (rand() < 0.3) { const sz = z + (rand() < 0.5 ? -2 : 2), sy = top(x, sz); if (!W.get(x, sy, sz)) sprite(rand() < 0.6 ? 'reeds' : 'fern', x, sy, sz, { scale: 1 }); }
+  }
+  for (let i = 0; i < 40; i++) {
+    const x = Math.floor(258 + rand() * 132), z = Math.floor(134 + rand() * 152), y = top(x, z);
+    if (W.get(x, y - 1, z) !== B.desert_sand || !c.level(x, z, 3, 3, 1)) continue;
+    if ((x > 294 && x < 346 && z > 244 && z < 272) || (x > 350 && x < 378 && z > 258 && z < 282)) continue;
+    c.trees.oak(x, z, { h: 1 + Math.floor(rand() * 2), R: 1.4 + rand() * 0.7, leaves: B.pine_leaves });
+  }
 
   // ------------------------------------------------------------ cactus, bones, dry grass
   for (let i = 0; i < 70; i++) {
