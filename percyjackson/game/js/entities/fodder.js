@@ -191,7 +191,7 @@ function pummel(rig, dt, e, g) {
     const at = n > 0 ? S.at + (i - (n - 1)) * gap : wu + i * gap;
     const { b, f } = punchPhase(tau - at, _ph), gd = 1 - b - f, side = i % 2 ? -1 : 1, o = -side, Pp = i < 2 ? PUM_TOP : PUM_LOW;
     const x = Pp.guard.x * gd + Pp.back.x * b + Pp.fwd.x * f, z = o * (Pp.guard.z * gd + Pp.back.z * b + Pp.fwd.z * f), pz = Pp.back.pz * b + Pp.fwd.pz * f;
-    twist += side * (0.36 * f - 0.2 * b) * (i < 2 ? 1 : 0.75); lean += 0.2 * f - 0.05 * b; active += b + f;
+    twist += side * (0.3 * f - 0.14 * b) * (i < 2 ? 1 : 0.8); lean += 0.13 * f - 0.04 * b; active += b + f;
     const A = F[i];
     A.arm.position.z = A.pz0 + W * pz * PX;
     if (i < 2) { if (i === 0) { T.x0 = x; T.z0 = z; } else { T.x1 = x; T.z1 = z; } }

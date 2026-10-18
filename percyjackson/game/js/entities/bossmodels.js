@@ -263,6 +263,45 @@ function collarBoxes(r, n, { x = 0, y = 0, z = 0, rx = 0, w = 2.2 } = {}) {
   }
   return B;
 }
+// A serpent for a QuadRig's tail (Cerberus): each tail segment sculpted as
+// a scaled snake's body, dark green scales in a lattice over a pale belly,
+// tapering to a snake's head on the tip with burning eyes, two fangs and a
+// forked tongue. The QuadRig curls the chain up over the back (tailCurl),
+// so the head rides high and looks forward.
+function serpentTail(rig) {
+  const segs = rig.tail; if (!segs.length) return;
+  const n = segs.length, seg = (rig.spec.tailLen ?? 6) / n, tw = rig.spec.tailW ?? 2;
+  const SC = [0x1e3a22, 0x284a2a, 0x335a30], BELLY = [0x9aa070, 0x8a9060];
+  const scale = (r) => (x, y, z, nn, h) => {
+    if (y < -r * 0.45) return BELLY[Math.floor(h * 2)];                           // belly plates
+    const u = Math.floor(z * 1.6), w = Math.floor((Math.atan2(y, x) + Math.PI) * 2.2);
+    return (u + w) % 2 ? SC[Math.floor(h * 3)] : 0x14261a;                        // a lattice of scales
+  };
+  segs.forEach((g, i) => {
+    hideSkin(g);
+    const r = tw * 0.62 * (1 - i * 0.07);
+    vox(rig, g, [{ cap: [0, 0, 0.4, 0, 0, -seg - 0.4, r, r * 0.93], col: scale(r), bump: 0.04, fuzz: 0.04 }], { v: 0.7, seed: 120 + i });
+  });
+  // the snake's neck rears up and over from the tip, so its head looks
+  // forward over Cerberus's back, the way a cobra rears
+  const r = tw * 0.62 * (1 - (n - 1) * 0.07), nk = group(rig.tailTip, 0, 0, -seg, 1.1);
+  vox(rig, nk, [{ cap: [0, 0, 0.4, 0, 0, -3.2, r * 0.95, r * 0.9], col: scale(r), bump: 0.04, fuzz: 0.04 }], { v: 0.7, seed: 129 });
+  const hd = group(nk, 0, 0, -3.2, 1.1);
+  vox(rig, hd, [
+    { e: [0, 0.2, -1.6, r * 1.25, r * 0.85, 2.4], col: scale(r * 1.1), bump: 0.04, fuzz: 0.04 },
+    { e: [0, -0.5, -2.2, r * 1.05, r * 0.45, 2.1], col: BELLY, bump: 0.02, fuzz: 0.02 },
+  ], { v: 0.6, seed: 131 }, [
+    ...[-1, 1].flatMap((sx) => [
+      { p: [sx * r * 0.85, 0.7, -2.1], s: [0.5, 0.55, 0.8], c: 0xffc020, m: 'e' },   // burning eyes
+      { p: [sx * r * 0.92, 0.7, -2.2], s: [0.2, 0.5, 0.25], c: 0x140808 },
+      { p: [sx * r * 0.45, -0.9, -3.4], s: [0.22, 0.9, 0.22], c: 0xf4ecd4 },         // fangs
+      { p: [sx * 0.14, -0.35, -4.6 - 0.35], s: [0.12, 0.1, 0.7], c: 0xd8203a, r: [0, sx * 0.35, 0] },   // the forked tongue
+    ]),
+    { p: [0, -0.35, -4.2], s: [0.16, 0.12, 0.9], c: 0xd8203a },
+    { p: [0, 1, -3.2], s: [r * 1.6, 0.25, 1.4], c: 0x14261a },                         // a dark brow ridge
+  ]);
+  rig.extras.serpent = hd;
+}
 // A shaggy quadruped body over a QuadRig: chest, haunches, hackles, legs with
 // claws. o: { fur, lava, seed, chest, spikes }
 function wolfBody(rig, o) {
@@ -311,7 +350,11 @@ function fineFace(S, o) {
   else if (o.mouth === 'smirk') { D(10.5, my, dark, 5, 1); D(13, my - d, dark, 1, 1); D(13.5, my - 1, dark, 1, 1); D(11, my + d, shadeOf(skin, 0.8), 3, 1); }
   else if (o.mouth === 'frown') { D(10.5, my, dark, 6, 1); D(10, my + d, dark, 1, 1); D(13.5, my + d, dark, 1, 1); }
   else { D(10.5, my, shadeOf(skin, 0.6), 6, 1); }
-  if (o.scar) for (const [x, y] of [[14.5, ey - 0.5], [14, ey + 0.5], [14, ey + 1], [13.5, ey + 1.5], [13.5, ey + 2], [13, ey + 2.5], [14.5, ey + 1], [15, ey]]) D(x, y, o.scar, 1, 1);
+  // the scar (Luke's): down the right cheek (the face's left, x 8..12) from just under the eye socket
+  // to the jaw, as in the books, never across the eye (it starts below the shadow under it, ey + 2)
+  if (o.scar) {
+    for (const [x, y] of [[10.5, ey + 2.5], [10, ey + 3], [9.5, ey + 3.5], [9, ey + 3.5]]) D(x, y, o.scar, 1, 1);
+  }
 }
 // A res-2 humanoid skin: paintPerson's layout, fine features, then o.detail, shading and colour.
 const humanSkin = (id, o, opts = {}) => skinMat(id, (S) => { paintPerson(S, o); fineFace(S, o); o.detail?.(S, (x, y, c, n = 1, m = n) => S.dot(x, y, c, n, m)); S.shadeLimbs(); S.saturate(o.sat ?? 1.2); }, { res: 2, emit: 0, fill: 0.1, ...opts });
@@ -342,8 +385,9 @@ const kitBoxes = (list, dy = 0) => list.map((b) => ({ p: [b.at[0], b.at[1] + dy,
 // 1.32 / (rig scale) of a boss's skin pixels, so the full hero density would
 // be vd = 1.32 / (scale * v). Each is set as close to that as its triangle
 // budget (about 40k for a boss) allows.
-// (cerberus: a coarser body and finer heads, pass 3; its cells are greedy-meshed, rig.merge)
-const VD = { minotaur: 1.5, chimera: 1.55, cerberus: 1.08, cerberusHead: 1.4, procrustes: 1.5, ares: 1.5 };
+// (cerberus: a coarser body and finer heads, pass 3; its cells are greedy-meshed, rig.merge;
+// pass 4: the body much bigger, so its grid coarser still)
+const VD = { minotaur: 1.5, chimera: 1.55, cerberus: 0.8, cerberusHead: 1.3, procrustes: 1.5, ares: 1.5 };
 export const BOSS_MODELS = {
   // Alecto: Mrs. Dodds as she really is (vox-enemies, bottom right)
   alecto: () => withBuild({ key: 'b:alecto' }, () => buildFury('alecto', { scale: 1.75, seed: 71 })),
@@ -683,31 +727,36 @@ export const BOSS_MODELS = {
   },
 
   // Cerberus: three huge black heads with burning eyes, red mouths, drool and
-  // gold spiked collars on one enormous body.
+  // gold spiked collars on one enormous body, and a serpent for a tail.
+  // (pass 4, the owner's review against vox-bosses-1: the body is far bigger
+  // for its heads, broad and deep, crouched on thick legs planted wide;
+  // about as tall and as long as before, the heads a little smaller)
   cerberus: () => {
     const m = skinMat('boss_cerberus', (S) => paintQuad(S, { base: 0x1e1c26, dark: 0x0e0d14, belly: 0x2a2834, back: 0x16141c, eye: 0xff4a0a, eyeLow: 0xffa02a, nose: 0x050505, speckles: 50, brow: 0x0a0a10, teeth: 0xfff4e0,
       custom: (s) => { fur(s, 0, 16, 40, 20, 90, 0x0a0a10, 0x3a3848); fur(s, 0, 0, 32, 16, 30, 0x0a0a10, 0x3a3848); s.box(48, 0, 4, 2, 4, 0xa82030, 0.1); s.rect(52, 4, 4, 1, 0xf4f0e0, 0); s.rect(36, 6, 4, 2, 0xc8283a, 0.1); s.box(52, 16, 2, 3, 1, 0x8a2a3a, 0.1); } }), { emit: 3 });
-    const rig = new QuadRig({ material: m, scale: 3.3, bodyL: 14, bodyW: 11, bodyH: 8, legH: 8, legW: 3.8, headS: 7.5, ears: true, tail: 4, tailLen: 9, tailW: 2.2, tailCurl: 0.2, gait: 0.65, neckUp: 4, headZ: 1 });
+    const rig = new QuadRig({ material: m, scale: 2.9, bodyL: 22, bodyW: 19, bodyH: 12, legH: 9, legW: 5.6, legY: 1, legSpread: 1, stance: 0.14, legsOnTorso: true, headS: 7.5, ears: true, tail: 6, tailLen: 22, tailW: 2.6, tailCurl: 0.3, gait: 0.6, neckUp: 3, headZ: 0 });
+    const { W, H, L } = rig.dims;
     rig.vd = VD.cerberus; rig.merge = true;
     const furs = [0x0c0b12, 0x15131d, 0x1e1b28, 0x2a2636, 0x3a3448];
     wolfBody(rig, { fur: furs, seed: 51, chest: 1.05 });
     const heads = [];
     for (const side of [-1, 0, 1]) {
       let neck, head, mouth;
-      const hs = side ? 8.4 : 9;
+      const hs = side ? 7.6 : 8;
       if (side === 0) { neck = rig.neck; head = rig.head; mouth = rig.mouth; hideSkin(head, mouth); }
       else {
-        neck = group(rig.torso, side * 6.6, 8 * 0.3 + 2.4, 14 / 2 - 1.6, 0, side * 0.42, side * -0.12);
+        neck = group(rig.torso, side * W * 0.42, H * 0.3 + 1.6, L / 2 - 2.4, 0, side * 0.42, side * -0.12);
         head = group(neck); mouth = group(head, 0, -hs * 0.42, hs * 0.75);
       }
       rig.vd = VD.cerberusHead;   // (the heads, where the eye goes, at a finer grid than the body)
       wolfHead(rig, head, mouth, hs, { fur: furs, eye: 0xe84a08, inner: 0xa0182a, drool: true, seed: 60 + side * 3 });
       rig.vd = VD.cerberus;
       // a thick shaggy neck and a gold spiked collar
-      vox(rig, neck, side ? [{ e: [0, -1, -2, 4.2, 4.6, 4.6], col: furs, fuzz: 0.4 }] : [], { v: 1, seed: 70 + side }, collarBoxes(side ? 5.2 : 6, 14, { y: -1.8, z: side ? 0.6 : 1.4, rx: -0.3, w: 2.6 }));
+      vox(rig, neck, [{ e: [0, -1.4, -2.4, side ? 4 : 4.4, 4.6, 4.8], col: furs, fuzz: 0.4 }], { v: 1, seed: 70 + side }, collarBoxes(side ? 5 : 5.6, 14, { y: -1.8, z: side ? 0.6 : 1.4, rx: -0.3, w: 2.6 }));
       heads.push({ neck, head, mouth, side, act: 0 });
     }
     rig.extras.heads = heads;
+    serpentTail(rig);
     return rig;
   },
 

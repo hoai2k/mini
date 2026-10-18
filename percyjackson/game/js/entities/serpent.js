@@ -27,22 +27,22 @@ import { damp, clamp, easeOutCubic, easeInCubic } from '../util.js';
 import { skinMat, voxDensity } from './parts.js';
 import { paintQuad } from './quad.js';
 
-const NN = 7, NG = 15, SEG = 3.2;   // neck segments, ground segments, ground segment length (px)
+const NN = 7, NG = 15, SEG = 3.4, NSEG = 3.8;   // neck segments, ground segments, segment lengths (px)
 // colours
 const GREEN = [0x2f7a34, 0x276a2c, 0x3a8a3c, 0x225e28], DARK = 0x102a14, DARK2 = 0x183a1c, CREAM = 0xe8d48a, CREAMD = 0xc8b064;
 const GOLD = 0xd8a830, GOLDL = 0xf0c850, EYE = 0xffc818, EYEL = 0xffe870, SLIT = 0x0a0a06, FANG = 0xf6f0e0, GUM = 0xb83848, TONGUE = 0xd01c3c;
 
 // girth of segment j counted from the head (neck 0..NN-1, then the ground body)
 function girth(j) {
-  if (j < NN) return 4.3 + j * 0.16;
+  if (j < NN) return 5.4 + j * 0.2;
   const k = (j - NN) / NG;
-  return 5.4 * (1 - Math.pow(k, 1.5) * 0.82);
+  return 6.8 * (1 - Math.pow(k, 1.4) * 0.84);
 }
 
 // neck poses: head base (y, z) above/ahead of where the body leaves the ground,
 // the neck's direction into the head (y, z), head pitch (+ nose down), jaw, hood flare
-const P_IDLE = { hy: 19, hz: 6, dy: 0.75, dz: 0.66, pitch: 0.12, jaw: 0.06, hood: 0.7, hx: 0, roll: 0 };
-const P_COCK = { hy: 22.5, hz: 0.5, dy: 1, dz: -0.15, pitch: -0.25, jaw: 0.75, hood: 1.15, hx: 0, roll: 0 };
+const P_IDLE = { hy: 20, hz: 6, dy: 0.75, dz: 0.66, pitch: 0.12, jaw: 0, hood: 1, hx: 0, roll: 0 };
+const P_COCK = { hy: 22.5, hz: 0.5, dy: 1, dz: -0.15, pitch: -0.25, jaw: 0.75, hood: 1.2, hx: 0, roll: 0 };
 const P_STRIKE = { hy: 8.5, hz: 22, dy: -0.12, dz: 1, pitch: 0.22, jaw: 1.05, hood: 0.9, hx: 0, roll: 0 };
 const P_HIT = { hy: 18, hz: -2.5, dy: 0.9, dz: -0.45, pitch: -0.55, jaw: 0.45, hood: 0.5, hx: 0, roll: 0.15 };
 const P_STAG = { hy: 12, hz: 7, dy: 0.2, dz: 1, pitch: 0.55, jaw: 0.3, hood: 0.5, hx: 1.5, roll: 0.2 };
@@ -69,18 +69,19 @@ export class SerpentRig {
     for (let j = 0; j < NN + NG; j++) { const g = new THREE.Group(); g.userData.w = girth(j); this.torso.add(g); this.segs.push(g); }
     this.neck = this.segs[NN - 1];
     this.head = new THREE.Group(); this.torso.add(this.head);
-    this.mouth = new THREE.Group(); this.mouth.position.set(0, -0.9 * PX, 0.9 * PX); this.head.add(this.mouth);
-    this.tongue = new THREE.Group(); this.tongue.position.set(0, -0.15 * PX, 5.6 * PX); this.mouth.add(this.tongue);
-    this.hood = new THREE.Group(); this.segs[1].add(this.hood);
+    this.mouth = new THREE.Group(); this.mouth.position.set(0, 0, -0.6 * PX); this.head.add(this.mouth);
+    this.tongue = new THREE.Group(); this.tongue.position.set(0, -0.2 * PX, 7.2 * PX); this.mouth.add(this.tongue);
+    this.fangs = new THREE.Group(); this.fangs.position.set(0, 0, 7.6 * PX); this.head.add(this.fangs);
+    this.hoods = [this.segs[2], this.segs[1]].map((s) => { const g = new THREE.Group(); s.add(g); return g; });
     this.handR = this.handL = this.mouth;
     // (no limbs: empty stand-ins so humanoid-minded code finds something)
     const none = new THREE.Group(); none.visible = false; this.torso.add(none);
     this.legs = []; this.tail = []; this.legR = this.legL = this.armR = this.armL = none;
-    this.dims = { hs: 5.6, H: 4.6, L: NG * SEG, W: 5.4, legH: 0, standH: 0, legH0: 0 };
+    this.dims = { hs: 7.4, H: 5.8, L: NG * SEG, W: 6.8, legH: 0, standH: 0, legH0: 0 };
     this.extras = {}; this.strands = []; this.cape = [];
     this.t = Math.random() * 10; this.wave = Math.random() * 6;
     this.pose = { ...P_IDLE }; this._tgt = { ...P_IDLE }; this._tmp = { ...P_IDLE };
-    this.swing = 0.25;   // the ground wave's amplitude (damped toward the gait's)
+    this.swing = 0.42;   // the ground wave's amplitude (damped toward the gait's)
     this.flick = 0;
     // scratch for the spine
     this._pts = Array.from({ length: NN + NG + 1 }, () => new THREE.Vector3());
@@ -96,7 +97,7 @@ export class SerpentRig {
     // the idle weave: the head sways and bobs, the neck breathes
     Object.assign(T, P_IDLE);
     T.hx = Math.sin(t * 1.3) * 1.6; T.hy += Math.sin(t * 2.1) * 0.6 - run * 4; T.hz += run * 3; T.pitch += Math.sin(t * 1.7) * 0.06 + run * 0.15;
-    let dead = false, wave = 1.2 + run * 9, amp = 0.28 + run * 0.5;
+    let dead = false, wave = 1.2 + run * 9, amp = 0.42 + run * 0.35;
     if (a) {
       const k = clamp(a.t ?? 0, 0, 1);
       switch (a.type) {
@@ -169,8 +170,9 @@ export class SerpentRig {
       g.quaternion.setFromUnitVectors(_z, _a.multiplyScalar(1 / Math.max(1e-6, len)));
       g.scale.set(1, 1, len / (g.userData.len ?? SEG));
     }
-    // the hood flares on the upper neck
-    this.hood.scale.set(P.hood, 1, 1);
+    // the hood flares on the upper neck; the fangs swing down with the jaw
+    for (const g of this.hoods) g.scale.set(P.hood, 1, 1);
+    this.fangs.scale.y = clamp(0.25 + P.jaw * 0.9, 0.25, 1); this.fangs.rotation.x = -0.3 * clamp(P.jaw, 0, 1);
     // the head at the neck's end, along the neck's last direction, pitched by the pose
     const h = this.head, top = pts[0];
     h.position.set(top.x * PX, top.y * PX, top.z * PX);
@@ -183,7 +185,7 @@ export class SerpentRig {
 
   // the lowest point of the head and jaw, in the torso's space
   headLow() {
-    const F = this._hp ??= { head: extremePoints(this.head, new Set([this.mouth])), mouth: extremePoints(this.mouth, new Set([this.tongue])) };
+    const F = this._hp ??= { head: extremePoints(this.head, new Set([this.mouth, this.fangs])), mouth: extremePoints(this.mouth, new Set([this.tongue])) };
     this.head.updateMatrix(); this.mouth.updateMatrix();
     return Math.min(lowest(F.head, this.head.matrix), lowest(F.mouth, _m.multiplyMatrices(this.head.matrix, this.mouth.matrix)));
   }
@@ -205,7 +207,7 @@ export function buildSerpent({ kit }) {
   // transverse plates; dark diamonds down the spine edged in gold, a gold
   // band every third segment
   rig.segs.forEach((g, j) => {
-    const w = g.userData.w, h = w * 0.86, l = j < NN ? 3.6 : SEG, ov = Math.min(1.4, w * 0.3);
+    const w = g.userData.w, h = w * 0.86, l = j < NN ? NSEG : SEG, ov = Math.min(1.6, w * 0.3);
     g.userData.len = l;
     const zc = l / 2;
     K.vox(g, 0, 0.1, zc, w, h - 0.2, l + ov, GREEN, { faces: 'tlr', relief: 0.25, out: 0.25, j: 0.1 });
@@ -224,57 +226,71 @@ export function buildSerpent({ kit }) {
     // the tail tip: a last fine point
     if (j === rig.segs.length - 1) { K.box(g, 0, -0.1, -0.9, w * 0.7, h * 0.7, 1.4, GREEN[1]); K.box(g, 0, -0.15, -1.9, w * 0.4, h * 0.4, 1, DARK2); }
   });
-  // ---- the hood: two flaps along the upper neck, cream plates in front (the
-  // belly side, toward the hero), a gold spectacle mark on the back
-  const Hd = rig.hood, hw = girth(1);
-  for (const sx of [-1, 1]) {
-    for (const [z, wx, len] of [[0.5, 2.2, 2.4], [2.4, 3.2, 2.6], [4.4, 3, 2.4], [6, 1.8, 1.6]]) {
-      K.box(Hd, sx * (hw / 2 + wx / 2 - 0.4), 0, z, wx, 0.9, len, GREEN[z > 3 ? 2 : 0]);
-      K.box(Hd, sx * (hw / 2 + wx / 2 - 0.5), -0.5, z, wx * 0.85, 0.2, len * 0.9, CREAM);
+  // ---- the hood: a spade of skin spread from the upper neck (two halves, on
+  // the two segments under the head, so it bends with the neck). Its front
+  // (the belly side, toward the hero) in cream plates rimmed dark; its back
+  // green with a gold spectacle mark. animate() spreads it (hood scale x).
+  const HOOD = [[0, 3.2], [1.2, 4.6], [2.4, 5.8], [3.6, 6.6], [4.8, 7], [6, 6.6], [7.2, 5.6], [8.4, 4.2]];   // [z up the neck, half width]
+  const halves = [[rig.hoods[0], 0], [rig.hoods[1], NSEG]];
+  for (const [zr, hw] of HOOD) {
+    const [Hg, z0] = zr < NSEG ? halves[0] : halves[1], z = zr - z0 + 0.6, nw = girth(1) / 2 - 0.4, span = hw - nw;
+    if (span <= 0) continue;
+    for (const sx of [-1, 1]) {
+      const cx = sx * (nw + span / 2);
+      K.box(Hg, cx, 0, z, span, 0.8, 1.25, K.tone(GREEN, 0.1));
+      K.box(Hg, cx - sx * 0.3, -0.48, z, span - 0.6, 0.2, 1.1, zr % 2.4 ? CREAM : CREAMD);
+      K.box(Hg, sx * (hw - 0.25), -0.1, z, 0.5, 0.9, 1.3, DARK);   // (the dark rim)
     }
-    K.box(Hd, sx * (hw / 2 + 1.3), 0.5, 3.4, 1.8, 0.2, 2.2, GOLD); K.box(Hd, sx * (hw / 2 + 1.3), 0.6, 3.4, 0.8, 0.2, 1, DARK);
-    K.box(Hd, sx * (hw / 2 + 2.6), 0.48, 3.4, 0.4, 0.2, 4.8, DARK);   // (the dark rim)
   }
-  K.box(Hd, 0, 0.55, 1.2, hw * 0.5, 0.2, 1.2, GOLD);
-  // ---- the head: a flat wedge, broad at the jaw hinge, tapering to the snout
-  const H = rig.head;
-  K.vox(H, 0, 0.35, 1.6, 5.6, 2.8, 4.4, GREEN, { faces: 'tlrk', relief: 0.2, out: 0.2 });
-  K.box(H, 0, 0.25, 4.8, 4.6, 2.3, 2.4, GREEN[0]);
-  K.box(H, 0, 0.1, 6.7, 3.5, 1.9, 1.8, GREEN[2]);
-  K.box(H, 0, -0.05, 7.9, 2.4, 1.4, 0.9, GREEN[1]);
-  // big head plates on top, darker toward the back
-  for (const [x, z, w, d, c] of [[0, 0.4, 2.6, 2, DARK2], [-1.5, 2.6, 1.6, 1.8, GREEN[3]], [1.5, 2.6, 1.6, 1.8, GREEN[3]], [0, 4.6, 2.4, 1.6, GREEN[1]], [0, 6.4, 1.8, 1.4, GREEN[3]]]) K.box(H, x, 1.85, z, w, 0.25, d, c);
-  K.box(H, 0, 1.95, 0.4, 0.6, 0.2, 3, GOLD);   // (a gold stripe down the crown)
-  // jowls at the hinge
-  for (const sx of [-1, 1]) K.box(H, sx * 2.9, -0.5, 1.4, 1, 2, 2.8, GREEN[1]);
-  // brow ridges over slit eyes (amber, glowing, a black vertical slit)
+  // the spectacle on the back: a gold ring each side, dark centres
   for (const sx of [-1, 1]) {
-    K.box(H, sx * 1.95, 1.75, 4.2, 1.5, 0.7, 2.2, DARK2, 0, 0, sx * -0.25);
-    K.box(H, sx * 2.32, 0.95, 4.3, 0.3, 1.2, 1.6, EYE);
-    K.box(H, sx * 2.4, 1.25, 4.1, 0.25, 0.4, 0.6, EYEL);
-    K.box(H, sx * 2.48, 0.95, 4.35, 0.2, 1.1, 0.3, SLIT);
-    K.box(H, sx * 1.1, 0.35, 8.36, 0.4, 0.4, 0.2, SLIT);   // nostrils
-    // the lip line, cream scales along the upper jaw
-    K.box(H, sx * 1.95, -0.75, 4.8, 0.4, 0.4, 5.2, CREAM, 0, sx * -0.12, 0);
+    const Hg = halves[1][0], z = 4.8 - NSEG + 0.6, x = sx * 4.4;
+    K.box(Hg, x, 0.5, z, 2.4, 0.2, 2.2, GOLD); K.box(Hg, x, 0.6, z, 1.2, 0.2, 1.1, DARK);
   }
-  // inside of the mouth and the two long fangs
-  K.box(H, 0, -0.95, 4.6, 4, 0.3, 6.2, GUM);
-  for (const sx of [-1, 1]) { K.box(H, sx * 1.15, -1.75, 6.9, 0.45, 1.5, 0.45, FANG, 0.25); K.box(H, sx * 1.15, -2.45, 7.05, 0.3, 0.5, 0.3, 0xffffff, 0.25); }
-  for (const sx of [-1, 1]) for (const z of [3.2, 4.4, 5.6]) K.box(H, sx * 1.6, -1.2, z, 0.25, 0.4, 0.25, FANG);
-  // ---- the lower jaw (rig.mouth, hinged at the back of the head)
-  const M = rig.mouth;
-  K.box(M, 0, -0.45, 2.6, 4.6, 0.9, 5.4, GREEN[1]);
-  K.box(M, 0, -0.45, 5.9, 2.8, 0.8, 1.8, GREEN[1]);
-  K.box(M, 0, -0.95, 3.6, 3.6, 0.2, 6.4, CREAM);
-  K.box(M, 0, 0.02, 3.4, 3.4, 0.2, 5.4, GUM);
-  for (const sx of [-1, 1]) for (const z of [2.4, 3.6, 4.8, 6]) K.box(M, sx * (z > 5 ? 1.1 : 1.6), 0.25, z, 0.25, 0.4, 0.25, FANG);
+  // ---- the head: a flat wedge, broad at the jaw hinge, tapering to a blunt
+  // snout, in slices one cell long (y 0 is the line of the mouth)
+  const H = rig.head, J = rig.mouth;
+  const hw = (z) => 8 - 0.52 * Math.max(0, z - 0.5), top = (z) => 2.5 - 0.15 * Math.max(0, z - 2);
+  for (let z = -1.2; z < 9.4; z += 1.1) {
+    const w = hw(z), t = top(z), c = K.tone([GREEN[0]], 0.06);
+    K.box(H, 0, (t + 0.25) / 2, z, w, t - 0.25, 1.15, c);
+    // big head plates across the top, the crown darker
+    for (let x = -w / 2 + 0.6; x < w / 2 - 0.3; x += 1.2) K.box(H, x, t, z, 1.15, 0.3, 1.05, z < 3 && Math.abs(x) < 1.5 ? DARK2 : K.tone(GREEN, 0.15));
+    // the upper lip: cream scales along the edge, the gum inside it (y 0..0.25, hidden while the jaw is shut)
+    const front = z > 8.5;
+    K.box(H, 0, 0.125, z, w - 1, 0.25, 1.15, front ? c : GUM);
+    for (const sx of [-1, 1]) K.box(H, sx * (w / 2 - 0.25), 0.125, z, 0.5, 0.25, 1.15, CREAM);
+    // the lower jaw: the same wedge a touch narrower, pink inside
+    if (z > -0.6) {
+      const jw = w - 0.5, jh = 1.4 - 0.05 * z;
+      K.box(J, 0, -(jh + 0.25) / 2, z, jw, jh - 0.25, 1.15, c);
+      K.box(J, 0, -jh + 0.05, z, jw * 0.7, 0.2, 1.15, CREAM);
+      K.box(J, 0, -0.125, z, jw - 1, 0.25, 1.15, front ? c : GUM);
+      for (const sx of [-1, 1]) K.box(J, sx * (jw / 2 - 0.25), -0.125, z, 0.5, 0.25, 1.15, CREAMD);
+    }
+  }
+  K.box(H, 0, 2.62, 0.6, 0.6, 0.2, 3.4, GOLD);   // (a gold stripe down the crown)
+  // brow ridges jutting over slit eyes (amber, glowing, a black vertical slit)
+  for (const sx of [-1, 1]) {
+    const z = 4.6, w = hw(z), y = top(z);
+    K.box(H, sx * (w / 2 - 0.4), y + 0.1, z - 0.1, 1.7, 0.55, 2.6, DARK2, 0, sx * 0.1, sx * -0.12);
+    K.box(H, sx * (w / 2 + 0.05), y - 1, z, 0.3, 1.2, 1.7, EYE);
+    K.box(H, sx * (w / 2 + 0.12), y - 0.7, z - 0.3, 0.2, 0.4, 0.6, EYEL);
+    K.box(H, sx * (w / 2 + 0.18), y - 1, z + 0.1, 0.2, 1.15, 0.32, SLIT);
+    K.box(H, sx * 0.75, 0.75, 9.3, 0.25, 0.25, 0.1, DARK);   // nostrils
+    // small teeth along the jaws, seen when it gapes
+    for (const z2 of [2.5, 4, 5.5, 7]) { K.box(H, sx * (hw(z2) / 2 - 0.8), -0.15, z2, 0.3, 0.45, 0.3, FANG); K.box(J, sx * (hw(z2) / 2 - 1.1), 0.1, z2, 0.3, 0.45, 0.3, FANG); }
+  }
+  // the two long fangs (rig.fangs: they swing down as the jaw drops)
+  const Fg = rig.fangs;
+  for (const sx of [-1, 1]) { K.box(Fg, sx * 1.3, -0.9, 0, 0.5, 1.9, 0.5, FANG, 0.2); K.box(Fg, sx * 1.3, -1.95, 0.2, 0.32, 0.5, 0.32, 0xffffff, 0.2); }
   // ---- the forked tongue
   const Tg = rig.tongue;
-  K.box(Tg, 0, 0, 1.2, 0.4, 0.22, 2.6, TONGUE);
-  for (const sx of [-1, 1]) K.box(Tg, sx * 0.35, 0, 2.95, 0.26, 0.2, 1.2, TONGUE, 0, sx * 0.4, 0);
+  K.box(Tg, 0, 0, 1.3, 0.4, 0.22, 2.8, TONGUE);
+  for (const sx of [-1, 1]) K.box(Tg, sx * 0.38, 0, 3.15, 0.26, 0.2, 1.3, TONGUE, 0, sx * 0.4, 0);
   K.done();
   // (the fine parts cast no shadow)
-  for (const g of [rig.tongue, rig.hood]) for (const m of g.children) if (m.isMesh) m.castShadow = false;
+  for (const g of [rig.tongue, rig.fangs, ...rig.hoods]) for (const m of g.children) if (m.isMesh) m.castShadow = false;
   // the rest pose, so a model that is never animated lies like one that is
   rig.animate({ dt: 0, speed: 0, action: null });
   return rig;

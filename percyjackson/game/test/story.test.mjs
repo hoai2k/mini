@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { GREEK, greekPlan, greekAt, settledBy, toGreek, LATINISH, LOOK } from '../js/ui/greekTiming.js';
 import { CHAPTERS } from '../js/story/chapters.js';
 import { t } from '../js/text_config.js';
-import { shotDuration, readTime, WORDS_PER_SECOND, MIN_READ } from '../js/story/subtitles.js';
+import { shotDuration, readTime, CHARS_PER_SECOND, MIN_READ } from '../js/story/subtitles.js';
 import { finishShot, PressGate, NEXT_COOL } from '../js/story/shotSkip.js';
 
 const GAME = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -70,18 +70,19 @@ test('Greek letters are Greek all the way through: no stand-in looks like a Lati
   }
 });
 
-test('a subtitle is read at a medium speed for ages 8 to 14', () => {
-  assert.ok(WORDS_PER_SECOND >= 2.5 && WORDS_PER_SECOND <= 3, `${WORDS_PER_SECOND} words a second`);
+test('a subtitle is read at a medium speed', () => {
+  assert.ok(CHARS_PER_SECOND >= 15 && CHARS_PER_SECOND <= 20, `${CHARS_PER_SECOND} characters a second`);
   assert.ok(MIN_READ >= 1.2 && MIN_READ <= 2);
   assert.equal(readTime('Go.'), MIN_READ, 'a short line still gets its moment');
-  assert.ok(Math.abs(readTime('one two three four five six seven eight nine ten eleven twelve') - 12 / WORDS_PER_SECOND) < 1e-9);
+  const long = 'one two three four five six seven eight nine ten eleven twelve';
+  assert.ok(Math.abs(readTime(long) - long.length / CHARS_PER_SECOND) < 1e-9);
 });
 
 test('every cutscene subtitle stays up long enough to read', () => {
   for (const s of shots()) for (const [i, L] of s.lines.entries()) {
     const fadeOut = /fadeOut/.test(s.body);
     const until = s.lines[i + 1]?.at ?? shotDuration({ dur: s.dur, lines: s.lines, fadeOut }) - (fadeOut ? 0.4 : 0);   // (the player holds a shot until its last subtitle is read: story/subtitles.js)
-    const need = Math.max(MIN_READ, L.text.split(/\s+/).filter(Boolean).length / WORDS_PER_SECOND);   // (a medium reader of 8 to 14: about 3 words a second; B pauses for a slower one)
+    const need = Math.max(MIN_READ, L.text.trim().length / CHARS_PER_SECOND);   // (a medium reader: about 18 characters a second; B pauses for a slower one)
     assert.ok(until - L.at >= need, `${s.cut}: “${L.text.slice(0, 40)}…” has ${(until - L.at).toFixed(1)} s, needs ${need.toFixed(1)} s`);
   }
 });
