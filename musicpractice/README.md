@@ -160,7 +160,13 @@ when the Art Deco art arrives, measure and record its own.
   outgoing one fades out while it is drawn growing or shrinking into the
   incoming one's box, and the incoming one fades in (overlapping, so the
   place never goes blank) while it grows or shrinks from the outgoing one's
-  box to its own, both about their bottom centres. Each change takes 0.6 s,
+  box to its own, both about their bottom centres. Both boxes are measured
+  before and after the change with the dots put at their new size at once,
+  so the first frame is exactly what was drawn and the last exactly what
+  will be (big dots keep their own size while they zoom away and are made
+  small once unseen, the small row spacing its dots differently); dots
+  growing to big dots and back animate their size, spacing and margins
+  together. Each change takes 0.6 s,
   eased (none with reduced motion, and none when the window is resized).
   The dots are centred under the metronome at every size, and stay on one
   line (never wrapping part way while they grow or shrink for Pulse).
