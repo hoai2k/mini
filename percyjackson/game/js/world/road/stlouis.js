@@ -37,7 +37,7 @@ export function build(ctx) {
     const th = 3.3 - 1.5 * (py - FY) / hgt, r = th / 2;
     for (let x = Math.round(px - r); x <= Math.round(px + r); x++) for (let y = Math.round(py - r); y <= Math.round(py + r); y++) for (let z = Math.round(cz - r); z <= Math.round(cz + r); z++) {
       if (Math.abs(x + 0.5 - px) > r + 0.2 || Math.abs(y + 0.5 - py) > r + 0.2 || Math.abs(z + 0.5 - cz - 0.5) > r + 0.2) continue;
-      if (y >= FY - 1 && y < W.sy - 1) W.set(x, y, z, B.steel_panel);
+      if (y >= FY - 1 && y < W.sy - 1) W.set(x, y, z, B.silver_plate);
     }
   }
   // paths: up from the road to the pavilion, round to each leg; the reflecting ponds
