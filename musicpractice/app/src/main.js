@@ -30,7 +30,7 @@ const RECORD_DURING_PLAYBACK = false;
 const recordDuringPlayback = () => RECORD_DURING_PLAYBACK && settings.recordDuringPlayback;
 import { Waveform, drawThumb } from './waveform.js';
 import * as store from './takes.js';
-import { GENRES, GENRE_IDS, mainTempo } from './tempos.js';
+import { GENRES, GENRE_IDS, mainTempo, nameFor } from './tempos.js';
 import { load, save, clampBpm, METERS, SOUNDS, THEMES, APPEARANCES, VIZ_BARS, TICKS, barPlan, cleanPattern, resolveMode, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
 import { applyArt, alignPendulum, alignBow, swingOf } from './art.js';
 import { tuckedVolume } from './tuckedvolume.js';
@@ -205,25 +205,22 @@ const pendulum = $('pendulum');
 const bpmInput = $('bpm-input');
 const bpmSlider = $('bpm-slider');
 
+/** The name under the number, in the tempo picker's style (Allegro, Medium swing, Waltz…). */
 function marking(bpm) {
-  const m = TEXT.metronome.markings;
-  if (bpm < 60) return m.largo;
-  if (bpm < 66) return m.larghetto;
-  if (bpm < 76) return m.adagio;
-  if (bpm < 108) return m.andante;
-  if (bpm < 120) return m.moderato;
-  if (bpm < 156) return m.allegro;
-  if (bpm < 176) return m.vivace;
-  if (bpm < 200) return m.presto;
-  return m.prestissimo;
+  const genre = settings.tempoGenre;
+  return tempoName(genre, nameFor(genre, bpm, settings.tempoPicked));
+}
+const tempoName = (genre, id) => (genre === 'classical' ? TEXT.metronome.markings[id] : TEXT.metronome.tempos.names[genre][id]);
+function showMarking() {
+  $('marking').textContent = marking(settings.bpm);
+  $('marking').setAttribute('aria-label', TEXT.metronome.tempos.open(marking(settings.bpm)));
 }
 
 function setBpm(v, { fromInput = false } = {}) {
   settings.bpm = clampBpm(v);
   if (!fromInput || document.activeElement !== bpmInput) bpmInput.value = settings.bpm;
   bpmSlider.value = settings.bpm;
-  $('marking').textContent = marking(settings.bpm);
-  $('marking').setAttribute('aria-label', TEXT.metronome.tempos.open(marking(settings.bpm)));
+  showMarking();
   metronome?.configure(settings);
   persist();
 }
@@ -602,9 +599,8 @@ $('met-visual').addEventListener('contextmenu', (e) => e.preventDefault());
  */
 const tempoGenre = $('tempo-genre');
 tempoGenre.replaceChildren(...GENRE_IDS.map((g) => new Option(TEXT.metronome.tempos.genres[g], g)));
-tempoGenre.addEventListener('change', () => { settings.tempoGenre = tempoGenre.value; persist(); renderTempos(); });
-
-const tempoName = (genre, id) => (genre === 'classical' ? TEXT.metronome.markings[id] : TEXT.metronome.tempos.names[genre][id]);
+// A new style names the tempo in its own terms at once (the number stays).
+tempoGenre.addEventListener('change', () => { settings.tempoGenre = tempoGenre.value; settings.tempoPicked = null; persist(); renderTempos(); showMarking(); });
 
 function renderTempos() {
   const T = TEXT.metronome.tempos;
@@ -626,7 +622,7 @@ function renderTempos() {
     main.textContent = String(bpm);
     main.setAttribute('aria-label', T.play(name, bpm));
     main.setAttribute('aria-pressed', String(settings.bpm === bpm));
-    main.addEventListener('click', () => { setBpm(bpm); $('tempo-picker').close(); });
+    main.addEventListener('click', () => { settings.tempoPicked = t.id; setBpm(bpm); $('tempo-picker').close(); });
     const more = document.createElement('select');
     more.className = 'select tempo-more';
     more.setAttribute('aria-label', T.more(name));
@@ -635,6 +631,7 @@ function renderTempos() {
     more.addEventListener('change', () => {
       const v = Number(more.value);
       settings.tempoDefaults = { ...settings.tempoDefaults, [`${genre}:${t.id}`]: v };
+      settings.tempoPicked = t.id;
       setBpm(v);
       $('tempo-picker').close();
     });
