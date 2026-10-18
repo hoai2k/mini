@@ -59,6 +59,7 @@ export const terrain = {
 };
 
 export function build(c) {
+  const __t0 = performance.now();   // TEMP timing
   const { W, k, deco, add, scatter, trees, inRegion, top, rand, n, road } = c;
   const S = (x, y, z, id) => { if (inRegion(x, z) && y >= 0 && y < W.sy) W.set(x, y, z, id); };
   const G = (x, y, z) => W.get(x, y, z);
@@ -99,6 +100,16 @@ export function build(c) {
   const delta = (x, y, z, along, size = 5) => {
     const rows = size === 5 ? [[-2, -1, 0, 1, 2], [-1, 1], [0]] : [[-1, 0, 1], [0]];
     rows.forEach((r, i) => r.forEach((u) => S(along === 'x' ? x + u : x, y + i, along === 'x' ? z : z + u, B.blue_energy)));
+  };
+  // a gate's two bronze leaves, swung open flat out from the wall either side of a 3-wide way
+  // (along 'z': the leaves stand at x = c ± 2 and run from s out along dir; 'x' the other way)
+  const gateLeaves = (c, s, y0, along, dir) => {
+    for (const side of [-2, 2]) for (let q = 0; q < 3; q++) {
+      const [x, z] = along === 'z' ? [c + side, s + dir * q] : [s + dir * q, c + side];
+      const y = Math.min(y0, top(x, z));
+      for (let yy = y; yy < y0 + 4; yy++) S(x, yy, z, yy === y0 + 3 ? B.gold_plate : (yy - y0 + q) % 2 ? B.bronze : B.gold_trim);
+      if (q !== 1) S(x, y0 + 4, z, B.gold_plate);   // spear tips
+    }
   };
   // a ragged monster camp: hide tents, a bone totem, a fire, banners
   const tent = (x, z, y, axis, id = B.old_plank) => {
@@ -164,13 +175,29 @@ export function build(c) {
     const lx = x - MX0, lz = z - MZ0, post = lx % CS === 0 && lz % CS === 0;
     const segKey = post ? n.hash(x, z) : n.hash(Math.floor(lx / CS) * 7 + (lx % CS === 0 ? 1 : 0), Math.floor(lz / CS) * 11 + (lz % CS === 0 ? 3 : 5));
     const edge = lx === 0 || lz === 0 || lx === NX * CS || lz === NZ * CS;
-    let h = post ? 5 + (segKey > 0.6 ? 1 : 0) : 3 + Math.floor(segKey * 3);
+    // high walls (the outer ring highest), crumbling in places
+    let h = post ? 6 + (segKey > 0.55 ? 1 : 0) : (edge ? 5 : 4) + Math.floor(segKey * 3);
     if (!edge && !post && segKey < 0.07) h = 1;                       // tumbled down to a step
     if (h > 2 && n.hash(x * 13, z * 7) < 0.28) h -= 1;                 // crumbling tops
     const y = top(x, z);
-    col(x, z, y, y + h - 1, brick);
-    if (h >= 4 && n.hash(x, z * 3) < 0.12) S(x, y + h - 1, z, B.key_frieze);
+    col(x, z, y, y + h - 1, (xx, yy, zz) => (yy >= y + h - 2 && n.hash(xx * 5 + yy, zz) < 0.45 ? B.mossy_brick : yy === y && n.hash(xx, zz * 7) < 0.3 ? B.dark_brick : brick(xx, yy, zz)));
+    if (h >= 4 && n.hash(x, z * 3) < 0.08) S(x, y + h - 1, z, B.key_frieze);
+    // grass and bushes run wild along the tops
+    else if (h >= 3 && n.hash(x * 7 + 1, z * 3) < 0.34) S(x, y + h, z, B.leaves);
   }
+  // hanging ivy down the corridor walls, torches burning on the posts
+  for (let j = 0; j < NZ; j++) for (let i = 0; i < NX; i++) {
+    const x = MX0 + i * CS, z = MZ0 + j * CS, yb = mazeY, hv = n.hash(i * 13 + 5, j * 7 + 1);
+    if (hv < 0.45 && G(x, yb + 3, z + 2) && !G(x + (hv < 0.3 ? 1 : -1), yb + 2, z + 2)) deco.add(hv < 0.22 ? 'vine' : 'ivy', x + (hv < 0.3 ? 1.03 : -0.03), yb + 2.6, z + 2.5, { mode: 'wall', facing: [hv < 0.3 ? 1 : -1, 0], scale: 2.2, sway: 0.15 });
+    if (hv > 0.6 && G(x + 2, yb + 3, z) && !G(x + 2, yb + 2, z + (hv > 0.7 ? 1 : -1))) deco.add(hv > 0.8 ? 'vine' : 'ivy', x + 2.5, yb + 2.6, z + (hv > 0.7 ? 1.03 : -0.03), { mode: 'wall', facing: [0, hv > 0.7 ? 1 : -1], scale: 2.2, sway: 0.15 });
+    if (i > 0 && j > 0 && (i + j * 3) % 5 === 0 && G(x, yb + 4, z) && !(i >= HEART[0] && i <= HEART[2] + 1 && j >= HEART[1] && j <= HEART[3] + 1)) {
+      let t = yb + 4; while (G(x, t, z) && t < yb + 9) t++;
+      S(x, t - 1, z, B.lantern); S(x, t, z, 0);   // a fire bowl burning on the post
+    }
+  }
+  // blue banners of the Delta hung down the outer walls
+  for (let x = MX0 + 6; x < MX1 - 2; x += 8) if (G(x, mazeY + 4, MZ0) && !G(x, mazeY + 1, MZ0 - 1)) deco.add('banner', x + 0.5, mazeY + 3.2, MZ0 - 0.03, { mode: 'wall', facing: [0, -1], scale: 2.2, sway: 0.3 });
+  for (let z = MZ0 + 6; z < MZ1 - 2; z += 8) for (const [x, f] of [[MX0, -1], [MX1, 1]]) if (G(x, mazeY + 4, z) && !G(x + f, mazeY + 1, z)) deco.add('banner', x + 0.5 + f * 0.53, mazeY + 3.2, z + 0.5, { mode: 'wall', facing: [f, 0], scale: 2.2, sway: 0.3 });
   // inside: webs over the dark corners, vines, bones, rubble where the walls fell
   for (let i = 0; i < NX; i++) for (let j = 0; j < NZ; j++) {
     if (room(i, j)) continue;
@@ -208,10 +235,15 @@ export function build(c) {
     for (let dz = -2; dz <= 0; dz++) for (let dx = -1; dx <= 1; dx++) { col(gx + dx, gz + dz, y + 4, y + 6, B.stone_brick); clearUp(gx + dx, gz + dz, y, 3); }
     for (let dx = -4; dx <= 4; dx++) { S(gx + dx, y + 7, gz - 2, dx % 2 ? B.key_frieze : B.stone_brick); S(gx + dx, y + 7, gz, dx % 2 ? B.key_frieze : B.stone_brick); }
     for (let dx = -2; dx <= 2; dx++) S(gx + dx, y + 3, gz - 2, B.bronze);   // the bronze lintel the Delta sits on
+    // a gilded frame round the arch: gold jambs, a gold cornice, the blue Delta on a bronze field
+    for (const dx of [-2, 2]) col(gx + dx, gz - 2, y, y + 6, (xx, yy) => (yy % 2 ? B.gold_plate : B.bronze));
+    for (let dx = -3; dx <= 3; dx++) S(gx + dx, y + 7, gz - 2, B.gold_plate);
+    for (let dx = -1; dx <= 1; dx++) for (let yy = y + 4; yy <= y + 6; yy++) S(gx + dx, yy, gz - 2, B.bronze);
     delta(gx, y + 4, gz - 2, 'x');
-    deco.prop('iron_gate', gx - 2.6, y, gz - 3.4, { w: 2.4, h: 3.6, rot: 0.9 });
-    deco.prop('iron_gate', gx + 3.6, y, gz - 3.4, { w: 2.4, h: 3.6, rot: -0.9 });
+    gateLeaves(gx, gz - 3, y, 'z', -1);
+    for (const dx of [-4, 4]) deco.add('banner', gx + dx + 0.5, y + 5, gz - 3.03, { mode: 'wall', facing: [0, -1], scale: 2.4, sway: 0.3 });
     k.torch(gx - 3, y + 2, gz - 2, [0, -1]); k.torch(gx + 3, y + 2, gz - 2, [0, -1]);
+    light(gx, y + 5, gz - 4, 0xffc070, 3, 9);
     add.landmark({ id: 'lab_gate', x: gx, z: gz - 3 });
     add.waystone('labyrinth_gate', 69, 351);
     add.chest({ id: 'lab_gate_chest', x: gx - 3, z: gz + 3, rarity: 'common' });
@@ -220,15 +252,21 @@ export function build(c) {
   // the side gates: a Delta over each
   {
     const wz = MZ0 + GATES[1][1] * CS + 2, y = top(MX0 - 2, wz);
-    for (let dz = -2; dz <= 2; dz++) col(MX0, wz + dz, y + 4, y + 5, B.stone_brick);
-    for (const dz of [-2, 2]) col(MX0, wz + dz, y, y + 3, B.stone_brick);
+    for (let dz = -2; dz <= 2; dz++) col(MX0, wz + dz, y + 4, y + 5, B.bronze);
+    for (const dz of [-2, 2]) col(MX0, wz + dz, y, y + 3, (xx, yy) => (yy % 2 ? B.gold_plate : B.bronze));
+    for (let dz = -3; dz <= 3; dz++) S(MX0, y + 6, wz + dz, B.gold_plate);
     delta(MX0, y + 4, wz, 'z', 3);
     apron(MX0 - 1, wz, y, [-1, 0], 3, B.cobble);
+    gateLeaves(wz, MX0 - 1, y, 'x', -1);
+    k.torch(MX0, y + 2, wz - 3, [-1, 0]); k.torch(MX0, y + 2, wz + 3, [-1, 0]);
     const ez = MZ0 + GATES[2][1] * CS + 2, y2 = top(MX1 + 2, ez);
-    for (let dz = -2; dz <= 2; dz++) col(MX1, ez + dz, y2 + 4, y2 + 5, B.stone_brick);
-    for (const dz of [-2, 2]) col(MX1, ez + dz, y2, y2 + 3, B.stone_brick);
+    for (let dz = -2; dz <= 2; dz++) col(MX1, ez + dz, y2 + 4, y2 + 5, B.bronze);
+    for (const dz of [-2, 2]) col(MX1, ez + dz, y2, y2 + 3, (xx, yy) => (yy % 2 ? B.gold_plate : B.bronze));
+    for (let dz = -3; dz <= 3; dz++) S(MX1, y2 + 6, ez + dz, B.gold_plate);
     delta(MX1, y2 + 4, ez, 'z', 3);
     apron(MX1 + 1, ez, y2, [1, 0], 3, B.cobble);
+    gateLeaves(ez, MX1 + 1, y2, 'x', 1);
+    k.torch(MX1, y2 + 2, ez - 3, [1, 0]); k.torch(MX1, y2 + 2, ez + 3, [1, 0]);
   }
   // the heart: a round arena on a mosaic floor, the Warden's hall
   {
@@ -450,7 +488,7 @@ export function build(c) {
     for (const [x, z] of [[145, 385], [149, 389], [145, 389]]) S(x, y - 1, z, B.cracked_brick);
     deco.prop('rubble', 147.5, 1, 389.5); web(146, y - 0.5, 386, 1.6);
     add.chest({ id: 'lab_pit_vault', x: 147, z: 387, rarity: 'epic', hidden: true });
-    add.npc({ id: 'quintus', x: 151, z: 376, model: 'mortal:teacher', yaw: Math.PI });
+    add.npc({ id: 'quintus', x: 151, z: 376, y, model: 'mortal:teacher', yaw: Math.PI });
   }
 
   // ================================================================ a lookout ruin on the coast
@@ -472,15 +510,21 @@ export function build(c) {
   deco.add('paper', 60.6, top(60, 345) + 0.95, 345.4, { mode: 'flat', scale: 0.9 });
 
   // ================================================================ trees and grass between the ruins
-  const busy = [[16, 336, 52, 399], [64, 340, 124, 399], [120, 334, 170, 399], [52, 340, 72, 356]];
-  for (let i = 0, placed = 0; i < 80 && placed < 16; i++) {
-    const x = 20 + Math.floor(rand() * 145), z = 332 + Math.floor(rand() * 66);
+  const busy = [[20, 340, 28, 348], [26, 340, 50, 371], [18, 376, 50, 399], [MX0 - 3, MZ0 - 8, MX1 + 5, 399], [120, 334, 168, 355], [122, 356, 170, 399], [56, 342, 72, 356]];
+  // dark pines crowd the ruins (as on the sheet), a few broad oaks among them
+  for (let i = 0, placed = 0; i < 260 && placed < 46; i++) {
+    const x = 18 + Math.floor(rand() * 150), z = 332 + Math.floor(rand() * 66);
     if (busy.some(([a, b, cc, d]) => x >= a && x <= cc && z >= b && z <= d) || !c.level(x, z, 3, 3, 1)) continue;
-    if (rand() < 0.75) trees.oak(x, z); else trees.pine(x, z, { h: 7 });
+    const g = top(x, z); if (G(x, g - 1, z) === B.stone_brick || G(x, g - 1, z) === B.cobble) continue;   // not on the roads
+    if (rand() < 0.3) trees.oak(x, z); else trees.pine(x, z, { h: 7 + Math.floor(rand() * 5), R: 2.2 + rand() * 0.6 });
     placed++;
   }
+  // slim cypresses at the edges of the ruins
+  for (const [x, z] of [[54, 349], [57, 371], [62, 380], [66, 396], [52, 360], [121, 356], [120, 372], [168, 362], [118, 396], [26, 372], [50, 374]]) if (c.level(x, z, 1, 1, 1) && !G(x, top(x, z), z)) trees.pine(x, z, { h: 8 + Math.floor(rand() * 3), R: 1.1 });
   for (const [x, z] of [[56, 392], [60, 388], [64, 370], [96, 340], [104, 345]]) if (c.level(x, z, 3, 3, 1)) trees.boulder(x, z, 1.5, B.stone);
-  scatter([B.grass, B.moss_floor], ['grass', 'tall_grass', 'fern', 'grass', 'flower_yellow'], 0.12);
+  scatter([B.grass, B.moss_floor], ['grass', 'tall_grass', 'fern', 'grass', 'flower_yellow', 'flower_red', 'tall_grass', 'flower_yellow'], 0.16);
+  scatter([B.cobble, B.stone_brick], ['grass', 'fern', 'flower_yellow'], 0.03);
+  console.log('openworld labyrinth build ms', Math.round(performance.now() - __t0));   // TEMP timing
 }
 
 const lvl = { xp: 520, coins: 150 };

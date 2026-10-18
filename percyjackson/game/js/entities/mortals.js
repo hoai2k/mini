@@ -628,3 +628,6 @@ export function buildMortal(id) {
   rig.mortal = id;
   return rig;
 }
+
+// Building blocks shared with the open world's people (people.js).
+export { B, mirrorX, turn, band, shoes, strawHat, hairCells, beardCells, boxGeometry, mergeGeometries, inHead, shadeOf, mixC };

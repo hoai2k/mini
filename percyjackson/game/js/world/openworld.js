@@ -183,13 +183,30 @@ export function layRoad(W, pts, id, w = 3) {
 
 // A waystone: a marble pillar with a gold cap and a soft light; walk up to it
 // to remember it, then teleport between the ones you have found (the map).
+// After the kit sheet (vox-ow-props): a marble stele facing south on a stepped
+// marble dais, fluted jambs framing a panel of glowing runes, a gold cap, ivy
+// and flowers round its foot and a brazier either side of the steps.
 export function placeWaystone(W, deco, reg, region, id, x, z) {
   const y = W.groundBelow(x + 0.5, z + 0.5, W.sy - 1);
   if (!isFinite(y)) return null;
-  for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) { W.set(x + dx, y - 1, z + dz, B.marble_floor); for (let k = 0; k < 3; k++) if (W.get(x + dx, y + k, z + dz) && !(dx === 0 && dz === 0)) W.set(x + dx, y + k, z + dz, 0); }
-  W.set(x, y, z, B.waystone); W.set(x, y + 1, z, B.waystone); W.set(x, y + 2, z, B.gold_plate);
-  W.addLight(x + 0.5, y + 3.2, z + 0.5, 0xffd890, 3, 8);
-  const w = { id, region, name: t(`waystones.${id}`), pos: V(x + 0.5, y, z + 1.8), stone: V(x + 0.5, y + 1.5, z + 0.5) };
+  // clear the footprint (3 × 3, six high) and pave it
+  for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) { W.set(x + dx, y - 1, z + dz, B.marble_floor); for (let k = 0; k < 6; k++) if (W.get(x + dx, y + k, z + dz)) W.set(x + dx, y + k, z + dz, 0); }
+  // the outer step: stone round the paving, where the ground is level and free
+  const flush = (xx, zz) => W.groundBelow(xx + 0.5, zz + 0.5, y + 2) === y && !W.get(xx, y, zz) && !BLOCKS[W.get(xx, y - 1, zz)]?.liquid;
+  for (let dz = -2; dz <= 2; dz++) for (let dx = -2; dx <= 2; dx++) if ((Math.abs(dx) === 2 || Math.abs(dz) === 2) && flush(x + dx, z + dz)) W.set(x + dx, y - 1, z + dz, (dx + dz) & 1 ? B.stone_brick : B.marble_white);
+  // the dais (a step up behind the paving) and the stele on it
+  for (let dx = -1; dx <= 1; dx++) W.set(x + dx, y, z - 1, B.marble_floor);
+  W.set(x, y, z, B.waystone);
+  for (const dx of [-1, 1]) { W.set(x + dx, y, z, B.marble_floor); for (let k = 1; k <= 3; k++) W.set(x + dx, y + k, z, B.column); }
+  W.set(x, y + 1, z, B.blue_energy); W.set(x, y + 2, z, B.blue_energy); W.set(x, y + 3, z, B.waystone);
+  for (let dx = -1; dx <= 1; dx++) W.set(x + dx, y + 4, z, B.gold_plate);
+  W.set(x, y + 5, z, B.gold_plate);
+  W.addLight(x + 0.5, y + 5.4, z + 1.2, 0xffd890, 3, 9);
+  // ivy up the jambs, flowers at the foot, braziers by the steps
+  for (const dx of [-1, 1]) deco.add('ivy', x + 0.5 + dx * 1.5, y + 1.6, z + 0.5, { mode: 'wall', facing: [dx, 0], scale: 1.3, sway: 0.2 });
+  for (const [dx, dz] of [[-2, 0], [2, 0], [-2, -1], [2, -1], [-1, -2], [1, -2]]) if (flush(x + dx, z + dz)) deco.add(((dx + dz) & 1) ? 'flower_yellow' : 'fern', x + 0.5 + dx, y, z + 0.5 + dz, { scale: 0.8, sway: 1 });
+  for (const dx of [-2, 2]) if (flush(x + dx, z + 1)) deco.prop('brazier', x + 0.5 + dx, y, z + 1.5);
+  const w = { id, region, name: t(`waystones.${id}`), pos: V(x + 0.5, y, z + 1.8), stone: V(x + 0.5, y + 2, z + 0.5) };
   reg.waystones.push(w);
   return w;
 }
@@ -217,10 +234,87 @@ export function regionContext({ W, k, deco, shafts, n, r, reg, top, seed, layout
   const tag = (o) => ({ region: r.id, ...o });
   // where a place stands: on the top of the ground at (x, z), or, given o.y, at that height (inside a building, a cave)
   const P = (o) => (o.y != null ? V(o.x + 0.5, o.y, o.z + 0.5) : at(o.x, o.z));
+  // A monster camp's dressing, after the kit sheet (vox-ow-props): a ring-stoned
+  // campfire on trampled dirt, ragged red-and-hide tents on crossed poles, a
+  // bone totem (a horned skull over a red banner), sharpened stakes round the
+  // back, torches on posts, crates, bones and skulls. Only free, dry ground in
+  // the region is built on; nothing is taller than a tent, so it stays walkable.
+  //   o: { tents = 2, bones = 6, totem = true, stakes = 7, crates = 2, torches = 2, webs = false,
+  //        ground = B.dirt (null: leave the ground), hide = B.red_lacquer, fire = true, light = 0xff8a3a }
+  const SOFT = new Set([B.grass, B.dirt, B.forest_floor, B.sand, B.desert_sand, B.farm_soil, B.moss_floor, B.dead_leaves, B.wet_sand, B.mud, B.asphodel, B.red_rock, B.gravel_path, B.rock]);
+  const campDressing = (x, z, o = {}) => {
+    const { tents = 2, bones = 6, totem = true, stakes = 7, crates = 2, torches = 2, webs = false, ground = B.dirt, hide = B.red_lacquer, fire = true, light = 0xff8a3a } = o;
+    const y = top(x, z); if (!isFinite(y)) return;
+    const free = (xx, zz, yy = top(xx, zz)) => inRegion(xx, zz) && isFinite(yy) && Math.abs(yy - y) <= 1 && !W.get(xx, yy, zz) && !BLOCKS[W.get(xx, yy - 1, zz)]?.liquid;
+    const R = () => rand();
+    if (ground != null) for (let dz = -6; dz <= 6; dz++) for (let dx = -6; dx <= 6; dx++) {
+      const d = Math.hypot(dx, dz) + (R() - 0.5) * 1.6; if (d > 6) continue;
+      const xx = x + dx, zz = z + dz, yy = top(xx, zz);
+      if (!inRegion(xx, zz) || !isFinite(yy) || !SOFT.has(W.get(xx, yy - 1, zz))) continue;
+      W.set(xx, yy - 1, zz, d < 2.2 ? (R() < 0.6 ? B.cobble : ground) : R() < 0.18 ? B.mud : R() < 0.12 ? B.hay : ground);
+    }
+    if (fire) { deco.prop('campfire', x + 0.5, y, z + 0.5); W.set(x, y, z, B.barrier); W.addLight(x + 0.5, y + 1.2, z + 0.5, light, 3.5, 9); }
+    // tents: an A-frame of hide over a ridge pole, poles crossed above each end, the open end facing the fire
+    for (let i = 0; i < tents; i++) {
+      const a = i * 2.4 + 0.6 + (R() - 0.5) * 0.4, tx = Math.round(x + Math.cos(a) * 5.2), tz = Math.round(z + Math.sin(a) * 5.2);
+      const alongZ = Math.abs(Math.sin(a)) > Math.abs(Math.cos(a));            // the tent runs towards the fire
+      const ty = top(tx, tz);
+      const cell = (u, v) => (alongZ ? [tx + u, tz + v] : [tx + v, tz + u]);  // u across, v along
+      let ok = true;
+      for (let v = -1; v <= 1 && ok; v++) for (let u = -2; u <= 2; u++) { const [cx, cz] = cell(u, v); if (!free(cx, cz) || top(cx, cz) !== ty) { ok = false; break; } }
+      if (!ok) continue;
+      for (let v = -1; v <= 1; v++) for (let s = 0; s < 3; s++) for (const u of [s - 2, 2 - s]) {
+        if (s === 0 && R() < 0.25) continue;                                  // a ragged hem
+        const [cx, cz] = cell(u, v); W.set(cx, ty + s, cz, s === 2 ? B.log : R() < 0.22 ? B.hay : hide);
+      }
+      const far = Math.sign(alongZ ? (tz - z) : (tx - x)) || 1;               // the back end (away from the fire) closed
+      for (const u of [-1, 0, 1]) { const [cx, cz] = cell(u, far); if (Math.abs(u) < 1 || R() < 0.7) W.set(cx, ty + (Math.abs(u) ? 1 : 0), cz, hide); }
+      for (const v of [-1, 1]) { const [cx, cz] = cell(0, v * 2); if (free(cx, cz)) { W.set(cx, ty, cz, B.log); W.set(cx, ty + 1, cz, B.log); W.set(cx, ty + 2, cz, B.log); } const [px, pz] = cell(0, v); W.set(px, ty + 3, pz, B.log); }
+      deco.add(R() < 0.4 ? 'skull' : 'bone', tx + 0.5, ty, tz + 0.5, { mode: 'flat', scale: 0.8 });
+    }
+    // the totem: a pole, a crossbar with a red banner, a horned bone skull on top
+    if (totem) {
+      const tx = x + 3, tz = z - 3, ty = top(tx, tz);
+      if (free(tx, tz)) {
+        for (let h = 0; h < 4; h++) W.set(tx, ty + h, tz, B.log);
+        W.set(tx - 1, ty + 3, tz, B.log); W.set(tx + 1, ty + 3, tz, B.log);
+        W.set(tx, ty + 4, tz, B.bone_block); W.set(tx - 1, ty + 4, tz, B.bone_block); W.set(tx + 1, ty + 4, tz, B.bone_block);
+        W.set(tx - 1, ty + 5, tz, B.bone_block); W.set(tx + 1, ty + 5, tz, B.bone_block);
+        deco.add('skull', tx + 0.5, ty + 4.1, tz + 1.02, { mode: 'wall', facing: [0, 1], scale: 1.2, sway: 0 });
+        if (!W.get(tx, ty + 2, tz + 1) && !W.get(tx, ty + 1, tz + 1)) { W.set(tx, ty + 2, tz + 1, hide); W.set(tx, ty + 1, tz + 1, hide); }
+        deco.add('skull', tx + 0.5, ty, tz + 1.6, { mode: 'flat', scale: 1 });
+      }
+    }
+    // sharpened stakes in an arc round the back (away from the way in, the south-west)
+    for (let i = 0; i < stakes; i++) {
+      const a = -0.6 + (i / Math.max(1, stakes - 1)) * 3.0, sx = Math.round(x + Math.cos(a - Math.PI / 2) * 7), sz = Math.round(z + Math.sin(a - Math.PI / 2) * 7);
+      if (!free(sx, sz) || R() < 0.15) continue;
+      const sy = top(sx, sz), h = 1 + (i % 2);
+      for (let k2 = 0; k2 < h; k2++) W.set(sx, sy + k2, sz, B.log);
+      W.set(sx, sy + h, sz, B.bark_dark);
+    }
+    // torches on posts by the way in
+    for (let i = 0; i < torches; i++) {
+      const a = Math.PI * 0.35 + i * 1.3, px = Math.round(x + Math.cos(a) * 4.2), pz = Math.round(z + Math.sin(a) * 4.2);
+      if (!free(px, pz)) continue;
+      W.set(px, top(px, pz), pz, B.log); deco.prop('torch', px + 0.5, top(px, pz), pz + 0.5);
+    }
+    // crates and a barrel, bones and skulls, webs for spiders
+    for (let i = 0; i < crates; i++) {
+      const a = 1.9 + i * 2.2 + R(), cx = Math.round(x + Math.cos(a) * 3.4), cz = Math.round(z + Math.sin(a) * 3.4);
+      if (!free(cx, cz)) continue;
+      const cy = top(cx, cz); W.set(cx, cy, cz, i % 3 === 2 ? B.barrel : B.crate); if (R() < 0.4 && free(cx + 1, cz)) W.set(cx + 1, top(cx + 1, cz), cz, B.crate);
+    }
+    for (let i = 0; i < bones; i++) {
+      const bx = x + 0.5 + (R() - 0.5) * 9, bz = z + 0.5 + (R() - 0.5) * 9, by = top(Math.floor(bx), Math.floor(bz));
+      if (isFinite(by) && Math.abs(by - y) <= 1) deco.add(R() < 0.3 ? 'skull' : 'bone', bx, by, bz, { mode: 'flat', scale: 0.7 + R() * 0.4 });
+    }
+    if (webs) for (let i = 0; i < 6; i++) deco.add('cobweb', x + 0.5 + (R() - 0.5) * 10, y + 0.2, z + 0.5 + (R() - 0.5) * 10, { scale: 1.4 });
+  };
   return {
     W, k, deco, shafts, n, rand, region: r, FY, B,
     bounds: { x0: bx0, z0: bz0, x1: bx1, z1: bz1 },
-    inRegion, top, at, level,
+    inRegion, top, at, level, campDressing,
     // flatten a footprint to height y (fill under, clear above)
     flatten(x0, z0, x1, z1, y, id = null) {
       for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) {

@@ -311,6 +311,7 @@ export function build(c) {
       const y = top(x, z), h = 5 + Math.floor(rand() * 4);
       fill(x, y, z, x, y + h, z, B.pine_log); put(x + 1, y + h - 2, z, B.pine_log); put(x, y + h - 3, z - 1, B.pine_log);
     }
+    c.campDressing(134, 92, { tents: 1, bones: 6, crates: 1 });
     add.camp({ id: 'shore_tower_camp', x: 134, z: 92, kinds: ['stymphalian', 'stymphalian', 'harpy'], count: 5, chest: 'common', radius: 8 });
     add.landmark({ id: 'shore_tower', x: 141, z: 96 });
   }
@@ -319,12 +320,7 @@ export function build(c) {
   {
     const dx = 44, dz = 42, y = top(dx, dz);
     c.flatten(dx - 6, dz - 5, dx + 6, dz + 5, y, B.sand);
-    const tent = (x, z) => { for (let i = 0; i < 3; i++) { put(x - 1, y, z + i, B.hay); put(x + 1, y, z + i, B.hay); put(x, y + 1, z + i, B.old_plank); } };
-    tent(dx - 4, dz - 3); tent(dx + 4, dz - 2); tent(dx - 1, dz + 3);
-    prop('campfire', dx, y, dz); W.addLight(dx + 0.5, y + 1, dz + 0.5, 0xff8a40, 3.5, 10);
-    fill(dx + 3, y, dz + 3, dx + 3, y + 2, dz + 3, B.bone_block); sprite('skull', dx + 3, y + 3, dz + 3, { sway: 0 });
-    sprite('banner', dx - 5, y, dz + 2, { scale: 1.3 });
-    for (let i = 0; i < 8; i++) sprite('bone', dx - 5 + Math.floor(rand() * 11), y, dz - 4 + Math.floor(rand() * 9), { scale: 0.7 });
+    c.campDressing(dx, dz, { tents: 3, bones: 8, ground: null, stakes: 6 });
     add.camp({ id: 'shore_dune_camp', x: dx, z: dz, kinds: ['scorpion', 'skeleton', 'harpy'], count: 5, chest: 'common', radius: 8 });
     add.item({ id: 'shore_lens_dunes', quest: 'shore_light', x: dx - 2, z: dz + 1 });
     // a chest hidden behind a big dune boulder

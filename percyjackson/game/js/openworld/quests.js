@@ -20,6 +20,7 @@ import { h, toast } from '../ui/ui.js';
 import { t } from '../text_config.js';
 import { buildHeroModel, buildNpc } from '../entities/models.js';
 import { buildMortal } from '../entities/mortals.js';
+import { buildPerson, isPerson } from '../entities/people.js';
 import { rollItem, powerFor } from '../loot.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -54,7 +55,8 @@ export class Quests {
   buildPerson(model = 'mortal:farmer') {
     const [kind, id] = String(model).split(':');
     try {
-      if (kind === 'npc') return buildNpc(id);
+      // npc:<id>: the open world's own people (people.js), else Chiron or Mr. D
+      if (kind === 'npc') return isPerson(id) ? buildPerson(id) : buildNpc(id);
       if (kind === 'hero') return buildHeroModel(id);
       return buildMortal(id);
     } catch (e) { console.warn('openworld: no model for', model, e); return null; }

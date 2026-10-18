@@ -23,16 +23,17 @@ const pretty = (s) => String(s).replace(/[_-]+/g, ' ').replace(/\b\w/g, (c) => c
 // ------------------------------------------------------------------ registries
 const loadErrors = [];
 const tryImport = async (path) => { try { return await import(path); } catch (e) { loadErrors.push(`${path}: ${e.message}`); console.error('workbench: could not import', path, e); return {}; } };
-const [models, monsters, bosses, mortals, heroes] = await Promise.all([
+const [models, monsters, bosses, mortals, heroes, people] = await Promise.all([
   tryImport('../js/entities/models.js'), tryImport('../js/entities/monsters.js'), tryImport('../js/entities/bosses.js'),
-  tryImport('../js/entities/mortals.js'), tryImport('../js/heroes/index.js'),
+  tryImport('../js/entities/mortals.js'), tryImport('../js/heroes/index.js'), tryImport('../js/entities/people.js'),
 ]);
+const PEOPLE = people.PEOPLE ?? {};
 const HEROES = heroes.HEROES ?? {}, HERO_LOOKS = models.HERO_LOOKS ?? {};
 const MONSTERS = monsters.MONSTERS ?? {}, BOSS_DEFS = bosses.BOSS_DEFS ?? {}, MORTALS = mortals.MORTALS ?? {};
 
 const GROUPS = [
   { id: 'heroes', label: 'Heroes' }, { id: 'npcs', label: 'Camp NPCs' }, { id: 'monsters', label: 'Monsters' },
-  { id: 'bosses', label: 'Bosses' }, { id: 'mortals', label: 'Mortal disguises' },
+  { id: 'bosses', label: 'Bosses' }, { id: 'mortals', label: 'Mortal disguises' }, { id: 'people', label: 'Open-world people' },
 ];
 const TIER_COLOR = { minor: '#9a9a8a', elite: '#4ad0ff', champion: '#ff9a2a', boss: '#e8664a' };
 const hex = (n) => '#' + (n >>> 0).toString(16).padStart(6, '0');
@@ -49,6 +50,8 @@ const add = (group, id, name, data, build, chip) => items.push({ group, id, name
   for (const id of monsters.MONSTER_IDS ?? Object.keys(MONSTERS)) add('monsters', id, MONSTERS[id].name ?? pretty(id), MONSTERS[id], () => monsters.buildMonsterModel(MONSTERS[id].model), TIER_COLOR[MONSTERS[id].tier] ?? '#9a9a8a');
   for (const id of bosses.BOSS_IDS ?? Object.keys(BOSS_DEFS)) add('bosses', id, BOSS_DEFS[id].name ?? pretty(id), BOSS_DEFS[id], () => BOSS_DEFS[id].build(), BOSS_DEFS[id].color != null ? hex(BOSS_DEFS[id].color) : TIER_COLOR.boss);
   for (const id of mortals.MORTAL_IDS ?? Object.keys(MORTALS)) add('mortals', id, MORTALS[id].name ?? pretty(id), MORTALS[id], () => mortals.buildMortal(id), '#e4d4b8');
+  // the open world's side-quest people (model 'npc:<id>' in world/regions and world/road)
+  for (const id of people.PEOPLE_IDS ?? Object.keys(PEOPLE)) add('people', id, PEOPLE[id].name ?? pretty(id), PEOPLE[id], () => people.buildPerson(id), PEOPLE[id].accent != null ? hex(PEOPLE[id].accent) : '#c9963a');
   const seen = new Map(); for (const it of items) seen.set(it.id, (seen.get(it.id) ?? 0) + 1);
   for (const it of items) if (seen.get(it.id) > 1) it.key = `${it.group}:${it.id}`;
 }
@@ -449,6 +452,8 @@ function renderInspector() {
     if (hooks.length) box.append(sect('Hooks', el('div', { class: 'tags' }, hooks.map((h) => el('span', { class: 'tag', text: h })))));
   } else if (item.group === 'mortals') {
     box.append(sect('Disguise', d.blurb ? el('p', { class: 'desc', text: d.blurb }) : null, table(d.paint ?? {}, { loose: true })));
+  } else if (item.group === 'people') {
+    box.append(sect('Person', el('p', { class: 'desc', text: `npc:${item.id} · painted like ${d.painter === 'hero' ? 'the heroes' : 'the mortals'}` }), table(Object.fromEntries(Object.entries(d.paint ?? {}).filter(([, v]) => typeof v !== 'function')), { loose: true })));
   } else if (d.blurb) box.append(sect('About', el('p', { class: 'desc', text: d.blurb })));
 
   if (rig && m) {

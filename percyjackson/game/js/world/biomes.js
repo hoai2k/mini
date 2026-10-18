@@ -218,9 +218,10 @@ export const BIOMES = {
   },
   ow_labyrinth: {
     id: 'ow_labyrinth', name: txt('regions.labyrinth.name'), sub: txt('regions.labyrinth.sub'),
-    skyTop: 0x4a6a9a, skyHorizon: 0xc8c0a8, fog: 0xa8a090, fogDensity: 0.01,
-    hemiSky: 0xd0d0e0, hemiGround: 0x4a4434, hemiI: 1.0, sun: 0xffe8c0, sunI: 2.0,
-    grade: { tint: [1.02, 1.0, 0.96], lift: [0.008, 0.006, 0.004], sat: 0.98, contrast: 1.1, vignette: 0.32 },
+    // late afternoon: a low golden sun, warm amber haze, violet-grey shade in the corridors
+    skyTop: 0x4a5c9a, skyHorizon: 0xf2b878, fog: 0xc8a07c, fogDensity: 0.0085,
+    hemiSky: 0xd8c8c0, hemiGround: 0x4a3a36, hemiI: 0.95, sun: 0xffc884, sunI: 2.5,
+    grade: { tint: [1.07, 1.0, 0.9], lift: [0.014, 0.006, 0.012], sat: 1.12, contrast: 1.1, vignette: 0.3 },
     floor: B.cobble, floor2: B.stone_brick, path: B.stone_brick, wall: B.stone_brick, wall2: B.mossy_brick, trim: B.key_frieze, pillar: B.column, roof: B.stone_brick, ground: B.grass, accent: B.lantern, pit: B.stone,
     ambience: 'wind', music: 'garden', particles: 'dust', wind: 0.8,
   },

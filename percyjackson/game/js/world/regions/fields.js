@@ -38,6 +38,7 @@ export const terrain = {
 };
 
 export function build(c) {
+  const t0 = performance.now();
   const { W, k, deco, add, top, rand, inRegion, FY } = c;
   const set = (x, y, z, id) => W.set(x, y, z, id);
   const fill = (x0, y0, z0, x1, y1, z1, id) => W.fill(x0, y0, z0, x1, y1, z1, id);
@@ -374,25 +375,11 @@ export function build(c) {
     deco.add(t, x + 0.5 + k.rnd(-0.3, 0.3), y, z + 0.5 + k.rnd(-0.3, 0.3), { scale: t === 'tall_grass' ? 1.1 : 0.8, sway: 1 });
   }
 
-  // A monster camp's dressing: a campfire, hide tents, a bone totem with a
-  // skull and banners, bones lying about (and webs for spiders).
-  function campDressing(x, z, { tents = 2, bones = 6, totem = false, webs = false } = {}) {
-    const y = ground(x, z);
-    deco.prop('campfire', x + 0.5, y, z + 0.5); set(x, y, z, B.barrier); light(x, y + 1.2, z, 0xff8a3a, 3.5, 9);
-    for (let i = 0; i < tents; i++) {
-      const a = i * 2.4 + 0.6, tx = Math.round(x + Math.cos(a) * 5), tz = Math.round(z + Math.sin(a) * 5), ty = ground(tx, tz);
-      for (let dz = 0; dz < 3; dz++) for (let s = 0; s < 3; s++) { set(tx - 2 + s, ty + s, tz + dz, s === 2 ? B.bark_dark : B.hay); set(tx + 2 - s, ty + s, tz + dz, s === 2 ? B.bark_dark : B.hay); }
-      deco.add('bone', tx + 0.5, ty, tz + 1.5, { mode: 'flat', scale: 0.8 });
-    }
-    if (totem) {
-      const tx = x + 2, tz = z - 2, ty = ground(tx, tz);
-      for (let h = 0; h < 3; h++) set(tx, ty + h, tz, B.bone_block);
-      deco.add('skull', tx + 0.5, ty + 3, tz + 0.5, { scale: 1.1 });
-      deco.add('banner', tx + 0.5, ty + 2.6, tz + 1.03, { mode: 'wall', facing: [0, 1], scale: 1.4, sway: 0.3 });
-    }
-    for (let i = 0; i < bones; i++) deco.add(k.chance(0.25) ? 'skull' : 'bone', x + 0.5 + k.rnd(-4, 4), y, z + 0.5 + k.rnd(-4, 4), { mode: 'flat', scale: 0.7 + k.r() * 0.3 });
-    if (webs) for (let i = 0; i < 6; i++) deco.add('cobweb', x + 0.5 + k.rnd(-5, 5), y + 0.2, z + 0.5 + k.rnd(-5, 5), { scale: 1.4 });
-  }
+  console.log('openworld fields build ms', Math.round(performance.now() - t0));
+
+  // A monster camp's dressing: the shared kit (openworld.js regionContext).
+  function campDressing(x, z, o = {}) { c.campDressing(x, z, { ground: B.dirt, ...o }); }
+
 }
 
 // Katie Gardner (Demeter) and Travis Stoll (Hermes). Rewards for levels 1-3.

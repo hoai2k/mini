@@ -156,6 +156,7 @@ export function build(c) {
     for (let i = 0; i < 6; i++) { const a = i * 1.05, x = Math.round(dx + Math.cos(a) * 5), z = Math.round(dz + Math.sin(a) * 4); put(x, top(x, z), z, B.desert_sand); put(x, top(x, z) - 2, z, 0); }
     for (let i = 0; i < 8; i++) sprite(rand() < 0.3 ? 'skull' : 'bone', dx - 5 + Math.floor(rand() * 11), y, dz - 4 + Math.floor(rand() * 9), { scale: 0.8 });
     fill(dx - 6, y, dz + 4, dx - 6, y + 2, dz + 4, B.bone_block); sprite('skull', dx - 6, y + 3, dz + 4, { sway: 0 });
+    c.campDressing(dx, dz, { tents: 1, bones: 4, ground: null, stakes: 5, totem: false });
     add.camp({ id: 'canyon_den_camp', x: dx, z: dz, kinds: ['scorpion', 'scorpion', 'scorpion', 'dracaena'], count: 6, chest: 'rare', radius: 9 });
   }
 
@@ -183,9 +184,7 @@ export function build(c) {
   // ------------------------------------------------------------ the Dry Wash: bones, driftwood, a camp of snake-women
   {
     const wx = 338, wz = Math.round(washZ(338)), y = top(wx, wz);
-    for (const [x, z] of [[wx - 4, wz - 3], [wx + 4, wz + 2]]) for (let i = 0; i < 3; i++) { put(x - 1, top(x - 1, z + i), z + i, B.hay); put(x + 1, top(x + 1, z + i), z + i, B.hay); put(x, top(x, z + i), z + i, B.old_plank); }
-    prop('campfire', wx, y, wz); W.addLight(wx + 0.5, y + 1, wz + 0.5, 0xff8a40, 3.5, 10);
-    sprite('banner', wx - 6, y, wz + 1, { scale: 1.3 });
+    c.campDressing(wx, wz, { tents: 2, bones: 8, ground: null });
     add.camp({ id: 'canyon_wash_camp', x: wx, z: wz, kinds: ['dracaena', 'dracaena', 'empousa', 'stymphalian'], count: 5, chest: 'common', radius: 8 });
     // a cow's skeleton half buried in the gravel, with a chest under its ribs
     const bx = 306, bz = Math.round(washZ(306)) + 1, by = top(bx, bz);
