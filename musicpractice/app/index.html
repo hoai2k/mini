@@ -219,19 +219,11 @@
             <input type="checkbox" id="sub-on" role="switch">
           </div>
           <label class="row toggle"><span data-text="metronome.settings.sound"></span><select class="select" id="sound"></select></label>
-          <div class="met-display">
-            <div class="met-tabs" id="met-view-chips" data-text-aria-label="metronome.settings.display"></div>
-            <div class="met-tab-panel">
-            <div class="met-art-opts" id="met-art-opts">
-              <!-- On each beat: a switch, and which effect it turns on (a tap on the metronome flips the same switch). -->
-              <label class="row toggle"><span data-text="metronome.settings.pendulumMode"></span><input type="checkbox" id="pend-on" role="switch"></label>
-              <div class="chips" id="pend-mode" data-text-aria-label="metronome.settings.pendulumEffect"></div>
-            </div>
-            <div class="met-viz-opts" id="met-viz-opts">
-              <label class="row toggle"><span data-text="metronome.settings.vizBars"></span><select class="select" id="viz-bars"></select></label>
-            </div>
-            </div>
-          </div>
+          <!-- Settings for what can be shown, whether or not it is showing: a tap on the
+               metronome turns the swing on or off, a tap on the dots shows the next
+               of small dots, big dots and the Visualizer. -->
+          <label class="row toggle"><span data-text="metronome.settings.swing"></span><input type="checkbox" id="pend-on" role="switch"></label>
+          <label class="row toggle"><span data-text="metronome.settings.vizBars"></span><select class="select" id="viz-bars"></select></label>
           <div class="sheet-links">
             <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
             <button type="button" class="pill open-theme" data-text="common.themeButton"></button>
