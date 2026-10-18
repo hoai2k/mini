@@ -60,6 +60,25 @@ on the device is never touched.
   don't repeat a search that found nothing for two weeks (Settings → Look
   again forces it). Songs nothing is found for keep a stand-in cover. The
   setting notes that titles and artists are sent to Apple.
+- **Playlists** (the Playlists tab): New playlist, then add songs from the
+  playlist's + (a searchable picker: tap to add or take out) or from any
+  song's ⋯ → Add to playlist… (also in the full-screen player's ⋯). On a
+  playlist's page: play or shuffle it, ✎ to drag songs into any order (or
+  move them with the arrow keys) and − to take one out (it stays in the
+  library), and ⋯ to rename it, queue it or delete it (its songs stay). The
+  picture is its first cover, or four covers once it has four different
+  ones. Songs leaving the library leave their playlists too (Undo puts them
+  back where they were).
+- **Automatic playlists** (Settings → Automatic playlists, one switch, on by
+  default): songs with "(no bass)" in the title (any case, "(No-Bass)" too)
+  go into a **No Bass** playlist, and "(no piano)" into **No Piano**, both
+  songs already in the library and ones added later. A playlist appears only
+  once a song for it is in the library, and goes again when none is left.
+  They are ordinary playlists otherwise: reorder, rename, add other songs. A
+  song taken out of one stays out, and a deleted one isn't made again; turning
+  the switch off and on brings deleted ones back. With the switch off nothing
+  is sorted in and the playlists made so far stay as ordinary playlists.
+  The rules are `AUTO_RULES` in `src/playlists.js`.
 - **Removing**: ⋯ → Remove from library, or − in Edit, with Undo for 8
   seconds. Settings → Remove all songs empties the library.
 - **Playback** in the manner of Spotify: tap a song to play its list from
@@ -92,7 +111,8 @@ tab is hidden: background play is the point of a music player.
 - `app/index.html`, `app/styles.css`: the page.
 - `app/src/main.js`: views, playback, queue page, menus, adding, removing and
   reordering. `player.js`: the `<audio>` element and Media Session.
-  `queue.js`: what plays next (pure). `library.js`: sorting, albums,
+  `queue.js`: what plays next (pure). `playlists.js`: playlists and the
+  automatic collections (pure). `library.js`: sorting, albums,
   artists, search, the custom order (pure). `tags.js`: tag reading (pure,
   plus `readTags` for Files). `artwork.js`: covers from iTunes Search (the
   matching is pure, the fetch injectable). `store.js`: IndexedDB.

@@ -34,6 +34,8 @@ const P = {
   addQueue: '<path d="M4 6h12M4 11h12M4 16h7M18 13v6M15 16h6"/>',
   sort: '<path d="M7 4v16M3.5 16.5 7 20l3.5-3.5M14 6h7M14 11h5M14 16h3"/>',
   edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+  playlist: '<path d="M4 6h11M4 11h11M4 16h6"/><circle cx="17" cy="17" r="2.6"/><path d="M19.6 17V8l2.4-1"/>',
+  minusLine: '<path d="M4 6h12M4 11h12M4 16h7M15 17h6"/>',
   shield: '<path d="M12 3 5 6v5c0 4.5 3 8.5 7 10 4-1.5 7-5.5 7-10V6z"/><path d="M9 12l2 2 4-4"/>',
 };
 
