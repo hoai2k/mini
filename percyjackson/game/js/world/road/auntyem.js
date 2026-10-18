@@ -46,10 +46,18 @@ export function build(ctx) {
   // the warehouse
   const wx0 = 1173, wx1 = 1201, wz0 = ROAD_Z + 18, wz1 = ROAD_Z + 33;
   R.building(wx0, wz0, wx1, wz1, {
-    h: 6, wall: B.corrugated, trim: B.white_trim, roof: B.roof_slate, eave: 1, floor: B.floor_boards,
+    h: 6, wall: B.planks, trim: B.dark_planks, roof: B.shingle_green, eave: 1, roofH: 6, floor: B.floor_boards,
     windows: { id: B.window_day, every: 4, sides: 'nsew', y: 3 },
     doors: [{ side: 'n', at: 1187, width: 3, height: 4 }, { side: 's', at: 1180, width: 1, height: 3 }],
   });
+  // its green gabled roof with the skylights lit, the timber posts at the corners
+  gable(k, wx0, wz0, wx1, wz1, FY + 7, B.shingle_green, { axis: 'x', end: B.planks, run: 2, ridgeId: B.dark_planks });
+  for (let x = wx0 + 4; x <= wx1 - 4; x += 6) for (const z of [wz0 + 1, wz0 + 2, wz1 - 2, wz1 - 1]) W.set(x, FY + 7 + (z < wz0 + 3 ? z - wz0 + 0 : wz1 - z), z, B.window_day);
+  for (const x of [wx0, wx1]) for (const z of [wz0, wz1]) for (let y = FY; y < FY + 6; y++) W.set(x, y, z, B.log);
+  // the giant gnome on the lawn, waving the traffic in
+  R.fill(1196, FY, ROAD_Z + 13, 1197, FY, ROAD_Z + 14, B.cobble);
+  deco.prop('gnome', 1197, FY + 1, ROAD_Z + 14, { scale: 4, rot: -0.3, color: 0xd8322a });
+  R.fill(1196, FY + 1, ROAD_Z + 13, 1197, FY + 4, ROAD_Z + 14, B.barrier);
   deco.prop('text_sign', 1187.5, FY + 7, wz0 - 0.4, { text: S('auntyEm'), w: 13, h: 2.4, post: 0.4, bg: '#f2efe6', fg: '#c4302a', border: '#3f8a34' });
   // inside: the snack bar (it smells of burgers), rows of gnomes, a few more statues, the photo corner
   for (let x = 1192; x <= 1200; x++) { W.set(x, FY, wz0 + 4, B.white_trim); W.set(x, FY, wz0 + 1, B.iron_plate); }

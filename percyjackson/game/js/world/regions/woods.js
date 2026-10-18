@@ -374,27 +374,27 @@ export function build(c) {
     for (let i = 0; i < 14; i++) { const x = 146 + k.rnd(-8, 8), z = 247 + k.rnd(-8, 8), y = W.groundBelow(x, z, FY + 4); if (isFinite(y) && !W.get(Math.floor(x), y, Math.floor(z))) deco.add('mushroom', x, y, z, { scale: 0.9 + k.r() * 0.6 }); }
   }
 
-  // ---------------------------------------------------------------- lanterns along the trails
-  for (const [x, z] of [[166, 232], [172, 250], [186, 255], [173, 266], [184, 289], [196, 296], [141, 270], [208, 302], [50, 314]]) {
-    for (const [dx, dz] of [[0, 0], [2, 0], [-2, 0], [0, 2], [0, -2]]) {
-      const px = x + dx, pz = z + dz, y = ground(px, pz);
-      if (!inRegion(px, pz) || !isFinite(y) || W.get(px, y, pz) || [B.dirt_path, B.water].includes(W.get(px, y - 1, pz))) continue;
-      k.lanternPost(px, pz, y); no(px, pz, 2); break;
-    }
-  }
-
   // ---------------------------------------------------------------- the things Juniper and Beckendorf want found
   for (const [i, x, z] of [[1, 230, 266], [2, 184, 283], [3, 176, 296], [4, 122, 299], [5, 145, 318]]) add.item({ id: 'woods_acorn_' + i, quest: 'woods_silver_acorns', x, z });
   for (const [i, x, z] of [[1, 223, 250], [2, 230, 296], [3, 245, 253], [4, 44, 312]]) add.item({ id: 'woods_scrap_' + i, quest: 'woods_bronze_scrap', x, z });
 
   // ---------------------------------------------------------------- trails
-  c.road([[164, 220], [168, 240], [176, 258]], B.dirt_path, 2);
-  c.road([[176, 258], [188, 252], [197, 252], [205, 249]], B.dirt_path, 2);
-  c.road([[170, 268], [181, 270], [181, 282], [192, 292], [200, 300]], B.dirt_path, 2);
-  c.road([[140, 262], [146, 254]], B.dirt_path, 2);
-  c.road([[140, 262], [138, 276], [137, 282]], B.dirt_path, 2);
-  c.road([[200, 300], [212, 301], [222, 300]], B.dirt_path, 2);
-  c.road([[59, 316], [42, 317]], B.dirt_path, 2);
+  c.road([[164, 220], [168, 240], [176, 258]], B.dirt_road, 2);
+  c.road([[176, 258], [188, 252], [197, 252], [205, 249]], B.dirt_road, 2);
+  c.road([[170, 268], [181, 270], [181, 282], [192, 292], [200, 300]], B.dirt_road, 2);
+  c.road([[140, 262], [146, 254]], B.dirt_road, 2);
+  c.road([[140, 262], [138, 276], [137, 282]], B.dirt_road, 2);
+  c.road([[200, 300], [212, 301], [222, 300]], B.dirt_road, 2);
+  c.road([[59, 316], [42, 317]], B.dirt_road, 2);
+  // ---------------------------------------------------------------- lanterns along the trails
+  for (const [x, z] of [[166, 232], [172, 250], [186, 255], [173, 266], [184, 289], [196, 296], [141, 270], [208, 302], [50, 314]]) {
+    for (const [dx, dz] of [[2, 0], [-2, 0], [0, 2], [0, -2], [3, 0], [-3, 0]]) {
+      const px = x + dx, pz = z + dz, y = ground(px, pz);
+      if (!inRegion(px, pz) || !isFinite(y) || W.get(px, y, pz) || [B.dirt_path, B.dirt_road, B.water].includes(W.get(px, y - 1, pz))) continue;
+      k.lanternPost(px, pz, y); no(px, pz, 2); break;
+    }
+  }
+
   // the openworld roads come later; keep their lines clear of trees
   const ROADS = [[[110, 260], [140, 262], [170, 268]], [[200, 300], [235, 320], [262, 330]], [[60, 303], [62, 330]], [[164, 220], [168, 240], [176, 258]], [[176, 258], [188, 252], [205, 249]], [[170, 268], [181, 270], [181, 282], [192, 292], [200, 300]], [[59, 316], [42, 317]], [[140, 262], [138, 276], [137, 282]]];
 

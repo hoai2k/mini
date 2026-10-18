@@ -74,8 +74,8 @@ export function build(c) {
   {
     plot(122, 126, 135, 139, 'berry'); plot(140, 126, 156, 139, 'wheat');
     plot(122, 143, 135, 155, 'greens'); plot(140, 143, 156, 155, 'berry');
-    for (let z = 124; z <= 157; z++) for (let x = 137; x <= 138; x++) setTop(x, z, B.dirt_path);
-    for (let x = 120; x <= 158; x++) for (let z = 140; z <= 141; z++) setTop(x, z, B.dirt_path);
+    for (let z = 124; z <= 157; z++) for (let x = 137; x <= 138; x++) setTop(x, z, B.dirt_road);
+    for (let x = 120; x <= 158; x++) for (let z = 140; z <= 141; z++) setTop(x, z, B.dirt_road);
     // fences round the beds (gaps where the paths come out)
     const fy = (x, z) => ground(x, z);
     deco.prop('fence', 128.5, fy(128, 124), 124.5, { len: 15 }); deco.prop('fence', 148, fy(148, 124), 124.5, { len: 18 });
@@ -348,11 +348,11 @@ export function build(c) {
   // ---------------------------------------------------------------- lanes
   c.road([[170, 170], [185, 171], [200, 170]], B.dirt_road, 3);
   c.road([[185, 171], [187, 158], [190, 140]], B.dirt_road, 3);
-  c.road([[172, 172], [170, 186], [168, 196], [164, 219]], B.dirt_path, 2);
-  c.road([[205, 171], [207, 180], [209, 190]], B.dirt_path, 2);
-  c.road([[200, 170], [214, 160], [224, 147]], B.dirt_path, 2);
-  c.road([[138, 158], [138, 168], [150, 178]], B.dirt_path, 2);
-  c.road([[178, 160], [180, 168]], B.dirt_path, 2);
+  c.road([[172, 172], [170, 186], [168, 196], [164, 219]], B.dirt_road, 2);
+  c.road([[205, 171], [207, 180], [209, 190]], B.dirt_road, 2);
+  c.road([[200, 170], [214, 160], [224, 147]], B.dirt_road, 2);
+  c.road([[138, 158], [138, 168], [150, 178]], B.dirt_road, 2);
+  c.road([[178, 160], [180, 168]], B.dirt_road, 2);
 
   // ---------------------------------------------------------------- lit stone posts along the lanes, sunflowers, lavender
   {
@@ -366,7 +366,7 @@ export function build(c) {
         return;
       }
     };
-    [[175, 168], [187, 174], [197, 168], [183, 160], [188, 150], [168, 178], [167, 192], [165, 208], [203, 176], [211, 162], [220, 152], [141, 162], [146, 172], [176, 164]].forEach(([x, z], i) => post(x, z, i % 2 === 0));
+    [[175, 168], [187, 174], [197, 168], [183, 160], [188, 150], [168, 178], [167, 192], [165, 208], [203, 176], [211, 162], [220, 152], [141, 164], [146, 172], [176, 164]].forEach(([x, z], i) => post(x, z, i % 2 === 0));
     // a patch of tall sunflowers and rows of lavender, as on the sheet
     for (let z = 200; z <= 212; z++) for (let x = 151; x <= 162; x++) {
       const y = ground(x, z); if (!isFinite(y) || W.get(x, y, z) || W.get(x, y - 1, z) !== B.grass || !k.chance(0.55)) continue;

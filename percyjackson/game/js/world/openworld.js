@@ -256,12 +256,15 @@ export function regionContext({ W, k, deco, shafts, n, r, reg, top, seed, layout
     if (fire) { deco.prop('campfire', x + 0.5, y, z + 0.5); W.set(x, y, z, B.barrier); W.addLight(x + 0.5, y + 1.2, z + 0.5, light, 3.5, 9); }
     // tents: an A-frame of hide over a ridge pole, poles crossed above each end, the open end facing the fire
     for (let i = 0; i < tents; i++) {
-      const a = i * 2.4 + 0.6 + (R() - 0.5) * 0.4, tx = Math.round(x + Math.cos(a) * 5.2), tz = Math.round(z + Math.sin(a) * 5.2);
-      const alongZ = Math.abs(Math.sin(a)) > Math.abs(Math.cos(a));            // the tent runs towards the fire
-      const ty = top(tx, tz);
-      const cell = (u, v) => (alongZ ? [tx + u, tz + v] : [tx + v, tz + u]);  // u across, v along
-      let ok = true;
-      for (let v = -1; v <= 1 && ok; v++) for (let u = -2; u <= 2; u++) { const [cx, cz] = cell(u, v); if (!free(cx, cz) || top(cx, cz) !== ty) { ok = false; break; } }
+      let a, tx, tz, ty, alongZ, cell, ok = false;
+      for (let tries = 0; tries < 4 && !ok; tries++) {                          // a few angles round the fire, for a clear pitch
+        a = i * 2.4 + 0.6 + tries * 0.55 + (R() - 0.5) * 0.3; tx = Math.round(x + Math.cos(a) * 5.2); tz = Math.round(z + Math.sin(a) * 5.2);
+        alongZ = Math.abs(Math.sin(a)) > Math.abs(Math.cos(a));                // the tent runs towards the fire
+        ty = top(tx, tz);
+        cell = (u, v) => (alongZ ? [tx + u, tz + v] : [tx + v, tz + u]);       // u across, v along
+        ok = isFinite(ty);
+        for (let v = -1; v <= 1 && ok; v++) for (let u = -2; u <= 2; u++) { const [cx, cz] = cell(u, v), cy = top(cx, cz); if (!free(cx, cz) || cy < ty || cy > ty + 1) { ok = false; break; } }
+      }
       if (!ok) continue;
       for (let v = -1; v <= 1; v++) for (let s = 0; s < 3; s++) for (const u of [s - 2, 2 - s]) {
         if (s === 0 && R() < 0.25) continue;                                  // a ragged hem
@@ -278,8 +281,7 @@ export function regionContext({ W, k, deco, shafts, n, r, reg, top, seed, layout
       if (free(tx, tz)) {
         for (let h = 0; h < 4; h++) W.set(tx, ty + h, tz, B.log);
         W.set(tx - 1, ty + 3, tz, B.log); W.set(tx + 1, ty + 3, tz, B.log);
-        W.set(tx, ty + 4, tz, B.bone_block); W.set(tx - 1, ty + 4, tz, B.bone_block); W.set(tx + 1, ty + 4, tz, B.bone_block);
-        W.set(tx - 1, ty + 5, tz, B.bone_block); W.set(tx + 1, ty + 5, tz, B.bone_block);
+        W.set(tx, ty + 4, tz, B.bone_block); W.set(tx - 1, ty + 5, tz, B.bone_block); W.set(tx + 1, ty + 5, tz, B.bone_block);   // the skull and its horns
         deco.add('skull', tx + 0.5, ty + 4.1, tz + 1.02, { mode: 'wall', facing: [0, 1], scale: 1.2, sway: 0 });
         if (!W.get(tx, ty + 2, tz + 1) && !W.get(tx, ty + 1, tz + 1)) { W.set(tx, ty + 2, tz + 1, hide); W.set(tx, ty + 1, tz + 1, hide); }
         deco.add('skull', tx + 0.5, ty, tz + 1.6, { mode: 'flat', scale: 1 });

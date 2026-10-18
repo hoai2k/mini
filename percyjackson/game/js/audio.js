@@ -14,7 +14,7 @@ const MUSIC_FILES = { title: 'title', hub: 'camp', camp: 'camp', museum: 'museum
 // Ambiences with a recorded bed under assets/ambience/ (replacing the synthesised chirps).
 const AMB_FILES = { forest: 'crickets', night: 'crickets' };
 
-const FODDER_VOICES = new Set(['rustle', 'chitter', 'clack', 'wail']);
+const FODDER_VOICES = new Set(['rustle', 'chitter', 'clack', 'wail', 'snort', 'whir', 'shriek']);
 export class Audio {
   constructor() {
     this.ctx = null; this.started = false;
@@ -141,6 +141,9 @@ export class Audio {
       case 'rustle': this.noise({ dur: 0.14, gain: 0.1, type: 'bandpass', freq: 3200 * j, q: 1.5 }); this.tone({ freq: 1300 * p * j, to: 1900 * p * j, dur: 0.08, gain: 0.03, type: 'triangle', filter: 4000, at: 0.05 }); break;
       case 'chitter': for (let i = 0; i < 3; i++) this.tone({ freq: (1800 + i * 300) * p * j, dur: 0.02, gain: 0.04, type: 'square', filter: 5000, at: i * 0.035 }); this.noise({ dur: 0.08, gain: 0.05, type: 'highpass', freq: 4000 }); break;
       case 'clack': this.noise({ dur: 0.03, gain: 0.16, type: 'bandpass', freq: 2400 * j, q: 4 }); this.noise({ dur: 0.03, gain: 0.14, type: 'bandpass', freq: 2100 * j, q: 4, at: 0.08 }); this.tone({ freq: 220 * p, to: 160 * p, dur: 0.06, gain: 0.04, type: 'square', filter: 900 }); break;
+      case 'snort': this.noise({ dur: 0.25, gain: 0.16, type: 'lowpass', freq: 700 * j, sweep: 300 }); this.tone({ freq: 140 * p * j, to: 90 * p, dur: 0.22, gain: 0.08, type: 'sawtooth', filter: 600, at: 0.05 }); break;
+      case 'whir': this.tone({ freq: 900 * p * j, to: 1400 * p * j, dur: 0.25, gain: 0.03, type: 'square', filter: 3000 }); for (let i = 0; i < 4; i++) this.tone({ freq: 2600 * j, dur: 0.015, gain: 0.03, type: 'square', filter: 6000, at: i * 0.05 }); break;
+      case 'shriek': this.tone({ freq: 1400 * p * j, to: 2600 * p * j, dur: 0.18, gain: 0.04, type: 'sawtooth', filter: 5000, rev: 0.4 }); this.noise({ dur: 0.16, gain: 0.05, type: 'highpass', freq: 5000 }); break;
       case 'wail': this.tone({ freq: 430 * p * j, to: 300 * p * j, dur: 0.7, gain: 0.035, type: 'sine', filter: 1500, rev: 0.8 }); this.tone({ freq: 437 * p * j, to: 296 * p * j, dur: 0.7, gain: 0.025, type: 'triangle', filter: 1100, rev: 0.8, at: 0.04 }); break;
     }
   }
@@ -148,10 +151,14 @@ export class Audio {
   fodderDie(kind) {
     if (!this.started || this.throttle('fd-' + kind, 70)) return;
     const j = 0.85 + Math.random() * 0.3;
-    if (kind === 'karpos') this.noise({ dur: 0.18, gain: 0.16, type: 'highpass', freq: 2600 * j, sweep: 5000 });
-    else if (kind === 'crab') { this.noise({ dur: 0.05, gain: 0.2, type: 'bandpass', freq: 1800 * j, q: 3 }); this.noise({ dur: 0.2, gain: 0.06, type: 'lowpass', freq: 900, at: 0.04, rev: 0.2 }); }
+    if (kind === 'karpos' || kind === 'karpos_slinger') this.noise({ dur: 0.18, gain: 0.16, type: 'highpass', freq: 2600 * j, sweep: 5000 });
+    else if (kind === 'crab' || kind === 'king_crab') { this.noise({ dur: 0.05, gain: 0.2, type: 'bandpass', freq: 1800 * j, q: 3 }); this.noise({ dur: 0.2, gain: 0.06, type: 'lowpass', freq: 900, at: 0.04, rev: 0.2 }); }
+    else if (kind === 'colchis_calf' || kind === 'daedalus_drone') { this.noise({ dur: 0.08, gain: 0.2, type: 'bandpass', freq: 3200 * j, q: 3 }); this.tone({ freq: 1800 * j, to: 400, dur: 0.3, gain: 0.05, type: 'square', filter: 3000, at: 0.03 }); }
+    else if (kind === 'earthborn' || kind === 'laistrygonian') { this.noise({ dur: 0.7, gain: 0.3, type: 'lowpass', freq: 400 * j, rev: 0.3 }); this.tone({ freq: 90 * j, to: 40, dur: 0.8, gain: 0.15, type: 'sawtooth', filter: 400 }); }
+    else if (kind === 'boarlet') this.tone({ freq: 300 * j, to: 120, dur: 0.3, gain: 0.08, type: 'sawtooth', filter: 1200 });
+    else if (kind === 'keres') this.tone({ freq: 2200 * j, to: 600, dur: 0.35, gain: 0.04, type: 'sawtooth', filter: 4000, rev: 0.5 });
     else if (kind === 'shade') this.tone({ freq: 520 * j, to: 900 * j, dur: 0.45, gain: 0.04, type: 'sine', rev: 0.8 });
-    else { this.noise({ dur: 0.06, gain: 0.16, type: 'bandpass', freq: 2800 * j, q: 2.5 }); if (kind === 'myrmex_acid') this.noise({ dur: 0.3, gain: 0.08, type: 'highpass', freq: 3000, at: 0.04 }); }
+    else { this.noise({ dur: 0.06, gain: 0.16, type: 'bandpass', freq: 2800 * j, q: 2.5 }); if (kind === 'myrmex_spitter') this.noise({ dur: 0.3, gain: 0.08, type: 'highpass', freq: 3000, at: 0.04 }); }
   }
   ui(kind) {
     if (!this.started) return;

@@ -32,19 +32,19 @@ export const CAMP_AT = { x: 0, z: 120, sx: 116, sz: 184 };
 export const REGIONS = [
   { id: 'camp', rects: [[0, 120, 116, 304]], level: [1, 2], safe: true, biome: 'camp' },
   { id: 'fields', rects: [[116, 120, 250, 220]], level: [1, 3], biome: 'ow_fields',
-    kinds: [['karpos', 5], ['rat', 2], ['pup', 2], ['stymphalian', 2], ['serpent', 1]], fodder: ['karpos', 'karpos', 'rat', 'pup'] },
+    kinds: [['karpos', 4.5], ['karpos_slinger', 2], ['rat', 1.5], ['colchis_calf', 2.5]], fodder: ['karpos', 'karpos', 'karpos_slinger', 'rat'] },
   { id: 'woods', rects: [[116, 220, 250, 330], [0, 304, 116, 330]], level: [2, 4], biome: 'ow_woods',
-    kinds: [['myrmex', 4], ['myrmex_acid', 1], ['pup', 2.5], ['spider', 2.5], ['serpent', 1.5], ['hellhound', 0.5], ['dracaena', 0.5]], fodder: ['myrmex', 'myrmex', 'myrmex_acid', 'pup', 'spider'] },
+    kinds: [['myrmex', 4], ['myrmex_spitter', 2], ['pup', 2], ['boarlet', 2.5]], fodder: ['myrmex', 'myrmex', 'myrmex_spitter', 'pup'] },
   { id: 'shore', rects: [[0, 0, 210, 120]], level: [3, 5], biome: 'ow_shore',
-    kinds: [['crab', 7], ['telekhine', 1.5], ['harpy', 1.5], ['stymphalian', 0.5], ['skeleton', 0.5]], fodder: ['crab', 'crab', 'crab', 'telekhine'] },
+    kinds: [['crab', 5], ['telekhine', 2], ['harpy', 2], ['king_crab', 0.8]], fodder: ['crab', 'crab', 'crab', 'telekhine'] },
   { id: 'canyon', rects: [[250, 130, 400, 290]], level: [5, 7], biome: 'ow_canyon',
-    kinds: [['myrmex', 4.5], ['myrmex_acid', 1.5], ['spartoi', 3], ['scorpion', 0.8], ['stymphalian', 1.4], ['gorgon_statue', 0.3], ['empousa', 0.2], ['dracaena', 0.2]], fodder: ['myrmex', 'myrmex', 'myrmex_acid', 'spartoi'] },
+    kinds: [['myrmex', 3.5], ['basilisk', 2.5], ['spartoi', 2], ['stymphalian', 1], ['scorpion', 0.4], ['earthborn', 0.9]], fodder: ['myrmex', 'basilisk', 'spartoi'] },
   { id: 'labyrinth', rects: [[0, 330, 170, 400]], level: [6, 8], biome: 'ow_labyrinth',
-    kinds: [['spartoi', 5], ['spider', 4], ['automaton', 2], ['skeleton', 0.6], ['fury', 0.4]], fodder: ['spartoi', 'spartoi', 'spider'] },
+    kinds: [['spartoi', 4], ['spider', 2.5], ['daedalus_drone', 2], ['automaton', 2.2]], fodder: ['spartoi', 'spartoi', 'spider', 'daedalus_drone'] },
   { id: 'othrys', rects: [[210, 0, 400, 130]], level: [8, 10], biome: 'ow_othrys',
-    kinds: [['spartoi', 5], ['telekhine', 3], ['harpy', 1.6], ['hellhound', 0.6], ['automaton', 0.4], ['skeleton', 0.4], ['cyclops', 0.15]], fodder: ['spartoi', 'spartoi', 'telekhine'] },
+    kinds: [['spartoi', 4], ['telekhine', 2.5], ['harpy', 2], ['laistrygonian', 0.8]], fodder: ['spartoi', 'spartoi', 'telekhine'] },
   { id: 'asphodel', rects: [[250, 290, 400, 400], [170, 330, 250, 400]], level: [9, 12], biome: 'ow_asphodel',
-    kinds: [['shade', 6], ['spartoi', 3], ['ghost', 2], ['skeleton', 0.4], ['fury', 0.3], ['hellhound', 0.3], ['empousa', 0.2]], fodder: ['shade', 'shade', 'spartoi'] },
+    kinds: [['shade', 4.5], ['keres', 2.5], ['spartoi', 1.5], ['ghost', 2.4]], fodder: ['shade', 'shade', 'keres', 'spartoi'] },
 ];
 export const REGION = Object.fromEntries(REGIONS.map((r) => [r.id, r]));
 export const REGION_IDS = REGIONS.map((r) => r.id);

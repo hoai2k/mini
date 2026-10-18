@@ -43,15 +43,16 @@ export const ROAM_RULES = {
 // Out in the open world and on the Road West the roaming monsters come in
 // hordes (the Minecraft Dungeons feel): crowds of weak fodder to plow
 // through, with now and then a tougher one in the middle of them.
-// FODDER_KINDS: the swarm kinds (entities/fodder.js's, and the old minors
-// that fight the same way); about three quarters of every region's weight.
-export const FODDER_KINDS = new Set(['karpos', 'myrmex', 'myrmex_acid', 'crab', 'shade', 'spartoi', 'telekhine', 'rat', 'pup', 'spider']);
+// FODDER_KINDS: the swarm kinds, short range and long (entities/fodder.js's
+// small ones, and the old minors that fight the same way); about three
+// quarters of every region's weight. The rest are its larger, tougher kinds.
+export const FODDER_KINDS = new Set(['karpos', 'karpos_slinger', 'myrmex', 'myrmex_spitter', 'crab', 'basilisk', 'daedalus_drone', 'shade', 'keres', 'spartoi', 'telekhine', 'rat', 'pup', 'spider']);
 export const isFodder = (kind) => FODDER_KINDS.has(kind);
 // how many of a kind come at once, [fewest, most]; a kind not listed comes alone
 export const HORDE = {
-  karpos: [6, 10], shade: [6, 10], rat: [5, 8], myrmex: [5, 8], crab: [4, 7], pup: [4, 7], spider: [4, 7], spartoi: [4, 7],
-  myrmex_acid: [2, 3], telekhine: [2, 3],
-  harpy: [2, 3], stymphalian: [2, 3], ghost: [2, 3], automaton: [2, 3], serpent: [1, 2],
+  karpos: [6, 10], shade: [6, 10], rat: [5, 8], myrmex: [5, 8], keres: [4, 7], crab: [4, 7], pup: [4, 7], spider: [4, 7], spartoi: [4, 7],
+  basilisk: [3, 5], karpos_slinger: [2, 4], daedalus_drone: [2, 4], myrmex_spitter: [2, 3], telekhine: [2, 3],
+  colchis_calf: [1, 2], boarlet: [1, 2], harpy: [2, 3], stymphalian: [2, 3], ghost: [2, 3], automaton: [2, 3], serpent: [1, 2],
 };
 // A roaming horde from a region's kinds ([[kind, weight]]): the kinds of its
 // members, the one picked first. A tough kind (not fodder) brings a crowd of

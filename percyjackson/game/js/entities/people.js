@@ -593,7 +593,7 @@ export const PEOPLE = {
         for (const [u, v] of [[40, 16], [32, 48]]) eyeAt(D, u + 8.5, v + 1, 0xf0b48a);
         eyeAt(D, 22.5, 17, 0xf0b48a); eyeAt(D, 18, 21.5, 0xf0b48a);
       } },
-    hair: { c: [0, 7, -0.6], r: [5.6, 4.4, 5.8], bump: 0.42, shell: 1.4, fringe: 7, jag: 0.8, side: 2.8, back: 0.6, tuft: 0.3, spike: 0.08, tones: [0xa88428, 0xd8b050, 0xf4d888] },
+    hair: { c: [0, 7, -0.6], r: [5.6, 4.4, 5.8], bump: 0.42, shell: 1.4, fringe: 7, jag: 0.8, side: 2.8, back: 0.6, tuft: 0.2, spike: 0.04, top: 10.4, tones: [0xa88428, 0xd8b050, 0xf4d888] },
     beard: [0xa88428, 0xd0a848, 0xf0d080],
     parts() {
       const white = 0xf6f2e8, khaki = 0x7a6a40, gold = 0xe0b030, eye = (x, y, z, s) => [B([x, y, z], [s ? 0.3 : 1.4, 1, s ? 1.4 : 0.3], 0xfafaf6), B([x + (s || 0) * 0.15, y, z + (s ? 0 : 0.15)], [s ? 0.3 : 0.7, 0.7, s ? 0.7 : 0.3], 0x2a74e0)];
@@ -639,7 +639,7 @@ export const PEOPLE = {
           B([0, 1.2, 0], [8.8, 1, 4.8], 0x6a3a1e), B([0, 1.2, 2.5], [1.4, 1, 0.3], GOLD),
         ],
         // a pink hand mirror in a gold frame in her left hand, gold bangles on the right wrist
-        armL: [band(-7.2, 0.6, GOLD, 4.7), B([0, -9.5, 2.6], [0.9, 2.4, 0.9], 0xe0b030), B([0, -6.4, 2.6], [3.8, 4.4, 0.9], 0xe0b030), B([0, -6.4, 3.1], [2.8, 3.4, 0.2], 0xf0a0c0), B([-0.6, -5.6, 3.25], [0.8, 0.8, 0.1], 0xffe0f0)],
+        armL: [band(-7.2, 0.6, GOLD, 4.7), B([0, -9.5, 2.6], [1, 3, 1], 0xe0b030), B([0, -5.6, 2.6], [4.8, 5.6, 1], 0xe0b030), B([0, -5.6, 3.15], [3.6, 4.4, 0.2], 0xf090b8), B([-0.8, -4.6, 3.3], [1, 1, 0.1], 0xffe0f0)],
         armR: [band(-7.4, 0.5, GOLD, 4.7), band(-6.7, 0.5, 0xe0b030, 4.75), band(-6, 0.4, pink, 4.7)],
         legR: [...shoes('sandal', { upper: 0x6a3a1e, sole: 0x4a2a14 }), band(-8.6, 0.6, 0x6a3a1e, 4.6), band(-1.2, 1, shadeOf(0x4a6a9a, 1.15), 4.8)],
         legL: [...shoes('sandal', { upper: 0x6a3a1e, sole: 0x4a2a14 }), band(-8.6, 0.6, 0x6a3a1e, 4.6), band(-1.2, 1, shadeOf(0x4a6a9a, 1.15), 4.8)],
@@ -683,7 +683,7 @@ export const PEOPLE = {
   rt_auntyem_pruitt: {
     painter: 'person', scale: ADULT_SCALE, wide: 1.22, accent: 0xff7a9a,
     paint: { skin: 0xe8a880, hair: 0x5a3418, fringe: 1, hairSide: 4, hairBack: 7, eyeRow: 3, eye: 0x3a2414, brow: 0x4a2810, smile: true, blush: 0xf08a7a, top: 0x5a7ab8, floral: [0xdce6f4, 0xf0d060, null], shortSleeve: true, collar: 0x4a6aa8, hand: 0x4a7a3a, pants: 0x5a7ab8, skirt: 0x5a7ab8, skirtLen: 9, tights: 0xe8a880, shoes: 0x4a7a3a, saturate: 1.12 },
-    hair: { c: [0, 6, -0.6], r: [6.2, 4.6, 6], bump: 0.46, shell: 1.4, fringe: 6.8, jag: 0.6, side: 0.6, back: -0.6, tuft: 0.34, spike: 0.08, tones: [0x3a200c, 0x5a3418, 0x7e4c28] },
+    hair: { c: [0, 6, -0.6], r: [6.2, 4.6, 6], bump: 0.46, shell: 1.4, fringe: 6.8, jag: 0.6, side: 0.6, back: -0.6, top: 8.4, tuft: 0.34, spike: 0.08, tones: [0x3a200c, 0x5a3418, 0x7e4c28] },
     parts() {
       const scarf = 0xe88aa0, rose = [0xe85a7a, 0xf09ab0], leaf = 0x5a9a4a, apron = 0xf6efe0, blue = 0x5a7ab8;
       const r = mulberry32(5), ap = [], skirtA = [];
@@ -770,12 +770,12 @@ export const PEOPLE = {
       return {
         head: [
           // sunglasses pushed up on the afro
-          B([0, 10.2, 3.6], [8.4, 0.6, 0.6], 0x141414), ...mirrorX([B([-2, 10.2, 4], [3.2, 2.2, 0.6], 0x141414), B([-2, 10.2, 4.35], [2.4, 1.4, 0.2], 0x2a4a5a)]),
+          B([0, 11.4, 5], [8.4, 0.6, 0.6], 0x141414), ...mirrorX([B([-2, 11.4, 5.4], [3.2, 2.2, 0.6], 0x141414), B([-2, 11.4, 5.75], [2.4, 1.4, 0.2], 0x2a4a5a), B([-4.2, 11.4, 2.4], [0.5, 0.5, 5.4], 0x141414)]),
           ...mirrorX([B([-4.4, 2.6, 1.4], [0.4, 0.8, 0.8], 0xe0b030)]),
         ],
         torso: [...line([-1.6, 11.9, 2.4], [0, 7.4, 2.4], 5, [0x1a1a1e], 3, 0.4, 0), ...line([1.6, 11.9, 2.4], [0, 7.4, 2.4], 5, [0x1a1a1e], 4, 0.4, 0), B([0, 6.4, 2.6], [1.4, 1.8, 0.8], 0xe8c040), B([0, 7.4, 2.6], [0.8, 0.5, 0.5], 0xe8c040)],
         hips: [B([0, 0.3, 0], [8.8, 0.8, 4.8], 0xa81c18), B([-0.5, -0.6, 2.5], [0.4, 1.8, 0.3], 0xf4f0e8), B([0.5, -0.6, 2.5], [0.4, 1.8, 0.3], 0xf4f0e8)],
-        armL: [band(-6.4, 0.9, 0xe8c870, 4.6), ...L.map((b) => ({ ...b, at: [b.at[0] + 0.8, b.at[1] - 2, b.at[2] - 1] }))],
+        armL: [band(-6.4, 0.9, 0xe8c870, 4.6), ...L.map((b) => ({ ...b, at: [b.at[0] - 0.6, b.at[1] - 2, b.at[2] + 2.2] }))],
         armR: [band(-7, 0.7, 0x2a8ad8, 4.6)],
         legR: [B([0, -11.6, 0.6], [4.9, 0.9, 6], 0x1a1a1e), B([0, -11.1, 0.6], [4.95, 0.25, 6.05], 0xf4f0e8), B([0, -10.4, 1.4], [4.75, 0.6, 1], 0xc8241e), B([0, -10.4, 2.4], [0.6, 0.6, 0.8], 0xc8241e)],
         legL: [B([0, -11.6, 0.6], [4.9, 0.9, 6], 0x1a1a1e), B([0, -11.1, 0.6], [4.95, 0.25, 6.05], 0xf4f0e8), B([0, -10.4, 1.4], [4.75, 0.6, 1], 0xc8241e), B([0, -10.4, 2.4], [0.6, 0.6, 0.8], 0xc8241e)],
@@ -806,8 +806,8 @@ export const PEOPLE = {
         hips: [B([0, -0.8, 2.3], [8, 1.6, 0.4], md), B([0, -0.8, -2.3], [8, 1.6, 0.4], md)],
         armR: [band(-6.6, 0.8, gold, 4.8), band(-7.6, 0.9, 0xf6f6f2, 4.7)],
         // a fistful of car keys and fobs on a gold ring
-        armL: [band(-6.6, 0.8, gold, 4.8), band(-7.6, 0.9, 0xf6f6f2, 4.7), ...ring(-11, 1.2, [gold], 9, { size: 0.45, step: 0.8, h: 0.45 }).map((b) => ({ ...b, at: [b.at[0], b.at[1], b.at[2] + 2.4] })),
-          ...[[-1, -12.8, 0x1a1a1e], [0, -13.4, 0x2a2a2e], [1, -12.6, 0x1a1a1e], [-0.4, -14, 0x141418]].map(([x, y, c]) => B([x, y, 2.8], [0.9, 1.8, 0.6], c)), ...[[-0.6, -12.2], [0.6, -12.4]].map(([x, y]) => B([x, y, 3.2], [0.4, 2, 0.3], 0xc8c8d0)), B([0, -12.9, 3.15], [0.4, 0.4, 0.1], 0xc82a2a)],
+        armL: [band(-6.6, 0.8, gold, 4.8), band(-7.6, 0.9, 0xf6f6f2, 4.7), ...grow([...ring(-11, 1.2, [gold], 9, { size: 0.45, step: 0.8, h: 0.45 }).map((b) => ({ ...b, at: [b.at[0], b.at[1], b.at[2] + 2.4] })),
+          ...[[-1, -12.8, 0x1a1a1e], [0, -13.4, 0x2a2a2e], [1, -12.6, 0x1a1a1e], [-0.4, -14, 0x141418]].map(([x, y, c]) => B([x, y, 2.8], [0.9, 1.8, 0.6], c)), ...[[-0.6, -12.2], [0.6, -12.4]].map(([x, y]) => B([x, y, 3.2], [0.4, 2, 0.3], 0xc8c8d0)), B([0, -12.9, 3.15], [0.4, 0.4, 0.1], 0xc82a2a)], 1.6, [0, -10.5, 2.4])],
         legR: [...shoes('loafer', { upper: 0x101012, sole: 0x060606 }), B([0, -10.2, 2.7], [1.6, 0.4, 0.3], gold)],
         legL: [...shoes('loafer', { upper: 0x101012, sole: 0x060606 }), B([0, -10.2, 2.7], [1.6, 0.4, 0.3], gold)],
       };
@@ -845,8 +845,8 @@ export const PEOPLE = {
         ],
         // the fold-out star map, open in her right hand
         armR: [band(-7.2, 0.6, 0x2a2a2e, 4.6),
-          ...[[-2.6, 0xf4ead0], [0, 0xf0e4c4], [2.6, 0xf4ead0]].map(([z, c]) => B([0.6, -10.6, 2 + z], [0.3, 5, 2.6], c, [0, 0, 0.1])),
-          ...[[-9.6, -0.6, 0xe0a020], [-11, 0.4, 0xe8606a], [-9.8, 2.8, 0x3a8ae8], [-11.6, 4.4, 0x5ab04a], [-10, 4.8, 0xe0a020], [-12, -1.2, 0x3a8ae8]].map(([y, z, c]) => B([0.85, y, z], [0.1, 0.8, 0.8], c))],
+          ...[[0, 0xf4ead0], [2.8, 0xf0e4c4], [5.6, 0xf4ead0]].map(([x, c], i) => B([x, -9.4, 3.4 + (i === 1 ? 0.3 : 0)], [2.8, 5, 0.3], c)),
+          ...[[-8.4, 0.4, 0xe0a020], [-10, 1.6, 0xe8606a], [-8.8, 3.4, 0x3a8ae8], [-10.6, 4.4, 0x5ab04a], [-8, 5.4, 0xe0a020], [-10.8, -0.6, 0x3a8ae8], [-9.4, 2.4, 0x40b0b0]].map(([y, x, c]) => B([x, y, 3.85], [0.9, 0.9, 0.1], c))],
         armL: [band(-7.2, 0.6, 0x5a3a20, 4.6), band(-6.6, 0.4, 0xe0b030, 4.7)],
         legR: [...footwear('hitop', { upper: 0x1a1a1e, sole: 0xf4f0e8, lace: 0xf4f0e8 }), band(-7.6, 1.4, 0xf4f4f0, 4.6), band(-0.6, 1, shadeOf(0x8a8050, 1.12), 4.8)],
         legL: [...footwear('hitop', { upper: 0x1a1a1e, sole: 0xf4f0e8, lace: 0xf4f0e8 }), band(-7.6, 1.4, 0xf4f4f0, 4.6), band(-0.6, 1, shadeOf(0x8a8050, 1.12), 4.8)],

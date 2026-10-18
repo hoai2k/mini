@@ -1205,17 +1205,44 @@ export const TEXT = {
     karpos: {
       name: 'Karpos',
     },
+    karpos_slinger: {
+      name: 'Karpos Slinger',
+    },
+    colchis_calf: {
+      name: 'Colchis Bull Calf',
+    },
     myrmex: {
       name: 'Myrmex',
     },
-    myrmex_acid: {
-      name: 'Acid Myrmex',
+    myrmex_spitter: {
+      name: 'Myrmex Spitter',
+    },
+    boarlet: {
+      name: 'Calydonian Boarlet',
     },
     crab: {
       name: 'Giant Crab',
     },
+    king_crab: {
+      name: 'King Crab',
+    },
+    basilisk: {
+      name: 'Basilisk',
+    },
+    earthborn: {
+      name: 'Earthborn',
+    },
+    daedalus_drone: {
+      name: 'Daedalus Drone',
+    },
+    laistrygonian: {
+      name: 'Laistrygonian',
+    },
     shade: {
       name: 'Shade',
+    },
+    keres: {
+      name: 'Ker',
     },
     gorgon_statue: {
       name: 'Living Statue',

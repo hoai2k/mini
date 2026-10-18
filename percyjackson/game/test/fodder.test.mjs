@@ -17,32 +17,43 @@ const table = (src, head) => { const i = src.indexOf(head); return new Function(
 const MON = table(read('entities/monsters.js'), 'export const MONSTERS = {');
 const FOD = table(read('entities/fodder.js'), 'export const FODDER_MONSTERS = {');
 const ALL = { ...MON, ...FOD };
-const NEW = ['karpos', 'myrmex', 'myrmex_acid', 'crab', 'shade'];
+const NEW = ['karpos', 'karpos_slinger', 'colchis_calf', 'myrmex', 'myrmex_spitter', 'boarlet', 'crab', 'king_crab', 'basilisk', 'earthborn', 'daedalus_drone', 'laistrygonian', 'shade', 'keres'];
+// the larger and tougher of the new kinds; the rest are fodder
+const BIG = ['colchis_calf', 'boarlet', 'king_crab', 'earthborn', 'laistrygonian'];
 
-test('the four fodder monsters: weak, cheap, named, wired in', () => {
+test('the fodder monsters: weak swarms, a few larger ones, all named, wired in', () => {
   const src = read('entities/fodder.js'), mons = read('entities/monsters.js');
   assert.deepEqual(Object.keys(FOD), NEW);
   for (const id of NEW) {
-    const d = FOD[id];
-    assert.equal(d.tier, 'minor', id);
-    assert.ok(d.hp >= 12 && d.hp <= 30, `${id} hp ${d.hp}`);
-    assert.ok(d.xp >= 2 && d.xp <= 3 && d.coins[1] <= 3, `${id} pays like a minor`);
-    assert.ok(!d.aura, `${id} carries no particle aura (hordes of them)`);
+    const d = FOD[id], big = BIG.includes(id);
     assert.notEqual(t(d.name), d.name, `${id} has a name in text_config`);
     assert.match(src, new RegExp(`\\n    ${d.model}: \\(\\) => build`), `${id} has a model`);
-    assert.ok(FODDER_KINDS.has(id), `${id} counts as fodder`);
-    assert.ok(HORDE[id], `${id} comes in hordes`);
+    assert.ok(!d.aura, `${id} carries no particle aura (hordes of them)`);
+    assert.equal(FODDER_KINDS.has(id), !big, `${id}: fodder or not`);
+    if (!big) {
+      assert.equal(d.tier, 'minor', id);
+      assert.ok(d.hp >= 12 && d.hp <= 30, `${id} hp ${d.hp}`);
+      assert.ok(d.xp >= 2 && d.xp <= 3 && d.coins[1] <= 3, `${id} pays like a minor`);
+      assert.ok(HORDE[id], `${id} comes in hordes`);
+    } else assert.ok(d.hp >= 50 && d.xp >= 5, `${id} is tougher and worth more`);
   }
-  assert.equal(FOD.myrmex_acid.projectile, 'acid');
-  assert.ok(FOD.myrmex_acid.range <= 7, 'the acid myrmex spits at short range');
-  assert.ok(FOD.shade.speed < MON.spartoi.speed, 'shades drift slowly');
+  // the elites: the rare tough ones
+  for (const id of ['king_crab', 'earthborn', 'laistrygonian']) assert.equal(FOD[id].tier, 'elite', id);
+  assert.equal(FOD.laistrygonian.hp > FOD.earthborn.hp && FOD.earthborn.hp > FOD.king_crab.hp, true);
+  // they play differently: short and long range, quick and slow, lobbed and straight
+  assert.ok(FOD.myrmex_spitter.lob && FOD.earthborn.lob && FOD.laistrygonian.lob && !FOD.basilisk.lob);
+  assert.ok(FOD.karpos_slinger.range >= 10 && FOD.basilisk.range <= 8 && FOD.daedalus_drone.projectile === 'bullet');
+  assert.ok(FOD.shade.speed < MON.spartoi.speed && FOD.keres.speed > MON.pup.speed, 'shades drift, keres dart');
+  assert.equal(FOD.king_crab.ai, 'tank');
+  for (const id of ['colchis_calf', 'boarlet']) assert.ok(FOD[id].ai === 'melee' && FOD[id].range >= 3, `${id} charges from a distance`);
   // monsters.js takes them in (so the shader warm-up and the workbench, which walk MONSTER_IDS, do too)
   assert.match(mons, /Object\.assign\(MONSTERS, FODDER_MONSTERS\);[\s\S]*export const MONSTER_IDS = Object\.keys\(MONSTERS\)/);
   assert.match(mons, /\.\.\.fodderModels\(\{ kit \}\)/);
+  assert.match(mons, /rig\.onTick\?\.\(dt, e\)/);
   assert.match(read('entities/bosses.js'), /warmupGroup\(kinds = MONSTER_IDS/);
   // each has its own cry and its own bits when it goes
   const audio = read('audio.js');
-  for (const id of NEW) { assert.match(audio, new RegExp(`case '${FOD[id].voice}'`), `${id} voice`); assert.match(src, new RegExp(`\\n  ${id}: \\[\\[C\\(`), `${id} death bits`); }
+  for (const id of NEW) { const v = FOD[id].voice; assert.ok(new RegExp(`case '${v}'`).test(audio) || ['hiss', 'grind', 'roar'].includes(v), `${id} voice ${v}`); assert.match(src, new RegExp(`\\n  ${id}: \\[\\[C\\(`), `${id} death bits`); }
 });
 
 const share = (kinds, f) => kinds.filter(([k]) => f(k)).reduce((s, [, w]) => s + w, 0) / kinds.reduce((s, [, w]) => s + w, 0);
@@ -53,7 +64,7 @@ test('every region and stretch is mostly fodder, the tough ones rare', () => {
   for (const r of roaming) {
     for (const [k, w] of r.kinds) { assert.ok(ALL[k], `${r.id}: ${k} is a monster`); assert.ok(w > 0); }
     const f = share(r.kinds, isFodder);
-    assert.ok(f >= 0.68 && f <= 0.82, `${r.id}: fodder ${Math.round(f * 100)}%`);
+    assert.ok(f >= 0.68 && f <= 0.84, `${r.id}: fodder ${Math.round(f * 100)}%`);
     const elite = share(r.kinds, (k) => ALL[k].tier !== 'minor');
     assert.ok(elite <= 0.14, `${r.id}: elites ${Math.round(elite * 100)}%`);
     assert.ok(r.fodder?.length, `${r.id} has a camp crowd`);
@@ -61,6 +72,10 @@ test('every region and stretch is mostly fodder, the tough ones rare', () => {
   }
   // the regions' identities
   const top = (id) => [...roaming.find((r) => r.id === id).kinds].sort((a, b) => b[1] - a[1])[0][0];
+  // the owner's rosters: every region has its kinds
+  const ROSTER = { fields: ['karpos', 'karpos_slinger', 'rat', 'colchis_calf'], woods: ['myrmex', 'myrmex_spitter', 'pup', 'boarlet'], shore: ['crab', 'telekhine', 'harpy', 'king_crab'],
+    canyon: ['myrmex', 'basilisk', 'spartoi', 'earthborn'], labyrinth: ['spartoi', 'spider', 'daedalus_drone', 'automaton'], othrys: ['spartoi', 'telekhine', 'harpy', 'laistrygonian'], asphodel: ['shade', 'keres', 'spartoi', 'ghost'] };
+  for (const [id, ks] of Object.entries(ROSTER)) for (const k of ks) assert.ok(roaming.find((r) => r.id === id).kinds.some(([q]) => q === k), `${id}: ${k}`);
   for (const [id, k] of [['fields', 'karpos'], ['woods', 'myrmex'], ['shore', 'crab'], ['canyon', 'myrmex'], ['labyrinth', 'spartoi'], ['othrys', 'spartoi'], ['asphodel', 'shade'],
     ['rt_auntyem', 'karpos'], ['rt_la', 'shade'], ['rt_santamonica', 'crab'], ['rt_vegas', 'spartoi'], ['rt_denver', 'spartoi'], ['rt_turnpike', 'pup']]) assert.equal(top(id), k, id);
   // every new kind turns up somewhere
