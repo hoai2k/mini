@@ -36,7 +36,7 @@ export const VOLLEY = {
   maxWindups: 2,       // ranged wind-ups at one hero at once
   startGap: 0.3,       // seconds between two wind-ups starting at one hero
   gap: [0.45, 0.8],    // seconds between two shots released at one hero (min, max)
-  near: 9,             // metres: heroes this close together share one schedule
+  near: 16,            // metres: heroes this close together (a party on one screen) share one schedule
 };
 export const FIRST_SHOT = [0.9, 2.6];   // seconds a monster waits before its first shot at a hero
 
