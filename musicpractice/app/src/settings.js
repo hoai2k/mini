@@ -88,13 +88,12 @@ export const DEFAULTS = Object.freeze({
   accentPattern: null,
   tempoGenre: 'classical', // the tempo picker's style
   tempoDefaults: {}, // a named tempo's button, where one was chosen from its list: { 'jazz:ballad': 66 } // custom strong beats for the current time signature: { meter, pos } (cleanPattern)
-  metView: 'metronome', // or 'bars' (the Visualizer)
+  swing: true, // the pendulum swings on each beat (a tap on the metronome turns it on or off)
+  // Under the metronome (a tap there moves to the next): 'dots' (a small dot
+  // per beat), 'big' (big dots that swell and glow on each beat, to be seen
+  // from across a room) or 'bars' (the Visualizer, vizBars rows of bars).
+  footView: 'dots',
   vizBars: 4, // the Visualizer's rows: bars of music shown at a time
-  // On each beat: 'swing' (the pendulum), 'pulse' (the beat dots grow big and
-  // glow on each beat, to be seen from across a room) or 'off'. Tapping the
-  // metronome turns it off and back to the last of the two (pendulumLast).
-  pendulumMode: 'swing',
-  pendulumLast: 'swing',
   micTipCollapsed: false, // the iPhone microphone tip folded to its title
   homeOrder: ['metronome', 'tuner', 'drone', 'record'], // the home screen's buttons, hold and drag to reorder
   droneMidi: 48, // C3
@@ -174,7 +173,20 @@ function droneTimingFrom(s) {
 function fromSwitches(s) {
   if (s.metPulseChosen === true && s.metPulse === true) return 'pulse';
   if (s.metMotion === false) return 'off';
-  return DEFAULTS.pendulumMode;
+  return 'swing';
+}
+
+/**
+ * The swing and what is under the metronome, from this save or an earlier
+ * one: On each beat was Swing, Pulse or Off (from two switches before that),
+ * and the Visualizer a view of its own (metView). Pulse is now the big dots.
+ */
+function metronomeLook(s) {
+  const old = oneOf(s.pendulumMode, ['swing', 'pulse', 'off'], fromSwitches(s));
+  return {
+    swing: typeof s.swing === 'boolean' ? s.swing : old === 'swing',
+    footView: oneOf(s.footView, ['dots', 'big', 'bars'], s.metView === 'bars' ? 'bars' : old === 'pulse' ? 'big' : DEFAULTS.footView),
+  };
 }
 
 export function sanitize(raw) {
@@ -211,10 +223,8 @@ export function sanitize(raw) {
     tempoGenre: oneOf(s.tempoGenre, GENRE_IDS, DEFAULTS.tempoGenre),
     tempoDefaults: cleanTempoDefaults(s.tempoDefaults),
     accentPattern: cleanPattern(s.accentPattern, oneOf(s.meter, METERS.map((m) => m.id), DEFAULTS.meter)),
-    metView: oneOf(s.metView, ['metronome', 'bars'], DEFAULTS.metView),
+    ...metronomeLook(s),
     vizBars: oneOf(s.vizBars, VIZ_BARS, DEFAULTS.vizBars),
-    pendulumMode: oneOf(s.pendulumMode, ['swing', 'pulse', 'off'], fromSwitches(s)),
-    pendulumLast: oneOf(s.pendulumLast, ['swing', 'pulse'], s.pendulumMode === 'pulse' ? 'pulse' : DEFAULTS.pendulumLast),
     homeOrder: homeOrder(s.homeOrder),
     droneMidi: clamp(Math.round(num(s.droneMidi, DEFAULTS.droneMidi)), 36, 59),
     droneVoice: oneOf(s.droneVoice, DRONE_VOICES, DEFAULTS.droneVoice),
