@@ -36,12 +36,15 @@ const PEOPLE = people.PEOPLE ?? {};
 const HEROES = heroes.HEROES ?? {}, HERO_LOOKS = models.HERO_LOOKS ?? {};
 const MONSTERS = monsters.MONSTERS ?? {}, BOSS_DEFS = bosses.BOSS_DEFS ?? {}, MORTALS = mortals.MORTALS ?? {};
 // the poses, the in-game attacks (a real Enemy or Boss in a small fake game) and the animation lint
-const [ingame, animlint] = await Promise.all([tryImport('./ingame.js'), tryImport('./animlint.js')]);
+const [ingame, animlint, descs] = await Promise.all([tryImport('./ingame.js'), tryImport('./animlint.js'), tryImport('./descriptions.js')]);
+const DESCRIPTIONS = descs.DESCRIPTIONS ?? {};
 
 const GROUPS = [
   { id: 'heroes', label: 'Heroes' }, { id: 'npcs', label: 'Camp NPCs' }, { id: 'monsters', label: 'Monsters' },
   { id: 'bosses', label: 'Bosses' }, { id: 'champions', label: 'Champions' }, { id: 'mortals', label: 'Mortal disguises' }, { id: 'people', label: 'Open-world people' },
 ];
+// A real mortal (monsters.js 'mortal') is drawn in game as a person (Enemy builds the Mist's mortal look, never its placeholder 'pup' model), so the workbench builds the same: an ordinary museum visitor.
+const WB_MORTAL = 'tourist';
 const TIER_COLOR = { minor: '#9a9a8a', elite: '#4ad0ff', champion: '#ff9a2a', boss: '#e8664a' };
 const hex = (n) => '#' + (n >>> 0).toString(16).padStart(6, '0');
 const items = [];
@@ -54,7 +57,7 @@ const add = (group, id, name, data, build, chip) => items.push({ group, id, name
   const npcs = { chiron: ['Chiron', 'Activities director of Camp Half-Blood, a centaur. Not playable.'], mr_d: ['Mr. D', 'Camp director (Dionysus). Not playable.'] };
   for (const [id, [name, blurb]] of Object.entries(npcs)) add('npcs', id, name, { blurb }, () => models.buildNpc(id), '#f28c28');
   if (models.buildDummy) add('npcs', 'dummy', 'Training Dummy', { blurb: 'Straw dummy for the hub and the test room.' }, () => models.buildDummy(), '#d8c078');
-  for (const id of monsters.MONSTER_IDS ?? Object.keys(MONSTERS)) add('monsters', id, MONSTERS[id].name ?? pretty(id), MONSTERS[id], () => monsters.buildMonsterModel(MONSTERS[id].model), TIER_COLOR[MONSTERS[id].tier] ?? '#9a9a8a');
+  for (const id of monsters.MONSTER_IDS ?? Object.keys(MONSTERS)) add('monsters', id, MONSTERS[id].name ?? pretty(id), MONSTERS[id], () => (MONSTERS[id].mortal ? mortals.buildMortal(WB_MORTAL) : monsters.buildMonsterModel(MONSTERS[id].model)), TIER_COLOR[MONSTERS[id].tier] ?? '#9a9a8a');
   for (const id of bosses.BOSS_IDS ?? Object.keys(BOSS_DEFS)) add('bosses', id, BOSS_DEFS[id].name ?? pretty(id), BOSS_DEFS[id], () => BOSS_DEFS[id].build(), BOSS_DEFS[id].color != null ? hex(BOSS_DEFS[id].color) : TIER_COLOR.boss);
   for (const id of mortals.MORTAL_IDS ?? Object.keys(MORTALS)) add('mortals', id, MORTALS[id].name ?? pretty(id), MORTALS[id], () => mortals.buildMortal(id), '#e4d4b8');
   // the open world's side-quest people (model 'npc:<id>' in world/regions and world/road)
@@ -180,6 +183,10 @@ const queue = [], queued = new Set();
 let flipRows = !isGPU;              // WebGL readback is bottom-up, WebGPU top-down
 const canvas2d = document.createElement('canvas'); canvas2d.width = canvas2d.height = TS;
 async function photograph(item) {
+  document.body.classList.add('capture');   // (the description overlay is hidden while a model is photographed)
+  try { return await photographModel(item); } finally { document.body.classList.remove('capture'); }
+}
+async function photographModel(item) {
   const { rig, error } = safeBuild(item);
   if (error) return { error: error.message };
   try {
@@ -519,6 +526,7 @@ function select(item, { fromHash = false } = {}) {
     if (wire) setWire(true);
     status('');
   } else status(`Build error: ${error.message}`);
+  $('t-desc').textContent = DESCRIPTIONS[item.key] ?? '';
   $('t-name').textContent = item.name; $('t-sub').textContent = `${GROUPS.find((g) => g.id === item.group)?.label ?? item.group} · ${item.id}`;
   document.querySelectorAll('.tile').forEach((t) => t.setAttribute('aria-selected', String(t.dataset.key === item.key)));
   setCursor(item);
