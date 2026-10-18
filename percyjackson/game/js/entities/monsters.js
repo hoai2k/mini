@@ -278,8 +278,26 @@ export function animateExtras(rig, dt, e) {
   const W = rig.extras.wings;
   if (W) {
     const fast = e?.state === 'windup' || e?.swooping ? 2 : 1;
-    const f = Math.sin(t * 9 * fast * (rig.wingFlap ?? 1));
-    for (const w of W) { w.root.rotation.z = w.side * (0.25 + f * 0.55); w.elbow.rotation.z = w.side * (0.1 + Math.max(0, f) * 0.5); }
+    const S = rig.wingStroke;
+    if (S) {
+      // A natural stroke (rig.wingStroke { base, amp, hand, down }): a quick
+      // powered down-stroke with the hand spread, then a slower up-stroke with
+      // the hand trailing low and swept back, so the wings read as a V or W
+      // from above and never fold up into a fan over the back.
+      rig.wingPh = ((rig.wingPh ?? (t * 0.37) % 1) + (dt || 0) * 9 * fast * (rig.wingFlap ?? 1) / (2 * Math.PI)) % 1;
+      const p = rig.wingPh, d = S.down ?? 0.4, dn = p < d, q = dn ? p / d : (p - d) / (1 - d);
+      const s = dn ? Math.cos(Math.PI * q) : -Math.cos(Math.PI * q), v = dn ? -Math.sin(Math.PI * q) : Math.sin(Math.PI * q);
+      const hand = dn ? -v * 0.12 : -v * (S.hand ?? 0.45);
+      for (const w of W) {
+        w.ry ??= w.root.rotation.y;
+        w.root.rotation.z = w.side * ((S.base ?? 0.45) + s * (S.amp ?? 0.4));
+        w.root.rotation.y = w.ry + w.side * Math.max(0, v) * 0.18;
+        w.elbow.rotation.z = w.side * ((S.h0 ?? 0) + hand);
+      }
+    } else {
+      const f = Math.sin(t * 9 * fast * (rig.wingFlap ?? 1));
+      for (const w of W) { w.root.rotation.z = w.side * (0.25 + f * 0.55); w.elbow.rotation.z = w.side * (0.1 + Math.max(0, f) * 0.5); }
+    }
   }
   const C = rig.extras.whip;
   if (C) {

@@ -890,7 +890,9 @@ function buildDrone(K0) {
     }
     W.push({ root, elbow, side });
   }
-  rig.extras.wings = W; rig.wingFlap = 2.2;
+  // a strong, even beat: wings raised in a V, the down-stroke driving, the hand trailing on the way up
+  rig.extras.wings = W; rig.wingFlap = 1.5; rig.wingStroke = { base: 0.55, amp: 0.38, hand: 0.4, down: 0.4 };
+  for (const w of W) w.root.rotation.y = w.side * 0.22;
   K.done();
   noShadow(rig, rig.legR, rig.legL, ...W.flatMap((w) => [w.root, w.elbow]));
   rig.float = 1.2;
@@ -1057,7 +1059,7 @@ function buildKeres(K0) {
     for (let i = 0; i < 5; i++) { const h = 4 + K.r() * 5; K.box(root, X(1 + i * 2), -5.6 - h / 2, -0.2, 1.6, h, 0.4, K.tone(RAG, 0.1)); }
     K.box(elbow, 0, 0, 0, 2.2, 2.2, 2.2, blkL); K.box(elbow, X(0.4), 1.4, 0, 0.8, 1.6, 0.8, pale);
     for (let i = 0; i < 7; i++) {
-      const a = 1.3 - i * 0.32, L = 18 - Math.abs(i - 2) * 1.2 + K.r() * 2, ux = Math.cos(a), uy = Math.sin(a), px = -uy, py = ux;
+      const a = 0.32 - i * 0.2, L = 17 - Math.abs(i - 1) * 1.1 + K.r() * 2, ux = Math.cos(a), uy = Math.sin(a), px = -uy, py = ux;
       K.box(elbow, X(ux * L / 2), uy * L / 2, 0.1, L, 0.9, 0.5, blkL, 0, 0, side * a);   // the finger
       K.box(elbow, X(ux * L * 0.3 - px * 1.4), uy * L * 0.3 - py * 1.4, -0.15, L * 0.6, 2.8, 0.35, K.tone(RAG, 0.12), 0, 0, side * a);   // the membrane behind it, widening outward
       K.box(elbow, X(ux * L * 0.68 - px * 2.4), uy * L * 0.68 - py * 2.4, -0.17, L * 0.55, 4.8, 0.35, K.tone(RAG, 0.12), 0, 0, side * a);
@@ -1066,7 +1068,9 @@ function buildKeres(K0) {
     }
     W.push({ root, elbow, side });
   }
-  rig.extras.wings = W; rig.wingFlap = 1.4;
+  // slow heavy beats with the wings held high in a V, the ragged membrane hanging off the fingers
+  rig.extras.wings = W; rig.wingFlap = 1.1; rig.wingStroke = { base: 0.52, amp: 0.33, hand: 0.4, down: 0.38 };
+  for (const w of W) w.root.rotation.y = w.side * 0.25;
   K.done();
   noShadow(rig, rig.armR, rig.armL, ...W.flatMap((w) => [w.root, w.elbow]));
   rig.float = 1.25; rig.hunch = 0.3;
