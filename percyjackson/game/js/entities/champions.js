@@ -15,6 +15,7 @@ import { Rig, PX, makeCharMaterial, HOLD_PITCH, markTip } from './character.js';
 import { paintPerson } from './mortals.js';
 import { skinMat, group, HS, bruteLimbs, sway, withBuild, voxDensity } from './parts.js';
 import { MONSTERS, HELLHOUND, buildMonsterModel, animateExtras, kit, dropMeshes, eagle, hound, buildScorpion, buildSkeleton, buildCyclops, cycDensity } from './monsters.js';
+import { blob } from './fodder.js';
 
 const GOLD = 0xf0b030, GOLD_D = 0xb87a14, GOLD_L = 0xffe070;
 
@@ -88,7 +89,7 @@ function buildShadowfang() {
   const { hs, H, L, W } = rig.dims, IRON = [0x5a5a64, 0x3c3c46, 0x7a7a84];
   // the broken collar: heavy riveted iron plates round the neck, one gap
   // (the full hellhound is built at the heroes' voxel size: its neck ring is fitted, not scaled from the head)
-  const big = rig.spec.big, r = big ? 11.5 : hs * 0.78, n = big ? 16 : 12, col = big ? group(rig.neck, 0, -5, -1, -0.25) : group(rig.neck, 0, -1.2, 0.6, -0.3);
+  const big = rig.spec.big, r = big ? 10.4 : hs * 0.78, n = big ? 16 : 12, col = big ? group(rig.neck, 0, -5, -1, -0.25) : group(rig.neck, 0, -1.2, 0.6, -0.3);
   for (let i = 0; i < n; i++) {
     if (i === 3) continue;
     const a = i / n * Math.PI * 2, x = Math.sin(a) * r, y = Math.cos(a) * r;
@@ -216,20 +217,26 @@ function buildBronzeWarden() {
 // burning orange eye and a spiked tree-trunk club.
 function buildGorgos() {
   const PELT = [0x6a4224, 0x5a3418, 0x7a4c28, 0x4a2a14];
-  const rig = buildCyclops({ id: 'champ_gorgos', pal: { wool: PELT, iris: 0xff6a10, ram: false } });
+  const rig = buildCyclops({ id: 'champ_gorgos', pal: { wool: PELT, iris: 0xff6a10, ram: false, hood: true, dk: 0.95 } });   // (dk: its hood and pelt keep it under 25k)
   const K = kit(rig, rig.material, { seed: 127, rough: 0.85, density: cycDensity(rig) });   // (at the cyclops's own voxel size)
   const T = rig.torso, Hd = rig.head, hs = (9 / 8) * HS, BONE = [0xe8e0c8, 0xd0c8b0];
   // the bear head hood: a furry dome on his head, a snout over his brow, ears and fangs
+  // (pass 3: sculpted as on vox-ow-champions: a rounded bear's skull over his
+  // mane, its muzzle jutting over his brow with fangs hanging down, round
+  // ears, and the pelt falling down the sides and back of his head)
   const hood = group(Hd, 0, 10.4, 0);   // (on the mane: the rebuilt cyclops's head is sculpted, not the 8-pixel skin box)
-  K.box(hood, 0, 0, 0, 13, 5, 12, PELT[0]);
-  K.clumps(hood, [0, 0, 0], [13, 5, 12], { n: 12, size: [1.4, 2.4], cols: PELT, faces: 'tlrfk' });
-  K.box(hood, 0, -0.6, 7.6, 6, 4, 4, PELT[2]); K.box(hood, 0, 0.4, 9.8, 3.4, 2, 1, 0x1a1008); K.box(hood, 0, -2, 8.6, 5, 1, 3, 0x5a1a10);
+  const pelt = () => K.tone(PELT, 0.1);
+  blob(K, hood, [0, -0.8, -0.4], [6.2, 3.8, 6.2], 1.3, pelt, { pw: 2.2, lo: -0.3, run: [1, 2] });   // (a little coarser: a pelt, and the budget)
+  blob(K, hood, [0, 0.4, 5.4], [3, 2, 3.2], 1, (x, y) => (y > 0.5 ? PELT[2] : pelt()), { pw: 2.1 });
+  blob(K, hood, [0, -0.2, 7.6], [2.2, 1.4, 2], 1, () => PELT[2], { pw: 2 });
+  K.box(hood, 0, 0.6, 9.4, 2.4, 1.4, 0.8, 0x1a1008); K.box(hood, 0, -1.4, 7.2, 3.6, 0.8, 2.6, 0x5a1a10);
   for (const sx of [-1, 1]) {
-    K.box(hood, sx * 5, 3.4, 1, 2.6, 2.6, 1.6, PELT[1]); K.box(hood, sx * 5, 3.4, 1.85, 1.4, 1.4, 0.2, 0x3a2010);
-    K.box(hood, sx * 2, -3.2, 9.2, 0.8, 2.2, 0.8, BONE[0]);
-    K.box(hood, sx * 2.6, 1.4, 6.6, 0.9, 0.7, 0.3, 0x0a0806);
+    blob(K, hood, [sx * 4.2, 2.4, 0.4], [1.4, 1.4, 0.9], 1, () => PELT[1], { pw: 2 }); K.box(hood, sx * 4.2, 2.4, 1.1, 1.2, 1.2, 0.2, 0x3a2010);
+    for (const [x, L] of [[1.2, 1.4], [2.1, 1]]) K.box(hood, sx * x, -1.6 - L / 2, 7.8, 0.6, L, 0.6, BONE[0]);   // (above his brow: his eye stays clear)
+    K.box(hood, sx * 1.9, 1.8, 6.1, 0.9, 0.7, 0.3, 0xffa020);
+    blob(K, hood, [sx * 5.2, -5.2, -0.4], [1.5, 4.6, 3.8], 1.3, pelt, { pw: 2.2, run: [1, 2] });
   }
-  for (let i = 0; i < 7; i++) K.box(hood, -4.5 + i * 1.5, -4, -5.8, 1.6, 4 + (i % 3), 1.2, PELT[i % 4]);
+  for (let i = 0; i < 9; i++) K.box(hood, -5 + i * 1.25, -4 - (i % 3) * 0.8, -5.2, 1.3, 7 + (i % 3) * 1.4, 1, PELT[i % 4]);   // the pelt hanging down his back
   for (let i = 0; i < 9; i++) { const L = 6 + (i % 3) * 3; K.box(T, -5.4 + i * 1.35, 13 - L / 2, -3.6, 1.6, L, 1.2, PELT[i % 4]); }
   K.shag(T, [0, 12, -0.5], [11, 1.4, 6.6], { cols: PELT, step: 2.4, len: [1.8, 3], low: 1, top: true, sides: true });
   // a necklace of teeth and bones with three small skulls
