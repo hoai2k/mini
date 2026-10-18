@@ -185,7 +185,7 @@ function buildBronzeWarden() {
   }
   for (const leg of [rig.legR, rig.legL]) {
     K.box(leg, 0, -2.6, 0, 6.2, 4.6, 6.2, B); K.box(leg, 0, -5.6, 0.6, 6, 1.6, 6.2, BL);
-    K.box(leg, 0, -8.6, 0, 6, 4, 6, BD); K.box(leg, 0, -10.4, 1, 7, 1.4, 8.4, B); K.box(leg, 0, -10.6, 4.4, 6.4, 1, 1, BL);
+    K.box(leg, 0, -8.6, 0, 6, 4, 6, BD); K.box(leg, 0, -10.25, 0.6, 7, 1.3, 7.2, B); K.box(leg, 0, -10.45, 3.9, 6.4, 0.9, 1, BL);   // (boots kept short of the toe: a long foot's tip dipped through the floor as the leg swung in the run)
     K.clumps(leg, [0, -6, 0], [6, 10, 6], { n: 8, size: [0.8, 1.3], cols: VG, faces: 'lrfk', out: -0.3 });
   }
   // the war hammer
