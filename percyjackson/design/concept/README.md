@@ -246,3 +246,9 @@ Generated on 2026-10-17 with the built-in image generator. Per-asset prompts, re
 | [Road-trip towns 1: New Jersey to Denver](vox-rt-towns-1.png) | [vox-rt-towns-1.json](generation-2026-10-17/vox-rt-towns-1.json) |
 | [Road-trip towns 2: Las Vegas to Santa Monica](vox-rt-towns-2.png) | [vox-rt-towns-2.json](generation-2026-10-17/vox-rt-towns-2.json) |
 | [Road-trip roadblocks, closed and opening](vox-rt-roadblocks.png) | [vox-rt-roadblocks.json](generation-2026-10-17/vox-rt-roadblocks.json) |
+
+## Open-world quest givers: additional locals
+
+[![Nine quest givers: camp and Road West](vox-ow-people-3.png)](vox-ow-people-3.png)
+
+[Prompt, references and generation record](generation-2026-10-17/vox-ow-people-3.json).
