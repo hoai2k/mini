@@ -61,22 +61,24 @@ as past the opening in memory only.
 
 ## Animation lint
 
-What `animlint.cjs` still lists (October 2026), all real in game and too big
-for a quick fix:
+`animlint.cjs` lists nothing (October 2026). The shared causes it used to
+find are handled in the rigs, so a new model gets them for free:
 
-- **Whips** (the fury, Alecto, the Furies): the chain hangs straight down from
-  the fist and trails up to 1.2 m through the floor (2 m in the Furies' swoop).
-  It needs a whip that coils or lies along the ground.
-- **Clubs and spears in a slam** (the cyclops, Gorgos, the dracaena; Clarisse's
-  and Thalia's spears in the hero slam, the dodge roll and the death fall):
-  the strike ends with a long weapon 0.2 to 0.9 m into the ground. The slam
-  should stop the swing where the tip meets the floor.
-- **Feet and claws on bent bodies** (the crab and king crab claws, the
-  spider's fangs, the basilisk's arms): the claws ride the head, and the
-  head's pitch in a bite, hit or slam takes them 0.1 to 0.3 m under.
-- **Splayed and big legs in the gait** (the spiders boss, spiders, myrmex,
-  king crab, and the big hounds: Cerberus, the alpha hellhound, the Chimera):
-  a leg's foot or paw dips 0.1 to 0.4 m below the sole as it swings. Humanoid
-  rigs lift their hips by the dip (`Rig.footLift`); `QuadRig` doesn't yet.
-- **Tails** (the serpent and telekhine in a hit): 0.1 to 0.2 m under while the
-  body rears back.
+- **Whips** (`monsters.js` `whipPose`, used by the fury, Alecto and the
+  Furies): the chain is posed in the body's own upright plane, not hung from
+  the fist: a coiled loop at rest, streaming behind when moving or swooping,
+  thrown back over the shoulder in a wind-up and lashed forward over the top
+  in the crack. Any segment that would end below the ground is bent up to lie
+  along it. A Fury's swoop flies no lower than her hem (`rig.hoverMin`).
+- **Long weapons** (`Rig.gripGuard`, `character.js`): after the pose, a wrist
+  whose weapon would sink below the soles turns by the least angle that puts
+  its lowest point on the floor, so a slam's spear or club stops on the ground
+  in front and a roll or a fall drags it along the floor.
+- **Feet** (`Rig.footLift` and `QuadRig.floorGuard`, `quad.js`): humanoid hips
+  stay as high as the legs' actual swing needs; a four- (six-, eight-) legged
+  body rises by the deepest dip of any foot, splayed legs sweep fore and aft
+  about the upright, as a spider's do, instead of dipping as they swing.
+- **Heads, jaws and tails on QuadRig**: the head pitches up just enough to
+  keep the jaw and fangs (and claws on the head) out of the ground, the body's
+  rear end lifts the hips as it rears back, and each tail segment lifts as far
+  as it must.

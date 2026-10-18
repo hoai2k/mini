@@ -148,31 +148,38 @@ export function markTip(weapon, x, y, z, label = 'weapon') {
 export function markHeld(g) { g.userData.heldProp = true; return g; }
 
 const _v1 = new THREE.Vector3(), _box = new THREE.Box3(), _m = new THREE.Matrix4(), _inv = new THREE.Matrix4();
-const _e1 = new THREE.Euler(), _q1 = new THREE.Quaternion(), _m2 = new THREE.Matrix4(), _gc = new Float64Array(64), _ga = new Float64Array(64), _gb = new Float64Array(64);
-// The extreme points (at most 64: along 26 directions, of the corners of
-// each visible mesh's box) of what a hand holds, in hand space without the
-// hand's own turn. null when it holds nothing.
-const GDIRS = []; for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) for (let z = -1; z <= 1; z++) if (x || y || z) GDIRS.push([x, y, z]);
-function gripPoints(hand) {
+const _e1 = new THREE.Euler(), _q1 = new THREE.Quaternion();
+// Points that stand in for the shape of everything under o (in o's own
+// space; subtrees in skip and hidden ones left out): for each mesh, its
+// vertices, or for a big mesh its extreme vertex along each of 48 directions
+// (found once per geometry), so the lowest point after any turn is within a
+// hair of the true one. (A box's corners would not do: the kit merges a whole
+// bent leg or a crossed spear into one mesh, whose box corners float in empty
+// space.) Returns a flat Float32Array, or null when there is nothing.
+const HDIRS = (() => { const n = 48, out = []; for (let i = 0; i < n; i++) { const y = 1 - (i + 0.5) / n * 2, r = Math.sqrt(1 - y * y), a = i * 2.39996; out.push([Math.cos(a) * r, y, Math.sin(a) * r]); } return out; })();
+const _hulls = new WeakMap();
+function geoHull(geo) {
+  let h = _hulls.get(geo); if (h) return h;
+  const P = geo.attributes.position, idx = new Set();
+  if (P.count <= 96) for (let i = 0; i < P.count; i++) idx.add(i);
+  else for (const [x, y, z] of HDIRS) { let bi = 0, bd = -Infinity; for (let i = 0; i < P.count; i++) { const d = P.getX(i) * x + P.getY(i) * y + P.getZ(i) * z; if (d > bd) { bd = d; bi = i; } } idx.add(bi); }
+  h = []; for (const i of idx) h.push(new THREE.Vector3(P.getX(i), P.getY(i), P.getZ(i)));
+  _hulls.set(geo, h); return h;
+}
+export function extremePoints(o, skip = null) {
   const pts = [];
-  const walk = (o, M) => {
-    for (const c of o.children) {
-      if (!c.visible || c.userData.noLint) continue;
+  const walk = (n, M) => {
+    for (const c of n.children) {
+      if (!c.visible || (skip && skip.has(c)) || c.userData.noLint) continue;
       c.updateMatrix(); const m = new THREE.Matrix4().multiplyMatrices(M, c.matrix);
-      if (c.isMesh && c.geometry?.attributes?.position && !c.userData.shell) {
-        if (!c.geometry.boundingBox) c.geometry.computeBoundingBox();
-        const b = c.geometry.boundingBox;
-        for (let k = 0; k < 8; k++) pts.push(new THREE.Vector3(k & 1 ? b.max.x : b.min.x, k & 2 ? b.max.y : b.min.y, k & 4 ? b.max.z : b.min.z).applyMatrix4(m));
-      }
+      if (c.isMesh && !c.isInstancedMesh && c.geometry?.attributes?.position && !c.userData.shell) for (const p of geoHull(c.geometry)) pts.push(p.clone().applyMatrix4(m));
       walk(c, m);
     }
   };
-  walk(hand, new THREE.Matrix4());
+  walk(o, new THREE.Matrix4());
   if (!pts.length) return null;
-  const keep = new Set();
-  for (const [x, y, z] of GDIRS) { let bi = 0, bd = -Infinity; for (let i = 0; i < pts.length; i++) { const d = pts[i].x * x + pts[i].y * y + pts[i].z * z; if (d > bd) { bd = d; bi = i; } } keep.add(bi); }
-  const out = new Float32Array(keep.size * 3); let j = 0;
-  for (const i of keep) { out[j++] = pts[i].x; out[j++] = pts[i].y; out[j++] = pts[i].z; }
+  const out = new Float32Array(pts.length * 3); let j = 0;
+  for (const p of pts) { out[j++] = p.x; out[j++] = p.y; out[j++] = p.z; }
   return out;
 }
 
@@ -337,6 +344,10 @@ export class Rig {
     // death fall rotates the hips around their pivot
     if (a && (a.type === 'dodge')) this.rollAbout(T.rootX, T.lift);
     else { this.hips.rotation.x = damp(this.hips.rotation.x % (Math.PI * 2), T.rootX, snap, dt); this.hips.position.z = damp(this.hips.position.z, 0, snap, dt); }
+    // (footLift above works from the legs' targets and the hips ease toward it,
+    // so a big foot swinging faster than the hips rose still dipped 0.1 m: the
+    // hips are kept at least as high as the legs' actual swing needs)
+    if (!a || (a.type !== 'dodge' && a.type !== 'death' && a.type !== 'down')) this.hips.position.y = Math.max(this.hips.position.y, this.dims.legH * PX + Math.min(0, T.lift) + this.footLift(this.legR.rotation.x, this.legL.rotation.x));
     if (this.wrist !== false) {
       // (with the hunch and arm spread the callers add right after, parts.js rigOffsets)
       const h = this.hunch ?? 0, sp = this.armSpread ?? 0;
@@ -352,20 +363,20 @@ export class Rig {
   // way the attacks cock it) by the least angle that brings the lowest point
   // up to the floor, so a slam's spear stops with its point on the ground in
   // front, and a roll or a fall drags it along the floor. The held meshes are
-  // stood in for by their extreme corners in hand space, gathered again only
-  // when what the hand holds changes; a frame costs a few dozen multiplies.
+  // stood in for by their extreme points in hand space (extremePoints), gathered
+  // again only when what the hand holds changes; a frame costs a few hundred multiplies.
   gripGuard(hand) {
     if (!hand?.children.length) return;
     let sig = hand.children.length; for (const c of hand.children) sig = (sig * 31 + c.id * (c.visible ? 1 : 7)) % 1e9;
     const G = hand.userData.grip ??= { sig: -1, pts: null };
-    if (G.sig !== sig) { G.sig = sig; G.pts = gripPoints(hand); }
+    if (G.sig !== sig) { G.sig = sig; G.pts = extremePoints(hand); const n = (G.pts?.length ?? 0) / 3; G.C = new Float64Array(n); G.A = new Float64Array(n); G.B = new Float64Array(n); }
     const P = G.pts; if (!P) return;
     // the fist's parent (the arm) in root space, and the fist's own turn without its pitch
     _m.identity();
     for (let o = hand.parent; o && o !== this.root; o = o.parent) { o.updateMatrix(); _m.premultiply(o.matrix); }
     const e = _m.elements, a0 = e[1], a1 = e[5], a2 = e[9], ty = e[13] + a0 * hand.position.x + a1 * hand.position.y + a2 * hand.position.z;
     _e1.set(0, hand.rotation.y, hand.rotation.z, hand.rotation.order); _q1.setFromEuler(_e1);
-    const n = P.length / 3, C = _gc, A = _ga, B = _gb;
+    const n = P.length / 3, C = G.C, A = G.A, B = G.B;
     for (let i = 0; i < n; i++) {
       _v1.set(P[i * 3], P[i * 3 + 1], P[i * 3 + 2]).applyQuaternion(_q1);
       C[i] = ty + a0 * _v1.x; A[i] = a1 * _v1.y + a2 * _v1.z; B[i] = a2 * _v1.y - a1 * _v1.z;

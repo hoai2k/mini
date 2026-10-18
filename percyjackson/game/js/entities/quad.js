@@ -11,7 +11,7 @@
 //   body   8x8x12 at (0,16)    leg 3x8x3 at (40,16)   ear 2x3x1 at (52,16)
 //   tail   2x2x6  at (40,32)   extra 8x6x8 at (0,40)  extra2 6x6x6 at (32,44)
 import * as THREE from 'three/webgpu';
-import { skinBox, PX, CHAR_SCALE } from './character.js';
+import { skinBox, PX, CHAR_SCALE, extremePoints as extremePts } from './character.js';
 import { damp, clamp, easeOutCubic, easeInCubic } from '../util.js';
 
 export const QUV = {
@@ -56,32 +56,6 @@ export function paintQuad(S, o) {
 }
 
 const tmpV = new THREE.Vector3(), _qm = new THREE.Matrix4(), _qm2 = new THREE.Matrix4();
-// Up to 26 extreme points (along the axes, edges and corners) of the corners
-// of every visible mesh's box under o, in o's own space (the caller applies
-// o's matrix); subtrees in skip are left out. null when there are none.
-const QDIRS = []; for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) for (let z = -1; z <= 1; z++) if (x || y || z) QDIRS.push([x, y, z]);
-function extremePts(o, skip) {
-  const pts = [];
-  const walk = (n, M) => {
-    for (const c of n.children) {
-      if (!c.visible || (skip && skip.has(c)) || c.userData.noLint) continue;
-      c.updateMatrix(); const m = new THREE.Matrix4().multiplyMatrices(M, c.matrix);
-      if (c.isMesh && c.geometry?.attributes?.position && !c.userData.shell) {
-        if (!c.geometry.boundingBox) c.geometry.computeBoundingBox();
-        const b = c.geometry.boundingBox;
-        for (let k = 0; k < 8; k++) pts.push(new THREE.Vector3(k & 1 ? b.max.x : b.min.x, k & 2 ? b.max.y : b.min.y, k & 4 ? b.max.z : b.min.z).applyMatrix4(m));
-      }
-      walk(c, m);
-    }
-  };
-  walk(o, new THREE.Matrix4());
-  if (!pts.length) return null;
-  const keep = new Set();
-  for (const [x, y, z] of QDIRS) { let bi = 0, bd = -Infinity; for (let i = 0; i < pts.length; i++) { const d = pts[i].x * x + pts[i].y * y + pts[i].z * z; if (d > bd) { bd = d; bi = i; } } keep.add(bi); }
-  const out = new Float32Array(keep.size * 3); let j = 0;
-  for (const i of keep) { out[j++] = pts[i].x; out[j++] = pts[i].y; out[j++] = pts[i].z; }
-  return out;
-}
 // the lowest y of the points under matrix M
 function lowest(P, M) { const e = M.elements; let y = Infinity; for (let i = 0; i < P.length; i += 3) { const v = e[1] * P[i] + e[5] * P[i + 1] + e[9] * P[i + 2] + e[13]; if (v < y) y = v; } return y; }
 
@@ -238,15 +212,15 @@ export class QuadRig {
   // just enough to keep its jaw and fangs out of the ground in a bite, hit or
   // stagger, and each tail segment from the root lifts as far as it must
   // (a tail laid along the ground while the body rears back). Each part is
-  // stood in for by up to 26 extreme corners, found once, in its own space;
-  // a frame costs a few hundred multiplies and nothing when all is clear.
+  // stood in for by its extreme points (character.js extremePoints), found
+  // once, in its own space; a frame costs a few hundred multiplies.
   floorGuard() {
     const F = this._floor ??= this.floorParts();
     const hy = this.hips.position.y;
     let low = Infinity;
     for (const l of F.legs) { l.g.updateMatrix(); low = Math.min(low, lowest(l.pts, l.g.matrix)); }
     if (F.body) { this.torso.updateMatrix(); low = Math.min(low, lowest(F.body, this.torso.matrix)); }   // (the body's rear end as it rears back in a hit)
-    if (hy + low < 0) this.hips.position.y = hy - low;
+    if (hy + low < 0) this.hips.position.y = -low;
     const y0 = this.hips.position.y;
     // head (and jaw)
     if (F.head || F.mouth) {

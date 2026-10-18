@@ -420,7 +420,7 @@ function whipPose(rig, dt, e) {
   else { p0 = 0.25 + Math.sin(t * 1.3) * 0.08; kp = 5; kb = 5; }
   W.phi0 = wrapA(W.phi0 + wrapA(p0 - W.phi0) * (1 - Math.exp(-kp * dt)));
   for (let i = 0; i < n; i++) {
-    const b = mode === 'crack' ? Math.sin(t * 14 - i) * 0.04 : mode === 'windup' ? 0.12 + Math.sin(t * 5 - i * 0.8) * 0.08
+    const b = mode === 'crack' ? 0.03 + Math.sin(t * 14 - i) * 0.05 : mode === 'windup' ? 0.12 + Math.sin(t * 5 - i * 0.8) * 0.08
       : mode === 'trail' ? -0.1 + Math.sin(t * 7 - i * 0.9) * 0.2 : -0.55 + Math.sin(t * 2.6 - i * 0.7) * 0.1;
     W.bend[i] += (b - W.bend[i]) * (1 - Math.exp(-kb / (1 + i * 0.12) * dt));   // (the tip lags the handle: the lash travels down the chain)
   }
@@ -429,7 +429,7 @@ function whipPose(rig, dt, e) {
   for (let o = W.hand; o && o !== root; o = o.parent) { o.updateMatrix(); _wm.premultiply(o.matrix); _wq.premultiply(o.quaternion); }
   _wv.set(0, -PX, 0).applyMatrix4(_wm);
   // the handle: upright plane of the body, turned with the torso
-  _wE.set(-W.phi0, rig.torso?.rotation.y ?? 0, 0, 'YXZ');
+  _wE.set(-W.phi0, mode === 'crack' || mode === 'windup' ? (anim?.style === 'spin' ? rig.torso.rotation.y : 0) : rig.torso?.rotation.y ?? 0, 0, 'YXZ');   // (a lash aims where she faces; a spin sweeps it round)
   _wq2.setFromEuler(_wE);
   W.base.quaternion.copy(_wq.invert()).multiply(_wq2);
   // the floor in the rig's own space

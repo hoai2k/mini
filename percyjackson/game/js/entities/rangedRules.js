@@ -11,7 +11,7 @@
 //   • a monster that has just found a hero waits FIRST_SHOT before its first
 //     shot, so a group that wakes together does not open with a volley.
 //   • the volley scheduler (Volleys): at most VOLLEY.maxWindups ranged
-//     monsters wind up at one hero at a time, wind-ups start at least
+//     monsters wind up at one hero (or a party standing together) at a time, wind-ups start at least
 //     VOLLEY.startGap apart, and the shots land on the hero one after
 //     another, at least VOLLEY.gap[0] (0.45-0.8 s) apart.
 //   • elites and champions shoot a little more often (rangedCdMul), never
@@ -36,6 +36,7 @@ export const VOLLEY = {
   maxWindups: 2,       // ranged wind-ups at one hero at once
   startGap: 0.3,       // seconds between two wind-ups starting at one hero
   gap: [0.45, 0.8],    // seconds between two shots released at one hero (min, max)
+  near: 9,             // metres: heroes this close together share one schedule
 };
 export const FIRST_SHOT = [0.9, 2.6];   // seconds a monster waits before its first shot at a hero
 
@@ -54,13 +55,28 @@ export function rangedCdMul({ elite = null, champion = false } = {}) {
 }
 export const firstShotDelay = (rng = Math.random) => FIRST_SHOT[0] + rng() * (FIRST_SHOT[1] - FIRST_SHOT[0]);
 
-// The volley scheduler: one per game, keyed by the hero being shot at.
+// The volley scheduler: one per game, keyed by the hero being shot at. Heroes
+// standing together (keys with a `pos` within VOLLEY.near metres: a party
+// keeps close) share one schedule, so a group's shots don't all come at once
+// just because they picked different heroes.
 export class Volleys {
   constructor({ rng = Math.random, ...o } = {}) { this.o = { ...VOLLEY, ...o }; this.rng = rng; this.by = new Map(); this.log = null; }
   slot(key) {
     let s = this.by.get(key);
-    if (!s) this.by.set(key, s = { winding: new Set(), nextStart: -Infinity, lastSlot: -Infinity, last: -Infinity });
+    if (!s) this.by.set(key, s = { key, winding: new Set(), nextStart: -Infinity, lastSlot: -Infinity, last: -Infinity });
     return s;
+  }
+  // the slots of every hero near this one (itself first)
+  group(key) {
+    const own = this.slot(key), out = [own], p = key?.pos;
+    if (!p) return out;
+    const r2 = this.o.near * this.o.near;
+    for (const [k, s] of this.by) {
+      if (s === own || !k?.pos || k.dead) continue;
+      const dx = k.pos.x - p.x, dz = k.pos.z - p.z;
+      if (dx * dx + dz * dz < r2) out.push(s);
+    }
+    return out;
   }
   gap() { const [a, b] = this.o.gap; return a + this.rng() * (b - a); }
   // May `who` start a wind-up at `key` now? Returns the time its shot should
@@ -68,17 +84,26 @@ export class Volleys {
   // null to wait. active(who): still winding up (drops a stale entry: one
   // that died, was staggered or gave up).
   request(key, who, now, windup, active = () => true) {
-    const s = this.slot(key);
-    for (const w of s.winding) if (w !== who && !active(w)) s.winding.delete(w);
-    if (s.winding.has(who)) s.winding.delete(who);
-    if (s.winding.size >= this.o.maxWindups || now < s.nextStart) return null;
-    const at = Math.max(now + windup, s.lastSlot + this.gap(), s.last + this.o.gap[0]);
-    s.lastSlot = at; s.nextStart = now + this.o.startGap;
-    s.winding.add(who);
+    const G = this.group(key);
+    let winding = 0, nextStart = -Infinity, lastSlot = -Infinity, last = -Infinity;
+    for (const s of G) {
+      for (const w of s.winding) if (w === who || !active(w)) s.winding.delete(w);
+      winding += s.winding.size;
+      nextStart = Math.max(nextStart, s.nextStart); lastSlot = Math.max(lastSlot, s.lastSlot); last = Math.max(last, s.last);
+    }
+    if (winding >= this.o.maxWindups || now < nextStart) return null;
+    const at = Math.max(now + windup, lastSlot + this.gap(), last + this.o.gap[0]);
+    const own = G[0];
+    own.lastSlot = at; own.nextStart = now + this.o.startGap;
+    own.winding.add(who);
     return at;
   }
-  // Has the last shot at `key` gone long enough ago for another?
-  clear(key, now) { return now - this.slot(key).last >= this.o.gap[0] - 1e-6; }
+  // Has the last shot at this hero (or one beside them) gone long enough ago for another?
+  clear(key, now) {
+    let last = -Infinity;
+    for (const s of this.group(key)) last = Math.max(last, s.last);
+    return now - last >= this.o.gap[0] - 1e-6;
+  }
   // The shot left (n projectiles).
   fired(key, who, now, n = 1, kind = null) {
     const s = this.slot(key);
@@ -87,5 +112,5 @@ export class Volleys {
   }
   // The wind-up was dropped without a shot.
   drop(key, who) { this.by.get(key)?.winding.delete(who); }
-  winding(key) { return this.by.get(key)?.winding.size ?? 0; }
+  winding(key) { let n = 0; for (const s of this.group(key)) n += s.winding.size; return n; }
 }

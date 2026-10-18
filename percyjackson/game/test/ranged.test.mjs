@@ -21,21 +21,22 @@ const SHOOTERS = Object.entries(ALL).filter(([, d]) => d.projectile);
 const LG = read('world/levelgen.js');
 const ENEMY_TABLES = new Function('return ' + LG.slice(LG.indexOf('export const ENEMY_TABLES = {') + 'export const ENEMY_TABLES = '.length, LG.indexOf('\n};', LG.indexOf('export const ENEMY_TABLES')) + 2))();
 
-// A crowd of shooters round one hero, each trying to shoot whenever its own
+// A crowd of shooters round a party of three standing together (each
+// shooter after one of them), each trying to shoot whenever its own
 // cooldown allows (as enemy.js does), stepped at 60 Hz for two minutes.
 function simulate({ shooters = 8, seconds = 120, seed = 7 } = {}) {
   const rng = mulberry32(seed), V = new Volleys({ rng });
-  const hero = {}, dt = 1 / 60;
-  const S = Array.from({ length: shooters }, (_, i) => ({ id: i, windup: 0.8 + rng() * 0.4, cd: 3.4, wait: firstShotDelay(rng), state: 'idle', at: 0 }));
+  const heroes = [{ pos: { x: 0, z: 0 } }, { pos: { x: 1.5, z: 0.5 } }, { pos: { x: -1, z: 2 } }], dt = 1 / 60;
+  const S = Array.from({ length: shooters }, (_, i) => ({ id: i, hero: heroes[i % heroes.length], windup: 0.8 + rng() * 0.4, cd: 3.4, wait: firstShotDelay(rng), state: 'idle', at: 0 }));
   const shots = []; let maxWinding = 0;
   for (let now = 0; now < seconds; now += dt) {
     for (const s of S) {
       s.wait -= dt;
       if (s.state === 'idle' && s.wait <= 0) {
-        const at = V.request(hero, s, now, s.windup, (w) => w.state === 'windup');
+        const at = V.request(s.hero, s, now, s.windup, (w) => w.state === 'windup');
         if (at != null) { s.state = 'windup'; s.at = at; }
-      } else if (s.state === 'windup' && now >= s.at && V.clear(hero, now)) {
-        V.fired(hero, s, now); shots.push({ t: now, id: s.id }); s.state = 'idle'; s.wait = s.cd * (0.8 + rng() * 0.4);
+      } else if (s.state === 'windup' && now >= s.at && V.clear(s.hero, now)) {
+        V.fired(s.hero, s, now); shots.push({ t: now, id: s.id }); s.state = 'idle'; s.wait = s.cd * (0.8 + rng() * 0.4);
       }
       // (now and then one is staggered out of its wind-up)
       if (s.state === 'windup' && rng() < 0.002) { s.state = 'idle'; s.wait = 0.5; }
@@ -62,7 +63,7 @@ test('volleys: the cap on wind-ups, the gap between starts, and stale entries', 
   assert.equal(ta, 0.8);
   assert.equal(V.request(hero, b, 0.1, 0.8, live), null, 'a second wind-up waits for the start gap');
   const tb = V.request(hero, b, 0.35, 0.8, live);
-  assert.ok(tb >= ta + VOLLEY.gap[0], 'its shot is slotted a gap after the first');
+  assert.ok(tb >= ta + VOLLEY.gap[0] - 1e-9, 'its shot is slotted a gap after the first');
   assert.equal(V.request(hero, c, 1, 0.8, live), null, 'a third waits: two are already winding up');
   assert.ok(V.request(other, c, 1, 0.8, live) != null, 'another hero has its own schedule');
   V.drop(other, c);
@@ -72,6 +73,21 @@ test('volleys: the cap on wind-ups, the gap between starts, and stale entries', 
   assert.equal(V.clear(hero, tb + 0.1), false);
   assert.equal(V.clear(hero, tb + VOLLEY.gap[0]), true);
   assert.ok(VOLLEY.gap[0] >= 0.4 && VOLLEY.gap[1] <= 0.8 && VOLLEY.maxWindups <= 2);
+});
+
+test('volleys: a party standing together shares one schedule; heroes far apart have their own', () => {
+  const V = new Volleys({ rng: () => 0 });
+  const p1 = { pos: { x: 0, z: 0 } }, p2 = { pos: { x: 2, z: 1 } }, p3 = { pos: { x: 3, z: -2 } }, far = { pos: { x: 60, z: 0 } };
+  const s = (n) => ({ n, st: 'windup' }), live = (w) => w.st === 'windup';
+  const a = s(1), b = s(2), c = s(3), d = s(4);
+  const ta = V.request(p1, a, 0, 0.8, live);
+  const tb = V.request(p2, b, 0.3, 0.8, live);
+  assert.ok(ta != null && tb != null && tb - ta >= VOLLEY.gap[0] - 1e-9, 'the second shot, at the hero beside, comes a gap later');
+  assert.equal(V.request(p3, c, 0.7, 0.8, live), null, 'a third hero beside them: two are already winding up');
+  assert.ok(V.request(far, d, 0.7, 0.8, live) != null, 'a hero far off is shot at on its own schedule');
+  V.fired(p1, a, ta);
+  assert.equal(V.clear(p2, ta + 0.1), false, 'a shot at the hero beside counts');
+  assert.equal(V.clear(far, ta + 0.1), true);
 });
 
 test('the first shot waits a random moment; elites and champions are only a little faster', () => {
