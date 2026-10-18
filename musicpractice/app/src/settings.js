@@ -65,7 +65,7 @@ export const BPM_MAX = 500;
 export const DEFAULTS = Object.freeze({
   theme: 'classic',
   themeChosen: false,
-  appearance: 'system', // APPEARANCES: 'default' is each theme as designed
+  appearance: 'default', // APPEARANCES: 'default' is each theme as designed (light or dark)
   appearanceChosen: false,
   bpm: 120,
   meter: '4/4',
