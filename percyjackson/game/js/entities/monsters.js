@@ -530,7 +530,7 @@ const lavaDog = (o) => (S) => paintQuad(S, { base: o.base ?? 0x221d20, dark: 0x0
 // little outward at rest (stance); the leg roots sit deep in the body
 // (legY) and hang from the torso (legsOnTorso), so a hind leg never parts
 // from the haunch however the body pitches in a walk, a run or a bite)
-export const HELLHOUND = { big: true, scale: 1.18, bodyL: 60, bodyW: 30, bodyH: 36, legH: 34, legW: 10, legY: 10, legSpread: 1, stance: 0.09, legsOnTorso: true, headS: 24, snoutS: 14, ears: true, tail: 6, tailLen: 36, tailW: 4.8, tailCurl: 0.8, gait: 0.5, neckUp: 10, headZ: -5, jawOpen: 0.42 };
+export const HELLHOUND = { big: true, scale: 1.18, bodyL: 60, bodyW: 34, bodyH: 36, legH: 34, legW: 10, legY: 10, legSpread: 2.5, stance: 0.12, legsOnTorso: true, headS: 24, snoutS: 14, ears: true, tail: 6, tailLen: 36, tailW: 4.8, tailCurl: 0.8, gait: 0.5, neckUp: 10, headZ: -5, jawOpen: 0.42 };
 const MODELS = {
   pup: () => hound('pup', { scale: 0.95, bodyL: 10, bodyW: 6, bodyH: 6, legH: 5.5, legW: 2.8, headS: 7, ears: true, tail: 3, tailLen: 6, tailW: 1.8, tailCurl: 0.55, neckUp: 2, jawOpen: 0.25 }, { fur: 60, cracks: 6, collar: false, pup: true }),
   // A New York sewer rat (the prologue): grey-brown fur, a pink nose, ears
@@ -691,42 +691,43 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
       K.box(p, x, y + u * c - zz * sn, z + u * sn + zz * c, sz, sz * 1.4, sz, K.tone(FUR, 0.16), rx);
     }
   };
-  // ---- trunk (body 30 x 36 x 60): a deep, broad chest over the front
+  // ---- trunk (body 34 x 36 x 60): a deep, broad chest over the front
   // legs, ribs down the flank, a waist only a little tucked and heavy
   // haunches round the hind legs' roots
   // (pass 4: wider than the head, a fifth longer and deeper in the chest, as
   // vox-enemies draws it; the haunch reaches well below the hind legs' roots,
   // QuadRig legY, so the thigh always enters the body)
-  K.box(T, 0, 1, 14, 30, 34, 30, DEEP[1]);           // chest and shoulders
-  K.box(T, 0, -14.5, 22, 22, 9, 12, DEEP[0]);        // the brisket
-  K.box(T, 0, 3, -6, 27, 29, 14, DEEP[1]);           // ribcage
-  K.box(T, 0, 5, -14, 23, 25, 6, DEEP[2]);           // waist
-  K.box(T, 0, 3, -23, 27, 30, 14, DEEP[1]);          // haunches
+  K.box(T, 0, 1, 14, 34, 34, 30, DEEP[1]);           // chest and shoulders
+  K.box(T, 0, -14.5, 22, 25, 9, 12, DEEP[0]);        // the brisket
+  K.box(T, 0, 3, -6, 31, 29, 14, DEEP[1]);           // ribcage
+  K.box(T, 0, 5, -14, 27, 25, 6, DEEP[2]);           // waist
+  K.box(T, 0, 3, -23, 31, 30, 14, DEEP[1]);          // haunches
+  rig.extras.trunk = { chest: [-17, -16, -1, 17, 18, 29], haunch: [-15.5, -12, -30, 15.5, 18, -16] };   // (skin px, torso space: perf/houndlegs.cjs checks the legs stay rooted in them)
   for (const sx of [-1, 1]) {
-    K.clumps(T, [sx * 15.2, 7, 15], [2, 18, 16], { n: Math.round(30 * fe), size: [2, 3.2], cols: FURL, faces: sx < 0 ? 'l' : 'r', out: 0.3, stretch: [1, 1.2, 1] });   // shoulder blade
-    K.clumps(T, [sx * 15.2, -7, 21], [2.4, 14, 11], { n: Math.round(22 * fe), size: [2, 3.2], cols: FURL, faces: sx < 0 ? 'l' : 'r', out: 0.3 });              // upper-arm muscle
+    K.clumps(T, [sx * 17.2, 7, 15], [2, 18, 16], { n: Math.round(26 * fe), size: [2, 3.2], cols: FURL, faces: sx < 0 ? 'l' : 'r', out: 0.3, stretch: [1, 1.2, 1] });   // shoulder blade
+    K.clumps(T, [sx * 17.2, -7, 21], [2.4, 14, 11], { n: Math.round(18 * fe), size: [2, 3.2], cols: FURL, faces: sx < 0 ? 'l' : 'r', out: 0.3 });              // upper-arm muscle
     for (let i = 0; i < 5; i++) {                     // ribs, with embers glowing between them
-      K.box(T, sx * 13.9, 3 - i * 0.3, 0 - i * 2.3, 1, 18 - i * 1.6, 1.4, FUR[4]);
-      if (i % 2 === 0) K.box(T, sx * 13.65, 1.6 - i * 0.2, -1.1 - i * 2.3, 0.4, 8 - i, 0.6, LAVA[i % 4 ? 1 : 0]);
+      K.box(T, sx * 15.9, 3 - i * 0.3, 0 - i * 2.3, 1, 18 - i * 1.6, 1.4, FUR[4]);
+      if (i % 2 === 0) K.box(T, sx * 15.65, 1.6 - i * 0.2, -1.1 - i * 2.3, 0.4, 8 - i, 0.6, LAVA[i % 4 ? 1 : 0]);
     }
-    K.clumps(T, [sx * 13.6, 2, -23], [1.6, 20, 12], { n: Math.round(28 * fe), size: [1.8, 3], cols: FURL, faces: sx < 0 ? 'l' : 'r', out: 0.3 });     // haunch muscle
+    K.clumps(T, [sx * 15.6, 2, -23], [1.6, 20, 12], { n: Math.round(22 * fe), size: [1.8, 3], cols: FURL, faces: sx < 0 ? 'l' : 'r', out: 0.3 });     // haunch muscle
   }
-  K.shag(T, [0, 1, 14], [30, 34, 30], { cols: FUR, step: 2.3 * ss, len: [2.4, 4.2], w: 1.3, low: 0.8, ember: 0.08, embers: LAVA, top: false });
-  K.shag(T, [0, 3, -6], [27, 29, 14], { cols: FUR, step: 2.1 * ss, len: [1.4, 2.4], low: 0.3, top: false, sweep: 0.5 });
-  K.clumps(T, [0, 3, -6], [27, 29, 14], { n: Math.round(26 * fe), size: [1, 1.8], cols: FURL, faces: 'lrb', out: 0.2 });
-  K.shag(T, [0, 3, -23], [27, 30, 14], { cols: FUR, step: 2.1 * ss, len: [1.8, 3], low: 0.75, sweep: 0.4, bristle: 0.9 });
-  K.clumps(T, [0, -2, 29], [26, 28, 1], { n: Math.round(50 * fe), size: [1.8, 3], cols: FUR, faces: 'f', stretch: [1, 1.5, 1] });   // chest ruff
-  for (let z = 2; z < 28; z += 3) for (let x = -12; x <= 12; x += 3.4) {                                 // fringe hanging under the chest
-    const l = 2.5 + K.r() * 3.5, y0 = z > 15.5 && Math.abs(x) < 11 ? -19 : -16; K.box(T, x + (K.r() - 0.5), y0 - l / 2 + 1.2, z, 2.2, l, 2.2, K.tone(FUR), 0.3);
+  K.shag(T, [0, 1, 14], [34, 34, 30], { cols: FUR, step: 2.9 * ss, len: [2.4, 4.2], w: 1.3, low: 0.8, ember: 0.08, embers: LAVA, top: false });
+  K.shag(T, [0, 3, -6], [31, 29, 14], { cols: FUR, step: 2.5 * ss, len: [1.4, 2.4], low: 0.3, top: false, sweep: 0.5 });
+  K.clumps(T, [0, 3, -6], [31, 29, 14], { n: Math.round(20 * fe), size: [1, 1.8], cols: FURL, faces: 'lrb', out: 0.2 });
+  K.shag(T, [0, 3, -23], [31, 30, 14], { cols: FUR, step: 2.5 * ss, len: [1.8, 3], low: 0.75, sweep: 0.4, bristle: 0.9 });
+  K.clumps(T, [0, -2, 29], [30, 28, 1], { n: Math.round(46 * fe), size: [1.8, 3], cols: FUR, faces: 'f', stretch: [1, 1.5, 1] });   // chest ruff
+  for (let z = 2; z < 28; z += 3.4) for (let x = -14; x <= 14; x += 5.6) {                                 // fringe hanging under the chest
+    const l = 2.5 + K.r() * 3.5, y0 = z > 15.5 && Math.abs(x) < 12.5 ? -19 : -16; K.box(T, x + (K.r() - 0.5), y0 - l / 2 + 1.2, z, 2.2, l, 2.2, K.tone(FUR), 0.3);
   }
   // lava veins drawn over the fur (the source sheet's cracks read from afar)
-  K.cracks(T, [0, -1, 14], [31, 32, 31], { n: Math.round(cracks * 1.3), cols: LAVA, faces: 'lrf', len: [7, 14], cell: 1 });
-  K.cracks(T, [0, 3, -6], [28, 24, 14], { n: Math.round(cracks * 0.5), cols: LAVA, faces: 'lr', len: [5, 9], cell: 0.9 });
-  K.cracks(T, [0, 3, -23], [28.5, 26, 14.5], { n: Math.round(cracks * 0.7), cols: LAVA, faces: 'lrk', len: [5, 10], cell: 0.9 });
+  K.cracks(T, [0, -1, 14], [35, 32, 31], { n: Math.round(cracks * 1.6), cols: LAVA, faces: 'lrf', len: [7, 14], cell: 1 });
+  K.cracks(T, [0, 3, -6], [32, 24, 14], { n: Math.round(cracks * 0.6), cols: LAVA, faces: 'lr', len: [5, 9], cell: 0.9 });
+  K.cracks(T, [0, 3, -23], [32.5, 26, 14.5], { n: Math.round(cracks * 0.9), cols: LAVA, faces: 'lrk', len: [5, 10], cell: 0.9 });
   for (let z = 4; z < 27; z += 3) K.box(T, (K.r() - 0.5) * 8, z > 15.5 ? -19.2 : -16.2, z, 4 + K.r() * 7, 0.4, 0.8, LAVA[K.r() < 0.3 ? 1 : 0]);   // the furnace glows under the chest
   // ---- the mane: hackles down the spine, tallest over the shoulders, breaking into smoke
   const topAt = (z) => (z > -1 ? 18 : 17.5);
-  for (let z = 29; z > -28; z -= 1.9) {
+  for (let z = 29; z > -28; z -= 2.2) {
     const k = Math.max(0.35, 1 - Math.abs(z - 14) / 36), top = topAt(z);
     for (const sx of [-1, 0, 1]) {
       const h = (sx ? 5 : 8.5) * k + K.r() * 2.5, x = sx * 2.4 + (K.r() - 0.5) * 0.8, lean = -0.6 - K.r() * 0.2;
@@ -751,11 +752,13 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
   K.box(N, 0, -7, -4, 18, 22, 16, DEEP[1], 0.2);
   K.clumps(N, [0, -7, -4], [19, 22, 16], { n: Math.round(70 * fe), size: [1.8, 3.4], cols: FUR, faces: 'lrtb', stretch: [1, 1.4, 1.2] });
   if (collar) {
-    const r = 12, n = 22, g = group(N, 0, -5, -1, -0.25);
+    // (pass 4: a heavier ring standing proud of the neck's ruff, so the gold
+    // spikes read all round as on the sheet)
+    const r = 13.2, n = 22, g = group(N, 0, -4.5, 2.5, -0.6);   // (tipped forward, so its lower arc lies on the chest in front of the neck)
     for (let i = 0; i < n; i++) {
       const a = i / n * Math.PI * 2, x = Math.sin(a) * r, y = Math.cos(a) * r;
-      K.box(g, x, y, 0, 2 * Math.PI * r / n + 0.5, 2.4, 3, i % 2 ? 0xd09418 : 0xf0b428, 0, 0, -a);
-      if (y < r * 0.8) { K.box(g, Math.sin(a) * (r + 2), Math.cos(a) * (r + 2), 0, 1.6, 3.4, 1.6, 0xf8d870, 0, 0, -a); K.box(g, Math.sin(a) * (r + 3.9), Math.cos(a) * (r + 3.9), 0, 0.8, 1, 0.8, 0xfff0b0, 0, 0, -a); }
+      K.box(g, x, y, 0, 2 * Math.PI * r / n + 0.5, 3, 4, i % 2 ? 0xd09418 : 0xf0b428, 0, 0, -a);
+      if (y < r * 0.8) { K.box(g, Math.sin(a) * (r + 2.4), Math.cos(a) * (r + 2.4), 0, 2.2, 3.6, 2.2, 0xf8d870, 0, 0, -a); K.box(g, Math.sin(a) * (r + 4.6), Math.cos(a) * (r + 4.6), 0, 1.2, 1.6, 1.2, 0xfff0b0, 0, 0, -a); }
     }
   }
   // ---- head: a heavy skull, a scowling brow over molten eyes, jaw muscles,
@@ -1481,7 +1484,7 @@ export function buildSkeleton({ id = 'skeleton', pal = {}, helmet = true, gear =
       } });
     S.shadeLimbs(); S.saturate(1.15);
   }, { emit: 0.8, res: 2 });
-  const rig = new Rig({ material: mat, scale: 1.0, armW: 3 });
+  const rig = new Rig({ material: mat, scale: 1.15, armW: 3 });   // (size audit: a grown man, as tall as the spartoi)
   const K = kit(rig, mat, { seed: 37, rough: 0.8 });
   const hk = HS;
   // arms: camo short sleeves, then bare bones with a knobby elbow and bony hands

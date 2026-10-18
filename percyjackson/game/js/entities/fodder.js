@@ -57,16 +57,16 @@ export const FODDER_MONSTERS = {
   boarlet: { name: txt('monsters.boarlet.name'), tier: 'minor', role: 'bruiser', hp: 50, speed: 5, dmg: 9, radius: 0.85, height: 1.4, ai: 'melee', range: 3.4, windup: 0.65, cd: 2, xp: 5, coins: [2, 4], model: 'boarlet', pitch: 0.9, voice: 'snort', knockResist: 0.5, slashColor: 0xf0e0c0 },
   // shore
   crab: { name: txt('monsters.crab.name'), tier: 'minor', role: 'fodder', hp: 28, speed: 4, dmg: 6, radius: 0.7, height: 0.9, ai: 'melee', range: 1.6, windup: 0.45, cd: 1.3, xp: 3, coins: [1, 3], model: 'crab', pitch: 1, voice: 'clack', armor: 0.1, knockResist: 0.3 },
-  king_crab: { name: txt('monsters.king_crab.name'), tier: 'elite', role: 'tank', hp: 160, speed: 2.2, dmg: 16, radius: 1.5, height: 2.4, ai: 'tank', range: 2.4, windup: 0.9, cd: 2.4, xp: 10, coins: [4, 8], model: 'king_crab', pitch: 0.6, voice: 'clack', armor: 0.3, knockResist: 0.8, superArmor: true, slamR: 2.4 },
+  king_crab: { name: txt('monsters.king_crab.name'), tier: 'elite', role: 'tank', hp: 160, speed: 2.2, dmg: 16, radius: 1.8, height: 3.6, ai: 'tank', range: 2.4, windup: 0.9, cd: 2.4, xp: 10, coins: [4, 8], model: 'king_crab', pitch: 0.6, voice: 'clack', armor: 0.3, knockResist: 0.8, superArmor: true, slamR: 2.4 },
   // canyon
-  basilisk: { name: txt('monsters.basilisk.name'), tier: 'minor', role: 'ranged', hp: 16, speed: 5.6, dmg: 5, radius: 0.5, height: 1.1, ai: 'ranged', range: 8, keep: 5, windup: 0.75, cd: 3, xp: 2, coins: [0, 2], model: 'basilisk', pitch: 1.5, voice: 'hiss', projectile: 'acid', knockResist: 0, poison: { dps: 2, dur: 3 } },
+  basilisk: { name: txt('monsters.basilisk.name'), tier: 'minor', role: 'ranged', hp: 16, speed: 5.6, dmg: 5, radius: 0.65, height: 1.5, ai: 'ranged', range: 8, keep: 5, windup: 0.75, cd: 3, xp: 2, coins: [0, 2], model: 'basilisk', pitch: 1.5, voice: 'hiss', projectile: 'acid', knockResist: 0, poison: { dps: 2, dur: 3 } },
   earthborn: { name: txt('monsters.earthborn.name'), tier: 'elite', role: 'lobber', hp: 170, speed: 2.4, dmg: 14, radius: 1, height: 3, ai: 'ranged', range: 13, keep: 8, windup: 1.1, cd: 4.9, xp: 12, coins: [5, 9], model: 'earthborn', pitch: 0.55, voice: 'grind', projectile: 'acid', lob: true, armor: 0.15, knockResist: 0.75, superArmor: true,
     // up close: a barrage of all six fists, one after another down the body (every second blow lands: about one lob's damage in all)
-    pummel: { trigger: 3.4, range: 3, windup: 0.55, recover: 0.6, hits: 6, gap: 0.15, every: 2, dmg: 0.36 } },
+    pummel: { trigger: 3.4, range: 3, windup: 0.6, recover: 0.6, hits: 6, gap: 0.2, every: 2, dmg: 0.36 } },
   // labyrinth
   daedalus_drone: { name: txt('monsters.daedalus_drone.name'), tier: 'minor', role: 'ranged', hp: 18, speed: 4.6, dmg: 6, radius: 0.5, height: 1.4, ai: 'ranged', range: 11, keep: 7, windup: 0.8, cd: 3.2, xp: 3, coins: [1, 3], model: 'daedalus_drone', pitch: 1.6, voice: 'whir', projectile: 'bullet', knockResist: 0.1 },
   // othrys
-  laistrygonian: { name: txt('monsters.laistrygonian.name'), tier: 'elite', role: 'lobber', hp: 220, speed: 2.4, dmg: 18, radius: 1.1, height: 3.6, ai: 'ranged', range: 14, keep: 9, windup: 1.2, cd: 5, xp: 16, coins: [7, 12], model: 'laistrygonian', pitch: 0.45, voice: 'roar', projectile: 'fire', lob: true, armor: 0.1, knockResist: 0.85, superArmor: true },
+  laistrygonian: { name: txt('monsters.laistrygonian.name'), tier: 'elite', role: 'lobber', hp: 220, speed: 2.4, dmg: 18, radius: 1.1, height: 4.4, ai: 'ranged', range: 14, keep: 9, windup: 1.2, cd: 5, xp: 16, coins: [7, 12], model: 'laistrygonian', pitch: 0.45, voice: 'roar', projectile: 'fire', lob: true, armor: 0.1, knockResist: 0.85, superArmor: true },
   // asphodel
   shade: { name: txt('monsters.shade.name'), tier: 'minor', role: 'fodder', hp: 16, speed: 2.4, dmg: 5, radius: 0.4, height: 1.8, ai: 'melee', range: 1.5, windup: 0.6, cd: 1.6, xp: 2, coins: [0, 2], model: 'shade', pitch: 0.9, voice: 'wail', knockResist: 0 },
   keres: { name: txt('monsters.keres.name'), tier: 'minor', role: 'rusher', hp: 16, speed: 6.6, dmg: 6, radius: 0.45, height: 1.8, ai: 'melee', range: 1.5, windup: 0.35, cd: 1.2, xp: 2, coins: [0, 2], model: 'keres', pitch: 1.2, voice: 'shriek', knockResist: 0, slashColor: 0xff2a2a },
@@ -145,21 +145,62 @@ function behave(kind) {
   };
 }
 
-// The Earthborn's barrage (enemy.js punch): in the wind-up all six fists draw
-// back; then one after another, top pair to bottom, right then left, each
-// drives forward and draws back, kicking up a puff of dust where it lands.
+// The Earthborn's barrage (enemy.js punch): six straight punches, one arm at
+// a time, top pair to bottom, right then left. In the wind-up the body rears
+// back with all six fists up on guard; then each arm in turn draws back (its
+// shoulder turning away), drives its fist straight out in front of the chest
+// as its blow lands (the torso twisting and leaning into it, the shoulder
+// thrown forward), and pulls back to guard while the next arm, on the other
+// side, is already drawing back. The clock is the action's own (wind-up,
+// then recover), and each arm's punch is timed from the blows enemy.js
+// actually lands (a.hit), so the fist arrives with the damage. A puff of
+// dust kicks up where each lands.
+// Arm poses: { x: pitch (- forward), z: splay (x out, mirrored per side), pz: shoulder forward (px) }
+const PUM_TOP = { guard: { x: -0.8, z: 0.22, pz: 0 }, back: { x: 0.45, z: 0.42, pz: -2.2 }, fwd: { x: -1.6, z: -0.1, pz: 3.2 } };
+const PUM_LOW = { guard: { x: -0.45, z: 0.55, pz: 0 }, back: { x: 0.55, z: 0.72, pz: -1.6 }, fwd: { x: -1.5, z: 0.06, pz: 2.6 } };
+const PUM_BACK = 0.26, PUM_DRIVE = 0.08, PUM_HOLD = 0.06, PUM_RET = 0.22;   // (seconds: draw back, drive, hold, pull back)
+const smooth = (k) => k * k * (3 - 2 * k);
+// weights of the guard, back and forward poses u seconds after an arm's blow
+function punchPhase(u, out) {
+  let b = 0, f = 0;
+  if (u < -PUM_BACK) { /* on guard */ } else if (u < -PUM_DRIVE) b = 1 - (1 - (u + PUM_BACK) / (PUM_BACK - PUM_DRIVE)) ** 3;
+  else if (u < 0) { const k = ((u + PUM_DRIVE) / PUM_DRIVE) ** 2; f = k; b = 1 - k; }
+  else if (u < PUM_HOLD) f = 1;
+  else if (u < PUM_HOLD + PUM_RET) f = 1 - smooth((u - PUM_HOLD) / PUM_RET);
+  out.b = b; out.f = f; return out;
+}
+const _ph = { b: 0, f: 0 };
 function pummel(rig, dt, e, g) {
-  const a = e.action, on = a?.kind === 'pummel' && (e.state === 'windup' || e.state === 'recover'), V = rig.pumV, F = rig.extras.fists;
-  const n = on ? a.hit ?? 0 : 0;
-  if (n !== rig.pumN) { rig.pumN = n; rig.pumT = 0; if (n > 0) { F[n - 1].fist.getWorldPosition(_c); _f.set(Math.sin(e.facing), 0, Math.cos(e.facing)); g.particles?.burst(_c, { count: n % 2 ? 4 : 8, color: dustCol, additive: false, speed: 2.2, spread: 0.8, dir: _f, life: 0.5, size: 0.3, sizeEnd: 0.8, drag: 3, up: 0.6 }); } }
-  else rig.pumT += dt;
-  for (let i = 0; i < 6; i++) {
-    const want = !on ? 0 : e.state === 'windup' ? 0.55 * Math.min(1, e.stateT / Math.max(0.1, a.windup)) : i === n - 1 && rig.pumT < 0.1 ? (i < 2 ? -1.5 : -2.1) : i < n ? -0.2 : 0.55;
-    V[i] += (want - V[i]) * Math.min(1, dt * (want < V[i] ? 32 : 9));
+  const a = e.action, on = a?.kind === 'pummel' && (e.state === 'windup' || e.state === 'recover'), F = rig.extras.fists;
+  const S = rig.pumS ??= { W: 0, n: 0, at: 0, top: { W: 0, x0: 0, z0: 0, x1: 0, z1: 0, lean: 0, twist: 0 } };
+  S.W += ((on ? 1 : 0) - S.W) * Math.min(1, dt * (on ? 14 : 6));
+  if (S.W < 0.005 && !on) {
+    if (rig.pum) { for (const f of F) { f.arm.position.z = f.pz0; if (f.rz0 != null) f.arm.rotation.z = f.rz0; } rig.pum = null; }
+    S.n = 0; return;
   }
-  for (let i = 2; i < 6; i++) F[i].arm.rotation.x += V[i];
-  rig.pum = on || Math.abs(V[0]) + Math.abs(V[1]) > 0.02 ? (rig.pumTop ??= [0, 0]) : null;
-  if (rig.pum) { rig.pum[0] = V[0]; rig.pum[1] = V[1]; }
+  const n = on ? a.hit ?? 0 : S.n, wu = on ? a.windup : 0.55, gap = on ? a.gap : 0.2;
+  const tau = !on ? S.tau ?? 0 : e.state === 'windup' ? e.stateT : wu + e.stateT;
+  if (on && n !== S.n) {
+    S.n = n; S.at = tau;
+    if (n > 0) { F[n - 1].fist.getWorldPosition(_c); _f.set(Math.sin(e.facing), 0, Math.cos(e.facing)); g.particles?.burst(_c, { count: n % 2 ? 4 : 8, color: dustCol, additive: false, speed: 2.2, spread: 0.8, dir: _f, life: 0.5, size: 0.3, sizeEnd: 0.8, drag: 3, up: 0.6 }); }
+  }
+  if (on) S.tau = tau;
+  const W = S.W, T = S.top;
+  let twist = 0, lean = 0, active = 0;
+  for (let i = 0; i < 6; i++) {
+    const at = n > 0 ? S.at + (i - (n - 1)) * gap : wu + i * gap;
+    const { b, f } = punchPhase(tau - at, _ph), gd = 1 - b - f, side = i % 2 ? -1 : 1, o = -side, Pp = i < 2 ? PUM_TOP : PUM_LOW;
+    const x = Pp.guard.x * gd + Pp.back.x * b + Pp.fwd.x * f, z = o * (Pp.guard.z * gd + Pp.back.z * b + Pp.fwd.z * f), pz = Pp.back.pz * b + Pp.fwd.pz * f;
+    twist += side * (0.36 * f - 0.2 * b) * (i < 2 ? 1 : 0.75); lean += 0.2 * f - 0.05 * b; active += b + f;
+    const A = F[i];
+    A.arm.position.z = A.pz0 + W * pz * PX;
+    if (i < 2) { if (i === 0) { T.x0 = x; T.z0 = z; } else { T.x1 = x; T.z1 = z; } }
+    else { A.arm.rotation.x += W * (x - A.arm.rotation.x); A.arm.rotation.z = A.rz0 + W * (z - A.rz0); }
+  }
+  // the wind-up: the body rears back over the raised fists before the first blow
+  if (n === 0 && on) lean -= 0.16 * smooth(Math.min(1, tau / (wu * 0.6))) * (1 - Math.min(1, active));
+  T.lean = lean; T.twist = twist; T.W = W;
+  rig.pum = T;
 }
 
 // ---- death bits: a burst of the kind's own stuff as it falls (Enemy.die
@@ -199,13 +240,23 @@ function finish(rig, kind) {
     }
     // a held pose on top of the walk (the Laistrygonian's ball, the Earthborn's raised fists)
     // (and the Earthborn's top fists in a pummel, rig.pum)
-    const P = rig.held;
-    if (rig.posed) { rig.armR.rotation.x -= rig.posed[0]; rig.armL.rotation.x -= rig.posed[1]; rig.posed = null; }
+    // (offsets added after the pose: [armR x, armL x, armR z, armL z, torso x, torso y], taken off again before the next)
+    const P = rig.held, U = rig.posed, aR = rig.armR.rotation, aL = rig.armL.rotation, tR = rig.torso.rotation;
+    if (U) { aR.x -= U[0]; aL.x -= U[1]; aR.z -= U[2]; aL.z -= U[3]; tR.x -= U[4]; tR.y -= U[5]; rig.posed = null; }
     anim(p);
-    let a0 = 0, a1 = 0, on = false;
-    if (P && !p.action) { a0 = P[0]; a1 = P[1]; on = true; }
-    if (rig.pum) { a0 += rig.pum[0]; a1 += rig.pum[1]; on = true; }
-    if (on) { rig.armR.rotation.x += a0; rig.armL.rotation.x += a1; rig.posed = rig.posedArr ??= [0, 0]; rig.posed[0] = a0; rig.posed[1] = a1; }
+    const D = rig.posedArr ??= new Float32Array(6); D.fill(0);
+    let on = false;
+    if (P && !p.action) { D[0] = P[0]; D[1] = P[1]; on = true; }
+    const Q = rig.pum;
+    if (Q) {
+      // the top pair's punch (the arm's own pitch and splay; the spread rigOffsets adds after is allowed for) and the body's twist and lean
+      const W = Q.W, sp = rig.armSpread ?? 0;
+      D[0] += W * (Q.x0 - aR.x - D[0]); D[1] += W * (Q.x1 - aL.x - D[1]);
+      D[2] = W * (Q.z0 + sp - aR.z); D[3] = W * (Q.z1 - sp - aL.z);
+      D[4] = W * (Q.lean - tR.x); D[5] = W * (Q.twist - tR.y);
+      on = true;
+    }
+    if (on) { aR.x += D[0]; aL.x += D[1]; aR.z += D[2]; aL.z += D[3]; tR.x += D[4]; tR.y += D[5]; rig.posed = D; }
   };
   return rig;
 }
@@ -810,8 +861,8 @@ function buildKingCrab(K0) {
   const MOSS = [0x4a7a2a, 0x6a8a3a, 0x3a6a2a, 0x5a8a3a, 0x7a9a4a, 0x2e5a26], DIRT = [0x8a7a5a, 0x6a5a40, 0x9a8a6a], KELP = [0x2a8a5a, 0x1a5a3a, 0x3a9a7a, 0x2a7a2a, 0x1e6a5a];
   const BEIGE = [0xe0c8a0, 0xd0b088, 0xc8a070, 0xf0dcb8, 0xb89060], CLAW = [0xd0381c, 0xb82a14, 0xe04a24], CLAWM = [0xf06a30, 0xe85a28, 0xff7a3a], CLAWL = [0xff9a50, 0xffb070, 0xf8c090];
   const mat = skinMat('king_crab', flatQuad(P.red, P.redD, cream, eyeT), { rough: 0.5, emit: 0.9 });
-  const rig = new QuadRig({ material: mat, scale: 3, bodyL: 9, bodyW: 12, bodyH: 6, legH: 6.4, legW: 1.5, headS: 4, legs: 8, splay: 0.01, legSpread: -3, snout: false, neckUp: -1, headZ: -0.6, gait: 1.3, ears: false, jawOpen: 0.1 });
-  const K = kitOf(K0, 'king_crab', rig, mat, { seed: 149, rough: 0.5, emit: 0.85, ao: 0.35, density: voxDensity(rig) });
+  const rig = new QuadRig({ material: mat, scale: 4.5, bodyL: 9, bodyW: 12, bodyH: 6, legH: 6.4, legW: 1.5, headS: 4, legs: 8, splay: 0.01, legSpread: -3, snout: false, neckUp: -1, headZ: -0.6, gait: 1.3, ears: false, jawOpen: 0.1 });
+  const K = kitOf(K0, 'king_crab', rig, mat, { seed: 149, rough: 0.5, emit: 0.85, ao: 0.35, density: voxDensity(rig) / 1.25 });   // (size audit: built 1.5× bigger, at 1.25 hero pixels a cell to keep its triangle budget)
   const T = rig.torso, Hd = rig.head, M = rig.mouth;
   const mix = (K, cols) => cols[Math.floor(K.r() * cols.length)];   // (flat tones, so runs of the hero-sized cells merge)
   dropAll(rig, T); dropAll(rig, Hd);
@@ -860,8 +911,8 @@ function buildKingCrab(K0) {
 }
 
 // ---- basilisk ----------------------------------------------------------------------
-// (vox-ow-fodder-3, top left) A crowned serpent-lizard about a hero's chest
-// height: deep green and teal scales, a cream belly, a crown of gold spikes
+// (vox-ow-fodder-3, top left) A crowned serpent-lizard, its back at a hero's
+// chest and its crown above his head (design/size-audit.md): deep green and teal scales, a cream belly, a crown of gold spikes
 // fanning back from its head and gold spines down its back, glowing yellow
 // eyes, fanged jaws, gold claws, and a long tail that curls up over its back.
 // Quick on its feet; it spits venom.
@@ -870,8 +921,8 @@ function buildBasilisk(K0) {
   const SC = [grn, grnD, teal, 0x1a6a40, 0x2a9a5a];
   const scale = (y, z) => (K.r() < 0.12 ? mix(K, [gold, goldD], 0.1) : mix(K, SC, 0.12));
   const mat = skinMat('basilisk', flatQuad(grn, grnD, belly, eye), { rough: 0.5, emit: 1 });
-  const rig = new QuadRig({ material: mat, scale: 2.15, bodyL: 8, bodyW: 5, bodyH: 4.4, legH: 3.8, legW: 1.8, headS: 5, splay: 0.6, snout: false, neckUp: 4.2, headZ: 1, gait: 2, ears: false, tail: 6, tailLen: 18, tailW: 3, tailCurl: 0.72, jawOpen: 0.25 });
-  const K = kitOf(K0, 'basilisk', rig, mat, { seed: 151, rough: 0.5, emit: 0.9, ao: 0.35 });
+  const rig = new QuadRig({ material: mat, scale: 2.9, bodyL: 8, bodyW: 5, bodyH: 4.4, legH: 3.8, legW: 1.8, headS: 5, splay: 0.6, snout: false, neckUp: 4.2, headZ: 1, gait: 2, ears: false, tail: 6, tailLen: 18, tailW: 3, tailCurl: 0.72, jawOpen: 0.25 });
+  const K = kitOf(K0, 'basilisk', rig, mat, { seed: 151, rough: 0.5, emit: 0.9, ao: 0.35, density: BUILD.k * 1.35 });   // (size audit: built 1.35× bigger, its cells kept the same size)
   const T = rig.torso, Hd = rig.head, M = rig.mouth, hs = 5;
   dropAll(rig, T); dropAll(rig, Hd);
   // body: a deep upright chest rising to the neck, a cream belly in plated rows, scales trimmed in gold
@@ -990,7 +1041,8 @@ function buildEarthborn(K0) {
   K.clumps(Hd, [0, 6.8, 0], [6.4, 1, 6], { n: 4, size: [1.4, 2.2], cols: [...MOSS, stL], faces: 't', out: -0.3 });
   K.done();
   noShadow(rig, Hd);
-  rig.extras.fists = fists; rig.pumV = new Float32Array(6);
+  rig.extras.fists = fists;
+  for (const f of fists) { f.pz0 = f.arm.position.z; f.rz0 = f.arm === rig.armR || f.arm === rig.armL ? null : f.arm.rotation.z; }   // (the pummel's rest places)
   rig.hunch = 0.15; rig.armSpread = 0.45; rig.held = [-2.3, -2.3];
   return finish(rig, 'earthborn');
 }
