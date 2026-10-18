@@ -4,6 +4,9 @@
 // registries at load, so a model added to a registry shows up on its own.
 // Deep link: #id=<id> (or #id=<group>:<id> when an id is used in two groups).
 // Options: ?turn=0 stops the turntable, ?bg=dark|light|sky, ?anim=run|attack|...
+// ?scale=true opens in True scale: one fixed camera for every model with Percy
+// standing beside it, so a hellhound dwarfs a pup (the default view fits each
+// model to the frame, which hides size).
 import * as THREE from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
@@ -18,6 +21,7 @@ const el = (tag, props = {}, ...kids) => {
   return e;
 };
 const status = (msg) => { $('status').textContent = msg; };
+const PX = 0.058;   // world units per skin pixel (js/entities/character.js)
 const pretty = (s) => String(s).replace(/[_-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
 // ------------------------------------------------------------------ registries
@@ -190,7 +194,7 @@ async function photograph(item) {
     renderer.setRenderTarget(thumbRT); renderer.render(scene, thumbCam); renderer.setRenderTarget(null);
     rig.root.removeFromParent();   // out of the scene before the async read-back, or the viewer draws it too
     scene.background = bg; holder.visible = true; refGroup.visible = refVis;
-    if (current) fitLights(current.m.center, current.m.r);
+    if (current) { const f = viewFrame(); fitLights(f.c, f.r); }
     const buf = await renderer.readRenderTargetPixelsAsync(thumbRT, 0, 0, TS, TS);
     const px = buf instanceof Uint8Array || buf instanceof Uint8ClampedArray ? buf : Uint8Array.from(buf, (v) => Math.max(0, Math.min(255, v * 255)));
     // WebGPU pads every read-back row to a multiple of 256 bytes (176 px is 704
@@ -292,6 +296,9 @@ let turning = q.get('turn') !== '0';
 let anim = ANIM_FROM_URL();
 let animT = 0, animCycle = 0, animError = null;
 let wire = false, showBox = false, showRef = false, boxHelper = null;
+let trueScale = q.has('scale') ? q.get('scale') === 'true' : (() => { try { return localStorage.getItem('wb-true-scale') === '1'; } catch { return false; } })();
+const TRUE_C = new THREE.Vector3(-0.9, 1.7, 0), TRUE_R = 3.4;   // the fixed True scale frame: Percy and a model up to a full hellhound
+let percyH = 0;                                                  // Percy's height in blocks, measured from the reference figure
 const wired = [];         // materials switched to wireframe, restored on switch
 const fakeEntity = { state: 'idle', swooping: false };
 function ANIM_FROM_URL() { return q.get('anim') || 'idle'; }
@@ -325,7 +332,7 @@ let silhouette = null;
 function buildRef() {
   refGroup.clear();
   if (!current?.m) return;
-  const { m } = current, x = m.center.x - m.r * 1.05 - 1.4;
+  const { m } = current, x = trueScale ? Math.min(-0.3, m.box.min.x - 0.5) : m.center.x - m.r * 1.05 - 1.4;
   const cube = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardNodeMaterial({ color: 0xc9963a, roughness: 0.7, transparent: true, opacity: 0.55 }));
   cube.position.set(x, 0.5, m.center.z); cube.castShadow = true;
   const edges = new THREE.LineSegments(new THREE.EdgesGeometry(cube.geometry), new THREE.LineBasicNodeMaterial({ color: 0xf0c867 })); cube.add(edges);
@@ -335,18 +342,36 @@ function buildRef() {
       const r = models.buildHeroModel('percy'), mat = new THREE.MeshStandardNodeMaterial({ color: 0x7a6a50, roughness: 0.9 });
       r.root.traverse((o) => { if (o.isMesh) { o.material = mat; o.castShadow = true; } });
       silhouette = r;
+      r.root.updateMatrixWorld(true); percyH = new THREE.Box3().setFromObject(r.root).getSize(new THREE.Vector3()).y;
     } catch (e) { console.warn('workbench: reference hero failed', e); }
   }
-  if (silhouette) { silhouette.root.position.set(x - 1.3, 0, m.center.z); silhouette.root.rotation.y = 0.45; refGroup.add(silhouette.root); }
-  refGroup.visible = showRef;
+  if (silhouette) { silhouette.root.position.set(x - 1.3, 0, trueScale ? 0 : m.center.z); silhouette.root.rotation.y = 0.45; refGroup.add(silhouette.root); }
+  refGroup.visible = showRef || trueScale;
+}
+// The view's frame: fitted to the model, or in True scale one fixed frame
+// for every model (grown only when a model and Percy do not fit in it).
+function viewFrame() {
+  const { m } = current;
+  if (!trueScale) return { c: m.center, r: m.r };
+  const box = m.box.clone(); refGroup.updateMatrixWorld(true); if (silhouette?.root.parent) box.expandByObject(silhouette.root);
+  const pts = [box.min, box.max, new THREE.Vector3(box.min.x, box.min.y, box.max.z), new THREE.Vector3(box.max.x, box.max.y, box.min.z)];
+  if (pts.every((p) => p.distanceTo(TRUE_C) <= TRUE_R)) return { c: TRUE_C, r: TRUE_R };
+  const s = box.getBoundingSphere(new THREE.Sphere());
+  return { c: s.center, r: Math.max(TRUE_R, s.radius) };
 }
 function resetView() {
   if (!current) return;
-  const { m } = current, fov = THREE.MathUtils.degToRad(camera.fov / 2);
-  const d = Math.max(m.r / Math.sin(fov), m.r / Math.sin(Math.atan(Math.tan(fov) * camera.aspect))) * 1.3;
-  controls.target.copy(m.center);
-  camera.position.copy(m.center).addScaledVector(new THREE.Vector3(0.45, 0.28, 1).normalize(), d);
-  controls.minDistance = m.r * 0.35; controls.maxDistance = m.r * 12; controls.update();
+  const { c, r } = viewFrame(), fov = THREE.MathUtils.degToRad(camera.fov / 2);
+  const d = Math.max(r / Math.sin(fov), r / Math.sin(Math.atan(Math.tan(fov) * camera.aspect))) * (trueScale ? 1.1 : 1.3);
+  controls.target.copy(c);
+  camera.position.copy(c).addScaledVector(new THREE.Vector3(0.45, 0.28, 1).normalize(), d);
+  controls.minDistance = r * 0.35; controls.maxDistance = r * 12; controls.update();
+  if (trueScale) fitLights(c, r);
+}
+function setTrueScale(on) {
+  trueScale = on; $('b-scale').setAttribute('aria-pressed', String(on));
+  try { localStorage.setItem('wb-true-scale', on ? '1' : '0'); } catch { /* storage blocked */ }
+  if (current?.m) { if (!on) fitLights(current.m.center, current.m.r); buildRef(); resetView(); renderInspector(); }
 }
 
 function select(item, { fromHash = false } = {}) {
@@ -358,7 +383,7 @@ function select(item, { fromHash = false } = {}) {
     rig.root.rotation.y = 0.45; holder.add(rig.root);
     current.m = measure(rig);
     fitLights(current.m.center, current.m.r);
-    resetView(); buildRef();
+    buildRef(); resetView();
     if (showBox) { boxHelper = new THREE.Box3Helper(current.m.box, 0x4ad0ff); scene.add(boxHelper); }
     if (wire) setWire(true);
     status('');
@@ -466,7 +491,7 @@ function renderInspector() {
   if (rig && m) {
     const extras = Object.keys(rig.extras ?? {});
     box.append(sect('Geometry',
-      table({ triangles: m.tris.toLocaleString(), meshes: m.meshes, materials: m.mats, 'size (blocks)': `${m.size.x.toFixed(2)} × ${m.size.y.toFixed(2)} × ${m.size.z.toFixed(2)}  (w × h × d)`, 'root scale': +rig.root.scale.x.toFixed(3), parts: extras.length ? extras.join(', ') : '–' })));
+      table({ triangles: m.tris.toLocaleString(), meshes: m.meshes, materials: m.mats, 'size (blocks)': `${m.size.x.toFixed(2)} × ${m.size.y.toFixed(2)} × ${m.size.z.toFixed(2)}  (w × h × d)`, 'height vs Percy': percyH ? `× ${(m.size.y / percyH).toFixed(2)}` : '–', 'root scale': +rig.root.scale.x.toFixed(3), 'voxel (blocks)': +(rig.root.scale.x * PX).toFixed(4), parts: extras.length ? extras.join(', ') : '–' })));
     const can = typeof rig.animate === 'function';
     box.append(sect('Animation', can ? el('div', { class: 'row', id: 'anim-row' }, Object.entries(ANIMS).map(([id, a]) => el('button', { 'data-anim': id, 'aria-pressed': String(anim === id), onclick: () => { anim = id; animT = 0; animCycle = 0; document.querySelectorAll('[data-anim]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.anim === id))); }, text: a.label })))
       : el('div', { class: 'dim', text: 'This model has no rig animation.' }),
@@ -475,7 +500,8 @@ function renderInspector() {
     box.append(sect('View',
       el('label', { class: 'chk' }, el('input', { type: 'checkbox', checked: wire, onchange: (e) => setWire(e.target.checked) }), 'Wireframe'),
       el('label', { class: 'chk' }, el('input', { type: 'checkbox', checked: showBox, onchange: (e) => { showBox = e.target.checked; if (boxHelper) { boxHelper.removeFromParent(); boxHelper = null; } if (showBox) { boxHelper = new THREE.Box3Helper(current.m.box, 0x4ad0ff); scene.add(boxHelper); } } }), 'Bounding box'),
-      el('label', { class: 'chk' }, el('input', { type: 'checkbox', checked: showRef, onchange: (e) => { showRef = e.target.checked; refGroup.visible = showRef; } }), 'Scale reference (1 block + Percy)'),
+      el('label', { class: 'chk' }, el('input', { type: 'checkbox', checked: showRef, onchange: (e) => { showRef = e.target.checked; refGroup.visible = showRef || trueScale; } }), 'Scale reference (1 block + Percy)'),
+      el('label', { class: 'chk' }, el('input', { type: 'checkbox', checked: trueScale, onchange: (e) => setTrueScale(e.target.checked) }), 'True scale (fixed camera, Percy beside it)'),
       el('div', { class: 'dim', text: 'True Sight is not offered: character materials do not read the sight uniform.' })));
   }
   const key = `wb-notes:${item.key}`;
@@ -489,6 +515,8 @@ function syncTurn() { $('b-turn').setAttribute('aria-pressed', String(turning));
 syncTurn();
 $('b-turn').onclick = () => { turning = !turning; syncTurn(); };
 $('b-reset').onclick = resetView;
+$('b-scale').setAttribute('aria-pressed', String(trueScale));
+$('b-scale').onclick = () => setTrueScale(!trueScale);
 $('b-bg').onclick = () => { const k = Object.keys(BGS); bgName = k[(k.indexOf(bgName) + 1) % k.length]; applyBg(); };
 $('b-link').onclick = async () => {
   if (!current) return;
@@ -510,7 +538,7 @@ addEventListener('keydown', (e) => {
   else if (k === 'Enter' && cursor && document.activeElement?.tagName !== 'BUTTON') select(cursor);
   else if (k === 'PageUp') { e.preventDefault(); cycleGroup(-1); } else if (k === 'PageDown') { e.preventDefault(); cycleGroup(1); }
   else if (k === ' ' && document.activeElement?.tagName !== 'BUTTON') { e.preventDefault(); $('b-turn').click(); }
-  else if (k === 'r' || k === 'R') resetView(); else if (k === 'b' || k === 'B') $('b-bg').click();
+  else if (k === 'r' || k === 'R') resetView(); else if (k === 't' || k === 'T') setTrueScale(!trueScale); else if (k === 'b' || k === 'B') $('b-bg').click();
 });
 function fromHash() {
   const id = new URLSearchParams(location.hash.slice(1)).get('id');

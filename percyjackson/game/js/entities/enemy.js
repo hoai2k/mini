@@ -496,7 +496,7 @@ export class Enemy {
         case 'ranged': case 'summon': {
           const keep = this.def.keep;
           // back off when a hero closes in, but only twice; then stand and fight
-          const back = d < keep - 1.5 && (this.retreats < 2 || ai === 'summon');
+          const back = d < keep - 1.5 && (this.retreats < 2 || ai === 'summon') && !this.def.pummel;   // (a brawler stands its ground)
           if (back && !this.retreating) { this.retreating = true; this.retreats++; }
           if (this.retreating && (d >= keep || !back)) this.retreating = false;
           if (d > this.def.range) move.copy(this.steer(toT));
