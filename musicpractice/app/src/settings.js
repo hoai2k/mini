@@ -86,7 +86,8 @@ export const DEFAULTS = Object.freeze({
   subOn: false, // Add eighth notes (or triplets, sixteenths)
   subKind: 2, // which: 2 eighths, 3 triplets, 4 sixteenths, kept while off
   accentPattern: null,
-  tempoGenre: 'classical', // the tempo picker's style
+  tempoGenre: 'classical', // the tempo picker's style, which also names the tempo under the number
+  tempoPicked: null, // the name last chosen in the picker (its id), which keeps its name for a tempo two names share
   tempoDefaults: {}, // a named tempo's button, where one was chosen from its list: { 'jazz:ballad': 66 } // custom strong beats for the current time signature: { meter, pos } (cleanPattern)
   swing: true, // the pendulum swings on each beat (a tap on the metronome turns it on or off)
   // Under the metronome (a tap there moves to the next): 'dots' (a small dot
@@ -219,6 +220,7 @@ export function sanitize(raw) {
     subKind: oneOf(s.subKind, [2, 3, 4], oneOf(s.subdivision, [2, 3, 4], DEFAULTS.subKind)),
     subOn: typeof s.subOn === 'boolean' ? s.subOn : [2, 3, 4].includes(s.subdivision),
     tempoGenre: oneOf(s.tempoGenre, GENRE_IDS, DEFAULTS.tempoGenre),
+    tempoPicked: typeof s.tempoPicked === 'string' && s.tempoPicked.length < 40 ? s.tempoPicked : null,
     tempoDefaults: cleanTempoDefaults(s.tempoDefaults),
     accentPattern: cleanPattern(s.accentPattern, oneOf(s.meter, METERS.map((m) => m.id), DEFAULTS.meter)),
     ...metronomeLook(s),
