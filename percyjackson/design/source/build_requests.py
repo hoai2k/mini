@@ -1312,6 +1312,32 @@ REQUESTS += [
     },
 ]
 
+# Round 5 (continued): the open world's cannon fodder, a swarm with a look of
+# its own for each part of the map (entities/monsters.js; owLayout.js and
+# rtLayout.js say where each roams).
+REQUESTS += [
+    {
+        "id": "vox-ow-fodder",
+        "group": OW_GROUP,
+        "title": "Open-world fodder: the swarms you plow through",
+        "size": "2400 × 1600",
+        "references": ["vox-key", "vox-enemies", "vox-spartoi"],
+        "use": "Models for the weak swarm monsters of the open world and the Road West (entities/monsters.js): karpoi, myrmekes, giant crabs and shades.",
+        "prompt": (
+            "A sheet of four small blocky voxel monster kinds, each shown three times in a little "
+            "pack (front, side, mid-attack) beside a blocky Percy for scale, readable from the high "
+            "three-quarter camera: karpoi, knee-high grain spirits made of wheat stalks and corn "
+            "husks with glowing green eyes and grabby straw hands, scampering in a mob; myrmekes, "
+            "dog-sized giant ants in shiny black-and-bronze armour with pincers, one spitting a "
+            "green acid blob; giant crabs, waist-high red-and-orange shore crabs with barnacles, "
+            "one big claw raised; and shades, wispy grey-blue ghosts of the dead in tattered "
+            "robes with hollow faces, drifting in a crowd. Each kind small and numerous-looking, "
+            "clearly weaker than a hellhound. "
+            f"{VOXEL_STYLE} Flat light-grey background. {NO_TEXT}"
+        ),
+    },
+]
+
 def path_for(item: dict) -> Path:
     if item.get("dest") == "game":
         return GAME / f"{item['id']}.png"
