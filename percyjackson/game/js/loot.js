@@ -22,35 +22,62 @@ export const RARITY = {
 export const BLESSED = { label: t('rarity.blessed'), color: '#ffd84a', powerBonus: 2 };
 export const KIND_LABEL = { weapon: t('loot.kind.weapon'), armor: t('loot.kind.armor'), artifact: t('loot.kind.artifact') };
 
-// Enchantments. `stat` folds into the hero's stats, `proc` turns on an effect
-// in combat. Costs per level: 1/2/3, powerful ones 2/3/4.
+// Enchantments. `stat` folds into the hero's stats (s, level, pm: the
+// item's strength), `proc` turns on an effect in combat (combat.js,
+// entities/player.js, main.js onEnemyKilled). Costs per level: 1/2/3,
+// powerful ones 2/3/4. `icon` shows next to the name; every enchantment has
+// a plain-words line (enchantments.<id>.plain) and a detail with numbers.
+// Damage bonuses multiply (meleePct / techPct), so they stay worth having
+// on a level-12 sword as on the training sword.
 export const ENCHANTS = {
   // weapons
-  sharpness: { name: t('enchantments.sharpness.name'), desc: (l) => t('enchantments.sharpness.desc', { n: l * 10 }), for: ['weapon'], stat: (s, l) => { s.meleeMult += 0.1 * l; } },
-  swirling: { name: t('enchantments.swirling.name'), desc: (l) => t('enchantments.swirling.desc', { n: 40 + l * 20 }), for: ['weapon'], proc: 'swirl' },
-  committed: { name: t('enchantments.committed.name'), desc: (l) => t('enchantments.committed.desc', { n: l * 15 }), for: ['weapon'], stat: (s, l) => { s.committed += 0.15 * l; } },
-  rampaging: { name: t('enchantments.rampaging.name'), desc: (l) => t('enchantments.rampaging.desc', { n: l * 10 }), for: ['weapon'], proc: 'rampage' },
-  leeching: { name: t('enchantments.leeching.name'), desc: (l) => t('enchantments.leeching.desc', { n: l * 2 }), for: ['weapon'], proc: 'leech' },
-  exploding: { name: t('enchantments.exploding.name'), desc: (l) => t('enchantments.exploding.desc', { n: l * 20 }), for: ['weapon'], proc: 'explode', powerful: true },
-  freezing: { name: t('enchantments.freezing.name'), desc: (l) => t('enchantments.freezing.desc', { n: (1 + l * 0.4).toFixed(1) }), for: ['weapon'], proc: 'freeze' },
-  critical: { name: t('enchantments.critical.name'), desc: (l) => t('enchantments.critical.desc', { n: l * 5 }), for: ['weapon', 'artifact'], stat: (s, l) => { s.crit += 0.05 * l; } },
-  thundering: { name: t('enchantments.thundering.name'), desc: (l) => t('enchantments.thundering.desc', { n: l * 8 }), for: ['weapon'], proc: 'thunder', powerful: true },
-  echo: { name: t('enchantments.echo.name'), desc: (l) => t('enchantments.echo.desc', { n: l * 10 }), for: ['weapon'], proc: 'echo' },
-  bane: { name: t('enchantments.bane.name'), desc: (l) => t('enchantments.bane.desc', { n: l * 20 }), for: ['weapon'], stat: (s, l) => { s.bane += 0.2 * l; } },
+  sharpness: { icon: '🗡️', name: t('enchantments.sharpness.name'), desc: (l) => t('enchantments.sharpness.desc', { n: l * 10 }), for: ['weapon'], stat: (s, l) => { s.meleePct += 0.1 * l; } },
+  swirling: { icon: '🌀', name: t('enchantments.swirling.name'), desc: (l) => t('enchantments.swirling.desc', { n: 40 + l * 20 }), for: ['weapon'], proc: 'swirl' },
+  committed: { icon: '🎯', name: t('enchantments.committed.name'), desc: (l) => t('enchantments.committed.desc', { n: l * 15 }), for: ['weapon'], stat: (s, l) => { s.committed += 0.15 * l; } },
+  rampaging: { icon: '😤', name: t('enchantments.rampaging.name'), desc: (l) => t('enchantments.rampaging.desc', { n: l * 10 }), for: ['weapon'], proc: 'rampage' },
+  leeching: { icon: '🍯', name: t('enchantments.leeching.name'), desc: (l) => t('enchantments.leeching.desc', { n: l * 2 }), for: ['weapon'], proc: 'leech' },
+  lifesteal: { icon: '❤️', name: t('enchantments.lifesteal.name'), desc: (l) => t('enchantments.lifesteal.desc', { n: PROC.lifesteal(l) * 100 }), for: ['weapon'], stat: (s, l) => { s.lifesteal += PROC.lifesteal(l); } },
+  fire_aspect: { icon: '🔥', name: t('enchantments.fire_aspect.name'), desc: (l) => t('enchantments.fire_aspect.desc', { n: Math.round(PROC.burn(l) * 100), s: PROC.burnFor }), for: ['weapon'], proc: 'burn' },
+  exploding: { icon: '💥', name: t('enchantments.exploding.name'), desc: (l) => t('enchantments.exploding.desc', { n: l * 20 }), for: ['weapon'], proc: 'explode', powerful: true },
+  freezing: { icon: '❄️', name: t('enchantments.freezing.name'), desc: (l) => t('enchantments.freezing.desc', { n: (1 + l * 0.4).toFixed(1), c: Math.round(PROC.freeze(l) * 100) }), for: ['weapon'], proc: 'freeze' },
+  chain_lightning: { icon: '⛓️', name: t('enchantments.chain_lightning.name'), desc: (l) => t('enchantments.chain_lightning.desc', { c: Math.round(PROC.chain(l) * 100), n: PROC.chainTargets(l), d: Math.round(PROC.chainDmg * 100) }), for: ['weapon'], proc: 'chain', powerful: true },
+  shockwave: { icon: '💨', name: t('enchantments.shockwave.name'), desc: (l) => t('enchantments.shockwave.desc', { c: Math.round(PROC.shock(l) * 100) }), for: ['weapon'], proc: 'shock' },
+  critical: { icon: '👁️', name: t('enchantments.critical.name'), desc: (l) => t('enchantments.critical.desc', { n: l * 5 }), for: ['weapon', 'artifact'], stat: (s, l) => { s.crit += 0.05 * l; } },
+  thundering: { icon: '⚡', name: t('enchantments.thundering.name'), desc: (l) => t('enchantments.thundering.desc', { n: l * 8 }), for: ['weapon'], proc: 'thunder', powerful: true },
+  echo: { icon: '🔁', name: t('enchantments.echo.name'), desc: (l) => t('enchantments.echo.desc', { n: l * 10 }), for: ['weapon'], proc: 'echo' },
+  bane: { icon: '👑', name: t('enchantments.bane.name'), desc: (l) => t('enchantments.bane.desc', { n: l * 20 }), for: ['weapon'], stat: (s, l) => { s.bane += 0.2 * l; } },
   // armour
-  health: { name: t('enchantments.health.name'), desc: (l) => t('enchantments.health.desc', { n: l * 15 }), for: ['armor'], stat: (s, l) => { s.maxHp += 15 * l; } },
-  protection: { name: t('enchantments.protection.name'), desc: (l) => t('enchantments.protection.desc', { n: l * 6 }), for: ['armor'], stat: (s, l) => { s.armor += 0.06 * l; } },
-  swiftness: { name: t('enchantments.swiftness.name'), desc: (l) => t('enchantments.swiftness.desc', { n: l * 6 }), for: ['armor'], stat: (s, l) => { s.speed += 0.06 * l; } },
-  cooldown: { name: t('enchantments.cooldown.name'), desc: (l) => t('enchantments.cooldown.desc', { n: l * 8, n2: l * 4 }), for: ['armor', 'artifact'], stat: (s, l) => { s.cdr += 0.08 * l; } },
-  surge: { name: t('enchantments.surge.name'), desc: (l) => t('enchantments.surge.desc', { n: l * 15 }), for: ['armor', 'artifact'], stat: (s, l) => { s.ceGain += 0.15 * l; } },
-  potency: { name: t('enchantments.potency.name'), desc: (l) => t('enchantments.potency.desc', { n: l * 10 }), for: ['armor', 'artifact'], stat: (s, l) => { s.techMult += 0.1 * l; } },
-  vitality: { name: t('enchantments.vitality.name'), desc: (l) => t('enchantments.vitality.desc', { n: l * 10 }), for: ['armor'], stat: (s, l) => { s.healBonus += 0.1 * l; } },
-  nectar: { name: t('enchantments.nectar.name'), desc: (l) => t('enchantments.nectar.desc', { n: l * 12 }), for: ['armor', 'artifact'], stat: (s, l) => { s.flaskCdr += 0.12 * l; } },
-  quiver: { name: t('enchantments.quiver.name'), desc: (l) => t('enchantments.quiver.desc', { n: l * 5 }), for: ['armor'], stat: (s, l) => { s.quiver += 5 * l; } },
-  thorns: { name: t('enchantments.thorns.name'), desc: (l) => t('enchantments.thorns.desc', { n: l * 25 }), for: ['armor'], stat: (s, l) => { s.thorns += 0.25 * l; } },
-  embers: { name: t('enchantments.embers.name'), desc: (l) => t('enchantments.embers.desc', { n: l * 6 }), for: ['armor'], proc: 'embers', powerful: true },
-  evasion: { name: t('enchantments.evasion.name'), desc: (l) => t('enchantments.evasion.desc', { n: l * 4 }), for: ['armor'], stat: (s, l) => { s.evade += 0.04 * l; } },
-  lucky: { name: t('enchantments.lucky.name'), desc: (l) => t('enchantments.lucky.desc', { n: l * 25 }), for: ['armor', 'artifact'], stat: (s, l) => { s.luck += 0.25 * l; } },
+  health: { icon: '💗', name: t('enchantments.health.name'), desc: (l) => t('enchantments.health.desc', { n: l * 15 }), for: ['armor'], stat: (s, l, pm = 1) => { s.maxHp += 15 * l * pm; } },
+  protection: { icon: '🛡️', name: t('enchantments.protection.name'), desc: (l) => t('enchantments.protection.desc', { n: l * 6 }), for: ['armor'], stat: (s, l) => { s.armor += 0.06 * l; } },
+  swiftness: { icon: '👟', name: t('enchantments.swiftness.name'), desc: (l) => t('enchantments.swiftness.desc', { n: l * 6 }), for: ['armor'], stat: (s, l) => { s.speed += 0.06 * l; } },
+  speed_synergy: { icon: '🪽', name: t('enchantments.speed_synergy.name'), desc: (l) => t('enchantments.speed_synergy.desc', { n: PROC.hasteFor(l) }), for: ['armor'], proc: 'haste' },
+  cooldown: { icon: '⏱️', name: t('enchantments.cooldown.name'), desc: (l) => t('enchantments.cooldown.desc', { n: l * 8, n2: l * 4 }), for: ['armor', 'artifact'], stat: (s, l) => { s.cdr += 0.08 * l; } },
+  surge: { icon: '🌟', name: t('enchantments.surge.name'), desc: (l) => t('enchantments.surge.desc', { n: l * 15 }), for: ['armor', 'artifact'], stat: (s, l) => { s.ceGain += 0.15 * l; } },
+  potency: { icon: '✨', name: t('enchantments.potency.name'), desc: (l) => t('enchantments.potency.desc', { n: l * 10 }), for: ['armor', 'artifact'], stat: (s, l) => { s.techPct += 0.1 * l; } },
+  vitality: { icon: '☀️', name: t('enchantments.vitality.name'), desc: (l) => t('enchantments.vitality.desc', { n: l * 10 }), for: ['armor'], stat: (s, l) => { s.healBonus += 0.1 * l; } },
+  potion_barrier: { icon: '🫧', name: t('enchantments.potion_barrier.name'), desc: (l) => t('enchantments.potion_barrier.desc', { n: PROC.barrierFor(l) }), for: ['armor'], proc: 'barrier' },
+  nectar: { icon: '🍷', name: t('enchantments.nectar.name'), desc: (l) => t('enchantments.nectar.desc', { n: l * 12 }), for: ['armor', 'artifact'], stat: (s, l) => { s.flaskCdr += 0.12 * l; } },
+  quiver: { icon: '🏹', name: t('enchantments.quiver.name'), desc: (l) => t('enchantments.quiver.desc', { n: l * 5 }), for: ['armor'], stat: (s, l) => { s.quiver += 5 * l; } },
+  thorns: { icon: '🌵', name: t('enchantments.thorns.name'), desc: (l) => t('enchantments.thorns.desc', { n: l * 25 }), for: ['armor'], stat: (s, l) => { s.thorns += 0.25 * l; } },
+  embers: { icon: '🔥', name: t('enchantments.embers.name'), desc: (l) => t('enchantments.embers.desc', { n: l * 6 }), for: ['armor'], proc: 'embers', powerful: true },
+  evasion: { icon: '💨', name: t('enchantments.evasion.name'), desc: (l) => t('enchantments.evasion.desc', { n: l * 4 }), for: ['armor'], stat: (s, l) => { s.evade += 0.04 * l; } },
+  lucky: { icon: '🍀', name: t('enchantments.lucky.name'), desc: (l) => t('enchantments.lucky.desc', { n: l * 25 }), for: ['armor', 'artifact'], stat: (s, l) => { s.luck += 0.25 * l; } },
+};
+// The numbers behind the effects (combat.js and player.js use these, so the
+// text and the game always agree). l: the enchantment's level, 1-3.
+export const PROC = {
+  lifesteal: (l) => [0, 0.03, 0.05, 0.07][l] ?? 0.07,   // share of melee damage dealt that heals you
+  burn: (l) => 0.1 + 0.08 * l,                          // a hit's burn per second, as a share of the hit
+  burnFor: 3,                                           // seconds a monster burns
+  freeze: (l) => 0.05 * l,                              // chance a hit freezes a monster solid
+  freezeFor: 1.2,                                       // seconds frozen solid
+  chain: (l) => [0, 0.15, 0.22, 0.3][l] ?? 0.3,         // chance a hit sends lightning leaping
+  chainTargets: (l) => l + 1,                           // monsters it leaps to
+  chainDmg: 0.4, chainRange: 6,                          // share of the hit, metres between leaps
+  shock: (l) => [0, 0.12, 0.18, 0.24][l] ?? 0.24,       // chance a hit bursts out, shoving monsters back
+  shockDmg: 0.3, shockRadius: 3.2, shockKnock: 7,
+  hasteFor: (l) => 2 + l,                                // seconds of +30% speed after a magic item
+  barrierFor: (l) => 1 + l,                              // seconds of half damage after Ambrosia
 };
 export const enchCost = (id, toLevel) => toLevel + (ENCHANTS[id]?.powerful ? 1 : 0);
 
