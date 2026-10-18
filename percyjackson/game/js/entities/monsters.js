@@ -675,7 +675,7 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
   // the coat's budget: a hound built bigger (a champion or the alpha, parts.js
   // BUILD.k) has its tufts and clumps made finer by the kit, which alone
   // would cost k squared in blocks; here the count grows with k only, so an
-  // elite stays near 17k triangles and a champion under 25k
+  // elite stays near 19k triangles and a champion under 25k
   const D = BUILD.k, fe = nFur / 170 * 0.6 / D, ss = 1.3 * Math.sqrt(D), fang = 0xe6dcc0, claw = 0xe0a428;
   // a limb segment from a to b ([y, z] in the part's frame), tilted about x
   // coat a limb segment with short blocky fur, so no face is left flat

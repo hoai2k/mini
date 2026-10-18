@@ -116,7 +116,7 @@ export class SerpentRig {
         case 'sniff': case 'eat': Object.assign(T, P_LOW); T.hx = Math.sin(t * 1.4) * 2; snap = 8; break;
         case 'raise': case 'sign': case 'cast': Object.assign(T, P_COCK); T.jaw = 0.5; T.hx = Math.sin(t * 6) * 0.4; snap = 14; break;
         case 'dodge': Object.assign(T, P_LOW); snap = 30; break;
-        case 'death': case 'down': { const e = a.type === 'down' ? 1 : easeInCubic(clamp(k * 1.5, 0, 1)); blendInto(T, P_HIT, P_DEAD, e); dead = true; wave = 0; amp = 0.55 * e + 0.3; snap = 16; break; }
+        case 'death': case 'down': { const e = a.type === 'down' ? 1 : easeOutCubic(clamp((k - 0.08) * 2.6, 0, 1));   // (a jolt back, then it slumps fast: Enemy shrinks it away within half a second) blendInto(T, P_HIT, P_DEAD, e); dead = true; wave = 0; amp = 0.55 * e + 0.3; snap = 30; break; }
       }
     }
     const P = this.pose;
