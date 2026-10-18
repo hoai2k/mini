@@ -8,6 +8,7 @@ import { Player, probe } from './player.js';
 import { Queue } from './queue.js';
 import { readTags, fromFileName } from './tags.js';
 import { findArtwork, cleanAlbum, RateLimited } from './artwork.js';
+import { AUTO_RULES, syncAuto, removeFromAll, restoreToAll, mosaicKeys, uniqueName, newId } from './playlists.js';
 import { icon } from './icons.js';
 import {
   artistOf, albumArtistOf, albumOf, titleOf, albumKey, fold, reconcileOrder, sortTracks, SORTS, moveItem,
@@ -34,12 +35,14 @@ const SESSION_KEY = 'mp3player.session';
 const load = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } };
 const save = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private mode or full */ } };
 
-const prefs = { tab: 'songs', sort: 'custom', volume: 1, onlineArt: true, ...load(PREFS_KEY, {}) };
+const prefs = { tab: 'songs', sort: 'custom', volume: 1, onlineArt: true, autoPlaylists: true, ...load(PREFS_KEY, {}) };
 const savePrefs = () => save(PREFS_KEY, prefs);
 
 /** @type {Map<string, object>} */
 const tracks = new Map();
 let order = []; // custom order of track ids
+let playlists = []; // see playlists.js
+let autoState = { excluded: {}, dismissed: {} }; // what the listener undid in the automatic playlists
 let queue = new Queue();
 const player = new Player();
 const ui = { query: '', editing: false, route: { name: 'library' }, scroll: new Map(), sleep: null };
@@ -191,9 +194,50 @@ async function loadLibrary() {
   }
   for (const t of all) if (!t.removed) tracks.set(t.id, t);
   order = reconcileOrder((await store.getMeta('order')) ?? [], visibleTracks());
+  playlists = (await store.getMeta('playlists')) ?? [];
+  autoState = { excluded: {}, dismissed: {}, ...((await store.getMeta('autoPlaylists')) ?? {}) };
+  syncPlaylists();
 }
 
 const saveOrder = () => store.setMeta('order', order).catch(() => {});
+const savePlaylists = () => store.setMeta('playlists', playlists).catch(() => {});
+const saveAutoState = () => store.setMeta('autoPlaylists', autoState).catch(() => {});
+const findPlaylist = (id) => playlists.find((p) => p.id === id);
+
+/** Drop songs that left the library and fill the automatic collections. */
+function syncPlaylists() {
+  const r = syncAuto(playlists, sortTracks(visibleTracks(), 'custom', order), autoState, prefs.autoPlaylists);
+  if (r.changed) { playlists = r.playlists; savePlaylists(); }
+  return r.added;
+}
+
+function setPlaylist(p) {
+  playlists = playlists.map((x) => (x.id === p.id ? p : x));
+  savePlaylists();
+  if (queue.source?.kind === 'playlist' && queue.source.id === p.id) queue.reorderContext(p.ids.filter((id) => tracks.has(id)));
+}
+
+function createPlaylist(name, ids = []) {
+  const p = { id: newId(), name: uniqueName(name, playlists), ids: [...new Set(ids)], createdAt: Date.now() };
+  playlists = [...playlists, p];
+  savePlaylists();
+  return p;
+}
+
+/** Add songs to a playlist (skipping ones already in it); returns how many joined. */
+function addToPlaylist(p, ids) {
+  const fresh = ids.filter((id) => !p.ids.includes(id));
+  if (!fresh.length) return 0;
+  if (p.auto) autoState.excluded[p.auto] = (autoState.excluded[p.auto] ?? []).filter((id) => !fresh.includes(id));
+  setPlaylist({ ...p, ids: [...p.ids, ...fresh] });
+  if (p.auto) saveAutoState();
+  return fresh.length;
+}
+
+function removeFromPlaylist(p, ids) {
+  if (p.auto) { autoState.excluded[p.auto] = [...new Set([...(autoState.excluded[p.auto] ?? []), ...ids])]; saveAutoState(); }
+  setPlaylist({ ...p, ids: p.ids.filter((id) => !ids.includes(id)) });
+}
 
 function songsInView() {
   const list = sortTracks(visibleTracks(), prefs.sort, order);
@@ -204,7 +248,7 @@ function songsInView() {
 
 const view = $('view');
 
-function rowHtml(t, { number, art = true, edit = false } = {}) {
+function rowHtml(t, { number, art = true, edit = false, removeFrom = 'the library' } = {}) {
   const lead = number != null
     ? `<span class="num"><span class="n">${number}</span>${eqHtml()}</span>`
     : art ? `<span ${artAttrs(t.artKey, albumOf(t))}>${eqHtml()}</span>` : '';
@@ -214,7 +258,7 @@ function rowHtml(t, { number, art = true, edit = false } = {}) {
     <button class="row-main" type="button">${lead}<span class="meta"><span class="t">${esc(titleOf(t))}</span><span class="s">${sub}</span></span>
       <span class="dur">${formatTime(t.duration)}</span></button>
     ${edit
-      ? `<button class="icon-btn remove" type="button" aria-label="Remove ${esc(titleOf(t))} from the library">${icon('minus')}</button>`
+      ? `<button class="icon-btn remove" type="button" aria-label="Remove ${esc(titleOf(t))} from ${removeFrom}">${icon('minus')}</button>`
       : `<button class="icon-btn more" type="button" aria-label="More for ${esc(titleOf(t))}">${icon('more')}</button>`}
   </li>`;
 }
@@ -244,7 +288,7 @@ function renderLibrary() {
     view.innerHTML = emptyHtml();
     return;
   }
-  const tabs = ['songs', 'albums', 'artists'].map((t) => `<button class="chip${prefs.tab === t ? ' on' : ''}" type="button" role="tab" aria-selected="${prefs.tab === t}" data-tab="${t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join('');
+  const tabs = ['songs', 'playlists', 'albums', 'artists'].map((t) => `<button class="chip${prefs.tab === t ? ' on' : ''}" type="button" role="tab" aria-selected="${prefs.tab === t}" data-tab="${t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join('');
   let body = '';
   if (prefs.tab === 'songs') {
     const list = songsInView();
@@ -265,6 +309,15 @@ function renderLibrary() {
       ${ui.editing ? `<p class="hint">${canDrag ? 'Drag ≡ to put songs in any order, or tap − to take a song out of the library (the file stays on your device).' : 'Clear the search to reorder.'}</p>` : ''}
       ${list.length ? `<ol class="rows" id="songRows" data-context="songs">${list.map((t) => rowHtml(t, { edit: ui.editing })).join('')}</ol>`
         : `<p class="nothing">No songs match “${esc(ui.query)}”.</p>`}`;
+  } else if (prefs.tab === 'playlists') {
+    body = `<ul class="rows playlists">
+      <li class="row"><button class="row-main" type="button" data-act="new-playlist"><span class="art new-pl" aria-hidden="true">${icon('plus')}</span>
+        <span class="meta"><span class="t">New playlist</span><span class="s">Make a list of songs in any order</span></span></button></li>
+      ${playlists.map((p) => `<li class="row"><button class="row-main" type="button" data-playlist="${esc(p.id)}">${mosaicHtml(p)}
+        <span class="meta"><span class="t">${esc(p.name)}</span><span class="s">${p.auto && prefs.autoPlaylists ? 'Automatic · ' : 'Playlist · '}${plural(p.ids.length, 'song')}</span></span>
+      </button></li>`).join('')}
+    </ul>
+    ${playlists.length ? '' : `<p class="nothing">No playlists yet. Make one here, or pick “Add to playlist” in any song’s ⋯ menu.</p>`}`;
   } else if (prefs.tab === 'albums') {
     body = `<div class="grid">${groupAlbums(all).map((a) => `
       <button class="card" type="button" data-album="${esc(a.key)}">
@@ -287,7 +340,7 @@ function artistArt(a, cls) {
   return `<span ${artAttrs(a.artKey, a.name, cls)}></span>`;
 }
 
-function collectionHead({ artHtml, kind, title, sub, ctx }) {
+function collectionHead({ artHtml, kind, title, sub, ctx, extra = '' }) {
   return `<div class="collection-head">
     <button class="icon-btn back" type="button" data-act="back" aria-label="Back">${icon('back')}</button>
     ${artHtml}
@@ -297,6 +350,7 @@ function collectionHead({ artHtml, kind, title, sub, ctx }) {
       <p class="sub">${sub}</p>
     </div>
     <div class="collection-actions">
+      ${extra}
       <button class="round-btn" type="button" data-act="shuffle-ctx" data-ctx="${ctx}" aria-label="Shuffle play">${icon('shuffle')}</button>
       <button class="play-btn" type="button" data-act="play-ctx" data-ctx="${ctx}" aria-label="Play">${icon('play')}</button>
     </div>
@@ -339,9 +393,39 @@ function renderArtist(key) {
     <ol class="rows" data-context="artist">${a.tracks.map((t) => rowHtml(t)).join('')}</ol>`;
 }
 
+/** A playlist's picture: four covers, one cover, or a stand-in. */
+function mosaicHtml(p, cls = '') {
+  const keys = mosaicKeys(p, tracks);
+  if (keys.length >= 4) return `<span class="art mosaic ${cls}">${keys.map((k) => `<span ${artAttrs(k, k)}></span>`).join('')}</span>`;
+  if (keys.length) return `<span ${artAttrs(keys[0], p.name, cls)}></span>`;
+  return `<span ${artAttrs(null, p.name, `${cls} pl-standin`)}></span>`;
+}
+
+function renderPlaylist(id) {
+  const p = findPlaylist(id);
+  if (!p) return go({ name: 'library' }, { replace: true });
+  const list = p.ids.map((x) => tracks.get(x)).filter(Boolean);
+  const total = list.reduce((n, t) => n + (t.duration || 0), 0);
+  const rule = p.auto && prefs.autoPlaylists ? AUTO_RULES.find((r) => r.key === p.auto) : null;
+  view.innerHTML = collectionHead({
+    artHtml: mosaicHtml(p, 'hero'),
+    kind: rule ? 'Automatic playlist' : 'Playlist', title: p.name,
+    sub: `${plural(list.length, 'song')}${total ? `, ${formatTotal(total)}` : ''}${rule ? ` · songs with “${esc(rule.name.replace(/^No /, '(no ').toLowerCase())})” in the title join by themselves` : ''}`,
+    ctx: 'playlist',
+    extra: `<button class="round-btn" type="button" data-act="pl-add" aria-label="Add songs">${icon('plus')}</button>
+      <button class="round-btn${ui.editing ? ' on' : ''}" type="button" data-act="edit" aria-label="${ui.editing ? 'Done' : 'Edit'}">${icon(ui.editing ? 'check' : 'edit')}</button>
+      <button class="round-btn" type="button" data-act="pl-more" aria-label="More for this playlist">${icon('more')}</button>`,
+  }) + (ui.editing && list.length ? '<p class="hint">Drag ≡ to reorder, or tap − to take a song out of this playlist (it stays in your library).</p>' : '')
+    + (list.length ? `<ol class="rows" data-context="playlist">${list.map((t) => rowHtml(t, { edit: ui.editing, removeFrom: 'this playlist' })).join('')}</ol>`
+      : `<div class="nothing"><p>This playlist is empty.</p><p><button class="pill primary" type="button" data-act="pl-add">${icon('plus')}<span>Add songs</span></button></p></div>`);
+  const hero = view.querySelector('.art.hero:not(.mosaic)');
+  if (hero) fillArt(hero, 'full');
+}
+
 function render() {
   const r = ui.route;
-  if (r.name === 'album') renderAlbum(r.key);
+  if (r.name === 'playlist') renderPlaylist(r.key);
+  else if (r.name === 'album') renderAlbum(r.key);
   else if (r.name === 'artist') renderArtist(r.key);
   else renderLibrary();
   watchArt(view);
@@ -376,8 +460,8 @@ function go(route, { replace = false } = {}) {
     return;
   }
   ui.scroll.set(routeId(ui.route), scrollY);
+  if (routeId(route) !== routeId(ui.route)) ui.editing = false;
   ui.route = route;
-  if (route.name === 'library') ui.editing = false;
   const depth = history.state?.depth ?? 0;
   if (replace) history.replaceState({ route, depth }, '');
   else history.pushState({ route, depth: depth + 1 }, '');
@@ -392,6 +476,7 @@ addEventListener('popstate', (e) => {
   const route = state.route ?? { name: 'library' };
   if (routeId(route) !== routeId(ui.route)) {
     ui.scroll.set(routeId(ui.route), scrollY);
+    ui.editing = false;
     ui.route = route;
     render();
     scrollTo(0, ui.scroll.get(routeId(route)) ?? 0);
@@ -439,6 +524,10 @@ function contextFor(kind) {
   if (kind === 'album' && r.name === 'album') {
     const a = findAlbum(r.key);
     return a && { ids: a.tracks.map((t) => t.id), source: { kind: 'album', id: a.key, label: a.name } };
+  }
+  if (kind === 'playlist' && r.name === 'playlist') {
+    const p = findPlaylist(r.key);
+    return p && { ids: p.ids.filter((id) => tracks.has(id)), source: { kind: 'playlist', id: p.id, label: p.name } };
   }
   if (kind === 'artist' && r.name === 'artist') {
     const a = findArtist(r.key);
@@ -597,7 +686,7 @@ function updateNow() {
   const t = tracks.get(queue.current) ?? player.track;
   if (!t) return;
   const src = queue.source ?? {};
-  $('nowFromKind').textContent = { album: 'Playing from album', artist: 'Playing from artist', search: 'Playing from search' }[src.kind] ?? 'Playing from';
+  $('nowFromKind').textContent = { album: 'Playing from album', artist: 'Playing from artist', playlist: 'Playing from playlist', search: 'Playing from search' }[src.kind] ?? 'Playing from';
   $('nowFromName').textContent = src.label ?? 'Your Library';
   $('nowTitle').textContent = titleOf(t);
   $('nowArtist').textContent = artistOf(t);
@@ -772,15 +861,20 @@ async function trackMenu(id) {
   const t = tracks.get(id);
   if (!t) return;
   const custom = ui.route.name === 'library' && prefs.tab === 'songs' && prefs.sort === 'custom' && !ui.query;
+  const inList = ui.route.name === 'playlist' ? findPlaylist(ui.route.key) : null;
   const v = await sheet(`<div class="sheet-track"><span ${artAttrs(t.artKey, albumOf(t))}></span><span class="meta"><span class="t">${esc(titleOf(t))}</span><span class="s">${esc(artistOf(t))} · ${esc(albumOf(t))}</span></span></div>
     ${item('next', 'playNext', 'Play next')}
     ${item('queue', 'addQueue', 'Add to queue')}
+    ${item('playlist', 'playlist', 'Add to playlist…')}
+    ${inList ? item('unlist', 'minusLine', 'Remove from this playlist') : ''}
     ${item('album', 'album', 'Go to album')}
     ${item('artist', 'person', 'Go to artist')}
     ${custom ? item('top', 'arrowUp', 'Move to the top') + item('bottom', 'arrowDown', 'Move to the bottom') : ''}
     ${item('remove', 'trash', 'Remove from library', 'danger')}`, { label: titleOf(t) });
   if (v === 'next') { queue.playNext(id); toast('Plays next'); saveSession(); }
   else if (v === 'queue') { queue.addToQueue(id); toast('Added to the queue'); saveSession(); }
+  else if (v === 'playlist') addToPlaylistMenu([id]);
+  else if (v === 'unlist' && inList) { removeFromPlaylist(inList, [id]); rerender(); toast(`Removed from ${inList.name}`); }
   else if (v === 'album') go({ name: 'album', key: albumKey(t) });
   else if (v === 'artist') go({ name: 'artist', key: fold(artistOf(t)) });
   else if (v === 'top' || v === 'bottom') {
@@ -789,6 +883,101 @@ async function trackMenu(id) {
     rerender();
   } else if (v === 'remove') removeTracks([id]);
   if (overlay === 'queue') renderQueue();
+}
+
+/** Ask for a name; resolves with it, or null when cancelled. */
+function promptName(title, value = '', ok = 'Save') {
+  const done = sheet(`<h3 class="sheet-title">${esc(title)}</h3>
+    <div class="sheet-field"><input id="nameInput" type="text" maxlength="80" value="${esc(value)}" placeholder="Playlist name" aria-label="Playlist name" autocomplete="off" enterkeyhint="done"></div>
+    <div class="sheet-buttons"><button class="pill" type="button" data-v="">Cancel</button><button class="pill primary" type="button" data-v="ok" id="nameOk">${esc(ok)}</button></div>`, {
+    label: title,
+    onClick: (v) => { if (v === 'ok') nameResult = $('nameInput').value.trim(); },
+  });
+  let nameResult = null;
+  const input = $('nameInput');
+  input.focus();
+  input.select();
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('nameOk').click(); } });
+  return done.then((v) => (v === 'ok' && nameResult ? nameResult : null));
+}
+
+async function newPlaylistFlow(ids = []) {
+  const name = await promptName('New playlist', uniqueName('My playlist', playlists), 'Create');
+  if (!name) return null;
+  const p = createPlaylist(name, ids);
+  toast(ids.length ? `Added to ${p.name}` : `Made ${p.name}`);
+  return p;
+}
+
+async function addToPlaylistMenu(ids) {
+  const v = await sheet(`<h3 class="sheet-title">Add to playlist</h3>
+    ${item('new', 'plus', 'New playlist')}
+    ${playlists.map((p) => `<button class="sheet-item" type="button" data-v="${esc(p.id)}">${mosaicHtml(p, 'small')}<span>${esc(p.name)}<small>${plural(p.ids.length, 'song')}${ids.length === 1 && p.ids.includes(ids[0]) ? ' · already has it' : ''}</small></span></button>`).join('')}`, { label: 'Add to playlist' });
+  if (!v) return;
+  if (v === 'new') { await newPlaylistFlow(ids); rerender(); return; }
+  const p = findPlaylist(v);
+  if (!p) return;
+  const n = addToPlaylist(p, ids);
+  toast(n ? `Added to ${p.name}` : `Already in ${p.name}`);
+  rerender();
+}
+
+/** Pick songs for a playlist: tap to add or take out; the sheet stays open. */
+async function addSongsSheet(pid) {
+  const p0 = findPlaylist(pid);
+  if (!p0) return;
+  const all = sortTracks(visibleTracks(), prefs.sort, order);
+  const rowFor = (t, inIt) => `<button class="sheet-item pick${inIt ? ' on' : ''}" type="button" data-v="${esc(t.id)}" aria-pressed="${inIt}" data-hay="${esc(fold(`${titleOf(t)} ${artistOf(t)} ${albumOf(t)}`))}">
+      <span ${artAttrs(t.artKey, albumOf(t))}></span><span>${esc(titleOf(t))}<small>${esc(artistOf(t))}</small></span>${icon(inIt ? 'check' : 'plus')}</button>`;
+  const done = sheet(`<h3 class="sheet-title">Add songs to ${esc(p0.name)}</h3>
+    <div class="sheet-field"><input id="pickSearch" type="search" placeholder="Search your library" aria-label="Search your library" autocomplete="off"></div>
+    <div class="pick-list">${all.map((t) => rowFor(t, p0.ids.includes(t.id))).join('')}</div>
+    <div class="sheet-buttons sticky"><button class="pill primary" type="button" data-v="done">Done</button></div>`, {
+    label: `Add songs to ${p0.name}`,
+    onClick: (v, b) => {
+      if (v === 'done') return true;
+      const p = findPlaylist(pid);
+      if (!p) return true;
+      const inIt = p.ids.includes(v);
+      if (inIt) removeFromPlaylist(p, [v]); else addToPlaylist(p, [v]);
+      b.classList.toggle('on', !inIt);
+      b.setAttribute('aria-pressed', String(!inIt));
+      b.lastElementChild.outerHTML = icon(inIt ? 'plus' : 'check');
+      return false;
+    },
+  });
+  $('pickSearch').addEventListener('input', (e) => {
+    const words = fold(e.target.value).split(/\s+/).filter(Boolean);
+    for (const b of $('sheetPanel').querySelectorAll('.pick')) b.hidden = !words.every((w) => b.dataset.hay.includes(w));
+  });
+  await done;
+  rerender();
+}
+
+async function playlistMenu(pid) {
+  const p = findPlaylist(pid);
+  if (!p) return;
+  const v = await sheet(`<div class="sheet-track">${mosaicHtml(p)}<span class="meta"><span class="t">${esc(p.name)}</span><span class="s">${plural(p.ids.length, 'song')}</span></span></div>
+    ${item('add', 'plus', 'Add songs')}
+    ${item('rename', 'edit', 'Rename')}
+    ${p.ids.length ? item('queue', 'addQueue', 'Add to queue') : ''}
+    ${item('delete', 'trash', 'Delete playlist', 'danger')}`, { label: p.name });
+  if (v === 'add') addSongsSheet(pid);
+  else if (v === 'rename') {
+    const name = await promptName('Rename playlist', p.name);
+    if (name) { setPlaylist({ ...findPlaylist(pid), name: uniqueName(name, playlists, pid) }); rerender(); }
+  } else if (v === 'queue') {
+    for (const id of p.ids) if (tracks.has(id)) queue.addToQueue(id);
+    saveSession();
+    toast(`Added ${plural(p.ids.length, 'song')} to the queue`);
+  } else if (v === 'delete') {
+    if (!(await confirmSheet({ title: `Delete “${p.name}”?`, body: `The playlist goes; its ${plural(p.ids.length, 'song')} stay in your library.${p.auto && prefs.autoPlaylists ? ' It won’t be made again unless automatic playlists are turned off and on.' : ''}`, ok: 'Delete', danger: true }))) return;
+    playlists = playlists.filter((x) => x.id !== pid);
+    savePlaylists();
+    if (p.auto) { autoState.dismissed[p.auto] = true; saveAutoState(); }
+    toast(`Deleted ${p.name}`);
+    go({ name: 'library' }, { replace: true });
+  }
 }
 
 async function sortMenu() {
@@ -835,6 +1024,7 @@ async function settingsMenu() {
     </div>
     ${safe ? '' : item('persist', 'shield', 'Keep my library safe')}
     <button class="sheet-item" type="button" data-v="online-art" aria-pressed="${prefs.onlineArt}">${icon('album')}<span>Find missing artwork online<small>${artStatus()}</small></span><b class="switch${prefs.onlineArt ? ' on' : ''}">${prefs.onlineArt ? 'On' : 'Off'}</b></button>
+    <button class="sheet-item" type="button" data-v="auto-pl" aria-pressed="${prefs.autoPlaylists}">${icon('playlist')}<span>Automatic playlists<small>Songs with “(no bass)” in the title go into a No Bass playlist, “(no piano)” into No Piano. Each playlist appears once there’s a song for it.</small></span><b class="switch${prefs.autoPlaylists ? ' on' : ''}">${prefs.autoPlaylists ? 'On' : 'Off'}</b></button>
     ${prefs.onlineArt && !artJob.running && missingArt ? item('find-art', 'search', `Look again for ${plural(missingArt, 'missing cover')}`) : ''}
     ${item('add', 'plus', 'Add music')}
     ${all.length ? item('clear', 'trash', 'Remove all songs', 'danger') : ''}
@@ -848,6 +1038,17 @@ async function settingsMenu() {
     savePrefs();
     toast(prefs.onlineArt ? 'Finding missing artwork online' : 'Artwork stays as it is');
     if (prefs.onlineArt) findMissingArt();
+  } else if (v === 'auto-pl') {
+    prefs.autoPlaylists = !prefs.autoPlaylists;
+    savePrefs();
+    if (prefs.autoPlaylists) {
+      autoState.dismissed = {}; // deleted collections may come back
+      saveAutoState();
+      const added = syncPlaylists();
+      const n = Object.values(added).reduce((a, b) => a + b, 0);
+      toast(n ? `Automatic playlists on: ${plural(n, 'song')} sorted in` : 'Automatic playlists on');
+    } else toast('Automatic playlists off: the playlists made so far stay as your own');
+    rerender();
   } else if (v === 'find-art') findMissingArt({ force: true, announce: true });
   else if (v === 'add') addMenu();
   else if (v === 'clear') {
@@ -857,6 +1058,8 @@ async function settingsMenu() {
       await store.clearAll();
       tracks.clear();
       order = [];
+      playlists = [];
+      autoState = { excluded: {}, dismissed: {} };
       for (const p of artUrls.values()) p.then((u) => u && URL.revokeObjectURL(u));
       artUrls.clear();
       saveSession();
@@ -872,12 +1075,14 @@ async function nowMenu() {
   const v = await sheet(`<div class="sheet-track"><span ${artAttrs(t.artKey, albumOf(t))}></span><span class="meta"><span class="t">${esc(titleOf(t))}</span><span class="s">${esc(artistOf(t))}</span></span></div>
     ${item('album', 'album', 'Go to album')}
     ${item('artist', 'person', 'Go to artist')}
+    ${item('playlist', 'playlist', 'Add to playlist…')}
     ${item('queue', 'queue', 'Queue')}
     ${item('sleep', 'timer', ui.sleep ? `Sleep timer: ${sleepLabel()}` : 'Sleep timer')}
     ${item('remove', 'trash', 'Remove from library', 'danger')}`, { label: titleOf(t) });
   if (v === 'album') go({ name: 'album', key: albumKey(t) });
   else if (v === 'artist') go({ name: 'artist', key: fold(artistOf(t)) });
   else if (v === 'queue') openOverlay('queue');
+  else if (v === 'playlist') addToPlaylistMenu([t.id]);
   else if (v === 'sleep') sleepMenu();
   else if (v === 'remove') removeTracks([t.id]);
 }
@@ -1010,7 +1215,9 @@ async function importFiles(files) {
   if (skipped) notes.push(`${skipped} already in the library`);
   if (unplayable) notes.push(`${unplayable} this browser can’t play`);
   if (failed) notes.push(`${failed} couldn’t be read`);
-  toast(`${added ? `Added ${plural(added, 'song')}` : 'No new songs'}${notes.length ? ` (${notes.join(', ')})` : ''}.`, { ms: 5000 });
+  const sorted = Object.entries(syncPlaylists()).map(([key, n]) => `${n} to ${findPlaylistByRule(key)?.name ?? key}`);
+  if (sorted.length) rerender();
+  toast(`${added ? `Added ${plural(added, 'song')}` : 'No new songs'}${notes.length ? ` (${notes.join(', ')})` : ''}${sorted.length ? `; ${sorted.join(', ')}` : ''}.`, { ms: 5000 });
   if (added) findMissingArt();
 }
 
@@ -1117,6 +1324,8 @@ function showNewArt(t) {
   }
 }
 
+const findPlaylistByRule = (key) => playlists.find((p) => p.auto === key);
+
 function refreshAfterChange() {
   if (queue.source?.kind === 'songs' && prefs.sort === 'custom') queue.reorderContext(order.filter((id) => tracks.has(id)));
   rerender();
@@ -1178,6 +1387,10 @@ function removeTracks(ids) {
   }
   order = order.filter((id) => tracks.has(id));
   saveOrder();
+  const fromLists = removeFromAll(playlists, list.map((x) => x.t.id));
+  playlists = fromLists.playlists;
+  savePlaylists();
+  syncPlaylists();
   if (wasPlaying) {
     const id = queue.next();
     if (id) startTrack(id, { play: resumeAfter });
@@ -1207,6 +1420,9 @@ function removeTracks(ids) {
         order.splice(at < 0 ? order.length : Math.min(at, order.length), 0, t.id);
       }
       saveOrder();
+      playlists = restoreToAll(playlists, fromLists.removed);
+      savePlaylists();
+      syncPlaylists();
       refreshAfterChange();
     },
   });
@@ -1221,7 +1437,7 @@ function setOrder(next) {
 }
 
 /** Drag a row by its grip; neighbours slide out of the way, the page scrolls at the edges. */
-function startDrag(e, grip) {
+function startDrag(e, grip, commit) {
   const row = grip.closest('.row');
   const list = row.parentElement;
   const rows = [...list.children];
@@ -1263,9 +1479,7 @@ function startDrag(e, grip) {
     list.classList.remove('sorting');
     if (to !== from) {
       const ids = rows.map((r) => r.dataset.id);
-      const fromIdx = order.indexOf(ids[from]);
-      const toIdx = order.indexOf(ids[to]);
-      setOrder(moveItem(order, fromIdx, toIdx));
+      commit(ids[from], ids[to]);
       requestAnimationFrame(() => document.querySelector(`.row[data-id="${CSS.escape(ids[from])}"] .grip`)?.focus({ preventScroll: true }));
     }
   };
@@ -1286,9 +1500,14 @@ view.addEventListener('click', (e) => {
   if (act === 'sort') return sortMenu();
   if (act === 'edit') {
     ui.editing = !ui.editing;
-    if (ui.editing && (prefs.sort !== 'custom' || ui.query)) { prefs.sort = 'custom'; ui.query = ''; savePrefs(); }
+    if (ui.route.name === 'library' && ui.editing && (prefs.sort !== 'custom' || ui.query)) { prefs.sort = 'custom'; ui.query = ''; savePrefs(); }
     return rerender();
   }
+  if (act === 'new-playlist') return newPlaylistFlow().then((p) => p && go({ name: 'playlist', key: p.id }));
+  if (act === 'pl-add') return addSongsSheet(ui.route.key);
+  if (act === 'pl-more') return playlistMenu(ui.route.key);
+  const pl = t.closest('[data-playlist]');
+  if (pl) return go({ name: 'playlist', key: pl.dataset.playlist });
   if (act === 'back') return history.state?.depth > 0 ? history.back() : go({ name: 'library' }, { replace: true });
   if (act === 'play-all' || act === 'shuffle-all') { const ctx = contextFor('songs'); return playFrom(ctx, undefined, { shuffle: act === 'shuffle-all' }); }
   if (act === 'play-ctx' || act === 'shuffle-ctx') {
@@ -1303,7 +1522,12 @@ view.addEventListener('click', (e) => {
   if (!row) return;
   const id = row.dataset.id;
   if (t.closest('.more')) return trackMenu(id);
-  if (t.closest('.remove')) return removeTracks([id]);
+  if (t.closest('.remove')) {
+    if (ui.route.name !== 'playlist') return removeTracks([id]);
+    const p = findPlaylist(ui.route.key);
+    if (p) { removeFromPlaylist(p, [id]); rerender(); toast(`Removed from ${p.name}`); }
+    return;
+  }
   if (t.closest('.grip')) return;
   if (t.closest('.row-main')) {
     if (ui.editing) return;
@@ -1312,20 +1536,39 @@ view.addEventListener('click', (e) => {
   }
 });
 
+/** How a drag or arrow key moves a song on this page: in the playlist, or in your order. */
+function reorderer() {
+  if (ui.route.name === 'playlist') {
+    const pid = ui.route.key;
+    return (a, b) => {
+      const p = findPlaylist(pid);
+      if (!p) return;
+      setPlaylist({ ...p, ids: moveItem(p.ids, p.ids.indexOf(a), p.ids.indexOf(b)) });
+      rerender();
+    };
+  }
+  if (ui.route.name !== 'library' || ui.query || prefs.sort !== 'custom') return null;
+  return (a, b) => setOrder(moveItem(order, order.indexOf(a), order.indexOf(b)));
+}
+
 view.addEventListener('pointerdown', (e) => {
   const grip = e.target.closest('.grip');
-  if (!grip || e.button > 0 || ui.query || prefs.sort !== 'custom') return;
+  const commit = grip && e.button <= 0 && reorderer();
+  if (!commit) return;
   e.preventDefault();
-  startDrag(e, grip);
+  startDrag(e, grip, commit);
 });
 
 view.addEventListener('keydown', (e) => {
   const grip = e.target.closest?.('.grip');
-  if (!grip || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') || ui.query || prefs.sort !== 'custom') return;
+  const commit = grip && (e.key === 'ArrowUp' || e.key === 'ArrowDown') && reorderer();
+  if (!commit) return;
   e.preventDefault();
-  const id = grip.closest('.row').dataset.id;
-  const from = order.indexOf(id);
-  setOrder(moveItem(order, from, from + (e.key === 'ArrowUp' ? -1 : 1)));
+  const row = grip.closest('.row');
+  const id = row.dataset.id;
+  const sib = e.key === 'ArrowUp' ? row.previousElementSibling : row.nextElementSibling;
+  if (!sib?.dataset.id) return;
+  commit(id, sib.dataset.id);
   document.querySelector(`.row[data-id="${CSS.escape(id)}"] .grip`)?.focus();
 });
 
@@ -1361,7 +1604,8 @@ $('repeatBtn').addEventListener('click', () => { const r = queue.cycleRepeat(); 
 $('nowArtist').addEventListener('click', () => { const t = tracks.get(queue.current); if (t) go({ name: 'artist', key: fold(artistOf(t)) }); });
 $('nowFromName').addEventListener('click', () => {
   const s = queue.source;
-  if (s?.kind === 'album') go({ name: 'album', key: s.id });
+  if (s?.kind === 'playlist' && findPlaylist(s.id)) go({ name: 'playlist', key: s.id });
+  else if (s?.kind === 'album') go({ name: 'album', key: s.id });
   else if (s?.kind === 'artist') go({ name: 'artist', key: s.id });
   else go({ name: 'library' });
 });
