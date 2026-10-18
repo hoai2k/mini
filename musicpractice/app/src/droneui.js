@@ -51,8 +51,8 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     $('dr-acc').textContent = n.name.slice(1);
     $('dr-oct').textContent = n.octave;
     $('dr-hz-val').textContent = `${midiToHz(settings.droneMidi, settings.a4).toFixed(1)} Hz`;
-    // "(+5th)" lit beside the frequency while the fifth plays, faint while it doesn't.
-    $('dr-fifth-tag').classList.toggle('on', settings.droneFifth);
+    // "(+5th)" beside the frequency while the fifth plays, and nothing while it doesn't.
+    $('dr-fifth-tag').hidden = !settings.droneFifth;
     $('dr-hz').setAttribute('aria-pressed', String(settings.droneFifth));
     $('dr-hz').setAttribute('aria-label', `${$('dr-hz-val').textContent}. ${TEXT.drone.fifthButton(settings.droneFifth)}`);
     pitch.value = String(settings.droneMidi);
@@ -199,21 +199,32 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
   voice.addEventListener('change', () => {
     settings.droneVoice = voice.value;
     persist();
+    showVoiceArt();
     if (playing) sound();
   });
   $('dr-toggle').addEventListener('click', () => (playing ? pause() : play()));
 
-  // ---- volume: the upright slider beside the picture, or (the Bow as
-  // volume, the default) the bow standing beside the cello, its hair lit from the
-  // frog up to the level; either is dragged up or down, or set with the
-  // arrow keys. The settings sheet has a slider too.
-  const vol = $('dr-volume');
+  // The picture follows the voice: the cello and its bow for the cellos, the
+  // organ (Organ, Synth organ) and a plain volume slider for the organs.
+  const isOrgan = () => settings.droneVoice.startsWith('organ');
+  function showVoiceArt() {
+    const organ = isOrgan();
+    $('dr-art').hidden = organ;
+    $('dr-art-organ').hidden = !organ;
+    $('dr-bow-col').hidden = organ;
+    $('dr-vol').hidden = !organ;
+    $('drone-body').classList.toggle('organ', organ);
+    queueFit();
+  }
+
+  // ---- volume: beside the cello its bow, lit behind from the frog up to the
+  // level; beside the organ a plain upright slider. Either is dragged up or
+  // down, or set with the arrow keys; they are one volume.
   const sliders = [
-    { el: $('dr-vol'), track: $('dr-vol').querySelector('.vslider-track') },
     { el: $('dr-bow'), track: $('dr-bow').querySelector('.bow-hair') },
+    { el: $('dr-vol'), track: $('dr-vol').querySelector('.vslider-track') },
   ];
   function showVolume() {
-    vol.value = settings.droneVolume;
     for (const { el } of sliders) {
       el.style.setProperty('--v', settings.droneVolume);
       el.setAttribute('aria-valuenow', String(Math.round(settings.droneVolume * 100)));
@@ -226,7 +237,6 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     showVolume();
     engine().setVolume(settings.droneVolume);
   }
-  vol.addEventListener('input', () => setVolume(Number(vol.value)));
   for (const { el, track } of sliders) {
     const fromPointer = (e) => {
       const r = track.getBoundingClientRect();
@@ -234,8 +244,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     };
     el.addEventListener('pointerdown', (e) => {
       if (e.button) return;
-      e.preventDefault();
-      el.focus({ preventScroll: true });
+      e.preventDefault(); // no focus ring for a finger or mouse (keyboards reach it with Tab)
       el.setPointerCapture(e.pointerId);
       el.classList.add('held');
       setVolume(fromPointer(e));
@@ -251,24 +260,6 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
       e.stopPropagation(); // not the page's arrow keys (which move the note)
     });
   }
-  // Bow as volume (on by default; off gives the plain slider): the cello
-  // drawn without its bow, and the bow beside it is the volume.
-  function showBow() {
-    const bow = settings.droneBow;
-    $('dr-art').hidden = bow;
-    $('dr-art-nobow').hidden = !bow;
-    $('dr-vol').hidden = bow;
-    $('dr-bow-col').hidden = !bow;
-    $('drone-body').classList.toggle('bowed', bow);
-    $('dr-bow-on').checked = bow;
-    queueFit();
-  }
-  $('dr-bow-on').addEventListener('change', () => {
-    settings.droneBow = $('dr-bow-on').checked;
-    settings.droneBowChosen = true;
-    persist();
-    showBow();
-  });
   showVolume();
 
   // ---- settings
@@ -380,10 +371,11 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     const pad = parseFloat(getComputedStyle(scr).paddingBottom) || 0;
     const room = innerHeight - pad - body.getBoundingClientRect().top;
     const tall = cur + room - used - timerRoom - 1;
-    // Across: the slider beside it and a matching margin on the other side;
-    // the bow (Bow as volume) is a quarter of the picture's height wide.
+    // Across: the bow beside the cello (a quarter of the picture's height
+    // wide) or the slider beside the organ, and a matching margin on the
+    // other side.
     const bodyW = body.getBoundingClientRect().width;
-    const wide = settings.droneBow ? (bodyW - 16) / 1.5 : bodyW - 2 * (40 + 8);
+    const wide = isOrgan() ? bodyW - 2 * (40 + 8) : (bodyW - 16) / 1.5;
     scr.style.setProperty('--art', `${Math.round(Math.max(110, Math.min(820, tall, wide)))}px`);
   }
   let fitQueued = 0;
@@ -399,7 +391,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     setRich(document.querySelector('.dr-a4-label'), TEXT.common.referencePitch(settings.a4));
     fillPitches();
     showTimingOpts();
-    showBow();
+    showVoiceArt();
     show();
   }
   refresh();
