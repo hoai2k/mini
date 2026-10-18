@@ -7,7 +7,7 @@ for reference and for regenerating an image. The open requests are in
 [image-requests.md](image-requests.md); the shared style both use is described
 there.
 
-73 delivered.
+74 delivered.
 
 | Id | Image | Size | Status |
 | --- | --- | --- | --- |
@@ -84,6 +84,7 @@ there.
 | `vox-rt-towns-2` | Road-trip towns 2: Las Vegas to Santa Monica | 2560 × 1440 | delivered |
 | `vox-rt-roadblocks` | Road-trip roadblocks, closed and opening | 2400 × 1600 | delivered |
 | `vox-ow-people-3` | Open-world people 3: camp's quest givers and the Road West's locals | 2400 × 1600 | delivered |
+| `vox-ow-fodder` | Open-world fodder: the swarms you plow through | 2400 × 1600 | delivered |
 
 ### Style key
 
@@ -767,3 +768,12 @@ there.
 - **Status:** delivered
 
 > A line-up of nine blocky voxel characters at the same scale as the earlier people sheets, each front-on and from the high three-quarter game angle: Argus, camp's huge blond security chief, covered all over in blue eyes (on his arms, neck and face), in a white camp-security polo and khakis with a big ring of keys; Silena Beauregard, a pretty daughter of Aphrodite with long dark hair, pink lip gloss, a pink scarf over her orange camp shirt and a hand mirror; Big Earl, a burly bearded trucker in a red plaid shirt, trucker cap and suspenders holding a rubber chicken; Mrs. Pruitt, a stout New Jersey farm wife in a flowered apron, headscarf and rubber boots with a garden gnome under her arm; Ranger Mae, a cheerful park ranger at the Gateway Arch in a green ranger uniform and flat hat; Chad, a sunburnt teenage ex-lifeguard in red swim shorts, a whistle and an inflatable flamingo floaty; Sal the Valet, a slick Las Vegas valet in a maroon uniform with gold buttons, a pillbox cap and a ring of car keys; Trudy the Tour Guide, a Hollywood tour guide in a sun visor, star-print shirt and a fold-out star map; and Grandma Mae, a tiny old fisherwoman in a yellow raincoat and bucket hat with a fishing rod and a tackle box. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background, no cast shadow. No lettering, logos, captions or watermark.
+
+#### `vox-ow-fodder` — Open-world fodder: the swarms you plow through
+
+- **File:** `vox-ow-fodder.png`, 2400 × 1600 px, delivered to `design/concept/vox-ow-fodder.png`
+- **References:** `vox-key`, `vox-enemies`, `vox-spartoi`
+- **Use:** Models for the weak swarm monsters of the open world and the Road West (entities/monsters.js): karpoi, myrmekes, giant crabs and shades.
+- **Status:** delivered
+
+> A sheet of four small blocky voxel monster kinds, each shown three times in a little pack (front, side, mid-attack) beside a blocky Percy for scale, readable from the high three-quarter camera: karpoi, knee-high grain spirits made of wheat stalks and corn husks with glowing green eyes and grabby straw hands, scampering in a mob; myrmekes, dog-sized giant ants in shiny black-and-bronze armour with pincers, one spitting a green acid blob; giant crabs, waist-high red-and-orange shore crabs with barnacles, one big claw raised; and shades, wispy grey-blue ghosts of the dead in tattered robes with hollow faces, drifting in a crowd. Each kind small and numerous-looking, clearly weaker than a hellhound. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.

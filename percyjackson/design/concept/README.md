@@ -252,3 +252,9 @@ Generated on 2026-10-17 with the built-in image generator. Per-asset prompts, re
 [![Nine quest givers: camp and Road West](vox-ow-people-3.png)](vox-ow-people-3.png)
 
 [Prompt, references and generation record](generation-2026-10-17/vox-ow-people-3.json).
+
+## Open-world fodder monsters
+
+[![Karpoi, myrmekes, giant crabs and shades](vox-ow-fodder.png)](vox-ow-fodder.png)
+
+[Prompt, references and generation record](generation-2026-10-17/vox-ow-fodder.json).

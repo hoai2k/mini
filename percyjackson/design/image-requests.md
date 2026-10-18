@@ -65,17 +65,4 @@ Character sheets use:
 Open requests only. Delivered ones, with the prompts they were made from,
 are in [image-request-history.md](image-request-history.md).
 
-| Id | Image | Size | Status |
-| --- | --- | --- | --- |
-| `vox-ow-fodder` | Open-world fodder: the swarms you plow through | 2400 × 1600 | requested |
-
-### Round 5 · The open world
-
-#### `vox-ow-fodder` — Open-world fodder: the swarms you plow through
-
-- **File:** `vox-ow-fodder.png`, 2400 × 1600 px, delivered to `design/concept/vox-ow-fodder.png`
-- **References:** `vox-key`, `vox-enemies`, `vox-spartoi`
-- **Use:** Models for the weak swarm monsters of the open world and the Road West (entities/monsters.js): karpoi, myrmekes, giant crabs and shades.
-- **Status:** requested
-
-> A sheet of four small blocky voxel monster kinds, each shown three times in a little pack (front, side, mid-attack) beside a blocky Percy for scale, readable from the high three-quarter camera: karpoi, knee-high grain spirits made of wheat stalks and corn husks with glowing green eyes and grabby straw hands, scampering in a mob; myrmekes, dog-sized giant ants in shiny black-and-bronze armour with pincers, one spitting a green acid blob; giant crabs, waist-high red-and-orange shore crabs with barnacles, one big claw raised; and shades, wispy grey-blue ghosts of the dead in tattered robes with hollow faces, drifting in a crowd. Each kind small and numerous-looking, clearly weaker than a hellhound. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.
+Nothing is waiting: every request has been delivered.
