@@ -389,18 +389,19 @@ tones, scales over a tonic.
   together as tall as the picture); drag along it, or use the arrow keys.
   The hair is placed from the bow's own `frog` and `tip` anchors (`alignBow`
   in `app/src/art.js`). Each `drone-cello` lies exactly on its theme's
-  `home-drone` (same extent, 99-100% overlap). It was first a tryout beside
-  a plain upright slider, now retired.
+  `home-drone` (same extent, 99-100% overlap). With an organ voice (Organ,
+  Synth organ) the picture is a pipe organ (`drone-organ`, image requests
+  round 8, drawn stand-ins until it arrives) and the volume a plain upright
+  slider beside it; both set the one volume.
 - **Tapping the frequency** under the note adds or removes the fifth; "(+5th)"
   shows beside it while the fifth plays and is gone while it doesn't.
 - Instruments: **Cello** (the default), **Cello, soft** (sul tasto: darker),
   **Organ** and **Synth organ** (a synthesized pipe organ: 8', 4' and 16'
   pipes with a touch of wind, exactly in tune and perfectly steady). A voice
   saved before others were archived falls back to the cello.
-- Settings: volume; **Add a fifth above** (a pure 3:2 fifth, off by default,
-  saves that had it on by default included; also toggled by tapping the
-  frequency); and
-  **Timing**, two tabs: **Continuous pitch** (the default) with **Loop
+- Settings (the volume is on the screen, not here): **Timing** first, then
+  **Add a fifth above** (a pure 3:2 fifth, off by default, saves that had it
+  on by default included; also toggled by tapping the frequency). **Timing**, two tabs: **Continuous pitch** (the default) with **Loop
   forever** (on by default; off shows **Length**, 1 to 60 minutes, 10 by
   default, after which it stops), or **Change periodically** with **Time on
   each pitch** (0.5 to 20 minutes, 2 by default) and **When time's up**:

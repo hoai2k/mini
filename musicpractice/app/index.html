@@ -388,8 +388,14 @@
       </header>
       <div class="drone-body" id="drone-body">
         <div class="drone-stage">
-          <div class="drone-art" aria-hidden="true"><div class="drone-glow"></div><span class="art" id="dr-art" data-asset="drone-cello"></span></div>
-          <!-- The volume: the cello's bow stands beside it, lit behind from the frog up to the level, with its label under it. -->
+          <!-- The cello (cello voices) or the organ (organ voices), droneui.js showVoiceArt. -->
+          <div class="drone-art" aria-hidden="true"><div class="drone-glow"></div><span class="art" id="dr-art" data-asset="drone-cello"></span><span class="art" id="dr-art-organ" data-asset="drone-organ" hidden></span></div>
+          <!-- The organ's volume: a plain upright slider (drag the knob up or down). -->
+          <div class="vslider" id="dr-vol" role="slider" tabindex="0" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" data-text-aria-label="common.volume" hidden>
+            <svg class="vslider-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg>
+            <div class="vslider-track"><div class="vslider-fill"></div><div class="vslider-thumb"></div></div>
+          </div>
+          <!-- The cello's volume: its bow stands beside it, lit behind from the frog up to the level, with its label under it. -->
           <div class="bow-col" id="dr-bow-col">
             <div class="bow-slider" id="dr-bow" role="slider" tabindex="0" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" data-text-aria-label="common.volume">
               <span class="art" data-asset="drone-bow"></span>
@@ -419,9 +425,6 @@
       <dialog id="drone-settings" class="sheet" aria-labelledby="drone-settings-title">
         <form method="dialog">
           <header class="sheet-head"><h3 id="drone-settings-title" data-text="drone.settings.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-          <label class="row"><span data-text="common.volume"></span><input type="range" class="slider" id="dr-volume" min="0" max="1" step="0.05"></label>
-          <label class="row toggle"><span data-text="drone.settings.fifth"></span><input type="checkbox" id="dr-fifth" role="switch"></label>
-          <p class="help" data-text="drone.settings.fifthHelp"></p>
           <div class="met-display">
             <div class="met-tabs" id="dr-mode-tabs" role="radiogroup" data-text-aria-label="drone.settings.timing"></div>
             <div class="met-tab-panel">
@@ -436,6 +439,8 @@
               </div>
             </div>
           </div>
+          <label class="row toggle"><span data-text="drone.settings.fifth"></span><input type="checkbox" id="dr-fifth" role="switch"></label>
+          <p class="help" data-text="drone.settings.fifthHelp"></p>
           <div class="row">
             <span class="dr-a4-label"></span>
             <div class="a4-row">
