@@ -657,9 +657,9 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   off for this routine at once (the Drone asks for Pro in the apps, as
   before). The tools it has show on the card, lit, followed by a small
   **+** that opens the sheet again; a tap on a lit tool shows or hides its
-  settings, like the chevron. They keep together: at the far end beside
-  the minutes on a wide card, on a line of their own under them on a
-  narrow one (a container query on the card's width). With either on, the card's chevron opens that item's own
+  settings, like the chevron. They keep together at the far end beside
+  the minutes wherever they fit, phones included, and wrap under them,
+  still to the right, only where they don't. With either on, the card's chevron opens that item's own
   settings: the metronome's tempo (− / +, typed, or the slider) and time
   signature; the drone's note (− / + or the list), instrument and fifth.
   These are the item's alone: the Metronome's and the Drone's own settings

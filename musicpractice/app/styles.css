@@ -1965,11 +1965,9 @@ html.paged #home, html.paged #routine { touch-action: pan-y; }
 .titem-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding-left: 36px; }
 .titem-time { margin-right: 2px; gap: 3px; }
 /* A routine's tools: + Tools when it has none; the ones it has, lit, then a
-   small +. One group, at the far end beside the minutes on a wide card; on a
-   narrow one, a group holding tools takes a line of its own under them. */
-.titem-tools { container-type: inline-size; }
-.titem-uses { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-left: auto; }
-@container (max-width: 470px) { .titem-uses:has(.titem-tool) { flex-basis: 100%; margin-left: 0; } }
+   small +. One group, at the far end beside the minutes wherever it fits,
+   and wrapped as a whole under them where it doesn't. */
+.titem-uses { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px; margin-left: auto; }
 .titem-tool, .titem-more { min-height: 34px; min-width: 0; }
 .titem-tool { padding: 4px 12px 4px 8px; display: inline-flex; align-items: center; gap: 7px; }
 .titem-more { padding: 4px 12px; color: var(--ink-2); }
