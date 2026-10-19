@@ -494,42 +494,62 @@ export const BOSS_MODELS = {
       { e: [0, 8.6, -0.2, 5.6, 5, 3.6], col: hide },
       { e: [0, 4, 0, 4.3, 4, 3.2], col: hide },
     ], { v: 1, seed: 11, bump: 0.12, fuzz: 0.1 });
-    // the loincloth (round 8, after vox-bosses-1): white cloth wrapped all
-    // round the waist under a gold belt with the medallion in front, its
-    // ragged hem hanging front, back and sides like a kilt. Belt and waist
-    // cloth sit on the hips, round the tops of the thighs (wider than his
-    // waist); the hem hangs in fourteen panels, each on its own pivot under the
-    // belt that swings with the thigh behind it (rig.tick below), so a
-    // striding leg carries its panel along instead of passing through it.
-    const CLOTH = [0xece4cc, 0xe0d6bc, 0xf6f0de], CLOTHD = 0xcfc4a6, TAU = Math.PI * 2, Z0 = 0.3, BY = 0.9;
+    // the loincloth (round 8, after vox-bosses-1, fitted tight in round 9):
+    // white cloth wrapped round the waist under a gold belt with the medallion
+    // in front. The belt hugs the torso's narrow waist (the sculpt measures
+    // about +-4.7 wide and -3.3..4 deep at belt height, so the belt's ring is
+    // 5.6 by 4.1 with the 1 px band standing just clear of it). The hem hangs
+    // in fourteen panels, each on its own pivot under the belt that swings with
+    // the thigh behind it (rig.tick below), so a striding leg carries its panel
+    // along instead of passing through it. A panel falls straight from the
+    // belt and only steps out where the hip and thigh swell (HIP below, read
+    // off the thigh sculpt), so it lies on the thigh rather than flaring.
+    const CLOTH = [0xece4cc, 0xe0d6bc, 0xf6f0de], CLOTHD = 0xcfc4a6, TAU = Math.PI * 2, Z0 = 0.3, BY = 3.1, BYS = BY * 1.15;   // (BYS: the belt's height after the hips' 1.15 stretch)
+    const BRX = 5.6, BRZ = 4.1;   // the belt's ring, centre line of its 1 px band
     // a point on the waist's rounded oblong (half-widths Rx, Rz) in direction a (0: front)
-    const ring = (a, Rx, Rz, pw = 3.5) => {
+    const ring = (a, Rx, Rz, pw = 3) => {
       const sa = Math.sin(a), ca = Math.cos(a), r = 1 / ((Math.abs(sa) / Rx) ** pw + (Math.abs(ca) / Rz) ** pw) ** (1 / pw), x = r * sa, z = r * ca;
       const nx = Math.sign(x) * Math.abs(x / Rx) ** (pw - 1) / Rx, nz = Math.sign(z) * Math.abs(z / Rz) ** (pw - 1) / Rz;
       return { x, z, yaw: Math.atan2(nx, nz) };
     };
+    // how far out the hip and thigh reach (px, from the thigh sculpt) at a height on the hips
+    const HIP = [[5, 5.2], [3.5, 6.3], [2.5, 7.1], [1.5, 7.3], [0.5, 8], [-1.5, 8.2], [-3, 9], [-14, 9]];
+    const hipX = (y) => { for (let k = 1; k < HIP.length; k++) if (y >= HIP[k][0]) { const [y1, x1] = HIP[k - 1], [y0, x0] = HIP[k]; return x0 + (x1 - x0) * (y - y0) / (y1 - y0); } return HIP[HIP.length - 1][1]; };
     const NB = 28, beltBoxes = [];
     for (let i = 0; i < NB; i++) {
-      const q = ring(i / NB * TAU, 8.6, 5.4), q2 = ring((i + 1) / NB * TAU, 8.6, 5.4), dx = q2.x - q.x, dz = q2.z - q.z;
+      const q = ring(i / NB * TAU, BRX, BRZ), q2 = ring((i + 1) / NB * TAU, BRX, BRZ), dx = q2.x - q.x, dz = q2.z - q.z;
       const at = [(q.x + q2.x) / 2, BY, (q.z + q2.z) / 2 + Z0], ry = Math.atan2(-dz, dx), len = Math.hypot(dx, dz) + 0.4;
       beltBoxes.push({ p: at, s: [len, 1.8, 1], c: gold[i % 3], m: 'm', r: [0, ry, 0] });
       beltBoxes.push({ p: [at[0], BY - 1.05, at[2]], s: [len, 0.4, 1.05], c: 0x9a6a1a, m: 'm', r: [0, ry, 0] });   // (its lower edge, darker)
     }
-    const MZ = ring(0, 8.6, 5.4).z + Z0 + 0.5;
+    const MZ = ring(0, BRX, BRZ).z + Z0 + 0.5;
     beltBoxes.push({ p: [0, BY, MZ], s: [3, 3, 0.8], c: 0xe8b444, m: 'm' }, { p: [0, BY, MZ], s: [3, 3, 0.8], c: 0xd8a032, m: 'm', r: [0, 0, Math.PI / 4] },
       { p: [0, BY, MZ + 0.5], s: [1.7, 1.7, 0.4], c: 0xffd860, m: 'm' }, { p: [0, BY, MZ + 0.7], s: [0.7, 0.7, 0.3], c: 0x9a6a1a, m: 'm' });
     vox(rig, rig.hips, [
       { e: [0, -1.4, 0.3, 5.4, 1.9, 4.1], col: CLOTH },
-      { e: [0, 0.6, Z0, 8, 2.4, 4.9], col: CLOTH, bump: 0, fuzz: 0 },   // the cloth wound round the waist, bunched up to the belt's top edge
+      { e: [0, BY + 0.6, Z0, BRX - 0.3, 1.6, BRZ - 0.2], col: CLOTH, bump: 0, fuzz: 0 },   // the cloth wound round the waist, showing a little over the belt's top edge
     ], { v: 1, seed: 12 }, beltBoxes);
-    const NP = 14, kilt = [];
+    const NP = 14, kilt = [], PY = BYS + 0.3;   // (the pivots sit high under the belt, so a swinging panel's top stays tucked in it)
     for (let i = 0; i < NP; i++) {
-      const a = i / NP * TAU, q = ring(a, 7.7, 4.75), qa = ring(a - Math.PI / NP, 7.7, 4.75), qb = ring(a + Math.PI / NP, 7.7, 4.75);   // (inside the belt: a flat panel's edges stand out from the curve it hangs on)
-      const w = Math.hypot(qb.x - qa.x, qb.z - qa.z) * 1.12, fz = q.z / 4.75;
+      const a = i / NP * TAU, hw = Math.PI / NP, RP = [BRX - 1, BRZ - 1], q = ring(a, ...RP), fz = q.z / RP[1];
       const L = i === 0 ? 9 : Math.abs(fz) > 0.6 ? 8 : 7.2;   // (the front apron longest, the sides shortest, as on the sheet)
-      const G = group(rig.hips, q.x, BY + 0.3, q.z + Z0), I = new THREE.Group(); G.add(I);   // (the pivot high under the belt, so a swinging panel's top stays tucked in it)
-      I.rotation.order = 'YXZ'; I.rotation.set(-0.17, q.yaw, 0);   // (faced outward, the hem flared out a little)
-      vox(rig, I, [{ b: [-w / 2, -L, -0.5, w / 2, 0.5, 0.5], col: (x, y, z, n, h) => (y < -L + 1.5 - Math.abs(Math.sin(x * 1.3 + i * 2.1)) * 0.9 - h * 1.2 ? null : y < -L + 2.6 ? CLOTHD : CLOTH[Math.floor(h * 3)]), bump: 0, fuzz: 0 }], { v: 1, seed: 40 + i });
+      const G = group(rig.hips, q.x, PY, q.z + Z0), I = new THREE.Group(); G.add(I);
+      I.rotation.order = 'YXZ'; I.rotation.set(0, q.yaw, 0);
+      const nx = Math.sin(q.yaw), nz = Math.cos(q.yaw), tx = nz, tz = -nx;
+      // the panel is a stack of one-pixel slabs, each stepped out to the hip and thigh at its height
+      const slab = (y) => {   // y: height below the pivot (> 0)
+        const hy = PY - y, Rx = Math.max(RP[0], hipX(hy) + 0.9 - 0.1), Rz = Math.max(RP[1], RP[1] + (RP[0] < Rx ? Math.min(1.3, (Rx - RP[0]) * 0.45) : 0));
+        const c = ring(a, Rx, Rz), c1 = ring(a - hw, Rx, Rz), c2 = ring(a + hw, Rx, Rz);
+        const ex = c.x - q.x, ez = c.z - q.z;
+        return { out: ex * nx + ez * nz, tan: ex * tx + ez * tz, w: Math.hypot(c2.x - c1.x, c2.z - c1.z) * 1.12 };
+      };
+      const hem = (x, y, h) => (y < -L + 1.5 - Math.abs(Math.sin(x * 1.3 + i * 2.1)) * 0.9 - h * 1.2 ? null : y < -L + 2.6 ? CLOTHD : CLOTH[Math.floor(h * 3)]);
+      const slabs = [];
+      for (let k = 0; k < Math.ceil(L + 0.5); k++) {
+        const y1 = k === 0 ? 0.5 : -(k - 0.5), y0 = Math.max(-L, y1 - 1), s = slab(-(y0 + y1) / 2);
+        slabs.push({ b: [s.tan - s.w / 2, y0, s.out - 0.5, s.tan + s.w / 2, y1, s.out + 0.5], col: hem, bump: 0, fuzz: 0 });
+      }
+      vox(rig, I, slabs, { v: 1, seed: 40 + i });
       kilt.push({ g: G, legs: q.x < -2.5 ? [rig.legR] : q.x > 2.5 ? [rig.legL] : [rig.legR, rig.legL], front: Math.max(0, Math.min(1, fz * 1.4)), back: Math.max(0, Math.min(1, -fz * 1.4)), side: Math.sign(q.x) * (Math.abs(q.x) > 2.5 ? 1 : 0) });
     }
     rig.extras.kilt = kilt;
