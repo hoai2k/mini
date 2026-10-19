@@ -61,7 +61,7 @@ export const EN = {
       tuner: 'Tuner',
       drone: 'Drone',
       record: 'Playback',
-      timer: 'Practice Routine',
+      timer: 'Routine',
     },
     /** Under a tool that isn't ready yet. */
     inProgress: 'In progress',
