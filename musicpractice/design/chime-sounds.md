@@ -71,3 +71,25 @@ way (`PREFIX=cue python3 source/chimes-clean.py`).
 
 **Shortlist:** `glock-ding-1`, `app-chime-2`, `two-tone-up-1` (for a start),
 `two-tone-2` (for an end), `kalimba-three-1`, `celesta-three-2`.
+
+## Results chimes (Test Scale Intonation)
+
+Played as the Test Scale Intonation results come up, by how the scale went
+(`resultTier` in `app/src/scaletest.js`):
+
+- **Triumphant:** 80% or more of the notes in tune.
+- **Positive:** half or more.
+- **Neutral, "results are in":** below half, or nothing heard.
+
+Two takes per prompt, cleaned the same way (`PREFIX=res`), are in
+`sounds/results/res-<name>-<take>.mp3`. The app plays
+`app/assets/audio/scale/{great,good,neutral}.mp3`.
+
+| Tier | Name | Prompt (shortened) | What came out |
+| --- | --- | --- | --- |
+| great | great-glock | glockenspiel and soft bells, quick rising arpeggio to a bright chord | take 1: a short rising run onto a chord (**in use**); take 2: a busy run of many notes |
+| great | great-arp | three quick rising bell notes on a sparkling major chord | dense and shimmery (noise floor −49 to −53 dB); take 2 the clearer chord |
+| good | good-marimba | two warm marimba notes rising a fourth | take 1: two notes, 0.2 s apart (**in use**) |
+| good | good-two | two gentle rising bell notes, a major third | take 2: two notes; take 1: the two together |
+| neutral | neutral-two | two calm bell notes, same pitch, results are ready | one calm, clean tone in both; take 2 (**in use**) rings a little longer |
+| neutral | neutral-one | a single soft, calm notification tone | take 1: one tone; take 2: a soft two-note |
