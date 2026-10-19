@@ -96,7 +96,6 @@ export const DEFAULTS = Object.freeze({
   footView: 'dots',
   vizBars: 4, // the Visualizer's rows: bars of music shown at a time
   micTipCollapsed: false, // the iPhone microphone tip folded to its title
-  homeOrder: ['metronome', 'tuner', 'drone', 'record'], // the home screen's buttons, hold and drag to reorder
   droneMidi: 48, // C3
   droneVoice: 'cello',
   droneVolume: 0.53, // DRONE_DEFAULT in drone.js: the slider position of the old default's loudness
@@ -232,7 +231,6 @@ export function sanitize(raw) {
     accentPattern: cleanPattern(s.accentPattern, oneOf(s.meter, METERS.map((m) => m.id), DEFAULTS.meter)),
     ...metronomeLook(s),
     vizBars: oneOf(s.vizBars, VIZ_BARS, DEFAULTS.vizBars),
-    homeOrder: homeOrder(s.homeOrder),
     droneMidi: clamp(Math.round(num(s.droneMidi, DEFAULTS.droneMidi)), 36, 59),
     droneVoice: oneOf(s.droneVoice, DRONE_VOICES, DEFAULTS.droneVoice),
     // Saved before the drone could go louder, the volume was its gain: the
@@ -254,21 +252,6 @@ export function sanitize(raw) {
   };
   out.subdivision = out.subOn ? out.subKind : 1;
   droneTiming(out);
-  return out;
-}
-
-/**
- * A saved home order, with unknown tools dropped and missing ones (a tool
- * added since) put back after the one they follow by default.
- */
-export function homeOrder(v) {
-  const known = DEFAULTS.homeOrder;
-  const out = Array.isArray(v) ? [...new Set(v.filter((id) => known.includes(id)))] : [];
-  known.forEach((id, i) => {
-    if (out.includes(id)) return;
-    const prev = known.slice(0, i).reverse().find((p) => out.includes(p));
-    out.splice(prev ? out.indexOf(prev) + 1 : 0, 0, id);
-  });
   return out;
 }
 

@@ -80,15 +80,8 @@ test('tuner settings: defaults, saved, and bad values fall back', () => {
   assert.deepEqual([bad.tuning, bad.a4, bad.transpose], ['chromatic', 466, 'C']);
 });
 
-test('home order: metronome, tuner, drone, recorder by default; a saved order is kept and repaired', () => {
-  assert.deepEqual(load(memoryStorage()).homeOrder, ['metronome', 'tuner', 'drone', 'record']);
-  assert.deepEqual(sanitize({ homeOrder: ['record', 'drone', 'metronome', 'tuner'] }).homeOrder, ['record', 'drone', 'metronome', 'tuner']);
-  // An order saved before the Drone: it goes in after the Tuner, wherever that is.
-  assert.deepEqual(sanitize({ homeOrder: ['metronome', 'tuner', 'record'] }).homeOrder, ['metronome', 'tuner', 'drone', 'record']);
-  assert.deepEqual(sanitize({ homeOrder: ['tuner', 'record', 'metronome'] }).homeOrder, ['tuner', 'drone', 'record', 'metronome']);
-  // Unknown or repeated tools dropped.
-  assert.deepEqual(sanitize({ homeOrder: ['tuner', 'kazoo', 'tuner'] }).homeOrder, ['metronome', 'tuner', 'drone', 'record']);
-  assert.deepEqual(sanitize({ homeOrder: 'record' }).homeOrder, ['metronome', 'tuner', 'drone', 'record']);
+test('a home order saved by an earlier version is dropped (the buttons are in one order)', () => {
+  assert.equal(sanitize({ homeOrder: ['record', 'drone', 'metronome', 'tuner'] }).homeOrder, undefined);
 });
 
 test('drone settings: defaults, kept, and bad values fall back', () => {

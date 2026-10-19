@@ -70,7 +70,6 @@
     <section id="home" class="screen" aria-labelledby="home-title">
       <button class="icon-btn home-gear" id="app-settings-btn" data-text-aria-label="home.settings"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
       <h1 id="home-title" class="brand" data-text-rich="home.title"></h1>
-      <button class="pill home-done" id="home-done" type="button" data-text="common.done" hidden></button>
       <div class="choices" id="choices">
         <a class="choice" href="#metronome" id="go-metronome" data-tool="metronome" draggable="false">
           <span class="art" data-asset="home-metronome"></span>
@@ -94,26 +93,6 @@
            beside the others (?routine; main.js): a smaller button under them,
            sized to the room left, that slides the routine in. -->
       <a class="choice routine-link" href="#routine" id="go-routine-page" draggable="false" hidden><span class="art" data-asset="home-routine"></span><span class="label" data-text="home.tools.timer"></span></a>
-      <script>
-        // Put the buttons in the saved order before the page draws (src/homeorder.js does the rest).
-        try {
-          var order = (JSON.parse(localStorage.getItem('musicpractice.settings.v1') || '{}') || {}).homeOrder;
-          var box = document.getElementById('choices');
-          var known = ['metronome', 'tuner', 'drone', 'record'];
-          if (Array.isArray(order)) {
-            // A tool added since the order was saved goes after the one it follows (settings.js does the same).
-            known.forEach(function (id, i) {
-              if (order.indexOf(id) >= 0) return;
-              var prev = known.slice(0, i).reverse().filter(function (p) { return order.indexOf(p) >= 0; })[0];
-              order.splice(prev ? order.indexOf(prev) + 1 : 0, 0, id);
-            });
-          }
-          if (Array.isArray(order)) order.forEach(function (id) {
-            var el = box.querySelector('[data-tool="' + id + '"]');
-            if (el) box.appendChild(el);
-          });
-        } catch (e) { /* default order */ }
-      </script>
 
       <dialog id="app-settings" class="sheet" aria-labelledby="app-settings-title">
         <form method="dialog">

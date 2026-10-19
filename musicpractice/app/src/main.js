@@ -10,7 +10,6 @@ import { diag, isWebKit, isIOS, micPermission, onPermissionChange, noteMicRefuse
 import { Metronome, pendulumAngle, weightAt, bpmAtWeight } from './metronome.js';
 import { Recorder, freesMicForPlayback } from './recorder.js';
 import { setupTuner } from './tunerui.js';
-import { setupHomeOrder } from './homeorder.js';
 import { Drone, preload as preloadDrone } from './drone.js';
 import { setupDrone } from './droneui.js';
 import { isApp, platform, shareFile, onBackButton, exitApp } from './native.js';
@@ -137,16 +136,9 @@ function route() {
   if (paywall) openPaywall('drone');
 }
 
-const homeOrder = setupHomeOrder({
-  container: $('choices'),
-  done: $('home-done'),
-  order: settings.homeOrder,
-  onChange: (order) => { settings.homeOrder = order; persist(); },
-});
-if (timerTile) $('choices').append(timerTile); // the newest button last (it isn't in the saved order)
+if (timerTile) $('choices').append(timerTile); // the newest button last
 
 function leave(name) {
-  if (name === 'home') homeOrder.stop();
   if (name === 'metronome') { stopMetronome(); closeSync(); }
   if (name === 'record') stopRecorder();
   if (name === 'tuner') { stopTuner(); tuner.stopScale(); }
@@ -2076,7 +2068,6 @@ document.addEventListener('keydown', (e) => {
   const t = e.target;
   // Typing in a field (a take's name, the tempo) keeps its keys.
   const typing = (t instanceof HTMLInputElement && t.type !== 'checkbox') || t instanceof HTMLTextAreaElement || t?.isContentEditable;
-  if (e.key === 'Escape' && screen === 'home') { homeOrder.stop(); return; }
   if (e.key === 'Escape' && screen !== 'home') { location.hash = ''; return; }
   if (screen === 'metronome') {
     if (e.key === ' ' && !typing && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); $('met-toggle').click(); }
@@ -2198,7 +2189,6 @@ initPro();
 onBackButton(() => {
   const open = [...document.querySelectorAll('dialog[open]')].pop();
   if (open) open.close();
-  else if (screen === 'home' && homeOrder.editing()) homeOrder.stop();
   else if (screen !== 'home') location.hash = '';
   else exitApp();
 });

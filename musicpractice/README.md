@@ -8,26 +8,10 @@ four buttons, **Metronome**, **Tuner**, **Drone** and **Playback**
 (two rows of two on phones and tablets either way up, one row of four once
 the window is clearly wider than tall, 3:2 or more, as a desktop browser or
 a phone on its side; never three and one, and the art follows the window's
-height so the four fit without scrolling), and a settings gear. A
-tool added later goes in after the one it follows by default, even in an
-order someone saved before it existed.
-
-The buttons can be put in any order, like apps on an iPhone home screen
-(`app/src/homeorder.js`): hold one for about half a second and they all
-jiggle; the held one lifts and follows the finger (or mouse) while the others
-slide out of its way, and letting go drops it there. While they jiggle, any
-button can be dragged at once and tapping one doesn't open it; tapping the
-background, **Done** or Escape stops, and so do 5 seconds untouched. Arrow
-keys move the focused button while jiggling.
-
-Two iPhone details shape the code. Safari sends no click for a tap on plain
-background, so the background is watched for the touch itself. And Safari
-stops sending touch events to an element that is moved in the page while it
-is being dragged (after which nothing could be moved), so during a drag the
-buttons only slide by transforms and the page is reordered on drop. Moves
-and releases are watched on the whole page, and a drag whose end never
-arrived is dropped when the next touch starts. The order is saved with the settings and applied before the
-page draws, so there's no flash of the default order.
+height so the four fit without scrolling), and a settings gear. The
+buttons are always in this order (Metronome, Tuner, Drone, Playback); they
+could once be held and dragged into another, which was removed to keep the
+layout simple, and an order saved then is dropped.
 
 ## Themes
 
@@ -760,8 +744,7 @@ file, on purpose: the privacy page, the device details Send feedback attaches
 - `design/mobile-apps.md`: why the apps, what to sell and the store rules.
 
 - `app/index.html`, `app/styles.css`, `app/src/`: the app (static ES
-  modules, no build step). `main.js` the screens, `homeorder.js` hold and
-  drag to reorder the home screen, `metronome.js` the
+  modules, no build step). `main.js` the screens, `metronome.js` the
   scheduler, sounds and pendulum, `recorder.js` the mic and take state
   machine, `capture-worklet.js` the mic tap, `detect.js` the music/noise
   detector and trimming, `waveform.js` the waveform views, `takes.js` saved
