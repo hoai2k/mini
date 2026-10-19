@@ -586,6 +586,10 @@ file, on purpose: the privacy page, the device details Send feedback attaches
   explains them, `design/sounds/drone/` holds the source takes (and, in
   `archive/`, the loops of the voices not in use) and
   `design/source/drone/` the tools that make the loops.
+- `design/chime-sounds.md`, `design/sounds/chimes/`: candidate start and end
+  chimes (singing bowls, bells, chimes) for a Practice timer, not used yet,
+  with their prompts, measurements and a shortlist; cleaned by
+  `design/source/chimes-clean.py`.
 - `design/source/make_icons.py`: makes `app/icons/icon-180/192/512.png`
   from the delivered `icon-1024.png`, or a drawn stand-in until then.
 - `publish.sh`: copies the app to `local/pages/musicpractice/`, then
