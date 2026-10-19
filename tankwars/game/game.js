@@ -73,7 +73,7 @@ window.addEventListener('keyup', e => keysDown[e.code] = false);
 window.addEventListener('blur', () => { for (let k in keysDown) keysDown[k] = false; });
 
 // Leaving the tab or window pauses a local match (online matches keep running for the others).
-// The game makes no sound yet; any audio added must be gated by TankWarsSound.audible() (menu.js), which is false while muted, hidden or unfocused.
+// Sound (sound.js) is gated by TankWarsSound.audible() (menu.js), which is false while muted, hidden or unfocused.
 function pauseWhenAway() {
     if (state === 'PLAYING' && !currentOnlineRoom && pauseMenu.classList.contains('hidden') && typeof window.togglePause === 'function') window.togglePause();
 }
@@ -88,6 +88,7 @@ window.addEventListener('mousemove', e => {
 window.addEventListener('mousedown', e => {
     if (e.button === 0) mouseFire = true;
 });
+document.getElementById('corner-controls').addEventListener('mousedown', e => { e.stopPropagation(); e.preventDefault(); });
 window.addEventListener('mouseup', e => {
     if (e.button === 0) mouseFire = false;
 });
@@ -161,6 +162,12 @@ function adjustColor(hex, lum) {
     }
     return rgb;
 }
+
+// Sound effects, panned by where they happen on the arena. Sounds from this screen's own tanks
+// play at full volume; other players' and CPU tanks' are quieter so a busy round stays readable.
+const sfxPan = x => Math.max(-1, Math.min(1, (x / (cfg.cols * TILE)) * 2 - 1)) * 0.6;
+const sfxFrom = (src, key) => { const who = src?.owner || src; return { pan: src ? sfxPan(src.x) : 0, vol: who?.inputSet ? 1 : (who?.isAI ? 0.4 : 0.6), key: key && who?.id ? key + who.id : key }; };
+function sfx(name, src, key) { window.TankWarsSfx?.play(name, sfxFrom(src, key)); }
 
 function showNotification(msg, color) {
     let container = document.getElementById('notifications'); if (!container) return;
@@ -237,7 +244,7 @@ function joinGame(id) {
         }
     });
     presenceHandle.subscribeTopic('fire', (msg) => {
-        const owner = world.tanks.get(msg.tankId); if (owner) { const b = new Bullet(msg.x, msg.y, msg.angle, owner, msg.range, msg.speed, msg.size, msg.isBomb, msg.hasBig, msg.hasDist, msg.hasFast, msg.hasRicochet); world.bullets.set(b.id, b); }
+        const owner = world.tanks.get(msg.tankId); if (owner) { const b = new Bullet(msg.x, msg.y, msg.angle, owner, msg.range, msg.speed, msg.size, msg.isBomb, msg.hasBig, msg.hasDist, msg.hasFast, msg.hasRicochet); world.bullets.set(b.id, b); window.TankWarsSfx?.shot({ bomb: msg.isBomb, big: msg.hasBig, fast: msg.hasFast, rico: msg.hasRicochet, dist: msg.hasDist }, sfxFrom(owner, 'shot')); }
     });
     presenceHandle.subscribeTopic('remote_pause', (msg) => {
         if (!isOnlineHost) { isHostPaused = msg.paused; state = msg.paused ? 'PAUSED' : 'PLAYING'; if (msg.paused) { pauseMenu.classList.remove('hidden'); menuIndex = -1; document.getElementById('mobile-controls').classList.remove('active'); } else { pauseMenu.classList.add('hidden'); document.getElementById('mobile-controls').classList.add('active'); } updateMenuVisuals(); }
@@ -249,6 +256,7 @@ function joinGame(id) {
             const pu = new PowerUp(msg.x, msg.y, type);
             pu.id = msg.id;
             world.powerUps.push(pu);
+            sfx('puSpawn', pu);
         }
     });
     presenceHandle.subscribeTopic('powerup_pickup', (msg) => {
@@ -257,7 +265,7 @@ function joinGame(id) {
         const picker = world.tanks.get(msg.pickerId);
         if (picker && picker.id !== world.myTankId) {
             const type = PU_TYPES.find(t => t.id === msg.typeId);
-            if (type) picker.applyPowerUp(type);
+            if (type) { picker.applyPowerUp(type); window.TankWarsSfx?.pickup(type.id, sfxFrom(picker)); }
         }
     });
     presenceHandle.subscribePresence({}, ({ peers }) => { 
@@ -271,7 +279,7 @@ function joinGame(id) {
              if (peerId === myPeerId()) return;
              if (data.tanks) {
                  data.tanks.forEach(tankData => {
-                     let t = world.tanks.get(tankData.id); if (!t) { t = new Tank(tankData.x, tankData.y, tankData.color || PLAYER_COLORS[1], tankData.isAI, null, tankData.id); if (!t.isAI) { t.warpState = 'IN'; t.warpAnim = 0; if (hasInitialPresence) showNotification(`${tankData.name || "A pilot"} joined`, t.color); } if (!t.isAI && cfg.defaultPowerUp) { t.applyPowerUp(cfg.defaultPowerUp); } world.tanks.set(tankData.id, t); }
+                     let t = world.tanks.get(tankData.id); if (!t) { t = new Tank(tankData.x, tankData.y, tankData.color || PLAYER_COLORS[1], tankData.isAI, null, tankData.id); if (!t.isAI) { t.warpState = 'IN'; t.warpAnim = 0; if (hasInitialPresence) { showNotification(`${tankData.name || "A pilot"} joined`, t.color); sfx('coin', t); } } if (!t.isAI && cfg.defaultPowerUp) { t.applyPowerUp(cfg.defaultPowerUp); } world.tanks.set(tankData.id, t); }
                      if (Math.hypot(t.x - tankData.x, t.y - tankData.y) > TILE * 2) { t.x = t.targetX = tankData.x; t.y = t.targetY = tankData.y; } else { t.targetX = tankData.x; t.targetY = tankData.y; }
                      t.bodyAngle = tankData.bodyAngle; t.cannonAngle = tankData.cannonAngle; t.hp = tankData.hp; t.alive = tankData.alive; t.name = tankData.name || "Tank"; t.kills = tankData.kills || 0; t.livesLost = tankData.livesLost || 0; t.shield = tankData.shield || 0; t.kineticShield = tankData.kineticShield || 0; t.empStunTimer = tankData.empStunTimer || 0; if (tankData.serializedPUs) t.powerUps = new Map(tankData.serializedPUs); if (tankData.serializedRoundPUs) t.roundPowerUps = new Map(tankData.serializedRoundPUs); if (tankData.serializedPermPUs) t.permPowerUps = new Map(tankData.serializedPermPUs);
                  });
@@ -395,6 +403,7 @@ class Tank {
 
                     if (canCollect) {
                         this.applyPowerUp(pu.type); 
+                        window.TankWarsSfx?.pickup(pu.type.id, sfxFrom(this));
                         if (currentOnlineRoom && presenceHandle && !this.isAI) {
                             presenceHandle.publishTopic('powerup_pickup', { id: pu.id, pickerId: this.id, typeId: pu.type.id });
                         }
@@ -426,6 +435,7 @@ class Tank {
                 if (t !== this && t.alive) {
                     if (cfg.cooperativeMode && !t.isAI && !this.isAI) return;
                     t.empStunTimer = 180;
+                    if (t.inputSet) sfx('stunned', t);
                 }
             });
             showNotification(`${this.name} ACTIVATED EMP!`, "#9400d3");
@@ -451,12 +461,13 @@ class Tank {
                 bullet.life = 1;
             }
             createExplosion(this.x, this.y, "#ffff00", true, 0.8);
+            sfx('reflect', this);
             return 'REFLECTED';
         }
-        if (this.shield > 0) { this.shield--; return; } 
-        this.hp -= dmg; this.hitFlash = 10; if (this.hp <= 0) { this.lives--; this.livesLost++; createExplosion(this.x, this.y, this.color, this.isAI); if (this.lives > 0) this.respawn(); else { this.alive = false; checkEnd(); } } 
+        if (this.shield > 0) { this.shield--; sfx('shieldHit', this); return; } 
+        this.hp -= dmg; this.hitFlash = 10; if (this.hp <= 0) { this.lives--; this.livesLost++; createExplosion(this.x, this.y, this.color, this.isAI); sfx(this.isAI ? 'explode' : (this.lives > 0 ? 'playerDeath' : 'playerOut'), this); if (this.lives > 0) this.respawn(); else { this.alive = false; checkEnd(); } } else sfx('hit', this, 'hit'); 
     }
-    respawn() { const spawn = findSafeSpawn(Math.floor(Math.random()*cfg.cols), Math.floor(Math.random()*cfg.rows)); this.x = spawn.x; this.y = spawn.y; this.hp = this.isAI ? cfg.aiHp : cfg.hp; this.invincibilityTimer = cfg.respawnCooldown * 60; this.vel = 0; this.powerUps.clear(); this.shield = 0; this.kineticShield = 0; this.empStunTimer = 0; if (!this.isAI && cfg.defaultPowerUp) this.applyPowerUp(cfg.defaultPowerUp); }
+    respawn() { const spawn = findSafeSpawn(Math.floor(Math.random()*cfg.cols), Math.floor(Math.random()*cfg.rows)); this.x = spawn.x; this.y = spawn.y; this.hp = this.isAI ? cfg.aiHp : cfg.hp; this.invincibilityTimer = cfg.respawnCooldown * 60; this.vel = 0; this.powerUps.clear(); this.shield = 0; this.kineticShield = 0; this.empStunTimer = 0; if (!this.isAI && cfg.defaultPowerUp) this.applyPowerUp(cfg.defaultPowerUp); if (!this.isAI) setTimeout(() => { if (state === 'PLAYING' && this.alive) sfx('respawn', this); }, 900); }
     checkWall(nx, ny) { const b = 14.5; return [{x: nx-b, y: ny-b}, {x: nx+b, y: ny-b}, {x: nx-b, y: ny+b}, {x: nx+b, y: ny+b}].some(p => world.map[Math.floor(p.y/TILE)]?.[Math.floor(p.x/TILE)] === 1); }
     resolveMapCollision() {
         const r = 15, gx = Math.floor(this.x / TILE), gy = Math.floor(this.y / TILE);
@@ -565,6 +576,7 @@ class Tank {
                 if (sideTier >= 2) sync(this.cannonAngle + Math.PI);
                 if (sideTier >= 3) sync(this.cannonAngle);
             } 
+            window.TankWarsSfx?.shot({ spray: sprayTier, big: bigTier > 0, fast: hF, rapid: this.hasPU(7), bomb: isB, rico: hR, dist: hD, side: sideTier > 0 }, sfxFrom(this, 'shot'));
             this.lastShot = Date.now(); 
         } 
     }
@@ -665,6 +677,7 @@ class Bullet {
             if (this.hasFast) {
             } else if (this.hasRicochet && this.bounces < 3) {
                 this.bounces++;
+                sfx('bounce', this);
                 const prevX = this.x - this.dx; const prevY = this.y - this.dy;
                 const ptx = Math.floor(prevX / TILE); const pty = Math.floor(prevY / TILE);
                 if (ptx !== tx) this.dx *= -1;
@@ -679,7 +692,7 @@ class Bullet {
 
         world.tanks.forEach(t => { if(t.alive && t !== this.owner) { if (cfg.cooperativeMode && !t.isAI && !this.owner.isAI) return; if (Math.hypot(t.x-this.x, t.y-this.y) < 18 + this.size) { if (this.isBomb) this.explode(); else { const old = t.lives; const res = t.takeDamage(this.damage, this); if (res === 'REFLECTED') return; if (t.lives < old) this.owner.kills++; this.life = 0; } } } }); 
     }
-    explode() { this.life = 0; if (this.isBomb) { const br = 60; createFireExplosion(this.x, this.y, br); world.tanks.forEach(t => { if (t.alive) { const d = Math.hypot(t.x - this.x, t.y - this.y); if (d < br) { const fo = 1 - (d / br), old = t.lives; let finalDmg = this.damage * 1.5 * fo; if (t.hasPU(13)) finalDmg *= 0.5; const res = t.takeDamage(finalDmg, this); if (res === 'REFLECTED') return; if (t.lives < old) this.owner.kills++; } } }); } }
+    explode() { this.life = 0; sfx(this.isBomb ? 'bomb' : 'wallHit', this); if (this.isBomb) { const br = 60; createFireExplosion(this.x, this.y, br); world.tanks.forEach(t => { if (t.alive) { const d = Math.hypot(t.x - this.x, t.y - this.y); if (d < br) { const fo = 1 - (d / br), old = t.lives; let finalDmg = this.damage * 1.5 * fo; if (t.hasPU(13)) finalDmg *= 0.5; const res = t.takeDamage(finalDmg, this); if (res === 'REFLECTED') return; if (t.lives < old) this.owner.kills++; } } }); } }
     draw() { ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle); ctx.shadowBlur = 8; ctx.shadowColor = this.color; if (this.hasBig) { ctx.fillStyle = "#ffff00"; ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI*2); ctx.fill(); for(let i=0; i<8; i++) { ctx.rotate(Math.PI/4); ctx.fillRect(this.size, -1, this.size*0.6, 2); } } else if (this.hasDist) { ctx.strokeStyle = this.color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI*2); ctx.stroke(); } else if (this.hasFast) { ctx.strokeStyle = this.color; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-6, 0); ctx.lineTo(6, 0); ctx.stroke(); } else if (this.hasRicochet) { ctx.fillStyle = "#ee82ee"; ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI*2); ctx.fill(); } else { ctx.fillStyle = this.isBomb ? "#ff5500" : "#fff"; ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI*2); ctx.fill(); } ctx.restore(); }
 }
 
@@ -717,6 +730,7 @@ function checkNewPlayers() {
         const availableColor = PLAYER_COLORS.find(c => !takenColors.includes(c)) || PLAYER_COLORS[0];
         const t = new Tank(spawn.x, spawn.y, availableColor, false, 'mobile'); t.warpState = 'IN'; t.warpAnim = 0;
         world.tanks.set(t.id, t); world.myTankId = t.id; if (cfg.godMode) PU_TYPES.forEach(pu => t.applyPowerUp(pu));
+        sfx('coin', t);
         return;
     }
 
@@ -729,6 +743,7 @@ function checkNewPlayers() {
         const t = new Tank(spawn.x, spawn.y, availableColor, false, targetSet); t.warpState = 'IN'; t.warpAnim = 0;
         world.tanks.set(t.id, t); if (!world.myTankId) world.myTankId = t.id; if (cfg.godMode) PU_TYPES.forEach(pu => t.applyPowerUp(pu));
         didStartByMouseClick = false; 
+        sfx('coin', t);
         return;
     }
 
@@ -752,6 +767,7 @@ function checkNewPlayers() {
                 const t = new Tank(spawn.x, spawn.y, availableColor, false, set); t.warpState = 'IN'; t.warpAnim = 0; 
                 if (!(!currentOnlineRoom && humans.length === 0) && !(currentOnlineRoom && isOnlineHost)) showNotification(`${currentOnlineRoom ? t.name : `PLAYER ${humans.length + 1}`} joined`, t.color);
                 world.tanks.set(t.id, t); if (!world.myTankId) world.myTankId = t.id; if (cfg.godMode) PU_TYPES.forEach(pu => t.applyPowerUp(pu));
+                sfx('coin', t);
             } 
         } 
     }); 
@@ -771,6 +787,7 @@ function spawnPowerUp() {
         const type = PU_TYPES[Math.floor(Math.random() * PU_TYPES.length)];
         const pu = new PowerUp(p.x, p.y, type);
         world.powerUps.push(pu); 
+        sfx('puSpawn', pu);
         if (currentOnlineRoom && presenceHandle) {
             presenceHandle.publishTopic('powerup_spawn', { id: pu.id, x: p.x, y: p.y, typeId: type.id });
         }
@@ -778,8 +795,8 @@ function spawnPowerUp() {
     const nextInterval = (cfg.puFreq * 0.5) + (Math.random() * cfg.puFreq); powerUpTimer = nextInterval * 60; 
 }
 
-function startGame(isO = false) { currentRound = 1; lockMobileOrientation(); setupRound(isO, true); if (cfg.godMode && !isO) applyGodModePowerUps(); }
-function nextRound() { currentRound++; setupRound(currentOnlineRoom !== null, false); if (cfg.godMode && !currentOnlineRoom) applyGodModePowerUps(); }
+function startGame(isO = false) { currentRound = 1; lockMobileOrientation(); setupRound(isO, true); sfx('start'); if (cfg.godMode && !isO) applyGodModePowerUps(); }
+function nextRound() { currentRound++; setupRound(currentOnlineRoom !== null, false); sfx('start'); if (cfg.godMode && !currentOnlineRoom) applyGodModePowerUps(); }
 
 function setupRound(isO = false, isN = false, isR = false) { 
     const humans = Array.from(world.tanks.values()).filter(t => !t.isAI), hStates = humans.map(t => ({ id: t.id, inputSet: t.inputSet, color: t.color, powerUps: (isN || (humans.length > 1 && !cfg.cooperativeMode)) ? new Map() : new Map(t.powerUps), roundPowerUps: new Map(), permPowerUps: isN ? new Map() : new Map(t.permPowerUps), shield: (isN || (humans.length > 1 && !cfg.cooperativeMode)) ? 0 : t.shield, kineticShield: (isN || (humans.length > 1 && !cfg.cooperativeMode)) ? 0 : t.kineticShield, name: t.name, kills: isN ? 0 : t.kills, livesLost: isN ? 0 : t.livesLost }));
@@ -852,8 +869,8 @@ function checkEnd() {
     setTimeout(() => { 
         const ts = Array.from(world.tanks.values()), h = ts.filter(t => !t.isAI), ha = h.some(t => t.alive), a = ts.filter(t => t.isAI), aa = a.some(t => t.alive);
         const title = document.getElementById('game-over-title'), nxt = document.getElementById('next-btn'), fct = document.getElementById('fail-continue-btn'), mm = document.getElementById('main-menu-btn');
-        if (!ha && h.length > 0) { state = 'GAMEOVER'; title.innerText = "LEVEL FAILED"; document.getElementById('round-stat').innerText = `Round ${currentRound}`; nxt.classList.add('hidden'); fct.classList.remove('hidden'); mm.classList.remove('hidden'); gameOver.classList.remove('hidden'); document.getElementById('mobile-controls').classList.remove('active'); autoSelectPrimaryAction(gameOver); } 
-        else if (!aa && a.length > 0) { state = 'GAMEOVER'; title.innerText = "LEVEL COMPLETED"; document.getElementById('round-stat').innerText = `Round ${currentRound} Cleared`; nxt.classList.remove('hidden'); fct.classList.add('hidden'); mm.classList.add('hidden'); gameOver.classList.remove('hidden'); document.getElementById('mobile-controls').classList.remove('active'); autoSelectPrimaryAction(gameOver); } 
+        if (!ha && h.length > 0) { state = 'GAMEOVER'; title.innerText = "LEVEL FAILED"; sfx('levelFail'); document.getElementById('round-stat').innerText = `Round ${currentRound}`; nxt.classList.add('hidden'); fct.classList.remove('hidden'); mm.classList.remove('hidden'); gameOver.classList.remove('hidden'); document.getElementById('mobile-controls').classList.remove('active'); autoSelectPrimaryAction(gameOver); } 
+        else if (!aa && a.length > 0) { state = 'GAMEOVER'; title.innerText = "LEVEL COMPLETED"; sfx('levelClear'); document.getElementById('round-stat').innerText = `Round ${currentRound} Cleared`; nxt.classList.remove('hidden'); fct.classList.add('hidden'); mm.classList.add('hidden'); gameOver.classList.remove('hidden'); document.getElementById('mobile-controls').classList.remove('active'); autoSelectPrimaryAction(gameOver); } 
     }, 1000); 
 }
 
@@ -891,9 +908,15 @@ function updateView(localTanks) {
     view = { sx: k, sy: k, ox: bw / 2 - cam.x * k, oy: bh / 2 - cam.y * k };
 }
 
+const settingsBtn = document.getElementById('settings-btn');
 function loop() { 
     processMenuNavigation(); renderHUD();
     const ts = Array.from(world.tanks.values()), h = ts.filter(t => !t.isAI), lh = h.filter(t => t.inputSet), side = (window.innerWidth - canvas.offsetWidth) / 2;
+    document.body.classList.toggle('in-play', state === 'PLAYING');
+    settingsBtn.classList.toggle('hidden', !!currentOnlineRoom);
+    // Music: the play loop quickens as the CPU tanks fall; the menus get a slower, quieter one.
+    const cpus = ts.filter(t => t.isAI), cpuLeft = cpus.filter(t => t.alive).length;
+    window.TankWarsSfx?.music(state === 'PLAYING' ? 'play' : (state === 'MENU' ? 'menu' : 'off'), cpus.length ? 1 - cpuLeft / cpus.length : 0);
     const useR = side < 170, hasS = h.length > 1, hasT = hasS && h.length > 4, hasB = hasS && h.length > 0;
     let vha = (useR && hasS && state === 'PLAYING' && !isMobile) ? (hasT ? 2 : 1) * 8 : 0;
     if (vha > 0 && hasB && !hasT) document.body.classList.add('top-align'); else if (state !== 'PAUSED') document.body.classList.remove('top-align');
@@ -916,7 +939,7 @@ function loop() {
         if (currentOnlineRoom && presenceHandle) { 
             let local = []; world.tanks.forEach(t => { if (t.inputSet || (isOnlineHost && t.isAI)) local.push({ id: t.id, x: t.x, y: t.y, bodyAngle: t.bodyAngle, cannonAngle: t.cannonAngle, color: t.color, hp: t.hp, alive: t.alive, name: t.name, isAI: t.isAI, kills: t.kills, livesLost: t.livesLost, shield: t.shield, kineticShield: t.kineticShield, empStunTimer: t.empStunTimer, serializedPUs: Array.from(t.powerUps.entries()), serializedRoundPUs: Array.from(t.roundPowerUps.entries()), serializedPermPUs: Array.from(t.permPowerUps.entries()) }); });
             if (local.length > 0) presenceHandle.publishPresence({ tanks: local });
-            Object.entries(onlinePeers).forEach(([peerId, data]) => { if (peerId === myPeerId()) return; if (data.tanks) data.tanks.forEach(td => { let t = world.tanks.get(td.id); if (!t) { t = new Tank(td.x, td.y, td.color, td.isAI, null, td.id); if (!t.isAI) { t.warpState = 'IN'; t.warpAnim = 0; if (hasInitialPresence) showNotification(`${td.name || "A pilot"} joined`, t.color); } if (!t.isAI && cfg.defaultPowerUp) { t.applyPowerUp(cfg.defaultPowerUp); } world.tanks.set(td.id, t); } if (Math.hypot(t.x - td.x, t.y - td.y) > TILE * 2) { t.x = t.targetX = td.x; t.y = t.targetY = td.y; } else { t.targetX = td.x; t.targetY = td.y; } t.bodyAngle = td.bodyAngle; t.cannonAngle = td.cannonAngle; t.hp = td.hp; t.alive = td.alive; t.name = td.name || "Tank"; t.kills = td.kills || 0; t.livesLost = td.livesLost || 0; t.shield = td.shield || 0; t.kineticShield = td.kineticShield || 0; t.empStunTimer = td.empStunTimer || 0; if (td.serializedPUs) t.powerUps = new Map(td.serializedPUs); if (td.serializedRoundPUs) t.roundPowerUps = new Map(td.serializedRoundPUs); if (td.serializedPermPUs) t.permPowerUps = new Map(td.serializedPermPUs); }); });
+            Object.entries(onlinePeers).forEach(([peerId, data]) => { if (peerId === myPeerId()) return; if (data.tanks) data.tanks.forEach(td => { let t = world.tanks.get(td.id); if (!t) { t = new Tank(td.x, td.y, td.color, td.isAI, null, td.id); if (!t.isAI) { t.warpState = 'IN'; t.warpAnim = 0; if (hasInitialPresence) { showNotification(`${td.name || "A pilot"} joined`, t.color); sfx('coin', t); } } if (!t.isAI && cfg.defaultPowerUp) { t.applyPowerUp(cfg.defaultPowerUp); } world.tanks.set(td.id, t); } if (Math.hypot(t.x - td.x, t.y - td.y) > TILE * 2) { t.x = t.targetX = td.x; t.y = t.targetY = td.y; } else { t.targetX = td.x; t.targetY = td.y; } t.bodyAngle = td.bodyAngle; t.cannonAngle = td.cannonAngle; t.hp = td.hp; t.alive = td.alive; t.name = td.name || "Tank"; t.kills = td.kills || 0; t.livesLost = td.livesLost || 0; t.shield = td.shield || 0; t.kineticShield = td.kineticShield || 0; t.empStunTimer = td.empStunTimer || 0; if (td.serializedPUs) t.powerUps = new Map(td.serializedPUs); if (td.serializedRoundPUs) t.roundPowerUps = new Map(td.serializedRoundPUs); if (td.serializedPermPUs) t.permPowerUps = new Map(td.serializedPermPUs); }); });
             world.tanks.forEach((t, id) => { if (!t.inputSet && !(isOnlineHost && t.isAI) && t.warpState !== 'OUT') { let ex = false; Object.entries(onlinePeers).forEach(([pid, d]) => { if (pid !== myPeerId() && d.tanks?.some(td => td.id === id)) ex = true; }); if (!ex) { if (!t.isAI) { showNotification(`${t.name} left`, t.color); t.warpState = 'OUT'; t.warpAnim = 1.0; } else { createExplosion(t.x, t.y, t.color, true, 0.5); world.tanks.delete(id); } } } }); 
         } 
         const rm = []; world.tanks.forEach(t => { if (t.inputSet || t.isAI || (!t.isAI && !t.inputSet && t.id !== world.myTankId) || t.warpState !== 'NONE') t.update(); if (t.shouldDelete) rm.push(t.id); }); 

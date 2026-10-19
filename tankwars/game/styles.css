@@ -12,13 +12,15 @@ h3 { font-size: 0.9rem; color: #888; text-transform: uppercase; letter-spacing: 
 
 #menu .nav-item { display: block; width: 240px; margin: 12px auto; }
 
-#menu .icon-row { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
-#menu .icon-row .icon-btn { position: relative; width: 48px; height: 48px; margin: 0; padding: 0; border-radius: 50%; display: grid; place-items: center; background: rgba(0,255,0,0.12); color: #00ff00; border: 2px solid #00ff00; }
+/* Settings, Sound and Fullscreen: always in the bottom right corner, dimmed during play until pointed at or selected. */
+#corner-controls { position: absolute; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); display: flex; gap: 10px; pointer-events: auto; z-index: 1600; transition: opacity 0.2s; }
+body.in-play #corner-controls:not(:hover):not(:has(.selected)) { opacity: 0.45; }
+#corner-controls .icon-btn { position: relative; width: 48px; height: 48px; margin: 0; padding: 0; border-radius: 50%; display: grid; place-items: center; background: rgba(0,255,0,0.12); color: #00ff00; border: 2px solid #00ff00; }
 .icon-btn svg { width: 24px; height: 24px; }
 .icon-btn .btn-label { position: absolute; bottom: 56px; right: 0; white-space: nowrap; font-size: 0.7rem; letter-spacing: 1px; background: #000; color: #fff; padding: 4px 8px; border: 1px solid #00ff00; opacity: 0; pointer-events: none; transition: opacity 0.15s; }
-.icon-btn:hover .btn-label, .icon-btn:focus-visible .btn-label, .icon-btn.selected .btn-label { opacity: 1; }
-.icon-btn:hover { background: #00ff00; color: #000; }
-#menu .icon-row .icon-btn.selected { background: #fff; color: #000; border-color: #fff; }
+.icon-btn:focus-visible .btn-label, .icon-btn.selected .btn-label { opacity: 1; }
+@media (hover: hover) { .icon-btn:hover .btn-label { opacity: 1; } .icon-btn:hover { background: #00ff00; color: #000; } }
+#corner-controls .icon-btn.selected { background: #fff; color: #000; border-color: #fff; }
 .icon-btn.is-off:not(:hover):not(:focus-visible):not(.selected) { opacity: 0.5; }
 .icon-btn:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 .opt-group { height: 44px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #ccc; padding: 0 8px; border-radius: 4px; gap: 10px; cursor: pointer; }
@@ -105,12 +107,13 @@ body.mobile-device #mobile-controls.active { display: block; }
 body.mobile-device { height: 100vh; height: 100dvh; overscroll-behavior: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; -webkit-text-size-adjust: 100%; }
 body.mobile-device #gameCanvas { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; border: none; box-shadow: none; touch-action: none; }
 body.mobile-device input { -webkit-user-select: text; user-select: text; }
-body.mobile-device .ui-panel { max-width: calc(100vw - 60px - 24px - env(safe-area-inset-left) - env(safe-area-inset-right)); max-height: calc(100dvh - 60px - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overscroll-behavior: contain; }
+body.mobile-device .ui-panel { max-width: calc(100vw - 60px - 24px - env(safe-area-inset-left) - env(safe-area-inset-right)); max-height: calc(100dvh - 136px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overscroll-behavior: contain; }
 body.mobile-device .toggle-btn, body.mobile-device .cycle-btn { min-height: 40px; min-width: 64px; }
 body.mobile-device .page-arrow { padding: 6px 18px; }
 .joystick-zone { margin-bottom: env(safe-area-inset-bottom); }
 #left-stick-zone { margin-left: env(safe-area-inset-left); }
 #right-stick-zone { margin-right: env(safe-area-inset-right); }
+#mobile-controls.active ~ #corner-controls { bottom: calc(190px + env(safe-area-inset-bottom)); }
 #mobile-pause-btn { min-height: 44px; margin: env(safe-area-inset-top) env(safe-area-inset-right) 0 0; }
 body.mobile-device .hud-row-top { padding-top: max(10px, env(safe-area-inset-top)); }
 body.mobile-device .hud-row-bottom { bottom: 190px; }
@@ -127,6 +130,8 @@ body.mobile-device .hud-row-bottom { bottom: 190px; }
     #left-stick-zone { left: 20px; }
     #right-stick-zone { right: 20px; }
     #mobile-pause-btn { top: 12px; right: 12px; }
+    #mobile-controls.active ~ #corner-controls { bottom: calc(170px + env(safe-area-inset-bottom)); }
+    #corner-controls .icon-btn { width: 42px; height: 42px; }
 }
 @media (max-width: 420px) {
     body.mobile-device .ui-panel { padding: 16px 12px; max-width: calc(100vw - 24px - 24px); }
