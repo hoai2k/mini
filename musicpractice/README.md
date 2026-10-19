@@ -427,7 +427,9 @@ waiting and glows red once the scale has begun, with the count of notes as
 they come, and pressing it again stops. Three seconds of quiet is the end,
 and the same sheet then lists every note played, each with a tick for in
 tune or how many cents flat or sharp, and how many were in tune, with
-**Test again** and **Done**. Closing the sheet stops it. It is more lenient
+**Test again** and **Done**. Closing the sheet stops it. While the sheet
+is up the tuner rests behind it (no note, the needle at rest, a reference
+tone stopped), and it picks up again when the sheet closes. It is more lenient
 than the tuner: within 15 cents counts as in tune (`SCALE_TOLERANCE`), where
 the needle wants 5. A note is a run of clear frames on one semitone, at
 least 0.12 s long, with a stray frame or two let through; its pitch is the
