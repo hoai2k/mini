@@ -158,10 +158,13 @@ export class Crowd {
     const I = this.info.get(rig);
     for (const m of I?.meshes ?? []) if (m && m.layers.mask === HIDE) m.layers.mask = 1;
   }
-  // The batches a model's kind will use, made now (warm-up: their programs
-  // and shadows compiled with the level, not when the first pair spawns).
-  // Returns stand-ins (one instance at the model's parts, a shared buffer)
-  // for the warm-up group, one per distinct material and vertex layout.
+  // Warm-up (main.js warmupShaders): stand-ins for the batches the models'
+  // kinds will draw with, one per distinct material and vertex layout (one
+  // instance at the model's part, a shared matrix buffer), added to the
+  // warm-up group so their programs and shadow programs are compiled with the
+  // level: every batch of the same material has the same shader, so a kind's
+  // first crowd compiles nothing. (The real batches are made when a crowd of
+  // a kind first shows: each holds a capacity's worth of matrices, 64 KB.)
   warmFor(rigs) {
     const out = [], seen = new Set();
     this.warmAttr ??= new THREE.InstancedBufferAttribute(new Float32Array(this.cap * 16), 16).setUsage(THREE.DynamicDrawUsage);
@@ -171,7 +174,6 @@ export class Crowd {
       if (list.length !== K.count) continue;
       list.forEach((m, i) => {
         const S = K.slots[i]; if (!S) return;
-        this.batch(S);   // (the kind's real batch, empty until a crowd of it shows)
         const key = `${S.mat.type}|${S.mat.name}|${!!S.mat.voxParams}|${S.mat.alphaTest > 0}|${!!S.geo.index}|${Object.keys(S.geo.attributes).sort().join(',')}|${S.cast}|${S.recv}`;
         if (seen.has(key)) return; seen.add(key);
         const w = new THREE.InstancedMesh(S.geo, S.mat, 1);

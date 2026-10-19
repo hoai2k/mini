@@ -20,7 +20,9 @@
 //   NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/bodysize.cjs [out.json] [keys] [--check]
 // --check tests every model against the size spec (design/sizes.json): its
 // body × Percy must lie in its size category's band, and a big upright
-// model's head must not keep a hero's proportions (the spec's head rule). It
+// model's head must not keep a hero's proportions (the spec's head rule),
+// nor its legs a hero's short ones (the leg rule: hip joint to sole over
+// body height, the "leg/body" column; QuadRigs, marked q, unchecked). It
 // lists each failure and exits 1 if there is any.
 // Serves the repository on PERF_PORT (default 8765) if nothing is there yet.
 const fs = require('fs');
@@ -120,7 +122,13 @@ async function serve() {
         else rig.head.traverse((o) => { if (o.isMesh && !o.isInstancedMesh && !fx(o) && visible(o) && !under(o)) { o.geometry.computeBoundingBox(); hb.union(o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld)); } });
         if (!hb.isEmpty()) headH = hb.max.y - hb.min.y;
       }
-      return { headH, allTop: all.max.y, allBot: all.min.y, allH: sa.y, bodyTop: body.isEmpty() ? 0 : body.max.y, bodyBot: body.isEmpty() ? 0 : body.min.y, bodyH: sb.y, bodyLong: Math.max(sb.x, sb.z), allLong: Math.max(sa.x, sa.z), float: rig.float ?? 0, parts, tris };
+      // the legs: hip joint to sole (a Rig's leg pivots over the ground it
+      // stands on); for a QuadRig its front leg's root over the ground,
+      // recorded beside the shoulder (body) height but not checked
+      let legH = null;
+      const legs = rig.isQuad ? [rig.legs?.[0]].filter(Boolean) : [rig.legR, rig.legL].filter((g) => g && g.parent && g !== rig.armR);
+      if (legs.length && !rig.isSerpent) { const w = new THREE.Vector3(); legH = Math.max(...legs.map((g) => g.getWorldPosition(w).y)); }
+      return { legH, headH, allTop: all.max.y, allBot: all.min.y, allH: sa.y, bodyTop: body.isEmpty() ? 0 : body.max.y, bodyBot: body.isEmpty() ? 0 : body.min.y, bodyH: sb.y, bodyLong: Math.max(sb.x, sb.z), allLong: Math.max(sa.x, sa.z), float: rig.float ?? 0, parts, tris };
     };
     const percy = measure(models.buildHeroModel('percy'));
     const P = percy.bodyTop;
@@ -144,6 +152,7 @@ async function serve() {
       out.push({ group: it.group, key: it.key, name: it.name,
         bodyH: r2(bodyH), bodyX: r2(bodyH / P), allH: r2(m.allTop - Math.min(0, m.allBot)), allX: r2((m.allTop - Math.min(0, m.allBot)) / P),
         bodyBot: r2(m.bodyBot), bodyLong: r2(m.bodyLong), allLong: r2(m.allLong), float: m.float, hoverTop: r2(m.bodyTop + (m.float || d.hover || 0)),
+        legR: m.legH == null || !bodyH ? null : +(m.legH / bodyH).toFixed(3), quad: !!rig.isQuad,
         headH: m.headH == null ? null : r2(m.headH), headR: m.headH == null || !bodyH ? null : +(m.headH / bodyH).toFixed(3),
         statH: sh, statR: sr, base: rig.baseScale, tris: Math.round(m.tris),
         left: Object.entries(m.parts).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v.toFixed(2)}`).join(', ') });
@@ -153,10 +162,10 @@ async function serve() {
   }, ONLY);
   if (OUT) fs.writeFileSync(OUT, JSON.stringify(res, null, 1));
   console.log(`Percy body ${res.percy.bodyH}, whole ${res.percy.allH}`);
-  console.log('group      key                         body  ×P    total ×P    statH  head/body  tris');
+  console.log('group      key                         body  ×P    total ×P    statH  head/body  leg/body  tris');
   for (const r of res.rows) {
     if (r.error) { console.log(r.key, 'ERROR', r.error); continue; }
-    console.log(`${r.group.padEnd(10)} ${r.key.padEnd(27)} ${String(r.bodyH).padStart(5)} ${r.bodyX.toFixed(2)}  ${String(r.allH).padStart(5)} ${r.allX.toFixed(2)}  ${String(r.statH ?? '—').slice(0, 5).padEnd(5)}  ${r.headR == null ? '  —  ' : r.headR.toFixed(3)}  ${String(r.tris).padStart(6)}  left out: ${r.left}`);
+    console.log(`${r.group.padEnd(10)} ${r.key.padEnd(27)} ${String(r.bodyH).padStart(5)} ${r.bodyX.toFixed(2)}  ${String(r.allH).padStart(5)} ${r.allX.toFixed(2)}  ${String(r.statH ?? '—').slice(0, 5).padEnd(5)}  ${r.headR == null ? '  —  ' : r.headR.toFixed(3)}  ${r.legR == null ? '  —  ' : r.legR.toFixed(3)}${r.quad ? 'q' : ' '}  ${String(r.tris).padStart(6)}  left out: ${r.left}`);
   }
   console.log('models', res.rows.length, 'page errors', errs.length, errs.slice(0, 3));
   await b.close();
@@ -175,9 +184,16 @@ function headMax(H, x) {
   const t = Math.max(0, Math.min(1, (x - H.from) / (H.to - H.from)));
   return H.hero + (H.big - H.hero) * t + H.tol;
 }
+// The leg rule (spec.legs): an upright model's legs (hip joint to sole) over
+// its body height must be at least legs.hero at legs.from × Percy and under,
+// rising in a straight line to legs.big at legs.to × Percy and over.
+function legMin(L, x) {
+  const t = Math.max(0, Math.min(1, (x - L.from) / (L.to - L.from)));
+  return L.hero + (L.big - L.hero) * t - L.tol;
+}
 function check(rows) {
   const spec = JSON.parse(fs.readFileSync(SPEC, 'utf8'));
-  const C = spec.categories, H = spec.head, out = [], warn = [];
+  const C = spec.categories, H = spec.head, L = spec.legs, out = [], warn = [], lwarn = [];
   for (const r of rows) {
     if (r.error) { out.push(`${r.key}: did not build (${r.error})`); continue; }
     const e = spec.models[r.key];
@@ -191,9 +207,17 @@ function check(rows) {
       const msg = `${r.key}: head ${r.headR.toFixed(3)} of its body at ${x.toFixed(2)}× Percy, over the head rule's ${max.toFixed(3)} (a hero-proportioned head on a big body)`;
       if (e.head === 'followUp') warn.push(msg + ' [known: follow-up]'); else out.push(msg);
     } else if (e.head === 'followUp') warn.push(`${r.key}: marked "head": "followUp" but its head now passes (${r.headR == null ? 'not an upright rig' : r.headR.toFixed(3)}); remove the mark`);
+    if (L && e.legs !== 'exempt') {
+      const min = r.legR != null && !r.quad && x > L.from ? legMin(L, x) : -Infinity;
+      if (r.legR < min) {
+        const msg = `${r.key}: legs ${r.legR.toFixed(3)} of its body at ${x.toFixed(2)}× Percy, under the leg rule's ${min.toFixed(3)} (a hero's short legs on a big body)`;
+        if (e.legs === 'followUp') lwarn.push(msg + ' [known: follow-up]'); else out.push(msg);
+      } else if (e.legs === 'followUp') lwarn.push(`${r.key}: marked "legs": "followUp" but its legs now pass (${r.legR == null ? 'not an upright rig' : r.legR.toFixed(3)}); remove the mark`);
+    } else if (e.legs === 'exempt' && !e.legsNote) out.push(`${r.key}: "legs": "exempt" needs a legsNote giving the reason`);
   }
-  console.log(`\nsize check (design/sizes.json): ${rows.length} models, ${out.length} failing, ${warn.length} warnings`);
+  console.log(`\nsize check (design/sizes.json): ${rows.length} models, ${out.length} failing, ${warn.length} head warnings, ${lwarn.length} leg warnings`);
   for (const l of out) console.log('  FAIL ' + l);
   for (const l of warn) console.log('  WARN ' + l);
+  for (const l of lwarn) console.log('  WARN ' + l);
   return out.length;
 }

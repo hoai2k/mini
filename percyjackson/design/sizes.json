@@ -51,10 +51,18 @@
   }
  },
  "head": {
-  "_note": "The owner's rule: as characters grow, the Minecraft-style big head gives way to more realistic proportions. For an upright model (a Rig: not a four-legged QuadRig or a serpent), its head block's height over its body height may be at most `hero` at `from` x Percy and under, falling in a straight line to `big` at `to` x Percy and over (plus `tol`). Heroes measure 0.23-0.29; an adult is about 0.13 (7.5 heads tall). A model whose head is a known follow-up has \"head\": \"followUp\" with the reason: the check prints it as a warning, not a failure, and says when the mark can go.",
+  "_note": "The owner's rule: as characters grow, the Minecraft-style big head gives way to more realistic proportions. For an upright model (a Rig: not a four-legged QuadRig or a serpent), its head block's height (the skull and face where the builder names them, rig.extras.headCore, measured along the head's own axis; else its skin cube) over its body height may be at most `hero` at `from` x Percy and under, falling in a straight line to `big` at `to` x Percy and over (plus `tol`). Heroes measure 0.23-0.29; an adult is about 0.13 (7.5 heads tall). A model whose head is a known follow-up has \"head\": \"followUp\" with the reason: the check prints it as a warning, not a failure, and says when the mark can go.",
   "hero": 0.3,
   "big": 0.17,
   "from": 1.0,
+  "to": 2.0,
+  "tol": 0.0
+ },
+ "legs": {
+  "_note": "The owner's leg rule (round 7), beside the head rule: hero-sized Minecraft characters stand on short-ish legs, and as a creature grows its legs approach a real body's. For an upright model (a Rig, not a QuadRig or serpent), its leg length (hip joint to sole, perf/bodysize.cjs) over its body height (sole to crown, hair, horns and hood included) must be at least `hero` at `from` x Percy and under, rising in a straight line to `big` at `to` x Percy and over (less `tol`). Measured this way the heroes read 0.27-0.32 (their hair tops the body; to the top of the skull it is about 0.35-0.38) and a giant at 0.42 or more has legs about half its height to the skull. A model whose legs are hidden or not a person's (a robe to the floor, a hovering Fury in a long dress, a serpent tail) has \"legs\": \"exempt\" with the reason in legsNote; a known follow-up has \"legs\": \"followUp\" (a warning). QuadRigs record leg root height over shoulder height in the table, unchecked.",
+  "hero": 0.27,
+  "big": 0.42,
+  "from": 1.15,
   "to": 2.0,
   "tol": 0.0
  },
@@ -78,9 +86,7 @@
   "tyson": {
    "category": "bigger",
    "source": "owner",
-   "reason": "kept at 1.5x by the owner (an approximate, cartoony exaggeration of a young Cyclops)",
-   "head": "followUp",
-   "headNote": "his head (0.25 of his body) is hero-proportioned at 1.5x; the owner kept his size, so a head pass is for the owner to approve"
+   "reason": "kept at 1.5x by the owner (an approximate, cartoony exaggeration of a young Cyclops)"
   },
   "clarisse": {
    "category": "same",
@@ -192,9 +198,7 @@
     "people": 1.7,
     "norm": 1.21,
     "note": "row 3: hair to feet"
-   },
-   "head": "followUp",
-   "headNote": "her head (0.28 of her body) is hero-proportioned at 1.4x"
+   }
   },
   "dracaena": {
    "category": "bigger",
@@ -282,9 +286,7 @@
   "cyclops": {
    "category": "bigger",
    "source": "role",
-   "reason": "an elite giant, well over the heroes",
-   "head": "followUp",
-   "headNote": "his head (0.45 of his body: the head group with the mane, the brow and the beard) is hero-proportioned or more at 1.8x"
+   "reason": "an elite giant, well over the heroes"
   },
   "karpos": {
    "category": "small",
@@ -391,9 +393,7 @@
     "people": 1.75,
     "norm": 1.54,
     "note": "row 1; people = the keres on row 3"
-   },
-   "head": "followUp",
-   "headNote": "his head (0.27 of his body) is hero-proportioned at 1.4x"
+   }
   },
   "daedalus_drone": {
    "category": "same",
@@ -412,9 +412,7 @@
     "people": 1.7,
     "norm": 1.93,
     "note": "row 2: head to feet"
-   },
-   "head": "followUp",
-   "headNote": "his head (0.45 of his body: the head group with hair and beard) is hero-proportioned or more at 1.6x"
+   }
   },
   "shade": {
    "category": "same",
@@ -444,8 +442,8 @@
    "category": "bigger",
    "source": "owner",
    "reason": "the owner, round 4: a boss that looms, 1.8-2x",
-   "head": "followUp",
-   "headNote": "her head (0.28 of her body) is hero-proportioned at 1.9x"
+   "legs": "exempt",
+   "legsNote": "she hovers in a long ragged dress that hides her legs (a Fury flies; her feet hang under the hem)"
   },
   "minotaur": {
    "category": "muchBigger",
@@ -457,9 +455,7 @@
     "bodyPx": 590,
     "ratio": 4.37,
     "note": "row 1: head without the horns to the hooves"
-   },
-   "head": "followUp",
-   "headNote": "his head (0.41 of his body: the bull's head and horns' base) is hero-proportioned or more at 1.9x"
+   }
   },
   "hellhound_alpha": {
    "category": "muchBigger",
@@ -470,8 +466,8 @@
    "category": "bigger",
    "source": "owner",
    "reason": "the owner, round 4: Alecto 1.8-2x, her sisters a little smaller",
-   "head": "followUp",
-   "headNote": "the sisters' heads (0.28 of the body) are hero-proportioned at 1.9x"
+   "legs": "exempt",
+   "legsNote": "the sisters hover in long ragged dresses that hide their legs"
   },
   "medusa": {
    "category": "bigger",
@@ -484,8 +480,8 @@
     "ratio": 4.41,
     "note": "row 1: hood to hem"
    },
-   "head": "followUp",
-   "headNote": "her head (0.47 of her body: the veiled head with the snake hair) is hero-proportioned or more at 1.6x"
+   "legs": "exempt",
+   "legsNote": "her robe falls to the floor and hides her legs"
   },
   "chimera": {
    "category": "bigger",
@@ -703,7 +699,9 @@
   "fields_bronzebeak": {
    "category": "slightlyBigger",
    "source": "role",
-   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it; a bird held level, it reads by its wingspan"
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it; a bird held level, it reads by its wingspan",
+   "legs": "exempt",
+   "legsNote": "a bird (a Stymphalian bird drawn upright on a rig): a perched bird stands on short legs under its body and neck, not a person's"
   },
   "woods_shadowfang": {
    "category": "giant",
@@ -720,7 +718,9 @@
     "bodyPx": 525,
     "ratio": 4.57,
     "note": "row 1: head (crown left out) to the talons"
-   }
+   },
+   "legs": "followUp",
+   "legsNote": "her eagle legs are 0.33 of her body at 1.6x Percy, a little under the leg rule's 0.34; a harpy's legs are a bird's, so whether to lengthen them is for the owner (round 7)"
   },
   "canyon_red_king": {
    "category": "slightlySmaller",
@@ -730,16 +730,12 @@
   "lab_bronze_warden": {
    "category": "bigger",
    "source": "role",
-   "reason": "a giant bronze automaton (round 2)",
-   "head": "followUp",
-   "headNote": "its head (0.26 of its body) is hero-proportioned at 1.85x"
+   "reason": "a giant bronze automaton (round 2)"
   },
   "oth_gorgos": {
    "category": "muchBigger",
    "source": "role",
-   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it (the cyclops)",
-   "head": "followUp",
-   "headNote": "his head (0.49 of his body) is hero-proportioned or more at 2.2x"
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it (the cyclops)"
   },
   "asphodel_pale_king": {
    "category": "slightlyBigger",
@@ -791,7 +787,9 @@
   "kind:harpy": {
    "category": "bigger",
    "source": "role",
-   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it"
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it",
+   "legs": "followUp",
+   "legsNote": "eagle legs 0.34 of the body at 1.6x Percy, a little under the leg rule's 0.35; as the Queen of the Gale (round 7)"
   },
   "kind:stymphalian": {
    "category": "slightlySmaller",
@@ -806,9 +804,7 @@
   "kind:cyclops": {
    "category": "muchBigger",
    "source": "role",
-   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it",
-   "head": "followUp",
-   "headNote": "his head (0.52 of his body) is hero-proportioned or more at 2.2x"
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it"
   }
  }
 }

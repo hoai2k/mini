@@ -721,6 +721,121 @@ files outside the repository, as before.
 - `perf/bodysize.cjs - '' --check`: 103 models, 0 failing, 12 warnings (the
   head follow-ups above).
 
+### Round 7: head proportions (the owner's rules)
+
+The owner: "As characters grow, reduce the Minecraft-style head-size
+exaggeration. A bigger creature has more realistic head-to-body
+proportions." And then: "Note the proportion of legs to body too."
+
+**The head rule** was already in [sizes.json](sizes.json) (`head`): an
+upright model's head over its body height may be at most 0.30 up to 1×
+Percy, falling in a straight line to 0.17 at 2× and over. Twelve models were
+marked `"head": "followUp"` (warnings only). Round 7 fixed all twelve and took
+the marks out, so the check now enforces the rule for every model.
+
+**A truer head measure.** `perf/bodysize.cjs` used to measure the whole head
+group of a sculpted head, so a mane, beard, veil, hood or horns counted as
+head: the cyclops read 0.45, Medusa 0.47. Now a builder names the skull and
+face, `markHeadCore(rig, centre, size)` (`game/js/entities/proportions.js`,
+kept in `rig.extras.headCore`), and the check measures that, along the head's
+own axis so a hunched or bowed head is not taller for its tilt. A model that
+names no core is measured as before (its skin cube, else its head group).
+The core is set for the cyclops (skull and face, mane and beard aside), the
+Laistrygonian, the Earthborn, the Minotaur (skull and muzzle, horns and
+forelock aside), Medusa (the face in the cowl), the Furies and Tyson (the
+skin cube, hair aside) and the Bronze Warden (the helm, crest aside). With the
+new measure alone the cyclops read 0.27, Medusa 0.25, the Minotaur 0.20:
+still over, so every one was re-proportioned.
+
+**The leg rule** (new, `legs` in sizes.json, checked the same way): an
+upright model's legs, hip joint to sole, over its body height must be at
+least 0.27 up to 1.15× Percy, rising in a straight line to 0.42 at 2× and
+over. Measured this way the heroes read 0.27–0.32: their voxel hair tops the
+body (to the top of the skull it is about 0.35–0.38, the owner's "short-ish"
+0.35–0.45), and 0.42 to the crown is about half the height to the skull, the
+owner's 0.45–0.5 for a human-shaped giant. The numbers live in one place,
+`legs` in sizes.json. A model whose legs are hidden or not a person's is
+marked `"legs": "exempt"` with a `legsNote` (Alecto and the Furies hover in
+long dresses, Medusa's robe falls to the floor, Bronzebeak is a bird); a known
+follow-up is `"legs": "followUp"` (a warning). Four-legged models record leg
+root height over shoulder height in the table (marked q) and are not checked.
+
+**How a model is re-proportioned: re-sculpted, not scaled.**
+`proportions.js` `reshape(rig, part, [fx, fy, fz])` tells the voxel kits
+(monsters.js `VoxKit`, fodder.js `blob`, bossmodels.js `vox`) to lay what is
+drawn into that part through its shape; they voxelise afresh at the model's
+own cell size (parts.js density), so a smaller head is a new sculpt of the
+same hero-sized cells with its features drawn smaller, and clumps, shag tufts
+and cells keep their size. A leg reshaped with `{ ankle }` grows in the thigh
+and shin over the same foot. `applyShape(rig)` then moves what hangs on a
+reshaped part (neck, shoulders, hands, a shoulder skull, wings, a hood).
+Skin-cube heads (the Furies, Tyson) are built with a smaller `headS`.
+Each body stays in its size category; weapons, grips, animations, hit
+flashes, stats and material code are untouched.
+
+| model | body × Percy | head / body (allowed) | legs / body (needed) | triangles |
+|---|---|---|---|---|
+| Tyson | 1.50 → 1.52 | 0.221 → 0.199 (≤ 0.232) | 0.298 → 0.340 (≥ 0.335) | 5,100 → 5,100 |
+| Fury | 1.42 → 1.45 | 0.282 → 0.228 (≤ 0.241) | 0.314 → 0.340 (≥ 0.323) | 10,058 → 10,508 |
+| Cyclops | 1.82 → 1.94 | 0.269 → 0.156 (≤ 0.178) | 0.297 → 0.461 (≥ 0.409) | 20,070 → 21,822 |
+| Earthborn | 1.39 → 1.40 | 0.254 → 0.223 (≤ 0.248) | 0.318 → 0.351 (≥ 0.314) | 14,568 → 14,134 |
+| Laistrygonian | 1.61 → 1.61 | 0.261 → 0.203 (≤ 0.221) | 0.311 → 0.379 (≥ 0.351) | 21,688 → 19,350 |
+| Alecto | 1.89 → 1.88 | 0.281 → 0.164 (≤ 0.186) | exempt (hovers, dress) | 9,666 → 10,546 |
+| the Furies | 1.90 → 1.89 | 0.282 → 0.165 (≤ 0.184) | exempt (hover, dresses) | 9,666 → 10,546 |
+| Minotaur | 1.96 → 2.09 | 0.204 → 0.153 (≤ 0.170) | 0.342 → 0.429 (≥ 0.420) | 32,856 → 31,660 |
+| Medusa | 1.55 → 1.55 | 0.254 → 0.210 (≤ 0.228) | exempt (robe) | 35,172 → 34,944 |
+| Bronze Warden | 1.85 → 1.82 | 0.271 → 0.173 (≤ 0.193) | 0.314 → 0.430 (≥ 0.388) | 2,810 → 2,822 |
+| Gorgos | 2.21 → 2.26 | 0.248 → 0.151 (≤ 0.170) | 0.275 → 0.442 (≥ 0.420) | 23,392 → 23,884 |
+| cyclops champion | 2.21 → 2.23 | 0.238 → 0.147 (≤ 0.170) | 0.266 → 0.432 (≥ 0.420) | 21,808 → 23,116 |
+| Pale King | 1.37 → 1.34 | 0.232 → 0.237 | 0.311 → 0.319 (≥ 0.304) | 3,358 → 3,358 |
+
+(Before: the old model under the new measures. The old head measure read
+Tyson 0.249, the cyclops 0.454, the Laistrygonian 0.450, Medusa 0.473, the
+Minotaur 0.414, Gorgos 0.493 and the cyclops champion 0.524.)
+
+- **Cyclops** (and through him Gorgos and the cyclops champion): the head
+  sculpted at 0.62 of its old size, the one eye drawn wider in it so it stays
+  the face's big feature, the beard fuller and longer than the smaller head
+  alone gives; legs 10 → 16.4 pixels over the same sandalled feet, the kilt
+  with them; broader shoulders and arms that still reach down the thigh; the
+  ram's skull 0.8. Gorgos's bear hood is sculpted to the smaller head; the
+  champion's crown sits on the mane (`rig.crownY`) and is sized to the head.
+  He grew a little, 1.83 → 1.94×, still "bigger".
+- **Laistrygonian**: head 0.78 (hair and beard round it as before), legs 10 →
+  12.2 over the same feet, the kilt with them, arms 1.1 longer. His cells are
+  0.92 of a hero's density, so the elite stays under 20k triangles (it was
+  21.7k before this round).
+- **Earthborn**: head 0.88, legs 9 → 10 over the same feet.
+- **Minotaur**: the bull's head 0.8, the horns kept near their old sweep and a
+  little thicker, legs 15 → 20 over the same hooves, the loincloth and arms
+  longer. He grew to 2.09× ("much bigger" is 1.85–2.7).
+- **Medusa**: the cowl, face, veil and staring eyes 0.82; the snakes keep
+  their size, so the hair writhes larger round the smaller head; a longer
+  trunk and robe keep her height.
+- **The Furies**: one builder graded by size: the plain Fury (1.4×) gets a
+  skin head 0.82 of a hero's, Alecto and her sisters (1.9×) 0.58, their wild
+  curls standing out further round it; longer trunks, arms and dresses keep
+  their height.
+- **Bronze Warden**: the helm 0.62, legs 11 → 14.8 over the same boots,
+  broader shoulders, longer arms.
+- **Tyson** (his 1.5× kept): a skin head of 7.2 pixels instead of 8, legs 12
+  → 13.8. (With the skin-cube measure alone he already passed, 0.221; the
+  reshape also passes the old hat-and-all measure.)
+- **The Pale King**: his crown's spikes lowered (3.2 → 2.4); the crown had
+  topped him to exactly the leg rule's line.
+
+**What the leg check flags beyond these.** Ares (0.417 at 1.60×) and
+Procrustes (0.404 at 1.65×) pass; so do the dracaenae, the empousa champion,
+the skeleton and spartoi champions and Chiron. Left as follow-ups for the
+owner (`"legs": "followUp"`, warnings): the Queen of the Gale (0.327, needs
+0.344) and the harpy champion (0.333, needs 0.351), whose legs are an
+eagle's, so whether to lengthen them is a design call. Bronzebeak is a bird
+and exempt.
+
+**The sheet.** A before/after sheet (the concept crop, the model before and
+after, Percy beside each) was rendered for the round; the renderer is a
+scratch tool, not part of the repository.
+
 ## Cerberus: the recommended size
 
 - **The books:** *The Lightning Thief* ch. 18† says "twice the size of a woolly

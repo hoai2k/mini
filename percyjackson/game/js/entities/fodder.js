@@ -43,7 +43,7 @@ import { paintPerson } from './mortals.js';
 import { t as txt } from '../text_config.js';
 import { HS, skinMat, group, sway, BUILD, voxDensity, keepAbove } from './parts.js';
 import { addFlames } from './flames.js';
-import { shapeX, unshapeX, reshape, applyShape, markHeadCore } from './proportions.js';
+import { shapeX, unshapeX, shapeK, legScale, reshape, applyShape, markHeadCore } from './proportions.js';
 
 // The new kinds (world/roamZones.js counts the small ones as fodder).
 export const FODDER_IDS = ['karpos', 'karpos_slinger', 'colchis_calf', 'myrmex', 'myrmex_spitter', 'boarlet', 'crab', 'king_crab', 'basilisk', 'earthborn', 'daedalus_drone', 'laistrygonian', 'shade', 'keres'];
@@ -371,7 +371,7 @@ export function blob(K, p, c, r, cell, col, { lo = -1, hi = 1, pw = 2, rx = 0, r
   // (a part its builder reshaped, proportions.js: the mass lands through its
   // shape, sculpted afresh from cells of the same size)
   const S = !K._raw && K.rig?.shape?.get(p);
-  if (S) { c = c.map((v, a) => shapeX(S, v, a)); r = r.map((v, a) => v * S.f[a]); }
+  if (S) { r = r.map((v, a) => v * shapeK(S, c[1], a)); c = c.map((v, a) => shapeX(S, v, a)); }
   if (rx) return blobTilted(K, p, c, r, cell, col, { lo, hi, pw, rx, run, keep });
   K.vgrid ??= new Map();
   const gk = `${cell.toFixed(4)}`;
@@ -1031,6 +1031,13 @@ function buildEarthborn(K0) {
   const T = rig.torso, Hd = rig.head, H7 = 8 * HS * 7 / 8;
   dropAll(rig, T); dropAll(rig, Hd);
   rig.neck.position.y = 11.8 * PX;   // (the head sunk between the boulder shoulders)
+  // (round 7, head and leg proportions, proportions.js: the craggy head 0.88
+  // of its old size, sculpted afresh from the same stones, on legs grown from
+  // 9 to 10 pixels over the same feet)
+  const L1 = 10, ANK = -7.2;
+  reshape(rig, Hd, 0.88);
+  for (const g of [rig.legR, rig.legL]) reshape(rig, g, [1, legScale(9, L1, ANK), 1], [0, 0, 0], { ankle: ANK });
+  rig.dims.legH = L1; rig.hips.position.y = L1 * PX;
   // stone in rounded lumps, mossy on top
   // (flat tones picked per run of cells, so runs merge; at the heroes' voxel size the lumps read as many small stones)
   const pick = (A) => A[Math.floor(K.r() * A.length)];
@@ -1088,6 +1095,7 @@ function buildEarthborn(K0) {
   K.box(Hd, 0, 3.2, 3.8, 1.4, 1.4, 0.8, stL);
   K.box(Hd, 0, 1.7, 3.5, 3.6, 1.2, 0.6, 0x2a1408); for (const x of [-1.2, -0.4, 0.4, 1.2]) K.box(Hd, x, 1.9, 3.75, 0.6, 0.6, 0.3, 0xe8dcc0);
   K.clumps(Hd, [0, 6.8, 0], [6.4, 1, 6], { n: 4, size: [1.4, 2.2], cols: [...MOSS, stL], faces: 't', out: -0.3 });
+  applyShape(rig);
   K.done();
   noShadow(rig, Hd);
   rig.extras.fists = fists;
@@ -1174,7 +1182,17 @@ function buildLaistrygonian(K0) {
   rig.neck.position.y = 11.6 * PX;                        // the head sits low between the shoulders
   rig.handR.position.y = rig.handL.position.y = -12.4 * PX;
   rig.legR.position.x = -3 * PX; rig.legL.position.x = 3 * PX;
-  const K = kitOf(K0, 'laistrygonian', rig, mat, { seed: 167, rough: 0.85, emit: 0.9, ao: 0.3, density: voxDensity(rig) });
+  // (round 7, head and leg proportions, proportions.js: a giant's head, 0.78
+  // of the old one sculpted afresh from the same cells, on legs grown from 10
+  // to 12.2 pixels over the same feet, the kilt with them; he stands as tall)
+  const L1 = 12.2, ANK = -8;
+  reshape(rig, rig.head, 0.78);
+  reshape(rig, rig.torso, [1.05, 1, 1.03]);
+  reshape(rig, rig.hips, [1.05, L1 / 10, 1.03]);
+  for (const g of [rig.legR, rig.legL]) reshape(rig, g, [1.03, legScale(10, L1, ANK), 1.03], [0, 0, 0], { ankle: ANK });
+  for (const g of [rig.armR, rig.armL]) reshape(rig, g, [1.03, 1.1, 1.03]);
+  rig.dims.legH = L1; rig.hips.position.y = L1 * PX;
+  const K = kitOf(K0, 'laistrygonian', rig, mat, { seed: 167, rough: 0.85, emit: 0.9, ao: 0.3, density: voxDensity(rig) * 0.92 });   // (cells a touch coarser than a hero's, round 7: an elite stays under 20k triangles)
   const T = rig.torso, Hd = rig.head, gold = 0xe8b440, SK = [skin, 0xbc6c36, 0xd4844a], HAIR = [hair, 0x2a2018, 0x141010];
   const sk = () => SK[Math.floor(K.r() * 3)];
   // skin inked with spiral tattoos: rings round a centre (cx, cy in the mass's -1..1)
@@ -1235,6 +1253,7 @@ function buildLaistrygonian(K0) {
   // (a few low tongues of fire on it; the blaze streaming off it is live flame, flames.js)
   for (let i = 0; i < 6; i++) { const a = K.r() * Math.PI * 2, t = K.r() * 0.3, r = 2.6 * (1 - t * 0.6); K.box(ball, Math.cos(a) * r, 2.6 + t * 5, Math.sin(a) * r, 2 - t * 1.3, 2.4 - t * 1.3, 2 - t * 1.3, fire[Math.min(2, Math.floor(t * 3))]); }
   rig.extras.ball = ball;
+  applyShape(rig);
   K.done();
   addFlames(rig, { cap: 40, palette: 'fire', rise: 24, turb: 28 }).source(ball, { at: [0, 1.6, 0], r: 2.4, rate: 50, life: [0.35, 0.7], size: [1.1, 2], up: 7, spread: 2.5 });
   noShadow(rig, Hd);

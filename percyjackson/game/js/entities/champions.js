@@ -163,6 +163,16 @@ function buildBronzeWarden() {
   bruteLimbs(rig, { armLen: 1.05, armThick: 1.2, legThick: 1.3, legX: 3 });
   const K = kit(rig, mat, { seed: 113, rough: 0.45, metal: 0.35, emit: 0.9 });
   const T = rig.torso, Hd = rig.head, H8 = 8 * HS;
+  // (round 7, head and leg proportions, proportions.js: a giant automaton
+  // with a helm 0.62 of its old size, built afresh from the same plates, on
+  // legs grown from 11 to 14.8 pixels over the same boots, broader across
+  // the shoulders and longer in the arm; it stands about as tall as before)
+  const L1 = 14.8, ANK = -9.5;
+  reshape(rig, Hd, 0.62);
+  reshape(rig, T, [1.08, 1, 1.04]);
+  for (const g of [rig.legR, rig.legL]) reshape(rig, g, [1.04, (L1 - 11 - ANK) / -ANK, 1.04], [0, 0, 0], { ankle: ANK });
+  for (const g of [rig.armR, rig.armL]) reshape(rig, g, [1.04, 1.15, 1.04]);
+  rig.dims.legH = L1; rig.hips.position.y = L1 * PX;
   // helm: a squared bronze helm with a crest ridge, a dark face plate and one blue eye
   K.box(Hd, 0, H8 / 2, 0, H8 + 1, H8 + 0.6, H8 + 1, B);
   markHeadCore(rig, [0, H8 / 2, 0], [H8 + 1, H8 + 0.6, H8 + 1]);   // (the helm; its crest aside)
@@ -212,6 +222,7 @@ function buildBronzeWarden() {
   K.box(sh, 0, -0.2, 1.15, 0.6, 1.4, 0.2, GOLD_D); K.box(sh, 0, -1.6, 1.15, 2, 0.5, 0.2, GOLD_D);
   rig.extras.shield = sh;
   rig.extras.pot = core;    // (its Greek-fire vents puff from the core)
+  applyShape(rig);
   K.done();
   rig.hunch = 0.12;
   return rig;
@@ -274,7 +285,7 @@ function buildPaleKing() {
   const rig = buildSkeleton({ id: 'champ_pale_king', helmet: false, gear: false, pal: { bone: 0xd8d4c4, boneD: 0xa8a494, olive: IRON, oliveD: IRON_D, khaki: 0x3a3428, camo: [IRON, 0x1c1d26, 0x3a3c4a, 0x6a5a2a], boot: { upper: IRON, sole: 0x101014, lace: 0x8a7a3a } } });
   const K = kit(rig, rig.material, { seed: 131, rough: 0.5, metal: 0.3, emit: 0.9 });
   const T = rig.torso, Hd = rig.head, H8 = 8 * HS, GF = [0x3aff6a, 0x8affa0, 0x1ad84a];
-  crown(K, Hd, { y: H8 + 0.6, w: H8 + 0.4, d: H8 + 0.4, h: 1.8, spike: 3.2, gold: 0xc89a30, dark: 0x7a5a18, gem: 0x3aff6a });
+  crown(K, Hd, { y: H8 + 0.6, w: H8 + 0.4, d: H8 + 0.4, h: 1.8, spike: 2.4, gold: 0xc89a30, dark: 0x7a5a18, gem: 0x3aff6a });   // (round 7: lower spikes, so the crown no longer tops him past the leg rule's line)
   for (const sx of [-1, 1]) { K.box(Hd, sx * 2.2 * HS, 4.3 * HS, H8 / 2 + 0.2, 1.6, 1.4, 0.3, GF[0]); K.box(Hd, sx * 2.2 * HS, 4.3 * HS, H8 / 2 + 0.3, 0.6, 0.6, 0.3, 0xe0ffe8); }
   // green flame licking up over the crown
   const flame = group(Hd, 0, H8 + 1, 0);
@@ -398,7 +409,7 @@ function crownAny(rig) {
   } else {
     // (a head its builder reshaped, proportions.js, wears a crown its size, at rig.crownY when it names one)
     const H = (rig.dims.headS ?? 8) * HS, f = rig.shape?.get(rig.head)?.f[1] ?? 1;
-    crown(K, rig.head, { y: rig.crownY ?? (H + 1.2) * f, w: H * 0.95 * f, d: H * 0.95 * f, spike: 2.8 * Math.sqrt(f) });
+    crown(K, rig.head, { y: rig.crownY ?? (H + 1.2) * f, w: H * 0.95 * f, d: H * 0.95 * f, spike: 2.8 * f });
   }
   return K.done();
 }

@@ -160,6 +160,17 @@ const GAME_SETUP = async (scene) => {
   g.addUpdater?.(() => { for (const q of g.players) { q.hp = q.maxHp; q.downed = false; q.dead = false; } return true; });
   return scene;
 };
+// (the same crowd every run: the level's own monsters leave first, and the
+// spawned ones can't die in the window, so the counts compare run to run)
+const GAME_CLEAR = () => {
+  const g = window.__game;
+  for (const e of g.enemies.filter((q) => !q.isDummy)) g.scene.remove(e.object);
+  g.enemies = g.enemies.filter((q) => q.isDummy);
+  g.addUpdater?.(() => { for (const e of g.enemies) if (!e.isDummy) e.hp = e.maxHp; return true; });
+  // (and no new ones: the chapter's next wave, the open world's roamers)
+  if (g.mission) g.mission.update = () => {};
+  if (g.roaming) g.roaming.update = () => {};
+};
 const GAME_SPAWN = (scene) => {
   const g = window.__game, p = g.players.find((q) => !q.ai);
   if (scene === 'automatons') for (let i = 0; i < 8; i++) g.spawnEnemy('automaton', p.pos.clone().add({ x: Math.cos(i) * 9, y: 0, z: Math.sin(i) * 9 }));
@@ -179,6 +190,7 @@ async function benchGame(scene, secs = SECS) {
   await page.waitForFunction(() => window.__game?.state === 'title', null, { timeout: 240000, polling: 100 });
   const label = await page.evaluate(GAME_SETUP, scene).catch((e) => 'setup failed: ' + e.message);
   await page.waitForTimeout(+opt('settle', 30000));   // (the level's shader warm-up done: software rendering compiles slowly)
+  await page.evaluate(GAME_CLEAR); await page.waitForTimeout(500);
   const empty = await page.evaluate(() => window.__game.gr.renderer.info.render.drawCalls);   // (draws before the monsters come: the rest is theirs)
   const spawned = await page.evaluate(GAME_SPAWN, scene);
   await page.waitForTimeout(1500);

@@ -8,7 +8,7 @@ import { Skin, Rig, makeCharMaterial, PX, markTip, markHeld, mergeChildren } fro
 import { hashStr, mulberry32 } from '../util.js';
 import { heroHair, heroTail, cellMesh, partMaterial, partsMesh, footwear, band, beads, tatters, sleeveTatters } from './herovox.js';
 import { resFor } from './parts.js';
-import { markHeadCore } from './proportions.js';
+import { markHeadCore, reshape, applyShape } from './proportions.js';
 
 export const CAMP_ORANGE = 0xf28c28;
 const INK = 0x17130f;
@@ -379,6 +379,10 @@ export const HERO_LOOKS = {
     vox: { style: 'shaggy', base: 0x5e2a12, shade: 0x361606, light: 0x864020, seed: 41, shape: { fringe: 7.6, jag: 0, front: 4.2 } },
     outfit: { footwear: { kind: 'boot', upper: 0x5a3418, sole: 0x3a2414, lace: 0xc9963a, trim: 0xb08850 }, cuffs: 0x8a9ab0, tatters: [0xa8322a, 0x5a1610, 0x7a2018] },
     accent: 0xff8a2a, scale: 1.75, wide: 1.35, hairRes: 1.5,
+    // (round 7, design/sizes.json head and leg rules: at 1.5x Percy a smaller
+    // head, 7.2 skin pixels, on longer legs, 13.8: the same height, a young
+    // giant's proportions rather than a hero's)
+    headS: 7.2, legH: 13.8,
   },
   clarisse: {
     paint: { skinTone: 0xcc7c4a, hair: 0x5a2c14, fringe: 2, hairSide: 5, hairBack: 8, eye: 0x3a2414, brow: 0x2a1408, scowl: true, lashes: true, mouth: 'frown', lip: 0xa85040, ...TEE, jacket: 0x4e5a30, camo: [0x2e3a1a, 0x6e7040, 0x2a2a18, 0x8a7a4a], jacketSleeve: 6, belt: 0x2a2018, pants: 0x4e5430, legCamo: [0x2e3a1a, 0x6e7040, 0x2a2a18], cargo: true, shorts: 5, socks: 0x1a1a1a, shoes: 0x141414 },
@@ -478,8 +482,13 @@ export function buildHeroModel(id) {
   const map = S.texture();
   const material = makeCharMaterial(map, { emitStrength: 0 });
   material.alphaTest = 0.5;
-  const rig = new Rig({ material, scale: look.scale ?? 1.18 });
+  const rig = new Rig({ material, scale: look.scale ?? 1.18, headS: look.headS });
   if (look.outfit) addOutfit(rig, look.outfit);
+  // longer legs (look.legH): the leg, its skin box and its shoes, drawn longer (proportions.js)
+  if (look.legH) {
+    for (const g of [rig.legR, rig.legL]) reshape(rig, g, [1, look.legH / rig.dims.legH, 1]);
+    applyShape(rig); rig.dims.legH = look.legH; rig.hips.position.y = look.legH * PX;
+  }
   // a broad build: widen the torso and set the arms and legs further apart
   if (look.wide) {
     const w = look.wide;

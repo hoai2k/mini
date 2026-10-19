@@ -12,7 +12,7 @@ import { buildFury, bronzeSpider, hound, HELLHOUND, animateExtras } from './mons
 import { addFlames } from './flames.js';
 import { heroHair, cellMesh, footwear } from './herovox.js';
 import { HS, solid, skinMat, group, lavaCracks, fur, sway, rng, bruteLimbs, withBuild } from './parts.js';
-import { shapeX, unshapeX, reshape, applyShape, markHeadCore } from './proportions.js';
+import { shapeX, unshapeX, shapeK, legScale, reshape, applyShape, markHeadCore } from './proportions.js';
 
 
 // ---------------------------------------------------------------- voxel kit
@@ -225,13 +225,13 @@ function shaped(S, shapes, boxes) {
   const X = (x, y, z) => [shapeX(S, x, 0), shapeX(S, y, 1), shapeX(S, z, 2)], f = S.f, fr = Math.cbrt(f[0] * f[1] * f[2]);
   const out = shapes.map((sh) => {
     const o = { ...sh };
-    if (sh.e) { const e = sh.e; o.e = [...X(e[0], e[1], e[2]), e[3] * f[0], e[4] * f[1], e[5] * f[2]]; }
+    if (sh.e) { const e = sh.e; o.e = [...X(e[0], e[1], e[2]), e[3] * f[0], e[4] * shapeK(S, e[1], 1), e[5] * f[2]]; }
     else if (sh.b) { const b = sh.b; o.b = [...X(b[0], b[1], b[2]), ...X(b[3], b[4], b[5])]; }
     else if (sh.cap) { const q = sh.cap; o.cap = [...X(q[0], q[1], q[2]), ...X(q[3], q[4], q[5]), q[6] * fr, q[7] * fr]; }
     if (typeof sh.col === 'function') { const c0 = sh.col; o.col = (x, y, z, n, h) => c0(unshapeX(S, x, 0), unshapeX(S, y, 1), unshapeX(S, z, 2), n, h); }
     return o;
   });
-  return [out, boxes.map((b) => ({ ...b, p: X(...b.p), s: b.s.map((v, a) => v * f[a]) }))];
+  return [out, boxes.map((b) => ({ ...b, p: X(...b.p), s: b.s.map((v, a) => v * shapeK(S, b.p[1], a)) }))];
 }
 // hide the rig's own skin boxes on a part (the sculpt replaces them)
 const hideSkin = (...parts) => { for (const p of parts) for (const c of p.children) if (c.isMesh) c.visible = false; };
@@ -465,6 +465,15 @@ export const BOSS_MODELS = {
     bruteLimbs(rig, { armLen: 1.6, armThick: 1.15, legThick: 1.5, legX: 4 });
     rig.neck.position.z = 1.8 * PX;   // the head thrust forward, low between the shoulders
     rig.neck.position.y = 11.6 * PX;
+    // (round 7, head and leg proportions, proportions.js: the bull's head
+    // sculpted afresh at 0.8 of its old size, its horns kept near their old
+    // sweep (HK), on legs grown from 15 to 20 pixels over the same hooves)
+    const L1 = 20, ANK = -12, HK = 1.15;
+    reshape(rig, rig.head, 0.8);
+    reshape(rig, rig.hips, [1, 1.15, 1]);
+    for (const g of [rig.legR, rig.legL]) reshape(rig, g, [1, legScale(15, L1, ANK), 1], [0, 0, 0], { ankle: ANK });
+    for (const g of [rig.armR, rig.armL]) reshape(rig, g, [1, 1.12, 1]);
+    rig.dims.legH = L1; rig.hips.position.y = L1 * PX;
     hideSkin(rig.torso, rig.head, rig.armR, rig.armL, rig.legR, rig.legL);
     // deep red-brown hide, darker fur in the creases, lighter on the muscle tops
     const hide = [0x5e240c, 0x7a3010, 0x903c14, 0xa84a1a], hideL = [0x9a4416, 0xb0521e, 0xc06028], furD = [0x24100a, 0x341810, 0x4a2414];
@@ -519,7 +528,7 @@ export const BOSS_MODELS = {
     // the bull's head: shaggy forelock, heavy brow, burning eyes, a broad dark
     // muzzle with a gold ring, and great cream horns sweeping out and up
     const hornCol = (t) => (t > 0.82 ? [0xc8b48a, 0xb8a078] : [0xf2e8d0, 0xe6dac0, 0xd8c8a6]);
-    const horn = (s) => along((t) => [s * (3.8 + 8.4 * Math.sin(Math.min(1, t * 1.3) * 1.5) - 2.2 * t * t * t), 6.4 + 1.6 * t + 8 * t * t, 0.6 - 2.2 * t], 18, 2.5, 1.05, hornCol);
+    const horn = (s) => along((t) => [s * (3.8 + HK * (8.4 * Math.sin(Math.min(1, t * 1.3) * 1.5) - 2.2 * t * t * t)), 6.4 + HK * (1.6 * t + 8 * t * t), 0.6 - HK * 2.2 * t], 18, 2.5 * 1.1, 1.05 * 1.1, hornCol);
     const muzzle = group(rig.head, 0, 2.2, 7.6);
     markHeadCore(rig, [0, 4.35, 1.4], [8.8, 8.9, 10.4]);   // (the bull's skull and muzzle: horns and forelock aside)
     vox(rig, rig.head, [
@@ -536,6 +545,7 @@ export const BOSS_MODELS = {
       { p: [0, -0.2, 7.9], s: [3.4, 0.8, 0.8], c: 0xe8b444, m: 'm' }, { p: [-1.5, 0.8, 7.9], s: [0.8, 2.4, 0.8], c: 0xd8a032, m: 'm' }, { p: [1.5, 0.8, 7.9], s: [0.8, 2.4, 0.8], c: 0xd8a032, m: 'm' },
     ]);
     rig.extras.muzzle = muzzle;
+    applyShape(rig);
     rig.hunch = 0.32; rig.armSpread = 0.3;
     return rig;
   },
@@ -650,6 +660,16 @@ export const BOSS_MODELS = {
     rig.vd = 1.1;   // (pass 3: a finer grid, the snakes above all, within her budget)
     rig.legR.visible = rig.legL.visible = false;
     hideSkin(rig.torso, rig.head, rig.armR, rig.armL);
+    // (round 7, head proportions, proportions.js: the cowl and the face in it
+    // sculpted afresh at 0.82 of their old size, the veil and the staring
+    // eyes with them; the snakes keep their size, so the hair writhes larger
+    // round the smaller head; a longer trunk and robe keep her height)
+    const HF = 0.82, L1 = 13.4;
+    reshape(rig, rig.head, HF);
+    reshape(rig, rig.torso, [1.04, 1.1, 1.04]);
+    reshape(rig, rig.hips, [1.04, L1 / 12, 1.04]);
+    for (const g of [rig.armR, rig.armL]) reshape(rig, g, [1, 1.08, 1]);
+    rig.dims.legH = L1; rig.hips.position.y = L1 * PX;
     const robes = [0x120c0e, 0x1c1316, 0x261a1e, 0x30222a], trimC = [0xe0901c, 0xf0a828, 0xc87814];
     // robe colour with soft vertical folds
     const fold = (x, z, n) => robes[Math.max(0, Math.min(3, Math.floor((Math.sin(Math.atan2(x, z) * 7) * 0.5 + 0.5) * 2.2 + n * 1.6)))];
@@ -692,12 +712,12 @@ export const BOSS_MODELS = {
       ...along((t) => [0, 10 + t * 3.4, -1.8 - t * 3.6], 6, 3.4, 1, robes[2]),
       { e: [0, -1, -1.6, 7.4, 2.4, 5.4], col: (x, y, z, n) => fold(x, z, n) },
     ], { v: 0.8, seed: 34 });
-    const veil = group(rig.head, 0, 8.6, 4.6);
+    const veil = reshape(rig, group(rig.head, 0, 8.6, 4.6), HF);
     markHeadCore(rig, [0, 3.5, 3.6], [7.6, 9.8, 6]);   // (the face in the cowl: the hood, its peak and the snakes aside)
     vox(rig, veil, [{ b: [-3.6, -9.6, -0.5, 3.6, 0, 0.3], col: (x, y, z, n, h) => (y < -8.8 && h < 0.4 ? null : [0x0a0709, 0x120c0f][Math.floor(h * 2)]), bump: 0, fuzz: 0 }], { v: 0.8, seed: 35 });
     rig.extras.veil = veil; sway(rig, veil, 'x', 0.06, 1.6);
     // eyes that light up behind the veil when she stares
-    const eyes = group(rig.head, 0, 4.6, 3.6);
+    const eyes = reshape(rig, group(rig.head, 0, 4.6, 3.6), HF);
     vox(rig, eyes, [], {}, [{ p: [-1.8, 0, 0], s: [1.8, 0.9, 0.4], c: 0xb8ff40, m: 'e' }, { p: [1.8, 0, 0], s: [1.8, 0.9, 0.4], c: 0xb8ff40, m: 'e' }]);
     eyes.visible = false; rig.extras.eyes = eyes;
     // the snakes: green coils rising round the hood, heads reared outward.
@@ -729,6 +749,7 @@ export const BOSS_MODELS = {
       ]);
       (rig.extras.snakes ??= []).push({ segs, ph: si * 1.7, amp: 0.26, speed: 2.4, head });
     });
+    applyShape(rig);
     rig.hunch = 0.05;
     return rig;
   },

@@ -20,7 +20,7 @@ import { FODDER_MONSTERS, fodderModels, blob, carve, flushBlobs, paintShade } fr
 import { buildSerpent } from './serpent.js';
 import { addFlames, tickFlames } from './flames.js';
 import { mergeRig } from './charmat.js';
-import { shapeX, unshapeX, reshape, applyShape, markHeadCore } from './proportions.js';
+import { shapeX, unshapeX, shapeK, legScale, reshape, applyShape, markHeadCore } from './proportions.js';
 
 export { skinMat, blob, carve, paintShade, rigDensity, voxDensity };
 
@@ -178,7 +178,7 @@ export class VoxKit {
   _rawDo(fn) { this._raw = (this._raw ?? 0) + 1; try { return fn(); } finally { this._raw--; } }
   box(p, x, y, z, w, h, d, col, rx = 0, ry = 0, rz = 0) {
     const S = this._sh(p);
-    if (S) { x = shapeX(S, x, 0); y = shapeX(S, y, 1); z = shapeX(S, z, 2); w *= S.f[0]; h *= S.f[1]; d *= S.f[2]; }
+    if (S) { h *= shapeK(S, y, 1); x = shapeX(S, x, 0); y = shapeX(S, y, 1); z = shapeX(S, z, 2); w *= S.f[0]; d *= S.f[2]; }
     if (!this.lists.has(p)) this.lists.set(p, []);
     this.lists.get(p).push({ x, y, z, w, h, d, col: toCol(col), rx, ry, rz });
     return this;
@@ -206,7 +206,7 @@ export class VoxKit {
     const S = this._sh(p);
     if (S) {   // (as many clumps a face area as before: fewer on a part drawn smaller)
       const f = S.f, k = (f[0] * f[1] + f[1] * f[2] + f[0] * f[2]) / 3, kp = keep && ((x, y, z, ff) => keep(unshapeX(S, x, 0), unshapeX(S, y, 1), unshapeX(S, z, 2), ff));
-      return this._rawDo(() => this.clumps(p, c.map((v, a) => shapeX(S, v, a)), s.map((v, a) => v * f[a]), { n: Math.max(1, Math.round(n * k)), size, cols, faces, out, stretch, j, keep: kp }));
+      return this._rawDo(() => this.clumps(p, c.map((v, a) => shapeX(S, v, a)), s.map((v, a) => v * shapeK(S, c[1], a)), { n: Math.max(1, Math.round(n * k)), size, cols, faces, out, stretch, j, keep: kp }));
     }
     const D = this.density; if (D !== 1) { n = Math.round(n * D * D); size = [size[0] / D, size[1] / D]; }
     const F = [...faces].map((f) => ({ f, a: f === 't' || f === 'b' ? s[0] * s[2] : f === 'f' || f === 'k' ? s[0] * s[1] : s[1] * s[2] }));
@@ -229,7 +229,7 @@ export class VoxKit {
   // rows: side rows from the top edge; low: how far down the sides they reach (0..1).
   shag(p, c, s, { cols, step = 1.6, len = [1.8, 3], w = 1, low = 0.8, top = true, sides = true, sweep = 0.35, bristle = 0.55, j = 0.1, ember = 0, embers = [0xff3a00, 0xff8a00] } = {}) {
     const S = this._sh(p);
-    if (S) return this._rawDo(() => this.shag(p, c.map((v, a) => shapeX(S, v, a)), s.map((v, a) => v * S.f[a]), { cols, step, len, w, low, top, sides, sweep, bristle, j, ember, embers }));
+    if (S) return this._rawDo(() => this.shag(p, c.map((v, a) => shapeX(S, v, a)), s.map((v, a) => v * shapeK(S, c[1], a)), { cols, step, len, w, low, top, sides, sweep, bristle, j, ember, embers }));
     const D = this.density; if (D !== 1) { step /= D; w /= D; }
     const [cx, cy, cz] = c, [sw, sh, sd] = s;
     if (sides) for (const sx of [-1, 1]) for (let y = cy + sh / 2; y > cy + sh / 2 - sh * low; y -= step * 0.9) for (let z = cz + sd / 2 - step / 2; z > cz - sd / 2; z -= step) {
@@ -252,7 +252,7 @@ export class VoxKit {
   // glows deep red under the tone mapping where the core glows bright).
   cracks(p, c, s, { n = 4, len = [3, 6], cols = [0xff4a00, 0xff7a10], faces = 'tfklr', cell = 0.6, rim = null, rimKit = this } = {}) {
     const S = this._sh(p);
-    if (S) { const c2 = c.map((v, a) => shapeX(S, v, a)), s2 = s.map((v, a) => v * S.f[a]); return this._rawDo(() => (rimKit === this ? this.cracks(p, c2, s2, { n, len, cols, faces, cell, rim, rimKit }) : rimKit._rawDo(() => this.cracks(p, c2, s2, { n, len, cols, faces, cell, rim, rimKit })))); }
+    if (S) { const c2 = c.map((v, a) => shapeX(S, v, a)), s2 = s.map((v, a) => v * shapeK(S, c[1], a)); return this._rawDo(() => (rimKit === this ? this.cracks(p, c2, s2, { n, len, cols, faces, cell, rim, rimKit }) : rimKit._rawDo(() => this.cracks(p, c2, s2, { n, len, cols, faces, cell, rim, rimKit })))); }
     const D = this.density; if (D !== 1) { cell /= D; len = [Math.round(len[0] * D), Math.round(len[1] * D)]; }
     const rimC = rim != null ? toCol(rim) : null, FI = { r: 0, l: 1, t: 2, f: 4, k: 5 };
     for (let i = 0; i < n; i++) {
@@ -288,7 +288,7 @@ export class VoxKit {
   // little; faces: which sides get cells (others stay one flat face).
   vox(p, x, y, z, w, h, d, cols, { cell = 1 / this.density, j = 0.12, relief = 0, out = 0.35, rx = 0, ry = 0, rz = 0, faces = 'tbfklr' } = {}) {
     const S = this._sh(p);
-    if (S) return this._rawDo(() => this.vox(p, shapeX(S, x, 0), shapeX(S, y, 1), shapeX(S, z, 2), w * S.f[0], h * S.f[1], d * S.f[2], cols, { cell, j, relief, out, rx, ry, rz, faces }));
+    if (S) return this._rawDo(() => this.vox(p, shapeX(S, x, 0), shapeX(S, y, 1), shapeX(S, z, 2), w * S.f[0], h * shapeK(S, y, 1), d * S.f[2], cols, { cell, j, relief, out, rx, ry, rz, faces }));
     const nx = Math.max(1, Math.round(w / cell)), ny = Math.max(1, Math.round(h / cell)), nz = Math.max(1, Math.round(d / cell));
     const cx = w / nx, cy = h / ny, cz = d / nz, rot = rx || ry || rz;
     if (rot) _q.setFromEuler(_e.set(rx, ry, rz));
@@ -1513,7 +1513,16 @@ export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, win
       } });
     S.shadeLimbs(); S.saturate(1.15);
   }, { emit: 1, res: 2, scale });
-  const rig = new Rig({ material: mat, scale, bodyW: 7, armW: 3, legH: 10 });
+  // (round 7, head proportions, proportions.js: the plain Fury, 1.4x Percy,
+  // has a head 0.82 of a hero's skin cube; her looming sisters and Alecto,
+  // 1.9x, 0.58 of it, their wild curls as big round it as before. Her trunk,
+  // arms and dress grow longer to keep her height; her legs are hidden by
+  // the dress and she hovers, so the leg rule leaves her be.)
+  const big = Math.max(0, Math.min(1, (scale - 2.1) / 0.4)), HF = 0.82 - 0.24 * big, TF = 1.1 + 0.08 * big, LF = 1.1 + 0.07 * big;
+  const rig = new Rig({ material: mat, scale, bodyW: 7, armW: 3, legH: 10, headS: 8 * HF });
+  reshape(rig, rig.torso, [1, TF, 1]); reshape(rig, rig.hips, [1, LF, 1]);
+  for (const g of [rig.armR, rig.armL]) reshape(rig, g, [1, TF, 1]);
+  rig.dims.legH = 10 * LF; rig.hips.position.y = rig.dims.legH * PX;
   // a Fury drawn bigger than a hero (the plain Fury 2.1, the boss sisters 2.5
   // and 2.8) is made of more, finer strips, curls and claws, not bigger ones;
   // past Alecto's old 1.75 the strips grow instead, so the sisters cost no
@@ -1525,7 +1534,7 @@ export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, win
   // the dress: four swaying panels of ragged strips that flare toward the hem
   const panels = [];
   for (let q = 0; q < 4; q++) {
-    const g = group(rig.hips, 0, 0.5, 0); panels.push(g);
+    const g = reshape(rig, group(rig.hips, 0, 0.5, 0), [1, LF, 1]); panels.push(g);
     const nS = Math.round(10 * D);
     for (let i = 0; i < nS; i++) {
       const a = (q + i / nS) * Math.PI / 2 - Math.PI / 4, ca = Math.cos(a), sa = Math.sin(a);
@@ -1554,7 +1563,8 @@ export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, win
     K.box(arm, 0, -7.3, 0, 3.6, 1.2, 4.6, gold); K.box(arm, 0, -5.9, 0, 3.5, 0.6, 4.5, 0xa87418);
     for (const dz of [-1.2, 0, 1.2]) K.box(arm, 0, -10.6, dz, 0.6, 1.6, 0.6, 0x2a2420);
   }
-  gridHair(rig, { style: 'curls', base: hair, shade: 0x8a8a86, light: 0xe8e8e4, seed, shape: { r: [6.9, 7.8, 6.6], bump: 0.5, tuft: 0.28, spike: 0.1, side: -1.5, back: -5 }, res: D }, mat);
+  const wild = 1 + 0.45 * (1 - HF);   // (the curls stand out further round a smaller head)
+  gridHair(rig, { style: 'curls', base: hair, shade: 0x8a8a86, light: 0xe8e8e4, seed, shape: { r: [6.9 * wild, 7.8 * wild, 6.6 * wild], bump: 0.5, tuft: 0.28, spike: 0.1, side: -1.5, back: -5 }, res: D }, mat);
   K.done();
   // (past scale 1.5 the wings grow as the square root of her size, so a
   // looming sister's span, 8.5 blocks for Alecto, stays about twice her height
@@ -1563,10 +1573,11 @@ export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, win
   addWings(rig, { span: 27 * ws, chord: 15, mat: solid(wing, 0, 0.9), tip: solid(0x3a2418, 0, 0.9), kind: 'bat', y: 10.5, bone: solid(0x2a1a10), cols: { dark: 0x24160e }, seed: seed + 5, look: mat, fine: D });
   addWhip(rig, { segs: 10, len: 3.6, look: mat });
   rig.tick = (dt, e) => animateExtras(rig, dt, e);   // (the bosses built on her get the whip's pose too, even outside a fight)
-  { const h = 8 * HS; markHeadCore(rig, [0, h / 2, 0], [h, h, h]); }   // (the skin cube; the curls aside)
+  { const h = rig.dims.headS * HS; markHeadCore(rig, [0, h / 2, 0], [h, h, h]); }   // (the skin cube; the curls aside)
+  applyShape(rig);   // (the neck, shoulders, wings and hands to the longer trunk and arms)
   rig.hunch = 0.35;
   rig.float = float;
-  rig.hoverMin = 11 * PX * rig.baseScale + 0.22;   // (the ragged hem hangs 11 px under the soles: a boss's swoop flies no lower, bob included)
+  rig.hoverMin = 11 * LF * PX * rig.baseScale + 0.22;   // (the ragged hem hangs 11 px under the soles: a boss's swoop flies no lower, bob included)
   return rig;
 }
 
@@ -2114,19 +2125,20 @@ export function buildCyclops({ id = 'cyclops', pal = {} } = {}) {
   for (const g of [rig.torso, rig.head, rig.armR, rig.armL, rig.legR, rig.legL]) dropMeshes(rig, g);
   rig.handR.position.y = rig.handL.position.y = -11 * PX;
   rig.legR.position.x = -3 * PX; rig.legL.position.x = 3 * PX;
-  // (round 7, head proportions: a giant near twice a hero's height has a
-  // giant's head, not a hero's. The head is sculpted afresh from the same
-  // cells at 0.62 of its old size, the eye kept wide in it; the trunk is
-  // longer, the shoulders broader and the arms and legs longer, so he stands
-  // as tall as before: proportions.js reshape)
-  const HF = 0.62, LEG = 1.2;
+  // (round 7, head and leg proportions: a giant near twice a hero's height
+  // has a giant's head and legs, not a hero's. The head is sculpted afresh
+  // from the same cells at 0.62 of its old size, the eye kept wide in it;
+  // the legs grow from 10 to 16.4 pixels over the same feet, the kilt with
+  // them, the shoulders broaden and the arms reach as far down the thigh as
+  // before, so he stands about as tall as he did: proportions.js reshape)
+  const HF = 0.62, L1 = 16.4, ANK = -8.2;
   reshape(rig, rig.head, HF);
-  reshape(rig, rig.torso, [1.1, 1.2, 1.05]);
-  reshape(rig, rig.hips, [1.1, LEG, 1.05]);
-  for (const g of [rig.legR, rig.legL]) reshape(rig, g, [1.05, LEG, 1.05]);
-  for (const g of [rig.armR, rig.armL]) reshape(rig, g, [1.05, 1.18, 1.05]);
-  rig.dims.legH = 10 * LEG; rig.hips.position.y = rig.dims.legH * PX;
-  rig.crownY = 11.3 * HF;   // (a champion's crown sits on the mane: champions.js crownAny)
+  reshape(rig, rig.torso, [1.1, 1, 1.05]);
+  reshape(rig, rig.hips, [1.1, L1 / 10, 1.05]);
+  for (const g of [rig.legR, rig.legL]) reshape(rig, g, [1.05, legScale(10, L1, ANK), 1.05], [0, 0, 0], { ankle: ANK });
+  for (const g of [rig.armR, rig.armL]) reshape(rig, g, [1.05, 1.3, 1.05]);
+  rig.dims.legH = L1; rig.hips.position.y = L1 * PX;
+  rig.crownY = 10.6 * HF;   // (a champion's crown sits on the mane: champions.js crownAny)
   // (its triangle budget: cells 0.88 of a hero pixel's density, and a champion
   // built bigger, BUILD.k, gains density with the square root of its size,
   // so the cyclops stays near 20k triangles and Gorgos under 25k)
@@ -2178,11 +2190,12 @@ export function buildCyclops({ id = 'cyclops', pal = {} } = {}) {
   if (!pal.hood) blob(K, Hd, [0, 3.4, 0.6], [4.9, 2.6, 3.4], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2], keep: (x, y, z) => Math.abs(x) > 0.82 });   // side locks down to the jaw (a hood's flaps cover them)
   if (!pal.hood) K.clumps(Hd, [0, 6.6, -0.6], [9.4, 8.6, 9], { n: 14, size: [1, 1.8], cols: HAIR, faces: 'tklr', out: 0.1 });
   if (!pal.hood) K.clumps(Hd, [0, 9.4, 2], [8.4, 1.6, 4.4], { n: 5, size: [1, 1.6], cols: HAIR, faces: 'tf', out: 0.1 });
-  blob(K, Hd, [0, 0.9, 2.3], [4.3, 3.3, 2.5], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2], keep: (x, y, z) => !(z > 0.3 && y > 0.05 && Math.abs(x) < 0.5) });
-  blob(K, Hd, [0, -1.4, 2.8], [3, 2.4, 1.9], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2] });
+  // (round 7: the beard a little fuller and longer than the smaller head alone would give it, as on the sheet)
+  blob(K, Hd, [0, 0.7, 2.3], [4.9, 3.7, 2.6], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2], keep: (x, y, z) => !(z > 0.3 && y > 0.12 && Math.abs(x) < 0.44) });
+  blob(K, Hd, [0, -2, 2.8], [3.6, 3, 2.1], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2] });
   K.clumps(Hd, [0, 0, 3.4], [8, 6, 2], { n: 9, size: [0.9, 1.6], cols: HAIR, faces: 'flrb', out: 0.25, keep: (x, y) => !(y > 1.1 && Math.abs(x) < 2.2) });
   // ---- the ram's skull with curled horns on the left shoulder
-  const ram = group(T, 6.6, 12.4, 0.6, 0, -0.35, 0); ram.visible = pal.ram !== false;
+  const ram = reshape(rig, group(T, 6.6, 12.4, 0.6, 0, -0.35, 0), 0.8); ram.visible = pal.ram !== false;   // (round 7: a little smaller, beside the smaller head)
   const bone = [0xe8e0c8, 0xd8d0b8, 0xf0ead8];
   blob(K, ram, [0, 0, 0.8], [1.8, 1.7, 2], 1, () => K.tone(bone, 0.06));
   K.box(ram, 0, -0.7, 2.9, 1.8, 1.6, 1.8, bone[1]); K.box(ram, 0, -1.2, 3.7, 1.2, 0.8, 0.5, 0x2a2014);
