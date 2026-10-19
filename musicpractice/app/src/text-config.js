@@ -300,11 +300,17 @@ export const EN = {
   tuner: {
     /** Test Scale Intonation (in testing: only with ?scale in the address). */
     scale: {
-      button: 'Test Scale Intonation',
-      waiting: 'Play your scale. Listening for the first note…',
-      listening: (n) => `Listening: ${n} ${n === 1 ? 'note' : 'notes'} so far. Stop for 3 seconds when you've finished.`,
-      cancel: 'Cancel',
-      resultsTitle: 'Scale intonation',
+      button: 'Test My Scale Intonation',
+      buttonSub: 'Play a scale and see how in tune each note is',
+      title: 'Test my scale intonation',
+      step1: 'Press the record button.',
+      step2: 'Play a scale on your instrument.',
+      step3: "Stop for 3 seconds when you're done, and you'll see how in tune each note was.",
+      record: 'Record',
+      stop: 'Stop listening',
+      ready: 'Press to start listening',
+      waiting: 'Listening. Start your scale whenever you like…',
+      listening: (n) => `Listening: ${n} ${n === 1 ? 'note' : 'notes'} so far…`,
       summary: (good, n) => `${good} of ${n} ${n === 1 ? 'note' : 'notes'} in tune`,
       none: 'No notes heard. Try again, a little louder or nearer the mic.',
       good: 'In tune',
@@ -410,8 +416,6 @@ export const EN = {
     },
     add: 'Add',
     addTitle: 'Add a practice item',
-    /** A suggestion's line: its minutes and what it turns on (already listed, e.g. 'Drone'). */
-    presetLine: (min, tools) => `${min} min${tools ? ` · ${tools}` : ''}`,
     custom: 'Custom…',
     customLine: 'Name it yourself',
     settingsButton: 'Practice Routine settings',

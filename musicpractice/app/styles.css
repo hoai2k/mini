@@ -1828,29 +1828,32 @@ div.ac-status.bad { border-color: var(--red); justify-items: start; }
   .choices.five > .choice:nth-child(5) { grid-column: auto; width: auto; }
 }
 
-/* Home and the timer as two pages (pager.js). An arrow to click at the
-   edge with a mouse; with a finger, a faint chevron that says there is a
-   page to swipe in, nudging now and then. */
-.page-arrow {
-  position: fixed; top: 50%; translate: 0 -50%; z-index: 4;
-  width: 44px; height: 64px; display: grid; place-items: center;
-  border-radius: 22px; border: 1px solid var(--line); background: var(--panel); color: var(--ink-2);
+/* Home and the routine as two pages (pager.js): a tab at the edge, the
+   way to the other page, with an arrow pointing in. Tap it, or swipe; it
+   nudges inward now and then so the page beside is noticed. */
+.page-tab {
+  display: none; position: fixed; top: 50%; translate: 0 -50%; z-index: 4;
+  width: 30px; height: 84px; place-items: center; padding: 0;
+  background: var(--panel-2); color: var(--ink-2); border: 1px solid var(--line);
   box-shadow: 0 6px 18px var(--shadow);
+  animation: page-nudge 3.2s ease-in-out 1.2s infinite;
 }
-.page-arrow:hover { color: var(--ink); border-color: var(--brass); }
-.page-arrow svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-.page-next { right: max(8px, env(safe-area-inset-right)); }
-.page-hint {
-  position: fixed; top: 50%; right: max(2px, env(safe-area-inset-right)); translate: 0 -50%; z-index: 4;
-  width: 22px; height: 56px; display: grid; place-items: center; color: var(--ink-3); opacity: 0.55;
-  pointer-events: none; animation: page-nudge 3.2s ease-in-out 1s infinite;
-}
-.page-hint svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-@keyframes page-nudge { 0%, 70%, 100% { transform: none; } 80% { transform: translateX(-6px); } 90% { transform: none; } }
-@media (prefers-reduced-motion: reduce) { .page-hint { animation: none; } }
+html.paged .page-tab { display: grid; }
+/* Room for the tabs at the edges, so they don't lie over the buttons. */
+html.paged #home, html.paged #routine { padding-inline: calc(var(--gutter) + 16px); }
+.page-tab:hover { color: var(--ink); border-color: var(--brass); }
+.page-tab svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+/* A wider grip than it looks, for a thumb at the edge. */
+.page-tab::before { content: ''; position: absolute; inset: -12px -8px; }
+.page-tab-right { right: 0; border-right: 0; border-radius: 16px 0 0 16px; --nudge: -5px; padding-right: env(safe-area-inset-right); }
+.page-tab-left { left: 0; border-left: 0; border-radius: 0 16px 16px 0; --nudge: 5px; padding-left: env(safe-area-inset-left); }
+@keyframes page-nudge { 0%, 72%, 100% { transform: none; } 82% { transform: translateX(var(--nudge)); } 90% { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .page-tab { animation: none; } }
 html.paged #home, html.paged #routine { touch-action: pan-y; }
 /* The page sliding in, laid over the window beside the one going. */
-.screen.page-incoming { position: fixed; inset: 0; z-index: 5; overflow: hidden; background: var(--bg); }
+.screen.page-incoming { position: fixed; inset: 0; z-index: 5; overflow: hidden; }
+/* No background of its own: each theme's backdrop (the page's) shows through
+   both pages as they slide, as it does behind either at rest. */
 
 /* The timer screen */
 .timer-body { flex: 1; width: min(100%, 620px); margin: 0 auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 24px; }
@@ -1954,11 +1957,40 @@ html.paged #home, html.paged #routine { touch-action: pan-y; }
   .titem-tools, .titem-detail { padding-left: 0; }
 }
 
-/* Test Scale Intonation (in testing: only with ?scale) */
-.scale-test { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.scale-test[hidden], .scale-live[hidden], #scale-start[hidden] { display: none; }
-.scale-live { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
-.scale-status { margin: 0; font-weight: 700; color: var(--ink-2); max-width: 30em; }
+/* Test Scale Intonation (in testing: only with ?scale). Its own feature
+   under the tuner, set apart from Play a note: an inviting card that opens
+   a sheet with a record button, then the results there. */
+.scale-test { width: min(100%, 440px); margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); display: flex; justify-content: center; }
+.scale-test[hidden] { display: none; }
+.scale-cta {
+  width: 100%; display: flex; align-items: center; gap: 14px; text-align: left;
+  padding: 14px 16px; border-radius: 20px; color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--brass) 55%, var(--line));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--brass) 24%, var(--panel)), var(--panel) 70%);
+  box-shadow: 0 8px 22px var(--shadow);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.scale-cta:hover { transform: translateY(-2px); border-color: var(--brass); box-shadow: 0 12px 28px var(--shadow); }
+.scale-cta:active { transform: scale(0.98); }
+.scale-cta-icon {
+  flex: none; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--brass); color: var(--on-accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--brass) 25%, transparent);
+}
+.scale-cta-icon svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.scale-cta-icon circle { fill: currentColor; stroke: none; }
+.scale-cta-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.scale-cta-text strong { font: 700 1.08rem/1.2 var(--display); }
+.scale-cta-text small { color: var(--ink-2); font-weight: 600; font-size: 0.88rem; }
+.scale-cta-go { flex: none; width: 22px; height: 22px; fill: none; stroke: var(--ink-2); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+/* The sheet: one step at a time. */
+#scale-sheet .scale-record, #scale-sheet .scale-results { display: none; flex-direction: column; gap: 14px; }
+#scale-sheet[data-step="ready"] .scale-record, #scale-sheet[data-step="listening"] .scale-record { display: flex; }
+#scale-sheet[data-step="results"] .scale-results { display: flex; }
+.scale-steps { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 6px; color: var(--ink-2); font-weight: 600; }
+.scale-steps li::marker { color: var(--brass); font-weight: 800; }
+.scale-rec-row { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 8px 0 4px; }
+.scale-status { margin: 0; font-weight: 700; color: var(--ink-2); text-align: center; min-height: 2.8em; max-width: 26em; }
 .scale-summary { margin: 0 0 4px; font: 700 1.2rem/1.3 var(--display); }
 .scale-notes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .scale-note {

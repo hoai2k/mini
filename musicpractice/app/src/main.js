@@ -2006,6 +2006,7 @@ if (TIMER_ON) {
     },
   });
   $('page-next').addEventListener('click', () => pager.slide('home'));
+  $('page-prev').addEventListener('click', () => pager.slide('routine'));
   // Back to the start slides when the timer is the second page.
   $('timer-back').addEventListener('click', (e) => { if (pager.slide('routine')) e.preventDefault(); });
   let homeQueued = 0;
@@ -2026,10 +2027,7 @@ function layoutHome() {
   const fits = document.documentElement.scrollHeight <= innerHeight + 1;
   timerTile.hidden = !fits;
   box.classList.toggle('five', fits);
-  pager.set(!fits);
-  const touch = matchMedia('(pointer: coarse)').matches;
-  $('page-next').hidden = fits || touch;
-  $('page-hint').hidden = fits || !touch;
+  pager.set(!fits); // html.paged shows the tabs
 }
 
 // The apps: the native metronome and drone go on while the screen is locked

@@ -39,13 +39,14 @@ const newId = () => `i${Date.now().toString(36)}${(nextId++).toString(36)}`;
  * starting from the app's current ones (`base`, the settings) and its own from
  * then on.
  */
-export function newItem(presetId, base = {}) {
+export function newItem(presetId, base = {}, lastMinutes = {}) {
   const p = PRESETS.find((x) => x.id === presetId);
+  const minutes = lastMinutes[presetId || 'custom'] ?? (p ? p.minutes : 5);
   return clean({
     id: newId(),
     kind: p ? p.id : null,
     name: p ? TEXT.timer.presets[p.id] : '',
-    minutes: p ? p.minutes : 5,
+    minutes,
     metronome: p ? p.metronome : false,
     drone: p ? p.drone : false,
     met: { bpm: base.bpm, meter: base.meter },
@@ -102,10 +103,25 @@ export function loadTimer(base, storage = globalThis.localStorage) {
   return {
     items: cleanRoutine(saved?.items, base),
     chime: CHIMES.includes(saved?.chime) ? saved.chime : 'kalimba',
+    lastMinutes: cleanLastMinutes(saved?.lastMinutes),
   };
 }
-export function saveTimer({ items, chime }, storage = globalThis.localStorage) {
-  try { storage?.setItem(KEY, JSON.stringify({ items, chime })); } catch { /* not kept */ }
+export function saveTimer({ items, chime, lastMinutes }, storage = globalThis.localStorage) {
+  try { storage?.setItem(KEY, JSON.stringify({ items, chime, lastMinutes })); } catch { /* not kept */ }
+}
+
+/**
+ * The minutes last given to each kind of item (a suggestion's id, or
+ * 'custom'), which a new one of that kind starts with; a kind never set
+ * starts at its suggestion's default.
+ */
+function cleanLastMinutes(v) {
+  const out = {};
+  if (!v || typeof v !== 'object') return out;
+  for (const k of [...PRESETS.map((p) => p.id), 'custom']) {
+    if (Number.isFinite(v[k])) out[k] = Math.max(MIN_MINUTES, Math.min(MAX_MINUTES, Math.round(v[k])));
+  }
+  return out;
 }
 
 const chimeBuffers = new WeakMap(); // AudioContext -> Map(id -> Promise<AudioBuffer>)
