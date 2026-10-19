@@ -14,6 +14,7 @@
 // design/sounds/drone/archive/ (not published), with their settings.
 
 import { TEXT } from './text-config.js';
+import { output } from './output.js';
 
 export const DRONE_MIN = 36; // C2, the cello's open C string
 export const DRONE_MAX = 59; // B3: two octaves, every note twice
@@ -371,14 +372,10 @@ export class Drone {
     comp.ratio.value = 3;
     comp.attack.value = 0.02;
     comp.release.value = 0.4;
-    // A limiter last, so the loudest the volume goes never clips.
-    const limit = ctx.createDynamicsCompressor();
-    limit.threshold.value = -2;
-    limit.knee.value = 0;
-    limit.ratio.value = 20;
-    limit.attack.value = 0.002;
-    limit.release.value = 0.2;
-    this.out.connect(comp).connect(limit).connect(ctx.destination);
+    // Out through the shared limiter (output.js), so the loudest the volume
+    // goes never clips, the fifth and a change of note included, nor does the
+    // drone with the metronome, a chime or the voice over it.
+    this.out.connect(comp).connect(output(ctx));
     this.bus = ctx.createGain();
     this.dry = ctx.createGain();
     this.wet = ctx.createGain();

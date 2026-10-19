@@ -101,6 +101,7 @@ public final class PracticeMixer {
     private double wet = 0.14, wetTarget = 0.14, dry = 0.93, dryTarget = 0.93;
     private Freeverb verb;
     private final Compressor comp = new Compressor();
+    private final Limiter limiter = new Limiter(); // last, on everything: as web output.js
     private long tail; // frames of reverb tail still to render
 
     private boolean dronePlaying;
@@ -145,6 +146,7 @@ public final class PracticeMixer {
         sr = sampleRate;
         verb = new Freeverb(sr);
         comp.setSampleRate(sr);
+        limiter.setSampleRate(sr);
         stopFadeLen = Math.max(1, (int) (0.005 * sr));
         if (old > 0) {
             nextBeat = frame + (nextBeat - frame) * sr / old;
@@ -495,8 +497,11 @@ public final class PracticeMixer {
                 r += c[1];
             }
 
-            out[2 * f] = (float) clamp(l);
-            out[2 * f + 1] = (float) clamp(r);
+            // The drone and the metronome can each come near full scale now: whatever
+            // they sum to, it stays under it (the clamp is only a backstop).
+            double[] lim = limiter.process(l, r);
+            out[2 * f] = (float) clamp(lim[0]);
+            out[2 * f + 1] = (float) clamp(lim[1]);
         }
         frame += frames;
         // Notes that have faded out go; the hall rings on a little longer.
@@ -631,6 +636,30 @@ public final class PracticeMixer {
             b[j] = (float) (in + bo * 0.5);
             apIdx[i] = j + 1 == b.length ? 0 : j + 1;
             return bo - in;
+        }
+    }
+
+    /**
+     * A peak limiter just under full scale, like the web's output.js (threshold
+     * -1 dB): it catches a peak at once and lets go over 150 ms. Below the
+     * threshold it does nothing.
+     */
+    static final class Limiter {
+        private static final double CEILING = Math.pow(10, -1 / 20.0);
+        private double env, release;
+        private final double[] out = new double[2];
+
+        void setSampleRate(double sampleRate) {
+            release = 1 - Math.exp(-1 / (0.15 * sampleRate));
+        }
+
+        double[] process(double l, double r) {
+            double x = Math.max(Math.abs(l), Math.abs(r));
+            env = x > env ? x : env + (x - env) * release;
+            double g = env > CEILING ? CEILING / env : 1;
+            out[0] = l * g;
+            out[1] = r * g;
+            return out;
         }
     }
 

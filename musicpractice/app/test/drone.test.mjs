@@ -99,3 +99,12 @@ test('the drone clock reads MM:SS, and H:MM:SS from an hour', async () => {
   assert.equal(clock(3599), '59:59');
   assert.equal(clock(3600 + 125), '1:02:05');
 });
+
+test('the output clipper is linear below its knee and never reaches full scale', async () => {
+  const { clipCurve } = await import('../src/output.js');
+  const c = clipCurve(4097);
+  const at = (x) => c[Math.round(((x + 1) / 2) * 4096)];
+  for (const x of [0, 0.25, -0.5, 0.79]) assert.ok(Math.abs(at(x) - x) < 1e-3, `linear at ${x}`);
+  for (let i = 0; i < c.length; i++) assert.ok(Math.abs(c[i]) <= 0.95 + 1e-6);
+  for (let i = 1; i < c.length; i++) assert.ok(c[i] >= c[i - 1], 'monotonic');
+});

@@ -10,6 +10,7 @@
 import { TEXT } from './text.js';
 import { METERS, BPM_MIN, BPM_MAX } from './settings.js';
 import { DRONE_MIN, DRONE_MAX, VOICES } from './drone.js';
+import { output } from './output.js';
 
 const KEY = 'musicpractice.routine.v1';
 export const MAX_ITEMS = 30;
@@ -179,7 +180,7 @@ export function playClips(ctx, urls, { gap = 0.25, volume = 0.9 } = {}) {
     let at = ctx.currentTime + 0.03;
     const gain = ctx.createGain();
     gain.gain.value = volume;
-    gain.connect(ctx.destination);
+    gain.connect(output(ctx));
     for (const b of bufs) {
       const src = ctx.createBufferSource();
       src.buffer = b;

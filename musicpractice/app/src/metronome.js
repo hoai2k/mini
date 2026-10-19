@@ -3,6 +3,7 @@
 // scheduler, because timers on the page slow down in background tabs.
 
 import { barPlan } from './settings.js';
+import { output } from './output.js';
 
 const LOOKAHEAD = 0.12; // seconds of clicks scheduled in advance
 const TICK_MS = 25;
@@ -52,7 +53,7 @@ export class Metronome {
     // at the same peak. The volume comes after it, so turning down keeps the
     // tone. The apps' clicks are rendered through this same chain.
     this.out = ctx.createGain();
-    this.out.connect(ctx.destination);
+    this.out.connect(output(ctx)); // the shared limiter: with the drone, the chimes and the voice, nothing clips
     this.drive = ctx.createGain();
     this.drive.gain.value = DRIVE;
     const shaper = ctx.createWaveShaper();

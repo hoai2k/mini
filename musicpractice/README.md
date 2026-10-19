@@ -517,11 +517,24 @@ tones, scales over a tonic.
   (`droneGain` in `drone.js`, 2.8 v², so equal moves of the bow sound like
   equal steps). Full volume is about 10 dB louder than it used to be, as
   loud as the drone gets without clipping: measured at −9 dBFS RMS with
-  peaks at −0.5 dBFS or under, where full used to be −19 dBFS RMS. A
-  limiter after the compressor keeps it under full scale. A new drone starts
+  peaks at −0.5 dBFS or under, where full used to be −19 dBFS RMS. A new drone starts
   at 0.53 (`DRONE_DEFAULT`), the loudness of the old default, and a volume
   saved before is carried over at the same loudness. The apps' mixers are
   sent the gain.
+- **Nothing clips, whatever plays together**: everything the app plays on
+  an audio context (drone, metronome, the routine's chimes and voice) goes
+  out through one shared limiter (`output.js`): a compressor 2 dB under
+  full scale, then a soft clipper that is exactly linear below 0.8 and
+  rounds off smoothly to 0.95, because the browser's compressor lets the
+  sharpest transients past it by half a decibel. Measured at full volume
+  over every voice (cello, soft cello, organ, synth organ) at five notes
+  across the range, each with and without the fifth, a note change
+  mid-drone, all three click sounds in 4/4, 4/4 in sixteenths and 6/8, and
+  the synth organ with its fifth under each click sound: the loudest peak
+  is −0.1 dBFS (the loudest of all is the drone and the metronome
+  together), and loudness is unchanged. The apps' mixers end in a
+  brick-wall limiter at −1 dBFS (`Limiter` in `PracticeMixer`, instant
+  attack, 150 ms release) after their drone compressor.
 - **The volume is the cello's bow**: the Drone screen draws the cello
   without its bow (`drone-cello`) and the bow (`drone-bow`) stands beside
   it. A band of colour behind the bow, from the hair to the middle of the
