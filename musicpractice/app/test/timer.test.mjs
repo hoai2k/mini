@@ -166,3 +166,10 @@ test('a Metronome item has its metronome on even when added with +, and the Metr
   assert.equal(pictureFor(it, () => true), 'home-metronome');
   assert.equal(newItem('sight-reading', base).name, 'Sight Reading');
 });
+
+test('an item saved under its suggestion\'s earlier name shows the name as it is now', () => {
+  assert.equal(cleanRoutine([{ id: 'a', name: 'Intonation practice', kind: 'intonation' }])[0].name, 'Intonation');
+  assert.equal(cleanRoutine([{ id: 'b', name: 'Intonation practice' }])[0].name, 'Intonation');
+  assert.equal(cleanRoutine([{ id: 'c', name: 'clapping rhythms', kind: 'rhythms' }])[0].name, 'Clapping Rhythms');
+  assert.equal(cleanRoutine([{ id: 'd', name: 'My scales', kind: 'scales' }])[0].name, 'My scales'); // a name of one's own stays
+});

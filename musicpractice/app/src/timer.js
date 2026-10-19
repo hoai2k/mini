@@ -74,13 +74,16 @@ export function clean(it) {
   const o = it && typeof it === 'object' ? it : {};
   const met = o.met && typeof o.met === 'object' ? o.met : {};
   const drn = o.drn && typeof o.drn === 'object' ? o.drn : {};
-  const name = typeof o.name === 'string' ? o.name.slice(0, MAX_NAME) : '';
+  const saved = typeof o.name === 'string' ? o.name.slice(0, MAX_NAME) : '';
+  // Which suggestion it came from (its picture), or null for one of its own.
+  // Saved before items knew: by its name, if that is a suggestion's.
+  const kind = PRESETS.some((p) => p.id === o.kind) ? o.kind
+    : o.kind === undefined ? PRESETS.find((p) => sameName(TEXT.timer.presets[p.id], saved))?.id ?? null : null;
+  // A suggestion's name as it is now, where it was saved under an earlier one ("Intonation practice").
+  const name = kind && sameName(TEXT.timer.presets[kind], saved) ? TEXT.timer.presets[kind] : saved;
   return {
     id: typeof o.id === 'string' && o.id ? o.id.slice(0, 40) : newId(),
-    // Which suggestion it came from (its picture), or null for one of its own.
-    // Saved before items knew: by its name, if that is a suggestion's.
-    kind: PRESETS.some((p) => p.id === o.kind) ? o.kind
-      : o.kind === undefined ? PRESETS.find((p) => sameName(TEXT.timer.presets[p.id], name))?.id ?? null : null,
+    kind,
     name,
     minutes: clampInt(o.minutes, MIN_MINUTES, MAX_MINUTES, 5),
     metronome: o.metronome === true,

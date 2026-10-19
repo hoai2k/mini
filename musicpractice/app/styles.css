@@ -190,7 +190,10 @@ button { cursor: pointer; }
   color: var(--ink);
   text-decoration: none;
 }
-.icon-btn:hover { background: var(--panel); }
+@media (hover: hover) { .icon-btn:hover { background: var(--panel); } }
+/* A dialog takes focus itself as it opens (main.js), so its first button, the
+   close X, doesn't wear a focus ring on a phone; Tab still moves into it. */
+dialog:focus { outline: none; }
 .icon-btn svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* Metronome */
@@ -621,7 +624,9 @@ html:has(dialog[open]) { overflow: hidden; }
 /* A dropdown under its label takes the row's whole width (device names are long). */
 .row:not(.toggle) > .select { width: 100%; max-width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sheet form { padding: 8px 20px 22px; display: flex; flex-direction: column; gap: 14px; }
-.sheet-head { display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--bg-2); z-index: 1; padding-top: 8px; }
+/* The title stays at the top as the sheet scrolls, and covers the whole width
+   of it (over the form's side padding), so nothing shows past it on either side. */
+.sheet-head { display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--bg-2); z-index: 1; padding-top: 8px; margin-inline: -20px; padding-inline: 20px; }
 .sheet-head h3 { margin: 0; font: 700 1.2rem var(--display); }
 fieldset { border: 0; margin: 0; padding: 0; }
 legend { font-weight: 700; margin-bottom: 8px; padding: 0; }
@@ -1075,7 +1080,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="deco"] .takes-title { display: flex; align-items: center; gap: 12px; }
 [data-theme="deco"] .takes-title::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
 [data-theme="deco"] .icon-btn { border-radius: 0; }
-[data-theme="deco"] .icon-btn:hover { background: transparent; color: var(--brass-2); }
+@media (hover: hover) { [data-theme="deco"] .icon-btn:hover { background: transparent; color: var(--brass-2); } }
 
 /* Metronome controls */
 [data-theme="deco"] .beats li {
@@ -1933,11 +1938,10 @@ html.paged #home, html.paged #routine { touch-action: pan-y; }
 .titem.now { border-color: var(--brass); box-shadow: 0 0 0 1px var(--brass), 0 8px 22px var(--shadow); }
 .titem.done { opacity: 0.6; }
 .titem-head { display: flex; align-items: center; gap: 8px; }
-.titem-num {
-  flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
-  background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-2); font-weight: 800; font-size: 0.85rem;
-}
-.titem.now .titem-num { background: var(--brass); border-color: var(--brass); color: var(--on-accent); }
+/* The item's place in the list, as plain text before its name ("1. Intonation"),
+   so it doesn't read as a button; the one running is lit in the accent colour. */
+.titem-num { flex: none; color: var(--ink-2); font: 700 1.05rem/1.3 var(--ui); font-variant-numeric: tabular-nums; margin-right: -4px; }
+.titem.now .titem-num { color: var(--brass-2); }
 .titem-name {
   flex: 1; min-width: 0; font: 700 1.05rem/1.3 var(--ui); color: var(--ink);
   background: transparent; border: 0; border-bottom: 1px solid transparent; padding: 6px 2px; border-radius: 0;

@@ -68,8 +68,8 @@ export function setupTimer({ settings, audio, canDrone, askDrone }) {
     const T = TEXT.timer.item;
     li.innerHTML = `
       <div class="titem-head">
-        <span class="titem-num" aria-hidden="true">${i + 1}</span>
         <span class="titem-icon" aria-hidden="true"></span>
+        <span class="titem-num" aria-hidden="true">${i + 1}.</span>
         <input class="titem-name" type="text" maxlength="60" enterkeyhint="done" autocomplete="off">
         <button type="button" class="icon-btn titem-open">${CHEVRON}</button>
         <button type="button" class="icon-btn titem-del">${TRASH}</button>

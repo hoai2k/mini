@@ -80,6 +80,7 @@ export const EN = {
       system: 'System',
     },
     sendFeedback: 'Send feedback…',
+    reloadPage: 'Reload Page',
     pro: {
       title: 'Music Practice Pro',
       on: 'Pro is on',
