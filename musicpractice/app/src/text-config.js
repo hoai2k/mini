@@ -385,13 +385,13 @@ export const EN = {
   timer: {
     title: 'Practice Routine',
     presets: {
-      intonation: 'Intonation practice',
+      intonation: 'Intonation',
       scales: 'Scales',
-      rhythms: 'Clapping rhythms',
+      rhythms: 'Clapping Rhythms',
       ghosting: 'Ghosting',
       metronome: 'Metronome',
       arpeggios: 'Arpeggios',
-      'sight-reading': 'Sight reading',
+      'sight-reading': 'Sight Reading',
       improvisation: 'Improvisation',
     },
     /** Under the list while it is set up. */
@@ -432,7 +432,7 @@ export const EN = {
       now: 'Now',
     },
     add: 'Add',
-    addTitle: 'Add a practice item',
+    addTitle: 'Add a Routine',
     custom: 'Custom…',
     settingsButton: 'Practice Routine settings',
     settingsTitle: 'Practice Routine settings',

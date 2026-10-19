@@ -1990,6 +1990,12 @@ html.paged #home, html.paged #routine { touch-action: pan-y; }
 }
 .timer-preset:hover { border-color: var(--brass); }
 .timer-preset-name { font-weight: 800; font-size: 1.05rem; }
+/* Each suggestion's picture, small, before its name (timerui.js icons). */
+.timer-preset:has(.timer-preset-icon) { flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; }
+.timer-preset-icon, .titem-icon { flex: none; display: grid; place-items: center; aspect-ratio: 1; }
+.timer-preset-icon { width: 40px; }
+.titem-icon { width: 34px; }
+.timer-preset-icon > *, .titem-icon > * { width: 100%; height: 100%; object-fit: contain; }
 @media (max-width: 420px) {
   .titem-tools, .titem-detail { padding-left: 0; }
 }
