@@ -27,7 +27,7 @@ test('a first visit starts with Intonation (drone) and Scales (metronome); + off
 test('saved routines are kept, cleaned, and an emptied one stays empty', () => {
   const s = mem();
   saveTimer({ items: [], chime: 'celesta' }, s);
-  assert.deepEqual(loadTimer(base, s), { items: [], chime: 'celesta', lastMinutes: {} });
+  assert.deepEqual(loadTimer(base, s), { items: [], chime: 'celesta', lastMinutes: {}, voiceOn: true, voice: 'lily' });
   const items = cleanRoutine([{ id: 'a', name: 'x'.repeat(99), minutes: 999, metronome: 1, met: { bpm: 9999, meter: 'nope' }, drn: { midi: 10, voice: '?' } }, { id: 'a' }, 'junk']);
   assert.equal(items.length, 2); // the duplicate id dropped, the junk made a blank item
   assert.equal(items[0].name.length, 60);
@@ -112,4 +112,30 @@ test('a new item starts at the length last given to its kind, else the default',
   assert.equal(newItem(undefined, base, { custom: 7 }).minutes, 7);
   saveTimer({ items: [], chime: 'kalimba', lastMinutes: { scales: 9, custom: 999, bogus: 4 } }, s);
   assert.deepEqual(loadTimer(base, s).lastMinutes, { scales: 9, custom: 120 });
+});
+
+test('every voice has every line, for every suggestion and for Custom', async () => {
+  const { existsSync } = await import('node:fs');
+  const { SPEAKERS, voiceLines } = await import('../src/timer.js');
+  assert.deepEqual(SPEAKERS, ['lily', 'matilda', 'george', 'clara', 'autumn', 'theo']);
+  const kinds = [...PRESETS.map((p) => ({ kind: p.id })), { kind: null }];
+  const lines = new Set(['hello']);
+  for (const a of kinds) {
+    voiceLines.started(a).forEach((l) => lines.add(l));
+    voiceLines.finished(a).forEach((l) => lines.add(l));
+    for (const b of kinds) voiceLines.changed(a, b).forEach((l) => lines.add(l));
+  }
+  assert.equal(lines.size, 17);
+  for (const v of SPEAKERS) {
+    for (const l of lines) assert.ok(existsSync(new URL(`../assets/audio/voice/${v}/${l}.mp3`, import.meta.url)), `${v}/${l}.mp3: generate it (design/voice-samples.md)`);
+  }
+});
+
+test('voice settings: on by default in Lily\'s voice; kept; an unknown voice falls back', () => {
+  const s = mem();
+  assert.equal(loadTimer(base, s).voiceOn, true);
+  saveTimer({ items: [], chime: 'kalimba', lastMinutes: {}, voiceOn: false, voice: 'theo' }, s);
+  assert.deepEqual([loadTimer(base, s).voiceOn, loadTimer(base, s).voice], [false, 'theo']);
+  saveTimer({ items: [], chime: 'kalimba', lastMinutes: {}, voiceOn: true, voice: 'nobody' }, s);
+  assert.equal(loadTimer(base, s).voice, 'lily');
 });

@@ -104,10 +104,13 @@ export function loadTimer(base, storage = globalThis.localStorage) {
     items: cleanRoutine(saved?.items, base),
     chime: CHIMES.includes(saved?.chime) ? saved.chime : 'kalimba',
     lastMinutes: cleanLastMinutes(saved?.lastMinutes),
+    // Spoken between items, in this voice; on unless turned off.
+    voiceOn: saved?.voiceOn !== false,
+    voice: SPEAKERS.includes(saved?.voice) ? saved.voice : SPEAKERS[0],
   };
 }
-export function saveTimer({ items, chime, lastMinutes }, storage = globalThis.localStorage) {
-  try { storage?.setItem(KEY, JSON.stringify({ items, chime, lastMinutes })); } catch { /* not kept */ }
+export function saveTimer({ items, chime, lastMinutes, voiceOn, voice }, storage = globalThis.localStorage) {
+  try { storage?.setItem(KEY, JSON.stringify({ items, chime, lastMinutes, voiceOn, voice })); } catch { /* not kept */ }
 }
 
 /**
@@ -124,28 +127,76 @@ function cleanLastMinutes(v) {
   return out;
 }
 
-const chimeBuffers = new WeakMap(); // AudioContext -> Map(id -> Promise<AudioBuffer>)
-/** Play chime `id` on `ctx` (decoded once per context). Resolves when it has started. */
-export async function playChime(ctx, id, volume = 0.9) {
-  if (!ctx || !CHIMES.includes(id) || id === 'none') return;
-  let cache = chimeBuffers.get(ctx);
-  if (!cache) chimeBuffers.set(ctx, (cache = new Map()));
-  if (!cache.has(id)) {
-    const url = new URL(`../assets/audio/timer/${id}.mp3`, import.meta.url);
-    cache.set(id, fetch(url).then((r) => r.arrayBuffer())
-      .then((data) => new Promise((resolve, reject) => ctx.decodeAudioData(data, resolve, reject))));
+/**
+ * The voices that speak between items, if Voice is on (the routine's
+ * settings); each a calm read of every line (design/voice-samples.md):
+ * assets/audio/voice/<voice>/<line>.mp3.
+ */
+export const SPEAKERS = ['lily', 'matilda', 'george', 'clara', 'autumn', 'theo'];
+
+/*
+ * What is said. Every kind of item (a suggestion's id) has its own lines,
+ * and an item of its own (Custom…) the generic ones, 'custom':
+ * done-<kind> ("Scales are complete."), next-<kind> ("Next, scales.") and
+ * first-<kind> ("Let's begin with scales."); then 'finished' at the end, and
+ * 'hello' to hear a voice as it is picked. A new suggestion needs its lines
+ * generated in every voice (test/timer.test.mjs checks the files are there).
+ */
+const kindOf = (it) => it?.kind || 'custom';
+export const voiceLines = {
+  started: (first) => [`first-${kindOf(first)}`],
+  changed: (done, next) => [`done-${kindOf(done)}`, `next-${kindOf(next)}`],
+  finished: (done) => [`done-${kindOf(done)}`, 'finished'],
+};
+export const voiceUrl = (voice, line) => new URL(`../assets/audio/voice/${voice}/${line}.mp3`, import.meta.url).href;
+export const chimeUrl = (id) => new URL(`../assets/audio/timer/${id}.mp3`, import.meta.url).href;
+
+const clipBuffers = new WeakMap(); // AudioContext -> Map(url -> Promise<AudioBuffer>)
+/** A clip decoded on `ctx` (once per context); null if it can't be had. */
+export function loadClip(ctx, url) {
+  let cache = clipBuffers.get(ctx);
+  if (!cache) clipBuffers.set(ctx, (cache = new Map()));
+  if (!cache.has(url)) {
+    cache.set(url, fetch(url).then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+      .then((data) => new Promise((resolve, reject) => ctx.decodeAudioData(data, resolve, reject)))
+      .catch(() => { cache.delete(url); return null; }));
   }
-  try {
-    const buf = await cache.get(id);
-    const src = ctx.createBufferSource();
+  return cache.get(url);
+}
+
+/**
+ * Play clips one after another, `gap` seconds apart. Returns { done, stop }:
+ * `done` resolves when the last has finished (at once if there are none),
+ * `stop` silences them.
+ */
+export function playClips(ctx, urls, { gap = 0.25, volume = 0.9 } = {}) {
+  const sources = [];
+  let stopped = false;
+  const done = (async () => {
+    if (!ctx || !urls.length) return;
+    const bufs = (await Promise.all(urls.map((u) => loadClip(ctx, u)))).filter(Boolean);
+    if (stopped || !bufs.length) return;
+    let at = ctx.currentTime + 0.03;
     const gain = ctx.createGain();
     gain.gain.value = volume;
-    src.buffer = buf;
-    src.connect(gain).connect(ctx.destination);
-    src.start();
-  } catch {
-    cache.delete(id); // try again next time
-  }
+    gain.connect(ctx.destination);
+    for (const b of bufs) {
+      const src = ctx.createBufferSource();
+      src.buffer = b;
+      src.connect(gain);
+      src.start(at);
+      sources.push(src);
+      at += b.duration + gap;
+    }
+    await new Promise((resolve) => { sources.at(-1).onended = resolve; });
+  })();
+  return { done, stop() { stopped = true; for (const s of sources) { try { s.stop(); } catch { /* not started */ } } } };
+}
+
+/** Play chime `id` on `ctx`. */
+export function playChime(ctx, id, volume = 0.9) {
+  if (!ctx || !CHIMES.includes(id) || id === 'none') return { done: Promise.resolve(), stop() {} };
+  return playClips(ctx, [chimeUrl(id)], { volume });
 }
 
 export const totalSeconds = (items) => items.reduce((s, it) => s + it.minutes * 60, 0);

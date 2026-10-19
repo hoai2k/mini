@@ -1,5 +1,4 @@
-// Test Scale Intonation (in testing: the tuner shows it only with ?scale in
-// the address). Listens for a scale to begin, follows it note by note, and
+// Test My Scale Intonation, under the tuner. Listens for a scale to begin, follows it note by note, and
 // takes three seconds of quiet as the end (the Playback Recorder's own
 // PlayDetector). Then each note played is judged: in tune, flat or sharp,
 // more leniently than the tuner's needle. Pure: tunerui.js feeds it the mic
