@@ -17,10 +17,16 @@
 // Group options: cap (live cubes for the whole model), palette (flameSim
 // PALETTES name or stops), rise (upward acceleration, px/s²), turb, drag.
 //
-// One InstancedMesh per model (one draw call), parked in world space (its
-// world matrix is fixed at identity although it hangs under the rig's root,
-// so it goes and hides with the model). It draws only the live cubes and is
-// left out of the animation lint (an InstancedMesh, and userData.noLint).
+// One mesh per model (one draw call), parked in world space (its world
+// matrix is fixed at identity although it hangs under the rig's root, so it
+// goes and hides with the model). It draws only the live cubes and is left
+// out of the animation lint (userData.noLint) and of the model's bounds.
+// The cubes are written as plain vertex-coloured geometry (8 corners each,
+// FlameSim.writeCubes), not as an InstancedMesh: three.js gives each
+// InstancedMesh's matrices their own uniform block (NodeBuffer_<id>), so
+// every model on fire compiled a shader program of its own when it first
+// drew (an automaton spawned mid-fight was a hitch; design: perf/RENDERING.md).
+// As geometry every flame in the game shares one program.
 //
 // Driven by the rig's own clock: animateExtras (rig.tick) steps it after the
 // pose, with the entity, and spawns. A rig animated without a tick (a dying
@@ -29,12 +35,14 @@
 // entity or a dissolved body stop the spawning.
 import * as THREE from 'three/webgpu';
 import { PX } from './character.js';
-import { FlameSim, PALETTES, paletteStops } from './flameSim.js';
+import { FlameSim, PALETTES, paletteStops, CUBE_INDEX } from './flameSim.js';
 
-let GEO = null, MAT = null;
-const geo = () => (GEO ??= new THREE.BoxGeometry(1, 1, 1));
-const mat = () => (MAT ??= new THREE.MeshBasicNodeMaterial({ color: 0xffffff }));
-const IDENT = new THREE.Matrix4();
+let MAT = null;
+const mat = () => (MAT ??= new THREE.MeshBasicNodeMaterial({ color: 0xffffff, vertexColors: true }));
+// the index of `cap` cubes
+const indexFor = (cap) => { const a = new (cap * 8 > 65535 ? Uint32Array : Uint16Array)(cap * 36); for (let i = 0; i < cap; i++) for (let k = 0; k < 36; k++) a[i * 36 + k] = i * 8 + CUBE_INDEX[k]; return new THREE.BufferAttribute(a, 1); };
+const NO_BOX = new THREE.Box3(), FAR = new THREE.Sphere(new THREE.Vector3(0, -1e6, 0), 0);
+const noop = () => {};
 const _v = new THREE.Vector3(), _c = new THREE.Color();
 
 // A shared budget for every model's flames (1 = full; lower tiers can turn it down).
@@ -49,12 +57,18 @@ class Flames {
     this.sim = new FlameSim(cap);
     this.sources = [];
     this.owed = 0; this.animated = false; this.dying = false;
-    const m = new THREE.InstancedMesh(geo(), mat(), cap);
-    m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3).setUsage(THREE.DynamicDrawUsage);
-    m.count = 0; m.frustumCulled = false; m.castShadow = false; m.receiveShadow = false;
-    m.matrixAutoUpdate = false; m.matrixWorldAutoUpdate = false; m.matrixWorld.copy(IDENT);
-    m.userData.noLint = true; m.userData.keepGeo = true; m.userData.flames = true; m.name = 'flames';
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(cap * 24), 3).setUsage(THREE.DynamicDrawUsage));
+    g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(cap * 24), 3).setUsage(THREE.DynamicDrawUsage));
+    g.setIndex(indexFor(cap)); g.setDrawRange(0, 0);
+    // (world-space cubes: never culled, never in the model's bounds or a ray's way, so nothing measures them)
+    g.boundingBox = NO_BOX; g.boundingSphere = FAR;
+    const m = new THREE.Mesh(g, mat());
+    m.frustumCulled = false; m.castShadow = false; m.receiveShadow = false;
+    m.matrixAutoUpdate = false; m.matrixWorldAutoUpdate = false;
+    m.updateMatrixWorld = noop; m.updateWorldMatrix = noop;   // (identity, even when the rig's root is updated with force)
+    m.raycast = noop;
+    m.userData.noLint = true; m.userData.flames = true; m.name = 'flames';
     rig.root.add(m);
     this.mesh = m;
   }
@@ -101,10 +115,12 @@ class Flames {
     }
     sim.step(dt, this.rise, this.turb, this.drag);
     const m = this.mesh;
-    m.count = sim.write(m.instanceMatrix.array, m.instanceColor.array, this.stops);
-    if (m.count) {
-      m.instanceMatrix.clearUpdateRanges(); m.instanceMatrix.addUpdateRange(0, m.count * 16); m.instanceMatrix.needsUpdate = true;
-      m.instanceColor.clearUpdateRanges(); m.instanceColor.addUpdateRange(0, m.count * 3); m.instanceColor.needsUpdate = true;
+    const P = m.geometry.attributes.position, C = m.geometry.attributes.color;
+    const n = sim.writeCubes(P.array, C.array, this.stops);
+    m.geometry.setDrawRange(0, n * 36);
+    if (n) {   // (only the live cubes go up to the GPU)
+      P.clearUpdateRanges(); P.addUpdateRange(0, n * 24); P.needsUpdate = true;
+      C.clearUpdateRanges(); C.addUpdateRange(0, n * 24); C.needsUpdate = true;
     }
   }
   dissolved() { const d = this.rig.material?.userData?.dissolve?.value; return d > 0.5; }

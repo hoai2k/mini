@@ -424,10 +424,13 @@ const kitBoxes = (list, dy = 0) => list.map((b) => ({ p: [b.at[0], b.at[1] + dy,
 // pass 4: re-sculpted at his new size, the heads smaller, both grids finer)
 const VD = { minotaur: 1.5, chimera: 1.55, cerberus: 1.25, cerberusHead: 1.15, procrustes: 1.5, ares: 1.5 };
 export const BOSS_MODELS = {
-  // Alecto: Mrs. Dodds as she really is (vox-enemies, bottom right)
-  alecto: () => withBuild({ key: 'b:alecto' }, () => buildFury('alecto', { scale: 1.75, seed: 71 })),
-  megaera: () => withBuild({ key: 'b:megaera' }, () => buildFury('megaera', { scale: 1.6, skin: 0xa8ae98, hair: 0xb8b8b0, wing: 0x4a3424, seed: 72 })),
-  tisiphone: () => withBuild({ key: 'b:tisiphone' }, () => buildFury('tisiphone', { scale: 1.6, skin: 0xa8a2a8, hair: 0xf0f0ec, wing: 0x5a2a22, dress: 0x24141a, mouthGrin: false, seed: 73 })),
+  // Alecto: Mrs. Dodds as she really is (vox-enemies, bottom right). (size
+  // audit, round 4: her body, standing, without wings and whip, looms at about
+  // 1.9× Percy (scale 1.75 → 2.8); her sisters 1.7× (1.6 → 2.5); the plain
+  // Fury 1.4× (2.1). Her stats and reaches follow in bosses.js.)
+  alecto: () => withBuild({ key: 'b:alecto' }, () => buildFury('alecto', { scale: 2.8, seed: 71 })),
+  megaera: () => withBuild({ key: 'b:megaera' }, () => buildFury('megaera', { scale: 2.5, skin: 0xa8ae98, hair: 0xb8b8b0, wing: 0x4a3424, seed: 72 })),
+  tisiphone: () => withBuild({ key: 'b:tisiphone' }, () => buildFury('tisiphone', { scale: 2.5, skin: 0xa8a2a8, hair: 0xf0f0ec, wing: 0x5a2a22, dress: 0x24141a, mouthGrin: false, seed: 73 })),
 
   // The Minotaur: a towering brown bull-man in white briefs with a gold belt
   // medallion, cream horns, a gold nose ring and red eyes.

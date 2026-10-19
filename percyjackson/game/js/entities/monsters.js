@@ -577,11 +577,11 @@ const MODELS = {
   // (size audit, round 4: Pausanias's man-eaters are "of the size of a crane";
   // ×1.36, a wingspan over twice Percy's height and a body the size of a big dog)
   stymphalian: () => eagle('stymphalian', { scale: 1.5, metal: true, form: 'hunter' }),
-  // (size audit, round 4: the owner found her smaller than Percy; ×1.5, so she
-  // hovers with her head at about 1.5× his height, as the concept sheet's looming
-  // hag, and stays under the boss sisters, 1.6 to 1.75; she flies a little
-  // higher, so her longer hem clears the floor at the bottom of her bob)
-  fury: () => buildFury('fury', { scale: 1.5, float: 1.0 }),
+  // (size audit, round 4: the owner found her smaller than Percy. Her body,
+  // standing, without wings and whip, is now about 1.4× his height (scale 1.5
+  // → 2.1), under the boss sisters (2.5, Alecto 2.8); she flies a little higher
+  // so her longer hem clears the floor at the bottom of her bob)
+  fury: () => buildFury('fury', { scale: 2.1, float: 1.25 }),
   dracaena: () => buildDracaena(),
   empousa: () => buildEmpousa(),
   scorpion: () => buildScorpion(),
@@ -1261,9 +1261,11 @@ export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, win
     S.shadeLimbs(); S.saturate(1.15);
   }, { emit: 1, res: 2, scale });
   const rig = new Rig({ material: mat, scale, bodyW: 7, armW: 3, legH: 10 });
-  // a Fury drawn bigger than a hero (the boss sisters, scale 1.6 to 1.75) is
-  // made of more, finer strips, curls and claws, not bigger ones
-  const D = Math.max(1, densityFor(scale));
+  // a Fury drawn bigger than a hero (the plain Fury 2.1, the boss sisters 2.5
+  // and 2.8) is made of more, finer strips, curls and claws, not bigger ones;
+  // past Alecto's old 1.75 the strips grow instead, so the sisters cost no
+  // more triangles than before (size audit, round 4)
+  const D = Math.max(1, densityFor(Math.min(scale, 1.75)));
   for (const leg of [rig.legR, rig.legL]) dropMeshes(rig, leg);
   const K = kit(rig, mat, { seed, rough: 0.9 });
   const RAG = [dress, 0x241c20, 0x120e10, 0x2e2428, 0x1e1418];
@@ -1301,7 +1303,10 @@ export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, win
   }
   gridHair(rig, { style: 'curls', base: hair, shade: 0x8a8a86, light: 0xe8e8e4, seed, shape: { r: [6.9, 7.8, 6.6], bump: 0.5, tuft: 0.28, spike: 0.1, side: -1.5, back: -5 }, res: D }, mat);
   K.done();
-  const ws = Math.min(1.2, scale + 0.1);
+  // (past scale 1.5 the wings grow as the square root of her size, so a
+  // looming sister's span, 8.5 blocks for Alecto, stays about twice her height
+  // instead of nearly three times, well inside a 30-block boss arena)
+  const ws = Math.min(1.2, scale + 0.1) * Math.min(1, Math.sqrt(1.5 / scale));
   addWings(rig, { span: 27 * ws, chord: 15, mat: solid(wing, 0, 0.9), tip: solid(0x3a2418, 0, 0.9), kind: 'bat', y: 10.5, bone: solid(0x2a1a10), cols: { dark: 0x24160e }, seed: seed + 5, look: mat, fine: D });
   addWhip(rig, { segs: 10, len: 3.6, look: mat });
   rig.tick = (dt, e) => animateExtras(rig, dt, e);   // (the bosses built on her get the whip's pose too, even outside a fight)
@@ -2238,7 +2243,7 @@ export const MONSTERS = {
   stymphalian: { name: txt('monsters.stymphalian.name'), tier: 'minor', role: 'ranged', hp: 34, speed: 4.4, dmg: 8, radius: 0.6, height: 2.0, ai: 'ranged', range: 11, keep: 7, windup: 0.8, cd: 3.4, xp: 4, coins: [1, 4], model: 'stymphalian', pitch: 1.7, projectile: 'feather', shots: 3, voice: 'screech' },
   automaton: { name: txt('monsters.automaton.name'), tier: 'minor', role: 'exploder', hp: 30, speed: 3.9, dmg: 16, radius: 0.55, height: 1.1, ai: 'blob', range: 1.8, windup: 0.9, cd: 0, xp: 4, coins: [1, 4], model: 'automaton', pitch: 1.8, aura: 'greekfire', blast: 0x6aff3a },
   ghost: { name: txt('monsters.ghost.name'), tier: 'minor', role: 'caster', hp: 38, speed: 3.2, dmg: 8, radius: 0.45, height: 2, ai: 'ranged', range: 10, keep: 6.5, windup: 0.9, cd: 3.6, xp: 4, coins: [1, 3], model: 'ghost', pitch: 0.9, projectile: 'wisp', voice: 'moan', aura: 'wisp', knockResist: 0.2 },
-  fury: { name: txt('monsters.fury.name'), tier: 'elite', role: 'trickster', hp: 95, speed: 3.8, dmg: 13, radius: 0.65, height: 3.2, ai: 'teleport', range: 2.2, windup: 0.45, cd: 1.6, xp: 10, coins: [4, 7], model: 'fury', pitch: 1.1, puff: 0x3a2a24, slashColor: 0xff8a2a, voice: 'screech' },
+  fury: { name: txt('monsters.fury.name'), tier: 'elite', role: 'trickster', hp: 95, speed: 3.8, dmg: 13, radius: 0.9, height: 3.9, ai: 'teleport', range: 2.8, windup: 0.45, cd: 1.6, xp: 10, coins: [4, 7], model: 'fury', pitch: 1.1, puff: 0x3a2a24, slashColor: 0xff8a2a, voice: 'screech' },
   dracaena: { name: txt('monsters.dracaena.name'), tier: 'elite', role: 'tank', hp: 190, speed: 2.4, dmg: 18, radius: 0.8, height: 2.6, ai: 'tank', range: 2.6, windup: 0.85, cd: 2.2, xp: 12, coins: [5, 9], model: 'dracaena', armor: 0.25, shield: true, knockResist: 0.75, pitch: 0.8, voice: 'hiss' },
   hellhound: { name: txt('monsters.hellhound.name'), tier: 'elite', role: 'bruiser', hp: 220, speed: 3.6, dmg: 20, radius: 1.6, height: 5, ai: 'melee', range: 3.7, windup: 0.7, cd: 1.8, xp: 14, coins: [6, 10], model: 'hellhound', knockResist: 0.7, superArmor: true, pitch: 0.5, aura: 'smoke', voice: 'bark' },
   empousa: { name: txt('monsters.empousa.name'), tier: 'elite', role: 'summoner', hp: 160, speed: 2.6, dmg: 10, radius: 0.5, height: 2.5, ai: 'summon', range: 9, keep: 8, windup: 1.0, cd: 5, xp: 16, coins: [8, 14], model: 'empousa', knockResist: 0.4, pitch: 1.2, summons: 'pup', aura: 'fire', projectile: 'fire', voice: 'screech' },

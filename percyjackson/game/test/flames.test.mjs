@@ -5,7 +5,7 @@
 import './seed.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { FlameSim, PALETTES, paletteStops } from '../js/entities/flameSim.js';
+import { FlameSim, PALETTES, paletteStops, CUBE_INDEX } from '../js/entities/flameSim.js';
 
 test('the pool never grows past its cap, and refuses spawns when full', () => {
   const s = new FlameSim(8), arrays = [s.pos, s.vel, s.age, s.life, s.size];
@@ -52,6 +52,29 @@ test('the write-out: a cube per live particle, shrinking to nothing, colour from
   // near the end: the dark tail colour (dimmer than the core)
   assert.ok(cols[1] < stops[1] * 0.6);
   assert.ok(mats[5] > mats[0], 'cubes are a little taller than wide');
+});
+
+test('the cubes as geometry (what flames.js draws) match the instance matrices, faces outward', () => {
+  const stops = paletteStops(PALETTES.fire), s = new FlameSim(3);
+  s.spawn(1, 2, 3, 0, 0, 0, 1, 0.5); s.spawn(-1, 0, 4, 0, 0, 0, 0.6, 0.3); s.step(0.2);
+  const mats = new Float32Array(3 * 16), cols = new Float32Array(3 * 3), pos = new Float32Array(3 * 24), vc = new Float32Array(3 * 24);
+  assert.equal(s.write(mats, cols, stops), 2); assert.equal(s.writeCubes(pos, vc, stops), 2);
+  for (let i = 0; i < 2; i++) for (let c = 0; c < 8; c++) {
+    const M = mats.subarray(i * 16, i * 16 + 16), q = i * 24 + c * 3;
+    const ux = c & 1 ? 0.5 : -0.5, uy = c & 2 ? 0.5 : -0.5, uz = c & 4 ? 0.5 : -0.5;   // the unit box corner under the instance matrix
+    const want = [M[0] * ux + M[12], M[5] * uy + M[13], M[10] * uz + M[14]];
+    for (let a = 0; a < 3; a++) { assert.ok(Math.abs(pos[q + a] - want[a]) < 1e-5, `cube ${i} corner ${c} axis ${a}`); assert.ok(Math.abs(vc[q + a] - cols[i * 3 + a]) < 1e-6); }
+  }
+  // each triangle of the index faces away from the cube's centre
+  assert.equal(CUBE_INDEX.length, 36);
+  const P = (c) => [c & 1 ? 1 : -1, c & 2 ? 1 : -1, c & 4 ? 1 : -1];
+  for (let t = 0; t < 36; t += 3) {
+    const [a, b, c] = [P(CUBE_INDEX[t]), P(CUBE_INDEX[t + 1]), P(CUBE_INDEX[t + 2])];
+    const e1 = b.map((v, k) => v - a[k]), e2 = c.map((v, k) => v - a[k]);
+    const n = [e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]];
+    const ctr = [0, 1, 2].map((k) => (a[k] + b[k] + c[k]) / 3);
+    assert.ok(n[0] * ctr[0] + n[1] * ctr[1] + n[2] * ctr[2] > 0, `triangle ${t / 3}`);
+  }
 });
 
 test('every palette runs bright to dark', () => {

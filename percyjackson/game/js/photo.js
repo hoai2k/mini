@@ -66,7 +66,7 @@ export async function openPhotoMode(game) {
     let tris = 0;
     game.scene.updateMatrixWorld(true);
     game.scene.traverseVisible((o) => {
-      if (!o.isMesh || o.isInstancedMesh || o.count > 1 || !o.geometry?.attributes?.position) return;
+      if (!o.isMesh || o.isInstancedMesh || o.count > 1 || o.userData.flames || !o.geometry?.attributes?.position) return;   // (flames: live cubes, entities/flames.js)
       const m = o.material;
       if (!m || m.blending === 2 || m.isSpriteNodeMaterial || (m.transparent && m !== M.deco && !m.userData?.fade) || o.userData.shell) return;
       if (m.userData?.fade && m.userData.fade.value > 0.5) return;       // hidden roofs

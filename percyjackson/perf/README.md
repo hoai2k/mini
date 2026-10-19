@@ -18,6 +18,7 @@ NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/smoke.cjs   # ever
 NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/weapons.cjs # every weapon points forward, at rest and in each strike
 NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/animlint.cjs # every pose of every model: the floor, parts flying off, weapons at the strike
 NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/houndlegs.cjs # the full-size hellhounds' legs stay rooted in the body in every pose
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/bodysize.cjs  # every model's body height (no arms, weapons, wings, whips, tails or flames) beside its whole box, × Percy
 ```
 
 It needs Node, Playwright (`NODE_PATH` points at a global install; default
@@ -40,6 +41,7 @@ Environment: `PERF_PORT`, `PERF_W` / `PERF_H` (viewport, default 640 x 360),
 | `weapons.cjs [ids]` | Every armed model (heroes, bosses, monsters and fodder, champions, people, mortals) at rest and at the strike of each attack style: the weapon's tip (`markTip`, see the hand-axis convention in `game/js/entities/character.js`) must point forward of the hand along the model's facing, raised allowed at rest. Exits 1 on a failure | stdout |
 | `animlint.cjs [ids] [--hero-styles] [--all]` | Every model in every pose the game plays on it (`game/workbench/animlint.js`): the hero poses for heroes and people; for monsters, champions and bosses also each of their own attacks, run by the real `Enemy` or `Boss` against a dummy on a flat floor (`game/workbench/ingame.js`). 30 frames a second, each checked: the lowest vertex under the floor (more than 5 cm, or 3% of a big model's height; deaths sink on purpose), a part further than 1.5 x the model's size from rest or a NaN transform, a weapon tip backward all through a strike. `--hero-styles` adds the hero poses a monster never plays (as info). Exits 1 on a failure | stdout |
 | `houndlegs.cjs` | The full-size hellhounds (the elite, the alpha boss, Shadowfang and the Road West's hellhound champion; `monsters.js` `bigHound`) through idle, walk, run, bite, slam, bite on the run, hit, stagger and dodge at 30 frames a second: on every frame each leg's joint must sit at least 2 skin pixels inside the chest or haunch block it hangs from (`rig.extras.trunk`, above its underside and in from its ends) and the leg's own blocks must overlap that block. Exits 1 on a failure | stdout |
+| `bodysize.cjs [out.json] [keys]` | Every workbench model at rest: its body height (the torso, head and legs; a humanoid's arms, held things and `markTip` weapons, wings, the whip, tails and stings, flame hair, live flames, capes, hair strands and props in `rig.extras` left out) and its whole visible box, both × Percy, with the stat height, the triangle count and how high each left-out part reached. Used by the size audit (`../design/size-audit.md`, round 4). Exits 1 on a page error | stdout, `out.json` if given |
 
 Scenes: `title`, `prologue` (Manhattan), `lt1` (museum), `hub` (camp), `combat`
 (camp plus 3 training waves, about 16 monsters), `lt2`, `lt4`, `lt10`,

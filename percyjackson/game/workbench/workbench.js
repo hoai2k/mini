@@ -147,7 +147,7 @@ function measure(rig) {
   if (box.isEmpty()) box.set(new THREE.Vector3(-0.5, 0, -0.5), new THREE.Vector3(0.5, 1.8, 0.5));
   let tris = 0; const mats = new Set(), meshes = meshesOf(rig.root);
   for (const m of meshes) {
-    const g = m.geometry; const n = g?.index ? g.index.count / 3 : (g?.attributes.position?.count ?? 0) / 3;
+    const g = m.geometry; const n = Math.min(g?.index ? g.index.count : (g?.attributes.position?.count ?? 0), g?.drawRange?.count ?? Infinity) / 3;   // (drawRange: the live flame cubes, flames.js)
     tris += n * (m.isInstancedMesh ? m.count : 1); matsOf(m).forEach((x) => mats.add(x));
   }
   const size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
@@ -756,4 +756,4 @@ if (!fromHash()) { const first = items.find((i) => i.group === 'heroes') ?? item
 status(isGPU ? '' : '');
 stageEl.title = isGPU ? 'WebGPU' : 'WebGL2';
 window.__wbSeek = seekLint;
-window.__wb = { items, thumbs, lints, setAnim, seek: seekLint, get game() { return game; }, camera, controls, select: (k) => select(itemByKey(k)), get current() { return current; }, backend: isGPU ? 'webgpu' : 'webgl2', queueLength: () => queue.length };
+window.__wb = { items, thumbs, lints, setAnim, renderer, scene, seek: seekLint, get game() { return game; }, camera, controls, select: (k) => select(itemByKey(k)), get current() { return current; }, backend: isGPU ? 'webgpu' : 'webgl2', queueLength: () => queue.length };

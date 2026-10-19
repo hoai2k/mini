@@ -33,6 +33,17 @@ export function paletteStops(pal) {
   return out;
 }
 
+// The 12 outward-facing triangles of a cube whose corner c sits at the signs
+// in bits 0 (x), 1 (y) and 2 (z) of c (FlameSim.writeCubes).
+export const CUBE_INDEX = [
+  1, 3, 7, 1, 7, 5,   // +x
+  0, 4, 6, 0, 6, 2,   // -x
+  2, 6, 7, 2, 7, 3,   // +y
+  0, 1, 5, 0, 5, 4,   // -y
+  4, 5, 7, 4, 7, 6,   // +z
+  0, 2, 3, 0, 3, 1,   // -z
+];
+
 export class FlameSim {
   constructor(cap) {
     this.cap = cap; this.n = 0; this.t = 0;
@@ -92,6 +103,26 @@ export class FlameSim {
       cols[o] = stops[A] + (stops[B] - stops[A]) * w;
       cols[o + 1] = stops[A + 1] + (stops[B + 1] - stops[A + 1]) * w;
       cols[o + 2] = stops[A + 2] + (stops[B + 2] - stops[A + 2]) * w;
+    }
+    return this.n;
+  }
+  // The same cubes written as plain geometry (what entities/flames.js draws):
+  // the 8 corners of each live particle's cube (corner c has its x, y and z
+  // signs in bits 0, 1 and 2: the unit box of write()'s matrix, ±0.5) into
+  // pos (24 floats a particle) and its colour on each corner into cols.
+  // CUBE_INDEX draws them. Returns the count.
+  writeCubes(pos, cols, stops, stretch = 1.25) {
+    const ns = stops.length / 3 - 1;
+    for (let i = 0; i < this.n; i++) {
+      const u = this.age[i] / this.life[i];
+      const h = 0.5 * this.size[i] * (u < 0.12 ? 0.55 + u * 3.75 : (1 - u) / 0.88), hy = h * stretch;
+      const o = i * 3, x = this.pos[o], y = this.pos[o + 1], z = this.pos[o + 2];
+      const f = Math.min(ns, u * ns * 1.0001), a = Math.min(ns - 1, Math.floor(f)), w = f - a, A = a * 3, B = A + 3;
+      const r = stops[A] + (stops[B] - stops[A]) * w, g = stops[A + 1] + (stops[B + 1] - stops[A + 1]) * w, b = stops[A + 2] + (stops[B + 2] - stops[A + 2]) * w;
+      for (let c = 0, q = i * 24; c < 8; c++, q += 3) {
+        pos[q] = c & 1 ? x + h : x - h; pos[q + 1] = c & 2 ? y + hy : y - hy; pos[q + 2] = c & 4 ? z + h : z - h;
+        cols[q] = r; cols[q + 1] = g; cols[q + 2] = b;
+      }
     }
     return this.n;
   }

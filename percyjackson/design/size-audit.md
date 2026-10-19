@@ -51,6 +51,8 @@ breath and a poisonous touch, and they are "as long as a man's arm", about
 | Bronze Warden | 1.16× | request: "a giant bronze automaton" | 1.87× (×1.6) |
 | Cerberus | 1.98× | *The Lightning Thief* ch. 18†: "twice the size of a woolly mammoth" | 2.9–3.2× after the other agent's rebuild; recommended 7.5 blocks (below) |
 | Telekhine | 0.46× | *Battle of the Labyrinth*: adults "at least seven feet tall" | 1.18× (×2.6, round 3) |
+| Alecto, the Furies | body 1.20× (the 2.3× box was her whip and wings) | the owner: a boss that looms, 1.8–2× | body 1.89× (scale 1.75 → 2.8, round 4), the sisters 1.69× |
+| Fury | body 0.69× (the 1.3× box was her whip) | the owner: 1.4–1.5×, under the sisters | body 1.42× (scale 1.0 → 2.1, round 4) |
 
 **Kept as they are, by the owner** ("approximate, slightly cartoony
 exaggerations"):
@@ -68,6 +70,12 @@ exaggerations"):
   (`animate` with `dt 0`). The axis-aligned box covers its visible meshes;
   glow and additive effects are skipped. Height is the box's Y extent;
   "longest side" is the larger of its X and Z.
+- **Body size (round 4).** The box counts whatever a model holds or trails,
+  so round 4 also measures the body: torso, head and legs, without arms,
+  held things, weapons, wings, whips, tails, stings, flame hair, flames,
+  capes and props (`percyjackson/perf/bodysize.cjs`; details under "Round 4").
+  Body height is the top of the body over the ground line. Judge size by the
+  body column first.
 - **Stat size.**
   - `height` and `radius` come from `MONSTERS` (`monsters.js`, which includes
     `FODDER_MONSTERS` from `fodder.js`) and from `BOSS_DEFS` (`bosses.js`).
@@ -89,7 +97,8 @@ exaggerations"):
     1.8 in places heroes walk.
 - **Tools.**
   - The scripts are in the session scratchpad (`sz/measure.cjs`,
-    `sz/lineup.cjs`, `sz/table2.cjs`, `sz/sheet.py`).
+    `sz/lineup.cjs`, `sz/table2.cjs`, `sz/sheet.py`); round 4's body measure
+    is in the repository, `percyjackson/perf/bodysize.cjs`.
   - They run in headless Chromium against `workbench/?lazy=1` and use
     `window.__wb.items`.
   - The lineup renders each model with Percy beside it, with a level
@@ -318,6 +327,148 @@ Luke. The Laistrygonian is kept as it is.
 - The workbench's in-game harness ran the basilisk's fire puff (wind-up,
   strike, recover) with no errors.
 
+### Round 4: bodies, not boxes (the owner's decisions)
+
+**The mistake.** Rounds 1–3 judged each model by its whole bounding box. A
+box takes in everything a model holds or trails, so a whip hanging under a
+Fury, wings, a boulder held overhead, raised arms, a raised sting or snake
+hair made a small body pass as big enough. Round 4 measures the body itself.
+
+**The body measure** (`percyjackson/perf/bodysize.cjs`, run against the
+workbench like the other tools; see "How this was measured"):
+- It keeps the core torso, head and legs of the rig, at rest, and reports the
+  top of the body over the ground line it stands on.
+- It leaves out a humanoid's arms and hands, held things (`markHeld`) and the
+  weapon carrying a `markTip` tip, wings (`addWings`), the whip (`addWhip`),
+  tails and stings, the chimera's snake, flame hair, the live flames
+  (`flames.js`), capes, hair strands and props named in `rig.extras` (a
+  shield, a pot, a gun, a key, ...). Glows and hidden parts are left out as
+  before.
+- For each model it lists what it left out and how high each part reached,
+  so a row can be checked by eye. It covers all 103 workbench models.
+- Percy's body is 2.18 (his box 2.19), so × Percy hardly changes for people.
+
+**First pass** (the owner's earlier requests this round):
+
+| id | change | body (× Percy) | stat height / radius |
+|---|---|---|---|
+| stymphalian | `eagle` scale 1.1 → 1.5 (×1.36); its Road West champion's look 1.8 → 1.4, so the champion keeps its size | level, wings left out: 0.90 (0.41×); wingspan 4.9 | 1.7 / 0.45 → 2.0 / 0.6 |
+| empousa | legs 12 → 16 px, torso 12 → 10 px, scale 1.1 → 1.25 | 1.81 → 2.15 (0.83 → 0.99×) without the flame mane | 2.3 → 2.5 |
+| fury | scale 1.0 → 1.5, float 0.8 → 1.0 | 1.50 → 2.20 (0.69 → 1.02×) | 2.1 / 0.45 → 3.2 / 0.65 |
+
+**Second pass: the Fury family.** The ordinary Fury could not grow further
+while she stood level with the boss sisters, whose bodies were only 1.2×
+Percy. The owner asked for Alecto's body to loom at about 1.8–2× Percy, her
+sisters a little smaller, and the plain Fury at 1.4–1.5×.
+
+| model | scale | body standing (× Percy) | hovering, head at | wingspan | whole box |
+|---|---|---|---|---|---|
+| Fury (`monsters.js` `MODELS.fury`) | 1.5 → 2.1; float 1.0 → 1.25 | 2.20 → 3.10 (1.02 → 1.42×) | 3.2 → 4.35 | 6.05 → 7.2 | 4.35 → 5.90 |
+| Megaera, Tisiphone (`bossmodels.js`) | 1.6 → 2.5 | 2.37 → 3.68 (1.09 → 1.69×) | boss hover 1.4 → 1.9 | — | — |
+| Alecto (`bossmodels.js`) | 1.75 → 2.8 | 2.59 → 4.12 (1.20 → 1.89×) | 3.99 → 6.0 | 7.18 → 8.5 | 5.12 → 7.84 |
+
+- **`buildFury`** (`monsters.js`):
+  - The wings grow as the square root of her size past scale 1.5 (`ws` ×
+    √(1.5 / scale)), so a span stays about twice her height instead of
+    nearly three times: 8.5 for Alecto rather than 11.4.
+  - The strips, curls and claws stop getting finer past Alecto's old scale
+    1.75 (`densityFor(min(scale, 1.75))`); past it the strips grow with her.
+    So Alecto costs no more triangles than before (9.1k with her smaller
+    wings), and the sisters and the plain Fury, drawn at Alecto's old
+    fineness, a little more (the Fury 9.5k).
+  - `hoverMin` (her hem 11 px under the soles, plus 0.22) and the whip's pose
+    (`whipPose`) follow the scale by themselves. `hoverMin` is now 1.30 for
+    the Fury, 1.50 for the sisters and 1.65 for Alecto.
+- **The plain Fury's stats** (`MONSTERS.fury`): radius 0.65 → 0.9, height
+  3.2 → 3.9, slash range 2.2 → 2.8 (its whip is 1.4× longer; the cone reaches
+  `range + 0.4`). Height 3.9 still passes the chapter rooms' 4-high doors and
+  stands under the 5-high Labyrinth and Asphodel ceilings where she camps.
+  Hovering, her hair rises to 4.35, so it passes 0.35 over a 4-high lintel.
+  Her float rose to 1.25 so her hem clears the floor at the bottom of her bob.
+- **The boss stats** (`bosses.js`):
+
+  | boss | radius | height | hover |
+  |---|---|---|---|
+  | Alecto (chapter 1) | 0.9 → 1.2 | 3 → 3.9 | 1.4 → 1.9 |
+  | The Furies (chapter 4) | 0.9 → 1.2 | 3 → 5.8 | 1.4 → 1.9 |
+
+  - Hover 1.9 keeps the bigger hem off the floor (1.43 under Alecto's soles)
+    at the bottom of the ±0.2 bob.
+  - Alecto's collision height stays at 3.9. In chapter 1 she flees from
+    gallery to gallery and fights in each, and the museum's doors are 4
+    high, so a taller box would shut her into one room. Her head, at about 6,
+    passes over their lintels; the galleries are 6–8 high inside.
+  - The Furies fight in the open highway arena, so theirs is the body's.
+- **Reach that comes from her size** (`FURY_REACH`, `bosses-book1.js`, used
+  by `bosses.js` and `bosses-book1.js`). The reaches grew by about a quarter,
+  short of the 1.6× the bodies grew, so the arenas keep room to dodge:
+
+  | attack | before | after |
+  |---|---|---|
+  | whip lash (`whip_lash`, `fury_whip`) and the triple whip: line length / width | 10 / 1.8 | 12 / 2.4 (the triple whip's length still runs to each hero, up to 16) |
+  | whip ring (`whip_ring`): radius / ring of fire | 5.5 / 4.2 | 6.8 / 5.2 |
+  | swoop (`swoop`, `fury_swoop`): lane width / hit radius | 3 / 2 | 4 / 2.6 (length unchanged) |
+  | sister swap landing: blast radius / ring of fire | 3.6 / 3 | 4.2 / 3.6 |
+  | the waiting sisters' circle: radius / height | 7.5 / 4.6 | 8.5 / 5.6 |
+
+  `windup`, `cd`, `dmg` and the timings are unchanged, as are `enemy.js`,
+  `projectiles.js` and `rangedRules.js`.
+- **Fit, checked in the game** (headless, each pattern run to its end in the
+  real boss arenas):
+  - Chapter 1, the museum arena (a 30-block ring, columns 7 high, no roof):
+    the lash, the swoop and the ring run with no errors. The swoop stops at
+    the arena's edge and drops her to `hoverMin` (1.65).
+  - Chapter 4, the highway arena: the lash, swoop, sister swap, triple whip
+    and ring run with no errors. The bus there is a set piece along the wall,
+    4 high inside with a 2-wide, 3-high side door: at 5.8 tall and 1.2 across
+    the Furies cannot follow a hero in. Their attacks need no line of
+    sight, so the bus is still no hiding place. The waiting sisters circle
+    the fighting one, so when she stands at the ring's edge they pass up to
+    about 8 blocks outside it (7 before); they are airborne.
+
+**Every other model, by body** (the full table below has a body column; the
+models whose box hid a smaller body):
+
+| model | body (× Percy) | box (× Percy) | what made the box | verdict |
+|---|---|---|---|---|
+| Alecto, the Furies | 1.20 → 1.89 | 2.35 → 3.6 | the whip under her, the wings | fixed (above) |
+| Fury | 1.02 → 1.42 | 2.0 → 2.7 | the whip, the wings | fixed (above) |
+| Laistrygonian | 1.62 | 2.11 | the boulder overhead, raised arms | kept by the owner; doubt below |
+| Medusa | 1.57 | 1.97 | snake hair | kept by the owner; doubt below |
+| Stymphalian Bird | 0.41 standing level | 0.70 | wings up | the owner has not decided its pose; not changed |
+| The Red King (champion) | 0.82 | 1.10 | the raised sting | OK: it reads by its 8.8 length |
+| Giant Scorpion, its champion | 0.26, 0.65 | 0.46, 0.91 | the raised sting | no book size; reads by length (3.6, 7.3) |
+| Bronze Spider, its champion | 0.27, 0.47 | 0.40, 0.67 | the wind-up key | between the books (tiny) and the design (a dog, ~0.3–0.4); for the owner |
+| Earthborn | 1.39 | 1.61 | raised upper arms | OK: the books' 7–8 feet |
+| Greek-Fire Automaton | 0.24 | 0.43 | the pot of Greek fire it carries | OK: a game invention |
+| Dracaena | 0.87 | 1.03 | snake hair, the spear | a little short, inside the people's band; for the owner |
+| Ker | 0.99 | 1.12 | wings | OK |
+| Empousa | 0.99 | 1.07 | flame hair | OK (fixed in the first pass) |
+
+Everything else measures within 0.1× of its box: heroes, people and mortals
+hold weapons below their heads, and the hounds' and beasts' tails hang lower
+than their backs.
+
+**Kept by the owner, measured by body:**
+- Tyson 1.51×, his box 1.52×: no change.
+- Medusa 1.57× (box 1.97×): nearer the books' "tall woman" (~1.1×) than the
+  box suggested, though still a stylised boss.
+- The hellhounds 2.2–2.8× (Road West champion 2.78×, the alpha 2.59×): their
+  tails hang below the back, so the box was already the body.
+- The Laistrygonians 1.62× (box 2.11×): the books say eight feet, about 1.4×,
+  so the body is only 0.2× over. The owner's earlier "×0.8 for canon"
+  was judged from the box; on the body it would make him 1.3×, under the
+  books. Worth a second look before applying it.
+
+**Checks after round 4:**
+- `node --test test/*.test.mjs`: 194 of 194 pass.
+- `perf/weapons.cjs`: 23 weapons, 0 failing.
+- `perf/houndlegs.cjs`: all legs stay attached.
+- `perf/animlint.cjs --all`: 103 models, 0 problems (the Fury, Alecto and the
+  Furies through every pose, the whip and the swoop included).
+- `perf/smoke.cjs`: 0 page errors.
+- `perf/bodysize.cjs`: 103 models, 0 page errors.
+
 ## Cerberus: the recommended size
 
 - **The books:** *The Lightning Thief* ch. 18† says "twice the size of a woolly
@@ -354,6 +505,19 @@ Luke. The Laistrygonian is kept as it is.
   - All three are open-world kinds; raising each to about 0.85× its model is
     safe.
 - **Tyson, Medusa, the hellhounds:** kept by the owner.
+- **Round 4 doubts, by body** (nothing changed):
+  - Laistrygonian: body 1.62×, near the books' 1.4×; the earlier ×0.8 idea
+    came from the 2.27× box.
+  - Medusa: body 1.57×; the 1.96× was her snake hair.
+  - Bronze Spider: body 0.27×, under the design's "size of a dog"; ×1.25
+    (scale 0.85 → 1.05) would make it one.
+  - Dracaena: body 0.87×, a little short for a woman (the concept sheet draws
+    her about twice Percy).
+  - Stymphalian Bird: 0.41× standing level, about 0.7× if it stood upright;
+    its pose is undecided.
+  - The plain Fury's hovering hair (4.35) passes 0.35 over a 4-high door's
+    lintel, and Alecto's (about 6) passes over the museum's; their collision
+    heights (3.9) fit the doors.
 
 ## Lineups
 
@@ -363,8 +527,11 @@ and then `sz/sheet.py <dir> out.jpg` against the workbench to make them again.
 
 ## The full table
 
-Heights are in blocks (Percy = 2.19). An arrow runs from round 0 (before this
-audit) to now (round 3). The Bronze Warden's stat column shows its look's
+Heights are in blocks (Percy = 2.19; his body 2.18). An arrow runs from
+round 0 (before this audit) to now (round 4). "Body height" is the round 4
+body measure (arms, held things, wings, whips, tails and flames left out),
+measured after round 4; it has an arrow only where round 4's second pass
+changed it. The Bronze Warden's stat column shows its look's
 kind (automaton × 2.4); in game its hit height is now measured from the
 model (4.05). The arrows show this audit's changes and the other agents': the
 hellhounds, the Mist Serpent and Cerberus were changing under their rebuilds
@@ -374,138 +541,138 @@ outside 0.82–1.19× except Tyson and Chiron, a centaur.
 
 ### heroes
 
-| id | name | rendered height (× Percy) | longest side | stat height / radius | expected (× Percy) | source | verdict | scale / action |
-|---|---|---|---|---|---|---|---|---|
-| percy | Percy | 2.19 → 2.17 (1.00 → 0.99×) | 1.7 | — / — | 1.00 | reference | OK | — |
-| annabeth | Annabeth | 2.11 → 2.10 (0.96×) | 1.2 | — / — | ~0.95–1.0 | books: same age as Percy | OK | — |
-| grover | Grover | 2.40 (1.10×) | 1.2 | — / — | ~1.0 | Riordan Wiki infobox: 175 cm (5 ft 9 in), "a tall satyr" | OK | — |
-| tyson | Tyson | 3.30 → 3.29 (1.50×) | 2.1 | — / — | ~1.05–1.2 | Riordan Wiki infobox: 6 ft 0 in (183 cm); request: "a head taller" | big (1.50×), kept by the owner | keep (owner) |
-| clarisse | Clarisse | 2.38 → 2.36 (1.08×) | 2.6 | — / — | ~1.05 | TLT: big and tough, older | OK | — |
-| thalia | Thalia | 2.25 → 2.24 (1.03 → 1.02×) | 2.6 | — / — | ~1.0 | TC | OK | — |
-| nico | Nico | 2.23 → 2.25 (1.02 → 1.03×) | 1.4 | — / — | ~0.9–1.0 | TC: ten when found; older later | OK | — |
+| id | name | rendered height (× Percy) | body height (× Percy) | longest side | stat height / radius | expected (× Percy) | source | verdict | scale / action |
+|---|---|---|---|---|---|---|---|---|---|
+| percy | Percy | 2.19 → 2.17 (1.00 → 0.99×) | 2.16 (0.99×) | 1.7 | — / — | 1.00 | reference | OK | — |
+| annabeth | Annabeth | 2.11 → 2.10 (0.96×) | 2.09 (0.96×) | 1.2 | — / — | ~0.95–1.0 | books: same age as Percy | OK | — |
+| grover | Grover | 2.40 (1.10×) | 2.39 (1.10×) | 1.2 | — / — | ~1.0 | Riordan Wiki infobox: 175 cm (5 ft 9 in), "a tall satyr" | OK | — |
+| tyson | Tyson | 3.30 → 3.29 (1.50×) | 3.29 (1.51×) | 2.1 | — / — | ~1.05–1.2 | Riordan Wiki infobox: 6 ft 0 in (183 cm); request: "a head taller" | big (1.50×), kept by the owner | keep (owner) |
+| clarisse | Clarisse | 2.38 → 2.36 (1.08×) | 2.36 (1.08×) | 2.6 | — / — | ~1.05 | TLT: big and tough, older | OK | — |
+| thalia | Thalia | 2.25 → 2.24 (1.03 → 1.02×) | 2.24 (1.03×) | 2.6 | — / — | ~1.0 | TC | OK | — |
+| nico | Nico | 2.23 → 2.25 (1.02 → 1.03×) | 2.24 (1.03×) | 1.4 | — / — | ~0.9–1.0 | TC: ten when found; older later | OK | — |
 
 ### npcs
 
-| id | name | rendered height (× Percy) | longest side | stat height / radius | expected (× Percy) | source | verdict | scale / action |
-|---|---|---|---|---|---|---|---|---|
-| chiron | Chiron | 2.99 → 3.00 (1.37×) | 1.8 | — / — | ~1.4 | Riordan Wiki: "taller than an average man"; a stallion's body under a man's torso | OK | — |
-| mr_d | Mr. D | 1.89 (0.86×) | 1.1 | — / — | ~0.9 | TLT ch. 5: a short, pudgy man | OK | — |
-| dummy | Training Dummy | 1.56 → 1.57 (0.71 → 0.72×) | 0.8 | — / — | — | prop | OK | — |
+| id | name | rendered height (× Percy) | body height (× Percy) | longest side | stat height / radius | expected (× Percy) | source | verdict | scale / action |
+|---|---|---|---|---|---|---|---|---|---|
+| chiron | Chiron | 2.99 → 3.00 (1.37×) | 3.00 (1.38×) | 1.8 | — / — | ~1.4 | Riordan Wiki: "taller than an average man"; a stallion's body under a man's torso | OK | — |
+| mr_d | Mr. D | 1.89 (0.86×) | 1.87 (0.86×) | 1.1 | — / — | ~0.9 | TLT ch. 5: a short, pudgy man | OK | — |
+| dummy | Training Dummy | 1.56 → 1.57 (0.71 → 0.72×) | 1.55 (0.71×) | 0.8 | — / — | — | prop | OK | — |
 
 ### monsters
 
-| id | name | rendered height (× Percy) | longest side | stat height / radius | expected (× Percy) | source | verdict | scale / action |
-|---|---|---|---|---|---|---|---|---|
-| pup | Hellhound Pup | 0.80 (0.37×) | 1.2 | 1.10 / 0.45 | — | game invention (hellhound pup) | OK | hellhound family: other agent |
-| rat | Sewer Rat | 0.62 (0.28×) | 1.2 | 0.85 / 0.42 | ~0.3 | a sewer rat (game) | OK | — |
-| serpent | Mist Serpent | 0.57 → 1.31 (0.26 → 0.60×) | 3.6 | 1.30 / 0.55 | — | game invention (Mist Serpent) | n/a | being rebuilt by another agent |
-| mortal | Mortal | 2.21 → 2.23 (1.01 → 1.02×) | 1.2 | 1.90 / 0.38 | 1.0 | a person | OK | — |
-| spider | Bronze Spider | 0.86 (0.39×) | 1.6 | 0.80 / 0.38 | ~0.3–0.4 | TLT ch. 14 (Waterland): tiny bronze spiders; design: "the size of a dog" | OK (design) | — |
-| harpy | Wild Harpy | 1.48 → 1.77 (0.68 → 0.81×) | 3.9 | 2.00 / 0.40 | ~0.8–1.0 | SoM: the camp's cleaning harpies, "crossbred with the dodo birds"; SoN: Ella, small and skinny (Riordan Wiki); no height given | was a little small (0.68×) | FIXED ×1.2 |
-| stymphalian | Stymphalian Bird | 1.12 → 1.53 (0.51 → 0.70×, wings up); body 0.68 → 0.93, about Percy's length; wingspan 3.6 → 4.9 (1.64 → 2.24×) | 4.9 | 1.70 → 2.00 / 0.45 → 0.60 | crane-sized, a body near a 12-year-old's waist with a wingspan wider than he is tall | Pausanias 8.22.4–5 (tr. W. H. S. Jones): "man-eating birds", "quite as savage against men as lions or leopards", "of the size of a crane", pierce bronze and iron armour; SoM: "monstrous pigeon-like birds", Annabeth: "They'll strip everyone to bones" (Riordan Wiki); *The Sun and the Star*: a flock carries Will Solace off (Riordan Wiki); no size given in the books | was small for a man-eater (owner, round 4) | FIXED ×1.36 (scale 1.1 → 1.5, round 4); its champion look 1.8 → 1.4 so the champion stays its old size; Bronzebeak and the harpy build separately and are unchanged |
-| automaton | Greek-Fire Automaton | 1.04 (0.47×) | 0.9 | 1.10 / 0.55 | — | game invention (Greek-fire automaton) | OK | — |
-| ghost | Restless Spirit | 1.68 → 2.01 (0.77 → 0.92×) | 1.1 | 2.00 / 0.45 | ~1.0 | Riordan Wiki: ghosts are "physically identical to when they were alive" | was a little small (0.77×) | FIXED ×1.2 |
-| fury | Fury | 2.86 → 4.40 (whip tip to hair); her body 1.50 → 2.30 (0.69 → 1.05×) standing, and hovering (float 0.8 → 1.0) her head at 2.30 → 3.30 (1.05 → 1.51×); wingspan 3.7 → 6.2 | 6.2 | 2.10 → 3.20 / 0.45 → 0.65 | ~1.5 hovering (owner, round 4) | TLT ch. 1: Mrs Dodds, "little" in disguise, grows leathery bat wings; her true form a monster; vox-enemies: a looming winged hag, well over Percy | was smaller than Percy (owner, round 4; the old 2.86 counted the whip hanging under her) | FIXED ×1.5 (scale 1.0 → 1.5, round 4); under the boss sisters (Megaera and Tisiphone 1.6, Alecto 1.75, 5.10); hovers over 4-high doors, would graze a 3 × 3 camp door's lintel |
-| dracaena | Dracaena | 2.24 → 2.25 (1.02 → 1.03×) | 2.8 | 2.60 / 0.80 | ~1.0 | SoM/BotL: humanoid women with twin serpent trunks for legs (no height given) | OK | — |
-| hellhound | Hellhound | 5.13 → 4.81 (2.34 → 2.19×) | 7.0 | 5.00 / 1.60 | ~1.0–1.3 at the shoulder | TLT ch. 8: "the size of a rhino"; Riordan Wiki: grizzly-bear or rhino size, up to garbage-truck size (Mrs O'Leary, BotL: "bigger than a tank") | big (2.1×), kept by the owner | keep (owner) |
-| empousa | Empousa | 2.15 → 2.55 with flames; head to foot without the flame mane 1.81 → 2.16 (0.83 → 0.99×) | 1.6 | 2.30 → 2.50 / 0.50 | ~1.0 | BotL ch. 1: Kelli, a cheerleader (a teenage girl's height); one bronze leg and one donkey leg | was short and short-legged (owner, round 4) | FIXED round 4: legs 12 → 16 px, torso 12 → 10 px, scale 1.1 → 1.25 |
-| scorpion | Giant Scorpion | 1.01 (0.46×) | 3.6 | 1.30 / 0.80 | — (game's giant scorpion) | BotL: Daedalus's giant scorpions (no size given); TLT ch. 22†: the pit scorpion is hand-sized, so it is now named Giant Scorpion | OK | ROUND 3: renamed Giant Scorpion |
-| skeleton | Skeleton Warrior | 1.68 → 1.94 (0.77 → 0.88×) | 1.3 | 2.00 / 0.45 | ~0.9–1.0 | TC: spartoi in uniforms pass as soldiers and guards (Riordan Wiki); the spartoi request: "the size of a grown man" | was too small (0.77×) | FIXED ×1.15 (round 1) |
-| spartoi | Spartoi | 1.93 → 1.94 (0.88×) | 1.2 | 2.00 / 0.45 | ~0.9–1.0 | myth: men sown from dragon's teeth (Apollodorus 1.9.23, 3.4.1) | OK | — |
-| telekhine | Telekhine | 0.99 → 2.60 (0.45 → 1.18×) | 3.9 | 1.30 → 2.30 / 0.55 → 0.90 | ~1.2 (adults) | BotL (Mount St. Helens): adults "at least seven feet tall" (Riordan Wiki) | was too small (0.46×) | ROUND 3: ×2.6, stat 1.3/0.55 → 2.3/0.9 |
-| gorgon_statue | Living Statue | 2.03 → 2.01 (0.92×) | 1.4 | 2.10 / 0.50 | ~1.0 | a statue of a person | OK | — |
-| cyclops | Cyclops | 4.00 (1.82×) | 3.4 | 4.20 / 1.20 | ~1.6–2.7 | SoM: Polyphemus "so huge he couldn't even fit into the room", "made Tyson look vertically challenged" (Riordan Wiki estimate: 15 ft) | OK | — |
-| karpos | Karpos | 2.22 → 1.55 (1.01 → 0.71×) | 1.2 | 1.25 / 0.40 | ~0.5 | SoN: karpoi "the size of toddlers, with rolls of baby fat" (Riordan Wiki); Hidden Oracle: Peaches, a "Demon Diaper Baby" | was too big (1.01×) | FIXED ×0.7 (books smaller than the ×0.8 asked) |
-| karpos_slinger | Karpos Slinger | 2.22 → 1.57 (1.01 → 0.72×) | 1.2 | 1.25 / 0.40 | ~0.5 | as karpos | was too big | FIXED ×0.7 |
-| colchis_calf | Colchis Bull Calf | 1.84 → 1.86 (0.84 → 0.85×) | 2.7 | 1.50 / 0.85 | ~0.8 | SoM: Colchis bulls "the size of elephants" (Riordan Wiki); a calf is the game's own | OK | — |
-| myrmex | Myrmex | 1.90 → 1.23 (0.87 → 0.56×) | 1.9 | 0.90 / 0.55 | ~0.35 tall, ~0.6 long | Demigod Files ("The Bronze Dragon") / Hidden Oracle: "the size of a full grown German Shepherd" (Riordan Wiki) | was too big (0.87×, 2.9 long) | FIXED ×0.65 (books smaller than the ×0.8 asked) |
-| myrmex_spitter | Myrmex Spitter | 1.90 → 1.24 (0.87 → 0.57×) | 2.0 | 1.00 / 0.60 | ~0.35 tall | as myrmex | was too big | FIXED ×0.65 |
-| boarlet | Calydonian Boarlet | 2.24 → 2.23 (1.02×) | 3.0 | 1.40 → 1.90 / 0.85 | ~0.7–1.0 | myth: the Calydonian Boar was huge; a "boarlet" is the game's | OK | — |
-| crab | Giant Crab | 1.10 → 1.11 (0.50 → 0.51×) | 1.9 | 0.90 / 0.70 | ~0.5 | design: "waist-high" shore crabs | OK | — |
-| king_crab | King Crab | 2.77 → 4.10 (1.26 → 1.87×) | 6.2 | 2.40 → 3.60 / 1.50 → 1.80 | ~1.75 | TLO: Karkinos "rose ten feet out of the water... its pincers longer than my body"; design: "TWICE Percy's height" | was too small (1.26×) | FIXED ×1.5 (round 1) |
-| basilisk | Basilisk | 1.99 → 0.64 (0.91 → 0.29×) | 1.5 | 1.10 → 0.60 / 0.50 → 0.35 | ~0.3 tall, ~0.4 long (arm-long) | The Son of Neptune, The Blood of Olympus, The Sun and the Star: "little green snakes" with a collar of white spikes, as long as a man's arm (Riordan Wiki) | now book size (stretched ~2× in length to read) | ROUND 3: re-sculpted as a snake, 1.5 long; fast fodder in threes on Othrys |
-| earthborn | Earthborn | 3.48 (1.59×) | 3.6 | 3.00 / 1.00 | ~1.4 | TLH / SoN: Gegeines, six-armed clay giants "7 to 8 feet tall" (Riordan Wiki) | OK | other agent (rebuilding) |
-| daedalus_drone | Daedalus Drone | 2.18 (1.00 → 0.99×) | 4.6 | 1.40 → 1.80 / 0.50 | — | game invention | OK | — |
-| laistrygonian | Laistrygonian | 4.93 → 4.96 (2.25 → 2.26×) | 3.4 | 3.60 → 4.40 / 1.10 | ~1.4 | SoM ch. 1; The Ultimate Guide: "eight-foot-tall cannibalistic giants with heavily tattooed arms" (Riordan Wiki) | big (2.27×), OK stylised | FIXED stat height 3.6 → 4.4 (round 1); owner: model ×0.8 for canon |
-| shade | Shade | 2.29 → 2.27 (1.04×) | 1.1 | 1.80 / 0.40 | ~1.0 | spirits of the dead | OK | — |
-| keres | Ker | 2.45 (1.12×) | 3.2 | 1.80 / 0.45 | ~1.0 | myth: death spirits (Hesiod, Shield 248ff) | OK | — |
+| id | name | rendered height (× Percy) | body height (× Percy) | longest side | stat height / radius | expected (× Percy) | source | verdict | scale / action |
+|---|---|---|---|---|---|---|---|---|---|
+| pup | Hellhound Pup | 0.80 (0.37×) | 0.83 (0.38×) | 1.2 | 1.10 / 0.45 | — | game invention (hellhound pup) | OK | hellhound family: other agent |
+| rat | Sewer Rat | 0.62 (0.28×) | 0.64 (0.29×) | 1.2 | 0.85 / 0.42 | ~0.3 | a sewer rat (game) | OK | — |
+| serpent | Mist Serpent | 0.57 → 1.31 (0.26 → 0.60×) | 1.30 (0.60×) | 3.6 | 1.30 / 0.55 | — | game invention (Mist Serpent) | n/a | being rebuilt by another agent |
+| mortal | Mortal | 2.21 → 2.23 (1.01 → 1.02×) | 2.21 (1.02×) | 1.2 | 1.90 / 0.38 | 1.0 | a person | OK | — |
+| spider | Bronze Spider | 0.86 (0.39×) | 0.59 (0.27×) | 1.6 | 0.80 / 0.38 | ~0.3–0.4 | TLT ch. 14 (Waterland): tiny bronze spiders; design: "the size of a dog" | **corrected**: the 0.39× box was the wind-up key on her back; her body is 0.27×, under the design's dog (~0.3–0.4×) and well over the books' tiny spiders | not changed: between the books and the design; ×1.25 (scale 0.85 → 1.05) would make her a dog, for the owner |
+| harpy | Wild Harpy | 1.48 → 1.77 (0.68 → 0.81×) | 1.74 (0.80×) | 3.9 | 2.00 / 0.40 | ~0.8–1.0 | SoM: the camp's cleaning harpies, "crossbred with the dodo birds"; SoN: Ella, small and skinny (Riordan Wiki); no height given | was a little small (0.68×) | FIXED ×1.2 |
+| stymphalian | Stymphalian Bird | 1.12 → 1.53 (0.51 → 0.70×, wings up); body 0.68 → 0.93, about Percy's length; wingspan 3.6 → 4.9 (1.64 → 2.24×) | 0.90 (0.41×) | 4.9 | 1.70 → 2.00 / 0.45 → 0.60 | crane-sized, a body near a 12-year-old's waist with a wingspan wider than he is tall | Pausanias 8.22.4–5 (tr. W. H. S. Jones): "man-eating birds", "quite as savage against men as lions or leopards", "of the size of a crane", pierce bronze and iron armour; SoM: "monstrous pigeon-like birds", Annabeth: "They'll strip everyone to bones" (Riordan Wiki); *The Sun and the Star*: a flock carries Will Solace off (Riordan Wiki); no size given in the books | was small for a man-eater (owner, round 4); round 4, second pass: standing level, its body (head, back and legs, wings left out) is 0.90, 0.41×; upright it would be about 0.7× (the owner has not decided) | FIXED ×1.36 (scale 1.1 → 1.5, round 4); its champion look 1.8 → 1.4 so the champion stays its old size; Bronzebeak and the harpy build separately and are unchanged |
+| automaton | Greek-Fire Automaton | 1.04 (0.47×) | 0.51 (0.24×) | 0.9 | 1.10 / 0.55 | — | game invention (Greek-fire automaton) | OK; its own body is 0.24×, the Greek-fire pot on its back makes it 0.43× | — |
+| ghost | Restless Spirit | 1.68 → 2.01 (0.77 → 0.92×) | 1.93 (0.88×) | 1.1 | 2.00 / 0.45 | ~1.0 | Riordan Wiki: ghosts are "physically identical to when they were alive" | was a little small (0.77×) | FIXED ×1.2 |
+| fury | Fury | 2.86 → 4.40 (round 4, scale 1.5) → 5.90 (round 4, second pass, 2.1), whip tip under the soles to hair; hovering (float 0.8 → 1.0 → 1.25) her head at 2.30 → 3.30 → 4.35 (1.05 → 1.51 → 2.0×); wingspan 3.7 → 6.2 → 7.2 | 2.20 → 3.10 (1.02 → 1.42×) | 7.2 | 2.10 → 3.20 → 3.90 / 0.45 → 0.65 → 0.90 | body ~1.4–1.5 standing (owner, round 4, second pass) | TLT ch. 1: Mrs Dodds, "little" in disguise, grows leathery bat wings; her true form a monster; vox-enemies: a looming winged hag, well over Percy | was smaller than Percy (owner, round 4: the old 2.86 counted the whip hanging under her); round 4 brought her body only to 1.02×, so round 4, second pass grew her again with the boss sisters | FIXED ×1.5 (scale 1.0 → 1.5, round 4), then ×1.4 (1.5 → 2.1, round 4, second pass); slash range 2.2 → 2.8; under the boss sisters (Megaera and Tisiphone 2.5, Alecto 2.8); stat height 3.9 passes the rooms' 4-high doors and the 5-high Labyrinth and Asphodel ceilings; hovering, her hair passes 0.35 over a 4-high lintel |
+| dracaena | Dracaena | 2.24 → 2.25 (1.02 → 1.03×) | 1.89 (0.87×) | 2.8 | 2.60 / 0.80 | ~1.0 | SoM/BotL: humanoid women with twin serpent trunks for legs (no height given) | **corrected**: rounds 1–3 measured 1.03× with her snake hair and spear; her body is 0.87×, a little short beside the skeletons' 0.89× (the concept sheet draws her about twice Percy's height) | not changed: no book height, and inside the 0.82–1.19× band of people; for the owner |
+| hellhound | Hellhound | 5.13 → 4.81 (2.34 → 2.19×) | 4.85 (2.23×) | 7.0 | 5.00 / 1.60 | ~1.0–1.3 at the shoulder | TLT ch. 8: "the size of a rhino"; Riordan Wiki: grizzly-bear or rhino size, up to garbage-truck size (Mrs O'Leary, BotL: "bigger than a tank") | big (2.1×), kept by the owner | keep (owner) |
+| empousa | Empousa | 2.15 → 2.55 with flames; head to foot without the flame mane 1.81 → 2.16 (0.83 → 0.99×) | 2.15 (0.99×) | 1.6 | 2.30 → 2.50 / 0.50 | ~1.0 | BotL ch. 1: Kelli, a cheerleader (a teenage girl's height); one bronze leg and one donkey leg | was short and short-legged (owner, round 4) | FIXED round 4: legs 12 → 16 px, torso 12 → 10 px, scale 1.1 → 1.25 |
+| scorpion | Giant Scorpion | 1.01 (0.46×) | 0.57 (0.26×) | 3.6 | 1.30 / 0.80 | — (game's giant scorpion) | BotL: Daedalus's giant scorpions (no size given); TLT ch. 22†: the pit scorpion is hand-sized, so it is now named Giant Scorpion | **corrected**: the 0.46× box is the sting raised over the back; the body stands 0.26× tall (3.6 long) | ROUND 3: renamed Giant Scorpion; no size in the books, so not changed; it reads by length |
+| skeleton | Skeleton Warrior | 1.68 → 1.94 (0.77 → 0.88×) | 1.92 (0.88×) | 1.3 | 2.00 / 0.45 | ~0.9–1.0 | TC: spartoi in uniforms pass as soldiers and guards (Riordan Wiki); the spartoi request: "the size of a grown man" | was too small (0.77×) | FIXED ×1.15 (round 1) |
+| spartoi | Spartoi | 1.93 → 1.94 (0.88×) | 1.93 (0.88×) | 1.2 | 2.00 / 0.45 | ~0.9–1.0 | myth: men sown from dragon's teeth (Apollodorus 1.9.23, 3.4.1) | OK | — |
+| telekhine | Telekhine | 0.99 → 2.60 (0.45 → 1.18×) | 2.60 (1.19×) | 3.9 | 1.30 → 2.30 / 0.55 → 0.90 | ~1.2 (adults) | BotL (Mount St. Helens): adults "at least seven feet tall" (Riordan Wiki) | was too small (0.46×) | ROUND 3: ×2.6, stat 1.3/0.55 → 2.3/0.9 |
+| gorgon_statue | Living Statue | 2.03 → 2.01 (0.92×) | 1.98 (0.91×) | 1.4 | 2.10 / 0.50 | ~1.0 | a statue of a person | OK | — |
+| cyclops | Cyclops | 4.00 (1.82×) | 3.96 (1.82×) | 3.4 | 4.20 / 1.20 | ~1.6–2.7 | SoM: Polyphemus "so huge he couldn't even fit into the room", "made Tyson look vertically challenged" (Riordan Wiki estimate: 15 ft) | OK | — |
+| karpos | Karpos | 2.22 → 1.55 (1.01 → 0.71×) | 1.50 (0.69×) | 1.2 | 1.25 / 0.40 | ~0.5 | SoN: karpoi "the size of toddlers, with rolls of baby fat" (Riordan Wiki); Hidden Oracle: Peaches, a "Demon Diaper Baby" | was too big (1.01×) | FIXED ×0.7 (books smaller than the ×0.8 asked) |
+| karpos_slinger | Karpos Slinger | 2.22 → 1.57 (1.01 → 0.72×) | 1.50 (0.69×) | 1.2 | 1.25 / 0.40 | ~0.5 | as karpos | was too big | FIXED ×0.7 |
+| colchis_calf | Colchis Bull Calf | 1.84 → 1.86 (0.84 → 0.85×) | 1.88 (0.86×) | 2.7 | 1.50 / 0.85 | ~0.8 | SoM: Colchis bulls "the size of elephants" (Riordan Wiki); a calf is the game's own | OK | — |
+| myrmex | Myrmex | 1.90 → 1.23 (0.87 → 0.56×) | 1.24 (0.57×) | 1.9 | 0.90 / 0.55 | ~0.35 tall, ~0.6 long | Demigod Files ("The Bronze Dragon") / Hidden Oracle: "the size of a full grown German Shepherd" (Riordan Wiki) | was too big (0.87×, 2.9 long) | FIXED ×0.65 (books smaller than the ×0.8 asked) |
+| myrmex_spitter | Myrmex Spitter | 1.90 → 1.24 (0.87 → 0.57×) | 1.24 (0.57×) | 2.0 | 1.00 / 0.60 | ~0.35 tall | as myrmex | was too big | FIXED ×0.65 |
+| boarlet | Calydonian Boarlet | 2.24 → 2.23 (1.02×) | 2.26 (1.04×) | 3.0 | 1.40 → 1.90 / 0.85 | ~0.7–1.0 | myth: the Calydonian Boar was huge; a "boarlet" is the game's | OK | — |
+| crab | Giant Crab | 1.10 → 1.11 (0.50 → 0.51×) | 1.17 (0.54×) | 1.9 | 0.90 / 0.70 | ~0.5 | design: "waist-high" shore crabs | OK | — |
+| king_crab | King Crab | 2.77 → 4.10 (1.26 → 1.87×) | 4.30 (1.98×) | 6.2 | 2.40 → 3.60 / 1.50 → 1.80 | ~1.75 | TLO: Karkinos "rose ten feet out of the water... its pincers longer than my body"; design: "TWICE Percy's height" | was too small (1.26×) | FIXED ×1.5 (round 1) |
+| basilisk | Basilisk | 1.99 → 0.64 (0.91 → 0.29×) | 0.64 (0.30×) | 1.5 | 1.10 → 0.60 / 0.50 → 0.35 | ~0.3 tall, ~0.4 long (arm-long) | The Son of Neptune, The Blood of Olympus, The Sun and the Star: "little green snakes" with a collar of white spikes, as long as a man's arm (Riordan Wiki) | now book size (stretched ~2× in length to read) | ROUND 3: re-sculpted as a snake, 1.5 long; fast fodder in threes on Othrys |
+| earthborn | Earthborn | 3.48 (1.59×) | 3.04 (1.39×) | 3.6 | 3.00 / 1.00 | ~1.4 | TLH / SoN: Gegeines, six-armed clay giants "7 to 8 feet tall" (Riordan Wiki) | OK; **corrected**: the 1.59× box is the raised upper arms; the body is 1.39×, the books' "7 to 8 feet" | other agent (rebuilding) |
+| daedalus_drone | Daedalus Drone | 2.18 (1.00 → 0.99×) | 2.15 (0.99×) | 4.6 | 1.40 → 1.80 / 0.50 | — | game invention | OK | — |
+| laistrygonian | Laistrygonian | 4.93 → 4.96 (2.25 → 2.26×) | 3.52 (1.62×) | 3.4 | 3.60 → 4.40 / 1.10 | ~1.4 | SoM ch. 1; The Ultimate Guide: "eight-foot-tall cannibalistic giants with heavily tattooed arms" (Riordan Wiki) | kept by the owner; **corrected**: the 2.27× box is the boulder held over his head and his raised arms; his body is 1.62×, near the books' 1.4× | FIXED stat height 3.6 → 4.4 (round 1); the owner's ×0.8 for canon would bring his body to 1.3×, under the books; doubt below |
+| shade | Shade | 2.29 → 2.27 (1.04×) | 2.10 (0.96×) | 1.1 | 1.80 / 0.40 | ~1.0 | spirits of the dead | OK | — |
+| keres | Ker | 2.45 (1.12×) | 2.16 (0.99×) | 3.2 | 1.80 / 0.45 | ~1.0 | myth: death spirits (Hesiod, Shield 248ff) | OK; the 1.12× box is the wings, the body 0.99× | — |
 
 ### bosses
 
-| id | name | rendered height (× Percy) | longest side | stat height / radius | expected (× Percy) | source | verdict | scale / action |
-|---|---|---|---|---|---|---|---|---|
-| alecto | Alecto | 5.13 → 5.10 (2.34 → 2.33×) | 7.1 | 3.00 / 0.90 | ~1.0 + wings | TLT ch. 1: Mrs Dodds, a "little" fifty-year-old woman | OK (boss, stylised) | — |
-| minotaur | The Minotaur | 4.32 → 4.33 (1.97 → 1.98×) | 4.0 | 3.40 → 4.00 / 1.20 | ~1.2 (TLT) / ~1.75 (TLO) | TLT: "seven feet tall" (Riordan Wiki); TLO: seemed to have "grown three more feet" after reforming | big (1.97×), OK as a boss | FIXED stat height 3.4 → 4 |
-| hellhound_alpha | The Hellhound | 5.91 → 5.53 (2.70 → 2.52×) | 8.0 | 5.80 / 1.80 | ~1.5 | as hellhound | big | other agent |
-| furies | The Furies | 5.09 (2.32×) | 7.0 | 3.00 / 0.90 | ~1.0 + wings | TLT | OK (boss) | — |
-| medusa | Medusa | 4.27 → 4.25 (1.95 → 1.94×) | 2.9 | 4.00 / 1.00 | ~1.0–1.1 | TLT: a woman in a black gown and veil; Greek Gods: "a tall woman" (Riordan Wiki) | big (1.96×), kept by the owner | keep (owner) |
-| chimera | The Chimera | 3.54 (1.62×) | 6.5 | 3.00 / 1.30 | ~1.5–2 | TLT ch. 12: grows from Echidna's Chihuahua, with "a ten-foot-long diamondback" snake tail; Greek Heroes: Bellerophon's Chimera was "about the size of a woolly mammoth" (Riordan Wiki) | OK | — |
-| spiders | The Spider Queen | 2.57 → 2.56 (1.17×) | 4.8 | 2.60 / 1.60 | — | game boss (Spider Queen) | OK | — |
-| procrustes | Procrustes | 3.61 (1.65×) | 3.4 | 4.40 → 3.80 / 1.20 | ~1.2 | TLT ch. 17: "seven feet tall", hairless, a raptor in a leisure suit (Riordan Wiki) | big (1.65×), OK as a boss | FIXED stat height 4.4 → 3.8 |
-| cerberus | Cerberus | 4.34 → 7.96 (1.98 → 3.63×) | 16.2 | 4.40 → 7.70 / 2.00 → 3.60 | ~3.5–4+ | TLT ch. 18: "twice the size of a woolly mammoth, mostly invisible, and had three heads"; Mrs O'Leary is a "petite puppy" beside him (Riordan Wiki) | now OK (3.21×) after the other agent's ×1.6 | keep 7.0, or ×1.1 at most |
-| ares | Ares | 3.52 → 3.53 (1.61×) | 2.9 | 4.20 / 1.10 | ~1.2–1.4 | TLT ch. 10: "a huge, muscular man" (Riordan Wiki) | OK | — |
-| luke | Luke Castellan | 2.40 (1.09×) | 1.8 | 2.60 / 0.70 | ~1.1 | older teen | OK | other agent |
+| id | name | rendered height (× Percy) | body height (× Percy) | longest side | stat height / radius | expected (× Percy) | source | verdict | scale / action |
+|---|---|---|---|---|---|---|---|---|---|
+| alecto | Alecto | 5.13 → 5.10 → 7.84 (2.34 → 3.60×; most of the box is the whip under her and the wings) | 2.59 → 4.12 (1.20 → 1.89×) | 7.1 → 8.5 (wingspan) | 3.00 → 3.90 / 0.90 → 1.20; hover 1.4 → 1.9 | body ~1.8–2.0 standing (owner, round 4, second pass) | TLT ch. 1: Mrs Dodds, a "little" fifty-year-old woman | **misjudged in rounds 1–3**: "OK" from the 5.1 box, which held the whip and the wings; her body was 1.20×, smaller than the owner wants a boss to loom | FIXED round 4, second pass: scale 1.75 → 2.8 (body 1.89×); whip, ring, swoop and landing reach in `FURY_REACH`; collision height 3.9 so she still passes the museum's 4-high doors in chapter 1 |
+| minotaur | The Minotaur | 4.32 → 4.33 (1.97 → 1.98×) | 4.27 (1.96×) | 4.0 | 3.40 → 4.00 / 1.20 | ~1.2 (TLT) / ~1.75 (TLO) | TLT: "seven feet tall" (Riordan Wiki); TLO: seemed to have "grown three more feet" after reforming | big (1.97×), OK as a boss | FIXED stat height 3.4 → 4 |
+| hellhound_alpha | The Hellhound | 5.91 → 5.53 (2.70 → 2.52×) | 5.61 (2.58×) | 8.0 | 5.80 / 1.80 | ~1.5 | as hellhound | big | other agent |
+| furies | The Furies | 5.09 → 7.93 (2.32 → 3.64×; box with whip and wings) | 2.58 → 4.15 (1.19 → 1.91×) | 7.0 → 8.5 (wingspan) | 3.00 → 5.80 / 0.90 → 1.20; hover 1.4 → 1.9 | body ~1.8–2.0 (Alecto), the sisters a little smaller (owner, round 4, second pass) | TLT | **misjudged in rounds 1–3**: body 1.19×, the box was the whip and wings | FIXED round 4, second pass: Alecto 2.8 (1.89×), Megaera and Tisiphone 1.6 → 2.5 (body 3.68, 1.69×); the sisters circle 8.5 out and 5.6 up (were 7.5 and 4.6); the fight is in the open highway arena, so the collision height is the body's |
+| medusa | Medusa | 4.27 → 4.25 (1.95 → 1.94×) | 3.41 (1.57×) | 2.9 | 4.00 / 1.00 | ~1.0–1.1 | TLT: a woman in a black gown and veil; Greek Gods: "a tall woman" (Riordan Wiki) | big, kept by the owner; **corrected**: the 1.96× box is her raised snake hair, her body is 1.57× | keep (owner); doubt below |
+| chimera | The Chimera | 3.54 (1.62×) | 3.54 (1.63×) | 6.5 | 3.00 / 1.30 | ~1.5–2 | TLT ch. 12: grows from Echidna's Chihuahua, with "a ten-foot-long diamondback" snake tail; Greek Heroes: Bellerophon's Chimera was "about the size of a woolly mammoth" (Riordan Wiki) | OK | — |
+| spiders | The Spider Queen | 2.57 → 2.56 (1.17×) | 1.97 (0.90×) | 4.8 | 2.60 / 1.60 | — | game boss (Spider Queen) | OK; the 2.56 box ran 0.6 under the ground line (her legs at rest); her top is 1.97 (0.90×) | — |
+| procrustes | Procrustes | 3.61 (1.65×) | 3.57 (1.64×) | 3.4 | 4.40 → 3.80 / 1.20 | ~1.2 | TLT ch. 17: "seven feet tall", hairless, a raptor in a leisure suit (Riordan Wiki) | big (1.65×), OK as a boss | FIXED stat height 4.4 → 3.8 |
+| cerberus | Cerberus | 4.34 → 7.96 (1.98 → 3.63×) | 7.24 (3.32×) | 16.2 | 4.40 → 7.70 / 2.00 → 3.60 | ~3.5–4+ | TLT ch. 18: "twice the size of a woolly mammoth, mostly invisible, and had three heads"; Mrs O'Leary is a "petite puppy" beside him (Riordan Wiki) | now OK (3.21×) after the other agent's ×1.6 | keep 7.0, or ×1.1 at most |
+| ares | Ares | 3.52 → 3.53 (1.61×) | 3.49 (1.61×) | 2.9 | 4.20 / 1.10 | ~1.2–1.4 | TLT ch. 10: "a huge, muscular man" (Riordan Wiki) | OK | — |
+| luke | Luke Castellan | 2.40 (1.09×) | 2.40 (1.10×) | 1.8 | 2.60 / 0.70 | ~1.1 | older teen | OK | other agent |
 
 ### champions
 
-| id | name | rendered height (× Percy) | longest side | stat height / radius | expected (× Percy) | source | verdict | scale / action |
-|---|---|---|---|---|---|---|---|---|
-| fields_bronzebeak | Bronzebeak | 2.60 → 2.61 (1.19×) | 6.6 | 3.57 / 0.68 | — | game champion: kind × look.scale | OK | — |
-| woods_shadowfang | Shadowfang | 6.68 → 6.45 (3.05 → 2.94×) | 9.0 | 6.50 / 2.08 | — | game champion: kind × look.scale | OK | — |
-| shore_queen_gale | Queen Gale | 3.00 → 3.01 (1.37×) | 6.1 | 3.70 / 0.60 | — | game champion: kind × look.scale | OK | — |
-| canyon_red_king | The Red King | 2.41 → 2.39 (1.10 → 1.09×) | 8.8 | 3.12 / 1.20 | — | game champion: kind × look.scale | OK | — |
-| lab_bronze_warden | The Bronze Warden | 2.54 → 4.08 (1.16 → 1.86×) | 4.1 | 2.64 / 0.83 | — | game champion: kind × look.scale | OK | — |
-| oth_gorgos | Gorgos the Cyclops Chief | 4.85 → 4.84 (2.21×) | 4.1 | 4.70 / 1.34 | — | game champion: kind × look.scale | OK | — |
-| asphodel_pale_king | The Pale King | 2.76 → 3.19 (1.26 → 1.46×) | 1.9 | 2.90 / 0.65 | — | game champion: kind × look.scale | OK | — |
-| kind:hellhound | Hellhound (Road West champion) | 6.36 → 6.19 (2.90 → 2.83×) | 8.7 | 6.25 / 2.00 | — | game champion: kind × look.scale | OK | — |
-| kind:pup | Hellhound Pup (Road West champion) | 1.16 → 1.17 (0.53×) | 1.7 | 1.54 / 0.63 | — | game champion: kind × look.scale | OK | — |
-| kind:skeleton | Skeleton Warrior (Road West champion) | 2.52 → 2.89 (1.15 → 1.32×) | 1.8 | 2.80 / 0.63 | — | game champion: kind × look.scale | OK | — |
-| kind:spartoi | Spartoi (Road West champion) | 2.70 (1.23×) | 1.6 | 2.80 / 0.63 | — | game champion: kind × look.scale | OK | — |
-| kind:spider | Bronze Spider (Road West champion) | 1.48 → 1.47 (0.68 → 0.67×) | 2.7 | 1.36 / 0.57 | — | game champion: kind × look.scale | OK | — |
-| kind:dracaena | Dracaena (Road West champion) | 2.91 → 2.92 (1.33×) | 3.6 | 3.38 / 1.04 | — | game champion: kind × look.scale | OK | — |
-| kind:empousa | Empousa (Road West champion) | 2.78 → 3.29 (1.27 → 1.50×); 3.07 without flames | 2.0 | 2.99 → 3.25 / 0.65 | — | game champion: kind × look.scale | OK | follows the empousa (round 4) |
-| kind:harpy | Wild Harpy (Road West champion) | 2.52 → 3.04 (1.15 → 1.39×) | 6.4 | 3.20 / 0.60 | — | game champion: kind × look.scale | OK | — |
-| kind:stymphalian | Stymphalian Bird (Road West champion) | 2.02 → 2.15 (0.92 → 0.98×) | 6.5 → 6.9 | 3.06 → 2.80 / 0.68 → 0.84 | — | game champion: kind × look.scale | OK | look.scale 1.8 → 1.4 as the bird grew (round 4) |
-| kind:scorpion | Giant Scorpion (Road West champion) | 2.02 → 1.98 (0.92 → 0.91×) | 7.3 | 2.60 / 1.20 | — | game champion: kind × look.scale | OK | — |
-| kind:cyclops | Cyclops (Road West champion) | 4.84 → 4.85 (2.21×) | 3.7 | 4.54 / 1.30 | — | game champion: kind × look.scale | OK | — |
+| id | name | rendered height (× Percy) | body height (× Percy) | longest side | stat height / radius | expected (× Percy) | source | verdict | scale / action |
+|---|---|---|---|---|---|---|---|---|---|
+| fields_bronzebeak | Bronzebeak | 2.60 → 2.61 (1.19×) | 2.53 (1.16×) | 6.6 | 3.57 / 0.68 | — | game champion: kind × look.scale | OK | — |
+| woods_shadowfang | Shadowfang | 6.68 → 6.45 (3.05 → 2.94×) | 6.39 (2.93×) | 9.0 | 6.50 / 2.08 | — | game champion: kind × look.scale | OK | — |
+| shore_queen_gale | Queen Gale | 3.00 → 3.01 (1.37×) | 2.93 (1.35×) | 6.1 | 3.70 / 0.60 | — | game champion: kind × look.scale | OK | — |
+| canyon_red_king | The Red King | 2.41 → 2.39 (1.10 → 1.09×) | 1.79 (0.82×) | 8.8 | 3.12 / 1.20 | — | game champion: kind × look.scale | OK; its body is 0.82× tall, the sting raises it to 1.09× (it reads by its 8.8 length) | — |
+| lab_bronze_warden | The Bronze Warden | 2.54 → 4.08 (1.16 → 1.86×) | 4.06 (1.86×) | 4.1 | 2.64 / 0.83 | — | game champion: kind × look.scale | OK | — |
+| oth_gorgos | Gorgos the Cyclops Chief | 4.85 → 4.84 (2.21×) | 4.83 (2.22×) | 4.1 | 4.70 / 1.34 | — | game champion: kind × look.scale | OK | — |
+| asphodel_pale_king | The Pale King | 2.76 → 3.19 (1.26 → 1.46×) | 2.99 (1.37×) | 1.9 | 2.90 / 0.65 | — | game champion: kind × look.scale | OK | — |
+| kind:hellhound | Hellhound (Road West champion) | 6.36 → 6.19 (2.90 → 2.83×) | 6.11 (2.81×) | 8.7 | 6.25 / 2.00 | — | game champion: kind × look.scale | OK | — |
+| kind:pup | Hellhound Pup (Road West champion) | 1.16 → 1.17 (0.53×) | 1.20 (0.55×) | 1.7 | 1.54 / 0.63 | — | game champion: kind × look.scale | OK | — |
+| kind:skeleton | Skeleton Warrior (Road West champion) | 2.52 → 2.89 (1.15 → 1.32×) | 2.90 (1.33×) | 1.8 | 2.80 / 0.63 | — | game champion: kind × look.scale | OK | — |
+| kind:spartoi | Spartoi (Road West champion) | 2.70 (1.23×) | 2.68 (1.23×) | 1.6 | 2.80 / 0.63 | — | game champion: kind × look.scale | OK | — |
+| kind:spider | Bronze Spider (Road West champion) | 1.48 → 1.47 (0.68 → 0.67×) | 1.01 (0.47×) | 2.7 | 1.36 / 0.57 | — | game champion: kind × look.scale | OK | — |
+| kind:dracaena | Dracaena (Road West champion) | 2.91 → 2.92 (1.33×) | 2.80 (1.29×) | 3.6 | 3.38 / 1.04 | — | game champion: kind × look.scale | OK | — |
+| kind:empousa | Empousa (Road West champion) | 2.78 → 3.29 (1.27 → 1.50×); 3.07 without flames | 3.06 (1.40×) | 2.0 | 2.99 → 3.25 / 0.65 | — | game champion: kind × look.scale | OK | follows the empousa (round 4) |
+| kind:harpy | Wild Harpy (Road West champion) | 2.52 → 3.04 (1.15 → 1.39×) | 2.96 (1.36×) | 6.4 | 3.20 / 0.60 | — | game champion: kind × look.scale | OK | — |
+| kind:stymphalian | Stymphalian Bird (Road West champion) | 2.02 → 2.15 (0.92 → 0.98×) | 1.71 (0.79×) | 6.5 → 6.9 | 3.06 → 2.80 / 0.68 → 0.84 | — | game champion: kind × look.scale | OK | look.scale 1.8 → 1.4 as the bird grew (round 4) |
+| kind:scorpion | Giant Scorpion (Road West champion) | 2.02 → 1.98 (0.92 → 0.91×) | 1.41 (0.65×) | 7.3 | 2.60 / 1.20 | — | game champion: kind × look.scale | OK | — |
+| kind:cyclops | Cyclops (Road West champion) | 4.84 → 4.85 (2.21×) | 4.85 (2.23×) | 3.7 | 4.54 / 1.30 | — | game champion: kind × look.scale | OK | — |
 
 ### mortals
 
-| id | name | rendered height (× Percy) | longest side | stat height / radius | expected (× Percy) | source | verdict | scale / action |
-|---|---|---|---|---|---|---|---|---|
-| teacher | Mrs. Dodds | 2.22 (1.01×) | 1.2 | — / — | ~1.0 | a person | OK | — |
-| student | Student | 2.11 → 2.12 (0.96 → 0.97×) | 1.1 | — / — | ~1.0 | a person | OK | — |
-| guard | Museum Guard | 1.94 (0.89×) | 1.2 | — / — | ~1.0 | a person | OK | — |
-| tourist | Tourist | 2.21 → 2.23 (1.01 → 1.02×) | 1.2 | — / — | ~1.0 | a person | OK | — |
-| farmer | Farmer | 2.21 → 2.23 (1.01 → 1.02×) | 1.3 | — / — | ~1.0 | a person | OK | — |
-| old_lady | Old Lady | 2.24 (1.02×) | 1.4 | — / — | ~1.0 | a person | OK | — |
-| bellhop | Bellhop | 2.15 → 2.17 (0.98 → 0.99×) | 1.4 | — / — | ~1.0 | a person | OK | — |
-| salesman | Salesman | 2.16 (0.99×) | 1.3 | — / — | ~1.0 | a person | OK | — |
+| id | name | rendered height (× Percy) | body height (× Percy) | longest side | stat height / radius | expected (× Percy) | source | verdict | scale / action |
+|---|---|---|---|---|---|---|---|---|---|
+| teacher | Mrs. Dodds | 2.22 (1.01×) | 2.23 (1.02×) | 1.2 | — / — | ~1.0 | a person | OK | — |
+| student | Student | 2.11 → 2.12 (0.96 → 0.97×) | 2.10 (0.97×) | 1.1 | — / — | ~1.0 | a person | OK | — |
+| guard | Museum Guard | 1.94 (0.89×) | 1.93 (0.89×) | 1.2 | — / — | ~1.0 | a person | OK | — |
+| tourist | Tourist | 2.21 → 2.23 (1.01 → 1.02×) | 2.20 (1.01×) | 1.2 | — / — | ~1.0 | a person | OK | — |
+| farmer | Farmer | 2.21 → 2.23 (1.01 → 1.02×) | 2.21 (1.01×) | 1.3 | — / — | ~1.0 | a person | OK | — |
+| old_lady | Old Lady | 2.24 (1.02×) | 2.22 (1.02×) | 1.4 | — / — | ~1.0 | a person | OK | — |
+| bellhop | Bellhop | 2.15 → 2.17 (0.98 → 0.99×) | 2.15 (0.99×) | 1.4 | — / — | ~1.0 | a person | OK | — |
+| salesman | Salesman | 2.16 (0.99×) | 2.16 (0.99×) | 1.3 | — / — | ~1.0 | a person | OK | — |
 
 ### people
 
-| id | name | rendered height (× Percy) | longest side | stat height / radius | expected (× Percy) | source | verdict | scale / action |
-|---|---|---|---|---|---|---|---|---|
-| fields_katie | Katie Gardner | 2.10 → 2.09 (0.96×) | 1.3 | — / — | ~1.0 | a person | OK | — |
-| fields_travis | Travis Stoll | 2.29 → 2.30 (1.04 → 1.05×) | 1.2 | — / — | ~1.0 | a person | OK | — |
-| woods_juniper | Juniper | 2.01 (0.92×) | 1.2 | — / — | ~1.0 | a person | OK | — |
-| woods_beckendorf | Charles Beckendorf | 2.40 → 2.42 (1.10×) | 1.6 | — / — | ~1.0 | a person | OK | — |
-| shore_lee | Lee Fletcher | 2.24 → 2.25 (1.02 → 1.03×) | 1.3 | — / — | ~1.0 | a person | OK | — |
-| shore_nereid | Galene the Nereid | 2.04 → 2.02 (0.93 → 0.92×) | 1.2 | — / — | ~1.0 | a person | OK | — |
-| canyon_hedge | Coach Hedge | 1.95 → 1.96 (0.89×) | 1.2 | — / — | ~1.0 | a person | OK | — |
-| zoe | Zoë Nightshade | 1.94 → 1.95 (0.88 → 0.89×) | 1.3 | — / — | ~1.0 | a person | OK | — |
-| rachel | Rachel Elizabeth Dare | 2.17 (0.99×) | 1.2 | — / — | ~1.0 | a person | OK | — |
-| quintus | Quintus | 2.22 → 2.24 (1.01 → 1.02×) | 1.5 | — / — | ~1.0 | a person | OK | — |
-| canyon_phoebe | Phoebe the Hunter | 2.18 (0.99 → 1.00×) | 1.2 | — / — | ~1.0 | a person | OK | — |
-| bianca | Bianca di Angelo | 2.13 → 2.12 (0.97×) | 1.3 | — / — | ~1.0 | a person | OK | — |
-| asphodel_charon | Charon | 2.61 → 2.60 (1.19×) | 1.4 | — / — | ~1.0 | a person | OK | — |
-| asphodel_sisyphus | Sisyphus | 2.23 → 2.24 (1.02×) | 1.4 | — / — | ~1.0 | a person | OK | — |
-| camp_argus | Argus | 2.40 → 2.41 (1.10×) | 1.7 | — / — | ~1.0 | a person | OK | — |
-| camp_silena | Silena Beauregard | 1.93 → 1.94 (0.88 → 0.89×) | 1.2 | — / — | ~1.0 | a person | OK | — |
-| rt_turnpike_earl | Big Earl, Trucker | 2.37 → 2.38 (1.08 → 1.09×) | 1.7 | — / — | ~1.0 | a person | OK | — |
-| rt_auntyem_pruitt | Mrs. Pruitt | 2.09 → 2.10 (0.95 → 0.96×) | 1.4 | — / — | ~1.0 | a person | OK | — |
-| rt_stlouis_mae | Ranger Mae | 2.18 → 2.17 (0.99×) | 1.2 | — / — | ~1.0 | a person | OK | — |
-| rt_denver_chad | Chad, Ex-Lifeguard | 2.16 (0.98×) | 1.3 | — / — | ~1.0 | a person | OK | — |
-| rt_vegas_valet | Sal the Valet | 2.18 → 2.16 (0.99×) | 1.3 | — / — | ~1.0 | a person | OK | — |
-| rt_la_guide | Trudy the Tour Guide | 2.02 → 2.01 (0.92×) | 1.2 | — / — | ~1.0 | a person | OK | — |
-| rt_sm_fisher | Grandma Mae | 1.80 (0.82×) | 1.2 | — / — | ~1.0 | a person | OK | — |
+| id | name | rendered height (× Percy) | body height (× Percy) | longest side | stat height / radius | expected (× Percy) | source | verdict | scale / action |
+|---|---|---|---|---|---|---|---|---|---|
+| fields_katie | Katie Gardner | 2.10 → 2.09 (0.96×) | 2.08 (0.96×) | 1.3 | — / — | ~1.0 | a person | OK | — |
+| fields_travis | Travis Stoll | 2.29 → 2.30 (1.04 → 1.05×) | 2.28 (1.05×) | 1.2 | — / — | ~1.0 | a person | OK | — |
+| woods_juniper | Juniper | 2.01 (0.92×) | 2.00 (0.92×) | 1.2 | — / — | ~1.0 | a person | OK | — |
+| woods_beckendorf | Charles Beckendorf | 2.40 → 2.42 (1.10×) | 2.40 (1.10×) | 1.6 | — / — | ~1.0 | a person | OK | — |
+| shore_lee | Lee Fletcher | 2.24 → 2.25 (1.02 → 1.03×) | 2.24 (1.03×) | 1.3 | — / — | ~1.0 | a person | OK | — |
+| shore_nereid | Galene the Nereid | 2.04 → 2.02 (0.93 → 0.92×) | 2.01 (0.92×) | 1.2 | — / — | ~1.0 | a person | OK | — |
+| canyon_hedge | Coach Hedge | 1.95 → 1.96 (0.89×) | 1.95 (0.89×) | 1.2 | — / — | ~1.0 | a person | OK | — |
+| zoe | Zoë Nightshade | 1.94 → 1.95 (0.88 → 0.89×) | 1.93 (0.88×) | 1.3 | — / — | ~1.0 | a person | OK | — |
+| rachel | Rachel Elizabeth Dare | 2.17 (0.99×) | 2.17 (1.00×) | 1.2 | — / — | ~1.0 | a person | OK | — |
+| quintus | Quintus | 2.22 → 2.24 (1.01 → 1.02×) | 2.21 (1.02×) | 1.5 | — / — | ~1.0 | a person | OK | — |
+| canyon_phoebe | Phoebe the Hunter | 2.18 (0.99 → 1.00×) | 2.16 (0.99×) | 1.2 | — / — | ~1.0 | a person | OK | — |
+| bianca | Bianca di Angelo | 2.13 → 2.12 (0.97×) | 2.10 (0.96×) | 1.3 | — / — | ~1.0 | a person | OK | — |
+| asphodel_charon | Charon | 2.61 → 2.60 (1.19×) | 2.29 (1.05×) | 1.4 | — / — | ~1.0 | a person | OK | — |
+| asphodel_sisyphus | Sisyphus | 2.23 → 2.24 (1.02×) | 2.23 (1.02×) | 1.4 | — / — | ~1.0 | a person | OK | — |
+| camp_argus | Argus | 2.40 → 2.41 (1.10×) | 2.38 (1.09×) | 1.7 | — / — | ~1.0 | a person | OK | — |
+| camp_silena | Silena Beauregard | 1.93 → 1.94 (0.88 → 0.89×) | 1.93 (0.89×) | 1.2 | — / — | ~1.0 | a person | OK | — |
+| rt_turnpike_earl | Big Earl, Trucker | 2.37 → 2.38 (1.08 → 1.09×) | 2.37 (1.09×) | 1.7 | — / — | ~1.0 | a person | OK | — |
+| rt_auntyem_pruitt | Mrs. Pruitt | 2.09 → 2.10 (0.95 → 0.96×) | 2.09 (0.96×) | 1.4 | — / — | ~1.0 | a person | OK | — |
+| rt_stlouis_mae | Ranger Mae | 2.18 → 2.17 (0.99×) | 2.16 (0.99×) | 1.2 | — / — | ~1.0 | a person | OK | — |
+| rt_denver_chad | Chad, Ex-Lifeguard | 2.16 (0.98×) | 2.13 (0.98×) | 1.3 | — / — | ~1.0 | a person | OK | — |
+| rt_vegas_valet | Sal the Valet | 2.18 → 2.16 (0.99×) | 2.17 (0.99×) | 1.3 | — / — | ~1.0 | a person | OK | — |
+| rt_la_guide | Trudy the Tour Guide | 2.02 → 2.01 (0.92×) | 2.00 (0.92×) | 1.2 | — / — | ~1.0 | a person | OK | — |
+| rt_sm_fisher | Grandma Mae | 1.80 (0.82×) | 1.75 (0.80×) | 1.2 | — / — | ~1.0 | a person | OK | — |
