@@ -561,7 +561,8 @@ export const EN = {
       Idea: 'Idea',
       Other: 'Other',
     },
-    email: 'Your email, for a reply',
+    requiredNote: 'Required',
+    email: 'Your email, if you\'d like a reply',
     message: 'Message',
     honeypot: 'Leave this empty',
     includeDetails: 'Include device details',
@@ -570,7 +571,7 @@ export const EN = {
     sending: 'Sending…',
     sent: 'Sent. Thank you!',
     failed: 'It didn\'t send. Check the connection and try again.',
-    privacyNote: 'Your email is used only to reply.',
+    privacyNote: 'Your email, if you give it, is used only to reply.',
     privacyLink: 'Privacy',
   },
 };

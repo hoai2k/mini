@@ -87,7 +87,7 @@ export async function sendFeedback({ email, topic, message, details, elapsed, hp
       body: JSON.stringify({
         kind: 'feedback',
         game: GAME,
-        email: email.trim(),
+        email: email.trim() || NO_EMAIL,
         message: compose({ topic, message, details }),
         elapsed,
         hp,
@@ -106,6 +106,10 @@ export async function sendFeedback({ email, topic, message, details, elapsed, hp
 // ---------------------------------------------------------------- the dialog
 
 const EMAIL_KEY = 'musicpractice.feedbackEmail';
+/** An email is optional. The shared script still asks for an address, so a
+ * message without one carries this: a reserved domain that can never be an
+ * address (RFC 2606), so it reads as "no email" in the sheet. */
+export const NO_EMAIL = 'no-email@feedback.invalid';
 // What's sent stays these English words (the inbox reads them); what's shown comes from TEXT.
 const TOPICS = ['Problem', 'Idea', 'Other'];
 
@@ -147,7 +151,11 @@ export function setupFeedback({ details }) {
   const syncChips = () => buttons.forEach((b, i) => b.setAttribute('aria-checked', String(TOPICS[i] === topic)));
   syncChips();
 
-  const valid = () => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.value.trim()) && text.value.trim().length > 0;
+  // The message is required; an email is optional, but one that is there must look like one.
+  const valid = () => {
+    const e = email.value.trim();
+    return (e === '' || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) && text.value.trim().length > 0;
+  };
   const update = () => {
     const early = performance.now() - opened < MIN_COMPOSE_MS;
     send.disabled = sending || early || !valid();
