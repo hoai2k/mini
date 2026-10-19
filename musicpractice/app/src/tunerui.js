@@ -162,6 +162,7 @@ export function setupTuner({ settings, persist, chips }) {
     const root = document.documentElement;
     const over = () => root.scrollHeight - innerHeight;
     card.classList.remove('compact', 'tight', 'bare');
+    body.classList.remove('tight');
     body.style.removeProperty('--gauge-max');
     for (const step of ['compact', 'tight', 'bare']) if (over() > 0) card.classList.add(step);
     // The gauge, a few times over (a smaller gauge can move other things).
@@ -169,9 +170,10 @@ export function setupTuner({ settings, persist, chips }) {
       const o = over();
       if (o <= 0) break;
       const g = $('gauge').getBoundingClientRect().height;
-      if (g <= 100) break;
-      body.style.setProperty('--gauge-max', `${Math.max(100, Math.floor(g - o - 2))}px`);
+      if (g <= 72) break;
+      body.style.setProperty('--gauge-max', `${Math.max(72, Math.floor(g - o - 2))}px`);
     }
+    if (over() > 0) body.classList.add('tight');
   }
   let fitQueued = 0;
   function queueFit() { cancelAnimationFrame(fitQueued); fitQueued = requestAnimationFrame(fit); }

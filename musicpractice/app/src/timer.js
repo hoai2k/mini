@@ -4,8 +4,7 @@
 // settings). Pure: the screen is timerui.js, the sound comes through the
 // engines main.js hands it.
 //
-// IN DEVELOPMENT: shown only with ?routine in the address (main.js). Inside
-// the code it is the timer (timer.js, timerui.js, TEXT.timer, #timer-…).
+// Inside the code it is the timer (timer.js, timerui.js, TEXT.timer, #timer-…).
 
 import { TEXT } from './text.js';
 import { METERS, BPM_MIN, BPM_MAX } from './settings.js';

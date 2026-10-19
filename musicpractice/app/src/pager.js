@@ -4,8 +4,6 @@
 // the finger follows it, and a short or slow swipe springs back. A smaller
 // Practice Routine button under the home buttons slides it in, and the
 // routine's back arrow slides home (slide(), in main.js).
-//
-// IN DEVELOPMENT: used only with ?routine in the address (main.js).
 
 const SLIDE_MS = 280;
 const EASE = 'cubic-bezier(0.2, 0.8, 0.2, 1)';

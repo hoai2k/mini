@@ -41,11 +41,8 @@ const $ = (id) => document.getElementById(id);
 const settings = load();
 const persist = () => save(settings);
 
-// The Practice Routine is in development: it is there only with ?routine (or
-// the earlier ?timer) in the address. Without it, nothing of it is set up and
-// the app is as it was.
-const TIMER_ON = ['routine', 'timer'].some((k) => new URLSearchParams(location.search).has(k));
-const timerTile = TIMER_ON ? (() => {
+// The Practice Routine's button on the home screen (the routine itself is set up further down).
+const timerTile = (() => {
   const a = document.createElement('a');
   a.className = 'choice';
   a.href = '#routine';
@@ -56,7 +53,7 @@ const timerTile = TIMER_ON ? (() => {
   a.querySelector('.label').textContent = TEXT.home.tools.timer;
   $('choices').append(a);
   return a;
-})() : null;
+})();
 
 // ---------------------------------------------------------------- theme
 
@@ -114,7 +111,7 @@ for (const type of ['pointerdown', 'touchend', 'click', 'keydown']) {
 
 // ---------------------------------------------------------------- screens
 
-const SCREENS = ['home', 'metronome', 'record', 'tuner', 'drone', ...(TIMER_ON ? ['routine'] : [])];
+const SCREENS = ['home', 'metronome', 'record', 'tuner', 'drone', 'routine'];
 // The browser tab names the screen by its own title (the home tiles may be shorter).
 const TITLES = { metronome: TEXT.metronome.title, record: TEXT.recorder.title, tuner: TEXT.tuner.title, drone: TEXT.drone.title, routine: TEXT.timer.title };
 let screen = 'home';
@@ -985,8 +982,23 @@ function fitPicture() {
   const scr = $('metronome');
   if (scr.hidden) return;
   const body = scr.querySelector('.met-body');
+  scr.classList.remove('tight');
   if (getComputedStyle(body).flexDirection !== 'column') {
+    // Side by side: the picture as tall as the stylesheet asks, or the room
+    // below the bar if that is less; and if the controls still don't fit
+    // beside it, smaller controls (#metronome.tight).
     scr.style.removeProperty('--pic-h');
+    const fit = () => {
+      const vis = $('met-visual');
+      const css = getComputedStyle(vis);
+      const extra = (parseFloat(css.getPropertyValue('--gap')) || 0) + (parseFloat(css.getPropertyValue('--dots')) || 0);
+      const pad = parseFloat(getComputedStyle(scr).paddingBottom) || 0;
+      const room = innerHeight - pad - body.getBoundingClientRect().top - extra - 1;
+      const P = $('metronome-art').offsetHeight;
+      if (P > room) scr.style.setProperty('--pic-h', `${Math.round(Math.max(100, room))}px`);
+    };
+    fit();
+    if (document.documentElement.scrollHeight > innerHeight + 1) { scr.classList.add('tight'); scr.style.removeProperty('--pic-h'); fit(); }
     sizeFoot();
     return;
   }
@@ -994,15 +1006,20 @@ function fitPicture() {
   // Visualizer) is --P plus the dots' row and the gap, in either view; so
   // measure what is above and below it rather than the picture itself, which
   // may be in the middle of changing view.
-  const stage = scr.querySelector('.met-stage').getBoundingClientRect();
-  const last = Math.max(...[...scr.querySelectorAll('.met-controls > *, .sync-bar > *')]
-    .filter((e) => e.offsetParent).map((e) => e.getBoundingClientRect().bottom));
-  const below = last - stage.bottom;
-  const vis = getComputedStyle($('met-visual'));
-  const extra = (parseFloat(vis.getPropertyValue('--gap')) || 0) + (parseFloat(vis.getPropertyValue('--dots')) || 0);
-  const pad = parseFloat(getComputedStyle(scr).paddingBottom) || 0;
-  const room = innerHeight - pad - stage.top - below - extra - 1;
-  scr.style.setProperty('--pic-h', `${Math.round(Math.max(120, Math.min(560, room)))}px`);
+  const fit = () => {
+    const stage = scr.querySelector('.met-stage').getBoundingClientRect();
+    const last = Math.max(...[...scr.querySelectorAll('.met-controls > *, .sync-bar > *')]
+      .filter((e) => e.offsetParent).map((e) => e.getBoundingClientRect().bottom));
+    const below = last - stage.bottom;
+    const vis = getComputedStyle($('met-visual'));
+    const extra = (parseFloat(vis.getPropertyValue('--gap')) || 0) + (parseFloat(vis.getPropertyValue('--dots')) || 0);
+    const pad = parseFloat(getComputedStyle(scr).paddingBottom) || 0;
+    const room = innerHeight - pad - stage.top - below - extra - 1;
+    scr.style.setProperty('--pic-h', `${Math.round(Math.max(120, Math.min(560, room)))}px`);
+  };
+  fit();
+  // The picture at its smallest and still no room: smaller controls.
+  if (document.documentElement.scrollHeight > innerHeight + 1) { scr.classList.add('tight'); fit(); }
   sizeFoot();
 }
 
@@ -1030,6 +1047,13 @@ function sizeFoot() {
   vis.style.setProperty('--V', `${V.toFixed(1)}px`);
   vis.style.setProperty('--s-bars', ((P + dots - V) / P).toFixed(4));
   vis.style.setProperty('--s-pulse', ((P + dots - big) / P).toFixed(4));
+  // The small dots' row, scaled down to the foot's width where there are
+  // many (12/8) and the foot is narrow (beside the controls on a phone on its side).
+  const dotsEl = [...$('beats').children];
+  const first = dotsEl[0], last = dotsEl[dotsEl.length - 1];
+  const dotsW = last ? last.offsetLeft + last.offsetWidth - first.offsetLeft : 0; // offsets ignore the scale
+  const fitDots = dotsW ? Math.min(1, $('met-foot').clientWidth / dotsW) : 1;
+  vis.style.setProperty('--dots-fit', fitDots.toFixed(3));
 }
 let fitQueued = 0;
 const queueFit = () => { cancelAnimationFrame(fitQueued); fitQueued = requestAnimationFrame(fitPicture); };
@@ -1941,7 +1965,7 @@ const droneUI = setupDrone({
 // ---------------------------------------------------------------- practice timer
 
 /*
- * The Practice Routine (?routine only, in development; inside, the timer). Its items play the
+ * The Practice Routine (inside the code, the timer). Its items play the
  * metronome and the drone through the same engines as their own screens, but
  * set up from the item, never from or into the Metronome's or the Drone's
  * settings (sound, accent and volume follow the Metronome's).
@@ -1949,100 +1973,119 @@ const droneUI = setupDrone({
 let timerUI = null;
 let pager = null;
 let timerDrone = false; // the timer started the drone
-if (TIMER_ON) {
-  // Chimes and the voice play on the context the metronome plays through, when it does (one context, one output).
-  const clipCtx = () => (!useNative && metronome?.running ? metronome.ctx : audio());
-  const timerAudio = {
-    metronome(met) {
-      const cfg = { ...settings, bpm: met.bpm, meter: met.meter, accentPattern: null, subdivision: 1 };
-      if (useNative) {
-        if (!metronome?.native) metronome = new NativeMetronome();
-        metronome.configure(cfg);
-        if (!metronome.running) metronome.start().catch(() => {});
-        return;
-      }
-      if (metronome?.running) { metronome.configure(cfg); return; }
-      const ctx = freshAudio();
-      unlock();
-      if (!metronome || metronome.ctx !== ctx) {
-        metronome = new Metronome(ctx);
-        if (settings.speaker !== 'default') setContextSpeaker(settings.speaker);
-      }
+// Chimes and the voice play on the context the metronome plays through, when it does (one context, one output).
+const clipCtx = () => (!useNative && metronome?.running ? metronome.ctx : audio());
+const timerAudio = {
+  metronome(met) {
+    const cfg = { ...settings, bpm: met.bpm, meter: met.meter, accentPattern: null, subdivision: 1 };
+    if (useNative) {
+      if (!metronome?.native) metronome = new NativeMetronome();
       metronome.configure(cfg);
-      metronome.start();
-    },
-    stopMetronome() { if (metronome?.running) metronome.stop(); },
-    drone(drn) {
-      timerDrone = true;
-      const voice = TEXT.drone.voices[drn.voice] || '';
-      droneEngine().play({ midi: drn.midi, voice: drn.voice, a4: settings.a4, fifth: drn.fifth, schedule: null, label: `${TEXT.timer.title} · ${voice}` });
-    },
-    stopDrone() { if (timerDrone) { timerDrone = false; droneEngine().stop(); } },
-    // On the context the metronome plays through, when it does (one context, one output).
-    chime(id) { return playChime(clipCtx(), id); },
-    clips(urls) { return playClips(clipCtx(), urls); },
-    preload(urls) { const c = clipCtx(); for (const u of urls) loadClip(c, u); },
-    running(on) {
-      keepAwake(on);
-      if (on && !recorder?.holdsMic) setSession('playback');
-    },
-  };
-  timerUI = setupTimer({
-    settings,
-    audio: timerAudio,
-    chips,
-    canDrone: () => isPro(),
-    askDrone: () => openPaywall('drone'),
-  });
-  pager = setupPager({
-    home: $('home'),
-    timer: $('routine'),
-    current: () => screen,
-    go: (name) => {
-      history.pushState(null, '', name === 'routine' ? '#routine' : location.pathname + location.search);
-      route();
-    },
-  });
-  // The smaller Practice Routine button under the others slides the routine in.
-  $('go-routine-page').addEventListener('click', (e) => { if (pager.slide('home')) e.preventDefault(); });
-  // Back to the start slides when the timer is the second page.
-  $('timer-back').addEventListener('click', (e) => { if (pager.slide('routine')) e.preventDefault(); });
-  let homeQueued = 0;
-  addEventListener('resize', () => { cancelAnimationFrame(homeQueued); homeQueued = requestAnimationFrame(layoutHome); });
-  document.fonts?.ready.then(() => layoutHome());
-}
+      if (!metronome.running) metronome.start().catch(() => {});
+      return;
+    }
+    if (metronome?.running) { metronome.configure(cfg); return; }
+    const ctx = freshAudio();
+    unlock();
+    if (!metronome || metronome.ctx !== ctx) {
+      metronome = new Metronome(ctx);
+      if (settings.speaker !== 'default') setContextSpeaker(settings.speaker);
+    }
+    metronome.configure(cfg);
+    metronome.start();
+  },
+  stopMetronome() { if (metronome?.running) metronome.stop(); },
+  drone(drn) {
+    timerDrone = true;
+    const voice = TEXT.drone.voices[drn.voice] || '';
+    droneEngine().play({ midi: drn.midi, voice: drn.voice, a4: settings.a4, fifth: drn.fifth, schedule: null, label: `${TEXT.timer.title} · ${voice}` });
+  },
+  stopDrone() { if (timerDrone) { timerDrone = false; droneEngine().stop(); } },
+  // On the context the metronome plays through, when it does (one context, one output).
+  chime(id) { return playChime(clipCtx(), id); },
+  clips(urls) { return playClips(clipCtx(), urls); },
+  preload(urls) { const c = clipCtx(); for (const u of urls) loadClip(c, u); },
+  running(on) {
+    keepAwake(on);
+    if (on && !recorder?.holdsMic) setSession('playback');
+  },
+};
+timerUI = setupTimer({
+  settings,
+  audio: timerAudio,
+  chips,
+  canDrone: () => isPro(),
+  askDrone: () => openPaywall('drone'),
+});
+pager = setupPager({
+  home: $('home'),
+  timer: $('routine'),
+  current: () => screen,
+  go: (name) => {
+    history.pushState(null, '', name === 'routine' ? '#routine' : location.pathname + location.search);
+    route();
+  },
+});
+// The smaller Practice Routine button under the others slides the routine in.
+$('go-routine-page').addEventListener('click', (e) => { if (pager.slide('home')) e.preventDefault(); });
+// Back to the start slides when the timer is the second page.
+$('timer-back').addEventListener('click', (e) => { if (pager.slide('routine')) e.preventDefault(); });
+let homeQueued = 0;
+addEventListener('resize', () => { cancelAnimationFrame(homeQueued); homeQueued = requestAnimationFrame(layoutHome); });
+document.fonts?.ready.then(() => layoutHome());
+document.addEventListener('art-applied', () => layoutHome()); // a theme's own art and fonts change what fits
 
 /**
- * Where the Practice Routine goes on the home screen: a fifth button among the
- * others when all five fit without scrolling, or else a second page, reached
- * by a smaller button under the others (its icon as large as the room left
- * allows, ROUTINE_ART) that slides it in, or by a swipe.
+ * The home screen fits the window without scrolling. Wherever the window is
+ * wider than tall (a desktop, a tablet or phone on its side) the five
+ * buttons are one row, the Practice Routine among them. Upright, the Routine is a fifth
+ * button only when all five fit; otherwise it is a second page, reached by a
+ * smaller button under the others (its icon as large as the room left
+ * allows, ROUTINE_ART) that slides it in, or by a swipe. Whatever is left
+ * over that still doesn't fit is compacted: tighter spacing and labels
+ * (#home.compact), then smaller art (--art-max, HOME_ART) until it does.
  */
 const ROUTINE_ART = [72, 64, 56, 48, 40, 32];
+const HOME_ART = [160, 136, 116, 100, 86, 74, 64, 56, 48, 40];
+const homeRow = matchMedia('(orientation: landscape)'); // the stylesheet's one row of five
 function layoutHome() {
-  if (!TIMER_ON || !pager || screen !== 'home') return;
+  if (screen !== 'home') return;
+  const home = $('home');
   const box = $('choices');
   const link = $('go-routine-page');
   // Home is centred top to bottom, so too much spills off the top as well
-  // as the bottom, and the top doesn't scroll: measure both ends.
-  const home = $('home');
+  // as the bottom, and the top doesn't scroll: measure both ends. A label
+  // wider than its button doesn't fit either.
   const overflows = () => {
     if (document.documentElement.scrollHeight > innerHeight + 1) return true;
     const pad = parseFloat(getComputedStyle(home).paddingTop) || 0;
-    return $('home-title').getBoundingClientRect().top < home.getBoundingClientRect().top + pad - 1;
+    if ($('home-title').getBoundingClientRect().top < home.getBoundingClientRect().top + pad - 1) return true;
+    return [...home.querySelectorAll('.choice:not([hidden])')].some((c) => {
+      const b = c.getBoundingClientRect();
+      const l = c.querySelector('.label').getBoundingClientRect();
+      return l.left < b.left - 1 || l.right > b.right + 1;
+    });
   };
+  const compact = () => {
+    if (!overflows()) return;
+    home.classList.add('compact');
+    HOME_ART.some((px) => { box.style.setProperty('--art-max', `${px}px`); return !overflows(); });
+  };
+  home.classList.remove('tight', 'compact');
+  box.style.removeProperty('--art-max');
   link.hidden = true;
-  home.classList.remove('tight');
   timerTile.hidden = false;
   box.classList.add('five');
-  const fits = !overflows();
+  const fits = homeRow.matches || !overflows();
   timerTile.hidden = !fits;
   box.classList.toggle('five', fits);
   pager.set(!fits); // html.paged: home and the routine are two pages
-  if (fits) return;
-  link.hidden = false;
-  const size = () => ROUTINE_ART.some((px) => { link.style.setProperty('--routine-art', `${px}px`); return !overflows(); });
-  if (!size()) { home.classList.add('tight'); size(); } // the spacing tightens before the icon goes below its smallest
+  if (!fits) {
+    link.hidden = false;
+    const size = () => ROUTINE_ART.some((px) => { link.style.setProperty('--routine-art', `${px}px`); return !overflows(); });
+    if (!size()) { home.classList.add('tight'); size(); } // the spacing tightens before the icon goes below its smallest
+  }
+  compact();
 }
 
 // The apps: the native metronome and drone go on while the screen is locked
