@@ -89,6 +89,14 @@ window.addEventListener('mousedown', e => {
     if (e.button === 0) mouseFire = true;
 });
 document.getElementById('corner-controls').addEventListener('mousedown', e => { e.stopPropagation(); e.preventDefault(); });
+// During play the corner buttons are hidden; any mouse click, or a tap away from the joysticks, shows them for a few seconds.
+let cornerPeekTimer = null;
+window.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'mouse' && e.target.closest?.('.joystick-zone')) return;
+    document.body.classList.add('corner-peek');
+    clearTimeout(cornerPeekTimer);
+    cornerPeekTimer = setTimeout(() => document.body.classList.remove('corner-peek'), 3000);
+}, true);
 window.addEventListener('mouseup', e => {
     if (e.button === 0) mouseFire = false;
 });
@@ -912,7 +920,8 @@ const settingsBtn = document.getElementById('settings-btn');
 function loop() { 
     processMenuNavigation(); renderHUD();
     const ts = Array.from(world.tanks.values()), h = ts.filter(t => !t.isAI), lh = h.filter(t => t.inputSet), side = (window.innerWidth - canvas.offsetWidth) / 2;
-    document.body.classList.toggle('in-play', state === 'PLAYING');
+    // 'in-play' (corner buttons hidden) only while the game runs with no menu up; an online guest's pause menu leaves state at PLAYING.
+    document.body.classList.toggle('in-play', state === 'PLAYING' && !document.querySelector('.ui-panel:not(.hidden)'));
     settingsBtn.classList.toggle('hidden', !!currentOnlineRoom);
     // Music: the play loop quickens as the CPU tanks fall; the menus get a slower, quieter one.
     const cpus = ts.filter(t => t.isAI), cpuLeft = cpus.filter(t => t.alive).length;

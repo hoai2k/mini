@@ -38,7 +38,8 @@ automatically.
 - `node --check tankwars/game/game.js && node --check tankwars/game/menu.js && node --check tankwars/game/sound.js`
 - `cd multiplayer/server && npm test` (the relay the online mode uses)
 - In a browser: Play Local spawns CPU tanks; the Settings, Sound and Fullscreen
-  buttons stay in the bottom right corner during play, and a controller or the
+  buttons in the bottom right corner hide during play and show on hover, on a
+  click and in the pause menu, and a controller or the
   arrow keys reach them by moving down past a menu's last item; in two tabs, Host Online Game in
   one and join it from the other's lobby, then confirm both see each other's
   tanks and shots, and that the guest returns to the lobby when the host exits.
@@ -69,7 +70,10 @@ settings.
 ## Corner buttons
 
 Settings, Sound and Fullscreen sit in the bottom right corner over the menus
-and the game (dimmed while playing; lifted above the right stick on phones).
+and the game. During play they are hidden until the mouse hovers over them,
+or a click (or a tap away from the joysticks) shows them for three seconds;
+they show whenever a menu is up, such as the pause menu. On phones they sit
+above the right stick.
 Settings is not in the menus. Opening it during a local match pauses first, so
 Back returns to the pause menu, or restarts the round if a setting changed; in
 an online game the button is hidden because the host's settings apply.
