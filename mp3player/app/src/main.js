@@ -53,6 +53,8 @@ const pendingRemovals = new Map(); // batch id → { list, timer }
 
 const artUrls = new Map(); // `${key}|thumb` / `${key}|full` → Promise<string|null>
 const artColors = new Map();
+// Keep generated fallback colors in the mint, blue and violet range.
+const coolHue = (seed) => 165 + hashIndex(seed, 111);
 
 function artUrl(key, size = 'thumb') {
   if (!key) return Promise.resolve(null);
@@ -71,7 +73,7 @@ function artUrl(key, size = 'thumb') {
 /** Attributes for an art square: a stand-in tile or gradient now, the real cover lazily. */
 function artAttrs(artKey, seed, cls = '') {
   const n = hashIndex(seed || 'x', 8);
-  const tile = delivered.has(`art-${n + 1}`) ? ` style="--h:${hashIndex(seed || 'x', 360)};background-image:url(assets/art/art-${n + 1}.webp)"` : ` style="--h:${hashIndex(seed || 'x', 360)}"`;
+  const tile = delivered.has(`art-${n + 1}`) ? ` style="--h:${coolHue(seed || 'x')};background-image:url(assets/art/art-${n + 1}.webp)"` : ` style="--h:${coolHue(seed || 'x')}"`;
   return `class="art ${cls}" data-art="${esc(artKey ?? '')}"${tile}`;
 }
 
@@ -336,7 +338,7 @@ function renderLibrary() {
 }
 
 function artistArt(a, cls) {
-  if (delivered.has('artist')) return `<span class="art ${cls} artist-photo" style="--h:${hashIndex(a.name, 360)};background-image:url(assets/art/artist.webp)"></span>`;
+  if (delivered.has('artist')) return `<span class="art ${cls} artist-photo" style="--h:${coolHue(a.name)};background-image:url(assets/art/artist.webp)"></span>`;
   return `<span ${artAttrs(a.artKey, a.name, cls)}></span>`;
 }
 
@@ -676,7 +678,7 @@ function setArt(el, t, size = 'thumb') {
   const n = hashIndex(seed, 8);
   el.dataset.art = t.artKey ?? '';
   el.classList.remove('has-art');
-  el.style.setProperty('--h', hashIndex(seed, 360));
+  el.style.setProperty('--h', coolHue(seed));
   el.style.backgroundImage = delivered.has(`art-${n + 1}`) ? `url(assets/art/art-${n + 1}.webp)` : '';
   fillArt(el, size);
 }
@@ -691,7 +693,7 @@ function updateNow() {
   $('nowTitle').textContent = titleOf(t);
   $('nowArtist').textContent = artistOf(t);
   setArt($('nowArt'), t, 'full');
-  const hue = hashIndex(albumOf(t), 360);
+  const hue = coolHue(albumOf(t));
   const tile = !t.artKey && delivered.has(`art-${hashIndex(albumOf(t), 8) + 1}`) ? hashIndex(albumOf(t), 8) + 1 : 0;
   const paint = (tc) => {
     const c = artColors.get(t.artKey) ?? tc;

@@ -1,7 +1,7 @@
 // Keeps the app itself available offline (the songs are already on the
 // device, in IndexedDB). Network first, so a new version shows on the next
 // visit; the cached copy is the fallback when there is no connection.
-const CACHE = 'mp3player-v3';
+const CACHE = 'mp3player-v4';
 const SHELL = [
   './', 'index.html', 'styles.css', 'icon.svg', 'manifest.webmanifest', 'data/asset-list.json',
   'src/main.js', 'src/store.js', 'src/player.js', 'src/queue.js', 'src/tags.js', 'src/library.js', 'src/icons.js', 'src/artwork.js', 'src/playlists.js',
