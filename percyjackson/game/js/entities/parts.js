@@ -199,11 +199,14 @@ function extremes(watch) {
   const out = [];
   for (const w of watch) w.traverse((m) => {
     if (!m.isMesh || !m.geometry?.attributes?.position) return;
-    const P = m.geometry.attributes.position, seen = new Set();
-    for (const [dx, dy, dz] of DIRS14) {
-      let best = -Infinity, bi = 0;
-      for (let i = 0; i < P.count; i++) { const d = P.getX(i) * dx + P.getY(i) * dy + P.getZ(i) * dz; if (d > best) { best = d; bi = i; } }
-      if (!seen.has(bi)) { seen.add(bi); out.push({ m, v: new THREE.Vector3(P.getX(bi), P.getY(bi), P.getZ(bi)) }); }
+    // (a merged part, charmat.js: the points of the meshes it was made of, as before)
+    for (const s of m.userData.parts ?? [null]) {
+      const P = (s ? s.geometry : m.geometry).attributes.position, seen = new Set();
+      for (const [dx, dy, dz] of DIRS14) {
+        let best = -Infinity, bi = 0;
+        for (let i = 0; i < P.count; i++) { const d = P.getX(i) * dx + P.getY(i) * dy + P.getZ(i) * dz; if (d > best) { best = d; bi = i; } }
+        if (!seen.has(bi)) { seen.add(bi); const v = new THREE.Vector3(P.getX(bi), P.getY(bi), P.getZ(bi)); if (s) v.applyMatrix4(s.matrix); out.push({ m, v }); }
+      }
     }
   });
   return out;

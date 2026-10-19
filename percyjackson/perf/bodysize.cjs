@@ -12,8 +12,15 @@
 //     props named in rig.extras (weapon, shield, pot, gun, bike, ...);
 //   - glows and additive effects, sprites and hidden parts.
 // It prints body height (top of the body over the soles), total height (the
-// whole visible box) and both as × Percy, and writes JSON to argv[2].
-//   NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/bodysize.cjs [out.json] [keys]
+// whole visible box) and both as × Percy, and writes JSON to argv[2]. For an
+// upright model (a Rig, not a QuadRig or serpent) it also measures the head:
+// the height of the rig's head block (the skin cube, hair and props aside)
+// over the body height.
+//   NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/bodysize.cjs [out.json] [keys] [--check]
+// --check tests every model against the size spec (design/sizes.json): its
+// body × Percy must lie in its size category's band, and a big upright
+// model's head must not keep a hero's proportions (the spec's head rule). It
+// lists each failure and exits 1 if there is any.
 // Serves the repository on PERF_PORT (default 8765) if nothing is there yet.
 const fs = require('fs');
 const path = require('path');
@@ -24,8 +31,11 @@ const { findChrome } = require('./lib.cjs');
 const PORT = +(process.env.PERF_PORT || 8765);
 const ROOT = path.resolve(__dirname, '../..');
 const GAME = `http://127.0.0.1:${PORT}/percyjackson/game/`;
-const OUT = process.argv[2] && !process.argv[2].startsWith('-') ? process.argv[2] : null;
-const ONLY = (process.argv[3] || '').split(',').filter(Boolean);
+const ARGS = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+const CHECK = process.argv.includes('--check');
+const OUT = ARGS[0] && ARGS[0] !== '-' ? ARGS[0] : null;
+const ONLY = (ARGS[1] || '').split(',').filter(Boolean);
+const SPEC = path.resolve(__dirname, '../design/sizes.json');
 
 async function serve() {
   const up = async () => { try { return (await fetch(GAME)).ok; } catch { return false; } };
@@ -90,7 +100,17 @@ async function serve() {
         all.union(bb); const u = under(o); if (!u) body.union(bb); else parts[u] = Math.max(parts[u] ?? -Infinity, bb.max.y);
       });
       const sa = all.getSize(new THREE.Vector3()), sb = body.isEmpty() ? new THREE.Vector3() : body.getSize(new THREE.Vector3());
-      return { allTop: all.max.y, allBot: all.min.y, allH: sa.y, bodyTop: body.isEmpty() ? 0 : body.max.y, bodyBot: body.isEmpty() ? 0 : body.min.y, bodyH: sb.y, bodyLong: Math.max(sb.x, sb.z), allLong: Math.max(sa.x, sa.z), float: rig.float ?? 0, parts, tris };
+      // the head block of an upright rig: its skin cube where the builder
+      // kept it (rig.headMesh), else the head group's own solid meshes
+      let headH = null;
+      if (!rig.isQuad && rig.head) {
+        const hb = new THREE.Box3(), hm = rig.headMesh;
+        const attached = (o) => { for (let x = o; x; x = x.parent) if (x === rig.root) return true; return false; };
+        if (hm && attached(hm) && visible(hm)) { hm.geometry.computeBoundingBox(); hb.copy(hm.geometry.boundingBox).applyMatrix4(hm.matrixWorld); }
+        else rig.head.traverse((o) => { if (o.isMesh && !o.isInstancedMesh && !fx(o) && visible(o) && !under(o)) { o.geometry.computeBoundingBox(); hb.union(o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld)); } });
+        if (!hb.isEmpty()) headH = hb.max.y - hb.min.y;
+      }
+      return { headH, allTop: all.max.y, allBot: all.min.y, allH: sa.y, bodyTop: body.isEmpty() ? 0 : body.max.y, bodyBot: body.isEmpty() ? 0 : body.min.y, bodyH: sb.y, bodyLong: Math.max(sb.x, sb.z), allLong: Math.max(sa.x, sa.z), float: rig.float ?? 0, parts, tris };
     };
     const percy = measure(models.buildHeroModel('percy'));
     const P = percy.bodyTop;
@@ -114,6 +134,7 @@ async function serve() {
       out.push({ group: it.group, key: it.key, name: it.name,
         bodyH: r2(bodyH), bodyX: r2(bodyH / P), allH: r2(m.allTop - Math.min(0, m.allBot)), allX: r2((m.allTop - Math.min(0, m.allBot)) / P),
         bodyBot: r2(m.bodyBot), bodyLong: r2(m.bodyLong), allLong: r2(m.allLong), float: m.float, hoverTop: r2(m.bodyTop + (m.float || d.hover || 0)),
+        headH: m.headH == null ? null : r2(m.headH), headR: m.headH == null || !bodyH ? null : +(m.headH / bodyH).toFixed(3),
         statH: sh, statR: sr, base: rig.baseScale, tris: Math.round(m.tris),
         left: Object.entries(m.parts).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v.toFixed(2)}`).join(', ') });
       rig.root.traverse((o) => o.geometry?.dispose?.());
@@ -122,12 +143,47 @@ async function serve() {
   }, ONLY);
   if (OUT) fs.writeFileSync(OUT, JSON.stringify(res, null, 1));
   console.log(`Percy body ${res.percy.bodyH}, whole ${res.percy.allH}`);
-  console.log('group      key                         body  ×P    total ×P    statH');
+  console.log('group      key                         body  ×P    total ×P    statH  head/body  tris');
   for (const r of res.rows) {
     if (r.error) { console.log(r.key, 'ERROR', r.error); continue; }
-    console.log(`${r.group.padEnd(10)} ${r.key.padEnd(27)} ${String(r.bodyH).padStart(5)} ${r.bodyX.toFixed(2)}  ${String(r.allH).padStart(5)} ${r.allX.toFixed(2)}  ${String(r.statH ?? '—').slice(0, 5).padEnd(5)}  left out: ${r.left}`);
+    console.log(`${r.group.padEnd(10)} ${r.key.padEnd(27)} ${String(r.bodyH).padStart(5)} ${r.bodyX.toFixed(2)}  ${String(r.allH).padStart(5)} ${r.allX.toFixed(2)}  ${String(r.statH ?? '—').slice(0, 5).padEnd(5)}  ${r.headR == null ? '  —  ' : r.headR.toFixed(3)}  ${String(r.tris).padStart(6)}  left out: ${r.left}`);
   }
   console.log('models', res.rows.length, 'page errors', errs.length, errs.slice(0, 3));
   await b.close();
-  process.exit(errs.length ? 1 : 0);
+  let bad = 0;
+  if (CHECK) bad = check(res.rows);
+  process.exit(errs.length || bad ? 1 : 0);
 })();
+
+// ---- the size spec check (--check) ------------------------------------------
+// design/sizes.json gives each model a size category; the category's band (×
+// Percy, body height) is in its "categories" table, the one place to tune
+// them. The head rule: an upright model's head block over its body height may
+// be at most head.hero at hero size (head.from × Percy and under), falling
+// in a straight line to head.big at head.to × Percy and over, plus head.tol.
+function headMax(H, x) {
+  const t = Math.max(0, Math.min(1, (x - H.from) / (H.to - H.from)));
+  return H.hero + (H.big - H.hero) * t + H.tol;
+}
+function check(rows) {
+  const spec = JSON.parse(fs.readFileSync(SPEC, 'utf8'));
+  const C = spec.categories, H = spec.head, out = [], warn = [];
+  for (const r of rows) {
+    if (r.error) { out.push(`${r.key}: did not build (${r.error})`); continue; }
+    const e = spec.models[r.key];
+    if (!e) { out.push(`${r.key}: no entry in design/sizes.json`); continue; }
+    const c = C[e.category];
+    if (!c) { out.push(`${r.key}: unknown category "${e.category}"`); continue; }
+    const x = r.bodyX;
+    if (x < c.min || x > c.max) out.push(`${r.key}: body ${x.toFixed(2)}× Percy is outside "${e.category}" (${c.label}, ${c.min}–${c.max}×)`);
+    const max = r.headR != null && x > H.from ? headMax(H, x) : Infinity;
+    if (r.headR > max) {
+      const msg = `${r.key}: head ${r.headR.toFixed(3)} of its body at ${x.toFixed(2)}× Percy, over the head rule's ${max.toFixed(3)} (a hero-proportioned head on a big body)`;
+      if (e.head === 'followUp') warn.push(msg + ' [known: follow-up]'); else out.push(msg);
+    } else if (e.head === 'followUp') warn.push(`${r.key}: marked "head": "followUp" but its head now passes (${r.headR == null ? 'not an upright rig' : r.headR.toFixed(3)}); remove the mark`);
+  }
+  console.log(`\nsize check (design/sizes.json): ${rows.length} models, ${out.length} failing, ${warn.length} warnings`);
+  for (const l of out) console.log('  FAIL ' + l);
+  for (const l of warn) console.log('  WARN ' + l);
+  return out.length;
+}

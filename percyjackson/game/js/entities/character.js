@@ -121,7 +121,7 @@ export function makeCharMaterial(map, opts = {}) {
   m.emissiveNode = mix(tex.rgb.mul(bright).mul(emitMask).add(glow).add(tex.rgb.mul(fill)), vec3(1, 1, 1).mul(2.2), flash);
   const n = interleavedGradientNoise(screenCoordinate.xy);
   m.maskNode = n.greaterThan(dissolve);
-  m.userData = { flash, glow, dissolve, emitMask };
+  m.userData = { flash, glow, dissolve, emitMask, fill };   // (fill: charmat.js draws this skin and its voxel detail as one part)
   return m;
 }
 
@@ -175,7 +175,8 @@ export function extremePoints(o, skip = null) {
     for (const c of n.children) {
       if (!c.visible || (skip && skip.has(c)) || c.userData.noLint) continue;
       c.updateMatrix(); const m = new THREE.Matrix4().multiplyMatrices(M, c.matrix);
-      if (c.isMesh && !c.isInstancedMesh && c.geometry?.attributes?.position && !c.userData.shell) for (const p of geoHull(c.geometry)) pts.push(p.clone().applyMatrix4(m));
+      // (a merged part, charmat.js: the points of the meshes it was made of, as before)
+      if (c.isMesh && !c.isInstancedMesh && c.geometry?.attributes?.position && !c.userData.shell) for (const s of c.userData.parts ?? [null]) { const mm = s ? new THREE.Matrix4().multiplyMatrices(m, s.matrix) : m; for (const p of geoHull(s ? s.geometry : c.geometry)) pts.push(p.clone().applyMatrix4(mm)); }
       walk(c, m);
     }
   };

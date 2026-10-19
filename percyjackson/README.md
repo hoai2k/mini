@@ -609,13 +609,17 @@ suite under other seeds, for example
 `for s in $(seq 1 50); do TEST_SEED=$s node --test test/*.test.mjs | grep '^not ok'; done`.
 
 When a change touches a model or how one moves (`game/js/entities/`), run the
-animation lint and the weapon check (headless Chromium; each prints a table
-and exits 1 on a failure):
+animation lint, the weapon check and the size check (headless Chromium; each
+prints a table and exits 1 on a failure):
 
 ```sh
 NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/animlint.cjs   # bodies through the floor, parts flying off, weapons backward at the strike
 NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/weapons.cjs    # every weapon points forward, at rest and in each strike
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/bodysize.cjs - '' --check   # every model's size category against Percy (design/sizes.json), and no hero-sized head on a big body
 ```
+
+A new model needs an entry in [design/sizes.json](design/sizes.json) (its
+size category, source and reason; `test/sizes.test.mjs` fails without one).
 
 The lint plays each model's poses as the game does, monsters' own attacks
 included, and the model workbench shows the same results on each tile and in

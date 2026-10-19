@@ -17,6 +17,7 @@ import { skinMat, group, HS, bruteLimbs, sway, withBuild, voxDensity } from './p
 import { MONSTERS, HELLHOUND, buildMonsterModel, animateExtras, kit, dropMeshes, eagle, hound, buildScorpion, buildSkeleton, buildCyclops, cycDensity } from './monsters.js';
 import { blob } from './fodder.js';
 import { addFlames, remapFlames } from './flames.js';
+import { mergeRig, PART_MERGE } from './charmat.js';
 
 const GOLD = 0xf0b030, GOLD_D = 0xb87a14, GOLD_L = 0xffe070;
 
@@ -300,7 +301,7 @@ function buildPaleKing() {
 export const CHAMPION_LOOKS = {
   fields_bronzebeak: { kind: 'stymphalian', build: buildBronzebeak, shell: 0xff6a1a, aura: { kind: 'embers', col: [2.6, 1.2, 0.3] }, scale: 2.1 },
   woods_shadowfang: { kind: 'hellhound', build: buildShadowfang, glow: 0, shell: 0xff2a0a, aura: { kind: 'smoke', col: [2.6, 0.6, 0.1], at: 'head' }, scale: 1.3 },
-  shore_queen_gale: { kind: 'harpy', build: buildQueenGale, shell: 0xffe040, aura: { kind: 'spark', col: [2.6, 2.4, 0.8] }, scale: 1.85 },
+  shore_queen_gale: { kind: 'harpy', build: buildQueenGale, shell: 0xffe040, aura: { kind: 'spark', col: [2.6, 2.4, 0.8] }, scale: 1.6 },   // (size audit, round 6: the harpy grew 1.37×, so 1.85 → 1.6 keeps the queen about 1.6× Percy, "bigger" in design/sizes.json)
   canyon_red_king: { kind: 'scorpion', build: buildRedKing, shell: 0xffb020, aura: { kind: 'dust', col: [2.4, 1.6, 0.3] }, scale: 2.4 },
   lab_bronze_warden: { kind: 'automaton', build: buildBronzeWarden, shell: 0x3ae8ff, aura: { kind: 'spark', col: [0.5, 2.2, 2.6] }, scale: 1.6, size: 2.4 },   // (size audit: a giant automaton, about 1.85× a hero; its hall is a 15-block open ring)
   oth_gorgos: { kind: 'cyclops', build: buildGorgos, shell: 0xff6a20, aura: { kind: 'embers', col: [2.6, 1, 0.2], at: 'head' }, scale: 1.12 },
@@ -323,7 +324,7 @@ export const KIND_LOOKS = {
   dracaena: { shell: 0xd060ff, aura: { kind: 'spark', col: [2, 0.6, 2.6] }, scale: 1.3, remap: (c) => { if (hueIn(c.h, 0.25, 0.5)) c.h = 0.78; } },
   // blue-fire empousai
   empousa: { shell: 0x40c0ff, aura: { kind: 'embers', col: [0.4, 1.6, 2.6], at: 'head' }, scale: 1.3, remap: (c, hot) => { if (hueIn(c.h, 0.97, 0.12) && (hot || c.s > 0.75)) c.h = 0.56; } },
-  harpy: { shell: 0xffd84a, aura: { kind: 'spark', col: [2.6, 2, 0.6] }, scale: 1.6 },
+  harpy: { shell: 0xffd84a, aura: { kind: 'spark', col: [2.6, 2, 0.6] }, scale: 1.4 },   // (size audit, round 6: the harpy grew 1.37×, so 1.6 → 1.4)
   stymphalian: { shell: 0xff8a2a, aura: { kind: 'embers', col: [2.6, 1.2, 0.3] }, scale: 1.4 },   // (size audit, round 4: the bird itself grew ×1.36, so the champion stays near its old size, a wingspan about 3× Percy)
   scorpion: { shell: 0xffb020, aura: { kind: 'dust', col: [2.4, 1.6, 0.3] }, scale: 2 },
   cyclops: { shell: 0xff6a20, aura: { kind: 'embers', col: [2.6, 1, 0.2] }, scale: 1.08 },
@@ -439,13 +440,18 @@ function ringMat(color) {
 // skin, voxel detail and blobs come out finer, not as the kind enlarged.
 export function buildChampionRig(id, kind) {
   const look = championLook(id, kind), ks = look.scale ?? 1.3;
-  const rig = withBuild({ k: ks, key: `c:${id ?? kind}` }, () => {
-    if (look.build) return look.build();
-    const r = buildMonsterModel(MONSTERS[kind]?.model ?? kind);
-    if (look.remap) remapRig(r, `champ:${kind}`, look.remap);
-    crownAny(r);
-    return r;
-  });
+  PART_MERGE.defer++;   // (merged once it is recoloured and crowned: charmat.js)
+  let rig;
+  try {
+    rig = withBuild({ k: ks, key: `c:${id ?? kind}` }, () => {
+      if (look.build) return look.build();
+      const r = buildMonsterModel(MONSTERS[kind]?.model ?? kind);
+      if (look.remap) remapRig(r, `champ:${kind}`, look.remap);
+      crownAny(r);
+      return r;
+    });
+  } finally { PART_MERGE.defer--; }
+  mergeRig(rig);
   rig.baseScale *= ks;
   rig.root.scale.setScalar(rig.baseScale);
   // the glow: an emissive tint over its own skin and detail (only when the

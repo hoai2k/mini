@@ -78,6 +78,9 @@ import { Roaming } from './world/roaming.js';
 import { LiveSigns } from './world/liveSign.js';
 import { preloadArt, prepareLogo, ALL_ART } from './ui/art.js';
 import { OpeningFlow } from './story/openingFlow.js';
+import { Crowd, CROWD } from './gfx/crowd.js';
+// crowd batching (gfx/crowd.js): on unless the quality tier turns it off or ?batch=0
+const crowdOn = (preset) => preset.batch !== false && !(typeof location !== 'undefined' && /[?&]batch=0\b/.test(location.search));
 
 const loadFill = document.getElementById('load-fill');
 const loadText = document.getElementById('load-text');
@@ -155,6 +158,7 @@ class Game {
     this.particles = new Particles(this.scene, this.gr.preset.particles);
     this.particles.budget = this.gr.quality === 'low' ? 0.5 : this.gr.quality === 'medium' ? 0.75 : 1;
     FLAME_BUDGET.k = this.gr.quality === 'low' ? 0.6 : 1;   // (the live flames on models, entities/flames.js: fewer cubes on the lowest tier, as the particles)
+    this.crowd = new Crowd(this.scene, this.gr.renderer); CROWD.on = crowdOn(this.gr.preset);
     this.fx = new Effects(this);
     this.debris = new Debris(this);
     this.bolts = new Bolts(this.scene);
@@ -375,6 +379,7 @@ class Game {
     U.bakeStrength.value = this.gr.preset.bake;
     this.particles.budget = this.gr.quality === 'low' ? 0.5 : this.gr.quality === 'medium' ? 0.75 : 1;
     FLAME_BUDGET.k = this.gr.quality === 'low' ? 0.6 : 1;   // (the live flames on models, entities/flames.js: fewer cubes on the lowest tier, as the particles)
+    CROWD.on = crowdOn(this.gr.preset);
     if (this.shafts) this.shafts.group.visible = !!this.gr.preset.shafts;
     this.gr.buildPipeline();
     this.setReadout(settings.showFps);
@@ -404,6 +409,7 @@ class Game {
     for (const o of this.fallen ?? []) this.releaseLater(o); this.fallen = [];
     this.warmEnd?.(); this.warmEnd = null;   // (a shadow warm-up still in the scene: warmShadows)
     this.releaseLater(this.warmGroup); this.warmGroup = null;
+    for (const im of this.crowd?.clear() ?? []) this.releaseLater(im);   // (the crowd batches: gfx/crowd.js)
     this.enemies = []; this.allies = [];
     this.projectiles.clear(); this.hazards.clear(); this.pickups.clear(); this.loot?.clear();
     for (const m of this.markers.items) this.markers.cancel(m);
@@ -582,6 +588,9 @@ class Game {
       await this.passReady();
       if (lazy) for (const k of MONSTER_IDS) { if (this.warmGroup !== grp) break; add([k]); await nextFrame(); }
       if (this.warmGroup !== grp) throw new Error('level left');
+      // (and a stand-in for each crowd batch the models' kinds will draw with: gfx/crowd.js)
+      const rigs = []; grp.traverse((o) => { if (o.userData.rig) rigs.push(o.userData.rig); });
+      this.crowd?.warmFor(rigs);
       grp.traverse((o) => { if (o.isMesh) { o.frustumCulled = false; if (o.userData.baseMat) meshes.push(o); } });
     };
     // (compileAsync takes each object's material when it is called, so the swap back can follow at once)
@@ -1043,6 +1052,7 @@ class Game {
     this.tracker.update(realDt);
     this.signs.update(this.paused && !this.cutscene ? 0 : realDt);
     if (this.minimap.level && (this.frameN = (this.frameN ?? 0) + 1) % 3 === 0) this.minimap.draw(this.hud.mini);
+    this.crowd?.update(this.enemies);   // (same-kind monsters drawn part by part as one instanced mesh: gfx/crowd.js)
     gr.render(); this.framesDrawn = (this.framesDrawn ?? 0) + 1;
     this.tickRelease();
     if (this.readoutOn) this.updateReadout();

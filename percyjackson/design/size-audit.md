@@ -4,7 +4,10 @@ Every model the workbench lists (heroes, camp NPCs, monsters, bosses,
 champions, mortal disguises and open-world people), measured against Percy and
 compared with Rick Riordan's books, Greek myth and the game's own design
 documents. Round 2 adds the size descriptions the books give and the owner's
-decisions.
+decisions. Round 6 replaces judgement by eye with an enforced spec: every
+model has a size category in [sizes.json](sizes.json), and
+`perf/bodysize.cjs --check` fails when a model leaves its category's band or
+a big body keeps a hero's big head.
 
 ## The basilisk in the books
 
@@ -47,7 +50,8 @@ breath and a poisonous touch, and they are "as long as a man's arm", about
 | Skeleton warrior | 0.77× | soldiers, "the size of a grown man" | 0.89× |
 | Karpos | 1.01× | *The Son of Neptune*: "the size of toddlers" | 0.71× (×0.7) |
 | Myrmex | 0.87× tall, 2.9 long | "the size of a full grown German Shepherd" | 0.57× incl. antennae, 1.9 long (×0.65) |
-| Harpy / Restless Spirit | 0.68× / 0.77× | bird-women / people as they were in life | 0.81× / 0.92× (×1.2) |
+| Harpy / Restless Spirit | 0.68× / 0.77× | bird-women / people as they were in life | the spirit 0.92× (×1.2); the harpy 0.81× (×1.2), then re-sculpted to body 1.10× (round 6) |
+| Dracaena | body 0.87× (the 1.03× box was her snake hair and spear) | the owner: notably bigger than Percy; the sheet draws her as tall as the hellhound | body 1.80×, re-sculpted (round 6) |
 | Bronze Warden | 1.16× | request: "a giant bronze automaton" | 1.87× (×1.6) |
 | Cerberus | 1.98× | *The Lightning Thief* ch. 18†: "twice the size of a woolly mammoth" | 2.9–3.2× after the other agent's rebuild; recommended 7.5 blocks (below) |
 | Telekhine | 0.46× | *Battle of the Labyrinth*: adults "at least seven feet tall" | 1.18× (×2.6, round 3) |
@@ -76,6 +80,10 @@ exaggerations"):
   capes and props (`percyjackson/perf/bodysize.cjs`; details under "Round 4").
   Body height is the top of the body over the ground line. Judge size by the
   body column first.
+- **The size spec (round 6).** Each model's size category, its band and the
+  head rule are in [sizes.json](sizes.json); `bodysize.cjs --check` enforces
+  them, with the sheet measurements and the reasons behind each category.
+  See "Round 6".
 - **Stat size.**
   - `height` and `radius` come from `MONSTERS` (`monsters.js`, which includes
     `FODDER_MONSTERS` from `fodder.js`) and from `BOSS_DEFS` (`bosses.js`).
@@ -441,7 +449,7 @@ models whose box hid a smaller body):
 | Bronze Spider, its champion | 0.27, 0.47 | 0.40, 0.67 | the wind-up key | between the books (tiny) and the design (a dog, ~0.3–0.4); for the owner |
 | Earthborn | 1.39 | 1.61 | raised upper arms | OK: the books' 7–8 feet |
 | Greek-Fire Automaton | 0.24 | 0.43 | the pot of Greek fire it carries | OK: a game invention |
-| Dracaena | 0.87 | 1.03 | snake hair, the spear | a little short, inside the people's band; for the owner |
+| Dracaena | 0.87 | 1.03 | snake hair, the spear | a little short, inside the people's band; for the owner (wrongly left: fixed in round 6, 1.80×) |
 | Ker | 0.99 | 1.12 | wings | OK |
 | Empousa | 0.99 | 1.07 | flame hair | OK (fixed in the first pass) |
 
@@ -520,6 +528,199 @@ elite hellhound.
 - `perf/smoke.cjs`: 0 page errors.
 - `perf/bodysize.cjs`: 103 models, 0 page errors.
 
+### Round 6: a size spec the check enforces (the owner's ruling)
+
+The owner: "Harpies are smaller than Percy, and so is the Dracaena, and it
+seems like she should be notably bigger than him. Did your audit not catch
+these things?" It did not, and the cause was the method, not the measuring.
+
+**What went wrong.**
+- **No written target.** Each round measured every model well, then judged
+  it by eye against a loose "expected" column. Nothing said what size a
+  model *should* be, so nothing could fail.
+- **Text over pictures.** The audit leaned on the books. Where they give no
+  size (harpies, dracaenae), anything near Percy was accepted: the harpy at
+  0.81× passed as "roughly human-sized", the dracaena at 0.87× as "inside the
+  people's band".
+- **The strongest evidence went unused.** The concept sheets draw a Percy
+  beside each creature for scale. Round 4 noted that the sheet draws the
+  dracaena "about twice Percy" and still left her as a doubt for the owner.
+  No sheet was measured.
+- **Canon read as a ceiling.** A book size, or none, capped a model even
+  where the game wants it to loom.
+
+**The spec: [sizes.json](sizes.json).**
+- **Categories, not ranges.** Each workbench model (all 103) has a size
+  category relative to Percy, with its source and reason. The bands are one
+  table at the top, the one place to tune them (body height × Percy):
+
+  | category | label | band |
+  |---|---|---|
+  | `tiny` | much smaller | 0–0.45 |
+  | `small` | smaller | 0.4–0.8 |
+  | `slightlySmaller` | slightly smaller | 0.75–0.95 |
+  | `same` | about the same | 0.85–1.15 |
+  | `slightlyBigger` | slightly bigger | 1.05–1.45 |
+  | `bigger` | bigger | 1.4–2.0 |
+  | `muchBigger` | much bigger | 1.85–2.7 |
+  | `giant` | giant / towering | 2.55–6 |
+
+- **How a category is chosen.**
+  1. The owner's rulings fix it: Tyson, Medusa, the hellhounds and the
+     Laistrygonian kept, the pup larger than a person, Cerberus 3.4× and
+     over, the Fury family grown, the empousa as tall as Percy.
+  2. Then the role and the drama: an elite or a boss should loom, so
+     "imposing beats canon". Exaggeration is expected; what matters is the
+     relation to Percy.
+  3. The concept sheets and the books are the guide, not the ceiling.
+- **Sheet measurements.** For 27 models, the drawing's height over its Percy
+  figure, read off the image with a pixel ruler (`sheetMeasure`: the sheet,
+  both pixel heights, the ratio). The sheets draw everything bigger than the
+  game: a person-sized figure on the same sheet (the skeleton and empousa on
+  `vox-enemies`, the shades on `vox-ow-fodder`, the keres on
+  `vox-ow-fodder-3`) measures 1.7–1.8× its Percy. So each measurement also
+  gives `norm`, the ratio over that figure's. On `vox-ow-fodder` the normed
+  sizes match the game's karpos (0.74 for 0.69), myrmex (0.51 for 0.57) and
+  crab (0.56 for 0.54). The champion and boss sheets draw every figure about
+  4–4.5× a small running Percy, so only their relative sizes count.
+- **The head rule** (the owner, during this round): as characters grow, the
+  Minecraft-style big head gives way to realistic proportions.
+  - `bodysize.cjs` now measures an upright rig's head block (its skin cube,
+    or the head group's own meshes where the builder dropped the cube) over
+    its body height. Heroes measure 0.23–0.29; an adult is about 0.13.
+  - Allowed: 0.30 at 1× Percy and under, falling in a straight line to 0.17 at
+    2× and over. Four-legged rigs and serpents are not checked.
+  - The sheets agree: on `vox-enemies` Percy's head is about 0.41 of his
+    height and the dracaena's about 0.17.
+
+**The check.** `bodysize.cjs - '' --check` (listed in `perf/README.md`)
+reads the spec, measures every model and fails on:
+- a body outside its category's band;
+- a head over the head rule, unless the spec marks it `"head": "followUp"`
+  with a note: a known case left for a later pass. It prints as a warning,
+  and says so when the mark can go.
+
+`test/sizes.test.mjs` checks the spec itself:
+- every workbench model has an entry, with a known category, a source and a
+  reason;
+- the bands grow in order and overlap by 0.15 at most;
+- each sheet measurement adds up;
+- the owner's rulings keep their categories.
+
+**What the check flagged, run on the models before this round's fixes:**
+
+| model | body × Percy | category (band) |
+|---|---|---|
+| harpy | 0.80 | slightly bigger (1.05–1.45) |
+| dracaena | 0.87 | bigger (1.4–2.0) |
+| Queen Gale (harpy champion) | 1.35 | bigger (1.4–2.0) |
+| `kind:harpy` | 1.37 | bigger (1.4–2.0) |
+| `kind:dracaena` | 1.29 | much bigger (1.85–2.7) |
+
+The head rule flagged 12 more. They are marked `followUp` for a later pass,
+since none of them is a harpy or a dracaena:
+
+| model | body × Percy | head / body | allowed |
+|---|---|---|---|
+| Tyson (size kept by the owner) | 1.51 | 0.25 | 0.234 |
+| Fury | 1.42 | 0.28 | 0.245 |
+| Earthborn | 1.39 | 0.27 | 0.249 |
+| Medusa | 1.56 | 0.47 | 0.227 |
+| Laistrygonian | 1.61 | 0.45 | 0.221 |
+| Cyclops | 1.82 | 0.45 | 0.193 |
+| Bronze Warden | 1.86 | 0.26 | 0.188 |
+| Alecto, the Furies | 1.90 | 0.28 | 0.183 |
+| Minotaur | 1.96 | 0.42 | 0.175 |
+| Gorgos, `kind:cyclops` | 2.21 | 0.49, 0.52 | 0.170 |
+
+The cyclops kinds, the Laistrygonian, Medusa and the Minotaur drop their
+skin head cube. Their head block is measured from the head group, so it
+takes in the mane, beard, veil and snakes, or the bull's head. Those numbers
+overstate the head, but even the face alone is hero-sized on those bodies.
+
+**The fixes.** Both are re-sculpted, not scaled: the bigger body is made of
+more cells at the heroes' voxel size, and the head is kept small for the
+body.
+
+- **The harpy** (`monsters.js` `harpyWoman`, rig scale 1.2 kept):
+  - Body 1.74 → **2.39 (0.80 → 1.10×)**, head 0.25 → 0.18 of her body.
+  - The torso is 11.5 → 16 px: a narrow chest over a pinched waist, a
+    scrawny neck with collarbones and cords.
+  - The legs are 8 → 15 px: three rings of ragged thigh feathers, a knee, a
+    long yellow shank ringed with scales and scutes, and jointed toes with
+    black talons.
+  - Feathers: breast feathers in rows, each with a dark tip and a light
+    shaft; a two-layer feather skirt; a tail of seven long feathers with
+    shafts and pale torn tips; longer tangled hair down her back.
+  - Wings: span 25 → 31, chord 11 → 13.5 (about 2.3× her height tip to tip,
+    whole box 4.7). Two rows of covert feathers over the arm, marginal
+    coverts on the leading edge, pale shafts on the secondaries, eight torn
+    hanging feathers, the alula at the wrist, the clawed thumb.
+  - 2.5k → 5.5k triangles.
+  - Stats: height 2 → 2.5, radius 0.4 → 0.5. A ranged flier, so no reach
+    depends on her size. 2.5 tall and 1 across she passes every door,
+    including the 3 × 3 barn and farmhouse doors.
+- **Her champions:**
+  - Queen Gale: look scale 1.85 → 1.6, body 1.35 → 1.56×.
+  - `kind:harpy`: 1.6 → 1.4, body 1.36 → 1.61×.
+  - Both stay "bigger" than the harpy, as champions are. Their radius
+    follows: 0.6 → 0.75 and 0.7. Their hit height is measured from the
+    model.
+- **The dracaena** (`monsters.js` `buildDracaena`): a woman's torso reared up
+  on one long serpent tail, as this game's model and the `vox-enemies` sheet
+  draw her.
+  - Rig scale 1.2 → 1.85, with the skin painted finer (`skinMat` `scale`)
+    and every detail sized in hero pixels (`densityFor`). The tail she rears
+    on is 12 → 25 px, the torso 12 → 13. The head is 6.2 px
+    (`headS`, was 8), so the head is 0.15 of her body (was 0.26).
+  - Body 1.90 → **3.93 (0.87 → 1.80×)**; with the writhing hair snakes 4.4.
+  - The trunk rises in a gentle S to a coil on the ground, its tip curled up.
+    It is scaled all over in two-hero-pixel plates, with a broad band of
+    gold belly plates with dark seams and a zigzag gold stripe down each
+    side. The coil is ×1.25, in the same scales.
+  - Armour: a black bodice in two cups rimmed in gold, a gold rib, straps,
+    side studs, a gold collar with a green pendant, a banded belt with a
+    square buckle and a hanging gold tongue. Two layers of leather skirt
+    strips with gold studs and worn hems. Gold armlets, and wide banded
+    bracers set with green stones.
+  - Hair: 18 snake heads in the curls (jaw, eyes, some with a flicked
+    tongue), 6 writhing snakes (was 4), gold earrings.
+  - The spear: a leather grip wrap, banded gold rings, a butt cap, a blade
+    with a midrib and barbs. It is about her height, as on the sheet, and
+    still points forward.
+  - 4.6k → 10.7k triangles.
+  - **Stats:** radius 0.8 → 1.1; height 2.6 → 3.8; slam trigger range
+    2.6 → 3; slam radius 2.6 → 2.9 (`slamR`, its circle 1.8 ahead). Her spear
+    and her bigger body reach further. `windup`, `cd` and `dmg` are
+    unchanged.
+  - **Fit:**
+    - The collision height of 3.8 passes the chapter rooms' 4-high doors,
+      and her 2.2 width passes the 5-wide ones. Her crown (3.93) and hair
+      snakes (4.4) pass over a lintel, as the Fury's hair does.
+    - The Labyrinth's 5-high corridors fit her whole.
+    - She cannot enter the farmhouse (3 × 3 doors) or the highway bus (2 ×
+      3). The hellhounds can't either, and neither is a place she needs to
+      reach.
+- **Her champions:**
+  - `kind:dracaena` (look scale 1.3, unchanged): body 1.28 → 2.61×. It
+    fights on open ground.
+  - The Bronze Warden spawns as a dracaena with the automaton's look. It
+    keeps its size and attack scale. Its radius follows the kind (1.2 →
+    1.65), and so do its slam trigger (3) and radius (2.9). Its hall is a
+    15-block open ring.
+
+Before and after images (Percy beside each, a line every block) are working
+files outside the repository, as before.
+
+**Checks after round 6:**
+- `node --test test/*.test.mjs`: 200 of 200 pass (5 new in `sizes.test.mjs`).
+- `perf/weapons.cjs`: 23 weapons, 0 failing.
+- `perf/houndlegs.cjs`: all legs stay attached.
+- `perf/animlint.cjs --all`: 103 models, 0 problems.
+- `perf/smoke.cjs`: 0 page errors.
+- `perf/bodysize.cjs - '' --check`: 103 models, 0 failing, 12 warnings (the
+  head follow-ups above).
+
 ## Cerberus: the recommended size
 
 - **The books:** *The Lightning Thief* ch. 18† says "twice the size of a woolly
@@ -563,7 +764,7 @@ elite hellhound.
   - Bronze Spider: body 0.27×, under the design's "size of a dog"; ×1.25
     (scale 0.85 → 1.05) would make it one.
   - Dracaena: body 0.87×, a little short for a woman (the concept sheet draws
-    her about twice Percy).
+    her about twice Percy). Resolved in round 6: re-sculpted to 1.80×.
   - Stymphalian Bird: 0.41× standing level, about 0.7× if it stood upright;
     its pose is undecided.
   - The plain Fury's hovering hair (4.35) passes 0.35 over a 4-high door's
@@ -587,7 +788,11 @@ kind (automaton × 2.4); in game its hit height is now measured from the
 model (4.05). The arrows show this audit's changes and the other agents': the
 hellhounds, the Mist Serpent and Cerberus were changing under their rebuilds
 while this was measured. Heroes, mortals and people are measured too; none is
-outside 0.82–1.19× except Tyson and Chiron, a centaur.
+outside 0.82–1.19× except Tyson and Chiron, a centaur. Round 6 corrects the
+harpy, the dracaena and their champions (their body column runs to the round
+6 measure). The "expected" column is the old judgement; the size each model
+must now keep is its category in [sizes.json](sizes.json), which the check
+enforces.
 
 
 ### heroes
@@ -619,12 +824,12 @@ outside 0.82–1.19× except Tyson and Chiron, a centaur.
 | serpent | Mist Serpent | 0.57 → 1.31 (0.26 → 0.60×) | 1.30 (0.60×) | 3.6 | 1.30 / 0.55 | — | game invention (Mist Serpent) | n/a | being rebuilt by another agent |
 | mortal | Mortal | 2.21 → 2.23 (1.01 → 1.02×) | 2.21 (1.02×) | 1.2 | 1.90 / 0.38 | 1.0 | a person | OK | — |
 | spider | Bronze Spider | 0.86 (0.39×) | 0.59 (0.27×) | 1.6 | 0.80 / 0.38 | ~0.3–0.4 | TLT ch. 14 (Waterland): tiny bronze spiders; design: "the size of a dog" | **corrected**: the 0.39× box was the wind-up key on her back; her body is 0.27×, under the design's dog (~0.3–0.4×) and well over the books' tiny spiders | not changed: between the books and the design; ×1.25 (scale 0.85 → 1.05) would make her a dog, for the owner |
-| harpy | Wild Harpy | 1.48 → 1.77 (0.68 → 0.81×) | 1.74 (0.80×) | 3.9 | 2.00 / 0.40 | ~0.8–1.0 | SoM: the camp's cleaning harpies, "crossbred with the dodo birds"; SoN: Ella, small and skinny (Riordan Wiki); no height given | was a little small (0.68×) | FIXED ×1.2 |
+| harpy | Wild Harpy | 1.48 → 1.77 → 2.44 (0.68 → 0.81 → 1.12×) | 1.74 → 2.39 (0.80 → 1.10×) | 3.9 → 4.7 | 2.00 → 2.50 / 0.40 → 0.50 | slightly bigger, 1.05–1.45 (round 6) | the owner, round 6: at least Percy's size; SoM: the camp's cleaning harpies, "crossbred with the dodo birds"; SoN: Ella, small and skinny (Riordan Wiki); no height given; the vox-enemies upright bird, her first shape, stands about Percy's height normed | **misjudged in rounds 2–5**: 0.81× was accepted as "roughly human-sized" | FIXED ×1.2 (round 2), then re-sculpted (round 6): a 16 px torso and 15 px legs at the same voxel size, more feathers and wing structure, head 0.18 of the body; 5.5k triangles |
 | stymphalian | Stymphalian Bird | 1.12 → 1.53 (0.51 → 0.70×, wings up); body 0.68 → 0.93, about Percy's length; wingspan 3.6 → 4.9 (1.64 → 2.24×) | 0.90 (0.41×) | 4.9 | 1.70 → 2.00 / 0.45 → 0.60 | crane-sized, a body near a 12-year-old's waist with a wingspan wider than he is tall | Pausanias 8.22.4–5 (tr. W. H. S. Jones): "man-eating birds", "quite as savage against men as lions or leopards", "of the size of a crane", pierce bronze and iron armour; SoM: "monstrous pigeon-like birds", Annabeth: "They'll strip everyone to bones" (Riordan Wiki); *The Sun and the Star*: a flock carries Will Solace off (Riordan Wiki); no size given in the books | was small for a man-eater (owner, round 4); round 4, second pass: standing level, its body (head, back and legs, wings left out) is 0.90, 0.41×; upright it would be about 0.7× (the owner has not decided) | FIXED ×1.36 (scale 1.1 → 1.5, round 4); its champion look 1.8 → 1.4 so the champion stays its old size; Bronzebeak and the harpy build separately and are unchanged |
 | automaton | Greek-Fire Automaton | 1.04 (0.47×) | 0.51 (0.24×) | 0.9 | 1.10 / 0.55 | — | game invention (Greek-fire automaton) | OK; its own body is 0.24×, the Greek-fire pot on its back makes it 0.43× | — |
 | ghost | Restless Spirit | 1.68 → 2.01 (0.77 → 0.92×) | 1.93 (0.88×) | 1.1 | 2.00 / 0.45 | ~1.0 | Riordan Wiki: ghosts are "physically identical to when they were alive" | was a little small (0.77×) | FIXED ×1.2 |
 | fury | Fury | 2.86 → 4.40 (round 4, scale 1.5) → 5.90 (round 4, second pass, 2.1), whip tip under the soles to hair; hovering (float 0.8 → 1.0 → 1.25) her head at 2.30 → 3.30 → 4.35 (1.05 → 1.51 → 2.0×); wingspan 3.7 → 6.2 → 7.2 | 2.20 → 3.10 (1.02 → 1.42×) | 7.2 | 2.10 → 3.20 → 3.90 / 0.45 → 0.65 → 0.90 | body ~1.4–1.5 standing (owner, round 4, second pass) | TLT ch. 1: Mrs Dodds, "little" in disguise, grows leathery bat wings; her true form a monster; vox-enemies: a looming winged hag, well over Percy | was smaller than Percy (owner, round 4: the old 2.86 counted the whip hanging under her); round 4 brought her body only to 1.02×, so round 4, second pass grew her again with the boss sisters | FIXED ×1.5 (scale 1.0 → 1.5, round 4), then ×1.4 (1.5 → 2.1, round 4, second pass); slash range 2.2 → 2.8; under the boss sisters (Megaera and Tisiphone 2.5, Alecto 2.8); stat height 3.9 passes the rooms' 4-high doors and the 5-high Labyrinth and Asphodel ceilings; hovering, her hair passes 0.35 over a 4-high lintel |
-| dracaena | Dracaena | 2.24 → 2.25 (1.02 → 1.03×) | 1.89 (0.87×) | 2.8 | 2.60 / 0.80 | ~1.0 | SoM/BotL: humanoid women with twin serpent trunks for legs (no height given) | **corrected**: rounds 1–3 measured 1.03× with her snake hair and spear; her body is 0.87×, a little short beside the skeletons' 0.89× (the concept sheet draws her about twice Percy's height) | not changed: no book height, and inside the 0.82–1.19× band of people; for the owner |
+| dracaena | Dracaena | 2.24 → 2.25 → 4.41 (1.02 → 1.03 → 2.03×, hair snakes) | 1.89 → 3.93 (0.87 → 1.80×) | 2.8 → 4.2 | 2.60 → 3.80 / 0.80 → 1.10 | bigger, 1.4–2.0 (round 6) | the owner, round 6: notably bigger than Percy; vox-enemies draws her 2.66× its Percy (1.56× normed), as tall as the hellhound beside her; SoM/BotL: women with serpent trunks for legs (no height given) | **misjudged in rounds 1–5**: 1.03× from the box, then 0.87× by body left as a doubt though the sheet drew her twice Percy | FIXED round 6: re-sculpted reared up on a 25 px serpent trunk at rig scale 1.85, detail in hero-pixel cells, head 0.15 of the body; slam range 3, slamR 2.9; 10.7k triangles |
 | hellhound | Hellhound | 5.13 → 4.81 (2.34 → 2.19×) | 4.85 (2.23×) | 7.0 | 5.00 / 1.60 | ~1.0–1.3 at the shoulder | TLT ch. 8: "the size of a rhino"; Riordan Wiki: grizzly-bear or rhino size, up to garbage-truck size (Mrs O'Leary, BotL: "bigger than a tank") | big (2.1×), kept by the owner | keep (owner) |
 | empousa | Empousa | 2.15 → 2.55 with flames; head to foot without the flame mane 1.81 → 2.16 (0.83 → 0.99×) | 2.15 (0.99×) | 1.6 | 2.30 → 2.50 / 0.50 | ~1.0 | BotL ch. 1: Kelli, a cheerleader (a teenage girl's height); one bronze leg and one donkey leg | was short and short-legged (owner, round 4) | FIXED round 4: legs 12 → 16 px, torso 12 → 10 px, scale 1.1 → 1.25 |
 | scorpion | Giant Scorpion | 1.01 (0.46×) | 0.57 (0.26×) | 3.6 | 1.30 / 0.80 | — (game's giant scorpion) | BotL: Daedalus's giant scorpions (no size given); TLT ch. 22†: the pit scorpion is hand-sized, so it is now named Giant Scorpion | **corrected**: the 0.46× box is the sting raised over the back; the body stands 0.26× tall (3.6 long) | ROUND 3: renamed Giant Scorpion; no size in the books, so not changed; it reads by length |
@@ -670,7 +875,7 @@ outside 0.82–1.19× except Tyson and Chiron, a centaur.
 |---|---|---|---|---|---|---|---|---|---|
 | fields_bronzebeak | Bronzebeak | 2.60 → 2.61 (1.19×) | 2.53 (1.16×) | 6.6 | 3.57 / 0.68 | — | game champion: kind × look.scale | OK | — |
 | woods_shadowfang | Shadowfang | 6.68 → 6.45 (3.05 → 2.94×) | 6.39 (2.93×) | 9.0 | 6.50 / 2.08 | — | game champion: kind × look.scale | OK | — |
-| shore_queen_gale | Queen Gale | 3.00 → 3.01 (1.37×) | 2.93 (1.35×) | 6.1 | 3.70 / 0.60 | — | game champion: kind × look.scale | OK | — |
+| shore_queen_gale | Queen Gale | 3.00 → 3.01 → 3.44 (1.37 → 1.58×) | 2.93 → 3.39 (1.35 → 1.56×) | 6.1 → 6.4 | 3.70 → 4.00 / 0.60 → 0.75 | bigger (round 6) | game champion: kind × look.scale; vox-ow-champions draws her as tall as the Pale King | grows with the harpy | look.scale 1.85 → 1.6 (round 6) |
 | canyon_red_king | The Red King | 2.41 → 2.39 (1.10 → 1.09×) | 1.79 (0.82×) | 8.8 | 3.12 / 1.20 | — | game champion: kind × look.scale | OK; its body is 0.82× tall, the sting raises it to 1.09× (it reads by its 8.8 length) | — |
 | lab_bronze_warden | The Bronze Warden | 2.54 → 4.08 (1.16 → 1.86×) | 4.06 (1.86×) | 4.1 | 2.64 / 0.83 | — | game champion: kind × look.scale | OK | — |
 | oth_gorgos | Gorgos the Cyclops Chief | 4.85 → 4.84 (2.21×) | 4.83 (2.22×) | 4.1 | 4.70 / 1.34 | — | game champion: kind × look.scale | OK | — |
@@ -680,9 +885,9 @@ outside 0.82–1.19× except Tyson and Chiron, a centaur.
 | kind:skeleton | Skeleton Warrior (Road West champion) | 2.52 → 2.89 (1.15 → 1.32×) | 2.90 (1.33×) | 1.8 | 2.80 / 0.63 | — | game champion: kind × look.scale | OK | — |
 | kind:spartoi | Spartoi (Road West champion) | 2.70 (1.23×) | 2.68 (1.23×) | 1.6 | 2.80 / 0.63 | — | game champion: kind × look.scale | OK | — |
 | kind:spider | Bronze Spider (Road West champion) | 1.48 → 1.47 (0.68 → 0.67×) | 1.01 (0.47×) | 2.7 | 1.36 / 0.57 | — | game champion: kind × look.scale | OK | — |
-| kind:dracaena | Dracaena (Road West champion) | 2.91 → 2.92 (1.33×) | 2.80 (1.29×) | 3.6 | 3.38 / 1.04 | — | game champion: kind × look.scale | OK | — |
+| kind:dracaena | Dracaena (Road West champion) | 2.91 → 2.92 → 5.73 (1.33 → 2.63×) | 2.80 → 5.68 (1.29 → 2.61×) | 3.6 → 5.5 | 3.38 → 4.94 / 1.04 → 1.43 | much bigger (round 6) | game champion: kind × look.scale | follows the dracaena (round 6) | look.scale 1.3 kept |
 | kind:empousa | Empousa (Road West champion) | 2.78 → 3.29 (1.27 → 1.50×); 3.07 without flames | 3.06 (1.40×) | 2.0 | 2.99 → 3.25 / 0.65 | — | game champion: kind × look.scale | OK | follows the empousa (round 4) |
-| kind:harpy | Wild Harpy (Road West champion) | 2.52 → 3.04 (1.15 → 1.39×) | 2.96 (1.36×) | 6.4 | 3.20 / 0.60 | — | game champion: kind × look.scale | OK | — |
+| kind:harpy | Wild Harpy (Road West champion) | 2.52 → 3.04 → 3.55 (1.15 → 1.39 → 1.63×) | 2.96 → 3.51 (1.36 → 1.61×) | 6.4 → 6.8 | 3.20 → 3.50 / 0.60 → 0.70 | bigger (round 6) | game champion: kind × look.scale | grows with the harpy | look.scale 1.6 → 1.4 (round 6) |
 | kind:stymphalian | Stymphalian Bird (Road West champion) | 2.02 → 2.15 (0.92 → 0.98×) | 1.71 (0.79×) | 6.5 → 6.9 | 3.06 → 2.80 / 0.68 → 0.84 | — | game champion: kind × look.scale | OK | look.scale 1.8 → 1.4 as the bird grew (round 4) |
 | kind:scorpion | Giant Scorpion (Road West champion) | 2.02 → 1.98 (0.92 → 0.91×) | 1.41 (0.65×) | 7.3 | 2.60 / 1.20 | — | game champion: kind × look.scale | OK | — |
 | kind:cyclops | Cyclops (Road West champion) | 4.84 → 4.85 (2.21×) | 4.85 (2.23×) | 3.7 | 4.54 / 1.30 | — | game champion: kind × look.scale | OK | — |

@@ -1,0 +1,814 @@
+{
+ "about": [
+  "The size spec for Half-Blood Quests: every model the workbench lists gets a size category relative to Percy.",
+  "Body height: the torso, head and legs at rest, as perf/bodysize.cjs measures it (arms, weapons, wings, whips, tails, flames and props left out), divided by Percy's.",
+  "The check: NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/bodysize.cjs - '' --check. A model fails when its body x Percy is outside its category's band, or when the head rule fails.",
+  "Categories are given by the role in the game and the drama first (an elite or a boss should loom), with the owner's rulings fixed, the concept sheets and the books as a guide, not a ceiling. Exaggeration is expected: what matters is the relation to Percy.",
+  "Source order: owner (an explicit ruling, design/size-audit.md), sheet (the concept sheet's drawing beside its Percy, measured: see sheetMethod), books, role.",
+  "test/sizes.test.mjs checks that every workbench model has an entry with a known category and a reason."
+ ],
+ "categories": {
+  "_note": "The one place to tune the bands: body height x Percy, min and max. Neighbouring bands overlap a little, so a model near a border is not flagged for a few centimetres.",
+  "tiny": {
+   "label": "much smaller",
+   "min": 0.0,
+   "max": 0.45
+  },
+  "small": {
+   "label": "smaller",
+   "min": 0.4,
+   "max": 0.8
+  },
+  "slightlySmaller": {
+   "label": "slightly smaller",
+   "min": 0.75,
+   "max": 0.95
+  },
+  "same": {
+   "label": "about the same",
+   "min": 0.85,
+   "max": 1.15
+  },
+  "slightlyBigger": {
+   "label": "slightly bigger",
+   "min": 1.05,
+   "max": 1.45
+  },
+  "bigger": {
+   "label": "bigger",
+   "min": 1.4,
+   "max": 2.0
+  },
+  "muchBigger": {
+   "label": "much bigger",
+   "min": 1.85,
+   "max": 2.7
+  },
+  "giant": {
+   "label": "giant / towering",
+   "min": 2.55,
+   "max": 6.0
+  }
+ },
+ "head": {
+  "_note": "The owner's rule: as characters grow, the Minecraft-style big head gives way to more realistic proportions. For an upright model (a Rig: not a four-legged QuadRig or a serpent), its head block's height over its body height may be at most `hero` at `from` x Percy and under, falling in a straight line to `big` at `to` x Percy and over (plus `tol`). Heroes measure 0.23-0.29; an adult is about 0.13 (7.5 heads tall). A model whose head is a known follow-up has \"head\": \"followUp\" with the reason: the check prints it as a warning, not a failure, and says when the mark can go.",
+  "hero": 0.3,
+  "big": 0.17,
+  "from": 1.0,
+  "to": 2.0,
+  "tol": 0.0
+ },
+ "sheetMethod": "A sheet's ratio is the creature's body height in pixels (crown of the head or hair to the ground it stands on; wings, weapons, flames and raised tails left out) over the height of the Percy figure beside it (crown of his hair to his soles), both read off the image with a pixel ruler (rows of the original 2400 x 1600 PNG). The sheets draw every kind larger than the game does: a person-sized figure on the same sheet (the skeleton and the empousa on vox-enemies, the shades on vox-ow-fodder, the keres on vox-ow-fodder-3) measures about 1.7-1.8x its Percy. So `people` gives that figure's ratio on the sheet and `norm` = ratio / people is the sheet's size in game terms; on vox-ow-fodder `norm` matches the game's karpos, myrmex and crab within 0.1x. The champion and boss sheets draw every figure about 4-4.5x a small running Percy, so only their relative sizes are evidence.",
+ "models": {
+  "percy": {
+   "category": "same",
+   "source": "role",
+   "reason": "the reference"
+  },
+  "annabeth": {
+   "category": "same",
+   "source": "books",
+   "reason": "the books: Percy's age"
+  },
+  "grover": {
+   "category": "same",
+   "source": "books",
+   "reason": "Riordan Wiki: 5 ft 9 in, a tall satyr"
+  },
+  "tyson": {
+   "category": "bigger",
+   "source": "owner",
+   "reason": "kept at 1.5x by the owner (an approximate, cartoony exaggeration of a young Cyclops)",
+   "head": "followUp",
+   "headNote": "his head (0.25 of his body) is hero-proportioned at 1.5x; the owner kept his size, so a head pass is for the owner to approve"
+  },
+  "clarisse": {
+   "category": "same",
+   "source": "books",
+   "reason": "the books: big and tough, older than Percy"
+  },
+  "thalia": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "nico": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "chiron": {
+   "category": "slightlyBigger",
+   "source": "books",
+   "reason": "a centaur, 'taller than an average man'"
+  },
+  "mr_d": {
+   "category": "slightlySmaller",
+   "source": "books",
+   "reason": "TLT: a short, pudgy man"
+  },
+  "dummy": {
+   "category": "small",
+   "source": "role",
+   "reason": "a training prop, chest-high"
+  },
+  "pup": {
+   "category": "slightlyBigger",
+   "source": "owner",
+   "reason": "the owner, round 5: 'larger than a person', a puppy the way Mrs O'Leary is one",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-enemies.png",
+    "percyPx": 155,
+    "bodyPx": 167,
+    "ratio": 1.08,
+    "note": "row 1: ears to paws"
+   }
+  },
+  "rat": {
+   "category": "tiny",
+   "source": "role",
+   "reason": "a sewer rat"
+  },
+  "serpent": {
+   "category": "small",
+   "source": "role",
+   "reason": "the Mist Serpent, a low snake that reads by its length"
+  },
+  "mortal": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "spider": {
+   "category": "tiny",
+   "source": "books",
+   "reason": "TLT: tiny bronze spiders; the design's 'size of a dog' still sits in this band (round 4 doubt)",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-enemies.png",
+    "percyPx": 155,
+    "bodyPx": 125,
+    "ratio": 0.81,
+    "note": "row 1: the body without the arched legs"
+   }
+  },
+  "harpy": {
+   "category": "slightlyBigger",
+   "source": "owner",
+   "reason": "the owner, round 6: a bird-woman at least Percy's size; a flier that dives at the heroes, so a little bigger than him reads as a threat. Her own sheet (vox-harpy) was never delivered; the upright bird of vox-enemies, the shape the harpy was first built on, stands about Percy's height in game terms",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-enemies.png",
+    "percyPx": 155,
+    "bodyPx": 257,
+    "ratio": 1.66,
+    "people": 1.7,
+    "norm": 0.98,
+    "note": "row 1, the upright bird (head to talons, wings left out); people = the skeleton and empousa on row 3"
+   }
+  },
+  "stymphalian": {
+   "category": "tiny",
+   "source": "role",
+   "reason": "a crane-sized bird held level as it hunts: its standing height is low, it reads by its 4.9-block wingspan (round 4)"
+  },
+  "automaton": {
+   "category": "tiny",
+   "source": "role",
+   "reason": "a small Greek-fire automaton (game invention)"
+  },
+  "ghost": {
+   "category": "same",
+   "source": "books",
+   "reason": "ghosts are 'physically identical to when they were alive'"
+  },
+  "fury": {
+   "category": "bigger",
+   "source": "owner",
+   "reason": "the owner, round 4: 1.4-1.5x, under the Fury sisters",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-enemies.png",
+    "percyPx": 195,
+    "bodyPx": 400,
+    "ratio": 2.05,
+    "people": 1.7,
+    "norm": 1.21,
+    "note": "row 3: hair to feet"
+   },
+   "head": "followUp",
+   "headNote": "her head (0.28 of her body) is hero-proportioned at 1.4x"
+  },
+  "dracaena": {
+   "category": "bigger",
+   "source": "sheet",
+   "reason": "an imposing elite (a tank with a spear and a shield): the owner, round 6, wants her notably bigger than Percy; the sheet draws her as tall as the hellhound beside her",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-enemies.png",
+    "percyPx": 145,
+    "bodyPx": 385,
+    "ratio": 2.66,
+    "people": 1.7,
+    "norm": 1.56,
+    "note": "row 2: crown of the hair (snake heads left out) to the coil on the ground; the hellhound beside her measures 405 px"
+   }
+  },
+  "hellhound": {
+   "category": "muchBigger",
+   "source": "owner",
+   "reason": "kept at 2.1-2.8x by the owner",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-enemies.png",
+    "percyPx": 145,
+    "bodyPx": 405,
+    "ratio": 2.79,
+    "people": 1.7,
+    "norm": 1.64,
+    "note": "row 2: ears to paws"
+   }
+  },
+  "empousa": {
+   "category": "same",
+   "source": "owner",
+   "reason": "the owner, round 4: as tall as Percy, long-legged",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-enemies.png",
+    "percyPx": 195,
+    "bodyPx": 330,
+    "ratio": 1.69,
+    "people": 1.7,
+    "norm": 1.0,
+    "note": "row 3: hair without the flames to the hoof"
+   }
+  },
+  "scorpion": {
+   "category": "tiny",
+   "source": "role",
+   "reason": "low and long: its body stands knee-high, it reads by its 3.6-block length and raised sting"
+  },
+  "skeleton": {
+   "category": "same",
+   "source": "books",
+   "reason": "TC: spartoi pass as soldiers and guards",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-enemies.png",
+    "percyPx": 195,
+    "bodyPx": 336,
+    "ratio": 1.72,
+    "people": 1.7,
+    "norm": 1.01,
+    "note": "row 3: helmet to boots; with the empousa, the sheet's person-sized baseline"
+   }
+  },
+  "spartoi": {
+   "category": "same",
+   "source": "books",
+   "reason": "myth: men sown from dragon's teeth"
+  },
+  "telekhine": {
+   "category": "slightlyBigger",
+   "source": "books",
+   "reason": "BotL: adults 'at least seven feet tall'",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-enemies.png",
+    "percyPx": 155,
+    "bodyPx": 217,
+    "ratio": 1.4,
+    "note": "row 1: ears to claws"
+   }
+  },
+  "gorgon_statue": {
+   "category": "same",
+   "source": "role",
+   "reason": "a statue of a person"
+  },
+  "cyclops": {
+   "category": "bigger",
+   "source": "role",
+   "reason": "an elite giant, well over the heroes",
+   "head": "followUp",
+   "headNote": "his head (0.45 of his body: the head group with the mane, the brow and the beard) is hero-proportioned or more at 1.8x"
+  },
+  "karpos": {
+   "category": "small",
+   "source": "books",
+   "reason": "SoN: 'the size of toddlers'",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-ow-fodder.png",
+    "percyPx": 218,
+    "bodyPx": 290,
+    "ratio": 1.33,
+    "people": 1.8,
+    "norm": 0.74,
+    "note": "row 1: the hood without the wheat ears; people = the shades on row 2"
+   }
+  },
+  "karpos_slinger": {
+   "category": "small",
+   "source": "books",
+   "reason": "as the karpos",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-ow-fodder-2.png",
+    "percyPx": 170,
+    "bodyPx": 190,
+    "ratio": 1.12,
+    "note": "row 1: the hood without the wheat ears"
+   }
+  },
+  "colchis_calf": {
+   "category": "slightlySmaller",
+   "source": "role",
+   "reason": "a calf of the elephant-sized Colchis bulls (the calf is the game's own)",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-ow-fodder-2.png",
+    "percyPx": 170,
+    "bodyPx": 200,
+    "ratio": 1.18,
+    "note": "row 1"
+   }
+  },
+  "myrmex": {
+   "category": "small",
+   "source": "books",
+   "reason": "'the size of a full grown German Shepherd'",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-ow-fodder.png",
+    "percyPx": 218,
+    "bodyPx": 200,
+    "ratio": 0.92,
+    "people": 1.8,
+    "norm": 0.51,
+    "note": "row 1: the body without the antennae"
+   }
+  },
+  "myrmex_spitter": {
+   "category": "small",
+   "source": "books",
+   "reason": "as the myrmex"
+  },
+  "boarlet": {
+   "category": "same",
+   "source": "role",
+   "reason": "a big boar calf that charges (game)",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-ow-fodder-2.png",
+    "percyPx": 140,
+    "bodyPx": 280,
+    "ratio": 2.0,
+    "note": "row 3: the bristle ridge to the hooves"
+   }
+  },
+  "crab": {
+   "category": "small",
+   "source": "role",
+   "reason": "design: 'waist-high' shore crabs",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-ow-fodder.png",
+    "percyPx": 220,
+    "bodyPx": 220,
+    "ratio": 1.0,
+    "people": 1.8,
+    "norm": 0.56,
+    "note": "row 2: shell and eyes to the legs"
+   }
+  },
+  "king_crab": {
+   "category": "muchBigger",
+   "source": "sheet",
+   "reason": "request vox-ow-fodder-fix: 'TWICE Percy's height'; TLO: Karkinos 'rose ten feet'"
+  },
+  "basilisk": {
+   "category": "tiny",
+   "source": "books",
+   "reason": "'little green snakes' as long as a man's arm (round 3)"
+  },
+  "earthborn": {
+   "category": "slightlyBigger",
+   "source": "books",
+   "reason": "TLH / SoN: clay giants '7 to 8 feet tall'",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-ow-fodder-3.png",
+    "percyPx": 145,
+    "bodyPx": 390,
+    "ratio": 2.69,
+    "people": 1.75,
+    "norm": 1.54,
+    "note": "row 1; people = the keres on row 3"
+   },
+   "head": "followUp",
+   "headNote": "his head (0.27 of his body) is hero-proportioned at 1.4x"
+  },
+  "daedalus_drone": {
+   "category": "same",
+   "source": "role",
+   "reason": "a clockwork bird drone (game invention)"
+  },
+  "laistrygonian": {
+   "category": "bigger",
+   "source": "owner",
+   "reason": "kept by the owner (round 3); the books' 'eight-foot' giants",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-enemies.png",
+    "percyPx": 145,
+    "bodyPx": 475,
+    "ratio": 3.28,
+    "people": 1.7,
+    "norm": 1.93,
+    "note": "row 2: head to feet"
+   },
+   "head": "followUp",
+   "headNote": "his head (0.45 of his body: the head group with hair and beard) is hero-proportioned or more at 1.6x"
+  },
+  "shade": {
+   "category": "same",
+   "source": "role",
+   "reason": "a spirit of the dead, a person's height",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-ow-fodder.png",
+    "percyPx": 220,
+    "bodyPx": 400,
+    "ratio": 1.82,
+    "note": "row 2: hood to the hem; the sheet's person-sized baseline"
+   }
+  },
+  "keres": {
+   "category": "same",
+   "source": "role",
+   "reason": "death spirits, part women, part bats",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-ow-fodder-3.png",
+    "percyPx": 200,
+    "bodyPx": 350,
+    "ratio": 1.75,
+    "note": "row 3: hair to the hem; the sheet's person-sized baseline"
+   }
+  },
+  "alecto": {
+   "category": "bigger",
+   "source": "owner",
+   "reason": "the owner, round 4: a boss that looms, 1.8-2x",
+   "head": "followUp",
+   "headNote": "her head (0.28 of her body) is hero-proportioned at 1.9x"
+  },
+  "minotaur": {
+   "category": "muchBigger",
+   "source": "role",
+   "reason": "a boss: the books' 'seven feet', grown 'three more feet' by TLO; the boss sheet draws him as tall as Medusa",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-bosses-1.png",
+    "percyPx": 135,
+    "bodyPx": 590,
+    "ratio": 4.37,
+    "note": "row 1: head without the horns to the hooves"
+   },
+   "head": "followUp",
+   "headNote": "his head (0.41 of his body: the bull's head and horns' base) is hero-proportioned or more at 1.9x"
+  },
+  "hellhound_alpha": {
+   "category": "muchBigger",
+   "source": "owner",
+   "reason": "the hellhounds are kept by the owner"
+  },
+  "furies": {
+   "category": "bigger",
+   "source": "owner",
+   "reason": "the owner, round 4: Alecto 1.8-2x, her sisters a little smaller",
+   "head": "followUp",
+   "headNote": "the sisters' heads (0.28 of the body) are hero-proportioned at 1.9x"
+  },
+  "medusa": {
+   "category": "bigger",
+   "source": "owner",
+   "reason": "kept by the owner (a stylised boss over the books' 'tall woman')",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-bosses-1.png",
+    "percyPx": 135,
+    "bodyPx": 595,
+    "ratio": 4.41,
+    "note": "row 1: hood to hem"
+   },
+   "head": "followUp",
+   "headNote": "her head (0.47 of her body: the veiled head with the snake hair) is hero-proportioned or more at 1.6x"
+  },
+  "chimera": {
+   "category": "bigger",
+   "source": "books",
+   "reason": "Greek Heroes: 'about the size of a woolly mammoth'; a boss",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-bosses-1.png",
+    "percyPx": 135,
+    "bodyPx": 475,
+    "ratio": 3.52,
+    "note": "row 1: the lion's mane to the paws"
+   }
+  },
+  "spiders": {
+   "category": "same",
+   "source": "role",
+   "reason": "the Spider Queen: a low, wide boss (4.8 blocks across) that reads by her span"
+  },
+  "procrustes": {
+   "category": "bigger",
+   "source": "books",
+   "reason": "TLT: 'seven feet tall'; a boss",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-bosses-1.png",
+    "percyPx": 145,
+    "bodyPx": 500,
+    "ratio": 3.45,
+    "note": "row 2"
+   }
+  },
+  "cerberus": {
+   "category": "giant",
+   "source": "owner",
+   "reason": "the owner: 3.4x and over ('twice the size of a woolly mammoth')",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-bosses-1.png",
+    "percyPx": 145,
+    "bodyPx": 515,
+    "ratio": 3.55,
+    "note": "row 2: crouched, heads lowered"
+   }
+  },
+  "ares": {
+   "category": "bigger",
+   "source": "books",
+   "reason": "TLT: 'a huge, muscular man'; a boss",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-bosses-1.png",
+    "percyPx": 145,
+    "bodyPx": 555,
+    "ratio": 3.83,
+    "note": "row 2"
+   }
+  },
+  "luke": {
+   "category": "same",
+   "source": "books",
+   "reason": "an older teen"
+  },
+  "teacher": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "student": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "guard": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "tourist": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "farmer": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "old_lady": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "bellhop": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "salesman": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "fields_katie": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "fields_travis": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "woods_juniper": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "woods_beckendorf": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "shore_lee": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "shore_nereid": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "canyon_hedge": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "zoe": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "rachel": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "quintus": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "canyon_phoebe": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "bianca": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "asphodel_charon": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "asphodel_sisyphus": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "camp_argus": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "camp_silena": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "rt_turnpike_earl": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "rt_auntyem_pruitt": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "rt_stlouis_mae": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "rt_denver_chad": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "rt_vegas_valet": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "rt_la_guide": {
+   "category": "same",
+   "source": "role",
+   "reason": "a person: about Percy's height"
+  },
+  "rt_sm_fisher": {
+   "category": "slightlySmaller",
+   "source": "role",
+   "reason": "Grandma Mae: a little old woman"
+  },
+  "fields_bronzebeak": {
+   "category": "slightlyBigger",
+   "source": "role",
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it; a bird held level, it reads by its wingspan"
+  },
+  "woods_shadowfang": {
+   "category": "giant",
+   "source": "role",
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it (the hellhound, kept by the owner, is much bigger)"
+  },
+  "shore_queen_gale": {
+   "category": "bigger",
+   "source": "sheet",
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it; the sheet draws the harpy queen as tall as the Pale King",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-ow-champions.png",
+    "percyPx": 115,
+    "bodyPx": 525,
+    "ratio": 4.57,
+    "note": "row 1: head (crown left out) to the talons"
+   }
+  },
+  "canyon_red_king": {
+   "category": "slightlySmaller",
+   "source": "role",
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it; a scorpion stands low and reads by its 8.8-block length"
+  },
+  "lab_bronze_warden": {
+   "category": "bigger",
+   "source": "role",
+   "reason": "a giant bronze automaton (round 2)",
+   "head": "followUp",
+   "headNote": "its head (0.26 of its body) is hero-proportioned at 1.85x"
+  },
+  "oth_gorgos": {
+   "category": "muchBigger",
+   "source": "role",
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it (the cyclops)",
+   "head": "followUp",
+   "headNote": "his head (0.49 of his body) is hero-proportioned or more at 2.2x"
+  },
+  "asphodel_pale_king": {
+   "category": "slightlyBigger",
+   "source": "sheet",
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it; the sheet draws him as tall as Queen Gale",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-ow-champions.png",
+    "percyPx": 125,
+    "bodyPx": 560,
+    "ratio": 4.48,
+    "note": "row 2: head (crown left out) to the feet"
+   }
+  },
+  "kind:hellhound": {
+   "category": "giant",
+   "source": "role",
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it"
+  },
+  "kind:pup": {
+   "category": "bigger",
+   "source": "role",
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it"
+  },
+  "kind:skeleton": {
+   "category": "slightlyBigger",
+   "source": "role",
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it"
+  },
+  "kind:spartoi": {
+   "category": "slightlyBigger",
+   "source": "role",
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it"
+  },
+  "kind:spider": {
+   "category": "small",
+   "source": "role",
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it"
+  },
+  "kind:dracaena": {
+   "category": "muchBigger",
+   "source": "role",
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it (the dracaena is 'bigger')"
+  },
+  "kind:empousa": {
+   "category": "slightlyBigger",
+   "source": "role",
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it"
+  },
+  "kind:harpy": {
+   "category": "bigger",
+   "source": "role",
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it"
+  },
+  "kind:stymphalian": {
+   "category": "slightlySmaller",
+   "source": "role",
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it; a bird held level, it reads by its wingspan"
+  },
+  "kind:scorpion": {
+   "category": "small",
+   "source": "role",
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it; low, it reads by its length"
+  },
+  "kind:cyclops": {
+   "category": "muchBigger",
+   "source": "role",
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it",
+   "head": "followUp",
+   "headNote": "his head (0.52 of his body) is hero-proportioned or more at 2.2x"
+  }
+ }
+}
