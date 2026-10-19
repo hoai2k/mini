@@ -103,6 +103,7 @@ export const DEFAULTS = Object.freeze({
   droneFifth: false, // add a pure fifth above (off unless switched on; tapping the Hz toggles it)
   droneFifthChosen: false,
   droneAccidentals: 'auto', // 'auto' (♯ going up, ♭ going down), 'sharps' or 'flats'
+  droneLastSecs: null, // how long the last drone played (seconds), shown under Play
   droneSpelling: 'sharps', // on auto, how the note on show is spelled (the way it was last reached)
   // Timing: Continuous pitch (looping forever, or stopping after droneLength
   // minutes) or Change periodically (droneStep minutes on each pitch, then
@@ -235,6 +236,7 @@ export function sanitize(raw) {
     droneFifth: s.droneFifthChosen === true && typeof s.droneFifth === 'boolean' ? s.droneFifth : DEFAULTS.droneFifth,
     droneFifthChosen: s.droneFifthChosen === true,
     droneAccidentals: oneOf(s.droneAccidentals, ['auto', 'sharps', 'flats'], DEFAULTS.droneAccidentals),
+    droneLastSecs: Number.isFinite(s.droneLastSecs) && s.droneLastSecs >= 0 ? Math.min(Math.round(s.droneLastSecs), 359999) : null,
     droneSpelling: oneOf(s.droneSpelling, ['sharps', 'flats'], DEFAULTS.droneSpelling),
     ...droneTimingFrom(s),
     tuning: oneOf(s.tuning, TUNING_IDS, DEFAULTS.tuning),

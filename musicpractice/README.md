@@ -410,6 +410,14 @@ tones, scales over a tonic.
   instrument while it plays crossfades (about 1.5 s out); **Pause** stops at
   once, the sound and the hall's ring gone in about 50 ms (no click), the
   same on the web and in the apps' native mixers (`mobile/test` checks it).
+- **How long it has played**, under Play: while the drone plays, the time
+  since Play (MM:SS, H:MM:SS from an hour) counting up, through changes of
+  note; once it stops, **Last drone: MM:SS**, kept across visits
+  (`droneLastSecs`) so a session can be looked back on. Timed by the clock,
+  so time with the screen locked counts; when the apps' native drone stopped
+  itself while the page slept, the length is up to when the page saw it
+  (or, for a drone timed to stop, when it was due to). Its line has a fixed
+  height, so nothing moves as it appears.
 - **Accidentals** (settings: Auto, Sharps, Flats; `droneAccidentals`,
   Auto by default): Auto spells a black-key note by the way it was reached,
   C♯ stepping up with + (or a sequence going up: up the chromatic or major

@@ -357,6 +357,8 @@ export const EN = {
     playsFor: (time) => `Plays for ${time}`,
     nextIn: (note, time) => `Next: ${note} in ${time}`,
     done: (time, note) => `Done: ${time} on ${note}`,
+    elapsed: (time) => `${time}`, // while it plays, under Play
+    lastDrone: (time) => `Last drone: ${time}`,
     voices: {
       cello: 'Cello',
       'cello-soft': 'Cello, soft (sul tasto)',

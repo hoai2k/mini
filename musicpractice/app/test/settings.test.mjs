@@ -218,3 +218,10 @@ test('drone accidentals: Auto by default, and only real choices kept', () => {
   assert.equal(sanitize({ droneAccidentals: 'double-sharps', droneSpelling: 'x' }).droneAccidentals, 'auto');
   assert.equal(sanitize({ droneSpelling: 'x' }).droneSpelling, 'sharps');
 });
+
+test('the last drone\'s length: kept when it is a time, dropped otherwise', () => {
+  assert.equal(sanitize({}).droneLastSecs, null);
+  assert.equal(sanitize({ droneLastSecs: 754.4 }).droneLastSecs, 754);
+  assert.equal(sanitize({ droneLastSecs: -3 }).droneLastSecs, null);
+  assert.equal(sanitize({ droneLastSecs: '12' }).droneLastSecs, null);
+});

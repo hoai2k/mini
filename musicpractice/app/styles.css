@@ -796,6 +796,9 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 .drone-pitch .select { min-width: 112px; }
 .drone-voice .select { min-width: 240px; max-width: 100%; }
 #dr-toggle { min-width: 200px; }
+/* One fixed line, so nothing moves as it appears or grows while the drone plays. */
+.drone-elapsed { margin: 0; height: 1.6rem; line-height: 1.6rem; color: var(--ink-3); font-weight: 600; font-variant-numeric: tabular-nums; text-align: center; }
+.drone-elapsed.live { color: var(--ink-2); font-weight: 700; font-size: 1.15rem; }
 .drone-timer { margin: 0; color: var(--ink-2); font-weight: 700; font-variant-numeric: tabular-nums; text-align: center; }
 @media (orientation: landscape) and (max-height: 560px) {
   .drone-body { width: min(100%, 760px); display: grid; grid-template-columns: auto 1fr; align-items: center; justify-items: center; gap: 6px 28px; }

@@ -10,6 +10,13 @@ import { noteName, midiToHz, A4_MIN, A4_MAX } from './tuning.js';
 
 const $ = (id) => document.getElementById(id);
 const fmt = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
+/** A practice time as MM:SS, or H:MM:SS from an hour. */
+export const clock = (sec) => {
+  const s = Math.max(0, Math.floor(sec));
+  const mm = String(Math.floor(s / 60) % 60).padStart(2, '0');
+  const ss = String(s % 60).padStart(2, '0');
+  return s >= 3600 ? `${Math.floor(s / 3600)}:${mm}:${ss}` : `${mm}:${ss}`;
+};
 
 /**
  * @param {{ settings: object, persist: () => void, chips: Function, engine: () => import('./drone.js').Drone,
@@ -24,6 +31,11 @@ export function setupDrone({ settings, persist, chips, engine, onPlaying }) {
   let timer = 0;
   let doneNote = '';
   let changesSeen = 0; // changes the native drone made by itself that are counted here (the apps)
+  // How long the drone has played since Play (by the clock, so time with the
+  // screen locked counts), and after a stop how long the last one played
+  // (droneLastSecs, kept across visits).
+  let startedAt = 0;
+  let endsAt = 0; // a drone timed to stop: when it will (the apps report only that it did)
 
   // Sharps or flats: the Accidentals setting, or on Auto the way the note
   // was reached (droneSpelling, kept so the note reads the same next time).
@@ -55,7 +67,22 @@ export function setupDrone({ settings, persist, chips, engine, onPlaying }) {
   const then = $('dr-then');
   then.replaceChildren(...SEQUENCES.filter((q) => q.id !== 'stop').map((q) => new Option(q.label, q.id)));
 
+  function showElapsed() {
+    const el = $('dr-elapsed');
+    el.classList.toggle('live', playing);
+    if (playing) el.textContent = TEXT.drone.elapsed(clock((Date.now() - startedAt) / 1000));
+    else el.textContent = settings.droneLastSecs != null ? TEXT.drone.lastDrone(clock(settings.droneLastSecs)) : '';
+  }
+  /** The drone stopped (at `at`, by the clock): keep how long it played. */
+  function stopped(at = Date.now()) {
+    if (!startedAt) return;
+    settings.droneLastSecs = Math.round(Math.max(0, at - startedAt) / 1000);
+    startedAt = 0;
+    persist();
+  }
+
   function show() {
+    showElapsed();
     const n = name(settings.droneMidi);
     $('dr-letter').textContent = n.name[0];
     $('dr-acc').textContent = n.name.slice(1);
@@ -139,6 +166,7 @@ export function setupDrone({ settings, persist, chips, engine, onPlaying }) {
       playing = false;
       clearInterval(timer);
       onPlaying(false);
+      stopped(s.stoppedByTimer && endsAt ? Math.min(Date.now(), endsAt) : Date.now());
       if (s.stoppedByTimer) {
         remaining = settings.droneMinutes * 60;
         doneNote = TEXT.drone.done(fmt(settings.droneMinutes * 60), name(settings.droneMidi).text);
@@ -153,6 +181,8 @@ export function setupDrone({ settings, persist, chips, engine, onPlaying }) {
     playing = true;
     doneNote = '';
     if (remaining <= 0) remaining = settings.droneMinutes * 60;
+    startedAt = Date.now();
+    endsAt = settings.droneTimed && settings.droneThen === 'stop' ? startedAt + remaining * 1000 : 0;
     sound();
     lastTick = performance.now();
     clearInterval(timer);
@@ -167,6 +197,7 @@ export function setupDrone({ settings, persist, chips, engine, onPlaying }) {
     clearInterval(timer);
     engine().stop();
     onPlaying(false);
+    stopped();
     show();
   }
 
@@ -175,6 +206,7 @@ export function setupDrone({ settings, persist, chips, engine, onPlaying }) {
     const now = performance.now();
     const dt = (now - lastTick) / 1000;
     lastTick = now;
+    if (playing) showElapsed();
     if (!playing || !settings.droneTimed) { showTimer(); return; }
     remaining -= dt;
     if (remaining > 0) { showTimer(); return; }
