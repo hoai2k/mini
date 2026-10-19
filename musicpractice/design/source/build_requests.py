@@ -760,16 +760,21 @@ def round11_assets() -> list[dict]:
         src = a["file"].removeprefix("musicpractice/app/")
         folder = src.rsplit("/", 1)[0]
         for pid, (label, subject) in [*PRACTICE_SUBJECT.items(), *PRACTICE_SUBJECT_12.items()]:
+            new_picture = pid in PRACTICE_SUBJECT_12
+            reference = src.replace("home-drone.webp", "home-routine.webp") if new_picture else src
+            reference_subject = "Routine hourglass" if new_picture else "Drone cello"
+            note_rule = ("Notes belong only to the arpeggio, the printed sheet music, or the single note "
+                         "enclosed inside the improvisation bulb. " if new_picture else
+                         "Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. ")
             out.append(dict(
                 id=pid, theme=theme, round=11 if pid in PRACTICE_SUBJECT else 12, file=f"{folder}/{pid}.webp",
                 size="1024×1024, transparent PNG (shipped as 512×512 WebP)", status="requested",
                 group=f"{name} · Practice Routine pictures",
-                prompt=(f"Using the attached image, musicpractice/app/{src} (this theme's Drone home button, a "
-                        "cello), as the reference for its style, colours, materials, lighting, rendering, framing "
+                prompt=(f"Using the attached image, musicpractice/app/{reference} (this theme's {reference_subject}), "
+                        "as the reference for its style, colours, materials, lighting, rendering, framing "
                         f"and canvas, draw {subject}, in this theme's materials and colours. No wings, sound "
-                        "ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes "
-                        "belong only within the scale, rhythm pattern or sheet music that represents the activity. "
-                        "One centred subject at about the same size as the cello, with "
+                        f"ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. {note_rule}"
+                        f"One centred subject at about the same size as the {reference_subject}, with "
                         "the same small even margin; a bold readable silhouette that still reads at 96 pixels. A "
                         "fully transparent background, no cast shadow, no text, no letters, no numbers."),
                 note=(f"The Practice Routine's picture for {label} in the {name} theme, shown large while such an "
@@ -798,6 +803,21 @@ if _practice_delivery.exists():
         asset["note"] += " Delivered PNG masters, prompts and exports: design/image-deliveries-round-11.json."
 
 
+_round12_delivery = ROOT / "design" / "image-deliveries-round-12.json"
+if _round12_delivery.exists():
+    _round12_delivered = {
+        (a["theme"], a["id"]): a
+        for a in json.loads(_round12_delivery.read_text())["assets"]
+        if a["status"] == "delivered"
+    }
+    for asset in ASSETS:
+        if asset["round"] != 12 or (asset["theme"], asset["id"]) not in _round12_delivered:
+            continue
+        asset["status"] = "delivered"
+        asset["note"] = asset["note"].split(" Until it arrives")[0]
+        asset["note"] += " Delivered PNG masters, prompts and exports: design/image-deliveries-round-12.json."
+
+
 def render() -> tuple[str, str]:
     theme_name = {t["id"]: t["name"] for t in THEMES}
     lines = [
@@ -818,7 +838,8 @@ def render() -> tuple[str, str]:
                        (8, "Drone screen for the organ, every theme"),
                        (9, "Practice Routine home icons, every theme"),
                        (10, "Metronome pendulum in two parts, every theme"),
-                       (11, "Practice Routine pictures, every theme")):
+                       (11, "Practice Routine pictures, every theme"),
+                       (12, "Arpeggios, Sight reading and Improvisation, every theme")):
         wanted = [a for a in ASSETS if a["round"] == rnd and a["status"] in ("requested", "revise")]
         lines.append(f"**Round {rnd} ({title}):** "
                      + (f"{len(wanted)} image{'s' if len(wanted) != 1 else ''} wanted: " + ", ".join(f"`{a['file']}`" for a in wanted) + "."

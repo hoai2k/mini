@@ -1111,19 +1111,19 @@
     "id": "practice-arpeggios",
     "theme": "classic",
     "file": "assets/ui/practice-arpeggios.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "practice-sight-reading",
     "theme": "classic",
     "file": "assets/ui/practice-sight-reading.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "practice-improvisation",
     "theme": "classic",
     "file": "assets/ui/practice-improvisation.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "practice-intonation",
@@ -1159,19 +1159,19 @@
     "id": "practice-arpeggios",
     "theme": "deco",
     "file": "assets/ui/deco/practice-arpeggios.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "practice-sight-reading",
     "theme": "deco",
     "file": "assets/ui/deco/practice-sight-reading.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "practice-improvisation",
     "theme": "deco",
     "file": "assets/ui/deco/practice-improvisation.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "practice-intonation",
@@ -1207,19 +1207,19 @@
     "id": "practice-arpeggios",
     "theme": "sixties",
     "file": "assets/ui/sixties/practice-arpeggios.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "practice-sight-reading",
     "theme": "sixties",
     "file": "assets/ui/sixties/practice-sight-reading.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "practice-improvisation",
     "theme": "sixties",
     "file": "assets/ui/sixties/practice-improvisation.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "practice-intonation",
@@ -1255,19 +1255,19 @@
     "id": "practice-arpeggios",
     "theme": "baroque",
     "file": "assets/ui/baroque/practice-arpeggios.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "practice-sight-reading",
     "theme": "baroque",
     "file": "assets/ui/baroque/practice-sight-reading.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "practice-improvisation",
     "theme": "baroque",
     "file": "assets/ui/baroque/practice-improvisation.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "practice-intonation",

@@ -1103,3 +1103,12 @@ Drone. Notes appear only within a scale, rhythm pattern or the book’s sheet
 music, never as floating decoration. Each clapping icon has exactly two hands;
 the scale pictures show eight ascending notes on a five-line staff. All image
 requests through Round 11 are delivered.
+
+Round 12 adds arpeggios, sight reading and improvisation in all eight themes.
+Delivered PNG masters and previews live in `design/generated/round-12/`;
+`design/image-deliveries-round-12.json` records the completed pictures,
+their prompts and 512×512 lossless WebP exports. Arpeggios use five notes
+in a rising and falling arch; sight reading uses a single music sheet and
+magnifying glass; improvisation uses a bulb enclosing one eighth note.
+These pictures have no wings, ribbons, mist or decorative floating notes.
+The image request list tracks the pictures that remain to be delivered.
