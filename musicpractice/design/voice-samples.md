@@ -3,7 +3,7 @@
 The voices for the Practice Routine's spoken announcements, and how they
 were chosen.
 
-**In use** (`app/assets/audio/voice/<voice>/`, 17 lines each), in the order
+**In use** (`app/assets/audio/voice/<voice>/`, 29 lines each), in the order
 the settings list them:
 - **Lily:** calmA settings (multilingual v2, stability 0.85, style 0, no
   speaker boost, speed 0.85).
@@ -13,19 +13,40 @@ the settings list them:
   their second-round samples (multilingual v2, stability 0.6, style 0.1,
   speed 0.92).
 
-The lines are made with the scratch script `lines.py`, then trimmed of
-silence and loudness matched (−18 LUFS) to mono 96 kbps. All the v3 lines
-came out about as long as Lily's, so no tag was spoken. The lines:
+The lines are made with `design/source/voice_lines.py`, which holds
+everything that makes each voice sound as it does (its ElevenLabs voice id,
+model, settings and delivery tag) and the text of every line, and trims each
+of silence and matches its loudness (−18 LUFS) to mono 96 kbps. Run it with
+`ELEVENLABS_API_KEY` set; it makes only the lines that aren't there yet
+(`--list` prints them). All the v3 lines came out about as long as Lily's, so
+no tag was spoken. The lines:
 - done-<kind>: "Intonation practice is complete.", "Scales are complete.",
-  "Clapping rhythms are complete.", "Ghosting is complete.", and for Custom
-  "That practice item is complete.";
+  "Clapping rhythms are complete.", "Ghosting is complete.", "Metronome
+  practice is complete.", "Arpeggios are complete.", "Sight reading is
+  complete.", "Improvisation is complete.", and for Custom "That practice
+  item is complete.";
 - next-<kind>: "Next, intonation practice." and so on, and for Custom "On
   to your next practice item.";
 - first-<kind>: "Let's begin with intonation practice." and so on, and for
   Custom "Let's begin.";
 - finished: "That's the end of your practice routine. Well done.";
 - hello: "Hello. I'll guide you through your practice routine."
-A new suggestion needs its three lines in every voice.
+A new suggestion needs its three lines in every voice: add them to `LINES`
+in `voice_lines.py` and run it.
+
+**Other languages.** Both models (`eleven_multilingual_v2` and `eleven_v3`)
+speak many languages in the same voice: the same voice id with the same
+settings and tag keeps each voice's character, and the request takes the
+language (`language_code`). So a language is its own block in `LINES`
+(every line a whole sentence, translated for its meaning and its calm, brief
+manner, not word for word: "Next, scales." stays short), and
+`voice_lines.py --lang <code>` writes it to `app/assets/audio/voice/<code>/
+<voice>/`. Two things to check by ear in a new language: the v3 voices
+(Matilda, George) with their English tag "[softly, calmly]" (keep it in
+English; it is a direction, not text), and the line lengths against the
+English ones, as was done here. The app plays English only for now:
+`voiceUrl` in `app/src/timer.js` would take the language, and the settings
+would offer the voices that have it.
 
 **The plan:** one line per kind of practice item, generated whole (not
 stitched from fragments, which is what makes a voice sound choppy):

@@ -638,13 +638,15 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   note and instrument as a start. So Scales can climb in tempo item by item.
 - A first visit starts with **Intonation practice** (3 min, drone on) and
   **Scales** (5 min, metronome on). **+ Add** offers those, **Clapping
-  rhythms** and **Ghosting** (nothing on), and **Custom…** (a blank item, its
-  name ready to type), each listed by its name alone. An item added this way
+  rhythms**, **Ghosting**, **Metronome**, **Arpeggios**, **Sight reading**
+  and **Improvisation**, and **Custom…** (a blank item, its name ready to
+  type), each listed by its name alone. An item added this way
   starts with its Metronome and Drone off (the first visit's two are the
-  only ones that come with theirs on; `newItem`'s `tools`), and at the
+  only ones that come with theirs on; `newItem`'s `tools`), except a
+  Metronome item, whose metronome is what it is (`own`), and at the
   minutes last given to its kind (`lastMinutes`, kept with the routine), or
-  its default the first time (3 min, Scales 5, Custom 5), adjusted on its
-  card. The bin deletes an item at once, with
+  its default the first time (3 min for Intonation, Clapping rhythms and
+  Ghosting, 5 for the rest), adjusted on its card. The bin deletes an item at once, with
   **Undo** for a few seconds after. Kept in `musicpractice.routine.v1`.
 - **Start** runs through the items. The card running is lit, with its
   progress along its foot, and the panel at the top shows its name, the time
@@ -665,9 +667,12 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   its own lines (done-, next- and first-<kind>), and a Custom item the
   generic ones ("That practice item is complete.", "On to your next
   practice item."), so lengths and typed names are never spoken. They are
-  `app/assets/audio/voice/<voice>/<line>.mp3`, 17 per voice, made with
-  ElevenLabs (`design/voice-samples.md` has the voices and settings).
-  **A new suggestion needs its lines in every voice**; `test/timer.test.mjs`
+  `app/assets/audio/voice/<voice>/<line>.mp3`, 29 per voice, made with
+  ElevenLabs by `design/source/voice_lines.py`, which keeps each voice's id,
+  model and settings and every line's text, per language, so the set can be
+  made again or in another language in the same voices
+  (`design/voice-samples.md`). **A new suggestion needs its lines in every
+  voice** (add them there and run it); `test/timer.test.mjs`
   checks they are all there. Everything a routine may say is loaded when it
   starts; Pause, Skip and Stop cut a line short.
 - **Between items, a chime** (settings: **Use Chimes** on or off, and
@@ -697,7 +702,9 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
 - **While an item runs, its picture fills the top of the panel**, large,
   so a glance says what is being practised; it fades in at each change of
   item. Each kind of item has its own (`practice-<kind>`: intonation,
-  scales, rhythms, ghosting; image requests round 11), and there is a default
+  scales, rhythms, ghosting, image requests round 11; arpeggios,
+  sight-reading, improvisation, round 12; a Metronome item shows the
+  Metronome's own home picture, `picture` on its preset), and there is a default
   (`practice-default`, a music stand). Until a picture is delivered, or for an
   item of its own (Custom…), the next one there is: the Drone's (cello, or
   organ by its voice) for an item with its drone on, else the Metronome's,
