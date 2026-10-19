@@ -9,7 +9,7 @@ as inline SVG in the app and need no art.
 
 **Round 1:** delivered and in use.
 
-**Round 2:** nothing wanted.
+**Round 2:** delivered and in use.
 
 **House style** (already included in every prompt but the logo's): Clean, friendly modern app artwork: a warm off-white and soft charcoal palette with one bold coral-red accent (#ff4d4f) used for annotation marks, hand-drawn marker strokes with a slightly imperfect, confident line, flat shapes with gentle soft shadows, crisp edges, generous empty space. Playful but tidy, like a designer's markup on a photo. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
 

@@ -95,7 +95,7 @@ def render() -> tuple[str, str]:
         "**Round 1:** delivered and in use.",
         "",
         ("**Round 2:** " + str(len(requested)) + " image" + ("s" if len(requested) != 1 else "") + " wanted, marked `requested` or `revise` (see the note)."
-         if requested else "**Round 2:** nothing wanted."),
+         if requested else "**Round 2:** delivered and in use."),
         "",
         "**House style** (already included in every prompt but the logo's): " + STYLE,
         "",

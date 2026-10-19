@@ -81,9 +81,8 @@ It is an app, not a game, so the controller-first title screen of
   SVG icons.
 - `app/data/asset-list.json`: which artwork is delivered (generated).
 - `design/generated/`: the four original generated PNGs and generation notes.
-  All Round 1 artwork is delivered and used by the app and library card;
-  round 2 asks for the wordmark again with light letters for the dark start
-  screen (the current one stays in use until then).
+  All artwork is delivered and in use: round 1, and in round 2 the wordmark
+  again with light letters for the dark start screen.
 - `app/icons/`: the 180, 192 and 512 px icons, made by
   `design/source/make_icons.mjs` from `icon-1024.png` (the master art, not
   published) or, until it arrives, from the stand-in `app/icon.svg`.
