@@ -1092,5 +1092,245 @@
       ]
     },
     "interim": "assets/ui/steampunk/metronome-weight.cut.webp"
+  },
+  {
+    "id": "practice-intonation",
+    "theme": "classic",
+    "file": "assets/ui/practice-intonation.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-scales",
+    "theme": "classic",
+    "file": "assets/ui/practice-scales.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-rhythms",
+    "theme": "classic",
+    "file": "assets/ui/practice-rhythms.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-ghosting",
+    "theme": "classic",
+    "file": "assets/ui/practice-ghosting.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-default",
+    "theme": "classic",
+    "file": "assets/ui/practice-default.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-intonation",
+    "theme": "deco",
+    "file": "assets/ui/deco/practice-intonation.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-scales",
+    "theme": "deco",
+    "file": "assets/ui/deco/practice-scales.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-rhythms",
+    "theme": "deco",
+    "file": "assets/ui/deco/practice-rhythms.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-ghosting",
+    "theme": "deco",
+    "file": "assets/ui/deco/practice-ghosting.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-default",
+    "theme": "deco",
+    "file": "assets/ui/deco/practice-default.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-intonation",
+    "theme": "sixties",
+    "file": "assets/ui/sixties/practice-intonation.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-scales",
+    "theme": "sixties",
+    "file": "assets/ui/sixties/practice-scales.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-rhythms",
+    "theme": "sixties",
+    "file": "assets/ui/sixties/practice-rhythms.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-ghosting",
+    "theme": "sixties",
+    "file": "assets/ui/sixties/practice-ghosting.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-default",
+    "theme": "sixties",
+    "file": "assets/ui/sixties/practice-default.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-intonation",
+    "theme": "baroque",
+    "file": "assets/ui/baroque/practice-intonation.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-scales",
+    "theme": "baroque",
+    "file": "assets/ui/baroque/practice-scales.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-rhythms",
+    "theme": "baroque",
+    "file": "assets/ui/baroque/practice-rhythms.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-ghosting",
+    "theme": "baroque",
+    "file": "assets/ui/baroque/practice-ghosting.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-default",
+    "theme": "baroque",
+    "file": "assets/ui/baroque/practice-default.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-intonation",
+    "theme": "scifi",
+    "file": "assets/ui/scifi/practice-intonation.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-scales",
+    "theme": "scifi",
+    "file": "assets/ui/scifi/practice-scales.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-rhythms",
+    "theme": "scifi",
+    "file": "assets/ui/scifi/practice-rhythms.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-ghosting",
+    "theme": "scifi",
+    "file": "assets/ui/scifi/practice-ghosting.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-default",
+    "theme": "scifi",
+    "file": "assets/ui/scifi/practice-default.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-intonation",
+    "theme": "nouveau",
+    "file": "assets/ui/nouveau/practice-intonation.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-scales",
+    "theme": "nouveau",
+    "file": "assets/ui/nouveau/practice-scales.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-rhythms",
+    "theme": "nouveau",
+    "file": "assets/ui/nouveau/practice-rhythms.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-ghosting",
+    "theme": "nouveau",
+    "file": "assets/ui/nouveau/practice-ghosting.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-default",
+    "theme": "nouveau",
+    "file": "assets/ui/nouveau/practice-default.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-intonation",
+    "theme": "anime",
+    "file": "assets/ui/anime/practice-intonation.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-scales",
+    "theme": "anime",
+    "file": "assets/ui/anime/practice-scales.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-rhythms",
+    "theme": "anime",
+    "file": "assets/ui/anime/practice-rhythms.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-ghosting",
+    "theme": "anime",
+    "file": "assets/ui/anime/practice-ghosting.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-default",
+    "theme": "anime",
+    "file": "assets/ui/anime/practice-default.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-intonation",
+    "theme": "steampunk",
+    "file": "assets/ui/steampunk/practice-intonation.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-scales",
+    "theme": "steampunk",
+    "file": "assets/ui/steampunk/practice-scales.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-rhythms",
+    "theme": "steampunk",
+    "file": "assets/ui/steampunk/practice-rhythms.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-ghosting",
+    "theme": "steampunk",
+    "file": "assets/ui/steampunk/practice-ghosting.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-default",
+    "theme": "steampunk",
+    "file": "assets/ui/steampunk/practice-default.webp",
+    "status": "requested"
   }
 ]
