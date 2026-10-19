@@ -610,6 +610,63 @@ def round9_assets() -> list[dict]:
 
 ASSETS += round9_assets()
 
+
+def round10_assets() -> list[dict]:
+    """The pendulum in two parts, so its weight can slide along the rod with
+    the tempo (and be dragged to set it), as on a real metronome: the rod and
+    bob without the weight, and the weight alone. Until they arrive the app
+    uses interim cuts of the delivered pendulum (source/cut_pendulum.py,
+    recorded in design/pendulum-cuts.json)."""
+    cuts = {c["theme"]: c for c in json.loads((ROOT / "design" / "pendulum-cuts.json").read_text())}
+    names = {t["id"]: t["name"] for t in THEMES}
+    pend = {a["theme"]: a for a in ASSETS if a["id"] == "metronome-pendulum"}
+    out = []
+    for theme, c in cuts.items():
+        p, name = pend[theme], names[theme]
+        src = p["file"]
+        folder = src.rsplit("/", 1)[0]
+        out.append(dict(
+            id="metronome-rod", theme=theme, round=10, file=f"{folder}/metronome-rod.webp",
+            size="200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP", status="requested",
+            group=f"{name} · Metronome pendulum in two parts",
+            prompt=(f"Edit the attached image, musicpractice/app/{src} (this theme's metronome pendulum): "
+                    "remove the sliding weight that sits on the rod about a quarter of the way down, and "
+                    "change nothing else. Where the weight covered the rod, continue the rod exactly as it "
+                    "runs above and below it (same width, colour, shading and texture), so the rod is "
+                    "whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay "
+                    "exactly where they are. Same canvas and framing, so the two images line up exactly. "
+                    "Fully transparent background, no shadow, no text."),
+            note=(f"The {name} pendulum's rod and bob without the weight; the app slides the weight "
+                  f"(metronome-weight) along it. Same canvas, hub and swing as app/{src}. The weight's "
+                  f"centre may travel from y {c['rod']['travel'][0]} to y {c['rod']['travel'][1]} of the "
+                  "1000-high canvas (record the delivered rod's own range here). Until it arrives the app "
+                  f"uses an interim cut, app/{c['rod']['file']}."),
+            canvas=p["canvas"], anchors=p["anchors"], swing=p.get("swing"), scale=p.get("scale"),
+            travel=c["rod"]["travel"], interim=c["rod"]["file"],
+        ))
+        out.append(dict(
+            id="metronome-weight", theme=theme, round=10, file=f"{folder}/metronome-weight.webp",
+            size=f"200×{round(c['weight']['canvas'][1])} canvas at the pendulum's scale, transparent PNG, shipped as WebP",
+            status="requested",
+            group=f"{name} · Metronome pendulum in two parts",
+            prompt=(f"From the attached image, musicpractice/app/{src} (this theme's metronome pendulum), "
+                    "draw only its sliding weight, the ornament that sits on the rod about a quarter of the "
+                    "way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep "
+                    "the short piece of rod that shows through it, and nothing else: no rod above or below "
+                    "it, no bob. Centred left to right where the rod runs, on a canvas as wide as the "
+                    "pendulum's and just tall enough to hold the weight. Fully transparent background, no "
+                    "shadow, no text."),
+            note=(f"The {name} pendulum's weight, which the app slides along the rod with the tempo "
+                  "(higher is slower, as on a real metronome) and which can be dragged to set it. Anchor "
+                  "`center` is the point on the rod that marks its place. Until it arrives the app uses an "
+                  f"interim cut, app/{c['weight']['file']}."),
+            canvas=c["weight"]["canvas"], anchors={"center": c["weight"]["center"]}, interim=c["weight"]["file"],
+        ))
+    return out
+
+
+ASSETS += round10_assets()
+
 def render() -> tuple[str, str]:
     theme_name = {t["id"]: t["name"] for t in THEMES}
     lines = [
@@ -628,7 +685,8 @@ def render() -> tuple[str, str]:
                        (6, "Drone home icons, every theme"),
                        (7, "Drone screen with the bow as volume, every theme"),
                        (8, "Drone screen for the organ, every theme"),
-                       (9, "Practice Routine home icons, every theme")):
+                       (9, "Practice Routine home icons, every theme"),
+                       (10, "Metronome pendulum in two parts, every theme")):
         wanted = [a for a in ASSETS if a["round"] == rnd and a["status"] in ("requested", "revise")]
         lines.append(f"**Round {rnd} ({title}):** "
                      + (f"{len(wanted)} image{'s' if len(wanted) != 1 else ''} wanted: " + ", ".join(f"`{a['file']}`" for a in wanted) + "."
@@ -667,7 +725,7 @@ def render() -> tuple[str, str]:
             lines.append(f"- Note: {a['note']}")
         lines += ["", "```text", a["prompt"], "```"]
     doc = "\n".join(lines) + "\n"
-    keys = ("id", "theme", "file", "status", "canvas", "anchors", "swing", "scale")
+    keys = ("id", "theme", "file", "status", "canvas", "anchors", "swing", "scale", "travel", "interim")
     assets = json.dumps([{k: a[k] for k in keys if a.get(k) is not None} for a in ASSETS], indent=2) + "\n"
     return doc, assets
 

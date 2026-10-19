@@ -24,6 +24,8 @@ Images belong to a theme (Settings → Theme); each theme has its own set.
 
 **Round 9 (Practice Routine home icons, every theme):** 8 images wanted: `assets/ui/home-routine.webp`, `assets/ui/deco/home-routine.webp`, `assets/ui/sixties/home-routine.webp`, `assets/ui/baroque/home-routine.webp`, `assets/ui/scifi/home-routine.webp`, `assets/ui/nouveau/home-routine.webp`, `assets/ui/anime/home-routine.webp`, `assets/ui/steampunk/home-routine.webp`.
 
+**Round 10 (Metronome pendulum in two parts, every theme):** 16 images wanted: `assets/ui/metronome-rod.webp`, `assets/ui/metronome-weight.webp`, `assets/ui/deco/metronome-rod.webp`, `assets/ui/deco/metronome-weight.webp`, `assets/ui/sixties/metronome-rod.webp`, `assets/ui/sixties/metronome-weight.webp`, `assets/ui/baroque/metronome-rod.webp`, `assets/ui/baroque/metronome-weight.webp`, `assets/ui/scifi/metronome-rod.webp`, `assets/ui/scifi/metronome-weight.webp`, `assets/ui/nouveau/metronome-rod.webp`, `assets/ui/nouveau/metronome-weight.webp`, `assets/ui/anime/metronome-rod.webp`, `assets/ui/anime/metronome-weight.webp`, `assets/ui/steampunk/metronome-rod.webp`, `assets/ui/steampunk/metronome-weight.webp`.
+
 **House styles** (already included in every prompt):
 
 - Classic: Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.
@@ -125,6 +127,22 @@ the measured ones for the delivered file in `build_requests.py`.
 | 9 | French Nouveau | requested | `home-routine` | `app/assets/ui/nouveau/home-routine.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
 | 9 | Candy | requested | `home-routine` | `app/assets/ui/anime/home-routine.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
 | 9 | Steam Punk | requested | `home-routine` | `app/assets/ui/steampunk/home-routine.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
+| 10 | Classic | requested | `metronome-rod` | `app/assets/ui/metronome-rod.webp` | 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP |
+| 10 | Classic | requested | `metronome-weight` | `app/assets/ui/metronome-weight.webp` | 200×80 canvas at the pendulum's scale, transparent PNG, shipped as WebP |
+| 10 | Art Deco | requested | `metronome-rod` | `app/assets/ui/deco/metronome-rod.webp` | 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP |
+| 10 | Art Deco | requested | `metronome-weight` | `app/assets/ui/deco/metronome-weight.webp` | 200×156 canvas at the pendulum's scale, transparent PNG, shipped as WebP |
+| 10 | Vintage 60s | requested | `metronome-rod` | `app/assets/ui/sixties/metronome-rod.webp` | 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP |
+| 10 | Vintage 60s | requested | `metronome-weight` | `app/assets/ui/sixties/metronome-weight.webp` | 200×108 canvas at the pendulum's scale, transparent PNG, shipped as WebP |
+| 10 | 18th Century | requested | `metronome-rod` | `app/assets/ui/baroque/metronome-rod.webp` | 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP |
+| 10 | 18th Century | requested | `metronome-weight` | `app/assets/ui/baroque/metronome-weight.webp` | 200×111 canvas at the pendulum's scale, transparent PNG, shipped as WebP |
+| 10 | Robot Future | requested | `metronome-rod` | `app/assets/ui/scifi/metronome-rod.webp` | 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP |
+| 10 | Robot Future | requested | `metronome-weight` | `app/assets/ui/scifi/metronome-weight.webp` | 200×97 canvas at the pendulum's scale, transparent PNG, shipped as WebP |
+| 10 | French Nouveau | requested | `metronome-rod` | `app/assets/ui/nouveau/metronome-rod.webp` | 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP |
+| 10 | French Nouveau | requested | `metronome-weight` | `app/assets/ui/nouveau/metronome-weight.webp` | 200×110 canvas at the pendulum's scale, transparent PNG, shipped as WebP |
+| 10 | Candy | requested | `metronome-rod` | `app/assets/ui/anime/metronome-rod.webp` | 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP |
+| 10 | Candy | requested | `metronome-weight` | `app/assets/ui/anime/metronome-weight.webp` | 200×172 canvas at the pendulum's scale, transparent PNG, shipped as WebP |
+| 10 | Steam Punk | requested | `metronome-rod` | `app/assets/ui/steampunk/metronome-rod.webp` | 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP |
+| 10 | Steam Punk | requested | `metronome-weight` | `app/assets/ui/steampunk/metronome-weight.webp` | 200×110 canvas at the pendulum's scale, transparent PNG, shipped as WebP |
 
 ## Home screen buttons
 
@@ -1084,4 +1102,196 @@ Using the attached image, musicpractice/app/assets/ui/anime/home-drone.webp (thi
 
 ```text
 Using the attached image, musicpractice/app/assets/ui/steampunk/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a dark mahogany frame with riveted brass and copper end caps, a small pressure gauge on one column, golden sand. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. Keep the same two thin, smooth ribbons drifting gently outward from the sides as in the reference, so it sits with the other home buttons. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.
+```
+
+## Classic · Metronome pendulum in two parts
+
+### `metronome-rod` · Classic · requested
+
+- File: `musicpractice/app/assets/ui/metronome-rod.webp`
+- Size: 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP
+- Anchors (requested): hub (102, 927) in a 200×1000 canvas; swings ±24°
+- Note: The Classic pendulum's rod and bob without the weight; the app slides the weight (metronome-weight) along it. Same canvas, hub and swing as app/assets/ui/metronome-pendulum.webp. The weight's centre may travel from y 78.5 to y 796.5 of the 1000-high canvas (record the delivered rod's own range here). Until it arrives the app uses an interim cut, app/assets/ui/metronome-rod.cut.webp.
+
+```text
+Edit the attached image, musicpractice/app/assets/ui/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.
+```
+
+### `metronome-weight` · Classic · requested
+
+- File: `musicpractice/app/assets/ui/metronome-weight.webp`
+- Size: 200×80 canvas at the pendulum's scale, transparent PNG, shipped as WebP
+- Anchors (requested): center (100.0, 39.5) in a 200×80.0 canvas
+- Note: The Classic pendulum's weight, which the app slides along the rod with the tempo (higher is slower, as on a real metronome) and which can be dragged to set it. Anchor `center` is the point on the rod that marks its place. Until it arrives the app uses an interim cut, app/assets/ui/metronome-weight.cut.webp.
+
+```text
+From the attached image, musicpractice/app/assets/ui/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.
+```
+
+## Art Deco · Metronome pendulum in two parts
+
+### `metronome-rod` · Art Deco · requested
+
+- File: `musicpractice/app/assets/ui/deco/metronome-rod.webp`
+- Size: 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP
+- Anchors (requested): hub (99.5, 917) in a 200×1000 canvas; swings ±26°
+- Note: The Art Deco pendulum's rod and bob without the weight; the app slides the weight (metronome-weight) along it. Same canvas, hub and swing as app/assets/ui/deco/metronome-pendulum.webp. The weight's centre may travel from y 92.5 to y 725.5 of the 1000-high canvas (record the delivered rod's own range here). Until it arrives the app uses an interim cut, app/assets/ui/deco/metronome-rod.cut.webp.
+
+```text
+Edit the attached image, musicpractice/app/assets/ui/deco/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.
+```
+
+### `metronome-weight` · Art Deco · requested
+
+- File: `musicpractice/app/assets/ui/deco/metronome-weight.webp`
+- Size: 200×156 canvas at the pendulum's scale, transparent PNG, shipped as WebP
+- Anchors (requested): center (100.0, 77.5) in a 200×156.0 canvas
+- Note: The Art Deco pendulum's weight, which the app slides along the rod with the tempo (higher is slower, as on a real metronome) and which can be dragged to set it. Anchor `center` is the point on the rod that marks its place. Until it arrives the app uses an interim cut, app/assets/ui/deco/metronome-weight.cut.webp.
+
+```text
+From the attached image, musicpractice/app/assets/ui/deco/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.
+```
+
+## Vintage 60s · Metronome pendulum in two parts
+
+### `metronome-rod` · Vintage 60s · requested
+
+- File: `musicpractice/app/assets/ui/sixties/metronome-rod.webp`
+- Size: 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP
+- Anchors (requested): hub (100.0, 855.1) in a 200×1000 canvas; swings ±24°
+- Note: The Vintage 60s pendulum's rod and bob without the weight; the app slides the weight (metronome-weight) along it. Same canvas, hub and swing as app/assets/ui/sixties/metronome-pendulum.webp. The weight's centre may travel from y 139.5 to y 686.5 of the 1000-high canvas (record the delivered rod's own range here). Until it arrives the app uses an interim cut, app/assets/ui/sixties/metronome-rod.cut.webp.
+
+```text
+Edit the attached image, musicpractice/app/assets/ui/sixties/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.
+```
+
+### `metronome-weight` · Vintage 60s · requested
+
+- File: `musicpractice/app/assets/ui/sixties/metronome-weight.webp`
+- Size: 200×108 canvas at the pendulum's scale, transparent PNG, shipped as WebP
+- Anchors (requested): center (100.0, 53.5) in a 200×108.0 canvas
+- Note: The Vintage 60s pendulum's weight, which the app slides along the rod with the tempo (higher is slower, as on a real metronome) and which can be dragged to set it. Anchor `center` is the point on the rod that marks its place. Until it arrives the app uses an interim cut, app/assets/ui/sixties/metronome-weight.cut.webp.
+
+```text
+From the attached image, musicpractice/app/assets/ui/sixties/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.
+```
+
+## 18th Century · Metronome pendulum in two parts
+
+### `metronome-rod` · 18th Century · requested
+
+- File: `musicpractice/app/assets/ui/baroque/metronome-rod.webp`
+- Size: 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP
+- Anchors (requested): hub (99.4, 866.3) in a 200×1000 canvas; swings ±24°
+- Note: The 18th Century pendulum's rod and bob without the weight; the app slides the weight (metronome-weight) along it. Same canvas, hub and swing as app/assets/ui/baroque/metronome-pendulum.webp. The weight's centre may travel from y 82.0 to y 677.0 of the 1000-high canvas (record the delivered rod's own range here). Until it arrives the app uses an interim cut, app/assets/ui/baroque/metronome-rod.cut.webp.
+
+```text
+Edit the attached image, musicpractice/app/assets/ui/baroque/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.
+```
+
+### `metronome-weight` · 18th Century · requested
+
+- File: `musicpractice/app/assets/ui/baroque/metronome-weight.webp`
+- Size: 200×111 canvas at the pendulum's scale, transparent PNG, shipped as WebP
+- Anchors (requested): center (100.0, 55.0) in a 200×111.0 canvas
+- Note: The 18th Century pendulum's weight, which the app slides along the rod with the tempo (higher is slower, as on a real metronome) and which can be dragged to set it. Anchor `center` is the point on the rod that marks its place. Until it arrives the app uses an interim cut, app/assets/ui/baroque/metronome-weight.cut.webp.
+
+```text
+From the attached image, musicpractice/app/assets/ui/baroque/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.
+```
+
+## Robot Future · Metronome pendulum in two parts
+
+### `metronome-rod` · Robot Future · requested
+
+- File: `musicpractice/app/assets/ui/scifi/metronome-rod.webp`
+- Size: 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP
+- Anchors (requested): hub (100.3, 924.7) in a 200×1000 canvas; swings ±24°
+- Note: The Robot Future pendulum's rod and bob without the weight; the app slides the weight (metronome-weight) along it. Same canvas, hub and swing as app/assets/ui/scifi/metronome-pendulum.webp. The weight's centre may travel from y 82.0 to y 784.0 of the 1000-high canvas (record the delivered rod's own range here). Until it arrives the app uses an interim cut, app/assets/ui/scifi/metronome-rod.cut.webp.
+
+```text
+Edit the attached image, musicpractice/app/assets/ui/scifi/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.
+```
+
+### `metronome-weight` · Robot Future · requested
+
+- File: `musicpractice/app/assets/ui/scifi/metronome-weight.webp`
+- Size: 200×97 canvas at the pendulum's scale, transparent PNG, shipped as WebP
+- Anchors (requested): center (100.0, 48.0) in a 200×97.0 canvas
+- Note: The Robot Future pendulum's weight, which the app slides along the rod with the tempo (higher is slower, as on a real metronome) and which can be dragged to set it. Anchor `center` is the point on the rod that marks its place. Until it arrives the app uses an interim cut, app/assets/ui/scifi/metronome-weight.cut.webp.
+
+```text
+From the attached image, musicpractice/app/assets/ui/scifi/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.
+```
+
+## French Nouveau · Metronome pendulum in two parts
+
+### `metronome-rod` · French Nouveau · requested
+
+- File: `musicpractice/app/assets/ui/nouveau/metronome-rod.webp`
+- Size: 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP
+- Anchors (requested): hub (99.7, 898.7) in a 200×1000 canvas; swings ±24°
+- Note: The French Nouveau pendulum's rod and bob without the weight; the app slides the weight (metronome-weight) along it. Same canvas, hub and swing as app/assets/ui/nouveau/metronome-pendulum.webp. The weight's centre may travel from y 84.5 to y 501.5 of the 1000-high canvas (record the delivered rod's own range here). Until it arrives the app uses an interim cut, app/assets/ui/nouveau/metronome-rod.cut.webp.
+
+```text
+Edit the attached image, musicpractice/app/assets/ui/nouveau/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.
+```
+
+### `metronome-weight` · French Nouveau · requested
+
+- File: `musicpractice/app/assets/ui/nouveau/metronome-weight.webp`
+- Size: 200×110 canvas at the pendulum's scale, transparent PNG, shipped as WebP
+- Anchors (requested): center (100.0, 54.5) in a 200×110.0 canvas
+- Note: The French Nouveau pendulum's weight, which the app slides along the rod with the tempo (higher is slower, as on a real metronome) and which can be dragged to set it. Anchor `center` is the point on the rod that marks its place. Until it arrives the app uses an interim cut, app/assets/ui/nouveau/metronome-weight.cut.webp.
+
+```text
+From the attached image, musicpractice/app/assets/ui/nouveau/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.
+```
+
+## Candy · Metronome pendulum in two parts
+
+### `metronome-rod` · Candy · requested
+
+- File: `musicpractice/app/assets/ui/anime/metronome-rod.webp`
+- Size: 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP
+- Anchors (requested): hub (98.0, 927.9) in a 200×1000 canvas; swings ±24°
+- Note: The Candy pendulum's rod and bob without the weight; the app slides the weight (metronome-weight) along it. Same canvas, hub and swing as app/assets/ui/anime/metronome-pendulum.webp. The weight's centre may travel from y 115.5 to y 685.5 of the 1000-high canvas (record the delivered rod's own range here). Until it arrives the app uses an interim cut, app/assets/ui/anime/metronome-rod.cut.webp.
+
+```text
+Edit the attached image, musicpractice/app/assets/ui/anime/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.
+```
+
+### `metronome-weight` · Candy · requested
+
+- File: `musicpractice/app/assets/ui/anime/metronome-weight.webp`
+- Size: 200×172 canvas at the pendulum's scale, transparent PNG, shipped as WebP
+- Anchors (requested): center (100.0, 85.5) in a 200×172.0 canvas
+- Note: The Candy pendulum's weight, which the app slides along the rod with the tempo (higher is slower, as on a real metronome) and which can be dragged to set it. Anchor `center` is the point on the rod that marks its place. Until it arrives the app uses an interim cut, app/assets/ui/anime/metronome-weight.cut.webp.
+
+```text
+From the attached image, musicpractice/app/assets/ui/anime/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.
+```
+
+## Steam Punk · Metronome pendulum in two parts
+
+### `metronome-rod` · Steam Punk · requested
+
+- File: `musicpractice/app/assets/ui/steampunk/metronome-rod.webp`
+- Size: 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP
+- Anchors (requested): hub (94.8, 870.6) in a 200×1000 canvas; swings ±24°
+- Note: The Steam Punk pendulum's rod and bob without the weight; the app slides the weight (metronome-weight) along it. Same canvas, hub and swing as app/assets/ui/steampunk/metronome-pendulum.webp. The weight's centre may travel from y 77.5 to y 697.5 of the 1000-high canvas (record the delivered rod's own range here). Until it arrives the app uses an interim cut, app/assets/ui/steampunk/metronome-rod.cut.webp.
+
+```text
+Edit the attached image, musicpractice/app/assets/ui/steampunk/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.
+```
+
+### `metronome-weight` · Steam Punk · requested
+
+- File: `musicpractice/app/assets/ui/steampunk/metronome-weight.webp`
+- Size: 200×110 canvas at the pendulum's scale, transparent PNG, shipped as WebP
+- Anchors (requested): center (100.0, 54.5) in a 200×110.0 canvas
+- Note: The Steam Punk pendulum's weight, which the app slides along the rod with the tempo (higher is slower, as on a real metronome) and which can be dragged to set it. Anchor `center` is the point on the rod that marks its place. Until it arrives the app uses an interim cut, app/assets/ui/steampunk/metronome-weight.cut.webp.
+
+```text
+From the attached image, musicpractice/app/assets/ui/steampunk/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.
 ```

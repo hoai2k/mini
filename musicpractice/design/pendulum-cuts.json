@@ -1,0 +1,178 @@
+[
+  {
+    "theme": "classic",
+    "rod": {
+      "file": "assets/ui/metronome-rod.cut.webp",
+      "travel": [
+        78.5,
+        796.5
+      ],
+      "at": 291.5
+    },
+    "weight": {
+      "file": "assets/ui/metronome-weight.cut.webp",
+      "canvas": [
+        200,
+        80.0
+      ],
+      "center": [
+        100.0,
+        39.5
+      ]
+    }
+  },
+  {
+    "theme": "deco",
+    "rod": {
+      "file": "assets/ui/deco/metronome-rod.cut.webp",
+      "travel": [
+        92.5,
+        725.5
+      ],
+      "at": 296.5
+    },
+    "weight": {
+      "file": "assets/ui/deco/metronome-weight.cut.webp",
+      "canvas": [
+        200,
+        156.0
+      ],
+      "center": [
+        100.0,
+        77.5
+      ]
+    }
+  },
+  {
+    "theme": "sixties",
+    "rod": {
+      "file": "assets/ui/sixties/metronome-rod.cut.webp",
+      "travel": [
+        139.5,
+        686.5
+      ],
+      "at": 280.5
+    },
+    "weight": {
+      "file": "assets/ui/sixties/metronome-weight.cut.webp",
+      "canvas": [
+        200,
+        108.0
+      ],
+      "center": [
+        100.0,
+        53.5
+      ]
+    }
+  },
+  {
+    "theme": "baroque",
+    "rod": {
+      "file": "assets/ui/baroque/metronome-rod.cut.webp",
+      "travel": [
+        82.0,
+        677.0
+      ],
+      "at": 338.0
+    },
+    "weight": {
+      "file": "assets/ui/baroque/metronome-weight.cut.webp",
+      "canvas": [
+        200,
+        111.0
+      ],
+      "center": [
+        100.0,
+        55.0
+      ]
+    }
+  },
+  {
+    "theme": "scifi",
+    "rod": {
+      "file": "assets/ui/scifi/metronome-rod.cut.webp",
+      "travel": [
+        82.0,
+        784.0
+      ],
+      "at": 304.0
+    },
+    "weight": {
+      "file": "assets/ui/scifi/metronome-weight.cut.webp",
+      "canvas": [
+        200,
+        97.0
+      ],
+      "center": [
+        100.0,
+        48.0
+      ]
+    }
+  },
+  {
+    "theme": "nouveau",
+    "rod": {
+      "file": "assets/ui/nouveau/metronome-rod.cut.webp",
+      "travel": [
+        84.5,
+        501.5
+      ],
+      "at": 219.5
+    },
+    "weight": {
+      "file": "assets/ui/nouveau/metronome-weight.cut.webp",
+      "canvas": [
+        200,
+        110.0
+      ],
+      "center": [
+        100.0,
+        54.5
+      ]
+    }
+  },
+  {
+    "theme": "anime",
+    "rod": {
+      "file": "assets/ui/anime/metronome-rod.cut.webp",
+      "travel": [
+        115.5,
+        685.5
+      ],
+      "at": 208.5
+    },
+    "weight": {
+      "file": "assets/ui/anime/metronome-weight.cut.webp",
+      "canvas": [
+        200,
+        172.0
+      ],
+      "center": [
+        100.0,
+        85.5
+      ]
+    }
+  },
+  {
+    "theme": "steampunk",
+    "rod": {
+      "file": "assets/ui/steampunk/metronome-rod.cut.webp",
+      "travel": [
+        77.5,
+        697.5
+      ],
+      "at": 280.5
+    },
+    "weight": {
+      "file": "assets/ui/steampunk/metronome-weight.cut.webp",
+      "canvas": [
+        200,
+        110.0
+      ],
+      "center": [
+        100.0,
+        54.5
+      ]
+    }
+  }
+]
