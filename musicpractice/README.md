@@ -448,8 +448,8 @@ tune or how many cents flat or sharp, and how many were in tune, with
 **Test again** and **Done**. Closing the sheet stops it. While the sheet
 is up the tuner rests behind it (no note, the needle at rest, a reference
 tone stopped), and it picks up again when the sheet closes. It is more lenient
-than the tuner: within 15 cents counts as in tune (`SCALE_TOLERANCE`), where
-the needle wants 5. A note is a run of clear frames on one semitone, at
+than the tuner: from 10 to 35 cents counts as in tune, by the difficulty
+(below), where the needle wants 5. A note is a run of clear frames on one semitone, at
 least 0.12 s long, with a stray frame or two let through. Each note is
 measured three ways: its **start**, where it first settled after the attack
 (the median of the first 0.1 s that kept within 15 cents, the attack's first
