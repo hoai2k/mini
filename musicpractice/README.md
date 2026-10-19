@@ -985,11 +985,13 @@ as 384×384 lossless WebP. The rods use 200×1000 canvases; each weight keeps th
 original theme's small layer canvas and scale. All eight pairs were checked
 over their metronome bodies at the top, middle and bottom of the weight travel.
 
-Round 11 tracks five Practice Routine activity pictures per theme:
+Round 11 delivers five Practice Routine activity pictures in all eight themes:
 intonation, scales, clapping rhythms, ghosting and a default music stand.
 Delivered PNG masters and previews live in `design/generated/round-11/`;
 `design/image-deliveries-round-11.json` records the completed pictures,
 prompts and 512×512 lossless WebP exports. Practice Routine pictures and
 hourglasses have no wing-like sound ribbons or mist; those belong only to
 Drone. Notes appear only within a scale, rhythm pattern or the book’s sheet
-music, never as floating decoration. The request list tracks remaining pictures.
+music, never as floating decoration. Each clapping icon has exactly two hands;
+the scale pictures show eight ascending notes on a five-line staff. All image
+requests through Round 11 are delivered.

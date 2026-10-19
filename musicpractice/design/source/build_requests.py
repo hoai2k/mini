@@ -712,7 +712,8 @@ PRACTICE_SUBJECT = {
                             "beside its tines; the tuning fork alone, without musical notes or a staff"),
     "practice-scales": ("Scales", "a short musical staff with eight round note heads climbing it from left to right like a "
                         "gentle staircase, the last note a little larger; exactly eight notes on a five-line staff, no treble clef"),
-    "practice-rhythms": ("Clapping rhythms", "two hands meeting in a clap, seen from the side, with three small curved "
+    "practice-rhythms": ("Clapping rhythms", "exactly two hands meeting in a clap, one left and one right, with exactly two wrists "
+                         "and two cuffs, seen from the side, with three small curved "
                          "motion marks around them, and a short row of rhythm notes (quarter notes and a pair of "
                          "beamed eighth notes) beneath"),
     "practice-ghosting": ("Ghosting", "a cello bow drawn as a faint, translucent ghostly outline, hovering just above four "
@@ -767,6 +768,7 @@ if _practice_delivery.exists():
         asset["status"] = "delivered"
         asset["note"] = asset["note"].split(" Until it arrives")[0]
         asset["note"] += " Delivered PNG masters, prompts and exports: design/image-deliveries-round-11.json."
+
 
 def render() -> tuple[str, str]:
     theme_name = {t["id"]: t["name"] for t in THEMES}
