@@ -150,16 +150,8 @@ button { cursor: pointer; }
 .choice .label { font-weight: 800; font-size: clamp(1rem, 3.6vw, 1.3rem); text-align: center; }
 /* Three tools: two across and the third centred below on phones, three across when there's room. */
 .choices { --choice-gap: clamp(14px, 4vw, 32px); gap: var(--choice-gap); }
-/* Hold to reorder, like an iPhone home screen (src/homeorder.js). */
+/* A press on a button doesn't select its label or open the long-press callout. */
 .choice { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
-.choices.editing .choice { animation: jiggle 0.25s ease-in-out infinite alternate; animation-delay: var(--jiggle-delay, 0s); cursor: grab; touch-action: none; }
-.choices.editing .choice:hover, .choices.editing .choice:active { transform: none; }
-.choices .choice.dragging { animation: none; rotate: 0deg; z-index: 2; cursor: grabbing; opacity: 0.95; box-shadow: 0 26px 50px var(--shadow); }
-@keyframes jiggle { from { rotate: -1.3deg; } to { rotate: 1.3deg; } }
-@media (prefers-reduced-motion: reduce) {
-  .choices.editing .choice { animation: none; outline: 2px dashed var(--brass); outline-offset: 4px; }
-}
-.home-done { position: absolute; top: max(16px, env(safe-area-inset-top)); left: var(--gutter); min-width: 76px; z-index: 3; }
 .choices > .choice:nth-child(3):last-child { grid-column: 1 / -1; justify-self: center; width: calc((100% - var(--choice-gap)) / 2); }
 /* Four tools: two rows of two (phones and tablets, either way up), or one
    row of four once the window is clearly wider than tall (a desktop browser,
