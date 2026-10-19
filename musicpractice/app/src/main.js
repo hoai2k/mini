@@ -446,6 +446,34 @@ for (const b of document.querySelectorAll('.open-theme')) {
   b.addEventListener('click', () => openThemeSheet(b.closest('dialog')));
 }
 
+/*
+ * A drag on an open dialog never scrolls the page behind it. The stylesheet
+ * stops the page scrolling while one is open; a phone can still pass a drag
+ * on the sheet through to the page (where the sheet has nothing to scroll,
+ * or is already at its end), so a touch move inside a dialog is let through
+ * only where something under the finger can scroll that way, or is a control
+ * that drags (a slider, a dropdown).
+ */
+let dragY = 0;
+document.addEventListener('touchstart', (e) => { dragY = e.touches[0]?.clientY ?? 0; }, { passive: true });
+document.addEventListener('touchmove', (e) => {
+  const dialog = document.querySelector('dialog[open]');
+  if (!dialog || e.touches.length !== 1) return;
+  const t = e.target instanceof Element ? e.target : null;
+  if (t?.closest('input, select, textarea, [role="slider"]')) return;
+  const y = e.touches[0].clientY;
+  const up = y < dragY; // finger moving up: the content would scroll down
+  dragY = y;
+  for (let el = t; el && dialog.contains(el); el = el.parentElement) {
+    const oy = getComputedStyle(el).overflowY;
+    if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 1) {
+      const room = up ? el.scrollTop + el.clientHeight < el.scrollHeight - 1 : el.scrollTop > 0;
+      if (room) return;
+    }
+  }
+  if (e.cancelable) e.preventDefault();
+}, { passive: false });
+
 const metSettings = $('met-settings');
 $('met-settings-btn').addEventListener('click', () => metSettings.showModal());
 const meterSelect = $('meter');
@@ -2003,7 +2031,7 @@ const timerAudio = {
   stopDrone() { if (timerDrone) { timerDrone = false; droneEngine().stop(); } },
   // On the context the metronome plays through, when it does (one context, one output).
   chime(id) { return playChime(clipCtx(), id); },
-  clips(urls) { return playClips(clipCtx(), urls); },
+  clips(urls, volume) { return playClips(clipCtx(), urls, volume == null ? {} : { volume }); },
   preload(urls) { const c = clipCtx(); for (const u of urls) loadClip(c, u); },
   running(on) {
     keepAwake(on);
@@ -2013,7 +2041,6 @@ const timerAudio = {
 timerUI = setupTimer({
   settings,
   audio: timerAudio,
-  chips,
   canDrone: () => isPro(),
   askDrone: () => openPaywall('drone'),
 });

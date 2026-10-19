@@ -26,7 +26,11 @@ the gauge, down to 72 pixels) end in tighter text and buttons
 and Visualizer are as wide as the picture is tall rather than the window,
 so the picture and the controls fit side by side, and many small dots (12/8)
 are scaled down to that width. The Practice Routine and Playback lists can
-be any length, and scroll.
+be any length, and scroll. **A sheet or dialog never scrolls the page
+behind it**: while one is open the page is held (`html:has(dialog[open])`),
+and on a phone a drag on a sheet passes to the page only where nothing under
+the finger can scroll that way (a touch handler in `main.js`), so a long
+sheet scrolls itself and a short one stays put.
 
 ## Themes
 
@@ -635,10 +639,12 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
 - A first visit starts with **Intonation practice** (3 min, drone on) and
   **Scales** (5 min, metronome on). **+ Add** offers those, **Clapping
   rhythms** and **Ghosting** (nothing on), and **Custom…** (a blank item, its
-  name ready to type), each listed with what it turns on and no length: a new
-  item starts at the minutes last given to its kind (`lastMinutes`, kept
-  with the routine), or its default the first time (3 min, Scales 5, Custom
-  5), and is adjusted on its card. The bin deletes an item at once, with
+  name ready to type), each listed by its name alone. An item added this way
+  starts with its Metronome and Drone off (the first visit's two are the
+  only ones that come with theirs on; `newItem`'s `tools`), and at the
+  minutes last given to its kind (`lastMinutes`, kept with the routine), or
+  its default the first time (3 min, Scales 5, Custom 5), adjusted on its
+  card. The bin deletes an item at once, with
   **Undo** for a few seconds after. Kept in `musicpractice.routine.v1`.
 - **Start** runs through the items. The card running is lit, with its
   progress along its foot, and the panel at the top shows its name, the time
@@ -651,9 +657,11 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   and the next item's sound, so the clicks or the drone never start over
   the words. For example: "Scales are complete. Next, ghosting.", "Let's begin
   with intonation practice." at Start, and "…That's the end of your
-  practice routine. Well done." at the end. Settings: **Voice** on (the
-  default) or off, and **Whose voice**: Lily, Matilda, George, Clara,
-  Autumn or Theo, each saying hello as it is picked. Every kind of item has
+  practice routine. Well done." at the end. Settings: **Use Voice** on (the
+  default) or off, **Voice** (a dropdown: Lily, Matilda, George, Clara,
+  Autumn or Theo, each saying hello as it is picked) and **Voice volume** (a
+  curve to a gain, `voiceGain`, up to 1.6; it starts at the 0.9 the voice
+  always had, and says hello at the new level when let go). Every kind of item has
   its own lines (done-, next- and first-<kind>), and a Custom item the
   generic ones ("That practice item is complete.", "On to your next
   practice item."), so lengths and typed names are never spoken. They are
@@ -662,13 +670,14 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   **A new suggestion needs its lines in every voice**; `test/timer.test.mjs`
   checks they are all there. Everything a routine may say is loaded when it
   starts; Pause, Skip and Stop cut a line short.
-- **Between items, a chime** (settings: Kalimba, the default, Two-tone,
-  Celesta or None; each plays as it is picked): it rings as an item ends and
+- **Between items, a chime** (settings: **Use Chimes** on or off, and
+  **Chime**, a dropdown: Kalimba, the default, Two-tone or Celesta; each
+  plays as it is picked; a "None" chime saved before is now chimes off): it rings as an item ends and
   the next item's metronome or drone starts about a second later, so they
   don't start over it; it also rings at the end. The sounds are
   `app/assets/audio/timer/`, from the second batch in
-  `design/chime-sounds.md`. Spoken announcements are still to be decided:
-  `cues` in `timer.js` is where they will go.
+  `design/chime-sounds.md`. The settings end, as every settings sheet does,
+  with **Audio check…** and **Theme…**.
 - **On the home screen** it is a fifth button: always on a window wider than
   tall (one row of five, compacted to fit), and upright when all five fit
   without scrolling (two across with the fifth centred below). When they

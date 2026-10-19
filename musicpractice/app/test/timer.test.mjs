@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { TimerRun, cleanRoutine, newItem, PRESETS, totalSeconds, loadTimer, saveTimer, CHIMES } from '../src/timer.js';
+import { TimerRun, cleanRoutine, newItem, PRESETS, totalSeconds, loadTimer, saveTimer, CHIMES, VOICE_DEFAULT, voiceGain } from '../src/timer.js';
 
 const base = { bpm: 100, meter: '3/4', droneMidi: 50, droneVoice: 'organ', droneFifth: true };
 const mem = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) }; };
@@ -27,7 +27,7 @@ test('a first visit starts with Intonation (drone) and Scales (metronome); + off
 test('saved routines are kept, cleaned, and an emptied one stays empty', () => {
   const s = mem();
   saveTimer({ items: [], chime: 'celesta' }, s);
-  assert.deepEqual(loadTimer(base, s), { items: [], chime: 'celesta', lastMinutes: {}, voiceOn: true, voice: 'lily' });
+  assert.deepEqual(loadTimer(base, s), { items: [], chime: 'celesta', chimeOn: true, lastMinutes: {}, voiceOn: true, voice: 'lily', voiceVolume: VOICE_DEFAULT });
   const items = cleanRoutine([{ id: 'a', name: 'x'.repeat(99), minutes: 999, metronome: 1, met: { bpm: 9999, meter: 'nope' }, drn: { midi: 10, voice: '?' } }, { id: 'a' }, 'junk']);
   assert.equal(items.length, 2); // the duplicate id dropped, the junk made a blank item
   assert.equal(items[0].name.length, 60);
@@ -35,7 +35,7 @@ test('saved routines are kept, cleaned, and an emptied one stays empty', () => {
   assert.equal(items[0].metronome, false);
   assert.deepEqual(items[0].met, { bpm: 500, meter: '4/4' });
   assert.deepEqual(items[0].drn, { midi: 36, voice: 'cello', fifth: false });
-  assert.deepEqual(CHIMES, ['kalimba', 'two-tone', 'celesta', 'none']);
+  assert.deepEqual(CHIMES, ['kalimba', 'two-tone', 'celesta']);
   assert.equal(totalSeconds([{ minutes: 3 }, { minutes: 5 }]), 480);
 });
 
@@ -138,4 +138,19 @@ test('voice settings: on by default in Lily\'s voice; kept; an unknown voice fal
   assert.deepEqual([loadTimer(base, s).voiceOn, loadTimer(base, s).voice], [false, 'theo']);
   saveTimer({ items: [], chime: 'kalimba', lastMinutes: {}, voiceOn: true, voice: 'nobody' }, s);
   assert.equal(loadTimer(base, s).voice, 'lily');
+});
+
+test('chimes on or off (an old "none" chime is off), the voice\'s volume kept, and items added with + start plain', () => {
+  const s = mem();
+  saveTimer({ items: [], chime: 'none' }, s);
+  assert.deepEqual([loadTimer(base, s).chimeOn, loadTimer(base, s).chime], [false, 'kalimba']);
+  saveTimer({ items: [], chime: 'celesta', chimeOn: false, voiceVolume: 0.3 }, s);
+  assert.deepEqual([loadTimer(base, s).chimeOn, loadTimer(base, s).chime, loadTimer(base, s).voiceVolume], [false, 'celesta', 0.3]);
+  saveTimer({ items: [], voiceVolume: 7 }, s);
+  assert.equal(loadTimer(base, s).voiceVolume, 1);
+  assert.ok(Math.abs(voiceGain(VOICE_DEFAULT) - 0.9) < 0.02, 'the default is as loud as the voice always was');
+  for (const id of ['intonation', 'scales']) {
+    const it = newItem(id, base, {}, { tools: false });
+    assert.deepEqual([it.metronome, it.drone], [false, false], id);
+  }
 });

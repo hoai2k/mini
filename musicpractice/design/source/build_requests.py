@@ -737,6 +737,20 @@ PRACTICE_SUBJECT = {
 }
 
 
+# Round 12: pictures for the suggestions added since (Metronome uses the
+# Metronome's own home picture and needs none).
+PRACTICE_SUBJECT_12 = {
+    "practice-arpeggios": ("Arpeggios", "a short musical staff with five round note heads rising and then falling in a "
+                           "gentle arch from left to right, a broken chord climbing a triad and coming back down; "
+                           "exactly five notes on a five-line staff, no treble clef"),
+    "practice-sight-reading": ("Sight reading", "a single sheet of printed music, a few staves of notes, with a small "
+                               "magnifying glass resting over one corner as if reading it for the first time; the "
+                               "sheet and the magnifying glass only, no music stand"),
+    "practice-improvisation": ("Improvisation", "a glowing light bulb with one musical eighth note inside it, and a few "
+                               "short spark lines around the bulb; the bulb, its note and the sparks only"),
+}
+
+
 def round11_assets() -> list[dict]:
     record = json.loads((ROOT / "design" / "image-deliveries-drone.json").read_text())
     names = {t["id"]: t["name"] for t in THEMES}
@@ -745,9 +759,9 @@ def round11_assets() -> list[dict]:
         theme, name = a["theme"], names[a["theme"]]
         src = a["file"].removeprefix("musicpractice/app/")
         folder = src.rsplit("/", 1)[0]
-        for pid, (label, subject) in PRACTICE_SUBJECT.items():
+        for pid, (label, subject) in [*PRACTICE_SUBJECT.items(), *PRACTICE_SUBJECT_12.items()]:
             out.append(dict(
-                id=pid, theme=theme, round=11, file=f"{folder}/{pid}.webp",
+                id=pid, theme=theme, round=11 if pid in PRACTICE_SUBJECT else 12, file=f"{folder}/{pid}.webp",
                 size="1024×1024, transparent PNG (shipped as 512×512 WebP)", status="requested",
                 group=f"{name} · Practice Routine pictures",
                 prompt=(f"Using the attached image, musicpractice/app/{src} (this theme's Drone home button, a "

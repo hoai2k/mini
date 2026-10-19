@@ -37,9 +37,11 @@ const newId = () => `i${Date.now().toString(36)}${(nextId++).toString(36)}`;
 /**
  * A new item: from a preset (or blank, for Custom…), its metronome and drone
  * starting from the app's current ones (`base`, the settings) and its own from
- * then on.
+ * then on. `tools`: whether the preset's metronome or drone starts on (as in
+ * the routine a first visit starts with); an item added with + starts with
+ * both off.
  */
-export function newItem(presetId, base = {}, lastMinutes = {}) {
+export function newItem(presetId, base = {}, lastMinutes = {}, { tools = true } = {}) {
   const p = PRESETS.find((x) => x.id === presetId);
   const minutes = lastMinutes[presetId || 'custom'] ?? (p ? p.minutes : 5);
   return clean({
@@ -47,8 +49,8 @@ export function newItem(presetId, base = {}, lastMinutes = {}) {
     kind: p ? p.id : null,
     name: p ? TEXT.timer.presets[p.id] : '',
     minutes,
-    metronome: p ? p.metronome : false,
-    drone: p ? p.drone : false,
+    metronome: !!(tools && p?.metronome),
+    drone: !!(tools && p?.drone),
     met: { bpm: base.bpm, meter: base.meter },
     drn: { midi: base.droneMidi, voice: base.droneVoice, fifth: base.droneFifth },
   });
@@ -93,8 +95,13 @@ export function cleanRoutine(v, base) {
   return v.slice(0, MAX_ITEMS).map(clean).filter((it) => !seen.has(it.id) && seen.add(it.id));
 }
 
-/** The chime between items (and at the end), from design/chime-sounds.md's second batch; 'none' for silence. */
-export const CHIMES = ['kalimba', 'two-tone', 'celesta', 'none'];
+/** The chime between items (and at the end), from design/chime-sounds.md's second batch, when chimes are on (chimeOn). */
+export const CHIMES = ['kalimba', 'two-tone', 'celesta'];
+
+/** The voice's loudness: a slider (0 to 1) to a gain, a curve so equal moves sound like equal steps; the default is the gain it always had (0.9). */
+export const VOICE_MAX_GAIN = 1.6;
+export const voiceGain = (v) => VOICE_MAX_GAIN * Math.max(0, Math.min(1, v)) ** 2;
+export const VOICE_DEFAULT = Math.round(Math.sqrt(0.9 / VOICE_MAX_GAIN) * 100) / 100;
 
 /** The timer's own saved state: the routine and the chime. */
 export function loadTimer(base, storage = globalThis.localStorage) {
@@ -103,14 +110,17 @@ export function loadTimer(base, storage = globalThis.localStorage) {
   return {
     items: cleanRoutine(saved?.items, base),
     chime: CHIMES.includes(saved?.chime) ? saved.chime : 'kalimba',
+    // Chimes on unless turned off ('none' was once a chime of its own: off).
+    chimeOn: saved?.chimeOn !== false && saved?.chime !== 'none',
     lastMinutes: cleanLastMinutes(saved?.lastMinutes),
     // Spoken between items, in this voice; on unless turned off.
     voiceOn: saved?.voiceOn !== false,
     voice: SPEAKERS.includes(saved?.voice) ? saved.voice : SPEAKERS[0],
+    voiceVolume: Number.isFinite(saved?.voiceVolume) ? Math.max(0, Math.min(1, saved.voiceVolume)) : VOICE_DEFAULT,
   };
 }
-export function saveTimer({ items, chime, lastMinutes, voiceOn, voice }, storage = globalThis.localStorage) {
-  try { storage?.setItem(KEY, JSON.stringify({ items, chime, lastMinutes, voiceOn, voice })); } catch { /* not kept */ }
+export function saveTimer({ items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume }, storage = globalThis.localStorage) {
+  try { storage?.setItem(KEY, JSON.stringify({ items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume })); } catch { /* not kept */ }
 }
 
 /**
@@ -195,7 +205,7 @@ export function playClips(ctx, urls, { gap = 0.25, volume = 0.9 } = {}) {
 
 /** Play chime `id` on `ctx`. */
 export function playChime(ctx, id, volume = 0.9) {
-  if (!ctx || !CHIMES.includes(id) || id === 'none') return { done: Promise.resolve(), stop() {} };
+  if (!ctx || !CHIMES.includes(id)) return { done: Promise.resolve(), stop() {} };
   return playClips(ctx, [chimeUrl(id)], { volume });
 }
 

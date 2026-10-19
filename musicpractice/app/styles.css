@@ -607,6 +607,10 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
   box-shadow: 0 20px 60px var(--shadow);
 }
 .sheet::backdrop { background: var(--backdrop); }
+/* While a sheet or dialog is open, the page under it stays put: dragging on
+   the sheet scrolls the sheet (if it has more than fits) and never the page
+   behind it (also main.js, for touch on the parts of a sheet that don't scroll). */
+html:has(dialog[open]) { overflow: hidden; }
 /* A sheet scrolls up and down only. Safari sizes a dropdown to its longest
    option (a Bluetooth headset's full name, say), which pushed rows wider than
    the sheet and let it pan sideways; the rows below now give way instead. */
@@ -1986,7 +1990,6 @@ html.paged #home, html.paged #routine { touch-action: pan-y; }
 }
 .timer-preset:hover { border-color: var(--brass); }
 .timer-preset-name { font-weight: 800; font-size: 1.05rem; }
-.timer-preset-line { color: var(--ink-3); font-weight: 600; font-size: 0.9rem; }
 @media (max-width: 420px) {
   .titem-tools, .titem-detail { padding-left: 0; }
 }
