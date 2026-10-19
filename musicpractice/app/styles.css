@@ -1960,8 +1960,20 @@ html.paged #home, html.paged #routine { touch-action: pan-y; }
 .titem-del svg { width: 22px; height: 22px; }
 .titem-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding-left: 36px; }
 .titem-time { margin-right: 2px; gap: 3px; }
-.titem-tool { min-height: 34px; min-width: 0; padding: 4px 11px; }
+/* Use Metronome and Use Drone: one group, beside the minutes on a wide card
+   and pushed to its far end (they are optional), or together on a line of
+   their own under the minutes on a narrow one. */
+.titem-tools { container-type: inline-size; }
+.titem-uses { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+@container (max-width: 470px) { .titem-uses { flex-basis: 100%; margin-left: 0; } }
+/* Each a checkbox and its label: unticked and quiet when off, ticked and lit when on. */
+.titem-tool { min-height: 34px; min-width: 0; padding: 4px 12px 4px 8px; display: inline-flex; align-items: center; gap: 7px; }
+.titem-tool:not([aria-pressed="true"]) { background: transparent; color: var(--ink-2); }
+.titem-check { flex: none; width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--ink-3); display: grid; place-items: center; }
+.titem-check svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
 .titem-tool[aria-pressed="true"] { background: var(--brass); border-color: var(--brass); color: var(--on-accent); }
+.titem-tool[aria-pressed="true"] .titem-check { border-color: currentColor; }
+.titem-tool[aria-pressed="true"] .titem-check svg { opacity: 1; }
 .titem-open { flex: none; width: 40px; height: 40px; }
 .titem-open[hidden] { display: none; }
 .titem-open svg { transition: rotate 0.2s ease; }
