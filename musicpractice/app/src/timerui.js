@@ -5,8 +5,6 @@
 // The model and the clock are timer.js; the sound is main.js's engines,
 // handed in as `audio`, set up for each item without touching the
 // Metronome's or the Drone's own settings.
-//
-// IN DEVELOPMENT: set up only with ?routine in the address (main.js).
 
 import { TEXT } from './text.js';
 import { METERS, BPM_MIN, BPM_MAX } from './settings.js';

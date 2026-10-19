@@ -4,14 +4,29 @@ A metronome, a tuner, a drone and a practice recorder. Open it at
 https://hoai2k.github.io/mini/musicpractice/.
 
 Made for phones (portrait or landscape) and desktops. The home screen has
-four buttons, **Metronome**, **Tuner**, **Drone** and **Playback**
-(two rows of two on phones and tablets either way up, one row of four once
-the window is clearly wider than tall, 3:2 or more, as a desktop browser or
-a phone on its side; never three and one, and the art follows the window's
-height so the four fit without scrolling), and a settings gear. The
-buttons are always in this order (Metronome, Tuner, Drone, Playback); they
-could once be held and dragged into another, which was removed to keep the
-layout simple, and an order saved then is dropped.
+five buttons, **Metronome**, **Tuner**, **Drone**, **Playback** and
+**Practice Routine**, and a settings gear. Wherever the window is wider than
+tall (a desktop, a tablet or a phone on its side) they are one row of five.
+Upright, the four tools are two rows of two, and the Practice Routine is a
+fifth button under them when it fits, or else a second page (below,
+Practice Routine). The buttons are always in this order; they could once be
+held and dragged into another, which was removed to keep the layout simple,
+and an order saved then is dropped.
+
+**Nothing on the Metronome, Tuner or Drone screens, or the home screen,
+scrolls, down to a small phone either way up** (measured at 568×320 and
+320×568 in every theme, and up to desktops). Each fits its picture to the
+room the controls leave, and where that is not enough it steps down to a
+compact form: the home screen tightens its spacing and labels and then its
+art (`layoutHome`, `#home.compact`, `--art-max`); the metronome and the
+drone take smaller controls (`#metronome.tight`, `#drone.tight`, also the
+Bluetooth sync bar); the tuner's existing steps (the scale-test card, then
+the gauge, down to 72 pixels) end in tighter text and buttons
+(`.tuner-body.tight`). On a phone on its side the metronome's dots, Pulse
+and Visualizer are as wide as the picture is tall rather than the window,
+so the picture and the controls fit side by side, and many small dots (12/8)
+are scaled down to that width. The Practice Routine and Playback lists can
+be any length, and scroll.
 
 ## Themes
 
@@ -591,10 +606,8 @@ their loops and settings are in `design/sounds/drone/archive/` (with a
 The home icons (a cello and bow per theme) are Round 6 of the image
 requests; their prompts are in `design/image-deliveries-drone.json`.
 
-## Practice Routine (in development)
+## Practice Routine
 
-Shown only with `?routine` in the address (`?timer`, its first name, works
-too); without it nothing of it is set up and the app is exactly as before.
 Inside the code it is the timer: `app/src/timer.js` (the routine, its saved
 state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
 `app/src/timerui.js` (the screen), `app/src/pager.js` (the second page).
@@ -645,10 +658,10 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   `app/assets/audio/timer/`, from the second batch in
   `design/chime-sounds.md`. Spoken announcements are still to be decided:
   `cues` in `timer.js` is where they will go.
-- **On the home screen** it is a fifth button when all five fit without
-  scrolling (one row of five on a wide window, two across with the fifth
-  centred below on a tall one). When they don't (most phones, once the
-  browser's bars take their share), it is a **second page**: swipe left on
+- **On the home screen** it is a fifth button: always on a window wider than
+  tall (one row of five, compacted to fit), and upright when all five fit
+  without scrolling (two across with the fifth centred below). When they
+  don't (most phones held upright), it is a **second page**: swipe left on
   the home screen and the routine slides in from the right, the page
   following the finger (a short or slow swipe springs back); swipe right, or
   Back, to return, the home page sliding back in over the window as the
