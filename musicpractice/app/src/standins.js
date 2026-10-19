@@ -35,7 +35,7 @@ function tunerIcon({ body, line, dial, needle, fork, accent, lineW = 2 }) {
     <circle cx="43" cy="74" r="3" fill="${accent}"/>`);
 }
 
-/** The Practice Timer button: an hourglass (frame, two glass bulbs, sand mostly run through). */
+/** The Practice Routine button: an hourglass (frame, two glass bulbs, sand mostly run through). */
 function timerIcon({ frame, line, glass, sand, accent, lineW = 2 }) {
   return svg(100, 100, `
     <rect x="24" y="8" width="52" height="9" rx="3" fill="${frame}" stroke="${line}" stroke-width="${lineW}"/>
@@ -105,7 +105,7 @@ const CLASSIC = {
   'drone-bow': bowArt({ stick: '#7a4a26', frog: '#2a1a10', metal: 'url(#brass)', line: '#3e2414' }),
   'drone-organ': { html: organIcon({ body: 'url(#walnut)', line: '#3e2414', pipe: 'url(#brass)', accent: 'url(#cream)' }) },
   'home-tuner': { html: tunerIcon({ body: 'url(#walnut)', line: '#3e2414', dial: 'url(#cream)', needle: '#9b6c25', fork: 'url(#brass)', accent: '#e5484d' }) },
-  'home-timer': { html: timerIcon({ frame: 'url(#walnut)', line: '#3e2414', glass: 'rgba(255,248,230,.35)', sand: 'url(#brass)', accent: '#e5484d' }) },
+  'home-routine': { html: timerIcon({ frame: 'url(#walnut)', line: '#3e2414', glass: 'rgba(255,248,230,.35)', sand: 'url(#brass)', accent: '#e5484d' }) },
   'home-metronome': { html: svg(100, 100, `
     <path d="M43 8h14l22 78H21z" fill="url(#walnut)"/>
     <path d="M46 16h8l15 58H31z" fill="url(#cream)"/>
@@ -159,7 +159,7 @@ const DECO = {
   'drone-bow': bowArt({ stick: '#14141a', hair: '#f3ead2', frog: '#050506', metal: 'url(#gold)', line: '#c9a24a' }),
   'drone-organ': { html: organIcon({ body: 'url(#lacquer)', line: 'url(#gold)', pipe: 'url(#gold)', accent: '#2f7d5b' }) },
   'home-tuner': { html: tunerIcon({ body: 'url(#lacquer)', line: 'url(#gold)', dial: 'url(#ivory)', needle: '#b8902a', fork: 'url(#gold)', accent: '#c0303a' }) },
-  'home-timer': { html: timerIcon({ frame: 'url(#lacquer)', line: 'url(#gold)', glass: 'rgba(250,240,210,.18)', sand: 'url(#gold)', accent: '#2f7d5b' }) },
+  'home-routine': { html: timerIcon({ frame: 'url(#lacquer)', line: 'url(#gold)', glass: 'rgba(250,240,210,.18)', sand: 'url(#gold)', accent: '#2f7d5b' }) },
   'home-metronome': { html: svg(100, 100, `
     <path d="M45 6h10v6h3l9 30h3l9 32h3l3 10H15l3-10h3l9-32h3l9-30h3z" fill="url(#lacquer)" ${GOLD} stroke-width="1.6" stroke-linejoin="miter"/>
     <path d="M47 16h6l14 58H33z" fill="url(#ivory)"/>
@@ -317,7 +317,7 @@ function themed(t) {
     'drone-bow': bowArt({ stick: t.caseFill, frog: t.caseLine, metal: t.metal, line: t.metalLine }),
     'drone-organ': { html: organIcon({ body: t.caseFill, line: t.caseLine, pipe: t.metal, accent: t.record, lineW: Math.max(2, Math.min(3, (t.lineW ?? 8) / 3)) }) },
     'home-tuner': { html: tunerIcon({ body: t.caseFill, line: t.caseLine, dial: t.face, needle: t.metalLine, fork: t.metal, accent: t.record, lineW: Math.max(2, Math.min(3, (t.lineW ?? 8) / 3)) }) },
-    'home-timer': { html: timerIcon({ frame: t.caseFill, line: t.caseLine, glass: t.face, sand: t.metal, accent: t.record, lineW: Math.max(2, Math.min(3, (t.lineW ?? 8) / 3)) }) },
+    'home-routine': { html: timerIcon({ frame: t.caseFill, line: t.caseLine, glass: t.face, sand: t.metal, accent: t.record, lineW: Math.max(2, Math.min(3, (t.lineW ?? 8) / 3)) }) },
     'metronome-body': { canvas: [800, 1200], anchors: { pivot: [400, 1000] }, html: svg(800, 1200, bodyInner) },
     'metronome-pendulum': {
       canvas: [200, 1000], anchors: { hub: [100, 960] }, swing: 24,

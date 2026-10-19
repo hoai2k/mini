@@ -499,6 +499,57 @@ their loops and settings are in `design/sounds/drone/archive/` (with a
 The home icons (a cello and bow per theme) are Round 6 of the image
 requests; their prompts are in `design/image-deliveries-drone.json`.
 
+## Practice Routine (in development)
+
+Shown only with `?routine` in the address (`?timer`, its first name, works
+too); without it nothing of it is set up and the app is exactly as before.
+Inside the code it is the timer: `app/src/timer.js` (the routine, its saved
+state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
+`app/src/timerui.js` (the screen), `app/src/pager.js` (the second page).
+
+- **A routine is a list of practice items**, each a card: a name (typed in
+  place), its minutes (− / + or typed, 1 to 120), and **Metronome** and
+  **Drone** toggles. With either on, the card's chevron opens that item's own
+  settings: the metronome's tempo (− / +, typed, or the slider) and time
+  signature; the drone's note (− / + or the list), instrument and fifth.
+  These are the item's alone: the Metronome's and the Drone's own settings
+  never change (the click's sound, accent and volume follow the Metronome's,
+  the reference pitch the Drone's). A new item takes the app's current tempo,
+  note and instrument as a start. So Scales can climb in tempo item by item.
+- A first visit starts with **Intonation practice** (3 min, drone on) and
+  **Scales** (5 min, metronome on). **+ Add** offers those, **Clapping
+  rhythms** and **Ghosting** (3 min each, nothing on), and **Custom…** (a
+  blank item, its name ready to type). The bin deletes an item at once, with
+  **Undo** for a few seconds after. Kept in `musicpractice.routine.v1`.
+- **Start** runs through the items. The card running is lit, with its
+  progress along its foot, and the panel at the top shows its name, the time
+  left (MM:SS), a progress bar and what is next. **Pause** stops the clock and
+  the sound; **Skip** moves to the next item (paused or not); **Stop** ends
+  the run. Timed by the clock, so a phone that slept catches up when it wakes.
+  While it runs, only items still to come can be deleted; edits to the item
+  running take effect at once (its tempo, its note, more minutes).
+- **Between items, a chime** (settings: Kalimba, the default, Two-tone,
+  Celesta or None; each plays as it is picked): it rings as an item ends and
+  the next item's metronome or drone starts about a second later, so they
+  don't start over it; it also rings at the end. The sounds are
+  `app/assets/audio/timer/`, from the second batch in
+  `design/chime-sounds.md`. Spoken announcements are still to be decided:
+  `cues` in `timer.js` is where they will go.
+- **On the home screen** it is a fifth button when all five fit without
+  scrolling (one row of five on a wide window, two across with the fifth
+  centred below on a tall one). When they don't (most phones, once the
+  browser's bars take their share), it is a **second page**: swipe left on
+  the home screen and the routine slides in from the right, the page
+  following the finger (a short or slow swipe springs back); swipe right, or
+  Back, to return. A mouse gets an arrow at the right edge; a touch screen a
+  faint chevron there, nudging now and then. Once there is another tool the
+  button version will be used everywhere.
+- Its home button is an hourglass per theme (image requests round 9,
+  `home-routine`), drawn as a stand-in until delivered. In the apps the drone
+  is Pro, as on its own screen. Not done yet: the routine doesn't go on
+  with the screen locked in the apps (the native metronome and drone do, but
+  the change of item waits for the page).
+
 ## Controls
 
 Touch or mouse throughout. Keyboard: `Space` starts/stops the metronome or

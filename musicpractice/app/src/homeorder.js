@@ -15,7 +15,7 @@ const IDLE_MS = 5000; // jiggling stops after this long untouched
  * @returns {{ stop: () => void, editing: () => boolean }}
  */
 export function setupHomeOrder({ container, done, order, onChange }) {
-  const cards = () => [...container.querySelectorAll('.choice')];
+  const cards = () => [...container.querySelectorAll('.choice:not([hidden])')];
   const ids = () => cards().map((c) => c.dataset.tool);
   for (const id of order) {
     const el = container.querySelector(`[data-tool="${id}"]`);

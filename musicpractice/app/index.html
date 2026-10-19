@@ -71,6 +71,9 @@
       <button class="icon-btn home-gear" id="app-settings-btn" data-text-aria-label="home.settings"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
       <h1 id="home-title" class="brand" data-text-rich="home.title"></h1>
       <button class="pill home-done" id="home-done" type="button" data-text="common.done" hidden></button>
+      <!-- The Practice Routine as a second page, when it doesn't fit beside the others (?routine; main.js). -->
+      <button class="page-arrow page-next" id="page-next" type="button" data-text-aria-label="home.nextPage" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+      <span class="page-hint" id="page-hint" aria-hidden="true" hidden><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span>
       <div class="choices" id="choices">
         <a class="choice" href="#metronome" id="go-metronome" data-tool="metronome" draggable="false">
           <span class="art" data-asset="home-metronome"></span>
@@ -461,6 +464,63 @@
             <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
             <button type="button" class="pill open-theme" data-text="common.themeButton"></button>
           </div>
+        </form>
+      </dialog>
+    </section>
+
+    <!-- Practice Routine (in development: only with ?routine in the address). A
+         list of practice items, each a name, minutes and its own metronome
+         and drone; Start runs through them (timerui.js). -->
+    <section id="routine" class="screen" aria-labelledby="timer-title" hidden>
+      <header class="bar">
+        <a class="icon-btn" href="#" id="timer-back" data-text-aria-label="common.backToStart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+        <h2 id="timer-title" data-text="timer.title"></h2>
+        <button class="icon-btn" id="timer-settings-btn" type="button" data-text-aria-label="timer.settingsButton"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
+      </header>
+      <div class="timer-body">
+        <!-- What is running now (or, before Start, the whole routine's length). -->
+        <div class="timer-now" id="timer-now">
+          <span class="art timer-art" data-asset="home-routine" aria-hidden="true"></span>
+          <div class="timer-readout">
+            <p class="timer-name" id="timer-name"></p>
+            <p class="timer-clock" id="timer-clock" role="timer" aria-live="off"></p>
+            <div class="timer-progress" aria-hidden="true"><div class="timer-progress-fill" id="timer-fill"></div></div>
+            <p class="timer-sub" id="timer-sub"></p>
+          </div>
+          <div class="timer-actions">
+            <button class="big-btn" id="timer-go" type="button" aria-pressed="false">
+              <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+              <svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+              <span id="timer-go-label" data-text="timer.start"></span>
+            </button>
+            <div class="timer-side" id="timer-side" hidden>
+              <button class="pill" id="timer-skip" type="button" data-text="timer.skip"></button>
+              <button class="pill" id="timer-stop" type="button" data-text="timer.stop"></button>
+            </div>
+          </div>
+        </div>
+        <ol class="timer-list" id="timer-list"></ol>
+        <p class="help timer-empty" id="timer-empty" data-text="timer.empty" hidden></p>
+        <button class="pill timer-add" id="timer-add" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span data-text="timer.add"></span></button>
+        <p class="timer-toast" id="timer-toast" role="status" aria-live="polite" hidden><span id="timer-toast-text"></span> <button type="button" class="link-btn" id="timer-undo" data-text="timer.undo"></button></p>
+      </div>
+
+      <dialog id="timer-settings" class="sheet" aria-labelledby="timer-settings-title">
+        <form method="dialog">
+          <header class="sheet-head"><h3 id="timer-settings-title" data-text="timer.settingsTitle"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <fieldset>
+            <legend data-text="timer.chime"></legend>
+            <div class="chips" id="timer-chime"></div>
+          </fieldset>
+          <p class="help" data-text="timer.chimeHelp"></p>
+        </form>
+      </dialog>
+
+      <!-- + : the suggestions, or Custom… -->
+      <dialog id="timer-add-sheet" class="sheet" aria-labelledby="timer-add-title">
+        <form method="dialog">
+          <header class="sheet-head"><h3 id="timer-add-title" data-text="timer.addTitle"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <div class="timer-presets" id="timer-presets"></div>
         </form>
       </dialog>
     </section>
