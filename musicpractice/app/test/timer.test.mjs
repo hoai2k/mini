@@ -5,7 +5,7 @@ import { TimerRun, cleanRoutine, newItem, PRESETS, totalSeconds, loadTimer, save
 const base = { bpm: 100, meter: '3/4', droneMidi: 50, droneVoice: 'organ', droneFifth: true };
 const mem = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) }; };
 
-test('a first visit starts with Intonation (drone) and Scales (metronome); + offers four', () => {
+test('a first visit starts with Intonation (drone) and Scales (metronome); + offers eight', () => {
   const { items, chime } = loadTimer(base, mem());
   assert.deepEqual(items.map((i) => [i.name, i.minutes, i.metronome, i.drone]), [
     ['Intonation practice', 3, false, true],
@@ -14,6 +14,7 @@ test('a first visit starts with Intonation (drone) and Scales (metronome); + off
   assert.equal(chime, 'kalimba');
   assert.deepEqual(PRESETS.map((p) => [p.id, p.minutes, p.metronome, p.drone]), [
     ['intonation', 3, false, true], ['scales', 5, true, false], ['rhythms', 3, false, false], ['ghosting', 3, false, false],
+    ['metronome', 5, true, false], ['arpeggios', 5, false, false], ['sight-reading', 5, false, false], ['improvisation', 5, false, false],
   ]);
   assert.equal(newItem('ghosting', base).name, 'Ghosting');
   assert.equal(newItem('rhythms', base).name, 'Clapping rhythms');
@@ -79,7 +80,7 @@ test('every suggestion has its picture in the image requests, in every theme', a
   const { readFileSync } = await import('node:fs');
   const list = JSON.parse(readFileSync(new URL('../data/asset-list.json', import.meta.url)));
   const { THEMES } = await import('../src/settings.js');
-  for (const id of [...PRESETS.map((p) => `practice-${p.id}`), 'practice-default']) {
+  for (const id of [...PRESETS.filter((p) => !p.picture).map((p) => `practice-${p.id}`), 'practice-default']) {
     for (const t of THEMES) assert.ok(list.some((a) => a.id === id && a.theme === t.id), `${id} in ${t.id}: add it to build_requests.py PRACTICE_SUBJECT`);
   }
 });
@@ -125,7 +126,7 @@ test('every voice has every line, for every suggestion and for Custom', async ()
     voiceLines.finished(a).forEach((l) => lines.add(l));
     for (const b of kinds) voiceLines.changed(a, b).forEach((l) => lines.add(l));
   }
-  assert.equal(lines.size, 17);
+  assert.equal(lines.size, 29);
   for (const v of SPEAKERS) {
     for (const l of lines) assert.ok(existsSync(new URL(`../assets/audio/voice/${v}/${l}.mp3`, import.meta.url)), `${v}/${l}.mp3: generate it (design/voice-samples.md)`);
   }
@@ -153,4 +154,12 @@ test('chimes on or off (an old "none" chime is off), the voice\'s volume kept, a
     const it = newItem(id, base, {}, { tools: false });
     assert.deepEqual([it.metronome, it.drone], [false, false], id);
   }
+});
+
+test('a Metronome item has its metronome on even when added with +, and the Metronome\'s picture', async () => {
+  const { pictureFor } = await import('../src/timer.js');
+  const it = newItem('metronome', base, {}, { tools: false });
+  assert.deepEqual([it.name, it.metronome, it.drone], ['Metronome', true, false]);
+  assert.equal(pictureFor(it, () => true), 'home-metronome');
+  assert.equal(newItem('sight-reading', base).name, 'Sight reading');
 });

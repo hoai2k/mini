@@ -380,6 +380,10 @@ export const EN = {
       scales: 'Scales',
       rhythms: 'Clapping rhythms',
       ghosting: 'Ghosting',
+      metronome: 'Metronome',
+      arpeggios: 'Arpeggios',
+      'sight-reading': 'Sight reading',
+      improvisation: 'Improvisation',
     },
     /** Under the list while it is set up. */
     total: (n) => `${n} ${n === 1 ? 'item' : 'items'} in all`,

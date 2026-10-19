@@ -27,6 +27,12 @@ export const PRESETS = [
   { id: 'scales', minutes: 5, metronome: true, drone: false },
   { id: 'rhythms', minutes: 3, metronome: false, drone: false },
   { id: 'ghosting', minutes: 3, metronome: false, drone: false },
+  // The metronome is what this one is: on whenever it is added, and its
+  // picture is the Metronome's own.
+  { id: 'metronome', minutes: 5, metronome: true, drone: false, own: true, picture: 'home-metronome' },
+  { id: 'arpeggios', minutes: 5, metronome: false, drone: false },
+  { id: 'sight-reading', minutes: 5, metronome: false, drone: false },
+  { id: 'improvisation', minutes: 5, metronome: false, drone: false },
 ];
 /** The routine a first visit starts with. */
 const FIRST_ROUTINE = ['intonation', 'scales'];
@@ -49,8 +55,8 @@ export function newItem(presetId, base = {}, lastMinutes = {}, { tools = true } 
     kind: p ? p.id : null,
     name: p ? TEXT.timer.presets[p.id] : '',
     minutes,
-    metronome: !!(tools && p?.metronome),
-    drone: !!(tools && p?.drone),
+    metronome: !!((tools || p?.own) && p?.metronome),
+    drone: !!((tools || p?.own) && p?.drone),
     met: { bpm: base.bpm, meter: base.meter },
     drn: { midi: base.droneMidi, voice: base.droneVoice, fifth: base.droneFifth },
   });
@@ -220,7 +226,7 @@ export const totalSeconds = (items) => items.reduce((s, it) => s + it.minutes * 
  */
 export function pictureFor(it, has) {
   const ids = [];
-  if (it.kind) ids.push(`practice-${it.kind}`);
+  if (it.kind) ids.push(PRESETS.find((p) => p.id === it.kind)?.picture || `practice-${it.kind}`);
   if (it.drone) ids.push(it.drn.voice.startsWith('organ') ? 'drone-organ' : 'drone-cello');
   if (it.metronome) ids.push('home-metronome');
   ids.push('practice-default');
