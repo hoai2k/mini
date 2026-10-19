@@ -38,7 +38,7 @@ class GroverKit extends Kit {
       { style: 'swingR', dur: 0.3, windup: 0.3, strike: 0.52, dmg: 12, range: 2.6, arc: 1.2, lunge: 6, knock: 3.5, stop: 0.045, shake: 0.15, trail: LEAF, sparkColor: 0xd8ffb0 },
       { style: 'uppercut', dur: 0.46, windup: 0.32, strike: 0.52, dmg: 20, range: 2.8, arc: 1.0, lunge: 5, knock: 10, stop: 0.08, shake: 0.3, trail: GREEN, sparkColor: 0xffe0a0, stagger: 0.6, hoof: true },
     ];
-    this.p.stats.meleeMult += r('hooves') * 0.08;
+    this.p.stats.meleeMult *= 1 + r('hooves') * 0.08;
     this.slots = {
       ranged: this.ability({ name: t('powers.grover.ranged'), icon: '🎵', cd: 0.5, ce: 0, use: () => this.songBolt() }),
       ...this.equipSlots({

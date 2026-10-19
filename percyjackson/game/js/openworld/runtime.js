@@ -24,7 +24,9 @@ import { Quests } from './quests.js';
 import { openWorldMap } from '../ui/worldMap.js';
 import { bundlesFrom } from '../resources.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { applyChampionLook } from '../entities/champions.js';
+import { applyChampionLook, buildChampionRig } from '../entities/champions.js';
+import { MONSTERS, prewarmModels } from '../entities/monsters.js';
+import { shrineXp } from '../progression.js';
 
 export const RESPAWN = { camp: 8 * 60, champion: 15 * 60, shrine: 6 * 60 };   // seconds of play
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -36,6 +38,7 @@ export class OpenWorld {
     this.region = null; this.props = []; this.campState = new Map(); this.champState = new Map();
     this.trial = null; this.checkT = 0;
     this.quests = new Quests(game, this);
+    this.warmed = new Set(); this.warmJobs = []; this.warmBusy = false;
   }
   get data() {
     const d = this.game.save.data;
@@ -59,6 +62,7 @@ export class OpenWorld {
   }
   dispose() {
     const g = this.game;
+    this.disposed = true; this.warmJobs = [];
     for (const o of this.props) { g.scene.remove(o); g.releaseLater?.(o); }
     this.props = [];
     this.quests.dispose();
@@ -95,6 +99,38 @@ export class OpenWorld {
       toast(t(`regions.${r.id}.name`) + (r.safe ? '' : ' · ' + t('regions.levels', { a: r.level[0], b: r.level[1] })), 'title');
     }
     if (!this.data.seen[r.id]) { this.data.seen[r.id] = true; g.save.write?.(); }
+    this.prewarm(r);
+  }
+  // A big kind (a hellhound, a cyclops, a champion) takes a few hundred ms to
+  // build the first time; every later spawn shares that first build's skins
+  // and geometry (entities/monsters.js prewarmModels). So on entering a
+  // region its kinds, its fodder, its camps' kinds and its champions are
+  // built ahead and thrown away, one per idle moment, before anything there
+  // wakes, and the first fight doesn't stall on them.
+  prewarm(r) {
+    const mine = (c) => this.lay.REGION[c.region] === r;
+    const kinds = new Set([...(r.kinds ?? []).map((k) => k[0]), ...(r.fodder ?? []), ...this.reg.camps.filter(mine).flatMap((c) => c.kinds ?? [])]);
+    for (const k of kinds) {
+      const m = MONSTERS[k]?.model;
+      if (!m || this.warmed.has('m:' + m)) continue;
+      this.warmed.add('m:' + m); this.warmJobs.push(() => prewarmModels([m]));
+    }
+    for (const c of this.reg.champions.filter(mine)) {
+      if (this.warmed.has('c:' + c.id)) continue;
+      this.warmed.add('c:' + c.id); this.warmJobs.push(() => buildChampionRig(c.id, c.kind));
+    }
+    this.pumpWarm();
+  }
+  pumpWarm() {
+    if (this.warmBusy || !this.warmJobs.length) return;
+    this.warmBusy = true;
+    const run = () => {
+      this.warmBusy = false;
+      if (this.disposed) return;
+      try { this.warmJobs.shift()?.(); } catch (e) { console.warn('prewarm skipped', e); }
+      this.pumpWarm();
+    };
+    if (globalThis.requestIdleCallback) requestIdleCallback(run, { timeout: 600 }); else setTimeout(run, 40);
   }
   // Waystones are found by walking up to them.
   discover() {
@@ -162,7 +198,7 @@ export class OpenWorld {
     grp.add(body, lid, spill); grp.rotation.y = c.rot ?? ((c.x * 7 + c.z * 13) % 6);
     lid.rotation.x = opened ? -1.9 : 0;
     this.addProp(grp);
-    c.object = grp; c.lid = lid; c.opened = opened; c.difficulty = owDifficulty(this.lay.levelAt(this.lay.REGION[c.region], c.pos.x, c.pos.z, 0.6));
+    c.object = grp; c.lid = lid; c.opened = opened; c.level = c.level ?? this.lay.levelAt(this.lay.REGION[c.region], c.pos.x, c.pos.z, 0.6); c.difficulty = owDifficulty(c.level);   // (loot follows the spot's monster level: main.js onChestOpened)
     g.interactables.push({ id: 'owchest-' + c.id, pos: c.pos, radius: 2, label: t('ow.chest.open'), action: (p) => this.openChest(c, p), enabled: () => !c.opened });
   }
   openChest(c, p) {
@@ -179,8 +215,8 @@ export class OpenWorld {
     this.quests.onEvent({ type: 'chest', id: c.id });
   }
   // a chest that appears where a camp was cleared (not saved: it comes back with the camp)
-  dropChest(pos, rarity, region) {
-    const c = { id: null, x: Math.floor(pos.x), z: Math.floor(pos.z), pos: pos.clone(), rarity, region };
+  dropChest(pos, rarity, region, level = null) {
+    const c = { id: null, x: Math.floor(pos.x), z: Math.floor(pos.z), pos: pos.clone(), rarity, region, level };
     this.makeChest(c);
     this.game.fx.summonCircle(c.pos, 0xffd84a);
     return c;
@@ -265,7 +301,7 @@ export class OpenWorld {
         st.done = true; d.champs[c.id] = now(); g.save.write?.();
         toast(t('ow.champion.defeated', { name: c.name }), 'big');
         g.hud?.setBoss?.(null);
-        this.dropChest(st.e.pos.clone(), 'epic', c.region);
+        this.dropChest(st.e.pos.clone(), 'epic', c.region, st.e.level);   // (gear for the champion's own level)
         this.quests.onEvent({ type: 'champion', id: c.id });
       } else if (!st.e.dead && !near && !st.e.aggro) {
         this.removeEnemy(st.e); this.champState.delete(c.id); g.hud?.setBoss?.(null);
@@ -324,7 +360,7 @@ export class OpenWorld {
       toast(t('ow.shrine.won'), 'big');
       g.audio?.levelUp?.();
       this.dropChest(s.pos.clone().add(V(0, 0, 2.2)), T.waves.length >= 4 ? 'epic' : 'rare', s.region);
-      for (const sv of g.localSaves()) if (sv.addXp(40 * (this.lay.REGION[s.region].level[1]))) g.levelUp(sv);
+      for (const sv of g.localSaves()) if (sv.addXp(shrineXp(this.lay.REGION[s.region].level[1]))) g.levelUp(sv);
       this.quests.onEvent({ type: 'shrine', id: s.id });
       this.trial = null; return;
     }

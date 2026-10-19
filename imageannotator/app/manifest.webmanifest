@@ -1,0 +1,15 @@
+{
+  "name": "Image Annotator",
+  "short_name": "Annotator",
+  "description": "Point things out on a picture with arrows, circles and drawing.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1c1d22",
+  "theme_color": "#1c1d22",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

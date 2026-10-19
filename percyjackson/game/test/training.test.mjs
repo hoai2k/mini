@@ -133,7 +133,8 @@ test('under True Sight the disguised are creatures nothing like people', () => {
   }
   assert.deepEqual(CHAPTERS.find((c) => c.id === 'lt1').mistForms, ['serpent', 'spider', 'ghost']);
   for (let i = 0; i < 10; i++) assert.ok(MIST_FORMS.includes(mistForm(null, i / 10)));
-  assert.match(m, /\n  serpent: \{ name: txt\('monsters\.serpent\.name'\)/); assert.match(m, /\n  serpent: \(\) => \{/);
+  assert.match(m, /\n  serpent: \{ name: txt\('monsters\.serpent\.name'\)/); assert.match(m, /\n  serpent: \(\) => buildSerpent\(/);
+  assert.match(read('entities/serpent.js'), /export function buildSerpent\(/, 'the serpent has a model of its own (entities/serpent.js)');
   assert.match(m, /\n  mortal: \{[^}]*mortal: true/, 'real mortals');
   assert.match(read('entities/enemy.js'), /if \(!this\.disguised \|\| this\.dead \|\| this\.def\.mortal\) return false;/, 'a real mortal never turns into a monster');
   assert.match(read('resume.js'), /rk: /, 'killed monsters stay gone after Continue');

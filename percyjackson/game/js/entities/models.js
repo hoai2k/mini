@@ -4,9 +4,11 @@
 // pipes, Tyson's watch shield, Clarisse's electric spear and boar shield),
 // built on the shared Rig.
 import * as THREE from 'three/webgpu';
-import { Skin, Rig, makeCharMaterial, PX } from './character.js';
+import { Skin, Rig, makeCharMaterial, PX, markTip, markHeld, mergeChildren } from './character.js';
 import { hashStr, mulberry32 } from '../util.js';
 import { heroHair, heroTail, cellMesh, partMaterial, partsMesh, footwear, band, beads, tatters, sleeveTatters } from './herovox.js';
+import { resFor } from './parts.js';
+import { markHeadCore, reshape, applyShape } from './proportions.js';
 
 export const CAMP_ORANGE = 0xf28c28;
 const INK = 0x17130f;
@@ -278,6 +280,7 @@ export function buildRiptide() {
   [[1.4, 3, 3.6], [2.0, 3, 6.6], [2.5, 3.2, 9.6], [2.7, 3, 12.6], [2.2, 2.4, 15.3], [1.4, 2, 17.5], [0.6, 1.6, 19.2]]
     .forEach(([w, l, z]) => bx(g, w, 0.45, l, 0, 0, z, bronze));
   bx(g, 0.3, 0.55, 15, 0, 0, 10, gold);                  // fuller line
+  markTip(g, 0, 0, 20, 'Riptide');
   g.position.set(0, -1 * PX, 1 * PX);
   return g;
 }
@@ -286,6 +289,7 @@ function buildDagger() {
   const bronze = BRONZE(), grip = mat(0x3a2a1a, { rough: 0.8 });
   bx(g, 1.1, 1.1, 3.2, 0, 0, -0.6, grip); bx(g, 3.4, 1, 1, 0, 0, 1.4, bronze);
   [[1.5, 3, 3.4], [1.2, 2.4, 6], [0.5, 1.6, 7.8]].forEach(([w, l, z]) => bx(g, w, 0.4, l, 0, 0, z, bronze));
+  markTip(g, 0, 0, 8.6, 'dagger');
   g.position.set(0, -1 * PX, 0.8 * PX);
   return g;
 }
@@ -295,7 +299,7 @@ function buildPipes() {
   for (let i = 0; i < 6; i++) bx(g, 0.9, 7 - i * 0.8, 0.9, -2.5 + i, -(7 - i * 0.8) / 2 + 2, 0, reed);
   bx(g, 6.4, 0.8, 1.2, 0, 1, 0, band);
   g.position.set(0, -1.5 * PX, 1.6 * PX); g.rotation.y = 0.3;
-  return g;
+  return markHeld(g);
 }
 function buildSpear() {
   const g = new THREE.Group();
@@ -308,6 +312,7 @@ function buildSpear() {
   bx(g, 1.2, 1.2, 1.2, 0, 0, -14.5, bronze);
   g.position.set(0, -1 * PX, 0);
   g.userData.tip = new THREE.Vector3(0, -1 * PX, 32 * PX);
+  markTip(g, 0, 0, 33, 'spear');
   return g;
 }
 function buildBoarShield() {
@@ -373,7 +378,11 @@ export const HERO_LOOKS = {
     paint: { skinTone: 0xd8824e, hair: 0x6a3418, fringe: 1, hairSide: 5, hairBack: 8, cyclops: true, eye: 0x8a4a1a, brow: 0x4a2414, ...TEE, jacket: 0xb42a1c, jacketPlaid: [0x4a120c, 0x1a0c0a], jacketSleeve: 5, pants: 0x4a6a92, torn: true, shoes: 0x5a3418, sole: 0x3a2414 },
     vox: { style: 'shaggy', base: 0x5e2a12, shade: 0x361606, light: 0x864020, seed: 41, shape: { fringe: 7.6, jag: 0, front: 4.2 } },
     outfit: { footwear: { kind: 'boot', upper: 0x5a3418, sole: 0x3a2414, lace: 0xc9963a, trim: 0xb08850 }, cuffs: 0x8a9ab0, tatters: [0xa8322a, 0x5a1610, 0x7a2018] },
-    accent: 0xff8a2a, scale: 1.75, wide: 1.35,
+    accent: 0xff8a2a, scale: 1.75, wide: 1.35, hairRes: 1.5,
+    // (round 7, design/sizes.json head and leg rules: at 1.5x Percy a smaller
+    // head, 7.2 skin pixels, on longer legs, 13.8: the same height, a young
+    // giant's proportions rather than a hero's)
+    headS: 7.2, legH: 13.8,
   },
   clarisse: {
     paint: { skinTone: 0xcc7c4a, hair: 0x5a2c14, fringe: 2, hairSide: 5, hairBack: 8, eye: 0x3a2414, brow: 0x2a1408, scowl: true, lashes: true, mouth: 'frown', lip: 0xa85040, ...TEE, jacket: 0x4e5a30, camo: [0x2e3a1a, 0x6e7040, 0x2a2a18, 0x8a7a4a], jacketSleeve: 6, belt: 0x2a2018, pants: 0x4e5430, legCamo: [0x2e3a1a, 0x6e7040, 0x2a2a18], cargo: true, shorts: 5, socks: 0x1a1a1a, shoes: 0x141414 },
@@ -426,8 +435,9 @@ function fleeceCollar(rig, color) {
 function addHair(rig, look) {
   const hm = partMaterial();
   const hs = (rig.dims.headS / 8) * 1.12;
-  const { cells, solid } = heroHair(look.vox);
-  const mesh = cellMesh(cells, PX * hs, hm, solid);
+  // (a hero drawn bigger, Tyson, gets finer hair cells: look.hairRes)
+  const { cells, solid, res } = heroHair({ ...look.vox, res: look.hairRes ?? 1 });
+  const mesh = cellMesh(cells, PX * hs / res, hm, solid);
   mesh.userData.baseMat = hm; rig.meshes.push(mesh); rig.head.add(mesh);
   rig.extras.hair = mesh;
   if (look.tail) {
@@ -465,13 +475,20 @@ function addOutfit(rig, o) {
 
 export function buildHeroModel(id) {
   const look = HERO_LOOKS[id] ?? HERO_LOOKS.percy;
-  const S = new Skin(hashStr(id), 2);
+  // a hero drawn bigger than the others (Tyson) gets a finer skin, so his
+  // texels stay the size of everyone else's (parts.js resFor)
+  const S = new Skin(hashStr(id), look.scale ? Math.max(2, resFor(look.scale)) : 2, 2);
   paintHumanoid(S, look.paint);
   const map = S.texture();
   const material = makeCharMaterial(map, { emitStrength: 0 });
   material.alphaTest = 0.5;
-  const rig = new Rig({ material, scale: look.scale ?? 1.18 });
+  const rig = new Rig({ material, scale: look.scale ?? 1.18, headS: look.headS });
   if (look.outfit) addOutfit(rig, look.outfit);
+  // longer legs (look.legH): the leg, its skin box and its shoes, drawn longer (proportions.js)
+  if (look.legH) {
+    for (const g of [rig.legR, rig.legL]) reshape(rig, g, [1, look.legH / rig.dims.legH, 1]);
+    applyShape(rig); rig.dims.legH = look.legH; rig.hips.position.y = look.legH * PX;
+  }
   // a broad build: widen the torso and set the arms and legs further apart
   if (look.wide) {
     const w = look.wide;
@@ -502,8 +519,9 @@ export function buildHeroModel(id) {
     rig.extras.wings = [wings(rig.legR, -10.5), wings(rig.legL, -10.5)];
   }
   if (id === 'tyson') {
+    { const h = rig.dims.headS * 1.12; markHeadCore(rig, [0, h / 2, 0], [h, h, h]); }   // (the skin cube; the shaggy hair aside)
     const watch = new THREE.Group(); bx(watch, 4.6, 1.6, 4.6, 0, -6.5, 0, BRONZE()); rig.armL.add(watch);
-    const sh = buildWatchShield(); sh.visible = false; rig.handL.add(sh); rig.extras.shield = sh;
+    const sh = markHeld(buildWatchShield()); sh.visible = false; rig.handL.add(sh); rig.extras.shield = sh;
   }
   if (id === 'clarisse') {
     const s = buildSpear(); rig.handR.add(s); rig.extras.weapon = s;
@@ -517,8 +535,12 @@ export function buildHeroModel(id) {
     const g = new THREE.Group(), stygian = mat(0x1a1424, { rough: 0.3, metal: 0.7, emissive: 0x3a1a6a, ei: 0.8 });
     bx(g, 1.1, 1.1, 3.2, 0, 0, -0.6, mat(0x2a2020)); bx(g, 4, 1, 1, 0, 0, 1.4, stygian);
     [[1.8, 3, 3.6], [1.8, 3, 6.6], [1.5, 3, 9.6], [0.8, 2, 12]].forEach(([w, l, z]) => bx(g, w, 0.5, l, 0, 0, z, stygian));
+    markTip(g, 0, 0, 13, 'Stygian sword');
     g.position.set(0, -1 * PX, 1 * PX); rig.handR.add(g); rig.extras.weapon = g;
   }
+  // (each limb's skin box and its overlay, and the blocks of a held weapon,
+  // drawn as one mesh a material: a hero went from 24-54 meshes to about half)
+  for (const b of [rig.torso, rig.head, rig.armR, rig.armL, rig.legR, rig.legL, rig.extras.weapon, rig.extras.pipes]) mergeChildren(rig, b);
   rig.look = look;
   return rig;
 }

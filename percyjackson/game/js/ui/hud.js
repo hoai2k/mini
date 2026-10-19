@@ -202,7 +202,7 @@ export class HUD {
           cnt = ready ? '' : String(Math.ceil(f.left));
           e.el.classList.toggle('want', ready && !p.dead && !p.downed && p.hp < p.maxHp * 0.7);
         }
-        else if (slot.startsWith('art')) { const a = p.artifacts[+slot[3] - 1]; if (!a) continue; frac = a.cdLeft / (a.cd * (1 - p.stats.cdr)); ready = a.cdLeft <= 0; }
+        else if (slot.startsWith('art')) { const a = p.artifacts[+slot[3] - 1]; if (!a) continue; ready = (a.charges ?? 1) > 0; frac = ready ? 0 : a.cdLeft / (a.cd * (1 - p.stats.cdr)); if ((a.maxCharges ?? 1) > 1) cnt = String(a.charges ?? 0); }   // (charges: gearEffects.js)
         else if (slot === 'domain') { frac = 1 - pw; ready = pw >= 1 && !g.domain; }
         else { const ab = p.kit.slots[slot]; if (!ab) continue; frac = ab.cdLeft / Math.max(0.01, ab.cd * p.kit.cdr); ready = ab.cdLeft <= 0 && (p.ce ?? 0) >= (ab.ce ?? 0); if (ab.maxCharges > 1) cnt = String(ab.chargesLeft ?? ''); }
         e.cd.style.setProperty('--p', (Math.min(1, frac) * 100).toFixed(0) + '%');

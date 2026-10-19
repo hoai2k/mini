@@ -15,6 +15,12 @@ From the repository root:
 bash percyjackson/perf/run-all.sh            # everything, about 15 min
 QUICK=1 bash percyjackson/perf/run-all.sh    # auto tier, 4 scenes, about 4 min
 NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/smoke.cjs   # every chapter loads; the audit fixes hold
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/weapons.cjs # every weapon points forward, at rest and in each strike
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/animlint.cjs # every pose of every model: the floor, parts flying off, weapons at the strike
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/houndlegs.cjs # the full-size hellhounds' legs stay rooted in the body in every pose
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/render-bench.cjs # rendering: draw calls, programs, frame CPU split, shader compiles in play (see RENDERING.md)
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/bodysize.cjs  # every model's body height (no arms, weapons, wings, whips, tails or flames) beside its whole box, × Percy
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/bodysize.cjs - '' --check  # the size check: every model inside its size category (design/sizes.json), big heads on big bodies flagged
 ```
 
 It needs Node, Playwright (`NODE_PATH` points at a global install; default
@@ -34,6 +40,11 @@ Environment: `PERF_PORT`, `PERF_W` / `PERF_H` (viewport, default 640 x 360),
 | `retainers.cjs` | Marks camp's world group, reloads camp twice, takes a heap snapshot and prints the retainer path | `retainers.json` |
 | `summarize.cjs` | Tables from every `run-*.json` | `summary.json`, `summary.md` |
 | `smoke.cjs` | Every Book 1 chapter loads and runs with no page errors; the tracker has a goal; a hero refresh keeps cooldowns and health; the marker pool and the party-wipe checkpoint | stdout |
+| `weapons.cjs [ids]` | Every armed model (heroes, bosses, monsters and fodder, champions, people, mortals) at rest and at the strike of each attack style: the weapon's tip (`markTip`, see the hand-axis convention in `game/js/entities/character.js`) must point forward of the hand along the model's facing, raised allowed at rest. Exits 1 on a failure | stdout |
+| `animlint.cjs [ids] [--hero-styles] [--all]` | Every model in every pose the game plays on it (`game/workbench/animlint.js`): the hero poses for heroes and people; for monsters, champions and bosses also each of their own attacks, run by the real `Enemy` or `Boss` against a dummy on a flat floor (`game/workbench/ingame.js`). 30 frames a second, each checked: the lowest vertex under the floor (more than 5 cm, or 3% of a big model's height; deaths sink on purpose), a part further than 1.5 x the model's size from rest or a NaN transform, a weapon tip backward all through a strike. `--hero-styles` adds the hero poses a monster never plays (as info). Exits 1 on a failure | stdout |
+| `render-bench.cjs [compiles] [wb] [game] [bg] [shots] [--ids a,b] [--shot-ids a,b] [--shots dir] [--secs N] [--settle ms] [--warm-wait ms] [--query ?batch=0]` | Rendering (the findings are in [RENDERING.md](RENDERING.md)). `compiles`: after a chapter and the open world load, each kind spawned, hit and killed, counting the shader pipelines built in play and their time. `wb`: each model alone in the workbench: draws, triangles, meshes, shadow casters, materials, programs, textures, the frame's CPU split (pose, floor and grip guards, tick, flames, render) and the allocation rate. `game`: the open world with a swarm of 24 fodder and a chapter with eight automatons (the level's own monsters cleared and its spawns frozen first, so runs compare), the same plus frame CPU percentiles, the draws before the spawn, and the crowd batches (`--query ?batch=0` runs it without them). `bg`: the automaton in the workbench as it opens, thumbnails and lint running behind it (long tasks, frame gaps). `shots`: each model drawn deterministically (seeded, fixed frames, camera and lights), so two runs compare pixel for pixel | `render-bench.json`, the shots in `results/shots/` |
+| `houndlegs.cjs` | The full-size hellhounds (the elite, the alpha boss, Shadowfang and the Road West's hellhound champion; `monsters.js` `bigHound`) through idle, walk, run, bite, slam, bite on the run, hit, stagger and dodge at 30 frames a second: on every frame each leg's joint must sit at least 2 skin pixels inside the chest or haunch block it hangs from (`rig.extras.trunk`, above its underside and in from its ends) and the leg's own blocks must overlap that block. Exits 1 on a failure | stdout |
+| `bodysize.cjs [out.json\|-] [keys] [--check]` | Every workbench model at rest: its body height (the torso, head and legs; a humanoid's arms, held things and `markTip` weapons, wings, the whip, tails and stings, flame hair, live flames, capes, hair strands and props in `rig.extras` left out) and its whole visible box, both × Percy, with the stat height, the triangle count, how high each left-out part reached and, for an upright rig, its head block's height over its body height. `--check` tests each against the size spec, [`../design/sizes.json`](../design/sizes.json): the body must lie in the band of the model's size category (the bands are one table there), and a big upright model's head must have shrunk toward an adult's proportions (the head rule; a known case marked `"head": "followUp"` is a warning). Used by the size audit (`../design/size-audit.md`, rounds 4 and 6). Exits 1 on a page error or a failed check | stdout, `out.json` if given |
 
 Scenes: `title`, `prologue` (Manhattan), `lt1` (museum), `hub` (camp), `combat`
 (camp plus 3 training waves, about 16 monsters), `lt2`, `lt4`, `lt10`,
@@ -54,3 +65,27 @@ as past the opening in memory only.
   object counts, allocations, load times and the leak counts.
 - CDN files (three.js, fonts) come from the cache, filled on the first run,
   so load timings repeat.
+
+## Animation lint
+
+`animlint.cjs` lists nothing (October 2026). The shared causes it used to
+find are handled in the rigs, so a new model gets them for free:
+
+- **Whips** (`monsters.js` `whipPose`, used by the fury, Alecto and the
+  Furies): the chain is posed in the body's own upright plane, not hung from
+  the fist: a coiled loop at rest, streaming behind when moving or swooping,
+  thrown back over the shoulder in a wind-up and lashed forward over the top
+  in the crack. Any segment that would end below the ground is bent up to lie
+  along it. A Fury's swoop flies no lower than her hem (`rig.hoverMin`).
+- **Long weapons** (`Rig.gripGuard`, `character.js`): after the pose, a wrist
+  whose weapon would sink below the soles turns by the least angle that puts
+  its lowest point on the floor, so a slam's spear or club stops on the ground
+  in front and a roll or a fall drags it along the floor.
+- **Feet** (`Rig.footLift` and `QuadRig.floorGuard`, `quad.js`): humanoid hips
+  stay as high as the legs' actual swing needs; a four- (six-, eight-) legged
+  body rises by the deepest dip of any foot, splayed legs sweep fore and aft
+  about the upright, as a spider's do, instead of dipping as they swing.
+- **Heads, jaws and tails on QuadRig**: the head pitches up just enough to
+  keep the jaw and fangs (and claws on the head) out of the ground, the body's
+  rear end lifts the hips as it rears back, and each tail segment lifts as far
+  as it must.

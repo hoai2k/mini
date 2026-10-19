@@ -32,8 +32,8 @@ class ClarisseKit extends Kit {
       { style: 'punch', dur: 0.32, windup: 0.3, strike: 0.5, dmg: 15, range: 3.7, arc: 0.6, lunge: 8, knock: 4.5, stop: 0.05, shake: 0.18, trail: VOLT, sparkColor: 0xfff0a0, zap: true },
       { style: 'spin', dur: 0.48, windup: 0.28, strike: 0.55, dmg: 24, range: 3.7, arc: Math.PI, lunge: 3, knock: 9, stop: 0.08, shake: 0.35, ring: true, ringColor: VOLT, stagger: 0.6, trail: VOLT, sparkColor: VOLT, zap: true },
     ];
-    this.p.stats.meleeMult += r('spear') * 0.08;
-    this.p.maxHp += r('tough') * 10; this.p.hp = Math.min(this.p.hp + r('tough') * 10, this.p.maxHp);
+    this.p.stats.meleeMult *= 1 + r('spear') * 0.08;
+    { const k = 1 + r('tough') * 0.08; this.p.maxHp *= k; this.p.hp = Math.min(this.p.hp * k, this.p.maxHp); }   // (a share, so it keeps pace with the armour)
     this.p.stats.armor = Math.min(0.7, this.p.stats.armor + r('tough') * 0.03);
     this.slots = {
       ranged: this.ability({ name: t('powers.clarisse.ranged'), icon: '⚡', cd: 1.1, ce: 0, use: () => this.lightning() }),

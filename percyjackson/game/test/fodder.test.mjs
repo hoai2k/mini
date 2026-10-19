@@ -42,7 +42,9 @@ test('the fodder monsters: weak swarms, a few larger ones, all named, wired in',
   assert.equal(FOD.laistrygonian.hp > FOD.earthborn.hp && FOD.earthborn.hp > FOD.king_crab.hp, true);
   // they play differently: short and long range, quick and slow, lobbed and straight
   assert.ok(FOD.myrmex_spitter.lob && FOD.earthborn.lob && FOD.laistrygonian.lob && !FOD.basilisk.lob);
-  assert.ok(FOD.karpos_slinger.range >= 10 && FOD.basilisk.range <= 8 && FOD.daedalus_drone.projectile === 'bullet');
+  assert.ok(FOD.karpos_slinger.range >= 10 && FOD.daedalus_drone.projectile === 'bullet');
+  // the basilisk (the books' arm-long snake): small, fast, in threes; a short puff of fire at the spot in front and a poison touch, no projectile
+  assert.ok(FOD.basilisk.ai === 'melee' && !FOD.basilisk.projectile && FOD.basilisk.moves?.every((m) => m.kind === 'sting') && FOD.basilisk.poison && FOD.basilisk.height <= 0.8 && FOD.basilisk.speed > MON.pup.speed && HORDE.basilisk[0] === 3);
   assert.ok(FOD.shade.speed < MON.spartoi.speed && FOD.keres.speed > MON.pup.speed, 'shades drift, keres dart');
   assert.equal(FOD.king_crab.ai, 'tank');
   for (const id of ['colchis_calf', 'boarlet']) assert.ok(FOD[id].ai === 'melee' && FOD[id].range >= 3, `${id} charges from a distance`);
@@ -74,7 +76,7 @@ test('every region and stretch is mostly fodder, the tough ones rare', () => {
   const top = (id) => [...roaming.find((r) => r.id === id).kinds].sort((a, b) => b[1] - a[1])[0][0];
   // the owner's rosters: every region has its kinds
   const ROSTER = { fields: ['karpos', 'karpos_slinger', 'rat', 'colchis_calf'], woods: ['myrmex', 'myrmex_spitter', 'pup', 'boarlet'], shore: ['crab', 'telekhine', 'harpy', 'king_crab'],
-    canyon: ['myrmex', 'basilisk', 'spartoi', 'earthborn'], labyrinth: ['spartoi', 'spider', 'daedalus_drone', 'automaton'], othrys: ['spartoi', 'telekhine', 'harpy', 'laistrygonian'], asphodel: ['shade', 'keres', 'spartoi', 'ghost'] };
+    canyon: ['myrmex', 'myrmex_spitter', 'spartoi', 'earthborn'], labyrinth: ['spartoi', 'spider', 'daedalus_drone', 'automaton'], othrys: ['spartoi', 'basilisk', 'telekhine', 'harpy', 'laistrygonian'], asphodel: ['shade', 'keres', 'spartoi', 'ghost'] };
   for (const [id, ks] of Object.entries(ROSTER)) for (const k of ks) assert.ok(roaming.find((r) => r.id === id).kinds.some(([q]) => q === k), `${id}: ${k}`);
   for (const [id, k] of [['fields', 'karpos'], ['woods', 'myrmex'], ['shore', 'crab'], ['canyon', 'myrmex'], ['labyrinth', 'spartoi'], ['othrys', 'spartoi'], ['asphodel', 'shade'],
     ['rt_auntyem', 'karpos'], ['rt_la', 'shade'], ['rt_santamonica', 'crab'], ['rt_vegas', 'spartoi'], ['rt_denver', 'spartoi'], ['rt_turnpike', 'pup']]) assert.equal(top(id), k, id);

@@ -208,8 +208,9 @@ order, then opens camp up:
 6. **Cutscene:** waking up on the lawn of the Big House; Annabeth; Chiron.
 7. **Camp Half-Blood**, the open hub.
 
-Cutscenes are shot in the engine on small sets and skippable (hold A / Esc /
-the screen). The save keeps the step, so Continue resumes the prologue or the
+Cutscenes are shot in the engine on small sets. A (Enter, a click or a tap)
+skips to the next shot, holding B (Esc) pauses, and holding A (Enter, the mouse
+button, or the Skip all button on touch) skips the whole cutscene. The save keeps the step, so Continue resumes the prologue or the
 cutscene. Settings can skip the opening.
 
 **Guidance everywhere:** one line in the objective ribbon names the goal; a
@@ -247,7 +248,7 @@ can be replayed at any difficulty, from **Mortal** to **Olympian**.
 | 9 | **Crusty's Water Bed Palace** | The Nevada desert | Medium | Trick the salesman onto his own bed. | Procrustes |
 | 10 | **DOA Recording Studios** | Los Angeles and the Underworld | Light (rifts drain health) | Charon's ferry, Cerberus (play fetch with the red ball), the Fields of Asphodel, the pit of Tartarus calling. | Cerberus (calmed, not beaten); Hades's court |
 | 11 | **The God of War** | Santa Monica beach | None | Duel Ares in the surf; the Furies watch. | Ares: strike his heel from the water |
-| 12 | **The Six-Hundredth Floor** | The Empire State Building, Olympus, camp | None | Return the master bolt to Zeus. Back at camp, Luke's betrayal. | The pit scorpion |
+| 12 | **The Six-Hundredth Floor** | The Empire State Building, Olympus, camp | None | Return the master bolt to Zeus. Back at camp, Luke's betrayal. | Luke and his giant scorpion |
 
 ### Later books
 
@@ -276,7 +277,7 @@ and a tell before it attacks.
 
 | Tier | Role | Book 1 | Later books |
 | --- | --- | --- | --- |
-| **Minor** | Swarms; die in two or three hits | Sewer rats (the prologue), hellhound pups, mechanical spiders, harpies (at camp, harmless), mortal-disguised minions | Stymphalian birds, telekhines, myrmekes (giant ants), skeleton warriors' dogs |
+| **Minor** | Swarms; die in two or three hits | Sewer rats (the prologue), hellhound pups (a puppy the way Mrs O'Leary is one: a head taller than Percy, half a grown hellhound), mechanical spiders, harpies (at camp, harmless), mortal-disguised minions | Stymphalian birds, telekhines, myrmekes (giant ants), skeleton warriors' dogs |
 | **Elite** | A threat on their own; a tell and a counter | Hellhounds, Furies, dracaenae (snake-women with spears), Echidna's brood | Laistrygonian giants (dodgeballs of fire), skeleton warriors (regrow unless their bones are scattered), empousai (charm; True Sight breaks it), Cyclops thugs, earthborn |
 | **Champion** | A mini-boss in a room | Mrs. Dodds, the three Furies, Procrustes | Scylla's heads, Ladon, the Manticore, Geryon's cattle |
 | **Boss** | A chapter boss: phases, an arena, a myth riddle | The Minotaur, Medusa, the Chimera, Cerberus, Ares | Polyphemus, the Nemean Lion (hit only in the mouth), Talos (the plug on his heel), Kampê, Antaeus (lift him off the ground), Typhon, Kronos |

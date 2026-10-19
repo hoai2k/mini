@@ -1,0 +1,267 @@
+{
+  "generator": "Built-in image_gen",
+  "request_source": "mp3player/design/source/build_requests.py",
+  "delivery": "Cool palette edits integrated in app. Blue, mint green and violet dominate; warm sunset details retained. Images resized and encoded for the app; icons derived from the 1024px master. Shipped wordmark trimmed to visible alpha bounds.",
+  "assets": [
+    {
+      "id": "icon",
+      "prompt": "Edit the attached image. Preserve the vinyl record, white play triangle, framing, grooves, and full-bleed dark background. Replace the orange label and orange lighting with a luminous blue-to-mint-green gradient, cyan rim light and subtle violet haze. Cool blue and green dominate; no orange in this app icon. Square.",
+      "file": "icons/icon-1024.png",
+      "transparent_background": false,
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "generated_dimensions": [
+        1254,
+        1254
+      ],
+      "reference": {
+        "file": "mp3player/app/icons/icon-1024.png",
+        "commit": "da63dbb0",
+        "sha256": "de48e3f9fccd17c0d7fd548f424a57a4eaafa0362b11edb9e42c6645133e31a4"
+      },
+      "sha256": "fac192a11733aa7e89a9ac7efae995b2514df0f6bdd014fcb2bf19f3105b1935"
+    },
+    {
+      "id": "logo",
+      "prompt": "Edit the attached image. Preserve the exact words MP3 Player, letter shapes, vinyl-record counter, layout and proportions. Change ONLY the MP3 orange gradient to a vivid sky-blue to mint-green gradient; keep Player cool off-white. Clean sharp typography, solid opaque letter interiors, fully transparent background. No orange in this wordmark. Wide horizontal.",
+      "file": "assets/ui/logo.webp",
+      "transparent_background": true,
+      "dimensions": [
+        769,
+        148
+      ],
+      "generated_dimensions": [
+        1911,
+        823
+      ],
+      "reference": {
+        "file": "mp3player/app/assets/ui/logo.webp",
+        "commit": "da63dbb0",
+        "sha256": "dccca1adfa79bfc6164c54920dd1ff03e940e6aee63a4e929bc761647e1a37fa"
+      },
+      "sha256": "b06f7c467410677eab14fb61078956289e616f918f8731d47b2f2079e88dc36c"
+    },
+    {
+      "id": "cover",
+      "prompt": "Edit the attached image. Preserve the composition: record lower left, phone lower right, floating album squares and calm dark centre. Recolor the dominant flowing orange light ribbons and record label to electric blue and emerald/mint green with violet accents, on an ink-navy background. Album squares may retain tiny warm sunset accents; the overall scene must feel cool and blue-green-purple. Preserve photographic detail, no text, landscape 4:3.",
+      "file": "assets/ui/cover.webp",
+      "transparent_background": false,
+      "dimensions": [
+        1200,
+        900
+      ],
+      "generated_dimensions": [
+        1448,
+        1086
+      ],
+      "reference": {
+        "file": "mp3player/app/assets/ui/cover.webp",
+        "commit": "da63dbb0",
+        "sha256": "2d5149116fd13bf4d8a50c8c78e685e76f4b0c844b8f27777bb8b981baf02b24"
+      },
+      "sha256": "02821155ade0acebac4515883a156a73c76c853fc1e4b7818257e2823c2d489c"
+    },
+    {
+      "id": "welcome",
+      "prompt": "Edit the attached image. Preserve box of records, phone, floating album squares/music notes and their arrangement. Change the dominant orange glow and flowing notes to blue/cyan and mint green, purple accents; cool navy/violet phone art. Keep natural cardboard brown, and small warm sunset details inside some album squares only. Clean isolated composition on fully transparent background. Landscape 4:3.",
+      "file": "assets/ui/welcome.webp",
+      "transparent_background": true,
+      "dimensions": [
+        1200,
+        900
+      ],
+      "generated_dimensions": [
+        1448,
+        1086
+      ],
+      "reference": {
+        "file": "mp3player/app/assets/ui/welcome.webp",
+        "commit": "da63dbb0",
+        "sha256": "bc9869bdac472df1d774ec807b0a96cd148851b6b455df6ae2f19385597b481d"
+      },
+      "sha256": "ab3de7a8a7d5f73e230db936ead7dcf8ebd9cacc4c462f526f652fa3cc82aa5a"
+    },
+    {
+      "id": "artist",
+      "prompt": "Edit the attached image. Keep microphone silhouette and centred framing. Replace orange rim light with luminous mint/teal on one side and electric blue on the other, against violet and navy haze. Cool late-night atmosphere, same strong contrast. Square.",
+      "file": "assets/art/artist.webp",
+      "transparent_background": false,
+      "dimensions": [
+        256,
+        256
+      ],
+      "generated_dimensions": [
+        1254,
+        1254
+      ],
+      "reference": {
+        "file": "mp3player/app/assets/art/artist.webp",
+        "commit": "da63dbb0",
+        "sha256": "cf1a96e8eaf2cb96cbd780f2732e3492da6e6cf7a0e2e21f579b2b362565934a"
+      },
+      "sha256": "03a5879e4f125b3389ddd1d948ad2e47265d57aac79109da7c0c9337d310c4f4"
+    },
+    {
+      "id": "art-1",
+      "prompt": "Edit the attached image. Preserve the concentric vinyl grooves and sun just above the horizon. Recolor record label/reflections to blue-green, dark navy grooves, purple twilight sky. Keep a small softly warm peach/coral sun as a sunset accent, but reduce orange glow so blue and purple dominate the image. Square full bleed, no text.",
+      "file": "assets/art/art-1.webp",
+      "transparent_background": false,
+      "dimensions": [
+        512,
+        512
+      ],
+      "generated_dimensions": [
+        1254,
+        1254
+      ],
+      "reference": {
+        "file": "mp3player/app/assets/art/art-1.webp",
+        "commit": "da63dbb0",
+        "sha256": "bd79f10b12fae1c01426e8b9f24b2fac8ed7c1d29730806236b699f6f148fdfb"
+      },
+      "sha256": "d3f54d881434397599c688f24fa4eb42ce85d860fd849a398bb302094de7b638"
+    },
+    {
+      "id": "art-2",
+      "prompt": "Edit the attached image. Preserve the flowing sound-wave ribbon, framing and fine texture. Recolor the glowing ribbon to blue and mint green with a violet edge, against deep navy. No orange lighting. Square.",
+      "file": "assets/art/art-2.webp",
+      "transparent_background": false,
+      "dimensions": [
+        512,
+        512
+      ],
+      "generated_dimensions": [
+        1254,
+        1254
+      ],
+      "reference": {
+        "file": "mp3player/app/assets/art/art-2.webp",
+        "commit": "da63dbb0",
+        "sha256": "bef0104ca9416381532d5aa2b9d0a0735e37200c5af2687e8b8942f258eb08c8"
+      },
+      "sha256": "8b8f688f3b59387259ada43304abd3c55baa56c2a5bd93282eac0196039591e2"
+    },
+    {
+      "id": "art-3",
+      "prompt": "Edit the attached image. Preserve the three translucent overlapping stage-light circles and their placement. Recolor the circles to sky blue, emerald/mint green and violet; cool luminous overlaps on deep navy. No orange circles. Square.",
+      "file": "assets/art/art-3.webp",
+      "transparent_background": false,
+      "dimensions": [
+        512,
+        512
+      ],
+      "generated_dimensions": [
+        1254,
+        1254
+      ],
+      "reference": {
+        "file": "mp3player/app/assets/art/art-3.webp",
+        "commit": "da63dbb0",
+        "sha256": "c1650cef4e7f5ed6809b69555b0c2869867ebcb0815a07e4e1e24ecd42563ef3"
+      },
+      "sha256": "59eb8cd3210980a26ba072c96040a1c30722221fa04809f6b69760d6ca737cf6"
+    },
+    {
+      "id": "art-4",
+      "prompt": "Edit the attached image. Preserve the two abstract glowing cassette reels, ribbon bridge and dark negative space. Recolor one reel blue/cyan and the other mint/emerald, with a subtle violet haze. Same contrast and textures. Square.",
+      "file": "assets/art/art-4.webp",
+      "transparent_background": false,
+      "dimensions": [
+        512,
+        512
+      ],
+      "generated_dimensions": [
+        1254,
+        1254
+      ],
+      "reference": {
+        "file": "mp3player/app/assets/art/art-4.webp",
+        "commit": "da63dbb0",
+        "sha256": "9f462af1dd857d7f7e2807271372a00a672a096e95f7f00bb293ed309b1010ca"
+      },
+      "sha256": "604ab5a085efbe56284f1774bf5b2764b9993fa863fa55a77669a7b9327a4a7e"
+    },
+    {
+      "id": "art-5",
+      "prompt": "Edit the attached image. Preserve equalizer bars, reflections, planet and framing. Recolor the bars to mint green at their base blending into sky-blue tips, with violet planet and haze, navy ground. Remove dominant orange lighting. Square.",
+      "file": "assets/art/art-5.webp",
+      "transparent_background": false,
+      "dimensions": [
+        512,
+        512
+      ],
+      "generated_dimensions": [
+        1254,
+        1254
+      ],
+      "reference": {
+        "file": "mp3player/app/assets/art/art-5.webp",
+        "commit": "da63dbb0",
+        "sha256": "be2c638b6d6d53a83f4c1b1e936b93d62b486a25c7ed4a6eaf6b6b47cf978281"
+      },
+      "sha256": "a580f0dee43b50c990ed0d8207e59647705ffec3d69f263b127fcb7e36830544"
+    },
+    {
+      "id": "art-6",
+      "prompt": "Edit the attached image. Preserve headphone silhouette and arc of light, framing and haze. Change rim light to blue and mint green, haze to violet and navy. Elegant cool atmosphere. Square.",
+      "file": "assets/art/art-6.webp",
+      "transparent_background": false,
+      "dimensions": [
+        512,
+        512
+      ],
+      "generated_dimensions": [
+        1254,
+        1254
+      ],
+      "reference": {
+        "file": "mp3player/app/assets/art/art-6.webp",
+        "commit": "da63dbb0",
+        "sha256": "8bedd3ba8cc91b0c688f4c1afd4db1f50650abafc05a28b3a7214aeb9dfb0a53"
+      },
+      "sha256": "f6d43e158b33a66133e9d2735b2b1a2168ae2c9de41fe350bb4562355ad8d1e0"
+    },
+    {
+      "id": "art-7",
+      "prompt": "Edit the attached image. Preserve the sunset skyline and large sun. Keep the sun naturally warm orange/peach, but shift the sky and water shadows to deep blue and purple. Make most sound-wave reflection lines blue and mint green, with only a narrow warm reflection directly beneath the sun. Balanced sunset artwork in a predominantly cool collection, no text. Square.",
+      "file": "assets/art/art-7.webp",
+      "transparent_background": false,
+      "dimensions": [
+        512,
+        512
+      ],
+      "generated_dimensions": [
+        1254,
+        1254
+      ],
+      "reference": {
+        "file": "mp3player/app/assets/art/art-7.webp",
+        "commit": "da63dbb0",
+        "sha256": "9335ae83fae5e0454a86982b6a6419513693e4ba133bda7ba5184df72d2f9e08"
+      },
+      "sha256": "90d0d0bf91b8feea425d240d220a056f5fe450ad02a31cb6a894d545e269ad87"
+    },
+    {
+      "id": "art-8",
+      "prompt": "Edit the attached image. Preserve the spiral galaxy of points of light and record-like grooves. Change dominant orange-gold stars to luminous sky-blue, mint green and violet, with a pale icy core. Retain only a few tiny warm stars for variety. Deep navy backdrop. Square.",
+      "file": "assets/art/art-8.webp",
+      "transparent_background": false,
+      "dimensions": [
+        512,
+        512
+      ],
+      "generated_dimensions": [
+        1254,
+        1254
+      ],
+      "reference": {
+        "file": "mp3player/app/assets/art/art-8.webp",
+        "commit": "da63dbb0",
+        "sha256": "29b177db7f6db00f52641eb1668ddcc80827f0c0a81dd7213b279f62fa9cd9b3"
+      },
+      "sha256": "23be7bbdc334a86aa9c5ffdf8767ca9e73f05f284d5f10dbe119f99a1197b921"
+    }
+  ]
+}

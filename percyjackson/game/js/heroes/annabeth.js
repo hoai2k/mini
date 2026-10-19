@@ -52,7 +52,7 @@ class AnnabethKit extends Kit {
       { style: 'swingL', dur: 0.24, windup: 0.28, strike: 0.5, dmg: 10, range: 2.6, arc: 1.15, lunge: 6, knock: 2.5, stop: 0.04, shake: 0.12, trail: GREY, sparkColor: 0xe0e8f0, chainAt: 0.55 },
       { style: 'punch', dur: 0.36, windup: 0.32, strike: 0.5, dmg: 18, range: 2.9, arc: 0.8, lunge: 13, knock: 6, stop: 0.07, shake: 0.24, trail: GOLD, sparkColor: GOLD, stagger: 0.5 },
     ];
-    this.p.stats.meleeMult += r('blade') * 0.08;
+    this.p.stats.meleeMult *= 1 + r('blade') * 0.08;
     this.p.stats.crit += r('owl') * 0.04;
     this.slots = {
       ranged: this.ability({ name: t('powers.annabeth.ranged'), icon: '🔪', cd: 0.6, ce: 0, use: () => this.knife() }),

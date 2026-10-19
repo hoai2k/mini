@@ -57,6 +57,11 @@
 //     fight (aggro) it keeps chasing.
 //   • minor monsters slide round corners (physics cornerSlide); bosses don't.
 //   • ranged monsters back off at most twice, then stand and fight.
+//   • ranged shots (entities/rangedRules.js): a wind-up tell and a long
+//     cooldown, a random wait before the first shot, and the volley
+//     scheduler (game.volleys) lets at most two wind up at one hero and
+//     spaces their shots 0.45-0.8 s apart; more than one projectile a shot
+//     only from MULTI_SHOT_LEVEL on (never in the museum or early chapters).
 import * as THREE from 'three/webgpu';
 import { moveEntity, groundAhead } from '../physics.js';
 import { BLOCKS } from '../world/blocks.js';
@@ -75,7 +80,9 @@ import { hiddenHitAllowed, HIDDEN_DMG } from '../story/museumRules.js';
 import { damp, dampAngle, clamp, angleDiff } from '../util.js';
 import { monsterDamage } from '../resources.js';
 import { KNOCK, knockKeep, knockSpeed, staggerScale, walkKeep } from '../combatRules.js';
+import { Volleys, shotCount, rangedCdMul, firstShotDelay } from './rangedRules.js';
 
+const SHOT_GLOW = { feather: 0xffd890, bullet: 0xffd84a, wisp: 0x8ae8ff, fire: 0xff7a1a, acid: 0x9aff3a };
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0), TO = new THREE.Vector3(), SEP = new THREE.Vector3();
 let bonesHint = false;
 const TOKENS = 2;            // attackers per hero at once (+1 with an elite)
@@ -159,6 +166,7 @@ export class Enemy {
     const g = this.game;
     this.disguised = false; this.untargetable = false;
     this.radius = this.trueRadius; this.height = this.trueHeight;
+    if (this.def.projectile) this.cd = Math.max(this.cd, 0.4 + Math.random() * 1.2);   // (shooters seen through the Mist don't all fire the moment True Sight finds them)
     const old = this.object;
     old.parent?.remove(old);
     this.buildTrueModel();
@@ -263,6 +271,7 @@ export class Enemy {
   // enemy left in 'windup' or 'recover' without an action falls back to idle.
   cancelAttack() {
     if (this.marker) { this.game.markers.cancel(this.marker, this.markerGen); this.marker = null; }
+    if (this.volleyKey) { this.game.volleys?.drop(this.volleyKey, this); this.volleyKey = null; }
     this.action = null;
     if (this.state === 'windup' || this.state === 'recover') { this.state = 'idle'; this.stateT = 0; }
   }
@@ -462,10 +471,12 @@ export class Enemy {
       // an attack was dropped without a state change (a net update, a hold): back to the chase
       this.state = 'idle'; this.stateT = 0;
     } else if (this.state === 'windup') {
-      if (t) this.faceTo(t.pos, dt, this.def.ai === 'tank' ? 2.5 : 6);
+      if (t) this.faceTo(t.pos, dt, this.def.ai === 'tank' ? 2.5 : this.action.center ? 1.5 : 6);   // (a marked blow barely turns)
       if (ai === 'blob') move.copy(this.steer(t ? tmp.subVectors(t.pos, this.pos) : tmp.set(0, 0, 0), 0.4));
-      if (this.stateT >= this.action.windup) this.release();
+      if (this.action.kind === 'spit') this.chargeGlow(dt);
+      if (this.stateT >= this.action.windup && (!this.volleyKey || this.game.volleys.clear(this.volleyKey, this.game.time))) this.release();
     } else if (this.state === 'recover') {
+      if (this.action?.twinT > 0 && (this.action.twinT -= dt) <= 0) { if (this.action.kind === 'pummel') this.punch(this.action); else this.meleeSweep(this.action); }   // a one-two's second blow (or a barrage's next)
       if (this.stateT > (this.action?.recover ?? 0.35)) { this.state = 'idle'; this.action = null; }
       if (this.lunge) { move.copy(this.lunge); this.lunge.multiplyScalar(Math.exp(-dt * 8)); }
     } else if (t) {
@@ -484,7 +495,7 @@ export class Enemy {
           if (!ready && d < ring + 2.5) move.copy(this.circle(toT, d, ring));
           else if (d > this.def.range * 0.9) move.copy(this.steer(toT)); else move.copy(this.steer(toT, 0.1));
           this.faceTo(t.pos, dt, turn);
-          if (ready && d < this.def.range + 0.2 && this.cd <= 0) this.startAttack(ai === 'tank' ? 'slam' : ai === 'statue' ? 'slash' : 'bite');
+          if (ready && d < (this.def.moves ? this.nextMove().trigger * this.sizeK : this.def.range) + 0.2 && this.cd <= 0) this.startAttack(ai === 'tank' ? 'slam' : ai === 'statue' ? 'slash' : 'bite');
           break;
         case 'blob':
           if (!ready && d < ring + 2.5) move.copy(this.circle(toT, d, ring + 0.6));
@@ -494,15 +505,23 @@ export class Enemy {
           break;
         case 'ranged': case 'summon': {
           const keep = this.def.keep;
+          // a random wait before the first shot at a hero (a group that wakes together doesn't open with a volley)
+          if (this.shotAt !== t) { this.shotAt = t; this.cd = Math.max(this.cd, firstShotDelay()); }
           // back off when a hero closes in, but only twice; then stand and fight
-          const back = d < keep - 1.5 && (this.retreats < 2 || ai === 'summon');
+          const back = d < keep - 1.5 && (this.retreats < 2 || ai === 'summon') && !this.def.pummel;   // (a brawler stands its ground)
           if (back && !this.retreating) { this.retreating = true; this.retreats++; }
           if (this.retreating && (d >= keep || !back)) this.retreating = false;
           if (d > this.def.range) move.copy(this.steer(toT));
           else if (this.retreating) move.copy(this.steer(toT.negate(), 0.8));
+          else if (this.def.pummel && d < keep) move.copy(this.steer(toT, d > this.def.pummel.trigger * 0.7 ? 0.8 : 0.1));   // close in to pummel
           else { const side = TO.set(-toT.z, 0, toT.x).normalize().multiplyScalar(Math.sin(this.stateT * 0.8 + this.home.x) > 0 ? 1 : -1); move.copy(this.steer(side, 0.5)); }
           this.faceTo(t.pos, dt);
-          if (ready && this.cd <= 0 && d < this.def.range + 1) this.startAttack(ai === 'summon' && this.summonCount < 6 ? 'summon' : 'spit');
+          // a ranged monster with def.pummel (the Earthborn) beats a hero who comes close with its fists instead
+          if (ready && this.cd <= 0 && this.def.pummel && d < this.def.pummel.trigger * this.sizeK) this.startAttack('pummel');
+          else if (ready && this.cd <= 0 && d < this.def.range + 1) {
+            if (ai === 'summon' && this.summonCount < 6) this.startAttack('summon');
+            else this.shoot(t, d);
+          }
           break;
         }
         case 'teleport':
@@ -856,11 +875,47 @@ export class Enemy {
   }
 
   // ---------------------------------------------------------------- attacks
+  // A melee monster with def.moves (the scorpion) alternates them in place of
+  // its bite: each move { kind: 'pinch'|'sting', trigger (start distance, m),
+  // windup, recover, dmg (x the monster's damage), range (pinch), twin (a
+  // second pinch this long after the first), at / radius (where the sting
+  // lands) }; distances grow with a champion's size (sizeK).
+  get sizeK() { return this.attackK ?? this.height / this.def.height; }   // (attackK: a champion's attack scale, set apart from its hit height: champions.js applyChampionLook)
+  nextMove() { const M = this.def.moves; return M[(this.moveIx ?? 0) % M.length]; }
+  // A ranged shot, when the volley scheduler gives this one a turn at the
+  // hero: the wind-up lasts until its slot (never shorter than the stat
+  // block's), with an aim line on the ground for a straight shot.
+  shoot(t, d) {
+    const g = this.game, V = g.volleys ??= new Volleys();
+    const live = (w) => !w.dead && w.state === 'windup' && w.action?.kind === 'spit' && w.volleyKey === t;
+    const at = V.request(t, this, g.time, this.def.windup, live);
+    if (at == null) { this.cd = 0.15 + Math.random() * 0.25; return; }   // (another shooter's turn: try again in a moment)
+    this.startAttack('spit');
+    this.volleyKey = t;
+    this.action.windup = Math.max(this.def.windup, at - g.time);
+    if (!this.def.lob) {
+      this.marker = g.markers.spawn({ pos: this.pos, radius: Math.min(this.def.range, d + 0.5), dur: this.action.windup, shape: 'cone', arc: 0.035, facing: this.facing, color: 0xffa040, follow: this });
+      this.markerGen = this.marker?.gen;
+    }
+  }
+  // the wind-up of a shot: a glow gathers at the mouth
+  chargeGlow(dt) {
+    if (Math.random() > dt * 14) return;
+    const col = SHOT_GLOW[this.def.projectile] ?? 0xffd84a, k = Math.min(1, this.stateT / Math.max(0.1, this.action.windup));
+    tmp.set(this.pos.x + Math.sin(this.facing) * 0.45, this.pos.y + this.height * 0.8, this.pos.z + Math.cos(this.facing) * 0.45);
+    this.game.particles.burst(tmp, { count: 1, color: col, speed: 0.5, life: 0.3, size: 0.12 + 0.2 * k, sizeEnd: 0.04, drag: 3 });
+  }
   startAttack(kind) {
     const g = this.game;
     const d = this.def;
+    let mv = null;
+    if (kind === 'bite' && d.moves) { mv = this.nextMove(); this.moveIx = (this.moveIx ?? 0) + 1; kind = mv.kind; }
+    const k = this.sizeK, pm = d.pummel;
     const A = {
+      pinch: { windup: mv?.windup ?? d.windup, recover: mv?.recover ?? 0.5, style: 'pinch', range: (mv?.range ?? d.range) * k, dmgMul: mv?.dmg ?? 1, twinT: mv?.twin ?? 0 },
+      sting: { windup: mv?.windup ?? d.windup, recover: mv?.recover ?? 0.6, style: 'sting', marker: 'circleFront', at: (mv?.at ?? 1.5) * k, radius: (mv?.radius ?? 0.9) * k, dmgMul: mv?.dmg ?? 1 },
       bite: { windup: d.windup, recover: 0.35, style: 'swingR', range: d.range + 0.3 },
+      pummel: pm && { windup: pm.windup, recover: pm.recover + pm.gap * (pm.hits - 1), style: 'pummel', marker: 'cone', range: pm.range * k, dmgMul: pm.dmg, hits: pm.hits, gap: pm.gap, every: pm.every ?? 1, hit: 0 },
       slam: { windup: d.windup, recover: 0.7, style: 'slam', range: 3, marker: 'circleFront', radius: d.slamR ?? 2.6 },
       inflate: { windup: d.windup, recover: 0.1, anim: 'none', marker: 'circle', radius: 3 },
       spit: { windup: d.windup, recover: 0.4, anim: 'cast' },
@@ -870,13 +925,13 @@ export class Enemy {
     this.action = { kind, ...A };
     this.state = 'windup'; this.stateT = 0;
     if (A.marker === 'circleFront') {
-      const f = tmp.set(Math.sin(this.facing), 0, Math.cos(this.facing)).multiplyScalar(1.6 * A.radius / 2.6).add(this.pos);
+      const f = tmp.set(Math.sin(this.facing), 0, Math.cos(this.facing)).multiplyScalar(A.at ?? 1.6 * A.radius / 2.6).add(this.pos);
       this.marker = g.markers.spawn({ pos: f, radius: A.radius, dur: A.windup });
       this.action.center = f.clone();
     } else if (A.marker === 'circle') {
       this.marker = g.markers.spawn({ pos: this.pos, radius: A.radius, dur: A.windup, follow: this });
-    } else if (A.marker === 'cone' || (kind === 'bite' && this.big)) {
-      this.marker = g.markers.spawn({ pos: this.pos, radius: A.range, dur: A.windup, shape: 'cone', arc: kind === 'bite' ? 0.3 : 0.35, facing: this.facing, follow: this });
+    } else if (A.marker === 'cone' || ((kind === 'bite' || kind === 'pinch') && this.big)) {
+      this.marker = g.markers.spawn({ pos: this.pos, radius: A.range, dur: A.windup, shape: 'cone', arc: kind === 'slash' ? 0.35 : 0.3, facing: this.facing, follow: this });
     }
     this.markerGen = this.marker?.gen;
     if (kind === 'inflate') g.audio?.charge(A.windup, 0.8);
@@ -889,7 +944,8 @@ export class Enemy {
     if (!a) { this.cancelAttack(); return; }   // (the attack was dropped: back to the chase)
     this.marker = null;
     this.state = 'recover'; this.stateT = 0;
-    this.cd = this.def.cd * (0.8 + Math.random() * 0.4) * (this.elite === 'swift' ? 0.7 : 1);
+    const ranged = a.kind === 'spit';
+    this.cd = this.def.cd * (0.8 + Math.random() * 0.4) * (ranged ? rangedCdMul(this) : this.elite === 'swift' ? 0.7 : 1);
     this.patience = 0.3 + Math.random() * 0.5;
     if (this.retreats >= 2 && ++this.capShots >= 2) { this.retreats = 0; this.capShots = 0; }
     const fwd = tmp.set(Math.sin(this.facing), 0, Math.cos(this.facing));
@@ -905,6 +961,26 @@ export class Enemy {
         g.audio?.swing(0);
         break;
       }
+      case 'pinch': {
+        this.lunge = fwd.clone().multiplyScalar(4);
+        this.meleeSweep(a);
+        break;
+      }
+      case 'pummel': this.punch(a); break;
+      case 'sting': {
+        // the stinger stabs the marked spot: venom, a flash and a burst of dust
+        const c = a.center, col = this.def.slashColor ?? 0x9aff3a;
+        this.lunge = fwd.clone().multiplyScalar(2);
+        const gy = g.fx.groundY(c), hit = new THREE.Vector3(c.x, gy + 0.1, c.z);
+        g.particles.burst(hit, { count: 22, color: 0xb89a6a, additive: false, speed: 3, life: 0.7, size: 0.35 * this.sizeK, sizeEnd: 1.1 * this.sizeK, drag: 3, up: 0.8, gravity: 2, intensity: 1 });
+        g.particles.burst(hit, { count: 14, color: col, speed: 4, life: 0.4, size: 0.12, drag: 2, up: 1, gravity: 6 });
+        g.fx.rings.spawn(new THREE.Vector3(c.x, gy + 0.06, c.z), { color: col, r1: a.radius + 0.4, dur: 0.35, thick: 0.18 });
+        g.lights.flash(hit, col, 5, 5, 0.18);
+        g.shake(0.18);
+        g.audio?.impact(1.2);
+        for (const p of g.hostileTargets()) if (!p.dead && TO.subVectors(p.pos, c).setY(0).length() < a.radius + p.radius) this.hitPlayer(p, this.dmg * a.dmgMul, TO.clone().normalize().multiplyScalar(7));
+        break;
+      }
       case 'slam': {
         const c = a.center;
         g.fx.shockwave(c, 0xff8a4a, a.radius + 0.6);
@@ -915,15 +991,18 @@ export class Enemy {
       }
       case 'inflate': this.hp = 0; this.die({}); break;
       case 'spit': {
+        // the shot leaves: its place in the hero's volley schedule frees up
+        const n = shotCount(this.def, { level: this.level, chapter: g.mission?.def?.chapter ?? null });
+        if (this.volleyKey) { g.volleys?.fired(this.volleyKey, this, g.time, n, this.kind); this.volleyKey = null; }
         if (!t) break;
         const from = this.pos.clone().add(new THREE.Vector3(0, this.height * 0.8, 0)).addScaledVector(fwd, 0.4);
         const lead = t.vel ? t.pos.clone().addScaledVector(t.vel, 0.45) : t.pos.clone();
         const dist = lead.distanceTo(from);
         const self = this;
         if (this.def.projectile === 'feather') {
-          // a fan of three sharp feathers, flying straight and fast
-          for (let i = -1; i <= 1; i++) {
-            const dir = new THREE.Vector3().subVectors(lead, from).setY(lead.y + 0.9 - from.y).normalize().applyAxisAngle(UP, i * 0.18);
+          // a sharp feather, flying straight and fast (a fan of `shots` from MULTI_SHOT_LEVEL on: rangedRules.js)
+          for (let i = 0; i < n; i++) {
+            const dir = new THREE.Vector3().subVectors(lead, from).setY(lead.y + 0.9 - from.y).normalize().applyAxisAngle(UP, (i - (n - 1) / 2) * 0.18);
             g.projectiles.fire({ pos: from, vel: dir.clone().multiplyScalar(14), team: 'enemy', dmg: this.dmg, gravity: 1, life: 1.6, shape: 'nail', color: 0xd8b070, emissive: 0.8, scale: 2.2, radius: 0.35,
               onHit: (target, p) => { self.hitPlayer(target, self.dmg, p.vel.clone().setY(0).normalize().multiplyScalar(3)); g.particles.burst(p.pos, { count: 6, color: 0x8a6a4a, additive: false, speed: 2, life: 0.5, size: 0.15, gravity: 4 }); },
               onExpire: (p, why) => { if (why === 'wall') g.particles.burst(p.pos, { count: 4, color: 0x8a6a4a, additive: false, speed: 1.5, life: 0.4, size: 0.12, gravity: 4 }); } });
@@ -932,18 +1011,19 @@ export class Enemy {
           break;
         }
         if (this.def.projectile === 'bullet') {
-          // a short burst from the rifle: fast and straight
+          // a shot from the rifle: fast and straight (a short burst of `shots` from MULTI_SHOT_LEVEL on)
           const muzzle = this.rig.extras.muzzle ? this.rig.extras.muzzle.getWorldPosition(new THREE.Vector3()) : from;
-          for (let i = 0; i < 2; i++) {
+          const hit = n > 1 ? 0.6 : 0.9;
+          for (let i = 0; i < n; i++) {
             const dir = new THREE.Vector3().subVectors(lead, muzzle).setY(lead.y + 0.9 - muzzle.y).normalize().applyAxisAngle(UP, (Math.random() - 0.5) * 0.08);
             g.projectiles.fire({ pos: muzzle.clone().addScaledVector(dir, i * -0.8), vel: dir.multiplyScalar(26), team: 'enemy', dmg: this.dmg, life: 1, shape: 'nail', color: 0xffd84a, emissive: 3, scale: 1.6, radius: 0.3,
-              onHit: (target, p) => self.hitPlayer(target, self.dmg * 0.6, p.vel.clone().setY(0).normalize().multiplyScalar(2)),
+              onHit: (target, p) => self.hitPlayer(target, self.dmg * hit, p.vel.clone().setY(0).normalize().multiplyScalar(2)),
               onExpire: (p, why) => { if (why === 'wall') g.particles.burst(p.pos, { count: 4, color: 0xd8c8a0, additive: false, speed: 2, life: 0.3, size: 0.08, gravity: 6 }); } });
           }
           g.particles.burst(muzzle, { count: 6, color: 0xffd84a, speed: 3, life: 0.15, size: 0.2 });
           g.lights.flash(muzzle, 0xffd84a, 3, 4, 0.08);
           g.audio?.noise({ dur: 0.08, gain: 0.18, type: 'bandpass', freq: 1800, q: 0.8 });
-          g.audio?.noise({ dur: 0.08, gain: 0.14, type: 'bandpass', freq: 1600, q: 0.8, at: 0.1 });
+          if (n > 1) g.audio?.noise({ dur: 0.08, gain: 0.14, type: 'bandpass', freq: 1600, q: 0.8, at: 0.1 });
           break;
         }
         if (this.def.projectile === 'wisp') {
@@ -983,12 +1063,42 @@ export class Enemy {
       }
     }
   }
-  hitPlayer(p, dmg, knock) {
+  // one pinch of a scorpion's claws: everyone in a short cone in front (claws carry no venom)
+  meleeSweep(a) {
+    const g = this.game, fwd = new THREE.Vector3(Math.sin(this.facing), 0, Math.cos(this.facing));
+    for (const p of g.hostileTargets()) {
+      if (p.dead) continue;
+      const to = TO.subVectors(p.pos, this.pos); const dist = to.setY(0).length();
+      if (dist < a.range + p.radius && Math.abs(angleDiff(this.facing, Math.atan2(to.x, to.z))) < 0.9) this.hitPlayer(p, this.dmg * (a.dmgMul ?? 1), fwd.clone().multiplyScalar(4), false);
+    }
+    g.fx.slashArc(this.pos, this.facing, this.def.slashColor ?? 0xfff0d0, a.range, 0.22, 0.14);
+    g.audio?.swing(0);
+  }
+  // One blow of a barrage (def.pummel { trigger, range, windup, recover, hits,
+  // gap, every, dmg }: the Earthborn's six fists, one after another). Every
+  // a.every-th blow lands, for dmg x the monster's damage (a hero's hurt
+  // i-frames would swallow blows closer together); the rig reads a.hit.
+  punch(a) {
+    const g = this.game, fwd = new THREE.Vector3(Math.sin(this.facing), 0, Math.cos(this.facing));
+    a.hit = (a.hit ?? 0) + 1;
+    if (a.hit < a.hits) a.twinT = a.gap;
+    this.lunge = fwd.clone().multiplyScalar(2.4);   // (it walks into the hero as it beats)
+    if (a.hit % a.every) { g.audio?.swing(0); return; }
+    const knock = a.hit >= a.hits ? 6 : 1.2;   // the last blow throws the hero back
+    for (const p of g.hostileTargets()) {
+      if (p.dead) continue;
+      const to = TO.subVectors(p.pos, this.pos); const dist = to.setY(0).length();
+      if (dist < a.range + p.radius && Math.abs(angleDiff(this.facing, Math.atan2(to.x, to.z))) < 0.9) this.hitPlayer(p, this.dmg * a.dmgMul, fwd.clone().multiplyScalar(knock), false);
+    }
+    g.audio?.impact(0.9);
+    if (this.big) g.shake(0.08);
+  }
+  hitPlayer(p, dmg, knock, venom = true) {
     if (p.dead) return;
     // (a dodge's i-frames: the hero's takeDamage still sees the blow, for Battle Sense)
     if (p.iframes > 0) { if (p.dodgeT > 0) p.takeDamage?.(dmg, this, { knock }); return; }
     const dealt = p.takeDamage(dmg, this, { knock });
-    if (dealt > 0 && this.def.poison) poisonHero(this.game, p, this.def.poison.dps * (this.dmg / monsterDamage(this.def.dmg, this.def.tier)), this.def.poison.dur, this);   // (poison grows with the difficulty, not the tier's hit scale)
+    if (dealt > 0 && this.def.poison && venom) poisonHero(this.game, p, this.def.poison.dps * (this.dmg / monsterDamage(this.def.dmg, this.def.tier)), this.def.poison.dur, this);   // (poison grows with the difficulty, not the tier's hit scale)
     if (dealt > 0 && this.elite === 'vampiric') { this.hp = Math.min(this.maxHp, this.hp + dealt * 1.5); }
   }
   blink(evade) {

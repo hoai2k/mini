@@ -17,7 +17,12 @@ export class Markers {
   make() {
     const scene = this.scene;
     const prog = uniform(0), col = uniform(new THREE.Color(1, 0.1, 0.1)), shape = uniform(0), arc = uniform(1), alpha = uniform(1);
-    const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false, blending: THREE.AdditiveBlending });
+    // (forceSinglePass: a see-through two-sided material is otherwise drawn
+    // twice, back faces then front; added light with no depth writes sums the
+    // same in one pass, and renderer.compileAsync compiles only the one-pass
+    // program, so the two-pass ones compiled mid-fight. The same for every
+    // additive two-sided effect: rings, slashes, orbs, shafts, auras.)
+    const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, forceSinglePass: true, fog: false, blending: THREE.AdditiveBlending });
     const p = uv().sub(0.5).mul(2);
     // circle / cone
     const r = length(p);

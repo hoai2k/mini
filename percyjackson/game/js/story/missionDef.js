@@ -6,6 +6,7 @@ import { BIOMES } from '../world/biomes.js';
 import { BIOME_ROOMS } from '../world/rooms.js';
 import { ENEMY_TABLES } from '../world/levelgen.js';
 import { BOSS_DEFS } from '../entities/bosses.js';
+import { missionLevel } from '../progression.js';
 
 export const OBJECTIVE_TYPES = ['exorcise', 'rescue', 'seal', 'flag', 'escape', 'boss', 'museum'];
 
@@ -39,6 +40,7 @@ export function chapterMissionDef(ch, difficulty = 1, seed = (Math.random() * 1e
     biome: resolveBiome(ch.biome),
     objective: OBJECTIVE_TYPES.includes(ch.objective) ? ch.objective : 'exorcise',
     boss: resolveBoss(ch.boss),
-    difficulty, seed, chapter: ch.id, mist: ch.mist, disguise: ch.disguise, mistForms: ch.mistForms, objText: ch.objText,
+    difficulty, level: missionLevel(ch.id, difficulty), seed, chapter: ch.id,   // level: the monsters' (progression.js: the chapter's place, +1 a difficulty step)
+    mist: ch.mist, disguise: ch.disguise, mistForms: ch.mistForms, objText: ch.objText,
   };
 }

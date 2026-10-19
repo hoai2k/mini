@@ -78,7 +78,11 @@ export const HAIR = {
 // opts: { style, base, shade, light, warm?, seed, cap?, helmet? }
 // shape: overrides for the style's numbers (e.g. { fringe: 7.6 } to lift a fringe).
 // beard: { length, mouth } adds a full voxel beard (head pixels below the chin, the mouth's row).
-export function heroHair({ style, base, shade, light, warm = null, seed = 1, cap = false, helmet = false, shape = null, beard = null }) {
+// res: cells per head pixel (1 for a hero; a character drawn bigger than a
+// hero takes res > 1, so its hair is made of more, smaller cubes, parts.js
+// voxel density). The cells come back on that finer grid: draw them with
+// cellMesh(cells, unit / res, ..., solid).
+export function heroHair({ style, base, shade, light, warm = null, seed = 1, cap = false, helmet = false, shape = null, beard = null, res = 1 }) {
   const S = { ...(HAIR[style] ?? HAIR.mop), ...shape };
   if (cap && S.top == null) S.top = 8;
   if (helmet && S.top == null) { S.top = 7; S.helmetFront = true; }
@@ -89,13 +93,15 @@ export function heroHair({ style, base, shade, light, warm = null, seed = 1, cap
   // the lowest fringe row of each column across the forehead
   const fringe = new Map();
   for (let i = -5; i < 5; i++) fringe.set(i, S.fringe + Math.floor(r() * (S.jag + 1)));
-  const blocked = (i, j, k) => {
-    const x = i + 0.5, y = j + 0.5, z = k + 0.5;
-    if (inHead(i, j, k)) return true;
+  const fr = (x) => fringe.get(Math.max(-5, Math.min(4, Math.floor(x))));
+  // (x, y, z: the centre of a cell, in head pixels)
+  const inHeadC = (x, y, z) => x >= -4 && x < 4 && y >= 0 && y < 8 && z >= -4 && z < 4;
+  const blocked = (x, y, z) => {
+    if (inHeadC(x, y, z)) return true;
     if (S.top != null && y > S.top + (z < -2 ? 0.6 : 0)) return true;
     if (S.helmetFront && z > 1.5 && y > 4.6) return true;               // the helmet's cheek guards
-    if (Math.abs(x) < 4 && z > 3.6 && y < fringe.get(i)) return true;    // keep the face clear
-    if (S.front != null && z > S.front && y < fringe.get(Math.max(-5, Math.min(4, i))) + 2.5) return true;   // no fringe jutting out over the eyes
+    if (Math.abs(x) < 4 && z > 3.6 && y < fr(x)) return true;            // keep the face clear
+    if (S.front != null && z > S.front && y < fr(x) + 2.5) return true;   // no fringe jutting out over the eyes
     if (S.pulled != null && z > S.pulled) {
       // hair pulled back from the face: only a lock or two in front of the ears
       const lock = Math.abs(x) > 4 && Math.abs(x) < 5.2 && z < 3.4 && y > S.side && y < 7.5 && (S.locks ?? []).includes(Math.sign(x));
@@ -108,8 +114,7 @@ export function heroHair({ style, base, shade, light, warm = null, seed = 1, cap
   // inside the lumpy ellipsoid, or within a shell hugging the skull (so the
   // hair always covers the back and sides of the head down to its hairline)
   const shell = S.shell ?? 1.6;
-  const inside = (i, j, k) => {
-    const x = i + 0.5, y = j + 0.5, z = k + 0.5;
+  const inside = (x, y, z) => {
     const n = noise3(x * 0.42, y * 0.42, z * 0.42, seed) - 0.5;
     const d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 + ((z - cz) / rz) ** 2;
     if (d < 1 + S.bump * n * 2) return true;
@@ -124,50 +129,55 @@ export function heroHair({ style, base, shade, light, warm = null, seed = 1, cap
     if (warmC && r() < 0.035) c.copy(warmC);
     return c.multiplyScalar(0.9 + r() * 0.2);
   };
+  // a fine cell (i, j, k) and its centre in head pixels
+  const at = (i, j, k) => [(i + 0.5) / res, (j + 0.5) / res, (k + 0.5) / res];
   const R = 11;
-  for (let i = -R; i < R; i++) for (let j = -14; j < 16; j++) for (let k = -R; k < R; k++) {
-    if (blocked(i, j, k) || !inside(i, j, k)) continue;
-    cells.set(`${i},${j},${k}`, tone(i + 0.5, j + 0.5, k + 0.5));
+  const F = (v) => Math.floor(v * res);
+  for (let i = F(-R); i < F(R); i++) for (let j = F(-14); j < F(16); j++) for (let k = F(-R); k < F(R); k++) {
+    const [x, y, z] = at(i, j, k);
+    if (blocked(x, y, z) || !inside(x, y, z)) continue;
+    cells.set(`${i},${j},${k}`, tone(x, y, z));
   }
-  // curls: push surface cubes out of the outline, a few by two
-  const out = [];
+  // curls: push surface cubes out of the outline, a few by two (a curl is
+  // most of a head pixel long at any res)
+  const out = [], cl = Math.max(1, Math.round(res * 0.7));
   for (const key of cells.keys()) {
     const [i, j, k] = key.split(',').map(Number);
-    const dx = i + 0.5 - cx, dy = j + 0.5 - cy, dz = k + 0.5 - cz;
+    const [x, y, z] = at(i, j, k), dx = x - cx, dy = y - cy, dz = z - cz;
     const ax = Math.abs(dx), ay = Math.abs(dy), az = Math.abs(dz);
     const step = ax >= ay && ax >= az ? [Math.sign(dx), 0, 0] : ay >= az ? [0, Math.sign(dy), 0] : [0, 0, Math.sign(dz)];
     if (step[1] < 0) continue;   // curls don't grow downwards
     const a = [i + step[0], j + step[1], k + step[2]];
     if (cells.has(a.join(','))) continue;
     const roll = r();
-    if (roll < S.tuft) out.push([a, 1, step]);
-    else if (roll < S.tuft + S.spike) out.push([a, 2, step]);
+    if (roll < S.tuft) out.push([a, cl, step]);
+    else if (roll < S.tuft + S.spike) out.push([a, 2 * cl, step]);
   }
   for (const [a, n, s] of out) {
     for (let m = 0; m < n; m++) {
-      const p = [a[0] + s[0] * m, a[1] + s[1] * m, a[2] + s[2] * m];
-      if (blocked(...p)) break;
-      cells.set(p.join(','), tone(p[0] + 0.5, p[1] + 0.5, p[2] + 0.5));
+      const p = [a[0] + s[0] * m, a[1] + s[1] * m, a[2] + s[2] * m], q = at(...p);
+      if (blocked(...q)) break;
+      cells.set(p.join(','), tone(...q));
     }
   }
   // pits: a few surface cubes taken out so the curls separate
   for (const key of [...cells.keys()]) {
     const [i, j, k] = key.split(',').map(Number);
-    if (j < cy && r() < 0.05 && !cells.has(`${i},${j + 1},${k}`)) cells.delete(key);
+    if (j / res < cy && r() < 0.05 && !cells.has(`${i},${j + 1},${k}`)) cells.delete(key);
   }
   // a full beard: the jaw, cheeks and chin, leaving the mouth clear
   if (beard) {
     const len = beard.length ?? 2, mouthY = beard.mouth ?? 0.5;
-    for (let i = -5; i < 5; i++) for (let j = -len; j < 5; j++) for (let k = -1; k < 6; k++) {
-      const x = i + 0.5, y = j + 0.5, z = k + 0.5;
-      if (inHead(i, j, k) || cells.has(`${i},${j},${k}`)) continue;
+    for (let i = F(-5); i < F(5); i++) for (let j = F(-len); j < F(5); j++) for (let k = F(-1); k < F(6); k++) {
+      const [x, y, z] = at(i, j, k);
+      if (inHeadC(x, y, z) || cells.has(`${i},${j},${k}`)) continue;
       const side = Math.abs(x) > 4 && Math.abs(x) < 5.2 && z > -0.5 && z < 4.2 && y < 4.5 - (z > 2.5 ? 0.5 : 0);
       const front = Math.abs(x) < 4.2 && z > 4 && z < 5.1 + (y < 0.5 ? 0.6 : 0) && y < 2.6 - Math.abs(x) * 0.15 && !(Math.abs(x) < 1.6 && y > mouthY - 0.5 && y < mouthY + 0.6);
       const under = Math.abs(x) < 4.6 && y < 0 && z > -0.5 && z < 5.4 && y > -len + Math.abs(x) * 0.35 + Math.max(0, 2 - z) * 0.4;
       if (side || front || under) cells.set(`${i},${j},${k}`, tone(x, y - 6, z));
     }
   }
-  return { cells, solid: inHead };
+  return { cells, solid: res === 1 ? inHead : (i, j, k) => inHeadC(...at(i, j, k)), res };
 }
 
 // A ponytail of curls hanging from a pivot: cells relative to the pivot.

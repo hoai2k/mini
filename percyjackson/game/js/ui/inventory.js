@@ -1,23 +1,31 @@
-// Inventory and the forge, Minecraft Dungeons style.
-//   • Choose whose gear to edit: your hero, or (playing alone) a companion.
-//   • Four slots: weapon, armour, two magic items. Filter the stash by kind;
-//     new items carry a badge, a hero's favourites a star.
-//   • The detail panel compares the item with what is equipped (▲ / ▼).
-//   • Enchantment rows: pick ONE choice per row with enchantment points, then
-//     raise it to II and III. Powerful choices cost one more point per level.
-//   • Salvage refunds every point spent and pays drachmas.
-//   • At the forge (camp) you can also temper an item (+1 power) and re-roll
-//     the choices of a row you haven't invested in, for drachmas.
-// Everything is a button, so the D-pad / stick moves focus and A chooses.
+// Inventory and the forge, Minecraft Dungeons style, made simple for 8-14s.
+//   • Top: the hero's level, drachmas, enchantment points and Power (the
+//     average power of what the hero wears); whose gear (your hero, or
+//     playing alone a companion).
+//   • Left: the four slots the hero wears, tabs by kind (with counts) and the
+//     stash, new finds first (they glow), then the strongest, then the most
+//     recent (loot.js sortItems). A green ▲ marks an item stronger than what
+//     it would replace; a coloured dot an item another hero wears.
+//   • Right: the item: its power against what you wear (▲ green / ▼ red),
+//     what changes if you swap (each stat, before → after), its enchantments
+//     in plain words, and big buttons: Equip, Salvage, Unequip (the forge
+//     adds Temper and Re-roll).
+//   • Choosing: focus (pad, keys) or a click / tap shows an item; pressing it
+//     again (A, Enter, a second click or tap) equips it. X salvages; LB / RB
+//     (Q / E) change tabs; B / Esc closes. Every control is a button, so the
+//     shared focus navigation (ui.js) works with every device.
+//   • Animations: an item flies into its slot when equipped, the slot
+//     flashes (gold on a swap), salvage pops drachmas up to the counter, new
+//     items glow. (Shorter with prefers-reduced-motion: style.css.)
 import { h, toast, confirmDialog } from './ui.js';
 import { HEROES } from '../heroes/index.js';
-import { RARITY, BLESSED, ENCHANTS, KIND_LABEL, itemInfo, itemRarity, salvageValue, enchCost, spentPoints, gearStats, temperCost, rerollCost, rerollRow, powerFor } from '../loot.js';
+import { BLESSED, ENCHANTS, KIND_LABEL, itemInfo, itemRarity, salvageValue, enchCost, spentPoints, gearStats, temperCost, rerollCost, rerollRow, sortItems, slotFor, isUpgrade, TEMPER_STEP } from '../loot.js';
+import { temperCap } from '../progression.js';
 import { flaskCooldown, quiverMax } from '../resources.js';
 import { t as tx, tn } from '../text_config.js';
 
 const SLOT_NAMES = [tx('inventory.slots.weapon'), tx('inventory.slots.armor'), tx('inventory.slots.artifact1'), tx('inventory.slots.artifact2')];
 const SLOT_ICON = ['🗡️', '🛡️', '✨', '✨'];
-const SLOT_KIND = ['weapon', 'armor', 'artifact', 'artifact'];
 const FILTERS = [['all', tx('inventory.filters.all')], ['weapon', tx('inventory.filters.weapon')], ['armor', tx('inventory.filters.armor')], ['artifact', tx('inventory.filters.artifact')]];
 const roman = ['', 'I', 'II', 'III'];
 
@@ -27,122 +35,323 @@ function editable(game, player) {
   if (game.party && !player.ai) for (const q of game.party) if (q !== player && q.ai) own.push(q);
   return own;
 }
+// The hero (other than `who`) wearing an item, if any.
+function wornBy(d, uid, who) {
+  for (const [hid, hs] of Object.entries(d.heroes)) if (hid !== who && hs.gear?.includes(uid)) return hid;
+  return null;
+}
 
+// The stat lines the screen shows and compares: [label, value, kind, higherIsBetter].
+//   kind: 'n' a number, 'x' a multiplier (compared as a % change), 'pct' a
+//   share shown as %, 'secs' seconds.
+const STAT_LINES = (s) => [
+  [tx('inventory.stats.health'), Math.round(s.maxHp), 'n', true],
+  [tx('inventory.stats.melee'), s.meleeMult, 'x', true],
+  [tx('inventory.stats.ability'), s.techMult, 'x', true],
+  [tx('inventory.stats.attackSpeed'), s.attackSpeed, 'x', true],
+  [tx('inventory.stats.armor'), s.armor, 'pct', true],
+  [tx('inventory.stats.speed'), s.speed, 'x', true],
+  [tx('inventory.stats.crit'), s.crit, 'pct', true],
+  [tx('inventory.stats.cooldowns'), s.cdr, 'pct', true],
+  [tx('inventory.stats.dodge'), s.evade, 'pct', true],
+  [tx('inventory.stats.flask'), flaskCooldown(s), 'secs', false],
+  [tx('inventory.stats.quiver'), quiverMax(s), 'n', true],
+];
+const fmt = (v, kind) => (kind === 'pct' ? tx('inventory.percent', { n: Math.round(v * 100) }) : kind === 'secs' ? tx('inventory.seconds', { n: v.toFixed(0) }) : kind === 'x' ? tx('inventory.times', { n: v.toFixed(2) }) : String(Math.round(v)));
+// The change between two values, in words a kid reads at a glance.
+function delta(a, b, kind) {
+  if (kind === 'x') return tx('inventory.percent', { n: Math.round(Math.abs(b / Math.max(1e-6, a) - 1) * 100) });
+  if (kind === 'pct') return tx('inventory.percent', { n: Math.round(Math.abs(b - a) * 100) });
+  if (kind === 'secs') return tx('inventory.seconds', { n: Math.abs(b - a).toFixed(0) });
+  return String(Math.round(Math.abs(b - a)));
+}
+// Compare two stat sets: the lines that changed, [{ label, from, to, up
+// (better: green), more (the number grew), by }].
+export function compareStats(before, after) {
+  const A = STAT_LINES(before), B = STAT_LINES(after), out = [];
+  A.forEach(([label, v, kind, good], i) => {
+    const v2 = B[i][1];
+    const small = kind === 'x' ? Math.abs(v2 / Math.max(1e-6, v) - 1) < 0.005 : kind === 'pct' ? Math.abs(v2 - v) < 0.005 : Math.abs(v2 - v) < 0.5;
+    if (small) return;
+    out.push({ label, from: fmt(v, kind), to: fmt(v2, kind), up: (v2 > v) === good, more: v2 > v, by: delta(v, v2, kind) });
+  });
+  return out;
+}
+
+// ---------------------------------------------------------------- animations
+// A layer over everything for the flying icons and popping drachmas.
+function fxLayer() {
+  let el = document.getElementById('inv-fx');
+  if (!el) { el = document.createElement('div'); el.id = 'inv-fx'; document.body.appendChild(el); }
+  return el;
+}
+const rectOf = (el) => el?.getBoundingClientRect?.() ?? null;
+// An icon flies from one rectangle to another (equip).
+function flyIcon(icon, from, to, color) {
+  if (!from || !to) return;
+  const g = document.createElement('div');
+  g.className = 'inv-fly'; g.textContent = icon; g.style.setProperty('--rc', color);
+  g.style.left = `${from.left}px`; g.style.top = `${from.top}px`; g.style.width = `${from.width}px`; g.style.height = `${from.height}px`;
+  fxLayer().appendChild(g);
+  const dx = to.left + to.width / 2 - (from.left + from.width / 2), dy = to.top + to.height / 2 - (from.top + from.height / 2);
+  const k = to.width / Math.max(1, from.width);
+  requestAnimationFrame(() => requestAnimationFrame(() => { g.style.transform = `translate(${dx}px, ${dy}px) scale(${k})`; g.style.opacity = '0.2'; }));
+  setTimeout(() => g.remove(), 520);
+}
+// Drachmas pop out of a spot and fly to the counter (salvage).
+function popCoins(from, to, n) {
+  if (!from) return;
+  const L = fxLayer(), cx = from.left + from.width / 2, cy = from.top + from.height / 2;
+  const plus = document.createElement('div'); plus.className = 'inv-plus'; plus.textContent = tx('inventory.coinsGained', { n });
+  plus.style.left = `${cx}px`; plus.style.top = `${cy}px`; L.appendChild(plus);
+  setTimeout(() => plus.remove(), 1100);
+  const count = Math.max(4, Math.min(12, Math.round(n / 6)));
+  for (let i = 0; i < count; i++) {
+    const c = document.createElement('div'); c.className = 'inv-coin'; c.textContent = '◆';
+    c.style.left = `${cx}px`; c.style.top = `${cy}px`; L.appendChild(c);
+    const a = (i / count) * Math.PI * 2, r = 30 + Math.random() * 30;
+    const tx1 = Math.cos(a) * r, ty1 = Math.sin(a) * r - 30;
+    const tx2 = to ? to.left + to.width / 2 - cx : tx1, ty2 = to ? to.top + to.height / 2 - cy : ty1 - 60;
+    c.animate?.([{ transform: 'translate(0,0) scale(.6)', opacity: 1 }, { transform: `translate(${tx1}px,${ty1}px) scale(1.2)`, opacity: 1, offset: 0.45 }, { transform: `translate(${tx2}px,${ty2}px) scale(.5)`, opacity: 0.2 }], { duration: 700 + i * 40, easing: 'ease-in-out', fill: 'forwards' });
+    setTimeout(() => c.remove(), 800 + i * 40);
+  }
+}
+// Re-run a CSS animation class on an element.
+function flash(el, cls) { if (!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); setTimeout(() => el.classList.remove(cls), 900); }
+
+// ---------------------------------------------------------------- the screen
 export function openInventory(game, player, { forge = false } = {}) {
   const ui = game.ui, save = game.saveFor?.(player) ?? game.save;   // net: this player's profile
   let who = player, sel = null, filter = 'all';
+  let after = null;   // what to animate once the screen is rebuilt
+  let quiet = false;  // while rebuilding: focus moving by itself doesn't choose an item
   game.paused = true;
+  const device = String(player.device ?? 'kbm');
+  const hintKey = device.startsWith('pad') ? 'pad' : device === 'touch' ? 'touch' : 'kbm';
   const close = () => {
     for (const it of save.data.inventory) delete it.isNew;
     save.write();
     ui.close('inventory'); game.paused = false; game.last = performance.now();
   };
-  const refresh = () => ui.refresh('inventory');
   const apply = () => { for (const q of game.players) if (q.hero === who.hero) q.refreshLoadout(); };
+  const scr = () => document.getElementById('scr-inventory');
+  const byK = (k) => scr()?.querySelector(`[data-k="${k}"]`);
+  // Rebuild, then focus `k` and play what `after` asks for.
+  const redraw = (k) => {
+    quiet = true; ui.refresh('inventory'); quiet = false;
+    const el = k === 'grid0' ? scr()?.querySelector('.inv-grid .item') ?? byK('close') : k && byK(k);
+    if (el) ui.setFocus(el);
+    const a = after; after = null;
+    if (a) requestAnimationFrame(() => a());
+  };
 
+  // ---- actions
+  const equipTo = (it, slot) => {
+    const S = save.hero(who.hero), gear = S.gear, b = itemInfo(it);
+    const from = rectOf(byK('it-' + it.uid)) ?? rectOf(byK('equip'));
+    const had = gear[slot];
+    for (let i = 0; i < gear.length; i++) if (gear[i] === it.uid) gear[i] = null;   // (a magic item moving between its two slots)
+    gear[slot] = it.uid; delete it.isNew;
+    save.write(); apply(); game.audio?.ui('buy');
+    toast(had ? tx('inventory.swapped', { name: b.name }) : tx('inventory.equips', { hero: HEROES[who.hero].name, name: b.name }));
+    after = () => { const to = byK('slot-' + slot); flyIcon(b.icon, from, rectOf(to), itemRarity(it).color); setTimeout(() => flash(to, had ? 'swap-flash' : 'equip-flash'), 380); };
+    redraw('slot-' + slot);
+  };
+  const unequip = (it) => {
+    const gear = save.hero(who.hero).gear, i = gear.indexOf(it.uid); if (i < 0) return;
+    gear[i] = null; save.write(); apply(); game.audio?.ui('back');
+    after = () => flash(byK('it-' + it.uid), 'equip-flash');
+    redraw('it-' + it.uid);
+  };
+  const salvage = (it) => {
+    const d = save.data, b = itemInfo(it), coins = salvageValue(it), pts = spentPoints(it);
+    if (save.hero(who.hero).gear.includes(it.uid)) { toast(tx('inventory.unequipFirst')); game.audio?.ui('back'); return; }
+    const doIt = () => {
+      const from = rectOf(byK('it-' + it.uid)) ?? rectOf(byK('salvage'));
+      d.coins += coins; d.enchantPoints += pts;
+      d.inventory = d.inventory.filter((x) => x !== it);
+      for (const hs of Object.values(d.heroes)) hs.gear = hs.gear.map((u) => (u === it.uid ? null : u));
+      sel = null; save.write(); game.audio?.coin?.();
+      toast(pts ? tx('inventory.salvagedPoints', { coins, points: pts }) : tx('inventory.salvaged', { coins }));
+      after = () => { const to = byK('coins'); popCoins(from, rectOf(to), coins); setTimeout(() => flash(to, 'ichip-pop'), 600); };
+      redraw('grid0');
+    };
+    const other = wornBy(d, it.uid, who.hero);
+    if (b.rarity !== 'common' || it.blessed || pts || other) {
+      confirmDialog(game, { title: tx('inventory.salvageTitle'), text: (other ? tx('inventory.salvageWorn', { hero: HEROES[other]?.name ?? other }) + ' ' : '') + (pts ? tx('inventory.salvageTextPoints', { name: b.name, coins, points: pts }) : tx('inventory.salvageText', { name: b.name, coins })), yes: tx('inventory.salvageYes'), no: tx('inventory.salvageNo'), danger: true, onYes: doIt });
+    } else doIt();
+  };
+  // A press on an item: show it, or (already shown) equip it.
+  const press = (it) => {
+    const gear = save.hero(who.hero).gear;
+    if (sel !== it.uid) { sel = it.uid; game.audio?.ui('move'); showDetail(); return; }
+    if (gear.includes(it.uid)) return;
+    equipTo(it, slotFor(it, gear.map((u) => (u ? save.item(u) : null))));
+  };
+
+  let showDetail = () => {};
   ui.open('inventory', (el) => {
     const d = save.data, S = save.hero(who.hero), gear = S.gear;
-    const items = d.inventory.filter((it) => filter === 'all' || itemInfo(it).kind === filter)
-      .sort((a, b) => (gear.includes(b.uid) - gear.includes(a.uid)) || b.power - a.power);
-    const tile = (it, opts = {}) => {
-      const b = itemInfo(it), eq = gear.includes(it.uid);
-      const t = h('button', { class: `item ${b.rarity}${it.blessed ? ' blessed' : ''}${eq ? ' equipped' : ''}${sel === it.uid ? ' selected' : ''}`, 'aria-label': tx(eq ? 'inventory.itemLabelEquipped' : 'inventory.itemLabel', { name: b.name, power: it.power }), onclick: () => { sel = it.uid; refresh(); } },
-        b.icon, h('span', { class: 'pw' }, String(it.power)),
+    const cur = gear.map((u) => (u ? save.item(u) : null));
+    const all = d.inventory.filter((it) => !gear.includes(it.uid));
+    const items = sortItems(all.filter((it) => filter === 'all' || itemInfo(it).kind === filter));
+    const stats = gearStats(cur, who.hero).s;
+    // ---- the header: level, drachmas, points, Power
+    const chips = h('div', { class: 'inv-chips' },
+      h('span', { class: 'ichip' }, tx('inventory.level', { n: d.level })),
+      h('span', { class: 'ichip ic-coins', 'data-k': 'coins' }, tx('inventory.coins', { n: d.coins })),
+      h('span', { class: 'ichip ic-pts' + (d.enchantPoints ? ' has' : '') }, tn('inventory.points', d.enchantPoints)),
+      h('span', { class: 'ichip ic-power', title: tx('inventory.heroPowerTip', { hero: HEROES[who.hero].name }) }, tx('inventory.heroPower', { n: stats.heroPower })));
+    const heroes = editable(game, player);
+    const heroRow = heroes.length > 1 ? h('div', { class: 'row inv-heroes' }, ...heroes.map((q) => h('button', { class: 'btn small' + (q === who ? ' primary' : ''), onclick: () => { who = q; sel = null; redraw(); } }, q.ai ? tx('inventory.companion', { hero: HEROES[q.hero].name }) : HEROES[q.hero].name))) : null;
+    // ---- a tile
+    const tile = (it, k, slotIdx = -1) => {
+      const b = itemInfo(it), R = itemRarity(it), worn = slotIdx >= 0, other = worn ? null : wornBy(d, it.uid, who.hero);
+      const up = !worn && isUpgrade(it, cur, who.hero);
+      const t = h('button', { class: `item ${b.rarity}${it.blessed ? ' blessed' : ''}${worn ? ' equipped' : ''}${sel === it.uid ? ' selected' : ''}${it.isNew ? ' new' : ''}`, 'data-k': k, style: `--rc:${R.color}`,
+        'aria-label': tx(worn ? 'inventory.itemLabelEquipped' : 'inventory.itemLabel', { name: b.name, power: it.power }) + (up ? ' · ' + tx('inventory.better') : ''),
+        onclick: () => press(it) },
+        h('span', { class: 'ico' }, b.icon), h('span', { class: 'pw' }, String(it.power)),
         it.isNew ? h('span', { class: 'badge-new' }, tx('inventory.new')) : null,
-        b.hero === who.hero ? h('span', { class: 'badge-fav', title: tx('inventory.favouriteTitle', { hero: HEROES[who.hero].name }) }, '★') : null);
-      t.addEventListener('focus', () => { if (sel !== it.uid && !opts.noFocusSelect) { sel = it.uid; renderDetail(); } });
+        up ? h('span', { class: 'badge-up', title: tx('inventory.better') }, '▲') : null,
+        b.hero === who.hero ? h('span', { class: 'badge-fav', title: tx('inventory.favouriteTitle', { hero: HEROES[who.hero].name }) }, '★') : null,
+        other ? h('span', { class: 'badge-worn', title: tx('inventory.wornBy', { hero: HEROES[other]?.name ?? other }), style: `background:${HEROES[other]?.color ?? '#888'}` }) : null,
+        worn ? h('span', { class: 'slot-label' }, SLOT_NAMES[slotIdx]) : null);
+      t.addEventListener('navfocus', () => { if (!quiet && sel !== it.uid) { sel = it.uid; showDetail(); } });
       return t;
     };
-    // whose gear
-    const heroes = editable(game, player);
-    const heroRow = heroes.length > 1 ? h('div', { class: 'row inv-heroes' }, ...heroes.map((q) => h('button', { class: 'btn small' + (q === who ? ' primary' : ''), onclick: () => { who = q; sel = null; refresh(); } }, q.ai ? tx('inventory.companion', { hero: HEROES[q.hero].name }) : HEROES[q.hero].name))) : null;
-    const eqRow = h('div', { class: 'slots-eq' }, ...gear.map((uid, i) => {
-      const it = uid ? save.item(uid) : null;
-      return it ? tile(it) : h('div', { class: 'item empty', title: SLOT_NAMES[i] }, h('span', { class: 'slot-ico' }, SLOT_ICON[i]), h('span', { class: 'slot-name' }, SLOT_NAMES[i]));
-    }));
-    const filters = h('div', { class: 'row inv-filters' }, ...FILTERS.map(([k, label]) => h('button', { class: 'btn small' + (filter === k ? ' primary' : ''), onclick: () => { filter = k; refresh(); } }, label)));
-    const grid = h('div', { class: 'inv-grid' }, ...(items.length ? items.map((it) => tile(it)) : [h('div', { class: 'hint' }, tx('inventory.empty'))]));
-    const detail = h('div', { class: 'detail' });
+    const eqRow = h('div', { class: 'slots-eq' }, ...cur.map((it, i) => it ? tile(it, 'slot-' + i, i)
+      : h('button', { class: 'item empty', 'data-k': 'slot-' + i, title: SLOT_NAMES[i], onclick: () => { filter = i === 0 ? 'weapon' : i === 1 ? 'armor' : 'artifact'; redraw('grid0'); } },
+        h('span', { class: 'slot-ico' }, SLOT_ICON[i]), h('span', { class: 'slot-name' }, SLOT_NAMES[i]))));
+    const count = (k) => all.filter((it) => k === 'all' || itemInfo(it).kind === k).length;
+    const tabs = h('div', { class: 'row inv-filters', role: 'tablist' }, ...FILTERS.map(([k, label]) => h('button', { class: 'btn small tab' + (filter === k ? ' primary' : ''), 'data-k': 'tab-' + k, role: 'tab', 'aria-selected': filter === k ? 'true' : 'false', onclick: () => { filter = k; redraw('tab-' + k); } }, tx('inventory.tabCount', { label, n: count(k) }))));
+    const grid = h('div', { class: 'inv-grid' }, ...(items.length ? items.map((it) => tile(it, 'it-' + it.uid)) : [h('div', { class: 'hint' }, tx('inventory.empty'))]));
+    // opening: the top of the stash (the newest, strongest find) is chosen and focused
+    if (items.length && sel == null) grid.firstChild.setAttribute('data-autofocus', '');
+    const detail = h('div', { class: 'detail', 'aria-live': 'polite' });
 
-    const statLines = (s) => [
-      [tx('inventory.stats.health'), Math.round(s.maxHp), false], [tx('inventory.stats.melee'), s.meleeMult, true], [tx('inventory.stats.ability'), s.techMult, true], [tx('inventory.stats.attackSpeed'), s.attackSpeed, true],
-      [tx('inventory.stats.armor'), s.armor, 'pct'], [tx('inventory.stats.speed'), s.speed, true], [tx('inventory.stats.crit'), s.crit, 'pct'], [tx('inventory.stats.cooldowns'), -s.cdr, 'pct'], [tx('inventory.stats.dodge'), s.evade, 'pct'],
-      [tx('inventory.stats.flask'), -flaskCooldown(s), 'secs'], [tx('inventory.stats.quiver'), quiverMax(s), false],
-    ];
-    const fmt = (v, kind) => (kind === 'pct' ? tx('inventory.percent', { n: Math.round(v * 100) }) : kind === 'secs' ? tx('inventory.seconds', { n: Math.abs(v).toFixed(0) }) : kind ? tx('inventory.times', { n: v.toFixed(2) }) : String(v));
-
-    const renderDetail = () => {
-      detail.textContent = '';
+    // ---- the detail panel
+    const enchLine = (id, level, extra = null, cls = '') => {
+      const E = ENCHANTS[id]; if (!E) return null;
+      return h('div', { class: 'ench ' + cls },
+        h('div', { class: 'eh' }, h('span', { class: 'ei' }, E.icon ?? '✦'), h('b', {}, E.name), h('span', { class: 'lv' }, roman[level] ?? ''), extra ? h('span', { class: 'tag' }, extra) : null),
+        h('div', { class: 'ep' }, tx(`enchantments.${id}.plain`)),
+        h('div', { class: 'ed' }, E.desc(level)));
+    };
+    showDetail = () => {
+      for (const t of el.querySelectorAll('.item.selected')) t.classList.remove('selected');
       const it = sel ? save.item(sel) : null;
+      for (const t of el.querySelectorAll('.item')) if (it && t.dataset.k === 'it-' + it.uid) t.classList.add('selected');
+      for (let i = 0; i < 4; i++) if (it && gear[i] === it.uid) byK('slot-' + i)?.classList.add('selected');
+      detail.textContent = '';
       if (!it) {
-        const s = gearStats(gear.map((u) => (u ? save.item(u) : null)), who.hero).s;
-        detail.append(h('div', { class: 'iname' }, `${HEROES[who.hero].full}`), h('div', { class: 'hint' }, tx('inventory.choose')),
-          ...statLines(s).map(([l, v, k]) => h('div', { class: 'stat-line' }, l, h('b', {}, fmt(v, k)))));
+        detail.append(h('div', { class: 'iname' }, HEROES[who.hero].full), h('div', { class: 'hint' }, tx('inventory.choose')),
+          ...STAT_LINES(stats).map(([l, v, k]) => h('div', { class: 'stat-line' }, l, h('b', {}, fmt(v, k)))));
         return;
       }
-      const b = itemInfo(it), R = itemRarity(it);
-      const eqIdx = gear.indexOf(it.uid);
-      // comparison with what is in that slot now
-      const cur = gear.map((u) => (u ? save.item(u) : null));
-      const slot = eqIdx >= 0 ? eqIdx : b.kind === 'artifact' ? (cur[2] ? (cur[3] ? 2 : 3) : 2) : SLOT_KIND.indexOf(b.kind);
+      const b = itemInfo(it), R = itemRarity(it), eqIdx = gear.indexOf(it.uid);
+      const slot = eqIdx >= 0 ? eqIdx : slotFor(it, cur);
+      const there = eqIdx >= 0 ? null : cur[slot];
       const alt = [...cur]; alt[slot] = it;
-      const before = gearStats(cur, who.hero).s, after = gearStats(alt, who.hero).s;
-      const cmp = eqIdx >= 0 ? [] : statLines(before).map(([l, v, k], i) => {
-        const v2 = statLines(after)[i][1]; const dv = v2 - v;
-        if (Math.abs(dv) < 0.005) return null;
-        return h('div', { class: 'cmp ' + (dv > 0 ? 'up' : 'down') }, tx('inventory.change', { label: l, arrow: dv > 0 ? '▲' : '▼', value: fmt(Math.abs(dv), k) }));
-      }).filter(Boolean);
+      const lines = eqIdx >= 0 ? [] : compareStats(stats, gearStats(alt, who.hero).s);
+      const dp = there ? it.power - there.power : 0;
+      const other = wornBy(d, it.uid, who.hero);
+      const btn = (k, cls, label, fn, extra = {}) => h('button', { class: 'btn ' + cls, 'data-k': k, onclick: fn, ...extra }, label);
+      const forgeRow = forge ? h('div', { class: 'row inv-forge' },
+        btn('temper', 'small', tx('forge.temper', { n: TEMPER_STEP, cost: temperCost(it) }), () => {
+          if (it.power >= temperCap(d.level)) { toast(tx('forge.temperCap')); return; }
+          const c = temperCost(it); if (d.coins < c) { toast(tx('forge.noDrachmas')); return; }
+          d.coins -= c; it.power += TEMPER_STEP; save.write(); apply(); game.audio?.impact?.(0.6);
+          after = () => flash(byK('it-' + it.uid) ?? byK('slot-' + eqIdx), 'equip-flash');
+          redraw('temper');
+        })) : null;
       detail.append(...[
-        h('div', { class: 'iname', style: `color:${R.color}` }, `${b.icon} ${it.blessed ? tx('loot.blessedName', { name: b.name }) : b.name}`),
+        h('div', { class: 'iname', style: `color:${R.color}` }, h('span', { class: 'big-ico' }, b.icon), ` ${it.blessed ? tx('loot.blessedName', { name: b.name }) : b.name}`),
         h('div', { class: 'rar', style: `color:${R.color}` }, tx('inventory.rarityLine', { rarity: R.label, kind: KIND_LABEL[b.kind], power: it.power })),
+        eqIdx >= 0 ? h('div', { class: 'cmp-chip same' }, tx('inventory.wearing')) : there ? h('div', { class: 'cmp-chip ' + (dp > 0 ? 'up' : dp < 0 ? 'down' : 'same') }, dp ? tx('inventory.powerVs', { arrow: dp > 0 ? '▲' : '▼', n: Math.abs(dp), name: itemInfo(there).name }) : tx('inventory.samePower', { name: itemInfo(there).name })) : h('div', { class: 'cmp-chip up' }, tx('inventory.fillsSlot', { slot: SLOT_NAMES[slot] })),
+        other ? h('div', { class: 'hint' }, tx('inventory.wornBy', { hero: HEROES[other]?.name ?? other })) : null,
         b.hero && HEROES[b.hero] ? h('div', { class: 'fav' }, tx('inventory.favourite', { hero: HEROES[b.hero].name })) : null,
-        h('div', { class: 'desc' }, b.cd ? tx('inventory.descCooldown', { desc: b.desc, n: b.cd }) : b.desc),
-        cmp.length ? h('div', { class: 'cmp-box' }, h('div', { class: 'hint' }, tx('inventory.comparedWith', { slot: SLOT_NAMES[slot].toLowerCase() })), ...cmp) : null,
+        h('div', { class: 'desc' }, b.desc, b.cd ? h('span', { class: 'cd' }, ' ' + tx('inventory.cooldown', { n: b.cd })) : null, (b.charges ?? 1) > 1 ? h('span', { class: 'cd' }, ' ' + tx('inventory.charges', { n: b.charges })) : null),
+        // the action buttons first, so A and a tap are always close by
+        h('div', { class: 'row inv-actions' },
+          eqIdx >= 0
+            ? btn('unequip', 'small', tx('inventory.unequip'), () => unequip(it))
+            : btn('equip', 'primary', there ? tx('inventory.swapIn') : tx('inventory.equipBtn'), () => equipTo(it, slot)),
+          b.kind === 'artifact' && eqIdx < 0 && cur[2] && cur[3] ? btn('equip2', 'small', tx('inventory.equip', { slot: SLOT_NAMES[slot === 2 ? 3 : 2] }), () => equipTo(it, slot === 2 ? 3 : 2)) : null,
+          eqIdx < 0 ? btn('salvage', 'small danger', tx('inventory.salvage', { coins: salvageValue(it) }), () => salvage(it)) : null),
+        forgeRow,
+        eqIdx < 0 ? h('div', { class: 'cmp-box' },
+          h('div', { class: 'hint' }, there ? tx('inventory.compareTitle', { name: itemInfo(there).name }) : tx('inventory.compareEmpty', { slot: SLOT_NAMES[slot] })),
+          ...(lines.length ? lines.map((c) => h('div', { class: 'cmp ' + (c.up ? 'up' : 'down') }, h('span', { class: 'arrow' }, c.up ? '▲' : '▼'), h('span', { class: 'lbl' }, c.label), h('span', { class: 'ft' }, tx('inventory.fromTo', { from: c.from, to: c.to })), h('b', {}, (c.more ? '+' : '−') + c.by)))
+            : [h('div', { class: 'cmp same' }, tx('inventory.compareSame'))])) : null,
         h('h3', {}, tn('inventory.enchantHeading', d.enchantPoints)),
+        it.ench.length ? h('div', { class: 'hint small' }, tx('inventory.enchantHelp')) : null,
         ...it.ench.map((e, row) => {
-          if (e.fixed) return h('div', { class: 'ench fixed' }, h('span', {}, `${ENCHANTS[e.pick].name} `, h('span', { class: 'lv' }, roman[e.level])), h('span', { class: 'ed' }, ENCHANTS[e.pick].desc(e.level)), h('span', { class: 'hint' }, tx('inventory.builtIn')));
+          if (e.fixed) return enchLine(e.pick, e.level, tx('inventory.builtIn'), 'fixed');
           if (!e.pick) {
-            return h('div', { class: 'ench-row' }, h('div', { class: 'hint' }, tx('inventory.chooseOne')), ...e.options.map((id) => {
+            return h('div', { class: 'ench-row' }, h('div', { class: 'hint' }, tx('inventory.chooseOne')), ...e.options.map((id, j) => {
               const E = ENCHANTS[id], cost = enchCost(id, 1);
-              return h('button', { class: 'ench-opt' + (E.powerful ? ' powerful' : ''), disabled: d.enchantPoints < cost ? true : undefined, onclick: () => { if (d.enchantPoints < cost) return; d.enchantPoints -= cost; e.pick = id; e.level = 1; save.write(); apply(); game.audio?.ui('buy'); refresh(); } },
-                h('b', {}, E.name + (E.powerful ? ' ✦' : '')), h('span', {}, E.desc(1)), h('i', {}, tx('inventory.pointCost', { n: cost })));
-            }), forge ? h('button', { class: 'btn small', onclick: () => {
+              return h('button', { class: 'ench-opt' + (E.powerful ? ' powerful' : ''), 'data-k': `eo-${row}-${j}`, disabled: d.enchantPoints < cost ? true : undefined, onclick: () => {
+                if (d.enchantPoints < cost) return; d.enchantPoints -= cost; e.pick = id; e.level = 1; save.write(); apply(); game.audio?.ui('buy');
+                after = () => flash(byK(`en-${row}`), 'equip-flash'); redraw(`en-${row}`);
+              } },
+                h('span', { class: 'ei' }, E.icon ?? '✦'), h('span', { class: 'eo' }, h('b', {}, E.name + (E.powerful ? ' ✦' : '')), h('span', {}, tx(`enchantments.${id}.plain`)), h('small', {}, E.desc(1))), h('i', {}, tx('inventory.pointCost', { n: cost })));
+            }), forge ? h('button', { class: 'btn small', 'data-k': `rr-${row}`, onclick: () => {
               const c = rerollCost(it); if (d.coins < c) { toast(tx('forge.noDrachmas')); return; }
-              d.coins -= c; rerollRow(it, row); save.write(); game.audio?.ui('buy'); refresh();
+              d.coins -= c; rerollRow(it, row); save.write(); game.audio?.ui('buy'); redraw(`rr-${row}`);
             } }, tx('forge.reroll', { cost: rerollCost(it) })) : null);
           }
-          const E = ENCHANTS[e.pick], next = e.level + 1, cost = enchCost(e.pick, next);
-          return h('div', { class: 'ench' }, h('span', {}, `${E.name} `, h('span', { class: 'lv' }, roman[e.level])), h('span', { class: 'ed' }, E.desc(e.level)),
-            e.level < 3 ? h('button', { class: 'btn small', disabled: d.enchantPoints < cost ? true : undefined, onclick: () => { if (d.enchantPoints < cost) return; d.enchantPoints -= cost; e.level = next; save.write(); apply(); game.audio?.ui('buy'); refresh(); } }, tx('inventory.levelCost', { level: roman[next], cost })) : h('span', { class: 'hint' }, tx('inventory.max')));
+          const next = e.level + 1, cost = enchCost(e.pick, next);
+          const line = enchLine(e.pick, e.level);
+          line.dataset.k = `en-${row}`;
+          line.append(e.level < 3 ? h('button', { class: 'btn small', 'data-k': `up-${row}`, disabled: d.enchantPoints < cost ? true : undefined, onclick: () => {
+            if (d.enchantPoints < cost) return; d.enchantPoints -= cost; e.level = next; save.write(); apply(); game.audio?.ui('buy');
+            after = () => flash(byK(`en-${row}`), 'equip-flash'); redraw(`up-${row}`);
+          } }, tx('inventory.levelCost', { level: roman[next], cost })) : h('span', { class: 'hint' }, tx('inventory.max')));
+          return line;
         }),
-        it.blessed ? h('div', { class: 'ench blessed' }, h('span', {}, `${tx('inventory.blessedMark')} ${ENCHANTS[it.blessed.id].name} `, h('span', { class: 'lv' }, 'III')), h('span', { class: 'ed' }, ENCHANTS[it.blessed.id].desc(3)), h('span', { class: 'hint' }, tx('inventory.godsBlessing'))) : null,
-        h('div', { class: 'row', style: 'margin-top:10px;flex-wrap:wrap' },
-          eqIdx >= 0
-            ? h('button', { class: 'btn small', onclick: () => { gear[eqIdx] = null; save.write(); apply(); refresh(); } }, tx('inventory.unequip'))
-            : h('button', { class: 'btn small primary', 'data-autofocus': true, onclick: () => { gear[slot] = it.uid; delete it.isNew; save.write(); apply(); game.audio?.ui('buy'); toast(tx('inventory.equips', { hero: HEROES[who.hero].name, name: b.name })); refresh(); } }, tx('inventory.equip', { slot: SLOT_NAMES[slot] })),
-          b.kind === 'artifact' && eqIdx < 0 && cur[2] && cur[3] ? h('button', { class: 'btn small', onclick: () => { gear[slot === 2 ? 3 : 2] = it.uid; save.write(); apply(); refresh(); } }, tx('inventory.equip', { slot: SLOT_NAMES[slot === 2 ? 3 : 2] })) : null,
-          forge ? h('button', { class: 'btn small', onclick: () => {
-            const cap = powerFor(4, d.level, () => 1) + 4;
-            if (it.power >= cap) { toast(tx('forge.temperCap')); return; }
-            const c = temperCost(it); if (d.coins < c) { toast(tx('forge.noDrachmas')); return; }
-            d.coins -= c; it.power++; save.write(); apply(); game.audio?.impact?.(0.6); refresh();
-          } }, tx('forge.temper', { cost: temperCost(it) })) : null,
-          eqIdx < 0 ? h('button', { class: 'btn small danger', onclick: () => {
-            const doIt = () => { d.coins += salvageValue(it); d.enchantPoints += spentPoints(it); d.inventory = d.inventory.filter((x) => x !== it); for (const hs of Object.values(d.heroes)) hs.gear = hs.gear.map((u) => (u === it.uid ? null : u)); sel = null; save.write(); game.audio?.coin(); toast(spentPoints(it) ? tx('inventory.salvagedPoints', { coins: salvageValue(it), points: spentPoints(it) }) : tx('inventory.salvaged', { coins: salvageValue(it) })); refresh(); };
-            if (b.rarity !== 'common' || it.blessed || spentPoints(it)) confirmDialog(game, { title: tx('inventory.salvageTitle'), text: spentPoints(it) ? tx('inventory.salvageTextPoints', { name: b.name, coins: salvageValue(it), points: spentPoints(it) }) : tx('inventory.salvageText', { name: b.name, coins: salvageValue(it) }), yes: tx('inventory.salvageYes'), no: tx('inventory.salvageNo'), danger: true, onYes: doIt });
-            else doIt();
-          } }, tx('inventory.salvage', { coins: salvageValue(it) })) : null)].filter(Boolean));
+        it.blessed ? enchLine(it.blessed.id, 3, tx('inventory.godsBlessing'), 'blessed') : null,
+      ].filter(Boolean));
     };
-    renderDetail();
-    el.appendChild(h('div', { class: 'panel inv-panel', style: 'width:min(1000px,97vw)' },
-      h('h2', {}, forge ? tx('forge.title') : tx('inventory.title')),
-      h('div', { class: 'hint', style: 'margin:0 0 8px' }, tn(forge ? 'forge.summary' : 'inventory.summary', d.enchantPoints, { level: d.level, coins: d.coins })),
+    showDetail();
+    el.appendChild(h('div', { class: 'panel inv-panel inv2', style: 'width:min(1040px,97vw)' },
+      h('div', { class: 'inv-head' }, h('h2', {}, forge ? tx('forge.title') : tx('inventory.title')), chips),
+      forge ? h('div', { class: 'hint', style: 'margin:0 0 6px' }, tx('forge.help')) : null,
       heroRow,
-      h('div', { class: 'inv' }, h('div', {}, h('h3', {}, tx('inventory.equipped', { hero: HEROES[who.hero].name })), eqRow, filters, grid), detail),
-      h('div', { class: 'row', style: 'justify-content:flex-end;margin-top:10px' }, h('button', { class: 'btn', onclick: close }, tx('inventory.close')))));
-  }, { dim: true, onBack: close });
+      h('div', { class: 'inv' },
+        h('div', { class: 'inv-left' }, h('h3', {}, tx('inventory.equipped', { hero: HEROES[who.hero].name })), eqRow, tabs, h('div', { class: 'hint small' }, tx('inventory.sortHint')), grid),
+        detail),
+      h('div', { class: 'inv-foot' }, h('div', { class: 'hint' }, tx(`inventory.hints.${hintKey}`)), h('button', { class: 'btn', 'data-k': 'close', onclick: close }, tx('inventory.close')))));
+  }, {
+    dim: true, onBack: close,
+    // X salvages the focused item, LB / RB (Q / E) change tabs
+    onNav: () => {
+      const pressed = navButtons(game);
+      if (!pressed) return;
+      if (pressed === 'tabL' || pressed === 'tabR') {
+        const i = FILTERS.findIndex(([k]) => k === filter), j = (i + (pressed === 'tabR' ? 1 : FILTERS.length - 1)) % FILTERS.length;
+        filter = FILTERS[j][0]; game.audio?.ui('move'); redraw('tab-' + filter);
+      } else if (pressed === 'salvage') {
+        const it = sel ? save.item(sel) : null;
+        if (it) salvage(it);
+      }
+    },
+  });
+}
+
+// Pad X / LB / RB and keys X / Delete / Q / E, on the frame they go down.
+const prevNav = new Map();
+function navButtons(game) {
+  let out = null;
+  const keys = game.input?.keys ?? new Set();
+  const cur = { salvage: keys.has('KeyX') || keys.has('Delete'), tabL: keys.has('KeyQ'), tabR: keys.has('KeyE') };
+  for (const p of game.input?.pads?.() ?? []) {
+    cur.salvage ||= !!p.buttons[2]?.pressed; cur.tabL ||= !!p.buttons[4]?.pressed; cur.tabR ||= !!p.buttons[5]?.pressed;
+  }
+  for (const k in cur) { if (cur[k] && !prevNav.get(k)) out = k; prevNav.set(k, cur[k]); }
+  return out;
 }
 
 // The forge in camp: the inventory with tempering and re-rolling.
 export function openForge(game, player) { openInventory(game, player, { forge: true }); }
-export { RARITY, BLESSED };
+export { BLESSED };

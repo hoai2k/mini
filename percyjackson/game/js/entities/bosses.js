@@ -40,10 +40,10 @@ import * as THREE from 'three/webgpu';
 import { FLASH_MATERIAL } from './character.js';
 import { goldDust, animateExtras, MONSTERS, MONSTER_IDS, buildMonsterModel } from './monsters.js';
 import { BOSS_MODELS } from './bossmodels.js';
-import { BOOK1_PATTERNS, BOOK1_HOOKS } from './bosses-book1.js';
+import { BOOK1_PATTERNS, BOOK1_HOOKS, FURY_REACH } from './bosses-book1.js';
 import { releaseAllBy } from './holds.js';
 import { rigOffsets } from './parts.js';
-import { moveEntity } from '../physics.js';
+import { moveEntity, boxHits } from '../physics.js';
 import { damp, dampAngle, angleDiff } from '../util.js';
 import { toast } from '../ui/ui.js';
 import { t as txt } from '../text_config.js';
@@ -54,26 +54,34 @@ const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
 const H = BOOK1_HOOKS;
 
 const BOSSES = {
+  // (size audit, round 4: Alecto grew from scale 1.75 to 2.8, her body 1.9×
+  // Percy. Her radius follows her body; she hovers higher, so her longer hem
+  // clears the floor at the bottom of the bob (rig.hoverMin, 1.65); her whip
+  // and swoop reach further (FURY_REACH, bosses-book1.js). Her collision
+  // height stays under the museum's 4-high doors, which chapter 1's fight
+  // crosses as she flees from room to room: her hovering head, at about 6,
+  // passes over the lintels. The Furies fight in the open, so theirs is the
+  // body's.)
   alecto: {
-    name: txt('bosses.alecto.name'), title: txt('bosses.alecto.title'), hp: 1400, speed: 3.4, dmg: 20, color: 0xff7a1a, radius: 0.9, height: 3, hover: 1.4,
+    name: txt('bosses.alecto.name'), title: txt('bosses.alecto.title'), hp: 1400, speed: 3.4, dmg: 20, color: 0xff7a1a, radius: 1.2, height: 3.9, hover: 1.9,
     build: BOSS_MODELS.alecto,
     phases: [['whip_lash', 'swoop', 'whip_lash', 'screech'], ['whip_lash', 'swoop', 'whip_ring', 'summon_pups', 'screech'], ['swoop', 'whip_ring', 'whip_lash', 'summon_pups', 'swoop', 'screech']],
     ambient: (b) => H.whipGlow(b),
   },
   minotaur: {
-    name: txt('bosses.minotaur.name'), title: txt('bosses.minotaur.title'), hp: 2200, speed: 2.6, dmg: 22, color: 0xffa040, radius: 1.2, height: 3.4,
+    name: txt('bosses.minotaur.name'), title: txt('bosses.minotaur.title'), hp: 2200, speed: 2.6, dmg: 22, color: 0xffa040, radius: 1.2, height: 4,
     build: BOSS_MODELS.minotaur,
     phases: [['bull_charge', 'horn_sweep', 'rock_throw', 'bull_charge'], ['bull_charge', 'stomp', 'horn_sweep', 'rock_throw', 'bull_charge'], ['bull_charge', 'stomp', 'rock_throw', 'horn_sweep']],
     ambient: (b, dt) => { const g = b.game; if (Math.random() < dt * 1.5) { const c = b.rig.extras.muzzle.getWorldPosition(tmp); g.particles.smoke.emit(c.x, c.y, c.z, Math.sin(b.facing) * 1.5, -0.2, Math.cos(b.facing) * 1.5, 0.7, 0.5, 0.5, 0.5, 0.25, -0.5, 2, 1.2, 0); } },
   },
   hellhound_alpha: {
-    name: txt('bosses.hellhound_alpha.name'), title: txt('bosses.hellhound_alpha.title'), hp: 1800, speed: 4.2, dmg: 20, color: 0xff4a1a, radius: 1.5, height: 3.4,
+    name: txt('bosses.hellhound_alpha.name'), title: txt('bosses.hellhound_alpha.title'), hp: 1800, speed: 4.2, dmg: 20, color: 0xff4a1a, radius: 1.8, height: 5.8,
     build: BOSS_MODELS.hellhound_alpha,
     phases: [['maul', 'lunge', 'shadow_travel', 'maul'], ['maul', 'shadow_travel', 'howl', 'lunge'], ['shadow_travel', 'lunge', 'howl', 'maul', 'shadow_travel']],
     ambient: (b, dt) => H.hellhoundSmoke(b, dt),
   },
   furies: {
-    name: txt('bosses.furies.name'), title: txt('bosses.furies.title'), hp: 2600, speed: 3.6, dmg: 15, color: 0xff7a1a, radius: 0.9, height: 3, hover: 1.4,
+    name: txt('bosses.furies.name'), title: txt('bosses.furies.title'), hp: 2600, speed: 3.6, dmg: 15, color: 0xff7a1a, radius: 1.2, height: 5.8, hover: 1.9,
     build: BOSS_MODELS.alecto,
     phases: [['fury_whip', 'fury_swoop', 'sister_swap', 'fury_whip'], ['fury_whip', 'fury_swoop', 'sister_swap', 'triple_whip', 'screech'], ['triple_whip', 'fury_swoop', 'sister_swap', 'whip_ring', 'fury_swoop', 'screech']],
     init: (b) => H.furiesInit(b), tick: (b, dt) => H.furiesTick(b, dt), onDie: (b) => H.furiesDie(b), ambient: (b) => H.whipGlow(b),
@@ -97,13 +105,13 @@ const BOSSES = {
     init: (b) => H.spidersInit(b), tick: (b, dt) => H.spidersTick(b, dt), onDie: (b) => H.spidersDie(b),
   },
   procrustes: {
-    name: txt('bosses.procrustes.name'), title: txt('bosses.procrustes.title'), hp: 2600, speed: 2.8, dmg: 22, color: 0xd8302a, radius: 1.2, height: 4.4,
+    name: txt('bosses.procrustes.name'), title: txt('bosses.procrustes.title'), hp: 2600, speed: 2.8, dmg: 22, color: 0xd8302a, radius: 1.2, height: 3.8,
     build: BOSS_MODELS.procrustes,
     phases: [['axe_sweep', 'grab_bed', 'axe_chop', 'axe_sweep'], ['axe_sweep', 'grab_bed', 'axe_chop', 'sales_pitch'], ['grab_bed', 'axe_sweep', 'axe_chop', 'sales_pitch', 'grab_bed']],
     damageMul: (b, src) => H.procrustesHit(b, src), onDie: (b) => H.procrustesDie(b),
   },
   cerberus: {
-    name: txt('bosses.cerberus.name'), title: txt('bosses.cerberus.title'), hp: 3200, speed: 2.8, dmg: 22, color: 0xff8a1a, radius: 2.0, height: 4.4,
+    name: txt('bosses.cerberus.name'), title: txt('bosses.cerberus.title'), hp: 3200, speed: 2.8, dmg: 22, color: 0xff8a1a, radius: 3.6, height: 7.7,   // (radius, height: pass 4, his model made far bigger, after the book)
     build: BOSS_MODELS.cerberus,
     phases: [['triple_attack', 'head_bite', 'sleepy', 'cerberus_stomp'], ['triple_attack', 'head_fire', 'head_lunge', 'sleepy', 'cerberus_stomp'], ['triple_attack', 'head_fire', 'head_lunge', 'triple_attack', 'sleepy', 'cerberus_stomp']],
     tick: (b, dt) => H.cerberusTick(b, dt), damageMul: (b) => (b.sleepyT > 0 ? 2 : 1),
@@ -249,13 +257,31 @@ export class Boss {
   fwd() { return new THREE.Vector3(Math.sin(this.facing), 0, Math.cos(this.facing)); }
   mouth() { return this.rig.mouthWorld ? this.rig.mouthWorld(new THREE.Vector3()) : this.pos.clone().setY(this.pos.y + this.height * 0.8); }
   // spawn helpers for summons: a ring of monsters around a point
+  // A spot on the ring (radius r round center, near angle a0) where a monster
+  // of this kind fits: its whole footprint and height clear of walls and with
+  // ground under it. A pup is now wider than a hero (size audit: the owner's
+  // ruling), so the centre alone being clear no longer does: it tries turns
+  // either side of a0 and a slightly smaller ring before giving up (null).
+  summonSpot(center, r, a0, kind) {
+    const w = this.game.world, d = MONSTERS[kind] ?? {}, rad = d.radius ?? 0.5, h = Math.min(d.height ?? 2, 3);
+    for (let k = 0; k < 9; k++) {
+      const a = a0 + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 0.4;
+      for (const rr of [r, r * 0.85]) {
+        const s = center.clone().add(new THREE.Vector3(Math.cos(a) * rr, 0, Math.sin(a) * rr));
+        const gy = w.groundBelow(s.x, s.z, s.y + 4); if (!isFinite(gy)) continue;
+        s.y = gy;
+        if (!boxHits(w, s.x, s.y, s.z, rad, h)) return s;
+      }
+    }
+    return null;
+  }
   summon(kinds, center = this.pos, r = 3.5, color = this.B.color) {
     const g = this.game, out = [];
     kinds.forEach((kind, i) => {
       const a = i / kinds.length * Math.PI * 2 + Math.random() * 0.6;
-      const s = center.clone().add(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r)); s.y = this.ground(s);
-      if (g.world.solidAt?.(s.x, s.y + 0.5, s.z)) return;
-      const e = g.spawnEnemy(kind, s, { summoned: true, level: g.mission?.def?.difficulty ?? this.level }); if (e) { g.fx.summonCircle(s, color); e.aggro = true; e.bossSummon = this; out.push(e); }
+      const s = this.summonSpot(center, r, a, kind);
+      if (!s) return;
+      const e = g.spawnEnemy(kind, s, { summoned: true, level: g.mission?.def?.level ?? g.mission?.def?.difficulty ?? this.level }); if (e) { g.fx.summonCircle(s, color); e.aggro = true; e.bossSummon = this; out.push(e); }
     });
     return out;
   }
@@ -311,8 +337,8 @@ export class Boss {
     if (this.phase >= 1) kinds.push('harpy');
     if (this.phase >= 2) kinds.push('pup', 'harpy');
     for (const kind of kinds) {
-      const a = Math.random() * Math.PI * 2; const s = this.pos.clone().add(new THREE.Vector3(Math.cos(a) * 3.5, 0, Math.sin(a) * 3.5)); s.y = this.ground(s);
-      const e = g.spawnEnemy(kind, s, { summoned: true, level: g.mission?.def?.difficulty ?? 1 }); if (e) g.fx.summonCircle(s, this.B.color);
+      const s = this.summonSpot(this.pos, 3.5, Math.random() * Math.PI * 2, kind); if (!s) continue;
+      const e = g.spawnEnemy(kind, s, { summoned: true, level: g.mission?.def?.level ?? g.mission?.def?.difficulty ?? 1 }); if (e) g.fx.summonCircle(s, this.B.color);
     }
     g.audio?.energy('summon');
     yield 1.0;
@@ -326,15 +352,16 @@ export class Boss {
       this.moving = false;
       const dir = this.faceTarget(t);
       const from = this.pos.clone().setY(this.ground(this.pos));
-      g.markers.spawn({ pos: from, shape: 'rect', width: 1.8, length: 10, facing: this.facing, dur: 0.75 - this.phase * 0.1, color: 0xff3a1a });
+      const L = FURY_REACH.lash;
+      g.markers.spawn({ pos: from, shape: 'rect', width: L.width, length: L.len, facing: this.facing, dur: 0.75 - this.phase * 0.1, color: 0xff3a1a });
       this.anim = { type: 'attack', t: 0.2, style: 'swingR', windup: 0.3, strike: 0.5 };
       yield 0.75 - this.phase * 0.1;
       this.anim = { type: 'attack', t: 0.6, style: 'swingR', windup: 0.3, strike: 0.5 }; this.whipCrack = 0.3;
       const o = from.clone().setY(from.y + 1);
-      g.fx.slashLine(o, dir, 10, 0xff8a2a, 0.5, 0.25);
-      for (let s = 1; s < 10; s += 1) g.particles.burst(o.clone().addScaledVector(dir, s), { count: 3, color: 0xff7a1a, speed: 2, up: 1, life: 0.4, size: 0.25, sizeEnd: 0.05 });
+      g.fx.slashLine(o, dir, L.len, 0xff8a2a, 0.5, 0.25);
+      for (let s = 1; s < L.len; s += 1) g.particles.burst(o.clone().addScaledVector(dir, s), { count: 3, color: 0xff7a1a, speed: 2, up: 1, life: 0.4, size: 0.25, sizeEnd: 0.05 });
       g.audio?.energy('slash'); g.audio?.impact(1.2);
-      this.hurtLine(from, dir, 10, 0.9, this.dmg, 7);
+      this.hurtLine(from, dir, L.len, L.width / 2, this.dmg, 7);
       yield 0.35;
     }
     this.anim = null; this.moving = true;
@@ -344,13 +371,14 @@ export class Boss {
     const g = this.game, t = this.target(); if (!t) return;
     this.moving = false;
     const dir = this.faceTarget(t);
-    g.markers.spawn({ pos: this.pos.clone().setY(this.ground(this.pos)), shape: 'rect', width: 3, length: 16, facing: this.facing, dur: 0.95, color: 0xff2a1a });
+    g.markers.spawn({ pos: this.pos.clone().setY(this.ground(this.pos)), shape: 'rect', width: FURY_REACH.swoop.width, length: 16, facing: this.facing, dur: 0.95, color: 0xff2a1a });
     this.anim = { type: 'raise', t: 0 }; this.hoverY = (this.B.hover ?? 0) + 1.2;
     g.audio?.tone({ freq: 700, to: 1400, dur: 0.5, gain: 0.07, type: 'sawtooth', filter: 3000 });
     yield 0.95;
-    this.swooping = true; this.hoverY = 0.3; this.anim = { type: 'attack', t: 0.6, style: 'slam', windup: 0.3, strike: 0.5 };
+    this.swooping = true; this.hoverY = Math.max(0.3, this.rig.hoverMin ?? 0);   // (rig.hoverMin: a Fury's hem would drag through the floor)
+    this.anim = { type: 'attack', t: 0.6, style: 'slam', windup: 0.3, strike: 0.5 };
     g.audio?.whoosh(1.6);
-    yield* this.dashLine(dir, 24, 16, this.dmg * 1.1, { dust: 0x3a2a24, hitR: 2 });
+    yield* this.dashLine(dir, 24, 16, this.dmg * 1.1, { dust: 0x3a2a24, hitR: FURY_REACH.swoop.hitR });
     this.swooping = false; this.hoverY = this.B.hover ?? 0;
     this.anim = null; this.moving = true;
     yield 0.7;
@@ -358,7 +386,7 @@ export class Boss {
   *whip_ring() {
     const g = this.game;
     this.moving = false;
-    const R = 5.5;
+    const R = FURY_REACH.ring.r;
     g.markers.spawn({ pos: this.pos, radius: R, dur: 1.0, color: 0xff3a1a, follow: this });
     this.anim = { type: 'attack', t: 0.2, style: 'spin', windup: 0.3, strike: 0.5 };
     yield 1.0;
@@ -367,7 +395,7 @@ export class Boss {
     g.audio?.energy('fire'); g.shake(0.35);
     this.hurtPlayers(this.pos, R, this.dmg * 1.1, 11);
     const n = 6 + this.phase * 2;
-    for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; g.hazards.fire(this.pos.clone().add(new THREE.Vector3(Math.cos(a) * 4.2, 0, Math.sin(a) * 4.2)), this.dmg * 0.35, 1.1); }
+    for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; g.hazards.fire(this.pos.clone().add(new THREE.Vector3(Math.cos(a) * FURY_REACH.ring.fire, 0, Math.sin(a) * FURY_REACH.ring.fire)), this.dmg * 0.35, 1.1); }
     yield 0.5;
     this.anim = null; this.moving = true;
     yield 0.4;
@@ -441,10 +469,9 @@ export class Boss {
     this.anim = null; this.moving = true;
     yield 0.4;
   }
-  *stomp() {
+  *stomp(R = 5) {   // (R: a ring you can run out of in the wind-up; a bigger boss stamps a wider one)
     const g = this.game;
     this.moving = false;
-    const R = 5;   // (a ring you can run out of in the wind-up)
     g.markers.spawn({ pos: this.pos, radius: R, dur: 0.9, color: 0xff2a1a, follow: this });
     this.anim = { type: 'attack', t: 0.2, style: 'slam', windup: 0.3, strike: 0.5 };
     yield 0.9;

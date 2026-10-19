@@ -1769,7 +1769,7 @@ DRESS.underworld = {
     for (let i = 0; i < 5; i++) { const [x, z] = cellIn(c, 3); if (z > z0 + 4 && free(c, x, z)) k.w.set(x, y, z, B.bone_block); }
     underDecorate(c, 1.3);
     c.slots.push({ type: 'gate', pos: [cx, y, z0 + 3] }, { type: 'ball', pos: [cx - 4, y, cz + 4] });
-    c.spawns.push([cx, y, z0 + 6]);
+    c.spawns.push([cx, y, z0 + 10]);   // (Cerberus is some 13 blocks long: his rump and serpent tail clear the gate's wall)
   },
 };
 

@@ -1167,7 +1167,7 @@ REQUESTS += [
             "collar and smoking eyes; Queen Gale, a storm-grey harpy queen with a crown of "
             "feathers and lightning in her talons; the Red King, a crimson giant scorpion with a "
             "golden stinger and a crown of spines; the Bronze Warden, a hulking bronze automaton "
-            "with a single glowing blue eye and a shield; Gorgos, a Cyclops chieftain in bear "
+            "with a single glowing blue eye and a shield; Gorgos, a giant chieftain in bear "
             "pelts with a tree-trunk club; and the Pale King, a skeleton king in tarnished armour "
             "with a crown and a black sword, green fire in his eyes. Dramatic and fun for ages 8 "
             f"to 14, never gory. {VOXEL_STYLE} Flat light-grey background. {NO_TEXT}"
@@ -1404,6 +1404,29 @@ REQUESTS += [
             "over its head; and a king crab, a hulking barnacled crab TWICE Percy's height and twice "
             "as wide as the small shore crabs, one enormous crusher claw the size of its body, a "
             "shell like a mossy rock, small eyes on stalks. "
+            f"{FODDER_SHEET}{VOXEL_STYLE} Flat light-grey background. {NO_TEXT}"
+        ),
+    },
+]
+
+# The harpy had no drawing of its own (vox-enemies only drew a Stymphalian bird),
+# so both were built as the same eagle; in the books a harpy is a bird-woman.
+REQUESTS += [
+    {
+        "id": "vox-harpy",
+        "group": OW_GROUP,
+        "title": "Harpies: the bird-women (and how they differ from Stymphalian birds)",
+        "size": "2400 × 1600",
+        "references": ["vox-key", "vox-enemies", "vox-ow-champions"],
+        "use": "Model for the harpy (entities/monsters.js), clearly different from the Stymphalian bird.",
+        "prompt": (
+            "A sheet of blocky voxel monsters beside a blocky Percy for scale, each shown front, "
+            "side and mid-attack: a wild harpy, a scrawny bird-woman with a pale grey-green woman's "
+            "face, wild tangled storm-grey hair, yellow eyes and a screeching mouth, big ragged "
+            "dark feathered wings instead of arms, a feathered body in a torn rag, scaly yellow bird "
+            "legs with black talons, diving with claws out; and for contrast a Stymphalian bird, a "
+            "sleek bronze bird of prey with metal knife-feathers, a long sharp bronze beak, flinging "
+            "feathers like darts. The two must never be confused. "
             f"{FODDER_SHEET}{VOXEL_STYLE} Flat light-grey background. {NO_TEXT}"
         ),
     },

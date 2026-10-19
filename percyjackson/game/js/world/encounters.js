@@ -153,7 +153,7 @@ export function roster(plan, table, info, diff, r, opts = {}) {
   const strays = [];
   for (let i = 0; i < plan.strays; i++) strays.push({ kind: pick(minors), elite: null, role: 'stray', humans: 1 });
   const waves = plan.waves.map((n, wi) => mix(n, meleeT.length ? pick(meleeT) : pick(minors), null).map((kind, i) => ({ kind: i === 0 && wi === plan.waves.length - 1 && eliteT.length ? pick(eliteT.filter(([k]) => tierOf(k) !== 'champion').length ? eliteT.filter(([k]) => tierOf(k) !== 'champion') : eliteT) : kind, elite: r() < 0.06 + 0.03 * diff ? affix() : null })));
-  for (const m of [...packs.flatMap((p) => p.members), ...scouts, ...strays]) { m.ranged = ranged(m.kind); m.big = big(m.kind) || !!m.elite; }
+  for (const m of [...packs.flatMap((p) => p.members), ...scouts, ...strays]) { m.ranged = ranged(m.kind); m.big = big(m.kind) || !!m.elite; m.r = info(m.kind)?.radius ?? 0.5; }
   return { packs, scouts, strays, waves };
 }
 
@@ -253,13 +253,16 @@ export function place(grid, plan, r) {
     const order = p.members.slice().sort((a, b) => (b.big ? 1 : 0) - (a.big ? 1 : 0));
     for (const m of order) {
       let spot = null;
+      // (a wide body keeps a wider gap: six pups, each wider than a hero, start
+      // side by side instead of in a heap that separation has to untangle)
+      const gap = Math.max(1.1, Math.min(2, (m.r ?? 0) * 2));
       for (let tries = 0; tries < 80 && !spot; tries++) {
         if (tries > 30) R += 0.12;
         const a = r() * Math.PI * 2, rr = Math.sqrt(r()) * R * (placed.length === 0 ? 0.3 : 1);
         const x = Math.round(c[0] + Math.cos(a) * rr), z = Math.round(c[1] + Math.sin(a) * rr);
         if (x < 0 || z < 0 || x >= W || z >= D) continue;
         const i = z * W + x;
-        if (!usable(i) || clr[i] < 1 || Math.abs(H[i] - c[2]) > 2 || !free(x, z, 1.1)) continue;
+        if (!usable(i) || clr[i] < 1 || Math.abs(H[i] - c[2]) > 2 || !free(x, z, gap)) continue;
         spot = [x, z, H[i]];
       }
       if (!spot) continue;

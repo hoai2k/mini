@@ -11,17 +11,47 @@ import { mulberry32 } from '../util.js';
 export const HS = 1.12;           // the Rig's head scale: one head pixel is PX * HS
 export const solid = solidMat;
 
-// One material per skin id, painted once. opts.res paints a finer skin (2 = 128 × 128).
+// ---- voxel density ----------------------------------------------------------------
+// A hero is drawn at rig scale 1.18 (root 0.944 = 1.18 x CHAR_SCALE): one skin
+// pixel is about 0.055 m, and its 128 x 128 skin (res 2) has two texels per
+// skin pixel. A model made big with its rig scale should keep those sizes, so
+// a big model is made of more blocks rather than bigger ones (the owner's rule).
+// density = how many hero pixels fit in one of the model's own skin pixels.
+export const HERO_SCALE = 1.18;
+// The build in progress: k is the extra scale a champion is built at (its
+// look.scale, champions.js buildChampionRig); key names the build for the
+// voxel kit's geometry cache (monsters.js); n counts the kits it made.
+export const BUILD = { k: 1, key: null, n: 0 };
+export function withBuild(opts, fn) {
+  const prev = { k: BUILD.k, key: BUILD.key, n: BUILD.n };
+  BUILD.k = opts.k ?? prev.k; BUILD.key = opts.key ?? null; BUILD.n = 0;
+  try { return fn(); } finally { Object.assign(BUILD, prev); }
+}
+// density of a model built at rig scale s (the champion factor included)
+export const densityFor = (s = HERO_SCALE) => (s / HERO_SCALE) * BUILD.k;
+export const rigDensity = (rig) => (rig.baseScale / (HERO_SCALE * 0.8)) * BUILD.k;
+// the same for loose cubes and cells: a hero's voxel hair and outfit cubes
+// are 1.12 of its skin pixels (the measured hero cube, 0.0615 m)
+export const HERO_CUBE = 1.12;
+export const voxDensity = (rig) => rigDensity(rig) / HERO_CUBE;
+// skin resolution (1, 2 or 4) whose texels match a hero's at rig scale s
+export const resFor = (s) => Math.max(1, Math.min(4, 2 ** Math.round(Math.log2(2 * densityFor(s)))));
+
+// One material per skin id and resolution, painted once. opts.res paints a
+// finer skin (2 = 128 x 128); opts.scale (the rig scale the builder is about
+// to pass) works the resolution out so the texels match a hero's (resFor).
 const skins = new Map();
 export function skinMat(id, painter, opts = {}) {
-  if (skins.has(id)) return skins.get(id);
+  const res = opts.scale ? Math.max(opts.res ?? 1, resFor(opts.scale)) : (opts.res ?? 1);
+  const key = `${id}@${res}`;
+  if (skins.has(key)) return skins.get(key);
   let seed = 7; for (const ch of id) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
-  const S = new Skin(seed, opts.res ?? 1);
+  const S = new Skin(seed, res, opts.scale ? (opts.res ?? 1) : res);
   painter(S);
   const m = makeCharMaterial(S.texture(), { emitStrength: opts.emit ?? 3.2, roughness: opts.rough ?? 0.7, fill: opts.fill ?? 0.16 });
   m.alphaTest = 0.5;
   if (opts.dissolve) m.userData.dissolve.value = opts.dissolve;
-  skins.set(id, m);
+  skins.set(key, m);
   return m;
 }
 
@@ -152,4 +182,49 @@ export function bruteLimbs(rig, { armLen = 1.4, armThick = 1, legThick = 1.4, le
 export function rigOffsets(rig, k) {
   if (rig.hunch) rig.torso.rotation.x += k * rig.hunch;
   if (rig.armSpread && rig.armR) { rig.armR.rotation.z -= k * rig.armSpread; rig.armL.rotation.z += k * rig.armSpread; }
+}
+
+// Keep a part off the floor: after the pose is set (rig.onTick, which
+// enemy.js and the workbench run right after animate), turn group g back
+// about its x axis (rotation.x down) just as far as it takes for the meshes
+// under watch (default g; they must hang below g) to clear the ground under
+// the rig. A long club turns back toward the forearm, an arm lifts forward,
+// a head pitches up. Each watched mesh is tested at its 14 extreme vertices
+// (along the axes and the diagonals), found once, so a frame costs a few
+// dozen transforms. reset: start from the group's rest pitch every frame (a
+// held weapon); otherwise from where the animation left it (a limb, a head).
+const _ka = new THREE.Vector3(), _kb = new THREE.Vector3();
+const DIRS14 = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1], [1, 1, 1], [1, 1, -1], [1, -1, 1], [1, -1, -1], [-1, 1, 1], [-1, 1, -1], [-1, -1, 1], [-1, -1, -1]];
+function extremes(watch) {
+  const out = [];
+  for (const w of watch) w.traverse((m) => {
+    if (!m.isMesh || !m.geometry?.attributes?.position) return;
+    // (a merged part, charmat.js: the points of the meshes it was made of, as before)
+    for (const s of m.userData.parts ?? [null]) {
+      const P = (s ? s.geometry : m.geometry).attributes.position, seen = new Set();
+      for (const [dx, dy, dz] of DIRS14) {
+        let best = -Infinity, bi = 0;
+        for (let i = 0; i < P.count; i++) { const d = P.getX(i) * dx + P.getY(i) * dy + P.getZ(i) * dz; if (d > best) { best = d; bi = i; } }
+        if (!seen.has(bi)) { seen.add(bi); const v = new THREE.Vector3(P.getX(bi), P.getY(bi), P.getZ(bi)); if (s) v.applyMatrix4(s.matrix); out.push({ m, v }); }
+      }
+    }
+  });
+  return out;
+}
+export function keepAbove(rig, g, { watch = [g], reset = false, step = 0.1, max = 16, clear = 0.03 } = {}) {
+  const base = g.rotation.x, prev = rig.onTick;
+  let pts = null;
+  const low = () => { let y = Infinity; for (const p of pts) { const v = _kb.copy(p.v).applyMatrix4(p.m.matrixWorld).y; if (v < y) y = v; } return y; };
+  rig.onTick = (dt, e) => {
+    prev?.(dt, e);
+    if (reset) g.rotation.x = base;
+    if (e?.dead) return;
+    pts ??= extremes(watch);
+    const floor = rig.root.getWorldPosition(_ka).y + clear;
+    for (let i = 0; i < max; i++) {
+      g.updateWorldMatrix(true, true);
+      if (low() >= floor) break;
+      g.rotation.x -= step;
+    }
+  };
 }

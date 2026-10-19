@@ -9,16 +9,20 @@
 // gold armour, flaming-haired cheerleader empousai, white-haired Furies in
 // ragged black with leather wings, skeletons in combat gear.
 import * as THREE from 'three/webgpu';
-import { vertexColor, vec3, mix, step, screenCoordinate, interleavedGradientNoise } from 'three/tsl';
-import { Rig, PX } from './character.js';
+import { vertexColor, vec3, mix, step, screenCoordinate, interleavedGradientNoise, uniform } from 'three/tsl';
+import { Rig, PX, HOLD_PITCH, markTip, markHeld } from './character.js';
 import { QuadRig, paintQuad } from './quad.js';
 import { paintPerson } from './mortals.js';
 import { t as txt } from '../text_config.js';
-import { HS, solid, skinMat, prop, group, lavaCracks, fur, sway, rng, bruteLimbs } from './parts.js';
+import { HS, solid, skinMat, prop, group, lavaCracks, fur, sway, rng, bruteLimbs, BUILD, withBuild, rigDensity, voxDensity, densityFor, keepAbove } from './parts.js';
 import { heroHair, cellMesh, footwear } from './herovox.js';
-import { FODDER_MONSTERS, fodderModels } from './fodder.js';
+import { FODDER_MONSTERS, fodderModels, blob, carve, flushBlobs, paintShade } from './fodder.js';
+import { buildSerpent } from './serpent.js';
+import { addFlames, tickFlames } from './flames.js';
+import { mergeRig } from './charmat.js';
+import { shapeX, unshapeX, shapeK, legScale, reshape, applyShape, markHeadCore } from './proportions.js';
 
-export { skinMat };
+export { skinMat, blob, carve, paintShade, rigDensity, voxDensity };
 
 // ---- voxel detail kit -----------------------------------------------------------
 // Loose boxes (in skin pixels, optionally rotated) collected per parent group
@@ -37,9 +41,13 @@ export function voxMat(look, { rough = 0.75, metal = 0, emit = 0.7, fill = 0.12 
   const vc = vertexColor();
   const hot = step(0.985, vc.r.max(vc.g).max(vc.b));
   m.colorNode = vec3(1, 1, 1).mul(hot.oneMinus());   // glowing cells are pure light
-  m.emissiveNode = mix(vc.mul(hot).mul(emit).add(vc.mul(fill)).add(u.glow), vec3(2.2, 2.2, 2.2), u.flash);
+  // (emit and fill as uniforms, not constants: every kind's detail material
+  // then has the same shader code and shares one program, where constants
+  // made a program per kind, compiled when the kind first drew)
+  m.emissiveNode = mix(vc.mul(hot).mul(uniform(emit)).add(vc.mul(uniform(fill))).add(u.glow), vec3(2.2, 2.2, 2.2), u.flash);
   m.maskNode = interleavedGradientNoise(screenCoordinate.xy).greaterThan(u.dissolve);
   m.userData = u;
+  m.voxParams = { rough, metal, emit, fill };   // (charmat.js: a bone's skin and detail drawn as one part)
   voxMats.set(key, m);
   return m;
 }
@@ -52,13 +60,79 @@ const KFACES = [
   [[0, 0, -1], [[1, -1, -1], [-1, -1, -1], [-1, 1, -1], [1, 1, -1]], 0.84],
 ];
 const _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _v = new THREE.Vector3(), _n = new THREE.Vector3(), _one = new THREE.Vector3(1, 1, 1), _p = new THREE.Vector3();
-function kitGeometry(list) {
+const _qi = new THREE.Quaternion(), _w = new THREE.Vector3();
+// Hidden faces: a box face that lies wholly inside another box of the same
+// part (boxes that touch or overlap) is never seen, so it is not drawn. A
+// box is convex, so a face is inside another box exactly when its four
+// corners are (pushed a hair out along the face's normal, so faces that only
+// meet a coplanar face stay). Boxes are found through a coarse grid.
+const HID_EPS = 0.02, HID_TOL = 0.002, GRID = 4;
+const UNION = true;
+function hiddenFaces(list) {
+  const n = list.length, hidden = new Uint8Array(n * 6);
+  if (n < 2) return hidden;
+  const Q = new Array(n), grid = new Map();
+  const cellKey = (i, j, k) => (i + 512) + 1024 * ((j + 512) + 1024 * (k + 512));
+  for (let b = 0; b < n; b++) {
+    const B = list[b], rot = B.rx || B.ry || B.rz;
+    Q[b] = rot ? new THREE.Quaternion().setFromEuler(_e.set(B.rx, B.ry, B.rz, B.order ?? 'XYZ')) : null;
+    // a bounding box (the circumscribed sphere for a turned box)
+    const ex = rot ? Math.hypot(B.w, B.h, B.d) / 2 : B.w / 2, ey = rot ? ex : B.h / 2, ez = rot ? ex : B.d / 2;
+    const i0 = Math.floor((B.x - ex) / GRID), i1 = Math.floor((B.x + ex) / GRID), j0 = Math.floor((B.y - ey) / GRID), j1 = Math.floor((B.y + ey) / GRID), k0 = Math.floor((B.z - ez) / GRID), k1 = Math.floor((B.z + ez) / GRID);
+    if ((i1 - i0 + 1) * (j1 - j0 + 1) * (k1 - k0 + 1) > 4000) continue;   // (a huge slab covers nothing worth the cells)
+    for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) for (let k = k0; k <= k1; k++) { const key = cellKey(i, j, k); let L = grid.get(key); if (!L) grid.set(key, L = []); L.push(b); }
+  }
+  const inside = (b, x, y, z) => {
+    const B = list[b]; _w.set(x - B.x, y - B.y, z - B.z);
+    if (Q[b]) _w.applyQuaternion(_qi.copy(Q[b]).invert());
+    return Math.abs(_w.x) <= B.w / 2 + HID_TOL && Math.abs(_w.y) <= B.h / 2 + HID_TOL && Math.abs(_w.z) <= B.d / 2 + HID_TOL;
+  };
+  const C = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]], ctr = [0, 0, 0];
+  for (let b = 0; b < n; b++) {
+    const B = list[b];
+    for (let f = 0; f < 6; f++) {
+      const [nn, vs] = KFACES[f];
+      _n.set(nn[0], nn[1], nn[2]); if (Q[b]) _n.applyQuaternion(Q[b]);
+      ctr[0] = ctr[1] = ctr[2] = 0;
+      for (let q = 0; q < 4; q++) {
+        const v = vs[q];
+        _v.set(v[0] * B.w / 2, v[1] * B.h / 2, v[2] * B.d / 2); if (Q[b]) _v.applyQuaternion(Q[b]);
+        C[q][0] = B.x + _v.x + _n.x * HID_EPS; C[q][1] = B.y + _v.y + _n.y * HID_EPS; C[q][2] = B.z + _v.z + _n.z * HID_EPS;
+        ctr[0] += C[q][0] / 4; ctr[1] += C[q][1] / 4; ctr[2] += C[q][2] / 4;
+      }
+      const L = grid.get(cellKey(Math.floor(ctr[0] / GRID), Math.floor(ctr[1] / GRID), Math.floor(ctr[2] / GRID)));
+      if (!L) continue;
+      let one = false;
+      for (const o of L) {
+        if (o === b) continue;
+        if (inside(o, ...C[0]) && inside(o, ...C[1]) && inside(o, ...C[2]) && inside(o, ...C[3])) { hidden[b * 6 + f] = 1; one = true; break; }
+      }
+      // (or covered by several boxes together: a 4 x 4 grid of points over
+      // the face, each inside some other box)
+      if (one || !UNION) continue;
+      let all = true;
+      for (let u = 0; u < 4 && all; u++) for (let v = 0; v < 4 && all; v++) {
+        const fu = (u + 0.5) / 4, fv = (v + 0.5) / 4;
+        const x = C[0][0] + (C[1][0] - C[0][0]) * fu + (C[3][0] - C[0][0]) * fv, y = C[0][1] + (C[1][1] - C[0][1]) * fu + (C[3][1] - C[0][1]) * fv, z = C[0][2] + (C[1][2] - C[0][2]) * fu + (C[3][2] - C[0][2]) * fv;
+        let hit = false; for (const o of L) if (o !== b && inside(o, x, y, z)) { hit = true; break; }
+        all = hit;
+      }
+      if (all) hidden[b * 6 + f] = 1;
+    }
+  }
+  return hidden;
+}
+function kitGeometry(list, extra = null) {
   const P = [], N = [], C = [];
-  for (const b of list) {
+  const hidden = hiddenFaces(list);
+  for (let bi = 0; bi < list.length; bi++) {
+    const b = list[bi];
     const c = b.col, hot = Math.max(c.r, c.g, c.b) >= 0.999;
     const rot = b.rx || b.ry || b.rz;
     if (rot) { _q.setFromEuler(_e.set(b.rx, b.ry, b.rz, b.order ?? 'XYZ')); _m4.compose(_p.set(b.x, b.y, b.z), _q, _one); }
-    for (const [n, vs, sh] of KFACES) {
+    for (let f = 0; f < 6; f++) {
+      if (hidden[bi * 6 + f] || (b.only != null && f !== b.only)) continue;   // (b.only: a flat decal, its one outward face)
+      const [n, vs, sh] = KFACES[f];
       _n.set(n[0], n[1], n[2]); if (rot) _n.applyQuaternion(_q);
       const k = hot ? 1 : sh;
       for (const q of [0, 1, 2, 0, 2, 3]) {
@@ -71,18 +145,40 @@ function kitGeometry(list) {
       }
     }
   }
+  // rounded masses (fodder.js blob) add their open cell faces as they are
+  if (extra) { for (const v of extra.P) P.push(v); for (const v of extra.N) N.push(v); for (const v of extra.C) C.push(v); }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
   g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3));
   g.setAttribute('color', new THREE.Float32BufferAttribute(C, 3));
   return g;
 }
+// Built geometry, per model build (BUILD.key, parts.js withBuild) and kit:
+// every spawn of a kind shares the first spawn's geometry, so a crowd costs
+// no geometry work. The builds are seeded, so the parts come in the same order.
+const KIT_GEO = new Map();
 const colCache = new Map();
 const toCol = (c) => { if (c instanceof THREE.Color) return c; if (!colCache.has(c)) colCache.set(c, new THREE.Color(c)); return colCache.get(c); };
 // Usage: const K = kit(rig, look); K.box(parent, x, y, z, w, h, d, col, rx, ry, rz) ... K.done().
 export class VoxKit {
-  constructor(rig, look, opts = {}) { this.rig = rig; this.mat = voxMat(look, opts); this.lists = new Map(); this.r = rng(opts.seed ?? 7); }
+  // opts.density: how many hero pixels make one of this model's skin pixels
+  // (rigDensity(rig) for a model made big with its rig scale; a champion's
+  // build multiplies it, parts.js BUILD.k). clumps, shag, cracks, vox and
+  // blobs scale their block size down and their count up with it.
+  constructor(rig, look, opts = {}) {
+    this.rig = rig; this.mat = voxMat(look, opts); this.lists = new Map(); this.vfaces = new Map(); this.r = rng(opts.seed ?? 7);
+    this.density = opts.density ?? BUILD.k; this.ao = opts.ao ?? 0;
+    this.cacheKey = BUILD.key ? `${BUILD.key}@${BUILD.k.toFixed(3)}#${BUILD.n++}` : null;
+    this.cached = !!(this.cacheKey && KIT_GEO.has(this.cacheKey));   // (blobs skip their cell work)
+  }
+  // A part reshaped by its builder (proportions.js reshape): what is drawn
+  // into it lands through its shape. Clumps, shag, cracks and vox() cells
+  // keep their own size (only their layout moves), so they draw raw.
+  _sh(p) { return this._raw ? null : this.rig.shape?.get(p) ?? null; }
+  _rawDo(fn) { this._raw = (this._raw ?? 0) + 1; try { return fn(); } finally { this._raw--; } }
   box(p, x, y, z, w, h, d, col, rx = 0, ry = 0, rz = 0) {
+    const S = this._sh(p);
+    if (S) { h *= shapeK(S, y, 1); x = shapeX(S, x, 0); y = shapeX(S, y, 1); z = shapeX(S, z, 2); w *= S.f[0]; d *= S.f[2]; }
     if (!this.lists.has(p)) this.lists.set(p, []);
     this.lists.get(p).push({ x, y, z, w, h, d, col: toCol(col), rx, ry, rz });
     return this;
@@ -106,7 +202,18 @@ export class VoxKit {
   // Clumps scattered over the faces of a box (centre c, size s), each half
   // sunk into the surface: fur, scales, rubble. faces: any of 'tbfklr'
   // (top, bottom, front +z, back -z, left -x, right +x).
-  clumps(p, c, s, { n = 20, size = [1, 1.8], cols, faces = 'tfklr', out = 0.1, stretch = [1, 1, 1], j = 0.14, keep = null } = {}) {
+  // on: [centre, radii, pw] of the rounded mass (a blob) they grow from: a
+  // clump the box face leaves in the air beyond it (a corner of the box
+  // round a round mane) is drawn in toward its centre until it sits half
+  // sunk on its surface, so no clump floats (perf/islands.cjs).
+  clumps(p, c, s, { n = 20, size = [1, 1.8], cols, faces = 'tfklr', out = 0.1, stretch = [1, 1, 1], j = 0.14, keep = null, on = null } = {}) {
+    const S = this._sh(p);
+    if (S) {   // (as many clumps a face area as before: fewer on a part drawn smaller)
+      const f = S.f, k = (f[0] * f[1] + f[1] * f[2] + f[0] * f[2]) / 3, kp = keep && ((x, y, z, ff) => keep(unshapeX(S, x, 0), unshapeX(S, y, 1), unshapeX(S, z, 2), ff));
+      const on2 = on && [on[0].map((v, a) => shapeX(S, v, a)), on[1].map((v, a) => v * shapeK(S, on[0][1], a)), on[2]];
+      return this._rawDo(() => this.clumps(p, c.map((v, a) => shapeX(S, v, a)), s.map((v, a) => v * shapeK(S, c[1], a)), { n: Math.max(1, Math.round(n * k)), size, cols, faces, out, stretch, j, keep: kp, on: on2 }));
+    }
+    const D = this.density; if (D !== 1) { n = Math.round(n * D * D); size = [size[0] / D, size[1] / D]; }
     const F = [...faces].map((f) => ({ f, a: f === 't' || f === 'b' ? s[0] * s[2] : f === 'f' || f === 'k' ? s[0] * s[1] : s[1] * s[2] }));
     const tot = F.reduce((a, b) => a + b.a, 0);
     for (let i = 0; i < n; i++) {
@@ -118,6 +225,10 @@ export class VoxKit {
       else if (f === 'f') zz = c[2] + s[2] / 2 + o; else if (f === 'k') zz = c[2] - s[2] / 2 - o;
       else if (f === 'l') x = c[0] - s[0] / 2 - o; else x = c[0] + s[0] / 2 + o;
       if (keep && !keep(x, y, zz, f)) continue;
+      if (on) {
+        const [oc, or, pw = 2] = on, d = (Math.abs((x - oc[0]) / or[0]) ** pw + Math.abs((y - oc[1]) / or[1]) ** pw + Math.abs((zz - oc[2]) / or[2]) ** pw) ** (1 / pw);
+        if (d > 1) { x = oc[0] + (x - oc[0]) / d; y = oc[1] + (y - oc[1]) / d; zz = oc[2] + (zz - oc[2]) / d; }
+      }
       this.box(p, x, y, zz, z * stretch[0], z * stretch[1], z * stretch[2], this.tone(cols, j));
     }
     return this;
@@ -126,6 +237,9 @@ export class VoxKit {
   // sides that sweep back, and tufts along the top that bristle up and back.
   // rows: side rows from the top edge; low: how far down the sides they reach (0..1).
   shag(p, c, s, { cols, step = 1.6, len = [1.8, 3], w = 1, low = 0.8, top = true, sides = true, sweep = 0.35, bristle = 0.55, j = 0.1, ember = 0, embers = [0xff3a00, 0xff8a00] } = {}) {
+    const S = this._sh(p);
+    if (S) return this._rawDo(() => this.shag(p, c.map((v, a) => shapeX(S, v, a)), s.map((v, a) => v * shapeK(S, c[1], a)), { cols, step, len, w, low, top, sides, sweep, bristle, j, ember, embers }));
+    const D = this.density; if (D !== 1) { step /= D; w /= D; }
     const [cx, cy, cz] = c, [sw, sh, sd] = s;
     if (sides) for (const sx of [-1, 1]) for (let y = cy + sh / 2; y > cy + sh / 2 - sh * low; y -= step * 0.9) for (let z = cz + sd / 2 - step / 2; z > cz - sd / 2; z -= step) {
       const L = len[0] + this.r() * (len[1] - len[0]), zz = z + (this.r() - 0.5) * step * 0.5;
@@ -140,7 +254,16 @@ export class VoxKit {
     return this;
   }
   // Glowing cracks: short random walks of thin cells on the faces of a box.
-  cracks(p, c, s, { n = 4, len = [3, 6], cols = [0xff4a00, 0xff7a10], faces = 'tfklr', cell = 0.6 } = {}) {
+  // rim: a colour for a wider glowing edge under each cell (magma: a bright
+  // core in a deep red rim); then each cell is drawn as two flat decals, only
+  // their outward faces, which costs less than one plain crack cell. rimKit:
+  // another kit to draw the rims with (one with a lower emit, so the rim
+  // glows deep red under the tone mapping where the core glows bright).
+  cracks(p, c, s, { n = 4, len = [3, 6], cols = [0xff4a00, 0xff7a10], faces = 'tfklr', cell = 0.6, rim = null, rimKit = this } = {}) {
+    const S = this._sh(p);
+    if (S) { const c2 = c.map((v, a) => shapeX(S, v, a)), s2 = s.map((v, a) => v * shapeK(S, c[1], a)); return this._rawDo(() => (rimKit === this ? this.cracks(p, c2, s2, { n, len, cols, faces, cell, rim, rimKit }) : rimKit._rawDo(() => this.cracks(p, c2, s2, { n, len, cols, faces, cell, rim, rimKit })))); }
+    const D = this.density; if (D !== 1) { cell /= D; len = [Math.round(len[0] * D), Math.round(len[1] * D)]; }
+    const rimC = rim != null ? toCol(rim) : null, FI = { r: 0, l: 1, t: 2, f: 4, k: 5 };
     for (let i = 0; i < n; i++) {
       const f = faces[Math.floor(this.r() * faces.length)];
       const L = len[0] + Math.floor(this.r() * (len[1] - len[0] + 1));
@@ -149,7 +272,16 @@ export class VoxKit {
       for (let k = 0; k < L; k++) {
         const col = toCol(cols[this.r() < 0.3 ? 1 : 0]);
         const t = 0.15;
-        if (f === 't') this.box(p, c[0] + u * s[0], c[1] + s[1] / 2 + t / 2, c[2] + v * s[2], cell, t, cell, col);
+        if (rimC) {
+          // the rim, wide and flush; the core, narrow and a hair proud of it
+          const at = (K, o, w, cc) => {
+            if (f === 't') K.box(p, c[0] + u * s[0], c[1] + s[1] / 2 + o, c[2] + v * s[2], w, t * 0.5, w, cc);
+            else if (f === 'f' || f === 'k') K.box(p, c[0] + u * s[0], c[1] + v * s[1], c[2] + (f === 'f' ? 1 : -1) * (s[2] / 2 + o), w, w, t * 0.5, cc);
+            else K.box(p, c[0] + (f === 'r' ? 1 : -1) * (s[0] / 2 + o), c[1] + v * s[1], c[2] + u * s[2], t * 0.5, w, w, cc);
+            K.lists.get(p).at(-1).only = FI[f];
+          };
+          at(rimKit, t * 0.25, cell * 2, rimC); at(this, t * 0.75, cell * 1.1, col);
+        } else if (f === 't') this.box(p, c[0] + u * s[0], c[1] + s[1] / 2 + t / 2, c[2] + v * s[2], cell, t, cell, col);
         else if (f === 'f' || f === 'k') this.box(p, c[0] + u * s[0], c[1] + v * s[1], c[2] + (f === 'f' ? 1 : -1) * (s[2] / 2 + t / 2), cell, cell, t, col);
         else this.box(p, c[0] + (f === 'r' ? 1 : -1) * (s[0] / 2 + t / 2), c[1] + v * s[1], c[2] + u * s[2], t, cell, cell, col);
         if (this.r() < 0.55) u += (this.r() < 0.5 ? 1 : -1) * cell / Math.max(1, f === 'l' || f === 'r' ? s[2] : s[0]); else v -= cell / Math.max(1, f === 't' ? s[2] : s[1]);
@@ -158,12 +290,51 @@ export class VoxKit {
     }
     return this;
   }
-  done() {
-    for (const [p, L] of this.lists) {
-      const m = new THREE.Mesh(kitGeometry(L), this.mat); m.castShadow = true; m.receiveShadow = true; m.userData.baseMat = this.mat;
-      this.rig.meshes.push(m); p.add(m);
+  // A box drawn as a shell of cells (centre, size and turn as box()), each
+  // cell a tone from cols: a big slab gains the grain of the model's density
+  // instead of reading as one flat block. cell: the cell size (default one
+  // hero pixel, 1 / density); relief: a share of cells that stand out a
+  // little; faces: which sides get cells (others stay one flat face).
+  vox(p, x, y, z, w, h, d, cols, { cell = 1 / this.density, j = 0.12, relief = 0, out = 0.35, rx = 0, ry = 0, rz = 0, faces = 'tbfklr' } = {}) {
+    const S = this._sh(p);
+    if (S) return this._rawDo(() => this.vox(p, shapeX(S, x, 0), shapeX(S, y, 1), shapeX(S, z, 2), w * S.f[0], h * shapeK(S, y, 1), d * S.f[2], cols, { cell, j, relief, out, rx, ry, rz, faces }));
+    const nx = Math.max(1, Math.round(w / cell)), ny = Math.max(1, Math.round(h / cell)), nz = Math.max(1, Math.round(d / cell));
+    const cx = w / nx, cy = h / ny, cz = d / nz, rot = rx || ry || rz;
+    if (rot) _q.setFromEuler(_e.set(rx, ry, rz));
+    const put = (lx, ly, lz, sw, sh, sd, col) => {
+      _v.set(lx, ly, lz); if (rot) _v.applyQuaternion(_q);
+      this.box(p, x + _v.x, y + _v.y, z + _v.z, sw, sh, sd, col, rx, ry, rz);
+    };
+    // the core, so the shell's inner faces are hidden
+    if (nx > 2 && ny > 2 && nz > 2) put(0, 0, 0, w - 2 * cx + 0.02, h - 2 * cy + 0.02, d - 2 * cz + 0.02, this.tone(cols, 0));
+    else if (faces !== 'tbfklr') put(0, 0, 0, w * 0.98, h * 0.98, d * 0.98, this.tone(cols, 0));
+    for (let i = 0; i < nx; i++) for (let jy = 0; jy < ny; jy++) for (let k = 0; k < nz; k++) {
+      const sx = i === 0 ? -1 : i === nx - 1 ? 1 : 0, sy = jy === 0 ? -1 : jy === ny - 1 ? 1 : 0, sz = k === 0 ? -1 : k === nz - 1 ? 1 : 0;
+      if (!sx && !sy && !sz) continue;
+      const on = (sx < 0 && faces.includes('l')) || (sx > 0 && faces.includes('r')) || (sy > 0 && faces.includes('t')) || (sy < 0 && faces.includes('b')) || (sz > 0 && faces.includes('f')) || (sz < 0 && faces.includes('k'));
+      if (!on) continue;
+      let lx = -w / 2 + (i + 0.5) * cx, ly = -h / 2 + (jy + 0.5) * cy, lz = -d / 2 + (k + 0.5) * cz;
+      if (relief && this.r() < relief) { const o = cell * out * (0.5 + this.r()); lx += sx * o; ly += sy * o; lz += sz * o; }
+      put(lx, ly, lz, cx, cy, cz, this.tone(cols, j));
     }
-    this.lists.clear();
+    return this;
+  }
+  // vox() in the frame of a child group g (as boxZ)
+  voxZ(g, x, y, z, w, h, d, cols, o = {}) {
+    const rz = g.rotation.z, c = Math.cos(rz), sn = Math.sin(rz), P = g.position;
+    return this.vox(g.parent, P.x / PX + x * c - y * sn, P.y / PX + x * sn + y * c, P.z / PX + z, w, h, d, cols, { ...o, rz });
+  }
+  done() {
+    flushBlobs(this);
+    const hit = this.cacheKey && !this.nocache ? KIT_GEO.get(this.cacheKey) : null, parts = [...this.lists.keys()];
+    const geos = hit && hit.length === parts.length ? hit : parts.map((p) => kitGeometry(this.lists.get(p), this.vfaces.get(p)));
+    if (geos !== hit && this.ao) for (const g of geos) paintShade(g, this.ao);   // (opts.ao: each part darkens toward its underside)
+    if (this.cacheKey && !this.nocache && !hit) KIT_GEO.set(this.cacheKey, geos);
+    parts.forEach((p, i) => {
+      const m = new THREE.Mesh(geos[i], this.mat); m.castShadow = true; m.receiveShadow = true; m.userData.baseMat = this.mat;
+      this.rig.meshes.push(m); p.add(m); this.rig.shapeDone?.add(m);
+    });
+    this.lists.clear(); this.vfaces.clear();
     return this.rig;
   }
 }
@@ -176,7 +347,7 @@ export function dropMeshes(rig, g) { for (const m of [...g.children]) if (m.isMe
 // the hand) that flap in rig.tick. kind 'feather' (harpy, Stymphalian bird)
 // or 'bat' (Fury). Drawn with the voxel kit: one mesh per segment. Colours
 // come from cols { main, tip, bone, edge, dark } or from the given materials.
-export function addWings(rig, { span = 14, chord = 9, mat, tip, kind = 'bat', y = 10, flap = 1, bone = solid(0x2a1a14), cols = null, seed = 3, look = rig.material } = {}) {
+export function addWings(rig, { span = 14, chord = 9, mat, tip, kind = 'bat', y = 10, flap = 1, bone = solid(0x2a1a14), cols = null, seed = 3, look = rig.material, fine = 1 } = {}) {
   const hex = (m, d) => (m?.color ? m.color.getHex() : d);
   const C = { main: hex(mat, 0x5a3a26), tip: hex(tip ?? mat, 0x3a2418), bone: hex(bone, 0x2a1a14), ...cols };
   C.edge ??= C.bone; C.dark ??= C.tip;
@@ -194,7 +365,14 @@ export function addWings(rig, { span = 14, chord = 9, mat, tip, kind = 'bat', y 
       elbow.position.set(X(inL) * PX, 0, 0);
       K.box(root, X(inL / 2), 0.4, 0.2, inL, 1.4, 1.4, C.bone);
       for (let r = 0; r < 3; r++) K.box(root, X(inL * (1 - r * 0.15) / 2 + 0.3), -chord * (0.17 + r * 0.3), 0, inL * (1 - r * 0.15), chord * 0.32, 0.5, r % 2 ? C.tip : C.main);
-      for (let x = 0.6; x < inL * 0.85; x += 0.9) { const h = 1.2 + K.r() * chord * 0.45; K.box(root, X(x), -chord * 0.95 - h / 2 + 0.6, 0, 0.8, h, 0.4, K.r() < 0.5 ? C.tip : C.dark); }
+      // a wing drawn bigger (fine > 1): the membrane shows its grain, long
+      // ragged strips of leather layered over it, as the Fury sheet draws them
+      if (fine > 1) for (let r = 0; r < 3; r++) for (let x = 0.5; x < inL * (1 - r * 0.15); x += 1.1 / fine) {
+        const h = chord * (0.22 + K.r() * 0.16), sk = (K.r() - 0.5) * 0.1;
+        K.box(root, X(x + 0.3), -chord * (0.17 + r * 0.3) - (K.r() - 0.3) * 0.8, side * 0 + 0.35, 0.9 / fine, h, 0.3, K.tone([C.main, C.tip, C.dark], 0.18), 0, 0, sk);
+      }
+      // (fine: a wing drawn bigger tears into more, narrower strips)
+      for (let x = 0.6; x < inL * 0.85; x += 0.9 / fine) { const h = 1.2 + K.r() * chord * 0.45; K.box(root, X(x), -chord * 0.95 - h / 2 + 0.6, 0, 0.8 / fine, h, 0.4, K.r() < 0.5 ? C.tip : C.dark); }
       const hand = group(elbow, 0, 0, 0, 0, 0, side * 0.55);
       K.box(hand, X(outL * 0.25), 0.3, 0.2, outL * 0.5, 1.2, 1.2, C.bone);
       K.box(hand, X(outL * 0.5), 1.2, 0.2, 1.4, 2.6, 1.4, C.bone);       // the thumb claw
@@ -206,10 +384,14 @@ export function addWings(rig, { span = 14, chord = 9, mat, tip, kind = 'bat', y 
         // membrane to the next finger, and torn strips off its edge
         const mh = L * 0.36;
         K.box(hand, ux * L * 0.48 + px * mh / 2, uy * L * 0.48 + py * mh / 2, 0, L * 0.92, mh, 0.45, i % 2 ? C.tip : C.main, 0, 0, rz);
+        if (fine > 1) for (let t = 0.12; t < 0.9; t += 1.1 / fine / L) {
+          const h = mh * (0.7 + K.r() * 0.35);
+          K.box(hand, ux * L * t + px * h / 2, uy * L * t + py * h / 2, 0.3, 0.9 / fine, h, 0.3, K.tone([C.main, C.tip, C.dark], 0.18), 0, 0, rz + side * Math.PI / 2);
+        }
       }
       // the ragged trailing edge hangs from the lowest finger
       const th = fan[fan.length - 1], L = outL * (1 - (fan.length - 1) * 0.1);
-      for (let k = 0; k < 7; k++) { const t = 0.2 + k * 0.12, h = 1.2 + K.r() * 3.4; K.box(hand, side * Math.cos(th) * L * t - side * 0.6, -Math.sin(th) * L * t - h / 2, 0, 0.8, h, 0.35, K.r() < 0.5 ? C.dark : C.tip); }
+      for (let k = 0, n = Math.round(7 * fine); k < n; k++) { const t = 0.2 + k * 0.84 / n, h = 1.2 + K.r() * 3.4; K.box(hand, side * Math.cos(th) * L * t - side * 0.6, -Math.sin(th) * L * t - h / 2, 0, 0.8 / fine, h, 0.35, K.r() < 0.5 ? C.dark : C.tip); }
     } else {
       // feathered: a golden leading edge, a band of coverts and a row of long
       // secondaries along the arm, then a hand of long primaries fanned out,
@@ -246,7 +428,8 @@ export function addWings(rig, { span = 14, chord = 9, mat, tip, kind = 'bat', y 
 export function addWhip(rig, { segs = 7, len = 3.2, color = 0xff7a1a, hand = rig.handR, look = rig.material } = {}) {
   const chain = [];
   const K = kit(rig, look, { seed: 19, emit: 0.8 });
-  let parent = new THREE.Group(); parent.position.set(0, -1 * PX, 0); hand.add(parent);
+  let parent = markHeld(new THREE.Group()); parent.position.set(0, -1 * PX, 0); hand.add(parent);   // (a whip trails: no point to aim)
+  rig.wrist = false;   // (the whip hangs from the fist: no wrist cock in the attacks, see character.js)
   K.box(parent, 0, -1, 0, 1.6, 4, 1.6, 0x3a2414); K.box(parent, 0, -3, 0, 2, 0.8, 2, 0xd8a028); K.box(parent, 0, 1.2, 0, 1.8, 0.7, 1.8, 0xd8a028);
   const c = new THREE.Color(color), hot = [c.clone(), new THREE.Color(0xff5a00), new THREE.Color(0xffb020)];
   for (const h of hot) { const m = Math.max(h.r, h.g, h.b); h.multiplyScalar(1 / m); }
@@ -254,11 +437,15 @@ export function addWhip(rig, { segs = 7, len = 3.2, color = 0xff7a1a, hand = rig
     const g = new THREE.Group(); g.position.y = (i === 0 ? -3 : -len) * PX; parent.add(g);
     const w = 1.1 - i * 0.06;
     K.box(g, 0, -len / 2, 0, w, len + 0.1, w, hot[i % 3 === 1 ? 2 : 0]);
-    for (let k = 0; k < 3; k++) { const z = 0.4 + K.r() * 0.6; K.box(g, (K.r() - 0.5) * 2, -K.r() * len, (K.r() - 0.5) * 2, z, z, z, hot[Math.floor(K.r() * 3)]); }
+    { const z = 0.4 + K.r() * 0.6; K.box(g, (K.r() - 0.5) * 1.6, -K.r() * len, (K.r() - 0.5) * 1.6, z, z, z, hot[Math.floor(K.r() * 3)]); }
     chain.push(g); parent = g;
   }
   K.done();
+  // the fire on it: live flames (flames.js) off every segment, trailing the lash
+  const F = addFlames(rig, { cap: 44, palette: 'fire', rise: 18, turb: 26, drag: 2.2 });
+  for (const g of chain) F.source(g, { at: [0, 0, 0], to: [0, -len, 0], r: 0.7, rate: 90 / segs, life: [0.25, 0.5], size: [0.8, 1.6], up: 4, spread: 2 });
   rig.extras.whip = chain; rig.extras.whipTip = parent;
+  rig.whip = { hand, base: chain[0].parent, chain, len, phi0: 0.25, bend: new Float32Array(segs).fill(-0.5) };   // (posed by whipPose)
   return chain;
 }
 // Grid-voxel hair (herovox.heroHair) in the look's voxel material, so it
@@ -266,26 +453,92 @@ export function addWhip(rig, { segs = 7, len = 3.2, color = 0xff7a1a, hand = rig
 // or the brightest cubes glow.
 function gridHair(rig, vox, look = rig.material) {
   const hs = ((rig.dims.headS ?? 8) / 8) * HS;
-  const { cells, solid: inside } = heroHair(vox);
+  const { cells, solid: inside, res } = heroHair(vox);   // (vox.res: finer curls on a bigger model)
   const mat = voxMat(look);
-  const mesh = cellMesh(cells, PX * hs, mat, inside);
+  const mesh = cellMesh(cells, PX * hs / res, mat, inside);
   mesh.userData.baseMat = mat; rig.meshes.push(mesh); rig.head.add(mesh);
   rig.extras.hair = mesh;
   return mesh;
+}
+// The whip's shape, worked out in the rig's own space so it no longer hangs
+// from the fist wherever the arm points (it used to dangle straight down and
+// trail up to 2 m through the floor). The handle is turned against the hand's
+// own turn, so the chain lies in the body's upright plane (following the
+// torso's twist), and each segment's angle there (0 straight down, + toward
+// the front, -PI/2 straight back) eases toward one of four shapes:
+//   coil    at rest: down from the fist, then curling back and up in a loop
+//   trail   moving fast or swooping: streaming out behind and rising
+//   windup  thrown back over the shoulder, the lash drooping behind
+//   crack   lashed forward over the top in an arc and snapped out straight
+// Then, segment by segment from the fist, any that would end below the floor
+// (the entity's ground, e.visY, or else the rig's own soles) is bent up to
+// lie along it, so no pose takes the whip through the ground.
+const _wm = new THREE.Matrix4(), _wq = new THREE.Quaternion(), _wq2 = new THREE.Quaternion(), _wv = new THREE.Vector3(), _wE = new THREE.Euler();
+const wrapA = (a) => a - Math.PI * 2 * Math.round(a / (Math.PI * 2));
+function worldY(o) { let y = 0, s = 1; for (let p = o; p; p = p.parent) { y = p.position.y + p.scale.y * y; } for (let p = o; p; p = p.parent) s *= p.scale.y; return [y, s]; }
+function whipPose(rig, dt, e) {
+  const W = rig.whip, t = rig.t ?? 0, root = rig.root, n = W.chain.length, L = W.len * PX;
+  const anim = e?.anim, atk = anim?.type === 'attack';
+  const mode = e?.whipCrack > 0 || e?.state === 'recover' || (atk && !e?.swooping && anim.t >= (anim.windup ?? 0.25)) ? 'crack'
+    : e?.state === 'windup' || (atk && anim.t < (anim.windup ?? 0.25)) ? 'windup'
+    : e?.swooping || (e?.vel && Math.hypot(e.vel.x, e.vel.z) > 1.5) ? 'trail' : 'coil';
+  let p0, kb, kp;
+  if (mode === 'crack') { p0 = 1.45; kp = 22; kb = 16; }
+  else if (mode === 'windup') { p0 = -2.5; kp = 9; kb = 8; }
+  else if (mode === 'trail') { p0 = -1.0 + Math.sin(t * 6) * 0.1; kp = 6; kb = 7; }
+  else { p0 = 0.25 + Math.sin(t * 1.3) * 0.08; kp = 5; kb = 5; }
+  W.phi0 = wrapA(W.phi0 + wrapA(p0 - W.phi0) * (1 - Math.exp(-kp * dt)));
+  for (let i = 0; i < n; i++) {
+    const b = mode === 'crack' ? 0.03 + Math.sin(t * 14 - i) * 0.05 : mode === 'windup' ? 0.12 + Math.sin(t * 5 - i * 0.8) * 0.08
+      : mode === 'trail' ? -0.1 + Math.sin(t * 7 - i * 0.9) * 0.2 : -0.55 + Math.sin(t * 2.6 - i * 0.7) * 0.1;
+    W.bend[i] += (b - W.bend[i]) * (1 - Math.exp(-kb / (1 + i * 0.12) * dt));   // (the tip lags the handle: the lash travels down the chain)
+  }
+  // the fist in the rig's own space
+  _wm.identity(); _wq.identity();
+  for (let o = W.hand; o && o !== root; o = o.parent) { o.updateMatrix(); _wm.premultiply(o.matrix); _wq.premultiply(o.quaternion); }
+  _wv.set(0, -PX, 0).applyMatrix4(_wm);
+  // the handle: upright plane of the body, turned with the torso
+  _wE.set(-W.phi0, mode === 'crack' || mode === 'windup' ? (anim?.style === 'spin' ? rig.torso.rotation.y : 0) : rig.torso?.rotation.y ?? 0, 0, 'YXZ');   // (a lash aims where she faces; a spin sweeps it round)
+  _wq2.setFromEuler(_wE);
+  W.base.quaternion.copy(_wq.invert()).multiply(_wq2);
+  // the floor in the rig's own space
+  const [ry, rs] = worldY(root), floor = typeof e?.visY === 'number' ? e.visY : root.parent ? worldY(root.parent)[0] : 0;
+  const minY = (floor - ry) / rs + 1.8 * PX;
+  let y = _wv.y - 3 * PX * Math.cos(W.phi0), prev = W.phi0;
+  for (let i = 0; i < n; i++) {
+    let a = prev + W.bend[i], ny = y - L * Math.cos(a);
+    if (ny < minY) { const c = Math.max(-1, Math.min(1, (y - minY) / L)); a = (Math.sin(a) >= 0 ? 1 : -1) * Math.acos(c); a += Math.PI * 2 * Math.round((prev - a) / (Math.PI * 2)); ny = y - L * Math.cos(a); }
+    W.chain[i].rotation.set(-(a - prev), 0, Math.sin(t * 3.3 - i * 0.9) * 0.05);
+    prev = a; y = ny;
+  }
 }
 export function animateExtras(rig, dt, e) {
   const t = rig.t ?? 0;
   const W = rig.extras.wings;
   if (W) {
     const fast = e?.state === 'windup' || e?.swooping ? 2 : 1;
-    const f = Math.sin(t * 9 * fast * (rig.wingFlap ?? 1));
-    for (const w of W) { w.root.rotation.z = w.side * (0.25 + f * 0.55); w.elbow.rotation.z = w.side * (0.1 + Math.max(0, f) * 0.5); }
+    const S = rig.wingStroke;
+    if (S) {
+      // A natural stroke (rig.wingStroke { base, amp, hand, down }): a quick
+      // powered down-stroke with the hand spread, then a slower up-stroke with
+      // the hand trailing low and swept back, so the wings read as a V or W
+      // from above and never fold up into a fan over the back.
+      rig.wingPh = ((rig.wingPh ?? (t * 0.37) % 1) + (dt || 0) * 9 * fast * (rig.wingFlap ?? 1) / (2 * Math.PI)) % 1;
+      const p = rig.wingPh, d = S.down ?? 0.4, dn = p < d, q = dn ? p / d : (p - d) / (1 - d);
+      const s = dn ? Math.cos(Math.PI * q) : -Math.cos(Math.PI * q), v = dn ? -Math.sin(Math.PI * q) : Math.sin(Math.PI * q);
+      const hand = dn ? -v * 0.12 : -v * (S.hand ?? 0.45);
+      for (const w of W) {
+        w.ry ??= w.root.rotation.y;
+        w.root.rotation.z = w.side * ((S.base ?? 0.45) + s * (S.amp ?? 0.4));
+        w.root.rotation.y = w.ry + w.side * Math.max(0, v) * 0.18;
+        w.elbow.rotation.z = w.side * ((S.h0 ?? 0) + hand);
+      }
+    } else {
+      const f = Math.sin(t * 9 * fast * (rig.wingFlap ?? 1));
+      for (const w of W) { w.root.rotation.z = w.side * (0.25 + f * 0.55); w.elbow.rotation.z = w.side * (0.1 + Math.max(0, f) * 0.5); }
+    }
   }
-  const C = rig.extras.whip;
-  if (C) {
-    const crack = e?.state === 'recover' || e?.whipCrack > 0 ? 1 : 0;
-    for (let i = 0; i < C.length; i++) { C[i].rotation.x = Math.sin(t * 5 - i * 0.7) * 0.25 + (crack ? -0.35 : 0.12); C[i].rotation.z = Math.sin(t * 3.3 - i * 0.9) * 0.2; }
-  }
+  if (rig.whip) whipPose(rig, dt, e);
   const T = rig.extras.tails;
   if (T) for (const tail of T) for (let i = 0; i < tail.segs.length; i++) tail.segs[i].rotation.y = Math.sin(t * 3 + i * 0.8 + tail.ph) * 0.35;
   const S = rig.extras.snakes;
@@ -299,8 +552,15 @@ export function animateExtras(rig, dt, e) {
   const Y = rig.extras.sway;
   if (Y) for (const s of Y) s.g.rotation[s.ax] = s.base + Math.sin(t * s.f + s.ph) * s.amp;
   if (rig.extras.flameHair) { const k = 1 + Math.sin(t * 13) * 0.04 + Math.sin(t * 7.3) * 0.03; rig.extras.flameHair.scale.set(1, k, 1); }
+  if (rig.flames) tickFlames(rig, dt, e);   // live voxel flames (flames.js), after the pose and the whip
   if (rig.extras.key) rig.extras.key.rotation.y += dt * 4;
   if (rig.extras.tongue) rig.extras.tongue.scale.z = Math.sin(t * 7) > 0.55 ? 1 : 0.15;   // the serpent tastes the air
+  const B = rig.extras.breath;   // the hellhound's smoking breath: puffs roll out of the jaws, swell and rise
+  if (B) for (let i = 0; i < B.length; i++) {
+    const p = B[i], k = (t * 0.45 + i / B.length) % 1, s = Math.sin(k * Math.PI), o = p.userData.base;
+    p.position.set(o.x + Math.sin(t * 1.3 + i * 2) * 0.05, o.y + k * 0.55, o.z + k * 0.6);
+    p.scale.setScalar(0.3 + s * (0.5 + k)); p.visible = s > 0.1;
+  }
 }
 
 // ---- skins --------------------------------------------------------------------
@@ -314,9 +574,25 @@ const lavaDog = (o) => (S) => paintQuad(S, { base: o.base ?? 0x221d20, dark: 0x0
   } });
 
 // ---- model builders ----------------------------------------------------------
-export const HELLHOUND = { scale: 2.3, bodyL: 13, bodyW: 7.5, bodyH: 7.5, legH: 8.5, legW: 3.4, headS: 8.5, ears: true, tail: 4, tailLen: 9, tailW: 2, tailCurl: 0.6, gait: 0.75, neckUp: 2.2, jawOpen: 0.35 };
+// The full hellhound (bigHound below): built at rig scale 1.18, the heroes'
+// own voxel size (Percy's root scale is 0.944 = 1.18 x CHAR_SCALE), its dims
+// in skin pixels (Percy stands about 40 of them tall).
+// (pass 4, after the owner's review against vox-enemies: a powerful
+// crouching dog, not a lean column. The trunk is wider than the head and
+// longer, with a deep chest; shorter, thicker legs planted wide, leaning a
+// little outward at rest (stance); the leg roots sit deep in the body
+// (legY) and hang from the torso (legsOnTorso), so a hind leg never parts
+// from the haunch however the body pitches in a walk, a run or a bite)
+export const HELLHOUND = { big: true, scale: 1.18, bodyL: 60, bodyW: 34, bodyH: 36, legH: 39, legW: 10, legY: 10, legSpread: 2.5, stance: 0.12, legsOnTorso: true, headS: 19, snoutS: 14, ears: true, tail: 6, tailLen: 36, tailW: 4.8, tailCurl: 0.8, gait: 0.5, neckUp: 13, headZ: -3, jawOpen: 0.42 };
+// The hellhound pup (bigPup below; the owner's ruling, 2026-10: "the
+// standard 'Hellhound Puppy' is Mrs O'Leary", so a pup stands taller than a
+// person, though well under a grown hellhound). Built at the heroes' voxel
+// size like the hellhound, with a puppy's proportions: a round barrel of a
+// body, short thick legs on oversized paws, a big head with a short muzzle,
+// ears that fold over at the tips and a stubby tail held high.
+export const PUP = { big: true, pup: true, scale: 1.18, bodyL: 26, bodyW: 20, bodyH: 16, legH: 19, legW: 8, legY: 4, legSpread: 1.5, stance: 0.08, legsOnTorso: true, headS: 17, snoutS: 8, ears: true, tail: 3, tailLen: 14, tailW: 5, tailCurl: 0.75, gait: 0.75, neckUp: 5, headZ: 0, jawOpen: 0.3 };
 const MODELS = {
-  pup: () => hound('pup', { scale: 0.95, bodyL: 10, bodyW: 6, bodyH: 6, legH: 5.5, legW: 2.8, headS: 7, ears: true, tail: 3, tailLen: 6, tailW: 1.8, tailCurl: 0.55, neckUp: 2, jawOpen: 0.25 }, { fur: 60, cracks: 6, collar: false, pup: true }),
+  pup: () => hound('pup', PUP, { cracks: 10 }),
   // A New York sewer rat (the prologue): grey-brown fur, a pink nose, ears
   // and tail, and eyes a little too red. The Mist says "just rats".
   rat: () => {
@@ -333,21 +609,19 @@ const MODELS = {
   // A serpent out of the Mist (what a "person" in the museum may really be,
   // entities/mistPeople.js): a long green snake banded in gold, rearing its
   // head and hood, with a flickering forked tongue. Nothing like a person.
-  serpent: () => {
-    const rig = new QuadRig({ material: skinMat('serpent', (S) => paintQuad(S, { base: 0x3e7a2e, dark: 0x1e3e18, belly: 0xe0c870, back: 0x2e5a22, stripes: 0xd8b040, eye: 0xffd81a, eyeLow: 0xff8a10, nose: 0x1e3e18, teeth: 0xfff4d8, speckles: 30 })),
-      scale: 1.15, bodyL: 9, bodyW: 5, bodyH: 4, legH: 0.4, legW: 1, headS: 5.5, snoutS: 3.2, ears: false, tail: 7, tailLen: 30, tailW: 4.8, tailCurl: 0, neckUp: 4.5, gait: 1 });
-    for (const l of rig.legs) l.visible = false;
-    const hood = solid(0x2e6a24), gold = solid(0xd8b040, 0.2);
-    for (const sx of [-1, 1]) { prop(rig, rig.neck, 0.8, 6.5, 4.5, hood, sx * 3.4, -0.5, -1.2, 0, 0, sx * 0.35); prop(rig, rig.neck, 0.9, 1.2, 2.4, gold, sx * 3.5, 1.4, -0.4, 0, 0, sx * 0.35); }
-    for (let i = 0; i < 4; i++) prop(rig, rig.torso, 5.4, 4.4, 0.8, gold, 0, 0, 3.4 - i * 2.4);
-    rig.extras.tongue = prop(rig, rig.mouth, 0.5, 0.3, 3.2, solid(0xd8203a, 0.8), 0, 0.2, 2.4);
-    return rig;
-  },
+  // (entities/serpent.js: a legless spine that slithers, rears and strikes)
+  serpent: () => buildSerpent({ kit }),
   automaton: () => buildAutomaton(),
-  harpy: () => eagle('harpy', { scale: 1.0 }),
-  // Stymphalian bird: the same eagle in bronze feathers, sharp as knives
-  stymphalian: () => eagle('stymphalian', { scale: 0.9, metal: true }),
-  fury: () => buildFury('fury', { scale: 1.0 }),
+  harpy: () => eagle('harpy', { scale: 1.2 }),   // (size audit: ×1.2, then round 6 sculpted her taller at that voxel size, about 1.1× Percy)
+  // Stymphalian bird: a level bronze bird of prey in knife feathers (bronzeHunter)
+  // (size audit, round 4: Pausanias's man-eaters are "of the size of a crane";
+  // ×1.36, a wingspan over twice Percy's height and a body the size of a big dog)
+  stymphalian: () => eagle('stymphalian', { scale: 1.5, metal: true, form: 'hunter' }),
+  // (size audit, round 4: the owner found her smaller than Percy. Her body,
+  // standing, without wings and whip, is now about 1.4× his height (scale 1.5
+  // → 2.1), under the boss sisters (2.5, Alecto 2.8); she flies a little higher
+  // so her longer hem clears the floor at the bottom of her bob)
+  fury: () => buildFury('fury', { scale: 2.1, float: 1.25 }),
   dracaena: () => buildDracaena(),
   empousa: () => buildEmpousa(),
   scorpion: () => buildScorpion(),
@@ -373,7 +647,9 @@ const MODELS = {
 // with gold claws, a gold spiked collar and a smouldering tail tip.
 const FUR = [0x2a2226, 0x352b30, 0x43363c, 0x1e181b, 0x50404a];
 const LAVA = [0xff7000, 0xffa800];
-export function hound(id, spec, { fur: nFur = 80, cracks = 8, collar = true, pup = false } = {}) {
+export function hound(id, spec, opts = {}) {
+  if (spec.big) return spec.pup ? bigPup(id, spec, opts) : bigHound(id, spec, opts);
+  const { fur: nFur = 80, cracks = 8, collar = true, pup = false } = opts;
   const mat = skinMat(id, (S) => { lavaDog({ cracks, base: 0x2e2529 })(S); S.saturate(1.3); }, { emit: 0.5 });
   const rig = new QuadRig({ material: mat, ...spec });
   const K = kit(rig, mat, { seed: pup ? 5 : 9, emit: 0.55 });
@@ -443,6 +719,396 @@ export function hound(id, spec, { fur: nFur = 80, cracks = 8, collar = true, pup
   K.done();
   return rig;
 }
+// The full-size hellhound (vox-enemies, middle row: "as big as a truck",
+// well over twice Percy's height). Not the pup scaled up: built at
+// the heroes' voxel size (rig scale 1.18, so one block is one hero skin pixel)
+// from many small blocks, so its size buys detail. A powerful crouching dog
+// with a deep, broad chest and heavy shoulders, ribs showing down the flank, a
+// hackled mane of black fur breaking into smoke along the spine, a big head
+// with a massive furnace jaw and long fangs, molten eyes under a scowling
+// brow, ember cracks all over, thick clawed paws with glowing amber claws,
+// a smouldering tail. (pass 4: no smoke puffs at the jaws any more: they read
+// as a nose sticking out and wiggling; the smoke aura, enemy.js, stays.)
+// spec: HELLHOUND (big: true); opts as hound(). rig.dims match the QuadRig,
+// so the champions' add-ons (Shadowfang's collar, scars, eyes) still land.
+const DEEP = [0x1a1518, 0x231d21, 0x2c252a], SMOKE = [0x3a3438, 0x4e474c, 0x645c62];
+// (pass 4: the cracks as glowing magma, a bright orange-yellow core in a deep
+// red rim, both emissive (VoxKit cracks rim), drawn a little proud of the fur)
+const MAGMA = [0xff9a10, 0xffc030], MAGMA_RIM = 0xff2200;
+function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha = false } = {}) {
+  const mat = skinMat(id, (S) => { lavaDog({ cracks, base: 0x2e2529 })(S); S.saturate(1.3); }, { emit: 0.5 });
+  const rig = new QuadRig({ material: mat, ...spec });
+  const K = kit(rig, mat, { seed: 9 + (id.length % 7), emit: 1.2 });
+  const RK = kit(rig, mat, { seed: 77, emit: 0.4, fill: 0 });   // (the magma's deep red rims: a low emit keeps them red under the tone mapping)
+  const { legH, legW, hs } = rig.dims, T = rig.torso, Hd = rig.head, M = rig.mouth, N = rig.neck, ly = legH / 34;
+  for (const g of [T, Hd, M, ...rig.legs, ...rig.tail]) dropMeshes(rig, g);
+  // the coat's budget: a hound built bigger (a champion or the alpha, parts.js
+  // BUILD.k) has its tufts and clumps made finer by the kit, which alone
+  // would cost k squared in blocks; here the count grows with k only, so an
+  // elite stays near 19k triangles and a champion under 25k
+  const D = BUILD.k, fe = nFur / 170 * 0.6 / D, ss = 1.3 * Math.sqrt(D), fang = 0xe6dcc0, claw = 0xe0a428;
+  // a limb segment from a to b ([y, z] in the part's frame), tilted about x
+  // coat a limb segment with short blocky fur, so no face is left flat
+  const FURL = [...FUR, 0x5a4a54];
+  const seg = (p, a, b, w, d, col, coat = 1) => {
+    const y = (a[0] + b[0]) / 2, z = (a[1] + b[1]) / 2, l = Math.hypot(a[0] - b[0], a[1] - b[1]) + w * 0.3, rx = Math.atan2(a[1] - b[1], a[0] - b[0]);
+    K.box(p, 0, y, z, w, l, d, col, rx);
+    const n = Math.round(l * (w + d) * 0.13 * coat * D), c = Math.cos(rx), sn = Math.sin(rx);
+    for (let i = 0; i < n; i++) {
+      const f = K.r(), u = (K.r() - 0.5) * l, sz = (1 + K.r() * 1.1) / Math.sqrt(D);
+      let x = (K.r() - 0.5) * w, zz = (K.r() - 0.5) * d;
+      if (f < 0.35) x = Math.sign(x || 1) * (w / 2 + 0.15); else if (f < 0.65) zz = Math.sign(zz || 1) * (d / 2 + 0.15); else if (f < 0.85) x = -w / 2 - 0.15; else x = w / 2 + 0.15;
+      K.box(p, x, y + u * c - zz * sn, z + u * sn + zz * c, sz, sz * 1.4, sz, K.tone(FUR, 0.16), rx);
+    }
+  };
+  // ---- trunk (body 34 x 36 x 60): a deep, broad chest over the front
+  // legs, ribs down the flank, a waist only a little tucked and heavy
+  // haunches round the hind legs' roots
+  // (pass 4: wider than the head, a fifth longer and deeper in the chest, as
+  // vox-enemies draws it; the haunch reaches well below the hind legs' roots,
+  // QuadRig legY, so the thigh always enters the body)
+  K.box(T, 0, 1, 14, 34, 34, 30, DEEP[1]);           // chest and shoulders
+  K.box(T, 0, -14.5, 22, 25, 9, 12, DEEP[0]);        // the brisket
+  K.box(T, 0, 3, -6, 31, 29, 14, DEEP[1]);           // ribcage
+  K.box(T, 0, 5, -14, 27, 25, 6, DEEP[2]);           // waist
+  K.box(T, 0, 3, -23, 31, 30, 14, DEEP[1]);          // haunches
+  rig.extras.trunk = { chest: [-17, -16, -1, 17, 18, 29], haunch: [-15.5, -12, -30, 15.5, 18, -16] };   // (skin px, torso space: perf/houndlegs.cjs checks the legs stay rooted in them)
+  for (const sx of [-1, 1]) {
+    K.clumps(T, [sx * 17.2, 7, 15], [2, 18, 16], { n: Math.round(26 * fe), size: [2, 3.2], cols: FURL, faces: sx < 0 ? 'l' : 'r', out: 0.3, stretch: [1, 1.2, 1] });   // shoulder blade
+    K.clumps(T, [sx * 17.2, -7, 21], [2.4, 14, 11], { n: Math.round(18 * fe), size: [2, 3.2], cols: FURL, faces: sx < 0 ? 'l' : 'r', out: 0.3 });              // upper-arm muscle
+    for (let i = 0; i < 5; i++) {                     // ribs, with embers glowing between them
+      K.box(T, sx * 15.9, 3 - i * 0.3, 0 - i * 2.3, 1, 18 - i * 1.6, 1.4, FUR[4]);
+      if (i % 2 === 0) K.box(T, sx * 15.65, 1.6 - i * 0.2, -1.1 - i * 2.3, 0.4, 8 - i, 0.6, LAVA[i % 4 ? 1 : 0]);
+    }
+    K.clumps(T, [sx * 15.6, 2, -23], [1.6, 20, 12], { n: Math.round(22 * fe), size: [1.8, 3], cols: FURL, faces: sx < 0 ? 'l' : 'r', out: 0.3 });     // haunch muscle
+  }
+  K.shag(T, [0, 1, 14], [34, 34, 30], { cols: FUR, step: 2.9 * ss, len: [2.4, 4.2], w: 1.3, low: 0.8, ember: 0.08, embers: LAVA, top: false });
+  K.shag(T, [0, 3, -6], [31, 29, 14], { cols: FUR, step: 2.5 * ss, len: [1.4, 2.4], low: 0.3, top: false, sweep: 0.5 });
+  K.clumps(T, [0, 3, -6], [31, 29, 14], { n: Math.round(20 * fe), size: [1, 1.8], cols: FURL, faces: 'lrb', out: 0.2 });
+  K.shag(T, [0, 3, -23], [31, 30, 14], { cols: FUR, step: 2.5 * ss, len: [1.8, 3], low: 0.75, sweep: 0.4, bristle: 0.9 });
+  K.clumps(T, [0, -2, 29], [30, 28, 1], { n: Math.round(46 * fe), size: [1.8, 3], cols: FUR, faces: 'f', stretch: [1, 1.5, 1] });   // chest ruff
+  for (let z = 2; z < 28; z += 3.4) for (let x = -14; x <= 14; x += 5.6) {                                 // fringe hanging under the chest
+    const l = 2.5 + K.r() * 3.5, y0 = z > 15.5 && Math.abs(x) < 12.5 ? -19 : -16; K.box(T, x + (K.r() - 0.5), y0 - l / 2 + 1.2, z, 2.2, l, 2.2, K.tone(FUR), 0.3);
+  }
+  // lava veins drawn over the fur (the source sheet's cracks read from afar)
+  K.cracks(T, [0, -1, 14], [38, 33, 34], { n: Math.round(cracks * 2), cols: MAGMA, rim: MAGMA_RIM, rimKit: RK, faces: 'lrf', len: [7, 14], cell: 1 });
+  K.cracks(T, [0, 3, -6], [35, 24, 14], { n: Math.round(cracks * 0.8), cols: MAGMA, rim: MAGMA_RIM, rimKit: RK, faces: 'lr', len: [5, 9], cell: 0.9 });
+  K.cracks(T, [0, 3, -23], [35.5, 26, 17.5], { n: Math.round(cracks * 1.1), cols: MAGMA, rim: MAGMA_RIM, rimKit: RK, faces: 'lrk', len: [5, 10], cell: 0.9 });
+  for (let z = 4; z < 27; z += 3) K.box(T, (K.r() - 0.5) * 8, z > 15.5 ? -19.2 : -16.2, z, 4 + K.r() * 7, 0.4, 0.8, LAVA[K.r() < 0.3 ? 1 : 0]);   // the furnace glows under the chest
+  // ---- the mane: hackles down the spine, tallest over the shoulders, breaking into smoke
+  const topAt = (z) => (z > -1 ? 18 : 17.5);
+  for (let z = 29; z > -28; z -= 2.2) {
+    const k = Math.max(0.35, 1 - Math.abs(z - 14) / 36), top = topAt(z);
+    for (const sx of [-1, 0, 1]) {
+      const h = (sx ? 5 : 8.5) * k + K.r() * 2.5, x = sx * 2.4 + (K.r() - 0.5) * 0.8, lean = -0.6 - K.r() * 0.2;
+      K.box(T, x, top + h / 2 - 0.8, z, 1.7, h, 1.9, K.tone([DEEP[0], DEEP[1], FUR[3]]), lean, 0, sx * 0.45);
+      const tx = x + sx * h * 0.4, ty = top + h * 0.95, tz = z - h * 0.55;
+      if (K.r() < 0.45) K.box(T, tx, ty, tz, 1.3, 1.3, 1.3, K.tone(SMOKE));
+      else if (K.r() < 0.25) K.box(T, tx, ty - 0.4, tz, 0.8, 0.9, 0.8, LAVA[K.r() < 0.4 ? 1 : 0]);
+    }
+    if (K.r() < 0.4) { const s = 1.2 + K.r() * 1.4; K.box(T, (K.r() - 0.5) * 4, top + 9 * k + 2 + K.r() * 5, z - 3, s, s, s, K.tone(SMOKE)); }   // smoke rising off it
+  }
+  // the alpha (the boss, bossmodels.js): a burning ridge of horn spikes down
+  // its back, each split by a seam of fire and tipped with flame
+  if (alpha) for (let i = 0; i < 9; i++) {
+    const z = 26 - i * 5.8, h = (9 - Math.abs(i - 2) * 0.9) * (1 - i * 0.04), top = topAt(z) + 1;
+    K.box(T, 0, top + h / 2, z, 2.6, h, 3, DEEP[0], -0.55);
+    K.box(T, 0, top + h / 2 + 0.4, z + 0.2, 2.7, h * 0.7, 0.5, LAVA[0], -0.55);
+    K.box(T, 0, top + h * 0.98, z - h * 0.52, 1.4, 1.8, 1.4, LAVA[1], -0.55);
+    K.box(T, 0, top + h * 1.12, z - h * 0.66, 0.8, 1.2, 0.8, 0xffd040, -0.55);
+  }
+  // ---- neck: thick and short, rising from the chest, with a shaggy ruff;
+  // the head is carried high over the chest, as the sheet draws it
+  K.box(N, 0, -7, -4, 18, 22, 16, DEEP[1], 0.2);
+  K.clumps(N, [0, -7, -4], [17, 22, 16], { n: Math.round(70 * fe), size: [1.8, 3.4], cols: FUR, faces: 'lrtb', stretch: [1, 1.4, 1.2] });
+  if (collar) {
+    // (pass 4: a heavier ring standing proud of the neck's ruff, so the gold
+    // spikes read all round as on the sheet)
+    const r = 11.4, n = 20, g = group(N, 0, -5.5, 1.5, -0.6);   // (tipped forward, so its lower arc lies on the chest in front of the neck)
+    for (let i = 0; i < n; i++) {
+      const a = i / n * Math.PI * 2, x = Math.sin(a) * r, y = Math.cos(a) * r;
+      K.box(g, x, y, 0, 2 * Math.PI * r / n + 0.5, 3, 4, i % 2 ? 0xd09418 : 0xf0b428, 0, 0, -a);
+      if (y < r * 0.8) { K.box(g, Math.sin(a) * (r + 2.2), Math.cos(a) * (r + 2.2), 0, 1.8, 3, 1.8, 0xf8d870, 0, 0, -a); K.box(g, Math.sin(a) * (r + 4), Math.cos(a) * (r + 4), 0, 1, 1.4, 1, 0xfff0b0, 0, 0, -a); }
+    }
+  }
+  // ---- head (pass 4: headS 24 -> 19, the owner's note: a large creature
+  // without a Minecraft head; the body dominates, the head on a thick neck):
+  // a heavy skull, a scowling brow over molten eyes, jaw muscles,
+  // a long muzzle and a furnace mouth full of fangs (QuadRig head frame: the
+  // skull centred on z = hs * 0.35, the face at z = hs * 0.85)
+  // drawn at headS 20 and scaled up to the spec's head; only the structure
+  // grows, the fur and teeth detail stays at the body's voxel size
+  const k = hs / 20, fz = 17, sc = (v) => v.map((q) => q * k);
+  const HB = (p, x, y, z, w, h, d, col, rx = 0, ry = 0, rz = 0) => K.box(p, x * k, y * k, z * k, w * k, h * k, d * k, col, rx, ry, rz);
+  HB(Hd, 0, 1, 7.5, 19, 16, 19, DEEP[1]);
+  HB(Hd, 0, 8.6, 6, 15, 2.4, 15, DEEP[0]);
+  for (const sx of [-1, 1]) {
+    HB(Hd, sx * 9.6, -3, 9, 2.6, 10, 11, DEEP[1]);                                 // jaw muscles, shaggy
+    K.clumps(Hd, sc([sx * 9.6, -3, 9]), sc([2.6, 10, 11]), { n: Math.round(22 * fe), size: [1.2, 2.2], cols: FURL, faces: sx < 0 ? 'lt' : 'rt', out: 0.25 });
+    for (let j = 0; j < 4; j++) HB(Hd, sx * (1.4 + j * 2), 6.6 + j * 0.6, fz + 1.1 - j * 0.2, 2.3, 2.2, 2.8, K.tone([0x0e0b0d, 0x161215]));   // the scowling brow
+    HB(Hd, sx * 5, 4.2, fz + 0.3, 6.4, 4, 0.6, 0x050304);                          // eye socket
+    HB(Hd, sx * 5, 4.3, fz + 0.6, 5.2, 2.8, 0.4, 0xff3000);                        // molten eye
+    HB(Hd, sx * 4.4, 4.5, fz + 0.85, 2.4, 1.4, 0.3, 0xffd040);
+    HB(Hd, sx * 7, 2.2, fz + 0.6, 0.9, 2.4, 0.4, 0xff6a00);                        // a drip of fire
+    // ears laid back, ember-lined
+    HB(Hd, sx * 6.6, 11, 1.5, 5, 6, 2.6, DEEP[0], -0.4, 0, -sx * 0.22);
+    HB(Hd, sx * 7.3, 14.6, 0.2, 3.2, 4, 2.2, DEEP[0], -0.4, 0, -sx * 0.22);
+    HB(Hd, sx * 7.7, 17.2, -0.8, 1.4, 2.4, 1.6, DEEP[1], -0.4, 0, -sx * 0.22);
+    HB(Hd, sx * 6.7, 11.6, 2.9, 2.2, 5, 0.4, 0xd83a0a, -0.4, 0, -sx * 0.22);
+  }
+  K.shag(Hd, sc([0, 1, 7.5]), sc([19, 16, 19]), { cols: FUR, step: 1.8 * ss, len: [1.6, 2.8], low: 0.55, bristle: 0.9, sweep: 0.5 });
+  K.clumps(Hd, sc([0, 1, 7.5]), sc([19, 16, 19]), { n: Math.round(40 * fe), size: [1, 1.8], cols: FURL, faces: 'lr', out: 0.2 });
+  K.clumps(Hd, sc([0, -2.3, 23.5]), sc([11.4, 9, 13]), { n: Math.round(44 * fe), size: [0.8, 1.5], cols: [DEEP[0], DEEP[2], FUR[0], FUR[1]], faces: 'lrt', out: 0.2, keep: (x, y) => y / k > -5.2 });
+  K.clumps(Hd, sc([0, 1, 7.5]), sc([19, 16, 19]), { n: Math.round(36 * fe), size: [1, 1.8], cols: FURL, faces: 'f', out: 0.2, keep: (x, y) => y / k > 8 || (y / k > -1.5 && Math.abs(Math.abs(x / k) - 5) > 3.6) });
+  K.clumps(Hd, sc([0, -4, 5]), sc([21, 9, 11]), { n: Math.round(34 * fe), size: [1.6, 2.8], cols: FUR, faces: 'lrbk', stretch: [1, 1.3, 1.2] });   // cheek ruff
+  K.cracks(Hd, sc([0, 0, 7.5]), sc([22.5, 13, 19]), { n: Math.max(4, Math.round(cracks / 2.5)), cols: MAGMA, rim: MAGMA_RIM, rimKit: RK, faces: 'lr', len: [4, 8], cell: 0.9 });
+  K.cracks(N, [0, -4, -3.5], [21.5, 16, 15], { n: Math.max(3, Math.round(cracks / 3)), cols: MAGMA, rim: MAGMA_RIM, rimKit: RK, faces: 'lr', len: [4, 8], cell: 0.9 });
+  // the muzzle
+  HB(Hd, 0, -2.3, 23.5, 11.4, 9, 13, DEEP[1]);
+  HB(Hd, 0, 2.4, 21, 8, 1.6, 7, DEEP[2], 0.12);
+  for (let i = 0; i < 4; i++) HB(Hd, 0, 2.8 - i * 0.2, 18 + i * 1.8, 8.6, 0.6, 0.8, 0x0a0708);       // snarl wrinkles
+  HB(Hd, 0, 0.6, 29.6, 6.4, 3.8, 1.2, 0x050404);                                                    // nose, flush with the muzzle's tip
+  HB(Hd, 0, 1.8, 30.05, 4, 1, 0.3, 0x2a2428);
+  // the mouth (pass 4, the owner's note): a dark mouth, pink gums only
+  // along the top and bottom jaws, and the teeth standing out of them
+  const GUM = 0xb8344a, MAW = 0x1a0909;
+  for (const sx of [-1, 1]) {
+    HB(Hd, sx * 5.8, -6.1, 23.5, 0.5, 1, 12, LAVA[0]);                                               // the furnace glows through the lips
+    HB(Hd, sx * 4.4, -9.8, 28, 2, 7, 2, fang, 0.12);                                                 // upper canines
+    for (let i = 0; i < 4; i++) HB(Hd, sx * 5, -7.9, 25.6 - i * 2.1, 1, 2.5 - i * 0.25, 1, fang);
+  }
+  for (let x = -2.4; x <= 2.41; x += 1.2) HB(Hd, x, -7.7, 29.4, 0.9, 2.2, 0.9, fang);
+  HB(Hd, 0, -6.9, 23, 9, 0.5, 12, MAW);                                                              // the roof of the mouth, dark
+  for (const sx of [-1, 1]) {
+    HB(Hd, sx * 4.9, -8.6, 21, 0.4, 3, 10, MAW);                                                     // the cheeks inside
+    HB(Hd, sx * 4.9, -7.15, 24, 1.9, 0.6, 11.6, GUM);                                                // the upper gums, along each side
+  }
+  HB(Hd, 0, -7.15, 29.3, 8.6, 0.6, 1.4, GUM);                                                       // and behind the front teeth
+  // the jaw (QuadRig's mouth hinge): massive, its own row of fangs over pink gums, a dark tongue
+  HB(M, 0, -2.4, 7.5, 10.4, 4.6, 15, DEEP[1]);
+  HB(M, 0, -5.2, 10, 8.4, 2, 8, DEEP[0]);
+  HB(M, 0, 0.2, 7.5, 7.6, 0.5, 12.5, MAW);
+  HB(M, 0, 0.5, 6, 4.2, 0.6, 8, 0x5a1620);                                                           // the tongue
+  HB(M, 0, 0.45, 14.2, 8.2, 0.6, 1.4, GUM);
+  for (const sx of [-1, 1]) {
+    HB(M, sx * 3.9, 2.9, 13.6, 1.8, 5.4, 1.8, fang, -0.1);
+    for (let i = 0; i < 4; i++) HB(M, sx * 4.2, 1.1, 11.4 - i * 2, 1, 2.1, 1, fang);
+    HB(M, sx * 4.3, 0.45, 8, 1.9, 0.6, 12.6, GUM);
+    HB(M, sx * 5.3, -0.3, 7.5, 0.4, 0.8, 13, LAVA[0]);
+    HB(M, sx * 4.9, 1.6, 7, 0.4, 2.6, 9, MAW);
+  }
+  K.clumps(M, sc([0, -3, 7]), sc([10, 5, 15]), { n: Math.round(14 * fe), size: [1.3, 2.2], cols: FUR, faces: 'blr' });
+  // ---- legs: thick and powerful, heavy at the shoulder and thigh, their
+  // roots buried in the body (QuadRig legY: the top 10 of each is inside
+  // it); the hind legs bend back at the hock; big paws spread on four toes
+  // with amber claws, set flat on the ground though the leg leans out (stance)
+  for (const leg of rig.legs) {
+    const front = leg.userData.row === 0, b = -legH - legW * 0.2;
+    const Y = ([y, z]) => [y < 0 ? y * ly : y, z];   // (drawn 34 long, stretched to legH below the joint)
+    if (front) {
+      seg(leg, [7, 0], Y([-12, 0.5]), 11, 12, DEEP[1], 1.2);
+      seg(leg, Y([-11, 0.5]), Y([-24, -0.5]), 8.6, 9.2, DEEP[1]);
+      seg(leg, Y([-24, -0.5]), Y([-31, 0.8]), 7.2, 7.8, DEEP[0], 0.7);
+      for (let y = -12; y > -26; y -= 2.2) K.box(leg, (K.r() - 0.5) * 3, y * ly, -5, 2, 3.4, 1.6, K.tone(FURL), 0.35);   // feathering down the back
+    } else {
+      seg(leg, [8, -1], Y([-12, 1]), 12, 14, DEEP[1], 1.1);   // (the thigh reaches up into the haunch: it never leaves the body)
+      seg(leg, Y([-11, 1]), Y([-19, 4]), 9, 10, DEEP[1]);
+      seg(leg, Y([-19, 4]), Y([-28, -3]), 7.2, 7.8, DEEP[0], 0.7);
+      seg(leg, Y([-28, -3]), Y([-33, -0.5]), 6.6, 7.2, DEEP[1], 0.6);
+      K.box(leg, 0, -28 * ly, -5.6, 3.6, 3.6, 2.8, FUR[2]);
+    }
+    K.cracks(leg, [0, -17 * ly, 0], [12.5, 22 * ly, 12.5], { n: 6, cols: MAGMA, rim: MAGMA_RIM, rimKit: RK, faces: 'lrf', len: [4, 9], cell: 0.9 });
+    const paw = group(leg, 0, b, 0, 0, 0, -(rig.spec.stance ?? 0) * leg.userData.side);   // (level, though the leg leans out)
+    K.box(paw, 0, 2.2, 1.6, 10.6, 4.4, 11.4, DEEP[1]);
+    K.box(paw, 0, 5, 0.6, 7.6, 2.4, 8, DEEP[0]);
+    for (const dx of [-3.9, -1.3, 1.3, 3.9]) {
+      K.box(paw, dx, 1.9, 7.6, 2.4, 3.8, 3.8, K.tone([FUR[0], DEEP[1]]));
+      K.box(paw, dx, 1.3, 10, 1.5, 2.4, 3.2, claw, 0.45);
+      K.box(paw, dx, 0.5, 11.4, 0.9, 1.2, 1.4, 0xffb000);
+    }
+    K.box(paw, 0, 1.5, -4.6, 3, 2.8, 2.4, DEEP[1]);   // the heel pad
+  }
+  // ---- tail: a shaggy rope with a smouldering, smoking tip
+  const tl = spec.tailLen / spec.tail;
+  for (const [i, sg] of rig.tail.entries()) {
+    const w = spec.tailW * (1 - i * 0.12);
+    K.box(sg, 0, 0, -tl / 2, w, w, tl + 0.6, DEEP[1]);
+    K.clumps(sg, [0, 0, -tl / 2], [w, w, tl], { n: Math.round(12 * fe), size: [1.4, 2.4 - i * 0.15], cols: FUR, faces: 'tlrb', stretch: [1, 1, 1.4] });
+  }
+  const tip = rig.tailTip;
+  K.box(tip, 0, 0, -tl - 1.2, 3, 3, 3, LAVA[0]); K.box(tip, 0, 1.6, -tl - 2.6, 2, 2.6, 2, LAVA[1]); K.box(tip, 0.6, 3.4, -tl - 2.2, 1.2, 2, 1.2, 0xffd040);
+  K.box(tip, 0, 6, -tl - 3, 2.2, 2.2, 2.2, SMOKE[0]); K.box(tip, 0.6, 8.6, -tl - 3.6, 1.6, 1.6, 1.6, SMOKE[1]); K.box(tip, -0.3, 10.6, -tl - 4, 1.1, 1.1, 1.1, SMOKE[2]);
+  K.done(); RK.done();
+  return rig;
+}
+// The hellhound pup (vox-enemies, top left; spec PUP): a young hellhound a
+// head taller than Percy, Mrs O'Leary's size of "puppy", friendly-menacing.
+// Built like bigHound at the heroes' voxel size, so its size buys detail:
+// a thick fluffy coat of soot-black clumps over a round barrel of a body,
+// a soft ridge of hackles with ember tips, glowing magma cracks in red rims;
+// a big round head with full cheeks, a short muzzle, big molten eyes under a
+// soft scowl, half-folded ears lined with embers, small fangs over pink gums
+// in a dark mouth; short thick legs on oversized paws with four toes, amber
+// claws and embers glowing between the toes; a stubby curled tail with a
+// smouldering tip. rig.extras.trunk names the chest and haunch blocks the
+// legs are rooted in (perf/houndlegs.cjs).
+function bigPup(id, spec, { cracks = 10 } = {}) {
+  const mat = skinMat(id, (S) => { lavaDog({ cracks, base: 0x2e2529 })(S); S.saturate(1.3); }, { emit: 0.5 });
+  const rig = new QuadRig({ material: mat, ...spec });
+  const K = kit(rig, mat, { seed: 5, emit: 1.2 });
+  const RK = kit(rig, mat, { seed: 55, emit: 0.4, fill: 0 });   // (the magma's deep red rims, as bigHound)
+  const { legH, legW, hs } = rig.dims, T = rig.torso, Hd = rig.head, M = rig.mouth, N = rig.neck;
+  for (const g of [T, Hd, M, ...rig.legs, ...rig.tail]) dropMeshes(rig, g);
+  // (a champion is built finer, parts.js BUILD.k: the clump counts grow with k only)
+  const D = BUILD.k, fe = 0.55 / D, ss = 1.35 * Math.sqrt(D), FURL = [...FUR, 0x5a4a54], fang = 0xe6dcc0, claw = 0xe0a428;
+  const GUM = 0xb8344a, MAW = 0x1a0909, side = (sx) => (sx < 0 ? 'l' : 'r');
+  // a limb segment from a to b ([y, z] in the part's frame), coated in short blocky fur
+  const seg = (p, a, b, w, d, col, coat = 1) => {
+    const y = (a[0] + b[0]) / 2, z = (a[1] + b[1]) / 2, l = Math.hypot(a[0] - b[0], a[1] - b[1]) + w * 0.3, rx = Math.atan2(a[1] - b[1], a[0] - b[0]);
+    K.box(p, 0, y, z, w, l, d, col, rx);
+    const n = Math.round(l * (w + d) * 0.12 * coat * D), c = Math.cos(rx), sn = Math.sin(rx);
+    for (let i = 0; i < n; i++) {
+      const f = K.r(), u = (K.r() - 0.5) * l, sz = (1.2 + K.r() * 1.2) / Math.sqrt(D);
+      let x = (K.r() - 0.5) * w, zz = (K.r() - 0.5) * d;
+      if (f < 0.35) x = Math.sign(x || 1) * (w / 2 + 0.15); else if (f < 0.65) zz = Math.sign(zz || 1) * (d / 2 + 0.15); else if (f < 0.85) x = -w / 2 - 0.15; else x = w / 2 + 0.15;
+      K.box(p, x, y + u * c - zz * sn, z + u * sn + zz * c, sz, sz * 1.4, sz, K.tone(FUR, 0.16), rx);
+    }
+  };
+  // ---- trunk (20 x 16 x 26): a round puppy barrel, a deep fluffy chest,
+  // a soft belly and plump haunches round the hind legs' roots
+  K.box(T, 0, 0.5, 6, 20, 16, 14, DEEP[1]);          // chest and shoulders
+  K.box(T, 0, -7.5, 8.5, 13, 4, 8, DEEP[0]);         // the brisket
+  K.box(T, 0, 1, -3.5, 18, 13.5, 7, DEEP[1]);        // belly
+  K.box(T, 0, 0.5, -8.5, 19, 15, 9, DEEP[1]);        // haunches
+  rig.extras.trunk = { chest: [-10, -7.5, -1, 10, 8.5, 13], haunch: [-9.5, -7, -13, 9.5, 8, -4] };   // (skin px, torso space: perf/houndlegs.cjs)
+  for (const sx of [-1, 1]) {
+    K.clumps(T, [sx * 10.2, 1.5, 7], [1.6, 11, 10], { n: Math.round(20 * fe), size: [2, 3.2], cols: FURL, faces: side(sx), out: 0.3, stretch: [1, 1.2, 1] });   // shoulder
+    K.clumps(T, [sx * 9.7, 1, -8.5], [1.6, 11, 7.5], { n: Math.round(18 * fe), size: [2, 3.2], cols: FURL, faces: side(sx), out: 0.3 });                   // haunch
+  }
+  // the coat: thick tufts hanging down the sides, fluff along the back
+  K.shag(T, [0, 0.5, 6], [20, 16, 14], { cols: FUR, step: 2.4 * ss, len: [2.2, 3.6], w: 1.4, low: 0.62, ember: 0.08, embers: LAVA, top: false });
+  K.shag(T, [0, 1, -3.5], [18, 13.5, 7], { cols: FUR, step: 2.2 * ss, len: [2, 3.2], w: 1.3, low: 0.55, top: false, sweep: 0.5 });
+  K.shag(T, [0, 0.5, -8.5], [19, 15, 9], { cols: FUR, step: 2.4 * ss, len: [2.2, 3.4], w: 1.4, low: 0.62, top: false, sweep: 0.4 });
+  K.shag(T, [0, 0.5, 0], [18, 16, 24], { cols: FUR, step: 2.6 * ss, len: [2, 3.4], w: 1.3, sides: false, bristle: 0.6 });
+  K.clumps(T, [0, -1, 13.1], [18, 14, 1], { n: Math.round(40 * fe), size: [2, 3.2], cols: FURL, faces: 'f', stretch: [1, 1.4, 1] });   // the fluffy bib
+  K.clumps(T, [0, 0.5, -13.1], [17, 13, 1], { n: Math.round(20 * fe), size: [1.8, 3], cols: FUR, faces: 'k' });                       // the rump
+  for (let z = -10; z < 13; z += 3.6) for (let x = -6.5; x <= 6.5; x += 4.4) {                                                       // fringe under the belly
+    const l = 1.6 + K.r() * 1.8, y0 = z > 4.5 && Math.abs(x) < 6.5 ? -9.5 : -7.5; K.box(T, x + (K.r() - 0.5), y0 - l / 2 + 1, z, 2.4, l, 2.4, K.tone(FUR), 0.3);
+  }
+  // a soft ridge of hackles down the spine, tallest over the shoulders, ember-tipped
+  for (let z = 12; z > -13; z -= 2.6) {
+    const k = Math.max(0.4, 1 - Math.abs(z - 5) / 22), h = 3.2 * k + K.r() * 1.5;
+    K.box(T, (K.r() - 0.5) * 1.2, 8.5 + h / 2 - 0.6, z, 2.2, h, 2.4, K.tone([DEEP[0], DEEP[1], FUR[3]]), -0.6);
+    for (const sx of [-1, 1]) if (K.r() < 0.5) K.box(T, sx * 2.2, 8.3 + h * 0.3, z + 0.4, 1.6, h * 0.65, 2, K.tone(FUR), -0.6, 0, sx * 0.4);
+    if (K.r() < 0.4) K.box(T, 0, 8.5 + h - 0.3, z - h * 0.55, 1, 1, 1, LAVA[K.r() < 0.4 ? 1 : 0]);
+  }
+  // lava veins drawn over the fur (outside the tufts, so they read from afar)
+  K.cracks(T, [0, -0.5, 6], [23, 12, 13], { n: Math.round(cracks * 1.2), cols: MAGMA, rim: MAGMA_RIM, rimKit: RK, faces: 'lr', len: [4, 8], cell: 0.9 });
+  K.cracks(T, [0, 0, -8.5], [22.4, 11, 8], { n: Math.round(cracks * 0.8), cols: MAGMA, rim: MAGMA_RIM, rimKit: RK, faces: 'lr', len: [4, 7], cell: 0.9 });
+  K.cracks(T, [0, -2, 6], [16, 10, 18.4], { n: 3, cols: MAGMA, rim: MAGMA_RIM, rimKit: RK, faces: 'f', len: [3, 5], cell: 0.9 });
+  for (let z = 5; z < 13; z += 2.6) K.box(T, (K.r() - 0.5) * 6, -9.6, z, 3 + K.r() * 4, 0.4, 0.8, LAVA[K.r() < 0.3 ? 1 : 0]);   // the furnace glows under the chest
+  // ---- neck: short and thick under a fluffy ruff
+  K.box(N, 0, -4.5, -2.5, 13, 13, 10, DEEP[1], 0.2);
+  K.clumps(N, [0, -4.5, -2.5], [13, 13, 10], { n: Math.round(46 * fe), size: [2, 3.4], cols: FUR, faces: 'lrtb', stretch: [1, 1.3, 1.2] });
+  K.cracks(N, [0, -4.5, -2.5], [16, 9, 8], { n: 3, cols: MAGMA, rim: MAGMA_RIM, rimKit: RK, faces: 'lr', len: [3, 6], cell: 0.9 });
+  // ---- head (QuadRig head frame: the skull round z = 7, the face at z = 16),
+  // drawn at headS 20 and scaled to the spec's head (as bigHound): big and
+  // round for a puppy, a domed brow, fluffy cheeks, a short muzzle
+  const k = hs / 20, fz = 16, sc = (v) => v.map((q) => q * k);
+  const HB = (p, x, y, z, w, h, d, col, rx = 0, ry = 0, rz = 0) => K.box(p, x * k, y * k, z * k, w * k, h * k, d * k, col, rx, ry, rz);
+  HB(Hd, 0, 1.5, 7, 20, 17, 18, DEEP[1]);                                         // skull
+  HB(Hd, 0, 10.6, 6.5, 16, 2.4, 15, DEEP[1]);                                     // the dome
+  HB(Hd, 0, -4, 8, 21, 7, 13, DEEP[1]);                                           // cheeks
+  for (const sx of [-1, 1]) {
+    HB(Hd, sx * 4.8, 3.8, fz + 0.3, 6.4, 5.2, 0.6, 0x050304);                    // eye socket
+    HB(Hd, sx * 4.8, 3.8, fz + 0.6, 5, 4, 0.4, 0xff3000);                        // big molten eye
+    HB(Hd, sx * 4.1, 4.5, fz + 0.85, 2.2, 2, 0.3, 0xffd040);                     // its bright core
+    HB(Hd, sx * 6, 2.5, fz + 0.85, 1.2, 1, 0.3, 0xff8a20);
+    for (let j = 0; j < 3; j++) HB(Hd, sx * (2.2 + j * 2.5), 7.2 + j * 0.5, fz + 0.7 - j * 0.3, 2.7, 1.8, 2.2, K.tone([0x0e0b0d, 0x161215]));   // a soft scowl
+    // ears: big puppy ears, standing at the root and folding forward at the tip, ember-lined
+    HB(Hd, sx * 6.4, 12.4, 3, 5.6, 4.8, 2.4, DEEP[0], 0, 0, -sx * 0.22);
+    HB(Hd, sx * 6.9, 12.6, 4.3, 3.4, 3.4, 0.4, 0xd83a0a, 0, 0, -sx * 0.22);
+    HB(Hd, sx * 7.2, 15, 4.4, 4.8, 2, 3.6, DEEP[0], 0.9, 0, -sx * 0.22);
+    HB(Hd, sx * 7.4, 14.4, 6.3, 4, 1.4, 1.6, DEEP[1], 1.3, 0, -sx * 0.22);
+    K.clumps(Hd, sc([sx * 6.4, 12.2, 1.6]), sc([5.6, 4.6, 0.4]), { n: Math.round(8 * fe), size: [1, 1.6], cols: FUR, faces: 'k' });
+  }
+  K.shag(Hd, sc([0, 1.5, 7]), sc([20, 17, 18]), { cols: FUR, step: 2.1 * ss, len: [1.6, 2.6], low: 0.5, bristle: 0.85, sweep: 0.5 });
+  K.clumps(Hd, sc([0, -4, 7.5]), sc([21, 7, 12]), { n: Math.round(40 * fe), size: [1.8, 3], cols: FURL, faces: 'lrb', out: 0.25, stretch: [1, 1.2, 1] });   // cheek fluff
+  K.clumps(Hd, sc([0, 1.5, 7]), sc([20, 17, 18]), { n: Math.round(30 * fe), size: [1, 1.8], cols: FURL, faces: 'f', out: 0.2, keep: (x, y) => y / k > 8.4 || (y / k > -1 && Math.abs(Math.abs(x / k) - 4.8) > 3.6) });
+  K.cracks(Hd, sc([0, 3, 4]), sc([22.5, 8, 10]), { n: 4, cols: MAGMA, rim: MAGMA_RIM, rimKit: RK, faces: 'lr', len: [2, 4], cell: 0.9 });
+  // the muzzle, short, with the nose flush with its tip
+  HB(Hd, 0, -2.5, 20, 11, 8, 8, DEEP[1]);
+  HB(Hd, 0, 1.9, 19.2, 7, 1.4, 6, DEEP[2], 0.12);
+  for (let i = 0; i < 3; i++) HB(Hd, 0, 2.2 - i * 0.2, 17.2 + i * 1.6, 7.6, 0.5, 0.7, 0x0a0708);   // snarl wrinkles
+  K.clumps(Hd, sc([0, -2.5, 20]), sc([11, 8, 8]), { n: Math.round(18 * fe), size: [0.8, 1.4], cols: [DEEP[0], DEEP[2], FUR[0], FUR[1]], faces: 'lrt', out: 0.2, keep: (x, y) => y / k > -5 });
+  HB(Hd, 0, 0, 23.6, 6, 3.6, 1.2, 0x050404);                                     // nose
+  HB(Hd, 0, 1.1, 24.25, 3.6, 0.9, 0.3, 0x2a2428);
+  // the mouth: dark inside, pink gums only along the jaws, small fangs out of them
+  for (const sx of [-1, 1]) {
+    HB(Hd, sx * 5.6, -5.6, 20, 0.5, 0.9, 7, LAVA[0]);                            // the furnace glows through the lips
+    HB(Hd, sx * 3.9, -8.4, 22.4, 1.6, 3, 1.6, fang, 0.12);                       // upper canines
+    for (let i = 0; i < 3; i++) HB(Hd, sx * 4.6, -7.7, 20.8 - i * 1.8, 0.9, 1.7 - i * 0.2, 0.9, fang);
+    HB(Hd, sx * 4.9, -8.2, 19.5, 0.4, 2.6, 6, MAW);                              // the cheeks inside
+    HB(Hd, sx * 4.6, -6.85, 20, 1.6, 0.6, 7.4, GUM);                             // the upper gums
+  }
+  for (let x = -1.8; x <= 1.81; x += 1.2) HB(Hd, x, -7.5, 23.3, 0.8, 1.4, 0.8, fang);
+  HB(Hd, 0, -6.6, 20, 9, 0.4, 7, MAW);                                           // the roof of the mouth
+  HB(Hd, 0, -6.85, 23.2, 7.6, 0.6, 1.2, GUM);
+  // the jaw (QuadRig's mouth hinge, 15 px forward of the skull's centre at headS 20)
+  HB(M, 0, -2.2, 4.8, 10, 4.2, 9.6, DEEP[1]);
+  HB(M, 0, -4.6, 5.5, 8, 1.6, 6, DEEP[0]);
+  HB(M, 0, 0.05, 4.8, 7.4, 0.4, 8.4, MAW);
+  HB(M, 0, 0.35, 3.8, 4, 0.5, 5.6, 0x5a1620);                                    // the tongue
+  HB(M, 0, 0.3, 9.2, 7.6, 0.6, 1.2, GUM);
+  for (const sx of [-1, 1]) {
+    HB(M, sx * 3.6, 1.8, 8.8, 1.4, 3, 1.4, fang, -0.1);
+    for (let i = 0; i < 3; i++) HB(M, sx * 4, 0.9, 7 - i * 1.8, 0.9, 1.5, 0.9, fang);
+    HB(M, sx * 3.9, 0.3, 4.8, 1.6, 0.6, 8.4, GUM);
+    HB(M, sx * 5.1, -0.4, 4.8, 0.4, 0.7, 9, LAVA[0]);
+    HB(M, sx * 4.7, 1.1, 4.5, 0.4, 1.8, 6, MAW);
+  }
+  K.clumps(M, sc([0, -2.6, 4.8]), sc([10, 4.4, 9.6]), { n: Math.round(12 * fe), size: [1.3, 2.2], cols: FUR, faces: 'blr' });
+  // ---- legs: sturdy and fluffy, their roots buried in the body (QuadRig
+  // legY), on big puppy paws planted flat though the leg leans out
+  const ly = legH / 19;   // (drawn 19 long, stretched to legH below the joint)
+  const Y = ([y, z]) => [y < 0 ? y * ly : y, z];
+  for (const leg of rig.legs) {
+    const front = leg.userData.row === 0, b = -legH - legW * 0.2;
+    if (front) {
+      seg(leg, [4, 0], Y([-9, 0.6]), 9, 9.4, DEEP[1], 1.3);
+      seg(leg, Y([-8.5, 0.6]), Y([-18.4, 0]), 7.8, 8.2, DEEP[0], 0.8);
+      for (let y = -3; y > -14; y -= 2.4) K.box(leg, (K.r() - 0.5) * 3, y * ly, -4.5, 2.2, 3.2, 1.8, K.tone(FURL), 0.35);   // feathering down the back
+    } else {
+      seg(leg, [5, -1], Y([-8, 1.6]), 10, 10.6, DEEP[1], 1.3);   // the plump thigh, up into the haunch
+      seg(leg, Y([-7.5, 1.6]), Y([-13, -1.4]), 8.2, 8.6, DEEP[1]);
+      seg(leg, Y([-13, -1.4]), Y([-18.4, 0]), 7.6, 8, DEEP[0], 0.7);
+    }
+    K.cracks(leg, [0, -10.5 * ly, 0], [10, 11 * ly, 10], { n: 3, cols: MAGMA, rim: MAGMA_RIM, rimKit: RK, faces: 'lrf', len: [3, 6], cell: 0.9 });
+    const paw = group(leg, 0, b, 0, 0, 0, -(rig.spec.stance ?? 0) * leg.userData.side);
+    K.box(paw, 0, 2.3, 1.6, 11, 4.6, 12, DEEP[1]);
+    K.box(paw, 0, 5.2, 0.4, 8.4, 2.2, 8.4, DEEP[0]);
+    for (const dx of [-4.1, -1.37, 1.37, 4.1]) {
+      K.box(paw, dx, 2, 8, 2.6, 4, 4, K.tone([FUR[0], DEEP[1]]));                  // toes
+      K.box(paw, dx, 1.4, 10.2, 1.6, 2.4, 2.6, claw, 0.45);
+      K.box(paw, dx, 0.6, 11.4, 0.9, 1.2, 1.2, 0xffb000);
+    }
+    for (const dx of [-2.74, 0, 2.74]) K.box(paw, dx, 2.1, 8.6, 0.3, 2.8, 2.6, LAVA[0]);   // embers glowing between the toes
+    K.box(paw, 0, 1.6, -4.2, 3.4, 3, 2.4, DEEP[1]);                                // the heel pad
+    K.clumps(paw, [0, 4.2, 1.6], [11, 1, 12], { n: Math.round(10 * fe), size: [1.4, 2.2], cols: FUR, faces: 'lrk' });
+  }
+  // ---- tail: stubby and fluffy, curled up, with a smouldering tip
+  const tl = spec.tailLen / spec.tail;
+  for (const [i, sg] of rig.tail.entries()) {
+    const w = spec.tailW * (1 - i * 0.1);
+    K.box(sg, 0, 0, -tl / 2, w, w, tl + 0.6, DEEP[1]);
+    K.clumps(sg, [0, 0, -tl / 2], [w, w, tl], { n: Math.round(16 * fe), size: [1.6, 2.6], cols: FUR, faces: 'tlrb', stretch: [1, 1, 1.3] });
+  }
+  const tip = rig.tailTip;
+  K.box(tip, 0, 0, -tl - 1, 3, 3, 2.4, LAVA[0]); K.box(tip, 0, 1.4, -tl - 2, 2, 2.2, 1.8, LAVA[1]); K.box(tip, 0.4, 3, -tl - 1.8, 1.1, 1.6, 1.1, 0xffd040);
+  K.box(tip, 0, 5, -tl - 2.4, 1.8, 1.8, 1.8, SMOKE[0]); K.box(tip, 0.5, 7, -tl - 2.8, 1.2, 1.2, 1.2, SMOKE[1]);
+  K.done(); RK.done();
+  return rig;
+}
 // A harpy as the 3D sheet draws it (vox-enemies, top row): an upright eagle
 // in layered golden-brown feathers with a pale scalloped breast, a hooked
 // gold beak under a heavy brow, glowing yellow eyes, feathered trousers, gold
@@ -450,7 +1116,12 @@ export function hound(id, spec, { fur: nFur = 80, cracks = 8, collar = true, pup
 // high. metal: bronze feathers sharp as knives (the Stymphalian birds).
 // pal: colour overrides (a champion's plumage), any of main, light, dark,
 // breast, tip, edge, gold, goldD, talon, eye.
-export function eagle(id, { scale = 1, metal = false, pal = null } = {}) {
+// form: 'eagle' (this upright eagle; Bronzebeak), 'woman' (the harpy as a
+// bird-woman; the default without metal, so Queen Gale too) or 'hunter' (the
+// level bronze Stymphalian bird); the last two are built below.
+export function eagle(id, { scale = 1, metal = false, pal = null, form = metal ? 'eagle' : 'woman' } = {}) {
+  if (form === 'woman') return harpyWoman(id, { scale, pal });
+  if (form === 'hunter') return bronzeHunter(id, { scale, pal });
   const P = { ...(metal
     ? { main: 0x9a5a18, light: 0xe0a030, dark: 0x5a2e0c, breast: 0xd8962a, tip: 0xf8c850, edge: 0xc8802a }
     : { main: 0x7a4818, light: 0xc88a38, dark: 0x3e220a, breast: 0xc89a5e, tip: 0xe0b060, edge: 0xb07a30 }), gold: 0xe8a820, goldD: 0xb87a10, talon: 0x1a120a, eye: 0xffd000, ...pal };
@@ -511,6 +1182,199 @@ export function eagle(id, { scale = 1, metal = false, pal = null } = {}) {
   rig.float = metal ? 1.1 : 0.9;
   return rig;
 }
+const toneHex = (c, k) => { const x = new THREE.Color(c); x.r = Math.min(0.9, x.r * k); x.g = Math.min(0.9, x.g * k); x.b = Math.min(0.9, x.b * k); return x.getHex(); };
+// A harpy as the books tell it (design brief vox-harpy; Queen Gale on
+// vox-ow-champions, top right): a bird-woman. A pale grey-green woman's face
+// with burning yellow eyes and a screeching fanged mouth under wild
+// storm-grey hair; ragged dark feathered wings where her arms should be, a
+// clawed thumb at each wrist; a body of ragged dark feathers that hangs in
+// torn strips past the hips; scaly yellow bird legs and black talons. She
+// stands upright, so from above she reads as a pale face and grey mane
+// between two dark wings: nothing like the level bronze Stymphalian.
+// pal: colour overrides (a champion's plumage), any of main, light, dark,
+// breast, tip, edge, skin, hair, gold, goldD, talon, eye.
+function harpyWoman(id, { scale = 1, pal = null } = {}) {
+  const P = { main: 0x3a3236, light: 0x5a5056, dark: 0x1c181c, breast: 0x4a4048, tip: 0x6a6270, edge: 0x2c2628, skin: 0xa8b8a0, hair: 0x747a84, gold: 0xe0b428, goldD: 0xa07a14, talon: 0x141010, eye: 0xffd000, ...pal };
+  const mouth = 0x2a0a0c, fang = 0xe8e0d0;
+  const mat = skinMat(id, (S) => {
+    paintPerson(S, { skin: P.skin, hair: P.hair, fringe: 2, hairSide: 5, hairBack: 8, eye: 0x1a1000, eyeWhite: P.eye, scowl: true, brow: P.dark, mouth: false, top: P.main, sleeve: P.main, hand: P.skin, pants: P.main, shoes: false,
+      face: (s, ey) => {
+        s.rect(8, ey - 1.5, 8, 1, P.dark, 0.1);
+        for (const x of [9, 13]) { s.rect(x, ey - 0.5, 2, 1.5, P.eye, 0); s.px(x === 9 ? 10 : 13, ey, 0x1a1000); }
+        s.rect(10, ey + 4.5, 4, 0.5, toneHex(P.skin, 0.7), 0);
+      },
+      body: (s) => { for (let i = 0; i < 80; i++) s.dot(16 + s.r() * 24, 20 + s.r() * 12, s.r() < 0.5 ? P.dark : P.light); } });
+    S.shadeLimbs(); S.saturate(1.1);
+  }, { emit: 1, rough: 0.9, res: 2 });
+  // (size audit, round 6: the vox-enemies sheet's upright bird stands about
+  // 1.1x its Percy beside its bird-like peers and the owner wants a harpy at
+  // least Percy's size. She is grown by sculpting more cells at the heroes'
+  // voxel size, not by scaling: a longer torso and long bird legs, the head
+  // kept at 7 px, so a bigger body gets a less childlike head, size spec
+  // design/sizes.json)
+  const bodyH = 16, bodyW = 7.5, LEG = 15;
+  const rig = new Rig({ material: mat, scale, armW: 3, legH: LEG, bodyD: 5, bodyW, bodyH, headS: 7 });
+  rig.armR.visible = rig.armL.visible = false;
+  for (const leg of [rig.legR, rig.legL]) dropMeshes(rig, leg);
+  dropMeshes(rig, rig.torso);
+  const K = kit(rig, mat, { seed: 53, rough: 0.9, emit: 0.7 });
+  const T = rig.torso, Hd = rig.head, hk = HS * 7 / 8, fz = 4 * hk, FE = [P.main, P.dark, P.light], RAG = [P.main, P.dark, P.edge];
+  // a lean grey-green body under a coat of ragged feathers: a scrawny bare
+  // neck and collarbone, a narrow chest over a narrower, pinched waist
+  K.box(T, 0, bodyH * 0.72, 0, bodyW - 1, bodyH * 0.56, 4.2, P.dark);
+  K.box(T, 0, bodyH * 0.24, 0, bodyW - 2.2, bodyH * 0.5, 3.4, P.dark);
+  K.box(T, 0, bodyH - 1.2, 1.6, 3.4, 2.4, 1.4, P.skin); K.box(T, 0, bodyH - 0.2, 0.2, 2.4, 1.8, 2.4, P.skin);
+  for (const sx of [-1, 1]) { K.box(T, sx * 1.3, bodyH - 0.9, 2.3, 1.6, 0.4, 0.4, toneHex(P.skin, 0.8), 0, 0, sx * 0.25); K.box(T, sx * 0.5, bodyH + 0.3, 1.25, 0.4, 1.6, 0.3, toneHex(P.skin, 0.78)); }   // collarbones, the cords of the neck
+  // breast feathers, row on row from the throat to the waist: each a pale
+  // vane with a darker tip and a light shaft down its middle
+  for (let r = 0, y = bodyH - 3; y > 1.5; r++, y -= 1.5) {
+    const half = y > bodyH * 0.45 ? 3.2 : 2.2;
+    for (let x = -half + (r % 2) * 0.75; x <= half + 0.01; x += 1.5) {
+      const z = y > bodyH * 0.45 ? 2.35 : 1.95, col = r < 3 ? [P.breast, P.main] : FE;
+      K.box(T, x, y, z, 1.5, 2.1, 0.8, K.tone(col, 0.12), -0.2);
+      K.box(T, x, y - 0.85, z + 0.2, 1.2, 0.5, 0.5, K.tone([P.dark, P.edge], 0.1), -0.2);
+      if ((r + Math.round(x * 2)) % 3 === 0) K.box(T, x, y + 0.2, z + 0.42, 0.25, 1.5, 0.2, P.tip, -0.2);
+    }
+  }
+  // the back: long overlapping feathers, then the sides
+  for (let y = bodyH - 1.5; y > 1; y -= 2.1) for (let x = -2.6; x <= 2.7; x += 1.3) { const z = y > bodyH * 0.45 ? -2.3 : -1.9; K.box(T, x, y, z, 1.5, 3, 0.8, K.tone(FE, 0.1), 0.2); if (K.r() < 0.4) K.box(T, x, y - 1.2, z - 0.35, 1, 0.8, 0.4, P.tip, 0.2); }
+  for (const sx of [-1, 1]) {
+    for (let y = bodyH - 1.8; y > 1.5; y -= 2) K.box(T, sx * (y > bodyH * 0.45 ? 3.5 : 2.9), y, 0, 0.8, 2.6, y > bodyH * 0.45 ? 4.4 : 3.6, K.tone(FE, 0.1), 0, 0, sx * 0.12);
+    // the shoulder where the wing meets the body: a mantle of long ragged feathers
+    for (let k = 0; k < 4; k++) K.box(T, sx * (2.4 + k * 0.7), bodyH - 0.3 - k * 0.45, 0.6 - k * 0.55, 2.2, 1.4, 3, K.tone(RAG, 0.1), 0, 0, sx * (0.35 + k * 0.1));
+  }
+  // the ragged feather skirt: two layers of long dark strips round the hips,
+  // torn at the ends, the outer layer longer and paler-tipped
+  for (const [n, rx, rz, Lmin, Lvar, w] of [[22, 3.5, 2.4, 5, 6, 1.4], [16, 3.1, 2.1, 3, 3, 1.6]]) for (let i = 0; i < n; i++) {
+    const a = (i + (n === 16 ? 0.5 : 0)) / n * Math.PI * 2, L = Lmin + K.r() * Lvar, x = Math.sin(a) * rx, z = Math.cos(a) * rz;
+    if (Math.abs(a - Math.PI * 0.5) < 0.22 || Math.abs(a - Math.PI * 1.5) < 0.22) continue;
+    K.flare(rig.hips, x, 1 - L / 2, z, w, L, 0.55, K.tone(RAG, 0.14), a, 0.22);
+    if (n === 22 && i % 2 === 0) K.flare(rig.hips, x * (1 + L * 0.04), 0.4 - L, z * (1 + L * 0.04), 0.7, 1.6, 0.45, K.tone([P.tip, P.dark], 0.1), a, 0.22);
+  }
+  // a ragged tail of long feathers, each with a shaft and a pale torn tip
+  for (let i = -3; i <= 3; i++) {
+    const L = 8 - Math.abs(i) * 0.9, ry = i * 0.16, c = [i * 0.95, 0.5, -1.4 - L / 2], u = [-Math.sin(ry), Math.cos(ry) * Math.sin(0.6), -Math.cos(ry) * Math.cos(0.6)];
+    K.box(rig.hips, c[0], c[1], c[2], 1.1, 0.55, L, K.tone(FE, 0.1), 0.6, ry, 0);
+    K.box(rig.hips, c[0] + u[0] * (L / 2 + 0.6), c[1] + u[1] * (L / 2 + 0.6), c[2] + u[2] * (L / 2 + 0.6), 1, 0.5, 1.4, P.tip, 0.6, ry, 0);
+    if (i % 2 === 0) K.box(rig.hips, c[0], c[1] + 0.3, c[2], 0.25, 0.2, L * 0.9, P.tip, 0.6, ry, 0);
+  }
+  // the head: wild storm-grey hair standing out on every side and spilling down the back
+  const hairC = [P.hair, toneHex(P.hair, 1.22), toneHex(P.hair, 0.72)];
+  K.clumps(Hd, [0, 6.6 * hk, -0.8], [8 * hk + 1, 2.6 * hk, 8 * hk + 0.6], { n: 18, size: [1.2, 2], cols: hairC, faces: 'tlrk', out: 0.1 });
+  // wild locks standing out all round the crown (shorter over the face)
+  for (let i = 0; i < 22; i++) {
+    const a = (i / 22) * Math.PI * 2 + K.r() * 0.2, front = Math.cos(a) > 0.75, t = front ? 0.5 + K.r() * 0.3 : 0.75 + K.r() * 0.7, L = front ? 2 + K.r() : 3.4 + K.r() * 3.4, r = 3.2 * hk;
+    const ux = Math.sin(a) * Math.sin(t), uy = Math.cos(t), uz = Math.cos(a) * Math.sin(t), bx = Math.sin(a) * r, by = 7.4 * hk - (front ? 0.4 : 0), bz = Math.cos(a) * r - 0.6;
+    K.flare(Hd, bx + ux * L / 2, by + uy * L / 2, bz + uz * L / 2, 1 + K.r() * 0.5, L, 1 + K.r() * 0.5, K.tone(hairC, 0.1), a + Math.PI, t);
+  }
+  for (let i = 0; i < 9; i++) K.box(Hd, -4 + i, 2.4 * hk - (i % 3) * 1.1, -fz - 1.1, 1.5, 8 + K.r() * 5, 1.4, K.tone(hairC, 0.08), 0.32, 0, (i - 4) * 0.13);
+  for (let i = 0; i < 6; i++) K.box(Hd, -3 + i * 1.2 + K.r() * 0.4, 2 * hk - K.r() * 2, -fz - 2.2, 1, 7 + K.r() * 4, 1, K.tone(hairC, 0.1), 0.42, 0, (i - 2.5) * 0.2);   // tangled strands lifting off the mane
+  for (const sx of [-1, 1]) for (let k = 0; k < 3; k++) K.box(Hd, sx * (fz + 0.5 + k * 0.3), 3.8 * hk - k * 0.8, 0.8 - k * 1.6, 1.2, 5 + K.r() * 3, 1.5, K.tone(hairC, 0.08), 0, 0, sx * (0.12 + k * 0.12));
+  // a heavy brow over burning yellow eyes, a gaping screech of fangs
+  K.box(Hd, 0, 5 * hk, fz + 0.25, 7 * hk, 0.9, 0.5, toneHex(P.skin, 0.62));
+  for (const sx of [-1, 1]) { K.box(Hd, sx * 1.9 * hk, 4.25 * hk, fz + 0.15, 1.9, 1.1, 0.3, P.eye); K.box(Hd, sx * 1.75 * hk, 4.25 * hk, fz + 0.3, 0.6, 0.7, 0.2, 0x140800); }
+  K.box(Hd, 0, 1.9 * hk, fz + 0.15, 2.4, 1.7, 0.3, mouth);
+  for (const x of [-0.75, 0.75]) { K.box(Hd, x, 2.5 * hk, fz + 0.3, 0.4, 0.6, 0.2, fang); K.box(Hd, x * 0.9, 1.35 * hk, fz + 0.3, 0.35, 0.5, 0.2, fang); }
+  // legs: ragged feathered thighs, then thin yellow scaly bird legs, three toes forward and one back, black talons
+  // (laid out on the 15 px leg: the thigh feathers to y -7, the scaly shank
+  // to the foot, the toes on the sole at -LEG)
+  for (const leg of [rig.legR, rig.legL]) {
+    K.box(leg, 0, -2.6, 0, 3.4, 5.2, 3.4, P.main);
+    // the feathered thigh: three rings of ragged feathers, each over the next
+    for (let r = 0; r < 3; r++) for (let i = 0; i < 6; i++) {
+      const a = i / 6 * Math.PI * 2 + r * 0.5, x = Math.sin(a) * 1.75, z = Math.cos(a) * 1.75, h = 2.2 + K.r() * 1.2;
+      K.flare(leg, x, -1.2 - r * 1.9 - h / 2, z, 1.4, h, 0.5, K.tone(r === 2 ? RAG : FE, 0.12), a, 0.18);
+    }
+    // the knee, then the shank: a thin yellow leg ringed with scales
+    K.box(leg, 0, -7.4, 0.2, 1.8, 1.4, 1.8, P.goldD);
+    K.box(leg, 0, -10.6, 0.2, 1.4, 6.6, 1.4, P.gold);
+    for (let y = -8.2; y > -14; y -= 0.75) K.box(leg, 0, y, 0.2, 1.7, 0.3, 1.7, P.goldD);
+    for (let y = -8.6; y > -13.6; y -= 1.5) K.box(leg, 0, y, 0.95, 1.1, 0.6, 0.2, toneHex(P.gold, 1.15));   // scutes down the front
+    K.box(leg, 0, -LEG + 1.3, 0.3, 1.9, 1.1, 2, P.goldD);   // the ankle
+    // three long jointed toes forward and one back, each ending in a black talon
+    for (const dx of [-1.15, 0, 1.15]) {
+      K.box(leg, dx, -LEG + 0.4, 1.4, 0.9, 0.8, 2.2, P.gold, 0, dx * 0.25, 0);
+      K.box(leg, dx * 1.18, -LEG + 0.45, 2.75, 0.75, 0.75, 1.1, P.goldD, 0, dx * 0.25, 0);
+      K.box(leg, dx * 1.28, -LEG + 0.2, 3.6, 0.6, 0.9, 1.2, P.talon, 0.45, 0, 0);
+    }
+    K.box(leg, 0, -LEG + 0.4, -1.1, 0.9, 0.8, 1.6, P.gold); K.box(leg, 0, -LEG + 0.2, -2.1, 0.6, 0.8, 0.9, P.talon);
+  }
+  // wings for arms, from the shoulders: dark ragged feathers, pale-tipped primaries
+  // (round 6: wider, deeper wings for the bigger body, about 2.3x her height
+  // tip to tip, with the feather structure drawn out: coverts in scalloped
+  // rows over the arm, the alula at the wrist, shafts on the long feathers)
+  const SPAN = 31, CH = 13.5;
+  const W = addWings(rig, { span: SPAN, chord: CH, kind: 'feather', y: bodyH - 1.4, flap: 1, seed: 57, cols: { main: P.main, tip: P.tip, edge: P.edge, dark: P.dark }, look: mat });
+  for (const w of W) {
+    const sd = w.side, inL = SPAN * 0.5;
+    w.root.position.set(sd * (bodyW / 2 + 0.4) * PX, (bodyH - 1.2) * PX, -0.2 * PX);
+    // two rows of small covert feathers over the arm bone, front and back,
+    // and the marginal coverts along the leading edge
+    for (let r = 0; r < 2; r++) for (let x = 0.8 + r * 0.6; x < inL - 0.4; x += 1.25) for (const zz of [0.95, -0.35]) {
+      K.box(w.root, sd * x, -CH * (0.08 + r * 0.17), zz + r * 0.1, 1.3, CH * 0.2, 0.4, K.tone(r ? [P.main, P.dark] : [P.light, P.main], 0.12));
+      if (zz > 0) K.box(w.root, sd * x, -CH * (0.08 + r * 0.17) - CH * 0.09, zz + 0.12, 1, 0.5, 0.3, P.tip);
+    }
+    for (let x = 0.6; x < inL; x += 0.9) K.box(w.root, sd * x, CH * 0.06 + 0.9, 0.3, 0.9, 0.6, 1.4, K.tone([P.edge, P.light], 0.1));
+    // pale shafts down the long secondaries
+    for (let i = 0; i < 5; i++) K.box(w.root, sd * (inL * (i + 0.5) / 5), -CH * 0.55, 0.36, 0.22, CH * 0.6, 0.15, P.tip);
+    // torn feathers hanging off the arm, and the clawed thumb at the wrist
+    for (let k = 0; k < 8; k++) { const h = 2 + K.r() * 5; K.box(w.root, sd * (1.2 + k * 1.85), -CH * 0.9 - h / 2, -0.2, 1, h, 0.4, K.tone([P.dark, P.tip], 0.1)); }
+    // the alula: a little tuft of stiff feathers at the wrist
+    for (let k = 0; k < 3; k++) K.box(w.elbow, sd * (0.6 + k * 0.5), 0.9 + k * 0.3, 0.6, 2.4 - k * 0.4, 0.6, 0.5, K.tone([P.light, P.edge], 0.1), 0, 0, sd * (0.3 + k * 0.12));
+    for (const dz of [-0.5, 0.5]) K.box(w.elbow, sd * 0.2, 1.2, 0.9 + dz, 0.5, 2.4, 0.5, P.talon, 0.6, 0, 0);
+  }
+  K.done();
+  rig.wingStroke = { base: 0.42, amp: 0.42, hand: 0.45, down: 0.4 };
+  rig.hunch = 0.18;
+  rig.float = 0.9;
+  return rig;
+}
+// A Stymphalian bird (vox-enemies; the brief: "bronze feathers sharp as
+// knives"): a sleek bronze bird of prey held level as it hunts, a long sharp
+// bronze beak thrust forward, a narrow head with burning red-orange eyes,
+// a back of overlapping metal knife-feathers, long narrow falcon wings and a
+// long tail of blades. From above: a bright bronze arrowhead, never upright.
+function bronzeHunter(id, { scale = 0.9, pal = null } = {}) {
+  const P = { main: 0xa86a26, light: 0xd8a040, dark: 0x5a3210, edge: 0xe0b048, tip: 0xe8d088, beak: 0xc89838, beakD: 0x6a4210, steel: 0x6a6460, talon: 0x1a120a, eye: 0xff5a10, ...pal };
+  const mat = skinMat(id, (S) => { paintPerson(S, { skin: P.main, hair: P.main, eye: P.eye, eyeWhite: P.eye, brow: P.dark, mouth: false, top: P.main, sleeve: P.main, hand: P.main, pants: P.dark, shoes: false }); S.saturate(1.2); }, { emit: 1, rough: 0.4 });
+  const rig = new Rig({ material: mat, scale, armW: 2, legH: 5, bodyH: 6, bodyW: 6, bodyD: 6, headS: 5, jacket: false });
+  rig.armR.visible = rig.armL.visible = false;
+  for (const g of [rig.torso, rig.head, rig.legR, rig.legL]) dropMeshes(rig, g);
+  const K = kit(rig, mat, { seed: 59, rough: 0.4, metal: 0.3, emit: 0.8 });
+  const T = rig.torso, Hd = rig.head, BR = [P.main, P.light, P.edge];
+  // a level, tapering body: a deep breast forward, the back narrowing to the tail
+  K.box(T, 0, 3, 0, 5.4, 4.6, 9, P.main); K.box(T, 0, 2.6, 4.4, 4.6, 4.2, 2.4, P.light); K.box(T, 0, 3.4, -5, 4, 3.4, 2.4, P.dark);
+  K.box(T, 0, 1, 1, 4.2, 1, 7, P.dark);
+  // knife-feathers in overlapping rows down the back and flanks, each a thin bright blade
+  for (let r = 0; r < 5; r++) for (let i = -1; i <= 1; i++) K.box(T, i * 1.7, 5.5 + (1 - Math.abs(i)) * 0.2, 3.6 - r * 2, 1.5, 0.5, 3.4, K.tone(BR, 0.1), -0.12, i * 0.1, 0);
+  for (const sx of [-1, 1]) for (let r = 0; r < 4; r++) { K.box(T, sx * 2.9, 3.4 - (r % 2) * 1.2, 3 - r * 2.2, 0.5, 1.2, 3.8, K.tone(BR, 0.1), 0, sx * 0.1, 0); K.box(T, sx * 3, 3.4 - (r % 2) * 1.2, 0.8 - r * 2.2, 0.4, 0.6, 1.2, P.tip, 0, sx * 0.1, 0); }
+  // the neck reaches forward, the head thrust ahead of the body
+  K.box(T, 0, 4.6, 6, 3.2, 3, 2.6, P.main, -0.4);
+  rig.neck.position.set(0, 4.4 * PX, 7 * PX);
+  K.box(Hd, 0, 1.4, 0.6, 3.4, 3, 4.2, P.main); K.box(Hd, 0, 2.9, 0.2, 2.6, 0.6, 3.6, P.light);
+  for (const sx of [-1, 1]) { K.box(Hd, sx * 1.75, 1.9, 1.5, 0.3, 1, 1.6, P.eye); K.box(Hd, sx * 1.85, 1.9, 1.7, 0.2, 0.5, 0.6, 0x1a0800); K.box(Hd, sx * 1.6, 2.6, 1.4, 0.5, 0.5, 2.4, P.dark, 0, 0, sx * 0.2); }
+  for (let i = 0; i < 4; i++) K.box(Hd, (i - 1.5) * 0.7, 2.9, -1.6 - i * 0.3, 0.5, 0.5, 3, K.tone([P.edge, P.tip], 0.1), 0.25, (i - 1.5) * 0.12, 0);   // swept-back crest blades
+  // the long sharp bronze beak, darker at its hooked point
+  K.box(Hd, 0, 1.5, 3.4, 2.2, 1.8, 2, P.beak); K.box(Hd, 0, 1.4, 5.2, 1.5, 1.3, 2, P.beak); K.box(Hd, 0, 1.25, 6.8, 0.9, 0.9, 1.6, P.beakD); K.box(Hd, 0, 0.8, 7.6, 0.5, 0.9, 0.5, P.beakD);
+  K.box(Hd, 0, 0.5, 4.4, 1.3, 0.5, 3.4, P.beakD);
+  // a long tail of blades, flat and slightly spread
+  for (let i = -2; i <= 2; i++) { K.box(T, i * 0.9, 3.6, -9.6, 0.9, 0.4, 8.6 - Math.abs(i) * 0.8, K.tone(BR, 0.08), 0.08, i * 0.1, 0); K.box(T, i * 0.9 + i * 0.1 * -4.6, 3.6 - 0.4, -13.8 + Math.abs(i) * 0.4, 0.8, 0.45, 1.2, P.tip, 0.08, i * 0.1, 0); }
+  // short legs tucked under: dark feathered thighs, steel shanks, gripping toes and talons
+  for (const leg of [rig.legR, rig.legL]) {
+    K.box(leg, 0, -0.6, 0.6, 2, 2.2, 2.4, P.dark);
+    K.box(leg, 0, -3, 1, 1, 2.8, 1, P.steel);
+    for (const dx of [-0.8, 0, 0.8]) { K.box(leg, dx, -4.6, 2, 0.7, 0.7, 2, P.beak, 0, dx * 0.3, 0); K.box(leg, dx * 1.2, -4.8, 3.1, 0.5, 0.8, 0.8, P.talon, 0.5, 0, 0); }
+    K.box(leg, 0, -4.6, 0.1, 0.6, 0.7, 1.4, P.beak);
+  }
+  // long narrow falcon wings of bronze blades
+  const W = addWings(rig, { span: 26, chord: 8, kind: 'feather', y: 5, flap: 1.4, seed: 61, cols: { main: P.main, tip: P.tip, edge: P.edge, dark: P.dark }, look: mat });
+  for (const w of W) w.root.position.set(w.side * 2.4 * PX, 5.2 * PX, 1.4 * PX);
+  K.done();
+  rig.wingStroke = { base: 0.22, amp: 0.4, hand: 0.35, down: 0.42 };
+  rig.float = 1.2;
+  rig.dims.headS = 2.6;   // the small low head (a champion's crown sits on it, not a hand above it)
+  return rig;
+}
 // Hephaestus's bronze spider (vox-enemies, top row): a boxy riveted body
 // in bronze and dark-bronze bands, a big chequered abdomen, two furnace eyes
 // over a row of small ones, cream fangs, and eight thick jointed legs that
@@ -523,46 +1387,95 @@ export function bronzeSpider(id, { scale = 1, queen = false } = {}) {
       for (let x = 0; x < 40; x += 4) s.rect(x, 24, 1, 8, dark, 0);          // riveted seams on the body
       for (let i = 0; i < 18; i++) s.px(Math.floor(s.r() * 40), 16 + Math.floor(s.r() * 20), plate);
       s.rect(40, 18, 12, 1, plate, 0); s.rect(40, 22, 12, 1, dark, 0); s.rect(40, 25, 12, 1, dark, 0);
-    } }); S.saturate(1.25); }, { rough: 0.4, emit: 1.2 });
+    } }); S.saturate(1.25); }, { rough: 0.4, emit: 1.2, scale });
   const rig = new QuadRig({ material: mat, scale, bodyL: 8, bodyW: 7, bodyH: 5, legH: 9, legW: 2.3, headS: 6.4, legs: 8, splay: 2.15, footL: 13, kneeOut: 0.5, legY: 2.4, snout: false, neckUp: -1.6, headZ: -0.6, gait: 1.6 });
-  const K = kit(rig, mat, { seed: queen ? 31 : 13, rough: 0.5, metal: 0.1, emit: 0.7 });
+  // The queen is the spider at boss size (scale 2.6): built from cells near a
+  // hero's size (kit density, VoxKit.vox), not the small spider's slabs made
+  // big. Her plates show their grain and rivets, her legs are jointed, banded
+  // and spurred, and her abdomen is a fine chequer of bronze blocks.
+  // (pass 3: a spider built big, the Road West champion at 1.7, takes the
+  // queen's fine build too, without her crown and gears: fine)
+  const fine = queen || BUILD.k >= 1.5;
+  const DQ = fine ? densityFor(scale) / 1.25 : 1;
+  const K = kit(rig, mat, { seed: queen ? 31 : 13, rough: 0.5, metal: 0.1, emit: 0.7, density: fine ? DQ : undefined });
   const { legW, hs } = rig.dims;
+  // a plate: grained cells on the queen, one box on the small spiders
+  const PL = (p, x, y, z, w, h, d, cols, o = {}) => (fine ? K.vox(p, x, y, z, w, h, d, cols, { relief: 0.1, j: 0.14, ...o }) : K.box(p, x, y, z, w, h, d, cols[0], o.rx ?? 0, o.ry ?? 0, o.rz ?? 0));
+  // the same in a knee's frame (K.boxZ)
+  const PZ = (g, x, y, z, w, h, d, cols) => {
+    if (!fine) return K.boxZ(g, x, y, z, w, h, d, cols[0]);
+    const rz = g.rotation.z, c = Math.cos(rz), sn = Math.sin(rz), P = g.position;
+    return K.vox(g.parent, P.x / PX + x * c - y * sn, P.y / PX + x * sn + y * c, P.z / PX + z, w, h, d, cols, { relief: 0.1, j: 0.14, rz });
+  };
   // legs fan fore and aft: plated upper legs, bolted knuckles, banded shins and dark pointed feet
   for (const leg of rig.legs) {
     const u = leg.userData; leg.rotation.y = -u.side * (0.75 - u.row * 0.5);
     dropMeshes(rig, leg);
-    K.box(leg, 0, 0, 0, 3, 3, 3, BRZ_D[0]);
-    K.box(leg, 0, -4.5, 0, legW + 0.2, 9, legW + 0.2, BRZ[u.row % 2]);
-    K.box(leg, 0, -6, 0, legW + 0.6, 4, legW + 0.6, BRZ[(u.row + 1) % 3]);
-    K.box(leg, 0, -4.5, 0, legW + 0.9, 1, legW + 0.9, BRZ_D[1]);
+    if (fine) {
+      PL(leg, 0, 0, 0, 2.8, 2.8, 2.8, [BRZ_D[0], BRZ_D[2]]);
+      for (const sx of [-1, 1]) { K.box(leg, sx * 1.5, 0, 0, 0.4, 1.8, 1.8, BRZ_D[1]); K.box(leg, sx * 1.75, 0, 0, 0.3, 0.7, 0.7, BRZ_L); }   // the hip's bolt
+      // a slimmer thigh: a dark strut inside, a bronze plate over its top and outer face
+      PL(leg, 0, -4.5, 0, legW - 0.4, 9, legW - 0.4, [BRZ_D[1], BRZ_D[0]]);
+      PL(leg, 0, -3.6, 0.5, legW + 0.2, 6.4, legW - 0.6, [BRZ[u.row % 2], BRZ[2]], { faces: 'tfklr' });
+      for (const y of [-1.2, -7.4]) K.box(leg, 0, y, 0, legW + 0.6, 0.6, legW + 0.6, BRZ_D[1]);
+      for (const y of [-2.4, -4.6]) for (const sx of [-1, 1]) K.box(leg, sx * (legW / 2 + 0.2), y, 0.5, 0.4, 0.5, 0.5, BRZ_L);   // rivets
+    } else {
+      K.box(leg, 0, 0, 0, 3, 3, 3, BRZ_D[0]);
+      K.box(leg, 0, -4.5, 0, legW + 0.2, 9, legW + 0.2, BRZ[u.row % 2]);
+      K.box(leg, 0, -6, 0, legW + 0.6, 4, legW + 0.6, BRZ[(u.row + 1) % 3]);
+      K.box(leg, 0, -4.5, 0, legW + 0.9, 1, legW + 0.9, BRZ_D[1]);
+    }
     const k = u.knee; dropMeshes(rig, k);
     K.boxZ(k, 0, 0, 0, 3.4, 3.4, 3.4, BRZ_D[2]);
-    K.boxZ(k, 0, -6.5, 0, legW * 0.8, 13, legW * 0.8, BRZ_D[1]);
     for (const sx of [-1, 1]) { K.boxZ(k, sx * 1.8, 0, 0, 0.5, 2.2, 2.2, BRZ_D[0]); K.boxZ(k, sx * 2.1, 0, 0, 0.4, 0.9, 0.9, BRZ_L); }
-    K.boxZ(k, 0, -4.2, 0, legW * 0.8 + 0.8, 5, legW * 0.8 + 0.8, BRZ[(u.row + 1) % 3]);
-    K.boxZ(k, 0, -6.9, 0, legW * 0.8 + 1, 0.8, legW * 0.8 + 1, BRZ_D[1]);
-    K.boxZ(k, 0, -9.4, 0, legW * 0.8 + 0.4, 3.6, legW * 0.8 + 0.4, BRZ_D[0]);
-    K.boxZ(k, 0, -12.4, 0, 1.2, 2.2, 1.2, BRZ_D[2]);
+    if (fine) {
+      // the shin: a tapering strut in three plated sections, a spur at each
+      // joint and a hooked, dark claw for a foot
+      PZ(k, 0, -6.5, 0, legW * 0.6, 13, legW * 0.6, [BRZ_D[1], BRZ_D[2]]);
+      PZ(k, 0, -3.6, 0, legW * 0.8 + 0.5, 4.2, legW * 0.8 + 0.5, [BRZ[(u.row + 1) % 3], BRZ[0]]);
+      PZ(k, 0, -8.2, 0, legW * 0.8 + 0.1, 3, legW * 0.8 + 0.1, [BRZ[u.row % 2], BRZ[2]]);
+      for (const y of [-1.4, -5.9, -9.9]) K.boxZ(k, 0, y, 0, legW * 0.8 + 0.8, 0.5, legW * 0.8 + 0.8, BRZ_D[1]);
+      K.boxZ(k, 0, -5.9, legW * 0.4 + 0.5, 0.6, 1.6, 0.8, BRZ_L, -0.6); K.boxZ(k, 0, -10, legW * 0.3 + 0.4, 0.5, 1.2, 0.6, BRZ_L, -0.6);
+      PZ(k, 0, -11.6, 0, 1.3, 2.4, 1.3, [BRZ_D[0], BRZ_D[2]]);
+      K.boxZ(k, 0, -13, 0.4, 0.8, 1.2, 1.3, 0x1a0e04);
+    } else {
+      K.boxZ(k, 0, -6.5, 0, legW * 0.8, 13, legW * 0.8, BRZ_D[1]);
+      K.boxZ(k, 0, -4.2, 0, legW * 0.8 + 0.8, 5, legW * 0.8 + 0.8, BRZ[(u.row + 1) % 3]);
+      K.boxZ(k, 0, -6.9, 0, legW * 0.8 + 1, 0.8, legW * 0.8 + 1, BRZ_D[1]);
+      K.boxZ(k, 0, -9.4, 0, legW * 0.8 + 0.4, 3.6, legW * 0.8 + 0.4, BRZ_D[0]);
+      K.boxZ(k, 0, -12.4, 0, 1.2, 2.2, 1.2, BRZ_D[2]);
+    }
   }
   // the abdomen: a big chequered dome of bronze blocks
   const ab = group(rig.torso, 0, 1.6, -8.6);
-  const AW = 11, AH = 9, AD = 12, c = 1.83;
-  for (let ix = 0; ix < 6; ix++) for (let iy = 0; iy < 5; iy++) for (let iz = 0; iz < 7; iz++) {
-    const edge = ix === 0 || ix === 5 || iy === 0 || iy === 4 || iz === 0 || iz === 6; if (!edge) continue;
-    const corners = (ix === 0 || ix === 5) + (iy === 4 || iy === 0) + (iz === 0 || iz === 6); if (corners >= 3 || (corners === 2 && iy === 0)) continue;
-    const x = -AW / 2 + c / 2 + ix * (AW - c) / 5, y = -AH / 2 + c / 2 + iy * (AH - c) / 4, z = -AD / 2 + c / 2 + iz * (AD - c) / 6;
-    const band = iz % 3 === 1, chk = (ix + iy + iz) % 2;
-    K.box(ab, x, y, z, c + 0.15, c + 0.15, c + 0.15, band ? BRZ_D[(ix + iy) % 3] : chk ? BRZ[0] : BRZ[(ix + iz) % 2 ? 2 : 1]);
+  // (the queen's is the same chequer at three blocks to each of the
+  // spider's, rounded off into a dome: the blocks near its corners drop)
+  const AW = 11, AH = 9, AD = 12, f = queen ? 3 : fine ? 2 : 1, NX = 6 * f, NY = 5 * f, NZ = 7 * f, c = 1.83 / f;
+  for (let ix = 0; ix < NX; ix++) for (let iy = 0; iy < NY; iy++) for (let iz = 0; iz < NZ; iz++) {
+    const edge = ix === 0 || ix === NX - 1 || iy === 0 || iy === NY - 1 || iz === 0 || iz === NZ - 1; if (!edge) continue;
+    const x = -AW / 2 + c / 2 + ix * (AW - c) / (NX - 1), y = -AH / 2 + c / 2 + iy * (AH - c) / (NY - 1), z = -AD / 2 + c / 2 + iz * (AD - c) / (NZ - 1);
+    if (fine) { if ((x / (AW * 0.62)) ** 2 + ((y + 1) / (AH * 0.66)) ** 2 + (z / (AD * 0.6)) ** 2 > 1.06 + K.r() * 0.08) continue; }
+    else { const corners = (ix === 0 || ix === 5) + (iy === 4 || iy === 0) + (iz === 0 || iz === 6); if (corners >= 3 || (corners === 2 && iy === 0)) continue; }
+    const jx = Math.floor(ix / f), jy = Math.floor(iy / f), jz = Math.floor(iz / f);
+    const band = jz % 3 === 1, chk = (jx + jy + jz) % 2;
+    const col = band ? BRZ_D[(jx + jy) % 3] : chk ? BRZ[0] : BRZ[(jx + jz) % 2 ? 2 : 1];
+    K.box(ab, x, y, z, c + 0.15 / f, c + 0.15 / f, c + 0.15 / f, fine ? K.tone([col], 0.12) : col);
+  }
+  // the queen: a seam of rivets down each band and a ridge of spines along the dome's top
+  if (queen) for (let i = 0; i < 7; i++) {
+    const z = -AD / 2 + 1 + i * (AD - 2) / 6, top = AH * 0.66 - 1 - Math.abs(z) * 0.2;
+    K.box(ab, 0, top + 1.6, z, 0.8, 2.4 - Math.abs(i - 3) * 0.3, 0.9, BRZ_L, -0.4);
+    for (const sx of [-1, 1]) K.box(ab, sx * 2.6, top + 0.5, z, 0.5, 0.5, 0.5, BRZ_L);
   }
   K.box(ab, 0, 0, 0, AW - 1, AH - 1, AD - 1, BRZ_D[0]);
   // a plated back with rivets and a dark mid-band
   const T = rig.torso;
-  K.box(T, 0, 2.9, 0, 7.8, 1, 7.4, BRZ[2]); K.box(T, 0, 3.5, 0, 2.4, 0.4, 7.6, BRZ_D[1]);
+  PL(T, 0, 2.9, 0, 7.8, 1, 7.4, [BRZ[2], BRZ[0]], { faces: 'tfklr' }); K.box(T, 0, 3.5, 0, 2.4, 0.4, 7.6, BRZ_D[1]);
   for (const [x, z] of [[-2.8, 2.8], [2.8, 2.8], [-2.8, -2.8], [2.8, -2.8], [-2.8, 0], [2.8, 0]]) K.box(T, x, 3.55, z, 0.8, 0.5, 0.8, BRZ_L);
-  for (const sx of [-1, 1]) K.box(T, sx * 3.7, 0, 0, 0.6, 3.4, 7.6, BRZ_D[2]);
+  for (const sx of [-1, 1]) PL(T, sx * 3.7, 0, 0, 0.6, 3.4, 7.6, [BRZ_D[2], BRZ_D[1]], { faces: sx < 0 ? 'l' : 'r' });
   // face: brow plate, two furnace eyes and four small ones, mandibles and cream fangs
   const Hd = rig.head, fz = hs * 0.35 + hs / 2;
-  K.box(Hd, 0, hs * 0.42, hs * 0.35, hs + 0.6, 1, hs + 0.4, BRZ[2]);
+  PL(Hd, 0, hs * 0.42, hs * 0.35, hs + 0.6, 1, hs + 0.4, [BRZ[2], BRZ[0]], { faces: 'tfklr' });
   K.box(Hd, 0, hs * 0.26, fz + 0.3, hs + 0.4, 0.9, 0.6, BRZ_D[0]);
   for (const sx of [-1, 1]) {
     K.box(Hd, sx * hs * 0.24, 0, fz + 0.15, 1.8, 1.6, 0.4, 0xff6a00); K.box(Hd, sx * hs * 0.24, 0, fz + 0.3, 0.8, 0.7, 0.3, 0xffd040);
@@ -576,7 +1489,9 @@ export function bronzeSpider(id, { scale = 1, queen = false } = {}) {
   rig.extras.abdomen = ab;
   if (queen) {
     // the queen: a crown of spikes, gears turning in her sides, a furnace glow
-    for (let i = -2; i <= 2; i++) K.box(Hd, i * 1.1, 3.6 + (2 - Math.abs(i)) * 0.6, 1, 0.9, 3 + (2 - Math.abs(i)) * 1.2, 0.9, BRZ_L, -0.3, 0, -i * 0.18);
+    // a crown of nine fine spikes on a riveted band
+    K.box(Hd, 0, 3.4, 1, hs + 0.2, 0.8, 1.4, BRZ_D[1], -0.3);
+    for (let i = -4; i <= 4; i++) { const h = 1.6 + (4 - Math.abs(i)) * 0.7; K.box(Hd, i * 0.62, 3.6 + h / 2, 1 - h * 0.15, 0.45, h, 0.5, BRZ_L, -0.3, 0, -i * 0.09); if (i % 2 === 0) K.box(Hd, i * 0.62, 3.4, 1.75, 0.35, 0.35, 0.3, 0xffd040); }
     const gears = [];
     for (const sx of [-1, 1]) { const gg = group(ab, sx * 5.9, 0.5, 0); for (let i = 0; i < 6; i++) K.box(gg, 0, 0, 0, 0.8, 1.4, 6.4, BRZ_L, i / 6 * Math.PI, 0, 0); K.box(gg, 0, 0, 0, 1, 2.6, 2.6, BRZ_D[0]); gears.push(gg); }
     rig.extras.gears = gears;
@@ -594,7 +1509,7 @@ export function bronzeSpider(id, { scale = 1, queen = false } = {}) {
 // curls, burning yellow eyes and a fanged grin, in a long ragged black dress
 // that flares into torn strips, gold straps, belt and bracelets, clawed grey
 // feet, huge tattered leather wings and a whip of fire.
-export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, wing = 0x5a3a26, dress = 0x1a1416, mouthGrin = true, seed = 61 } = {}) {
+export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, wing = 0x5a3a26, dress = 0x1a1416, mouthGrin = true, seed = 61, float = 0.8 } = {}) {
   const gold = 0xd89a28;
   const mat = skinMat(id, (S) => {
     paintPerson(S, { skin, eye: 0xffd84a, eyeWhite: 0xffd84a, scowl: true, brow: 0x5a5a56, wrinkles: 0x7a7266, fangs: 0xf4f0e0, grin: mouthGrin, frown: !mouthGrin, top: dress, sleeve: skin, hand: skin, shortSleeve: true, pants: dress, skirt: dress, skirtLen: 12, shoes: false, collar: dress,
@@ -606,26 +1521,43 @@ export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, win
         for (const [u, v] of [[40, 16], [32, 48]]) { s.rect(u, v + 13, 16, 1, gold, 0); for (let i = 0; i < 12; i++) s.dot(u + s.r() * 16, v + 4 + s.r() * 12, 0x8a8278); }
       } });
     S.shadeLimbs(); S.saturate(1.15);
-  }, { emit: 1, res: 2 });
-  const rig = new Rig({ material: mat, scale, bodyW: 7, armW: 3, legH: 10 });
+  }, { emit: 1, res: 2, scale });
+  // (round 7, head proportions, proportions.js: the plain Fury, 1.4x Percy,
+  // has a head 0.82 of a hero's skin cube; her looming sisters and Alecto,
+  // 1.9x, 0.66 of it (round 8: 0.58 went too far; the Fury of vox-enemies
+  // has a head about 0.185 of her height, design/sizes.json "headSheet"),
+  // their wild curls as big round it as before. Her trunk,
+  // arms and dress grow longer to keep her height; her legs are hidden by
+  // the dress and she hovers, so the leg rule leaves her be.)
+  const big = Math.max(0, Math.min(1, (scale - 2.1) / 0.4)), HF = 0.82 - 0.16 * big, TF = 1.1 + 0.08 * big, LF = 1.1 + 0.07 * big;
+  const rig = new Rig({ material: mat, scale, bodyW: 7, armW: 3, legH: 10, headS: 8 * HF });
+  reshape(rig, rig.torso, [1, TF, 1]); reshape(rig, rig.hips, [1, LF, 1]);
+  for (const g of [rig.armR, rig.armL]) reshape(rig, g, [1, TF, 1]);
+  rig.dims.legH = 10 * LF; rig.hips.position.y = rig.dims.legH * PX;
+  // a Fury drawn bigger than a hero (the plain Fury 2.1, the boss sisters 2.5
+  // and 2.8) is made of more, finer strips, curls and claws, not bigger ones;
+  // past Alecto's old 1.75 the strips grow instead, so the sisters cost no
+  // more triangles than before (size audit, round 4)
+  const D = Math.max(1, densityFor(Math.min(scale, 1.75)));
   for (const leg of [rig.legR, rig.legL]) dropMeshes(rig, leg);
   const K = kit(rig, mat, { seed, rough: 0.9 });
   const RAG = [dress, 0x241c20, 0x120e10, 0x2e2428, 0x1e1418];
   // the dress: four swaying panels of ragged strips that flare toward the hem
   const panels = [];
   for (let q = 0; q < 4; q++) {
-    const g = group(rig.hips, 0, 0.5, 0); panels.push(g);
-    for (let i = 0; i < 10; i++) {
-      const a = (q + i / 10) * Math.PI / 2 - Math.PI / 4, ca = Math.cos(a), sa = Math.sin(a);
+    const g = reshape(rig, group(rig.hips, 0, 0.5, 0), [1, LF, 1]); panels.push(g);
+    const nS = Math.round(10 * D);
+    for (let i = 0; i < nS; i++) {
+      const a = (q + i / nS) * Math.PI / 2 - Math.PI / 4, ca = Math.cos(a), sa = Math.sin(a);
       if (Math.abs(a) < 0.25 && i % 2 === 0) continue;                  // the slit up the front
       // an upper strip hanging close to the hips, then a lower one flaring out, then torn ends
       const L1 = 5.5, L2 = 6.5 + K.r() * 3.5, l3 = 1.5 + K.r() * 3.5;
       const x = sa * 3.7, z = ca * 2.5, f2 = 0.22, f3 = 0.4, col = K.tone(RAG, 0.15);
-      K.box(g, x, -L1 / 2 + 0.6, z, 1.7, L1, 1, col, -ca * 0.08, 0, sa * 0.08);
+      K.box(g, x, -L1 / 2 + 0.6, z, 1.7 / D, L1, 1, col, -ca * 0.08, 0, sa * 0.08);
       const y2 = -L1 + 0.6, ox2 = sa * (0.4 + L2 * Math.sin(f2) / 2), oz2 = ca * (0.4 + L2 * Math.sin(f2) / 2);
-      K.box(g, x + ox2, y2 - L2 * Math.cos(f2) / 2, z + oz2, 1.9, L2, 1, col, -ca * f2, 0, sa * f2);
+      K.box(g, x + ox2, y2 - L2 * Math.cos(f2) / 2, z + oz2, 1.9 / D, L2, 1, col, -ca * f2, 0, sa * f2);
       const y3 = y2 - L2 * Math.cos(f2), o3 = 0.4 + L2 * Math.sin(f2) + l3 * Math.sin(f3) / 2;
-      K.box(g, x + sa * o3, y3 - l3 * Math.cos(f3) / 2, z + ca * o3, 0.7 + K.r() * 0.7, l3, 0.6, K.tone(RAG, 0.1), -ca * f3, 0, sa * f3);
+      K.box(g, x + sa * o3, y3 - l3 * Math.cos(f3) / 2, z + ca * o3, (0.7 + K.r() * 0.7) / D, l3, 0.6 / D, K.tone(RAG, 0.1), -ca * f3, 0, sa * f3);
     }
     sway(rig, g, q % 2 ? 'z' : 'x', 0.06, 2.3, q * 1.3);
   }
@@ -636,19 +1568,27 @@ export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, win
   const T = rig.torso;
   K.box(T, 0, 3.6, 0, 7.6, 1.4, 4.6, gold); K.box(T, 0, 3.6, 2.4, 1.8, 1.8, 0.4, 0xf0c040);
   for (const sx of [-1, 1]) K.box(T, sx * 1.6, 8.5, 2.35, 0.7, 7.5, 0.3, gold, 0, 0, sx * 0.42);
-  for (let i = 0; i < 8; i++) K.box(T, -3.5 + i, 11.8, (i % 2 ? 2.2 : -2.2), 1.2, 1.6, 0.6, K.tone(RAG, 0.1));
+  for (let i = 0, n = Math.round(8 * D); i < n; i++) K.box(T, -3.5 + i * 7 / (n - 1), 11.8, (i % 2 ? 2.2 : -2.2), 1.2 / D, 1.6, 0.6, K.tone(RAG, 0.1));
   // arms: gold bracelets, bony knuckles and long dark claws
   for (const arm of [rig.armR, rig.armL]) {
     K.box(arm, 0, -7.3, 0, 3.6, 1.2, 4.6, gold); K.box(arm, 0, -5.9, 0, 3.5, 0.6, 4.5, 0xa87418);
     for (const dz of [-1.2, 0, 1.2]) K.box(arm, 0, -10.6, dz, 0.6, 1.6, 0.6, 0x2a2420);
   }
-  gridHair(rig, { style: 'curls', base: hair, shade: 0x8a8a86, light: 0xe8e8e4, seed, shape: { r: [6.9, 7.8, 6.6], bump: 0.5, tuft: 0.28, spike: 0.1, side: -1.5, back: -5 } }, mat);
+  const wild = 1 + 0.45 * (1 - HF);   // (the curls stand out further round a smaller head)
+  gridHair(rig, { style: 'curls', base: hair, shade: 0x8a8a86, light: 0xe8e8e4, seed, shape: { r: [6.9 * wild, 7.8 * wild, 6.6 * wild], bump: 0.5, tuft: 0.28, spike: 0.1, side: -1.5, back: -5 }, res: D }, mat);
   K.done();
-  const ws = Math.min(1.2, scale + 0.1);
-  addWings(rig, { span: 27 * ws, chord: 15, mat: solid(wing, 0, 0.9), tip: solid(0x3a2418, 0, 0.9), kind: 'bat', y: 10.5, bone: solid(0x2a1a10), cols: { dark: 0x24160e }, seed: seed + 5, look: mat });
+  // (past scale 1.5 the wings grow as the square root of her size, so a
+  // looming sister's span, 8.5 blocks for Alecto, stays about twice her height
+  // instead of nearly three times, well inside a 30-block boss arena)
+  const ws = Math.min(1.2, scale + 0.1) * Math.min(1, Math.sqrt(1.5 / scale));
+  addWings(rig, { span: 27 * ws, chord: 15, mat: solid(wing, 0, 0.9), tip: solid(0x3a2418, 0, 0.9), kind: 'bat', y: 10.5, bone: solid(0x2a1a10), cols: { dark: 0x24160e }, seed: seed + 5, look: mat, fine: D });
   addWhip(rig, { segs: 10, len: 3.6, look: mat });
+  rig.tick = (dt, e) => animateExtras(rig, dt, e);   // (the bosses built on her get the whip's pose too, even outside a fight)
+  { const h = rig.dims.headS * HS; markHeadCore(rig, [0, h / 2, 0], [h, h, h]); }   // (the skin cube; the curls aside)
+  applyShape(rig);   // (the neck, shoulders, wings and hands to the longer trunk and arms)
   rig.hunch = 0.35;
-  rig.float = 0.8;
+  rig.float = float;
+  rig.hoverMin = 11 * LF * PX * rig.baseScale + 0.22;   // (the ragged hem hangs 11 px under the soles: a boss's swoop flies no lower, bob included)
   return rig;
 }
 
@@ -684,9 +1624,18 @@ function kitFootwear(K, leg, kind, opts, dy = 0) {
 // long serpent tail in dark green scales with a gold belly stripe, coiling on
 // the ground and curling up at the tip; a long gold-tipped spear and a
 // small bronze buckler.
+// (size audit, round 6: the sheet draws her about 2.7x its Percy, as tall as
+// the hellhound beside her; the size spec, design/sizes.json, makes her
+// "bigger", an imposing elite about 1.8x Percy. She stands reared up on a
+// long serpent trunk (the rig's legH) at rig scale 1.7, her skin painted
+// finer (skinMat scale) and her scales, belly plates, hair snakes and
+// armour drawn in cells of a hero's voxel size (densityFor), so the bigger
+// body is made of more cells, not bigger ones. Her head stays small for her
+// size (headS 6.2): a big body keeps a less childlike head.)
 function buildDracaena() {
-  const skin = 0xd49a70, gold = 0xe0a426, goldD = 0xa87010, blk = 0x161214;
+  const skin = 0xd49a70, gold = 0xe0a426, goldD = 0xa87010, goldL = 0xf0c040, blk = 0x161214;
   const G = [0x0e4a26, 0x146030, 0x0a3a1c, 0x1c7038];
+  const SC = 1.85, LEG = 25, HSZ = 6.2, D = densityFor(SC), c = 1 / D;   // (c: one hero pixel in her own skin pixels)
   const mat = skinMat('dracaena', (S) => {
     paintPerson(S, { skin, hair: 0x0e4a26, fringe: 1, hairSide: 3, hairBack: 6, eye: 0x0a6a3a, eyeWhite: 0xf0f0e0, scowl: true, brow: 0x0a2a14, fangs: 0xf4f0e0, mouth: false, top: skin, sleeve: skin, hand: skin, pants: 0x0e4a26, skirt: 0x1a2a1a, skirtLen: 7,
       face: (s, ey) => { s.rect(11, ey + 2, 2, 1, 0xa8483a, 0); s.dot(9, ey - 0.5, 0x0a2a14, 2, 1); s.dot(14, ey - 0.5, 0x0a2a14, 2, 1); },
@@ -696,67 +1645,121 @@ function buildDracaena() {
         s.rect(16, 29, 24, 3, 0x1a2a1a, 0.1); s.rect(16, 29, 24, 1, gold, 0); for (let x = 16; x < 40; x += 2) s.dot(x + 0.5, 30.5, 0x2e7a3a);
       } });
     S.shadeLimbs(); S.saturate(1.2);
-  }, { emit: 1, rough: 0.55, res: 2 });
-  const rig = new Rig({ material: mat, scale: 1.2, bodyW: 8, bodyD: 4, armW: 3, legH: 12 });
+  }, { emit: 1, rough: 0.55, res: 2, scale: SC });
+  const rig = new Rig({ material: mat, scale: SC, bodyW: 8, bodyD: 4.4, bodyH: 13, armW: 3, legH: LEG, headS: HSZ });
   for (const leg of [rig.legR, rig.legL]) dropMeshes(rig, leg);
-  const K = kit(rig, mat, { seed: 23, rough: 0.55 });
-  // the serpent tail: down from the hips, coiling forward and round on the
-  // ground and curling up at the tip; dark green scales, gold belly and stripe
+  const K = kit(rig, mat, { seed: 23, rough: 0.55, density: D });
+  // Scales in hero-sized cells over a box face: a staggered chequer of raised
+  // plates, darker at their lower edge, on the faces named (l, r, k = back, f)
+  const scales = (p, cx, cy, cz, w, h, d, faces, cols = G) => {
+    const st = 1.9 * c, sz = 1.75 * c;   // (two hero pixels a scale, as chunky as the sheet's)
+    for (const f of faces) {
+      const across = f === 'l' || f === 'r' ? d : w;
+      for (let j = 0, y = cy + h / 2 - st / 2; y > cy - h / 2; j++, y -= st * 0.8) for (let u = -across / 2 + (j % 2 ? st / 2 : st / 4); u < across / 2 - st / 4; u += st) {
+        if (K.r() < 0.25) continue;
+        const col = K.tone(cols, 0.16);
+        if (f === 'l' || f === 'r') { const x = cx + (f === 'r' ? 1 : -1) * (w / 2 + 0.1 * c); K.box(p, x, y, cz + u, 0.3 * c, sz, sz, col); }
+        else { const z = cz + (f === 'f' ? 1 : -1) * (d / 2 + 0.1 * c); K.box(p, cx + u, y, z, sz, sz, 0.3 * c, col); }
+      }
+    }
+  };
+  // the serpent trunk she rears up on: from the hips down to the ground in
+  // a gentle S, tapering a little; a broad band of gold belly plates down the
+  // front, a zigzag gold stripe down each side, scales all over
   const base = group(rig.hips, 0, 0, 0);
-  K.box(base, 0, -5, -0.3, 7, 10, 5, G[0]); K.box(base, 0, -9.6, -0.8, 6.6, 3, 6, G[2]);
-  K.clumps(base, [0, -5, -0.3], [7, 10, 5], { n: 44, size: [1, 1.4], cols: G, faces: 'lrfk', out: -0.2 });
-  K.box(base, 0, -5.5, 2.3, 4.4, 9, 0.6, gold);
-  for (let y = -1.5; y > -10; y -= 1.6) K.box(base, 0, y, 2.6, 4.6, 0.3, 0.4, goldD);
+  const TL = LEG - 2.4, trunk = [[0, -TL * 0.25, -0.2, 7.6, 5.4], [-TL * 0.25, -TL * 0.5, -0.7, 7.4, 5.8], [-TL * 0.5, -TL * 0.75, -0.5, 7.2, 6], [-TL * 0.75, -TL, 0.1, 7.2, 6.2]];
+  for (const [y0, y1, z, w, d] of trunk) {
+    const h = y0 - y1, cy = (y0 + y1) / 2;
+    K.box(base, 0, cy, z, w, h + 0.2, d, G[0]);
+    scales(base, 0, cy, z, w, h, d, 'lrk');
+    // the belly: overlapping gold plates (ventral scutes) with dark seams
+    for (let y = y0 - 0.5 * c; y > y1; y -= 1.1 * c * 1.6) { K.box(base, 0, y, z + d / 2 + 0.25, w * 0.6, 1.4 * c * 1.4, 0.5, gold); K.box(base, 0, y - 0.95 * c * 1.4, z + d / 2 + 0.32, w * 0.62, 0.35 * c, 0.4, goldD); }
+    // the zigzag side stripe
+    for (const sx of [-1, 1]) for (let y = y0 - 0.8, k = 0; y > y1 + 0.6; y -= 1.3, k++) K.box(base, sx * (w / 2 + 0.22 * c), y, z + (k % 2 ? 0.9 : -0.9), 0.35 * c, 1.5, 1.9, k % 2 ? gold : goldD);
+  }
   const segs = [];
-  let parent = group(base, 0, -9.7, -0.5);
-  const shape = [[6.4, 4.6, 5.4], [6, 4.4, 5.4], [5.4, 4, 5.2], [4.8, 3.6, 5], [4, 3.2, 4.8], [3.2, 2.6, 4.4], [2.4, 2, 4], [1.6, 1.5, 3.4]];
-  const bend = [0.05, 0, 0, 0.05, 0.1, -0.35, -0.6, -0.6], yaw = [0.9, 0.85, 0.85, 0.8, 0.75, 0.4, 0.2, 0.2];
+  // the coil on the ground, built bigger with her (×1.25), in finer scales
+  const shape = [[8, 5.8, 6.8], [7.5, 5.5, 6.8], [6.8, 5, 6.5], [6, 4.5, 6.2], [5, 4, 6], [4, 3.2, 5.5], [3, 2.5, 5], [2, 1.9, 4.2]];
+  let parent = group(base, 0, -LEG + shape[0][1] / 2, -0.4);
+  const bend = [0.05, 0, 0, 0.05, 0.1, 0.35, 0.6, 0.6], yaw = [0.9, 0.85, 0.85, 0.8, 0.75, 0.4, 0.2, 0.2];   // (bend +: up; the tip curls up off the ground)
   for (let i = 0; i < shape.length; i++) {
     const [w, h, d] = shape[i];
-    const g = group(parent, 0, 0, i ? -shape[i - 1][2] + 0.4 : 0, bend[i], yaw[i], 0);
+    const g = group(parent, 0, 0, i ? -shape[i - 1][2] + 0.5 : 0, bend[i], yaw[i], 0);
     if (i > 1) sway(rig, g, 'y', 0.1, 2.2, i * 0.8);
-    K.box(g, 0, 0, -d / 2, w, h, d + 0.4, G[i % 2]);
-    // scales: a chequer of raised cells on the back and sides
-    for (let z = 0.6; z < d; z += 1.2) for (const [x, y, sw, sh, sd] of [[0, h / 2, w * 0.6, 0.35, 1.1], [-w / 2, h * 0.1, 0.35, h * 0.6, 1.1], [w / 2, h * 0.1, 0.35, h * 0.6, 1.1]]) if (K.r() < 0.7) K.box(g, x, y, -z, sw, sh, sd, K.tone(G, 0.15));
-    // gold belly and a zigzag side stripe
-    K.box(g, 0, -h / 2 - 0.1, -d / 2, w * 0.75, 0.4, d + 0.2, gold);
-    for (const sx of [-1, 1]) { K.box(g, sx * (w / 2 + 0.1), -h * 0.2, -d * 0.3, 0.4, h * 0.35, d * 0.5, gold); K.box(g, sx * (w / 2 + 0.12), h * 0.05, -d * 0.75, 0.35, h * 0.3, d * 0.4, goldD); }
+    K.box(g, 0, 0, -d / 2, w, h, d + 0.5, G[i % 2]);
+    // scales: a chequer of raised cells on the back and sides, a hero pixel each
+    for (let z = 0.9 * c, j = 0; z < d; z += 1.9 * c, j++) for (let u = -w / 2 + 0.9 * c + (j % 2) * 0.95 * c; u < w / 2 - 0.5 * c; u += 1.9 * c) if (K.r() < 0.6) K.box(g, u, h / 2 + 0.1 * c, -z, 1.75 * c, 0.3 * c, 1.75 * c, K.tone(G, 0.16));
+    for (const sx of [-1, 1]) for (let z = 0.9 * c, j = 0; z < d; z += 1.9 * c, j++) for (let y = h / 2 - 1 * c; y > -h / 2 + 1.2 * c; y -= 1.9 * c) if (K.r() < 0.55) K.box(g, sx * (w / 2 + 0.1 * c), y - (j % 2) * 0.95 * c, -z, 0.3 * c, 1.75 * c, 1.75 * c, K.tone(G, 0.16));
+    // gold belly plates and a zigzag side stripe
+    for (let z = 0.4; z < d; z += 1.6 * c * 1.4) K.box(g, 0, -h / 2 - 0.1, -z, w * 0.75, 0.4, 1.4 * c * 1.4, z % 2 > 1 ? gold : goldD);
+    for (const sx of [-1, 1]) { K.box(g, sx * (w / 2 + 0.2 * c), -h * 0.2, -d * 0.3, 0.35 * c, h * 0.35, d * 0.5, gold); K.box(g, sx * (w / 2 + 0.22 * c), h * 0.05, -d * 0.75, 0.35 * c, h * 0.3, d * 0.4, goldD); }
     segs.push(g); parent = g;
   }
-  K.box(parent, 0, 0.6, -4, 1, 2.2, 1, G[2], -0.6);
-  // skirt of leather strips with gold studs, and a gold belt
-  for (let i = 0; i < 12; i++) {
-    const a = i / 12 * Math.PI * 2, x = Math.sin(a) * 4.3, z = Math.cos(a) * 2.8, L = 4.5 + (i % 3);
-    K.flare(rig.hips, x, -L / 2 + 0.5, z, 2.1, L, 0.7, i % 2 ? 0x1a2a1a : blk, a, 0.18);
-    K.box(rig.hips, x * 1.05, 0, z * 1.08, 0.6, 0.6, 0.4, gold, 0, a, 0);
+  K.box(parent, 0, 0.6, -4.6, 1.2, 2.6, 1.2, G[2], -0.6); K.box(parent, 0, 2, -4.9, 0.8, 1.2, 0.8, goldD, -0.6);   // the curled tip
+  // the skirt: two layers of dark leather strips hung from the belt, each
+  // with a gold stud at the top and a pale worn hem
+  for (const [n, L0, rx, rz, tilt] of [[18, 5.5, 4.4, 2.9, 0.2], [14, 3.6, 4.2, 2.7, 0.24]]) for (let i = 0; i < n; i++) {
+    const a = (i + (n === 14 ? 0.5 : 0)) / n * Math.PI * 2, x = Math.sin(a) * rx, z = Math.cos(a) * rz, L = L0 + (i % 3) * 0.8;
+    K.flare(rig.hips, x, -L / 2 + 0.5, z, 1.7, L, 0.6, i % 2 ? 0x1a2a1a : blk, a, tilt);
+    if (n === 18) { K.box(rig.hips, x * 1.06, -0.1, z * 1.08, 0.7 * c, 0.7 * c, 0.4, goldL, 0, a, 0); K.flare(rig.hips, x * (1 + L * 0.045), 0.6 - L, z * (1 + L * 0.045), 1.6, 0.4 * c, 0.6, 0x3a3a2a, a, tilt); }
   }
-  K.box(rig.torso, 0, 0.6, 0, 8.8, 1.4, 4.8, gold); K.box(rig.torso, 0, 0.6, 2.5, 2, 2, 0.4, 0xf0c040);
-  // gold arm rings and cuffs
-  for (const arm of [rig.armR, rig.armL]) { K.box(arm, 0, -7, 0, 3.6, 1.6, 4.6, gold); K.box(arm, 0, -7, 0, 3.7, 0.4, 4.7, goldD); K.box(arm, 0, 0.6, 0, 3.5, 1, 4.5, gold); }
-  // snake hair: a mass of green curls, snake heads poking out and four that writhe
+  // the gold belt, banded, with a square buckle and a hanging gold tongue
+  K.box(rig.torso, 0, 0.6, 0, 8.8, 1.4, 5.2, gold); K.box(rig.torso, 0, 0.6, 0, 8.9, 0.3 * c, 5.3, goldD);
+  K.box(rig.torso, 0, 0.6, 2.7, 2.4, 2.2, 0.4, goldL); K.box(rig.torso, 0, 0.6, 2.85, 1.3, 1.1, 0.3, blk);
+  for (let i = 0; i < 3; i++) K.box(rig.hips, 0, -0.8 - i * 1.3 * c * 1.2, 2.95 + i * 0.12, 1.6 - i * 0.25, 1.3 * c * 1.2, 0.35, i % 2 ? goldD : gold, -0.12);
+  // the bodice: a black top in two cups rimmed in gold, a gold rib between
+  // them, a gold collar with a pendant, and studs down the sides
+  const T = rig.torso, bH = 13, fzT = 2.2 + 0.25;
+  for (const sx of [-1, 1]) {
+    K.box(T, sx * 1.8, bH - 4.2, fzT, 3.2, 2.8, 0.5, blk, 0, 0, -sx * 0.1);
+    K.box(T, sx * 1.8, bH - 2.7, fzT + 0.1, 3.3, 0.35 * c, 0.4, gold, 0, 0, -sx * 0.1); K.box(T, sx * 1.8, bH - 5.65, fzT + 0.1, 3.3, 0.35 * c, 0.4, gold, 0, 0, -sx * 0.1);
+    K.box(T, sx * 2.2, bH - 1.6, fzT - 0.1, 0.4 * c, 2.2, 0.35, gold, 0, 0, sx * 0.35);   // the straps
+    for (let y = bH - 3.4; y > 2.4; y -= 1.6) K.box(T, sx * 4.05, y, 0.6, 0.3, 0.6 * c, 0.6 * c, goldL);
+  }
+  K.box(T, 0, bH - 4.2, fzT + 0.15, 0.8 * c, 2.4, 0.4, goldL);
+  for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2; K.box(T, Math.sin(a) * 2.1, bH + 0.15 - (Math.cos(a) > 0 ? 0.35 : 0), Math.cos(a) * 1.6, 0.8 * c, 0.6 * c, 0.8 * c, i % 2 ? gold : goldL); }
+  K.box(T, 0, bH - 1.2, fzT + 0.05, 0.9 * c, 1.2 * c, 0.3, goldL); K.box(T, 0, bH - 1.2, fzT + 0.15, 0.4 * c, 0.5 * c, 0.2, 0x2ad870);
+  // gold armlets high on the arm, and wide banded bracers at the wrist
+  for (const arm of [rig.armR, rig.armL]) {
+    K.box(arm, 0, 0.4, 0, 3.4, 1.4, 4.4, gold); K.box(arm, 0, 0.4, 0, 3.5, 0.3 * c, 4.5, goldD); K.box(arm, 0, -0.9, 0, 3.4, 0.5 * c, 4.4, gold);
+    K.box(arm, 0, -7, 0, 3.6, 2.4, 4.6, gold);
+    for (const y of [-6, -7, -8]) K.box(arm, 0, y, 0, 3.7, 0.3 * c, 4.7, goldD);
+    K.box(arm, 0, -7, 2.36, 1, 1, 0.2, 0x2ad870);   // a green stone set in each bracer
+  }
+  // snake hair: a mass of green curls, snake heads poking out all round, and
+  // six that writhe (the sheet draws a crown of them)
   gridHair(rig, { style: 'curls', base: 0x146030, shade: 0x0a3a1c, light: 0x2a8a44, seed: 17, shape: { r: [6.8, 7.4, 6.6], bump: 0.55, tuft: 0.3, spike: 0.1, side: 0, back: -3 } }, mat);
-  const Hd = rig.head, hk = HS;
-  for (let i = 0; i < 12; i++) {
-    const a = i / 12 * Math.PI * 2 + 0.3, x = Math.sin(a) * 7.2, z = Math.cos(a) * 6.6 - 0.8, y = 4 + (i % 3) * 2.2;
+  const Hd = rig.head, hk = HS * HSZ / 8;
+  for (let i = 0; i < 18; i++) {
+    const a = i / 18 * Math.PI * 2 + 0.3, x = Math.sin(a) * 7.3, z = Math.cos(a) * 6.7 - 0.8, y = 3.6 + (i % 3) * 2.3;
     if (z > 3 && y < 7) continue;
     const o = [x * hk, y * hk, z * hk];
-    K.boxY(Hd, o, a, 0, 0, 0.6, 1.6, 1.2, 2.4, G[i % 4]); K.boxY(Hd, o, a, 0, -0.2, 2, 1.2, 0.8, 1, G[1]);
-    for (const sx of [-1, 1]) K.boxY(Hd, o, a, sx * 0.62, 0.3, 1.2, 0.35, 0.35, 0.35, 0xffd000);
+    // a snake head: the skull, a paler jaw, two gold eyes, a flicked red tongue on some
+    K.boxY(Hd, o, a, 0, 0, 0.5, 1.4, 1.05, 2.1, G[i % 4]); K.boxY(Hd, o, a, 0, -0.45, 1.25, 1.1, 0.4, 1.2, G[3]); K.boxY(Hd, o, a, 0, 0.1, -1.1, 1.05, 0.95, 1.4, G[(i + 1) % 4]);
+    for (const sx of [-1, 1]) K.boxY(Hd, o, a, sx * 0.56, 0.3, 1.05, 0.3 * c * 1.4, 0.3 * c * 1.4, 0.3 * c * 1.4, 0xffd000);
+    if (i % 3 === 1) K.boxY(Hd, o, a, 0, -0.3, 2.1, 0.25, 0.15, 0.9, 0xd8202a);
   }
-  for (const [x, z, rx, rz] of [[-3, 1.5, 0.5, 0.8], [3, 1.5, 0.5, -0.8], [-1.5, -1, -0.3, 0.3], [1.8, -0.5, 0.2, -0.4]])
-    kitSnake(K, rig, Hd, { len: 2, seg: 1.8, w: 1.3, cols: G, belly: gold, at: [x * hk, 8.6 * hk, z * hk], rot: [rx, 0, rz], amp: 0.28, speed: 4 });
-  // the long spear and a small buckler
-  const spear = new THREE.Group(); rig.handR.add(spear); spear.rotation.x = -0.15;
+  for (const [x, z, rx, rz] of [[-3, 1.5, 0.5, 0.8], [3, 1.5, 0.5, -0.8], [-1.5, -1, -0.3, 0.3], [1.8, -0.5, 0.2, -0.4], [-4.2, -1.5, -0.2, 1.1], [4.2, -1.8, -0.2, -1.1]])
+    kitSnake(K, rig, Hd, { len: 2, seg: 1.6, w: 1.15, cols: G, belly: gold, at: [x * hk, 8.6 * hk, z * hk], rot: [rx, 0, rz], amp: 0.28, speed: 4 });
+  for (const sx of [-1, 1]) { K.box(Hd, sx * 4.1 * hk, 3.4 * hk, 0.6, 0.5 * c, 0.5 * c, 0.5 * c, goldL); K.box(Hd, sx * 4.1 * hk, 3.4 * hk - 0.9 * c, 0.6, 0.7 * c, 0.9 * c, 0.7 * c, gold); }   // earrings
+  // the long spear (as tall as she is, as the sheet draws it) and a small buckler
+  const spear = new THREE.Group(); rig.handR.add(spear); spear.rotation.x = HOLD_PITCH;   // (along +y, levelled forward: see the hand-axis convention in character.js)
   K.box(spear, 0, 6, 1.5, 1, 44, 1, 0x4a2e1a);
-  for (const y of [-10, 18, 24]) K.box(spear, 0, y, 1.5, 1.4, 0.8, 1.4, gold);
+  for (let y = -3; y < 4; y += 1.1 * c * 1.4) K.box(spear, 0, y, 1.5, 1.25, 0.6 * c * 1.4, 1.25, 0x2a1a10, 0, 0.4, 0);   // the leather grip wrap
+  for (const y of [-10, 18, 24]) { K.box(spear, 0, y, 1.5, 1.4, 0.8, 1.4, gold); K.box(spear, 0, y + 0.55, 1.5, 1.2, 0.3 * c, 1.2, goldD); }
+  K.box(spear, 0, -15.6, 1.5, 1.3, 1.2, 1.3, goldD);   // the butt cap
   K.box(spear, 0, 27, 1.5, 1.8, 1.2, 1.8, goldD);
-  K.box(spear, 0, 29.5, 1.5, 2.6, 4, 0.8, gold); K.box(spear, 0, 32.5, 1.5, 1.8, 2.4, 0.7, gold); K.box(spear, 0, 34.5, 1.5, 0.9, 2, 0.6, 0xf0c040);
-  const shield = new THREE.Group(); shield.position.set(1.6 * PX, -5 * PX, 1 * PX); rig.handL.add(shield); shield.rotation.y = Math.PI / 2;
+  K.box(spear, 0, 29.5, 1.5, 2.6, 4, 0.8, gold); K.box(spear, 0, 32.5, 1.5, 1.8, 2.4, 0.7, gold); K.box(spear, 0, 34.5, 1.5, 0.9, 2, 0.6, goldL);
+  K.box(spear, 0, 30.5, 1.5, 0.35 * c, 6, 0.95, goldD);   // the blade's raised midrib
+  for (const sx of [-1, 1]) K.box(spear, sx * 1.55, 28.3, 1.5, 0.8, 1.6, 0.6, goldD, 0, 0, sx * 0.5);   // its barbs
+  markTip(spear, 0, 35.5, 1.5, 'spear');
+  const shield = markHeld(new THREE.Group()); shield.position.set(1.6 * PX, -5 * PX, 1 * PX); rig.handL.add(shield); shield.rotation.y = Math.PI / 2;
   K.box(shield, 0, 0, 0, 7.6, 7.6, 1, gold); K.box(shield, 0, 0, 0.4, 5.6, 5.6, 0.6, G[0]); K.box(shield, 0, 0, 0.8, 2, 2, 0.8, gold);
   for (const [x, y] of [[-2.8, 0], [2.8, 0], [0, 2.8], [0, -2.8]]) K.box(shield, x, y, 0.6, 0.8, 0.8, 0.6, 0xf0c040);
   rig.extras.shield = shield;
   K.done();
   rig.hunch = 0.15;
+  keepAbove(rig, spear, { reset: true });   // (a slam that ends low grounds the spear point rather than driving it through the floor)
   return rig;
 }
 
@@ -777,22 +1780,30 @@ function buildEmpousa() {
       } });
     S.shadeLimbs(); S.saturate(1.2);
   }, { emit: 0.7, res: 2 });
-  const rig = new Rig({ material: mat, scale: 1.1, bodyW: 7, armW: 3 });
+  // (size audit, round 4: the owner wanted her longer-legged and as tall as
+  // Percy; the sheet's cheerleader is half legs: legs 16 px, a shorter torso,
+  // and Percy's height from her soles to the crown of her hair, flames aside)
+  const LEG = 16, f = LEG / 12;
+  const rig = new Rig({ material: mat, scale: 1.25, bodyW: 7, bodyH: 10, armW: 3, legH: LEG });
   const K = kit(rig, mat, { seed: 29, emit: 0.7 });
   // flaming hair: red locks under a mane of glowing flame cubes that licks upward
   const flame = group(rig.head, 0, 0, 0);
-  const hk = HS, FL = [0xff5000, 0xff7800, 0xffa000, 0xffc840];
-  for (let i = 0; i < 90; i++) {
+  // (pass 3: a champion built bigger, BUILD.k = K.density, gets more and
+  // smaller flame and tassel cubes, so they stay near a hero's voxel size)
+  const hk = HS, FL = [0xff5000, 0xff7800, 0xffa000, 0xffc840], D = K.density ?? 1;
+  for (let i = 0; i < Math.round(90 * D * D); i++) {
     const t = K.r(), a = K.r() * Math.PI * 2, rad = 4.6 + K.r() * 1.6 - t * 2.8;
     const x = Math.cos(a) * rad, z = Math.sin(a) * rad * 0.9 - 0.9;
     if (z > 2.6 && t < 0.3) continue;
-    const y = 6.2 + t * 9 + (z < 0 ? 0 : -1), sz = 2.3 - t * 1.4 + K.r() * 0.6;
+    const y = 6.2 + t * 9 + (z < 0 ? 0 : -1), sz = (2.3 - t * 1.4 + K.r() * 0.6) / D;
+    if (t > 0.6) continue;   // (the mane's base: its licking top is live flame, below)
     K.box(flame, x * hk, y * hk, z * hk, sz, sz * 1.3, sz, FL[Math.min(3, Math.floor(t * 3.3 + K.r() * 0.8))]);
   }
-  for (let i = 0; i < 34; i++) K.box(flame, (K.r() - 0.5) * 9, 5 - K.r() * 9, -4.6 - K.r() * 1.2, 1.9, 2.2, 1.6, i % 3 ? FL[Math.floor(K.r() * 3)] : 0xc8301a);
+  for (let i = 0; i < Math.round(34 * D * D); i++) K.box(flame, (K.r() - 0.5) * 9, 5 - K.r() * 9, -4.6 - K.r() * 1.2, 1.9 / D, 2.2 / D, 1.6 / D, i % 3 ? FL[Math.floor(K.r() * 3)] : 0xc8301a);
   K.clumps(rig.head, [0, 4 * hk + 1, -0.5], [8.6 * hk, 8 * hk, 8 * hk], { n: 40, size: [1.2, 2], cols: [0xb82a14, 0xd8401a, 0x9a200e], faces: 'tlrk' });
   for (let x = -3.5; x <= 3.5; x += 1.4) K.box(rig.head, x * hk, 7.6 * hk, 4.3 * hk, 1.6, 1.6 + (Math.abs(x) < 1 ? 0 : 1), 0.8, 0xd8401a);
   rig.extras.flameHair = flame;
+  addFlames(rig, { cap: 48, palette: 'fire', rise: 24, turb: 30 }).source(rig.head, { at: [0, 10.6 * hk, -0.9 * hk], r: 4.2, rate: 56, life: [0.35, 0.7], size: [1.2, 2.2], up: 8, spread: 2.5 });
   // pleated skirt: alternating orange and darker pleats with a white stripe
   for (let i = 0; i < 16; i++) {
     const a = i / 16 * Math.PI * 2, x = Math.sin(a) * 4.2, z = Math.cos(a) * 2.7;
@@ -802,25 +1813,27 @@ function buildEmpousa() {
   // the bronze leg: thigh plates, a riveted knee, a jointed shin and a pointed foot
   const bronze = [0xd08a20, 0xb06a14, 0xe8a830];
   dropMeshes(rig, rig.legR);
-  K.box(rig.legR, 0, -2.5, 0, 4.2, 5, 4.2, skin);
-  K.box(rig.legR, 0, -5.3, 0, 4.4, 1.2, 4.4, bronze[1]);
-  K.box(rig.legR, 0, -6.6, 0.2, 3.2, 2.2, 3.4, bronze[2]); for (const sx of [-1, 1]) K.box(rig.legR, sx * 1.7, -6.6, 0.2, 0.4, 1.2, 1.2, 0x5a3a10);
-  K.box(rig.legR, 0, -9.2, 0, 2.8, 4.2, 2.8, bronze[0]); K.box(rig.legR, 0, -9.2, 1.45, 1.2, 3.6, 0.3, bronze[1]);
-  K.box(rig.legR, 0, -11.4, 0.9, 3.4, 1.2, 4.6, bronze[1]); K.box(rig.legR, 0, -11.7, 3.4, 1.6, 0.6, 1.2, bronze[2]);
+  // (the leg's parts are laid out on a 12 px leg and stretched by f; the
+  // knee, bands and feet keep their size)
+  K.box(rig.legR, 0, -2.5 * f, 0, 4.2, 5 * f, 4.2, skin);
+  K.box(rig.legR, 0, -5.3 * f, 0, 4.4, 1.2, 4.4, bronze[1]);
+  K.box(rig.legR, 0, -6.6 * f, 0.2, 3.2, 2.2, 3.4, bronze[2]); for (const sx of [-1, 1]) K.box(rig.legR, sx * 1.7, -6.6 * f, 0.2, 0.4, 1.2, 1.2, 0x5a3a10);
+  K.box(rig.legR, 0, -9.2 * f, 0, 2.8, 4.2 * f, 2.8, bronze[0]); K.box(rig.legR, 0, -9.2 * f, 1.45, 1.2, 3.6 * f, 0.3, bronze[1]);
+  K.box(rig.legR, 0, -LEG + 0.6, 0.9, 3.4, 1.2, 4.6, bronze[1]); K.box(rig.legR, 0, -LEG + 0.3, 3.4, 1.6, 0.6, 1.2, bronze[2]);
   // the donkey leg: grey-brown shaggy fur from the knee and a dark split hoof
   dropMeshes(rig, rig.legL);
-  K.box(rig.legL, 0, -2.5, 0, 4.2, 5, 4.2, skin);
+  K.box(rig.legL, 0, -2.5 * f, 0, 4.2, 5 * f, 4.2, skin);
   const donk = [0x8a7a6a, 0x6a5a4c, 0x9a8a78, 0x5a4a3e];
-  K.box(rig.legL, 0, -7.5, 0, 3.6, 6, 3.6, donk[0]);
-  K.clumps(rig.legL, [0, -7, 0], [3.6, 6, 3.6], { n: 26, size: [1, 1.6], cols: donk, faces: 'lrfk', stretch: [1, 1.4, 1] });
-  K.box(rig.legL, 0, -11.1, 0.4, 3.4, 1.8, 3.8, 0x1e1612); K.box(rig.legL, 0, -11.1, 2.35, 0.5, 1.6, 0.2, 0x3a2a20);
+  K.box(rig.legL, 0, -7.5 * f, 0, 3.6, 6 * f, 3.6, donk[0]);
+  K.clumps(rig.legL, [0, -7 * f, 0], [3.6, 6 * f, 3.6], { n: 26, size: [1, 1.6], cols: donk, faces: 'lrfk', stretch: [1, 1.4, 1] });
+  K.box(rig.legL, 0, -LEG + 0.9, 0.4, 3.4, 1.8, 3.8, 0x1e1612); K.box(rig.legL, 0, -LEG + 0.9, 2.35, 0.5, 1.6, 0.2, 0x3a2a20);
   // pom-poms: a ball of orange and black tassel cubes in each hand
   for (const hand of [rig.handR, rig.handL]) {
-    const pp = group(hand, 0, -2.6, 0);
+    const pp = markHeld(group(hand, 0, -2.6, 0));
     K.box(pp, 0, 0, 0, 5.4, 5.4, 5.4, orange);
-    for (let i = 0; i < 64; i++) {
+    for (let i = 0; i < Math.round(64 * D * D); i++) {
       const u = K.r() * 2 - 1, th = K.r() * Math.PI * 2, r = Math.sqrt(1 - u * u), R = 3.4 + K.r() * 1.2;
-      const z = 1.1 + K.r() * 0.8;
+      const z = (1.1 + K.r() * 0.8) / D;
       K.box(pp, Math.cos(th) * r * R, u * R, Math.sin(th) * r * R, z, z, z, i % 3 === 0 ? 0x1a1418 : K.r() < 0.5 ? orange : 0xd85008);
     }
   }
@@ -854,7 +1867,7 @@ export function buildSkeleton({ id = 'skeleton', pal = {}, helmet = true, gear =
       } });
     S.shadeLimbs(); S.saturate(1.15);
   }, { emit: 0.8, res: 2 });
-  const rig = new Rig({ material: mat, scale: 1.0, armW: 3 });
+  const rig = new Rig({ material: mat, scale: 1.15, armW: 3 });   // (size audit: a grown man, as tall as the spartoi)
   const K = kit(rig, mat, { seed: 37, rough: 0.8 });
   const hk = HS;
   // arms: camo short sleeves, then bare bones with a knobby elbow and bony hands
@@ -891,14 +1904,14 @@ export function buildSkeleton({ id = 'skeleton', pal = {}, helmet = true, gear =
   for (const sx of [-1, 1]) K.box(T, sx * 2.8, 11.6, 0, 1.8, 0.8, 5.6, oliveD);
   K.box(T, 0, 1.2, 0, 8.6, 1.2, 4.6, 0x3a3020); K.box(T, 0, 1.2, 2.35, 1.4, 1, 0.3, 0x8a8a7a);
   if (gear) {
-    // rifle held across the body
-    const gun = group(rig.handR, 0, -1, 2, -1.45, 0, 0);
+    // the rifle, levelled forward from the hip (built along +z: see the hand-axis convention in character.js)
+    const gun = group(rig.handR, 0, -1, 2, HOLD_PITCH - Math.PI / 2, 0, 0);
     const metal = 0x2a2a2c, wood = 0x5a3e24;
     K.box(gun, 0, 0, 2, 1.6, 2.2, 13, metal); K.box(gun, 0, -2.6, 1.6, 1.2, 4, 1.6, metal); K.box(gun, 0, -2.4, 4.8, 1.3, 3.6, 1.4, 0x3a3a3c);
     K.box(gun, 0, -0.6, -6.6, 1.6, 2.6, 4.4, wood); K.box(gun, 0, 0.3, 9, 1.8, 1.8, 3.4, wood);
     K.box(gun, 0, 0.4, 12.5, 0.8, 0.8, 5, metal); K.box(gun, 0, 1.6, 2, 1, 0.8, 3, 0x1a1a1c);
     rig.extras.gun = gun;
-    rig.extras.muzzle = group(gun, 0, 0.4, 15);
+    rig.extras.muzzle = group(gun, 0, 0.4, 15); markTip(gun, 0, 0.4, 15, 'rifle');
   }
   K.done();
   return rig;
@@ -986,7 +1999,7 @@ function buildSpartoi() {
   }
   for (let i = 0; i < 5; i++) K.box(Hd, (K.r() - 0.5) * 0.8, H8 + 1 - i * 1.6, -H8 / 2 - 1.6 - i * 0.25, 1.8, 2, 1.2, K.tone(CREST, 0.1), 0.2);
   // the kopis: a forward-curved bronze blade, widening toward the tip
-  const blade = group(rig.handR, 0, -1, 1, -1.2, 0, 0);
+  const blade = group(rig.handR, 0, -1, 1, HOLD_PITCH - Math.PI / 2, 0, 0);   // (built along +z: see the hand-axis convention in character.js)
   K.box(blade, 0, 0, -0.4, 1.2, 1.2, 3, leaD); K.box(blade, 0, 0, -1.9, 1.5, 1.5, 0.8, brzL); K.box(blade, 0, 0, 1.4, 1, 2.6, 0.7, brzL);
   for (let i = 0; i < 6; i++) {
     const z = 2.6 + i * 1.5, y = -0.1 * i * i + 0.2 * i, h = 1.5 + i * 0.22;
@@ -994,7 +2007,7 @@ function buildSpartoi() {
     K.box(blade, 0, y - h / 2 + 0.2, z, 0.55, 0.4, 1.6, brzL, 0.08 * i - 0.1);
   }
   K.box(blade, 0, -1.6, 11.5, 0.5, 1.6, 1.4, 0xd09838, 0.7); K.box(blade, 0, -2.4, 12.1, 0.45, 1, 0.8, brzL, 0.9);
-  rig.extras.blade = blade;
+  markTip(blade, 0, -2.4, 12.6, 'kopis'); rig.extras.blade = blade;
   // the shield: a big round bronze aspis with a raised rim, a mottled
   // bronze and teal face and a black dragon on it
   const sh = group(rig.armL, -0.4, -5.4, 2.8, 0, -0.3, 0), R = 6.6;
@@ -1020,8 +2033,8 @@ function buildTelekhine() {
   const lea = 0x8a4a22, leaD = 0x5a2e14, brass = 0xd8a030, brassD = 0x8a5a14, iron = 0x2a2624, ironL = 0x46403a;
   const mat = skinMat('telekhine', (S) => paintQuad(S, { base: hide, dark: hideD, belly: cream, back: 0x3a4866, eye: 0xffa01a, eyeLow: 0xff5a10, nose: 0x14161c, teeth: 0xf4ecd8, speckles: 70, stripes: null,
     custom: (s) => { for (let i = 0; i < 50; i++) s.px(Math.floor(s.r() * 40), 16 + Math.floor(s.r() * 20), i % 2 ? sp : hideL); s.rect(32, 0, 16, 8, cream, 0.1); } }), { emit: 0.9 });
-  const rig = new QuadRig({ material: mat, scale: 1.1, bodyL: 10, bodyW: 7, bodyH: 5, legH: 3.5, legW: 2.4, headS: 6, snoutS: 3.8, ears: false, tail: 2, tailLen: 3, tailW: 2.2, tailCurl: 0.1, neckUp: 8.4, headZ: -1.6, gait: 1.3, jawOpen: 0.3 });
-  const K = kit(rig, mat, { seed: 89, rough: 0.7, emit: 0.8 });
+  const rig = new QuadRig({ material: mat, scale: 2.85, bodyL: 10, bodyW: 7, bodyH: 5, legH: 3.5, legW: 2.4, headS: 6, snoutS: 3.8, ears: false, tail: 2, tailLen: 3, tailW: 2.2, tailCurl: 0.1, neckUp: 8.4, headZ: -1.6, gait: 1.3, jawOpen: 0.3 });
+  const K = kit(rig, mat, { seed: 89, rough: 0.7, emit: 0.8, density: BUILD.k * 1.8 });   // (size audit: built 2.6× bigger, adults "at least seven feet tall" as in The Battle of the Labyrinth; cells 1.45× a hero's to hold its triangles)
   const T = rig.torso;
   dropMeshes(rig, T);
   // the body: an upright chest, a sloping middle and a tapering hind end
@@ -1094,72 +2107,162 @@ function buildTelekhine() {
   K.box(pot, 0, 4.9, 0, 6.4, 0.4, 6.4, 0xff6a00);
   const fire = group(pot, 0, 5, 0);
   const GF = [0xff5a00, 0xff9a10, 0xffd040, 0x7aff2a, 0x3aff1a];
-  for (let i = 0; i < 30; i++) { const t = K.r(), a = K.r() * Math.PI * 2, r = (1 - t) * 2.6; const z = 1.6 - t * 0.9; K.box(fire, Math.cos(a) * r, t * 6, Math.sin(a) * r, z, z * 1.3, z, GF[Math.min(4, Math.floor(t * 3 + K.r() * 2))]); }
+  // (a low glowing bed of fire in the mouth; the flames over it are live, flames.js)
+  for (let i = 0; i < 12; i++) { const t = K.r() * 0.35, a = K.r() * Math.PI * 2, r = (1 - t) * 2.6; const z = 1.6 - t * 0.9; K.box(fire, Math.cos(a) * r, t * 6, Math.sin(a) * r, z, z * 1.3, z, GF[Math.min(4, Math.floor(t * 3 + K.r() * 2))]); }
   fire.scale.set(1, 0.65, 1);
   rig.extras.pot = pot; rig.extras.fire = fire;
   K.done();
+  addFlames(rig, { cap: 44, palette: 'forge', rise: 26, turb: 30 }).source(pot, { at: [0, 5.6, 0], r: 2.6, rate: 52, life: [0.4, 0.8], size: [1.1, 2], up: 8, spread: 2.5 });
   return rig;
 }
 
 // Cyclops (vox-bosses-2, top left): a hulking giant with one huge blue eye
-// under a single heavy brow, a shaggy black mane and beard, a white wool
-// fleece over one shoulder belted with gold into a ragged kilt, a ram's skull
-// on the shoulder, leather bracers, sandals and a studded wooden club.
+// under a single heavy brow, a curly black mane and a bushy beard, a mouth
+// open in a roar, a white wool fleece over the left shoulder belted with gold
+// into a ragged knee-length kilt, a ram's skull on that shoulder, leather
+// bracers banded in gold, sandals and a studded wooden club.
+// Built at the heroes' voxel size (parts.js density): the Rig keeps its
+// scale (so the champions' add-ons and the animations still land) but every
+// part is sculpted from cells one hero pixel across: rounded muscle masses,
+// curls, wool and leather, no stretched skin. Skin boxes are dropped.
 // pal: { wool: [fleece tones], iris, ram (false: no ram's skull) } for a champion
+export const cycDensity = (rig) => voxDensity(rig) * 0.88 / Math.sqrt(BUILD.k);
 export function buildCyclops({ id = 'cyclops', pal = {} } = {}) {
-  const skin = 0xd88e5a, skinD = 0xb06a3a, wool = pal.wool ?? [0xece4d0, 0xd8cfb8, 0xf4ecdc, 0xc8bea4], gold = 0xd8a026, leather = 0x6a4224, iris = pal.iris ?? 0x2a6ad0;
-  const mat = skinMat(id, (S) => {
-    paintPerson(S, { skin, hair: 0x1e140c, fringe: 1, hairSide: 3, hairBack: 7, eye: skin, eyeWhite: skin, brow: 0x1e140c, mouth: false, top: skin, sleeve: skin, hand: skin, pants: skin, skirt: wool[1], skirtLen: 6, shoes: false,
-      face: (s, ey) => {
-        s.rect(9, ey - 2, 6, 4, 0xf4f0e8, 0); s.rect(10, ey - 1.5, 4, 3, pal.iris ?? 0x2a7ad8, 0); s.rect(11, ey - 1, 2, 2, 0x0a0a1a, 0); s.dot(11, ey - 1, 0xffffff, 1, 1);
-        s.rect(8, ey - 3, 8, 1, 0x1e140c, 0); s.dot(8, ey - 2, skinD, 2, 4); s.dot(15, ey - 2, skinD, 2, 4);
-        s.rect(10, ey + 3, 4, 1.5, 0x5a1010, 0); for (let x = 10; x < 14; x += 1) s.dot(x + 0.25, ey + 3, 0xf4f0e0, 1, 1);
-      },
-      body: (s) => {
-        // chest and belly shading, a few scars
-        s.rect(20, 21, 3.5, 3, skinD, 0.05); s.rect(24.5, 21, 3.5, 3, skinD, 0.05); for (let y = 25; y < 31; y += 2) { s.rect(22, y, 1.5, 1.5, skinD, 0.05); s.rect(24.5, y, 1.5, 1.5, skinD, 0.05); }
-        for (let i = 0; i < 4; i++) s.dot(17 + s.r() * 20, 18 + s.r() * 12, 0xa85a3a, 3, 1);
-      } });
-    S.shadeLimbs(); S.saturate(1.2);
-  }, { emit: 0.6, res: 2 });
-  const rig = new Rig({ material: mat, scale: 2.3, bodyW: 11, bodyD: 6, armW: 5, headS: 9, legH: 10 });
-  const K = kit(rig, mat, { seed: 53 });
-  const hs = (9 / 8) * HS;
-  // mane and beard (grid voxels), and a huge brow ridge
-  bruteLimbs(rig, { armLen: 1.1, armThick: 1.25, legThick: 1.3, legX: 3 });
-  gridHair(rig, { style: 'shaggy', base: 0x1a120a, shade: 0x0c0804, light: 0x302014, seed: 23, beard: { length: 3, mouth: 1.2 }, shape: { r: [6, 5.2, 6.2], tuft: 0.18, spike: 0.03 } }, mat);
-  // one huge eye under a single heavy brow, a broad nose
-  const fz = 4 * hs;
-  K.box(rig.head, 0, 5 * hs, fz + 0.15, 4.6, 3.6, 0.4, 0xe8e4dc); K.box(rig.head, 0, 4.9 * hs, fz + 0.3, 2.8, 2.8, 0.3, iris);
-  K.box(rig.head, 0, 4.9 * hs, fz + 0.42, 1.4, 1.6, 0.2, 0x08080e); K.box(rig.head, -0.5, 5.3 * hs, fz + 0.5, 0.5, 0.5, 0.1, 0xffffff);
-  K.box(rig.head, 0, 6.8 * hs, fz + 0.5, 7 * hs, 1.4, 1.4, 0x1a120a, -0.15);
-  K.box(rig.head, 0, 3.3 * hs, fz + 0.6, 1.8, 2, 1.4, skinD);
-  // the fleece: a wool sash from the left shoulder across the chest, belted into a kilt
-  const T = rig.torso;
-  for (let i = 0; i < 9; i++) { const t = i / 8; K.box(T, 4.5 - t * 9, 12 - t * 10, 3.3, 3.2, 3.2, 1.6, K.tone(wool, 0.08), 0, 0, 0.75); K.box(T, 4.5 - t * 9, 12 - t * 10, -3.3, 3.2, 3.2, 1.6, K.tone(wool, 0.08), 0, 0, -0.75); }
-  K.clumps(T, [3.4, 11.5, 0], [4.4, 3, 7], { n: 26, size: [1.2, 2], cols: wool, faces: 'tlrfk' });
-  K.box(T, 0, 1.4, 0, 12, 2.4, 7, gold); K.box(T, 0, 1.4, 3.6, 3, 3, 0.6, 0xf0c040); K.box(T, 0, 1.4, 3.9, 1.4, 1.4, 0.4, 0x8a5a10);
-  for (let i = 0; i < 20; i++) {
-    const a = i / 20 * Math.PI * 2, x = Math.sin(a) * 6.2, z = Math.cos(a) * 3.8, L = 5 + K.r() * 3;
-    K.flare(rig.hips, x, -L / 2 + 0.6, z, 2.1, L, 0.9, K.tone(wool, 0.1), a, 0.14);
+  const SK = [0xcc7a46, 0xc2703e, 0xd6884f], skinD = 0xa05a30, wool = pal.wool ?? [0xece4d0, 0xd8cfb8, 0xf4ecdc, 0xc8bea4];
+  const gold = 0xd8a026, goldL = 0xf0c650, goldD = 0x9a6a14, leather = 0x6a4224, leatherD = 0x4a2c16, iris = pal.iris ?? 0x2a6ad0;
+  const HAIR = [0x1e140c, 0x2a1c10, 0x140c06, 0x34241a];
+  const mat = skinMat(id, (S) => paintPerson(S, { skin: SK[0], hair: HAIR[0], mouth: false, top: SK[0], sleeve: SK[0], hand: SK[0], pants: SK[0], shoes: false }), { emit: 0.6 });
+  const rig = new Rig({ material: mat, scale: 2.55, bodyW: 11, bodyD: 6, armW: 5, headS: 9, legH: 10 });
+  for (const g of [rig.torso, rig.head, rig.armR, rig.armL, rig.legR, rig.legL]) dropMeshes(rig, g);
+  rig.handR.position.y = rig.handL.position.y = -11 * PX;
+  rig.legR.position.x = -3 * PX; rig.legL.position.x = 3 * PX;
+  // (round 7, head and leg proportions: a giant near twice a hero's height
+  // has a giant's head and legs, not a hero's. The head is sculpted afresh
+  // from the same cells at 0.84 of its old size (round 8: 0.62 went too far;
+  // his sheet, vox-bosses-2, draws the head about 0.22 of his height, and
+  // design/sizes.json "headSheet" holds him to it), the eye kept wide in it;
+  // the legs grow from 10 to 16.4 pixels over the same feet, the kilt with
+  // them, the shoulders broaden and the arms reach as far down the thigh as
+  // before, so he stands about as tall as he did: proportions.js reshape)
+  const HF = 0.84, L1 = 16.4, ANK = -8.2;
+  reshape(rig, rig.head, HF);
+  reshape(rig, rig.torso, [1.1, 1, 1.05]);
+  reshape(rig, rig.hips, [1.1, L1 / 10, 1.05]);
+  for (const g of [rig.legR, rig.legL]) reshape(rig, g, [1.05, legScale(10, L1, ANK), 1.05], [0, 0, 0], { ankle: ANK });
+  for (const g of [rig.armR, rig.armL]) reshape(rig, g, [1.05, 1.3, 1.05]);
+  rig.dims.legH = L1; rig.hips.position.y = L1 * PX;
+  // (round 8: the larger head sits 2.2 pixels lower between the shoulders, as
+  // on the sheet, a touch forward of the chest, so he stands as tall as
+  // before and his legs keep their share of his height: design/sizes.json)
+  rig.neck.position.y = (12 - 2.2) * PX; rig.neck.position.z = 0.5 * PX;
+  rig.crownY = 10 * HF;   // (a champion's crown sits on the mane, down in the curls: champions.js crownAny)
+  // (its triangle budget: cells 0.88 of a hero pixel's density, and a champion
+  // built bigger, BUILD.k, gains density with the square root of its size,
+  // so the cyclops stays near 20k triangles and Gorgos under 25k)
+  const K = kit(rig, mat, { seed: 53, density: cycDensity(rig) * (pal.dk ?? 1), ao: 0.22 });   // (pal.dk: a champion's trim to its budget)
+  const T = rig.torso, Hd = rig.head, H = rig.hips;
+  const skin = () => () => SK[Math.floor(K.r() * 3)];   // (a few flat tones, so runs of cells merge)
+  // ---- trunk: a deep barrel chest, heavy pecs, a hard belly, traps rising
+  // round a short neck (the head sits low between the shoulders)
+  // (pass 3: rounder masses, pw nearer 2, so the chest tapers to the waist as on the sheet)
+  blob(K, T, [0, 7.6, 0.2], [5.4, 4.8, 3.3], 1, (x, y, z) => (z > 0.55 && y < -0.05 && y > -0.32 ? skinD : z > 0.7 && Math.abs(x) < 0.08 ? skinD : SK[Math.floor(K.r() * 3)]), { pw: 2.2, run: [2, 5] });
+  blob(K, T, [0, 3, 0.4], [4, 3.4, 2.9], 1, (x, y, z) => (z > 0.6 && (Math.abs(x) < 0.07 || Math.abs(y - 0.2) < 0.08) ? skinD : SK[Math.floor(K.r() * 3)]), { pw: 2.2 });
+  blob(K, T, [0, 11.2, -0.7], [4.6, 1.9, 2.6], 1, skin(), { pw: 2.2 });
+  // the fleece: wool over the left shoulder and chest, falling across the
+  // belly to the right hip (the right breast bare), curls standing out
+  blob(K, T, [0.3, 6.6, 0.25], [5.7, 5.4, 3.7], 1, () => wool[Math.floor(K.r() * wool.length)], { pw: 2.2, run: [1, 2], keep: (x, y) => x * 0.95 - y * 0.75 > -0.25 });
+  blob(K, T, [3.6, 11, -0.4], [3.3, 2.4, 3.3], 1, () => wool[Math.floor(K.r() * wool.length)], { run: [1, 2] });
+  K.clumps(T, [2.6, 9.5, 0], [6, 5, 7.6], { n: 9, size: [1, 1.6], cols: wool, faces: 'tfkr', out: 0.3 });
+  K.clumps(T, [0, 4.5, 3.7], [8, 5, 1], { n: 4, size: [0.9, 1.4], cols: wool, faces: 'f', out: 0.2, keep: (x, y) => x * 0.95 - (y - 6.6) * 0.75 * 6 / 5.4 > -1.4 });
+  // a gold strap over the right shoulder, the belt with its round bosses
+  for (let i = 0; i < 7; i++) { const t = i / 6; K.box(T, -3.4 + t * 1.2, 12 - t * 9.6, 3.2 + Math.sin(t * Math.PI) * 0.6, 1.3, 1.7, 0.5, i % 2 ? gold : goldL, 0.15, 0, 0.12); }
+  K.box(T, -3.4, 12.1, -0.5, 1.3, 0.6, 7, gold);
+  K.box(T, 0, 1.6, 0.4, 9.4, 1.6, 6.8, gold); K.box(T, 0, 1.6, 0.4, 9.6, 0.4, 7, goldD);
+  for (const x of [-3.4, 0, 3.4]) { const r = x ? 1.3 : 1.8; K.box(T, x, 1.6, 3.95, r * 2, r * 1.6, 0.5, goldL); K.box(T, x, 1.6, 4.05, r * 1.6, r * 2, 0.5, goldL); K.box(T, x, 1.6, 4.2, r, r, 0.4, goldD); }
+  // ---- the kilt: ragged wool strips from the belt to the knee, a gold
+  // tongue hanging down the front
+  const NS = 34;
+  for (let i = 0; i < NS; i++) {
+    const a = i / NS * Math.PI * 2, x = Math.sin(a) * 4.9, z = Math.cos(a) * 3.5 + 0.4, L = 5.4 + K.r() * 1.8 - (Math.abs(Math.cos(a)) > 0.8 ? 0 : 0.5);
+    K.flare(H, x, 1.6 - L / 2, z, 1.15, L, 0.9, K.tone(wool, 0.1), a, 0.16);
+    if (K.r() < 0.5) K.flare(H, x * 1.04, 1.6 - L - 0.3, z * 1.04, 0.6, 0.8, 0.6, K.tone(wool, 0.1), a, 0.16);   // a tattered end
   }
-  // a ram's skull with curled horns on the right shoulder
-  const ram = group(T, -6, 12.6, 0.5, 0, 0.3, 0); ram.visible = pal.ram !== false;
-  K.box(ram, 0, 0, 1, 3, 3, 4, 0xe8e0c8); K.box(ram, 0, -0.6, 3.3, 2, 2, 1.6, 0xd8d0b8);
-  for (const sx of [-1, 1]) { K.box(ram, sx * 0.8, 0.4, 3, 0.7, 0.7, 0.3, 0x1a1410); for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 1.6; K.box(ram, sx * (1.9 + Math.sin(a) * 0.4), 0.8 + Math.cos(a) * 1.6, 0.6 - Math.sin(a) * 1.6, 1.3, 1.3, 1.3, k % 2 ? 0xb8a888 : 0xc8b898); } }
-  // leather bracers and wrist bands, sandals with straps
-  for (const arm of [rig.armR, rig.armL]) { K.box(arm, 0, -8.4, 0, 7, 3.6, 5.8, leather); K.box(arm, 0, -6.9, 0, 7.1, 0.5, 5.9, gold); K.box(arm, 0, -9.9, 0, 7.1, 0.5, 5.9, gold); K.box(arm, 0, 1.2, 0, 7, 3.4, 6, skin); }
-  for (const sx of [-1, 1]) { K.box(T, sx * 2.7, 9.4, 3.2, 4.8, 3.4, 1, skinD); K.box(T, sx * 5.6, 11, 0, 3, 3, 6.4, skin); }
-  K.box(T, 0, 5.5, 3.3, 4, 4, 0.8, skin);
-  for (const leg of [rig.legR, rig.legL]) { K.box(leg, 0, -9.6, 0.6, 4.6, 0.8, 5.6, leather); for (const y of [-7.5, -8.6]) K.box(leg, 0, y, 0, 4.3, 0.5, 4.3, leather); }
-  // the club: a knotted log thickening to a studded head
-  const club = group(rig.handR, 0, -1, 1, 0.5, 0, 0);
-  K.box(club, 0, 4, 0, 2.6, 12, 2.6, 0x5a3418); K.box(club, 0, 11, 0, 3.4, 4, 3.4, 0x6a3e1e); K.box(club, 0, 16, 0, 4.8, 7, 4.8, 0x7a4a24); K.box(club, 0, 20, 0, 3.8, 1.6, 3.8, 0x6a3e1e);
-  for (const [x, y, z] of [[2.6, 15, 0], [-2.6, 17.5, 0], [0, 16.5, 2.6], [0, 14, -2.6], [2.6, 19, 0.8], [-1.4, 13.5, 2.6], [0.6, 19, -2.6]]) K.box(club, x, y, z, 1.4, 1.4, 1.4, 0x8a8a94);
-  K.box(club, 0, -2, 0, 3, 1.4, 3, leather);
-  rig.extras.club = club;
+  for (let i = 0; i < 4; i++) K.box(H, 0, 0.6 - i * 1.3, 4.35 + i * 0.2, 1.5, 1.4, 0.4, i % 2 ? gold : goldL, -0.14);
+  // ---- head: a big jaw under one huge eye, a heavy brow, a broad nose, a
+  // roaring mouth; a curly mane and a beard down onto the chest
+  const fz = 4.3;
+  markHeadCore(rig, [0, 4.4, 0.4], [7.8, 9, 7.8]);   // (the skull and face: mane, brow hair and beard aside)
+  blob(K, Hd, [0, 4.4, 0.4], [3.9, 4.5, 3.9], 1, (x, y, z) => (z > 0.6 && y > 0.25 && y < 0.62 && Math.abs(x) > 0.55 ? skinD : SK[Math.floor(K.r() * 3)]), { pw: 2.5 });
+  K.box(Hd, 0, 7.9, fz - 0.4, 6.8, 1.3, 1.6, HAIR[0], -0.1); K.box(Hd, 0, 7.4, fz - 0.1, 5.6, 0.6, 1.2, skinD);                 // the single brow
+  // (the eye drawn wider than before, round 7: it stays the face's one big feature on the smaller head)
+  K.box(Hd, 0, 6.1, fz - 0.15, 5.6, 3.6, 0.8, 0x3a1a0e);                                                                            // socket
+  K.box(Hd, 0, 6.1, fz + 0.1, 5, 3, 0.6, 0xf4f0e6); K.box(Hd, 0, 6, fz + 0.3, 2.9, 2.7, 0.5, iris);
+  K.box(Hd, 0, 6, fz + 0.45, 1.45, 1.6, 0.4, 0x0a0a14); K.box(Hd, -0.75, 6.7, fz + 0.6, 0.6, 0.6, 0.2, 0xffffff);
+  K.box(Hd, 0, 4.2, fz + 0.3, 1.7, 2, 1.2, SK[1]); K.box(Hd, 0, 3.5, fz + 0.65, 2.3, 0.8, 0.8, skinD);                              // the nose
+  K.box(Hd, 0, 2.1, fz - 0.1, 3.6, 2.1, 1, 0x4a0e0c); K.box(Hd, 0, 1.8, fz - 0.15, 2.2, 1, 0.8, 0xc0303a);                          // the roaring mouth
+  for (let x = -1.35; x <= 1.36; x += 0.9) { K.box(Hd, x, 2.95, fz + 0.2, 0.75, 0.6, 0.5, 0xf4f0e0); K.box(Hd, x, 1.2, fz + 0.2, 0.75, 0.45, 0.5, 0xe8e0d0); }
+  for (const sx of [-1, 1]) { K.box(Hd, sx * 4, 4.8, 0.4, 0.9, 2.2, 1.6, SK[1]); K.box(Hd, sx * 4.3, 4.6, 0.5, 0.3, 1, 0.8, skinD); }      // ears
+  // (pal.hood: a champion's hood covers the crown, so only the mane below it is built)
+  blob(K, Hd, [0, 6.2, -0.6], [4.9, 4.7, 4.7], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2], keep: (x, y, z) => !(z > 0.15 && y < 0.72 && Math.abs(x) < 0.8) && !(pal.hood && y > -0.1) });
+  if (!pal.hood) blob(K, Hd, [0, 3.4, 0.6], [4.9, 2.6, 3.4], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2], keep: (x, y, z) => Math.abs(x) > 0.82 });   // side locks down to the jaw (a hood's flaps cover them)
+  // (the curls seated on the mane, on: none hangs in the air off a corner of the box they are scattered over)
+  const mane = [[0, 6.2, -0.6], [4.9, 4.7, 4.7]];
+  if (!pal.hood) K.clumps(Hd, [0, 6.6, -0.6], [9.4, 8.6, 9], { n: 14, size: [1, 1.8], cols: HAIR, faces: 'tklr', out: 0.1, on: mane });
+  if (!pal.hood) K.clumps(Hd, [0, 9.4, 2], [8.4, 1.6, 4.4], { n: 5, size: [1, 1.6], cols: HAIR, faces: 'tf', out: 0.1, on: mane });
+  // (round 7: the beard a little fuller and longer than the smaller head alone would give it, as on the sheet)
+  blob(K, Hd, [0, 0.7, 2.3], [4.9, 3.7, 2.6], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2], keep: (x, y, z) => !(z > 0.3 && y > 0.12 && Math.abs(x) < 0.44) });
+  blob(K, Hd, [0, -2, 2.8], [3.6, 3, 2.1], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2] });
+  K.clumps(Hd, [0, 0, 3.4], [8, 6, 2], { n: 9, size: [0.9, 1.6], cols: HAIR, faces: 'flrb', out: 0.25, keep: (x, y) => !(y > 1.1 && Math.abs(x) < 2.2), on: [[0, 0.7, 2.3], [4.9, 3.7, 2.6]] });   // (seated on the beard)
+  // ---- the ram's skull with curled horns on the left shoulder
+  const ram = reshape(rig, group(T, 6.6, 12.4, 0.6, 0, -0.35, 0), 0.8); ram.visible = pal.ram !== false;   // (round 7: a little smaller, beside the smaller head)
+  const bone = [0xe8e0c8, 0xd8d0b8, 0xf0ead8];
+  blob(K, ram, [0, 0, 0.8], [1.8, 1.7, 2], 1, () => K.tone(bone, 0.06));
+  K.box(ram, 0, -0.7, 2.9, 1.8, 1.6, 1.8, bone[1]); K.box(ram, 0, -1.2, 3.7, 1.2, 0.8, 0.5, 0x2a2014);
+  for (const sx of [-1, 1]) {
+    K.box(ram, sx * 0.75, 0.3, 2.6, 0.8, 0.8, 0.3, 0x1a1410);
+    for (let k = 0; k < 11; k++) { const a = k / 11 * Math.PI * 1.7, r = 1.9 - k * 0.07; K.box(ram, sx * (1.7 + Math.sin(a) * 0.25 + k * 0.08), 0.6 + Math.cos(a) * r, 0.2 - Math.sin(a) * r, 1.1 - k * 0.04, 1.1 - k * 0.04, 1.1 - k * 0.04, k % 2 ? 0xb8a888 : 0xc8b898); }
+  }
+  // ---- arms: a round shoulder, a thick upper arm, a heavier forearm in a
+  // gold-banded leather bracer, a big blocky fist
+  for (const arm of [rig.armR, rig.armL]) {
+    // (pass 3: a round deltoid, a bicep bulging forward over a slimmer arm,
+    // a narrow elbow, then the forearm swelling into the bracer: defined, not a column)
+    blob(K, arm, [0, 0.5, 0], [3.3, 3.1, 3], 1, skin(), { pw: 2 });
+    blob(K, arm, [0, -3.4, 0], [2.1, 3.4, 2.1], 1, skin(), { pw: 2.1 });
+    blob(K, arm, [0, -3, 0.8], [1.8, 2.4, 1.6], 1, skin(), { pw: 2 });
+    blob(K, arm, [0, -7.8, 0.2], [2.6, 3, 2.5], 1, skin(), { pw: 2.2 });
+    K.vox(arm, 0, -8.6, 0.2, 5.6, 2.6, 5.4, [leather, leatherD, 0x7a4c2a], { relief: 0.15 });
+    K.box(arm, 0, -7.3, 0.2, 5.8, 0.5, 5.6, gold); K.box(arm, 0, -9.9, 0.2, 5.8, 0.5, 5.6, gold);
+    blob(K, arm, [0, -11.5, 0.4], [2.7, 2.2, 2.7], 1, skin(), { pw: 3 });
+    for (let i = 0; i < 4; i++) K.box(arm, -1.8 + i * 1.2, -12.4, 2.6, 1.1, 1.3, 1, i % 2 ? SK[1] : SK[2]);   // knuckles
+    K.box(arm, (arm === rig.armR ? 1 : -1) * 2.4, -11, 1.4, 1, 2, 1.6, SK[1]);                                   // the thumb
+  }
+  // ---- legs: thick thighs under the kilt, heavy calves bound with leather,
+  // broad feet on strapped sandals
+  for (const leg of [rig.legR, rig.legL]) {
+    blob(K, leg, [0, -2.6, 0], [2.8, 3.4, 2.8], 1, skin(), { pw: 2.2 });
+    blob(K, leg, [0, -6.6, -0.2], [2.4, 3, 2.5], 1, skin(), { pw: 2.2 });
+    for (const y of [-5.6, -7.6]) K.vox(leg, 0, y, -0.2, 5.4, 1, 5.6, [leather, leatherD], {});
+    // (the foot stops a hair above the leg's end and short of a long toe: a long foot's tip dipped through the floor as the leg swung in the run)
+    blob(K, leg, [0, -9, 0.6], [2.5, 0.85, 3.1], 1, skin(), { pw: 3 });
+    K.box(leg, 0, -9.6, 0.6, 5.4, 0.5, 6.4, leatherD);
+    for (let i = 0; i < 4; i++) K.box(leg, -1.65 + i * 1.1, -9.15, 3.6, 1, 0.9, 0.9, i % 2 ? SK[1] : SK[2]);         // toes
+    for (const z of [-1, 1.6]) K.box(leg, 0, -8.7, z, 5.4, 0.5, 0.6, leather);
+    K.box(leg, 0, -8.8, 0.3, 0.6, 1.6, 5.4, leather);
+  }
+  // ---- the club: a knotted log thickening to a studded head
+  const club = group(rig.handR, 0, -1, 1, HOLD_PITCH, 0, 0);   // (along +y, angled forward at the foe: see the hand-axis convention in character.js)
+  const WOOD = [0x5a3418, 0x6a3e1e, 0x7a4a24, 0x4a2a12];
+  blob(K, club, [0, 5, 0], [1.3, 7, 1.3], 1, () => K.tone(WOOD, 0.1), { pw: 2.6 });
+  blob(K, club, [0, 15.6, 0], [2.6, 5.4, 2.6], 1, () => K.tone(WOOD, 0.1), { pw: 2.4 });
+  for (const [x, y, z] of [[1.6, 9, 0.6], [-1.5, 6.6, -0.4], [0.2, 11.6, 1.6]]) K.box(club, x, y, z, 1, 1.4, 1, WOOD[3]);   // knots
+  for (const [x, y, z] of [[2.6, 15, 0], [-2.6, 17.5, 0], [0, 16.5, 2.6], [0, 14, -2.6], [2.2, 19, 0.8], [-1.4, 13.5, 2.3], [0.6, 19, -2.2], [-1.9, 15.2, -1.8]]) { K.box(club, x, y, z, 1.3, 1.3, 1.3, 0x8a8a94); K.box(club, x * 1.08, y + 0.3, z * 1.08, 0.6, 0.6, 0.6, 0xb8b8c4); }
+  K.vox(club, 0, -1.6, 0, 3, 2.2, 3, [leather, leatherD], {});
+  markTip(club, 0, 20.8, 0, 'club'); rig.extras.club = club;
+  applyShape(rig);
   K.done();
   rig.hunch = 0.3;
+  keepAbove(rig, club, { reset: true });   // (a slam that ends low strikes the floor with the club instead of driving it through)
   return rig;
 }
 
@@ -1193,19 +2296,20 @@ function buildStatue() {
   // chips and moss over everything, and cracks that glow faintly green (Medusa's curse)
   K.clumps(T, [0, 6, 0], [9, 12, 5], { n: 26, size: [0.8, 1.3], cols: [...moss, dark], faces: 'tfklr', out: -0.3 });
   // round shield with a gorgon face, held up on the left arm
-  const sh = group(rig.handL, 1, -4, 2);
+  const sh = markHeld(group(rig.handL, 1, -4, 2));
   K.box(sh, 0, 0, 0, 10, 10, 1.2, ST[1]); K.box(sh, 0, 0, 0.3, 11, 7, 1, ST[1]); K.box(sh, 0, 0, 0.3, 7, 11, 1, ST[1]);
   K.box(sh, 0, 0, 0.8, 4, 4.4, 0.6, ST[2]);
   for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; K.box(sh, Math.cos(a) * 2.8, Math.sin(a) * 2.8, 0.9, 1, 1, 0.5, ST[3]); }
   for (const sx of [-1, 1]) K.box(sh, sx * 0.9, 0.6, 1.15, 0.6, 0.6, 0.3, dark);
   K.box(sh, 3.5, -3.5, 0.7, 2.4, 2.4, 0.4, moss[0]);
   // a stone spear in the raised right hand, snapped short
-  const sp = group(rig.handR, 0, -1, 0);
+  const sp = group(rig.handR, 0, -1, 0, HOLD_PITCH);
   K.box(sp, 0, 4, 0, 1.2, 18, 1.2, ST[3]); K.box(sp, 0, 14, 0, 2.2, 4, 0.8, ST[2]); K.box(sp, 0, -6, 0, 1.2, 2, 1.2, ST[1]);
+  markTip(sp, 0, 16, 0, 'stone spear');
   // a cracked plinth stuck to its feet
   for (const leg of [rig.legR, rig.legL]) { K.box(leg, 0, -11.4, 0.5, 5.4, 2, 6.4, ST[3]); K.box(leg, 0.8, -12, 1.8, 3, 1, 3, 0x7a766e); K.clumps(leg, [0, -11.4, 0.5], [5.4, 2, 6.4], { n: 6, size: [0.6, 1], cols: moss, faces: 'tf', out: -0.3 }); }
   K.done();
-  rig.statuePose = (r) => { r.armR.rotation.set(-2.3, 0, 0.3); r.armL.rotation.set(-1.3, 0.5, -0.2); r.head.rotation.set(0.25, 0.5, 0); r.torso.rotation.set(0.12, -0.3, 0); r.legR.rotation.x = 0.3; r.legL.rotation.x = -0.25; };
+  rig.statuePose = (r) => { r.armR.rotation.set(-2.3, 0, 0.3); r.handR.rotation.x = 1.5; r.armL.rotation.set(-1.3, 0.5, -0.2); r.head.rotation.set(0.25, 0.5, 0); r.torso.rotation.set(0.12, -0.3, 0); r.legR.rotation.x = 0.3; r.legL.rotation.x = -0.25; };
   rig.statuePose(rig);
   return rig;
 }
@@ -1220,7 +2324,7 @@ function buildGhost() {
       body: (s) => { for (let i = 0; i < 50; i++) s.dot(16 + s.r() * 24, 20 + s.r() * 12, s.r() < 0.5 ? 0x6aa0b4 : 0xb0e0ec, 1, 2); } });
     S.saturate(1.1);
   }, { emit: 3, fill: 0.7, dissolve: 0.3, res: 2 });
-  const rig = new Rig({ material: mat, scale: 1.0, armW: 3 });
+  const rig = new Rig({ material: mat, scale: 1.2, armW: 3 });   // (size audit: ×1.2, a spirit keeps the size it had alive)
   for (const leg of [rig.legR, rig.legL]) dropMeshes(rig, leg);
   const K = kit(rig, mat, { seed: 67, fill: 0.6, emit: 0.9 });
   const SH = [0x8ac0d4, 0x6aa0b4, 0xa8d8e8, 0x5a90a8], hk = HS;
@@ -1292,19 +2396,34 @@ function buildAutomaton() {
   K.box(pot, 0, 7.3, 0, 3, 1.2, 3, ter); K.box(pot, 0, 8.1, 0, 3.8, 0.6, 3.8, blk);
   for (const sx of [-1, 1]) { K.box(pot, sx * 3.6, 6.2, 0, 0.8, 3.4, 0.8, ter); K.box(pot, sx * 2.8, 7.6, 0, 1.8, 0.8, 0.8, ter); }
   K.box(pot, 0, 0, 0, 7, 0.6, 7, B[1]); for (const sx of [-1, 1]) K.box(pot, sx * 3.3, 3, 0, 0.4, 6, 0.8, B[2]);
+  // the Greek fire itself: a small glowing core in the neck, and live green
+  // flames (flames.js) licking up out of it; in the wind-up before it bursts
+  // the fire leaks from the seams of its plates too
   const fire = group(pot, 0, 8.2, 0);
   const GF = [0x3aff1a, 0x8aff3a, 0xd8ff8a];
-  for (let i = 0; i < 24; i++) { const t = K.r(), a = K.r() * Math.PI * 2, r = (1 - t) * 1.6; const z = 1.4 - t * 0.8; K.box(fire, Math.cos(a) * r, t * 5.5, Math.sin(a) * r, z, z * 1.4, z, GF[Math.min(2, Math.floor(t * 2.4 + K.r() * 0.6))]); }
+  for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2, r = i % 2 ? 0.7 : 0.3; K.box(fire, Math.cos(a) * r, 0.3 + (i % 3) * 0.35, Math.sin(a) * r, 1.3 - (i % 3) * 0.25, 1.2, 1.3 - (i % 3) * 0.25, GF[i % 3]); }
   fire.scale.set(1.02, 0.6, 1.02);
   rig.extras.pot = pot; rig.extras.fire = fire;
   K.done();
+  const F = addFlames(rig, { cap: 44, palette: 'greek', rise: 30, turb: 34 });
+  F.source(pot, { at: [0, 8.6, 0], r: 1.3, rate: 50, life: [0.4, 0.8], size: [1.1, 2], up: 9, spread: 2.5 });
+  for (const sx of [-1, 1]) F.source(T, { at: [sx * 4.7, 2.9, -4], to: [sx * 4.7, 2.9, 4], r: 0.3, rate: 14, life: [0.25, 0.45], size: [0.5, 0.9], up: 6, spread: 1.5, when: (e) => (e?.state === 'windup' ? 1 : 0) });
   return rig;
 }
 
 // Pit scorpion: a low armoured scorpion in dark red-brown chitin, banded
 // back plates, eight jointed legs, heavy serrated pincers on jointed arms,
-// four glowing eyes and a segmented tail curling over the back to a barbed
-// stinger dripping green venom.
+// four glowing eyes and a long segmented tail arcing high over the back to a
+// big bulbous stinger with a hooked barb dripping green venom.
+// It fights two ways, alternating (MONSTERS.scorpion.moves, enemy.js):
+//   pinch  the claws spread wide and open (the tell), then lunge one after
+//          the other and snap shut: a one-two at short range;
+//   sting  the tail coils back high and trembles (the tell), then whips
+//          forward over the body to stab the ground in front, and recoils.
+// Idle, the tail sways poised and the claws snap nervously. The rig reads
+// the attack from animate()'s action (style 'pinch' or 'sting'; any other
+// attack style reads as a pinch), so champion looks built on it, online
+// puppets and the workbench all move the same.
 // pal: { C: [three chitin tones], CD: dark, CL: light plates, VEN: venom, belly, sting: [bulb, inner, barb] }
 export function buildScorpion({ id = 'scorpion', pal = {} } = {}) {
   const C = pal.C ?? [0x4a2214, 0x5a2a16, 0x3a1a0e], CD = pal.CD ?? 0x1a0c06, CL = pal.CL ?? 0x7a3a1c, VEN = pal.VEN ?? 0x7aff1a;
@@ -1314,18 +2433,26 @@ export function buildScorpion({ id = 'scorpion', pal = {} } = {}) {
       custom: (s) => { s.box(40, 32, 2, 2, 6, C[1], 0.15); for (let x = 40; x < 56; x += 3) s.rect(x, 32, 1, 8, CD, 0); } });
     S.saturate(1.2);
   }, { rough: 0.35, emit: 1 });
-  const rig = new QuadRig({ material: mat, scale: 1.1, bodyL: 10, bodyW: 7, bodyH: 3.4, legH: 4, legW: 1.4, headS: 4.5, legs: 8, splay: 1.6, footL: 5, snout: false, neckUp: -1.2, gait: 1.5, tail: 6, tailLen: 15, tailW: 2.4, tailCurl: 0.62 });
+  const TN = 9, TL = 27;   // tail segments and length (skin px)
+  const rig = new QuadRig({ material: mat, scale: 1.25, bodyL: 10, bodyW: 7, bodyH: 3.4, legH: 4, legW: 1.4, headS: 4.5, legs: 8, splay: 1.6, footL: 5, snout: false, neckUp: -1.2, gait: 1.5, tail: TN, tailLen: TL, tailW: 2.8, tailCurl: 0.3 });
   const K = kit(rig, mat, { seed: 79, rough: 0.35, metal: 0.1, emit: 0.8 });
   const T = rig.torso, { legW } = rig.dims;
+  // A champion built at twice the size and more (the Pit Scorpion, the Red
+  // King: parts.js BUILD.k) has its plates and segments drawn as shells of
+  // hero-sized cells, so its armour shows grain instead of plain slabs.
+  // (cells no finer than half a pixel: the Red King, at 2.4, stays under 25k triangles)
+  const fine = BUILD.k > 1.3, cell = 1 / Math.min(2.2, BUILD.k);
+  const V = (p, x, y, z, w, h, d, col, rx = 0) => (fine ? K.vox(p, x, y, z, w, h, d, [col], { cell, j: 0.16, relief: 0.08, rx }) : K.box(p, x, y, z, w, h, d, col, rx));
+  const VZ = (g, x, y, z, w, h, d, col) => (fine ? K.voxZ(g, x, y, z, w, h, d, [col], { cell, j: 0.16, relief: 0.08 }) : K.boxZ(g, x, y, z, w, h, d, col));
   // banded back plates with a ridge, and side armour
-  for (let i = 0; i < 5; i++) { const z = 4 - i * 2.1; K.box(T, 0, 1.9, z, 7.6 - i * 0.3, 0.8, 2, C[i % 2], -0.08); K.box(T, 0, 2.4, z + 0.3, 1.2, 0.5, 1.4, CL); K.box(T, 0, 1.6, z - 0.9, 7.8 - i * 0.3, 0.4, 0.3, CD); }
-  for (const sx of [-1, 1]) K.box(T, sx * 3.7, 0, 0, 0.6, 2.6, 9.4, C[2]);
+  for (let i = 0; i < 5; i++) { const z = 4 - i * 2.1; V(T, 0, 1.9, z, 7.6 - i * 0.3, 0.8, 2, C[i % 2], -0.08); K.box(T, 0, 2.4, z + 0.3, 1.2, 0.5, 1.4, CL); K.box(T, 0, 1.6, z - 0.9, 7.8 - i * 0.3, 0.4, 0.3, CD); }
+  for (const sx of [-1, 1]) V(T, sx * 3.7, 0, 0, 0.6, 2.6, 9.4, C[2]);
   // legs: plated knees and dark pointed feet
   for (const leg of rig.legs) {
     const k = leg.userData.knee; if (!k) continue;
     dropMeshes(rig, leg); dropMeshes(rig, k);
-    K.box(leg, 0, -2, 0, legW, 4, legW, C[0]); K.boxZ(k, 0, -2.5, 0, legW * 0.8, 5, legW * 0.8, C[2]);
-    K.box(leg, 0, -2, 0, legW + 0.6, 3, legW + 0.6, C[1]);
+    K.box(leg, 0, -2, 0, legW, 4, legW, C[0]); VZ(k, 0, -2.5, 0, legW * 0.8, 5, legW * 0.8, C[2]);
+    V(leg, 0, -2, 0, legW + 0.6, 3, legW + 0.6, C[1]);
     K.boxZ(k, 0, 0, 0, legW * 1.4, 1.6, legW * 1.4, CL); K.boxZ(k, 0, -3, 0, legW, 2, legW, C[0]); K.boxZ(k, 0, -5.2, 0, legW * 0.5, 1.4, legW * 0.5, CD);
   }
   // head: four glowing eyes and small chelicerae
@@ -1333,30 +2460,124 @@ export function buildScorpion({ id = 'scorpion', pal = {} } = {}) {
   for (const [x, y, s] of [[-1, 0.6, 0.8], [1, 0.6, 0.8], [-1.8, 0, 0.5], [1.8, 0, 0.5]]) K.box(Hd, x, y, fz + 0.1, s, s, 0.3, 0xff3010);
   K.box(Hd, 0, 1.6, 1.6, 4.8, 0.8, 4.6, C[1]);
   for (const sx of [-1, 1]) K.box(rig.mouth, sx * 0.7, 0, 0.8, 0.8, 0.8, 1.6, CL);
-  // pincers on jointed arms: serrated jaws
+  // pincers on jointed arms: a heavy hand and two serrated fingers that open
+  // and close (jawA, jawB: groups of their own)
   rig.extras.claws = [];
   for (const sx of [-1, 1]) {
     const arm = group(T, sx * 3, 0, 4.5, 0, sx * 0.5, 0);
-    K.box(arm, 0, 0, 3, 2, 2, 6, C[0]); K.box(arm, 0, 0.9, 3, 1.2, 0.5, 5, CL);
+    V(arm, 0, 0, 3, 2, 2, 6, C[0]); K.box(arm, 0, 0.9, 3, 1.2, 0.5, 5, CL);
     const fore = group(arm, 0, 0, 6, 0, -sx * 0.9, 0);
-    K.box(fore, 0, 0, 2.5, 1.8, 1.8, 5, C[1]); K.box(fore, 0, 0, 0, 2.4, 2.4, 1.4, CD);
+    V(fore, 0, 0, 2.5, 1.8, 1.8, 5, C[1]); K.box(fore, 0, 0, 0, 2.4, 2.4, 1.4, CD);
     const pin = group(fore, 0, 0, 5);
-    K.box(pin, 0, 0, 1.8, 3.8, 2.8, 4.4, C[0]); K.box(pin, 0, 1.5, 1.8, 2.6, 0.5, 3.6, CL);
+    V(pin, 0, 0, 1.8, 3.8, 2.8, 4.4, C[0]); K.box(pin, 0, 1.5, 1.8, 2.6, 0.5, 3.6, CL); K.box(pin, 0, 0, 3.8, 3.2, 2.2, 0.6, CD);
     const jawA = group(pin, -1.1, 0, 4, 0, 0.25, 0), jawB = group(pin, 1.1, 0, 4, 0, -0.25, 0);
-    for (const [j, s] of [[jawA, 1], [jawB, -1]]) { const o = [j.position.x / PX, 0, j.position.z / PX], ry = j.rotation.y; K.boxY(pin, o, ry, 0, 0, 2, 1.3, 1.6, 4.2, CD); for (let t = 0; t < 3; t++) K.boxY(pin, o, ry, s * 0.75, 0, 0.8 + t * 1.2, 0.4, 0.6, 0.5, CL); K.boxY(pin, o, ry + s * 0.4, s * 0.2, 0, 4.4, 0.8, 1, 0.8, CD); }
-    rig.extras.claws.push({ arm, jawA, jawB, side: sx });
-    sway(rig, arm, 'y', 0.15, 2.4);
+    for (const [j, s] of [[jawA, 1], [jawB, -1]]) {
+      V(j, 0, 0, 2, 1.3, 1.6, 4.2, CD);
+      for (let t = 0; t < 3; t++) K.box(j, s * 0.75, 0, 0.8 + t * 1.2, 0.4, 0.6, 0.5, CL);
+      K.boxY(j, [0, 0, 0], s * 0.4, s * 0.2, 0, 4.4, 0.8, 1, 0.8, CD);
+    }
+    rig.extras.claws.push({ arm, fore, jawA, jawB, side: sx, ph: sx > 0 ? 0 : 2.3 });
   }
-  // tail segments: banded rings with a dorsal spike
-  for (const [i, seg] of rig.tail.entries()) { const w = 2.4 * (1 - i * 0.12), l = 15 / 6; dropMeshes(rig, seg); K.box(seg, 0, 0, -l / 2, w, w, l + 0.1, C[2]); K.box(seg, 0, 0, -l / 2, w + 0.5, w + 0.4, l * 0.7, C[i % 2]); K.box(seg, 0, w / 2 + 0.4, -l / 2, 0.6, 0.8, 0.6, CL); K.box(seg, 0, 0, -0.1, w + 0.2, w + 0.2, 0.3, CD); }
-  // stinger at the tail tip, dripping venom
-  const sting = group(rig.tailTip, 0, 0, -2.6, -0.9);
-  K.box(sting, 0, 0, -1.2, 2.8, 2.8, 3.2, ST[0]); K.box(sting, 0, 0, -1.2, 2, 2, 3.4, ST[1]);
-  K.box(sting, 0, -0.6, -3.4, 1.1, 1.1, 2.2, ST[2], 0.5); K.box(sting, 0, -1.4, -4.6, 0.6, 0.6, 1.4, ST[2], 0.9);
-  K.box(sting, 0, -2.2, -4.9, 0.5, 0.9, 0.5, VEN);
-  rig.extras.sting = sting;
+  // the tail: thick banded rings tapering to the tip, a dark joint between
+  // each and a spike down the outside of the curl (local -y)
+  const sl = TL / TN;
+  for (const [i, seg] of rig.tail.entries()) {
+    const w = 2.9 * (1 - i * 0.055); dropMeshes(rig, seg);
+    K.box(seg, 0, 0, -sl / 2, w, w, sl + 0.1, C[2]); V(seg, 0, 0, -sl / 2, w + 0.5, w + 0.4, sl * 0.7, C[i % 2]);
+    K.box(seg, 0, -w / 2 - 0.4, -sl / 2, 0.6, 0.8, 0.6, CL); K.box(seg, 0, 0, -0.1, w + 0.2, w + 0.2, 0.3, CD);
+  }
+  // the stinger: a big bulb, then a barb hooking in under the curl (+y),
+  // a bead of venom at its point
+  const sting = group(rig.tailTip, 0, 0, -sl, 0.4);
+  V(sting, 0, 0.3, -2.6, 4.2, 4.2, 4.4, ST[0]); V(sting, 0, 0.3, -2.6, 5, 3, 3.4, ST[0]); V(sting, 0, 0.3, -2.6, 3, 5, 3.4, ST[0]);
+  K.box(sting, 0, 0.3, -2.6, 3.4, 3.4, 5.2, ST[1]); K.box(sting, 0, 0, -0.2, 3, 3, 0.6, CD); K.box(sting, 0, -2.1, -2.8, 0.8, 1, 2.4, CL);
+  K.box(sting, 0, 1.4, -5.4, 2.4, 2.4, 2, ST[2], -0.5); K.box(sting, 0, 2.6, -6.6, 1.7, 1.7, 2, ST[2], -0.9); K.box(sting, 0, 4, -7.3, 1.1, 1.1, 1.9, ST[2], -1.3); K.box(sting, 0, 5.2, -7.5, 0.6, 0.6, 1.2, ST[2], -1.6);
+  const venom = group(sting, 0, 5.9, -7.5);
+  K.box(venom, 0, 0, 0, 0.7, 0.9, 0.7, VEN);
+  rig.extras.sting = sting; rig.extras.venom = venom;
   K.done();
+  rig.extras.s0 = rig.baseScale;
+  // QuadRig.animate poses everything else (body, legs, head); the tail is
+  // hidden from it for the call so only scorpionPose moves it
+  const base = rig.animate.bind(rig), noTail = [], act = { type: 'attack', t: 0, style: 'bite', windup: 0.3, strike: 0.5 }, prm = { dt: 0, speed: 0, vel: null, action: null };
+  rig.animate = (p) => {
+    const a = p.action, atk = a?.type === 'attack' ? (a.style === 'sting' ? 'sting' : 'pinch') : null;
+    const tail = rig.tail; rig.tail = noTail;
+    if (atk) { act.t = a.t; act.windup = a.windup ?? 0.3; act.strike = a.strike ?? 0.5; prm.dt = p.dt; prm.speed = p.speed; prm.vel = p.vel; prm.action = act; base(prm); }
+    else base(p);
+    rig.tail = tail;
+    scorpionPose(rig, p.dt, p.speed ?? 0, a, atk);
+  };
   return rig;
+}
+// ---- the scorpion's tail and claws, posed from the attack's progress ----------
+// Tail poses: [root pitch, curl at the first joint, curl at the last joint,
+// stinger bend] (radians; the curl lifts each segment toward the back).
+const SC_IDLE = [0.95, 0.14, 0.42, 0.4], SC_COCK = [0.75, -0.02, 0.45, 0.95], SC_STRIKE = [2.4, 0.04, 0.27, 0.15], SC_RECOIL = [0.75, 0.16, 0.5, 0.6], SC_DROOP = [0.15, 0.06, 0.12, 0.2];
+const scTail = [0, 0, 0, 0], scK = (v) => (v < 0 ? 0 : v > 1 ? 1 : v), scOut = (v) => 1 - (1 - v) ** 3, scIn = (v) => v * v * v;
+function scBlend(A, B, k) { for (let i = 0; i < 4; i++) scTail[i] = A[i] + (B[i] - A[i]) * k; return scTail; }
+// claw poses: [arm yaw (outward), arm pitch (- raises), elbow (outward), fingers open]
+const CL_IDLE = [0.5, 0, 0.9, 0.08], CL_SPREAD = [1.05, -0.4, 1.35, 0.8], CL_LUNGE = [0.1, 0.12, 0.2, -0.05], CL_BRACE = [0.75, 0.15, 1.1, 0.35];
+const scClaw = [0, 0, 0, 0];
+function clawBlend(A, B, k) { for (let i = 0; i < 4; i++) scClaw[i] = A[i] + (B[i] - A[i]) * k; return scClaw; }
+// u runs 0..1 through the windup and 1..2 through the recovery
+function scorpionPose(rig, dt, speed, a, atk) {
+  const t = rig.t, k = scK(a?.t ?? 0), w = a?.windup ?? 0.3;
+  const u = !atk ? 0 : k < w ? scK(k / (w * 0.84)) : 1 + (k - w) / (1 - w);
+  const rate = atk ? 46 : 18, f = 1 - Math.exp(-rate * dt);
+  const D = (o, ax, v) => { o.rotation[ax] += (v - o.rotation[ax]) * f; };
+  // the tail
+  let P, shake = 0, lunge = 0;
+  if (a?.type === 'death' || a?.type === 'down') P = SC_DROOP;
+  else if (atk === 'sting') {
+    if (u < 0.72) { P = scBlend(SC_IDLE, SC_COCK, scOut(u / 0.72)); shake = u / 0.72; lunge = -0.08 * scOut(u / 0.72); }
+    else if (u < 0.95) { const e = scIn((u - 0.72) / 0.23); P = scBlend(SC_COCK, SC_STRIKE, e); lunge = -0.08 + 0.26 * e; }
+    else if (u < 1.3) { P = SC_STRIKE; lunge = 0.18 + Math.sin((u - 0.95) * 18) * 0.02; }
+    else if (u < 1.6) { const e = scOut((u - 1.3) / 0.3); P = scBlend(SC_STRIKE, SC_RECOIL, e); lunge = 0.18 * (1 - e); }
+    else P = scBlend(SC_RECOIL, SC_IDLE, scOut((u - 1.6) / 0.4));
+  } else if (atk === 'pinch') {
+    const e = u < 1 ? scOut(u) : 1 - scK((u - 1.4) / 0.6);
+    P = scBlend(SC_IDLE, SC_RECOIL, e * 0.5);
+  } else P = SC_IDLE;
+  const sway = atk === 'sting' ? 0.05 : 1;
+  const yaw = (Math.sin(t * 1.3) * 0.12 + Math.sin(t * 0.47) * 0.08) * sway, bob = Math.sin(t * 2.1) * 0.05 * sway - speed * 0.1;
+  const tr = shake * shake * Math.sin(t * 47) * 0.05;
+  const n = rig.tail.length;
+  for (let i = 0; i < n; i++) {
+    const g = rig.tail[i];
+    D(g, 'x', i === 0 ? P[0] + bob + tr : P[1] + (P[2] - P[1]) * (i - 1) / (n - 2) + tr * 0.5);
+    D(g, 'y', yaw * (i === 0 ? 1 : 0.35) + Math.sin(t * 2.6 - i * 0.6) * 0.03 * sway);
+  }
+  const S = rig.extras.sting; D(S, 'x', P[3]);
+  rig.extras.venom.scale.setScalar(1 + (atk === 'sting' && u < 0.95 ? shake * 0.9 : 0) + Math.max(0, Math.sin(t * 1.7)) * 0.25);
+  // the claws: each strikes at its own moment (the left at the release,
+  // the right a beat later)
+  for (const c of rig.extras.claws) {
+    let Q;
+    if (atk === 'pinch') {
+      const L = c.side < 0 ? 0.97 : 1.32;
+      if (u < 0.75) Q = clawBlend(CL_IDLE, CL_SPREAD, scOut(u / 0.75));
+      else if (u < L - 0.14) { Q = clawBlend(CL_SPREAD, CL_SPREAD, 0); Q[3] += Math.sin(t * 40 + c.ph) * 0.06; Q[0] += Math.sin(t * 31 + c.ph) * 0.03; }
+      else if (u < L) { const e = scIn((u - L + 0.14) / 0.14); Q = clawBlend(CL_SPREAD, CL_LUNGE, e); Q[3] = e < 0.7 ? CL_SPREAD[3] : CL_LUNGE[3]; }
+      else if (u < L + 0.22) { Q = clawBlend(CL_LUNGE, CL_LUNGE, 0); Q[3] = CL_LUNGE[3] + Math.max(0, Math.sin((u - L) * 60)) * 0.12; }
+      else Q = clawBlend(CL_LUNGE, CL_IDLE, scOut(scK((u - L - 0.22) / (2 - L - 0.22))));
+      if (u >= L - 0.14 && u < L + 0.3) lunge = Math.max(lunge, 0.12 * Math.sin(scK((u - L + 0.14) / 0.44) * Math.PI));
+    } else if (atk === 'sting') {
+      const e = u < 1 ? scOut(u) : 1 - scK((u - 1.3) / 0.7);
+      Q = clawBlend(CL_IDLE, CL_BRACE, e);
+    } else {
+      // nervous snapping: now and then a quick open-and-shut
+      Q = clawBlend(CL_IDLE, CL_IDLE, 0);
+      const s = (t * (0.9 + c.side * 0.13) + c.ph) % 1.7;
+      Q[3] = s < 0.16 ? 0.08 + Math.sin(s / 0.16 * Math.PI) * 0.6 : s > 0.5 && s < 0.6 ? 0.08 + Math.sin((s - 0.5) / 0.1 * Math.PI) * 0.35 : 0.08;
+      Q[0] += Math.sin(t * 2.4 + c.ph) * 0.12; Q[1] += Math.sin(t * 1.9 + c.ph) * 0.06;
+    }
+    D(c.arm, 'y', c.side * Q[0]); D(c.arm, 'x', Q[1]); D(c.fore, 'y', -c.side * Q[2]);
+    D(c.jawA, 'y', 0.25 - Q[3] * 0.7); D(c.jawB, 'y', -0.25 + Q[3] * 0.7);
+  }
+  // the body rocks back on the windup and lunges in on the strike
+  // (lunge in metres at the plain scorpion's size: a champion's grows with it)
+  rig.hips.position.z += (lunge / rig.extras.s0 - rig.hips.position.z) * f;
 }
 
 // ---- stat blocks -------------------------------------------------------------
@@ -1367,30 +2588,39 @@ export function buildScorpion({ id = 'scorpion', pal = {} } = {}) {
 // tier: minor | elite | champion | boss
 // aura: 'smoke' | 'fire' | 'greekfire' | 'spark' | 'wisp' | null  (ambient particles)
 // projectile (ranged): 'feather' | 'fire' | 'acid' | 'bullet' | 'wisp'
+// shots: projectiles a shot (a fan of feathers, a burst of bullets), fired only
+//   from monster level MULTI_SHOT_LEVEL on and never in an early chapter
+//   (entities/rangedRules.js shotCount); below that, one. Ranged wind-ups and
+//   cooldowns are long: one shot every ~4-5 s (rangedRules.js)
 // poison: { dps, dur }  a hit leaves the hero poisoned (green numbers)
 // regrow: true   falls to bones and gets back up unless hit again while down
 // wake: metres   'statue' monsters stand frozen until a hero comes this close
 export const MONSTERS = {
-  pup: { name: txt('monsters.pup.name'), tier: 'minor', role: 'rusher', hp: 32, speed: 5, dmg: 7, radius: 0.45, height: 1.1, ai: 'melee', range: 1.5, windup: 0.4, cd: 1.1, xp: 3, coins: [1, 3], model: 'pup', pitch: 1.5, voice: 'bark' },
+  // (the owner's ruling, 2026-10: a pup is larger than a person, Mrs O'Leary's kind of "puppy": a body
+  // 2.7 tall and 2.8 long, so a wider radius, a longer bite to reach past its own muzzle and a little
+  // more weight against knock-back and a deeper bark; hp, speed, damage and timing unchanged)
+  pup: { name: txt('monsters.pup.name'), tier: 'minor', role: 'rusher', hp: 32, speed: 5, dmg: 7, radius: 0.8, height: 2.7, ai: 'melee', range: 2, windup: 0.4, cd: 1.1, xp: 3, coins: [1, 3], model: 'pup', pitch: 1.2, voice: 'bark', knockResist: 0.2 },
   rat: { name: txt('monsters.rat.name'), tier: 'minor', role: 'rusher', hp: 14, speed: 6.4, dmg: 5, radius: 0.42, height: 0.85, ai: 'melee', range: 1.1, windup: 0.3, cd: 1.1, xp: 2, coins: [0, 2], model: 'rat', pitch: 2.4, voice: 'squeak', knockResist: 0, idle: 'loiter', notice: 4.5, drop: 3.4 },   // idle 'loiter': hangs around trash until a hero is close (entities/ratRules.js)
   serpent: { name: txt('monsters.serpent.name'), tier: 'minor', role: 'fodder', hp: 40, speed: 4.4, dmg: 8, radius: 0.55, height: 1.3, ai: 'melee', range: 1.9, windup: 0.5, cd: 1.3, xp: 4, coins: [1, 3], model: 'serpent', pitch: 0.9, voice: 'hiss', knockResist: 0.2, poison: { dps: 2, dur: 3 } },
   // a real mortal in the Mist (entities/mistPeople.js): always looks like a person, never fights, can't be hurt
   mortal: { name: txt('monsters.mortal.name'), tier: 'minor', role: 'none', hp: 100, speed: 1.4, dmg: 0, radius: 0.38, height: 1.9, ai: 'none', range: 0, windup: 1, cd: 1, xp: 0, coins: [0, 0], model: 'pup', mortal: true },
   spider: { name: txt('monsters.spider.name'), tier: 'minor', role: 'rusher', hp: 20, speed: 5.8, dmg: 5, radius: 0.38, height: 0.8, ai: 'melee', range: 1.3, windup: 0.35, cd: 1, xp: 2, coins: [0, 2], model: 'spider', pitch: 2.2, voice: 'click', aura: 'spark' },
-  harpy: { name: txt('monsters.harpy.name'), tier: 'minor', role: 'ranged', hp: 40, speed: 3.8, dmg: 8, radius: 0.4, height: 2, ai: 'ranged', range: 10, keep: 6.5, windup: 0.55, cd: 2.1, xp: 5, coins: [2, 4], model: 'harpy', pitch: 1.3, projectile: 'feather', voice: 'screech' },
-  stymphalian: { name: txt('monsters.stymphalian.name'), tier: 'minor', role: 'ranged', hp: 34, speed: 4.4, dmg: 7, radius: 0.45, height: 1.7, ai: 'ranged', range: 11, keep: 7, windup: 0.5, cd: 2.3, xp: 4, coins: [1, 4], model: 'stymphalian', pitch: 1.7, projectile: 'feather', voice: 'screech' },
+  harpy: { name: txt('monsters.harpy.name'), tier: 'minor', role: 'ranged', hp: 40, speed: 3.8, dmg: 9, radius: 0.5, height: 2.5, ai: 'ranged', range: 10, keep: 6.5, windup: 0.85, cd: 3.4, xp: 5, coins: [2, 4], model: 'harpy', pitch: 1.3, projectile: 'feather', shots: 3, voice: 'screech' },
+  stymphalian: { name: txt('monsters.stymphalian.name'), tier: 'minor', role: 'ranged', hp: 34, speed: 4.4, dmg: 8, radius: 0.6, height: 2.0, ai: 'ranged', range: 11, keep: 7, windup: 0.8, cd: 3.4, xp: 4, coins: [1, 4], model: 'stymphalian', pitch: 1.7, projectile: 'feather', shots: 3, voice: 'screech' },
   automaton: { name: txt('monsters.automaton.name'), tier: 'minor', role: 'exploder', hp: 30, speed: 3.9, dmg: 16, radius: 0.55, height: 1.1, ai: 'blob', range: 1.8, windup: 0.9, cd: 0, xp: 4, coins: [1, 4], model: 'automaton', pitch: 1.8, aura: 'greekfire', blast: 0x6aff3a },
-  ghost: { name: txt('monsters.ghost.name'), tier: 'minor', role: 'caster', hp: 38, speed: 3.2, dmg: 8, radius: 0.45, height: 2, ai: 'ranged', range: 10, keep: 6.5, windup: 0.6, cd: 2.2, xp: 4, coins: [1, 3], model: 'ghost', pitch: 0.9, projectile: 'wisp', voice: 'moan', aura: 'wisp', knockResist: 0.2 },
-  fury: { name: txt('monsters.fury.name'), tier: 'elite', role: 'trickster', hp: 95, speed: 3.8, dmg: 13, radius: 0.45, height: 2.1, ai: 'teleport', range: 2.2, windup: 0.45, cd: 1.6, xp: 10, coins: [4, 7], model: 'fury', pitch: 1.1, puff: 0x3a2a24, slashColor: 0xff8a2a, voice: 'screech' },
-  dracaena: { name: txt('monsters.dracaena.name'), tier: 'elite', role: 'tank', hp: 190, speed: 2.4, dmg: 18, radius: 0.8, height: 2.6, ai: 'tank', range: 2.6, windup: 0.85, cd: 2.2, xp: 12, coins: [5, 9], model: 'dracaena', armor: 0.25, shield: true, knockResist: 0.75, pitch: 0.8, voice: 'hiss' },
-  hellhound: { name: txt('monsters.hellhound.name'), tier: 'elite', role: 'bruiser', hp: 220, speed: 3.6, dmg: 20, radius: 1.1, height: 2.6, ai: 'melee', range: 2.6, windup: 0.7, cd: 1.8, xp: 14, coins: [6, 10], model: 'hellhound', knockResist: 0.7, superArmor: true, pitch: 0.5, aura: 'smoke', voice: 'bark' },
-  empousa: { name: txt('monsters.empousa.name'), tier: 'elite', role: 'summoner', hp: 160, speed: 2.6, dmg: 10, radius: 0.5, height: 2.3, ai: 'summon', range: 9, keep: 8, windup: 1.0, cd: 5, xp: 16, coins: [8, 14], model: 'empousa', knockResist: 0.4, pitch: 1.2, summons: 'pup', aura: 'fire', projectile: 'fire', voice: 'screech' },
-  scorpion: { name: txt('monsters.scorpion.name'), tier: 'elite', role: 'bruiser', hp: 140, speed: 3.4, dmg: 12, radius: 0.8, height: 1.3, ai: 'melee', range: 2.2, windup: 0.55, cd: 1.5, xp: 10, coins: [4, 8], model: 'scorpion', armor: 0.2, knockResist: 0.5, pitch: 1.4, voice: 'click', poison: { dps: 4, dur: 4 }, slashColor: 0x9aff3a },
-  skeleton: { name: txt('monsters.skeleton.name'), tier: 'elite', role: 'ranged', hp: 110, speed: 3, dmg: 15, radius: 0.45, height: 2, ai: 'ranged', range: 12, keep: 7, windup: 0.6, cd: 1.9, xp: 9, coins: [3, 7], model: 'skeleton', pitch: 1.1, projectile: 'bullet', voice: 'rattle', regrow: true },
+  ghost: { name: txt('monsters.ghost.name'), tier: 'minor', role: 'caster', hp: 38, speed: 3.2, dmg: 8, radius: 0.45, height: 2, ai: 'ranged', range: 10, keep: 6.5, windup: 0.9, cd: 3.6, xp: 4, coins: [1, 3], model: 'ghost', pitch: 0.9, projectile: 'wisp', voice: 'moan', aura: 'wisp', knockResist: 0.2 },
+  fury: { name: txt('monsters.fury.name'), tier: 'elite', role: 'trickster', hp: 95, speed: 3.8, dmg: 13, radius: 0.9, height: 3.9, ai: 'teleport', range: 2.8, windup: 0.45, cd: 1.6, xp: 10, coins: [4, 7], model: 'fury', pitch: 1.1, puff: 0x3a2a24, slashColor: 0xff8a2a, voice: 'screech' },
+  dracaena: { name: txt('monsters.dracaena.name'), tier: 'elite', role: 'tank', hp: 190, speed: 2.4, dmg: 18, radius: 1.1, height: 3.8, ai: 'tank', range: 3, slamR: 2.9, windup: 0.85, cd: 2.2, xp: 12, coins: [5, 9], model: 'dracaena', armor: 0.25, shield: true, knockResist: 0.75, pitch: 0.8, voice: 'hiss' },
+  hellhound: { name: txt('monsters.hellhound.name'), tier: 'elite', role: 'bruiser', hp: 220, speed: 3.6, dmg: 20, radius: 1.6, height: 5, ai: 'melee', range: 3.7, windup: 0.7, cd: 1.8, xp: 14, coins: [6, 10], model: 'hellhound', knockResist: 0.7, superArmor: true, pitch: 0.5, aura: 'smoke', voice: 'bark' },
+  empousa: { name: txt('monsters.empousa.name'), tier: 'elite', role: 'summoner', hp: 160, speed: 2.6, dmg: 10, radius: 0.5, height: 2.5, ai: 'summon', range: 9, keep: 8, windup: 1.0, cd: 5, xp: 16, coins: [8, 14], model: 'empousa', knockResist: 0.4, pitch: 1.2, summons: 'pup', aura: 'fire', projectile: 'fire', voice: 'screech' },
+  scorpion: { name: txt('monsters.scorpion.name'), tier: 'elite', role: 'bruiser', hp: 140, speed: 3.4, dmg: 12, radius: 0.8, height: 1.3, ai: 'melee', range: 2.2, windup: 0.55, cd: 1.5, xp: 10, coins: [4, 8], model: 'scorpion', armor: 0.2, knockResist: 0.5, pitch: 1.4, voice: 'click', poison: { dps: 4, dur: 4 }, slashColor: 0x9aff3a,
+    // alternates a one-two pinch of the claws with a slower, harder sting over its back (only the sting poisons; enemy.js startAttack)
+    moves: [{ kind: 'pinch', trigger: 1.9, range: 2, windup: 0.5, recover: 0.55, dmg: 0.6, twin: 0.18 }, { kind: 'sting', trigger: 2.5, at: 1.5, radius: 0.9, windup: 0.85, recover: 0.65, dmg: 1.4 }] },
+  skeleton: { name: txt('monsters.skeleton.name'), tier: 'elite', role: 'ranged', hp: 110, speed: 3, dmg: 15, radius: 0.45, height: 2, ai: 'ranged', range: 12, keep: 7, windup: 0.8, cd: 3, xp: 9, coins: [3, 7], model: 'skeleton', pitch: 1.1, projectile: 'bullet', shots: 2, voice: 'rattle', regrow: true },
   // a spartoi: the steady melee fodder of the sown skeleton army (beach, underworld, desert)
   spartoi: { name: txt('monsters.spartoi.name'), tier: 'minor', role: 'fodder', hp: 52, speed: 3.3, dmg: 9, radius: 0.45, height: 2, ai: 'melee', range: 1.8, windup: 0.5, cd: 1.4, xp: 4, coins: [1, 3], model: 'spartoi', pitch: 1.2, voice: 'rattle', knockResist: 0.2 },
   // a telekhine: lobs Greek fire in an arc (a marked spot that burns a moment): keep moving
-  telekhine: { name: txt('monsters.telekhine.name'), tier: 'minor', role: 'lobber', hp: 38, speed: 3, dmg: 11, radius: 0.55, height: 1.3, ai: 'ranged', range: 12, keep: 8, windup: 0.9, cd: 3.2, xp: 5, coins: [1, 4], model: 'telekhine', pitch: 0.9, projectile: 'fire', lob: true, voice: 'bark', aura: 'greekfire' },
+  telekhine: { name: txt('monsters.telekhine.name'), tier: 'minor', role: 'lobber', hp: 38, speed: 3, dmg: 11, radius: 0.9, height: 2.3, ai: 'ranged', range: 12, keep: 8, windup: 1, cd: 4.4, xp: 5, coins: [1, 4], model: 'telekhine', pitch: 0.9, projectile: 'fire', lob: true, voice: 'bark', aura: 'greekfire' },
   gorgon_statue: { name: txt('monsters.gorgon_statue.name'), tier: 'elite', role: 'ambusher', hp: 150, speed: 2.6, dmg: 16, radius: 0.5, height: 2.1, ai: 'statue', range: 2.2, windup: 0.7, cd: 1.6, xp: 9, coins: [3, 6], model: 'gorgon_statue', armor: 0.35, knockResist: 0.6, pitch: 0.7, voice: 'grind', wake: 5 },
   cyclops: { name: txt('monsters.cyclops.name'), tier: 'champion', role: 'bruiser', hp: 620, speed: 2.3, dmg: 28, radius: 1.2, height: 4.2, ai: 'tank', range: 3.2, windup: 1.0, cd: 2.4, xp: 40, coins: [15, 25], model: 'cyclops', knockResist: 0.9, superArmor: true, pitch: 0.45, voice: 'roar', slamR: 3.6 },
 };
@@ -1404,8 +2634,14 @@ export const MONSTER_IDS = Object.keys(MONSTERS);
 export const CURSES = MONSTERS;
 export const resolveKind = (kind) => (MONSTERS[kind] ? (LEGACY_KINDS[kind] ?? kind) : 'pup');
 
-export function buildMonsterModel(model) { const rig = (MODELS[model] ?? MODELS.pup)(); rig.tick = (dt, e) => { animateExtras(rig, dt, e); rig.onTick?.(dt, e); }; return rig; }
+// opts.k: build it this much bigger (a champion, parts.js withBuild): its skin,
+// kit and blobs are made finer to match, so it is not just the kind enlarged.
+export function buildMonsterModel(model, { k } = {}) { const id = MODELS[model] ? model : 'pup'; const rig = withBuild({ k, key: `m:${id}` }, () => MODELS[id]()); rig.tick = (dt, e) => { animateExtras(rig, dt, e); rig.onTick?.(dt, e); }; mergeRig(rig); rig.batchKey ??= `m:${id}@${(k ?? 1).toFixed(3)}`; rig.root.userData.rig = rig; return rig; }   // (batchKey: gfx/crowd.js draws a crowd of one kind as instanced parts)
 export const buildCurseModel = buildMonsterModel;
+// Build one of each model and throw it away, filling the skin and geometry
+// caches, so the first spawn of a big kind (the hellhound's first build is
+// several hundred ms) happens at a load screen instead of mid-fight.
+export function prewarmModels(models) { for (const m of models) buildMonsterModel(m); }
 
 // Golden dust: how every monster leaves the world.
 export function goldDust(g, pos, h = 1.5, { color = 0xffd84a, big = false } = {}) {

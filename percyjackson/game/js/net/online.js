@@ -243,12 +243,13 @@ export class Online {
     const g = this.game;
     if (g.mode === 'mission' && g.mission) {
       const d = g.mission.def;
-      return { n: this.setupNonce, mode: 'mission', def: { biome: d.biome, objective: d.objective, boss: d.boss, difficulty: d.difficulty, seed: d.seed, chapter: d.chapter ?? null, mist: d.mist ?? 0, disguise: d.disguise ?? [], objText: d.objText ?? null, id: d.id ?? null } };
+      return { n: this.setupNonce, mode: 'mission', def: { biome: d.biome, objective: d.objective, boss: d.boss, difficulty: d.difficulty, level: d.level ?? d.difficulty, seed: d.seed, chapter: d.chapter ?? null, mist: d.mist ?? 0, disguise: d.disguise ?? [], objText: d.objText ?? null, id: d.id ?? null } };
     }
     // the opening: the Manhattan prologue, or a cutscene (guests play the same one)
     if (g.mode === 'prologue') return { n: this.setupNonce, mode: 'prologue' };
     // (between a cutscene and the chapter after it, the story cards: guests keep the cutscene's last picture)
-    if (g.mode === 'cutscene') return { n: this.setupNonce, mode: 'cut', id: g.cutscene && !g.cutscene.done ? g.cutscene.id : 'end' };
+    // (shot: the one the host is on, so a host's press of A skips the guests' shot too)
+    if (g.mode === 'cutscene') return { n: this.setupNonce, mode: 'cut', id: g.cutscene && !g.cutscene.done ? g.cutscene.id : 'end', shot: g.cutscene && !g.cutscene.done ? Math.max(0, g.cutscene.shotIdx) : 0 };
     const sc = { n: this.setupNonce, mode: 'hub', area: g.area === 'road' ? 'road' : 'camp' };
     if (this.storyCh && g.ui.isOpen('story')) sc.st = this.storyCh;
     return sc;
@@ -445,17 +446,22 @@ export class Online {
   }
 
   // ---------------------------------------------------------------- guests: the scene
+  // the host's cutscene is on shot sc.shot: a guest behind it skips ahead to it (story/cutscene.js syncShot)
+  syncCutShot(sc) {
+    const cs = this.game.cutscene;
+    if (sc?.mode === 'cut' && cs?.remote && cs.id === sc.id && Number.isFinite(sc.shot)) cs.syncShot(int(sc.shot, 0, 99, 0));
+  }
   applySetup(sc) {
     const g = this.game;
     if (!sc || typeof sc !== 'object' || typeof sc.n !== 'number') return;
     const id = sc.n + ':' + sc.mode + ':' + (sc.def?.seed ?? sc.id ?? '');
     if (sc.mode === 'hub' && sc.st && sc.st !== this.storySeen && g.mode === 'hub') { this.storySeen = sc.st; this.showStory(sc.st); }
-    if (id === this.applied) return;
+    if (id === this.applied) { this.syncCutShot(sc); return; }
     if (sc.mode === 'mission' && sc.def && typeof sc.def.seed === 'number') {
       if (g.minigame?.abort) g.minigame.abort();
       this.applied = id;
       this.clearPuppets();
-      const def = { biome: str(sc.def.biome, 24), objective: str(sc.def.objective, 24), boss: sc.def.boss ? str(sc.def.boss, 32) : null, difficulty: int(sc.def.difficulty, 1, 9, 1), seed: sc.def.seed, chapter: sc.def.chapter ? str(sc.def.chapter, 24) : null, mist: num(sc.def.mist, 0, 1), disguise: Array.isArray(sc.def.disguise) ? sc.def.disguise.map((x) => str(x, 24)).slice(0, 8) : [], objText: sc.def.objText ? str(sc.def.objText, 80) : null, remote: true };
+      const def = { biome: str(sc.def.biome, 24), objective: str(sc.def.objective, 24), boss: sc.def.boss ? str(sc.def.boss, 32) : null, difficulty: int(sc.def.difficulty, 1, 9, 1), level: int(sc.def.level ?? sc.def.difficulty, 1, 20, 1), seed: sc.def.seed, chapter: sc.def.chapter ? str(sc.def.chapter, 24) : null, mist: num(sc.def.mist, 0, 1), disguise: Array.isArray(sc.def.disguise) ? sc.def.disguise.map((x) => str(x, 24)).slice(0, 8) : [], objText: sc.def.objText ? str(sc.def.objText, 80) : null, remote: true };
       if (sc.def.id) def.id = str(sc.def.id, 32);
       g.ui.closeAll(); g.paused = false;
       g.endCutscene?.();
@@ -471,6 +477,7 @@ export class Online {
       this.applied = id;
       this.clearPuppets();
       if (g.cutscene?.id !== sc.id || !g.cutscene?.remote) g.opening?.playCutscene(str(sc.id, 16), { remote: true });
+      this.syncCutShot(sc);   // (joined part-way: start at the host's shot)
     } else if (sc.mode === 'hub') {
       this.applied = id;
       this.clearPuppets();
@@ -599,9 +606,9 @@ export class Online {
     let e;
     try {
       if (kind.startsWith('B:')) {
-        e = new Boss(g, kind.slice(2), pos, g.mission?.def.difficulty ?? 1);
+        e = new Boss(g, kind.slice(2), pos, g.mission?.def.level ?? g.mission?.def.difficulty ?? 1);
         if (g.mission) { g.mission.boss = e; g.mission.bossSpawned = true; g.hud.setBoss(e); g.mission.updateText(); }
-      } else e = new Enemy(g, kind, pos, { elite: elite || null, level: g.mission?.def.difficulty ?? 1, disguise: disguise || null });
+      } else e = new Enemy(g, kind, pos, { elite: elite || null, level: g.mission?.def.level ?? g.mission?.def.difficulty ?? 1, disguise: disguise || null });
     } catch (err) { console.warn('puppet', kind, err); return null; }
     e.netId = id;
     this.makePuppet(e);

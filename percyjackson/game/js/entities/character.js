@@ -6,6 +6,7 @@ import * as THREE from 'three/webgpu';
 import { uniform, texture, uv, vec3, vec4, float, mix, positionLocal, hash, floor, step, screenCoordinate, interleavedGradientNoise, sin } from 'three/tsl';
 import { damp, clamp, lerp, easeOutCubic, easeInCubic, easeOutBack, mulberry32 } from '../util.js';
 import { U } from '../gfx/materials.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 export const PX = 0.058;          // world units per skin pixel
 // Every character (heroes, people, monsters, bosses) is drawn at this share of
@@ -24,8 +25,10 @@ const LIMB_STRIPS = [[16, 16, 8, 12, 4], [16, 32, 8, 12, 4], [40, 16, 4, 12, 4],
 // noise varies per fine texel, and dot / dots paint single fine texels at
 // fractional coordinates (steps of 1 / res) for detail finer than a skin pixel.
 export class Skin {
-  constructor(seed = 1, res = 1) {
-    this.res = res;
+  // dres: the res the painter's dot() detail was drawn for (a painter made
+  // for a 128 skin keeps its eyes and seams the same size on a finer one)
+  constructor(seed = 1, res = 1, dres = res) {
+    this.res = res; this.dres = dres;
     this.canvas = document.createElement('canvas');
     this.canvas.width = SKIN * res; this.canvas.height = SKIN * res;
     this.ctx = this.canvas.getContext('2d', { willReadFrequently: res > 1 });
@@ -35,7 +38,7 @@ export class Skin {
   fill(c) { this.ctx.fillStyle = typeof c === 'number' ? '#' + c.toString(16).padStart(6, '0') : c; }
   px(x, y, c) { this.fill(c); this.ctx.fillRect(x, y, 1, 1); }
   // one fine texel (or an n × m block of them) at a fractional position
-  dot(x, y, c, n = 1, m = n) { this.fill(c); this.ctx.fillRect(x, y, n / this.res, m / this.res); }
+  dot(x, y, c, n = 1, m = n) { this.fill(c); this.ctx.fillRect(x, y, n / this.dres, m / this.dres); }
   rect(x, y, w, h, c, noise = 0.08) {
     const k = this.res, base = new THREE.Color(c), col = new THREE.Color();
     for (let j = 0; j < h * k; j++) for (let i = 0; i < w * k; i++) {
@@ -118,11 +121,106 @@ export function makeCharMaterial(map, opts = {}) {
   m.emissiveNode = mix(tex.rgb.mul(bright).mul(emitMask).add(glow).add(tex.rgb.mul(fill)), vec3(1, 1, 1).mul(2.2), flash);
   const n = interleavedGradientNoise(screenCoordinate.xy);
   m.maskNode = n.greaterThan(dissolve);
-  m.userData = { flash, glow, dissolve, emitMask };
+  m.userData = { flash, glow, dissolve, emitMask, fill };   // (fill: charmat.js draws this skin and its voxel detail as one part)
   return m;
 }
 
+// ---------------------------------------------------------------- holding things
+// Hand-local axes. rig.handR and rig.handL sit at the fist, the bottom of the
+// arm, and are not mirrored (the same axes in both hands). With the arm
+// hanging (idle): +y runs up the forearm toward the shoulder, -y down to the
+// ground, +z forward (the way the character faces), +x to the character's
+// left. Raising the arm forward (arm rotation.x = -PI/2) turns hand +z up and
+// hand -y forward. A positive rotation.x on a prop tips its +y toward +z
+// (forward); a negative one tips it back over the shoulder, which is how
+// weapons ended up held backwards (Ares, Luke, the cyclops, the spartoi).
+// Convention: build a weapon along its own +y, grip at the origin, and hang
+// it on the hand with rotation.x = HOLD_PITCH, so at rest it points forward,
+// a little above level (a weapon built along +z, like the heroes' kits, needs
+// no turn). In attacks the wrist (hand rotation.x, see attackPose) cocks it so
+// it points forward at the strike of every style. markTip() names the tip so
+// percyjackson/perf/weapons.cjs can check every armed model.
+export const HOLD_PITCH = Math.PI / 2 - 0.3;
+// Mark a weapon's tip (skin pixels, in the weapon's own space); label names it in the check.
+export function markTip(weapon, x, y, z, label = 'weapon') {
+  const o = new THREE.Object3D(); o.name = 'weaponTip'; o.userData.weaponTip = true; o.userData.label = label;
+  o.position.set(x * PX, y * PX, z * PX); weapon.add(o); return o;
+}
+// Mark something held that has no point to aim (a shield, pom-poms, panpipes,
+// a sling, a whip that trails), so the weapon check leaves it be.
+export function markHeld(g) { g.userData.heldProp = true; return g; }
+
 const _v1 = new THREE.Vector3(), _box = new THREE.Box3(), _m = new THREE.Matrix4(), _inv = new THREE.Matrix4();
+const _e1 = new THREE.Euler(), _q1 = new THREE.Quaternion();
+// Points that stand in for the shape of everything under o (in o's own
+// space; subtrees in skip and hidden ones left out): for each mesh, its
+// vertices, or for a big mesh its extreme vertex along each of 48 directions
+// (found once per geometry), so the lowest point after any turn is within a
+// hair of the true one. (A box's corners would not do: the kit merges a whole
+// bent leg or a crossed spear into one mesh, whose box corners float in empty
+// space.) Returns a flat Float32Array, or null when there is nothing.
+const HDIRS = (() => { const n = 48, out = []; for (let i = 0; i < n; i++) { const y = 1 - (i + 0.5) / n * 2, r = Math.sqrt(1 - y * y), a = i * 2.39996; out.push([Math.cos(a) * r, y, Math.sin(a) * r]); } return out; })();
+const _hulls = new WeakMap();
+function geoHull(geo) {
+  let h = _hulls.get(geo); if (h) return h;
+  const P = geo.attributes.position, idx = new Set();
+  if (P.count <= 96) for (let i = 0; i < P.count; i++) idx.add(i);
+  else for (const [x, y, z] of HDIRS) { let bi = 0, bd = -Infinity; for (let i = 0; i < P.count; i++) { const d = P.getX(i) * x + P.getY(i) * y + P.getZ(i) * z; if (d > bd) { bd = d; bi = i; } } idx.add(bi); }
+  h = []; for (const i of idx) h.push(new THREE.Vector3(P.getX(i), P.getY(i), P.getZ(i)));
+  _hulls.set(geo, h); return h;
+}
+export function extremePoints(o, skip = null) {
+  const pts = [];
+  const walk = (n, M) => {
+    for (const c of n.children) {
+      if (!c.visible || (skip && skip.has(c)) || c.userData.noLint) continue;
+      c.updateMatrix(); const m = new THREE.Matrix4().multiplyMatrices(M, c.matrix);
+      // (a merged part, charmat.js: the points of the meshes it was made of, as before)
+      if (c.isMesh && !c.isInstancedMesh && c.geometry?.attributes?.position && !c.userData.shell) for (const s of c.userData.parts ?? [null]) { const mm = s ? new THREE.Matrix4().multiplyMatrices(m, s.matrix) : m; for (const p of geoHull(s ? s.geometry : c.geometry)) pts.push(p.clone().applyMatrix4(mm)); }
+      walk(c, m);
+    }
+  };
+  walk(o, new THREE.Matrix4());
+  if (!pts.length) return null;
+  const out = new Float32Array(pts.length * 3); let j = 0;
+  for (const p of pts) { out[j++] = p.x; out[j++] = p.y; out[j++] = p.z; }
+  return out;
+}
+
+// ---------------------------------------------------------------- merging
+// Every mesh is a draw call (two with the sun's shadow), and a draw costs
+// three.js 30-50 µs of CPU whatever its size, so the static meshes hung
+// directly on one group (a bone: a limb's skin box and its overlay; a held
+// weapon's blocks) that share a material are drawn as one: their geometry,
+// placed by each mesh's own transform, merged into a single mesh in their
+// place. Only plain leaf meshes that nothing moves on their own are taken
+// (sub-groups, which code may turn or hide, are left alone); a merged mesh
+// takes the others' place in rig.meshes, so a hit flash still covers it.
+// Drawn exactly as before. (perf/RENDERING.md)
+export function mergeChildren(rig, group) {
+  if (!group?.children) return;
+  const sets = new Map();
+  for (const m of group.children) {
+    if (!m.isMesh || m.isInstancedMesh || m.isSkinnedMesh || m.children.length || !m.visible || Array.isArray(m.material) || m.morphTargetInfluences || m.userData.noMerge || m.userData.shell || m.userData.flames) continue;
+    const g = m.geometry, A = g.attributes;
+    const sig = [m.material.id, !!g.index, m.castShadow, m.receiveShadow, m.renderOrder, m.frustumCulled, ...Object.keys(A).sort().map((k) => `${k}${A[k].itemSize}${A[k].array.constructor.name}${A[k].normalized}`)].join('|');
+    if (!sets.has(sig)) sets.set(sig, []);
+    sets.get(sig).push(m);
+  }
+  for (const list of sets.values()) {
+    if (list.length < 2) continue;
+    const geos = list.map((m) => { m.updateMatrix(); const c = m.geometry.clone(); c.clearGroups(); return c.applyMatrix4(m.matrix); });
+    const geo = mergeGeometries(geos, false);
+    for (const c of geos) c.dispose();
+    if (!geo) continue;
+    const first = list[0], mesh = new THREE.Mesh(geo, first.material);
+    mesh.castShadow = first.castShadow; mesh.receiveShadow = first.receiveShadow; mesh.renderOrder = first.renderOrder; mesh.frustumCulled = first.frustumCulled;
+    mesh.userData.baseMat = first.userData.baseMat ?? first.material; mesh.name = 'merged';
+    let listed = false;
+    for (const m of list) { group.remove(m); const i = rig.meshes?.indexOf(m) ?? -1; if (i >= 0) { rig.meshes.splice(i, 1); listed = true; } if (rig.headMesh === m) rig.headMesh = mesh; }
+    group.add(mesh); if (listed) rig.meshes.push(mesh);
+  }
+}
 
 // ---------------------------------------------------------------- rig
 // The rest pose (radians): arms out to the sides and a touch forward, legs apart.
@@ -221,6 +319,10 @@ export class Rig {
       // as on the hero sheets; running brings them back in
       armRX: -sw * 1.0 + IDLE.armX * (1 - run), armRZ: -IDLE.armZ * (1 - run) - 0.04 * run - Math.sin(t * 2.2) * 0.02 * (1 - run), armRY: 0,
       armLX: sw * 1.0 + IDLE.armX * (1 - run), armLZ: IDLE.armZ * (1 - run) + 0.04 * run + Math.sin(t * 2.2) * 0.02 * (1 - run), armLY: 0,
+      // the wrists: attacks cock a held weapon forward (see HOLD_PITCH); running,
+      // they turn against the arm's swing so a spear or club stays carried
+      // forward instead of swinging its point down through the floor
+      handRX: this.wrist === false ? 0 : sw * 0.8, handLX: this.wrist === false ? 0 : -sw * 0.8,
       legRX: sw * 1.0, legLX: -sw * 1.0, legRZ: -IDLE.legZ * (1 - run), legLZ: IDLE.legZ * (1 - run),
       rootX: 0, rootZ: 0, lift: 0,
     };
@@ -233,7 +335,7 @@ export class Rig {
     if (a) {
       const k = a.t;
       switch (a.type) {
-        case 'attack': this.attackPose(T, a, k); snap = 40; break;
+        case 'attack': this.attackPose(T, a, k); if (this.wrist === false) T.handRX = T.handLX = 0; snap = 40; break;   // (rig.wrist = false: a whip hangs from the fist, so the wrist stays straight)
         case 'dodge': {
           // forward roll: whole body tucks and rotates about X
           const rk = easeOutCubic(clamp(k, 0, 1));
@@ -264,23 +366,86 @@ export class Rig {
           const e = easeInCubic(clamp(k * 1.4, 0, 1));
           T.rootX = -Math.PI / 2 * e; T.lift = 0.1 * Math.sin(e * Math.PI); T.armRZ = 0.8 * e; T.armLZ = -0.8 * e; T.headX = -0.3 * e; snap = 25; break;
         }
-        case 'stagger': { T.torsoX = 0.4; T.headX = 0.5; T.armRX = 0.2; T.armLX = 0.2; T.armRZ = 0.4; T.armLZ = -0.4; break; }
+        case 'stagger': { T.torsoX = 0.4; T.headX = 0.5; T.armRX = 0.2; T.armLX = 0.2; T.armRZ = 0.4; T.armLZ = -0.4; if (this.wrist !== false) T.handRX = T.handLX = -0.6; break; }   // (the wrists keep a held weapon's point off the floor as the body doubles over)
         case 'down': { T.rootX = -Math.PI / 2; T.lift = 0.05; T.armRZ = 0.8; T.armLZ = -0.8; snap = 12; break; }
       }
     }
     const L = (obj, key, target, ax) => { obj.rotation[ax] = damp(obj.rotation[ax], target, snap, dt); };
-    this.hips.position.y = damp(this.hips.position.y, T.hipsY + T.lift, snap, dt);
+    this.hips.position.y = damp(this.hips.position.y, T.hipsY + T.lift + this.footLift(T.legRX, T.legLX), snap, dt);
     L(this.torso, 'torsoX', T.torsoX, 'x'); L(this.torso, 'torsoY', T.torsoY, 'y'); L(this.torso, 'torsoZ', T.torsoZ, 'z');
     L(this.head, 'headX', T.headX, 'x'); L(this.head, 'headY', T.headY, 'y');
     L(this.armR, 'armRX', T.armRX, 'x'); L(this.armR, 'armRY', T.armRY, 'y'); L(this.armR, 'armRZ', T.armRZ, 'z');
     L(this.armL, 'armLX', T.armLX, 'x'); L(this.armL, 'armLY', T.armLY, 'y'); L(this.armL, 'armLZ', T.armLZ, 'z');
+    L(this.handR, 'handRX', T.handRX, 'x'); L(this.handL, 'handLX', T.handLX, 'x');
     L(this.legR, 'legRX', T.legRX, 'x'); L(this.legL, 'legLX', T.legLX, 'x');
     L(this.legR, 'legRZ', T.legRZ, 'z'); L(this.legL, 'legLZ', T.legLZ, 'z');
     // body roll (dodge): turns about the tucked body's centre of mass; the
     // death fall rotates the hips around their pivot
     if (a && (a.type === 'dodge')) this.rollAbout(T.rootX, T.lift);
     else { this.hips.rotation.x = damp(this.hips.rotation.x % (Math.PI * 2), T.rootX, snap, dt); this.hips.position.z = damp(this.hips.position.z, 0, snap, dt); }
+    // (footLift above works from the legs' targets and the hips ease toward it,
+    // so a big foot swinging faster than the hips rose still dipped 0.1 m: the
+    // hips are kept at least as high as the legs' actual swing needs)
+    if (!a || (a.type !== 'dodge' && a.type !== 'death' && a.type !== 'down')) this.hips.position.y = Math.max(this.hips.position.y, this.dims.legH * PX + Math.min(0, T.lift) + this.footLift(this.legR.rotation.x, this.legL.rotation.x));
+    if (this.wrist !== false) {
+      // (with the hunch and arm spread the callers add right after, parts.js rigOffsets)
+      const h = this.hunch ?? 0, sp = this.armSpread ?? 0;
+      this.torso.rotation.x += h; this.armR.rotation.z -= sp; this.armL.rotation.z += sp;
+      this.gripGuard(this.handR); this.gripGuard(this.handL);
+      this.torso.rotation.x -= h; this.armR.rotation.z += sp; this.armL.rotation.z -= sp;
+    }
     this.physics(p);
+  }
+  // A long weapon (a spear, a club, a trident) must not end a slam, a roll or
+  // a fall buried in the ground: after the pose, if anything held in the fist
+  // would sink below the soles, the wrist turns (about its own x axis, the
+  // way the attacks cock it) by the least angle that brings the lowest point
+  // up to the floor, so a slam's spear stops with its point on the ground in
+  // front, and a roll or a fall drags it along the floor. The held meshes are
+  // stood in for by their extreme points in hand space (extremePoints), gathered
+  // again only when what the hand holds changes; a frame costs a few hundred multiplies.
+  gripGuard(hand) {
+    if (!hand?.children.length) return;
+    let sig = hand.children.length; for (const c of hand.children) sig = (sig * 31 + c.id * (c.visible ? 1 : 7)) % 1e9;
+    const G = hand.userData.grip ??= { sig: -1, pts: null };
+    if (G.sig !== sig) { G.sig = sig; G.pts = extremePoints(hand); const n = (G.pts?.length ?? 0) / 3; G.C = new Float64Array(n); G.A = new Float64Array(n); G.B = new Float64Array(n); }
+    const P = G.pts; if (!P) return;
+    // the fist's parent (the arm) in root space, and the fist's own turn without its pitch
+    _m.identity();
+    for (let o = hand.parent; o && o !== this.root; o = o.parent) { o.updateMatrix(); _m.premultiply(o.matrix); }
+    const e = _m.elements, a0 = e[1], a1 = e[5], a2 = e[9], ty = e[13] + a0 * hand.position.x + a1 * hand.position.y + a2 * hand.position.z;
+    _e1.set(0, hand.rotation.y, hand.rotation.z, hand.rotation.order); _q1.setFromEuler(_e1);
+    const n = P.length / 3, C = G.C, A = G.A, B = G.B;
+    for (let i = 0; i < n; i++) {
+      _v1.set(P[i * 3], P[i * 3 + 1], P[i * 3 + 2]).applyQuaternion(_q1);
+      C[i] = ty + a0 * _v1.x; A[i] = a1 * _v1.y + a2 * _v1.z; B[i] = a2 * _v1.y - a1 * _v1.z;
+    }
+    const floor = 0.4 * PX, low = (th) => { const c = Math.cos(th), s = Math.sin(th); let y = Infinity; for (let i = 0; i < n; i++) { const v = C[i] + A[i] * c + B[i] * s; if (v < y) y = v; } return y; };
+    const th0 = hand.rotation.x;
+    if (low(th0) >= floor) return;
+    let best = th0, bestY = -Infinity;
+    for (let k = 1; k <= 105; k++) for (const sg of [1, -1]) {
+      const th = th0 + sg * k * 0.03, y = low(th);
+      if (y >= floor) { hand.rotation.x = th; return; }
+      if (y > bestY) { bestY = y; best = th; }
+    }
+    hand.rotation.x = best;
+  }
+  // A foot that reaches further fore or aft than the leg is deep (a boot's
+  // toe, a giant's stone slab) dips below the sole as the leg swings: the
+  // hips rise by the deeper dip of the two legs, so the toe stays on the floor.
+  footLift(ra, la) {
+    if (this._foot === undefined) {   // the sole's height and its reach fore and aft, in leg space (once)
+      let y = Infinity; const boxes = [];
+      this.legR.updateMatrixWorld(true); _inv.copy(this.legR.matrixWorld).invert();
+      this.legR.traverse((o) => { if (!o.isMesh || !o.geometry) return; if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); const b = o.geometry.boundingBox.clone().applyMatrix4(_m.multiplyMatrices(_inv, o.matrixWorld)); boxes.push(b); y = Math.min(y, b.min.y); });
+      let z0 = 0, z1 = 0;
+      for (const b of boxes) if (b.min.y < y + 1.5 * PX) { z0 = Math.min(z0, b.min.z); z1 = Math.max(z1, b.max.z); }
+      this._foot = boxes.length ? { y, z0, z1 } : null;
+    }
+    const f = this._foot; if (!f) return 0;
+    const dip = (a) => { const c = Math.cos(a), s = Math.sin(a); return Math.max(0, f.y - Math.min(f.y * c - f.z0 * s, f.y * c - f.z1 * s)); };
+    return Math.max(dip(ra), dip(la));
   }
   // The roll turned the whole body about the hip joint, so the tucked body's
   // centre (about 0.6 m up and 0.6 m forward of the hips) swung round a circle
@@ -317,34 +482,39 @@ export class Rig {
     const phase = k < w ? 0 : k < s ? 1 : 2;
     const e = phase === 0 ? easeOutCubic(k / w) : phase === 1 ? easeOutBack((k - w) / (s - w)) : 1 - easeInCubic((k - s) / (1 - s)) * 0.7;
     const style = a.style || ['swingR', 'swingL', 'slam'][a.step % 3];
+    const m = Math.min(1, e);
     T.legRX = 0.35; T.legLX = -0.35;
+    // (handRX / handLX: the wrist. A weapon held by the convention above points
+    // forward at rest; with the arm raised it would point up or back over the
+    // shoulder, so each style cocks the wrist to keep the blade forward at the
+    // strike, and the swings sweep it across the front.)
     switch (style) {
-      case 'swingR': // right hand horizontal swing / hook
-        if (phase === 0) { T.armRX = -1.3 * e; T.armRY = 0.9 * e; T.armRZ = 0.8 * e; T.torsoY = 0.6 * e; }
-        else { T.armRX = -1.5; T.armRY = lerp(0.9, -0.9, Math.min(1, e)); T.armRZ = lerp(0.8, -0.1, Math.min(1, e)); T.torsoY = lerp(0.6, -0.7, Math.min(1, e)); }
+      case 'swingR': // right hand horizontal swing / hook: from the left shoulder across the front, ending on the target
+        if (phase === 0) { T.armRX = -1.3 * e; T.armRY = 0.9 * e; T.armRZ = 0.8 * e; T.torsoY = 0.6 * e; T.handRX = 0.9 * e; }
+        else { T.armRX = -1.5; T.armRY = lerp(0.9, -0.2, m); T.armRZ = lerp(0.8, -0.1, m); T.torsoY = lerp(0.6, -0.35, m); T.handRX = lerp(0.9, 1.5, m); }
         T.armLX = -0.4; break;
       case 'swingL':
-        if (phase === 0) { T.armLX = -1.3 * e; T.armLY = -0.9 * e; T.armLZ = -0.8 * e; T.torsoY = -0.6 * e; }
-        else { T.armLX = -1.5; T.armLY = lerp(-0.9, 0.9, Math.min(1, e)); T.armLZ = lerp(-0.8, 0.1, Math.min(1, e)); T.torsoY = lerp(-0.6, 0.7, Math.min(1, e)); }
+        if (phase === 0) { T.armLX = -1.3 * e; T.armLY = -0.9 * e; T.armLZ = -0.8 * e; T.torsoY = -0.6 * e; T.handLX = 0.9 * e; }
+        else { T.armLX = -1.5; T.armLY = lerp(-0.9, 0.2, m); T.armLZ = lerp(-0.8, 0.1, m); T.torsoY = lerp(-0.6, 0.35, m); T.handLX = lerp(0.9, 1.5, m); }
         T.armRX = -0.4; break;
-      case 'punch': // straight jab with right
-        if (phase === 0) { T.armRX = -1.0 * e; T.armRZ = 0.3; T.torsoY = 0.5 * e; }
-        else { T.armRX = -1.57; T.armRZ = 0; T.torsoY = lerp(0.5, -0.4, Math.min(1, e)); T.torsoX = 0.2; }
+      case 'punch': // straight jab (a thrust) with right
+        if (phase === 0) { T.armRX = -1.0 * e; T.armRZ = 0.3; T.torsoY = 0.5 * e; T.handRX = 0.8 * e; }
+        else { T.armRX = -1.57; T.armRZ = 0; T.torsoY = lerp(0.5, -0.4, m); T.torsoX = 0.2; T.handRX = lerp(0.8, 1.4, m); }
         T.armLX = -1.1; T.armLY = -0.4; break;
-      case 'slam': // overhead two-handed slam
-        if (phase === 0) { T.armRX = -2.9 * e; T.armLX = -2.9 * e; T.torsoX = -0.25 * e; T.headX = -0.2 * e; }
-        else { T.armRX = lerp(-2.9, -0.9, Math.min(1, e)); T.armLX = lerp(-2.9, -0.9, Math.min(1, e)); T.torsoX = lerp(-0.25, 0.45, Math.min(1, e)); T.headX = 0.2; }
+      case 'slam': // overhead two-handed slam: raised up behind the head, brought down in front
+        if (phase === 0) { T.armRX = -2.9 * e; T.armLX = -2.9 * e; T.torsoX = -0.25 * e; T.headX = -0.2 * e; T.handRX = T.handLX = 1.2 * e; }
+        else { T.armRX = lerp(-2.9, -0.9, m); T.armLX = lerp(-2.9, -0.9, m); T.torsoX = lerp(-0.25, 0.45, m); T.headX = 0.2; T.handRX = T.handLX = lerp(1.2, 1.0, m); }
         T.lift = phase === 0 ? 0.12 * e : 0; break;
-      case 'uppercut':
+      case 'uppercut': // low behind, rising up in front
         if (phase === 0) { T.armRX = 0.4 * e; T.torsoX = 0.3 * e; T.lift = -0.08 * e; }
-        else { T.armRX = lerp(0.4, -2.8, Math.min(1, e)); T.torsoX = lerp(0.3, -0.3, Math.min(1, e)); T.lift = 0.15 * e; }
+        else { T.armRX = lerp(0.4, -2.4, m); T.torsoX = lerp(0.3, -0.3, m); T.lift = 0.15 * e; T.handRX = 2.0 * m; }
         break;
       case 'spin':
-        T.torsoY = (phase === 0 ? 0.4 * e : lerp(0.4, -Math.PI * 1.8, Math.min(1, e))); T.armRX = -1.5; T.armLX = -1.5; T.armRZ = 1.2; T.armLZ = -1.2; break;
+        T.torsoY = (phase === 0 ? 0.4 * e : lerp(0.4, -Math.PI * 1.8, m)); T.armRX = -1.5; T.armLX = -1.5; T.armRZ = 1.2; T.armLZ = -1.2; T.handRX = T.handLX = 1.4; break;
       case 'throw':
         if (phase === 0) { T.armRX = -2.6 * e; T.armRZ = 0.2; T.torsoY = 0.4 * e; }
-        else { T.armRX = lerp(-2.6, -1.2, Math.min(1, e)); T.torsoY = lerp(0.4, -0.3, Math.min(1, e)); }
-        T.armLX = -0.8; break;
+        else { T.armRX = lerp(-2.6, -1.2, m); T.torsoY = lerp(0.4, -0.3, m); }
+        T.handRX = 1.0; T.armLX = -0.8; break;
     }
   }
   physics(p) {

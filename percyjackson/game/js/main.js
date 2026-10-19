@@ -28,7 +28,7 @@ import { OpenWorld } from './openworld/runtime.js';
 import { buildRoadTrip } from './world/roadtrip.js';
 import { RoadTrip, CampBusStop } from './openworld/roadtrip.js';
 import { openWorldMap } from './ui/worldMap.js';
-import { owDifficulty, CAMP_AT } from './world/owLayout.js';
+import { CAMP_AT } from './world/owLayout.js';
 import { Boats } from './world/boats.js';
 import { generateLevel } from './world/levelgen.js';
 import { Mission } from './mission.js';
@@ -36,10 +36,12 @@ import { Pickups } from './pickups.js';
 import { bundlesFrom } from './resources.js';
 import { Minimap } from './ui/minimap.js';
 import { BOSS_IDS, warmupGroup } from './entities/bosses.js';
+import { MONSTER_IDS } from './entities/monsters.js';
 import { Player } from './entities/player.js';
 import { Enemy } from './entities/enemy.js';
 import { TrainingDummy } from './entities/dummy.js';
 import { FLASH_MATERIAL } from './entities/character.js';
+import { FLAME_BUDGET } from './entities/flames.js';
 import { HERO_IDS } from './heroes/index.js';
 import './heroes/percy.js';
 import './heroes/annabeth.js';
@@ -50,6 +52,8 @@ import { Profiles } from './profiles.js';
 import { Slots, slotPrefix } from './slots.js';
 import { Resume } from './resume.js';
 import { rollChest, rollItem, powerFor, itemInfo, RARITY } from './loot.js';
+import { killXp, chapterXp, bossXp } from './progression.js';
+import { TIER_LEVEL } from './heroes/skillRules.js';
 import * as Screens from './ui/screens.js';
 import { openTitle, openInventory, openForge, openSkills, openShop, openMapTable } from './ui/screens.js';
 import { Mist } from './mist.js';
@@ -74,6 +78,9 @@ import { Roaming } from './world/roaming.js';
 import { LiveSigns } from './world/liveSign.js';
 import { preloadArt, prepareLogo, ALL_ART } from './ui/art.js';
 import { OpeningFlow } from './story/openingFlow.js';
+import { Crowd, CROWD } from './gfx/crowd.js';
+// crowd batching (gfx/crowd.js): on unless the quality tier turns it off or ?batch=0
+const crowdOn = (preset) => preset.batch !== false && !(typeof location !== 'undefined' && /[?&]batch=0\b/.test(location.search));
 
 const loadFill = document.getElementById('load-fill');
 const loadText = document.getElementById('load-text');
@@ -150,6 +157,8 @@ class Game {
     this.env = new Environment(this.scene, this.lights);
     this.particles = new Particles(this.scene, this.gr.preset.particles);
     this.particles.budget = this.gr.quality === 'low' ? 0.5 : this.gr.quality === 'medium' ? 0.75 : 1;
+    FLAME_BUDGET.k = this.gr.quality === 'low' ? 0.6 : 1;   // (the live flames on models, entities/flames.js: fewer cubes on the lowest tier, as the particles)
+    this.crowd = new Crowd(this.scene, this.gr.renderer); CROWD.on = crowdOn(this.gr.preset);
     this.fx = new Effects(this);
     this.debris = new Debris(this);
     this.bolts = new Bolts(this.scene);
@@ -180,7 +189,10 @@ class Game {
     progress(0.75, t('game.loading.shaders'));
     await nextFrame();
     this.gr.setScene(this.scene, this.rig.camera);
-    try { await this.gr.renderer.compileAsync(this.scene, this.rig.camera); } catch (e) { console.warn(e); }
+    // (one frame with nothing in it sets the scene pass up, its target's
+    // format and samples, so what compileScene compiles matches the frames to come)
+    this.scene.visible = false; try { this.gr.render(); } catch (e) { console.warn(e); } finally { this.scene.visible = true; }
+    try { await this.compileScene(); } catch (e) { console.warn(e); }
     progress(0.92, t('game.loading.scrolls'));
     await art;
     prepareLogo();
@@ -366,6 +378,8 @@ class Game {
     this.lights.configure(this.gr.preset);
     U.bakeStrength.value = this.gr.preset.bake;
     this.particles.budget = this.gr.quality === 'low' ? 0.5 : this.gr.quality === 'medium' ? 0.75 : 1;
+    FLAME_BUDGET.k = this.gr.quality === 'low' ? 0.6 : 1;   // (the live flames on models, entities/flames.js: fewer cubes on the lowest tier, as the particles)
+    CROWD.on = crowdOn(this.gr.preset);
     if (this.shafts) this.shafts.group.visible = !!this.gr.preset.shafts;
     this.gr.buildPipeline();
     this.setReadout(settings.showFps);
@@ -393,7 +407,9 @@ class Game {
     // monsters that died in this level, and the shader warm-up's models (kept
     // till now so a kind's pipeline outlives its last monster)
     for (const o of this.fallen ?? []) this.releaseLater(o); this.fallen = [];
+    this.warmEnd?.(); this.warmEnd = null;   // (a shadow warm-up still in the scene: warmShadows)
     this.releaseLater(this.warmGroup); this.warmGroup = null;
+    for (const im of this.crowd?.clear() ?? []) this.releaseLater(im);   // (the crowd batches: gfx/crowd.js)
     this.enemies = []; this.allies = [];
     this.projectiles.clear(); this.hazards.clear(); this.pickups.clear(); this.loot?.clear();
     for (const m of this.markers.items) this.markers.cancel(m);
@@ -450,6 +466,7 @@ class Game {
     if (this.area === 'road') { this.loadRoad(opts); return; }
     const L = buildOpenWorld();   // (Camp Half-Blood in the middle of the open world: world/openworld.js)
     this.loadWorld(L, BIOMES.camp);
+    this.warmupShaders(null, { lazy: true });   // (the open world's roaming monsters: their shaders and shadows compiled before they spawn or are hit)
     if (this.state === 'playing') this.audio.overrideMusic = null; this.audio.setMusic('hub');
     this.placePlayers(L.spawn);
     const dummy = new TrainingDummy(this, L.dummy);
@@ -504,6 +521,7 @@ class Game {
   loadRoad(opts = {}) {
     const L = buildRoadTrip();
     this.loadWorld(L, BIOMES.rt_turnpike);
+    this.warmupShaders(null, { lazy: true });
     if (this.state === 'playing') this.audio.overrideMusic = null; this.audio.setMusic('hub');
     const d = this.save.data;
     let at = L.spawn;
@@ -549,14 +567,94 @@ class Game {
   }
   // Compile every monster's (and this chapter's boss's) materials while the
   // level loads, so the first appearance of a new kind doesn't hitch mid-fight.
-  warmupShaders(boss) {
-    let grp;
-    try { grp = warmupGroup(undefined, boss ? [boss] : []); } catch (e) { console.warn('warm-up skipped', e); return; }
-    this.scene.add(grp);
-    this.warmGroup = grp;   // (released with the level: see clearLevel)
-    const done = () => this.scene.remove(grp);   // geometries and materials are shared with live monsters: keep them
-    const c = this.gr.renderer?.compileAsync?.(this.scene, this.rig.camera);
-    if (c?.then) c.catch(() => { /* fine: compiled on first use instead */ }).finally(done); else done();
+  // compileAsync compiles only what the camera can see, so the models (which
+  // used to sit 500 m under the level, culled, and compiled nothing) are
+  // compiled on their own with the scene's lights, unculled and never drawn,
+  // then again as a hit flashes them (FLASH_MATERIAL); then their shadows
+  // (warmShadows). (perf/RENDERING.md)
+  // lazy (the open world and the Road West): the models are built one kind a
+  // frame once the area is on screen, not all at once while it loads (the
+  // first build of every kind paints its skin: seconds at boot).
+  warmupShaders(boss, { lazy = false } = {}) {
+    const grp = new THREE.Group();
+    this.warmGroup = grp;   // (released with the level, see clearLevel: geometries and materials are shared with live monsters)
+    const add = (kinds, bosses = []) => { try { for (const c of [...warmupGroup(kinds, bosses).children]) grp.add(c); } catch (e) { console.warn('warm-up skipped', e); } };
+    if (!lazy) add(MONSTER_IDS, boss ? [boss] : []);
+    const r = this.gr.renderer;
+    if (!r?.compileAsync) return;
+    const meshes = [];
+    const flash = (on) => { for (const m of meshes) m.material = on ? FLASH_MATERIAL : m.userData.baseMat; };
+    const built = async () => {
+      await this.passReady();
+      if (lazy) for (const k of MONSTER_IDS) { if (this.warmGroup !== grp) break; add([k]); await nextFrame(); }
+      if (this.warmGroup !== grp) throw new Error('level left');
+      // (and a stand-in for each crowd batch the models' kinds will draw with: gfx/crowd.js)
+      const rigs = []; grp.traverse((o) => { if (o.userData.rig) rigs.push(o.userData.rig); });
+      this.crowd?.warmFor(rigs);
+      grp.traverse((o) => { if (o.isMesh) { o.frustumCulled = false; if (o.userData.baseMat) meshes.push(o); } });
+    };
+    // (compileAsync takes each object's material when it is called, so the swap back can follow at once)
+    built()
+      .then(() => this.compileScene())
+      .then(() => this.compileFor(grp))
+      .then(() => { flash(true); const c = this.compileFor(grp); flash(false); return c; })
+      .catch(() => { flash(false); /* fine: compiled on first use instead */ })
+      .finally(() => { if (this.warmGroup === grp) this.warmShadows(grp, meshes); });
+  }
+  // The scene, with the pooled effects that wait hidden at its top level
+  // (telegraph markers, rings, slashes: compileAsync skips what is hidden, so
+  // the first ring or marker of a session compiled mid-fight) shown for the call.
+  compileScene() {
+    const hidden = [];
+    for (const o of this.scene.children) if (!o.visible && (o.isMesh || o.isPoints || o.isSprite)) { o.visible = true; hidden.push(o); }
+    try { return this.compileFor(this.scene); } finally { for (const o of hidden) o.visible = false; }
+  }
+  // renderer.compileAsync as the frame draws: into the scene pass's target
+  // and MRT (gfx/renderer.js; as three's PassNode.compileAsync does). Compiled
+  // for the canvas, the programs didn't match the post-processed frame's, and
+  // were all compiled again as each thing first drew. obj: the scene, or a
+  // group out of it (compiled with the scene's lights, never drawn).
+  compileFor(obj) {
+    const r = this.gr.renderer, sp = this.gr.scenePass, rt = r.getRenderTarget(), mrt = r.getMRT();
+    if (sp?.renderTarget) { r.setRenderTarget(sp.renderTarget); r.setMRT(sp.getMRT()); }
+    // (the call takes the target, the objects and their materials before it first waits)
+    try { return Promise.resolve(r.compileAsync(obj, this.rig.camera, obj === this.scene ? null : this.scene)); } finally { r.setRenderTarget(rt); r.setMRT(mrt); }
+  }
+  // Resolves once a frame has been drawn with the scene pass (at boot the
+  // camp is loaded before the renderer has its pipeline).
+  passReady() {
+    return new Promise((res) => { const go = () => (this.gr.scenePass && this.framesDrawn ? res() : requestAnimationFrame(go)); go(); });
+  }
+  // The sun's shadow pass has no compileAsync, and it draws every mesh with
+  // one override material per light, so a hit flash (FLASH_MATERIAL) switched
+  // a monster's shadow to another program; when the last flash of a fight
+  // ended, that program was released, and compiled again on the next hit (and
+  // the unflashed one, when the only monster of its kind was flashed): a
+  // hitch on the first hit after every lull. Two frames of the warm-up models,
+  // and a flashed twin of each mesh, in the shadow map only (layer 1: the
+  // sun's shadow camera draws it, the view camera doesn't), under the floor at
+  // the focus, compile both, and their shadow render objects keep holding
+  // them until the level ends.
+  warmShadows(grp, meshes) {
+    const sun = this.lights?.sun;
+    if (!this.gr.preset.shadows || !sun?.castShadow) return;
+    for (const m of meshes) {
+      if (!m.castShadow) continue;
+      const f = new THREE.Mesh(m.geometry, FLASH_MATERIAL); f.castShadow = true;
+      f.position.copy(m.position); f.quaternion.copy(m.quaternion); f.scale.copy(m.scale); m.parent.add(f);
+    }
+    grp.traverse((o) => { o.layers.set(1); o.frustumCulled = false; });
+    const L = sun.shadow.camera.layers;
+    L.enable(1); this.scene.add(grp);
+    let n = 0;
+    const end = () => { grp.removeFromParent(); L.disable(1); this.warmEnd = null; };
+    this.warmEnd = end;
+    this.addUpdater(() => {
+      if (this.warmGroup !== grp || n++ >= 2) { end(); return false; }
+      grp.position.copy(this.rig.focus); grp.position.y -= 8;
+      grp.updateMatrixWorld(true);
+      return true;
+    });
   }
   // carded: its story cards (with the chapter's title) were just shown, so the level names the place instead
   startMission(def, { carded = false } = {}) {
@@ -602,7 +700,7 @@ class Game {
         for (const [hid, info] of Object.entries(HEROES)) if ((info.unlock === ch.id || (ch.book === 'book1' && info.unlock === 'ch' + ch.num)) && !(d.unlockedHeroes ??= []).includes(hid)) { d.unlockedHeroes.push(hid); if (sv === this.save) setTimeout(() => toast(t('game.joinsQuest', { name: info.full }), 'big'), 1200); }
       }
       d.stats.missions++; d.stats.kills += m.stats.kills;
-      if (sv.addXp(80 * m.def.difficulty)) levelled.push(sv);
+      if (sv.addXp(chapterXp(m.def.level ?? m.def.difficulty, m.def.difficulty))) levelled.push(sv);   // (progression.js: by the chapter's monster level)
       sv.write();
     }
     // the opening: the story goes on after the results (to the next cutscene)
@@ -708,22 +806,24 @@ class Game {
       if (k.procs.explode) { this.combat.aoe(e.pos, 2.6, e.maxHp * 0.2 * k.procs.explode, k, { knock: 6, blocks: false }); this.fx.explosion(e.pos, 0xff8a3a, 2.4); }
     }
     if (!e.isDummy) {
-      const xp = Math.round((e.def.xp ?? 3) * (1 + 0.3 * Math.max(0, (e.level ?? 1) - 1)) * (e.champion ? 4 : 1));   // (tougher monsters are worth more: the open world's regions rise in level)
+      const xp = killXp(e.def.xp ?? 3, e.level ?? 1, { elite: !!e.elite, champion: !!e.champion });   // (progression.js: XP grows with a monster's level as its health does)
       for (const sv of this.localSaves()) if (sv.addXp(xp)) this.levelUp(sv);   // net: every player's profile
       this.ow?.onKill(e);
       const [a, b] = e.def.coins ?? [1, 2];
-      this.pickups.drop('coin', e.pos, a + Math.floor(Math.random() * (b - a + 1)));
+      this.pickups.drop('coin', e.pos, Math.round((a + Math.floor(Math.random() * (b - a + 1))) * (1 + 0.15 * Math.max(0, (e.level ?? 1) - 1))));   // (more drachmas from tougher monsters: gear costs more at the forge)
       if (Math.random() < 0.08) this.pickups.drop('heal', e.pos, 1);
       if (Math.random() < 0.12) this.pickups.drop('ce', e.pos, 1);
       const nb = bundlesFrom(e.elite ? 'elite' : e.def.tier ?? 'minor'); if (nb) this.pickups.drop('arrows', e.pos, nb);   // ammo bundles (resources.js)
       this.maybeDropFromMonster(e);
     }
   }
-  onBossKilled(b) { this.mission?.onBossKilled(b); for (const sv of this.localSaves()) if (sv.addXp(150)) this.levelUp(sv); }
+  onBossKilled(b) { this.mission?.onBossKilled(b); for (const sv of this.localSaves()) if (sv.addXp(bossXp(b?.level ?? 1))) this.levelUp(sv); }
   levelUp(sv = this.save) {
     const d = sv.data;
     const many = this.localSaves().length > 1;
     toast(t(many ? 'game.levelUpNamed' : 'game.levelUp', { name: sv.name, level: d.level }), 'big');
+    const tier = TIER_LEVEL.findIndex((lv, i) => i > 0 && lv === d.level);   // a new tier of the skill tree opens
+    if (tier > 0) setTimeout(() => toast(t('game.tierOpen', { tier: tier + 1 })), 1600);
     this.audio.levelUp();
     for (const p of this.players) if (!p.remote && (this.saveFor(p) === sv || p.ai)) { this.fx.heal(p.pos, 0xffd23a); p.hp = p.maxHp; }
     sv.write();
@@ -731,7 +831,8 @@ class Game {
   // Chests and bosses drop a separate item (or two) for every human player.
   onChestOpened(c) {
     this.audio?.sample?.('chest');
-    const diff = this.mission?.def.difficulty ?? c.difficulty ?? 1;
+    // the place's monster level: the chapter's, or the chest's spot in the open world (progression.js)
+    const diff = this.mission ? (this.mission.def.level ?? this.mission.def.difficulty ?? 1) : (c.level ?? c.difficulty ?? 1);
     const humans = this.players.filter((q) => !q.ai && !q.remote);
     humans.forEach((q, n) => {
       const items = rollChest(diff, c.boss ? 'boss' : c.rarity, { level: this.saveFor(q).data.level, hero: q.hero });
@@ -746,11 +847,11 @@ class Game {
     const tier = e.def?.tier;
     const chance = e.champion ? 1 : e.elite ? 0.18 : tier === 'champion' ? 0.5 : tier === 'elite' ? 0.06 : 0;
     if (!chance || Math.random() > chance || (!this.mission && !this.ow)) return;
-    const diff = this.mission?.def.difficulty ?? owDifficulty(e.level);   // (the open world: from the monster's level)
+    const diff = e.level ?? this.mission?.def.level ?? 1;   // (gear for the monster's level: progression.js)
     const k = e.lastAttacker;
     const q = k?.isPlayer && !k.ai && !k.remote ? k : this.players.find((x) => !x.ai && !x.remote);
     if (!q) return;
-    this.loot.drop(rollItem(powerFor(diff, this.saveFor(q).data.level), { hero: q.hero, rarity: e.champion ? (Math.random() < 0.35 ? 'unique' : 'rare') : null }), e.pos, q);
+    this.loot.drop(rollItem(powerFor(diff, this.saveFor(q).data.level, Math.random, e.champion ? 'champion' : 'monster'), { hero: q.hero, rarity: e.champion ? (Math.random() < 0.35 ? 'unique' : 'rare') : null }), e.pos, q);
   }
   onPlayerDied(p) {
     if (this.wipeLeft > 0 || !this.players.length || !this.players.every((q) => q.dead || q.downed)) return;
@@ -951,7 +1052,8 @@ class Game {
     this.tracker.update(realDt);
     this.signs.update(this.paused && !this.cutscene ? 0 : realDt);
     if (this.minimap.level && (this.frameN = (this.frameN ?? 0) + 1) % 3 === 0) this.minimap.draw(this.hud.mini);
-    gr.render();
+    this.crowd?.update(this.enemies);   // (same-kind monsters drawn part by part as one instanced mesh: gfx/crowd.js)
+    gr.render(); this.framesDrawn = (this.framesDrawn ?? 0) + 1;
     this.tickRelease();
     if (this.readoutOn) this.updateReadout();
   }

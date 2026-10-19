@@ -19,6 +19,21 @@ const once = (b, key, fn) => { b._once ??= {}; if (!b._once[key]) { b._once[key]
 
 // Is a hero standing in (or right by) sea water? The world's liquid map if it
 // has one, otherwise the hero's own inLiquid flag.
+// The Furies' reach, sized from the models (size audit, round 4: Alecto grew
+// from scale 1.75 to 2.8 and her sisters from 1.6 to 2.5, so their whips,
+// spins and swoops grew by about a quarter, short of the 1.6× the bodies grew
+// so the arenas and the bus fight keep room to dodge): lash, the whip-crack
+// line (length and width); ring, the spin's radius and its ring of fire;
+// swoop, the dive's marked lane and hit radius; swap, the sister's landing
+// blast and its fire; orbit, where the waiting sisters circle (radius and
+// height over the fighting one).
+export const FURY_REACH = {
+  lash: { len: 12, width: 2.4 },          // (was 10 by 1.8)
+  ring: { r: 6.8, fire: 5.2 },            // (was 5.5, fire at 4.2)
+  swoop: { width: 4, hitR: 2.6 },         // (was 3 wide, hit radius 2)
+  swap: { r: 4.2, fire: 3.6 },            // (was 3.6, fire at 3)
+  orbit: { r: 8.5, y: 5.6 },              // (was 7.5 at 4.6)
+};
 export function inWater(g, p) {
   if (p.inLiquid === 'water') return true;
   const w = g.world; if (!w?.liquidAt) return false;
@@ -196,7 +211,7 @@ export const BOOK1_PATTERNS = {
     // dive at a hero
     let land = this.pos.clone();
     if (t) { const s = openSpot(this, t.pos, Math.random() * Math.PI * 2, 2.5); if (s) land = s; }
-    g.markers.spawn({ pos: land, radius: 3.6, dur: 1.0, color: 0xff3a1a });
+    g.markers.spawn({ pos: land, radius: FURY_REACH.swap.r, dur: 1.0, color: 0xff3a1a });
     toast(txt('bosses.furies.swoop', { name: F.names[next] }));
     g.audio?.tone({ freq: 900, to: 400, dur: 0.8, gain: 0.08, type: 'sawtooth', filter: 3000 });
     // hand over: the old body rises to circle, the new one drops into place
@@ -205,11 +220,12 @@ export const BOOK1_PATTERNS = {
     tmp.subVectors(land, this.pos);
     for (let i = 0; i < 3; i++) F.lp[i].sub(tmp);   // the holder jumps to the landing spot; keep the others where they are
     this.pos.copy(land); this.visY = land.y;
-    this.hoverY = 0.4;
+    this.hoverY = Math.max(0.4, this.rig.hoverMin ?? 0);
     yield 1.0;
-    g.fx.shockwave(this.pos, 0xff7a1a, 3.8); g.shake(0.5); g.audio?.impact(1.8);
-    this.hurtPlayers(this.pos, 3.6, this.dmg * 1.1, 12);
-    for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; g.hazards.fire(this.pos.clone().add(new THREE.Vector3(Math.cos(a) * 3, 0, Math.sin(a) * 3)), this.dmg * 0.3, 1); }
+    g.fx.shockwave(this.pos, 0xff7a1a, FURY_REACH.swap.r + 0.2); g.shake(0.5); g.audio?.impact(1.8);
+    this.hurtPlayers(this.pos, FURY_REACH.swap.r, this.dmg * 1.1, 12);
+    const fr = FURY_REACH.swap.fire;
+    for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; g.hazards.fire(this.pos.clone().add(new THREE.Vector3(Math.cos(a) * fr, 0, Math.sin(a) * fr)), this.dmg * 0.3, 1); }
     this.hoverY = this.B.hover ?? 0;
     this.untargetable = false; this.cleanupPattern = null;
     this.moving = true;
@@ -226,7 +242,7 @@ export const BOOK1_PATTERNS = {
       const t = heroes[i % heroes.length];
       const dir = tmp.subVectors(t.pos, from).setY(0); const len = Math.min(16, dir.length() + 3); dir.normalize();
       lines.push({ from, dir: dir.clone(), len, facing: Math.atan2(dir.x, dir.z) });
-      g.markers.spawn({ pos: from, shape: 'rect', width: 1.8, length: len, facing: Math.atan2(dir.x, dir.z), dur: 0.9 + i * 0.25, color: 0xff3a1a });
+      g.markers.spawn({ pos: from, shape: 'rect', width: FURY_REACH.lash.width, length: len, facing: Math.atan2(dir.x, dir.z), dur: 0.9 + i * 0.25, color: 0xff3a1a });
     }
     this.anim = { type: 'attack', t: 0.2, style: 'swingR', windup: 0.3, strike: 0.5 };
     yield 0.9;
@@ -236,7 +252,7 @@ export const BOOK1_PATTERNS = {
       const o = L.from.clone().setY(L.from.y + 1);
       g.fx.slashLine(o, L.dir, L.len, 0xff8a2a, 0.5, 0.25);
       g.audio?.energy('slash'); g.audio?.impact(1.1);
-      this.hurtLine(L.from, L.dir, L.len, 0.9, this.dmg, 7);
+      this.hurtLine(L.from, L.dir, L.len, FURY_REACH.lash.width / 2, this.dmg, 7);
       yield 0.25;
     }
     this.anim = null; this.moving = true;
@@ -495,7 +511,9 @@ export const BOOK1_PATTERNS = {
     const g = this.game, t = this.target(); if (!t) return;
     const H = this.rig.extras.heads;
     this.moving = false; this.faceTarget(t);
-    g.markers.spawn({ pos: this.pos, radius: 11, dur: 0.85, shape: 'cone', arc: 0.22, facing: this.facing, color: 0xff5a1a });
+    // (pass 4: his reach grown with his model, made far bigger: the mouths
+    // now sit about 4.1 to 4.8 m ahead of his centre)
+    g.markers.spawn({ pos: this.pos, radius: 13, dur: 0.85, shape: 'cone', arc: 0.22, facing: this.facing, color: 0xff5a1a });
     this.headAct = [1, 0, 0];
     yield 0.85;
     g.audio?.energy('fire');
@@ -503,7 +521,7 @@ export const BOOK1_PATTERNS = {
       const dir = tmp2.set(Math.sin(this.facing), 0, Math.cos(this.facing));
       const from = H[0].mouth.getWorldPosition(new THREE.Vector3());
       g.particles.burst(from, { count: 10, color: k % 2 ? 0xff7a2a : 0xffc84a, speed: 16, spread: 0.25, dir, life: 0.6, size: 0.5, sizeEnd: 2.5, drag: 1.5, intensity: 3 });
-      if (k % 3 === 0) this.hurtCone(11.5, 0.7, this.dmg * 0.35, 4);
+      if (k % 3 === 0) this.hurtCone(13.5, 0.7, this.dmg * 0.35, 4);
       g.lights.flash(from.addScaledVector(dir, 4), 0xff6a1a, 8, 10, 0.1);
       yield 0.06;
     }
@@ -515,15 +533,15 @@ export const BOOK1_PATTERNS = {
     const g = this.game, t = this.target(); if (!t) return;
     this.moving = false; this.faceTarget(t);
     const tele = 0.7 - this.phase * 0.1;
-    g.markers.spawn({ pos: this.pos, radius: 6.5, dur: tele, shape: 'cone', arc: 0.25, facing: this.facing, color: 0xff2a1a, follow: this });
+    g.markers.spawn({ pos: this.pos, radius: 8.5, dur: tele, shape: 'cone', arc: 0.25, facing: this.facing, color: 0xff2a1a, follow: this });
     this.headAct = [0, 0.5, 0];
     this.anim = { type: 'attack', t: 0.15, style: 'bite', windup: 0.3, strike: 0.5 };
     yield tele;
     this.headAct = [0, 1, 0];
     this.anim = { type: 'attack', t: 0.5, style: 'bite', windup: 0.3, strike: 0.5 };
     this.knock.copy(this.fwd()).multiplyScalar(8);
-    g.fx.slashArc(this.pos, this.facing, 0xfff0d0, 6.5, 0.25, 0.2); g.audio?.impact(1.8); g.shake(0.35);
-    this.hurtCone(6.8, 0.8, this.dmg * 1.2, 11);
+    g.fx.slashArc(this.pos, this.facing, 0xfff0d0, 8.5, 0.25, 0.2); g.audio?.impact(1.8); g.shake(0.35);
+    this.hurtCone(8.8, 0.8, this.dmg * 1.2, 11);
     yield 0.45;
     this.headAct = [0, 0, 0]; this.anim = null; this.moving = true;
     yield 0.3;
@@ -532,12 +550,12 @@ export const BOOK1_PATTERNS = {
     const g = this.game, t = this.target(); if (!t) return;
     this.moving = false;
     const dir = this.faceTarget(t);
-    g.markers.spawn({ pos: this.pos.clone().setY(this.ground(this.pos)), shape: 'rect', width: 3.6, length: 14, facing: this.facing, dur: 0.85, color: 0xff2a1a });
+    g.markers.spawn({ pos: this.pos.clone().setY(this.ground(this.pos)), shape: 'rect', width: 6, length: 16, facing: this.facing, dur: 0.85, color: 0xff2a1a });
     this.headAct = [0, 0, 0.6];
     yield 0.85;
     this.headAct = [0, 0, 1];
     g.audio?.whoosh(1.6);
-    yield* this.dashLine(dir, 20, 12, this.dmg * 1.2, { dust: 0x3a3440, hitR: 2.8 });
+    yield* this.dashLine(dir, 20, 12, this.dmg * 1.2, { dust: 0x3a3440, hitR: 4.4 });
     this.headAct = [0, 0, 0]; this.moving = true;
     yield 0.4;
   },
@@ -546,7 +564,7 @@ export const BOOK1_PATTERNS = {
     yield* this.head_bite();
     if (this.phase >= 1) yield* this.head_lunge();
   },
-  *cerberus_stomp() { yield* this.stomp(); },
+  *cerberus_stomp() { yield* this.stomp(7.5); },
   // His heads droop: a window to strike for double damage.
   *sleepy() {
     const g = this.game;
@@ -730,8 +748,8 @@ export const BOOK1_HOOKS = {
   // ---- the Furies: three bodies, one health bar
   furiesInit(b) {
     const rigs = [b.rig, BOSS_MODELS.megaera(), BOSS_MODELS.tisiphone()];
-    b.furies = { rigs, names: [...t('bosses.furies.sisters')], active: 0, lp: rigs.map(() => new THREE.Vector3()), crack: [0, 0, 0], orbit: Math.random() * 6 };
-    for (let i = 1; i < 3; i++) { const r = rigs[i]; r.tick = (dt, e) => animateExtras(r, dt, e); b.object.add(r.root); b.furies.lp[i].set(i === 1 ? 7 : -7, 5, 0); rigs[i].root.position.copy(b.furies.lp[i]); }
+    b.furies = { rigs, names: [...txt('bosses.furies.sisters')], active: 0, lp: rigs.map(() => new THREE.Vector3()), crack: [0, 0, 0], orbit: Math.random() * 6 };
+    for (let i = 1; i < 3; i++) { const r = rigs[i]; r.tick = (dt, e) => animateExtras(r, dt, e); b.object.add(r.root); b.furies.lp[i].set((i === 1 ? 1 : -1) * (FURY_REACH.orbit.r - 0.5), FURY_REACH.orbit.y + 0.4, 0); rigs[i].root.position.copy(b.furies.lp[i]); }
   },
   furiesTick(b, dt) {
     const F = b.furies; if (!F) return;
@@ -742,7 +760,7 @@ export const BOOK1_HOOKS = {
       F.crack[i] -= dt;
       if (i === F.active) { lp.x = damp(lp.x, 0, 3.5, dt); lp.y = damp(lp.y, 0, 3.5, dt); lp.z = damp(lp.z, 0, 3.5, dt); r.root.position.copy(lp); continue; }
       const a = F.orbit + k * Math.PI; k++;
-      const want = tmp.set(Math.cos(a) * 7.5, 4.6 + Math.sin(F.orbit * 2 + i) * 0.6, Math.sin(a) * 7.5);
+      const O = FURY_REACH.orbit, want = tmp.set(Math.cos(a) * O.r, O.y + Math.sin(F.orbit * 2 + i) * 0.6, Math.sin(a) * O.r);
       lp.x = damp(lp.x, want.x, 2, dt); lp.y = damp(lp.y, want.y, 2, dt); lp.z = damp(lp.z, want.z, 2, dt);
       r.root.position.copy(lp);
       r.root.rotation.y = a + Math.PI;   // fly along the circle

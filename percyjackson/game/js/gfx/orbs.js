@@ -42,7 +42,7 @@ export function makeOrb(color, { radius = 0.5, darkCore = false, coreColor = 0xf
 // Infinity shell: faint hex shimmer that ripples when struck.
 export function infinityMaterial() {
   const hit = uniform(0), alpha = uniform(0);
-  const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false });
+  const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, forceSinglePass: true, fog: false });
   const p = positionLocal.mul(6);
   const hex = smoothstep(0.42, 0.5, abs(fract(p.x.add(p.y.mul(0.5))).sub(0.5))).add(smoothstep(0.42, 0.5, abs(fract(p.y.sub(p.z.mul(0.5))).sub(0.5)))).mul(0.5);
   const f = fresnel(2.5);
@@ -57,7 +57,7 @@ export function infinityMaterial() {
 export function beamMaterial(color, inner = false) {
   const alpha = uniform(1);
   const c = new THREE.Color(color);
-  const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false });
+  const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, forceSinglePass: true, fog: false });
   const v = uv();
   const flow = sin(v.y.mul(60).sub(U.time.mul(40)).add(sin(v.x.mul(25.13)).mul(2))).mul(0.5).add(0.5);
   const f = fresnel(inner ? 0.6 : 1.4);

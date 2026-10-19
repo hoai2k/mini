@@ -14,7 +14,7 @@ class RingPool {
     this.items = [];
     for (let i = 0; i < n; i++) {
       const prog = uniform(0), col = uniform(new THREE.Color()), thick = uniform(0.15), arc = uniform(1);
-      const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending, side: THREE.DoubleSide, fog: false });
+      const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending, side: THREE.DoubleSide, forceSinglePass: true, fog: false });
       const p = uv().sub(0.5).mul(2); const r = length(p);
       const edge = float(1).sub(thick);
       const ring = smoothstep(edge.sub(0.08), edge, r).mul(smoothstep(1.0, 0.94, r));
@@ -56,7 +56,7 @@ class SlashPool {
     this.items = [];
     for (let i = 0; i < n; i++) {
       const col = uniform(new THREE.Color()), a = uniform(0);
-      const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false });
+      const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, forceSinglePass: true, fog: false });
       const v = uv();
       const edge = smoothstep(0.5, 0.0, abs(v.y.sub(0.5))).mul(smoothstep(0.0, 0.15, v.x)).mul(smoothstep(1.0, 0.7, v.x));
       m.colorNode = vec4(vec3(col).mul(edge.mul(a).mul(4)), 1);

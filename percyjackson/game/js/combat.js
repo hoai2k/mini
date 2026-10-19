@@ -5,8 +5,10 @@ import { BLOCKS } from './world/blocks.js';
 import { tileAvgColor } from './gfx/textures.js';
 import { angleDiff } from './util.js';
 import { bundlesFrom } from './resources.js';
+import { hitEffects } from './gearEffects.js';
+import { t as tx } from './text_config.js';
 
-const v1 = new THREE.Vector3(), v2 = new THREE.Vector3();
+const v1 = new THREE.Vector3(), v2 = new THREE.Vector3(), v3 = new THREE.Vector3(), v4 = new THREE.Vector3();
 
 // Default three-hit combo (heroes override / extend it).
 export const BASE_COMBO = [
@@ -16,7 +18,49 @@ export const BASE_COMBO = [
 ];
 
 export class Combat {
-  constructor(game) { this.game = game; }
+  constructor(game) {
+    this.game = game;
+    // what the weapon enchantments need (gearEffects.js)
+    const g = game, self = this;
+    this.fxApi = {
+      get time() { return g.time ?? 0; },
+      near(e, r, max) {
+        const out = [];
+        for (const q of g.enemies) if (q !== e && !q.dead && !q.untargetable && !q.isDummy && q.pos.distanceTo(e.pos) < r + (q.radius ?? 0.5)) out.push(q);
+        return out.sort((a, b) => a.pos.distanceToSquared(e.pos) - b.pos.distanceToSquared(e.pos)).slice(0, max);
+      },
+      damage(t, amount, o) {
+        const src = self.fxSrc;
+        const opts = { ...o };
+        if (o.knockFrom) { opts.knock = new THREE.Vector3().subVectors(t.pos, o.knockFrom).setY(0).normalize().multiplyScalar(o.knockSpeed ?? 6); delete opts.knockFrom; delete opts.knockSpeed; }
+        self.damageEnemy(t, amount, src, opts);
+      },
+      fx: {
+        chain(e, list) {
+          let from = v3.set(e.pos.x, e.pos.y + (e.height ?? 1.5) * 0.6, e.pos.z).clone();
+          for (const q of list) { const to = new THREE.Vector3(q.pos.x, q.pos.y + (q.height ?? 1.5) * 0.6, q.pos.z); self.zap(from, to, 0xbfe0ff); from = to; }
+          g.audio?.impact?.(0.6);
+        },
+        shock(e) { g.fx.shockwave(v4.set(e.pos.x, e.pos.y + 0.1, e.pos.z), 0x9ae8ff, 3.4, 0.4); g.shake?.(0.12); },
+        freeze(e) {
+          g.particles?.burst?.(v4.set(e.pos.x, e.pos.y + (e.height ?? 1.5) * 0.5, e.pos.z), { count: 16, color: 0xbfeaff, speed: 3, up: 1.5, life: 0.6, size: 0.14, gravity: 6, shape: 3 });
+          g.fx.damageNumber(e.pos, 0, { color: '#bfeaff', text: tx('loot.fx.frozen') });
+        },
+        burn(e) { g.particles?.burst?.(v4.set(e.pos.x, e.pos.y + (e.height ?? 1.5) * 0.5, e.pos.z), { count: 6, color: 0xff8a2a, speed: 2, up: 2, life: 0.4, size: 0.12 }); },
+      },
+    };
+  }
+  // A jagged bolt from a to b (the enchantments' chain lightning).
+  zap(a, b, color = 0xbfe0ff, segs = 5) {
+    const g = this.game; let p = a.clone();
+    for (let i = 1; i <= segs; i++) {
+      const q = a.clone().lerp(b, i / segs);
+      if (i < segs) q.add(v1.set((Math.random() - 0.5) * 0.6, (Math.random() - 0.5) * 0.6, (Math.random() - 0.5) * 0.6));
+      const d = v2.subVectors(q, p); const len = d.length();
+      if (len > 0.01) g.fx.slashLine(p, d.clone().normalize(), len, color, 0.14, 0.18, Math.random() * 3);
+      p = q;
+    }
+  }
 
   // All living enemies in a cone/circle. arc = half angle (PI = full circle).
   // mist: instead, the people in the Mist (mortal-looking, can't be hurt) in it.
@@ -47,7 +91,7 @@ export class Combat {
       if (src.stats.bane && (e.isBoss || e.elite || e.def?.tier === 'elite' || e.def?.tier === 'champion')) dmg *= 1 + src.stats.bane;
     }
     const crit = o.crit ?? (Math.random() < (src?.stats?.crit ?? 0.05));
-    if (crit) dmg *= o.critMult ?? 2;
+    if (crit) dmg *= o.critMult ?? (2 + (src?.stats?.critDmg ?? 0));   // (Sword Master and Shadow Strike add to it)
     if (o.blackFlash) dmg *= 2.5;
     dmg *= g.difficultyDamageTaken ?? 1;
     const dealt = e.takeDamage(dmg, src, { ...o, crit });
@@ -56,9 +100,9 @@ export class Combat {
       e.lastAttacker = src; e.lastHitT = g.time;
       if (src && src.isPlayer) {
         (e.hitBy || (e.hitBy = new Map())).set(src, g.time);
-        if (src.procs?.freeze && o.melee) e.slowT = 1 + src.procs.freeze * 0.4;
         src.gainCE?.(o.ceGain ?? dealt * 0.08);
-        if (src.stats.lifesteal) src.heal?.(dealt * src.stats.lifesteal, true);
+        // the weapon's enchantments: life steal, fire, freeze, chain lightning, the shove (gearEffects.js)
+        if (o.melee) { this.fxSrc = src; hitEffects(src, e, base, dealt, o, this.fxApi); }
         src.onHitEnemy?.(e, dealt, o);
         // Zeus's Spark: lightning on hit; Echo: a second strike
         if (o.melee && !o.proc && src.procs?.thunder && Math.random() < 0.08 * src.procs.thunder) {
