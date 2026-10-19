@@ -1,6 +1,5 @@
 /*
- * Tank Wars sound: arcade sound effects and a sparse music loop, all
- * synthesised with Web Audio (square, pulse and triangle tones plus noise, in
+ * Tank Wars sound: arcade sound effects, all synthesised with Web Audio (square, pulse and triangle tones plus noise, in
  * the manner of an early-80s arcade board). No audio files.
  *
  * Everything goes through TankWarsSound.audible() (menu.js): nothing plays
@@ -11,14 +10,13 @@
  *   play(name, { pan, vol, key })  one-shot effect, see EFFECTS below
  *   shot(flags, { pan, vol, key }) a tank's shot, voiced by its power-ups
  *   pickup(typeId, { pan, vol })   a power-up collected, one sound per type
- *   music(mode, intensity)         'play' | 'menu' | 'off'; intensity 0..1 speeds up the play loop
  *   refresh()                      re-check audibility now (mute toggled, focus changed)
  */
 (function () {
     const AC = window.AudioContext || window.webkitAudioContext;
-    let ac = null, master = null, sfxBus = null, musicBus = null, noiseBuf = null, pulseWave = null, buzzWave = null;
+    let ac = null, master = null, sfxBus = null, noiseBuf = null, pulseWave = null, buzzWave = null;
     const lastPlayed = new Map();
-    const MASTER_VOL = 0.55, MUSIC_VOL = 0.32;
+    const MASTER_VOL = 0.55;
 
     const audible = () => !!window.TankWarsSound?.audible?.();
     const midi = m => 440 * Math.pow(2, (m - 69) / 12);
@@ -31,8 +29,7 @@
             comp.threshold.value = -14; comp.ratio.value = 6; comp.attack.value = 0.003; comp.release.value = 0.15;
             master = ac.createGain(); master.gain.value = audible() ? MASTER_VOL : 0;
             sfxBus = ac.createGain(); sfxBus.gain.value = 1;
-            musicBus = ac.createGain(); musicBus.gain.value = MUSIC_VOL;
-            sfxBus.connect(master); musicBus.connect(master); master.connect(comp); comp.connect(ac.destination);
+            sfxBus.connect(master); master.connect(comp); comp.connect(ac.destination);
             noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
             const data = noiseBuf.getChannelData(0);
             // Stepped noise (a sample-and-hold every few samples) sounds grittier, like a hardware noise channel.
@@ -65,7 +62,6 @@
         const now = ac.currentTime;
         master.gain.cancelScheduledValues(now);
         master.gain.setTargetAtTime(on ? MASTER_VOL : 0, now, on ? 0.05 : 0.01);
-        if (!on) music.stopAll();
     }
     document.addEventListener('visibilitychange', refresh);
     window.addEventListener('blur', refresh);
@@ -220,82 +216,17 @@
         const op = opts(o);
         if (!ready(op.key || 'shot', 0.04)) return;
         const v = op.vol, pan = op.pan;
-        if (f.bomb) { tone({ type: 'triangle', f0: 220, f1: 70, dur: 0.18, vol: 0.3 * v, pan }); noise({ dur: 0.08, vol: 0.1 * v, f0: 1200, f1: 200, pan }); return; }
-        const base = f.big ? 380 : (f.fast ? 1800 : 1100);
-        const end = f.big ? 90 : (f.fast ? 500 : 180);
+        if (f.bomb) { tone({ type: 'triangle', f0: 160, f1: 45, dur: 0.22, vol: 0.34 * v, pan }); noise({ dur: 0.1, vol: 0.1 * v, f0: 900, f1: 120, pan }); return; }
+        // Pitched low, with a triangle "thump" an octave below for body.
+        const base = f.big ? 220 : (f.fast ? 950 : 560);
+        const end = f.big ? 50 : (f.fast ? 230 : 85);
         const dur = (f.rapid ? 0.06 : 0.1) * (f.dist ? 1.6 : 1) * (f.big ? 1.6 : 1);
-        tone({ type: f.big ? 'buzz' : 'square', f0: base, f1: end, dur, vol: (f.big ? 0.16 : 0.1) * v, pan, vib: f.rico ? 120 : 0, vibRate: 35 });
+        tone({ type: f.big ? 'buzz' : 'square', f0: base, f1: end, dur, vol: (f.big ? 0.16 : 0.11) * v, pan, vib: f.rico ? 60 : 0, vibRate: 35 });
+        tone({ type: 'triangle', f0: base / 2, f1: Math.max(30, end / 2), dur: dur * 1.2, vol: 0.18 * v, pan });
         if (f.spray) [-1, 1].forEach(s => tone({ type: 'pulse', f0: base * (1 + s * 0.12), f1: end, dur: dur * 0.9, vol: 0.05 * v * Math.min(3, f.spray), pan: pan + s * 0.3 }));
         if (f.side) [-0.7, 0.7].forEach(p => tone({ type: 'pulse', f0: base * 0.75, f1: end, dur: dur * 0.8, vol: 0.05 * v, pan: p }));
         if (f.big) noise({ dur: 0.1, vol: 0.12 * v, f0: 2500, f1: 300, pan });
     }
-
-    /*
-     * Music: a sparse, pulsing bass ostinato in the game (it quickens as the CPU
-     * tanks fall) with an occasional high bleep, and a slower, quieter version
-     * in the menus. Scheduled a little ahead on a timer.
-     */
-    const PLAY_BASS = [40, null, null, null, 40, null, null, null, 43, null, null, null, 40, null, null, null,
-                       45, null, null, null, 43, null, null, null, 40, null, null, null, 38, null, 39, null];
-    const PLAY_LEAD = [[76, 79, 81], [83, null, 81, 79], [76, null, 74, 76], [88, 86, 83]];
-    const MENU_BASS = [40, null, null, null, null, null, null, null, 47, null, null, null, null, null, null, null,
-                       45, null, null, null, null, null, null, null, 43, null, null, null, 42, null, null, null];
-    const MENU_LEAD = [[64, 67, 71, 74], [62, 66, 69, 74], [64, 67, 71, 76], null];
-
-    const music = {
-        mode: 'off', intensity: 0, step: 0, nextTime: 0, timer: null,
-        set(mode, intensity = 0) {
-            this.intensity = Math.max(0, Math.min(1, intensity || 0));
-            if (mode === this.mode) return;
-            this.mode = mode; this.step = 0;
-            if (mode === 'off') { this.stopAll(); return; }
-            if (!this.timer) this.timer = setInterval(() => this.tick(), 50);
-            if (ac) this.nextTime = ac.currentTime + 0.1;
-        },
-        stopAll() {
-            if (!ac) return;
-            // Fade out what is already scheduled by swapping in a fresh music bus.
-            const old = musicBus;
-            old.gain.setTargetAtTime(0, ac.currentTime, 0.02);
-            setTimeout(() => old.disconnect(), 400);
-            musicBus = ac.createGain(); musicBus.gain.value = MUSIC_VOL; musicBus.connect(master);
-            this.nextTime = ac.currentTime + 0.1;
-        },
-        tick() {
-            if (this.mode === 'off') { clearInterval(this.timer); this.timer = null; return; }
-            if (!ac || ac.state !== 'running' || !audible()) { if (ac) this.nextTime = ac.currentTime + 0.1; return; }
-            const playing = this.mode === 'play';
-            const bpm = playing ? 104 + this.intensity * 56 : 76;
-            const stepDur = 60 / bpm / 4;
-            if (this.nextTime < ac.currentTime) this.nextTime = ac.currentTime + 0.05;
-            while (this.nextTime < ac.currentTime + 0.2) {
-                this.note(this.step, this.nextTime, playing, stepDur);
-                this.step++;
-                this.nextTime += stepDur;
-            }
-        },
-        note(step, at, playing, stepDur) {
-            const bass = playing ? PLAY_BASS : MENU_BASS;
-            const m = bass[step % bass.length];
-            if (m !== null) {
-                tone({ type: 'triangle', f0: midi(m), dur: playing ? 0.16 : 0.5, vol: playing ? 0.55 : 0.4, bus: musicBus, at, attack: 0.005 });
-                if (playing) tone({ type: 'pulse', f0: midi(m + 12), dur: 0.05, vol: 0.06, bus: musicBus, at });
-            }
-            // Every fourth bar (64 sixteenths) carries a short high phrase in the play loop; every other bar in the menu.
-            const barLen = 16, bar = Math.floor(step / barLen), inBar = step % barLen;
-            if (playing && bar % 4 === 3 && inBar >= 8 && inBar % 2 === 0) {
-                const phrase = PLAY_LEAD[Math.floor(bar / 4) % PLAY_LEAD.length];
-                const n = phrase[(inBar - 8) / 2];
-                if (n !== null && n !== undefined) tone({ type: 'pulse', f0: midi(n), dur: stepDur * 1.6, vol: 0.07, bus: musicBus, at, vib: 4, vibRate: 6 });
-            } else if (!playing && bar % 2 === 1 && inBar % 4 === 0) {
-                const phrase = MENU_LEAD[Math.floor(bar / 2) % MENU_LEAD.length];
-                const n = phrase?.[inBar / 4];
-                if (n !== undefined && n !== null) tone({ type: 'triangle', f0: midi(n + 12), dur: stepDur * 3.5, vol: 0.12, bus: musicBus, at });
-            }
-            // A soft hi-hat tick on the off-beats while playing, for drive.
-            if (playing && step % 4 === 2) noise({ dur: 0.025, vol: 0.05, f0: 9000, f1: 6000, filter: 'highpass', bus: musicBus, at });
-        }
-    };
 
     // Buttons and menu items blip when used, by mouse, touch, keys or controller (menu.js clicks the
     // selected item). Bubbling runs after the button's own handler, so turning sound on is heard.
@@ -307,7 +238,6 @@
         play,
         shot,
         pickup,
-        music: (mode, intensity) => music.set(mode, intensity),
         refresh,
         effects: Object.keys(EFFECTS),
         pickups: Object.keys(PICKUPS).map(Number)
