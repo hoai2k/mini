@@ -525,29 +525,36 @@ export const BOSS_MODELS = {
     const MZ = ring(0, BRX, BRZ).z + Z0 + 0.5;
     beltBoxes.push({ p: [0, BY, MZ], s: [3, 3, 0.8], c: 0xe8b444, m: 'm' }, { p: [0, BY, MZ], s: [3, 3, 0.8], c: 0xd8a032, m: 'm', r: [0, 0, Math.PI / 4] },
       { p: [0, BY, MZ + 0.5], s: [1.7, 1.7, 0.4], c: 0xffd860, m: 'm' }, { p: [0, BY, MZ + 0.7], s: [0.7, 0.7, 0.3], c: 0x9a6a1a, m: 'm' });
+    for (const sx of [-1, 1]) {   // a short knotted tie at each hip, hanging 2-3 px tight to the belt
+      beltBoxes.push({ p: [sx * (BRX + 0.9), BY - 0.3, Z0 + 0.9], s: [1.2, 1.4, 1.2], c: 0xd8cca8 },
+        { p: [sx * (BRX + 1), BY - 2, Z0 + 1], s: [0.9, 2.2, 0.7], c: 0xece4cc });
+    }
     vox(rig, rig.hips, [
       { e: [0, -1.4, 0.3, 5.4, 1.9, 4.1], col: CLOTH },
       { e: [0, BY + 0.6, Z0, BRX - 0.3, 1.6, BRZ - 0.2], col: CLOTH, bump: 0, fuzz: 0 },   // the cloth wound round the waist, showing a little over the belt's top edge
     ], { v: 1, seed: 12 }, beltBoxes);
-    const NP = 14, kilt = [], PY = BYS;   // (the pivots sit high under the belt, so a swinging panel's top stays tucked in it)
-    for (let i = 0; i < NP; i++) {
-      const a = i / NP * TAU, hw = Math.PI / NP, RP = [BRX - 1, BRZ - 1], q = ring(a, ...RP), fz = q.z / RP[1];
-      const L = i === 0 ? 9 : Math.abs(fz) > 0.6 ? 7.5 : 6;   // (the front apron longest, the sides shortest and snug to the hip, as on the sheet)
-      const G = group(rig.hips, q.x, PY, q.z + Z0), I = new THREE.Group(); G.add(I);
-      const nx = Math.sin(q.yaw), nz = Math.cos(q.yaw);
-      // each panel is one flat piece of cloth hung from inside the belt, tipped out just far enough
-      // that its hem clears the hip and thigh (the thigh sculpt reaches HIP px out, 4.7 px in front)
-      let tilt = 0.04;   // (the steepest tip over the heights from the belt's lower edge to the hem, so no part of the thigh pokes through)
-      for (let hy = Math.min(BYS - 2, PY - L + 0.5); hy >= PY - L; hy -= 0.5) {
-        const hc = ring(a, Math.max(RP[0], hipX(hy) + 1.2), 5.3), need = (hc.x - q.x) * nx + (hc.z - q.z) * nz;
-        tilt = Math.max(tilt, Math.atan2(need, PY - hy));
-      }
-      tilt = Math.min(0.62, tilt);
-      I.rotation.order = 'YXZ'; I.rotation.set(-tilt, q.yaw, 0);
-      const ra = ring(a - hw, ...RP), rb = ring(a + hw, ...RP), w = Math.hypot(rb.x - ra.x, rb.z - ra.z) * 1.7;   // (a little wider than its share of the belt, so neighbours overlap and the cloth reads as one skirt)
+    // a front apron and a back apron only (round 9: his thighs are far wider than his waist, so
+    // cloth all round would flare over them into a skirt), each one flat piece of cloth hung from
+    // inside the belt and tipped out just far enough to clear the thigh sculpt (4.7 px in front
+    // and behind): between the thighs, a little narrower at the hem, with the ragged hem
+    const kilt = [], PY = BYS;   // (the pivots sit high under the belt, so a swinging apron's top stays tucked in it)
+    for (const [i, dir] of [[0, 1], [1, -1]]) {
+      const L = i === 0 ? 9.5 : 8, WT = i === 0 ? 6.4 : 6, WB = i === 0 ? 4.6 : 4.4;
+      const z0 = dir * (BRZ - 1) + Z0;   // the pivot's z on the hips
+      const G = group(rig.hips, 0, PY, z0), I = new THREE.Group(); G.add(I);
+      const zThigh = (hy) => (hy > 2 ? 3.4 : hy > -1 ? 4.3 : 4.8) + 0.9;   // how far out the thigh reaches at a height, with a pixel of clearance
+      let tilt = 0.05;   // (the steepest tip over the heights from the belt's lower edge to the hem)
+      for (let hy = Math.min(BYS - 2, PY - L + 0.5); hy >= PY - L; hy -= 0.5) tilt = Math.max(tilt, Math.atan2(zThigh(hy) - dir * z0, PY - hy));
+      tilt = Math.min(0.5, tilt);
+      I.rotation.order = 'YXZ'; I.rotation.set(-tilt, i === 0 ? 0 : Math.PI, 0);
       const hem = (x, y, z, n, h) => (y < -L + 1.5 - Math.abs(Math.sin(x * 1.3 + i * 2.1)) * 0.9 - h * 1.2 ? null : y < -L + 2.6 ? CLOTHD : CLOTH[Math.floor(h * 3)]);
-      vox(rig, I, [{ b: [-w / 2, -L, -0.5, w / 2, 0.8, 0.5], col: hem, bump: 0, fuzz: 0 }], { v: 1, seed: 40 + i });
-      kilt.push({ g: G, legs: q.x < -2.5 ? [rig.legR] : q.x > 2.5 ? [rig.legL] : [rig.legR, rig.legL], front: Math.max(0, Math.min(1, fz * 1.4)), back: Math.max(0, Math.min(1, -fz * 1.4)), side: Math.sign(q.x) * (Math.abs(q.x) > 2.5 ? 1 : 0) });
+      const rows = [];
+      for (let k = 0; k < Math.ceil(L + 0.8); k++) {
+        const y1 = k === 0 ? 0.8 : -(k - 1), y0 = Math.max(-L, y1 - 1), w = WT + (WB - WT) * Math.min(1, Math.max(0, -(y0 + y1) / 2) / L);
+        rows.push({ b: [-w / 2, y0, -0.5, w / 2, y1, 0.5], col: hem, bump: 0, fuzz: 0 });
+      }
+      vox(rig, I, rows, { v: 1, seed: 40 + i });
+      kilt.push({ g: G, legs: [rig.legR, rig.legL], front: i === 0 ? 1 : 0, back: i === 0 ? 0 : 1, side: 0 });
     }
     rig.extras.kilt = kilt;
     // arms: a ball of shoulder, a bulging bicep, a forearm like a tree trunk, a knuckled fist
@@ -604,7 +611,7 @@ export const BOSS_MODELS = {
       for (const P of rig.extras.kilt) {
         let fwd = 0, bck = 0; for (const l of P.legs) { fwd = Math.min(fwd, l.rotation.x); bck = Math.max(bck, l.rotation.x); }
         const f = Math.max(P.front, P.back);
-        P.g.rotation.x = P.front * fwd + P.back * bck + (1 - f) * 0.35 * (fwd + bck);
+        P.g.rotation.x = Math.max(-1, Math.min(1, P.front * fwd + P.back * bck + (1 - f) * 0.35 * (fwd + bck)));   // (an apron rides the thigh ahead of it, up to a point)
         P.g.rotation.z = P.side < 0 ? (1 - f) * Math.min(0, rig.legR.rotation.z) : P.side > 0 ? (1 - f) * Math.max(0, rig.legL.rotation.z) : 0;
       }
     };
