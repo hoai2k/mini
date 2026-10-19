@@ -6,7 +6,7 @@
 import { TEXT, setRich } from './text.js';
 import { detectPitch, describe, nearestString, noteName, midiToHz, TUNINGS, TRANSPOSE, A4_MIN, A4_MAX, PitchSmoother } from './tuning.js';
 import { playSamples } from './player.js';
-import { ScaleListener, judge, resultTier, scaleScore, correctedRate, SCALE_TOLERANCE } from './scaletest.js';
+import { ScaleListener, resultTier, scaleScore, correctedRate, judgeNote, scaleRule, LEVEL_IDS, MEASURES } from './scaletest.js';
 
 const WINDOW = 4096; // samples analysed at a time (enough for a low B on a 5-string bass)
 const HOLD_MS = 1500; // the last note stays up this long after the sound stops
@@ -234,14 +234,18 @@ export function setupTuner({ settings, persist, chips }) {
     resultSounds[tier].then((b) => { if (b) playSamples(b.getChannelData(0), b.sampleRate).catch(() => {}); });
   }
 
+  const scaleRuleNow = () => scaleRule(settings.scaleLevel, { tolerance: settings.scaleTolerance, attack: settings.scaleAttack });
   function showScaleResults(notes, listener) {
     const S = TEXT.tuner.scale;
-    const good = notes.filter((n) => judge(n.cents) === 'good').length;
+    const rule = scaleRuleNow();
+    // Each note judged by the difficulty's rule; `cents` is what it is judged by.
+    const judged = notes.map((n) => ({ ...n, ...judgeNote(n, rule), measured: n.cents }));
+    const good = judged.filter((n) => n.verdict === 'good').length;
     resultChime(resultTier(good, notes.length));
     sheet.dataset.tier = resultTier(good, notes.length);
     $('scale-summary').textContent = notes.length ? S.summary(good, notes.length) : S.none;
-    $('scale-notes').replaceChildren(...notes.map((n) => {
-      const v = judge(n.cents);
+    $('scale-notes').replaceChildren(...judged.map((n) => {
+      const v = n.verdict;
       const c = Math.round(Math.abs(n.cents));
       const { name, octave } = noteName(n.midi, { flats: settings.flats, transpose: settings.transpose });
       const li = document.createElement('li');
@@ -250,7 +254,12 @@ export function setupTuner({ settings, persist, chips }) {
       li.querySelector('.sn-name').textContent = name;
       li.querySelector('.sn-oct').textContent = octave;
       li.querySelector('.sn-mark').textContent = v === 'good' ? '✓' : v === 'flat' ? '↓' : '↑';
-      li.querySelector('.sn-verdict').textContent = v === 'good' ? S.good : v === 'flat' ? S.flat(c) : S.sharp(c);
+      // Which part was right: a note in tune by only part of it says which;
+      // one out of tune whose start or end was right says so too.
+      const others = n.parts.filter((p) => p !== n.by);
+      li.querySelector('.sn-verdict').textContent = v === 'good'
+        ? (n.parts.length === MEASURES.length ? S.good : S.goodBy(S.measures[n.by]))
+        : [v === 'flat' ? S.flat(c) : S.sharp(c), ...(others.length ? [S.partly(S.measures[others[0]])] : [])].join(' · ');
       // Out of tune: hear the note as it was played, and the same sound
       // pitch-shifted onto the note it was meant to be (played at a sample
       // rate that much higher or lower, so a little shorter or longer too).
@@ -258,7 +267,7 @@ export function setupTuner({ settings, persist, chips }) {
         const clip = listener.clip(n);
         const play = document.createElement('span');
         play.className = 'sn-play';
-        for (const [kind, rate] of [['asPlayed', listener.sampleRate], ['corrected', correctedRate(listener.sampleRate, n.cents)]]) {
+        for (const [kind, rate] of [['asPlayed', listener.sampleRate], ['corrected', correctedRate(listener.sampleRate, n.measured)]]) {
           const b = document.createElement('button');
           b.type = 'button';
           b.className = 'pill sn-play-btn';
@@ -274,9 +283,10 @@ export function setupTuner({ settings, persist, chips }) {
       }
       return li;
     }));
-    $('scale-help').textContent = S.help(SCALE_TOLERANCE);
-    // The score, counted up as the sheet shows it.
-    const sc = scaleScore(notes);
+    const by = new Intl.ListFormat('en', { type: 'disjunction' }).format(rule.use.map((k) => S.measures[k]));
+    $('scale-help').textContent = S.help(TEXT.tuner.settings.scaleLevels[settings.scaleLevel], rule.tolerance, by);
+    // The score, counted up as the sheet shows it, on what each note was judged by.
+    const sc = scaleScore(judged, rule.tolerance);
     $('scale-score').hidden = !notes.length;
     $('scale-score-parts').textContent = S.parts(sc.inTune, sc.close, sc.clear);
     const num = $('scale-score-num');
@@ -404,6 +414,25 @@ export function setupTuner({ settings, persist, chips }) {
   for (const t of TRANSPOSE) transpose.append(new Option(t.label, t.id));
   transpose.value = settings.transpose;
   transpose.addEventListener('change', () => { settings.transpose = transpose.value; persist(); render(); });
+
+  // Test My Scale Intonation's difficulty, and Custom's own threshold and measure.
+  const T = TEXT.tuner.settings;
+  const level = $('scale-level');
+  const tol = $('scale-tol');
+  const attack = $('scale-attack');
+  level.replaceChildren(...LEVEL_IDS.map((id) => new Option(T.scaleLevels[id], id)));
+  attack.replaceChildren(...['mid', 'start', 'end'].map((id) => new Option(T.scaleAttacks[id], id)));
+  function showLevel() {
+    level.value = settings.scaleLevel;
+    tol.value = settings.scaleTolerance;
+    attack.value = settings.scaleAttack;
+    $('scale-tol-label').textContent = T.scaleTolerance(settings.scaleTolerance);
+    $('scale-custom').hidden = settings.scaleLevel !== 'custom';
+  }
+  level.addEventListener('change', () => { settings.scaleLevel = level.value; persist(); showLevel(); });
+  tol.addEventListener('input', () => { settings.scaleTolerance = Number(tol.value); persist(); showLevel(); });
+  attack.addEventListener('change', () => { settings.scaleAttack = attack.value; persist(); });
+  showLevel();
 
   function render() {
     stringButtons();

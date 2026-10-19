@@ -267,3 +267,11 @@ test('the pendulum weight spans the chosen genre, slowest named tempo to fastest
   }
   assert.equal(weightAt(300, genreRange('ballroom')), 1); // past the end: stays there
 });
+
+test('Test My Scale difficulty: Hard by default; Custom keeps its own threshold and measure', () => {
+  const d = sanitize(null);
+  assert.deepEqual([d.scaleLevel, d.scaleTolerance, d.scaleAttack], ['hard', 15, 'mid']);
+  const c = sanitize({ scaleLevel: 'custom', scaleTolerance: 99, scaleAttack: 'end' });
+  assert.deepEqual([c.scaleLevel, c.scaleTolerance, c.scaleAttack], ['custom', 50, 'end']);
+  assert.deepEqual([sanitize({ scaleLevel: 'expert' }).scaleLevel, sanitize({ scaleAttack: 'peak' }).scaleAttack], ['hard', 'mid']);
+});
