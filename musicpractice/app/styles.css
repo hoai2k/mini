@@ -1828,27 +1828,23 @@ div.ac-status.bad { border-color: var(--red); justify-items: start; }
   .choices.five > .choice:nth-child(5) { grid-column: auto; width: auto; }
 }
 
-/* Home and the routine as two pages (pager.js): at the edge, the way to
-   the other page, a double chevron pointing in (no tab behind it). Tap it,
-   or swipe; it nudges inward now and then so the page beside is noticed. */
-.page-tab {
-  display: none; position: fixed; top: 50%; translate: 0 -50%; z-index: 4;
-  width: 30px; height: 84px; place-items: center; padding: 0;
-  background: none; border: 0; box-shadow: none; color: var(--ink-2);
-  filter: drop-shadow(0 1px 2px var(--shadow));
-  animation: page-nudge 3.2s ease-in-out 1.2s infinite;
+/* Home and the routine as two pages (pager.js): when the routine's full
+   button doesn't fit, a smaller one under the others (its icon and name)
+   slides the routine in; a swipe does too, and the routine's back arrow
+   slides home. main.js sizes its icon to the room left (--routine-art). */
+/* A .choice (so each theme draws it as its own buttons), laid out in a row. */
+.choice.routine-link {
+  flex-direction: row; flex: none; align-self: center; gap: 10px;
+  padding: 6px 22px 6px 10px;
 }
-html.paged .page-tab { display: grid; }
-/* Room for the chevrons at the edges, so they don't lie over the buttons. */
-html.paged #home, html.paged #routine { padding-inline: calc(var(--gutter) + 16px); }
-.page-tab:hover { color: var(--ink); }
-.page-tab svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
-/* A wider grip than it looks, for a thumb at the edge. */
-.page-tab::before { content: ''; position: absolute; inset: -12px -8px; }
-.page-tab-right { right: 0; --nudge: -5px; padding-right: env(safe-area-inset-right); }
-.page-tab-left { left: 0; --nudge: 5px; padding-left: env(safe-area-inset-left); }
-@keyframes page-nudge { 0%, 72%, 100% { transform: none; } 82% { transform: translateX(var(--nudge)); } 90% { transform: none; } }
-@media (prefers-reduced-motion: reduce) { .page-tab { animation: none; } }
+.choice.routine-link[hidden] { display: none; }
+/* Closer under the grid than the home screen's own spacing: it belongs to it. */
+#home .choice.routine-link { margin-top: calc(14px - clamp(24px, 6vh, 56px)); }
+/* When even its smallest icon doesn't fit, the home screen's spacing tightens too. */
+#home.tight { gap: 12px; }
+#home.tight .choice.routine-link { margin-top: 0; }
+.choice.routine-link .art { width: var(--routine-art, 56px); flex: none; }
+.choice.routine-link .label { font-size: clamp(0.95rem, 3.4vw, 1.15rem); }
 html.paged #home, html.paged #routine { touch-action: pan-y; }
 /* The page sliding in, laid over the window beside the one going. */
 /* (#home sets position: relative by its id, so the ids are named here too, or

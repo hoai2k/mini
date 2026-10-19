@@ -2011,8 +2011,8 @@ if (TIMER_ON) {
       route();
     },
   });
-  $('page-next').addEventListener('click', () => pager.slide('home'));
-  $('page-prev').addEventListener('click', () => pager.slide('routine'));
+  // The smaller Practice Routine button under the others slides the routine in.
+  $('go-routine-page').addEventListener('click', (e) => { if (pager.slide('home')) e.preventDefault(); });
   // Back to the start slides when the timer is the second page.
   $('timer-back').addEventListener('click', (e) => { if (pager.slide('routine')) e.preventDefault(); });
   let homeQueued = 0;
@@ -2022,18 +2022,35 @@ if (TIMER_ON) {
 
 /**
  * Where the Practice Routine goes on the home screen: a fifth button among the
- * others when all five fit without scrolling, or else a second page to swipe
- * (or, with a mouse, click the arrow) across to.
+ * others when all five fit without scrolling, or else a second page, reached
+ * by a smaller button under the others (its icon as large as the room left
+ * allows, ROUTINE_ART) that slides it in, or by a swipe.
  */
+const ROUTINE_ART = [72, 64, 56, 48, 40, 32];
 function layoutHome() {
   if (!TIMER_ON || !pager || screen !== 'home') return;
   const box = $('choices');
+  const link = $('go-routine-page');
+  // Home is centred top to bottom, so too much spills off the top as well
+  // as the bottom, and the top doesn't scroll: measure both ends.
+  const home = $('home');
+  const overflows = () => {
+    if (document.documentElement.scrollHeight > innerHeight + 1) return true;
+    const pad = parseFloat(getComputedStyle(home).paddingTop) || 0;
+    return $('home-title').getBoundingClientRect().top < home.getBoundingClientRect().top + pad - 1;
+  };
+  link.hidden = true;
+  home.classList.remove('tight');
   timerTile.hidden = false;
   box.classList.add('five');
-  const fits = document.documentElement.scrollHeight <= innerHeight + 1;
+  const fits = !overflows();
   timerTile.hidden = !fits;
   box.classList.toggle('five', fits);
-  pager.set(!fits); // html.paged shows the tabs
+  pager.set(!fits); // html.paged: home and the routine are two pages
+  if (fits) return;
+  link.hidden = false;
+  const size = () => ROUTINE_ART.some((px) => { link.style.setProperty('--routine-art', `${px}px`); return !overflows(); });
+  if (!size()) { home.classList.add('tight'); size(); } // the spacing tightens before the icon goes below its smallest
 }
 
 // The apps: the native metronome and drone go on while the screen is locked

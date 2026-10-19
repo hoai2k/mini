@@ -63,9 +63,6 @@ export const EN = {
       record: 'Playback',
       timer: 'Practice Routine',
     },
-    /** The arrows and dots of the home screen's second page (the Practice Routine), when it doesn't fit beside the others. */
-    nextPage: 'Practice Routine',
-    prevPage: 'Back to the start',
     /** Under a tool that isn't ready yet. */
     inProgress: 'In progress',
     /** The badge on a Pro tool in the apps. */

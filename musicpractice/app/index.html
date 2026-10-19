@@ -71,8 +71,6 @@
       <button class="icon-btn home-gear" id="app-settings-btn" data-text-aria-label="home.settings"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
       <h1 id="home-title" class="brand" data-text-rich="home.title"></h1>
       <button class="pill home-done" id="home-done" type="button" data-text="common.done" hidden></button>
-      <!-- The Practice Routine as a second page, when it doesn't fit beside the others (?routine; main.js). -->
-      <button class="page-tab page-tab-right" id="page-next" type="button" data-text-aria-label="home.nextPage"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l-7 7 7 7M19 5l-7 7 7 7"/></svg></button>
       <div class="choices" id="choices">
         <a class="choice" href="#metronome" id="go-metronome" data-tool="metronome" draggable="false">
           <span class="art" data-asset="home-metronome"></span>
@@ -92,6 +90,10 @@
           <span class="label" data-text="home.tools.record"></span>
         </a>
       </div>
+      <!-- The Practice Routine as a second page, when its full button doesn't fit
+           beside the others (?routine; main.js): a smaller button under them,
+           sized to the room left, that slides the routine in. -->
+      <a class="choice routine-link" href="#routine" id="go-routine-page" draggable="false" hidden><span class="art" data-asset="home-routine"></span><span class="label" data-text="home.tools.timer"></span></a>
       <script>
         // Put the buttons in the saved order before the page draws (src/homeorder.js does the rest).
         try {
@@ -519,8 +521,6 @@
         <h2 id="timer-title" data-text="timer.title"></h2>
         <button class="icon-btn" id="timer-settings-btn" type="button" data-text-aria-label="timer.settingsButton"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
       </header>
-      <!-- Back to the start, when the routine is the second page (a tab at the left edge). -->
-      <button class="page-tab page-tab-left" id="page-prev" type="button" data-text-aria-label="home.prevPage"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l7 7-7 7M12 5l7 7-7 7"/></svg></button>
       <div class="timer-body">
         <!-- What is running now (or, before Start, the whole routine's length). -->
         <div class="timer-now" id="timer-now">
