@@ -6,6 +6,7 @@
 import { TEXT, setRich } from './text.js';
 import { detectPitch, describe, nearestString, noteName, midiToHz, TUNINGS, TRANSPOSE, A4_MIN, A4_MAX, PitchSmoother } from './tuning.js';
 import { playSamples } from './player.js';
+import { ScaleListener, resultTier, scaleScore, correctedRate, judgeNote, scaleRule, LEVEL_IDS, MEASURES } from './scaletest.js';
 
 const WINDOW = 4096; // samples analysed at a time (enough for a low B on a 5-string bass)
 const HOLD_MS = 1500; // the last note stays up this long after the sound stops
@@ -115,14 +116,16 @@ export function setupTuner({ settings, persist, chips }) {
     tone = null;
   }
 
-  async function toggleTone(midi, key, button) {
+  const toggleTone = (midi, key, button) => toggleSound(key, button, referenceTone(midiToHz(midi, settings.a4)), 44100);
+  /** Play `samples` (one sound at a time: a second press of the same button stops it). */
+  async function toggleSound(key, button, samples, sampleRate) {
     if (tone?.key === key) { stopTone(); return; }
     stopTone();
     const mine = { key, button, handle: null };
     tone = mine;
     button.setAttribute('aria-pressed', 'true');
     try {
-      const handle = await playSamples(referenceTone(midiToHz(midi, settings.a4)), 44100);
+      const handle = await playSamples(samples, sampleRate);
       if (tone !== mine) { handle.stop(); return; }
       mine.handle = handle;
       handle.ended.then(() => { if (tone === mine) stopTone(); });
@@ -148,8 +151,173 @@ export function setupTuner({ settings, persist, chips }) {
     show();
   }
 
+  // ---- Fitting the screen: the tuner takes the window's height and no more.
+  // Where it would scroll, the scale test's card loses its subtitle, then
+  // shrinks, then loses the space above its rule and its box (the strip under
+  // the rule is the button), and only then does the gauge give up the rest (never below
+  // 100 px). Measured, since the controls' height varies by theme, font,
+  // instrument and window.
+  function fit() {
+    const scr = $('tuner');
+    if (scr.hidden) return;
+    const card = $('scale-test');
+    const root = document.documentElement;
+    const over = () => root.scrollHeight - innerHeight;
+    card.classList.remove('compact', 'tight', 'bare');
+    body.classList.remove('tight');
+    body.style.removeProperty('--gauge-max');
+    for (const step of ['compact', 'tight', 'bare']) if (over() > 0) card.classList.add(step);
+    // The gauge, a few times over (a smaller gauge can move other things).
+    for (let k = 0; k < 4; k++) {
+      const o = over();
+      if (o <= 0) break;
+      const g = $('gauge').getBoundingClientRect().height;
+      if (g <= 72) break;
+      body.style.setProperty('--gauge-max', `${Math.max(72, Math.floor(g - o - 2))}px`);
+    }
+    if (over() > 0) body.classList.add('tight');
+  }
+  let fitQueued = 0;
+  function queueFit() { cancelAnimationFrame(fitQueued); fitQueued = requestAnimationFrame(fit); }
+  addEventListener('resize', queueFit);
+  visualViewport?.addEventListener('resize', queueFit);
+  document.fonts?.ready.then(queueFit);
+  document.addEventListener('art-applied', queueFit);
+  // A status line, the strings of an instrument or a mic tip coming and going.
+  if (typeof ResizeObserver === 'function') new ResizeObserver(queueFit).observe(body);
+
+  // ---- Test My Scale Intonation. A sheet: how it works and a record button;
+  // pressed, it listens for the scale and follows it; three seconds of quiet
+  // and the results show there.
+  const sheet = $('scale-sheet');
+  const rec = $('scale-rec');
+  let scale = null; // { listener, shownAt } while it listens
+  function scaleStep(step) {
+    sheet.dataset.step = step;
+    const S = TEXT.tuner.scale;
+    const l = scale?.listener;
+    rec.dataset.state = step !== 'listening' ? 'off' : l?.state === 'listening' ? 'recording' : 'waiting';
+    rec.setAttribute('aria-pressed', String(step === 'listening'));
+    $('scale-rec-label').textContent = step === 'listening' ? S.stop : S.record;
+    $('scale-status').textContent = step !== 'listening' ? S.ready
+      : !l || l.state === 'waiting' ? S.waiting : S.listening(l.notes().length);
+  }
+  function startScale() {
+    stopTone(); // a note of the last results, still playing
+    scale = { listener: null, shownAt: 0 };
+    scaleStep('listening');
+  }
+  /** Stop listening (the stop button, closing the sheet, leaving the tuner). */
+  function stopScale() {
+    scale = null;
+    if (sheet.dataset.step === 'listening') scaleStep('ready');
+  }
+  $('scale-open').addEventListener('click', () => {
+    scaleStep('ready');
+    stopTone();
+    reset(); // the tuner pauses while the sheet is up (receive), showing nothing
+    sheet.showModal();
+  });
+  rec.addEventListener('click', () => (scale ? stopScale() : startScale()));
+  $('scale-again').addEventListener('click', startScale);
+  sheet.addEventListener('close', () => { stopTone(); stopScale(); });
+  sheet.addEventListener('click', (e) => { if (e.target === sheet) sheet.close(); });
+
+  // The chime for the results (assets/audio/scale/<tier>.mp3, design/chime-sounds.md),
+  // decoded once and played like the reference tones.
+  const resultSounds = {};
+  function resultChime(tier) {
+    resultSounds[tier] ||= fetch(new URL(`../assets/audio/scale/${tier}.mp3`, import.meta.url))
+      .then((r) => r.arrayBuffer())
+      .then((data) => new OfflineAudioContext(1, 1, 44100).decodeAudioData(data))
+      .catch(() => { delete resultSounds[tier]; return null; });
+    resultSounds[tier].then((b) => { if (b) playSamples(b.getChannelData(0), b.sampleRate).catch(() => {}); });
+  }
+
+  const scaleRuleNow = () => scaleRule(settings.scaleLevel, { tolerance: settings.scaleTolerance, attack: settings.scaleAttack });
+  function showScaleResults(notes, listener) {
+    const S = TEXT.tuner.scale;
+    const rule = scaleRuleNow();
+    // Each note judged by the difficulty's rule; `cents` is what it is judged by.
+    const judged = notes.map((n) => ({ ...n, ...judgeNote(n, rule), measured: n.cents }));
+    const good = judged.filter((n) => n.verdict === 'good').length;
+    resultChime(resultTier(good, notes.length));
+    sheet.dataset.tier = resultTier(good, notes.length);
+    $('scale-summary').textContent = notes.length ? S.summary(good, notes.length) : S.none;
+    $('scale-notes').replaceChildren(...judged.map((n) => {
+      const v = n.verdict;
+      const c = Math.round(Math.abs(n.cents));
+      const { name, octave } = noteName(n.midi, { flats: settings.flats, transpose: settings.transpose });
+      const li = document.createElement('li');
+      li.className = `scale-note ${v}`;
+      li.innerHTML = '<span class="sn-note"><span class="sn-name"></span><span class="sn-oct"></span></span><span class="sn-mark" aria-hidden="true"></span><span class="sn-verdict"></span>';
+      li.querySelector('.sn-name').textContent = name;
+      li.querySelector('.sn-oct').textContent = octave;
+      li.querySelector('.sn-mark').textContent = v === 'good' ? '✓' : v === 'flat' ? '↓' : '↑';
+      // Which part was right: a note in tune by only part of it says which;
+      // one out of tune whose start or end was right says so too.
+      const others = n.parts.filter((p) => p !== n.by);
+      li.querySelector('.sn-verdict').textContent = v === 'good'
+        ? (n.parts.length === MEASURES.length ? S.good : S.goodBy(S.measures[n.by]))
+        : [v === 'flat' ? S.flat(c) : S.sharp(c), ...(others.length ? [S.partly(S.measures[others[0]])] : [])].join(' · ');
+      // Out of tune: hear the note as it was played, and the same sound
+      // pitch-shifted onto the note it was meant to be (played at a sample
+      // rate that much higher or lower, so a little shorter or longer too).
+      if (v !== 'good' && listener) {
+        const clip = listener.clip(n);
+        const play = document.createElement('span');
+        play.className = 'sn-play';
+        for (const [kind, rate] of [['asPlayed', listener.sampleRate], ['corrected', correctedRate(listener.sampleRate, n.measured)]]) {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'pill sn-play-btn';
+          b.dataset.kind = kind;
+          b.setAttribute('aria-pressed', 'false');
+          b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><span></span>';
+          b.querySelector('span').textContent = S[kind];
+          b.setAttribute('aria-label', S[`${kind}Label`](`${name}${octave}`));
+          b.addEventListener('click', () => toggleSound(`scale-${n.start}-${kind}`, b, clip, rate));
+          play.append(b);
+        }
+        li.append(play);
+      }
+      return li;
+    }));
+    const by = new Intl.ListFormat('en', { type: 'disjunction' }).format(rule.use.map((k) => S.measures[k]));
+    $('scale-help').textContent = S.help(TEXT.tuner.settings.scaleLevels[settings.scaleLevel], rule.tolerance, by);
+    // The score, counted up as the sheet shows it, on what each note was judged by.
+    const sc = scaleScore(judged, rule.tolerance);
+    $('scale-score').hidden = !notes.length;
+    $('scale-score-parts').textContent = S.parts(sc.inTune, sc.close, sc.clear);
+    const num = $('scale-score-num');
+    const t0 = performance.now();
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const count = (t) => {
+      const k = still ? 1 : Math.min(1, (t - t0) / 1100);
+      num.textContent = String(Math.round(sc.total * (1 - (1 - k) ** 3)));
+      if (k < 1 && sheet.dataset.step === 'results') requestAnimationFrame(count);
+    };
+    requestAnimationFrame(count);
+    scaleStep('results');
+    if (!sheet.open) sheet.showModal();
+  }
+
   /** Mic samples (blocks of any size) while the recorder is in its 'tuning' state. */
   function receive(data, sampleRate) {
+    if (scale) {
+      scale.listener ||= new ScaleListener(sampleRate, { a4: settings.a4 });
+      const event = scale.listener.push(data);
+      if (event === 'done') {
+        const { listener } = scale;
+        scale = null;
+        showScaleResults(listener.result, listener);
+      } else if (event || performance.now() - scale.shownAt > 400) {
+        scale.shownAt = performance.now();
+        scaleStep('listening');
+      }
+    }
+    // The tuner rests behind the scale test's sheet (it would only distract).
+    if (sheet.open) return;
     if (data.length >= WINDOW) {
       buf.set(data.subarray(data.length - WINDOW));
     } else {
@@ -247,6 +415,25 @@ export function setupTuner({ settings, persist, chips }) {
   transpose.value = settings.transpose;
   transpose.addEventListener('change', () => { settings.transpose = transpose.value; persist(); render(); });
 
+  // Test My Scale Intonation's difficulty, and Custom's own threshold and measure.
+  const T = TEXT.tuner.settings;
+  const level = $('scale-level');
+  const tol = $('scale-tol');
+  const attack = $('scale-attack');
+  level.replaceChildren(...LEVEL_IDS.map((id) => new Option(T.scaleLevels[id], id)));
+  attack.replaceChildren(...['mid', 'start', 'end'].map((id) => new Option(T.scaleAttacks[id], id)));
+  function showLevel() {
+    level.value = settings.scaleLevel;
+    tol.value = settings.scaleTolerance;
+    attack.value = settings.scaleAttack;
+    $('scale-tol-label').textContent = T.scaleTolerance(settings.scaleTolerance);
+    $('scale-custom').hidden = settings.scaleLevel !== 'custom';
+  }
+  level.addEventListener('change', () => { settings.scaleLevel = level.value; persist(); showLevel(); });
+  tol.addEventListener('input', () => { settings.scaleTolerance = Number(tol.value); persist(); showLevel(); });
+  attack.addEventListener('change', () => { settings.scaleAttack = attack.value; persist(); });
+  showLevel();
+
   function render() {
     stringButtons();
     refLabel();
@@ -263,6 +450,9 @@ export function setupTuner({ settings, persist, chips }) {
       render();
     },
     receive,
+    /** Leaving the tuner ends a scale test that is listening. */
+    stopScale,
+    fit: queueFit,
     animate,
     /** Leaving the screen or the mic closing: stop any tone and clear the reading. */
     stop() { stopTone(); reset(); },

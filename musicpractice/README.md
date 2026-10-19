@@ -4,30 +4,33 @@ A metronome, a tuner, a drone and a practice recorder. Open it at
 https://hoai2k.github.io/mini/musicpractice/.
 
 Made for phones (portrait or landscape) and desktops. The home screen has
-four buttons, **Metronome**, **Tuner**, **Drone** and **Playback**
-(two rows of two on phones and tablets either way up, one row of four once
-the window is clearly wider than tall, 3:2 or more, as a desktop browser or
-a phone on its side; never three and one, and the art follows the window's
-height so the four fit without scrolling), and a settings gear. A
-tool added later goes in after the one it follows by default, even in an
-order someone saved before it existed.
+five buttons, **Metronome**, **Tuner**, **Drone**, **Playback** and
+**Routine** (the Practice Routine; `home.tools.timer`), and a settings gear. Wherever the window is wider than
+tall (a desktop, a tablet or a phone on its side) they are one row of five.
+Upright, the four tools are two rows of two, and the Practice Routine is a
+fifth button under them when it fits, or else a second page (below,
+Practice Routine). The buttons are always in this order; they could once be
+held and dragged into another, which was removed to keep the layout simple,
+and an order saved then is dropped.
 
-The buttons can be put in any order, like apps on an iPhone home screen
-(`app/src/homeorder.js`): hold one for about half a second and they all
-jiggle; the held one lifts and follows the finger (or mouse) while the others
-slide out of its way, and letting go drops it there. While they jiggle, any
-button can be dragged at once and tapping one doesn't open it; tapping the
-background, **Done** or Escape stops, and so do 5 seconds untouched. Arrow
-keys move the focused button while jiggling.
-
-Two iPhone details shape the code. Safari sends no click for a tap on plain
-background, so the background is watched for the touch itself. And Safari
-stops sending touch events to an element that is moved in the page while it
-is being dragged (after which nothing could be moved), so during a drag the
-buttons only slide by transforms and the page is reordered on drop. Moves
-and releases are watched on the whole page, and a drag whose end never
-arrived is dropped when the next touch starts. The order is saved with the settings and applied before the
-page draws, so there's no flash of the default order.
+**Nothing on the Metronome, Tuner or Drone screens, or the home screen,
+scrolls, down to a small phone either way up** (measured at 568×320 and
+320×568 in every theme, and up to desktops). Each fits its picture to the
+room the controls leave, and where that is not enough it steps down to a
+compact form: the home screen tightens its spacing and labels and then its
+art (`layoutHome`, `#home.compact`, `--art-max`); the metronome and the
+drone take smaller controls (`#metronome.tight`, `#drone.tight`, also the
+Bluetooth sync bar); the tuner's existing steps (the scale-test card, then
+the gauge, down to 72 pixels) end in tighter text and buttons
+(`.tuner-body.tight`). On a phone on its side the metronome's dots, Pulse
+and Visualizer are as wide as the picture is tall rather than the window,
+so the picture and the controls fit side by side, and many small dots (12/8)
+are scaled down to that width. The Practice Routine and Playback lists can
+be any length, and scroll. **A sheet or dialog never scrolls the page
+behind it**: while one is open the page is held (`html:has(dialog[open])`),
+and on a phone a drag on a sheet passes to the page only where nothing under
+the finger can scroll that way (a touch handler in `main.js`), so a long
+sheet scrolls itself and a short one stays put.
 
 ## Themes
 
@@ -60,7 +63,7 @@ don't offer it. It switches the whole app's look:
 - **Steam Punk**: dark leather with brass and copper, Cinzel and Special
   Elite, riveted plates and a gear.
 
-**Dark Mode**, under the theme tiles, is **Default**, the default (each theme
+**Dark Mode**, a dropdown under the theme tiles, is **Default**, the default (each theme
 as designed: Classic, Art Deco, Robot Future and Steam Punk dark, the other
 four light), **Light**, **Dark** or **System** (follows the device, and
 switches while the app is open when the device does, at dusk for one). A
@@ -117,6 +120,31 @@ when the Art Deco art arrives, measure and record its own.
 
 ## Metronome
 
+- **The pendulum's weight shows the tempo and sets it**, as on a real
+  metronome: it slides up the rod for slower and down for faster
+  (`weightAt` in `app/src/metronome.js`), and dragging it with a finger or
+  the mouse sets the tempo (`bpmAtWeight`). Its range is the chosen
+  genre's (the tempo picker's), from the slowest tempo it names to the
+  fastest (`genreRange` in `app/src/tempos.js`): Classical 40 to 240, Jazz
+  50 to 320, Ballroom 84 to 208, Electronic 70 to 180, Marching 50 to 180.
+  Changing the genre moves the weight to the tempo's place in the new range.
+  The scale is logarithmic, squeezed further at the fast end, so the slower,
+  everyday tempos get more of the rod; tempos past either end leave it at
+  that end (they can still be typed).
+  While it is dragged the pendulum eases upright and the clicks go on at the
+  new tempo; a tap on it without a drag is a tap on the metronome. It
+  slides to its place when the tempo changes any other way. The pendulum is
+  drawn in two parts for this, its rod (`metronome-rod`, with the weight's
+  `travel` along it) and its weight (`metronome-weight`, with its `center`
+  on the rod; `placeWeight` in `app/src/art.js`). Round 10 delivers both
+  parts for every theme, with measured hubs, weight attachment points and
+  safe travel ranges. The earlier interim cuts (`*.cut.webp`, made by
+  `design/source/cut_pendulum.py`) remain as source history; the app uses
+  the new delivered layers. In Art Deco and Baroque the rod's tip reaches up
+  into the case's crown, where the weight at the slow end sat on the crown's
+  ornament and read as part of the case, so the slowest place is held lower
+  there (`FACE_TRAVEL_TOP` in `build_requests.py`) and the weight stays
+  inside the face.
 - A metronome with a swinging pendulum: it reaches one end of its swing on
   each click and the other end on the next, synced to what you hear
   (`pendulumAngle` in `app/src/metronome.js`, corrected for output latency).
@@ -187,8 +215,14 @@ when the Art Deco art arrives, measure and record its own.
   grab it and drag up or down and the volume follows at once, the slider
   showing while it does and folding away a moment after; tap it and the
   slider opens until a tap elsewhere (which does nothing else) or Escape.
-  Arrow keys work on the slider. Full until it is first moved
-  (`volume`, `volumeChosen`); the apps' mixer takes it too.
+  Arrow keys work on the slider. It starts at 0.75 (`volume`,
+  `volumeChosen`), which is as loud as full volume used to be: the clicks
+  are now driven harder into the soft clipper (`DRIVE` 6, was 2.4), so their
+  body is about 2.5 dB louder at the same peak, and full volume reaches
+  that. (Driving harder still is hardly louder, only harsher: a click is
+  short and already peaks at −0.9 dBFS.) The apps' mixer takes it too, and
+  the same louder clicks. Volumes saved before are carried over at the same
+  loudness (`louder` in the settings).
 - The clicks are loud: each is driven into a soft clipper (tanh) after
   the voice and before the volume, so the whole click sits near full scale
   rather than only its first instant, and ordinary beats sit just under the
@@ -398,6 +432,93 @@ note changes. Tests check sine tones from 31 Hz to 1.3 kHz to within a cent,
 and instrument-like tones (strong overtones, a weak fundamental, odd
 harmonics only) to within 1.5 cents and in the right octave.
 
+### Test My Scale Intonation
+
+A **Test My Scale Intonation** card under the tuner (it was behind `?scale`
+while in testing; that parameter is gone), a feature of its own set apart from Play a note by a
+rule and space (an icon, a line saying what it does, an arrow). It opens a
+sheet that explains it in three steps (press record, play a scale, stop
+for 3 seconds) under a record button (the Playback Recorder's, so each
+theme draws it its own way). Pressed, it listens for the scale to begin
+(the Recorder's own start detection, a steady note): it pulses while
+waiting and glows red once the scale has begun, with the count of notes as
+they come, and pressing it again stops. Three seconds of quiet is the end,
+and the same sheet then lists every note played, each with a tick for in
+tune or how many cents flat or sharp, and how many were in tune, with
+**Test again** and **Done**. Closing the sheet stops it. While the sheet
+is up the tuner rests behind it (no note, the needle at rest, a reference
+tone stopped), and it picks up again when the sheet closes. It is more lenient
+than the tuner: from 10 to 35 cents counts as in tune, by the difficulty
+(below), where the needle wants 5. A note is a run of clear frames on one semitone, at
+least 0.12 s long, with a stray frame or two let through. Each note is
+measured three ways: its **start**, where it first settled after the attack
+(the median of the first 0.1 s that kept within 15 cents, the attack's first
+tenth left out: where the finger landed); its **average**, the median of its
+settled middle; and its **end**, where it last settled before the release
+(after any correction). **Test Scale Difficulty** (Tuner settings) says how
+many cents count as in tune and which of the three may show it (`LEVELS`,
+`judgeNote` in `scaletest.js`):
+
+| Difficulty | Within | Judged by |
+| --- | --- | --- |
+| Beginner | 35¢ | start, average or end |
+| Easy | 25¢ | start, average or end |
+| Medium | 20¢ | average or end (a note corrected before it ends counts) |
+| Hard (the default; how it always judged) | 15¢ | average |
+| Advanced | 10¢ | start (it has to land in tune) |
+| Custom | Threshold, 3 to 50¢ (15) | Attack: Average, Start or End |
+
+The results say which part of a note was right: "In tune" when all three
+were, "In tune by the end" (or at the start, on average) when only part
+was, and "19¢ sharp · in tune at the start" for a note out of tune by the
+rule whose start or end was in tune. The score's closeness and the in-tune
+share use what each note was judged by; Corrected playback shifts by the
+average. Names follow the tuner's note names and
+transposition, and its reference pitch. `app/src/scaletest.js` (pure,
+`test/scaletest.test.mjs` plays it synthesized scales); the screen is in
+`tunerui.js`. Leaving the tuner ends a test still listening.
+**Each note out of tune can be heard two ways**: **As played** plays that
+note's own sound, cut from the recording (the listener keeps the audio from
+about a second before the scale begins to its end; `clip`, `sliceAudio`,
+faded in and out over 15 ms), and **Corrected** plays the same sound shifted
+onto the note it was meant to be, by playing it at a sample rate that many
+cents higher or lower (`correctedRate`), so it is also a few percent shorter
+or longer. A second press stops either; closing the sheet or testing again
+stops it too. The test checks that a clip measures as played and, at its
+corrected rate, in tune.
+**It takes only the room there is.** The tuner fills the window's height
+and no more (`fit` in `tunerui.js`, measured on entering, resizing, a change
+of theme or font, and whenever the tuner's own content changes height, such
+as a microphone message coming and going). Where the page would scroll, the
+card steps down:
+1. without its subtitle, and with less space above its rule;
+2. smaller;
+3. with no space above the rule and no box, the whole strip under the rule
+   being the button;
+4. only then the gauge gives up the rest, down to 72 px;
+5. and last, tighter text and buttons (`.tuner-body.tight`), for a long
+   microphone message on a small phone.
+With the microphone working, every phone size and window tried fits: a
+375x667 phone drops only the subtitle, a 1280x600 window goes to step 3.
+Microphone messages (the tuner's status and Try again) sit above the card.
+
+At the top of the results is a **score**, counted up, with its parts under
+it; its scale (out of 1000) isn't shown (`scaleScore`):
+- **In tune, up to 600:** the share of notes in tune.
+- **Closeness, up to 250:** how close every note was, so a near miss earns
+  more than a wild one and a note in the centre more than one only just in
+  tune (in full at 0 cents, nothing from 50 off).
+- **Clear tone, up to 150:** how clear and steady each note's tone was, the
+  pitch clarity the detector measures over its settled middle (nothing at
+  0.7, where a frame stops counting as a note, in full from 0.95).
+The results come up with a chime by how it went (`resultTier`):
+- **Triumphant:** 80% or more in tune.
+- **Positive:** half or more.
+- **Neutral, "results are in":** below half, or nothing heard.
+The chimes are `app/assets/audio/scale/{great,good,neutral}.mp3`, chosen
+from the takes in `design/chime-sounds.md`. They play through the same
+player as the reference tones.
+
 ## Drone
 
 A sustained tone to play along with: tuning intervals against it, long
@@ -436,6 +557,28 @@ tones, scales over a tonic.
   match). To its right, an upright **volume**
   slider: drag the knob or the track up or down, or use the arrow keys (it
   is the same volume as the one in the settings).
+- **How loud it can go:** the volume is a curve to a gain
+  (`droneGain` in `drone.js`, 2.8 v², so equal moves of the bow sound like
+  equal steps). Full volume is about 10 dB louder than it used to be, as
+  loud as the drone gets without clipping: measured at −9 dBFS RMS with
+  peaks at −0.5 dBFS or under, where full used to be −19 dBFS RMS. A new drone starts
+  at 0.53 (`DRONE_DEFAULT`), the loudness of the old default, and a volume
+  saved before is carried over at the same loudness. The apps' mixers are
+  sent the gain.
+- **Nothing clips, whatever plays together**: everything the app plays on
+  an audio context (drone, metronome, the routine's chimes and voice) goes
+  out through one shared limiter (`output.js`): a compressor 2 dB under
+  full scale, then a soft clipper that is exactly linear below 0.8 and
+  rounds off smoothly to 0.95, because the browser's compressor lets the
+  sharpest transients past it by half a decibel. Measured at full volume
+  over every voice (cello, soft cello, organ, synth organ) at five notes
+  across the range, each with and without the fifth, a note change
+  mid-drone, all three click sounds in 4/4, 4/4 in sixteenths and 6/8, and
+  the synth organ with its fifth under each click sound: the loudest peak
+  is −0.1 dBFS (the loudest of all is the drone and the metronome
+  together), and loudness is unchanged. The apps' mixers end in a
+  brick-wall limiter at −1 dBFS (`Limiter` in `PracticeMixer`, instant
+  attack, 150 ms release) after their drone compressor.
 - **The volume is the cello's bow**: the Drone screen draws the cello
   without its bow (`drone-cello`) and the bow (`drone-bow`) stands beside
   it. A band of colour behind the bow, from the hair to the middle of the
@@ -499,27 +642,47 @@ their loops and settings are in `design/sounds/drone/archive/` (with a
 The home icons (a cello and bow per theme) are Round 6 of the image
 requests; their prompts are in `design/image-deliveries-drone.json`.
 
-## Practice Routine (in development)
+## Practice Routine
 
-Shown only with `?routine` in the address (`?timer`, its first name, works
-too); without it nothing of it is set up and the app is exactly as before.
 Inside the code it is the timer: `app/src/timer.js` (the routine, its saved
 state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
 `app/src/timerui.js` (the screen), `app/src/pager.js` (the second page).
 
-- **A routine is a list of practice items**, each a card: a name (typed in
-  place), its minutes (− / + or typed, 1 to 120), and **Metronome** and
-  **Drone** toggles. With either on, the card's chevron opens that item's own
+- **A routine is a list of practice items** (on screen each is itself
+  called a routine: "2 routines in all", "Add a Routine", "Last routine"),
+  each a card: a name (typed in
+  place), its minutes (− / + or typed, 1 to 120), and its **tools**. With
+  none, the card shows **+ Tools**; it opens a small sheet (Tools for <its
+  name>) with Metronome and Drone switches, each turning that tool on or
+  off for this routine at once (the Drone asks for Pro in the apps, as
+  before). The tools it has show on the card, lit, followed by a small
+  **+** that opens the sheet again; a tap on a lit tool shows or hides its
+  settings, like the chevron. They keep together: at the far end beside
+  the minutes on a wide card, on a line of their own under them on a
+  narrow one (a container query on the card's width). With either on, the card's chevron opens that item's own
   settings: the metronome's tempo (− / +, typed, or the slider) and time
   signature; the drone's note (− / + or the list), instrument and fifth.
   These are the item's alone: the Metronome's and the Drone's own settings
   never change (the click's sound, accent and volume follow the Metronome's,
   the reference pitch the Drone's). A new item takes the app's current tempo,
   note and instrument as a start. So Scales can climb in tempo item by item.
-- A first visit starts with **Intonation practice** (3 min, drone on) and
-  **Scales** (5 min, metronome on). **+ Add** offers those, **Clapping
-  rhythms** and **Ghosting** (3 min each, nothing on), and **Custom…** (a
-  blank item, its name ready to type). The bin deletes an item at once, with
+- A first visit starts with **Intonation** (3 min, drone on) and **Scales**
+  (5 min, metronome on). **+ Add** opens **Add a Routine**: Intonation,
+  Scales, **Arpeggios**, **Metronome**, **Sight Reading**,
+  **Improvisation**, **Clapping Rhythms**, **Ghosting** and **Custom…** (a
+  blank item, its name ready to type), each by its name and a small icon:
+  the picture the item shows while it runs (`pictureFor`), which is also on
+  each item's card before its number and name ("1. Intonation", the number
+  plain text rather than a circle that looked like a button), so a glance
+  tells them apart (a Custom
+  item's follows its drone or metronome). Items saved under a suggestion's
+  earlier name ("Intonation practice") still know which it was. An item added this way
+  starts with its Metronome and Drone off (the first visit's two are the
+  only ones that come with theirs on; `newItem`'s `tools`), except a
+  Metronome item, whose metronome is what it is (`own`), and at the
+  minutes last given to its kind (`lastMinutes`, kept with the routine), or
+  its default the first time (3 min for Intonation, Clapping rhythms and
+  Ghosting, 5 for the rest), adjusted on its card. The bin deletes an item at once, with
   **Undo** for a few seconds after. Kept in `musicpractice.routine.v1`.
 - **Start** runs through the items. The card running is lit, with its
   progress along its foot, and the panel at the top shows its name, the time
@@ -528,24 +691,70 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   the run. Timed by the clock, so a phone that slept catches up when it wakes.
   While it runs, only items still to come can be deleted; edits to the item
   running take effect at once (its tempo, its note, more minutes).
-- **Between items, a chime** (settings: Kalimba, the default, Two-tone,
-  Celesta or None; each plays as it is picked): it rings as an item ends and
+- **A voice says what has finished and what is next**, between the chime
+  and the next item's sound, so the clicks or the drone never start over
+  the words. For example: "Scales are complete. Next, ghosting.", "Let's begin
+  with intonation practice." at Start, and "…That's the end of your
+  practice routine. Well done." at the end. Settings: **Use Voice** on (the
+  default) or off (turned on, it says nothing until it has something to
+  say), **Voice Personality** (a dropdown: Lily, Matilda, George, Clara,
+  Autumn or Theo, each saying hello as it is picked) and **Voice volume** (a
+  curve to a gain, `voiceGain`, up to 1.6; it starts at the 0.9 the voice
+  always had, and says hello at the new level when let go). Every kind of item has
+  its own lines (done-, next- and first-<kind>), and a Custom item the
+  generic ones ("That practice item is complete.", "On to your next
+  practice item."), so lengths and typed names are never spoken. They are
+  `app/assets/audio/voice/<voice>/<line>.mp3`, 29 per voice, made with
+  ElevenLabs by `design/source/voice_lines.py`, which keeps each voice's id,
+  model and settings and every line's text, per language, so the set can be
+  made again or in another language in the same voices
+  (`design/voice-samples.md`). **A new suggestion needs its lines in every
+  voice** (add them there and run it); `test/timer.test.mjs`
+  checks they are all there. Everything a routine may say is loaded when it
+  starts; Pause, Skip and Stop cut a line short.
+- **Between items, a chime** (settings: **Use Chimes** on or off, and
+  **Chime Sound**, a dropdown: Kalimba, the default, Two-tone or Celesta; each
+  plays as it is picked; a "None" chime saved before is now chimes off): it rings as an item ends and
   the next item's metronome or drone starts about a second later, so they
   don't start over it; it also rings at the end. The sounds are
   `app/assets/audio/timer/`, from the second batch in
-  `design/chime-sounds.md`. Spoken announcements are still to be decided:
-  `cues` in `timer.js` is where they will go.
-- **On the home screen** it is a fifth button when all five fit without
-  scrolling (one row of five on a wide window, two across with the fifth
-  centred below on a tall one). When they don't (most phones, once the
-  browser's bars take their share), it is a **second page**: swipe left on
+  `design/chime-sounds.md`. The settings end, as every settings sheet does,
+  with **Audio check…** and **Theme…**.
+- **On the home screen** it is a fifth button: always on a window wider than
+  tall (one row of five, compacted to fit), and upright when all five fit
+  without scrolling (two across with the fifth centred below). When they
+  don't (most phones held upright), it is a **second page**: swipe left on
   the home screen and the routine slides in from the right, the page
   following the finger (a short or slow swipe springs back); swipe right, or
-  Back, to return. A mouse gets an arrow at the right edge; a touch screen a
-  faint chevron there, nudging now and then. Once there is another tool the
-  button version will be used everywhere.
+  Back, to return, the home page sliding back in over the window as the
+  routine slides out. The way across is a **smaller Practice Routine
+  button** under the other four (its hourglass and its name, drawn as that
+  theme's buttons are), which plays the same slide; the routine's back arrow
+  slides back. Its icon is as large as the room left allows (72 down to 32
+  pixels, `ROUTINE_ART` in `main.js`); if even the smallest doesn't fit, the
+  home screen's spacing tightens first (`#home.tight`). Whether things fit
+  is measured at both ends, because the centred home screen spills off the
+  top as well as the bottom. Once there is another tool the button version
+  will be used everywhere.
+- **While an item runs, its picture fills the top of the panel**, large,
+  so a glance says what is being practised; it fades in at each change of
+  item. Each kind of item has its own (`practice-<kind>`: intonation,
+  scales, rhythms, ghosting, image requests round 11; arpeggios,
+  sight-reading, improvisation, round 12; a Metronome item shows the
+  Metronome's own home picture, `picture` on its preset), and there is a default
+  (`practice-default`, a music stand). Until a picture is delivered, or for an
+  item of its own (Custom…), the next one there is: the Drone's (cello, or
+  organ by its voice) for an item with its drone on, else the Metronome's,
+  else the default, else the routine's hourglass (`pictureFor` in
+  `timer.js`). Items remember which suggestion they came from (`kind`;
+  saved ones from before are matched by name). **A new suggestion needs a
+  picture too:** add it to `PRACTICE_SUBJECT` in
+  `design/source/build_requests.py`; `test/timer.test.mjs` fails until every
+  suggestion has one in every theme. The pictures are delivered for every
+  theme. If the page was scrolled down (to an item just added, say) when an
+  item starts, it scrolls back up so the picture is in view.
 - Its home button is an hourglass per theme (image requests round 9,
-  `home-routine`), drawn as a stand-in until delivered. In the apps the drone
+  `home-routine`), delivered for all eight themes. In the apps the drone
   is Pro, as on its own screen. Not done yet: the routine doesn't go on
   with the screen locked in the apps (the native metronome and drone do, but
   the change of item waits for the page).
@@ -612,8 +821,7 @@ file, on purpose: the privacy page, the device details Send feedback attaches
 - `design/mobile-apps.md`: why the apps, what to sell and the store rules.
 
 - `app/index.html`, `app/styles.css`, `app/src/`: the app (static ES
-  modules, no build step). `main.js` the screens, `homeorder.js` hold and
-  drag to reorder the home screen, `metronome.js` the
+  modules, no build step). `main.js` the screens, `metronome.js` the
   scheduler, sounds and pendulum, `recorder.js` the mic and take state
   machine, `capture-worklet.js` the mic tap, `detect.js` the music/noise
   detector and trimming, `waveform.js` the waveform views, `takes.js` saved
@@ -787,7 +995,13 @@ it is back on. The page asks the phone without prompting (`micPermission`,
 of each mini app's settings (two separate global features): it opens
 the theme tiles and Dark Mode in a sheet of their own (the main settings'
 own controls, moved in while it is open), so the theme can be changed from
-anywhere.
+anywhere. The main settings have the theme already, so their line holds
+**Audio check…** and **Reload Page** instead.
+
+Every sheet's title stays at its top as it scrolls and covers the sheet's
+whole width, so nothing scrolls past beside it. A sheet takes the focus
+itself as it opens (`showModal` wrapped in `main.js`), so its close X
+doesn't wear a focus ring on a phone; Tab still moves into it.
 
 **Audio check** (a button in every settings sheet, `app/src/audiocheck.js`)
 says nothing about how takes will play while all is well, and only when
@@ -913,3 +1127,31 @@ theme's sound ribbons; the mist keeps its subtle transparency. PNG masters
 and a preview live in `design/generated/round-8/`; `drone-organ.webp` beside
 each theme's home icon is the 512×512 lossless WebP used by the app.
 `design/image-deliveries-round-8.json` records the references, prompts and exports.
+
+Rounds 9 and 10 deliver the eight Practice Routine hourglasses and sixteen
+split pendulum layers. PNG masters and previews are in `design/generated/round-9/`
+and `design/generated/round-10/`; `design/image-deliveries-rounds-9-10.json`
+records every prompt, export and measured attachment point. Routine icons ship
+as 384×384 lossless WebP. The rods use 200×1000 canvases; each weight keeps the
+original theme's small layer canvas and scale. All eight pairs were checked
+over their metronome bodies at the top, middle and bottom of the weight travel.
+
+Round 11 delivers five Practice Routine activity pictures in all eight themes:
+intonation, scales, clapping rhythms, ghosting and a default music stand.
+Delivered PNG masters and previews live in `design/generated/round-11/`;
+`design/image-deliveries-round-11.json` records the completed pictures,
+prompts and 512×512 lossless WebP exports. Practice Routine pictures and
+hourglasses have no wing-like sound ribbons or mist; those belong only to
+Drone. Notes appear only within a scale, rhythm pattern or the book’s sheet
+music, never as floating decoration. Each clapping icon has exactly two hands;
+the scale pictures show eight ascending notes on a five-line staff. All image
+requests through Round 11 are delivered.
+
+Round 12 adds arpeggios, sight reading and improvisation in all eight themes.
+Delivered PNG masters and previews live in `design/generated/round-12/`;
+`design/image-deliveries-round-12.json` records the completed pictures,
+their prompts and 512×512 lossless WebP exports. Arpeggios use five notes
+in a rising and falling arch; sight reading uses a single music sheet and
+magnifying glass; improvisation uses a bulb enclosing one eighth note.
+These pictures have no wings, ribbons, mist or decorative floating notes.
+All 24 Round 12 pictures are delivered, with their original PNG masters retained.

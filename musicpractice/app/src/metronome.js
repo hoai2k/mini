@@ -3,6 +3,7 @@
 // scheduler, because timers on the page slow down in background tabs.
 
 import { barPlan } from './settings.js';
+import { output } from './output.js';
 
 const LOOKAHEAD = 0.12; // seconds of clicks scheduled in advance
 const TICK_MS = 25;
@@ -25,7 +26,12 @@ export const SUB = 3;
 export const SUBDIVISIONS = [1, 2, 3, 4];
 
 const SUB_LEVEL = 0.2; // the clicks between the beats: well under the clipper's knee, so clearly quieter
-const DRIVE = 2.4; // into the clipper: how hard the clicks are pushed
+// Into the clipper: how hard the clicks are pushed. 6 makes the click's body
+// about 2.5 dB louder than the 2.4 it was at the same peak (more is hardly
+// louder, only harsher), so full volume is louder than it was, and
+// METRONOME_DEFAULT (0.75) is the old full volume's loudness.
+const DRIVE = 6;
+export const METRONOME_DEFAULT = 0.75;
 const KNEE = 1.6; // the tanh curve's steepness
 
 /** tanh, scaled so full drive reaches 0.9: loud, with room for the oversampling's overshoot. */
@@ -47,7 +53,7 @@ export class Metronome {
     // at the same peak. The volume comes after it, so turning down keeps the
     // tone. The apps' clicks are rendered through this same chain.
     this.out = ctx.createGain();
-    this.out.connect(ctx.destination);
+    this.out.connect(output(ctx)); // the shared limiter: with the drone, the chimes and the voice, nothing clips
     this.drive = ctx.createGain();
     this.drive.gain.value = DRIVE;
     const shaper = ctx.createWaveShaper();
@@ -245,6 +251,28 @@ export class Metronome {
  * pendulum does (simple harmonic motion): easing to a stop at each end, where
  * the beat falls, and fastest through the middle.
  */
+/**
+ * Where the pendulum's weight sits for a tempo, as on a real metronome: high
+ * on the rod is slow, low is fast. 0 is the top of its travel (the range's
+ * slowest), 1 the bottom (its fastest); tempos past either end stay there
+ * (they can still be typed). The range is the chosen genre's, from its
+ * slowest named tempo to its fastest (genreRange in tempos.js), so the rod
+ * spans the tempos that genre plays; WEIGHT_BPM is the default. Not even: a
+ * log scale, squeezed further at the fast end, so the everyday tempos get
+ * most of the rod.
+ */
+export const WEIGHT_BPM = [40, 300];
+const WEIGHT_CURVE = 0.8;
+export function weightAt(bpm, [lo, hi] = WEIGHT_BPM) {
+  const u = (Math.log(Math.min(hi, Math.max(lo, bpm))) - Math.log(lo)) / (Math.log(hi) - Math.log(lo));
+  return u ** WEIGHT_CURVE;
+}
+/** The tempo for a place on the rod (0 top to 1 bottom): weightAt's inverse. */
+export function bpmAtWeight(t, [lo, hi] = WEIGHT_BPM) {
+  const u = Math.min(1, Math.max(0, t)) ** (1 / WEIGHT_CURVE);
+  return Math.exp(Math.log(lo) + u * (Math.log(hi) - Math.log(lo)));
+}
+
 export function pendulumAngle(beat, now, period, amplitude = 28) {
   if (!beat) return 0;
   const side = beat.count % 2 === 0 ? 1 : -1;

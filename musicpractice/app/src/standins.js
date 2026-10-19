@@ -378,5 +378,17 @@ export const STANDINS = {
 
 /** The stand-in for an image in a theme (falling back to Classic's). */
 export function standin(theme, id) {
-  return (STANDINS[theme] || CLASSIC)[id] || CLASSIC[id];
+  const set = STANDINS[theme] || CLASSIC;
+  // The pendulum in two parts: drawn whole (weight and all) as the rod, with
+  // no travel, so the separate weight isn't placed on it.
+  if (id === 'metronome-rod') return set['metronome-pendulum'] || CLASSIC['metronome-pendulum'];
+  if (id === 'metronome-weight') return WEIGHT;
+  // The Practice Routine's pictures: the routine's hourglass, until they arrive.
+  if (id.startsWith('practice-')) return set['home-routine'] || CLASSIC['home-routine'];
+  return set[id] || CLASSIC[id];
 }
+
+const WEIGHT = {
+  canvas: [200, 80], anchors: { center: [100, 40] },
+  html: svg(200, 80, '<path d="M76 14h48l-8 52H84z" fill="#c9a24a" stroke="#6b4e1c" stroke-width="3" stroke-linejoin="round"/>'),
+};

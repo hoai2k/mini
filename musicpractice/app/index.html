@@ -70,10 +70,6 @@
     <section id="home" class="screen" aria-labelledby="home-title">
       <button class="icon-btn home-gear" id="app-settings-btn" data-text-aria-label="home.settings"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
       <h1 id="home-title" class="brand" data-text-rich="home.title"></h1>
-      <button class="pill home-done" id="home-done" type="button" data-text="common.done" hidden></button>
-      <!-- The Practice Routine as a second page, when it doesn't fit beside the others (?routine; main.js). -->
-      <button class="page-arrow page-next" id="page-next" type="button" data-text-aria-label="home.nextPage" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
-      <span class="page-hint" id="page-hint" aria-hidden="true" hidden><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span>
       <div class="choices" id="choices">
         <a class="choice" href="#metronome" id="go-metronome" data-tool="metronome" draggable="false">
           <span class="art" data-asset="home-metronome"></span>
@@ -93,26 +89,10 @@
           <span class="label" data-text="home.tools.record"></span>
         </a>
       </div>
-      <script>
-        // Put the buttons in the saved order before the page draws (src/homeorder.js does the rest).
-        try {
-          var order = (JSON.parse(localStorage.getItem('musicpractice.settings.v1') || '{}') || {}).homeOrder;
-          var box = document.getElementById('choices');
-          var known = ['metronome', 'tuner', 'drone', 'record'];
-          if (Array.isArray(order)) {
-            // A tool added since the order was saved goes after the one it follows (settings.js does the same).
-            known.forEach(function (id, i) {
-              if (order.indexOf(id) >= 0) return;
-              var prev = known.slice(0, i).reverse().filter(function (p) { return order.indexOf(p) >= 0; })[0];
-              order.splice(prev ? order.indexOf(prev) + 1 : 0, 0, id);
-            });
-          }
-          if (Array.isArray(order)) order.forEach(function (id) {
-            var el = box.querySelector('[data-tool="' + id + '"]');
-            if (el) box.appendChild(el);
-          });
-        } catch (e) { /* default order */ }
-      </script>
+      <!-- The Practice Routine as a second page, when its full button doesn't fit
+           beside the others (main.js): a smaller button under them,
+           sized to the room left, that slides the routine in. -->
+      <a class="choice routine-link" href="#routine" id="go-routine-page" draggable="false" hidden><span class="art" data-asset="home-routine"></span><span class="label" data-text="home.tools.timer"></span></a>
 
       <dialog id="app-settings" class="sheet" aria-labelledby="app-settings-title">
         <form method="dialog">
@@ -121,11 +101,12 @@
             <legend data-text="appSettings.theme"></legend>
             <div class="theme-tiles" id="theme-tiles" role="radiogroup" data-text-aria-label="appSettings.theme"></div>
           </fieldset>
-          <fieldset id="appearance-field">
-            <legend data-text="appSettings.appearance"></legend>
-            <div class="chips" id="appearance-chips" data-text-aria-label="appSettings.appearance"></div>
-          </fieldset>
-          <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
+          <label class="row toggle" id="appearance-field"><span data-text="appSettings.appearance"></span><select class="select" id="appearance"></select></label>
+          <!-- The theme is right here, so Reload Page takes the Theme button's place beside Audio check. -->
+          <div class="sheet-links" id="app-links">
+            <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
+            <button type="button" class="pill" id="reload-page" data-text="appSettings.reloadPage"></button>
+          </div>
           <button type="button" class="pill open-feedback" data-text="appSettings.sendFeedback"></button>
           <!-- In the apps only (src/pro.js). -->
           <fieldset id="pro-row" hidden>
@@ -150,7 +131,8 @@
             <!-- Tap the metronome: its beat effect (Swing or Pulse) off and on. -->
             <div class="metronome" id="metronome-art" role="button" tabindex="0">
               <div class="met-layer met-case" id="metronome-case" data-asset="metronome-body"></div>
-              <div class="met-layer met-pendulum" id="pendulum" data-asset="metronome-pendulum"></div>
+              <!-- The pendulum: its rod and bob, and the weight that slides along it with the tempo (drag it to set the tempo). -->
+              <div class="met-layer met-pendulum" id="pendulum"><span class="met-rod" id="pend-rod" data-asset="metronome-rod"></span><span class="met-weight" id="pend-weight" data-asset="metronome-weight"></span></div>
             </div>
             <!-- Under it: the beat dots (big in Pulse), which open into the
                  Visualizer, rows of bars of music, as the metronome shrinks
@@ -356,7 +338,49 @@
         <button class="pill" id="ref-tone" type="button"></button>
         <p class="tuner-status" id="tuner-status" hidden></p>
         <button class="pill" id="tuner-retry" type="button" data-text="common.tryAgain" hidden></button>
+        <!-- Test My Scale Intonation (tunerui.js, scaletest.js). A feature of its
+             own under the tuner: it opens a sheet with a record button. -->
+        <div class="scale-test" id="scale-test">
+          <button class="scale-cta" id="scale-open" type="button" aria-haspopup="dialog">
+            <span class="scale-cta-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 19h4v-4h4v-4h4V7h4V3"/><circle cx="5" cy="17" r="1.4"/><circle cx="9" cy="13" r="1.4"/><circle cx="13" cy="9" r="1.4"/><circle cx="17" cy="5" r="1.4"/></svg></span>
+            <span class="scale-cta-text"><strong data-text="tuner.scale.button"></strong><small data-text="tuner.scale.buttonSub"></small></span>
+            <svg class="scale-cta-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
       </div>
+
+      <!-- Test Scale Intonation: ready (how it works, and the record button),
+           listening, then the results, all in one sheet (data-step). -->
+      <dialog id="scale-sheet" class="sheet" aria-labelledby="scale-title" data-step="ready">
+        <form method="dialog">
+          <header class="sheet-head"><h3 id="scale-title" data-text="tuner.scale.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <div class="scale-record">
+            <ol class="scale-steps">
+              <li data-text="tuner.scale.step1"></li>
+              <li data-text="tuner.scale.step2"></li>
+              <li data-text="tuner.scale.step3"></li>
+            </ol>
+            <div class="scale-rec-row">
+              <button class="rec-btn" id="scale-rec" type="button" data-state="off" aria-pressed="false"><span class="rec-dot" aria-hidden="true"></span><span class="visually-hidden" id="scale-rec-label"></span></button>
+              <p class="scale-status" id="scale-status" aria-live="polite"></p>
+            </div>
+          </div>
+          <div class="scale-results">
+            <div class="scale-score" id="scale-score">
+              <span class="scale-score-label" data-text="tuner.scale.score"></span>
+              <span class="scale-score-num" id="scale-score-num">0</span>
+              <span class="scale-score-parts" id="scale-score-parts"></span>
+            </div>
+            <p class="scale-summary" id="scale-summary"></p>
+            <ol class="scale-notes" id="scale-notes"></ol>
+            <p class="help" id="scale-help"></p>
+            <div class="sheet-links">
+              <button type="button" class="pill" id="scale-again" data-text="tuner.scale.again"></button>
+              <button class="pill" value="close" data-text="tuner.scale.done"></button>
+            </div>
+          </div>
+        </form>
+      </dialog>
 
       <dialog id="tuner-settings" class="sheet" aria-labelledby="tuner-settings-title">
         <form method="dialog">
@@ -374,6 +398,12 @@
             <div class="chips" id="flats-chips"></div>
           </fieldset>
           <label class="row"><span data-text="tuner.settings.transpose"></span><select class="select" id="transpose"></select></label>
+          <!-- Test My Scale Intonation: how strictly a note is judged (scaletest.js LEVELS), or Custom's own threshold and measure. -->
+          <label class="row toggle"><span data-text="tuner.settings.scaleLevel"></span><select class="select" id="scale-level"></select></label>
+          <div class="scale-custom" id="scale-custom" hidden>
+            <label class="row"><span id="scale-tol-label"></span><input type="range" class="slider" id="scale-tol" min="3" max="50" step="1"></label>
+            <label class="row toggle"><span data-text="tuner.settings.scaleAttack"></span><select class="select" id="scale-attack"></select></label>
+          </div>
           <div class="sheet-links">
             <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
             <button type="button" class="pill open-theme" data-text="common.themeButton"></button>
@@ -468,7 +498,7 @@
       </dialog>
     </section>
 
-    <!-- Practice Routine (in development: only with ?routine in the address). A
+    <!-- Practice Routine. A
          list of practice items, each a name, minutes and its own metronome
          and drone; Start runs through them (timerui.js). -->
     <section id="routine" class="screen" aria-labelledby="timer-title" hidden>
@@ -481,6 +511,8 @@
         <!-- What is running now (or, before Start, the whole routine's length). -->
         <div class="timer-now" id="timer-now">
           <span class="art timer-art" data-asset="home-routine" aria-hidden="true"></span>
+          <!-- While an item runs, its picture, large (timer.js pictureFor). -->
+          <span class="art timer-picture" id="timer-picture" data-asset="home-routine" aria-hidden="true"></span>
           <div class="timer-readout">
             <p class="timer-name" id="timer-name"></p>
             <p class="timer-clock" id="timer-clock" role="timer" aria-live="off"></p>
@@ -508,11 +540,24 @@
       <dialog id="timer-settings" class="sheet" aria-labelledby="timer-settings-title">
         <form method="dialog">
           <header class="sheet-head"><h3 id="timer-settings-title" data-text="timer.settingsTitle"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-          <fieldset>
-            <legend data-text="timer.chime"></legend>
-            <div class="chips" id="timer-chime"></div>
-          </fieldset>
-          <p class="help" data-text="timer.chimeHelp"></p>
+          <label class="row toggle"><span data-text="timer.chimeOn"></span><input type="checkbox" id="timer-chime-on" role="switch"></label>
+          <label class="row toggle" id="timer-chime-row"><span data-text="timer.chime"></span><select class="select" id="timer-chime"></select></label>
+          <label class="row toggle"><span data-text="timer.voiceOn"></span><input type="checkbox" id="timer-voice-on" role="switch"></label>
+          <label class="row toggle timer-voice-only"><span data-text="timer.voice"></span><select class="select" id="timer-voice"></select></label>
+          <label class="row timer-voice-only"><span data-text="timer.voiceVolume"></span><input type="range" class="slider" id="timer-voice-volume" min="0" max="1" step="0.01"></label>
+          <div class="sheet-links">
+            <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
+            <button type="button" class="pill open-theme" data-text="common.themeButton"></button>
+          </div>
+        </form>
+      </dialog>
+
+      <!-- A routine's tools (+ Tools on its card): each on or off for that routine. -->
+      <dialog id="timer-tools-sheet" class="sheet" aria-labelledby="timer-tools-title">
+        <form method="dialog">
+          <header class="sheet-head"><h3 id="timer-tools-title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <label class="row toggle"><span data-text="timer.item.metronome"></span><input type="checkbox" role="switch" id="timer-tool-metronome"></label>
+          <label class="row toggle"><span data-text="timer.item.drone"></span><input type="checkbox" role="switch" id="timer-tool-drone"></label>
         </form>
       </dialog>
 

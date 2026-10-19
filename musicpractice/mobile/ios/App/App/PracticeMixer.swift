@@ -108,6 +108,7 @@ final class PracticeMixer {
     private var wet = 0.14, wetTarget = 0.14, dry = 0.93, dryTarget = 0.93
     private var verb: Freeverb
     private var comp = Compressor()
+    private var limiter = Limiter() // last, on everything: as web output.js
     private var tail: Int64 = 0 // frames of reverb tail still to render
     private var hall = 1.0, hallTarget = 1.0 // the hall's ring, cut short by a stop
 
@@ -131,6 +132,7 @@ final class PracticeMixer {
         sr = sampleRate
         verb = Freeverb(sampleRate: sampleRate)
         comp.setSampleRate(sampleRate)
+        limiter.setSampleRate(sampleRate)
         stopFadeLen = max(1, Int(0.005 * sampleRate))
     }
 
@@ -151,6 +153,7 @@ final class PracticeMixer {
             sr = rate
             verb = Freeverb(sampleRate: rate)
             comp.setSampleRate(rate)
+            limiter.setSampleRate(rate)
             stopFadeLen = max(1, Int(0.005 * rate))
             nextBeat = Double(frameCount) + (nextBeat - Double(frameCount)) * rate / old
             untilNext = untilNext * rate / old
@@ -473,8 +476,11 @@ final class PracticeMixer {
                 r += cr
             }
 
-            left[f] = Float(max(-1, min(1, l)))
-            right[f] = Float(max(-1, min(1, r)))
+            // The drone and the metronome can each come near full scale now: whatever
+            // they sum to, it stays under it (the clamp is only a backstop).
+            let (ol, or) = limiter.process(l, r)
+            left[f] = Float(max(-1, min(1, ol)))
+            right[f] = Float(max(-1, min(1, or)))
         }
         frameCount += Int64(frames)
         // Notes that have faded out go; the hall rings on a little longer.
@@ -601,6 +607,25 @@ struct Freeverb {
         ap[i][j] = Float(input + bo * 0.5)
         apIdx[i] = j + 1 == ap[i].count ? 0 : j + 1
         return bo - input
+    }
+}
+
+/// A peak limiter just under full scale, like the web's output.js (threshold
+/// -1 dB): it catches a peak at once and lets go over 150 ms. Below the
+/// threshold it does nothing.
+struct Limiter {
+    private static let ceiling = pow(10, -1.0 / 20)
+    private var env = 0.0, release = 0.0
+
+    mutating func setSampleRate(_ rate: Double) {
+        release = 1 - exp(-1 / (0.15 * rate))
+    }
+
+    mutating func process(_ l: Double, _ r: Double) -> (Double, Double) {
+        let x = max(abs(l), abs(r))
+        env = x > env ? x : env + (x - env) * release
+        let g = env > Limiter.ceiling ? Limiter.ceiling / env : 1
+        return (l * g, r * g)
     }
 }
 

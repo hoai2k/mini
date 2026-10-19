@@ -80,15 +80,8 @@ test('tuner settings: defaults, saved, and bad values fall back', () => {
   assert.deepEqual([bad.tuning, bad.a4, bad.transpose], ['chromatic', 466, 'C']);
 });
 
-test('home order: metronome, tuner, drone, recorder by default; a saved order is kept and repaired', () => {
-  assert.deepEqual(load(memoryStorage()).homeOrder, ['metronome', 'tuner', 'drone', 'record']);
-  assert.deepEqual(sanitize({ homeOrder: ['record', 'drone', 'metronome', 'tuner'] }).homeOrder, ['record', 'drone', 'metronome', 'tuner']);
-  // An order saved before the Drone: it goes in after the Tuner, wherever that is.
-  assert.deepEqual(sanitize({ homeOrder: ['metronome', 'tuner', 'record'] }).homeOrder, ['metronome', 'tuner', 'drone', 'record']);
-  assert.deepEqual(sanitize({ homeOrder: ['tuner', 'record', 'metronome'] }).homeOrder, ['tuner', 'drone', 'record', 'metronome']);
-  // Unknown or repeated tools dropped.
-  assert.deepEqual(sanitize({ homeOrder: ['tuner', 'kazoo', 'tuner'] }).homeOrder, ['metronome', 'tuner', 'drone', 'record']);
-  assert.deepEqual(sanitize({ homeOrder: 'record' }).homeOrder, ['metronome', 'tuner', 'drone', 'record']);
+test('a home order saved by an earlier version is dropped (the buttons are in one order)', () => {
+  assert.equal(sanitize({ homeOrder: ['record', 'drone', 'metronome', 'tuner'] }).homeOrder, undefined);
 });
 
 test('drone settings: defaults, kept, and bad values fall back', () => {
@@ -199,14 +192,15 @@ test('the bar plan: the plain rules, or every click from a custom pattern', () =
   assert.deepEqual(barPlan({ meter: '4/4', accent: false, accentPattern: { meter: '4/4', pos: [12] } }).strengths, [0, 0, 0, 0]);
 });
 
-test('extra notes: off by default, a kind kept while off, saves from the Clicks list carried over; full volume', () => {
+test('extra notes: off by default, a kind kept while off, saves from the Clicks list carried over; the volume', () => {
   assert.deepEqual([DEFAULTS.subOn, DEFAULTS.subKind, sanitize({}).subdivision], [false, 2, 1]);
   assert.equal(sanitize({ subOn: false, subKind: 4 }).subdivision, 1);
   assert.equal(sanitize({ subOn: true, subKind: 3 }).subdivision, 3);
   const old = sanitize({ subdivision: 4 }); // the old Clicks list
   assert.deepEqual([old.subOn, old.subKind, old.subdivision], [true, 4, 4]);
-  assert.equal(sanitize({ volume: 0.3 }).volume, 1); // an earlier save's, from a removed control
-  assert.equal(sanitize({ volume: 0.3, volumeChosen: true }).volume, 0.3); // the metronome's own slider
+  assert.equal(sanitize({ volume: 0.3 }).volume, 0.75); // an earlier save's, from a removed control: the default
+  assert.equal(sanitize({ volume: 0.3, volumeChosen: true, louder: true }).volume, 0.3); // the metronome's own slider
+  assert.ok(Math.abs(sanitize({ volume: 0.4, volumeChosen: true }).volume - 0.3) < 1e-9); // saved before the louder clicks: as loud as it was
   assert.equal(sanitize({ volume: 7, volumeChosen: true }).volume, 1);
 });
 
@@ -224,4 +218,60 @@ test('the last drone\'s length: kept when it is a time, dropped otherwise', () =
   assert.equal(sanitize({ droneLastSecs: 754.4 }).droneLastSecs, 754);
   assert.equal(sanitize({ droneLastSecs: -3 }).droneLastSecs, null);
   assert.equal(sanitize({ droneLastSecs: '12' }).droneLastSecs, null);
+});
+
+test('the pendulum weight: high is slow, the everyday tempos get most of the rod', async () => {
+  const { weightAt, bpmAtWeight, WEIGHT_BPM } = await import('../src/metronome.js');
+  assert.deepEqual(WEIGHT_BPM, [40, 300]);
+  assert.equal(weightAt(40), 0);
+  assert.equal(weightAt(300), 1);
+  assert.equal(weightAt(20), 0); // past the ends: stays there
+  assert.equal(weightAt(500), 1);
+  for (const b of [40, 60, 92, 120, 160, 208, 300]) assert.ok(Math.abs(bpmAtWeight(weightAt(b)) - b) < 1e-9, String(b));
+  const span = (a, b) => weightAt(b) - weightAt(a);
+  assert.ok(span(60, 160) > 0.4, `60-160 is ${span(60, 160)}`);
+  assert.ok(span(200, 300) < 0.2, `200-300 is ${span(200, 300)}`);
+  assert.ok(span(200, 300) < span(60, 160) / 2.5);
+});
+
+test('louder volumes: the defaults sound as before, and older saves keep their loudness', async () => {
+  const { droneGain, droneSlider, DRONE_DEFAULT, DRONE_MAX_GAIN } = await import('../src/drone.js');
+  const { METRONOME_DEFAULT } = await import('../src/metronome.js');
+  assert.equal(DEFAULTS.volume, METRONOME_DEFAULT);
+  assert.equal(DEFAULTS.droneVolume, DRONE_DEFAULT);
+  assert.ok(Math.abs(droneGain(DRONE_DEFAULT) - 0.8) < 0.02); // the old default's gain
+  assert.equal(droneGain(1), DRONE_MAX_GAIN);
+  assert.equal(droneGain(0), 0);
+  assert.ok(Math.abs(droneSlider(droneGain(0.37)) - 0.37) < 1e-9);
+  // A drone volume saved before (a gain) becomes the slider position with that gain.
+  for (const old of [0.8, 0.5, 1]) {
+    const v = sanitize({ droneVolume: old }).droneVolume;
+    assert.ok(Math.abs(droneGain(v) - old) < 0.03, `${old} -> ${v}`);
+  }
+  assert.equal(sanitize({ droneVolume: 0.9, louder: true }).droneVolume, 0.9); // saved since: as it is
+  assert.equal(sanitize({}).louder, true);
+});
+
+test('the pendulum weight spans the chosen genre, slowest named tempo to fastest', async () => {
+  const { weightAt, bpmAtWeight } = await import('../src/metronome.js');
+  const { genreRange, GENRES, GENRE_IDS } = await import('../src/tempos.js');
+  assert.deepEqual(genreRange('classical'), [40, 240]);
+  assert.deepEqual(genreRange('jazz'), [50, 320]);
+  assert.deepEqual(genreRange('ballroom'), [84, 208]);
+  for (const g of GENRE_IDS) {
+    const r = genreRange(g);
+    for (const t of GENRES[g]) for (const b of t.list) assert.ok(b >= r[0] && b <= r[1], `${g} ${b}`);
+    assert.equal(weightAt(r[0], r), 0);
+    assert.equal(weightAt(r[1], r), 1);
+    assert.ok(Math.abs(bpmAtWeight(0, r) - r[0]) < 1e-9 && Math.abs(bpmAtWeight(1, r) - r[1]) < 1e-9, g);
+  }
+  assert.equal(weightAt(300, genreRange('ballroom')), 1); // past the end: stays there
+});
+
+test('Test My Scale difficulty: Hard by default; Custom keeps its own threshold and measure', () => {
+  const d = sanitize(null);
+  assert.deepEqual([d.scaleLevel, d.scaleTolerance, d.scaleAttack], ['hard', 15, 'mid']);
+  const c = sanitize({ scaleLevel: 'custom', scaleTolerance: 99, scaleAttack: 'end' });
+  assert.deepEqual([c.scaleLevel, c.scaleTolerance, c.scaleAttack], ['custom', 50, 'end']);
+  assert.deepEqual([sanitize({ scaleLevel: 'expert' }).scaleLevel, sanitize({ scaleAttack: 'peak' }).scaleAttack], ['hard', 'mid']);
 });

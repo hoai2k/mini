@@ -1,11 +1,9 @@
 // The home screen and the Practice Routine as two pages side by side, for when
 // the timer's button doesn't fit beside the others: swipe left from home to
 // slide the timer in from the right, and right to slide back; the page under
-// the finger follows it, and a short or slow swipe springs back. On a
-// desktop an arrow at the edge does the same; on a touch screen a faint
-// chevron at the right edge says there is a page to swipe in.
-//
-// IN DEVELOPMENT: used only with ?routine in the address (main.js).
+// the finger follows it, and a short or slow swipe springs back. A smaller
+// Practice Routine button under the home buttons slides it in, and the
+// routine's back arrow slides home (slide(), in main.js).
 
 const SLIDE_MS = 280;
 const EASE = 'cubic-bezier(0.2, 0.8, 0.2, 1)';
@@ -55,14 +53,17 @@ export function setupPager({ home, timer, current, go }) {
     const a = fromEl.animate([{ transform: `translateX(${dx}px)` }, { transform: `translateX(${target}px)` }], opts);
     toEl.animate([{ transform: `translateX(${dx - sign(from) * w}px)` }, { transform: `translateX(${target - sign(from) * w}px)` }], opts);
     a.finished.then(() => {
+      // Put both pages back in the flow before routing, all in this one task
+      // (nothing is drawn between): going home measures whether all five
+      // buttons fit, and a page still fixed over the window always fits.
+      for (const el of [fromEl, toEl]) for (const an of el.getAnimations()) an.cancel();
+      settle(fromEl, toEl);
       if (commit) {
         window.scrollTo(0, 0);
         go(from === 'home' ? 'routine' : 'home');
       } else {
         toEl.hidden = true;
       }
-      for (const el of [fromEl, toEl]) for (const an of el.getAnimations()) an.cancel();
-      settle(fromEl, toEl);
       moving = false;
     }).catch(() => { moving = false; });
   }

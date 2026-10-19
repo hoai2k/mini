@@ -594,9 +594,9 @@ def round9_assets() -> list[dict]:
                     "framing and canvas, draw an hourglass in its place: "
                     f"{TIMER_SUBJECT[theme]}. The hourglass stands upright and perfectly "
                     "symmetrical, seen from the front, with about two thirds of the sand in the lower "
-                    "bulb, a small heap, and a thin stream still falling through the neck. Keep the "
-                    "same two thin, smooth ribbons drifting gently outward from the sides as in the "
-                    "reference, so it sits with the other home buttons. Centred, at about the same "
+                    "bulb, a small heap, and a thin stream still falling through the neck. No wings, "
+                    "sound ribbons, mist, floating notes or surrounding decorations; those ribbons "
+                    "belong only to Drone. Centred, at about the same "
                     "height as the cello, with the same small even margin; a bold readable silhouette "
                     "that still reads at 64 pixels. A fully transparent background, no cast shadow, no "
                     "clock face, no text, no letters, no numbers."),
@@ -609,6 +609,214 @@ def round9_assets() -> list[dict]:
 
 
 ASSETS += round9_assets()
+
+
+def round10_assets() -> list[dict]:
+    """The pendulum in two parts, so its weight can slide along the rod with
+    the tempo (and be dragged to set it), as on a real metronome: the rod and
+    bob without the weight, and the weight alone. Until they arrive the app
+    uses interim cuts of the delivered pendulum (source/cut_pendulum.py,
+    recorded in design/pendulum-cuts.json)."""
+    cuts = {c["theme"]: c for c in json.loads((ROOT / "design" / "pendulum-cuts.json").read_text())}
+    names = {t["id"]: t["name"] for t in THEMES}
+    pend = {a["theme"]: a for a in ASSETS if a["id"] == "metronome-pendulum"}
+    out = []
+    for theme, c in cuts.items():
+        p, name = pend[theme], names[theme]
+        src = p["file"]
+        folder = src.rsplit("/", 1)[0]
+        out.append(dict(
+            id="metronome-rod", theme=theme, round=10, file=f"{folder}/metronome-rod.webp",
+            size="200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP", status="requested",
+            group=f"{name} · Metronome pendulum in two parts",
+            prompt=(f"Edit the attached image, musicpractice/app/{src} (this theme's metronome pendulum): "
+                    "remove the sliding weight that sits on the rod about a quarter of the way down, and "
+                    "change nothing else. Where the weight covered the rod, continue the rod exactly as it "
+                    "runs above and below it (same width, colour, shading and texture), so the rod is "
+                    "whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay "
+                    "exactly where they are. Same canvas and framing, so the two images line up exactly. "
+                    "Fully transparent background, no shadow, no text."),
+            note=(f"The {name} pendulum's rod and bob without the weight; the app slides the weight "
+                  f"(metronome-weight) along it. Same canvas, hub and swing as app/{src}. The weight's "
+                  f"centre may travel from y {c['rod']['travel'][0]} to y {c['rod']['travel'][1]} of the "
+                  "1000-high canvas (record the delivered rod's own range here). Until it arrives the app "
+                  f"uses an interim cut, app/{c['rod']['file']}."),
+            canvas=p["canvas"], anchors=p["anchors"], swing=p.get("swing"), scale=p.get("scale"),
+            travel=c["rod"]["travel"], interim=c["rod"]["file"],
+        ))
+        out.append(dict(
+            id="metronome-weight", theme=theme, round=10, file=f"{folder}/metronome-weight.webp",
+            size=f"200×{round(c['weight']['canvas'][1])} canvas at the pendulum's scale, transparent PNG, shipped as WebP",
+            status="requested",
+            group=f"{name} · Metronome pendulum in two parts",
+            prompt=(f"From the attached image, musicpractice/app/{src} (this theme's metronome pendulum), "
+                    "draw only its sliding weight, the ornament that sits on the rod about a quarter of the "
+                    "way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep "
+                    "the short piece of rod that shows through it, and nothing else: no rod above or below "
+                    "it, no bob. Centred left to right where the rod runs, on a canvas as wide as the "
+                    "pendulum's and just tall enough to hold the weight. Fully transparent background, no "
+                    "shadow, no text."),
+            note=(f"The {name} pendulum's weight, which the app slides along the rod with the tempo "
+                  "(higher is slower, as on a real metronome) and which can be dragged to set it. Anchor "
+                  "`center` is the point on the rod that marks its place. Until it arrives the app uses an "
+                  f"interim cut, app/{c['weight']['file']}."),
+            canvas=c["weight"]["canvas"], anchors={"center": c["weight"]["center"]}, interim=c["weight"]["file"],
+        ))
+    return out
+
+
+ASSETS += round10_assets()
+
+# Delivered Routine icons and split pendulums retain their measured geometry
+# in the delivery record. New themes stay requested until they have a record.
+_routine_pendulum_delivery = ROOT / "design" / "image-deliveries-rounds-9-10.json"
+if _routine_pendulum_delivery.exists():
+    _delivered = {
+        (a["theme"], a["id"]): a
+        for a in json.loads(_routine_pendulum_delivery.read_text())["assets"]
+        if a["status"] == "delivered"
+    }
+    for asset in ASSETS:
+        if asset["round"] not in (9, 10):
+            continue
+        delivery = _delivered.get((asset["theme"], asset["id"]))
+        if not delivery:
+            continue
+        asset["status"] = "delivered"
+        for key in ("canvas", "anchors", "swing", "scale", "travel"):
+            if delivery.get(key) is not None:
+                asset[key] = delivery[key]
+        asset.pop("interim", None)
+        if asset["id"] == "metronome-rod":
+            asset["note"] = (
+                "Delivered rod and bob without the sliding weight, normalized to the original "
+                "pendulum's scale. The hub is measured on this layer; the separate weight's centre "
+                f"travels from y {asset['travel'][0]} to y {asset['travel'][1]}. "
+            )
+        elif asset["id"] == "metronome-weight":
+            asset["note"] = (
+                "Delivered sliding ornament at the pendulum's scale, on its own transparent canvas. "
+                "The center anchor places it on the rod as the tempo changes. "
+            )
+        else:
+            asset["note"] = asset["note"].split("Until it arrives")[0]
+        asset["note"] += "PNG masters, prompts and export details: design/image-deliveries-rounds-9-10.json."
+
+# Where a rod's tip reaches up into the case's crown (Art Deco's stepped
+# top, Baroque's shell crest), the weight at the slow end sat on that
+# ornament and read as part of the case. Its slowest place is held lower,
+# so its top edge stays just inside the face (measured on the composed
+# metronome: the face starts at rod y 164 in Art Deco and 122 in Baroque,
+# under the crest, and the weights are 156 and 111 tall).
+FACE_TRAVEL_TOP = {"deco": 250.0, "baroque": 183.0}
+for asset in ASSETS:
+    top = FACE_TRAVEL_TOP.get(asset["theme"]) if asset["id"] == "metronome-rod" else None
+    if top is not None and asset.get("travel") and asset["travel"][0] < top:
+        asset["travel"] = [top, asset["travel"][1]]
+        asset["note"] += (f" The app holds the slowest place at y {top}, so the weight stays inside "
+                          "the face rather than on the crown.")
+
+# The Practice Routine's pictures: one per kind of practice item (the
+# suggestions + offers, PRESETS in app/src/timer.js), shown large while that
+# item runs so a glance says what is being practised, and a default for an
+# item of its own kind (Custom…). A new suggestion needs its picture here too
+# (app/test/timer.test.mjs checks every suggestion has a request).
+PRACTICE_SUBJECT = {
+    "practice-intonation": ("Intonation practice", "a two-tined tuning fork standing upright and ringing, with small vibration marks "
+                            "beside its tines; the tuning fork alone, without musical notes or a staff"),
+    "practice-scales": ("Scales", "a short musical staff with eight round note heads climbing it from left to right like a "
+                        "gentle staircase, the last note a little larger; exactly eight notes on a five-line staff, no treble clef"),
+    "practice-rhythms": ("Clapping rhythms", "exactly two hands meeting in a clap, one left and one right, with exactly two wrists "
+                         "and two cuffs, seen from the side, with three small curved "
+                         "motion marks around them, and a short row of rhythm notes (quarter notes and a pair of "
+                         "beamed eighth notes) beneath"),
+    "practice-ghosting": ("Ghosting", "a cello bow drawn as a faint, translucent ghostly outline, hovering just above four "
+                          "strings; only the translucent bow outline and the four strings, without floating notes"),
+    "practice-default": ("Practice (default)", "a music stand holding an open book of sheet music, a pencil resting on "
+                         "its ledge"),
+}
+
+
+# Round 12: pictures for the suggestions added since (Metronome uses the
+# Metronome's own home picture and needs none).
+PRACTICE_SUBJECT_12 = {
+    "practice-arpeggios": ("Arpeggios", "a short musical staff with five round note heads rising and then falling in a "
+                           "gentle arch from left to right, a broken chord climbing a triad and coming back down; "
+                           "exactly five notes on a five-line staff, no treble clef"),
+    "practice-sight-reading": ("Sight reading", "a single sheet of printed music, a few staves of notes, with a small "
+                               "magnifying glass resting over one corner as if reading it for the first time; the "
+                               "sheet and the magnifying glass only, no music stand"),
+    "practice-improvisation": ("Improvisation", "a glowing light bulb with one musical eighth note inside it, and a few "
+                               "short spark lines around the bulb; the bulb, its note and the sparks only"),
+}
+
+
+def round11_assets() -> list[dict]:
+    record = json.loads((ROOT / "design" / "image-deliveries-drone.json").read_text())
+    names = {t["id"]: t["name"] for t in THEMES}
+    out = []
+    for a in record["assets"]:
+        theme, name = a["theme"], names[a["theme"]]
+        src = a["file"].removeprefix("musicpractice/app/")
+        folder = src.rsplit("/", 1)[0]
+        for pid, (label, subject) in [*PRACTICE_SUBJECT.items(), *PRACTICE_SUBJECT_12.items()]:
+            new_picture = pid in PRACTICE_SUBJECT_12
+            reference = src.replace("home-drone.webp", "home-routine.webp") if new_picture else src
+            reference_subject = "Routine hourglass" if new_picture else "Drone cello"
+            note_rule = ("Notes belong only to the arpeggio, the printed sheet music, or the single note "
+                         "enclosed inside the improvisation bulb. " if new_picture else
+                         "Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. ")
+            out.append(dict(
+                id=pid, theme=theme, round=11 if pid in PRACTICE_SUBJECT else 12, file=f"{folder}/{pid}.webp",
+                size="1024×1024, transparent PNG (shipped as 512×512 WebP)", status="requested",
+                group=f"{name} · Practice Routine pictures",
+                prompt=(f"Using the attached image, musicpractice/app/{reference} (this theme's {reference_subject}), "
+                        "as the reference for its style, colours, materials, lighting, rendering, framing "
+                        f"and canvas, draw {subject}, in this theme's materials and colours. No wings, sound "
+                        f"ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. {note_rule}"
+                        f"One centred subject at about the same size as the {reference_subject}, with "
+                        "the same small even margin; a bold readable silhouette that still reads at 96 pixels. A "
+                        "fully transparent background, no cast shadow, no text, no letters, no numbers."),
+                note=(f"The Practice Routine's picture for {label} in the {name} theme, shown large while such an "
+                      "item runs" + (" and for any item with no picture of its own" if pid == "practice-default" else "")
+                      + ". Until it arrives the app shows the next picture it has: the Drone's (cello or organ) "
+                      "for an item with its drone on, else the Metronome's, else the default practice picture, else "
+                      "the routine's hourglass."),
+            ))
+    return out
+
+
+ASSETS += round11_assets()
+
+_practice_delivery = ROOT / "design" / "image-deliveries-round-11.json"
+if _practice_delivery.exists():
+    _practice_delivered = {
+        (a["theme"], a["id"]): a
+        for a in json.loads(_practice_delivery.read_text())["assets"]
+        if a["status"] == "delivered"
+    }
+    for asset in ASSETS:
+        if asset["round"] != 11 or (asset["theme"], asset["id"]) not in _practice_delivered:
+            continue
+        asset["status"] = "delivered"
+        asset["note"] = asset["note"].split(" Until it arrives")[0]
+        asset["note"] += " Delivered PNG masters, prompts and exports: design/image-deliveries-round-11.json."
+
+
+_round12_delivery = ROOT / "design" / "image-deliveries-round-12.json"
+if _round12_delivery.exists():
+    _round12_delivered = {
+        (a["theme"], a["id"]): a
+        for a in json.loads(_round12_delivery.read_text())["assets"]
+        if a["status"] == "delivered"
+    }
+    for asset in ASSETS:
+        if asset["round"] != 12 or (asset["theme"], asset["id"]) not in _round12_delivered:
+            continue
+        asset["status"] = "delivered"
+        asset["note"] = asset["note"].split(" Until it arrives")[0]
+        asset["note"] += " Delivered PNG masters, prompts and exports: design/image-deliveries-round-12.json."
+
 
 def render() -> tuple[str, str]:
     theme_name = {t["id"]: t["name"] for t in THEMES}
@@ -628,7 +836,10 @@ def render() -> tuple[str, str]:
                        (6, "Drone home icons, every theme"),
                        (7, "Drone screen with the bow as volume, every theme"),
                        (8, "Drone screen for the organ, every theme"),
-                       (9, "Practice Routine home icons, every theme")):
+                       (9, "Practice Routine home icons, every theme"),
+                       (10, "Metronome pendulum in two parts, every theme"),
+                       (11, "Practice Routine pictures, every theme"),
+                       (12, "Arpeggios, Sight reading and Improvisation, every theme")):
         wanted = [a for a in ASSETS if a["round"] == rnd and a["status"] in ("requested", "revise")]
         lines.append(f"**Round {rnd} ({title}):** "
                      + (f"{len(wanted)} image{'s' if len(wanted) != 1 else ''} wanted: " + ", ".join(f"`{a['file']}`" for a in wanted) + "."
@@ -667,7 +878,7 @@ def render() -> tuple[str, str]:
             lines.append(f"- Note: {a['note']}")
         lines += ["", "```text", a["prompt"], "```"]
     doc = "\n".join(lines) + "\n"
-    keys = ("id", "theme", "file", "status", "canvas", "anchors", "swing", "scale")
+    keys = ("id", "theme", "file", "status", "canvas", "anchors", "swing", "scale", "travel", "interim")
     assets = json.dumps([{k: a[k] for k in keys if a.get(k) is not None} for a in ASSETS], indent=2) + "\n"
     return doc, assets
 

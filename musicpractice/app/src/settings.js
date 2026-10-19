@@ -71,7 +71,7 @@ export const DEFAULTS = Object.freeze({
   meter: '4/4',
   accent: true,
   sound: 'wood',
-  volume: 1,
+  volume: 0.75, // METRONOME_DEFAULT: the loudness full volume had before the clicks were made louder
   volumeChosen: false,
   playVolume: 1, // the Playback Recorder's takes, played back (its tucked-away speaker)
   silenceSec: 3,
@@ -96,10 +96,10 @@ export const DEFAULTS = Object.freeze({
   footView: 'dots',
   vizBars: 4, // the Visualizer's rows: bars of music shown at a time
   micTipCollapsed: false, // the iPhone microphone tip folded to its title
-  homeOrder: ['metronome', 'tuner', 'drone', 'record'], // the home screen's buttons, hold and drag to reorder
   droneMidi: 48, // C3
   droneVoice: 'cello',
-  droneVolume: 0.8,
+  droneVolume: 0.53, // DRONE_DEFAULT in drone.js: the slider position of the old default's loudness
+  louder: true, // volumes are on the louder scale (sanitize carries older saves over)
   droneFifth: false, // add a pure fifth above (off unless switched on; tapping the Hz toggles it)
   droneFifthChosen: false,
   droneAccidentals: 'auto', // 'auto' (♯ going up, ♭ going down), 'sharps' or 'flats'
@@ -121,6 +121,9 @@ export const DEFAULTS = Object.freeze({
   a4: 440, // tuner reference pitch, 415-466 Hz
   flats: false, // tuner: spell notes with flats
   transpose: 'C', // tuner: written pitch for a transposing instrument
+  scaleLevel: 'hard', // Test My Scale Intonation's difficulty (scaletest.js LEVEL_IDS); Hard is how it always judged
+  scaleTolerance: 15, // Custom difficulty: cents either way that count as in tune
+  scaleAttack: 'mid', // Custom difficulty: which part of a note is judged: 'mid' (average), 'start' or 'end'
 });
 
 const DRONE_VOICES = ['cello', 'cello-soft', 'organ', 'organ-synth']; // a saved voice since archived falls back to the cello
@@ -193,6 +196,9 @@ function metronomeLook(s) {
 
 export function sanitize(raw) {
   const s = raw && typeof raw === 'object' ? raw : {};
+  // Volumes saved since the metronome and the drone could go louder (louder:
+  // true) are as they are; earlier ones are carried over at the same loudness.
+  const louder = s.louder === true;
   const out = {
     // A theme counts only once someone has picked one: earlier saves stored
     // whatever the default was then. 'straight' is Classic's old name.
@@ -207,7 +213,7 @@ export function sanitize(raw) {
     sound: oneOf(s.sound, SOUNDS.map((m) => m.id), DEFAULTS.sound),
     // The metronome's volume (the slider tucked beside the picture); full until
     // it is moved there, since earlier saves' volume was a removed control's.
-    volume: s.volumeChosen === true ? clamp(num(s.volume, 1), 0, 1) : 1,
+    volume: s.volumeChosen === true ? clamp(num(s.volume, 1) * (louder ? 1 : 0.75), 0, 1) : DEFAULTS.volume,
     volumeChosen: s.volumeChosen === true,
     playVolume: clamp(num(s.playVolume, 1), 0, 1),
     silenceSec: clamp(Math.round(num(s.silenceSec, DEFAULTS.silenceSec) * 2) / 2, 1, 10),
@@ -228,10 +234,13 @@ export function sanitize(raw) {
     accentPattern: cleanPattern(s.accentPattern, oneOf(s.meter, METERS.map((m) => m.id), DEFAULTS.meter)),
     ...metronomeLook(s),
     vizBars: oneOf(s.vizBars, VIZ_BARS, DEFAULTS.vizBars),
-    homeOrder: homeOrder(s.homeOrder),
     droneMidi: clamp(Math.round(num(s.droneMidi, DEFAULTS.droneMidi)), 36, 59),
     droneVoice: oneOf(s.droneVoice, DRONE_VOICES, DEFAULTS.droneVoice),
-    droneVolume: clamp(num(s.droneVolume, DEFAULTS.droneVolume), 0, 1),
+    // Saved before the drone could go louder, the volume was its gain: the
+    // slider position that sounds the same (droneSlider, gain = 2.8 v²).
+    droneVolume: louder || !Number.isFinite(s.droneVolume) ? clamp(num(s.droneVolume, DEFAULTS.droneVolume), 0, 1)
+      : Math.round(Math.min(1, Math.sqrt(clamp(s.droneVolume, 0, 1) / 2.8)) * 100) / 100,
+    louder: true,
     // Saves from before the fifth was on by default stored off without anyone choosing it.
     droneFifth: s.droneFifthChosen === true && typeof s.droneFifth === 'boolean' ? s.droneFifth : DEFAULTS.droneFifth,
     droneFifthChosen: s.droneFifthChosen === true,
@@ -243,24 +252,12 @@ export function sanitize(raw) {
     a4: clamp(Math.round(num(s.a4, DEFAULTS.a4)), 415, 466),
     flats: s.flats === true,
     transpose: oneOf(s.transpose, ['C', 'Bb', 'Eb', 'F'], DEFAULTS.transpose),
+    scaleLevel: oneOf(s.scaleLevel, ['beginner', 'easy', 'medium', 'hard', 'advanced', 'custom'], DEFAULTS.scaleLevel),
+    scaleTolerance: clamp(Math.round(num(s.scaleTolerance, DEFAULTS.scaleTolerance)), 3, 50),
+    scaleAttack: oneOf(s.scaleAttack, ['mid', 'start', 'end'], DEFAULTS.scaleAttack),
   };
   out.subdivision = out.subOn ? out.subKind : 1;
   droneTiming(out);
-  return out;
-}
-
-/**
- * A saved home order, with unknown tools dropped and missing ones (a tool
- * added since) put back after the one they follow by default.
- */
-export function homeOrder(v) {
-  const known = DEFAULTS.homeOrder;
-  const out = Array.isArray(v) ? [...new Set(v.filter((id) => known.includes(id)))] : [];
-  known.forEach((id, i) => {
-    if (out.includes(id)) return;
-    const prev = known.slice(0, i).reverse().find((p) => out.includes(p));
-    out.splice(prev ? out.indexOf(prev) + 1 : 0, 0, id);
-  });
   return out;
 }
 

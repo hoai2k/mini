@@ -14,6 +14,7 @@
 // design/sounds/drone/archive/ (not published), with their settings.
 
 import { TEXT } from './text-config.js';
+import { output } from './output.js';
 
 export const DRONE_MIN = 36; // C2, the cello's open C string
 export const DRONE_MAX = 59; // B3: two octaves, every note twice
@@ -347,6 +348,20 @@ const FADE_IN = 0.65; // time constants: about 2 s in, 1.5 s out when moving to 
 const FADE_OUT = 0.45;
 const STOP = 0.012; // pausing: gone in about 50 ms, quick enough to feel instant, without a click
 
+/*
+ * The volume: the slider (0 to 1) to a gain, on a curve so equal moves of
+ * the bow sound like equal steps, reaching DRONE_MAX_GAIN at the top: as
+ * loud as the drone can go without clipping (a limiter after the compressor
+ * keeps it under full scale). DRONE_DEFAULT is where it was before that,
+ * which is where a new drone starts; volumes saved before are carried over
+ * at the same loudness (settings.js).
+ */
+export const DRONE_MAX_GAIN = 2.8;
+export const droneGain = (v) => DRONE_MAX_GAIN * Math.max(0, Math.min(1, v)) ** 2;
+/** The slider position that gives `gain` (droneGain's inverse). */
+export const droneSlider = (gain) => Math.min(1, Math.sqrt(Math.max(0, gain) / DRONE_MAX_GAIN));
+export const DRONE_DEFAULT = Math.round(droneSlider(0.8) * 100) / 100; // the old default, 0.8 gain
+
 export class Drone {
   /** @param {BaseAudioContext} ctx */
   constructor(ctx) {
@@ -357,7 +372,10 @@ export class Drone {
     comp.ratio.value = 3;
     comp.attack.value = 0.02;
     comp.release.value = 0.4;
-    this.out.connect(comp).connect(ctx.destination);
+    // Out through the shared limiter (output.js), so the loudest the volume
+    // goes never clips, the fifth and a change of note included, nor does the
+    // drone with the metronome, a chime or the voice over it.
+    this.out.connect(comp).connect(output(ctx));
     this.bus = ctx.createGain();
     this.dry = ctx.createGain();
     this.wet = ctx.createGain();
@@ -366,13 +384,14 @@ export class Drone {
     this.bus.connect(this.dry).connect(this.out);
     this.bus.connect(this.verb).connect(this.wet).connect(this.out);
     this.current = null;
-    this.volume = 0.8;
-    this.out.gain.value = this.volume;
+    this.volume = DRONE_DEFAULT;
+    this.out.gain.value = droneGain(this.volume);
   }
 
+  /** `v`: the slider, 0 to 1 (droneGain). */
   setVolume(v) {
     this.volume = v;
-    this.out.gain.setTargetAtTime(v, this.ctx.currentTime, 0.05);
+    this.out.gain.setTargetAtTime(droneGain(v), this.ctx.currentTime, 0.05);
   }
 
   get playing() {

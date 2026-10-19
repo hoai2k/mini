@@ -7,10 +7,9 @@ import { playSamples, primeFromTap, outputSettled, setSpeaker, setPlaybackVolume
 import { encodeMp3 } from './mp3.js';
 import { openAudioCheck, renderMicTip } from './audiocheck.js';
 import { diag, isWebKit, isIOS, micPermission, onPermissionChange, noteMicRefused, openAppSettings } from './devices.js';
-import { Metronome, pendulumAngle } from './metronome.js';
+import { Metronome, pendulumAngle, weightAt, bpmAtWeight } from './metronome.js';
 import { Recorder, freesMicForPlayback } from './recorder.js';
 import { setupTuner } from './tunerui.js';
-import { setupHomeOrder } from './homeorder.js';
 import { Drone, preload as preloadDrone } from './drone.js';
 import { setupDrone } from './droneui.js';
 import { isApp, platform, shareFile, onBackButton, exitApp } from './native.js';
@@ -19,7 +18,7 @@ import { initPro, isPro, onProChange, requirePro, openPaywall } from './pro.js';
 import { FREE_TAKES, FREE_THEME } from './pro-config.js';
 import { nativeAudio, NativeMetronome, NativeDrone, onNativeStopped } from './nativeaudio.js';
 import { setupTimer } from './timerui.js';
-import { playChime } from './timer.js';
+import { playChime, playClips, loadClip } from './timer.js';
 import { setupPager } from './pager.js';
 
 // In the iOS and Android apps the metronome and the drone play through native
@@ -33,20 +32,17 @@ const RECORD_DURING_PLAYBACK = false;
 const recordDuringPlayback = () => RECORD_DURING_PLAYBACK && settings.recordDuringPlayback;
 import { Waveform, drawThumb } from './waveform.js';
 import * as store from './takes.js';
-import { GENRES, GENRE_IDS, mainTempo, nameFor } from './tempos.js';
+import { GENRES, GENRE_IDS, mainTempo, nameFor, genreRange } from './tempos.js';
 import { load, save, clampBpm, METERS, SOUNDS, THEMES, APPEARANCES, VIZ_BARS, TICKS, barPlan, cleanPattern, resolveMode, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
-import { applyArt, alignPendulum, alignBow, swingOf } from './art.js';
+import { applyArt, alignPendulum, alignBow, swingOf, placeWeight, weightFromPoint } from './art.js';
 import { tuckedVolume } from './tuckedvolume.js';
 
 const $ = (id) => document.getElementById(id);
 const settings = load();
 const persist = () => save(settings);
 
-// The Practice Routine is in development: it is there only with ?routine (or
-// the earlier ?timer) in the address. Without it, nothing of it is set up and
-// the app is as it was.
-const TIMER_ON = ['routine', 'timer'].some((k) => new URLSearchParams(location.search).has(k));
-const timerTile = TIMER_ON ? (() => {
+// The Practice Routine's button on the home screen (the routine itself is set up further down).
+const timerTile = (() => {
   const a = document.createElement('a');
   a.className = 'choice';
   a.href = '#routine';
@@ -57,7 +53,7 @@ const timerTile = TIMER_ON ? (() => {
   a.querySelector('.label').textContent = TEXT.home.tools.timer;
   $('choices').append(a);
   return a;
-})() : null;
+})();
 
 // ---------------------------------------------------------------- theme
 
@@ -81,7 +77,7 @@ function applyTheme() {
   const fonts = fontsHref(theme);
   const link = $('theme-fonts');
   if (link && link.getAttribute('href') !== fonts) link.setAttribute('href', fonts);
-  applyArt(theme.id, () => { alignPendulum($('metronome-case'), $('pendulum')); alignBow(document.querySelector('#dr-bow .art')); });
+  applyArt(theme.id, () => { alignPendulum($('metronome-case'), $('pendulum')); showWeight(); alignBow(document.querySelector('#dr-bow .art')); });
   // Waveform colours come from the theme.
   if (wave) wave.dirty = true;
   for (const c of document.querySelectorAll('.take canvas')) c.redraw?.();
@@ -115,7 +111,7 @@ for (const type of ['pointerdown', 'touchend', 'click', 'keydown']) {
 
 // ---------------------------------------------------------------- screens
 
-const SCREENS = ['home', 'metronome', 'record', 'tuner', 'drone', ...(TIMER_ON ? ['routine'] : [])];
+const SCREENS = ['home', 'metronome', 'record', 'tuner', 'drone', 'routine'];
 // The browser tab names the screen by its own title (the home tiles may be shorter).
 const TITLES = { metronome: TEXT.metronome.title, record: TEXT.recorder.title, tuner: TEXT.tuner.title, drone: TEXT.drone.title, routine: TEXT.timer.title };
 let screen = 'home';
@@ -137,19 +133,12 @@ function route() {
   if (paywall) openPaywall('drone');
 }
 
-const homeOrder = setupHomeOrder({
-  container: $('choices'),
-  done: $('home-done'),
-  order: settings.homeOrder,
-  onChange: (order) => { settings.homeOrder = order; persist(); },
-});
-if (timerTile) $('choices').append(timerTile); // the newest button last (it isn't in the saved order)
+if (timerTile) $('choices').append(timerTile); // the newest button last
 
 function leave(name) {
-  if (name === 'home') homeOrder.stop();
   if (name === 'metronome') { stopMetronome(); closeSync(); }
   if (name === 'record') stopRecorder();
-  if (name === 'tuner') stopTuner();
+  if (name === 'tuner') { stopTuner(); tuner.stopScale(); }
   if (name === 'drone') droneUI.stop();
   if (name === 'routine') timerUI?.leave();
   for (const d of document.querySelectorAll('dialog[open]')) d.close();
@@ -166,7 +155,7 @@ function enter(name) {
   }
   if (name === 'drone') droneUI.fit();
   if (name === 'record') checkRecorderMic(); // it starts off: the record button begins the cycle
-  if (name === 'tuner') startTuner();
+  if (name === 'tuner') { startTuner(); tuner.fit(); }
   if (name === 'routine') { if (!recorder?.holdsMic) setSession('playback'); timerUI?.enter(); }
   if (name === 'home') layoutHome();
   if (name === 'drone') {
@@ -240,11 +229,14 @@ function showMarking() {
   $('marking').setAttribute('aria-label', TEXT.metronome.tempos.open(marking(settings.bpm)));
 }
 
+let weightDrag = null; // the pendulum's weight while it is dragged (below)
+let weightMoved = false;
 function setBpm(v, { fromInput = false } = {}) {
   settings.bpm = clampBpm(v);
   if (!fromInput || document.activeElement !== bpmInput) bpmInput.value = settings.bpm;
   bpmSlider.value = settings.bpm;
   showMarking();
+  if (!weightDrag) showWeight();
   metronome?.configure(settings);
   persist();
 }
@@ -391,13 +383,17 @@ function syncThemeControls() {
   }
 }
 
-// Dark Mode: free in the apps too, since it is about being able to read the screen.
-chips($('appearance-chips'), APPEARANCES.map((id) => ({ id, label: TEXT.appSettings.appearances[id] })), () => settings.appearance, (id) => {
-  settings.appearance = id;
+// Dark Mode, a dropdown: free in the apps too, since it is about being able to read the screen.
+const appearance = $('appearance');
+appearance.replaceChildren(...APPEARANCES.map((id) => new Option(TEXT.appSettings.appearances[id], id)));
+appearance.value = settings.appearance;
+appearance.addEventListener('change', () => {
+  settings.appearance = appearance.value;
   settings.appearanceChosen = true;
   persist();
   applyTheme();
 });
+$('reload-page').addEventListener('click', () => location.reload());
 
 function setTheme(id) {
   if (id !== FREE_THEME && !requirePro('themes')) {
@@ -447,12 +443,50 @@ function openThemeSheet(from) {
   themeSheet.querySelector('.theme-tile[aria-checked="true"]')?.focus();
 }
 themeSheet.addEventListener('close', () => {
-  $('app-settings').querySelector('form').insertBefore($('appearance-field'), $('app-settings').querySelector('.open-audio-check'));
+  $('app-settings').querySelector('form').insertBefore($('appearance-field'), $('app-links'));
   $('app-settings').querySelector('form').insertBefore($('theme-field'), $('appearance-field'));
 });
 for (const b of document.querySelectorAll('.open-theme')) {
   b.addEventListener('click', () => openThemeSheet(b.closest('dialog')));
 }
+
+// A dialog opening focuses its first control, the close X, which then wears a
+// focus ring on a phone: the dialog takes the focus itself instead (Tab still
+// moves into it). Code that focuses something particular after opening still does.
+for (const d of document.querySelectorAll('dialog')) d.tabIndex = -1;
+const showModal = HTMLDialogElement.prototype.showModal;
+HTMLDialogElement.prototype.showModal = function () {
+  showModal.call(this);
+  if (document.activeElement?.closest('.sheet-head')) this.focus({ preventScroll: true });
+};
+
+/*
+ * A drag on an open dialog never scrolls the page behind it. The stylesheet
+ * stops the page scrolling while one is open; a phone can still pass a drag
+ * on the sheet through to the page (where the sheet has nothing to scroll,
+ * or is already at its end), so a touch move inside a dialog is let through
+ * only where something under the finger can scroll that way, or is a control
+ * that drags (a slider, a dropdown).
+ */
+let dragY = 0;
+document.addEventListener('touchstart', (e) => { dragY = e.touches[0]?.clientY ?? 0; }, { passive: true });
+document.addEventListener('touchmove', (e) => {
+  const dialog = document.querySelector('dialog[open]');
+  if (!dialog || e.touches.length !== 1) return;
+  const t = e.target instanceof Element ? e.target : null;
+  if (t?.closest('input, select, textarea, [role="slider"]')) return;
+  const y = e.touches[0].clientY;
+  const up = y < dragY; // finger moving up: the content would scroll down
+  dragY = y;
+  for (let el = t; el && dialog.contains(el); el = el.parentElement) {
+    const oy = getComputedStyle(el).overflowY;
+    if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 1) {
+      const room = up ? el.scrollTop + el.clientHeight < el.scrollHeight - 1 : el.scrollTop > 0;
+      if (room) return;
+    }
+  }
+  if (e.cancelable) e.preventDefault();
+}, { passive: false });
 
 const metSettings = $('met-settings');
 $('met-settings-btn').addEventListener('click', () => metSettings.showModal());
@@ -624,7 +658,7 @@ $('met-visual').addEventListener('contextmenu', (e) => e.preventDefault());
 const tempoGenre = $('tempo-genre');
 tempoGenre.replaceChildren(...GENRE_IDS.map((g) => new Option(TEXT.metronome.tempos.genres[g], g)));
 // A new style names the tempo in its own terms at once (the number stays).
-tempoGenre.addEventListener('change', () => { settings.tempoGenre = tempoGenre.value; settings.tempoPicked = null; persist(); renderTempos(); showMarking(); });
+tempoGenre.addEventListener('change', () => { settings.tempoGenre = tempoGenre.value; settings.tempoPicked = null; persist(); renderTempos(); showMarking(); showWeight(); });
 
 function renderTempos() {
   const T = TEXT.metronome.tempos;
@@ -688,6 +722,48 @@ const art = $('metronome-art');
 const toggleSwing = () => setSwing(!settings.swing);
 
 /*
+ * The pendulum's weight slides along the rod with the tempo, as on a real
+ * metronome (high is slow, low is fast; weightAt), and dragging it sets the
+ * tempo (bpmAtWeight). While it is dragged the pendulum eases upright (the
+ * clicks go on, at the new tempo); a tap on it without a drag is a tap on
+ * the metronome, as before.
+ */
+const weightEl = $('pend-weight');
+/** The chosen genre's slowest to fastest named tempo: the rod's range. */
+function weightRange() { return genreRange(settings.tempoGenre); }
+function showWeight(t = weightAt(settings.bpm, weightRange())) { placeWeight(pendulum, t); }
+weightEl.addEventListener('pointerdown', (e) => {
+  if (e.button) return;
+  const at = weightFromPoint(pendulum, e.clientY);
+  if (at == null) return;
+  weightDrag = { id: e.pointerId, x: e.clientX, y: e.clientY, offset: weightAt(settings.bpm, weightRange()) - at, moved: false };
+  weightEl.setPointerCapture(e.pointerId);
+});
+weightEl.addEventListener('pointermove', (e) => {
+  const d = weightDrag;
+  if (!d || e.pointerId !== d.id) return;
+  if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 4) return;
+  if (!d.moved) { d.moved = true; weightEl.classList.add('held'); }
+  const at = weightFromPoint(pendulum, e.clientY);
+  if (at == null) return;
+  const t = Math.min(1, Math.max(0, at + d.offset));
+  showWeight(t);
+  const bpm = Math.round(bpmAtWeight(t, weightRange()));
+  if (bpm !== settings.bpm) setBpm(bpm);
+});
+for (const type of ['pointerup', 'pointercancel']) {
+  weightEl.addEventListener(type, (e) => {
+    const d = weightDrag;
+    if (!d || e.pointerId !== d.id) return;
+    weightDrag = null;
+    weightEl.classList.remove('held');
+    weightMoved = d.moved;
+    if (d.moved) setTimeout(() => { weightMoved = false; }, 0); // only the click this release makes
+    showWeight();
+  });
+}
+
+/*
  * Everything you see follows heardNow(): the time of the sound reaching your
  * ears (the output delay the browser knows, plus the Sound and visuals sync
  * adjustment), looked one frame ahead because a frame drawn now appears on
@@ -706,7 +782,7 @@ function animateMetronome() {
   const beat = metronome.beatAt(now);
   // The pendulum swings in either view (small above the Visualizer). Turned
   // on or off it eases in or out over about half a second, never jumping.
-  const swingTo = settings.swing ? 1 : 0;
+  const swingTo = settings.swing && !weightDrag ? 1 : 0; // held upright while its weight is dragged
   swingAmt += (swingTo - swingAmt) * Math.min(1, frameSec / 0.16);
   if (Math.abs(swingTo - swingAmt) < 0.002) swingAmt = swingTo;
   const angle = swingAmt ? swingAmt * pendulumAngle(beat, now, metronome.period, swingOf(pendulum)) : 0;
@@ -907,6 +983,7 @@ foot.addEventListener('click', () => {
   switchView();
 });
 art.addEventListener('click', () => {
+  if (weightMoved) { weightMoved = false; return; } // that was the weight being dragged
   if (metVolume.swallowedTap(art)) return;
   toggleSwing();
 });
@@ -947,8 +1024,23 @@ function fitPicture() {
   const scr = $('metronome');
   if (scr.hidden) return;
   const body = scr.querySelector('.met-body');
+  scr.classList.remove('tight');
   if (getComputedStyle(body).flexDirection !== 'column') {
+    // Side by side: the picture as tall as the stylesheet asks, or the room
+    // below the bar if that is less; and if the controls still don't fit
+    // beside it, smaller controls (#metronome.tight).
     scr.style.removeProperty('--pic-h');
+    const fit = () => {
+      const vis = $('met-visual');
+      const css = getComputedStyle(vis);
+      const extra = (parseFloat(css.getPropertyValue('--gap')) || 0) + (parseFloat(css.getPropertyValue('--dots')) || 0);
+      const pad = parseFloat(getComputedStyle(scr).paddingBottom) || 0;
+      const room = innerHeight - pad - body.getBoundingClientRect().top - extra - 1;
+      const P = $('metronome-art').offsetHeight;
+      if (P > room) scr.style.setProperty('--pic-h', `${Math.round(Math.max(100, room))}px`);
+    };
+    fit();
+    if (document.documentElement.scrollHeight > innerHeight + 1) { scr.classList.add('tight'); scr.style.removeProperty('--pic-h'); fit(); }
     sizeFoot();
     return;
   }
@@ -956,15 +1048,20 @@ function fitPicture() {
   // Visualizer) is --P plus the dots' row and the gap, in either view; so
   // measure what is above and below it rather than the picture itself, which
   // may be in the middle of changing view.
-  const stage = scr.querySelector('.met-stage').getBoundingClientRect();
-  const last = Math.max(...[...scr.querySelectorAll('.met-controls > *, .sync-bar > *')]
-    .filter((e) => e.offsetParent).map((e) => e.getBoundingClientRect().bottom));
-  const below = last - stage.bottom;
-  const vis = getComputedStyle($('met-visual'));
-  const extra = (parseFloat(vis.getPropertyValue('--gap')) || 0) + (parseFloat(vis.getPropertyValue('--dots')) || 0);
-  const pad = parseFloat(getComputedStyle(scr).paddingBottom) || 0;
-  const room = innerHeight - pad - stage.top - below - extra - 1;
-  scr.style.setProperty('--pic-h', `${Math.round(Math.max(120, Math.min(560, room)))}px`);
+  const fit = () => {
+    const stage = scr.querySelector('.met-stage').getBoundingClientRect();
+    const last = Math.max(...[...scr.querySelectorAll('.met-controls > *, .sync-bar > *')]
+      .filter((e) => e.offsetParent).map((e) => e.getBoundingClientRect().bottom));
+    const below = last - stage.bottom;
+    const vis = getComputedStyle($('met-visual'));
+    const extra = (parseFloat(vis.getPropertyValue('--gap')) || 0) + (parseFloat(vis.getPropertyValue('--dots')) || 0);
+    const pad = parseFloat(getComputedStyle(scr).paddingBottom) || 0;
+    const room = innerHeight - pad - stage.top - below - extra - 1;
+    scr.style.setProperty('--pic-h', `${Math.round(Math.max(120, Math.min(560, room)))}px`);
+  };
+  fit();
+  // The picture at its smallest and still no room: smaller controls.
+  if (document.documentElement.scrollHeight > innerHeight + 1) { scr.classList.add('tight'); fit(); }
   sizeFoot();
 }
 
@@ -992,6 +1089,13 @@ function sizeFoot() {
   vis.style.setProperty('--V', `${V.toFixed(1)}px`);
   vis.style.setProperty('--s-bars', ((P + dots - V) / P).toFixed(4));
   vis.style.setProperty('--s-pulse', ((P + dots - big) / P).toFixed(4));
+  // The small dots' row, scaled down to the foot's width where there are
+  // many (12/8) and the foot is narrow (beside the controls on a phone on its side).
+  const dotsEl = [...$('beats').children];
+  const first = dotsEl[0], last = dotsEl[dotsEl.length - 1];
+  const dotsW = last ? last.offsetLeft + last.offsetWidth - first.offsetLeft : 0; // offsets ignore the scale
+  const fitDots = dotsW ? Math.min(1, $('met-foot').clientWidth / dotsW) : 1;
+  vis.style.setProperty('--dots-fit', fitDots.toFixed(3));
 }
 let fitQueued = 0;
 const queueFit = () => { cancelAnimationFrame(fitQueued); fitQueued = requestAnimationFrame(fitPicture); };
@@ -1903,7 +2007,7 @@ const droneUI = setupDrone({
 // ---------------------------------------------------------------- practice timer
 
 /*
- * The Practice Routine (?routine only, in development; inside, the timer). Its items play the
+ * The Practice Routine (inside the code, the timer). Its items play the
  * metronome and the drone through the same engines as their own screens, but
  * set up from the item, never from or into the Metronome's or the Drone's
  * settings (sound, accent and volume follow the Metronome's).
@@ -1911,81 +2015,118 @@ const droneUI = setupDrone({
 let timerUI = null;
 let pager = null;
 let timerDrone = false; // the timer started the drone
-if (TIMER_ON) {
-  const timerAudio = {
-    metronome(met) {
-      const cfg = { ...settings, bpm: met.bpm, meter: met.meter, accentPattern: null, subdivision: 1 };
-      if (useNative) {
-        if (!metronome?.native) metronome = new NativeMetronome();
-        metronome.configure(cfg);
-        if (!metronome.running) metronome.start().catch(() => {});
-        return;
-      }
-      if (metronome?.running) { metronome.configure(cfg); return; }
-      const ctx = freshAudio();
-      unlock();
-      if (!metronome || metronome.ctx !== ctx) {
-        metronome = new Metronome(ctx);
-        if (settings.speaker !== 'default') setContextSpeaker(settings.speaker);
-      }
+// Chimes and the voice play on the context the metronome plays through, when it does (one context, one output).
+const clipCtx = () => (!useNative && metronome?.running ? metronome.ctx : audio());
+const timerAudio = {
+  metronome(met) {
+    const cfg = { ...settings, bpm: met.bpm, meter: met.meter, accentPattern: null, subdivision: 1 };
+    if (useNative) {
+      if (!metronome?.native) metronome = new NativeMetronome();
       metronome.configure(cfg);
-      metronome.start();
-    },
-    stopMetronome() { if (metronome?.running) metronome.stop(); },
-    drone(drn) {
-      timerDrone = true;
-      const voice = TEXT.drone.voices[drn.voice] || '';
-      droneEngine().play({ midi: drn.midi, voice: drn.voice, a4: settings.a4, fifth: drn.fifth, schedule: null, label: `${TEXT.timer.title} · ${voice}` });
-    },
-    stopDrone() { if (timerDrone) { timerDrone = false; droneEngine().stop(); } },
-    // On the context the metronome plays through, when it does (one context, one output).
-    chime(id) { playChime(!useNative && metronome?.running ? metronome.ctx : audio(), id); },
-    running(on) {
-      keepAwake(on);
-      if (on && !recorder?.holdsMic) setSession('playback');
-    },
-  };
-  timerUI = setupTimer({
-    settings,
-    audio: timerAudio,
-    chips,
-    canDrone: () => isPro(),
-    askDrone: () => openPaywall('drone'),
-  });
-  pager = setupPager({
-    home: $('home'),
-    timer: $('routine'),
-    current: () => screen,
-    go: (name) => {
-      history.pushState(null, '', name === 'routine' ? '#routine' : location.pathname + location.search);
-      route();
-    },
-  });
-  $('page-next').addEventListener('click', () => pager.slide('home'));
-  // Back to the start slides when the timer is the second page.
-  $('timer-back').addEventListener('click', (e) => { if (pager.slide('routine')) e.preventDefault(); });
-  let homeQueued = 0;
-  addEventListener('resize', () => { cancelAnimationFrame(homeQueued); homeQueued = requestAnimationFrame(layoutHome); });
-  document.fonts?.ready.then(() => layoutHome());
-}
+      if (!metronome.running) metronome.start().catch(() => {});
+      return;
+    }
+    if (metronome?.running) { metronome.configure(cfg); return; }
+    const ctx = freshAudio();
+    unlock();
+    if (!metronome || metronome.ctx !== ctx) {
+      metronome = new Metronome(ctx);
+      if (settings.speaker !== 'default') setContextSpeaker(settings.speaker);
+    }
+    metronome.configure(cfg);
+    metronome.start();
+  },
+  stopMetronome() { if (metronome?.running) metronome.stop(); },
+  drone(drn) {
+    timerDrone = true;
+    const voice = TEXT.drone.voices[drn.voice] || '';
+    droneEngine().play({ midi: drn.midi, voice: drn.voice, a4: settings.a4, fifth: drn.fifth, schedule: null, label: `${TEXT.timer.title} · ${voice}` });
+  },
+  stopDrone() { if (timerDrone) { timerDrone = false; droneEngine().stop(); } },
+  // On the context the metronome plays through, when it does (one context, one output).
+  chime(id) { return playChime(clipCtx(), id); },
+  clips(urls, volume) { return playClips(clipCtx(), urls, volume == null ? {} : { volume }); },
+  preload(urls) { const c = clipCtx(); for (const u of urls) loadClip(c, u); },
+  running(on) {
+    keepAwake(on);
+    if (on && !recorder?.holdsMic) setSession('playback');
+  },
+};
+timerUI = setupTimer({
+  settings,
+  audio: timerAudio,
+  canDrone: () => isPro(),
+  askDrone: () => openPaywall('drone'),
+});
+pager = setupPager({
+  home: $('home'),
+  timer: $('routine'),
+  current: () => screen,
+  go: (name) => {
+    history.pushState(null, '', name === 'routine' ? '#routine' : location.pathname + location.search);
+    route();
+  },
+});
+// The smaller Practice Routine button under the others slides the routine in.
+$('go-routine-page').addEventListener('click', (e) => { if (pager.slide('home')) e.preventDefault(); });
+// Back to the start slides when the timer is the second page.
+$('timer-back').addEventListener('click', (e) => { if (pager.slide('routine')) e.preventDefault(); });
+let homeQueued = 0;
+addEventListener('resize', () => { cancelAnimationFrame(homeQueued); homeQueued = requestAnimationFrame(layoutHome); });
+document.fonts?.ready.then(() => layoutHome());
+document.addEventListener('art-applied', () => layoutHome()); // a theme's own art and fonts change what fits
 
 /**
- * Where the Practice Routine goes on the home screen: a fifth button among the
- * others when all five fit without scrolling, or else a second page to swipe
- * (or, with a mouse, click the arrow) across to.
+ * The home screen fits the window without scrolling. Wherever the window is
+ * wider than tall (a desktop, a tablet or phone on its side) the five
+ * buttons are one row, the Practice Routine among them. Upright, the Routine is a fifth
+ * button only when all five fit; otherwise it is a second page, reached by a
+ * smaller button under the others (its icon as large as the room left
+ * allows, ROUTINE_ART) that slides it in, or by a swipe. Whatever is left
+ * over that still doesn't fit is compacted: tighter spacing and labels
+ * (#home.compact), then smaller art (--art-max, HOME_ART) until it does.
  */
+const ROUTINE_ART = [72, 64, 56, 48, 40, 32];
+const HOME_ART = [160, 136, 116, 100, 86, 74, 64, 56, 48, 40];
+const homeRow = matchMedia('(orientation: landscape)'); // the stylesheet's one row of five
 function layoutHome() {
-  if (!TIMER_ON || !pager || screen !== 'home') return;
+  if (screen !== 'home') return;
+  const home = $('home');
   const box = $('choices');
+  const link = $('go-routine-page');
+  // Home is centred top to bottom, so too much spills off the top as well
+  // as the bottom, and the top doesn't scroll: measure both ends. A label
+  // wider than its button doesn't fit either.
+  const overflows = () => {
+    if (document.documentElement.scrollHeight > innerHeight + 1) return true;
+    const pad = parseFloat(getComputedStyle(home).paddingTop) || 0;
+    if ($('home-title').getBoundingClientRect().top < home.getBoundingClientRect().top + pad - 1) return true;
+    return [...home.querySelectorAll('.choice:not([hidden])')].some((c) => {
+      const b = c.getBoundingClientRect();
+      const l = c.querySelector('.label').getBoundingClientRect();
+      return l.left < b.left - 1 || l.right > b.right + 1;
+    });
+  };
+  const compact = () => {
+    if (!overflows()) return;
+    home.classList.add('compact');
+    HOME_ART.some((px) => { box.style.setProperty('--art-max', `${px}px`); return !overflows(); });
+  };
+  home.classList.remove('tight', 'compact');
+  box.style.removeProperty('--art-max');
+  link.hidden = true;
   timerTile.hidden = false;
   box.classList.add('five');
-  const fits = document.documentElement.scrollHeight <= innerHeight + 1;
+  const fits = homeRow.matches || !overflows();
   timerTile.hidden = !fits;
   box.classList.toggle('five', fits);
-  pager.set(!fits);
-  const touch = matchMedia('(pointer: coarse)').matches;
-  $('page-next').hidden = fits || touch;
-  $('page-hint').hidden = fits || !touch;
+  pager.set(!fits); // html.paged: home and the routine are two pages
+  if (!fits) {
+    link.hidden = false;
+    const size = () => ROUTINE_ART.some((px) => { link.style.setProperty('--routine-art', `${px}px`); return !overflows(); });
+    if (!size()) { home.classList.add('tight'); size(); } // the spacing tightens before the icon goes below its smallest
+  }
+  compact();
 }
 
 // The apps: the native metronome and drone go on while the screen is locked
@@ -2011,7 +2152,6 @@ document.addEventListener('keydown', (e) => {
   const t = e.target;
   // Typing in a field (a take's name, the tempo) keeps its keys.
   const typing = (t instanceof HTMLInputElement && t.type !== 'checkbox') || t instanceof HTMLTextAreaElement || t?.isContentEditable;
-  if (e.key === 'Escape' && screen === 'home') { homeOrder.stop(); return; }
   if (e.key === 'Escape' && screen !== 'home') { location.hash = ''; return; }
   if (screen === 'metronome') {
     if (e.key === ' ' && !typing && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); $('met-toggle').click(); }
@@ -2133,7 +2273,6 @@ initPro();
 onBackButton(() => {
   const open = [...document.querySelectorAll('dialog[open]')].pop();
   if (open) open.close();
-  else if (screen === 'home' && homeOrder.editing()) homeOrder.stop();
   else if (screen !== 'home') location.hash = '';
   else exitApp();
 });

@@ -10,7 +10,7 @@ import { TEXT } from './text-config.js';
 import { call, hasPlugin, listen } from './native.js';
 import { Metronome, SUB } from './metronome.js';
 import { barPlan } from './settings.js';
-import { SAMPLED, loadLoop, renderSynthLoop, synthSpec, SYNTH_ANCHORS, SYNTH_MAX_SHIFT } from './drone.js';
+import { SAMPLED, loadLoop, renderSynthLoop, synthSpec, SYNTH_ANCHORS, SYNTH_MAX_SHIFT, droneGain, DRONE_DEFAULT } from './drone.js';
 import { extraDelaySec } from './audio.js';
 
 const PLUGIN = 'PracticeAudio';
@@ -208,14 +208,15 @@ export class NativeDrone {
   constructor() {
     this.native = true;
     this.playing = false;
-    this.volume = 0.8;
+    this.volume = DRONE_DEFAULT;
     this.loaded = new Map(); // voice -> Promise
     this.ticket = 0;
   }
 
+  /** `v`: the slider, 0 to 1; the native mixer takes its gain (droneGain, up to DRONE_MAX_GAIN). */
   setVolume(v) {
     this.volume = v;
-    run('droneVolume', { volume: v }).catch(() => {});
+    run('droneVolume', { volume: droneGain(v) }).catch(() => {});
   }
 
   /** Hand a voice's loops to the native side (once). */
@@ -246,7 +247,7 @@ export class NativeDrone {
     this.playing = true;
     await this.ensureVoice(voice);
     if (ticket !== this.ticket) return;
-    await run('dronePlay', { voice, midi, a4, fifth, volume: this.volume, schedule, label });
+    await run('dronePlay', { voice, midi, a4, fifth, volume: droneGain(this.volume), schedule, label });
   }
 
   stop() {

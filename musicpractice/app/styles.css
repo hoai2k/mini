@@ -150,27 +150,26 @@ button { cursor: pointer; }
 .choice .label { font-weight: 800; font-size: clamp(1rem, 3.6vw, 1.3rem); text-align: center; }
 /* Three tools: two across and the third centred below on phones, three across when there's room. */
 .choices { --choice-gap: clamp(14px, 4vw, 32px); gap: var(--choice-gap); }
-/* Hold to reorder, like an iPhone home screen (src/homeorder.js). */
+/* Too little room (main.js layoutHome): tighter spacing and labels, and then
+   smaller art (--art-max) until it all fits without scrolling. */
+#home.compact { gap: 10px; padding-top: max(8px, env(safe-area-inset-top)); padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+#home.compact .brand { font-size: clamp(1.5rem, 7dvh, 2.4rem); }
+#home.compact .choices { --choice-gap: 10px; }
+#home.compact .choices .choice { padding: 8px 6px 10px; gap: 6px; }
+#home.compact .choices .choice .label { font-size: clamp(0.72rem, 2.4dvh + 0.3rem, 0.95rem); letter-spacing: 0; }
+/* A press on a button doesn't select its label or open the long-press callout. */
 .choice { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
-.choices.editing .choice { animation: jiggle 0.25s ease-in-out infinite alternate; animation-delay: var(--jiggle-delay, 0s); cursor: grab; touch-action: none; }
-.choices.editing .choice:hover, .choices.editing .choice:active { transform: none; }
-.choices .choice.dragging { animation: none; rotate: 0deg; z-index: 2; cursor: grabbing; opacity: 0.95; box-shadow: 0 26px 50px var(--shadow); }
-@keyframes jiggle { from { rotate: -1.3deg; } to { rotate: 1.3deg; } }
-@media (prefers-reduced-motion: reduce) {
-  .choices.editing .choice { animation: none; outline: 2px dashed var(--brass); outline-offset: 4px; }
-}
-.home-done { position: absolute; top: max(16px, env(safe-area-inset-top)); left: var(--gutter); min-width: 76px; z-index: 3; }
 .choices > .choice:nth-child(3):last-child { grid-column: 1 / -1; justify-self: center; width: calc((100% - var(--choice-gap)) / 2); }
 /* Four tools: two rows of two (phones and tablets, either way up), or one
    row of four once the window is clearly wider than tall (a desktop browser,
    a phone on its side), never three and then one. The art also follows the
    window's height so the tiles fit without scrolling. */
-.choice .art { width: min(100%, 200px, 20dvh); }
+.choice .art { width: min(100%, 200px, 20dvh, var(--art-max, 200px)); }
 @media (min-aspect-ratio: 3/2) {
   .choices { grid-template-columns: repeat(4, minmax(0, 1fr)); width: min(100%, 1100px); }
   .choices:has(> .choice:nth-child(3):last-child) { grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(100%, 860px); }
   .choices > .choice:nth-child(3):last-child { grid-column: auto; width: auto; }
-  .choice .art { width: min(100%, 200px, 28dvh); }
+  .choice .art { width: min(100%, 200px, 28dvh, var(--art-max, 200px)); }
 }
 
 /* Top bar */
@@ -191,7 +190,10 @@ button { cursor: pointer; }
   color: var(--ink);
   text-decoration: none;
 }
-.icon-btn:hover { background: var(--panel); }
+@media (hover: hover) { .icon-btn:hover { background: var(--panel); } }
+/* A dialog takes focus itself as it opens (main.js), so its first button, the
+   close X, doesn't wear a focus ring on a phone; Tab still moves into it. */
+dialog:focus { outline: none; }
 .icon-btn svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* Metronome */
@@ -255,6 +257,8 @@ button { cursor: pointer; }
   transition: height var(--morph), gap var(--morph);
 }
 .met-visual.pulse .beats { height: var(--big); }
+/* Many small dots in a narrow foot: the row scaled to fit (main.js sizeFoot). */
+.met-visual:not(.pulse):not(.bars) .beats { scale: var(--dots-fit, 1); }
 /* Dots and Visualizer swap by a cross-zoom (main.js crossZoom): each fades
    while it is drawn growing or shrinking into the other's box. These are
    where each ends up. */
@@ -316,6 +320,14 @@ button { cursor: pointer; }
   will-change: transform;
 }
 .met-pendulum.resting { transition: transform 0.4s ease-out; }
+/* Its weight, placed on the rod by art.js placeWeight (high is slow). It
+   slides when the tempo changes, follows the finger when dragged, and has a
+   grip wider than itself so a finger finds it. */
+.met-pendulum > .met-weight { position: absolute; display: block; transition: top 0.25s ease-out; touch-action: none; cursor: grab; z-index: 1; }
+.met-pendulum > .met-weight[hidden] { display: none; }
+.met-pendulum > .met-weight.held { transition: none; cursor: grabbing; }
+.met-rod > *, .met-weight > * { width: 100%; height: 100%; display: block; object-fit: contain; }
+.met-weight::before { content: ''; position: absolute; inset: -40% -30%; min-height: 44px; }
 .beats { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; max-width: 320px; }
 .beats li {
   width: 16px; height: 16px; border-radius: 50%;
@@ -555,14 +567,33 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
   -webkit-text-stroke: 1px var(--ink); opacity: var(--lit, 0); pointer-events: none;
 }
 
-/* Landscape phones and desktops: metronome left, controls right */
+/* Landscape phones and desktops: metronome left, controls right. The
+   picture's foot (dots, Pulse, Visualizer) is as wide as the picture is
+   tall rather than the window, and the controls give way, so the two fit
+   side by side on a small phone on its side; main.js fitPicture takes the
+   picture's height from the room there is. */
 @media (min-width: 720px) and (min-aspect-ratio: 1/1), (orientation: landscape) and (max-height: 560px) {
-  .met-body { flex-direction: row; justify-content: center; gap: clamp(24px, 6vw, 80px); }
-  .met-visual { --P: clamp(200px, 62dvh, 520px); }
+  .met-body { flex-direction: row; justify-content: center; gap: clamp(16px, 5vw, 80px); }
+  .met-visual { --P: var(--pic-h, clamp(200px, 62dvh, 520px)); --foot-w: clamp(170px, calc(var(--P) * 0.95), 440px); flex: none; }
+  .met-controls, .sync-bar { flex: 0 1 440px; min-width: 0; }
 }
+/* Still too little room (main.js fitPicture): smaller controls. */
+#metronome.tight .bar { margin-bottom: 0; }
+#metronome.tight .met-controls { gap: 2px; }
+#metronome.tight .step { width: 42px; height: 42px; font-size: 1.35rem; }
+#metronome.tight .bpm-box input { font-size: 2.2rem; }
+#metronome.tight .marking { min-height: 0; }
+#metronome.tight .big-btn { min-height: 42px; padding-block: 6px; }
+#metronome.tight .meter-note { font-size: 0.78rem; }
+#metronome.tight .sync-bar { gap: 4px; }
+#metronome.tight .sync-title { font-size: 1rem; }
+#metronome.tight .sync-bar .help { font-size: 0.78rem; margin: 0; line-height: 1.3; }
+#metronome.tight .sync-val { font-size: 1.6rem; }
+#metronome.tight .sync-status { min-height: 0; }
+#metronome.tight .sync-bar .pill { min-height: 34px; padding-block: 4px; }
 @media (orientation: landscape) and (max-height: 560px) {
   .bar { margin-bottom: 0; }
-  .met-visual { --P: 64dvh; }
+  .met-visual { --P: var(--pic-h, 64dvh); }
   .met-controls { gap: 4px; }
   .big-btn { min-height: 50px; }
 }
@@ -579,6 +610,10 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
   box-shadow: 0 20px 60px var(--shadow);
 }
 .sheet::backdrop { background: var(--backdrop); }
+/* While a sheet or dialog is open, the page under it stays put: dragging on
+   the sheet scrolls the sheet (if it has more than fits) and never the page
+   behind it (also main.js, for touch on the parts of a sheet that don't scroll). */
+html:has(dialog[open]) { overflow: hidden; }
 /* A sheet scrolls up and down only. Safari sizes a dropdown to its longest
    option (a Bluetooth headset's full name, say), which pushed rows wider than
    the sheet and let it pan sideways; the rows below now give way instead. */
@@ -589,7 +624,9 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
 /* A dropdown under its label takes the row's whole width (device names are long). */
 .row:not(.toggle) > .select { width: 100%; max-width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sheet form { padding: 8px 20px 22px; display: flex; flex-direction: column; gap: 14px; }
-.sheet-head { display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--bg-2); z-index: 1; padding-top: 8px; }
+/* The title stays at the top as the sheet scrolls, and covers the whole width
+   of it (over the form's side padding), so nothing shows past it on either side. */
+.sheet-head { display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--bg-2); z-index: 1; padding-top: 8px; margin-inline: -20px; padding-inline: 20px; }
 .sheet-head h3 { margin: 0; font: 700 1.2rem var(--display); }
 fieldset { border: 0; margin: 0; padding: 0; }
 legend { font-weight: 700; margin-bottom: 8px; padding: 0; }
@@ -641,7 +678,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 .tuner-body { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(100%, 520px); margin: 0 auto; }
 .tuner-instrument .select { min-width: 220px; max-width: 100%; }
 .gauge-wrap { width: 100%; display: flex; flex-direction: column; align-items: center; }
-.gauge { width: min(100%, 440px); height: auto; display: block; overflow: visible; }
+.gauge { width: min(100%, 440px, calc(var(--gauge-max, 9999px) * 320 / 196)); height: auto; display: block; overflow: visible; } /* --gauge-max: tunerui.js fit(), when the page would scroll */
 .gauge .tick { stroke: var(--ink-3); stroke-width: 2; stroke-linecap: round; }
 .gauge .tick.mid { stroke: var(--ink-2); stroke-width: 3; }
 .gauge .tick.major { stroke: var(--ink); stroke-width: 4; }
@@ -649,6 +686,12 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 .gauge text { fill: var(--ink-3); font: 700 26px/1 var(--display); text-anchor: middle; }
 #needle line { stroke: var(--brass-2); stroke-width: 5; stroke-linecap: round; transition: stroke 0.15s; }
 #needle circle { fill: var(--brass); }
+/* The last of tunerui.js fit's steps, when even the smallest gauge leaves
+   too little room (a long message on a small phone): tighter text and buttons. */
+.tuner-body.tight { gap: 2px; row-gap: 2px; }
+.tuner-body.tight .tuner-status, .tuner-body.tight .tuner-hint { font-size: 0.78rem; line-height: 1.2; margin: 0; }
+.tuner-body.tight .pill, .tuner-body.tight #ref-tone { min-height: 34px; padding-block: 4px; margin-top: 0; }
+.tuner-body.tight .select { min-height: 38px; padding-block: 4px; }
 .tuner-body:not(.live) #needle line { stroke: var(--ink-3); }
 .tuner-body.flat #needle line, .tuner-body.sharp #needle line { stroke: var(--red-2); }
 .tuner-body.in-tune #needle line { stroke: var(--ok-2); }
@@ -695,7 +738,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   .tuner-body { width: min(100%, 760px); display: grid; grid-template-columns: 1fr 1fr; align-items: center; justify-items: center; gap: 4px 24px; }
   .tuner-instrument, .gauge-wrap { grid-column: 1; }
   .gauge-wrap { grid-row: 2 / span 4; }
-  .gauge { width: auto; height: min(44dvh, 220px); }
+  .gauge { width: auto; height: min(44dvh, 220px, var(--gauge-max, 9999px)); }
   .tuner-note { font-size: 3rem; }
 }
 
@@ -809,6 +852,15 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   .bow-col { height: min(60dvh, 220px); }
 
   .drone-note { font-size: 3rem; }
+  /* Still too little room (droneui.js fit): smaller controls. */
+  #drone.tight .bar { margin-bottom: 0; }
+  #drone.tight .drone-body { row-gap: 2px; }
+  #drone.tight .drone-note { font-size: 2.2rem; }
+  #drone.tight .drone-hz { padding-block: 0; }
+  #drone.tight .step { width: 40px; height: 40px; font-size: 1.3rem; }
+  #drone.tight .select { min-height: 38px; padding-block: 4px; }
+  #drone.tight .big-btn { min-height: 40px; padding-block: 4px; }
+  #drone.tight .drone-elapsed { height: 1.3rem; line-height: 1.3rem; }
 }
 
 /* Record / Playback */
@@ -1028,7 +1080,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="deco"] .takes-title { display: flex; align-items: center; gap: 12px; }
 [data-theme="deco"] .takes-title::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
 [data-theme="deco"] .icon-btn { border-radius: 0; }
-[data-theme="deco"] .icon-btn:hover { background: transparent; color: var(--brass-2); }
+@media (hover: hover) { [data-theme="deco"] .icon-btn:hover { background: transparent; color: var(--brass-2); } }
 
 /* Metronome controls */
 [data-theme="deco"] .beats li {
@@ -1809,40 +1861,42 @@ div.ac-status.bad { border-color: var(--red); justify-items: start; }
 .text-pending body { visibility: hidden; }
 
 /* ---------------------------------------------------------------- Practice Routine
-   (in development: only with ?routine in the address). Built from the shared
+   Built from the shared
    controls and theme colours, so every theme draws it in its own look. */
 
 /* Home: five buttons. Two across with the fifth centred under them, or one
-   row of five when the window is clearly wider than tall. */
+   row of five whenever the window is wider than tall (main.js layoutHome
+   then never makes the routine a second page). */
 .choices.five > .choice:nth-child(5) { grid-column: 1 / -1; justify-self: center; width: calc((100% - var(--choice-gap)) / 2); }
-@media (min-aspect-ratio: 3/2) {
+@media (orientation: landscape) {
   .choices.five { grid-template-columns: repeat(5, minmax(0, 1fr)); width: min(100%, 1300px); }
   .choices.five > .choice:nth-child(5) { grid-column: auto; width: auto; }
 }
 
-/* Home and the timer as two pages (pager.js). An arrow to click at the
-   edge with a mouse; with a finger, a faint chevron that says there is a
-   page to swipe in, nudging now and then. */
-.page-arrow {
-  position: fixed; top: 50%; translate: 0 -50%; z-index: 4;
-  width: 44px; height: 64px; display: grid; place-items: center;
-  border-radius: 22px; border: 1px solid var(--line); background: var(--panel); color: var(--ink-2);
-  box-shadow: 0 6px 18px var(--shadow);
+/* Home and the routine as two pages (pager.js): when the routine's full
+   button doesn't fit, a smaller one under the others (its icon and name)
+   slides the routine in; a swipe does too, and the routine's back arrow
+   slides home. main.js sizes its icon to the room left (--routine-art). */
+/* A .choice (so each theme draws it as its own buttons), laid out in a row. */
+.choice.routine-link {
+  flex-direction: row; flex: none; align-self: center; gap: 10px;
+  padding: 6px 22px 6px 10px;
 }
-.page-arrow:hover { color: var(--ink); border-color: var(--brass); }
-.page-arrow svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-.page-next { right: max(8px, env(safe-area-inset-right)); }
-.page-hint {
-  position: fixed; top: 50%; right: max(2px, env(safe-area-inset-right)); translate: 0 -50%; z-index: 4;
-  width: 22px; height: 56px; display: grid; place-items: center; color: var(--ink-3); opacity: 0.55;
-  pointer-events: none; animation: page-nudge 3.2s ease-in-out 1s infinite;
-}
-.page-hint svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-@keyframes page-nudge { 0%, 70%, 100% { transform: none; } 80% { transform: translateX(-6px); } 90% { transform: none; } }
-@media (prefers-reduced-motion: reduce) { .page-hint { animation: none; } }
+.choice.routine-link[hidden] { display: none; }
+/* Closer under the grid than the home screen's own spacing: it belongs to it. */
+#home .choice.routine-link { margin-top: calc(14px - clamp(24px, 6vh, 56px)); }
+/* When even its smallest icon doesn't fit, the home screen's spacing tightens too. */
+#home.tight { gap: 12px; }
+#home.tight .choice.routine-link { margin-top: 0; }
+.choice.routine-link .art { width: var(--routine-art, 56px); flex: none; }
+.choice.routine-link .label { font-size: clamp(0.95rem, 3.4vw, 1.15rem); }
 html.paged #home, html.paged #routine { touch-action: pan-y; }
 /* The page sliding in, laid over the window beside the one going. */
-.screen.page-incoming { position: fixed; inset: 0; z-index: 5; overflow: hidden; background: var(--bg); }
+/* (#home sets position: relative by its id, so the ids are named here too, or
+   home would stay in the flow and push the routine below the window.) */
+.screen.page-incoming, #home.page-incoming, #routine.page-incoming { position: fixed; inset: 0; z-index: 5; overflow: hidden; }
+/* No background of its own: each theme's backdrop (the page's) shows through
+   both pages as they slide, as it does behind either at rest. */
 
 /* The timer screen */
 .timer-body { flex: 1; width: min(100%, 620px); margin: 0 auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 24px; }
@@ -1852,6 +1906,13 @@ html.paged #home, html.paged #routine { touch-action: pan-y; }
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
   box-shadow: 0 10px 30px var(--shadow);
 }
+/* While an item runs, its picture takes the top of the panel, large. */
+.timer-picture { grid-area: pic; display: none; width: clamp(150px, 46vw, 260px); aspect-ratio: 1; justify-self: center; place-items: center; }
+.timer-picture > * { width: 100%; height: 100%; object-fit: contain; }
+.timer-now.running { grid-template-columns: 1fr; grid-template-areas: "pic" "read" "act"; }
+.timer-now.running .timer-picture { display: grid; }
+.timer-now.running .timer-art { display: none; }
+.timer-now.running .timer-readout { text-align: center; align-items: stretch; }
 .timer-art { grid-area: art; width: clamp(64px, 18vw, 96px); aspect-ratio: 1; display: grid; place-items: center; }
 .timer-art > * { width: 100%; height: 100%; object-fit: contain; }
 .timer-readout { grid-area: read; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
@@ -1877,11 +1938,10 @@ html.paged #home, html.paged #routine { touch-action: pan-y; }
 .titem.now { border-color: var(--brass); box-shadow: 0 0 0 1px var(--brass), 0 8px 22px var(--shadow); }
 .titem.done { opacity: 0.6; }
 .titem-head { display: flex; align-items: center; gap: 8px; }
-.titem-num {
-  flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
-  background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-2); font-weight: 800; font-size: 0.85rem;
-}
-.titem.now .titem-num { background: var(--brass); border-color: var(--brass); color: var(--on-accent); }
+/* The item's place in the list, as plain text before its name ("1. Intonation"),
+   so it doesn't read as a button; the one running is lit in the accent colour. */
+.titem-num { flex: none; color: var(--ink-2); font: 700 1.05rem/1.3 var(--ui); font-variant-numeric: tabular-nums; margin-right: -4px; }
+.titem.now .titem-num { color: var(--brass-2); }
 .titem-name {
   flex: 1; min-width: 0; font: 700 1.05rem/1.3 var(--ui); color: var(--ink);
   background: transparent; border: 0; border-bottom: 1px solid transparent; padding: 6px 2px; border-radius: 0;
@@ -1904,7 +1964,18 @@ html.paged #home, html.paged #routine { touch-action: pan-y; }
 .titem-del svg { width: 22px; height: 22px; }
 .titem-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding-left: 36px; }
 .titem-time { margin-right: 2px; gap: 3px; }
-.titem-tool { min-height: 34px; min-width: 0; padding: 4px 11px; }
+/* A routine's tools: + Tools when it has none; the ones it has, lit, then a
+   small +. One group, at the far end beside the minutes on a wide card; on a
+   narrow one, a group holding tools takes a line of its own under them. */
+.titem-tools { container-type: inline-size; }
+.titem-uses { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-left: auto; }
+@container (max-width: 470px) { .titem-uses:has(.titem-tool) { flex-basis: 100%; margin-left: 0; } }
+.titem-tool, .titem-more { min-height: 34px; min-width: 0; }
+.titem-tool { padding: 4px 12px 4px 8px; display: inline-flex; align-items: center; gap: 7px; }
+.titem-more { padding: 4px 12px; color: var(--ink-2); }
+.titem-more.plus { width: 34px; padding: 0; border-radius: 50%; font-size: 1.2rem; font-weight: 700; line-height: 1; }
+.titem-check { flex: none; width: 18px; height: 18px; border-radius: 5px; border: 2px solid currentColor; display: grid; place-items: center; }
+.titem-check svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 .titem-tool[aria-pressed="true"] { background: var(--brass); border-color: var(--brass); color: var(--on-accent); }
 .titem-open { flex: none; width: 40px; height: 40px; }
 .titem-open[hidden] { display: none; }
@@ -1934,7 +2005,86 @@ html.paged #home, html.paged #routine { touch-action: pan-y; }
 }
 .timer-preset:hover { border-color: var(--brass); }
 .timer-preset-name { font-weight: 800; font-size: 1.05rem; }
-.timer-preset-line { color: var(--ink-3); font-weight: 600; font-size: 0.9rem; }
+/* Each suggestion's picture, small, before its name (timerui.js icons). */
+.timer-preset:has(.timer-preset-icon) { flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; }
+.timer-preset-icon, .titem-icon { flex: none; display: grid; place-items: center; aspect-ratio: 1; }
+.timer-preset-icon { width: 40px; }
+.titem-icon { width: 34px; }
+.timer-preset-icon > *, .titem-icon > * { width: 100%; height: 100%; object-fit: contain; }
 @media (max-width: 420px) {
   .titem-tools, .titem-detail { padding-left: 0; }
 }
+
+/* Test My Scale Intonation. Its own feature
+   under the tuner, set apart from Play a note: an inviting card that opens
+   a sheet with a record button, then the results there. */
+.scale-test { width: min(100%, 440px); margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); display: flex; justify-content: center; }
+.scale-test[hidden] { display: none; }
+/* Where the page would otherwise scroll (tunerui.js fit()): first without
+   its subtitle and with less space above, then smaller still. */
+.scale-test.compact { margin-top: 12px; padding-top: 12px; }
+.scale-test.compact .scale-cta-text small { display: none; }
+.scale-test.tight { margin-top: 4px; padding-top: 8px; }
+.scale-test.tight .scale-cta { padding: 7px 12px; gap: 10px; border-radius: 16px; box-shadow: none; }
+.scale-test.tight .scale-cta-icon { width: 34px; height: 34px; box-shadow: none; }
+.scale-test.tight .scale-cta-icon svg { width: 21px; height: 21px; }
+.scale-test.tight .scale-cta-text strong { font-size: 0.98rem; }
+/* Barest: no space above the rule, and the card's box gone, so the whole
+   strip under the rule is the button. */
+.scale-test.bare { margin-top: 0; padding-top: 0; }
+.scale-test.bare .scale-cta { border: 0; border-radius: 0; background: transparent; padding: 6px 4px; }
+.scale-test.bare .scale-cta:hover { transform: none; background: var(--panel); }
+.scale-cta {
+  width: 100%; display: flex; align-items: center; gap: 14px; text-align: left;
+  padding: 14px 16px; border-radius: 20px; color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--brass) 55%, var(--line));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--brass) 24%, var(--panel)), var(--panel) 70%);
+  box-shadow: 0 8px 22px var(--shadow);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.scale-cta:hover { transform: translateY(-2px); border-color: var(--brass); box-shadow: 0 12px 28px var(--shadow); }
+.scale-cta:active { transform: scale(0.98); }
+.scale-cta-icon {
+  flex: none; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--brass); color: var(--on-accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--brass) 25%, transparent);
+}
+.scale-cta-icon svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.scale-cta-icon circle { fill: currentColor; stroke: none; }
+.scale-cta-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.scale-cta-text strong { font: 700 1.08rem/1.2 var(--display); }
+.scale-cta-text small { color: var(--ink-2); font-weight: 600; font-size: 0.88rem; }
+.scale-cta-go { flex: none; width: 22px; height: 22px; fill: none; stroke: var(--ink-2); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+/* The sheet: one step at a time. */
+#scale-sheet .scale-record, #scale-sheet .scale-results { display: none; flex-direction: column; gap: 14px; }
+#scale-sheet[data-step="ready"] .scale-record, #scale-sheet[data-step="listening"] .scale-record { display: flex; }
+#scale-sheet[data-step="results"] .scale-results { display: flex; }
+.scale-steps { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 6px; color: var(--ink-2); font-weight: 600; }
+.scale-steps li::marker { color: var(--brass); font-weight: 800; }
+.scale-rec-row { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 8px 0 4px; }
+.scale-status { margin: 0; font-weight: 700; color: var(--ink-2); text-align: center; min-height: 2.8em; max-width: 26em; }
+/* The score (its scale isn't shown), counted up, with its three parts under it. */
+.scale-score { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px; border-radius: 16px; border: 1px solid color-mix(in srgb, var(--brass) 45%, var(--line)); background: linear-gradient(180deg, color-mix(in srgb, var(--brass) 16%, var(--panel)), var(--panel)); }
+.scale-score[hidden] { display: none; }
+.scale-score-label { font-weight: 800; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+.scale-score-num { font: 700 clamp(2.6rem, 12vw, 3.4rem)/1 var(--display); font-variant-numeric: tabular-nums; color: var(--ink); }
+.scale-score-parts { color: var(--ink-2); font-weight: 600; font-size: 0.85rem; text-align: center; }
+.scale-summary { margin: 0 0 4px; font: 700 1.2rem/1.3 var(--display); }
+.scale-notes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.scale-note {
+  display: grid; grid-template-columns: 4.2em 1.6em 1fr; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel);
+}
+.sn-note { font: 700 1.3rem/1 var(--display); }
+.sn-oct { font-size: 0.65em; color: var(--ink-3); margin-left: 1px; }
+.sn-mark { font-weight: 800; font-size: 1.2rem; text-align: center; }
+.sn-verdict { font-weight: 700; }
+.scale-note.good .sn-mark { color: var(--ok-2); }
+.scale-note.flat .sn-mark, .scale-note.sharp .sn-mark { color: var(--red-2); }
+.scale-note.flat, .scale-note.sharp { border-color: color-mix(in srgb, var(--red-2) 45%, var(--line)); }
+/* Under a note out of tune: play it as played, and corrected onto the note. */
+.sn-play { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
+.sn-play-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 4px 14px 4px 10px; font-size: 0.9rem; }
+.sn-play-btn svg { width: 16px; height: 16px; fill: currentColor; flex: none; }
+.sn-play-btn[aria-pressed="true"] { border-color: var(--brass); color: var(--brass-2); }
+.sn-play-btn[data-kind="corrected"] svg { color: var(--ok-2); }

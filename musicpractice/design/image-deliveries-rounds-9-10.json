@@ -1,0 +1,1172 @@
+{
+  "date": "2026-10-19",
+  "rounds": [
+    9,
+    10
+  ],
+  "scope": "All eight Practice Routine home icons, and separate metronome rods and sliding weights for all eight themes. Existing app behavior consumes the delivered assets and measured geometry.",
+  "tool": "built-in image_gen; project export normalization",
+  "assets": [
+    {
+      "id": "home-routine",
+      "theme": "classic",
+      "round": 9,
+      "file": "musicpractice/app/assets/ui/home-routine.webp",
+      "size": [
+        384,
+        384
+      ],
+      "status": "delivered",
+      "group": "Classic \u00b7 Home screen buttons",
+      "prompt": "Use case: precise-object-edit. Edit the attached hourglass icon. Remove ALL outward side wings, ribbons, flowing bands and mist. Remove floating decorations. Keep only the original central hourglass and its attached frame, exactly the same materials, colors, light, glass, sand, proportions and upright frontal pose. Keep normal ornament carved on the frame, but no long curling appendages projecting sideways. Preserve canvas size, placement and transparent background. No notes, no text. This is a Practice Routine icon; wing-like sound ribbons belong ONLY to Drone. Restore transparent pixels where the removed wings were; do not replace them with anything.",
+      "note": "The Practice Routine's button on the home screen in the Classic theme (and its picture on the timer screen); the label is written by the app. Made from app/assets/ui/home-drone.webp so it matches the other home buttons. PNG masters, prompts and export details: design/image-deliveries-rounds-9-10.json.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a turned walnut frame with brass end caps and clear glass bulbs holding warm golden sand. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. No wings, sound ribbons, mist, floating notes or surrounding decorations; those ribbons belong only to Drone. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/home-routine.webp"
+      ],
+      "generated_source": "exec-3b696d87-fccb-4142-bbf5-2f58efbbd751.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-9/classic-home-routine.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes.",
+      "initial_generated_source": "exec-44a67973-fa53-4f2f-b118-0be130ca4766.png",
+      "initial_prompt": "Using the attached image, musicpractice/app/assets/ui/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a turned walnut frame with brass end caps and clear glass bulbs holding warm golden sand. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. Keep the same two thin, smooth ribbons drifting gently outward from the sides as in the reference, so it sits with the other home buttons. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.\nReference roles: image 1 is the RGBA style reference; image 2 is the same image on dark grey ONLY to demonstrate its real translucent mist. Do not copy the grey background. Preserve that faint, airy, semi-transparent treatment rather than turning the mist into solid wings or cloth; preserve graphic ribbon treatments in the graphic themes. Replace cello AND bow with the hourglass. Show the thin falling sand stream and about two thirds of the sand below. Output square 1024x1024 transparent PNG."
+    },
+    {
+      "id": "home-routine",
+      "theme": "deco",
+      "round": 9,
+      "file": "musicpractice/app/assets/ui/deco/home-routine.webp",
+      "size": [
+        384,
+        384
+      ],
+      "status": "delivered",
+      "group": "Art Deco \u00b7 Home screen buttons",
+      "prompt": "Use case: precise-object-edit. Edit the attached hourglass icon. Remove ALL outward side wings, ribbons, flowing bands and mist. Remove floating decorations. Keep only the original central hourglass and its attached frame, exactly the same materials, colors, light, glass, sand, proportions and upright frontal pose. Keep normal ornament carved on the frame, but no long curling appendages projecting sideways. Preserve canvas size, placement and transparent background. No notes, no text. This is a Practice Routine icon; wing-like sound ribbons belong ONLY to Drone. Restore transparent pixels where the removed wings were; do not replace them with anything.",
+      "note": "The Practice Routine's button on the home screen in the Art Deco theme (and its picture on the timer screen); the label is written by the app. Made from app/assets/ui/deco/home-drone.webp so it matches the other home buttons. PNG masters, prompts and export details: design/image-deliveries-rounds-9-10.json.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/deco/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a black lacquer frame with stepped gold-leaf end caps and slender gold columns, a small jade accent, golden sand. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. No wings, sound ribbons, mist, floating notes or surrounding decorations; those ribbons belong only to Drone. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/deco/home-routine.webp"
+      ],
+      "generated_source": "exec-8eb92b08-7e48-4f99-a97a-bd9b9797c18a.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-9/deco-home-routine.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes.",
+      "initial_generated_source": "exec-5dc04a43-7868-4875-9561-cff99304dac3.png",
+      "initial_prompt": "Using the attached image, musicpractice/app/assets/ui/deco/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a black lacquer frame with stepped gold-leaf end caps and slender gold columns, a small jade accent, golden sand. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. Keep the same two thin, smooth ribbons drifting gently outward from the sides as in the reference, so it sits with the other home buttons. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.\nReference roles: image 1 is the RGBA style reference; image 2 is the same image on dark grey ONLY to demonstrate its real translucent mist. Do not copy the grey background. Preserve that faint, airy, semi-transparent treatment rather than turning the mist into solid wings or cloth; preserve graphic ribbon treatments in the graphic themes. Replace cello AND bow with the hourglass. Show the thin falling sand stream and about two thirds of the sand below. Output square 1024x1024 transparent PNG."
+    },
+    {
+      "id": "home-routine",
+      "theme": "sixties",
+      "round": 9,
+      "file": "musicpractice/app/assets/ui/sixties/home-routine.webp",
+      "size": [
+        384,
+        384
+      ],
+      "status": "delivered",
+      "group": "Vintage 60s \u00b7 Home screen buttons",
+      "prompt": "Use case: precise-object-edit. Edit the attached hourglass icon. Remove ALL outward side wings, ribbons, flowing bands and mist. Remove floating decorations. Keep only the original central hourglass and its attached frame, exactly the same materials, colors, light, glass, sand, proportions and upright frontal pose. Keep normal ornament carved on the frame, but no long curling appendages projecting sideways. Preserve canvas size, placement and transparent background. No notes, no text. This is a Practice Routine icon; wing-like sound ribbons belong ONLY to Drone. Restore transparent pixels where the removed wings were; do not replace them with anything.",
+      "note": "The Practice Routine's button on the home screen in the Vintage 60s theme (and its picture on the timer screen); the label is written by the app. Made from app/assets/ui/sixties/home-drone.webp so it matches the other home buttons. PNG masters, prompts and export details: design/image-deliveries-rounds-9-10.json.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/sixties/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a rounded burnt-orange teak frame with dark teal end caps, chrome columns and creamy sand, in flat screen-print colour. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. No wings, sound ribbons, mist, floating notes or surrounding decorations; those ribbons belong only to Drone. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/sixties/home-routine.webp"
+      ],
+      "generated_source": "exec-8664135f-7fd5-4bc6-8f27-577c5593250f.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-9/sixties-home-routine.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes.",
+      "initial_generated_source": "exec-39865ae8-4ea8-4e35-8e9b-694eb90c4029.png",
+      "initial_prompt": "Using the attached image, musicpractice/app/assets/ui/sixties/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a rounded burnt-orange teak frame with dark teal end caps, chrome columns and creamy sand, in flat screen-print colour. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. Keep the same two thin, smooth ribbons drifting gently outward from the sides as in the reference, so it sits with the other home buttons. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.\nReference roles: image 1 is the RGBA style reference; image 2 is the same image on dark grey ONLY to demonstrate its real translucent mist. Do not copy the grey background. Preserve that faint, airy, semi-transparent treatment rather than turning the mist into solid wings or cloth; preserve graphic ribbon treatments in the graphic themes. Replace cello AND bow with the hourglass. Show the thin falling sand stream and about two thirds of the sand below. Output square 1024x1024 transparent PNG."
+    },
+    {
+      "id": "home-routine",
+      "theme": "baroque",
+      "round": 9,
+      "file": "musicpractice/app/assets/ui/baroque/home-routine.webp",
+      "size": [
+        384,
+        384
+      ],
+      "status": "delivered",
+      "group": "18th Century \u00b7 Home screen buttons",
+      "prompt": "Use case: precise-object-edit. Edit the attached hourglass icon. Remove ALL outward side wings, ribbons, flowing bands and mist. Remove floating decorations. Keep only the original central hourglass and its attached frame, exactly the same materials, colors, light, glass, sand, proportions and upright frontal pose. Keep normal ornament carved on the frame, but no long curling appendages projecting sideways. Preserve canvas size, placement and transparent background. No notes, no text. This is a Practice Routine icon; wing-like sound ribbons belong ONLY to Drone. Restore transparent pixels where the removed wings were; do not replace them with anything.",
+      "note": "The Practice Routine's button on the home screen in the 18th Century theme (and its picture on the timer screen); the label is written by the app. Made from app/assets/ui/baroque/home-drone.webp so it matches the other home buttons. PNG masters, prompts and export details: design/image-deliveries-rounds-9-10.json.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a carved walnut frame with gilt acanthus end caps and twisted columns, a small burgundy accent, golden sand. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. No wings, sound ribbons, mist, floating notes or surrounding decorations; those ribbons belong only to Drone. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/baroque/home-routine.webp"
+      ],
+      "generated_source": "exec-9628f0c7-e378-4acf-b279-774908ba3ac5.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-9/baroque-home-routine.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes.",
+      "initial_generated_source": "exec-49b9a8ff-0791-4f55-897d-1213aa763312.png",
+      "initial_prompt": "Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a carved walnut frame with gilt acanthus end caps and twisted columns, a small burgundy accent, golden sand. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. Keep the same two thin, smooth ribbons drifting gently outward from the sides as in the reference, so it sits with the other home buttons. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.\nReference roles: image 1 is the RGBA style reference; image 2 is the same image on dark grey ONLY to demonstrate its real translucent mist. Do not copy the grey background. Preserve that faint, airy, semi-transparent treatment rather than turning the mist into solid wings or cloth; preserve graphic ribbon treatments in the graphic themes. Replace cello AND bow with the hourglass. Show the thin falling sand stream and about two thirds of the sand below. Output square 1024x1024 transparent PNG."
+    },
+    {
+      "id": "home-routine",
+      "theme": "scifi",
+      "round": 9,
+      "file": "musicpractice/app/assets/ui/scifi/home-routine.webp",
+      "size": [
+        384,
+        384
+      ],
+      "status": "delivered",
+      "group": "Robot Future \u00b7 Home screen buttons",
+      "prompt": "Use case: precise-object-edit. Edit the attached hourglass icon. Remove ALL outward side wings, ribbons, flowing bands and mist. Remove floating decorations. Keep only the original central hourglass and its attached frame, exactly the same materials, colors, light, glass, sand, proportions and upright frontal pose. Keep normal ornament carved on the frame, but no long curling appendages projecting sideways. Preserve canvas size, placement and transparent background. No notes, no text. This is a Practice Routine icon; wing-like sound ribbons belong ONLY to Drone. Restore transparent pixels where the removed wings were; do not replace them with anything.",
+      "note": "The Practice Routine's button on the home screen in the Robot Future theme (and its picture on the timer screen); the label is written by the app. Made from app/assets/ui/scifi/home-drone.webp so it matches the other home buttons. PNG masters, prompts and export details: design/image-deliveries-rounds-9-10.json.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a graphite frame with thin cyan edge lighting, brushed titanium end caps and glowing cyan sand, a small magenta indicator. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. No wings, sound ribbons, mist, floating notes or surrounding decorations; those ribbons belong only to Drone. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/scifi/home-routine.webp"
+      ],
+      "generated_source": "exec-1c17717d-0a83-44bc-b100-b8d16b4682b7.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-9/scifi-home-routine.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes.",
+      "initial_generated_source": "exec-f223e13e-5186-4932-91e9-709f27c3e5c4.png",
+      "initial_prompt": "Using the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a graphite frame with thin cyan edge lighting, brushed titanium end caps and glowing cyan sand, a small magenta indicator. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. Keep the same two thin, smooth ribbons drifting gently outward from the sides as in the reference, so it sits with the other home buttons. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.\nReference roles: image 1 is the RGBA style reference; image 2 is the same image on dark grey ONLY to demonstrate its real translucent mist. Do not copy the grey background. Preserve that faint, airy, semi-transparent treatment rather than turning the mist into solid wings or cloth; preserve graphic ribbon treatments in the graphic themes. Replace cello AND bow with the hourglass. Show the thin falling sand stream and about two thirds of the sand below. Output square 1024x1024 transparent PNG."
+    },
+    {
+      "id": "home-routine",
+      "theme": "nouveau",
+      "round": 9,
+      "file": "musicpractice/app/assets/ui/nouveau/home-routine.webp",
+      "size": [
+        384,
+        384
+      ],
+      "status": "delivered",
+      "group": "French Nouveau \u00b7 Home screen buttons",
+      "prompt": "Use case: precise-object-edit. Edit the attached hourglass icon. Remove ALL outward side wings, ribbons, flowing bands and mist. Remove floating decorations. Keep only the original central hourglass and its attached frame, exactly the same materials, colors, light, glass, sand, proportions and upright frontal pose. Keep normal ornament carved on the frame, but no long curling appendages projecting sideways. Preserve canvas size, placement and transparent background. No notes, no text. This is a Practice Routine icon; wing-like sound ribbons belong ONLY to Drone. Restore transparent pixels where the removed wings were; do not replace them with anything.",
+      "note": "The Practice Routine's button on the home screen in the French Nouveau theme (and its picture on the timer screen); the label is written by the app. Made from app/assets/ui/nouveau/home-drone.webp so it matches the other home buttons. PNG masters, prompts and export details: design/image-deliveries-rounds-9-10.json.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a sage-green frame with muted-gold end caps wound with a vine, a small iris accent, pale golden sand. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. No wings, sound ribbons, mist, floating notes or surrounding decorations; those ribbons belong only to Drone. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/nouveau/home-routine.webp"
+      ],
+      "generated_source": "exec-07b1b17d-4e28-4c0f-8078-794cef70bd2f.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-9/nouveau-home-routine.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes.",
+      "initial_generated_source": "exec-90bbbfb1-c1a8-4cd7-9d2f-1e06b763ce01.png",
+      "initial_prompt": "Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a sage-green frame with muted-gold end caps wound with a vine, a small iris accent, pale golden sand. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. Keep the same two thin, smooth ribbons drifting gently outward from the sides as in the reference, so it sits with the other home buttons. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.\nReference roles: image 1 is the RGBA style reference; image 2 is the same image on dark grey ONLY to demonstrate its real translucent mist. Do not copy the grey background. Preserve that faint, airy, semi-transparent treatment rather than turning the mist into solid wings or cloth; preserve graphic ribbon treatments in the graphic themes. Replace cello AND bow with the hourglass. Show the thin falling sand stream and about two thirds of the sand below. Output square 1024x1024 transparent PNG."
+    },
+    {
+      "id": "home-routine",
+      "theme": "anime",
+      "round": 9,
+      "file": "musicpractice/app/assets/ui/anime/home-routine.webp",
+      "size": [
+        384,
+        384
+      ],
+      "status": "delivered",
+      "group": "Candy \u00b7 Home screen buttons",
+      "prompt": "Use case: precise-object-edit. Edit the attached hourglass icon. Remove ALL outward side wings, ribbons, flowing bands and mist. Remove floating decorations. Keep only the original central hourglass and its attached frame, exactly the same materials, colors, light, glass, sand, proportions and upright frontal pose. Keep normal ornament carved on the frame, but no long curling appendages projecting sideways. Preserve canvas size, placement and transparent background. No notes, no text. This is a Practice Routine icon; wing-like sound ribbons belong ONLY to Drone. Restore transparent pixels where the removed wings were; do not replace them with anything.",
+      "note": "The Practice Routine's button on the home screen in the Candy theme (and its picture on the timer screen); the label is written by the app. Made from app/assets/ui/anime/home-drone.webp so it matches the other home buttons. PNG masters, prompts and export details: design/image-deliveries-rounds-9-10.json.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/anime/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a candy-pink frame with pastel sky-blue end caps, a bold outline, lilac sand and tiny yellow sparkles. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. No wings, sound ribbons, mist, floating notes or surrounding decorations; those ribbons belong only to Drone. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/anime/home-routine.webp"
+      ],
+      "generated_source": "exec-eb8c35ba-10eb-4e38-ace9-141abade2d1f.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-9/anime-home-routine.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes.",
+      "initial_generated_source": "exec-c276b212-bb7d-453d-bebb-eb09afb85268.png",
+      "initial_prompt": "Using the attached image, musicpractice/app/assets/ui/anime/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a candy-pink frame with pastel sky-blue end caps, a bold outline, lilac sand and tiny yellow sparkles. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. Keep the same two thin, smooth ribbons drifting gently outward from the sides as in the reference, so it sits with the other home buttons. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.\nReference roles: image 1 is the RGBA style reference; image 2 is the same image on dark grey ONLY to demonstrate its real translucent mist. Do not copy the grey background. Preserve that faint, airy, semi-transparent treatment rather than turning the mist into solid wings or cloth; preserve graphic ribbon treatments in the graphic themes. Replace cello AND bow with the hourglass. Show the thin falling sand stream and about two thirds of the sand below. Output square 1024x1024 transparent PNG."
+    },
+    {
+      "id": "home-routine",
+      "theme": "steampunk",
+      "round": 9,
+      "file": "musicpractice/app/assets/ui/steampunk/home-routine.webp",
+      "size": [
+        384,
+        384
+      ],
+      "status": "delivered",
+      "group": "Steam Punk \u00b7 Home screen buttons",
+      "prompt": "Use case: precise-object-edit. Edit the attached hourglass icon. Remove ALL outward side wings, ribbons, flowing bands and mist. Remove floating decorations. Keep only the original central hourglass and its attached frame, exactly the same materials, colors, light, glass, sand, proportions and upright frontal pose. Keep normal ornament carved on the frame, but no long curling appendages projecting sideways. Preserve canvas size, placement and transparent background. No notes, no text. This is a Practice Routine icon; wing-like sound ribbons belong ONLY to Drone. Restore transparent pixels where the removed wings were; do not replace them with anything.",
+      "note": "The Practice Routine's button on the home screen in the Steam Punk theme (and its picture on the timer screen); the label is written by the app. Made from app/assets/ui/steampunk/home-drone.webp so it matches the other home buttons. PNG masters, prompts and export details: design/image-deliveries-rounds-9-10.json.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/steampunk/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a dark mahogany frame with riveted brass and copper end caps, a small pressure gauge on one column, golden sand. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. No wings, sound ribbons, mist, floating notes or surrounding decorations; those ribbons belong only to Drone. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/steampunk/home-routine.webp"
+      ],
+      "generated_source": "exec-1c9c40c9-30cf-4cab-bc98-988b0f1e4b7e.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-9/steampunk-home-routine.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes.",
+      "initial_generated_source": "exec-6182301c-f509-4bd1-84c8-d2444682bdc5.png",
+      "initial_prompt": "Using the attached image, musicpractice/app/assets/ui/steampunk/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a dark mahogany frame with riveted brass and copper end caps, a small pressure gauge on one column, golden sand. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. Keep the same two thin, smooth ribbons drifting gently outward from the sides as in the reference, so it sits with the other home buttons. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.\nReference roles: image 1 is the RGBA style reference; image 2 is the same image on dark grey ONLY to demonstrate its real translucent mist. Do not copy the grey background. Preserve that faint, airy, semi-transparent treatment rather than turning the mist into solid wings or cloth; preserve graphic ribbon treatments in the graphic themes. Replace cello AND bow with the hourglass. Show the thin falling sand stream and about two thirds of the sand below. Output square 1024x1024 transparent PNG."
+    },
+    {
+      "id": "metronome-rod",
+      "theme": "classic",
+      "round": 10,
+      "file": "musicpractice/app/assets/ui/metronome-rod.webp",
+      "size": [
+        200,
+        1000
+      ],
+      "status": "delivered",
+      "group": "Classic \u00b7 Metronome pendulum in two parts",
+      "prompt": "Edit the attached image, musicpractice/app/assets/ui/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.\nThis is a precision animation layer, not a redesign: retain exactly the original tip, hub, bottom bob and ornament, rod width and straightness, palette and lighting. Remove ONLY the sliding ornament near the upper quarter (including its nearby decoration if attached to the sliding ornament); keep all decoration attached to the bottom bob. Do not add a collar or new ornament in its place. Continue a smooth uniform uninterrupted vertical rod through the vacated area. Desired transparent canvas 200x1000; the hub center in that canvas is (102, 927). No detached objects or duplicate rod.",
+      "note": "The Classic pendulum's rod and bob without the weight; the app slides the weight (metronome-weight) along it. Same canvas, hub and swing as app/assets/ui/metronome-pendulum.webp. The weight's centre may travel from y 78.5 to y 796.5 of the 1000-high canvas (record the delivered rod's own range here). Until it arrives the app uses an interim cut, app/assets/ui/metronome-rod.cut.webp.",
+      "canvas": [
+        200,
+        1000
+      ],
+      "anchors": {
+        "hub": [
+          102,
+          927
+        ]
+      },
+      "swing": 24,
+      "scale": null,
+      "travel": [
+        79.0,
+        796.0
+      ],
+      "request_prompt": "Edit the attached image, musicpractice/app/assets/ui/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/metronome-pendulum.webp"
+      ],
+      "generated_source": "exec-59e68d19-a6a6-440e-8828-f0496ae99900.png",
+      "native_size": [
+        725,
+        2170
+      ],
+      "requested_geometry": {
+        "canvas": [
+          200,
+          1000
+        ],
+        "anchors": {
+          "hub": [
+            102,
+            927
+          ]
+        },
+        "travel": [
+          78.5,
+          796.5
+        ],
+        "scale": null,
+        "swing": 24
+      },
+      "hub_match_score": 0.9358,
+      "measured_rod_width": 16.0,
+      "bob_top": 886,
+      "stem_axis": 101.5,
+      "source": "musicpractice/design/generated/round-10/classic-metronome-rod.png",
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "processing": "Normalize to the original pendulum canvas and pixel scale; measure the rod hub, weight centre and safe travel interval. Export lossless WebP at the layer canvas size."
+    },
+    {
+      "id": "metronome-weight",
+      "theme": "classic",
+      "round": 10,
+      "file": "musicpractice/app/assets/ui/metronome-weight.webp",
+      "size": [
+        200,
+        80
+      ],
+      "status": "delivered",
+      "group": "Classic \u00b7 Metronome pendulum in two parts",
+      "prompt": "From the attached image, musicpractice/app/assets/ui/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.\nReference roles: image 1 shows the complete pendulum for style and scale. Image 2 is a tight interim cut of the requested sliding ornament: preserve that ornament's exact design, including its attached decorations. Create a clean isolated version of ONLY that ornament, no long rod and no bottom bob. A very short central rod segment through the ornament is allowed, with transparent space above and below it. Match the original frontal orientation and symmetry. Desired transparent canvas 200x80.",
+      "note": "The Classic pendulum's weight, which the app slides along the rod with the tempo (higher is slower, as on a real metronome) and which can be dragged to set it. Anchor `center` is the point on the rod that marks its place. Until it arrives the app uses an interim cut, app/assets/ui/metronome-weight.cut.webp.",
+      "canvas": [
+        200,
+        80
+      ],
+      "anchors": {
+        "center": [
+          99.5,
+          39.5
+        ]
+      },
+      "request_prompt": "From the attached image, musicpractice/app/assets/ui/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/metronome-pendulum.webp",
+        "musicpractice/app/assets/ui/metronome-weight.cut.webp"
+      ],
+      "generated_source": "exec-9b51408a-2e75-4e80-a962-96f046d973b8.png",
+      "native_size": [
+        1983,
+        793
+      ],
+      "requested_geometry": {
+        "canvas": [
+          200,
+          80
+        ],
+        "anchors": {
+          "center": [
+            100,
+            39.5
+          ]
+        }
+      },
+      "measured_stem_axis": 99.0,
+      "source": "musicpractice/design/generated/round-10/classic-metronome-weight.png",
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "processing": "Normalize to the original pendulum canvas and pixel scale; measure the rod hub, weight centre and safe travel interval. Export lossless WebP at the layer canvas size."
+    },
+    {
+      "id": "metronome-rod",
+      "theme": "deco",
+      "round": 10,
+      "file": "musicpractice/app/assets/ui/deco/metronome-rod.webp",
+      "size": [
+        200,
+        1000
+      ],
+      "status": "delivered",
+      "group": "Art Deco \u00b7 Metronome pendulum in two parts",
+      "prompt": "Edit the attached image, musicpractice/app/assets/ui/deco/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.\nThis is a precision animation layer, not a redesign: retain exactly the original tip, hub, bottom bob and ornament, rod width and straightness, palette and lighting. Remove ONLY the sliding ornament near the upper quarter (including its nearby decoration if attached to the sliding ornament); keep all decoration attached to the bottom bob. Do not add a collar or new ornament in its place. Continue a smooth uniform uninterrupted vertical rod through the vacated area. Desired transparent canvas 200x1000; the hub center in that canvas is (99.5, 917). No detached objects or duplicate rod.",
+      "note": "The Art Deco pendulum's rod and bob without the weight; the app slides the weight (metronome-weight) along it. Same canvas, hub and swing as app/assets/ui/deco/metronome-pendulum.webp. The weight's centre may travel from y 92.5 to y 725.5 of the 1000-high canvas (record the delivered rod's own range here). Until it arrives the app uses an interim cut, app/assets/ui/deco/metronome-rod.cut.webp.",
+      "canvas": [
+        200,
+        1000
+      ],
+      "anchors": {
+        "hub": [
+          100,
+          918
+        ]
+      },
+      "swing": 26,
+      "scale": null,
+      "travel": [
+        93.0,
+        726.0
+      ],
+      "request_prompt": "Edit the attached image, musicpractice/app/assets/ui/deco/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/deco/metronome-pendulum.webp"
+      ],
+      "generated_source": "exec-8216019c-3e06-4fef-9dde-1abd7e145bf8.png",
+      "native_size": [
+        725,
+        2169
+      ],
+      "requested_geometry": {
+        "canvas": [
+          200,
+          1000
+        ],
+        "anchors": {
+          "hub": [
+            99.5,
+            917
+          ]
+        },
+        "travel": [
+          92.5,
+          725.5
+        ],
+        "scale": null,
+        "swing": 26
+      },
+      "hub_match_score": 0.9698,
+      "measured_rod_width": 15.0,
+      "bob_top": 854,
+      "stem_axis": 99.0,
+      "source": "musicpractice/design/generated/round-10/deco-metronome-rod.png",
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "processing": "Normalize to the original pendulum canvas and pixel scale; measure the rod hub, weight centre and safe travel interval. Export lossless WebP at the layer canvas size."
+    },
+    {
+      "id": "metronome-weight",
+      "theme": "deco",
+      "round": 10,
+      "file": "musicpractice/app/assets/ui/deco/metronome-weight.webp",
+      "size": [
+        200,
+        156
+      ],
+      "status": "delivered",
+      "group": "Art Deco \u00b7 Metronome pendulum in two parts",
+      "prompt": "From the attached image, musicpractice/app/assets/ui/deco/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.\nReference roles: image 1 shows the complete pendulum for style and scale. Image 2 is a tight interim cut of the requested sliding ornament: preserve that ornament's exact design, including its attached decorations. Create a clean isolated version of ONLY that ornament, no long rod and no bottom bob. A very short central rod segment through the ornament is allowed, with transparent space above and below it. Match the original frontal orientation and symmetry. Desired transparent canvas 200x156.",
+      "note": "The Art Deco pendulum's weight, which the app slides along the rod with the tempo (higher is slower, as on a real metronome) and which can be dragged to set it. Anchor `center` is the point on the rod that marks its place. Until it arrives the app uses an interim cut, app/assets/ui/deco/metronome-weight.cut.webp.",
+      "canvas": [
+        200,
+        156
+      ],
+      "anchors": {
+        "center": [
+          100.5,
+          77.5
+        ]
+      },
+      "request_prompt": "From the attached image, musicpractice/app/assets/ui/deco/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/deco/metronome-pendulum.webp",
+        "musicpractice/app/assets/ui/deco/metronome-weight.cut.webp"
+      ],
+      "generated_source": "exec-43b8c445-f9fe-4324-b575-a98399520857.png",
+      "native_size": [
+        1420,
+        1108
+      ],
+      "requested_geometry": {
+        "canvas": [
+          200,
+          156
+        ],
+        "anchors": {
+          "center": [
+            100,
+            77.5
+          ]
+        }
+      },
+      "measured_stem_axis": 99.5,
+      "source": "musicpractice/design/generated/round-10/deco-metronome-weight.png",
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "processing": "Normalize to the original pendulum canvas and pixel scale; measure the rod hub, weight centre and safe travel interval. Export lossless WebP at the layer canvas size."
+    },
+    {
+      "id": "metronome-rod",
+      "theme": "sixties",
+      "round": 10,
+      "file": "musicpractice/app/assets/ui/sixties/metronome-rod.webp",
+      "size": [
+        200,
+        1000
+      ],
+      "status": "delivered",
+      "group": "Vintage 60s \u00b7 Metronome pendulum in two parts",
+      "prompt": "Edit the attached image, musicpractice/app/assets/ui/sixties/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.\nThis is a precision animation layer, not a redesign: retain exactly the original tip, hub, bottom bob and ornament, rod width and straightness, palette and lighting. Remove ONLY the sliding ornament near the upper quarter (including its nearby decoration if attached to the sliding ornament); keep all decoration attached to the bottom bob. Do not add a collar or new ornament in its place. Continue a smooth uniform uninterrupted vertical rod through the vacated area. Desired transparent canvas 200x1000; the hub center in that canvas is (100, 855.1). No detached objects or duplicate rod.",
+      "note": "The Vintage 60s pendulum's rod and bob without the weight; the app slides the weight (metronome-weight) along it. Same canvas, hub and swing as app/assets/ui/sixties/metronome-pendulum.webp. The weight's centre may travel from y 139.5 to y 686.5 of the 1000-high canvas (record the delivered rod's own range here). Until it arrives the app uses an interim cut, app/assets/ui/sixties/metronome-rod.cut.webp.",
+      "canvas": [
+        200,
+        1000
+      ],
+      "anchors": {
+        "hub": [
+          100,
+          856
+        ]
+      },
+      "swing": 24,
+      "scale": 1,
+      "travel": [
+        140.0,
+        687.0
+      ],
+      "request_prompt": "Edit the attached image, musicpractice/app/assets/ui/sixties/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/sixties/metronome-pendulum.webp"
+      ],
+      "generated_source": "exec-52c80421-b201-4b87-a1b9-1a868f737df5.png",
+      "native_size": [
+        897,
+        1752
+      ],
+      "requested_geometry": {
+        "canvas": [
+          200,
+          1000
+        ],
+        "anchors": {
+          "hub": [
+            100,
+            855.1
+          ]
+        },
+        "travel": [
+          139.5,
+          686.5
+        ],
+        "scale": 1,
+        "swing": 24
+      },
+      "hub_match_score": 0.9428,
+      "measured_rod_width": 22.0,
+      "bob_top": 791,
+      "stem_axis": 99.5,
+      "source": "musicpractice/design/generated/round-10/sixties-metronome-rod.png",
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "processing": "Normalize to the original pendulum canvas and pixel scale; measure the rod hub, weight centre and safe travel interval. Export lossless WebP at the layer canvas size."
+    },
+    {
+      "id": "metronome-weight",
+      "theme": "sixties",
+      "round": 10,
+      "file": "musicpractice/app/assets/ui/sixties/metronome-weight.webp",
+      "size": [
+        200,
+        108
+      ],
+      "status": "delivered",
+      "group": "Vintage 60s \u00b7 Metronome pendulum in two parts",
+      "prompt": "From the attached image, musicpractice/app/assets/ui/sixties/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.\nReference roles: image 1 shows the complete pendulum for style and scale. Image 2 is a tight interim cut of the requested sliding ornament: preserve that ornament's exact design, including its attached decorations. Create a clean isolated version of ONLY that ornament, no long rod and no bottom bob. A very short central rod segment through the ornament is allowed, with transparent space above and below it. Match the original frontal orientation and symmetry. Desired transparent canvas 200x108.",
+      "note": "The Vintage 60s pendulum's weight, which the app slides along the rod with the tempo (higher is slower, as on a real metronome) and which can be dragged to set it. Anchor `center` is the point on the rod that marks its place. Until it arrives the app uses an interim cut, app/assets/ui/sixties/metronome-weight.cut.webp.",
+      "canvas": [
+        200,
+        108
+      ],
+      "anchors": {
+        "center": [
+          101.5,
+          53.5
+        ]
+      },
+      "request_prompt": "From the attached image, musicpractice/app/assets/ui/sixties/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/sixties/metronome-pendulum.webp",
+        "musicpractice/app/assets/ui/sixties/metronome-weight.cut.webp"
+      ],
+      "generated_source": "exec-7ee2a409-3eeb-426c-b3ef-7d3291fc3c93.png",
+      "native_size": [
+        1707,
+        921
+      ],
+      "requested_geometry": {
+        "canvas": [
+          200,
+          108
+        ],
+        "anchors": {
+          "center": [
+            100,
+            53.5
+          ]
+        }
+      },
+      "measured_stem_axis": 101.0,
+      "source": "musicpractice/design/generated/round-10/sixties-metronome-weight.png",
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "processing": "Normalize to the original pendulum canvas and pixel scale; measure the rod hub, weight centre and safe travel interval. Export lossless WebP at the layer canvas size."
+    },
+    {
+      "id": "metronome-rod",
+      "theme": "baroque",
+      "round": 10,
+      "file": "musicpractice/app/assets/ui/baroque/metronome-rod.webp",
+      "size": [
+        200,
+        1000
+      ],
+      "status": "delivered",
+      "group": "18th Century \u00b7 Metronome pendulum in two parts",
+      "prompt": "Edit the attached image, musicpractice/app/assets/ui/baroque/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.\nThis is a precision animation layer, not a redesign: retain exactly the original tip, hub, bottom bob and ornament, rod width and straightness, palette and lighting. Remove ONLY the sliding ornament near the upper quarter (including its nearby decoration if attached to the sliding ornament); keep all decoration attached to the bottom bob. Do not add a collar or new ornament in its place. Continue a smooth uniform uninterrupted vertical rod through the vacated area. Desired transparent canvas 200x1000; the hub center in that canvas is (99.4, 866.3). No detached objects or duplicate rod.",
+      "note": "The 18th Century pendulum's rod and bob without the weight; the app slides the weight (metronome-weight) along it. Same canvas, hub and swing as app/assets/ui/baroque/metronome-pendulum.webp. The weight's centre may travel from y 82.0 to y 677.0 of the 1000-high canvas (record the delivered rod's own range here). Until it arrives the app uses an interim cut, app/assets/ui/baroque/metronome-rod.cut.webp.",
+      "canvas": [
+        200,
+        1000
+      ],
+      "anchors": {
+        "hub": [
+          99,
+          865
+        ]
+      },
+      "swing": 24,
+      "scale": 0.8,
+      "travel": [
+        82.5,
+        676.5
+      ],
+      "request_prompt": "Edit the attached image, musicpractice/app/assets/ui/baroque/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/baroque/metronome-pendulum.webp"
+      ],
+      "generated_source": "exec-365f0958-f005-4278-a768-1f2a7a286f64.png",
+      "native_size": [
+        725,
+        2170
+      ],
+      "requested_geometry": {
+        "canvas": [
+          200,
+          1000
+        ],
+        "anchors": {
+          "hub": [
+            99.4,
+            866.3
+          ]
+        },
+        "travel": [
+          82,
+          677
+        ],
+        "scale": 0.8,
+        "swing": 24
+      },
+      "hub_match_score": 0.6299,
+      "measured_rod_width": 17.0,
+      "bob_top": 782,
+      "stem_axis": 99.0,
+      "source": "musicpractice/design/generated/round-10/baroque-metronome-rod.png",
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "processing": "Normalize to the original pendulum canvas and pixel scale; measure the rod hub, weight centre and safe travel interval. Export lossless WebP at the layer canvas size."
+    },
+    {
+      "id": "metronome-weight",
+      "theme": "baroque",
+      "round": 10,
+      "file": "musicpractice/app/assets/ui/baroque/metronome-weight.webp",
+      "size": [
+        200,
+        111
+      ],
+      "status": "delivered",
+      "group": "18th Century \u00b7 Metronome pendulum in two parts",
+      "prompt": "From the attached image, musicpractice/app/assets/ui/baroque/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.\nReference roles: image 1 shows the complete pendulum for style and scale. Image 2 is a tight interim cut of the requested sliding ornament: preserve that ornament's exact design, including its attached decorations. Create a clean isolated version of ONLY that ornament, no long rod and no bottom bob. A very short central rod segment through the ornament is allowed, with transparent space above and below it. Match the original frontal orientation and symmetry. Desired transparent canvas 200x111.",
+      "note": "The 18th Century pendulum's weight, which the app slides along the rod with the tempo (higher is slower, as on a real metronome) and which can be dragged to set it. Anchor `center` is the point on the rod that marks its place. Until it arrives the app uses an interim cut, app/assets/ui/baroque/metronome-weight.cut.webp.",
+      "canvas": [
+        200,
+        111
+      ],
+      "anchors": {
+        "center": [
+          99.0,
+          55.0
+        ]
+      },
+      "request_prompt": "From the attached image, musicpractice/app/assets/ui/baroque/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/baroque/metronome-pendulum.webp",
+        "musicpractice/app/assets/ui/baroque/metronome-weight.cut.webp"
+      ],
+      "generated_source": "exec-99e8c2ec-d049-4610-88ce-e568e111fa6d.png",
+      "native_size": [
+        1684,
+        934
+      ],
+      "requested_geometry": {
+        "canvas": [
+          200,
+          111
+        ],
+        "anchors": {
+          "center": [
+            100,
+            55
+          ]
+        }
+      },
+      "measured_stem_axis": 99.0,
+      "source": "musicpractice/design/generated/round-10/baroque-metronome-weight.png",
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "processing": "Normalize to the original pendulum canvas and pixel scale; measure the rod hub, weight centre and safe travel interval. Export lossless WebP at the layer canvas size."
+    },
+    {
+      "id": "metronome-rod",
+      "theme": "scifi",
+      "round": 10,
+      "file": "musicpractice/app/assets/ui/scifi/metronome-rod.webp",
+      "size": [
+        200,
+        1000
+      ],
+      "status": "delivered",
+      "group": "Robot Future \u00b7 Metronome pendulum in two parts",
+      "prompt": "Edit the attached image, musicpractice/app/assets/ui/scifi/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.\nThis is a precision animation layer, not a redesign: retain exactly the original tip, hub, bottom bob and ornament, rod width and straightness, palette and lighting. Remove ONLY the sliding ornament near the upper quarter (including its nearby decoration if attached to the sliding ornament); keep all decoration attached to the bottom bob. Do not add a collar or new ornament in its place. Continue a smooth uniform uninterrupted vertical rod through the vacated area. Desired transparent canvas 200x1000; the hub center in that canvas is (100.3, 924.7). No detached objects or duplicate rod.",
+      "note": "The Robot Future pendulum's rod and bob without the weight; the app slides the weight (metronome-weight) along it. Same canvas, hub and swing as app/assets/ui/scifi/metronome-pendulum.webp. The weight's centre may travel from y 82.0 to y 784.0 of the 1000-high canvas (record the delivered rod's own range here). Until it arrives the app uses an interim cut, app/assets/ui/scifi/metronome-rod.cut.webp.",
+      "canvas": [
+        200,
+        1000
+      ],
+      "anchors": {
+        "hub": [
+          101,
+          924
+        ]
+      },
+      "swing": 24,
+      "scale": 0.85,
+      "travel": [
+        82.5,
+        782.5
+      ],
+      "request_prompt": "Edit the attached image, musicpractice/app/assets/ui/scifi/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/scifi/metronome-pendulum.webp"
+      ],
+      "generated_source": "exec-3d463c4c-bcbe-4573-a441-dd858ecafe47.png",
+      "native_size": [
+        725,
+        2170
+      ],
+      "requested_geometry": {
+        "canvas": [
+          200,
+          1000
+        ],
+        "anchors": {
+          "hub": [
+            100.3,
+            924.7
+          ]
+        },
+        "travel": [
+          82,
+          784
+        ],
+        "scale": 0.85,
+        "swing": 24
+      },
+      "hub_match_score": 0.9636,
+      "measured_rod_width": 23.0,
+      "bob_top": 881,
+      "stem_axis": 101.0,
+      "source": "musicpractice/design/generated/round-10/scifi-metronome-rod.png",
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "processing": "Normalize to the original pendulum canvas and pixel scale; measure the rod hub, weight centre and safe travel interval. Export lossless WebP at the layer canvas size."
+    },
+    {
+      "id": "metronome-weight",
+      "theme": "scifi",
+      "round": 10,
+      "file": "musicpractice/app/assets/ui/scifi/metronome-weight.webp",
+      "size": [
+        200,
+        97
+      ],
+      "status": "delivered",
+      "group": "Robot Future \u00b7 Metronome pendulum in two parts",
+      "prompt": "From the attached image, musicpractice/app/assets/ui/scifi/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.\nReference roles: image 1 shows the complete pendulum for style and scale. Image 2 is a tight interim cut of the requested sliding ornament: preserve that ornament's exact design, including its attached decorations. Create a clean isolated version of ONLY that ornament, no long rod and no bottom bob. A very short central rod segment through the ornament is allowed, with transparent space above and below it. Match the original frontal orientation and symmetry. Desired transparent canvas 200x97.",
+      "note": "The Robot Future pendulum's weight, which the app slides along the rod with the tempo (higher is slower, as on a real metronome) and which can be dragged to set it. Anchor `center` is the point on the rod that marks its place. Until it arrives the app uses an interim cut, app/assets/ui/scifi/metronome-weight.cut.webp.",
+      "canvas": [
+        200,
+        97
+      ],
+      "anchors": {
+        "center": [
+          99.5,
+          48.0
+        ]
+      },
+      "request_prompt": "From the attached image, musicpractice/app/assets/ui/scifi/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/scifi/metronome-pendulum.webp",
+        "musicpractice/app/assets/ui/scifi/metronome-weight.cut.webp"
+      ],
+      "generated_source": "exec-099e2afb-f178-46e0-b567-2592c0cb8a11.png",
+      "native_size": [
+        1800,
+        874
+      ],
+      "requested_geometry": {
+        "canvas": [
+          200,
+          97
+        ],
+        "anchors": {
+          "center": [
+            100,
+            48
+          ]
+        }
+      },
+      "measured_stem_axis": 99.5,
+      "source": "musicpractice/design/generated/round-10/scifi-metronome-weight.png",
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "processing": "Normalize to the original pendulum canvas and pixel scale; measure the rod hub, weight centre and safe travel interval. Export lossless WebP at the layer canvas size."
+    },
+    {
+      "id": "metronome-rod",
+      "theme": "nouveau",
+      "round": 10,
+      "file": "musicpractice/app/assets/ui/nouveau/metronome-rod.webp",
+      "size": [
+        200,
+        1000
+      ],
+      "status": "delivered",
+      "group": "French Nouveau \u00b7 Metronome pendulum in two parts",
+      "prompt": "Edit the attached image, musicpractice/app/assets/ui/nouveau/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.\nThis is a precision animation layer, not a redesign: retain exactly the original tip, hub, bottom bob and ornament, rod width and straightness, palette and lighting. Remove ONLY the sliding ornament near the upper quarter (including its nearby decoration if attached to the sliding ornament); keep all decoration attached to the bottom bob. Do not add a collar or new ornament in its place. Continue a smooth uniform uninterrupted vertical rod through the vacated area. Desired transparent canvas 200x1000; the hub center in that canvas is (99.7, 898.7). No detached objects or duplicate rod.",
+      "note": "The French Nouveau pendulum's rod and bob without the weight; the app slides the weight (metronome-weight) along it. Same canvas, hub and swing as app/assets/ui/nouveau/metronome-pendulum.webp. The weight's centre may travel from y 84.5 to y 501.5 of the 1000-high canvas (record the delivered rod's own range here). Until it arrives the app uses an interim cut, app/assets/ui/nouveau/metronome-rod.cut.webp.",
+      "canvas": [
+        200,
+        1000
+      ],
+      "anchors": {
+        "hub": [
+          100,
+          898
+        ]
+      },
+      "swing": 24,
+      "scale": 0.85,
+      "travel": [
+        85.0,
+        501.0
+      ],
+      "request_prompt": "Edit the attached image, musicpractice/app/assets/ui/nouveau/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/nouveau/metronome-pendulum.webp"
+      ],
+      "generated_source": "exec-3b244c3c-c67f-4c0d-b242-e4af09b3db16.png",
+      "native_size": [
+        889,
+        1769
+      ],
+      "requested_geometry": {
+        "canvas": [
+          200,
+          1000
+        ],
+        "anchors": {
+          "hub": [
+            99.7,
+            898.7
+          ]
+        },
+        "travel": [
+          84.5,
+          501.5
+        ],
+        "scale": 0.85,
+        "swing": 24
+      },
+      "hub_match_score": 0.887,
+      "measured_rod_width": 10.0,
+      "bob_top": 606,
+      "stem_axis": 99.5,
+      "source": "musicpractice/design/generated/round-10/nouveau-metronome-rod.png",
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "processing": "Normalize to the original pendulum canvas and pixel scale; measure the rod hub, weight centre and safe travel interval. Export lossless WebP at the layer canvas size."
+    },
+    {
+      "id": "metronome-weight",
+      "theme": "nouveau",
+      "round": 10,
+      "file": "musicpractice/app/assets/ui/nouveau/metronome-weight.webp",
+      "size": [
+        200,
+        110
+      ],
+      "status": "delivered",
+      "group": "French Nouveau \u00b7 Metronome pendulum in two parts",
+      "prompt": "From the attached image, musicpractice/app/assets/ui/nouveau/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.\nReference roles: image 1 shows the complete pendulum for style and scale. Image 2 is a tight interim cut of the requested sliding ornament: preserve that ornament's exact design, including its attached decorations. Create a clean isolated version of ONLY that ornament, no long rod and no bottom bob. A very short central rod segment through the ornament is allowed, with transparent space above and below it. Match the original frontal orientation and symmetry. Desired transparent canvas 200x110.",
+      "note": "The French Nouveau pendulum's weight, which the app slides along the rod with the tempo (higher is slower, as on a real metronome) and which can be dragged to set it. Anchor `center` is the point on the rod that marks its place. Until it arrives the app uses an interim cut, app/assets/ui/nouveau/metronome-weight.cut.webp.",
+      "canvas": [
+        200,
+        110
+      ],
+      "anchors": {
+        "center": [
+          100.0,
+          54.5
+        ]
+      },
+      "request_prompt": "From the attached image, musicpractice/app/assets/ui/nouveau/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/nouveau/metronome-pendulum.webp",
+        "musicpractice/app/assets/ui/nouveau/metronome-weight.cut.webp"
+      ],
+      "generated_source": "exec-6ebfaa24-466a-444e-8444-9339f3f786ea.png",
+      "native_size": [
+        1691,
+        930
+      ],
+      "requested_geometry": {
+        "canvas": [
+          200,
+          110
+        ],
+        "anchors": {
+          "center": [
+            100,
+            54.5
+          ]
+        }
+      },
+      "measured_stem_axis": 99.5,
+      "source": "musicpractice/design/generated/round-10/nouveau-metronome-weight.png",
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "processing": "Normalize to the original pendulum canvas and pixel scale; measure the rod hub, weight centre and safe travel interval. Export lossless WebP at the layer canvas size."
+    },
+    {
+      "id": "metronome-rod",
+      "theme": "anime",
+      "round": 10,
+      "file": "musicpractice/app/assets/ui/anime/metronome-rod.webp",
+      "size": [
+        200,
+        1000
+      ],
+      "status": "delivered",
+      "group": "Candy \u00b7 Metronome pendulum in two parts",
+      "prompt": "Edit the attached image, musicpractice/app/assets/ui/anime/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.\nThis is a precision animation layer, not a redesign: retain exactly the original tip, hub, bottom bob and ornament, rod width and straightness, palette and lighting. Remove ONLY the sliding ornament near the upper quarter (including its nearby decoration if attached to the sliding ornament); keep all decoration attached to the bottom bob. Do not add a collar or new ornament in its place. Continue a smooth uniform uninterrupted vertical rod through the vacated area. Desired transparent canvas 200x1000; the hub center in that canvas is (98, 927.9). No detached objects or duplicate rod.",
+      "note": "The Candy pendulum's rod and bob without the weight; the app slides the weight (metronome-weight) along it. Same canvas, hub and swing as app/assets/ui/anime/metronome-pendulum.webp. The weight's centre may travel from y 115.5 to y 685.5 of the 1000-high canvas (record the delivered rod's own range here). Until it arrives the app uses an interim cut, app/assets/ui/anime/metronome-rod.cut.webp.",
+      "canvas": [
+        200,
+        1000
+      ],
+      "anchors": {
+        "hub": [
+          98,
+          926
+        ]
+      },
+      "swing": 24,
+      "scale": 0.8,
+      "travel": [
+        116.0,
+        681.0
+      ],
+      "request_prompt": "Edit the attached image, musicpractice/app/assets/ui/anime/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/anime/metronome-pendulum.webp"
+      ],
+      "generated_source": "exec-693c60f9-6f46-40fa-b19c-ca5daf9f8b42.png",
+      "native_size": [
+        897,
+        1752
+      ],
+      "requested_geometry": {
+        "canvas": [
+          200,
+          1000
+        ],
+        "anchors": {
+          "hub": [
+            98,
+            927.9
+          ]
+        },
+        "travel": [
+          115.5,
+          685.5
+        ],
+        "scale": 0.8,
+        "swing": 24
+      },
+      "hub_match_score": 0.7912,
+      "measured_rod_width": 23.0,
+      "bob_top": 817,
+      "stem_axis": 97.0,
+      "source": "musicpractice/design/generated/round-10/anime-metronome-rod.png",
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "processing": "Normalize to the original pendulum canvas and pixel scale; measure the rod hub, weight centre and safe travel interval. Export lossless WebP at the layer canvas size."
+    },
+    {
+      "id": "metronome-weight",
+      "theme": "anime",
+      "round": 10,
+      "file": "musicpractice/app/assets/ui/anime/metronome-weight.webp",
+      "size": [
+        200,
+        172
+      ],
+      "status": "delivered",
+      "group": "Candy \u00b7 Metronome pendulum in two parts",
+      "prompt": "From the attached image, musicpractice/app/assets/ui/anime/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.\nReference roles: image 1 shows the complete pendulum for style and scale. Image 2 is a tight interim cut of the requested sliding ornament: preserve that ornament's exact design, including its attached decorations. Create a clean isolated version of ONLY that ornament, no long rod and no bottom bob. A very short central rod segment through the ornament is allowed, with transparent space above and below it. Match the original frontal orientation and symmetry. Desired transparent canvas 200x172.",
+      "note": "The Candy pendulum's weight, which the app slides along the rod with the tempo (higher is slower, as on a real metronome) and which can be dragged to set it. Anchor `center` is the point on the rod that marks its place. Until it arrives the app uses an interim cut, app/assets/ui/anime/metronome-weight.cut.webp.",
+      "canvas": [
+        200,
+        172
+      ],
+      "anchors": {
+        "center": [
+          99.5,
+          85.5
+        ]
+      },
+      "request_prompt": "From the attached image, musicpractice/app/assets/ui/anime/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/anime/metronome-pendulum.webp",
+        "musicpractice/app/assets/ui/anime/metronome-weight.cut.webp"
+      ],
+      "generated_source": "exec-e0523fb4-adeb-4ba1-9149-19d0a02e5a92.png",
+      "native_size": [
+        1353,
+        1163
+      ],
+      "requested_geometry": {
+        "canvas": [
+          200,
+          172
+        ],
+        "anchors": {
+          "center": [
+            100,
+            85.5
+          ]
+        }
+      },
+      "measured_stem_axis": 98.5,
+      "source": "musicpractice/design/generated/round-10/anime-metronome-weight.png",
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "processing": "Normalize to the original pendulum canvas and pixel scale; measure the rod hub, weight centre and safe travel interval. Export lossless WebP at the layer canvas size."
+    },
+    {
+      "id": "metronome-rod",
+      "theme": "steampunk",
+      "round": 10,
+      "file": "musicpractice/app/assets/ui/steampunk/metronome-rod.webp",
+      "size": [
+        200,
+        1000
+      ],
+      "status": "delivered",
+      "group": "Steam Punk \u00b7 Metronome pendulum in two parts",
+      "prompt": "Edit the attached image, musicpractice/app/assets/ui/steampunk/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.\nThis is a precision animation layer, not a redesign: retain exactly the original tip, hub, bottom bob and ornament, rod width and straightness, palette and lighting. Remove ONLY the sliding ornament near the upper quarter (including its nearby decoration if attached to the sliding ornament); keep all decoration attached to the bottom bob. Do not add a collar or new ornament in its place. Continue a smooth uniform uninterrupted vertical rod through the vacated area. Desired transparent canvas 200x1000; the hub center in that canvas is (94.8, 870.6). No detached objects or duplicate rod.",
+      "note": "The Steam Punk pendulum's rod and bob without the weight; the app slides the weight (metronome-weight) along it. Same canvas, hub and swing as app/assets/ui/steampunk/metronome-pendulum.webp. The weight's centre may travel from y 77.5 to y 697.5 of the 1000-high canvas (record the delivered rod's own range here). Until it arrives the app uses an interim cut, app/assets/ui/steampunk/metronome-rod.cut.webp.",
+      "canvas": [
+        200,
+        1000
+      ],
+      "anchors": {
+        "hub": [
+          95,
+          870
+        ]
+      },
+      "swing": 24,
+      "scale": 0.65,
+      "travel": [
+        78.0,
+        696.0
+      ],
+      "request_prompt": "Edit the attached image, musicpractice/app/assets/ui/steampunk/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/steampunk/metronome-pendulum.webp"
+      ],
+      "generated_source": "exec-08ae7b3b-47aa-4fc6-90d9-f91ccc57f74f.png",
+      "native_size": [
+        725,
+        2170
+      ],
+      "requested_geometry": {
+        "canvas": [
+          200,
+          1000
+        ],
+        "anchors": {
+          "hub": [
+            94.8,
+            870.6
+          ]
+        },
+        "travel": [
+          77.5,
+          697.5
+        ],
+        "scale": 0.65,
+        "swing": 24
+      },
+      "hub_match_score": 0.8809,
+      "measured_rod_width": 19.0,
+      "bob_top": 801,
+      "stem_axis": 100.0,
+      "source": "musicpractice/design/generated/round-10/steampunk-metronome-rod.png",
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "processing": "Normalize to the original pendulum canvas and pixel scale; measure the rod hub, weight centre and safe travel interval. Export lossless WebP at the layer canvas size."
+    },
+    {
+      "id": "metronome-weight",
+      "theme": "steampunk",
+      "round": 10,
+      "file": "musicpractice/app/assets/ui/steampunk/metronome-weight.webp",
+      "size": [
+        200,
+        110
+      ],
+      "status": "delivered",
+      "group": "Steam Punk \u00b7 Metronome pendulum in two parts",
+      "prompt": "From the attached image, musicpractice/app/assets/ui/steampunk/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.\nReference roles: image 1 shows the complete pendulum for style and scale. Image 2 is a tight interim cut of the requested sliding ornament: preserve that ornament's exact design, including its attached decorations. Create a clean isolated version of ONLY that ornament, no long rod and no bottom bob. A very short central rod segment through the ornament is allowed, with transparent space above and below it. Match the original frontal orientation and symmetry. Desired transparent canvas 200x110.",
+      "note": "The Steam Punk pendulum's weight, which the app slides along the rod with the tempo (higher is slower, as on a real metronome) and which can be dragged to set it. Anchor `center` is the point on the rod that marks its place. Until it arrives the app uses an interim cut, app/assets/ui/steampunk/metronome-weight.cut.webp.",
+      "canvas": [
+        200,
+        110
+      ],
+      "anchors": {
+        "center": [
+          94.5,
+          54.5
+        ]
+      },
+      "request_prompt": "From the attached image, musicpractice/app/assets/ui/steampunk/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/steampunk/metronome-pendulum.webp",
+        "musicpractice/app/assets/ui/steampunk/metronome-weight.cut.webp"
+      ],
+      "generated_source": "exec-2af496b3-d950-4326-ae54-00f63fcfab81.png",
+      "native_size": [
+        1691,
+        930
+      ],
+      "requested_geometry": {
+        "canvas": [
+          200,
+          110
+        ],
+        "anchors": {
+          "center": [
+            100,
+            54.5
+          ]
+        }
+      },
+      "measured_stem_axis": 99.5,
+      "source": "musicpractice/design/generated/round-10/steampunk-metronome-weight.png",
+      "mode": "RGBA",
+      "tool": "built-in image_gen",
+      "processing": "Normalize to the original pendulum canvas and pixel scale; measure the rod hub, weight centre and safe travel interval. Export lossless WebP at the layer canvas size."
+    }
+  ],
+  "routine_revision": "2026-10-19: Remove wing-like ribbons and mist from Routine only; no decorative floating notes. Drone assets unchanged."
+}

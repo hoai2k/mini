@@ -1,0 +1,672 @@
+{
+  "date": "2026-10-19",
+  "round": 12,
+  "scope": "Arpeggios, Sight reading and Improvisation in all eight Music Practice themes. Notes appear only in the depicted musical subject; no Drone wings, ribbons or mist.",
+  "tool": "built-in image_gen",
+  "assets": [
+    {
+      "id": "practice-arpeggios",
+      "theme": "classic",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/practice-arpeggios.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Classic \u00b7 Practice Routine pictures",
+      "prompt": "Use case: precise-object-edit. Make exactly ONE change to this arpeggio icon: its staff currently has FOUR horizontal lines. Add the missing FIFTH straight parallel horizontal staff line BELOW the current lowest line, with identical spacing, length, material, thickness and end treatment. A musical staff must have FIVE lines, count five horizontal rails. Preserve ALL FIVE noteheads and their five stems exactly in their existing LOW-MIDDLE-HIGH-MIDDLE-LOW arch, with identical materials, colors, positions and size. Do not add or remove any note. Keep the same transparent background, canvas and safe margins; no clef, no text, wings, ribbons, mist or decorative floating notes. Only add the fifth staff line.",
+      "note": "The Practice Routine's picture for Arpeggios in the Classic theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-17d5755d-3a4b-4653-9eba-4b16495bb92a.png"
+      ],
+      "generated_source": "exec-44f67b48-55de-48d9-b366-c60610abcc79.png",
+      "initial_prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: EXACTLY FIVE noteheads total, with five separate upright stems on FIVE straight parallel horizontal staff lines. Left-to-right pitches form LOW, MIDDLE, HIGH, MIDDLE, LOW: a simple rising and falling triad arch, C-E-G-E-C. All five noteheads the same round shape. No clef, no extra note, no ledger-note decoration. The center THIRD note is the highest; the first and last are equally low. Short horizontal staff centered across the canvas, safe margins.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "initial_generated_source": "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-17d5755d-3a4b-4653-9eba-4b16495bb92a.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/classic-practice-arpeggios.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-sight-reading",
+      "theme": "classic",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/practice-sight-reading.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Classic \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: ONLY a SINGLE flat sheet of printed music and ONE small magnifying glass resting over a corner. A few staves and small ink notes printed ON the paper; glass lens shows the underlying printed music. NOT a book, no folded second page, no music stand, no pencil, no hands. Notes remain on the page; none float outside it. Safe margins around the complete sheet and glass handle.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "note": "The Practice Routine's picture for Sight reading in the Classic theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/home-routine.webp"
+      ],
+      "generated_source": "exec-22cd406c-5373-4a41-b89b-96b7ca5b482b.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/classic-practice-sight-reading.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-improvisation",
+      "theme": "classic",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/practice-improvisation.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Classic \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: ONLY ONE glowing light bulb with exactly ONE musical eighth-note symbol enclosed INSIDE its glass globe, plus a few SHORT straight spark dashes close to the bulb. The musical note has one oval head, one stem and ONE flag. The note is the idea inside the bulb, not a decorative floating note. No notes outside the bulb, no second bulb, no star shapes, no fog or trailing bands. Clear readable bulb silhouette, entire base visible with safe margins.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "note": "The Practice Routine's picture for Improvisation in the Classic theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/home-routine.webp"
+      ],
+      "generated_source": "exec-4dc8c279-77c7-4ea5-b484-496140849193.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/classic-practice-improvisation.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-arpeggios",
+      "theme": "deco",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/deco/practice-arpeggios.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Art Deco \u00b7 Practice Routine pictures",
+      "prompt": "Use case: precise-object-edit. Make exactly ONE change to the attached Art Deco arpeggio icon: there are currently FOUR horizontal staff rails. Add a FIFTH matching straight horizontal rail BELOW the current lowest rail, with the same spacing, length, black/jade inset and gold edges. The staff must contain FIVE parallel horizontal rails in total. Preserve the existing FIVE jade noteheads and five stems in their low-middle-high-middle-low arch, all sizes and positions unchanged. No clef, no extra notes, no extra decorations. Same canvas, safe margins, gold/black/jade materials and fully transparent background. Only add the fifth staff line.",
+      "note": "The Practice Routine's picture for Arpeggios in the Art Deco theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/deco/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-7ea950e0-2862-46e1-8419-a19d9ff304e5.png"
+      ],
+      "generated_source": "exec-c8cd3eec-a126-483d-8ea5-958055d4151a.png",
+      "initial_prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/deco/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: EXACTLY FIVE noteheads total, with five separate upright stems on FIVE straight parallel horizontal staff lines. Left-to-right pitches form LOW, MIDDLE, HIGH, MIDDLE, LOW: a simple rising and falling triad arch, C-E-G-E-C. All five noteheads the same round shape. No clef, no extra note, no ledger-note decoration. The center THIRD note is the highest; the first and last are equally low. Short horizontal staff centered across the canvas, safe margins.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "initial_generated_source": "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-7ea950e0-2862-46e1-8419-a19d9ff304e5.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/deco-practice-arpeggios.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-sight-reading",
+      "theme": "deco",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/deco/practice-sight-reading.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Art Deco \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/deco/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: ONLY a SINGLE flat sheet of printed music and ONE small magnifying glass resting over a corner. A few staves and small ink notes printed ON the paper; glass lens shows the underlying printed music. NOT a book, no folded second page, no music stand, no pencil, no hands. Notes remain on the page; none float outside it. Safe margins around the complete sheet and glass handle.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "note": "The Practice Routine's picture for Sight reading in the Art Deco theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/deco/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/deco/home-routine.webp"
+      ],
+      "generated_source": "exec-a6f7d06a-23bf-4e2e-aae8-d2f4695c2160.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/deco-practice-sight-reading.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-improvisation",
+      "theme": "deco",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/deco/practice-improvisation.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Art Deco \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/deco/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: ONLY ONE glowing light bulb with exactly ONE musical eighth-note symbol enclosed INSIDE its glass globe, plus a few SHORT straight spark dashes close to the bulb. The musical note has one oval head, one stem and ONE flag. The note is the idea inside the bulb, not a decorative floating note. No notes outside the bulb, no second bulb, no star shapes, no fog or trailing bands. Clear readable bulb silhouette, entire base visible with safe margins.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "note": "The Practice Routine's picture for Improvisation in the Art Deco theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/deco/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/deco/home-routine.webp"
+      ],
+      "generated_source": "exec-5a47b0f6-00d2-4f20-a770-9a7ca3d1b894.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/deco-practice-improvisation.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-arpeggios",
+      "theme": "sixties",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/sixties/practice-arpeggios.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Vintage 60s \u00b7 Practice Routine pictures",
+      "prompt": "Use case: precise-object-edit. Make exactly ONE change to this arpeggio icon: its staff currently has FOUR horizontal lines. Add the missing FIFTH straight parallel horizontal staff line BELOW the current lowest line, with identical spacing, length, material, thickness and end treatment. A musical staff must have FIVE lines, count five horizontal rails. Preserve ALL FIVE noteheads and their five stems exactly in their existing LOW-MIDDLE-HIGH-MIDDLE-LOW arch, with identical materials, colors, positions and size. Do not add or remove any note. Keep the same transparent background, canvas and safe margins; no clef, no text, wings, ribbons, mist or decorative floating notes. Only add the fifth staff line.",
+      "note": "The Practice Routine's picture for Arpeggios in the Vintage 60s theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/sixties/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-3676b51d-4d9d-48ac-ab23-98c240f1a462.png"
+      ],
+      "generated_source": "exec-a1930472-a2fb-400f-97e3-a26da6100ee4.png",
+      "initial_prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/sixties/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: EXACTLY FIVE noteheads total, with five separate upright stems on FIVE straight parallel horizontal staff lines. Left-to-right pitches form LOW, MIDDLE, HIGH, MIDDLE, LOW: a simple rising and falling triad arch, C-E-G-E-C. All five noteheads the same round shape. No clef, no extra note, no ledger-note decoration. The center THIRD note is the highest; the first and last are equally low. Short horizontal staff centered across the canvas, safe margins.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "initial_generated_source": "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-3676b51d-4d9d-48ac-ab23-98c240f1a462.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/sixties-practice-arpeggios.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-sight-reading",
+      "theme": "sixties",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/sixties/practice-sight-reading.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Vintage 60s \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/sixties/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: ONLY a SINGLE flat sheet of printed music and ONE small magnifying glass resting over a corner. A few staves and small ink notes printed ON the paper; glass lens shows the underlying printed music. NOT a book, no folded second page, no music stand, no pencil, no hands. Notes remain on the page; none float outside it. Safe margins around the complete sheet and glass handle.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "note": "The Practice Routine's picture for Sight reading in the Vintage 60s theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/sixties/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/sixties/home-routine.webp"
+      ],
+      "generated_source": "exec-944d82c7-7a6d-4bb0-9875-f7a5f4cf2d64.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/sixties-practice-sight-reading.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-improvisation",
+      "theme": "sixties",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/sixties/practice-improvisation.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Vintage 60s \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/sixties/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: ONLY ONE glowing light bulb with exactly ONE musical eighth-note symbol enclosed INSIDE its glass globe, plus a few SHORT straight spark dashes close to the bulb. The musical note has one oval head, one stem and ONE flag. The note is the idea inside the bulb, not a decorative floating note. No notes outside the bulb, no second bulb, no star shapes, no fog or trailing bands. Clear readable bulb silhouette, entire base visible with safe margins.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "note": "The Practice Routine's picture for Improvisation in the Vintage 60s theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/sixties/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/sixties/home-routine.webp"
+      ],
+      "generated_source": "exec-da41ced4-ed31-4636-ba6d-d90465b957b6.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/sixties-practice-improvisation.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-arpeggios",
+      "theme": "baroque",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/baroque/practice-arpeggios.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "18th Century \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/baroque/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: EXACTLY FIVE noteheads total, with five separate upright stems on FIVE straight parallel horizontal staff lines. Left-to-right pitches form LOW, MIDDLE, HIGH, MIDDLE, LOW: a simple rising and falling triad arch, C-E-G-E-C. All five noteheads the same round shape. No clef, no extra note, no ledger-note decoration. The center THIRD note is the highest; the first and last are equally low. Short horizontal staff centered across the canvas, safe margins.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "note": "The Practice Routine's picture for Arpeggios in the 18th Century theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/baroque/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/baroque/home-routine.webp"
+      ],
+      "generated_source": "exec-9ec70804-ff45-401e-887e-8f6aef261972.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/baroque-practice-arpeggios.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-sight-reading",
+      "theme": "baroque",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/baroque/practice-sight-reading.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "18th Century \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/baroque/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: ONLY a SINGLE flat sheet of printed music and ONE small magnifying glass resting over a corner. A few staves and small ink notes printed ON the paper; glass lens shows the underlying printed music. NOT a book, no folded second page, no music stand, no pencil, no hands. Notes remain on the page; none float outside it. Safe margins around the complete sheet and glass handle.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "note": "The Practice Routine's picture for Sight reading in the 18th Century theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/baroque/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/baroque/home-routine.webp"
+      ],
+      "generated_source": "exec-2b4b60b3-b8f4-4856-bea3-cc6dc686357f.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/baroque-practice-sight-reading.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-improvisation",
+      "theme": "baroque",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/baroque/practice-improvisation.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "18th Century \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/baroque/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: ONLY ONE glowing light bulb with exactly ONE musical eighth-note symbol enclosed INSIDE its glass globe, plus a few SHORT straight spark dashes close to the bulb. The musical note has one oval head, one stem and ONE flag. The note is the idea inside the bulb, not a decorative floating note. No notes outside the bulb, no second bulb, no star shapes, no fog or trailing bands. Clear readable bulb silhouette, entire base visible with safe margins.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "note": "The Practice Routine's picture for Improvisation in the 18th Century theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/baroque/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/baroque/home-routine.webp"
+      ],
+      "generated_source": "exec-c25d5352-9237-4961-9673-e9bfd7d1f5da.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/baroque-practice-improvisation.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-arpeggios",
+      "theme": "scifi",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/scifi/practice-arpeggios.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Robot Future \u00b7 Practice Routine pictures",
+      "prompt": "Use case: precise-object-edit. Make a Sci-Fi MATERIAL version of this correct arpeggio icon. Preserve its EXACT geometry and composition: FIVE straight horizontal staff rails and FIVE round noteheads with stems in a LOW-MIDDLE-HIGH-MIDDLE-LOW arch. There are five rails in the reference, including the lowest rail beneath the low notes. Keep every rail, all five noteheads, positions, sizes and spacing exactly. Change ONLY the materials from walnut/brass to brushed titanium and dark graphite with cyan/magenta edge lights, matching the Robot Future Music Practice theme. No added objects, no clef, no letters, no numbers, no wings, ribbons, mist or floating extra notes. Preserve transparent background and canvas. Count all FIVE horizontal rails and FIVE noteheads before finishing; remove none.",
+      "note": "The Practice Routine's picture for Arpeggios in the Robot Future theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/scifi/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-44f67b48-55de-48d9-b366-c60610abcc79.png"
+      ],
+      "generated_source": "exec-74ccd8a3-3c49-433c-b7c1-73a1bfb64328.png",
+      "initial_prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/scifi/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: EXACTLY FIVE noteheads total, with five separate upright stems on FIVE straight parallel horizontal staff lines. Left-to-right pitches form LOW, MIDDLE, HIGH, MIDDLE, LOW: a simple rising and falling triad arch, C-E-G-E-C. All five noteheads the same round shape. No clef, no extra note, no ledger-note decoration. The center THIRD note is the highest; the first and last are equally low. Short horizontal staff centered across the canvas, safe margins.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "initial_generated_source": "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-91348d3a-2caf-41d7-aac7-39aaa5c98aee.png",
+      "corrections": [
+        {
+          "prompt": "Use case: precise-object-edit. Make exactly ONE change to this Sci-Fi arpeggio icon: its staff currently has FOUR horizontal lines. Add the missing FIFTH straight parallel line BELOW the current lowest line, with identical spacing, length, cyan/magenta titanium material, thickness and rounded ends. The musical staff must have FIVE parallel horizontal rails, not four. Preserve ALL FIVE noteheads and their five stems exactly in the existing LOW-MIDDLE-HIGH-MIDDLE-LOW arch. Do not add or remove a note, change positions or change other art. Keep the same transparent canvas and safe margins, no clef, no text, wings, ribbons, mist or decorative floating notes. Only add the fifth staff line.",
+          "generated_source": "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-96864e56-2aa9-486f-bec4-0cf6994e39b9.png"
+        }
+      ],
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/scifi-practice-arpeggios.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-sight-reading",
+      "theme": "scifi",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/scifi/practice-sight-reading.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Robot Future \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/scifi/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: ONLY a SINGLE flat sheet of printed music and ONE small magnifying glass resting over a corner. A few staves and small ink notes printed ON the paper; glass lens shows the underlying printed music. NOT a book, no folded second page, no music stand, no pencil, no hands. Notes remain on the page; none float outside it. Safe margins around the complete sheet and glass handle.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "note": "The Practice Routine's picture for Sight reading in the Robot Future theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/scifi/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/scifi/home-routine.webp"
+      ],
+      "generated_source": "exec-823b6267-ce50-4378-aeba-545d300f01d8.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/scifi-practice-sight-reading.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-improvisation",
+      "theme": "scifi",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/scifi/practice-improvisation.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Robot Future \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/scifi/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: ONLY ONE glowing light bulb with exactly ONE musical eighth-note symbol enclosed INSIDE its glass globe, plus a few SHORT straight spark dashes close to the bulb. The musical note has one oval head, one stem and ONE flag. The note is the idea inside the bulb, not a decorative floating note. No notes outside the bulb, no second bulb, no star shapes, no fog or trailing bands. Clear readable bulb silhouette, entire base visible with safe margins.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "note": "The Practice Routine's picture for Improvisation in the Robot Future theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/scifi/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/scifi/home-routine.webp"
+      ],
+      "generated_source": "exec-01bca9ca-c2c7-4da1-b355-fba8dcd6f387.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/scifi-practice-improvisation.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-arpeggios",
+      "theme": "nouveau",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/nouveau/practice-arpeggios.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "French Nouveau \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/nouveau/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: EXACTLY FIVE noteheads total, with five separate upright stems on FIVE straight parallel horizontal staff lines. Left-to-right pitches form LOW, MIDDLE, HIGH, MIDDLE, LOW: a simple rising and falling triad arch, C-E-G-E-C. All five noteheads the same round shape. No clef, no extra note, no ledger-note decoration. The center THIRD note is the highest; the first and last are equally low. Short horizontal staff centered across the canvas, safe margins.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "note": "The Practice Routine's picture for Arpeggios in the French Nouveau theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/nouveau/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/nouveau/home-routine.webp"
+      ],
+      "generated_source": "exec-00398c73-9081-4726-b8a1-3e4ada7efe79.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/nouveau-practice-arpeggios.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-sight-reading",
+      "theme": "nouveau",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/nouveau/practice-sight-reading.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "French Nouveau \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/nouveau/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: ONLY a SINGLE flat sheet of printed music and ONE small magnifying glass resting over a corner. A few staves and small ink notes printed ON the paper; glass lens shows the underlying printed music. NOT a book, no folded second page, no music stand, no pencil, no hands. Notes remain on the page; none float outside it. Safe margins around the complete sheet and glass handle.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "note": "The Practice Routine's picture for Sight reading in the French Nouveau theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/nouveau/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/nouveau/home-routine.webp"
+      ],
+      "generated_source": "exec-e8103bef-fe4a-465b-893d-23a09d8bfb60.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/nouveau-practice-sight-reading.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-improvisation",
+      "theme": "nouveau",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/nouveau/practice-improvisation.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "French Nouveau \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/nouveau/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: ONLY ONE glowing light bulb with exactly ONE musical eighth-note symbol enclosed INSIDE its glass globe, plus a few SHORT straight spark dashes close to the bulb. The musical note has one oval head, one stem and ONE flag. The note is the idea inside the bulb, not a decorative floating note. No notes outside the bulb, no second bulb, no star shapes, no fog or trailing bands. Clear readable bulb silhouette, entire base visible with safe margins.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "note": "The Practice Routine's picture for Improvisation in the French Nouveau theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/nouveau/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/nouveau/home-routine.webp"
+      ],
+      "generated_source": "exec-cf8b0f13-7a59-4a8c-b850-a61edf0c6b57.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/nouveau-practice-improvisation.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-arpeggios",
+      "theme": "anime",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/anime/practice-arpeggios.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Candy \u00b7 Practice Routine pictures",
+      "prompt": "Use case: precise-object-edit. Make a Candy/Anime MATERIAL version of this correct arpeggio icon. Preserve its EXACT geometry: FIVE straight horizontal staff rails and FIVE round noteheads with stems forming a LOW-MIDDLE-HIGH-MIDDLE-LOW arch. Keep the lowest FIFTH rail beneath the low notes; all five rails must remain. Change ONLY the materials from walnut/brass to candy-pink notes with lilac shading, sky-blue/lilac staff rails, bold magenta outlines and glossy cel-shaded highlights, matching the Candy Music Practice theme. Tiny yellow glints may stay INSIDE noteheads only. Preserve all positions, sizes, spacing, safe margins and transparent square canvas. No clef, no extra notes, no letters, numbers, wings, ribbons, mist or surrounding decorations. Exactly FIVE horizontal staff rails and FIVE noteheads.",
+      "note": "The Practice Routine's picture for Arpeggios in the Candy theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/anime/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-44f67b48-55de-48d9-b366-c60610abcc79.png"
+      ],
+      "generated_source": "exec-8c39e096-1aa9-4a6d-9355-b145ec5fc412.png",
+      "initial_prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/anime/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: EXACTLY FIVE noteheads total, with five separate upright stems on FIVE straight parallel horizontal staff lines. Left-to-right pitches form LOW, MIDDLE, HIGH, MIDDLE, LOW: a simple rising and falling triad arch, C-E-G-E-C. All five noteheads the same round shape. No clef, no extra note, no ledger-note decoration. The center THIRD note is the highest; the first and last are equally low. Short horizontal staff centered across the canvas, safe margins.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "initial_generated_source": "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-c8b16243-e979-4a74-b5e4-7e167893acd8.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/anime-practice-arpeggios.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-sight-reading",
+      "theme": "anime",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/anime/practice-sight-reading.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Candy \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/anime/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: ONLY a SINGLE flat sheet of printed music and ONE small magnifying glass resting over a corner. A few staves and small ink notes printed ON the paper; glass lens shows the underlying printed music. NOT a book, no folded second page, no music stand, no pencil, no hands. Notes remain on the page; none float outside it. Safe margins around the complete sheet and glass handle.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "note": "The Practice Routine's picture for Sight reading in the Candy theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/anime/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/anime/home-routine.webp"
+      ],
+      "generated_source": "exec-dc461cab-133b-4f2c-bbdb-42118ec169c8.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/anime-practice-sight-reading.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-improvisation",
+      "theme": "anime",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/anime/practice-improvisation.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Candy \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/anime/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: ONLY ONE glowing light bulb with exactly ONE musical eighth-note symbol enclosed INSIDE its glass globe, plus a few SHORT straight spark dashes close to the bulb. The musical note has one oval head, one stem and ONE flag. The note is the idea inside the bulb, not a decorative floating note. No notes outside the bulb, no second bulb, no star shapes, no fog or trailing bands. Clear readable bulb silhouette, entire base visible with safe margins.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "note": "The Practice Routine's picture for Improvisation in the Candy theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/anime/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/anime/home-routine.webp"
+      ],
+      "generated_source": "exec-6c41ca1e-8a76-4668-80ae-c68585888a58.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/anime-practice-improvisation.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-arpeggios",
+      "theme": "steampunk",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/steampunk/practice-arpeggios.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Steam Punk \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/steampunk/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: EXACTLY FIVE noteheads total, with five separate upright stems on FIVE straight parallel horizontal staff lines. Left-to-right pitches form LOW, MIDDLE, HIGH, MIDDLE, LOW: a simple rising and falling triad arch, C-E-G-E-C. All five noteheads the same round shape. No clef, no extra note, no ledger-note decoration. The center THIRD note is the highest; the first and last are equally low. Short horizontal staff centered across the canvas, safe margins.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "note": "The Practice Routine's picture for Arpeggios in the Steam Punk theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/steampunk/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/steampunk/home-routine.webp"
+      ],
+      "generated_source": "exec-1389bead-b11b-4359-9802-ec3bc16d0033.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/steampunk-practice-arpeggios.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-sight-reading",
+      "theme": "steampunk",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/steampunk/practice-sight-reading.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Steam Punk \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/steampunk/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: ONLY a SINGLE flat sheet of printed music and ONE small magnifying glass resting over a corner. A few staves and small ink notes printed ON the paper; glass lens shows the underlying printed music. NOT a book, no folded second page, no music stand, no pencil, no hands. Notes remain on the page; none float outside it. Safe margins around the complete sheet and glass handle.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "note": "The Practice Routine's picture for Sight reading in the Steam Punk theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/steampunk/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/steampunk/home-routine.webp"
+      ],
+      "generated_source": "exec-ca0a9206-a8f6-42a4-94a2-e52d6d5ad314.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/steampunk-practice-sight-reading.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    },
+    {
+      "id": "practice-improvisation",
+      "theme": "steampunk",
+      "round": 12,
+      "file": "musicpractice/app/assets/ui/steampunk/practice-improvisation.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Steam Punk \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create one production app illustration on a truly transparent background.\nReference role: the attached Routine hourglass supplies ONLY the theme's colors, materials, rendering and light. Do NOT draw an hourglass, sand, cello or its frame. Draw the requested activity in those same materials and rendering.\nUsing the attached image, musicpractice/app/assets/ui/steampunk/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nSubject accuracy: ONLY ONE glowing light bulb with exactly ONE musical eighth-note symbol enclosed INSIDE its glass globe, plus a few SHORT straight spark dashes close to the bulb. The musical note has one oval head, one stem and ONE flag. The note is the idea inside the bulb, not a decorative floating note. No notes outside the bulb, no second bulb, no star shapes, no fog or trailing bands. Clear readable bulb silhouette, entire base visible with safe margins.\nComposition: one centered icon, bold and clear at 96px, square transparent canvas. No wings, sound ribbons, mist bands, surrounding decorative musical notes, text, letters, numbers, logos, watermark or cast shadow. Preserve the theme's existing illustration style, rather than adding photorealistic scenery.",
+      "note": "The Practice Routine's picture for Improvisation in the Steam Punk theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/steampunk/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/steampunk/home-routine.webp"
+      ],
+      "generated_source": "exec-f729e440-6006-41c3-ba1c-06f2aa9f2825.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-12/steampunk-practice-improvisation.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve the generated illustration and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into a 1024px transparent PNG master; export 512px lossless WebP."
+    }
+  ]
+}

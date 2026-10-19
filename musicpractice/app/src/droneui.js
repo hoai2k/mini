@@ -419,7 +419,14 @@ export function setupDrone({ settings, persist, chips, engine, onPlaying }) {
   const art = body.querySelector('.drone-art');
   function fit() {
     if (scr.hidden) return;
-    if (getComputedStyle(body).display !== 'flex') { scr.style.removeProperty('--art'); return; }
+    if (getComputedStyle(body).display !== 'flex') {
+      // Side by side: the stylesheet sizes it, with smaller controls (#drone.tight) if they don't fit.
+      scr.style.removeProperty('--art');
+      scr.classList.remove('tight');
+      if (document.documentElement.scrollHeight > innerHeight) scr.classList.add('tight');
+      return;
+    }
+    scr.classList.remove('tight');
     const cur = art.getBoundingClientRect().height;
     if (!cur) return;
     const timerEl = $('dr-timer');
