@@ -47,36 +47,57 @@ export function pick(entries, theme, id) {
 }
 
 let generation = 0;
+let shown = { theme: null, entries: null, onLayout: null }; // the art applied last
+
+/** Is there a picture for `id` in the current theme (delivered, or an interim one)? Stand-ins don't count. */
+export function hasArt(id) {
+  const e = shown.entries?.find((a) => a.id === id && a.theme === shown.theme);
+  return !!e && (e.status === 'delivered' || e.status === 'revise' || !!e.interim);
+}
+
+/** Show `id` in `el` from now on (in this theme, and in any applied later). */
+export function showArt(el, id) {
+  if (el.dataset.asset === id) return;
+  el.dataset.asset = id;
+  if (shown.entries) paint(el, shown.theme, shown.entries, generation, shown.onLayout);
+}
 
 /** Show `theme`'s art everywhere; calls onLayout whenever a layer changes. */
 export async function applyArt(theme, onLayout) {
   const entries = await assetList();
   const gen = ++generation;
-  for (const el of document.querySelectorAll('[data-asset]')) {
-    const art = pick(entries, theme, el.dataset.asset);
-    const key = `${theme}:${art.kind}:${art.file || ''}`;
-    if (el.dataset.shown === key) continue;
-    const show = (node, shown = art) => {
-      if (gen !== generation) return;
-      if (typeof node === 'string') el.innerHTML = node;
-      else el.replaceChildren(node);
-      el.dataset.shown = key;
-      el.art = shown;
-      onLayout?.();
+  shown = { theme, entries, onLayout };
+  for (const el of document.querySelectorAll('[data-asset]')) paint(el, theme, entries, gen, onLayout);
+  document.dispatchEvent(new Event('art-applied'));
+}
+
+/** Show `el`'s asset in `theme` (a delivered or interim image, or the stand-in). */
+function paint(el, theme, entries, gen, onLayout) {
+  const id = el.dataset.asset;
+  const art = pick(entries, theme, id);
+  const key = `${theme}:${art.kind}:${art.file || ''}:${id}`;
+  if (el.dataset.shown === key) return;
+  const show = (node, what = art) => {
+    // A newer theme, or another picture asked for meanwhile (showArt), wins.
+    if (gen !== generation || el.dataset.asset !== id) return;
+    if (typeof node === 'string') el.innerHTML = node;
+    else el.replaceChildren(node);
+    el.dataset.shown = key;
+    el.art = what;
+    onLayout?.();
+  };
+  if (art.kind === 'standin') {
+    show(art.html);
+  } else {
+    const img = new Image();
+    img.alt = '';
+    img.decoding = 'async';
+    img.onload = () => show(img);
+    img.onerror = () => {
+      const fallback = { ...standin(theme, id), kind: 'standin' };
+      show(fallback.html, fallback);
     };
-    if (art.kind === 'standin') {
-      show(art.html);
-    } else {
-      const img = new Image();
-      img.alt = '';
-      img.decoding = 'async';
-      img.onload = () => show(img);
-      img.onerror = () => {
-        const fallback = { ...standin(theme, el.dataset.asset), kind: 'standin' };
-        show(fallback.html, fallback);
-      };
-      img.src = art.file;
-    }
+    img.src = art.file;
   }
 }
 

@@ -17,7 +17,11 @@ export const MIN_MINUTES = 1;
 export const MAX_MINUTES = 120;
 const MAX_NAME = 60;
 
-/** The suggestions offered by +. */
+/**
+ * The suggestions offered by +. Each needs its own picture, practice-<id>,
+ * in the image requests (design/source/build_requests.py, PRACTICE_SUBJECT;
+ * test/timer.test.mjs checks), shown large while such an item runs.
+ */
 export const PRESETS = [
   { id: 'intonation', minutes: 3, metronome: false, drone: true },
   { id: 'scales', minutes: 5, metronome: true, drone: false },
@@ -39,6 +43,7 @@ export function newItem(presetId, base = {}) {
   const p = PRESETS.find((x) => x.id === presetId);
   return clean({
     id: newId(),
+    kind: p ? p.id : null,
     name: p ? TEXT.timer.presets[p.id] : '',
     minutes: p ? p.minutes : 5,
     metronome: p ? p.metronome : false,
@@ -57,9 +62,14 @@ export function clean(it) {
   const o = it && typeof it === 'object' ? it : {};
   const met = o.met && typeof o.met === 'object' ? o.met : {};
   const drn = o.drn && typeof o.drn === 'object' ? o.drn : {};
+  const name = typeof o.name === 'string' ? o.name.slice(0, MAX_NAME) : '';
   return {
     id: typeof o.id === 'string' && o.id ? o.id.slice(0, 40) : newId(),
-    name: typeof o.name === 'string' ? o.name.slice(0, MAX_NAME) : '',
+    // Which suggestion it came from (its picture), or null for one of its own.
+    // Saved before items knew: by its name, if that is a suggestion's.
+    kind: PRESETS.some((p) => p.id === o.kind) ? o.kind
+      : o.kind === undefined ? PRESETS.find((p) => TEXT.timer.presets[p.id] === name)?.id ?? null : null,
+    name,
     minutes: clampInt(o.minutes, MIN_MINUTES, MAX_MINUTES, 5),
     metronome: o.metronome === true,
     drone: o.drone === true,
@@ -123,6 +133,22 @@ export async function playChime(ctx, id, volume = 0.9) {
 }
 
 export const totalSeconds = (items) => items.reduce((s, it) => s + it.minutes * 60, 0);
+
+/**
+ * The picture shown large while `it` runs: its own (practice-<kind>), or,
+ * while that is still to come, the Drone's (cello or organ, by its voice)
+ * for an item with the drone on, else the Metronome's, else the default
+ * practice picture, else the routine's hourglass. `has(id)` says whether a
+ * picture is there to show in the current theme.
+ */
+export function pictureFor(it, has) {
+  const ids = [];
+  if (it.kind) ids.push(`practice-${it.kind}`);
+  if (it.drone) ids.push(it.drn.voice.startsWith('organ') ? 'drone-organ' : 'drone-cello');
+  if (it.metronome) ids.push('home-metronome');
+  ids.push('practice-default');
+  return ids.find((id) => has(id)) || 'home-routine';
+}
 
 /*
  * Hooks for what else marks a change of item, beyond the chime (which the

@@ -1860,6 +1860,13 @@ html.paged #home, html.paged #routine { touch-action: pan-y; }
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
   box-shadow: 0 10px 30px var(--shadow);
 }
+/* While an item runs, its picture takes the top of the panel, large. */
+.timer-picture { grid-area: pic; display: none; width: clamp(150px, 46vw, 260px); aspect-ratio: 1; justify-self: center; place-items: center; }
+.timer-picture > * { width: 100%; height: 100%; object-fit: contain; }
+.timer-now.running { grid-template-columns: 1fr; grid-template-areas: "pic" "read" "act"; }
+.timer-now.running .timer-picture { display: grid; }
+.timer-now.running .timer-art { display: none; }
+.timer-now.running .timer-readout { text-align: center; align-items: stretch; }
 .timer-art { grid-area: art; width: clamp(64px, 18vw, 96px); aspect-ratio: 1; display: grid; place-items: center; }
 .timer-art > * { width: 100%; height: 100%; object-fit: contain; }
 .timer-readout { grid-area: read; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
