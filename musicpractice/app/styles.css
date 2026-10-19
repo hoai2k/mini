@@ -1828,30 +1828,32 @@ div.ac-status.bad { border-color: var(--red); justify-items: start; }
   .choices.five > .choice:nth-child(5) { grid-column: auto; width: auto; }
 }
 
-/* Home and the routine as two pages (pager.js): a tab at the edge, the
-   way to the other page, with an arrow pointing in. Tap it, or swipe; it
-   nudges inward now and then so the page beside is noticed. */
+/* Home and the routine as two pages (pager.js): at the edge, the way to
+   the other page, a double chevron pointing in (no tab behind it). Tap it,
+   or swipe; it nudges inward now and then so the page beside is noticed. */
 .page-tab {
   display: none; position: fixed; top: 50%; translate: 0 -50%; z-index: 4;
   width: 30px; height: 84px; place-items: center; padding: 0;
-  background: var(--panel-2); color: var(--ink-2); border: 1px solid var(--line);
-  box-shadow: 0 6px 18px var(--shadow);
+  background: none; border: 0; box-shadow: none; color: var(--ink-2);
+  filter: drop-shadow(0 1px 2px var(--shadow));
   animation: page-nudge 3.2s ease-in-out 1.2s infinite;
 }
 html.paged .page-tab { display: grid; }
-/* Room for the tabs at the edges, so they don't lie over the buttons. */
+/* Room for the chevrons at the edges, so they don't lie over the buttons. */
 html.paged #home, html.paged #routine { padding-inline: calc(var(--gutter) + 16px); }
-.page-tab:hover { color: var(--ink); border-color: var(--brass); }
-.page-tab svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.page-tab:hover { color: var(--ink); }
+.page-tab svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 /* A wider grip than it looks, for a thumb at the edge. */
 .page-tab::before { content: ''; position: absolute; inset: -12px -8px; }
-.page-tab-right { right: 0; border-right: 0; border-radius: 16px 0 0 16px; --nudge: -5px; padding-right: env(safe-area-inset-right); }
-.page-tab-left { left: 0; border-left: 0; border-radius: 0 16px 16px 0; --nudge: 5px; padding-left: env(safe-area-inset-left); }
+.page-tab-right { right: 0; --nudge: -5px; padding-right: env(safe-area-inset-right); }
+.page-tab-left { left: 0; --nudge: 5px; padding-left: env(safe-area-inset-left); }
 @keyframes page-nudge { 0%, 72%, 100% { transform: none; } 82% { transform: translateX(var(--nudge)); } 90% { transform: none; } }
 @media (prefers-reduced-motion: reduce) { .page-tab { animation: none; } }
 html.paged #home, html.paged #routine { touch-action: pan-y; }
 /* The page sliding in, laid over the window beside the one going. */
-.screen.page-incoming { position: fixed; inset: 0; z-index: 5; overflow: hidden; }
+/* (#home sets position: relative by its id, so the ids are named here too, or
+   home would stay in the flow and push the routine below the window.) */
+.screen.page-incoming, #home.page-incoming, #routine.page-incoming { position: fixed; inset: 0; z-index: 5; overflow: hidden; }
 /* No background of its own: each theme's backdrop (the page's) shows through
    both pages as they slide, as it does behind either at rest. */
 

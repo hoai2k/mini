@@ -120,10 +120,14 @@ when the Art Deco art arrives, measure and record its own.
 - **The pendulum's weight shows the tempo and sets it**, as on a real
   metronome: it slides up the rod for slower and down for faster
   (`weightAt` in `app/src/metronome.js`), and dragging it with a finger or
-  the mouse sets the tempo (`bpmAtWeight`). Its range is 40 to 300 BPM, on a
-  log scale squeezed further at the fast end, so the everyday tempos get
-  most of the rod (60 to 160 about half of it, 200 to 300 under a fifth);
-  tempos past either end leave it at that end (they can still be typed).
+  the mouse sets the tempo (`bpmAtWeight`). Its range is the chosen
+  genre's (the tempo picker's), from the slowest tempo it names to the
+  fastest (`genreRange` in `app/src/tempos.js`): Classical 40 to 240, Jazz
+  50 to 320, Ballroom 84 to 208, Electronic 70 to 180, Marching 50 to 180.
+  Changing the genre moves the weight to the tempo's place in the new range.
+  The scale is logarithmic, squeezed further at the fast end, so the slower,
+  everyday tempos get more of the rod; tempos past either end leave it at
+  that end (they can still be typed).
   While it is dragged the pendulum eases upright and the clicks go on at the
   new tempo; a tap on it without a drag is a tap on the metronome. It
   slides to its place when the tempo changes any other way. The pendulum is
@@ -133,7 +137,11 @@ when the Art Deco art arrives, measure and record its own.
   parts for every theme, with measured hubs, weight attachment points and
   safe travel ranges. The earlier interim cuts (`*.cut.webp`, made by
   `design/source/cut_pendulum.py`) remain as source history; the app uses
-  the new delivered layers.
+  the new delivered layers. In Art Deco and Baroque the rod's tip reaches up
+  into the case's crown, where the weight at the slow end sat on the crown's
+  ornament and read as part of the case, so the slowest place is held lower
+  there (`FACE_TRAVEL_TOP` in `build_requests.py`) and the weight stays
+  inside the face.
 - A metronome with a swinging pendulum: it reaches one end of its swing on
   each click and the other end on the next, synced to what you hear
   (`pendulumAngle` in `app/src/metronome.js`, corrected for output latency).
@@ -659,9 +667,11 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   browser's bars take their share), it is a **second page**: swipe left on
   the home screen and the routine slides in from the right, the page
   following the finger (a short or slow swipe springs back); swipe right, or
-  Back, to return. A mouse gets an arrow at the right edge; a touch screen a
-  faint chevron there, nudging now and then. Once there is another tool the
-  button version will be used everywhere.
+  Back, to return, the home page sliding back in over the window as the
+  routine slides out. The way across is a double chevron at the edge,
+  pointing in, with no tab behind it (tap it, or swipe), nudging inward now
+  and then. Once there is another tool the button version will be used
+  everywhere.
 - **While an item runs, its picture fills the top of the panel**, large,
   so a glance says what is being practised; it fades in at each change of
   item. Each kind of item has its own (`practice-<kind>`: intonation,
@@ -674,7 +684,9 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   saved ones from before are matched by name). **A new suggestion needs a
   picture too:** add it to `PRACTICE_SUBJECT` in
   `design/source/build_requests.py`; `test/timer.test.mjs` fails until every
-  suggestion has one in every theme.
+  suggestion has one in every theme. The pictures are delivered for every
+  theme. If the page was scrolled down (to an item just added, say) when an
+  item starts, it scrolls back up so the picture is in view.
 - Its home button is an hourglass per theme (image requests round 9,
   `home-routine`), delivered for all eight themes. In the apps the drone
   is Pro, as on its own screen. Not done yet: the routine doesn't go on

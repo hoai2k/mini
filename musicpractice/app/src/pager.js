@@ -55,14 +55,17 @@ export function setupPager({ home, timer, current, go }) {
     const a = fromEl.animate([{ transform: `translateX(${dx}px)` }, { transform: `translateX(${target}px)` }], opts);
     toEl.animate([{ transform: `translateX(${dx - sign(from) * w}px)` }, { transform: `translateX(${target - sign(from) * w}px)` }], opts);
     a.finished.then(() => {
+      // Put both pages back in the flow before routing, all in this one task
+      // (nothing is drawn between): going home measures whether all five
+      // buttons fit, and a page still fixed over the window always fits.
+      for (const el of [fromEl, toEl]) for (const an of el.getAnimations()) an.cancel();
+      settle(fromEl, toEl);
       if (commit) {
         window.scrollTo(0, 0);
         go(from === 'home' ? 'routine' : 'home');
       } else {
         toEl.hidden = true;
       }
-      for (const el of [fromEl, toEl]) for (const an of el.getAnimations()) an.cancel();
-      settle(fromEl, toEl);
       moving = false;
     }).catch(() => { moving = false; });
   }

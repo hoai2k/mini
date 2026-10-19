@@ -702,6 +702,20 @@ if _routine_pendulum_delivery.exists():
             asset["note"] = asset["note"].split("Until it arrives")[0]
         asset["note"] += "PNG masters, prompts and export details: design/image-deliveries-rounds-9-10.json."
 
+# Where a rod's tip reaches up into the case's crown (Art Deco's stepped
+# top, Baroque's shell crest), the weight at the slow end sat on that
+# ornament and read as part of the case. Its slowest place is held lower,
+# so its top edge stays just inside the face (measured on the composed
+# metronome: the face starts at rod y 164 in Art Deco and 122 in Baroque,
+# under the crest, and the weights are 156 and 111 tall).
+FACE_TRAVEL_TOP = {"deco": 250.0, "baroque": 183.0}
+for asset in ASSETS:
+    top = FACE_TRAVEL_TOP.get(asset["theme"]) if asset["id"] == "metronome-rod" else None
+    if top is not None and asset.get("travel") and asset["travel"][0] < top:
+        asset["travel"] = [top, asset["travel"][1]]
+        asset["note"] += (f" The app holds the slowest place at y {top}, so the weight stays inside "
+                          "the face rather than on the crown.")
+
 # The Practice Routine's pictures: one per kind of practice item (the
 # suggestions + offers, PRESETS in app/src/timer.js), shown large while that
 # item runs so a glance says what is being practised, and a default for an

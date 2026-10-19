@@ -60,6 +60,12 @@ export const GENRES = {
 
 export const GENRE_IDS = Object.keys(GENRES);
 
+/** The slowest and fastest tempos a genre names (every list): the range the metronome's weight slides over. */
+export function genreRange(genre) {
+  const all = (GENRES[genre] || GENRES.classical).flatMap((t) => t.list);
+  return [Math.min(...all), Math.max(...all)];
+}
+
 /** The tempo a name's button plays: the one chosen from its list, or its usual one. */
 export function mainTempo(genre, name, defaults = {}) {
   const t = GENRES[genre]?.find((n) => n.id === name);

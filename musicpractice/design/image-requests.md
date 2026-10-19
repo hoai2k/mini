@@ -1177,7 +1177,7 @@ From the attached image, musicpractice/app/assets/ui/metronome-pendulum.webp (th
 - File: `musicpractice/app/assets/ui/deco/metronome-rod.webp`
 - Size: 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP
 - Anchors (measured): hub (100, 918) in a 200×1000 canvas; swings ±26°
-- Note: Delivered rod and bob without the sliding weight, normalized to the original pendulum's scale. The hub is measured on this layer; the separate weight's centre travels from y 93.0 to y 726.0. PNG masters, prompts and export details: design/image-deliveries-rounds-9-10.json.
+- Note: Delivered rod and bob without the sliding weight, normalized to the original pendulum's scale. The hub is measured on this layer; the separate weight's centre travels from y 93.0 to y 726.0. PNG masters, prompts and export details: design/image-deliveries-rounds-9-10.json. The app holds the slowest place at y 250.0, so the weight stays inside the face rather than on the crown.
 
 ```text
 Edit the attached image, musicpractice/app/assets/ui/deco/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.
@@ -1225,7 +1225,7 @@ From the attached image, musicpractice/app/assets/ui/sixties/metronome-pendulum.
 - File: `musicpractice/app/assets/ui/baroque/metronome-rod.webp`
 - Size: 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP
 - Anchors (measured): hub (99, 865) in a 200×1000 canvas; swings ±24°
-- Note: Delivered rod and bob without the sliding weight, normalized to the original pendulum's scale. The hub is measured on this layer; the separate weight's centre travels from y 82.5 to y 676.5. PNG masters, prompts and export details: design/image-deliveries-rounds-9-10.json.
+- Note: Delivered rod and bob without the sliding weight, normalized to the original pendulum's scale. The hub is measured on this layer; the separate weight's centre travels from y 82.5 to y 676.5. PNG masters, prompts and export details: design/image-deliveries-rounds-9-10.json. The app holds the slowest place at y 183.0, so the weight stays inside the face rather than on the crown.
 
 ```text
 Edit the attached image, musicpractice/app/assets/ui/baroque/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.

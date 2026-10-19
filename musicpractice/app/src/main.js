@@ -33,7 +33,7 @@ const RECORD_DURING_PLAYBACK = false;
 const recordDuringPlayback = () => RECORD_DURING_PLAYBACK && settings.recordDuringPlayback;
 import { Waveform, drawThumb } from './waveform.js';
 import * as store from './takes.js';
-import { GENRES, GENRE_IDS, mainTempo, nameFor } from './tempos.js';
+import { GENRES, GENRE_IDS, mainTempo, nameFor, genreRange } from './tempos.js';
 import { load, save, clampBpm, METERS, SOUNDS, THEMES, APPEARANCES, VIZ_BARS, TICKS, barPlan, cleanPattern, resolveMode, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
 import { applyArt, alignPendulum, alignBow, swingOf, placeWeight, weightFromPoint } from './art.js';
 import { tuckedVolume } from './tuckedvolume.js';
@@ -627,7 +627,7 @@ $('met-visual').addEventListener('contextmenu', (e) => e.preventDefault());
 const tempoGenre = $('tempo-genre');
 tempoGenre.replaceChildren(...GENRE_IDS.map((g) => new Option(TEXT.metronome.tempos.genres[g], g)));
 // A new style names the tempo in its own terms at once (the number stays).
-tempoGenre.addEventListener('change', () => { settings.tempoGenre = tempoGenre.value; settings.tempoPicked = null; persist(); renderTempos(); showMarking(); });
+tempoGenre.addEventListener('change', () => { settings.tempoGenre = tempoGenre.value; settings.tempoPicked = null; persist(); renderTempos(); showMarking(); showWeight(); });
 
 function renderTempos() {
   const T = TEXT.metronome.tempos;
@@ -698,12 +698,14 @@ const toggleSwing = () => setSwing(!settings.swing);
  * the metronome, as before.
  */
 const weightEl = $('pend-weight');
-function showWeight(t = weightAt(settings.bpm)) { placeWeight(pendulum, t); }
+/** The chosen genre's slowest to fastest named tempo: the rod's range. */
+function weightRange() { return genreRange(settings.tempoGenre); }
+function showWeight(t = weightAt(settings.bpm, weightRange())) { placeWeight(pendulum, t); }
 weightEl.addEventListener('pointerdown', (e) => {
   if (e.button) return;
   const at = weightFromPoint(pendulum, e.clientY);
   if (at == null) return;
-  weightDrag = { id: e.pointerId, x: e.clientX, y: e.clientY, offset: weightAt(settings.bpm) - at, moved: false };
+  weightDrag = { id: e.pointerId, x: e.clientX, y: e.clientY, offset: weightAt(settings.bpm, weightRange()) - at, moved: false };
   weightEl.setPointerCapture(e.pointerId);
 });
 weightEl.addEventListener('pointermove', (e) => {
@@ -715,7 +717,7 @@ weightEl.addEventListener('pointermove', (e) => {
   if (at == null) return;
   const t = Math.min(1, Math.max(0, at + d.offset));
   showWeight(t);
-  const bpm = Math.round(bpmAtWeight(t));
+  const bpm = Math.round(bpmAtWeight(t, weightRange()));
   if (bpm !== settings.bpm) setBpm(bpm);
 });
 for (const type of ['pointerup', 'pointercancel']) {

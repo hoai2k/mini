@@ -258,3 +258,19 @@ test('louder volumes: the defaults sound as before, and older saves keep their l
   assert.equal(sanitize({ droneVolume: 0.9, louder: true }).droneVolume, 0.9); // saved since: as it is
   assert.equal(sanitize({}).louder, true);
 });
+
+test('the pendulum weight spans the chosen genre, slowest named tempo to fastest', async () => {
+  const { weightAt, bpmAtWeight } = await import('../src/metronome.js');
+  const { genreRange, GENRES, GENRE_IDS } = await import('../src/tempos.js');
+  assert.deepEqual(genreRange('classical'), [40, 240]);
+  assert.deepEqual(genreRange('jazz'), [50, 320]);
+  assert.deepEqual(genreRange('ballroom'), [84, 208]);
+  for (const g of GENRE_IDS) {
+    const r = genreRange(g);
+    for (const t of GENRES[g]) for (const b of t.list) assert.ok(b >= r[0] && b <= r[1], `${g} ${b}`);
+    assert.equal(weightAt(r[0], r), 0);
+    assert.equal(weightAt(r[1], r), 1);
+    assert.ok(Math.abs(bpmAtWeight(0, r) - r[0]) < 1e-9 && Math.abs(bpmAtWeight(1, r) - r[1]) < 1e-9, g);
+  }
+  assert.equal(weightAt(300, genreRange('ballroom')), 1); // past the end: stays there
+});

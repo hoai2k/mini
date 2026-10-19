@@ -325,6 +325,11 @@ export function setupTimer({ settings, audio, chips, canDrone, askDrone }) {
     if (picFor === `${it.id}:${id}`) return;
     picFor = `${it.id}:${id}`;
     showArt(pic, id);
+    // The picture grows the panel upward from the controls just pressed, so
+    // on a page scrolled down (to an item just added, say) it would appear
+    // above the window: bring the panel back into view.
+    const now = pic.closest('.timer-now');
+    if (now && now.getBoundingClientRect().top < 0) window.scrollTo({ top: 0, behavior: 'smooth' });
     pic.animate?.([{ opacity: 0, transform: 'scale(0.94)' }, { opacity: 1, transform: 'none' }], { duration: 380, easing: 'ease-out' });
   }
   // A change of theme can change which pictures there are.
