@@ -667,6 +667,57 @@ def round10_assets() -> list[dict]:
 
 ASSETS += round10_assets()
 
+# The Practice Routine's pictures: one per kind of practice item (the
+# suggestions + offers, PRESETS in app/src/timer.js), shown large while that
+# item runs so a glance says what is being practised, and a default for an
+# item of its own kind (Custom…). A new suggestion needs its picture here too
+# (app/test/timer.test.mjs checks every suggestion has a request).
+PRACTICE_SUBJECT = {
+    "practice-intonation": ("Intonation practice", "a tuning fork standing upright and ringing, with two thin sound ribbons "
+                            "drifting from its tines, beside a single whole note on a short three-line staff"),
+    "practice-scales": ("Scales", "a short musical staff with eight round note heads climbing it from left to right like a "
+                        "gentle staircase, the last note a little larger, a small ribbon curling up past it"),
+    "practice-rhythms": ("Clapping rhythms", "two hands meeting in a clap, seen from the side, with three small curved "
+                         "motion marks around them, and a short row of rhythm notes (quarter notes and a pair of "
+                         "beamed eighth notes) beneath"),
+    "practice-ghosting": ("Ghosting", "a cello bow drawn as a faint, translucent ghostly outline, hovering just above four "
+                          "strings, with three hollow outlined notes drifting softly upward like whispers"),
+    "practice-default": ("Practice (default)", "a music stand holding an open book of sheet music, a pencil resting on "
+                         "its ledge"),
+}
+
+
+def round11_assets() -> list[dict]:
+    record = json.loads((ROOT / "design" / "image-deliveries-drone.json").read_text())
+    names = {t["id"]: t["name"] for t in THEMES}
+    out = []
+    for a in record["assets"]:
+        theme, name = a["theme"], names[a["theme"]]
+        src = a["file"].removeprefix("musicpractice/app/")
+        folder = src.rsplit("/", 1)[0]
+        for pid, (label, subject) in PRACTICE_SUBJECT.items():
+            out.append(dict(
+                id=pid, theme=theme, round=11, file=f"{folder}/{pid}.webp",
+                size="1024×1024, transparent PNG (shipped as 512×512 WebP)", status="requested",
+                group=f"{name} · Practice Routine pictures",
+                prompt=(f"Using the attached image, musicpractice/app/{src} (this theme's Drone home button, a "
+                        "cello), as the reference for its style, colours, materials, lighting, rendering, framing "
+                        f"and canvas, draw {subject}, in this theme's materials and colours. Keep the same two thin, "
+                        "smooth ribbons drifting gently outward from the sides as in the reference, so it belongs "
+                        "with the other pictures. One centred subject at about the same size as the cello, with "
+                        "the same small even margin; a bold readable silhouette that still reads at 96 pixels. A "
+                        "fully transparent background, no cast shadow, no text, no letters, no numbers."),
+                note=(f"The Practice Routine's picture for {label} in the {name} theme, shown large while such an "
+                      "item runs" + (" and for any item with no picture of its own" if pid == "practice-default" else "")
+                      + ". Until it arrives the app shows the next picture it has: the Drone's (cello or organ) "
+                      "for an item with its drone on, else the Metronome's, else the default practice picture, else "
+                      "the routine's hourglass."),
+            ))
+    return out
+
+
+ASSETS += round11_assets()
+
 def render() -> tuple[str, str]:
     theme_name = {t["id"]: t["name"] for t in THEMES}
     lines = [
@@ -686,7 +737,8 @@ def render() -> tuple[str, str]:
                        (7, "Drone screen with the bow as volume, every theme"),
                        (8, "Drone screen for the organ, every theme"),
                        (9, "Practice Routine home icons, every theme"),
-                       (10, "Metronome pendulum in two parts, every theme")):
+                       (10, "Metronome pendulum in two parts, every theme"),
+                       (11, "Practice Routine pictures, every theme")):
         wanted = [a for a in ASSETS if a["round"] == rnd and a["status"] in ("requested", "revise")]
         lines.append(f"**Round {rnd} ({title}):** "
                      + (f"{len(wanted)} image{'s' if len(wanted) != 1 else ''} wanted: " + ", ".join(f"`{a['file']}`" for a in wanted) + "."
