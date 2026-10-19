@@ -4,6 +4,7 @@
 # PNG each, and prints the measurements a listener cannot take by ear here.
 import subprocess, sys, json, glob, os, numpy as np
 D = os.getcwd()
+PREFIX = os.environ.get("PREFIX", "chime")
 os.makedirs(f'{D}/proc', exist_ok=True)
 SR = 44100
 def load(f):
@@ -11,7 +12,7 @@ def load(f):
     return np.frombuffer(raw, np.float32).reshape(-1, 2).copy()
 def db(x): return 20 * np.log10(max(x, 1e-9))
 rows = []
-for f in sorted(glob.glob(f'{D}/raw/chime-*.mp3')):
+for f in sorted(glob.glob(f"{D}/raw/{PREFIX}-*.mp3")):
     name = os.path.basename(f)[:-4]
     x = load(f)
     mono = np.abs(x).max(1)

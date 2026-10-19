@@ -726,5 +726,53 @@
     "theme": "steampunk",
     "file": "assets/ui/steampunk/drone-organ.webp",
     "status": "delivered"
+  },
+  {
+    "id": "home-timer",
+    "theme": "classic",
+    "file": "assets/ui/home-timer.webp",
+    "status": "requested"
+  },
+  {
+    "id": "home-timer",
+    "theme": "deco",
+    "file": "assets/ui/deco/home-timer.webp",
+    "status": "requested"
+  },
+  {
+    "id": "home-timer",
+    "theme": "sixties",
+    "file": "assets/ui/sixties/home-timer.webp",
+    "status": "requested"
+  },
+  {
+    "id": "home-timer",
+    "theme": "baroque",
+    "file": "assets/ui/baroque/home-timer.webp",
+    "status": "requested"
+  },
+  {
+    "id": "home-timer",
+    "theme": "scifi",
+    "file": "assets/ui/scifi/home-timer.webp",
+    "status": "requested"
+  },
+  {
+    "id": "home-timer",
+    "theme": "nouveau",
+    "file": "assets/ui/nouveau/home-timer.webp",
+    "status": "requested"
+  },
+  {
+    "id": "home-timer",
+    "theme": "anime",
+    "file": "assets/ui/anime/home-timer.webp",
+    "status": "requested"
+  },
+  {
+    "id": "home-timer",
+    "theme": "steampunk",
+    "file": "assets/ui/steampunk/home-timer.webp",
+    "status": "requested"
   }
 ]
