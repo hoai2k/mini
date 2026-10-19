@@ -75,3 +75,31 @@ test('the results chime: triumphant from 80% in tune, positive from half, neutra
   assert.equal(resultTier(3, 8), 'neutral');
   assert.equal(resultTier(0, 0), 'neutral');
 });
+
+test('the score out of 1000: the share in tune, how close every note was, and how clear', async () => {
+  const { scaleScore, SCORE_PARTS } = await import('../src/scaletest.js');
+  assert.deepEqual(SCORE_PARTS, { inTune: 600, close: 250, clear: 150 });
+  const n = (cents, clarity = 0.95) => ({ midi: 60, cents, clarity });
+  assert.deepEqual(scaleScore([]), { total: 0, inTune: 0, close: 0, clear: 0 });
+  assert.equal(scaleScore([n(0), n(0)]).total, 1000);
+  // A near miss scores more than a wild one; dead centre more than just in tune.
+  assert.ok(scaleScore([n(0), n(20)]).total > scaleScore([n(0), n(45)]).total);
+  assert.ok(scaleScore([n(0)]).total > scaleScore([n(14)]).total);
+  // A cloudier tone costs only its share.
+  assert.deepEqual(scaleScore([n(0, 0.7)]), { total: 850, inTune: 600, close: 250, clear: 0 });
+  const s = scaleScore([n(0), n(25), n(-30), n(5)]);
+  assert.equal(s.total, s.inTune + s.close + s.clear);
+  assert.equal(s.inTune, 300);
+});
+
+test('scored from what was heard: a clean scale near 1000, a wayward one lower', () => {
+  const clean = listen(scale([[60, 0], [62, 2], [64, -3], [65, 0], [67, 4], [69, -2], [71, 0], [72, 3]])).l.result;
+  const off = listen(scale([[60, 0], [62, 22], [64, -30], [65, 18], [67, 4], [69, -40], [71, 26], [72, 3]])).l.result;
+  return import('../src/scaletest.js').then(({ scaleScore }) => {
+    const a = scaleScore(clean);
+    const b = scaleScore(off);
+    assert.ok(clean.every((x) => x.clarity > 0.9), 'a synthesized tone is clear');
+    assert.ok(a.total >= 950, `clean ${a.total}`);
+    assert.ok(b.total < 600 && b.total > 250, `off ${b.total}`);
+  });
+});

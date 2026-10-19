@@ -6,7 +6,7 @@
 import { TEXT, setRich } from './text.js';
 import { detectPitch, describe, nearestString, noteName, midiToHz, TUNINGS, TRANSPOSE, A4_MIN, A4_MAX, PitchSmoother } from './tuning.js';
 import { playSamples } from './player.js';
-import { ScaleListener, judge, resultTier, SCALE_TOLERANCE } from './scaletest.js';
+import { ScaleListener, judge, resultTier, scaleScore, SCALE_TOLERANCE } from './scaletest.js';
 
 const WINDOW = 4096; // samples analysed at a time (enough for a low B on a 5-string bass)
 const HOLD_MS = 1500; // the last note stays up this long after the sound stops
@@ -215,7 +215,20 @@ export function setupTuner({ settings, persist, chips }) {
       li.querySelector('.sn-verdict').textContent = v === 'good' ? S.good : v === 'flat' ? S.flat(c) : S.sharp(c);
       return li;
     }));
-    $('scale-help').textContent = S.help(SCALE_TOLERANCE);
+    $('scale-help').textContent = `${S.help(SCALE_TOLERANCE)} ${S.scoreHelp}`;
+    // The score, counted up as the sheet shows it.
+    const sc = scaleScore(notes);
+    $('scale-score').hidden = !notes.length;
+    $('scale-score-parts').textContent = S.parts(sc.inTune, sc.close, sc.clear);
+    const num = $('scale-score-num');
+    const t0 = performance.now();
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const count = (t) => {
+      const k = still ? 1 : Math.min(1, (t - t0) / 1100);
+      num.textContent = String(Math.round(sc.total * (1 - (1 - k) ** 3)));
+      if (k < 1 && sheet.dataset.step === 'results') requestAnimationFrame(count);
+    };
+    requestAnimationFrame(count);
     scaleStep('results');
     if (!sheet.open) sheet.showModal();
   }

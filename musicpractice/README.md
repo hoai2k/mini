@@ -439,6 +439,15 @@ note don't count against it. Names follow the tuner's note names and
 transposition, and its reference pitch. `app/src/scaletest.js` (pure,
 `test/scaletest.test.mjs` plays it synthesized scales); the screen is in
 `tunerui.js`. Leaving the tuner ends a test still listening.
+At the top of the results is a **score out of 1000**, counted up, with its
+parts under it (`scaleScore`):
+- **In tune, up to 600:** the share of notes in tune.
+- **Closeness, up to 250:** how close every note was, so a near miss earns
+  more than a wild one and a note in the centre more than one only just in
+  tune (in full at 0 cents, nothing from 50 off).
+- **Clear tone, up to 150:** how clear and steady each note's tone was, the
+  pitch clarity the detector measures over its settled middle (nothing at
+  0.7, where a frame stops counting as a note, in full from 0.95).
 The results come up with a chime by how it went (`resultTier`):
 - **Triumphant:** 80% or more in tune.
 - **Positive:** half or more.
