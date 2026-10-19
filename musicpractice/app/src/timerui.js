@@ -30,6 +30,8 @@ const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6
  *   running: (on: boolean) => void },
  *   canDrone: () => boolean, askDrone: () => void }} opts
  */
+const TOOLS = ['metronome', 'drone'];
+
 export function setupTimer({ settings, audio, canDrone, askDrone }) {
   const state = loadTimer(settings);
   const items = state.items;
@@ -81,10 +83,7 @@ export function setupTimer({ settings, audio, canDrone, askDrone }) {
           <span class="titem-unit" aria-hidden="true">${T.min}</span>
           <button type="button" class="step titem-more-min">+</button>
         </div>
-        <div class="titem-uses">
-          <button type="button" class="chip titem-tool" data-tool="metronome"></button>
-          <button type="button" class="chip titem-tool" data-tool="drone"></button>
-        </div>
+        <div class="titem-uses"></div>
       </div>
       <div class="titem-detail"></div>
       <div class="titem-bar" aria-hidden="true"><div class="titem-bar-fill"></div></div>`;
@@ -122,21 +121,32 @@ export function setupTimer({ settings, audio, canDrone, askDrone }) {
     delBtn.disabled = !!run && !run.done && items.indexOf(it) <= run.index;
     delBtn.addEventListener('click', () => remove(it));
 
-    for (const b of li.querySelectorAll('.titem-tool')) {
-      const tool = b.dataset.tool;
-      // A checkbox and its label, so off reads as unticked rather than as a plain button.
+    // Its tools: + Tools when it has none; each it has, lit (a tap shows or
+    // hides its settings), and a small + after them; + opens the Tools sheet,
+    // where each is turned on or off for this routine.
+    const uses = li.querySelector('.titem-uses');
+    for (const tool of TOOLS.filter((t) => it[t])) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip titem-tool';
+      b.dataset.tool = tool;
+      b.setAttribute('aria-pressed', 'true');
+      b.setAttribute('aria-expanded', String(expanded));
       b.innerHTML = '<span class="titem-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span></span>';
-      b.lastChild.textContent = T[tool === 'metronome' ? 'useMetronome' : 'useDrone'];
-      b.setAttribute('aria-pressed', String(it[tool]));
+      b.lastChild.textContent = T[tool];
       b.addEventListener('click', () => {
-        if (tool === 'drone' && !it.drone && !canDrone()) { askDrone(); return; }
-        it[tool] = !it[tool];
-        if (it[tool]) open.add(it.id); // turned on: show its settings
-        save();
-        if (isNow(it)) sound(it);
+        if (open.has(it.id)) open.delete(it.id); else open.add(it.id);
         render(it.id, `.titem-tool[data-tool="${tool}"]`);
       });
+      uses.append(b);
     }
+    const toolsBtn = document.createElement('button');
+    toolsBtn.type = 'button';
+    toolsBtn.className = `chip titem-more${tools ? ' plus' : ''}`;
+    toolsBtn.textContent = tools ? '+' : T.tools;
+    if (tools) toolsBtn.setAttribute('aria-label', T.moreTools(label(it)));
+    toolsBtn.addEventListener('click', () => openTools(it));
+    uses.append(toolsBtn);
     const opener = li.querySelector('.titem-open');
     opener.hidden = !tools;
     opener.setAttribute('aria-expanded', String(expanded));
@@ -294,6 +304,35 @@ export function setupTimer({ settings, audio, canDrone, askDrone }) {
     $('timer-toast').hidden = true;
     save();
     render();
+  });
+
+  // ---- a routine's tools (the Tools sheet, from its card)
+  const toolsSheet = $('timer-tools-sheet');
+  let toolsFor = null; // the routine whose tools are showing
+  function openTools(it) {
+    toolsFor = it;
+    $('timer-tools-title').textContent = TEXT.timer.item.toolsTitle(label(it));
+    for (const t of TOOLS) $(`timer-tool-${t}`).checked = it[t];
+    toolsSheet.showModal();
+  }
+  for (const tool of TOOLS) {
+    const box = $(`timer-tool-${tool}`);
+    box.addEventListener('change', () => {
+      const it = toolsFor;
+      if (!it) return;
+      if (tool === 'drone' && box.checked && !canDrone()) { box.checked = false; toolsSheet.close(); askDrone(); return; }
+      it[tool] = box.checked;
+      if (it[tool]) open.add(it.id); // turned on: show its settings
+      save();
+      if (isNow(it)) sound(it);
+      render();
+    });
+  }
+  toolsSheet.addEventListener('click', (e) => { if (e.target === toolsSheet) toolsSheet.close(); });
+  toolsSheet.addEventListener('close', () => {
+    const id = toolsFor?.id;
+    toolsFor = null;
+    list.querySelector(`[data-id="${id}"] .titem-more`)?.focus({ preventScroll: true });
   });
 
   const sheet = $('timer-add-sheet');
