@@ -173,9 +173,23 @@
         return allPanels().find(p => !p.classList.contains(HIDDEN_CLASS));
     }
 
+    // The Settings, Sound and Fullscreen buttons in the bottom right corner (index.html).
+    function cornerItems() {
+        const corner = panel('corner-controls');
+        return corner ? Array.from(corner.querySelectorAll('.nav-item')) : [];
+    }
+
+    function isCornerItem(item) {
+        return !!item?.closest?.('#corner-controls');
+    }
+
+    // A panel's items, followed by the corner buttons, which sit below every menu: moving down
+    // past a menu's last item reaches them. They come last so a panel's own indices are unchanged.
     function navItems(container) {
         if (!container) return [];
-        return Array.from(container.querySelectorAll('.nav-item')).filter(item => {
+        const own = Array.from(container.querySelectorAll('.nav-item'));
+        const all = container.classList.contains('ui-panel') ? own.concat(cornerItems()) : own;
+        return all.filter(item => {
             if (item.classList.contains(HIDDEN_CLASS)) return false;
             const style = window.getComputedStyle(item);
             return style.display !== 'none' && style.visibility !== 'hidden' && item.offsetWidth > 0;
@@ -235,6 +249,10 @@
         if (typeof notify === 'function') notify(message, color);
     }
 
+    function sfx(name) {
+        window.TankWarsSfx?.play(name);
+    }
+
     function getPowerUps() {
         return menuState.hooks.getPowerUps?.() || globalValue('PU_TYPES', DEFAULT_POWER_UPS);
     }
@@ -279,7 +297,7 @@
 
     function autoSelectPrimaryAction(targetPanel) {
         const items = navItems(targetPanel);
-        const actions = items.filter(i => !["BACK", "CANCEL", "EXIT", "STOP HOSTING"].includes(i.innerText.trim().toUpperCase()));
+        const actions = items.filter(i => !isCornerItem(i) && !["BACK", "CANCEL", "EXIT", "STOP HOSTING"].includes(i.innerText.trim().toUpperCase()));
         setMenuIndex(actions.length === 1 ? items.indexOf(actions[0]) : -1);
         menuState.lastInputMethod = 'KEYS';
         updateMenuVisuals();
@@ -475,9 +493,9 @@
     }
 
     /*
-     * Sound. The game makes no sound yet; this is the master switch any audio
-     * must go through: TankWarsSound.audible() is false while muted, while the
-     * tab is hidden and while the window has lost focus.
+     * Sound. This is the master switch all audio (sound.js) goes through:
+     * TankWarsSound.audible() is false while muted, while the tab is hidden
+     * and while the window has lost focus.
      */
     const SOUND_KEY = 'tankwars.muted';
     const SOUND_ICONS = {
@@ -503,6 +521,7 @@
         soundState.muted = !soundState.muted;
         try { localStorage.setItem(SOUND_KEY, soundState.muted ? '1' : '0'); } catch (err) { /* storage unavailable */ }
         applySoundButton();
+        window.TankWarsSfx?.refresh();
     }
 
     window.TankWarsSound = {
@@ -598,7 +617,10 @@
 
     function updateMenuVisuals() {
         const activePanel = visiblePanel();
-        if (!activePanel) return;
+        if (!activePanel) {
+            cornerItems().forEach(item => item.classList.remove('selected'));
+            return;
+        }
         const items = navItems(activePanel);
         const shouldHighlight = !isMobileDevice() || getControllerActive();
         items.forEach((item, idx) => item.classList.toggle('selected', shouldHighlight && idx === getMenuIndex()));
@@ -608,12 +630,10 @@
             const title = panel('pause-title');
             const quit = panel('quitMenuBtn');
             const resume = panel('resumeBtn');
-            const settings = panel('settingsPauseBtn');
             const onlineRoom = getOnlineRoom();
             const isHost = globalValue('isOnlineHost', false);
             const hostPaused = globalValue('isHostPaused', false);
             if (onlineRoom) {
-                settings?.classList.add(HIDDEN_CLASS);
                 if (isHost) {
                     if (title) title.innerText = "PAUSED";
                     if (quit) quit.innerText = "STOP HOSTING";
@@ -627,7 +647,6 @@
                 if (title) title.innerText = "PAUSED";
                 if (quit) quit.innerText = "EXIT";
                 resume?.classList.remove(HIDDEN_CLASS);
-                settings?.classList.remove(HIDDEN_CLASS);
             }
         }
     }
@@ -673,8 +692,9 @@
         panel('settings-p2')?.classList.remove('active');
         if (panel('settings-page-title')) panel('settings-page-title').innerText = "GAMEPLAY";
         const p = panels();
-        p.menu?.classList.add(HIDDEN_CLASS);
-        p.pauseMenu?.classList.add(HIDDEN_CLASS);
+        const from = visiblePanel();
+        if (from && from !== p.options) menuState.optionsReturnPanel = from;
+        allPanels().forEach(item => item.classList.add(HIDDEN_CLASS));
         p.options?.classList.remove(HIDDEN_CLASS);
         menuState.lastSettingsIndex = -1;
         setMenuIndex(0);
@@ -745,9 +765,27 @@
                 autoSelectPrimaryAction(p.pauseMenu);
             }
         } else {
-            p.menu?.classList.remove(HIDDEN_CLASS);
-            autoSelectPrimaryAction(p.menu);
+            const back = menuState.optionsReturnPanel && menuState.optionsReturnPanel !== p.pauseMenu ? menuState.optionsReturnPanel : p.menu;
+            if (back === p.lobby) showLobby();
+            else {
+                back?.classList.remove(HIDDEN_CLASS);
+                autoSelectPrimaryAction(back);
+            }
         }
+        menuState.optionsReturnPanel = null;
+    }
+
+    // The corner Settings button. During a local match it pauses first, so Back returns to the
+    // pause menu (or restarts the round if a setting changed). Online, the host's settings apply.
+    function openSettings() {
+        const p = panels();
+        if (p.options && !p.options.classList.contains(HIDDEN_CLASS)) return;
+        if (getOnlineRoom()) {
+            safeNotification("Online games use the host's settings", "#00ff00");
+            return;
+        }
+        if (currentState() === 'PLAYING') togglePause();
+        showOptions();
     }
 
     async function backToMenu(goToLobby = false) {
@@ -800,6 +838,7 @@
         const presenceHandle = globalValue('presenceHandle', null);
 
         if (!isPauseMenuVisible) {
+            sfx('pause');
             if (!onlineRoom || isHost) setState('PAUSED');
             p.pauseMenu?.classList.remove(HIDDEN_CLASS);
             setMenuIndex(-1);
@@ -809,6 +848,7 @@
             panel('mobile-controls')?.classList.remove('active');
         } else {
             if (!isHost && hostPaused) return;
+            sfx('resume');
             if (onlineRoom && (isHost || hostPaused) && presenceHandle?.publishTopic) presenceHandle.publishTopic('remote_pause', { paused: false });
             setState('PLAYING');
             p.pauseMenu?.classList.add(HIDDEN_CLASS);
@@ -888,6 +928,7 @@
         if (!getControllerActive() || (isTyping && !aPressed && !gp?.axes.some(a => Math.abs(a) > threshold) && !gp?.buttons.some(b => b.pressed))) return;
 
         if (bPressed && !menuState.lastBButtonState) {
+            if (activePanel) sfx('menuBack');
             if (getMenuIndex() !== -1) {
                 if (activePanel === panels().options) menuState.lastSettingsIndex = getMenuIndex();
                 setMenuIndex(-1);
@@ -906,7 +947,7 @@
         const isDirectionPressed = inputUp || inputDown || inputLeft || inputRight;
         const dx = (inputRight ? 1 : 0) - (inputLeft ? 1 : 0);
         const dy = (inputDown ? 1 : 0) - (inputUp ? 1 : 0);
-        const sampleRects = items.slice(0, 4).map(el => el.getBoundingClientRect());
+        const sampleRects = items.filter(el => !isCornerItem(el)).slice(0, 4).map(el => el.getBoundingClientRect());
         const uniqueXs = [...new Set(sampleRects.map(r => Math.round(r.left / 10) * 10))];
         const isVerticalOnly = uniqueXs.length <= 1 || activePanel === panels().lobby || activePanel === panels().pauseMenu;
 
@@ -995,8 +1036,10 @@
         }
 
         let bestIdx = -1, bestScore = Infinity;
+        const inCorner = isCornerItem(currentItem);
         items.forEach((item, idx) => {
             if (idx === getMenuIndex()) return;
+            if (dx && !dy && isCornerItem(item) !== inCorner) return;
             const r = item.getBoundingClientRect();
             const ix = (r.left + r.width / 2) - cx;
             const iy = (r.top + r.height / 2) - cy;
@@ -1009,11 +1052,13 @@
             }
         });
 
+        const before = getMenuIndex();
         if (bestIdx !== -1) {
             setMenuIndex(bestIdx);
         } else if (isVerticalOnly && dy) {
             setMenuIndex(inputDown ? 0 : firstItemInBottomRow(items));
         }
+        if (getMenuIndex() !== before) sfx('menuMove');
         menuState.lastInputMethod = 'KEYS';
         updateMenuVisuals();
         menuState.lastNavActionTime = now;
@@ -1075,6 +1120,7 @@
         cyclePUDuration,
         hideOptions,
         hostGame,
+        openSettings,
         processMenuNavigation,
         refreshRoomList,
         resetOptions,

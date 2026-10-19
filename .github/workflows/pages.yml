@@ -101,7 +101,7 @@ jobs:
         run: .github/scripts/build-game.sh tankwars 'tankwars/publish.sh local/pages/tankwars'
       - name: Tank Wars tests
         if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
-        run: node --check tankwars/game/game.js && node --check tankwars/game/menu.js
+        run: node --check tankwars/game/game.js && node --check tankwars/game/menu.js && node --check tankwars/game/sound.js
       - name: Build Games Chat
         run: .github/scripts/build-game.sh chat 'chat/publish.sh local/pages/chat'
       - name: Games Chat tests
