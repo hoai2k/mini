@@ -526,7 +526,11 @@ file, on purpose: the privacy page, the device details Send feedback attaches
   shared Apps Script in the `hoai2k.github.io` repository
   (`tools/feedback/Code.gs`, set up as in cambrian's `docs/FEEDBACK.md`), a
   row per message in a private Google Sheet with `game` = `musicpractice`, and
-  an email to say it arrived. Email and message are required, as there; the
+  an email to say it arrived. Only the message is required, marked with a
+  red * (and a "* Required" key under the intro); the email is optional, and
+  must look like one only if given. The shared script still asks for an
+  address, so a message without one carries `no-email@feedback.invalid`
+  (`NO_EMAIL`, a reserved domain that is never an address). The
   topic and the device details (with the Audio check's readings, shown before
   sending and optional) travel at the end of the message. Same spam defences:
   a hidden honeypot field, Send held for 3 s, the script's hourly caps. A
