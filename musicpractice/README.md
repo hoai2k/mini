@@ -5,7 +5,7 @@ https://hoai2k.github.io/mini/musicpractice/.
 
 Made for phones (portrait or landscape) and desktops. The home screen has
 five buttons, **Metronome**, **Tuner**, **Drone**, **Playback** and
-**Practice Routine**, and a settings gear. Wherever the window is wider than
+**Routine** (the Practice Routine; `home.tools.timer`), and a settings gear. Wherever the window is wider than
 tall (a desktop, a tablet or a phone on its side) they are one row of five.
 Upright, the four tools are two rows of two, and the Practice Routine is a
 fifth button under them when it fits, or else a second page (below,
