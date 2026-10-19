@@ -13,7 +13,8 @@ import { METERS, BPM_MIN, BPM_MAX } from './settings.js';
 import { DRONE_MIN, DRONE_MAX, VOICES, spelling } from './drone.js';
 import { noteName } from './tuning.js';
 import { clock } from './droneui.js';
-import { PRESETS, CHIMES, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, newItem, loadTimer, saveTimer, totalSeconds, cues, TimerRun } from './timer.js';
+import { hasArt, showArt } from './art.js';
+import { PRESETS, CHIMES, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, newItem, loadTimer, saveTimer, totalSeconds, cues, TimerRun, pictureFor } from './timer.js';
 
 const $ = (id) => document.getElementById(id);
 const TRASH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>';
@@ -288,6 +289,21 @@ export function setupTimer({ settings, audio, chips, canDrone, askDrone }) {
   $('timer-settings-btn').addEventListener('click', () => settingsSheet.showModal());
   settingsSheet.addEventListener('click', (e) => { if (e.target === settingsSheet) settingsSheet.close(); });
 
+  // ---- the picture of the item running, large, so a glance says what is being practised
+  const pic = $('timer-picture');
+  let picFor = ''; // the item and picture last shown
+  function picture() {
+    const it = run && !run.done ? run.item : null;
+    if (!it) return;
+    const id = pictureFor(it, hasArt);
+    if (picFor === `${it.id}:${id}`) return;
+    picFor = `${it.id}:${id}`;
+    showArt(pic, id);
+    pic.animate?.([{ opacity: 0, transform: 'scale(0.94)' }, { opacity: 1, transform: 'none' }], { duration: 380, easing: 'ease-out' });
+  }
+  // A change of theme can change which pictures there are.
+  document.addEventListener('art-applied', () => { picFor = ''; picture(); });
+
   // ---- running
   function readout() {
     const now = Date.now();
@@ -316,6 +332,7 @@ export function setupTimer({ settings, audio, chips, canDrone, askDrone }) {
       sub = (run.paused ? `${T.paused} · ` : '') + (next ? T.next(label(next), next.minutes) : T.lastItem);
       fill = run.progress(now);
     }
+    picture();
     $('timer-name').textContent = name;
     $('timer-name').hidden = !name;
     $('timer-clock').textContent = time;

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Image Annotator</title>
+<meta name="description" content="Open a picture, point things out with arrows, circles and drawing, add titles, and save it to your photos or files.">
+<meta name="theme-color" content="#1c1d22">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Annotator">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<section class="start" id="start">
+  <a class="back" href="../" title="Back to mini"><span data-icon="back"></span>mini</a>
+  <div class="start-inner">
+    <div class="welcome" id="welcome" aria-hidden="true"></div>
+    <h1 class="title"><img class="logo" id="logo" alt="Image Annotator" hidden><span id="titleText">Image Annotator</span></h1>
+    <p class="lede">Point things out on a picture with arrows, circles and drawing.</p>
+    <button class="big primary" id="startOpen" type="button"><span data-icon="open"></span>Open an image</button>
+    <button class="big" id="continueBtn" type="button" hidden></button>
+    <p class="hint" id="dropHint">or drop a picture here, or paste one</p>
+  </div>
+</section>
+
+<section class="editor" id="editor" hidden>
+  <header class="bar">
+    <button class="icon-btn" id="homeBtn" type="button" aria-label="Start screen" title="Start screen" data-icon="back"></button>
+    <button class="icon-btn" id="openBtn" type="button" aria-label="Open another image" title="Open another image" data-icon="open"></button>
+    <span class="file-name" id="fileName"></span>
+    <button class="icon-btn" id="undoBtn" type="button" aria-label="Undo" title="Undo (Ctrl+Z)" data-icon="undo"></button>
+    <button class="icon-btn" id="redoBtn" type="button" aria-label="Redo" title="Redo (Ctrl+Shift+Z)" data-icon="redo"></button>
+    <button class="text-btn" id="saveBtn" type="button" title="Save (Ctrl+S)"><span data-icon="save"></span><span class="lbl" id="saveLabel">Save</span></button>
+    <button class="text-btn primary" id="exportBtn" type="button" title="Export"><span data-icon="export"></span><span class="lbl">Export</span></button>
+  </header>
+  <div class="stage" id="stage">
+    <canvas id="canvas"></canvas>
+    <div class="selbar" id="selbar" hidden>
+      <button class="pill" id="settingsBtn" type="button" aria-label="Settings" title="Settings"><span data-icon="settings"></span><span class="lbl">Settings</span></button>
+      <button class="pill" id="deleteBtn" type="button" aria-label="Delete" title="Delete (Del)" data-icon="trash"></button>
+      <button class="pill" id="doneBtn" type="button" aria-label="Done" title="Done (Esc)" data-icon="check"></button>
+    </div>
+    <button class="icon-btn fit" id="fitBtn" type="button" aria-label="Fit the picture" title="Fit the picture" data-icon="fit" hidden></button>
+    <div class="hint-bubble" id="hint" hidden></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+  <nav class="tools" aria-label="Tools">
+    <button class="tool" type="button" data-tool="arrow" aria-pressed="true"><span data-icon="arrow"></span>Arrow</button>
+    <button class="tool" type="button" data-tool="circle" aria-pressed="false"><span data-icon="circle"></span>Circle</button>
+    <button class="tool" type="button" data-tool="draw" aria-pressed="false"><span data-icon="draw"></span>Free draw</button>
+  </nav>
+</section>
+
+<aside class="sheet" id="sheet" hidden aria-label="Settings">
+  <header class="sheet-head">
+    <h2 id="sheetTitle">Settings</h2>
+    <button class="icon-btn" id="sheetClose" type="button" aria-label="Close settings" data-icon="close"></button>
+  </header>
+  <div class="sheet-body">
+    <div class="field">
+      <span class="field-label">Color</span>
+      <div class="swatches" id="swatches"></div>
+    </div>
+    <label class="field">
+      <span class="field-label">Line width <output id="widthOut"></output></span>
+      <input type="range" id="width" min="1" max="40" step="1">
+    </label>
+    <label class="field">
+      <span class="field-label">Opacity <output id="opacityOut"></output></span>
+      <input type="range" id="opacity" min="10" max="100" step="5">
+    </label>
+    <label class="field" id="lengthField">
+      <span class="field-label">Length <output id="lengthOut"></output></span>
+      <input type="range" id="length" min="20" max="800" step="5">
+    </label>
+    <label class="field">
+      <span class="field-label">Title</span>
+      <input type="text" id="titleInput" maxlength="80" placeholder="Optional title" autocomplete="off" enterkeyhint="done">
+    </label>
+    <div class="title-opts" id="titleOpts" hidden>
+      <label class="field">
+        <span class="field-label">Title font</span>
+        <select id="font"></select>
+      </label>
+      <label class="field">
+        <span class="field-label">Title size <output id="fontSizeOut"></output></span>
+        <input type="range" id="fontSize" min="12" max="140" step="2">
+      </label>
+      <label class="check"><input type="checkbox" id="boxInput"> Title on a background</label>
+      <button class="text-btn small" id="autoPlace" type="button" hidden>Place title automatically</button>
+    </div>
+    <button class="text-btn danger" id="sheetDelete" type="button"><span data-icon="trash"></span>Delete</button>
+  </div>
+</aside>
+
+<dialog class="dialog" id="exportDlg">
+  <form method="dialog">
+    <h2>Export</h2>
+    <div class="options" id="exportOpts"></div>
+    <p class="note" id="exportNote"></p>
+    <div class="actions">
+      <button class="text-btn primary" id="exportGo" type="button"></button>
+      <button class="text-btn" id="exportAlt" type="button" hidden></button>
+      <button class="text-btn" value="cancel">Cancel</button>
+    </div>
+  </form>
+</dialog>
+
+<input type="file" id="fileInput" accept="image/*" hidden>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

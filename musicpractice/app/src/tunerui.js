@@ -6,7 +6,7 @@
 import { TEXT, setRich } from './text.js';
 import { detectPitch, describe, nearestString, noteName, midiToHz, TUNINGS, TRANSPOSE, A4_MIN, A4_MAX, PitchSmoother } from './tuning.js';
 import { playSamples } from './player.js';
-import { ScaleListener, judge, SCALE_TOLERANCE } from './scaletest.js';
+import { ScaleListener, judge, resultTier, SCALE_TOLERANCE } from './scaletest.js';
 
 const WINDOW = 4096; // samples analysed at a time (enough for a low B on a 5-string bass)
 const HOLD_MS = 1500; // the last note stays up this long after the sound stops
@@ -169,9 +169,22 @@ export function setupTuner({ settings, persist, chips }) {
     $('scale-start').hidden = false;
     $('scale-live').hidden = true;
   }
+  // The chime for the results (assets/audio/scale/<tier>.mp3, design/chime-sounds.md),
+  // decoded once and played like the reference tones.
+  const resultSounds = {};
+  function resultChime(tier) {
+    resultSounds[tier] ||= fetch(new URL(`../assets/audio/scale/${tier}.mp3`, import.meta.url))
+      .then((r) => r.arrayBuffer())
+      .then((data) => new OfflineAudioContext(1, 1, 44100).decodeAudioData(data))
+      .catch(() => { delete resultSounds[tier]; return null; });
+    resultSounds[tier].then((b) => { if (b) playSamples(b.getChannelData(0), b.sampleRate).catch(() => {}); });
+  }
+
   function showScaleResults(notes) {
     const S = TEXT.tuner.scale;
     const good = notes.filter((n) => judge(n.cents) === 'good').length;
+    resultChime(resultTier(good, notes.length));
+    $('scale-results').dataset.tier = resultTier(good, notes.length);
     $('scale-summary').textContent = notes.length ? S.summary(good, notes.length) : S.none;
     $('scale-notes').replaceChildren(...notes.map((n) => {
       const v = judge(n.cents);

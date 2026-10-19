@@ -383,6 +383,8 @@ export function standin(theme, id) {
   // no travel, so the separate weight isn't placed on it.
   if (id === 'metronome-rod') return set['metronome-pendulum'] || CLASSIC['metronome-pendulum'];
   if (id === 'metronome-weight') return WEIGHT;
+  // The Practice Routine's pictures: the routine's hourglass, until they arrive.
+  if (id.startsWith('practice-')) return set['home-routine'] || CLASSIC['home-routine'];
   return set[id] || CLASSIC[id];
 }
 

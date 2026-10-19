@@ -74,3 +74,32 @@ test('skip works running or paused; minutes changed while running move the end',
   assert.equal(r.remaining(10000), 360);
   assert.equal(r.tick(20000, true)[0].type, 'finished');
 });
+
+test('every suggestion has its picture in the image requests, in every theme', async () => {
+  const { readFileSync } = await import('node:fs');
+  const list = JSON.parse(readFileSync(new URL('../data/asset-list.json', import.meta.url)));
+  const { THEMES } = await import('../src/settings.js');
+  for (const id of [...PRESETS.map((p) => `practice-${p.id}`), 'practice-default']) {
+    for (const t of THEMES) assert.ok(list.some((a) => a.id === id && a.theme === t.id), `${id} in ${t.id}: add it to build_requests.py PRACTICE_SUBJECT`);
+  }
+});
+
+test("the picture while an item runs: its own, else its drone's or metronome's, else the default, else the hourglass", async () => {
+  const { pictureFor } = await import('../src/timer.js');
+  const scales = newItem('scales', base);
+  const drone = { ...newItem(undefined, base), drone: true, drn: { midi: 48, voice: 'cello', fifth: false } };
+  const organ = { ...drone, drn: { ...drone.drn, voice: 'organ-synth' } };
+  const plain = newItem(undefined, base);
+  const all = () => true;
+  const none = () => false;
+  const only = (...ids) => (id) => ids.includes(id);
+  assert.equal(pictureFor(scales, all), 'practice-scales');
+  assert.equal(pictureFor(scales, only('home-metronome', 'practice-default')), 'home-metronome');
+  assert.equal(pictureFor(drone, only('drone-cello', 'practice-default')), 'drone-cello');
+  assert.equal(pictureFor(organ, all), 'drone-organ');
+  assert.equal(pictureFor(plain, only('practice-default')), 'practice-default');
+  assert.equal(pictureFor(plain, none), 'home-routine');
+  // An item saved before items knew their kind is matched by its name.
+  assert.equal(cleanRoutine([{ id: 'x', name: 'Ghosting' }])[0].kind, 'ghosting');
+  assert.equal(cleanRoutine([{ id: 'x', name: 'Ghosting', kind: null }])[0].kind, null);
+});

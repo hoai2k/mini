@@ -13,6 +13,13 @@ const HOP = FRAME / 2; // frames overlap by half, for a finer split between note
 const MIN_NOTE_SEC = 0.12; // shorter than this is a slide between notes, not a note
 const CLARITY = 0.7;
 
+/**
+ * Which chime greets the results: 'great' (a triumphant one) when at least
+ * 80% of the notes were in tune, 'good' from half, else 'neutral' (results
+ * are in), as with nothing heard.
+ */
+export const resultTier = (good, n) => (!n ? 'neutral' : good / n >= 0.8 ? 'great' : good / n >= 0.5 ? 'good' : 'neutral');
+
 /** 'good', 'flat' or 'sharp' for a note `cents` off its nearest pitch. */
 export const judge = (cents, tolerance = SCALE_TOLERANCE) =>
   (Math.abs(cents) <= tolerance ? 'good' : cents < 0 ? 'flat' : 'sharp');
