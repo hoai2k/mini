@@ -64,7 +64,7 @@
   "big": 0.17,
   "from": 1.0,
   "to": 2.0,
-  "tol": 0.0,
+  "tol": 0.01,
   "sheetTol": 0.03,
   "floorFrom": 1.4
  },
