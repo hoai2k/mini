@@ -149,26 +149,42 @@ export function setupTuner({ settings, persist, chips }) {
     show();
   }
 
-  // ---- Test Scale Intonation (in testing: only with ?scale in the address)
+  // ---- Test Scale Intonation (in testing: only with ?scale in the address).
+  // A sheet: how it works and a record button; pressed, it listens for the
+  // scale and follows it; three seconds of quiet and the results show there.
   const SCALE_ON = new URLSearchParams(location.search).has('scale');
   $('scale-test').hidden = !SCALE_ON;
-  let scale = null; // { listener, shownAt } while a test listens
-  function scaleStatus() {
+  const sheet = $('scale-sheet');
+  const rec = $('scale-rec');
+  let scale = null; // { listener, shownAt } while it listens
+  function scaleStep(step) {
+    sheet.dataset.step = step;
     const S = TEXT.tuner.scale;
     const l = scale?.listener;
-    $('scale-status').textContent = !l || l.state === 'waiting' ? S.waiting : S.listening(l.notes().length);
+    rec.dataset.state = step !== 'listening' ? 'off' : l?.state === 'listening' ? 'recording' : 'waiting';
+    rec.setAttribute('aria-pressed', String(step === 'listening'));
+    $('scale-rec-label').textContent = step === 'listening' ? S.stop : S.record;
+    $('scale-status').textContent = step !== 'listening' ? S.ready
+      : !l || l.state === 'waiting' ? S.waiting : S.listening(l.notes().length);
   }
   function startScale() {
     scale = { listener: null, shownAt: 0 };
-    $('scale-start').hidden = true;
-    $('scale-live').hidden = false;
-    scaleStatus();
+    scaleStep('listening');
   }
+  /** Stop listening (the stop button, closing the sheet, leaving the tuner). */
   function stopScale() {
     scale = null;
-    $('scale-start').hidden = false;
-    $('scale-live').hidden = true;
+    if (sheet.dataset.step === 'listening') scaleStep('ready');
   }
+  $('scale-open').addEventListener('click', () => {
+    scaleStep('ready');
+    sheet.showModal();
+  });
+  rec.addEventListener('click', () => (scale ? stopScale() : startScale()));
+  $('scale-again').addEventListener('click', startScale);
+  sheet.addEventListener('close', stopScale);
+  sheet.addEventListener('click', (e) => { if (e.target === sheet) sheet.close(); });
+
   // The chime for the results (assets/audio/scale/<tier>.mp3, design/chime-sounds.md),
   // decoded once and played like the reference tones.
   const resultSounds = {};
@@ -184,7 +200,7 @@ export function setupTuner({ settings, persist, chips }) {
     const S = TEXT.tuner.scale;
     const good = notes.filter((n) => judge(n.cents) === 'good').length;
     resultChime(resultTier(good, notes.length));
-    $('scale-results').dataset.tier = resultTier(good, notes.length);
+    sheet.dataset.tier = resultTier(good, notes.length);
     $('scale-summary').textContent = notes.length ? S.summary(good, notes.length) : S.none;
     $('scale-notes').replaceChildren(...notes.map((n) => {
       const v = judge(n.cents);
@@ -200,12 +216,9 @@ export function setupTuner({ settings, persist, chips }) {
       return li;
     }));
     $('scale-help').textContent = S.help(SCALE_TOLERANCE);
-    $('scale-results').showModal();
+    scaleStep('results');
+    if (!sheet.open) sheet.showModal();
   }
-  $('scale-start').addEventListener('click', startScale);
-  $('scale-cancel').addEventListener('click', stopScale);
-  $('scale-again').addEventListener('click', () => { $('scale-results').close(); startScale(); });
-  $('scale-results').addEventListener('click', (e) => { if (e.target === $('scale-results')) $('scale-results').close(); });
 
   /** Mic samples (blocks of any size) while the recorder is in its 'tuning' state. */
   function receive(data, sampleRate) {
@@ -214,11 +227,11 @@ export function setupTuner({ settings, persist, chips }) {
       const event = scale.listener.push(data);
       if (event === 'done') {
         const notes = scale.listener.result;
-        stopScale();
+        scale = null;
         showScaleResults(notes);
       } else if (event || performance.now() - scale.shownAt > 400) {
         scale.shownAt = performance.now();
-        scaleStatus();
+        scaleStep('listening');
       }
     }
     if (data.length >= WINDOW) {

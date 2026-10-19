@@ -416,12 +416,18 @@ harmonics only) to within 1.5 cents and in the right octave.
 
 ### Test Scale Intonation (in testing)
 
-Shown only with `?scale` in the address: a **Test Scale Intonation** button
-under the tuner. Pressed, it listens for a scale to begin (the Playback
-Recorder's own start detection, a steady note), follows it note by note
-(the count shows as it goes), and takes three seconds of quiet as the end.
-Then a sheet lists every note played, each with a tick for in tune or how
-many cents flat or sharp, and how many were in tune. It is more lenient
+Shown only with `?scale` in the address: a **Test My Scale Intonation**
+card under the tuner, a feature of its own set apart from Play a note by a
+rule and space (an icon, a line saying what it does, an arrow). It opens a
+sheet that explains it in three steps (press record, play a scale, stop
+for 3 seconds) under a record button (the Playback Recorder's, so each
+theme draws it its own way). Pressed, it listens for the scale to begin
+(the Recorder's own start detection, a steady note): it pulses while
+waiting and glows red once the scale has begun, with the count of notes as
+they come, and pressing it again stops. Three seconds of quiet is the end,
+and the same sheet then lists every note played, each with a tick for in
+tune or how many cents flat or sharp, and how many were in tune, with
+**Test again** and **Done**. Closing the sheet stops it. It is more lenient
 than the tuner: within 15 cents counts as in tune (`SCALE_TOLERANCE`), where
 the needle wants 5. A note is a run of clear frames on one semitone, at
 least 0.12 s long, with a stray frame or two let through; its pitch is the

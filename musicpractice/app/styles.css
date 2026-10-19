@@ -1957,11 +1957,40 @@ html.paged #home, html.paged #routine { touch-action: pan-y; }
   .titem-tools, .titem-detail { padding-left: 0; }
 }
 
-/* Test Scale Intonation (in testing: only with ?scale) */
-.scale-test { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.scale-test[hidden], .scale-live[hidden], #scale-start[hidden] { display: none; }
-.scale-live { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
-.scale-status { margin: 0; font-weight: 700; color: var(--ink-2); max-width: 30em; }
+/* Test Scale Intonation (in testing: only with ?scale). Its own feature
+   under the tuner, set apart from Play a note: an inviting card that opens
+   a sheet with a record button, then the results there. */
+.scale-test { width: min(100%, 440px); margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); display: flex; justify-content: center; }
+.scale-test[hidden] { display: none; }
+.scale-cta {
+  width: 100%; display: flex; align-items: center; gap: 14px; text-align: left;
+  padding: 14px 16px; border-radius: 20px; color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--brass) 55%, var(--line));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--brass) 24%, var(--panel)), var(--panel) 70%);
+  box-shadow: 0 8px 22px var(--shadow);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.scale-cta:hover { transform: translateY(-2px); border-color: var(--brass); box-shadow: 0 12px 28px var(--shadow); }
+.scale-cta:active { transform: scale(0.98); }
+.scale-cta-icon {
+  flex: none; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--brass); color: var(--on-accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--brass) 25%, transparent);
+}
+.scale-cta-icon svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.scale-cta-icon circle { fill: currentColor; stroke: none; }
+.scale-cta-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.scale-cta-text strong { font: 700 1.08rem/1.2 var(--display); }
+.scale-cta-text small { color: var(--ink-2); font-weight: 600; font-size: 0.88rem; }
+.scale-cta-go { flex: none; width: 22px; height: 22px; fill: none; stroke: var(--ink-2); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+/* The sheet: one step at a time. */
+#scale-sheet .scale-record, #scale-sheet .scale-results { display: none; flex-direction: column; gap: 14px; }
+#scale-sheet[data-step="ready"] .scale-record, #scale-sheet[data-step="listening"] .scale-record { display: flex; }
+#scale-sheet[data-step="results"] .scale-results { display: flex; }
+.scale-steps { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 6px; color: var(--ink-2); font-weight: 600; }
+.scale-steps li::marker { color: var(--brass); font-weight: 800; }
+.scale-rec-row { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 8px 0 4px; }
+.scale-status { margin: 0; font-weight: 700; color: var(--ink-2); text-align: center; min-height: 2.8em; max-width: 26em; }
 .scale-summary { margin: 0 0 4px; font: 700 1.2rem/1.3 var(--display); }
 .scale-notes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .scale-note {
