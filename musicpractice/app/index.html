@@ -533,17 +533,15 @@
       <dialog id="timer-settings" class="sheet" aria-labelledby="timer-settings-title">
         <form method="dialog">
           <header class="sheet-head"><h3 id="timer-settings-title" data-text="timer.settingsTitle"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-          <fieldset>
-            <legend data-text="timer.chime"></legend>
-            <div class="chips" id="timer-chime"></div>
-          </fieldset>
-          <p class="help" data-text="timer.chimeHelp"></p>
+          <label class="row toggle"><span data-text="timer.chimeOn"></span><input type="checkbox" id="timer-chime-on" role="switch"></label>
+          <label class="row toggle" id="timer-chime-row"><span data-text="timer.chime"></span><select class="select" id="timer-chime"></select></label>
           <label class="row toggle"><span data-text="timer.voiceOn"></span><input type="checkbox" id="timer-voice-on" role="switch"></label>
-          <fieldset id="timer-voice-field">
-            <legend data-text="timer.voice"></legend>
-            <div class="chips" id="timer-voice"></div>
-          </fieldset>
-          <p class="help" data-text="timer.voiceHelp"></p>
+          <label class="row toggle timer-voice-only"><span data-text="timer.voice"></span><select class="select" id="timer-voice"></select></label>
+          <label class="row timer-voice-only"><span data-text="timer.voiceVolume"></span><input type="range" class="slider" id="timer-voice-volume" min="0" max="1" step="0.01"></label>
+          <div class="sheet-links">
+            <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
+            <button type="button" class="pill open-theme" data-text="common.themeButton"></button>
+          </div>
         </form>
       </dialog>
 

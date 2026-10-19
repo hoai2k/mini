@@ -12,7 +12,7 @@ import { DRONE_MIN, DRONE_MAX, VOICES, spelling } from './drone.js';
 import { noteName } from './tuning.js';
 import { clock } from './droneui.js';
 import { hasArt, showArt } from './art.js';
-import { PRESETS, CHIMES, SPEAKERS, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, newItem, loadTimer, saveTimer, totalSeconds, cues, TimerRun, pictureFor, voiceLines, voiceUrl, chimeUrl } from './timer.js';
+import { PRESETS, CHIMES, SPEAKERS, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, newItem, loadTimer, saveTimer, voiceGain, totalSeconds, cues, TimerRun, pictureFor, voiceLines, voiceUrl, chimeUrl } from './timer.js';
 
 const $ = (id) => document.getElementById(id);
 const TRASH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>';
@@ -28,9 +28,9 @@ const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6
  *   chime: (id: string) => { done: Promise<void>, stop: () => void },
  *   clips: (urls: string[]) => { done: Promise<void>, stop: () => void }, preload: (urls: string[]) => void,
  *   running: (on: boolean) => void },
- *   chips: Function, canDrone: () => boolean, askDrone: () => void }} opts
+ *   canDrone: () => boolean, askDrone: () => void }} opts
  */
-export function setupTimer({ settings, audio, chips, canDrone, askDrone }) {
+export function setupTimer({ settings, audio, canDrone, askDrone }) {
   const state = loadTimer(settings);
   const items = state.items;
   const open = new Set(); // cards opened to their settings (not kept)
@@ -236,7 +236,7 @@ export function setupTimer({ settings, audio, chips, canDrone, askDrone }) {
 
   // ---- add and delete
   function add(presetId) {
-    const it = newItem(presetId, settings, state.lastMinutes);
+    const it = newItem(presetId, settings, state.lastMinutes, { tools: false }); // metronome and drone off: turned on on its card
     items.push(it);
     if (it.metronome || it.drone) open.add(it.id);
     save();
@@ -275,39 +275,55 @@ export function setupTimer({ settings, audio, chips, canDrone, askDrone }) {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'timer-preset';
-    const tools = p ? ['metronome', 'drone'].filter((t) => p[t]).map((t) => TEXT.timer.item[t]) : [];
-    b.innerHTML = '<span class="timer-preset-name"></span><span class="timer-preset-line"></span>';
+    b.innerHTML = '<span class="timer-preset-name"></span>';
     b.firstChild.textContent = p ? TEXT.timer.presets[p.id] : TEXT.timer.custom;
-    // What it turns on (the length is the one last used for it, set on its card).
-    b.lastChild.textContent = p ? tools.join(' + ') : TEXT.timer.customLine;
-    b.lastChild.hidden = !b.lastChild.textContent;
     b.addEventListener('click', () => { sheet.close(); add(p?.id); });
     return b;
   }));
   $('timer-add').addEventListener('click', () => sheet.showModal());
   sheet.addEventListener('click', (e) => { if (e.target === sheet) sheet.close(); });
 
-  // ---- settings: the chime (each one plays as it is picked)
-  chips($('timer-chime'), CHIMES.map((id) => ({ id, label: TEXT.timer.chimes[id] })),
-    () => state.chime,
-    (id) => { state.chime = id; save(); audio.chime(id); });
-  // Voice: on or off, and whose (each says hello as it is picked).
+  // ---- settings: chimes on or off and which (each plays as it is picked);
+  // the voice on or off, whose (each says hello as it is picked) and how loud.
+  const fill = (select, ids, labels, value) => {
+    select.replaceChildren(...ids.map((id) => new Option(labels[id], id)));
+    select.value = value;
+  };
+  const chimeOn = $('timer-chime-on');
+  const chimeSel = $('timer-chime');
+  fill(chimeSel, CHIMES, TEXT.timer.chimes, state.chime);
+  const showChime = () => { chimeOn.checked = state.chimeOn; $('timer-chime-row').hidden = !state.chimeOn; };
+  chimeOn.addEventListener('change', () => {
+    state.chimeOn = chimeOn.checked;
+    save();
+    showChime();
+    if (state.chimeOn) audio.chime(state.chime);
+  });
+  chimeSel.addEventListener('change', () => { state.chime = chimeSel.value; save(); audio.chime(state.chime); });
+  showChime();
   let hello = null;
   const sayHello = () => {
     hello?.stop();
-    hello = audio.clips([voiceUrl(state.voice, 'hello')]);
+    hello = audio.clips([voiceUrl(state.voice, 'hello')], voiceGain(state.voiceVolume));
   };
   const voiceOn = $('timer-voice-on');
-  const showVoice = () => { voiceOn.checked = state.voiceOn; $('timer-voice-field').hidden = !state.voiceOn; };
+  const voiceSel = $('timer-voice');
+  const voiceVol = $('timer-voice-volume');
+  fill(voiceSel, SPEAKERS, TEXT.timer.voices, state.voice);
+  voiceVol.value = String(state.voiceVolume);
+  const showVoice = () => {
+    voiceOn.checked = state.voiceOn;
+    for (const el of document.querySelectorAll('.timer-voice-only')) el.hidden = !state.voiceOn;
+  };
   voiceOn.addEventListener('change', () => {
     state.voiceOn = voiceOn.checked;
     save();
     showVoice();
     if (state.voiceOn) sayHello(); else { hello?.stop(); hush(); }
   });
-  chips($('timer-voice'), SPEAKERS.map((id) => ({ id, label: TEXT.timer.voices[id] })),
-    () => state.voice,
-    (id) => { state.voice = id; save(); sayHello(); });
+  voiceSel.addEventListener('change', () => { state.voice = voiceSel.value; save(); sayHello(); });
+  voiceVol.addEventListener('input', () => { state.voiceVolume = Number(voiceVol.value); save(); });
+  voiceVol.addEventListener('change', sayHello); // let go: hear it at the new level
   showVoice();
   const settingsSheet = $('timer-settings');
   $('timer-settings-btn').addEventListener('click', () => settingsSheet.showModal());
@@ -393,14 +409,14 @@ export function setupTimer({ settings, audio, chips, canDrone, askDrone }) {
     saying?.stop();
     const speak = state.voiceOn && lines.length;
     let delay = 0;
-    if (chime && state.chime !== 'none') {
+    if (chime && state.chimeOn) {
       audio.chime(state.chime);
       delay = speak ? CHIME_TO_VOICE : CHIME_GAP;
     }
     if (delay) await wait(delay);
     if (my !== seq) return;
     if (speak) {
-      saying = audio.clips(lines.map((l) => voiceUrl(state.voice, l)));
+      saying = audio.clips(lines.map((l) => voiceUrl(state.voice, l)), voiceGain(state.voiceVolume));
       await saying.done;
       saying = null;
       if (my !== seq) return;
@@ -449,7 +465,7 @@ export function setupTimer({ settings, audio, chips, canDrone, askDrone }) {
     cues.started(run.item);
     // Everything it may say or ring, decoded ahead so nothing waits on the network.
     if (state.voiceOn) audio.preload([...new Set(items.flatMap((it, i) => [...voiceLines.started(it), ...voiceLines.changed(it, items[i + 1] || it), ...voiceLines.finished(it)]))].map((l) => voiceUrl(state.voice, l)));
-    if (state.chime !== 'none') audio.preload([chimeUrl(state.chime)]);
+    if (state.chimeOn) audio.preload([chimeUrl(state.chime)]);
     const first = run.item;
     announce({ lines: voiceLines.started(first), then: () => { if (isNow(first)) sound(first); } });
     clearInterval(ticker);
