@@ -97,6 +97,7 @@ export function setupTimer({ settings, audio, chips, canDrone, askDrone }) {
       it.minutes = Math.max(MIN_MINUTES, Math.min(MAX_MINUTES, Math.round(Number(v) || old)));
       min.value = it.minutes;
       if (isNow(it) && old !== it.minutes) run.retime(old);
+      state.lastMinutes[it.kind || 'custom'] = it.minutes; // the next of its kind starts here
       save();
       readout();
     };
@@ -232,7 +233,7 @@ export function setupTimer({ settings, audio, chips, canDrone, askDrone }) {
 
   // ---- add and delete
   function add(presetId) {
-    const it = newItem(presetId, settings);
+    const it = newItem(presetId, settings, state.lastMinutes);
     items.push(it);
     if (it.metronome || it.drone) open.add(it.id);
     save();
@@ -274,7 +275,9 @@ export function setupTimer({ settings, audio, chips, canDrone, askDrone }) {
     const tools = p ? ['metronome', 'drone'].filter((t) => p[t]).map((t) => TEXT.timer.item[t]) : [];
     b.innerHTML = '<span class="timer-preset-name"></span><span class="timer-preset-line"></span>';
     b.firstChild.textContent = p ? TEXT.timer.presets[p.id] : TEXT.timer.custom;
-    b.lastChild.textContent = p ? TEXT.timer.presetLine(p.minutes, tools.join(' + ')) : TEXT.timer.customLine;
+    // What it turns on (the length is the one last used for it, set on its card).
+    b.lastChild.textContent = p ? tools.join(' + ') : TEXT.timer.customLine;
+    b.lastChild.hidden = !b.lastChild.textContent;
     b.addEventListener('click', () => { sheet.close(); add(p?.id); });
     return b;
   }));

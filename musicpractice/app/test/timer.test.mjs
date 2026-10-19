@@ -27,7 +27,7 @@ test('a first visit starts with Intonation (drone) and Scales (metronome); + off
 test('saved routines are kept, cleaned, and an emptied one stays empty', () => {
   const s = mem();
   saveTimer({ items: [], chime: 'celesta' }, s);
-  assert.deepEqual(loadTimer(base, s), { items: [], chime: 'celesta' });
+  assert.deepEqual(loadTimer(base, s), { items: [], chime: 'celesta', lastMinutes: {} });
   const items = cleanRoutine([{ id: 'a', name: 'x'.repeat(99), minutes: 999, metronome: 1, met: { bpm: 9999, meter: 'nope' }, drn: { midi: 10, voice: '?' } }, { id: 'a' }, 'junk']);
   assert.equal(items.length, 2); // the duplicate id dropped, the junk made a blank item
   assert.equal(items[0].name.length, 60);
@@ -102,4 +102,14 @@ test("the picture while an item runs: its own, else its drone's or metronome's, 
   // An item saved before items knew their kind is matched by its name.
   assert.equal(cleanRoutine([{ id: 'x', name: 'Ghosting' }])[0].kind, 'ghosting');
   assert.equal(cleanRoutine([{ id: 'x', name: 'Ghosting', kind: null }])[0].kind, null);
+});
+
+test('a new item starts at the length last given to its kind, else the default', () => {
+  const s = mem();
+  assert.equal(newItem('scales', base, {}).minutes, 5);
+  assert.equal(newItem('scales', base, { scales: 12 }).minutes, 12);
+  assert.equal(newItem('ghosting', base, { scales: 12 }).minutes, 3);
+  assert.equal(newItem(undefined, base, { custom: 7 }).minutes, 7);
+  saveTimer({ items: [], chime: 'kalimba', lastMinutes: { scales: 9, custom: 999, bogus: 4 } }, s);
+  assert.deepEqual(loadTimer(base, s).lastMinutes, { scales: 9, custom: 120 });
 });

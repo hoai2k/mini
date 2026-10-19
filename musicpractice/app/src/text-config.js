@@ -410,8 +410,6 @@ export const EN = {
     },
     add: 'Add',
     addTitle: 'Add a practice item',
-    /** A suggestion's line: its minutes and what it turns on (already listed, e.g. 'Drone'). */
-    presetLine: (min, tools) => `${min} min${tools ? ` · ${tools}` : ''}`,
     custom: 'Custom…',
     customLine: 'Name it yourself',
     settingsButton: 'Practice Routine settings',
