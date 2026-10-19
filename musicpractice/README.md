@@ -410,10 +410,22 @@ tones, scales over a tonic.
   instrument while it plays crossfades (about 1.5 s out); **Pause** stops at
   once, the sound and the hall's ring gone in about 50 ms (no click), the
   same on the web and in the apps' native mixers (`mobile/test` checks it).
+- **Accidentals** (settings: Auto, Sharps, Flats; `droneAccidentals`,
+  Auto by default): Auto spells a black-key note by the way it was reached,
+  C♯ stepping up with + (or a sequence going up: up the chromatic or major
+  scale, round the fifths) and D♭ stepping down with − (or going down, or
+  round the fourths); a note picked from the list keeps the spelling the
+  list shows, and the spelling on show is kept (`droneSpelling`). The list
+  is spelled the same way. Sharps or Flats always spell one way (`spelling`
+  in `drone.js`). The tuner keeps its own Note names choice.
 - The picture takes the height the controls leave and as much width as
   there is (up to 820 px, so it is big on a tablet), with the controls
   centred under it, measured as the metronome's picture is; a phone on its
-  side keeps it beside the controls. To its right, an upright **volume**
+  side keeps it beside the controls. It sits in the middle of three grid
+  columns with the bow (or the organ's slider) at the start of the right
+  one, so it is centred whatever width a browser gives the bow (it used to
+  be balanced by a margin matching the bow, which iPad Safari did not quite
+  match). To its right, an upright **volume**
   slider: drag the knob or the track up or down, or use the arrow keys (it
   is the same volume as the one in the settings).
 - **The volume is the cello's bow**: the Drone screen draws the cello

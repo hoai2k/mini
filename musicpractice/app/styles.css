@@ -703,8 +703,14 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 .drone-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; width: min(100%, 960px); margin: 0 auto; }
 /* The picture takes the height the controls leave (droneui.js measures it,
    --art), beside the volume slider. */
-.drone-stage { display: flex; align-items: stretch; justify-content: center; gap: 8px; padding-left: calc(var(--art, 200px) * 0.25 + 8px); /* the bow's width, so the cello stays centred */ }
-.drone-body.organ .drone-stage { padding-left: 48px; /* the slider's width, so the organ stays centred */ }
+/* The picture in the middle column and the bow (or the organ's slider) at
+   the start of the right one: the two outer columns share what is left
+   equally, so the picture is centred by construction, whatever width a
+   browser gives the bow (iPad Safari sized it differently from the margin
+   that used to balance it). */
+.drone-stage { display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; column-gap: 8px; width: 100%; }
+.drone-stage > .drone-art { grid-column: 2; }
+.drone-stage > .bow-col, .drone-stage > .vslider { grid-column: 3; justify-self: start; }
 .drone-stage .vslider[hidden] { display: none; }
 .drone-art { position: relative; width: var(--art, clamp(130px, 28dvh, 240px)); aspect-ratio: 1; display: grid; place-items: center; }
 .vslider {
@@ -786,7 +792,6 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   transition: scale 0.15s;
 }
 .bow-slider.held .bow-mark, .bow-slider:focus-visible .bow-mark { scale: 1.2; }
-/* The bow's own picture is narrower than the slider was, so the stage's balancing margin follows it. */
 
 .drone-pitch .select { min-width: 112px; }
 .drone-voice .select { min-width: 240px; max-width: 100%; }
@@ -794,8 +799,9 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 .drone-timer { margin: 0; color: var(--ink-2); font-weight: 700; font-variant-numeric: tabular-nums; text-align: center; }
 @media (orientation: landscape) and (max-height: 560px) {
   .drone-body { width: min(100%, 760px); display: grid; grid-template-columns: auto 1fr; align-items: center; justify-items: center; gap: 6px 28px; }
-  .drone-stage { grid-row: 1 / span 5; padding-left: 0; }
-  .drone-body.organ .drone-stage { padding-left: 0; }
+  .drone-stage { grid-row: 1 / span 5; grid-template-columns: auto auto; width: auto; }
+  .drone-stage > .drone-art { grid-column: 1; }
+  .drone-stage > .bow-col, .drone-stage > .vslider { grid-column: 2; }
   .drone-art { width: min(60dvh, 220px); }
   .bow-col { height: min(60dvh, 220px); }
 
