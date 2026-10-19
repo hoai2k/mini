@@ -594,9 +594,9 @@ def round9_assets() -> list[dict]:
                     "framing and canvas, draw an hourglass in its place: "
                     f"{TIMER_SUBJECT[theme]}. The hourglass stands upright and perfectly "
                     "symmetrical, seen from the front, with about two thirds of the sand in the lower "
-                    "bulb, a small heap, and a thin stream still falling through the neck. Keep the "
-                    "same two thin, smooth ribbons drifting gently outward from the sides as in the "
-                    "reference, so it sits with the other home buttons. Centred, at about the same "
+                    "bulb, a small heap, and a thin stream still falling through the neck. No wings, "
+                    "sound ribbons, mist, floating notes or surrounding decorations; those ribbons "
+                    "belong only to Drone. Centred, at about the same "
                     "height as the cello, with the same small even margin; a bold readable silhouette "
                     "that still reads at 64 pixels. A fully transparent background, no cast shadow, no "
                     "clock face, no text, no letters, no numbers."),
@@ -708,15 +708,15 @@ if _routine_pendulum_delivery.exists():
 # item of its own kind (Custom…). A new suggestion needs its picture here too
 # (app/test/timer.test.mjs checks every suggestion has a request).
 PRACTICE_SUBJECT = {
-    "practice-intonation": ("Intonation practice", "a tuning fork standing upright and ringing, with two thin sound ribbons "
-                            "drifting from its tines, beside a single whole note on a short three-line staff"),
+    "practice-intonation": ("Intonation practice", "a two-tined tuning fork standing upright and ringing, with small vibration marks "
+                            "beside its tines; the tuning fork alone, without musical notes or a staff"),
     "practice-scales": ("Scales", "a short musical staff with eight round note heads climbing it from left to right like a "
-                        "gentle staircase, the last note a little larger, a small ribbon curling up past it"),
+                        "gentle staircase, the last note a little larger; exactly eight notes on a five-line staff, no treble clef"),
     "practice-rhythms": ("Clapping rhythms", "two hands meeting in a clap, seen from the side, with three small curved "
                          "motion marks around them, and a short row of rhythm notes (quarter notes and a pair of "
                          "beamed eighth notes) beneath"),
     "practice-ghosting": ("Ghosting", "a cello bow drawn as a faint, translucent ghostly outline, hovering just above four "
-                          "strings, with three hollow outlined notes drifting softly upward like whispers"),
+                          "strings; only the translucent bow outline and the four strings, without floating notes"),
     "practice-default": ("Practice (default)", "a music stand holding an open book of sheet music, a pencil resting on "
                          "its ledge"),
 }
@@ -737,9 +737,10 @@ def round11_assets() -> list[dict]:
                 group=f"{name} · Practice Routine pictures",
                 prompt=(f"Using the attached image, musicpractice/app/{src} (this theme's Drone home button, a "
                         "cello), as the reference for its style, colours, materials, lighting, rendering, framing "
-                        f"and canvas, draw {subject}, in this theme's materials and colours. Keep the same two thin, "
-                        "smooth ribbons drifting gently outward from the sides as in the reference, so it belongs "
-                        "with the other pictures. One centred subject at about the same size as the cello, with "
+                        f"and canvas, draw {subject}, in this theme's materials and colours. No wings, sound "
+                        "ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes "
+                        "belong only within the scale, rhythm pattern or sheet music that represents the activity. "
+                        "One centred subject at about the same size as the cello, with "
                         "the same small even margin; a bold readable silhouette that still reads at 96 pixels. A "
                         "fully transparent background, no cast shadow, no text, no letters, no numbers."),
                 note=(f"The Practice Routine's picture for {label} in the {name} theme, shown large while such an "
@@ -752,6 +753,20 @@ def round11_assets() -> list[dict]:
 
 
 ASSETS += round11_assets()
+
+_practice_delivery = ROOT / "design" / "image-deliveries-round-11.json"
+if _practice_delivery.exists():
+    _practice_delivered = {
+        (a["theme"], a["id"]): a
+        for a in json.loads(_practice_delivery.read_text())["assets"]
+        if a["status"] == "delivered"
+    }
+    for asset in ASSETS:
+        if asset["round"] != 11 or (asset["theme"], asset["id"]) not in _practice_delivered:
+            continue
+        asset["status"] = "delivered"
+        asset["note"] = asset["note"].split(" Until it arrives")[0]
+        asset["note"] += " Delivered PNG masters, prompts and exports: design/image-deliveries-round-11.json."
 
 def render() -> tuple[str, str]:
     theme_name = {t["id"]: t["name"] for t in THEMES}
