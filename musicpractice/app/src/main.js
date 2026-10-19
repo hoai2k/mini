@@ -1869,6 +1869,7 @@ function droneEngine() {
 const droneUI = setupDrone({
   settings,
   persist,
+  chips,
   engine: droneEngine,
   onPlaying: (on) => {
     if (on && !recorder?.holdsMic) setSession('playback');

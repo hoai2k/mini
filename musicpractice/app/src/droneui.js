@@ -5,17 +5,17 @@
 
 import { TEXT, setRich } from './text.js';
 import { droneTiming } from './settings.js';
-import { DRONE_MIN, DRONE_MAX, VOICES, SEQUENCES, sequenceNote, wrap } from './drone.js';
+import { DRONE_MIN, DRONE_MAX, VOICES, SEQUENCES, SEQ_DIRECTION, sequenceNote, wrap, spelling } from './drone.js';
 import { noteName, midiToHz, A4_MIN, A4_MAX } from './tuning.js';
 
 const $ = (id) => document.getElementById(id);
 const fmt = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
 
 /**
- * @param {{ settings: object, persist: () => void, engine: () => import('./drone.js').Drone,
+ * @param {{ settings: object, persist: () => void, chips: Function, engine: () => import('./drone.js').Drone,
  *   onPlaying: (on: boolean) => void }} opts
  */
-export function setupDrone({ settings, persist, engine, onPlaying }) {
+export function setupDrone({ settings, persist, chips, engine, onPlaying }) {
   let playing = false;
   let remaining = settings.droneMinutes * 60; // seconds left of a timed drone (counts only while playing)
   let seqStart = settings.droneMidi; // the note a sequence began on
@@ -25,10 +25,20 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
   let doneNote = '';
   let changesSeen = 0; // changes the native drone made by itself that are counted here (the apps)
 
-  const name = (midi) => {
-    const n = noteName(midi, { flats: settings.flats });
+  // Sharps or flats: the Accidentals setting, or on Auto the way the note
+  // was reached (droneSpelling, kept so the note reads the same next time).
+  const spelled = (direction = 0) => spelling(settings.droneAccidentals, settings.droneSpelling, direction);
+  const name = (midi, how = spelled()) => {
+    const n = noteName(midi, { flats: how === 'flats' });
     return { ...n, text: `${n.name}${n.octave}` };
   };
+  /** Spell from now on as reached going `direction` (the list follows). */
+  function reached(direction) {
+    const how = spelled(direction);
+    if (how === settings.droneSpelling && pitch.options.length) return;
+    settings.droneSpelling = how;
+    fillPitches();
+  }
 
   // ---- controls
   const pitch = $('dr-pitch');
@@ -73,7 +83,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     if (settings.droneThen === 'stop') {
       el.textContent = doneNote || (playing ? TEXT.drone.stopsIn(left) : TEXT.drone.playsFor(left));
     } else {
-      const next = name(sequenceNote(settings.droneThen, seqStart, seqStep + 1)).text;
+      const next = name(sequenceNote(settings.droneThen, seqStart, seqStep + 1), spelled(SEQ_DIRECTION[settings.droneThen])).text;
       el.textContent = TEXT.drone.nextIn(next, left);
     }
   }
@@ -120,6 +130,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
       changesSeen = s.changes;
       seqStep += fresh;
       settings.droneMidi = s.midi;
+      reached(SEQ_DIRECTION[settings.droneThen]);
       persist();
     }
     if (s.remaining >= 0) remaining = s.remaining;
@@ -176,13 +187,19 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     }
     seqStep++;
     settings.droneMidi = sequenceNote(settings.droneThen, seqStart, seqStep);
+    reached(SEQ_DIRECTION[settings.droneThen]);
     persist();
     sound(); // crossfades to the new note
     show();
   }
 
-  /** A note chosen by hand: a sequence starts again from it, with the full time. */
-  function setNote(midi) {
+  /**
+   * A note chosen by hand: a sequence starts again from it, with the full
+   * time. `direction` is +1 or −1 for a step up or down (which spells it on
+   * Auto), 0 for a note picked from the list (spelled as the list shows it).
+   */
+  function setNote(midi, direction = 0) {
+    reached(direction);
     settings.droneMidi = wrap(midi);
     persist();
     seqStart = settings.droneMidi;
@@ -193,8 +210,8 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     show();
   }
 
-  $('dr-down').addEventListener('click', () => setNote(settings.droneMidi - 1));
-  $('dr-up').addEventListener('click', () => setNote(settings.droneMidi + 1));
+  $('dr-down').addEventListener('click', () => setNote(settings.droneMidi - 1, -1));
+  $('dr-up').addEventListener('click', () => setNote(settings.droneMidi + 1, 1));
   pitch.addEventListener('change', () => setNote(Number(pitch.value)));
   voice.addEventListener('change', () => {
     settings.droneVoice = voice.value;
@@ -334,6 +351,17 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
   });
   showTimingOpts();
 
+  // Accidentals: Auto (sharps going up, flats going down), Sharps or Flats.
+  chips($('dr-accidentals'), ['auto', 'sharps', 'flats'].map((id) => ({ id, label: TEXT.drone.settings.accidentalModes[id] })),
+    () => settings.droneAccidentals,
+    (v) => {
+      settings.droneAccidentals = v;
+      if (v !== 'auto') settings.droneSpelling = v; // Auto then starts from what is showing
+      persist();
+      fillPitches();
+      show();
+    });
+
   // Reference pitch, shared with the tuner.
   const a4 = document.querySelector('.dr-a4');
   function setA4(v) {
@@ -385,7 +413,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
   document.fonts?.ready.then(queueFit);
   document.fonts?.addEventListener?.('loadingdone', queueFit);
 
-  /** Bring the controls in line with the settings (also after the tuner changed A4 or spelling). */
+  /** Bring the controls in line with the settings (also after the tuner changed A4). */
   function refresh() {
     a4.value = settings.a4;
     setRich(document.querySelector('.dr-a4-label'), TEXT.common.referencePitch(settings.a4));
@@ -401,7 +429,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     fit: queueFit,
     stop: pause,
     toggle: () => (playing ? pause() : play()),
-    step: (d) => setNote(settings.droneMidi + d),
+    step: (d) => setNote(settings.droneMidi + d, Math.sign(d)),
     syncNative,
     get playing() { return playing; },
   };
