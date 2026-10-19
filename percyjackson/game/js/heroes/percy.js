@@ -30,7 +30,7 @@ const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
 // Swirling water funnel for Hurricane: an open cone with spiralling bands.
 function funnelMesh() {
   const alpha = uniform(0);
-  const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false });
+  const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, forceSinglePass: true, fog: false });
   const u = uv();
   const bands = sin(u.x.mul(6.283 * 7).add(u.y.mul(9)).sub(U.time.mul(9))).mul(0.5).add(0.5);
   const fine = sin(u.x.mul(6.283 * 19).sub(u.y.mul(14)).sub(U.time.mul(13))).mul(0.5).add(0.5);

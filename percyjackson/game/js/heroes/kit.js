@@ -141,7 +141,7 @@ export function zap(g, a, b, color = 0xffe24a, width = 0.16, dur = 0.16, segs = 
 // optional angular pattern. Returns a Mesh with userData { alpha, color }.
 export function makeDisc(color, { rings = 9, speed = 1.5, spokes = 0, intensity = 1.6 } = {}) {
   const alpha = uniform(0), col = uniform(new THREE.Color(color));
-  const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false });
+  const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, forceSinglePass: true, fog: false });
   const p = uv().sub(0.5).mul(2); const r = length(p);
   const wave = sin(r.mul(rings * 6.283).sub(U.time.mul(speed * 6.283))).mul(0.5).add(0.5);
   const spoke = spokes ? sin(atan(p.y, p.x).mul(spokes).add(U.time.mul(1.5))).mul(0.5).add(0.5) : float(0);

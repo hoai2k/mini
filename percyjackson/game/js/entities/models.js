@@ -4,7 +4,7 @@
 // pipes, Tyson's watch shield, Clarisse's electric spear and boar shield),
 // built on the shared Rig.
 import * as THREE from 'three/webgpu';
-import { Skin, Rig, makeCharMaterial, PX, markTip, markHeld } from './character.js';
+import { Skin, Rig, makeCharMaterial, PX, markTip, markHeld, mergeChildren } from './character.js';
 import { hashStr, mulberry32 } from '../util.js';
 import { heroHair, heroTail, cellMesh, partMaterial, partsMesh, footwear, band, beads, tatters, sleeveTatters } from './herovox.js';
 import { resFor } from './parts.js';
@@ -527,6 +527,9 @@ export function buildHeroModel(id) {
     markTip(g, 0, 0, 13, 'Stygian sword');
     g.position.set(0, -1 * PX, 1 * PX); rig.handR.add(g); rig.extras.weapon = g;
   }
+  // (each limb's skin box and its overlay, and the blocks of a held weapon,
+  // drawn as one mesh a material: a hero went from 24-54 meshes to about half)
+  for (const b of [rig.torso, rig.head, rig.armR, rig.armL, rig.legR, rig.legL, rig.extras.weapon, rig.extras.pipes]) mergeChildren(rig, b);
   rig.look = look;
   return rig;
 }

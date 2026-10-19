@@ -184,6 +184,7 @@ const tileOf = new Map();           // key -> button
 const queue = [], queued = new Set();
 let flipRows = !isGPU;              // WebGL readback is bottom-up, WebGPU top-down
 const canvas2d = document.createElement('canvas'); canvas2d.width = canvas2d.height = TS;
+const ctx2d = canvas2d.getContext('2d', { willReadFrequently: true });   // (a CPU canvas: it is only written and encoded)
 async function photograph(item) {
   const { rig, error } = safeBuild(item);
   if (error) return { error: error.message };
@@ -191,6 +192,10 @@ async function photograph(item) {
     rig.root.rotation.y = 0.6;
     if (typeof rig.animate === 'function') { try { rig.animate({ dt: 1, speed: 0, vel: new THREE.Vector3(), action: null }); } catch { /* keep the rest pose */ } }
     const m = measure(rig);
+    // its shaders compiled first, off to the side (with the scene's lights, into
+    // the thumbnail's target), so the render below doesn't stop the viewer while
+    // a new kind's programs compile (most share programs already compiled)
+    try { renderer.setRenderTarget(thumbRT); const c = renderer.compileAsync(rig.root, thumbCam, scene); renderer.setRenderTarget(null); await c; } catch { renderer.setRenderTarget(null); }
     thumbHolder.add(rig.root);
     fitLights(m.center, m.r);
     const dir = new THREE.Vector3(0.5, 0.28, 1).normalize();
@@ -209,8 +214,10 @@ async function photograph(item) {
     // bytes, padded to 768), so the stride comes from the buffer, not the width.
     const img = new ImageData(TS, TS), row = TS * 4, stride = (px.length - row) / (TS - 1);
     for (let y = 0; y < TS; y++) { const s = (flipRows ? TS - 1 - y : y) * stride; img.data.set(px.subarray(s, s + row), y * row); }
-    const g = canvas2d.getContext('2d'); g.putImageData(img, 0, 0);
-    return { url: canvas2d.toDataURL('image/png') };
+    ctx2d.putImageData(img, 0, 0);
+    // (toBlob encodes off the main thread; toDataURL took longer than the render)
+    const blob = await new Promise((res) => canvas2d.toBlob(res, 'image/png'));
+    return { url: blob ? URL.createObjectURL(blob) : canvas2d.toDataURL('image/png') };
   } catch (e) {
     console.warn('workbench: thumbnail failed for', item.key, e);
     holder.visible = true; refGroup.visible = showRef; percyGroup.visible = percyOn && !!current?.m; scene.background = BGS[bgName].bg; renderer.setRenderTarget(null);
@@ -224,14 +231,25 @@ function paintTile(item) {
   if (r.url) th.append(el('img', { src: r.url, alt: '', draggable: 'false' }));
   else { th.classList.add('err'); th.textContent = 'build error'; th.title = r.error; }
 }
+// Background work (thumbnails, the animation lint) takes turns with the
+// viewer: after each step it rests twice as long as the step took, so the
+// viewer keeps two thirds of the time or more, and it holds off while the
+// viewer is being handled (a drag, the wheel, a key). It used to run flat
+// out: 80 s after opening, two thirds of it in long tasks of up to 3 s, so
+// whatever model was on show stuttered (perf/RENDERING.md).
+let lastInput = -1e9;
+for (const ev of ['pointerdown', 'pointermove', 'wheel', 'keydown']) addEventListener(ev, (e) => { if (ev !== 'pointermove' || e.buttons) lastInput = performance.now(); }, { passive: true, capture: true });
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function rest(ms, hold = true) { await sleep(Math.max(16, Math.min(1500, ms))); while (hold && performance.now() - lastInput < 1200) await sleep(250); }
 let pumping = false;
 async function pump() {
   if (pumping) return; pumping = true;
   while (queue.length) {
     const item = queue.shift(); queued.delete(item.key);
     if (thumbs.has(item.key)) continue;
+    const t0 = performance.now();
     thumbs.set(item.key, await photograph(item)); paintTile(item);
-    await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));   // stay responsive
+    await rest((performance.now() - t0) * 2);
   }
   pumping = false;
 }
@@ -251,12 +269,15 @@ function wantLint(item, front) {
   front ? lintQueue.unshift(item) : lintQueue.push(item);
   if (!linting) { linting = true; setTimeout(lintNext, front ? 30 : 400); }
 }
-function lintNext() {
+async function lintNext() {
   const item = lintQueue.shift();
   if (!item) { linting = false; return; }
   if (!lints.has(item.key)) {
     let r;
-    try { r = animlint.lintModel({ group: item.group, id: item.id, build: item.build }, { heroStyles: true }); } catch (e) { r = { error: e.message, problems: [], failing: 0 }; console.warn('workbench: lint failed', item.key, e); }
+    // (a pose at a time, resting between: the model on show its own poses at an even share, the rest in the background)
+    const mine = current?.item === item, between = (ms) => rest(ms * (mine ? 1 : 2), !mine);
+    const spec = { group: item.group, id: item.id, build: item.build };
+    try { r = animlint.lintModelAsync ? await animlint.lintModelAsync(spec, { heroStyles: true }, between) : animlint.lintModel(spec, { heroStyles: true }); } catch (e) { r = { error: e.message, problems: [], failing: 0 }; console.warn('workbench: lint failed', item.key, e); }
     lints.set(item.key, r); paintLint(item);
     if (current?.item === item) renderInspector();
   }

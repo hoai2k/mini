@@ -153,18 +153,30 @@ function runPose(spec, pose, label, opts) {
 
 // Every pose of one model: the game's hero poses for its group, each in-game
 // attack, and (as info) the hero styles a monster never plays.
-export function lintModel(spec, opts = {}) {
+function posesOf(spec, opts) {
   const { group, id } = spec;
   const poses = [];
   for (const p of GAME_POSES[group] ?? ['idle']) poses.push({ pose: p, label: HERO_POSES[p].label });
   for (const v of inGameVariants(group, id)) poses.push({ pose: `game:${v.key}`, label: `${v.label} (in game)` });
   if (opts.heroStyles && MONSTER_GROUPS.has(group)) for (const p of Object.keys(HERO_POSES)) if (!GAME_POSES[group].includes(p)) poses.push({ pose: p, label: `${HERO_POSES[p].label} (hero style)`, info: true });
-  const problems = [];
-  for (const p of poses) {
-    let r;
-    try { r = runPose(spec, p.pose, p.label, opts); } catch (e) { r = [{ pose: p.pose, label: p.label, check: 'error', frame: 0, time: 0, value: 0, part: String(e.message).slice(0, 160) }]; console.warn('animlint:', id, p.pose, e); }
-    for (const x of r) problems.push(p.info ? { ...x, info: true } : x);
-  }
+  return poses;
+}
+function lintPose(spec, p, opts, problems) {
+  let r;
+  try { r = runPose(spec, p.pose, p.label, opts); } catch (e) { r = [{ pose: p.pose, label: p.label, check: 'error', frame: 0, time: 0, value: 0, part: String(e.message).slice(0, 160) }]; console.warn('animlint:', spec.id, p.pose, e); }
+  for (const x of r) problems.push(p.info ? { ...x, info: true } : x);
+}
+export function lintModel(spec, opts = {}) {
+  const poses = posesOf(spec, opts), problems = [];
+  for (const p of poses) lintPose(spec, p, opts, problems);
+  return { poses, problems, failing: problems.filter((x) => !x.info).length };
+}
+// The same, a pose at a time: `between(ms)` is awaited after each pose with
+// the time it took (the workbench lints in the background this way, so its
+// viewer keeps drawing between poses instead of stopping for a whole model).
+export async function lintModelAsync(spec, opts = {}, between = () => new Promise((r) => setTimeout(r, 0))) {
+  const poses = posesOf(spec, opts), problems = [];
+  for (const p of poses) { const t0 = performance.now(); lintPose(spec, p, opts, problems); await between(performance.now() - t0); }
   return { poses, problems, failing: problems.filter((x) => !x.info).length };
 }
 export const describe = (p) => {

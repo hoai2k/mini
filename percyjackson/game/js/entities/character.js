@@ -6,6 +6,7 @@ import * as THREE from 'three/webgpu';
 import { uniform, texture, uv, vec3, vec4, float, mix, positionLocal, hash, floor, step, screenCoordinate, interleavedGradientNoise, sin } from 'three/tsl';
 import { damp, clamp, lerp, easeOutCubic, easeInCubic, easeOutBack, mulberry32 } from '../util.js';
 import { U } from '../gfx/materials.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 export const PX = 0.058;          // world units per skin pixel
 // Every character (heroes, people, monsters, bosses) is drawn at this share of
@@ -183,6 +184,41 @@ export function extremePoints(o, skip = null) {
   const out = new Float32Array(pts.length * 3); let j = 0;
   for (const p of pts) { out[j++] = p.x; out[j++] = p.y; out[j++] = p.z; }
   return out;
+}
+
+// ---------------------------------------------------------------- merging
+// Every mesh is a draw call (two with the sun's shadow), and a draw costs
+// three.js 30-50 µs of CPU whatever its size, so the static meshes hung
+// directly on one group (a bone: a limb's skin box and its overlay; a held
+// weapon's blocks) that share a material are drawn as one: their geometry,
+// placed by each mesh's own transform, merged into a single mesh in their
+// place. Only plain leaf meshes that nothing moves on their own are taken
+// (sub-groups, which code may turn or hide, are left alone); a merged mesh
+// takes the others' place in rig.meshes, so a hit flash still covers it.
+// Drawn exactly as before. (perf/RENDERING.md)
+export function mergeChildren(rig, group) {
+  if (!group?.children) return;
+  const sets = new Map();
+  for (const m of group.children) {
+    if (!m.isMesh || m.isInstancedMesh || m.isSkinnedMesh || m.children.length || !m.visible || Array.isArray(m.material) || m.morphTargetInfluences || m.userData.noMerge || m.userData.shell || m.userData.flames) continue;
+    const g = m.geometry, A = g.attributes;
+    const sig = [m.material.id, !!g.index, m.castShadow, m.receiveShadow, m.renderOrder, m.frustumCulled, ...Object.keys(A).sort().map((k) => `${k}${A[k].itemSize}${A[k].array.constructor.name}${A[k].normalized}`)].join('|');
+    if (!sets.has(sig)) sets.set(sig, []);
+    sets.get(sig).push(m);
+  }
+  for (const list of sets.values()) {
+    if (list.length < 2) continue;
+    const geos = list.map((m) => { m.updateMatrix(); const c = m.geometry.clone(); c.clearGroups(); return c.applyMatrix4(m.matrix); });
+    const geo = mergeGeometries(geos, false);
+    for (const c of geos) c.dispose();
+    if (!geo) continue;
+    const first = list[0], mesh = new THREE.Mesh(geo, first.material);
+    mesh.castShadow = first.castShadow; mesh.receiveShadow = first.receiveShadow; mesh.renderOrder = first.renderOrder; mesh.frustumCulled = first.frustumCulled;
+    mesh.userData.baseMat = first.userData.baseMat ?? first.material; mesh.name = 'merged';
+    let listed = false;
+    for (const m of list) { group.remove(m); const i = rig.meshes?.indexOf(m) ?? -1; if (i >= 0) { rig.meshes.splice(i, 1); listed = true; } if (rig.headMesh === m) rig.headMesh = mesh; }
+    group.add(mesh); if (listed) rig.meshes.push(mesh);
+  }
 }
 
 // ---------------------------------------------------------------- rig

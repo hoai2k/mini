@@ -427,7 +427,7 @@ const ringGeo = () => (_ringGeo ??= new THREE.RingGeometry(0.78, 1, 40));
 const ringMats = new Map();
 function ringMat(color) {
   if (!ringMats.has(color)) {
-    const m = new THREE.MeshBasicNodeMaterial({ transparent: true, opacity: 0.7, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
+    const m = new THREE.MeshBasicNodeMaterial({ transparent: true, opacity: 0.7, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, forceSinglePass: true });
     m.color = new THREE.Color(color).multiplyScalar(1.6);
     ringMats.set(color, m);
   }

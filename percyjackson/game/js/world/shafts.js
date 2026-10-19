@@ -10,7 +10,7 @@ export class LightShafts {
   material(hex) {
     if (this.mats.has(hex)) return this.mats.get(hex);
     const c = new THREE.Color(hex);
-    const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, fog: false });
+    const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, forceSinglePass: true, blending: THREE.AdditiveBlending, fog: false });
     const u = uv();
     const edge = smoothstep(0.0, 0.35, u.x).mul(smoothstep(1.0, 0.65, u.x));
     const along = smoothstep(0.0, 0.7, u.y).mul(smoothstep(1.0, 0.94, u.y));

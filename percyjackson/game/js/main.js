@@ -36,10 +36,12 @@ import { Pickups } from './pickups.js';
 import { bundlesFrom } from './resources.js';
 import { Minimap } from './ui/minimap.js';
 import { BOSS_IDS, warmupGroup } from './entities/bosses.js';
+import { MONSTER_IDS } from './entities/monsters.js';
 import { Player } from './entities/player.js';
 import { Enemy } from './entities/enemy.js';
 import { TrainingDummy } from './entities/dummy.js';
 import { FLASH_MATERIAL } from './entities/character.js';
+import { FLAME_BUDGET } from './entities/flames.js';
 import { HERO_IDS } from './heroes/index.js';
 import './heroes/percy.js';
 import './heroes/annabeth.js';
@@ -152,6 +154,7 @@ class Game {
     this.env = new Environment(this.scene, this.lights);
     this.particles = new Particles(this.scene, this.gr.preset.particles);
     this.particles.budget = this.gr.quality === 'low' ? 0.5 : this.gr.quality === 'medium' ? 0.75 : 1;
+    FLAME_BUDGET.k = this.gr.quality === 'low' ? 0.6 : 1;   // (the live flames on models, entities/flames.js: fewer cubes on the lowest tier, as the particles)
     this.fx = new Effects(this);
     this.debris = new Debris(this);
     this.bolts = new Bolts(this.scene);
@@ -182,6 +185,9 @@ class Game {
     progress(0.75, t('game.loading.shaders'));
     await nextFrame();
     this.gr.setScene(this.scene, this.rig.camera);
+    // (one frame with nothing in it sets the scene pass up, its target's
+    // format and samples, so what compileScene compiles matches the frames to come)
+    this.scene.visible = false; try { this.gr.render(); } catch (e) { console.warn(e); } finally { this.scene.visible = true; }
     try { await this.compileScene(); } catch (e) { console.warn(e); }
     progress(0.92, t('game.loading.scrolls'));
     await art;
@@ -368,6 +374,7 @@ class Game {
     this.lights.configure(this.gr.preset);
     U.bakeStrength.value = this.gr.preset.bake;
     this.particles.budget = this.gr.quality === 'low' ? 0.5 : this.gr.quality === 'medium' ? 0.75 : 1;
+    FLAME_BUDGET.k = this.gr.quality === 'low' ? 0.6 : 1;   // (the live flames on models, entities/flames.js: fewer cubes on the lowest tier, as the particles)
     if (this.shafts) this.shafts.group.visible = !!this.gr.preset.shafts;
     this.gr.buildPipeline();
     this.setReadout(settings.showFps);
@@ -453,7 +460,7 @@ class Game {
     if (this.area === 'road') { this.loadRoad(opts); return; }
     const L = buildOpenWorld();   // (Camp Half-Blood in the middle of the open world: world/openworld.js)
     this.loadWorld(L, BIOMES.camp);
-    this.warmupShaders();   // (the open world's roaming monsters: their shaders and shadows compiled now, not at the first spawn or hit)
+    this.warmupShaders(null, { lazy: true });   // (the open world's roaming monsters: their shaders and shadows compiled before they spawn or are hit)
     if (this.state === 'playing') this.audio.overrideMusic = null; this.audio.setMusic('hub');
     this.placePlayers(L.spawn);
     const dummy = new TrainingDummy(this, L.dummy);
@@ -508,7 +515,7 @@ class Game {
   loadRoad(opts = {}) {
     const L = buildRoadTrip();
     this.loadWorld(L, BIOMES.rt_turnpike);
-    this.warmupShaders();
+    this.warmupShaders(null, { lazy: true });
     if (this.state === 'playing') this.audio.overrideMusic = null; this.audio.setMusic('hub');
     const d = this.save.data;
     let at = L.spawn;
@@ -559,20 +566,29 @@ class Game {
   // compiled on their own with the scene's lights, unculled and never drawn,
   // then again as a hit flashes them (FLASH_MATERIAL); then their shadows
   // (warmShadows). (perf/RENDERING.md)
-  warmupShaders(boss) {
-    let grp;
-    try { grp = warmupGroup(undefined, boss ? [boss] : []); } catch (e) { console.warn('warm-up skipped', e); return; }
+  // lazy (the open world and the Road West): the models are built one kind a
+  // frame once the area is on screen, not all at once while it loads (the
+  // first build of every kind paints its skin: seconds at boot).
+  warmupShaders(boss, { lazy = false } = {}) {
+    const grp = new THREE.Group();
     this.warmGroup = grp;   // (released with the level, see clearLevel: geometries and materials are shared with live monsters)
+    const add = (kinds, bosses = []) => { try { for (const c of [...warmupGroup(kinds, bosses).children]) grp.add(c); } catch (e) { console.warn('warm-up skipped', e); } };
+    if (!lazy) add(MONSTER_IDS, boss ? [boss] : []);
     const r = this.gr.renderer;
     if (!r?.compileAsync) return;
     const meshes = [];
-    grp.traverse((o) => { if (o.isMesh) { o.frustumCulled = false; if (o.userData.baseMat) meshes.push(o); } });
-    const cam = this.rig.camera, scene = this.scene;
     const flash = (on) => { for (const m of meshes) m.material = on ? FLASH_MATERIAL : m.userData.baseMat; };
+    const built = async () => {
+      await this.passReady();
+      if (lazy) for (const k of MONSTER_IDS) { if (this.warmGroup !== grp) break; add([k]); await nextFrame(); }
+      if (this.warmGroup !== grp) throw new Error('level left');
+      grp.traverse((o) => { if (o.isMesh) { o.frustumCulled = false; if (o.userData.baseMat) meshes.push(o); } });
+    };
     // (compileAsync takes each object's material when it is called, so the swap back can follow at once)
-    this.compileScene()
-      .then(() => r.compileAsync(grp, cam, scene))
-      .then(() => { flash(true); const c = r.compileAsync(grp, cam, scene); flash(false); return c; })
+    built()
+      .then(() => this.compileScene())
+      .then(() => this.compileFor(grp))
+      .then(() => { flash(true); const c = this.compileFor(grp); flash(false); return c; })
       .catch(() => { flash(false); /* fine: compiled on first use instead */ })
       .finally(() => { if (this.warmGroup === grp) this.warmShadows(grp, meshes); });
   }
@@ -580,11 +596,25 @@ class Game {
   // (telegraph markers, rings, slashes: compileAsync skips what is hidden, so
   // the first ring or marker of a session compiled mid-fight) shown for the call.
   compileScene() {
-    const r = this.gr.renderer, hidden = [];
+    const hidden = [];
     for (const o of this.scene.children) if (!o.visible && (o.isMesh || o.isPoints || o.isSprite)) { o.visible = true; hidden.push(o); }
-    let c;
-    try { c = r.compileAsync(this.scene, this.rig.camera); } finally { for (const o of hidden) o.visible = false; }
-    return Promise.resolve(c);
+    try { return this.compileFor(this.scene); } finally { for (const o of hidden) o.visible = false; }
+  }
+  // renderer.compileAsync as the frame draws: into the scene pass's target
+  // and MRT (gfx/renderer.js; as three's PassNode.compileAsync does). Compiled
+  // for the canvas, the programs didn't match the post-processed frame's, and
+  // were all compiled again as each thing first drew. obj: the scene, or a
+  // group out of it (compiled with the scene's lights, never drawn).
+  compileFor(obj) {
+    const r = this.gr.renderer, sp = this.gr.scenePass, rt = r.getRenderTarget(), mrt = r.getMRT();
+    if (sp?.renderTarget) { r.setRenderTarget(sp.renderTarget); r.setMRT(sp.getMRT()); }
+    // (the call takes the target, the objects and their materials before it first waits)
+    try { return Promise.resolve(r.compileAsync(obj, this.rig.camera, obj === this.scene ? null : this.scene)); } finally { r.setRenderTarget(rt); r.setMRT(mrt); }
+  }
+  // Resolves once a frame has been drawn with the scene pass (at boot the
+  // camp is loaded before the renderer has its pipeline).
+  passReady() {
+    return new Promise((res) => { const go = () => (this.gr.scenePass && this.framesDrawn ? res() : requestAnimationFrame(go)); go(); });
   }
   // The sun's shadow pass has no compileAsync, and it draws every mesh with
   // one override material per light, so a hit flash (FLASH_MATERIAL) switched
@@ -1013,7 +1043,7 @@ class Game {
     this.tracker.update(realDt);
     this.signs.update(this.paused && !this.cutscene ? 0 : realDt);
     if (this.minimap.level && (this.frameN = (this.frameN ?? 0) + 1) % 3 === 0) this.minimap.draw(this.hud.mini);
-    gr.render();
+    gr.render(); this.framesDrawn = (this.framesDrawn ?? 0) + 1;
     this.tickRelease();
     if (this.readoutOn) this.updateReadout();
   }
