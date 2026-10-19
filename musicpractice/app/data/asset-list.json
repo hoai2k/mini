@@ -1108,6 +1108,24 @@
     "status": "delivered"
   },
   {
+    "id": "practice-arpeggios",
+    "theme": "classic",
+    "file": "assets/ui/practice-arpeggios.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-sight-reading",
+    "theme": "classic",
+    "file": "assets/ui/practice-sight-reading.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-improvisation",
+    "theme": "classic",
+    "file": "assets/ui/practice-improvisation.webp",
+    "status": "requested"
+  },
+  {
     "id": "practice-intonation",
     "theme": "deco",
     "file": "assets/ui/deco/practice-intonation.webp",
@@ -1136,6 +1154,24 @@
     "theme": "deco",
     "file": "assets/ui/deco/practice-default.webp",
     "status": "delivered"
+  },
+  {
+    "id": "practice-arpeggios",
+    "theme": "deco",
+    "file": "assets/ui/deco/practice-arpeggios.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-sight-reading",
+    "theme": "deco",
+    "file": "assets/ui/deco/practice-sight-reading.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-improvisation",
+    "theme": "deco",
+    "file": "assets/ui/deco/practice-improvisation.webp",
+    "status": "requested"
   },
   {
     "id": "practice-intonation",
@@ -1168,6 +1204,24 @@
     "status": "delivered"
   },
   {
+    "id": "practice-arpeggios",
+    "theme": "sixties",
+    "file": "assets/ui/sixties/practice-arpeggios.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-sight-reading",
+    "theme": "sixties",
+    "file": "assets/ui/sixties/practice-sight-reading.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-improvisation",
+    "theme": "sixties",
+    "file": "assets/ui/sixties/practice-improvisation.webp",
+    "status": "requested"
+  },
+  {
     "id": "practice-intonation",
     "theme": "baroque",
     "file": "assets/ui/baroque/practice-intonation.webp",
@@ -1196,6 +1250,24 @@
     "theme": "baroque",
     "file": "assets/ui/baroque/practice-default.webp",
     "status": "delivered"
+  },
+  {
+    "id": "practice-arpeggios",
+    "theme": "baroque",
+    "file": "assets/ui/baroque/practice-arpeggios.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-sight-reading",
+    "theme": "baroque",
+    "file": "assets/ui/baroque/practice-sight-reading.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-improvisation",
+    "theme": "baroque",
+    "file": "assets/ui/baroque/practice-improvisation.webp",
+    "status": "requested"
   },
   {
     "id": "practice-intonation",
@@ -1228,6 +1300,24 @@
     "status": "delivered"
   },
   {
+    "id": "practice-arpeggios",
+    "theme": "scifi",
+    "file": "assets/ui/scifi/practice-arpeggios.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-sight-reading",
+    "theme": "scifi",
+    "file": "assets/ui/scifi/practice-sight-reading.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-improvisation",
+    "theme": "scifi",
+    "file": "assets/ui/scifi/practice-improvisation.webp",
+    "status": "requested"
+  },
+  {
     "id": "practice-intonation",
     "theme": "nouveau",
     "file": "assets/ui/nouveau/practice-intonation.webp",
@@ -1256,6 +1346,24 @@
     "theme": "nouveau",
     "file": "assets/ui/nouveau/practice-default.webp",
     "status": "delivered"
+  },
+  {
+    "id": "practice-arpeggios",
+    "theme": "nouveau",
+    "file": "assets/ui/nouveau/practice-arpeggios.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-sight-reading",
+    "theme": "nouveau",
+    "file": "assets/ui/nouveau/practice-sight-reading.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-improvisation",
+    "theme": "nouveau",
+    "file": "assets/ui/nouveau/practice-improvisation.webp",
+    "status": "requested"
   },
   {
     "id": "practice-intonation",
@@ -1288,6 +1396,24 @@
     "status": "delivered"
   },
   {
+    "id": "practice-arpeggios",
+    "theme": "anime",
+    "file": "assets/ui/anime/practice-arpeggios.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-sight-reading",
+    "theme": "anime",
+    "file": "assets/ui/anime/practice-sight-reading.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-improvisation",
+    "theme": "anime",
+    "file": "assets/ui/anime/practice-improvisation.webp",
+    "status": "requested"
+  },
+  {
     "id": "practice-intonation",
     "theme": "steampunk",
     "file": "assets/ui/steampunk/practice-intonation.webp",
@@ -1316,5 +1442,23 @@
     "theme": "steampunk",
     "file": "assets/ui/steampunk/practice-default.webp",
     "status": "delivered"
+  },
+  {
+    "id": "practice-arpeggios",
+    "theme": "steampunk",
+    "file": "assets/ui/steampunk/practice-arpeggios.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-sight-reading",
+    "theme": "steampunk",
+    "file": "assets/ui/steampunk/practice-sight-reading.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-improvisation",
+    "theme": "steampunk",
+    "file": "assets/ui/steampunk/practice-improvisation.webp",
+    "status": "requested"
   }
 ]
