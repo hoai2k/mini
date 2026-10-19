@@ -166,7 +166,7 @@ function enter(name) {
   }
   if (name === 'drone') droneUI.fit();
   if (name === 'record') checkRecorderMic(); // it starts off: the record button begins the cycle
-  if (name === 'tuner') startTuner();
+  if (name === 'tuner') { startTuner(); tuner.fit(); }
   if (name === 'routine') { if (!recorder?.holdsMic) setSession('playback'); timerUI?.enter(); }
   if (name === 'home') layoutHome();
   if (name === 'drone') {

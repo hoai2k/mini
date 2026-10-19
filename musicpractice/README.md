@@ -439,8 +439,22 @@ note don't count against it. Names follow the tuner's note names and
 transposition, and its reference pitch. `app/src/scaletest.js` (pure,
 `test/scaletest.test.mjs` plays it synthesized scales); the screen is in
 `tunerui.js`. Leaving the tuner ends a test still listening.
-At the top of the results is a **score out of 1000**, counted up, with its
-parts under it (`scaleScore`):
+**It takes only the room there is.** The tuner fills the window's height
+and no more (`fit` in `tunerui.js`, measured on entering, resizing, a change
+of theme or font, and whenever the tuner's own content changes height, such
+as a microphone message coming and going). Where the page would scroll, the
+card steps down:
+1. without its subtitle, and with less space above its rule;
+2. smaller;
+3. with no space above the rule and no box, the whole strip under the rule
+   being the button;
+4. only then the gauge gives up the rest, down to 100 px.
+With the microphone working, every phone size and window tried fits: a
+375x667 phone drops only the subtitle, a 1280x600 window goes to step 3.
+Microphone messages (the tuner's status and Try again) sit above the card.
+
+At the top of the results is a **score**, counted up, with its parts under
+it; its scale (out of 1000) isn't shown (`scaleScore`):
 - **In tune, up to 600:** the share of notes in tune.
 - **Closeness, up to 250:** how close every note was, so a near miss earns
   more than a wild one and a note in the centre more than one only just in
