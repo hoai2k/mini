@@ -14,18 +14,22 @@ import { DRONE_MIN, DRONE_MAX, VOICES, spelling } from './drone.js';
 import { noteName } from './tuning.js';
 import { clock } from './droneui.js';
 import { hasArt, showArt } from './art.js';
-import { PRESETS, CHIMES, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, newItem, loadTimer, saveTimer, totalSeconds, cues, TimerRun, pictureFor } from './timer.js';
+import { PRESETS, CHIMES, SPEAKERS, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, newItem, loadTimer, saveTimer, totalSeconds, cues, TimerRun, pictureFor, voiceLines, voiceUrl, chimeUrl } from './timer.js';
 
 const $ = (id) => document.getElementById(id);
 const TRASH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>';
-const CHIME_GAP = 1100; // ms from the chime to the next item's sound
+const CHIME_GAP = 1100; // ms from the chime to the next item's sound (no voice)
+const CHIME_TO_VOICE = 900; // ms from the chime to the voice
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 
 /**
  * @param {{ settings: object, audio: {
  *   metronome: (met: { bpm: number, meter: string }) => void, stopMetronome: () => void,
  *   drone: (drn: { midi: number, voice: string, fifth: boolean }) => void, stopDrone: () => void,
- *   chime: (id: string) => void, running: (on: boolean) => void },
+ *   chime: (id: string) => { done: Promise<void>, stop: () => void },
+ *   clips: (urls: string[]) => { done: Promise<void>, stop: () => void }, preload: (urls: string[]) => void,
+ *   running: (on: boolean) => void },
  *   chips: Function, canDrone: () => boolean, askDrone: () => void }} opts
  */
 export function setupTimer({ settings, audio, chips, canDrone, askDrone }) {
@@ -37,7 +41,8 @@ export function setupTimer({ settings, audio, chips, canDrone, askDrone }) {
   let undo = null; // { item, index } of the item just deleted
   let toastTimer = 0;
   const save = () => saveTimer(state);
-  let soundLater = 0; // the next item's sound, started once the chime has rung
+  let seq = 0; // the announcement in progress (a newer one, Pause or Stop ends it)
+  let saying = null; // the voice speaking, to stop
   const label = (it) => it.name.trim() || TEXT.timer.item.untitled;
 
   // ---- sound for the item that is running
@@ -288,6 +293,24 @@ export function setupTimer({ settings, audio, chips, canDrone, askDrone }) {
   chips($('timer-chime'), CHIMES.map((id) => ({ id, label: TEXT.timer.chimes[id] })),
     () => state.chime,
     (id) => { state.chime = id; save(); audio.chime(id); });
+  // Voice: on or off, and whose (each says hello as it is picked).
+  let hello = null;
+  const sayHello = () => {
+    hello?.stop();
+    hello = audio.clips([voiceUrl(state.voice, 'hello')]);
+  };
+  const voiceOn = $('timer-voice-on');
+  const showVoice = () => { voiceOn.checked = state.voiceOn; $('timer-voice-field').hidden = !state.voiceOn; };
+  voiceOn.addEventListener('change', () => {
+    state.voiceOn = voiceOn.checked;
+    save();
+    showVoice();
+    if (state.voiceOn) sayHello(); else { hello?.stop(); hush(); }
+  });
+  chips($('timer-voice'), SPEAKERS.map((id) => ({ id, label: TEXT.timer.voices[id] })),
+    () => state.voice,
+    (id) => { state.voice = id; save(); sayHello(); });
+  showVoice();
   const settingsSheet = $('timer-settings');
   $('timer-settings-btn').addEventListener('click', () => settingsSheet.showModal());
   settingsSheet.addEventListener('click', (e) => { if (e.target === settingsSheet) settingsSheet.close(); });
@@ -357,23 +380,48 @@ export function setupTimer({ settings, audio, chips, canDrone, askDrone }) {
   }
 
   /**
-   * An item ended: the chime, then (once it has mostly rung, so the clicks or
-   * the drone don't start over it) the next item's metronome and drone.
+   * Between items: the chime, then the voice (if on: what finished and what
+   * is next), then `then` (the next item's metronome and drone), so neither
+   * the clicks nor the drone start over the words. Pause, Stop or another
+   * announcement cuts it short.
    */
+  async function announce({ chime = false, lines = [], then } = {}) {
+    const my = ++seq;
+    saying?.stop();
+    const speak = state.voiceOn && lines.length;
+    let delay = 0;
+    if (chime && state.chime !== 'none') {
+      audio.chime(state.chime);
+      delay = speak ? CHIME_TO_VOICE : CHIME_GAP;
+    }
+    if (delay) await wait(delay);
+    if (my !== seq) return;
+    if (speak) {
+      saying = audio.clips(lines.map((l) => voiceUrl(state.voice, l)));
+      await saying.done;
+      saying = null;
+      if (my !== seq) return;
+      await wait(200);
+      if (my !== seq) return;
+    }
+    then?.();
+  }
+  function hush() { seq++; saying?.stop(); saying = null; }
+
+  /** An item ended (or was skipped): the next begins, or the routine is done. */
   function changes(list_) {
     const last = list_.at(-1);
     if (!last) return;
-    clearTimeout(soundLater);
     audio.stopMetronome();
     audio.stopDrone();
-    audio.chime(state.chime);
     if (last.type === 'changed') {
       cues.changed(last.done, last.next);
       const it = last.next;
-      soundLater = setTimeout(() => { if (isNow(it)) sound(it); }, state.chime === 'none' ? 0 : CHIME_GAP);
+      announce({ chime: true, lines: voiceLines.changed(last.done, it), then: () => { if (isNow(it)) sound(it); } });
     } else {
       cues.finished(last.done);
       stopSound();
+      announce({ chime: true, lines: voiceLines.finished(last.done) });
     }
     render();
   }
@@ -385,7 +433,7 @@ export function setupTimer({ settings, audio, chips, canDrone, askDrone }) {
   }
 
   function stopSound() {
-    clearTimeout(soundLater);
+    hush();
     audio.stopMetronome();
     audio.stopDrone();
     clearInterval(ticker);
@@ -396,7 +444,11 @@ export function setupTimer({ settings, audio, chips, canDrone, askDrone }) {
     if (!items.length) return;
     run = new TimerRun(items);
     cues.started(run.item);
-    sound(run.item);
+    // Everything it may say or ring, decoded ahead so nothing waits on the network.
+    if (state.voiceOn) audio.preload([...new Set(items.flatMap((it, i) => [...voiceLines.started(it), ...voiceLines.changed(it, items[i + 1] || it), ...voiceLines.finished(it)]))].map((l) => voiceUrl(state.voice, l)));
+    if (state.chime !== 'none') audio.preload([chimeUrl(state.chime)]);
+    const first = run.item;
+    announce({ lines: voiceLines.started(first), then: () => { if (isNow(first)) sound(first); } });
     clearInterval(ticker);
     ticker = setInterval(tick, 250);
     audio.running(true);

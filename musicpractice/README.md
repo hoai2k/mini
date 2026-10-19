@@ -414,10 +414,10 @@ note changes. Tests check sine tones from 31 Hz to 1.3 kHz to within a cent,
 and instrument-like tones (strong overtones, a weak fundamental, odd
 harmonics only) to within 1.5 cents and in the right octave.
 
-### Test Scale Intonation (in testing)
+### Test My Scale Intonation
 
-Shown only with `?scale` in the address: a **Test My Scale Intonation**
-card under the tuner, a feature of its own set apart from Play a note by a
+A **Test My Scale Intonation** card under the tuner (it was behind `?scale`
+while in testing; that parameter is gone), a feature of its own set apart from Play a note by a
 rule and space (an icon, a line saying what it does, an arrow). It opens a
 sheet that explains it in three steps (press record, play a scale, stop
 for 3 seconds) under a record button (the Playback Recorder's, so each
@@ -579,6 +579,21 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   the run. Timed by the clock, so a phone that slept catches up when it wakes.
   While it runs, only items still to come can be deleted; edits to the item
   running take effect at once (its tempo, its note, more minutes).
+- **A voice says what has finished and what is next**, between the chime
+  and the next item's sound, so the clicks or the drone never start over
+  the words. For example: "Scales are complete. Next, ghosting.", "Let's begin
+  with intonation practice." at Start, and "…That's the end of your
+  practice routine. Well done." at the end. Settings: **Voice** on (the
+  default) or off, and **Whose voice**: Lily, Matilda, George, Clara,
+  Autumn or Theo, each saying hello as it is picked. Every kind of item has
+  its own lines (done-, next- and first-<kind>), and a Custom item the
+  generic ones ("That practice item is complete.", "On to your next
+  practice item."), so lengths and typed names are never spoken. They are
+  `app/assets/audio/voice/<voice>/<line>.mp3`, 17 per voice, made with
+  ElevenLabs (`design/voice-samples.md` has the voices and settings).
+  **A new suggestion needs its lines in every voice**; `test/timer.test.mjs`
+  checks they are all there. Everything a routine may say is loaded when it
+  starts; Pause, Skip and Stop cut a line short.
 - **Between items, a chime** (settings: Kalimba, the default, Two-tone,
   Celesta or None; each plays as it is picked): it rings as an item ends and
   the next item's metronome or drone starts about a second later, so they

@@ -149,11 +149,9 @@ export function setupTuner({ settings, persist, chips }) {
     show();
   }
 
-  // ---- Test Scale Intonation (in testing: only with ?scale in the address).
-  // A sheet: how it works and a record button; pressed, it listens for the
-  // scale and follows it; three seconds of quiet and the results show there.
-  const SCALE_ON = new URLSearchParams(location.search).has('scale');
-  $('scale-test').hidden = !SCALE_ON;
+  // ---- Test My Scale Intonation. A sheet: how it works and a record button;
+  // pressed, it listens for the scale and follows it; three seconds of quiet
+  // and the results show there.
   const sheet = $('scale-sheet');
   const rec = $('scale-rec');
   let scale = null; // { listener, shownAt } while it listens

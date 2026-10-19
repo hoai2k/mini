@@ -19,7 +19,7 @@ import { initPro, isPro, onProChange, requirePro, openPaywall } from './pro.js';
 import { FREE_TAKES, FREE_THEME } from './pro-config.js';
 import { nativeAudio, NativeMetronome, NativeDrone, onNativeStopped } from './nativeaudio.js';
 import { setupTimer } from './timerui.js';
-import { playChime } from './timer.js';
+import { playChime, playClips, loadClip } from './timer.js';
 import { setupPager } from './pager.js';
 
 // In the iOS and Android apps the metronome and the drone play through native
@@ -1956,6 +1956,8 @@ let timerUI = null;
 let pager = null;
 let timerDrone = false; // the timer started the drone
 if (TIMER_ON) {
+  // Chimes and the voice play on the context the metronome plays through, when it does (one context, one output).
+  const clipCtx = () => (!useNative && metronome?.running ? metronome.ctx : audio());
   const timerAudio = {
     metronome(met) {
       const cfg = { ...settings, bpm: met.bpm, meter: met.meter, accentPattern: null, subdivision: 1 };
@@ -1983,7 +1985,9 @@ if (TIMER_ON) {
     },
     stopDrone() { if (timerDrone) { timerDrone = false; droneEngine().stop(); } },
     // On the context the metronome plays through, when it does (one context, one output).
-    chime(id) { playChime(!useNative && metronome?.running ? metronome.ctx : audio(), id); },
+    chime(id) { return playChime(clipCtx(), id); },
+    clips(urls) { return playClips(clipCtx(), urls); },
+    preload(urls) { const c = clipCtx(); for (const u of urls) loadClip(c, u); },
     running(on) {
       keepAwake(on);
       if (on && !recorder?.holdsMic) setSession('playback');

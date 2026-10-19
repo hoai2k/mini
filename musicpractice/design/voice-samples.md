@@ -1,8 +1,31 @@
 # Voice samples (spoken announcements for the Practice Routine)
 
-A first comparison of voices for the Practice Routine's spoken
-announcements. Nothing in the app uses them yet: the routine has a hook for
-them (`cues` in `app/src/timer.js`).
+The voices for the Practice Routine's spoken announcements, and how they
+were chosen.
+
+**In use** (`app/assets/audio/voice/<voice>/`, 17 lines each), in the order
+the settings list them:
+- **Lily:** calmA settings (multilingual v2, stability 0.85, style 0, no
+  speaker boost, speed 0.85).
+- **Matilda** and **George:** calmB (eleven_v3, "[softly, calmly]",
+  stability 0.5).
+- **Clara**, **Autumn** (Autumn Veil) and **Theo** (Theo Silk): as in
+  their second-round samples (multilingual v2, stability 0.6, style 0.1,
+  speed 0.92).
+
+The lines are made with the scratch script `lines.py`, then trimmed of
+silence and loudness matched (−18 LUFS) to mono 96 kbps. All the v3 lines
+came out about as long as Lily's, so no tag was spoken. The lines:
+- done-<kind>: "Intonation practice is complete.", "Scales are complete.",
+  "Clapping rhythms are complete.", "Ghosting is complete.", and for Custom
+  "That practice item is complete.";
+- next-<kind>: "Next, intonation practice." and so on, and for Custom "On
+  to your next practice item.";
+- first-<kind>: "Let's begin with intonation practice." and so on, and for
+  Custom "Let's begin.";
+- finished: "That's the end of your practice routine. Well done.";
+- hello: "Hello. I'll guide you through your practice routine."
+A new suggestion needs its three lines in every voice.
 
 **The plan:** one line per kind of practice item, generated whole (not
 stitched from fragments, which is what makes a voice sound choppy):
