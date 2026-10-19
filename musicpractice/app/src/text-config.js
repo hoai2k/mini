@@ -320,7 +320,11 @@ export const EN = {
       corrected: 'Corrected',
       asPlayedLabel: (note) => `Play your ${note} as you played it`,
       correctedLabel: (note) => `Play your ${note} corrected to be in tune`,
-      help: (tol) => `Within ${tol} cents counts as in tune here (the tuner's needle wants 5).`,
+      // Which part of a note was right, beside its verdict (scaletest.js judgeNote).
+      measures: { start: 'at the start', mid: 'on average', end: 'by the end' },
+      goodBy: (part) => `In tune ${part}`,
+      partly: (part) => `in tune ${part}`,
+      help: (level, tol, parts) => `${level}: within ${tol} cents ${parts} counts as in tune here (the tuner's needle wants 5).`,
       again: 'Test again',
       done: 'Done',
     },
@@ -348,6 +352,11 @@ export const EN = {
       sharps: 'Sharps (C♯)',
       flats: 'Flats (D♭)',
       transpose: 'Transposing instrument',
+      scaleLevel: 'Test Scale Difficulty',
+      scaleLevels: { beginner: 'Beginner', easy: 'Easy', medium: 'Medium', hard: 'Hard', advanced: 'Advanced', custom: 'Custom' },
+      scaleTolerance: (c) => `Threshold: ${c}¢`,
+      scaleAttack: 'Attack',
+      scaleAttacks: { mid: 'Average', start: 'Start', end: 'End' },
     },
     /** The instrument list. */
     tunings: {

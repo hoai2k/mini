@@ -397,6 +397,12 @@
             <div class="chips" id="flats-chips"></div>
           </fieldset>
           <label class="row"><span data-text="tuner.settings.transpose"></span><select class="select" id="transpose"></select></label>
+          <!-- Test My Scale Intonation: how strictly a note is judged (scaletest.js LEVELS), or Custom's own threshold and measure. -->
+          <label class="row toggle"><span data-text="tuner.settings.scaleLevel"></span><select class="select" id="scale-level"></select></label>
+          <div class="scale-custom" id="scale-custom" hidden>
+            <label class="row"><span id="scale-tol-label"></span><input type="range" class="slider" id="scale-tol" min="3" max="50" step="1"></label>
+            <label class="row toggle"><span data-text="tuner.settings.scaleAttack"></span><select class="select" id="scale-attack"></select></label>
+          </div>
           <div class="sheet-links">
             <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
             <button type="button" class="pill open-theme" data-text="common.themeButton"></button>

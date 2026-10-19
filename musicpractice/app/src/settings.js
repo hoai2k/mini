@@ -121,6 +121,9 @@ export const DEFAULTS = Object.freeze({
   a4: 440, // tuner reference pitch, 415-466 Hz
   flats: false, // tuner: spell notes with flats
   transpose: 'C', // tuner: written pitch for a transposing instrument
+  scaleLevel: 'hard', // Test My Scale Intonation's difficulty (scaletest.js LEVEL_IDS); Hard is how it always judged
+  scaleTolerance: 15, // Custom difficulty: cents either way that count as in tune
+  scaleAttack: 'mid', // Custom difficulty: which part of a note is judged: 'mid' (average), 'start' or 'end'
 });
 
 const DRONE_VOICES = ['cello', 'cello-soft', 'organ', 'organ-synth']; // a saved voice since archived falls back to the cello
@@ -249,6 +252,9 @@ export function sanitize(raw) {
     a4: clamp(Math.round(num(s.a4, DEFAULTS.a4)), 415, 466),
     flats: s.flats === true,
     transpose: oneOf(s.transpose, ['C', 'Bb', 'Eb', 'F'], DEFAULTS.transpose),
+    scaleLevel: oneOf(s.scaleLevel, ['beginner', 'easy', 'medium', 'hard', 'advanced', 'custom'], DEFAULTS.scaleLevel),
+    scaleTolerance: clamp(Math.round(num(s.scaleTolerance, DEFAULTS.scaleTolerance)), 3, 50),
+    scaleAttack: oneOf(s.scaleAttack, ['mid', 'start', 'end'], DEFAULTS.scaleAttack),
   };
   out.subdivision = out.subOn ? out.subKind : 1;
   droneTiming(out);
