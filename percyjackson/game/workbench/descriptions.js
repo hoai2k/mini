@@ -26,7 +26,7 @@ export const DESCRIPTIONS = {
   dummy: 'The straw training dummy in the camp hub and the test room: an unkillable target that wobbles, flashes and shows damage numbers so you can practise combos. A straw head with a painted red mouth on a stuffed body.',
 
   // ---- monsters
-  pup: 'A hellhound pup, a young monster dog from the Underworld. A small black dog with glowing red eyes and faint lava cracks. A fast, weak rusher that turns up in swarms from the early chapters, in the Camp Woods, and when an Empousa summons them.',
+  pup: 'A hellhound pup, a young monster dog from the Underworld: a puppy the way Mrs O’Leary is one, a head taller than Percy, half a grown hellhound. A big round head, a short muzzle, molten eyes, ears that flop at the tips, a thick fluffy soot-black coat with lava cracks, oversized paws and a stubby smouldering tail. A fast, weak rusher in swarms; an Empousa, Alecto and the alpha hellhound call them.',
   rat: 'A New York sewer rat from the prologue. Grey-brown fur, a pink nose, ears and tail, and eyes that are a little too red. A small, quick rusher that hangs around until it notices you; the Mist says “just rats”.',
   serpent: 'A great serpent out of the Mist: what a harmless-looking person may really be under True Sight. By design a long green snake banded in gold, rearing its hooded head like a cobra, with fangs and a flickering forked tongue; it slithers in S-curves and strikes low and fast. A poisonous melee fodder in the Mist chapters.',
   mortal: 'A real mortal in the Mist: an ordinary museum visitor who never fights. It always looks like a person and cannot be hurt. If you swing at one, it scolds you instead. Shown here as the tourist; in game it is drawn as one of the Mist’s mortal people.',
@@ -84,7 +84,7 @@ export const DESCRIPTIONS = {
 
   // ---- champions: Road West looks of the ordinary kinds
   'kind:hellhound': crowned('hellhound', 'A hellhound whose lava burns blue-cyan instead of red, with a blue outline and smoke from its head, and bigger than the ordinary kind.'),
-  'kind:pup': crowned('pup', 'A hellhound pup whose fire burns blue-cyan, with a blue outline glow and smoke, and bigger than a plain pup.'),
+  'kind:pup': crowned('pup', 'A hellhound pup whose fire burns blue-cyan, with a blue outline glow and smoke, and bigger than a plain pup: about 1.7 times Percy’s height, still well under a grown hellhound.'),
   'kind:skeleton': crowned('skeleton warrior', 'A bone-white skeleton in crimson armour with a red outline and red wisps.'),
   'kind:spartoi': crowned('spartoi', 'A sown skeleton soldier with crimson armour, a red outline and red wisps.'),
   'kind:spider': crowned('bronze spider', 'An obsidian-black spider burning with violet fire, with a purple outline and sparks, much bigger than the bronze kind.'),

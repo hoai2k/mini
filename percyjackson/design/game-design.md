@@ -277,7 +277,7 @@ and a tell before it attacks.
 
 | Tier | Role | Book 1 | Later books |
 | --- | --- | --- | --- |
-| **Minor** | Swarms; die in two or three hits | Sewer rats (the prologue), hellhound pups, mechanical spiders, harpies (at camp, harmless), mortal-disguised minions | Stymphalian birds, telekhines, myrmekes (giant ants), skeleton warriors' dogs |
+| **Minor** | Swarms; die in two or three hits | Sewer rats (the prologue), hellhound pups (a puppy the way Mrs O'Leary is one: a head taller than Percy, half a grown hellhound), mechanical spiders, harpies (at camp, harmless), mortal-disguised minions | Stymphalian birds, telekhines, myrmekes (giant ants), skeleton warriors' dogs |
 | **Elite** | A threat on their own; a tell and a counter | Hellhounds, Furies, dracaenae (snake-women with spears), Echidna's brood | Laistrygonian giants (dodgeballs of fire), skeleton warriors (regrow unless their bones are scattered), empousai (charm; True Sight breaks it), Cyclops thugs, earthborn |
 | **Champion** | A mini-boss in a room | Mrs. Dodds, the three Furies, Procrustes | Scylla's heads, Ladon, the Manticore, Geryon's cattle |
 | **Boss** | A chapter boss: phases, an arena, a myth riddle | The Minotaur, Medusa, the Chimera, Cerberus, Ares | Polyphemus, the Nemean Lion (hit only in the mouth), Talos (the plug on his heel), Kampê, Antaeus (lift him off the ground), Typhon, Kronos |

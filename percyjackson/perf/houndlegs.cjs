@@ -1,6 +1,6 @@
 // Hellhound legs stay on: every full-size hellhound (the elite, the alpha
 // boss, Shadowfang and the Road West's hellhound champion, all monsters.js
-// bigHound) is played through idle, walk, run, its attacks, a hit, a
+// bigHound; and the pup and its champion, bigPup, built the same way) is played through idle, walk, run, its attacks, a hit, a
 // stagger and a dodge at 30 frames a second, and on every frame each leg
 // must still be rooted in the body: its root (the hip or shoulder joint)
 // inside the haunch or chest block it hangs from (rig.extras.trunk), at
@@ -34,6 +34,8 @@ const MODELS = {
   hellhound_alpha: () => BOSS_DEFS.hellhound_alpha.build(),
   woods_shadowfang: () => buildShowcase('woods_shadowfang'),
   'kind:hellhound': () => buildShowcase('kind:hellhound'),
+  pup: () => buildMonsterModel('pup'),
+  'kind:pup': () => buildShowcase('kind:pup'),
 };
 const atk = (style, len = 1) => (f) => ({ speed: 0, action: { type: 'attack', t: (f / 30 / len) % 1, style, windup: 0.3, strike: 0.5 } });
 const POSES = {

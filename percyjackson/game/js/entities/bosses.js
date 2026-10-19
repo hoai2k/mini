@@ -43,7 +43,7 @@ import { BOSS_MODELS } from './bossmodels.js';
 import { BOOK1_PATTERNS, BOOK1_HOOKS, FURY_REACH } from './bosses-book1.js';
 import { releaseAllBy } from './holds.js';
 import { rigOffsets } from './parts.js';
-import { moveEntity } from '../physics.js';
+import { moveEntity, boxHits } from '../physics.js';
 import { damp, dampAngle, angleDiff } from '../util.js';
 import { toast } from '../ui/ui.js';
 import { t as txt } from '../text_config.js';
@@ -257,12 +257,30 @@ export class Boss {
   fwd() { return new THREE.Vector3(Math.sin(this.facing), 0, Math.cos(this.facing)); }
   mouth() { return this.rig.mouthWorld ? this.rig.mouthWorld(new THREE.Vector3()) : this.pos.clone().setY(this.pos.y + this.height * 0.8); }
   // spawn helpers for summons: a ring of monsters around a point
+  // A spot on the ring (radius r round center, near angle a0) where a monster
+  // of this kind fits: its whole footprint and height clear of walls and with
+  // ground under it. A pup is now wider than a hero (size audit: the owner's
+  // ruling), so the centre alone being clear no longer does: it tries turns
+  // either side of a0 and a slightly smaller ring before giving up (null).
+  summonSpot(center, r, a0, kind) {
+    const w = this.game.world, d = MONSTERS[kind] ?? {}, rad = d.radius ?? 0.5, h = Math.min(d.height ?? 2, 3);
+    for (let k = 0; k < 9; k++) {
+      const a = a0 + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 0.4;
+      for (const rr of [r, r * 0.85]) {
+        const s = center.clone().add(new THREE.Vector3(Math.cos(a) * rr, 0, Math.sin(a) * rr));
+        const gy = w.groundBelow(s.x, s.z, s.y + 4); if (!isFinite(gy)) continue;
+        s.y = gy;
+        if (!boxHits(w, s.x, s.y, s.z, rad, h)) return s;
+      }
+    }
+    return null;
+  }
   summon(kinds, center = this.pos, r = 3.5, color = this.B.color) {
     const g = this.game, out = [];
     kinds.forEach((kind, i) => {
       const a = i / kinds.length * Math.PI * 2 + Math.random() * 0.6;
-      const s = center.clone().add(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r)); s.y = this.ground(s);
-      if (g.world.solidAt?.(s.x, s.y + 0.5, s.z)) return;
+      const s = this.summonSpot(center, r, a, kind);
+      if (!s) return;
       const e = g.spawnEnemy(kind, s, { summoned: true, level: g.mission?.def?.level ?? g.mission?.def?.difficulty ?? this.level }); if (e) { g.fx.summonCircle(s, color); e.aggro = true; e.bossSummon = this; out.push(e); }
     });
     return out;
@@ -319,7 +337,7 @@ export class Boss {
     if (this.phase >= 1) kinds.push('harpy');
     if (this.phase >= 2) kinds.push('pup', 'harpy');
     for (const kind of kinds) {
-      const a = Math.random() * Math.PI * 2; const s = this.pos.clone().add(new THREE.Vector3(Math.cos(a) * 3.5, 0, Math.sin(a) * 3.5)); s.y = this.ground(s);
+      const s = this.summonSpot(this.pos, 3.5, Math.random() * Math.PI * 2, kind); if (!s) continue;
       const e = g.spawnEnemy(kind, s, { summoned: true, level: g.mission?.def?.level ?? g.mission?.def?.difficulty ?? 1 }); if (e) g.fx.summonCircle(s, this.B.color);
     }
     g.audio?.energy('summon');

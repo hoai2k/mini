@@ -331,13 +331,14 @@ export class Environment {
     geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
     const sky = new THREE.Mesh(geo, new THREE.MeshBasicNodeMaterial({ vertexColors: true, side: THREE.BackSide }));
     env.add(sky);
-    const pm = new THREE.PMREMGenerator(renderer);
+    // (one generator for the session: disposing it after each probe released
+    // its blur shaders, so every level load compiled them again)
+    const pm = this.pmrem ??= new THREE.PMREMGenerator(renderer);
     const rt = pm.fromScene(env, 0.02);
     this.probeRT?.dispose();   // (the last level's probe: it used to stay for good, one a load)
     this.probeRT = rt;
     this.scene.environment = rt.texture;
     this.scene.environmentIntensity = 0.35;
-    pm.dispose();
     geo.dispose(); sky.material.dispose(); sky.dispatchEvent({ type: 'dispose' });
   }
 }

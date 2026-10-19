@@ -182,7 +182,7 @@ class Game {
     progress(0.75, t('game.loading.shaders'));
     await nextFrame();
     this.gr.setScene(this.scene, this.rig.camera);
-    try { await this.gr.renderer.compileAsync(this.scene, this.rig.camera); } catch (e) { console.warn(e); }
+    try { await this.compileScene(); } catch (e) { console.warn(e); }
     progress(0.92, t('game.loading.scrolls'));
     await art;
     prepareLogo();
@@ -395,6 +395,7 @@ class Game {
     // monsters that died in this level, and the shader warm-up's models (kept
     // till now so a kind's pipeline outlives its last monster)
     for (const o of this.fallen ?? []) this.releaseLater(o); this.fallen = [];
+    this.warmEnd?.(); this.warmEnd = null;   // (a shadow warm-up still in the scene: warmShadows)
     this.releaseLater(this.warmGroup); this.warmGroup = null;
     this.enemies = []; this.allies = [];
     this.projectiles.clear(); this.hazards.clear(); this.pickups.clear(); this.loot?.clear();
@@ -452,6 +453,7 @@ class Game {
     if (this.area === 'road') { this.loadRoad(opts); return; }
     const L = buildOpenWorld();   // (Camp Half-Blood in the middle of the open world: world/openworld.js)
     this.loadWorld(L, BIOMES.camp);
+    this.warmupShaders();   // (the open world's roaming monsters: their shaders and shadows compiled now, not at the first spawn or hit)
     if (this.state === 'playing') this.audio.overrideMusic = null; this.audio.setMusic('hub');
     this.placePlayers(L.spawn);
     const dummy = new TrainingDummy(this, L.dummy);
@@ -506,6 +508,7 @@ class Game {
   loadRoad(opts = {}) {
     const L = buildRoadTrip();
     this.loadWorld(L, BIOMES.rt_turnpike);
+    this.warmupShaders();
     if (this.state === 'playing') this.audio.overrideMusic = null; this.audio.setMusic('hub');
     const d = this.save.data;
     let at = L.spawn;
@@ -551,14 +554,68 @@ class Game {
   }
   // Compile every monster's (and this chapter's boss's) materials while the
   // level loads, so the first appearance of a new kind doesn't hitch mid-fight.
+  // compileAsync compiles only what the camera can see, so the models (which
+  // used to sit 500 m under the level, culled, and compiled nothing) are
+  // compiled on their own with the scene's lights, unculled and never drawn,
+  // then again as a hit flashes them (FLASH_MATERIAL); then their shadows
+  // (warmShadows). (perf/RENDERING.md)
   warmupShaders(boss) {
     let grp;
     try { grp = warmupGroup(undefined, boss ? [boss] : []); } catch (e) { console.warn('warm-up skipped', e); return; }
-    this.scene.add(grp);
-    this.warmGroup = grp;   // (released with the level: see clearLevel)
-    const done = () => this.scene.remove(grp);   // geometries and materials are shared with live monsters: keep them
-    const c = this.gr.renderer?.compileAsync?.(this.scene, this.rig.camera);
-    if (c?.then) c.catch(() => { /* fine: compiled on first use instead */ }).finally(done); else done();
+    this.warmGroup = grp;   // (released with the level, see clearLevel: geometries and materials are shared with live monsters)
+    const r = this.gr.renderer;
+    if (!r?.compileAsync) return;
+    const meshes = [];
+    grp.traverse((o) => { if (o.isMesh) { o.frustumCulled = false; if (o.userData.baseMat) meshes.push(o); } });
+    const cam = this.rig.camera, scene = this.scene;
+    const flash = (on) => { for (const m of meshes) m.material = on ? FLASH_MATERIAL : m.userData.baseMat; };
+    // (compileAsync takes each object's material when it is called, so the swap back can follow at once)
+    this.compileScene()
+      .then(() => r.compileAsync(grp, cam, scene))
+      .then(() => { flash(true); const c = r.compileAsync(grp, cam, scene); flash(false); return c; })
+      .catch(() => { flash(false); /* fine: compiled on first use instead */ })
+      .finally(() => { if (this.warmGroup === grp) this.warmShadows(grp, meshes); });
+  }
+  // The scene, with the pooled effects that wait hidden at its top level
+  // (telegraph markers, rings, slashes: compileAsync skips what is hidden, so
+  // the first ring or marker of a session compiled mid-fight) shown for the call.
+  compileScene() {
+    const r = this.gr.renderer, hidden = [];
+    for (const o of this.scene.children) if (!o.visible && (o.isMesh || o.isPoints || o.isSprite)) { o.visible = true; hidden.push(o); }
+    let c;
+    try { c = r.compileAsync(this.scene, this.rig.camera); } finally { for (const o of hidden) o.visible = false; }
+    return Promise.resolve(c);
+  }
+  // The sun's shadow pass has no compileAsync, and it draws every mesh with
+  // one override material per light, so a hit flash (FLASH_MATERIAL) switched
+  // a monster's shadow to another program; when the last flash of a fight
+  // ended, that program was released, and compiled again on the next hit (and
+  // the unflashed one, when the only monster of its kind was flashed): a
+  // hitch on the first hit after every lull. Two frames of the warm-up models,
+  // and a flashed twin of each mesh, in the shadow map only (layer 1: the
+  // sun's shadow camera draws it, the view camera doesn't), under the floor at
+  // the focus, compile both, and their shadow render objects keep holding
+  // them until the level ends.
+  warmShadows(grp, meshes) {
+    const sun = this.lights?.sun;
+    if (!this.gr.preset.shadows || !sun?.castShadow) return;
+    for (const m of meshes) {
+      if (!m.castShadow) continue;
+      const f = new THREE.Mesh(m.geometry, FLASH_MATERIAL); f.castShadow = true;
+      f.position.copy(m.position); f.quaternion.copy(m.quaternion); f.scale.copy(m.scale); m.parent.add(f);
+    }
+    grp.traverse((o) => { o.layers.set(1); o.frustumCulled = false; });
+    const L = sun.shadow.camera.layers;
+    L.enable(1); this.scene.add(grp);
+    let n = 0;
+    const end = () => { grp.removeFromParent(); L.disable(1); this.warmEnd = null; };
+    this.warmEnd = end;
+    this.addUpdater(() => {
+      if (this.warmGroup !== grp || n++ >= 2) { end(); return false; }
+      grp.position.copy(this.rig.focus); grp.position.y -= 8;
+      grp.updateMatrixWorld(true);
+      return true;
+    });
   }
   // carded: its story cards (with the chapter's title) were just shown, so the level names the place instead
   startMission(def, { carded = false } = {}) {

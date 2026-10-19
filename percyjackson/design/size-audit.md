@@ -469,6 +469,57 @@ than their backs.
 - `perf/smoke.cjs`: 0 page errors.
 - `perf/bodysize.cjs`: 103 models, 0 page errors.
 
+### Round 5: the hellhound pup (the owner's ruling)
+
+The owner: "I think the standard 'Hellhound Puppy' is Mrs O'Leary, so going
+smaller than a tank is OK, but not smaller than a person. It should in fact be
+larger than a person." So a pup is a puppy the way Mrs O'Leary is one (the
+books' "petite puppy" beside Cerberus, and "bigger than a tank" beside a
+person), only younger and smaller: a head taller than Percy, about half the
+elite hellhound.
+
+- **Model:** re-sculpted, not scaled (`monsters.js` `PUP` and `bigPup`).
+  It is built like the full hellhound at the heroes' voxel size (rig scale
+  1.18), so the bigger body is made of more blocks, not bigger ones. It has a
+  puppy's proportions: a round barrel of a body, short sturdy legs on
+  oversized four-toed paws with amber claws and embers between the toes, a big
+  round head with full cheeks and a short muzzle, big molten eyes under a soft
+  scowl, ears that fold over at the tips, and a stubby curled tail with a
+  smouldering tip. The coat is thick and fluffy: soot-black clumps, a fluffy
+  bib and a soft ember-tipped ridge of hackles. The magma cracks have red rims
+  (as on the hellhound). The mouth is dark, with pink gums only along the jaws
+  and the nose flush with the muzzle. `vox-enemies` already draws the pup at
+  about Percy's height, so the sheet still holds.
+- **Size:** body 0.83 → 2.64 (0.38 → 1.21× Percy), 2.8 long; triangles
+  3.3k → 8.7k. The Road West champion (`kind:pup`, look.scale 1.4, unchanged)
+  is 3.73 (1.71×). The elite hellhound is 4.93 (2.27×).
+- **Stats:** radius 0.45 → 0.8, height 1.1 → 2.7. Melee range 1.5 → 2, so
+  the bite still reaches a hero past its own muzzle and its wider body (the
+  separation keeps it 1.2 from a hero's centre). knockResist 0 → 0.2: a little
+  heavier to knock about, still far under the elite's 0.7. The bark is a
+  little deeper (pitch 1.5 → 1.2). hp, speed, damage, wind-up and cooldown
+  are unchanged.
+- **Fit:** a 1.6 footprint and a 2.7 height go through every doorway: room
+  doors 5 × 4, the camp's 3 × 3, the museum's 4 high, the bus's 2 × 3, and the
+  corridors (5 wide, 5 high). Packs in a chapter room now start a body-width
+  apart (`encounters.js` `place`: the gap between members grows with their
+  radius, 1.1 to at most 2), and separation and `unoverlap` keep a pack of
+  six from jamming round a hero.
+- **Summons:** the empousa calls hers 1.8 from her centre (her 0.5 and the
+  pup's 0.8 leave a gap). Alecto (3.5) and the alpha (4) call theirs on a
+  ring well clear of their own bodies. A boss's summon now checks the pup's
+  whole footprint and height against the walls, and tries other turns of the
+  ring (`bosses.js` `summonSpot`), instead of testing only the centre.
+
+**Checks after round 5:**
+- `node --test test/*.test.mjs`: 195 of 195 pass.
+- `perf/weapons.cjs`: 23 weapons, 0 failing.
+- `perf/houndlegs.cjs`: all legs stay attached. The pup and `kind:pup` are now
+  checked too.
+- `perf/animlint.cjs --all`: 103 models, 0 problems.
+- `perf/smoke.cjs`: 0 page errors.
+- `perf/bodysize.cjs`: 103 models, 0 page errors.
+
 ## Cerberus: the recommended size
 
 - **The books:** *The Lightning Thief* ch. 18† says "twice the size of a woolly
@@ -563,7 +614,7 @@ outside 0.82–1.19× except Tyson and Chiron, a centaur.
 
 | id | name | rendered height (× Percy) | body height (× Percy) | longest side | stat height / radius | expected (× Percy) | source | verdict | scale / action |
 |---|---|---|---|---|---|---|---|---|---|
-| pup | Hellhound Pup | 0.80 (0.37×) | 0.83 (0.38×) | 1.2 | 1.10 / 0.45 | — | game invention (hellhound pup) | OK | hellhound family: other agent |
+| pup | Hellhound Pup | 0.80 → 2.66 (0.37 → 1.22×) | 2.64 (1.21×) | 2.8 | 1.10 → 2.70 / 0.45 → 0.80 | over 1.0 (the owner) | game invention (hellhound pup); the owner's ruling, round 5: "the standard 'Hellhound Puppy' is Mrs O'Leary … larger than a person" | **re-sculpted** (round 5): a head taller than Percy, about half the elite hellhound | rebuilt at hero voxel size (bigPup), not scaled; 8.7k triangles |
 | rat | Sewer Rat | 0.62 (0.28×) | 0.64 (0.29×) | 1.2 | 0.85 / 0.42 | ~0.3 | a sewer rat (game) | OK | — |
 | serpent | Mist Serpent | 0.57 → 1.31 (0.26 → 0.60×) | 1.30 (0.60×) | 3.6 | 1.30 / 0.55 | — | game invention (Mist Serpent) | n/a | being rebuilt by another agent |
 | mortal | Mortal | 2.21 → 2.23 (1.01 → 1.02×) | 2.21 (1.02×) | 1.2 | 1.90 / 0.38 | 1.0 | a person | OK | — |
@@ -625,7 +676,7 @@ outside 0.82–1.19× except Tyson and Chiron, a centaur.
 | oth_gorgos | Gorgos the Cyclops Chief | 4.85 → 4.84 (2.21×) | 4.83 (2.22×) | 4.1 | 4.70 / 1.34 | — | game champion: kind × look.scale | OK | — |
 | asphodel_pale_king | The Pale King | 2.76 → 3.19 (1.26 → 1.46×) | 2.99 (1.37×) | 1.9 | 2.90 / 0.65 | — | game champion: kind × look.scale | OK | — |
 | kind:hellhound | Hellhound (Road West champion) | 6.36 → 6.19 (2.90 → 2.83×) | 6.11 (2.81×) | 8.7 | 6.25 / 2.00 | — | game champion: kind × look.scale | OK | — |
-| kind:pup | Hellhound Pup (Road West champion) | 1.16 → 1.17 (0.53×) | 1.20 (0.55×) | 1.7 | 1.54 / 0.63 | — | game champion: kind × look.scale | OK | — |
+| kind:pup | Hellhound Pup (Road West champion) | 1.17 → 3.76 (0.53 → 1.73×) | 3.73 (1.71×) | 3.9 | 3.78 / 1.12 | — | game champion: kind × look.scale (1.4, unchanged) | OK: bigger than the pup, under the elite hellhound (2.27×) | follows the pup (round 5) |
 | kind:skeleton | Skeleton Warrior (Road West champion) | 2.52 → 2.89 (1.15 → 1.32×) | 2.90 (1.33×) | 1.8 | 2.80 / 0.63 | — | game champion: kind × look.scale | OK | — |
 | kind:spartoi | Spartoi (Road West champion) | 2.70 (1.23×) | 2.68 (1.23×) | 1.6 | 2.80 / 0.63 | — | game champion: kind × look.scale | OK | — |
 | kind:spider | Bronze Spider (Road West champion) | 1.48 → 1.47 (0.68 → 0.67×) | 1.01 (0.47×) | 2.7 | 1.36 / 0.57 | — | game champion: kind × look.scale | OK | — |
