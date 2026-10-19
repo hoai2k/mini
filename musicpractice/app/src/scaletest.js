@@ -100,6 +100,32 @@ export function segmentNotes(frames, { sampleRate, a4 = 440, gate = 0 }) {
 }
 
 /**
+ * The samples from `from` to `to` (absolute sample positions) out of `chunks`
+ * ({ at, data }, in order), faded in and out over `fade` samples so a note
+ * cut from the middle of a phrase plays without clicks.
+ */
+export function sliceAudio(chunks, from, to, fade = 0) {
+  from = Math.max(0, Math.floor(from));
+  to = Math.max(from, Math.floor(to));
+  const out = new Float32Array(to - from);
+  for (const c of chunks) {
+    const a = Math.max(from, c.at);
+    const b = Math.min(to, c.at + c.data.length);
+    if (b > a) out.set(c.data.subarray(a - c.at, b - c.at), a - from);
+  }
+  const f = Math.min(fade, out.length >> 1);
+  for (let i = 0; i < f; i++) {
+    const g = i / f;
+    out[i] *= g;
+    out[out.length - 1 - i] *= g;
+  }
+  return out;
+}
+
+/** The sample rate to play a note at so it sounds `cents` lower (or higher, negative): in tune when `cents` is how far off it was. */
+export const correctedRate = (sampleRate, cents) => Math.round(sampleRate * 2 ** (-cents / 1200));
+
+/**
  * Listens to the mic, a block at a time: 'waiting' for the scale to begin,
  * 'listening' while it is played, 'done' after three seconds of quiet (or
  * `maxSec`). `push` returns 'start' or 'done' when the state changes.
@@ -116,9 +142,27 @@ export class ScaleListener {
     this.recent = []; // the last few frames, so the first note's start isn't lost
     this.frames = []; // frames since the scale began
     this.result = null;
+    // The sound itself, kept so each note can be played back as it was played
+    // (and pitch-corrected): blocks with their place in the stream, the last
+    // second or so of them while waiting, all of them while listening.
+    this.heard = 0;
+    this.audio = [];
+  }
+
+  /** A note's own sound (the samples it spans), faded in and out. */
+  clip(note) {
+    return sliceAudio(this.audio, note.start * this.sampleRate, note.end * this.sampleRate, Math.round(this.sampleRate * 0.015));
   }
 
   push(block) {
+    if (this.state !== 'done') {
+      this.audio.push({ at: this.heard, data: Float32Array.from(block) });
+      if (this.state === 'waiting') {
+        const keep = this.heard - this.sampleRate * 1.5;
+        while (this.audio.length > 1 && this.audio[0].at + this.audio[0].data.length < keep) this.audio.shift();
+      }
+    }
+    this.heard += block.length;
     let event = null;
     let i = 0;
     while (i < block.length && this.state !== 'done') {

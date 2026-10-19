@@ -103,3 +103,24 @@ test('scored from what was heard: a clean scale near 1000, a wayward one lower',
     assert.ok(b.total < 600 && b.total > 250, `off ${b.total}`);
   });
 });
+
+test('each note can be played back as played, and corrected to the note it was meant to be', async () => {
+  const { detectPitch } = await import('../src/tuning.js');
+  const { correctedRate } = await import('../src/scaletest.js');
+  const played = [[60, 3], [62, -6], [64, 25], [65, 0], [67, 8], [69, -30], [71, -4], [72, 5]];
+  const { l } = listen(scale(played));
+  const cents = (hz, midi) => (69 + 12 * Math.log2(hz / 440) - midi) * 100;
+  for (const i of [2, 5]) {
+    const n = l.result[i];
+    const clip = l.clip(n);
+    assert.ok(clip.length > 0.3 * SR, `note ${i} clip ${clip.length}`);
+    assert.ok(Math.abs(clip[0]) < 1e-9); // faded in
+    const mid = clip.subarray(clip.length / 2 - 2048, clip.length / 2 + 2048);
+    const asPlayed = detectPitch(mid, SR);
+    assert.ok(Math.abs(cents(asPlayed.hz, n.midi) - played[i][1]) < 4, `as played ${cents(asPlayed.hz, n.midi)}`);
+    const fixed = detectPitch(mid, correctedRate(SR, n.cents));
+    assert.ok(Math.abs(cents(fixed.hz, n.midi)) < 2, `corrected ${cents(fixed.hz, n.midi)}`);
+  }
+  // Only the last second or so is kept while waiting for the scale to begin.
+  assert.ok(l.audio[0].at >= 0 && l.audio[0].at < 0.6 * SR, `kept from ${l.audio[0].at}`);
+});
