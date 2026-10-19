@@ -414,6 +414,23 @@ note changes. Tests check sine tones from 31 Hz to 1.3 kHz to within a cent,
 and instrument-like tones (strong overtones, a weak fundamental, odd
 harmonics only) to within 1.5 cents and in the right octave.
 
+### Test Scale Intonation (in testing)
+
+Shown only with `?scale` in the address: a **Test Scale Intonation** button
+under the tuner. Pressed, it listens for a scale to begin (the Playback
+Recorder's own start detection, a steady note), follows it note by note
+(the count shows as it goes), and takes three seconds of quiet as the end.
+Then a sheet lists every note played, each with a tick for in tune or how
+many cents flat or sharp, and how many were in tune. It is more lenient
+than the tuner: within 15 cents counts as in tune (`SCALE_TOLERANCE`), where
+the needle wants 5. A note is a run of clear frames on one semitone, at
+least 0.12 s long, with a stray frame or two let through; its pitch is the
+median of its settled middle, so the attack and the slide into the next
+note don't count against it. Names follow the tuner's note names and
+transposition, and its reference pitch. `app/src/scaletest.js` (pure,
+`test/scaletest.test.mjs` plays it synthesized scales); the screen is in
+`tunerui.js`. Leaving the tuner ends a test still listening.
+
 ## Drone
 
 A sustained tone to play along with: tuning intervals against it, long

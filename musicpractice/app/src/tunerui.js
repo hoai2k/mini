@@ -6,6 +6,7 @@
 import { TEXT, setRich } from './text.js';
 import { detectPitch, describe, nearestString, noteName, midiToHz, TUNINGS, TRANSPOSE, A4_MIN, A4_MAX, PitchSmoother } from './tuning.js';
 import { playSamples } from './player.js';
+import { ScaleListener, judge, SCALE_TOLERANCE } from './scaletest.js';
 
 const WINDOW = 4096; // samples analysed at a time (enough for a low B on a 5-string bass)
 const HOLD_MS = 1500; // the last note stays up this long after the sound stops
@@ -148,8 +149,65 @@ export function setupTuner({ settings, persist, chips }) {
     show();
   }
 
+  // ---- Test Scale Intonation (in testing: only with ?scale in the address)
+  const SCALE_ON = new URLSearchParams(location.search).has('scale');
+  $('scale-test').hidden = !SCALE_ON;
+  let scale = null; // { listener, shownAt } while a test listens
+  function scaleStatus() {
+    const S = TEXT.tuner.scale;
+    const l = scale?.listener;
+    $('scale-status').textContent = !l || l.state === 'waiting' ? S.waiting : S.listening(l.notes().length);
+  }
+  function startScale() {
+    scale = { listener: null, shownAt: 0 };
+    $('scale-start').hidden = true;
+    $('scale-live').hidden = false;
+    scaleStatus();
+  }
+  function stopScale() {
+    scale = null;
+    $('scale-start').hidden = false;
+    $('scale-live').hidden = true;
+  }
+  function showScaleResults(notes) {
+    const S = TEXT.tuner.scale;
+    const good = notes.filter((n) => judge(n.cents) === 'good').length;
+    $('scale-summary').textContent = notes.length ? S.summary(good, notes.length) : S.none;
+    $('scale-notes').replaceChildren(...notes.map((n) => {
+      const v = judge(n.cents);
+      const c = Math.round(Math.abs(n.cents));
+      const { name, octave } = noteName(n.midi, { flats: settings.flats, transpose: settings.transpose });
+      const li = document.createElement('li');
+      li.className = `scale-note ${v}`;
+      li.innerHTML = '<span class="sn-note"><span class="sn-name"></span><span class="sn-oct"></span></span><span class="sn-mark" aria-hidden="true"></span><span class="sn-verdict"></span>';
+      li.querySelector('.sn-name').textContent = name;
+      li.querySelector('.sn-oct').textContent = octave;
+      li.querySelector('.sn-mark').textContent = v === 'good' ? '✓' : v === 'flat' ? '↓' : '↑';
+      li.querySelector('.sn-verdict').textContent = v === 'good' ? S.good : v === 'flat' ? S.flat(c) : S.sharp(c);
+      return li;
+    }));
+    $('scale-help').textContent = S.help(SCALE_TOLERANCE);
+    $('scale-results').showModal();
+  }
+  $('scale-start').addEventListener('click', startScale);
+  $('scale-cancel').addEventListener('click', stopScale);
+  $('scale-again').addEventListener('click', () => { $('scale-results').close(); startScale(); });
+  $('scale-results').addEventListener('click', (e) => { if (e.target === $('scale-results')) $('scale-results').close(); });
+
   /** Mic samples (blocks of any size) while the recorder is in its 'tuning' state. */
   function receive(data, sampleRate) {
+    if (scale) {
+      scale.listener ||= new ScaleListener(sampleRate, { a4: settings.a4 });
+      const event = scale.listener.push(data);
+      if (event === 'done') {
+        const notes = scale.listener.result;
+        stopScale();
+        showScaleResults(notes);
+      } else if (event || performance.now() - scale.shownAt > 400) {
+        scale.shownAt = performance.now();
+        scaleStatus();
+      }
+    }
     if (data.length >= WINDOW) {
       buf.set(data.subarray(data.length - WINDOW));
     } else {
@@ -263,6 +321,8 @@ export function setupTuner({ settings, persist, chips }) {
       render();
     },
     receive,
+    /** Leaving the tuner ends a scale test that is listening. */
+    stopScale,
     animate,
     /** Leaving the screen or the mic closing: stop any tone and clear the reading. */
     stop() { stopTone(); reset(); },
