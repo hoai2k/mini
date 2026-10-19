@@ -552,6 +552,15 @@
         </form>
       </dialog>
 
+      <!-- A routine's tools (+ Tools on its card): each on or off for that routine. -->
+      <dialog id="timer-tools-sheet" class="sheet" aria-labelledby="timer-tools-title">
+        <form method="dialog">
+          <header class="sheet-head"><h3 id="timer-tools-title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <label class="row toggle"><span data-text="timer.item.metronome"></span><input type="checkbox" role="switch" id="timer-tool-metronome"></label>
+          <label class="row toggle"><span data-text="timer.item.drone"></span><input type="checkbox" role="switch" id="timer-tool-drone"></label>
+        </form>
+      </dialog>
+
       <!-- + : the suggestions, or Custom… -->
       <dialog id="timer-add-sheet" class="sheet" aria-labelledby="timer-add-title">
         <form method="dialog">
