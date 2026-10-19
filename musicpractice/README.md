@@ -657,11 +657,15 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   never change (the click's sound, accent and volume follow the Metronome's,
   the reference pitch the Drone's). A new item takes the app's current tempo,
   note and instrument as a start. So Scales can climb in tempo item by item.
-- A first visit starts with **Intonation practice** (3 min, drone on) and
-  **Scales** (5 min, metronome on). **+ Add** offers those, **Clapping
-  rhythms**, **Ghosting**, **Metronome**, **Arpeggios**, **Sight reading**
-  and **Improvisation**, and **Custom…** (a blank item, its name ready to
-  type), each listed by its name alone. An item added this way
+- A first visit starts with **Intonation** (3 min, drone on) and **Scales**
+  (5 min, metronome on). **+ Add** opens **Add a Routine**: Intonation,
+  Scales, **Arpeggios**, **Metronome**, **Sight Reading**,
+  **Improvisation**, **Clapping Rhythms**, **Ghosting** and **Custom…** (a
+  blank item, its name ready to type), each by its name and a small icon:
+  the picture the item shows while it runs (`pictureFor`), which is also on
+  each item's card beside its number, so a glance tells them apart (a Custom
+  item's follows its drone or metronome). Items saved under a suggestion's
+  earlier name ("Intonation practice") still know which it was. An item added this way
   starts with its Metronome and Drone off (the first visit's two are the
   only ones that come with theirs on; `newItem`'s `tools`), except a
   Metronome item, whose metronome is what it is (`own`), and at the

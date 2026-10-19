@@ -69,6 +69,7 @@ export function setupTimer({ settings, audio, canDrone, askDrone }) {
     li.innerHTML = `
       <div class="titem-head">
         <span class="titem-num" aria-hidden="true">${i + 1}</span>
+        <span class="titem-icon" aria-hidden="true"></span>
         <input class="titem-name" type="text" maxlength="60" enterkeyhint="done" autocomplete="off">
         <button type="button" class="icon-btn titem-open">${CHEVRON}</button>
         <button type="button" class="icon-btn titem-del">${TRASH}</button>
@@ -225,9 +226,30 @@ export function setupTimer({ settings, audio, canDrone, askDrone }) {
     }
   }
 
+  /*
+   * Each card's icon, and each suggestion's in the + menu: the picture it
+   * shows while it runs (pictureFor), small, so a glance tells them apart.
+   * Again whenever a theme's art arrives, since which pictures there are is
+   * the theme's.
+   */
+  const presetItem = (p) => ({ kind: p?.id ?? null, metronome: !!p?.metronome, drone: !!p?.drone, drn: { voice: settings.droneVoice || 'cello' } });
+  function icons() {
+    for (const li of list.children) {
+      const it = items.find((x) => x.id === li.dataset.id);
+      const el = li.querySelector('.titem-icon');
+      if (it && el) showArt(el, pictureFor(it, hasArt));
+    }
+    for (const b of document.querySelectorAll('.timer-preset')) {
+      const p = PRESETS.find((x) => x.id === b.dataset.preset);
+      showArt(b.querySelector('.timer-preset-icon'), p ? pictureFor(presetItem(p), hasArt) : pictureFor(presetItem(null), hasArt));
+    }
+  }
+  document.addEventListener('art-applied', icons);
+
   /** Draw the list again, keeping focus on the control that was used (`id`'s card, `sel` in it). */
   function render(id, sel) {
     list.replaceChildren(...items.map(card));
+    icons();
     $('timer-empty').hidden = items.length > 0;
     $('timer-add').disabled = items.length >= MAX_ITEMS;
     if (id && sel) list.querySelector(`[data-id="${id}"] ${sel}`)?.focus({ preventScroll: true });
@@ -275,12 +297,13 @@ export function setupTimer({ settings, audio, canDrone, askDrone }) {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'timer-preset';
-    b.innerHTML = '<span class="timer-preset-name"></span>';
-    b.firstChild.textContent = p ? TEXT.timer.presets[p.id] : TEXT.timer.custom;
+    b.dataset.preset = p?.id ?? 'custom';
+    b.innerHTML = '<span class="timer-preset-icon" aria-hidden="true"></span><span class="timer-preset-name"></span>';
+    b.lastChild.textContent = p ? TEXT.timer.presets[p.id] : TEXT.timer.custom;
     b.addEventListener('click', () => { sheet.close(); add(p?.id); });
     return b;
   }));
-  $('timer-add').addEventListener('click', () => sheet.showModal());
+  $('timer-add').addEventListener('click', () => { icons(); sheet.showModal(); });
   sheet.addEventListener('click', (e) => { if (e.target === sheet) sheet.close(); });
 
   // ---- settings: chimes on or off and which (each plays as it is picked);

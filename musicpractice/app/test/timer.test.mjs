@@ -8,16 +8,16 @@ const mem = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? nu
 test('a first visit starts with Intonation (drone) and Scales (metronome); + offers eight', () => {
   const { items, chime } = loadTimer(base, mem());
   assert.deepEqual(items.map((i) => [i.name, i.minutes, i.metronome, i.drone]), [
-    ['Intonation practice', 3, false, true],
+    ['Intonation', 3, false, true],
     ['Scales', 5, true, false],
   ]);
   assert.equal(chime, 'kalimba');
   assert.deepEqual(PRESETS.map((p) => [p.id, p.minutes, p.metronome, p.drone]), [
-    ['intonation', 3, false, true], ['scales', 5, true, false], ['rhythms', 3, false, false], ['ghosting', 3, false, false],
-    ['metronome', 5, true, false], ['arpeggios', 5, false, false], ['sight-reading', 5, false, false], ['improvisation', 5, false, false],
+    ['intonation', 3, false, true], ['scales', 5, true, false], ['arpeggios', 5, false, false], ['metronome', 5, true, false],
+    ['sight-reading', 5, false, false], ['improvisation', 5, false, false], ['rhythms', 3, false, false], ['ghosting', 3, false, false],
   ]);
   assert.equal(newItem('ghosting', base).name, 'Ghosting');
-  assert.equal(newItem('rhythms', base).name, 'Clapping rhythms');
+  assert.equal(newItem('rhythms', base).name, 'Clapping Rhythms');
   // An item's metronome and drone start from the app's own, then are its own.
   const it = newItem('scales', base);
   assert.deepEqual(it.met, { bpm: 100, meter: '3/4' });
@@ -103,6 +103,9 @@ test("the picture while an item runs: its own, else its drone's or metronome's, 
   // An item saved before items knew their kind is matched by its name.
   assert.equal(cleanRoutine([{ id: 'x', name: 'Ghosting' }])[0].kind, 'ghosting');
   assert.equal(cleanRoutine([{ id: 'x', name: 'Ghosting', kind: null }])[0].kind, null);
+  // Saved before items knew, under a suggestion's earlier name.
+  assert.equal(cleanRoutine([{ id: 'x', name: 'Intonation practice' }])[0].kind, 'intonation');
+  assert.equal(cleanRoutine([{ id: 'y', name: 'clapping rhythms' }])[0].kind, 'rhythms');
 });
 
 test('a new item starts at the length last given to its kind, else the default', () => {
@@ -161,5 +164,5 @@ test('a Metronome item has its metronome on even when added with +, and the Metr
   const it = newItem('metronome', base, {}, { tools: false });
   assert.deepEqual([it.name, it.metronome, it.drone], ['Metronome', true, false]);
   assert.equal(pictureFor(it, () => true), 'home-metronome');
-  assert.equal(newItem('sight-reading', base).name, 'Sight reading');
+  assert.equal(newItem('sight-reading', base).name, 'Sight Reading');
 });
