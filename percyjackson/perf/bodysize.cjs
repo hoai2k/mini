@@ -60,6 +60,10 @@ async function serve() {
     const mons = await import('../js/entities/monsters.js');
     const models = await import('../js/entities/models.js');
     const chr = await import('../js/entities/character.js');
+    // measured unmerged: charmat.js mergeRig folds every mesh on a bone into
+    // one part, the head's skin cube with its hair, beard and hat, so the
+    // head block (rig.headMesh) would measure the whole head part
+    (await import('../js/entities/charmat.js')).PART_MERGE.on = false;
     // props and trailing parts kept in rig.extras (body parts such as heads,
     // the goat, the abdomen, the trunk, hair, a veil or a collar stay in)
     const PROP_KEYS = ['wings', 'weapon', 'shield', 'flameHair', 'sword', 'fire', 'blade', 'whip', 'whipTip', 'spear', 'pipes', 'key', 'hammer', 'gun', 'club', 'axe', 'bike', 'ball', 'pot', 'flame', 'venom', 'sting', 'snake', 'snakes', 'tails', 'ring', 'crusherArm', 'crusher', 'muzzle', 'breath'];

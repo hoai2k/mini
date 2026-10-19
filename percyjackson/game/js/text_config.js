@@ -2766,7 +2766,7 @@ const OW_OTHRYS = {
     zoe: 'Zoë Nightshade',
   },
   champions: {
-    oth_gorgos: { name: 'Gorgos the Cyclops Chief' },
+    oth_gorgos: { name: 'Gorgos the Giant Chief' },
   },
   shrines: {
     oth_zeus_shrine: 'Shrine of Zeus',
@@ -2801,11 +2801,11 @@ const OW_OTHRYS = {
     othrys_bianca_gorgos: {
       title: 'The Chief on the Junk Throne',
       offer: [
-        'Uh-oh. The Cyclopes noticed their figures were missing. Their chief, Gorgos, is furious.',
+        'Uh-oh. The Cyclopes noticed their figures were missing. Their boss, the giant Gorgos, is furious.',
         'He sits on a throne made of old cars past the forge, waving a whole tree around and shouting.',
         'If he comes up here, the Hunters will have to fight him anyway. Better you get there first?',
       ],
-      steps: ['Find Gorgos’s junk throne', 'Defeat Gorgos the Cyclops Chief', 'Go back to Bianca'],
+      steps: ['Find Gorgos’s junk throne', 'Defeat Gorgos the Giant Chief', 'Go back to Bianca'],
       thanks: [
         'You beat Gorgos?! With a tree swinging at your head and everything?',
         'Okay. When Zoë asks who the bravest camper is, I’m saying you. Take this.',

@@ -1167,7 +1167,7 @@ REQUESTS += [
             "collar and smoking eyes; Queen Gale, a storm-grey harpy queen with a crown of "
             "feathers and lightning in her talons; the Red King, a crimson giant scorpion with a "
             "golden stinger and a crown of spines; the Bronze Warden, a hulking bronze automaton "
-            "with a single glowing blue eye and a shield; Gorgos, a Cyclops chieftain in bear "
+            "with a single glowing blue eye and a shield; Gorgos, a giant chieftain in bear "
             "pelts with a tree-trunk club; and the Pale King, a skeleton king in tarnished armour "
             "with a crown and a black sword, green fire in his eyes. Dramatic and fun for ages 8 "
             f"to 14, never gory. {VOXEL_STYLE} Flat light-grey background. {NO_TEXT}"

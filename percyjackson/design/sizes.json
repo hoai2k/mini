@@ -730,12 +730,30 @@
   "lab_bronze_warden": {
    "category": "bigger",
    "source": "role",
-   "reason": "a giant bronze automaton (round 2)"
+   "reason": "a giant bronze automaton (round 2)",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-ow-champions.png",
+    "percyPx": 133,
+    "bodyPx": 665,
+    "ratio": 5.0,
+    "headPx": 105,
+    "headRatio": 0.16,
+    "note": "row 2: helm crest to the boots; the head is the helm without its crest (0.20 with it)"
+   }
   },
   "oth_gorgos": {
    "category": "muchBigger",
    "source": "role",
-   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it (the cyclops)"
+   "reason": "a champion: a two-eyed giant chieftain, bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from the cyclops whose attacks he fights with",
+   "sheetMeasure": {
+    "sheet": "design/concept/vox-ow-champions.png",
+    "percyPx": 148,
+    "bodyPx": 655,
+    "ratio": 4.43,
+    "headPx": 120,
+    "headRatio": 0.18,
+    "note": "row 2: top of the bear hood to the soles; the head is his skull and face under the hood (about 0.24 with the hood)"
+   }
   },
   "asphodel_pale_king": {
    "category": "slightlyBigger",
