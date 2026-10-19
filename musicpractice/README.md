@@ -63,7 +63,7 @@ don't offer it. It switches the whole app's look:
 - **Steam Punk**: dark leather with brass and copper, Cinzel and Special
   Elite, riveted plates and a gear.
 
-**Dark Mode**, under the theme tiles, is **Default**, the default (each theme
+**Dark Mode**, a dropdown under the theme tiles, is **Default**, the default (each theme
 as designed: Classic, Art Deco, Robot Future and Steam Punk dark, the other
 four light), **Light**, **Dark** or **System** (follows the device, and
 switches while the app is open when the device does, at dusk for one). A
@@ -668,7 +668,9 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   **Improvisation**, **Clapping Rhythms**, **Ghosting** and **Custom…** (a
   blank item, its name ready to type), each by its name and a small icon:
   the picture the item shows while it runs (`pictureFor`), which is also on
-  each item's card beside its number, so a glance tells them apart (a Custom
+  each item's card before its number and name ("1. Intonation", the number
+  plain text rather than a circle that looked like a button), so a glance
+  tells them apart (a Custom
   item's follows its drone or metronome). Items saved under a suggestion's
   earlier name ("Intonation practice") still know which it was. An item added this way
   starts with its Metronome and Drone off (the first visit's two are the
@@ -989,7 +991,13 @@ it is back on. The page asks the phone without prompting (`micPermission`,
 of each mini app's settings (two separate global features): it opens
 the theme tiles and Dark Mode in a sheet of their own (the main settings'
 own controls, moved in while it is open), so the theme can be changed from
-anywhere.
+anywhere. The main settings have the theme already, so their line holds
+**Audio check…** and **Reload Page** instead.
+
+Every sheet's title stays at its top as it scrolls and covers the sheet's
+whole width, so nothing scrolls past beside it. A sheet takes the focus
+itself as it opens (`showModal` wrapped in `main.js`), so its close X
+doesn't wear a focus ring on a phone; Tab still moves into it.
 
 **Audio check** (a button in every settings sheet, `app/src/audiocheck.js`)
 says nothing about how takes will play while all is well, and only when

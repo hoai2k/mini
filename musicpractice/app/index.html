@@ -101,11 +101,12 @@
             <legend data-text="appSettings.theme"></legend>
             <div class="theme-tiles" id="theme-tiles" role="radiogroup" data-text-aria-label="appSettings.theme"></div>
           </fieldset>
-          <fieldset id="appearance-field">
-            <legend data-text="appSettings.appearance"></legend>
-            <div class="chips" id="appearance-chips" data-text-aria-label="appSettings.appearance"></div>
-          </fieldset>
-          <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
+          <label class="row toggle" id="appearance-field"><span data-text="appSettings.appearance"></span><select class="select" id="appearance"></select></label>
+          <!-- The theme is right here, so Reload Page takes the Theme button's place beside Audio check. -->
+          <div class="sheet-links" id="app-links">
+            <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
+            <button type="button" class="pill" id="reload-page" data-text="appSettings.reloadPage"></button>
+          </div>
           <button type="button" class="pill open-feedback" data-text="appSettings.sendFeedback"></button>
           <!-- In the apps only (src/pro.js). -->
           <fieldset id="pro-row" hidden>

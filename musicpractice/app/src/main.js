@@ -383,13 +383,17 @@ function syncThemeControls() {
   }
 }
 
-// Dark Mode: free in the apps too, since it is about being able to read the screen.
-chips($('appearance-chips'), APPEARANCES.map((id) => ({ id, label: TEXT.appSettings.appearances[id] })), () => settings.appearance, (id) => {
-  settings.appearance = id;
+// Dark Mode, a dropdown: free in the apps too, since it is about being able to read the screen.
+const appearance = $('appearance');
+appearance.replaceChildren(...APPEARANCES.map((id) => new Option(TEXT.appSettings.appearances[id], id)));
+appearance.value = settings.appearance;
+appearance.addEventListener('change', () => {
+  settings.appearance = appearance.value;
   settings.appearanceChosen = true;
   persist();
   applyTheme();
 });
+$('reload-page').addEventListener('click', () => location.reload());
 
 function setTheme(id) {
   if (id !== FREE_THEME && !requirePro('themes')) {
@@ -439,12 +443,22 @@ function openThemeSheet(from) {
   themeSheet.querySelector('.theme-tile[aria-checked="true"]')?.focus();
 }
 themeSheet.addEventListener('close', () => {
-  $('app-settings').querySelector('form').insertBefore($('appearance-field'), $('app-settings').querySelector('.open-audio-check'));
+  $('app-settings').querySelector('form').insertBefore($('appearance-field'), $('app-links'));
   $('app-settings').querySelector('form').insertBefore($('theme-field'), $('appearance-field'));
 });
 for (const b of document.querySelectorAll('.open-theme')) {
   b.addEventListener('click', () => openThemeSheet(b.closest('dialog')));
 }
+
+// A dialog opening focuses its first control, the close X, which then wears a
+// focus ring on a phone: the dialog takes the focus itself instead (Tab still
+// moves into it). Code that focuses something particular after opening still does.
+for (const d of document.querySelectorAll('dialog')) d.tabIndex = -1;
+const showModal = HTMLDialogElement.prototype.showModal;
+HTMLDialogElement.prototype.showModal = function () {
+  showModal.call(this);
+  if (document.activeElement?.closest('.sheet-head')) this.focus({ preventScroll: true });
+};
 
 /*
  * A drag on an open dialog never scrolls the page behind it. The stylesheet
