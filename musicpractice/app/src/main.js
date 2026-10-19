@@ -7,7 +7,7 @@ import { playSamples, primeFromTap, outputSettled, setSpeaker, setPlaybackVolume
 import { encodeMp3 } from './mp3.js';
 import { openAudioCheck, renderMicTip } from './audiocheck.js';
 import { diag, isWebKit, isIOS, micPermission, onPermissionChange, noteMicRefused, openAppSettings } from './devices.js';
-import { Metronome, pendulumAngle } from './metronome.js';
+import { Metronome, pendulumAngle, weightAt, bpmAtWeight } from './metronome.js';
 import { Recorder, freesMicForPlayback } from './recorder.js';
 import { setupTuner } from './tunerui.js';
 import { setupHomeOrder } from './homeorder.js';
@@ -35,7 +35,7 @@ import { Waveform, drawThumb } from './waveform.js';
 import * as store from './takes.js';
 import { GENRES, GENRE_IDS, mainTempo, nameFor } from './tempos.js';
 import { load, save, clampBpm, METERS, SOUNDS, THEMES, APPEARANCES, VIZ_BARS, TICKS, barPlan, cleanPattern, resolveMode, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
-import { applyArt, alignPendulum, alignBow, swingOf } from './art.js';
+import { applyArt, alignPendulum, alignBow, swingOf, placeWeight, weightFromPoint } from './art.js';
 import { tuckedVolume } from './tuckedvolume.js';
 
 const $ = (id) => document.getElementById(id);
@@ -81,7 +81,7 @@ function applyTheme() {
   const fonts = fontsHref(theme);
   const link = $('theme-fonts');
   if (link && link.getAttribute('href') !== fonts) link.setAttribute('href', fonts);
-  applyArt(theme.id, () => { alignPendulum($('metronome-case'), $('pendulum')); alignBow(document.querySelector('#dr-bow .art')); });
+  applyArt(theme.id, () => { alignPendulum($('metronome-case'), $('pendulum')); showWeight(); alignBow(document.querySelector('#dr-bow .art')); });
   // Waveform colours come from the theme.
   if (wave) wave.dirty = true;
   for (const c of document.querySelectorAll('.take canvas')) c.redraw?.();
@@ -240,11 +240,14 @@ function showMarking() {
   $('marking').setAttribute('aria-label', TEXT.metronome.tempos.open(marking(settings.bpm)));
 }
 
+let weightDrag = null; // the pendulum's weight while it is dragged (below)
+let weightMoved = false;
 function setBpm(v, { fromInput = false } = {}) {
   settings.bpm = clampBpm(v);
   if (!fromInput || document.activeElement !== bpmInput) bpmInput.value = settings.bpm;
   bpmSlider.value = settings.bpm;
   showMarking();
+  if (!weightDrag) showWeight();
   metronome?.configure(settings);
   persist();
 }
@@ -688,6 +691,46 @@ const art = $('metronome-art');
 const toggleSwing = () => setSwing(!settings.swing);
 
 /*
+ * The pendulum's weight slides along the rod with the tempo, as on a real
+ * metronome (high is slow, low is fast; weightAt), and dragging it sets the
+ * tempo (bpmAtWeight). While it is dragged the pendulum eases upright (the
+ * clicks go on, at the new tempo); a tap on it without a drag is a tap on
+ * the metronome, as before.
+ */
+const weightEl = $('pend-weight');
+function showWeight(t = weightAt(settings.bpm)) { placeWeight(pendulum, t); }
+weightEl.addEventListener('pointerdown', (e) => {
+  if (e.button) return;
+  const at = weightFromPoint(pendulum, e.clientY);
+  if (at == null) return;
+  weightDrag = { id: e.pointerId, x: e.clientX, y: e.clientY, offset: weightAt(settings.bpm) - at, moved: false };
+  weightEl.setPointerCapture(e.pointerId);
+});
+weightEl.addEventListener('pointermove', (e) => {
+  const d = weightDrag;
+  if (!d || e.pointerId !== d.id) return;
+  if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 4) return;
+  if (!d.moved) { d.moved = true; weightEl.classList.add('held'); }
+  const at = weightFromPoint(pendulum, e.clientY);
+  if (at == null) return;
+  const t = Math.min(1, Math.max(0, at + d.offset));
+  showWeight(t);
+  const bpm = Math.round(bpmAtWeight(t));
+  if (bpm !== settings.bpm) setBpm(bpm);
+});
+for (const type of ['pointerup', 'pointercancel']) {
+  weightEl.addEventListener(type, (e) => {
+    const d = weightDrag;
+    if (!d || e.pointerId !== d.id) return;
+    weightDrag = null;
+    weightEl.classList.remove('held');
+    weightMoved = d.moved;
+    if (d.moved) setTimeout(() => { weightMoved = false; }, 0); // only the click this release makes
+    showWeight();
+  });
+}
+
+/*
  * Everything you see follows heardNow(): the time of the sound reaching your
  * ears (the output delay the browser knows, plus the Sound and visuals sync
  * adjustment), looked one frame ahead because a frame drawn now appears on
@@ -706,7 +749,7 @@ function animateMetronome() {
   const beat = metronome.beatAt(now);
   // The pendulum swings in either view (small above the Visualizer). Turned
   // on or off it eases in or out over about half a second, never jumping.
-  const swingTo = settings.swing ? 1 : 0;
+  const swingTo = settings.swing && !weightDrag ? 1 : 0; // held upright while its weight is dragged
   swingAmt += (swingTo - swingAmt) * Math.min(1, frameSec / 0.16);
   if (Math.abs(swingTo - swingAmt) < 0.002) swingAmt = swingTo;
   const angle = swingAmt ? swingAmt * pendulumAngle(beat, now, metronome.period, swingOf(pendulum)) : 0;
@@ -907,6 +950,7 @@ foot.addEventListener('click', () => {
   switchView();
 });
 art.addEventListener('click', () => {
+  if (weightMoved) { weightMoved = false; return; } // that was the weight being dragged
   if (metVolume.swallowedTap(art)) return;
   toggleSwing();
 });

@@ -774,5 +774,323 @@
     "theme": "steampunk",
     "file": "assets/ui/steampunk/home-routine.webp",
     "status": "requested"
+  },
+  {
+    "id": "metronome-rod",
+    "theme": "classic",
+    "file": "assets/ui/metronome-rod.webp",
+    "status": "requested",
+    "canvas": [
+      200,
+      1000
+    ],
+    "anchors": {
+      "hub": [
+        102,
+        927
+      ]
+    },
+    "swing": 24,
+    "travel": [
+      78.5,
+      796.5
+    ],
+    "interim": "assets/ui/metronome-rod.cut.webp"
+  },
+  {
+    "id": "metronome-weight",
+    "theme": "classic",
+    "file": "assets/ui/metronome-weight.webp",
+    "status": "requested",
+    "canvas": [
+      200,
+      80.0
+    ],
+    "anchors": {
+      "center": [
+        100.0,
+        39.5
+      ]
+    },
+    "interim": "assets/ui/metronome-weight.cut.webp"
+  },
+  {
+    "id": "metronome-rod",
+    "theme": "deco",
+    "file": "assets/ui/deco/metronome-rod.webp",
+    "status": "requested",
+    "canvas": [
+      200,
+      1000
+    ],
+    "anchors": {
+      "hub": [
+        99.5,
+        917
+      ]
+    },
+    "swing": 26,
+    "travel": [
+      92.5,
+      725.5
+    ],
+    "interim": "assets/ui/deco/metronome-rod.cut.webp"
+  },
+  {
+    "id": "metronome-weight",
+    "theme": "deco",
+    "file": "assets/ui/deco/metronome-weight.webp",
+    "status": "requested",
+    "canvas": [
+      200,
+      156.0
+    ],
+    "anchors": {
+      "center": [
+        100.0,
+        77.5
+      ]
+    },
+    "interim": "assets/ui/deco/metronome-weight.cut.webp"
+  },
+  {
+    "id": "metronome-rod",
+    "theme": "sixties",
+    "file": "assets/ui/sixties/metronome-rod.webp",
+    "status": "requested",
+    "canvas": [
+      200,
+      1000
+    ],
+    "anchors": {
+      "hub": [
+        100.0,
+        855.1
+      ]
+    },
+    "swing": 24,
+    "scale": 1,
+    "travel": [
+      139.5,
+      686.5
+    ],
+    "interim": "assets/ui/sixties/metronome-rod.cut.webp"
+  },
+  {
+    "id": "metronome-weight",
+    "theme": "sixties",
+    "file": "assets/ui/sixties/metronome-weight.webp",
+    "status": "requested",
+    "canvas": [
+      200,
+      108.0
+    ],
+    "anchors": {
+      "center": [
+        100.0,
+        53.5
+      ]
+    },
+    "interim": "assets/ui/sixties/metronome-weight.cut.webp"
+  },
+  {
+    "id": "metronome-rod",
+    "theme": "baroque",
+    "file": "assets/ui/baroque/metronome-rod.webp",
+    "status": "requested",
+    "canvas": [
+      200,
+      1000
+    ],
+    "anchors": {
+      "hub": [
+        99.4,
+        866.3
+      ]
+    },
+    "swing": 24,
+    "scale": 0.8,
+    "travel": [
+      82.0,
+      677.0
+    ],
+    "interim": "assets/ui/baroque/metronome-rod.cut.webp"
+  },
+  {
+    "id": "metronome-weight",
+    "theme": "baroque",
+    "file": "assets/ui/baroque/metronome-weight.webp",
+    "status": "requested",
+    "canvas": [
+      200,
+      111.0
+    ],
+    "anchors": {
+      "center": [
+        100.0,
+        55.0
+      ]
+    },
+    "interim": "assets/ui/baroque/metronome-weight.cut.webp"
+  },
+  {
+    "id": "metronome-rod",
+    "theme": "scifi",
+    "file": "assets/ui/scifi/metronome-rod.webp",
+    "status": "requested",
+    "canvas": [
+      200,
+      1000
+    ],
+    "anchors": {
+      "hub": [
+        100.3,
+        924.7
+      ]
+    },
+    "swing": 24,
+    "scale": 0.85,
+    "travel": [
+      82.0,
+      784.0
+    ],
+    "interim": "assets/ui/scifi/metronome-rod.cut.webp"
+  },
+  {
+    "id": "metronome-weight",
+    "theme": "scifi",
+    "file": "assets/ui/scifi/metronome-weight.webp",
+    "status": "requested",
+    "canvas": [
+      200,
+      97.0
+    ],
+    "anchors": {
+      "center": [
+        100.0,
+        48.0
+      ]
+    },
+    "interim": "assets/ui/scifi/metronome-weight.cut.webp"
+  },
+  {
+    "id": "metronome-rod",
+    "theme": "nouveau",
+    "file": "assets/ui/nouveau/metronome-rod.webp",
+    "status": "requested",
+    "canvas": [
+      200,
+      1000
+    ],
+    "anchors": {
+      "hub": [
+        99.7,
+        898.7
+      ]
+    },
+    "swing": 24,
+    "scale": 0.85,
+    "travel": [
+      84.5,
+      501.5
+    ],
+    "interim": "assets/ui/nouveau/metronome-rod.cut.webp"
+  },
+  {
+    "id": "metronome-weight",
+    "theme": "nouveau",
+    "file": "assets/ui/nouveau/metronome-weight.webp",
+    "status": "requested",
+    "canvas": [
+      200,
+      110.0
+    ],
+    "anchors": {
+      "center": [
+        100.0,
+        54.5
+      ]
+    },
+    "interim": "assets/ui/nouveau/metronome-weight.cut.webp"
+  },
+  {
+    "id": "metronome-rod",
+    "theme": "anime",
+    "file": "assets/ui/anime/metronome-rod.webp",
+    "status": "requested",
+    "canvas": [
+      200,
+      1000
+    ],
+    "anchors": {
+      "hub": [
+        98.0,
+        927.9
+      ]
+    },
+    "swing": 24,
+    "scale": 0.8,
+    "travel": [
+      115.5,
+      685.5
+    ],
+    "interim": "assets/ui/anime/metronome-rod.cut.webp"
+  },
+  {
+    "id": "metronome-weight",
+    "theme": "anime",
+    "file": "assets/ui/anime/metronome-weight.webp",
+    "status": "requested",
+    "canvas": [
+      200,
+      172.0
+    ],
+    "anchors": {
+      "center": [
+        100.0,
+        85.5
+      ]
+    },
+    "interim": "assets/ui/anime/metronome-weight.cut.webp"
+  },
+  {
+    "id": "metronome-rod",
+    "theme": "steampunk",
+    "file": "assets/ui/steampunk/metronome-rod.webp",
+    "status": "requested",
+    "canvas": [
+      200,
+      1000
+    ],
+    "anchors": {
+      "hub": [
+        94.8,
+        870.6
+      ]
+    },
+    "swing": 24,
+    "scale": 0.65,
+    "travel": [
+      77.5,
+      697.5
+    ],
+    "interim": "assets/ui/steampunk/metronome-rod.cut.webp"
+  },
+  {
+    "id": "metronome-weight",
+    "theme": "steampunk",
+    "file": "assets/ui/steampunk/metronome-weight.webp",
+    "status": "requested",
+    "canvas": [
+      200,
+      110.0
+    ],
+    "anchors": {
+      "center": [
+        100.0,
+        54.5
+      ]
+    },
+    "interim": "assets/ui/steampunk/metronome-weight.cut.webp"
   }
 ]

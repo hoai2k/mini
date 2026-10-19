@@ -225,3 +225,17 @@ test('the last drone\'s length: kept when it is a time, dropped otherwise', () =
   assert.equal(sanitize({ droneLastSecs: -3 }).droneLastSecs, null);
   assert.equal(sanitize({ droneLastSecs: '12' }).droneLastSecs, null);
 });
+
+test('the pendulum weight: high is slow, the everyday tempos get most of the rod', async () => {
+  const { weightAt, bpmAtWeight, WEIGHT_BPM } = await import('../src/metronome.js');
+  assert.deepEqual(WEIGHT_BPM, [40, 300]);
+  assert.equal(weightAt(40), 0);
+  assert.equal(weightAt(300), 1);
+  assert.equal(weightAt(20), 0); // past the ends: stays there
+  assert.equal(weightAt(500), 1);
+  for (const b of [40, 60, 92, 120, 160, 208, 300]) assert.ok(Math.abs(bpmAtWeight(weightAt(b)) - b) < 1e-9, String(b));
+  const span = (a, b) => weightAt(b) - weightAt(a);
+  assert.ok(span(60, 160) > 0.4, `60-160 is ${span(60, 160)}`);
+  assert.ok(span(200, 300) < 0.2, `200-300 is ${span(200, 300)}`);
+  assert.ok(span(200, 300) < span(60, 160) / 2.5);
+});
