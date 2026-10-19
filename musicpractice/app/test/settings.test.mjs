@@ -199,14 +199,15 @@ test('the bar plan: the plain rules, or every click from a custom pattern', () =
   assert.deepEqual(barPlan({ meter: '4/4', accent: false, accentPattern: { meter: '4/4', pos: [12] } }).strengths, [0, 0, 0, 0]);
 });
 
-test('extra notes: off by default, a kind kept while off, saves from the Clicks list carried over; full volume', () => {
+test('extra notes: off by default, a kind kept while off, saves from the Clicks list carried over; the volume', () => {
   assert.deepEqual([DEFAULTS.subOn, DEFAULTS.subKind, sanitize({}).subdivision], [false, 2, 1]);
   assert.equal(sanitize({ subOn: false, subKind: 4 }).subdivision, 1);
   assert.equal(sanitize({ subOn: true, subKind: 3 }).subdivision, 3);
   const old = sanitize({ subdivision: 4 }); // the old Clicks list
   assert.deepEqual([old.subOn, old.subKind, old.subdivision], [true, 4, 4]);
-  assert.equal(sanitize({ volume: 0.3 }).volume, 1); // an earlier save's, from a removed control
-  assert.equal(sanitize({ volume: 0.3, volumeChosen: true }).volume, 0.3); // the metronome's own slider
+  assert.equal(sanitize({ volume: 0.3 }).volume, 0.75); // an earlier save's, from a removed control: the default
+  assert.equal(sanitize({ volume: 0.3, volumeChosen: true, louder: true }).volume, 0.3); // the metronome's own slider
+  assert.ok(Math.abs(sanitize({ volume: 0.4, volumeChosen: true }).volume - 0.3) < 1e-9); // saved before the louder clicks: as loud as it was
   assert.equal(sanitize({ volume: 7, volumeChosen: true }).volume, 1);
 });
 
@@ -238,4 +239,22 @@ test('the pendulum weight: high is slow, the everyday tempos get most of the rod
   assert.ok(span(60, 160) > 0.4, `60-160 is ${span(60, 160)}`);
   assert.ok(span(200, 300) < 0.2, `200-300 is ${span(200, 300)}`);
   assert.ok(span(200, 300) < span(60, 160) / 2.5);
+});
+
+test('louder volumes: the defaults sound as before, and older saves keep their loudness', async () => {
+  const { droneGain, droneSlider, DRONE_DEFAULT, DRONE_MAX_GAIN } = await import('../src/drone.js');
+  const { METRONOME_DEFAULT } = await import('../src/metronome.js');
+  assert.equal(DEFAULTS.volume, METRONOME_DEFAULT);
+  assert.equal(DEFAULTS.droneVolume, DRONE_DEFAULT);
+  assert.ok(Math.abs(droneGain(DRONE_DEFAULT) - 0.8) < 0.02); // the old default's gain
+  assert.equal(droneGain(1), DRONE_MAX_GAIN);
+  assert.equal(droneGain(0), 0);
+  assert.ok(Math.abs(droneSlider(droneGain(0.37)) - 0.37) < 1e-9);
+  // A drone volume saved before (a gain) becomes the slider position with that gain.
+  for (const old of [0.8, 0.5, 1]) {
+    const v = sanitize({ droneVolume: old }).droneVolume;
+    assert.ok(Math.abs(droneGain(v) - old) < 0.03, `${old} -> ${v}`);
+  }
+  assert.equal(sanitize({ droneVolume: 0.9, louder: true }).droneVolume, 0.9); // saved since: as it is
+  assert.equal(sanitize({}).louder, true);
 });

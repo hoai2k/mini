@@ -25,7 +25,12 @@ export const SUB = 3;
 export const SUBDIVISIONS = [1, 2, 3, 4];
 
 const SUB_LEVEL = 0.2; // the clicks between the beats: well under the clipper's knee, so clearly quieter
-const DRIVE = 2.4; // into the clipper: how hard the clicks are pushed
+// Into the clipper: how hard the clicks are pushed. 6 makes the click's body
+// about 2.5 dB louder than the 2.4 it was at the same peak (more is hardly
+// louder, only harsher), so full volume is louder than it was, and
+// METRONOME_DEFAULT (0.75) is the old full volume's loudness.
+const DRIVE = 6;
+export const METRONOME_DEFAULT = 0.75;
 const KNEE = 1.6; // the tanh curve's steepness
 
 /** tanh, scaled so full drive reaches 0.9: loud, with room for the oversampling's overshoot. */

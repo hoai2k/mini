@@ -204,8 +204,14 @@ when the Art Deco art arrives, measure and record its own.
   grab it and drag up or down and the volume follows at once, the slider
   showing while it does and folding away a moment after; tap it and the
   slider opens until a tap elsewhere (which does nothing else) or Escape.
-  Arrow keys work on the slider. Full until it is first moved
-  (`volume`, `volumeChosen`); the apps' mixer takes it too.
+  Arrow keys work on the slider. It starts at 0.75 (`volume`,
+  `volumeChosen`), which is as loud as full volume used to be: the clicks
+  are now driven harder into the soft clipper (`DRIVE` 6, was 2.4), so their
+  body is about 2.5 dB louder at the same peak, and full volume reaches
+  that. (Driving harder still is hardly louder, only harsher: a click is
+  short and already peaks at −0.9 dBFS.) The apps' mixer takes it too, and
+  the same louder clicks. Volumes saved before are carried over at the same
+  loudness (`louder` in the settings).
 - The clicks are loud: each is driven into a soft clipper (tanh) after
   the voice and before the volume, so the whole click sits near full scale
   rather than only its first instant, and ordinary beats sit just under the
@@ -508,6 +514,15 @@ tones, scales over a tonic.
   match). To its right, an upright **volume**
   slider: drag the knob or the track up or down, or use the arrow keys (it
   is the same volume as the one in the settings).
+- **How loud it can go:** the volume is a curve to a gain
+  (`droneGain` in `drone.js`, 2.8 v², so equal moves of the bow sound like
+  equal steps). Full volume is about 10 dB louder than it used to be, as
+  loud as the drone gets without clipping: measured at −9 dBFS RMS with
+  peaks at −0.5 dBFS or under, where full used to be −19 dBFS RMS. A
+  limiter after the compressor keeps it under full scale. A new drone starts
+  at 0.53 (`DRONE_DEFAULT`), the loudness of the old default, and a volume
+  saved before is carried over at the same loudness. The apps' mixers are
+  sent the gain.
 - **The volume is the cello's bow**: the Drone screen draws the cello
   without its bow (`drone-cello`) and the bow (`drone-bow`) stands beside
   it. A band of colour behind the bow, from the hair to the middle of the
