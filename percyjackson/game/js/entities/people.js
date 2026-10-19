@@ -25,6 +25,7 @@ import { cellMesh, heroHair, heroTail, footwear, beads } from './herovox.js';
 import { paintHumanoid } from './models.js';
 import { paintPerson, ADULT_SCALE, B, mirrorX, turn, band, shoes, strawHat, hairCells, beardCells, boxGeometry, mergeGeometries, inHead, shadeOf } from './mortals.js';
 import { mulberry32 } from '../util.js';
+import { markHeadwear } from './proportions.js';
 import { t as txt } from '../text_config.js';
 
 const HS = 1.12;   // the Rig's head scale
@@ -159,9 +160,11 @@ export const PEOPLE = {
       for (let i = 0; i < 10; i++) { const k = i / 9, x = -4.7 + k * 1.3 + (i % 2) * 0.45, z = i < 3 ? 1 + i * 0.6 : 2.6; B2.push(B([x, 3 - i * 1.3, z], [1.8, 1.6, 1.6], braid[i % 3])); }
       B2.push(B([-3.2, -10.2, 2.7], [1.4, 0.6, 1.4], 0xe8c040), B([-3.2, -11.2, 2.7], [1.7, 1.4, 1.5], braid[2]));
       return {
-        head: [
+        hat: [
           ...strawHat({ brim: 17.6, crown: 9.4, crownH: 3, straw: 0xe4c27a, band: 0x3e7a3a, seed: 4 }),
           B([-2.8, 10.4, 5.05], [2.4, 0.8, 0.5], 0xf8f6ee), B([-2.8, 10.4, 5.05], [0.8, 2.4, 0.5], 0xf8f6ee), B([-2.8, 10.4, 5.35], [0.9, 0.9, 0.3], 0xf0c020), B([-1.2, 10, 4.9], [1.6, 0.8, 0.5], 0x3a8a3a), B([-4.2, 9.9, 4.8], [1.4, 0.8, 0.6], 0x3a8a3a),
+        ],
+        head: [
           ...B2,
           ...mirrorX([B([-4.3, 3, 1.4], [0.4, 1, 0.5], 0x4a9a4a)]),
         ],
@@ -330,7 +333,7 @@ export const PEOPLE = {
   // Galene, a Nereid: long sea-green curls crowned with pearls and a shell, a
   // foam-white robe with a sea-green drape, pearls, and the sea curling round her
   shore_nereid: {
-    painter: 'hero', scale: KID, accent: 0x4ad0ff,
+    painter: 'hero', scale: ADULT_SCALE, accent: 0x4ad0ff,   // (round 9: a Nereid is a grown woman: an adult's size)
     paint: { skinTone: 0xe6a478, hair: 0x1a8a7a, fringe: 2, hairSide: 5, hairBack: 8, eye: 0x1a8a9a, pupil: 0x0a2a30, brow: 0x147060, lashes: true, mouth: 'smile', lip: 0xd0705a, blush: true, top: 0xf2f0e8, sleeve: 0xe6a478, shortSleeve: 0, collar: false, pants: 0xe6a478, shoes: 0xe6a478 },
     body(S, D) { S.rect(16, 20, 24, 2, 0xe6a478, 0.04); D(16, 22, 0xd8d4c8, 48, 1); for (const [u, v] of [[0, 16], [16, 48]]) S.rect(u, v + 4, 16, 10, 0xe6a478, 0.04); },
     vox: { style: 'long', base: 0x1a8a7a, shade: 0x0e5a50, light: 0x3ab0a0, seed: 149, shape: { helmetFront: false, top: 9.8, c: [0, 3.6, -1.2], tuft: 0.24, spike: 0.08, bump: 0.46, r: [6.6, 7.6, 6.4], side: -5, back: -7 } },
@@ -376,7 +379,8 @@ export const PEOPLE = {
   // Coach Gleeson Hedge, satyr: a red tracksuit with white stripes, a whistle,
   // a cap with a red trident, a beard, horns, goat legs and a club
   canyon_hedge: {
-    painter: 'hero', scale: 1.08, wide: 1.15, accent: 0xff4a2a, tip: ['armR', 0, 0.6, 2.6, 'club'],
+    painter: 'hero', scale: 1.18, wide: 1.15, accent: 0xff4a2a,   // (round 9: a short grown satyr, his skull level with Percy's: 1.08 → 1.18)
+    tip: ['armR', 0, 0.6, 2.6, 'club'],
     paint: { skinTone: 0xd8885a, hair: 0x3a2210, fringe: 2, hairSide: 4, hairBack: 7, eye: 0x3a2414, brow: 0x2a1408, scowl: true, mouth: 'grin', top: 0xf0e4c8, collar: false, jacket: 0xc8241e, jacketSleeve: 12, pants: 0xc8241e, shorts: 8, goat: [0x6a4020, 0x4a2a14], belt: 0x3a2214 },
     body(S, D) {
       // white stripes down the sleeves and trouser legs, zip edges, cuffs
@@ -395,9 +399,9 @@ export const PEOPLE = {
       ];
       const horn = [0x8a5a2a, 0x6a4020, 0x4a2a14];
       for (const s of [-1, 1]) cap.push(B([s * 4.8, 9.6, 0.8], [1.8, 2, 2], horn[0]), B([s * 5.6, 11, 0.2], [1.6, 1.8, 1.8], horn[1]), B([s * 5.9, 12.3, -0.9], [1.4, 1.4, 1.6], horn[1]), B([s * 5.6, 12.6, -2.2], [1.2, 1.2, 1.2], horn[2]), B([s * 5.2, 11.9, -3], [1, 1, 1], horn[2]));
-      cap.push(...mirrorX([B([-4.6, 4.4, 0.4], [1.2, 1.4, 1.2], 0xd8885a), B([-5.3, 4.8, 0.2], [0.8, 0.8, 0.8], 0xd8885a)]));
       return {
-        head: cap,
+        hat: cap,   // (the cap and the horns through it)
+        head: mirrorX([B([-4.6, 4.4, 0.4], [1.2, 1.4, 1.2], 0xd8885a), B([-5.3, 4.8, 0.2], [0.8, 0.8, 0.8], 0xd8885a)]),
         torso: [
           // the jacket's collar, the whistle on its cord
           ...mirrorX([B([-2.8, 12.1, 0.6], [2.4, 1.2, 4], red), B([-2.6, 11.2, 2.5], [1.8, 2, 0.5], red, [0, 0, -0.3]), B([-2.25, 6, 2.5], [0.4, 11, 0.4], white)]),
@@ -512,7 +516,8 @@ export const PEOPLE = {
   // Charon, ferryman of the dead: a sharp black suit, gold chains,
   // sunglasses, a beard, and his oar wound with the ghost-light of the Styx
   asphodel_charon: {
-    painter: 'person', scale: 1.32, accent: 0x4ae0ff,
+    painter: 'person', scale: 1.45, accent: 0x4ae0ff,   // (round 9: a tall adult, 1.32 → 1.45, as every adult grew)
+   
     paint: { skin: 0xb06c44, hair: 0x18100c, fringe: 1, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x2a1a10, brow: 0x18100c, glasses: 0x0a0a0c, beard: 0x1a120c, top: 0x1c1a1e, vneck: 0xf4f4f0, tie: 0x141416, jacket: 0x161418, lapel: 0x262428, pants: 0x161418, shoes: 0x0a0a0c, saturate: 1.1,
       face: (S, ey) => { S.dot(9, ey - 0.5, 0x0a0a0c, 6, 4); S.dot(13, ey - 0.5, 0x0a0a0c, 6, 4); S.dot(11.5, ey, 0x0a0a0c, 2, 1); S.dot(9.5, ey, 0x3a3a40, 1, 1); S.dot(13.5, ey, 0x3a3a40, 1, 1); } },
     hair: { c: [0, 7, -1.2], r: [5, 3.8, 5.4], bump: 0.34, shell: 1.2, fringe: 7.2, jag: 0.4, side: 3.4, back: 0, tuft: 0.14, spike: 0.04, tones: [0x0c0806, 0x1e1612, 0x3a2e26] },
@@ -585,7 +590,8 @@ export const PEOPLE = {
   // beard, blue eyes all over his arms and face, a white polo with a trident,
   // cargo khakis, a gold ring of big keys at his belt
   camp_argus: {
-    painter: 'person', scale: 1.42, wide: 1.32, accent: 0x4a8aff,
+    painter: 'person', scale: 1.47, wide: 1.32, accent: 0x4a8aff,   // (round 9: huge Argus, 1.42 → 1.47, the tallest of the adults at the top of their band; any more and his hero-sized head breaks the head rule)
+   
     paint: { skin: 0xf0b48a, hair: 0xd8b050, fringe: 1, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x2a74e0, brow: 0xb8902a, smile: true, beard: 0xd0a848, top: 0xece6d8, shortSleeve: true, collar: 0xf6f2e8, buttons: 0xc8c0b0, pants: 0x7a6a40, shoes: 0x5a3418, saturate: 1.1,
       face: (S, ey) => { const D = (x, y, c, n, m) => S.dot(x, y, c, n, m); eyeAt(D, 11, ey - 2.4, 0xf0b48a); for (const x of [2, 5, 18, 21]) eyeAt(D, x, ey + 0.5, 0xf0b48a); eyeAt(D, 26.5, ey + 1, 0xf0b48a); eyeAt(D, 28.5, ey + 2, 0xf0b48a); },
       body: (S) => {
@@ -651,7 +657,8 @@ export const PEOPLE = {
   // Big Earl, trucker: a red-and-white trucker cap, a big dark beard, a red
   // plaid shirt with the sleeves rolled, suspenders, jeans, boots, a rubber chicken
   rt_turnpike_earl: {
-    painter: 'person', scale: 1.34, wide: 1.32, accent: 0xff5a2a,
+    painter: 'person', scale: ADULT_SCALE, wide: 1.32, accent: 0xff5a2a,   // (round 9: an adult, 1.34 → ADULT_SCALE; any taller and his head, measured to the skull under his cap, breaks the head rule)
+   
     paint: { skin: 0xd8946a, hair: 0x2a1a10, fringe: 1, hairSide: 3, hairBack: 5, eyeRow: 3, eye: 0x3a2414, brow: 0x1e120a, grin: true, nose: 0xd27a5c, beard: 0x2a1a10, top: 0xc0281e, plaid: 0x4a100a, vneck: 0xf0e8d8, sleeve: 0xc0281e, pants: 0x2c4a7a, shoes: 0x5a3820, saturate: 1.15 },
     hair: { c: [0, 6.4, -0.8], r: [5.6, 4, 5.8], bump: 0.4, shell: 1.4, fringe: 6.6, jag: 0.6, side: 1.4, back: 0, top: 8.2, tuft: 0.26, spike: 0.06, tones: [0x140c06, 0x2a1a10, 0x4a3020] },
     beard: [0x140c06, 0x2a1a10, 0x3e2818],
@@ -662,7 +669,7 @@ export const PEOPLE = {
         B([0, -4.6, 2.8], [0.5, 1.2, 1.6], 0xe02a2a), B([0, -6.9, 4.1], [0.5, 0.9, 0.5], 0xe02a2a), B([-1.05, -5.6, 3.4], [0.2, 0.5, 0.5], INK), B([1.05, -5.6, 3.4], [0.2, 0.5, 0.5], INK),
         ...mirrorX([B([-1.6, -10, 3], [0.6, 2.6, 1.8], 0xf0c828), B([-0.6, -13.4, 3], [0.4, 2.4, 0.4], 0xf08020), B([-0.6, -14.6, 3.4], [0.9, 0.3, 1.2], 0xf08020)])];
       return {
-        head: [
+        hat: [
           B([0, 9.2, -0.4], [9.8, 2.4, 9.6], red), B([0, 10.9, -0.5], [8.6, 1.2, 8.4], red), B([0, 11.8, -0.6], [6.4, 0.8, 6.2], red),
           B([0, 9.8, 4.45], [8.6, 3.4, 0.7], white), B([0, 9.8, 4.85], [1.4, 1.4, 0.2], red), B([0, 9.8, 4.85], [2.6, 0.5, 0.2], red), B([0, 8.2, 6.6], [9, 0.7, 4.8], red), B([0, 12.3, -0.6], [0.9, 0.5, 0.9], white),
         ],
@@ -699,13 +706,13 @@ export const PEOPLE = {
       const dots = [];
       for (let i = 0; i < 14; i++) dots.push(B([(r() - 0.5) * 9.2, 8.8 + r() * 1.8, (r() - 0.5) * 9], [0.8, 0.8, 0.8], i % 3 ? 0xf8e0e8 : 0xd84a6a));
       return {
-        head: [
+        hat: [
           // the headscarf over the crown, knotted at the nape
           B([0, 9, -0.6], [9.8, 1.8, 9.4], scarf), B([0, 10.2, -0.8], [8.2, 1, 7.8], scarf), B([0, 7.2, -4.8], [9.4, 3.6, 0.8], scarf), ...mirrorX([B([-4.7, 7.6, -1.2], [0.8, 2.8, 6.4], scarf)]),
           B([0, 7.4, -5.6], [1.8, 1.6, 1.2], shadeOf(scarf, 0.85)), B([-0.8, 6, -5.8], [0.9, 2, 0.6], scarf), B([0.8, 6.2, -5.8], [0.9, 1.8, 0.6], scarf),
           ...dots.filter((b) => b.at[2] < 3.8 || b.at[1] > 9.9),
-          ...mirrorX([B([-4.6, 2.2, 1.6], [0.4, 1.2, 1.2], 0xe0b030)]),
         ],
+        head: mirrorX([B([-4.6, 2.2, 1.6], [0.4, 1.2, 1.2], 0xe0b030)]),
         torso: ap,
         hips: skirtA,
         armR: [band(-2.2, 1.2, blue, 4.8), band(-7.2, 0.8, 0x3a6a2a, 4.8)],
@@ -719,7 +726,8 @@ export const PEOPLE = {
   // with a gold badge, an olive uniform with patches and a badge, binoculars,
   // a belt of pouches, cargo pants and boots
   rt_stlouis_mae: {
-    painter: 'hero', scale: 1.2, accent: 0x6ab04a,
+    painter: 'hero', scale: ADULT_SCALE, accent: 0x6ab04a,   // (round 9: an adult, 1.2 → ADULT_SCALE)
+   
     paint: { skinTone: 0xd89668, hair: 0x4a2814, fringe: 2, hairSide: 5, hairBack: 8, eye: 0x3a2214, pupil: 0x0a0604, brow: 0x3a1c0a, lashes: true, mouth: 'grin', lip: 0xc0605a, blush: true, top: 0x7a7a48, sleeve: 0x7a7a48, shortSleeve: 6, collar: 0x6a6a3c, pants: 0x4e5a30, cargo: true, shoes: 0x4a2a14, sole: 0x2a160a },
     body(S, D) {
       // shoulder patches, pocket flaps and a placket
@@ -730,13 +738,13 @@ export const PEOPLE = {
     parts() {
       const hat = 0x8a7a4c, band2 = 0x4a2a14, lea = 0x6a3a1e;
       return {
-        head: [
+        hat: [
           // the ranger hat: a flat round brim and a pinched crown, a gold badge
           B([0, 8.4, 0], [15, 0.7, 15], hat), B([0, 8.4, 0], [11, 0.75, 16], hat), B([0, 8.4, 0], [16, 0.75, 11], hat),
           B([0, 9.6, 0], [8.6, 1.6, 8.6], band2), B([0, 11.2, 0], [7.8, 2, 7.8], hat), ...[[0, 3.2], [0, -3.2], [3.2, 0], [-3.2, 0]].map(([x, z]) => B([x, 12.4, z], [x ? 1.6 : 3.4, 1.2, z ? 1.6 : 3.4], shadeOf(hat, 0.85))), B([0, 12.6, 0], [3, 1.2, 3], hat),
           B([0, 10.6, 4.05], [1.6, 1.8, 0.4], 0xe0b030), B([-1, 11, 4.05], [0.8, 0.8, 0.3], 0xe0b030), B([1, 11, 4.05], [0.8, 0.8, 0.3], 0xe0b030),
-          ...mirrorX([B([-4.6, 2.2, 1.6], [0.4, 1.4, 1.4], 0xe0b030)]),
         ],
+        head: mirrorX([B([-4.6, 2.2, 1.6], [0.4, 1.4, 1.4], 0xe0b030)]),
         torso: [
           B([2.4, 9, 2.45], [1.6, 1.8, 0.4], 0xe0b030), B([2.4, 9, 2.65], [0.8, 0.8, 0.2], 0xf8e070), ...mirrorX([B([-1.6, 11.8, 2.3], [1.8, 0.8, 0.4], 0x6a6a3c, [0, 0, -0.45])]),
           // binoculars on a strap
@@ -795,7 +803,7 @@ export const PEOPLE = {
     parts() {
       const m = 0x7a1828, md = 0x5a1020, gold = 0xe0b030;
       return {
-        head: [B([0, 10.4, -0.4], [6.6, 3, 6.6], m), B([0, 9.2, -0.4], [6.8, 0.6, 6.8], gold), B([0, 11.95, -0.4], [6.7, 0.3, 6.7], shadeOf(m, 0.8)), B([0, 10.6, 2.95], [0.9, 0.9, 0.3], gold)],
+        hat: [B([0, 10.4, -0.4], [6.6, 3, 6.6], m), B([0, 9.2, -0.4], [6.8, 0.6, 6.8], gold), B([0, 11.95, -0.4], [6.7, 0.3, 6.7], shadeOf(m, 0.8)), B([0, 10.6, 2.95], [0.9, 0.9, 0.3], gold)],
         torso: [
           // the double-breasted front: overlapping panel, two columns of buttons, gold edges
           B([0.6, 5.4, 2.45], [5.4, 10.8, 0.3], m), B([-2.1, 9.2, 2.65], [0.3, 3.2, 0.2], gold, [0, 0, -0.35]), B([3.3, 5.4, 2.65], [0.3, 10.8, 0.2], gold),
@@ -819,7 +827,8 @@ export const PEOPLE = {
   // on it, gold hoops, a hibiscus shirt, a lanyard, a fanny pack, khaki shorts,
   // high-tops, and her fold-out map of the stars' homes
   rt_la_guide: {
-    painter: 'hero', scale: 1.2, accent: 0xf0c840,
+    painter: 'hero', scale: ADULT_SCALE, accent: 0xf0c840,   // (round 9: an adult, 1.2 → ADULT_SCALE)
+   
     paint: { skinTone: 0xe8a478, hair: 0xb04a1a, fringe: 2, hairSide: 4, hairBack: 7, eye: 0x4a2a14, pupil: 0x140806, brow: 0x8a3410, lashes: true, mouth: 'grin', freckles: 0xd08a5a, top: 0xf0602a, shortSleeve: 4, collar: 0xe0501a, hem: 0xc8481a, pants: 0x8a8050, shorts: 5, cargo: true, socks: 0xf4f4f0, shoes: 0x1a1a1e, sole: 0xf4f0e8 },
     body(S, D) {
       // hibiscus flowers on the shirt and sleeves
@@ -833,12 +842,12 @@ export const PEOPLE = {
     parts() {
       const white = 0xf6f4ee;
       return {
-        head: [
+        hat: [
           // the visor: a white band and brim with a little yellow sun, sunglasses up on it
           B([0, 8.4, 0], [9.8, 1.6, 9.6], white), B([0, 8, 6.2], [9, 0.6, 4.6], white), B([0, 8.6, 4.85], [1.4, 1.4, 0.2], 0xf0c030), B([0, 8.6, 5], [0.6, 0.6, 0.1], 0xe86a20),
           B([0, 9.6, 3.2], [8, 0.5, 0.5], 0x141414), ...mirrorX([B([-2, 9.8, 3.4], [3, 1.8, 0.5], 0x141414)]),
-          ...mirrorX([B([-4.5, 2.2, 1.6], [0.4, 1.6, 1.6], 0xe0b030), B([-4.5, 2.2, 1.6], [0.5, 0.8, 0.8], 0xe8a478)]),
         ],
+        head: mirrorX([B([-4.5, 2.2, 1.6], [0.4, 1.6, 1.6], 0xe0b030), B([-4.5, 2.2, 1.6], [0.5, 0.8, 0.8], 0xe8a478)]),
         torso: [
           // a blue lanyard and badge, the fanny pack at her hip
           ...mirrorX([B([-1.6, 9.8, 2.4], [0.4, 4.6, 0.4], 0x2a6ad8, [0, 0, -0.35])]), B([0, 6.6, 2.55], [1.8, 2.4, 0.3], white), B([0, 7.2, 2.72], [1.4, 0.6, 0.1], 0x2a6ad8), B([0, 6.2, 2.72], [1, 0.8, 0.1], 0xe8b088),
@@ -859,7 +868,8 @@ export const PEOPLE = {
   // with a white flower, a yellow raincoat over a striped sweater, olive
   // trousers, green rubber boots, a fishing rod with a bobber, a tackle box
   rt_sm_fisher: {
-    painter: 'person', scale: 1.02, accent: 0xf0c020,
+    painter: 'person', scale: 1.18, accent: 0xf0c020,   // (round 9: a tiny old woman stands about a twelve-year-old's height, her skull level with Percy's: 1.02 → 1.18)
+   
     paint: { skin: 0xe8b090, hair: 0xb8b4b8, fringe: 2, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x3a2414, brow: 0x9a969c, smile: true, wrinkles: 0xc49076, blush: 0xf09a94, top: 0x2e5a8a, knit: true, jacket: 0xf0c020, lapel: 0xd8a810, sleeve: 0xf0c020, pants: 0x5a5a34, shoes: 0x3e5a2e, saturate: 1.12,
       body: (S) => {
         // the sweater's stripes: navy, teal and cream
@@ -874,7 +884,7 @@ export const PEOPLE = {
       for (const [x, z, w, d] of [[0, 5.5, 12, 2.2], [0, -5.5, 12, 2.2], [5.5, 0, 2.2, 10], [-5.5, 0, 2.2, 10]]) L.push(B([x, 8.1, z], [w, 0.6, d], y, [z ? Math.sign(z) * 0.35 : 0, 0, x ? -Math.sign(x) * 0.35 : 0]));
       L.push(B([2.4, 9.6, 4.95], [2, 0.7, 0.4], 0xf8f6ee), B([2.4, 9.6, 4.95], [0.7, 2, 0.4], 0xf8f6ee), B([2.4, 9.6, 5.2], [0.6, 0.6, 0.2], 0xf0c030));
       return {
-        head: L,
+        hat: L,
         torso: [B([0, 12, 0], [9.2, 1.4, 5.2], yd), ...[3, 6, 9].map((h) => B([-2.1, h, 2.5], [0.8, 0.8, 0.3], 0x5a4a2a)), ...mirrorX([B([-2.6, 4, 2.45], [1.6, 1.4, 0.3], yd)]),
           B([0.2, 6.6, 2.45], [1, 13, 0.4], 0x6a3a1e, [0, 0, 0.52]), B([0.2, 6.6, -2.45], [1, 13, 0.4], 0x6a3a1e, [0, 0, 0.52])],
         hips: [...mirrorX([B([-3, -2.6, 0.2], [3, 5.2, 4.8], y)]), B([0, -2.6, -2.3], [9, 5.2, 0.6], y), B([0, -5.3, 0], [9.2, 0.4, 5], yd), B([4.6, -1.4, 0.6], [1.4, 3, 3], 0x6a3a1e)],
@@ -930,6 +940,8 @@ function kitFor(id, def) {
     kit.parts[slot] = mergeGeometries(geos);
     if (glow[slot]?.length) kit.glow[slot] = boxGeometry(glow[slot], unit);
   }
+  // (parts.hat: headwear, its own mesh so perf/bodysize.cjs can leave it out; merged with the head in game)
+  if (parts.hat?.length) kit.hat = boxGeometry(parts.hat, PX * HS);
   if (def.tail) kit.tail = cellMesh(heroTail({ ...def.tail, seed: seed + 3 }), PX * HS, null).geometry;
   kits.set(id, kit);
   return kit;
@@ -951,6 +963,7 @@ export function buildPerson(id) {
     if (kit.parts[slot]) { const m = rig.mesh(kit.parts[slot], partM); rig[slot].add(m); rig.extras[slot === 'head' ? 'hair' : slot + 'Parts'] = m; }
     if (kit.glow[slot]) { const m = rig.mesh(kit.glow[slot], glowMat(def.glow.color, def.glow.ei)); rig[slot].add(m); rig.extras[slot + 'Glow'] = m; }
   }
+  if (kit.hat) rig.head.add(markHeadwear(rig.mesh(kit.hat, partM)));
   if (kit.tail) {
     // long hair down the back on a spring, like Annabeth's ponytail
     const [x, y, z] = def.tail.pivot ?? [0, 7.6, -4.2], piv = new THREE.Group(); piv.position.set(x * PX * HS, y * PX * HS, z * PX * HS);

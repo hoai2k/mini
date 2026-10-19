@@ -7,6 +7,7 @@ import { uniform, texture, uv, vec3, vec4, float, mix, positionLocal, hash, floo
 import { damp, clamp, lerp, easeOutCubic, easeInCubic, easeOutBack, mulberry32 } from '../util.js';
 import { U } from '../gfx/materials.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { PART_MERGE } from './charmat.js';
 
 export const PX = 0.058;          // world units per skin pixel
 // Every character (heroes, people, monsters, bosses) is drawn at this share of
@@ -202,6 +203,7 @@ export function mergeChildren(rig, group) {
   const sets = new Map();
   for (const m of group.children) {
     if (!m.isMesh || m.isInstancedMesh || m.isSkinnedMesh || m.children.length || !m.visible || Array.isArray(m.material) || m.morphTargetInfluences || m.userData.noMerge || m.userData.shell || m.userData.flames) continue;
+    if (m.userData.headwear && !PART_MERGE.on) continue;   // (a hat kept apart while the size checks measure the body without it: proportions.js markHeadwear)
     const g = m.geometry, A = g.attributes;
     const sig = [m.material.id, !!g.index, m.castShadow, m.receiveShadow, m.renderOrder, m.frustumCulled, ...Object.keys(A).sort().map((k) => `${k}${A[k].itemSize}${A[k].array.constructor.name}${A[k].normalized}`)].join('|');
     if (!sets.has(sig)) sets.set(sig, []);

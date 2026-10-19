@@ -1185,8 +1185,10 @@ function riverBand(c, alongX, at, width = 4) {
 // The top of the Arch: a long hall with a triangular cross-section (sloped steel
 // walls with slit windows), running along the room's door axis, with sky either side.
 // Doors that meet a long side get a catwalk and a gap. Returns the hall frame.
-function archHall(c, { half = 5, hole = false } = {}) {
-  const { k, x0, z0, x1, z1, y } = c; const W = k.w;
+// (rise: blocks added to the walls' height, for the boss deck, where the
+// Chimera stands about 7 m tall: the ceiling at y + 5 + rise)
+function archHall(c, { half = 5, hole = false, rise = 0 } = {}) {
+  const { k, x0, z0, x1, z1, y } = c; const W = k.w, e = rise;
   const ew = c.doors.filter((d) => d.side === 'e' || d.side === 'w').length, ns = c.doors.length - ew;
   const alongX = ew > ns || (ew === ns && (x1 - x0) >= (z1 - z0));
   const mid = alongX ? (z0 + z1) >> 1 : (x0 + x1) >> 1;
@@ -1195,14 +1197,14 @@ function archHall(c, { half = 5, hole = false } = {}) {
   for (const d of c.doors) if (alongX ? (d.side === 'e' || d.side === 'w') : (d.side === 'n' || d.side === 's')) half = Math.max(half, Math.abs(d.at - mid) + 3);
   half = Math.min(half, Math.floor(((alongX ? z1 - z0 : x1 - x0)) / 2));
   const P = (t, sv) => alongX ? [t, mid + sv] : [mid + sv, t];
-  const rows = [[half, 0, 1], [half - 1, 2, 3], [half - 2, 4, 4]];
+  const rows = [[half, 0, 1 + e], [half - 1, 2 + e, 3 + e], [half - 2, 4 + e, 4 + e]];
   for (let t = t0; t <= t1; t++) for (let sv = -half; sv <= half; sv++) {
     const [x, z] = P(t, sv);
     for (let d = 1; d <= 3; d++) W.set(x, y - d, z, d === 1 ? (Math.abs(sv) <= 1 ? B.carpet_red : B.steel_panel) : B.iron_plate);
     const a = Math.abs(sv);
     for (const [rs, ya, yb] of rows) if (a === rs) for (let yy = y + ya; yy <= y + yb; yy++) W.set(x, yy, z, (yy === y + 1 || yy === y + 2) && t % 2 === 0 ? B.steel_window : B.steel_panel);
-    if (a <= half - 3) W.set(x, y + 5, z, B.steel_panel);
-    if (t === t0 || t === t1) for (let yy = y; yy <= y + 5; yy++) if (a <= half - (yy <= y + 1 ? 0 : yy <= y + 3 ? 1 : 2) && yy <= y + (a <= half - 3 ? 5 : 4)) W.set(x, yy, z, yy === y + 2 && a < half - 1 ? B.steel_window : B.steel_panel);
+    if (a <= half - 3) W.set(x, y + 5 + e, z, B.steel_panel);
+    if (t === t0 || t === t1) for (let yy = y; yy <= y + 5 + e; yy++) if (a <= half - (yy <= y + 1 + e ? 0 : yy <= y + 3 + e ? 1 : 2) && yy <= y + (a <= half - 3 ? 5 : 4) + e) W.set(x, yy, z, yy === y + 2 && a < half - 1 ? B.steel_window : B.steel_panel);
   }
   // doorways: the ends open where a door is; doors on the long sides get a catwalk
   for (const d of c.doors) {
@@ -1218,9 +1220,9 @@ function archHall(c, { half = 5, hole = false } = {}) {
     for (let o = -2; o <= 2; o++) for (const [rs, ya, yb] of rows) for (let yy = y + ya; yy <= Math.min(y + 3, y + yb); yy++) { const [x, z] = P(d.at + o, sgn * rs); W.set(x, yy, z, 0); }
   }
   const [ax, az] = P(t0, -half), [bx, bz] = P(t1, half);
-  const mn = [Math.min(ax, bx), y + 2, Math.min(az, bz)], mx = [Math.max(ax, bx), y + 5, Math.max(az, bz)];
-  W.addRoof(mn, mx, [[mn[0], y, mn[2]], [mx[0], y + 4, mx[2]]]);
-  for (let t = t0 + 3; t < t1 - 1; t += 5) { const [x, z] = P(t, 0); lightAt(c, x + 0.5, y + 4, z + 0.5, 0xffe2b8, 3.5, 9); }
+  const mn = [Math.min(ax, bx), y + 2, Math.min(az, bz)], mx = [Math.max(ax, bx), y + 5 + e, Math.max(az, bz)];
+  W.addRoof(mn, mx, [[mn[0], y, mn[2]], [mx[0], y + 4 + e, mx[2]]]);
+  for (let t = t0 + 3; t < t1 - 1; t += 5) { const [x, z] = P(t, 0); lightAt(c, x + 0.5, y + 4 + e, z + 0.5, 0xffe2b8, 3.5, 9 + e); }
   // a mark under where people stand at the windows
   c.reserved = c.reserved ?? new Set();
   return { alongX, mid, t0, t1, P, half };
@@ -1301,7 +1303,7 @@ DRESS.arch = {
   // Mississippi far below (slot 'river_leap': survive until you can jump).
   boss(c) {
     const { k, x0, z0, x1, z1, y } = c;
-    const H = archHall(c, { half: 6 });
+    const H = archHall(c, { half: 9, rise: 3 });   // (wide and tall enough for the Chimera, about 7 m tall at twice its old size)
     const tm = (H.t0 + H.t1) >> 1;
     // the hole on the near (south / east) side, glass on the floor
     for (let t = tm - 3; t <= tm + 3; t++) for (let sv = H.half - 2; sv <= H.half; sv++) for (let yy = y; yy <= y + 4; yy++) { const [x, z] = H.P(t, sv); k.w.set(x, yy, z, 0); }

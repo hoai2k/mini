@@ -8,7 +8,7 @@ import { Skin, Rig, makeCharMaterial, PX, markTip, markHeld, mergeChildren } fro
 import { hashStr, mulberry32 } from '../util.js';
 import { heroHair, heroTail, cellMesh, partMaterial, partsMesh, footwear, band, beads, tatters, sleeveTatters } from './herovox.js';
 import { resFor } from './parts.js';
-import { markHeadCore, reshape, applyShape } from './proportions.js';
+import { markHeadCore, reshape, applyShape, markHeadwear } from './proportions.js';
 
 export const CAMP_ORANGE = 0xf28c28;
 const INK = 0x17130f;
@@ -266,7 +266,7 @@ function cap(rig, color) {
   bx(g, 0.9, 0.5, 0.9, 0, 12.4, -0.5, dark, H);               // button
   bx(g, 9, 0.7, 4.8, 0, 8.3, 6.9, dark, H);                   // brim
   bx(g, 10.3, 0.6, 10.1, 0, 8.1, -0.3, dark, H);              // band
-  rig.head.add(g); return g;
+  rig.head.add(g); return markHeadwear(g);
 }
 
 // Riptide: celestial-bronze sword with a leaf-shaped blade, along +z of the hand.
@@ -420,7 +420,7 @@ function helmet(rig, color, crest) {
   bx(g, 1.4, 3, 1.1, 0, 6.6, 4.8, m, H);                    // nose guard
   // a tall horsehair crest from brow to nape, darker in stripes
   for (let i = 0; i < 11; i++) { const a = i / 10 * Math.PI, hgt = 2.4 + Math.sin(a) * 3.2; bx(g, 1.8, hgt, 1.1, 0, 12 + hgt / 2 - 0.6 - (i < 2 || i > 9 ? 0.8 : 0), 4.2 - i * 1.05, i % 3 === 1 ? c2 : c, H); }
-  rig.head.add(g); return g;
+  rig.head.add(g); return markHeadwear(g);
 }
 // Fleece collar on an aviator jacket (Nico).
 function fleeceCollar(rig, color) {
@@ -509,12 +509,12 @@ export function buildHeroModel(id) {
     // goat horns poking up out of the afro, curling back at the tips
     const horn = mat(0xe0c490, { rough: 0.55 }), ridge = mat(0xc4a46a, { rough: 0.6 }), tip = mat(0x9a7a4a, { rough: 0.55 });
     for (const s of [-1, 1]) {
-      bx(rig.head, 2.6, 2.4, 2.6, s * 3.1, 11.6, 1.6, horn, H);
-      bx(rig.head, 2.2, 0.5, 2.3, s * 3.2, 12.9, 1.4, ridge, H);
-      bx(rig.head, 2.1, 2.2, 2.1, s * 3.4, 14.1, 1.1, horn, H);
-      bx(rig.head, 1.8, 0.5, 1.9, s * 3.5, 15.3, 0.8, ridge, H);
-      bx(rig.head, 1.5, 1.7, 1.6, s * 3.7, 16.2, 0.2, tip, H);
-      bx(rig.head, 1.1, 1.1, 1.3, s * 3.9, 16.8, -1.0, tip, H);
+      markHeadwear(bx(rig.head, 2.6, 2.4, 2.6, s * 3.1, 11.6, 1.6, horn, H));
+      markHeadwear(bx(rig.head, 2.2, 0.5, 2.3, s * 3.2, 12.9, 1.4, ridge, H));
+      markHeadwear(bx(rig.head, 2.1, 2.2, 2.1, s * 3.4, 14.1, 1.1, horn, H));
+      markHeadwear(bx(rig.head, 1.8, 0.5, 1.9, s * 3.5, 15.3, 0.8, ridge, H));
+      markHeadwear(bx(rig.head, 1.5, 1.7, 1.6, s * 3.7, 16.2, 0.2, tip, H));
+      markHeadwear(bx(rig.head, 1.1, 1.1, 1.3, s * 3.9, 16.8, -1.0, tip, H));
     }
     rig.extras.wings = [wings(rig.legR, -10.5), wings(rig.legL, -10.5)];
   }
@@ -600,7 +600,7 @@ export function buildNpc(id) {
   }
   for (const [u, v] of ARMS) S.rect(u, v + 4 + 4, 16, 1, shadeOf(0xe0a028, 0.75), 0.05);
   S.shadeLimbs(); S.saturate(1.15);
-  const rig = new Rig({ material: Object.assign(makeCharMaterial(S.texture()), { alphaTest: 0.5 }), scale: 1.05, bodyW: 10 });
+  const rig = new Rig({ material: Object.assign(makeCharMaterial(S.texture()), { alphaTest: 0.5 }), scale: 1.18, bodyW: 10 });   // (round 9: a short grown man, his skull level with Percy's, not under it: 1.05 → 1.18)
   addHair(rig, { vox: { style: 'afro', base: 0x1a1416, shade: 0x080608, light: 0x3a2e34, seed: 9, shape: { r: [5.4, 4.6, 5.4], c: [0, 7.2, -0.6] } } });
   // the grape-vine wreath
   const w = [], rr = mulberry32(23), hs = (rig.dims.headS / 8) * 1.12;
@@ -610,7 +610,7 @@ export function buildNpc(id) {
     w.push({ at: [x, y, z], size: [1.6, 0.8, 1.6], col: new THREE.Color([0x3a7a2a, 0x2a5a1e, 0x5a9a34][i % 3]) });
     if (i % 4 === 1) for (let k = 0; k < 5; k++) w.push({ at: [x + (rr() - 0.5) * 1.4, y + 0.6 + (k < 3 ? 0 : 0.9) + rr() * 0.3, z + (rr() - 0.5) * 1.4], size: [0.9, 0.9, 0.9], col: new THREE.Color([0x5a2a7a, 0x7a3a9a, 0x4a1a5a][k % 3]) });
   }
-  const wm = partMaterial(), wreath = partsMesh(w, wm); wreath.scale.setScalar(hs); wreath.userData.baseMat = wm; rig.meshes.push(wreath); rig.head.add(wreath);
+  const wm = partMaterial(), wreath = partsMesh(w, wm); wreath.scale.setScalar(hs); wreath.userData.baseMat = wm; rig.meshes.push(wreath); rig.head.add(markHeadwear(wreath));
   addOutfit(rig, { footwear: { kind: 'sandal', upper: 0x6a3a1a, sole: 0x4a2a14, trim: 0xe0a07a }, cuffs: 0x4a4a24 });
   const can = new THREE.Group(), red = mat(0xc8202a, { rough: 0.4 }), silver = mat(0xd8d8e0, { metal: 0.8, rough: 0.3 });
   bx(can, 1.9, 2.4, 1.9, 0, -1.2, 1, silver); bx(can, 2, 1.2, 2, 0, -1.2, 1, red); bx(can, 1.5, 0.3, 1.5, 0, 0.15, 1, silver); rig.handR.add(can);

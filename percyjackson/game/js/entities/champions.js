@@ -18,7 +18,7 @@ import { MONSTERS, HELLHOUND, buildMonsterModel, animateExtras, kit, dropMeshes,
 import { blob } from './fodder.js';
 import { addFlames, remapFlames } from './flames.js';
 import { mergeRig, PART_MERGE } from './charmat.js';
-import { reshape, applyShape, markHeadCore, legScale } from './proportions.js';
+import { reshape, applyShape, markHeadCore, legScale, markHeadwear } from './proportions.js';
 
 const GOLD = 0xf0b030, GOLD_D = 0xb87a14, GOLD_L = 0xffe070;
 
@@ -40,7 +40,7 @@ function crown(K, parent, { cx = 0, y = 0, cz = 0, w = 8, d = 8, h = 1.6, spike 
   for (const sx of [-1, 1]) for (const z of [-d / 4, d / 4]) K.box(g, sx * w / 2, h / 2 + spike * 0.35, z, 0.8, spike * 0.7, 0.8, gold);
   K.box(g, 0, 0, d / 2 + 0.45, 1.2, 1, 0.3, gem);
   for (const sx of [-1, 1]) K.box(g, sx * w * 0.3, 0, d / 2 + 0.45, 0.7, 0.7, 0.3, gem);
-  return g;
+  return markHeadwear(g);   // (headwear: perf/bodysize.cjs measures the body under it)
 }
 // A crackling bolt: a zigzag of glowing cells from a along dir (unit-ish
 // [x, y, z]) for n steps, kinking sideways every step.
@@ -196,7 +196,8 @@ function buildBronzeWarden() {
   // cheek plates either side of a dark visor, and the one blue eye
   K.vox(Hd, 0, H8 / 2, -0.2, H8 + 0.6, H8 + 0.4, H8 + 0.6, BC, { cell: 1.6, faces: 'tlrk', j: 0.14 });
   markHeadCore(rig, [0, H8 / 2, -0.2], [H8 + 0.6, H8 + 0.4, H8 + 0.6]);   // (the helm; its crest aside)
-  K.box(Hd, 0, H8 + 0.9, -0.6, 4.4, 1.6, H8 - 0.4, BL); K.box(Hd, 0, H8 + 2.3, -1, 2.6, 1.4, H8 - 2.4, B); K.box(Hd, 0, H8 + 3.2, -1.4, 1.4, 0.8, H8 - 4, BD);
+  const crest = reshape(rig, markHeadwear(group(Hd, 0, 0, 0)), 0.62);   // (the stepped crest, headwear: measured apart from the helm, round 9)
+  K.box(crest, 0, H8 + 0.9, -0.6, 4.4, 1.6, H8 - 0.4, BL); K.box(crest, 0, H8 + 2.3, -1, 2.6, 1.4, H8 - 2.4, B); K.box(crest, 0, H8 + 3.2, -1.4, 1.4, 0.8, H8 - 4, BD);
   K.box(Hd, 0, H8 * 0.8, H8 / 2 + 0.2, H8 + 1.2, 1.8, 1, BL);
   K.box(Hd, 0, H8 * 0.43, H8 / 2 + 0.15, H8 - 2.6, H8 * 0.5, 0.4, 0x0e1416);
   K.box(Hd, 0, H8 * 0.6, H8 / 2 + 0.38, H8 - 3.2, 0.7, 0.2, 0x2ab0c0);
@@ -418,7 +419,7 @@ function buildGorgos() {
   // ---- the bear's head worn as a hood: a furry skull over his own, its
   // upper jaw jutting over his brow with fangs hanging, a black nose, small
   // gold eyes, round ears, and the pelt falling past his cheeks
-  const hood = group(Hd, 0, 9.4, 0); reshape(rig, hood, HF);
+  const hood = markHeadwear(group(Hd, 0, 9.4, 0)); reshape(rig, hood, HF);   // (headwear, round 9: the body is measured to his own crown under it)
   blob(K, hood, [0, 0, -0.6], [5.6, 3.4, 5.8], 1.2, pelt, { pw: 2.2, lo: -0.4, run: [1, 2] });
   blob(K, hood, [0, 0.3, 3.4], [4.3, 2.5, 2.8], 1.1, pelt, { pw: 2.2, run: [1, 2] });
   blob(K, hood, [0, -0.5, 6.2], [2.7, 1.7, 2.6], 1, (x, y) => (y > 0.2 ? MUZ[0] : MUZ[1]), { pw: 2.2 });
@@ -494,7 +495,8 @@ function buildPaleKing() {
   const rig = buildSkeleton({ id: 'champ_pale_king', helmet: false, gear: false, pal: { bone: 0xd8d4c4, boneD: 0xa8a494, olive: IRON, oliveD: IRON_D, khaki: 0x3a3428, camo: [IRON, 0x1c1d26, 0x3a3c4a, 0x6a5a2a], boot: { upper: IRON, sole: 0x101014, lace: 0x8a7a3a } } });
   const K = kit(rig, rig.material, { seed: 131, rough: 0.5, metal: 0.3, emit: 0.9 });
   const T = rig.torso, Hd = rig.head, H8 = 8 * HS, GF = [0x3aff6a, 0x8affa0, 0x1ad84a];
-  crown(K, Hd, { y: H8 + 0.6, w: H8 + 0.4, d: H8 + 0.4, h: 1.8, spike: 2.4, gold: 0xc89a30, dark: 0x7a5a18, gem: 0x3aff6a });   // (round 7: lower spikes, so the crown no longer tops him past the leg rule's line)
+  const hf = rig.shape?.get(Hd)?.f[1] ?? 1;   // (round 9: the skeleton's skull is reshaped smaller for its grown body; the crown is sized to it)
+  crown(K, Hd, { y: H8 + 0.6, w: (H8 + 0.4) * hf, d: (H8 + 0.4) * hf, h: 1.8, spike: 2.4, gold: 0xc89a30, dark: 0x7a5a18, gem: 0x3aff6a });   // (round 7: lower spikes, so the crown no longer tops him past the leg rule's line)
   for (const sx of [-1, 1]) { K.box(Hd, sx * 2.2 * HS, 4.3 * HS, H8 / 2 + 0.2, 1.6, 1.4, 0.3, GF[0]); K.box(Hd, sx * 2.2 * HS, 4.3 * HS, H8 / 2 + 0.3, 0.6, 0.6, 0.3, 0xe0ffe8); }
   // green flame licking up over the crown
   const flame = group(Hd, 0, H8 + 1, 0);
@@ -517,6 +519,7 @@ function buildPaleKing() {
   K.box(sw, 0, 0, 9, 0.7, 0.4, 13, 0x1ad84a);
   markTip(sw, 0, 0, 17.7, 'black sword'); rig.extras.blade = sw; rig.extras.muzzle = group(sw, 0, 0, 18);
   for (const hand of [rig.handL]) for (let i = 0; i < 6; i++) K.box(hand, (K.r() - 0.5) * 2.4, -1 + K.r() * 2.4, (K.r() - 0.5) * 2.4, 0.9, 1.2, 0.9, GF[i % 3]);
+  applyShape(rig);   // (the crown and the flame to their places on the reshaped skull)
   K.done();
   return rig;
 }
@@ -526,13 +529,13 @@ export const CHAMPION_LOOKS = {
   fields_bronzebeak: { kind: 'stymphalian', build: buildBronzebeak, shell: 0xff6a1a, aura: { kind: 'embers', col: [2.6, 1.2, 0.3] }, scale: 2.1 },
   woods_shadowfang: { kind: 'hellhound', build: buildShadowfang, glow: 0, shell: 0xff2a0a, aura: { kind: 'smoke', col: [2.6, 0.6, 0.1], at: 'head' }, scale: 1.3 },
   shore_queen_gale: { kind: 'harpy', build: buildQueenGale, shell: 0xffe040, aura: { kind: 'spark', col: [2.6, 2.4, 0.8] }, scale: 1.6 },   // (size audit, round 6: the harpy grew 1.37×, so 1.85 → 1.6 keeps the queen about 1.6× Percy, "bigger" in design/sizes.json)
-  canyon_red_king: { kind: 'scorpion', build: buildRedKing, shell: 0xffb020, aura: { kind: 'dust', col: [2.4, 1.6, 0.3] }, scale: 2.4 },
+  canyon_red_king: { kind: 'scorpion', build: buildRedKing, shell: 0xffb020, aura: { kind: 'dust', col: [2.4, 1.6, 0.3] }, scale: 1.4 },   // (round 9: the scorpion itself grew 2.4×, so 2.4 → 1.4 keeps the king a step above it, the size of a pickup truck)
   lab_bronze_warden: { kind: 'automaton', build: buildBronzeWarden, shell: 0x3ae8ff, aura: { kind: 'spark', col: [0.5, 2.2, 2.6] }, scale: 1.6, size: 2.4 },   // (size audit: a giant automaton, about 1.85× a hero; its hall is a 15-block open ring)
   // (Gorgos is a two-eyed giant now, but fights as the cyclops kind: its club
   // swing and ground slam suit a club-wielding giant, where the giant kind,
   // the Laistrygonian, keeps its distance and lobs fire bombs)
   oth_gorgos: { kind: 'cyclops', build: buildGorgos, shell: 0xff6a20, aura: { kind: 'embers', col: [2.6, 1, 0.2], at: 'head' }, scale: 1.12 },
-  asphodel_pale_king: { kind: 'skeleton', build: buildPaleKing, glow: 0.008, shell: 0x3aff7a, aura: { kind: 'wisp', col: [0.5, 2.6, 1.0] }, scale: 1.45 },
+  asphodel_pale_king: { kind: 'skeleton', build: buildPaleKing, glow: 0.008, shell: 0x3aff7a, aura: { kind: 'wisp', col: [0.5, 2.6, 1.0] }, scale: 1.26 },   // (round 9: the skeleton grew to 1.4x Percy, so 1.45 → 1.26 keeps the king a step above it, about 1.8x)
 };
 
 // ---- any other champion: a crown, a colour scheme by kind and a glow -----------
@@ -543,8 +546,10 @@ export const KIND_LOOKS = {
   hellhound: { shell: 0x3a9aff, aura: { kind: 'smoke', col: [0.4, 1.4, 2.6], at: 'head' }, scale: 1.25, remap: (c) => { if (hueIn(c.h, 0.97, 0.14) && c.s > 0.55 && c.l > 0.3) c.h = 0.55; } },
   pup: { shell: 0x3a9aff, aura: { kind: 'smoke', col: [0.4, 1.4, 2.6] }, scale: 1.4, remap: (c) => { if (hueIn(c.h, 0.97, 0.14) && c.s > 0.55 && c.l > 0.3) c.h = 0.55; } },
   // bone-white skeletons in crimson armour
-  skeleton: { shell: 0xff3a3a, aura: { kind: 'wisp', col: [2.6, 0.5, 0.4] }, scale: 1.4, remap: (c) => { if (hueIn(c.h, 0.1, 0.32) && c.l < 0.58 && c.s > 0.12) { c.h = 0.99; c.s = Math.min(1, c.s + 0.35); c.l *= 0.85; } } },
-  spartoi: { shell: 0xff3a3a, aura: { kind: 'wisp', col: [2.6, 0.5, 0.4] }, scale: 1.4, remap: (c) => { if (hueIn(c.h, 0.42, 0.55)) { c.h = 0.99; } } },
+  skeleton: { shell: 0xff3a3a, aura: { kind: 'wisp', col: [2.6, 0.5, 0.4] }, scale: 1.26,   // (round 9: the kind grew to 1.4x Percy; 1.4 → 1.26 keeps the champion a step above, about 1.8x)
+    remap: (c) => { if (hueIn(c.h, 0.1, 0.32) && c.l < 0.58 && c.s > 0.12) { c.h = 0.99; c.s = Math.min(1, c.s + 0.35); c.l *= 0.85; } } },
+  spartoi: { shell: 0xff3a3a, aura: { kind: 'wisp', col: [2.6, 0.5, 0.4] }, scale: 1.26,   // (round 9: as the skeleton, 1.4 → 1.26)
+    remap: (c) => { if (hueIn(c.h, 0.42, 0.55)) { c.h = 0.99; } } },
   // obsidian spiders with violet fire
   spider: { shell: 0xb05aff, aura: { kind: 'spark', col: [1.8, 0.6, 2.6] }, scale: 1.7, remap: (c, hot) => { if (hot) c.h = 0.8; else if (hueIn(c.h, 0.02, 0.16)) { c.h = 0.72; c.s *= 0.4; c.l *= 0.55; } } },
   // royal purple dracaenae
@@ -553,7 +558,7 @@ export const KIND_LOOKS = {
   empousa: { shell: 0x40c0ff, aura: { kind: 'embers', col: [0.4, 1.6, 2.6], at: 'head' }, scale: 1.3, remap: (c, hot) => { if (hueIn(c.h, 0.97, 0.12) && (hot || c.s > 0.75)) c.h = 0.56; } },
   harpy: { shell: 0xffd84a, aura: { kind: 'spark', col: [2.6, 2, 0.6] }, scale: 1.4 },   // (size audit, round 6: the harpy grew 1.37×, so 1.6 → 1.4)
   stymphalian: { shell: 0xff8a2a, aura: { kind: 'embers', col: [2.6, 1.2, 0.3] }, scale: 1.4 },   // (size audit, round 4: the bird itself grew ×1.36, so the champion stays near its old size, a wingspan about 3× Percy)
-  scorpion: { shell: 0xffb020, aura: { kind: 'dust', col: [2.4, 1.6, 0.3] }, scale: 2 },
+  scorpion: { shell: 0xffb020, aura: { kind: 'dust', col: [2.4, 1.6, 0.3] }, scale: 1.25 },   // (round 9: the scorpion grew 2.4×, so 2 → 1.25)
   cyclops: { shell: 0xff6a20, aura: { kind: 'embers', col: [2.6, 1, 0.2] }, scale: 1.08 },
 };
 const DEFAULT_LOOK = { shell: 0xffd84a, aura: { kind: 'spark', col: [2.6, 2, 0.6] }, scale: 1.3 };

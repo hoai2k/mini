@@ -93,10 +93,10 @@ const BOSSES = {
     tick: (b, dt) => H.medusaTick(b, dt), onDie: (b) => H.medusaDie(b),
   },
   chimera: {
-    name: txt('bosses.chimera.name'), title: txt('bosses.chimera.title'), hp: 2400, speed: 3, dmg: 20, color: 0xff6a1a, radius: 1.3, height: 3,
+    name: txt('bosses.chimera.name'), title: txt('bosses.chimera.title'), hp: 2400, speed: 3, dmg: 20, color: 0xff6a1a, radius: 2.6, height: 6, keep: 5.5,   // (radius, height: round 9, twice its old size; keep: it stops with its heads, not its chest, at the hero)
     build: BOSS_MODELS.chimera,
     phases: [['fire_breath', 'fireballs', 'tail_strike'], ['fire_breath', 'pounce', 'fireballs', 'tail_strike'], ['fire_breath', 'fireballs', 'pounce', 'tail_strike', 'fire_breath']],
-    ambient: (b) => { const g = b.game; if (Math.random() < 0.4) { const c = b.mouth(); g.particles.glow.emit(c.x, c.y, c.z, (Math.random() - 0.5) * 0.5, 0.8 + Math.random(), (Math.random() - 0.5) * 0.5, 0.4, 2.6, 1, 0.2, 0.2, -1, 1, 0.05, 0); } },
+    ambient: (b) => { const g = b.game; if (Math.random() < 0.4) { const c = b.mouth(Math.random() < 0.5 ? 0 : 1); g.particles.glow.emit(c.x, c.y, c.z, (Math.random() - 0.5) * 0.5, 0.8 + Math.random(), (Math.random() - 0.5) * 0.5, 0.4, 2.6, 1, 0.2, 0.2, -1, 1, 0.05, 0); } },
   },
   spiders: {
     name: txt('bosses.spiders.name'), title: txt('bosses.spiders.title'), hp: 2000, speed: 3.2, dmg: 16, color: 0xffb02a, radius: 1.6, height: 2.6,
@@ -255,7 +255,8 @@ export class Boss {
   ground(p) { const gy = this.game.world.groundBelow(p.x, p.z, p.y + 4); return isFinite(gy) ? gy : p.y; }
   faceTarget(t) { if (t) this.facing = Math.atan2(t.pos.x - this.pos.x, t.pos.z - this.pos.z); return new THREE.Vector3(Math.sin(this.facing), 0, Math.cos(this.facing)); }
   fwd() { return new THREE.Vector3(Math.sin(this.facing), 0, Math.cos(this.facing)); }
-  mouth() { return this.rig.mouthWorld ? this.rig.mouthWorld(new THREE.Vector3()) : this.pos.clone().setY(this.pos.y + this.height * 0.8); }
+  // (i: which mouth, on a boss with more than one: the Chimera's lion 0, goat 1)
+  mouth(i = 0) { return this.rig.mouthWorld ? this.rig.mouthWorld(new THREE.Vector3(), i) : this.pos.clone().setY(this.pos.y + this.height * 0.8); }
   // spawn helpers for summons: a ring of monsters around a point
   // A spot on the ring (radius r round center, near angle a0) where a monster
   // of this kind fits: its whole footprint and height clear of walls and with
@@ -510,24 +511,28 @@ export class Boss {
     yield 0.4;
   }
   // ---------------------------------------------------------------- Chimera
+  // (round 9: the Chimera is twice its old size, its mouths about 5 m ahead
+  // of its middle, so the cone reaches 14 from there, as far past the mouths
+  // as before; both heads breathe, the lion's and the goat's in turn)
   *fire_breath() {
     const g = this.game, t = this.target(); if (!t) return;
     this.moving = false;
     this.faceTarget(t);
-    g.markers.spawn({ pos: this.pos, radius: 11, dur: 0.9, shape: 'cone', arc: 0.28, facing: this.facing, color: 0xff5a1a });
+    const R = 14;
+    g.markers.spawn({ pos: this.pos, radius: R, dur: 0.9, shape: 'cone', arc: 0.28, facing: this.facing, color: 0xff5a1a });
     this.anim = { type: 'raise', t: 0 };
     yield 0.9;
     this.anim = { type: 'cast', t: 1 };
     g.audio?.energy('fire');
     for (let k = 0; k < 16; k++) {
       const dir = tmp2.set(Math.sin(this.facing), 0, Math.cos(this.facing));
-      const from = this.mouth();
-      g.particles.burst(from, { count: 10, color: k % 2 ? 0xff7a2a : 0xffc84a, speed: 16, spread: 0.25, dir, life: 0.6, size: 0.5, sizeEnd: 2.5, drag: 1.5, intensity: 3 });
+      const from = this.mouth(k);
+      g.particles.burst(from, { count: 10, color: k % 2 ? 0xff7a2a : 0xffc84a, speed: 19, spread: 0.25, dir, life: 0.6, size: 0.5, sizeEnd: 2.5, drag: 1.5, intensity: 3 });
       if (k % 3 === 0) for (const p of g.hostileTargets()) {
         if (p.dead) continue; tmp.subVectors(p.pos, this.pos).setY(0); const d = tmp.length();
-        if (d < 11.5 && Math.abs(angleDiff(this.facing, Math.atan2(tmp.x, tmp.z))) < 0.75) p.takeDamage(this.dmg * 0.35, this, { knock: tmp.normalize().multiplyScalar(4) });
+        if (d < R + 0.5 && Math.abs(angleDiff(this.facing, Math.atan2(tmp.x, tmp.z))) < 0.75) p.takeDamage(this.dmg * 0.35, this, { knock: tmp.normalize().multiplyScalar(4) });
       }
-      g.lights.flash(from.addScaledVector(dir, 4), 0xff6a1a, 8, 10, 0.1);
+      g.lights.flash(from.addScaledVector(dir, 5), 0xff6a1a, 8, 10, 0.1);
       yield 0.06;
     }
     this.anim = null; this.moving = true;
@@ -538,12 +543,12 @@ export class Boss {
     this.moving = false; this.anim = { type: 'cast', t: 1 };
     const spots = [];
     for (const p of g.hostileTargets()) if (!p.dead && !p.invisible) spots.push(p.pos.clone());
-    while (spots.length < 4 + this.phase * 2) { const a = Math.random() * Math.PI * 2, r = 2 + Math.random() * 8; spots.push(this.pos.clone().add(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r))); }
+    while (spots.length < 4 + this.phase * 2) { const a = Math.random() * Math.PI * 2, r = this.radius + 1 + Math.random() * 8; spots.push(this.pos.clone().add(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r))); }
     const self = this, flight = 1.0, grav = 14;
     for (const s of spots) {
       s.y = this.ground(s);
       g.markers.spawn({ pos: s, radius: 2, dur: flight + 0.05, color: 0xff4a1a });
-      const from = this.mouth();
+      const from = this.mouth(spots.indexOf(s));   // (the two heads spit in turn)
       const vel = new THREE.Vector3((s.x - from.x) / flight, (s.y - from.y) / flight + 0.5 * grav * flight, (s.z - from.z) / flight);
       g.projectiles.fire({ pos: from, vel, team: 'enemy', dmg: this.dmg, gravity: grav, life: flight, shape: 'orb', color: 0xff6a1a, scale: 2.6, radius: 0.6, ghost: true, light: 4,
         trail: (p) => { g.particles.burst(p.pos, { count: 1, color: 0xff8a2a, speed: 0.4, life: 0.4, size: 0.5, sizeEnd: 0.1, drag: 3 }); },
@@ -559,7 +564,7 @@ export class Boss {
   *tail_strike() {
     const g = this.game;
     this.moving = false;
-    const R = 5;
+    const R = 7.5;   // (round 9: the serpent tail reaches about twice as far behind as before)
     g.markers.spawn({ pos: this.pos, radius: R, dur: 0.8, color: 0x8aff3a, follow: this });
     this.anim = { type: 'attack', t: 0.1, style: 'spin', windup: 0.3, strike: 0.5 };
     g.audio?.noise({ dur: 0.8, gain: 0.2, type: 'highpass', freq: 5000 }); // rattle
@@ -568,7 +573,7 @@ export class Boss {
     g.fx.slashArc(this.pos, this.facing + Math.PI, 0x8aff3a, R, 1, 0.25);
     g.audio?.swing(1);
     this.hurtPlayers(this.pos, R, this.dmg * 0.9, 10);
-    const back = this.pos.clone().add(new THREE.Vector3(-Math.sin(this.facing) * 3, 0, -Math.cos(this.facing) * 3));
+    const back = this.pos.clone().add(new THREE.Vector3(-Math.sin(this.facing) * 5.5, 0, -Math.cos(this.facing) * 5.5));
     g.hazards.acid(back, this.dmg * 0.4);
     yield 0.5;
     this.anim = null; this.moving = true;
@@ -580,15 +585,16 @@ export class Boss {
     const dir = this.faceTarget(t);
     const dist = Math.min(12, t.pos.distanceTo(this.pos));
     const land = this.pos.clone().addScaledVector(dir, dist); land.y = this.ground(land);
-    g.markers.spawn({ pos: land, radius: 3, dur: 0.85, color: 0xff2a1a });
+    const LR = 4.5;   // (round 9: it lands on a footprint twice its old size)
+    g.markers.spawn({ pos: land, radius: LR, dur: 0.85, color: 0xff2a1a });
     this.anim = { type: 'attack', t: 0.15, style: 'bite', windup: 0.3, strike: 0.5 };
     yield 0.85;
     this.anim = { type: 'dodge', t: 0.5 };
     this.vel.y = 9;
-    yield* this.dashLine(dir, dist / 0.4, 10, this.dmg * 0.6, { dust: 0 });
+    yield* this.dashLine(dir, dist / 0.4, 10, this.dmg * 0.6, { dust: 0, hitR: this.radius + 0.9 });
     this.anim = { type: 'attack', t: 0.5, style: 'bite', windup: 0.3, strike: 0.5 };
-    g.fx.shockwave(this.pos, 0xff8a3a, 3.4); g.shake(0.5); g.audio?.impact(1.8);
-    this.hurtPlayers(this.pos, 3, this.dmg * 1.1, 11);
+    g.fx.shockwave(this.pos, 0xff8a3a, LR + 0.4); g.shake(0.5); g.audio?.impact(1.8);
+    this.hurtPlayers(this.pos, LR, this.dmg * 1.1, 11);
     yield 0.5;
     this.anim = null; this.moving = true;
     yield 0.4;

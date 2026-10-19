@@ -10,6 +10,9 @@
 //     chimera's snake, extras.tails), stings, flame hair (extras.flameHair),
 //     the live flames (flames.js, an InstancedMesh), capes, hair strands and
 //     props named in rig.extras (weapon, shield, pot, gun, bike, ...);
+//   - headwear (round 9): helmets, crests, plumes, hats, caps, crowns,
+//     circlets and horns its builder marked (proportions.js markHeadwear,
+//     userData.headwear), so a crest never counts as body;
 //   - glows and additive effects, sprites and hidden parts.
 // It prints body height (top of the body over the soles), total height (the
 // whole visible box) and both as × Percy, and writes JSON to argv[2]. For an
@@ -90,6 +93,7 @@ async function serve() {
       s._label = 'weapon';
       rig.root.traverse((o) => {
         if (o.userData?.heldProp) s.add(o, 'held');
+        if (o.userData?.headwear) s.add(o, 'headwear');   // helmets, crests, plumes, hats, crowns, horns (proportions.js markHeadwear)
         if (o.userData?.weaponTip) {   // the weapon: up from the tip to the part it hangs on
           let w = o.parent; while (w && w.parent && !skel.has(w.parent) && w.parent !== rig.handR && w.parent !== rig.handL) w = w.parent;
           if (w && !skel.has(w)) s.add(w);

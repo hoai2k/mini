@@ -43,7 +43,7 @@ import { paintPerson } from './mortals.js';
 import { t as txt } from '../text_config.js';
 import { HS, skinMat, group, sway, BUILD, voxDensity, keepAbove } from './parts.js';
 import { addFlames } from './flames.js';
-import { shapeX, unshapeX, shapeK, legScale, reshape, applyShape, markHeadCore } from './proportions.js';
+import { shapeX, unshapeX, shapeK, legScale, reshape, applyShape, markHeadCore, markHeadwear } from './proportions.js';
 
 // The new kinds (world/roamZones.js counts the small ones as fodder).
 export const FODDER_IDS = ['karpos', 'karpos_slinger', 'colchis_calf', 'myrmex', 'myrmex_spitter', 'boarlet', 'crab', 'king_crab', 'basilisk', 'earthborn', 'daedalus_drone', 'laistrygonian', 'shade', 'keres'];
@@ -53,8 +53,8 @@ export const FODDER_IDS = ['karpos', 'karpos_slinger', 'colchis_calf', 'myrmex',
 // bruisers; the king crab, the Earthborn and the Laistrygonian are elites.
 export const FODDER_MONSTERS = {
   // fields
-  karpos: { name: txt('monsters.karpos.name'), tier: 'minor', role: 'rusher', hp: 14, speed: 5.4, dmg: 4, radius: 0.4, height: 1.25, ai: 'melee', range: 1.2, windup: 0.35, cd: 1.1, xp: 2, coins: [0, 2], model: 'karpos', pitch: 1.6, voice: 'rustle', knockResist: 0 },
-  karpos_slinger: { name: txt('monsters.karpos_slinger.name'), tier: 'minor', role: 'ranged', hp: 12, speed: 4.2, dmg: 5, radius: 0.4, height: 1.25, ai: 'ranged', range: 11, keep: 7, windup: 0.8, cd: 3.2, xp: 2, coins: [0, 2], model: 'karpos_slinger', pitch: 1.4, voice: 'rustle', projectile: 'feather', knockResist: 0 },
+  karpos: { name: txt('monsters.karpos.name'), tier: 'minor', role: 'rusher', hp: 14, speed: 5.4, dmg: 4, radius: 0.48, height: 1.9, ai: 'melee', range: 1.2, windup: 0.35, cd: 1.1, xp: 2, coins: [0, 2], model: 'karpos', pitch: 1.6, voice: 'rustle', knockResist: 0 },
+  karpos_slinger: { name: txt('monsters.karpos_slinger.name'), tier: 'minor', role: 'ranged', hp: 12, speed: 4.2, dmg: 5, radius: 0.48, height: 1.9, ai: 'ranged', range: 11, keep: 7, windup: 0.8, cd: 3.2, xp: 2, coins: [0, 2], model: 'karpos_slinger', pitch: 1.4, voice: 'rustle', projectile: 'feather', knockResist: 0 },
   colchis_calf: { name: txt('monsters.colchis_calf.name'), tier: 'minor', role: 'bruiser', hp: 55, speed: 4.4, dmg: 10, radius: 0.85, height: 1.5, ai: 'melee', range: 3.2, windup: 0.75, cd: 2.2, xp: 5, coins: [2, 4], model: 'colchis_calf', pitch: 0.8, voice: 'snort', armor: 0.15, knockResist: 0.5, slashColor: 0xff7a1a },
   // woods
   myrmex: { name: txt('monsters.myrmex.name'), tier: 'minor', role: 'rusher', hp: 22, speed: 4.8, dmg: 6, radius: 0.55, height: 0.9, ai: 'melee', range: 1.4, windup: 0.4, cd: 1.2, xp: 2, coins: [0, 2], model: 'myrmex', pitch: 1.3, voice: 'chitter', knockResist: 0.1 },
@@ -499,7 +499,7 @@ const mix = (K, cols, j = 0.14) => K.tone(cols, j);
 
 // ---- karpos and karpos slinger -----------------------------------------------------
 // (vox-ow-fodder, top left; vox-ow-fodder-2, top left) A gangly spirit of the
-// grain, about chest-high to a hero: a straw hood over a dark face with two
+// grain, about 0.8 of a hero's height (round 9), its plume over his head: a straw hood over a dark face with two
 // glowing green eyes, a great spray of ripe wheat ears and green blades
 // fanning up behind the head (its silhouette in a crowd), a body of bound
 // stalks with green leaves woven in, long straw arms bound with twine at the
@@ -516,12 +516,22 @@ function buildKarpos(K0, slinger = false) {
   const kind = slinger ? 'karpos_slinger' : 'karpos';
   const { gold, goldL, goldD, straw, leaf, leafD, twine, pod } = KG, STRAW = [gold, goldL, goldD, straw, 0xc89038], LEAF = [leaf, leafD, 0x5aa03a, 0x2a7a2a];
   const mat = karposSkin();
-  const rig = new Rig({ material: mat, scale: 0.74, legH: 8, bodyH: 9, bodyW: 8, bodyD: 5.4, armW: 2.8, headS: 8, jacket: false });   // (size audit: ×0.7, toddler-sized as in The Son of Neptune, the wheat spray above a hero's chest)
-  const K = kitOf(K0, kind, rig, mat, { seed: slinger ? 131 : 101, rough: 0.85, emit: 0.9, ao: 0.3 });
+  // (round 9: the owner found them tiny. Measured without the wheat spray
+  // (headwear, its own kit: perf/bodysize.cjs had counted the plume as body,
+  // 0.68x Percy, where the body under it was 0.44x) a karpos now stands about
+  // 0.8x Percy, a gangly fodder that reads at a distance in a swarm: rig scale
+  // 0.74 → 1.27, the legs 8 → 10 pixels over the same root toes, its straw
+  // and leaves in cells of a hero's voxel size (voxDensity), so a bigger
+  // karpos is more cells, not bigger ones)
+  const rig = new Rig({ material: mat, scale: 1.27, legH: 8, bodyH: 9, bodyW: 8, bodyD: 5.4, armW: 2.8, headS: 8, jacket: false });
+  const L1 = 10, ANK = -6.9;
+  for (const g of [rig.legR, rig.legL]) reshape(rig, g, [1, legScale(8, L1, ANK), 1], [0, 0, 0], { ankle: ANK });
+  rig.dims.legH = L1; rig.hips.position.y = L1 * PX;
+  const D = voxDensity(rig), K = kitOf(K0, kind, rig, mat, { seed: slinger ? 131 : 101, rough: 0.85, emit: 0.9, ao: 0.3, density: D });
   const T = rig.torso, Hd = rig.head, H8 = 8 * HS;
   dropAll(rig, T); dropOne(rig, hatOf(rig));
   // body: a sheaf of bound stalks, leaves woven in, a straw fringe hanging over the hips
-  K.box(T, 0, 5, 0, 7.2, 8, 4.6, goldD);
+  K.vox(T, 0, 5, 0, 7.2, 8, 4.6, [goldD, goldD, 0x98682a], { j: 0.1 });
   for (let i = 0; i < 18; i++) { const a = i / 18 * Math.PI * 2, L = 9 + K.r() * 4; K.flare(T, Math.sin(a) * 3.9, 9 - L / 2, Math.cos(a) * 2.7, 1.5, L, 0.8, K.tone(STRAW, 0.14), a, 0.12 + K.r() * 0.1); }
   for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2 + 0.3, L = 5 + K.r() * 4; K.flare(T, Math.sin(a) * 4.3, 3.4 - L / 2, Math.cos(a) * 3, 1.2, L, 0.5, K.tone(LEAF, 0.1), a, 0.3); }
   for (const y of [3.4, 7.6]) K.box(T, 0, y, 0, 8.4, 0.9, 6, twine);
@@ -531,20 +541,21 @@ function buildKarpos(K0, slinger = false) {
     { lo: -0.78, run: [1, 1], keep: (x, y, z) => !(z > -0.1 && Math.abs(x) < 0.66 && y < 0.5) });
   for (let x = -H8 / 2 + 0.4; x <= H8 / 2; x += 1.1) K.box(Hd, x, H8 - 0.3 - Math.abs(x) * 0.2, H8 / 2 + 0.6, 1.2, 2.2 + K.r() * 1.4, 0.9, K.tone(STRAW, 0.12));
   for (const sx of [-1, 1]) for (let i = 0; i < 4; i++) K.box(Hd, sx * (H8 / 2 + 0.4 - i * 0.3), 2 - i * 1.2, H8 / 2 + 0.3 - i * 0.3, 1.2, 2.6, 1, K.tone(STRAW, 0.12));
-  K.box(Hd, 0, H8 + 2.2, -0.4, 2.4, 1.4, 2.4, goldL); K.box(Hd, 0, H8 + 3, -0.6, 1.2, 1.2, 1.2, gold);
   // the face: big glowing green eyes and a grin in the dark
   for (const sx of [-1, 1]) { K.box(Hd, sx * 1.7, H8 * 0.52, H8 / 2 + 0.1, 2, 1.8, 0.3, KG.eye); K.box(Hd, sx * 1.5, H8 * 0.56, H8 / 2 + 0.25, 0.8, 0.7, 0.2, 0xe8ffb0); }
   K.box(Hd, 0, H8 * 0.24, H8 / 2 + 0.1, 4, 1, 0.3, 0x0e0804); for (const x of [-1.4, -0.4, 0.6, 1.5]) K.box(Hd, x, H8 * 0.24 + 0.25, H8 / 2 + 0.2, 0.5, 0.5, 0.2, 0xe8d8a0);
   // the spray of wheat ears fanning up behind the head: stalks, ears of zigzag grains with awns, green blades
+  const KP = kitOf(K0, kind + ':plume', rig, mat, { seed: slinger ? 132 : 102, rough: 0.85, emit: 0.9, ao: 0.3, density: D });   // (the plume: headwear, drawn apart so perf/bodysize.cjs can leave it out)
+  KP.box(Hd, 0, H8 + 2.2, -0.4, 2.4, 1.4, 2.4, goldL); KP.box(Hd, 0, H8 + 3, -0.6, 1.2, 1.2, 1.2, gold);
   const ears = slinger ? 9 : 11;
   for (let i = 0; i < ears; i++) {
-    const tilt = (i - (ears - 1) / 2) * (slinger ? 0.26 : 0.23), L = 6 + (1 - Math.abs(tilt)) * 4 + K.r() * 2, z = -1.8 - (i % 3) * 1.6;
+    const tilt = (i - (ears - 1) / 2) * (slinger ? 0.26 : 0.23), L = 6 + (1 - Math.abs(tilt)) * 4 + KP.r() * 2, z = -1.8 - (i % 3) * 1.6;
     const sx = Math.sin(tilt), cy = Math.cos(tilt), bx = sx * 2.6;
-    K.box(Hd, bx + sx * L / 2, H8 * 0.7 + cy * L / 2, z, 0.7, L, 0.7, goldD, 0, 0, -tilt);
-    for (let k = 0; k < 5; k++) { const d = L + 0.8 + k * 1.3, w = k === 4 ? 1.2 : 1.5; for (const o of [-0.6, 0.6]) K.box(Hd, bx + sx * (d + (o > 0 ? 0.6 : 0)) + o * cy, H8 * 0.7 + cy * (d + (o > 0 ? 0.6 : 0)) - o * sx, z, w, 1.6, 1.5, K.tone(k > 2 ? [goldL, gold] : [gold, straw], 0.1), 0, 0, -tilt); }
-    K.box(Hd, bx + sx * (L + 8.6), H8 * 0.7 + cy * (L + 8.6), z, 0.3, 2.4, 0.3, goldL, 0, 0, -tilt);
+    KP.box(Hd, bx + sx * L / 2, H8 * 0.7 + cy * L / 2, z, 0.7, L, 0.7, goldD, 0, 0, -tilt);
+    for (let k = 0; k < 5; k++) { const d = L + 0.8 + k * 1.3, w = k === 4 ? 1.2 : 1.5; for (const o of [-0.6, 0.6]) KP.box(Hd, bx + sx * (d + (o > 0 ? 0.6 : 0)) + o * cy, H8 * 0.7 + cy * (d + (o > 0 ? 0.6 : 0)) - o * sx, z, w, 1.6, 1.5, KP.tone(k > 2 ? [goldL, gold] : [gold, straw], 0.1), 0, 0, -tilt); }
+    KP.box(Hd, bx + sx * (L + 8.6), H8 * 0.7 + cy * (L + 8.6), z, 0.3, 2.4, 0.3, goldL, 0, 0, -tilt);
   }
-  for (const [x, rz, L] of [[-5, 1.2, 8], [5, -1.2, 8], [-3.4, 0.7, 9], [3.6, -0.7, 9], [-1.4, 0.3, 10], [1.6, -0.3, 9], [0, 0, 7]]) K.box(Hd, x - Math.sin(rz) * L * 0.3, H8 * 0.6 + Math.cos(rz) * L * 0.45, -1.4, 1.5, L, 0.5, K.tone(LEAF, 0.1), 0, 0, rz);
+  for (const [x, rz, L] of [[-5, 1.2, 8], [5, -1.2, 8], [-3.4, 0.7, 9], [3.6, -0.7, 9], [-1.4, 0.3, 10], [1.6, -0.3, 9], [0, 0, 7]]) KP.box(Hd, x - Math.sin(rz) * L * 0.3, H8 * 0.6 + Math.cos(rz) * L * 0.45, -1.4, 1.5, L, 0.5, KP.tone(LEAF, 0.1), 0, 0, rz);
   // long straw arms in bundles, bound at the wrist, big hands of four long clawed fingers
   for (const arm of [rig.armR, rig.armL]) {
     dropAll(rig, arm);
@@ -573,7 +584,8 @@ function buildKarpos(K0, slinger = false) {
     for (const [dx, ry] of [[-1.1, 0.5], [0, 0], [1.1, -0.5]]) { K.box(leg, dx, -7.5, 1.4, 1, 0.9, 3.2, goldD, 0, ry, 0); K.box(leg, dx * 1.4, -7.7, 3, 0.7, 0.6, 1.2, 0x8a5a20, 0, ry, 0); }
     K.box(leg, 0, -7.6, -1.4, 0.9, 0.8, 2, goldD);
   }
-  K.done();
+  applyShape(rig);
+  K.done(); markHeadwear(rig, () => KP.done());
   noShadow(rig, rig.armR, rig.armL, rig.legR, rig.legL);
   rig.hunch = 0.12; rig.armSpread = 0.45;
   return finish(rig, kind);

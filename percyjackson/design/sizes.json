@@ -2,13 +2,16 @@
  "about": [
   "The size spec for Half-Blood Quests: every model the workbench lists gets a size category relative to Percy.",
   "Body height: the torso, head and legs at rest, as perf/bodysize.cjs measures it (arms, weapons, wings, whips, tails, flames and props left out), divided by Percy's.",
+  "Headwear is not body (round 9): helmets, crests, plumes, hats, caps, crowns, circlets and horns are left out of the body height, as weapons and wings are. A builder marks them (game/js/entities/proportions.js markHeadwear: userData.headwear on the meshes, a hat slot in people.js and mortals.js), and perf/bodysize.cjs lists them under 'headwear'. Hair, a hood that is the creature's own head (the karpos's straw cowl) and a bird's own feathered crest stay body.",
   "The check: NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/bodysize.cjs - '' --check. A model fails when its body x Percy is outside its category's band, or when the head rule fails.",
+  "The principles (round 9, the owner), applied to every model: (1) Percy and the young heroes, adolescents, are the 'same' reference, and so are the teen campers, Hunters and other kids. (2) Adult humans (mortals, teachers, tourists, adult NPCs and people) read as adults, slightly bigger than Percy: the 'adult' band, 1.1-1.15x to the top of the hair for a full head of hair (ADULT_SCALE puts an adult's skull 1.19x Percy's; an adult in a hat or with cropped hair measures 1.0-1.05x, as Percy's own curls are a sixth of his height). A grown-up the books call short or tiny (Mr. D, Coach Hedge, Grandma Mae) stands about a twelve-year-old's height, 'same'. (3) Former adults made monstrous (skeleton warriors, spartoi, living statues of people) are notably bigger than Percy, 'bigger', about 1.3-1.5x their body without helmets, crests, plumes or hats; their champions a step above. (4) An enemy meant to intimidate outsizes a person even where its book or real-life counterpart is small (the giant scorpion): game drama beats canon. (5) Small fodder still reads clearly at gameplay distance: a swarm creature is no smaller than about 0.75x Percy, its plume aside.",
+  "Bigger models get more voxels, not bigger voxels: a model grown with its rig scale is sculpted in cells of a hero's size (parts.js voxDensity, densityFor; proportions.js reshape for a grown body's proportions), and the head and leg rules below apply as it grows.",
   "Categories are given by the role in the game and the drama first (an elite or a boss should loom), with the owner's rulings fixed, the concept sheets and the books as a guide, not a ceiling. Exaggeration is expected: what matters is the relation to Percy.",
   "Source order: owner (an explicit ruling, design/size-audit.md), sheet (the concept sheet's drawing beside its Percy, measured: see sheetMethod), books, role.",
   "test/sizes.test.mjs checks that every workbench model has an entry with a known category and a reason."
  ],
  "categories": {
-  "_note": "The one place to tune the bands: body height x Percy, min and max. Neighbouring bands overlap a little, so a model near a border is not flagged for a few centimetres.",
+  "_note": "The one place to tune the bands: body height x Percy, min and max. Neighbouring bands overlap a little, so a model near a border is not flagged for a few centimetres. 'same' runs down to 0.82 (round 9): a teen in a cap or helmet is measured to the skull, the hair it cuts aside. 'adult' (round 9) is a grown-up's band between 'same' and 'slightlyBigger'.",
   "tiny": {
    "label": "much smaller",
    "min": 0.0,
@@ -26,8 +29,13 @@
   },
   "same": {
    "label": "about the same",
-   "min": 0.85,
+   "min": 0.82,
    "max": 1.15
+  },
+  "adult": {
+   "label": "an adult, slightly bigger",
+   "min": 1.0,
+   "max": 1.2
   },
   "slightlyBigger": {
    "label": "slightly bigger",
@@ -78,12 +86,12 @@
   "annabeth": {
    "category": "same",
    "source": "books",
-   "reason": "the books: Percy's age"
+   "reason": "the books: Percy's age; round 9 measures her under the cap"
   },
   "grover": {
    "category": "same",
    "source": "books",
-   "reason": "Riordan Wiki: 5 ft 9 in, a tall satyr"
+   "reason": "Riordan Wiki: 5 ft 9 in, a tall satyr; round 9 measures him without the horns"
   },
   "tyson": {
    "category": "bigger",
@@ -98,7 +106,7 @@
   "clarisse": {
    "category": "same",
    "source": "books",
-   "reason": "the books: big and tough, older than Percy"
+   "reason": "the books: big and tough, older than Percy; round 9 measures her under the plumed helmet, to the skull (0.84x)"
   },
   "thalia": {
    "category": "same",
@@ -116,9 +124,9 @@
    "reason": "a centaur, 'taller than an average man'"
   },
   "mr_d": {
-   "category": "slightlySmaller",
+   "category": "same",
    "source": "books",
-   "reason": "TLT: a short, pudgy man"
+   "reason": "round 9, the owner: an adult, but TLT's short, pudgy man: about a twelve-year-old's height, his skull level with Percy's (the vine wreath aside)"
   },
   "dummy": {
    "category": "small",
@@ -148,9 +156,9 @@
    "reason": "the Mist Serpent, a low snake that reads by its length"
   },
   "mortal": {
-   "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 9, the owner: an adult mortal, slightly bigger than Percy (shown as the tourist, measured under the sun hat)"
   },
   "spider": {
    "category": "tiny",
@@ -255,14 +263,14 @@
    }
   },
   "scorpion": {
-   "category": "tiny",
-   "source": "role",
-   "reason": "low and long: its body stands knee-high, it reads by its 3.6-block length and raised sting"
+   "category": "small",
+   "source": "owner",
+   "reason": "round 9, the owner: bigger than a person, to intimidate: 2.4x its old size, its back well over Percy's waist (body 0.63x, read low as a QuadRig) and its sting, raised, over his head (2.4 blocks)"
   },
   "skeleton": {
-   "category": "same",
-   "source": "books",
-   "reason": "TC: spartoi pass as soldiers and guards",
+   "category": "bigger",
+   "source": "owner",
+   "reason": "round 9, the owner: a former adult made monstrous, notably bigger than Percy, about 1.4x without the helmet (the sheet's 1.0x is a person's size; TC: spartoi pass as soldiers and guards)",
    "sheetMeasure": {
     "sheet": "design/concept/vox-enemies.png",
     "percyPx": 195,
@@ -274,9 +282,9 @@
    }
   },
   "spartoi": {
-   "category": "same",
-   "source": "books",
-   "reason": "myth: men sown from dragon's teeth"
+   "category": "bigger",
+   "source": "owner",
+   "reason": "round 9, the owner: the sown men are grown soldiers made monstrous, about 1.4x without the helmet and crest"
   },
   "telekhine": {
    "category": "slightlyBigger",
@@ -291,9 +299,9 @@
    }
   },
   "gorgon_statue": {
-   "category": "same",
-   "source": "role",
-   "reason": "a statue of a person"
+   "category": "bigger",
+   "source": "owner",
+   "reason": "round 9, the owner: a statue of a grown hoplite turned to stone, about 1.4x without the helmet and crest"
   },
   "cyclops": {
    "category": "bigger",
@@ -306,9 +314,9 @@
    }
   },
   "karpos": {
-   "category": "small",
-   "source": "books",
-   "reason": "SoN: 'the size of toddlers'",
+   "category": "slightlySmaller",
+   "source": "owner",
+   "reason": "round 9, the owner: they looked tiny; swarm fodder that reads at a distance, about 0.8x without the wheat plume (the plume had counted as body: 0.68x with it, 0.44x without; SoN's 'toddlers' is a guide, not a ceiling)",
    "sheetMeasure": {
     "sheet": "design/concept/vox-ow-fodder.png",
     "percyPx": 218,
@@ -320,9 +328,9 @@
    }
   },
   "karpos_slinger": {
-   "category": "small",
-   "source": "books",
-   "reason": "as the karpos",
+   "category": "slightlySmaller",
+   "source": "owner",
+   "reason": "round 9, the owner: as the karpos, about 0.8x without the plume",
    "sheetMeasure": {
     "sheet": "design/concept/vox-ow-fodder-2.png",
     "percyPx": 170,
@@ -478,9 +486,9 @@
    }
   },
   "minotaur": {
-   "category": "muchBigger",
+   "category": "bigger",
    "source": "role",
-   "reason": "a boss: the books' 'seven feet', grown 'three more feet' by TLO; the boss sheet draws him as tall as Medusa",
+   "reason": "a boss: the books' 'seven feet', grown 'three more feet' by TLO; round 9 measures him without his horns, 1.78x (2.09x with them), so 'bigger', where 'muchBigger' had counted the horns",
    "sheetMeasure": {
     "sheet": "design/concept/vox-bosses-1.png",
     "percyPx": 135,
@@ -590,159 +598,159 @@
    "reason": "an older teen"
   },
   "teacher": {
-   "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Mrs. Dodds as a pre-algebra teacher"
   },
   "student": {
    "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "source": "owner",
+   "reason": "round 9, the owner: a teen, the heroes' size: one of Percy's classmates"
   },
   "guard": {
-   "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 9, the owner: an adult, slightly bigger than Percy: a museum guard"
   },
   "tourist": {
-   "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 9, the owner: an adult, slightly bigger than Percy: a tourist (measured under the sun hat)"
   },
   "farmer": {
-   "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 9, the owner: an adult, slightly bigger than Percy: a farmer (measured under the straw hat)"
   },
   "old_lady": {
-   "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 9, the owner: an adult, slightly bigger than Percy: an old lady"
   },
   "bellhop": {
-   "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 9, the owner: an adult, slightly bigger than Percy: a hotel bellhop"
   },
   "salesman": {
-   "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 9, the owner: an adult, slightly bigger than Percy: a salesman"
   },
   "fields_katie": {
    "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "source": "owner",
+   "reason": "round 9, the owner: a teen, the heroes' size: Katie Gardner, a teen camper (measured under the straw hat)"
   },
   "fields_travis": {
    "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "source": "owner",
+   "reason": "round 9, the owner: a teen, the heroes' size: Travis Stoll, a teen camper"
   },
   "woods_juniper": {
    "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "source": "owner",
+   "reason": "round 9, the owner: a teen, the heroes' size: Juniper, a young tree nymph, Grover's girlfriend"
   },
   "woods_beckendorf": {
    "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "source": "owner",
+   "reason": "round 9, the owner: a teen, the heroes' size: Charles Beckendorf, a big older teen camper"
   },
   "shore_lee": {
    "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "source": "owner",
+   "reason": "round 9, the owner: a teen, the heroes' size: Lee Fletcher, a teen camper"
   },
   "shore_nereid": {
-   "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Galene, a Nereid: a grown woman"
   },
   "canyon_hedge": {
    "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "source": "books",
+   "reason": "round 9, the owner: a grown satyr the books call short and stocky: his skull level with Percy's (the cap and horns aside)"
   },
   "zoe": {
    "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "source": "owner",
+   "reason": "round 9, the owner: a teen, the heroes' size: Zoe Nightshade, a Hunter: ever a teenage girl"
   },
   "rachel": {
    "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "source": "owner",
+   "reason": "round 9, the owner: a teen, the heroes' size: Rachel Elizabeth Dare, a teenager"
   },
   "quintus": {
-   "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Quintus (Daedalus), a grown swordsman"
   },
   "canyon_phoebe": {
    "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "source": "owner",
+   "reason": "round 9, the owner: a teen, the heroes' size: Phoebe, a Hunter: ever a teenage girl"
   },
   "bianca": {
    "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "source": "owner",
+   "reason": "round 9, the owner: a teen, the heroes' size: Bianca di Angelo, a teenager"
   },
   "asphodel_charon": {
-   "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Charon, a tall man"
   },
   "asphodel_sisyphus": {
-   "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Sisyphus, an old king"
   },
   "camp_argus": {
-   "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Argus, the huge security chief (at the top of the band)"
   },
   "camp_silena": {
    "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "source": "owner",
+   "reason": "round 9, the owner: a teen, the heroes' size: Silena Beauregard, a teen camper"
   },
   "rt_turnpike_earl": {
-   "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Big Earl, a burly trucker (measured under the cap)"
   },
   "rt_auntyem_pruitt": {
-   "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Mrs. Pruitt, a farm wife (measured under the headscarf)"
   },
   "rt_stlouis_mae": {
-   "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Ranger Mae (measured under the ranger hat)"
   },
   "rt_denver_chad": {
    "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "source": "owner",
+   "reason": "round 9, the owner: a teen, the heroes' size: Chad, a teenage ex-lifeguard"
   },
   "rt_vegas_valet": {
-   "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Sal the valet (measured under the cap)"
   },
   "rt_la_guide": {
-   "category": "same",
-   "source": "role",
-   "reason": "a person: about Percy's height"
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Trudy the tour guide"
   },
   "rt_sm_fisher": {
-   "category": "slightlySmaller",
+   "category": "same",
    "source": "role",
-   "reason": "Grandma Mae: a little old woman"
+   "reason": "round 9, the owner: Grandma Mae, a tiny old woman: about a twelve-year-old's height (the bucket hat aside)"
   },
   "fields_bronzebeak": {
    "category": "slightlyBigger",
@@ -766,14 +774,12 @@
     "bodyPx": 525,
     "ratio": 4.57,
     "note": "row 1: head (crown left out) to the talons"
-   },
-   "legs": "followUp",
-   "legsNote": "her eagle legs are 0.33 of her body at 1.6x Percy, a little under the leg rule's 0.34; a harpy's legs are a bird's, so whether to lengthen them is for the owner (round 7)"
+   }
   },
   "canyon_red_king": {
-   "category": "slightlySmaller",
+   "category": "slightlyBigger",
    "source": "role",
-   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it; a scorpion stands low and reads by its 8.8-block length"
+   "reason": "a champion: 1.4x the giant scorpion, a step above it; Coach Hedge: 'the size of a pickup truck'"
   },
   "lab_bronze_warden": {
    "category": "bigger",
@@ -814,9 +820,9 @@
    }
   },
   "asphodel_pale_king": {
-   "category": "slightlyBigger",
+   "category": "bigger",
    "source": "sheet",
-   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it; the sheet draws him as tall as Queen Gale",
+   "reason": "a champion: a skeleton king a step above the skeleton (1.26x it, about 1.8x Percy, the crown aside); the sheet draws him as tall as the other champions",
    "sheetMeasure": {
     "sheet": "design/concept/vox-ow-champions.png",
     "percyPx": 125,
@@ -836,14 +842,14 @@
    "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it"
   },
   "kind:skeleton": {
-   "category": "slightlyBigger",
+   "category": "bigger",
    "source": "role",
-   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it"
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it (1.26x the skeleton, about 1.8x Percy)"
   },
   "kind:spartoi": {
-   "category": "slightlyBigger",
+   "category": "bigger",
    "source": "role",
-   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it"
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it (1.26x the spartoi, about 1.8x Percy)"
   },
   "kind:spider": {
    "category": "small",
@@ -863,19 +869,17 @@
   "kind:harpy": {
    "category": "bigger",
    "source": "role",
-   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it",
-   "legs": "followUp",
-   "legsNote": "eagle legs 0.34 of the body at 1.6x Percy, a little under the leg rule's 0.35; as the Queen of the Gale (round 7)"
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it"
   },
   "kind:stymphalian": {
-   "category": "slightlySmaller",
-   "source": "role",
-   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it; a bird held level, it reads by its wingspan"
-  },
-  "kind:scorpion": {
    "category": "small",
    "source": "role",
-   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it; low, it reads by its length"
+   "reason": "a champion: a bigger Stymphalian bird, held level as it hunts; round 9 measures it without its crown (0.58x; 0.78x with it)"
+  },
+  "kind:scorpion": {
+   "category": "slightlySmaller",
+   "source": "role",
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it (1.25x the scorpion), its sting raised over 2.5 blocks"
   },
   "kind:cyclops": {
    "category": "muchBigger",

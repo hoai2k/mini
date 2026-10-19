@@ -15,6 +15,7 @@ import { Skin, Rig, makeCharMaterial, PX, mergeChildren } from './character.js';
 import { cellMesh, footwear, beads } from './herovox.js';
 import { mulberry32 } from '../util.js';
 import { t as txt } from '../text_config.js';
+import { markHeadwear } from './proportions.js';
 
 const shadeOf = (c, k) => { const x = new THREE.Color(c); x.r = Math.min(1, x.r * k); x.g = Math.min(1, x.g * k); x.b = Math.min(1, x.b * k); return x.getHex(); };
 const mixC = (a, b, t) => new THREE.Color(a).lerp(new THREE.Color(b), t).getHex();
@@ -467,7 +468,7 @@ export const MORTALS = {
     parts() {
       const blk = 0x1a1a1e;
       return {
-        head: [...strawHat({ brim: 14.4, crown: 8.8, straw: 0xe8cc84, band: 0x0f7f83, seed: 5 }), B([3.2, 9.8, 4.55], [1.6, 1.4, 0.4], 0xf060a0), B([3.2, 9.8, 4.75], [0.6, 0.6, 0.2], 0xffe040)],
+        hat: [...strawHat({ brim: 14.4, crown: 8.8, straw: 0xe8cc84, band: 0x0f7f83, seed: 5 }), B([3.2, 9.8, 4.55], [1.6, 1.4, 0.4], 0xf060a0), B([3.2, 9.8, 4.75], [0.6, 0.6, 0.2], 0xffe040)],
         torso: [
           ...mirrorX([B([-2.1, 9.6, 2.45], [0.5, 5.2, 0.4], blk, [0, 0, -0.5])]),
           B([0, 6.6, 3.0], [4.2, 2.8, 1.6], blk), B([0.5, 6.5, 4.1], [2, 2, 1.1], 0x3a3a42), B([0.5, 6.5, 4.7], [1.3, 1.3, 0.2], 0x4a82c8), B([-1.3, 7.7, 3.85], [1, 0.5, 0.3], 0xe8e8e8), B([1.5, 8.1, 3], [0.6, 0.4, 0.6], 0xc82020),
@@ -491,7 +492,8 @@ export const MORTALS = {
       const denim = 0x2c5694, brass = 0xd8a840, wood = 0x8a643a, steel = 0x9aa0a8;
       const fork = turn([B([0, 4, 0], [1, 26, 1], wood), B([0, 16.6, 0], [4.6, 0.9, 0.9], steel), ...[-1.8, -0.6, 0.6, 1.8].map((x) => B([x, 19.4, 0], [0.5, 5, 0.5], steel)), B([0, 17.6, 0], [1.2, 1.4, 1.2], steel)], [-0.25, 0, 0]);
       return {
-        head: [...strawHat({ brim: 13, crown: 8.4, straw: 0xd4b468, band: 0x5a3018, seed: 9 }), B([2.2, 1.6, 5.4], [0.35, 0.35, 3.4], 0xe8d070, [0, 0.7, 0.15])],
+        hat: strawHat({ brim: 13, crown: 8.4, straw: 0xd4b468, band: 0x5a3018, seed: 9 }),
+        head: [B([2.2, 1.6, 5.4], [0.35, 0.35, 3.4], 0xe8d070, [0, 0.7, 0.15])],
         torso: [
           B([0, 11.8, 0], [8.8, 1, 4.8], 0xc81e1e), B([1.6, 11.2, 2.5], [1.2, 1.2, 0.6], 0xa81818),
           ...mirrorX([B([-2.3, 10.4, 2.4], [1.1, 3.4, 0.4], denim), B([-2.3, 9, 2.68], [0.9, 0.9, 0.3], brass), B([-2.3, 11.6, 0], [1.1, 0.4, 4.6], denim)]),
@@ -603,13 +605,20 @@ function kitFor(id, def) {
     }
     kit[slot] = mergeGeometries(geos);
   }
+  // (parts.hat: headwear on the head, its own mesh so perf/bodysize.cjs can leave it out; merged with the head in game)
+  if (parts.hat?.length) kit.hat = boxGeometry(parts.hat, PX * HS);
   kits.set(id, kit);
   return kit;
 }
 
 // Grown-ups stand a little over the heroes (12-year-olds drawn at 1.18); at
-// 1.0 every teacher, guard and tourist was shorter than Percy.
-export const ADULT_SCALE = 1.24;
+// 1.0 every teacher, guard and tourist was shorter than Percy. (Round 9, the
+// owner: adults read as adults, slightly bigger than Percy, about 1.1-1.15x.
+// 1.24 → 1.4: the crown of an adult's skull stands 1.19x Percy's. Measured
+// to the top of the hair, as design/sizes.json measures bodies, that is
+// 1.1-1.17x for an adult with a full head of hair and 1.0-1.05x for one in a
+// hat or with close-cropped hair, as Percy's curls are a sixth of his height.)
+export const ADULT_SCALE = 1.4;
 // Build a mortal rig. Returns a Rig whose spec carries the mortal's id.
 export function buildMortal(id) {
   id = mortalId(id);
@@ -624,6 +633,7 @@ export function buildMortal(id) {
     rig[slot].add(m);
     rig.extras[slot === 'head' ? 'hair' : slot + 'Parts'] = m;
   }
+  if (kit.hat) rig.head.add(markHeadwear(rig.mesh(kit.hat, partM)));
   def.pose?.(rig);
   rig.mortal = id;
   for (const b of [rig.hips, rig.torso, rig.head, rig.armR, rig.armL, rig.legR, rig.legL]) mergeChildren(rig, b);   // (each limb's skin box and its overlay as one mesh: character.js)

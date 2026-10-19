@@ -20,7 +20,7 @@ import { FODDER_MONSTERS, fodderModels, blob, carve, flushBlobs, paintShade } fr
 import { buildSerpent } from './serpent.js';
 import { addFlames, tickFlames } from './flames.js';
 import { mergeRig } from './charmat.js';
-import { shapeX, unshapeX, shapeK, legScale, reshape, applyShape, markHeadCore } from './proportions.js';
+import { shapeX, unshapeX, shapeK, legScale, reshape, applyShape, markHeadCore, markHeadwear } from './proportions.js';
 
 export { skinMat, blob, carve, paintShade, rigDensity, voxDensity };
 
@@ -1867,42 +1867,90 @@ export function buildSkeleton({ id = 'skeleton', pal = {}, helmet = true, gear =
       } });
     S.shadeLimbs(); S.saturate(1.15);
   }, { emit: 0.8, res: 2 });
-  const rig = new Rig({ material: mat, scale: 1.15, armW: 3 });   // (size audit: a grown man, as tall as the spartoi)
-  const K = kit(rig, mat, { seed: 37, rough: 0.8 });
-  const hk = HS;
-  // arms: camo short sleeves, then bare bones with a knobby elbow and bony hands
+  // (round 9: a grown soldier made a monster, notably bigger than Percy, about
+  // 1.4x his body without the helmet (design/sizes.json "bigger"). The rig is
+  // drawn at 1.56 where it was 1.15, and every mass is sculpted in cells of a
+  // hero's voxel size (voxDensity), so the bigger body is more cells, not
+  // bigger ones. A grown man's proportions (proportions.js reshape): the skull
+  // 0.92 of a hero's skin cube, legs grown from 12 to 19 pixels over the same
+  // boots, a longer trunk, slimmer limbs, arms reaching to mid-thigh, a neck of
+  // bare vertebrae; the torso is bones under the plate carrier: a ribcage
+  // showing at the sides, the lumbar spine and the pelvis between the vest
+  // and the shorts)
+  const rig = new Rig({ material: mat, scale: 1.56, armW: 3 });
+  const HF = 0.92, L1 = 19, ANK = -8.2;
+  reshape(rig, rig.head, HF);
+  reshape(rig, rig.torso, [0.98, 1.1, 0.95]);
+  reshape(rig, rig.hips, [0.98, 1, 0.95]);
+  for (const g of [rig.legR, rig.legL]) reshape(rig, g, [0.85, legScale(12, L1, ANK), 0.85], [0, 0, 0], { ankle: ANK });
+  for (const g of [rig.armR, rig.armL]) reshape(rig, g, [0.85, 1.4, 0.85]);
+  rig.dims.legH = L1; rig.hips.position.y = L1 * PX;
+  rig.neck.position.y = 13.1 * PX;   // (the head on a short neck of bare vertebrae)
+  const D = voxDensity(rig), K = kit(rig, mat, { seed: 37, rough: 0.8, density: D });
+  const hk = HS, T = rig.torso, H = rig.hips;
+  const BONES = [bone, bone, boneD, 0xd0c6aa], OL = [olive, olive, oliveD, ...CAMO];
+  dropMeshes(rig, T);
+  // arms: camo short sleeves, then bare bones: the humerus, a knobby elbow,
+  // the two forearm bones, a wrist, the bones of the hand and four fingers
   for (const arm of [rig.armR, rig.armL]) {
+    const sx = arm === rig.armR ? -1 : 1;
     dropMeshes(rig, arm);
-    K.box(arm, 0, -0.5, 0, 3.6, 5, 4, olive); K.clumps(arm, [0, -0.5, 0], [3.6, 5, 4], { n: 8, size: [0.8, 1.2], cols: CAMO, faces: 'lrfk', out: -0.3 });
-    K.box(arm, 0, -4.5, 0, 1.4, 3.6, 1.4, bone); K.box(arm, 0, -6.4, 0, 2.2, 1.6, 2.2, boneD);
-    K.box(arm, -0.45, -8.4, 0, 0.8, 3.2, 0.8, bone); K.box(arm, 0.45, -8.4, 0, 0.8, 3.2, 0.8, bone);
-    K.box(arm, 0, -10.4, 0, 2.2, 1.6, 2.2, bone); for (const dz of [-0.7, 0, 0.7]) K.box(arm, 0, -11.6, dz, 0.5, 1.2, 0.5, boneD);
+    K.vox(arm, 0, -0.4, 0, 3.6, 4.6, 4, OL, { j: 0.16 });
+    K.box(arm, 0, -2.5, 0, 3.8, 0.7, 4.2, oliveD);                                   // the hem
+    K.box(arm, 0, -4.6, 0, 1.4, 3.8, 1.4, bone); K.box(arm, 0, -3.1, 0, 1.8, 0.8, 1.8, boneD);
+    K.box(arm, 0, -6.5, -0.1, 2.1, 1.4, 2.1, boneD); K.box(arm, 0, -6.6, -0.9, 1.2, 1.2, 0.8, bone);   // the elbow and its point
+    K.box(arm, -0.45, -8.4, 0.1, 0.75, 3, 0.75, bone); K.box(arm, 0.45, -8.4, -0.1, 0.7, 3, 0.7, BONES[3]);
+    K.box(arm, 0, -9.9, 0, 1.9, 0.8, 1.9, boneD);                                    // the wrist
+    K.box(arm, 0, -10.8, 0.1, 1.9, 1.2, 1.4, bone);
+    for (const [dz, L] of [[-0.6, 1.4], [-0.05, 1.6], [0.5, 1.5]]) { K.box(arm, -sx * 0.1, -12, dz, 0.45, L, 0.45, bone); K.box(arm, -sx * 0.1, -12.9, dz + 0.15, 0.4, 0.7, 0.4, boneD); }
+    K.box(arm, sx * 0.85, -11.2, 0.6, 0.45, 1.3, 0.45, bone, 0, 0, sx * 0.4);       // the thumb
   }
-  // legs: camo shorts with cargo pockets, bone shins, knee knobs, tan boots
+  // legs: camo shorts with cargo pockets to above the knee, the femur, a
+  // kneecap, shin bones and low combat boots
   for (const leg of [rig.legR, rig.legL]) {
+    const sx = leg === rig.legR ? -1 : 1;
     dropMeshes(rig, leg);
-    K.box(leg, 0, -2.6, 0, 4.4, 5.6, 4.4, olive); K.clumps(leg, [0, -2.6, 0], [4.4, 5.6, 4.4], { n: 12, size: [0.9, 1.3], cols: CAMO, faces: 'lrfk', out: -0.3 });
-    K.box(leg, leg === rig.legR ? -2.3 : 2.3, -3.6, 0, 0.8, 2.4, 2.4, oliveD);
-    K.box(leg, 0, -6.4, 0.2, 2.4, 1.8, 2.4, boneD);
-    K.box(leg, -0.5, -8.4, 0, 1, 3.4, 1, bone); K.box(leg, 0.6, -8.4, 0, 0.8, 3.4, 0.8, boneD);
-    kitFootwear(K, leg, 'boot', pal.boot ?? { upper: 0xa08a5a, sole: 0x3a3026, lace: 0x5a4a30 });
+    K.vox(leg, 0, -1.6, 0, 4.4, 3.8, 4.4, OL, { j: 0.16 });
+    K.box(leg, 0, -3.6, 0, 4.6, 0.6, 4.6, oliveD);
+    K.box(leg, sx * 2.35, -2, 0.2, 0.7, 2.2, 2.4, oliveD); K.box(leg, sx * 2.5, -1.1, 0.2, 0.4, 0.5, 2.4, olive);   // the cargo pocket
+    K.box(leg, 0, -4.4, -0.1, 1.5, 1.6, 1.5, bone);                                   // the femur below the hem
+    K.box(leg, 0, -5.3, 0.3, 2.2, 1.1, 2.2, boneD); K.box(leg, 0, -5.3, 1.35, 1.3, 1.2, 0.5, bone);   // the knee and kneecap
+    K.box(leg, -0.4, -6.4, 0.2, 1.1, 1.4, 1.1, bone); K.box(leg, 0.55, -6.4, -0.1, 0.7, 1.4, 0.7, BONES[3]);
+    const B = pal.boot ?? { upper: 0xa08a5a, sole: 0x3a3026, lace: 0x5a4a30 };
+    K.box(leg, 0, -11.55, 0.5, 5, 0.9, 5.8, B.sole);
+    K.vox(leg, 0, -9.6, 0.4, 4.7, 3.2, 5.2, [B.upper, B.upper, 0x8a7448], { j: 0.08 });
+    K.box(leg, 0, -7.6, 0, 4.6, 1.2, 4.6, B.upper); K.box(leg, 0, -7.05, 0, 4.7, 0.4, 4.7, 0x7a6a44);
+    for (let i = 0; i < 3; i++) K.box(leg, 0, -7.6 - i * 0.95, 2.45 + (i > 1 ? 0.25 : 0), 2.2, 0.35, 0.3, B.lace);
   }
   // helmet: olive dome with a rim, ear pads, a goggles band and a strap
+  // (headwear: its own kit, so perf/bodysize.cjs can leave it out)
   const Hd = rig.head;
+  const KH = kit(rig, mat, { seed: 38, rough: 0.8, density: D });
   if (helmet) {
-    K.box(Hd, 0, 8.5 * hk, 0, 9.6 * hk, 3, 9.6 * hk, olive); K.box(Hd, 0, 10.2 * hk, -0.2, 8 * hk, 1.4, 8 * hk, olive);
-    K.box(Hd, 0, 7.1 * hk, 0.3, 10.6 * hk, 1, 10.8 * hk, oliveD);
-    K.clumps(Hd, [0, 9 * hk, 0], [9.6 * hk, 3, 9.6 * hk], { n: 18, size: [1, 1.6], cols: CAMO, faces: 'tlrfk', out: -0.35 });
-    for (const sx of [-1, 1]) { K.box(Hd, sx * 5 * hk, 4.6 * hk, 0, 1.6, 4, 3.6, oliveD); K.box(Hd, sx * 5.4 * hk, 4.6 * hk, 0, 0.6, 2.8, 2.6, 0x1e2414); }
-    K.box(Hd, 0, 8.4 * hk, 5 * hk, 7 * hk, 1.6, 1, 0x1e1a14); for (const sx of [-1, 1]) K.box(Hd, sx * 1.8 * hk, 8.4 * hk, 5.2 * hk + 0.5, 2.6, 1.8, 1.2, 0x5a6a5a);
-    K.box(Hd, 0, 0.3 * hk, 2.6, 8.4 * hk, 0.5, 0.5, oliveD);
+    KH.vox(Hd, 0, 8.6 * hk, 0, 9.6 * hk, 3, 9.6 * hk, OL, { j: 0.16, faces: 'tlrfk' }); KH.vox(Hd, 0, 10.2 * hk, -0.2, 8 * hk, 1.4, 8 * hk, OL, { j: 0.16, faces: 'tlrfk' });
+    KH.box(Hd, 0, 7.1 * hk, 0.3, 10.6 * hk, 1, 10.8 * hk, oliveD);
+    for (const sx of [-1, 1]) { KH.box(Hd, sx * 5 * hk, 4.6 * hk, 0, 1.6, 4, 3.6, oliveD); KH.box(Hd, sx * 5.4 * hk, 4.6 * hk, 0, 0.6, 2.8, 2.6, 0x1e2414); }
+    KH.box(Hd, 0, 8.4 * hk, 5 * hk, 7 * hk, 1.6, 1, 0x1e1a14); for (const sx of [-1, 1]) { KH.box(Hd, sx * 1.8 * hk, 8.4 * hk, 5.2 * hk + 0.5, 2.6, 1.8, 1.2, 0x5a6a5a); KH.box(Hd, sx * 1.8 * hk, 8.4 * hk, 5.2 * hk + 1.1, 1.6, 1, 0.2, 0x9ab0a0); }
+    KH.box(Hd, 0, 0.3 * hk, 2.6, 8.4 * hk, 0.5, 0.5, oliveD);
   }
-  // the plate carrier: plates front and back, a row of pouches, shoulder straps
-  const T = rig.torso;
-  K.box(T, 0, 7.4, 0, 8.8, 7.4, 5.4, oliveD); K.clumps(T, [0, 7.4, 0], [8.8, 7.4, 5.4], { n: 30, size: [1, 1.6], cols: CAMO, faces: 'fklr', out: -0.35 });
-  for (const x of [-2.8, 0, 2.8]) { K.box(T, x, 5.2, 3, 2.4, 2.8, 1.2, olive); K.box(T, x, 6.5, 3.2, 2.5, 0.6, 1.2, oliveD); }
-  for (const sx of [-1, 1]) K.box(T, sx * 2.8, 11.6, 0, 1.8, 0.8, 5.6, oliveD);
-  K.box(T, 0, 1.2, 0, 8.6, 1.2, 4.6, 0x3a3020); K.box(T, 0, 1.2, 2.35, 1.4, 1, 0.3, 0x8a8a7a);
+  // a lower jaw hinged under the painted skull, the teeth along it
+  K.box(Hd, 0, -0.3, 1.6, 5.6, 0.9, 5.2, bone); for (let x = -2; x <= 2.01; x += 1) K.box(Hd, x, 0.25, 4.2, 0.6, 0.5, 0.3, 0xf0e8d0);
+  // the neck: vertebrae from the trunk to the skull
+  for (const [y, w] of [[12.25, 1.9], [12.85, 1.6]]) K.box(T, 0, y, -0.4, w, 0.5, w, y > 12.5 ? bone : boneD);
+  // the trunk: the ribcage under a plate carrier, its lowest ribs showing at
+  // the sides, then the lumbar spine and the pelvis down to the belt
+  K.box(T, 0, 8.4, -0.3, 7.6, 6.8, 3.8, 0x2a2416);                                    // (dark inside)
+  K.vox(T, 0, 8.1, 0, 8.8, 7.2, 5.4, OL, { j: 0.16, faces: 'fklrt' });              // the plate carrier
+  K.box(T, 0, 4.4, 0, 8.6, 0.5, 5.2, oliveD);
+  for (const x of [-2.8, 0, 2.8]) { K.vox(T, x, 5.6, 3.05, 2.4, 2.6, 1.2, [olive, oliveD], { faces: 'ftlr' }); K.box(T, x, 6.9, 3.2, 2.5, 0.6, 1.3, oliveD); K.box(T, x, 6.5, 3.7, 0.6, 0.6, 0.2, 0x1e1a14); }
+  for (const sx of [-1, 1]) { K.box(T, sx * 2.8, 11.9, 0, 1.8, 0.8, 5.6, oliveD); K.box(T, sx * 2.8, 10.5, 2.75, 1.6, 2.2, 0.3, olive); }
+  K.box(T, -1.6, 9.6, 2.85, 2, 1.2, 0.3, 0x3a3020);                                  // a name tape
+  for (const [y, w] of [[3.9, 7.6], [3.2, 6.8]]) for (const sx of [-1, 1]) K.box(T, sx * (w / 2 - 0.9), y, 0.6, 1.8, 0.5, 3.6, bone, 0, 0, sx * 0.25);   // the floating ribs
+  for (let i = 0; i < 4; i++) { const y = 4.1 - i * 0.75; K.box(T, 0, y, -0.9, 1.5, 0.55, 1.4, i % 2 ? boneD : bone); K.box(T, 0, y, -1.75, 0.5, 0.45, 0.6, boneD); }   // the lumbar spine
+  for (const sx of [-1, 1]) { K.box(T, sx * 2, 1.6, -0.3, 3, 1.6, 3, bone, 0, 0, sx * 0.3); K.box(T, sx * 2.6, 1.2, 1.3, 1, 1, 1, boneD); }   // the pelvis, its hip bones
+  K.box(T, 0, 0.9, -1, 2.2, 1.6, 1.6, boneD);                                         // the sacrum
+  K.box(H, 0, 0.3, 0, 8.6, 1.2, 4.6, 0x3a3020); K.box(H, 0, 0.3, 2.35, 1.4, 1, 0.3, 0x8a8a7a);   // the belt and its buckle
+  for (const sx of [-1, 1]) K.box(H, sx * 3.4, 0.2, 2.2, 1.6, 1.4, 0.9, oliveD);
   if (gear) {
     // the rifle, levelled forward from the hip (built along +z: see the hand-axis convention in character.js)
     const gun = group(rig.handR, 0, -1, 2, HOLD_PITCH - Math.PI / 2, 0, 0);
@@ -1913,7 +1961,8 @@ export function buildSkeleton({ id = 'skeleton', pal = {}, helmet = true, gear =
     rig.extras.gun = gun;
     rig.extras.muzzle = group(gun, 0, 0.4, 15); markTip(gun, 0, 0.4, 15, 'rifle');
   }
-  K.done();
+  applyShape(rig);
+  K.done(); markHeadwear(rig, () => KH.done());
   return rig;
 }
 
@@ -1935,8 +1984,23 @@ function buildSpartoi() {
       body: (s) => { for (const [x0, y0, w, h] of [[16, 16, 24, 16], [16, 32, 24, 16]]) for (let i = 0; i < w * h / 5; i++) s.rect(x0 + s.r() * w, y0 + s.r() * h, 1, 1.5, RAG[Math.floor(s.r() * RAG.length)], 0); } });
     S.shadeLimbs(); S.saturate(1.15);
   }, { emit: 0.8, res: 2 });
-  const rig = new Rig({ material: mat, scale: 1.0, armW: 3 });
-  const K = kit(rig, mat, { seed: 83, rough: 0.7, metal: 0.05 });
+  // (round 9: the sown men were grown soldiers, so they stand as the skeleton
+  // warrior does, about 1.4x Percy's body without the helmet and its crest
+  // (design/sizes.json "bigger"): rig scale 1.0 → 1.56, a grown man's
+  // proportions by proportions.js reshape (the skull 0.92 of a hero's, legs
+  // 12 → 19 pixels over the same boots, a longer trunk, slimmer limbs, arms to
+  // mid-thigh, bare neck vertebrae), its rags, plates and crest drawn in cells
+  // of a hero's voxel size (voxDensity): more cells, not bigger ones)
+  const rig = new Rig({ material: mat, scale: 1.56, armW: 3 });
+  const L1 = 19, ANK = -9;
+  reshape(rig, rig.head, 0.92);
+  reshape(rig, rig.torso, [0.98, 1.1, 0.95]);
+  reshape(rig, rig.hips, [0.98, 1.1, 0.95]);
+  for (const g of [rig.legR, rig.legL]) reshape(rig, g, [0.85, legScale(12, L1, ANK), 0.85], [0, 0, 0], { ankle: ANK });
+  for (const g of [rig.armR, rig.armL]) reshape(rig, g, [0.85, 1.4, 0.85]);
+  rig.dims.legH = L1; rig.hips.position.y = L1 * PX;
+  rig.neck.position.y = 13.1 * PX;
+  const D = voxDensity(rig), K = kit(rig, mat, { seed: 83, rough: 0.7, metal: 0.05, density: D });
   const T = rig.torso, Hd = rig.head;
   // arms: stepped bronze shoulder plates, bare bones, a knobby elbow, a
   // leather bracer with bronze bands, bony hands
@@ -1959,8 +2023,9 @@ function buildSpartoi() {
     K.box(leg, 0, -11.7, 0.8, 4.8, 0.7, 6, leaD); K.box(leg, 0, -10.8, 3, 3.6, 1.6, 0.6, lea);
   }
   // the tunic: rags over the ribs, hanging in a ragged skirt; crossed belts
-  K.box(T, 0, 6.6, 0, 8.4, 8.4, 4.6, tan);
-  K.clumps(T, [0, 6.6, 0], [8.4, 8.4, 4.6], { n: 34, size: [1, 1.7], cols: RAG, faces: 'fklr', out: -0.3 });
+  K.vox(T, 0, 6.6, 0, 8.4, 8.4, 4.6, [tan, tan, tanD, tanL], { j: 0.12 });
+  K.clumps(T, [0, 6.6, 0], [8.4, 8.4, 4.6], { n: 22, size: [1, 1.7], cols: RAG, faces: 'fklr', out: -0.3 });
+  for (const [y, w] of [[12.3, 1.8], [12.85, 1.5]]) K.box(T, 0, y, -0.4, w, 0.55, w, y > 12.5 ? bone : boneD);   // the neck's vertebrae
   for (const y of [8.4, 6.8]) for (const sx of [-1, 1]) K.box(T, sx * 2.4, y, 2.45, 2.6, 0.7, 0.4, bone);    // ribs showing through the rags
   for (let i = 0; i < 16; i++) {
     const a = i / 16 * Math.PI * 2, x = Math.sin(a) * 4.4, z = Math.cos(a) * 2.6, L = 4 + K.r() * 4.5;
@@ -1970,7 +2035,7 @@ function buildSpartoi() {
   K.box(T, 0, 6.5, 2.55, 1.2, 12, 0.5, lea, 0, 0, 0.62); K.box(T, 0, 6.5, -2.55, 1.2, 12, 0.5, lea, 0, 0, -0.62);
   K.box(T, -1.2, 7.8, 2.85, 1, 1, 0.3, brzL);
   // the scarf: wound round the neck and draped over the chest and shoulders
-  K.box(T, 0, 11.8, 0, 9.2, 1.8, 5.6, rust);
+  K.vox(T, 0, 11.9, 0, 9.2, 1.8, 5.6, [rust, rust, rustD], { j: 0.1 });
   for (const [y, w] of [[10.6, 8.4], [9.4, 6.6], [8.2, 4.8], [7.1, 3]]) K.box(T, 0.4, y, 2.75, w, 1.3, 0.7, y > 9 ? rust : rustD);
   K.clumps(T, [0, 11.6, 0], [9.2, 1.6, 5.6], { n: 14, size: [0.9, 1.4], cols: [rust, rustD, 0xf08a40], faces: 'tlrfk' });
   for (let i = 0; i < 3; i++) K.box(T, -4.4 + i * 0.4, 9.4 - i * 1.4, 2.2 - i * 0.3, 1.2, 2.6, 1, i % 2 ? rustD : rust, 0, 0, 0.2);
@@ -1979,25 +2044,26 @@ function buildSpartoi() {
   // helmet: a bronze Corinthian helmet with a brow band, cheek guards and a
   // nose guard round a T-shaped opening, and a tall horsehair crest
   const hk = HS, H8 = 8 * hk;
-  K.box(Hd, 0, H8 + 1.1, -0.2, H8 - 2.4, 1, H8 - 2.4, brzL);
-  K.box(Hd, 0, H8 + 0.3, -0.2, H8 - 0.4, 1, H8 - 0.4, brz);
-  K.box(Hd, 0, H8 - 1, 0, H8 + 1, 1.8, H8 + 1, brzD);
-  K.box(Hd, 0, H8 - 1.2, H8 / 2 + 0.5, H8 + 0.6, 1.6, 0.5, brzL);
-  K.box(Hd, 0, H8 / 2 - 0.6, -H8 / 2 - 0.35, H8 + 0.4, H8 - 0.2, 0.7, brz);
-  K.box(Hd, 0, -0.2, -H8 / 2 - 0.6, H8 - 1, 1, 0.8, brzD, -0.3);
+  const KH = kit(rig, mat, { seed: 84, rough: 0.7, metal: 0.05, density: D });   // (the helmet and crest: headwear)
+  KH.box(Hd, 0, H8 + 1.1, -0.2, H8 - 2.4, 1, H8 - 2.4, brzL);
+  KH.vox(Hd, 0, H8 + 0.3, -0.2, H8 - 0.4, 1, H8 - 0.4, [brz, brz, 0xb07a24, brzL], { j: 0.1, faces: 'tlrfk' });
+  KH.box(Hd, 0, H8 - 1, 0, H8 + 1, 1.8, H8 + 1, brzD);
+  KH.box(Hd, 0, H8 - 1.2, H8 / 2 + 0.5, H8 + 0.6, 1.6, 0.5, brzL);
+  KH.vox(Hd, 0, H8 / 2 - 0.6, -H8 / 2 - 0.35, H8 + 0.4, H8 - 0.2, 0.7, [brz, brz, 0xb07a24], { j: 0.1, faces: 'k' });
+  KH.box(Hd, 0, -0.2, -H8 / 2 - 0.6, H8 - 1, 1, 0.8, brzD, -0.3);
   for (const sx of [-1, 1]) {
-    K.box(Hd, sx * (H8 / 2 + 0.3), H8 / 2 - 0.6, 0, 0.7, H8 - 0.2, H8 + 0.4, brz);
-    K.box(Hd, sx * (H8 / 2 + 0.2), H8 - 0.2, -H8 / 2 + 0.2, 0.7, 1.6, 1.6, brzD);
-    K.box(Hd, sx * 3.75, 1.5, H8 / 2 + 0.45, 1.8, 3.6, 0.9, brz); K.box(Hd, sx * 3.9, 0.1, H8 / 2 + 0.6, 1.6, 0.6, 0.6, brzL);
-    K.box(Hd, sx * (H8 / 2 + 1.15), 1.4, 2.2, 0.3, 2.4, 3, brzD);
+    KH.vox(Hd, sx * (H8 / 2 + 0.3), H8 / 2 - 0.6, 0, 0.7, H8 - 0.2, H8 + 0.4, [brz, brz, 0xb07a24], { j: 0.1, faces: sx > 0 ? 'r' : 'l' });
+    KH.box(Hd, sx * (H8 / 2 + 0.2), H8 - 0.2, -H8 / 2 + 0.2, 0.7, 1.6, 1.6, brzD);
+    KH.box(Hd, sx * 3.75, 1.5, H8 / 2 + 0.45, 1.8, 3.6, 0.9, brz); KH.box(Hd, sx * 3.9, 0.1, H8 / 2 + 0.6, 1.6, 0.6, 0.6, brzL);
+    KH.box(Hd, sx * (H8 / 2 + 1.15), 1.4, 2.2, 0.3, 2.4, 3, brzD);
   }
-  K.box(Hd, 0, 5.4, H8 / 2 + 0.55, 1.1, 2.6, 0.8, brz);
-  K.box(Hd, 0, H8 + 1.8, -0.2, 1.6, 1, H8 + 0.6, brzD);
+  KH.box(Hd, 0, 5.4, H8 / 2 + 0.55, 1.1, 2.6, 0.8, brz);
+  KH.box(Hd, 0, H8 + 1.8, -0.2, 1.6, 1, H8 + 0.6, brzD);
   for (let z = -5.6; z <= 4.8; z += 1.05) {
-    const t = (z + 5.6) / 10.4, h = 3.6 + Math.sin(t * Math.PI) * 2.4 + (K.r() - 0.5) * 0.8;
-    K.box(Hd, 0, H8 + 2.2 + h / 2, z, 2 + K.r() * 0.4, h, 1.2, K.tone(CREST, 0.1), -0.25 + t * 0.2);
+    const t = (z + 5.6) / 10.4, h = 3.6 + Math.sin(t * Math.PI) * 2.4 + (KH.r() - 0.5) * 0.8;
+    KH.box(Hd, 0, H8 + 2.2 + h / 2, z, 2 + KH.r() * 0.4, h, 1.2, KH.tone(CREST, 0.1), -0.25 + t * 0.2);
   }
-  for (let i = 0; i < 5; i++) K.box(Hd, (K.r() - 0.5) * 0.8, H8 + 1 - i * 1.6, -H8 / 2 - 1.6 - i * 0.25, 1.8, 2, 1.2, K.tone(CREST, 0.1), 0.2);
+  for (let i = 0; i < 5; i++) KH.box(Hd, (KH.r() - 0.5) * 0.8, H8 + 1 - i * 1.6, -H8 / 2 - 1.6 - i * 0.25, 1.8, 2, 1.2, KH.tone(CREST, 0.1), 0.2);
   // the kopis: a forward-curved bronze blade, widening toward the tip
   const blade = group(rig.handR, 0, -1, 1, HOLD_PITCH - Math.PI / 2, 0, 0);   // (built along +z: see the hand-axis convention in character.js)
   K.box(blade, 0, 0, -0.4, 1.2, 1.2, 3, leaD); K.box(blade, 0, 0, -1.9, 1.5, 1.5, 0.8, brzL); K.box(blade, 0, 0, 1.4, 1, 2.6, 0.7, brzL);
@@ -2023,7 +2089,8 @@ function buildSpartoi() {
     [1.3, 2, 0.7, 2.2, -0.7], [2.2, 1.4, 0.7, 2, -1], [2.9, -0.5, 0.6, 1.6, -1.2], [3.1, -2.2, 0.6, 1.4, -1.3], [2.4, -4.2, 2.2, 1, 0.4]]) K.box(sh, x, y, 0.85, w, h, 0.25, ink, 0, 0, rz);
   K.box(sh, -0.2, 1.1, 0.98, 0.6, 0.5, 0.15, 0xf0b040);
   rig.extras.shield = sh;
-  K.done();
+  applyShape(rig);
+  K.done(); markHeadwear(rig, () => KH.done());
   return rig;
 }
 
@@ -2277,18 +2344,33 @@ function buildStatue() {
     for (let i = 0; i < 70; i++) S.dot(S.r() * 64, S.r() * 64, moss[i % 3], 2, 1);
     S.shadeLimbs(undefined, 1.1, 0.8);
   }, { emit: 0, rough: 0.95, fill: 0.08, res: 2 });
-  const rig = new Rig({ material: mat, scale: 1.05 });
-  const K = kit(rig, mat, { seed: 59, rough: 0.95, fill: 0.05 });
+  // (round 9: a statue of a grown hoplite, so it stands notably bigger than
+  // Percy, about 1.4x his body without the helmet and crest (design/sizes.json
+  // "bigger"): rig scale 1.05 → 1.56, a grown man's proportions by
+  // proportions.js reshape (the head 0.92 of a hero's, legs 12 → 19 pixels
+  // over the same plinth, a longer trunk, slimmer limbs, longer arms), the
+  // stone of the cuirass, helmet and shield in cells of a hero's voxel size)
+  const rig = new Rig({ material: mat, scale: 1.56 });
+  const L1 = 19, ANK = -10.7;
+  reshape(rig, rig.head, 0.92);
+  reshape(rig, rig.torso, [0.98, 1.1, 0.95]);
+  reshape(rig, rig.hips, [0.98, 1.1, 0.95]);
+  for (const g of [rig.legR, rig.legL]) reshape(rig, g, [0.88, legScale(12, L1, ANK), 0.88], [0, 0, 0], { ankle: ANK });
+  for (const g of [rig.armR, rig.armL]) reshape(rig, g, [0.88, 1.35, 0.88]);
+  markHeadCore(rig, [0, 4 * HS, 0], [8 * HS, 8 * HS, 8 * HS]);   // (the skin cube, measured along the head's own axis: the statue's head is turned)
+  rig.dims.legH = L1; rig.hips.position.y = L1 * PX;
+  const D = voxDensity(rig), K = kit(rig, mat, { seed: 59, rough: 0.95, fill: 0.05, density: D });
   const hk = HS, Hd = rig.head;
   // Corinthian helmet with cheek guards and a tall crest
-  K.box(Hd, 0, 6.6 * hk, -0.2, 9.4 * hk, 3.6 * hk, 9.4 * hk, ST[1]);
-  for (const sx of [-1, 1]) K.box(Hd, sx * 3.4 * hk, 3.4 * hk, 4.4 * hk, 2 * hk, 4 * hk, 1, ST[1]);
-  K.box(Hd, 0, 4.8 * hk, 4.5 * hk, 1.2, 2.6 * hk, 1, ST[2]);
-  for (let z = -5; z <= 4; z += 1.1) K.box(Hd, 0, 9.4 * hk + 1.6 - Math.abs(z + 0.5) * 0.25, z * hk, 1.6, 3.4, 1.3, K.tone(ST, 0.06));
-  K.clumps(Hd, [0, 9.4 * hk + 2, -0.5 * hk], [1.6, 2, 9 * hk], { n: 6, size: [0.8, 1.2], cols: moss, faces: 'tlr' });
+  const KH = kit(rig, mat, { seed: 60, rough: 0.95, fill: 0.05, density: D });   // (the helmet and crest: headwear)
+  KH.vox(Hd, 0, 6.6 * hk, -0.2, 9.4 * hk, 3.6 * hk, 9.4 * hk, ST, { j: 0.08, relief: 0.06, faces: 'tlrfk' });
+  for (const sx of [-1, 1]) KH.box(Hd, sx * 3.4 * hk, 3.4 * hk, 4.4 * hk, 2 * hk, 4 * hk, 1, ST[1]);
+  KH.box(Hd, 0, 4.8 * hk, 4.5 * hk, 1.2, 2.6 * hk, 1, ST[2]);
+  for (let z = -5; z <= 4; z += 1.1) KH.box(Hd, 0, 9.4 * hk + 1.6 - Math.abs(z + 0.5) * 0.25, z * hk, 1.6, 3.4, 1.3, KH.tone(ST, 0.06));
+  KH.clumps(Hd, [0, 9.4 * hk + 2, -0.5 * hk], [1.6, 2, 9 * hk], { n: 6, size: [0.8, 1.2], cols: moss, faces: 'tlr' });
   // cuirass with sculpted chest, a pleated stone kilt and greaves
   const T = rig.torso;
-  K.box(T, 0, 7.5, 0, 9, 9, 5, ST[1]); K.box(T, -1.6, 9.2, 2.6, 3, 2.4, 0.5, ST[2]); K.box(T, 1.6, 9.2, 2.6, 3, 2.4, 0.5, ST[2]);
+  K.vox(T, 0, 7.5, 0, 9, 9, 5, ST, { j: 0.08, relief: 0.06 }); K.box(T, -1.6, 9.2, 2.6, 3, 2.4, 0.5, ST[2]); K.box(T, 1.6, 9.2, 2.6, 3, 2.4, 0.5, ST[2]);
   for (const y of [5, 3.6]) K.box(T, 0, y, 2.6, 5, 0.8, 0.5, ST[3]);
   for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2, L = 4; K.flare(rig.hips, Math.sin(a) * 4.4, -L / 2 + 0.8, Math.cos(a) * 2.6, 1.9, L, 0.7, ST[i % 2 ? 1 : 3], a, 0.12); }
   for (const leg of [rig.legR, rig.legL]) { K.box(leg, 0, -8.2, 0.3, 4.6, 5, 4.6, ST[2]); K.box(leg, 0, -6, 0.3, 4.7, 0.6, 4.7, ST[3]); }
@@ -2297,7 +2379,7 @@ function buildStatue() {
   K.clumps(T, [0, 6, 0], [9, 12, 5], { n: 26, size: [0.8, 1.3], cols: [...moss, dark], faces: 'tfklr', out: -0.3 });
   // round shield with a gorgon face, held up on the left arm
   const sh = markHeld(group(rig.handL, 1, -4, 2));
-  K.box(sh, 0, 0, 0, 10, 10, 1.2, ST[1]); K.box(sh, 0, 0, 0.3, 11, 7, 1, ST[1]); K.box(sh, 0, 0, 0.3, 7, 11, 1, ST[1]);
+  K.vox(sh, 0, 0, 0, 10, 10, 1.2, ST, { j: 0.08, faces: 'fk' }); K.box(sh, 0, 0, 0.3, 11, 7, 1, ST[1]); K.box(sh, 0, 0, 0.3, 7, 11, 1, ST[1]);
   K.box(sh, 0, 0, 0.8, 4, 4.4, 0.6, ST[2]);
   for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; K.box(sh, Math.cos(a) * 2.8, Math.sin(a) * 2.8, 0.9, 1, 1, 0.5, ST[3]); }
   for (const sx of [-1, 1]) K.box(sh, sx * 0.9, 0.6, 1.15, 0.6, 0.6, 0.3, dark);
@@ -2308,7 +2390,8 @@ function buildStatue() {
   markTip(sp, 0, 16, 0, 'stone spear');
   // a cracked plinth stuck to its feet
   for (const leg of [rig.legR, rig.legL]) { K.box(leg, 0, -11.4, 0.5, 5.4, 2, 6.4, ST[3]); K.box(leg, 0.8, -12, 1.8, 3, 1, 3, 0x7a766e); K.clumps(leg, [0, -11.4, 0.5], [5.4, 2, 6.4], { n: 6, size: [0.6, 1], cols: moss, faces: 'tf', out: -0.3 }); }
-  K.done();
+  applyShape(rig);
+  K.done(); markHeadwear(rig, () => KH.done());
   rig.statuePose = (r) => { r.armR.rotation.set(-2.3, 0, 0.3); r.handR.rotation.x = 1.5; r.armL.rotation.set(-1.3, 0.5, -0.2); r.head.rotation.set(0.25, 0.5, 0); r.torso.rotation.set(0.12, -0.3, 0); r.legR.rotation.x = 0.3; r.legL.rotation.x = -0.25; };
   rig.statuePose(rig);
   return rig;
@@ -2434,14 +2517,20 @@ export function buildScorpion({ id = 'scorpion', pal = {} } = {}) {
     S.saturate(1.2);
   }, { rough: 0.35, emit: 1 });
   const TN = 9, TL = 27;   // tail segments and length (skin px)
-  const rig = new QuadRig({ material: mat, scale: 1.25, bodyL: 10, bodyW: 7, bodyH: 3.4, legH: 4, legW: 1.4, headS: 4.5, legs: 8, splay: 1.6, footL: 5, snout: false, neckUp: -1.2, gait: 1.5, tail: TN, tailLen: TL, tailW: 2.8, tailCurl: 0.3 });
+  // (round 9: the owner wants it bigger than a person, an enemy that
+  // intimidates: 2.4x its old size, rig scale 1.25 → 3, its back well above
+  // Percy's waist and its sting, raised, over his head. It keeps its build;
+  // every plate and segment is a shell of hero-sized cells (voxDensity), so
+  // the bigger scorpion is more cells, not bigger ones)
+  const rig = new QuadRig({ material: mat, scale: 3, bodyL: 10, bodyW: 7, bodyH: 3.4, legH: 4, legW: 1.4, headS: 4.5, legs: 8, splay: 1.6, footL: 5, snout: false, neckUp: -1.2, gait: 1.5, tail: TN, tailLen: TL, tailW: 2.8, tailCurl: 0.3 });
   const K = kit(rig, mat, { seed: 79, rough: 0.35, metal: 0.1, emit: 0.8 });
   const T = rig.torso, { legW } = rig.dims;
-  // A champion built at twice the size and more (the Pit Scorpion, the Red
-  // King: parts.js BUILD.k) has its plates and segments drawn as shells of
-  // hero-sized cells, so its armour shows grain instead of plain slabs.
-  // (cells no finer than half a pixel: the Red King, at 2.4, stays under 25k triangles)
-  const fine = BUILD.k > 1.3, cell = 1 / Math.min(2.2, BUILD.k);
+  // Its plates and segments are drawn as shells of hero-sized cells, so the
+  // armour shows grain instead of plain slabs. (Cells 0.8 of a hero pixel's
+  // density, and a champion, built bigger (parts.js BUILD.k), gains density
+  // only with the square root of its size: the plain scorpion stays near 15k
+  // triangles and the Red King under 25k, as the cyclops does)
+  const fine = true, cell = 1 / (voxDensity(rig) * 0.8 / Math.sqrt(BUILD.k));
   const V = (p, x, y, z, w, h, d, col, rx = 0) => (fine ? K.vox(p, x, y, z, w, h, d, [col], { cell, j: 0.16, relief: 0.08, rx }) : K.box(p, x, y, z, w, h, d, col, rx));
   const VZ = (g, x, y, z, w, h, d, col) => (fine ? K.voxZ(g, x, y, z, w, h, d, [col], { cell, j: 0.16, relief: 0.08 }) : K.boxZ(g, x, y, z, w, h, d, col));
   // banded back plates with a ridge, and side armour
@@ -2576,8 +2665,8 @@ function scorpionPose(rig, dt, speed, a, atk) {
     D(c.jawA, 'y', 0.25 - Q[3] * 0.7); D(c.jawB, 'y', -0.25 + Q[3] * 0.7);
   }
   // the body rocks back on the windup and lunges in on the strike
-  // (lunge in metres at the plain scorpion's size: a champion's grows with it)
-  rig.hips.position.z += (lunge / rig.extras.s0 - rig.hips.position.z) * f;
+  // (lunge in metres at the old plain scorpion's size, before round 9 grew it 2.4×: it grows with it, and a champion's with the champion)
+  rig.hips.position.z += (lunge * 2.4 / rig.extras.s0 - rig.hips.position.z) * f;   // (round 9: ×2.4, the scorpion's growth)
 }
 
 // ---- stat blocks -------------------------------------------------------------
@@ -2603,7 +2692,8 @@ export const MONSTERS = {
   rat: { name: txt('monsters.rat.name'), tier: 'minor', role: 'rusher', hp: 14, speed: 6.4, dmg: 5, radius: 0.42, height: 0.85, ai: 'melee', range: 1.1, windup: 0.3, cd: 1.1, xp: 2, coins: [0, 2], model: 'rat', pitch: 2.4, voice: 'squeak', knockResist: 0, idle: 'loiter', notice: 4.5, drop: 3.4 },   // idle 'loiter': hangs around trash until a hero is close (entities/ratRules.js)
   serpent: { name: txt('monsters.serpent.name'), tier: 'minor', role: 'fodder', hp: 40, speed: 4.4, dmg: 8, radius: 0.55, height: 1.3, ai: 'melee', range: 1.9, windup: 0.5, cd: 1.3, xp: 4, coins: [1, 3], model: 'serpent', pitch: 0.9, voice: 'hiss', knockResist: 0.2, poison: { dps: 2, dur: 3 } },
   // a real mortal in the Mist (entities/mistPeople.js): always looks like a person, never fights, can't be hurt
-  mortal: { name: txt('monsters.mortal.name'), tier: 'minor', role: 'none', hp: 100, speed: 1.4, dmg: 0, radius: 0.38, height: 1.9, ai: 'none', range: 0, windup: 1, cd: 1, xp: 0, coins: [0, 0], model: 'pup', mortal: true },
+  mortal: { name: txt('monsters.mortal.name'), tier: 'minor', role: 'none', hp: 100, speed: 1.4, dmg: 0, radius: 0.4, height: 2.2,   // (round 9: an adult, ADULT_SCALE 1.24 → 1.4)
+  ai: 'none', range: 0, windup: 1, cd: 1, xp: 0, coins: [0, 0], model: 'pup', mortal: true },
   spider: { name: txt('monsters.spider.name'), tier: 'minor', role: 'rusher', hp: 20, speed: 5.8, dmg: 5, radius: 0.38, height: 0.8, ai: 'melee', range: 1.3, windup: 0.35, cd: 1, xp: 2, coins: [0, 2], model: 'spider', pitch: 2.2, voice: 'click', aura: 'spark' },
   harpy: { name: txt('monsters.harpy.name'), tier: 'minor', role: 'ranged', hp: 40, speed: 3.8, dmg: 9, radius: 0.5, height: 2.5, ai: 'ranged', range: 10, keep: 6.5, windup: 0.85, cd: 3.4, xp: 5, coins: [2, 4], model: 'harpy', pitch: 1.3, projectile: 'feather', shots: 3, voice: 'screech' },
   stymphalian: { name: txt('monsters.stymphalian.name'), tier: 'minor', role: 'ranged', hp: 34, speed: 4.4, dmg: 8, radius: 0.6, height: 2.0, ai: 'ranged', range: 11, keep: 7, windup: 0.8, cd: 3.4, xp: 4, coins: [1, 4], model: 'stymphalian', pitch: 1.7, projectile: 'feather', shots: 3, voice: 'screech' },
@@ -2613,15 +2703,20 @@ export const MONSTERS = {
   dracaena: { name: txt('monsters.dracaena.name'), tier: 'elite', role: 'tank', hp: 190, speed: 2.4, dmg: 18, radius: 1.1, height: 3.8, ai: 'tank', range: 3, slamR: 2.9, windup: 0.85, cd: 2.2, xp: 12, coins: [5, 9], model: 'dracaena', armor: 0.25, shield: true, knockResist: 0.75, pitch: 0.8, voice: 'hiss' },
   hellhound: { name: txt('monsters.hellhound.name'), tier: 'elite', role: 'bruiser', hp: 220, speed: 3.6, dmg: 20, radius: 1.6, height: 5, ai: 'melee', range: 3.7, windup: 0.7, cd: 1.8, xp: 14, coins: [6, 10], model: 'hellhound', knockResist: 0.7, superArmor: true, pitch: 0.5, aura: 'smoke', voice: 'bark' },
   empousa: { name: txt('monsters.empousa.name'), tier: 'elite', role: 'summoner', hp: 160, speed: 2.6, dmg: 10, radius: 0.5, height: 2.5, ai: 'summon', range: 9, keep: 8, windup: 1.0, cd: 5, xp: 16, coins: [8, 14], model: 'empousa', knockResist: 0.4, pitch: 1.2, summons: 'pup', aura: 'fire', projectile: 'fire', voice: 'screech' },
-  scorpion: { name: txt('monsters.scorpion.name'), tier: 'elite', role: 'bruiser', hp: 140, speed: 3.4, dmg: 12, radius: 0.8, height: 1.3, ai: 'melee', range: 2.2, windup: 0.55, cd: 1.5, xp: 10, coins: [4, 8], model: 'scorpion', armor: 0.2, knockResist: 0.5, pitch: 1.4, voice: 'click', poison: { dps: 4, dur: 4 }, slashColor: 0x9aff3a,
+  scorpion: { name: txt('monsters.scorpion.name'), tier: 'elite', role: 'bruiser', hp: 140, speed: 3.4, dmg: 12, radius: 1.3, height: 2.4, ai: 'melee', range: 3.6, windup: 0.55, cd: 1.5, xp: 10, coins: [4, 8], model: 'scorpion', armor: 0.2, knockResist: 0.5, pitch: 1.4, voice: 'click', poison: { dps: 4, dur: 4 }, slashColor: 0x9aff3a,
     // alternates a one-two pinch of the claws with a slower, harder sting over its back (only the sting poisons; enemy.js startAttack)
-    moves: [{ kind: 'pinch', trigger: 1.9, range: 2, windup: 0.5, recover: 0.55, dmg: 0.6, twin: 0.18 }, { kind: 'sting', trigger: 2.5, at: 1.5, radius: 0.9, windup: 0.85, recover: 0.65, dmg: 1.4 }] },
-  skeleton: { name: txt('monsters.skeleton.name'), tier: 'elite', role: 'ranged', hp: 110, speed: 3, dmg: 15, radius: 0.45, height: 2, ai: 'ranged', range: 12, keep: 7, windup: 0.8, cd: 3, xp: 9, coins: [3, 7], model: 'skeleton', pitch: 1.1, projectile: 'bullet', shots: 2, voice: 'rattle', regrow: true },
+    // (round 9: the scorpion grew 2.4×, rig scale 1.25 → 3, so its body radius 0.8 → 1.3, height 1.3 → 2.4 (the sting raised) and the
+    // reach that comes from its size with it: range 2.2 → 3.6, pinch trigger 1.9 → 3.4 and reach 2 → 3.2 (its claws stand further out
+    // in front of a longer body), the sting's spot 1.5 → 2.8 ahead and 0.9 → 1.4 wide; windups, cooldowns and damage unchanged)
+    moves: [{ kind: 'pinch', trigger: 3.4, range: 3.2, windup: 0.5, recover: 0.55, dmg: 0.6, twin: 0.18 }, { kind: 'sting', trigger: 4, at: 2.8, radius: 1.4, windup: 0.85, recover: 0.65, dmg: 1.4 }] },
+  // (round 9: the skeleton, the spartoi and the living statue grew to about 1.4x Percy, so radius 0.45-0.5 → 0.65-0.7 and height 2-2.1 → 3.2-3.4:
+  // under a dungeon door's 4 blocks and its corridor's 5; the melee reach of their longer arms 1.8 → 2.1 and 2.2 → 2.5)
+  skeleton: { name: txt('monsters.skeleton.name'), tier: 'elite', role: 'ranged', hp: 110, speed: 3, dmg: 15, radius: 0.65, height: 3.2, ai: 'ranged', range: 12, keep: 7, windup: 0.8, cd: 3, xp: 9, coins: [3, 7], model: 'skeleton', pitch: 1.1, projectile: 'bullet', shots: 2, voice: 'rattle', regrow: true },
   // a spartoi: the steady melee fodder of the sown skeleton army (beach, underworld, desert)
-  spartoi: { name: txt('monsters.spartoi.name'), tier: 'minor', role: 'fodder', hp: 52, speed: 3.3, dmg: 9, radius: 0.45, height: 2, ai: 'melee', range: 1.8, windup: 0.5, cd: 1.4, xp: 4, coins: [1, 3], model: 'spartoi', pitch: 1.2, voice: 'rattle', knockResist: 0.2 },
+  spartoi: { name: txt('monsters.spartoi.name'), tier: 'minor', role: 'fodder', hp: 52, speed: 3.3, dmg: 9, radius: 0.65, height: 3.4, ai: 'melee', range: 2.1, windup: 0.5, cd: 1.4, xp: 4, coins: [1, 3], model: 'spartoi', pitch: 1.2, voice: 'rattle', knockResist: 0.2 },
   // a telekhine: lobs Greek fire in an arc (a marked spot that burns a moment): keep moving
   telekhine: { name: txt('monsters.telekhine.name'), tier: 'minor', role: 'lobber', hp: 38, speed: 3, dmg: 11, radius: 0.9, height: 2.3, ai: 'ranged', range: 12, keep: 8, windup: 1, cd: 4.4, xp: 5, coins: [1, 4], model: 'telekhine', pitch: 0.9, projectile: 'fire', lob: true, voice: 'bark', aura: 'greekfire' },
-  gorgon_statue: { name: txt('monsters.gorgon_statue.name'), tier: 'elite', role: 'ambusher', hp: 150, speed: 2.6, dmg: 16, radius: 0.5, height: 2.1, ai: 'statue', range: 2.2, windup: 0.7, cd: 1.6, xp: 9, coins: [3, 6], model: 'gorgon_statue', armor: 0.35, knockResist: 0.6, pitch: 0.7, voice: 'grind', wake: 5 },
+  gorgon_statue: { name: txt('monsters.gorgon_statue.name'), tier: 'elite', role: 'ambusher', hp: 150, speed: 2.6, dmg: 16, radius: 0.7, height: 3.3, ai: 'statue', range: 2.5, windup: 0.7, cd: 1.6, xp: 9, coins: [3, 6], model: 'gorgon_statue', armor: 0.35, knockResist: 0.6, pitch: 0.7, voice: 'grind', wake: 5 },
   cyclops: { name: txt('monsters.cyclops.name'), tier: 'champion', role: 'bruiser', hp: 620, speed: 2.3, dmg: 28, radius: 1.2, height: 4.2, ai: 'tank', range: 3.2, windup: 1.0, cd: 2.4, xp: 40, coins: [15, 25], model: 'cyclops', knockResist: 0.9, superArmor: true, pitch: 0.45, voice: 'roar', slamR: 3.6 },
 };
 // Old Cursed Dungeons kinds still requested by shared code (wave spawner,

@@ -60,3 +60,16 @@ export function markHeadCore(rig, c, s) {
   rig.extras.headCore = S ? { c: [0, 1, 2].map((a) => shapeX(S, c[a], a)), s: s.map((v, a) => v * shapeK(S, c[a], a)) } : { c: [...c], s: [...s] };
   return rig.extras.headCore;
 }
+// Headwear: helmets, crests, plumes, hats, caps, crowns, circlets and horns
+// (design/sizes.json "about"). perf/bodysize.cjs leaves whatever is marked out
+// of the body height, so a crest or a hat never makes a model read taller than
+// its body. markHeadwear(rig, fn) marks every mesh fn adds to the rig (a
+// second voxel kit drawn only with the headwear, K.done() inside fn), so the
+// headwear lands on the same part and merges with it in game (charmat.js);
+// markHeadwear(obj) marks an object (a group or a mesh) and all under it.
+export function markHeadwear(rig, fn) {
+  if (rig?.isObject3D) { rig.userData.headwear = true; return rig; }
+  const n = rig.meshes.length, out = fn();
+  for (const m of rig.meshes.slice(n)) m.userData.headwear = true;
+  return out;
+}
