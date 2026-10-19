@@ -648,7 +648,9 @@ Inside the code it is the timer: `app/src/timer.js` (the routine, its saved
 state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
 `app/src/timerui.js` (the screen), `app/src/pager.js` (the second page).
 
-- **A routine is a list of practice items**, each a card: a name (typed in
+- **A routine is a list of practice items** (on screen each is itself
+  called a routine: "2 routines in all", "Add a Routine", "Last routine"),
+  each a card: a name (typed in
   place), its minutes (− / + or typed, 1 to 120), and **Metronome** and
   **Drone** toggles. With either on, the card's chevron opens that item's own
   settings: the metronome's tempo (− / +, typed, or the slider) and time
@@ -685,7 +687,8 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   the words. For example: "Scales are complete. Next, ghosting.", "Let's begin
   with intonation practice." at Start, and "…That's the end of your
   practice routine. Well done." at the end. Settings: **Use Voice** on (the
-  default) or off, **Voice** (a dropdown: Lily, Matilda, George, Clara,
+  default) or off (turned on, it says nothing until it has something to
+  say), **Voice Personality** (a dropdown: Lily, Matilda, George, Clara,
   Autumn or Theo, each saying hello as it is picked) and **Voice volume** (a
   curve to a gain, `voiceGain`, up to 1.6; it starts at the 0.9 the voice
   always had, and says hello at the new level when let go). Every kind of item has
@@ -701,7 +704,7 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   checks they are all there. Everything a routine may say is loaded when it
   starts; Pause, Skip and Stop cut a line short.
 - **Between items, a chime** (settings: **Use Chimes** on or off, and
-  **Chime**, a dropdown: Kalimba, the default, Two-tone or Celesta; each
+  **Chime Sound**, a dropdown: Kalimba, the default, Two-tone or Celesta; each
   plays as it is picked; a "None" chime saved before is now chimes off): it rings as an item ends and
   the next item's metronome or drone starts about a second later, so they
   don't start over it; it also rings at the end. The sounds are

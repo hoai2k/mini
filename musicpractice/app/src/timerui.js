@@ -342,7 +342,7 @@ export function setupTimer({ settings, audio, canDrone, askDrone }) {
     state.voiceOn = voiceOn.checked;
     save();
     showVoice();
-    if (state.voiceOn) sayHello(); else { hello?.stop(); hush(); }
+    if (!state.voiceOn) { hello?.stop(); hush(); } // turned on, it says nothing until it has something to say
   });
   voiceSel.addEventListener('change', () => { state.voice = voiceSel.value; save(); sayHello(); });
   voiceVol.addEventListener('input', () => { state.voiceVolume = Number(voiceVol.value); save(); });
