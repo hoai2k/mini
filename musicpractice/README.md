@@ -448,11 +448,32 @@ tune or how many cents flat or sharp, and how many were in tune, with
 **Test again** and **Done**. Closing the sheet stops it. While the sheet
 is up the tuner rests behind it (no note, the needle at rest, a reference
 tone stopped), and it picks up again when the sheet closes. It is more lenient
-than the tuner: within 15 cents counts as in tune (`SCALE_TOLERANCE`), where
-the needle wants 5. A note is a run of clear frames on one semitone, at
-least 0.12 s long, with a stray frame or two let through; its pitch is the
-median of its settled middle, so the attack and the slide into the next
-note don't count against it. Names follow the tuner's note names and
+than the tuner: from 10 to 35 cents counts as in tune, by the difficulty
+(below), where the needle wants 5. A note is a run of clear frames on one semitone, at
+least 0.12 s long, with a stray frame or two let through. Each note is
+measured three ways: its **start**, where it first settled after the attack
+(the median of the first 0.1 s that kept within 15 cents, the attack's first
+tenth left out: where the finger landed); its **average**, the median of its
+settled middle; and its **end**, where it last settled before the release
+(after any correction). **Test Scale Difficulty** (Tuner settings) says how
+many cents count as in tune and which of the three may show it (`LEVELS`,
+`judgeNote` in `scaletest.js`):
+
+| Difficulty | Within | Judged by |
+| --- | --- | --- |
+| Beginner | 35¢ | start, average or end |
+| Easy | 25¢ | start, average or end |
+| Medium | 20¢ | average or end (a note corrected before it ends counts) |
+| Hard (the default; how it always judged) | 15¢ | average |
+| Advanced | 10¢ | start (it has to land in tune) |
+| Custom | Threshold, 3 to 50¢ (15) | Attack: Average, Start or End |
+
+The results say which part of a note was right: "In tune" when all three
+were, "In tune by the end" (or at the start, on average) when only part
+was, and "19¢ sharp · in tune at the start" for a note out of tune by the
+rule whose start or end was in tune. The score's closeness and the in-tune
+share use what each note was judged by; Corrected playback shifts by the
+average. Names follow the tuner's note names and
 transposition, and its reference pitch. `app/src/scaletest.js` (pure,
 `test/scaletest.test.mjs` plays it synthesized scales); the screen is in
 `tunerui.js`. Leaving the tuner ends a test still listening.
@@ -636,11 +657,15 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   never change (the click's sound, accent and volume follow the Metronome's,
   the reference pitch the Drone's). A new item takes the app's current tempo,
   note and instrument as a start. So Scales can climb in tempo item by item.
-- A first visit starts with **Intonation practice** (3 min, drone on) and
-  **Scales** (5 min, metronome on). **+ Add** offers those, **Clapping
-  rhythms**, **Ghosting**, **Metronome**, **Arpeggios**, **Sight reading**
-  and **Improvisation**, and **Custom…** (a blank item, its name ready to
-  type), each listed by its name alone. An item added this way
+- A first visit starts with **Intonation** (3 min, drone on) and **Scales**
+  (5 min, metronome on). **+ Add** opens **Add a Routine**: Intonation,
+  Scales, **Arpeggios**, **Metronome**, **Sight Reading**,
+  **Improvisation**, **Clapping Rhythms**, **Ghosting** and **Custom…** (a
+  blank item, its name ready to type), each by its name and a small icon:
+  the picture the item shows while it runs (`pictureFor`), which is also on
+  each item's card beside its number, so a glance tells them apart (a Custom
+  item's follows its drone or metronome). Items saved under a suggestion's
+  earlier name ("Intonation practice") still know which it was. An item added this way
   starts with its Metronome and Drone off (the first visit's two are the
   only ones that come with theirs on; `newItem`'s `tools`), except a
   Metronome item, whose metronome is what it is (`own`), and at the

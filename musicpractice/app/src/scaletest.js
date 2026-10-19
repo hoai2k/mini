@@ -44,19 +44,84 @@ export function scaleScore(notes, tolerance = SCALE_TOLERANCE) {
 export const judge = (cents, tolerance = SCALE_TOLERANCE) =>
   (Math.abs(cents) <= tolerance ? 'good' : cents < 0 ? 'flat' : 'sharp');
 
+/*
+ * Each note is measured three ways: where it settled first, after the attack
+ * (`start`, where the finger landed), across its middle (`mid`, the median,
+ * the note as a whole), and where it settled last, before the release
+ * (`end`, after any correction). The difficulty says how many cents count as
+ * in tune and which of those may show it: the easier, the wider, and the more
+ * of the three that may; the harder, the narrower, down to the start alone,
+ * where the note has to land in tune.
+ */
+export const MEASURES = ['start', 'mid', 'end'];
+export const LEVELS = {
+  beginner: { tolerance: 35, use: ['start', 'mid', 'end'] },
+  easy: { tolerance: 25, use: ['start', 'mid', 'end'] },
+  medium: { tolerance: 20, use: ['mid', 'end'] }, // a note corrected before it ends counts
+  hard: { tolerance: 15, use: ['mid'] }, // the note as a whole (as the test always judged)
+  advanced: { tolerance: 10, use: ['start'] }, // it has to land in tune
+};
+export const LEVEL_IDS = [...Object.keys(LEVELS), 'custom'];
+/** The rule for a difficulty: a level's own, or Custom's threshold and one measure. */
+export function scaleRule(level, { tolerance = SCALE_TOLERANCE, attack = 'mid' } = {}) {
+  if (LEVELS[level]) return LEVELS[level];
+  return { tolerance, use: [MEASURES.includes(attack) ? attack : 'mid'] };
+}
+
+/**
+ * Judge a note by `rule`: in tune when any measure the rule uses is within
+ * its tolerance. Returns the verdict, the cents it is judged by (the closest
+ * of the measures used: the one that put it in tune, or its nearest miss),
+ * `by` (which measure put it in tune), and `parts`, every measure that was in
+ * tune, used or not, so the results can say which part of a note was right.
+ */
+export function judgeNote(note, rule) {
+  const m = { start: note.startCents ?? note.cents, mid: note.cents, end: note.endCents ?? note.cents };
+  const ok = (k) => Math.abs(m[k]) <= rule.tolerance;
+  const closest = (keys) => keys.reduce((a, b) => (Math.abs(m[b]) < Math.abs(m[a]) ? b : a));
+  const used = rule.use.filter(ok);
+  const by = used.length ? closest(used) : null;
+  const cents = m[by ?? closest(rule.use)];
+  return { verdict: by ? 'good' : cents < 0 ? 'flat' : 'sharp', cents, by, parts: MEASURES.filter(ok) };
+}
+
 const median = (xs) => {
   const s = [...xs].sort((a, b) => a - b);
   const m = s.length >> 1;
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
 };
 
+const STEADY = 0.15; // semitones: a stretch whose pitch keeps within this has settled
+const STEADY_SEC = 0.1; // how long a stretch has to hold to count
+/**
+ * Where a note's pitch first settled after its attack (or, `last`, last
+ * settled before its release), as a fractional MIDI number: the median of
+ * the first (or last) STEADY_SEC that kept within STEADY, with the attack's
+ * and the release's first and last tenth left out; if it never held still
+ * that long, the median of the first (or last) third.
+ */
+function steady(exacts, sampleRate, last = false) {
+  const n = exacts.length;
+  const cut = Math.max(1, Math.round(n * 0.1));
+  let body = exacts.slice(cut, n - cut);
+  if (body.length < 3) body = exacts;
+  if (last) body = [...body].reverse();
+  const w = Math.max(3, Math.round((STEADY_SEC * sampleRate) / HOP));
+  for (let i = 0; i + w <= body.length; i++) {
+    const win = body.slice(i, i + w);
+    if (Math.max(...win) - Math.min(...win) <= STEADY) return median(win);
+  }
+  return median(body.slice(0, Math.max(1, Math.ceil(body.length / 3))));
+}
+
 /**
  * The notes in a run of analysed frames ({ at, rms, clarity, hz }, `at` in
  * samples): runs of clear, loud enough frames on one semitone, a stray frame
  * or two (an octave slip, a breath) let through, at least MIN_NOTE_SEC long.
  * Each note's pitch is the median of its settled middle (the attack and the
- * release left out), as `midi` (the nearest semitone) and `cents` off it.
- * @returns {{ midi: number, cents: number, start: number, end: number }[]} times in seconds
+ * release left out), as `midi` (the nearest semitone) and `cents` off it;
+ * `startCents` and `endCents` are where it first and last settled (steady).
+ * @returns {{ midi: number, cents: number, startCents: number, endCents: number, start: number, end: number }[]} times in seconds
  */
 export function segmentNotes(frames, { sampleRate, a4 = 440, gate = 0 }) {
   const runs = [];
@@ -85,14 +150,18 @@ export function segmentNotes(frames, { sampleRate, a4 = 440, gate = 0 }) {
     const n = r.frames.length;
     const settled = r.frames.slice(Math.floor(n * 0.25), Math.max(Math.floor(n * 0.25) + 1, Math.ceil(n * 0.85)));
     const exact = median(settled.map((x) => x.exact));
+    const all = r.frames.map((x) => x.exact);
+    const endCents = (steady(all, sampleRate, true) - r.midi) * 100;
     const prev = notes.at(-1);
-    // The same note again with hardly a gap is one note that wavered.
+    // The same note again with hardly a gap is one note that wavered (it ends where this part does).
     if (prev && prev.midi === r.midi && r.start / sampleRate - prev.end < 0.08) {
       prev.end = r.end / sampleRate;
+      prev.endCents = endCents;
       continue;
     }
     notes.push({
       midi: r.midi, cents: (exact - r.midi) * 100, start: r.start / sampleRate, end: r.end / sampleRate,
+      startCents: (steady(all, sampleRate) - r.midi) * 100, endCents,
       clarity: median(settled.map((x) => x.clarity)), // how clear and steady its tone was (0 to 1)
     });
   }

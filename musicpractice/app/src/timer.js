@@ -25,14 +25,14 @@ const MAX_NAME = 60;
 export const PRESETS = [
   { id: 'intonation', minutes: 3, metronome: false, drone: true },
   { id: 'scales', minutes: 5, metronome: true, drone: false },
-  { id: 'rhythms', minutes: 3, metronome: false, drone: false },
-  { id: 'ghosting', minutes: 3, metronome: false, drone: false },
+  { id: 'arpeggios', minutes: 5, metronome: false, drone: false },
   // The metronome is what this one is: on whenever it is added, and its
   // picture is the Metronome's own.
   { id: 'metronome', minutes: 5, metronome: true, drone: false, own: true, picture: 'home-metronome' },
-  { id: 'arpeggios', minutes: 5, metronome: false, drone: false },
   { id: 'sight-reading', minutes: 5, metronome: false, drone: false },
   { id: 'improvisation', minutes: 5, metronome: false, drone: false },
+  { id: 'rhythms', minutes: 3, metronome: false, drone: false },
+  { id: 'ghosting', minutes: 3, metronome: false, drone: false },
 ];
 /** The routine a first visit starts with. */
 const FIRST_ROUTINE = ['intonation', 'scales'];
@@ -67,6 +67,9 @@ export const defaultRoutine = (base) => FIRST_ROUTINE.map((id) => newItem(id, ba
 const clampInt = (v, lo, hi, d) => (Number.isFinite(Number(v)) ? Math.max(lo, Math.min(hi, Math.round(Number(v)))) : d);
 
 /** One item, with anything missing or out of range put right. */
+// A suggestion's name as it is now, or as it was ("Intonation practice", "Clapping rhythms").
+const sameName = (preset, name) => [preset, `${preset} practice`].some((n) => n.toLowerCase() === name.trim().toLowerCase());
+
 export function clean(it) {
   const o = it && typeof it === 'object' ? it : {};
   const met = o.met && typeof o.met === 'object' ? o.met : {};
@@ -77,7 +80,7 @@ export function clean(it) {
     // Which suggestion it came from (its picture), or null for one of its own.
     // Saved before items knew: by its name, if that is a suggestion's.
     kind: PRESETS.some((p) => p.id === o.kind) ? o.kind
-      : o.kind === undefined ? PRESETS.find((p) => TEXT.timer.presets[p.id] === name)?.id ?? null : null,
+      : o.kind === undefined ? PRESETS.find((p) => sameName(TEXT.timer.presets[p.id], name))?.id ?? null : null,
     name,
     minutes: clampInt(o.minutes, MIN_MINUTES, MAX_MINUTES, 5),
     metronome: o.metronome === true,

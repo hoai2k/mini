@@ -124,3 +124,51 @@ test('each note can be played back as played, and corrected to the note it was m
   // Only the last second or so is kept while waiting for the scale to begin.
   assert.ok(l.audio[0].at >= 0 && l.audio[0].at < 0.6 * SR, `kept from ${l.audio[0].at}`);
 });
+
+/** One note that lands `from` cents off and glides to `to` over its middle (a player correcting it). */
+function glide(midi, from, to, { sec = 1.2, a4 = 440 } = {}) {
+  const x = new Float32Array(Math.round((1 + sec + 3.6) * SR));
+  let seed = 3;
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647 - 0.5);
+  for (let i = 0; i < x.length; i++) x[i] = rnd() * 0.002;
+  const s0 = SR, n = Math.round(sec * SR);
+  let phase = 0;
+  for (let i = 0; i < n; i++) {
+    const t = i / SR;
+    const k = Math.min(1, Math.max(0, (t / sec - 0.35) / 0.3)); // steady, then the correction, then steady
+    const hz = a4 * 2 ** ((midi - 69 + (from + (to - from) * k) / 100) / 12);
+    phase += (2 * Math.PI * hz) / SR;
+    const env = Math.min(1, t / 0.03) * Math.min(1, (n - i) / (0.05 * SR));
+    x[s0 + i] += 0.25 * env * (Math.sin(phase) + 0.4 * Math.sin(2 * phase) + 0.2 * Math.sin(3 * phase));
+  }
+  return x;
+}
+
+test('each note is measured where it lands, as a whole, and where it ends', () => {
+  const { l } = listen(glide(62, -30, 0));
+  assert.equal(l.result.length, 1);
+  const n = l.result[0];
+  assert.ok(Math.abs(n.startCents + 30) < 4, `start ${n.startCents}`);
+  assert.ok(Math.abs(n.endCents) < 4, `end ${n.endCents}`);
+  assert.ok(n.cents > -30 && n.cents < 0, `mid ${n.cents}`);
+});
+
+test('difficulty: wider and more forgiving at Beginner, down to landing within 10 cents at Advanced', async () => {
+  const { judgeNote, scaleRule, LEVELS, LEVEL_IDS } = await import('../src/scaletest.js');
+  assert.deepEqual(LEVEL_IDS, ['beginner', 'easy', 'medium', 'hard', 'advanced', 'custom']);
+  assert.deepEqual(Object.values(LEVELS).map((r) => r.tolerance), [35, 25, 20, 15, 10]);
+  // Landed 30 flat, corrected by the end: right by the end only.
+  const corrected = { cents: -18, startCents: -30, endCents: 2 };
+  const at = (level, opts) => judgeNote(corrected, scaleRule(level, opts));
+  assert.deepEqual(['beginner', 'easy', 'medium', 'hard', 'advanced'].map((l) => at(l).verdict), ['good', 'good', 'good', 'flat', 'flat']);
+  assert.equal(at('medium').by, 'end');
+  assert.deepEqual(at('hard').parts, ['end']); // not in tune by Hard's rule, but its end was
+  assert.equal(at('hard').cents, -18);
+  // Landed in tune and drifted sharp: only Advanced and the start-reading levels pass it.
+  const drifted = { cents: 16, startCents: 3, endCents: 28 };
+  assert.deepEqual(['beginner', 'medium', 'hard', 'advanced'].map((l) => judgeNote(drifted, scaleRule(l)).verdict), ['good', 'good', 'sharp', 'good']);
+  // Custom: its own threshold and measure.
+  assert.equal(at('custom', { tolerance: 20, attack: 'mid' }).verdict, 'good');
+  assert.equal(at('custom', { tolerance: 20, attack: 'start' }).verdict, 'flat');
+  assert.equal(at('custom', { tolerance: 5, attack: 'end' }).verdict, 'good');
+});
