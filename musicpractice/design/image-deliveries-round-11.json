@@ -422,6 +422,420 @@
       "tool": "built-in image_gen",
       "mode": "RGBA",
       "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes."
+    },
+    {
+      "id": "practice-intonation",
+      "theme": "baroque",
+      "round": 11,
+      "file": "musicpractice/app/assets/ui/baroque/practice-intonation.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "18th Century \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create ONE standalone transparent-background Practice Routine icon. Attached image is STYLE REFERENCE ONLY for colors, material finish and illustration technique; do NOT copy its cello, bow, wings, sound ribbons or musical decorations. Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a two-tined tuning fork standing upright and ringing, with small vibration marks beside its tines; the tuning fork alone, without musical notes or a staff, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nStrict content: NO wings, NO ribbons, NO mist, NO swooshes, NO floating musical notes. Only scales may show exactly EIGHT ascending notes integrated in its staff; rhythm notes form the explicit rhythm row, sheet music is confined to book pages. Intonation is ONLY one two-tined tuning fork with small vibration dashes. Ghosting is ONLY a faint translucent OUTLINE of a cello bow hovering above exactly four parallel strings, no solid filled bow, no notes or ghost character. No unrelated ornaments or second instrument. Center subject in square canvas with safe margins. Actual transparent alpha, no background.",
+      "note": "The Practice Routine's picture for Intonation practice in the 18th Century theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a two-tined tuning fork standing upright and ringing, with small vibration marks beside its tines; the tuning fork alone, without musical notes or a staff, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/baroque/home-drone.webp"
+      ],
+      "generated_source": "exec-a03bea25-7c42-42b5-a5dc-1ec536ae44df.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-11/baroque-practice-intonation.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes."
+    },
+    {
+      "id": "practice-scales",
+      "theme": "baroque",
+      "round": 11,
+      "file": "musicpractice/app/assets/ui/baroque/practice-scales.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "18th Century \u00b7 Practice Routine pictures",
+      "prompt": "Use case: precise-object-edit. Image 1 supplies the Baroque style: carved walnut, rich gilded acanthus relief and warm golden light. Image 2 supplies the EXACT desired musical scale layout. Redraw image 1 to match image 2's layout: EXACTLY EIGHT ascending round noteheads, eight separate stems, FIVE straight parallel horizontal staff lines. NO treble clef. Follow image 2's eight-note positions precisely, last note larger. Preserve the ornate carved walnut and gilt material from image 1 on the notes and staff ends. One scale icon, fully transparent background with safe margins. No text, letters, floating notes, wings, ribbons or mist.",
+      "note": "The Practice Routine's picture for Scales in the 18th Century theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with eight round note heads climbing it from left to right like a gentle staircase, the last note a little larger; exactly eight notes on the staff, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-fc9ecb8a-4013-4a99-9cd0-66e47268b690.png",
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-e6b8592d-d502-48f9-8348-1e035ece403e.png"
+      ],
+      "generated_source": "exec-c238d4ae-e87f-4f8e-a048-12ed1a71fea5.png",
+      "initial_generated_source": "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-fc9ecb8a-4013-4a99-9cd0-66e47268b690.png",
+      "initial_prompt": "Use case: stylized-concept. Create ONE standalone transparent-background Practice Routine icon. Attached image is STYLE REFERENCE ONLY for colors, material finish and illustration technique; do NOT copy its cello, bow, wings, sound ribbons or musical decorations. Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with eight round note heads climbing it from left to right like a gentle staircase, the last note a little larger; exactly eight notes on the staff, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nStrict content: NO wings, NO ribbons, NO mist, NO swooshes, NO floating musical notes. Only scales may show exactly EIGHT ascending notes integrated in its staff; rhythm notes form the explicit rhythm row, sheet music is confined to book pages. Intonation is ONLY one two-tined tuning fork with small vibration dashes. Ghosting is ONLY a faint translucent OUTLINE of a cello bow hovering above exactly four parallel strings, no solid filled bow, no notes or ghost character. No unrelated ornaments or second instrument. Center subject in square canvas with safe margins. Actual transparent alpha, no background.",
+      "native_size": [
+        1774,
+        887
+      ],
+      "source": "musicpractice/design/generated/round-11/baroque-practice-scales.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes."
+    },
+    {
+      "id": "practice-rhythms",
+      "theme": "baroque",
+      "round": 11,
+      "file": "musicpractice/app/assets/ui/baroque/practice-rhythms.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "18th Century \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create ONE standalone transparent-background Practice Routine icon. Attached image is STYLE REFERENCE ONLY for colors, material finish and illustration technique; do NOT copy its cello, bow, wings, sound ribbons or musical decorations. Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw two hands meeting in a clap, seen from the side, with three small curved motion marks around them, and a short row of rhythm notes (quarter notes and a pair of beamed eighth notes) beneath, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nStrict content: NO wings, NO ribbons, NO mist, NO swooshes, NO floating musical notes. Only scales may show exactly EIGHT ascending notes integrated in its staff; rhythm notes form the explicit rhythm row, sheet music is confined to book pages. Intonation is ONLY one two-tined tuning fork with small vibration dashes. Ghosting is ONLY a faint translucent OUTLINE of a cello bow hovering above exactly four parallel strings, no solid filled bow, no notes or ghost character. No unrelated ornaments or second instrument. Center subject in square canvas with safe margins. Actual transparent alpha, no background.",
+      "note": "The Practice Routine's picture for Clapping rhythms in the 18th Century theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw two hands meeting in a clap, seen from the side, with three small curved motion marks around them, and a short row of rhythm notes (quarter notes and a pair of beamed eighth notes) beneath, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/baroque/home-drone.webp"
+      ],
+      "generated_source": "exec-65b152a2-3bc4-4c90-9d9c-478ec90c5f69.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-11/baroque-practice-rhythms.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes."
+    },
+    {
+      "id": "practice-ghosting",
+      "theme": "baroque",
+      "round": 11,
+      "file": "musicpractice/app/assets/ui/baroque/practice-ghosting.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "18th Century \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create ONE standalone transparent-background Practice Routine icon. Attached image is STYLE REFERENCE ONLY for colors, material finish and illustration technique; do NOT copy its cello, bow, wings, sound ribbons or musical decorations. Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a cello bow drawn as a faint, translucent ghostly outline, hovering just above four strings; only the translucent bow outline and the four strings, without floating notes, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nStrict content: NO wings, NO ribbons, NO mist, NO swooshes, NO floating musical notes. Only scales may show exactly EIGHT ascending notes integrated in its staff; rhythm notes form the explicit rhythm row, sheet music is confined to book pages. Intonation is ONLY one two-tined tuning fork with small vibration dashes. Ghosting is ONLY a faint translucent OUTLINE of a cello bow hovering above exactly four parallel strings, no solid filled bow, no notes or ghost character. No unrelated ornaments or second instrument. Center subject in square canvas with safe margins. Actual transparent alpha, no background.",
+      "note": "The Practice Routine's picture for Ghosting in the 18th Century theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a cello bow drawn as a faint, translucent ghostly outline, hovering just above four strings; only the translucent bow outline and the four strings, without floating notes, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/baroque/home-drone.webp"
+      ],
+      "generated_source": "exec-806862b8-4384-4b5d-a836-1f2e3d3c32b5.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-11/baroque-practice-ghosting.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes."
+    },
+    {
+      "id": "practice-default",
+      "theme": "baroque",
+      "round": 11,
+      "file": "musicpractice/app/assets/ui/baroque/practice-default.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "18th Century \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create ONE standalone transparent-background Practice Routine icon. Attached image is STYLE REFERENCE ONLY for colors, material finish and illustration technique; do NOT copy its cello, bow, wings, sound ribbons or musical decorations. Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a music stand holding an open book of sheet music, a pencil resting on its ledge, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nStrict content: NO wings, NO ribbons, NO mist, NO swooshes, NO floating musical notes. Only scales may show exactly EIGHT ascending notes integrated in its staff; rhythm notes form the explicit rhythm row, sheet music is confined to book pages. Intonation is ONLY one two-tined tuning fork with small vibration dashes. Ghosting is ONLY a faint translucent OUTLINE of a cello bow hovering above exactly four parallel strings, no solid filled bow, no notes or ghost character. No unrelated ornaments or second instrument. Center subject in square canvas with safe margins. Actual transparent alpha, no background.",
+      "note": "The Practice Routine's picture for Practice (default) in the 18th Century theme, shown large while such an item runs and for any item with no picture of its own. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a music stand holding an open book of sheet music, a pencil resting on its ledge, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/baroque/home-drone.webp"
+      ],
+      "generated_source": "exec-ce9e7f15-7d19-460c-bbf3-2563629c04d7.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-11/baroque-practice-default.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes."
+    },
+    {
+      "id": "practice-intonation",
+      "theme": "scifi",
+      "round": 11,
+      "file": "musicpractice/app/assets/ui/scifi/practice-intonation.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Robot Future \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create ONE standalone transparent-background Practice Routine icon. Attached image is STYLE REFERENCE ONLY for colors, material finish and illustration technique; do NOT copy its cello, bow, wings, sound ribbons or musical decorations. Using the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a two-tined tuning fork standing upright and ringing, with small vibration marks beside its tines; the tuning fork alone, without musical notes or a staff, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nStrict content: NO wings, NO ribbons, NO mist, NO swooshes, NO floating musical notes. Only scales may show exactly EIGHT ascending notes integrated in its staff; rhythm notes form the explicit rhythm row, sheet music is confined to book pages. Intonation is ONLY one two-tined tuning fork with small vibration dashes. Ghosting is ONLY a faint translucent OUTLINE of a cello bow hovering above exactly four parallel strings, no solid filled bow, no notes or ghost character. No unrelated ornaments or second instrument. Center subject in square canvas with safe margins. Actual transparent alpha, no background.",
+      "note": "The Practice Routine's picture for Intonation practice in the Robot Future theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a two-tined tuning fork standing upright and ringing, with small vibration marks beside its tines; the tuning fork alone, without musical notes or a staff, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/scifi/home-drone.webp"
+      ],
+      "generated_source": "exec-8f4452c6-3684-4c72-a5f9-022f768247c2.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-11/scifi-practice-intonation.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes."
+    },
+    {
+      "id": "practice-scales",
+      "theme": "scifi",
+      "round": 11,
+      "file": "musicpractice/app/assets/ui/scifi/practice-scales.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Robot Future \u00b7 Practice Routine pictures",
+      "prompt": "Use case: precise-object-edit. Image 1 supplies the Sci-Fi style: brushed titanium and dark graphite, cyan and magenta edge lights. Image 2 supplies the EXACT desired musical scale layout. Redraw image 1 to match image 2's layout: EXACTLY EIGHT ascending round noteheads, eight separate stems, FIVE straight parallel horizontal staff lines. NO treble clef. Follow image 2's eight-note positions precisely, last note larger. Preserve only Sci-Fi material and lighting from image 1. One scale icon, fully transparent background, safe margins. No text, letters, floating notes, wings, ribbons or mist.",
+      "note": "The Practice Routine's picture for Scales in the Robot Future theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with eight round note heads climbing it from left to right like a gentle staircase, the last note a little larger; exactly eight notes on the staff, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-391ba365-e981-4765-860a-f6def7fdd99b.png",
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-e6b8592d-d502-48f9-8348-1e035ece403e.png"
+      ],
+      "generated_source": "exec-8afd9a1e-7947-471d-9ae2-bf0e128f9043.png",
+      "initial_generated_source": "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-391ba365-e981-4765-860a-f6def7fdd99b.png",
+      "initial_prompt": "Use case: stylized-concept. Create ONE standalone transparent-background Practice Routine icon. Attached image is STYLE REFERENCE ONLY for colors, material finish and illustration technique; do NOT copy its cello, bow, wings, sound ribbons or musical decorations. Using the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with eight round note heads climbing it from left to right like a gentle staircase, the last note a little larger; exactly eight notes on the staff, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nStrict content: NO wings, NO ribbons, NO mist, NO swooshes, NO floating musical notes. Only scales may show exactly EIGHT ascending notes integrated in its staff; rhythm notes form the explicit rhythm row, sheet music is confined to book pages. Intonation is ONLY one two-tined tuning fork with small vibration dashes. Ghosting is ONLY a faint translucent OUTLINE of a cello bow hovering above exactly four parallel strings, no solid filled bow, no notes or ghost character. No unrelated ornaments or second instrument. Center subject in square canvas with safe margins. Actual transparent alpha, no background.",
+      "native_size": [
+        1774,
+        887
+      ],
+      "source": "musicpractice/design/generated/round-11/scifi-practice-scales.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes."
+    },
+    {
+      "id": "practice-rhythms",
+      "theme": "scifi",
+      "round": 11,
+      "file": "musicpractice/app/assets/ui/scifi/practice-rhythms.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Robot Future \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create ONE standalone transparent-background Practice Routine icon. Attached image is STYLE REFERENCE ONLY for colors, material finish and illustration technique; do NOT copy its cello, bow, wings, sound ribbons or musical decorations. Using the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw two hands meeting in a clap, seen from the side, with three small curved motion marks around them, and a short row of rhythm notes (quarter notes and a pair of beamed eighth notes) beneath, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nStrict content: NO wings, NO ribbons, NO mist, NO swooshes, NO floating musical notes. Only scales may show exactly EIGHT ascending notes integrated in its staff; rhythm notes form the explicit rhythm row, sheet music is confined to book pages. Intonation is ONLY one two-tined tuning fork with small vibration dashes. Ghosting is ONLY a faint translucent OUTLINE of a cello bow hovering above exactly four parallel strings, no solid filled bow, no notes or ghost character. No unrelated ornaments or second instrument. Center subject in square canvas with safe margins. Actual transparent alpha, no background.",
+      "note": "The Practice Routine's picture for Clapping rhythms in the Robot Future theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw two hands meeting in a clap, seen from the side, with three small curved motion marks around them, and a short row of rhythm notes (quarter notes and a pair of beamed eighth notes) beneath, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/scifi/home-drone.webp"
+      ],
+      "generated_source": "exec-b27581c8-a34b-42aa-be4e-ef42f50f56ef.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-11/scifi-practice-rhythms.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes."
+    },
+    {
+      "id": "practice-ghosting",
+      "theme": "scifi",
+      "round": 11,
+      "file": "musicpractice/app/assets/ui/scifi/practice-ghosting.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Robot Future \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create ONE standalone transparent-background Practice Routine icon. Attached image is STYLE REFERENCE ONLY for colors, material finish and illustration technique; do NOT copy its cello, bow, wings, sound ribbons or musical decorations. Using the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a cello bow drawn as a faint, translucent ghostly outline, hovering just above four strings; only the translucent bow outline and the four strings, without floating notes, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nStrict content: NO wings, NO ribbons, NO mist, NO swooshes, NO floating musical notes. Only scales may show exactly EIGHT ascending notes integrated in its staff; rhythm notes form the explicit rhythm row, sheet music is confined to book pages. Intonation is ONLY one two-tined tuning fork with small vibration dashes. Ghosting is ONLY a faint translucent OUTLINE of a cello bow hovering above exactly four parallel strings, no solid filled bow, no notes or ghost character. No unrelated ornaments or second instrument. Center subject in square canvas with safe margins. Actual transparent alpha, no background.",
+      "note": "The Practice Routine's picture for Ghosting in the Robot Future theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a cello bow drawn as a faint, translucent ghostly outline, hovering just above four strings; only the translucent bow outline and the four strings, without floating notes, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/scifi/home-drone.webp"
+      ],
+      "generated_source": "exec-351d4c77-6296-4e53-a1ee-d9426d8ab51c.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-11/scifi-practice-ghosting.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes."
+    },
+    {
+      "id": "practice-default",
+      "theme": "scifi",
+      "round": 11,
+      "file": "musicpractice/app/assets/ui/scifi/practice-default.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "Robot Future \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create ONE standalone transparent-background Practice Routine icon. Attached image is STYLE REFERENCE ONLY for colors, material finish and illustration technique; do NOT copy its cello, bow, wings, sound ribbons or musical decorations. Using the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a music stand holding an open book of sheet music, a pencil resting on its ledge, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nStrict content: NO wings, NO ribbons, NO mist, NO swooshes, NO floating musical notes. Only scales may show exactly EIGHT ascending notes integrated in its staff; rhythm notes form the explicit rhythm row, sheet music is confined to book pages. Intonation is ONLY one two-tined tuning fork with small vibration dashes. Ghosting is ONLY a faint translucent OUTLINE of a cello bow hovering above exactly four parallel strings, no solid filled bow, no notes or ghost character. No unrelated ornaments or second instrument. Center subject in square canvas with safe margins. Actual transparent alpha, no background.",
+      "note": "The Practice Routine's picture for Practice (default) in the Robot Future theme, shown large while such an item runs and for any item with no picture of its own. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a music stand holding an open book of sheet music, a pencil resting on its ledge, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/scifi/home-drone.webp"
+      ],
+      "generated_source": "exec-9807aa4e-1613-45d2-97b7-b96d6e3f6280.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-11/scifi-practice-default.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes."
+    },
+    {
+      "id": "practice-intonation",
+      "theme": "nouveau",
+      "round": 11,
+      "file": "musicpractice/app/assets/ui/nouveau/practice-intonation.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "French Nouveau \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create ONE standalone transparent-background Practice Routine icon. Attached image is STYLE REFERENCE ONLY for colors, material finish and illustration technique; do NOT copy its cello, bow, wings, sound ribbons or musical decorations. Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a two-tined tuning fork standing upright and ringing, with small vibration marks beside its tines; the tuning fork alone, without musical notes or a staff, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nStrict content: NO wings, NO ribbons, NO mist, NO swooshes, NO floating musical notes. Only scales may show exactly EIGHT ascending notes integrated in its staff; rhythm notes form the explicit rhythm row, sheet music is confined to book pages. Intonation is ONLY one two-tined tuning fork with small vibration dashes. Ghosting is ONLY a faint translucent OUTLINE of a cello bow hovering above exactly four parallel strings, no solid filled bow, no notes or ghost character. No unrelated ornaments or second instrument. Center subject in square canvas with safe margins. Actual transparent alpha, no background.",
+      "note": "The Practice Routine's picture for Intonation practice in the French Nouveau theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a two-tined tuning fork standing upright and ringing, with small vibration marks beside its tines; the tuning fork alone, without musical notes or a staff, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/nouveau/home-drone.webp"
+      ],
+      "generated_source": "exec-fd2b6e09-dec5-4ffb-abff-98a6d478ad82.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-11/nouveau-practice-intonation.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes."
+    },
+    {
+      "id": "practice-scales",
+      "theme": "nouveau",
+      "round": 11,
+      "file": "musicpractice/app/assets/ui/nouveau/practice-scales.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "French Nouveau \u00b7 Practice Routine pictures",
+      "prompt": "Use case: precise-object-edit. Image 1 supplies the Art Nouveau style: sage green and muted gold, iris-lilac enamel noteheads, delicate vine inlay attached to the frame. Image 2 supplies the EXACT desired musical scale layout. Redraw image 1 to match image 2's layout: EXACTLY EIGHT ascending round noteheads, eight separate stems, FIVE straight parallel horizontal staff lines. NO treble clef. Follow image 2's eight-note positions precisely, last note larger. Preserve only the Art Nouveau materials and botanical inlay from image 1. One scale icon, fully transparent background with safe margins. No text, letters, floating notes, wings, ribbons or mist. No long curling side appendages.",
+      "note": "The Practice Routine's picture for Scales in the French Nouveau theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with eight round note heads climbing it from left to right like a gentle staircase, the last note a little larger; exactly eight notes on the staff, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-a724ede6-f063-4409-b23d-41e415c75122.png",
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-e6b8592d-d502-48f9-8348-1e035ece403e.png"
+      ],
+      "generated_source": "exec-235db5a7-a6cd-4bbe-8626-3c696396ddfb.png",
+      "initial_generated_source": "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-a724ede6-f063-4409-b23d-41e415c75122.png",
+      "initial_prompt": "Use case: stylized-concept. Create ONE standalone transparent-background Practice Routine icon. Attached image is STYLE REFERENCE ONLY for colors, material finish and illustration technique; do NOT copy its cello, bow, wings, sound ribbons or musical decorations. Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with eight round note heads climbing it from left to right like a gentle staircase, the last note a little larger; exactly eight notes on the staff, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nStrict content: NO wings, NO ribbons, NO mist, NO swooshes, NO floating musical notes. Only scales may show exactly EIGHT ascending notes integrated in its staff; rhythm notes form the explicit rhythm row, sheet music is confined to book pages. Intonation is ONLY one two-tined tuning fork with small vibration dashes. Ghosting is ONLY a faint translucent OUTLINE of a cello bow hovering above exactly four parallel strings, no solid filled bow, no notes or ghost character. No unrelated ornaments or second instrument. Center subject in square canvas with safe margins. Actual transparent alpha, no background.",
+      "native_size": [
+        1774,
+        887
+      ],
+      "source": "musicpractice/design/generated/round-11/nouveau-practice-scales.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes."
+    },
+    {
+      "id": "practice-rhythms",
+      "theme": "nouveau",
+      "round": 11,
+      "file": "musicpractice/app/assets/ui/nouveau/practice-rhythms.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "French Nouveau \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create ONE standalone transparent-background Practice Routine icon. Attached image is STYLE REFERENCE ONLY for colors, material finish and illustration technique; do NOT copy its cello, bow, wings, sound ribbons or musical decorations. Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw two hands meeting in a clap, seen from the side, with three small curved motion marks around them, and a short row of rhythm notes (quarter notes and a pair of beamed eighth notes) beneath, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nStrict content: NO wings, NO ribbons, NO mist, NO swooshes, NO floating musical notes. Only scales may show exactly EIGHT ascending notes integrated in its staff; rhythm notes form the explicit rhythm row, sheet music is confined to book pages. Intonation is ONLY one two-tined tuning fork with small vibration dashes. Ghosting is ONLY a faint translucent OUTLINE of a cello bow hovering above exactly four parallel strings, no solid filled bow, no notes or ghost character. No unrelated ornaments or second instrument. Center subject in square canvas with safe margins. Actual transparent alpha, no background.",
+      "note": "The Practice Routine's picture for Clapping rhythms in the French Nouveau theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw two hands meeting in a clap, seen from the side, with three small curved motion marks around them, and a short row of rhythm notes (quarter notes and a pair of beamed eighth notes) beneath, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/nouveau/home-drone.webp"
+      ],
+      "generated_source": "exec-b0defa5b-6ad0-46a0-aa74-0becd3d2a7b7.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-11/nouveau-practice-rhythms.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes."
+    },
+    {
+      "id": "practice-ghosting",
+      "theme": "nouveau",
+      "round": 11,
+      "file": "musicpractice/app/assets/ui/nouveau/practice-ghosting.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "French Nouveau \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create ONE standalone transparent-background Practice Routine icon. Attached image is STYLE REFERENCE ONLY for colors, material finish and illustration technique; do NOT copy its cello, bow, wings, sound ribbons or musical decorations. Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a cello bow drawn as a faint, translucent ghostly outline, hovering just above four strings; only the translucent bow outline and the four strings, without floating notes, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nStrict content: NO wings, NO ribbons, NO mist, NO swooshes, NO floating musical notes. Only scales may show exactly EIGHT ascending notes integrated in its staff; rhythm notes form the explicit rhythm row, sheet music is confined to book pages. Intonation is ONLY one two-tined tuning fork with small vibration dashes. Ghosting is ONLY a faint translucent OUTLINE of a cello bow hovering above exactly four parallel strings, no solid filled bow, no notes or ghost character. No unrelated ornaments or second instrument. Center subject in square canvas with safe margins. Actual transparent alpha, no background.",
+      "note": "The Practice Routine's picture for Ghosting in the French Nouveau theme, shown large while such an item runs. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a cello bow drawn as a faint, translucent ghostly outline, hovering just above four strings; only the translucent bow outline and the four strings, without floating notes, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/nouveau/home-drone.webp"
+      ],
+      "generated_source": "exec-1cd93538-c07f-4b16-bdd4-dd42f5b3ee3b.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-11/nouveau-practice-ghosting.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes."
+    },
+    {
+      "id": "practice-default",
+      "theme": "nouveau",
+      "round": 11,
+      "file": "musicpractice/app/assets/ui/nouveau/practice-default.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "delivered",
+      "group": "French Nouveau \u00b7 Practice Routine pictures",
+      "prompt": "Use case: stylized-concept. Create ONE standalone transparent-background Practice Routine icon. Attached image is STYLE REFERENCE ONLY for colors, material finish and illustration technique; do NOT copy its cello, bow, wings, sound ribbons or musical decorations. Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a music stand holding an open book of sheet music, a pencil resting on its ledge, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.\nStrict content: NO wings, NO ribbons, NO mist, NO swooshes, NO floating musical notes. Only scales may show exactly EIGHT ascending notes integrated in its staff; rhythm notes form the explicit rhythm row, sheet music is confined to book pages. Intonation is ONLY one two-tined tuning fork with small vibration dashes. Ghosting is ONLY a faint translucent OUTLINE of a cello bow hovering above exactly four parallel strings, no solid filled bow, no notes or ghost character. No unrelated ornaments or second instrument. Center subject in square canvas with safe margins. Actual transparent alpha, no background.",
+      "note": "The Practice Routine's picture for Practice (default) in the French Nouveau theme, shown large while such an item runs and for any item with no picture of its own. Until it arrives the app shows the next picture it has: the Drone's (cello or organ) for an item with its drone on, else the Metronome's, else the default practice picture, else the routine's hourglass.",
+      "request_prompt": "Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a music stand holding an open book of sheet music, a pencil resting on its ledge, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone; notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.",
+      "reference_files": [
+        "musicpractice/app/assets/ui/nouveau/home-drone.webp"
+      ],
+      "generated_source": "exec-dbd9c541-7530-4482-a9c4-c73e98748609.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source": "musicpractice/design/generated/round-11/nouveau-practice-default.png",
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated alpha and composition; remove imperceptible 1/255 alpha noise; fit without distortion into a transparent 1024px square PNG master and resize to lossless WebP. User-directed revision: no wings, sound ribbons, mist or decorative floating notes."
     }
   ]
 }
