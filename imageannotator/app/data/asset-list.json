@@ -1,0 +1,22 @@
+[
+  {
+    "id": "icon",
+    "file": "icons/icon-1024.png",
+    "status": "requested"
+  },
+  {
+    "id": "logo",
+    "file": "assets/ui/logo.webp",
+    "status": "requested"
+  },
+  {
+    "id": "cover",
+    "file": "assets/ui/cover.webp",
+    "status": "requested"
+  },
+  {
+    "id": "welcome",
+    "file": "assets/ui/welcome.webp",
+    "status": "requested"
+  }
+]
