@@ -129,10 +129,11 @@ when the Art Deco art arrives, measure and record its own.
   slides to its place when the tempo changes any other way. The pendulum is
   drawn in two parts for this, its rod (`metronome-rod`, with the weight's
   `travel` along it) and its weight (`metronome-weight`, with its `center`
-  on the rod; `placeWeight` in `app/src/art.js`). Until they are delivered
-  (image requests round 10) each theme uses interim cuts of its delivered
-  pendulum, made by `design/source/cut_pendulum.py` (`*.cut.webp`, numbers
-  in `design/pendulum-cuts.json`).
+  on the rod; `placeWeight` in `app/src/art.js`). Round 10 delivers both
+  parts for every theme, with measured hubs, weight attachment points and
+  safe travel ranges. The earlier interim cuts (`*.cut.webp`, made by
+  `design/source/cut_pendulum.py`) remain as source history; the app uses
+  the new delivered layers.
 - A metronome with a swinging pendulum: it reaches one end of its swing on
   each click and the other end on the next, synced to what you hear
   (`pendulumAngle` in `app/src/metronome.js`, corrected for output latency).
@@ -609,7 +610,7 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   `design/source/build_requests.py`; `test/timer.test.mjs` fails until every
   suggestion has one in every theme.
 - Its home button is an hourglass per theme (image requests round 9,
-  `home-routine`), drawn as a stand-in until delivered. In the apps the drone
+  `home-routine`), delivered for all eight themes. In the apps the drone
   is Pro, as on its own screen. Not done yet: the routine doesn't go on
   with the screen locked in the apps (the native metronome and drone do, but
   the change of item waits for the page).
@@ -977,3 +978,11 @@ theme's sound ribbons; the mist keeps its subtle transparency. PNG masters
 and a preview live in `design/generated/round-8/`; `drone-organ.webp` beside
 each theme's home icon is the 512×512 lossless WebP used by the app.
 `design/image-deliveries-round-8.json` records the references, prompts and exports.
+
+Rounds 9 and 10 deliver the eight Practice Routine hourglasses and sixteen
+split pendulum layers. PNG masters and previews are in `design/generated/round-9/`
+and `design/generated/round-10/`; `design/image-deliveries-rounds-9-10.json`
+records every prompt, export and measured attachment point. Routine icons ship
+as 384×384 lossless WebP. The rods use 200×1000 canvases; each weight keeps the
+original theme's small layer canvas and scale. All eight pairs were checked
+over their metronome bodies at the top, middle and bottom of the weight travel.
