@@ -91,3 +91,11 @@ test('accidentals: Auto spells by the way the note was reached; Sharps and Flats
   // Every sequence has a way it goes.
   for (const q of SEQUENCES) if (q.id !== 'stop') assert.ok([1, -1].includes(SEQ_DIRECTION[q.id]), q.id);
 });
+
+test('the drone clock reads MM:SS, and H:MM:SS from an hour', async () => {
+  const { clock } = await import('../src/droneui.js');
+  assert.equal(clock(0), '00:00');
+  assert.equal(clock(65.9), '01:05');
+  assert.equal(clock(3599), '59:59');
+  assert.equal(clock(3600 + 125), '1:02:05');
+});
