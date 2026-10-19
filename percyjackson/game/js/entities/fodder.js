@@ -1094,7 +1094,7 @@ function buildEarthborn(K0) {
   for (const sx of [-1, 1]) { K.box(Hd, sx * 1.5, 4.2, 3.55, 1.8, 1.1, 0.4, 0x2a1408); K.box(Hd, sx * 1.5, 4.2, 3.7, 1.3, 0.8, 0.3, glow); K.box(Hd, sx * 1.3, 4.3, 3.82, 0.5, 0.4, 0.2, 0xffe080); }
   K.box(Hd, 0, 3.2, 3.8, 1.4, 1.4, 0.8, stL);
   K.box(Hd, 0, 1.7, 3.5, 3.6, 1.2, 0.6, 0x2a1408); for (const x of [-1.2, -0.4, 0.4, 1.2]) K.box(Hd, x, 1.9, 3.75, 0.6, 0.6, 0.3, 0xe8dcc0);
-  K.clumps(Hd, [0, 6.8, 0], [6.4, 1, 6], { n: 4, size: [1.4, 2.2], cols: [...MOSS, stL], faces: 't', out: -0.3 });
+  K.clumps(Hd, [0, 6.8, 0], [6.4, 1, 6], { n: 4, size: [1.4, 2.2], cols: [...MOSS, stL], faces: 't', out: -0.3, on: [[0, 3.4, 0.3], [3.5, 3.6, 3.4], 2.6] });   // (the moss seated on the rounded crown: monsters.js clumps on)
   applyShape(rig);
   K.done();
   noShadow(rig, Hd);
@@ -1182,11 +1182,13 @@ function buildLaistrygonian(K0) {
   rig.neck.position.y = 11.6 * PX;                        // the head sits low between the shoulders
   rig.handR.position.y = rig.handL.position.y = -12.4 * PX;
   rig.legR.position.x = -3 * PX; rig.legL.position.x = 3 * PX;
-  // (round 7, head and leg proportions, proportions.js: a giant's head, 0.78
-  // of the old one sculpted afresh from the same cells, on legs grown from 10
+  // (round 7, head and leg proportions, proportions.js: a giant's head, 0.86
+  // of the old one sculpted afresh from the same cells (round 8: 0.78 went too
+  // far; his sheets draw the head 0.18-0.2 of his height, design/sizes.json
+  // "headSheet"), on legs grown from 10
   // to 12.2 pixels over the same feet, the kilt with them; he stands as tall)
   const L1 = 12.2, ANK = -8;
-  reshape(rig, rig.head, 0.78);
+  reshape(rig, rig.head, 0.86);
   reshape(rig, rig.torso, [1.05, 1, 1.03]);
   reshape(rig, rig.hips, [1.05, L1 / 10, 1.03]);
   for (const g of [rig.legR, rig.legL]) reshape(rig, g, [1.03, legScale(10, L1, ANK), 1.03], [0, 0, 0], { ankle: ANK });
@@ -1224,7 +1226,7 @@ function buildLaistrygonian(K0) {
   for (const sx of [-1, 1]) { K.box(Hd, sx * 1.4, 5, fz - 0.05, 1.6, 1.1, 0.4, 0xf0e0c0); K.box(Hd, sx * 1.2, 5, fz + 0.1, 0.8, 0.9, 0.3, 0x1a0a00); }
   K.box(Hd, 0, 3.8, fz + 0.3, 1.6, 2, 1.1, SK[1]); K.box(Hd, 0, 3.1, fz + 0.6, 2.2, 0.7, 0.8, skinD);
   blob(K, Hd, [0, 6.4, -0.6], [4.3, 3.6, 4.3], 1, () => HAIR[Math.floor(K.r() * 3)], { run: [1, 2], keep: (x, y, z) => !(z > 0.25 && y < 0.55 && Math.abs(x) < 0.8) });
-  K.clumps(Hd, [0, 7.2, -0.8], [8.4, 5.6, 8.4], { n: 12, size: [1, 1.8], cols: HAIR, faces: 'tklr', out: 0.1 });
+  K.clumps(Hd, [0, 7.2, -0.8], [8.4, 5.6, 8.4], { n: 12, size: [1, 1.8], cols: HAIR, faces: 'tklr', out: 0.1, on: [[0, 6.4, -0.6], [4.3, 3.6, 4.3]] });   // (seated on the hair: monsters.js clumps on)
   blob(K, Hd, [0, 1.2, 2.3], [3.9, 3.2, 2.2], 1, () => HAIR[Math.floor(K.r() * 3)], { run: [1, 2], keep: (x, y, z) => !(z > 0.3 && y > 0.1 && y < 0.75 && Math.abs(x) < 0.55) && !(y > 0.75 && Math.abs(x) < 0.7) });
   blob(K, Hd, [0, -1.6, 2.4], [2.6, 2.4, 1.6], 1, () => HAIR[Math.floor(K.r() * 3)], { run: [1, 2] });
   K.box(Hd, 0, 2.1, fz - 0.6, 3.4, 1.2, 1, 0x5a1a10); for (const x of [-1.2, -0.4, 0.4, 1.2]) K.box(Hd, x, 2.3, fz - 0.1, 0.6, 0.6, 0.3, 0xf8f0e0);

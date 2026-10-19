@@ -483,7 +483,7 @@ export const BOSS_MODELS = {
     vox(rig, rig.torso, [
       // (pass 3: a V from broad shoulders to a narrow waist, two defined pecs
       // with a cleft and a shadow under them, a slimmer gut, as on vox-bosses-1)
-      { e: [0, 0.8, 0.4, 5.5, 1.1, 3.9], col: gold, m: 'm', bump: 0.04, fuzz: 0 },
+      // (the gold belt and its medallion are on the hips now, round 8: the loincloth below)
       { e: [0, -0.6, 0.3, 5.7, 1.5, 4.1], col: [0xe8e0c8, 0xd8ccb0, 0xf4eedc], bump: 0.1 },
       { b: [-0.45, 7, 3.2, 0.45, 11.6, 6], col: 0x5a240e, bump: 0 },
       { e: [-2.9, 9.6, 2.4, 3.6, 2.9, 2.5], col: (x, y) => (y < 7.6 ? 0x6a2a10 : hideL[Math.floor(hash3(Math.floor(x), Math.floor(y), 2, 6) * 3)]) }, { e: [2.9, 9.6, 2.4, 3.6, 2.9, 2.5], col: (x, y) => (y < 7.6 ? 0x6a2a10 : hideL[Math.floor(hash3(Math.floor(x), Math.floor(y), 2, 6) * 3)]) },
@@ -493,17 +493,46 @@ export const BOSS_MODELS = {
       { e: [-4.6, 8.4, -0.8, 2.4, 4.2, 3], col: hide }, { e: [4.6, 8.4, -0.8, 2.4, 4.2, 3], col: hide },
       { e: [0, 8.6, -0.2, 5.6, 5, 3.6], col: hide },
       { e: [0, 4, 0, 4.3, 4, 3.2], col: hide },
-    ], { v: 1, seed: 11, bump: 0.12, fuzz: 0.1 }, [
-      // the gold belt medallion
-      { p: [0, 0.8, 4.4], s: [3, 3, 0.8], c: 0xe8b444, m: 'm' }, { p: [0, 0.8, 4.4], s: [3, 3, 0.8], c: 0xd8a032, m: 'm', r: [0, 0, Math.PI / 4] },
-      { p: [0, 0.8, 4.9], s: [1.7, 1.7, 0.4], c: 0xffd860, m: 'm' }, { p: [0, 0.8, 5.1], s: [0.7, 0.7, 0.3], c: 0x9a6a1a, m: 'm' },
-    ]);
-    // the loincloth, hanging from the hips with a ragged hem
+    ], { v: 1, seed: 11, bump: 0.12, fuzz: 0.1 });
+    // the loincloth (round 8, after vox-bosses-1): white cloth wrapped all
+    // round the waist under a gold belt with the medallion in front, its
+    // ragged hem hanging front, back and sides like a kilt. Belt and waist
+    // cloth sit on the hips, round the tops of the thighs (wider than his
+    // waist); the hem hangs in fourteen panels, each on its own pivot under the
+    // belt that swings with the thigh behind it (rig.tick below), so a
+    // striding leg carries its panel along instead of passing through it.
+    const CLOTH = [0xece4cc, 0xe0d6bc, 0xf6f0de], CLOTHD = 0xcfc4a6, TAU = Math.PI * 2, Z0 = 0.3, BY = 0.9;
+    // a point on the waist's rounded oblong (half-widths Rx, Rz) in direction a (0: front)
+    const ring = (a, Rx, Rz, pw = 3.5) => {
+      const sa = Math.sin(a), ca = Math.cos(a), r = 1 / ((Math.abs(sa) / Rx) ** pw + (Math.abs(ca) / Rz) ** pw) ** (1 / pw), x = r * sa, z = r * ca;
+      const nx = Math.sign(x) * Math.abs(x / Rx) ** (pw - 1) / Rx, nz = Math.sign(z) * Math.abs(z / Rz) ** (pw - 1) / Rz;
+      return { x, z, yaw: Math.atan2(nx, nz) };
+    };
+    const NB = 28, beltBoxes = [];
+    for (let i = 0; i < NB; i++) {
+      const q = ring(i / NB * TAU, 8.6, 5.4), q2 = ring((i + 1) / NB * TAU, 8.6, 5.4), dx = q2.x - q.x, dz = q2.z - q.z;
+      const at = [(q.x + q2.x) / 2, BY, (q.z + q2.z) / 2 + Z0], ry = Math.atan2(-dz, dx), len = Math.hypot(dx, dz) + 0.4;
+      beltBoxes.push({ p: at, s: [len, 1.8, 1], c: gold[i % 3], m: 'm', r: [0, ry, 0] });
+      beltBoxes.push({ p: [at[0], BY - 1.05, at[2]], s: [len, 0.4, 1.05], c: 0x9a6a1a, m: 'm', r: [0, ry, 0] });   // (its lower edge, darker)
+    }
+    const MZ = ring(0, 8.6, 5.4).z + Z0 + 0.5;
+    beltBoxes.push({ p: [0, BY, MZ], s: [3, 3, 0.8], c: 0xe8b444, m: 'm' }, { p: [0, BY, MZ], s: [3, 3, 0.8], c: 0xd8a032, m: 'm', r: [0, 0, Math.PI / 4] },
+      { p: [0, BY, MZ + 0.5], s: [1.7, 1.7, 0.4], c: 0xffd860, m: 'm' }, { p: [0, BY, MZ + 0.7], s: [0.7, 0.7, 0.3], c: 0x9a6a1a, m: 'm' });
     vox(rig, rig.hips, [
-      { e: [0, -1.4, 0.3, 5.4, 1.9, 4.1], col: [0xece4cc, 0xe0d6bc, 0xd4c8aa] },
-      { b: [-3.2, -6.6, 2.8, 3.2, -0.6, 4], col: (x, y, z, n, h) => (y < -5.4 + Math.abs(x) * 0.5 - h * 1.4 ? null : y < -4.4 ? 0xcfc4a6 : [0xece4cc, 0xe0d6bc, 0xf6f0de][Math.floor(h * 3)]), bump: 0 },
-      { b: [-2.6, -4.6, -4, 2.6, -0.6, -2.9], col: (x, y, z, n, h) => (y < -3.8 - h * 1.2 ? null : 0xe0d6bc), bump: 0 },
-    ], { v: 1, seed: 12 });
+      { e: [0, -1.4, 0.3, 5.4, 1.9, 4.1], col: CLOTH },
+      { e: [0, 0.6, Z0, 8, 2.4, 4.9], col: CLOTH, bump: 0, fuzz: 0 },   // the cloth wound round the waist, bunched up to the belt's top edge
+    ], { v: 1, seed: 12 }, beltBoxes);
+    const NP = 14, kilt = [];
+    for (let i = 0; i < NP; i++) {
+      const a = i / NP * TAU, q = ring(a, 7.7, 4.75), qa = ring(a - Math.PI / NP, 7.7, 4.75), qb = ring(a + Math.PI / NP, 7.7, 4.75);   // (inside the belt: a flat panel's edges stand out from the curve it hangs on)
+      const w = Math.hypot(qb.x - qa.x, qb.z - qa.z) * 1.12, fz = q.z / 4.75;
+      const L = i === 0 ? 9 : Math.abs(fz) > 0.6 ? 8 : 7.2;   // (the front apron longest, the sides shortest, as on the sheet)
+      const G = group(rig.hips, q.x, BY + 0.3, q.z + Z0), I = new THREE.Group(); G.add(I);   // (the pivot high under the belt, so a swinging panel's top stays tucked in it)
+      I.rotation.order = 'YXZ'; I.rotation.set(-0.17, q.yaw, 0);   // (faced outward, the hem flared out a little)
+      vox(rig, I, [{ b: [-w / 2, -L, -0.5, w / 2, 0.5, 0.5], col: (x, y, z, n, h) => (y < -L + 1.5 - Math.abs(Math.sin(x * 1.3 + i * 2.1)) * 0.9 - h * 1.2 ? null : y < -L + 2.6 ? CLOTHD : CLOTH[Math.floor(h * 3)]), bump: 0, fuzz: 0 }], { v: 1, seed: 40 + i });
+      kilt.push({ g: G, legs: q.x < -2.5 ? [rig.legR] : q.x > 2.5 ? [rig.legL] : [rig.legR, rig.legL], front: Math.max(0, Math.min(1, fz * 1.4)), back: Math.max(0, Math.min(1, -fz * 1.4)), side: Math.sign(q.x) * (Math.abs(q.x) > 2.5 ? 1 : 0) });
+    }
+    rig.extras.kilt = kilt;
     // arms: a ball of shoulder, a bulging bicep, a forearm like a tree trunk, a knuckled fist
     for (const [arm, s] of [[rig.armR, -1], [rig.armL, 1]]) {
       vox(rig, arm, [
@@ -547,6 +576,20 @@ export const BOSS_MODELS = {
     rig.extras.muzzle = muzzle;
     applyShape(rig);
     rig.hunch = 0.32; rig.armSpread = 0.3;
+    // the kilt's panels follow the thighs (after the pose: bosses.js, the
+    // workbench and the animation lint run rig.tick right after animate). A
+    // front panel swings forward with a leg striding forward, a back one back
+    // with a leg swinging back, a side one a third as far, and out with a leg
+    // spread to the side.
+    rig.tick = (dt, e) => {
+      animateExtras(rig, dt, e);
+      for (const P of rig.extras.kilt) {
+        let fwd = 0, bck = 0; for (const l of P.legs) { fwd = Math.min(fwd, l.rotation.x); bck = Math.max(bck, l.rotation.x); }
+        const f = Math.max(P.front, P.back);
+        P.g.rotation.x = P.front * fwd + P.back * bck + (1 - f) * 0.35 * (fwd + bck);
+        P.g.rotation.z = P.side < 0 ? (1 - f) * Math.min(0, rig.legR.rotation.z) : P.side > 0 ? (1 - f) * Math.max(0, rig.legL.rotation.z) : 0;
+      }
+    };
     return rig;
   },
 

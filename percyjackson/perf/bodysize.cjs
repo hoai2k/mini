@@ -20,7 +20,9 @@
 //   NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/bodysize.cjs [out.json] [keys] [--check]
 // --check tests every model against the size spec (design/sizes.json): its
 // body × Percy must lie in its size category's band, and a big upright
-// model's head must not keep a hero's proportions (the spec's head rule),
+// model's head must go from a hero's proportions toward its own concept
+// sheet's (the spec's head rule, design/sizes.json "headSheet"), and never be
+// smaller than Percy's,
 // nor its legs a hero's short ones (the leg rule: hip joint to sole over
 // body height, the "leg/body" column; QuadRigs, marked q, unchecked). It
 // lists each failure and exits 1 if there is any.
@@ -181,13 +183,19 @@ async function serve() {
 // ---- the size spec check (--check) ------------------------------------------
 // design/sizes.json gives each model a size category; the category's band (×
 // Percy, body height) is in its "categories" table, the one place to tune
-// them. The head rule: an upright model's head block over its body height may
-// be at most head.hero at hero size (head.from × Percy and under), falling
-// in a straight line to head.big at head.to × Percy and over, plus head.tol.
-function headMax(H, x) {
-  const t = Math.max(0, Math.min(1, (x - H.from) / (H.to - H.from)));
-  return H.hero + (H.big - H.hero) * t + H.tol;
+// them. The head rule: an upright model's head block over its body height
+// goes from a hero's (head.hero at head.from × Percy and under) toward its
+// own concept sheet's proportion (its "headSheet" ratio, reached at head.to
+// × Percy and over), never under that ratio less its tolerance; a model with
+// no sheet measurement falls back to the general top, head.big at head.to.
+// And an upright model of head.floorFrom × Percy or more never has a head
+// smaller than Percy's (absolute size).
+const ramp = (H, x) => Math.max(0, Math.min(1, (x - H.from) / (H.to - H.from)));
+function headMax(H, x, sheet) {
+  if (sheet) return H.hero + (sheet.ratio - H.hero) * ramp(H, x) + (sheet.tol ?? H.sheetTol);
+  return H.hero + (H.big - H.hero) * ramp(H, x) + H.tol;
 }
+const headMin = (H, sheet) => (sheet ? sheet.ratio - (sheet.tol ?? H.sheetTol) : -Infinity);
 // The leg rule (spec.legs): an upright model's legs (hip joint to sole) over
 // its body height must be at least legs.hero at legs.from × Percy and under,
 // rising in a straight line to legs.big at legs.to × Percy and over.
@@ -198,6 +206,7 @@ function legMin(L, x) {
 function check(rows) {
   const spec = JSON.parse(fs.readFileSync(SPEC, 'utf8'));
   const C = spec.categories, H = spec.head, L = spec.legs, out = [], warn = [], lwarn = [];
+  const percyHead = rows.find((r) => r.key === 'percy')?.headH ?? null;
   for (const r of rows) {
     if (r.error) { out.push(`${r.key}: did not build (${r.error})`); continue; }
     const e = spec.models[r.key];
@@ -206,9 +215,13 @@ function check(rows) {
     if (!c) { out.push(`${r.key}: unknown category "${e.category}"`); continue; }
     const x = r.bodyX;
     if (x < c.min || x > c.max) out.push(`${r.key}: body ${x.toFixed(2)}× Percy is outside "${e.category}" (${c.label}, ${c.min}–${c.max}×)`);
-    const max = r.headR != null && x > H.from ? headMax(H, x) : Infinity;
-    if (r.headR > max) {
-      const msg = `${r.key}: head ${r.headR.toFixed(3)} of its body at ${x.toFixed(2)}× Percy, over the head rule's ${max.toFixed(3)} (a hero-proportioned head on a big body)`;
+    const sh = e.headSheet ?? null;
+    const max = r.headR != null && x > H.from ? headMax(H, x, sh) : Infinity, min = r.headR != null && x > H.from ? headMin(H, sh) : -Infinity;
+    const small = H.floorFrom != null && percyHead != null && r.headH != null && x >= H.floorFrom && r.headH < percyHead;
+    if (r.headR > max || r.headR < min || small) {
+      const msg = r.headR > max ? `${r.key}: head ${r.headR.toFixed(3)} of its body at ${x.toFixed(2)}× Percy, over the head rule's ${max.toFixed(3)} (${sh ? `on its way to its sheet's ${sh.ratio}` : 'a hero-proportioned head on a big body'})`
+        : r.headR < min ? `${r.key}: head ${r.headR.toFixed(3)} of its body at ${x.toFixed(2)}× Percy, under its sheet's ${sh.ratio} less ${(sh.tol ?? H.sheetTol)} (${min.toFixed(3)}): a head smaller than its concept draws it`
+        : `${r.key}: head ${r.headH} at ${x.toFixed(2)}× Percy, smaller than Percy's own ${percyHead} (the floor for a model of ${H.floorFrom}× Percy and more)`;
       if (e.head === 'followUp') warn.push(msg + ' [known: follow-up]'); else out.push(msg);
     } else if (e.head === 'followUp') warn.push(`${r.key}: marked "head": "followUp" but its head now passes (${r.headR == null ? 'not an upright rig' : r.headR.toFixed(3)}); remove the mark`);
     if (L && e.legs !== 'exempt') {

@@ -51,12 +51,14 @@
   }
  },
  "head": {
-  "_note": "The owner's rule: as characters grow, the Minecraft-style big head gives way to more realistic proportions. For an upright model (a Rig: not a four-legged QuadRig or a serpent), its head block's height (the skull and face where the builder names them, rig.extras.headCore, measured along the head's own axis; else its skin cube) over its body height may be at most `hero` at `from` x Percy and under, falling in a straight line to `big` at `to` x Percy and over (plus `tol`). Heroes measure 0.23-0.29; an adult is about 0.13 (7.5 heads tall). A model whose head is a known follow-up has \"head\": \"followUp\" with the reason: the check prints it as a warning, not a failure, and says when the mark can go.",
+  "_note": "The owner's rule: as characters grow, the Minecraft-style big head gives way to more realistic proportions, but toward each creature's own proportion on its concept sheet, not one size for all (round 8: 'it shouldn't converge to a single size, only toward the proportion in the source image'). For an upright model (a Rig: not a four-legged QuadRig or a serpent), the head is its head block's height (the skull and face where the builder names them, rig.extras.headCore, measured along the head's own axis; else its skin cube) over its body height. A model with a \"headSheet\" (its sheet's head over body height, read as sheetMethod reads heights: the skull and face, hair, beard, horns and hood aside, over crown to ground) must lie between `ratio` - `tol` and a top that falls in a straight line from `hero` at `from` x Percy to `ratio` at `to` x Percy and over (plus `tol`; tol defaults to `sheetTol`): a mid-sized one is on its way from a hero's head to its sheet's, a big one at its sheet's. A model without one falls back to the general top: at most `hero` at `from` x Percy and under, falling in a straight line to `big` at `to` x Percy and over (plus `tol`). The floor: an upright model of `floorFrom` x Percy or more never has a head smaller than Percy's own, in absolute size. Heroes measure 0.23-0.29; an adult is about 0.13 (7.5 heads tall). A model whose head is a known follow-up has \"head\": \"followUp\" with the reason: the check prints it as a warning, not a failure, and says when the mark can go.",
   "hero": 0.3,
   "big": 0.17,
   "from": 1.0,
   "to": 2.0,
-  "tol": 0.0
+  "tol": 0.0,
+  "sheetTol": 0.03,
+  "floorFrom": 1.4
  },
  "legs": {
   "_note": "The owner's leg rule (round 7), beside the head rule: hero-sized Minecraft characters stand on short-ish legs, and as a creature grows its legs approach a real body's. For an upright model (a Rig, not a QuadRig or serpent), its leg length (hip joint to sole, perf/bodysize.cjs) over its body height (sole to crown, hair, horns and hood included) must be at least `hero` at `from` x Percy and under, rising in a straight line to `big` at `to` x Percy and over (less `tol`). Measured this way the heroes read 0.27-0.32 (their hair tops the body; to the top of the skull it is about 0.35-0.38) and a giant at 0.42 or more has legs about half its height to the skull. A model whose legs are hidden or not a person's (a robe to the floor, a hovering Fury in a long dress, a serpent tail) has \"legs\": \"exempt\" with the reason in legsNote; a known follow-up has \"legs\": \"followUp\" (a warning). QuadRigs record leg root height over shoulder height in the table, unchecked.",
@@ -86,7 +88,12 @@
   "tyson": {
    "category": "bigger",
    "source": "owner",
-   "reason": "kept at 1.5x by the owner (an approximate, cartoony exaggeration of a young Cyclops)"
+   "reason": "kept at 1.5x by the owner (an approximate, cartoony exaggeration of a young Cyclops)",
+   "headSheet": {
+    "ratio": 0.208,
+    "sheet": "design/concept/vox-tyson.png",
+    "note": "skull 880 to chin 1010 (130 px; the curls aside) over hair 855 to boots 1480 (625 px)"
+   }
   },
   "clarisse": {
    "category": "same",
@@ -198,6 +205,11 @@
     "people": 1.7,
     "norm": 1.21,
     "note": "row 3: hair to feet"
+   },
+   "headSheet": {
+    "ratio": 0.185,
+    "sheet": "design/concept/vox-enemies.png",
+    "note": "row 3, the standing Fury: skull 1093 to chin 1168 (75 px; the white curls aside) over hair 1085 to feet 1490 (405 px)"
    }
   },
   "dracaena": {
@@ -286,7 +298,12 @@
   "cyclops": {
    "category": "bigger",
    "source": "role",
-   "reason": "an elite giant, well over the heroes"
+   "reason": "an elite giant, well over the heroes",
+   "headSheet": {
+    "ratio": 0.225,
+    "sheet": "design/concept/vox-bosses-2.png",
+    "note": "skull 130 to chin 280 (150 px; mane and beard aside) over hair 108 to feet 678 (570 px) in a deep crouch, 0.26 as drawn; standing, about 655 px (x1.15), 0.23"
+   }
   },
   "karpos": {
    "category": "small",
@@ -393,6 +410,11 @@
     "people": 1.75,
     "norm": 1.54,
     "note": "row 1; people = the keres on row 3"
+   },
+   "headSheet": {
+    "ratio": 0.175,
+    "sheet": "design/concept/vox-ow-fodder-3.png",
+    "note": "row 1: the stone skull 148 to chin 212 (64 px; the moss aside) over 335-390 px, 0.16-0.19"
    }
   },
   "daedalus_drone": {
@@ -412,6 +434,11 @@
     "people": 1.7,
     "norm": 1.93,
     "note": "row 2: head to feet"
+   },
+   "headSheet": {
+    "ratio": 0.19,
+    "sheet": "design/concept/vox-enemies.png",
+    "note": "row 2: skull 495 to chin 588 (93 px; hair and beard aside) over 475 px, 0.196; vox-ow-fodder-3 row 2: 80 over 447 px, 0.179"
    }
   },
   "shade": {
@@ -443,7 +470,12 @@
    "source": "owner",
    "reason": "the owner, round 4: a boss that looms, 1.8-2x",
    "legs": "exempt",
-   "legsNote": "she hovers in a long ragged dress that hides her legs (a Fury flies; her feet hang under the hem)"
+   "legsNote": "she hovers in a long ragged dress that hides her legs (a Fury flies; her feet hang under the hem)",
+   "headSheet": {
+    "ratio": 0.185,
+    "sheet": "design/concept/vox-enemies.png",
+    "note": "row 3, the standing Fury: skull 1093 to chin 1168 (75 px; the white curls aside) over hair 1085 to feet 1490 (405 px)"
+   }
   },
   "minotaur": {
    "category": "muchBigger",
@@ -455,6 +487,12 @@
     "bodyPx": 590,
     "ratio": 4.37,
     "note": "row 1: head without the horns to the hooves"
+   },
+   "headSheet": {
+    "ratio": 0.2,
+    "sheet": "design/concept/vox-bosses-1.png",
+    "tol": 0.05,
+    "note": "row 1: the bull's head is pitched down and he is bent double, so as drawn it reads 190 over 590 px (0.32); standing, with the head along its own axis (the muzzle level), about 150 over 750 px. The wider tolerance is for that guess; the owner approved round 7's 0.153"
    }
   },
   "hellhound_alpha": {
@@ -467,7 +505,12 @@
    "source": "owner",
    "reason": "the owner, round 4: Alecto 1.8-2x, her sisters a little smaller",
    "legs": "exempt",
-   "legsNote": "the sisters hover in long ragged dresses that hide their legs"
+   "legsNote": "the sisters hover in long ragged dresses that hide their legs",
+   "headSheet": {
+    "ratio": 0.185,
+    "sheet": "design/concept/vox-enemies.png",
+    "note": "row 3, the standing Fury: skull 1093 to chin 1168 (75 px; the white curls aside) over hair 1085 to feet 1490 (405 px)"
+   }
   },
   "medusa": {
    "category": "bigger",
@@ -481,7 +524,12 @@
     "note": "row 1: hood to hem"
    },
    "legs": "exempt",
-   "legsNote": "her robe falls to the floor and hides her legs"
+   "legsNote": "her robe falls to the floor and hides her legs",
+   "headSheet": {
+    "ratio": 0.185,
+    "sheet": "design/concept/vox-bosses-1.png",
+    "note": "the face in the cowl, 225 to 335 (110 px; hood and snakes aside) over hood to hem 595 px"
+   }
   },
   "chimera": {
    "category": "bigger",
@@ -739,6 +787,11 @@
     "headPx": 105,
     "headRatio": 0.16,
     "note": "row 2: helm crest to the boots; the head is the helm without its crest (0.20 with it)"
+   },
+   "headSheet": {
+    "ratio": 0.18,
+    "sheet": "design/concept/vox-ow-champions.png",
+    "note": "helm 808 to chin 920 (112 px; the crest aside) over 627 px"
    }
   },
   "oth_gorgos": {
@@ -753,6 +806,11 @@
     "headPx": 120,
     "headRatio": 0.18,
     "note": "row 2: top of the bear hood to the soles; the head is his skull and face under the hood (about 0.24 with the hood)"
+   },
+   "headSheet": {
+    "ratio": 0.15,
+    "sheet": "design/concept/vox-ow-champions.png",
+    "note": "the face under the bear's head, 860 to 960 (100 px; the hood aside) over 785 to 1460 (675 px)"
    }
   },
   "asphodel_pale_king": {
@@ -822,7 +880,177 @@
   "kind:cyclops": {
    "category": "muchBigger",
    "source": "role",
-   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it"
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it",
+   "headSheet": {
+    "ratio": 0.21,
+    "sheet": "design/concept/vox-bosses-2.png",
+    "note": "the cyclops's sheet (the champion is the same giant, bigger), 0.225, less the gold crown he wears on the mane: it tops his measured body by about 6%, where the sheet's head is bare"
+   }
+  }
+ },
+ "islands": {
+  "_note": "perf/islands.cjs: floating voxel islands, cells on a part (the head above all: hair, a mane, a beard) that are not held on to it (a cube meeting the mass only at an edge or a corner, or hanging off it). --check fails on an island on a head, hair or mane group unless it is listed here as reviewed, by its place (head pixels, within 1 px) with what it was found to be. Round 8: the cyclops's and the Laistrygonian's mane clumps and the Earthborn's moss were seated on their heads (monsters.js VoxKit.clumps on).",
+  "reviewed": {
+   "mr_d": {
+    "at": [
+     [
+      -5,
+      6.1,
+      8.4
+     ]
+    ],
+    "note": "a fringe lock lying flat on the forehead, a hair's breadth proud of the skin cube (hero hair, voxhair.js): seen attached"
+   },
+   "fields_travis": {
+    "at": [
+     [
+      0.6,
+      7.2,
+      9.5
+     ]
+    ],
+    "note": "a fringe curl lying flat on the forehead (hero hair): seen attached"
+   },
+   "canyon_hedge": {
+    "at": [
+     [
+      8.4,
+      6.1,
+      3.9
+     ]
+    ],
+    "note": "a lock under the cap brim, flat on the forehead (hero hair): seen attached"
+   },
+   "fury": {
+    "at": [
+     [
+      -4,
+      6.5,
+      -8.4
+     ],
+     [
+      -2.1,
+      7.8,
+      -8.4
+     ]
+    ],
+    "note": "cells buried among the back curls (grid hair): not seen from outside"
+   },
+   "keres": {
+    "at": [
+     [
+      3.1,
+      10.1,
+      -5.3
+     ]
+    ],
+    "note": "a strand among the white hair: seen attached"
+   },
+   "fields_katie": {
+    "at": [
+     [
+      -3.6,
+      -12.3,
+      3
+     ]
+    ],
+    "note": "part of the straw hat's brim over the hair: seen attached"
+   },
+   "hellhound": {
+    "at": [
+     [
+      3,
+      -8.4,
+      8
+     ]
+    ],
+    "note": "fangs drawn on the head that hang onto the lower jaw, a child group the check does not count as part of the head"
+   },
+   "hellhound_alpha": {
+    "at": [
+     [
+      -2.8,
+      -8.3,
+      2.4
+     ]
+    ],
+    "note": "fangs on the lower jaw (as the hellhound)"
+   },
+   "kind:hellhound": {
+    "at": [
+     [
+      3.9,
+      -8.4,
+      8.9
+     ],
+     [
+      -2.3,
+      -8.3,
+      5.9
+     ],
+     [
+      4.9,
+      -8.3,
+      0.9
+     ],
+     [
+      -3.7,
+      -8.2,
+      8.9
+     ],
+     [
+      0.4,
+      -8.3,
+      2.9
+     ],
+     [
+      5.5,
+      -8.2,
+      4.5
+     ]
+    ],
+    "note": "fangs on the lower jaw (as the hellhound)"
+   },
+   "woods_shadowfang": {
+    "at": [
+     [
+      -3.9,
+      -8.3,
+      0.9
+     ],
+     [
+      -0.4,
+      -8.2,
+      4.5
+     ],
+     [
+      8.4,
+      -8.3,
+      1
+     ]
+    ],
+    "note": "fangs on the lower jaw (a hellhound champion)"
+   },
+   "crab": {
+    "at": [
+     [
+      5.7,
+      0.4,
+      4.5
+     ]
+    ],
+    "note": "the head is two equal halves (the crab's body), not hair"
+   },
+   "oth_gorgos": {
+    "at": [
+     [
+      -2.8,
+      -4.3,
+      3.4
+     ]
+    ],
+    "note": "under the bear hood, inside the face; Gorgos is being rebuilt (round 8, another pass): look again after it"
+   }
   }
  }
 }

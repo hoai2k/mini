@@ -202,11 +202,16 @@ export class VoxKit {
   // Clumps scattered over the faces of a box (centre c, size s), each half
   // sunk into the surface: fur, scales, rubble. faces: any of 'tbfklr'
   // (top, bottom, front +z, back -z, left -x, right +x).
-  clumps(p, c, s, { n = 20, size = [1, 1.8], cols, faces = 'tfklr', out = 0.1, stretch = [1, 1, 1], j = 0.14, keep = null } = {}) {
+  // on: [centre, radii, pw] of the rounded mass (a blob) they grow from: a
+  // clump the box face leaves in the air beyond it (a corner of the box
+  // round a round mane) is drawn in toward its centre until it sits half
+  // sunk on its surface, so no clump floats (perf/islands.cjs).
+  clumps(p, c, s, { n = 20, size = [1, 1.8], cols, faces = 'tfklr', out = 0.1, stretch = [1, 1, 1], j = 0.14, keep = null, on = null } = {}) {
     const S = this._sh(p);
     if (S) {   // (as many clumps a face area as before: fewer on a part drawn smaller)
       const f = S.f, k = (f[0] * f[1] + f[1] * f[2] + f[0] * f[2]) / 3, kp = keep && ((x, y, z, ff) => keep(unshapeX(S, x, 0), unshapeX(S, y, 1), unshapeX(S, z, 2), ff));
-      return this._rawDo(() => this.clumps(p, c.map((v, a) => shapeX(S, v, a)), s.map((v, a) => v * shapeK(S, c[1], a)), { n: Math.max(1, Math.round(n * k)), size, cols, faces, out, stretch, j, keep: kp }));
+      const on2 = on && [on[0].map((v, a) => shapeX(S, v, a)), on[1].map((v, a) => v * shapeK(S, on[0][1], a)), on[2]];
+      return this._rawDo(() => this.clumps(p, c.map((v, a) => shapeX(S, v, a)), s.map((v, a) => v * shapeK(S, c[1], a)), { n: Math.max(1, Math.round(n * k)), size, cols, faces, out, stretch, j, keep: kp, on: on2 }));
     }
     const D = this.density; if (D !== 1) { n = Math.round(n * D * D); size = [size[0] / D, size[1] / D]; }
     const F = [...faces].map((f) => ({ f, a: f === 't' || f === 'b' ? s[0] * s[2] : f === 'f' || f === 'k' ? s[0] * s[1] : s[1] * s[2] }));
@@ -220,6 +225,10 @@ export class VoxKit {
       else if (f === 'f') zz = c[2] + s[2] / 2 + o; else if (f === 'k') zz = c[2] - s[2] / 2 - o;
       else if (f === 'l') x = c[0] - s[0] / 2 - o; else x = c[0] + s[0] / 2 + o;
       if (keep && !keep(x, y, zz, f)) continue;
+      if (on) {
+        const [oc, or, pw = 2] = on, d = (Math.abs((x - oc[0]) / or[0]) ** pw + Math.abs((y - oc[1]) / or[1]) ** pw + Math.abs((zz - oc[2]) / or[2]) ** pw) ** (1 / pw);
+        if (d > 1) { x = oc[0] + (x - oc[0]) / d; y = oc[1] + (y - oc[1]) / d; zz = oc[2] + (zz - oc[2]) / d; }
+      }
       this.box(p, x, y, zz, z * stretch[0], z * stretch[1], z * stretch[2], this.tone(cols, j));
     }
     return this;
@@ -1515,10 +1524,12 @@ export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, win
   }, { emit: 1, res: 2, scale });
   // (round 7, head proportions, proportions.js: the plain Fury, 1.4x Percy,
   // has a head 0.82 of a hero's skin cube; her looming sisters and Alecto,
-  // 1.9x, 0.58 of it, their wild curls as big round it as before. Her trunk,
+  // 1.9x, 0.66 of it (round 8: 0.58 went too far; the Fury of vox-enemies
+  // has a head about 0.185 of her height, design/sizes.json "headSheet"),
+  // their wild curls as big round it as before. Her trunk,
   // arms and dress grow longer to keep her height; her legs are hidden by
   // the dress and she hovers, so the leg rule leaves her be.)
-  const big = Math.max(0, Math.min(1, (scale - 2.1) / 0.4)), HF = 0.82 - 0.24 * big, TF = 1.1 + 0.08 * big, LF = 1.1 + 0.07 * big;
+  const big = Math.max(0, Math.min(1, (scale - 2.1) / 0.4)), HF = 0.82 - 0.16 * big, TF = 1.1 + 0.08 * big, LF = 1.1 + 0.07 * big;
   const rig = new Rig({ material: mat, scale, bodyW: 7, armW: 3, legH: 10, headS: 8 * HF });
   reshape(rig, rig.torso, [1, TF, 1]); reshape(rig, rig.hips, [1, LF, 1]);
   for (const g of [rig.armR, rig.armL]) reshape(rig, g, [1, TF, 1]);
@@ -2127,18 +2138,24 @@ export function buildCyclops({ id = 'cyclops', pal = {} } = {}) {
   rig.legR.position.x = -3 * PX; rig.legL.position.x = 3 * PX;
   // (round 7, head and leg proportions: a giant near twice a hero's height
   // has a giant's head and legs, not a hero's. The head is sculpted afresh
-  // from the same cells at 0.62 of its old size, the eye kept wide in it;
+  // from the same cells at 0.84 of its old size (round 8: 0.62 went too far;
+  // his sheet, vox-bosses-2, draws the head about 0.22 of his height, and
+  // design/sizes.json "headSheet" holds him to it), the eye kept wide in it;
   // the legs grow from 10 to 16.4 pixels over the same feet, the kilt with
   // them, the shoulders broaden and the arms reach as far down the thigh as
   // before, so he stands about as tall as he did: proportions.js reshape)
-  const HF = 0.62, L1 = 16.4, ANK = -8.2;
+  const HF = 0.84, L1 = 16.4, ANK = -8.2;
   reshape(rig, rig.head, HF);
   reshape(rig, rig.torso, [1.1, 1, 1.05]);
   reshape(rig, rig.hips, [1.1, L1 / 10, 1.05]);
   for (const g of [rig.legR, rig.legL]) reshape(rig, g, [1.05, legScale(10, L1, ANK), 1.05], [0, 0, 0], { ankle: ANK });
   for (const g of [rig.armR, rig.armL]) reshape(rig, g, [1.05, 1.3, 1.05]);
   rig.dims.legH = L1; rig.hips.position.y = L1 * PX;
-  rig.crownY = 10.6 * HF;   // (a champion's crown sits on the mane: champions.js crownAny)
+  // (round 8: the larger head sits 2.2 pixels lower between the shoulders, as
+  // on the sheet, a touch forward of the chest, so he stands as tall as
+  // before and his legs keep their share of his height: design/sizes.json)
+  rig.neck.position.y = (12 - 2.2) * PX; rig.neck.position.z = 0.5 * PX;
+  rig.crownY = 10 * HF;   // (a champion's crown sits on the mane, down in the curls: champions.js crownAny)
   // (its triangle budget: cells 0.88 of a hero pixel's density, and a champion
   // built bigger, BUILD.k, gains density with the square root of its size,
   // so the cyclops stays near 20k triangles and Gorgos under 25k)
@@ -2188,12 +2205,14 @@ export function buildCyclops({ id = 'cyclops', pal = {} } = {}) {
   // (pal.hood: a champion's hood covers the crown, so only the mane below it is built)
   blob(K, Hd, [0, 6.2, -0.6], [4.9, 4.7, 4.7], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2], keep: (x, y, z) => !(z > 0.15 && y < 0.72 && Math.abs(x) < 0.8) && !(pal.hood && y > -0.1) });
   if (!pal.hood) blob(K, Hd, [0, 3.4, 0.6], [4.9, 2.6, 3.4], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2], keep: (x, y, z) => Math.abs(x) > 0.82 });   // side locks down to the jaw (a hood's flaps cover them)
-  if (!pal.hood) K.clumps(Hd, [0, 6.6, -0.6], [9.4, 8.6, 9], { n: 14, size: [1, 1.8], cols: HAIR, faces: 'tklr', out: 0.1 });
-  if (!pal.hood) K.clumps(Hd, [0, 9.4, 2], [8.4, 1.6, 4.4], { n: 5, size: [1, 1.6], cols: HAIR, faces: 'tf', out: 0.1 });
+  // (the curls seated on the mane, on: none hangs in the air off a corner of the box they are scattered over)
+  const mane = [[0, 6.2, -0.6], [4.9, 4.7, 4.7]];
+  if (!pal.hood) K.clumps(Hd, [0, 6.6, -0.6], [9.4, 8.6, 9], { n: 14, size: [1, 1.8], cols: HAIR, faces: 'tklr', out: 0.1, on: mane });
+  if (!pal.hood) K.clumps(Hd, [0, 9.4, 2], [8.4, 1.6, 4.4], { n: 5, size: [1, 1.6], cols: HAIR, faces: 'tf', out: 0.1, on: mane });
   // (round 7: the beard a little fuller and longer than the smaller head alone would give it, as on the sheet)
   blob(K, Hd, [0, 0.7, 2.3], [4.9, 3.7, 2.6], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2], keep: (x, y, z) => !(z > 0.3 && y > 0.12 && Math.abs(x) < 0.44) });
   blob(K, Hd, [0, -2, 2.8], [3.6, 3, 2.1], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2] });
-  K.clumps(Hd, [0, 0, 3.4], [8, 6, 2], { n: 9, size: [0.9, 1.6], cols: HAIR, faces: 'flrb', out: 0.25, keep: (x, y) => !(y > 1.1 && Math.abs(x) < 2.2) });
+  K.clumps(Hd, [0, 0, 3.4], [8, 6, 2], { n: 9, size: [0.9, 1.6], cols: HAIR, faces: 'flrb', out: 0.25, keep: (x, y) => !(y > 1.1 && Math.abs(x) < 2.2), on: [[0, 0.7, 2.3], [4.9, 3.7, 2.6]] });   // (seated on the beard)
   // ---- the ram's skull with curled horns on the left shoulder
   const ram = reshape(rig, group(T, 6.6, 12.4, 0.6, 0, -0.35, 0), 0.8); ram.visible = pal.ram !== false;   // (round 7: a little smaller, beside the smaller head)
   const bone = [0xe8e0c8, 0xd8d0b8, 0xf0ead8];
