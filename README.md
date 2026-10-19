@@ -5,6 +5,7 @@ is at https://hoai2k.github.io/mini/.
 
 ## Games
 
+- **[Image Annotator](https://hoai2k.github.io/mini/imageannotator/)** · [`imageannotator/`](imageannotator/README.md): point things out on a picture with arrows, circles and drawing
 - **[MP3 Player](https://hoai2k.github.io/mini/mp3player/)** · [`mp3player/`](mp3player/README.md): the music on your device, played like a streaming app
 - **[Stocks](https://hoai2k.github.io/mini/stocks/)** · [`stocks/`](stocks/README.md): price history with total return, dividends paid out or reinvested
 - **[Bookzam](https://hoai2k.github.io/mini/bookzam/)** · [`bookzam/`](bookzam/README.md): snap a shelf to catalogue its books and board games, or find the one you want
