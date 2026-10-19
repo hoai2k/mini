@@ -354,6 +354,8 @@
         <aside class="mic-tip mic-off" id="tn-mic-off" aria-live="polite" hidden></aside>
         <div class="strings" id="strings" role="group" data-text-aria-label="tuner.strings"></div>
         <button class="pill" id="ref-tone" type="button"></button>
+        <p class="tuner-status" id="tuner-status" hidden></p>
+        <button class="pill" id="tuner-retry" type="button" data-text="common.tryAgain" hidden></button>
         <!-- Test My Scale Intonation (tunerui.js, scaletest.js). A feature of its
              own under the tuner: it opens a sheet with a record button. -->
         <div class="scale-test" id="scale-test">
@@ -363,8 +365,6 @@
             <svg class="scale-cta-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
           </button>
         </div>
-        <p class="tuner-status" id="tuner-status" hidden></p>
-        <button class="pill" id="tuner-retry" type="button" data-text="common.tryAgain" hidden></button>
       </div>
 
       <!-- Test Scale Intonation: ready (how it works, and the record button),
@@ -386,7 +386,7 @@
           <div class="scale-results">
             <div class="scale-score" id="scale-score">
               <span class="scale-score-label" data-text="tuner.scale.score"></span>
-              <span class="scale-score-num"><span id="scale-score-num">0</span><small data-text="tuner.scale.outOf"></small></span>
+              <span class="scale-score-num" id="scale-score-num">0</span>
               <span class="scale-score-parts" id="scale-score-parts"></span>
             </div>
             <p class="scale-summary" id="scale-summary"></p>
