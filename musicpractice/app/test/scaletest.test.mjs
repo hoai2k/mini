@@ -65,3 +65,13 @@ test('down the scale, with the reference at 442', () => {
   assert.deepEqual(events, ['start', 'done']);
   assert.deepEqual(l.result.map((n) => [n.midi, judge(n.cents)]), [[72, 'good'], [71, 'flat'], [69, 'good'], [67, 'good']]);
 });
+
+test('the results chime: triumphant from 80% in tune, positive from half, neutral below or with nothing heard', async () => {
+  const { resultTier } = await import('../src/scaletest.js');
+  assert.equal(resultTier(8, 8), 'great');
+  assert.equal(resultTier(7, 8), 'great'); // 87.5%
+  assert.equal(resultTier(6, 8), 'good'); // 75%
+  assert.equal(resultTier(4, 8), 'good');
+  assert.equal(resultTier(3, 8), 'neutral');
+  assert.equal(resultTier(0, 0), 'neutral');
+});

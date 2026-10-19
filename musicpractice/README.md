@@ -430,6 +430,13 @@ note don't count against it. Names follow the tuner's note names and
 transposition, and its reference pitch. `app/src/scaletest.js` (pure,
 `test/scaletest.test.mjs` plays it synthesized scales); the screen is in
 `tunerui.js`. Leaving the tuner ends a test still listening.
+The results come up with a chime by how it went (`resultTier`):
+- **Triumphant:** 80% or more in tune.
+- **Positive:** half or more.
+- **Neutral, "results are in":** below half, or nothing heard.
+The chimes are `app/assets/audio/scale/{great,good,neutral}.mp3`, chosen
+from the takes in `design/chime-sounds.md`. They play through the same
+player as the reference tones.
 
 ## Drone
 
