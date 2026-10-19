@@ -505,9 +505,10 @@
       <form method="dialog">
         <header class="sheet-head"><h3 id="fb-title" data-text="feedback.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
         <p class="help" data-text="feedback.intro"></p>
+        <p class="help fb-req-note"><span class="req" aria-hidden="true">*</span> <span data-text="feedback.requiredNote"></span></p>
         <div class="chips" id="fb-topic" data-text-aria-label="feedback.topicLabel"></div>
         <label class="fb-field"><span data-text="feedback.email"></span><input type="email" id="fb-email" class="fb-input" autocomplete="email" inputmode="email" maxlength="254" enterkeyhint="next"></label>
-        <label class="fb-field"><span data-text="feedback.message"></span><textarea id="fb-message" class="fb-input" rows="5" maxlength="3000"></textarea></label>
+        <label class="fb-field"><span><span data-text="feedback.message"></span> <span class="req" aria-hidden="true">*</span></span><textarea id="fb-message" class="fb-input" rows="5" maxlength="3000" required aria-required="true"></textarea></label>
         <!-- A honeypot: hidden from people and screen readers; bots that fill every field fill it. -->
         <div class="fb-hp" aria-hidden="true"><label><span data-text="feedback.honeypot"></span> <input type="text" id="fb-hp" tabindex="-1" autocomplete="off"></label></div>
         <label class="row toggle"><span data-text="feedback.includeDetails"></span><input type="checkbox" id="fb-details-on" role="switch" checked></label>

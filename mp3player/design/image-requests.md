@@ -10,7 +10,7 @@ music files themselves.
 
 **Round 1:** delivered and in use.
 
-**House style** (already included in every prompt): Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
+**House style** (already included in every prompt): Sleek modern music-app artwork: deep navy and ink-black grounds lit by luminous sky blue (#58b9ff) and mint green (#59e0b0) light with violet accents, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, cool, late-night. Small warm sunset accents are welcome in scenic artwork; blue, green and purple dominate the identity. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
 
 | Status | Id | File | Size |
 | --- | --- | --- | --- |
@@ -37,7 +37,7 @@ music files themselves.
 - Note: Home-screen and browser icon; the 512, 192 and 180 px sizes and the favicon are made from it. Until it arrives the app uses its SVG stand-in (app/icon.svg).
 
 ```text
-An app icon for a personal music player: a glossy vinyl record turned slightly toward the viewer, its label a glowing coral-to-amber disc with a small white play triangle at its centre, a soft beam of warm light sweeping across the grooves, on a deep charcoal ground with a faint violet glow behind the record. Centred, bold, readable at 60 pixels, full bleed with the subject inside the middle 80% so rounded-corner masks never cut it. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
+An app icon for a personal music player: a glossy vinyl record turned slightly toward the viewer, its label a glowing blue-to-mint disc with a small white play triangle at its centre, a soft beam of cool light sweeping across the grooves, on a deep charcoal ground with a faint violet glow behind the record. Centred, bold, readable at 60 pixels, full bleed with the subject inside the middle 80% so rounded-corner masks never cut it. Sleek modern music-app artwork: deep navy and ink-black grounds lit by luminous sky blue (#58b9ff) and mint green (#59e0b0) light with violet accents, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, cool, late-night. Small warm sunset accents are welcome in scenic artwork; blue, green and purple dominate the identity. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
 ```
 
 ### `logo` · delivered
@@ -47,7 +47,7 @@ An app icon for a personal music player: a glossy vinyl record turned slightly t
 - Note: Shown in the app's header at about 140 px wide and on the welcome screen at about 320 px. The text title shows until it arrives, so it must read at 140 px.
 
 ```text
-The words “MP3 Player” as a clean modern wordmark: “MP3” in a heavy geometric sans serif with a coral-to-amber gradient fill, “Player” in the same face at a lighter weight in warm off-white, with the dot of a small vinyl record standing in for the counter of the “P” in “Player”. Crisp silhouette on a fully transparent background, centred, no other text.
+The words “MP3 Player” as a clean modern wordmark: “MP3” in a heavy geometric sans serif with a blue-to-mint gradient fill, “Player” in the same face at a lighter weight in cool off-white, with the dot of a small vinyl record standing in for the counter of the “P” in “Player”. Crisp silhouette on a fully transparent background, centred, no other text.
 ```
 
 ### `cover` · delivered
@@ -57,7 +57,7 @@ The words “MP3 Player” as a clean modern wordmark: “MP3” in a heavy geom
 - Note: The card on the game library page (index.html). Until it arrives the card shows a gradient and the SVG icon.
 
 ```text
-Cover art for a music player app on a library shelf: a vinyl record and a phone lying side by side on a dark surface, ribbons of coral and amber light flowing out of the phone's speaker and wrapping round the record, small floating album-cover squares glowing in the haze. Leave the centre calm and darker so the app's icon reads over it. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
+Cover art for a music player app on a library shelf: a vinyl record and a phone lying side by side on a dark surface, ribbons of blue and mint green light flowing out of the phone's speaker and wrapping round the record, small floating album-cover squares glowing in the haze. Leave the centre calm and darker so the app's icon reads over it. Sleek modern music-app artwork: deep navy and ink-black grounds lit by luminous sky blue (#58b9ff) and mint green (#59e0b0) light with violet accents, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, cool, late-night. Small warm sunset accents are welcome in scenic artwork; blue, green and purple dominate the identity. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
 ```
 
 ## Screens
@@ -69,7 +69,7 @@ Cover art for a music player app on a library shelf: a vinyl record and a phone 
 - Note: Shown above “Add your music” when the library is empty, at about 280 px wide on a phone.
 
 ```text
-A friendly illustration for an empty music library: an open cardboard box of vinyl records and a phone beside it, songs flying from the phone into the box as small glowing album-cover squares and music notes, drawn in bold simple shapes. Isolated on a fully transparent background with a soft coral glow under the box. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
+A friendly illustration for an empty music library: an open cardboard box of vinyl records and a phone beside it, songs flying from the phone into the box as small glowing album-cover squares and music notes, drawn in bold simple shapes. Isolated on a fully transparent background with a soft mint-green glow under the box. Sleek modern music-app artwork: deep navy and ink-black grounds lit by luminous sky blue (#58b9ff) and mint green (#59e0b0) light with violet accents, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, cool, late-night. Small warm sunset accents are welcome in scenic artwork; blue, green and purple dominate the identity. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
 ```
 
 ### `artist` · delivered
@@ -79,7 +79,7 @@ A friendly illustration for an empty music library: an open cardboard box of vin
 - Note: Artists have no pictures in music files, so every artist circle uses this (tinted per artist).
 
 ```text
-A placeholder portrait for a music artist with no photo: a vintage microphone in silhouette, rim-lit in coral and amber against a soft violet haze, centred so it survives a circular crop. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
+A placeholder portrait for a music artist with no photo: a vintage microphone in silhouette, rim-lit in mint green and blue against a soft violet haze, centred so it survives a circular crop. Sleek modern music-app artwork: deep navy and ink-black grounds lit by luminous sky blue (#58b9ff) and mint green (#59e0b0) light with violet accents, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, cool, late-night. Small warm sunset accents are welcome in scenic artwork; blue, green and purple dominate the identity. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
 ```
 
 ## Stand-in album covers
@@ -91,7 +91,7 @@ A placeholder portrait for a music artist with no photo: a vintage microphone in
 - Note: Songs and albums whose files carry no cover art get one of the eight tiles, chosen from the album name.
 
 ```text
-Abstract stand-in album cover: concentric vinyl grooves seen from above, a coral sun rising behind the record's edge. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
+Abstract stand-in album cover: concentric vinyl grooves seen from above, a soft peach sun rising behind the record's edge. Sleek modern music-app artwork: deep navy and ink-black grounds lit by luminous sky blue (#58b9ff) and mint green (#59e0b0) light with violet accents, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, cool, late-night. Small warm sunset accents are welcome in scenic artwork; blue, green and purple dominate the identity. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
 ```
 
 ### `art-2` · delivered
@@ -100,7 +100,7 @@ Abstract stand-in album cover: concentric vinyl grooves seen from above, a coral
 - Size: 800×800, PNG (shipped as 512×512 WebP)
 
 ```text
-Abstract stand-in album cover: a single sound wave drawn as a ribbon of amber light curving across a dark field. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
+Abstract stand-in album cover: a single sound wave drawn as a ribbon of cyan light curving across a dark field. Sleek modern music-app artwork: deep navy and ink-black grounds lit by luminous sky blue (#58b9ff) and mint green (#59e0b0) light with violet accents, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, cool, late-night. Small warm sunset accents are welcome in scenic artwork; blue, green and purple dominate the identity. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
 ```
 
 ### `art-3` · delivered
@@ -109,7 +109,7 @@ Abstract stand-in album cover: a single sound wave drawn as a ribbon of amber li
 - Size: 800×800, PNG (shipped as 512×512 WebP)
 
 ```text
-Abstract stand-in album cover: three overlapping translucent circles in coral, amber and violet, like stage lights. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
+Abstract stand-in album cover: three overlapping translucent circles in blue, green and violet, like stage lights. Sleek modern music-app artwork: deep navy and ink-black grounds lit by luminous sky blue (#58b9ff) and mint green (#59e0b0) light with violet accents, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, cool, late-night. Small warm sunset accents are welcome in scenic artwork; blue, green and purple dominate the identity. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
 ```
 
 ### `art-4` · delivered
@@ -118,7 +118,7 @@ Abstract stand-in album cover: three overlapping translucent circles in coral, a
 - Size: 800×800, PNG (shipped as 512×512 WebP)
 
 ```text
-Abstract stand-in album cover: a cassette tape's two reels abstracted into glowing rings on charcoal. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
+Abstract stand-in album cover: a cassette tape's two reels abstracted into glowing rings on charcoal. Sleek modern music-app artwork: deep navy and ink-black grounds lit by luminous sky blue (#58b9ff) and mint green (#59e0b0) light with violet accents, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, cool, late-night. Small warm sunset accents are welcome in scenic artwork; blue, green and purple dominate the identity. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
 ```
 
 ### `art-5` · delivered
@@ -127,7 +127,7 @@ Abstract stand-in album cover: a cassette tape's two reels abstracted into glowi
 - Size: 800×800, PNG (shipped as 512×512 WebP)
 
 ```text
-Abstract stand-in album cover: a tall stack of equaliser bars in a coral-to-amber gradient, softly glowing. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
+Abstract stand-in album cover: a tall stack of equaliser bars in a blue-to-mint gradient, softly glowing. Sleek modern music-app artwork: deep navy and ink-black grounds lit by luminous sky blue (#58b9ff) and mint green (#59e0b0) light with violet accents, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, cool, late-night. Small warm sunset accents are welcome in scenic artwork; blue, green and purple dominate the identity. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
 ```
 
 ### `art-6` · delivered
@@ -136,7 +136,7 @@ Abstract stand-in album cover: a tall stack of equaliser bars in a coral-to-ambe
 - Size: 800×800, PNG (shipped as 512×512 WebP)
 
 ```text
-Abstract stand-in album cover: a pair of headphones reduced to one elegant arc of light over a violet haze. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
+Abstract stand-in album cover: a pair of headphones reduced to one elegant arc of light over a violet haze. Sleek modern music-app artwork: deep navy and ink-black grounds lit by luminous sky blue (#58b9ff) and mint green (#59e0b0) light with violet accents, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, cool, late-night. Small warm sunset accents are welcome in scenic artwork; blue, green and purple dominate the identity. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
 ```
 
 ### `art-7` · delivered
@@ -145,7 +145,7 @@ Abstract stand-in album cover: a pair of headphones reduced to one elegant arc o
 - Size: 800×800, PNG (shipped as 512×512 WebP)
 
 ```text
-Abstract stand-in album cover: a night skyline melting into a horizon of sound-wave lines in amber. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
+Abstract stand-in album cover: a night skyline melting into a horizon of blue-green sound-wave lines below a warm sunset. Sleek modern music-app artwork: deep navy and ink-black grounds lit by luminous sky blue (#58b9ff) and mint green (#59e0b0) light with violet accents, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, cool, late-night. Small warm sunset accents are welcome in scenic artwork; blue, green and purple dominate the identity. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
 ```
 
 ### `art-8` · delivered
@@ -154,5 +154,5 @@ Abstract stand-in album cover: a night skyline melting into a horizon of sound-w
 - Size: 800×800, PNG (shipped as 512×512 WebP)
 
 ```text
-Abstract stand-in album cover: a spiral of tiny points of light like a record's groove turning into a galaxy. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
+Abstract stand-in album cover: a spiral of tiny points of light like a record's groove turning into a galaxy. Sleek modern music-app artwork: deep navy and ink-black grounds lit by luminous sky blue (#58b9ff) and mint green (#59e0b0) light with violet accents, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, cool, late-night. Small warm sunset accents are welcome in scenic artwork; blue, green and purple dominate the identity. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.
 ```

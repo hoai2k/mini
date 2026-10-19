@@ -133,6 +133,10 @@ tab is hidden: background play is the point of a music player.
   its status in `build_requests.py`, rerun it, and for the icon rerun
   `make_icons.mjs`.
 
+The visual identity uses deep navy surfaces, sky-blue and mint-green controls,
+and violet accents. The artwork follows that cool palette, with occasional
+warm sunset details.
+
 ## Checks
 
 Run before committing (they cost no Actions minutes):

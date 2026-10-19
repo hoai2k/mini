@@ -1,13 +1,13 @@
 {
   "generator": "Built-in image_gen",
   "request_source": "mp3player/design/source/build_requests.py",
-  "delivery": "PNG source artwork for intake; app conversion and integration are separate.",
+  "delivery": "Cool palette edits integrated in app. Blue, mint green and violet dominate; warm sunset details retained. Images resized and encoded for the app; icons derived from the 1024px master. Shipped wordmark trimmed to visible alpha bounds.",
   "assets": [
     {
       "id": "icon",
-      "prompt": "An app icon for a personal music player: a glossy vinyl record turned slightly toward the viewer, its label a glowing coral-to-amber disc with a small white play triangle at its centre, a soft beam of warm light sweeping across the grooves, on a deep charcoal ground with a faint violet glow behind the record. Centred, bold, readable at 60 pixels, full bleed with the subject inside the middle 80% so rounded-corner masks never cut it. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. Output square 1024×1024 PNG.",
+      "prompt": "Edit the attached image. Preserve the vinyl record, white play triangle, framing, grooves, and full-bleed dark background. Replace the orange label and orange lighting with a luminous blue-to-mint-green gradient, cyan rim light and subtle violet haze. Cool blue and green dominate; no orange in this app icon. Square.",
+      "file": "icons/icon-1024.png",
       "transparent_background": false,
-      "file": "icon.png",
       "dimensions": [
         1024,
         1024
@@ -16,30 +16,38 @@
         1254,
         1254
       ],
-      "sha256": "de48e3f9fccd17c0d7fd548f424a57a4eaafa0362b11edb9e42c6645133e31a4",
-      "preparation": "Resized to requested source dimensions with Lanczos."
+      "reference": {
+        "file": "mp3player/app/icons/icon-1024.png",
+        "commit": "da63dbb0",
+        "sha256": "de48e3f9fccd17c0d7fd548f424a57a4eaafa0362b11edb9e42c6645133e31a4"
+      },
+      "sha256": "fac192a11733aa7e89a9ac7efae995b2514df0f6bdd014fcb2bf19f3105b1935"
     },
     {
       "id": "logo",
-      "prompt": "The words “MP3 Player” as a clean modern wordmark: “MP3” in a heavy geometric sans serif with a coral-to-amber gradient fill, “Player” in the same face at a lighter weight in warm off-white, with the dot of a small vinyl record standing in for the counter of the “P” in “Player”. Crisp silhouette on a fully transparent background, centred, no other text. Wide composition, 1200×320 aspect ratio. Render as absolutely clean flat typography with smooth solid fills and sharp antialiased edges. All interiors of letters fully opaque. No distressed texture, no grain, no speckles, no decorative shadows, no isolated stray pixels. Keep the entire wordmark within the central horizontal band with generous empty transparent margins. Exact spelling MP3 Player.",
+      "prompt": "Edit the attached image. Preserve the exact words MP3 Player, letter shapes, vinyl-record counter, layout and proportions. Change ONLY the MP3 orange gradient to a vivid sky-blue to mint-green gradient; keep Player cool off-white. Clean sharp typography, solid opaque letter interiors, fully transparent background. No orange in this wordmark. Wide horizontal.",
+      "file": "assets/ui/logo.webp",
       "transparent_background": true,
-      "file": "logo.png",
       "dimensions": [
-        1200,
-        320
+        769,
+        148
       ],
       "generated_dimensions": [
-        2172,
-        724
+        1911,
+        823
       ],
-      "sha256": "9e87642d46800cab14cc1dbee9d0f34fc12b9120066fbf401ce786a162570a24",
-      "preparation": "Trimmed empty alpha margins, scaled proportionally and padded with transparency."
+      "reference": {
+        "file": "mp3player/app/assets/ui/logo.webp",
+        "commit": "da63dbb0",
+        "sha256": "dccca1adfa79bfc6164c54920dd1ff03e940e6aee63a4e929bc761647e1a37fa"
+      },
+      "sha256": "b06f7c467410677eab14fb61078956289e616f918f8731d47b2f2079e88dc36c"
     },
     {
       "id": "cover",
-      "prompt": "Cover art for a music player app on a library shelf: a vinyl record and a phone lying side by side on a dark surface, ribbons of coral and amber light flowing out of the phone's speaker and wrapping round the record, small floating album-cover squares glowing in the haze. Leave the centre calm and darker so the app's icon reads over it. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. Landscape 4:3 composition.",
+      "prompt": "Edit the attached image. Preserve the composition: record lower left, phone lower right, floating album squares and calm dark centre. Recolor the dominant flowing orange light ribbons and record label to electric blue and emerald/mint green with violet accents, on an ink-navy background. Album squares may retain tiny warm sunset accents; the overall scene must feel cool and blue-green-purple. Preserve photographic detail, no text, landscape 4:3.",
+      "file": "assets/ui/cover.webp",
       "transparent_background": false,
-      "file": "cover.png",
       "dimensions": [
         1200,
         900
@@ -48,14 +56,18 @@
         1448,
         1086
       ],
-      "sha256": "d0aa5bdea6073c977a61eac5e5e13cba9660dd313129205084d4f9e75877372a",
-      "preparation": "Resized to requested source dimensions with Lanczos."
+      "reference": {
+        "file": "mp3player/app/assets/ui/cover.webp",
+        "commit": "da63dbb0",
+        "sha256": "2d5149116fd13bf4d8a50c8c78e685e76f4b0c844b8f27777bb8b981baf02b24"
+      },
+      "sha256": "02821155ade0acebac4515883a156a73c76c853fc1e4b7818257e2823c2d489c"
     },
     {
       "id": "welcome",
-      "prompt": "A friendly illustration for an empty music library: an open cardboard box of vinyl records and a phone beside it, songs flying from the phone into the box as small glowing album-cover squares and music notes, drawn in bold simple shapes. Isolated on a fully transparent background with a soft coral glow under the box. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. Landscape 4:3 composition.",
+      "prompt": "Edit the attached image. Preserve box of records, phone, floating album squares/music notes and their arrangement. Change the dominant orange glow and flowing notes to blue/cyan and mint green, purple accents; cool navy/violet phone art. Keep natural cardboard brown, and small warm sunset details inside some album squares only. Clean isolated composition on fully transparent background. Landscape 4:3.",
+      "file": "assets/ui/welcome.webp",
       "transparent_background": true,
-      "file": "welcome.png",
       "dimensions": [
         1200,
         900
@@ -64,14 +76,38 @@
         1448,
         1086
       ],
-      "sha256": "7efe01f85f53447d052f97d03e9c82381bc8ea4cb8bdf5ee78a2f41aeb91840b",
-      "preparation": "Resized to requested source dimensions with Lanczos."
+      "reference": {
+        "file": "mp3player/app/assets/ui/welcome.webp",
+        "commit": "da63dbb0",
+        "sha256": "bc9869bdac472df1d774ec807b0a96cd148851b6b455df6ae2f19385597b481d"
+      },
+      "sha256": "ab3de7a8a7d5f73e230db936ead7dcf8ebd9cacc4c462f526f652fa3cc82aa5a"
     },
     {
       "id": "artist",
-      "prompt": "A placeholder portrait for a music artist with no photo: a vintage microphone in silhouette, rim-lit in coral and amber against a soft violet haze, centred so it survives a circular crop. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. Square composition.",
+      "prompt": "Edit the attached image. Keep microphone silhouette and centred framing. Replace orange rim light with luminous mint/teal on one side and electric blue on the other, against violet and navy haze. Cool late-night atmosphere, same strong contrast. Square.",
+      "file": "assets/art/artist.webp",
       "transparent_background": false,
-      "file": "artist.png",
+      "dimensions": [
+        256,
+        256
+      ],
+      "generated_dimensions": [
+        1254,
+        1254
+      ],
+      "reference": {
+        "file": "mp3player/app/assets/art/artist.webp",
+        "commit": "da63dbb0",
+        "sha256": "cf1a96e8eaf2cb96cbd780f2732e3492da6e6cf7a0e2e21f579b2b362565934a"
+      },
+      "sha256": "03a5879e4f125b3389ddd1d948ad2e47265d57aac79109da7c0c9337d310c4f4"
+    },
+    {
+      "id": "art-1",
+      "prompt": "Edit the attached image. Preserve the concentric vinyl grooves and sun just above the horizon. Recolor record label/reflections to blue-green, dark navy grooves, purple twilight sky. Keep a small softly warm peach/coral sun as a sunset accent, but reduce orange glow so blue and purple dominate the image. Square full bleed, no text.",
+      "file": "assets/art/art-1.webp",
+      "transparent_background": false,
       "dimensions": [
         512,
         512
@@ -80,136 +116,152 @@
         1254,
         1254
       ],
-      "sha256": "0a24362751dee822fd83f1d4dd3e5e7cbc187f9bbee4e9b4e75708ff067a02de",
-      "preparation": "Resized to requested source dimensions with Lanczos."
-    },
-    {
-      "id": "art-1",
-      "prompt": "Abstract stand-in album cover: concentric vinyl grooves seen from above, a coral sun rising behind the record's edge. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.",
-      "transparent_background": false,
-      "file": "art-1.png",
-      "dimensions": [
-        800,
-        800
-      ],
-      "generated_dimensions": [
-        1254,
-        1254
-      ],
-      "sha256": "3ce501487b1fa585d87623ff4ca1288050b4b459d718392140ef2df64829cf82",
-      "preparation": "Resized to requested source dimensions with Lanczos."
+      "reference": {
+        "file": "mp3player/app/assets/art/art-1.webp",
+        "commit": "da63dbb0",
+        "sha256": "bd79f10b12fae1c01426e8b9f24b2fac8ed7c1d29730806236b699f6f148fdfb"
+      },
+      "sha256": "d3f54d881434397599c688f24fa4eb42ce85d860fd849a398bb302094de7b638"
     },
     {
       "id": "art-2",
-      "prompt": "Abstract stand-in album cover: a single sound wave drawn as a ribbon of amber light curving across a dark field. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.",
+      "prompt": "Edit the attached image. Preserve the flowing sound-wave ribbon, framing and fine texture. Recolor the glowing ribbon to blue and mint green with a violet edge, against deep navy. No orange lighting. Square.",
+      "file": "assets/art/art-2.webp",
       "transparent_background": false,
-      "file": "art-2.png",
       "dimensions": [
-        800,
-        800
+        512,
+        512
       ],
       "generated_dimensions": [
         1254,
         1254
       ],
-      "sha256": "a7df19acf2857310764ea7751a03bb0af582341c0b41b4c92335a5acc8a8f09e",
-      "preparation": "Resized to requested source dimensions with Lanczos."
+      "reference": {
+        "file": "mp3player/app/assets/art/art-2.webp",
+        "commit": "da63dbb0",
+        "sha256": "bef0104ca9416381532d5aa2b9d0a0735e37200c5af2687e8b8942f258eb08c8"
+      },
+      "sha256": "8b8f688f3b59387259ada43304abd3c55baa56c2a5bd93282eac0196039591e2"
     },
     {
       "id": "art-3",
-      "prompt": "Abstract stand-in album cover: three overlapping translucent circles in coral, amber and violet, like stage lights. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.",
+      "prompt": "Edit the attached image. Preserve the three translucent overlapping stage-light circles and their placement. Recolor the circles to sky blue, emerald/mint green and violet; cool luminous overlaps on deep navy. No orange circles. Square.",
+      "file": "assets/art/art-3.webp",
       "transparent_background": false,
-      "file": "art-3.png",
       "dimensions": [
-        800,
-        800
+        512,
+        512
       ],
       "generated_dimensions": [
         1254,
         1254
       ],
-      "sha256": "6c75effc3365351abca2ccf96c6b35e34126601d20df7811f2d5b1a9b28b8b81",
-      "preparation": "Resized to requested source dimensions with Lanczos."
+      "reference": {
+        "file": "mp3player/app/assets/art/art-3.webp",
+        "commit": "da63dbb0",
+        "sha256": "c1650cef4e7f5ed6809b69555b0c2869867ebcb0815a07e4e1e24ecd42563ef3"
+      },
+      "sha256": "59eb8cd3210980a26ba072c96040a1c30722221fa04809f6b69760d6ca737cf6"
     },
     {
       "id": "art-4",
-      "prompt": "Abstract stand-in album cover: a cassette tape's two reels abstracted into glowing rings on charcoal. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.",
+      "prompt": "Edit the attached image. Preserve the two abstract glowing cassette reels, ribbon bridge and dark negative space. Recolor one reel blue/cyan and the other mint/emerald, with a subtle violet haze. Same contrast and textures. Square.",
+      "file": "assets/art/art-4.webp",
       "transparent_background": false,
-      "file": "art-4.png",
       "dimensions": [
-        800,
-        800
+        512,
+        512
       ],
       "generated_dimensions": [
         1254,
         1254
       ],
-      "sha256": "d9cb4ea09b157bd5cbf555f143eb056accbce0639718133d8b1681733cc52f4c",
-      "preparation": "Resized to requested source dimensions with Lanczos."
+      "reference": {
+        "file": "mp3player/app/assets/art/art-4.webp",
+        "commit": "da63dbb0",
+        "sha256": "9f462af1dd857d7f7e2807271372a00a672a096e95f7f00bb293ed309b1010ca"
+      },
+      "sha256": "604ab5a085efbe56284f1774bf5b2764b9993fa863fa55a77669a7b9327a4a7e"
     },
     {
       "id": "art-5",
-      "prompt": "Abstract stand-in album cover: a tall stack of equaliser bars in a coral-to-amber gradient, softly glowing. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.",
+      "prompt": "Edit the attached image. Preserve equalizer bars, reflections, planet and framing. Recolor the bars to mint green at their base blending into sky-blue tips, with violet planet and haze, navy ground. Remove dominant orange lighting. Square.",
+      "file": "assets/art/art-5.webp",
       "transparent_background": false,
-      "file": "art-5.png",
       "dimensions": [
-        800,
-        800
+        512,
+        512
       ],
       "generated_dimensions": [
         1254,
         1254
       ],
-      "sha256": "daf6b4ed1b6059fc9aba8b69786ef45ddee3274b4741991c1f2c03bec5fd64b7",
-      "preparation": "Resized to requested source dimensions with Lanczos."
+      "reference": {
+        "file": "mp3player/app/assets/art/art-5.webp",
+        "commit": "da63dbb0",
+        "sha256": "be2c638b6d6d53a83f4c1b1e936b93d62b486a25c7ed4a6eaf6b6b47cf978281"
+      },
+      "sha256": "a580f0dee43b50c990ed0d8207e59647705ffec3d69f263b127fcb7e36830544"
     },
     {
       "id": "art-6",
-      "prompt": "Abstract stand-in album cover: a pair of headphones reduced to one elegant arc of light over a violet haze. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.",
+      "prompt": "Edit the attached image. Preserve headphone silhouette and arc of light, framing and haze. Change rim light to blue and mint green, haze to violet and navy. Elegant cool atmosphere. Square.",
+      "file": "assets/art/art-6.webp",
       "transparent_background": false,
-      "file": "art-6.png",
       "dimensions": [
-        800,
-        800
+        512,
+        512
       ],
       "generated_dimensions": [
         1254,
         1254
       ],
-      "sha256": "339388635a9fda923131404b2d4269e275e976343961f9cc80788fedbecca8ff",
-      "preparation": "Resized to requested source dimensions with Lanczos."
+      "reference": {
+        "file": "mp3player/app/assets/art/art-6.webp",
+        "commit": "da63dbb0",
+        "sha256": "8bedd3ba8cc91b0c688f4c1afd4db1f50650abafc05a28b3a7214aeb9dfb0a53"
+      },
+      "sha256": "f6d43e158b33a66133e9d2735b2b1a2168ae2c9de41fe350bb4562355ad8d1e0"
     },
     {
       "id": "art-7",
-      "prompt": "Abstract stand-in album cover: a night skyline melting into a horizon of sound-wave lines in amber. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.",
+      "prompt": "Edit the attached image. Preserve the sunset skyline and large sun. Keep the sun naturally warm orange/peach, but shift the sky and water shadows to deep blue and purple. Make most sound-wave reflection lines blue and mint green, with only a narrow warm reflection directly beneath the sun. Balanced sunset artwork in a predominantly cool collection, no text. Square.",
+      "file": "assets/art/art-7.webp",
       "transparent_background": false,
-      "file": "art-7.png",
       "dimensions": [
-        800,
-        800
+        512,
+        512
       ],
       "generated_dimensions": [
         1254,
         1254
       ],
-      "sha256": "ce6dd1726844f65f817ae112e3dab727ad0b8cfb5adf9d7d82ff0e88ceef951c",
-      "preparation": "Resized to requested source dimensions with Lanczos."
+      "reference": {
+        "file": "mp3player/app/assets/art/art-7.webp",
+        "commit": "da63dbb0",
+        "sha256": "9335ae83fae5e0454a86982b6a6419513693e4ba133bda7ba5184df72d2f9e08"
+      },
+      "sha256": "90d0d0bf91b8feea425d240d220a056f5fe450ad02a31cb6a894d545e269ad87"
     },
     {
       "id": "art-8",
-      "prompt": "Abstract stand-in album cover: a spiral of tiny points of light like a record's groove turning into a galaxy. Sleek modern music-app artwork: deep charcoal and ink-black grounds lit by glowing coral (#ff6b4a) and warm amber (#ffb340) light with a touch of deep violet, smooth gradients, soft film grain, bold simple shapes, in the manner of the editorial artwork of a premium streaming service. Confident, warm, late-night. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A square, full-bleed abstract album-cover tile that still reads at 40 pixels: one strong shape, high contrast, nothing important within 6% of the edges.",
+      "prompt": "Edit the attached image. Preserve the spiral galaxy of points of light and record-like grooves. Change dominant orange-gold stars to luminous sky-blue, mint green and violet, with a pale icy core. Retain only a few tiny warm stars for variety. Deep navy backdrop. Square.",
+      "file": "assets/art/art-8.webp",
       "transparent_background": false,
-      "file": "art-8.png",
       "dimensions": [
-        800,
-        800
+        512,
+        512
       ],
       "generated_dimensions": [
         1254,
         1254
       ],
-      "sha256": "b545af100d203f40a76548930942cd8e278d6b28a6a6ddcbe412f0334e4b5df5",
-      "preparation": "Resized to requested source dimensions with Lanczos."
+      "reference": {
+        "file": "mp3player/app/assets/art/art-8.webp",
+        "commit": "da63dbb0",
+        "sha256": "29b177db7f6db00f52641eb1668ddcc80827f0c0a81dd7213b279f62fa9cd9b3"
+      },
+      "sha256": "23be7bbdc334a86aa9c5ffdf8767ca9e73f05f284d5f10dbe119f99a1197b921"
     }
   ]
 }

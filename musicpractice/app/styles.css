@@ -1779,6 +1779,10 @@ div.ac-status.bad { border-color: var(--red); justify-items: start; }
   font: 500 1rem/1.4 var(--ui); resize: vertical;
 }
 .fb-input:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+.fb-field .req, .fb-req-note .req { color: var(--red-2); font-weight: 700; }
+.fb-req-note { margin: 0; }
+/* Not marked invalid before anything is typed (Send stays off until there is a message). */
+.fb-input:invalid { box-shadow: none; }
 .fb-hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 .fb-details-box summary { cursor: pointer; color: var(--ink-2); font-size: 0.9rem; }
 .fb-details-box pre {
