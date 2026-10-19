@@ -7,20 +7,20 @@ Until a file is delivered the app draws a stand-in, so nothing here blocks use.
 Tool buttons (arrow, circle, free draw, undo, settings and the rest) are drawn
 as inline SVG in the app and need no art.
 
-**Round 1:** 4 images wanted, marked `requested`.
+**Round 1:** delivered and in use.
 
 **House style** (already included in every prompt but the logo's): Clean, friendly modern app artwork: a warm off-white and soft charcoal palette with one bold coral-red accent (#ff4d4f) used for annotation marks, hand-drawn marker strokes with a slightly imperfect, confident line, flat shapes with gentle soft shadows, crisp edges, generous empty space. Playful but tidy, like a designer's markup on a photo. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
 
 | Status | Id | File | Size |
 | --- | --- | --- | --- |
-| requested | `icon` | `app/icons/icon-1024.png` | 1024×1024, PNG, full bleed, no transparency |
-| requested | `logo` | `app/assets/ui/logo.webp` | 1200×300, transparent PNG (shipped as WebP, trimmed to the wordmark) |
-| requested | `cover` | `app/assets/ui/cover.webp` | 1200×900 (4:3), WebP |
-| requested | `welcome` | `app/assets/ui/welcome.webp` | 1200×900 (4:3), transparent PNG (shipped as WebP) |
+| delivered | `icon` | `app/icons/icon-1024.png` | 1024×1024, PNG, full bleed, no transparency |
+| delivered | `logo` | `app/assets/ui/logo.webp` | 1200×300, transparent PNG (shipped as WebP, trimmed to the wordmark) |
+| delivered | `cover` | `app/assets/ui/cover.webp` | 1200×900 (4:3), WebP |
+| delivered | `welcome` | `app/assets/ui/welcome.webp` | 1200×900 (4:3), transparent PNG (shipped as WebP) |
 
 ## Brand
 
-### `icon` · requested
+### `icon` · delivered
 
 - File: `imageannotator/app/icons/icon-1024.png`
 - Size: 1024×1024, PNG, full bleed, no transparency
@@ -30,7 +30,7 @@ as inline SVG in the app and need no art.
 An app icon for a photo markup app: a small square photograph of rolling hills under a pale sky, tilted a few degrees, with a bold coral-red hand-drawn arrow sweeping in from the lower right and pointing at a tiny tree on the hill, and a loose coral-red marker circle around the tree, on a deep charcoal (#1c1d22) ground. Centred, bold, readable at 60 pixels, full bleed with the subject inside the middle 80% so rounded-corner masks never cut it. Clean, friendly modern app artwork: a warm off-white and soft charcoal palette with one bold coral-red accent (#ff4d4f) used for annotation marks, hand-drawn marker strokes with a slightly imperfect, confident line, flat shapes with gentle soft shadows, crisp edges, generous empty space. Playful but tidy, like a designer's markup on a photo. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
 ```
 
-### `logo` · requested
+### `logo` · delivered
 
 - File: `imageannotator/app/assets/ui/logo.webp`
 - Size: 1200×300, transparent PNG (shipped as WebP, trimmed to the wordmark)
@@ -40,7 +40,7 @@ An app icon for a photo markup app: a small square photograph of rolling hills u
 The words “Image Annotator” as a clean modern wordmark in a friendly rounded geometric sans serif: “Image” in heavy soft charcoal, “Annotator” in the same face at a lighter weight, with a short coral-red (#ff4d4f) hand-drawn marker arrow curving under “Annotator” and pointing up at its first letter. Crisp silhouette on a fully transparent background, centred, no other text. It must read on both a white and a charcoal background, so give the charcoal letters a thin off-white outline.
 ```
 
-### `cover` · requested
+### `cover` · delivered
 
 - File: `imageannotator/app/assets/ui/cover.webp`
 - Size: 1200×900 (4:3), WebP
@@ -52,7 +52,7 @@ Cover art for a photo markup app on a library shelf: a phone lying on a light wo
 
 ## Screens
 
-### `welcome` · requested
+### `welcome` · delivered
 
 - File: `imageannotator/app/assets/ui/welcome.webp`
 - Size: 1200×900 (4:3), transparent PNG (shipped as WebP)

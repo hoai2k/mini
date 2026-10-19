@@ -2,21 +2,21 @@
   {
     "id": "icon",
     "file": "icons/icon-1024.png",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "logo",
     "file": "assets/ui/logo.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "cover",
     "file": "assets/ui/cover.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "welcome",
     "file": "assets/ui/welcome.webp",
-    "status": "requested"
+    "status": "delivered"
   }
 ]
