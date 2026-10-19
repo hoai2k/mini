@@ -1,9 +1,9 @@
 // The home screen and the Practice Routine as two pages side by side, for when
 // the timer's button doesn't fit beside the others: swipe left from home to
 // slide the timer in from the right, and right to slide back; the page under
-// the finger follows it, and a short or slow swipe springs back. On a
-// desktop an arrow at the edge does the same; on a touch screen a faint
-// chevron at the right edge says there is a page to swipe in.
+// the finger follows it, and a short or slow swipe springs back. A smaller
+// Practice Routine button under the home buttons slides it in, and the
+// routine's back arrow slides home (slide(), in main.js).
 //
 // IN DEVELOPMENT: used only with ?routine in the address (main.js).
 
