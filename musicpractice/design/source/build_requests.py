@@ -562,6 +562,54 @@ def round8_assets() -> list[dict]:
 
 ASSETS += round8_assets()
 
+TIMER_SUBJECT = {
+    "classic": "a turned walnut frame with brass end caps and clear glass bulbs holding warm golden sand",
+    "deco": "a black lacquer frame with stepped gold-leaf end caps and slender gold columns, a small jade accent, golden sand",
+    "sixties": "a rounded burnt-orange teak frame with dark teal end caps, chrome columns and creamy sand, in flat screen-print colour",
+    "baroque": "a carved walnut frame with gilt acanthus end caps and twisted columns, a small burgundy accent, golden sand",
+    "scifi": "a graphite frame with thin cyan edge lighting, brushed titanium end caps and glowing cyan sand, a small magenta indicator",
+    "nouveau": "a sage-green frame with muted-gold end caps wound with a vine, a small iris accent, pale golden sand",
+    "anime": "a candy-pink frame with pastel sky-blue end caps, a bold outline, lilac sand and tiny yellow sparkles",
+    "steampunk": "a dark mahogany frame with riveted brass and copper end caps, a small pressure gauge on one column, golden sand",
+}
+
+
+def round9_assets() -> list[dict]:
+    """The Practice Timer's home button: an hourglass per theme, drawn to sit
+    beside that theme's other home buttons (shown while in development only
+    with ?timer in the address)."""
+    record = json.loads((ROOT / "design" / "image-deliveries-drone.json").read_text())
+    names = {t["id"]: t["name"] for t in THEMES}
+    out = []
+    for a in record["assets"]:
+        theme, name = a["theme"], names[a["theme"]]
+        src = a["file"].removeprefix("musicpractice/app/")
+        folder = src.rsplit("/", 1)[0]
+        out.append(dict(
+            id="home-timer", theme=theme, round=9, file=f"{folder}/home-timer.webp",
+            size="1024×1024, transparent PNG (shipped as 384×384 WebP)", status="requested",
+            group=f"{name} · Home screen buttons",
+            prompt=(f"Using the attached image, musicpractice/app/{src} (this theme's Drone home "
+                    "button, a cello), as the reference for its style, colours, lighting, rendering, "
+                    "framing and canvas, draw an hourglass in its place: "
+                    f"{TIMER_SUBJECT[theme]}. The hourglass stands upright and perfectly "
+                    "symmetrical, seen from the front, with about two thirds of the sand in the lower "
+                    "bulb, a small heap, and a thin stream still falling through the neck. Keep the "
+                    "same two thin, smooth ribbons drifting gently outward from the sides as in the "
+                    "reference, so it sits with the other home buttons. Centred, at about the same "
+                    "height as the cello, with the same small even margin; a bold readable silhouette "
+                    "that still reads at 64 pixels. A fully transparent background, no cast shadow, no "
+                    "clock face, no text, no letters, no numbers."),
+            note=(f"The Practice Timer's button on the home screen in the {name} theme (and its "
+                  "picture on the timer screen); the label is written by the app. Made from "
+                  f"app/{src} so it matches the other home buttons. Until it arrives the app draws a "
+                  "stand-in hourglass."),
+        ))
+    return out
+
+
+ASSETS += round9_assets()
+
 def render() -> tuple[str, str]:
     theme_name = {t["id"]: t["name"] for t in THEMES}
     lines = [
@@ -579,7 +627,8 @@ def render() -> tuple[str, str]:
                        (4, "revisions"), (5, "Tuner home icons, every theme"),
                        (6, "Drone home icons, every theme"),
                        (7, "Drone screen with the bow as volume, every theme"),
-                       (8, "Drone screen for the organ, every theme")):
+                       (8, "Drone screen for the organ, every theme"),
+                       (9, "Practice Timer home icons, every theme")):
         wanted = [a for a in ASSETS if a["round"] == rnd and a["status"] in ("requested", "revise")]
         lines.append(f"**Round {rnd} ({title}):** "
                      + (f"{len(wanted)} image{'s' if len(wanted) != 1 else ''} wanted: " + ", ".join(f"`{a['file']}`" for a in wanted) + "."
