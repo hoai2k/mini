@@ -41,7 +41,7 @@ STYLE = (
 
 ASSETS = [
     # Brand
-    dict(id="icon", file="icons/icon-1024.png", size="1024×1024, PNG, full bleed, no transparency", status="requested", group="Brand",
+    dict(id="icon", file="icons/icon-1024.png", size="1024×1024, PNG, full bleed, no transparency", status="delivered", group="Brand",
          prompt="An app icon for a photo markup app: a small square photograph of rolling hills under a "
                 "pale sky, tilted a few degrees, with a bold coral-red hand-drawn arrow sweeping in from "
                 "the lower right and pointing at a tiny tree on the hill, and a loose coral-red marker "
@@ -50,7 +50,7 @@ ASSETS = [
                 "never cut it. " + STYLE,
          note="Home-screen and browser icon; the 512, 192 and 180 px sizes and the favicon are made from it "
               "by design/source/make_icons.mjs. Until it arrives they are made from the SVG stand-in (app/icon.svg)."),
-    dict(id="logo", file="assets/ui/logo.webp", size="1200×300, transparent PNG (shipped as WebP, trimmed to the wordmark)", status="requested", group="Brand",
+    dict(id="logo", file="assets/ui/logo.webp", size="1200×300, transparent PNG (shipped as WebP, trimmed to the wordmark)", status="delivered", group="Brand",
          prompt="The words “Image Annotator” as a clean modern wordmark in a friendly rounded geometric "
                 "sans serif: “Image” in heavy soft charcoal, “Annotator” in the same face at a lighter "
                 "weight, with a short coral-red (#ff4d4f) hand-drawn marker arrow curving under "
@@ -58,7 +58,7 @@ ASSETS = [
                 "background, centred, no other text. It must read on both a white and a charcoal background, "
                 "so give the charcoal letters a thin off-white outline.",
          note="Shown on the start screen at about 300 px wide. The text title shows until it arrives."),
-    dict(id="cover", file="assets/ui/cover.webp", size="1200×900 (4:3), WebP", status="requested", group="Brand",
+    dict(id="cover", file="assets/ui/cover.webp", size="1200×900 (4:3), WebP", status="delivered", group="Brand",
          prompt="Cover art for a photo markup app on a library shelf: a phone lying on a light wooden desk "
                 "showing a holiday photo of a seaside town, the photo marked up with a coral-red arrow, a "
                 "loose coral-red circle and a scribbled underline, a few printed photos scattered around "
@@ -67,7 +67,7 @@ ASSETS = [
          note="The card on the game library page (index.html). Until it arrives the card shows a gradient and the SVG icon."),
 
     # Screens
-    dict(id="welcome", file="assets/ui/welcome.webp", size="1200×900 (4:3), transparent PNG (shipped as WebP)", status="requested", group="Screens",
+    dict(id="welcome", file="assets/ui/welcome.webp", size="1200×900 (4:3), transparent PNG (shipped as WebP)", status="delivered", group="Screens",
          prompt="A friendly illustration for the empty start screen of a photo markup app: a stack of three "
                 "loose photographs (a mountain, a cat, a city street) fanned out, a coral-red marker pen "
                 "lying across them, and a coral-red hand-drawn arrow and circle floating above the top "

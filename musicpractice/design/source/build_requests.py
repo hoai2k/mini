@@ -667,6 +667,41 @@ def round10_assets() -> list[dict]:
 
 ASSETS += round10_assets()
 
+# Delivered Routine icons and split pendulums retain their measured geometry
+# in the delivery record. New themes stay requested until they have a record.
+_routine_pendulum_delivery = ROOT / "design" / "image-deliveries-rounds-9-10.json"
+if _routine_pendulum_delivery.exists():
+    _delivered = {
+        (a["theme"], a["id"]): a
+        for a in json.loads(_routine_pendulum_delivery.read_text())["assets"]
+        if a["status"] == "delivered"
+    }
+    for asset in ASSETS:
+        if asset["round"] not in (9, 10):
+            continue
+        delivery = _delivered.get((asset["theme"], asset["id"]))
+        if not delivery:
+            continue
+        asset["status"] = "delivered"
+        for key in ("canvas", "anchors", "swing", "scale", "travel"):
+            if delivery.get(key) is not None:
+                asset[key] = delivery[key]
+        asset.pop("interim", None)
+        if asset["id"] == "metronome-rod":
+            asset["note"] = (
+                "Delivered rod and bob without the sliding weight, normalized to the original "
+                "pendulum's scale. The hub is measured on this layer; the separate weight's centre "
+                f"travels from y {asset['travel'][0]} to y {asset['travel'][1]}. "
+            )
+        elif asset["id"] == "metronome-weight":
+            asset["note"] = (
+                "Delivered sliding ornament at the pendulum's scale, on its own transparent canvas. "
+                "The center anchor places it on the rod as the tempo changes. "
+            )
+        else:
+            asset["note"] = asset["note"].split("Until it arrives")[0]
+        asset["note"] += "PNG masters, prompts and export details: design/image-deliveries-rounds-9-10.json."
+
 # The Practice Routine's pictures: one per kind of practice item (the
 # suggestions + offers, PRESETS in app/src/timer.js), shown large while that
 # item runs so a glance says what is being practised, and a default for an
