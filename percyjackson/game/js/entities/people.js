@@ -20,7 +20,7 @@
 // tip ([slot, x, y, z, label]: where a held weapon points, for perf/weapons.cjs) }.
 // Units: skin pixels (head parts in head pixels; the head runs y 0..8, front +z).
 import * as THREE from 'three/webgpu';
-import { Skin, Rig, makeCharMaterial, PX, markTip } from './character.js';
+import { Skin, Rig, makeCharMaterial, PX, markTip, mergeChildren } from './character.js';
 import { cellMesh, heroHair, heroTail, footwear, beads } from './herovox.js';
 import { paintHumanoid } from './models.js';
 import { paintPerson, ADULT_SCALE, B, mirrorX, turn, band, shoes, strawHat, hairCells, beardCells, boxGeometry, mergeGeometries, inHead, shadeOf } from './mortals.js';
@@ -971,5 +971,6 @@ export function buildPerson(id) {
   if (def.tip) markTip(rig[def.tip[0]], def.tip[1], def.tip[2], def.tip[3], def.tip[4]);
   rig.person = id;
   rig.look = { accent: def.accent ?? 0xc9963a };
+  for (const b of [rig.hips, rig.torso, rig.head, rig.armR, rig.armL, rig.legR, rig.legL]) mergeChildren(rig, b);   // (each limb's skin box and its overlay as one mesh: character.js)
   return rig;
 }

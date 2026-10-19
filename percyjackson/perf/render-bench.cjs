@@ -255,7 +255,7 @@ function shotPage() {
   const wb = fs.readFileSync(path.join(ROOT, 'percyjackson/game/workbench/models.html'), 'utf8');
   const map = wb.match(/<script type="importmap">[\s\S]*?<\/script>/)[0];
   return `<!doctype html><html><head><meta charset="utf-8">${map}
-<script>{ let a = 12345; Math.random = () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }</script>
+<script>{ let a = 12345; window.reseed = () => { a = 12345; }; Math.random = () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }</script>
 <style>body{margin:0;background:#000}</style></head><body><script type="module">
 import * as THREE from 'three/webgpu';
 import { buildHeroModel } from '../js/entities/models.js';
@@ -263,8 +263,10 @@ import { buildMonsterModel, MONSTERS, MONSTER_IDS } from '../js/entities/monster
 import { BOSS_DEFS, BOSS_IDS } from '../js/entities/bosses.js';
 import { CHAMPION_SHOWCASE, buildShowcase } from '../js/entities/champions.js';
 import { HERO_LOOKS } from '../js/entities/models.js';
+import { buildPerson, PEOPLE_IDS } from '../js/entities/people.js';
+import { buildMortal, MORTAL_IDS } from '../js/entities/mortals.js';
 import { poseStep, prepStatic } from './ingame.js';
-const find = (id) => HERO_LOOKS[id] ? ['heroes', () => buildHeroModel(id)] : MONSTERS[id] && MONSTER_IDS.includes(id) ? ['monsters', () => buildMonsterModel(MONSTERS[id].model)] : BOSS_DEFS[id] ? ['bosses', () => BOSS_DEFS[id].build()] : CHAMPION_SHOWCASE.includes(id) ? ['champions', () => buildShowcase(id)] : null;
+const find = (id) => HERO_LOOKS[id] ? ['heroes', () => buildHeroModel(id)] : MONSTERS[id] && MONSTER_IDS.includes(id) ? ['monsters', () => buildMonsterModel(MONSTERS[id].model)] : BOSS_DEFS[id] ? ['bosses', () => BOSS_DEFS[id].build()] : CHAMPION_SHOWCASE.includes(id) ? ['champions', () => buildShowcase(id)] : PEOPLE_IDS.includes(id) ? ['people', () => buildPerson(id)] : MORTAL_IDS.includes(id) ? ['mortals', () => buildMortal(id)] : null;
 const R = new THREE.WebGPURenderer({ antialias: false }); R.setPixelRatio(1); R.setSize(480, 480);
 R.toneMapping = THREE.AgXToneMapping; R.toneMappingExposure = 1.15; R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFShadowMap;
 document.body.append(R.domElement); await R.init();
@@ -275,6 +277,7 @@ const sun = new THREE.DirectionalLight(0xfff0d6, 2.6); sun.castShadow = true; su
 const ground = new THREE.Mesh(new THREE.CircleGeometry(1, 64).rotateX(-Math.PI / 2), new THREE.MeshStandardNodeMaterial({ color: 0x3a3226, roughness: 0.95 })); ground.receiveShadow = true; scene.add(ground);
 window.shot = async (id) => {
   const f = find(id); if (!f) return { error: 'no such model ' + id };
+  window.reseed();   // (each model from the same seed: three's uuids draw on Math.random too, so a change in how many objects one build makes would shift the next)
   const [group, build] = f;
   const rig = prepStatic(group, id, build());
   rig.root.rotation.y = 0.6; scene.add(rig.root);

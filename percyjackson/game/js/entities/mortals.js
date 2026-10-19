@@ -11,7 +11,7 @@
 // student, a tourist, a farmer, an old lady, a Lotus Casino bellhop and a
 // salesman. paintPerson is also used by the humanoid monsters and bosses.
 import * as THREE from 'three/webgpu';
-import { Skin, Rig, makeCharMaterial, PX } from './character.js';
+import { Skin, Rig, makeCharMaterial, PX, mergeChildren } from './character.js';
 import { cellMesh, footwear, beads } from './herovox.js';
 import { mulberry32 } from '../util.js';
 import { t as txt } from '../text_config.js';
@@ -626,6 +626,7 @@ export function buildMortal(id) {
   }
   def.pose?.(rig);
   rig.mortal = id;
+  for (const b of [rig.hips, rig.torso, rig.head, rig.armR, rig.armL, rig.legR, rig.legL]) mergeChildren(rig, b);   // (each limb's skin box and its overlay as one mesh: character.js)
   return rig;
 }
 
