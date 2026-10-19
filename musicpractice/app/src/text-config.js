@@ -357,6 +357,8 @@ export const EN = {
     playsFor: (time) => `Plays for ${time}`,
     nextIn: (note, time) => `Next: ${note} in ${time}`,
     done: (time, note) => `Done: ${time} on ${note}`,
+    elapsed: (time) => `${time}`, // while it plays, under Play
+    lastDrone: (time) => `Last drone: ${time}`,
     voices: {
       cello: 'Cello',
       'cello-soft': 'Cello, soft (sul tasto)',
@@ -376,6 +378,9 @@ export const EN = {
       title: 'Drone settings',
       fifth: 'Add a fifth above',
       fifthHelp: 'A pure fifth over the drone note. Tapping the frequency under the note turns it on and off too.',
+      accidentals: 'Accidentals',
+      accidentalModes: { auto: 'Auto', sharps: 'Sharps (C♯)', flats: 'Flats (D♭)' },
+      accidentalsHelp: 'Auto spells by the way you go: sharps stepping up with +, flats stepping down with −.',
       timing: 'Timing',
       modes: { continuous: 'Continuous pitch', change: 'Change periodically' },
       loop: 'Loop forever',

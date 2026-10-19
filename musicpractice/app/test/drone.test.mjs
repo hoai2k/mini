@@ -77,3 +77,25 @@ test('every recorded loop is on disk (the smoothed loops, under their own names)
     assert.ok(!id.endsWith('-smooth'), id);
   }
 });
+
+test('accidentals: Auto spells by the way the note was reached; Sharps and Flats always', async () => {
+  const { spelling, SEQ_DIRECTION, SEQUENCES } = await import('../src/drone.js');
+  assert.equal(spelling('auto', 'sharps', -1), 'flats');
+  assert.equal(spelling('auto', 'flats', 1), 'sharps');
+  assert.equal(spelling('auto', 'flats', 0), 'flats'); // picked from the list: as shown
+  assert.equal(spelling('auto', undefined, 0), 'sharps');
+  for (const d of [-1, 0, 1]) {
+    assert.equal(spelling('sharps', 'flats', d), 'sharps');
+    assert.equal(spelling('flats', 'sharps', d), 'flats');
+  }
+  // Every sequence has a way it goes.
+  for (const q of SEQUENCES) if (q.id !== 'stop') assert.ok([1, -1].includes(SEQ_DIRECTION[q.id]), q.id);
+});
+
+test('the drone clock reads MM:SS, and H:MM:SS from an hour', async () => {
+  const { clock } = await import('../src/droneui.js');
+  assert.equal(clock(0), '00:00');
+  assert.equal(clock(65.9), '01:05');
+  assert.equal(clock(3599), '59:59');
+  assert.equal(clock(3600 + 125), '1:02:05');
+});

@@ -209,3 +209,19 @@ test('extra notes: off by default, a kind kept while off, saves from the Clicks 
   assert.equal(sanitize({ volume: 0.3, volumeChosen: true }).volume, 0.3); // the metronome's own slider
   assert.equal(sanitize({ volume: 7, volumeChosen: true }).volume, 1);
 });
+
+test('drone accidentals: Auto by default, and only real choices kept', () => {
+  assert.equal(sanitize({}).droneAccidentals, 'auto');
+  assert.equal(sanitize({}).droneSpelling, 'sharps');
+  assert.equal(sanitize({ droneAccidentals: 'flats', droneSpelling: 'flats' }).droneAccidentals, 'flats');
+  assert.equal(sanitize({ droneSpelling: 'flats' }).droneSpelling, 'flats');
+  assert.equal(sanitize({ droneAccidentals: 'double-sharps', droneSpelling: 'x' }).droneAccidentals, 'auto');
+  assert.equal(sanitize({ droneSpelling: 'x' }).droneSpelling, 'sharps');
+});
+
+test('the last drone\'s length: kept when it is a time, dropped otherwise', () => {
+  assert.equal(sanitize({}).droneLastSecs, null);
+  assert.equal(sanitize({ droneLastSecs: 754.4 }).droneLastSecs, 754);
+  assert.equal(sanitize({ droneLastSecs: -3 }).droneLastSecs, null);
+  assert.equal(sanitize({ droneLastSecs: '12' }).droneLastSecs, null);
+});

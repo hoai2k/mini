@@ -34,6 +34,22 @@ export const SEQUENCES = ['stop', 'chrom-up', 'chrom-down', 'major-up', 'major-d
 
 const MAJOR = [0, 2, 4, 5, 7, 9, 11];
 
+/** Which way each sequence moves, for spelling: up the sharps, down (and round the fourths) the flats. */
+export const SEQ_DIRECTION = { 'chrom-up': 1, 'chrom-down': -1, 'major-up': 1, 'major-down': -1, fifths: 1, fourths: -1 };
+
+/**
+ * How the drone spells a black-key note: the Accidentals setting ('sharps'
+ * or 'flats' always), or on 'auto' by the way the note was reached, sharps
+ * going up and flats going down, keeping `current` when there was no way
+ * (a note picked from the list, or nothing yet).
+ */
+export function spelling(accidentals, current, direction = 0) {
+  if (accidentals === 'sharps' || accidentals === 'flats') return accidentals;
+  if (direction > 0) return 'sharps';
+  if (direction < 0) return 'flats';
+  return current === 'flats' ? 'flats' : 'sharps';
+}
+
 /**
  * The note for step `step` of a sequence that began on `start`: step 0 is
  * the start. Scales are the major scale of the starting note. Notes wrap by

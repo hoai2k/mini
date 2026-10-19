@@ -22,6 +22,8 @@ Images belong to a theme (Settings → Theme); each theme has its own set.
 
 **Round 8 (Drone screen for the organ, every theme):** delivered and in use.
 
+**Round 9 (Practice Timer home icons, every theme):** 8 images wanted: `assets/ui/home-timer.webp`, `assets/ui/deco/home-timer.webp`, `assets/ui/sixties/home-timer.webp`, `assets/ui/baroque/home-timer.webp`, `assets/ui/scifi/home-timer.webp`, `assets/ui/nouveau/home-timer.webp`, `assets/ui/anime/home-timer.webp`, `assets/ui/steampunk/home-timer.webp`.
+
 **House styles** (already included in every prompt):
 
 - Classic: Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.
@@ -115,6 +117,14 @@ the measured ones for the delivered file in `build_requests.py`.
 | 8 | French Nouveau | delivered | `drone-organ` | `app/assets/ui/nouveau/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 8 | Candy | delivered | `drone-organ` | `app/assets/ui/anime/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 8 | Steam Punk | delivered | `drone-organ` | `app/assets/ui/steampunk/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 9 | Classic | requested | `home-timer` | `app/assets/ui/home-timer.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
+| 9 | Art Deco | requested | `home-timer` | `app/assets/ui/deco/home-timer.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
+| 9 | Vintage 60s | requested | `home-timer` | `app/assets/ui/sixties/home-timer.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
+| 9 | 18th Century | requested | `home-timer` | `app/assets/ui/baroque/home-timer.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
+| 9 | Robot Future | requested | `home-timer` | `app/assets/ui/scifi/home-timer.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
+| 9 | French Nouveau | requested | `home-timer` | `app/assets/ui/nouveau/home-timer.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
+| 9 | Candy | requested | `home-timer` | `app/assets/ui/anime/home-timer.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
+| 9 | Steam Punk | requested | `home-timer` | `app/assets/ui/steampunk/home-timer.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
 
 ## Home screen buttons
 
@@ -978,4 +988,100 @@ Using the attached image, musicpractice/app/assets/ui/anime/home-drone.webp (thi
 
 ```text
 Using the attached image, musicpractice/app/assets/ui/steampunk/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, polished brass and copper pipes with rivets in a dark mahogany case, a small pressure gauge. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.
+```
+
+## Classic · Home screen buttons
+
+### `home-timer` · Classic · requested
+
+- File: `musicpractice/app/assets/ui/home-timer.webp`
+- Size: 1024×1024, transparent PNG (shipped as 384×384 WebP)
+- Note: The Practice Timer's button on the home screen in the Classic theme (and its picture on the timer screen); the label is written by the app. Made from app/assets/ui/home-drone.webp so it matches the other home buttons. Until it arrives the app draws a stand-in hourglass.
+
+```text
+Using the attached image, musicpractice/app/assets/ui/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a turned walnut frame with brass end caps and clear glass bulbs holding warm golden sand. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. Keep the same two thin, smooth ribbons drifting gently outward from the sides as in the reference, so it sits with the other home buttons. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.
+```
+
+## Art Deco · Home screen buttons
+
+### `home-timer` · Art Deco · requested
+
+- File: `musicpractice/app/assets/ui/deco/home-timer.webp`
+- Size: 1024×1024, transparent PNG (shipped as 384×384 WebP)
+- Note: The Practice Timer's button on the home screen in the Art Deco theme (and its picture on the timer screen); the label is written by the app. Made from app/assets/ui/deco/home-drone.webp so it matches the other home buttons. Until it arrives the app draws a stand-in hourglass.
+
+```text
+Using the attached image, musicpractice/app/assets/ui/deco/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a black lacquer frame with stepped gold-leaf end caps and slender gold columns, a small jade accent, golden sand. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. Keep the same two thin, smooth ribbons drifting gently outward from the sides as in the reference, so it sits with the other home buttons. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.
+```
+
+## Vintage 60s · Home screen buttons
+
+### `home-timer` · Vintage 60s · requested
+
+- File: `musicpractice/app/assets/ui/sixties/home-timer.webp`
+- Size: 1024×1024, transparent PNG (shipped as 384×384 WebP)
+- Note: The Practice Timer's button on the home screen in the Vintage 60s theme (and its picture on the timer screen); the label is written by the app. Made from app/assets/ui/sixties/home-drone.webp so it matches the other home buttons. Until it arrives the app draws a stand-in hourglass.
+
+```text
+Using the attached image, musicpractice/app/assets/ui/sixties/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a rounded burnt-orange teak frame with dark teal end caps, chrome columns and creamy sand, in flat screen-print colour. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. Keep the same two thin, smooth ribbons drifting gently outward from the sides as in the reference, so it sits with the other home buttons. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.
+```
+
+## 18th Century · Home screen buttons
+
+### `home-timer` · 18th Century · requested
+
+- File: `musicpractice/app/assets/ui/baroque/home-timer.webp`
+- Size: 1024×1024, transparent PNG (shipped as 384×384 WebP)
+- Note: The Practice Timer's button on the home screen in the 18th Century theme (and its picture on the timer screen); the label is written by the app. Made from app/assets/ui/baroque/home-drone.webp so it matches the other home buttons. Until it arrives the app draws a stand-in hourglass.
+
+```text
+Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a carved walnut frame with gilt acanthus end caps and twisted columns, a small burgundy accent, golden sand. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. Keep the same two thin, smooth ribbons drifting gently outward from the sides as in the reference, so it sits with the other home buttons. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.
+```
+
+## Robot Future · Home screen buttons
+
+### `home-timer` · Robot Future · requested
+
+- File: `musicpractice/app/assets/ui/scifi/home-timer.webp`
+- Size: 1024×1024, transparent PNG (shipped as 384×384 WebP)
+- Note: The Practice Timer's button on the home screen in the Robot Future theme (and its picture on the timer screen); the label is written by the app. Made from app/assets/ui/scifi/home-drone.webp so it matches the other home buttons. Until it arrives the app draws a stand-in hourglass.
+
+```text
+Using the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a graphite frame with thin cyan edge lighting, brushed titanium end caps and glowing cyan sand, a small magenta indicator. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. Keep the same two thin, smooth ribbons drifting gently outward from the sides as in the reference, so it sits with the other home buttons. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.
+```
+
+## French Nouveau · Home screen buttons
+
+### `home-timer` · French Nouveau · requested
+
+- File: `musicpractice/app/assets/ui/nouveau/home-timer.webp`
+- Size: 1024×1024, transparent PNG (shipped as 384×384 WebP)
+- Note: The Practice Timer's button on the home screen in the French Nouveau theme (and its picture on the timer screen); the label is written by the app. Made from app/assets/ui/nouveau/home-drone.webp so it matches the other home buttons. Until it arrives the app draws a stand-in hourglass.
+
+```text
+Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a sage-green frame with muted-gold end caps wound with a vine, a small iris accent, pale golden sand. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. Keep the same two thin, smooth ribbons drifting gently outward from the sides as in the reference, so it sits with the other home buttons. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.
+```
+
+## Candy · Home screen buttons
+
+### `home-timer` · Candy · requested
+
+- File: `musicpractice/app/assets/ui/anime/home-timer.webp`
+- Size: 1024×1024, transparent PNG (shipped as 384×384 WebP)
+- Note: The Practice Timer's button on the home screen in the Candy theme (and its picture on the timer screen); the label is written by the app. Made from app/assets/ui/anime/home-drone.webp so it matches the other home buttons. Until it arrives the app draws a stand-in hourglass.
+
+```text
+Using the attached image, musicpractice/app/assets/ui/anime/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a candy-pink frame with pastel sky-blue end caps, a bold outline, lilac sand and tiny yellow sparkles. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. Keep the same two thin, smooth ribbons drifting gently outward from the sides as in the reference, so it sits with the other home buttons. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.
+```
+
+## Steam Punk · Home screen buttons
+
+### `home-timer` · Steam Punk · requested
+
+- File: `musicpractice/app/assets/ui/steampunk/home-timer.webp`
+- Size: 1024×1024, transparent PNG (shipped as 384×384 WebP)
+- Note: The Practice Timer's button on the home screen in the Steam Punk theme (and its picture on the timer screen); the label is written by the app. Made from app/assets/ui/steampunk/home-drone.webp so it matches the other home buttons. Until it arrives the app draws a stand-in hourglass.
+
+```text
+Using the attached image, musicpractice/app/assets/ui/steampunk/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a dark mahogany frame with riveted brass and copper end caps, a small pressure gauge on one column, golden sand. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. Keep the same two thin, smooth ribbons drifting gently outward from the sides as in the reference, so it sits with the other home buttons. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.
 ```

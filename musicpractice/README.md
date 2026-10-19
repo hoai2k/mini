@@ -410,10 +410,30 @@ tones, scales over a tonic.
   instrument while it plays crossfades (about 1.5 s out); **Pause** stops at
   once, the sound and the hall's ring gone in about 50 ms (no click), the
   same on the web and in the apps' native mixers (`mobile/test` checks it).
+- **How long it has played**, under Play: while the drone plays, the time
+  since Play (MM:SS, H:MM:SS from an hour) counting up, through changes of
+  note; once it stops, **Last drone: MM:SS**, kept across visits
+  (`droneLastSecs`) so a session can be looked back on. Timed by the clock,
+  so time with the screen locked counts; when the apps' native drone stopped
+  itself while the page slept, the length is up to when the page saw it
+  (or, for a drone timed to stop, when it was due to). Its line has a fixed
+  height, so nothing moves as it appears.
+- **Accidentals** (settings: Auto, Sharps, Flats; `droneAccidentals`,
+  Auto by default): Auto spells a black-key note by the way it was reached,
+  C♯ stepping up with + (or a sequence going up: up the chromatic or major
+  scale, round the fifths) and D♭ stepping down with − (or going down, or
+  round the fourths); a note picked from the list keeps the spelling the
+  list shows, and the spelling on show is kept (`droneSpelling`). The list
+  is spelled the same way. Sharps or Flats always spell one way (`spelling`
+  in `drone.js`). The tuner keeps its own Note names choice.
 - The picture takes the height the controls leave and as much width as
   there is (up to 820 px, so it is big on a tablet), with the controls
   centred under it, measured as the metronome's picture is; a phone on its
-  side keeps it beside the controls. To its right, an upright **volume**
+  side keeps it beside the controls. It sits in the middle of three grid
+  columns with the bow (or the organ's slider) at the start of the right
+  one, so it is centred whatever width a browser gives the bow (it used to
+  be balanced by a margin matching the bow, which iPad Safari did not quite
+  match). To its right, an upright **volume**
   slider: drag the knob or the track up or down, or use the arrow keys (it
   is the same volume as the one in the settings).
 - **The volume is the cello's bow**: the Drone screen draws the cello
@@ -566,6 +586,10 @@ file, on purpose: the privacy page, the device details Send feedback attaches
   explains them, `design/sounds/drone/` holds the source takes (and, in
   `archive/`, the loops of the voices not in use) and
   `design/source/drone/` the tools that make the loops.
+- `design/chime-sounds.md`, `design/sounds/chimes/`: candidate start and end
+  chimes (singing bowls, bells, chimes) for a Practice timer, not used yet,
+  with their prompts, measurements and a shortlist; cleaned by
+  `design/source/chimes-clean.py`.
 - `design/source/make_icons.py`: makes `app/icons/icon-180/192/512.png`
   from the delivered `icon-1024.png`, or a drawn stand-in until then.
 - `publish.sh`: copies the app to `local/pages/musicpractice/`, then
