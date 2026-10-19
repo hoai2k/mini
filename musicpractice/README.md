@@ -651,8 +651,11 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
 - **A routine is a list of practice items** (on screen each is itself
   called a routine: "2 routines in all", "Add a Routine", "Last routine"),
   each a card: a name (typed in
-  place), its minutes (− / + or typed, 1 to 120), and **Metronome** and
-  **Drone** toggles. With either on, the card's chevron opens that item's own
+  place), its minutes (− / + or typed, 1 to 120), and **Use Metronome**
+  and **Use Drone**, drawn as checkboxes (unticked and quiet when off), kept
+  together: beside the minutes at the far end of a wide card, on a line of
+  their own under them on a narrow one (a container query on the card's
+  width). With either on, the card's chevron opens that item's own
   settings: the metronome's tempo (− / +, typed, or the slider) and time
   signature; the drone's note (− / + or the list), instrument and fifth.
   These are the item's alone: the Metronome's and the Drone's own settings

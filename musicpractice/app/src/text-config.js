@@ -418,6 +418,8 @@ export const EN = {
       delete: (name) => `Delete ${name}`,
       metronome: 'Metronome',
       drone: 'Drone',
+      useMetronome: 'Use Metronome',
+      useDrone: 'Use Drone',
       settings: (name) => `${name}: metronome and drone settings`,
       tempo: 'Tempo',
       bpm: 'BPM',

@@ -81,8 +81,10 @@ export function setupTimer({ settings, audio, canDrone, askDrone }) {
           <span class="titem-unit" aria-hidden="true">${T.min}</span>
           <button type="button" class="step titem-more-min">+</button>
         </div>
-        <button type="button" class="chip titem-tool" data-tool="metronome"></button>
-        <button type="button" class="chip titem-tool" data-tool="drone"></button>
+        <div class="titem-uses">
+          <button type="button" class="chip titem-tool" data-tool="metronome"></button>
+          <button type="button" class="chip titem-tool" data-tool="drone"></button>
+        </div>
       </div>
       <div class="titem-detail"></div>
       <div class="titem-bar" aria-hidden="true"><div class="titem-bar-fill"></div></div>`;
@@ -122,7 +124,9 @@ export function setupTimer({ settings, audio, canDrone, askDrone }) {
 
     for (const b of li.querySelectorAll('.titem-tool')) {
       const tool = b.dataset.tool;
-      b.textContent = T[tool];
+      // A checkbox and its label, so off reads as unticked rather than as a plain button.
+      b.innerHTML = '<span class="titem-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span></span>';
+      b.lastChild.textContent = T[tool === 'metronome' ? 'useMetronome' : 'useDrone'];
       b.setAttribute('aria-pressed', String(it[tool]));
       b.addEventListener('click', () => {
         if (tool === 'drone' && !it.drone && !canDrone()) { askDrone(); return; }
