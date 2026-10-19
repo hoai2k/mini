@@ -558,8 +558,11 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   note and instrument as a start. So Scales can climb in tempo item by item.
 - A first visit starts with **Intonation practice** (3 min, drone on) and
   **Scales** (5 min, metronome on). **+ Add** offers those, **Clapping
-  rhythms** and **Ghosting** (3 min each, nothing on), and **Custom…** (a
-  blank item, its name ready to type). The bin deletes an item at once, with
+  rhythms** and **Ghosting** (nothing on), and **Custom…** (a blank item, its
+  name ready to type), each listed with what it turns on and no length: a new
+  item starts at the minutes last given to its kind (`lastMinutes`, kept
+  with the routine), or its default the first time (3 min, Scales 5, Custom
+  5), and is adjusted on its card. The bin deletes an item at once, with
   **Undo** for a few seconds after. Kept in `musicpractice.routine.v1`.
 - **Start** runs through the items. The card running is lit, with its
   progress along its foot, and the panel at the top shows its name, the time

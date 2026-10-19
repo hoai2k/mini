@@ -87,9 +87,9 @@ Two takes per prompt, cleaned the same way (`PREFIX=res`), are in
 
 | Tier | Name | Prompt (shortened) | What came out |
 | --- | --- | --- | --- |
-| great | great-glock | glockenspiel and soft bells, quick rising arpeggio to a bright chord | take 1: a short rising run onto a chord (**in use**); take 2: a busy run of many notes |
-| great | great-arp | three quick rising bell notes on a sparkling major chord | dense and shimmery (noise floor −49 to −53 dB); take 2 the clearer chord |
-| good | good-marimba | two warm marimba notes rising a fourth | take 1: two notes, 0.2 s apart (**in use**) |
-| good | good-two | two gentle rising bell notes, a major third | take 2: two notes; take 1: the two together |
-| neutral | neutral-two | two calm bell notes, same pitch, results are ready | one calm, clean tone in both; take 2 (**in use**) rings a little longer |
-| neutral | neutral-one | a single soft, calm notification tone | take 1: one tone; take 2: a soft two-note |
+| great | great-glock | glockenspiel and soft bells, quick rising arpeggio to a bright chord | take 1: a short rising run onto a chord (first used); take 2: a busy run of many notes |
+| great | great-arp | three quick rising bell notes on a sparkling major chord | dense and shimmery (noise floor −49 to −53 dB); take 2 the clearer chord (**in use**, chosen by ear) |
+| good | good-marimba | two warm marimba notes rising a fourth | take 1: two notes, 0.2 s apart (first used) |
+| good | good-two | two gentle rising bell notes, a major third | take 2: two notes (**in use**, chosen by ear); take 1: the two together |
+| neutral | neutral-two | two calm bell notes, same pitch, results are ready | one calm, clean tone in both; take 2 (first used) rings a little longer |
+| neutral | neutral-one | a single soft, calm notification tone | take 1: one tone (**in use**, chosen by ear); take 2: a soft two-note |
