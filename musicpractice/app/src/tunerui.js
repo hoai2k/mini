@@ -6,7 +6,7 @@
 import { TEXT, setRich } from './text.js';
 import { detectPitch, describe, nearestString, noteName, midiToHz, TUNINGS, TRANSPOSE, A4_MIN, A4_MAX, PitchSmoother } from './tuning.js';
 import { playSamples } from './player.js';
-import { ScaleListener, judge, resultTier, scaleScore, SCALE_TOLERANCE } from './scaletest.js';
+import { ScaleListener, judge, resultTier, scaleScore, correctedRate, SCALE_TOLERANCE } from './scaletest.js';
 
 const WINDOW = 4096; // samples analysed at a time (enough for a low B on a 5-string bass)
 const HOLD_MS = 1500; // the last note stays up this long after the sound stops
@@ -116,14 +116,16 @@ export function setupTuner({ settings, persist, chips }) {
     tone = null;
   }
 
-  async function toggleTone(midi, key, button) {
+  const toggleTone = (midi, key, button) => toggleSound(key, button, referenceTone(midiToHz(midi, settings.a4)), 44100);
+  /** Play `samples` (one sound at a time: a second press of the same button stops it). */
+  async function toggleSound(key, button, samples, sampleRate) {
     if (tone?.key === key) { stopTone(); return; }
     stopTone();
     const mine = { key, button, handle: null };
     tone = mine;
     button.setAttribute('aria-pressed', 'true');
     try {
-      const handle = await playSamples(referenceTone(midiToHz(midi, settings.a4)), 44100);
+      const handle = await playSamples(samples, sampleRate);
       if (tone !== mine) { handle.stop(); return; }
       mine.handle = handle;
       handle.ended.then(() => { if (tone === mine) stopTone(); });
@@ -201,6 +203,7 @@ export function setupTuner({ settings, persist, chips }) {
       : !l || l.state === 'waiting' ? S.waiting : S.listening(l.notes().length);
   }
   function startScale() {
+    stopTone(); // a note of the last results, still playing
     scale = { listener: null, shownAt: 0 };
     scaleStep('listening');
   }
@@ -217,7 +220,7 @@ export function setupTuner({ settings, persist, chips }) {
   });
   rec.addEventListener('click', () => (scale ? stopScale() : startScale()));
   $('scale-again').addEventListener('click', startScale);
-  sheet.addEventListener('close', stopScale);
+  sheet.addEventListener('close', () => { stopTone(); stopScale(); });
   sheet.addEventListener('click', (e) => { if (e.target === sheet) sheet.close(); });
 
   // The chime for the results (assets/audio/scale/<tier>.mp3, design/chime-sounds.md),
@@ -231,7 +234,7 @@ export function setupTuner({ settings, persist, chips }) {
     resultSounds[tier].then((b) => { if (b) playSamples(b.getChannelData(0), b.sampleRate).catch(() => {}); });
   }
 
-  function showScaleResults(notes) {
+  function showScaleResults(notes, listener) {
     const S = TEXT.tuner.scale;
     const good = notes.filter((n) => judge(n.cents) === 'good').length;
     resultChime(resultTier(good, notes.length));
@@ -248,6 +251,27 @@ export function setupTuner({ settings, persist, chips }) {
       li.querySelector('.sn-oct').textContent = octave;
       li.querySelector('.sn-mark').textContent = v === 'good' ? '✓' : v === 'flat' ? '↓' : '↑';
       li.querySelector('.sn-verdict').textContent = v === 'good' ? S.good : v === 'flat' ? S.flat(c) : S.sharp(c);
+      // Out of tune: hear the note as it was played, and the same sound
+      // pitch-shifted onto the note it was meant to be (played at a sample
+      // rate that much higher or lower, so a little shorter or longer too).
+      if (v !== 'good' && listener) {
+        const clip = listener.clip(n);
+        const play = document.createElement('span');
+        play.className = 'sn-play';
+        for (const [kind, rate] of [['asPlayed', listener.sampleRate], ['corrected', correctedRate(listener.sampleRate, n.cents)]]) {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'pill sn-play-btn';
+          b.dataset.kind = kind;
+          b.setAttribute('aria-pressed', 'false');
+          b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><span></span>';
+          b.querySelector('span').textContent = S[kind];
+          b.setAttribute('aria-label', S[`${kind}Label`](`${name}${octave}`));
+          b.addEventListener('click', () => toggleSound(`scale-${n.start}-${kind}`, b, clip, rate));
+          play.append(b);
+        }
+        li.append(play);
+      }
       return li;
     }));
     $('scale-help').textContent = S.help(SCALE_TOLERANCE);
@@ -274,9 +298,9 @@ export function setupTuner({ settings, persist, chips }) {
       scale.listener ||= new ScaleListener(sampleRate, { a4: settings.a4 });
       const event = scale.listener.push(data);
       if (event === 'done') {
-        const notes = scale.listener.result;
+        const { listener } = scale;
         scale = null;
-        showScaleResults(notes);
+        showScaleResults(listener.result, listener);
       } else if (event || performance.now() - scale.shownAt > 400) {
         scale.shownAt = performance.now();
         scaleStep('listening');

@@ -2058,3 +2058,9 @@ html.paged #home, html.paged #routine { touch-action: pan-y; }
 .scale-note.good .sn-mark { color: var(--ok-2); }
 .scale-note.flat .sn-mark, .scale-note.sharp .sn-mark { color: var(--red-2); }
 .scale-note.flat, .scale-note.sharp { border-color: color-mix(in srgb, var(--red-2) 45%, var(--line)); }
+/* Under a note out of tune: play it as played, and corrected onto the note. */
+.sn-play { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
+.sn-play-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 4px 14px 4px 10px; font-size: 0.9rem; }
+.sn-play-btn svg { width: 16px; height: 16px; fill: currentColor; flex: none; }
+.sn-play-btn[aria-pressed="true"] { border-color: var(--brass); color: var(--brass-2); }
+.sn-play-btn[data-kind="corrected"] svg { color: var(--ok-2); }

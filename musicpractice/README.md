@@ -452,6 +452,15 @@ note don't count against it. Names follow the tuner's note names and
 transposition, and its reference pitch. `app/src/scaletest.js` (pure,
 `test/scaletest.test.mjs` plays it synthesized scales); the screen is in
 `tunerui.js`. Leaving the tuner ends a test still listening.
+**Each note out of tune can be heard two ways**: **As played** plays that
+note's own sound, cut from the recording (the listener keeps the audio from
+about a second before the scale begins to its end; `clip`, `sliceAudio`,
+faded in and out over 15 ms), and **Corrected** plays the same sound shifted
+onto the note it was meant to be, by playing it at a sample rate that many
+cents higher or lower (`correctedRate`), so it is also a few percent shorter
+or longer. A second press stops either; closing the sheet or testing again
+stops it too. The test checks that a clip measures as played and, at its
+corrected rate, in tune.
 **It takes only the room there is.** The tuner fills the window's height
 and no more (`fit` in `tunerui.js`, measured on entering, resizing, a change
 of theme or font, and whenever the tuner's own content changes height, such
@@ -461,7 +470,9 @@ card steps down:
 2. smaller;
 3. with no space above the rule and no box, the whole strip under the rule
    being the button;
-4. only then the gauge gives up the rest, down to 100 px.
+4. only then the gauge gives up the rest, down to 72 px;
+5. and last, tighter text and buttons (`.tuner-body.tight`), for a long
+   microphone message on a small phone.
 With the microphone working, every phone size and window tried fits: a
 375x667 phone drops only the subtitle, a 1280x600 window goes to step 3.
 Microphone messages (the tuner's status and Try again) sit above the card.

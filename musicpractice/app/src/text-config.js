@@ -315,6 +315,11 @@ export const EN = {
       good: 'In tune',
       flat: (c) => `${c}¢ flat`,
       sharp: (c) => `${c}¢ sharp`,
+      // Under each note out of tune: hear it as played, and pitch-corrected onto the note.
+      asPlayed: 'As played',
+      corrected: 'Corrected',
+      asPlayedLabel: (note) => `Play your ${note} as you played it`,
+      correctedLabel: (note) => `Play your ${note} corrected to be in tune`,
       help: (tol) => `Within ${tol} cents counts as in tune here (the tuner's needle wants 5).`,
       again: 'Test again',
       done: 'Done',
