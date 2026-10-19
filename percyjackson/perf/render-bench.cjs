@@ -8,7 +8,7 @@
 // profile over the window, objects collected by GC included).
 //
 //   NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/render-bench.cjs [wb] [game] [bg]
-//     [--ids automaton,cerberus,...] [--anim idle|game:inflate|...] [--secs N] [--out file.json] [--shots dir]
+//     [--ids automaton,cerberus,...] [--anim idle|game:inflate|...] [--secs N] [--out file.json] [--shots dir] [--query ?batch=0]
 //
 //   wb    each model alone in the workbench (?lint=0&lazy=1: no background work)
 //   bg    the automaton in the workbench as it opens by default (thumbnails and
@@ -44,6 +44,7 @@ const ANIM = opt('anim', 'idle');
 const SECS = +opt('secs', 6);
 const OUT = opt('out', path.join(WORK, 'results', 'render-bench.json'));
 const SHOTS = opt('shots', null);
+const QUERY = opt('query', '');   // (e.g. --query ?batch=0: the game without crowd batching, gfx/crowd.js)
 const SHOT_IDS = opt('shot-ids', 'automaton,cerberus,hellhound,minotaur,spider,scorpion,kind:hellhound,percy').split(',');
 
 async function serve() {
@@ -174,10 +175,11 @@ async function benchGame(scene, secs = SECS) {
   await context.addInitScript(INSTALL);
   await context.addInitScript(() => { try { if (!sessionStorage.getItem('__rbs')) { sessionStorage.setItem('__rbs', '1'); localStorage.clear(); localStorage.setItem('half-blood-quests-settings-v1', JSON.stringify({ dynRes: false, quality: 'medium' })); } } catch { /* blocked */ } });
   const client = await context.newCDPSession(page);
-  await page.goto(GAME, { waitUntil: 'commit' });
+  await page.goto(GAME + QUERY, { waitUntil: 'commit' });
   await page.waitForFunction(() => window.__game?.state === 'title', null, { timeout: 240000, polling: 100 });
   const label = await page.evaluate(GAME_SETUP, scene).catch((e) => 'setup failed: ' + e.message);
   await page.waitForTimeout(+opt('settle', 30000));   // (the level's shader warm-up done: software rendering compiles slowly)
+  const empty = await page.evaluate(() => window.__game.gr.renderer.info.render.drawCalls);   // (draws before the monsters come: the rest is theirs)
   const spawned = await page.evaluate(GAME_SPAWN, scene);
   await page.waitForTimeout(1500);
   await page.evaluate(async () => {
@@ -199,7 +201,7 @@ async function benchGame(scene, secs = SECS) {
   const r = await page.evaluate(() => {
     const P = window.__rb, g = window.__game; P.recording = false;
     const n = P.acc.n || 1, per = {}; for (const [k, v] of Object.entries(P.acc)) if (k !== 'n') per[k] = v / n;
-    return { per, frames: P.frames, ft: P.ft ?? [], lt: P.lt, info: P.info(g.gr.renderer), scene: P.sceneStats(g.scene), n, enemies: g.enemies.length, quality: g.gr.quality, pr: g.gr.pixelRatio };
+    return { per, frames: P.frames, ft: P.ft ?? [], lt: P.lt, info: P.info(g.gr.renderer), scene: P.sceneStats(g.scene), n, enemies: g.enemies.length, quality: g.gr.quality, pr: g.gr.pixelRatio, crowd: g.crowd?.stats ?? null };
   });
   const alloc = await allocStop(client, secs);
   if (SHOTS) { fs.mkdirSync(SHOTS, { recursive: true }); await page.screenshot({ path: path.join(SHOTS, `game-${scene}.png`) }); }
@@ -209,7 +211,7 @@ async function benchGame(scene, secs = SECS) {
     id: scene, label: spawned, quality: r.quality, pixelRatio: r.pr, enemies: r.enemies, frames: r.n, fps: r2(r.frames.length / secs), raf: stats(r.frames), longtasks: { n: r.lt.length, ms: Math.round(r.lt.reduce((a, b) => a + b, 0)), max: Math.round(Math.max(0, ...r.lt)) },
     frameCpu: { p50: r2(stats(r.ft).p50), p95: r2(stats(r.ft).p95), max: r2(stats(r.ft).max) },
     ms: { frame: r2(p.frame ?? 0), enemies: r2(p.enemies ?? 0), rigAnimate: r2((p.rigAnimate ?? 0) - (p.guards ?? 0)), guards: r2(p.guards ?? 0), rigTick: r2((p.rigTick ?? 0) - (p.flames ?? 0)), flames: r2(p.flames ?? 0), players: r2(p.players ?? 0), particles: r2(p.particles ?? 0), lights: r2(p.lights ?? 0), render: r2(p.render ?? 0) },
-    info: r.info, scene: r.scene, alloc, errors: logs.filter((l) => l.startsWith('[pageerror]')).slice(0, 5),
+    info: r.info, drawsEmpty: empty, scene: r.scene, crowd: r.crowd, alloc, errors: logs.filter((l) => l.startsWith('[pageerror]')).slice(0, 5),
   };
 }
 
@@ -219,7 +221,7 @@ const WARM_WAIT = +opt('warm-wait', 40000);   // ms after a load before the spaw
 async function benchCompiles(scene) {
   const { browser, page, context } = await launch({ flags: 'webgl', width: 640, height: 360 });
   await context.addInitScript(() => { try { if (!sessionStorage.getItem('__rbs')) { sessionStorage.setItem('__rbs', '1'); localStorage.clear(); localStorage.setItem('half-blood-quests-settings-v1', JSON.stringify({ dynRes: false, quality: 'medium' })); } } catch { /* blocked */ } });
-  await page.goto(GAME, { waitUntil: 'commit' });
+  await page.goto(GAME + QUERY, { waitUntil: 'commit' });
   await page.waitForFunction(() => window.__game?.state === 'title', null, { timeout: 240000, polling: 100 });
   const out = await page.evaluate(async ([kinds, scene, warmWait]) => {
     const g = window.__game, base = location.origin + '/percyjackson/game/js/';

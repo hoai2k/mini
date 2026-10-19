@@ -15,7 +15,8 @@
 // whole visible box) and both as × Percy, and writes JSON to argv[2]. For an
 // upright model (a Rig, not a QuadRig or serpent) it also measures the head:
 // the height of the rig's head block (the skin cube, hair and props aside)
-// over the body height.
+// over the body height (the skull and face alone where the builder names
+// them, rig.extras.headCore).
 //   NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/bodysize.cjs [out.json] [keys] [--check]
 // --check tests every model against the size spec (design/sizes.json): its
 // body × Percy must lie in its size category's band, and a big upright
@@ -56,6 +57,7 @@ async function serve() {
     const champ = await import('../js/entities/champions.js');
     const mons = await import('../js/entities/monsters.js');
     const models = await import('../js/entities/models.js');
+    const chr = await import('../js/entities/character.js');
     // props and trailing parts kept in rig.extras (body parts such as heads,
     // the goat, the abdomen, the trunk, hair, a veil or a collar stay in)
     const PROP_KEYS = ['wings', 'weapon', 'shield', 'flameHair', 'sword', 'fire', 'blade', 'whip', 'whipTip', 'spear', 'pipes', 'key', 'hammer', 'gun', 'club', 'axe', 'bike', 'ball', 'pot', 'flame', 'venom', 'sting', 'snake', 'snakes', 'tails', 'ring', 'crusherArm', 'crusher', 'muzzle', 'breath'];
@@ -100,10 +102,18 @@ async function serve() {
         all.union(bb); const u = under(o); if (!u) body.union(bb); else parts[u] = Math.max(parts[u] ?? -Infinity, bb.max.y);
       });
       const sa = all.getSize(new THREE.Vector3()), sb = body.isEmpty() ? new THREE.Vector3() : body.getSize(new THREE.Vector3());
-      // the head block of an upright rig: its skin cube where the builder
-      // kept it (rig.headMesh), else the head group's own solid meshes
+      // the head block of an upright rig: the skull and face its builder
+      // named (rig.extras.headCore, proportions.js markHeadCore: measured
+      // along the head's own axis, so a hunched or bowed head is not taller
+      // for its tilt; mane, beard, veil, hood and horns left out), else its
+      // skin cube where the builder kept it (rig.headMesh), else the head
+      // group's own solid meshes
       let headH = null;
-      if (!rig.isQuad && rig.head) {
+      const core = !rig.isQuad && rig.head && rig.extras?.headCore;
+      if (core) {
+        const PXu = chr.PX, a = new THREE.Vector3(core.c[0] * PXu, (core.c[1] - core.s[1] / 2) * PXu, core.c[2] * PXu), b = new THREE.Vector3(core.c[0] * PXu, (core.c[1] + core.s[1] / 2) * PXu, core.c[2] * PXu);
+        headH = rig.head.localToWorld(a).distanceTo(rig.head.localToWorld(b));
+      } else if (!rig.isQuad && rig.head) {
         const hb = new THREE.Box3(), hm = rig.headMesh;
         const attached = (o) => { for (let x = o; x; x = x.parent) if (x === rig.root) return true; return false; };
         if (hm && attached(hm) && visible(hm)) { hm.geometry.computeBoundingBox(); hb.copy(hm.geometry.boundingBox).applyMatrix4(hm.matrixWorld); }

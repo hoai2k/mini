@@ -8,6 +8,7 @@ import { Skin, Rig, makeCharMaterial, PX, markTip, markHeld, mergeChildren } fro
 import { hashStr, mulberry32 } from '../util.js';
 import { heroHair, heroTail, cellMesh, partMaterial, partsMesh, footwear, band, beads, tatters, sleeveTatters } from './herovox.js';
 import { resFor } from './parts.js';
+import { markHeadCore } from './proportions.js';
 
 export const CAMP_ORANGE = 0xf28c28;
 const INK = 0x17130f;
@@ -509,6 +510,7 @@ export function buildHeroModel(id) {
     rig.extras.wings = [wings(rig.legR, -10.5), wings(rig.legL, -10.5)];
   }
   if (id === 'tyson') {
+    { const h = rig.dims.headS * 1.12; markHeadCore(rig, [0, h / 2, 0], [h, h, h]); }   // (the skin cube; the shaggy hair aside)
     const watch = new THREE.Group(); bx(watch, 4.6, 1.6, 4.6, 0, -6.5, 0, BRONZE()); rig.armL.add(watch);
     const sh = markHeld(buildWatchShield()); sh.visible = false; rig.handL.add(sh); rig.extras.shield = sh;
   }

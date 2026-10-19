@@ -64,6 +64,7 @@ export class Crowd {
     this.kinds = new Map();      // batchKey -> { slots: [{ geo, sig, mat, cast, recv, im, n }] }
     this.info = new WeakMap();   // rig -> { kind, meshes: [mesh|null per slot], parents }
     this.hidden = new Set();     // rigs with meshes on the HIDE layer
+    this.spare = new Set(); this.tally = new Map();
     this.stats = { batched: 0, rigs: 0, draws: 0 };
   }
   kindFor(rig) {
@@ -102,12 +103,12 @@ export class Crowd {
   }
   // Each frame, after the game has posed everything, before the render.
   update(enemies) {
-    for (const K of this.kinds.values()) for (const S of K.slots) if (S) { S.n = 0; S.box = null; }
-    const now = new Set();
+    for (const K of this.kinds.values()) for (const S of K.slots) if (S) { S.n = 0; (S.box ??= new THREE.Box3()).makeEmpty(); }
+    const now = this.spare; now.clear();
     let rigs = 0, parts = 0;
     if (CROWD.on) {
       // how many of each kind are in view of a batch at all (a lone monster draws as it is)
-      const tally = new Map();
+      const tally = this.tally; tally.clear();
       for (const e of enemies) { const r = e.rig; if (r?.batchKey && !r.championLook && !e.disguised) tally.set(r.batchKey, (tally.get(r.batchKey) ?? 0) + 1); }
       for (const e of enemies) {
         const rig = e.rig;
@@ -131,8 +132,7 @@ export class Crowd {
             m.matrixWorld.toArray(im.instanceMatrix.array, S.n * 16); S.n++;
             // bounds: the part's sphere, placed
             _s.copy(S.geo.boundingSphere).applyMatrix4(m.matrixWorld);
-            if (!S.box) S.box = new THREE.Box3(_s.center.clone().subScalar(_s.radius), _s.center.clone().addScalar(_s.radius));
-            else { S.box.expandByPoint(_v.copy(_s.center).subScalar(_s.radius)); S.box.expandByPoint(_v.copy(_s.center).addScalar(_s.radius)); }
+            S.box.expandByPoint(_v.copy(_s.center).subScalar(_s.radius)); S.box.expandByPoint(_v.copy(_s.center).addScalar(_s.radius));
             parts++;
           }
           m.layers.mask = HIDE;
@@ -142,7 +142,7 @@ export class Crowd {
     }
     // rigs that left their batches (died and removed, flashed, out of view, too few of a kind) draw their own meshes again
     for (const rig of this.hidden) if (!now.has(rig)) this.show(rig);
-    this.hidden = now;
+    this.spare = this.hidden; this.hidden = now;
     let draws = 0;
     for (const K of this.kinds.values()) for (const S of K.slots) {
       if (!S?.im) continue;

@@ -18,6 +18,7 @@ import { MONSTERS, HELLHOUND, buildMonsterModel, animateExtras, kit, dropMeshes,
 import { blob } from './fodder.js';
 import { addFlames, remapFlames } from './flames.js';
 import { mergeRig, PART_MERGE } from './charmat.js';
+import { reshape, applyShape, markHeadCore } from './proportions.js';
 
 const GOLD = 0xf0b030, GOLD_D = 0xb87a14, GOLD_L = 0xffe070;
 
@@ -164,6 +165,7 @@ function buildBronzeWarden() {
   const T = rig.torso, Hd = rig.head, H8 = 8 * HS;
   // helm: a squared bronze helm with a crest ridge, a dark face plate and one blue eye
   K.box(Hd, 0, H8 / 2, 0, H8 + 1, H8 + 0.6, H8 + 1, B);
+  markHeadCore(rig, [0, H8 / 2, 0], [H8 + 1, H8 + 0.6, H8 + 1]);   // (the helm; its crest aside)
   K.box(Hd, 0, H8 + 0.6, 0, H8 - 1, 1, H8 - 1, BL);
   K.box(Hd, 0, H8 + 1.6, -0.5, 1.4, 2, H8 + 1, BD); K.box(Hd, 0, H8 + 2.8, -0.5, 1, 0.8, H8 - 1, BL);
   K.box(Hd, 0, H8 * 0.5, H8 / 2 + 0.55, H8 - 1.6, 2, 0.4, 0x14100c);
@@ -227,6 +229,7 @@ function buildGorgos() {
   // mane, its muzzle jutting over his brow with fangs hanging down, round
   // ears, and the pelt falling down the sides and back of his head)
   const hood = group(Hd, 0, 10.4, 0);   // (on the mane: the rebuilt cyclops's head is sculpted, not the 8-pixel skin box)
+  reshape(rig, hood, rig.shape?.get(Hd)?.f ?? 1);   // (round 7: sized to his smaller head, proportions.js; his trunk's shape carries the pelt and necklace)
   const pelt = () => K.tone(PELT, 0.1);
   blob(K, hood, [0, -0.8, -0.4], [6.2, 3.8, 6.2], 1.3, pelt, { pw: 2.2, lo: -0.3, run: [1, 2] });   // (a little coarser: a pelt, and the budget)
   blob(K, hood, [0, 0.4, 5.4], [3, 2, 3.2], 1, (x, y) => (y > 0.5 ? PELT[2] : pelt()), { pw: 2.1 });
@@ -259,6 +262,7 @@ function buildGorgos() {
     for (const [x, y, z, rx, rz] of [[3, 15, 0, 0, -1.2], [-3, 17, 0, 0, 1.2], [0, 16, 3, 1.2, 0], [0, 18, -3, -1.2, 0], [2.4, 19.5, 2, 0.8, -0.8], [-2.4, 14, -2, -0.8, 0.8], [0, 21, 0, 0, 0]]) K.box(club, x, y, z, 1.4, 2.6, 1.4, 0x9a968a, rx, 0, rz);
     for (let i = 0; i < 8; i++) { const a = i * 0.9; K.box(club, Math.cos(a) * 1.6, 3 + i * 1.3, Math.sin(a) * 1.6, 0.7, 1.3, 0.7, 0x4a6a2a); }
   }
+  applyShape(rig);   // (the hood and the shoulder skull to their places on the reshaped head and trunk)
   K.done();
   return rig;
 }
@@ -392,8 +396,9 @@ function crownAny(rig) {
     const hs = rig.dims.hs;
     crown(K, rig.head, { y: hs / 2 + 0.6, cz: hs * 0.3, w: hs * 0.7, d: hs * 0.7, h: 1.2, spike: Math.min(2.6, hs * 0.28) });
   } else {
-    const H = (rig.dims.headS ?? 8) * HS;
-    crown(K, rig.head, { y: H + 1.2, w: H * 0.95, d: H * 0.95, spike: 2.8 });
+    // (a head its builder reshaped, proportions.js, wears a crown its size, at rig.crownY when it names one)
+    const H = (rig.dims.headS ?? 8) * HS, f = rig.shape?.get(rig.head)?.f[1] ?? 1;
+    crown(K, rig.head, { y: rig.crownY ?? (H + 1.2) * f, w: H * 0.95 * f, d: H * 0.95 * f, spike: 2.8 * Math.sqrt(f) });
   }
   return K.done();
 }

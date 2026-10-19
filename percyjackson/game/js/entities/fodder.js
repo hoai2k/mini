@@ -43,6 +43,7 @@ import { paintPerson } from './mortals.js';
 import { t as txt } from '../text_config.js';
 import { HS, skinMat, group, sway, BUILD, voxDensity, keepAbove } from './parts.js';
 import { addFlames } from './flames.js';
+import { shapeX, unshapeX, reshape, applyShape, markHeadCore } from './proportions.js';
 
 // The new kinds (world/roamZones.js counts the small ones as fodder).
 export const FODDER_IDS = ['karpos', 'karpos_slinger', 'colchis_calf', 'myrmex', 'myrmex_spitter', 'boarlet', 'crab', 'king_crab', 'basilisk', 'earthborn', 'daedalus_drone', 'laistrygonian', 'shade', 'keres'];
@@ -367,6 +368,10 @@ export function blob(K, p, c, r, cell, col, { lo = -1, hi = 1, pw = 2, rx = 0, r
   if (!K.lists.has(p)) K.lists.set(p, []);
   if (K.cached) return;
   cell /= K.density ?? 1;
+  // (a part its builder reshaped, proportions.js: the mass lands through its
+  // shape, sculpted afresh from cells of the same size)
+  const S = !K._raw && K.rig?.shape?.get(p);
+  if (S) { c = c.map((v, a) => shapeX(S, v, a)); r = r.map((v, a) => v * S.f[a]); }
   if (rx) return blobTilted(K, p, c, r, cell, col, { lo, hi, pw, rx, run, keep });
   K.vgrid ??= new Map();
   const gk = `${cell.toFixed(4)}`;
@@ -390,6 +395,8 @@ const gkey = (i, j, k) => (i + GO) + GW * ((j + GO) + GW * (k + GO));
 // Carve cells out of a part's shared blob grid: every cell whose centre
 // passes cut(x, y, z) (in skin pixels) is removed (a mouth, a gap).
 export function carve(K, p, cut) {
+  const S = K.rig?.shape?.get(p);
+  if (S) { const c0 = cut; cut = (x, y, z) => c0(unshapeX(S, x, 0), unshapeX(S, y, 1), unshapeX(S, z, 2)); }
   for (const G of K.vgrid?.get(p)?.values() ?? []) for (const key of [...G.cells.keys()]) {
     const i = key % GW - GO, j = Math.floor(key / GW) % GW - GO, k = Math.floor(key / (GW * GW)) - GO;
     if (cut((i + 0.5) * G.cell, (j + 0.5) * G.cell, (k + 0.5) * G.cell)) G.cells.delete(key);
@@ -1075,6 +1082,7 @@ function buildEarthborn(K0) {
   // head: a small craggy stone head under a jutting brow, glowing eyes, a
   // grimace of stone teeth, moss on top
   blob(K, Hd, [0, 3.4, 0.3], [3.5, 3.6, 3.4], 1, stone(0.45), { pw: 2.6, run: [1, 2] });
+  markHeadCore(rig, [0, 3.4, 0.3], [7, 7.2, 6.8]);   // (the stone skull; the moss aside)
   K.vox(Hd, 0, 5.3, 3.4, 7.6, 1.6, 1.8, [stD, 0x6a4e36], { relief: 0.25 });
   for (const sx of [-1, 1]) { K.box(Hd, sx * 1.5, 4.2, 3.55, 1.8, 1.1, 0.4, 0x2a1408); K.box(Hd, sx * 1.5, 4.2, 3.7, 1.3, 0.8, 0.3, glow); K.box(Hd, sx * 1.3, 4.3, 3.82, 0.5, 0.4, 0.2, 0xffe080); }
   K.box(Hd, 0, 3.2, 3.8, 1.4, 1.4, 0.8, stL);
@@ -1193,6 +1201,7 @@ function buildLaistrygonian(K0) {
   // in a big black beard, wild black hair, a gold earring
   blob(K, Hd, [0, 4.2, 0.3], [3.6, 4.2, 3.6], 1, sk, { pw: 2.7, run: [2, 4] });
   const fz = 3.9;
+  markHeadCore(rig, [0, 4.2, 0.3], [7.2, 8.4, 7.2]);   // (the skull and face: hair and beard aside)
   K.box(Hd, 0, 6, fz - 0.1, 6.4, 1.2, 1.2, hair, -0.15);
   for (const sx of [-1, 1]) { K.box(Hd, sx * 1.4, 5, fz - 0.05, 1.6, 1.1, 0.4, 0xf0e0c0); K.box(Hd, sx * 1.2, 5, fz + 0.1, 0.8, 0.9, 0.3, 0x1a0a00); }
   K.box(Hd, 0, 3.8, fz + 0.3, 1.6, 2, 1.1, SK[1]); K.box(Hd, 0, 3.1, fz + 0.6, 2.2, 0.7, 0.8, skinD);
