@@ -50,7 +50,7 @@ ASSETS = [
                 "never cut it. " + STYLE,
          note="Home-screen and browser icon; the 512, 192 and 180 px sizes and the favicon are made from it "
               "by design/source/make_icons.mjs. Until it arrives they are made from the SVG stand-in (app/icon.svg)."),
-    dict(id="logo", file="assets/ui/logo.webp", size="1200×300, transparent PNG (shipped as WebP, trimmed to the wordmark)", status="revise", group="Brand",
+    dict(id="logo", file="assets/ui/logo.webp", size="1200×300, transparent PNG (shipped as WebP, trimmed to the wordmark)", status="delivered", group="Brand",
          prompt="The words “Image Annotator” as a clean modern wordmark for a dark app screen, in a friendly "
                 "rounded geometric sans serif: “Image” in a heavy weight, solid warm off-white (#f4f2ee); "
                 "“Annotator” in the same face at a lighter weight, solid pale grey (#c9c7c2); a short "
@@ -58,9 +58,8 @@ ASSETS = [
                 "its first letter. Solid filled letters with no outline, no dark strokes and no shadow, so it "
                 "reads cleanly on a charcoal (#1c1d22) background. Crisp silhouette on a fully transparent "
                 "background, centred, no other text.",
-         note="Revise (round 2): the delivered wordmark's heavy “Image” is charcoal, so on the app's charcoal "
-              "start screen only its thin outline shows. Wanted: the same wordmark with light letters. Shown on the "
-              "start screen at about 300 px wide; the current version stays in use until the new one arrives."),
+         note="Delivered (round 2): solid off-white and pale-grey letters read clearly on the charcoal start screen "
+              "at about 300 px wide. Original generated art is preserved in design/generated/round-2/logo.png."),
     dict(id="cover", file="assets/ui/cover.webp", size="1200×900 (4:3), WebP", status="delivered", group="Brand",
          prompt="Cover art for a photo markup app on a library shelf: a phone lying on a light wooden desk "
                 "showing a holiday photo of a seaside town, the photo marked up with a coral-red arrow, a "

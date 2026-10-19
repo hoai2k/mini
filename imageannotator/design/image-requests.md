@@ -9,14 +9,14 @@ as inline SVG in the app and need no art.
 
 **Round 1:** delivered and in use.
 
-**Round 2:** 1 image wanted, marked `requested` or `revise` (see the note).
+**Round 2:** nothing wanted.
 
 **House style** (already included in every prompt but the logo's): Clean, friendly modern app artwork: a warm off-white and soft charcoal palette with one bold coral-red accent (#ff4d4f) used for annotation marks, hand-drawn marker strokes with a slightly imperfect, confident line, flat shapes with gentle soft shadows, crisp edges, generous empty space. Playful but tidy, like a designer's markup on a photo. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
 
 | Status | Id | File | Size |
 | --- | --- | --- | --- |
 | delivered | `icon` | `app/icons/icon-1024.png` | 1024×1024, PNG, full bleed, no transparency |
-| revise | `logo` | `app/assets/ui/logo.webp` | 1200×300, transparent PNG (shipped as WebP, trimmed to the wordmark) |
+| delivered | `logo` | `app/assets/ui/logo.webp` | 1200×300, transparent PNG (shipped as WebP, trimmed to the wordmark) |
 | delivered | `cover` | `app/assets/ui/cover.webp` | 1200×900 (4:3), WebP |
 | delivered | `welcome` | `app/assets/ui/welcome.webp` | 1200×900 (4:3), transparent PNG (shipped as WebP) |
 
@@ -32,11 +32,11 @@ as inline SVG in the app and need no art.
 An app icon for a photo markup app: a small square photograph of rolling hills under a pale sky, tilted a few degrees, with a bold coral-red hand-drawn arrow sweeping in from the lower right and pointing at a tiny tree on the hill, and a loose coral-red marker circle around the tree, on a deep charcoal (#1c1d22) ground. Centred, bold, readable at 60 pixels, full bleed with the subject inside the middle 80% so rounded-corner masks never cut it. Clean, friendly modern app artwork: a warm off-white and soft charcoal palette with one bold coral-red accent (#ff4d4f) used for annotation marks, hand-drawn marker strokes with a slightly imperfect, confident line, flat shapes with gentle soft shadows, crisp edges, generous empty space. Playful but tidy, like a designer's markup on a photo. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
 ```
 
-### `logo` · revise
+### `logo` · delivered
 
 - File: `imageannotator/app/assets/ui/logo.webp`
 - Size: 1200×300, transparent PNG (shipped as WebP, trimmed to the wordmark)
-- Note: Revise (round 2): the delivered wordmark's heavy “Image” is charcoal, so on the app's charcoal start screen only its thin outline shows. Wanted: the same wordmark with light letters. Shown on the start screen at about 300 px wide; the current version stays in use until the new one arrives.
+- Note: Delivered (round 2): solid off-white and pale-grey letters read clearly on the charcoal start screen at about 300 px wide. Original generated art is preserved in design/generated/round-2/logo.png.
 
 ```text
 The words “Image Annotator” as a clean modern wordmark for a dark app screen, in a friendly rounded geometric sans serif: “Image” in a heavy weight, solid warm off-white (#f4f2ee); “Annotator” in the same face at a lighter weight, solid pale grey (#c9c7c2); a short coral-red (#ff4d4f) hand-drawn marker arrow curving under “Annotator” and pointing up at its first letter. Solid filled letters with no outline, no dark strokes and no shadow, so it reads cleanly on a charcoal (#1c1d22) background. Crisp silhouette on a fully transparent background, centred, no other text.
