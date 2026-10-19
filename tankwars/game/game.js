@@ -89,10 +89,12 @@ window.addEventListener('mousedown', e => {
     if (e.button === 0) mouseFire = true;
 });
 document.getElementById('corner-controls').addEventListener('mousedown', e => { e.stopPropagation(); e.preventDefault(); });
-// During play the corner buttons are hidden; any mouse click, or a tap away from the joysticks, shows them for a few seconds.
+// During play the corner buttons are hidden; a mouse click, or a tap away from the joysticks, shows them for a few seconds.
+// Not while a keyboard-and-mouse player is in the game: their clicks are shots, so hovering the corner is how they show.
 let cornerPeekTimer = null;
 window.addEventListener('pointerdown', e => {
     if (e.pointerType !== 'mouse' && e.target.closest?.('.joystick-zone')) return;
+    if (e.pointerType === 'mouse' && Array.from(world.tanks.values()).some(t => t.inputSet?.type === 'keyboard_mouse')) return;
     document.body.classList.add('corner-peek');
     clearTimeout(cornerPeekTimer);
     cornerPeekTimer = setTimeout(() => document.body.classList.remove('corner-peek'), 3000);

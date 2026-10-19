@@ -71,7 +71,9 @@ settings.
 
 Settings, Sound and Fullscreen sit in the bottom right corner over the menus
 and the game. During play they are hidden until the mouse hovers over them,
-or a click (or a tap away from the joysticks) shows them for three seconds;
+or a click (or a tap away from the joysticks) shows them for three seconds.
+Clicks don't show them while a keyboard-and-mouse player is in the game,
+since that player's clicks are shots; then only hovering or a menu does;
 they show whenever a menu is up, such as the pause menu. On phones they sit
 above the right stick.
 Settings is not in the menus. Opening it during a local match pauses first, so
