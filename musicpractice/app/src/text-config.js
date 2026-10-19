@@ -298,7 +298,7 @@ export const EN = {
   },
 
   tuner: {
-    /** Test Scale Intonation (in testing: only with ?scale in the address). */
+    /** Test My Scale Intonation, under the tuner. */
     scale: {
       button: 'Test My Scale Intonation',
       buttonSub: 'Play a scale and see how in tune each note is',
@@ -423,6 +423,10 @@ export const EN = {
     chime: 'Chime between items',
     chimes: { kalimba: 'Kalimba', 'two-tone': 'Two-tone', celesta: 'Celesta', none: 'None' },
     chimeHelp: 'Plays as one item ends and the next begins, and at the end. Tap one to hear it.',
+    voiceOn: 'Voice',
+    voice: 'Whose voice',
+    voices: { lily: 'Lily', matilda: 'Matilda', george: 'George', clara: 'Clara', autumn: 'Autumn', theo: 'Theo' },
+    voiceHelp: 'Says what has finished and what comes next. Tap a voice to hear it.',
     deleted: (name) => `Deleted ${name}`,
     undo: 'Undo',
   },

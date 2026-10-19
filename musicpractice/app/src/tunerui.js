@@ -149,11 +149,9 @@ export function setupTuner({ settings, persist, chips }) {
     show();
   }
 
-  // ---- Test Scale Intonation (in testing: only with ?scale in the address).
-  // A sheet: how it works and a record button; pressed, it listens for the
-  // scale and follows it; three seconds of quiet and the results show there.
-  const SCALE_ON = new URLSearchParams(location.search).has('scale');
-  $('scale-test').hidden = !SCALE_ON;
+  // ---- Test My Scale Intonation. A sheet: how it works and a record button;
+  // pressed, it listens for the scale and follows it; three seconds of quiet
+  // and the results show there.
   const sheet = $('scale-sheet');
   const rec = $('scale-rec');
   let scale = null; // { listener, shownAt } while it listens
@@ -178,6 +176,8 @@ export function setupTuner({ settings, persist, chips }) {
   }
   $('scale-open').addEventListener('click', () => {
     scaleStep('ready');
+    stopTone();
+    reset(); // the tuner pauses while the sheet is up (receive), showing nothing
     sheet.showModal();
   });
   rec.addEventListener('click', () => (scale ? stopScale() : startScale()));
@@ -234,6 +234,8 @@ export function setupTuner({ settings, persist, chips }) {
         scaleStep('listening');
       }
     }
+    // The tuner rests behind the scale test's sheet (it would only distract).
+    if (sheet.open) return;
     if (data.length >= WINDOW) {
       buf.set(data.subarray(data.length - WINDOW));
     } else {

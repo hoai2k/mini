@@ -1957,7 +1957,7 @@ html.paged #home, html.paged #routine { touch-action: pan-y; }
   .titem-tools, .titem-detail { padding-left: 0; }
 }
 
-/* Test Scale Intonation (in testing: only with ?scale). Its own feature
+/* Test My Scale Intonation. Its own feature
    under the tuner, set apart from Play a note: an inviting card that opens
    a sheet with a record button, then the results there. */
 .scale-test { width: min(100%, 440px); margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); display: flex; justify-content: center; }
