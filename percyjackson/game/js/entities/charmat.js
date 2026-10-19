@@ -28,7 +28,7 @@ import { attribute, varying, texture, uv, vec3, vec4, mix, step, select, screenC
 
 // A switch for checks and comparisons (perf/render-bench.cjs): false builds
 // every model with its separate meshes, as before.
-export const PART_MERGE = { on: true, defer: 0 };
+export const PART_MERGE = { on: true, defer: 0, scaled: true };
 
 // a white texel for a part with no skin box (only detail): the part material's
 // shader stays the same either way, so every kind shares one program
@@ -110,7 +110,9 @@ function mergeable(m, refs) {
   if (mat.transparent || mat.blending !== THREE.NormalBlending || mat.side !== THREE.FrontSide || !mat.depthWrite || !mat.depthTest || mat.wireframe) return false;
   if (!A?.position || !A.normal || A.position.itemSize !== 3 || A.normal.itemSize !== 3 || A.position.isInterleavedBufferAttribute) return false;
   if (m.renderOrder || !m.frustumCulled || m.layers.mask !== 1) return false;
-  m.updateMatrix(); if (!m.matrix.equals(_id)) return false;   // (at rest: positions taken as they are, bit for bit)
+  // at rest, or only moved and scaled (no turn): the box it fills is the same
+  // merged or not, which the foot and floor guards read (character.js footLift)
+  m.updateMatrix(); if (!m.matrix.equals(_id) && (!PART_MERGE.scaled || m.quaternion.x || m.quaternion.y || m.quaternion.z || m.scale.x <= 0 || m.scale.y <= 0 || m.scale.z <= 0)) return false;
   if (isSkin(mat)) return !!A.uv && A.uv.itemSize === 2;
   if (isKit(mat)) return !!A.color && A.color.itemSize >= 3;
   return false;
@@ -124,10 +126,18 @@ function mergedGeometry(list) {
   for (const m of list) {
     const g = m.geometry, A = g.attributes, I = g.index, cnt = I ? I.count : A.position.count;
     const vp = m.material.voxParams, kit = !!vp;
+    // (a moved or scaled mesh: its vertices placed as its matrix would, its normals as the normal matrix would)
+    const at = !m.matrix.equals(_id), e = m.matrix.elements, sx = e[0], sy = e[5], sz = e[10], tx = e[12], ty = e[13], tz = e[14];
     for (let i = 0; i < cnt; i++, o++) {
       const v = I ? I.getX(i) : i;
-      P[o * 3] = A.position.getX(v); P[o * 3 + 1] = A.position.getY(v); P[o * 3 + 2] = A.position.getZ(v);
-      N[o * 3] = A.normal.getX(v); N[o * 3 + 1] = A.normal.getY(v); N[o * 3 + 2] = A.normal.getZ(v);
+      if (at) {
+        P[o * 3] = A.position.getX(v) * sx + tx; P[o * 3 + 1] = A.position.getY(v) * sy + ty; P[o * 3 + 2] = A.position.getZ(v) * sz + tz;
+        const nx = A.normal.getX(v) / sx, ny = A.normal.getY(v) / sy, nz = A.normal.getZ(v) / sz, l = Math.hypot(nx, ny, nz) || 1;
+        N[o * 3] = nx / l; N[o * 3 + 1] = ny / l; N[o * 3 + 2] = nz / l;
+      } else {
+        P[o * 3] = A.position.getX(v); P[o * 3 + 1] = A.position.getY(v); P[o * 3 + 2] = A.position.getZ(v);
+        N[o * 3] = A.normal.getX(v); N[o * 3 + 1] = A.normal.getY(v); N[o * 3 + 2] = A.normal.getZ(v);
+      }
       if (kit) {
         C[o * 3] = A.color.getX(v); C[o * 3 + 1] = A.color.getY(v); C[o * 3 + 2] = A.color.getZ(v);
         CM[o * 4] = vp.rough; CM[o * 4 + 1] = vp.metal; CM[o * 4 + 2] = vp.emit; CM[o * 4 + 3] = vp.fill;
@@ -194,8 +204,25 @@ function mergeParts(rig) {
       if (isSkin(m.material)) { if (f.skin && f.skin !== m.material) continue; f.skin = m.material; }
       f.list.push(m);
     }
+    // Runs of a family that nothing else on the bone draws between: three
+    // sorts meshes level with each other by id, so a part made of a run keeps
+    // every other mesh's order against it (two faces that lie in one plane
+    // resolve the same way as before)
+    const others = grp.children.filter((x) => x.isMesh).map((x) => x.id).sort((p, q) => p - q);
+    const runs = [];
     for (const [u, byU] of fams) for (const f of byU.values()) {
-      if (f.list.length < 2) continue;
+      const L = [...f.list].sort((p, q) => p.id - q.id);
+      let run = [L[0]];
+      for (let i = 1; i < L.length; i++) {
+        const a = L[i - 1].id, b = L[i].id, ids = new Set(L.map((m) => m.id));
+        if (others.some((x) => x > a && x < b && !ids.has(x))) { runs.push({ u, list: run }); run = []; }
+        run.push(L[i]);
+      }
+      runs.push({ u, list: run });
+    }
+    for (const { u, list } of runs) {
+      if (list.length < 2) continue;
+      const f = { list, skin: list.find((m) => isSkin(m.material))?.material ?? null };
       const mat = partMaterial(f.skin, u), geo = shared(mergedGeometry(f.list));
       // the first mesh of the family becomes the part (it keeps its place,
       // its id and so its place in the draw order, where a new mesh would
@@ -210,6 +237,7 @@ function mergeParts(rig) {
         if (rig.body === m) rig.body = mesh;
       }
       mesh.geometry = geo; mesh.material = mat; mesh.userData.baseMat = mat; mesh.name = 'part';
+      mesh.position.set(0, 0, 0); mesh.scale.set(1, 1, 1); mesh.updateMatrix();   // (its own place is in the geometry now)
       if (listed && !rig.meshes.includes(mesh)) rig.meshes.push(mesh);
       saved += f.list.length - 1;
     }
