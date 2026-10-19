@@ -355,9 +355,30 @@
         <aside class="mic-tip mic-off" id="tn-mic-off" aria-live="polite" hidden></aside>
         <div class="strings" id="strings" role="group" data-text-aria-label="tuner.strings"></div>
         <button class="pill" id="ref-tone" type="button"></button>
+        <!-- Test Scale Intonation (in testing: only with ?scale; tunerui.js, scaletest.js). -->
+        <div class="scale-test" id="scale-test" hidden>
+          <button class="pill" id="scale-start" type="button" data-text="tuner.scale.button"></button>
+          <div class="scale-live" id="scale-live" hidden>
+            <p class="scale-status" id="scale-status" aria-live="polite"></p>
+            <button class="link-btn" id="scale-cancel" type="button" data-text="tuner.scale.cancel"></button>
+          </div>
+        </div>
         <p class="tuner-status" id="tuner-status" hidden></p>
         <button class="pill" id="tuner-retry" type="button" data-text="common.tryAgain" hidden></button>
       </div>
+
+      <dialog id="scale-results" class="sheet" aria-labelledby="scale-results-title">
+        <form method="dialog">
+          <header class="sheet-head"><h3 id="scale-results-title" data-text="tuner.scale.resultsTitle"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <p class="scale-summary" id="scale-summary"></p>
+          <ol class="scale-notes" id="scale-notes"></ol>
+          <p class="help" id="scale-help"></p>
+          <div class="sheet-links">
+            <button type="button" class="pill" id="scale-again" data-text="tuner.scale.again"></button>
+            <button class="pill" value="close" data-text="tuner.scale.done"></button>
+          </div>
+        </form>
+      </dialog>
 
       <dialog id="tuner-settings" class="sheet" aria-labelledby="tuner-settings-title">
         <form method="dialog">

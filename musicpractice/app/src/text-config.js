@@ -298,6 +298,22 @@ export const EN = {
   },
 
   tuner: {
+    /** Test Scale Intonation (in testing: only with ?scale in the address). */
+    scale: {
+      button: 'Test Scale Intonation',
+      waiting: 'Play your scale. Listening for the first note…',
+      listening: (n) => `Listening: ${n} ${n === 1 ? 'note' : 'notes'} so far. Stop for 3 seconds when you've finished.`,
+      cancel: 'Cancel',
+      resultsTitle: 'Scale intonation',
+      summary: (good, n) => `${good} of ${n} ${n === 1 ? 'note' : 'notes'} in tune`,
+      none: 'No notes heard. Try again, a little louder or nearer the mic.',
+      good: 'In tune',
+      flat: (c) => `${c}¢ flat`,
+      sharp: (c) => `${c}¢ sharp`,
+      help: (tol) => `Within ${tol} cents counts as in tune here (the tuner's needle wants 5).`,
+      again: 'Test again',
+      done: 'Done',
+    },
     title: 'Tuner',
     settingsButton: 'Tuner settings',
     strings: 'Strings: tap one to hear it',

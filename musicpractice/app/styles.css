@@ -1946,3 +1946,22 @@ html.paged #home, html.paged #routine { touch-action: pan-y; }
 @media (max-width: 420px) {
   .titem-tools, .titem-detail { padding-left: 0; }
 }
+
+/* Test Scale Intonation (in testing: only with ?scale) */
+.scale-test { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.scale-test[hidden], .scale-live[hidden], #scale-start[hidden] { display: none; }
+.scale-live { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.scale-status { margin: 0; font-weight: 700; color: var(--ink-2); max-width: 30em; }
+.scale-summary { margin: 0 0 4px; font: 700 1.2rem/1.3 var(--display); }
+.scale-notes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.scale-note {
+  display: grid; grid-template-columns: 4.2em 1.6em 1fr; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel);
+}
+.sn-note { font: 700 1.3rem/1 var(--display); }
+.sn-oct { font-size: 0.65em; color: var(--ink-3); margin-left: 1px; }
+.sn-mark { font-weight: 800; font-size: 1.2rem; text-align: center; }
+.sn-verdict { font-weight: 700; }
+.scale-note.good .sn-mark { color: var(--ok-2); }
+.scale-note.flat .sn-mark, .scale-note.sharp .sn-mark { color: var(--red-2); }
+.scale-note.flat, .scale-note.sharp { border-color: color-mix(in srgb, var(--red-2) 45%, var(--line)); }

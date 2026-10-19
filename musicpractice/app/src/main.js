@@ -149,7 +149,7 @@ function leave(name) {
   if (name === 'home') homeOrder.stop();
   if (name === 'metronome') { stopMetronome(); closeSync(); }
   if (name === 'record') stopRecorder();
-  if (name === 'tuner') stopTuner();
+  if (name === 'tuner') { stopTuner(); tuner.stopScale(); }
   if (name === 'drone') droneUI.stop();
   if (name === 'routine') timerUI?.leave();
   for (const d of document.querySelectorAll('dialog[open]')) d.close();
