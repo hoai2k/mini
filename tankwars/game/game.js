@@ -89,7 +89,21 @@ window.addEventListener('mousedown', e => {
     if (e.button === 0) mouseFire = true;
 });
 document.getElementById('corner-controls').addEventListener('mousedown', e => { e.stopPropagation(); e.preventDefault(); });
-// During play the corner buttons are hidden; a mouse click, or a tap away from the joysticks, shows them for a few seconds.
+// The corner buttons hide during play only where they cover the arena: when the window leaves room
+// beside or below the canvas they stay visible. Rechecked on resize, when the canvas changes size
+// (fullscreen, more players' stat rows) and when it moves (top-align).
+const cornerControls = document.getElementById('corner-controls');
+function updateCornerOverlap() {
+    const a = cornerControls.getBoundingClientRect(), c = canvas.getBoundingClientRect();
+    const over = a.left < c.right && a.right > c.left && a.top < c.bottom && a.bottom > c.top;
+    document.body.classList.toggle('corner-over-play', over);
+}
+window.addEventListener('resize', updateCornerOverlap);
+document.addEventListener('fullscreenchange', updateCornerOverlap);
+if (window.ResizeObserver) new ResizeObserver(updateCornerOverlap).observe(canvas);
+updateCornerOverlap();
+
+// While they cover the arena they are hidden; a mouse click, or a tap away from the joysticks, shows them for a few seconds.
 // Not while a keyboard-and-mouse player is in the game: their clicks are shots, so hovering the corner is how they show.
 let cornerPeekTimer = null;
 window.addEventListener('pointerdown', e => {
@@ -925,12 +939,11 @@ function loop() {
     // 'in-play' (corner buttons hidden) only while the game runs with no menu up; an online guest's pause menu leaves state at PLAYING.
     document.body.classList.toggle('in-play', state === 'PLAYING' && !document.querySelector('.ui-panel:not(.hidden)'));
     settingsBtn.classList.toggle('hidden', !!currentOnlineRoom);
-    // Music: the play loop quickens as the CPU tanks fall; the menus get a slower, quieter one.
-    const cpus = ts.filter(t => t.isAI), cpuLeft = cpus.filter(t => t.alive).length;
-    window.TankWarsSfx?.music(state === 'PLAYING' ? 'play' : (state === 'MENU' ? 'menu' : 'off'), cpus.length ? 1 - cpuLeft / cpus.length : 0);
     const useR = side < 170, hasS = h.length > 1, hasT = hasS && h.length > 4, hasB = hasS && h.length > 0;
     let vha = (useR && hasS && state === 'PLAYING' && !isMobile) ? (hasT ? 2 : 1) * 8 : 0;
+    const wasTop = document.body.classList.contains('top-align');
     if (vha > 0 && hasB && !hasT) document.body.classList.add('top-align'); else if (state !== 'PAUSED') document.body.classList.remove('top-align');
+    if (wasTop !== document.body.classList.contains('top-align')) updateCornerOverlap();
     if (state === 'PLAYING' && !isMobile) canvas.style.height = `min(73.5vw, ${98 - vha}vh)`;
     updateView(lh);
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height);

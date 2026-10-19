@@ -14,7 +14,7 @@ on InstantDB. In this repository it uses the shared mini-rooms relay instead
 | --- | --- |
 | `game/index.html`, `game/styles.css` | Page and styles |
 | `game/menu.js` | Menus, lobby, settings and pause, with keyboard and controller navigation; the master sound switch |
-| `game/sound.js` | Arcade sound effects and sparse music, synthesised with Web Audio (no audio files) |
+| `game/sound.js` | Arcade sound effects, synthesised with Web Audio (no audio files) |
 | `game/game.js` | The game: map, tanks, AI, bullets, power-ups, rendering and online sync |
 | `publish.sh` | Copies the game plus `multiplayer/client/mini-rooms.js` into the Pages output |
 | `intake/` | Drop box for files to integrate |
@@ -38,7 +38,8 @@ automatically.
 - `node --check tankwars/game/game.js && node --check tankwars/game/menu.js && node --check tankwars/game/sound.js`
 - `cd multiplayer/server && npm test` (the relay the online mode uses)
 - In a browser: Play Local spawns CPU tanks; the Settings, Sound and Fullscreen
-  buttons in the bottom right corner hide during play and show on hover, on a
+  buttons in the bottom right corner hide during play where they cover the
+  arena (not in a wide window's margin) and show on hover, on a
   click and in the pause menu, and a controller or the
   arrow keys reach them by moving down past a menu's last item; in two tabs, Host Online Game in
   one and join it from the other's lobby, then confirm both see each other's
@@ -69,13 +70,15 @@ settings.
 
 ## Corner buttons
 
-Settings, Sound and Fullscreen sit in the bottom right corner over the menus
-and the game. During play they are hidden until the mouse hovers over them,
-or a click (or a tap away from the joysticks) shows them for three seconds.
-Clicks don't show them while a keyboard-and-mouse player is in the game,
-since that player's clicks are shots; then only hovering or a menu does;
-they show whenever a menu is up, such as the pause menu. On phones they sit
-above the right stick.
+Settings, Sound and Fullscreen sit in the bottom right corner, over the menus
+and the game, and always show while a menu is up (such as the pause menu).
+During play they stay visible when the window leaves room for them beside or
+below the arena, and hide only when they would cover it. That is rechecked on
+resize and whenever the canvas changes size or moves. While hidden, hovering
+over them shows them, and so does a click (or a tap away from the joysticks)
+for three seconds, except while a keyboard-and-mouse player is in the game,
+whose clicks are shots. On phones they sit above the right stick.
+
 Settings is not in the menus. Opening it during a local match pauses first, so
 Back returns to the pause menu, or restarts the round if a setting changed; in
 an online game the button is hidden because the host's settings apply.
@@ -87,17 +90,15 @@ arcade board: square, pulse and buzzy tones with pitch sweeps, and stepped
 noise for explosions. Effects are panned by where they happen, and other
 players' and CPU tanks' sounds are quieter than this screen's own.
 
-- **Shots** are voiced by the shooter's power-ups (spray, side shot, big, fast,
-  rapid, ricochet, distance and bomb each change the shot).
+- **Shots** are pitched low with a thump underneath, and voiced by the
+  shooter's power-ups (spray, side shot, big, fast, rapid, ricochet, distance
+  and bomb each change the shot).
 - **Each of the 14 power-ups has its own pickup sound**, and a chime marks a
   power-up appearing.
 - Hits, shield absorbs, kinetic reflections, ricochet bounces, wall hits, bomb
   blasts, CPU explosions, a player's death and last life, respawns, EMP stuns,
   players joining (a coin drop), round start, round cleared and round failed.
 - Menu moves, selections, back, pause and resume.
-- **Music** is sparse: a pulsing bass line with a short high phrase every few
-  bars during play, quickening as the CPU tanks fall, and a slower, quieter
-  loop in the menus. It stops while paused and on the round-over screen.
 
 Everything goes through `TankWarsSound.audible()` in `menu.js`: nothing plays
 while muted (saved as `tankwars.muted`), while the tab is hidden or while the
