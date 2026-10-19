@@ -50,14 +50,17 @@ ASSETS = [
                 "never cut it. " + STYLE,
          note="Home-screen and browser icon; the 512, 192 and 180 px sizes and the favicon are made from it "
               "by design/source/make_icons.mjs. Until it arrives they are made from the SVG stand-in (app/icon.svg)."),
-    dict(id="logo", file="assets/ui/logo.webp", size="1200×300, transparent PNG (shipped as WebP, trimmed to the wordmark)", status="delivered", group="Brand",
-         prompt="The words “Image Annotator” as a clean modern wordmark in a friendly rounded geometric "
-                "sans serif: “Image” in heavy soft charcoal, “Annotator” in the same face at a lighter "
-                "weight, with a short coral-red (#ff4d4f) hand-drawn marker arrow curving under "
-                "“Annotator” and pointing up at its first letter. Crisp silhouette on a fully transparent "
-                "background, centred, no other text. It must read on both a white and a charcoal background, "
-                "so give the charcoal letters a thin off-white outline.",
-         note="Shown on the start screen at about 300 px wide. The text title shows until it arrives."),
+    dict(id="logo", file="assets/ui/logo.webp", size="1200×300, transparent PNG (shipped as WebP, trimmed to the wordmark)", status="revise", group="Brand",
+         prompt="The words “Image Annotator” as a clean modern wordmark for a dark app screen, in a friendly "
+                "rounded geometric sans serif: “Image” in a heavy weight, solid warm off-white (#f4f2ee); "
+                "“Annotator” in the same face at a lighter weight, solid pale grey (#c9c7c2); a short "
+                "coral-red (#ff4d4f) hand-drawn marker arrow curving under “Annotator” and pointing up at "
+                "its first letter. Solid filled letters with no outline, no dark strokes and no shadow, so it "
+                "reads cleanly on a charcoal (#1c1d22) background. Crisp silhouette on a fully transparent "
+                "background, centred, no other text.",
+         note="Revise (round 2): the delivered wordmark's heavy “Image” is charcoal, so on the app's charcoal "
+              "start screen only its thin outline shows. Wanted: the same wordmark with light letters. Shown on the "
+              "start screen at about 300 px wide; the current version stays in use until the new one arrives."),
     dict(id="cover", file="assets/ui/cover.webp", size="1200×900 (4:3), WebP", status="delivered", group="Brand",
          prompt="Cover art for a photo markup app on a library shelf: a phone lying on a light wooden desk "
                 "showing a holiday photo of a seaside town, the photo marked up with a coral-red arrow, a "
@@ -90,8 +93,10 @@ def render() -> tuple[str, str]:
         "Tool buttons (arrow, circle, free draw, undo, settings and the rest) are drawn",
         "as inline SVG in the app and need no art.",
         "",
-        ("**Round 1:** " + str(len(requested)) + " images wanted, marked `requested`."
-         if requested else "**Round 1:** delivered and in use."),
+        "**Round 1:** delivered and in use.",
+        "",
+        ("**Round 2:** " + str(len(requested)) + " image" + ("s" if len(requested) != 1 else "") + " wanted, marked `requested` or `revise` (see the note)."
+         if requested else "**Round 2:** nothing wanted."),
         "",
         "**House style** (already included in every prompt but the logo's): " + STYLE,
         "",

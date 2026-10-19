@@ -81,7 +81,9 @@ It is an app, not a game, so the controller-first title screen of
   SVG icons.
 - `app/data/asset-list.json`: which artwork is delivered (generated).
 - `design/generated/`: the four original generated PNGs and generation notes.
-  All Round 1 artwork is delivered and used by the app and library card.
+  All Round 1 artwork is delivered and used by the app and library card;
+  round 2 asks for the wordmark again with light letters for the dark start
+  screen (the current one stays in use until then).
 - `app/icons/`: the 180, 192 and 512 px icons, made by
   `design/source/make_icons.mjs` from `icon-1024.png` (the master art, not
   published) or, until it arrives, from the stand-in `app/icon.svg`.
@@ -91,8 +93,8 @@ It is an app, not a game, so the controller-first title screen of
   a stand-in (an SVG picture on the start screen, the text title, a gradient
   card). New art goes in `intake/`: convert it to the size and format in its
   request, flip its status in `build_requests.py`, rerun it, rerun
-  `make_icons.mjs` for the icon, and for the card cover add it to
-  `.imageannotator .cover` in the root `index.html`.
+  `make_icons.mjs` for the icon. The library card (`.imageannotator .cover`
+  in the root `index.html`) already loads `assets/ui/cover.webp`.
 
 ## Checks
 
