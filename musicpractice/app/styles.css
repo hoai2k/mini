@@ -316,6 +316,14 @@ button { cursor: pointer; }
   will-change: transform;
 }
 .met-pendulum.resting { transition: transform 0.4s ease-out; }
+/* Its weight, placed on the rod by art.js placeWeight (high is slow). It
+   slides when the tempo changes, follows the finger when dragged, and has a
+   grip wider than itself so a finger finds it. */
+.met-pendulum > .met-weight { position: absolute; display: block; transition: top 0.25s ease-out; touch-action: none; cursor: grab; z-index: 1; }
+.met-pendulum > .met-weight[hidden] { display: none; }
+.met-pendulum > .met-weight.held { transition: none; cursor: grabbing; }
+.met-rod > *, .met-weight > * { width: 100%; height: 100%; display: block; object-fit: contain; }
+.met-weight::before { content: ''; position: absolute; inset: -40% -30%; min-height: 44px; }
 .beats { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; max-width: 320px; }
 .beats li {
   width: 16px; height: 16px; border-radius: 50%;

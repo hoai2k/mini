@@ -117,6 +117,22 @@ when the Art Deco art arrives, measure and record its own.
 
 ## Metronome
 
+- **The pendulum's weight shows the tempo and sets it**, as on a real
+  metronome: it slides up the rod for slower and down for faster
+  (`weightAt` in `app/src/metronome.js`), and dragging it with a finger or
+  the mouse sets the tempo (`bpmAtWeight`). Its range is 40 to 300 BPM, on a
+  log scale squeezed further at the fast end, so the everyday tempos get
+  most of the rod (60 to 160 about half of it, 200 to 300 under a fifth);
+  tempos past either end leave it at that end (they can still be typed).
+  While it is dragged the pendulum eases upright and the clicks go on at the
+  new tempo; a tap on it without a drag is a tap on the metronome. It
+  slides to its place when the tempo changes any other way. The pendulum is
+  drawn in two parts for this, its rod (`metronome-rod`, with the weight's
+  `travel` along it) and its weight (`metronome-weight`, with its `center`
+  on the rod; `placeWeight` in `app/src/art.js`). Until they are delivered
+  (image requests round 10) each theme uses interim cuts of its delivered
+  pendulum, made by `design/source/cut_pendulum.py` (`*.cut.webp`, numbers
+  in `design/pendulum-cuts.json`).
 - A metronome with a swinging pendulum: it reaches one end of its swing on
   each click and the other end on the next, synced to what you hear
   (`pendulumAngle` in `app/src/metronome.js`, corrected for output latency).

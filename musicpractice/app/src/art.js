@@ -34,10 +34,16 @@ export function pendulumLayout(body, pendulum) {
   };
 }
 
-/** The image for `id` in `theme`: a delivered file, or the stand-in. */
+/**
+ * The image for `id` in `theme`: a delivered file, an interim one standing
+ * in until it is (the pendulum's rod and weight, cut from the pendulum), or
+ * the stand-in.
+ */
 export function pick(entries, theme, id) {
-  const delivered = entries.find((a) => a.id === id && a.theme === theme && (a.status === 'delivered' || a.status === 'revise'));
-  return delivered ? { ...delivered, kind: 'image' } : { ...standin(theme, id), kind: 'standin' };
+  const mine = entries.find((a) => a.id === id && a.theme === theme);
+  if (mine && (mine.status === 'delivered' || mine.status === 'revise')) return { ...mine, kind: 'image' };
+  if (mine?.interim) return { ...mine, file: mine.interim, kind: 'image' };
+  return { ...standin(theme, id), kind: 'standin' };
 }
 
 let generation = 0;
@@ -74,9 +80,12 @@ export async function applyArt(theme, onLayout) {
   }
 }
 
+/** The pendulum's art: its rod (the layer itself, when it is one image). */
+const rodOf = (pendulumEl) => pendulumEl.art || pendulumEl.querySelector('.met-rod')?.art;
+
 /** Pin the pendulum element to the body element using their anchors. */
 export function alignPendulum(bodyEl, pendulumEl) {
-  const body = bodyEl.art, pendulum = pendulumEl.art;
+  const body = bodyEl.art, pendulum = rodOf(pendulumEl);
   if (!body?.anchors?.pivot || !pendulum?.anchors?.hub) return;
   const l = pendulumLayout(body, pendulum);
   Object.assign(pendulumEl.style, {
@@ -107,4 +116,40 @@ export function alignBow(bowArtEl) {
 }
 
 /** How far the current pendulum swings each way, in degrees. */
-export const swingOf = (pendulumEl) => pendulumEl.art?.swing ?? 24;
+export const swingOf = (pendulumEl) => rodOf(pendulumEl)?.swing ?? 24;
+
+/**
+ * Put the weight on the rod at `t` (0 the top of its travel, slowest, to 1
+ * the bottom), in the rod's canvas: the weight's `center` anchor on the rod
+ * at that height, its own size at the rod's scale. Returns the canvas y, or
+ * null with no weight to place.
+ */
+export function placeWeight(pendulumEl, t) {
+  const rod = rodOf(pendulumEl);
+  const weightEl = pendulumEl.querySelector('.met-weight');
+  const weight = weightEl?.art;
+  if (!rod?.travel || !weight?.canvas || !weight.anchors?.center) { if (weightEl) weightEl.hidden = true; return null; }
+  weightEl.hidden = false;
+  const [rw, rh] = rod.canvas;
+  const [ww, wh] = weight.canvas;
+  const [cx, cy] = weight.anchors.center;
+  const axis = rod.anchors?.hub?.[0] ?? rw / 2;
+  const y = rod.travel[0] + Math.min(1, Math.max(0, t)) * (rod.travel[1] - rod.travel[0]);
+  Object.assign(weightEl.style, {
+    left: `${(100 * (axis - cx)) / rw}%`,
+    top: `${(100 * (y - cy)) / rh}%`,
+    width: `${(100 * ww) / rw}%`,
+    height: `${(100 * wh) / rh}%`,
+  });
+  return y;
+}
+
+/** The place on the rod (0 to 1) for a point `clientY` on screen, with the pendulum upright. */
+export function weightFromPoint(pendulumEl, clientY) {
+  const rodEl = pendulumEl.querySelector('.met-rod');
+  const rod = rodOf(pendulumEl);
+  if (!rod?.travel || !rodEl) return null;
+  const r = rodEl.getBoundingClientRect();
+  const y = ((clientY - r.top) / r.height) * rod.canvas[1];
+  return (y - rod.travel[0]) / (rod.travel[1] - rod.travel[0]);
+}

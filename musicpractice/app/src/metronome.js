@@ -245,6 +245,28 @@ export class Metronome {
  * pendulum does (simple harmonic motion): easing to a stop at each end, where
  * the beat falls, and fastest through the middle.
  */
+/**
+ * Where the pendulum's weight sits for a tempo, as on a real metronome: high
+ * on the rod is slow, low is fast. 0 is the top of its travel (WEIGHT_BPM's
+ * slowest), 1 the bottom (its fastest); tempos past either end stay there
+ * (they can still be typed). Not even: a log scale, squeezed further at the
+ * fast end, so the everyday tempos get most of the rod (60 to 160 about
+ * half of it, 200 to 300 about a sixth).
+ */
+export const WEIGHT_BPM = [40, 300];
+const WEIGHT_CURVE = 0.8;
+export function weightAt(bpm) {
+  const [lo, hi] = WEIGHT_BPM;
+  const u = (Math.log(Math.min(hi, Math.max(lo, bpm))) - Math.log(lo)) / (Math.log(hi) - Math.log(lo));
+  return u ** WEIGHT_CURVE;
+}
+/** The tempo for a place on the rod (0 top to 1 bottom): weightAt's inverse. */
+export function bpmAtWeight(t) {
+  const [lo, hi] = WEIGHT_BPM;
+  const u = Math.min(1, Math.max(0, t)) ** (1 / WEIGHT_CURVE);
+  return Math.exp(Math.log(lo) + u * (Math.log(hi) - Math.log(lo)));
+}
+
 export function pendulumAngle(beat, now, period, amplitude = 28) {
   if (!beat) return 0;
   const side = beat.count % 2 === 0 ? 1 : -1;

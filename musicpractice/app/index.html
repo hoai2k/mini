@@ -150,7 +150,8 @@
             <!-- Tap the metronome: its beat effect (Swing or Pulse) off and on. -->
             <div class="metronome" id="metronome-art" role="button" tabindex="0">
               <div class="met-layer met-case" id="metronome-case" data-asset="metronome-body"></div>
-              <div class="met-layer met-pendulum" id="pendulum" data-asset="metronome-pendulum"></div>
+              <!-- The pendulum: its rod and bob, and the weight that slides along it with the tempo (drag it to set the tempo). -->
+              <div class="met-layer met-pendulum" id="pendulum"><span class="met-rod" id="pend-rod" data-asset="metronome-rod"></span><span class="met-weight" id="pend-weight" data-asset="metronome-weight"></span></div>
             </div>
             <!-- Under it: the beat dots (big in Pulse), which open into the
                  Visualizer, rows of bars of music, as the metronome shrinks
