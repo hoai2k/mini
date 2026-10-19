@@ -2063,7 +2063,7 @@ function buildSpartoi() {
     const t = (z + 5.6) / 10.4, h = 3.6 + Math.sin(t * Math.PI) * 2.4 + (KH.r() - 0.5) * 0.8;
     KH.box(Hd, 0, H8 + 2.2 + h / 2, z, 2 + KH.r() * 0.4, h, 1.2, KH.tone(CREST, 0.1), -0.25 + t * 0.2);
   }
-  for (let i = 0; i < 5; i++) KH.box(Hd, (KH.r() - 0.5) * 0.8, H8 + 1 - i * 1.6, -H8 / 2 - 1.6 - i * 0.25, 1.8, 2, 1.2, KH.tone(CREST, 0.1), 0.2);
+  for (let i = 0; i < 5; i++) KH.box(Hd, (KH.r() - 0.5) * 0.8, H8 + 1 - i * 1.6, -H8 / 2 - 1.3 - i * 0.2, 1.8, 2, 1.2, KH.tone(CREST, 0.1), 0.2);
   // the kopis: a forward-curved bronze blade, widening toward the tip
   const blade = group(rig.handR, 0, -1, 1, HOLD_PITCH - Math.PI / 2, 0, 0);   // (built along +z: see the hand-axis convention in character.js)
   K.box(blade, 0, 0, -0.4, 1.2, 1.2, 3, leaD); K.box(blade, 0, 0, -1.9, 1.5, 1.5, 0.8, brzL); K.box(blade, 0, 0, 1.4, 1, 2.6, 0.7, brzL);
@@ -2100,7 +2100,7 @@ function buildTelekhine() {
   const lea = 0x8a4a22, leaD = 0x5a2e14, brass = 0xd8a030, brassD = 0x8a5a14, iron = 0x2a2624, ironL = 0x46403a;
   const mat = skinMat('telekhine', (S) => paintQuad(S, { base: hide, dark: hideD, belly: cream, back: 0x3a4866, eye: 0xffa01a, eyeLow: 0xff5a10, nose: 0x14161c, teeth: 0xf4ecd8, speckles: 70, stripes: null,
     custom: (s) => { for (let i = 0; i < 50; i++) s.px(Math.floor(s.r() * 40), 16 + Math.floor(s.r() * 20), i % 2 ? sp : hideL); s.rect(32, 0, 16, 8, cream, 0.1); } }), { emit: 0.9 });
-  const rig = new QuadRig({ material: mat, scale: 2.85, bodyL: 10, bodyW: 7, bodyH: 5, legH: 3.5, legW: 2.4, headS: 6, snoutS: 3.8, ears: false, tail: 2, tailLen: 3, tailW: 2.2, tailCurl: 0.1, neckUp: 8.4, headZ: -1.6, gait: 1.3, jawOpen: 0.3 });
+  const rig = new QuadRig({ material: mat, scale: 2.8, bodyL: 10, bodyW: 7, bodyH: 5, legH: 3.5, legW: 2.4, headS: 6, snoutS: 3.8, ears: false, tail: 2, tailLen: 3, tailW: 2.2, tailCurl: 0.1, neckUp: 8.4, headZ: -1.6, gait: 1.3, jawOpen: 0.3 });
   const K = kit(rig, mat, { seed: 89, rough: 0.7, emit: 0.8, density: BUILD.k * 1.8 });   // (size audit: built 2.6× bigger, adults "at least seven feet tall" as in The Battle of the Labyrinth; cells 1.45× a hero's to hold its triangles)
   const T = rig.torso;
   dropMeshes(rig, T);
@@ -2518,11 +2518,12 @@ export function buildScorpion({ id = 'scorpion', pal = {} } = {}) {
   }, { rough: 0.35, emit: 1 });
   const TN = 9, TL = 27;   // tail segments and length (skin px)
   // (round 9: the owner wants it bigger than a person, an enemy that
-  // intimidates: 2.4x its old size, rig scale 1.25 → 3, its back well above
-  // Percy's waist and its sting, raised, over his head. It keeps its build;
+  // intimidates: 2.24x its old size, rig scale 1.25 → 2.8, its back well
+  // above Percy's waist and its sting, raised, over his head (the tail's
+  // crown at rest is 3.95 blocks: under a dungeon door's 4). It keeps its build;
   // every plate and segment is a shell of hero-sized cells (voxDensity), so
   // the bigger scorpion is more cells, not bigger ones)
-  const rig = new QuadRig({ material: mat, scale: 3, bodyL: 10, bodyW: 7, bodyH: 3.4, legH: 4, legW: 1.4, headS: 4.5, legs: 8, splay: 1.6, footL: 5, snout: false, neckUp: -1.2, gait: 1.5, tail: TN, tailLen: TL, tailW: 2.8, tailCurl: 0.3 });
+  const rig = new QuadRig({ material: mat, scale: 2.8, bodyL: 10, bodyW: 7, bodyH: 3.4, legH: 4, legW: 1.4, headS: 4.5, legs: 8, splay: 1.6, footL: 5, snout: false, neckUp: -1.2, gait: 1.5, tail: TN, tailLen: TL, tailW: 2.8, tailCurl: 0.3 });
   const K = kit(rig, mat, { seed: 79, rough: 0.35, metal: 0.1, emit: 0.8 });
   const T = rig.torso, { legW } = rig.dims;
   // Its plates and segments are drawn as shells of hero-sized cells, so the
@@ -2665,8 +2666,8 @@ function scorpionPose(rig, dt, speed, a, atk) {
     D(c.jawA, 'y', 0.25 - Q[3] * 0.7); D(c.jawB, 'y', -0.25 + Q[3] * 0.7);
   }
   // the body rocks back on the windup and lunges in on the strike
-  // (lunge in metres at the old plain scorpion's size, before round 9 grew it 2.4×: it grows with it, and a champion's with the champion)
-  rig.hips.position.z += (lunge * 2.4 / rig.extras.s0 - rig.hips.position.z) * f;   // (round 9: ×2.4, the scorpion's growth)
+  // (lunge in metres at the old plain scorpion's size, before round 9 grew it 2.24×: it grows with it, and a champion's with the champion)
+  rig.hips.position.z += (lunge * 2.24 / rig.extras.s0 - rig.hips.position.z) * f;   // (round 9: ×2.24, the scorpion's growth)
 }
 
 // ---- stat blocks -------------------------------------------------------------
@@ -2705,7 +2706,7 @@ export const MONSTERS = {
   empousa: { name: txt('monsters.empousa.name'), tier: 'elite', role: 'summoner', hp: 160, speed: 2.6, dmg: 10, radius: 0.5, height: 2.5, ai: 'summon', range: 9, keep: 8, windup: 1.0, cd: 5, xp: 16, coins: [8, 14], model: 'empousa', knockResist: 0.4, pitch: 1.2, summons: 'pup', aura: 'fire', projectile: 'fire', voice: 'screech' },
   scorpion: { name: txt('monsters.scorpion.name'), tier: 'elite', role: 'bruiser', hp: 140, speed: 3.4, dmg: 12, radius: 1.3, height: 2.4, ai: 'melee', range: 3.6, windup: 0.55, cd: 1.5, xp: 10, coins: [4, 8], model: 'scorpion', armor: 0.2, knockResist: 0.5, pitch: 1.4, voice: 'click', poison: { dps: 4, dur: 4 }, slashColor: 0x9aff3a,
     // alternates a one-two pinch of the claws with a slower, harder sting over its back (only the sting poisons; enemy.js startAttack)
-    // (round 9: the scorpion grew 2.4×, rig scale 1.25 → 3, so its body radius 0.8 → 1.3, height 1.3 → 2.4 (the sting raised) and the
+    // (round 9: the scorpion grew 2.24×, rig scale 1.25 → 2.8, so its body radius 0.8 → 1.3, height 1.3 → 2.4 (the sting raised) and the
     // reach that comes from its size with it: range 2.2 → 3.6, pinch trigger 1.9 → 3.4 and reach 2 → 3.2 (its claws stand further out
     // in front of a longer body), the sting's spot 1.5 → 2.8 ahead and 0.9 → 1.4 wide; windups, cooldowns and damage unchanged)
     moves: [{ kind: 'pinch', trigger: 3.4, range: 3.2, windup: 0.5, recover: 0.55, dmg: 0.6, twin: 0.18 }, { kind: 'sting', trigger: 4, at: 2.8, radius: 1.4, windup: 0.85, recover: 0.65, dmg: 1.4 }] },

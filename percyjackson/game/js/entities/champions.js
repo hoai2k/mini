@@ -529,7 +529,7 @@ export const CHAMPION_LOOKS = {
   fields_bronzebeak: { kind: 'stymphalian', build: buildBronzebeak, shell: 0xff6a1a, aura: { kind: 'embers', col: [2.6, 1.2, 0.3] }, scale: 2.1 },
   woods_shadowfang: { kind: 'hellhound', build: buildShadowfang, glow: 0, shell: 0xff2a0a, aura: { kind: 'smoke', col: [2.6, 0.6, 0.1], at: 'head' }, scale: 1.3 },
   shore_queen_gale: { kind: 'harpy', build: buildQueenGale, shell: 0xffe040, aura: { kind: 'spark', col: [2.6, 2.4, 0.8] }, scale: 1.6 },   // (size audit, round 6: the harpy grew 1.37×, so 1.85 → 1.6 keeps the queen about 1.6× Percy, "bigger" in design/sizes.json)
-  canyon_red_king: { kind: 'scorpion', build: buildRedKing, shell: 0xffb020, aura: { kind: 'dust', col: [2.4, 1.6, 0.3] }, scale: 1.4 },   // (round 9: the scorpion itself grew 2.4×, so 2.4 → 1.4 keeps the king a step above it, the size of a pickup truck)
+  canyon_red_king: { kind: 'scorpion', build: buildRedKing, shell: 0xffb020, aura: { kind: 'dust', col: [2.4, 1.6, 0.3] }, scale: 1.45 },   // (round 9: the scorpion itself grew 2.24×, so 2.4 → 1.45 keeps the king a step above it, the size of a pickup truck)
   lab_bronze_warden: { kind: 'automaton', build: buildBronzeWarden, shell: 0x3ae8ff, aura: { kind: 'spark', col: [0.5, 2.2, 2.6] }, scale: 1.6, size: 2.4 },   // (size audit: a giant automaton, about 1.85× a hero; its hall is a 15-block open ring)
   // (Gorgos is a two-eyed giant now, but fights as the cyclops kind: its club
   // swing and ground slam suit a club-wielding giant, where the giant kind,
@@ -558,7 +558,7 @@ export const KIND_LOOKS = {
   empousa: { shell: 0x40c0ff, aura: { kind: 'embers', col: [0.4, 1.6, 2.6], at: 'head' }, scale: 1.3, remap: (c, hot) => { if (hueIn(c.h, 0.97, 0.12) && (hot || c.s > 0.75)) c.h = 0.56; } },
   harpy: { shell: 0xffd84a, aura: { kind: 'spark', col: [2.6, 2, 0.6] }, scale: 1.4 },   // (size audit, round 6: the harpy grew 1.37×, so 1.6 → 1.4)
   stymphalian: { shell: 0xff8a2a, aura: { kind: 'embers', col: [2.6, 1.2, 0.3] }, scale: 1.4 },   // (size audit, round 4: the bird itself grew ×1.36, so the champion stays near its old size, a wingspan about 3× Percy)
-  scorpion: { shell: 0xffb020, aura: { kind: 'dust', col: [2.4, 1.6, 0.3] }, scale: 1.25 },   // (round 9: the scorpion grew 2.4×, so 2 → 1.25)
+  scorpion: { shell: 0xffb020, aura: { kind: 'dust', col: [2.4, 1.6, 0.3] }, scale: 1.32 },   // (round 9: the scorpion grew 2.24×, so 2 → 1.32)
   cyclops: { shell: 0xff6a20, aura: { kind: 'embers', col: [2.6, 1, 0.2] }, scale: 1.08 },
 };
 const DEFAULT_LOOK = { shell: 0xffd84a, aura: { kind: 'spark', col: [2.6, 2, 0.6] }, scale: 1.3 };

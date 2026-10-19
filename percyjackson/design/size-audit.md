@@ -836,6 +836,199 @@ and exempt.
 after, Percy beside each) was rendered for the round; the renderer is a
 scratch tool, not part of the repository.
 
+### Round 9: adults, former adults, headwear and the giant scorpion (the owner's rules)
+
+The owner: "Living Statue, Skeleton Warrior, Spartoi should all be notably
+larger than Percy, not counting their helmets. These are former adults and
+Percy is an adolescent, and they should read that way. Also, why are the
+Karpos so small, are you counting their huge plumes? … the Giant Scorpion …
+should also be bigger than a person to be intimidating, probably 2–3 times as
+large as now."
+
+**Why these were missed (an honest account).**
+
+- **The categories were fitted to what was there.** In round 6 a model's
+  category was chosen from the books, the sheets and the model as built. The
+  skeleton, the spartoi and the living statue were already about Percy's
+  height, and "a person-sized figure" on the sheets matched that. So they were
+  filed as "same", with "a statue of a person" as the reason. Nobody asked
+  *which* person: a grown man, or a twelve-year-old?
+- **There was no rule for adults.** The heroes are adolescents, but "a
+  person: about Percy's height" was written for every teacher, tourist,
+  skeleton and statue alike.
+- **The measure counted headwear.** Round 4 took weapons, wings and props
+  out of the body, but not helmets, crests, plumes or hats. Effects:
+  - the skeleton's helmet made it read 0.89× where its body was 0.83×;
+  - the spartoi's crest made it 0.89× where it was 0.72×;
+  - the statue's crest made it 0.91× where it was 0.81×.
+  - **The karpos was much worse**: its wheat spray counted as body, so it
+    read 0.68×, "small" and passing, while the creature under it was 0.44×.
+    The owner's suspicion was right.
+- **The scorpion followed real life and the books.** It was filed as
+  "tiny / knee-high", read by its length. The rule that an intimidating
+  enemy should outsize a person whatever its book counterpart was never
+  written down.
+- **The check could only enforce what the spec said.** It passed all of
+  these, because the spec itself was wrong.
+
+**The principles** (now in [sizes.json](sizes.json) "about", applied to every model):
+
+1. Percy and the young heroes, adolescents, are the "same" reference, and so
+   are the teen campers, the Hunters and other kids.
+2. Adult humans read as adults, slightly bigger than Percy. The new
+   **"adult"** band is 1.0–1.2×; with a full head of hair an adult measures
+   1.1–1.15×.
+   - `ADULT_SCALE` 1.24 → 1.4 puts an adult's skull 1.19× Percy's.
+   - An adult in a hat, or with cropped hair, measures about 1.0–1.05×,
+     because Percy's own curls are a sixth of his height.
+   - A grown-up the books call short or tiny (Mr. D, Coach Hedge, Grandma
+     Mae) stands about a twelve-year-old's height, skull level with Percy's,
+     in "same".
+3. Former adults made monstrous (skeleton warriors, spartoi, living statues of
+   people) are "bigger", about 1.3–1.5×, measured without helmets, crests,
+   plumes or hats. Their champions stand a step above.
+4. An enemy meant to intimidate outsizes a person, even when its book or
+   real-life counterpart is small. Game drama beats canon.
+5. Small fodder still reads clearly at gameplay distance: no smaller than
+   about 0.75×, its plume aside.
+
+**The measurement fix: headwear is not body.**
+
+- What counts as headwear: helmets, crests, plumes, hats, caps, crowns,
+  circlets and horns.
+- How it is marked: `proportions.js markHeadwear` sets `userData.headwear` on
+  the meshes. A builder draws its headwear with a second voxel kit on the same
+  part, so in game the headwear still merges into that part (charmat.js) and
+  costs no extra draw. `perf/bodysize.cjs` leaves it out and lists it as
+  "headwear".
+- People and mortals: they take a `hat` slot in their parts (people.js,
+  mortals.js). `character.js mergeChildren` keeps a hat apart only while the
+  part merge is off, which is how the checks measure.
+- What is marked: every helmet and crest (skeleton, spartoi, statue,
+  Clarisse), Annabeth's cap, Grover's, Hedge's and the Minotaur's horns, Mr.
+  D's wreath, every champion crown, the Bronze Warden's crest, Gorgos's bear
+  hood, the karpos's wheat spray and every person's hat, cap, visor or
+  headscarf.
+- What stays body: hair, a cowl that is the creature's own head (the karpos),
+  and a bird's own feathered crest (Bronzebeak).
+
+Re-measured, all 103 models, with no model changed (body × Percy):
+
+| model | before | headwear left out | what it meant |
+|---|---|---|---|
+| karpos / slinger | 0.68 / 0.69 | 0.44 / 0.44 | the plume was most of its "body" |
+| spartoi | 0.89 | 0.72 | |
+| skeleton | 0.89 | 0.83 | |
+| living statue | 0.91 | 0.81 | |
+| Minotaur | 2.09 | 1.78 | horns; moved to "bigger" (was "muchBigger") |
+| Clarisse | 1.09 | 0.84 | helmet; "same" now runs down to 0.82 |
+| Annabeth | 0.97 | 0.86 | cap |
+| Grover | 1.10 | 1.00 | horns |
+| tourist, farmer, the Mist's mortal | 1.02 | 0.90 | sun and straw hats |
+| Coach Hedge | 0.90 | 0.79 | cap |
+| Big Earl / Ranger Mae / Mrs. Pruitt / Sal | 1.09 / 0.99 / 0.95 / 1.00 | 0.98 / 0.88 / 0.90 / 0.94 | cap, hat, headscarf, cap |
+| Grandma Mae / Katie | 0.80 / 0.96 | 0.75 / 0.86 | bucket hat, straw hat |
+| Pale King / skeleton and spartoi champions | 1.35 / 1.33 / 1.23 | 1.20 / 1.15 / 1.00 | crowns, helmets |
+| Queen Gale / harpy champion | 1.57 / 1.61 | 1.47 / 1.56 | crowns; their legs now pass the leg rule, so their follow-up marks are gone |
+| Stymphalian champion | 0.78 | 0.58 | crown; to "small" |
+| Bronze Warden / Gorgos / cyclops champion | 1.84 / 2.29 / 2.29 | 1.74 / 2.11 / 2.10 | crest, hood, crown; categories hold |
+| dracaena / empousa champions | 2.62 / 1.42 | 2.36 / 1.29 | crowns; categories hold |
+
+Every other model moved by 0.03 or less, which is run-to-run jitter from the
+rigs' random idle phase.
+
+**The changes.** Every regrown model keeps hero-sized cells: it is sculpted
+in cells of `voxDensity`, and `proportions.js reshape` gives it the
+proportions of its size. The head rule and the leg rule pass for every model.
+
+| model | body × Percy, before → after | triangles |
+|---|---|---|
+| skeleton warrior | 0.89 (0.83 without the helmet) → 1.40 | 1,506 → 4,324 |
+| spartoi | 0.89 (0.72) → 1.40 | 2,286 → 4,538 |
+| living statue | 0.91 (0.81) → 1.41 | 1,108 → 4,048 |
+| skeleton champion | 1.33 (1.15) → 1.77 | 2,538 → 6,546 |
+| spartoi champion | 1.23 (1.00) → 1.77 | 2,938 → 6,084 |
+| the Pale King | 1.35 (1.20) → 1.77 | 3,358 → 6,308 |
+| karpos / slinger | 0.68 (0.44) → 0.79 / 0.80 (1.22 / 1.25 with the plume) | 4,126 / 4,046 → 4,300 / 4,236 |
+| giant scorpion | 0.26 → 0.59 (its back); tail crown at rest about 1.8 → 3.97 blocks | 1,524 → 11,926 |
+| scorpion champion | 0.66 (0.53) → 0.78; tail about 5.2 blocks | 17,686 → 17,062 |
+| the Red King | 0.83 → 1.12; tail about 5.8 blocks | 21,126 → 18,140 |
+
+- **Skeleton warrior, spartoi, living statue.**
+  - Rig scale 1.15 / 1.0 / 1.05 → 1.56.
+  - A grown man's proportions: the skull 0.92 of a hero's skin cube, legs 12
+    → 19 pixels over the same boots or plinth, a trunk 1.1 longer, limbs
+    0.85–0.88 as thick, arms 1.35–1.4 longer (to mid-thigh). Head/body is
+    0.19–0.20, under the rule's 0.25 and over Percy's head in absolute size;
+    legs/body is 0.45.
+  - The skeleton is re-sculpted. Its trunk is bones under the plate carrier:
+    floating ribs at its sides, the lumbar spine, the pelvis and sacrum over
+    the belt, and a neck of bare vertebrae. It has a jaw under the painted
+    skull, two forearm bones, a wrist and finger bones, a kneecap, shin
+    bones and low boots.
+  - The vest, sleeves, shorts, helmet dome, the spartoi's tunic, scarf and
+    helmet, and the statue's cuirass, helmet and shield are shells of
+    hero-sized cells.
+  - The statue's head is measured along its own axis (`markHeadCore`),
+    because it is turned.
+  - Stats: radius 0.45–0.5 → 0.65–0.7, height 2–2.1 → 3.2–3.4 (under a
+    dungeon door's 4 and a corridor's 5). The melee reach of the longer arms
+    goes from 1.8 → 2.1 (spartoi) and from 2.2 → 2.5 (statue).
+  - Champions: the skeleton and spartoi looks go 1.4 → 1.26 and the Pale King
+    1.45 → 1.26, so all three stand about 1.8×, a step above. The Pale King's
+    crown is sized to the smaller skull and set again after the reshape.
+- **Karpos and slinger.**
+  - Rig scale 0.74 → 1.27; legs 8 → 10 pixels over the same root toes.
+  - The plume is kept, in its own kit.
+  - Stats: radius 0.4 → 0.48 and height 1.25 → 1.9. That is 0.96 between two
+    of them plus the separation gap, still a tight swarm.
+  - The awns are sunk into their last grains (one hung off by a corner,
+    perf/islands.cjs).
+- **Giant scorpion.**
+  - Rig scale 1.25 → 2.8 (2.24×). Its back stands over Percy's waist, and the
+    tail's crown at rest is 3.97 blocks, under a dungeon door's 4, with the
+    sting over his head.
+  - Every plate and segment is a shell of cells, at 0.8 of a hero pixel's
+    density, gaining only √k for a champion.
+  - Stats: radius 0.8 → 1.3 (it fits a 5-wide corridor between its rail
+    posts) and height 1.3 → 2.4.
+  - Reach from its size: range 2.2 → 3.6; the pinch trigger 1.9 → 3.4 and
+    its reach 2 → 3.2; the sting lands 1.5 → 2.8 ahead and is 0.9 → 1.4
+    wide. Its body lunge grows ×2.24.
+  - Windups, cooldowns and damage are unchanged.
+  - Champions: the Red King 2.4 → 1.45 and the Road West look 2 → 1.32, so
+    their size against the old scorpion is about the same as before. The
+    Red King's den, 19 × 15 and 6–7 high, still holds him.
+- **Adults.**
+  - `ADULT_SCALE` 1.24 → 1.4 for every mortal disguise but the student and
+    for the open world's adults.
+  - Charon 1.32 → 1.45, Argus 1.42 → 1.47, Big Earl 1.34 → 1.4. Ranger Mae,
+    Trudy and Galene go to `ADULT_SCALE`.
+  - Mr. D 1.05 → 1.18, Coach Hedge 1.08 → 1.18, Grandma Mae 1.02 → 1.18
+    (short adults, skull level with Percy's).
+  - The Mist's real mortal goes to height 2.2 (from 1.9) and radius 0.4
+    (from 0.38).
+  - A disguised monster keeps enemy.js's 0.38 / 1.9 while disguised (enemy.js
+    is out of this round's scope).
+  - These are rescaled skin-box models, not re-sculpted, so their cells grow
+    with them (×1.13). Argus is held at 1.47 because his hero-sized head is
+    at the head rule's top for his size.
+
+**Classification** (sizes.json, each with its reason):
+
+- **Adult** ("adult" band): teacher, guard, tourist, farmer, old lady,
+  bellhop, salesman, the Mist's mortal, Quintus, Charon, Sisyphus, Argus,
+  Big Earl, Mrs. Pruitt, Ranger Mae, Sal, Trudy and Galene the Nereid.
+- **Short adult** ("same"): Mr. D, Coach Hedge, Grandma Mae.
+- **Teen** ("same"): Percy, Annabeth, Grover, Clarisse, Thalia, Nico, Luke,
+  the student, Katie, Travis, Juniper, Beckendorf, Lee, Zoë, Rachel, Phoebe,
+  Bianca, Silena and Chad. Tyson is the owner's 1.5× young Cyclops.
+
+**Left for the owner.** The ghost (0.89×), the shade (0.97×) and the keres
+(0.99×) are dead adults, but they are spirits, not adults "made monstrous".
+They stay "same" unless the owner wants them grown too. Grover reads 1.00×
+without his horns, against the wiki's tall 5 ft 9 in.
+
 ## Cerberus: the recommended size
 
 - **The books:** *The Lightning Thief* ch. 18† says "twice the size of a woolly
@@ -859,6 +1052,40 @@ scratch tool, not part of the repository.
     bigger would crowd the arena.
 - **Not applied:** his stat line is the other agent's, set with the model they
   are still reshaping.
+
+## The Chimera: twice the size (round 9)
+
+- **The owner's ruling:** about twice as large as it was. Its body went from
+  3.48 m (1.6× Percy, "bigger") to 6.92 m (3.18×, "giant"); stat height 3 → 6
+  and radius 1.3 → 2.6 (`bosses.js`). The sheet draws it 3.52× its Percy.
+- **Re-sculpted, not rescaled** (`bossmodels.js`, rig scale 2.5 → 4): a big
+  cat's body (deep chest, shoulder blades, haunches, a tucked waist) on long
+  legs set wide in a planted stance (`stance`, `legSpread`), big paws with
+  cream claws, and a diamondback rattlesnake for a tail rising over the back.
+- **Heads:** the lion's and the goat's are equal, side by side on twin necks
+  from the shoulders. The sheet half hides the goat behind the lion, but the
+  owner says that is not meant. Both mouths breathe fire
+  (`rig.mouthWorld(out, i)`).
+- **Proportions,** against the body's length (chest to rump), read off the
+  sheet (design/sizes.json `quadShape`):
+  - the lion's face: 0.57 → 0.32 (sheet 0.34);
+  - its mane: 0.81 → 0.45 (sheet 0.60);
+  - the belly over the withers: 0.41 → 0.48 (sheet 0.42; a little higher,
+    for the owner's longer legs);
+  - the leg root over the body height (the bodysize table's leg/body): 0.26
+    → 0.46.
+- **Voxels:** the triangle budget (about 45k for a boss) keeps it short of a
+  hero's density. The cells are greedy-meshed (`rig.merge`). Body cells are
+  0.16 m and head cells 0.13 m, where a hero's cube is 0.06 m: about 43k
+  triangles, against 38k before. Across its body it has about twice as many
+  cells as before.
+- **The arena:** the observation deck (`world/rooms.js`, `DRESS.arch.boss`)
+  was 13 blocks wide with a 5-block ceiling. It is now 19 wide and 8 high
+  (`archHall` `half: 9, rise: 3`), so a 6-block-tall boss can move in it.
+- **Reaches** in its patterns follow the size: the fire breath's cone is 11 →
+  14 (the mouths sit about 5 m ahead of its middle), the tail strike's ring
+  5 → 7.5, and the pounce's landing 3 → 4.5. It stops 5.5 from its target,
+  not 3.5.
 
 ## Proposals left for the owner or the other agents
 
@@ -977,7 +1204,7 @@ enforces.
 | hellhound_alpha | The Hellhound | 5.91 → 5.53 (2.70 → 2.52×) | 5.61 (2.58×) | 8.0 | 5.80 / 1.80 | ~1.5 | as hellhound | big | other agent |
 | furies | The Furies | 5.09 → 7.93 (2.32 → 3.64×; box with whip and wings) | 2.58 → 4.15 (1.19 → 1.91×) | 7.0 → 8.5 (wingspan) | 3.00 → 5.80 / 0.90 → 1.20; hover 1.4 → 1.9 | body ~1.8–2.0 (Alecto), the sisters a little smaller (owner, round 4, second pass) | TLT | **misjudged in rounds 1–3**: body 1.19×, the box was the whip and wings | FIXED round 4, second pass: Alecto 2.8 (1.89×), Megaera and Tisiphone 1.6 → 2.5 (body 3.68, 1.69×); the sisters circle 8.5 out and 5.6 up (were 7.5 and 4.6); the fight is in the open highway arena, so the collision height is the body's |
 | medusa | Medusa | 4.27 → 4.25 (1.95 → 1.94×) | 3.41 (1.57×) | 2.9 | 4.00 / 1.00 | ~1.0–1.1 | TLT: a woman in a black gown and veil; Greek Gods: "a tall woman" (Riordan Wiki) | big, kept by the owner; **corrected**: the 1.96× box is her raised snake hair, her body is 1.57× | keep (owner); doubt below |
-| chimera | The Chimera | 3.54 (1.62×) | 3.54 (1.63×) | 6.5 | 3.00 / 1.30 | ~1.5–2 | TLT ch. 12: grows from Echidna's Chihuahua, with "a ten-foot-long diamondback" snake tail; Greek Heroes: Bellerophon's Chimera was "about the size of a woolly mammoth" (Riordan Wiki) | OK | — |
+| chimera | The Chimera | 3.54 → 6.95 (1.62 → 3.20×) | 3.54 → 6.92 (1.63 → 3.18×) | 6.5 → 11.6 | 3.00 → 6.00 / 1.30 → 2.60 | ~1.5–2 | TLT ch. 12: grows from Echidna's Chihuahua, with "a ten-foot-long diamondback" snake tail; Greek Heroes: Bellerophon's Chimera was "about the size of a woolly mammoth" (Riordan Wiki) | the owner, round 9: twice the size (see "The Chimera" below) | re-sculpted at 2× |
 | spiders | The Spider Queen | 2.57 → 2.56 (1.17×) | 1.97 (0.90×) | 4.8 | 2.60 / 1.60 | — | game boss (Spider Queen) | OK; the 2.56 box ran 0.6 under the ground line (her legs at rest); her top is 1.97 (0.90×) | — |
 | procrustes | Procrustes | 3.61 (1.65×) | 3.57 (1.64×) | 3.4 | 4.40 → 3.80 / 1.20 | ~1.2 | TLT ch. 17: "seven feet tall", hairless, a raptor in a leisure suit (Riordan Wiki) | big (1.65×), OK as a boss | FIXED stat height 4.4 → 3.8 |
 | cerberus | Cerberus | 4.34 → 7.96 (1.98 → 3.63×) | 7.24 (3.32×) | 16.2 | 4.40 → 7.70 / 2.00 → 3.60 | ~3.5–4+ | TLT ch. 18: "twice the size of a woolly mammoth, mostly invisible, and had three heads"; Mrs O'Leary is a "petite puppy" beside him (Riordan Wiki) | now OK (3.21×) after the other agent's ×1.6 | keep 7.0, or ×1.1 at most |

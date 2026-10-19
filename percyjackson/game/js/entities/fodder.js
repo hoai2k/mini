@@ -553,7 +553,7 @@ function buildKarpos(K0, slinger = false) {
     const sx = Math.sin(tilt), cy = Math.cos(tilt), bx = sx * 2.6;
     KP.box(Hd, bx + sx * L / 2, H8 * 0.7 + cy * L / 2, z, 0.7, L, 0.7, goldD, 0, 0, -tilt);
     for (let k = 0; k < 5; k++) { const d = L + 0.8 + k * 1.3, w = k === 4 ? 1.2 : 1.5; for (const o of [-0.6, 0.6]) KP.box(Hd, bx + sx * (d + (o > 0 ? 0.6 : 0)) + o * cy, H8 * 0.7 + cy * (d + (o > 0 ? 0.6 : 0)) - o * sx, z, w, 1.6, 1.5, KP.tone(k > 2 ? [goldL, gold] : [gold, straw], 0.1), 0, 0, -tilt); }
-    KP.box(Hd, bx + sx * (L + 8.6), H8 * 0.7 + cy * (L + 8.6), z, 0.3, 2.4, 0.3, goldL, 0, 0, -tilt);
+    KP.box(Hd, bx + sx * (L + 8.2), H8 * 0.7 + cy * (L + 8.2), z, 0.4, 2.4, 0.4, goldL, 0, 0, -tilt);   // (the awn sunk into the last grain, round 9: it hung off it by a corner)
   }
   for (const [x, rz, L] of [[-5, 1.2, 8], [5, -1.2, 8], [-3.4, 0.7, 9], [3.6, -0.7, 9], [-1.4, 0.3, 10], [1.6, -0.3, 9], [0, 0, 7]]) KP.box(Hd, x - Math.sin(rz) * L * 0.3, H8 * 0.6 + Math.cos(rz) * L * 0.45, -1.4, 1.5, L, 0.5, KP.tone(LEAF, 0.1), 0, 0, rz);
   // long straw arms in bundles, bound at the wrist, big hands of four long clawed fingers

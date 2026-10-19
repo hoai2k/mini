@@ -265,7 +265,7 @@
   "scorpion": {
    "category": "small",
    "source": "owner",
-   "reason": "round 9, the owner: bigger than a person, to intimidate: 2.4x its old size, its back well over Percy's waist (body 0.63x, read low as a QuadRig) and its sting, raised, over his head (2.4 blocks)"
+   "reason": "round 9, the owner: bigger than a person, to intimidate: 2.24x its old size, its back well over Percy's waist (body 0.59x, read low as a QuadRig: the back of a four-legged model) and its tail, raised at rest, arching to about 4 blocks, the sting over his head"
   },
   "skeleton": {
    "category": "bigger",
@@ -540,15 +540,22 @@
    }
   },
   "chimera": {
-   "category": "bigger",
-   "source": "books",
-   "reason": "Greek Heroes: 'about the size of a woolly mammoth'; a boss",
+   "category": "giant",
+   "source": "owner",
+   "reason": "the owner, round 9: twice its old size (body 3.48 m, 1.6x Percy, to about 7 m, 3.2x); Greek Heroes: 'about the size of a woolly mammoth'; a boss",
    "sheetMeasure": {
     "sheet": "design/concept/vox-bosses-1.png",
     "percyPx": 135,
     "bodyPx": 475,
     "ratio": 3.52,
     "note": "row 1: the lion's mane to the paws"
+   },
+   "quadShape": {
+    "_note": "A QuadRig, so the head and leg rules do not check it; these are its targets, read off the sheet (row 1, rows of the 2400 x 1600 PNG: paws 715, withers about 350, body from the chest at x 1530 to the rump at x 2090) and measured on the model (perf/bodysize.cjs; skin pixels of the builder). The owner: the lion's and the goat's heads equal, side by side on twin necks from the shoulders (the sheet half hides the goat behind the lion; it is not meant to), smaller against the body than the old blocky ones, on longer legs.",
+    "headOverLength": { "sheet": 0.34, "target": 0.33, "model": 0.32, "old": 0.57, "note": "the lion's face, brow to chin without the mane, over the body's length, chest to rump: sheet 190 over 560 px; the goat's face the same" },
+    "maneOverLength": { "sheet": 0.6, "target": 0.5, "model": 0.45, "old": 0.81 },
+    "bellyOverWithers": { "sheet": 0.42, "target": 0.45, "model": 0.48, "old": 0.41, "note": "the ground to the belly under the ribs over the ground to the withers: sheet 155 over 365 px; a little over the sheet, for the owner's longer legs" },
+    "legRootOverBody": { "target": 0.45, "model": 0.46, "old": 0.26, "note": "the bodysize table's leg/body column (q): the front leg's root over the body height" }
    }
   },
   "spiders": {
@@ -779,7 +786,7 @@
   "canyon_red_king": {
    "category": "slightlyBigger",
    "source": "role",
-   "reason": "a champion: 1.4x the giant scorpion, a step above it; Coach Hedge: 'the size of a pickup truck'"
+   "reason": "a champion: 1.45x the giant scorpion, a step above it; Coach Hedge: 'the size of a pickup truck'"
   },
   "lab_bronze_warden": {
    "category": "bigger",
@@ -879,7 +886,7 @@
   "kind:scorpion": {
    "category": "slightlySmaller",
    "source": "role",
-   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it (1.25x the scorpion), its sting raised over 2.5 blocks"
+   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it (1.32x the scorpion), its sting raised over 2.5 blocks"
   },
   "kind:cyclops": {
    "category": "muchBigger",

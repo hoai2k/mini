@@ -532,26 +532,21 @@ export const BOSS_MODELS = {
     const NP = 14, kilt = [], PY = BYS;   // (the pivots sit high under the belt, so a swinging panel's top stays tucked in it)
     for (let i = 0; i < NP; i++) {
       const a = i / NP * TAU, hw = Math.PI / NP, RP = [BRX - 1, BRZ - 1], q = ring(a, ...RP), fz = q.z / RP[1];
-      const L = i === 0 ? 9 : Math.abs(fz) > 0.6 ? 7.5 : 5;   // (the front apron longest, the sides shortest and snug to the hip, as on the sheet)
+      const L = i === 0 ? 9 : Math.abs(fz) > 0.6 ? 7.5 : 6;   // (the front apron longest, the sides shortest and snug to the hip, as on the sheet)
       const G = group(rig.hips, q.x, PY, q.z + Z0), I = new THREE.Group(); G.add(I);
-      I.rotation.order = 'YXZ'; I.rotation.set(0, q.yaw, 0);
-      const nx = Math.sin(q.yaw), nz = Math.cos(q.yaw), tx = nz, tz = -nx;
-      const ra = ring(a - hw, ...RP), rb = ring(a + hw, ...RP), w0 = Math.hypot(rb.x - ra.x, rb.z - ra.z);   // (a panel is never wider than its share of the belt, so the thigh shows between them lower down)
-      // the panel is a stack of one-pixel slabs, each stepped out to the hip and thigh at its height
-      const slab = (y) => {   // y: height below the pivot (> 0)
-        const hy = PY - y, t = Math.max(0, Math.min(1, (BYS - 1 - hy) / 3)), e = t * t * (3 - 2 * t);   // (e: 0 under the belt, 1 once below its lower edge)
-        const Rx = RP[0] + (Math.max(RP[0], hipX(hy) + 0.8) - RP[0]) * e, Rz = RP[1] + Math.min(1.3, (Rx - RP[0]) * 0.45);
-        const c = ring(a, Rx, Rz), c1 = ring(a - hw, Rx, Rz), c2 = ring(a + hw, Rx, Rz);
-        const ex = c.x - q.x, ez = c.z - q.z;
-        return { out: ex * nx + ez * nz, tan: ex * tx + ez * tz, w: Math.min(Math.hypot(c2.x - c1.x, c2.z - c1.z) * 1.12, w0 * 1.4) };
-      };
-      const hem = (x, y, z, n, h) => (y < -L + 1.5 - Math.abs(Math.sin(x * 1.3 + i * 2.1)) * 0.9 - h * 1.2 ? null : y < -L + 2.6 ? CLOTHD : CLOTH[Math.floor(h * 3)]);
-      const slabs = [];
-      for (let k = 0; k < Math.ceil(L + 0.5); k++) {
-        const y1 = k === 0 ? 0.5 : -(k - 0.5), y0 = Math.max(-L, y1 - 1), s = slab(-(y0 + y1) / 2);
-        slabs.push({ b: [s.tan - s.w / 2, y0, s.out - 0.5, s.tan + s.w / 2, y1, s.out + 0.5], col: hem, bump: 0, fuzz: 0 });
+      const nx = Math.sin(q.yaw), nz = Math.cos(q.yaw);
+      // each panel is one flat piece of cloth hung from inside the belt, tipped out just far enough
+      // that its hem clears the hip and thigh (the thigh sculpt reaches HIP px out, 4.7 px in front)
+      let tilt = 0.04;   // (the steepest tip over the heights from the belt's lower edge to the hem, so no part of the thigh pokes through)
+      for (let hy = Math.min(BYS - 2, PY - L + 0.5); hy >= PY - L; hy -= 0.5) {
+        const hc = ring(a, Math.max(RP[0], hipX(hy) + 1.2), 5.3), need = (hc.x - q.x) * nx + (hc.z - q.z) * nz;
+        tilt = Math.max(tilt, Math.atan2(need, PY - hy));
       }
-      vox(rig, I, slabs, { v: 1, seed: 40 + i });
+      tilt = Math.min(0.62, tilt);
+      I.rotation.order = 'YXZ'; I.rotation.set(-tilt, q.yaw, 0);
+      const ra = ring(a - hw, ...RP), rb = ring(a + hw, ...RP), w = Math.hypot(rb.x - ra.x, rb.z - ra.z) * 1.7;   // (a little wider than its share of the belt, so neighbours overlap and the cloth reads as one skirt)
+      const hem = (x, y, z, n, h) => (y < -L + 1.5 - Math.abs(Math.sin(x * 1.3 + i * 2.1)) * 0.9 - h * 1.2 ? null : y < -L + 2.6 ? CLOTHD : CLOTH[Math.floor(h * 3)]);
+      vox(rig, I, [{ b: [-w / 2, -L, -0.5, w / 2, 0.8, 0.5], col: hem, bump: 0, fuzz: 0 }], { v: 1, seed: 40 + i });
       kilt.push({ g: G, legs: q.x < -2.5 ? [rig.legR] : q.x > 2.5 ? [rig.legL] : [rig.legR, rig.legL], front: Math.max(0, Math.min(1, fz * 1.4)), back: Math.max(0, Math.min(1, -fz * 1.4)), side: Math.sign(q.x) * (Math.abs(q.x) > 2.5 ? 1 : 0) });
     }
     rig.extras.kilt = kilt;

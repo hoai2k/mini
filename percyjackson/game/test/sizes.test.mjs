@@ -54,7 +54,7 @@ test('a sheet measurement adds up', () => {
 });
 
 test('the owner\'s rulings keep their categories', () => {
-  const want = { tyson: 'bigger', hellhound: 'muchBigger', hellhound_alpha: 'muchBigger', laistrygonian: 'bigger', medusa: 'bigger', pup: 'slightlyBigger', cerberus: 'giant', fury: 'bigger', alecto: 'bigger', empousa: 'same' };
+  const want = { tyson: 'bigger', hellhound: 'muchBigger', hellhound_alpha: 'muchBigger', laistrygonian: 'bigger', medusa: 'bigger', pup: 'slightlyBigger', cerberus: 'giant', chimera: 'giant', fury: 'bigger', alecto: 'bigger', empousa: 'same' };
   for (const [id, cat] of Object.entries(want)) {
     assert.equal(spec.models[id].category, cat, id);
     assert.equal(spec.models[id].source, 'owner', id);
