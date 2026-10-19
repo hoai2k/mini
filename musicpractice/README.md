@@ -1111,4 +1111,4 @@ their prompts and 512×512 lossless WebP exports. Arpeggios use five notes
 in a rising and falling arch; sight reading uses a single music sheet and
 magnifying glass; improvisation uses a bulb enclosing one eighth note.
 These pictures have no wings, ribbons, mist or decorative floating notes.
-The image request list tracks the pictures that remain to be delivered.
+All 24 Round 12 pictures are delivered, with their original PNG masters retained.
