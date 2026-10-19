@@ -1,0 +1,216 @@
+// The Practice Routine's routine and its clock: a list of practice items, each
+// a name, a number of minutes and, optionally, a metronome and a drone set up
+// for that item alone (they never change the Metronome's or the Drone's own
+// settings). Pure: the screen is timerui.js, the sound comes through the
+// engines main.js hands it.
+//
+// IN DEVELOPMENT: shown only with ?routine in the address (main.js). Inside
+// the code it is the timer (timer.js, timerui.js, TEXT.timer, #timer-…).
+
+import { TEXT } from './text.js';
+import { METERS, BPM_MIN, BPM_MAX } from './settings.js';
+import { DRONE_MIN, DRONE_MAX, VOICES } from './drone.js';
+
+const KEY = 'musicpractice.routine.v1';
+export const MAX_ITEMS = 30;
+export const MIN_MINUTES = 1;
+export const MAX_MINUTES = 120;
+const MAX_NAME = 60;
+
+/** The suggestions offered by +. */
+export const PRESETS = [
+  { id: 'intonation', minutes: 3, metronome: false, drone: true },
+  { id: 'scales', minutes: 5, metronome: true, drone: false },
+  { id: 'rhythms', minutes: 3, metronome: false, drone: false },
+  { id: 'ghosting', minutes: 3, metronome: false, drone: false },
+];
+/** The routine a first visit starts with. */
+const FIRST_ROUTINE = ['intonation', 'scales'];
+
+let nextId = 1;
+const newId = () => `i${Date.now().toString(36)}${(nextId++).toString(36)}`;
+
+/**
+ * A new item: from a preset (or blank, for Custom…), its metronome and drone
+ * starting from the app's current ones (`base`, the settings) and its own from
+ * then on.
+ */
+export function newItem(presetId, base = {}) {
+  const p = PRESETS.find((x) => x.id === presetId);
+  return clean({
+    id: newId(),
+    name: p ? TEXT.timer.presets[p.id] : '',
+    minutes: p ? p.minutes : 5,
+    metronome: p ? p.metronome : false,
+    drone: p ? p.drone : false,
+    met: { bpm: base.bpm, meter: base.meter },
+    drn: { midi: base.droneMidi, voice: base.droneVoice, fifth: base.droneFifth },
+  });
+}
+
+export const defaultRoutine = (base) => FIRST_ROUTINE.map((id) => newItem(id, base));
+
+const clampInt = (v, lo, hi, d) => (Number.isFinite(Number(v)) ? Math.max(lo, Math.min(hi, Math.round(Number(v)))) : d);
+
+/** One item, with anything missing or out of range put right. */
+export function clean(it) {
+  const o = it && typeof it === 'object' ? it : {};
+  const met = o.met && typeof o.met === 'object' ? o.met : {};
+  const drn = o.drn && typeof o.drn === 'object' ? o.drn : {};
+  return {
+    id: typeof o.id === 'string' && o.id ? o.id.slice(0, 40) : newId(),
+    name: typeof o.name === 'string' ? o.name.slice(0, MAX_NAME) : '',
+    minutes: clampInt(o.minutes, MIN_MINUTES, MAX_MINUTES, 5),
+    metronome: o.metronome === true,
+    drone: o.drone === true,
+    met: {
+      bpm: clampInt(met.bpm, BPM_MIN, BPM_MAX, 80),
+      meter: METERS.some((m) => m.id === met.meter) ? met.meter : '4/4',
+    },
+    drn: {
+      midi: clampInt(drn.midi, DRONE_MIN, DRONE_MAX, 48),
+      voice: VOICES.some((v) => v.id === drn.voice) ? drn.voice : 'cello',
+      fifth: drn.fifth === true,
+    },
+  };
+}
+
+/** A saved routine, or the default one on a first visit (an emptied one stays empty). */
+export function cleanRoutine(v, base) {
+  if (!Array.isArray(v)) return defaultRoutine(base);
+  const seen = new Set();
+  return v.slice(0, MAX_ITEMS).map(clean).filter((it) => !seen.has(it.id) && seen.add(it.id));
+}
+
+/** The chime between items (and at the end), from design/chime-sounds.md's second batch; 'none' for silence. */
+export const CHIMES = ['kalimba', 'two-tone', 'celesta', 'none'];
+
+/** The timer's own saved state: the routine and the chime. */
+export function loadTimer(base, storage = globalThis.localStorage) {
+  let saved = null;
+  try { saved = JSON.parse(storage?.getItem(KEY) || 'null'); } catch { /* start afresh */ }
+  return {
+    items: cleanRoutine(saved?.items, base),
+    chime: CHIMES.includes(saved?.chime) ? saved.chime : 'kalimba',
+  };
+}
+export function saveTimer({ items, chime }, storage = globalThis.localStorage) {
+  try { storage?.setItem(KEY, JSON.stringify({ items, chime })); } catch { /* not kept */ }
+}
+
+const chimeBuffers = new WeakMap(); // AudioContext -> Map(id -> Promise<AudioBuffer>)
+/** Play chime `id` on `ctx` (decoded once per context). Resolves when it has started. */
+export async function playChime(ctx, id, volume = 0.9) {
+  if (!ctx || !CHIMES.includes(id) || id === 'none') return;
+  let cache = chimeBuffers.get(ctx);
+  if (!cache) chimeBuffers.set(ctx, (cache = new Map()));
+  if (!cache.has(id)) {
+    const url = new URL(`../assets/audio/timer/${id}.mp3`, import.meta.url);
+    cache.set(id, fetch(url).then((r) => r.arrayBuffer())
+      .then((data) => new Promise((resolve, reject) => ctx.decodeAudioData(data, resolve, reject))));
+  }
+  try {
+    const buf = await cache.get(id);
+    const src = ctx.createBufferSource();
+    const gain = ctx.createGain();
+    gain.gain.value = volume;
+    src.buffer = buf;
+    src.connect(gain).connect(ctx.destination);
+    src.start();
+  } catch {
+    cache.delete(id); // try again next time
+  }
+}
+
+export const totalSeconds = (items) => items.reduce((s, it) => s + it.minutes * 60, 0);
+
+/*
+ * Hooks for what else marks a change of item, beyond the chime (which the
+ * screen plays): a spoken announcement ("Scales finished. Next, five minutes
+ * of intonation."), still to be decided. The timer calls them at the right
+ * moments and they do nothing yet.
+ */
+export const cues = {
+  /** The routine began, with `item` first. */
+  started: (item) => {},
+  /** `done` finished and `next` begins now. */
+  changed: (done, next) => {},
+  /** The last item, `done`, finished. */
+  finished: (done) => {},
+};
+
+/**
+ * Runs a routine against a clock (`now`, in ms; Date.now in use, so time
+ * with the screen locked counts). `tick` moves on whenever an item's time
+ * is up, as many as are due, and reports what happened; the screen calls it
+ * a few times a second and when it is shown again.
+ */
+export class TimerRun {
+  constructor(items, now = Date.now()) {
+    this.items = items;
+    this.index = 0;
+    this.paused = false;
+    this.done = false;
+    this.endsAt = now + this.items[0].minutes * 60000;
+    this.left = 0; // ms left while paused
+  }
+
+  get item() { return this.items[this.index]; }
+  get next() { return this.items[this.index + 1] || null; }
+
+  /** Seconds left of the current item. */
+  remaining(now = Date.now()) {
+    if (this.done) return 0;
+    return Math.max(0, (this.paused ? this.left : this.endsAt - now) / 1000);
+  }
+
+  /** How far through the current item, 0 to 1. */
+  progress(now = Date.now()) {
+    const total = this.item ? this.item.minutes * 60 : 1;
+    return this.done ? 1 : Math.min(1, Math.max(0, 1 - this.remaining(now) / total));
+  }
+
+  pause(now = Date.now()) {
+    if (this.paused || this.done) return;
+    this.left = Math.max(0, this.endsAt - now);
+    this.paused = true;
+  }
+
+  resume(now = Date.now()) {
+    if (!this.paused || this.done) return;
+    this.endsAt = now + this.left;
+    this.paused = false;
+  }
+
+  /** The current item's minutes changed while it runs: its end moves with them. */
+  retime(oldMinutes, now = Date.now()) {
+    const d = (this.item.minutes - oldMinutes) * 60000;
+    if (this.paused) this.left = Math.max(0, this.left + d);
+    else this.endsAt += d;
+  }
+
+  /**
+   * Move on if the time is up (or now, with `force`: Skip). Returns the
+   * changes: [{ type: 'changed', done, next }] or [{ type: 'finished', done }].
+   */
+  tick(now = Date.now(), force = false) {
+    const out = [];
+    // Skip works while paused too: the next item waits, paused, at its full time.
+    while (!this.done && (force || (!this.paused && now >= this.endsAt))) {
+      const done = this.item;
+      const at = force ? now : this.endsAt;
+      force = false;
+      if (this.index + 1 >= this.items.length) {
+        this.done = true;
+        this.paused = false;
+        out.push({ type: 'finished', done });
+      } else {
+        this.index++;
+        this.endsAt = at + this.item.minutes * 60000;
+        if (this.paused) this.left = this.item.minutes * 60000;
+        out.push({ type: 'changed', done, next: this.item });
+      }
+    }
+    return out;
+  }
+}

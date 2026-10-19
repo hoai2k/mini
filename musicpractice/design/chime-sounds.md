@@ -49,3 +49,25 @@ A rising set for a start and a falling set for an end tell the two apart
 without looking. Every sound is a few seconds of ringing, so the timer should
 play the end chime as the block ends and start the next block's chime once
 the voice (if any) has finished.
+
+## Short cues (second batch)
+
+The bowls and bells above rang too long and sounded like a meditation timer.
+This batch is plain "time is up" cues: short, dry and quick to fade. Each falls
+30 dB below its peak within 0.4–1.3 s, where the bowls rang for many seconds.
+They are in `sounds/cues/cue-<name>-<take>.mp3`, 2–3 s long, cleaned the same
+way (`PREFIX=cue python3 source/chimes-clean.py`).
+
+| Name | Prompt (shortened) | What came out |
+| --- | --- | --- |
+| glock-ding | a single clear glockenspiel note, short decay | one clean ding, both takes |
+| app-chime | soft modern app notification chime, warm two-tone | one warm tone; take 2 is cleanest (floor −98 dB) |
+| two-tone | two-note bell chime, second lower | the two notes sound together, as a soft chord |
+| two-tone-up | two-note bell chime, second higher | take 1 is a quick two-note rise (0.12 s apart) |
+| celesta-three | three soft celesta notes, rising | one sustained tone, not three |
+| kalimba-three | three plucked kalimba notes, rising | two notes, about 0.45 s apart; slightly noisy (−57 to −65 dB) |
+| marimba-three | three quick marimba notes | a run of about a dozen notes; left out |
+| vibes-two | two soft vibraphone notes, descending | take 1 a run of notes, take 2 messy; left out |
+
+**Shortlist:** `glock-ding-1`, `app-chime-2`, `two-tone-up-1` (for a start),
+`two-tone-2` (for an end), `kalimba-three-1`, `celesta-three-2`.

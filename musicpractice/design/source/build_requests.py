@@ -575,9 +575,9 @@ TIMER_SUBJECT = {
 
 
 def round9_assets() -> list[dict]:
-    """The Practice Timer's home button: an hourglass per theme, drawn to sit
+    """The Practice Routine's home button: an hourglass per theme, drawn to sit
     beside that theme's other home buttons (shown while in development only
-    with ?timer in the address)."""
+    with ?routine in the address)."""
     record = json.loads((ROOT / "design" / "image-deliveries-drone.json").read_text())
     names = {t["id"]: t["name"] for t in THEMES}
     out = []
@@ -586,7 +586,7 @@ def round9_assets() -> list[dict]:
         src = a["file"].removeprefix("musicpractice/app/")
         folder = src.rsplit("/", 1)[0]
         out.append(dict(
-            id="home-timer", theme=theme, round=9, file=f"{folder}/home-timer.webp",
+            id="home-routine", theme=theme, round=9, file=f"{folder}/home-routine.webp",
             size="1024×1024, transparent PNG (shipped as 384×384 WebP)", status="requested",
             group=f"{name} · Home screen buttons",
             prompt=(f"Using the attached image, musicpractice/app/{src} (this theme's Drone home "
@@ -600,7 +600,7 @@ def round9_assets() -> list[dict]:
                     "height as the cello, with the same small even margin; a bold readable silhouette "
                     "that still reads at 64 pixels. A fully transparent background, no cast shadow, no "
                     "clock face, no text, no letters, no numbers."),
-            note=(f"The Practice Timer's button on the home screen in the {name} theme (and its "
+            note=(f"The Practice Routine's button on the home screen in the {name} theme (and its "
                   "picture on the timer screen); the label is written by the app. Made from "
                   f"app/{src} so it matches the other home buttons. Until it arrives the app draws a "
                   "stand-in hourglass."),
@@ -628,7 +628,7 @@ def render() -> tuple[str, str]:
                        (6, "Drone home icons, every theme"),
                        (7, "Drone screen with the bow as volume, every theme"),
                        (8, "Drone screen for the organ, every theme"),
-                       (9, "Practice Timer home icons, every theme")):
+                       (9, "Practice Routine home icons, every theme")):
         wanted = [a for a in ASSETS if a["round"] == rnd and a["status"] in ("requested", "revise")]
         lines.append(f"**Round {rnd} ({title}):** "
                      + (f"{len(wanted)} image{'s' if len(wanted) != 1 else ''} wanted: " + ", ".join(f"`{a['file']}`" for a in wanted) + "."

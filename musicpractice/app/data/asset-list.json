@@ -728,51 +728,51 @@
     "status": "delivered"
   },
   {
-    "id": "home-timer",
+    "id": "home-routine",
     "theme": "classic",
-    "file": "assets/ui/home-timer.webp",
+    "file": "assets/ui/home-routine.webp",
     "status": "requested"
   },
   {
-    "id": "home-timer",
+    "id": "home-routine",
     "theme": "deco",
-    "file": "assets/ui/deco/home-timer.webp",
+    "file": "assets/ui/deco/home-routine.webp",
     "status": "requested"
   },
   {
-    "id": "home-timer",
+    "id": "home-routine",
     "theme": "sixties",
-    "file": "assets/ui/sixties/home-timer.webp",
+    "file": "assets/ui/sixties/home-routine.webp",
     "status": "requested"
   },
   {
-    "id": "home-timer",
+    "id": "home-routine",
     "theme": "baroque",
-    "file": "assets/ui/baroque/home-timer.webp",
+    "file": "assets/ui/baroque/home-routine.webp",
     "status": "requested"
   },
   {
-    "id": "home-timer",
+    "id": "home-routine",
     "theme": "scifi",
-    "file": "assets/ui/scifi/home-timer.webp",
+    "file": "assets/ui/scifi/home-routine.webp",
     "status": "requested"
   },
   {
-    "id": "home-timer",
+    "id": "home-routine",
     "theme": "nouveau",
-    "file": "assets/ui/nouveau/home-timer.webp",
+    "file": "assets/ui/nouveau/home-routine.webp",
     "status": "requested"
   },
   {
-    "id": "home-timer",
+    "id": "home-routine",
     "theme": "anime",
-    "file": "assets/ui/anime/home-timer.webp",
+    "file": "assets/ui/anime/home-routine.webp",
     "status": "requested"
   },
   {
-    "id": "home-timer",
+    "id": "home-routine",
     "theme": "steampunk",
-    "file": "assets/ui/steampunk/home-timer.webp",
+    "file": "assets/ui/steampunk/home-routine.webp",
     "status": "requested"
   }
 ]

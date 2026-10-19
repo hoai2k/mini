@@ -18,6 +18,9 @@ import { setupFeedback } from './feedback.js';
 import { initPro, isPro, onProChange, requirePro, openPaywall } from './pro.js';
 import { FREE_TAKES, FREE_THEME } from './pro-config.js';
 import { nativeAudio, NativeMetronome, NativeDrone, onNativeStopped } from './nativeaudio.js';
+import { setupTimer } from './timerui.js';
+import { playChime } from './timer.js';
+import { setupPager } from './pager.js';
 
 // In the iOS and Android apps the metronome and the drone play through native
 // code, so they keep going with the screen locked (nativeaudio.js).
@@ -38,6 +41,23 @@ import { tuckedVolume } from './tuckedvolume.js';
 const $ = (id) => document.getElementById(id);
 const settings = load();
 const persist = () => save(settings);
+
+// The Practice Routine is in development: it is there only with ?routine (or
+// the earlier ?timer) in the address. Without it, nothing of it is set up and
+// the app is as it was.
+const TIMER_ON = ['routine', 'timer'].some((k) => new URLSearchParams(location.search).has(k));
+const timerTile = TIMER_ON ? (() => {
+  const a = document.createElement('a');
+  a.className = 'choice';
+  a.href = '#routine';
+  a.id = 'go-timer';
+  a.dataset.tool = 'routine';
+  a.draggable = false;
+  a.innerHTML = '<span class="art" data-asset="home-routine"></span><span class="label"></span>';
+  a.querySelector('.label').textContent = TEXT.home.tools.timer;
+  $('choices').append(a);
+  return a;
+})() : null;
 
 // ---------------------------------------------------------------- theme
 
@@ -95,9 +115,9 @@ for (const type of ['pointerdown', 'touchend', 'click', 'keydown']) {
 
 // ---------------------------------------------------------------- screens
 
-const SCREENS = ['home', 'metronome', 'record', 'tuner', 'drone'];
+const SCREENS = ['home', 'metronome', 'record', 'tuner', 'drone', ...(TIMER_ON ? ['routine'] : [])];
 // The browser tab names the screen by its own title (the home tiles may be shorter).
-const TITLES = { metronome: TEXT.metronome.title, record: TEXT.recorder.title, tuner: TEXT.tuner.title, drone: TEXT.drone.title };
+const TITLES = { metronome: TEXT.metronome.title, record: TEXT.recorder.title, tuner: TEXT.tuner.title, drone: TEXT.drone.title, routine: TEXT.timer.title };
 let screen = 'home';
 function route() {
   const want = location.hash.replace('#', '') || 'home';
@@ -123,6 +143,7 @@ const homeOrder = setupHomeOrder({
   order: settings.homeOrder,
   onChange: (order) => { settings.homeOrder = order; persist(); },
 });
+if (timerTile) $('choices').append(timerTile); // the newest button last (it isn't in the saved order)
 
 function leave(name) {
   if (name === 'home') homeOrder.stop();
@@ -130,6 +151,7 @@ function leave(name) {
   if (name === 'record') stopRecorder();
   if (name === 'tuner') stopTuner();
   if (name === 'drone') droneUI.stop();
+  if (name === 'routine') timerUI?.leave();
   for (const d of document.querySelectorAll('dialog[open]')) d.close();
 }
 
@@ -145,6 +167,8 @@ function enter(name) {
   if (name === 'drone') droneUI.fit();
   if (name === 'record') checkRecorderMic(); // it starts off: the record button begins the cycle
   if (name === 'tuner') startTuner();
+  if (name === 'routine') { if (!recorder?.holdsMic) setSession('playback'); timerUI?.enter(); }
+  if (name === 'home') layoutHome();
   if (name === 'drone') {
     // Like the metronome, the drone doesn't use the mic.
     if (!recorder?.holdsMic) setSession('playback');
@@ -1876,6 +1900,94 @@ const droneUI = setupDrone({
     keepAwake(on);
   },
 });
+// ---------------------------------------------------------------- practice timer
+
+/*
+ * The Practice Routine (?routine only, in development; inside, the timer). Its items play the
+ * metronome and the drone through the same engines as their own screens, but
+ * set up from the item, never from or into the Metronome's or the Drone's
+ * settings (sound, accent and volume follow the Metronome's).
+ */
+let timerUI = null;
+let pager = null;
+let timerDrone = false; // the timer started the drone
+if (TIMER_ON) {
+  const timerAudio = {
+    metronome(met) {
+      const cfg = { ...settings, bpm: met.bpm, meter: met.meter, accentPattern: null, subdivision: 1 };
+      if (useNative) {
+        if (!metronome?.native) metronome = new NativeMetronome();
+        metronome.configure(cfg);
+        if (!metronome.running) metronome.start().catch(() => {});
+        return;
+      }
+      if (metronome?.running) { metronome.configure(cfg); return; }
+      const ctx = freshAudio();
+      unlock();
+      if (!metronome || metronome.ctx !== ctx) {
+        metronome = new Metronome(ctx);
+        if (settings.speaker !== 'default') setContextSpeaker(settings.speaker);
+      }
+      metronome.configure(cfg);
+      metronome.start();
+    },
+    stopMetronome() { if (metronome?.running) metronome.stop(); },
+    drone(drn) {
+      timerDrone = true;
+      const voice = TEXT.drone.voices[drn.voice] || '';
+      droneEngine().play({ midi: drn.midi, voice: drn.voice, a4: settings.a4, fifth: drn.fifth, schedule: null, label: `${TEXT.timer.title} · ${voice}` });
+    },
+    stopDrone() { if (timerDrone) { timerDrone = false; droneEngine().stop(); } },
+    // On the context the metronome plays through, when it does (one context, one output).
+    chime(id) { playChime(!useNative && metronome?.running ? metronome.ctx : audio(), id); },
+    running(on) {
+      keepAwake(on);
+      if (on && !recorder?.holdsMic) setSession('playback');
+    },
+  };
+  timerUI = setupTimer({
+    settings,
+    audio: timerAudio,
+    chips,
+    canDrone: () => isPro(),
+    askDrone: () => openPaywall('drone'),
+  });
+  pager = setupPager({
+    home: $('home'),
+    timer: $('routine'),
+    current: () => screen,
+    go: (name) => {
+      history.pushState(null, '', name === 'routine' ? '#routine' : location.pathname + location.search);
+      route();
+    },
+  });
+  $('page-next').addEventListener('click', () => pager.slide('home'));
+  // Back to the start slides when the timer is the second page.
+  $('timer-back').addEventListener('click', (e) => { if (pager.slide('routine')) e.preventDefault(); });
+  let homeQueued = 0;
+  addEventListener('resize', () => { cancelAnimationFrame(homeQueued); homeQueued = requestAnimationFrame(layoutHome); });
+  document.fonts?.ready.then(() => layoutHome());
+}
+
+/**
+ * Where the Practice Routine goes on the home screen: a fifth button among the
+ * others when all five fit without scrolling, or else a second page to swipe
+ * (or, with a mouse, click the arrow) across to.
+ */
+function layoutHome() {
+  if (!TIMER_ON || !pager || screen !== 'home') return;
+  const box = $('choices');
+  timerTile.hidden = false;
+  box.classList.add('five');
+  const fits = document.documentElement.scrollHeight <= innerHeight + 1;
+  timerTile.hidden = !fits;
+  box.classList.toggle('five', fits);
+  pager.set(!fits);
+  const touch = matchMedia('(pointer: coarse)').matches;
+  $('page-next').hidden = fits || touch;
+  $('page-hint').hidden = fits || !touch;
+}
+
 // The apps: the native metronome and drone go on while the screen is locked
 // (and can be stopped from the lock screen or the notification). Coming back,
 // catch up with what they did.
