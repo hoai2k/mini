@@ -6,7 +6,7 @@
 import { TEXT, setRich } from './text.js';
 import { detectPitch, describe, nearestString, noteName, midiToHz, TUNINGS, TRANSPOSE, A4_MIN, A4_MAX, PitchSmoother } from './tuning.js';
 import { playSamples } from './player.js';
-import { ScaleListener, judge, resultTier, SCALE_TOLERANCE } from './scaletest.js';
+import { ScaleListener, judge, resultTier, scaleScore, SCALE_TOLERANCE } from './scaletest.js';
 
 const WINDOW = 4096; // samples analysed at a time (enough for a low B on a 5-string bass)
 const HOLD_MS = 1500; // the last note stays up this long after the sound stops
@@ -149,6 +149,39 @@ export function setupTuner({ settings, persist, chips }) {
     show();
   }
 
+  // ---- Fitting the screen: the tuner takes the window's height and no more.
+  // Where it would scroll, the scale test's card loses its subtitle, then
+  // shrinks, then loses the space above its rule and its box (the strip under
+  // the rule is the button), and only then does the gauge give up the rest (never below
+  // 100 px). Measured, since the controls' height varies by theme, font,
+  // instrument and window.
+  function fit() {
+    const scr = $('tuner');
+    if (scr.hidden) return;
+    const card = $('scale-test');
+    const root = document.documentElement;
+    const over = () => root.scrollHeight - innerHeight;
+    card.classList.remove('compact', 'tight', 'bare');
+    body.style.removeProperty('--gauge-max');
+    for (const step of ['compact', 'tight', 'bare']) if (over() > 0) card.classList.add(step);
+    // The gauge, a few times over (a smaller gauge can move other things).
+    for (let k = 0; k < 4; k++) {
+      const o = over();
+      if (o <= 0) break;
+      const g = $('gauge').getBoundingClientRect().height;
+      if (g <= 100) break;
+      body.style.setProperty('--gauge-max', `${Math.max(100, Math.floor(g - o - 2))}px`);
+    }
+  }
+  let fitQueued = 0;
+  function queueFit() { cancelAnimationFrame(fitQueued); fitQueued = requestAnimationFrame(fit); }
+  addEventListener('resize', queueFit);
+  visualViewport?.addEventListener('resize', queueFit);
+  document.fonts?.ready.then(queueFit);
+  document.addEventListener('art-applied', queueFit);
+  // A status line, the strings of an instrument or a mic tip coming and going.
+  if (typeof ResizeObserver === 'function') new ResizeObserver(queueFit).observe(body);
+
   // ---- Test My Scale Intonation. A sheet: how it works and a record button;
   // pressed, it listens for the scale and follows it; three seconds of quiet
   // and the results show there.
@@ -216,6 +249,19 @@ export function setupTuner({ settings, persist, chips }) {
       return li;
     }));
     $('scale-help').textContent = S.help(SCALE_TOLERANCE);
+    // The score, counted up as the sheet shows it.
+    const sc = scaleScore(notes);
+    $('scale-score').hidden = !notes.length;
+    $('scale-score-parts').textContent = S.parts(sc.inTune, sc.close, sc.clear);
+    const num = $('scale-score-num');
+    const t0 = performance.now();
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const count = (t) => {
+      const k = still ? 1 : Math.min(1, (t - t0) / 1100);
+      num.textContent = String(Math.round(sc.total * (1 - (1 - k) ** 3)));
+      if (k < 1 && sheet.dataset.step === 'results') requestAnimationFrame(count);
+    };
+    requestAnimationFrame(count);
     scaleStep('results');
     if (!sheet.open) sheet.showModal();
   }
@@ -351,6 +397,7 @@ export function setupTuner({ settings, persist, chips }) {
     receive,
     /** Leaving the tuner ends a scale test that is listening. */
     stopScale,
+    fit: queueFit,
     animate,
     /** Leaving the screen or the mic closing: stop any tone and clear the reading. */
     stop() { stopTone(); reset(); },

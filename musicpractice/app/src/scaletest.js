@@ -19,6 +19,27 @@ const CLARITY = 0.7;
  */
 export const resultTier = (good, n) => (!n ? 'neutral' : good / n >= 0.8 ? 'great' : good / n >= 0.5 ? 'good' : 'neutral');
 
+/**
+ * A score out of 1000 for a scale, more than the share in tune:
+ * - up to 600 for the share of notes in tune;
+ * - up to 250 for how close every note was, so a near miss earns more than a
+ *   wild one and a note dead in the centre more than one only just in tune
+ *   (in full at 0 cents, nothing from 50 off);
+ * - up to 150 for how clear and steady the tone was (the pitch clarity the
+ *   detector measures: nothing at 0.7, where a frame stops counting as a
+ *   note, in full from 0.95).
+ * Returns the total and its three parts, rounded so they add up.
+ */
+export const SCORE_PARTS = { inTune: 600, close: 250, clear: 150 };
+export function scaleScore(notes, tolerance = SCALE_TOLERANCE) {
+  if (!notes.length) return { total: 0, inTune: 0, close: 0, clear: 0 };
+  const mean = (f) => notes.reduce((s, n) => s + f(n), 0) / notes.length;
+  const inTune = Math.round(SCORE_PARTS.inTune * mean((n) => (Math.abs(n.cents) <= tolerance ? 1 : 0)));
+  const close = Math.round(SCORE_PARTS.close * mean((n) => Math.max(0, 1 - Math.abs(n.cents) / 50)));
+  const clear = Math.round(SCORE_PARTS.clear * mean((n) => Math.min(1, Math.max(0, ((n.clarity ?? 1) - 0.7) / 0.25))));
+  return { total: inTune + close + clear, inTune, close, clear };
+}
+
 /** 'good', 'flat' or 'sharp' for a note `cents` off its nearest pitch. */
 export const judge = (cents, tolerance = SCALE_TOLERANCE) =>
   (Math.abs(cents) <= tolerance ? 'good' : cents < 0 ? 'flat' : 'sharp');
@@ -46,14 +67,14 @@ export function segmentNotes(frames, { sampleRate, a4 = 440, gate = 0 }) {
     const exact = ok ? 69 + 12 * Math.log2(f.hz / a4) : null;
     const m = ok ? Math.round(exact) : null;
     if (cur && m === cur.midi) {
-      cur.frames.push({ at: f.at, exact });
+      cur.frames.push({ at: f.at, exact, clarity: f.clarity });
       cur.end = f.at + HOP;
       stray = 0;
     } else if (cur && stray < 2) {
       stray++; // one or two odd frames inside a note don't end it
     } else {
       if (cur) runs.push(cur);
-      cur = ok ? { midi: m, frames: [{ at: f.at, exact }], start: f.at, end: f.at + HOP } : null;
+      cur = ok ? { midi: m, frames: [{ at: f.at, exact, clarity: f.clarity }], start: f.at, end: f.at + HOP } : null;
       stray = 0;
     }
   }
@@ -70,7 +91,10 @@ export function segmentNotes(frames, { sampleRate, a4 = 440, gate = 0 }) {
       prev.end = r.end / sampleRate;
       continue;
     }
-    notes.push({ midi: r.midi, cents: (exact - r.midi) * 100, start: r.start / sampleRate, end: r.end / sampleRate });
+    notes.push({
+      midi: r.midi, cents: (exact - r.midi) * 100, start: r.start / sampleRate, end: r.end / sampleRate,
+      clarity: median(settled.map((x) => x.clarity)), // how clear and steady its tone was (0 to 1)
+    });
   }
   return notes;
 }

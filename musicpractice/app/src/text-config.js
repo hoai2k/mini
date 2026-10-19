@@ -312,6 +312,8 @@ export const EN = {
       waiting: 'Listening. Start your scale whenever you like…',
       listening: (n) => `Listening: ${n} ${n === 1 ? 'note' : 'notes'} so far…`,
       summary: (good, n) => `${good} of ${n} ${n === 1 ? 'note' : 'notes'} in tune`,
+      score: 'Score',
+      parts: (inTune, close, clear) => `In tune ${inTune} · Closeness ${close} · Clear tone ${clear}`,
       none: 'No notes heard. Try again, a little louder or nearer the mic.',
       good: 'In tune',
       flat: (c) => `${c}¢ flat`,
