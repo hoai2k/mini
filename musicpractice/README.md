@@ -584,6 +584,19 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   Back, to return. A mouse gets an arrow at the right edge; a touch screen a
   faint chevron there, nudging now and then. Once there is another tool the
   button version will be used everywhere.
+- **While an item runs, its picture fills the top of the panel**, large,
+  so a glance says what is being practised; it fades in at each change of
+  item. Each kind of item has its own (`practice-<kind>`: intonation,
+  scales, rhythms, ghosting; image requests round 11), and there is a default
+  (`practice-default`, a music stand). Until a picture is delivered, or for an
+  item of its own (Custom…), the next one there is: the Drone's (cello, or
+  organ by its voice) for an item with its drone on, else the Metronome's,
+  else the default, else the routine's hourglass (`pictureFor` in
+  `timer.js`). Items remember which suggestion they came from (`kind`;
+  saved ones from before are matched by name). **A new suggestion needs a
+  picture too:** add it to `PRACTICE_SUBJECT` in
+  `design/source/build_requests.py`; `test/timer.test.mjs` fails until every
+  suggestion has one in every theme.
 - Its home button is an hourglass per theme (image requests round 9,
   `home-routine`), drawn as a stand-in until delivered. In the apps the drone
   is Pro, as on its own screen. Not done yet: the routine doesn't go on
