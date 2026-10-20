@@ -51,6 +51,49 @@ Picked from 37 cello takes. What was learned on the way:
   with G2's prompt gave longer strokes, and brightness steadying (below)
   brought their brightness variation under G2's.
 
+## The extra octaves (C1 to B4)
+
+The drone was widened from C2–B3 to C1–B4. Above, new takes; below, the
+existing loops at half speed (an octave down, twice as long), until better
+low takes are found.
+
+| Loop | From | Measured | Loop |
+| --- | --- | --- | --- |
+| `cello-A4.mp3` | take `cello-a4` | 440.99 Hz | 7.4 s |
+| `organ-C4.mp3` | take `organ-t1` | 262.50 Hz | 7.8 s |
+| `organ-A4.mp3` | take `organ-t3` | 441.00 Hz | 10.7 s |
+| `cello-D1.mp3` | `cello-D2.mp3` at half speed | 37.12 Hz | 9.9 s |
+| `cello-G1.mp3` | `cello-G2.mp3` at half speed | 49.89 Hz | 11.6 s |
+| `organ-G1.mp3` | `organ-G2.mp3` at half speed | 49.11 Hz | 13.7 s |
+
+The new takes were steadied with `export.mjs --steady NOTE=take:sp:whole`
+(the whole steady stretch: these takes have no single long stroke, and one
+stroke gave loops under a second), the cello's with the brightness held at
+0.95 rather than 0.85, then smoothed twice, over 0.25 s as `smooth.mjs` does
+and again over 0.1 s, so the level swings 0.5-1.1% in 50 ms windows. The
+half-speed loops are `ffmpeg -af asetrate=22050,aresample=44100` of the
+shipped loops (already smoothed). Prompts:
+
+- Cello A4: *Cello playing a high sustained note A4 (440 Hz) on the A string,
+  high tenor register, one long steady bow, no vibrato, singing tone, solo
+  cello, studio recording, dry* (three takes; chosen by ear as the one that
+  didn't waver).
+- Organ C4: *Pipe organ holding a single sustained note (middle C, C4, 262 Hz)
+  for the entire duration, soft 8 foot principal, steady, church reverb, no
+  other notes*.
+- Organ A4: *Pipe organ holding a single sustained high treble note (A4,
+  440 Hz) for the entire duration, soft 8 foot principal, steady, church
+  reverb, no other notes, no bass*.
+
+What was learned: asked for a high cello note in the usual words, the model
+plays it an octave down (A4 came back A3); naming the A string and the high
+tenor register gets the octave. It will not play below a cello's C2 at all
+(asking for a low cello or the C string tuned down gave G2 or E2), and a
+double bass asked for E1 or A1 gives deep takes whose pitch wanders between
+notes after a few seconds. The organ's high notes come easily; its low ones
+(16' and 32' pedal stops) came back as C2 at best, and that one was rejected
+by ear.
+
 ## The other voices (organ in use; the rest archived)
 
 The organ is in use; the others are archived (their loops are in

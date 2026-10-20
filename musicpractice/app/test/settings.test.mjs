@@ -97,7 +97,7 @@ test('drone settings: defaults, kept, and bad values fall back', () => {
   const s = sanitize({ droneMidi: 41, droneVoice: 'organ', droneMode: 'change', droneStep: 1.5, droneSeq: 'fifths', droneFifth: true, droneFifthChosen: true });
   assert.deepEqual([s.droneMidi, s.droneVoice, s.droneTimed, s.droneMinutes, s.droneThen], [41, 'organ', true, 1.5, 'fifths']);
   const bad = sanitize({ droneMidi: 90, droneVoice: 'tanpura', droneMode: 'change', droneStep: -2, droneSeq: 'random' });
-  assert.deepEqual([bad.droneMidi, bad.droneVoice, bad.droneMinutes, bad.droneThen], [59, 'cello', 0.5, 'chrom-up']);
+  assert.deepEqual([bad.droneMidi, bad.droneVoice, bad.droneMinutes, bad.droneThen], [71, 'cello', 0.5, 'chrom-up']);
   assert.equal(sanitize({ droneMode: 'sometimes' }).droneMode, 'continuous');
 });
 

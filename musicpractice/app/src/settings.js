@@ -234,7 +234,7 @@ export function sanitize(raw) {
     accentPattern: cleanPattern(s.accentPattern, oneOf(s.meter, METERS.map((m) => m.id), DEFAULTS.meter)),
     ...metronomeLook(s),
     vizBars: oneOf(s.vizBars, VIZ_BARS, DEFAULTS.vizBars),
-    droneMidi: clamp(Math.round(num(s.droneMidi, DEFAULTS.droneMidi)), 36, 59),
+    droneMidi: clamp(Math.round(num(s.droneMidi, DEFAULTS.droneMidi)), 24, 71), // C1 to B4 (drone.js DRONE_MIN, DRONE_MAX)
     droneVoice: oneOf(s.droneVoice, DRONE_VOICES, DEFAULTS.droneVoice),
     // Saved before the drone could go louder, the volume was its gain: the
     // slider position that sounds the same (droneSlider, gain = 2.8 v²).
