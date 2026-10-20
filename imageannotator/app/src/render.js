@@ -26,6 +26,14 @@ export function contrastOf(hex) {
   return lum > 0.6 ? '#111111' : '#ffffff';
 }
 
+// The text's outline (or background) color: 'auto' picks black or white
+// against the text color, 'none' is transparent, anything else is a color.
+export function outlineOf(item) {
+  const o = item.outline || 'auto';
+  if (o === 'none') return null;
+  return o === 'auto' ? contrastOf(item.color) : o;
+}
+
 export function measureLabel(ctx, item, u) {
   ctx.save();
   ctx.font = fontCss(item, u);
@@ -106,9 +114,10 @@ function roundRect(ctx, x, y, w, h, r) {
 
 export function drawLabel(ctx, item, box, u) {
   const size = (item.fontSize || 40) * u;
-  const halo = contrastOf(item.color);
+  const halo = outlineOf(item);
+  const alpha = item.opacity ?? 1;
   ctx.save();
-  ctx.globalAlpha = item.opacity ?? 1;
+  ctx.globalAlpha = alpha;
   if (box.target) {
     const c = { x: box.x + box.w / 2, y: box.y + box.h / 2 };
     // Leave the line at the box's edge, toward the item.
@@ -117,22 +126,27 @@ export function drawLabel(ctx, item, box, u) {
     const s = Math.min(Math.abs(box.w / 2 / (dx || 1e-9)), Math.abs(box.h / 2 / (dy || 1e-9)));
     const from = { x: c.x + dx * s, y: c.y + dy * s };
     ctx.lineCap = 'round';
-    ctx.strokeStyle = halo;
-    ctx.globalAlpha = (item.opacity ?? 1) * 0.6;
-    ctx.lineWidth = Math.max(1, size * 0.08) + 2 * u;
     ctx.beginPath();
     ctx.moveTo(from.x, from.y);
     ctx.lineTo(box.target.x, box.target.y);
-    ctx.stroke();
-    ctx.globalAlpha = item.opacity ?? 1;
+    if (halo) {
+      ctx.strokeStyle = halo;
+      ctx.globalAlpha = alpha * 0.6;
+      ctx.lineWidth = Math.max(1, size * 0.08) + 2 * u;
+      ctx.stroke();
+      ctx.globalAlpha = alpha;
+    }
     ctx.strokeStyle = item.color;
     ctx.lineWidth = Math.max(1, size * 0.08);
     ctx.stroke();
   }
-  if (item.box) {
-    ctx.fillStyle = halo === '#ffffff' ? 'rgba(255,255,255,0.92)' : 'rgba(17,17,17,0.85)';
+  if (item.box && halo) {
+    // With a background the outline color fills the box instead.
+    ctx.fillStyle = halo;
+    ctx.globalAlpha = alpha * 0.9;
     roundRect(ctx, box.x, box.y, box.w, box.h, size * 0.3);
     ctx.fill();
+    ctx.globalAlpha = alpha;
   }
   ctx.font = fontCss(item, u);
   ctx.textAlign = 'center';
@@ -140,7 +154,7 @@ export function drawLabel(ctx, item, box, u) {
   const cx = box.x + box.w / 2;
   const cy = box.y + box.h / 2 + size * 0.04;
   const text = item.title.trim();
-  if (!item.box) {
+  if (!item.box && halo) {
     ctx.lineJoin = 'round';
     ctx.strokeStyle = halo;
     ctx.lineWidth = size * 0.2;

@@ -1,7 +1,7 @@
 # Image Annotator
 
 Open a picture from your phone or computer, point things out on it with
-arrows, circles and free drawing, give any of them a title, then save it back
+arrows, circles and free drawing, give any of them some text, then save it back
 to your photos or files. Open it at https://hoai2k.github.io/mini/imageannotator/
 (add it to the home screen for a full-screen app).
 
@@ -15,29 +15,35 @@ to your photos or files. Open it at https://hoai2k.github.io/mini/imageannotator
      Its tail comes from the middle of the picture, so it stays on the image;
      press and drag instead to pull the tail out where you want it. A
      selected arrow shows a dashed ring as wide as the arrow is long: drag
-     the tip (white handle, the arrow's centre of rotation) to move it, and
+     the tip (marked with a small dot so it never hides the spot, the
+     arrow's centre of rotation) to move it, and
      drag the tail (blue handle) or anywhere on the ring to swing it round
      the tip, which keeps pointing at the same spot.
    - **Circle**: tap to circle something, or drag out from the middle. A
-     selected circle moves by dragging its middle (anything inside it) and
+     selected circle (small dot at its centre) moves by dragging its middle
+     (anything inside it) and
      changes size by dragging its edge.
    - **Free draw**: draw with a finger or the mouse. Strokes are drawn over
      other marks; a plain tap on a mark selects it, and a selected drawing
      moves by dragging.
    Tapping a mark selects it; ✓ (or Esc) lets go, 🗑 (or Delete) removes it.
    Undo and redo cover every change.
-3. **Settings** (⚙, shown while a mark is selected): color (eight colors or
-   any color), line width, opacity, the arrow's length, and an optional
-   **title** with its font, size and an optional background. The last
+3. **Edit** (the pencil, shown while a mark is selected): color (eight
+   colors or any color), line width, opacity, the arrow's length, and an
+   **Add text** switch. Turning it on shows the text box and the text
+   options: font, size, an optional background, and the outline color
+   (automatic black or white, none, white, black or any color; with a
+   background it colors the background instead). Turning it off hides the
+   text but keeps it, so turning it on again brings it back. The last
    settings used for each tool become that tool's defaults (kept in the
    browser).
-4. **Titles** are placed automatically near their mark (past an arrow's
-   tail, outside a circle, beside a drawing), clear of the other titles,
+4. **Text** is placed automatically near their mark (past an arrow's
+   tail, outside a circle, beside a drawing), clear of the other text,
    the marks and the picture's edges (`src/layout.js` tries 16 directions at
-   four distances and scores each spot). Drag a title to place it yourself:
+   four distances and scores each spot). Drag the text to place it yourself:
    it keeps its offset from its mark and follows it when the mark moves, and
-   the automatic titles make room for it. A title away from its mark gets a
-   thin leader line. "Place title automatically" in Settings undoes a drag.
+   the automatically placed text makes room for it. Text away from its mark
+   gets a thin leader line. "Place text automatically" in Edit undoes a drag.
 5. **Save** keeps the picture and its marks in the browser (IndexedDB), so
    the start screen offers to continue it on the next visit, still editable.
    Only one picture is kept; saving another replaces it.
@@ -59,7 +65,7 @@ Zoom with two fingers (or Ctrl/⌘ + scroll, or + and −), pan by scrolling or
 by dragging outside the picture, and ⤢ (or 0) fits it again. Keys: A, C, D
 pick the tools, Ctrl/⌘+Z and Shift+Ctrl/⌘+Z undo and redo, Ctrl/⌘+S saves.
 
-Sizes (line width, title size, arrow length) are in thousandths of the
+Sizes (line width, text size, arrow length) are in thousandths of the
 picture's longer side, so a setting looks the same on a screenshot and on a
 big photo. Exports keep the full resolution, except that pictures over 16.7
 megapixels (the most iOS Safari can draw) are scaled down to that. Camera
@@ -73,9 +79,9 @@ It is an app, not a game, so the controller-first title screen of
 
 - `app/index.html`, `app/styles.css`: the page.
 - `app/src/main.js`: opening, the view (zoom and pan), gestures, the
-  settings sheet, save and export. `geometry.js`: arrow, circle and stroke
-  geometry and hit-testing (pure). `layout.js`: title placement (pure).
-  `render.js`: drawing marks and titles on a canvas, shared by the editor and
+  edit sheet, save and export. `geometry.js`: arrow, circle and stroke
+  geometry and hit-testing (pure). `layout.js`: text placement (pure).
+  `render.js`: drawing marks and text on a canvas, shared by the editor and
   the export. `exporter.js`: the export choices, sizes and file names (pure)
   and the encoding and hand-over. `store.js`: IndexedDB. `icons.js`: inline
   SVG icons.

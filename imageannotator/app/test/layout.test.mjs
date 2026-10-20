@@ -69,3 +69,13 @@ test('items without titles get no box', () => {
   const boxes = layoutLabels([{ ...base, id: 1, type: 'circle', x: 1, y: 1, r: 1, title: '  ' }], 1, W, H, measure);
   assert.equal(boxes.size, 0);
 });
+
+test('text shows only with Add text on (older items without the switch count as on)', async () => {
+  const { hasText } = await import('../src/layout.js');
+  assert.equal(hasText({ title: 'Hi', textOn: true }), true);
+  assert.equal(hasText({ title: 'Hi', textOn: false }), false);
+  assert.equal(hasText({ title: '  ', textOn: true }), false);
+  assert.equal(hasText({ title: 'Saved before the switch' }), true);
+  const boxes = layoutLabels([{ ...base, id: 1, type: 'circle', x: 500, y: 400, r: 40, title: 'Off', textOn: false }], 1, W, H, measure);
+  assert.equal(boxes.size, 0);
+});
