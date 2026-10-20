@@ -40,6 +40,27 @@ export function scaleScore(notes, tolerance = SCALE_TOLERANCE) {
   return { total: inTune + close + clear, inTune, close, clear };
 }
 
+/*
+ * The score shown, out of 10. At Beginner, Easy and Medium it is simply the
+ * share of notes in tune (65% in tune is 6.5); at Hard, Advanced and Custom
+ * it is the full score above scaled to 10 (988 is 9.88), its parts with it.
+ * A perfect result is celebrated: 10 at the simple levels, 9.7 or more at
+ * the others.
+ */
+export const SIMPLE_LEVELS = ['beginner', 'easy', 'medium'];
+export function scoreOutOf10(judged, level, tolerance) {
+  const n = judged.length;
+  if (SIMPLE_LEVELS.includes(level)) {
+    const good = judged.filter((x) => x.verdict === 'good').length;
+    return { score: n ? Math.round((100 * good) / n) / 10 : 0, simple: true, parts: null };
+  }
+  const sc = scaleScore(judged, tolerance);
+  return { score: sc.total / 100, simple: false, parts: { inTune: sc.inTune / 100, close: sc.close / 100, clear: sc.clear / 100 } };
+}
+export const celebrates = ({ score, simple }) => (simple ? score >= 10 : score >= 9.7);
+/** The score as shown: one decimal at the simple levels (none for a whole number), two at the others. */
+export const scoreText = (score, simple) => (simple ? (Number.isInteger(score) ? String(score) : score.toFixed(1)) : score.toFixed(2));
+
 /** 'good', 'flat' or 'sharp' for a note `cents` off its nearest pitch. */
 export const judge = (cents, tolerance = SCALE_TOLERANCE) =>
   (Math.abs(cents) <= tolerance ? 'good' : cents < 0 ? 'flat' : 'sharp');

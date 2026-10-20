@@ -6,7 +6,8 @@
 import { TEXT, setRich } from './text.js';
 import { detectPitch, describe, nearestString, noteName, midiToHz, TUNINGS, TRANSPOSE, A4_MIN, A4_MAX, PitchSmoother } from './tuning.js';
 import { playSamples } from './player.js';
-import { ScaleListener, resultTier, scaleScore, correctedRate, judgeNote, scaleRule, LEVEL_IDS, MEASURES } from './scaletest.js';
+import { ScaleListener, resultTier, correctedRate, judgeNote, scaleRule, scoreOutOf10, celebrates, scoreText, LEVEL_IDS, MEASURES } from './scaletest.js';
+import { confetti } from './confetti.js';
 
 const WINDOW = 4096; // samples analysed at a time (enough for a low B on a 5-string bass)
 const HOLD_MS = 1500; // the last note stays up this long after the sound stops
@@ -297,21 +298,30 @@ export function setupTuner({ settings, persist, chips }) {
     }));
     const by = new Intl.ListFormat('en', { type: 'disjunction' }).format(rule.use.map((k) => S.measures[k]));
     $('scale-help').textContent = S.help(TEXT.tuner.settings.scaleLevels[settings.scaleLevel], rule.tolerance, by);
-    // The score, counted up as the sheet shows it, on what each note was judged by.
-    const sc = scaleScore(judged, rule.tolerance);
+    // The score out of 10 (scoreOutOf10), counted up as the sheet shows it, on
+    // what each note was judged by; its parts only at the levels that have them.
+    const sc = scoreOutOf10(judged, settings.scaleLevel, rule.tolerance);
     $('scale-score').hidden = !notes.length;
-    $('scale-score-parts').textContent = S.parts(sc.inTune, sc.close, sc.clear);
+    const parts = $('scale-score-parts');
+    parts.hidden = sc.simple;
+    if (!sc.simple) parts.textContent = S.parts(sc.parts.inTune.toFixed(2), sc.parts.close.toFixed(2), sc.parts.clear.toFixed(2));
     const num = $('scale-score-num');
     const t0 = performance.now();
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const step = sc.simple ? 10 : 100; // counted in tenths, or hundredths
     const count = (t) => {
       const k = still ? 1 : Math.min(1, (t - t0) / 1100);
-      num.textContent = String(Math.round(sc.total * (1 - (1 - k) ** 3)));
+      num.textContent = scoreText(k < 1 ? Math.round(sc.score * (1 - (1 - k) ** 3) * step) / step : sc.score, sc.simple);
       if (k < 1 && sheet.dataset.step === 'results') requestAnimationFrame(count);
     };
     requestAnimationFrame(count);
     scaleStep('results');
     if (!sheet.open) sheet.showModal();
+    // A perfect result: confetti, and a small crowd cheering just after the chime.
+    if (!quiet && notes.length && celebrates(sc)) {
+      setTimeout(() => confetti(sheet), still ? 0 : 900);
+      setTimeout(() => { const a = new Audio(new URL('../assets/audio/scale/cheer.mp3', import.meta.url).href); a.play().catch(() => {}); }, 500);
+    }
   }
 
   /** Mic samples (blocks of any size) while the recorder is in its 'tuning' state. */
