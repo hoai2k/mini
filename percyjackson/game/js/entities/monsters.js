@@ -2073,8 +2073,10 @@ function buildSpartoi() {
     KH.box(Hd, 0, H8 + 2.2 + h / 2, z, 2 + KH.r() * 0.4, h, 1.2, KH.tone(CREST, 0.1), -0.25 + t * 0.2);
   }
   for (let i = 0; i < 5; i++) KH.box(Hd, (KH.r() - 0.5) * 0.8, H8 + 1 - i * 1.6, -H8 / 2 - 1.3 - i * 0.2, 1.8, 2, 1.2, KH.tone(CREST, 0.1), 0.2);
-  // the kopis: a forward-curved bronze blade, widening toward the tip
-  const blade = group(rig.handR, 0, -1, 1, HOLD_PITCH - Math.PI / 2, 0, 0);   // (built along +z: see the hand-axis convention in character.js)
+  // the curved bronze sword, widening toward the tip. It is held turned over
+  // about its own length (rz = PI), so the curve sweeps back like a scimitar's
+  // rather than hooking forward (the owner)
+  const blade = group(rig.handR, 0, -1, 1, HOLD_PITCH - Math.PI / 2, 0, Math.PI);   // (built along +z: see the hand-axis convention in character.js)
   K.box(blade, 0, 0, -0.4, 1.2, 1.2, 3, leaD); K.box(blade, 0, 0, -1.9, 1.5, 1.5, 0.8, brzL); K.box(blade, 0, 0, 1.4, 1, 2.6, 0.7, brzL);
   for (let i = 0; i < 6; i++) {
     const z = 2.6 + i * 1.5, y = -0.1 * i * i + 0.2 * i, h = 1.5 + i * 0.22;
