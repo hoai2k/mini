@@ -558,8 +558,9 @@ A sustained tone to play along with: tuning intervals against it, long
 tones, scales over a tonic.
 
 - The note, big (letter, accidental, octave) with its frequency; − / + move a
-  semitone and the list picks any note from C2 to B3 (the drone's two
-  octaves, from the cello's open C). Past either end, notes wrap round by an
+  semitone and the list picks any note from C1 to B4 (four octaves: the
+  cello's own two from its open C, and one more each way), on every voice.
+  Past either end, notes wrap round by an
   octave. **Play** fades in over about 2 s, and changing the note or
   instrument while it plays crossfades (about 1.5 s out); **Pause** stops at
   once, the sound and the hall's ring gone in about 50 ms (no click), the
@@ -648,9 +649,13 @@ tones, scales over a tonic.
   is kept between visits. Space plays and pauses; arrow keys move the note.
 
 How it sounds (`app/src/drone.js`): apart from the Synth organ, every voice plays recordings, generated
-with ElevenLabs sound effects and cut into seamless loops on four notes each,
-so every note is a few semitones at most from a real take and is retuned to it
-exactly by playback rate (following the reference pitch). They are made
+with ElevenLabs sound effects and cut into seamless loops, so every note is a
+few semitones at most from a loop and is retuned to it exactly by playback rate
+(following the reference pitch). The cello has loops on D2, G2, D3, A3 and A4
+(stretched up to 6 semitones between A3 and A4); the organ on G2, C3, D3, F3,
+C4 and A4 (up to 7, and 8.5 down to C1). The bottom octave, below a cello's
+range, plays the cello's D2 and G2 and the organ's G2 an octave down (the same
+loops at half speed, `cello-D1`, `cello-G1`, `organ-G1`), for now. They are made
 perfectly steady: no bow change is ever heard, the pitch is held exactly and
 the level and brightness are evened out, as if the bow or breath never ended.
 The shipped loops were then smoothed once more (`design/source/drone/smooth.mjs`,

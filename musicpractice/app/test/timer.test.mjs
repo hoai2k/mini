@@ -35,7 +35,7 @@ test('saved routines are kept, cleaned, and an emptied one stays empty', () => {
   assert.equal(items[0].minutes, 120);
   assert.equal(items[0].metronome, false);
   assert.deepEqual(items[0].met, { bpm: 500, meter: '4/4' });
-  assert.deepEqual(items[0].drn, { midi: 36, voice: 'cello', fifth: false });
+  assert.deepEqual(items[0].drn, { midi: 24, voice: 'cello', fifth: false });
   assert.deepEqual(CHIMES, ['kalimba', 'two-tone', 'celesta']);
   assert.equal(totalSeconds([{ minutes: 3 }, { minutes: 5 }]), 480);
 });

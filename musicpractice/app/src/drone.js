@@ -16,8 +16,10 @@
 import { TEXT } from './text-config.js';
 import { output } from './output.js';
 
-export const DRONE_MIN = 36; // C2, the cello's open C string
-export const DRONE_MAX = 59; // B3: two octaves, every note twice
+// Four octaves, every note four times: the cello's own two from its open C
+// string (C2 to B3), and an octave more each way.
+export const DRONE_MIN = 24; // C1
+export const DRONE_MAX = 71; // B4
 
 /** Keep a note in the drone range by octaves. */
 export function wrap(midi) {
@@ -228,17 +230,28 @@ LIVE['organ-synth'] = { ...LIVE.organ, level: 0.3 };
 // once more after cutting (design/source/drone/smooth.mjs), so each holds
 // steady: its level swings 0.5-2.2% where the cut loops swung 3-11%.
 export const SAMPLED = {
-  cello: { level: 1.25, wet: 0.14, loops: [
+  // D1 and G1 are D2 and G2 at half speed (an octave down, twice as long), and
+  // A3 to A4 is an octave apart, so the cello stretches up to 6 semitones.
+  cello: { level: 1.25, wet: 0.14, maxShift: 6, loops: [
+    { file: 'cello-D1.mp3', hz: 37.123, margin: 0.6, loop: 9.88653 },
+    { file: 'cello-G1.mp3', hz: 49.885, margin: 0.6, loop: 11.626304 },
     { file: 'cello-D2.mp3', hz: 74.246, margin: 0.3, loop: 4.943265 },
     { file: 'cello-G2.mp3', hz: 99.77, margin: 0.3, loop: 5.813152 },
     { file: 'cello-D3.mp3', hz: 144.6, margin: 0.3, loop: 6.245238 },
     { file: 'cello-A3.mp3', hz: 220.49, margin: 0.3, loop: 11.274376 },
+    { file: 'cello-A4.mp3', hz: 440.989, margin: 0.3, loop: 7.360544 },
   ] },
-  organ: { level: 1.4, wet: 0.3, maxShift: 7, loops: [
+  // G1 is G2 at half speed (an octave down, twice as long). Pipes stay natural
+  // stretched a long way: up to 7 semitones between the recordings, and 8.5
+  // down from G1, so C1 is reached even with A4 tuned down to 415.
+  organ: { level: 1.4, wet: 0.3, maxShift: 8.5, loops: [
+    { file: 'organ-G1.mp3', hz: 49.113, margin: 0.6, loop: 13.68381 },
     { file: 'organ-G2.mp3', hz: 98.225, margin: 0.3, loop: 6.841905 },
     { file: 'organ-C3.mp3', hz: 130.861, margin: 0.3, loop: 7.779274 },
     { file: 'organ-D3.mp3', hz: 147.984, margin: 0.3, loop: 10.365805 },
     { file: 'organ-F3.mp3', hz: 175.002, margin: 0.3, loop: 10.771429 },
+    { file: 'organ-C4.mp3', hz: 262.5, margin: 0.3, loop: 7.779048 },
+    { file: 'organ-A4.mp3', hz: 440.997, margin: 0.3, loop: 10.668934 },
   ] },
 };
 
@@ -296,7 +309,7 @@ export function preload(ctx, voice) {
  * periods long with its end crossfaded into its start, retuned like the
  * recordings.
  */
-export const SYNTH_ANCHORS = [36, 42, 48, 54, 60, 66]; // C2 to F♯4 (B3's fifth), every 6 semitones
+export const SYNTH_ANCHORS = [24, 30, 36, 42, 48, 54, 60, 66, 72, 78]; // C1 to F♯5 (B4's fifth), every 6 semitones
 export const SYNTH_MAX_SHIFT = 3;
 
 /** The synthesized voice's settings for native playback: { level, wet }. */

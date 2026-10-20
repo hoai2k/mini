@@ -4,33 +4,35 @@ import { wrap, sequenceNote, DRONE_MIN, DRONE_MAX } from '../src/drone.js';
 
 const seq = (id, start, n) => Array.from({ length: n }, (_, i) => sequenceNote(id, start, i));
 
-test('notes wrap by octaves into the drone range (C2 to B3)', () => {
-  assert.deepEqual([DRONE_MIN, DRONE_MAX], [36, 59]);
-  assert.equal(wrap(60), 48);
-  assert.equal(wrap(35), 47);
-  assert.equal(wrap(84), 48);
+test('notes wrap by octaves into the drone range (C1 to B4)', () => {
+  assert.deepEqual([DRONE_MIN, DRONE_MAX], [24, 71]);
+  assert.equal(wrap(72), 60);
+  assert.equal(wrap(23), 35);
+  assert.equal(wrap(96), 60);
   assert.equal(wrap(40), 40);
+  assert.equal(wrap(24), 24);
 });
 
 test('chromatic up and down, wrapping at the ends of the range', () => {
-  assert.deepEqual(seq('chrom-up', 57, 5), [57, 58, 59, 48, 49]); // A3 B♭3 B3, then C3 (wrapped down an octave)
-  assert.deepEqual(seq('chrom-down', 38, 4), [38, 37, 36, 47]); // D2 C♯2 C2, then B2
+  assert.deepEqual(seq('chrom-up', 69, 5), [69, 70, 71, 60, 61]); // A4 B♭4 B4, then C4 (wrapped down an octave)
+  assert.deepEqual(seq('chrom-down', 26, 4), [26, 25, 24, 35]); // D1 C♯1 C1, then B1
 });
 
 test('the major scale of the starting note, up and down', () => {
   assert.deepEqual(seq('major-up', 36, 9), [36, 38, 40, 41, 43, 45, 47, 48, 50]); // C2 D E F G A B C3 D3
-  assert.deepEqual(seq('major-down', 48, 9), [48, 47, 45, 43, 41, 40, 38, 36, 47]); // C3 B A G F E D C2, then B (wrapped up)
-  // From D3: up D E F♯ G A B C♯ D, staying in range.
-  assert.deepEqual(seq('major-up', 50, 8), [50, 52, 54, 55, 57, 59, 49, 50]);
+  assert.deepEqual(seq('major-down', 36, 9), [36, 35, 33, 31, 29, 28, 26, 24, 35]); // C2 B A G F E D C1, then B (wrapped up)
+  // From D4: up D E F♯ G A B C♯ D, staying in range.
+  assert.deepEqual(seq('major-up', 62, 8), [62, 64, 66, 67, 69, 71, 61, 62]);
 });
 
 test('fifths and fourths go round all twelve notes', () => {
   const f = seq('fifths', 36, 13);
-  assert.deepEqual(f.slice(0, 5), [36, 43, 50, 57, 52]); // C2 G2 D3 A3, then E3 (an octave down, not E4)
+  assert.deepEqual(f.slice(0, 6), [36, 43, 50, 57, 64, 71]); // C2 G2 D3 A3 E4 B4
+  assert.equal(f[6], 66); // then F♯4 (an octave down, not F♯5)
   assert.equal(new Set(f.map((m) => m % 12)).size, 12);
   assert.equal(f[12] % 12, 0);
-  assert.deepEqual(seq('fourths', 36, 5), [36, 41, 46, 51, 56]); // C2 F2 B♭2 E♭3 A♭3
-  for (const m of [...f, ...seq('fourths', 59, 30)]) assert.ok(m >= DRONE_MIN && m <= DRONE_MAX);
+  assert.deepEqual(seq('fourths', 24, 5), [24, 29, 34, 39, 44]); // C1 F1 B♭1 E♭2 A♭2
+  for (const m of [...f, ...seq('fourths', 71, 30)]) assert.ok(m >= DRONE_MIN && m <= DRONE_MAX);
 });
 
 test('the settings accept exactly the voices and sequences the drone has', async () => {
@@ -44,7 +46,7 @@ test('the settings accept exactly the voices and sequences the drone has', async
   assert.equal(sanitize({ droneMode: 'change', droneSeq: 'stop' }).droneSeq, 'chrom-up');
 });
 
-test('recorded voices: every note is close to a recording (or its octave), and the files are there', async () => {
+test('recorded voices: every note is close to a recording, in its own octave, and the files are there', async () => {
   const { SAMPLED, VOICES, nearestLoop } = await import('../src/drone.js');
   const { existsSync, statSync } = await import('node:fs');
   // Every voice is recorded, apart from the Synth organ, which is synthesized on purpose.
@@ -58,6 +60,8 @@ test('recorded voices: every note is close to a recording (or its octave), and t
         // The same note (or an octave of it), from a recording at most `limit` semitones away.
         const octaves = Math.log2(l.target / hz);
         assert.ok(Math.abs(octaves - Math.round(octaves)) < 1e-9, `${id} note ${m}: plays the same note`);
+        // Every note of the range, C1 to B4, in its own octave (only a fifth above B4 may fold down).
+        assert.equal(Math.round(octaves), 0, `${id} note ${m} at A4=${a4}: played an octave away`);
         assert.ok(Math.abs(12 * Math.log2(l.target / l.hz)) <= limit, `${id} note ${m} at A4=${a4}: ${l.file} is ${(12 * Math.log2(l.target / l.hz)).toFixed(1)} semitones away`);
       }
     }

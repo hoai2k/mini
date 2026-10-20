@@ -79,7 +79,7 @@ for (const voice of ['cello', 'organ', 'organ-synth']) {
     const { Drone } = await import('/src/drone.js');
     const rms = (b, from) => { let s = 0, n = 0; for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = from; i < d.length; i++) { s += d[i] * d[i]; n++; } } return Math.sqrt(s / n); };
     const res = [];
-    for (let midi = 36; midi <= 59; midi++) {
+    for (let midi = 24; midi <= 71; midi++) { // the whole range, C1 to B4 (drone.js DRONE_MIN, DRONE_MAX)
       const r = {};
       for (const mix of ['dry', 'wet']) {
         const ctx = new OfflineAudioContext(2, 48000 * 9, 48000);
