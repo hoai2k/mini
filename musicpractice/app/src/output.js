@@ -7,6 +7,8 @@
 // or so), so the clipper rounds off what it lets past, smoothly, at 0.95.
 // Quieter than the threshold (as nearly everything is) neither does anything.
 
+import { meterOutput } from './debuglog.js';
+
 const outs = new WeakMap(); // context -> its limiter
 
 const KNEE = 0.8; // the clipper is exactly linear below this
@@ -38,6 +40,13 @@ export function output(ctx) {
     clip.curve = clipCurve();
     clip.oversample = '4x';
     o.connect(clip).connect(ctx.destination);
+    // How loud it all comes out, for the debug log (not on a context rendering a file).
+    if (!(typeof OfflineAudioContext !== 'undefined' && ctx instanceof OfflineAudioContext)) {
+      const meter = ctx.createAnalyser();
+      meter.fftSize = 2048;
+      clip.connect(meter);
+      meterOutput(meter);
+    }
     outs.set(ctx, o);
   }
   return o;

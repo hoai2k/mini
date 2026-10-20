@@ -3,13 +3,14 @@
 import { TEXT, setRich } from './text.js';
 
 import { audio, existingAudio, freshAudio, replaceAudio, audioWasAway, markStale, unlock, setSession, heardNow, keepAwake, setExtraDelay, setContextSpeaker } from './audio.js';
-import { playSamples, primeFromTap, outputSettled, setSpeaker, setPlaybackVolume } from './player.js';
-import { forPlayback } from './loudness.js';
+import { playSamples, primeFromTap, outputSettled, setSpeaker, setPlaybackVolume, element as playerElement } from './player.js';
+import { forPlayback, playbackLevel } from './loudness.js';
+import { dlog, debugState, startDebugLog, debugBeat, debugText, debugJson } from './debuglog.js';
 import { encodeMp3 } from './mp3.js';
 import { openAudioCheck, renderMicTip } from './audiocheck.js';
 import { diag, isWebKit, isIOS, micPermission, onPermissionChange, noteMicRefused, openAppSettings } from './devices.js';
 import { Metronome, pendulumAngle, weightAt, bpmAtWeight } from './metronome.js';
-import { Recorder, freesMicForPlayback } from './recorder.js';
+import { Recorder, freesMicForPlayback, freeReason } from './recorder.js';
 import { setupTuner } from './tunerui.js';
 import { Drone, preload as preloadDrone } from './drone.js';
 import { setupDrone } from './droneui.js';
@@ -128,6 +129,7 @@ function route() {
   if (next !== screen || document.getElementById(next).hidden !== false) {
     leave(screen);
     for (const id of SCREENS) $(id).hidden = id !== next;
+    dlog('screen', { from: screen, to: next });
     screen = next;
     enter(next);
   }
@@ -302,6 +304,8 @@ function startMetronome() {
     metronome.configure(settings);
     metronome.start();
   }
+  dlog('metronome-start', { native: useNative, volume: settings.volume, sound: settings.sound, bpm: settings.bpm, ctx: metronome.ctx?.state ?? null, speaker: settings.speaker === 'default' ? 'default' : 'picked' });
+  setTimeout(debugBeat, 1500); // how loud it came out, once it has been playing a moment
   pendulum.classList.remove('resting');
   $('met-toggle').setAttribute('aria-pressed', 'true');
   $('met-toggle-label').textContent = TEXT.metronome.stop;
@@ -309,7 +313,7 @@ function startMetronome() {
 }
 
 function stopMetronome() {
-  if (metronome?.running) metronome.stop();
+  if (metronome?.running) { metronome.stop(); dlog('metronome-stop'); }
   pendulum.classList.add('resting');
   pendulum.style.transform = 'rotate(0deg)';
   for (const li of $('beats').children) { li.classList.remove('on'); li.style.removeProperty('--g'); }
@@ -1290,7 +1294,7 @@ async function startRecorder() {
   } catch (err) {
     recError = micError(err);
   }
-  if (recorder.micOpen) markStale();
+  if (recorder.micOpen) markStale('mic-open-recorder');
   showMicTip();
   showState();
 }
@@ -1453,7 +1457,7 @@ function restartListening() {
 // won't start again by itself, the next tap starts a new one.
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
-  markStale(); // the output may have changed while away; the next Start gets a fresh context
+  markStale('back-from-background'); // the output may have changed while away; the next Start gets a fresh context
   const c = existingAudio();
   if (c && c.state !== 'running' && c.state !== 'closed') c.resume().catch(() => { /* the next tap resumes it */ });
   if (playing?.handle?.isPaused?.()) playing.handle.resume().catch(() => stopPlayback());
@@ -1557,6 +1561,7 @@ async function play(take, { auto = false } = {}) {
     handle = playWithWebAudio(take); // the browser refused the media element
     record.via = 'Web Audio (the audio element was refused)';
   }
+  dlog('take-play', { ...record, auto, recordDuringPlayback: recordDuringPlayback(), playVolume: settings.playVolume, level: playbackLevel(take.samples), mic: freeReason() });
   if (token !== playToken) { handle.stop(); return; }
   playing.handle = handle;
   handle.ended.then(() => { if (token === playToken) stopPlayback(); });
@@ -1728,24 +1733,33 @@ async function saveTake(take, label, button) {
     }
   }
   const file = new File([take.mp3], `${base}.mp3`, { type: 'audio/mpeg' });
+  const how = await saveFile(file, base);
+  if (how === 'failed') note(TEXT.recorder.saveFailed);
+  if (how === 'needsTap') {
+    button.classList.add('ready');
+    button.setAttribute('aria-label', TEXT.recorder.mp3Ready);
+    note(TEXT.recorder.mp3ReadyNote);
+  }
+}
+
+/**
+ * Save a file: the share sheet in the apps and on phones, a download
+ * elsewhere. Resolves to 'shared', 'downloaded', 'aborted' (the share sheet
+ * was closed), 'needsTap' (iPhone wants a fresh tap to share) or 'failed'.
+ */
+async function saveFile(file, title) {
   if (isApp()) {
     // The app's own share sheet: no "tap again" step, and Android's web view has none.
-    try { await shareFile(file, base); } catch { note(TEXT.recorder.saveFailed); }
-    return;
+    try { await shareFile(file, title); return 'shared'; } catch { return 'failed'; }
   }
   const phone = isIOS() || /Android/i.test(navigator.userAgent);
   if (phone && navigator.canShare?.({ files: [file] })) {
     try {
-      await navigator.share({ files: [file], title: base });
-      return;
+      await navigator.share({ files: [file], title });
+      return 'shared';
     } catch (err) {
-      if (err?.name === 'AbortError') return; // closed the share sheet
-      if (err?.name === 'NotAllowedError') {
-        button.classList.add('ready');
-        button.setAttribute('aria-label', TEXT.recorder.mp3Ready);
-        note(TEXT.recorder.mp3ReadyNote);
-        return;
-      }
+      if (err?.name === 'AbortError') return 'aborted';
+      if (err?.name === 'NotAllowedError') return 'needsTap';
     }
   }
   const url = URL.createObjectURL(file);
@@ -1756,6 +1770,7 @@ async function saveTake(take, label, button) {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 60000);
+  return 'downloaded';
 }
 
 /** A short message at the bottom of the screen. */
@@ -1926,7 +1941,7 @@ async function startTuner() {
     tunerError = micError(err, true);
   }
   tunerStarting = false;
-  if (recorder.micOpen) markStale();
+  if (recorder.micOpen) markStale('mic-open-tuner');
   showTunerState();
 }
 
@@ -2002,6 +2017,8 @@ const droneUI = setupDrone({
   engine: droneEngine,
   onPlaying: (on) => {
     if (on && !recorder?.holdsMic) setSession('playback');
+    dlog(on ? 'drone-start' : 'drone-stop', { native: useNative, volume: settings.droneVolume, voice: settings.droneVoice, midi: settings.droneMidi, ctx: drone?.ctx.state ?? null, micHeld: !!recorder?.holdsMic });
+    if (on) setTimeout(debugBeat, 3000); // past the fade-in
     keepAwake(on);
   },
 });
@@ -2261,7 +2278,31 @@ function feedbackDetails() {
   }
   return lines.join('\n');
 }
-setupFeedback({ details: feedbackDetails });
+setupFeedback({ details: feedbackDetails, debug: (max) => debugText(max) });
+
+// The debug log (debuglog.js): what the app is doing, each time it looks.
+debugState('app', () => {
+  const ctx = existingAudio();
+  const track = recorder?.stream?.getAudioTracks()[0];
+  const el = playerElement();
+  return {
+    screen,
+    ctx: ctx ? { state: ctx.state, rate: ctx.sampleRate, outputLatency: ctx.outputLatency ?? null, baseLatency: ctx.baseLatency ?? null, sink: ctx.sinkId === undefined ? null : ctx.sinkId ? 'picked' : 'default' } : null,
+    mic: { recorder: recorder?.state ?? 'off', held: !!recorder?.holdsMic, open: !!recorder?.micOpen, enabled: track ? track.enabled : null, muted: track ? track.muted : null, ready: track ? track.readyState : null, label: track?.label ?? null, ...freeReason() },
+    playing: { metronome: !!metronome?.running, drone: !!droneUI.playing, take: !!playing?.handle, element: el.src ? { paused: el.paused, volume: el.volume, muted: el.muted } : null },
+    volumes: { metronome: settings.volume, drone: settings.droneVolume, takes: settings.playVolume },
+    native: useNative,
+  };
+});
+startDebugLog({ app: isApp() ? `${platform()} app` : 'website', settings: { mic: settings.mic === 'auto' ? 'auto' : 'picked', speaker: settings.speaker === 'default' ? 'default' : 'picked', recordDuringPlayback: recordDuringPlayback(), volume: settings.volume, droneVolume: settings.droneVolume, playVolume: settings.playVolume } });
+// Audio check's Export debug data: the whole log as a JSON file, shared or downloaded like a take.
+$('export-debug').addEventListener('click', async () => {
+  dlog('export');
+  const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+  const file = new File([debugJson({ details: feedbackDetails() })], `musicpractice-debug-${stamp}.json`, { type: 'application/json' });
+  const how = await saveFile(file, file.name);
+  if (how === 'failed' || how === 'needsTap') note(TEXT.audioCheck.exportFailed);
+});
 
 // Pro (the apps only): features unlock or lock as it turns on or off.
 function proChanged() {

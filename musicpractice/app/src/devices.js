@@ -4,6 +4,7 @@
 // without its own mic never shows up there as an input either.
 
 import { isApp, call } from './native.js';
+import { dlog } from './debuglog.js';
 
 const BT = /bluetooth|airpods|beats|buds|headset|hands-?free|\bbt\b|bose|jbl|soundcore|ue boom|marshall|sony wh|sony wf/i;
 const BUILT_IN = /built-?in|internal|iphone|ipad|macbook|imac|microphone array|front|bottom|back|phone/i;
@@ -49,6 +50,7 @@ let permission = 'unknown';
 const listeners = new Set();
 const setPermission = (p) => {
   if (p === permission) return;
+  dlog('mic-permission', { from: permission, to: p });
   permission = p;
   listeners.forEach((f) => f());
 };
@@ -108,6 +110,9 @@ export const diag = {
   lastPlayback: null, // { at, micFreed, waitedMs, session, sessionState, via }
 };
 export function noteFirstRequest(ms) {
-  if (diag.firstRequestMs == null) diag.firstRequestMs = Math.round(ms);
+  if (diag.firstRequestMs == null) {
+    diag.firstRequestMs = Math.round(ms);
+    dlog('mic-first-request', { ms: diag.firstRequestMs, allowedInAdvance: diag.firstRequestMs < QUICK_GRANT_MS });
+  }
 }
 export const allowedInAdvance = () => diag.firstRequestMs != null && diag.firstRequestMs < QUICK_GRANT_MS;
