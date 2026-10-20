@@ -20,7 +20,9 @@ in `../app` bundled into a native shell with [Capacitor](https://capacitorjs.com
 - `copy-web.sh`: copies the web app (through `../publish.sh`) into `www/`,
   which Capacitor bundles. `www/` is build output and isn't committed.
 - `ios/`: the Xcode project (Swift Package Manager, no CocoaPods).
-  `Info.plist` has the microphone reason and background audio. The app's own
+  `Info.plist` has the microphone reason and background audio;
+  `PrivacyInfo.xcprivacy` is the privacy manifest (the reasons for the APIs
+  Apple asks about, and what Send feedback collects). The app's own
   code is in `ios/App/App/`: `PracticeMixer.swift`, `PracticeAudioPlugin.swift`
   and `MainViewController.swift` (below).
 - `android/`: the Android Studio / Gradle project. The manifest asks for the
@@ -56,7 +58,9 @@ played natively, below).
   the free take count, links.
 - `../app/privacy.html`: the privacy policy and terms, published at
   https://hoai2k.github.io/mini/musicpractice/privacy.html (the paywall and
-  both store listings link to it).
+  both store listings link to it), and `../app/support.html`, the support
+  page with a contact form, published beside it (the store listings' Support
+  URL). Settings links to both.
 - `../app/src/nativeaudio.js`: the metronome and drone through
   `PracticeAudio`: `NativeMetronome` and `NativeDrone` stand in for
   `Metronome` and `Drone` in the apps.
@@ -79,7 +83,7 @@ Every time the web app has changed:
 npm run sync        # copies ../app into both apps (copy-web.sh + cap sync)
 ```
 
-**iOS** needs a Mac with Xcode 16 or later: `npm run ios` opens the project.
+**iOS** needs a Mac with Xcode 26 or later (App Store uploads must use the iOS 26 SDK; the iOS 27 SDK from April 2027): `npm run ios` opens the project.
 Set the signing team (Signing & Capabilities → Team), add the **In-App
 Purchase** capability, pick a device and run. Archive and upload from
 Product → Archive.
@@ -280,9 +284,14 @@ store's.
 
 1. `npm run sync`, raise the versions, build (Archive on the Mac; `bundleRelease`).
 2. Store listings: description, keywords, screenshots (iPhone 6.9" and 6.5";
-   iPad if offered; Android phone), the privacy policy link above, support
-   contact.
-3. iOS App Privacy: *Purchases* data, used for app functionality; and, from
+   iPad 13"; Android phone), the privacy policy link above, the support URL
+   (https://hoai2k.github.io/mini/musicpractice/support.html). On iOS, end
+   the description with the Terms of Use link (Apple's standard EULA,
+   https://www.apple.com/legal/internet-services/itunes/dev/stdeula/): Apple
+   wants it in the metadata as well as in the app. Everything Apple's rules
+   ask for, and what is still to plan, is in `../design/app-store-review.md`.
+3. iOS App Privacy: *Purchases* data, used for app functionality and
+   analytics (RevenueCat's advice), not linked to identity; and, from
    Send feedback, *Contact Info › Email Address*, *User Content › Customer
    Support* and *Diagnostics › Other Diagnostic Data*, used for app
    functionality (support); none linked to identity beyond the email they
@@ -291,9 +300,7 @@ store's.
    content and diagnostics, collected optionally for customer support, not
    shared. Both forms ask whether data is collected only when the person
    chooses to send it: say yes.
-4. Review notes for Apple: the app is a bundled, offline practice app
-   (metronome, tuner, drone, recorder) with native microphone handling and
-   sharing; where Pro is and how to test it with a sandbox account.
+4. Review notes for Apple: ready to paste in `../design/app-store-review.md`.
 5. Before release, check that the ElevenLabs plan used for the drone
    recordings allows commercial use (`../design/mobile-apps.md`).
 
