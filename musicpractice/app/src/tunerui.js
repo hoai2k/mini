@@ -6,7 +6,7 @@
 import { TEXT, setRich } from './text.js';
 import { detectPitch, describe, nearestString, noteName, midiToHz, TUNINGS, TRANSPOSE, A4_MIN, A4_MAX, PitchSmoother } from './tuning.js';
 import { playSamples } from './player.js';
-import { ScaleListener, resultTier, correctedRate, judgeNote, scaleRule, scoreOutOf10, celebrates, scoreText, LEVEL_IDS, MEASURES } from './scaletest.js';
+import { ScaleListener, resultTier, correctedRate, judgeNote, scaleRule, scoreOutOf10, celebrates, scoreText, SCORE_PARTS, LEVEL_IDS, MEASURES } from './scaletest.js';
 import { confetti } from './confetti.js';
 
 const WINDOW = 4096; // samples analysed at a time (enough for a low B on a 5-string bass)
@@ -315,8 +315,10 @@ export function setupTuner({ settings, persist, chips }) {
     // what each note was judged by; its parts only at the levels that have them.
     $('scale-score').hidden = !notes.length;
     const parts = $('scale-score-parts');
-    parts.hidden = sc.simple;
-    if (!sc.simple) parts.textContent = S.parts(sc.parts.inTune.toFixed(1), sc.parts.close.toFixed(1), sc.parts.clear.toFixed(1));
+    parts.hidden = sc.simple || !notes.length;
+    // Each part out of 10 of its own (in tune is worth 6 of the score, closeness 2.5, clear tone 1.5).
+    const of10 = (x, k) => scoreText(Math.round((x / (SCORE_PARTS[k] / 100)) * 100) / 10);
+    if (!sc.simple) parts.textContent = S.parts(of10(sc.parts.inTune, 'inTune'), of10(sc.parts.close, 'close'), of10(sc.parts.clear, 'clear'));
     const num = $('scale-score-num');
     const t0 = performance.now();
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches;

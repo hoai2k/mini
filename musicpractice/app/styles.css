@@ -2092,11 +2092,11 @@ html.paging { overflow: hidden; }
 .scale-score[hidden] { display: none; }
 .scale-score-label { font-weight: 800; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
 .scale-score-num { font: 700 clamp(2.6rem, 12vw, 3.4rem)/1 var(--display); font-variant-numeric: tabular-nums; color: var(--ink); }
-.scale-score-parts { color: var(--ink-2); font-weight: 600; font-size: 0.85rem; text-align: center; }
+.scale-score-parts { margin: 2px 0 0; color: var(--ink-2); font-weight: 600; font-size: 0.85rem; }
 .scale-score-parts[hidden] { display: none; }
 /* The score out of 10: the number, then "/ 10" small beside it. */
 .scale-score { display: grid; grid-template-columns: 1fr auto auto 1fr; justify-items: center; }
-.scale-score > .scale-score-label, .scale-score > .scale-score-parts { grid-column: 1 / -1; }
+.scale-score > .scale-score-label { grid-column: 1 / -1; }
 .scale-score-num { grid-column: 2; }
 .scale-score-of { grid-column: 3; align-self: end; margin: 0 0 0.45em 6px; color: var(--ink-2); font: 700 1.1rem/1 var(--display); }
 /* The confetti for a perfect scale (confetti.js), over the whole window, through which everything can still be tapped. */
