@@ -278,10 +278,12 @@ export function setupTuner({ settings, persist, chips }) {
         ? (n.parts.length === MEASURES.length ? S.good : S.goodBy(S.measures[n.by]))
         : [v === 'flat' ? S.flat(c) : S.sharp(c), ...(others.length ? [S.partly(S.measures[others[0]])] : [])].join(' · '), ...flaws].join(' · ');
       // A flaw always shows what it cost (at least 0.01, so it never reads as nothing).
-      const lost = sc.lost ? Math.max(sc.lost[i], flaws.length ? 0.01 : 0) : 0;
-      if (lost >= 0.005) {
-        const tag = Object.assign(document.createElement('span'), { className: 'sn-lost', textContent: S.lost(lost.toFixed(2)) });
-        tag.setAttribute('aria-label', S.lostLabel(lost.toFixed(2)));
+      // In tenths like the score; a flaw that cost less than 0.05 reads "<0.1".
+      const lost = sc.lost ? sc.lost[i] : 0;
+      if (lost >= 0.05 || flaws.length) {
+        const x = lost >= 0.05 ? lost.toFixed(1) : '<0.1';
+        const tag = Object.assign(document.createElement('span'), { className: 'sn-lost', textContent: S.lost(x) });
+        tag.setAttribute('aria-label', S.lostLabel(x === '<0.1' ? 'Less than 0.1' : x));
         li.querySelector('.sn-verdict').after(tag);
       }
       // Out of tune: hear the note as it was played, and the same sound
@@ -314,14 +316,13 @@ export function setupTuner({ settings, persist, chips }) {
     $('scale-score').hidden = !notes.length;
     const parts = $('scale-score-parts');
     parts.hidden = sc.simple;
-    if (!sc.simple) parts.textContent = S.parts(sc.parts.inTune.toFixed(2), sc.parts.close.toFixed(2), sc.parts.clear.toFixed(2));
+    if (!sc.simple) parts.textContent = S.parts(sc.parts.inTune.toFixed(1), sc.parts.close.toFixed(1), sc.parts.clear.toFixed(1));
     const num = $('scale-score-num');
     const t0 = performance.now();
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const step = sc.simple ? 10 : 100; // counted in tenths, or hundredths
     const count = (t) => {
       const k = still ? 1 : Math.min(1, (t - t0) / 1100);
-      num.textContent = scoreText(k < 1 ? Math.round(sc.score * (1 - (1 - k) ** 3) * step) / step : sc.score, sc.simple);
+      num.textContent = scoreText(k < 1 ? Math.round(sc.score * (1 - (1 - k) ** 3) * 10) / 10 : sc.score); // counted in tenths
       if (k < 1 && sheet.dataset.step === 'results') requestAnimationFrame(count);
     };
     requestAnimationFrame(count);

@@ -79,14 +79,14 @@ export function scoreOutOf10(judged, level, tolerance) {
   }
   const sc = scaleScore(judged, tolerance);
   return {
-    score: sc.total / 100, simple: false,
+    score: Math.round(sc.total / 10) / 10, simple: false, // to the nearest tenth: 988 is 9.9
     parts: { inTune: sc.inTune / 100, close: sc.close / 100, clear: sc.clear / 100 },
     lost: sc.lost.map((x) => x / 100), marks: sc.marks, // each note's points lost out of 10, and why
   };
 }
 export const celebrates = ({ score, simple }) => (simple ? score >= 10 : score >= 9.7);
-/** The score as shown: one decimal at the simple levels (none for a whole number), two at the others. */
-export const scoreText = (score, simple) => (Number.isInteger(score) ? String(score) : score.toFixed(simple ? 1 : 2));
+/** The score as shown: to one decimal, none for a whole number. */
+export const scoreText = (score) => (Number.isInteger(score) ? String(score) : score.toFixed(1));
 
 /** 'good', 'flat' or 'sharp' for a note `cents` off its nearest pitch. */
 export const judge = (cents, tolerance = SCALE_TOLERANCE) =>

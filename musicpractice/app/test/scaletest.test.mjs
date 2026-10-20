@@ -192,17 +192,21 @@ test('the score out of 10: the share in tune at the simple levels, the full scor
   const notes = (good, n) => Array.from({ length: n }, (_, i) => ({ verdict: i < good ? 'good' : 'sharp', cents: i < good ? 0 : 30, clarity: 0.95 }));
   assert.equal(scoreOutOf10(notes(13, 20), 'medium', 20).score, 6.5);
   assert.equal(scoreOutOf10(notes(8, 8), 'beginner', 35).score, 10);
-  assert.equal(scoreText(10, true), '10');
-  assert.equal(scoreText(6.5, true), '6.5');
+  assert.equal(scoreText(10), '10');
+  assert.equal(scoreText(6.5), '6.5');
   const hard = scoreOutOf10(notes(8, 8), 'hard', 15);
   assert.equal(hard.simple, false);
   assert.equal(hard.score, 10);
   assert.ok(Math.abs(hard.parts.inTune + hard.parts.close + hard.parts.clear - hard.score) < 1e-9);
-  assert.equal(scoreText(9.88, false), '9.88');
+  // Hard and Advanced round to the nearest tenth: one note of 8 at 30 cents off the in-tune 15 at Hard.
+  const near = scoreOutOf10(notes(7, 8), 'hard', 15);
+  assert.equal(Math.round(near.score * 10), near.score * 10);
+  assert.equal(scoreText(9.9), '9.9');
+  assert.equal(scoreText(10), '10');
   assert.equal(celebrates({ score: 10, simple: true }), true);
   assert.equal(celebrates({ score: 9.9, simple: true }), false);
   assert.equal(celebrates({ score: 9.7, simple: false }), true);
-  assert.equal(celebrates({ score: 9.69, simple: false }), false);
+  assert.equal(celebrates({ score: 9.6, simple: false }), false);
 });
 
 test('each note earns its share, with room: a scale without a flaw is 10, and a flawed note says why and what it lost', async () => {
