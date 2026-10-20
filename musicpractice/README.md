@@ -517,8 +517,17 @@ With the microphone working, every phone size and window tried fits: a
 375x667 phone drops only the subtitle, a 1280x600 window goes to step 3.
 Microphone messages (the tuner's status and Try again) sit above the card.
 
-At the top of the results is a **score**, counted up, with its parts under
-it; its scale (out of 1000) isn't shown (`scaleScore`):
+At the top of the results is a **score out of 10**, counted up
+(`scoreOutOf10`): at Beginner, Easy and Medium simply the share of notes in
+tune (65% in tune is 6.5, shown to one decimal); at Hard, Advanced and Custom
+the full score below scaled to 10 (988 is 9.88, two decimals), with its
+parts under it. **A perfect result is celebrated** (`celebrates`): 10 at the
+simple levels, 9.7 or more at the others, with confetti in the theme's
+colours over the sheet (`app/src/confetti.js`; none with reduced motion)
+and a brief small crowd cheering just after the success chime
+(`app/assets/audio/scale/cheer.mp3`, made with ElevenLabs sound effects,
+the second of four takes: two seconds with a clean fade, at -20 LUFS, under
+the chime's -13). The full score (`scaleScore`):
 - **In tune, up to 600:** the share of notes in tune.
 - **Closeness, up to 250:** how close every note was, so a near miss earns
   more than a wild one and a note in the centre more than one only just in
