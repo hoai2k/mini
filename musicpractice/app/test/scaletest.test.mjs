@@ -172,3 +172,16 @@ test('difficulty: wider and more forgiving at Beginner, down to landing within 1
   assert.equal(at('custom', { tolerance: 20, attack: 'start' }).verdict, 'flat');
   assert.equal(at('custom', { tolerance: 5, attack: 'end' }).verdict, 'good');
 });
+
+test('Stop ends a test at once with the notes heard so far; before the scale begins it has nothing to give', () => {
+  const x = scale([[60, 3], [62, -6], [64, 25], [65, 0]]);
+  const l = new ScaleListener(SR);
+  assert.equal(l.finish(), null); // still waiting
+  const upTo = Math.round((1 + 3 * 0.54 + 0.3) * SR); // into the fourth note, well before the quiet at the end
+  for (let i = 0; i < upTo; i += 1024) l.push(x.subarray(i, Math.min(upTo, i + 1024)));
+  assert.equal(l.state, 'listening');
+  const notes = l.finish();
+  assert.equal(l.state, 'done');
+  assert.deepEqual(notes.slice(0, 3).map((n) => n.midi), [60, 62, 64]);
+  assert.equal(l.result, notes);
+});
