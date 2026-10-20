@@ -62,7 +62,7 @@ export const DESCRIPTIONS = {
 
   // ---- bosses
   alecto: 'Alecto, the Fury who posed as Mrs. Dodds, the pre-algebra teacher, the first chapter’s boss. A grey hag with wild white curls, burning eyes, a ragged black dress, huge leathery wings and a fiery whip. She whips, swoops and rings the floor with fire, and calls hellhound pups.',
-  minotaur: 'The Minotaur, the bull-headed man-eater of the Labyrinth, the chapter 2 boss on Half-Blood Hill. A towering brown bull-man in white briefs, with a gold belt medallion, cream horns, a gold nose ring and red eyes. Beat him by making him charge into the pine tree.',
+  minotaur: 'The Minotaur, the bull-headed man-eater of the Labyrinth, the chapter 2 boss on Half-Blood Hill. A towering brown bull-man with a cream loincloth hanging front and back from a gold belt and medallion, cream horns, a gold nose ring and red eyes. Beat him by making him charge into the pine tree.',
   hellhound_alpha: 'The Hellhound, the great pack leader summoned into camp (chapter 3). A hellhound as big as a house: soot-black, with lava in its cracks, a burning ridge down its back, a gold spiked collar and a furnace for a mouth. It shadow-travels, mauls and howls up pups.',
   furies: 'The Furies, the Kindly Ones: Alecto, Megaera and Tisiphone, who share one health bar (chapter 4). Three grey, white-haired hags with leathery wings and fiery whips, each in her own colours. One fights on the ground while her sisters circle and take turns.',
   medusa: 'Medusa, the Gorgon whose gaze turns heroes to stone, who runs a statue garden as Aunty Em (chapter 5). Veiled in black and gold with green snakes writhing under her hood; her face is never shown, only her glowing eyes when she stares. Turn away when she lifts her veil.',

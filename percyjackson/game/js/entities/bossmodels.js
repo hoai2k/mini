@@ -64,8 +64,10 @@ const ckey = (i, j, k) => ((i + 1024) * 2048 + (j + 1024)) * 2048 + (k + 1024);
 //   { cap: [x0, y0, z0, x1, y1, z1, r0, r1] }   a tapered capsule between two points
 //   col: hex | [hex, ...] (noise clumps) | (x, y, z, n) => hex | null (null leaves the cell to later shapes)
 //   m: 'm' metal, 'e' glow, 'f' lit;  cut: true carves instead;  bump: lumpiness;  fuzz: ragged edge
+// hg: the grain of the per-cell jitter (the ragged edge and, with q, the three tones) in cells,
+// so a fine grid can keep blocks of 2-3 cells in step and greedy merging joins them (0 or 1: every cell)
 // Returns a Map "i,j,k" -> [Color, materialIndex] on a grid of size v.
-function cells(shapes, { v = 1, seed = 1, bump = 0.18, fuzz = 0.12, cellsIn = new Map(), q = false } = {}) {
+function cells(shapes, { v = 1, seed = 1, bump = 0.18, fuzz = 0.12, cellsIn = new Map(), q = false, hg = 0 } = {}) {
   const C = cellsIn;
   let lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9];
   const ext = (sh) => {
@@ -109,7 +111,7 @@ function cells(shapes, { v = 1, seed = 1, bump = 0.18, fuzz = 0.12, cellsIn = ne
     const z = (k + 0.5) * v;
     let any = false; for (let q = 0; q < SY.length; q++) if (z >= RY[q][2] && z <= RY[q][5]) { any = true; break; }
     if (!any) continue;
-    const n = noise(x * 0.42, y * 0.42, z * 0.42, seed), h = hash3(i, j, k, seed);
+    const n = noise(x * 0.42, y * 0.42, z * 0.42, seed), h = hg > 1 ? hash3(Math.floor(i / hg), Math.floor(j / hg), Math.floor(k / hg), seed) : hash3(i, j, k, seed);
     let cut = false, hit = null;
     for (let q = 0; q < SY.length; q++) {
       const sh = SY[q];
@@ -211,10 +213,11 @@ const Q6 = [0, 1, 2, 0, 2, 3];
 // boss made big with its rig scale is carved from more, smaller cells (the
 // shapes stay in skin pixels). Set per boss against its triangle budget.
 // rig.merge: greedy-mesh the cells (mergedFaces), with the tone jitter in three steps
+// rig.hg: the jitter's grain in cells (cells hg above), for a fine merged grid
 const vox = (rig, parent, shapes, opts = {}, boxes = []) => {
   const v = (opts.v ?? 1) / (rig.vd ?? 1), S = rig.shape?.get(parent);
   if (S) [shapes, boxes] = shaped(S, shapes, boxes);
-  const mesh = voxMesh(rig, parent, { cells: shapes.length ? cells(shapes, { ...opts, v, q: !!rig.merge }) : null, v, boxes, merge: !!rig.merge });
+  const mesh = voxMesh(rig, parent, { cells: shapes.length ? cells(shapes, { hg: rig.hg ?? 0, ...opts, v, q: !!rig.merge }) : null, v, boxes, merge: !!rig.merge });
   rig.shapeDone?.add(mesh);
   return mesh;
 };
@@ -444,7 +447,9 @@ const kitBoxes = (list, dy = 0) => list.map((b) => ({ p: [b.at[0], b.at[1] + dy,
 // budget (about 40k for a boss) allows.
 // (cerberus: a coarser body and finer heads, pass 3; its cells are greedy-meshed, rig.merge;
 // pass 4: re-sculpted at his new size, the heads smaller, both grids finer)
-const VD = { minotaur: 1.5, chimera: 1.15, chimeraHead: 1.1, chimeraTail: 1, cerberus: 1.25, cerberusHead: 1.15, procrustes: 1.5, ares: 1.5 };
+// (chimera, round 10: the owner raised its budget to about 70k for cells near a hero's,
+// 0.10 m on the body and 0.085 m on the heads, its jitter in blocks of 3 cells, rig.hg)
+const VD = { minotaur: 1.5, chimera: 1.85, chimeraHead: 1.75, chimeraTail: 1.3, cerberus: 1.25, cerberusHead: 1.15, procrustes: 1.5, ares: 1.5 };
 export const BOSS_MODELS = {
   // Alecto: Mrs. Dodds as she really is (vox-enemies, bottom right). (size
   // audit, round 4: her body, standing, without wings and whip, looms at about
@@ -540,12 +545,9 @@ export const BOSS_MODELS = {
     const kilt = [], PY = BYS;   // (the pivots sit high under the belt, so a swinging apron's top stays tucked in it)
     for (const [i, dir] of [[0, 1], [1, -1]]) {
       const L = i === 0 ? 9.5 : 8, WT = i === 0 ? 6.4 : 6, WB = i === 0 ? 4.6 : 4.4;
-      const z0 = dir * (BRZ - 1) + Z0;   // the pivot's z on the hips
+      const z0 = dir * (BRZ + 0.6) + Z0;   // the pivot's z, at the belt's outer face, so the apron hangs in front of (behind) the thighs
       const G = group(rig.hips, 0, PY, z0), I = new THREE.Group(); G.add(I);
-      const zThigh = (hy) => (hy > 2 ? 3.4 : hy > -1 ? 4.3 : 4.8) + 0.9;   // how far out the thigh reaches at a height, with a pixel of clearance
-      let tilt = 0.05;   // (the steepest tip over the heights from the belt's lower edge to the hem)
-      for (let hy = Math.min(BYS - 2, PY - L + 0.5); hy >= PY - L; hy -= 0.5) tilt = Math.max(tilt, Math.atan2(zThigh(hy) - dir * z0, PY - hy));
-      tilt = Math.min(0.5, tilt);
+      const tilt = 0.12;   // (just clears the thighs' front at rest. The owner: the aprons hang straight down and the legs may pass through them; they are there for modesty, not cloth physics)
       I.rotation.order = 'YXZ'; I.rotation.set(-tilt, i === 0 ? 0 : Math.PI, 0);
       const hem = (x, y, z, n, h) => (y < -L + 1.5 - Math.abs(Math.sin(x * 1.3 + i * 2.1)) * 0.9 - h * 1.2 ? null : y < -L + 2.6 ? CLOTHD : CLOTH[Math.floor(h * 3)]);
       const rows = [];
@@ -601,20 +603,8 @@ export const BOSS_MODELS = {
     rig.extras.muzzle = muzzle;
     applyShape(rig);
     rig.hunch = 0.32; rig.armSpread = 0.3;
-    // the kilt's panels follow the thighs (after the pose: bosses.js, the
-    // workbench and the animation lint run rig.tick right after animate). A
-    // front panel swings forward with a leg striding forward, a back one back
-    // with a leg swinging back, a side one a third as far, and out with a leg
-    // spread to the side.
-    rig.tick = (dt, e) => {
-      animateExtras(rig, dt, e);
-      for (const P of rig.extras.kilt) {
-        let fwd = 0, bck = 0; for (const l of P.legs) { fwd = Math.min(fwd, l.rotation.x); bck = Math.max(bck, l.rotation.x); }
-        const f = Math.max(P.front, P.back);
-        P.g.rotation.x = Math.max(-1, Math.min(1, P.front * fwd + P.back * bck + (1 - f) * 0.35 * (fwd + bck)));   // (an apron rides the thigh ahead of it, up to a point)
-        P.g.rotation.z = P.side < 0 ? (1 - f) * Math.min(0, rig.legR.rotation.z) : P.side > 0 ? (1 - f) * Math.max(0, rig.legL.rotation.z) : 0;
-      }
-    };
+    // (the aprons no longer swing with the thighs: the owner prefers them hanging still)
+    rig.tick = (dt, e) => animateExtras(rig, dt, e);
     return rig;
   },
 
@@ -640,15 +630,18 @@ export const BOSS_MODELS = {
     const rig = new QuadRig({ material: m, scale: 4, bodyL: 34, bodyW: 13, bodyH: 16, legH: 16, legW: 5.5, legY: 6, legSpread: 1.2, stance: 0.1, legsOnTorso: true, headS: 10, ears: false, tail: 9, tailLen: 30, tailW: 4.2, tailCurl: 0.4, gait: 0.6, neckUp: 0, jawOpen: 0.08 });
     const { legH, legW } = rig.dims, st = rig.spec.stance, both = (f) => [-1, 1].flatMap(f);
     hideSkin(rig.torso, rig.head, rig.mouth, ...rig.legs, ...rig.tail);
-    rig.vd = VD.chimera; rig.merge = true;
-    // the coat: tawny over the forequarters, paler and greyer over the rear,
-    // as on the sheet; each mass shaded dark underneath to light on top, so
-    // the muscles read against each other, over a cream belly
-    const TAN = [0x5a3210, 0x74461a, 0x905a24, 0xa86e30, 0xbe823e, 0xcc9850, 0xd8ac66];
-    const PALE = [0x5e4630, 0x7a5e44, 0x947656, 0xaa8c68, 0xbca07a, 0xcab28c, 0xd6c09c];
-    const maneC = [0x6a1e04, 0x8a3006, 0xa84208, 0xc4580c, 0xdc7414, 0xee9020];
-    const greyF = [0x342e32, 0x443c40, 0x544a4e, 0x645a5c, 0x766a6a, 0x887c7a, 0x9a908c];
-    const BELLY = [0xd0b080, 0xdcc090, 0xe6cc9e];
+    rig.vd = VD.chimera; rig.merge = true; rig.hg = 3;
+    // the coat (round 10, sampled off the sheet by pixel): a warm tawny lion
+    // over the forequarters, a darker, browner goat over the rear, on dark
+    // grey-brown goat legs; each mass shaded dark underneath to light on top,
+    // so the muscles read against each other, over a cream belly
+    const TAN = [0x5a2a0c, 0x7a3c12, 0x9a5418, 0xb86a24, 0xd08236, 0xe0984a, 0xeeb262];
+    const PALE = [0x34221a, 0x463022, 0x5a3e2c, 0x6c4c36, 0x7e5a42, 0x8e664c, 0x9c7256];   // (the goat's rear)
+    const GLEG = [0x261c1a, 0x342624, 0x44332f, 0x54403a, 0x644d45, 0x745a50, 0x82665a];   // (the goat's legs)
+    const maneC = [0x401905, 0x692c09, 0x833a0d, 0xbb5411, 0xde6f17, 0xf58e28];
+    const greyF = [0x221816, 0x30221f, 0x3e2e2c, 0x4e3b3b, 0x5c4848, 0x6c5654, 0x7e6462];   // (the goat's charcoal-brown)
+    const BELLY = [0xe8c48a, 0xf0d098, 0xf6dcaa];
+    const HOOF = [0x150e0d, 0x261a1a, 0x3c2d2e];
     const tone = (P, cy, ry, base) => (x, y, z, n) => P[Math.max(0, Math.min(P.length - 1, Math.round(base + (y - cy) / ry * 2 + (n - 0.5) * 1.8)))];
     // the torso: a mass's palette by where it is (tawny in front, pale behind,
     // blended through the ribs), the belly cream under the line y < -5.4
@@ -667,17 +660,18 @@ export const BOSS_MODELS = {
     ], { v: 1, seed: 31, bump: 0.12, fuzz: 0.1 });
     // long legs: the front ones a column of upper arm and forearm with the
     // elbow behind, the hind ones a big thigh, the gaskin back to a high hock
-    // and a long cannon forward to the paw; big paws, four toes, cream claws
+    // and a long cannon forward to the foot; the lion's big paws in front,
+    // four toes and cream claws, the goat's dark cloven hooves behind
     const claw = 0xf2e6cc, clawD = 0xc8b48a;
     for (const leg of rig.legs) {
-      const front = leg.userData.row === 0, s = leg.userData.side, P = front ? TAN : PALE;
+      const front = leg.userData.row === 0, s = leg.userData.side, P = front ? TAN : GLEG;
       vox(rig, leg, front ? [
         { cap: [0, 1, 0.6, 0, -6.4, -1.2, 3.6, 3], col: tone(P, -2.5, 4.5, 3) },               // upper arm
         { e: [0, -6.6, -2.1, 2.2, 2.4, 1.9], col: tone(P, -6.6, 2.4, 2.4) },                    // the elbow
         { e: [0, -9, 0.5, 2.7, 3.6, 2.6], col: tone(P, -9, 3.6, 2.8) },                         // forearm muscle
         { cap: [0, -6.4, -0.6, 0, -15.6, 0.6, 2.6, 2.1], col: tone(P, -11, 4.5, 2.4) },          // forearm
       ] : [
-        { e: [0, -1.4, 0.6, 3.7, 6, 4.8], col: tone(P, -1.4, 6, 3.2) },                          // thigh
+        { e: [0, -1.4, 0.6, 3.7, 6, 4.8], col: tone(PALE, -1.4, 6, 3.2) },                       // thigh (the rump's coat)
         { cap: [0, -5.6, 0.6, 0, -10.6, -3.2, 2.9, 2.1], col: tone(P, -8, 3, 2.6) },              // gaskin
         { e: [0, -10.9, -3.4, 1.7, 1.7, 1.6], col: tone(P, -10.9, 1.7, 2.2) },                   // the hock
         { cap: [0, -10.8, -3.2, 0, -15.8, -0.4, 1.9, 1.8], col: tone(P, -13, 3, 2.2) },          // the cannon
@@ -685,6 +679,13 @@ export const BOSS_MODELS = {
       // the paw, level though the leg leans out (stance)
       const paw = group(leg, 0, -legH - legW * 0.2, front ? 0.6 : -0.2, 0, 0, -st * s);
       const toes = [-1.65, -0.55, 0.55, 1.65];
+      if (!front) {   // the goat's foot: a shaggy fetlock over two dark hoof halves, the cleft between, dewclaws behind
+        vox(rig, paw, [
+          { e: [0, 2.2, 0.8, 3, 1.9, 3.2], col: tone(P, 2.2, 1.9, 2.6), fuzz: 0.2 },
+          ...[-1, 1].map((sx) => ({ e: [sx * 1.35, 0.95, 2.6, 1.1, 0.95, 2.4], col: (x, y, z, nn, h) => (y > 1.5 ? HOOF[2] : HOOF[Math.floor(h * 2)]), bump: 0.03, fuzz: 0.03 })),
+        ], { v: 0.75, seed: 37 }, [-1, 1].map((sx) => ({ p: [sx * 1.3, 1.5, -1.9], s: [0.8, 0.8, 0.7], c: HOOF[1], r: [-0.4, 0, 0] })));
+        continue;
+      }
       vox(rig, paw, [
         { e: [0, 1.9, 1.2, 3.3, 1.9, 3.6], col: tone(P, 1.9, 1.9, 2.8) },
         ...toes.map((dx) => ({ e: [dx * 1.35, 1.05, 4.2 - Math.abs(dx) * 0.45, 0.9, 1.05, 1.3], col: tone(P, 1.05, 1.05, 3.4), bump: 0.04, fuzz: 0.04 })),
@@ -719,7 +720,7 @@ export const BOSS_MODELS = {
       { e: S([-2, 2.6, 5.4, 1.9, 0.8, 1.4]), col: 0x7a4012 }, { e: S([2, 2.6, 5.4, 1.9, 0.8, 1.4]), col: 0x7a4012 },
       { b: S([-1.2, 0.2, 9.4, 1.2, 1.4, 10.4]), col: 0x3a1a10, bump: 0, fuzz: 0 },
       { b: S([-1.8, -2.4, 6.2, 1.8, -1.6, 9.8]), col: 0xa01820, bump: 0, fuzz: 0 },
-      { e: S([0, -0.4, 8, 2.6, 1.9, 2.6]), col: (x, y) => (y < -1 * k ? 0xf0d0a0 : [0xd8a060, 0xe0ac6c][Math.floor(hash3(Math.floor(x * 2), Math.floor(y * 2), 1, 1) * 2)]), bump: 0.05, fuzz: 0.05 },
+      { e: S([0, -0.4, 8, 2.6, 1.9, 2.6]), col: (x, y) => (y < -1 * k ? 0xf8cc78 : [0xe88932, 0xf6a444][Math.floor(hash3(Math.floor(x * 2), Math.floor(y * 2), 1, 1) * 2)]), bump: 0.05, fuzz: 0.05 },
       ...[-1, 1].map((sx) => ({ e: S([sx * 3.4, 4.6, 1.8, 1.1, 1.1, 0.7]), col: 0x8a5220 })),          // round ears in the mane
       { e: S([0, 1, 2.6, 4.2, 4, 4]), col: tone(TAN, 1 * k, 4 * k, 4) },
       { e: S([0, 0.4, 0.6, 5.8, 6.5, 4.2]), col: (x, y, z, n) => (z > 3.4 * k && Math.abs(x) < 4.2 * k && y > -3.4 * k ? null : maneC[Math.min(5, Math.floor(n * 6))]), fuzz: 0.32, bump: 0.22 },
@@ -739,7 +740,7 @@ export const BOSS_MODELS = {
     // a shaggy ruff and great ridged horns sweeping back and curling round
     const kg = 1.45, SG = (a) => a.map((q) => q * kg);
     const goatMouth = group(goatHead, 0, -2.6 * kg, 6.6 * kg);
-    const hornG = (s) => along((t) => { const a = t * Math.PI * 1.3; return SG([s * (1.8 + 2.6 * t), 3.4 + 3.4 * Math.sin(a), 0.4 - 3.8 * (1 - Math.cos(a))]); }, 24, 1.5 * kg, 0.45 * kg, (t) => (Math.floor(t * 23) % 2 ? 0x2e2620 : 0x4a3e34));
+    const hornG = (s) => along((t) => { const a = t * Math.PI * 1.3; return SG([s * (1.8 + 2.6 * t), 3.4 + 3.4 * Math.sin(a), 0.4 - 3.8 * (1 - Math.cos(a))]); }, 24, 1.5 * kg, 0.45 * kg, (t) => (Math.floor(t * 23) % 2 ? 0x302327 : 0x42353a));
     vox(rig, goatHead, [
       ...[-1, 1].flatMap((sx) => [
         { b: SG([sx * 2.5, 1.2, 3.8, sx * 3.3, 2.2, 5.2]), col: 0xffd020, m: 'e', bump: 0, fuzz: 0 },   // the eyes, out at the sides
@@ -769,7 +770,7 @@ export const BOSS_MODELS = {
     // the tail: a diamondback rattlesnake, dark brown with gold diamonds
     // edged in black down its back over a pale belly, rising over the back
     const n = rig.tail.length, seg = rig.spec.tailLen / n, tw = rig.spec.tailW;
-    const DB = { base: [0x3e2812, 0x4c3216], dia: [0xd8b060, 0xc89a48, 0xe0bc70], edge: 0x1e140a, belly: [0xe0cc98, 0xd0b884] };
+    const DB = { base: [0x2a1c1a, 0x3c2826], dia: [0xdfa35b, 0xc88a48, 0xeab470], edge: 0x170e0d, belly: [0xcab08a, 0xb89c78] };   // (round 10: the sheet's dark and gold bands)
     const diamond = (r, z0) => (x, y, z, nn, h) => {
       if (y < -r * 0.45) return DB.belly[Math.floor(h * 2)];
       const u = (((z0 - z) / 3.4) % 1 + 1) % 1 - 0.5, v = Math.atan2(x, y) / 1.5, d = Math.abs(u) * 1.7 + Math.abs(v);
