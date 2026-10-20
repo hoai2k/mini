@@ -882,6 +882,26 @@ file, on purpose: the privacy page, the device details Send feedback attaches
   a hidden honeypot field, Send held for 3 s, the script's hourly caps. A
   failed send says so and keeps what was written. Empty `ENDPOINT` and the
   buttons disappear.
+  **Include debugging data** (off, and unticked again every time the form
+  opens) adds the debug log's state and its most recent events, as many as
+  fit in what the message and details leave of the script's 4000 characters.
+- `app/src/debuglog.js`: the debug log, for problems only a real phone shows
+  (sound too quiet over Bluetooth, say). Kept in `localStorage`
+  (`musicpractice.debuglog.v1`, the newest 1500 events, across visits), it
+  records each audio context made and its states, why one was marked stale
+  and replaced, every Safari audio session change, every mic request, open,
+  reuse and close with the reason it was freed or held (permission,
+  allowed-in-advance timing, a suspected prompt), mic track events, the
+  speakers and mics reported (ids shortened), each take played (the route,
+  the mic, Safari's mode, how much it was brought up), the metronome and
+  drone starting and stopping with their volumes, screens, page visibility
+  and errors; and every 10 s while sound plays (otherwise on a change) a
+  snapshot of all that with the app's own output level, peak and RMS in dBFS,
+  read off the limiter by an analyser (`output.js`), so a healthy level from
+  a quiet phone shows the loss is after the app. **Export debug data** at the
+  foot of Audio check saves all of it as JSON (shared on phones, downloaded
+  elsewhere, as takes are: `saveFile` in `main.js`). Nothing is sent unless
+  the person sends it; `privacy.html#debug-log` says so.
 - `app/privacy.html`: the privacy policy and terms, for the apps' paywall and
   store listings.
 - `design/mobile-apps.md`: why the apps, what to sell and the store rules.

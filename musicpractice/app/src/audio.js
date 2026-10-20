@@ -2,6 +2,7 @@
 // Browsers only let it start from a tap, so `unlock()` is called from one.
 
 import { isApp, keepScreenOn } from './native.js';
+import { dlog, shortId } from './debuglog.js';
 
 let ctx = null;
 
@@ -9,6 +10,9 @@ export function audio() {
   if (!ctx) {
     const AC = globalThis.AudioContext || globalThis.webkitAudioContext;
     ctx = new AC({ latencyHint: 'interactive' });
+    const c = ctx;
+    dlog('ctx-new', { sampleRate: c.sampleRate, state: c.state, baseLatency: c.baseLatency ?? null, session: navigator.audioSession?.type ?? null });
+    c.addEventListener?.('statechange', () => dlog('ctx-state', { state: c.state, current: c === ctx, outputLatency: c.outputLatency ?? null, session: navigator.audioSession?.type ?? null }));
   }
   return ctx;
 }
@@ -20,14 +24,16 @@ export function audio() {
  * freshAudio() replaces it at the next tap that starts sound.
  */
 let stale = false;
-export function markStale() {
+export function markStale(why = 'asked') {
+  if (!stale) dlog('ctx-stale', { why });
   stale = true;
 }
-navigator.mediaDevices?.addEventListener?.('devicechange', markStale);
+navigator.mediaDevices?.addEventListener?.('devicechange', () => markStale('devicechange'));
 
 /** The AudioContext, replaced first if it may be on an old output. */
 export function freshAudio() {
   if (ctx && stale) {
+    dlog('ctx-replace', { why: 'stale' });
     try { ctx.close(); } catch { /* already closed */ }
     ctx = null;
     away = false;
@@ -42,6 +48,7 @@ export function freshAudio() {
  * the sound (a call, Messenger, a video), and only a new one works again.
  */
 export function replaceAudio() {
+  dlog('ctx-replace', { why: 'replaceAudio' });
   if (ctx) {
     try { ctx.close(); } catch { /* already closed */ }
     ctx = null;
@@ -80,9 +87,12 @@ export async function unlock() {
  * phone drops back to normal playback as soon as the mic closes.
  */
 export function setSession(type) {
+  const before = navigator.audioSession?.type ?? null;
   try {
     if (navigator.audioSession) navigator.audioSession.type = type;
   } catch { /* not supported */ }
+  const after = navigator.audioSession?.type ?? null;
+  if (navigator.audioSession && (before !== after || before !== type)) dlog('session-set', { asked: type, before, after, state: navigator.audioSession?.state ?? null });
 }
 
 /**
@@ -151,8 +161,10 @@ export async function setContextSpeaker(id) {
   if (typeof c.setSinkId !== 'function') return false;
   try {
     await c.setSinkId(id === 'default' ? '' : id);
+    dlog('ctx-sink', { ok: true, id: shortId(id) });
     return true;
-  } catch {
+  } catch (err) {
+    dlog('ctx-sink', { ok: false, id: shortId(id), error: String(err) });
     return false;
   }
 }

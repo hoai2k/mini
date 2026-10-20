@@ -66,9 +66,9 @@ export async function version() {
  * The message as sent: the topic, what they wrote, then the details (if any),
  * kept within the script's cap by shortening what they wrote last.
  */
-export function compose({ topic, message, details }) {
+export function compose({ topic, message, details, debug }) {
   const head = topic ? `[${topic}] ` : '';
-  const tail = details ? `\n\n— Details —\n${details}` : '';
+  const tail = (details ? `\n\n— Details —\n${details}` : '') + (debug ? `\n\n— Debug —\n${debug}` : '');
   const room = Math.max(200, MAX_MESSAGE - head.length - tail.length);
   return (head + message.trim().slice(0, room) + tail).slice(0, MAX_MESSAGE);
 }
@@ -78,7 +78,7 @@ export function compose({ topic, message, details }) {
  * purpose: a JSON content-type makes the browser send a CORS preflight, which
  * an Apps Script web app can't answer. The body is JSON regardless.
  */
-export async function sendFeedback({ email, topic, message, details, elapsed, hp }) {
+export async function sendFeedback({ email, topic, message, details, debug, elapsed, hp }) {
   if (!ENDPOINT) return false;
   try {
     const res = await fetch(ENDPOINT, {
@@ -88,7 +88,7 @@ export async function sendFeedback({ email, topic, message, details, elapsed, hp
         kind: 'feedback',
         game: GAME,
         email: email.trim() || NO_EMAIL,
-        message: compose({ topic, message, details }),
+        message: compose({ topic, message, details, debug }),
         elapsed,
         hp,
         turnstile: '',
@@ -116,9 +116,11 @@ const TOPICS = ['Problem', 'Idea', 'Other'];
 /**
  * Wire up the Send feedback dialog (index.html #feedback). `details()` returns
  * the device details as text; the person can see them before sending, and
- * leave them out.
+ * leave them out. `debug(max)` returns the debug log's state and its most
+ * recent events within `max` characters (debuglog.js), sent only if they tick
+ * Include debugging data, which starts unticked every time.
  */
-export function setupFeedback({ details }) {
+export function setupFeedback({ details, debug }) {
   const $ = (id) => document.getElementById(id);
   const dialog = $('feedback');
   const openers = [...document.querySelectorAll('.open-feedback')];
@@ -129,6 +131,7 @@ export function setupFeedback({ details }) {
   const email = $('fb-email');
   const text = $('fb-message');
   const include = $('fb-details-on');
+  const includeDebug = $('fb-debug-on');
   const send = $('fb-send');
   const status = $('fb-status');
   let topic = 'Problem';
@@ -169,6 +172,7 @@ export function setupFeedback({ details }) {
     try { email.value ||= localStorage.getItem(EMAIL_KEY) || ''; } catch { /* not kept */ }
     if (preset) { topic = preset; syncChips(); }
     $('fb-details').textContent = details();
+    includeDebug.checked = false;
     status.textContent = '';
     status.classList.remove('error');
     $('fb-hp').value = '';
@@ -194,11 +198,15 @@ export function setupFeedback({ details }) {
     update();
     status.classList.remove('error');
     status.textContent = TEXT.feedback.sending;
+    const shown = include.checked ? details() : '';
+    // The debug log takes whatever room the message and details leave.
+    const room = MAX_MESSAGE - (topic.length + 3) - text.value.trim().length - (shown ? shown.length + 16 : 0) - 16;
     const ok = await sendFeedback({
       email: email.value,
       topic,
       message: text.value,
-      details: include.checked ? details() : '',
+      details: shown,
+      debug: includeDebug.checked && room > 300 ? debug(room) : '',
       elapsed: Math.round(performance.now() - opened),
       hp: $('fb-hp').value,
     });

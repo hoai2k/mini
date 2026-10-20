@@ -612,6 +612,8 @@
         <header class="sheet-head"><h3 id="audio-check-title" data-text="audioCheck.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
         <div id="audio-check-body" aria-live="polite"></div>
         <button type="button" class="pill open-feedback" data-topic="Problem" data-text="audioCheck.reportProblem"></button>
+        <!-- The debug log (debuglog.js), all of it, as a JSON file to send for investigating (main.js). -->
+        <button type="button" class="pill" id="export-debug" data-text="audioCheck.exportDebug"></button>
       </form>
     </dialog>
 
@@ -628,6 +630,9 @@
         <div class="fb-hp" aria-hidden="true"><label><span data-text="feedback.honeypot"></span> <input type="text" id="fb-hp" tabindex="-1" autocomplete="off"></label></div>
         <label class="row toggle"><span data-text="feedback.includeDetails"></span><input type="checkbox" id="fb-details-on" role="switch" checked></label>
         <details class="fb-details-box"><summary data-text="feedback.whatsIncluded"></summary><pre id="fb-details"></pre></details>
+        <!-- The debug log's state and latest events (debuglog.js), as much as fits; unticked every time it opens. -->
+        <label class="row toggle"><span data-text="feedback.includeDebug"></span><input type="checkbox" id="fb-debug-on" role="switch"></label>
+        <p class="help fb-debug-note" data-text="feedback.debugNote"></p>
         <button type="button" class="big-btn fb-send" id="fb-send" data-text="feedback.send" disabled></button>
         <p class="help fb-status" id="fb-status" role="status" aria-live="polite"></p>
         <p class="help fb-note"><span data-text="feedback.privacyNote"></span> <a href="https://hoai2k.github.io/mini/musicpractice/privacy.html#feedback" target="_blank" rel="noopener" data-text="feedback.privacyLink"></a></p>
