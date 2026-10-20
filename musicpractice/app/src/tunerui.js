@@ -245,13 +245,15 @@ export function setupTuner({ settings, persist, chips }) {
   }
 
   const scaleRuleNow = () => scaleRule(settings.scaleLevel, { tolerance: settings.scaleTolerance, attack: settings.scaleAttack });
-  function showScaleResults(notes, listener) {
+  let lastScale = null; // the last test's notes, judged again if the difficulty changes on its results
+  function showScaleResults(notes, listener, { quiet = false } = {}) {
+    lastScale = { notes, listener };
     const S = TEXT.tuner.scale;
     const rule = scaleRuleNow();
     // Each note judged by the difficulty's rule; `cents` is what it is judged by.
     const judged = notes.map((n) => ({ ...n, ...judgeNote(n, rule), measured: n.cents }));
     const good = judged.filter((n) => n.verdict === 'good').length;
-    resultChime(resultTier(good, notes.length));
+    if (!quiet) resultChime(resultTier(good, notes.length));
     sheet.dataset.tier = resultTier(good, notes.length);
     $('scale-summary').textContent = notes.length ? S.summary(good, notes.length) : S.none;
     $('scale-notes').replaceChildren(...judged.map((n) => {
@@ -439,9 +441,11 @@ export function setupTuner({ settings, persist, chips }) {
     $('scale-tol-label').textContent = T.scaleTolerance(settings.scaleTolerance);
     $('scale-custom').hidden = settings.scaleLevel !== 'custom';
   }
-  level.addEventListener('change', () => { settings.scaleLevel = level.value; persist(); showLevel(); });
-  tol.addEventListener('input', () => { settings.scaleTolerance = Number(tol.value); persist(); showLevel(); });
-  attack.addEventListener('change', () => { settings.scaleAttack = attack.value; persist(); });
+  // A change while results are showing judges them again at the new difficulty.
+  const rejudge = () => { if (lastScale && sheet.dataset.step === 'results') showScaleResults(lastScale.notes, lastScale.listener, { quiet: true }); };
+  level.addEventListener('change', () => { settings.scaleLevel = level.value; persist(); showLevel(); rejudge(); });
+  tol.addEventListener('input', () => { settings.scaleTolerance = Number(tol.value); persist(); showLevel(); rejudge(); });
+  attack.addEventListener('change', () => { settings.scaleAttack = attack.value; persist(); rejudge(); });
   showLevel();
 
   function render() {
