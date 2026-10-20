@@ -2021,19 +2021,24 @@ html.paging { overflow: hidden; }
    under the tuner, set apart from Play a note: an inviting card that opens
    a sheet with a record button, then the results there. */
 .scale-test { width: min(100%, 440px); margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); display: flex; justify-content: center; }
+/* Upright, it takes what height is left under the tuner and the button sits
+   in the middle of it, so the room above and below it is even rather than
+   all of it below. */
+.tuner-body { min-height: 0; }
+.scale-test { flex: 1 0 auto; align-items: center; padding-bottom: 8px; }
 .scale-test[hidden] { display: none; }
 /* Where the page would otherwise scroll (tunerui.js fit()): first without
    its subtitle and with less space above, then smaller still. */
 .scale-test.compact { margin-top: 12px; padding-top: 12px; }
 .scale-test.compact .scale-cta-text small { display: none; }
-.scale-test.tight { margin-top: 4px; padding-top: 8px; }
+.scale-test.tight { margin-top: 4px; padding-top: 8px; padding-bottom: 0; }
 .scale-test.tight .scale-cta { padding: 7px 12px; gap: 10px; border-radius: 16px; box-shadow: none; }
 .scale-test.tight .scale-cta-icon { width: 34px; height: 34px; box-shadow: none; }
 .scale-test.tight .scale-cta-icon svg { width: 21px; height: 21px; }
 .scale-test.tight .scale-cta-text strong { font-size: 0.98rem; }
 /* Barest: no space above the rule, and the card's box gone, so the whole
    strip under the rule is the button. */
-.scale-test.bare { margin-top: 0; padding-top: 0; }
+.scale-test.bare { margin-top: 0; padding-top: 4px; padding-bottom: 0; }
 .scale-test.bare .scale-cta { border: 0; border-radius: 0; background: transparent; padding: 6px 4px; }
 .scale-test.bare .scale-cta:hover { transform: none; background: var(--panel); }
 /* Quiet beside the tuner, which comes first: no fill or shadow, an outlined

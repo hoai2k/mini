@@ -493,7 +493,9 @@ cents higher or lower (`correctedRate`), so it is also a few percent shorter
 or longer. A second press stops either; closing the sheet or testing again
 stops it too. The test checks that a clip measures as played and, at its
 corrected rate, in tune.
-**It takes only the room there is.** The tuner fills the window's height
+Upright, the card takes whatever height is left under the tuner and the
+button sits in the middle of it, so the space above and below it stays even
+instead of all collecting at the bottom. **It takes only the room there is.** The tuner fills the window's height
 and no more (`fit` in `tunerui.js`, measured on entering, resizing, a change
 of theme or font, and whenever the tuner's own content changes height, such
 as a microphone message coming and going). Where the page would scroll, the
