@@ -368,11 +368,12 @@
           <div class="scale-results">
             <div class="scale-score" id="scale-score">
               <span class="scale-score-label" data-text="tuner.scale.score"></span>
-              <span class="scale-score-num" id="scale-score-num">0</span>
-              <span class="scale-score-parts" id="scale-score-parts"></span>
+              <span class="scale-score-num" id="scale-score-num">0</span><span class="scale-score-of" aria-hidden="true">/ 10</span>
             </div>
             <p class="scale-summary" id="scale-summary"></p>
             <ol class="scale-notes" id="scale-notes"></ol>
+            <!-- At the full-score levels, each part of the score out of 10, as a postscript to the notes. -->
+            <p class="scale-score-parts" id="scale-score-parts"></p>
             <p class="help" id="scale-help"></p>
             <div class="sheet-links">
               <button type="button" class="pill" id="scale-again" data-text="tuner.scale.again"></button>

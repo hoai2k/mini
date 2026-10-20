@@ -17,8 +17,14 @@ and an order saved then is dropped.
 scrolls, down to a small phone either way up** (measured at 568×320 and
 320×568 in every theme, and up to desktops). Each fits its picture to the
 room the controls leave, and where that is not enough it steps down to a
-compact form: the home screen tightens its spacing and labels and then its
-art (`layoutHome`, `#home.compact`, `--art-max`); the metronome and the
+compact form: the home screen makes its buttons' art as large as fits,
+largest first (`layoutHome`, `HOME_ART`, `--art-max`), so a phone on its
+side fills its height (the row of five has narrower gaps and side padding
+for this), and tightens its spacing and labels (`#home.compact`) only when
+even a small size doesn't fit; a label needs a little room either side
+of it. Home is measured whatever screen shows (laid out out of sight,
+`#home.measuring`), so turning the phone on the Routine page switches the
+swipe back on or off just as it does on the home screen; the metronome and the
 drone take smaller controls (`#metronome.tight`, `#drone.tight`, also the
 Bluetooth sync bar); the tuner's existing steps (the scale-test card, then
 the gauge, down to 72 pixels) end in tighter text and buttons
@@ -511,15 +517,33 @@ With the microphone working, every phone size and window tried fits: a
 375x667 phone drops only the subtitle, a 1280x600 window goes to step 3.
 Microphone messages (the tuner's status and Try again) sit above the card.
 
-At the top of the results is a **score**, counted up, with its parts under
-it; its scale (out of 1000) isn't shown (`scaleScore`):
+At the top of the results is a **score out of 10**, counted up
+(`scoreOutOf10`): at Beginner, Easy and Medium simply the share of notes in
+tune (65% in tune is 6.5, shown to one decimal); at Hard, Advanced and Custom
+the full score below scaled to 10 and rounded to the nearest tenth (988 is 9.9). Under the
+notes, as a postscript, each part of it out of 10 of its own (*In tune
+6.7/10 · Closeness 8.4/10 · Clear tone 10/10*). **A perfect result is celebrated** (`celebrates`): 10 at the
+simple levels, 9.7 or more at the others, with confetti in the theme's
+colours bursting up and out from the score itself (`app/src/confetti.js`;
+none with reduced motion) and a brief small crowd cheering just after the
+success chime (`app/assets/audio/scale/cheer.mp3`, made with ElevenLabs
+sound effects, the second of four takes: two seconds with a clean fade, at
+-20 LUFS, under the chime's -13). The full score (`scaleScore`) is summed
+note by note, each note worth an equal share of 1000, so **a scale with no
+flaws scores 10**:
 - **In tune, up to 600:** the share of notes in tune.
-- **Closeness, up to 250:** how close every note was, so a near miss earns
-  more than a wild one and a note in the centre more than one only just in
-  tune (in full at 0 cents, nothing from 50 off).
+- **Closeness, up to 250:** how near the centre each note was. A note within
+  half the tolerance of the centre earns it in full (as much give as the
+  in-tune judgement itself has), falling to nothing at 50 cents off.
 - **Clear tone, up to 150:** how clear and steady each note's tone was, the
   pitch clarity the detector measures over its settled middle (nothing at
-  0.7, where a frame stops counting as a note, in full from 0.95).
+  0.7, where a frame stops counting as a note, in full from 0.9).
+
+Each note is marked with what it lost (`noteMarks`): at Hard, Advanced and
+Custom a note with a flaw says which ("In tune · 8¢ sharp" for one in tune
+but off the centre, "weaker tone" for a less clear sound) and carries the
+points it cost out of 10, in tenths like the score (a flaw that cost under
+0.05 reads −<0.1, so it is never shown as free).
 The results come up with a chime by how it went (`resultTier`):
 - **Triumphant:** 80% or more in tune.
 - **Positive:** half or more.
@@ -534,8 +558,9 @@ A sustained tone to play along with: tuning intervals against it, long
 tones, scales over a tonic.
 
 - The note, big (letter, accidental, octave) with its frequency; − / + move a
-  semitone and the list picks any note from C2 to B3 (the drone's two
-  octaves, from the cello's open C). Past either end, notes wrap round by an
+  semitone and the list picks any note from C1 to B4 (four octaves: the
+  cello's own two from its open C, and one more each way), on every voice.
+  Past either end, notes wrap round by an
   octave. **Play** fades in over about 2 s, and changing the note or
   instrument while it plays crossfades (about 1.5 s out); **Pause** stops at
   once, the sound and the hall's ring gone in about 50 ms (no click), the
@@ -624,9 +649,13 @@ tones, scales over a tonic.
   is kept between visits. Space plays and pauses; arrow keys move the note.
 
 How it sounds (`app/src/drone.js`): apart from the Synth organ, every voice plays recordings, generated
-with ElevenLabs sound effects and cut into seamless loops on four notes each,
-so every note is a few semitones at most from a real take and is retuned to it
-exactly by playback rate (following the reference pitch). They are made
+with ElevenLabs sound effects and cut into seamless loops, so every note is a
+few semitones at most from a loop and is retuned to it exactly by playback rate
+(following the reference pitch). The cello has loops on D2, G2, D3, A3 and A4
+(stretched up to 6 semitones between A3 and A4); the organ on G2, C3, D3, F3,
+C4 and A4 (up to 7, and 8.5 down to C1). The bottom octave, below a cello's
+range, plays the cello's D2 and G2 and the organ's G2 an octave down (the same
+loops at half speed, `cello-D1`, `cello-G1`, `organ-G1`), for now. They are made
 perfectly steady: no bow change is ever heard, the pitch is held exactly and
 the level and brightness are evened out, as if the bow or breath never ended.
 The shipped loops were then smoothed once more (`design/source/drone/smooth.mjs`,

@@ -6,7 +6,8 @@
 import { TEXT, setRich } from './text.js';
 import { detectPitch, describe, nearestString, noteName, midiToHz, TUNINGS, TRANSPOSE, A4_MIN, A4_MAX, PitchSmoother } from './tuning.js';
 import { playSamples } from './player.js';
-import { ScaleListener, resultTier, scaleScore, correctedRate, judgeNote, scaleRule, LEVEL_IDS, MEASURES } from './scaletest.js';
+import { ScaleListener, resultTier, correctedRate, judgeNote, scaleRule, scoreOutOf10, celebrates, scoreText, SCORE_PARTS, LEVEL_IDS, MEASURES } from './scaletest.js';
+import { confetti } from './confetti.js';
 
 const WINDOW = 4096; // samples analysed at a time (enough for a low B on a 5-string bass)
 const HOLD_MS = 1500; // the last note stays up this long after the sound stops
@@ -256,7 +257,8 @@ export function setupTuner({ settings, persist, chips }) {
     if (!quiet) resultChime(resultTier(good, notes.length));
     sheet.dataset.tier = resultTier(good, notes.length);
     $('scale-summary').textContent = notes.length ? S.summary(good, notes.length) : S.none;
-    $('scale-notes').replaceChildren(...judged.map((n) => {
+    const sc = scoreOutOf10(judged, settings.scaleLevel, rule.tolerance);
+    $('scale-notes').replaceChildren(...judged.map((n, i) => {
       const v = n.verdict;
       const c = Math.round(Math.abs(n.cents));
       const { name, octave } = noteName(n.midi, { flats: settings.flats, transpose: settings.transpose });
@@ -269,9 +271,21 @@ export function setupTuner({ settings, persist, chips }) {
       // Which part was right: a note in tune by only part of it says which;
       // one out of tune whose start or end was right says so too.
       const others = n.parts.filter((p) => p !== n.by);
-      li.querySelector('.sn-verdict').textContent = v === 'good'
+      // At the full-score levels, what else it lost points for (a tone not
+      // quite clear, in tune but off the middle), and how many.
+      const flaws = sc.marks ? sc.marks[i].flaws.map((f) => (f === 'weakTone' ? S.weakTone : S.offCentre(c, n.cents > 0))) : [];
+      li.querySelector('.sn-verdict').textContent = [v === 'good'
         ? (n.parts.length === MEASURES.length ? S.good : S.goodBy(S.measures[n.by]))
-        : [v === 'flat' ? S.flat(c) : S.sharp(c), ...(others.length ? [S.partly(S.measures[others[0]])] : [])].join(' · ');
+        : [v === 'flat' ? S.flat(c) : S.sharp(c), ...(others.length ? [S.partly(S.measures[others[0]])] : [])].join(' · '), ...flaws].join(' · ');
+      // A flaw always shows what it cost (at least 0.01, so it never reads as nothing).
+      // In tenths like the score; a flaw that cost less than 0.05 reads "<0.1".
+      const lost = sc.lost ? sc.lost[i] : 0;
+      if (lost >= 0.05 || flaws.length) {
+        const x = lost >= 0.05 ? lost.toFixed(1) : '<0.1';
+        const tag = Object.assign(document.createElement('span'), { className: 'sn-lost', textContent: S.lost(x) });
+        tag.setAttribute('aria-label', S.lostLabel(x === '<0.1' ? 'Less than 0.1' : x));
+        li.querySelector('.sn-verdict').after(tag);
+      }
       // Out of tune: hear the note as it was played, and the same sound
       // pitch-shifted onto the note it was meant to be (played at a sample
       // rate that much higher or lower, so a little shorter or longer too).
@@ -297,21 +311,30 @@ export function setupTuner({ settings, persist, chips }) {
     }));
     const by = new Intl.ListFormat('en', { type: 'disjunction' }).format(rule.use.map((k) => S.measures[k]));
     $('scale-help').textContent = S.help(TEXT.tuner.settings.scaleLevels[settings.scaleLevel], rule.tolerance, by);
-    // The score, counted up as the sheet shows it, on what each note was judged by.
-    const sc = scaleScore(judged, rule.tolerance);
+    // The score out of 10 (scoreOutOf10), counted up as the sheet shows it, on
+    // what each note was judged by; its parts only at the levels that have them.
     $('scale-score').hidden = !notes.length;
-    $('scale-score-parts').textContent = S.parts(sc.inTune, sc.close, sc.clear);
+    const parts = $('scale-score-parts');
+    parts.hidden = sc.simple || !notes.length;
+    // Each part out of 10 of its own (in tune is worth 6 of the score, closeness 2.5, clear tone 1.5).
+    const of10 = (x, k) => scoreText(Math.round((x / (SCORE_PARTS[k] / 100)) * 100) / 10);
+    if (!sc.simple) parts.textContent = S.parts(of10(sc.parts.inTune, 'inTune'), of10(sc.parts.close, 'close'), of10(sc.parts.clear, 'clear'));
     const num = $('scale-score-num');
     const t0 = performance.now();
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const count = (t) => {
       const k = still ? 1 : Math.min(1, (t - t0) / 1100);
-      num.textContent = String(Math.round(sc.total * (1 - (1 - k) ** 3)));
+      num.textContent = scoreText(k < 1 ? Math.round(sc.score * (1 - (1 - k) ** 3) * 10) / 10 : sc.score); // counted in tenths
       if (k < 1 && sheet.dataset.step === 'results') requestAnimationFrame(count);
     };
     requestAnimationFrame(count);
     scaleStep('results');
     if (!sheet.open) sheet.showModal();
+    // A perfect result: confetti, and a small crowd cheering just after the chime.
+    if (!quiet && notes.length && celebrates(sc)) {
+      setTimeout(() => confetti(sheet, $('scale-score').getBoundingClientRect()), still ? 0 : 900);
+      setTimeout(() => { const a = new Audio(new URL('../assets/audio/scale/cheer.mp3', import.meta.url).href); a.play().catch(() => {}); }, 500);
+    }
   }
 
   /** Mic samples (blocks of any size) while the recorder is in its 'tuning' state. */

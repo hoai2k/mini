@@ -2079,39 +2079,43 @@ document.addEventListener('art-applied', () => layoutHome()); // a theme's own a
 /**
  * The home screen fits the window without scrolling. Wherever the window is
  * wider than tall (a desktop, a tablet or phone on its side) the five
- * buttons are one row, the Practice Routine among them. Upright, the Routine is a fifth
- * button only when all five fit; otherwise it is a second page, reached by a
- * smaller button under the others (its icon as large as the room left
- * allows, ROUTINE_ART) that slides it in, or by a swipe. Whatever is left
- * over that still doesn't fit is compacted: tighter spacing and labels
- * (#home.compact), then smaller art (--art-max, HOME_ART) until it does.
+ * buttons are one row, the Practice Routine among them. Upright, the Routine
+ * is a fifth button only when all five fit; otherwise it is a second page,
+ * reached by a smaller button under the others (its icon as large as the
+ * room left allows, ROUTINE_ART) that slides it in, or by a swipe. Then the
+ * buttons' art is made as large as fits (HOME_ART, largest first), and only
+ * if even a small size doesn't fit are the spacing and labels tightened
+ * (#home.compact) and the sizes tried again.
+ *
+ * Measured whatever screen is showing (home is laid out invisibly for it
+ * when it isn't), so turning the phone on the Routine page decides whether
+ * a swipe goes back as surely as turning it on the home screen.
  */
 const ROUTINE_ART = [72, 64, 56, 48, 40, 32];
-const HOME_ART = [160, 136, 116, 100, 86, 74, 64, 56, 48, 40];
+const HOME_ART = [200, 184, 168, 152, 140, 128, 116, 104, 94, 84, 76, 68, 60, 52, 44, 36];
 const homeRow = matchMedia('(orientation: landscape)'); // the stylesheet's one row of five
 function layoutHome() {
-  if (screen !== 'home') return;
+  if (!pager || document.documentElement.classList.contains('paging')) return; // not while a page is turning
   const home = $('home');
   const box = $('choices');
   const link = $('go-routine-page');
+  const measuring = screen !== 'home';
+  if (measuring) { home.hidden = false; home.classList.add('measuring'); }
   // Home is centred top to bottom, so too much spills off the top as well
   // as the bottom, and the top doesn't scroll: measure both ends. A label
   // wider than its button doesn't fit either.
   const overflows = () => {
-    if (document.documentElement.scrollHeight > innerHeight + 1) return true;
+    const h = measuring ? home.getBoundingClientRect().height : document.documentElement.scrollHeight;
+    if (h > innerHeight + 1) return true;
     const pad = parseFloat(getComputedStyle(home).paddingTop) || 0;
     if ($('home-title').getBoundingClientRect().top < home.getBoundingClientRect().top + pad - 1) return true;
     return [...home.querySelectorAll('.choice:not([hidden])')].some((c) => {
       const b = c.getBoundingClientRect();
       const l = c.querySelector('.label').getBoundingClientRect();
-      return l.left < b.left - 1 || l.right > b.right + 1;
+      return l.left < b.left + 3 || l.right > b.right - 3; // and a little room either side
     });
   };
-  const compact = () => {
-    if (!overflows()) return;
-    home.classList.add('compact');
-    HOME_ART.some((px) => { box.style.setProperty('--art-max', `${px}px`); return !overflows(); });
-  };
+  const art = () => HOME_ART.some((px) => { box.style.setProperty('--art-max', `${px}px`); return !overflows(); });
   home.classList.remove('tight', 'compact');
   box.style.removeProperty('--art-max');
   link.hidden = true;
@@ -2126,7 +2130,8 @@ function layoutHome() {
     const size = () => ROUTINE_ART.some((px) => { link.style.setProperty('--routine-art', `${px}px`); return !overflows(); });
     if (!size()) { home.classList.add('tight'); size(); } // the spacing tightens before the icon goes below its smallest
   }
-  compact();
+  if (!art()) { home.classList.add('compact'); art(); }
+  if (measuring) { home.classList.remove('measuring'); home.hidden = true; }
 }
 
 // The apps: the native metronome and drone go on while the screen is locked

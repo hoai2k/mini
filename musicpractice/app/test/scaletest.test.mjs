@@ -80,13 +80,14 @@ test('the score out of 1000: the share in tune, how close every note was, and ho
   const { scaleScore, SCORE_PARTS } = await import('../src/scaletest.js');
   assert.deepEqual(SCORE_PARTS, { inTune: 600, close: 250, clear: 150 });
   const n = (cents, clarity = 0.95) => ({ midi: 60, cents, clarity });
-  assert.deepEqual(scaleScore([]), { total: 0, inTune: 0, close: 0, clear: 0 });
+  assert.deepEqual(scaleScore([]), { total: 0, inTune: 0, close: 0, clear: 0, lost: [] });
   assert.equal(scaleScore([n(0), n(0)]).total, 1000);
   // A near miss scores more than a wild one; dead centre more than just in tune.
   assert.ok(scaleScore([n(0), n(20)]).total > scaleScore([n(0), n(45)]).total);
   assert.ok(scaleScore([n(0)]).total > scaleScore([n(14)]).total);
   // A cloudier tone costs only its share.
-  assert.deepEqual(scaleScore([n(0, 0.7)]), { total: 850, inTune: 600, close: 250, clear: 0 });
+  const cloudy = scaleScore([n(0, 0.7)]);
+  assert.deepEqual([cloudy.total, cloudy.inTune, cloudy.close, cloudy.clear], [850, 600, 250, 0]);
   const s = scaleScore([n(0), n(25), n(-30), n(5)]);
   assert.equal(s.total, s.inTune + s.close + s.clear);
   assert.equal(s.inTune, 300);
@@ -184,4 +185,44 @@ test('Stop ends a test at once with the notes heard so far; before the scale beg
   assert.equal(l.state, 'done');
   assert.deepEqual(notes.slice(0, 3).map((n) => n.midi), [60, 62, 64]);
   assert.equal(l.result, notes);
+});
+
+test('the score out of 10: the share in tune at the simple levels, the full score scaled at the others; perfect is celebrated', async () => {
+  const { scoreOutOf10, celebrates, scoreText } = await import('../src/scaletest.js');
+  const notes = (good, n) => Array.from({ length: n }, (_, i) => ({ verdict: i < good ? 'good' : 'sharp', cents: i < good ? 0 : 30, clarity: 0.95 }));
+  assert.equal(scoreOutOf10(notes(13, 20), 'medium', 20).score, 6.5);
+  assert.equal(scoreOutOf10(notes(8, 8), 'beginner', 35).score, 10);
+  assert.equal(scoreText(10), '10');
+  assert.equal(scoreText(6.5), '6.5');
+  const hard = scoreOutOf10(notes(8, 8), 'hard', 15);
+  assert.equal(hard.simple, false);
+  assert.equal(hard.score, 10);
+  assert.ok(Math.abs(hard.parts.inTune + hard.parts.close + hard.parts.clear - hard.score) < 1e-9);
+  // Hard and Advanced round to the nearest tenth: one note of 8 at 30 cents off the in-tune 15 at Hard.
+  const near = scoreOutOf10(notes(7, 8), 'hard', 15);
+  assert.equal(Math.round(near.score * 10), near.score * 10);
+  assert.equal(scoreText(9.9), '9.9');
+  assert.equal(scoreText(10), '10');
+  assert.equal(celebrates({ score: 10, simple: true }), true);
+  assert.equal(celebrates({ score: 9.9, simple: true }), false);
+  assert.equal(celebrates({ score: 9.7, simple: false }), true);
+  assert.equal(celebrates({ score: 9.6, simple: false }), false);
+});
+
+test('each note earns its share, with room: a scale without a flaw is 10, and a flawed note says why and what it lost', async () => {
+  const { scaleScore, noteMarks, TONE_FULL } = await import('../src/scaletest.js');
+  const n = (cents, clarity = 0.93) => ({ midi: 60, cents, clarity });
+  // Within half the tolerance, and a clear-enough tone: full marks.
+  assert.equal(TONE_FULL, 0.9);
+  assert.equal(scaleScore([n(0), n(7), n(-7.5, 0.9)], 15).total, 1000);
+  assert.deepEqual(noteMarks(n(5), 15).flaws, []);
+  assert.deepEqual(noteMarks(n(12), 15).flaws, ['offCentre']);
+  assert.deepEqual(noteMarks(n(0, 0.8), 15).flaws, ['weakTone']);
+  assert.deepEqual(noteMarks(n(30), 15).flaws, []); // out of tune: the verdict says so, not a flaw
+  const s = scaleScore([n(0), n(12), n(0, 0.8), n(30)], 15);
+  assert.equal(s.lost[0], 0);
+  assert.ok(s.lost[1] > 0 && s.lost[1] < 20, `off-centre lost ${s.lost[1]}`);
+  assert.ok(Math.abs(s.lost[2] - 150 * 0.5 / 4) < 1e-9, `weak tone lost ${s.lost[2]}`);
+  assert.ok(s.lost[3] > 150, `out of tune lost ${s.lost[3]}`);
+  assert.ok(Math.abs(1000 - s.lost.reduce((a, b) => a + b) - s.total) < 2, 'what is lost adds up to what is missing');
 });

@@ -311,7 +311,8 @@ export const EN = {
       listening: (n) => `Listening: ${n} ${n === 1 ? 'note' : 'notes'} so far…`,
       summary: (good, n) => `${good} of ${n} ${n === 1 ? 'note' : 'notes'} in tune`,
       score: 'Score',
-      parts: (inTune, close, clear) => `In tune ${inTune} · Closeness ${close} · Clear tone ${clear}`,
+      // Non-breaking spaces inside each part, so a line breaks only between them.
+      parts: (inTune, close, clear) => `In\u00a0tune\u00a0${inTune}/10 · Closeness\u00a0${close}/10 · Clear\u00a0tone\u00a0${clear}/10`,
       none: 'No notes heard. Try again, a little louder or nearer the mic.',
       good: 'In tune',
       flat: (c) => `${c}¢ flat`,
@@ -323,6 +324,11 @@ export const EN = {
       correctedLabel: (note) => `Play your ${note} corrected to be in tune`,
       // Which part of a note was right, beside its verdict (scaletest.js judgeNote).
       measures: { start: 'at the start', mid: 'on average', end: 'by the end' },
+      // At the full-score levels, what a note lost points for, and how many (out of 10).
+      offCentre: (c, sharp) => `${c}¢ ${sharp ? 'sharp' : 'flat'}`,
+      weakTone: 'weak tone',
+      lost: (x) => `−${x}`,
+      lostLabel: (x) => `${x} points lost`,
       goodBy: (part) => `In tune ${part}`,
       partly: (part) => `in tune ${part}`,
       help: (level, tol, parts) => `${level}: within ${tol} cents ${parts} counts as in tune here (the tuner's needle wants 5).`,
