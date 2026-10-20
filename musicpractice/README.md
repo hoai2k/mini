@@ -520,7 +520,7 @@ Microphone messages (the tuner's status and Try again) sit above the card.
 At the top of the results is a **score out of 10**, counted up
 (`scoreOutOf10`): at Beginner, Easy and Medium simply the share of notes in
 tune (65% in tune is 6.5, shown to one decimal); at Hard, Advanced and Custom
-the full score below scaled to 10 (988 is 9.88, two decimals), with its
+the full score below scaled to 10 and rounded to the nearest tenth (988 is 9.9), with its
 parts under it. **A perfect result is celebrated** (`celebrates`): 10 at the
 simple levels, 9.7 or more at the others, with confetti in the theme's
 colours bursting up and out from the score itself (`app/src/confetti.js`;
@@ -541,7 +541,8 @@ flaws scores 10**:
 Each note is marked with what it lost (`noteMarks`): at Hard, Advanced and
 Custom a note with a flaw says which ("In tune · 8¢ sharp" for one in tune
 but off the centre, "weaker tone" for a less clear sound) and carries the
-points it cost out of 10 (−0.01 at least, so a flaw is never shown as free).
+points it cost out of 10, in tenths like the score (a flaw that cost under
+0.05 reads −<0.1, so it is never shown as free).
 The results come up with a chime by how it went (`resultTier`):
 - **Triumphant:** 80% or more in tune.
 - **Positive:** half or more.
