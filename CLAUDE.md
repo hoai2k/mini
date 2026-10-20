@@ -55,7 +55,7 @@ from `sites/`, `multiplayer/` and `local/`:
 | `aiching/` | Ai-Ching (an I Ching reader styled like an AI prompt: a question seeds the cast and shapes the reading) | https://hoai2k.github.io/mini/aiching/ |
 | `eartrainer/` | Ear Trainer (hear a melody, play it back on a 1.5-octave piano; after the Chet app) | https://hoai2k.github.io/mini/eartrainer/ |
 | `musicpractice/` | Music Practice (a metronome, a tuner, a drone, and a Playback Recorder that hears when you start and stop playing and plays each take back); its iOS and Android apps (Capacitor, with Music Practice Pro) are in `musicpractice/mobile/` | https://hoai2k.github.io/mini/musicpractice/ |
-| `bookzam/` | Bookzam (Shazam for books: photos of shelves become book and board game catalogues, and Find Book circles a named book in a photo; photos are read on the device with PaddleOCR models and books identified on Open Library) | https://hoai2k.github.io/mini/bookzam/ |
+| `bookzam/` | Bookzam (Shazam for books: photos of shelves become book and board game catalogues, and Find Book circles a named book in a photo; photos are read on the device with PaddleOCR models and books identified on Open Library); in the prototype archive, behind the invite gate | https://hoai2k.github.io/mini/bookzam/ |
 | `stocks/` | Stocks (stock and ETF charts with total return: price only, with dividends, or dividends reinvested; live data through its own `mini-stocks` Cloudflare Worker in `stocks/server/`, separate from the relay) | https://hoai2k.github.io/mini/stocks/ |
 | `mp3player/` | MP3 Player (the music files on the device, played like a streaming app: songs, albums, artists, shuffle, repeat, a queue and a custom order; songs are copied into the browser's storage, never changed on the device) | https://hoai2k.github.io/mini/mp3player/ |
 | `imageannotator/` | Image Annotator (open a picture, point things out with arrows, circles and free drawing, each with an optional title that is placed clear of the others; save, then export as the original format, JPEG or JPEG for web) | https://hoai2k.github.io/mini/imageannotator/ |
@@ -80,7 +80,7 @@ from `sites/`, `multiplayer/` and `local/`:
   the games and sites and nothing more; each game's details belong in its own
   README. `index.html` is the game library published at
   https://hoai2k.github.io/mini/, one card per game. Apps (tools such as Ear Trainer,
-  Ai-Ching, Music Practice, Bookzam, Stocks, MP3 Player and Image Annotator) go on its mini apps shelf below the games, with Music
+  Ai-Ching, Music Practice, Stocks, MP3 Player and Image Annotator) go on its mini apps shelf below the games, with Music
   Practice pinned first and Games Chat second, then the rest newest first. Games that haven't turned out as hoped yet are listed as
   plain links in its Prototype archive, at the bottom. `GAME_GUIDELINES.md` applies to every game.
 - **The Prototype archive is code-locked.** The library shows it only to
