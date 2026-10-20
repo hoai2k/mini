@@ -10,6 +10,13 @@
 //            longest side at rest) from where it sits at rest, measured in
 //            the model's own space so a lunge or a charge doesn't count; or
 //            a transform is NaN or infinite.
+//   float    a death fall that ends in the air: once the fall is over (the
+//            death action at t >= FALL_T), the body's lowest point, in the
+//            rig's own space and at its full size (so a monster's sinking
+//            into the ground in game doesn't count), stays more than
+//            FLOAT_TOL, or FLOAT_K x the model's height for a big one, above
+//            its floor (a floating rig: its hover height). character.js
+//            groundLying lays a fallen body on the floor.
 //   weapon   a weapon's tip (character.js markTip) points backward at the
 //            strike: its forward share along the facing stays under
 //            STRIKE_MIN all through the strike (the same measure as
@@ -23,7 +30,7 @@
 import * as THREE from 'three/webgpu';
 import { HERO_POSES, GAME_POSES, MONSTER_GROUPS, poseStep, prepStatic, inGameVariants, InGame } from './ingame.js';
 
-export const FLOOR_TOL = 0.05, FLOOR_K = 0.03, FLY_K = 1.5, STRIKE_MIN = 0.3;
+export const FLOOR_TOL = 0.05, FLOOR_K = 0.03, FLY_K = 1.5, STRIKE_MIN = 0.3, FLOAT_TOL = 0.12, FLOAT_K = 0.04, FALL_T = 0.9;
 const FPS = 30, DT = 1 / FPS;
 export const SETTLE = 0.6;          // seconds of idle before a pose, so it starts from rest
 
@@ -99,6 +106,8 @@ function runPose(spec, pose, label, opts) {
   const size = box.isEmpty() ? 1 : Math.max(0.5, box.max.x - box.min.x, box.max.y - box.min.y, box.max.z - box.min.z);
   const fly = Math.max(1, FLY_K * size);   // (a turn of the whole body about its middle moves a part at most 1.41 x the size)
   const tol = Math.max(FLOOR_TOL, FLOOR_K * (box.isEmpty() ? 1 : box.max.y - box.min.y));
+  const floatTol = Math.max(FLOAT_TOL, FLOAT_K * (box.isEmpty() ? 1 : box.max.y - box.min.y)), S0 = rig.baseScale ?? rig.root.scale.y;
+  let fallen = null;   // the death fall's end: { low, frame, part } on its last frame
   const out = [], seen = new Set();
   // one entry per check (and weapon): the first frame it shows on, and the worst value and part
   const flag = (check, frame, value, part, extra = {}) => {
@@ -132,6 +141,16 @@ function runPose(spec, pose, label, opts) {
       if (d > fly) flag('detached', f, +d.toFixed(2), name(m));
     }
     if (low < -tol) flag('floor', f, +low.toFixed(3), name(lowM));
+    // a fall that is over: how far its lowest point lies above the floor (rig space, full size)
+    if ((action?.type === 'death' || action?.type === 'down') && (action.t ?? 0) >= FALL_T && (!h || h.dying)) {   // (h.dying: not the frame the harness stands a monster back up)
+      let lo = Infinity, loM = null;
+      for (const m of meshes) {
+        if (!visibleIn(m, rig.root)) continue;
+        _m.multiplyMatrices(_inv, m.matrixWorld);
+        for (const p of hullOf(m.geometry)) { const y = _v.copy(p).applyMatrix4(_m).y; if (y < lo) { lo = y; loM = m; } }
+      }
+      if (loM) fallen = { low: lo * S0, frame: f, part: name(loM) };
+    }
     // weapons at the strike: the best forward share over the strike window must reach STRIKE_MIN
     const k = action?.type === 'attack' ? action.t ?? 0 : -1, w = action?.windup ?? 0.25, s = action?.strike ?? 0.5;
     const now = tips.length && k >= w && k <= s + 0.05;
@@ -147,6 +166,7 @@ function runPose(spec, pose, label, opts) {
     if (inStrike && !now) { for (const [t, r] of strikes) if (r.best < STRIKE_MIN) flag('weapon', r.frame, +r.best.toFixed(2), `${t.label} (${t.side === 'R' ? 'right' : 'left'} hand, ${r.style})`); strikes.clear(); }
     inStrike = !!now;
   }
+  if (fallen && fallen.low > floatTol) flag('float', fallen.frame, +fallen.low.toFixed(2), fallen.part);
   h?.dispose();
   return out.map(({ key, ...p }) => p);
 }
@@ -183,6 +203,7 @@ export const describe = (p) => {
   const at = p.worst != null && p.worst !== p.frame ? ` (worst at frame ${p.worst})` : '';
   if (p.check === 'floor') return `${p.part} ${(-p.value).toFixed(2)} m under the floor${at}`;
   if (p.check === 'detached') return p.nan ? `${p.part}: NaN or infinite transform` : `${p.part} ${p.value} m from its rest place${at}`;
+  if (p.check === 'float') return `the fall ends in the air: its lowest point (${p.part}) lies ${p.value} m above the floor`;
   if (p.check === 'weapon') return `${p.part} points backward at the strike (forward share ${p.value})`;
   return `error: ${p.part}`;
 };

@@ -188,6 +188,22 @@ export function extremePoints(o, skip = null) {
   return out;
 }
 
+// A body lying down (a death fall, a hero down): its hips turn about the hip
+// joint, which the pose leaves at standing hip height, so a body laid flat
+// (or a beast rolled on its side) hung in the air at hip height. This lowers
+// the hips (rig.hips, hung on rig.root, whose floor is y = 0) until the posed
+// body's lowest point, measured from its meshes' extreme points
+// (extremePoints) as they lie this frame, rests on the floor, plus lift (a
+// bounce as it lands). skip: what is held (a weapon), which the grip guard
+// lays on the floor afterwards rather than letting it prop the body up.
+export function groundLying(rig, lift = 0, skip = null) {
+  const h = rig.hips; h.updateMatrix();
+  const P = extremePoints(h, skip); if (!P) return;
+  const e = h.matrix.elements; let low = Infinity;
+  for (let i = 0; i < P.length; i += 3) { const y = e[1] * P[i] + e[5] * P[i + 1] + e[9] * P[i + 2] + e[13]; if (y < low) low = y; }
+  h.position.y += Math.max(0, lift) - low;
+}
+
 // ---------------------------------------------------------------- merging
 // Every mesh is a draw call (two with the sun's shadow), and a draw costs
 // three.js 30-50 µs of CPU whatever its size, so the static meshes hung
@@ -346,6 +362,11 @@ export class Rig {
           snap = 50; break;
         }
         case 'cast': {
+          // a shooter (rig.levelAim: the skeleton's rifle, the Pale King's
+          // sword) shoulders its weapon and holds it level at the target for
+          // the whole wind-up of a shot, instead of raising its arms with the
+          // weapon pointing at the sky
+          if (this.levelAim) { this.aimPose(T, 1, 0); snap = 30; break; }
           // one or both hands forward, fingers "sign"
           const both = a.both;
           const e = k < 0.25 ? easeOutCubic(k / 0.25) : 1;
@@ -366,10 +387,12 @@ export class Rig {
         }
         case 'death': {
           const e = easeInCubic(clamp(k * 1.4, 0, 1));
-          T.rootX = -Math.PI / 2 * e; T.lift = 0.1 * Math.sin(e * Math.PI); T.armRZ = 0.8 * e; T.armLZ = -0.8 * e; T.headX = -0.3 * e; snap = 25; break;
+          T.rootX = -Math.PI / 2 * e; T.lift = 0.1 * Math.sin(e * Math.PI); T.armRZ = 0.8 * e; T.armLZ = -0.8 * e; T.headX = -0.3 * e; snap = 25;   // (the hips come down to the floor as he falls: groundLying below)
+          if (this.wrist !== false) T.handRX = T.handLX = 1.4 * e;   // (a held weapon falls along the body toward the feet, not straight up at the sky)
+          break;
         }
         case 'stagger': { T.torsoX = 0.4; T.headX = 0.5; T.armRX = 0.2; T.armLX = 0.2; T.armRZ = 0.4; T.armLZ = -0.4; if (this.wrist !== false) T.handRX = T.handLX = -0.6; break; }   // (the wrists keep a held weapon's point off the floor as the body doubles over)
-        case 'down': { T.rootX = -Math.PI / 2; T.lift = 0.05; T.armRZ = 0.8; T.armLZ = -0.8; snap = 12; break; }
+        case 'down': { T.rootX = -Math.PI / 2; T.lift = 0.05; T.armRZ = 0.8; T.armLZ = -0.8; if (this.wrist !== false) T.handRX = T.handLX = 1.4; snap = 12; break; }
       }
     }
     const L = (obj, key, target, ax) => { obj.rotation[ax] = damp(obj.rotation[ax], target, snap, dt); };
@@ -385,10 +408,19 @@ export class Rig {
     // death fall rotates the hips around their pivot
     if (a && (a.type === 'dodge')) this.rollAbout(T.rootX, T.lift);
     else { this.hips.rotation.x = damp(this.hips.rotation.x % (Math.PI * 2), T.rootX, snap, dt); this.hips.position.z = damp(this.hips.position.z, 0, snap, dt); }
+    // Lying down (a death fall, a hero down) and getting back up (a skeleton
+    // pulling itself together): the body turns about the hip joint, so with
+    // the hips left at standing height a body laid flat hung in the air at
+    // hip height (a long-legged skeleton a metre up). The hips come down
+    // until the posed body's lowest point rests on the floor instead.
+    const lying = a && (a.type === 'death' || a.type === 'down');
+    if (lying) this._lying = true;
+    else if (this._lying && (a?.type === 'dodge' || Math.abs(this.hips.rotation.x) < 0.25)) this._lying = false;
+    if (this._lying) groundLying(this, T.lift, this.heldParts());
     // (footLift above works from the legs' targets and the hips ease toward it,
     // so a big foot swinging faster than the hips rose still dipped 0.1 m: the
     // hips are kept at least as high as the legs' actual swing needs)
-    if (!a || (a.type !== 'dodge' && a.type !== 'death' && a.type !== 'down')) this.hips.position.y = Math.max(this.hips.position.y, this.dims.legH * PX + Math.min(0, T.lift) + this.footLift(this.legR.rotation.x, this.legL.rotation.x));
+    else if (!a || (a.type !== 'dodge' && a.type !== 'death' && a.type !== 'down')) this.hips.position.y = Math.max(this.hips.position.y, this.dims.legH * PX + Math.min(0, T.lift) + this.footLift(this.legR.rotation.x, this.legL.rotation.x));
     if (this.wrist !== false) {
       // (with the hunch and arm spread the callers add right after, parts.js rigOffsets)
       const h = this.hunch ?? 0, sp = this.armSpread ?? 0;
@@ -478,12 +510,38 @@ export class Rig {
     this.hips.rotation.x = rot; this.hips.position.z = pz;
     return m ? c.divideScalar(m) : c.set(0, 0, 0);
   }
+  // what the hands hold (left out when a lying body is set on the floor)
+  heldParts() { return new Set([...this.handR.children, ...this.handL.children]); }
+  // A shooter's aim (rig.levelAim): the weapon shouldered in the right hand,
+  // the left reaching under it, both arms forward, and the wrists turned
+  // against the arm, the torso's pitch and the hunch (parts.js rigOffsets) so
+  // what is held keeps its rest direction (forward and level for a weapon
+  // built along the hand's +z: see "holding things" above) whatever the arm
+  // does. hold: 0 (arms at rest) .. 1 (aimed); kick: 0 .. 1, the recoil of
+  // the shot, a jolt of the arms and the muzzle up and the shoulders back.
+  aimPose(T, hold, kick) {
+    T.armRX = lerp(T.armRX, -1.4 - 0.25 * kick, hold); T.armRY = lerp(T.armRY, 0.25, hold); T.armRZ = lerp(T.armRZ, 0, hold);
+    T.armLX = lerp(T.armLX, -1.5 - 0.2 * kick, hold); T.armLY = lerp(T.armLY, -0.45, hold); T.armLZ = lerp(T.armLZ, 0, hold);
+    T.torsoX = lerp(T.torsoX, 0, hold) - 0.1 * kick; T.torsoY = lerp(T.torsoY, 0.12, hold); T.headX = lerp(T.headX, 0.06, hold);
+    const pitch = T.torsoX + (this.hunch ?? 0);
+    T.handRX = -(pitch + T.armRX) - 0.18 * kick; T.handLX = -(pitch + T.armLX);
+  }
   attackPose(T, a, k) {
     // wind-up (0..w), strike (w..s), recover (s..1)
     const w = a.windup ?? 0.25, s = a.strike ?? 0.5;
     const phase = k < w ? 0 : k < s ? 1 : 2;
     const e = phase === 0 ? easeOutCubic(k / w) : phase === 1 ? easeOutBack((k - w) / (s - w)) : 1 - easeInCubic((k - s) / (1 - s)) * 0.7;
-    const style = a.style || ['swingR', 'swingL', 'slam'][a.step % 3];
+    // (an attack with no style of its own, the recoil after a shot, enemy.js
+    // 'spit': a shooter, rig.levelAim, fires from the aim of its wind-up)
+    const style = a.style || (this.levelAim ? 'shoot' : ['swingR', 'swingL', 'slam'][a.step % 3]);
+    if (style === 'shoot') {
+      // held level at the target up to the shot, the kick of the shot at the
+      // strike, then lowered to the hip still pointing forward
+      const kick = phase === 1 ? Math.sin(clamp((k - w) / (s - w), 0, 1) * Math.PI) : 0;
+      const hold = phase === 2 ? 1 - easeInCubic(clamp((k - s) / (1 - s), 0, 1)) : 1;
+      T.legRX = 0.3; T.legLX = -0.3;
+      this.aimPose(T, hold, kick); return;
+    }
     const m = Math.min(1, e);
     T.legRX = 0.35; T.legLX = -0.35;
     // (handRX / handLX: the wrist. A weapon held by the convention above points

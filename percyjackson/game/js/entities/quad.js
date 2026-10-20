@@ -11,7 +11,7 @@
 //   body   8x8x12 at (0,16)    leg 3x8x3 at (40,16)   ear 2x3x1 at (52,16)
 //   tail   2x2x6  at (40,32)   extra 8x6x8 at (0,40)  extra2 6x6x6 at (32,44)
 import * as THREE from 'three/webgpu';
-import { skinBox, PX, CHAR_SCALE, extremePoints as extremePts } from './character.js';
+import { skinBox, PX, CHAR_SCALE, extremePoints as extremePts, groundLying } from './character.js';
 import { damp, clamp, easeOutCubic, easeInCubic } from '../util.js';
 
 export const QUV = {
@@ -204,7 +204,11 @@ export class QuadRig {
     }
     for (let i = 0; i < this.tail.length; i++) { const g = this.tail[i]; R(g, 'y', T.tailY * (0.5 + i * 0.3) + Math.sin(t * 4 + i) * 0.05); R(g, 'x', i === 0 ? T.tailX - T.torsoX : -0.15 + (this.spec.tailCurl ?? 0)); }   // (the tail keeps its angle to the ground as the body pitches: a rear-up no longer drove it into the floor)
     this.hips.rotation.z = damp(this.hips.rotation.z, T.rootZ, snap, dt);
-    if (!T.rootZ && Math.abs(this.hips.rotation.z) < 0.02) this.floorGuard();
+    // (rolled on its side in a death fall or down, the body turns about the
+    // hips at standing height: it is lowered onto the floor, character.js
+    // groundLying; the jaw is part of the body here)
+    if (T.rootZ || Math.abs(this.hips.rotation.z) >= 0.02) groundLying(this, T.lift);
+    else this.floorGuard();
   }
   // After the pose, nothing sinks through the floor (the soles, y = 0 in the
   // rig's own space): the hips rise by the deepest dip of any foot (a big

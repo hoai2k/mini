@@ -5,6 +5,13 @@
 // the weapon's tip lies relative to the hand, along the model's facing (+z).
 //   at rest:     the tip is in front of the hand or above it (a raised hold is fine)
 //   at a strike: the tip is in front of the hand (forward share >= STRIKE_MIN)
+//   a shot:      a ranged monster or champion (ai 'ranged' or 'summon', which
+//                shoot with enemy.js 'spit') holds what it carries level at
+//                the target through the wind-up of a shot (the action
+//                enemy.js animate plays: cast, both hands) and the kick of
+//                the shot (forward share >= AIM_MIN, about 30 degrees off
+//                level at most), and still forward as it lowers it after
+//                (>= STRIKE_MIN). Columns aim, kick, lower.
 // Tips are the objects markTip() adds (name 'weaponTip', see the hand-axis
 // convention at "holding things" in js/entities/character.js). A long prop in
 // a hand with no marked tip is measured at its farthest point and listed too,
@@ -22,7 +29,7 @@ const { findChrome } = require('./lib.cjs');
 const PORT = +(process.env.PERF_PORT || 8765);
 const ROOT = path.resolve(__dirname, '../..');
 const GAME = `http://127.0.0.1:${PORT}/percyjackson/game/`;
-const REST_MIN = -0.05, STRIKE_MIN = 0.3;
+const REST_MIN = -0.05, STRIKE_MIN = 0.3, AIM_MIN = 0.85;
 // (every style for both hands: a boss may swing with one arm while the other holds the weapon)
 const ALL = ['swingR', 'swingL', 'punch', 'slam', 'uppercut', 'throw'], STYLES = { R: ALL, L: ALL };
 
@@ -38,7 +45,15 @@ import { buildMortal, MORTAL_IDS } from '../js/entities/mortals.js';
 import { BOSS_DEFS, BOSS_IDS } from '../js/entities/bosses.js';
 import { buildPerson, PEOPLE_IDS } from '../js/entities/people.js';
 import { rigOffsets } from '../js/entities/parts.js';
-import { CHAMPION_SHOWCASE, buildShowcase } from '../js/entities/champions.js';
+import { CHAMPION_SHOWCASE, CHAMPION_LOOKS, buildShowcase } from '../js/entities/champions.js';
+// the models that shoot (enemy.js shoot: the 'spit' attack): ranged and summoning monsters, and champions of those kinds
+const shooter = (set, id) => {
+  const kind = set === 'monsters' ? id : set === 'champions' ? (id.startsWith('kind:') ? id.slice(5) : CHAMPION_LOOKS[id]?.kind) : null;
+  const ai = kind && MONSTERS[kind]?.ai;
+  return ai === 'ranged' || ai === 'summon';
+};
+// a shot as enemy.js animate plays it: the wind-up (cast, both hands), then the recover as an attack with no style
+const SHOT = { aim: { type: 'cast', t: 1, both: true }, kick: { type: 'attack', t: 0.4, windup: 0.3, strike: 0.5 }, lower: { type: 'attack', t: 0.75, windup: 0.3, strike: 0.5 } };
 const SETS = {
   heroes: [[...Object.keys(HERO_LOOKS), 'chiron', 'mr_d'], (id) => (HERO_LOOKS[id] ? buildHeroModel(id) : buildNpc(id))],
   bosses: [BOSS_IDS, (id) => BOSS_DEFS[id].build()],
@@ -102,6 +117,7 @@ window.run = (only) => {
       pose(r, null); row.rest = measure(r, t);
       row.restOnly = !!r.person;   // (the open world's people hand out quests and never attack)
       if (r.armR && r.handR !== r.handL && !row.restOnly) for (const style of STYLES[t.side]) { pose(r, { type: 'attack', t: 0.499, style, windup: 0.3, strike: 0.5 }); row.strikes[style] = measure(r, t); }
+      if (r.armR && r.handR !== r.handL && shooter(set, id)) { row.shots = {}; for (const [k, act] of Object.entries(SHOT)) { pose(r, act); row.shots[k] = measure(r, t); } }
       rows.push(row);
     }
   }
@@ -134,7 +150,8 @@ async function serve() {
   await browser.close();
   const f = (v) => (v == null ? '' : (v >= 0 ? ' ' : '') + v.toFixed(2));
   const cols = ['swingR', 'swingL', 'punch', 'slam', 'uppercut', 'throw'];
-  console.log(['set'.padEnd(10), 'model'.padEnd(20), 'weapon'.padEnd(16), 'hand', ' rest', ...cols.map((c) => c.padStart(8)), ' result'].join(' '));
+  const shots = ['aim', 'kick', 'lower'];
+  console.log(['set'.padEnd(10), 'model'.padEnd(20), 'weapon'.padEnd(16), 'hand', ' rest', ...cols.map((c) => c.padStart(8)), ...shots.map((c) => c.padStart(6)), ' result'].join(' '));
   let fails = 0;
   for (const r of rows) {
     if (r.error) { console.log(r.set.padEnd(10), r.id.padEnd(20), 'ERROR', r.error); fails++; continue; }
@@ -142,10 +159,11 @@ async function serve() {
     if (r.rest < REST_MIN) bad.push('rest');
     if (r.statue != null && r.statue < REST_MIN) bad.push('statue');
     for (const [s, v] of Object.entries(r.strikes)) if (v < STRIKE_MIN) bad.push(s);
+    for (const [s, v] of Object.entries(r.shots ?? {})) if (v < (s === 'lower' ? STRIKE_MIN : AIM_MIN)) bad.push('shot ' + s);
     if (bad.length) fails++;
     const name = (r.weapon + (r.hidden ? ' (hidden)' : '')).slice(0, 16);
-    console.log([r.set.padEnd(10), r.id.padEnd(20), name.padEnd(16), (' ' + r.side).padEnd(4), f(r.rest).padStart(5), ...cols.map((c) => f(r.strikes[c]).padStart(8)), ' ' + (bad.length ? 'FAIL ' + bad.join(',') : 'ok') + (r.statue != null ? ` (statue pose ${f(r.statue)})` : '') + (r.restOnly ? ' (rest only: never attacks)' : '') + (r.marked ? '' : ' [no tip mark]')].join(' '));
+    console.log([r.set.padEnd(10), r.id.padEnd(20), name.padEnd(16), (' ' + r.side).padEnd(4), f(r.rest).padStart(5), ...cols.map((c) => f(r.strikes[c]).padStart(8)), ...shots.map((c) => f(r.shots?.[c]).padStart(6)), ' ' + (bad.length ? 'FAIL ' + bad.join(',') : 'ok') + (r.statue != null ? ` (statue pose ${f(r.statue)})` : '') + (r.restOnly ? ' (rest only: never attacks)' : '') + (r.marked ? '' : ' [no tip mark]')].join(' '));
   }
-  console.log(`\n${rows.length} weapons checked, ${fails} failing. Columns: forward share of the hand-to-tip direction (1 = straight ahead, 0 = straight up or sideways, -1 = straight back); rest needs >= ${REST_MIN}, each strike >= ${STRIKE_MIN}.`);
+  console.log(`\n${rows.length} weapons checked, ${fails} failing. Columns: forward share of the hand-to-tip direction (1 = straight ahead, 0 = straight up or sideways, -1 = straight back); rest needs >= ${REST_MIN}, each strike >= ${STRIKE_MIN}; a shooter's aim and kick >= ${AIM_MIN} (level at the target), its lowering >= ${STRIKE_MIN}.`);
   process.exit(fails ? 1 : 0);
 })();

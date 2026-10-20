@@ -23,7 +23,7 @@ import * as THREE from 'three/webgpu';
 import { Skin, Rig, makeCharMaterial, PX, markTip, mergeChildren } from './character.js';
 import { cellMesh, heroHair, heroTail, footwear, beads } from './herovox.js';
 import { paintHumanoid } from './models.js';
-import { paintPerson, ADULT_SCALE, B, mirrorX, turn, band, shoes, strawHat, hairCells, beardCells, boxGeometry, mergeGeometries, inHead, shadeOf } from './mortals.js';
+import { paintPerson, ADULT_SCALE, ADULT_SCALE_HAT, ADULT_HEAD, adultHead, B, mirrorX, turn, band, shoes, strawHat, hairCells, beardCells, boxGeometry, mergeGeometries, inHead, shadeOf } from './mortals.js';
 import { mulberry32 } from '../util.js';
 import { markHeadwear } from './proportions.js';
 import { t as txt } from '../text_config.js';
@@ -333,7 +333,7 @@ export const PEOPLE = {
   // Galene, a Nereid: long sea-green curls crowned with pearls and a shell, a
   // foam-white robe with a sea-green drape, pearls, and the sea curling round her
   shore_nereid: {
-    painter: 'hero', scale: ADULT_SCALE, accent: 0x4ad0ff,   // (round 9: a Nereid is a grown woman: an adult's size)
+    painter: 'hero', scale: 1.66, adult: true, accent: 0x4ad0ff,   // (a Nereid is a grown woman: an adult's size. Round 10: her close-set hair tops her body less than most, so 1.4 → 1.66, not ADULT_SCALE)
     paint: { skinTone: 0xe6a478, hair: 0x1a8a7a, fringe: 2, hairSide: 5, hairBack: 8, eye: 0x1a8a9a, pupil: 0x0a2a30, brow: 0x147060, lashes: true, mouth: 'smile', lip: 0xd0705a, blush: true, top: 0xf2f0e8, sleeve: 0xe6a478, shortSleeve: 0, collar: false, pants: 0xe6a478, shoes: 0xe6a478 },
     body(S, D) { S.rect(16, 20, 24, 2, 0xe6a478, 0.04); D(16, 22, 0xd8d4c8, 48, 1); for (const [u, v] of [[0, 16], [16, 48]]) S.rect(u, v + 4, 16, 10, 0xe6a478, 0.04); },
     vox: { style: 'long', base: 0x1a8a7a, shade: 0x0e5a50, light: 0x3ab0a0, seed: 149, shape: { helmetFront: false, top: 9.8, c: [0, 3.6, -1.2], tuft: 0.24, spike: 0.08, bump: 0.46, r: [6.6, 7.6, 6.4], side: -5, back: -7 } },
@@ -461,7 +461,7 @@ export const PEOPLE = {
   // Quintus, the swordmaster (Daedalus in disguise): grey hair and beard, a
   // long navy coat over a brown waistcoat, a rapier, a glint of bronze at his throat
   quintus: {
-    painter: 'person', scale: ADULT_SCALE, accent: 0xff9a2a, tip: ['armR', 0, -1.9, 16.8, 'rapier'],
+    painter: 'person', scale: ADULT_SCALE, adult: true, accent: 0xff9a2a, tip: ['armR', 0, -1.9, 16.8, 'rapier'],
     paint: { skin: 0xdc9c74, hair: 0xb8b4b0, fringe: 1, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x3a7a8a, brow: 0x6a6460, scowl: true, wrinkles: 0xb47c5a, beard: 0xc8c4c0, top: 0x8a4a1e, knit: true, vneck: 0xf0ece0, jacket: 0x1e2238, lapel: 0x2e3450, sleeve: 0x8a4a1e, pants: 0x4a2e1e, shoes: 0x3a2214, saturate: 1.12 },
     hair: { c: [0, 7, -0.6], r: [5.6, 4.4, 5.8], bump: 0.4, shell: 1.4, fringe: 6.6, jag: 1, side: 3, back: 0.4, tuft: 0.16, spike: 0.03, tones: [0x8a8684, 0xb8b4b0, 0xe0dcd8] },
     beard: [0x9a9692, 0xc8c4c0, 0xe8e4e0],
@@ -516,7 +516,7 @@ export const PEOPLE = {
   // Charon, ferryman of the dead: a sharp black suit, gold chains,
   // sunglasses, a beard, and his oar wound with the ghost-light of the Styx
   asphodel_charon: {
-    painter: 'person', scale: 1.45, accent: 0x4ae0ff,   // (round 9: a tall adult, 1.32 → 1.45, as every adult grew)
+    painter: 'person', scale: 1.68, adult: true, accent: 0x4ae0ff,   // (a tall adult, at the top of the adults' 1.2-1.3x: round 9 1.32 → 1.45, round 10 → 1.68)
    
     paint: { skin: 0xb06c44, hair: 0x18100c, fringe: 1, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x2a1a10, brow: 0x18100c, glasses: 0x0a0a0c, beard: 0x1a120c, top: 0x1c1a1e, vneck: 0xf4f4f0, tie: 0x141416, jacket: 0x161418, lapel: 0x262428, pants: 0x161418, shoes: 0x0a0a0c, saturate: 1.1,
       face: (S, ey) => { S.dot(9, ey - 0.5, 0x0a0a0c, 6, 4); S.dot(13, ey - 0.5, 0x0a0a0c, 6, 4); S.dot(11.5, ey, 0x0a0a0c, 2, 1); S.dot(9.5, ey, 0x3a3a40, 1, 1); S.dot(13.5, ey, 0x3a3a40, 1, 1); } },
@@ -554,7 +554,7 @@ export const PEOPLE = {
   // Sisyphus: an old strongman, grey curls and beard, a cream chiton over one
   // shoulder with a Greek-key hem, a rope belt, leather wrist straps, laced sandals
   asphodel_sisyphus: {
-    painter: 'person', scale: ADULT_SCALE, wide: 1.22, accent: 0xd8b070,
+    painter: 'person', scale: ADULT_SCALE, adult: true, wide: 1.22, accent: 0xd8b070,
     paint: { skin: 0xd88c5e, hair: 0xc8c4c0, fringe: 1, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x3a2214, brow: 0x9a9690, scowl: true, frown: true, wrinkles: 0xb06c48, beard: 0xd0ccc8, top: 0xeee2c8, sleeve: 0xd88c5e, hand: 0xd88c5e, shortSleeve: true, pants: 0xd88c5e, shoes: false, saturate: 1.12,
       body: (S) => {
         // the chiton leaves his right shoulder and chest bare; muscle shading on the arms
@@ -590,7 +590,7 @@ export const PEOPLE = {
   // beard, blue eyes all over his arms and face, a white polo with a trident,
   // cargo khakis, a gold ring of big keys at his belt
   camp_argus: {
-    painter: 'person', scale: 1.47, wide: 1.32, accent: 0x4a8aff,   // (round 9: huge Argus, 1.42 → 1.47, the tallest of the adults at the top of their band; any more and his hero-sized head breaks the head rule)
+    painter: 'person', scale: 1.72, adult: true, wide: 1.32, accent: 0x4a8aff,   // (huge Argus, the tallest of the adults at the top of their 1.2-1.3x: round 9 1.42 → 1.47, round 10 → 1.72 with an adult's smaller head, mortals.js ADULT_HEAD)
    
     paint: { skin: 0xf0b48a, hair: 0xd8b050, fringe: 1, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x2a74e0, brow: 0xb8902a, smile: true, beard: 0xd0a848, top: 0xece6d8, shortSleeve: true, collar: 0xf6f2e8, buttons: 0xc8c0b0, pants: 0x7a6a40, shoes: 0x5a3418, saturate: 1.1,
       face: (S, ey) => { const D = (x, y, c, n, m) => S.dot(x, y, c, n, m); eyeAt(D, 11, ey - 2.4, 0xf0b48a); for (const x of [2, 5, 18, 21]) eyeAt(D, x, ey + 0.5, 0xf0b48a); eyeAt(D, 26.5, ey + 1, 0xf0b48a); eyeAt(D, 28.5, ey + 2, 0xf0b48a); },
@@ -657,7 +657,7 @@ export const PEOPLE = {
   // Big Earl, trucker: a red-and-white trucker cap, a big dark beard, a red
   // plaid shirt with the sleeves rolled, suspenders, jeans, boots, a rubber chicken
   rt_turnpike_earl: {
-    painter: 'person', scale: ADULT_SCALE, wide: 1.32, accent: 0xff5a2a,   // (round 9: an adult, 1.34 → ADULT_SCALE; any taller and his head, measured to the skull under his cap, breaks the head rule)
+    painter: 'person', scale: ADULT_SCALE_HAT, adult: true, wide: 1.32, accent: 0xff5a2a,   // (an adult measured to the skull under his cap: round 9 1.34 → 1.4, round 10 → ADULT_SCALE_HAT with an adult's smaller head)
    
     paint: { skin: 0xd8946a, hair: 0x2a1a10, fringe: 1, hairSide: 3, hairBack: 5, eyeRow: 3, eye: 0x3a2414, brow: 0x1e120a, grin: true, nose: 0xd27a5c, beard: 0x2a1a10, top: 0xc0281e, plaid: 0x4a100a, vneck: 0xf0e8d8, sleeve: 0xc0281e, pants: 0x2c4a7a, shoes: 0x5a3820, saturate: 1.15 },
     hair: { c: [0, 6.4, -0.8], r: [5.6, 4, 5.8], bump: 0.4, shell: 1.4, fringe: 6.6, jag: 0.6, side: 1.4, back: 0, top: 8.2, tuft: 0.26, spike: 0.06, tones: [0x140c06, 0x2a1a10, 0x4a3020] },
@@ -690,7 +690,7 @@ export const PEOPLE = {
   // hair, a blue flowered dress under a white apron of pink roses, green gloves
   // and rubber boots, a garden gnome under her arm
   rt_auntyem_pruitt: {
-    painter: 'person', scale: ADULT_SCALE, wide: 1.22, accent: 0xff7a9a,
+    painter: 'person', scale: ADULT_SCALE_HAT, adult: true, wide: 1.22, accent: 0xff7a9a,   // (measured to the skull under her headscarf)
     paint: { skin: 0xe8a880, hair: 0x5a3418, fringe: 1, hairSide: 4, hairBack: 7, eyeRow: 3, eye: 0x3a2414, brow: 0x4a2810, smile: true, blush: 0xf08a7a, top: 0x5a7ab8, floral: [0xdce6f4, 0xf0d060, null], shortSleeve: true, collar: 0x4a6aa8, hand: 0x4a7a3a, pants: 0x5a7ab8, skirt: 0x5a7ab8, skirtLen: 9, tights: 0xe8a880, shoes: 0x4a7a3a, saturate: 1.12 },
     hair: { c: [0, 6, -0.6], r: [6.2, 4.6, 6], bump: 0.46, shell: 1.4, fringe: 6.8, jag: 0.6, side: 0.6, back: -0.6, top: 8.4, tuft: 0.34, spike: 0.08, tones: [0x3a200c, 0x5a3418, 0x7e4c28] },
     parts() {
@@ -726,7 +726,7 @@ export const PEOPLE = {
   // with a gold badge, an olive uniform with patches and a badge, binoculars,
   // a belt of pouches, cargo pants and boots
   rt_stlouis_mae: {
-    painter: 'hero', scale: ADULT_SCALE, accent: 0x6ab04a,   // (round 9: an adult, 1.2 → ADULT_SCALE)
+    painter: 'hero', scale: ADULT_SCALE_HAT, adult: true, accent: 0x6ab04a,   // (an adult measured to the skull under the ranger hat: round 9 1.2 → 1.4, round 10 → ADULT_SCALE_HAT)
    
     paint: { skinTone: 0xd89668, hair: 0x4a2814, fringe: 2, hairSide: 5, hairBack: 8, eye: 0x3a2214, pupil: 0x0a0604, brow: 0x3a1c0a, lashes: true, mouth: 'grin', lip: 0xc0605a, blush: true, top: 0x7a7a48, sleeve: 0x7a7a48, shortSleeve: 6, collar: 0x6a6a3c, pants: 0x4e5a30, cargo: true, shoes: 0x4a2a14, sole: 0x2a160a },
     body(S, D) {
@@ -796,7 +796,7 @@ export const PEOPLE = {
   // breasted maroon jacket with gold buttons and braid, a bow tie, white gloves,
   // black trousers with a gold stripe, and a fistful of car keys
   rt_vegas_valet: {
-    painter: 'person', scale: ADULT_SCALE, accent: 0xf0c850,
+    painter: 'person', scale: ADULT_SCALE_HAT, adult: true, accent: 0xf0c850,   // (measured to the skull under his cap)
     paint: { skin: 0xdca078, hair: 0x18100e, fringe: 1, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x3a2410, brow: 0x141010, smile: true, browUp: true, top: 0x7a1828, collar: 0xf6f6f2, sleeve: 0x7a1828, hand: 0xf6f6f2, pants: 0x241818, legStripe: 0xd8a830, shoes: 0x0e0e10, saturate: 1.15,
       body: (s) => { s.rect(16, 30, 24, 1, 0xd8a830, 0); for (const [u, v] of [[40, 16], [32, 48]]) s.rect(u, v + 11, 16, 1, 0xd8a830, 0); } },
     hair: { c: [0, 7, -0.6], r: [5.4, 4, 5.6], bump: 0.4, shell: 1.3, fringe: 6.8, jag: 0.8, side: 2.6, back: 0.6, top: 9.6, tuft: 0.26, spike: 0.06, tones: [0x080606, 0x18100e, 0x302422] },
@@ -827,7 +827,7 @@ export const PEOPLE = {
   // on it, gold hoops, a hibiscus shirt, a lanyard, a fanny pack, khaki shorts,
   // high-tops, and her fold-out map of the stars' homes
   rt_la_guide: {
-    painter: 'hero', scale: ADULT_SCALE, accent: 0xf0c840,   // (round 9: an adult, 1.2 → ADULT_SCALE)
+    painter: 'hero', scale: 1.66, adult: true, accent: 0xf0c840,   // (an adult with close-set hair, as Galene: round 9 1.2 → 1.4, round 10 → 1.66)
    
     paint: { skinTone: 0xe8a478, hair: 0xb04a1a, fringe: 2, hairSide: 4, hairBack: 7, eye: 0x4a2a14, pupil: 0x140806, brow: 0x8a3410, lashes: true, mouth: 'grin', freckles: 0xd08a5a, top: 0xf0602a, shortSleeve: 4, collar: 0xe0501a, hem: 0xc8481a, pants: 0x8a8050, shorts: 5, cargo: true, socks: 0xf4f4f0, shoes: 0x1a1a1e, sole: 0xf4f0e8 },
     body(S, D) {
@@ -969,7 +969,9 @@ export function buildPerson(id) {
     const [x, y, z] = def.tail.pivot ?? [0, 7.6, -4.2], piv = new THREE.Group(); piv.position.set(x * PX * HS, y * PX * HS, z * PX * HS);
     piv.add(rig.mesh(kit.tail, partM)); rig.head.add(piv);
     rig.strands.push({ g: piv, ax: 0, az: 0, vx: 0, vz: 0, stiff: 26, base: [0, 0] });
+    if (def.adult) piv.scale.setScalar(ADULT_HEAD);   // (sized with the head, below)
   }
+  if (def.adult) adultHead(rig);   // (a grown-up's smaller head, mortals.js ADULT_HEAD: the skin box, hair, hat and the ponytail's pivot with it)
   // a broad build: a wider torso, arms and legs set further apart (as on Tyson)
   if (def.wide) {
     const w = def.wide;

@@ -75,8 +75,10 @@ export const FODDER_MONSTERS = {
   // othrys
   laistrygonian: { name: txt('monsters.laistrygonian.name'), tier: 'elite', role: 'lobber', hp: 220, speed: 2.4, dmg: 18, radius: 1.1, height: 4.4, ai: 'ranged', range: 14, keep: 9, windup: 1.2, cd: 5, xp: 16, coins: [7, 12], model: 'laistrygonian', pitch: 0.45, voice: 'roar', projectile: 'fire', lob: true, armor: 0.1, knockResist: 0.85, superArmor: true },
   // asphodel
-  shade: { name: txt('monsters.shade.name'), tier: 'minor', role: 'fodder', hp: 16, speed: 2.4, dmg: 5, radius: 0.4, height: 1.8, ai: 'melee', range: 1.5, windup: 0.6, cd: 1.6, xp: 2, coins: [0, 2], model: 'shade', pitch: 0.9, voice: 'wail', knockResist: 0 },
-  keres: { name: txt('monsters.keres.name'), tier: 'minor', role: 'rusher', hp: 16, speed: 6.6, dmg: 6, radius: 0.45, height: 1.8, ai: 'melee', range: 1.5, windup: 0.35, cd: 1.2, xp: 2, coins: [0, 2], model: 'keres', pitch: 1.2, voice: 'shriek', knockResist: 0, slashColor: 0xff2a2a },
+  // (round 10: the shade and the keres stand as grown people, about 1.25x Percy (rig ×1.29 and ×1.26): radius 0.4-0.45 → 0.48-0.52,
+  // height 1.8 → 2.3 and the reach of their longer arms 1.5 → 1.8; windups, cooldowns and damage unchanged)
+  shade: { name: txt('monsters.shade.name'), tier: 'minor', role: 'fodder', hp: 16, speed: 2.4, dmg: 5, radius: 0.48, height: 2.3, ai: 'melee', range: 1.8, windup: 0.6, cd: 1.6, xp: 2, coins: [0, 2], model: 'shade', pitch: 0.9, voice: 'wail', knockResist: 0 },
+  keres: { name: txt('monsters.keres.name'), tier: 'minor', role: 'rusher', hp: 16, speed: 6.6, dmg: 6, radius: 0.52, height: 2.3, ai: 'melee', range: 1.8, windup: 0.35, cd: 1.2, xp: 2, coins: [0, 2], model: 'keres', pitch: 1.2, voice: 'shriek', knockResist: 0, slashColor: 0xff2a2a },
 };
 
 // ---- behaviour (rig.onTick, every frame while alive) --------------------------
@@ -1287,9 +1289,12 @@ function buildShade(K0) {
   const mat = skinMat('shade', (S) => {
     paintPerson(S, { skin: 0x1a2030, eye: dark, eyeWhite: dark, brow: 0x1a2230, mouth: false, top: SH[0], sleeve: SH[0], hand: bone, pants: SH[1], shoes: false,
       face: (s, ey) => { s.rect(8, ey - 3, 8, 8, 0x0e1420, 0.1); for (const x of [9, 13]) { s.rect(x, ey - 0.5, 2, 1.5, cyan, 0); s.dot(x + 0.5, ey, cyanL, 1, 1); } s.rect(10, ey + 2.5, 4, 2.5, 0x04060a, 0); s.rect(10.5, ey + 2.5, 3, 0.5, 0xc8d0d8, 0); } });
-  }, { emit: 2, fill: 0.4, dissolve: 0.18, scale: 1.15 });
-  const rig = new Rig({ material: mat, scale: 1.15, armW: 2.6, bodyW: 8, bodyH: 13, jacket: false });
-  const K = kitOf(K0, 'shade', rig, mat, { seed: 113, fill: 0.4, emit: 0.9, ao: 0.35 });
+  }, { emit: 2, fill: 0.4, dissolve: 0.18, scale: 1.48 });
+  // (round 10, the owner: the dead were grown people, so a shade stands as an
+  // adult, about 1.25x Percy's body: rig scale 1.15 → 1.48, its robe, hood
+  // and motes sculpted in cells of a hero's voxel size, voxDensity)
+  const rig = new Rig({ material: mat, scale: 1.48, armW: 2.6, bodyW: 8, bodyH: 13, jacket: false });
+  const K = kitOf(K0, 'shade', rig, mat, { seed: 113, fill: 0.4, emit: 0.9, ao: 0.35, density: voxDensity(rig) });
   const T = rig.torso, Hd = rig.head, H8 = 8 * HS, FADE = [0x4a6a88, 0x5a7a98, 0x3a5a78], MOTE = [cyan, 0x9af0ff, cyanL];
   dropAll(rig, T); dropOne(rig, hatOf(rig));
   for (const leg of [rig.legR, rig.legL]) dropAll(rig, leg);
@@ -1338,9 +1343,12 @@ function buildShade(K0) {
 function buildKeres(K0) {
   const blk = 0x1a1216, blkL = 0x3a2a30, hairC = [0xe8e4e0, 0xc8c4c0, 0xffffff], pale = 0xe0d8d0, red = 0xff2a2a, redD = 0xa81a1a, RAG = [blk, blkL, 0x2a1e24];
   const mat = skinMat('keres', (S) => paintPerson(S, { skin: pale, hair: 0xe8e4e0, fringe: 2, hairSide: 4, hairBack: 8, eye: 0x0a0406, eyeWhite: 0x0a0406, brow: 0x8a8070, mouth: false, top: blk, sleeve: blk, hand: pale, pants: blk, shoes: false,
-    face: (s, ey) => { for (const x of [9, 13]) { s.rect(x, ey - 1, 2, 2, 0x2a0408, 0); s.rect(x + 0.5, ey - 0.5, 1, 1, red, 0); } s.rect(11, ey + 1.5, 2, 1, 0x6a5a5a, 0); s.rect(9.5, ey + 3, 5, 1.5, 0x2a0408, 0); for (let x = 9.5; x < 14.5; x += 1) s.dot(x, ey + 3, 0xfff8f0, 0.6, 1); } }), { emit: 1.6, scale: 1.3 });
-  const rig = new Rig({ material: mat, scale: 1.3, armW: 2.6, bodyW: 7, jacket: false });
-  const K = kitOf(K0, 'keres', rig, mat, { seed: 173, rough: 0.9, emit: 0.9, ao: 0.3 });
+    face: (s, ey) => { for (const x of [9, 13]) { s.rect(x, ey - 1, 2, 2, 0x2a0408, 0); s.rect(x + 0.5, ey - 0.5, 1, 1, red, 0); } s.rect(11, ey + 1.5, 2, 1, 0x6a5a5a, 0); s.rect(9.5, ey + 3, 5, 1.5, 0x2a0408, 0); for (let x = 9.5; x < 14.5; x += 1) s.dot(x, ey + 3, 0xfff8f0, 0.6, 1); } }), { emit: 1.6, scale: 1.64 });
+  // (round 10, the owner: death spirits, part women, stand as grown women,
+  // about 1.25x Percy's body: rig scale 1.3 → 1.64, the dress, mane, talons
+  // and wings in cells of a hero's voxel size, voxDensity)
+  const rig = new Rig({ material: mat, scale: 1.64, armW: 2.6, bodyW: 7, jacket: false });
+  const K = kitOf(K0, 'keres', rig, mat, { seed: 173, rough: 0.9, emit: 0.9, ao: 0.3, density: voxDensity(rig) });
   const T = rig.torso, Hd = rig.head, H8 = 8 * HS;
   dropAll(rig, T); dropOne(rig, hatOf(rig));
   for (const leg of [rig.legR, rig.legL]) dropAll(rig, leg);
@@ -1353,7 +1361,7 @@ function buildKeres(K0) {
     if (i % 3 === 0) K.flare(T, x * (1 + L * 0.03), 2 - L - 0.6, z * (1 + L * 0.03), 0.8, 1.6, 0.4, i % 2 ? red : redD, a, 0.18);
   }
   // the mane of wild white hair, spilling down the back
-  K.clumps(Hd, [0, H8 * 0.7, -0.8], [H8 + 2, H8 * 0.8, H8 + 1], { n: 34, size: [1.6, 2.8], cols: hairC, faces: 'tlrk', out: 0.15 });
+  K.clumps(Hd, [0, H8 * 0.7, -0.8], [H8 + 2, H8 * 0.8, H8 + 1], { n: 34, size: [1.6, 2.8], cols: hairC, faces: 'tlrk', out: 0.15, on: [[0, H8 / 2, 0], [H8 / 2 + 0.4, H8 / 2 + 0.4, H8 / 2 + 0.4], 6] });   // (on: each clump seated on the skull, which the finer clumps of round 10's density no longer reached)
   for (let i = 0; i < 10; i++) K.box(Hd, -4.6 + i * 1.02, H8 * 0.3 - (i % 3) * 1.2, -H8 / 2 - 1.2, 1.5, 5 + K.r() * 5, 1.5, K.tone(hairC, 0.08), 0.3, 0, (i - 4.5) * 0.12);
   for (const sx of [-1, 1]) for (let k = 0; k < 2; k++) K.box(Hd, sx * (H8 / 2 + 1 + k * 0.8), H8 * 0.4 - k * 2, 0.4 - k, 1.5, 5, 2.6, K.tone(hairC, 0.08), 0, 0, sx * (0.2 + k * 0.25));
   for (const sx of [-1, 1]) { K.box(Hd, sx * 1.9 * HS, 4.4 * HS, 4 * HS + 0.2, 1.4, 1.2, 0.3, red); K.box(Hd, sx * 1.9 * HS, 4.4 * HS + 0.7, 4 * HS + 0.15, 1.8, 0.5, 0.4, 0x6a5a5a); }

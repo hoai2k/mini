@@ -1029,6 +1029,170 @@ proportions of its size. The head rule and the leg rule pass for every model.
 They stay "same" unless the owner wants them grown too. Grover reads 1.00×
 without his horns, against the wiki's tall 5 ft 9 in.
 
+### Round 10: adults are 1.2–1.3×, not giants (the owner's rules)
+
+The owner: ghosts, shades, keres and other adults should be roughly 1.2–1.3×
+Percy's height; the skeleton warriors, statues and the like read about 1.5×
+and should come down to that too. "They should be bigger but not read as
+giants." Champions stay a modest step above.
+
+**What the "1.5" was.** In the workbench's True scale with the Percy
+reference, the skeleton's body (round 9's measure, without the helmet) was
+1.40×, but the helmet put its visible top at 1.48×. The spartoi read 1.40×
+bare and 1.63× to the top of its crest, the living statue 1.42× and 1.56×.
+So what the eye sees, helmet included, was 1.5–1.65×. The round 10 rule
+caps that too: about 1.2–1.3× without headwear, and no more than about 1.4×
+with it.
+
+**The spec** ([sizes.json](sizes.json)):
+
+- `adult` is now 1.15–1.35×, and it covers grown-up humans (mortals,
+  teachers, tourists, adult NPCs and people), the dead (ghost, shade, keres)
+  and former adults made monstrous (skeleton, spartoi, living statue).
+- `adultChampion` (new) is 1.42–1.6×, for their champions: about 1.5×.
+- Both bands are marked `aside`: a class of models beside the ladder of
+  sizes rather than a step of it. `test/sizes.test.mjs` checks the ladder's
+  order and overlaps without them.
+- The principles text in `about` and the categories' note say this.
+- **Short adults stay short.** Mr. D, Coach Hedge and Grandma Mae keep the
+  owner's earlier ruling: about a twelve-year-old's height, in `same`
+  (0.97×, 0.86×, 0.86×). This round leaves them unchanged.
+
+**How the adults are measured.** An adult with a full head of hair measures
+to the top of the hair, about 1.25–1.3×. One in a hat, or with cropped hair,
+measures to the skull. Percy's own curls are a sixth of his height, so a
+hatted adult is set to 1.2× at the skull. That puts its skull level with the
+others', with the hat on top at 1.3–1.35×.
+
+**Before → after**, body without headwear, then with headwear, then the
+whole box (the whole box includes held props: the statue's raised spear,
+Charon's oar). All are × Percy's body, from `perf/bodysize.cjs`; Percy's
+body is 2.179.
+
+| model | body × Percy | with headwear × Percy | whole box × Percy | triangles |
+|---|---|---|---|---|
+| mortal | 1.01 → 1.20 | 1.14 → 1.34 | 1.15 → 1.34 | 2140 → 2140 |
+| ghost | 0.88 → 1.24 | — → — | 0.92 → 1.30 | 1730 → 2014 |
+| skeleton | 1.40 → 1.25 | 1.48 → 1.32 | 1.48 → 1.32 | 4324 → 3600 |
+| spartoi | 1.40 → 1.24 | 1.63 → 1.39 | 1.64 → 1.40 | 4538 → 4044 |
+| gorgon_statue | 1.42 → 1.24 | 1.56 → 1.36 | 1.70 → 1.48 | 4048 → 3226 |
+| shade | 0.97 → 1.23 | — → — | 1.05 → 1.31 | 3760 → 4226 |
+| keres | 0.99 → 1.23 | — → — | 1.12 → 1.39 | 2802 → 3350 |
+| teacher | 1.15 → 1.27 | — → — | 1.16 → 1.28 | 1664 → 1664 |
+| guard | 1.00 → 1.18 | — → — | 1.00 → 1.19 | 120 → 120 |
+| tourist | 1.01 → 1.20 | 1.14 → 1.34 | 1.15 → 1.35 | 2140 → 2140 |
+| farmer | 1.01 → 1.20 | 1.14 → 1.34 | 1.14 → 1.35 | 2568 → 2568 |
+| old_lady | 1.15 → 1.26 | — → — | 1.16 → 1.27 | 2424 → 2424 |
+| bellhop | 1.12 → 1.23 | — → — | 1.12 → 1.23 | 648 → 648 |
+| salesman | 1.12 → 1.24 | — → — | 1.12 → 1.24 | 1620 → 1620 |
+| shore_nereid | 1.09 → 1.25 | — → — | 1.10 → 1.26 | 7076 → 7076 |
+| quintus | 1.15 → 1.27 | — → — | 1.16 → 1.28 | 2662 → 2662 |
+| asphodel_charon | 1.16 → 1.29 | — → — | 1.31 → 1.52 | 2994 → 2994 |
+| asphodel_sisyphus | 1.15 → 1.27 | — → — | 1.16 → 1.28 | 3422 → 3422 |
+| camp_argus | 1.14 → 1.27 | — → — | 1.15 → 1.28 | 2938 → 2938 |
+| rt_turnpike_earl | 1.02 → 1.20 | 1.13 → 1.33 | 1.14 → 1.33 | 2554 → 2554 |
+| rt_auntyem_pruitt | 1.02 → 1.20 | 1.08 → 1.27 | 1.08 → 1.28 | 2904 → 2904 |
+| rt_stlouis_mae | 1.02 → 1.20 | 1.16 → 1.35 | 1.16 → 1.36 | 3772 → 3772 |
+| rt_vegas_valet | 1.05 → 1.24 | 1.12 → 1.32 | 1.12 → 1.32 | 2346 → 2346 |
+| rt_la_guide | 1.05 → 1.20 | 1.07 → 1.23 | 1.07 → 1.23 | 3556 → 3556 |
+| asphodel_pale_king | 1.77 → 1.50 | 1.95 → 1.65 | 1.95 → 1.66 | 6308 → 5082 |
+| kind:skeleton | 1.77 → 1.50 | 1.99 → 1.68 | 1.99 → 1.69 | 6546 → 4936 |
+| kind:spartoi | 1.77 → 1.49 | 2.07 → 1.67 | 2.07 → 1.68 | 6084 → 5042 |
+
+Every other model moved by 0.04 or less, which is idle-phase jitter.
+
+**The changes.**
+
+- **Skeleton, spartoi, living statue.**
+  - Rig scale 1.56 → 1.39 / 1.38 / 1.37.
+  - Every mass is drawn with `voxDensity`, so the smaller body is
+    re-voxelised in hero-sized cells, not shrunk.
+  - Their round 9 grown-man proportions stay: head/body 0.19–0.20, legs/body
+    0.45.
+  - The spartoi's horsehair crest is lower (strands 3.6–6 → 2.2–3.7 head
+    pixels), so with its helmet it tops out at 1.39×.
+  - Stats:
+    - radius 0.65–0.7 → 0.58–0.62;
+    - height 3.2 / 3.4 / 3.3 → 2.85 / 3.0 / 2.9;
+    - the melee reach that came from their longer arms, 2.1 → 1.9 (spartoi)
+      and 2.5 → 2.25 (statue).
+  - Windups, cooldowns, damage and shots are unchanged.
+- **Their champions.**
+  - Look scale 1.26 → 1.2 for the skeleton kind, the spartoi kind and the
+    Pale King, so each stands 1.5× (1.65–1.68× with crown or helmet).
+  - Hit size and reach follow the look scale (`champions.js
+    applyChampionLook`).
+- **Ghost.**
+  - Rig 1.2 → 1.74, with a grown-up's head (`reshape` 0.9).
+  - The skin is painted at the finer resolution its size needs (`skinMat`
+    scale).
+  - The shroud, hair and wisps are drawn in hero-sized cells (`voxDensity`;
+    before this round they were at the rig's own skin pixel).
+  - Stats: radius 0.45 → 0.55, height 2 → 2.8.
+- **Shade and keres.**
+  - Rig 1.15 → 1.48 and 1.3 → 1.64, in hero-sized cells (`voxDensity`).
+  - The keres's mane clumps, finer now, are seated on the skull (`clumps
+    on`), so none floats (`perf/islands.cjs`).
+  - Stats: radius 0.4 / 0.45 → 0.48 / 0.52, height 1.8 → 2.3, and the reach
+    of their longer arms 1.5 → 1.8.
+- **Mortals and the open world's adults.**
+  - `ADULT_SCALE` 1.4 → 1.62 for a full head of hair.
+  - `ADULT_SCALE_HAT` 1.72 for one measured to the skull: the guard, tourist,
+    farmer, Big Earl, Mrs. Pruitt, Ranger Mae and Sal.
+  - Galene and Trudy (close-set hair) are 1.66, Charon 1.68 and Argus 1.72,
+    the tallest of the adults.
+  - Every grown-up gets an adult's smaller head, `ADULT_HEAD` 0.88. The skin
+    box, hair, beard, hat and ponytail are reshaped together. Head/body goes
+    from 0.26–0.30 → 0.24–0.27, inside the head rule at their size, and
+    legs/body rises to 0.33–0.37.
+  - The Mist's real mortal goes to height 2.7 (from 2.2) and radius 0.45
+    (from 0.4).
+  - These are skin-box models: their limbs and hair cells grow with the rig,
+    about ×1.16–1.23. They are not re-sculpted in hero-sized cells, which
+    would mean redrawing each of 18 people. Their skins are already painted
+    at 128 × 128.
+
+**Checks:**
+
+- `perf/bodysize.cjs --check`: 103 models, 0 failing, and no head or leg
+  warnings.
+- `perf/islands.cjs --check` passes.
+- `animlint`: 0 problems.
+- `weapons.cjs`: 0 failing.
+- The game's tests pass.
+- Smoke check: 0 page errors.
+
+Lineups (Percy at the left; lines at 1.0, 1.25 and 1.5× Percy's body) were
+rendered for this round but are not committed.
+
+**Also this round: shots and deaths.**
+
+- **The skeleton's shot.** The wind-up of a shot played the hero "cast"
+  pose: both arms raised forward, the wrist straight. So the rifle, held
+  along the hand, pointed at the sky. A shooter (`rig.levelAim`: the
+  skeleton, its champion and the Pale King) now shoulders its weapon in the
+  wind-up and holds it level at the target. The recoil after it is a kick of
+  the arms and muzzle, and then it lowers to the hip still pointing forward.
+  The wrists turn against the arm, the torso's pitch and the hunch
+  (`character.js aimPose`). The rifle itself is now built level.
+  `perf/weapons.cjs` checks every ranged monster and champion that holds a
+  weapon: aim and kick must be ≥ 0.85 forward, the lowering ≥ 0.3.
+- **Deaths in the air.** The death fall turned the body about the hip joint
+  and left the hips at standing height. A body laid flat therefore hung at
+  hip height: the skeleton (lying for 3 s as bones) 0.8 m up, and the long-
+  legged spartoi, statue, cyclops and Laistrygonian likewise. The same was
+  true in game. Beasts rolled on their side had the same fault (QuadRig).
+  - Now `character.js groundLying` lowers the hips until the posed body's
+    lowest point is on the floor. It is used for every humanoid and four-
+    legged rig in a death fall or down, and while getting back up.
+  - A held weapon falls along the body instead of standing up.
+  - `animlint` has a new `float` check: a fall that ends more than 0.12 m
+    (or 4% of the height) above the floor is flagged.
+  - With the fix switched off, the check finds 15 models: Tyson; the pup,
+    ghost, dracaena, hellhound, empousa, skeleton, spartoi, telekhine,
+    statue, cyclops, boarlet, Earthborn, Laistrygonian and shade in their
+    in-game deaths. With the fix on, it finds none.
+
 ## Cerberus: the recommended size
 
 - **The books:** *The Lightning Thief* ch. 18† says "twice the size of a woolly

@@ -1867,17 +1867,18 @@ export function buildSkeleton({ id = 'skeleton', pal = {}, helmet = true, gear =
       } });
     S.shadeLimbs(); S.saturate(1.15);
   }, { emit: 0.8, res: 2 });
-  // (round 9: a grown soldier made a monster, notably bigger than Percy, about
-  // 1.4x his body without the helmet (design/sizes.json "bigger"). The rig is
-  // drawn at 1.56 where it was 1.15, and every mass is sculpted in cells of a
-  // hero's voxel size (voxDensity), so the bigger body is more cells, not
-  // bigger ones. A grown man's proportions (proportions.js reshape): the skull
+  // (round 9: a grown soldier made a monster, bigger than Percy; round 10,
+  // the owner: a grown man's size, not a giant's, about 1.25x his body
+  // without the helmet and about 1.3x with it (design/sizes.json "adult").
+  // The rig is drawn at 1.39 (1.15 before round 9, 1.56 in it), and every
+  // mass is sculpted in cells of a hero's voxel size (voxDensity), so the
+  // body is re-voxelised at its new size rather than its cells scaled. A grown man's proportions (proportions.js reshape): the skull
   // 0.92 of a hero's skin cube, legs grown from 12 to 19 pixels over the same
   // boots, a longer trunk, slimmer limbs, arms reaching to mid-thigh, a neck of
   // bare vertebrae; the torso is bones under the plate carrier: a ribcage
   // showing at the sides, the lumbar spine and the pelvis between the vest
   // and the shorts)
-  const rig = new Rig({ material: mat, scale: 1.56, armW: 3 });
+  const rig = new Rig({ material: mat, scale: 1.39, armW: 3 });
   const HF = 0.92, L1 = 19, ANK = -8.2;
   reshape(rig, rig.head, HF);
   reshape(rig, rig.torso, [0.98, 1.1, 0.95]);
@@ -1952,8 +1953,10 @@ export function buildSkeleton({ id = 'skeleton', pal = {}, helmet = true, gear =
   K.box(H, 0, 0.3, 0, 8.6, 1.2, 4.6, 0x3a3020); K.box(H, 0, 0.3, 2.35, 1.4, 1, 0.3, 0x8a8a7a);   // the belt and its buckle
   for (const sx of [-1, 1]) K.box(H, sx * 3.4, 0.2, 2.2, 1.6, 1.4, 0.9, oliveD);
   if (gear) {
-    // the rifle, levelled forward from the hip (built along +z: see the hand-axis convention in character.js)
-    const gun = group(rig.handR, 0, -1, 2, HOLD_PITCH - Math.PI / 2, 0, 0);
+    // the rifle, levelled forward from the hip (built along +z: see the hand-axis
+    // convention in character.js; level, not tipped up by HOLD_PITCH, so the
+    // aim below holds it level at the target)
+    const gun = group(rig.handR, 0, -1, 2, 0, 0, 0);
     const metal = 0x2a2a2c, wood = 0x5a3e24;
     K.box(gun, 0, 0, 2, 1.6, 2.2, 13, metal); K.box(gun, 0, -2.6, 1.6, 1.2, 4, 1.6, metal); K.box(gun, 0, -2.4, 4.8, 1.3, 3.6, 1.4, 0x3a3a3c);
     K.box(gun, 0, -0.6, -6.6, 1.6, 2.6, 4.4, wood); K.box(gun, 0, 0.3, 9, 1.8, 1.8, 3.4, wood);
@@ -1961,6 +1964,10 @@ export function buildSkeleton({ id = 'skeleton', pal = {}, helmet = true, gear =
     rig.extras.gun = gun;
     rig.extras.muzzle = group(gun, 0, 0.4, 15); markTip(gun, 0, 0.4, 15, 'rifle');
   }
+  // a shooter: the wind-up of a shot shoulders the weapon and holds it level
+  // at the target, the shot kicks it (character.js aimPose); the Pale King
+  // (champions.js) aims his sword the same way
+  rig.levelAim = true;
   applyShape(rig);
   K.done(); markHeadwear(rig, () => KH.done());
   return rig;
@@ -1985,13 +1992,15 @@ function buildSpartoi() {
     S.shadeLimbs(); S.saturate(1.15);
   }, { emit: 0.8, res: 2 });
   // (round 9: the sown men were grown soldiers, so they stand as the skeleton
-  // warrior does, about 1.4x Percy's body without the helmet and its crest
-  // (design/sizes.json "bigger"): rig scale 1.0 → 1.56, a grown man's
+  // warrior does; round 10, a grown man's size, not a giant's: about 1.25x
+  // Percy's body without the helmet and its crest, and the crest trimmed so
+  // the whole stands under 1.4x (design/sizes.json "adult"): rig scale 1.0 →
+  // 1.56 → 1.38, a grown man's
   // proportions by proportions.js reshape (the skull 0.92 of a hero's, legs
   // 12 → 19 pixels over the same boots, a longer trunk, slimmer limbs, arms to
   // mid-thigh, bare neck vertebrae), its rags, plates and crest drawn in cells
   // of a hero's voxel size (voxDensity): more cells, not bigger ones)
-  const rig = new Rig({ material: mat, scale: 1.56, armW: 3 });
+  const rig = new Rig({ material: mat, scale: 1.38, armW: 3 });
   const L1 = 19, ANK = -9;
   reshape(rig, rig.head, 0.92);
   reshape(rig, rig.torso, [0.98, 1.1, 0.95]);
@@ -2060,7 +2069,7 @@ function buildSpartoi() {
   KH.box(Hd, 0, 5.4, H8 / 2 + 0.55, 1.1, 2.6, 0.8, brz);
   KH.box(Hd, 0, H8 + 1.8, -0.2, 1.6, 1, H8 + 0.6, brzD);
   for (let z = -5.6; z <= 4.8; z += 1.05) {
-    const t = (z + 5.6) / 10.4, h = 3.6 + Math.sin(t * Math.PI) * 2.4 + (KH.r() - 0.5) * 0.8;
+    const t = (z + 5.6) / 10.4, h = 2.2 + Math.sin(t * Math.PI) * 1.5 + (KH.r() - 0.5) * 0.6;   // (round 10: a lower crest, so helmet and crest top him at under 1.4x Percy)
     KH.box(Hd, 0, H8 + 2.2 + h / 2, z, 2 + KH.r() * 0.4, h, 1.2, KH.tone(CREST, 0.1), -0.25 + t * 0.2);
   }
   for (let i = 0; i < 5; i++) KH.box(Hd, (KH.r() - 0.5) * 0.8, H8 + 1 - i * 1.6, -H8 / 2 - 1.3 - i * 0.2, 1.8, 2, 1.2, KH.tone(CREST, 0.1), 0.2);
@@ -2344,13 +2353,14 @@ function buildStatue() {
     for (let i = 0; i < 70; i++) S.dot(S.r() * 64, S.r() * 64, moss[i % 3], 2, 1);
     S.shadeLimbs(undefined, 1.1, 0.8);
   }, { emit: 0, rough: 0.95, fill: 0.08, res: 2 });
-  // (round 9: a statue of a grown hoplite, so it stands notably bigger than
-  // Percy, about 1.4x his body without the helmet and crest (design/sizes.json
-  // "bigger"): rig scale 1.05 → 1.56, a grown man's proportions by
+  // (round 9: a statue of a grown hoplite, so it stands bigger than Percy;
+  // round 10, a grown man's size, not a giant's: about 1.25x his body without
+  // the helmet and crest, under 1.4x with them (design/sizes.json "adult"):
+  // rig scale 1.05 → 1.56 → 1.37, a grown man's proportions by
   // proportions.js reshape (the head 0.92 of a hero's, legs 12 → 19 pixels
   // over the same plinth, a longer trunk, slimmer limbs, longer arms), the
   // stone of the cuirass, helmet and shield in cells of a hero's voxel size)
-  const rig = new Rig({ material: mat, scale: 1.56 });
+  const rig = new Rig({ material: mat, scale: 1.37 });
   const L1 = 19, ANK = -10.7;
   reshape(rig, rig.head, 0.92);
   reshape(rig, rig.torso, [0.98, 1.1, 0.95]);
@@ -2406,10 +2416,17 @@ function buildGhost() {
       face: (s, ey) => { s.rect(9, ey - 1, 2, 2, 0x0a1a2a, 0); s.rect(13, ey - 1, 2, 2, 0x0a1a2a, 0); s.dot(9.5, ey - 0.5, 0xffffff); s.dot(13.5, ey - 0.5, 0xffffff); s.rect(11, ey + 2, 2, 2.5, 0x0a1a2a, 0); s.dot(9, ey + 1, 0x6a98a8, 2, 1); s.dot(13, ey + 1, 0x6a98a8, 2, 1); },
       body: (s) => { for (let i = 0; i < 50; i++) s.dot(16 + s.r() * 24, 20 + s.r() * 12, s.r() < 0.5 ? 0x6aa0b4 : 0xb0e0ec, 1, 2); } });
     S.saturate(1.1);
-  }, { emit: 3, fill: 0.7, dissolve: 0.3, res: 2 });
-  const rig = new Rig({ material: mat, scale: 1.2, armW: 3 });   // (size audit: ×1.2, a spirit keeps the size it had alive)
+  }, { emit: 3, fill: 0.7, dissolve: 0.3, res: 2, scale: 1.74 });
+  // (size audit: a spirit keeps the size it had alive. Round 10, the owner:
+  // the dead were grown people, so the ghost stands as an adult, about 1.25x
+  // Percy's body: rig scale 1.2 → 1.74, with a grown-up's smaller head
+  // (reshape) on the same shoulders, its skin painted finer (skinMat scale)
+  // and its shroud, hair and wisps sculpted in cells of a hero's voxel size
+  // (voxDensity), so it is re-voxelised rather than its cells scaled up)
+  const rig = new Rig({ material: mat, scale: 1.74, armW: 3 });
+  reshape(rig, rig.head, 0.9);
   for (const leg of [rig.legR, rig.legL]) dropMeshes(rig, leg);
-  const K = kit(rig, mat, { seed: 67, fill: 0.6, emit: 0.9 });
+  const K = kit(rig, mat, { seed: 67, fill: 0.6, emit: 0.9, density: voxDensity(rig) });
   const SH = [0x8ac0d4, 0x6aa0b4, 0xa8d8e8, 0x5a90a8], hk = HS;
   // a ragged hood of shroud over lank hair
   const Hd = rig.head, H8 = 8 * hk;
@@ -2436,6 +2453,7 @@ function buildGhost() {
     K.box(g, 0, -12.5 - (i % 2), 0, 0.8, 1.2, 0.8, 0xb0f0ff);
     sway(rig, g, 'x', 0.35, 3, i);
   }
+  applyShape(rig);   // (the skin box head to its reshaped size)
   K.done();
   rig.float = 1.3; rig.hunch = 0.2;
   return rig;
@@ -2693,13 +2711,14 @@ export const MONSTERS = {
   rat: { name: txt('monsters.rat.name'), tier: 'minor', role: 'rusher', hp: 14, speed: 6.4, dmg: 5, radius: 0.42, height: 0.85, ai: 'melee', range: 1.1, windup: 0.3, cd: 1.1, xp: 2, coins: [0, 2], model: 'rat', pitch: 2.4, voice: 'squeak', knockResist: 0, idle: 'loiter', notice: 4.5, drop: 3.4 },   // idle 'loiter': hangs around trash until a hero is close (entities/ratRules.js)
   serpent: { name: txt('monsters.serpent.name'), tier: 'minor', role: 'fodder', hp: 40, speed: 4.4, dmg: 8, radius: 0.55, height: 1.3, ai: 'melee', range: 1.9, windup: 0.5, cd: 1.3, xp: 4, coins: [1, 3], model: 'serpent', pitch: 0.9, voice: 'hiss', knockResist: 0.2, poison: { dps: 2, dur: 3 } },
   // a real mortal in the Mist (entities/mistPeople.js): always looks like a person, never fights, can't be hurt
-  mortal: { name: txt('monsters.mortal.name'), tier: 'minor', role: 'none', hp: 100, speed: 1.4, dmg: 0, radius: 0.4, height: 2.2,   // (round 9: an adult, ADULT_SCALE 1.24 → 1.4)
+  mortal: { name: txt('monsters.mortal.name'), tier: 'minor', role: 'none', hp: 100, speed: 1.4, dmg: 0, radius: 0.45, height: 2.7,   // (an adult: round 9 ADULT_SCALE 1.24 → 1.4, height 1.9 → 2.2; round 10 the hatted adult's 1.72 (mortals.js ADULT_SCALE_HAT), height 2.2 → 2.7, radius 0.4 → 0.45)
   ai: 'none', range: 0, windup: 1, cd: 1, xp: 0, coins: [0, 0], model: 'pup', mortal: true },
   spider: { name: txt('monsters.spider.name'), tier: 'minor', role: 'rusher', hp: 20, speed: 5.8, dmg: 5, radius: 0.38, height: 0.8, ai: 'melee', range: 1.3, windup: 0.35, cd: 1, xp: 2, coins: [0, 2], model: 'spider', pitch: 2.2, voice: 'click', aura: 'spark' },
   harpy: { name: txt('monsters.harpy.name'), tier: 'minor', role: 'ranged', hp: 40, speed: 3.8, dmg: 9, radius: 0.5, height: 2.5, ai: 'ranged', range: 10, keep: 6.5, windup: 0.85, cd: 3.4, xp: 5, coins: [2, 4], model: 'harpy', pitch: 1.3, projectile: 'feather', shots: 3, voice: 'screech' },
   stymphalian: { name: txt('monsters.stymphalian.name'), tier: 'minor', role: 'ranged', hp: 34, speed: 4.4, dmg: 8, radius: 0.6, height: 2.0, ai: 'ranged', range: 11, keep: 7, windup: 0.8, cd: 3.4, xp: 4, coins: [1, 4], model: 'stymphalian', pitch: 1.7, projectile: 'feather', shots: 3, voice: 'screech' },
   automaton: { name: txt('monsters.automaton.name'), tier: 'minor', role: 'exploder', hp: 30, speed: 3.9, dmg: 16, radius: 0.55, height: 1.1, ai: 'blob', range: 1.8, windup: 0.9, cd: 0, xp: 4, coins: [1, 4], model: 'automaton', pitch: 1.8, aura: 'greekfire', blast: 0x6aff3a },
-  ghost: { name: txt('monsters.ghost.name'), tier: 'minor', role: 'caster', hp: 38, speed: 3.2, dmg: 8, radius: 0.45, height: 2, ai: 'ranged', range: 10, keep: 6.5, windup: 0.9, cd: 3.6, xp: 4, coins: [1, 3], model: 'ghost', pitch: 0.9, projectile: 'wisp', voice: 'moan', aura: 'wisp', knockResist: 0.2 },
+  // (round 10: the dead are grown people, about 1.25x Percy: the ghost's rig 1.2 → 1.74, so radius 0.45 → 0.55 and height 2 → 2.8)
+  ghost: { name: txt('monsters.ghost.name'), tier: 'minor', role: 'caster', hp: 38, speed: 3.2, dmg: 8, radius: 0.55, height: 2.8, ai: 'ranged', range: 10, keep: 6.5, windup: 0.9, cd: 3.6, xp: 4, coins: [1, 3], model: 'ghost', pitch: 0.9, projectile: 'wisp', voice: 'moan', aura: 'wisp', knockResist: 0.2 },
   fury: { name: txt('monsters.fury.name'), tier: 'elite', role: 'trickster', hp: 95, speed: 3.8, dmg: 13, radius: 0.9, height: 3.9, ai: 'teleport', range: 2.8, windup: 0.45, cd: 1.6, xp: 10, coins: [4, 7], model: 'fury', pitch: 1.1, puff: 0x3a2a24, slashColor: 0xff8a2a, voice: 'screech' },
   dracaena: { name: txt('monsters.dracaena.name'), tier: 'elite', role: 'tank', hp: 190, speed: 2.4, dmg: 18, radius: 1.1, height: 3.8, ai: 'tank', range: 3, slamR: 2.9, windup: 0.85, cd: 2.2, xp: 12, coins: [5, 9], model: 'dracaena', armor: 0.25, shield: true, knockResist: 0.75, pitch: 0.8, voice: 'hiss' },
   hellhound: { name: txt('monsters.hellhound.name'), tier: 'elite', role: 'bruiser', hp: 220, speed: 3.6, dmg: 20, radius: 1.6, height: 5, ai: 'melee', range: 3.7, windup: 0.7, cd: 1.8, xp: 14, coins: [6, 10], model: 'hellhound', knockResist: 0.7, superArmor: true, pitch: 0.5, aura: 'smoke', voice: 'bark' },
@@ -2711,13 +2730,15 @@ export const MONSTERS = {
     // in front of a longer body), the sting's spot 1.5 → 2.8 ahead and 0.9 → 1.4 wide; windups, cooldowns and damage unchanged)
     moves: [{ kind: 'pinch', trigger: 3.4, range: 3.2, windup: 0.5, recover: 0.55, dmg: 0.6, twin: 0.18 }, { kind: 'sting', trigger: 4, at: 2.8, radius: 1.4, windup: 0.85, recover: 0.65, dmg: 1.4 }] },
   // (round 9: the skeleton, the spartoi and the living statue grew to about 1.4x Percy, so radius 0.45-0.5 → 0.65-0.7 and height 2-2.1 → 3.2-3.4:
-  // under a dungeon door's 4 blocks and its corridor's 5; the melee reach of their longer arms 1.8 → 2.1 and 2.2 → 2.5)
-  skeleton: { name: txt('monsters.skeleton.name'), tier: 'elite', role: 'ranged', hp: 110, speed: 3, dmg: 15, radius: 0.65, height: 3.2, ai: 'ranged', range: 12, keep: 7, windup: 0.8, cd: 3, xp: 9, coins: [3, 7], model: 'skeleton', pitch: 1.1, projectile: 'bullet', shots: 2, voice: 'rattle', regrow: true },
+  // under a dungeon door's 4 blocks and its corridor's 5; the melee reach of their longer arms 1.8 → 2.1 and 2.2 → 2.5.
+  // Round 10: a grown man's size, about 1.25x (rig scale 1.56 → 1.37-1.39, ×0.88-0.89), so radius 0.65-0.7 → 0.58-0.62, height
+  // 3.2-3.4 → 2.85-3.0 and that reach 2.1 → 1.9 and 2.5 → 2.25; windups, cooldowns, damage and shots unchanged)
+  skeleton: { name: txt('monsters.skeleton.name'), tier: 'elite', role: 'ranged', hp: 110, speed: 3, dmg: 15, radius: 0.58, height: 2.85, ai: 'ranged', range: 12, keep: 7, windup: 0.8, cd: 3, xp: 9, coins: [3, 7], model: 'skeleton', pitch: 1.1, projectile: 'bullet', shots: 2, voice: 'rattle', regrow: true },
   // a spartoi: the steady melee fodder of the sown skeleton army (beach, underworld, desert)
-  spartoi: { name: txt('monsters.spartoi.name'), tier: 'minor', role: 'fodder', hp: 52, speed: 3.3, dmg: 9, radius: 0.65, height: 3.4, ai: 'melee', range: 2.1, windup: 0.5, cd: 1.4, xp: 4, coins: [1, 3], model: 'spartoi', pitch: 1.2, voice: 'rattle', knockResist: 0.2 },
+  spartoi: { name: txt('monsters.spartoi.name'), tier: 'minor', role: 'fodder', hp: 52, speed: 3.3, dmg: 9, radius: 0.58, height: 3.0, ai: 'melee', range: 1.9, windup: 0.5, cd: 1.4, xp: 4, coins: [1, 3], model: 'spartoi', pitch: 1.2, voice: 'rattle', knockResist: 0.2 },
   // a telekhine: lobs Greek fire in an arc (a marked spot that burns a moment): keep moving
   telekhine: { name: txt('monsters.telekhine.name'), tier: 'minor', role: 'lobber', hp: 38, speed: 3, dmg: 11, radius: 0.9, height: 2.3, ai: 'ranged', range: 12, keep: 8, windup: 1, cd: 4.4, xp: 5, coins: [1, 4], model: 'telekhine', pitch: 0.9, projectile: 'fire', lob: true, voice: 'bark', aura: 'greekfire' },
-  gorgon_statue: { name: txt('monsters.gorgon_statue.name'), tier: 'elite', role: 'ambusher', hp: 150, speed: 2.6, dmg: 16, radius: 0.7, height: 3.3, ai: 'statue', range: 2.5, windup: 0.7, cd: 1.6, xp: 9, coins: [3, 6], model: 'gorgon_statue', armor: 0.35, knockResist: 0.6, pitch: 0.7, voice: 'grind', wake: 5 },
+  gorgon_statue: { name: txt('monsters.gorgon_statue.name'), tier: 'elite', role: 'ambusher', hp: 150, speed: 2.6, dmg: 16, radius: 0.62, height: 2.9, ai: 'statue', range: 2.25, windup: 0.7, cd: 1.6, xp: 9, coins: [3, 6], model: 'gorgon_statue', armor: 0.35, knockResist: 0.6, pitch: 0.7, voice: 'grind', wake: 5 },
   cyclops: { name: txt('monsters.cyclops.name'), tier: 'champion', role: 'bruiser', hp: 620, speed: 2.3, dmg: 28, radius: 1.2, height: 4.2, ai: 'tank', range: 3.2, windup: 1.0, cd: 2.4, xp: 40, coins: [15, 25], model: 'cyclops', knockResist: 0.9, superArmor: true, pitch: 0.45, voice: 'roar', slamR: 3.6 },
 };
 // Old Cursed Dungeons kinds still requested by shared code (wave spawner,

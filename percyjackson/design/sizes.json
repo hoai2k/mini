@@ -4,14 +4,14 @@
   "Body height: the torso, head and legs at rest, as perf/bodysize.cjs measures it (arms, weapons, wings, whips, tails, flames and props left out), divided by Percy's.",
   "Headwear is not body (round 9): helmets, crests, plumes, hats, caps, crowns, circlets and horns are left out of the body height, as weapons and wings are. A builder marks them (game/js/entities/proportions.js markHeadwear: userData.headwear on the meshes, a hat slot in people.js and mortals.js), and perf/bodysize.cjs lists them under 'headwear'. Hair, a hood that is the creature's own head (the karpos's straw cowl) and a bird's own feathered crest stay body.",
   "The check: NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/bodysize.cjs - '' --check. A model fails when its body x Percy is outside its category's band, or when the head rule fails.",
-  "The principles (round 9, the owner), applied to every model: (1) Percy and the young heroes, adolescents, are the 'same' reference, and so are the teen campers, Hunters and other kids. (2) Adult humans (mortals, teachers, tourists, adult NPCs and people) read as adults, slightly bigger than Percy: the 'adult' band, 1.1-1.15x to the top of the hair for a full head of hair (ADULT_SCALE puts an adult's skull 1.19x Percy's; an adult in a hat or with cropped hair measures 1.0-1.05x, as Percy's own curls are a sixth of his height). A grown-up the books call short or tiny (Mr. D, Coach Hedge, Grandma Mae) stands about a twelve-year-old's height, 'same'. (3) Former adults made monstrous (skeleton warriors, spartoi, living statues of people) are notably bigger than Percy, 'bigger', about 1.3-1.5x their body without helmets, crests, plumes or hats; their champions a step above. (4) An enemy meant to intimidate outsizes a person even where its book or real-life counterpart is small (the giant scorpion): game drama beats canon. (5) Small fodder still reads clearly at gameplay distance: a swarm creature is no smaller than about 0.75x Percy, its plume aside.",
+  "The principles (round 9, the owner; round 10 for adults), applied to every model: (1) Percy and the young heroes, adolescents, are the 'same' reference, and so are the teen campers, Hunters and other kids. (2) Adults read as adults, bigger than Percy but never giants: the 'adult' band, about 1.2-1.3x Percy's body without headwear (round 10; it was 1.1-1.15x in round 9). This covers grown-up humans (mortals, teachers, tourists, adult NPCs and people), the dead (ghosts, shades, keres) and former adults made monstrous (skeleton warriors, spartoi, living statues of people). With a full head of hair an adult measures about 1.25-1.3x; one in a hat or with cropped hair is measured to the skull, about 1.2x (mortals.js ADULT_SCALE_HAT), its skull level with the others'. Helmets, crests and hats included, an adult stands no more than about 1.4x overall. Grown-ups get an adult's smaller head on the same body (mortals.js ADULT_HEAD; the former adults and the ghost by proportions.js reshape). A grown-up the books call short or tiny (Mr. D, Coach Hedge, Grandma Mae) stays about a twelve-year-old's height, 'same', by the owner's earlier ruling. (3) The champions of these adults stand a modest step above them, 'adultChampion', about 1.45-1.55x, not giants. (4) An enemy meant to intimidate outsizes a person even where its book or real-life counterpart is small (the giant scorpion): game drama beats canon. (5) Small fodder still reads clearly at gameplay distance: a swarm creature is no smaller than about 0.75x Percy, its plume aside.",
   "Bigger models get more voxels, not bigger voxels: a model grown with its rig scale is sculpted in cells of a hero's size (parts.js voxDensity, densityFor; proportions.js reshape for a grown body's proportions), and the head and leg rules below apply as it grows.",
   "Categories are given by the role in the game and the drama first (an elite or a boss should loom), with the owner's rulings fixed, the concept sheets and the books as a guide, not a ceiling. Exaggeration is expected: what matters is the relation to Percy.",
   "Source order: owner (an explicit ruling, design/size-audit.md), sheet (the concept sheet's drawing beside its Percy, measured: see sheetMethod), books, role.",
   "test/sizes.test.mjs checks that every workbench model has an entry with a known category and a reason."
  ],
  "categories": {
-  "_note": "The one place to tune the bands: body height x Percy, min and max. Neighbouring bands overlap a little, so a model near a border is not flagged for a few centimetres. 'same' runs down to 0.82 (round 9): a teen in a cap or helmet is measured to the skull, the hair it cuts aside. 'adult' (round 9) is a grown-up's band between 'same' and 'slightlyBigger'.",
+  "_note": "The one place to tune the bands: body height x Percy, min and max. Neighbouring bands overlap a little, so a model near a border is not flagged for a few centimetres. 'same' runs down to 0.82 (round 9): a teen in a cap or helmet is measured to the skull, the hair it cuts aside. 'adult' (round 9) is a grown-up's band between 'same' and 'slightlyBigger'. Round 10: 'adult' moved to 1.15-1.35 (the owner: grown-ups, the dead and former adults made monstrous all stand about 1.2-1.3x Percy, bigger but never giants; an adult measured to the skull under a hat or cropped hair at its foot), and 'adultChampion', 1.42-1.6, is their champions' modest step above. Both are marked \"aside\": bands for a class of models beside the ladder of sizes, not steps of it (test/sizes.test.mjs checks the ladder's order and overlaps without them).",
   "tiny": {
    "label": "much smaller",
    "min": 0.0,
@@ -33,9 +33,16 @@
    "max": 1.15
   },
   "adult": {
-   "label": "an adult, slightly bigger",
-   "min": 1.0,
-   "max": 1.2
+   "label": "an adult, about 1.2-1.3x",
+   "min": 1.15,
+   "max": 1.35,
+   "aside": true
+  },
+  "adultChampion": {
+   "label": "an adult's champion, a modest step above",
+   "min": 1.42,
+   "max": 1.6,
+   "aside": true
   },
   "slightlyBigger": {
    "label": "slightly bigger",
@@ -158,7 +165,7 @@
   "mortal": {
    "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: an adult mortal, slightly bigger than Percy (shown as the tourist, measured under the sun hat)"
+   "reason": "round 10, the owner: an adult mortal, about 1.2-1.3x Percy (shown as the tourist, measured to the skull under the sun hat)"
   },
   "spider": {
    "category": "tiny",
@@ -197,9 +204,9 @@
    "reason": "a small Greek-fire automaton (game invention)"
   },
   "ghost": {
-   "category": "same",
-   "source": "books",
-   "reason": "ghosts are 'physically identical to when they were alive'"
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 10, the owner: the dead stand as the adults they were, about 1.2-1.3x Percy (and the books: ghosts are 'physically identical to when they were alive')"
   },
   "fury": {
    "category": "bigger",
@@ -268,9 +275,9 @@
    "reason": "round 9, the owner: bigger than a person, to intimidate: 2.24x its old size, its back well over Percy's waist (body 0.59x, read low as a QuadRig: the back of a four-legged model) and its tail, raised at rest, arching to about 4 blocks, the sting over his head"
   },
   "skeleton": {
-   "category": "bigger",
+   "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: a former adult made monstrous, notably bigger than Percy, about 1.4x without the helmet (the sheet's 1.0x is a person's size; TC: spartoi pass as soldiers and guards)",
+   "reason": "round 10, the owner: a former adult made monstrous, a grown man's size, about 1.25x without the helmet and about 1.3x with it, bigger than Percy but not a giant (round 9 had 1.4x, which read as 1.5x with the helmet; the sheet's 1.0x is a person's size; TC: spartoi pass as soldiers and guards)",
    "sheetMeasure": {
     "sheet": "design/concept/vox-enemies.png",
     "percyPx": 195,
@@ -282,9 +289,9 @@
    }
   },
   "spartoi": {
-   "category": "bigger",
+   "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: the sown men are grown soldiers made monstrous, about 1.4x without the helmet and crest"
+   "reason": "round 10, the owner: the sown men are grown soldiers made monstrous, about 1.25x without the helmet and crest and under 1.4x with them"
   },
   "telekhine": {
    "category": "slightlyBigger",
@@ -299,9 +306,9 @@
    }
   },
   "gorgon_statue": {
-   "category": "bigger",
+   "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: a statue of a grown hoplite turned to stone, about 1.4x without the helmet and crest"
+   "reason": "round 10, the owner: a statue of a grown hoplite turned to stone, about 1.25x without the helmet and crest and under 1.4x with them (its raised spear aside)"
   },
   "cyclops": {
    "category": "bigger",
@@ -450,9 +457,9 @@
    }
   },
   "shade": {
-   "category": "same",
-   "source": "role",
-   "reason": "a spirit of the dead, a person's height",
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 10, the owner: a spirit of the dead stands as the adult it was, about 1.2-1.3x Percy",
    "sheetMeasure": {
     "sheet": "design/concept/vox-ow-fodder.png",
     "percyPx": 220,
@@ -462,9 +469,9 @@
    }
   },
   "keres": {
-   "category": "same",
-   "source": "role",
-   "reason": "death spirits, part women, part bats",
+   "category": "adult",
+   "source": "owner",
+   "reason": "round 10, the owner: death spirits, part women, part bats, stand as grown women, about 1.2-1.3x Percy",
    "sheetMeasure": {
     "sheet": "design/concept/vox-ow-fodder-3.png",
     "percyPx": 200,
@@ -607,7 +614,7 @@
   "teacher": {
    "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Mrs. Dodds as a pre-algebra teacher"
+   "reason": "round 10, the owner: an adult, about 1.2-1.3x Percy: Mrs. Dodds as a pre-algebra teacher"
   },
   "student": {
    "category": "same",
@@ -617,32 +624,32 @@
   "guard": {
    "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: an adult, slightly bigger than Percy: a museum guard"
+   "reason": "round 10, the owner: an adult, about 1.2-1.3x Percy: a museum guard"
   },
   "tourist": {
    "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: an adult, slightly bigger than Percy: a tourist (measured under the sun hat)"
+   "reason": "round 10, the owner: an adult, about 1.2-1.3x Percy: a tourist (measured under the sun hat)"
   },
   "farmer": {
    "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: an adult, slightly bigger than Percy: a farmer (measured under the straw hat)"
+   "reason": "round 10, the owner: an adult, about 1.2-1.3x Percy: a farmer (measured under the straw hat)"
   },
   "old_lady": {
    "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: an adult, slightly bigger than Percy: an old lady"
+   "reason": "round 10, the owner: an adult, about 1.2-1.3x Percy: an old lady"
   },
   "bellhop": {
    "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: an adult, slightly bigger than Percy: a hotel bellhop"
+   "reason": "round 10, the owner: an adult, about 1.2-1.3x Percy: a hotel bellhop"
   },
   "salesman": {
    "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: an adult, slightly bigger than Percy: a salesman"
+   "reason": "round 10, the owner: an adult, about 1.2-1.3x Percy: a salesman"
   },
   "fields_katie": {
    "category": "same",
@@ -672,7 +679,7 @@
   "shore_nereid": {
    "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Galene, a Nereid: a grown woman"
+   "reason": "round 10, the owner: an adult, about 1.2-1.3x Percy: Galene, a Nereid: a grown woman"
   },
   "canyon_hedge": {
    "category": "same",
@@ -692,7 +699,7 @@
   "quintus": {
    "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Quintus (Daedalus), a grown swordsman"
+   "reason": "round 10, the owner: an adult, about 1.2-1.3x Percy: Quintus (Daedalus), a grown swordsman"
   },
   "canyon_phoebe": {
    "category": "same",
@@ -707,17 +714,17 @@
   "asphodel_charon": {
    "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Charon, a tall man"
+   "reason": "round 10, the owner: an adult, about 1.2-1.3x Percy: Charon, a tall man"
   },
   "asphodel_sisyphus": {
    "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Sisyphus, an old king"
+   "reason": "round 10, the owner: an adult, about 1.2-1.3x Percy: Sisyphus, an old king"
   },
   "camp_argus": {
    "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Argus, the huge security chief (at the top of the band)"
+   "reason": "round 10, the owner: an adult, about 1.2-1.3x Percy: Argus, the huge security chief (at the top of the band)"
   },
   "camp_silena": {
    "category": "same",
@@ -727,17 +734,17 @@
   "rt_turnpike_earl": {
    "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Big Earl, a burly trucker (measured under the cap)"
+   "reason": "round 10, the owner: an adult, about 1.2-1.3x Percy: Big Earl, a burly trucker (measured under the cap)"
   },
   "rt_auntyem_pruitt": {
    "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Mrs. Pruitt, a farm wife (measured under the headscarf)"
+   "reason": "round 10, the owner: an adult, about 1.2-1.3x Percy: Mrs. Pruitt, a farm wife (measured under the headscarf)"
   },
   "rt_stlouis_mae": {
    "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Ranger Mae (measured under the ranger hat)"
+   "reason": "round 10, the owner: an adult, about 1.2-1.3x Percy: Ranger Mae (measured under the ranger hat)"
   },
   "rt_denver_chad": {
    "category": "same",
@@ -747,12 +754,12 @@
   "rt_vegas_valet": {
    "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Sal the valet (measured under the cap)"
+   "reason": "round 10, the owner: an adult, about 1.2-1.3x Percy: Sal the valet (measured under the cap)"
   },
   "rt_la_guide": {
    "category": "adult",
    "source": "owner",
-   "reason": "round 9, the owner: an adult, slightly bigger than Percy: Trudy the tour guide"
+   "reason": "round 10, the owner: an adult, about 1.2-1.3x Percy: Trudy the tour guide"
   },
   "rt_sm_fisher": {
    "category": "same",
@@ -827,9 +834,9 @@
    }
   },
   "asphodel_pale_king": {
-   "category": "bigger",
-   "source": "sheet",
-   "reason": "a champion: a skeleton king a step above the skeleton (1.26x it, about 1.8x Percy, the crown aside); the sheet draws him as tall as the other champions",
+   "category": "adultChampion",
+   "source": "owner",
+   "reason": "round 10, the owner: a champion a modest step above the skeleton (1.2x it, about 1.5x Percy, the crown aside), not a giant; the sheet draws him as tall as the other champions",
    "sheetMeasure": {
     "sheet": "design/concept/vox-ow-champions.png",
     "percyPx": 125,
@@ -849,14 +856,14 @@
    "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it"
   },
   "kind:skeleton": {
-   "category": "bigger",
-   "source": "role",
-   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it (1.26x the skeleton, about 1.8x Percy)"
+   "category": "adultChampion",
+   "source": "owner",
+   "reason": "round 10, the owner: a champion, bigger and more decorated than the ordinary kind (vox-ow-champions), a modest step up from it (1.2x the skeleton, about 1.5x Percy), not a giant"
   },
   "kind:spartoi": {
-   "category": "bigger",
-   "source": "role",
-   "reason": "a champion: bigger and more decorated than the ordinary kind (vox-ow-champions), one step up from it (1.26x the spartoi, about 1.8x Percy)"
+   "category": "adultChampion",
+   "source": "owner",
+   "reason": "round 10, the owner: a champion, bigger and more decorated than the ordinary kind (vox-ow-champions), a modest step up from it (1.2x the spartoi, about 1.5x Percy), not a giant"
   },
   "kind:spider": {
    "category": "small",

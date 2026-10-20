@@ -15,7 +15,7 @@ import { Skin, Rig, makeCharMaterial, PX, mergeChildren } from './character.js';
 import { cellMesh, footwear, beads } from './herovox.js';
 import { mulberry32 } from '../util.js';
 import { t as txt } from '../text_config.js';
-import { markHeadwear } from './proportions.js';
+import { markHeadwear, reshape, applyShape } from './proportions.js';
 
 const shadeOf = (c, k) => { const x = new THREE.Color(c); x.r = Math.min(1, x.r * k); x.g = Math.min(1, x.g * k); x.b = Math.min(1, x.b * k); return x.getHex(); };
 const mixC = (a, b, t) => new THREE.Color(a).lerp(new THREE.Color(b), t).getHex();
@@ -432,7 +432,7 @@ export const MORTALS = {
   },
   student: {
     name: txt('mortals.student.name'), blurb: txt('mortals.student.blurb'),
-    scale: 1.14,   // (Percy's classmates: the heroes are drawn at 1.18; at 0.92 they stood a head under him on the museum steps)
+    scale: 1.14, kid: true,   // (Percy's classmates: the heroes are drawn at 1.18; at 0.92 they stood a head under him on the museum steps)
     paint: { skin: 0xeebc96, hair: 0x5a3418, fringe: 3, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x3a7a2a, brow: 0x4a2a14, smile: true, blush: 0xe89480, top: 0x203470, knit: true, vneck: 0xf2eee4, tie: 0xb0202a, pocket: 0xd0a040, straps: 0x6a1414, pants: 0x34507e, shoes: 0xc8282e, saturate: 1.2 },
     hair: { c: [0, 7.3, -0.5], r: [6, 5.2, 6.2], bump: 0.34, shell: 1.4, fringe: 6.2, jag: 1.2, side: 3, back: 0.8, tuft: 0.16, spike: 0.04, tones: [0x3a200e, 0x5e3618, 0x86542a] },
     parts() {
@@ -451,6 +451,7 @@ export const MORTALS = {
   },
   guard: {
     name: txt('mortals.guard.name'), blurb: txt('mortals.guard.blurb'),
+    skullHeight: true,   // (measured to the skull, under a cap or hat or cropped hair: ADULT_SCALE_HAT)
     paint: { skin: 0xc89a78, hair: 0x2a2018, fringe: 1, hairSide: 2, eye: 0x2a1a0a, brow: 0x2a2018, top: 0xd8dce8, jacket: 0x1e2a4a, lapel: 0x16203a, pants: 0x1a2238, shoes: 0x0e0e0e },
     build(rig) {
       const navy = solidMat(0x1a2440);
@@ -463,6 +464,7 @@ export const MORTALS = {
   },
   tourist: {
     name: txt('mortals.tourist.name'), blurb: txt('mortals.tourist.blurb'),
+    skullHeight: true,   // (measured to the skull, under a cap or hat or cropped hair: ADULT_SCALE_HAT)
     paint: { skin: 0xf2b490, hair: 0xd8a448, fringe: 1, hairSide: 3, hairBack: 5, eyeRow: 3, eye: 0x2a6ab0, brow: 0xb08030, browUp: true, grin: true, nose: 0xfaf6f0, blush: 0xf08068, top: 0xe85a14, floral: [0xfff4c8, 0xffc020, 0x1e8a50], shortSleeve: true, vneck: 0xf2b490, pants: 0xb89c64, shorts: true, socks: 0xf6f6f2, sockLen: 3, shoes: 0xf6f6f2, saturate: 1.2 },
     hair: { c: [0, 6.6, -0.6], r: [5, 4, 5.2], bump: 0.2, shell: 1.2, fringe: 6.6, jag: 1, side: 3, back: 1.6, top: 8.3, tuft: 0.1, tones: [0xa87420, 0xd8a448, 0xf4cc70] },
     parts() {
@@ -485,6 +487,7 @@ export const MORTALS = {
   },
   farmer: {
     name: txt('mortals.farmer.name'), blurb: txt('mortals.farmer.blurb'),
+    skullHeight: true,   // (measured to the skull, under a cap or hat or cropped hair: ADULT_SCALE_HAT)
     paint: { skin: 0xd8946a, hair: 0x6e5e4c, fringe: 1, hairSide: 3, hairBack: 5, eyeRow: 3, eye: 0x3a5a7a, brow: 0x5a4a3a, smile: true, nose: 0xd27a5c, beard: 0x7e6e5a, wrinkles: 0xb47c5a, top: 0xb4281e, plaid: 0x4a100a, overalls: 0x2c5694, pants: 0x2c5694, shoes: 0x5a3820, saturate: 1.15 },
     hair: { c: [0, 6.4, -0.6], r: [4.8, 3.6, 5], bump: 0.2, shell: 1.2, fringe: 6.6, jag: 0, side: 2.6, back: 1.4, top: 8.3, tuft: 0.08, tones: [0x4e4234, 0x6e5e4c, 0x968672] },
     beard: [0x5e5040, 0x7e6e5a, 0xa09078],
@@ -611,20 +614,29 @@ function kitFor(id, def) {
   return kit;
 }
 
-// Grown-ups stand a little over the heroes (12-year-olds drawn at 1.18); at
-// 1.0 every teacher, guard and tourist was shorter than Percy. (Round 9, the
-// owner: adults read as adults, slightly bigger than Percy, about 1.1-1.15x.
-// 1.24 → 1.4: the crown of an adult's skull stands 1.19x Percy's. Measured
-// to the top of the hair, as design/sizes.json measures bodies, that is
-// 1.1-1.17x for an adult with a full head of hair and 1.0-1.05x for one in a
-// hat or with close-cropped hair, as Percy's curls are a sixth of his height.)
-export const ADULT_SCALE = 1.4;
+// Grown-ups stand over the heroes (12-year-olds drawn at 1.18); at 1.0 every
+// teacher, guard and tourist was shorter than Percy. (Round 10, the owner:
+// adults are about 1.2-1.3x Percy's body, bigger but never giants. 1.4 →
+// 1.62 with an adult's smaller head, ADULT_HEAD: measured to the top of the
+// hair, as design/sizes.json measures bodies, an adult with a full head of
+// hair stands about 1.25-1.3x. One in a hat, or with close-cropped hair, is
+// measured to the skull, Percy's curls being a sixth of his height, so it
+// takes ADULT_SCALE_HAT to stand 1.2x there, its skull level with the
+// others' and its hat on top: about 1.3-1.35x overall.)
+export const ADULT_SCALE = 1.62;
+export const ADULT_SCALE_HAT = 1.72;
+// A grown-up's head against its body: smaller than a twelve-year-old's
+// Minecraft head (the owner's head rule, design/sizes.json "head"), so a
+// grown-up reads as an adult rather than a big child. The head, its skin box,
+// hair, beard and hat are reshaped together (proportions.js).
+export const ADULT_HEAD = 0.88;
+export function adultHead(rig, f = ADULT_HEAD) { reshape(rig, rig.head, f); applyShape(rig); return rig; }
 // Build a mortal rig. Returns a Rig whose spec carries the mortal's id.
 export function buildMortal(id) {
   id = mortalId(id);
   const def = MORTALS[id];
   let seed = 11; for (const ch of id) seed = (seed * 97 + ch.charCodeAt(0)) >>> 0;
-  const rig = new Rig({ material: skinMaterial(id, def.paint, seed), mortal: id, scale: def.scale ?? ADULT_SCALE });
+  const rig = new Rig({ material: skinMaterial(id, def.paint, seed), mortal: id, scale: def.scale ?? (def.skullHeight ? ADULT_SCALE_HAT : ADULT_SCALE) });
   partM ??= new THREE.MeshStandardNodeMaterial({ vertexColors: true, roughness: 0.78, metalness: 0 });
   const kit = kitFor(id, def);
   for (const slot of SLOTS) {
@@ -634,6 +646,7 @@ export function buildMortal(id) {
     rig.extras[slot === 'head' ? 'hair' : slot + 'Parts'] = m;
   }
   if (kit.hat) rig.head.add(markHeadwear(rig.mesh(kit.hat, partM)));
+  if (!def.kid) adultHead(rig);
   def.pose?.(rig);
   rig.mortal = id;
   for (const b of [rig.hips, rig.torso, rig.head, rig.armR, rig.armL, rig.legR, rig.legL]) mergeChildren(rig, b);   // (each limb's skin box and its overlay as one mesh: character.js)

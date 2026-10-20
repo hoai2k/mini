@@ -535,7 +535,7 @@ export const CHAMPION_LOOKS = {
   // swing and ground slam suit a club-wielding giant, where the giant kind,
   // the Laistrygonian, keeps its distance and lobs fire bombs)
   oth_gorgos: { kind: 'cyclops', build: buildGorgos, shell: 0xff6a20, aura: { kind: 'embers', col: [2.6, 1, 0.2], at: 'head' }, scale: 1.12 },
-  asphodel_pale_king: { kind: 'skeleton', build: buildPaleKing, glow: 0.008, shell: 0x3aff7a, aura: { kind: 'wisp', col: [0.5, 2.6, 1.0] }, scale: 1.26 },   // (round 9: the skeleton grew to 1.4x Percy, so 1.45 → 1.26 keeps the king a step above it, about 1.8x)
+  asphodel_pale_king: { kind: 'skeleton', build: buildPaleKing, glow: 0.008, shell: 0x3aff7a, aura: { kind: 'wisp', col: [0.5, 2.6, 1.0] }, scale: 1.2 },   // (the skeleton's 1.25x Percy (round 10), so 1.45 → 1.26 → 1.2 keeps the king a modest step above it, about 1.5x, not a giant)
 };
 
 // ---- any other champion: a crown, a colour scheme by kind and a glow -----------
@@ -546,9 +546,9 @@ export const KIND_LOOKS = {
   hellhound: { shell: 0x3a9aff, aura: { kind: 'smoke', col: [0.4, 1.4, 2.6], at: 'head' }, scale: 1.25, remap: (c) => { if (hueIn(c.h, 0.97, 0.14) && c.s > 0.55 && c.l > 0.3) c.h = 0.55; } },
   pup: { shell: 0x3a9aff, aura: { kind: 'smoke', col: [0.4, 1.4, 2.6] }, scale: 1.4, remap: (c) => { if (hueIn(c.h, 0.97, 0.14) && c.s > 0.55 && c.l > 0.3) c.h = 0.55; } },
   // bone-white skeletons in crimson armour
-  skeleton: { shell: 0xff3a3a, aura: { kind: 'wisp', col: [2.6, 0.5, 0.4] }, scale: 1.26,   // (round 9: the kind grew to 1.4x Percy; 1.4 → 1.26 keeps the champion a step above, about 1.8x)
+  skeleton: { shell: 0xff3a3a, aura: { kind: 'wisp', col: [2.6, 0.5, 0.4] }, scale: 1.2,   // (the kind is 1.25x Percy (round 10); 1.4 → 1.26 → 1.2 keeps the champion a modest step above, about 1.5x, not a giant)
     remap: (c) => { if (hueIn(c.h, 0.1, 0.32) && c.l < 0.58 && c.s > 0.12) { c.h = 0.99; c.s = Math.min(1, c.s + 0.35); c.l *= 0.85; } } },
-  spartoi: { shell: 0xff3a3a, aura: { kind: 'wisp', col: [2.6, 0.5, 0.4] }, scale: 1.26,   // (round 9: as the skeleton, 1.4 → 1.26)
+  spartoi: { shell: 0xff3a3a, aura: { kind: 'wisp', col: [2.6, 0.5, 0.4] }, scale: 1.2,   // (as the skeleton, 1.4 → 1.26 → 1.2: about 1.5x)
     remap: (c) => { if (hueIn(c.h, 0.42, 0.55)) { c.h = 0.99; } } },
   // obsidian spiders with violet fire
   spider: { shell: 0xb05aff, aura: { kind: 'spark', col: [1.8, 0.6, 2.6] }, scale: 1.7, remap: (c, hot) => { if (hot) c.h = 0.8; else if (hueIn(c.h, 0.02, 0.16)) { c.h = 0.72; c.s *= 0.4; c.l *= 0.55; } } },

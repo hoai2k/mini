@@ -22,8 +22,12 @@ test('the categories are ordered bands that overlap only a little', () => {
     assert.equal(typeof c.label, 'string', k);
     assert.ok(c.min >= 0 && c.max > c.min, `${k}: ${c.min}–${c.max}`);
   }
-  for (let i = 1; i < list.length; i++) {
-    const [a, A] = list[i - 1], [b, B] = list[i];
+  // (a band marked "aside" is a class of models given its own band beside the
+  // ladder of sizes, as the adults are (round 10): it is not a step of it)
+  const ladder = list.filter(([, c]) => !c.aside);
+  assert.ok(ladder.length >= 7, 'at least the seven sizes the owner named, on the ladder');
+  for (let i = 1; i < ladder.length; i++) {
+    const [a, A] = ladder[i - 1], [b, B] = ladder[i];
     assert.ok(B.min > A.min && B.max > A.max, `${a} → ${b} grow`);
     assert.ok(B.min <= A.max, `${a} and ${b} leave no gap`);
     assert.ok(A.max - B.min <= 0.15 + 1e-9,`${a} and ${b} overlap by ${(A.max - B.min).toFixed(2)}`);
