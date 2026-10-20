@@ -239,7 +239,11 @@ test('louder volumes: the defaults sound as before, and older saves keep their l
   const { METRONOME_DEFAULT } = await import('../src/metronome.js');
   assert.equal(DEFAULTS.volume, METRONOME_DEFAULT);
   assert.equal(DEFAULTS.droneVolume, DRONE_DEFAULT);
-  assert.ok(Math.abs(droneGain(DRONE_DEFAULT) - 0.8) < 0.02); // the old default's gain
+  assert.ok(Math.abs(droneGain(DRONE_DEFAULT) - 1.37) < 0.02); // about -14 LUFS, YouTube's level
+  // The old default, saved without the slider being moved, becomes the new one; a chosen volume stays.
+  assert.equal(sanitize({ droneVolume: 0.53, louder: true }).droneVolume, DRONE_DEFAULT);
+  assert.equal(sanitize({ droneVolume: 0.53, louder: true, droneVolumeChosen: true }).droneVolume, 0.53);
+  assert.equal(sanitize({ droneVolume: 0.4, louder: true }).droneVolume, 0.4);
   assert.equal(droneGain(1), DRONE_MAX_GAIN);
   assert.equal(droneGain(0), 0);
   assert.ok(Math.abs(droneSlider(droneGain(0.37)) - 0.37) < 1e-9);

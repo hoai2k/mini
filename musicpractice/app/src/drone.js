@@ -365,15 +365,16 @@ const STOP = 0.012; // pausing: gone in about 50 ms, quick enough to feel instan
  * The volume: the slider (0 to 1) to a gain, on a curve so equal moves of
  * the bow sound like equal steps, reaching DRONE_MAX_GAIN at the top: as
  * loud as the drone can go without clipping (a limiter after the compressor
- * keeps it under full scale). DRONE_DEFAULT is where it was before that,
- * which is where a new drone starts; volumes saved before are carried over
- * at the same loudness (settings.js).
+ * keeps it under full scale). DRONE_DEFAULT is where a new drone starts: as
+ * loud as YouTube plays (about -14 LUFS for the cello on C3 with its fifth;
+ * the organ a little louder). Volumes saved before are carried over at the
+ * same loudness (settings.js).
  */
 export const DRONE_MAX_GAIN = 2.8;
 export const droneGain = (v) => DRONE_MAX_GAIN * Math.max(0, Math.min(1, v)) ** 2;
 /** The slider position that gives `gain` (droneGain's inverse). */
 export const droneSlider = (gain) => Math.min(1, Math.sqrt(Math.max(0, gain) / DRONE_MAX_GAIN));
-export const DRONE_DEFAULT = Math.round(droneSlider(0.8) * 100) / 100; // the old default, 0.8 gain
+export const DRONE_DEFAULT = 0.7; // gain 1.37 (it was 0.53, gain 0.8: about -19 LUFS)
 
 export class Drone {
   /** @param {BaseAudioContext} ctx */
