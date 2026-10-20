@@ -565,9 +565,19 @@ export function animateExtras(rig, dt, e) {
 
 // ---- skins --------------------------------------------------------------------
 // soot-black dog with lava cracks; the glowing jaw shows when it snarls
-const lavaDog = (o) => (S) => paintQuad(S, { base: o.base ?? 0x221d20, dark: 0x0e0c0e, belly: 0x2c2428, back: 0x161214, eye: 0xff2a0a, eyeLow: 0xffa040, nose: 0x050505, speckles: 40, brow: 0x0a0808, teeth: 0xfff0d0,
+// (The hellhounds' darks, pass 5, the owner's "a bit washed out": the source sheet's
+// coat is near-black, RGB 8-47, and the game drew it grey (about 80-90 by day, mostly
+// the open world's distance fog, but also the dielectric sheen of a near-black
+// albedo and its flat hemisphere fill). So the coat palette is HOUND_DIM of what it
+// was, in the same hues and the same spread of tones so the clumps still read, and
+// the coat is matt (roughness 1) with a metalness that swaps some of the diffuse
+// fill for a dark reflection of the albedo. The magma, eyes and teeth are untouched.)
+const HOUND_DIM = 0.75, HOUND_ROUGH = 1, HOUND_METAL = 0.2;
+const houndSurface = (mat) => { mat.roughness = HOUND_ROUGH; mat.metalness = HOUND_METAL; return mat; };
+const dim = (c, k = HOUND_DIM) => { const r = Math.round(((c >> 16) & 255) * k), g = Math.round(((c >> 8) & 255) * k), b = Math.round((c & 255) * k); return (r << 16) | (g << 8) | b; };
+const lavaDog = (o) => (S) => paintQuad(S, { base: dim(o.base ?? 0x221d20), dark: 0x0e0c0e, belly: dim(0x2c2428), back: dim(0x161214), eye: 0xff2a0a, eyeLow: 0xffa040, nose: 0x050505, speckles: 40, brow: 0x0a0808, teeth: 0xfff0d0,
   custom: (s) => {
-    fur(s, 0, 16, 40, 20, 60, 0x0a0808, 0x3a3034);
+    fur(s, 0, 16, 40, 20, 60, 0x0a0808, dim(0x3a3034));
     lavaCracks(s, 0, 16, 40, 20, o.cracks ?? 8, [0xd83a0a, 0xff6a1a]); lavaCracks(s, 40, 16, 12, 11, Math.round((o.cracks ?? 8) / 6), [0xd83a0a, 0xff6a1a]);
     s.box(48, 0, 4, 2, 4, 0x3a0c08, 0.2); s.rect(52, 4, 4, 1, 0xff6a1a, 0); s.rect(36, 7, 4, 1, 0xff6a1a, 0);
     s.box(52, 16, 2, 3, 1, 0x0e0c0e, 0.1); s.rect(53, 18, 1, 2, 0x3a0c0a, 0.1);
@@ -645,7 +655,7 @@ const MODELS = {
 // a hump of hackles over heavy shoulders, glowing lava cracks, a furnace in
 // the open jaws with long fangs, burning eyes under a heavy brow, big paws
 // with gold claws, a gold spiked collar and a smouldering tail tip.
-const FUR = [0x2a2226, 0x352b30, 0x43363c, 0x1e181b, 0x50404a];
+const FUR = [0x2a2226, 0x352b30, 0x43363c, 0x1e181b, 0x50404a].map((c) => dim(c));
 const LAVA = [0xff7000, 0xffa800];
 export function hound(id, spec, opts = {}) {
   if (spec.big) return spec.pup ? bigPup(id, spec, opts) : bigHound(id, spec, opts);
@@ -731,14 +741,15 @@ export function hound(id, spec, opts = {}) {
 // as a nose sticking out and wiggling; the smoke aura, enemy.js, stays.)
 // spec: HELLHOUND (big: true); opts as hound(). rig.dims match the QuadRig,
 // so the champions' add-ons (Shadowfang's collar, scars, eyes) still land.
-const DEEP = [0x1a1518, 0x231d21, 0x2c252a], SMOKE = [0x3a3438, 0x4e474c, 0x645c62];
+const DEEP = [0x1a1518, 0x231d21, 0x2c252a].map((c) => dim(c)), SMOKE = [0x3a3438, 0x4e474c, 0x645c62];
 // (pass 4: the cracks as glowing magma, a bright orange-yellow core in a deep
 // red rim, both emissive (VoxKit cracks rim), drawn a little proud of the fur)
 const MAGMA = [0xff9a10, 0xffc030], MAGMA_RIM = 0xff2200;
 function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha = false } = {}) {
   const mat = skinMat(id, (S) => { lavaDog({ cracks, base: 0x2e2529 })(S); S.saturate(1.3); }, { emit: 0.5 });
+  houndSurface(mat);
   const rig = new QuadRig({ material: mat, ...spec });
-  const K = kit(rig, mat, { seed: 9 + (id.length % 7), emit: 1.2 });
+  const K = kit(rig, mat, { seed: 9 + (id.length % 7), emit: 1.2, rough: HOUND_ROUGH, metal: HOUND_METAL });
   const RK = kit(rig, mat, { seed: 77, emit: 0.4, fill: 0 });   // (the magma's deep red rims: a low emit keeps them red under the tone mapping)
   const { legH, legW, hs } = rig.dims, T = rig.torso, Hd = rig.head, M = rig.mouth, N = rig.neck, ly = legH / 34;
   for (const g of [T, Hd, M, ...rig.legs, ...rig.tail]) dropMeshes(rig, g);
@@ -749,7 +760,7 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
   const D = BUILD.k, fe = nFur / 170 * 0.6 / D, ss = 1.3 * Math.sqrt(D), fang = 0xe6dcc0, claw = 0xe0a428;
   // a limb segment from a to b ([y, z] in the part's frame), tilted about x
   // coat a limb segment with short blocky fur, so no face is left flat
-  const FURL = [...FUR, 0x5a4a54];
+  const FURL = [...FUR, dim(0x5a4a54)];
   const seg = (p, a, b, w, d, col, coat = 1) => {
     const y = (a[0] + b[0]) / 2, z = (a[1] + b[1]) / 2, l = Math.hypot(a[0] - b[0], a[1] - b[1]) + w * 0.3, rx = Math.atan2(a[1] - b[1], a[0] - b[0]);
     K.box(p, 0, y, z, w, l, d, col, rx);
@@ -954,13 +965,14 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
 // legs are rooted in (perf/houndlegs.cjs).
 function bigPup(id, spec, { cracks = 10 } = {}) {
   const mat = skinMat(id, (S) => { lavaDog({ cracks, base: 0x2e2529 })(S); S.saturate(1.3); }, { emit: 0.5 });
+  houndSurface(mat);
   const rig = new QuadRig({ material: mat, ...spec });
-  const K = kit(rig, mat, { seed: 5, emit: 1.2 });
+  const K = kit(rig, mat, { seed: 5, emit: 1.2, rough: HOUND_ROUGH, metal: HOUND_METAL });
   const RK = kit(rig, mat, { seed: 55, emit: 0.4, fill: 0 });   // (the magma's deep red rims, as bigHound)
   const { legH, legW, hs } = rig.dims, T = rig.torso, Hd = rig.head, M = rig.mouth, N = rig.neck;
   for (const g of [T, Hd, M, ...rig.legs, ...rig.tail]) dropMeshes(rig, g);
   // (a champion is built finer, parts.js BUILD.k: the clump counts grow with k only)
-  const D = BUILD.k, fe = 0.55 / D, ss = 1.35 * Math.sqrt(D), FURL = [...FUR, 0x5a4a54], fang = 0xe6dcc0, claw = 0xe0a428;
+  const D = BUILD.k, fe = 0.55 / D, ss = 1.35 * Math.sqrt(D), FURL = [...FUR, dim(0x5a4a54)], fang = 0xe6dcc0, claw = 0xe0a428;
   const GUM = 0xb8344a, MAW = 0x1a0909, side = (sx) => (sx < 0 ? 'l' : 'r');
   // a limb segment from a to b ([y, z] in the part's frame), coated in short blocky fur
   const seg = (p, a, b, w, d, col, coat = 1) => {
