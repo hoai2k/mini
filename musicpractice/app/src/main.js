@@ -399,6 +399,8 @@ appearance.addEventListener('change', () => {
   applyTheme();
 });
 $('reload-page').addEventListener('click', () => location.reload());
+// A browser's button: in the apps it reads as a website in a wrapper to App Review (Guideline 4.2).
+$('reload-page').hidden = isApp();
 
 function setTheme(id) {
   if (id !== FREE_THEME && !requirePro('themes')) {

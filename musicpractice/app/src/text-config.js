@@ -80,6 +80,9 @@ export const EN = {
       system: 'System',
     },
     sendFeedback: 'Send feedback…',
+    privacy: 'Privacy Policy',
+    terms: 'Terms of Use',
+    support: 'Help and support',
     reloadPage: 'Reload Page',
     pro: {
       title: 'Music Practice Pro',
@@ -630,10 +633,9 @@ export const EN = {
     support: 'Pro also supports an independent app developer, so Music Practice can keep growing with no ads and no tracking. Thank you!',
     yearly: 'Yearly',
     lifetime: 'Lifetime',
-    tryFree: (trial) => `Try ${trial} free`,
     perYear: (price) => `${price} a year`,
     once: (price) => `${price} once`,
-    thenPerYear: (price) => `Then ${price} a year. Cancel anytime.`,
+    trialFirst: (trial) => `Starts with ${trial} free. Renews each year. Cancel anytime.`,
     renews: 'Renews each year. Cancel anytime.',
     payOnce: 'Pay once, Pro for good.',
     /** A free trial's length, from the store: "7 days", "1 week". */

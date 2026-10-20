@@ -216,11 +216,11 @@ function plan(pkg, kind) {
   b.disabled = busy;
   const trial = kind === 'yearly' ? trialOf(p) : '';
   const name = kind === 'yearly' ? P.yearly : P.lifetime;
-  const main = kind === 'yearly'
-    ? (trial ? P.tryFree(trial) : P.perYear(p.priceString))
-    : P.once(p.priceString);
+  // The price billed is the largest line, the trial below it (App Review
+  // rejects a paywall where the free trial outshines the price).
+  const main = kind === 'yearly' ? P.perYear(p.priceString) : P.once(p.priceString);
   const sub = kind === 'yearly'
-    ? (trial ? P.thenPerYear(p.priceString) : P.renews)
+    ? (trial ? P.trialFirst(trial) : P.renews)
     : P.payOnce;
   b.innerHTML = '<span class="plan-name"></span><span class="plan-main"></span><span class="plan-sub"></span>';
   b.querySelector('.plan-name').textContent = name;

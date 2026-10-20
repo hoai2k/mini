@@ -1862,8 +1862,8 @@ div.ac-status.bad { border-color: var(--red); justify-items: start; }
 .fb-status:empty { display: none; }
 .fb-status { margin: 0; font-weight: 700; }
 .fb-status.error { color: var(--red-2); }
-.fb-note { margin: 0; font-size: 0.8rem; }
-.fb-note a { color: var(--ink-2); }
+.fb-note, .sheet-legal { margin: 0; font-size: 0.8rem; }
+.fb-note a, .sheet-legal a { color: var(--ink-2); }
 
 /* The words arrive from src/text-config.js (src/text.js); hold the page until they have. */
 .text-pending body { visibility: hidden; }
