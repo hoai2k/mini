@@ -15,16 +15,24 @@
 //
 // A person: { painter: 'hero' | 'person', paint, body(S, D)?, hair (mortal hair
 // shape) | vox (hero hair style), beard (three tones), tail ({ pivot, ...heroTail }),
-// parts() { head, torso, hips, armR, armL, legR, legL: [boxes] }, glow
+// parts() { head, torso, hips, armR, armL, handR, handL, legR, legL, skirt: [boxes] }, glow
 // ({ color, ei, parts() }: boxes that shine), scale, wide, rig (Rig spec), accent,
-// tip ([slot, x, y, z, label]: where a held weapon points, for perf/weapons.cjs) }.
+// tip ([slot, x, y, z, label]: where a held weapon points, for perf/weapons.cjs),
+// setup(rig) (anything more, once built: archer() below) }.
 // Units: skin pixels (head parts in head pixels; the head runs y 0..8, front +z).
+// What a person holds goes in handR / handL, in the hand's own frame (the fist's
+// bottom at the origin, see the hand-axis convention at HOLD_PITCH in
+// character.js; mortals.js hold() turns a prop built along its own axis into
+// it), never on the arm: a prop on the arm stays fixed along the forearm while
+// the wrist turns, and walks through the body (perf/props.cjs). A skirt, robe,
+// coat's tails or an apron goes in skirt: it swings with the legs
+// (character.js swingSkirt); what wraps one leg goes on that leg.
 import * as THREE from 'three/webgpu';
-import { Skin, Rig, makeCharMaterial, PX, markTip, mergeChildren } from './character.js';
+import { Skin, Rig, makeCharMaterial, PX, HOLD_PITCH, markTip, markHeld, mergeChildren } from './character.js';
 import { cellMesh, heroHair, heroTail, footwear, beads } from './herovox.js';
 import { paintHumanoid } from './models.js';
-import { paintPerson, ADULT_SCALE, ADULT_SCALE_HAT, ADULT_HEAD, adultHead, B, mirrorX, turn, band, shoes, strawHat, hairCells, beardCells, boxGeometry, mergeGeometries, inHead, shadeOf } from './mortals.js';
-import { mulberry32 } from '../util.js';
+import { paintPerson, ADULT_SCALE, ADULT_SCALE_HAT, ADULT_HEAD, adultHead, B, mirrorX, turn, hold, heldAt, skirtPanels, hangSkirt, band, shoes, strawHat, hairCells, beardCells, boxGeometry, mergeGeometries, inHead, shadeOf } from './mortals.js';
+import { mulberry32, lerp, easeOutCubic, easeInCubic } from '../util.js';
 import { markHeadwear } from './proportions.js';
 import { t as txt } from '../text_config.js';
 
@@ -46,6 +54,41 @@ function ring(y, w, cols, seed, { size = 1.3, step = 1.1, h = 1.6 } = {}) {
   }
   return L;
 }
+// Sal's car keys, in the hand's frame: the ring hangs in the fist's front
+// plane (x), through the fist's lower edge; each key and fob hangs from it by
+// a link, every piece touching the one above it.
+function valetKeys(gold) {
+  const L = [], cy = -1.2, cz = 1.2, R = 1.5;
+  for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; L.push(B([0, cy + Math.sin(a) * R, cz + Math.cos(a) * R], [0.5, 0.85, 0.85], gold, [a, 0, 0])); }
+  const low = cy - R;   // the ring's bottom
+  // [z on the ring's bottom, swing about z, kind]
+  for (const [dz, rz, kind] of [[-0.9, 0.22, 'fob'], [-0.3, 0.08, 'key'], [0.3, -0.06, 'fob'], [0.9, -0.2, 'key'], [0, 0, 'ticket']]) {
+    const piece = [B([0, -0.5, 0], [0.35, 1.1, 0.35], gold)];   // the link
+    if (kind === 'key') piece.push(B([0, -1.6, 0], [0.4, 1.2, 1.2], 0xc8c8d0), B([0, -3.4, 0], [0.3, 2.6, 0.5], 0xc8c8d0), B([0, -4.2, 0.35], [0.3, 0.6, 0.3], 0xc8c8d0));
+    else if (kind === 'fob') piece.push(B([0, -2, 0], [0.8, 2.2, 1.1], 0x1a1a1e), B([0.42, -1.6, 0], [0.1, 0.5, 0.5], 0xc82a2a), B([0.42, -2.4, 0], [0.1, 0.4, 0.4], 0x8a8a90));
+    else piece.push(B([0, -2.4, 0], [0.2, 3, 1.8], 0xf4f0e0), B([0.12, -2, 0], [0.05, 1.2, 1.2], 0xc82a2a), B([0.12, -3.2, 0], [0.05, 0.3, 1.2], 0x3a3a40));
+    L.push(...hold(piece, { rot: [0, 0, rz], at: [0, low + 0.2, cz + dz] }));
+  }
+  return grow(L, 1.3, [0, 0, 0]);
+}
+// Grandma Mae's fishing rod, in the hand's frame: built along +y from the
+// grip (the cork handle, the reel hung under it, the guides, a fine tip),
+// held out forward at ROD_GRIP; then the line straight down from the tip
+// (down as she stands, the hand's -y) to the bobber.
+const ROD_GRIP = { rot: [1.1, 0, 0], at: [0, 0.4, 0.8] };
+function fishingRod() {
+  const rod = hold([B([0, 12.6, 0], [0.8, 26, 0.8], 0x6a4a2a), B([0, 27.6, 0], [0.5, 4, 0.5], 0x3a2a1a), B([0, -1.2, 0], [1.1, 5, 1.1], 0x3a2a1a),
+    B([0, 2.2, 1.5], [2.2, 2.2, 2.2], 0x2a2a2a), B([-1.25, 2.2, 1.5], [0.4, 1.4, 1.4], 0xb8b8c0), B([0, 2.2, 0.55], [0.5, 0.8, 0.5], 0x2a2a2a),
+    ...[10, 17, 23].map((g) => B([0, g, 0.4], [0.9, 0.5, 0.9], 0xc8a040))], ROD_GRIP);
+  const [tx, ty, tz] = heldAt([0, 29.4, 0], ROD_GRIP);
+  return [...rod, B([tx, ty - 3.4, tz], [0.15, 7, 0.15], 0xe0e0e0), B([tx, ty - 7.1, tz], [1.4, 0.8, 1.4], 0xf8f8f4), B([tx, ty - 7.9, tz], [1.4, 0.8, 1.4], 0xe02a2a), B([tx, ty - 6.5, tz], [0.3, 0.6, 0.3], 0xe02a2a)];
+}
+// the grip of a one-handed weapon built along +y: at the hand-axis convention's angle, just under the fist (character.js HOLD_PITCH)
+const CLUB_GRIP = { rot: [HOLD_PITCH, 0, 0], at: [0, -1, 1] };
+// a sword built along +z (as the heroes' are), its grip through the fist, raised by the same angle
+const RAPIER_GRIP = { rot: [HOLD_PITCH - Math.PI / 2, 0, 0], at: [0, 1.4, 0] };
+// Charon's oar: a long reach, blade forward and down to the ground ahead at rest; the attacks' wrist cock levels it at the foe
+const OAR_GRIP = { rot: [1.85, 0, 0], at: [0, 1.2, 0.4] };
 // scale a list of boxes about a point
 const grow = (list, k, [cx, cy, cz]) => list.map((b) => ({ ...b, at: [cx + (b.at[0] - cx) * k, cy + (b.at[1] - cy) * k, cz + (b.at[2] - cz) * k], size: b.size.map((v) => v * k) }));
 // a line of lumps from p to q (fur trims, vines, braids)
@@ -65,16 +108,62 @@ function quiver(leather, fletch, { arrows = 4, tip = null } = {}) {
   for (let i = 0; i < arrows; i++) { const x = -0.9 + i * 0.6, z = (i % 2 ? 0.5 : -0.4); L.push(B([x, 5.6, z], [0.35, 3, 0.35], 0x8a6a3a), B([x, 7.4, z], [0.5, 1.8, 0.9], fletch)); if (tip) L.push(B([x, 8.5, z], [0.3, 0.5, 0.3], tip)); }
   return at(turn(L, [0, 0, -0.45]), [1.2, 7, -3.5]);
 }
-// a bow held in a hand, beside the arm on its outer side (s: -1 right, +1 left)
-function bow(s, wood, grip, string = 0xf0ece0, { len = 8, bend = 2.6 } = {}) {
+// A bow gripped in a fist, held ready (the parts' handR / handL slot): built
+// with its limbs along its own +y, its back (+z) to the target, the limb tips
+// curving back toward the archer and the string straight between them; held
+// with its upper limb tipped forward by BOW_TILT, low at the side, so it
+// comes out of the fist rather than lying along the forearm. archer() below
+// turns the wrist so it stands upright as she draws.
+const BOW_TILT = Math.PI / 3;
+function bow(wood, grip, string = 0xf0ece0, { len = 8, bend = 2.6 } = {}) {
   const L = [];
   for (let i = -len; i <= len; i += 1) {
-    const k = i / len, z = 0.6 - bend * k * k;
-    L.push(B([s * 2.9, -9.8 + i, z], [0.8, 1.15, 0.9], Math.abs(i) <= 1 ? grip : wood));
+    const k = i / len, z = 0.4 - bend * k * k;
+    L.push(B([0, i, z], [0.8, 1.15, 0.9], Math.abs(i) <= 1 ? grip : wood));
   }
-  L.push(B([s * 2.9, -9.8 + len + 0.6, 0.6 - bend], [0.7, 0.6, 1.2], grip), B([s * 2.9, -9.8 - len - 0.6, 0.6 - bend], [0.7, 0.6, 1.2], grip));
-  L.push(B([s * 2.9, -9.8, 0.6 - bend], [0.15, len * 2, 0.15], string));
-  return L;
+  L.push(B([0, len + 0.6, 0.4 - bend], [0.7, 0.6, 1.2], grip), B([0, -len - 0.6, 0.4 - bend], [0.7, 0.6, 1.2], grip));
+  L.push(B([0, 0, 0.4 - bend], [0.15, len * 2 + 1.2, 0.15], string));
+  return hold(L, { rot: [BOW_TILT, 0, 0], at: [0, -0.5, 1.5] });
+}
+// An archer's attack (the workbench's attack poses: the open world's people
+// never fight in game): she turns her bow side to the target, raises the bow
+// arm at it with the bow upright, draws an arrow to her chest with the other
+// hand, looses it at the strike (the arrow is gone, the drawing hand flies
+// back) and lowers the bow. side: the bow hand, 'L' or 'R'.
+const arrowGeos = new Map();
+const _aw = new THREE.Vector3(), _ah = new THREE.Vector3(), _aq = new THREE.Quaternion(), _am = new THREE.Matrix4(), UP = new THREE.Vector3(0, 1, 0);
+function archer(rig, { side = 'L', shaft = 0x8a6a3a, head = SILVER, fletch = 0xf0ece4 } = {}) {
+  const bowHand = side === 'L' ? rig.handL : rig.handR, drawHand = side === 'L' ? rig.handR : rig.handL, sg = side === 'L' ? 1 : -1;
+  // the arrow on the drawing hand, nock at the fist, pointed at the bow hand as she draws
+  const arrow = new THREE.Group(); arrow.name = 'arrow'; arrow.position.set(0, -1 * PX, 0.6 * PX); drawHand.add(markHeld(arrow));
+  const key = `${shaft}:${head}:${fletch}`;
+  if (!arrowGeos.has(key)) arrowGeos.set(key, boxGeometry([B([0, 7, 0], [0.4, 14, 0.4], shaft), B([0, 14.4, 0], [0.9, 1.4, 0.5], head), B([0, 14.9, 0], [0.5, 0.8, 0.4], head), B([0, 1.4, 0], [0.2, 2.4, 1.2], fletch), B([0, 1.4, 0], [1.2, 2.4, 0.2], fletch)], PX));
+  const m = rig.mesh(arrowGeos.get(key), partM);
+  arrow.add(m); arrow.visible = false; rig.extras.arrow = arrow;
+  const animate = rig.animate;
+  rig.animate = function (p) { arrow.visible = false; return animate.call(this, p); };
+  rig.attackPose = function (T, a, k) {
+    const w = a.windup ?? 0.25, s = a.strike ?? 0.5;
+    const phase = k < w ? 0 : k < s ? 1 : 2;
+    const e = phase === 0 ? easeOutCubic(k / w) : phase === 2 ? 1 - easeInCubic((k - s) / (1 - s)) : 1;
+    const loose = phase === 0 ? 0 : phase === 1 ? easeOutCubic((k - w) / (s - w)) : 1;
+    const BA = side === 'L' ? ['armLX', 'armLY', 'armLZ', 'handLX'] : ['armRX', 'armRY', 'armRZ', 'handRX'];
+    const DA = side === 'L' ? ['armRX', 'armRY', 'armRZ', 'handRX'] : ['armLX', 'armLY', 'armLZ', 'handLX'];
+    const turn = 0.8;   // (bow side to the target)
+    T.torsoY = -sg * turn * e; T.headY = sg * turn * e; T.legRX = 0.3 * e; T.legLX = -0.3 * e;
+    // the bow arm straight at the target, the bow upright (its limbs along the hand's z)
+    T[BA[0]] = lerp(T[BA[0]], -Math.PI / 2, e); T[BA[1]] = 0; T[BA[2]] = lerp(T[BA[2]], sg * turn, e); T[BA[3]] = (Math.PI / 2 - BOW_TILT) * e;
+    // the drawing hand at her chest by the string, flying back past the shoulder as she looses
+    T[DA[0]] = lerp(T[DA[0]], lerp(-1.4, -1.05, loose), e); T[DA[1]] = 0; T[DA[2]] = lerp(T[DA[2]], sg * lerp(1.05, 0.45, loose), e); T[DA[3]] = 0;
+    if (phase === 0 && k > w * 0.35) {
+      arrow.visible = true;
+      // (aimed with the pose as it stood last frame: a frame behind, never seen)
+      bowHand.getWorldPosition(_aw); arrow.getWorldPosition(_ah);
+      _am.copy(drawHand.matrixWorld).invert(); _aw.applyMatrix4(_am); _ah.applyMatrix4(_am);
+      const d = _aw.sub(_ah); if (d.lengthSq() > 1e-8) { arrow.quaternion.copy(_aq.setFromUnitVectors(UP, d.normalize())); }
+    }
+  };
+  return rig;
 }
 // eyes drawn on the skin (Argus): white, a blue iris and a pupil under a lid
 function eyeAt(D, x, y, skin, iris = 0x2a74e0) {
@@ -106,8 +195,8 @@ function hunterParts({ seed = 1, belt = 0x5a3418, buckle = GOLD, bowSide = 0, qu
       ...sash(leather, 1),
       ...(quiverOn ? quiver(leather, 0xf0ece4, { tip: SILVER }) : []),
     ],
-    hips: [
-      // the parka's skirt to mid-thigh, open at the front, trimmed with fur
+    skirt: [
+      // the parka's skirt to mid-thigh, open at the front, trimmed with fur (swinging with the legs)
       ...mirrorX([B([-3, -2.2, 0], [3, 4.4, 4.9], 0x8a8a96), B([-3.4, -4.6, 0], [2.4, 0.9, 5], FUR[1])]), B([0, -2.2, -2.3], [8.6, 4.4, 0.6], 0x8a8a96), B([0, -4.6, -2.4], [8.8, 0.9, 0.8], FUR[1]),
       B([0, -1, 2.4], [8.6, 0.8, 0.4], shadeOf(belt, 0.8)),
     ],
@@ -120,7 +209,7 @@ function hunterParts({ seed = 1, belt = 0x5a3418, buckle = GOLD, bowSide = 0, qu
     legR: [...shoes('boot', { upper: 0x1a181c, sole: 0x3a3836, lace: 0x5a5650 }), ...ring(-6.2, 2.3, FUR, seed + 7, { h: 1.8 }), B([0, -4.2, 2.3], [3.2, 2.2, 0.8], 0x1c1a20), B([0, -1.6, 0], [4.7, 0.6, 4.7], leather), B([-2.4, -1.6, 0.6], [0.4, 1.8, 1.6], leather)],
     legL: [...shoes('boot', { upper: 0x1a181c, sole: 0x3a3836, lace: 0x5a5650 }), ...ring(-6.2, 2.3, FUR, seed + 8, { h: 1.8 }), B([0, -4.2, 2.3], [3.2, 2.2, 0.8], 0x1c1a20)],
   };
-  if (bowSide) parts[bowSide < 0 ? 'armR' : 'armL'].push(...bow(bowSide, 0xd8d4cc, 0x6a3a1e, 0xf4f0e8));
+  if (bowSide) parts[bowSide < 0 ? 'handR' : 'handL'] = bow(0xd8d4cc, 0x6a3a1e, 0xf4f0e8);
   return parts;
 }
 // a laurel circlet of silver leaves round the head, a gem at the front
@@ -175,14 +264,16 @@ export const PEOPLE = {
           // tool pouch on the left hip with a pencil and a trowel handle
           B([3.6, 0.2, 2.2], [2, 2.6, 1.2], 0x8a6a3a), B([3.3, 1.8, 2.2], [0.4, 1.4, 0.4], 0x3a6ad8), B([3.9, 1.9, 2.4], [0.4, 1.6, 0.4], 0xe0b020),
         ],
-        armR: [
-          // a trowel, blade up, in front of the fist
-          B([0, -10, 2.4], [1.1, 3.4, 1.1], 0x2e6a3a), B([0, -8.1, 2.4], [1.2, 0.6, 1.2], 0xa8a8b0), B([0, -7.4, 2.5], [0.5, 1, 0.5], 0xa8a8b0),
-          B([0, -5.2, 2.6], [2.8, 3.6, 0.4], 0x9a9aa4), B([0, -3, 2.6], [1.8, 1, 0.4], 0x9a9aa4), B([0, -2.3, 2.6], [0.8, 0.6, 0.4], 0xb8b8c0), B([0, -5.2, 2.85], [0.4, 3.2, 0.1], 0x7a7a84),
-        ],
-        armL: [
-          band(-6.4, 1.2, 0x3e6a3a, 4.6),
-          // a wicker basket of strawberries and daisies hanging from the hand
+        // a trowel gripped by its handle, the blade out in front of the fist
+        // (it stood blade up along the forearm, fixed to the arm)
+        handR: hold([
+          B([0, 0, 0], [1.1, 3.4, 1.1], 0x2e6a3a), B([0, 1.9, 0], [1.2, 0.6, 1.2], 0xa8a8b0), B([0, 2.6, 0.1], [0.5, 1, 0.5], 0xa8a8b0),
+          B([0, 4.8, 0.2], [2.8, 3.6, 0.4], 0x9a9aa4), B([0, 7, 0.2], [1.8, 1, 0.4], 0x9a9aa4), B([0, 7.7, 0.2], [0.8, 0.6, 0.4], 0xb8b8c0), B([0, 4.8, 0.45], [0.4, 3.2, 0.1], 0x7a7a84),
+        ], CLUB_GRIP),
+        armL: [band(-6.4, 1.2, 0x3e6a3a, 4.6)],
+        // a wicker basket of strawberries and daisies hanging from the hand by
+        // its handle, a little out from her side so her stride clears it
+        handL: at([
           ...grow([
           ...[-2.4, 2.4].map((z) => B([0, -11.4, 1.2 + z * 0.9], [0.6, 3.6, 0.6], 0x9a6a30)), B([0, -10, 1.2], [0.7, 0.6, 4.6], 0x9a6a30),
           ...Array.from({ length: 4 }, (_, i) => B([0, -13.5 - i * 0.9, 1.2], [5.6 - (i === 3 ? 0.6 : 0), 0.9, 5.4 - (i === 3 ? 0.6 : 0)], i % 2 ? 0xb88a48 : 0x9a6a30)),
@@ -191,7 +282,7 @@ export const PEOPLE = {
           ...[[-1.4, 0.2], [1, -0.6], [0.2, 1.8]].map(([x, z]) => B([x, -11.5, 1.2 + z], [0.9, 0.4, 0.9], 0x3a8a2a)),
           B([-2, -12.2, -0.6], [1.6, 0.8, 1.6], 0x3a8a2a), B([1.8, -12.2, 3], [1.6, 0.8, 1.4], 0x4a9a3a), B([1.2, -11.9, 0.4], [1.2, 0.4, 1.2], 0xf8f6ee), B([1.2, -11.7, 0.4], [0.5, 0.3, 0.5], 0xf0c020), B([-1.8, -11.9, 3.3], [1.2, 0.4, 1.2], 0xf8f6ee),
           ], 1.3, [0, -10, 1.2]),
-        ],
+        ], [1.2, 10, 0]),
         legR: [...shoes('boot', { upper: 0x7a4a24, sole: 0xd8c8a0, lace: GOLD }), band(-6.1, 1.6, 0xf0ead8, 4.7), band(-5.8, 0.5, 0x3e7a3a, 4.8)],
         legL: [...shoes('boot', { upper: 0x7a4a24, sole: 0xd8c8a0, lace: GOLD }), band(-6.1, 1.6, 0xf0ead8, 4.7), band(-5.8, 0.5, 0x3e7a3a, 4.8), B([2.5, -8.4, 1.4], [0.4, 1.2, 1.2], 0x3a8a3a)],
       };
@@ -259,9 +350,10 @@ export const PEOPLE = {
       return {
         head: [...L, ...mirrorX([B([-4.5, 4.4, 0.6], [0.8, 1.6, 1.4], 0xb4c470), B([-4.9, 5.4, 0.2], [0.6, 1, 0.8], 0xb4c470)])],
         torso: [...line([-4.2, 11.6, 2.4], [4.2, 3, 2.4], 9, [0x6a4020, 0x5a3418], 3, 0.8, 0.15), ...line([3.6, 12, 2.3], [3.6, 12, -2.3], 4, leaves, 4, 1.4)],
-        hips: skirt,
-        // a sprig of juniper with berries in her right hand
-        armR: [band(-6, 0.7, 0x6a4020, 4.6), ...line([0, -10.5, 2.4], [0, -5, 7], 8, [0x6a4020, 0x5a3418], 9, 0.9, 0.1), ...line([0.8, -8, 4], [1.6, -4.4, 7.6], 5, leaves, 10, 1.3), ...line([-0.8, -6.6, 5.6], [-1.6, -4, 7.2], 3, leaves, 11, 1.2), ...[[0.6, -5.4, 6.2], [-0.8, -4.6, 7.4], [1.4, -6.8, 5]].map((p) => B(p, [1, 1, 1], 0x4a4aa8))],
+        skirt,   // (swinging with the legs)
+        armR: [band(-6, 0.7, 0x6a4020, 4.6)],
+        // a sprig of juniper with berries in her right fist, held up in front
+        handR: hold(at([...line([0, -10.5, 2.4], [0, -5, 7], 8, [0x6a4020, 0x5a3418], 9, 0.9, 0.1), ...line([0.8, -8, 4], [1.6, -4.4, 7.6], 5, leaves, 10, 1.3), ...line([-0.8, -6.6, 5.6], [-1.6, -4, 7.2], 3, leaves, 11, 1.2), ...[[0.6, -5.4, 6.2], [-0.8, -4.6, 7.4], [1.4, -6.8, 5]].map((p) => B(p, [1, 1, 1], 0x4a4aa8))], [0, 10, -0.6]), { rot: [0.45, 0, 0] }),
         armL: [band(-6, 0.7, 0x6a4020, 4.6), B([2.3, -6, 1], [0.4, 0.8, 0.8], 0x4a8a2a)],
         legR: [...shoes('sandal', { upper: 0x6a4020, sole: 0x4a2a14 }), B([0, -9.2, 0], [4.6, 0.5, 4.6], 0x6a4020)],
         legL: [...shoes('sandal', { upper: 0x6a4020, sole: 0x4a2a14 }), B([0, -9.2, 0], [4.6, 0.5, 4.6], 0x6a4020)],
@@ -291,15 +383,17 @@ export const PEOPLE = {
           B([3.8, -0.2, 2.6], [1.6, 2.4, 1], lea), B([3.8, 0.8, 3.15], [0.8, 0.6, 0.2], GOLD), B([-3.8, -0.4, 2.6], [1.6, 2.6, 1], lea), B([-3.9, 1.6, 2.7], [0.5, 1.6, 0.5], 0x9a9aa4),
           ...[-1.4, 1.4].map((x) => B([x, 12.25, -0.2], [2, 0.4, 2], 0xe8e0c8)),
         ],
-        hips: [
-          // the apron's skirt to the knee with a hammer loop and a hanging ring
+        // the apron's skirt to the knee with a hammer loop and a hanging ring (swinging with the legs)
+        skirt: [
           B([0, -4.3, 2.75], [7.4, 9, 0.6], lea), B([0, -8.7, 2.8], [7.4, 0.4, 0.6], dk), B([2.2, -2, 3.15], [2.2, 2.2, 0.3], dk),
           B([-1.6, -3.6, 3.2], [0.4, 1.8, 0.3], GOLD), B([-1.6, -4.6, 3.2], [1.4, 0.4, 0.3], GOLD), B([-1.6, -5.2, 3.2], [0.4, 0.8, 0.3], GOLD),
-          B([4.8, -1.8, 1.6], [1.4, 3.4, 2], lea), B([-4.8, -1.8, 1.6], [1.4, 3.4, 2], lea),
         ],
-        // leather gauntlets with brass studs; a big bronze wrench, jaws up, in his right hand
-        armR: [band(-0.6, 1.2, 0xe8e0c8, 4.7), band(-7.6, 3.6, dk, 4.7), B([-2.4, -7, 1], [0.3, 0.8, 0.8], GOLD), B([0, -10, 2.6], [1.5, 4.4, 1.5], bronze), B([0, -6.2, 2.6], [1.6, 3.6, 1.6], bronze),
-          B([0, -3.6, 2.6], [3.8, 2, 1.8], bronze), B([-1.2, -1.8, 2.6], [1.2, 2.4, 1.8], bronze), B([1.2, -1.8, 2.6], [1.2, 2.4, 1.8], bronze), B([0, -13, 2.6], [2.6, 1.6, 1.8], shadeOf(bronze, 0.8))],
+        hips: [B([4.8, -1.5, 1.6], [1.4, 3.4, 2], lea), B([-4.8, -1.5, 1.6], [1.4, 3.4, 2], lea)],   // (pouches up against the belt)
+        // leather gauntlets with brass studs; a big bronze wrench gripped in
+        // his right fist, jaws out in front (it stood jaws up along the forearm)
+        armR: [band(-0.6, 1.2, 0xe8e0c8, 4.7), band(-7.6, 3.6, dk, 4.7), B([-2.4, -7, 1], [0.3, 0.8, 0.8], GOLD)],
+        handR: hold([B([0, 0, 0], [1.5, 4.4, 1.5], bronze), B([0, 3.8, 0], [1.6, 3.6, 1.6], bronze),
+          B([0, 6.4, 0], [3.8, 2, 1.8], bronze), B([-1.2, 8.2, 0], [1.2, 2.4, 1.8], bronze), B([1.2, 8.2, 0], [1.2, 2.4, 1.8], bronze), B([0, -3, 0], [2.6, 1.6, 1.8], shadeOf(bronze, 0.8))], CLUB_GRIP),
         armL: [band(-0.6, 1.2, 0xe8e0c8, 4.7), band(-7.6, 3.6, dk, 4.7), B([2.4, -7, 1], [0.3, 0.8, 0.8], GOLD)],
         legR: [...shoes('boot', { upper: 0x5a3418, sole: 0x2a1a10, lace: GOLD }), B([0, -10.4, 2.6], [4.8, 1.8, 1.4], 0xd09624), band(-6.2, 1.4, 0x6a6448, 4.9), B([0, -8.2, 2.4], [1.2, 1, 0.4], GOLD)],
         legL: [...shoes('boot', { upper: 0x5a3418, sole: 0x2a1a10, lace: GOLD }), B([0, -10.4, 2.6], [4.8, 1.8, 1.4], 0xd09624), band(-6.2, 1.4, 0x6a6448, 4.9), B([0, -8.2, 2.4], [1.2, 1, 0.4], GOLD)],
@@ -328,7 +422,8 @@ export const PEOPLE = {
         legL: [...shoes('sandal', { upper: 0x6a3a1e, sole: 0x4a2a14 }), band(-8.4, 1.2, 0x6a3a1e, 4.7), B([0, -8.4, 2.4], [1.2, 1, 0.3], GOLD)],
       };
     },
-    glow: { color: 0xffb820, ei: 1.1, parts: () => ({ armL: bow(1, 0xe8b830, 0x8a5a20, 0xfff0a0, { len: 9, bend: 2.8 }) }) },
+    glow: { color: 0xffb820, ei: 1.1, parts: () => ({ handL: bow(0xe8b830, 0x8a5a20, 0xfff0a0, { len: 9, bend: 2.8 }) }) },
+    setup: (rig) => archer(rig, { head: GOLD, fletch: 0xffd84a }),
   },
   // Galene, a Nereid: long sea-green curls crowned with pearls and a shell, a
   // foam-white robe with a sea-green drape, pearls, and the sea curling round her
@@ -357,7 +452,7 @@ export const PEOPLE = {
           ...beads(pearl, { y: 11.4, z: 2.35, n: 9 }).map((b) => ({ ...b, size: [0.7, 0.7, 0.6] })),
           B([0, 9.3, 2.45], [6.8, 0.5, 0.3], 0xd8d4c8), ...mirrorX([B([-2.6, 10.6, 2.3], [0.5, 2.4, 0.3], 0xf2f0e8)]),
         ],
-        hips: robe,
+        skirt: robe,   // (the robe swings with the legs)
         armR: [...ring(-7.4, 2.3, pearl, 41, { size: 0.9, step: 1.1, h: 0.9 }), ...ring(-1.6, 2.3, pearl, 42, { size: 0.8, step: 1.4, h: 0.8 })],
         armL: [...ring(-7.4, 2.3, pearl, 43, { size: 0.9, step: 1.1, h: 0.9 })],
         legR: [...shoes('sandal', { upper: 0xf0ece4, sole: 0x8a6a4a }), ...ring(-9.2, 2.3, pearl, 44, { size: 0.8, step: 1.4, h: 0.8 })],
@@ -380,7 +475,7 @@ export const PEOPLE = {
   // a cap with a red trident, a beard, horns, goat legs and a club
   canyon_hedge: {
     painter: 'hero', scale: 1.18, wide: 1.15, accent: 0xff4a2a,   // (round 9: a short grown satyr, his skull level with Percy's: 1.08 → 1.18)
-    tip: ['armR', 0, 0.6, 2.6, 'club'],
+    tip: ['handR', ...heldAt([0, 13.4, 0], CLUB_GRIP), 'club'],
     paint: { skinTone: 0xd8885a, hair: 0x3a2210, fringe: 2, hairSide: 4, hairBack: 7, eye: 0x3a2414, brow: 0x2a1408, scowl: true, mouth: 'grin', top: 0xf0e4c8, collar: false, jacket: 0xc8241e, jacketSleeve: 12, pants: 0xc8241e, shorts: 8, goat: [0x6a4020, 0x4a2a14], belt: 0x3a2214 },
     body(S, D) {
       // white stripes down the sleeves and trouser legs, zip edges, cuffs
@@ -410,8 +505,11 @@ export const PEOPLE = {
           B([0, 0.6, 2.5], [1.4, 1, 0.4], GOLD), B([-0.6, -0.3, 2.5], [0.3, 1.6, 0.3], white), B([0.6, -0.3, 2.5], [0.3, 1.6, 0.3], white),
         ],
         hips: [B([0, -1.6, -2.8], [1.4, 1.4, 1.6], 0x5a3418), B([0, -3, -3.6], [1.2, 1.8, 1.2], 0x4a2a14)],
-        // a knobbly wooden club in his right fist
-        armR: [band(-7.5, 1.4, white, 4.7), band(-8.3, 0.6, red, 4.75), B([0, -11.8, 2.6], [1.5, 4, 1.5], 0x6a4020), ...line([0, -9, 2.6], [0, 0, 2.6], 6, [0x8a5a2a, 0x7a4a22, 0x9a6a34], 7, 2.6, 0.3), ...[[1.4, -6, 2.6], [-1.4, -3.6, 2.4], [0.6, -1.4, 3.8], [-0.8, -7.8, 3.6], [1.2, -2.6, 1.4]].map((p) => B(p, [1, 1, 1], 0x5a3418))],
+        armR: [band(-7.5, 1.4, white, 4.7), band(-8.3, 0.6, red, 4.75)],
+        // a knobbly wooden club gripped in his right fist by its handle, the
+        // head out in front at the hand-axis angle (it used to stand up along
+        // the forearm, fixed to the arm): built along +y, grip at the origin
+        handR: hold([B([0, 0.4, 0], [1.5, 5, 1.5], 0x6a4020), ...line([0, 3.5, 0], [0, 12.5, 0], 6, [0x8a5a2a, 0x7a4a22, 0x9a6a34], 7, 2.6, 0.3), ...[[1.4, 6.5, 0], [-1.4, 8.9, -0.2], [0.6, 11.1, 1.2], [-0.8, 4.7, 1], [1.2, 9.9, -1.2]].map((p) => B(p, [1, 1, 1], 0x5a3418))], CLUB_GRIP),
         armL: [band(-7.5, 1.4, white, 4.7), band(-8.3, 0.6, red, 4.75)],
         legR: [...footwear('hoof', { upper: 0x2a1c16, seed: 7 }), band(-3.6, 1.2, red, 4.8), band(-4.2, 0.4, white, 4.85)],
         legL: [...footwear('hoof', { upper: 0x2a1c16, seed: 8 }), band(-3.6, 1.2, red, 4.8), band(-4.2, 0.4, white, 4.85)],
@@ -426,6 +524,7 @@ export const PEOPLE = {
     body: hunterBody,
     vox: { style: 'long', base: 0x24180e, shade: 0x0e0a06, light: 0x40301e, seed: 163, shape: { helmetFront: false, top: 9.6, c: [0, 3.8, -1.2], tuft: 0.2, spike: 0.06, bump: 0.44, r: [6.6, 7.4, 6.4], side: -4, back: -6 } },
     parts() { const p = hunterParts({ seed: 70, bowSide: 1 }); p.head = circlet(SILVER, { y: 7.6, gem: 0xe8f0ff }); return p; },
+    setup: (rig) => archer(rig),
   },
   // Rachel Elizabeth Dare: a mass of red curls, freckles, the camp shirt,
   // paint-spattered jeans, red sneakers, a sketchbook and a backpack
@@ -448,11 +547,15 @@ export const PEOPLE = {
           B([0, 1.2, 0], [8.8, 1, 4.8], 0x5a3418), B([-1, 1.2, 2.5], [1.4, 1, 0.3], 0xc8c8c8),
           ...beads([0xc8a060], { y: 11.4, z: 2.35, n: 5 }).map((b) => ({ ...b, size: [0.4, 0.4, 0.4] })),
         ],
-        // a paintbrush in her right hand, the sketchbook under her left arm
-        armR: [band(-6.6, 0.9, 0x2a3a6a, 4.6), B([0, -9.4, 2.6], [0.6, 0.6, 6], 0xe8e0d0, [0.6, 0, 0]), B([0, -7.6, 5.2], [0.7, 0.7, 1.2], 0xc8c8d0, [0.6, 0, 0]), B([0, -7, 6.2], [0.6, 0.6, 1], 0x3a8ae8, [0.6, 0, 0])],
-        armL: [band(-6.6, 1.1, 0x1a1a1e, 4.6), B([2.4, -6.6, 0], [0.3, 1, 1.2], 0x8a8a90),
-          B([0, -9.8, 3.1], [5.2, 6.4, 1.2], 0xf0e8d8), B([0, -9.8, 2.45], [5.3, 6.5, 0.3], 0x8a5a3a), ...[-2, -1, 0, 1, 2].map((x) => B([x * 1.2 - 0.2, -6.5, 3.1], [0.4, 0.6, 1.4], 0x2a2a2a)),
-          B([-1, -10.4, 3.75], [1.4, 1.2, 0.1], 0xe83a3a), B([0.8, -9, 3.75], [1.2, 1.2, 0.1], 0xf0a020), B([0.6, -11.4, 3.75], [1.2, 0.8, 0.1], 0x3a8ae8)],
+        armR: [band(-6.6, 0.9, 0x2a3a6a, 4.6)],
+        armL: [band(-6.6, 1.1, 0x1a1a1e, 4.6), B([2.4, -6.6, 0], [0.3, 1, 1.2], 0x8a8a90)],
+        // a paintbrush in her right fist like a pencil, its bristles out in
+        // front (the ferrule and bristles floated clear of the handle, which
+        // was turned the other way: one straight brush along +y now)
+        handR: hold([B([0, 1.2, 0], [0.6, 7.2, 0.6], 0xe8e0d0), B([0, 5.4, 0], [0.75, 1.4, 0.75], 0xc8c8d0), B([0, 6.6, 0], [0.6, 1.2, 0.6], 0x3a8ae8), B([0, 7.4, 0], [0.35, 0.6, 0.35], 0x3a8ae8)], { rot: [HOLD_PITCH, 0, 0], at: [0, 1.2, 0.6] }),
+        // the sketchbook carried at her left side by its spiral spine, its doodled cover out
+        handL: [B([0, -3.2, 0.6], [1.2, 6.4, 5.2], 0xf0e8d8), B([-0.75, -3.2, 0.6], [0.3, 6.5, 5.3], 0x8a5a3a), ...[-2, -1, 0, 1, 2].map((z) => B([0, 0.2, z * 1.05 + 0.6], [1.4, 0.6, 0.4], 0x2a2a2a)),
+          B([0.65, -3.8, 1.6], [0.1, 1.2, 1.4], 0xe83a3a), B([0.65, -2.4, -0.2], [0.1, 1.2, 1.2], 0xf0a020), B([0.65, -4.8, -0.4], [0.1, 0.8, 1.2], 0x3a8ae8)],
         legR: [...footwear('hitop', { upper: 0xc02828, sole: 0xf4f0e8, lace: 0xf4f0e8 }), band(-7.2, 1.4, 0x5a7ab8, 4.8)],
         legL: [...footwear('hitop', { upper: 0xc02828, sole: 0xf4f0e8, lace: 0xf4f0e8 }), band(-7.2, 1.4, 0x5a7ab8, 4.8)],
       };
@@ -461,7 +564,7 @@ export const PEOPLE = {
   // Quintus, the swordmaster (Daedalus in disguise): grey hair and beard, a
   // long navy coat over a brown waistcoat, a rapier, a glint of bronze at his throat
   quintus: {
-    painter: 'person', scale: ADULT_SCALE, adult: true, accent: 0xff9a2a, tip: ['armR', 0, -1.9, 16.8, 'rapier'],
+    painter: 'person', scale: ADULT_SCALE, adult: true, accent: 0xff9a2a, tip: ['handR', ...heldAt([0, 0, 17.6], RAPIER_GRIP), 'rapier'],
     paint: { skin: 0xdc9c74, hair: 0xb8b4b0, fringe: 1, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x3a7a8a, brow: 0x6a6460, scowl: true, wrinkles: 0xb47c5a, beard: 0xc8c4c0, top: 0x8a4a1e, knit: true, vneck: 0xf0ece0, jacket: 0x1e2238, lapel: 0x2e3450, sleeve: 0x8a4a1e, pants: 0x4a2e1e, shoes: 0x3a2214, saturate: 1.12 },
     hair: { c: [0, 7, -0.6], r: [5.6, 4.4, 5.8], bump: 0.4, shell: 1.4, fringe: 6.6, jag: 1, side: 3, back: 0.4, tuft: 0.16, spike: 0.03, tones: [0x8a8684, 0xb8b4b0, 0xe0dcd8] },
     beard: [0x9a9692, 0xc8c4c0, 0xe8e4e0],
@@ -474,13 +577,17 @@ export const PEOPLE = {
           B([0, 1.6, 0], [8.9, 1.2, 4.9], br), B([0, 1.6, 2.55], [1.6, 1.4, 0.4], GOLD), B([0, 0.4, 0], [8.9, 1, 4.9], br), B([1.6, 0.4, 2.55], [1.4, 1.2, 0.4], GOLD),
           B([-2.4, 0.2, 2.6], [1.2, 3, 0.6], br), B([-2.4, -0.8, 2.95], [0.8, 0.8, 0.3], GOLD),
         ],
-        hips: [
-          // the coat's long skirts, open at the front
+        // the coat's long skirts, open at the front (swinging with the legs)
+        skirt: [
           ...mirrorX([B([-3.2, -4.8, 0.3], [2.6, 9.6, 4.4], navy), B([-3.2, -9.4, 0.3], [2.7, 0.5, 4.5], navyL)]), B([0, -4.8, -2.3], [9, 9.6, 0.6], navy),
         ],
-        // the rapier, its basket hilt in his right fist, blade raised
-        armR: [band(-7.8, 1.4, 0xf0ece0, 4.8), B([0, -10, 0.6], [1.2, 1.2, 3], 0x3a2214), B([0, -10, 2.6], [3, 3, 1.4], 0xd8a840), B([0, -10, 3.3], [2.2, 2.2, 0.6], 0xe8c060), B([0, -10, -1.1], [1, 1, 1], 0xd8a840),
-          ...turn([B([0, 0, 9], [0.5, 0.4, 14], 0xd8dce4), B([0, 0, 16.4], [0.35, 0.3, 1], 0xd8dce4)], [-0.5, 0, 0]).map((b) => ({ ...b, at: [b.at[0], b.at[1] - 10, b.at[2] + 2] }))],
+        armR: [band(-7.8, 1.4, 0xf0ece0, 4.8)],
+        // the rapier, its grip through his right fist and the basket hilt
+        // before it, the blade straight on from the hilt along the hand's
+        // axis (the blade used to be turned up apart from its hilt and fixed
+        // to the arm, so at the strike it pointed back over his shoulder)
+        handR: hold([B([0, 0, 0.3], [1.2, 1.2, 3], 0x3a2214), B([0, 0, 2.3], [3, 3, 1.4], 0xd8a840), B([0, 0, 3], [2.2, 2.2, 0.6], 0xe8c060), B([0, 0, -1.6], [1, 1, 1], 0xd8a840),
+          B([0, 0, 10.2], [0.5, 0.4, 14], 0xd8dce4), B([0, 0, 17.6], [0.35, 0.3, 1], 0xd8dce4)], RAPIER_GRIP),
         armL: [band(-7.8, 1.4, 0xf0ece0, 4.8)],
         legR: [...shoes('boot', { upper: 0x4a2a14, sole: 0x2a160a, lace: 0x8a6a3a }), band(-5.8, 1.2, 0x5a3418, 4.9), B([0, -5.8, 2.5], [1.2, 1, 0.3], GOLD)],
         legL: [...shoes('boot', { upper: 0x4a2a14, sole: 0x2a160a, lace: 0x8a6a3a }), band(-5.8, 1.2, 0x5a3418, 4.9), B([0, -5.8, 2.5], [1.2, 1, 0.3], GOLD)],
@@ -512,12 +619,14 @@ export const PEOPLE = {
       p.head = [...circlet(SILVER, { y: 8.4 }), ...bun];
       return p;
     },
+    // (she never fights in game: she hands out the Othrys quests, world/regions/othrys.js; the workbench's attack draws and looses)
+    setup: (rig) => archer(rig),
   },
   // Charon, ferryman of the dead: a sharp black suit, gold chains,
   // sunglasses, a beard, and his oar wound with the ghost-light of the Styx
   asphodel_charon: {
     painter: 'person', scale: 1.68, adult: true, accent: 0x4ae0ff,   // (a tall adult, at the top of the adults' 1.2-1.3x: round 9 1.32 → 1.45, round 10 → 1.68)
-   
+    tip: ['handR', ...heldAt([0, 34.6, 0], OAR_GRIP), 'oar'],
     paint: { skin: 0xb06c44, hair: 0x18100c, fringe: 1, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x2a1a10, brow: 0x18100c, glasses: 0x0a0a0c, beard: 0x1a120c, top: 0x1c1a1e, vneck: 0xf4f4f0, tie: 0x141416, jacket: 0x161418, lapel: 0x262428, pants: 0x161418, shoes: 0x0a0a0c, saturate: 1.1,
       face: (S, ey) => { S.dot(9, ey - 0.5, 0x0a0a0c, 6, 4); S.dot(13, ey - 0.5, 0x0a0a0c, 6, 4); S.dot(11.5, ey, 0x0a0a0c, 2, 1); S.dot(9.5, ey, 0x3a3a40, 1, 1); S.dot(13.5, ey, 0x3a3a40, 1, 1); } },
     hair: { c: [0, 7, -1.2], r: [5, 3.8, 5.4], bump: 0.34, shell: 1.2, fringe: 7.2, jag: 0.4, side: 3.4, back: 0, tuft: 0.14, spike: 0.04, tones: [0x0c0806, 0x1e1612, 0x3a2e26] },
@@ -533,23 +642,30 @@ export const PEOPLE = {
           ...[6.6, 5, 3.4].map((y) => B([0, y, 2.55], [0.6, 0.6, 0.3], 0x3a3a40)),
           B([0, 1.4, 0], [8.9, 1.2, 4.9], 0x3a2416), B([0, 1.4, 2.55], [1.8, 1.4, 0.4], gold), B([0, 1.4, 2.75], [1, 0.7, 0.2], 0x3a2416),
         ],
-        hips: [...mirrorX([B([-3.2, -1.6, 0.3], [2.6, 3.4, 4.4], blk)]), B([0, -1.6, -2.3], [9, 3.4, 0.6], blk)],
+        // the jacket's tails over the hips (swinging with the legs)
+        skirt: [...mirrorX([B([-3.2, -1.6, 0.3], [2.6, 3.4, 4.4], blk)]), B([0, -1.6, -2.3], [9, 3.4, 0.6], blk)],
         armR: [band(-7.8, 1.2, 0xf4f4f0, 4.8), B([0, -7.8, 2.45], [1, 1, 0.3], gold)],
         armL: [band(-7.8, 1.2, 0xf4f4f0, 4.8), band(-7, 0.6, gold, 4.85)],
         legR: shoes('loafer', { upper: 0x0e0e10, sole: 0x060606 }), legL: shoes('loafer', { upper: 0x0e0e10, sole: 0x060606 }),
       };
     },
-    // his oar, taller than he is, and the ghost-light coiled round it
+    // his oar, taller than he is, and the ghost-light coiled tight round its shaft
+    // (the coil used to stand 0.8 px clear of the shaft all the way up: perf/islands.cjs)
     glow: {
       color: 0x30d0ff, ei: 1.1,
       parts: () => {
         const L = [];
-        for (let i = 0; i < 26; i++) { const k = i / 26, a = k * Math.PI * 5; L.push(B([Math.cos(a) * 2.2, -9.5 + k * 30, 2.4 + Math.sin(a) * 2.2], [1, 1, 1], i % 2 ? 0x7ae8ff : 0x40c8f0)); }
-        return { armR: L };
+        for (let i = 0; i < 26; i++) { const k = i / 26, a = k * Math.PI * 5; L.push(B([Math.cos(a) * 0.95, 3 + k * 26, Math.sin(a) * 0.95], [1, 1, 1], i % 2 ? 0x7ae8ff : 0x40c8f0)); }
+        return { handR: hold(L, OAR_GRIP) };
       },
     },
-    // (the oar held 6.5 higher than first built: its blade stood a third of a metre in the ground)
-    extra: () => ({ armR: [B([0, 0.5, 2.4], [1.4, 34, 1.4], 0x6a3a1c), B([0, -17.9, 2.4], [2.6, 5, 0.8], 0x6a3a1c), B([0, -20.9, 2.4], [1.6, 1.2, 0.8], 0x5a3014), ...[8.5, 10.1].map((y) => B([0, y, 2.4], [1.7, 0.6, 1.7], 0x8a5a2a)), B([0, -3.5, 2.4], [1.7, 1.6, 1.7], 0x5a3014)] }),
+    // The oar, gripped near the top of its shaft with the blade out in front
+    // and down toward the ground ahead, so a strike reaches out blade first.
+    // (It stood upright along his forearm, blade on the ground, fixed to the
+    // arm: in the attacks its top end swung forward and the blade back.)
+    // Built along +y from the grip (the shaft's top end at -4, the blade's
+    // tip at 34.6).
+    extra: () => ({ handR: hold([B([0, 13, 0], [1.4, 34, 1.4], 0x6a3a1c), B([0, 31.4, 0], [2.6, 5, 0.8], 0x6a3a1c), B([0, 34.4, 0], [1.6, 1.2, 0.8], 0x5a3014), ...[-2.4, -3.4].map((y) => B([0, y, 0], [1.7, 0.6, 1.7], 0x8a5a2a)), B([0, 0, 0], [1.7, 2.6, 1.7], 0x5a3014)], OAR_GRIP) }),
   },
   // Sisyphus: an old strongman, grey curls and beard, a cream chiton over one
   // shoulder with a Greek-key hem, a rope belt, leather wrist straps, laced sandals
@@ -566,22 +682,33 @@ export const PEOPLE = {
     beard: [0xa8a4a0, 0xd0ccc8, 0xf0ece8],
     parts() {
       const cream = 0xeee2c8, creamD = 0xd8caa8, key = 0x8a5a30, rope = 0x6a4020;
-      const hem = [], r = mulberry32(13);
-      hem.push(B([0, -4, 0], [9, 8, 5], cream), B([0, -7.6, 0], [9.2, 1.4, 5.2], 0xe4d6b6));
-      // the Greek-key border and a ragged edge
-      for (let i = 0; i < 9; i++) { const x = -4 + i; for (const z of [2.62, -2.62]) hem.push(B([x, -7.6, z], [0.6, 0.9, 0.1], key), B([x + 0.35, -7.2, z], [0.3, 0.5, 0.1], key)); }
-      for (let i = 0; i < 12; i++) hem.push(B([-4.4 + r() * 8.8, -8.5 - r() * 0.6, r() < 0.5 ? 2.5 : -2.5], [1, 1, 0.5], creamD));
+      // The chiton's lower half, round each thigh to above the knee: it was
+      // one block on the hips the legs walked through (the owner: his pants
+      // didn't follow his legs). Each leg wears its own half now (x: -1 the
+      // outer side of the right leg, +1 of the left), with the Greek-key
+      // border and a ragged edge, and only the band at the waist stays on the hips.
+      const hem = (side) => {
+        const L = [], r = mulberry32(side < 0 ? 13 : 14);
+        L.push(B([0, -4, 0], [4.9, 8, 5], cream), B([0, -7.6, 0], [5.1, 1.4, 5.2], 0xe4d6b6));
+        for (let i = 0; i < 5; i++) { const x = -2 + i; for (const z of [2.62, -2.62]) L.push(B([x, -7.6, z], [0.6, 0.9, 0.1], key), B([x + 0.35, -7.2, z], [0.3, 0.5, 0.1], key)); }
+        for (let i = 0; i < 5; i++) { const z = -2 + i; L.push(B([side * 2.57, -7.6, z], [0.1, 0.9, 0.6], key), B([side * 2.57, -7.2, z + 0.35], [0.1, 0.5, 0.3], key)); }
+        for (let i = 0; i < 7; i++) L.push(r() < 0.7 ? B([-2.2 + r() * 4.4, -8.5 - r() * 0.6, r() < 0.5 ? 2.5 : -2.5], [1, 1, 0.5], creamD) : B([side * 2.45, -8.5 - r() * 0.6, -2 + r() * 4], [0.5, 1, 1], creamD));
+        return L;
+      };
       return {
         torso: [
           // the drape from his left shoulder across to the right hip
           B([1.2, 6.6, 2.35], [6, 13, 0.5], cream, [0, 0, 0.52]), B([1.2, 6.6, -2.35], [6, 13, 0.5], cream, [0, 0, 0.52]), B([3, 12.2, 0], [3.4, 0.8, 4.8], cream),
-          B([0, 1.2, 0], [9, 1.2, 5], rope), B([-1.4, 1.2, 2.6], [1.6, 1.6, 0.6], rope), ...[-1.8, -1].map((x) => B([x, -1.4, 2.7], [0.5, 4, 0.5], rope)), B([-1.4, -3.6, 2.7], [1.2, 0.6, 0.6], GOLD),
+          B([0, 1.2, 0], [9, 1.2, 5], rope), B([-1.4, 1.2, 2.6], [1.6, 1.6, 0.6], rope),
         ],
-        hips: hem,
+        // the chiton's waist under the rope belt, and the belt's knotted ends
+        // hanging over his right thigh: swinging with the legs (they hung
+        // still from the torso, and the thigh walked through them)
+        skirt: [B([0, -0.7, 0], [9, 1.4, 5], cream), ...[-1.8, -1].map((x) => B([x, -1.4, 2.7], [0.5, 4, 0.5], rope)), B([-1.4, -3.6, 2.7], [1.2, 0.6, 0.6], GOLD)],
         armR: [band(-7, 1.2, 0x5a3418, 4.7), band(-8.3, 0.7, 0x5a3418, 4.7), band(-1.4, 0.7, 0x5a3418, 4.7)],
         armL: [band(-7, 1.2, 0x5a3418, 4.7), band(-8.3, 0.7, 0x5a3418, 4.7)],
-        legR: [...shoes('sandal', { upper: 0x5a3418, sole: 0x4a2a14 }), ...[-9, -7.4, -5.8, -4.2].map((y, i) => B([0, y, 0], [4.7, 0.5, 4.7], 0x5a3418, [0, 0, i % 2 ? 0.15 : -0.15]))],
-        legL: [...shoes('sandal', { upper: 0x5a3418, sole: 0x4a2a14 }), ...[-9, -7.4, -5.8, -4.2].map((y, i) => B([0, y, 0], [4.7, 0.5, 4.7], 0x5a3418, [0, 0, i % 2 ? 0.15 : -0.15]))],
+        legR: [...shoes('sandal', { upper: 0x5a3418, sole: 0x4a2a14 }), ...[-9, -7.4, -5.8, -4.2].map((y, i) => B([0, y, 0], [4.7, 0.5, 4.7], 0x5a3418, [0, 0, i % 2 ? 0.15 : -0.15])), ...hem(-1)],
+        legL: [...shoes('sandal', { upper: 0x5a3418, sole: 0x4a2a14 }), ...[-9, -7.4, -5.8, -4.2].map((y, i) => B([0, y, 0], [4.7, 0.5, 4.7], 0x5a3418, [0, 0, i % 2 ? 0.15 : -0.15])), ...hem(1)],
       };
     },
   },
@@ -605,8 +732,10 @@ export const PEOPLE = {
     beard: [0xa88428, 0xd0a848, 0xf0d080],
     parts() {
       const white = 0xf6f2e8, khaki = 0x7a6a40, gold = 0xe0b030, eye = (x, y, z, s) => [B([x, y, z], [s ? 0.3 : 1.4, 1, s ? 1.4 : 0.3], 0xfafaf6), B([x + (s || 0) * 0.15, y, z + (s ? 0 : 0.15)], [s ? 0.3 : 0.7, 0.7, s ? 0.7 : 0.3], 0x2a74e0)];
-      const keys = [B([-2.4, -1.2, 2.6], [0.5, 2.2, 0.5], gold), ...ring(-3.4, 1.1, [gold], 5, { size: 0.5, step: 0.7, h: 0.5 }).map((b) => ({ ...b, at: [b.at[0] - 2.4, b.at[1], b.at[2] + 2.6] }))];
-      for (const [x, k] of [[-3.4, 0], [-2.6, 1], [-1.8, 2], [-3, 3]]) keys.push(B([x, -5.4 - (k % 2) * 0.6, 3 + (k % 2) * 0.3], [0.5, 2.6, 0.4], gold), B([x, -4.2 - (k % 2) * 0.6, 3 + (k % 2) * 0.3], [1, 1, 0.4], gold), B([x + 0.4, -6.2 - (k % 2) * 0.6, 3 + (k % 2) * 0.3], [0.5, 0.4, 0.4], gold));
+      // the key ring clipped to the front of his right thigh, on the leg (it
+      // hung from the belt on the hips, and the thigh swung through it)
+      const keys = [B([-0.9, -1.2, 2.6], [0.5, 2.2, 0.5], gold), ...ring(-3.4, 1.1, [gold], 5, { size: 0.5, step: 0.7, h: 0.5 }).map((b) => ({ ...b, at: [b.at[0] - 0.9, b.at[1], b.at[2] + 2.6] }))];
+      for (const [x, k] of [[-1.9, 0], [-1.1, 1], [-0.3, 2], [-1.5, 3]]) keys.push(B([x, -5.4 - (k % 2) * 0.6, 3 + (k % 2) * 0.3], [0.5, 2.6, 0.4], gold), B([x, -4.2 - (k % 2) * 0.6, 3 + (k % 2) * 0.3], [1, 1, 0.4], gold), B([x + 0.4, -6.2 - (k % 2) * 0.6, 3 + (k % 2) * 0.3], [0.5, 0.4, 0.4], gold));
       return {
         head: [eye(-4.15, 2.6, 0.6, -1), eye(4.15, 2.6, 0.6, 1)].flat(),
         torso: [
@@ -615,10 +744,9 @@ export const PEOPLE = {
           B([2.6, 8.8, 2.45], [0.4, 2.6, 0.2], 0xe08a20), B([2.6, 9.6, 2.45], [1.8, 0.4, 0.2], 0xe08a20), B([1.8, 10.2, 2.45], [0.4, 1, 0.2], 0xe08a20), B([3.4, 10.2, 2.45], [0.4, 1, 0.2], 0xe08a20),
           B([0, 1.2, 0], [8.9, 1.2, 4.9], 0x1e1c1c), B([0, 1.2, 2.5], [1.6, 1.1, 0.3], SILVER), B([3.6, 0.6, 2.5], [1.6, 2.2, 1], 0x2a2420), B([-4.4, 0.6, 1.6], [1, 2.4, 2], 0x2a2420),
         ],
-        hips: keys,
         armR: [band(-1.4, 0.6, white, 4.7), ...eye(-2.4, -6.8, 0.6, -1), ...eye(0, -8.2, 2.4, 0)],
         armL: [band(-1.4, 0.6, white, 4.7), ...eye(2.4, -6.6, -0.4, 1), ...eye(0.6, -7, 2.4, 0)],
-        legR: [...shoes('boot', { upper: 0x5a3418, sole: 0x2a1a10, lace: 0xc8a060 }), band(-6.4, 1, shadeOf(khaki, 0.9), 4.9), B([-2.45, -4, 0.4], [0.5, 2.6, 2.6], shadeOf(khaki, 0.85)), B([-2.6, -2.9, 0.4], [0.3, 0.4, 2.6], shadeOf(khaki, 0.7))],
+        legR: [...shoes('boot', { upper: 0x5a3418, sole: 0x2a1a10, lace: 0xc8a060 }), band(-6.4, 1, shadeOf(khaki, 0.9), 4.9), B([-2.45, -4, 0.4], [0.5, 2.6, 2.6], shadeOf(khaki, 0.85)), B([-2.6, -2.9, 0.4], [0.3, 0.4, 2.6], shadeOf(khaki, 0.7)), ...at(keys, [0, 0, -0.45])],
         legL: [...shoes('boot', { upper: 0x5a3418, sole: 0x2a1a10, lace: 0xc8a060 }), band(-6.4, 1, shadeOf(khaki, 0.9), 4.9), B([2.45, -4, 0.4], [0.5, 2.6, 2.6], shadeOf(khaki, 0.85)), B([2.6, -2.9, 0.4], [0.3, 0.4, 2.6], shadeOf(khaki, 0.7))],
       };
     },
@@ -646,8 +774,11 @@ export const PEOPLE = {
           ...[-4, -3.4, -2.8, -2.4].map((x, i) => B([x, 3.6 - (i % 2) * 0.4, 2.7], [0.4, 0.9, 0.4], pinkD)), ...[2.4, 2.8, 3.4, 4].map((x, i) => B([x, 5.6 - (i % 2) * 0.4, 2.7], [0.4, 0.9, 0.4], pinkD)),
           B([0, 1.2, 0], [8.8, 1, 4.8], 0x6a3a1e), B([0, 1.2, 2.5], [1.4, 1, 0.3], GOLD),
         ],
-        // a pink hand mirror in a gold frame in her left hand, gold bangles on the right wrist
-        armL: [band(-7.2, 0.6, GOLD, 4.7), B([0, -9.5, 2.6], [1, 3, 1], 0xe0b030), B([0, -5.6, 2.6], [4.8, 5.6, 1], 0xe0b030), B([0, -5.6, 3.15], [3.6, 4.4, 0.2], 0xf090b8), B([-0.8, -4.6, 3.3], [1, 1, 0.1], 0xffe0f0)],
+        // a pink hand mirror in a gold frame held up in her left fist, the
+        // glass toward her (it stood up along the forearm, fixed to the
+        // arm); gold bangles on the right wrist
+        armL: [band(-7.2, 0.6, GOLD, 4.7)],
+        handL: hold([B([0, 0, 0], [1, 3, 1], 0xe0b030), B([0, 4.3, 0], [4.8, 5.6, 1], 0xe0b030), B([0, 4.3, -0.55], [3.6, 4.4, 0.2], 0xf090b8), B([-0.8, 5.3, -0.7], [1, 1, 0.1], 0xffe0f0)], CLUB_GRIP),
         armR: [band(-7.4, 0.5, GOLD, 4.7), band(-6.7, 0.5, 0xe0b030, 4.75), band(-6, 0.4, pink, 4.7)],
         legR: [...shoes('sandal', { upper: 0x6a3a1e, sole: 0x4a2a14 }), band(-8.6, 0.6, 0x6a3a1e, 4.6), band(-1.2, 1, shadeOf(0x4a6a9a, 1.15), 4.8)],
         legL: [...shoes('sandal', { upper: 0x6a3a1e, sole: 0x4a2a14 }), band(-8.6, 0.6, 0x6a3a1e, 4.6), band(-1.2, 1, shadeOf(0x4a6a9a, 1.15), 4.8)],
@@ -664,7 +795,12 @@ export const PEOPLE = {
     beard: [0x140c06, 0x2a1a10, 0x3e2818],
     parts() {
       const red = 0xc8281e, white = 0xf4f0e8, strap = 0x4a2a14;
-      // the rubber chicken, held round the middle, head up, legs dangling
+      // The rubber chicken, gripped round the middle in his fist (the parts
+      // are drawn head up about its body's centre, at [0, -10.2, 3], and
+      // turned a quarter forward into the hand below): its head out along
+      // the hand's +z and its face along -y, so with his arm hanging it looks
+      // at the ground and held out at arm's length it looks ahead. (It stood
+      // head up along his forearm, fixed to the arm.)
       const chicken = [B([0, -10.2, 3], [2.8, 4.4, 2.4], 0xf8d838), B([0, -7.4, 3], [1.8, 2.2, 1.8], 0xf8d838), B([0, -5.9, 3], [2, 1.8, 2], 0xf8e050), B([0, -6.1, 4.4], [0.8, 0.6, 1.4], 0xf08020),
         B([0, -4.6, 2.8], [0.5, 1.2, 1.6], 0xe02a2a), B([0, -6.9, 4.1], [0.5, 0.9, 0.5], 0xe02a2a), B([-1.05, -5.6, 3.4], [0.2, 0.5, 0.5], INK), B([1.05, -5.6, 3.4], [0.2, 0.5, 0.5], INK),
         ...mirrorX([B([-1.6, -10, 3], [0.6, 2.6, 1.8], 0xf0c828), B([-0.6, -13.4, 3], [0.4, 2.4, 0.4], 0xf08020), B([-0.6, -14.6, 3.4], [0.9, 0.3, 1.2], 0xf08020)])];
@@ -679,7 +815,8 @@ export const PEOPLE = {
           B([0, 0.8, 0], [8.9, 1.1, 4.9], 0x3a2416), B([0, 0.8, 2.5], [1.8, 1.3, 0.3], GOLD), B([3.6, 0.4, 2.6], [1.6, 2.2, 1], strap), B([-3.6, 0.4, 2.6], [1.6, 2.2, 1], strap),
         ],
         // sleeves rolled to the elbow
-        armR: [band(-3.6, 1.8, 0xf0e0d0, 4.9), band(-3.1, 0.5, red, 5), ...chicken],
+        armR: [band(-3.6, 1.8, 0xf0e0d0, 4.9), band(-3.1, 0.5, red, 5)],
+        handR: hold(at(chicken, [0, 10.2, -3]), { rot: [Math.PI / 2, 0, 0], at: [0, -0.6, 1.4] }),
         armL: [band(-3.6, 1.8, 0xf0e0d0, 4.9), band(-3.1, 0.5, red, 5)],
         legR: [...shoes('boot', { upper: 0x6a4020, sole: 0x2e1e12, lace: 0xc8a060 }), band(-6.2, 1.1, 0x3a5a8a, 4.9)],
         legL: [...shoes('boot', { upper: 0x6a4020, sole: 0x2e1e12, lace: 0xc8a060 }), band(-6.2, 1.1, 0x3a5a8a, 4.9)],
@@ -714,9 +851,12 @@ export const PEOPLE = {
         ],
         head: mirrorX([B([-4.6, 2.2, 1.6], [0.4, 1.2, 1.2], 0xe0b030)]),
         torso: ap,
-        hips: skirtA,
+        skirt: skirtA,   // (the apron's skirt swings with the legs)
         armR: [band(-2.2, 1.2, blue, 4.8), band(-7.2, 0.8, 0x3a6a2a, 4.8)],
-        armL: [band(-2.2, 1.2, blue, 4.8), band(-7.2, 0.8, 0x3a6a2a, 4.8), ...gnome.map((b) => ({ ...b, at: [b.at[0] + 0.6, b.at[1] + 3, b.at[2] + 0.6] }))],
+        armL: [band(-2.2, 1.2, blue, 4.8), band(-7.2, 0.8, 0x3a6a2a, 4.8)],
+        // the gnome gripped round his middle in her left fist, leaning out in
+        // front (he stood up along her forearm, fixed to the arm)
+        handL: hold(at(gnome, [0, 11, -1.6]), { rot: [1.0, 0, 0], at: [0, -1, 1.4] }),
         legR: [...shoes('boot', { upper: 0x4a7a3a, sole: 0x24461a, lace: 0x4a7a3a }), band(-6.6, 1.4, 0x3e6a30, 5), B([0, -9.4, 2.65], [0.8, 0.8, 0.2], 0xf09ab0), B([-2.65, -8.4, 0.6], [0.2, 0.8, 0.8], 0xf09ab0)],
         legL: [...shoes('boot', { upper: 0x4a7a3a, sole: 0x24461a, lace: 0x4a7a3a }), band(-6.6, 1.4, 0x3e6a30, 5), B([0, -8.6, 2.65], [0.8, 0.8, 0.2], 0xf09ab0), B([2.65, -9.2, -0.4], [0.2, 0.8, 0.8], 0xf09ab0)],
       };
@@ -774,7 +914,8 @@ export const PEOPLE = {
     vox: { style: 'afro', base: 0xe0b450, shade: 0xa87c24, light: 0xf8dc88, seed: 223, shape: { tuft: 0.26, spike: 0.08, bump: 0.36 } },
     parts() {
       const pink = 0xf27aa8, pinkD = 0xd85a8a, pinkL = 0xf8a8c8, L = [];
-      // the flamingo ring under his left arm, on its side, the neck and head up at the front
+      // the flamingo ring carried by its rim in his left fist, hanging on its
+      // side, the neck and head up at the front (it hung beside the arm, fixed to it)
       for (let i = 0; i < 20; i++) { const a = (i / 20) * Math.PI * 2; L.push(B([4.2, -6 + Math.sin(a) * 4, 1 + Math.cos(a) * 4], [2.6, 2.6, 2.6], i % 3 === 0 ? pinkL : i % 2 ? pink : pinkD)); }
       L.push(B([4.2, -0.6, 4.2], [1.7, 3.6, 1.7], pink), B([4.2, 1.8, 4.6], [1.7, 1.8, 2.2], pink), B([4.2, 1.6, 6.2], [1.1, 1, 1.6], 0xf0d030), B([4.2, 1.2, 7], [0.9, 0.8, 0.8], INK), B([3.3, 2.2, 4.8], [0.2, 0.6, 0.6], 0xffffff), B([5.1, 2.2, 4.8], [0.2, 0.6, 0.6], 0xffffff), B([3.25, 2.2, 4.9], [0.15, 0.3, 0.3], INK), B([5.15, 2.2, 4.9], [0.15, 0.3, 0.3], INK));
       return {
@@ -785,7 +926,8 @@ export const PEOPLE = {
         ],
         torso: [...line([-1.6, 11.9, 2.4], [0, 7.4, 2.4], 5, [0x1a1a1e], 3, 0.4, 0), ...line([1.6, 11.9, 2.4], [0, 7.4, 2.4], 5, [0x1a1a1e], 4, 0.4, 0), B([0, 6.4, 2.6], [1.4, 1.8, 0.8], 0xe8c040), B([0, 7.4, 2.6], [0.8, 0.5, 0.5], 0xe8c040)],
         hips: [B([0, 0.3, 0], [8.8, 0.8, 4.8], 0xa81c18), B([-0.5, -0.6, 2.5], [0.4, 1.8, 0.3], 0xf4f0e8), B([0.5, -0.6, 2.5], [0.4, 1.8, 0.3], 0xf4f0e8)],
-        armL: [band(-6.4, 0.9, 0xe8c870, 4.6), ...L.map((b) => ({ ...b, at: [b.at[0] - 0.6, b.at[1] - 2, b.at[2] + 2.2] }))],
+        armL: [band(-6.4, 0.9, 0xe8c870, 4.6)],
+        handL: at(L, [-4.2, 1.4, 0]),
         armR: [band(-7, 0.7, 0x2a8ad8, 4.6)],
         legR: [B([0, -11.6, 0.6], [4.9, 0.9, 6], 0x1a1a1e), B([0, -11.1, 0.6], [4.95, 0.25, 6.05], 0xf4f0e8), B([0, -10.4, 1.4], [4.75, 0.6, 1], 0xc8241e), B([0, -10.4, 2.4], [0.6, 0.6, 0.8], 0xc8241e)],
         legL: [B([0, -11.6, 0.6], [4.9, 0.9, 6], 0x1a1a1e), B([0, -11.1, 0.6], [4.95, 0.25, 6.05], 0xf4f0e8), B([0, -10.4, 1.4], [4.75, 0.6, 1], 0xc8241e), B([0, -10.4, 2.4], [0.6, 0.6, 0.8], 0xc8241e)],
@@ -815,9 +957,12 @@ export const PEOPLE = {
         ],
         hips: [B([0, -0.8, 2.3], [8, 1.6, 0.4], md), B([0, -0.8, -2.3], [8, 1.6, 0.4], md)],
         armR: [band(-6.6, 0.8, gold, 4.8), band(-7.6, 0.9, 0xf6f6f2, 4.7)],
-        // a fistful of car keys and fobs on a gold ring
-        armL: [band(-6.6, 0.8, gold, 4.8), band(-7.6, 0.9, 0xf6f6f2, 4.7), ...grow([...ring(-11, 1.2, [gold], 9, { size: 0.45, step: 0.8, h: 0.45 }).map((b) => ({ ...b, at: [b.at[0], b.at[1], b.at[2] + 2.4] })),
-          ...[[-1, -12.8, 0x1a1a1e], [0, -13.4, 0x2a2a2e], [1, -12.6, 0x1a1a1e], [-0.4, -14, 0x141418]].map(([x, y, c]) => B([x, y, 2.8], [0.9, 1.8, 0.6], c)), ...[[-0.6, -12.2], [0.6, -12.4]].map(([x, y]) => B([x, y, 3.2], [0.4, 2, 0.3], 0xc8c8d0)), B([0, -12.9, 3.15], [0.4, 0.4, 0.1], 0xc82a2a)], 1.6, [0, -10.5, 2.4])],
+        armL: [band(-6.6, 0.8, gold, 4.8), band(-7.6, 0.9, 0xf6f6f2, 4.7)],
+        // A fistful of car keys: a gold key ring through his left fist, and
+        // hanging from it two keys and three remote fobs on short links, the
+        // valet's numbered ticket clipped on. (The bunch floated under the
+        // fist, fixed to the arm, touching neither: perf/islands.cjs.)
+        handL: valetKeys(gold),
         legR: [...shoes('loafer', { upper: 0x101012, sole: 0x060606 }), B([0, -10.2, 2.7], [1.6, 0.4, 0.3], gold)],
         legL: [...shoes('loafer', { upper: 0x101012, sole: 0x060606 }), B([0, -10.2, 2.7], [1.6, 0.4, 0.3], gold)],
       };
@@ -854,10 +999,13 @@ export const PEOPLE = {
           B([0, 0.8, 0], [8.9, 0.8, 4.9], 0x1a1a1e), B([1.6, 0.6, 2.9], [4, 2.2, 1.4], 0x2a2a2e), B([1.6, 1.4, 3.65], [3.6, 0.3, 0.2], 0xc8a040), B([3.2, 0.5, 3.65], [0.5, 0.8, 0.2], 0xc8a040),
           ...mirrorX([B([-1.4, 11.6, 2.3], [1.6, 0.8, 0.4], 0xe0501a, [0, 0, -0.45])]),
         ],
-        // the fold-out star map, open in her right hand
-        armR: [band(-7.2, 0.6, 0x2a2a2e, 4.6),
-          ...[[0, 0xf4ead0], [2.8, 0xf0e4c4], [5.6, 0xf4ead0]].map(([x, c], i) => B([x, -9.4, 3.4 + (i === 1 ? 0.3 : 0)], [2.8, 5, 0.3], c)),
-          ...[[-8.4, 0.4, 0xe0a020], [-10, 1.6, 0xe8606a], [-8.8, 3.4, 0x3a8ae8], [-10.6, 4.4, 0x5ab04a], [-8, 5.4, 0xe0a020], [-10.8, -0.6, 0x3a8ae8], [-9.4, 2.4, 0x40b0b0]].map(([y, x, c]) => B([x, y, 3.85], [0.9, 0.9, 0.1], c))],
+        armR: [band(-7.2, 0.6, 0x2a2a2e, 4.6)],
+        // The fold-out star map, open in her right hand: gripped by its
+        // inner edge and fanned out away from her side, its face to the
+        // front, folded zig-zag. (It was fixed to the arm and opened inward,
+        // across her hip: walking, the arm swung it through her body.)
+        handR: [...[[0, 0xf4ead0, 2.15], [-2.8, 0xf0e4c4, 2.4], [-5.6, 0xf4ead0, 2.15]].map(([x, c, z]) => B([x - 0.2, -1.6, z], [2.9, 5, 0.3], c)),
+          ...[[-0.6, -0.4, 0xe0a020], [-2.2, -1.6, 0xe8606a], [-1, -3.4, 0x3a8ae8], [-2.8, -4.4, 0x5ab04a], [-0.2, -5.4, 0xe0a020], [-3, 0.6, 0x3a8ae8], [-1.6, -2.4, 0x40b0b0]].map(([y, x, c]) => B([x, y, (x < -1.6 && x > -4.4 ? 2.4 : 2.15) + 0.2], [0.9, 0.9, 0.1], c))],
         armL: [band(-7.2, 0.6, 0x5a3a20, 4.6), band(-6.6, 0.4, 0xe0b030, 4.7)],
         legR: [...footwear('hitop', { upper: 0x1a1a1e, sole: 0xf4f0e8, lace: 0xf4f0e8 }), band(-7.6, 1.4, 0xf4f4f0, 4.6), band(-0.6, 1, shadeOf(0x8a8050, 1.12), 4.8)],
         legL: [...footwear('hitop', { upper: 0x1a1a1e, sole: 0xf4f0e8, lace: 0xf4f0e8 }), band(-7.6, 1.4, 0xf4f4f0, 4.6), band(-0.6, 1, shadeOf(0x8a8050, 1.12), 4.8)],
@@ -887,13 +1035,18 @@ export const PEOPLE = {
         hat: L,
         torso: [B([0, 12, 0], [9.2, 1.4, 5.2], yd), ...[3, 6, 9].map((h) => B([-2.1, h, 2.5], [0.8, 0.8, 0.3], 0x5a4a2a)), ...mirrorX([B([-2.6, 4, 2.45], [1.6, 1.4, 0.3], yd)]),
           B([0.2, 6.6, 2.45], [1, 13, 0.4], 0x6a3a1e, [0, 0, 0.52]), B([0.2, 6.6, -2.45], [1, 13, 0.4], 0x6a3a1e, [0, 0, 0.52])],
-        hips: [...mirrorX([B([-3, -2.6, 0.2], [3, 5.2, 4.8], y)]), B([0, -2.6, -2.3], [9, 5.2, 0.6], y), B([0, -5.3, 0], [9.2, 0.4, 5], yd), B([4.6, -1.4, 0.6], [1.4, 3, 3], 0x6a3a1e)],
-        // the rod, upright in her right fist: a reel, a red-and-white bobber hanging from the tip
-        armR: [band(-7.6, 1, yd, 4.8), B([0, -6, 2.4], [0.8, 34, 0.8], 0x6a4a2a), B([0, 11.6, 2.4], [0.5, 2, 0.5], 0x3a2a1a), B([0, -14, 2.4], [1.1, 4, 1.1], 0x3a2a1a),
-          B([-1.6, -11.4, 2.4], [2.4, 2.4, 2.4], 0x2a2a2a), B([-2.9, -11.4, 2.4], [0.4, 1.6, 1.6], 0xb8b8c0), B([0, 0, 2.4], [1, 0.6, 1], 0xc8a040), B([0, 6, 2.4], [1, 0.6, 1], 0xc8a040),
-          B([0, 6.4, 3.6], [0.15, 6, 0.15], 0xe0e0e0), B([0, 3.4, 3.6], [1.4, 0.8, 1.4], 0xf8f8f4), B([0, 2.6, 3.6], [1.4, 0.8, 1.4], 0xe02a2a), B([0, 4, 3.6], [0.3, 0.6, 0.3], 0xe02a2a)],
-        // the green tackle box in her left hand
-        armL: [band(-7.6, 1, yd, 4.8), B([0, -10.8, 1.2], [0.6, 1.2, 2.4], 0x2a2a2a), B([0, -13.6, 1.2], [3, 4, 5.6], 0x3e6a3a), B([0, -12.2, 1.2], [3.1, 0.4, 5.7], 0x2a4a28), B([1.55, -12.8, 0.2], [0.2, 0.8, 0.8], GOLD), B([1.55, -12.8, 2.2], [0.2, 0.8, 0.8], GOLD)],
+        // the raincoat's skirt (swinging with the legs), a bag at her left hip
+        skirt: [...mirrorX([B([-3, -2.6, 0.2], [3, 5.2, 4.8], y)]), B([0, -2.6, -2.3], [9, 5.2, 0.6], y), B([0, -5.3, 0], [9.2, 0.4, 5], yd)],
+        hips: [B([4.6, -1.4, 0.6], [1.4, 3, 3], 0x6a3a1e)],
+        armR: [band(-7.6, 1, yd, 4.8)],
+        // The rod held out in front of her, its butt in her right fist, a
+        // reel under it and the line falling from the tip to a red-and-white
+        // bobber. (It stood upright along her arm, fixed to it, and as she
+        // walked it swung through her head.)
+        handR: fishingRod(),
+        armL: [band(-7.6, 1, yd, 4.8)],
+        // the green tackle box hanging from her left hand by its handle
+        handL: [B([0, -0.8, 1.2], [0.6, 1.6, 2.4], 0x2a2a2a), B([0, -3.6, 1.2], [3, 4, 5.6], 0x3e6a3a), B([0, -2.2, 1.2], [3.1, 0.4, 5.7], 0x2a4a28), B([1.55, -2.8, 0.2], [0.2, 0.8, 0.8], GOLD), B([1.55, -2.8, 2.2], [0.2, 0.8, 0.8], GOLD)],
         legR: [...shoes('boot', { upper: 0x3e5a2e, sole: 0x1a2a1a, lace: 0x3e5a2e }), band(-6.4, 1.4, 0x34502a, 5)],
         legL: [...shoes('boot', { upper: 0x3e5a2e, sole: 0x1a2a1a, lace: 0x3e5a2e }), band(-6.4, 1.4, 0x34502a, 5)],
       };
@@ -905,7 +1058,8 @@ export const PEOPLE_IDS = Object.keys(PEOPLE);
 export const isPerson = (id) => Object.prototype.hasOwnProperty.call(PEOPLE, id);
 
 // ---------------------------------------------------------------- building
-const SLOTS = ['head', 'torso', 'hips', 'armR', 'armL', 'legR', 'legL'];
+// (handR / handL: what the fists hold, built in the hand's own frame: see hold() in mortals.js)
+const SLOTS = ['head', 'torso', 'hips', 'armR', 'armL', 'handR', 'handL', 'legR', 'legL'];
 const seedOf = (id, k = 7) => { let s = k; for (const ch of id) s = (s * 31 + ch.charCodeAt(0)) >>> 0; return s; };
 const mats = new Map(), kits = new Map(), glowMats = new Map();
 let partM = null;
@@ -942,6 +1096,8 @@ function kitFor(id, def) {
   }
   // (parts.hat: headwear, its own mesh so perf/bodysize.cjs can leave it out; merged with the head in game)
   if (parts.hat?.length) kit.hat = boxGeometry(parts.hat, PX * HS);
+  // (parts.skirt: cloth hung from the hips that swings with the legs, mortals.js skirtPanels)
+  if (parts.skirt?.length) { const { front, back } = skirtPanels(parts.skirt); if (front.length) kit.skirtF = boxGeometry(front, PX); if (back.length) kit.skirtB = boxGeometry(back, PX); }
   if (def.tail) kit.tail = cellMesh(heroTail({ ...def.tail, seed: seed + 3 }), PX * HS, null).geometry;
   kits.set(id, kit);
   return kit;
@@ -964,6 +1120,8 @@ export function buildPerson(id) {
     if (kit.glow[slot]) { const m = rig.mesh(kit.glow[slot], glowMat(def.glow.color, def.glow.ei)); rig[slot].add(m); rig.extras[slot + 'Glow'] = m; }
   }
   if (kit.hat) rig.head.add(markHeadwear(rig.mesh(kit.hat, partM)));
+  // (a skirt's panels are scaled like the hips' other parts on a broad build, below)
+  hangSkirt(rig, kit, partM, def.wide ? [def.wide, 1, 1 + (def.wide - 1) * 0.6] : null);
   if (kit.tail) {
     // long hair down the back on a spring, like Annabeth's ponytail
     const [x, y, z] = def.tail.pivot ?? [0, 7.6, -4.2], piv = new THREE.Group(); piv.position.set(x * PX * HS, y * PX * HS, z * PX * HS);
@@ -982,10 +1140,13 @@ export function buildPerson(id) {
     for (const leg of [rig.legR, rig.legL]) for (const m of leg.children) if (m.isMesh) m.scale.set(1 + (w - 1) * 0.4, 1, 1 + (w - 1) * 0.4);
     for (const m of rig.hips.children) if (m.isMesh) m.scale.set(w, 1, 1 + (w - 1) * 0.6);
   }
-  // a weapon's tip (def.tip: [slot, x, y, z], skin pixels in that part), for perf/weapons.cjs
-  if (def.tip) markTip(rig[def.tip[0]], def.tip[1], def.tip[2], def.tip[3], def.tip[4]);
+  // a weapon's tip (def.tip: [slot, x, y, z], skin pixels in that part), for perf/weapons.cjs;
+  // anything else in a hand has no point to aim (perf/weapons.cjs leaves it be)
+  if (def.tip) markTip(rig.extras[def.tip[0] + 'Parts'] ?? rig[def.tip[0]], def.tip[1], def.tip[2], def.tip[3], def.tip[4]);
+  for (const h of ['handR', 'handL']) for (const m of [rig.extras[h + 'Parts'], rig.extras[h + 'Glow']]) if (m && !(def.tip?.[0] === h && m === rig.extras[h + 'Parts'])) markHeld(m);
+  def.setup?.(rig);
   rig.person = id;
   rig.look = { accent: def.accent ?? 0xc9963a };
-  for (const b of [rig.hips, rig.torso, rig.head, rig.armR, rig.armL, rig.legR, rig.legL]) mergeChildren(rig, b);   // (each limb's skin box and its overlay as one mesh: character.js)
+  for (const b of [rig.hips, rig.torso, rig.head, rig.armR, rig.armL, rig.handR, rig.handL, rig.legR, rig.legL]) mergeChildren(rig, b);   // (each limb's skin box and its overlay as one mesh: character.js)
   return rig;
 }

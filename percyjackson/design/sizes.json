@@ -1070,5 +1070,16 @@
     "note": "under the bear hood, inside the face; Gorgos is being rebuilt (round 8, another pass): look again after it"
    }
   }
+ },
+ "props": {
+  "_note": "perf/props.cjs: what the models hold and wear (grip: a held prop comes out of the fist, not up along the forearm; arm: nothing but the sleeve on a person's or mortal's arm slot; clip: a held prop stays out of the head and torso through idle, walk and run; cloth: a leg doesn't swing through clothing hung from the hips or torso below the hip joint; strike: a person's or mortal's weapon points forward at the strike). A model listed here has been looked at and left as it is for the checks named.",
+  "reviewed": {
+   "minotaur": {
+    "checks": [
+     "cloth"
+    ],
+    "note": "his front and back aprons hang still from the belt and the thighs pass through them as he strides: the owner's choice (round 9: there for modesty, not cloth physics; bossmodels.js)"
+   }
+  }
  }
 }

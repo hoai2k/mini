@@ -609,12 +609,13 @@ suite under other seeds, for example
 `for s in $(seq 1 50); do TEST_SEED=$s node --test test/*.test.mjs | grep '^not ok'; done`.
 
 When a change touches a model or how one moves (`game/js/entities/`), run the
-animation lint, the weapon check and the size check (headless Chromium; each
-prints a table and exits 1 on a failure):
+animation lint, the weapon check, the props check and the size check
+(headless Chromium; each prints a table and exits 1 on a failure):
 
 ```sh
 NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/animlint.cjs   # bodies through the floor, parts flying off, weapons backward at the strike
 NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/weapons.cjs    # every weapon points forward, at rest and in each strike
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/props.cjs      # held props out of the fist (not along the forearm), none through the head or torso, no leg walking through clothing
 NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/bodysize.cjs - '' --check   # every model's size category against Percy (design/sizes.json), and no hero-sized head on a big body
 ```
 

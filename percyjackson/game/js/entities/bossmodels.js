@@ -959,10 +959,17 @@ export const BOSS_MODELS = {
     // the red robe over his shoulders: a draped yoke and two long gold-edged panels down the front
     const reds = [0x8a1218, 0xa01820, 0xb4222a], gold = [0xd8a032, 0xe8b444];
     const panel = (x, y, z, n, h) => { const ax = Math.abs(x); if (ax < 2.9) return [gold[Math.floor(h * 2)], 'm']; return reds[Math.floor((Math.sin(ax * 2.4) * 0.5 + 0.5) * 1.6 + n * 1.4)]; };
+    // (the panels below the waist hang on a flap that swings with the
+    // striding leg, character.js swingSkirt: hung on the torso, they stood
+    // still over the thighs and the legs walked through them, perf/props.cjs)
+    const panelCol = (x, y, z, n, h) => (y < -7.4 + h * 1.4 ? null : panel(x, y, z, n, h));
+    const flap = { front: group(rig.hips), back: group(rig.hips) };
+    vox(rig, flap.front, [-1, 1].map((sx) => ({ b: [sx * 2.6, -8.5, 3.5, sx * 6.4, 0, 4.7], col: panelCol, bump: 0 })), { v: 0.8, seed: 83 }).scale.set(0.68, 1, 0.66);
+    rig.skirt = flap;
     vox(rig, rig.torso, [
       { e: [0, 13.6, 0.2, 2.6, 2.4, 2.2], cut: true, bump: 0, fuzz: 0 },
-      { b: [-2.6, -8.5, 3.5, -6.4, 12.4, 4.7], col: (x, y, z, n, h) => (y < -7.4 + h * 1.4 ? null : panel(x, y, z, n, h)), bump: 0 },
-      { b: [2.6, -8.5, 3.5, 6.4, 12.4, 4.7], col: (x, y, z, n, h) => (y < -7.4 + h * 1.4 ? null : panel(x, y, z, n, h)), bump: 0 },
+      { b: [-2.6, 0, 3.5, -6.4, 12.4, 4.7], col: panelCol, bump: 0 },
+      { b: [2.6, 0, 3.5, 6.4, 12.4, 4.7], col: panelCol, bump: 0 },
       { e: [0, 12.6, -0.2, 8.6, 2.4, 4.8], col: reds, bump: 0.1, fuzz: 0.05 },
       { b: [-2.4, 4, 3.3, -0.6, 11.6, 3.9], col: (x, y) => (Math.abs(x) > 2.3 - (11.6 - y) * 0.05 - 0.6 || y > 10 ? 0xd8c8a8 : null), bump: 0 }, { b: [0.6, 4, 3.3, 2.4, 11.6, 3.9], col: (x, y) => (Math.abs(x) > 2.3 - (11.6 - y) * 0.05 - 0.6 || y > 10 ? 0xd8c8a8 : null), bump: 0 },
     ], { v: 0.8, seed: 82 }, [
@@ -1140,8 +1147,9 @@ export const BOSS_MODELS = {
     for (const leg of [rig.legR, rig.legL]) vox(rig, leg, [], {}, [...kitBoxes(footwear('hitop', { upper: 0x18161c, sole: 0xf0ece0, lace: 0xf0ece0 })), { p: [0, -7.6, 0], s: [4.6, 1, 4.6], c: 0x3a5a90 }]);
     vox(rig, rig.torso, [], {}, [
       ...[0x2a6ab8, 0xc82a1a, 0xf4f0e8, 0x2a8a3a, 0xffd84a].map((c, i) => ({ p: [-2 + i, 11.3 - (i === 2 ? 0.4 : Math.abs(i - 2) === 1 ? 0.2 : 0), 2.3], s: [0.8, 0.8, 0.6], c })),
-      // the scabbard at his hip
-      { p: [-4.6, 0, 1], s: [1.4, 13, 1.8], c: 0x5a3018, r: [0.25, 0, -0.12] }, { p: [-5.4, -6.2, 2.6], s: [1.6, 1.6, 2], c: 0xd8a032, m: 'm', r: [0.25, 0, -0.12] }, { p: [-3.8, 6.4, -0.6], s: [1.8, 1.2, 2.2], c: 0xd8a032, m: 'm', r: [0.25, 0, -0.12] },
+      // the scabbard at his hip, its mouth up and forward, a gold chape on its tip and a gold throat at its mouth
+      // (the two were set at each other's depth, so the chape floated in front of his thigh: perf/islands.cjs)
+      { p: [-4.6, 0, 1], s: [1.4, 13, 1.8], c: 0x5a3018, r: [0.25, 0, -0.12] }, { p: [-5.4, -6.2, -0.6], s: [1.6, 1.6, 2], c: 0xd8a032, m: 'm', r: [0.25, 0, -0.12] }, { p: [-3.8, 6.4, 2.6], s: [1.8, 1.2, 2.2], c: 0xd8a032, m: 'm', r: [0.25, 0, -0.12] },
     ]);
     // Backbiter: half steel, half celestial bronze
     const sword = group(rig.handR, 0, -1, 1, HOLD_PITCH, 0, 0);   // (along +y: see the hand-axis convention in character.js)

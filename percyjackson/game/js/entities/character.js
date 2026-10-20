@@ -404,6 +404,7 @@ export class Rig {
     L(this.handR, 'handRX', T.handRX, 'x'); L(this.handL, 'handLX', T.handLX, 'x');
     L(this.legR, 'legRX', T.legRX, 'x'); L(this.legL, 'legLX', T.legLX, 'x');
     L(this.legR, 'legRZ', T.legRZ, 'z'); L(this.legL, 'legLZ', T.legLZ, 'z');
+    this.swingSkirt();
     // body roll (dodge): turns about the tucked body's centre of mass; the
     // death fall rotates the hips around their pivot
     if (a && (a.type === 'dodge')) this.rollAbout(T.rootX, T.lift);
@@ -509,6 +510,18 @@ export class Rig {
     });
     this.hips.rotation.x = rot; this.hips.position.z = pz;
     return m ? c.divideScalar(m) : c.set(0, 0, 0);
+  }
+  // A skirt, a robe, coat tails or an apron (rig.skirt: { front, back }, the
+  // people's and mortals' "skirt" parts, people.js / mortals.js): cloth hung
+  // from the hips in a front and a back panel, each on a pivot at the hip
+  // joints' height. The front swings with whichever leg strides forward and
+  // the back with whichever trails, about the same axis as the legs, so a
+  // leg never walks through the cloth (perf/props.cjs "cloth"). (The
+  // Minotaur's aprons are his own and hang still: the owner.)
+  swingSkirt() {
+    const s = this.skirt; if (!s) return;
+    const a = this.legR.rotation.x, b = this.legL.rotation.x;
+    s.front.rotation.x = Math.min(a, b, 0); s.back.rotation.x = Math.max(a, b, 0);
   }
   // what the hands hold (left out when a lying body is set on the floor)
   heldParts() { return new Set([...this.handR.children, ...this.handL.children]); }

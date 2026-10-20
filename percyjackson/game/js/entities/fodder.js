@@ -565,7 +565,8 @@ function buildKarpos(K0, slinger = false) {
     for (const [dx, dz] of [[-0.6, -0.5], [0.6, -0.5], [0, 0.6]]) K.box(arm, dx, -5.4, dz, 1.4, 8.4, 1.4, K.tone(STRAW, 0.12));
     K.box(arm, 0, -4, 0, 3, 0.7, 3, twine); K.box(arm, 0, -9.4, 0, 3.2, 1.1, 3.2, twine);
     K.box(arm, 0, -11, 0.2, 3, 2.2, 2.4, gold);
-    for (const [dx, rz] of [[-1.2, 0.3], [-0.4, 0.1], [0.4, -0.1], [1.2, -0.3]]) { K.box(arm, dx, -13.4, 0.4, 0.7, 3.2, 0.7, straw, 0.15, 0, rz); K.box(arm, dx * 1.25, -15.4, 1.2, 0.6, 2, 0.6, gold, 0.7, 0, rz); K.box(arm, dx * 1.3, -16.2, 2.2, 0.45, 1, 0.45, 0x8a5a20, 1.2, 0, rz); }
+    // (each joint tips its lower end forward, a negative turn about x, so it meets the one above: turned the other way they curled back and the fingertips floated in front of the hand, perf/islands.cjs)
+    for (const [dx, rz] of [[-1.2, 0.3], [-0.4, 0.1], [0.4, -0.1], [1.2, -0.3]]) { K.box(arm, dx, -13.4, 0.4, 0.7, 3.2, 0.7, straw, -0.15, 0, rz); K.box(arm, dx * 1.25, -15.4, 1.2, 0.6, 2, 0.6, gold, -0.7, 0, rz); K.box(arm, dx * 1.3, -16.2, 2.2, 0.45, 1, 0.45, 0x8a5a20, -1.2, 0, rz); }
     K.box(arm, -1.6, -11.6, 1, 0.6, 2.4, 0.6, straw, 0.4, 0, 0.6);
   }
   if (slinger) {
@@ -1320,7 +1321,8 @@ function buildShade(K0) {
     for (let i = 0; i < 4; i++) K.box(arm, -1.2 + i * 0.8, -6.4 - K.r() * 1.6, -0.4 + (i % 2) * 0.8, 1, 2.6 + K.r() * 2.4, 1, K.tone([...SH, FADE[0]], 0.12));
     K.box(arm, -0.45, -8.4, 0.3, 0.7, 3.6, 0.7, bone); K.box(arm, 0.45, -8.4, 0.3, 0.6, 3.6, 0.6, boneD); K.box(arm, 0, -6.8, 0.3, 1.4, 0.8, 1.2, boneD);
     K.box(arm, 0, -10.6, 0.5, 2.2, 1.2, 1.6, bone);
-    for (const dx of [-0.8, -0.27, 0.27, 0.8]) { K.box(arm, dx, -12.2, 0.8, 0.35, 2.2, 0.35, bone, 0.25, 0, dx * -0.3); K.box(arm, dx * 1.1, -13.8, 1.6, 0.3, 1.6, 0.3, boneD, 0.8, 0, dx * -0.3); }
+    // (the joints tip forward, a negative turn about x, so each meets the one above: perf/islands.cjs)
+    for (const dx of [-0.8, -0.27, 0.27, 0.8]) { K.box(arm, dx, -12.2, 0.8, 0.35, 2.2, 0.35, bone, -0.25, 0, dx * -0.3); K.box(arm, dx * 1.1, -13.8, 1.6, 0.3, 1.6, 0.3, boneD, -0.8, 0, dx * -0.3); }
     K.box(arm, -1.2, -11, 1, 0.35, 1.8, 0.35, bone, 0.6, 0, 0.7);
   }
   // wisps trailing from the hem, one swaying group
@@ -1371,7 +1373,8 @@ function buildKeres(K0) {
     dropAll(rig, arm);
     K.box(arm, 0, -2.4, 0, 2.8, 5, 2.8, blk); for (let i = 0; i < 3; i++) K.box(arm, -0.9 + i * 0.9, -5.6 - K.r() * 1.4, -0.3, 1, 2.6 + K.r() * 2, 1.4, K.tone(RAG, 0.1));
     K.box(arm, 0, -7.4, 0, 1.4, 5.4, 1.4, pale); K.box(arm, 0, -10.2, 0.2, 2.2, 1.2, 1.6, pale);
-    for (const dx of [-0.9, -0.3, 0.3, 0.9]) { K.box(arm, dx, -12, 0.6, 0.5, 2.6, 0.5, redD, 0.25, 0, dx * -0.2); K.box(arm, dx * 1.1, -14, 1.5, 0.45, 2.2, 0.45, red, 0.6, 0, dx * -0.2); K.box(arm, dx * 1.15, -15.4, 2.8, 0.3, 1.4, 0.3, 0xff8a8a, 1, 0, dx * -0.2); }
+    // (the talons' joints tip forward, a negative turn about x, so each meets the one above: turned the other way they floated in front of the hand, perf/islands.cjs)
+    for (const dx of [-0.9, -0.3, 0.3, 0.9]) { K.box(arm, dx, -12, 0.6, 0.5, 2.6, 0.5, redD, -0.25, 0, dx * -0.2); K.box(arm, dx * 1.1, -14, 1.5, 0.45, 2.2, 0.45, red, -0.6, 0, dx * -0.2); K.box(arm, dx * 1.15, -15.4, 2.8, 0.3, 1.4, 0.3, 0xff8a8a, -1, 0, dx * -0.2); }
   }
   rig.extras.claws = [rig.handR, rig.handL];
   // great bat wings: black membrane between bony fingers veined in glowing red, ragged at the trailing edge

@@ -17,7 +17,9 @@
 // The head (and any group named hair or mane) is what the check is about:
 // a mane or beard with a floating clump. --all also lists islands on the
 // other parts (a pendant, a strap end or a dangling charm may be meant).
-// --check exits 1 when a head, hair or mane group has an island that
+// --check exits 1 when a head, hair or mane group, or what an upright
+// model holds (a hand group: the people's and mortals' handR / handL props,
+// a weapon), has an island that
 // design/sizes.json "islands.reviewed" does not list (by its place, within
 // 1 px) as looked at and found to be meant: a fringe flat on a forehead,
 // fangs on a jaw that is its own group.
@@ -193,22 +195,24 @@ async function serve() {
   }, { only: ONLY, GRID, MIN, FACE });
   if (OUT) fs.writeFileSync(OUT, JSON.stringify(res, null, 1));
   const hairy = (part) => /^(head|neck)$|hair|mane|beard/i.test(part) && !/flame/i.test(part);   // (flame hair is loose tongues of fire by design)
+  // (what an upright model holds: a hand group's pieces are one prop or a few, each held in the fist; a QuadRig's "hands" are its jaw, in halves)
+  const checked = (r, part) => hairy(part) || (!r.quad && /^hand[RL]$/.test(part));
   const spec = fs.existsSync(SPEC) ? JSON.parse(fs.readFileSync(SPEC, 'utf8')) : {};
   const reviewed = spec.islands?.reviewed ?? {};
   const known = (key, i) => (reviewed[key]?.at ?? []).some((p) => Math.hypot(p[0] - i.at[0], p[1] - i.at[1], p[2] - i.at[2]) <= 1);
   let n = 0, bad = 0;
   for (const r of res) {
     if (r.error) { console.log(`${r.key}: ERROR ${r.error}`); bad++; continue; }
-    const list = r.islands.filter((i) => ALL || hairy(i.part));
+    const list = r.islands.filter((i) => ALL || checked(r, i.part));
     if (!list.length) continue;
     for (const i of list) {
-      const ok = hairy(i.part) && known(r.key, i);
-      const flag = hairy(i.part) && !ok;
+      const ok = checked(r, i.part) && known(r.key, i);
+      const flag = checked(r, i.part) && !ok;
       n++; if (flag) bad++;
       console.log(`${flag ? 'FLOAT' : '     '} ${(r.key + (r.quad ? ' (q)' : '')).padEnd(26)} ${i.part.padEnd(10)} ${String(i.cells).padStart(4)} cells (part ${i.main}), ${Math.round(i.touch * 100)}% against it, at [${i.at.join(', ')}]${ok ? `  (reviewed: ${reviewed[r.key].note})` : ''}`);
     }
   }
-  console.log(`\nislands (grid ${GRID} px, ${MIN}+ cells): ${res.length} models, ${n} listed, ${bad} on a head, hair or mane not reviewed (design/sizes.json islands); page errors ${errs.length}`, errs.slice(0, 3));
+  console.log(`\nislands (grid ${GRID} px, ${MIN}+ cells): ${res.length} models, ${n} listed, ${bad} on a head, hair, mane or held prop not reviewed (design/sizes.json islands); page errors ${errs.length}`, errs.slice(0, 3));
   await b.close();
   process.exit(errs.length || (CHECK && bad) ? 1 : 0);
 })();

@@ -4,14 +4,15 @@
 // with glints, noses, lips, knits, florals, checks and stitching), grid-voxel
 // hair (buns, perms, pompadours, beards) and block clothing and props (hats,
 // collars, lapels, skirts, shoes, bags) merged into one vertex-coloured mesh
-// per limb. Skins, materials and geometry are built once per look and shared,
+// per limb (held props in the hands' own slots, handR / handL, and skirts on
+// panels that swing with the legs, skirt: see people.js). Skins, materials and geometry are built once per look and shared,
 // so spawning a crowd never compiles a shader or rebuilds a mesh.
 //
 // The cast: a sour maths teacher in a black leather jacket (Mrs. Dodds), a
 // student, a tourist, a farmer, an old lady, a Lotus Casino bellhop and a
 // salesman. paintPerson is also used by the humanoid monsters and bosses.
 import * as THREE from 'three/webgpu';
-import { Skin, Rig, makeCharMaterial, PX, mergeChildren } from './character.js';
+import { Skin, Rig, makeCharMaterial, PX, HOLD_PITCH, mergeChildren, markHeld, markTip } from './character.js';
 import { cellMesh, footwear, beads } from './herovox.js';
 import { mulberry32 } from '../util.js';
 import { t as txt } from '../text_config.js';
@@ -273,6 +274,61 @@ function turn(list, rot) {
   return list.map((b) => { const p = new THREE.Vector3(...b.at).applyMatrix4(m); return { ...b, at: [p.x, p.y, p.z], rot }; });
 }
 const band = (y, h, c, w = 4.6) => B([0, y, 0], [w, h, w], c);
+// Move a list of boxes by [dx, dy, dz].
+const at = (list, [dx, dy, dz]) => list.map((b) => ({ ...b, at: [b.at[0] + dx, b.at[1] + dy, b.at[2] + dz] }));
+// A prop held in a fist (the parts' handR / handL slots: the hand's own
+// frame, skin pixels, origin at the bottom of the fist; see the hand-axis
+// convention at HOLD_PITCH in character.js). list: the prop's boxes built in
+// its own frame, its grip at the origin; rot: its turn (radians, XYZ) and at:
+// where its grip sits in the hand. Each box keeps its own turn on top of the
+// prop's (turn() above replaces it). A prop held in the hand turns with the
+// wrist, so the attacks cock it forward and a walk carries it level, where
+// one drawn on the arm slot stays fixed along the forearm.
+const _q1 = new THREE.Quaternion(), _q2 = new THREE.Quaternion();
+function hold(list, { rot = [0, 0, 0], at = [0, 0, 0] } = {}) {
+  const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(...rot));
+  return list.map((b) => {
+    const p = new THREE.Vector3(...b.at).applyQuaternion(q);
+    _q1.copy(q); if (b.rot) _q1.multiply(_q2.setFromEuler(new THREE.Euler(...b.rot)));
+    const e = new THREE.Euler().setFromQuaternion(_q1);
+    return { ...b, at: [p.x + at[0], p.y + at[1], p.z + at[2]], rot: [e.x, e.y, e.z] };
+  });
+}
+// where a point p of a prop held with hold() lands in the hand (a weapon's tip mark)
+function heldAt(p, { rot = [0, 0, 0], at = [0, 0, 0] } = {}) {
+  const v = new THREE.Vector3(...p).applyEuler(new THREE.Euler(...rot));
+  return [+(v.x + at[0]).toFixed(2), +(v.y + at[1]).toFixed(2), +(v.z + at[2]).toFixed(2)];
+}
+// a long-shafted tool held as a weapon: at the hand-axis angle, gripped a third of the way up (the farmer's pitchfork)
+const FORK_GRIP = { rot: [HOLD_PITCH, 0, 0], at: [0, -1, 1] };
+
+// A skirt, robe, coat tails or apron (the parts' "skirt" slot, hips frame):
+// split into the front and back panels the rig swings with the legs
+// (character.js swingSkirt). A box across the hips' middle (z = 0) is cut
+// in two there; a turned box goes whole to the side its centre is on.
+function skirtPanels(list) {
+  const front = [], back = [];
+  for (const b of list) {
+    const [x, y, z] = b.at, d = b.size[2];
+    if (b.rot || z - d / 2 >= 0 || z + d / 2 <= 0) { (z >= 0 ? front : back).push(b); continue; }
+    const f = z + d / 2, k = d / 2 - z;   // (the depths in front of and behind z = 0)
+    front.push({ ...b, at: [x, y, f / 2], size: [b.size[0], b.size[1], f] });
+    back.push({ ...b, at: [x, y, -k / 2], size: [b.size[0], b.size[1], k] });
+  }
+  return { front, back };
+}
+// Hang the skirt panels' geometry (kit.skirtF / skirtB) on the hips, each on
+// its own pivot (rig.skirt), scaled like the hips' other parts (scale).
+function hangSkirt(rig, kit, mat, scale = null) {
+  if (!kit.skirtF && !kit.skirtB) return;
+  const s = { front: new THREE.Group(), back: new THREE.Group() };
+  for (const [k, g] of [['skirtF', s.front], ['skirtB', s.back]]) {
+    g.name = k === 'skirtF' ? 'skirtFront' : 'skirtBack'; rig.hips.add(g);
+    if (!kit[k]) continue;
+    const m = rig.mesh(kit[k], mat); if (scale) m.scale.set(...scale); g.add(m);
+  }
+  rig.skirt = s;
+}
 
 // Shoes on a leg (the leg runs from y 0 at the hip to y -12). kind: 'loafer'
 // (dress shoe; toe: a two-tone toe cap), 'heel' (heeled ankle boot), 'sandal',
@@ -423,9 +479,15 @@ export const MORTALS = {
           B([-2.1, 4.6, 2.55], [0.5, 1, 0.3], SILVER),
           B([1.4, 8.6, 2.2], [1.2, 1.2, 0.4], 0xd8d8e0), B([1.4, 8.6, 2.42], [0.6, 0.6, 0.3], 0x9a1a2e),   // a brooch
         ],
-        hips: [B([0, 0.2, 0], [9, 1, 4.9], 0x0e0e10), B([0, 0.2, 2.5], [1.6, 0.8, 0.3], SILVER), B([0, -3.4, 0], [8.8, 7, 4.8], 0x1e1c22), B([0, -6.9, 0], [9, 0.6, 5], 0x141216), B([1.6, -5.6, 2.42], [0.4, 2.4, 0.2], 0x0e0e10)],
-        armR: [band(-7.6, 1, 0x101014, 4.8), B([0, -9.2, 2.6], [0.5, 0.5, 4], 0xc81e1e, [0.4, 0, 0]), B([0, -8.4, 4.4], [0.6, 0.6, 0.8], 0x1a1a1a, [0.4, 0, 0])],
-        armL: [band(-7.6, 1, 0x101014, 4.8), B([0, -10.8, 2.8], [4, 4.8, 1.2], 0x7a1420), B([0, -10.8, 2.3], [3.6, 4.4, 0.4], 0xf0ece0), B([0, -10.8, 3.45], [1.8, 1, 0.1], 0xe0c080)],
+        hips: [B([0, 0.2, 0], [9, 1, 4.9], 0x0e0e10), B([0, 0.2, 2.5], [1.6, 0.8, 0.3], SILVER)],
+        // the pencil skirt, with its slit (swinging with the legs)
+        skirt: [B([0, -3.4, 0], [8.8, 7, 4.8], 0x1e1c22), B([0, -6.9, 0], [9, 0.6, 5], 0x141216), B([1.6, -5.6, 2.42], [0.4, 2.4, 0.2], 0x0e0e10)],
+        armR: [band(-7.6, 1, 0x101014, 4.8)],
+        armL: [band(-7.6, 1, 0x101014, 4.8)],
+        // a red marking pen in her right fist, a red grade book in her left (both fixed to the arm before)
+        // (the cap on the pen's end: it sat 1.6 px above it, floating, perf/islands.cjs)
+        handR: [B([0, 0.8, 2.6], [0.5, 0.5, 4], 0xc81e1e, [0.4, 0, 0]), B([0, 0.1, 4.3], [0.6, 0.6, 0.8], 0x1a1a1a, [0.4, 0, 0])],
+        handL: [B([0, -0.8, 2.6], [4, 4.8, 1.2], 0x7a1420), B([0, -0.8, 2.1], [3.6, 4.4, 0.4], 0xf0ece0), B([0, -0.8, 3.25], [1.8, 1, 0.1], 0xe0c080)],
         legR: shoes('heel', { upper: 0x141216, sole: 0x0a0a0a }), legL: shoes('heel', { upper: 0x141216, sole: 0x0a0a0a }),
       };
     },
@@ -479,21 +541,25 @@ export const MORTALS = {
         hips: [B([0, 0.4, 0], [8.7, 0.7, 4.7], 0x146462), B([0.6, 0.1, 2.7], [5, 2.2, 1.4], 0x1a9a96), B([0.6, 0.7, 3.42], [4.2, 0.3, 0.2], 0xd8d8d8), B([2.7, 0.7, 3.5], [0.4, 0.6, 0.2], 0xd8d8d8)],
         legR: [...shoes('sandal', { upper: 0x7a4422, sole: 0x5a3018 }), band(-4.7, 1, 0x9a8250, 4.7), B([-2.4, -2.4, 0], [0.4, 2.2, 2.4], 0xa48a58)],
         legL: [...shoes('sandal', { upper: 0x7a4422, sole: 0x5a3018 }), band(-4.7, 1, 0x9a8250, 4.7), B([2.4, -2.4, 0], [0.4, 2.2, 2.4], 0xa48a58)],
-        // a folded map in the left hand
-        armL: [B([0, -11, 2.4], [4, 3.4, 0.4], 0xf0e6c0, [0.2, 0, 0]), B([0.6, -11, 2.65], [1.2, 2.8, 0.1], 0x4aa0d8, [0.2, 0, 0]), B([-1.2, -10.6, 2.65], [1, 1, 0.1], 0x6ab85a, [0.2, 0, 0])],
+        // a folded map in the left fist (fixed to the arm before)
+        handL: [B([0, -1, 2.15], [4, 3.4, 0.4], 0xf0e6c0, [0.2, 0, 0]), B([0.6, -1, 2.4], [1.2, 2.8, 0.1], 0x4aa0d8, [0.2, 0, 0]), B([-1.2, -0.6, 2.4], [1, 1, 0.1], 0x6ab85a, [0.2, 0, 0])],
         armR: [band(-6.4, 0.9, 0x2a2a30, 4.5), B([0, -6.4, 2.35], [1.4, 1.2, 0.3], 0xd8d8e0)],
       };
     },
   },
   farmer: {
     name: txt('mortals.farmer.name'), blurb: txt('mortals.farmer.blurb'),
+    tip: ['handR', ...heldAt([0, 21.9, 0], FORK_GRIP), 'pitchfork'],
     skullHeight: true,   // (measured to the skull, under a cap or hat or cropped hair: ADULT_SCALE_HAT)
     paint: { skin: 0xd8946a, hair: 0x6e5e4c, fringe: 1, hairSide: 3, hairBack: 5, eyeRow: 3, eye: 0x3a5a7a, brow: 0x5a4a3a, smile: true, nose: 0xd27a5c, beard: 0x7e6e5a, wrinkles: 0xb47c5a, top: 0xb4281e, plaid: 0x4a100a, overalls: 0x2c5694, pants: 0x2c5694, shoes: 0x5a3820, saturate: 1.15 },
     hair: { c: [0, 6.4, -0.6], r: [4.8, 3.6, 5], bump: 0.2, shell: 1.2, fringe: 6.6, jag: 0, side: 2.6, back: 1.4, top: 8.3, tuft: 0.08, tones: [0x4e4234, 0x6e5e4c, 0x968672] },
     beard: [0x5e5040, 0x7e6e5a, 0xa09078],
     parts() {
       const denim = 0x2c5694, brass = 0xd8a840, wood = 0x8a643a, steel = 0x9aa0a8;
-      const fork = turn([B([0, 4, 0], [1, 26, 1], wood), B([0, 16.6, 0], [4.6, 0.9, 0.9], steel), ...[-1.8, -0.6, 0.6, 1.8].map((x) => B([x, 19.4, 0], [0.5, 5, 0.5], steel)), B([0, 17.6, 0], [1.2, 1.4, 1.2], steel)], [-0.25, 0, 0]);
+      // the pitchfork gripped a third of the way up its shaft, the tines out in
+      // front at the hand-axis angle (it stood up along his forearm and over
+      // his shoulder, fixed to the arm): built along +y, the grip at the origin
+      const fork = hold([B([0, 4, 0], [1, 26, 1], wood), B([0, 16.6, 0], [4.6, 0.9, 0.9], steel), ...[-1.8, -0.6, 0.6, 1.8].map((x) => B([x, 19.4, 0], [0.5, 5, 0.5], steel)), B([0, 17.6, 0], [1.2, 1.4, 1.2], steel)], FORK_GRIP);
       return {
         hat: strawHat({ brim: 13, crown: 8.4, straw: 0xd4b468, band: 0x5a3018, seed: 9 }),
         head: [B([2.2, 1.6, 5.4], [0.35, 0.35, 3.4], 0xe8d070, [0, 0.7, 0.15])],
@@ -502,7 +568,8 @@ export const MORTALS = {
           ...mirrorX([B([-2.3, 10.4, 2.4], [1.1, 3.4, 0.4], denim), B([-2.3, 9, 2.68], [0.9, 0.9, 0.3], brass), B([-2.3, 11.6, 0], [1.1, 0.4, 4.6], denim)]),
           B([0, 6.8, 2.4], [3, 2.2, 0.3], 0x24467c), B([0.7, 7.6, 2.6], [0.4, 1.6, 0.3], 0xe0b010),
         ],
-        armR: [band(-5.2, 1.2, 0x8a1810, 4.7), ...fork.map((b) => ({ ...b, at: [b.at[0], b.at[1] - 10, b.at[2] + 1.6] }))],
+        armR: [band(-5.2, 1.2, 0x8a1810, 4.7)],
+        handR: fork,
         armL: [band(-5.2, 1.2, 0x8a1810, 4.7)],
         legR: [...shoes('boot', { upper: 0x5a3820, sole: 0x2e1e12, lace: 0xc8a060 }), band(-6.2, 1.1, shadeOf(denim, 1.15), 4.8)],
         legL: [...shoes('boot', { upper: 0x5a3820, sole: 0x2e1e12, lace: 0xc8a060 }), band(-6.2, 1.1, shadeOf(denim, 1.15), 4.8)],
@@ -525,16 +592,18 @@ export const MORTALS = {
           ...beads([0xf8f4ec, 0xe8e0d8], { y: 11, z: 2.4, n: 9 }).map((b) => ({ ...b, size: [0.85, 0.85, 0.7] })),
           ...mirrorX([B([-1.6, 11.6, 2.35], [2.6, 1, 0.4], 0xf6eedc, [0, 0, -0.35]), B([-2.4, 2.8, 2.35], [2.4, 2.2, 0.4], shadeOf(purple, 0.8))]),
         ],
-        hips: [B([0, -4.4, 0], [8.8, 9.6, 4.8], 0x46205a), B([0, -8.8, 0], [9.4, 1.6, 5.4], 0x46205a), B([0, -9.7, 0], [9.5, 0.4, 5.5], 0xf6eedc), B([0, 0.4, 0], [8.9, 0.8, 4.9], 0x2e1238)],
-        armL: [
+        hips: [B([0, 0.4, 0], [8.9, 0.8, 4.9], 0x2e1238)],
+        skirt: [B([0, -4.4, 0], [8.8, 9.6, 4.8], 0x46205a), B([0, -8.8, 0], [9.4, 1.6, 5.4], 0x46205a), B([0, -9.7, 0], [9.5, 0.4, 5.5], 0xf6eedc)],   // (swinging with the legs)
+        // the handbag hung on her left wrist by its handles (on the hand, so it turns with the wrist)
+        handL: at([
           B([2.6, -9.6, 0.6], [2, 4.4, 4.8], plum), B([2.6, -7.3, 0.6], [2.1, 0.5, 4.9], shadeOf(plum, 0.7)), B([3.7, -7.8, 0.6], [0.3, 0.8, 1.4], g),
           B([2.4, -6.4, -1.0], [0.5, 2.2, 0.5], shadeOf(plum, 0.7)), B([2.4, -6.4, 2.2], [0.5, 2.2, 0.5], shadeOf(plum, 0.7)), B([2.4, -5.4, 0.6], [0.5, 0.5, 3.6], shadeOf(plum, 0.7)),
           B([2.4, -7, 1.6], [1.8, 1.8, 1.8], 0xc82a3a), B([2.4, -7, 1.6], [1.9, 0.4, 1.9], 0xe85060),
-        ],
-        // knitting: crossed needles and a long striped sock
-        armR: [
-          B([0, -10.6, 2.6], [0.35, 0.35, 7], 0xd8d8e0, [0.5, 0.35, 0]), B([0, -10.6, 2.6], [0.35, 0.35, 7], 0xd8d8e0, [0.5, -0.35, 0]),
-          B([0, -12.8, 3.6], [2.8, 3.6, 0.7], 0xc82a3a), B([0, -13.4, 3.6], [2.9, 0.8, 0.8], 0xf6eedc), B([0, -15.4, 4.2], [2.8, 1.6, 1.8], 0xc82a3a),
+        ], [0, 8.8, 0]),
+        // knitting in her right fist: crossed needles and a long striped sock (fixed to the arm before)
+        handR: [
+          B([0, -0.6, 2.6], [0.35, 0.35, 7], 0xd8d8e0, [0.5, 0.35, 0]), B([0, -0.6, 2.6], [0.35, 0.35, 7], 0xd8d8e0, [0.5, -0.35, 0]),
+          B([0, -2.8, 3.6], [2.8, 3.6, 0.7], 0xc82a3a), B([0, -3.4, 3.6], [2.9, 0.8, 0.8], 0xf6eedc), B([0, -5.4, 4.2], [2.8, 1.6, 1.8], 0xc82a3a),
         ],
         legR: shoes('granny', { upper: 0x3a1a26, sole: 0x1a0c10 }), legL: shoes('granny', { upper: 0x3a1a26, sole: 0x1a0c10 }),
       };
@@ -555,8 +624,10 @@ export const MORTALS = {
           B([2.6, 9.6, 2.5], [1.4, 1.4, 0.4], pink), B([2.6, 9.6, 2.7], [0.6, 0.6, 0.2], 0xfff0a0),
         ],
         armR: [band(-7.2, 0.9, 0xf6f6f2, 4.7)],
-        armL: [band(-7.2, 0.9, 0xf6f6f2, 4.7), B([0, -11.4, 2.5], [9, 0.6, 7], 0xc8c8d4), B([0, -11.1, 2.5], [9.2, 0.3, 7.2], 0xe4e4ec),
-          B([1.5, -9.9, 2.5], [1.6, 2.4, 1.6], pink), B([1.5, -8.6, 2.5], [2.4, 0.6, 2.4], 0xf6c0dc), B([-2, -10.4, 3.5], [1.6, 1.4, 1.6], 0xf4d0e0), B([-2, -10.6, 1], [1.2, 1.8, 1.2], 0xe8e4f0)],
+        armL: [band(-7.2, 0.9, 0xf6f6f2, 4.7)],
+        // a silver tray on his left palm (on the hand, so it turns with the wrist; fixed to the arm before)
+        handL: [B([0, -1.4, 2.5], [9, 0.6, 7], 0xc8c8d4), B([0, -1.1, 2.5], [9.2, 0.3, 7.2], 0xe4e4ec), B([0, -0.5, 0.6], [2, 1, 2], 0xf6f6f2),
+          B([1.5, 0.1, 2.5], [1.6, 2.4, 1.6], pink), B([1.5, 1.4, 2.5], [2.4, 0.6, 2.4], 0xf6c0dc), B([-2, -0.4, 3.5], [1.6, 1.4, 1.6], 0xf4d0e0), B([-2, -0.6, 1], [1.2, 1.8, 1.2], 0xe8e4f0)],
         legR: shoes('loafer', { upper: 0x101012, sole: 0x060606 }), legL: shoes('loafer', { upper: 0x101012, sole: 0x060606 }),
       };
     },
@@ -578,9 +649,10 @@ export const MORTALS = {
           ...[2.6, 1.4].map((y) => B([0, y, 2.55], [0.6, 0.6, 0.3], 0x3a2410)),
         ],
         armR: [band(-7.2, 0.9, 0xf4f0e4, 4.7), band(-8.2, 0.9, gold, 4.65), B([0, -8.2, 2.4], [1.4, 1.2, 0.3], 0xf8f4e0)],
-        armL: [band(-7.2, 0.9, 0xf4f0e4, 4.7),
-          B([0, -15.4, 0.4], [2.4, 5.4, 7.4], brown), B([0, -15.4, 0.4], [2.5, 0.5, 7.5], shadeOf(brown, 0.7)), B([0, -12.5, 0.4], [0.7, 1, 2.8], 0x2a1608), B([0, -11.9, 0.4], [0.7, 0.4, 2.8], 0x2a1608),
-          ...[-1.2, 1.2].flatMap((z) => [B([1.3, -13.6, z + 0.4], [0.2, 0.8, 0.8], gold), B([-1.3, -13.6, z + 0.4], [0.2, 0.8, 0.8], gold)])],
+        armL: [band(-7.2, 0.9, 0xf4f0e4, 4.7)],
+        // the briefcase hanging from his left fist by its handle (it hung clear of the fist, fixed to the arm)
+        handL: at([B([0, -15.4, 0.4], [2.4, 5.4, 7.4], brown), B([0, -15.4, 0.4], [2.5, 0.5, 7.5], shadeOf(brown, 0.7)), B([0, -12.5, 0.4], [0.7, 1, 2.8], 0x2a1608), B([0, -11.9, 0.4], [0.7, 0.4, 2.8], 0x2a1608),
+          ...[-1.2, 1.2].flatMap((z) => [B([1.3, -13.6, z + 0.4], [0.2, 0.8, 0.8], gold), B([-1.3, -13.6, z + 0.4], [0.2, 0.8, 0.8], gold)])], [0, 11.8, 0]),
         legR: [...shoes('loafer', { upper: 0x5a2e14, sole: 0x2a160a, toe: 0xf0ece0 }), band(-8.8, 0.9, 0xa47a22, 4.7)],
         legL: [...shoes('loafer', { upper: 0x5a2e14, sole: 0x2a160a, toe: 0xf0ece0 }), band(-8.8, 0.9, 0xa47a22, 4.7)],
       };
@@ -594,7 +666,8 @@ export const mortalId = (id) => (MORTALS[id] ? id : 'student');
 // geometry of each mortal's parts per rig slot, built on first use.
 let partM = null;
 const kits = new Map();
-const SLOTS = ['head', 'torso', 'hips', 'armR', 'armL', 'legR', 'legL'];
+// (handR / handL: props held in the fist, in the hand's frame: they turn with the wrist)
+const SLOTS = ['head', 'torso', 'hips', 'armR', 'armL', 'handR', 'handL', 'legR', 'legL'];
 function kitFor(id, def) {
   if (kits.has(id)) return kits.get(id);
   const parts = def.parts?.() ?? {}, kit = {};
@@ -610,6 +683,8 @@ function kitFor(id, def) {
   }
   // (parts.hat: headwear on the head, its own mesh so perf/bodysize.cjs can leave it out; merged with the head in game)
   if (parts.hat?.length) kit.hat = boxGeometry(parts.hat, PX * HS);
+  // (parts.skirt: cloth hung from the hips that swings with the legs: skirtPanels above)
+  if (parts.skirt?.length) { const { front, back } = skirtPanels(parts.skirt); if (front.length) kit.skirtF = boxGeometry(front, PX); if (back.length) kit.skirtB = boxGeometry(back, PX); }
   kits.set(id, kit);
   return kit;
 }
@@ -644,14 +719,17 @@ export function buildMortal(id) {
     const m = rig.mesh(kit[slot], partM);
     rig[slot].add(m);
     rig.extras[slot === 'head' ? 'hair' : slot + 'Parts'] = m;
+    // (what a hand holds: a pointed prop names its tip, def.tip, for perf/weapons.cjs; anything else has no point to aim)
+    if (slot.startsWith('hand')) { if (def.tip?.[0] === slot) markTip(m, def.tip[1], def.tip[2], def.tip[3], def.tip[4]); else markHeld(m); }
   }
   if (kit.hat) rig.head.add(markHeadwear(rig.mesh(kit.hat, partM)));
+  hangSkirt(rig, kit, partM);
   if (!def.kid) adultHead(rig);
   def.pose?.(rig);
   rig.mortal = id;
-  for (const b of [rig.hips, rig.torso, rig.head, rig.armR, rig.armL, rig.legR, rig.legL]) mergeChildren(rig, b);   // (each limb's skin box and its overlay as one mesh: character.js)
+  for (const b of [rig.hips, rig.torso, rig.head, rig.armR, rig.armL, rig.handR, rig.handL, rig.legR, rig.legL]) mergeChildren(rig, b);   // (each limb's skin box and its overlay as one mesh: character.js)
   return rig;
 }
 
 // Building blocks shared with the open world's people (people.js).
-export { B, mirrorX, turn, band, shoes, strawHat, hairCells, beardCells, boxGeometry, mergeGeometries, inHead, shadeOf, mixC };
+export { B, mirrorX, turn, hold, heldAt, skirtPanels, hangSkirt, band, shoes, strawHat, hairCells, beardCells, boxGeometry, mergeGeometries, inHead, shadeOf, mixC };
