@@ -108,8 +108,9 @@ millisecond, and `measure()` runs only when a model is selected.
   - Two or more monsters of a kind are drawn part by part as instanced
     meshes (`gfx/crowd.js`, see "Second round" below).
   - A hit flash swaps a rig's meshes to the shared `FLASH_MATERIAL`.
-  - Greedy merging happens only in Cerberus's boss kit (`rig.merge`) and
-    along x in the fodder blobs.
+  - Greedy merging happens only in the boss kit for Cerberus and the
+    Chimera (`rig.merge`; the Chimera, a single boss on screen, has a
+    budget of about 70k triangles) and along x in the fodder blobs.
   - Flames are one dynamic mesh per model.
 - **World.**
   - `world/voxel.js`: 16³ chunks, each one indexed mesh with only the

@@ -723,7 +723,7 @@ export const BOSS_MODELS = {
       { e: S([0, -0.4, 8, 2.6, 1.9, 2.6]), col: (x, y) => (y < -1 * k ? 0xf8cc78 : [0xe88932, 0xf6a444][Math.floor(hash3(Math.floor(x * 2), Math.floor(y * 2), 1, 1) * 2)]), bump: 0.05, fuzz: 0.05 },
       ...[-1, 1].map((sx) => ({ e: S([sx * 3.4, 4.6, 1.8, 1.1, 1.1, 0.7]), col: 0x8a5220 })),          // round ears in the mane
       { e: S([0, 1, 2.6, 4.2, 4, 4]), col: tone(TAN, 1 * k, 4 * k, 4) },
-      { e: S([0, 0.4, 0.6, 5.8, 6.5, 4.2]), col: (x, y, z, n) => (z > 3.4 * k && Math.abs(x) < 4.2 * k && y > -3.4 * k ? null : maneC[Math.min(5, Math.floor(n * 6))]), fuzz: 0.32, bump: 0.22 },
+      { e: S([0, 0.4, 0.6, 5.8, 6.5, 4.2]), col: (x, y, z, n) => ((z > 3.4 * k && Math.abs(x) < 4.2 * k && y > -3.4 * k) || y < -6.1 * k ? null : maneC[Math.min(5, Math.floor(n * 6))]), fuzz: 0.32, bump: 0.22 },
       { e: S([0, 0, -1.8, 5, 5.6, 3]), col: maneC, fuzz: 0.32, bump: 0.22 },
     ], { v: 0.8, seed: 36 }, [
       ...[[1.4, 9.2, 1.9], [1.6, 7.4, 1.2]].flatMap(([x, z, l]) => [-1, 1].map((sx) => ({ p: [sx * x * k, (-2.2 - l / 2) * k, z * k], s: [0.7 * k, l * k, 0.7 * k], c: 0xfff4e0 }))),

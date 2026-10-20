@@ -1074,11 +1074,23 @@ without his horns, against the wiki's tall 5 ft 9 in.
     for the owner's longer legs);
   - the leg root over the body height (the bodysize table's leg/body): 0.26
     → 0.46.
-- **Voxels:** the triangle budget (about 45k for a boss) keeps it short of a
-  hero's density. The cells are greedy-meshed (`rig.merge`). Body cells are
-  0.16 m and head cells 0.13 m, where a hero's cube is 0.06 m: about 43k
-  triangles, against 38k before. Across its body it has about twice as many
-  cells as before.
+- **Voxels:** first cut to a boss's 45k triangles, with body cells of
+  0.16 m and head cells of 0.13 m (a hero's cube is 0.06 m): 43.6k
+  triangles. Round 10, the owner raised its budget to about 70k (hard cap
+  75k), as it is a single boss on screen:
+  - cells of 0.10 m on the body and legs, 0.085 m on the heads, 0.075 m on
+    the paws and hooves and 0.13 m on the serpent tail (`VD.chimera 1.85`,
+    `chimeraHead 1.75`, `chimeraTail 1.3`);
+  - still greedy-meshed (`rig.merge`); its tone jitter and ragged edge are
+    picked per block of 3 cells (`rig.hg = 3`), so the merging can join
+    them;
+  - 69.6k triangles, the same 25 meshes and the kit's 4 materials as before
+    (no new material or draw).
+- **Colours** (round 10, sampled off the sheet by pixel): a warm tawny lion
+  (`TAN`, orange mane `maneC`, a bright muzzle) over a cream belly; a
+  darker, browner goat rear (`PALE`) on dark grey-brown goat legs (`GLEG`)
+  ending in dark cloven hooves; the goat's head and neck charcoal-brown
+  (`greyF`); the serpent tail in dark and gold bands.
 - **The arena:** the observation deck (`world/rooms.js`, `DRESS.arch.boss`)
   was 13 blocks wide with a 5-block ceiling. It is now 19 wide and 8 high
   (`archHall` `half: 9, rise: 3`), so a 6-block-tall boss can move in it.
