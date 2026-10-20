@@ -27,7 +27,7 @@ document.querySelectorAll('[data-icon]').forEach((el) => {
 });
 
 const COLORS = ['#ff3b30', '#ff9500', '#ffcc00', '#34c759', '#0a84ff', '#af52de', '#ffffff', '#111111'];
-const DEFAULT_STYLE = { color: '#ff3b30', width: 8, opacity: 1, font: 'sans', fontSize: 44, box: false };
+const DEFAULT_STYLE = { color: '#ff3b30', width: 8, opacity: 1, font: 'sans', fontSize: 44, box: false, outline: 'auto' };
 const STYLE_KEYS = Object.keys(DEFAULT_STYLE);
 const PREVIEW_EDGE = 2560;
 const TOOL_HINTS = {
@@ -330,24 +330,32 @@ function draw() {
 
 function handle(p, kind) {
   ctx.save();
+  if (kind === 'move') {
+    // The centre is only marked with a small dot, so it never hides the
+    // spot being pointed at; it can still be grabbed from a finger's width.
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(0,0,0,0.75)';
+    ctx.stroke();
+    ctx.restore();
+    return;
+  }
   ctx.beginPath();
-  ctx.arc(p.x, p.y, kind === 'move' ? 10 : 11, 0, Math.PI * 2);
-  ctx.fillStyle = kind === 'move' ? '#ffffff' : '#0a84ff';
+  ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);
+  ctx.fillStyle = '#0a84ff';
   ctx.shadowColor = 'rgba(0,0,0,0.5)';
   ctx.shadowBlur = 6;
   ctx.fill();
   ctx.shadowColor = 'transparent';
   ctx.lineWidth = 2.5;
-  ctx.strokeStyle = kind === 'move' ? '#0a84ff' : '#ffffff';
+  ctx.strokeStyle = '#ffffff';
   ctx.stroke();
   ctx.lineWidth = 2;
   ctx.beginPath();
-  if (kind === 'move') {
-    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      ctx.moveTo(p.x + dx * 2, p.y + dy * 2);
-      ctx.lineTo(p.x + dx * 6, p.y + dy * 6);
-    }
-  } else if (kind === 'rotate') {
+  if (kind === 'rotate') {
     ctx.arc(p.x, p.y, 5, -Math.PI * 0.9, Math.PI * 0.4);
   } else {
     ctx.moveTo(p.x - 5, p.y + 5); ctx.lineTo(p.x + 5, p.y - 5);
@@ -420,7 +428,7 @@ function labelAt(p) {
 
 function newItem(type, p) {
   const s = styles[type];
-  const base = { id: nextId++, type, ...s, title: '', label: null };
+  const base = { id: nextId++, type, ...s, title: '', textOn: false, label: null };
   // Big enough to grab on a phone however the picture is zoomed, but never
   // more than about half the picture.
   const cap = Math.min(doc.w, doc.h) * 0.45;
@@ -709,14 +717,22 @@ $('sheetDelete').addEventListener('click', deleteSelected);
 els.undo.addEventListener('click', undo);
 els.redo.addEventListener('click', redo);
 
-// ---- Settings -------------------------------------------------------------
+// ---- Edit sheet -----------------------------------------------------------
 
 const sheet = {
   title: $('sheetTitle'), swatches: $('swatches'), width: $('width'), widthOut: $('widthOut'),
   opacity: $('opacity'), opacityOut: $('opacityOut'), lengthField: $('lengthField'), length: $('length'),
   lengthOut: $('lengthOut'), titleInput: $('titleInput'), titleOpts: $('titleOpts'), font: $('font'),
   fontSize: $('fontSize'), fontSizeOut: $('fontSizeOut'), box: $('boxInput'), autoPlace: $('autoPlace'),
+  textOn: $('textOn'), outline: $('outlineSwatches'), outlineLabel: $('outlineLabel'),
 };
+// Text outline (or background) colors; 'none' is transparent.
+const OUTLINES = [
+  { id: 'auto', name: 'Automatic: black or white' },
+  { id: 'none', name: 'None (transparent)' },
+  { id: '#ffffff', name: 'White' },
+  { id: '#111111', name: 'Black' },
+];
 const NAMES = { arrow: 'Arrow', circle: 'Circle', draw: 'Drawing' };
 
 for (const f of FONTS) {
@@ -741,6 +757,22 @@ custom.title = 'Any color';
 custom.innerHTML = '<input type="color" aria-label="Any color">';
 sheet.swatches.append(custom);
 const customInput = custom.querySelector('input');
+for (const o of OUTLINES) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = `swatch${o.id === 'auto' ? ' auto' : o.id === 'none' ? ' none' : ''}`;
+  if (o.id.startsWith('#')) b.style.background = o.id;
+  b.dataset.outline = o.id;
+  b.title = o.name;
+  b.setAttribute('aria-label', `Outline: ${o.name}`);
+  sheet.outline.append(b);
+}
+const outlineCustom = document.createElement('label');
+outlineCustom.className = 'swatch custom';
+outlineCustom.title = 'Any color';
+outlineCustom.innerHTML = '<input type="color" aria-label="Outline: any color">';
+sheet.outline.append(outlineCustom);
+const outlineInput = outlineCustom.querySelector('input');
 
 let editBefore = null;
 function editStart() {
@@ -771,6 +803,21 @@ sheet.swatches.addEventListener('click', (e) => {
 customInput.addEventListener('input', () => edit((s) => { s.color = customInput.value; }));
 customInput.addEventListener('change', editEnd);
 
+sheet.outline.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-outline]');
+  if (!b) return;
+  edit((s) => { s.outline = b.dataset.outline; });
+  editEnd();
+});
+outlineInput.addEventListener('input', () => edit((s) => { s.outline = outlineInput.value; }));
+outlineInput.addEventListener('change', editEnd);
+
+sheet.textOn.addEventListener('change', () => {
+  edit((s) => { s.textOn = sheet.textOn.checked; });
+  editEnd();
+  if (sheet.textOn.checked && !sheet.titleInput.value.trim()) sheet.titleInput.focus();
+});
+
 function slider(input, apply) {
   input.addEventListener('input', () => edit((s) => apply(s, Number(input.value))));
   input.addEventListener('change', editEnd);
@@ -792,7 +839,7 @@ sheet.autoPlace.addEventListener('click', () => { edit((s) => { s.label = null; 
 function syncSheet() {
   const s = selected();
   if (!s) return;
-  sheet.title.textContent = `${NAMES[s.type]} settings`;
+  sheet.title.textContent = `Edit ${NAMES[s.type].toLowerCase()}`;
   sheet.swatches.querySelectorAll('[data-color]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.color.toLowerCase() === s.color.toLowerCase())));
   custom.setAttribute('aria-pressed', String(!COLORS.includes(s.color.toLowerCase())));
   if (document.activeElement !== customInput) customInput.value = /^#[0-9a-f]{6}$/i.test(s.color) ? s.color : '#ff3b30';
@@ -808,7 +855,14 @@ function syncSheet() {
     sheet.lengthOut.textContent = v;
   }
   if (document.activeElement !== sheet.titleInput) sheet.titleInput.value = s.title || '';
-  sheet.titleOpts.hidden = !(s.title || '').trim();
+  const textOn = s.textOn ?? !!(s.title || '').trim();
+  sheet.textOn.checked = textOn;
+  sheet.titleOpts.hidden = !textOn;
+  const outline = s.outline || 'auto';
+  sheet.outline.querySelectorAll('[data-outline]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.outline === outline)));
+  outlineCustom.setAttribute('aria-pressed', String(!OUTLINES.some((o) => o.id === outline)));
+  if (document.activeElement !== outlineInput && /^#[0-9a-f]{6}$/i.test(outline)) outlineInput.value = outline;
+  sheet.outlineLabel.textContent = s.box ? 'Background color' : 'Text outline';
   sheet.font.value = s.font;
   sheet.fontSize.value = s.fontSize;
   sheet.fontSizeOut.textContent = s.fontSize;
