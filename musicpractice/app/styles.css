@@ -1967,13 +1967,13 @@ html.paged #home, html.paged #routine { touch-action: pan-y; }
 /* A routine's tools: + Tools when it has none; the ones it has, lit, then a
    small +. One group, at the far end beside the minutes wherever it fits,
    and wrapped as a whole under them where it doesn't. */
-.titem-uses { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px; margin-left: auto; }
+.titem-uses { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px 6px; margin-left: auto; }
+/* Wrapped under the minutes, a little room between them. */
+.titem-tools { row-gap: 12px; }
 .titem-tool, .titem-more { min-height: 34px; min-width: 0; }
-.titem-tool { padding: 4px 12px 4px 8px; display: inline-flex; align-items: center; gap: 7px; }
+.titem-tool { padding: 4px 14px; }
 .titem-more { padding: 4px 12px; color: var(--ink-2); }
 .titem-more.plus { width: 34px; padding: 0; border-radius: 50%; font-size: 1.2rem; font-weight: 700; line-height: 1; }
-.titem-check { flex: none; width: 18px; height: 18px; border-radius: 5px; border: 2px solid currentColor; display: grid; place-items: center; }
-.titem-check svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 .titem-tool[aria-pressed="true"] { background: var(--brass); border-color: var(--brass); color: var(--on-accent); }
 .titem-open { flex: none; width: 40px; height: 40px; }
 .titem-open[hidden] { display: none; }
