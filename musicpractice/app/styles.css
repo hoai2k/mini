@@ -164,12 +164,12 @@ button { cursor: pointer; }
    row of four once the window is clearly wider than tall (a desktop browser,
    a phone on its side), never three and then one. The art also follows the
    window's height so the tiles fit without scrolling. */
-.choice .art { width: min(100%, 200px, 20dvh, var(--art-max, 200px)); }
+.choice .art { width: min(100%, var(--art-max, min(200px, 20dvh))); } /* --art-max: main.js layoutHome, the largest that fits */
 @media (min-aspect-ratio: 3/2) {
   .choices { grid-template-columns: repeat(4, minmax(0, 1fr)); width: min(100%, 1100px); }
   .choices:has(> .choice:nth-child(3):last-child) { grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(100%, 860px); }
   .choices > .choice:nth-child(3):last-child { grid-column: auto; width: auto; }
-  .choice .art { width: min(100%, 200px, 28dvh, var(--art-max, 200px)); }
+  .choice .art { width: min(100%, var(--art-max, min(200px, 28dvh))); }
 }
 
 /* Top bar */
@@ -1870,6 +1870,10 @@ div.ac-status.bad { border-color: var(--red); justify-items: start; }
 .choices.five > .choice:nth-child(5) { grid-column: 1 / -1; justify-self: center; width: calc((100% - var(--choice-gap)) / 2); }
 @media (orientation: landscape) {
   .choices.five { grid-template-columns: repeat(5, minmax(0, 1fr)); width: min(100%, 1300px); }
+  /* Five across: narrower gaps and side padding, so the art can be as big as
+     the height allows rather than the width (main.js layoutHome sizes it). */
+  .choices.five { --choice-gap: clamp(8px, 1.5vw, 24px); }
+  .choices.five > .choice { padding-inline: 6px; }
   .choices.five > .choice:nth-child(5) { grid-column: auto; width: auto; }
 }
 
@@ -1898,6 +1902,8 @@ html.paged #home, html.paged #routine { touch-action: pan-y; }
    itself not scrollable meanwhile. (#home sets position: relative by its id,
    so the ids are named here too.) */
 html.paging { overflow: hidden; }
+/* Home laid out out of sight to be measured while another screen shows (main.js layoutHome). */
+#home.measuring { position: fixed; left: 0; right: 0; top: 0; visibility: hidden; pointer-events: none; z-index: -1; }
 .screen.page-moving, #home.page-moving, #routine.page-moving { position: fixed; left: 0; z-index: 5; }
 /* No background of its own: each theme's backdrop (the page's) shows through
    both pages as they slide, as it does behind either at rest. */

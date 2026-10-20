@@ -17,8 +17,14 @@ and an order saved then is dropped.
 scrolls, down to a small phone either way up** (measured at 568×320 and
 320×568 in every theme, and up to desktops). Each fits its picture to the
 room the controls leave, and where that is not enough it steps down to a
-compact form: the home screen tightens its spacing and labels and then its
-art (`layoutHome`, `#home.compact`, `--art-max`); the metronome and the
+compact form: the home screen makes its buttons' art as large as fits,
+largest first (`layoutHome`, `HOME_ART`, `--art-max`), so a phone on its
+side fills its height (the row of five has narrower gaps and side padding
+for this), and tightens its spacing and labels (`#home.compact`) only when
+even a small size doesn't fit; a label needs a little room either side
+of it. Home is measured whatever screen shows (laid out out of sight,
+`#home.measuring`), so turning the phone on the Routine page switches the
+swipe back on or off just as it does on the home screen; the metronome and the
 drone take smaller controls (`#metronome.tight`, `#drone.tight`, also the
 Bluetooth sync bar); the tuner's existing steps (the scale-test card, then
 the gauge, down to 72 pixels) end in tighter text and buttons
