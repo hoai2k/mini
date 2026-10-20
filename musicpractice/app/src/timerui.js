@@ -132,8 +132,7 @@ export function setupTimer({ settings, audio, canDrone, askDrone }) {
       b.dataset.tool = tool;
       b.setAttribute('aria-pressed', 'true');
       b.setAttribute('aria-expanded', String(expanded));
-      b.innerHTML = '<span class="titem-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span></span>';
-      b.lastChild.textContent = T[tool];
+      b.textContent = T[tool];
       b.addEventListener('click', () => {
         if (open.has(it.id)) open.delete(it.id); else open.add(it.id);
         render(it.id, `.titem-tool[data-tool="${tool}"]`);
