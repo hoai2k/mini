@@ -98,7 +98,8 @@ export const DEFAULTS = Object.freeze({
   micTipCollapsed: false, // the iPhone microphone tip folded to its title
   droneMidi: 48, // C3
   droneVoice: 'cello',
-  droneVolume: 0.53, // DRONE_DEFAULT in drone.js: the slider position of the old default's loudness
+  droneVolume: 0.7, // DRONE_DEFAULT in drone.js: about as loud as YouTube
+  droneVolumeChosen: false,
   louder: true, // volumes are on the louder scale (sanitize carries older saves over)
   droneFifth: false, // add a pure fifth above (off unless switched on; tapping the Hz toggles it)
   droneFifthChosen: false,
@@ -238,8 +239,11 @@ export function sanitize(raw) {
     droneVoice: oneOf(s.droneVoice, DRONE_VOICES, DEFAULTS.droneVoice),
     // Saved before the drone could go louder, the volume was its gain: the
     // slider position that sounds the same (droneSlider, gain = 2.8 v²).
-    droneVolume: louder || !Number.isFinite(s.droneVolume) ? clamp(num(s.droneVolume, DEFAULTS.droneVolume), 0, 1)
-      : Math.round(Math.min(1, Math.sqrt(clamp(s.droneVolume, 0, 1) / 2.8)) * 100) / 100,
+    // The old default (0.53) saved by someone who never moved the slider becomes the new, louder one.
+    droneVolume: s.droneVolumeChosen !== true && (s.droneVolume === 0.53 || !Number.isFinite(s.droneVolume)) ? DEFAULTS.droneVolume
+      : louder ? clamp(num(s.droneVolume, DEFAULTS.droneVolume), 0, 1)
+        : Math.round(Math.min(1, Math.sqrt(clamp(s.droneVolume, 0, 1) / 2.8)) * 100) / 100,
+    droneVolumeChosen: s.droneVolumeChosen === true,
     louder: true,
     // Saves from before the fifth was on by default stored off without anyone choosing it.
     droneFifth: s.droneFifthChosen === true && typeof s.droneFifth === 'boolean' ? s.droneFifth : DEFAULTS.droneFifth,

@@ -4,6 +4,7 @@ import { TEXT, setRich } from './text.js';
 
 import { audio, existingAudio, freshAudio, replaceAudio, audioWasAway, markStale, unlock, setSession, heardNow, keepAwake, setExtraDelay, setContextSpeaker } from './audio.js';
 import { playSamples, primeFromTap, outputSettled, setSpeaker, setPlaybackVolume } from './player.js';
+import { forPlayback } from './loudness.js';
 import { encodeMp3 } from './mp3.js';
 import { openAudioCheck, renderMicTip } from './audiocheck.js';
 import { diag, isWebKit, isIOS, micPermission, onPermissionChange, noteMicRefused, openAppSettings } from './devices.js';
@@ -1551,7 +1552,7 @@ async function play(take, { auto = false } = {}) {
   diag.lastPlayback = record;
   let handle;
   try {
-    handle = await playSamples(take.samples, take.sampleRate);
+    handle = await playSamples(forPlayback(take.samples, take.sampleRate), take.sampleRate); // brought up to a streaming loudness (loudness.js)
   } catch {
     handle = playWithWebAudio(take); // the browser refused the media element
     record.via = 'Web Audio (the audio element was refused)';
@@ -1566,7 +1567,7 @@ function playWithWebAudio(take) {
   const ctx = audio(); // not freshAudio(): the recorder may still be using it
   unlock();
   const buf = ctx.createBuffer(1, take.samples.length, take.sampleRate);
-  buf.copyToChannel(take.samples, 0);
+  buf.copyToChannel(forPlayback(take.samples, take.sampleRate), 0);
   const gain = ctx.createGain();
   gain.gain.value = settings.playVolume;
   gain.connect(ctx.destination);
