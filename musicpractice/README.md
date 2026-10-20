@@ -434,8 +434,10 @@ harmonics only) to within 1.5 cents and in the right octave.
 
 ### Test My Scale Intonation
 
-A **Test My Scale Intonation** card under the tuner (it was behind `?scale`
-while in testing; that parameter is gone), a feature of its own set apart from Play a note by a
+A quiet **Test My Scale Intonation** button under the tuner (no fill or
+shadow, an outlined icon in the theme's accent, so it doesn't compete with
+the tuner; it was behind `?scale` while in testing, a parameter now
+gone), a feature of its own set apart from Play a note by a
 rule and space (an icon, a line saying what it does, an arrow). It opens a
 sheet that explains it in three steps (press record, play a scale, stop
 for 3 seconds) under a record button (the Playback Recorder's, so each
@@ -445,7 +447,10 @@ waiting and glows red once the scale has begun, with the count of notes as
 they come, and pressing it again stops. Three seconds of quiet is the end,
 and the same sheet then lists every note played, each with a tick for in
 tune or how many cents flat or sharp, and how many were in tune, with
-**Test again** and **Done**. Closing the sheet stops it. While the sheet
+**Test again** and **Done**. Pressing the record button again (Stop) once the
+scale has begun shows the results at once, rather than waiting out the
+three seconds of quiet (`finish` in `scaletest.js`); before it has begun it
+only stops. Closing the sheet stops it. While the sheet
 is up the tuner rests behind it (no note, the needle at rest, a reference
 tone stopped), and it picks up again when the sheet closes. It is more lenient
 than the tuner: from 10 to 35 cents counts as in tune, by the difficulty
@@ -455,7 +460,9 @@ measured three ways: its **start**, where it first settled after the attack
 (the median of the first 0.1 s that kept within 15 cents, the attack's first
 tenth left out: where the finger landed); its **average**, the median of its
 settled middle; and its **end**, where it last settled before the release
-(after any correction). **Test Scale Difficulty** (Tuner settings) says how
+(after any correction). **Difficulty**, at the foot of the test's own sheet
+(before, while listening and on the results, where a change judges the
+results again at once), says how
 many cents count as in tune and which of the three may show it (`LEVELS`,
 `judgeNote` in `scaletest.js`):
 
@@ -727,8 +734,16 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   the home screen and the routine slides in from the right, the page
   following the finger (a short or slow swipe springs back); swipe right, or
   Back, to return, the home page sliding back in over the window as the
-  routine slides out. The way across is a **smaller Practice Routine
-  button** under the other four (its hourglass and its name, drawn as that
+  routine slides out. While a page turns, both pages are fixed layers drawn
+  exactly as at rest (the outgoing one held where it was scrolled to, the
+  incoming one at its full natural height), and the page itself can't scroll
+  (`freeze`/`thaw` in `pager.js`): a sliding page used to widen the page into
+  a passing horizontal scrollbar, a slight vertical drift of the finger
+  scrolled it, and the incoming home page was drawn squeezed to the window
+  and moved when it settled, most visibly after expanding a card. A swipe
+  that springs back returns the routine to where it was scrolled. The way across is a **smaller Routine button**
+  under the other four (its hourglass, its name and a chevron pointing the
+  way it slides, the mirror of the back arrow on its page, drawn as that
   theme's buttons are), which plays the same slide; the routine's back arrow
   slides back. Its icon is as large as the room left allows (72 down to 32
   pixels, `ROUTINE_ART` in `main.js`); if even the smallest doesn't fit, the

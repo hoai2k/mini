@@ -41,7 +41,7 @@
   <div class="stage" id="stage">
     <canvas id="canvas"></canvas>
     <div class="selbar" id="selbar" hidden>
-      <button class="pill" id="settingsBtn" type="button" aria-label="Settings" title="Settings"><span data-icon="settings"></span><span class="lbl">Settings</span></button>
+      <button class="pill" id="settingsBtn" type="button" aria-label="Edit" title="Edit"><span data-icon="pencil"></span><span class="lbl">Edit</span></button>
       <button class="pill" id="deleteBtn" type="button" aria-label="Delete" title="Delete (Del)" data-icon="trash"></button>
       <button class="pill" id="doneBtn" type="button" aria-label="Done" title="Done (Esc)" data-icon="check"></button>
     </div>
@@ -56,10 +56,10 @@
   </nav>
 </section>
 
-<aside class="sheet" id="sheet" hidden aria-label="Settings">
+<aside class="sheet" id="sheet" hidden aria-label="Edit">
   <header class="sheet-head">
-    <h2 id="sheetTitle">Settings</h2>
-    <button class="icon-btn" id="sheetClose" type="button" aria-label="Close settings" data-icon="close"></button>
+    <h2 id="sheetTitle">Edit</h2>
+    <button class="icon-btn" id="sheetClose" type="button" aria-label="Close" data-icon="close"></button>
   </header>
   <div class="sheet-body">
     <div class="field">
@@ -78,21 +78,26 @@
       <span class="field-label">Length <output id="lengthOut"></output></span>
       <input type="range" id="length" min="20" max="800" step="5">
     </label>
-    <label class="field">
-      <span class="field-label">Title</span>
-      <input type="text" id="titleInput" maxlength="80" placeholder="Optional title" autocomplete="off" enterkeyhint="done">
-    </label>
+    <label class="switch"><span>Add text</span><input type="checkbox" id="textOn" role="switch"></label>
     <div class="title-opts" id="titleOpts" hidden>
       <label class="field">
-        <span class="field-label">Title font</span>
+        <span class="field-label">Text</span>
+        <input type="text" id="titleInput" maxlength="80" placeholder="Type the text" autocomplete="off" enterkeyhint="done">
+      </label>
+      <label class="field">
+        <span class="field-label">Font</span>
         <select id="font"></select>
       </label>
       <label class="field">
-        <span class="field-label">Title size <output id="fontSizeOut"></output></span>
+        <span class="field-label">Text size <output id="fontSizeOut"></output></span>
         <input type="range" id="fontSize" min="12" max="140" step="2">
       </label>
-      <label class="check"><input type="checkbox" id="boxInput"> Title on a background</label>
-      <button class="text-btn small" id="autoPlace" type="button" hidden>Place title automatically</button>
+      <label class="check"><input type="checkbox" id="boxInput"> Text on a background</label>
+      <div class="field">
+        <span class="field-label" id="outlineLabel">Text outline</span>
+        <div class="swatches" id="outlineSwatches"></div>
+      </div>
+      <button class="text-btn small" id="autoPlace" type="button" hidden>Place text automatically</button>
     </div>
     <button class="text-btn danger" id="sheetDelete" type="button"><span data-icon="trash"></span>Delete</button>
   </div>

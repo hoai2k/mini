@@ -8,6 +8,12 @@ import { anchorOf, arrowTail, bounds, nearestOnItem } from './geometry.js';
 
 const DIRS = 16;
 
+// Whether an item shows its text: the Add text switch is on (items saved
+// before the switch existed count as on) and there is something to show.
+export function hasText(item) {
+  return (item.textOn ?? true) && !!(item.title && item.title.trim());
+}
+
 export function labelGap(item, u) {
   return (item.fontSize || 40) * u * 0.35 + (item.width || 0) * u;
 }
@@ -123,7 +129,7 @@ function candidates(item, u, w, h) {
 // item (null when it is close enough not to need one).
 export function layoutLabels(items, u, W, H, measure) {
   const out = new Map();
-  const titled = items.filter((it) => it.title && it.title.trim());
+  const titled = items.filter(hasText);
   const placed = [];
   const finish = (item, rect) => {
     const c = { x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 };

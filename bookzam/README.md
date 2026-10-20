@@ -5,6 +5,13 @@ Shazam for books. Open it at https://hoai2k.github.io/mini/bookzam/.
 Made for phones first (portrait, one hand), and works on tablets and desktops
 too. Add it to the home screen for a full-screen app.
 
+Bookzam is in the library's Prototype archive, so it sits behind the shared
+invite door: `src/boot.js` opens `src/gate/gate.js` (a byte-identical copy of
+One Monster's) with `ignorePublicAccess: true` before loading the app. The
+public-access switch for the finished games doesn't open it; setting
+`app/public-access.json` to `{ "followPublicAccess": true }` makes it follow
+that switch with no code change. The door is off on localhost.
+
 ## What it does
 
 - **Catalogue.** Two lists, **Books** and **Board games**. Tap **+** on one
