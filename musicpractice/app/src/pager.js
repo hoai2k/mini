@@ -5,8 +5,10 @@
 // Practice Routine button under the home buttons slides it in, and the
 // routine's back arrow slides home (slide(), in main.js).
 
-const SLIDE_MS = 280;
-const EASE = 'cubic-bezier(0.2, 0.8, 0.2, 1)';
+const EASE = 'cubic-bezier(.2, .8, .25, 1)';
+// The ease's opening speed is SLOPE times its average, so a slide covering d
+// px that should leave at the finger's v px/ms lasts SLOPE * d / v.
+const SLOPE = 4;
 // What a swipe never starts on: things a finger drags or types into.
 const NO_SWIPE = 'input, select, textarea, [role="slider"], .slider, dialog, .bow-slider, .vslider';
 
@@ -64,16 +66,34 @@ export function setupPager({ home, timer, current, go }) {
     d.style.paddingRight = '';
   }
 
-  /** Finish a slide from `from` (already moved by `dx`) to the other page, or back (`commit` false). */
-  function finish(from, dx, commit) {
+  /*
+   * Finish a slide from `from` (already moved by `dx`) to the other page, or
+   * back (`commit` false), leaving at `speed` px/ms (the finger's at the lift;
+   * 0 for a button). As the Cambrian carousel learnt on an iPhone: a Web
+   * Animation from exactly where the finger let go, timed so it starts at the
+   * finger's speed (a fixed, short time eased from rest reads as a snap after
+   * a flick); the end transforms written first, so the page under the
+   * animation is already where it ends; the finished animation held
+   * (fill: forwards) until both pages are put back in one step; and a timer
+   * behind its promise, which a hidden tab would otherwise leave waiting.
+   */
+  function finish(from, dx, commit, speed = 0) {
     const [fromEl, toEl] = els(from);
     const w = width();
     const target = commit ? sign(from) * w : 0; // where the outgoing page ends
     moving = true;
-    const opts = { duration: SLIDE_MS * (commit ? Math.max(0.35, 1 - Math.abs(dx) / w) : 0.8), easing: EASE, fill: 'forwards' };
+    const d = Math.abs(target - dx);
+    const ms = Math.min(420, Math.max(170, speed > 0.05 ? (SLOPE * d) / speed : 240 + d * 0.2));
+    const opts = { duration: ms, easing: EASE, fill: 'forwards' };
+    fromEl.style.transform = `translateX(${target}px)`;
+    toEl.style.transform = `translateX(${target - sign(from) * w}px)`;
     const a = fromEl.animate([{ transform: `translateX(${dx}px)` }, { transform: `translateX(${target}px)` }], opts);
     toEl.animate([{ transform: `translateX(${dx - sign(from) * w}px)` }, { transform: `translateX(${target - sign(from) * w}px)` }], opts);
+    let ended = false;
     const done = () => {
+      if (ended) return;
+      ended = true;
+      clearTimeout(fallback);
       // Both pages back in the flow before routing, all in this one task
       // (nothing is drawn between): going home measures whether all five
       // buttons fit, and a page still fixed over the window always fits.
@@ -89,6 +109,7 @@ export function setupPager({ home, timer, current, go }) {
       }
       moving = false;
     };
+    const fallback = setTimeout(done, ms + 700);
     a.finished.then(done, done);
   }
 
@@ -106,7 +127,7 @@ export function setupPager({ home, timer, current, go }) {
     const from = current();
     if (from !== 'home' && from !== 'routine') return;
     if (e.target.closest?.(NO_SWIPE)) return;
-    drag = { id: e.pointerId, x: e.clientX, y: e.clientY, t: e.timeStamp, dx: 0, claimed: false, from };
+    drag = { id: e.pointerId, x: e.clientX, y: e.clientY, t: e.timeStamp, dx: 0, claimed: false, from, trail: [] };
   }
 
   function move(e) {
@@ -125,7 +146,8 @@ export function setupPager({ home, timer, current, go }) {
     }
     // Only the way out; back past the start stays put.
     drag.dx = sign(drag.from) < 0 ? Math.min(0, dx) : Math.max(0, dx);
-    drag.v = drag.dx / Math.max(1, e.timeStamp - drag.t);
+    drag.trail.push({ x: e.clientX, t: e.timeStamp });
+    if (drag.trail.length > 30) drag.trail.shift();
     place(drag.fromEl, drag.toEl, drag.from, drag.dx);
   }
 
@@ -135,9 +157,13 @@ export function setupPager({ home, timer, current, go }) {
     drag = null;
     if (!d.claimed) return;
     const w = width();
-    const fast = Math.abs(d.dx) / Math.max(1, e.timeStamp - d.t) > 0.5;
-    const commit = e.type !== 'pointercancel' && (Math.abs(d.dx) > w * 0.28 || (fast && Math.abs(d.dx) > 40));
-    finish(d.from, d.dx, commit);
+    // The speed at the lift, over the last tenth of a second (a slow drag
+    // ended with a flick is a flick), towards the other page.
+    const recent = d.trail.filter((p) => e.timeStamp - p.t < 100);
+    const first = recent[0] ?? d.trail.at(-1) ?? { x: d.x, t: d.t };
+    const v = ((e.clientX - first.x) / Math.max(8, e.timeStamp - first.t)) * sign(d.from); // + towards the other page
+    const commit = e.type !== 'pointercancel' && (Math.abs(d.dx) > w * 0.28 || (v > 0.45 && Math.abs(d.dx) > 20));
+    finish(d.from, d.dx, commit, Math.max(0, commit ? v : -v));
   }
 
   document.addEventListener('pointerdown', down, { passive: true });

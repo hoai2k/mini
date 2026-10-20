@@ -493,7 +493,9 @@ cents higher or lower (`correctedRate`), so it is also a few percent shorter
 or longer. A second press stops either; closing the sheet or testing again
 stops it too. The test checks that a clip measures as played and, at its
 corrected rate, in tune.
-**It takes only the room there is.** The tuner fills the window's height
+Upright, the card takes whatever height is left under the tuner and the
+button sits in the middle of it, so the space above and below it stays even
+instead of all collecting at the bottom. **It takes only the room there is.** The tuner fills the window's height
 and no more (`fit` in `tunerui.js`, measured on entering, resizing, a change
 of theme or font, and whenever the tuner's own content changes height, such
 as a microphone message coming and going). Where the page would scroll, the
@@ -741,7 +743,13 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   a passing horizontal scrollbar, a slight vertical drift of the finger
   scrolled it, and the incoming home page was drawn squeezed to the window
   and moved when it settled, most visibly after expanding a card. A swipe
-  that springs back returns the routine to where it was scrolled. The way across is a **smaller Routine button**
+  that springs back returns the routine to where it was scrolled. The slide
+after the finger lets go is timed from the finger's own speed over the last
+tenth of a second (the curve leaves at that speed; 170 to 420 ms), with the
+end transforms written before it starts, the finished animation held until
+both pages settle in one step, and a timer behind it: the approach the
+Cambrian carousel arrived at on an iPhone, where the earlier fixed, short
+slide read as a snap. The way across is a **smaller Routine button**
   under the other four (its hourglass, its name and a chevron pointing the
   way it slides, the mirror of the back arrow on its page, drawn as that
   theme's buttons are), which plays the same slide; the routine's back arrow
