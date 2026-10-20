@@ -218,7 +218,17 @@ export function setupTuner({ settings, persist, chips }) {
     reset(); // the tuner pauses while the sheet is up (receive), showing nothing
     sheet.showModal();
   });
-  rec.addEventListener('click', () => (scale ? stopScale() : startScale()));
+  // Stop: once the scale has begun, its results at once (no waiting out the
+  // three seconds of quiet); before it has, back to ready.
+  rec.addEventListener('click', () => {
+    if (!scale) { startScale(); return; }
+    const { listener } = scale;
+    if (listener?.state === 'listening') {
+      listener.finish();
+      scale = null;
+      showScaleResults(listener.result, listener);
+    } else stopScale();
+  });
   $('scale-again').addEventListener('click', startScale);
   sheet.addEventListener('close', () => { stopTone(); stopScale(); });
   sheet.addEventListener('click', (e) => { if (e.target === sheet) sheet.close(); });

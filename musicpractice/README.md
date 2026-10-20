@@ -434,8 +434,10 @@ harmonics only) to within 1.5 cents and in the right octave.
 
 ### Test My Scale Intonation
 
-A **Test My Scale Intonation** card under the tuner (it was behind `?scale`
-while in testing; that parameter is gone), a feature of its own set apart from Play a note by a
+A quiet **Test My Scale Intonation** button under the tuner (no fill or
+shadow, an outlined icon in the theme's accent, so it doesn't compete with
+the tuner; it was behind `?scale` while in testing, a parameter now
+gone), a feature of its own set apart from Play a note by a
 rule and space (an icon, a line saying what it does, an arrow). It opens a
 sheet that explains it in three steps (press record, play a scale, stop
 for 3 seconds) under a record button (the Playback Recorder's, so each
@@ -445,7 +447,10 @@ waiting and glows red once the scale has begun, with the count of notes as
 they come, and pressing it again stops. Three seconds of quiet is the end,
 and the same sheet then lists every note played, each with a tick for in
 tune or how many cents flat or sharp, and how many were in tune, with
-**Test again** and **Done**. Closing the sheet stops it. While the sheet
+**Test again** and **Done**. Pressing the record button again (Stop) once the
+scale has begun shows the results at once, rather than waiting out the
+three seconds of quiet (`finish` in `scaletest.js`); before it has begun it
+only stops. Closing the sheet stops it. While the sheet
 is up the tuner rests behind it (no note, the needle at rest, a reference
 tone stopped), and it picks up again when the sheet closes. It is more lenient
 than the tuner: from 10 to 35 cents counts as in tune, by the difficulty

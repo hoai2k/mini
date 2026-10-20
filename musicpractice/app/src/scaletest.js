@@ -266,6 +266,14 @@ export class ScaleListener {
     return event;
   }
 
+  /** End the test now (the Stop button): the notes heard so far are the result. */
+  finish() {
+    if (this.state !== 'listening') return null;
+    this.state = 'done';
+    this.result = this.notes();
+    return this.result;
+  }
+
   /** The notes so far (up to `end`, in samples, when it is known). */
   notes(end = Infinity) {
     const frames = this.frames.filter((f) => f.at < end);
