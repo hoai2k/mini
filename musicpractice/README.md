@@ -523,18 +523,25 @@ tune (65% in tune is 6.5, shown to one decimal); at Hard, Advanced and Custom
 the full score below scaled to 10 (988 is 9.88, two decimals), with its
 parts under it. **A perfect result is celebrated** (`celebrates`): 10 at the
 simple levels, 9.7 or more at the others, with confetti in the theme's
-colours over the sheet (`app/src/confetti.js`; none with reduced motion)
-and a brief small crowd cheering just after the success chime
-(`app/assets/audio/scale/cheer.mp3`, made with ElevenLabs sound effects,
-the second of four takes: two seconds with a clean fade, at -20 LUFS, under
-the chime's -13). The full score (`scaleScore`):
+colours bursting up and out from the score itself (`app/src/confetti.js`;
+none with reduced motion) and a brief small crowd cheering just after the
+success chime (`app/assets/audio/scale/cheer.mp3`, made with ElevenLabs
+sound effects, the second of four takes: two seconds with a clean fade, at
+-20 LUFS, under the chime's -13). The full score (`scaleScore`) is summed
+note by note, each note worth an equal share of 1000, so **a scale with no
+flaws scores 10**:
 - **In tune, up to 600:** the share of notes in tune.
-- **Closeness, up to 250:** how close every note was, so a near miss earns
-  more than a wild one and a note in the centre more than one only just in
-  tune (in full at 0 cents, nothing from 50 off).
+- **Closeness, up to 250:** how near the centre each note was. A note within
+  half the tolerance of the centre earns it in full (as much give as the
+  in-tune judgement itself has), falling to nothing at 50 cents off.
 - **Clear tone, up to 150:** how clear and steady each note's tone was, the
   pitch clarity the detector measures over its settled middle (nothing at
-  0.7, where a frame stops counting as a note, in full from 0.95).
+  0.7, where a frame stops counting as a note, in full from 0.9).
+
+Each note is marked with what it lost (`noteMarks`): at Hard, Advanced and
+Custom a note with a flaw says which ("In tune · 8¢ sharp" for one in tune
+but off the centre, "weaker tone" for a less clear sound) and carries the
+points it cost out of 10 (−0.01 at least, so a flaw is never shown as free).
 The results come up with a chime by how it went (`resultTier`):
 - **Triumphant:** 80% or more in tune.
 - **Positive:** half or more.

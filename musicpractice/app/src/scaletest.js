@@ -19,25 +19,48 @@ const CLARITY = 0.7;
  */
 export const resultTier = (good, n) => (!n ? 'neutral' : good / n >= 0.8 ? 'great' : good / n >= 0.5 ? 'good' : 'neutral');
 
+/*
+ * A note's marks, each 0 to 1, and what it lost them for (`flaws`), for the
+ * full score (Hard, Advanced, Custom). Each has room in it, as being in tune
+ * does, so a note played well loses nothing at all:
+ * - inTune: in tune by the difficulty's rule;
+ * - centre: how close to the middle it was, in full anywhere within half the
+ *   tolerance, then less, to nothing 50 cents off ('offCentre' when it was
+ *   in tune but not within that);
+ * - tone: how clear and steady its tone was (the pitch clarity the detector
+ *   measures), in full from TONE_FULL, nothing at 0.7, where a frame stops
+ *   counting as a note ('weakTone' below TONE_FULL).
+ */
+export const TONE_FULL = 0.9;
+export function noteMarks(note, tolerance = SCALE_TOLERANCE) {
+  const off = Math.abs(note.cents);
+  const inTune = off <= tolerance ? 1 : 0;
+  const zone = tolerance / 2;
+  const centre = off <= zone ? 1 : Math.max(0, 1 - (off - zone) / (50 - zone));
+  const tone = Math.min(1, Math.max(0, ((note.clarity ?? 1) - 0.7) / (TONE_FULL - 0.7)));
+  const flaws = [];
+  if (inTune && centre < 1) flaws.push('offCentre');
+  if (tone < 1) flaws.push('weakTone');
+  return { inTune, centre, tone, flaws };
+}
+
 /**
- * A score out of 1000 for a scale, more than the share in tune:
- * - up to 600 for the share of notes in tune;
- * - up to 250 for how close every note was, so a near miss earns more than a
- *   wild one and a note dead in the centre more than one only just in tune
- *   (in full at 0 cents, nothing from 50 off);
- * - up to 150 for how clear and steady the tone was (the pitch clarity the
- *   detector measures: nothing at 0.7, where a frame stops counting as a
- *   note, in full from 0.95).
- * Returns the total and its three parts, rounded so they add up.
+ * A score out of 1000 for a scale, each note worth an equal share of it,
+ * which it earns from its marks (noteMarks): 600 of the 1000 for being in
+ * tune, 250 for being near the middle, 150 for a clear tone. A scale without
+ * a flaw is 1000. Returns the total, its three parts (rounded so they add
+ * up), and each note's points lost out of 1000 (`lost`, in the notes' order).
  */
 export const SCORE_PARTS = { inTune: 600, close: 250, clear: 150 };
 export function scaleScore(notes, tolerance = SCALE_TOLERANCE) {
-  if (!notes.length) return { total: 0, inTune: 0, close: 0, clear: 0 };
-  const mean = (f) => notes.reduce((s, n) => s + f(n), 0) / notes.length;
-  const inTune = Math.round(SCORE_PARTS.inTune * mean((n) => (Math.abs(n.cents) <= tolerance ? 1 : 0)));
-  const close = Math.round(SCORE_PARTS.close * mean((n) => Math.max(0, 1 - Math.abs(n.cents) / 50)));
-  const clear = Math.round(SCORE_PARTS.clear * mean((n) => Math.min(1, Math.max(0, ((n.clarity ?? 1) - 0.7) / 0.25))));
-  return { total: inTune + close + clear, inTune, close, clear };
+  if (!notes.length) return { total: 0, inTune: 0, close: 0, clear: 0, lost: [] };
+  const marks = notes.map((n) => noteMarks(n, tolerance));
+  const mean = (f) => marks.reduce((t, m) => t + f(m), 0) / marks.length;
+  const inTune = Math.round(SCORE_PARTS.inTune * mean((m) => m.inTune));
+  const close = Math.round(SCORE_PARTS.close * mean((m) => m.centre));
+  const clear = Math.round(SCORE_PARTS.clear * mean((m) => m.tone));
+  const lost = marks.map((m) => (SCORE_PARTS.inTune * (1 - m.inTune) + SCORE_PARTS.close * (1 - m.centre) + SCORE_PARTS.clear * (1 - m.tone)) / notes.length);
+  return { total: inTune + close + clear, inTune, close, clear, lost, marks };
 }
 
 /*
@@ -55,11 +78,15 @@ export function scoreOutOf10(judged, level, tolerance) {
     return { score: n ? Math.round((100 * good) / n) / 10 : 0, simple: true, parts: null };
   }
   const sc = scaleScore(judged, tolerance);
-  return { score: sc.total / 100, simple: false, parts: { inTune: sc.inTune / 100, close: sc.close / 100, clear: sc.clear / 100 } };
+  return {
+    score: sc.total / 100, simple: false,
+    parts: { inTune: sc.inTune / 100, close: sc.close / 100, clear: sc.clear / 100 },
+    lost: sc.lost.map((x) => x / 100), marks: sc.marks, // each note's points lost out of 10, and why
+  };
 }
 export const celebrates = ({ score, simple }) => (simple ? score >= 10 : score >= 9.7);
 /** The score as shown: one decimal at the simple levels (none for a whole number), two at the others. */
-export const scoreText = (score, simple) => (simple ? (Number.isInteger(score) ? String(score) : score.toFixed(1)) : score.toFixed(2));
+export const scoreText = (score, simple) => (Number.isInteger(score) ? String(score) : score.toFixed(simple ? 1 : 2));
 
 /** 'good', 'flat' or 'sharp' for a note `cents` off its nearest pitch. */
 export const judge = (cents, tolerance = SCALE_TOLERANCE) =>

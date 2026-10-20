@@ -323,6 +323,11 @@ export const EN = {
       correctedLabel: (note) => `Play your ${note} corrected to be in tune`,
       // Which part of a note was right, beside its verdict (scaletest.js judgeNote).
       measures: { start: 'at the start', mid: 'on average', end: 'by the end' },
+      // At the full-score levels, what a note lost points for, and how many (out of 10).
+      offCentre: (c, sharp) => `${c}¢ ${sharp ? 'sharp' : 'flat'}`,
+      weakTone: 'weak tone',
+      lost: (x) => `−${x}`,
+      lostLabel: (x) => `${x} points lost`,
       goodBy: (part) => `In tune ${part}`,
       partly: (part) => `in tune ${part}`,
       help: (level, tol, parts) => `${level}: within ${tol} cents ${parts} counts as in tune here (the tuner's needle wants 5).`,
