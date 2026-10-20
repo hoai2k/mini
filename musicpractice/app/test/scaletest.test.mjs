@@ -80,13 +80,14 @@ test('the score out of 1000: the share in tune, how close every note was, and ho
   const { scaleScore, SCORE_PARTS } = await import('../src/scaletest.js');
   assert.deepEqual(SCORE_PARTS, { inTune: 600, close: 250, clear: 150 });
   const n = (cents, clarity = 0.95) => ({ midi: 60, cents, clarity });
-  assert.deepEqual(scaleScore([]), { total: 0, inTune: 0, close: 0, clear: 0 });
+  assert.deepEqual(scaleScore([]), { total: 0, inTune: 0, close: 0, clear: 0, lost: [] });
   assert.equal(scaleScore([n(0), n(0)]).total, 1000);
   // A near miss scores more than a wild one; dead centre more than just in tune.
   assert.ok(scaleScore([n(0), n(20)]).total > scaleScore([n(0), n(45)]).total);
   assert.ok(scaleScore([n(0)]).total > scaleScore([n(14)]).total);
   // A cloudier tone costs only its share.
-  assert.deepEqual(scaleScore([n(0, 0.7)]), { total: 850, inTune: 600, close: 250, clear: 0 });
+  const cloudy = scaleScore([n(0, 0.7)]);
+  assert.deepEqual([cloudy.total, cloudy.inTune, cloudy.close, cloudy.clear], [850, 600, 250, 0]);
   const s = scaleScore([n(0), n(25), n(-30), n(5)]);
   assert.equal(s.total, s.inTune + s.close + s.clear);
   assert.equal(s.inTune, 300);
@@ -202,4 +203,22 @@ test('the score out of 10: the share in tune at the simple levels, the full scor
   assert.equal(celebrates({ score: 9.9, simple: true }), false);
   assert.equal(celebrates({ score: 9.7, simple: false }), true);
   assert.equal(celebrates({ score: 9.69, simple: false }), false);
+});
+
+test('each note earns its share, with room: a scale without a flaw is 10, and a flawed note says why and what it lost', async () => {
+  const { scaleScore, noteMarks, TONE_FULL } = await import('../src/scaletest.js');
+  const n = (cents, clarity = 0.93) => ({ midi: 60, cents, clarity });
+  // Within half the tolerance, and a clear-enough tone: full marks.
+  assert.equal(TONE_FULL, 0.9);
+  assert.equal(scaleScore([n(0), n(7), n(-7.5, 0.9)], 15).total, 1000);
+  assert.deepEqual(noteMarks(n(5), 15).flaws, []);
+  assert.deepEqual(noteMarks(n(12), 15).flaws, ['offCentre']);
+  assert.deepEqual(noteMarks(n(0, 0.8), 15).flaws, ['weakTone']);
+  assert.deepEqual(noteMarks(n(30), 15).flaws, []); // out of tune: the verdict says so, not a flaw
+  const s = scaleScore([n(0), n(12), n(0, 0.8), n(30)], 15);
+  assert.equal(s.lost[0], 0);
+  assert.ok(s.lost[1] > 0 && s.lost[1] < 20, `off-centre lost ${s.lost[1]}`);
+  assert.ok(Math.abs(s.lost[2] - 150 * 0.5 / 4) < 1e-9, `weak tone lost ${s.lost[2]}`);
+  assert.ok(s.lost[3] > 150, `out of tune lost ${s.lost[3]}`);
+  assert.ok(Math.abs(1000 - s.lost.reduce((a, b) => a + b) - s.total) < 2, 'what is lost adds up to what is missing');
 });
