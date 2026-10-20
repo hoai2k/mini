@@ -10,6 +10,8 @@ get there.
 **Status:** built along these lines in `../mobile/` with Capacitor for both
 platforms; how to build, set up the stores and give friends Pro is in
 `../mobile/README.md`.
+The app checked against Apple's App Review rules (October 2026) is in
+`app-store-review.md`.
 
 ## The recommendation in short
 

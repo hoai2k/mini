@@ -903,8 +903,12 @@ file, on purpose: the privacy page, the device details Send feedback attaches
   elsewhere, as takes are: `saveFile` in `main.js`). Nothing is sent unless
   the person sends it; `privacy.html#debug-log` says so.
 - `app/privacy.html`: the privacy policy and terms, for the apps' paywall and
-  store listings.
+  store listings. `app/support.html`: the support page (a contact form into
+  the feedback inbox, and common questions), the listings' Support URL.
+  Settings links to both.
 - `design/mobile-apps.md`: why the apps, what to sell and the store rules.
+- `design/app-store-review.md`: the iOS app checked against Apple's App
+  Review rules, what's done, what's left for submission, and review notes.
 
 - `app/index.html`, `app/styles.css`, `app/src/`: the app (static ES
   modules, no build step). `main.js` the screens, `metronome.js` the
