@@ -520,8 +520,9 @@ Microphone messages (the tuner's status and Try again) sit above the card.
 At the top of the results is a **score out of 10**, counted up
 (`scoreOutOf10`): at Beginner, Easy and Medium simply the share of notes in
 tune (65% in tune is 6.5, shown to one decimal); at Hard, Advanced and Custom
-the full score below scaled to 10 and rounded to the nearest tenth (988 is 9.9), with its
-parts under it. **A perfect result is celebrated** (`celebrates`): 10 at the
+the full score below scaled to 10 and rounded to the nearest tenth (988 is 9.9). Under the
+notes, as a postscript, each part of it out of 10 of its own (*In tune
+6.7/10 · Closeness 8.4/10 · Clear tone 10/10*). **A perfect result is celebrated** (`celebrates`): 10 at the
 simple levels, 9.7 or more at the others, with confetti in the theme's
 colours bursting up and out from the score itself (`app/src/confetti.js`;
 none with reduced motion) and a brief small crowd cheering just after the
