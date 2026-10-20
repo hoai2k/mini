@@ -1890,6 +1890,8 @@ div.ac-status.bad { border-color: var(--red); justify-items: start; }
 #home.tight .choice.routine-link { margin-top: 0; }
 .choice.routine-link .art { width: var(--routine-art, 56px); flex: none; }
 .choice.routine-link .label { font-size: clamp(0.95rem, 3.4vw, 1.15rem); }
+/* A chevron pointing the way the routine slides in from, the mirror of its page's back arrow. */
+.routine-chev { flex: none; width: 20px; height: 20px; margin-left: -2px; margin-right: -8px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; opacity: 0.8; }
 html.paged #home, html.paged #routine { touch-action: pan-y; }
 /* The page sliding in, laid over the window beside the one going. */
 /* (#home sets position: relative by its id, so the ids are named here too, or

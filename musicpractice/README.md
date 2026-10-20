@@ -727,8 +727,9 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   the home screen and the routine slides in from the right, the page
   following the finger (a short or slow swipe springs back); swipe right, or
   Back, to return, the home page sliding back in over the window as the
-  routine slides out. The way across is a **smaller Practice Routine
-  button** under the other four (its hourglass and its name, drawn as that
+  routine slides out. The way across is a **smaller Routine button**
+  under the other four (its hourglass, its name and a chevron pointing the
+  way it slides, the mirror of the back arrow on its page, drawn as that
   theme's buttons are), which plays the same slide; the routine's back arrow
   slides back. Its icon is as large as the room left allows (72 down to 32
   pixels, `ROUTINE_ART` in `main.js`); if even the smallest doesn't fit, the
