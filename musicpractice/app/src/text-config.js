@@ -353,7 +353,7 @@ export const EN = {
       sharps: 'Sharps (C♯)',
       flats: 'Flats (D♭)',
       transpose: 'Transposing instrument',
-      scaleLevel: 'Test Scale Difficulty',
+      scaleLevel: 'Difficulty',
       scaleLevels: { beginner: 'Beginner', easy: 'Easy', medium: 'Medium', hard: 'Hard', advanced: 'Advanced', custom: 'Custom' },
       scaleTolerance: (c) => `Threshold: ${c}¢`,
       scaleAttack: 'Attack',

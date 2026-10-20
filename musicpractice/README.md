@@ -460,7 +460,9 @@ measured three ways: its **start**, where it first settled after the attack
 (the median of the first 0.1 s that kept within 15 cents, the attack's first
 tenth left out: where the finger landed); its **average**, the median of its
 settled middle; and its **end**, where it last settled before the release
-(after any correction). **Test Scale Difficulty** (Tuner settings) says how
+(after any correction). **Difficulty**, at the foot of the test's own sheet
+(before, while listening and on the results, where a change judges the
+results again at once), says how
 many cents count as in tune and which of the three may show it (`LEVELS`,
 `judgeNote` in `scaletest.js`):
 
