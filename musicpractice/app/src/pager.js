@@ -18,8 +18,9 @@ export function setupPager({ home, timer, current, go }) {
   let on = false;
   let drag = null; // { id, x, y, t, dx, claimed, from, to, toEl, fromEl }
   let moving = false;
+  let stage = null; // while pages move: { y, w, sbw } (the scroll and width they started from)
 
-  const width = () => document.documentElement.clientWidth;
+  const width = () => stage?.w ?? document.documentElement.clientWidth;
   const els = (from) => (from === 'home' ? [home, timer] : [timer, home]); // `timer`: the routine's page
   const sign = (from) => (from === 'home' ? -1 : 1); // the way a finger moves to leave `from`
 
@@ -29,18 +30,38 @@ export function setupPager({ home, timer, current, go }) {
     toEl.style.transform = `translateX(${dx - sign(from) * w}px)`;
   }
 
-  /** Show the incoming page beside the current one, fixed over the window, ready to move. */
-  function lift(toEl) {
-    toEl.hidden = false;
-    toEl.classList.add('page-incoming');
+  /*
+   * While a page turns, both pages are fixed layers drawn exactly as they
+   * are at rest: the outgoing one where it was scrolled to, the incoming one
+   * at the top, each its full natural height (not squeezed to the window,
+   * which moved centred content when it settled). The page can't scroll
+   * meanwhile (html.paging), so a sliding page never widens it into a
+   * scrollbar and a vertical nudge of the finger doesn't scroll it; the
+   * scrollbar's width, where there is one, is kept so nothing shifts.
+   */
+  function freeze(fromEl, toEl) {
+    const d = document.documentElement;
+    stage = { y: window.scrollY, w: d.clientWidth, sbw: window.innerWidth - d.clientWidth };
+    d.classList.add('paging');
+    if (stage.sbw) d.style.paddingRight = `${stage.sbw}px`;
+    for (const [el, top] of [[fromEl, -stage.y], [toEl, 0]]) {
+      el.hidden = false;
+      el.classList.add('page-moving');
+      el.style.top = `${top}px`;
+      el.style.right = `${stage.sbw}px`;
+    }
   }
 
-  function settle(fromEl, toEl) {
+  /** Both pages back in the flow, the page scrollable again. */
+  function thaw(fromEl, toEl) {
     for (const el of [fromEl, toEl]) {
-      el.style.transform = '';
-      el.style.transition = '';
-      el.classList.remove('page-incoming');
+      for (const an of el.getAnimations()) an.cancel();
+      el.classList.remove('page-moving');
+      el.style.transform = el.style.top = el.style.right = '';
     }
+    const d = document.documentElement;
+    d.classList.remove('paging');
+    d.style.paddingRight = '';
   }
 
   /** Finish a slide from `from` (already moved by `dx`) to the other page, or back (`commit` false). */
@@ -52,27 +73,30 @@ export function setupPager({ home, timer, current, go }) {
     const opts = { duration: SLIDE_MS * (commit ? Math.max(0.35, 1 - Math.abs(dx) / w) : 0.8), easing: EASE, fill: 'forwards' };
     const a = fromEl.animate([{ transform: `translateX(${dx}px)` }, { transform: `translateX(${target}px)` }], opts);
     toEl.animate([{ transform: `translateX(${dx - sign(from) * w}px)` }, { transform: `translateX(${target - sign(from) * w}px)` }], opts);
-    a.finished.then(() => {
-      // Put both pages back in the flow before routing, all in this one task
+    const done = () => {
+      // Both pages back in the flow before routing, all in this one task
       // (nothing is drawn between): going home measures whether all five
       // buttons fit, and a page still fixed over the window always fits.
-      for (const el of [fromEl, toEl]) for (const an of el.getAnimations()) an.cancel();
-      settle(fromEl, toEl);
+      const y = stage?.y ?? 0;
+      thaw(fromEl, toEl);
+      stage = null;
       if (commit) {
         window.scrollTo(0, 0);
         go(from === 'home' ? 'routine' : 'home');
       } else {
         toEl.hidden = true;
+        window.scrollTo(0, y); // back where it was
       }
       moving = false;
-    }).catch(() => { moving = false; });
+    };
+    a.finished.then(done, done);
   }
 
   /** Slide to the other page with no finger (the arrows, the back button). */
   function slide(from) {
     if (!on || moving || current() !== from) return false;
-    const [, toEl] = els(from);
-    lift(toEl);
+    const [fromEl, toEl] = els(from);
+    freeze(fromEl, toEl);
     finish(from, 0, true);
     return true;
   }
@@ -97,7 +121,7 @@ export function setupPager({ home, timer, current, go }) {
       const [fromEl, toEl] = els(drag.from);
       drag.fromEl = fromEl;
       drag.toEl = toEl;
-      lift(toEl);
+      freeze(fromEl, toEl);
     }
     // Only the way out; back past the start stays put.
     drag.dx = sign(drag.from) < 0 ? Math.min(0, dx) : Math.max(0, dx);

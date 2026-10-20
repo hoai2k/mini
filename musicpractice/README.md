@@ -727,7 +727,14 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   the home screen and the routine slides in from the right, the page
   following the finger (a short or slow swipe springs back); swipe right, or
   Back, to return, the home page sliding back in over the window as the
-  routine slides out. The way across is a **smaller Routine button**
+  routine slides out. While a page turns, both pages are fixed layers drawn
+  exactly as at rest (the outgoing one held where it was scrolled to, the
+  incoming one at its full natural height), and the page itself can't scroll
+  (`freeze`/`thaw` in `pager.js`): a sliding page used to widen the page into
+  a passing horizontal scrollbar, a slight vertical drift of the finger
+  scrolled it, and the incoming home page was drawn squeezed to the window
+  and moved when it settled, most visibly after expanding a card. A swipe
+  that springs back returns the routine to where it was scrolled. The way across is a **smaller Routine button**
   under the other four (its hourglass, its name and a chevron pointing the
   way it slides, the mirror of the back arrow on its page, drawn as that
   theme's buttons are), which plays the same slide; the routine's back arrow

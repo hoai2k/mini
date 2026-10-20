@@ -1893,10 +1893,12 @@ div.ac-status.bad { border-color: var(--red); justify-items: start; }
 /* A chevron pointing the way the routine slides in from, the mirror of its page's back arrow. */
 .routine-chev { flex: none; width: 20px; height: 20px; margin-left: -2px; margin-right: -8px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; opacity: 0.8; }
 html.paged #home, html.paged #routine { touch-action: pan-y; }
-/* The page sliding in, laid over the window beside the one going. */
-/* (#home sets position: relative by its id, so the ids are named here too, or
-   home would stay in the flow and push the routine below the window.) */
-.screen.page-incoming, #home.page-incoming, #routine.page-incoming { position: fixed; inset: 0; z-index: 5; overflow: hidden; }
+/* Both pages while one slides over the other (pager.js freeze): fixed layers
+   at their resting size and place (top and right set there), and the page
+   itself not scrollable meanwhile. (#home sets position: relative by its id,
+   so the ids are named here too.) */
+html.paging { overflow: hidden; }
+.screen.page-moving, #home.page-moving, #routine.page-moving { position: fixed; left: 0; z-index: 5; }
 /* No background of its own: each theme's backdrop (the page's) shows through
    both pages as they slide, as it does behind either at rest. */
 
