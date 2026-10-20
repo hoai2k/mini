@@ -361,6 +361,17 @@ blocked, comes then rather than when you start to play.
    The phone's own volume buttons set how loud playback is, not how loud
    takes are recorded: the microphone is opened with automatic gain off,
    so a take's level is what the mic hears.
+   **Takes are brought up for playback** (`loudness.js`), since an
+   instrument across the room records 10-15 dB under music on YouTube: each
+   take's loudness is measured as streaming services measure it (ITU BS.1770:
+   K-weighted, gated 400 ms blocks; it reads the same as ffmpeg's `ebur128`),
+   and the take is played raised to -15 LUFS, never turned down and by 20 dB
+   at most (so a near-silent take isn't made into hiss), through a look-ahead
+   limiter that keeps peaks under -1 dBFS and takes off 6 dB at most (a take
+   with a sharp attack is raised less instead). Worked out once per take, on
+   its first play (about a second for five minutes of take). The recording,
+   its waveform and its download are as the mic heard them. The scale test's
+   **As played** and **Corrected** notes are raised the same way.
 
 Recording and playback are separate: the recorder never listens while a
 take plays (from the list too). How the mic is handled meanwhile is under
@@ -596,8 +607,11 @@ tones, scales over a tonic.
   equal steps). Full volume is about 10 dB louder than it used to be, as
   loud as the drone gets without clipping: measured at −9 dBFS RMS with
   peaks at −0.5 dBFS or under, where full used to be −19 dBFS RMS. A new drone starts
-  at 0.53 (`DRONE_DEFAULT`), the loudness of the old default, and a volume
-  saved before is carried over at the same loudness. The apps' mixers are
+  at 0.7 (`DRONE_DEFAULT`), as loud as YouTube plays: -14 LUFS for the cello
+  on C3 with its fifth, -12 for the organ (it was 0.53, about -19). The old
+  default saved by someone who never moved the slider becomes the new one
+  (`droneVolumeChosen` is set once the slider is moved); any other saved
+  volume is carried over at the same loudness. The apps' mixers are
   sent the gain.
 - **Nothing clips, whatever plays together**: everything the app plays on
   an audio context (drone, metronome, the routine's chimes and voice) goes

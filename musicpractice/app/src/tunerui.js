@@ -6,6 +6,7 @@
 import { TEXT, setRich } from './text.js';
 import { detectPitch, describe, nearestString, noteName, midiToHz, TUNINGS, TRANSPOSE, A4_MIN, A4_MAX, PitchSmoother } from './tuning.js';
 import { playSamples } from './player.js';
+import { forPlayback } from './loudness.js';
 import { ScaleListener, resultTier, correctedRate, judgeNote, scaleRule, scoreOutOf10, celebrates, scoreText, SCORE_PARTS, LEVEL_IDS, MEASURES } from './scaletest.js';
 import { confetti } from './confetti.js';
 
@@ -290,7 +291,7 @@ export function setupTuner({ settings, persist, chips }) {
       // pitch-shifted onto the note it was meant to be (played at a sample
       // rate that much higher or lower, so a little shorter or longer too).
       if (v !== 'good' && listener) {
-        const clip = listener.clip(n);
+        const clip = forPlayback(listener.clip(n), listener.sampleRate); // brought up like a take (loudness.js)
         const play = document.createElement('span');
         play.className = 'sn-play';
         for (const [kind, rate] of [['asPlayed', listener.sampleRate], ['corrected', correctedRate(listener.sampleRate, n.measured)]]) {

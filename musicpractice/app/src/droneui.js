@@ -282,6 +282,7 @@ export function setupDrone({ settings, persist, chips, engine, onPlaying }) {
   }
   function setVolume(v) {
     settings.droneVolume = Math.round(Math.max(0, Math.min(1, v)) * 100) / 100;
+    settings.droneVolumeChosen = true; // kept from now on, even if it is the old default
     persist();
     showVolume();
     engine().setVolume(settings.droneVolume);
