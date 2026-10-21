@@ -733,7 +733,11 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
     only while editing, dimmed and unnumbered, until it is turned on again;
   - a **trash** button. An item can also be **swiped off** either side
     (past a third of its width; short of that it springs back). A deleted
-    item has **Undo** for a few seconds.
+    item has **Undo** for a few seconds. **An item with more than three
+    settings of its own** (`customCount`: each tool it has on, and each tool
+    setting unlike the tools' own, which a new item starts from) asks first,
+    saying they will be deleted with it (*Keep it* / *Delete*), whether it is
+    deleted by its trash button, a swipe or its menu.
   The pencil is hidden while a routine runs.
 - A first visit starts with **Intonation** (3 min) and **Scales** (5 min).
   **+ Add** opens **Add a Routine**: Intonation, Scales, **Arpeggios**,
@@ -749,10 +753,10 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
   suggestion's earlier name ("Intonation practice") still know which it was.
   Kept in `musicpractice.routine.v1`.
 - **Each item keeps its own settings for every tool**: the Metronome's
-  tempo, time signature, click sound and extra notes (`met`), the Drone's
-  note, instrument and fifth (`drn`), the Playback Recorder's silence to stop
-  after and whether it plays each take back (`pb`), and which of them are on
-  (`tools`). A new item has the tools off and their settings taken from the
+  tempo, time signature, click sound, extra notes, accent and volume
+  (`met`), the Drone's note, instrument, fifth and volume (`drn`), the
+  Playback Recorder's silence to stop after, whether it plays each take back
+  and its playback volume (`pb`), and which of them are on (`tools`). A new item has the tools off and their settings taken from the
   app's own as a start. Items saved when they had their own metronome and
   drone keep them on.
 - **Running, the routine is a shell around the tools.** **Start** swaps the
@@ -763,13 +767,20 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
   jump to one), or stands three across where the window is wide enough. Each
   card is a small version of its tool with its own switch, and a **gear**
   that opens that tool's settings for the item running (only the tool's: no
-  Audio check or Theme): the Metronome's tempo (typed or − / +), time
-  signature, click sound and extra notes; the Drone's note, instrument and
-  fifth; the Playback Recorder's *Stop recording after* (1 to 10 s of quiet)
-  and *Play each take back*. Each is set on the tool at once and kept with
-  the item. On the card:
-  - **Metronome**: the tempo (− / + and a slider), its beats lighting as
-    they are heard, the time signature;
+  Audio check or Theme), including whatever the card itself has no room for:
+  the Metronome's tempo (typed or − / +), time signature, click sound, extra
+  notes, *Accent the first beat* and volume; the Drone's note, instrument,
+  fifth and volume; the Playback Recorder's *Stop recording after* (1 to
+  10 s of quiet), *Play each take back* and playback volume. Each is set on
+  the tool at once and kept with the item. On the card:
+  - **Metronome**: off, the tempo (− / + and a slider) and the time
+    signature. **On, the beat instead**, with the tempo and time signature
+    in a line under it, in one of three views that a tap on it steps
+    through, as the Metronome's own dots do (`metView`, remembered): **its
+    picture with the pendulum swinging** (the weight placed for the tempo;
+    no dots), **big dots** that swell into each beat and ease away, or the
+    **Visualizer**'s bars, two bars of music lighting beat by beat (the
+    theme's own bars); the last two without the picture;
   - **Drone**: the note (− / +), the instrument and the fifth;
   - **Playback** (the Playback Recorder): what it is doing (listening for
     you to play, recording with its clock, playing your take back), with a

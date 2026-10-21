@@ -2,9 +2,10 @@
 // a name, a number of minutes, whether it is in the routine (`enabled`), and
 // its own set-up of the tools: which of the Metronome, the Drone and the
 // Playback Recorder are on (`tools`), and each tool's settings: the
-// metronome's tempo, time signature, click and extra notes (`met`), the
-// drone's note, instrument and fifth (`drn`), and the Playback Recorder's
-// silence to stop after and whether it plays takes back (`pb`). While it runs, the routine is a
+// metronome's tempo, time signature, click, extra notes, accent and volume
+// (`met`), the drone's note, instrument, fifth and volume (`drn`), and the
+// Playback Recorder's silence to stop after, whether it plays takes back,
+// and how loud (`pb`). While it runs, the routine is a
 // shell around the tools: each item's set-up is put on the tools as it
 // starts, and what is changed on their cards is kept with the item for next
 // time. Pure: the screen is timerui.js, the tools come through main.js.
@@ -13,7 +14,7 @@
 
 import { TEXT } from './text.js';
 import { output } from './output.js';
-import { BPM_MIN, BPM_MAX, METERS, SOUNDS } from './settings.js';
+import { BPM_MIN, BPM_MAX, METERS, SOUNDS, DEFAULTS } from './settings.js';
 import { DRONE_MIN, DRONE_MAX, VOICES } from './drone.js';
 
 const KEY = 'musicpractice.routine.v1';
@@ -58,9 +59,9 @@ export function newItem(presetId, lastMinutes = {}, base = {}) {
   const minutes = lastMinutes[presetId || 'custom'] ?? (p ? p.minutes : 5);
   return clean({
     id: newId(), kind: p ? p.id : null, name: p ? TEXT.timer.presets[p.id] : '', minutes,
-    met: { bpm: base.bpm, meter: base.meter, sound: base.sound, sub: base.subOn ? base.subKind : 1 },
-    drn: { midi: base.droneMidi, voice: base.droneVoice, fifth: base.droneFifth },
-    pb: { silenceSec: base.silenceSec, autoPlay: base.autoPlay },
+    met: { bpm: base.bpm, meter: base.meter, sound: base.sound, sub: base.subOn ? base.subKind : 1, accent: base.accent, volume: base.volume },
+    drn: { midi: base.droneMidi, voice: base.droneVoice, fifth: base.droneFifth, volume: base.droneVolume },
+    pb: { silenceSec: base.silenceSec, autoPlay: base.autoPlay, volume: base.playVolume },
   });
 }
 
@@ -114,18 +115,37 @@ export function clean(it) {
       meter: METERS.some((m) => m.id === met.meter) ? met.meter : '4/4',
       sound: SOUNDS.some((m) => m.id === met.sound) ? met.sound : 'wood',
       sub: [1, 2, 3, 4].includes(met.sub) ? met.sub : 1,
+      accent: met.accent !== false,
+      volume: unit(met.volume, DEFAULTS.volume),
     },
     drn: {
       midi: clampInt(drn.midi, DRONE_MIN, DRONE_MAX, 48),
       voice: VOICES.some((v) => v.id === drn.voice) ? drn.voice : 'cello',
       fifth: drn.fifth === true,
+      volume: unit(drn.volume, DEFAULTS.droneVolume),
     },
     pb: {
       silenceSec: Number.isFinite(Number(pb.silenceSec)) ? Math.max(1, Math.min(10, Math.round(Number(pb.silenceSec) * 2) / 2)) : 3,
       autoPlay: pb.autoPlay !== false,
+      volume: unit(pb.volume, DEFAULTS.playVolume),
     },
   };
 }
+const unit = (v, d) => (Number.isFinite(Number(v)) && v !== null ? Math.round(Math.max(0, Math.min(1, Number(v))) * 100) / 100 : d);
+
+/**
+ * How many of an item's settings are its own: each tool turned on, and each
+ * tool setting that differs from the tools' own (`base`, the app's settings,
+ * which a new item starts from). Deleting an item with more than
+ * CONFIRM_OVER of them asks first.
+ */
+export function customCount(it, base = DEFAULTS) {
+  const own = newItem(null, {}, base);
+  let n = TOOLS.filter((t) => it.tools?.[t]).length;
+  for (const k of ['met', 'drn', 'pb']) for (const [f, v] of Object.entries(own[k])) if (it[k]?.[f] !== v) n++;
+  return n;
+}
+export const CONFIRM_OVER = 3;
 
 /** A saved routine, or the default one on a first visit (an emptied one stays empty). */
 export function cleanRoutine(v, base) {
@@ -156,10 +176,12 @@ export function loadTimer(base, storage = globalThis.localStorage) {
     voiceOn: saved?.voiceOn !== false,
     voice: SPEAKERS.includes(saved?.voice) ? saved.voice : SPEAKERS[0],
     voiceVolume: Number.isFinite(saved?.voiceVolume) ? Math.max(0, Math.min(1, saved.voiceVolume)) : VOICE_DEFAULT,
+    // The Metronome card's view of the beat: the pendulum, big dots or the Visualizer.
+    metView: ['pendulum', 'pulse', 'bars'].includes(saved?.metView) ? saved.metView : 'pendulum',
   };
 }
-export function saveTimer({ items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume }, storage = globalThis.localStorage) {
-  try { storage?.setItem(KEY, JSON.stringify({ items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume })); } catch { /* not kept */ }
+export function saveTimer({ items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume, metView }, storage = globalThis.localStorage) {
+  try { storage?.setItem(KEY, JSON.stringify({ items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume, metView })); } catch { /* not kept */ }
 }
 
 /**

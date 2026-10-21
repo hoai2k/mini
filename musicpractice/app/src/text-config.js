@@ -452,6 +452,9 @@ export const EN = {
       turnOn: (tool) => `${tool} on`,
       settings: (tool) => `${tool} settings`,
       settingsTitle: (tool, item) => `${tool} for ${item}`,
+      tempoLine: (bpm, meter) => `${bpm} BPM · ${meter}`,
+      /** A tap on the metronome's beat shows the next view: this is what it says it will show. */
+      views: { pendulum: 'Show the pendulum', pulse: 'Show big dots', bars: 'Show the Visualizer' },
       /** The settings an item keeps for each tool (the gear on its card). */
       fields: {
         tempo: 'Tempo (BPM)',
@@ -462,6 +465,9 @@ export const EN = {
         silence: 'Stop recording after',
         seconds: (n) => `${n} s of quiet`,
         autoPlay: 'Play each take back',
+        accent: 'Accent the first beat',
+        volume: 'Volume',
+        playVolume: 'Playback volume',
       },
       show: (tool) => `Show ${tool}`,
       tempo: 'Tempo',
@@ -491,6 +497,13 @@ export const EN = {
     voices: { lily: 'Lily', matilda: 'Matilda', george: 'George', clara: 'Clara', autumn: 'Autumn', theo: 'Theo' },
     deleted: (name) => `Deleted ${name}`,
     turnedOff: (name) => `${name} is off`,
+    /** Deleting an item that has settings of its own. */
+    confirmDelete: {
+      title: 'Delete this routine?',
+      text: (name, n) => `${name} has ${n} settings of its own (its tools and how they are set). They will be deleted with it.`,
+      keep: 'Keep it',
+      go: 'Delete',
+    },
     /** An item's menu (a right click). */
     menu: { rename: 'Rename', turnOff: 'Turn off', turnOn: 'Turn on', delete: 'Delete' },
     undo: 'Undo',

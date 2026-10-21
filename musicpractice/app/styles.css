@@ -2094,6 +2094,25 @@ input.titem-name::placeholder { color: var(--ink-3); }
 .titem-menu-item { text-align: left; padding: 10px 14px; border: 0; border-radius: 10px; background: none; color: inherit; font: 700 0.95rem var(--ui); }
 .titem-menu-item:hover, .titem-menu-item:focus-visible { background: var(--panel); outline: none; }
 .titem-menu-item:last-child { color: var(--red-2, var(--ink)); }
+/* Deleting an item with settings of its own asks first. */
+.timer-confirm p { margin: 4px 0 12px; line-height: 1.45; }
+.pill.danger { color: var(--red-2, var(--ink)); border-color: color-mix(in srgb, var(--red-2, var(--ink)) 50%, var(--line)); font-weight: 800; }
+/* The Metronome card while it plays: the beat in one of three views (a tap steps through them). */
+.tool-met-idle { display: flex; flex-direction: column; gap: 10px; }
+.tool-met-idle[hidden], .mini-met[hidden] { display: none; }
+.mini-met { height: 150px; display: grid; place-items: center; cursor: pointer; border-radius: 14px; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+.mini-met:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+.mini-met > * { grid-area: 1 / 1; }
+.mini-met:not([data-view="pendulum"]) .mini-met-art, .mini-met:not([data-view="pulse"]) .mini-pulse, .mini-met:not([data-view="bars"]) .mini-bars { display: none; }
+.mini-met-art { position: relative; height: 100%; aspect-ratio: 800 / 1200; }
+.mini-pulse { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; gap: 12px; }
+.mini-pulse li {
+  --g: 0; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line);
+  background: color-mix(in srgb, var(--brass-2) calc(var(--g) * 100%), var(--panel-2));
+  transform: scale(calc(1 + var(--g) * 0.3)); box-shadow: 0 0 calc(var(--g) * 18px) color-mix(in srgb, var(--brass-2) calc(var(--g) * 70%), transparent);
+}
+.mini-pulse li.strong { width: 34px; height: 34px; border-color: var(--brass); background: color-mix(in srgb, var(--red-2, var(--brass-2)) calc(var(--g) * 100%), var(--panel-2)); }
+.mini-bars { width: 100%; --row: 30px; --rg: 10px; padding: 0 4px; }
 /* A tool's settings sheet; the gear on its card. */
 .tool-settings-body { display: flex; flex-direction: column; gap: 4px; }
 .tool-tempo-edit { display: flex; align-items: center; gap: 8px; }

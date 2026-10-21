@@ -574,6 +574,18 @@
         </form>
       </dialog>
 
+      <!-- Deleting an item with settings of its own asks first (timerui.js askRemove). -->
+      <dialog id="timer-confirm" class="sheet timer-confirm" aria-labelledby="timer-confirm-title">
+        <form method="dialog">
+          <header class="sheet-head"><h3 id="timer-confirm-title" data-text="timer.confirmDelete.title"></h3></header>
+          <p id="timer-confirm-text"></p>
+          <div class="sheet-links">
+            <button type="button" class="pill" id="timer-confirm-no" data-text="timer.confirmDelete.keep"></button>
+            <button type="button" class="pill danger" id="timer-confirm-go"></button>
+          </div>
+        </form>
+      </dialog>
+
       <!-- A tool's settings for the item running (the gear on its card). -->
       <dialog id="tool-settings" class="sheet" aria-labelledby="tool-settings-title">
         <form method="dialog">
