@@ -1,11 +1,12 @@
 // The Practice Routine screen. Set up, it is the routine as a list: each item
 // its number, picture and name on the left and its minutes on the right (a
 // tap on them shows − and +), + to add one (a suggestion or Custom…) and
-// Start. The pencil in the header edits the list: each item's kind (a list of
+// Start. The pencil beside the total time edits the list: each item's kind (a list of
 // the suggestions; only Custom is typed), a switch that takes it out of the
 // routine without losing it (turned off, it shows only while editing), a
 // trash button (or swipe it off either side), and a handle to drag it up or
-// down.
+// down by (or anywhere on it). An item's own pencil opens its kind and minutes,
+// with its trash button at the far right.
 //
 // Running, it is a shell around the tools: a compact header (the item, its
 // time left, what is next, Pause, Skip and Stop) over a row of cards that
@@ -160,6 +161,16 @@ export function setupTimer({ settings, tools, audio }) {
     return box;
   }
 
+  function delButton(it) {
+    const del = h('button', 'icon-btn');
+    del.classList.add('titem-del');
+    del.type = 'button';
+    del.innerHTML = TRASH;
+    del.setAttribute('aria-label', T.item.delete(label(it)));
+    del.addEventListener('click', () => askRemove(it));
+    return del;
+  }
+
   function row(it, i, n) {
     const li = document.createElement('li');
     li.className = 'titem';
@@ -185,6 +196,7 @@ export function setupTimer({ settings, tools, audio }) {
         });
         li.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === li) { e.preventDefault(); start(it); } });
       } else if (run) li.setAttribute('aria-label', I.summary(n, label(it), it.minutes));
+      if (open) li.append(delButton(it)); // open, it can be deleted from here too
       gestures(li, it);
       return li;
     }
@@ -192,16 +204,13 @@ export function setupTimer({ settings, tools, audio }) {
     li.classList.toggle('off', !it.enabled);
     li.innerHTML = `<button type="button" class="icon-btn titem-handle">${HANDLE}</button>
       <span class="titem-num" aria-hidden="true">${it.enabled ? `${n}.` : ''}</span>
-      <label class="titem-onoff"><input type="checkbox" role="switch"></label>
-      <button type="button" class="icon-btn titem-del">${TRASH}</button>`;
+      <label class="titem-onoff"><input type="checkbox" role="switch"></label>`;
     li.querySelector('.titem-num').after(...parts());
     const on = li.querySelector('.titem-onoff input');
     on.checked = it.enabled;
     on.setAttribute('aria-label', I.inRoutine(label(it)));
     on.addEventListener('change', () => { it.enabled = on.checked; save(); render(it.id, '.titem-onoff input'); });
-    const del = li.querySelector('.titem-del');
-    del.setAttribute('aria-label', I.delete(label(it)));
-    del.addEventListener('click', () => askRemove(it));
+    li.append(delButton(it));
     const handle = li.querySelector('.titem-handle');
     handle.setAttribute('aria-label', I.reorder(label(it)));
     // Arrow keys move it too, for a keyboard.
@@ -277,7 +286,8 @@ export function setupTimer({ settings, tools, audio }) {
   /**
    * An item's gestures, while the routine is set up. By touch, a long press
    * picks it up to move (turning the list to editing if it wasn't), and
-   * while editing a sideways swipe takes it off. By mouse, it is simply
+   * while editing it is picked up by a drag up or down anywhere on it, and a
+   * sideways swipe takes it off. By mouse, it is simply
    * dragged up or down, sideways off while editing, and a right click opens
    * its menu (Rename, Turn off or on, Delete). The handle picks it up at once.
    */
@@ -299,7 +309,8 @@ export function setupTimer({ settings, tools, audio }) {
     });
     li.addEventListener('pointerdown', (e) => {
       lastPointer = e.pointerType;
-      if (run || e.button !== 0 || e.target.closest('input, button, label, .titem-time')) return;
+      if (run || e.button !== 0 || e.target.closest('input, button, label, select, .titem-time')) return;
+      if (li.classList.contains('item-edit')) return; // open, it moves by its handle
       const touch = e.pointerType !== 'mouse';
       if (!touch && !editing) return; // with a mouse, the list's edit button is the way to rearrange it
       const x0 = e.clientX, y0 = e.clientY;
@@ -331,7 +342,8 @@ export function setupTimer({ settings, tools, audio }) {
           if (touch) {
             if (far < 8) return;
             clearTimeout(timer);
-            if (!(editing && Math.abs(dx) > Math.abs(dy))) { done(); return; } // a scroll
+            if (!editing) { done(); return; } // a scroll
+            if (Math.abs(dy) >= Math.abs(dx)) { pickUp(y0); return; } // editing: picked up anywhere on it
           } else {
             if (far < 6) return;
             if (Math.abs(dy) >= Math.abs(dx)) { pickUp(y0); return; }
