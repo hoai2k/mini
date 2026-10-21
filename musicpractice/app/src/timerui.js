@@ -28,6 +28,8 @@ import { PRESETS, TOOLS, CHIMES, SPEAKERS, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, 
 
 const $ = (id) => document.getElementById(id);
 const TRASH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>';
+const PENCIL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg>';
+const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 const HANDLE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14M5 12h14M5 16h14"/></svg>';
 const CHIME_GAP = 1100; // ms from the chime to the voice's silence after it
@@ -49,7 +51,8 @@ const SWIPE_OFF = 0.35; // of the item's width: past this, a swipe deletes it
 export function setupTimer({ settings, tools, audio }) {
   const state = loadTimer(settings);
   let items = state.items;
-  let timing = null; // the item whose minutes show − and + (a tap on its minutes)
+  let itemEdit = null; // the item open for editing (its pencil): its name and minutes
+  let quietUntil = 0; // a tap that ends a long press or a drag doesn't also start the routine
   let restore = null; // the tools' own settings, put back when a routine ends
   let run = null; // the TimerRun while a routine is going
   let finishing = false; // its time is up, and a take is being let finish
@@ -71,22 +74,12 @@ export function setupTimer({ settings, tools, audio }) {
   const list = $('timer-list');
 
   /**
-   * Its minutes: "5 min", which a tap turns into − 5 + (and a tap anywhere
-   * else back again). Both are always there and the item's `timing` class
-   * says which shows, so nothing is redrawn under a finger.
+   * Its minutes: "5 min", or, while the item is open for editing (its
+   * pencil), − 5 + with the number to type.
    */
-  function minutes(li, it) {
+  function minutes(it) {
     const I = T.item;
-    const box = h('div', 'titem-when');
-    const shown = h('button', 'titem-min', I.minutesShort(it.minutes));
-    shown.type = 'button';
-    shown.setAttribute('aria-label', I.changeMinutes(label(it), it.minutes));
-    shown.disabled = !!run;
-    shown.addEventListener('click', () => {
-      timing = it.id;
-      for (const r of list.children) r.classList.toggle('timing', r === li);
-      li.querySelector('.titem-more')?.focus({ preventScroll: true }); // not the number: a phone would bring up its keyboard
-    });
+    if (itemEdit !== it.id) return h('span', 'titem-min', I.minutesShort(it.minutes));
     const time = h('div', 'titem-time');
     time.innerHTML = `<button type="button" class="step titem-less">−</button>
       <input class="titem-mins" type="number" inputmode="numeric" min="${MIN_MINUTES}" max="${MAX_MINUTES}" step="1">
@@ -97,32 +90,39 @@ export function setupTimer({ settings, tools, audio }) {
     const setMinutes = (v) => {
       it.minutes = Math.max(MIN_MINUTES, Math.min(MAX_MINUTES, Math.round(Number(v) || it.minutes)));
       min.value = it.minutes;
-      shown.textContent = I.minutesShort(it.minutes);
-      shown.setAttribute('aria-label', I.changeMinutes(label(it), it.minutes));
       state.lastMinutes[it.kind || 'custom'] = it.minutes; // the next of its kind starts here
       save();
       readout();
     };
     min.addEventListener('change', () => setMinutes(min.value));
+    min.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); min.blur(); } });
     min.addEventListener('focus', () => min.select());
     time.querySelector('.titem-less').setAttribute('aria-label', I.fewer);
     time.querySelector('.titem-more').setAttribute('aria-label', I.more);
     time.querySelector('.titem-less').addEventListener('click', () => setMinutes(it.minutes - 1));
     time.querySelector('.titem-more').addEventListener('click', () => setMinutes(it.minutes + 1));
-    box.append(shown, time);
-    if (timing === it.id && !run) li.classList.add('timing');
-    return box;
+    return time;
   }
-  // A tap anywhere but an item's minutes puts them back to "5 min".
-  document.addEventListener('pointerdown', (e) => {
-    if (!timing || e.target.closest?.('.titem-when')) return;
-    timing = null;
-    for (const r of list.children) r.classList.remove('timing');
-  });
+
+  /** The pencil after its name: opens the item's name and minutes for editing; a check closes them. */
+  function pencil(it) {
+    const open = itemEdit === it.id;
+    const b = h('button', `icon-btn titem-pencil${open ? ' on' : ''}`);
+    b.type = 'button';
+    b.innerHTML = open ? CHECK : PENCIL;
+    b.setAttribute('aria-label', open ? T.item.editDone(label(it)) : T.item.edit(label(it)));
+    b.setAttribute('aria-expanded', String(open));
+    b.addEventListener('click', () => {
+      itemEdit = open ? null : it.id;
+      // Not straight into a typed field: a phone would bring up its keyboard (a Custom name is the exception).
+      render(it.id, itemEdit ? (it.kind ? '.titem-kind' : 'input.titem-name') : '.titem-pencil');
+    });
+    return b;
+  }
 
   /**
-   * Its name, while editing: a list of the kinds (the suggestions, and
-   * Custom…). A suggestion's name is its own; only Custom is typed, in a
+   * Its name, while the item is open for editing: a list of the kinds (the
+   * suggestions, and Custom…). A suggestion's name is its own; only Custom is typed, in a
    * field with the list still beside it.
    */
   function nameBox(it, i) {
@@ -163,12 +163,26 @@ export function setupTimer({ settings, tools, audio }) {
     li.className = 'titem';
     li.dataset.id = it.id;
     const I = T.item;
+    const open = itemEdit === it.id && !run;
+    li.classList.toggle('item-edit', open);
+    // Its name (or, open, its kind's list), the pencil, and its minutes.
+    const parts = () => [open ? nameBox(it, i) : h('span', 'titem-name', label(it)), ...(run ? [] : [pencil(it)]), minutes(it)];
     if (!editing) {
       li.innerHTML = `<span class="titem-num" aria-hidden="true">${n}.</span><span class="titem-icon" aria-hidden="true"></span>
-        <span class="titem-name"></span><div class="titem-bar" aria-hidden="true"><div class="titem-bar-fill"></div></div>`;
-      li.querySelector('.titem-name').textContent = label(it);
-      li.querySelector('.titem-name').after(minutes(li, it));
-      li.setAttribute('aria-label', I.summary(n, label(it), it.minutes));
+        <div class="titem-bar" aria-hidden="true"><div class="titem-bar-fill"></div></div>`;
+      li.querySelector('.titem-icon').after(...parts());
+      if (!run && !open) {
+        // A tap on it starts the routine from here.
+        li.classList.add('startable');
+        li.setAttribute('role', 'button');
+        li.tabIndex = 0;
+        li.setAttribute('aria-label', I.startHere(n, label(it), it.minutes));
+        li.addEventListener('click', (e) => {
+          if (e.target.closest('button, input, select') || Date.now() < quietUntil) return;
+          start(it);
+        });
+        li.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === li) { e.preventDefault(); start(it); } });
+      } else if (run) li.setAttribute('aria-label', I.summary(n, label(it), it.minutes));
       gestures(li, it);
       return li;
     }
@@ -178,7 +192,7 @@ export function setupTimer({ settings, tools, audio }) {
       <span class="titem-num" aria-hidden="true">${it.enabled ? `${n}.` : ''}</span>
       <label class="titem-onoff"><input type="checkbox" role="switch"></label>
       <button type="button" class="icon-btn titem-del">${TRASH}</button>`;
-    li.querySelector('.titem-num').after(nameBox(it, i), minutes(li, it));
+    li.querySelector('.titem-num').after(...parts());
     const on = li.querySelector('.titem-onoff input');
     on.checked = it.enabled;
     on.setAttribute('aria-label', I.inRoutine(label(it)));
@@ -285,6 +299,7 @@ export function setupTimer({ settings, tools, audio }) {
       lastPointer = e.pointerType;
       if (run || e.button !== 0 || e.target.closest('input, button, label, .titem-time')) return;
       const touch = e.pointerType !== 'mouse';
+      if (!touch && !editing) return; // with a mouse, the list's edit button is the way to rearrange it
       const x0 = e.clientX, y0 = e.clientY;
       let mode = null, dx = 0, timer = 0;
       const done = () => {
@@ -296,6 +311,7 @@ export function setupTimer({ settings, tools, audio }) {
       const pickUp = (y) => {
         done();
         mode = 'drag';
+        quietUntil = Date.now() + 600;
         if (touch && !editing) { // a long press: the list turns to editing, the item in hand
           try { list.setPointerCapture(e.pointerId); } catch { return; }
           editing = true;
@@ -317,7 +333,6 @@ export function setupTimer({ settings, tools, audio }) {
           } else {
             if (far < 6) return;
             if (Math.abs(dy) >= Math.abs(dx)) { pickUp(y0); return; }
-            if (!editing) { done(); return; }
           }
           mode = 'swipe';
           li.setPointerCapture(e.pointerId);
@@ -330,6 +345,7 @@ export function setupTimer({ settings, tools, audio }) {
       };
       const up = () => {
         done();
+        if (mode) quietUntil = Date.now() + 400;
         if (mode !== 'swipe') return;
         li.classList.remove('swiping');
         if (Math.abs(dx) > li.offsetWidth * SWIPE_OFF) {
@@ -386,10 +402,10 @@ export function setupTimer({ settings, tools, audio }) {
       if (!it.enabled && !editing) note(T.turnedOff(label(it)), () => { it.enabled = true; save(); render(); });
       return;
     }
-    // Rename: the list turns to editing, the item becomes one of its own (Custom), its name ready to type.
+    // Rename: the item opens for editing as one of its own (Custom), its name ready to type.
     if (it.kind) setKind(it, null);
     save();
-    editing = true;
+    itemEdit = it.id;
     render(it.id, 'input.titem-name');
     list.querySelector(`[data-id="${it.id}"] input.titem-name`)?.select();
   }
@@ -435,6 +451,7 @@ export function setupTimer({ settings, tools, audio }) {
 
   function setEditing(on) {
     editing = on && !run;
+    itemEdit = null;
     if (!editing) { list.querySelectorAll('input').forEach((i) => i.blur()); }
     render();
   }
@@ -954,11 +971,13 @@ export function setupTimer({ settings, tools, audio }) {
     if (run) readout();
   }
 
-  function start() {
+  /** Start the routine, from its first item or from `from` (an item tapped in the list). */
+  function start(from) {
     const list_ = enabledItems(items);
     if (!list_.length) return;
+    itemEdit = null;
     setEditing(false);
-    run = new TimerRun(list_);
+    run = new TimerRun(list_, Date.now(), Math.max(0, list_.indexOf(from)));
     restore = configs();
     finishing = false;
     finishedNote = false;
@@ -1008,7 +1027,7 @@ export function setupTimer({ settings, tools, audio }) {
     readout();
   }
 
-  $('timer-go').addEventListener('click', start);
+  $('timer-go').addEventListener('click', () => start());
   $('trun-go').addEventListener('click', pauseOrResume);
   $('trun-skip').addEventListener('click', () => { if (run && !finishing) changes(run.tick(Date.now(), true), true); if (run) readout(); });
   $('trun-stop').addEventListener('click', stop);

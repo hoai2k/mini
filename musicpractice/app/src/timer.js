@@ -290,12 +290,12 @@ export const cues = {
  * a few times a second and when it is shown again.
  */
 export class TimerRun {
-  constructor(items, now = Date.now()) {
+  constructor(items, now = Date.now(), index = 0) {
     this.items = items;
-    this.index = 0;
+    this.index = Math.min(index, items.length - 1);
     this.paused = false;
     this.done = false;
-    this.endsAt = now + this.items[0].minutes * 60000;
+    this.endsAt = now + this.items[this.index].minutes * 60000;
     this.left = 0; // ms left while paused
   }
 
