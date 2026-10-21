@@ -446,7 +446,6 @@ export const EN = {
       metronome: 'Metronome',
       drone: 'Drone',
       playback: 'Playback',
-      turnOn: (tool) => `${tool} on`,
       settings: (tool) => `${tool} settings`,
       settingsTitle: (tool, item) => `${tool} for ${item}`,
       tempoLine: (bpm, meter) => `${bpm} BPM · ${meter}`,
