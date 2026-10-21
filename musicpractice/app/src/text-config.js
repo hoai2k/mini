@@ -445,6 +445,19 @@ export const EN = {
       drone: 'Drone',
       playback: 'Playback',
       turnOn: (tool) => `${tool} on`,
+      settings: (tool) => `${tool} settings`,
+      settingsTitle: (tool, item) => `${tool} for ${item}`,
+      /** The settings an item keeps for each tool (the gear on its card). */
+      fields: {
+        tempo: 'Tempo (BPM)',
+        meter: 'Time signature',
+        sound: 'Click sound',
+        sub: 'Extra notes',
+        subNone: 'None',
+        silence: 'Stop recording after',
+        seconds: (n) => `${n} s of quiet`,
+        autoPlay: 'Play each take back',
+      },
       show: (tool) => `Show ${tool}`,
       tempo: 'Tempo',
       bpm: 'BPM',
@@ -472,6 +485,9 @@ export const EN = {
     voiceVolume: 'Voice volume',
     voices: { lily: 'Lily', matilda: 'Matilda', george: 'George', clara: 'Clara', autumn: 'Autumn', theo: 'Theo' },
     deleted: (name) => `Deleted ${name}`,
+    turnedOff: (name) => `${name} is off`,
+    /** An item's menu (a right click). */
+    menu: { rename: 'Rename', turnOff: 'Turn off', turnOn: 'Turn on', delete: 'Delete' },
     undo: 'Undo',
   },
 

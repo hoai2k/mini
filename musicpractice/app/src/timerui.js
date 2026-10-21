@@ -19,8 +19,9 @@
 // timer.js; the tools are main.js's, handed in.
 
 import { TEXT } from './text.js';
-import { VOICES } from './drone.js';
-import { BPM_MIN, BPM_MAX } from './settings.js';
+import { VOICES, DRONE_MIN, DRONE_MAX, spelling } from './drone.js';
+import { BPM_MIN, BPM_MAX, METERS, SOUNDS } from './settings.js';
+import { noteName } from './tuning.js';
 import { clock } from './droneui.js';
 import { hasArt, showArt } from './art.js';
 import { PRESETS, TOOLS, CHIMES, SPEAKERS, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, newItem, loadTimer, saveTimer, voiceGain, totalSeconds, enabledItems, setKind, cues, TimerRun, pictureFor, move, voiceLines, voiceUrl, chimeUrl } from './timer.js';
@@ -56,7 +57,7 @@ export function setupTimer({ settings, tools, audio }) {
   let finishedNote = false; // say "All done" until the routine is touched again
   let editing = false;
   let ticker = 0;
-  let undo = null; // { item, index } of the item just deleted
+  let undo = null; // what Undo puts back (the item just deleted or turned off)
   let toastTimer = 0;
   const save = () => { state.items = items; saveTimer(state); };
   let seq = 0; // the announcement in progress (a newer one, Pause or Stop ends it)
@@ -168,6 +169,7 @@ export function setupTimer({ settings, tools, audio }) {
       li.querySelector('.titem-name').textContent = label(it);
       li.querySelector('.titem-name').after(minutes(li, it));
       li.setAttribute('aria-label', I.summary(n, label(it), it.minutes));
+      gestures(li, it);
       return li;
     }
     li.classList.add('editing');
@@ -197,84 +199,138 @@ export function setupTimer({ settings, tools, audio }) {
       save();
       render(it.id, '.titem-handle');
     });
-    dragToReorder(li, handle, it);
-    swipeToDelete(li, it);
+    gestures(li, it);
     return li;
   }
 
   /**
-   * Drag an item up or down by its handle: it follows the finger, the others
-   * make room as it passes their middles, and it lands where it was let go.
+   * Drag an item up or down: it follows the pointer, the others make room as
+   * it passes their middles, and it lands where it is let go. The pointer is
+   * held by the list (which outlives a redraw, so a long press can turn the
+   * list to editing under the finger and carry on).
    */
-  function dragToReorder(li, handle, it) {
-    handle.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      handle.setPointerCapture(e.pointerId);
-      const rows = [...list.children];
-      const from = rows.indexOf(li);
-      const boxes = rows.map((r) => r.getBoundingClientRect());
-      const step = boxes.length > 1 ? boxes[1].top - boxes[0].top : boxes[0].height + 8;
-      const y0 = e.clientY;
-      let to = from;
-      li.classList.add('dragging');
-      const moved = (ev) => {
-        const dy = ev.clientY - y0;
-        li.style.transform = `translateY(${dy}px)`;
-        const mid = boxes[from].top + boxes[from].height / 2 + dy;
-        to = from;
-        while (to < rows.length - 1 && mid > boxes[to + 1].top + boxes[to + 1].height / 2) to++;
-        while (to > 0 && mid < boxes[to - 1].top + boxes[to - 1].height / 2) to--;
-        rows.forEach((r, k) => {
-          if (r === li) return;
-          const shift = from < to && k > from && k <= to ? -step : from > to && k < from && k >= to ? step : 0;
-          r.style.transform = shift ? `translateY(${shift}px)` : '';
-        });
-      };
-      const up = () => {
-        handle.removeEventListener('pointermove', moved);
-        handle.removeEventListener('pointerup', up);
-        handle.removeEventListener('pointercancel', up);
-        for (const r of rows) r.style.transform = '';
-        li.classList.remove('dragging');
-        if (to !== from) {
-          items = move(items, from, to);
-          save();
-          render(it.id, '.titem-handle');
-        }
-      };
-      handle.addEventListener('pointermove', moved);
-      handle.addEventListener('pointerup', up);
-      handle.addEventListener('pointercancel', up);
-    });
+  let dragging = false;
+  function startDrag(it, pointerId, y0) {
+    const rows = [...list.children];
+    const li = rows.find((r) => r.dataset.id === it.id);
+    if (!li) return;
+    try { list.setPointerCapture(pointerId); } catch { /* the pointer is gone */ return; }
+    dragging = true;
+    const from = rows.indexOf(li);
+    const boxes = rows.map((r) => r.getBoundingClientRect());
+    const step = boxes.length > 1 ? boxes[1].top - boxes[0].top : boxes[0].height + 8;
+    let to = from;
+    li.classList.add('dragging');
+    list.classList.add('reordering');
+    const moved = (ev) => {
+      if (ev.pointerId !== pointerId) return;
+      const dy = ev.clientY - y0;
+      li.style.transform = `translateY(${dy}px)`;
+      const mid = boxes[from].top + boxes[from].height / 2 + dy;
+      to = from;
+      while (to < rows.length - 1 && mid > boxes[to + 1].top + boxes[to + 1].height / 2) to++;
+      while (to > 0 && mid < boxes[to - 1].top + boxes[to - 1].height / 2) to--;
+      rows.forEach((r, k) => {
+        if (r === li) return;
+        const shift = from < to && k > from && k <= to ? -step : from > to && k < from && k >= to ? step : 0;
+        r.style.transform = shift ? `translateY(${shift}px)` : '';
+      });
+    };
+    const up = (ev) => {
+      if (ev.pointerId !== pointerId) return;
+      list.removeEventListener('pointermove', moved);
+      list.removeEventListener('pointerup', up);
+      list.removeEventListener('pointercancel', up);
+      dragging = false;
+      for (const r of rows) r.style.transform = '';
+      li.classList.remove('dragging');
+      list.classList.remove('reordering');
+      if (to !== from) {
+        // Among the rows shown: to the place of the one it was let go on.
+        const target = items.find((x) => x.id === rows[to].dataset.id);
+        items = move(items, items.indexOf(it), items.indexOf(target));
+        save();
+        render(it.id, editing ? '.titem-handle' : undefined);
+      }
+    };
+    list.addEventListener('pointermove', moved);
+    list.addEventListener('pointerup', up);
+    list.addEventListener('pointercancel', up);
   }
 
-  /** Swipe an item off either side to delete it (while editing; Undo brings it back). */
-  function swipeToDelete(li, it) {
+  /**
+   * An item's gestures, while the routine is set up. By touch, a long press
+   * picks it up to move (turning the list to editing if it wasn't), and
+   * while editing a sideways swipe takes it off. By mouse, it is simply
+   * dragged up or down, sideways off while editing, and a right click opens
+   * its menu (Rename, Turn off or on, Delete). The handle picks it up at once.
+   */
+  const HOLD = 450;
+  function gestures(li, it) {
+    const handle = li.querySelector('.titem-handle');
+    handle?.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      startDrag(it, e.pointerId, e.clientY);
+    });
+    // A drag by touch must not scroll the page: the touch stays with the item it began on, even once redrawn.
+    li.addEventListener('touchmove', (e) => { if (dragging) e.preventDefault(); }, { passive: false });
+    li.addEventListener('contextmenu', (e) => {
+      if (run) return;
+      e.preventDefault();
+      if (lastPointer !== 'mouse') return; // a long press by touch picks the item up instead
+      openMenu(it, e.clientX, e.clientY);
+    });
     li.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0 || e.target.closest('input, button, label')) return; // a swipe may start on the kind's list: a tap still opens it
+      lastPointer = e.pointerType;
+      if (run || e.button !== 0 || e.target.closest('input, button, label, .titem-time')) return;
+      const touch = e.pointerType !== 'mouse';
       const x0 = e.clientX, y0 = e.clientY;
-      let dx = 0, claimed = false;
-      const moved = (ev) => {
-        dx = ev.clientX - x0;
-        if (!claimed) {
-          if (Math.abs(ev.clientY - y0) > 10) { done(); return; } // a scroll, not a swipe
-          if (Math.abs(dx) < 10) return;
-          claimed = true;
-          li.setPointerCapture(e.pointerId);
-          li.classList.add('swiping');
-        }
-        li.style.transform = `translateX(${dx}px)`;
-        li.style.opacity = String(1 - Math.min(0.7, Math.abs(dx) / li.offsetWidth));
-      };
+      let mode = null, dx = 0, timer = 0;
       const done = () => {
+        clearTimeout(timer);
         li.removeEventListener('pointermove', moved);
         li.removeEventListener('pointerup', up);
         li.removeEventListener('pointercancel', cancel);
       };
+      const pickUp = (y) => {
+        done();
+        mode = 'drag';
+        if (touch && !editing) { // a long press: the list turns to editing, the item in hand
+          try { list.setPointerCapture(e.pointerId); } catch { return; }
+          editing = true;
+          render();
+        }
+        navigator.vibrate?.(12);
+        startDrag(it, e.pointerId, y);
+      };
+      if (touch) timer = setTimeout(() => pickUp(y0), HOLD);
+      const moved = (ev) => {
+        dx = ev.clientX - x0;
+        const dy = ev.clientY - y0;
+        if (!mode) {
+          const far = Math.hypot(dx, dy);
+          if (touch) {
+            if (far < 8) return;
+            clearTimeout(timer);
+            if (!(editing && Math.abs(dx) > Math.abs(dy))) { done(); return; } // a scroll
+          } else {
+            if (far < 6) return;
+            if (Math.abs(dy) >= Math.abs(dx)) { pickUp(y0); return; }
+            if (!editing) { done(); return; }
+          }
+          mode = 'swipe';
+          li.setPointerCapture(e.pointerId);
+          li.classList.add('swiping');
+        }
+        if (mode === 'swipe') {
+          li.style.transform = `translateX(${dx}px)`;
+          li.style.opacity = String(1 - Math.min(0.7, Math.abs(dx) / li.offsetWidth));
+        }
+      };
       const up = () => {
         done();
-        if (!claimed) return;
+        if (mode !== 'swipe') return;
         li.classList.remove('swiping');
         if (Math.abs(dx) > li.offsetWidth * SWIPE_OFF) {
           const out = Math.sign(dx) * li.offsetWidth * 1.1;
@@ -291,6 +347,51 @@ export function setupTimer({ settings, tools, audio }) {
       li.addEventListener('pointerup', up);
       li.addEventListener('pointercancel', cancel);
     });
+  }
+  let lastPointer = 'mouse';
+
+  // ---- an item's menu (a right click): Rename, Turn off or on, Delete
+  const menu = $('titem-menu');
+  let menuFor = null;
+  function openMenu(it, x, y) {
+    menuFor = it;
+    const M = T.menu;
+    menu.replaceChildren(...[
+      ['rename', M.rename],
+      ['toggle', it.enabled ? M.turnOff : M.turnOn],
+      ['delete', M.delete],
+    ].map(([act, text]) => {
+      const b = h('button', 'titem-menu-item', text);
+      b.type = 'button';
+      b.setAttribute('role', 'menuitem');
+      b.addEventListener('click', () => { closeMenu(); menuAction(act, it); });
+      return b;
+    }));
+    menu.hidden = false;
+    const r = menu.getBoundingClientRect();
+    menu.style.left = `${Math.min(x, innerWidth - r.width - 8)}px`;
+    menu.style.top = `${Math.min(y, innerHeight - r.height - 8)}px`;
+    menu.querySelector('button')?.focus();
+  }
+  function closeMenu() { menu.hidden = true; menuFor = null; }
+  document.addEventListener('pointerdown', (e) => { if (menuFor && !menu.contains(e.target)) closeMenu(); });
+  document.addEventListener('keydown', (e) => { if (menuFor && e.key === 'Escape') closeMenu(); });
+  addEventListener('scroll', () => { if (menuFor) closeMenu(); }, { passive: true });
+  function menuAction(act, it) {
+    if (act === 'delete') { remove(it); return; }
+    if (act === 'toggle') {
+      it.enabled = !it.enabled;
+      save();
+      render();
+      if (!it.enabled && !editing) note(T.turnedOff(label(it)), () => { it.enabled = true; save(); render(); });
+      return;
+    }
+    // Rename: the list turns to editing, the item becomes one of its own (Custom), its name ready to type.
+    if (it.kind) setKind(it, null);
+    save();
+    editing = true;
+    render(it.id, 'input.titem-name');
+    list.querySelector(`[data-id="${it.id}"] input.titem-name`)?.select();
   }
 
   /*
@@ -359,20 +460,27 @@ export function setupTimer({ settings, tools, audio }) {
     save();
     if (!items.length) editing = false;
     render();
-    undo = { item: it, index };
-    $('timer-toast-text').textContent = T.deleted(label(it));
+    note(T.deleted(label(it)), () => {
+      items = items.slice();
+      items.splice(Math.min(index, items.length), 0, it);
+      save();
+      render();
+    });
+  }
+  /** A line at the foot of the screen with Undo, for a few seconds. */
+  function note(text, undoIt) {
+    undo = undoIt;
+    $('timer-toast-text').textContent = text;
     $('timer-toast').hidden = false;
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { $('timer-toast').hidden = true; undo = null; }, 6000);
   }
   $('timer-undo').addEventListener('click', () => {
     if (!undo) return;
-    items = items.slice();
-    items.splice(Math.min(undo.index, items.length), 0, undo.item);
+    const f = undo;
     undo = null;
     $('timer-toast').hidden = true;
-    save();
-    render();
+    f();
   });
 
   const sheet = $('timer-add-sheet');
@@ -401,8 +509,12 @@ export function setupTimer({ settings, tools, audio }) {
     el.dataset.tool = tool;
     el.setAttribute('aria-label', C[tool]);
     el.innerHTML = `<header class="tool-head"><span class="tool-icon art" aria-hidden="true"></span><h3></h3>
+      <button type="button" class="icon-btn tool-gear"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
       <label class="tool-switch"><input type="checkbox" role="switch"></label></header><div class="tool-body"></div>`;
     el.querySelector('h3').textContent = C[tool];
+    const gear = el.querySelector('.tool-gear');
+    gear.setAttribute('aria-label', C.settings(C[tool]));
+    gear.addEventListener('click', () => openToolSettings(tool));
     const on = el.querySelector('input');
     on.setAttribute('aria-label', C.turnOn(C[tool]));
     on.addEventListener('change', () => setTool(tool, on.checked));
@@ -502,6 +614,83 @@ export function setupTimer({ settings, tools, audio }) {
     card.playback = { el, on, show };
   }
 
+  /*
+   * A tool's settings, from the gear on its card: what the item running keeps
+   * for that tool (the Metronome's tempo, time signature, click and extra
+   * notes; the Drone's note, instrument and fifth; the Playback Recorder's
+   * silence and playing takes back). Nothing of the page's own (Audio check,
+   * Theme): only the tool's, set on the tool at once and kept with the item.
+   */
+  const toolSheet = $('tool-settings');
+  const field = (text, control, toggle = false) => {
+    const l = h('label', 'row');
+    if (toggle) l.classList.add('toggle');
+    l.append(h('span', '', text), control);
+    return l;
+  };
+  const select = (options, value, onChange) => {
+    const s = h('select', 'select');
+    s.replaceChildren(...options.map(([v, text]) => new Option(text, String(v))));
+    s.value = String(value);
+    s.addEventListener('change', () => onChange(s.value));
+    return s;
+  };
+  const toggleBox = (checked, onChange) => {
+    const b = h('input');
+    Object.assign(b, { type: 'checkbox', checked });
+    b.setAttribute('role', 'switch');
+    b.addEventListener('change', () => onChange(b.checked));
+    return b;
+  };
+  function toolFields(tool) {
+    const S = C.fields;
+    if (tool === 'metronome') {
+      const M = tools.metronome;
+      const set = (patch) => { M.setConfig({ ...M.config(), ...patch }); capture(); card.metronome.show(); };
+      const num = h('input', 'tool-num');
+      Object.assign(num, { type: 'number', min: BPM_MIN, max: BPM_MAX, step: 1, value: M.bpm() });
+      num.setAttribute('inputmode', 'numeric');
+      const setBpm = (v) => { set({ bpm: Math.max(BPM_MIN, Math.min(BPM_MAX, Math.round(Number(v) || M.bpm()))) }); num.value = M.bpm(); };
+      num.addEventListener('change', () => setBpm(num.value));
+      num.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); setBpm(num.value); } }); // not the sheet's form
+      const tempo = h('span', 'tool-tempo-edit');
+      const less = h('button', 'step', '−'); less.type = 'button'; less.setAttribute('aria-label', T.item.slower); less.addEventListener('click', () => setBpm(M.bpm() - 1));
+      const more = h('button', 'step', '+'); more.type = 'button'; more.setAttribute('aria-label', T.item.faster); more.addEventListener('click', () => setBpm(M.bpm() + 1));
+      tempo.append(less, num, more);
+      return [
+        field(S.tempo, tempo),
+        field(S.meter, select(METERS.map((m) => [m.id, m.beats === 1 ? TEXT.metronome.noBars : m.id]), M.config().meter, (v) => set({ meter: v }))),
+        field(S.sound, select(SOUNDS.map((o) => [o.id, o.label]), M.config().sound, (v) => set({ sound: v }))),
+        field(S.sub, select([1, 2, 3, 4].map((n) => [n, n === 1 ? S.subNone : TEXT.metronome.settings.subdivisions[n]]), M.config().sub, (v) => set({ sub: Number(v) }))),
+      ];
+    }
+    if (tool === 'drone') {
+      const D = tools.drone;
+      const set = (patch) => { D.set({ midi: D.midi(), voice: D.voice(), fifth: D.fifth(), ...patch }); capture(); card.drone.show(); };
+      const flats = spelling(settings.droneAccidentals, settings.droneSpelling) === 'flats';
+      const notes = Array.from({ length: DRONE_MAX - DRONE_MIN + 1 }, (_, k) => { const n = noteName(DRONE_MIN + k, { flats }); return [DRONE_MIN + k, `${n.name}${n.octave}`]; });
+      return [
+        field(C.note, select(notes, D.midi(), (v) => set({ midi: Number(v) }))),
+        field(T.item.instrument, select(VOICES.map((v) => [v.id, v.label]), D.voice(), (v) => set({ voice: v }))),
+        field(T.item.fifth, toggleBox(D.fifth(), (on) => set({ fifth: on })), true),
+      ];
+    }
+    const P = tools.playback;
+    const set = (patch) => { P.setConfig({ ...P.config(), ...patch }); capture(); card.playback.show(); };
+    const secs = Array.from({ length: 19 }, (_, k) => 1 + k / 2);
+    return [
+      field(S.silence, select(secs.map((s) => [s, S.seconds(s)]), P.config().silenceSec, (v) => set({ silenceSec: Number(v) }))),
+      field(S.autoPlay, toggleBox(P.config().autoPlay, (on) => set({ autoPlay: on })), true),
+    ];
+  }
+  function openToolSettings(tool) {
+    if (!run) return;
+    $('tool-settings-title').textContent = C.settingsTitle(C[tool], label(run.item));
+    $('tool-settings-body').replaceChildren(...toolFields(tool));
+    toolSheet.showModal();
+  }
+  toolSheet.addEventListener('click', (e) => { if (e.target === toolSheet) toolSheet.close(); });
+
   const dots = $('tool-dots');
   dots.replaceChildren(...TOOLS.map((t, i) => {
     const b = h('button', 'tool-dot');
@@ -539,27 +728,36 @@ export function setupTimer({ settings, tools, audio }) {
   /** What was changed on a card (the tempo, the drone's note, instrument or fifth), kept with the item running. */
   function capture() {
     if (!run || finishing) return;
-    const it = run.item;
-    it.met.bpm = tools.metronome.bpm();
-    it.drn = { midi: tools.drone.midi(), voice: tools.drone.voice(), fifth: tools.drone.fifth() };
+    Object.assign(run.item, configs());
     save();
   }
+  /** The tools' settings now, as an item keeps them. */
+  const configs = () => ({
+    met: tools.metronome.config(),
+    drn: { midi: tools.drone.midi(), voice: tools.drone.voice(), fifth: tools.drone.fifth() },
+    pb: tools.playback.config(),
+  });
+  function applyConfigs({ met, drn, pb }) {
+    tools.metronome.setConfig(met);
+    tools.drone.set(drn);
+    tools.playback.setConfig(pb);
+  }
   /**
-   * An item starts (or the routine is resumed): its set-up goes on the tools
-   * (the tempo, the drone's note, instrument and fifth), and those it has on
-   * start while the rest stop; one already going carries on.
+   * An item starts (or the routine is resumed): its settings go on the tools,
+   * and those it has on start while the rest stop; one already going carries
+   * on. A take on the go is let finish when the routine moves on by itself,
+   * but not when that is the player's doing (`user`: Skip).
    */
-  function startTools(it = run?.item) {
+  function startTools(it = run?.item, { user = false } = {}) {
     if (!it) return;
-    tools.metronome.setBpm(it.met.bpm);
-    tools.drone.set(it.drn);
+    applyConfigs(it);
     playbackLater = false;
     for (const t of TOOLS) {
       const want = it.tools[t] && (t !== 'drone' || tools.drone.allowed());
       if (want && !tools[t].on()) tools[t].start();
       if (!want && tools[t].on()) {
         // A take on the go is let finish (recorded and played back) before the recorder goes off.
-        if (t === 'playback' && tools.playback.busy()) playbackLater = true;
+        if (t === 'playback' && !user && tools.playback.busy()) playbackLater = true;
         else tools[t].stop();
       }
     }
@@ -690,18 +888,18 @@ export function setupTimer({ settings, tools, audio }) {
   }
   function hush() { seq++; saying?.stop(); saying = null; }
 
-  /** An item ended (or was skipped): the next begins, or the routine's time is up. */
-  function changes(list_) {
+  /** An item ended (or was skipped, `user`): the next begins, or the routine's time is up. */
+  function changes(list_, user = false) {
     const last = list_.at(-1);
     if (!last) return;
     if (last.type === 'changed') {
       cues.changed(last.done, last.next);
       announce({ chime: true, lines: voiceLines.changed(last.done, last.next) });
-      if (!run.paused) startTools(last.next);
+      if (!run.paused) startTools(last.next, { user });
       render();
     } else {
       cues.finished(last.done);
-      endWhenFree(last.done);
+      endWhenFree(last.done, user);
     }
   }
 
@@ -709,11 +907,12 @@ export function setupTimer({ settings, tools, audio }) {
    * The routine's time is up. Everything stops, unless a take is on the go:
    * then everything carries on until it has been recorded, the metronome and
    * the drone stop, and the take plays back; the routine ends after that.
+   * Skipped to the end (`user`), it ends at once.
    */
   let lastItem = null;
-  function endWhenFree(done) {
+  function endWhenFree(done, user = false) {
     lastItem = done;
-    if (tools.playback.on() && tools.playback.busy()) {
+    if (!user && tools.playback.on() && tools.playback.busy()) {
       finishing = true;
       calm = 0;
       showCard('playback');
@@ -731,8 +930,7 @@ export function setupTimer({ settings, tools, audio }) {
   /** The tools' own settings, as they were before the routine began. */
   function putBack() {
     if (!restore) return;
-    tools.metronome.setBpm(restore.bpm);
-    tools.drone.set(restore.drn);
+    applyConfigs(restore);
     restore = null;
   }
   function finish() {
@@ -761,7 +959,7 @@ export function setupTimer({ settings, tools, audio }) {
     if (!list_.length) return;
     setEditing(false);
     run = new TimerRun(list_);
-    restore = { bpm: tools.metronome.bpm(), drn: { midi: tools.drone.midi(), voice: tools.drone.voice(), fifth: tools.drone.fifth() } };
+    restore = configs();
     finishing = false;
     finishedNote = false;
     cues.started(run.item);
@@ -812,7 +1010,7 @@ export function setupTimer({ settings, tools, audio }) {
 
   $('timer-go').addEventListener('click', start);
   $('trun-go').addEventListener('click', pauseOrResume);
-  $('trun-skip').addEventListener('click', () => { if (run && !finishing) changes(run.tick(Date.now(), true)); if (run) readout(); });
+  $('trun-skip').addEventListener('click', () => { if (run && !finishing) changes(run.tick(Date.now(), true), true); if (run) readout(); });
   $('trun-stop').addEventListener('click', stop);
   // Coming back to the page (a phone woken up), catch up at once.
   document.addEventListener('visibilitychange', () => {

@@ -2076,8 +2076,26 @@ input.titem-name::placeholder { color: var(--ink-3); }
 .titem-handle { flex: none; width: 36px; height: 40px; cursor: grab; touch-action: none; color: var(--ink-3); }
 .titem-handle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
 .titem.dragging { z-index: 2; box-shadow: 0 10px 26px var(--shadow); border-color: var(--brass); cursor: grabbing; }
-.timer-list.editing .titem:not(.dragging) { transition: transform 0.18s ease; }
 .titem.swiping { transition: none !important; }
+.timer-list.reordering .titem:not(.dragging) { transition: transform 0.18s ease; }
+.timer-list:not(.editing) .titem { cursor: grab; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+#routine.running .timer-list .titem { cursor: default; }
+/* An item's menu (a right click). */
+.titem-menu {
+  position: fixed; z-index: 20; min-width: 160px; padding: 6px; display: flex; flex-direction: column;
+  border-radius: 14px; border: 1px solid var(--line); background: var(--panel-2); box-shadow: 0 12px 30px var(--shadow);
+}
+.titem-menu[hidden] { display: none; }
+.titem-menu-item { text-align: left; padding: 10px 14px; border: 0; border-radius: 10px; background: none; color: inherit; font: 700 0.95rem var(--ui); }
+.titem-menu-item:hover, .titem-menu-item:focus-visible { background: var(--panel); outline: none; }
+.titem-menu-item:last-child { color: var(--red-2, var(--ink)); }
+/* A tool's settings sheet; the gear on its card. */
+.tool-settings-body { display: flex; flex-direction: column; gap: 4px; }
+.tool-tempo-edit { display: flex; align-items: center; gap: 8px; }
+.tool-tempo-edit .step { width: 40px; height: 40px; font-size: 1.3rem; }
+.tool-num { width: 4.2em; text-align: center; font: 700 1.1rem var(--ui); padding: 6px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: inherit; }
+.tool-gear { flex: none; width: 36px; height: 36px; color: var(--ink-2); }
+.tool-gear svg { width: 20px; height: 20px; }
 .titem-del { flex: none; width: 40px; height: 40px; color: var(--ink-3); }
 .titem-del:hover { color: var(--red-2, var(--ink)); }
 .titem-del svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }

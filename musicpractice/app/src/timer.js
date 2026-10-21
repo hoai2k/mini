@@ -1,8 +1,10 @@
 // The Practice Routine's routine and its clock: a list of practice items, each
 // a name, a number of minutes, whether it is in the routine (`enabled`), and
 // its own set-up of the tools: which of the Metronome, the Drone and the
-// Playback Recorder are on (`tools`), the metronome's tempo (`met`) and the
-// drone's note, instrument and fifth (`drn`). While it runs, the routine is a
+// Playback Recorder are on (`tools`), and each tool's settings: the
+// metronome's tempo, time signature, click and extra notes (`met`), the
+// drone's note, instrument and fifth (`drn`), and the Playback Recorder's
+// silence to stop after and whether it plays takes back (`pb`). While it runs, the routine is a
 // shell around the tools: each item's set-up is put on the tools as it
 // starts, and what is changed on their cards is kept with the item for next
 // time. Pure: the screen is timerui.js, the tools come through main.js.
@@ -11,7 +13,7 @@
 
 import { TEXT } from './text.js';
 import { output } from './output.js';
-import { BPM_MIN, BPM_MAX } from './settings.js';
+import { BPM_MIN, BPM_MAX, METERS, SOUNDS } from './settings.js';
 import { DRONE_MIN, DRONE_MAX, VOICES } from './drone.js';
 
 const KEY = 'musicpractice.routine.v1';
@@ -56,7 +58,9 @@ export function newItem(presetId, lastMinutes = {}, base = {}) {
   const minutes = lastMinutes[presetId || 'custom'] ?? (p ? p.minutes : 5);
   return clean({
     id: newId(), kind: p ? p.id : null, name: p ? TEXT.timer.presets[p.id] : '', minutes,
-    met: { bpm: base.bpm }, drn: { midi: base.droneMidi, voice: base.droneVoice, fifth: base.droneFifth },
+    met: { bpm: base.bpm, meter: base.meter, sound: base.sound, sub: base.subOn ? base.subKind : 1 },
+    drn: { midi: base.droneMidi, voice: base.droneVoice, fifth: base.droneFifth },
+    pb: { silenceSec: base.silenceSec, autoPlay: base.autoPlay },
   });
 }
 
@@ -89,6 +93,7 @@ export function clean(it) {
   const o = it && typeof it === 'object' ? it : {};
   const met = o.met && typeof o.met === 'object' ? o.met : {};
   const drn = o.drn && typeof o.drn === 'object' ? o.drn : {};
+  const pb = o.pb && typeof o.pb === 'object' ? o.pb : {};
   const t = o.tools && typeof o.tools === 'object' ? o.tools : { metronome: o.metronome, drone: o.drone }; // saved before `tools`: its own two
   const saved = typeof o.name === 'string' ? o.name.slice(0, MAX_NAME) : '';
   // Which suggestion it came from (its picture), or null for one of its own.
@@ -104,11 +109,20 @@ export function clean(it) {
     minutes: clampInt(o.minutes, MIN_MINUTES, MAX_MINUTES, 5),
     enabled: o.enabled !== false,
     tools: Object.fromEntries(TOOLS.map((k) => [k, t[k] === true])),
-    met: { bpm: clampInt(met.bpm, BPM_MIN, BPM_MAX, 80) },
+    met: {
+      bpm: clampInt(met.bpm, BPM_MIN, BPM_MAX, 80),
+      meter: METERS.some((m) => m.id === met.meter) ? met.meter : '4/4',
+      sound: SOUNDS.some((m) => m.id === met.sound) ? met.sound : 'wood',
+      sub: [1, 2, 3, 4].includes(met.sub) ? met.sub : 1,
+    },
     drn: {
       midi: clampInt(drn.midi, DRONE_MIN, DRONE_MAX, 48),
       voice: VOICES.some((v) => v.id === drn.voice) ? drn.voice : 'cello',
       fifth: drn.fifth === true,
+    },
+    pb: {
+      silenceSec: Number.isFinite(Number(pb.silenceSec)) ? Math.max(1, Math.min(10, Math.round(Number(pb.silenceSec) * 2) / 2)) : 3,
+      autoPlay: pb.autoPlay !== false,
     },
   };
 }

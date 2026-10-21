@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { TimerRun, cleanRoutine, newItem, PRESETS, TOOLS, totalSeconds, enabledItems, setKind, loadTimer, saveTimer, CHIMES, VOICE_DEFAULT, voiceGain, move } from '../src/timer.js';
 
-const base = { bpm: 100, droneMidi: 50, droneVoice: 'organ', droneFifth: true };
+const base = { bpm: 100, meter: '3/4', sound: 'beep', subOn: true, subKind: 3, droneMidi: 50, droneVoice: 'organ', droneFifth: true, silenceSec: 2.5, autoPlay: false };
 
 const mem = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) }; };
 
@@ -18,8 +18,9 @@ test('a first visit starts with Intonation and Scales; + offers eight; each item
   // Its tools start off, their settings from the app's own.
   const it = newItem('scales', {}, base);
   assert.deepEqual(it.tools, { metronome: false, drone: false, playback: false });
-  assert.deepEqual(it.met, { bpm: 100 });
+  assert.deepEqual(it.met, { bpm: 100, meter: '3/4', sound: 'beep', sub: 3 });
   assert.deepEqual(it.drn, { midi: 50, voice: 'organ', fifth: true });
+  assert.deepEqual(it.pb, { silenceSec: 2.5, autoPlay: false });
   assert.equal(newItem('ghosting').name, 'Ghosting');
   assert.equal(newItem('rhythms').name, 'Clapping Rhythms');
   assert.equal(newItem(undefined).name, ''); // Custom…
@@ -29,13 +30,14 @@ test('saved routines are kept and cleaned, tools and all; an emptied one stays e
   const s = mem();
   saveTimer({ items: [], chime: 'celesta' }, s);
   assert.deepEqual(loadTimer(base, s), { items: [], chime: 'celesta', chimeOn: true, lastMinutes: {}, voiceOn: true, voice: 'lily', voiceVolume: VOICE_DEFAULT });
-  const items = cleanRoutine([{ id: 'a', name: 'x'.repeat(99), minutes: 999, enabled: false, tools: { playback: true, drone: 'yes' }, met: { bpm: 9999 }, drn: { midi: 10, voice: '?' } }, { id: 'a' }, 'junk']);
+  const items = cleanRoutine([{ id: 'a', name: 'x'.repeat(99), minutes: 999, enabled: false, tools: { playback: true, drone: 'yes' }, met: { bpm: 9999, meter: '13/4', sound: 'gong', sub: 5 }, drn: { midi: 10, voice: '?' }, pb: { silenceSec: 99 } }, { id: 'a' }, 'junk']);
   assert.equal(items.length, 2); // the duplicate id dropped, the junk made a blank item
   assert.equal(items[0].name.length, 60);
   assert.equal(items[0].minutes, 120);
   assert.equal(items[0].enabled, false);
   assert.deepEqual(items[0].tools, { metronome: false, drone: false, playback: true });
-  assert.deepEqual(items[0].met, { bpm: 500 });
+  assert.deepEqual(items[0].met, { bpm: 500, meter: '4/4', sound: 'wood', sub: 1 });
+  assert.deepEqual(items[0].pb, { silenceSec: 10, autoPlay: true });
   assert.deepEqual(items[0].drn, { midi: 24, voice: 'cello', fifth: false });
   assert.equal(items[1].enabled, true);
   // Saved when an item had only its own metronome and drone: those carry over.
