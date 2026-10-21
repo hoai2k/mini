@@ -36,6 +36,27 @@
   color-scheme: dark;
 }
 
+/*
+ * Since iOS 26, a web app opened from the home screen gets a soft blurred
+ * fade drawn over the top of the screen, past the status bar by about 40
+ * points, above the page (no meta tag or CSS turns it off, and an opaque
+ * status bar doesn't move it). So there the page keeps its titles and
+ * buttons below that band; the backgrounds still run up under it. Safari
+ * itself and Android draw no such fade. html.ios-app is set by main.js from
+ * navigator.standalone, for an older home-screen app that doesn't report
+ * display-mode.
+ */
+:root {
+  /* Where the page's own top begins: under the status bar, and, in the app
+     added to an iPhone's or iPad's home screen, under that fade too. */
+  --edge-fade: 0px;
+  --safe-top: calc(env(safe-area-inset-top, 0px) + var(--edge-fade));
+}
+@supports (-webkit-touch-callout: none) {
+  @media (display-mode: standalone) { :root { --edge-fade: 36px; } }
+}
+html.ios-app { --edge-fade: 36px; }
+
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
 /* No double-tap zoom (iPhone zoomed in on quick taps of the drone's − and +);
@@ -60,7 +81,7 @@ button { cursor: pointer; }
   min-height: 100dvh;
   max-width: 1100px;
   margin: 0 auto;
-  padding: max(12px, env(safe-area-inset-top)) var(--gutter) max(20px, env(safe-area-inset-bottom));
+  padding: max(12px, var(--safe-top)) var(--gutter) max(20px, env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   /* Animations draw things scaled or moved out of their boxes (the
@@ -76,7 +97,7 @@ button { cursor: pointer; }
 /* Home */
 #home { justify-content: center; align-items: center; gap: clamp(24px, 6vh, 56px); }
 #home { position: relative; }
-.home-gear { position: absolute; top: max(12px, env(safe-area-inset-top)); right: var(--gutter); }
+.home-gear { position: absolute; top: max(12px, var(--safe-top)); right: var(--gutter); }
 
 /* App settings: one tile per theme, each drawn in its own theme */
 .theme-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -152,7 +173,7 @@ button { cursor: pointer; }
 .choices { --choice-gap: clamp(14px, 4vw, 32px); gap: var(--choice-gap); }
 /* Too little room (main.js layoutHome): tighter spacing and labels, and then
    smaller art (--art-max) until it all fits without scrolling. */
-#home.compact { gap: 10px; padding-top: max(8px, env(safe-area-inset-top)); padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+#home.compact { gap: 10px; padding-top: max(8px, var(--safe-top)); padding-bottom: max(8px, env(safe-area-inset-bottom)); }
 #home.compact .brand { font-size: clamp(1.5rem, 7dvh, 2.4rem); }
 #home.compact .choices { --choice-gap: 10px; }
 #home.compact .choices .choice { padding: 8px 6px 10px; gap: 6px; }
@@ -1232,7 +1253,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
    area), with the top bar's controls sitting on them as outlined cream badges. */
 [data-theme="sixties"] {
   --stripe: 18px;
-  --stripes-top: env(safe-area-inset-top, 0px);
+  --stripes-top: var(--safe-top); /* under the status bar and its fade (the first stripe fills them) */
 }
 [data-theme="sixties"] body {
   background:
