@@ -907,6 +907,8 @@ file, on purpose: the privacy page, the device details Send feedback attaches
   the feedback inbox, and common questions), the listings' Support URL.
   Settings links to both.
 - `design/mobile-apps.md`: why the apps, what to sell and the store rules.
+- `mobile/LAUNCH.md`: launching the apps: accounts, hardware and installs,
+  the owner's steps in order, and Claude's list before submission.
 - `design/app-store-review.md`: the iOS app checked against Apple's App
   Review rules, what's done, what's left for submission, and review notes.
 

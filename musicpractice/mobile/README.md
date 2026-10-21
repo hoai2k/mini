@@ -4,6 +4,8 @@ The App Store and Google Play versions of Music Practice. They are the web app
 in `../app` bundled into a native shell with [Capacitor](https://capacitorjs.com)
 8, so the website and the apps stay one codebase. The thinking behind it
 (why apps, what to sell, store rules) is in `../design/mobile-apps.md`.
+**[LAUNCH.md](LAUNCH.md)** lists the accounts, hardware and installs a
+release needs, your steps in order, and Claude's list before submission.
 
 | | |
 | --- | --- |

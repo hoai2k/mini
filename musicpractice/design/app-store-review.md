@@ -62,6 +62,9 @@ Each item is marked **Done** (already met, or met by this review),
 
 ## To plan
 
+The accounts and steps for the release, and the list of things to do before
+submitting (listing, screenshots, name, icon), are in `../mobile/LAUNCH.md`.
+
 1. **Guideline 4.3(b), crowded app types.** Since June 2026 Apple names "sound
    effects" and "simple timers" among app types it won't accept without a
    "meaningfully different or improved experience". Metronomes and tuners
