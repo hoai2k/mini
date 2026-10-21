@@ -706,8 +706,15 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
   Set up, each is a plain row: its number, its picture and its name on the
   left, its minutes on the right ("1. Intonation · 3 min"). **A tap on the
   minutes** shows − and + (and the number, to type); a tap anywhere else puts
-  them back. The **pencil** in the header (beside the gear) edits the list,
-  and turns into a check to finish. Each row then has:
+  them back. **On a phone, a long press on an item** (about half a second)
+  turns the list to editing with that item in hand, ready to drag up or down
+  (the page doesn't scroll under it; a quick swipe still scrolls). **With a
+  mouse**, an item is simply dragged up or down, and a **right click** opens
+  its menu: **Rename** (the list turns to editing, the item becomes one of
+  its own, Custom, its name selected to type over), **Turn off** / **Turn
+  on**, and **Delete** (both with Undo). The **pencil** in the header (beside
+  the gear) edits the list, and turns into a check to finish. Each row then
+  has:
   - a handle to **drag it up or down** (the others make room as it passes
     their middles; the arrow keys move it too, from the handle);
   - its **kind**: the name with a chevron, which opens the list of kinds
@@ -735,31 +742,39 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
   Clapping rhythms and Ghosting, 5 for the rest). Items saved under a
   suggestion's earlier name ("Intonation practice") still know which it was.
   Kept in `musicpractice.routine.v1`.
-- **Each item has its own set-up of the tools**: which of the Metronome,
-  the Drone and the Playback Recorder are on (`tools`), the metronome's
-  tempo (`met`) and the drone's note, instrument and fifth (`drn`). A new
-  item has them all off, its tempo and drone taken from the app's own as a
-  start. Items saved when they had their own metronome and drone keep them
-  on.
+- **Each item keeps its own settings for every tool**: the Metronome's
+  tempo, time signature, click sound and extra notes (`met`), the Drone's
+  note, instrument and fifth (`drn`), the Playback Recorder's silence to stop
+  after and whether it plays each take back (`pb`), and which of them are on
+  (`tools`). A new item has the tools off and their settings taken from the
+  app's own as a start. Items saved when they had their own metronome and
+  drone keep them on.
 - **Running, the routine is a shell around the tools.** **Start** swaps the
   set-up panel for a **compact header** (the item, its time left, what is
   next, a progress bar, and Pause, Skip and Stop as round buttons) over an
   **activity area**: a row of **cards, one per tool**, that swipes sideways a
   card at a time with the next peeking in (dots under it say which, and
   jump to one), or stands three across where the window is wide enough. Each
-  card is a small version of its tool with its own switch:
+  card is a small version of its tool with its own switch, and a **gear**
+  that opens that tool's settings for the item running (only the tool's: no
+  Audio check or Theme): the Metronome's tempo (typed or − / +), time
+  signature, click sound and extra notes; the Drone's note, instrument and
+  fifth; the Playback Recorder's *Stop recording after* (1 to 10 s of quiet)
+  and *Play each take back*. Each is set on the tool at once and kept with
+  the item. On the card:
   - **Metronome**: the tempo (− / + and a slider), its beats lighting as
     they are heard, the time signature;
   - **Drone**: the note (− / +), the instrument and the fifth;
   - **Playback** (the Playback Recorder): what it is doing (listening for
     you to play, recording with its clock, playing your take back), with a
     light, and how many takes there are.
-  As each item starts, **its set-up goes on the tools**: its tempo and
-  drone, and the tools it has on start while the rest stop (one already
-  going carries on; a Playback Recorder with a take on the go goes off only
-  once that take has been recorded and played back). Whatever is changed on a card (a tool turned on or off,
-  the tempo, the note, the instrument, the fifth) is **kept with that item**
-  for next time. The tools run as themselves (the Metronome's sound, accent
+  As each item starts, **its settings go on the tools**, and the tools it
+  has on start while the rest stop (one already going carries on). Whatever
+  is changed on a card or in its settings is **kept with that item** for next
+  time. **Only the routine's own moves wait for a take**: when an item's time
+  runs out and the next has the Playback Recorder off, a take being recorded
+  is let finish and play back first; what the player does (Skip, Stop, a
+  card's switch) acts at once, cancelling it. The tools run as themselves (the Metronome's sound, accent
   and volume, the Drone's reference pitch), and **their own settings are put
   back** when the routine ends or is stopped, so a routine's tempos never
   become the Metronome's. The list stays under the cards, the running item
@@ -768,8 +783,8 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
   **Resume** puts the item's set-up back on, **Skip** moves to the next
   item (paused or not), and **Stop** ends the run. Timed by the clock, so a
   phone that slept catches up when it wakes.
-- **At the end, every tool stops**, except that a take on the go is let
-  finish: if the Playback Recorder is recording, everything carries on until
+- **At the end, every tool stops**, except that when the routine's time
+  runs out by itself (not by Skip) a take on the go is let finish: if the Playback Recorder is recording, everything carries on until
   the take is in, then the metronome and the drone stop and the take plays
   back, and only then does the routine end (the header says *Finishing the
   last take*, and its card comes into view). A metronome or drone started

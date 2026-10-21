@@ -2065,6 +2065,17 @@ const routineTools = {
     on: () => !!metronome?.running,
     bpm: () => settings.bpm,
     setBpm: (n) => setBpm(n),
+    /** Its settings as a routine item keeps them: tempo, time signature, click and extra notes. */
+    config: () => ({ bpm: settings.bpm, meter: settings.meter, sound: settings.sound, sub: settings.subOn ? settings.subKind : 1 }),
+    setConfig: ({ bpm, meter, sound, sub }) => {
+      if (bpm !== settings.bpm) setBpm(bpm);
+      const subNow = settings.subOn ? settings.subKind : 1;
+      if (meter === settings.meter && sound === settings.sound && sub === subNow) return;
+      if (meter !== settings.meter) { settings.meter = meter; settings.accentPattern = null; meterSelect.value = meter; }
+      if (sound !== settings.sound) { settings.sound = sound; soundSelect.value = sound; }
+      if (sub !== subNow) setSub(sub > 1, sub > 1 ? sub : settings.subKind);
+      else metronomeConfigured();
+    },
     meter: () => (meterOf(settings.meter).beats === 1 ? TEXT.metronome.noBars : settings.meter),
     beat: () => {
       const strengths = shownBeats();
@@ -2107,6 +2118,16 @@ const routineTools = {
       };
     },
     busy: () => recorder?.state === 'recording' || !!playing,
+    /** Its settings as a routine item keeps them: the silence it stops after, and whether it plays takes back. */
+    config: () => ({ silenceSec: settings.silenceSec, autoPlay: settings.autoPlay }),
+    setConfig: ({ silenceSec, autoPlay }) => {
+      if (silenceSec === settings.silenceSec && autoPlay === settings.autoPlay) return;
+      settings.silenceSec = silenceSec;
+      settings.autoPlay = autoPlay;
+      $('silence').value = silenceSec;
+      $('autoplay').checked = autoPlay;
+      configureRecorder();
+    },
     ignoreFor: (sec) => recorder?.ignoreFor(sec),
   },
 };

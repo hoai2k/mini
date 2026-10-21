@@ -554,6 +554,8 @@
         <ol class="timer-list" id="timer-list"></ol>
         <p class="help timer-empty" id="timer-empty" data-text="timer.empty" hidden></p>
         <button class="pill timer-add" id="timer-add" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span data-text="timer.add"></span></button>
+        <!-- An item's menu (a right click): Rename, Turn off or on, Delete. -->
+        <div class="titem-menu" id="titem-menu" role="menu" hidden></div>
         <p class="timer-toast" id="timer-toast" role="status" aria-live="polite" hidden><span id="timer-toast-text"></span> <button type="button" class="link-btn" id="timer-undo" data-text="timer.undo"></button></p>
       </div>
 
@@ -569,6 +571,14 @@
             <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
             <button type="button" class="pill open-theme" data-text="common.themeButton"></button>
           </div>
+        </form>
+      </dialog>
+
+      <!-- A tool's settings for the item running (the gear on its card). -->
+      <dialog id="tool-settings" class="sheet" aria-labelledby="tool-settings-title">
+        <form method="dialog">
+          <header class="sheet-head"><h3 id="tool-settings-title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <div class="tool-settings-body" id="tool-settings-body"></div>
         </form>
       </dialog>
 
