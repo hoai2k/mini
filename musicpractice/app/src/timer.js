@@ -1,14 +1,18 @@
 // The Practice Routine's routine and its clock: a list of practice items, each
-// a name and a number of minutes. While it runs, the routine is a shell around
-// the tools: the Metronome, the Drone and the Playback Recorder, each turned
-// on or off on its card and running with its own settings, whatever item is
-// on (TOOLS; which were on is remembered for the next run). Pure: the screen
-// is timerui.js, the tools come through main.js.
+// a name, a number of minutes, whether it is in the routine (`enabled`), and
+// its own set-up of the tools: which of the Metronome, the Drone and the
+// Playback Recorder are on (`tools`), the metronome's tempo (`met`) and the
+// drone's note, instrument and fifth (`drn`). While it runs, the routine is a
+// shell around the tools: each item's set-up is put on the tools as it
+// starts, and what is changed on their cards is kept with the item for next
+// time. Pure: the screen is timerui.js, the tools come through main.js.
 //
 // Inside the code it is the timer (timer.js, timerui.js, TEXT.timer, #timer-…).
 
 import { TEXT } from './text.js';
 import { output } from './output.js';
+import { BPM_MIN, BPM_MAX } from './settings.js';
+import { DRONE_MIN, DRONE_MAX, VOICES } from './drone.js';
 
 const KEY = 'musicpractice.routine.v1';
 export const MAX_ITEMS = 30;
@@ -20,38 +24,51 @@ const MAX_NAME = 60;
 export const TOOLS = ['metronome', 'drone', 'playback'];
 
 /**
- * The suggestions offered by +. Each needs its own picture, practice-<id>,
- * in the image requests (design/source/build_requests.py, PRACTICE_SUBJECT;
- * test/timer.test.mjs checks). `tool`: the tool it is usually practised
- * with, whose card comes into view as it starts (it turns nothing on).
+ * The suggestions offered by +, and the kinds an item can be. Each needs its
+ * own picture, practice-<id>, in the image requests
+ * (design/source/build_requests.py, PRACTICE_SUBJECT; test/timer.test.mjs
+ * checks).
  */
 export const PRESETS = [
-  { id: 'intonation', minutes: 3, tool: 'drone' },
-  { id: 'scales', minutes: 5, tool: 'metronome' },
+  { id: 'intonation', minutes: 3 },
+  { id: 'scales', minutes: 5 },
   { id: 'arpeggios', minutes: 5 },
   // Its picture is the Metronome's own.
-  { id: 'metronome', minutes: 5, tool: 'metronome', picture: 'home-metronome' },
+  { id: 'metronome', minutes: 5, picture: 'home-metronome' },
   { id: 'sight-reading', minutes: 5 },
   { id: 'improvisation', minutes: 5 },
   { id: 'rhythms', minutes: 3 },
   { id: 'ghosting', minutes: 3 },
 ];
-/** The tool whose card comes into view as `it` starts, or null. */
-export const toolFor = (it) => PRESETS.find((p) => p.id === it?.kind)?.tool || null;
 /** The routine a first visit starts with. */
 const FIRST_ROUTINE = ['intonation', 'scales'];
 
 let nextId = 1;
 const newId = () => `i${Date.now().toString(36)}${(nextId++).toString(36)}`;
 
-/** A new item: from a suggestion (or blank, for Custom…), at the length last given to its kind. */
-export function newItem(presetId, lastMinutes = {}) {
+/**
+ * A new item: from a suggestion (or blank, for Custom…), at the length last
+ * given to its kind, with every tool off and their settings taken from the
+ * app's own (`base`, the settings) as a start.
+ */
+export function newItem(presetId, lastMinutes = {}, base = {}) {
   const p = PRESETS.find((x) => x.id === presetId);
   const minutes = lastMinutes[presetId || 'custom'] ?? (p ? p.minutes : 5);
-  return clean({ id: newId(), kind: p ? p.id : null, name: p ? TEXT.timer.presets[p.id] : '', minutes });
+  return clean({
+    id: newId(), kind: p ? p.id : null, name: p ? TEXT.timer.presets[p.id] : '', minutes,
+    met: { bpm: base.bpm }, drn: { midi: base.droneMidi, voice: base.droneVoice, fifth: base.droneFifth },
+  });
 }
 
-export const defaultRoutine = () => FIRST_ROUTINE.map((id) => newItem(id));
+export const defaultRoutine = (base) => FIRST_ROUTINE.map((id) => newItem(id, {}, base));
+
+/** An item's kind changed (its name follows a suggestion's; Custom keeps the name it has). */
+export function setKind(it, kind) {
+  const p = PRESETS.find((x) => x.id === kind);
+  it.kind = p ? p.id : null;
+  if (p) it.name = TEXT.timer.presets[p.id];
+  return it;
+}
 
 /** `items` with the one at `from` moved to `to` (a new array). */
 export function move(items, from, to) {
@@ -70,6 +87,9 @@ const sameName = (preset, name) => [preset, `${preset} practice`].some((n) => n.
 
 export function clean(it) {
   const o = it && typeof it === 'object' ? it : {};
+  const met = o.met && typeof o.met === 'object' ? o.met : {};
+  const drn = o.drn && typeof o.drn === 'object' ? o.drn : {};
+  const t = o.tools && typeof o.tools === 'object' ? o.tools : { metronome: o.metronome, drone: o.drone }; // saved before `tools`: its own two
   const saved = typeof o.name === 'string' ? o.name.slice(0, MAX_NAME) : '';
   // Which suggestion it came from (its picture), or null for one of its own.
   // Saved before items knew: by its name, if that is a suggestion's.
@@ -82,12 +102,20 @@ export function clean(it) {
     kind,
     name,
     minutes: clampInt(o.minutes, MIN_MINUTES, MAX_MINUTES, 5),
+    enabled: o.enabled !== false,
+    tools: Object.fromEntries(TOOLS.map((k) => [k, t[k] === true])),
+    met: { bpm: clampInt(met.bpm, BPM_MIN, BPM_MAX, 80) },
+    drn: {
+      midi: clampInt(drn.midi, DRONE_MIN, DRONE_MAX, 48),
+      voice: VOICES.some((v) => v.id === drn.voice) ? drn.voice : 'cello',
+      fifth: drn.fifth === true,
+    },
   };
 }
 
 /** A saved routine, or the default one on a first visit (an emptied one stays empty). */
-export function cleanRoutine(v) {
-  if (!Array.isArray(v)) return defaultRoutine();
+export function cleanRoutine(v, base) {
+  if (!Array.isArray(v)) return defaultRoutine(base);
   const seen = new Set();
   return v.slice(0, MAX_ITEMS).map(clean).filter((it) => !seen.has(it.id) && seen.add(it.id));
 }
@@ -100,13 +128,12 @@ export const VOICE_MAX_GAIN = 1.6;
 export const voiceGain = (v) => VOICE_MAX_GAIN * Math.max(0, Math.min(1, v)) ** 2;
 export const VOICE_DEFAULT = Math.round(Math.sqrt(0.9 / VOICE_MAX_GAIN) * 100) / 100;
 
-/** The timer's own saved state: the routine, the chime and the voice, and which tools were on. */
-export function loadTimer(storage = globalThis.localStorage) {
+/** The timer's own saved state: the routine, the chime and the voice. */
+export function loadTimer(base, storage = globalThis.localStorage) {
   let saved = null;
   try { saved = JSON.parse(storage?.getItem(KEY) || 'null'); } catch { /* start afresh */ }
   return {
-    items: cleanRoutine(saved?.items),
-    tools: Object.fromEntries(TOOLS.map((t) => [t, saved?.tools?.[t] === true])),
+    items: cleanRoutine(saved?.items, base),
     chime: CHIMES.includes(saved?.chime) ? saved.chime : 'kalimba',
     // Chimes on unless turned off ('none' was once a chime of its own: off).
     chimeOn: saved?.chimeOn !== false && saved?.chime !== 'none',
@@ -117,8 +144,8 @@ export function loadTimer(storage = globalThis.localStorage) {
     voiceVolume: Number.isFinite(saved?.voiceVolume) ? Math.max(0, Math.min(1, saved.voiceVolume)) : VOICE_DEFAULT,
   };
 }
-export function saveTimer({ items, tools, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume }, storage = globalThis.localStorage) {
-  try { storage?.setItem(KEY, JSON.stringify({ items, tools, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume })); } catch { /* not kept */ }
+export function saveTimer({ items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume }, storage = globalThis.localStorage) {
+  try { storage?.setItem(KEY, JSON.stringify({ items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume })); } catch { /* not kept */ }
 }
 
 /**
@@ -207,20 +234,22 @@ export function playChime(ctx, id, volume = 0.9) {
   return playClips(ctx, [chimeUrl(id)], { volume });
 }
 
-export const totalSeconds = (items) => items.reduce((s, it) => s + it.minutes * 60, 0);
+/** The items in the routine (those not turned off). */
+export const enabledItems = (items) => items.filter((it) => it.enabled !== false);
+export const totalSeconds = (items) => enabledItems(items).reduce((s, it) => s + it.minutes * 60, 0);
 
 /**
  * An item's picture (its icon in the list): its own (practice-<kind>), else
- * its usual tool's (the Drone's cello, the Metronome's), else the default
- * practice picture, else the routine's hourglass. `has(id)` says whether a
- * picture is there to show in the current theme.
+ * the Drone's (cello or organ, by its voice) for one with its drone on, else
+ * the Metronome's for one with its metronome on, else the default practice
+ * picture, else the routine's hourglass. `has(id)` says whether a picture is
+ * there to show in the current theme.
  */
 export function pictureFor(it, has) {
   const ids = [];
   if (it.kind) ids.push(PRESETS.find((p) => p.id === it.kind)?.picture || `practice-${it.kind}`);
-  const tool = toolFor(it);
-  if (tool === 'drone') ids.push('drone-cello');
-  if (tool === 'metronome') ids.push('home-metronome');
+  if (it.tools?.drone) ids.push(it.drn?.voice?.startsWith('organ') ? 'drone-organ' : 'drone-cello');
+  if (it.tools?.metronome) ids.push('home-metronome');
   ids.push('practice-default');
   return ids.find((id) => has(id)) || 'home-routine';
 }

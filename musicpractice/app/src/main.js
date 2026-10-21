@@ -2077,6 +2077,13 @@ const routineTools = {
     stop: () => { if (timerDrone) { timerDrone = false; droneEngine().stop(); } },
     on: () => timerDrone,
     note: droneNote,
+    midi: () => settings.droneMidi,
+    /** An item's drone: its note, instrument and fifth (playing on if it was). */
+    set: ({ midi, voice, fifth }) => {
+      if (midi === settings.droneMidi && voice === settings.droneVoice && fifth === settings.droneFifth) return;
+      Object.assign(settings, { droneMidi: wrapNote(midi), droneVoice: voice, droneFifth: fifth });
+      droneChanged();
+    },
     step: (d) => { settings.droneMidi = wrapNote(settings.droneMidi + d); droneChanged(); },
     voice: () => settings.droneVoice,
     setVoice: (v) => { settings.droneVoice = v; droneChanged(); },

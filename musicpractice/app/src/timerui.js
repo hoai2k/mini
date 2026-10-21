@@ -1,26 +1,33 @@
 // The Practice Routine screen. Set up, it is the routine as a list: each item
-// its number, picture and name on the left and its minutes on the right, +
-// to add one (a suggestion or Custom…) and Start. The pencil in the header
-// edits the list: names and minutes, a trash button on each item (or swipe
-// it off either side), and a handle to drag it up or down.
+// its number, picture and name on the left and its minutes on the right (a
+// tap on them shows − and +), + to add one (a suggestion or Custom…) and
+// Start. The pencil in the header edits the list: each item's kind (a list of
+// the suggestions; only Custom is typed), a switch that takes it out of the
+// routine without losing it (turned off, it shows only while editing), a
+// trash button (or swipe it off either side), and a handle to drag it up or
+// down.
 //
 // Running, it is a shell around the tools: a compact header (the item, its
 // time left, what is next, Pause, Skip and Stop) over a row of cards that
 // swipe sideways, one per tool (the Metronome, the Drone, the Playback
-// Recorder), each a small version of the tool with its own switch, running
-// with the tool's own settings whatever item is on. All of them stop when the
-// routine ends; a take being recorded or played back is let finish first.
-// The model and the clock are timer.js; the tools are main.js's, handed in.
+// Recorder), each a small version of the tool with its own switch. Each item
+// keeps its own set-up of them (which are on, the tempo, the drone's note,
+// instrument and fifth): put on the tools as it starts, and what is changed
+// on the cards kept with it for next time. The tools' own settings are put
+// back when the routine ends. All of them stop at the end; a take being
+// recorded or played back is let finish first. The model and the clock are
+// timer.js; the tools are main.js's, handed in.
 
 import { TEXT } from './text.js';
 import { VOICES } from './drone.js';
 import { BPM_MIN, BPM_MAX } from './settings.js';
 import { clock } from './droneui.js';
 import { hasArt, showArt } from './art.js';
-import { PRESETS, TOOLS, CHIMES, SPEAKERS, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, newItem, loadTimer, saveTimer, voiceGain, totalSeconds, cues, TimerRun, pictureFor, toolFor, move, voiceLines, voiceUrl, chimeUrl } from './timer.js';
+import { PRESETS, TOOLS, CHIMES, SPEAKERS, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, newItem, loadTimer, saveTimer, voiceGain, totalSeconds, enabledItems, setKind, cues, TimerRun, pictureFor, move, voiceLines, voiceUrl, chimeUrl } from './timer.js';
 
 const $ = (id) => document.getElementById(id);
 const TRASH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>';
+const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 const HANDLE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14M5 12h14M5 16h14"/></svg>';
 const CHIME_GAP = 1100; // ms from the chime to the voice's silence after it
 const CHIME_TO_VOICE = 900; // ms from the chime to the voice
@@ -39,8 +46,10 @@ const SWIPE_OFF = 0.35; // of the item's width: past this, a swipe deletes it
  *     running: (on: boolean) => void } }} opts
  */
 export function setupTimer({ settings, tools, audio }) {
-  const state = loadTimer();
+  const state = loadTimer(settings);
   let items = state.items;
+  let timing = null; // the item whose minutes show − and + (a tap on its minutes)
+  let restore = null; // the tools' own settings, put back when a routine ends
   let run = null; // the TimerRun while a routine is going
   let finishing = false; // its time is up, and a take is being let finish
   let calm = 0; // ticks in a row with no take on the go, while finishing
@@ -54,57 +63,124 @@ export function setupTimer({ settings, tools, audio }) {
   let saying = null; // the voice speaking, to stop
   const label = (it) => it.name.trim() || TEXT.timer.item.untitled;
   const T = TEXT.timer;
+  const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 
   // ---------------------------------------------------------------- the list
 
   const list = $('timer-list');
 
-  function row(it, i) {
-    const li = document.createElement('li');
-    li.className = 'titem';
-    li.dataset.id = it.id;
+  /**
+   * Its minutes: "5 min", which a tap turns into − 5 + (and a tap anywhere
+   * else back again). Both are always there and the item's `timing` class
+   * says which shows, so nothing is redrawn under a finger.
+   */
+  function minutes(li, it) {
     const I = T.item;
-    if (!editing) {
-      li.innerHTML = `<span class="titem-num" aria-hidden="true">${i + 1}.</span><span class="titem-icon" aria-hidden="true"></span>
-        <span class="titem-name"></span><span class="titem-min"></span>
-        <div class="titem-bar" aria-hidden="true"><div class="titem-bar-fill"></div></div>`;
-      li.querySelector('.titem-name').textContent = label(it);
-      li.querySelector('.titem-min').textContent = I.minutesShort(it.minutes);
-      li.setAttribute('aria-label', I.summary(i + 1, label(it), it.minutes));
-      return li;
-    }
-    li.classList.add('editing');
-    li.innerHTML = `<button type="button" class="icon-btn titem-handle">${HANDLE}</button>
-      <span class="titem-num" aria-hidden="true">${i + 1}.</span>
-      <input class="titem-name" type="text" maxlength="60" enterkeyhint="done" autocomplete="off">
-      <div class="titem-time">
-        <button type="button" class="step titem-less">−</button>
-        <input class="titem-mins" type="number" inputmode="numeric" min="${MIN_MINUTES}" max="${MAX_MINUTES}" step="1">
-        <button type="button" class="step titem-more">+</button>
-      </div>
-      <button type="button" class="icon-btn titem-del">${TRASH}</button>`;
-    const name = li.querySelector('.titem-name');
-    name.value = it.name;
-    name.placeholder = I.untitled;
-    name.setAttribute('aria-label', `${I.name} ${i + 1}`);
-    name.addEventListener('input', () => { it.name = name.value; save(); readout(); });
-    name.addEventListener('keydown', (e) => { if (e.key === 'Enter') name.blur(); });
-    const min = li.querySelector('.titem-mins');
+    const box = h('div', 'titem-when');
+    const shown = h('button', 'titem-min', I.minutesShort(it.minutes));
+    shown.type = 'button';
+    shown.setAttribute('aria-label', I.changeMinutes(label(it), it.minutes));
+    shown.disabled = !!run;
+    shown.addEventListener('click', () => {
+      timing = it.id;
+      for (const r of list.children) r.classList.toggle('timing', r === li);
+      li.querySelector('.titem-more')?.focus({ preventScroll: true }); // not the number: a phone would bring up its keyboard
+    });
+    const time = h('div', 'titem-time');
+    time.innerHTML = `<button type="button" class="step titem-less">−</button>
+      <input class="titem-mins" type="number" inputmode="numeric" min="${MIN_MINUTES}" max="${MAX_MINUTES}" step="1">
+      <button type="button" class="step titem-more">+</button>`;
+    const min = time.querySelector('.titem-mins');
     min.value = it.minutes;
     min.setAttribute('aria-label', `${I.minutes}: ${label(it)}`);
     const setMinutes = (v) => {
       it.minutes = Math.max(MIN_MINUTES, Math.min(MAX_MINUTES, Math.round(Number(v) || it.minutes)));
       min.value = it.minutes;
+      shown.textContent = I.minutesShort(it.minutes);
+      shown.setAttribute('aria-label', I.changeMinutes(label(it), it.minutes));
       state.lastMinutes[it.kind || 'custom'] = it.minutes; // the next of its kind starts here
       save();
       readout();
     };
     min.addEventListener('change', () => setMinutes(min.value));
     min.addEventListener('focus', () => min.select());
-    li.querySelector('.titem-less').setAttribute('aria-label', I.fewer);
-    li.querySelector('.titem-more').setAttribute('aria-label', I.more);
-    li.querySelector('.titem-less').addEventListener('click', () => setMinutes(it.minutes - 1));
-    li.querySelector('.titem-more').addEventListener('click', () => setMinutes(it.minutes + 1));
+    time.querySelector('.titem-less').setAttribute('aria-label', I.fewer);
+    time.querySelector('.titem-more').setAttribute('aria-label', I.more);
+    time.querySelector('.titem-less').addEventListener('click', () => setMinutes(it.minutes - 1));
+    time.querySelector('.titem-more').addEventListener('click', () => setMinutes(it.minutes + 1));
+    box.append(shown, time);
+    if (timing === it.id && !run) li.classList.add('timing');
+    return box;
+  }
+  // A tap anywhere but an item's minutes puts them back to "5 min".
+  document.addEventListener('pointerdown', (e) => {
+    if (!timing || e.target.closest?.('.titem-when')) return;
+    timing = null;
+    for (const r of list.children) r.classList.remove('timing');
+  });
+
+  /**
+   * Its name, while editing: a list of the kinds (the suggestions, and
+   * Custom…). A suggestion's name is its own; only Custom is typed, in a
+   * field with the list still beside it.
+   */
+  function nameBox(it, i) {
+    const I = T.item;
+    const box = h('div', `titem-namebox${it.kind ? '' : ' custom'}`);
+    const kind = h('select', 'titem-kind');
+    kind.replaceChildren(...PRESETS.map((p) => new Option(T.presets[p.id], p.id)), new Option(T.custom, 'custom'));
+    kind.value = it.kind || 'custom';
+    kind.setAttribute('aria-label', I.kind(i + 1));
+    kind.addEventListener('change', () => {
+      const custom = kind.value === 'custom';
+      setKind(it, custom ? null : kind.value);
+      save();
+      render(it.id, custom ? 'input.titem-name' : '.titem-kind');
+    });
+    if (it.kind) {
+      const name = h('span', 'titem-name', label(it));
+      const chev = h('span', 'titem-chev');
+      chev.innerHTML = CHEVRON;
+      box.append(name, chev, kind);
+    } else {
+      const name = h('input', 'titem-name');
+      Object.assign(name, { type: 'text', maxLength: 60, value: it.name, placeholder: I.untitled, autocomplete: 'off' });
+      name.setAttribute('enterkeyhint', 'done');
+      name.setAttribute('aria-label', `${I.name} ${i + 1}`);
+      name.addEventListener('input', () => { it.name = name.value; save(); readout(); });
+      name.addEventListener('keydown', (e) => { if (e.key === 'Enter') name.blur(); });
+      const pick = h('span', 'titem-pick');
+      pick.innerHTML = CHEVRON;
+      pick.append(kind);
+      box.append(name, pick);
+    }
+    return box;
+  }
+
+  function row(it, i, n) {
+    const li = document.createElement('li');
+    li.className = 'titem';
+    li.dataset.id = it.id;
+    const I = T.item;
+    if (!editing) {
+      li.innerHTML = `<span class="titem-num" aria-hidden="true">${n}.</span><span class="titem-icon" aria-hidden="true"></span>
+        <span class="titem-name"></span><div class="titem-bar" aria-hidden="true"><div class="titem-bar-fill"></div></div>`;
+      li.querySelector('.titem-name').textContent = label(it);
+      li.querySelector('.titem-name').after(minutes(li, it));
+      li.setAttribute('aria-label', I.summary(n, label(it), it.minutes));
+      return li;
+    }
+    li.classList.add('editing');
+    li.classList.toggle('off', !it.enabled);
+    li.innerHTML = `<button type="button" class="icon-btn titem-handle">${HANDLE}</button>
+      <span class="titem-num" aria-hidden="true">${it.enabled ? `${n}.` : ''}</span>
+      <label class="titem-onoff"><input type="checkbox" role="switch"></label>
+      <button type="button" class="icon-btn titem-del">${TRASH}</button>`;
+    li.querySelector('.titem-num').after(nameBox(it, i), minutes(li, it));
+    const on = li.querySelector('.titem-onoff input');
+    on.checked = it.enabled;
+    on.setAttribute('aria-label', I.inRoutine(label(it)));
+    on.addEventListener('change', () => { it.enabled = on.checked; save(); render(it.id, '.titem-onoff input'); });
     const del = li.querySelector('.titem-del');
     del.setAttribute('aria-label', I.delete(label(it)));
     del.addEventListener('click', () => remove(it));
@@ -176,7 +252,7 @@ export function setupTimer({ settings, tools, audio }) {
   /** Swipe an item off either side to delete it (while editing; Undo brings it back). */
   function swipeToDelete(li, it) {
     li.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0 || e.target.closest('input, button')) return;
+      if (e.button !== 0 || e.target.closest('input, button, label')) return; // a swipe may start on the kind's list: a tap still opens it
       const x0 = e.clientX, y0 = e.clientY;
       let dx = 0, claimed = false;
       const moved = (ev) => {
@@ -237,11 +313,14 @@ export function setupTimer({ settings, tools, audio }) {
 
   /** Draw the list again, keeping focus on the control that was used (`id`'s item, `sel` in it). */
   function render(id, sel) {
-    list.replaceChildren(...items.map(row));
+    // The items in the routine, numbered in order; while editing, those turned off too (unnumbered).
+    let n = 0;
+    const shown = run ? run.items : editing ? items : enabledItems(items);
+    list.replaceChildren(...shown.map((it) => row(it, items.indexOf(it), it.enabled ? ++n : 0)));
     list.classList.toggle('editing', editing);
     icons();
     const going = !!run;
-    $('timer-empty').hidden = items.length > 0 || editing;
+    $('timer-empty').hidden = enabledItems(items).length > 0 || editing;
     $('timer-add').hidden = going;
     $('timer-add').disabled = items.length >= MAX_ITEMS;
     const edit = $('timer-edit');
@@ -262,7 +341,7 @@ export function setupTimer({ settings, tools, audio }) {
 
   // ---- add and delete
   function add(presetId) {
-    const it = newItem(presetId, state.lastMinutes);
+    const it = newItem(presetId, state.lastMinutes, settings);
     items.push(it);
     finishedNote = false;
     save();
@@ -331,7 +410,6 @@ export function setupTimer({ settings, tools, audio }) {
     cards.append(el);
     return { el, on };
   }
-  const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
   const stepper = (cls, labelText, down, up, downLabel, upLabel) => {
     const box = h('div', `tool-step ${cls}`);
     const less = h('button', 'step', '−'); less.type = 'button'; less.setAttribute('aria-label', downLabel); less.addEventListener('click', down);
@@ -346,11 +424,11 @@ export function setupTimer({ settings, tools, audio }) {
   // The Metronome: its tempo with − and + and a slider, its beats lighting as they are heard, its time signature.
   {
     const M = tools.metronome;
-    const tempo = stepper('tool-tempo', C.tempo, () => { M.setBpm(M.bpm() - 1); show(); }, () => { M.setBpm(M.bpm() + 1); show(); }, T.item.slower, T.item.faster);
+    const tempo = stepper('tool-tempo', C.tempo, () => { M.setBpm(M.bpm() - 1); capture(); show(); }, () => { M.setBpm(M.bpm() + 1); capture(); show(); }, T.item.slower, T.item.faster);
     const slider = h('input', 'slider');
     Object.assign(slider, { type: 'range', min: BPM_MIN, max: BPM_MAX, step: 1 });
     slider.setAttribute('aria-label', C.tempo);
-    slider.addEventListener('input', () => { M.setBpm(Number(slider.value)); show(); });
+    slider.addEventListener('input', () => { M.setBpm(Number(slider.value)); capture(); show(); });
     const beats = h('ol', 'tool-beats');
     beats.setAttribute('aria-hidden', 'true');
     const meter = h('p', 'tool-note');
@@ -376,18 +454,18 @@ export function setupTimer({ settings, tools, audio }) {
   // The Drone: its note with − and +, its instrument, and the fifth.
   {
     const D = tools.drone;
-    const note = stepper('tool-note-step', C.note, () => { D.step(-1); show(); }, () => { D.step(1); show(); }, T.item.noteDown, T.item.noteUp);
+    const note = stepper('tool-note-step', C.note, () => { D.step(-1); capture(); show(); }, () => { D.step(1); capture(); show(); }, T.item.noteDown, T.item.noteUp);
     const voice = h('select', 'select tool-voice');
     voice.replaceChildren(...VOICES.map((v) => new Option(v.label, v.id)));
     voice.setAttribute('aria-label', T.item.instrument);
-    voice.addEventListener('change', () => { D.setVoice(voice.value); show(); });
+    voice.addEventListener('change', () => { D.setVoice(voice.value); capture(); show(); });
     const fifthRow = h('label', 'row');
     fifthRow.classList.add('toggle', 'tool-fifth');
     fifthRow.append(h('span', '', T.item.fifth));
     const fifth = h('input');
     Object.assign(fifth, { type: 'checkbox' });
     fifth.setAttribute('role', 'switch');
-    fifth.addEventListener('change', () => { D.setFifth(fifth.checked); show(); });
+    fifth.addEventListener('change', () => { D.setFifth(fifth.checked); capture(); show(); });
     fifthRow.append(fifth);
     const { el, on } = toolCard('drone', [note.box, voice, fifthRow]);
     function show() {
@@ -446,26 +524,50 @@ export function setupTimer({ settings, tools, audio }) {
   }
   cards.addEventListener('scroll', showDots, { passive: true });
 
-  /** A tool switched on or off on its card: remembered for the next run, and started or stopped now. */
+  /** A tool switched on or off on its card: kept with the item running, and started or stopped now. */
   function setTool(tool, onNow) {
     if (tool === 'drone' && onNow && !tools.drone.allowed()) { card.drone.on.checked = false; tools.drone.ask(); return; }
-    state.tools[tool] = onNow;
+    if (!run) return;
+    run.item.tools[tool] = onNow;
     save();
-    if (run && !run.paused && !finishing) { if (onNow) tools[tool].start(); else tools[tool].stop(); }
-    else if (!onNow) tools[tool].stop();
+    if (!run.paused && !finishing) { if (onNow) tools[tool].start(); else tools[tool].stop(); }
     showCards();
   }
   function showCards() {
     for (const t of TOOLS) card[t].show();
   }
-  function startTools() {
-    for (const t of TOOLS) {
-      if (!state.tools[t]) continue;
-      if (t === 'drone' && !tools.drone.allowed()) continue;
-      tools[t].start();
-    }
+  /** What was changed on a card (the tempo, the drone's note, instrument or fifth), kept with the item running. */
+  function capture() {
+    if (!run || finishing) return;
+    const it = run.item;
+    it.met.bpm = tools.metronome.bpm();
+    it.drn = { midi: tools.drone.midi(), voice: tools.drone.voice(), fifth: tools.drone.fifth() };
+    save();
   }
+  /**
+   * An item starts (or the routine is resumed): its set-up goes on the tools
+   * (the tempo, the drone's note, instrument and fifth), and those it has on
+   * start while the rest stop; one already going carries on.
+   */
+  function startTools(it = run?.item) {
+    if (!it) return;
+    tools.metronome.setBpm(it.met.bpm);
+    tools.drone.set(it.drn);
+    playbackLater = false;
+    for (const t of TOOLS) {
+      const want = it.tools[t] && (t !== 'drone' || tools.drone.allowed());
+      if (want && !tools[t].on()) tools[t].start();
+      if (!want && tools[t].on()) {
+        // A take on the go is let finish (recorded and played back) before the recorder goes off.
+        if (t === 'playback' && tools.playback.busy()) playbackLater = true;
+        else tools[t].stop();
+      }
+    }
+    showCards();
+  }
+  let playbackLater = false; // the recorder goes off once its take is done
   function stopTools(which = TOOLS) {
+    if (which.includes('playback')) playbackLater = false;
     for (const t of which) tools[t].stop();
   }
 
@@ -536,8 +638,8 @@ export function setupTimer({ settings, tools, audio }) {
     $('routine').classList.toggle('running', going);
     if (!going) {
       $('timer-clock').textContent = clock(totalSeconds(items));
-      $('timer-sub').textContent = finishedNote ? T.finished : T.total(items.length);
-      $('timer-go').disabled = !items.length || editing;
+      $('timer-sub').textContent = finishedNote ? T.finished : T.total(enabledItems(items).length);
+      $('timer-go').disabled = !enabledItems(items).length || editing;
     } else {
       const it = run.item;
       $('trun-name').textContent = finishing ? T.finishing : label(it);
@@ -554,7 +656,7 @@ export function setupTimer({ settings, tools, audio }) {
     }
     // The items: the one running, its progress, and those already done.
     for (const li of list.children) {
-      const k = items.findIndex((x) => x.id === li.dataset.id);
+      const k = going ? run.items.findIndex((x) => x.id === li.dataset.id) : -1;
       const isNow = going && !run.done && k === run.index;
       li.classList.toggle('now', isNow);
       li.classList.toggle('done', going && (run.done || k < run.index));
@@ -595,8 +697,7 @@ export function setupTimer({ settings, tools, audio }) {
     if (last.type === 'changed') {
       cues.changed(last.done, last.next);
       announce({ chime: true, lines: voiceLines.changed(last.done, last.next) });
-      const tool = toolFor(last.next);
-      if (tool) showCard(tool);
+      if (!run.paused) startTools(last.next);
       render();
     } else {
       cues.finished(last.done);
@@ -612,7 +713,7 @@ export function setupTimer({ settings, tools, audio }) {
   let lastItem = null;
   function endWhenFree(done) {
     lastItem = done;
-    if (state.tools.playback && tools.playback.busy()) {
+    if (tools.playback.on() && tools.playback.busy()) {
       finishing = true;
       calm = 0;
       showCard('playback');
@@ -627,9 +728,17 @@ export function setupTimer({ settings, tools, audio }) {
     calm = tools.playback.busy() ? 0 : calm + 1;
     if (calm >= 3) finish();
   }
+  /** The tools' own settings, as they were before the routine began. */
+  function putBack() {
+    if (!restore) return;
+    tools.metronome.setBpm(restore.bpm);
+    tools.drone.set(restore.drn);
+    restore = null;
+  }
   function finish() {
     finishing = false;
     stopTools();
+    putBack();
     clearInterval(ticker);
     cancelAnimationFrame(frame);
     audio.running(false);
@@ -641,20 +750,23 @@ export function setupTimer({ settings, tools, audio }) {
 
   function tick() {
     if (!run) return;
+    if (playbackLater && !tools.playback.busy() && !run.item.tools.playback) { playbackLater = false; tools.playback.stop(); }
     if (finishing) finishingTick();
     else changes(run.tick(Date.now()));
     if (run) readout();
   }
 
   function start() {
-    if (!items.length) return;
+    const list_ = enabledItems(items);
+    if (!list_.length) return;
     setEditing(false);
-    run = new TimerRun(items);
+    run = new TimerRun(list_);
+    restore = { bpm: tools.metronome.bpm(), drn: { midi: tools.drone.midi(), voice: tools.drone.voice(), fifth: tools.drone.fifth() } };
     finishing = false;
     finishedNote = false;
     cues.started(run.item);
     // Everything it may say or ring, decoded ahead so nothing waits on the network.
-    if (state.voiceOn) audio.preload([...new Set(items.flatMap((it, i) => [...voiceLines.started(it), ...voiceLines.changed(it, items[i + 1] || it), ...voiceLines.finished(it)]))].map((l) => voiceUrl(state.voice, l)));
+    if (state.voiceOn) audio.preload([...new Set(list_.flatMap((it, i) => [...voiceLines.started(it), ...voiceLines.changed(it, list_[i + 1] || it), ...voiceLines.finished(it)]))].map((l) => voiceUrl(state.voice, l)));
     if (state.chimeOn) audio.preload([chimeUrl(state.chime)]);
     announce({ lines: voiceLines.started(run.item) });
     startTools();
@@ -662,7 +774,7 @@ export function setupTimer({ settings, tools, audio }) {
     ticker = setInterval(tick, 250);
     audio.running(true);
     render();
-    showCard(toolFor(run.item) || TOOLS.find((t) => state.tools[t]) || TOOLS[0], false);
+    showCard(TOOLS.find((t) => run.item.tools[t]) || TOOLS[0], false);
     showDots();
     cancelAnimationFrame(frame);
     frame = requestAnimationFrame(animate);
@@ -672,6 +784,7 @@ export function setupTimer({ settings, tools, audio }) {
     if (!run) return;
     hush();
     stopTools();
+    putBack();
     clearInterval(ticker);
     cancelAnimationFrame(frame);
     audio.running(false);

@@ -702,30 +702,45 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
 are main.js's, `routineTools`), `app/src/pager.js` (the second page).
 
 - **A routine is a list of practice items** (on screen each is itself
-  called a routine: "2 routines in all", "Add a Routine", "Last routine"),
-  each just a name and its minutes. Set up, each is a plain row: its number,
-  its picture and its name on the left, its minutes on the right ("1. 🎻
-  Intonation · 3 min"). The **pencil** in the header (beside the gear) edits
-  the list, and turns into a check to finish: each row then has a handle,
-  its name to type, its minutes (− / + or typed, 1 to 120) and a **trash**
-  button. An item can also be **swiped off** either side (past a third of
-  its width; short of that it springs back), and **dragged up or down** by
-  its handle, the others making room as it passes their middles (the arrow
-  keys move it too, from the handle). A deleted item has **Undo** for a few
-  seconds. The pencil is hidden while a routine runs.
+  called a routine: "2 routines in all", "Add a Routine", "Last routine").
+  Set up, each is a plain row: its number, its picture and its name on the
+  left, its minutes on the right ("1. Intonation · 3 min"). **A tap on the
+  minutes** shows − and + (and the number, to type); a tap anywhere else puts
+  them back. The **pencil** in the header (beside the gear) edits the list,
+  and turns into a check to finish. Each row then has:
+  - a handle to **drag it up or down** (the others make room as it passes
+    their middles; the arrow keys move it too, from the handle);
+  - its **kind**: the name with a chevron, which opens the list of kinds
+    (the eight suggestions and Custom…). A suggestion's name is its own;
+    only **Custom** gives a field to type the name in, with the list still
+    beside it to change back;
+  - its minutes, as above;
+  - a switch: **in the routine or not**. Turned off, an item keeps
+    everything it has but is left out of the run and the total, and shows
+    only while editing, dimmed and unnumbered, until it is turned on again;
+  - a **trash** button. An item can also be **swiped off** either side
+    (past a third of its width; short of that it springs back). A deleted
+    item has **Undo** for a few seconds.
+  The pencil is hidden while a routine runs.
 - A first visit starts with **Intonation** (3 min) and **Scales** (5 min).
   **+ Add** opens **Add a Routine**: Intonation, Scales, **Arpeggios**,
   **Metronome**, **Sight Reading**, **Improvisation**, **Clapping Rhythms**,
   **Ghosting** and **Custom…** (a blank item, opening the list for editing
   with its name ready to type), each by its name and its picture
   (`pictureFor`: its own, `practice-<kind>`; until that is delivered, or for
-  a Custom item, its usual tool's, then the default music stand, then the
+  a Custom item, the Drone's for one with its drone on, the Metronome's for
+  one with its metronome on, then the default music stand, then the
   hourglass). A new item starts at the minutes last given to its kind
   (`lastMinutes`) or its default the first time (3 min for Intonation,
   Clapping rhythms and Ghosting, 5 for the rest). Items saved under a
-  suggestion's earlier name ("Intonation practice") still know which it was,
-  and items saved when they had their own metronome and drone keep their
-  name and minutes. Kept in `musicpractice.routine.v1`.
+  suggestion's earlier name ("Intonation practice") still know which it was.
+  Kept in `musicpractice.routine.v1`.
+- **Each item has its own set-up of the tools**: which of the Metronome,
+  the Drone and the Playback Recorder are on (`tools`), the metronome's
+  tempo (`met`) and the drone's note, instrument and fifth (`drn`). A new
+  item has them all off, its tempo and drone taken from the app's own as a
+  start. Items saved when they had their own metronome and drone keep them
+  on.
 - **Running, the routine is a shell around the tools.** **Start** swaps the
   set-up panel for a **compact header** (the item, its time left, what is
   next, a progress bar, and Pause, Skip and Stop as round buttons) over an
@@ -739,16 +754,18 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
   - **Playback** (the Playback Recorder): what it is doing (listening for
     you to play, recording with its clock, playing your take back), with a
     light, and how many takes there are.
-  They run the tools themselves, with their own settings (a tempo or note
-  changed on a card is the Metronome's or the Drone's), and carry on
-  whatever item is on; the list stays under the cards, the running item lit
-  with its progress along its foot. Which tools are on is remembered
-  (`tools` in `musicpractice.routine.v1`) and they start with the next
-  routine. A suggestion's usual tool (`tool` on its preset: the Drone for
-  Intonation, the Metronome for Scales and Metronome) has its card brought
-  into view as that item starts; it turns nothing on. In the apps the Drone
-  card asks for Pro, as the Drone does. **Pause** stops the clock and every
-  tool, **Resume** starts the ones that were on, **Skip** moves to the next
+  As each item starts, **its set-up goes on the tools**: its tempo and
+  drone, and the tools it has on start while the rest stop (one already
+  going carries on; a Playback Recorder with a take on the go goes off only
+  once that take has been recorded and played back). Whatever is changed on a card (a tool turned on or off,
+  the tempo, the note, the instrument, the fifth) is **kept with that item**
+  for next time. The tools run as themselves (the Metronome's sound, accent
+  and volume, the Drone's reference pitch), and **their own settings are put
+  back** when the routine ends or is stopped, so a routine's tempos never
+  become the Metronome's. The list stays under the cards, the running item
+  lit with its progress along its foot. In the apps the Drone card asks for
+  Pro, as the Drone does. **Pause** stops the clock and every tool,
+  **Resume** puts the item's set-up back on, **Skip** moves to the next
   item (paused or not), and **Stop** ends the run. Timed by the clock, so a
   phone that slept catches up when it wakes.
 - **At the end, every tool stops**, except that a take on the go is let
