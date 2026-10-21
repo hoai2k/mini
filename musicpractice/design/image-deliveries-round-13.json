@@ -440,14 +440,14 @@
         512
       ],
       "group": "Bebop \u00b7 Practice Routine pictures",
-      "prompt": "Use case: stylized-concept. Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw exactly two hands meeting in a clap, one left and one right, with exactly two wrists and two cuffs, seen from the side, with three small curved motion marks around them, and a short row of rhythm notes (quarter notes and a pair of beamed eighth notes) beneath, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers. Reference is STYLE ONLY. Do NOT copy cello, bow or side waves. No wings, mist, ribbons, star decorations, or decorative floating notes. Square transparent canvas, one subject only. Anatomy check: exactly TWO arms, TWO wrists, TWO cuffs and TWO hands, one left and one right, each five fingers. Simple side-view clapping gesture, one hand emerges from each of two cuffs. Absolutely no third arm, third wrist, third cuff or third hand. Musical rhythm notation stays only in one compact staff underneath the hands.",
+      "prompt": "Use case: precise-object-edit. Edit target: the attached Bebop clapping-rhythms illustration. Correct ONLY the anatomy of the two clapping hands, especially the overlapping fingertips at the top. Redraw natural believable hands meeting palm-to-palm in a clap: one left hand and one right hand, each with four fingers and one thumb, five digits total per hand, normal joints, fingernails and finger lengths. Make finger ownership clear with a simple slightly offset side-view clap: no interlaced fingers, no fused fingers, no branching digits, no duplicate fingertips or nails, no tiny unexplained fingers emerging between the hands. Exactly TWO hands, TWO wrists and TWO cuffs. Preserve the existing wrists, two navy/red/brass cuffs, overall silhouette, proportions, warm amber skin, fine halftone shading, three motion marks, and the rhythm notation below. Keep the same square composition, lighting, transparent background and rich Bebop style. No new objects, wings, mist, decorative notes or text.",
       "note": "Step 2 (made from step 1's delivered files). The Practice Routine's picture for Clapping rhythms, shown large while such an item runs.",
       "theme": "bebop",
       "round": 13,
       "status": "delivered",
-      "generated_source": "exec-4b2bbf89-9d43-4161-a168-399e1522c0d8.png",
+      "generated_source": "exec-25c4cc8e-42eb-43bb-90c5-fa4b1f902754.png",
       "reference_files": [
-        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-7ec26c43-d930-450f-a567-03395999d7a6.png"
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-4b2bbf89-9d43-4161-a168-399e1522c0d8.png"
       ],
       "source": "musicpractice/design/generated/round-13/bebop-practice-rhythms.png",
       "native_size": [
@@ -456,7 +456,18 @@
       ],
       "tool": "built-in image_gen",
       "mode": "RGBA",
-      "processing": "Preserve generated illustration and alpha; clear imperceptible 1/255 alpha noise; crop transparent side margins on narrow layers only; fit without distortion into the measured PNG canvas and export lossless WebP."
+      "processing": "User-directed finger anatomy correction with built-in image_gen; preserve generated alpha, clear imperceptible 1/255 alpha noise, fit without distortion into 1024px transparent PNG master and export 512px lossless WebP.",
+      "revisions": [
+        {
+          "date": "2026-10-21",
+          "reason": "User requested natural finger anatomy and clearer fingertip overlap.",
+          "previous_generated_source": "exec-4b2bbf89-9d43-4161-a168-399e1522c0d8.png",
+          "previous_prompt": "Use case: stylized-concept. Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw exactly two hands meeting in a clap, one left and one right, with exactly two wrists and two cuffs, seen from the side, with three small curved motion marks around them, and a short row of rhythm notes (quarter notes and a pair of beamed eighth notes) beneath, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers. Reference is STYLE ONLY. Do NOT copy cello, bow or side waves. No wings, mist, ribbons, star decorations, or decorative floating notes. Square transparent canvas, one subject only. Anatomy check: exactly TWO arms, TWO wrists, TWO cuffs and TWO hands, one left and one right, each five fingers. Simple side-view clapping gesture, one hand emerges from each of two cuffs. Absolutely no third arm, third wrist, third cuff or third hand. Musical rhythm notation stays only in one compact staff underneath the hands.",
+          "previous_reference_files": [
+            "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-7ec26c43-d930-450f-a567-03395999d7a6.png"
+          ]
+        }
+      ]
     },
     {
       "id": "practice-ghosting",
