@@ -30,6 +30,8 @@ Images belong to a theme (Settings → Theme); each theme has its own set.
 
 **Round 12 (Arpeggios, Sight reading and Improvisation, every theme):** delivered and in use.
 
+**Round 13 (the Bebop theme: draw step 1 first, then make step 2 from it):** 20 images wanted: `assets/ui/bebop/metronome-body.webp`, `assets/ui/bebop/metronome-pendulum.webp`, `assets/ui/bebop/home-metronome.webp`, `assets/ui/bebop/home-record.webp`, `assets/ui/bebop/home-tuner.webp`, `assets/ui/bebop/home-drone.webp`, `assets/ui/bebop/drone-cello.webp`, `assets/ui/bebop/drone-bow.webp`, `assets/ui/bebop/drone-organ.webp`, `assets/ui/bebop/home-routine.webp`, `assets/ui/bebop/metronome-rod.webp`, `assets/ui/bebop/metronome-weight.webp`, `assets/ui/bebop/practice-intonation.webp`, `assets/ui/bebop/practice-scales.webp`, `assets/ui/bebop/practice-rhythms.webp`, `assets/ui/bebop/practice-ghosting.webp`, `assets/ui/bebop/practice-default.webp`, `assets/ui/bebop/practice-arpeggios.webp`, `assets/ui/bebop/practice-sight-reading.webp`, `assets/ui/bebop/practice-improvisation.webp`.
+
 **House styles** (already included in every prompt):
 
 - Classic: Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.
@@ -40,6 +42,7 @@ Images belong to a theme (Settings → Theme); each theme has its own set.
 - French Nouveau: French Art Nouveau illustration in the manner of Alphonse Mucha and a Paris Métro entrance: soft sage and olive green, cream, muted gold, dusty rose and plum, flowing whiplash curves, lilies, irises and vines, elegant outlined forms with flat, gently graded colour. Graceful and organic. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.
 - Candy: Bright anime and manga illustration: clean bold outlines, flat cel shading with one soft highlight, candy pink, sky blue, lilac and sunny yellow on white, sparkles and little star glints, cute and energetic. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.
 - Steam Punk: Steampunk illustration of Victorian brass machinery: polished brass, copper and dark leather, riveted plates, exposed cogs and gears, small pressure gauges and pipes, warm gaslight glow on dark mahogany. Intricate but readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.
+- Bebop: Bebop jazz illustration in the manner of a 1950s modern-jazz record sleeve and a late-night jazz club: deep midnight blue and ink black, warm cream, gleaming saxophone brass, a soft amber spotlight glow and a single accent of club-sign red, bold flat colour shapes with crisp edges and a fine halftone-dot texture in the shadows, a few small four-point stars. Cool, swinging, a little playful, simple and readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.
 
 **Anchors:** the metronome body and pendulum are separate layers. Each image records its
 canvas size and the point the app pins it by (the body's pivot, the pendulum's hub), so
@@ -211,6 +214,26 @@ the measured ones for the delivered file in `build_requests.py`.
 | 12 | Steam Punk | delivered | `practice-arpeggios` | `app/assets/ui/steampunk/practice-arpeggios.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 12 | Steam Punk | delivered | `practice-sight-reading` | `app/assets/ui/steampunk/practice-sight-reading.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 12 | Steam Punk | delivered | `practice-improvisation` | `app/assets/ui/steampunk/practice-improvisation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | requested | `metronome-body` | `app/assets/ui/bebop/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
+| 13 | Bebop | requested | `metronome-pendulum` | `app/assets/ui/bebop/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
+| 13 | Bebop | requested | `home-metronome` | `app/assets/ui/bebop/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 13 | Bebop | requested | `home-record` | `app/assets/ui/bebop/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 13 | Bebop | requested | `home-tuner` | `app/assets/ui/bebop/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 13 | Bebop | requested | `home-drone` | `app/assets/ui/bebop/home-drone.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
+| 13 | Bebop | requested | `drone-cello` | `app/assets/ui/bebop/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | requested | `drone-bow` | `app/assets/ui/bebop/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
+| 13 | Bebop | requested | `drone-organ` | `app/assets/ui/bebop/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | requested | `home-routine` | `app/assets/ui/bebop/home-routine.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
+| 13 | Bebop | requested | `metronome-rod` | `app/assets/ui/bebop/metronome-rod.webp` | 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP |
+| 13 | Bebop | requested | `metronome-weight` | `app/assets/ui/bebop/metronome-weight.webp` | 200×(just tall enough) canvas at the pendulum's scale, transparent PNG, shipped as WebP |
+| 13 | Bebop | requested | `practice-intonation` | `app/assets/ui/bebop/practice-intonation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | requested | `practice-scales` | `app/assets/ui/bebop/practice-scales.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | requested | `practice-rhythms` | `app/assets/ui/bebop/practice-rhythms.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | requested | `practice-ghosting` | `app/assets/ui/bebop/practice-ghosting.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | requested | `practice-default` | `app/assets/ui/bebop/practice-default.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | requested | `practice-arpeggios` | `app/assets/ui/bebop/practice-arpeggios.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | requested | `practice-sight-reading` | `app/assets/ui/bebop/practice-sight-reading.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | requested | `practice-improvisation` | `app/assets/ui/bebop/practice-improvisation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 
 ## Home screen buttons
 
@@ -2018,4 +2041,221 @@ Using the attached image, musicpractice/app/assets/ui/steampunk/home-routine.web
 
 ```text
 Using the attached image, musicpractice/app/assets/ui/steampunk/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
+```
+
+## Bebop · Metronome animation
+
+### `metronome-body` · Bebop · requested
+
+- File: `musicpractice/app/assets/ui/bebop/metronome-body.webp`
+- Size: 800×1200, transparent PNG (shipped as WebP)
+- Anchors (requested): pivot (400, 1000) in a 800×1200 canvas
+- Note: Step 1 (draw first). The app rotates the pendulum over this one about the pivot. Ask for (400, 1000) in an 800×1200 canvas, then measure where it really is in the delivered file and record it.
+
+```text
+A bebop metronome: a slim tapering pyramid metronome case in glossy midnight-blue lacquer, its edges trimmed in polished saxophone brass, a cream front face with a vertical row of short black tick marks like the edge of a piano keyboard (no numbers), a thin red band across the lower case, on a short stepped ink-black plinth with two small brass feet. Seen exactly straight on from the front, perfectly symmetrical, standing upright and filling the canvas top to bottom with a small margin. There is NO pendulum, rod or weight anywhere. Near the bottom of the face, centred left-to-right, a round brass pivot cap like a saxophone key pad sits exactly at 50% of the width and 83% of the height. Bebop jazz illustration in the manner of a 1950s modern-jazz record sleeve and a late-night jazz club: deep midnight blue and ink black, warm cream, gleaming saxophone brass, a soft amber spotlight glow and a single accent of club-sign red, bold flat colour shapes with crisp edges and a fine halftone-dot texture in the shadows, a few small four-point stars. Cool, swinging, a little playful, simple and readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
+```
+
+### `metronome-pendulum` · Bebop · requested
+
+- File: `musicpractice/app/assets/ui/bebop/metronome-pendulum.webp`
+- Size: 200×1000, transparent PNG (shipped as WebP)
+- Anchors (requested): hub (100, 960) in a 200×1000 canvas; swings ±24°
+- Note: Step 1 (draw first). The app rotates this about the hub. Ask for (100, 960) in a 200×1000 canvas, then record the measured hub. The rod must be exactly vertical.
+
+```text
+Just the pendulum of a metronome, isolated: a thin straight polished brass rod and a round brass hub, with a small rounded red-lacquer sliding weight with a brass rim (like a saxophone key) on the rod. The rod is perfectly straight and perfectly vertical down the exact centre of a tall narrow canvas, from about 3% from the top to the hub, whose centre is at 96% of the height; the weight sits on the rod at about 30% of the height. Seen straight on, symmetrical, nothing else in the picture. It belongs on the metronome in musicpractice/app/assets/ui/bebop/metronome-body.webp (attached): match its brass and red. Bebop jazz illustration in the manner of a 1950s modern-jazz record sleeve and a late-night jazz club: deep midnight blue and ink black, warm cream, gleaming saxophone brass, a soft amber spotlight glow and a single accent of club-sign red, bold flat colour shapes with crisp edges and a fine halftone-dot texture in the shadows, a few small four-point stars. Cool, swinging, a little playful, simple and readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
+```
+
+## Bebop · Home screen buttons
+
+### `home-metronome` · Bebop · requested
+
+- File: `musicpractice/app/assets/ui/bebop/home-metronome.webp`
+- Size: 768×768, transparent PNG (shipped as 384×384 WebP)
+- Note: Step 1 (draw first). Draw after the metronome screen's two layers, so the home button matches them (the lesson of the Vintage 60s icon, redrawn in Round 4). The big Metronome button; the label is written by the app. Tick marks only, no numbers.
+
+```text
+The same metronome as the attached images, musicpractice/app/assets/ui/bebop/metronome-body.webp and metronome-pendulum.webp, drawn as one icon: a slim tapering pyramid metronome case in glossy midnight-blue lacquer, its edges trimmed in polished saxophone brass, a cream front face with a vertical row of short black tick marks like the edge of a piano keyboard (no numbers), a thin red band across the lower case, on a short stepped ink-black plinth with two small brass feet, with its pendulum (a thin straight polished brass rod and a round brass hub and a small rounded red-lacquer sliding weight with a brass rim (like a saxophone key) near the top of the rod) tilted a little to the right, pivoting near the bottom of the face, and a soft amber spotlight glow behind the top of the case. Seen from the front. Bebop jazz illustration in the manner of a 1950s modern-jazz record sleeve and a late-night jazz club: deep midnight blue and ink black, warm cream, gleaming saxophone brass, a soft amber spotlight glow and a single accent of club-sign red, bold flat colour shapes with crisp edges and a fine halftone-dot texture in the shadows, a few small four-point stars. Cool, swinging, a little playful, simple and readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
+```
+
+### `home-record` · Bebop · requested
+
+- File: `musicpractice/app/assets/ui/bebop/home-record.webp`
+- Size: 768×768, transparent PNG (shipped as 384×384 WebP)
+- Note: Step 1 (draw first). The big Playback Recorder button on the home screen.
+
+```text
+A 1950s jazz-club microphone: a chrome and brass oval grille with fine horizontal bars, held in a slim ring on a short stand with a round ink-black base, a round glowing red record light beside it and two small cream four-point stars. Seen from the front. Bebop jazz illustration in the manner of a 1950s modern-jazz record sleeve and a late-night jazz club: deep midnight blue and ink black, warm cream, gleaming saxophone brass, a soft amber spotlight glow and a single accent of club-sign red, bold flat colour shapes with crisp edges and a fine halftone-dot texture in the shadows, a few small four-point stars. Cool, swinging, a little playful, simple and readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
+```
+
+### `home-tuner` · Bebop · requested
+
+- File: `musicpractice/app/assets/ui/bebop/home-tuner.webp`
+- Size: 768×768, transparent PNG (shipped as 384×384 WebP)
+- Note: Step 1 (draw first). The big Tuner button on the home screen. Dial marks only, no numbers or letters.
+
+```text
+A bebop tuner: a slim midnight-blue lacquer case trimmed in brass, a cream dial with short black tick marks and a red needle pointing straight up at the centre, and a polished brass tuning fork leaning beside it. Seen from the front, the needle centred to show a note in tune. Bebop jazz illustration in the manner of a 1950s modern-jazz record sleeve and a late-night jazz club: deep midnight blue and ink black, warm cream, gleaming saxophone brass, a soft amber spotlight glow and a single accent of club-sign red, bold flat colour shapes with crisp edges and a fine halftone-dot texture in the shadows, a few small four-point stars. Cool, swinging, a little playful, simple and readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
+```
+
+### `home-drone` · Bebop · requested
+
+- File: `musicpractice/app/assets/ui/bebop/home-drone.webp`
+- Size: 1024×1024, transparent PNG (shipped as 384×384 WebP)
+- Note: Step 1 (draw first). The big Drone button on the home screen, and the reference every step 2 picture is drawn from (as the other themes' are), so take care over it.
+
+```text
+Asset: Music Practice home-button emblem for the 'Drone' feature (sustained cello tones for musicians to play along with). One honey-brown cello with a midnight-blue fingerboard and slim brass edge highlights, lit by a soft amber spotlight. A recognizable full-size four-string acoustic cello silhouette: classic hourglass body, two f-holes, a bridge, long straight fingerboard, scroll with paired tuning pegs, and a short endpin. A single straight cello bow rests beside it at a slight diagonal, with taut light bow hair; do not obscure the instrument's body or strings. Two thin smooth continuous sound ribbons drift gently outward from the body to suggest one sustained tone, not a melody. Show the complete cello and bow, isolated, from the front. Bebop jazz illustration in the manner of a 1950s modern-jazz record sleeve and a late-night jazz club: deep midnight blue and ink black, warm cream, gleaming saxophone brass, a soft amber spotlight glow and a single accent of club-sign red, bold flat colour shapes with crisp edges and a fine halftone-dot texture in the shadows, a few small four-point stars. Cool, swinging, a little playful, simple and readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Square composition, single centered instrument emblem on a genuinely transparent background, generous even margins, clean silhouette readable at 64 pixels. No people, hands, music notes, staves, microphones, tuner dials, metronomes, flying drones, text or labels. Keep the cello anatomy plausible and the bow straight.
+```
+
+## Bebop · Drone screen
+
+### `drone-cello` · Bebop · requested
+
+- File: `musicpractice/app/assets/ui/bebop/drone-cello.webp`
+- Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
+- Note: Step 2 (made from step 1's delivered files). The Drone screen's picture when the bow is the volume control.
+
+```text
+Edit the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone home image, a cello with its bow): remove the bow entirely and change nothing else. The cello, its colours, its position and size on the canvas, its strings and the sound ribbons stay exactly as they are; where the bow crossed the cello or a ribbon, restore what lies behind it, and where it crossed empty space leave the background fully transparent. Same square canvas, same framing, so the two images line up exactly when swapped. No bow, no new objects, no text.
+```
+
+### `drone-bow` · Bebop · requested
+
+- File: `musicpractice/app/assets/ui/bebop/drone-bow.webp`
+- Size: 256×1024, transparent PNG (shipped as 128×512 WebP)
+- Anchors (requested): frog (88, 990), tip (88, 34) in a 256×1024 canvas
+- Note: Step 2 (made from step 1's delivered files). The Drone screen's volume control. Ask for the hair from (88, 990) at the frog to (88, 34) at the tip in a 256×1024 canvas, then record the measured points.
+
+```text
+Using the bow in the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone home image), as the reference for its materials, colours and rendering style, draw that cello bow alone, standing straight upright: the tip at the top, the frog (with its small eye and silver-wound grip) at the bottom, the stick perfectly vertical and straight, and the bow hair a clean, light, evenly taut straight line running down the stick's left side from the tip to the frog, clearly visible along its whole length. Seen side-on, so the stick and the hair read as two parallel lines. The bow fills the canvas from top to bottom with a small margin (about 3%), centred left to right. A tall narrow canvas with a fully transparent background, no cast shadow, no sound ribbons, no cello, no hands, no text.
+```
+
+### `drone-organ` · Bebop · requested
+
+- File: `musicpractice/app/assets/ui/bebop/drone-organ.webp`
+- Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
+- Note: Step 2 (made from step 1's delivered files). The Drone screen's picture while an organ voice plays, in place of the cello.
+
+```text
+Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, polished brass pipes like a row of saxophone bells in a midnight-blue lacquer case with a red band. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.
+```
+
+## Bebop · Home screen buttons
+
+### `home-routine` · Bebop · requested
+
+- File: `musicpractice/app/assets/ui/bebop/home-routine.webp`
+- Size: 1024×1024, transparent PNG (shipped as 384×384 WebP)
+- Note: Step 2 (made from step 1's delivered files). The Practice Routine's button on the home screen and its picture on the routine screen.
+
+```text
+Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a midnight-blue lacquer frame with brass end caps and slim brass columns, a small red band, golden sand. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. No wings, sound ribbons, mist, floating notes or surrounding decorations; those ribbons belong only to Drone. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers.
+```
+
+## Bebop · Metronome pendulum in two parts
+
+### `metronome-rod` · Bebop · requested
+
+- File: `musicpractice/app/assets/ui/bebop/metronome-rod.webp`
+- Size: 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP
+- Anchors (requested): hub (100, 960) in a 200×1000 canvas; swings ±24°
+- Note: Step 2 (made from step 1's delivered files). The rod without the weight; the app slides the weight along it with the tempo. Same canvas, hub and swing as the pendulum; record the range the weight's centre may travel.
+
+```text
+Edit the attached image, musicpractice/app/assets/ui/bebop/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the hub. The hub at the bottom and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.
+```
+
+### `metronome-weight` · Bebop · requested
+
+- File: `musicpractice/app/assets/ui/bebop/metronome-weight.webp`
+- Size: 200×(just tall enough) canvas at the pendulum's scale, transparent PNG, shipped as WebP
+- Anchors (requested): center (100, 100) in a 200×200 canvas
+- Note: Step 2 (made from step 1's delivered files). The weight the app slides along the rod (higher is slower) and which can be dragged to set the tempo. Ask for about 200×200 with the weight centred on (100, 100), then record the delivered canvas and its `center` anchor, the point on the rod that marks its place.
+
+```text
+From the attached image, musicpractice/app/assets/ui/bebop/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no hub. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.
+```
+
+## Bebop · Practice Routine pictures
+
+### `practice-intonation` · Bebop · requested
+
+- File: `musicpractice/app/assets/ui/bebop/practice-intonation.webp`
+- Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
+- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Intonation practice, shown large while such an item runs.
+
+```text
+Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a two-tined tuning fork standing upright and ringing, with small vibration marks beside its tines; the tuning fork alone, without musical notes or a staff, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
+```
+
+### `practice-scales` · Bebop · requested
+
+- File: `musicpractice/app/assets/ui/bebop/practice-scales.webp`
+- Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
+- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Scales, shown large while such an item runs.
+
+```text
+Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with eight round note heads climbing it from left to right like a gentle staircase, the last note a little larger; exactly eight notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
+```
+
+### `practice-rhythms` · Bebop · requested
+
+- File: `musicpractice/app/assets/ui/bebop/practice-rhythms.webp`
+- Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
+- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Clapping rhythms, shown large while such an item runs.
+
+```text
+Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw exactly two hands meeting in a clap, one left and one right, with exactly two wrists and two cuffs, seen from the side, with three small curved motion marks around them, and a short row of rhythm notes (quarter notes and a pair of beamed eighth notes) beneath, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
+```
+
+### `practice-ghosting` · Bebop · requested
+
+- File: `musicpractice/app/assets/ui/bebop/practice-ghosting.webp`
+- Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
+- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Ghosting, shown large while such an item runs.
+
+```text
+Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a cello bow drawn as a faint, translucent ghostly outline, hovering just above four strings; only the translucent bow outline and the four strings, without floating notes, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
+```
+
+### `practice-default` · Bebop · requested
+
+- File: `musicpractice/app/assets/ui/bebop/practice-default.webp`
+- Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
+- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Practice (default), shown large while such an item runs and for any item with no picture of its own.
+
+```text
+Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a music stand holding an open book of sheet music, a pencil resting on its ledge, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
+```
+
+### `practice-arpeggios` · Bebop · requested
+
+- File: `musicpractice/app/assets/ui/bebop/practice-arpeggios.webp`
+- Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
+- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Arpeggios, shown large while such an item runs.
+
+```text
+Using the attached image, musicpractice/app/assets/ui/bebop/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
+```
+
+### `practice-sight-reading` · Bebop · requested
+
+- File: `musicpractice/app/assets/ui/bebop/practice-sight-reading.webp`
+- Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
+- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Sight reading, shown large while such an item runs.
+
+```text
+Using the attached image, musicpractice/app/assets/ui/bebop/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
+```
+
+### `practice-improvisation` · Bebop · requested
+
+- File: `musicpractice/app/assets/ui/bebop/practice-improvisation.webp`
+- Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
+- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Improvisation, shown large while such an item runs.
+
+```text
+Using the attached image, musicpractice/app/assets/ui/bebop/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
 ```

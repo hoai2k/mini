@@ -168,10 +168,42 @@ MORE_THEMES = [
                   "tiny cog, and a round brass gear-shaped hub"),
 ]
 
+# Round 13: Bebop, a ninth theme (requested; it joins Settings once its art
+# is delivered). Its whole set is asked for at once: six drawn from scratch
+# (step 1), and the rest made from those (step 2), as the other themes' were.
+BEBOP = dict(
+    id="bebop", name="Bebop",
+    style="Bebop jazz illustration in the manner of a 1950s modern-jazz record sleeve and a late-night "
+          "jazz club: deep midnight blue and ink black, warm cream, gleaming saxophone brass, a soft "
+          "amber spotlight glow and a single accent of club-sign red, bold flat colour shapes with "
+          "crisp edges and a fine halftone-dot texture in the shadows, a few small four-point stars. "
+          "Cool, swinging, a little playful, simple and readable. " + NO_TEXT,
+    body="a slim tapering pyramid metronome case in glossy midnight-blue lacquer, its edges trimmed in "
+         "polished saxophone brass, a cream front face with a vertical row of short black tick marks "
+         "like the edge of a piano keyboard (no numbers), a thin red band across the lower case, on a "
+         "short stepped ink-black plinth with two small brass feet",
+    boss="a round brass pivot cap like a saxophone key pad",
+    rod="a thin straight polished brass rod and a round brass hub",
+    weight="a small rounded red-lacquer sliding weight with a brass rim (like a saxophone key)",
+    mic="a 1950s jazz-club microphone: a chrome and brass oval grille with fine horizontal bars, held "
+        "in a slim ring on a short stand with a round ink-black base, a round glowing red record light "
+        "beside it and two small cream four-point stars",
+    tuner="a bebop tuner: a slim midnight-blue lacquer case trimmed in brass, a cream dial with short "
+          "black tick marks and a red needle pointing straight up at the centre, and a polished brass "
+          "tuning fork leaning beside it",
+    cello="One honey-brown cello with a midnight-blue fingerboard and slim brass edge highlights, lit "
+          "by a soft amber spotlight",
+    organ="polished brass pipes like a row of saxophone bells in a midnight-blue lacquer case with a "
+          "red band",
+    hourglass="a midnight-blue lacquer frame with brass end caps and slim brass columns, a small red "
+              "band, golden sand",
+)
+
 THEMES = [
     dict(id="classic", name="Classic"),
     dict(id="deco", name="Art Deco"),
     *[dict(id=t["id"], name=t["name"]) for t in MORE_THEMES],
+    dict(id=BEBOP["id"], name=BEBOP["name"]),
 ]
 
 ICON_STYLE = (
@@ -818,6 +850,177 @@ if _round12_delivery.exists():
         asset["note"] += " Delivered PNG masters, prompts and exports: design/image-deliveries-round-12.json."
 
 
+def round13_assets() -> list[dict]:
+    """The Bebop theme: every image a theme has. Step 1 is drawn from
+    scratch; step 2 is made from step 1's delivered files (named in each
+    prompt), so the set matches."""
+    t, style, name = BEBOP, BEBOP["style"], BEBOP["name"]
+    folder = f"assets/ui/{t['id']}"
+    icon = (style + " A single centred object on a fully transparent background, bold readable "
+            "silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.")
+    step1, step2 = "Step 1 (draw first). ", "Step 2 (made from step 1's delivered files). "
+    out = [
+        dict(id="metronome-body", file=f"{folder}/metronome-body.webp", size="800×1200, transparent PNG (shipped as WebP)",
+             group=f"{name} · Metronome animation",
+             prompt=(f"A bebop metronome: {t['body']}. Seen exactly straight on from the front, perfectly "
+                     "symmetrical, standing upright and filling the canvas top to bottom with a small margin. "
+                     "There is NO pendulum, rod or weight anywhere. Near the bottom of the face, centred "
+                     f"left-to-right, {t['boss']} sits exactly at 50% of the width and 83% of the height. "
+                     + style + " Fully transparent background."),
+             note=step1 + "The app rotates the pendulum over this one about the pivot. Ask for (400, 1000) in "
+                  "an 800×1200 canvas, then measure where it really is in the delivered file and record it.",
+             canvas=[800, 1200], anchors={"pivot": [400, 1000]}),
+        dict(id="metronome-pendulum", file=f"{folder}/metronome-pendulum.webp", size="200×1000, transparent PNG (shipped as WebP)",
+             group=f"{name} · Metronome animation",
+             prompt=(f"Just the pendulum of a metronome, isolated: {t['rod']}, with {t['weight']} on the rod. "
+                     "The rod is perfectly straight and perfectly vertical down the exact centre of a tall "
+                     "narrow canvas, from about 3% from the top to the hub, whose centre is at 96% of the "
+                     "height; the weight sits on the rod at about 30% of the height. Seen straight on, "
+                     "symmetrical, nothing else in the picture. It belongs on the metronome in "
+                     f"musicpractice/app/{folder}/metronome-body.webp (attached): match its brass and red. " + style + " Fully transparent background."),
+             note=step1 + "The app rotates this about the hub. Ask for (100, 960) in a 200×1000 canvas, then "
+                  "record the measured hub. The rod must be exactly vertical.",
+             canvas=[200, 1000], anchors={"hub": [100, 960]}, swing=24),
+        dict(id="home-metronome", file=f"{folder}/home-metronome.webp", size="768×768, transparent PNG (shipped as 384×384 WebP)",
+             group=f"{name} · Home screen buttons",
+             prompt=(f"The same metronome as the attached images, musicpractice/app/{folder}/metronome-body.webp "
+                     f"and metronome-pendulum.webp, drawn as one icon: {t['body']}, with its pendulum ({t['rod']} "
+                     f"and {t['weight']} near the top of the rod) tilted a little to the right, pivoting near the "
+                     "bottom of the face, and a soft amber spotlight glow behind the top of the case. Seen from "
+                     "the front. " + icon),
+             note=step1 + "Draw after the metronome screen's two layers, so the home button matches them (the "
+                  "lesson of the Vintage 60s icon, redrawn in Round 4). The big Metronome button; the label is "
+                  "written by the app. Tick marks only, no numbers."),
+        dict(id="home-record", file=f"{folder}/home-record.webp", size="768×768, transparent PNG (shipped as 384×384 WebP)",
+             group=f"{name} · Home screen buttons",
+             prompt=t["mic"][0].upper() + t["mic"][1:] + ". Seen from the front. " + icon,
+             note=step1 + "The big Playback Recorder button on the home screen."),
+        dict(id="home-tuner", file=f"{folder}/home-tuner.webp", size="768×768, transparent PNG (shipped as 384×384 WebP)",
+             group=f"{name} · Home screen buttons",
+             prompt=(t["tuner"][0].upper() + t["tuner"][1:] + ". Seen from the front, the needle centred to show "
+                     "a note in tune. " + icon),
+             note=step1 + "The big Tuner button on the home screen. Dial marks only, no numbers or letters."),
+        dict(id="home-drone", file=f"{folder}/home-drone.webp", size="1024×1024, transparent PNG (shipped as 384×384 WebP)",
+             group=f"{name} · Home screen buttons",
+             prompt=("Asset: Music Practice home-button emblem for the 'Drone' feature (sustained cello tones for "
+                     f"musicians to play along with). {t['cello']}. A recognizable full-size four-string acoustic "
+                     "cello silhouette: classic hourglass body, two f-holes, a bridge, long straight fingerboard, "
+                     "scroll with paired tuning pegs, and a short endpin. A single straight cello bow rests beside "
+                     "it at a slight diagonal, with taut light bow hair; do not obscure the instrument's body or "
+                     "strings. Two thin smooth continuous sound ribbons drift gently outward from the body to "
+                     "suggest one sustained tone, not a melody. Show the complete cello and bow, isolated, from the "
+                     "front. " + style + " Square composition, single centered instrument emblem on a genuinely "
+                     "transparent background, generous even margins, clean silhouette readable at 64 pixels. No "
+                     "people, hands, music notes, staves, microphones, tuner dials, metronomes, flying drones, "
+                     "text or labels. Keep the cello anatomy plausible and the bow straight."),
+             note=step1 + "The big Drone button on the home screen, and the reference every step 2 picture is "
+                  "drawn from (as the other themes' are), so take care over it."),
+    ]
+    drone = f"musicpractice/app/{folder}/home-drone.webp"
+    routine = f"musicpractice/app/{folder}/home-routine.webp"
+    out += [
+        dict(id="drone-cello", file=f"{folder}/drone-cello.webp", size="1024×1024, transparent PNG (shipped as 512×512 WebP)",
+             group=f"{name} · Drone screen",
+             prompt=(f"Edit the attached image, {drone} (this theme's Drone home image, a cello with its bow): "
+                     "remove the bow entirely and change nothing else. The cello, its colours, its position and "
+                     "size on the canvas, its strings and the sound ribbons stay exactly as they are; where the bow "
+                     "crossed the cello or a ribbon, restore what lies behind it, and where it crossed empty space "
+                     "leave the background fully transparent. Same square canvas, same framing, so the two images "
+                     "line up exactly when swapped. No bow, no new objects, no text."),
+             note=step2 + "The Drone screen's picture when the bow is the volume control."),
+        dict(id="drone-bow", file=f"{folder}/drone-bow.webp", size="256×1024, transparent PNG (shipped as 128×512 WebP)",
+             group=f"{name} · Drone screen",
+             prompt=(f"Using the bow in the attached image, {drone} (this theme's Drone home image), as the "
+                     "reference for its materials, colours and rendering style, draw that cello bow alone, standing "
+                     "straight upright: the tip at the top, the frog (with its small eye and silver-wound grip) at "
+                     "the bottom, the stick perfectly vertical and straight, and the bow hair a clean, light, evenly "
+                     "taut straight line running down the stick's left side from the tip to the frog, clearly "
+                     "visible along its whole length. Seen side-on, so the stick and the hair read as two parallel "
+                     "lines. The bow fills the canvas from top to bottom with a small margin (about 3%), centred "
+                     "left to right. A tall narrow canvas with a fully transparent background, no cast shadow, no "
+                     "sound ribbons, no cello, no hands, no text."),
+             note=step2 + "The Drone screen's volume control. Ask for the hair from (88, 990) at the frog to (88, 34) "
+                  "at the tip in a 256×1024 canvas, then record the measured points.",
+             canvas=[256, 1024], anchors={"frog": [88, 990], "tip": [88, 34]}),
+        dict(id="drone-organ", file=f"{folder}/drone-organ.webp", size="1024×1024, transparent PNG (shipped as 512×512 WebP)",
+             group=f"{name} · Drone screen",
+             prompt=(f"Using the attached image, {drone} (this theme's Drone image, a cello), as the reference for "
+                     "its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place "
+                     f"of the cello: a front of upright organ pipes, {t['organ']}. The pipes stand in a symmetrical "
+                     "row, tallest in the middle and stepping down to either side, each with its mouth (the small "
+                     "horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, "
+                     "smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest "
+                     "one sustained tone. The organ stands in the same place and at about the same height as the "
+                     "cello in the reference, centred, filling the canvas from top to bottom with the same small "
+                     "margin, so the two pictures swap in place. Seen from the front. A fully transparent "
+                     "background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no "
+                     "letters, no numbers."),
+             note=step2 + "The Drone screen's picture while an organ voice plays, in place of the cello."),
+        dict(id="home-routine", file=f"{folder}/home-routine.webp", size="1024×1024, transparent PNG (shipped as 384×384 WebP)",
+             group=f"{name} · Home screen buttons",
+             prompt=(f"Using the attached image, {drone} (this theme's Drone home button, a cello), as the reference "
+                     "for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its "
+                     f"place: {t['hourglass']}. The hourglass stands upright and perfectly symmetrical, seen from "
+                     "the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin "
+                     "stream still falling through the neck. No wings, sound ribbons, mist, floating notes or "
+                     "surrounding decorations; those ribbons belong only to Drone. Centred, at about the same height "
+                     "as the cello, with the same small even margin; a bold readable silhouette that still reads at "
+                     "64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no "
+                     "letters, no numbers."),
+             note=step2 + "The Practice Routine's button on the home screen and its picture on the routine screen."),
+        dict(id="metronome-rod", file=f"{folder}/metronome-rod.webp", size="200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP",
+             group=f"{name} · Metronome pendulum in two parts",
+             prompt=(f"Edit the attached image, musicpractice/app/{folder}/metronome-pendulum.webp (this theme's "
+                     "metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the "
+                     "way down, and change nothing else. Where the weight covered the rod, continue the rod exactly "
+                     "as it runs above and below it (same width, colour, shading and texture), so the rod is whole "
+                     "from its tip to the hub. The hub at the bottom and the rod's tip stay exactly where they are. "
+                     "Same canvas and framing, so the two images line up exactly. Fully transparent background, no "
+                     "shadow, no text."),
+             note=step2 + "The rod without the weight; the app slides the weight along it with the tempo. Same "
+                  "canvas, hub and swing as the pendulum; record the range the weight's centre may travel.",
+             canvas=[200, 1000], anchors={"hub": [100, 960]}, swing=24),
+        dict(id="metronome-weight", file=f"{folder}/metronome-weight.webp", size="200×(just tall enough) canvas at the pendulum's scale, transparent PNG, shipped as WebP",
+             group=f"{name} · Metronome pendulum in two parts",
+             prompt=(f"From the attached image, musicpractice/app/{folder}/metronome-pendulum.webp (this theme's "
+                     "metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a "
+                     "quarter of the way down, exactly as it is drawn there: same size, colours, lighting and "
+                     "detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or "
+                     "below it, no hub. Centred left to right where the rod runs, on a canvas as wide as the "
+                     "pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, "
+                     "no text."),
+             note=step2 + "The weight the app slides along the rod (higher is slower) and which can be dragged to "
+                  "set the tempo. Ask for about 200×200 with the weight centred on (100, 100), then record "
+                  "the delivered canvas and its `center` anchor, the point on the rod that marks its place.",
+             canvas=[200, 200], anchors={"center": [100, 100]}),
+    ]
+    for pid, (label, subject) in [*PRACTICE_SUBJECT.items(), *PRACTICE_SUBJECT_12.items()]:
+        new_picture = pid in PRACTICE_SUBJECT_12
+        reference, reference_subject = (routine, "Routine hourglass") if new_picture else (drone, "Drone cello")
+        note_rule = ("Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed "
+                     "inside the improvisation bulb. " if new_picture else
+                     "Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. ")
+        out.append(dict(
+            id=pid, file=f"{folder}/{pid}.webp", size="1024×1024, transparent PNG (shipped as 512×512 WebP)",
+            group=f"{name} · Practice Routine pictures",
+            prompt=(f"Using the attached image, {reference} (this theme's {reference_subject}), as the reference "
+                    "for its style, colours, materials, lighting, rendering, framing and canvas, draw "
+                    f"{subject}, in this theme's materials and colours. No wings, sound ribbons, mist bands or "
+                    f"decorative floating notes. Ribbons belong only to Drone. {note_rule}One centred subject at "
+                    f"about the same size as the {reference_subject}, with the same small even margin; a bold "
+                    "readable silhouette that still reads at 96 pixels. A fully transparent background, no cast "
+                    "shadow, no text, no letters, no numbers."),
+            note=step2 + f"The Practice Routine's picture for {label}, shown large while such an item runs"
+                 + (" and for any item with no picture of its own" if pid == "practice-default" else "") + ".",
+        ))
+    for a in out:
+        a.update(theme=t["id"], round=13, status="requested")
+    return out
+
+
+ASSETS += round13_assets()
+
+
 def render() -> tuple[str, str]:
     theme_name = {t["id"]: t["name"] for t in THEMES}
     lines = [
@@ -839,7 +1042,8 @@ def render() -> tuple[str, str]:
                        (9, "Practice Routine home icons, every theme"),
                        (10, "Metronome pendulum in two parts, every theme"),
                        (11, "Practice Routine pictures, every theme"),
-                       (12, "Arpeggios, Sight reading and Improvisation, every theme")):
+                       (12, "Arpeggios, Sight reading and Improvisation, every theme"),
+                       (13, "the Bebop theme: draw step 1 first, then make step 2 from it")):
         wanted = [a for a in ASSETS if a["round"] == rnd and a["status"] in ("requested", "revise")]
         lines.append(f"**Round {rnd} ({title}):** "
                      + (f"{len(wanted)} image{'s' if len(wanted) != 1 else ''} wanted: " + ", ".join(f"`{a['file']}`" for a in wanted) + "."
@@ -851,6 +1055,7 @@ def render() -> tuple[str, str]:
         "- Classic: " + STYLE,
         "- Art Deco: " + DECO_STYLE,
         *[f"- {t['name']}: {t['style']}" for t in MORE_THEMES],
+        f"- {BEBOP['name']}: {BEBOP['style']}",
         "",
         "**Anchors:** the metronome body and pendulum are separate layers. Each image records its",
         "canvas size and the point the app pins it by (the body's pivot, the pendulum's hub), so",
