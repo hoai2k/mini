@@ -1957,7 +1957,10 @@ html.paging { overflow: hidden; }
 .timer-actions { grid-area: act; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
 .timer-actions .big-btn { min-width: 160px; }
 
-/* The pencil in the header (beside the gear): edit the list; a check while editing. */
+/* The pencil beside the total time: edit the list; a check while editing. */
+.timer-total { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.timer-total .timer-edit { flex: none; width: 42px; height: 42px; color: var(--ink-2); }
+.timer-total .timer-edit svg { width: 22px; height: 22px; }
 #routine .bar { grid-template-columns: 42px 1fr auto; gap: 4px; }
 #routine .bar h2 { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: clamp(0.85rem, 4.1vw, 1.25rem); }
 .bar-end { display: flex; justify-content: flex-end; }
@@ -2061,7 +2064,13 @@ html.paging { overflow: hidden; }
 .titem-time { margin-left: auto; }
 .titem.item-edit { background: var(--panel-2); border-color: var(--brass); }
 .titem.item-edit .titem-namebox { flex: 1; }
-.titem.item-edit .titem-handle, .titem.item-edit .titem-onoff, .titem.item-edit .titem-del { display: none; }
+/* Open: its delete at the far right (its on/off waits for it to close); where room is short, no number or picture. */
+.titem.item-edit .titem-onoff { display: none; }
+.titem.item-edit:not(.editing) .titem-del { margin: -6px -8px -6px 0; }
+@media (max-width: 520px) {
+  .titem.item-edit .titem-num, .titem.item-edit .titem-icon { display: none; }
+  .titem.item-edit { gap: 6px; }
+}
 /* A tap on an item starts the routine there. */
 .titem.startable { cursor: pointer; }
 .titem.startable:hover { border-color: color-mix(in srgb, var(--brass) 55%, var(--line)); }
@@ -2070,7 +2079,7 @@ html.paging { overflow: hidden; }
 /* Its kind while editing: the name with a chevron, the whole of it opening the list of kinds;
    a Custom one typed, with the list beside it. */
 .titem-namebox { position: relative; flex: 1; min-width: 0; display: flex; align-items: center; gap: 2px; }
-.titem-namebox .titem-name { flex: 1; min-width: 0; }
+.titem-namebox .titem-name { flex: 0 1 auto; min-width: 0; }
 .titem-chev, .titem-pick { flex: none; display: grid; place-items: center; width: 24px; height: 32px; color: var(--ink-2); }
 .titem-chev svg, .titem-pick svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .titem-pick { position: relative; }
@@ -2103,7 +2112,7 @@ input.titem-name::placeholder { color: var(--ink-3); }
 .titem.swiping { transition: none !important; }
 .timer-list.reordering .titem:not(.dragging) { transition: transform 0.18s ease; }
 .timer-list:not(.editing) .titem { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
-.timer-list.editing .titem:not(.item-edit) { cursor: grab; }
+.timer-list.editing .titem:not(.item-edit) { cursor: grab; touch-action: none; } /* picked up anywhere, by touch too */
 #routine.running .timer-list .titem { cursor: default; }
 /* An item's menu (a right click). */
 .titem-menu {
