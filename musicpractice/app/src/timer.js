@@ -1,14 +1,13 @@
 // The Practice Routine's routine and its clock: a list of practice items, each
-// a name, a number of minutes and, optionally, a metronome and a drone set up
-// for that item alone (they never change the Metronome's or the Drone's own
-// settings). Pure: the screen is timerui.js, the sound comes through the
-// engines main.js hands it.
+// a name and a number of minutes. While it runs, the routine is a shell around
+// the tools: the Metronome, the Drone and the Playback Recorder, each turned
+// on or off on its card and running with its own settings, whatever item is
+// on (TOOLS; which were on is remembered for the next run). Pure: the screen
+// is timerui.js, the tools come through main.js.
 //
 // Inside the code it is the timer (timer.js, timerui.js, TEXT.timer, #timer-…).
 
 import { TEXT } from './text.js';
-import { METERS, BPM_MIN, BPM_MAX } from './settings.js';
-import { DRONE_MIN, DRONE_MAX, VOICES } from './drone.js';
 import { output } from './output.js';
 
 const KEY = 'musicpractice.routine.v1';
@@ -17,52 +16,51 @@ export const MIN_MINUTES = 1;
 export const MAX_MINUTES = 120;
 const MAX_NAME = 60;
 
+/** The tools a running routine offers, in the order of their cards. */
+export const TOOLS = ['metronome', 'drone', 'playback'];
+
 /**
  * The suggestions offered by +. Each needs its own picture, practice-<id>,
  * in the image requests (design/source/build_requests.py, PRACTICE_SUBJECT;
- * test/timer.test.mjs checks), shown large while such an item runs.
+ * test/timer.test.mjs checks). `tool`: the tool it is usually practised
+ * with, whose card comes into view as it starts (it turns nothing on).
  */
 export const PRESETS = [
-  { id: 'intonation', minutes: 3, metronome: false, drone: true },
-  { id: 'scales', minutes: 5, metronome: true, drone: false },
-  { id: 'arpeggios', minutes: 5, metronome: false, drone: false },
-  // The metronome is what this one is: on whenever it is added, and its
-  // picture is the Metronome's own.
-  { id: 'metronome', minutes: 5, metronome: true, drone: false, own: true, picture: 'home-metronome' },
-  { id: 'sight-reading', minutes: 5, metronome: false, drone: false },
-  { id: 'improvisation', minutes: 5, metronome: false, drone: false },
-  { id: 'rhythms', minutes: 3, metronome: false, drone: false },
-  { id: 'ghosting', minutes: 3, metronome: false, drone: false },
+  { id: 'intonation', minutes: 3, tool: 'drone' },
+  { id: 'scales', minutes: 5, tool: 'metronome' },
+  { id: 'arpeggios', minutes: 5 },
+  // Its picture is the Metronome's own.
+  { id: 'metronome', minutes: 5, tool: 'metronome', picture: 'home-metronome' },
+  { id: 'sight-reading', minutes: 5 },
+  { id: 'improvisation', minutes: 5 },
+  { id: 'rhythms', minutes: 3 },
+  { id: 'ghosting', minutes: 3 },
 ];
+/** The tool whose card comes into view as `it` starts, or null. */
+export const toolFor = (it) => PRESETS.find((p) => p.id === it?.kind)?.tool || null;
 /** The routine a first visit starts with. */
 const FIRST_ROUTINE = ['intonation', 'scales'];
 
 let nextId = 1;
 const newId = () => `i${Date.now().toString(36)}${(nextId++).toString(36)}`;
 
-/**
- * A new item: from a preset (or blank, for Custom…), its metronome and drone
- * starting from the app's current ones (`base`, the settings) and its own from
- * then on. `tools`: whether the preset's metronome or drone starts on (as in
- * the routine a first visit starts with); an item added with + starts with
- * both off.
- */
-export function newItem(presetId, base = {}, lastMinutes = {}, { tools = true } = {}) {
+/** A new item: from a suggestion (or blank, for Custom…), at the length last given to its kind. */
+export function newItem(presetId, lastMinutes = {}) {
   const p = PRESETS.find((x) => x.id === presetId);
   const minutes = lastMinutes[presetId || 'custom'] ?? (p ? p.minutes : 5);
-  return clean({
-    id: newId(),
-    kind: p ? p.id : null,
-    name: p ? TEXT.timer.presets[p.id] : '',
-    minutes,
-    metronome: !!((tools || p?.own) && p?.metronome),
-    drone: !!((tools || p?.own) && p?.drone),
-    met: { bpm: base.bpm, meter: base.meter },
-    drn: { midi: base.droneMidi, voice: base.droneVoice, fifth: base.droneFifth },
-  });
+  return clean({ id: newId(), kind: p ? p.id : null, name: p ? TEXT.timer.presets[p.id] : '', minutes });
 }
 
-export const defaultRoutine = (base) => FIRST_ROUTINE.map((id) => newItem(id, base));
+export const defaultRoutine = () => FIRST_ROUTINE.map((id) => newItem(id));
+
+/** `items` with the one at `from` moved to `to` (a new array). */
+export function move(items, from, to) {
+  const out = items.slice();
+  if (from < 0 || from >= out.length) return out;
+  const [it] = out.splice(from, 1);
+  out.splice(Math.max(0, Math.min(out.length, to)), 0, it);
+  return out;
+}
 
 const clampInt = (v, lo, hi, d) => (Number.isFinite(Number(v)) ? Math.max(lo, Math.min(hi, Math.round(Number(v)))) : d);
 
@@ -72,8 +70,6 @@ const sameName = (preset, name) => [preset, `${preset} practice`].some((n) => n.
 
 export function clean(it) {
   const o = it && typeof it === 'object' ? it : {};
-  const met = o.met && typeof o.met === 'object' ? o.met : {};
-  const drn = o.drn && typeof o.drn === 'object' ? o.drn : {};
   const saved = typeof o.name === 'string' ? o.name.slice(0, MAX_NAME) : '';
   // Which suggestion it came from (its picture), or null for one of its own.
   // Saved before items knew: by its name, if that is a suggestion's.
@@ -86,23 +82,12 @@ export function clean(it) {
     kind,
     name,
     minutes: clampInt(o.minutes, MIN_MINUTES, MAX_MINUTES, 5),
-    metronome: o.metronome === true,
-    drone: o.drone === true,
-    met: {
-      bpm: clampInt(met.bpm, BPM_MIN, BPM_MAX, 80),
-      meter: METERS.some((m) => m.id === met.meter) ? met.meter : '4/4',
-    },
-    drn: {
-      midi: clampInt(drn.midi, DRONE_MIN, DRONE_MAX, 48),
-      voice: VOICES.some((v) => v.id === drn.voice) ? drn.voice : 'cello',
-      fifth: drn.fifth === true,
-    },
   };
 }
 
 /** A saved routine, or the default one on a first visit (an emptied one stays empty). */
-export function cleanRoutine(v, base) {
-  if (!Array.isArray(v)) return defaultRoutine(base);
+export function cleanRoutine(v) {
+  if (!Array.isArray(v)) return defaultRoutine();
   const seen = new Set();
   return v.slice(0, MAX_ITEMS).map(clean).filter((it) => !seen.has(it.id) && seen.add(it.id));
 }
@@ -115,12 +100,13 @@ export const VOICE_MAX_GAIN = 1.6;
 export const voiceGain = (v) => VOICE_MAX_GAIN * Math.max(0, Math.min(1, v)) ** 2;
 export const VOICE_DEFAULT = Math.round(Math.sqrt(0.9 / VOICE_MAX_GAIN) * 100) / 100;
 
-/** The timer's own saved state: the routine and the chime. */
-export function loadTimer(base, storage = globalThis.localStorage) {
+/** The timer's own saved state: the routine, the chime and the voice, and which tools were on. */
+export function loadTimer(storage = globalThis.localStorage) {
   let saved = null;
   try { saved = JSON.parse(storage?.getItem(KEY) || 'null'); } catch { /* start afresh */ }
   return {
-    items: cleanRoutine(saved?.items, base),
+    items: cleanRoutine(saved?.items),
+    tools: Object.fromEntries(TOOLS.map((t) => [t, saved?.tools?.[t] === true])),
     chime: CHIMES.includes(saved?.chime) ? saved.chime : 'kalimba',
     // Chimes on unless turned off ('none' was once a chime of its own: off).
     chimeOn: saved?.chimeOn !== false && saved?.chime !== 'none',
@@ -131,8 +117,8 @@ export function loadTimer(base, storage = globalThis.localStorage) {
     voiceVolume: Number.isFinite(saved?.voiceVolume) ? Math.max(0, Math.min(1, saved.voiceVolume)) : VOICE_DEFAULT,
   };
 }
-export function saveTimer({ items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume }, storage = globalThis.localStorage) {
-  try { storage?.setItem(KEY, JSON.stringify({ items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume })); } catch { /* not kept */ }
+export function saveTimer({ items, tools, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume }, storage = globalThis.localStorage) {
+  try { storage?.setItem(KEY, JSON.stringify({ items, tools, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume })); } catch { /* not kept */ }
 }
 
 /**
@@ -224,17 +210,17 @@ export function playChime(ctx, id, volume = 0.9) {
 export const totalSeconds = (items) => items.reduce((s, it) => s + it.minutes * 60, 0);
 
 /**
- * The picture shown large while `it` runs: its own (practice-<kind>), or,
- * while that is still to come, the Drone's (cello or organ, by its voice)
- * for an item with the drone on, else the Metronome's, else the default
+ * An item's picture (its icon in the list): its own (practice-<kind>), else
+ * its usual tool's (the Drone's cello, the Metronome's), else the default
  * practice picture, else the routine's hourglass. `has(id)` says whether a
  * picture is there to show in the current theme.
  */
 export function pictureFor(it, has) {
   const ids = [];
   if (it.kind) ids.push(PRESETS.find((p) => p.id === it.kind)?.picture || `practice-${it.kind}`);
-  if (it.drone) ids.push(it.drn.voice.startsWith('organ') ? 'drone-organ' : 'drone-cello');
-  if (it.metronome) ids.push('home-metronome');
+  const tool = toolFor(it);
+  if (tool === 'drone') ids.push('drone-cello');
+  if (tool === 'metronome') ids.push('home-metronome');
   ids.push('practice-default');
   return ids.find((id) => has(id)) || 'home-routine';
 }

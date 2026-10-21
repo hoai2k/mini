@@ -12,7 +12,8 @@ import { diag, isWebKit, isIOS, micPermission, onPermissionChange, noteMicRefuse
 import { Metronome, pendulumAngle, weightAt, bpmAtWeight } from './metronome.js';
 import { Recorder, freesMicForPlayback, freeReason } from './recorder.js';
 import { setupTuner } from './tunerui.js';
-import { Drone, preload as preloadDrone } from './drone.js';
+import { Drone, preload as preloadDrone, wrap as wrapNote, spelling } from './drone.js';
+import { noteName } from './tuning.js';
 import { setupDrone } from './droneui.js';
 import { isApp, platform, shareFile, onBackButton, exitApp } from './native.js';
 import { setupFeedback } from './feedback.js';
@@ -287,6 +288,13 @@ function metronomeConfigured() {
   persist();
 }
 
+/**
+ * The context to start sound on from a tap: a fresh one if the old one may be
+ * stuck on another output, but never while the mic is in use on it (a new
+ * one would cut the Playback Recorder off mid-take).
+ */
+const soundCtx = () => (listeningActive() || playing ? audio() : freshAudio());
+
 function startMetronome() {
   if (useNative) {
     if (!metronome?.native) metronome = new NativeMetronome();
@@ -294,8 +302,8 @@ function startMetronome() {
     metronome.start().catch(() => { note(TEXT.metronome.couldntStart); stopMetronome(); });
   } else {
     // A fresh context if the old one may be stuck on another output (this is a
-    // tap, so the new one may start).
-    const ctx = freshAudio();
+    // tap, so the new one may start), unless the mic is using it.
+    const ctx = soundCtx();
     unlock();
     if (!metronome || metronome.ctx !== ctx) {
       metronome = new Metronome(ctx);
@@ -1265,10 +1273,11 @@ function ensureRecorder() {
     // Hand over a mic the old recorder still holds, so there is no new prompt.
     if (old?.stream) { recorder.keepStream(old.stream); old.stream = null; }
     recorder.addEventListener('state', () => {
+      if (recorder.state === 'recording') recordingSince = performance.now();
       interruptPlayback();
       showState();
       showTunerState();
-      keepAwake(recorder.state !== 'off');
+      keepAwake(recorder.state !== 'off' || !!timerUI?.running);
     });
     recorder.addEventListener('chunk', (e) => {
       recoverTries = 0;
@@ -2002,7 +2011,7 @@ function droneEngine() {
   }
   // While it sounds, keep its context (so note changes crossfade); from
   // silence, a fresh one if the output may have changed (a Bluetooth speaker).
-  const ctx = drone?.playing && drone.ctx.state !== 'closed' ? drone.ctx : freshAudio();
+  const ctx = drone?.playing && drone.ctx.state !== 'closed' ? drone.ctx : soundCtx();
   if (!drone || drone.ctx !== ctx) {
     drone = new Drone(ctx);
     drone.setVolume(settings.droneVolume);
@@ -2027,42 +2036,74 @@ const droneUI = setupDrone({
 // ---------------------------------------------------------------- practice timer
 
 /*
- * The Practice Routine (inside the code, the timer). Its items play the
- * metronome and the drone through the same engines as their own screens, but
- * set up from the item, never from or into the Metronome's or the Drone's
- * settings (sound, accent and volume follow the Metronome's).
+ * The Practice Routine (inside the code, the timer). Running, it is a shell
+ * around the tools: its cards turn the Metronome, the Drone and the Playback
+ * Recorder on and off, each running with its own settings (timerui.js).
  */
 let timerUI = null;
 let pager = null;
-let timerDrone = false; // the timer started the drone
+let timerDrone = false; // the routine's Drone card started the drone
+let timerPlayback = false; // the routine's Playback card turned the recorder on
+let recordingSince = 0; // when the take being recorded began (the card's clock)
 // Chimes and the voice play on the context the metronome plays through, when it does (one context, one output).
 const clipCtx = () => (!useNative && metronome?.running ? metronome.ctx : audio());
+const droneNote = () => {
+  const n = noteName(settings.droneMidi, { flats: spelling(settings.droneAccidentals, settings.droneSpelling) === 'flats' });
+  return `${n.name}${n.octave}`;
+};
+/** The drone, as the routine's Drone card has it: the Drone's own note, instrument and fifth, untimed. */
+function routineDrone() {
+  timerDrone = true;
+  const voice = TEXT.drone.voices[settings.droneVoice] || '';
+  droneEngine().play({ midi: settings.droneMidi, voice: settings.droneVoice, a4: settings.a4, fifth: settings.droneFifth, schedule: null, label: `${TEXT.timer.title} · ${voice}` });
+}
+const droneChanged = () => { persist(); droneUI.refresh(); if (timerDrone) routineDrone(); };
+const routineTools = {
+  metronome: {
+    start: startMetronome,
+    stop: stopMetronome,
+    on: () => !!metronome?.running,
+    bpm: () => settings.bpm,
+    setBpm: (n) => setBpm(n),
+    meter: () => (meterOf(settings.meter).beats === 1 ? TEXT.metronome.noBars : settings.meter),
+    beat: () => {
+      const strengths = shownBeats();
+      if (!metronome?.running) return { idx: -1, strengths };
+      const now = metronome.native ? metronome.heardNow(1 / 60) : heardNow(1 / 60);
+      const b = metronome.beatAt(now);
+      return { idx: !b ? -1 : meterOf(settings.meter).beats === 1 ? b.count % strengths.length : b.beat, strengths };
+    },
+  },
+  drone: {
+    start: routineDrone,
+    stop: () => { if (timerDrone) { timerDrone = false; droneEngine().stop(); } },
+    on: () => timerDrone,
+    note: droneNote,
+    step: (d) => { settings.droneMidi = wrapNote(settings.droneMidi + d); droneChanged(); },
+    voice: () => settings.droneVoice,
+    setVoice: (v) => { settings.droneVoice = v; droneChanged(); },
+    fifth: () => settings.droneFifth,
+    setFifth: (on) => { settings.droneFifth = on; settings.droneFifthChosen = true; droneChanged(); },
+    allowed: () => isPro(),
+    ask: () => openPaywall('drone'),
+  },
+  playback: {
+    start: () => { timerPlayback = true; startRecorder(); },
+    stop: () => { if (timerPlayback) { timerPlayback = false; stopRecorder(); } },
+    on: () => timerPlayback,
+    status: () => {
+      const state = playing ? 'playing' : recorder?.state ?? 'off';
+      return {
+        state: timerPlayback || state !== 'off' ? state : 'off',
+        seconds: state === 'recording' ? (performance.now() - recordingSince) / 1000 : 0,
+        takes: takes.length,
+      };
+    },
+    busy: () => recorder?.state === 'recording' || !!playing,
+    ignoreFor: (sec) => recorder?.ignoreFor(sec),
+  },
+};
 const timerAudio = {
-  metronome(met) {
-    const cfg = { ...settings, bpm: met.bpm, meter: met.meter, accentPattern: null, subdivision: 1 };
-    if (useNative) {
-      if (!metronome?.native) metronome = new NativeMetronome();
-      metronome.configure(cfg);
-      if (!metronome.running) metronome.start().catch(() => {});
-      return;
-    }
-    if (metronome?.running) { metronome.configure(cfg); return; }
-    const ctx = freshAudio();
-    unlock();
-    if (!metronome || metronome.ctx !== ctx) {
-      metronome = new Metronome(ctx);
-      if (settings.speaker !== 'default') setContextSpeaker(settings.speaker);
-    }
-    metronome.configure(cfg);
-    metronome.start();
-  },
-  stopMetronome() { if (metronome?.running) metronome.stop(); },
-  drone(drn) {
-    timerDrone = true;
-    const voice = TEXT.drone.voices[drn.voice] || '';
-    droneEngine().play({ midi: drn.midi, voice: drn.voice, a4: settings.a4, fifth: drn.fifth, schedule: null, label: `${TEXT.timer.title} · ${voice}` });
-  },
-  stopDrone() { if (timerDrone) { timerDrone = false; droneEngine().stop(); } },
   // On the context the metronome plays through, when it does (one context, one output).
   chime(id) { return playChime(clipCtx(), id); },
   clips(urls, volume) { return playClips(clipCtx(), urls, volume == null ? {} : { volume }); },
@@ -2072,12 +2113,7 @@ const timerAudio = {
     if (on && !recorder?.holdsMic) setSession('playback');
   },
 };
-timerUI = setupTimer({
-  settings,
-  audio: timerAudio,
-  canDrone: () => isPro(),
-  askDrone: () => openPaywall('drone'),
-});
+timerUI = setupTimer({ settings, tools: routineTools, audio: timerAudio });
 pager = setupPager({
   home: $('home'),
   timer: $('routine'),

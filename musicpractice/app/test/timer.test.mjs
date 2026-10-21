@@ -1,43 +1,48 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { TimerRun, cleanRoutine, newItem, PRESETS, totalSeconds, loadTimer, saveTimer, CHIMES, VOICE_DEFAULT, voiceGain } from '../src/timer.js';
+import { TimerRun, cleanRoutine, newItem, PRESETS, TOOLS, totalSeconds, loadTimer, saveTimer, CHIMES, VOICE_DEFAULT, voiceGain, move, toolFor } from '../src/timer.js';
 
-const base = { bpm: 100, meter: '3/4', droneMidi: 50, droneVoice: 'organ', droneFifth: true };
 const mem = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) }; };
 
-test('a first visit starts with Intonation (drone) and Scales (metronome); + offers eight', () => {
-  const { items, chime } = loadTimer(base, mem());
-  assert.deepEqual(items.map((i) => [i.name, i.minutes, i.metronome, i.drone]), [
-    ['Intonation', 3, false, true],
-    ['Scales', 5, true, false],
-  ]);
+test('a first visit starts with Intonation and Scales; + offers eight, each with the tool it is usually practised with', () => {
+  const { items, chime, tools } = loadTimer(mem());
+  assert.deepEqual(items.map((i) => [i.name, i.minutes]), [['Intonation', 3], ['Scales', 5]]);
+  assert.deepEqual(Object.keys(items[0]).sort(), ['id', 'kind', 'minutes', 'name']); // a name and minutes: the tools are the routine's, not the item's
   assert.equal(chime, 'kalimba');
-  assert.deepEqual(PRESETS.map((p) => [p.id, p.minutes, p.metronome, p.drone]), [
-    ['intonation', 3, false, true], ['scales', 5, true, false], ['arpeggios', 5, false, false], ['metronome', 5, true, false],
-    ['sight-reading', 5, false, false], ['improvisation', 5, false, false], ['rhythms', 3, false, false], ['ghosting', 3, false, false],
+  assert.deepEqual(tools, { metronome: false, drone: false, playback: false });
+  assert.deepEqual(TOOLS, ['metronome', 'drone', 'playback']);
+  assert.deepEqual(PRESETS.map((p) => [p.id, p.minutes, p.tool ?? null]), [
+    ['intonation', 3, 'drone'], ['scales', 5, 'metronome'], ['arpeggios', 5, null], ['metronome', 5, 'metronome'],
+    ['sight-reading', 5, null], ['improvisation', 5, null], ['rhythms', 3, null], ['ghosting', 3, null],
   ]);
-  assert.equal(newItem('ghosting', base).name, 'Ghosting');
-  assert.equal(newItem('rhythms', base).name, 'Clapping Rhythms');
-  // An item's metronome and drone start from the app's own, then are its own.
-  const it = newItem('scales', base);
-  assert.deepEqual(it.met, { bpm: 100, meter: '3/4' });
-  assert.deepEqual(it.drn, { midi: 50, voice: 'organ', fifth: true });
-  assert.equal(newItem(undefined, base).name, ''); // Custom…
+  assert.equal(toolFor(items[0]), 'drone');
+  assert.equal(toolFor(newItem(undefined)), null);
+  assert.equal(newItem('ghosting').name, 'Ghosting');
+  assert.equal(newItem('rhythms').name, 'Clapping Rhythms');
+  assert.equal(newItem(undefined).name, ''); // Custom…
 });
 
-test('saved routines are kept, cleaned, and an emptied one stays empty', () => {
+test('saved routines are kept, cleaned, and an emptied one stays empty; the tools that were on are remembered', () => {
   const s = mem();
-  saveTimer({ items: [], chime: 'celesta' }, s);
-  assert.deepEqual(loadTimer(base, s), { items: [], chime: 'celesta', chimeOn: true, lastMinutes: {}, voiceOn: true, voice: 'lily', voiceVolume: VOICE_DEFAULT });
-  const items = cleanRoutine([{ id: 'a', name: 'x'.repeat(99), minutes: 999, metronome: 1, met: { bpm: 9999, meter: 'nope' }, drn: { midi: 10, voice: '?' } }, { id: 'a' }, 'junk']);
+  saveTimer({ items: [], tools: { metronome: true, drone: false, playback: true }, chime: 'celesta' }, s);
+  assert.deepEqual(loadTimer(s), { items: [], tools: { metronome: true, drone: false, playback: true }, chime: 'celesta', chimeOn: true, lastMinutes: {}, voiceOn: true, voice: 'lily', voiceVolume: VOICE_DEFAULT });
+  // Saved when items had their own metronome and drone: those are let go.
+  const items = cleanRoutine([{ id: 'a', name: 'x'.repeat(99), minutes: 999, metronome: true, met: { bpm: 90 }, drone: true, drn: { midi: 10 } }, { id: 'a' }, 'junk']);
   assert.equal(items.length, 2); // the duplicate id dropped, the junk made a blank item
   assert.equal(items[0].name.length, 60);
   assert.equal(items[0].minutes, 120);
-  assert.equal(items[0].metronome, false);
-  assert.deepEqual(items[0].met, { bpm: 500, meter: '4/4' });
-  assert.deepEqual(items[0].drn, { midi: 24, voice: 'cello', fifth: false });
+  assert.deepEqual(Object.keys(items[0]).sort(), ['id', 'kind', 'minutes', 'name']);
   assert.deepEqual(CHIMES, ['kalimba', 'two-tone', 'celesta']);
   assert.equal(totalSeconds([{ minutes: 3 }, { minutes: 5 }]), 480);
+});
+
+test('items are moved up and down the list (dragged, or with the arrow keys)', () => {
+  const l = ['a', 'b', 'c', 'd'];
+  assert.deepEqual(move(l, 0, 2), ['b', 'c', 'a', 'd']);
+  assert.deepEqual(move(l, 3, 0), ['d', 'a', 'b', 'c']);
+  assert.deepEqual(move(l, 1, 1), l);
+  assert.deepEqual(move(l, 2, 99), ['a', 'b', 'd', 'c']);
+  assert.deepEqual(l, ['a', 'b', 'c', 'd']); // the original is left alone
 });
 
 test('the run moves on at each item\'s end, pauses, skips and finishes', () => {
@@ -85,19 +90,18 @@ test('every suggestion has its picture in the image requests, in every theme', a
   }
 });
 
-test("the picture while an item runs: its own, else its drone's or metronome's, else the default, else the hourglass", async () => {
+test("an item's picture: its own, else its usual tool's, else the default, else the hourglass", async () => {
   const { pictureFor } = await import('../src/timer.js');
-  const scales = newItem('scales', base);
-  const drone = { ...newItem(undefined, base), drone: true, drn: { midi: 48, voice: 'cello', fifth: false } };
-  const organ = { ...drone, drn: { ...drone.drn, voice: 'organ-synth' } };
-  const plain = newItem(undefined, base);
+  const scales = newItem('scales');
+  const intonation = newItem('intonation');
+  const plain = newItem(undefined);
   const all = () => true;
   const none = () => false;
   const only = (...ids) => (id) => ids.includes(id);
   assert.equal(pictureFor(scales, all), 'practice-scales');
   assert.equal(pictureFor(scales, only('home-metronome', 'practice-default')), 'home-metronome');
-  assert.equal(pictureFor(drone, only('drone-cello', 'practice-default')), 'drone-cello');
-  assert.equal(pictureFor(organ, all), 'drone-organ');
+  assert.equal(pictureFor(intonation, only('drone-cello', 'practice-default')), 'drone-cello');
+  assert.equal(pictureFor(newItem('metronome'), all), 'home-metronome');
   assert.equal(pictureFor(plain, only('practice-default')), 'practice-default');
   assert.equal(pictureFor(plain, none), 'home-routine');
   // An item saved before items knew their kind is matched by its name.
@@ -110,12 +114,12 @@ test("the picture while an item runs: its own, else its drone's or metronome's, 
 
 test('a new item starts at the length last given to its kind, else the default', () => {
   const s = mem();
-  assert.equal(newItem('scales', base, {}).minutes, 5);
-  assert.equal(newItem('scales', base, { scales: 12 }).minutes, 12);
-  assert.equal(newItem('ghosting', base, { scales: 12 }).minutes, 3);
-  assert.equal(newItem(undefined, base, { custom: 7 }).minutes, 7);
+  assert.equal(newItem('scales', {}).minutes, 5);
+  assert.equal(newItem('scales', { scales: 12 }).minutes, 12);
+  assert.equal(newItem('ghosting', { scales: 12 }).minutes, 3);
+  assert.equal(newItem(undefined, { custom: 7 }).minutes, 7);
   saveTimer({ items: [], chime: 'kalimba', lastMinutes: { scales: 9, custom: 999, bogus: 4 } }, s);
-  assert.deepEqual(loadTimer(base, s).lastMinutes, { scales: 9, custom: 120 });
+  assert.deepEqual(loadTimer(s).lastMinutes, { scales: 9, custom: 120 });
 });
 
 test('every voice has every line, for every suggestion and for Custom', async () => {
@@ -137,34 +141,30 @@ test('every voice has every line, for every suggestion and for Custom', async ()
 
 test('voice settings: on by default in Lily\'s voice; kept; an unknown voice falls back', () => {
   const s = mem();
-  assert.equal(loadTimer(base, s).voiceOn, true);
+  assert.equal(loadTimer(s).voiceOn, true);
   saveTimer({ items: [], chime: 'kalimba', lastMinutes: {}, voiceOn: false, voice: 'theo' }, s);
-  assert.deepEqual([loadTimer(base, s).voiceOn, loadTimer(base, s).voice], [false, 'theo']);
+  assert.deepEqual([loadTimer(s).voiceOn, loadTimer(s).voice], [false, 'theo']);
   saveTimer({ items: [], chime: 'kalimba', lastMinutes: {}, voiceOn: true, voice: 'nobody' }, s);
-  assert.equal(loadTimer(base, s).voice, 'lily');
+  assert.equal(loadTimer(s).voice, 'lily');
 });
 
-test('chimes on or off (an old "none" chime is off), the voice\'s volume kept, and items added with + start plain', () => {
+test('chimes on or off (an old "none" chime is off), and the voice\'s volume kept', () => {
   const s = mem();
   saveTimer({ items: [], chime: 'none' }, s);
-  assert.deepEqual([loadTimer(base, s).chimeOn, loadTimer(base, s).chime], [false, 'kalimba']);
+  assert.deepEqual([loadTimer(s).chimeOn, loadTimer(s).chime], [false, 'kalimba']);
   saveTimer({ items: [], chime: 'celesta', chimeOn: false, voiceVolume: 0.3 }, s);
-  assert.deepEqual([loadTimer(base, s).chimeOn, loadTimer(base, s).chime, loadTimer(base, s).voiceVolume], [false, 'celesta', 0.3]);
+  assert.deepEqual([loadTimer(s).chimeOn, loadTimer(s).chime, loadTimer(s).voiceVolume], [false, 'celesta', 0.3]);
   saveTimer({ items: [], voiceVolume: 7 }, s);
-  assert.equal(loadTimer(base, s).voiceVolume, 1);
+  assert.equal(loadTimer(s).voiceVolume, 1);
   assert.ok(Math.abs(voiceGain(VOICE_DEFAULT) - 0.9) < 0.02, 'the default is as loud as the voice always was');
-  for (const id of ['intonation', 'scales']) {
-    const it = newItem(id, base, {}, { tools: false });
-    assert.deepEqual([it.metronome, it.drone], [false, false], id);
-  }
 });
 
-test('a Metronome item has its metronome on even when added with +, and the Metronome\'s picture', async () => {
+test('a Metronome item brings the Metronome\'s card into view, with the Metronome\'s picture', async () => {
   const { pictureFor } = await import('../src/timer.js');
-  const it = newItem('metronome', base, {}, { tools: false });
-  assert.deepEqual([it.name, it.metronome, it.drone], ['Metronome', true, false]);
+  const it = newItem('metronome');
+  assert.deepEqual([it.name, toolFor(it)], ['Metronome', 'metronome']);
   assert.equal(pictureFor(it, () => true), 'home-metronome');
-  assert.equal(newItem('sight-reading', base).name, 'Sight Reading');
+  assert.equal(newItem('sight-reading').name, 'Sight Reading');
 });
 
 test('an item saved under its suggestion\'s earlier name shows the name as it is now', () => {

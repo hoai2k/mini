@@ -362,6 +362,18 @@ export class Recorder extends EventTarget {
     this.set('waiting');
   }
 
+  /**
+   * While waiting for playing, take no notice of the mic for `sec` seconds
+   * (the Practice Routine's chime and voice between items, which a phone's
+   * own speaker would otherwise start a take with).
+   */
+  ignoreFor(sec) {
+    if (this.state !== 'waiting') return;
+    this.detector.reset();
+    this.preroll = [];
+    this.ignoreUntil = Math.max(this.ignoreUntil, this.pos + sec * this.ctx.sampleRate);
+  }
+
   receive(data) {
     this.lastChunkAt = performance.now();
     const at = this.pos;

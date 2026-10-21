@@ -504,37 +504,52 @@
     </section>
 
     <!-- Practice Routine. A
-         list of practice items, each a name, minutes and its own metronome
-         and drone; Start runs through them (timerui.js). -->
+         list of practice items, each a name and minutes; Start runs through
+         them, with the Metronome, the Drone and the Playback Recorder on
+         cards to turn on as wanted (timerui.js). -->
     <section id="routine" class="screen" aria-labelledby="timer-title" hidden>
       <header class="bar">
         <a class="icon-btn" href="#" id="timer-back" data-text-aria-label="common.backToStart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
         <h2 id="timer-title" data-text="timer.title"></h2>
+        <div class="bar-end">
+        <!-- Edit the list: rename, change minutes, delete, reorder (timerui.js). -->
+        <button class="icon-btn timer-edit" id="timer-edit" type="button" aria-pressed="false" data-text-aria-label="timer.edit"><svg class="i-pencil" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg><svg class="i-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
         <button class="icon-btn" id="timer-settings-btn" type="button" data-text-aria-label="timer.settingsButton"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
+        </div>
       </header>
       <div class="timer-body">
-        <!-- What is running now (or, before Start, the whole routine's length). -->
+        <!-- Set up: the whole routine's length, and Start. -->
         <div class="timer-now" id="timer-now">
           <span class="art timer-art" data-asset="home-routine" aria-hidden="true"></span>
-          <!-- While an item runs, its picture, large (timer.js pictureFor). -->
-          <span class="art timer-picture" id="timer-picture" data-asset="home-routine" aria-hidden="true"></span>
           <div class="timer-readout">
-            <p class="timer-name" id="timer-name"></p>
             <p class="timer-clock" id="timer-clock" role="timer" aria-live="off"></p>
-            <div class="timer-progress" aria-hidden="true"><div class="timer-progress-fill" id="timer-fill"></div></div>
             <p class="timer-sub" id="timer-sub"></p>
           </div>
           <div class="timer-actions">
-            <button class="big-btn" id="timer-go" type="button" aria-pressed="false">
+            <button class="big-btn" id="timer-go" type="button">
               <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-              <svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
-              <span id="timer-go-label" data-text="timer.start"></span>
+              <span data-text="timer.start"></span>
             </button>
-            <div class="timer-side" id="timer-side" hidden>
-              <button class="pill" id="timer-skip" type="button" data-text="timer.skip"></button>
-              <button class="pill" id="timer-stop" type="button" data-text="timer.stop"></button>
-            </div>
           </div>
+        </div>
+        <!-- Running: a compact header (the item, its time, what is next) over the tools' cards. -->
+        <div class="timer-run" id="timer-run" hidden>
+          <div class="trun-head">
+            <div class="trun-text">
+              <p class="trun-name" id="trun-name"></p>
+              <p class="trun-sub" id="trun-sub"></p>
+            </div>
+            <p class="trun-clock" id="trun-clock" role="timer" aria-live="off"></p>
+            <div class="trun-buttons">
+              <button class="icon-btn trun-go" id="trun-go" type="button" aria-pressed="true"><svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
+              <button class="icon-btn" id="trun-skip" type="button" data-text-aria-label="timer.skip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5l9 7-9 7zM17 5v14"/></svg></button>
+              <button class="icon-btn" id="trun-stop" type="button" data-text-aria-label="timer.stop"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></button>
+            </div>
+            <div class="timer-progress trun-progress" aria-hidden="true"><div class="timer-progress-fill" id="trun-fill"></div></div>
+          </div>
+          <!-- The tools, a card each, swiped sideways (all three side by side where there is room). -->
+          <div class="tool-cards no-swipe" id="tool-cards" data-text-aria-label="timer.cards.label" role="group"></div>
+          <div class="tool-dots" id="tool-dots"></div>
         </div>
         <ol class="timer-list" id="timer-list"></ol>
         <p class="help timer-empty" id="timer-empty" data-text="timer.empty" hidden></p>
@@ -554,15 +569,6 @@
             <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
             <button type="button" class="pill open-theme" data-text="common.themeButton"></button>
           </div>
-        </form>
-      </dialog>
-
-      <!-- A routine's tools (+ Tools on its card): each on or off for that routine. -->
-      <dialog id="timer-tools-sheet" class="sheet" aria-labelledby="timer-tools-title">
-        <form method="dialog">
-          <header class="sheet-head"><h3 id="timer-tools-title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-          <label class="row toggle"><span data-text="timer.item.metronome"></span><input type="checkbox" role="switch" id="timer-tool-metronome"></label>
-          <label class="row toggle"><span data-text="timer.item.drone"></span><input type="checkbox" role="switch" id="timer-tool-drone"></label>
         </form>
       </dialog>
 

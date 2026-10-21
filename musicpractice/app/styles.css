@@ -1918,94 +1918,147 @@ html.paging { overflow: hidden; }
 
 /* The timer screen */
 .timer-body { flex: 1; width: min(100%, 620px); margin: 0 auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 24px; }
+#routine.running .timer-body { width: min(100%, 980px); }
 .timer-now {
   display: grid; grid-template-columns: auto 1fr; grid-template-areas: "art read" "act act"; align-items: center; gap: 10px 16px;
   padding: 16px; border-radius: 22px; border: 1px solid var(--line);
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
   box-shadow: 0 10px 30px var(--shadow);
 }
-/* While an item runs, its picture takes the top of the panel, large. */
-.timer-picture { grid-area: pic; display: none; width: clamp(150px, 46vw, 260px); aspect-ratio: 1; justify-self: center; place-items: center; }
-.timer-picture > * { width: 100%; height: 100%; object-fit: contain; }
-.timer-now.running { grid-template-columns: 1fr; grid-template-areas: "pic" "read" "act"; }
-.timer-now.running .timer-picture { display: grid; }
-.timer-now.running .timer-art { display: none; }
-.timer-now.running .timer-readout { text-align: center; align-items: stretch; }
+.timer-now[hidden] { display: none; }
 .timer-art { grid-area: art; width: clamp(64px, 18vw, 96px); aspect-ratio: 1; display: grid; place-items: center; }
 .timer-art > * { width: 100%; height: 100%; object-fit: contain; }
 .timer-readout { grid-area: read; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-.timer-name { margin: 0; font: 700 1.1rem/1.25 var(--display); overflow-wrap: anywhere; }
 .timer-clock { margin: 0; font: 700 clamp(2.6rem, 11vw, 3.6rem)/1 var(--display); font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
-.timer-now.paused .timer-clock { opacity: 0.55; }
 .timer-progress { height: 6px; border-radius: 3px; background: var(--panel-2); overflow: hidden; border: 1px solid var(--line); }
 .timer-progress-fill { height: 100%; width: 0; background: var(--brass); border-radius: 3px; transition: width 0.25s linear; }
 .timer-sub { margin: 0; color: var(--ink-2); font-weight: 600; font-size: 0.92rem; min-height: 1.3em; overflow-wrap: anywhere; }
 .timer-actions { grid-area: act; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
 .timer-actions .big-btn { min-width: 160px; }
-.timer-side { display: flex; gap: 8px; }
-.timer-side[hidden] { display: none; }
 
-/* A practice item */
-.timer-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+/* The pencil in the header (beside the gear): edit the list; a check while editing. */
+#routine .bar { grid-template-columns: 42px 1fr auto; gap: 4px; }
+#routine .bar h2 { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: clamp(0.85rem, 4.1vw, 1.25rem); }
+.bar-end { display: flex; justify-content: flex-end; }
+.bar-end .icon-btn { width: 42px; }
+.timer-edit .i-check, .timer-edit.on .i-pencil { display: none; }
+.timer-edit.on .i-check { display: block; }
+.timer-edit.on { color: var(--brass-2); }
+.timer-edit svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.timer-edit[hidden] { display: none; }
+
+/* Running: a compact header (the item, its time left, what is next, and the buttons) over the tools' cards. */
+.timer-run { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.timer-run[hidden] { display: none; }
+.trun-head {
+  display: grid; grid-template-columns: 1fr auto; grid-template-areas: "text clock" "prog prog" "btns btns"; align-items: center; gap: 6px 12px;
+  padding: 12px 14px; border-radius: 18px; border: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--panel-2), var(--panel)); box-shadow: 0 6px 18px var(--shadow);
+}
+@media (min-width: 560px) { .trun-head { grid-template-columns: 1fr auto auto; grid-template-areas: "text clock btns" "prog prog prog"; } }
+.trun-text { grid-area: text; min-width: 0; }
+.trun-name { margin: 0; font: 700 1.15rem/1.2 var(--display); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trun-sub { margin: 2px 0 0; color: var(--ink-2); font-weight: 600; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trun-clock { grid-area: clock; margin: 0; font: 700 clamp(1.9rem, 8vw, 2.4rem)/1 var(--display); font-variant-numeric: tabular-nums; }
+.timer-run.paused .trun-clock { opacity: 0.55; }
+.trun-progress { grid-area: prog; height: 5px; }
+.trun-buttons { grid-area: btns; display: flex; justify-content: center; gap: 8px; }
+.trun-buttons .icon-btn { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 50%; }
+.trun-buttons svg { width: 20px; height: 20px; fill: currentColor; }
+.trun-go[aria-pressed="true"] .i-play, .trun-go[aria-pressed="false"] .i-pause { display: none; }
+.trun-buttons .icon-btn:disabled { opacity: 0.35; }
+
+/* The tools' cards: a row that swipes sideways, a card at a time with the next peeking in;
+   all three side by side where there is room. */
+.tool-cards {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 84%; gap: 12px;
+  overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
+  padding: 2px 8% 6px; margin: 0 -2px; scrollbar-width: none; touch-action: pan-x pan-y;
+}
+.tool-cards::-webkit-scrollbar { display: none; }
+@media (min-width: 760px) { .tool-cards { grid-auto-columns: 1fr; padding-inline: 2px; overflow-x: visible; } .tool-dots { display: none !important; } }
+.tool-card {
+  scroll-snap-align: center; min-width: 0; display: flex; flex-direction: column; gap: 10px;
+  padding: 12px 14px 14px; border-radius: 20px; border: 1px solid var(--line); background: var(--panel);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.tool-card.on { border-color: var(--brass); box-shadow: 0 0 0 1px var(--brass), 0 8px 22px var(--shadow); }
+.tool-head { display: flex; align-items: center; gap: 10px; }
+.tool-head h3 { margin: 0; flex: 1; font: 700 1.1rem/1.2 var(--display); }
+.tool-icon { flex: none; width: 40px; height: 40px; display: grid; place-items: center; }
+.tool-icon > * { width: 100%; height: 100%; object-fit: contain; }
+.tool-switch input { margin: 0; }
+.tool-body { display: flex; flex-direction: column; gap: 10px; }
+.tool-card:not(.on) .tool-body { opacity: 0.6; }
+.tool-step { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tool-step .step { flex: none; width: 44px; height: 44px; font-size: 1.4rem; }
+.tool-big { flex: 1; min-width: 0; text-align: center; font: 700 clamp(1.7rem, 8vw, 2.2rem)/1 var(--display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tool-big small { font: 700 0.9rem var(--ui); color: var(--ink-2); }
+.tool-beats { list-style: none; margin: 0; padding: 0; display: flex; justify-content: center; gap: 10px; min-height: 16px; }
+.tool-beats li { width: 12px; height: 12px; border-radius: 50%; background: var(--panel-2); border: 1px solid var(--line); transition: background 0.06s; }
+.tool-beats li.strong { width: 16px; height: 16px; }
+.tool-beats li.lit { background: var(--brass); border-color: var(--brass); }
+.tool-beats li.strong.lit { background: var(--red-2, var(--brass)); border-color: var(--red-2, var(--brass)); }
+.tool-note { margin: 0; text-align: center; color: var(--ink-2); font-weight: 700; font-size: 0.9rem; }
+.tool-hint { margin: 0; text-align: center; color: var(--ink-3); font-size: 0.85rem; }
+.tool-hint[hidden] { display: none; }
+.tool-voice { width: 100%; }
+.tool-fifth { margin: 0; }
+.tool-rec { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 56px; }
+.tool-light { flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--panel-2); border: 1px solid var(--line); }
+.tool-card[data-state="waiting"] .tool-light { background: var(--ok-2, var(--brass)); border-color: transparent; animation: tool-breathe 2.4s ease-in-out infinite; }
+.tool-card[data-state="recording"] .tool-light { background: var(--red-2, #d33); border-color: transparent; animation: tool-breathe 1s ease-in-out infinite; }
+.tool-card[data-state="playing"] .tool-light { background: var(--brass); border-color: transparent; }
+@keyframes tool-breathe { 50% { opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) { .tool-light { animation: none !important; } }
+.tool-status { margin: 0; font-weight: 700; font-size: 1.05rem; }
+.tool-dots { display: flex; justify-content: center; gap: 4px; }
+.tool-dot { width: 28px; height: 24px; padding: 0; border: 0; background: none; display: grid; place-items: center; }
+.tool-dot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--line); transition: background 0.2s, width 0.2s; }
+.tool-dot[aria-current="true"]::before { width: 18px; border-radius: 4px; background: var(--brass); }
+
+/* A practice item: its number, picture and name on the left, its minutes on the right. */
+.timer-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+#routine.running .timer-list { width: min(100%, 620px); align-self: center; }
 .titem {
-  position: relative; overflow: hidden;
-  border-radius: 18px; border: 1px solid var(--line); background: var(--panel);
-  padding: 10px 10px 12px;
-  display: flex; flex-direction: column; gap: 8px;
+  position: relative; overflow: hidden; touch-action: pan-y;
+  border-radius: 16px; border: 1px solid var(--line); background: var(--panel);
+  padding: 8px 14px 8px 10px; min-height: 52px;
+  display: flex; align-items: center; gap: 10px;
 }
-.titem.now { border-color: var(--brass); box-shadow: 0 0 0 1px var(--brass), 0 8px 22px var(--shadow); }
-.titem.done { opacity: 0.6; }
-.titem-head { display: flex; align-items: center; gap: 8px; }
-/* The item's place in the list, as plain text before its name ("1. Intonation"),
-   so it doesn't read as a button; the one running is lit in the accent colour. */
-.titem-num { flex: none; color: var(--ink-2); font: 700 1.05rem/1.3 var(--ui); font-variant-numeric: tabular-nums; margin-right: -4px; }
+.titem.now { border-color: var(--brass); box-shadow: 0 0 0 1px var(--brass); }
+.titem.done { opacity: 0.55; }
+/* The item's place in the list, as plain text; the one running in the accent colour. */
+.titem-num { flex: none; color: var(--ink-2); font: 700 1.05rem/1.3 var(--ui); font-variant-numeric: tabular-nums; min-width: 1.4em; }
 .titem.now .titem-num { color: var(--brass-2); }
-.titem-name {
-  flex: 1; min-width: 0; font: 700 1.05rem/1.3 var(--ui); color: var(--ink);
-  background: transparent; border: 0; border-bottom: 1px solid transparent; padding: 6px 2px; border-radius: 0;
-}
-.titem-name:hover { border-bottom-color: var(--line); }
-.titem-name:focus { outline: none; border-bottom-color: var(--brass); }
-.titem-name::placeholder { color: var(--ink-3); }
-.titem-time { flex: none; display: flex; align-items: center; gap: 4px; }
-.titem-time .step { width: 32px; height: 32px; font-size: 1.05rem; }
-.titem-min {
-  width: 2.1em; text-align: right; font: 700 1.05rem var(--ui); font-variant-numeric: tabular-nums; color: var(--ink);
-  background: transparent; border: 0; border-bottom: 1px solid var(--line); padding: 4px 0; -moz-appearance: textfield; appearance: textfield;
-}
-.titem-min::-webkit-outer-spin-button, .titem-min::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.titem-min:focus { outline: none; border-bottom-color: var(--brass); }
-.titem-unit { color: var(--ink-3); font-weight: 700; font-size: 0.85rem; }
-.titem-del { flex: none; width: 40px; height: 40px; color: var(--ink-3); }
-.titem-del:hover { color: var(--red-2, var(--ink)); }
-.titem-del:disabled { opacity: 0.3; pointer-events: none; }
-.titem-del svg { width: 22px; height: 22px; }
-.titem-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding-left: 36px; }
-.titem-time { margin-right: 2px; gap: 3px; }
-/* A routine's tools: + Tools when it has none; the ones it has, lit, then a
-   small +. One group, at the far end beside the minutes wherever it fits,
-   and wrapped as a whole under them where it doesn't. */
-.titem-uses { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px 6px; margin-left: auto; }
-/* Wrapped under the minutes, a little room between them. */
-.titem-tools { row-gap: 12px; }
-.titem-tool, .titem-more { min-height: 34px; min-width: 0; }
-.titem-tool { padding: 4px 14px; }
-.titem-more { padding: 4px 12px; color: var(--ink-2); }
-.titem-more.plus { width: 34px; padding: 0; border-radius: 50%; font-size: 1.2rem; font-weight: 700; line-height: 1; }
-.titem-tool[aria-pressed="true"] { background: var(--brass); border-color: var(--brass); color: var(--on-accent); }
-.titem-open { flex: none; width: 40px; height: 40px; }
-.titem-open[hidden] { display: none; }
-.titem-open svg { transition: rotate 0.2s ease; }
-.titem-open[aria-expanded="true"] svg { rotate: 180deg; }
-.titem-detail:empty { display: none; }
-.titem-detail { display: flex; flex-direction: column; gap: 10px; padding: 4px 4px 0 36px; }
-.titem-detail fieldset { margin: 0; padding: 10px 12px 12px; border: 1px solid var(--line); border-radius: 14px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.titem-detail legend { padding: 0 6px; font-weight: 800; color: var(--ink-2); font-size: 0.9rem; }
-.titem-detail .tempo { justify-content: center; }
-.titem-detail .bpm-box input { width: 3.2em; font-size: 2rem; }
-.titem-detail .titem-note { min-width: 96px; }
+.titem-name { flex: 1; min-width: 0; font: 700 1.05rem/1.3 var(--ui); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.titem-min { flex: none; color: var(--ink-2); font-weight: 700; font-variant-numeric: tabular-nums; }
 .titem-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; }
 .titem-bar-fill { height: 100%; width: 0; background: var(--brass); transition: width 0.25s linear; }
+/* Editing: a handle to drag it by, its name and minutes to change, and a trash button. */
+.titem.editing { padding: 6px 6px 6px 2px; gap: 6px; background: var(--panel-2); }
+.titem.editing .titem-num { min-width: 1.2em; font-size: 0.95rem; }
+input.titem-name {
+  border: 0; border-bottom: 1px dashed var(--line); border-radius: 0; background: none; color: inherit; padding: 4px 2px;
+}
+input.titem-name:focus { outline: none; border-bottom: 1px solid var(--brass); }
+input.titem-name::placeholder { color: var(--ink-3); }
+.titem-time { flex: none; display: flex; align-items: center; gap: 2px; }
+.titem-time .step { width: 30px; height: 30px; font-size: 1rem; }
+.titem-mins {
+  width: 2.4em; text-align: center; border: 0; border-bottom: 1px dashed var(--line); background: none; color: inherit;
+  font: 700 1rem var(--ui); font-variant-numeric: tabular-nums; -moz-appearance: textfield; appearance: textfield; padding: 2px 0;
+}
+.titem-mins::-webkit-outer-spin-button, .titem-mins::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.titem-mins:focus { outline: none; border-bottom: 1px solid var(--brass); }
+.titem-handle { flex: none; width: 36px; height: 40px; cursor: grab; touch-action: none; color: var(--ink-3); }
+.titem-handle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.titem.dragging { z-index: 2; box-shadow: 0 10px 26px var(--shadow); border-color: var(--brass); cursor: grabbing; }
+.timer-list.editing .titem:not(.dragging) { transition: transform 0.18s ease; }
+.titem.swiping { transition: none !important; }
+.titem-del { flex: none; width: 40px; height: 40px; color: var(--ink-3); }
+.titem-del:hover { color: var(--red-2, var(--ink)); }
+.titem-del svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .timer-add { align-self: center; display: inline-flex; align-items: center; gap: 6px; padding-inline: 18px 22px; }
 .timer-add svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
 .timer-empty { text-align: center; }
@@ -2027,9 +2080,6 @@ html.paging { overflow: hidden; }
 .timer-preset-icon { width: 40px; }
 .titem-icon { width: 34px; }
 .timer-preset-icon > *, .titem-icon > * { width: 100%; height: 100%; object-fit: contain; }
-@media (max-width: 420px) {
-  .titem-tools, .titem-detail { padding-left: 0; }
-}
 
 /* Test My Scale Intonation. Its own feature
    under the tuner, set apart from Play a note: an inviting card that opens
