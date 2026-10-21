@@ -26,7 +26,7 @@ import { noteName } from './tuning.js';
 import { clock } from './droneui.js';
 import { hasArt, showArt, alignPendulum, placeWeight, swingOf } from './art.js';
 import { pendulumAngle, weightAt } from './metronome.js';
-import { PRESETS, TOOLS, CHIMES, SPEAKERS, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, newItem, loadTimer, saveTimer, customCount, CONFIRM_OVER, voiceGain, totalSeconds, enabledItems, setKind, cues, TimerRun, pictureFor, move, voiceLines, voiceUrl, chimeUrl } from './timer.js';
+import { PRESETS, TOOLS, CHIMES, SPEAKERS, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, newItem, loadTimer, saveTimer, customCount, CONFIRM_OVER, voiceGain, totalSeconds, enabledItems, setKind, matchKind, cues, TimerRun, pictureFor, move, voiceLines, voiceUrl, chimeUrl } from './timer.js';
 
 const $ = (id) => document.getElementById(id);
 const TRASH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>';
@@ -55,6 +55,7 @@ export function setupTimer({ settings, tools, audio }) {
   const state = loadTimer(settings);
   let items = state.items;
   let itemEdit = null; // the item open for editing (its pencil): its name and minutes
+  let typing = null; // the open item whose name is being typed (Custom… picked from its list)
   let quietUntil = 0; // a tap that ends a long press or a drag doesn't also start the routine
   let restore = null; // the tools' own settings, put back when a routine ends
   let run = null; // the TimerRun while a routine is going
@@ -118,30 +119,39 @@ export function setupTimer({ settings, tools, audio }) {
     b.addEventListener('click', () => {
       itemEdit = open ? null : it.id;
       // Not straight into a typed field: a phone would bring up its keyboard (a Custom name is the exception).
-      render(it.id, itemEdit ? (it.kind ? '.titem-kind' : 'input.titem-name') : '.titem-pencil');
+      render(it.id, itemEdit ? '.titem-kind' : '.titem-pencil');
     });
     return b;
   }
 
   /**
    * Its name, while the item is open for editing: a list of the kinds (the
-   * suggestions, and Custom…). A suggestion's name is its own; only Custom is typed, in a
-   * field with the list still beside it.
+   * suggestions, and Custom…), showing its own (nothing picked, for one of its
+   * own). A suggestion's name is its own; picking Custom… gives a field to
+   * type the name in, with the list still beside it. A name typed exactly as a
+   * suggestion's is that suggestion (matchKind).
    */
   function nameBox(it, i) {
     const I = T.item;
-    const box = h('div', `titem-namebox${it.kind ? '' : ' custom'}`);
+    const typed = typing === it.id;
+    const box = h('div', `titem-namebox${typed ? ' custom' : ''}`);
     const kind = h('select', 'titem-kind');
-    kind.replaceChildren(...PRESETS.map((p) => new Option(T.presets[p.id], p.id)), new Option(T.custom, 'custom'));
-    kind.value = it.kind || 'custom';
+    const none = new Option('', '');
+    none.disabled = true;
+    none.hidden = true;
+    kind.replaceChildren(...(it.kind ? [] : [none]), ...PRESETS.map((p) => new Option(T.presets[p.id], p.id)), new Option(T.custom, 'custom'));
+    kind.value = it.kind || '';
     kind.setAttribute('aria-label', I.kind(i + 1));
     kind.addEventListener('change', () => {
       const custom = kind.value === 'custom';
-      setKind(it, custom ? null : kind.value);
+      if (custom) typing = it.id;
+      else { typing = null; setKind(it, kind.value); }
+      if (custom && it.kind) setKind(it, null);
       save();
       render(it.id, custom ? 'input.titem-name' : '.titem-kind');
+      if (custom) list.querySelector(`[data-id="${it.id}"] input.titem-name`)?.select();
     });
-    if (it.kind) {
+    if (!typed) {
       const name = h('span', 'titem-name', label(it));
       const chev = h('span', 'titem-chev');
       chev.innerHTML = CHEVRON;
@@ -153,6 +163,14 @@ export function setupTimer({ settings, tools, audio }) {
       name.setAttribute('aria-label', `${I.name} ${i + 1}`);
       name.addEventListener('input', () => { it.name = name.value; save(); readout(); });
       name.addEventListener('keydown', (e) => { if (e.key === 'Enter') name.blur(); });
+      // Done typing: a suggestion's name becomes that suggestion.
+      // (Shown a moment later, so a tap on its check, which blurred it, isn't lost to the redraw.)
+      name.addEventListener('change', () => {
+        if (!matchKind(it).kind) return;
+        typing = null;
+        save();
+        setTimeout(() => { if (itemEdit === it.id && !list.querySelector(`[data-id="${it.id}"] .titem-namebox:not(.custom)`)) render(it.id, '.titem-kind'); }, 250);
+      });
       const pick = h('span', 'titem-pick');
       pick.innerHTML = CHEVRON;
       pick.append(kind);
@@ -426,6 +444,7 @@ export function setupTimer({ settings, tools, audio }) {
     if (it.kind) setKind(it, null);
     save();
     itemEdit = it.id;
+    typing = it.id;
     render(it.id, 'input.titem-name');
     list.querySelector(`[data-id="${it.id}"] input.titem-name`)?.select();
   }
@@ -450,6 +469,9 @@ export function setupTimer({ settings, tools, audio }) {
 
   /** Draw the list again, keeping focus on the control that was used (`id`'s item, `sel` in it). */
   function render(id, sel) {
+    // Closed, a name typed as a suggestion's is that suggestion.
+    if (typing !== itemEdit) typing = null;
+    if (items.filter((x) => x.id !== typing && !x.kind && matchKind(x).kind).length) save();
     // The items in the routine, numbered in order; while editing, those turned off too (unnumbered).
     let n = 0;
     const shown = run ? run.items : editing ? items : enabledItems(items);

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { TimerRun, cleanRoutine, newItem, PRESETS, TOOLS, totalSeconds, enabledItems, setKind, loadTimer, saveTimer, CHIMES, VOICE_DEFAULT, voiceGain, move } from '../src/timer.js';
+import { TimerRun, cleanRoutine, newItem, PRESETS, TOOLS, totalSeconds, enabledItems, setKind, matchKind, loadTimer, saveTimer, CHIMES, VOICE_DEFAULT, voiceGain, move } from '../src/timer.js';
 
 const base = { bpm: 100, meter: '3/4', sound: 'beep', subOn: true, subKind: 3, accent: false, volume: 0.5, droneMidi: 50, droneVoice: 'organ', droneFifth: true, droneVolume: 0.4, silenceSec: 2.5, autoPlay: false, playVolume: 0.9 };
 
@@ -137,7 +137,13 @@ test("an item's picture: its own, else its drone's or metronome's, else the defa
   assert.equal(pictureFor(plain, none), 'home-routine');
   // An item saved before items knew their kind is matched by its name.
   assert.equal(cleanRoutine([{ id: 'x', name: 'Ghosting' }])[0].kind, 'ghosting');
-  assert.equal(cleanRoutine([{ id: 'x', name: 'Ghosting', kind: null }])[0].kind, null);
+  // One of its own named exactly as a suggestion is that suggestion (only exactly).
+  assert.equal(cleanRoutine([{ id: 'x', name: ' ghosting ', kind: null }])[0].kind, 'ghosting');
+  assert.equal(cleanRoutine([{ id: 'x', name: 'Ghosting', kind: null }])[0].name, 'Ghosting');
+  assert.equal(cleanRoutine([{ id: 'x', name: 'Ghosting drills', kind: null }])[0].kind, null);
+  const own = { kind: null, name: 'Scales' };
+  assert.equal(matchKind(own).kind, 'scales');
+  assert.equal(matchKind({ kind: null, name: 'Scales 2' }).kind, null);
   // Saved before items knew, under a suggestion's earlier name.
   assert.equal(cleanRoutine([{ id: 'x', name: 'Intonation practice' }])[0].kind, 'intonation');
   assert.equal(cleanRoutine([{ id: 'y', name: 'clapping rhythms' }])[0].kind, 'rhythms');

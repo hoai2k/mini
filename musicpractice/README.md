@@ -720,8 +720,13 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
   before it are skipped this time; the Start button starts from the first).
   **The pencil opens that item** for editing, the row lit: its name becomes
   the list of kinds (the eight suggestions and Custom…; a suggestion's name is
-  its own, and only **Custom** gives a field to type the name in, with the
-  list still beside it to change back), and its minutes become − / + with the
+  its own, and only picking **Custom…** gives a field to type the name in,
+  its name selected to type over, with the list still beside it to change
+  back). An item of its own opens like any other: its name shown with the
+  list (nothing picked in it) and no field until Custom… is picked, so no
+  keyboard comes up. **A name typed exactly as a suggestion's** (any case)
+  **is that suggestion**, with its picture and its spoken lines (`matchKind`
+  in `timer.js`, also applied to saved routines). Its minutes become − / + with the
   number to type (1 to 120); the pencil turns into a check to close it, and a
   **trash** button sits at the far right. The kind's chevron sits right after
   its name. Where room is short (a phone held upright) the open row drops its
@@ -734,7 +739,9 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
   **right click** on an item opens its menu: **Rename** (the item opens as
   one of its own, Custom, its name selected to type over), **Turn off** /
   **Turn on**, and **Delete** (both with Undo). The **pencil** beside the
-  total time (at the top of the screen) edits the list, and turns into a check to finish. Each
+  total time (at the top of the screen) edits the list; while editing it is
+  a pill, **✓ Drag to reorder items**, which says the list is being edited
+  and how to move an item, and is tapped to finish. Each
   row then has:
   - a handle to **drag it up or down**, though the **whole row can be
     dragged**, by touch or mouse (a sideways move is a swipe instead; the
