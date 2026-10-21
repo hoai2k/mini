@@ -301,8 +301,9 @@ store's.
    shared. Both forms ask whether data is collected only when the person
    chooses to send it: say yes.
 4. Review notes for Apple: ready to paste in `../design/app-store-review.md`.
-5. Before release, check that the ElevenLabs plan used for the drone
-   recordings allows commercial use (`../design/mobile-apps.md`).
+5. Availability: the US and Canada first (App Store Connect → Pricing and
+   Availability; Play Console → Countries / regions). Other countries, and
+   the EU's trader declaration, come with translations later.
 
 ## Known gaps
 
