@@ -30,7 +30,7 @@ Images belong to a theme (Settings → Theme); each theme has its own set.
 
 **Round 12 (Arpeggios, Sight reading and Improvisation, every theme):** delivered and in use.
 
-**Round 13 (the Bebop theme: draw step 1 first, then make step 2 from it):** 20 images wanted: `assets/ui/bebop/metronome-body.webp`, `assets/ui/bebop/metronome-pendulum.webp`, `assets/ui/bebop/home-metronome.webp`, `assets/ui/bebop/home-record.webp`, `assets/ui/bebop/home-tuner.webp`, `assets/ui/bebop/home-drone.webp`, `assets/ui/bebop/drone-cello.webp`, `assets/ui/bebop/drone-bow.webp`, `assets/ui/bebop/drone-organ.webp`, `assets/ui/bebop/home-routine.webp`, `assets/ui/bebop/metronome-rod.webp`, `assets/ui/bebop/metronome-weight.webp`, `assets/ui/bebop/practice-intonation.webp`, `assets/ui/bebop/practice-scales.webp`, `assets/ui/bebop/practice-rhythms.webp`, `assets/ui/bebop/practice-ghosting.webp`, `assets/ui/bebop/practice-default.webp`, `assets/ui/bebop/practice-arpeggios.webp`, `assets/ui/bebop/practice-sight-reading.webp`, `assets/ui/bebop/practice-improvisation.webp`.
+**Round 13 (the Bebop theme: draw step 1 first, then make step 2 from it):** 16 images wanted: `assets/ui/bebop/home-metronome.webp`, `assets/ui/bebop/home-drone.webp`, `assets/ui/bebop/drone-cello.webp`, `assets/ui/bebop/drone-bow.webp`, `assets/ui/bebop/drone-organ.webp`, `assets/ui/bebop/home-routine.webp`, `assets/ui/bebop/metronome-rod.webp`, `assets/ui/bebop/metronome-weight.webp`, `assets/ui/bebop/practice-intonation.webp`, `assets/ui/bebop/practice-scales.webp`, `assets/ui/bebop/practice-rhythms.webp`, `assets/ui/bebop/practice-ghosting.webp`, `assets/ui/bebop/practice-default.webp`, `assets/ui/bebop/practice-arpeggios.webp`, `assets/ui/bebop/practice-sight-reading.webp`, `assets/ui/bebop/practice-improvisation.webp`.
 
 **House styles** (already included in every prompt):
 
@@ -214,11 +214,11 @@ the measured ones for the delivered file in `build_requests.py`.
 | 12 | Steam Punk | delivered | `practice-arpeggios` | `app/assets/ui/steampunk/practice-arpeggios.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 12 | Steam Punk | delivered | `practice-sight-reading` | `app/assets/ui/steampunk/practice-sight-reading.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 12 | Steam Punk | delivered | `practice-improvisation` | `app/assets/ui/steampunk/practice-improvisation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 13 | Bebop | requested | `metronome-body` | `app/assets/ui/bebop/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
-| 13 | Bebop | requested | `metronome-pendulum` | `app/assets/ui/bebop/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
+| 13 | Bebop | delivered | `metronome-body` | `app/assets/ui/bebop/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
+| 13 | Bebop | delivered | `metronome-pendulum` | `app/assets/ui/bebop/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
 | 13 | Bebop | requested | `home-metronome` | `app/assets/ui/bebop/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 13 | Bebop | requested | `home-record` | `app/assets/ui/bebop/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 13 | Bebop | requested | `home-tuner` | `app/assets/ui/bebop/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 13 | Bebop | delivered | `home-record` | `app/assets/ui/bebop/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 13 | Bebop | delivered | `home-tuner` | `app/assets/ui/bebop/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 13 | Bebop | requested | `home-drone` | `app/assets/ui/bebop/home-drone.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
 | 13 | Bebop | requested | `drone-cello` | `app/assets/ui/bebop/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 13 | Bebop | requested | `drone-bow` | `app/assets/ui/bebop/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
@@ -2045,23 +2045,23 @@ Using the attached image, musicpractice/app/assets/ui/steampunk/home-routine.web
 
 ## Bebop · Metronome animation
 
-### `metronome-body` · Bebop · requested
+### `metronome-body` · Bebop · delivered
 
 - File: `musicpractice/app/assets/ui/bebop/metronome-body.webp`
 - Size: 800×1200, transparent PNG (shipped as WebP)
-- Anchors (requested): pivot (400, 1000) in a 800×1200 canvas
-- Note: Step 1 (draw first). The app rotates the pendulum over this one about the pivot. Ask for (400, 1000) in an 800×1200 canvas, then measure where it really is in the delivered file and record it.
+- Anchors (measured): pivot (400, 900.8) in a 800×1200 canvas
+- Note: Step 1 (draw first). The app rotates the pendulum over this one about the pivot. Ask for (400, 1000) in an 800×1200 canvas, then measure where it really is in the delivered file and record it. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
 
 ```text
 A bebop metronome: a slim tapering pyramid metronome case in glossy midnight-blue lacquer, its edges trimmed in polished saxophone brass, a cream front face with a vertical row of short black tick marks like the edge of a piano keyboard (no numbers), a thin red band across the lower case, on a short stepped ink-black plinth with two small brass feet. Seen exactly straight on from the front, perfectly symmetrical, standing upright and filling the canvas top to bottom with a small margin. There is NO pendulum, rod or weight anywhere. Near the bottom of the face, centred left-to-right, a round brass pivot cap like a saxophone key pad sits exactly at 50% of the width and 83% of the height. Bebop jazz illustration in the manner of a 1950s modern-jazz record sleeve and a late-night jazz club: deep midnight blue and ink black, warm cream, gleaming saxophone brass, a soft amber spotlight glow and a single accent of club-sign red, bold flat colour shapes with crisp edges and a fine halftone-dot texture in the shadows, a few small four-point stars. Cool, swinging, a little playful, simple and readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
 ```
 
-### `metronome-pendulum` · Bebop · requested
+### `metronome-pendulum` · Bebop · delivered
 
 - File: `musicpractice/app/assets/ui/bebop/metronome-pendulum.webp`
 - Size: 200×1000, transparent PNG (shipped as WebP)
-- Anchors (requested): hub (100, 960) in a 200×1000 canvas; swings ±24°
-- Note: Step 1 (draw first). The app rotates this about the hub. Ask for (100, 960) in a 200×1000 canvas, then record the measured hub. The rod must be exactly vertical.
+- Anchors (measured): hub (99.8, 910.1) in a 200×1000 canvas; swings ±24°
+- Note: Step 1 (draw first). The app rotates this about the hub. Ask for (100, 960) in a 200×1000 canvas, then record the measured hub. The rod must be exactly vertical. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
 
 ```text
 Just the pendulum of a metronome, isolated: a thin straight polished brass rod and a round brass hub, with a small rounded red-lacquer sliding weight with a brass rim (like a saxophone key) on the rod. The rod is perfectly straight and perfectly vertical down the exact centre of a tall narrow canvas, from about 3% from the top to the hub, whose centre is at 96% of the height; the weight sits on the rod at about 30% of the height. Seen straight on, symmetrical, nothing else in the picture. It belongs on the metronome in musicpractice/app/assets/ui/bebop/metronome-body.webp (attached): match its brass and red. Bebop jazz illustration in the manner of a 1950s modern-jazz record sleeve and a late-night jazz club: deep midnight blue and ink black, warm cream, gleaming saxophone brass, a soft amber spotlight glow and a single accent of club-sign red, bold flat colour shapes with crisp edges and a fine halftone-dot texture in the shadows, a few small four-point stars. Cool, swinging, a little playful, simple and readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
@@ -2079,21 +2079,21 @@ Just the pendulum of a metronome, isolated: a thin straight polished brass rod a
 The same metronome as the attached images, musicpractice/app/assets/ui/bebop/metronome-body.webp and metronome-pendulum.webp, drawn as one icon: a slim tapering pyramid metronome case in glossy midnight-blue lacquer, its edges trimmed in polished saxophone brass, a cream front face with a vertical row of short black tick marks like the edge of a piano keyboard (no numbers), a thin red band across the lower case, on a short stepped ink-black plinth with two small brass feet, with its pendulum (a thin straight polished brass rod and a round brass hub and a small rounded red-lacquer sliding weight with a brass rim (like a saxophone key) near the top of the rod) tilted a little to the right, pivoting near the bottom of the face, and a soft amber spotlight glow behind the top of the case. Seen from the front. Bebop jazz illustration in the manner of a 1950s modern-jazz record sleeve and a late-night jazz club: deep midnight blue and ink black, warm cream, gleaming saxophone brass, a soft amber spotlight glow and a single accent of club-sign red, bold flat colour shapes with crisp edges and a fine halftone-dot texture in the shadows, a few small four-point stars. Cool, swinging, a little playful, simple and readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
 ```
 
-### `home-record` · Bebop · requested
+### `home-record` · Bebop · delivered
 
 - File: `musicpractice/app/assets/ui/bebop/home-record.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
-- Note: Step 1 (draw first). The big Playback Recorder button on the home screen.
+- Note: Step 1 (draw first). The big Playback Recorder button on the home screen. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
 
 ```text
 A 1950s jazz-club microphone: a chrome and brass oval grille with fine horizontal bars, held in a slim ring on a short stand with a round ink-black base, a round glowing red record light beside it and two small cream four-point stars. Seen from the front. Bebop jazz illustration in the manner of a 1950s modern-jazz record sleeve and a late-night jazz club: deep midnight blue and ink black, warm cream, gleaming saxophone brass, a soft amber spotlight glow and a single accent of club-sign red, bold flat colour shapes with crisp edges and a fine halftone-dot texture in the shadows, a few small four-point stars. Cool, swinging, a little playful, simple and readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
 ```
 
-### `home-tuner` · Bebop · requested
+### `home-tuner` · Bebop · delivered
 
 - File: `musicpractice/app/assets/ui/bebop/home-tuner.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
-- Note: Step 1 (draw first). The big Tuner button on the home screen. Dial marks only, no numbers or letters.
+- Note: Step 1 (draw first). The big Tuner button on the home screen. Dial marks only, no numbers or letters. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
 
 ```text
 A bebop tuner: a slim midnight-blue lacquer case trimmed in brass, a cream dial with short black tick marks and a red needle pointing straight up at the centre, and a polished brass tuning fork leaning beside it. Seen from the front, the needle centred to show a note in tune. Bebop jazz illustration in the manner of a 1950s modern-jazz record sleeve and a late-night jazz club: deep midnight blue and ink black, warm cream, gleaming saxophone brass, a soft amber spotlight glow and a single accent of club-sign red, bold flat colour shapes with crisp edges and a fine halftone-dot texture in the shadows, a few small four-point stars. Cool, swinging, a little playful, simple and readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.

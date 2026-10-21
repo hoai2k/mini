@@ -1020,6 +1020,26 @@ def round13_assets() -> list[dict]:
 
 ASSETS += round13_assets()
 
+# Deliver the Bebop set incrementally, keeping unreviewed images requested.
+_round13_delivery = ROOT / "design" / "image-deliveries-round-13.json"
+if _round13_delivery.exists():
+    _delivered = {
+        (a["theme"], a["id"]): a
+        for a in json.loads(_round13_delivery.read_text())["assets"]
+        if a.get("status") == "delivered"
+    }
+    for asset in ASSETS:
+        if asset["round"] != 13:
+            continue
+        delivery = _delivered.get((asset["theme"], asset["id"]))
+        if not delivery:
+            continue
+        asset["status"] = "delivered"
+        for key in ("canvas", "anchors", "swing", "scale", "travel"):
+            if delivery.get(key) is not None:
+                asset[key] = delivery[key]
+        asset["note"] += " Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json."
+
 
 def render() -> tuple[str, str]:
     theme_name = {t["id"]: t["name"] for t in THEMES}

@@ -1465,7 +1465,7 @@
     "id": "metronome-body",
     "theme": "bebop",
     "file": "assets/ui/bebop/metronome-body.webp",
-    "status": "requested",
+    "status": "delivered",
     "canvas": [
       800,
       1200
@@ -1473,7 +1473,7 @@
     "anchors": {
       "pivot": [
         400,
-        1000
+        900.8
       ]
     }
   },
@@ -1481,18 +1481,19 @@
     "id": "metronome-pendulum",
     "theme": "bebop",
     "file": "assets/ui/bebop/metronome-pendulum.webp",
-    "status": "requested",
+    "status": "delivered",
     "canvas": [
       200,
       1000
     ],
     "anchors": {
       "hub": [
-        100,
-        960
+        99.8,
+        910.1
       ]
     },
-    "swing": 24
+    "swing": 24,
+    "scale": 0.9
   },
   {
     "id": "home-metronome",
@@ -1504,13 +1505,13 @@
     "id": "home-record",
     "theme": "bebop",
     "file": "assets/ui/bebop/home-record.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "home-tuner",
     "theme": "bebop",
     "file": "assets/ui/bebop/home-tuner.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "home-drone",
