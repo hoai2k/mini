@@ -38,6 +38,17 @@ and on a phone a drag on a sheet passes to the page only where nothing under
 the finger can scroll that way (a touch handler in `main.js`), so a long
 sheet scrolls itself and a short one stays put.
 
+**The top of the screen in the iPhone home-screen app.** Since iOS 26, a web
+app opened from the home screen gets a soft blurred fade drawn over the top
+of the screen, reaching about 40 points past the status bar, above the page:
+no meta tag or CSS turns it off, and an opaque status bar style was reported
+not to move it. So there (`display-mode: standalone` on a touch WebKit, or
+`navigator.standalone`, which sets `html.ios-app`) every screen starts
+`--edge-fade` (36 px) further down: `--safe-top` is the status bar's inset
+plus that band, used by the screens' padding, the home gear and the Sixties
+stripes (whose first stripe fills the band). The backgrounds still run up
+under it. Safari itself and Android draw no fade and are unchanged.
+
 ## Themes
 
 The gear on the home screen opens the app's own settings, the one place the

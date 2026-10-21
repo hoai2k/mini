@@ -41,6 +41,8 @@ import { applyArt, alignPendulum, alignBow, swingOf, placeWeight, weightFromPoin
 import { tuckedVolume } from './tuckedvolume.js';
 
 const $ = (id) => document.getElementById(id);
+// Opened from an iPhone's or iPad's home screen: the page keeps clear of the fade iOS draws at the top (styles.css --edge-fade).
+if (navigator.standalone) document.documentElement.classList.add('ios-app');
 const settings = load();
 const persist = () => save(settings);
 
