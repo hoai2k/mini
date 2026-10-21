@@ -16,7 +16,7 @@ Each item is marked **Done** (already met, or met by this review),
 | Rule | Status |
 | --- | --- |
 | 5.1.1(i): a privacy policy URL in App Store Connect, and a link to it that is easy to find in the app | **Done.** `app/privacy.html` (https://hoai2k.github.io/mini/musicpractice/privacy.html). It is linked from the paywall and Send feedback, and now from Settings (Privacy Policy · Terms of Use · Help and support) so it can be found without opening the paywall. |
-| The policy covers what is collected, who receives it, how long it is kept, and how to have it deleted | **Done.** Added a last-updated date, a retention limit for feedback (kept while useful, **at most two years**: change this if you'd rather a different limit), and a contact for privacy requests (the support page). |
+| The policy covers what is collected, who receives it, how long it is kept, and how to have it deleted | **Done.** Added a last-updated date, what feedback is kept for (answering and improving the app; no fixed deletion date, which Apple doesn't require: it asks that the policy says what is kept and how to have it deleted), and a contact for deletion requests (the support page). |
 | 5.1.1(ii): consent before collecting, purpose strings | **Done.** `NSMicrophoneUsageDescription` says why. Send feedback shows what it will include before Send, and debugging data starts unticked. |
 | 5.1.1(iv): the app keeps working when the microphone is refused | **Done.** The metronome and drone don't need it; the tuner and recorder say so, with Open Settings. |
 | 5.1.1(v): account deletion | Doesn't apply: the app has no accounts. |
@@ -80,13 +80,12 @@ Each item is marked **Done** (already met, or met by this review),
    rejection.
 3. **The RevenueCat keys and the store products** (`mobile/README.md`,
    "Setting up purchases"). Nothing to design, but it blocks submission.
-4. **Rights in the content**: the ElevenLabs drone recordings need a plan
-   that allows commercial use (already in `mobile-apps.md`). Without it, the
-   app is open to a 5.2 (intellectual property) complaint.
-5. **EU distribution** needs the Digital Services Act trader declaration in
-   App Store Connect. A trader's address and phone number are shown publicly
-   on the EU listing. Decide whether to declare as a trader or leave the EU
-   out at first.
+4. **Where it is sold: the US and Canada first** (App Store Connect →
+   Pricing and Availability). That leaves out the EU and its Digital Services
+   Act trader declaration (a trader's address and phone number are shown on
+   EU listings); it comes back with translations, if the app takes off.
+   The drone recordings were made on a paid ElevenLabs plan, which allows
+   commercial use.
 
 ## Review notes to paste
 

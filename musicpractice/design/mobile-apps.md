@@ -236,9 +236,8 @@ App Review rejects subscription apps that don't show these clearly
   microphone usage string, and a privacy policy page (one can go under
   `sites/`).
 - **Rights to everything in the app**:
-  - the drone recordings were generated with ElevenLabs: check that the plan
-    used allows commercial use of its sound effects (paid plans do; the free
-    plan doesn't);
+  - the drone recordings were generated with ElevenLabs on a paid plan,
+    which allows commercial use;
   - the theme art and icons were generated for this app;
   - the fonts are Google Fonts (open licences: bundle the font files in the
     app rather than loading them online);
@@ -389,5 +388,3 @@ built and signed here or in GitHub Actions.
   pattern for iOS alone.
 - Android with a personal developer account (the 14-day closed test) or an
   organisation one (a D-U-N-S number).
-- Whether to check the ElevenLabs plan now, or regenerate the drone sounds on
-  a plan that allows commercial use before release.
