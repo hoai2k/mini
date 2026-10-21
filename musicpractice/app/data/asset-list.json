@@ -1460,5 +1460,181 @@
     "theme": "steampunk",
     "file": "assets/ui/steampunk/practice-improvisation.webp",
     "status": "delivered"
+  },
+  {
+    "id": "metronome-body",
+    "theme": "bebop",
+    "file": "assets/ui/bebop/metronome-body.webp",
+    "status": "requested",
+    "canvas": [
+      800,
+      1200
+    ],
+    "anchors": {
+      "pivot": [
+        400,
+        1000
+      ]
+    }
+  },
+  {
+    "id": "metronome-pendulum",
+    "theme": "bebop",
+    "file": "assets/ui/bebop/metronome-pendulum.webp",
+    "status": "requested",
+    "canvas": [
+      200,
+      1000
+    ],
+    "anchors": {
+      "hub": [
+        100,
+        960
+      ]
+    },
+    "swing": 24
+  },
+  {
+    "id": "home-metronome",
+    "theme": "bebop",
+    "file": "assets/ui/bebop/home-metronome.webp",
+    "status": "requested"
+  },
+  {
+    "id": "home-record",
+    "theme": "bebop",
+    "file": "assets/ui/bebop/home-record.webp",
+    "status": "requested"
+  },
+  {
+    "id": "home-tuner",
+    "theme": "bebop",
+    "file": "assets/ui/bebop/home-tuner.webp",
+    "status": "requested"
+  },
+  {
+    "id": "home-drone",
+    "theme": "bebop",
+    "file": "assets/ui/bebop/home-drone.webp",
+    "status": "requested"
+  },
+  {
+    "id": "drone-cello",
+    "theme": "bebop",
+    "file": "assets/ui/bebop/drone-cello.webp",
+    "status": "requested"
+  },
+  {
+    "id": "drone-bow",
+    "theme": "bebop",
+    "file": "assets/ui/bebop/drone-bow.webp",
+    "status": "requested",
+    "canvas": [
+      256,
+      1024
+    ],
+    "anchors": {
+      "frog": [
+        88,
+        990
+      ],
+      "tip": [
+        88,
+        34
+      ]
+    }
+  },
+  {
+    "id": "drone-organ",
+    "theme": "bebop",
+    "file": "assets/ui/bebop/drone-organ.webp",
+    "status": "requested"
+  },
+  {
+    "id": "home-routine",
+    "theme": "bebop",
+    "file": "assets/ui/bebop/home-routine.webp",
+    "status": "requested"
+  },
+  {
+    "id": "metronome-rod",
+    "theme": "bebop",
+    "file": "assets/ui/bebop/metronome-rod.webp",
+    "status": "requested",
+    "canvas": [
+      200,
+      1000
+    ],
+    "anchors": {
+      "hub": [
+        100,
+        960
+      ]
+    },
+    "swing": 24
+  },
+  {
+    "id": "metronome-weight",
+    "theme": "bebop",
+    "file": "assets/ui/bebop/metronome-weight.webp",
+    "status": "requested",
+    "canvas": [
+      200,
+      200
+    ],
+    "anchors": {
+      "center": [
+        100,
+        100
+      ]
+    }
+  },
+  {
+    "id": "practice-intonation",
+    "theme": "bebop",
+    "file": "assets/ui/bebop/practice-intonation.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-scales",
+    "theme": "bebop",
+    "file": "assets/ui/bebop/practice-scales.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-rhythms",
+    "theme": "bebop",
+    "file": "assets/ui/bebop/practice-rhythms.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-ghosting",
+    "theme": "bebop",
+    "file": "assets/ui/bebop/practice-ghosting.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-default",
+    "theme": "bebop",
+    "file": "assets/ui/bebop/practice-default.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-arpeggios",
+    "theme": "bebop",
+    "file": "assets/ui/bebop/practice-arpeggios.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-sight-reading",
+    "theme": "bebop",
+    "file": "assets/ui/bebop/practice-sight-reading.webp",
+    "status": "requested"
+  },
+  {
+    "id": "practice-improvisation",
+    "theme": "bebop",
+    "file": "assets/ui/bebop/practice-improvisation.webp",
+    "status": "requested"
   }
 ]

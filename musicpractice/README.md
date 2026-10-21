@@ -80,6 +80,15 @@ don't offer it. It switches the whole app's look:
 - **Steam Punk**: dark leather with brass and copper, Cinzel and Special
   Elite, riveted plates and a gear.
 
+A ninth theme, **Bebop**, is planned and its images are requested (Round 13
+of `design/image-requests.md`): a 1950s modern-jazz record sleeve and a
+late-night jazz club, in midnight blue and ink black with cream, saxophone
+brass, an amber spotlight glow and one accent of club-sign red, flat colour
+shapes with a halftone texture and small four-point stars. It is dark by
+design (its other mode a cream record sleeve by day). It joins Settings, with
+its colours, type and shapes in `styles.css`, only once its images are
+delivered; until then nothing in the app offers it.
+
 **Dark Mode**, a dropdown under the theme tiles, is **Default**, the default (each theme
 as designed: Classic, Art Deco, Robot Future and Steam Punk dark, the other
 four light), **Light**, **Dark** or **System** (follows the device, and
