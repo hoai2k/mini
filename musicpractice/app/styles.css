@@ -1987,8 +1987,13 @@ html.paging { overflow: hidden; }
 .tool-head h3 { margin: 0; flex: 1; font: 700 1.1rem/1.2 var(--display); }
 .tool-icon { flex: none; width: 40px; height: 40px; display: grid; place-items: center; }
 .tool-icon > * { width: 100%; height: 100%; object-fit: contain; }
-.tool-switch input { margin: 0; }
-.tool-body { display: flex; flex-direction: column; gap: 10px; }
+.tool-body { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+/* At the foot of each card, the tool's own Start or Play, or the record button. */
+.tool-foot { display: flex; justify-content: center; }
+.tool-card .big-btn.tool-go { width: 100%; min-height: 48px; margin: 0; font-size: 1.05rem; }
+.tool-card .rec-btn.tool-go { width: 64px; height: 64px; border-width: 3px; }
+.tool-card .rec-btn.tool-go .rec-dot { width: 26px; height: 26px; }
+.tool-card .rec-btn.tool-go[data-state="recording"] .rec-dot { width: 32px; height: 32px; }
 .tool-card:not(.on) .tool-body { opacity: 0.6; }
 .tool-step { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .tool-step .step { flex: none; width: 44px; height: 44px; font-size: 1.4rem; }
@@ -2005,12 +2010,6 @@ html.paging { overflow: hidden; }
 .tool-voice { width: 100%; }
 .tool-fifth { margin: 0; }
 .tool-rec { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 56px; }
-.tool-light { flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--panel-2); border: 1px solid var(--line); }
-.tool-card[data-state="waiting"] .tool-light { background: var(--ok-2, var(--brass)); border-color: transparent; animation: tool-breathe 2.4s ease-in-out infinite; }
-.tool-card[data-state="recording"] .tool-light { background: var(--red-2, #d33); border-color: transparent; animation: tool-breathe 1s ease-in-out infinite; }
-.tool-card[data-state="playing"] .tool-light { background: var(--brass); border-color: transparent; }
-@keyframes tool-breathe { 50% { opacity: 0.45; } }
-@media (prefers-reduced-motion: reduce) { .tool-light { animation: none !important; } }
 .tool-status { margin: 0; font-weight: 700; font-size: 1.05rem; }
 .tool-dots { display: flex; justify-content: center; gap: 4px; }
 .tool-dot { width: 28px; height: 24px; padding: 0; border: 0; background: none; display: grid; place-items: center; }

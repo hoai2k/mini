@@ -765,7 +765,12 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
   **activity area**: a row of **cards, one per tool**, that swipes sideways a
   card at a time with the next peeking in (dots under it say which, and
   jump to one), or stands three across where the window is wide enough. Each
-  card is a small version of its tool with its own switch, and a **gear**
+  card is a small version of its tool with, at its foot, **the tool's own
+  way of starting and stopping** rather than a switch: the Metronome's
+  **Start** / **Stop**, the Drone's **Play** / **Pause**, and the Playback
+  Recorder's round **record button** (lit as on its own screen: listening,
+  recording, playing back), all at one height across the cards. A **gear**
+  in its header
   that opens that tool's settings for the item running (only the tool's: no
   Audio check or Theme), including whatever the card itself has no room for:
   the Metronome's tempo (typed or − / +), time signature, click sound, extra
@@ -783,15 +788,15 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
     theme's own bars); the last two without the picture;
   - **Drone**: the note (− / +), the instrument and the fifth;
   - **Playback** (the Playback Recorder): what it is doing (listening for
-    you to play, recording with its clock, playing your take back), with a
-    light, and how many takes there are.
+    you to play, recording with its clock, playing your take back) and how
+    many takes there are.
   As each item starts, **its settings go on the tools**, and the tools it
   has on start while the rest stop (one already going carries on). Whatever
   is changed on a card or in its settings is **kept with that item** for next
   time. **Only the routine's own moves wait for a take**: when an item's time
   runs out and the next has the Playback Recorder off, a take being recorded
   is let finish and play back first; what the player does (Skip, Stop, a
-  card's switch) acts at once, cancelling it. The tools run as themselves (the Metronome's sound, accent
+  card's button) acts at once, cancelling it. The tools run as themselves (the Metronome's sound, accent
   and volume, the Drone's reference pitch), and **their own settings are put
   back** when the routine ends or is stopped, so a routine's tempos never
   become the Metronome's. The list stays under the cards, the running item

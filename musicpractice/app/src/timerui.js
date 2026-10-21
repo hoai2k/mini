@@ -552,19 +552,50 @@ export function setupTimer({ settings, tools, audio }) {
     el.dataset.tool = tool;
     el.setAttribute('aria-label', C[tool]);
     el.innerHTML = `<header class="tool-head"><span class="tool-icon art" aria-hidden="true"></span><h3></h3>
-      <button type="button" class="icon-btn tool-gear"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
-      <label class="tool-switch"><input type="checkbox" role="switch"></label></header><div class="tool-body"></div>`;
+      <button type="button" class="icon-btn tool-gear"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button></header>
+      <div class="tool-body"></div><div class="tool-foot"></div>`;
     el.querySelector('h3').textContent = C[tool];
     const gear = el.querySelector('.tool-gear');
     gear.setAttribute('aria-label', C.settings(C[tool]));
     gear.addEventListener('click', () => openToolSettings(tool));
-    const on = el.querySelector('input');
-    on.setAttribute('aria-label', C.turnOn(C[tool]));
-    on.addEventListener('change', () => setTool(tool, on.checked));
     el.querySelector('.tool-body').append(...body);
+    // At its foot, the tool's own way of starting and stopping: the
+    // Metronome's Start, the Drone's Play, the Playback Recorder's record button.
+    const go = document.createElement('button');
+    go.type = 'button';
+    go.setAttribute('aria-pressed', 'false');
+    const [startText, stopText] = GO[tool]();
+    if (tool === 'playback') {
+      go.className = 'rec-btn tool-go';
+      go.dataset.state = 'off';
+      go.innerHTML = '<span class="rec-dot" aria-hidden="true"></span>';
+    } else {
+      go.className = 'big-btn tool-go';
+      go.innerHTML = `<svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>${tool === 'drone'
+        ? '<svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>'
+        : '<svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>'}<span></span>`;
+    }
+    const on = {
+      get checked() { return go.getAttribute('aria-pressed') === 'true'; },
+      set checked(v) {
+        go.setAttribute('aria-pressed', String(!!v));
+        const text = v ? stopText : startText;
+        if (tool === 'playback') go.setAttribute('aria-label', text);
+        else go.querySelector('span').textContent = text;
+      },
+    };
+    on.checked = false;
+    go.addEventListener('click', () => setTool(tool, !on.checked));
+    el.querySelector('.tool-foot').append(go);
     cards.append(el);
-    return { el, on };
+    return { el, on, go };
   }
+  /** Each tool's button, as its own screen words it: [to start, to stop]. */
+  const GO = {
+    metronome: () => [TEXT.metronome.start, TEXT.metronome.stop],
+    drone: () => [TEXT.drone.play, TEXT.drone.pause],
+    playback: () => [TEXT.recorder.turnOn, TEXT.recorder.turnOff],
+  };
   const stepper = (cls, labelText, down, up, downLabel, upLabel) => {
     const box = h('div', `tool-step ${cls}`);
     const less = h('button', 'step', '−'); less.type = 'button'; less.setAttribute('aria-label', downLabel); less.addEventListener('click', down);
@@ -704,20 +735,19 @@ export function setupTimer({ settings, tools, audio }) {
   // The Playback Recorder: what it is doing (listening, recording, playing a take back) and how many takes.
   {
     const P = tools.playback;
-    const light = h('span', 'tool-light');
-    light.setAttribute('aria-hidden', 'true');
     const status = h('p', 'tool-status');
     status.setAttribute('aria-live', 'polite');
     const lamp = h('div', 'tool-rec');
-    lamp.append(light, status);
+    lamp.append(status);
     const takes = h('p', 'tool-note');
     const hint = h('p', 'tool-hint', C.playbackHint);
-    const { el, on } = toolCard('playback', [lamp, takes, hint]);
+    const { el, on, go } = toolCard('playback', [lamp, takes, hint]);
     function show() {
       const s = P.status();
       on.checked = P.on();
       el.classList.toggle('on', on.checked);
       el.dataset.state = s.state;
+      go.dataset.state = s.state; // the record button lit as on its own screen
       status.textContent = C.states[s.state]?.(clock(Math.floor(s.seconds))) ?? '';
       takes.textContent = C.takes(s.takes);
       hint.hidden = on.checked;
