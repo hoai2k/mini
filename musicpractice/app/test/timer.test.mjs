@@ -204,3 +204,12 @@ test('an item saved under its suggestion\'s earlier name shows the name as it is
   assert.equal(cleanRoutine([{ id: 'c', name: 'clapping rhythms', kind: 'rhythms' }])[0].name, 'Clapping Rhythms');
   assert.equal(cleanRoutine([{ id: 'd', name: 'My scales', kind: 'scales' }])[0].name, 'My scales'); // a name of one's own stays
 });
+
+test('a routine can start from any item (a tap on it in the list)', () => {
+  const r = new TimerRun([{ minutes: 1 }, { minutes: 2 }, { minutes: 3 }], 0, 1);
+  assert.equal(r.index, 1);
+  assert.equal(r.remaining(0), 120);
+  assert.deepEqual(r.tick(120000).map((c) => c.type), ['changed']);
+  assert.equal(r.index, 2);
+  assert.equal(new TimerRun([{ minutes: 1 }], 0, 9).index, 0); // past the end: the last
+});

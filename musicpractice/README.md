@@ -703,25 +703,31 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
 
 - **A routine is a list of practice items** (on screen each is itself
   called a routine: "2 routines in all", "Add a Routine", "Last routine").
-  Set up, each is a plain row: its number, its picture and its name on the
-  left, its minutes on the right ("1. Intonation · 3 min"). **A tap on the
-  minutes** shows − and + (and the number, to type); a tap anywhere else puts
-  them back. **On a phone, a long press on an item** (about half a second)
-  turns the list to editing with that item in hand, ready to drag up or down
-  (the page doesn't scroll under it; a quick swipe still scrolls). **With a
-  mouse**, an item is simply dragged up or down, and a **right click** opens
-  its menu: **Rename** (the list turns to editing, the item becomes one of
-  its own, Custom, its name selected to type over), **Turn off** / **Turn
-  on**, and **Delete** (both with Undo). The **pencil** in the header (beside
-  the gear) edits the list, and turns into a check to finish. Each row then
-  has:
-  - a handle to **drag it up or down** (the others make room as it passes
-    their middles; the arrow keys move it too, from the handle);
-  - its **kind**: the name with a chevron, which opens the list of kinds
-    (the eight suggestions and Custom…). A suggestion's name is its own;
-    only **Custom** gives a field to type the name in, with the list still
-    beside it to change back;
-  - its minutes, as above;
+  Set up, each is a plain row: its number, its picture, its name with a
+  small **pencil** after it, and its minutes on the right ("1. Intonation ✎
+  · 3 min"). **A tap on an item starts the routine from there** (the items
+  before it are skipped this time; the Start button starts from the first).
+  **The pencil opens that item** for editing, the row lit: its name becomes
+  the list of kinds (the eight suggestions and Custom…; a suggestion's name is
+  its own, and only **Custom** gives a field to type the name in, with the
+  list still beside it to change back), and its minutes become − / + with the
+  number to type (1 to 120); the pencil turns into a check to close it. One
+  item is open at a time.
+  **On a phone, a long press on an item** (about half a second) turns the
+  list to editing with that item in hand, ready to drag up or down (the page
+  doesn't scroll under it; a quick swipe still scrolls, and letting go
+  without moving starts nothing). **With a mouse**, the list is rearranged
+  from its edit button (an item in the plain list isn't dragged), and a
+  **right click** on an item opens its menu: **Rename** (the item opens as
+  one of its own, Custom, its name selected to type over), **Turn off** /
+  **Turn on**, and **Delete** (both with Undo). The **pencil** in the header
+  (beside the gear) edits the list, and turns into a check to finish. Each
+  row then has:
+  - a handle to **drag it up or down** (by touch or mouse; with a mouse the
+    whole row can be dragged; the others make room as it passes their
+    middles; the arrow keys move it too, from the handle);
+  - its name, its pencil (as above; an open item hides its handle, switch
+    and trash while it is open) and its minutes;
   - a switch: **in the routine or not**. Turned off, an item keeps
     everything it has but is left out of the run and the total, and shows
     only while editing, dimmed and unnumbered, until it is turned on again;
