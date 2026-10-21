@@ -791,8 +791,8 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
   app's own as a start. Items saved when they had their own metronome and
   drone keep them on.
 - **Running, the routine is a shell around the tools.** **Start** swaps the
-  set-up panel for a **compact header** (the item, its time left, what is
-  next, a progress bar, and Pause, Skip and Stop as round buttons) over an
+  set-up panel for a **compact header** (the item's picture to the left of
+  its name, its time left, what is next, a progress bar, and Pause, Skip and Stop as round buttons) over an
   **activity area**: a row of **cards, one per tool**, that swipes sideways a
   card at a time with the next peeking in (dots under it say which, and
   jump to one), or stands three across where the window is wide enough. Each
@@ -915,10 +915,18 @@ slide read as a snap. The way across is a **smaller Routine button**
   scales, rhythms, ghosting, image requests round 11; arpeggios,
   sight-reading, improvisation, round 12; a Metronome item shows the
   Metronome's own home picture, `picture` on its preset), and there is a
-  default (`practice-default`, a music stand), shown small in the list and
-  in Add a Routine. **A new suggestion needs a picture too:** add it to
-  `PRACTICE_SUBJECT` in `design/source/build_requests.py`;
-  `test/timer.test.mjs` fails until every suggestion has one in every theme.
+  default (`practice-default`, a music stand), shown small in the list, in
+  Add a Routine and beside the running item's name. **The pictures of an
+  activity are shared**: in the warm brass-and-gold themes (Art Deco, 18th
+  Century, French Nouveau, Steam Punk, Bebop) each came out a near-copy of
+  Classic's, so those themes use Classic's (`SHARED_PICTURES` in
+  `design/source/build_requests.py`, status `shared`); only Vintage 60s,
+  Robot Future and Candy, whose rendering really differs, have their own.
+  The music stand and the hourglass stay per theme, since they carry the
+  theme in their shape. **A new suggestion needs a picture too:** add it to
+  `PRACTICE_SUBJECT` in `design/source/build_requests.py` (it is asked for
+  in those four themes); `test/timer.test.mjs` fails until every suggestion
+  has one in every theme.
 - Its home button is an hourglass per theme (image requests round 9,
   `home-routine`), delivered for all eight themes. In the apps the drone
   is Pro, as on its own screen. Not done yet: the routine doesn't go on

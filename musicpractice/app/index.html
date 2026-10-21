@@ -538,8 +538,12 @@
         <div class="timer-run" id="timer-run" hidden>
           <div class="trun-head">
             <div class="trun-text">
-              <p class="trun-name" id="trun-name"></p>
-              <p class="trun-sub" id="trun-sub"></p>
+              <!-- The item's picture, so what is being practised shows at a glance. -->
+              <span class="art trun-icon" id="trun-icon" aria-hidden="true"></span>
+              <div class="trun-words">
+                <p class="trun-name" id="trun-name"></p>
+                <p class="trun-sub" id="trun-sub"></p>
+              </div>
             </div>
             <p class="trun-clock" id="trun-clock" role="timer" aria-live="off"></p>
             <div class="trun-buttons">

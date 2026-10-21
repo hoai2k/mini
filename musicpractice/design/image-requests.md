@@ -44,6 +44,8 @@ Images belong to a theme (Settings → Theme); each theme has its own set.
 - Steam Punk: Steampunk illustration of Victorian brass machinery: polished brass, copper and dark leather, riveted plates, exposed cogs and gears, small pressure gauges and pipes, warm gaslight glow on dark mahogany. Intricate but readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.
 - Bebop: Bebop jazz illustration in the manner of a 1950s modern-jazz record sleeve and a late-night jazz club: deep midnight blue and ink black, warm cream, gleaming saxophone brass, a soft amber spotlight glow and a single accent of club-sign red, bold flat colour shapes with crisp edges and a fine halftone-dot texture in the shadows, a few small four-point stars. Cool, swinging, a little playful, simple and readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.
 
+**Shared pictures:** the Practice Routine's pictures of an activity (intonation, scales, arpeggios, rhythms, ghosting, sight-reading, improvisation) are drawn for Classic, Vintage 60s, Robot Future and Candy only; the other themes use Classic's (status `shared`). A new suggestion needs only those four.
+
 **Anchors:** the metronome body and pendulum are separate layers. Each image records its
 canvas size and the point the app pins it by (the body's pivot, the pendulum's hub), so
 each theme's art can put them where it likes. The Drone bow records where its hair runs
@@ -158,14 +160,14 @@ the measured ones for the delivered file in `build_requests.py`.
 | 12 | Classic | delivered | `practice-arpeggios` | `app/assets/ui/practice-arpeggios.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 12 | Classic | delivered | `practice-sight-reading` | `app/assets/ui/practice-sight-reading.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 12 | Classic | delivered | `practice-improvisation` | `app/assets/ui/practice-improvisation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 11 | Art Deco | delivered | `practice-intonation` | `app/assets/ui/deco/practice-intonation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 11 | Art Deco | delivered | `practice-scales` | `app/assets/ui/deco/practice-scales.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 11 | Art Deco | delivered | `practice-rhythms` | `app/assets/ui/deco/practice-rhythms.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 11 | Art Deco | delivered | `practice-ghosting` | `app/assets/ui/deco/practice-ghosting.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 11 | Art Deco | shared | `practice-intonation` | `app/assets/ui/practice-intonation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 11 | Art Deco | shared | `practice-scales` | `app/assets/ui/practice-scales.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 11 | Art Deco | shared | `practice-rhythms` | `app/assets/ui/practice-rhythms.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 11 | Art Deco | shared | `practice-ghosting` | `app/assets/ui/practice-ghosting.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 11 | Art Deco | delivered | `practice-default` | `app/assets/ui/deco/practice-default.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 12 | Art Deco | delivered | `practice-arpeggios` | `app/assets/ui/deco/practice-arpeggios.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 12 | Art Deco | delivered | `practice-sight-reading` | `app/assets/ui/deco/practice-sight-reading.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 12 | Art Deco | delivered | `practice-improvisation` | `app/assets/ui/deco/practice-improvisation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 12 | Art Deco | shared | `practice-arpeggios` | `app/assets/ui/practice-arpeggios.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 12 | Art Deco | shared | `practice-sight-reading` | `app/assets/ui/practice-sight-reading.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 12 | Art Deco | shared | `practice-improvisation` | `app/assets/ui/practice-improvisation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 11 | Vintage 60s | delivered | `practice-intonation` | `app/assets/ui/sixties/practice-intonation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 11 | Vintage 60s | delivered | `practice-scales` | `app/assets/ui/sixties/practice-scales.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 11 | Vintage 60s | delivered | `practice-rhythms` | `app/assets/ui/sixties/practice-rhythms.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
@@ -174,14 +176,14 @@ the measured ones for the delivered file in `build_requests.py`.
 | 12 | Vintage 60s | delivered | `practice-arpeggios` | `app/assets/ui/sixties/practice-arpeggios.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 12 | Vintage 60s | delivered | `practice-sight-reading` | `app/assets/ui/sixties/practice-sight-reading.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 12 | Vintage 60s | delivered | `practice-improvisation` | `app/assets/ui/sixties/practice-improvisation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 11 | 18th Century | delivered | `practice-intonation` | `app/assets/ui/baroque/practice-intonation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 11 | 18th Century | delivered | `practice-scales` | `app/assets/ui/baroque/practice-scales.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 11 | 18th Century | delivered | `practice-rhythms` | `app/assets/ui/baroque/practice-rhythms.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 11 | 18th Century | delivered | `practice-ghosting` | `app/assets/ui/baroque/practice-ghosting.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 11 | 18th Century | shared | `practice-intonation` | `app/assets/ui/practice-intonation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 11 | 18th Century | shared | `practice-scales` | `app/assets/ui/practice-scales.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 11 | 18th Century | shared | `practice-rhythms` | `app/assets/ui/practice-rhythms.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 11 | 18th Century | shared | `practice-ghosting` | `app/assets/ui/practice-ghosting.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 11 | 18th Century | delivered | `practice-default` | `app/assets/ui/baroque/practice-default.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 12 | 18th Century | delivered | `practice-arpeggios` | `app/assets/ui/baroque/practice-arpeggios.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 12 | 18th Century | delivered | `practice-sight-reading` | `app/assets/ui/baroque/practice-sight-reading.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 12 | 18th Century | delivered | `practice-improvisation` | `app/assets/ui/baroque/practice-improvisation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 12 | 18th Century | shared | `practice-arpeggios` | `app/assets/ui/practice-arpeggios.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 12 | 18th Century | shared | `practice-sight-reading` | `app/assets/ui/practice-sight-reading.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 12 | 18th Century | shared | `practice-improvisation` | `app/assets/ui/practice-improvisation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 11 | Robot Future | delivered | `practice-intonation` | `app/assets/ui/scifi/practice-intonation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 11 | Robot Future | delivered | `practice-scales` | `app/assets/ui/scifi/practice-scales.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 11 | Robot Future | delivered | `practice-rhythms` | `app/assets/ui/scifi/practice-rhythms.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
@@ -190,14 +192,14 @@ the measured ones for the delivered file in `build_requests.py`.
 | 12 | Robot Future | delivered | `practice-arpeggios` | `app/assets/ui/scifi/practice-arpeggios.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 12 | Robot Future | delivered | `practice-sight-reading` | `app/assets/ui/scifi/practice-sight-reading.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 12 | Robot Future | delivered | `practice-improvisation` | `app/assets/ui/scifi/practice-improvisation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 11 | French Nouveau | delivered | `practice-intonation` | `app/assets/ui/nouveau/practice-intonation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 11 | French Nouveau | delivered | `practice-scales` | `app/assets/ui/nouveau/practice-scales.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 11 | French Nouveau | delivered | `practice-rhythms` | `app/assets/ui/nouveau/practice-rhythms.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 11 | French Nouveau | delivered | `practice-ghosting` | `app/assets/ui/nouveau/practice-ghosting.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 11 | French Nouveau | shared | `practice-intonation` | `app/assets/ui/practice-intonation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 11 | French Nouveau | shared | `practice-scales` | `app/assets/ui/practice-scales.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 11 | French Nouveau | shared | `practice-rhythms` | `app/assets/ui/practice-rhythms.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 11 | French Nouveau | shared | `practice-ghosting` | `app/assets/ui/practice-ghosting.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 11 | French Nouveau | delivered | `practice-default` | `app/assets/ui/nouveau/practice-default.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 12 | French Nouveau | delivered | `practice-arpeggios` | `app/assets/ui/nouveau/practice-arpeggios.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 12 | French Nouveau | delivered | `practice-sight-reading` | `app/assets/ui/nouveau/practice-sight-reading.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 12 | French Nouveau | delivered | `practice-improvisation` | `app/assets/ui/nouveau/practice-improvisation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 12 | French Nouveau | shared | `practice-arpeggios` | `app/assets/ui/practice-arpeggios.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 12 | French Nouveau | shared | `practice-sight-reading` | `app/assets/ui/practice-sight-reading.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 12 | French Nouveau | shared | `practice-improvisation` | `app/assets/ui/practice-improvisation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 11 | Candy | delivered | `practice-intonation` | `app/assets/ui/anime/practice-intonation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 11 | Candy | delivered | `practice-scales` | `app/assets/ui/anime/practice-scales.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 11 | Candy | delivered | `practice-rhythms` | `app/assets/ui/anime/practice-rhythms.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
@@ -206,14 +208,14 @@ the measured ones for the delivered file in `build_requests.py`.
 | 12 | Candy | delivered | `practice-arpeggios` | `app/assets/ui/anime/practice-arpeggios.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 12 | Candy | delivered | `practice-sight-reading` | `app/assets/ui/anime/practice-sight-reading.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 12 | Candy | delivered | `practice-improvisation` | `app/assets/ui/anime/practice-improvisation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 11 | Steam Punk | delivered | `practice-intonation` | `app/assets/ui/steampunk/practice-intonation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 11 | Steam Punk | delivered | `practice-scales` | `app/assets/ui/steampunk/practice-scales.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 11 | Steam Punk | delivered | `practice-rhythms` | `app/assets/ui/steampunk/practice-rhythms.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 11 | Steam Punk | delivered | `practice-ghosting` | `app/assets/ui/steampunk/practice-ghosting.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 11 | Steam Punk | shared | `practice-intonation` | `app/assets/ui/practice-intonation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 11 | Steam Punk | shared | `practice-scales` | `app/assets/ui/practice-scales.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 11 | Steam Punk | shared | `practice-rhythms` | `app/assets/ui/practice-rhythms.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 11 | Steam Punk | shared | `practice-ghosting` | `app/assets/ui/practice-ghosting.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 11 | Steam Punk | delivered | `practice-default` | `app/assets/ui/steampunk/practice-default.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 12 | Steam Punk | delivered | `practice-arpeggios` | `app/assets/ui/steampunk/practice-arpeggios.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 12 | Steam Punk | delivered | `practice-sight-reading` | `app/assets/ui/steampunk/practice-sight-reading.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 12 | Steam Punk | delivered | `practice-improvisation` | `app/assets/ui/steampunk/practice-improvisation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 12 | Steam Punk | shared | `practice-arpeggios` | `app/assets/ui/practice-arpeggios.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 12 | Steam Punk | shared | `practice-sight-reading` | `app/assets/ui/practice-sight-reading.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 12 | Steam Punk | shared | `practice-improvisation` | `app/assets/ui/practice-improvisation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 13 | Bebop | delivered | `metronome-body` | `app/assets/ui/bebop/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
 | 13 | Bebop | delivered | `metronome-pendulum` | `app/assets/ui/bebop/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
 | 13 | Bebop | delivered | `home-metronome` | `app/assets/ui/bebop/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
@@ -226,14 +228,14 @@ the measured ones for the delivered file in `build_requests.py`.
 | 13 | Bebop | delivered | `home-routine` | `app/assets/ui/bebop/home-routine.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
 | 13 | Bebop | delivered | `metronome-rod` | `app/assets/ui/bebop/metronome-rod.webp` | 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP |
 | 13 | Bebop | delivered | `metronome-weight` | `app/assets/ui/bebop/metronome-weight.webp` | 200×(just tall enough) canvas at the pendulum's scale, transparent PNG, shipped as WebP |
-| 13 | Bebop | delivered | `practice-intonation` | `app/assets/ui/bebop/practice-intonation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 13 | Bebop | delivered | `practice-scales` | `app/assets/ui/bebop/practice-scales.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 13 | Bebop | delivered | `practice-rhythms` | `app/assets/ui/bebop/practice-rhythms.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 13 | Bebop | delivered | `practice-ghosting` | `app/assets/ui/bebop/practice-ghosting.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | shared | `practice-intonation` | `app/assets/ui/practice-intonation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | shared | `practice-scales` | `app/assets/ui/practice-scales.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | shared | `practice-rhythms` | `app/assets/ui/practice-rhythms.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | shared | `practice-ghosting` | `app/assets/ui/practice-ghosting.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 13 | Bebop | delivered | `practice-default` | `app/assets/ui/bebop/practice-default.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 13 | Bebop | delivered | `practice-arpeggios` | `app/assets/ui/bebop/practice-arpeggios.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 13 | Bebop | delivered | `practice-sight-reading` | `app/assets/ui/bebop/practice-sight-reading.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 13 | Bebop | delivered | `practice-improvisation` | `app/assets/ui/bebop/practice-improvisation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | shared | `practice-arpeggios` | `app/assets/ui/practice-arpeggios.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | shared | `practice-sight-reading` | `app/assets/ui/practice-sight-reading.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | shared | `practice-improvisation` | `app/assets/ui/practice-improvisation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 
 ## Home screen buttons
 
@@ -1471,45 +1473,29 @@ Using the attached image, musicpractice/app/assets/ui/home-routine.webp (this th
 
 ## Art Deco · Practice Routine pictures
 
-### `practice-intonation` · Art Deco · delivered
+### `practice-intonation` · Art Deco · shared
 
-- File: `musicpractice/app/assets/ui/deco/practice-intonation.webp`
+- File: `musicpractice/app/assets/ui/practice-intonation.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Intonation practice in the Art Deco theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-11.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/deco/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a two-tined tuning fork standing upright and ringing, with small vibration marks beside its tines; the tuning fork alone, without musical notes or a staff, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-scales` · Art Deco · shared
 
-### `practice-scales` · Art Deco · delivered
-
-- File: `musicpractice/app/assets/ui/deco/practice-scales.webp`
+- File: `musicpractice/app/assets/ui/practice-scales.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Scales in the Art Deco theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-11.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/deco/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with eight round note heads climbing it from left to right like a gentle staircase, the last note a little larger; exactly eight notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-rhythms` · Art Deco · shared
 
-### `practice-rhythms` · Art Deco · delivered
-
-- File: `musicpractice/app/assets/ui/deco/practice-rhythms.webp`
+- File: `musicpractice/app/assets/ui/practice-rhythms.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Clapping rhythms in the Art Deco theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-11.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/deco/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw exactly two hands meeting in a clap, one left and one right, with exactly two wrists and two cuffs, seen from the side, with three small curved motion marks around them, and a short row of rhythm notes (quarter notes and a pair of beamed eighth notes) beneath, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-ghosting` · Art Deco · shared
 
-### `practice-ghosting` · Art Deco · delivered
-
-- File: `musicpractice/app/assets/ui/deco/practice-ghosting.webp`
+- File: `musicpractice/app/assets/ui/practice-ghosting.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Ghosting in the Art Deco theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-11.json.
-
-```text
-Using the attached image, musicpractice/app/assets/ui/deco/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a cello bow drawn as a faint, translucent ghostly outline, hovering just above four strings; only the translucent bow outline and the four strings, without floating notes, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
 ### `practice-default` · Art Deco · delivered
 
@@ -1521,35 +1507,23 @@ Using the attached image, musicpractice/app/assets/ui/deco/home-drone.webp (this
 Using the attached image, musicpractice/app/assets/ui/deco/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a music stand holding an open book of sheet music, a pencil resting on its ledge, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
 ```
 
-### `practice-arpeggios` · Art Deco · delivered
+### `practice-arpeggios` · Art Deco · shared
 
-- File: `musicpractice/app/assets/ui/deco/practice-arpeggios.webp`
+- File: `musicpractice/app/assets/ui/practice-arpeggios.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Arpeggios in the Art Deco theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-12.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/deco/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-sight-reading` · Art Deco · shared
 
-### `practice-sight-reading` · Art Deco · delivered
-
-- File: `musicpractice/app/assets/ui/deco/practice-sight-reading.webp`
+- File: `musicpractice/app/assets/ui/practice-sight-reading.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Sight reading in the Art Deco theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-12.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/deco/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-improvisation` · Art Deco · shared
 
-### `practice-improvisation` · Art Deco · delivered
-
-- File: `musicpractice/app/assets/ui/deco/practice-improvisation.webp`
+- File: `musicpractice/app/assets/ui/practice-improvisation.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Improvisation in the Art Deco theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-12.json.
-
-```text
-Using the attached image, musicpractice/app/assets/ui/deco/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
 ## Vintage 60s · Practice Routine pictures
 
@@ -1635,45 +1609,29 @@ Using the attached image, musicpractice/app/assets/ui/sixties/home-routine.webp 
 
 ## 18th Century · Practice Routine pictures
 
-### `practice-intonation` · 18th Century · delivered
+### `practice-intonation` · 18th Century · shared
 
-- File: `musicpractice/app/assets/ui/baroque/practice-intonation.webp`
+- File: `musicpractice/app/assets/ui/practice-intonation.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Intonation practice in the 18th Century theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-11.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a two-tined tuning fork standing upright and ringing, with small vibration marks beside its tines; the tuning fork alone, without musical notes or a staff, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-scales` · 18th Century · shared
 
-### `practice-scales` · 18th Century · delivered
-
-- File: `musicpractice/app/assets/ui/baroque/practice-scales.webp`
+- File: `musicpractice/app/assets/ui/practice-scales.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Scales in the 18th Century theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-11.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with eight round note heads climbing it from left to right like a gentle staircase, the last note a little larger; exactly eight notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-rhythms` · 18th Century · shared
 
-### `practice-rhythms` · 18th Century · delivered
-
-- File: `musicpractice/app/assets/ui/baroque/practice-rhythms.webp`
+- File: `musicpractice/app/assets/ui/practice-rhythms.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Clapping rhythms in the 18th Century theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-11.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw exactly two hands meeting in a clap, one left and one right, with exactly two wrists and two cuffs, seen from the side, with three small curved motion marks around them, and a short row of rhythm notes (quarter notes and a pair of beamed eighth notes) beneath, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-ghosting` · 18th Century · shared
 
-### `practice-ghosting` · 18th Century · delivered
-
-- File: `musicpractice/app/assets/ui/baroque/practice-ghosting.webp`
+- File: `musicpractice/app/assets/ui/practice-ghosting.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Ghosting in the 18th Century theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-11.json.
-
-```text
-Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a cello bow drawn as a faint, translucent ghostly outline, hovering just above four strings; only the translucent bow outline and the four strings, without floating notes, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
 ### `practice-default` · 18th Century · delivered
 
@@ -1685,35 +1643,23 @@ Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (t
 Using the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a music stand holding an open book of sheet music, a pencil resting on its ledge, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
 ```
 
-### `practice-arpeggios` · 18th Century · delivered
+### `practice-arpeggios` · 18th Century · shared
 
-- File: `musicpractice/app/assets/ui/baroque/practice-arpeggios.webp`
+- File: `musicpractice/app/assets/ui/practice-arpeggios.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Arpeggios in the 18th Century theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-12.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/baroque/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-sight-reading` · 18th Century · shared
 
-### `practice-sight-reading` · 18th Century · delivered
-
-- File: `musicpractice/app/assets/ui/baroque/practice-sight-reading.webp`
+- File: `musicpractice/app/assets/ui/practice-sight-reading.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Sight reading in the 18th Century theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-12.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/baroque/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-improvisation` · 18th Century · shared
 
-### `practice-improvisation` · 18th Century · delivered
-
-- File: `musicpractice/app/assets/ui/baroque/practice-improvisation.webp`
+- File: `musicpractice/app/assets/ui/practice-improvisation.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Improvisation in the 18th Century theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-12.json.
-
-```text
-Using the attached image, musicpractice/app/assets/ui/baroque/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
 ## Robot Future · Practice Routine pictures
 
@@ -1799,45 +1745,29 @@ Using the attached image, musicpractice/app/assets/ui/scifi/home-routine.webp (t
 
 ## French Nouveau · Practice Routine pictures
 
-### `practice-intonation` · French Nouveau · delivered
+### `practice-intonation` · French Nouveau · shared
 
-- File: `musicpractice/app/assets/ui/nouveau/practice-intonation.webp`
+- File: `musicpractice/app/assets/ui/practice-intonation.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Intonation practice in the French Nouveau theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-11.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a two-tined tuning fork standing upright and ringing, with small vibration marks beside its tines; the tuning fork alone, without musical notes or a staff, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-scales` · French Nouveau · shared
 
-### `practice-scales` · French Nouveau · delivered
-
-- File: `musicpractice/app/assets/ui/nouveau/practice-scales.webp`
+- File: `musicpractice/app/assets/ui/practice-scales.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Scales in the French Nouveau theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-11.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with eight round note heads climbing it from left to right like a gentle staircase, the last note a little larger; exactly eight notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-rhythms` · French Nouveau · shared
 
-### `practice-rhythms` · French Nouveau · delivered
-
-- File: `musicpractice/app/assets/ui/nouveau/practice-rhythms.webp`
+- File: `musicpractice/app/assets/ui/practice-rhythms.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Clapping rhythms in the French Nouveau theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-11.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw exactly two hands meeting in a clap, one left and one right, with exactly two wrists and two cuffs, seen from the side, with three small curved motion marks around them, and a short row of rhythm notes (quarter notes and a pair of beamed eighth notes) beneath, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-ghosting` · French Nouveau · shared
 
-### `practice-ghosting` · French Nouveau · delivered
-
-- File: `musicpractice/app/assets/ui/nouveau/practice-ghosting.webp`
+- File: `musicpractice/app/assets/ui/practice-ghosting.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Ghosting in the French Nouveau theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-11.json.
-
-```text
-Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a cello bow drawn as a faint, translucent ghostly outline, hovering just above four strings; only the translucent bow outline and the four strings, without floating notes, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
 ### `practice-default` · French Nouveau · delivered
 
@@ -1849,35 +1779,23 @@ Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (t
 Using the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a music stand holding an open book of sheet music, a pencil resting on its ledge, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
 ```
 
-### `practice-arpeggios` · French Nouveau · delivered
+### `practice-arpeggios` · French Nouveau · shared
 
-- File: `musicpractice/app/assets/ui/nouveau/practice-arpeggios.webp`
+- File: `musicpractice/app/assets/ui/practice-arpeggios.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Arpeggios in the French Nouveau theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-12.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/nouveau/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-sight-reading` · French Nouveau · shared
 
-### `practice-sight-reading` · French Nouveau · delivered
-
-- File: `musicpractice/app/assets/ui/nouveau/practice-sight-reading.webp`
+- File: `musicpractice/app/assets/ui/practice-sight-reading.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Sight reading in the French Nouveau theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-12.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/nouveau/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-improvisation` · French Nouveau · shared
 
-### `practice-improvisation` · French Nouveau · delivered
-
-- File: `musicpractice/app/assets/ui/nouveau/practice-improvisation.webp`
+- File: `musicpractice/app/assets/ui/practice-improvisation.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Improvisation in the French Nouveau theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-12.json.
-
-```text
-Using the attached image, musicpractice/app/assets/ui/nouveau/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
 ## Candy · Practice Routine pictures
 
@@ -1963,45 +1881,29 @@ Using the attached image, musicpractice/app/assets/ui/anime/home-routine.webp (t
 
 ## Steam Punk · Practice Routine pictures
 
-### `practice-intonation` · Steam Punk · delivered
+### `practice-intonation` · Steam Punk · shared
 
-- File: `musicpractice/app/assets/ui/steampunk/practice-intonation.webp`
+- File: `musicpractice/app/assets/ui/practice-intonation.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Intonation practice in the Steam Punk theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-11.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/steampunk/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a two-tined tuning fork standing upright and ringing, with small vibration marks beside its tines; the tuning fork alone, without musical notes or a staff, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-scales` · Steam Punk · shared
 
-### `practice-scales` · Steam Punk · delivered
-
-- File: `musicpractice/app/assets/ui/steampunk/practice-scales.webp`
+- File: `musicpractice/app/assets/ui/practice-scales.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Scales in the Steam Punk theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-11.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/steampunk/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with eight round note heads climbing it from left to right like a gentle staircase, the last note a little larger; exactly eight notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-rhythms` · Steam Punk · shared
 
-### `practice-rhythms` · Steam Punk · delivered
-
-- File: `musicpractice/app/assets/ui/steampunk/practice-rhythms.webp`
+- File: `musicpractice/app/assets/ui/practice-rhythms.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Clapping rhythms in the Steam Punk theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-11.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/steampunk/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw exactly two hands meeting in a clap, one left and one right, with exactly two wrists and two cuffs, seen from the side, with three small curved motion marks around them, and a short row of rhythm notes (quarter notes and a pair of beamed eighth notes) beneath, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-ghosting` · Steam Punk · shared
 
-### `practice-ghosting` · Steam Punk · delivered
-
-- File: `musicpractice/app/assets/ui/steampunk/practice-ghosting.webp`
+- File: `musicpractice/app/assets/ui/practice-ghosting.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Ghosting in the Steam Punk theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-11.json.
-
-```text
-Using the attached image, musicpractice/app/assets/ui/steampunk/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a cello bow drawn as a faint, translucent ghostly outline, hovering just above four strings; only the translucent bow outline and the four strings, without floating notes, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
 ### `practice-default` · Steam Punk · delivered
 
@@ -2013,35 +1915,23 @@ Using the attached image, musicpractice/app/assets/ui/steampunk/home-drone.webp 
 Using the attached image, musicpractice/app/assets/ui/steampunk/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a music stand holding an open book of sheet music, a pencil resting on its ledge, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
 ```
 
-### `practice-arpeggios` · Steam Punk · delivered
+### `practice-arpeggios` · Steam Punk · shared
 
-- File: `musicpractice/app/assets/ui/steampunk/practice-arpeggios.webp`
+- File: `musicpractice/app/assets/ui/practice-arpeggios.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Arpeggios in the Steam Punk theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-12.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/steampunk/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-sight-reading` · Steam Punk · shared
 
-### `practice-sight-reading` · Steam Punk · delivered
-
-- File: `musicpractice/app/assets/ui/steampunk/practice-sight-reading.webp`
+- File: `musicpractice/app/assets/ui/practice-sight-reading.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Sight reading in the Steam Punk theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-12.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/steampunk/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-improvisation` · Steam Punk · shared
 
-### `practice-improvisation` · Steam Punk · delivered
-
-- File: `musicpractice/app/assets/ui/steampunk/practice-improvisation.webp`
+- File: `musicpractice/app/assets/ui/practice-improvisation.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Practice Routine's picture for Improvisation in the Steam Punk theme, shown large while such an item runs. Delivered PNG masters, prompts and exports: design/image-deliveries-round-12.json.
-
-```text
-Using the attached image, musicpractice/app/assets/ui/steampunk/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
 ## Bebop · Metronome animation
 
@@ -2180,45 +2070,29 @@ From the attached image, musicpractice/app/assets/ui/bebop/metronome-pendulum.we
 
 ## Bebop · Practice Routine pictures
 
-### `practice-intonation` · Bebop · delivered
+### `practice-intonation` · Bebop · shared
 
-- File: `musicpractice/app/assets/ui/bebop/practice-intonation.webp`
+- File: `musicpractice/app/assets/ui/practice-intonation.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Intonation practice, shown large while such an item runs. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a two-tined tuning fork standing upright and ringing, with small vibration marks beside its tines; the tuning fork alone, without musical notes or a staff, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-scales` · Bebop · shared
 
-### `practice-scales` · Bebop · delivered
-
-- File: `musicpractice/app/assets/ui/bebop/practice-scales.webp`
+- File: `musicpractice/app/assets/ui/practice-scales.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Scales, shown large while such an item runs. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with eight round note heads climbing it from left to right like a gentle staircase, the last note a little larger; exactly eight notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-rhythms` · Bebop · shared
 
-### `practice-rhythms` · Bebop · delivered
-
-- File: `musicpractice/app/assets/ui/bebop/practice-rhythms.webp`
+- File: `musicpractice/app/assets/ui/practice-rhythms.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Clapping rhythms, shown large while such an item runs. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw exactly two hands meeting in a clap, one left and one right, with exactly two wrists and two cuffs, seen from the side, with three small curved motion marks around them, and a short row of rhythm notes (quarter notes and a pair of beamed eighth notes) beneath, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-ghosting` · Bebop · shared
 
-### `practice-ghosting` · Bebop · delivered
-
-- File: `musicpractice/app/assets/ui/bebop/practice-ghosting.webp`
+- File: `musicpractice/app/assets/ui/practice-ghosting.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Ghosting, shown large while such an item runs. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
-
-```text
-Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a cello bow drawn as a faint, translucent ghostly outline, hovering just above four strings; only the translucent bow outline and the four strings, without floating notes, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
 ### `practice-default` · Bebop · delivered
 
@@ -2230,32 +2104,20 @@ Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (thi
 Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a music stand holding an open book of sheet music, a pencil resting on its ledge, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
 ```
 
-### `practice-arpeggios` · Bebop · delivered
+### `practice-arpeggios` · Bebop · shared
 
-- File: `musicpractice/app/assets/ui/bebop/practice-arpeggios.webp`
+- File: `musicpractice/app/assets/ui/practice-arpeggios.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Arpeggios, shown large while such an item runs. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/bebop/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-sight-reading` · Bebop · shared
 
-### `practice-sight-reading` · Bebop · delivered
-
-- File: `musicpractice/app/assets/ui/bebop/practice-sight-reading.webp`
+- File: `musicpractice/app/assets/ui/practice-sight-reading.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Sight reading, shown large while such an item runs. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).
 
-```text
-Using the attached image, musicpractice/app/assets/ui/bebop/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+### `practice-improvisation` · Bebop · shared
 
-### `practice-improvisation` · Bebop · delivered
-
-- File: `musicpractice/app/assets/ui/bebop/practice-improvisation.webp`
+- File: `musicpractice/app/assets/ui/practice-improvisation.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Improvisation, shown large while such an item runs. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
-
-```text
-Using the attached image, musicpractice/app/assets/ui/bebop/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
-```
+- Note: Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of it, so it is not drawn separately (SHARED_PICTURES).

@@ -1041,6 +1041,24 @@ if _round13_delivery.exists():
         asset["note"] += " Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json."
 
 
+# Shared pictures. Most Practice Routine pictures came out as near-copies
+# across the warm brass-and-gold themes: the same tuning fork or staff, a
+# different drawing. Those themes use Classic's; a theme keeps its own only
+# where its rendering really differs (neon, pastel cel, flat screen print).
+# The hourglass and the music stand (practice-default) stay per theme: they
+# carry the theme in their shape. A new suggestion is asked for in Classic
+# and in OWN_PICTURES; a new theme joins one side or the other.
+SHARED_PICTURES = ["practice-intonation", "practice-scales", "practice-arpeggios", "practice-rhythms",
+                   "practice-ghosting", "practice-sight-reading", "practice-improvisation"]
+OWN_PICTURES = {"classic", "scifi", "anime", "sixties"}
+_classic_file = {a["id"]: a["file"] for a in ASSETS if a["theme"] == "classic"}
+for asset in ASSETS:
+    if asset["id"] in SHARED_PICTURES and asset["theme"] not in OWN_PICTURES:
+        asset.update(status="shared", shared="classic", file=_classic_file[asset["id"]],
+                     note=("Uses Classic's picture: in this theme's warm brass and gold it was a near-copy of "
+                           "it, so it is not drawn separately (SHARED_PICTURES)."))
+
+
 def render() -> tuple[str, str]:
     theme_name = {t["id"]: t["name"] for t in THEMES}
     lines = [
@@ -1077,6 +1095,10 @@ def render() -> tuple[str, str]:
         *[f"- {t['name']}: {t['style']}" for t in MORE_THEMES],
         f"- {BEBOP['name']}: {BEBOP['style']}",
         "",
+        "**Shared pictures:** the Practice Routine's pictures of an activity (" + ", ".join(i.removeprefix("practice-") for i in SHARED_PICTURES)
+        + ") are drawn for Classic, Vintage 60s, Robot Future and Candy only; the other themes use Classic's "
+        "(status `shared`). A new suggestion needs only those four.",
+        "",
         "**Anchors:** the metronome body and pendulum are separate layers. Each image records its",
         "canvas size and the point the app pins it by (the body's pivot, the pendulum's hub), so",
         "each theme's art can put them where it likes. The Drone bow records where its hair runs",
@@ -1101,10 +1123,13 @@ def render() -> tuple[str, str]:
                          + (f"; swings ±{a['swing']}°" if a.get("swing") else ""))
         if a.get("note"):
             lines.append(f"- Note: {a['note']}")
-        lines += ["", "```text", a["prompt"], "```"]
+        if a["status"] != "shared":
+            lines += ["", "```text", a["prompt"], "```"]
     doc = "\n".join(lines) + "\n"
-    keys = ("id", "theme", "file", "status", "canvas", "anchors", "swing", "scale", "travel", "interim")
-    assets = json.dumps([{k: a[k] for k in keys if a.get(k) is not None} for a in ASSETS], indent=2) + "\n"
+    keys = ("id", "theme", "file", "status", "shared", "canvas", "anchors", "swing", "scale", "travel", "interim")
+    # A shared picture is delivered, as the theme it is shared from.
+    listed = [{**a, "status": "delivered"} if a["status"] == "shared" else a for a in ASSETS]
+    assets = json.dumps([{k: a[k] for k in keys if a.get(k) is not None} for a in listed], indent=2) + "\n"
     return doc, assets
 
 
@@ -1114,7 +1139,7 @@ def main() -> int:
         stale = [p for p, text in ((DOC, doc), (ASSET_LIST, assets)) if not p.exists() or p.read_text(encoding="utf-8") != text]
         for p in stale:
             print(f"out of date: {p.relative_to(ROOT.parent)} (run build_requests.py)")
-        missing = [a["file"] for a in ASSETS if a["status"] == "delivered" and not (ROOT / "app" / a["file"]).exists()]
+        missing = [a["file"] for a in ASSETS if a["status"] in ("delivered", "shared") and not (ROOT / "app" / a["file"]).exists()]
         for f in missing:
             print(f"delivered but missing: app/{f}")
         return 1 if stale or missing else 0

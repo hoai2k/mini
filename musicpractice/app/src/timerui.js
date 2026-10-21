@@ -1044,6 +1044,7 @@ export function setupTimer({ settings, tools, audio }) {
     } else {
       const it = run.item;
       $('trun-name').textContent = finishing ? T.finishing : label(it);
+      showArt($('trun-icon'), pictureFor(it, hasArt));
       $('trun-clock').textContent = clock(Math.ceil(run.remaining(now)));
       const next = run.next;
       $('trun-sub').textContent = finishing ? T.finishingNote : (run.paused ? `${T.paused} · ` : '') + (next ? T.next(label(next), next.minutes) : T.lastItem);

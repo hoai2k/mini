@@ -2060,7 +2060,10 @@ html.paging { overflow: hidden; }
   background: linear-gradient(180deg, var(--panel-2), var(--panel)); box-shadow: 0 6px 18px var(--shadow);
 }
 @media (min-width: 560px) { .trun-head { grid-template-columns: 1fr auto auto; grid-template-areas: "text clock btns" "prog prog prog"; } }
-.trun-text { grid-area: text; min-width: 0; }
+.trun-text { grid-area: text; min-width: 0; display: flex; align-items: center; gap: 10px; }
+.trun-words { min-width: 0; }
+.trun-icon { flex: none; width: 44px; aspect-ratio: 1; display: grid; place-items: center; }
+.trun-icon > * { width: 100%; height: 100%; object-fit: contain; }
 .trun-name { margin: 0; font: 700 1.15rem/1.2 var(--display); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trun-sub { margin: 2px 0 0; color: var(--ink-2); font-weight: 600; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trun-clock { grid-area: clock; margin: 0; font: 700 clamp(1.9rem, 8vw, 2.4rem)/1 var(--display); font-variant-numeric: tabular-nums; }
