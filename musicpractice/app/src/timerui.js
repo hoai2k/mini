@@ -35,6 +35,7 @@ const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6
 const HANDLE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14M5 12h14M5 16h14"/></svg>';
 const CHIME_GAP = 1100; // ms from the chime to the voice's silence after it
 const CHIME_TO_VOICE = 900; // ms from the chime to the voice
+const VOICE_MAX = 15000; // ms the tools wait for the voice at most
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const ICONS = { metronome: 'home-metronome', drone: 'home-drone', playback: 'home-record' };
 const SWIPE_OFF = 0.35; // of the item's width: past this, a swipe deletes it
@@ -898,20 +899,36 @@ export function setupTimer({ settings, tools, audio }) {
    * An item starts (or the routine is resumed): its settings go on the tools,
    * and those it has on start while the rest stop; one already going carries
    * on. A take on the go is let finish when the routine moves on by itself,
-   * but not when that is the player's doing (`user`: Skip).
+   * but not when that is the player's doing (`user`: Skip). With `hold`,
+   * those it has that are not going wait (for the voice to finish): see
+   * afterVoice.
    */
-  function startTools(it = run?.item, { user = false } = {}) {
+  function startTools(it = run?.item, { user = false, hold = false } = {}) {
     if (!it) return;
     applyConfigs(it);
     playbackLater = false;
     for (const t of TOOLS) {
       const want = it.tools[t] && (t !== 'drone' || tools.drone.allowed());
-      if (want && !tools[t].on()) tools[t].start();
+      if (want && !hold && !tools[t].on()) tools[t].start();
       if (!want && tools[t].on()) {
         // A take on the go is let finish (recorded and played back) before the recorder goes off.
         if (t === 'playback' && !user && tools.playback.busy()) playbackLater = true;
         else tools[t].stop();
       }
+    }
+    showCards();
+  }
+  /**
+   * The item's tools that were held for the announcement start once the voice
+   * has finished, if the routine is still on that item and going (Pause, Stop
+   * or Skip in the meantime has seen to them). One turned off on its card in
+   * the meantime stays off.
+   */
+  async function afterVoice(said, it) {
+    // (A voice that never reports its end, its sound suspended, holds them no longer than VOICE_MAX.)
+    if (!(await Promise.race([said, wait(VOICE_MAX).then(() => true)])) || run?.item !== it || run.paused || finishing) return;
+    for (const t of TOOLS) {
+      if (it.tools[t] && (t !== 'drone' || tools.drone.allowed()) && !tools[t].on()) tools[t].start();
     }
     showCards();
   }
@@ -1020,23 +1037,30 @@ export function setupTimer({ settings, tools, audio }) {
    * Between items: the chime, then the voice (if on: what finished and what
    * is next). The tools carry on under it; a Playback Recorder listening for
    * you to start pays it no attention. Pause, Stop or another announcement
-   * cuts it short.
+   * cuts it short. Resolves true once it has been said in full (false if cut
+   * short); `speaks` says whether there is a voice to wait for.
    */
-  async function announce({ chime = false, lines = [] } = {}) {
+  function announce({ chime = false, lines = [] } = {}) {
+    const speak = !!(state.voiceOn && lines.length);
+    return { speaks: speak, done: say(chime, lines, speak) };
+  }
+  async function say(chime, lines, speak) {
     const my = ++seq;
     saying?.stop();
-    const speak = state.voiceOn && lines.length;
-    if (!(chime && state.chimeOn) && !speak) return;
+    if (!(chime && state.chimeOn) && !speak) return true;
     tools.playback.ignoreFor(speak ? 8 : 3);
     if (chime && state.chimeOn) {
       audio.chime(state.chime);
       await wait(speak ? CHIME_TO_VOICE : CHIME_GAP);
     }
-    if (my !== seq || !speak) return;
+    if (my !== seq) return false;
+    if (!speak) return true;
     saying = audio.clips(lines.map((l) => voiceUrl(state.voice, l)), voiceGain(state.voiceVolume));
     await saying.done;
+    if (my !== seq) return false;
     saying = null;
-    if (my === seq) tools.playback.ignoreFor(0.6); // the voice's tail in the room
+    tools.playback.ignoreFor(0.6); // the voice's tail in the room
+    return true;
   }
   function hush() { seq++; saying?.stop(); saying = null; }
 
@@ -1046,8 +1070,12 @@ export function setupTimer({ settings, tools, audio }) {
     if (!last) return;
     if (last.type === 'changed') {
       cues.changed(last.done, last.next);
-      announce({ chime: true, lines: voiceLines.changed(last.done, last.next) });
-      if (!run.paused) startTools(last.next, { user });
+      const said = announce({ chime: true, lines: voiceLines.changed(last.done, last.next) });
+      if (!run.paused) {
+        // What the next item adds waits for the voice; what it drops stops now.
+        startTools(last.next, { user, hold: said.speaks });
+        if (said.speaks) afterVoice(said.done, last.next);
+      }
       render();
     } else {
       cues.finished(last.done);
@@ -1120,8 +1148,9 @@ export function setupTimer({ settings, tools, audio }) {
     // Everything it may say or ring, decoded ahead so nothing waits on the network.
     if (state.voiceOn) audio.preload([...new Set(list_.flatMap((it, i) => [...voiceLines.started(it), ...voiceLines.changed(it, list_[i + 1] || it), ...voiceLines.finished(it)]))].map((l) => voiceUrl(state.voice, l)));
     if (state.chimeOn) audio.preload([chimeUrl(state.chime)]);
-    announce({ lines: voiceLines.started(run.item) });
-    startTools();
+    const said = announce({ lines: voiceLines.started(run.item) });
+    startTools(run.item, { hold: said.speaks });
+    if (said.speaks) afterVoice(said.done, run.item);
     clearInterval(ticker);
     ticker = setInterval(tick, 250);
     audio.running(true);

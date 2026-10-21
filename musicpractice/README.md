@@ -802,7 +802,14 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
     you to play, recording with its clock, playing your take back) and how
     many takes there are.
   As each item starts, **its settings go on the tools**, and the tools it
-  has on start while the rest stop (one already going carries on). Whatever
+  has on start while the rest stop (one already going carries on). **Those
+  it starts wait for the voice**: when the voice is on, the ones the item
+  turns on start once it has finished speaking (the ones it turns off stop at
+  once), so the announcement isn't spoken over a fresh click or drone, and
+  the recorder isn't listening yet (`afterVoice` in `timerui.js`; Pause, Stop
+  or Skip in the meantime see to them instead, one turned off on its card
+  stays off, and a voice that never reports its end holds them 15 s at
+  most). With the voice off they start at once. Whatever
   is changed on a card or in its settings is **kept with that item** for next
   time. **Only the routine's own moves wait for a take**: when an item's time
   runs out and the next has the Playback Recorder off, a take being recorded
