@@ -482,6 +482,7 @@ export const EN = {
     add: 'Add',
     addTitle: 'Add a Routine',
     custom: 'Custom…',
+    reorderHint: 'Drag to reorder items',
     settingsButton: 'Practice Routine settings',
     settingsTitle: 'Practice Routine settings',
     chimeOn: 'Use Chimes',

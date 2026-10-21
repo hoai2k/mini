@@ -90,6 +90,15 @@ const clampInt = (v, lo, hi, d) => (Number.isFinite(Number(v)) ? Math.max(lo, Ma
 // A suggestion's name as it is now, or as it was ("Intonation practice", "Clapping rhythms").
 const sameName = (preset, name) => [preset, `${preset} practice`].some((n) => n.toLowerCase() === name.trim().toLowerCase());
 
+/** The suggestion named exactly `name` (any case, spaces round it aside), or null. */
+export const presetNamed = (name) => PRESETS.find((p) => TEXT.timer.presets[p.id].toLowerCase() === name.trim().toLowerCase())?.id ?? null;
+/** One of its own (Custom) named exactly as a suggestion becomes that suggestion: its name, picture and lines. */
+export function matchKind(it) {
+  const k = !it.kind && presetNamed(it.name);
+  if (k) setKind(it, k);
+  return it;
+}
+
 export function clean(it) {
   const o = it && typeof it === 'object' ? it : {};
   const met = o.met && typeof o.met === 'object' ? o.met : {};
@@ -99,8 +108,9 @@ export function clean(it) {
   const saved = typeof o.name === 'string' ? o.name.slice(0, MAX_NAME) : '';
   // Which suggestion it came from (its picture), or null for one of its own.
   // Saved before items knew: by its name, if that is a suggestion's.
+  // One of its own named exactly as a suggestion is that suggestion.
   const kind = PRESETS.some((p) => p.id === o.kind) ? o.kind
-    : o.kind === undefined ? PRESETS.find((p) => sameName(TEXT.timer.presets[p.id], saved))?.id ?? null : null;
+    : o.kind === undefined ? PRESETS.find((p) => sameName(TEXT.timer.presets[p.id], saved))?.id ?? null : presetNamed(saved);
   // A suggestion's name as it is now, where it was saved under an earlier one ("Intonation practice").
   const name = kind && sameName(TEXT.timer.presets[kind], saved) ? TEXT.timer.presets[kind] : saved;
   return {

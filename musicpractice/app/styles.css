@@ -1961,6 +1961,16 @@ html.paging { overflow: hidden; }
 .timer-total { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .timer-total .timer-edit { flex: none; width: 42px; height: 42px; color: var(--ink-2); }
 .timer-total .timer-edit svg { width: 22px; height: 22px; }
+.timer-total { flex-wrap: wrap; row-gap: 6px; }
+.timer-edit-label { display: none; }
+/* Editing: a pill, the check and how to reorder, tapped to finish. */
+.timer-total .timer-edit.on {
+  width: auto; height: 36px; padding: 0 14px 0 10px; gap: 6px; border-radius: 18px;
+  display: inline-flex; align-items: center; color: var(--ink);
+  background: color-mix(in srgb, var(--brass) 22%, transparent); border: 1px solid var(--brass);
+}
+.timer-total .timer-edit.on svg { width: 18px; height: 18px; color: var(--brass-2); }
+.timer-edit.on .timer-edit-label { display: inline; font: 700 0.9rem var(--ui); white-space: nowrap; }
 #routine .bar { grid-template-columns: 42px 1fr auto; gap: 4px; }
 #routine .bar h2 { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: clamp(0.85rem, 4.1vw, 1.25rem); }
 .bar-end { display: flex; justify-content: flex-end; }
