@@ -104,6 +104,7 @@ export const EN = {
     nouveau: 'French Nouveau',
     anime: 'Candy',
     steampunk: 'Steam Punk',
+    bebop: 'Bebop',
   },
 
   metronome: {

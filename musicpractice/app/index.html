@@ -23,7 +23,7 @@
     // Apply the saved theme before the page draws (settings.js owns the list).
     try {
       var s = JSON.parse(localStorage.getItem('musicpractice.settings.v1') || '{}') || {};
-      var ids = ['classic', 'deco', 'sixties', 'baroque', 'scifi', 'nouveau', 'anime', 'steampunk'];
+      var ids = ['classic', 'deco', 'sixties', 'baroque', 'scifi', 'nouveau', 'anime', 'steampunk', 'bebop'];
       var t = s.themeChosen === true && ids.indexOf(s.theme) > 0 ? s.theme : 'classic';
       // In the iOS and Android apps, themes are part of Pro (src/pro.js keeps this answer).
       var app = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
@@ -32,7 +32,7 @@
       if (app) document.getElementById('theme-fonts').href = 'fonts/' + t + '.css';
       document.documentElement.dataset.theme = t;
       // Light or dark (resolveMode in settings.js): the system's unless chosen.
-      var a = s.appearanceChosen === true ? s.appearance : 'system', dark = ['classic', 'deco', 'scifi', 'steampunk'].indexOf(t) >= 0;
+      var a = s.appearanceChosen === true ? s.appearance : 'system', dark = ['classic', 'deco', 'scifi', 'steampunk', 'bebop'].indexOf(t) >= 0;
       if (a === 'light' || a === 'dark') dark = a === 'dark';
       else if (a === 'system') dark = matchMedia('(prefers-color-scheme: dark)').matches;
       document.documentElement.dataset.mode = dark ? 'dark' : 'light';

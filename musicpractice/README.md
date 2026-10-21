@@ -79,29 +79,25 @@ don't offer it. It switches the whole app's look:
   outlines, hard manga-panel shadows, halftone dots and sparkles.
 - **Steam Punk**: dark leather with brass and copper, Cinzel and Special
   Elite, riveted plates and a gear.
-
-The 20 images for a ninth theme, **Bebop**, are delivered (Round 13
-of `design/image-requests.md`): a 1950s modern-jazz record sleeve and a
-late-night jazz club, in midnight blue and ink black with cream, saxophone
-brass, an amber spotlight glow and one accent of club-sign red, flat colour
-shapes with a halftone texture and small four-point stars. It is dark by
-design (its other mode a cream record sleeve by day). PNG masters and a
-contact sheet are in `design/generated/round-13/`; exact prompts, source
-references, exports and measured animation anchors are recorded in
-`design/image-deliveries-round-13.json`. The Drone alone has fine, subtle
-sound traces; routine pictures have no wings, mist or decorative notes.
-Its Settings option and theme styling remain planned; the artwork and
-animation geometry are ready for that integration.
+- **Bebop**: a 1950s modern-jazz record sleeve in a late-night club:
+  midnight blue and ink with cream, saxophone brass, an amber spotlight and
+  one club-sign red, Bebas Neue capitals and Barlow, a halftone texture,
+  cards like record sleeves (a cream rule inside the edge, a red stripe down
+  one side), pill buttons, and the Visualizer's bars shaped like piano keys.
+  Its 20 images are Round 13 of `design/image-requests.md` (masters and a
+  contact sheet in `design/generated/round-13/`, prompts and measured
+  anchors in `design/image-deliveries-round-13.json`).
 
 **Dark Mode**, a dropdown under the theme tiles, is **Default**, the default (each theme
-as designed: Classic, Art Deco, Robot Future and Steam Punk dark, the other
-four light), **Light**, **Dark** or **System** (follows the device, and
+as designed: Classic, Art Deco, Robot Future, Steam Punk and Bebop dark, the
+other four light), **Light**, **Dark** or **System** (follows the device, and
 switches while the app is open when the device does, at dusk for one). A
 save that never chose one shows Default; a choice made at the setting is
 kept. Every
 theme has its other mode: Classic by day (cream and walnut), Art Deco in
 ivory, 18th Century by candlelight, Robot Future in a white lab, French
 Nouveau in the evening, Candy at night, Steam Punk in the drawing office,
+Bebop by day (a cream record sleeve printed in midnight-blue ink),
 Vintage 60s after dark (the same print on a dark page: near-black offset
 shadows rather than teal ones, which read as glowing edges on dark, soft tan
 outlines, and the badges on the stripes cream with dark ink, as by day). Classic by day has its own touches: near-white cards
@@ -115,7 +111,7 @@ before the first paint.
 
 Theme ids stay fixed when a theme is renamed (Robot Future is `scifi`,
 Candy is `anime`), so saved choices and image paths keep working.
-Each theme loads only its own fonts. All eight themes have delivered images.
+Each theme loads only its own fonts. All nine themes have delivered images.
 The drawings in `app/src/standins.js` remain as loading and error fallbacks;
 the newer themes share one drawing (`themed`), varied by case shape, palette
 and pendulum weight.
