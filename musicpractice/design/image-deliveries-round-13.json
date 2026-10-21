@@ -77,6 +77,33 @@
       "scale": 0.9
     },
     {
+      "id": "home-metronome",
+      "file": "musicpractice/app/assets/ui/bebop/home-metronome.webp",
+      "size": [
+        384,
+        384
+      ],
+      "group": "Bebop \u00b7 Home screen buttons",
+      "prompt": "Use case: stylized-concept. The same metronome as the attached images, musicpractice/app/assets/ui/bebop/metronome-body.webp and metronome-pendulum.webp, drawn as one icon: a slim tapering pyramid metronome case in glossy midnight-blue lacquer, its edges trimmed in polished saxophone brass, a cream front face with a vertical row of short black tick marks like the edge of a piano keyboard (no numbers), a thin red band across the lower case, on a short stepped ink-black plinth with two small brass feet, with its pendulum (a thin straight polished brass rod and a round brass hub and a small rounded red-lacquer sliding weight with a brass rim (like a saxophone key) near the top of the rod) tilted a little to the right, pivoting near the bottom of the face, and a soft amber spotlight glow behind the top of the case. Seen from the front. Bebop jazz illustration in the manner of a 1950s modern-jazz record sleeve and a late-night jazz club: deep midnight blue and ink black, warm cream, gleaming saxophone brass, a soft amber spotlight glow and a single accent of club-sign red, bold flat colour shapes with crisp edges and a fine halftone-dot texture in the shadows, a few small four-point stars. Cool, swinging, a little playful, simple and readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow. Reference1 is exact body design; reference2 exact pendulum design. Combine with no extra parts. Square transparent canvas. No wings, mist or notes.",
+      "note": "Step 1 (draw first). Draw after the metronome screen's two layers, so the home button matches them (the lesson of the Vintage 60s icon, redrawn in Round 4). The big Metronome button; the label is written by the app. Tick marks only, no numbers.",
+      "theme": "bebop",
+      "round": 13,
+      "status": "delivered",
+      "generated_source": "exec-e957a60a-4feb-4f27-8e38-fda6f228f2e5.png",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-2192e38c-e4e3-484d-be21-6f6199b06292.png",
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-b8444821-b8a2-4591-8bf5-04282eddf662.png"
+      ],
+      "source": "musicpractice/design/generated/round-13/bebop-home-metronome.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated illustration and alpha; clear imperceptible 1/255 alpha noise; crop transparent side margins on narrow layers only; fit without distortion into the measured PNG canvas and export lossless WebP."
+    },
+    {
       "id": "home-record",
       "file": "musicpractice/app/assets/ui/bebop/home-record.webp",
       "size": [
@@ -119,6 +146,140 @@
       "native_size": [
         1312,
         1199
+      ],
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated illustration and alpha; clear imperceptible 1/255 alpha noise; crop transparent side margins on narrow layers only; fit without distortion into the measured PNG canvas and export lossless WebP."
+    },
+    {
+      "id": "home-drone",
+      "file": "musicpractice/app/assets/ui/bebop/home-drone.webp",
+      "size": [
+        384,
+        384
+      ],
+      "group": "Bebop \u00b7 Home screen buttons",
+      "prompt": "Use case: precise-object-edit. Keep the cello and bow absolutely identical. Delete the broad beige ribbon bands completely and restore transparent background. Replace each band with just ONE tiny hairline pale amber sound wave, a very fine faint line about 2 pixels thick (on this 1254 pixel image). No filled shapes whatsoever outside cello and bow. A single thin smooth line curves gently from each side of the cello, symmetrical. Never draw cloth, ribbons, bands, wings, feathers, fans or solid beige swaths. ONLY the hairline traces, as faint as pencil lines. Exact same framing, scale, instrument colors, halftone texture, placement. Transparent PNG.",
+      "note": "Step 1 (draw first). The big Drone button on the home screen, and the reference every step 2 picture is drawn from (as the other themes' are), so take care over it.",
+      "theme": "bebop",
+      "round": 13,
+      "status": "delivered",
+      "generated_source": "exec-7ec26c43-d930-450f-a567-03395999d7a6.png",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-55ca460c-48f3-40bd-bc6b-d414356cd7db.png"
+      ],
+      "source": "musicpractice/design/generated/round-13/bebop-home-drone.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated illustration and alpha; clear imperceptible 1/255 alpha noise; crop transparent side margins on narrow layers only; fit without distortion into the measured PNG canvas and export lossless WebP."
+    },
+    {
+      "id": "home-routine",
+      "file": "musicpractice/app/assets/ui/bebop/home-routine.webp",
+      "size": [
+        384,
+        384
+      ],
+      "group": "Bebop \u00b7 Home screen buttons",
+      "prompt": "Use case: stylized-concept. Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone home button, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw an hourglass in its place: a midnight-blue lacquer frame with brass end caps and slim brass columns, a small red band, golden sand. The hourglass stands upright and perfectly symmetrical, seen from the front, with about two thirds of the sand in the lower bulb, a small heap, and a thin stream still falling through the neck. No wings, sound ribbons, mist, floating notes or surrounding decorations; those ribbons belong only to Drone. Centred, at about the same height as the cello, with the same small even margin; a bold readable silhouette that still reads at 64 pixels. A fully transparent background, no cast shadow, no clock face, no text, no letters, no numbers. Reference is STYLE ONLY: ignore the cello, bow, ribbons and all objects. Render ONLY ONE hourglass and its attached frame. The sand clearly fills the lower bulb about two-thirds, with a thin falling stream from the upper bulb. Do not add floating notes, mist, ribbons, wings, star ornaments or objects beside the hourglass. Square transparent canvas.",
+      "note": "Step 2 (made from step 1's delivered files). The Practice Routine's button on the home screen and its picture on the routine screen.",
+      "theme": "bebop",
+      "round": 13,
+      "status": "delivered",
+      "generated_source": "exec-518918bf-e3a0-4fb8-ba7e-e3a70939e537.png",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-55ca460c-48f3-40bd-bc6b-d414356cd7db.png"
+      ],
+      "source": "musicpractice/design/generated/round-13/bebop-home-routine.png",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated illustration and alpha; clear imperceptible 1/255 alpha noise; crop transparent side margins on narrow layers only; fit without distortion into the measured PNG canvas and export lossless WebP."
+    },
+    {
+      "id": "metronome-rod",
+      "file": "musicpractice/app/assets/ui/bebop/metronome-rod.webp",
+      "size": [
+        200,
+        1000
+      ],
+      "group": "Bebop \u00b7 Metronome pendulum in two parts",
+      "prompt": "Use case: precise-object-edit. Edit the attached image, musicpractice/app/assets/ui/bebop/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the hub. The hub at the bottom and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text. Keep the exact 760x2070 portrait canvas and scale of reference, with hub center near (374,1867), and rod tip near (374,55). Do not move, resize or redesign the rod or hub. Remove only the red weight. Preserve all transparent side space. No new collar or ring where the weight was.",
+      "note": "Step 2 (made from step 1's delivered files). The rod without the weight; the app slides the weight along it with the tempo. Same canvas, hub and swing as the pendulum; record the range the weight's centre may travel.",
+      "canvas": [
+        200,
+        1000
+      ],
+      "anchors": {
+        "hub": [
+          101,
+          912
+        ]
+      },
+      "swing": 24,
+      "theme": "bebop",
+      "round": 13,
+      "status": "delivered",
+      "generated_source": "exec-2eaeeb76-b61f-4639-8d49-c258dc8e2fdc.png",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-b8444821-b8a2-4591-8bf5-04282eddf662.png"
+      ],
+      "source": "musicpractice/design/generated/round-13/bebop-metronome-rod.png",
+      "native_size": [
+        760,
+        2069
+      ],
+      "tool": "built-in image_gen",
+      "mode": "RGBA",
+      "processing": "Preserve generated illustration and alpha; clear imperceptible 1/255 alpha noise; crop transparent side margins on narrow layers only; fit without distortion into the measured PNG canvas and export lossless WebP.",
+      "scale": 0.9,
+      "travel": [
+        150,
+        780
+      ]
+    },
+    {
+      "id": "metronome-weight",
+      "file": "musicpractice/app/assets/ui/bebop/metronome-weight.webp",
+      "size": [
+        200,
+        200
+      ],
+      "group": "Bebop \u00b7 Metronome pendulum in two parts",
+      "prompt": "Use case: precise-object-edit. From the attached image, musicpractice/app/assets/ui/bebop/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no hub. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text. Reference role: pendulum is style and exact ornament reference. Extract only its red circular sax-key weight with thin brass ring. No lower hub or long rod. Square transparent canvas, centred. Output the same front-facing circular ornament, no stars or mist.",
+      "note": "Step 2 (made from step 1's delivered files). The weight the app slides along the rod (higher is slower) and which can be dragged to set the tempo. Ask for about 200\u00d7200 with the weight centred on (100, 100), then record the delivered canvas and its `center` anchor, the point on the rod that marks its place.",
+      "canvas": [
+        200,
+        200
+      ],
+      "anchors": {
+        "center": [
+          100,
+          98
+        ]
+      },
+      "theme": "bebop",
+      "round": 13,
+      "status": "delivered",
+      "generated_source": "exec-0e012e1b-7183-4031-aa25-078e7d71633c.png",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-b8444821-b8a2-4591-8bf5-04282eddf662.png"
+      ],
+      "fit_size": [
+        230,
+        230
+      ],
+      "source": "musicpractice/design/generated/round-13/bebop-metronome-weight.png",
+      "native_size": [
+        1254,
+        1254
       ],
       "tool": "built-in image_gen",
       "mode": "RGBA",

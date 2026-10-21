@@ -1499,7 +1499,7 @@
     "id": "home-metronome",
     "theme": "bebop",
     "file": "assets/ui/bebop/home-metronome.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "home-record",
@@ -1517,7 +1517,7 @@
     "id": "home-drone",
     "theme": "bebop",
     "file": "assets/ui/bebop/home-drone.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "drone-cello",
@@ -1555,30 +1555,35 @@
     "id": "home-routine",
     "theme": "bebop",
     "file": "assets/ui/bebop/home-routine.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "metronome-rod",
     "theme": "bebop",
     "file": "assets/ui/bebop/metronome-rod.webp",
-    "status": "requested",
+    "status": "delivered",
     "canvas": [
       200,
       1000
     ],
     "anchors": {
       "hub": [
-        100,
-        960
+        101,
+        912
       ]
     },
-    "swing": 24
+    "swing": 24,
+    "scale": 0.9,
+    "travel": [
+      150,
+      780
+    ]
   },
   {
     "id": "metronome-weight",
     "theme": "bebop",
     "file": "assets/ui/bebop/metronome-weight.webp",
-    "status": "requested",
+    "status": "delivered",
     "canvas": [
       200,
       200
@@ -1586,7 +1591,7 @@
     "anchors": {
       "center": [
         100,
-        100
+        98
       ]
     }
   },
