@@ -1523,25 +1523,25 @@
     "id": "drone-cello",
     "theme": "bebop",
     "file": "assets/ui/bebop/drone-cello.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "drone-bow",
     "theme": "bebop",
     "file": "assets/ui/bebop/drone-bow.webp",
-    "status": "requested",
+    "status": "delivered",
     "canvas": [
       256,
       1024
     ],
     "anchors": {
       "frog": [
-        88,
-        990
+        115,
+        890
       ],
       "tip": [
-        88,
-        34
+        115,
+        40
       ]
     }
   },
@@ -1549,7 +1549,7 @@
     "id": "drone-organ",
     "theme": "bebop",
     "file": "assets/ui/bebop/drone-organ.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "home-routine",
@@ -1599,48 +1599,48 @@
     "id": "practice-intonation",
     "theme": "bebop",
     "file": "assets/ui/bebop/practice-intonation.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "practice-scales",
     "theme": "bebop",
     "file": "assets/ui/bebop/practice-scales.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "practice-rhythms",
     "theme": "bebop",
     "file": "assets/ui/bebop/practice-rhythms.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "practice-ghosting",
     "theme": "bebop",
     "file": "assets/ui/bebop/practice-ghosting.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "practice-default",
     "theme": "bebop",
     "file": "assets/ui/bebop/practice-default.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "practice-arpeggios",
     "theme": "bebop",
     "file": "assets/ui/bebop/practice-arpeggios.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "practice-sight-reading",
     "theme": "bebop",
     "file": "assets/ui/bebop/practice-sight-reading.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "practice-improvisation",
     "theme": "bebop",
     "file": "assets/ui/bebop/practice-improvisation.webp",
-    "status": "requested"
+    "status": "delivered"
   }
 ]

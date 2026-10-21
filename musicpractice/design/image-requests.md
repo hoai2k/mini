@@ -30,7 +30,7 @@ Images belong to a theme (Settings → Theme); each theme has its own set.
 
 **Round 12 (Arpeggios, Sight reading and Improvisation, every theme):** delivered and in use.
 
-**Round 13 (the Bebop theme: draw step 1 first, then make step 2 from it):** 11 images wanted: `assets/ui/bebop/drone-cello.webp`, `assets/ui/bebop/drone-bow.webp`, `assets/ui/bebop/drone-organ.webp`, `assets/ui/bebop/practice-intonation.webp`, `assets/ui/bebop/practice-scales.webp`, `assets/ui/bebop/practice-rhythms.webp`, `assets/ui/bebop/practice-ghosting.webp`, `assets/ui/bebop/practice-default.webp`, `assets/ui/bebop/practice-arpeggios.webp`, `assets/ui/bebop/practice-sight-reading.webp`, `assets/ui/bebop/practice-improvisation.webp`.
+**Round 13 (the Bebop theme: draw step 1 first, then make step 2 from it):** delivered and in use.
 
 **House styles** (already included in every prompt):
 
@@ -220,20 +220,20 @@ the measured ones for the delivered file in `build_requests.py`.
 | 13 | Bebop | delivered | `home-record` | `app/assets/ui/bebop/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 13 | Bebop | delivered | `home-tuner` | `app/assets/ui/bebop/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 13 | Bebop | delivered | `home-drone` | `app/assets/ui/bebop/home-drone.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
-| 13 | Bebop | requested | `drone-cello` | `app/assets/ui/bebop/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 13 | Bebop | requested | `drone-bow` | `app/assets/ui/bebop/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
-| 13 | Bebop | requested | `drone-organ` | `app/assets/ui/bebop/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | delivered | `drone-cello` | `app/assets/ui/bebop/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | delivered | `drone-bow` | `app/assets/ui/bebop/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
+| 13 | Bebop | delivered | `drone-organ` | `app/assets/ui/bebop/drone-organ.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 | 13 | Bebop | delivered | `home-routine` | `app/assets/ui/bebop/home-routine.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
 | 13 | Bebop | delivered | `metronome-rod` | `app/assets/ui/bebop/metronome-rod.webp` | 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP |
 | 13 | Bebop | delivered | `metronome-weight` | `app/assets/ui/bebop/metronome-weight.webp` | 200×(just tall enough) canvas at the pendulum's scale, transparent PNG, shipped as WebP |
-| 13 | Bebop | requested | `practice-intonation` | `app/assets/ui/bebop/practice-intonation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 13 | Bebop | requested | `practice-scales` | `app/assets/ui/bebop/practice-scales.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 13 | Bebop | requested | `practice-rhythms` | `app/assets/ui/bebop/practice-rhythms.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 13 | Bebop | requested | `practice-ghosting` | `app/assets/ui/bebop/practice-ghosting.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 13 | Bebop | requested | `practice-default` | `app/assets/ui/bebop/practice-default.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 13 | Bebop | requested | `practice-arpeggios` | `app/assets/ui/bebop/practice-arpeggios.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 13 | Bebop | requested | `practice-sight-reading` | `app/assets/ui/bebop/practice-sight-reading.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 13 | Bebop | requested | `practice-improvisation` | `app/assets/ui/bebop/practice-improvisation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | delivered | `practice-intonation` | `app/assets/ui/bebop/practice-intonation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | delivered | `practice-scales` | `app/assets/ui/bebop/practice-scales.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | delivered | `practice-rhythms` | `app/assets/ui/bebop/practice-rhythms.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | delivered | `practice-ghosting` | `app/assets/ui/bebop/practice-ghosting.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | delivered | `practice-default` | `app/assets/ui/bebop/practice-default.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | delivered | `practice-arpeggios` | `app/assets/ui/bebop/practice-arpeggios.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | delivered | `practice-sight-reading` | `app/assets/ui/bebop/practice-sight-reading.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 13 | Bebop | delivered | `practice-improvisation` | `app/assets/ui/bebop/practice-improvisation.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
 
 ## Home screen buttons
 
@@ -2111,32 +2111,32 @@ Asset: Music Practice home-button emblem for the 'Drone' feature (sustained cell
 
 ## Bebop · Drone screen
 
-### `drone-cello` · Bebop · requested
+### `drone-cello` · Bebop · delivered
 
 - File: `musicpractice/app/assets/ui/bebop/drone-cello.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: Step 2 (made from step 1's delivered files). The Drone screen's picture when the bow is the volume control.
+- Note: Step 2 (made from step 1's delivered files). The Drone screen's picture when the bow is the volume control. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
 
 ```text
 Edit the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone home image, a cello with its bow): remove the bow entirely and change nothing else. The cello, its colours, its position and size on the canvas, its strings and the sound ribbons stay exactly as they are; where the bow crossed the cello or a ribbon, restore what lies behind it, and where it crossed empty space leave the background fully transparent. Same square canvas, same framing, so the two images line up exactly when swapped. No bow, no new objects, no text.
 ```
 
-### `drone-bow` · Bebop · requested
+### `drone-bow` · Bebop · delivered
 
 - File: `musicpractice/app/assets/ui/bebop/drone-bow.webp`
 - Size: 256×1024, transparent PNG (shipped as 128×512 WebP)
-- Anchors (requested): frog (88, 990), tip (88, 34) in a 256×1024 canvas
-- Note: Step 2 (made from step 1's delivered files). The Drone screen's volume control. Ask for the hair from (88, 990) at the frog to (88, 34) at the tip in a 256×1024 canvas, then record the measured points.
+- Anchors (measured): frog (115, 890), tip (115, 40) in a 256×1024 canvas
+- Note: Step 2 (made from step 1's delivered files). The Drone screen's volume control. Ask for the hair from (88, 990) at the frog to (88, 34) at the tip in a 256×1024 canvas, then record the measured points. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
 
 ```text
 Using the bow in the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone home image), as the reference for its materials, colours and rendering style, draw that cello bow alone, standing straight upright: the tip at the top, the frog (with its small eye and silver-wound grip) at the bottom, the stick perfectly vertical and straight, and the bow hair a clean, light, evenly taut straight line running down the stick's left side from the tip to the frog, clearly visible along its whole length. Seen side-on, so the stick and the hair read as two parallel lines. The bow fills the canvas from top to bottom with a small margin (about 3%), centred left to right. A tall narrow canvas with a fully transparent background, no cast shadow, no sound ribbons, no cello, no hands, no text.
 ```
 
-### `drone-organ` · Bebop · requested
+### `drone-organ` · Bebop · delivered
 
 - File: `musicpractice/app/assets/ui/bebop/drone-organ.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: Step 2 (made from step 1's delivered files). The Drone screen's picture while an organ voice plays, in place of the cello.
+- Note: Step 2 (made from step 1's delivered files). The Drone screen's picture while an organ voice plays, in place of the cello. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
 
 ```text
 Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone image, a cello), as the reference for its style, colours, lighting, rendering, framing and canvas, draw a small pipe organ in place of the cello: a front of upright organ pipes, polished brass pipes like a row of saxophone bells in a midnight-blue lacquer case with a red band. The pipes stand in a symmetrical row, tallest in the middle and stepping down to either side, each with its mouth (the small horizontal slot near its foot) clearly drawn, all set on the case. Keep the same two thin, smooth sound ribbons drifting gently outward from the sides, as in the reference, to suggest one sustained tone. The organ stands in the same place and at about the same height as the cello in the reference, centred, filling the canvas from top to bottom with the same small margin, so the two pictures swap in place. Seen from the front. A fully transparent background, no cast shadow, no keyboard, no bench, no player, no music notes, no text, no letters, no numbers.
@@ -2180,81 +2180,81 @@ From the attached image, musicpractice/app/assets/ui/bebop/metronome-pendulum.we
 
 ## Bebop · Practice Routine pictures
 
-### `practice-intonation` · Bebop · requested
+### `practice-intonation` · Bebop · delivered
 
 - File: `musicpractice/app/assets/ui/bebop/practice-intonation.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Intonation practice, shown large while such an item runs.
+- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Intonation practice, shown large while such an item runs. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
 
 ```text
 Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a two-tined tuning fork standing upright and ringing, with small vibration marks beside its tines; the tuning fork alone, without musical notes or a staff, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
 ```
 
-### `practice-scales` · Bebop · requested
+### `practice-scales` · Bebop · delivered
 
 - File: `musicpractice/app/assets/ui/bebop/practice-scales.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Scales, shown large while such an item runs.
+- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Scales, shown large while such an item runs. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
 
 ```text
 Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with eight round note heads climbing it from left to right like a gentle staircase, the last note a little larger; exactly eight notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
 ```
 
-### `practice-rhythms` · Bebop · requested
+### `practice-rhythms` · Bebop · delivered
 
 - File: `musicpractice/app/assets/ui/bebop/practice-rhythms.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Clapping rhythms, shown large while such an item runs.
+- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Clapping rhythms, shown large while such an item runs. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
 
 ```text
 Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw exactly two hands meeting in a clap, one left and one right, with exactly two wrists and two cuffs, seen from the side, with three small curved motion marks around them, and a short row of rhythm notes (quarter notes and a pair of beamed eighth notes) beneath, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
 ```
 
-### `practice-ghosting` · Bebop · requested
+### `practice-ghosting` · Bebop · delivered
 
 - File: `musicpractice/app/assets/ui/bebop/practice-ghosting.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Ghosting, shown large while such an item runs.
+- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Ghosting, shown large while such an item runs. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
 
 ```text
 Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a cello bow drawn as a faint, translucent ghostly outline, hovering just above four strings; only the translucent bow outline and the four strings, without floating notes, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
 ```
 
-### `practice-default` · Bebop · requested
+### `practice-default` · Bebop · delivered
 
 - File: `musicpractice/app/assets/ui/bebop/practice-default.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Practice (default), shown large while such an item runs and for any item with no picture of its own.
+- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Practice (default), shown large while such an item runs and for any item with no picture of its own. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
 
 ```text
 Using the attached image, musicpractice/app/assets/ui/bebop/home-drone.webp (this theme's Drone cello), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a music stand holding an open book of sheet music, a pencil resting on its ledge, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only within the scale, rhythm pattern or sheet music that represents the activity. One centred subject at about the same size as the Drone cello, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
 ```
 
-### `practice-arpeggios` · Bebop · requested
+### `practice-arpeggios` · Bebop · delivered
 
 - File: `musicpractice/app/assets/ui/bebop/practice-arpeggios.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Arpeggios, shown large while such an item runs.
+- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Arpeggios, shown large while such an item runs. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
 
 ```text
 Using the attached image, musicpractice/app/assets/ui/bebop/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a short musical staff with five round note heads rising and then falling in a gentle arch from left to right, a broken chord climbing a triad and coming back down; exactly five notes on a five-line staff, no treble clef, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
 ```
 
-### `practice-sight-reading` · Bebop · requested
+### `practice-sight-reading` · Bebop · delivered
 
 - File: `musicpractice/app/assets/ui/bebop/practice-sight-reading.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Sight reading, shown large while such an item runs.
+- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Sight reading, shown large while such an item runs. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
 
 ```text
 Using the attached image, musicpractice/app/assets/ui/bebop/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a single sheet of printed music, a few staves of notes, with a small magnifying glass resting over one corner as if reading it for the first time; the sheet and the magnifying glass only, no music stand, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.
 ```
 
-### `practice-improvisation` · Bebop · requested
+### `practice-improvisation` · Bebop · delivered
 
 - File: `musicpractice/app/assets/ui/bebop/practice-improvisation.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Improvisation, shown large while such an item runs.
+- Note: Step 2 (made from step 1's delivered files). The Practice Routine's picture for Improvisation, shown large while such an item runs. Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json.
 
 ```text
 Using the attached image, musicpractice/app/assets/ui/bebop/home-routine.webp (this theme's Routine hourglass), as the reference for its style, colours, materials, lighting, rendering, framing and canvas, draw a glowing light bulb with one musical eighth note inside it, and a few short spark lines around the bulb; the bulb, its note and the sparks only, in this theme's materials and colours. No wings, sound ribbons, mist bands or decorative floating notes. Ribbons belong only to Drone. Notes belong only to the arpeggio, the printed sheet music, or the single note enclosed inside the improvisation bulb. One centred subject at about the same size as the Routine hourglass, with the same small even margin; a bold readable silhouette that still reads at 96 pixels. A fully transparent background, no cast shadow, no text, no letters, no numbers.

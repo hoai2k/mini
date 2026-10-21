@@ -80,14 +80,18 @@ don't offer it. It switches the whole app's look:
 - **Steam Punk**: dark leather with brass and copper, Cinzel and Special
   Elite, riveted plates and a gear.
 
-A ninth theme, **Bebop**, is planned and its images are requested (Round 13
+The 20 images for a ninth theme, **Bebop**, are delivered (Round 13
 of `design/image-requests.md`): a 1950s modern-jazz record sleeve and a
 late-night jazz club, in midnight blue and ink black with cream, saxophone
 brass, an amber spotlight glow and one accent of club-sign red, flat colour
 shapes with a halftone texture and small four-point stars. It is dark by
-design (its other mode a cream record sleeve by day). It joins Settings, with
-its colours, type and shapes in `styles.css`, only once its images are
-delivered; until then nothing in the app offers it.
+design (its other mode a cream record sleeve by day). PNG masters and a
+contact sheet are in `design/generated/round-13/`; exact prompts, source
+references, exports and measured animation anchors are recorded in
+`design/image-deliveries-round-13.json`. The Drone alone has fine, subtle
+sound traces; routine pictures have no wings, mist or decorative notes.
+Its Settings option and theme styling remain planned; the artwork and
+animation geometry are ready for that integration.
 
 **Dark Mode**, a dropdown under the theme tiles, is **Default**, the default (each theme
 as designed: Classic, Art Deco, Robot Future and Steam Punk dark, the other
