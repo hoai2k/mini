@@ -470,6 +470,7 @@ export function setupDrone({ settings, persist, chips, engine, onPlaying }) {
     stop: pause,
     toggle: () => (playing ? pause() : play()),
     step: (d) => setNote(settings.droneMidi + d, Math.sign(d)),
+    setVolume,
     syncNative,
     get playing() { return playing; },
   };

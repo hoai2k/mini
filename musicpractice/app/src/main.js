@@ -2063,14 +2063,20 @@ const routineTools = {
     on: () => !!metronome?.running,
     bpm: () => settings.bpm,
     setBpm: (n) => setBpm(n),
-    /** Its settings as a routine item keeps them: tempo, time signature, click and extra notes. */
-    config: () => ({ bpm: settings.bpm, meter: settings.meter, sound: settings.sound, sub: settings.subOn ? settings.subKind : 1 }),
-    setConfig: ({ bpm, meter, sound, sub }) => {
+    /** Its settings as a routine item keeps them: tempo, time signature, click, extra notes, accent and volume. */
+    config: () => ({ bpm: settings.bpm, meter: settings.meter, sound: settings.sound, sub: settings.subOn ? settings.subKind : 1, accent: settings.accent, volume: settings.volume }),
+    setConfig: ({ bpm, meter, sound, sub, accent, volume }) => {
       if (bpm !== settings.bpm) setBpm(bpm);
+      if (volume !== undefined && volume !== settings.volume) { settings.volume = volume; metVolume.show(); }
       const subNow = settings.subOn ? settings.subKind : 1;
-      if (meter === settings.meter && sound === settings.sound && sub === subNow) return;
+      if (meter === settings.meter && sound === settings.sound && sub === subNow && (accent === undefined || accent === settings.accent)) {
+        metronome?.configure(settings);
+        persist();
+        return;
+      }
       if (meter !== settings.meter) { settings.meter = meter; settings.accentPattern = null; meterSelect.value = meter; }
       if (sound !== settings.sound) { settings.sound = sound; soundSelect.value = sound; }
+      if (accent !== undefined && accent !== settings.accent) { settings.accent = accent; if (!accent) settings.accentPattern = null; $('accent').checked = accent; }
       if (sub !== subNow) setSub(sub > 1, sub > 1 ? sub : settings.subKind);
       else metronomeConfigured();
     },
@@ -2080,7 +2086,7 @@ const routineTools = {
       if (!metronome?.running) return { idx: -1, strengths };
       const now = metronome.native ? metronome.heardNow(1 / 60) : heardNow(1 / 60);
       const b = metronome.beatAt(now);
-      return { idx: !b ? -1 : meterOf(settings.meter).beats === 1 ? b.count % strengths.length : b.beat, strengths };
+      return { idx: !b ? -1 : meterOf(settings.meter).beats === 1 ? b.count % strengths.length : b.beat, strengths, at: b, now, period: metronome.period };
     },
   },
   drone: {
@@ -2089,8 +2095,10 @@ const routineTools = {
     on: () => timerDrone,
     note: droneNote,
     midi: () => settings.droneMidi,
-    /** An item's drone: its note, instrument and fifth (playing on if it was). */
-    set: ({ midi, voice, fifth }) => {
+    volume: () => settings.droneVolume,
+    /** An item's drone: its note, instrument, fifth and volume (playing on if it was). */
+    set: ({ midi, voice, fifth, volume }) => {
+      if (volume !== undefined && volume !== settings.droneVolume) droneUI.setVolume(volume);
       if (midi === settings.droneMidi && voice === settings.droneVoice && fifth === settings.droneFifth) return;
       Object.assign(settings, { droneMidi: wrapNote(midi), droneVoice: voice, droneFifth: fifth });
       droneChanged();
@@ -2117,8 +2125,9 @@ const routineTools = {
     },
     busy: () => recorder?.state === 'recording' || !!playing,
     /** Its settings as a routine item keeps them: the silence it stops after, and whether it plays takes back. */
-    config: () => ({ silenceSec: settings.silenceSec, autoPlay: settings.autoPlay }),
-    setConfig: ({ silenceSec, autoPlay }) => {
+    config: () => ({ silenceSec: settings.silenceSec, autoPlay: settings.autoPlay, volume: settings.playVolume }),
+    setConfig: ({ silenceSec, autoPlay, volume }) => {
+      if (volume !== undefined && volume !== settings.playVolume) { settings.playVolume = volume; setPlaybackVolume(volume); recVolume.show(); persist(); }
       if (silenceSec === settings.silenceSec && autoPlay === settings.autoPlay) return;
       settings.silenceSec = silenceSec;
       settings.autoPlay = autoPlay;

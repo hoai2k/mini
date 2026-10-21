@@ -23,8 +23,9 @@ import { VOICES, DRONE_MIN, DRONE_MAX, spelling } from './drone.js';
 import { BPM_MIN, BPM_MAX, METERS, SOUNDS } from './settings.js';
 import { noteName } from './tuning.js';
 import { clock } from './droneui.js';
-import { hasArt, showArt } from './art.js';
-import { PRESETS, TOOLS, CHIMES, SPEAKERS, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, newItem, loadTimer, saveTimer, voiceGain, totalSeconds, enabledItems, setKind, cues, TimerRun, pictureFor, move, voiceLines, voiceUrl, chimeUrl } from './timer.js';
+import { hasArt, showArt, alignPendulum, placeWeight, swingOf } from './art.js';
+import { pendulumAngle, weightAt } from './metronome.js';
+import { PRESETS, TOOLS, CHIMES, SPEAKERS, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, newItem, loadTimer, saveTimer, customCount, CONFIRM_OVER, voiceGain, totalSeconds, enabledItems, setKind, cues, TimerRun, pictureFor, move, voiceLines, voiceUrl, chimeUrl } from './timer.js';
 
 const $ = (id) => document.getElementById(id);
 const TRASH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>';
@@ -199,7 +200,7 @@ export function setupTimer({ settings, tools, audio }) {
     on.addEventListener('change', () => { it.enabled = on.checked; save(); render(it.id, '.titem-onoff input'); });
     const del = li.querySelector('.titem-del');
     del.setAttribute('aria-label', I.delete(label(it)));
-    del.addEventListener('click', () => remove(it));
+    del.addEventListener('click', () => askRemove(it));
     const handle = li.querySelector('.titem-handle');
     handle.setAttribute('aria-label', I.reorder(label(it)));
     // Arrow keys move it too, for a keyboard.
@@ -348,7 +349,13 @@ export function setupTimer({ settings, tools, audio }) {
         if (mode) quietUntil = Date.now() + 400;
         if (mode !== 'swipe') return;
         li.classList.remove('swiping');
-        if (Math.abs(dx) > li.offsetWidth * SWIPE_OFF) {
+        if (Math.abs(dx) > li.offsetWidth * SWIPE_OFF && needsAsking(it)) {
+          // Its own settings would go with it: spring back and ask first.
+          li.animate([{ transform: `translateX(${dx}px)` }, { transform: 'none' }], { duration: 200, easing: 'ease-out' });
+          li.style.transform = '';
+          li.style.opacity = '';
+          askRemove(it);
+        } else if (Math.abs(dx) > li.offsetWidth * SWIPE_OFF) {
           const out = Math.sign(dx) * li.offsetWidth * 1.1;
           const a = li.animate([{ transform: `translateX(${dx}px)`, opacity: li.style.opacity }, { transform: `translateX(${out}px)`, opacity: 0 }], { duration: 180, easing: 'ease-in', fill: 'forwards' });
           a.onfinish = () => remove(it);
@@ -394,7 +401,7 @@ export function setupTimer({ settings, tools, audio }) {
   document.addEventListener('keydown', (e) => { if (menuFor && e.key === 'Escape') closeMenu(); });
   addEventListener('scroll', () => { if (menuFor) closeMenu(); }, { passive: true });
   function menuAction(act, it) {
-    if (act === 'delete') { remove(it); return; }
+    if (act === 'delete') { askRemove(it); return; }
     if (act === 'toggle') {
       it.enabled = !it.enabled;
       save();
@@ -484,6 +491,25 @@ export function setupTimer({ settings, tools, audio }) {
       render();
     });
   }
+  /*
+   * Deleting an item with more than a few settings of its own (customCount:
+   * tools turned on, settings unlike the tools' own) asks first, saying they
+   * go with it.
+   */
+  const needsAsking = (it) => customCount(it, settings) > CONFIRM_OVER; // never while running, so the settings are the tools' own
+  const confirmSheet = $('timer-confirm');
+  let confirmFor = null;
+  function askRemove(it) {
+    if (!needsAsking(it)) { remove(it); return; }
+    confirmFor = it;
+    $('timer-confirm-text').textContent = T.confirmDelete.text(label(it), customCount(it, settings));
+    $('timer-confirm-go').textContent = T.confirmDelete.go;
+    confirmSheet.showModal();
+    $('timer-confirm-no').focus();
+  }
+  $('timer-confirm-go').addEventListener('click', () => { const it = confirmFor; confirmFor = null; confirmSheet.close(); if (it) remove(it); });
+  $('timer-confirm-no').addEventListener('click', () => { confirmFor = null; confirmSheet.close(); });
+  confirmSheet.addEventListener('click', (e) => { if (e.target === confirmSheet) confirmSheet.close(); });
   /** A line at the foot of the screen with Undo, for a few seconds. */
   function note(text, undoIt) {
     undo = undoIt;
@@ -550,7 +576,13 @@ export function setupTimer({ settings, tools, audio }) {
     return { box, big };
   };
 
-  // The Metronome: its tempo with − and + and a slider, its beats lighting as they are heard, its time signature.
+  /*
+   * The Metronome. Off, its tempo with − and + and a slider, and its time
+   * signature. On, the beat instead, in one of three views a tap on it steps
+   * through (as the Metronome's own dots do): its picture with the pendulum
+   * swinging, big dots that swell into each beat, or the Visualizer's bars;
+   * the tempo then in a line under it (the gear changes it).
+   */
   {
     const M = tools.metronome;
     const tempo = stepper('tool-tempo', C.tempo, () => { M.setBpm(M.bpm() - 1); capture(); show(); }, () => { M.setBpm(M.bpm() + 1); capture(); show(); }, T.item.slower, T.item.faster);
@@ -558,25 +590,87 @@ export function setupTimer({ settings, tools, audio }) {
     Object.assign(slider, { type: 'range', min: BPM_MIN, max: BPM_MAX, step: 1 });
     slider.setAttribute('aria-label', C.tempo);
     slider.addEventListener('input', () => { M.setBpm(Number(slider.value)); capture(); show(); });
-    const beats = h('ol', 'tool-beats');
-    beats.setAttribute('aria-hidden', 'true');
+    const idle = h('div', 'tool-met-idle');
+    idle.append(tempo.box, slider);
+    // The beat, while it plays.
+    const view = h('div', 'mini-met');
+    view.setAttribute('role', 'button');
+    view.tabIndex = 0;
+    const art = h('div', 'mini-met-art');
+    const body = h('div', 'met-layer');
+    body.classList.add('met-case');
+    const pend = h('div', 'met-layer');
+    pend.classList.add('met-pendulum');
+    const rod = h('span', 'met-rod');
+    const weight = h('span', 'met-weight');
+    pend.append(rod, weight);
+    art.append(body, pend);
+    const pulse = h('ol', 'mini-pulse');
+    const bars = h('div', 'met-bars');
+    bars.classList.add('mini-bars');
+    for (const el of [pulse, bars]) el.setAttribute('aria-hidden', 'true');
+    view.append(art, pulse, bars);
     const meter = h('p', 'tool-note');
-    const { el, on } = toolCard('metronome', [tempo.box, slider, beats, meter]);
-    let shownStrengths = '';
+    const { el, on } = toolCard('metronome', [idle, view, meter]);
+    showArt(body, 'metronome-body');
+    showArt(rod, 'metronome-rod');
+    showArt(weight, 'metronome-weight');
+    const NEXT = { pendulum: 'pulse', pulse: 'bars', bars: 'pendulum' };
+    const step = () => { state.metView = NEXT[state.metView] || 'pendulum'; save(); show(); };
+    view.addEventListener('click', step);
+    view.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); step(); } });
+    let shownBeats = '';
+    let aligned = '';
+    function build(strengths) {
+      if (strengths.join() === shownBeats) return;
+      shownBeats = strengths.join();
+      const cls = (s) => (s === 2 ? 'strong' : s === 1 ? 'mid' : '');
+      pulse.replaceChildren(...strengths.map((s) => h('li', cls(s))));
+      bars.replaceChildren(...Array.from({ length: 2 }, () => {
+        const row = h('div', 'met-measure');
+        row.append(...strengths.map((s) => { const bar = h('i', 'met-bar'); if (cls(s)) bar.classList.add(cls(s)); bar.append(h('i', 'met-shape')); return bar; }));
+        return row;
+      }));
+      bars.style.setProperty('--n', strengths.length);
+    }
     function show() {
+      const going = M.on();
       tempo.big.innerHTML = `<b>${M.bpm()}</b> <small>${C.bpm}</small>`;
       slider.value = String(M.bpm());
-      meter.textContent = M.meter();
-      on.checked = M.on();
-      el.classList.toggle('on', on.checked);
+      meter.textContent = going ? C.tempoLine(M.bpm(), M.meter()) : M.meter();
+      on.checked = going;
+      el.classList.toggle('on', going);
+      idle.hidden = going;
+      view.hidden = !going;
+      const mode = state.metView || 'pendulum';
+      view.dataset.view = mode;
+      view.setAttribute('aria-label', C.views[NEXT[mode]]);
+      if (!going) return;
       const b = M.beat();
-      const strengths = b?.strengths || [2, 0, 0, 0];
-      if (strengths.join() !== shownStrengths) {
-        shownStrengths = strengths.join();
-        beats.replaceChildren(...strengths.map((s) => h('li', s === 2 ? 'strong' : s === 1 ? 'mid' : '')));
+      build(b.strengths);
+      const now = b.now, beat = b.at, n = b.strengths.length;
+      if (mode === 'pendulum') {
+        // Pinned to the body once both pictures are in (and again for a new theme's).
+        const key = `${body.dataset.shown}|${rod.dataset.shown}|${weight.dataset.shown}`;
+        if (key !== aligned && body.art && rod.art) { alignPendulum(body, pend); placeWeight(pend, weightAt(M.bpm())); aligned = key; }
+        const angle = beat ? pendulumAngle(beat, now, b.period, swingOf(pend)) : 0;
+        pend.style.transform = `rotate(${angle.toFixed(2)}deg)`;
+      } else if (mode === 'pulse') {
+        // Each dot swells into its beat, peaks on it and eases away.
+        const p = b.period;
+        const after = beat ? now - beat.time : 9;
+        const out = Math.exp(-((after / Math.min(0.24, p * 0.4)) ** 2));
+        const into = p - after > 0 ? Math.exp(-(((p - after) / Math.min(0.07, p * 0.12)) ** 2)) : 0;
+        const next = (b.idx + 1) % n;
+        [...pulse.children].forEach((d, i) => d.style.setProperty('--g', (i === b.idx ? Math.max(out, i === next ? into : 0) : i === next ? into : 0).toFixed(3)));
+      } else {
+        const cells = bars.querySelectorAll('.met-bar');
+        const at = beat && b.idx >= 0 ? (Math.floor((beat.count - b.idx) / n) % 2) * n + b.idx : -1;
+        const lit = beat ? Math.exp(-(now - beat.time) / Math.min(0.35, b.period * 0.55)) : 0;
+        cells.forEach((c, i) => c.style.setProperty('--lit', (i === at ? Math.max(lit, 0.28) : i < at ? 0.28 : 0).toFixed(3)));
       }
-      [...beats.children].forEach((d, i) => d.classList.toggle('lit', !!b && b.idx === i));
     }
+    document.addEventListener('art-applied', () => { aligned = ''; });
     card.metronome = { el, on, show };
   }
 
@@ -659,6 +753,13 @@ export function setupTimer({ settings, tools, audio }) {
     b.addEventListener('change', () => onChange(b.checked));
     return b;
   };
+  /** A volume slider (0 to 1), set as it moves. */
+  const volume = (value, onChange) => {
+    const r = h('input', 'slider');
+    Object.assign(r, { type: 'range', min: 0, max: 1, step: 0.01, value });
+    r.addEventListener('input', () => onChange(Number(r.value)));
+    return r;
+  };
   function toolFields(tool) {
     const S = C.fields;
     if (tool === 'metronome') {
@@ -679,17 +780,20 @@ export function setupTimer({ settings, tools, audio }) {
         field(S.meter, select(METERS.map((m) => [m.id, m.beats === 1 ? TEXT.metronome.noBars : m.id]), M.config().meter, (v) => set({ meter: v }))),
         field(S.sound, select(SOUNDS.map((o) => [o.id, o.label]), M.config().sound, (v) => set({ sound: v }))),
         field(S.sub, select([1, 2, 3, 4].map((n) => [n, n === 1 ? S.subNone : TEXT.metronome.settings.subdivisions[n]]), M.config().sub, (v) => set({ sub: Number(v) }))),
+        field(S.accent, toggleBox(M.config().accent, (on) => set({ accent: on })), true),
+        field(S.volume, volume(M.config().volume, (v) => set({ volume: v }))),
       ];
     }
     if (tool === 'drone') {
       const D = tools.drone;
-      const set = (patch) => { D.set({ midi: D.midi(), voice: D.voice(), fifth: D.fifth(), ...patch }); capture(); card.drone.show(); };
+      const set = (patch) => { D.set({ midi: D.midi(), voice: D.voice(), fifth: D.fifth(), volume: D.volume(), ...patch }); capture(); card.drone.show(); };
       const flats = spelling(settings.droneAccidentals, settings.droneSpelling) === 'flats';
       const notes = Array.from({ length: DRONE_MAX - DRONE_MIN + 1 }, (_, k) => { const n = noteName(DRONE_MIN + k, { flats }); return [DRONE_MIN + k, `${n.name}${n.octave}`]; });
       return [
         field(C.note, select(notes, D.midi(), (v) => set({ midi: Number(v) }))),
         field(T.item.instrument, select(VOICES.map((v) => [v.id, v.label]), D.voice(), (v) => set({ voice: v }))),
         field(T.item.fifth, toggleBox(D.fifth(), (on) => set({ fifth: on })), true),
+        field(S.volume, volume(D.volume(), (v) => set({ volume: v }))),
       ];
     }
     const P = tools.playback;
@@ -698,6 +802,7 @@ export function setupTimer({ settings, tools, audio }) {
     return [
       field(S.silence, select(secs.map((s) => [s, S.seconds(s)]), P.config().silenceSec, (v) => set({ silenceSec: Number(v) }))),
       field(S.autoPlay, toggleBox(P.config().autoPlay, (on) => set({ autoPlay: on })), true),
+      field(S.playVolume, volume(P.config().volume, (v) => set({ volume: v }))),
     ];
   }
   function openToolSettings(tool) {
@@ -751,7 +856,7 @@ export function setupTimer({ settings, tools, audio }) {
   /** The tools' settings now, as an item keeps them. */
   const configs = () => ({
     met: tools.metronome.config(),
-    drn: { midi: tools.drone.midi(), voice: tools.drone.voice(), fifth: tools.drone.fifth() },
+    drn: { midi: tools.drone.midi(), voice: tools.drone.voice(), fifth: tools.drone.fifth(), volume: tools.drone.volume() },
     pb: tools.playback.config(),
   });
   function applyConfigs({ met, drn, pb }) {
