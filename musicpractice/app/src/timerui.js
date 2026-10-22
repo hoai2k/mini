@@ -26,7 +26,7 @@ import { noteName } from './tuning.js';
 import { clock } from './droneui.js';
 import { hasArt, showArt, alignPendulum, placeWeight, swingOf } from './art.js';
 import { pendulumAngle, weightAt } from './metronome.js';
-import { PRESETS, TOOLS, CHIMES, SPEAKERS, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, newItem, loadTimer, saveTimer, customCount, CONFIRM_OVER, voiceGain, totalSeconds, enabledItems, setKind, matchKind, cues, TimerRun, pictureFor, move, voiceLines, voiceUrl, chimeUrl } from './timer.js';
+import { PRESETS, TOOLS, CHIMES, SPEAKERS, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, newItem, loadTimer, saveTimer, customCount, CONFIRM_OVER, voiceGain, totalSeconds, RESTS, restSeconds, enabledItems, setKind, matchKind, cues, TimerRun, pictureFor, move, voiceLines, voiceUrl, chimeUrl } from './timer.js';
 
 const $ = (id) => document.getElementById(id);
 const TRASH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>';
@@ -498,6 +498,9 @@ export function setupTimer({ settings, tools, audio }) {
     render();
   }
   $('timer-edit').addEventListener('click', () => setEditing(!editing));
+  // The total time too: a tap turns list editing on or off.
+  $('timer-clock').addEventListener('click', () => { if (!run) setEditing(!editing); });
+  $('timer-clock').addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && !run) { e.preventDefault(); setEditing(!editing); } });
 
   // ---- add and delete
   function add(presetId) {
@@ -904,8 +907,11 @@ export function setupTimer({ settings, tools, audio }) {
   function setTool(tool, onNow) {
     if (tool === 'drone' && onNow && !tools.drone.allowed()) { card.drone.on.checked = false; tools.drone.ask(); return; }
     if (!run) return;
-    run.item.tools[tool] = onNow;
-    save();
+    // During a break the tool simply plays (to tune up, say); the next item keeps its own.
+    if (!run.resting) {
+      run.item.tools[tool] = onNow;
+      save();
+    }
     if (!run.paused && !finishing) { if (onNow) tools[tool].start(); else tools[tool].stop(); }
     showCards();
   }
@@ -989,6 +995,14 @@ export function setupTimer({ settings, tools, audio }) {
     select.replaceChildren(...ids.map((id) => new Option(labels[id], id)));
     select.value = value;
   };
+  const restSel = $('timer-rest');
+  restSel.replaceChildren(...RESTS.map((r) => new Option(T.rests[r], String(r))));
+  restSel.value = String(state.rest);
+  restSel.addEventListener('change', () => {
+    state.rest = restSel.value === 'pause' ? 'pause' : Number(restSel.value);
+    save();
+    readout();
+  });
   const chimeOn = $('timer-chime-on');
   const chimeSel = $('timer-chime');
   fill(chimeSel, CHIMES, T.chimes, state.chime);
@@ -1038,16 +1052,21 @@ export function setupTimer({ settings, tools, audio }) {
     $('timer-run').hidden = !going;
     $('routine').classList.toggle('running', going);
     if (!going) {
-      $('timer-clock').textContent = clock(totalSeconds(items));
-      $('timer-sub').textContent = finishedNote ? T.finished : T.total(enabledItems(items).length);
+      const n = enabledItems(items).length;
+      $('timer-clock').textContent = clock(totalSeconds(items) + restSeconds(n, state.rest));
+      $('timer-sub').textContent = finishedNote ? T.finished : T.total(n) + (state.rest && n > 1 ? ` · ${T.totalBreaks(state.rest)}` : '');
       $('timer-go').disabled = !enabledItems(items).length || editing;
     } else {
       const it = run.item;
-      $('trun-name').textContent = finishing ? T.finishing : label(it);
-      showArt($('trun-icon'), pictureFor(it, hasArt));
-      $('trun-clock').textContent = clock(Math.ceil(run.remaining(now)));
+      // During a break: Break, its countdown, and what comes next (`item`, already).
+      const resting = run.resting && !finishing;
+      $('trun-name').textContent = finishing ? T.finishing : resting ? T.breakName : label(it);
+      showArt($('trun-icon'), resting ? 'home-routine' : pictureFor(it, hasArt));
+      $('trun-clock').textContent = run.waiting ? '' : clock(Math.ceil(run.remaining(now)));
       const next = run.next;
-      $('trun-sub').textContent = finishing ? T.finishingNote : (run.paused ? `${T.paused} · ` : '') + (next ? T.next(label(next), next.minutes) : T.lastItem);
+      $('trun-sub').textContent = finishing ? T.finishingNote : run.waiting ? `${T.next(label(next), next.minutes)} · ${T.breakWaiting}`
+        : (run.paused ? `${T.paused} · ` : '') + (next ? T.next(label(next), next.minutes) : T.lastItem);
+      $('timer-run').classList.toggle('resting', resting);
       $('trun-fill').style.width = `${(run.progress(now) * 100).toFixed(2)}%`;
       $('timer-run').classList.toggle('paused', run.paused);
       const go = $('trun-go');
@@ -1059,9 +1078,10 @@ export function setupTimer({ settings, tools, audio }) {
     // The items: the one running, its progress, and those already done.
     for (const li of list.children) {
       const k = going ? run.items.findIndex((x) => x.id === li.dataset.id) : -1;
-      const isNow = going && !run.done && k === run.index;
+      const isNow = going && !run.done && !run.resting && k === run.index;
       li.classList.toggle('now', isNow);
       li.classList.toggle('done', going && (run.done || k < run.index));
+      li.classList.toggle('up-next', going && run.resting && k === run.index);
       const bar = li.querySelector('.titem-bar-fill');
       if (bar) bar.style.width = isNow ? `${(run.progress(now) * 100).toFixed(2)}%` : '0%';
     }
@@ -1112,10 +1132,32 @@ export function setupTimer({ settings, tools, audio }) {
         if (said.speaks) afterVoice(said.done, last.next);
       }
       render();
+    } else if (last.type === 'rest') {
+      // A break: what finished and what is next is said, and the tools rest (a take on the go is let finish).
+      cues.changed(last.done, last.next);
+      announce({ chime: true, lines: voiceLines.changed(last.done, last.next) });
+      restTools(last.next, { user });
+      render();
+    } else if (last.type === 'begin') {
+      // The break is over: a chime, and the item's tools start.
+      announce({ chime: true });
+      if (!run.paused) startTools(last.item, { user });
+      render();
     } else {
       cues.finished(last.done);
       endWhenFree(last.done, user);
     }
+  }
+  /** A break: the next item's settings go on the tools (its cards show them), and every tool rests. */
+  function restTools(it, { user = false } = {}) {
+    applyConfigs(it);
+    playbackLater = false;
+    stopTools(['metronome', 'drone']);
+    if (tools.playback.on()) {
+      if (!user && tools.playback.busy()) playbackLater = true;
+      else tools.playback.stop();
+    }
+    showCards();
   }
 
   /**
@@ -1163,7 +1205,7 @@ export function setupTimer({ settings, tools, audio }) {
 
   function tick() {
     if (!run) return;
-    if (playbackLater && !tools.playback.busy() && !run.item.tools.playback) { playbackLater = false; tools.playback.stop(); }
+    if (playbackLater && !tools.playback.busy() && (run.resting || !run.item.tools.playback)) { playbackLater = false; tools.playback.stop(); }
     if (finishing) finishingTick();
     else changes(run.tick(Date.now()));
     if (run) readout();
@@ -1175,7 +1217,7 @@ export function setupTimer({ settings, tools, audio }) {
     if (!list_.length) return;
     itemEdit = null;
     setEditing(false);
-    run = new TimerRun(list_, Date.now(), Math.max(0, list_.indexOf(from)));
+    run = new TimerRun(list_, Date.now(), Math.max(0, list_.indexOf(from)), state.rest);
     restore = configs();
     finishing = false;
     finishedNote = false;
@@ -1212,8 +1254,10 @@ export function setupTimer({ settings, tools, audio }) {
   function pauseOrResume() {
     if (!run || finishing) return;
     if (run.paused) {
-      run.resume();
-      startTools();
+      const begun = run.resume();
+      // Out of a break that waited for play: the item begins, with a chime; in a timed break, the tools still rest.
+      if (begun.length) changes(begun, true);
+      else if (!run.resting) startTools();
       audio.running(true);
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(animate);

@@ -406,6 +406,17 @@ export const EN = {
     },
     /** Under the list while it is set up. */
     total: (n) => `${n} ${n === 1 ? 'routine' : 'routines'} in all`,
+    /** After the total, when there are breaks between routines (the total counts timed ones). */
+    totalBreaks: (rest) => (rest === 'pause' ? 'a pause between each' : `${rest < 60 ? `${rest} s` : `${rest / 60} min`} breaks`),
+    /** The break between routines (Practice Routine settings), and the header during one. */
+    rest: 'Break between routines',
+    rests: {
+      0: 'No break', 15: '15 seconds', 30: '30 seconds', 45: '45 seconds', 60: '1 minute', 90: '1.5 minutes',
+      120: '2 minutes', 180: '3 minutes', 300: '5 minutes', 600: '10 minutes', 900: '15 minutes', pause: 'Pause when done',
+    },
+    breakName: 'Break',
+    breakWaiting: 'Press play',
+    totalEdit: 'Total time: tap to edit the list',
     empty: 'Nothing to practise yet. Add a routine with +.',
     start: 'Start',
     pause: 'Pause',

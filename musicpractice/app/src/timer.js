@@ -188,10 +188,12 @@ export function loadTimer(base, storage = globalThis.localStorage) {
     voiceVolume: Number.isFinite(saved?.voiceVolume) ? Math.max(0, Math.min(1, saved.voiceVolume)) : VOICE_DEFAULT,
     // The Metronome card's view of the beat: the pendulum, big dots or the Visualizer.
     metView: ['pendulum', 'pulse', 'bars'].includes(saved?.metView) ? saved.metView : 'pendulum',
+    // The break between items (RESTS): 30 seconds unless chosen.
+    rest: cleanRest(saved?.rest),
   };
 }
-export function saveTimer({ items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume, metView }, storage = globalThis.localStorage) {
-  try { storage?.setItem(KEY, JSON.stringify({ items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume, metView })); } catch { /* not kept */ }
+export function saveTimer({ items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume, metView, rest }, storage = globalThis.localStorage) {
+  try { storage?.setItem(KEY, JSON.stringify({ items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume, metView, rest })); } catch { /* not kept */ }
 }
 
 /**
@@ -321,29 +323,48 @@ export const cues = {
  * is up, as many as are due, and reports what happened; the screen calls it
  * a few times a second and when it is shown again.
  */
+/** Breaks between items: seconds, or 'pause' (the routine waits, paused, for play). */
+export const RESTS = [0, 15, 30, 45, 60, 90, 120, 180, 300, 600, 900, 'pause'];
+export const REST_DEFAULT = 30;
+export const cleanRest = (v) => (RESTS.includes(v) ? v : REST_DEFAULT);
+/** The breaks a routine of `n` items takes, in seconds (none after the last; a paused one counts nothing). */
+export const restSeconds = (n, rest) => (typeof rest === 'number' && n > 1 ? (n - 1) * rest : 0);
+
 export class TimerRun {
-  constructor(items, now = Date.now(), index = 0) {
+  /**
+   * `rest`: the break between items, in seconds, or 'pause'. While one runs
+   * (`resting`) the next item is already `item` (it is what comes next) and
+   * the clock counts the break down.
+   */
+  constructor(items, now = Date.now(), index = 0, rest = 0) {
     this.items = items;
     this.index = Math.min(index, items.length - 1);
+    this.rest = rest;
     this.paused = false;
     this.done = false;
+    this.resting = false;
     this.endsAt = now + this.items[this.index].minutes * 60000;
     this.left = 0; // ms left while paused
   }
 
   get item() { return this.items[this.index]; }
-  get next() { return this.items[this.index + 1] || null; }
+  get next() { return this.resting ? this.item : this.items[this.index + 1] || null; }
+  /** A break that waits for play rather than counting down. */
+  get waiting() { return this.resting && this.rest === 'pause'; }
 
-  /** Seconds left of the current item. */
+  /** Seconds left of the current item (or break). */
   remaining(now = Date.now()) {
     if (this.done) return 0;
+    if (this.waiting) return 0;
     return Math.max(0, (this.paused ? this.left : this.endsAt - now) / 1000);
   }
 
-  /** How far through the current item, 0 to 1. */
+  /** How far through the current item (or break), 0 to 1. */
   progress(now = Date.now()) {
-    const total = this.item ? this.item.minutes * 60 : 1;
-    return this.done ? 1 : Math.min(1, Math.max(0, 1 - this.remaining(now) / total));
+    if (this.done) return 1;
+    if (this.waiting) return 0;
+    const total = this.resting ? this.rest : this.item ? this.item.minutes * 60 : 1;
+    return Math.min(1, Math.max(0, 1 - this.remaining(now) / total));
   }
 
   pause(now = Date.now()) {
@@ -352,34 +373,68 @@ export class TimerRun {
     this.paused = true;
   }
 
+  /**
+   * Go on. A break that waits for play ends here: returns
+   * [{ type: 'begin', item }] then (the item starts), else [].
+   */
   resume(now = Date.now()) {
-    if (!this.paused || this.done) return;
-    this.endsAt = now + this.left;
+    if (!this.paused || this.done) return [];
     this.paused = false;
+    if (this.waiting) return this.begin(now);
+    this.endsAt = now + this.left;
+    return [];
   }
 
-  /** The current item's minutes changed while it runs: its end moves with them. */
+  /** The current item's minutes changed while it runs: its end moves with them (not during a break: it starts afresh). */
   retime(oldMinutes, now = Date.now()) {
+    if (this.resting) return;
     const d = (this.item.minutes - oldMinutes) * 60000;
     if (this.paused) this.left = Math.max(0, this.left + d);
     else this.endsAt += d;
   }
 
+  /** The break is over: the item starts, from `at`. */
+  begin(at) {
+    this.resting = false;
+    this.endsAt = at + this.item.minutes * 60000;
+    if (this.paused) this.left = this.item.minutes * 60000;
+    return [{ type: 'begin', item: this.item }];
+  }
+
   /**
-   * Move on if the time is up (or now, with `force`: Skip). Returns the
-   * changes: [{ type: 'changed', done, next }] or [{ type: 'finished', done }].
+   * Move on if the time is up (or now, with `force`: Skip, one step: an item
+   * to its break, a break to the next item). Returns the changes:
+   * { type: 'changed', done, next } (no break), { type: 'rest', done, next }
+   * (a break begins), { type: 'begin', item } (a break ends), or
+   * { type: 'finished', done }.
    */
   tick(now = Date.now(), force = false) {
     const out = [];
-    // Skip works while paused too: the next item waits, paused, at its full time.
-    while (!this.done && (force || (!this.paused && now >= this.endsAt))) {
-      const done = this.item;
+    // Skip works while paused too: what comes next waits, paused, at its full time.
+    while (!this.done && (force || (!this.paused && !this.waiting && now >= this.endsAt))) {
       const at = force ? now : this.endsAt;
       force = false;
+      if (this.resting) {
+        if (this.waiting) this.paused = false;
+        out.push(...this.begin(at));
+        continue;
+      }
+      const done = this.item;
       if (this.index + 1 >= this.items.length) {
         this.done = true;
         this.paused = false;
         out.push({ type: 'finished', done });
+      } else if (this.rest) {
+        this.index++;
+        this.resting = true;
+        if (this.rest === 'pause') {
+          this.paused = true;
+          this.left = 0;
+        } else {
+          this.endsAt = at + this.rest * 1000;
+          if (this.paused) this.left = this.rest * 1000;
+        }
+        out.push({ type: 'rest', done, next: this.item });
       } else {
         this.index++;
         this.endsAt = at + this.item.minutes * 60000;

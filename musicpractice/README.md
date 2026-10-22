@@ -756,7 +756,8 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
   **right click** on an item opens its menu: **Rename** (the item opens as
   one of its own, Custom, its name selected to type over), **Turn off** /
   **Turn on**, and **Delete** (both with Undo). The **pencil** beside the
-  total time (at the top of the screen) edits the list; while editing it is
+  total time (at the top of the screen), or a tap on the total itself, edits
+  the list; while editing it is
   a pill, **✓ Drag to reorder items**, which says the list is being edited
   and how to move an item, and is tapped to finish. Each
   row then has:
@@ -798,6 +799,19 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
   and its playback volume (`pb`), and which of them are on (`tools`). A new item has the tools off and their settings taken from the
   app's own as a start. Items saved when they had their own metronome and
   drone keep them on.
+- **A break between routines**, set in Practice Routine settings: **No
+  break**, 15, 30 (the default) or 45 seconds, 1, 1.5, 2, 3, 5, 10 or 15
+  minutes, or **Pause when done**. As a routine ends the chime and voice say
+  what is next and the tools rest (a take on the go is let finish); the
+  header says **Break**, with the hourglass, the break counting down and
+  what comes next, outlined dashed in the list. At the end a chime and the
+  next routine's tools start. *Pause when done* waits, paused, until play.
+  Skip goes a step at a time (a routine to its break, a break to the next),
+  a card's button during a break plays that tool without changing the next
+  routine, and there is no break after the last. The total counts the timed
+  breaks ("12:00 · 3 routines in all · 30 s breaks"). `TimerRun` in
+  `app/src/timer.js` (`rest`, `resting`, `waiting`; events `rest` and
+  `begin`), `RESTS`.
 - **Running, the routine is a shell around the tools.** **Start** swaps the
   set-up panel for a **compact header** (the item's picture to the left of
   its name, its time left, what is next, a progress bar, and Pause, Skip and Stop as round buttons) over an

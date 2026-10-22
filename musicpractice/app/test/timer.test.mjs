@@ -29,7 +29,7 @@ test('a first visit starts with Intonation and Scales; + offers eight; each item
 test('saved routines are kept and cleaned, tools and all; an emptied one stays empty', () => {
   const s = mem();
   saveTimer({ items: [], chime: 'celesta' }, s);
-  assert.deepEqual(loadTimer(base, s), { items: [], chime: 'celesta', chimeOn: true, lastMinutes: {}, voiceOn: true, voice: 'lily', voiceVolume: VOICE_DEFAULT, metView: 'pendulum' });
+  assert.deepEqual(loadTimer(base, s), { items: [], chime: 'celesta', chimeOn: true, lastMinutes: {}, voiceOn: true, voice: 'lily', voiceVolume: VOICE_DEFAULT, metView: 'pendulum', rest: 30 });
   const items = cleanRoutine([{ id: 'a', name: 'x'.repeat(99), minutes: 999, enabled: false, tools: { playback: true, drone: 'yes' }, met: { bpm: 9999, meter: '13/4', sound: 'gong', sub: 5 }, drn: { midi: 10, voice: '?' }, pb: { silenceSec: 99 } }, { id: 'a' }, 'junk']);
   assert.equal(items.length, 2); // the duplicate id dropped, the junk made a blank item
   assert.equal(items[0].name.length, 60);
@@ -232,4 +232,70 @@ test('an item with more than three settings of its own asks before it is deleted
   it.drn.volume = 0.2;
   assert.equal(customCount(it, base), 4);
   assert.ok(customCount(it, base) > CONFIRM_OVER);
+});
+
+test('a break between items: counted down, then the next item; none after the last', async () => {
+  const { RESTS, REST_DEFAULT, cleanRest, restSeconds } = await import('../src/timer.js');
+  const r = new TimerRun([{ minutes: 1 }, { minutes: 2 }], 0, 0, 30);
+  assert.deepEqual(r.tick(59999), []);
+  const rest = r.tick(60000);
+  assert.equal(rest[0].type, 'rest');
+  assert.equal(rest[0].next.minutes, 2);
+  assert.ok(r.resting);
+  assert.equal(r.item.minutes, 2); // what comes next
+  assert.equal(r.remaining(70000), 20);
+  assert.ok(Math.abs(r.progress(75000) - 0.5) < 1e-9);
+  assert.deepEqual(r.tick(89999), []);
+  assert.deepEqual(r.tick(90000).map((c) => c.type), ['begin']);
+  assert.ok(!r.resting);
+  assert.equal(r.remaining(90000), 120);
+  // The last item ends the routine: no break after it.
+  assert.deepEqual(r.tick(210000).map((c) => c.type), ['finished']);
+  // A phone that slept through it all catches up in order.
+  const s = new TimerRun([{ minutes: 1 }, { minutes: 1 }, { minutes: 1 }], 0, 0, 15);
+  assert.deepEqual(s.tick(10 * 60000).map((c) => c.type), ['rest', 'begin', 'rest', 'begin', 'finished']);
+  // Settings: the choices, 30 s by default, and what breaks add to a routine.
+  assert.equal(REST_DEFAULT, 30);
+  assert.ok(RESTS.includes(0) && RESTS.includes('pause') && RESTS.includes(900));
+  assert.equal(cleanRest('bogus'), 30);
+  assert.equal(cleanRest(0), 0);
+  assert.equal(restSeconds(4, 30), 90);
+  assert.equal(restSeconds(1, 30), 0);
+  assert.equal(restSeconds(4, 'pause'), 0);
+});
+
+test('Skip goes one step: an item to its break, a break to the next item; pause and resume keep a break', () => {
+  const r = new TimerRun([{ minutes: 5 }, { minutes: 3 }], 0, 0, 60);
+  assert.equal(r.tick(1000, true)[0].type, 'rest');
+  r.pause(11000);
+  assert.equal(r.remaining(99999), 50);
+  r.resume(20000);
+  assert.equal(r.remaining(20000), 50);
+  assert.deepEqual(r.tick(25000, true).map((c) => c.type), ['begin']);
+  assert.equal(r.remaining(25000), 180);
+});
+
+test("'pause when done': the routine waits, paused, and play starts the next item", () => {
+  const r = new TimerRun([{ minutes: 1 }, { minutes: 2 }], 0, 0, 'pause');
+  assert.equal(r.tick(60000)[0].type, 'rest');
+  assert.ok(r.paused && r.waiting);
+  assert.deepEqual(r.tick(10 * 60000), []); // it waits however long
+  const go = r.resume(10 * 60000);
+  assert.deepEqual(go.map((c) => c.type), ['begin']);
+  assert.ok(!r.paused && !r.resting);
+  assert.equal(r.remaining(10 * 60000), 120);
+  // Skip from the wait starts the item too.
+  const s = new TimerRun([{ minutes: 1 }, { minutes: 2 }], 0, 0, 'pause');
+  s.tick(60000);
+  assert.deepEqual(s.tick(70000, true).map((c) => c.type), ['begin']);
+  assert.ok(!s.paused);
+});
+
+test('the break setting is kept', () => {
+  const s = mem();
+  saveTimer({ items: [], chime: 'kalimba', lastMinutes: {}, rest: 'pause' }, s);
+  assert.equal(loadTimer(base, s).rest, 'pause');
+  saveTimer({ items: [], chime: 'kalimba', lastMinutes: {}, rest: 45 }, s);
+  assert.equal(loadTimer(base, s).rest, 45);
+  assert.equal(loadTimer(base, mem()).rest, 30);
 });
