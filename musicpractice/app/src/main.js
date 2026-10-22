@@ -603,7 +603,7 @@ function openAccents() {
         cell.setAttribute('aria-pressed', String(on));
         cell.setAttribute('aria-label', TEXT.metronome.accents.cell(label, on));
       };
-      cell.addEventListener('click', () => { editing.on.has(at) ? editing.on.delete(at) : editing.on.add(at); show(); });
+      cell.addEventListener('click', () => { editing.on.has(at) ? editing.on.delete(at) : editing.on.add(at); show(); applyStrong(); });
       cell.show = show;
       show();
       group.append(cell);
@@ -616,7 +616,10 @@ $('accent-edit').addEventListener('click', openAccents);
 $('accent-clear').addEventListener('click', () => {
   editing.on.clear();
   for (const c of $('accent-grid').querySelectorAll('.accent-cell')) c.show();
+  applyStrong();
 });
+/** Each change is heard at once, on a running metronome too; Done (or closing) keeps it. */
+const applyStrong = () => setStrong([...editing.on, ...editing.hidden]);
 /** The strong positions as they are now (Strong beat on 1's, or the custom pattern's). */
 function strongPositions() {
   if (!settings.accent) return [];
@@ -638,10 +641,7 @@ function setStrong(pos) {
   }
   metronomeConfigured();
 }
-$('accent-done').addEventListener('click', () => {
-  setStrong([...editing.on, ...editing.hidden]);
-  accentEditor.close();
-});
+$('accent-done').addEventListener('click', () => accentEditor.close());
 // Pressing and holding the beat dots, or the Visualizer, opens the strong
 // beats (a tap switches between the two). Not with no bars: there is no bar
 // to set beats in.

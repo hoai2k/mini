@@ -10,7 +10,7 @@
   --line: #5a4533;
   --ink: #f6ecda;
   --ink-2: #cdbb9f;
-  --ink-3: #9a876d;
+  --ink-3: #a8957a;
   --brass: #e2b55c;
   --brass-2: #f3d58e;
   --red: #e5484d;
@@ -412,9 +412,10 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
   font-weight: 600; font-size: 0.9rem;
 }
 .accent-cell.on-beat { font-weight: 800; color: var(--ink); font-size: 1.05rem; }
-.accent-cell[aria-pressed="true"] { background: #e5342a; border-color: #b01e16; color: #fff; }
+.accent-cell[aria-pressed="true"] { background: #d42a20; border-color: #a31b14; color: #fff; }
 .accent-actions { display: flex; justify-content: space-between; gap: 12px; }
-.accent-actions .accent-done { background: var(--brass); border-color: var(--brass); color: var(--on-accent); min-width: 96px; }
+/* Done is the theme's own primary button (as Send feedback's is), sized for the sheet's foot. */
+.accent-actions .big-btn.accent-done { margin: 0; min-height: 44px; min-width: 110px; padding: 0 22px; font-size: 1.17rem; }
 
 .slider { width: 100%; height: 36px; accent-color: var(--brass); background: transparent; -webkit-appearance: none; appearance: none; }
 .slider::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: var(--panel-2); }
@@ -1093,7 +1094,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   letter-spacing: 0.16em;
   font-weight: 600;
 }
-[data-theme="deco"] .choice .label { font-size: clamp(0.72rem, 2.9vw, 1.05rem); letter-spacing: 0.06em; color: var(--brass-2); padding: 0 6px; }
+[data-theme="deco"] .choice .label { font-size: clamp(0.79rem, 2.9vw, 1.05rem); letter-spacing: 0.06em; color: var(--brass-2); padding: 0 6px; }
 [data-theme="deco"] .row b { letter-spacing: 0.08em; }
 
 /* Headings */
@@ -1158,7 +1159,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   box-shadow: none;
 }
 [data-theme="deco"] .big-btn[aria-pressed="true"] { background: linear-gradient(180deg, #f8f1de, #d9cca8); }
-[data-theme="deco"] .meter-note { text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.78rem; }
+[data-theme="deco"] .meter-note { text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.79rem; }
 
 /* Settings sheets */
 [data-theme="deco"] .sheet {
@@ -1324,7 +1325,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   --display: "IM Fell English", "Times New Roman", serif;
   --ui: "EB Garamond", Garamond, Georgia, serif;
   --bg: #f4ecd9; --bg-2: #fbf6ea; --panel: #fffaf0; --panel-2: #efe3c8; --line: #c9a86a;
-  --ink: #3a2416; --ink-2: #5e4330; --ink-3: #85694f;
+  --ink: #3a2416; --ink-2: #5e4330; --ink-3: #6e5440;
   --brass: #9b7428; --brass-2: #c99a3f; --red: #7c1f2c; --red-2: #9b2a3a; --focus: #7c1f2c;
   --on-accent: #fffaf0; --glow: #fbf6ea;
   --wave-bg: #fffaf0; --wave-axis: rgba(58, 36, 22, 0.15); --wave-idle: rgba(94, 67, 48, 0.25);
@@ -1541,7 +1542,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   --ui: "Special Elite", "Courier New", monospace;
   --bg: #1c130c; --bg-2: #261a10; --panel: #2e2014; --panel-2: #3a2918; --line: #7a5a2e;
   --ink: #f1e2c2; --ink-2: #d2bb8f; --ink-3: #a68d63;
-  --brass: #d9a44a; --brass-2: #f0c56b; --red: #c8452c; --red-2: #e0603e; --focus: #f0c56b;
+  --brass: #d9a44a; --brass-2: #f0c56b; --red: #c8452c; --red-2: #ea7452; --focus: #f0c56b;
   --on-accent: #1c130c; --glow: #3a2516;
   --wave-bg: linear-gradient(180deg, #160e08, #22170e); --wave-axis: rgba(217, 164, 74, 0.22); --wave-idle: rgba(210, 187, 143, 0.25);
   --wave-wait: #d2bb8f; --wave-rec: #e0603e; --wave-take: #7a5a2e; --wave-play: #f0c56b; --wave-head: #f1e2c2; --wave-thumb: #b8743a;
@@ -1569,7 +1570,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="steampunk"] .choice .label { color: var(--brass-2); }
 [data-theme="steampunk"] .big-btn { background: var(--rivets), linear-gradient(180deg, #f0c56b, #b8862f); border: 2px solid #5a3a1e; border-radius: 8px; color: #1c130c; box-shadow: 0 4px 0 #5a3a1e; }
 [data-theme="steampunk"] .big-btn[aria-pressed="true"] { background: var(--rivets), var(--pressed); }
-[data-theme="steampunk"] .step { border: 3px solid #b8743a; background: radial-gradient(circle at 35% 30%, #f0c56b, #9a6a2a); color: #1c130c; }
+[data-theme="steampunk"] .step { border: 3px solid #b8743a; background: radial-gradient(circle at 35% 30%, #f0c56b, #c08f38); color: #1c130c; }
 [data-theme="steampunk"] .chip, [data-theme="steampunk"] .select, [data-theme="steampunk"] .pill { border-radius: 6px; border-color: #b8743a; background-color: var(--panel); }
 [data-theme="steampunk"] .chip[aria-checked="true"] { background: linear-gradient(180deg, #f0c56b, #b8862f); color: #1c130c; }
 [data-theme="steampunk"] .sheet { border: 3px solid #b8743a; border-radius: 8px; background: var(--rivets), var(--bg-2); }
@@ -1655,7 +1656,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   --viz-strong: #e05a6e; --viz-beat: #e8bb5c; /* the Visualizer's lit beats: strong, other */
   --bg: #1d1612; --bg-2: #261d17; --panel: #2e231c; --panel-2: #3a2c22; --line: #8a6c3a;
   --ink: #f0e3c8; --ink-2: #d8c5a2; --ink-3: #b8a27e;
-  --brass: #c99a3f; --brass-2: #e0b660; --red: #a8384a; --red-2: #d0687a; --focus: #e0b660;
+  --brass: #c99a3f; --brass-2: #e0b660; --red: #a8384a; --red-2: #dc7d8e; --focus: #e0b660;
   --value: #e6be6c; --on-accent: #fffaf0; --glow: #2c2119; --vignette: #110c09;
   --wave-bg: #261d17; --wave-axis: rgba(240, 227, 200, 0.14); --wave-idle: rgba(216, 197, 162, 0.25);
   --wave-wait: #d8c5a2; --wave-rec: #d0687a; --wave-take: #6b5638; --wave-play: #c99a3f; --wave-head: #f0e3c8; --wave-thumb: #a98c5c;
@@ -1736,6 +1737,19 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 
 
 /* ---------------------------------------------------------------- shared theme touches */
+/* Red text on a light page: the deeper red (Delete, required fields). */
+[data-mode="light"] .pill.danger, [data-mode="light"] .fb-field .req, [data-mode="light"] .fb-req-note .req { color: var(--red); }
+/* Classic by day: dark ink on its bright gold buttons (cream on gold was 2:1). */
+[data-theme="classic"][data-mode="light"] .big-btn { color: var(--ink); }
+/* Candy at night: Stop on the light blue it presses to. */
+[data-theme="anime"][data-mode="dark"] .big-btn[aria-pressed="true"] { color: var(--on-accent); }
+[data-theme="sixties"][data-mode="light"] :is(.pill.danger, .fb-field .req, .fb-req-note .req) { color: #b0331b; }
+[data-theme="anime"][data-mode="light"] :is(.pill.danger, .fb-field .req, .fb-req-note .req) { color: #c8105a; }
+[data-theme="deco"][data-mode="light"] .marking { color: #75590f; }
+[data-theme="sixties"][data-mode="light"] .brand em { color: var(--value); }
+[data-theme="steampunk"][data-mode="light"] .brand em { color: #94501d; }
+/* Theme tiles: Art Deco's and French Nouveau's faces are hairlines with one weight; drawn larger, with a fine outline to thicken them. */
+.theme-tile[data-theme="deco"] .tile-name, .theme-tile[data-theme="nouveau"] .tile-name { font-size: 1.22rem; -webkit-text-stroke: 0.5px currentColor; paint-order: stroke fill; }
 /* Slider tracks that show on light grounds */
 [data-mode="light"] .slider::-webkit-slider-runnable-track { background: var(--line); opacity: 0.55; }
 [data-mode="light"] .slider::-moz-range-track { background: var(--line); opacity: 0.55; }
@@ -1823,7 +1837,7 @@ div.ac-status.bad { border-color: var(--red); justify-items: start; }
 }
 .link-btn {
   min-height: 0; padding: 4px 2px; border: 0; background: none; box-shadow: none;
-  color: var(--brass-2); font: inherit; font-weight: 700; text-decoration: underline;
+  color: var(--value, var(--brass-2)); font: inherit; font-weight: 700; text-decoration: underline;
   text-underline-offset: 3px; text-transform: none; letter-spacing: normal;
 }
 .link-btn:disabled { opacity: 0.5; }
@@ -2029,7 +2043,7 @@ html.paging { overflow: hidden; }
 .tool-body { flex: 1; display: flex; flex-direction: column; gap: 10px; }
 /* At the foot of each card, the tool's own Start or Play, or the record button. */
 .tool-foot { display: flex; justify-content: center; }
-.tool-card .big-btn.tool-go { width: 100%; min-height: 48px; margin: 0; font-size: 1.05rem; }
+.tool-card .big-btn.tool-go { width: 100%; min-height: 48px; margin: 0; font-size: 1.17rem; }
 .tool-card .rec-btn.tool-go { width: 64px; height: 64px; border-width: 3px; }
 .tool-card .rec-btn.tool-go .rec-dot { width: 26px; height: 26px; }
 .tool-card .rec-btn.tool-go[data-state="recording"] .rec-dot { width: 32px; height: 32px; }
@@ -2068,7 +2082,7 @@ html.paging { overflow: hidden; }
 .titem.done { opacity: 0.55; }
 /* The item's place in the list, as plain text; the one running in the accent colour. */
 .titem-num { flex: none; color: var(--ink-2); font: 700 1.05rem/1.3 var(--ui); font-variant-numeric: tabular-nums; min-width: 1.4em; }
-.titem.now .titem-num { color: var(--brass-2); }
+.titem.now .titem-num { color: var(--value, var(--brass-2)); }
 .titem-name { flex: 1; min-width: 0; font: 700 1.05rem/1.3 var(--ui); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .titem-min { flex: none; margin-left: auto; color: var(--ink-2); font: 700 1rem var(--ui); font-variant-numeric: tabular-nums; padding-left: 6px; }
 .titem > .titem-name { flex: 0 1 auto; }

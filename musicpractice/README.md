@@ -127,7 +127,20 @@ text at least 4.5:1 against what is behind it (3:1 for large or bold large
 text), nothing under 12.5px. That check moved the light themes' highlighted
 values ("440 Hz", "3 s") to a darker accent (`--value`), darkened the
 selected chips in Vintage 60s, French Nouveau and Candy and the help text in
-those three, and raised Send feedback's details to 13px.
+those three, and raised Send feedback's details to 13px. A second check went
+everywhere: every screen (each tool, the routine set up, being edited and
+running, the metronome going) and every sheet and dialog, opened the way a
+person opens them. It found the strong beats' Done button emptied by most
+themes' pill styles (white on white in Robot Future by day; it is now each
+theme's own primary button, as Send feedback is), cream on gold on Classic's
+big buttons by day (now dark ink), Candy's Stop by night, the paywall's links
+and the running item's number in pale gold on light pages (now `--value`),
+red text on light pages (now the deeper `--red`, deeper still in Vintage 60s
+and Candy), the pressed strong-beat cells, Classic's and 18th Century's
+faintest text (`--ink-3`), and a few Art Deco sizes under 12.5px; all pass in
+every theme in both modes. On the theme tiles, Art Deco's and French
+Nouveau's names (hairline faces with one weight) are drawn larger with a
+fine outline.
 
 **Anchors:** the metronome is two layers. The body records its canvas size
 and `pivot`; the pendulum records its canvas, `hub` and `swing` (degrees
@@ -298,7 +311,9 @@ when the Art Deco art arrives, measure and record its own.
 - **Strong beats:** the pencil beside **Strong beat on 1** opens every place a
   click falls in the bar, counted as played (1 & 2 &, 1 trip let, 1 e & a),
   and any of them can be made strong, between the beats included (those
-  play the strong click). Confirming with none chosen turns the switch off;
+  play the strong click). **Each tap is heard at once**, on a running
+  metronome too, so a pattern is tried as it is set; Done and the close
+  button both keep it. With none chosen the switch goes off;
   beat 1 alone is the ordinary setting; anything else reads **Strong beat
   (custom)**, and the lamp, flash, dots and Visualizer mark the beats chosen.
   Positions are kept in twelfths of a beat (`TICKS`, `barPlan` and
