@@ -79,25 +79,16 @@ don't offer it. It switches the whole app's look:
   outlines, hard manga-panel shadows, halftone dots and sparkles.
 - **Steam Punk**: dark leather with brass and copper, Cinzel and Special
   Elite, riveted plates and a gear.
-- **Bebop**: a 1950s modern-jazz record sleeve in a late-night club:
-  midnight blue and ink with cream, saxophone brass, an amber spotlight and
-  one club-sign red, Bebas Neue capitals and Barlow, a halftone texture,
-  cards like record sleeves (a cream rule inside the edge, a red stripe down
-  one side), pill buttons, and the Visualizer's bars shaped like piano keys.
-  Its 20 images are Round 13 of `design/image-requests.md` (masters and a
-  contact sheet in `design/generated/round-13/`, prompts and measured
-  anchors in `design/image-deliveries-round-13.json`).
 
 **Dark Mode**, a dropdown under the theme tiles, is **Default**, the default (each theme
-as designed: Classic, Art Deco, Robot Future, Steam Punk and Bebop dark, the
-other four light), **Light**, **Dark** or **System** (follows the device, and
+as designed: Classic, Art Deco, Robot Future and Steam Punk dark, the other
+four light), **Light**, **Dark** or **System** (follows the device, and
 switches while the app is open when the device does, at dusk for one). A
 save that never chose one shows Default; a choice made at the setting is
 kept. Every
 theme has its other mode: Classic by day (cream and walnut), Art Deco in
 ivory, 18th Century by candlelight, Robot Future in a white lab, French
 Nouveau in the evening, Candy at night, Steam Punk in the drawing office,
-Bebop by day (a cream record sleeve printed in midnight-blue ink),
 Vintage 60s after dark (the same print on a dark page: near-black offset
 shadows rather than teal ones, which read as glowing edges on dark, soft tan
 outlines, and the badges on the stripes cream with dark ink, as by day). Classic by day has its own touches: near-white cards
@@ -111,7 +102,9 @@ before the first paint.
 
 Theme ids stay fixed when a theme is renamed (Robot Future is `scifi`,
 Candy is `anime`), so saved choices and image paths keep working.
-Each theme loads only its own fonts. All nine themes have delivered images.
+Each theme loads only its own fonts. All eight themes have delivered images.
+A ninth, Bebop, is archived as a possible expansion in
+`design/archive/bebop/` (its art, styles and how to bring it back).
 The drawings in `app/src/standins.js` remain as loading and error fallbacks;
 the newer themes share one drawing (`themed`), varied by case shape, palette
 and pendulum weight.
@@ -918,7 +911,7 @@ slide read as a snap. The way across is a **smaller Routine button**
   default (`practice-default`, a music stand), shown small in the list, in
   Add a Routine and beside the running item's name. **The pictures of an
   activity are shared**: in the warm brass-and-gold themes (Art Deco, 18th
-  Century, French Nouveau, Steam Punk, Bebop) each came out a near-copy of
+  Century, French Nouveau, Steam Punk) each came out a near-copy of
   Classic's, so those themes use Classic's (`SHARED_PICTURES` in
   `design/source/build_requests.py`, status `shared`); only Vintage 60s,
   Robot Future and Candy, whose rendering really differs, have their own.

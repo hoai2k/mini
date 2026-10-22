@@ -44,7 +44,6 @@ export const THEMES = [
   { id: 'nouveau', label: TEXT.themes.nouveau, mode: 'light', color: '#eef0e4', fonts: 'family=Italiana&family=Cormorant+Garamond:wght@500;600;700' },
   { id: 'anime', label: TEXT.themes.anime, mode: 'light', color: '#fff4fa', fonts: 'family=M+PLUS+Rounded+1c:wght@500;700;800' },
   { id: 'steampunk', label: TEXT.themes.steampunk, mode: 'dark', color: '#1c130c', fonts: 'family=Cinzel:wght@600;700&family=Special+Elite' },
-  { id: 'bebop', label: TEXT.themes.bebop, mode: 'dark', color: '#0a1022', fonts: 'family=Bebas+Neue&family=Barlow:wght@500;600;700' },
 ];
 
 /** Dark Mode: each theme as designed ('default'), light, dark, or following the system (the default). */

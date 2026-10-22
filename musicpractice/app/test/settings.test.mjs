@@ -121,7 +121,6 @@ test('Dark Mode: each theme as designed by default; a choice made at the setting
   assert.equal(resolveMode('classic', 'light', true), 'light');
   assert.equal(resolveMode('baroque', 'system', true), 'dark');
   assert.equal(resolveMode('steampunk', 'system', false), 'light');
-  assert.equal(resolveMode('bebop', 'default', false), 'dark');
   for (const t of THEMES) assert.ok(t.mode === 'light' || t.mode === 'dark', t.id);
 });
 

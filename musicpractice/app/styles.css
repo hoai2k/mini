@@ -568,8 +568,6 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
 [data-theme="baroque"] .met-bar { --bar-r: 3px; --bar-w: 3px; --bar-style: double; --bar-line: color-mix(in srgb, var(--brass-2) 50%, transparent); }
 [data-theme="baroque"] .met-bar.strong { --bar-line: color-mix(in srgb, var(--c) 45%, transparent); }
 /* Steam Punk: small brass plates in a copper rim, a rivet at each end; lit like a warm lamp. */
-/* Bebop: a piano key, square at the top and rounded at the foot. */
-[data-theme="bebop"] .met-bar { --bar-r: 3px 3px 9px 9px; --bar-w: 1.5px; --bar-line: color-mix(in srgb, var(--brass) 35%, transparent); --bar-glow: 10px; }
 [data-theme="steampunk"] .met-bar { --bar-r: 5px; --bar-w: 2px; --bar-line: color-mix(in srgb, #b8743a 42%, transparent); --bar-glow: 9px; }
 [data-theme="steampunk"] .met-shape {
   background:
@@ -1582,53 +1580,6 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="steampunk"] .beats li.strong.on { background: var(--red-2); border-color: var(--red-2); }
 [data-theme="steampunk"] .rec-btn { border: 5px solid #b8743a; background: radial-gradient(circle at 35% 30%, var(--plate-a), var(--plate-c)); }
 
-/* ================================================================ Bebop
-   A 1950s modern-jazz record sleeve in a late-night club: midnight blue and
-   ink, cream, saxophone brass, an amber spotlight and one club-sign red;
-   tall condensed capitals, flat colour, a halftone texture and four-point stars. */
-
-[data-theme="bebop"] {
-  --viz-strong: #ee5a4f; --viz-beat: #f2c45a; /* the Visualizer's lit beats: strong, other */
-  --display: "Bebas Neue", "Oswald", Impact, sans-serif;
-  --ui: Barlow, "Helvetica Neue", Arial, sans-serif;
-  --bg: #0a1022; --bg-2: #0f1730; --panel: #131d3a; --panel-2: #1a2648; --line: #33426f;
-  --ink: #f3ead6; --ink-2: #cfc6b0; --ink-3: #a39c88;
-  --brass: #d9a63e; --brass-2: #f2c45a; --red: #d23a3a; --red-2: #ee5a4f; --focus: #f2c45a;
-  --on-accent: #0a1022; --glow: #1d2a55;
-  --wave-bg: linear-gradient(180deg, #080d1c, #0f1730); --wave-axis: rgba(242, 196, 90, 0.2); --wave-idle: rgba(207, 198, 176, 0.25);
-  --wave-wait: #cfc6b0; --wave-rec: #ee5a4f; --wave-take: #33426f; --wave-play: #f2c45a; --wave-head: #f3ead6; --wave-thumb: #d9a63e;
-  --pressed: linear-gradient(180deg, #ee5a4f, #b82c2c); --shadow: rgba(0, 0, 0, 0.55); --backdrop: rgba(5, 8, 18, 0.7);
-  --radius: 14px;
-  --halftone: radial-gradient(circle, rgba(242, 196, 90, 0.07) 1.1px, transparent 1.6px) 0 0 / 9px 9px;
-  --spot: radial-gradient(70% 45% at 50% -5%, rgba(242, 196, 90, 0.16), transparent 70%);
-  --sleeve: #10193a; --sleeve-2: #182452; --stripe: #d23a3a;
-  --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23f2c45a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-}
-[data-theme="bebop"] body { background: var(--spot) fixed, var(--halftone) fixed, var(--bg); }
-[data-theme="bebop"] .brand, [data-theme="bebop"] .bar h2, [data-theme="bebop"] .sheet-head h3, [data-theme="bebop"] .rec-state, [data-theme="bebop"] .takes-title { text-transform: uppercase; letter-spacing: 0.06em; font-weight: 400; }
-[data-theme="bebop"] .brand { color: var(--ink); font-size: clamp(2.4rem, 10vw, 4.4rem); line-height: 0.95; }
-[data-theme="bebop"] .brand em { color: var(--brass-2); font-style: normal; }
-[data-theme="bebop"] .bar h2 { font-size: clamp(1.15rem, 5.6vw, 1.7rem); }
-[data-theme="bebop"] .choice .label { font-family: var(--display); font-weight: 400; letter-spacing: 0.06em; font-size: clamp(1.35rem, 5.6vw, 1.8rem); color: var(--ink); }
-/* A record sleeve: flat colour, a thin cream rule inside the edge and a red stripe down one side. */
-[data-theme="bebop"] .choice {
-  border: 1px solid var(--line); border-left: 5px solid var(--stripe); border-radius: 14px;
-  background: var(--halftone), linear-gradient(160deg, var(--sleeve-2), var(--sleeve));
-  box-shadow: inset 0 0 0 5px var(--sleeve), inset 0 0 0 6px color-mix(in srgb, var(--ink) 22%, transparent), 0 10px 26px var(--shadow);
-}
-[data-theme="bebop"] .choice:hover { border-color: var(--brass); border-left-color: var(--stripe); }
-[data-theme="bebop"] .big-btn { background: linear-gradient(180deg, #f2c45a, #d39a2e); border: 0; border-radius: 999px; color: #0a1022; box-shadow: 0 6px 18px rgba(242, 196, 90, 0.18); font-weight: 700; letter-spacing: 0.03em; }
-[data-theme="bebop"] .big-btn[aria-pressed="true"] { background: var(--pressed); color: #fff7ea; }
-[data-theme="bebop"] .step { border: 2px solid var(--brass); background: var(--panel-2); color: var(--brass-2); }
-[data-theme="bebop"] .chip, [data-theme="bebop"] .select, [data-theme="bebop"] .pill { border-radius: 999px; border-color: var(--line); background-color: var(--panel); }
-[data-theme="bebop"] .chip[aria-checked="true"] { background: var(--brass-2); border-color: var(--brass-2); color: #0a1022; }
-[data-theme="bebop"] .sheet { border: 1px solid var(--line); border-top: 4px solid var(--stripe); background: var(--halftone), var(--bg-2); }
-[data-theme="bebop"] .wave { border: 1px solid var(--line); border-radius: 12px; }
-[data-theme="bebop"] .take { border-radius: 12px; border: 1px solid var(--line); background: linear-gradient(90deg, var(--stripe) 0 4px, transparent 4px), var(--panel); padding-left: 16px; }
-[data-theme="bebop"] .beats li { border-color: var(--brass); }
-[data-theme="bebop"] .beats li.on { background: var(--brass-2); }
-[data-theme="bebop"] .beats li.strong.on { background: var(--red-2); border-color: var(--red-2); }
-[data-theme="bebop"] .rec-btn { border: 4px solid var(--brass); background: radial-gradient(circle at 35% 30%, var(--sleeve-2), var(--bg)); }
 
 /* ================================================================ Light and dark
    Each theme has the other mode too (the appearance setting; resolveMode in
@@ -1783,25 +1734,6 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   color-scheme: light;
 }
 
-/* Bebop by day: a cream record sleeve printed in midnight-blue ink, brass and red. */
-[data-theme="bebop"][data-mode="light"] {
-  --viz-strong: #c6302a; --viz-beat: #94650f; /* the Visualizer's lit beats: strong, other */
-  --bg: #f4ecda; --bg-2: #fbf6ea; --panel: #fffaf0; --panel-2: #efe4cc; --line: #c4b28a;
-  --ink: #111a36; --ink-2: #33406a; --ink-3: #555f7f;
-  --brass: #94650f; --brass-2: #7a520a; --red: #b8302a; --red-2: #c6302a; --focus: #7a520a;
-  --value: #85570c; --on-accent: #fffaf0; --glow: #fff6e2;
-  --halftone: radial-gradient(circle, rgba(17, 26, 54, 0.06) 1.1px, transparent 1.6px) 0 0 / 9px 9px;
-  --spot: radial-gradient(70% 45% at 50% -5%, rgba(217, 166, 62, 0.18), transparent 70%);
-  --sleeve: #fffaf0; --sleeve-2: #f7eedb; --stripe: #c6302a;
-  --wave-bg: linear-gradient(180deg, #fffaf0, #f4ecda); --wave-axis: rgba(17, 26, 54, 0.14); --wave-idle: rgba(51, 64, 106, 0.25);
-  --wave-wait: #33406a; --wave-rec: #c6302a; --wave-take: #d8cba9; --wave-play: #94650f; --wave-head: #111a36; --wave-thumb: #b38a3a;
-  --pressed: linear-gradient(180deg, #d0453c, #a8281f); --shadow: rgba(17, 26, 54, 0.14); --backdrop: rgba(17, 26, 54, 0.4);
-  --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%237a520a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  color-scheme: light;
-}
-[data-theme="bebop"][data-mode="light"] .big-btn { background: linear-gradient(180deg, #1b2a5c, #111a36); color: #f7e9c4; box-shadow: 0 4px 12px rgba(17, 26, 54, 0.2); }
-[data-theme="bebop"][data-mode="light"] .chip[aria-checked="true"] { background: #111a36; border-color: #111a36; color: #f7e9c4; }
-[data-theme="bebop"][data-mode="light"] .step { background: var(--panel); }
 
 /* ---------------------------------------------------------------- shared theme touches */
 /* Slider tracks that show on light grounds */

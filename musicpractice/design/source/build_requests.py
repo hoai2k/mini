@@ -168,8 +168,10 @@ MORE_THEMES = [
                   "tiny cog, and a round brass gear-shaped hub"),
 ]
 
-# Round 13: Bebop, a ninth theme (requested; it joins Settings once its art
-# is delivered). Its whole set is asked for at once: six drawn from scratch
+# Round 13: Bebop, a ninth theme. ARCHIVED: delivered, briefly in the app,
+# then taken out (the owner wasn't satisfied with it yet). Its art, styles and
+# restore steps are in design/archive/bebop/; its requests stay defined here
+# for a revival but are left out of ASSETS (ARCHIVED_THEMES). Its whole set is asked for at once: six drawn from scratch
 # (step 1), and the rest made from those (step 2), as the other themes' were.
 BEBOP = dict(
     id="bebop", name="Bebop",
@@ -203,8 +205,8 @@ THEMES = [
     dict(id="classic", name="Classic"),
     dict(id="deco", name="Art Deco"),
     *[dict(id=t["id"], name=t["name"]) for t in MORE_THEMES],
-    dict(id=BEBOP["id"], name=BEBOP["name"]),
 ]
+ARCHIVED_THEMES = {BEBOP["id"]}
 
 ICON_STYLE = (
     STYLE + " A single centred object on a fully transparent background, bold readable "
@@ -1018,7 +1020,8 @@ def round13_assets() -> list[dict]:
     return out
 
 
-ASSETS += round13_assets()
+# Archived: not added to ASSETS while ARCHIVED_THEMES holds Bebop.
+ASSETS += [a for a in round13_assets() if a["theme"] not in ARCHIVED_THEMES]
 
 # Deliver the Bebop set incrementally, keeping unreviewed images requested.
 _round13_delivery = ROOT / "design" / "image-deliveries-round-13.json"
@@ -1081,7 +1084,10 @@ def render() -> tuple[str, str]:
                        (10, "Metronome pendulum in two parts, every theme"),
                        (11, "Practice Routine pictures, every theme"),
                        (12, "Arpeggios, Sight reading and Improvisation, every theme"),
-                       (13, "the Bebop theme: draw step 1 first, then make step 2 from it")):
+                       (13, "the Bebop theme")):
+        if rnd == 13 and BEBOP["id"] in ARCHIVED_THEMES:
+            lines += ["**Round 13 (the Bebop theme):** archived, art and all, in `design/archive/bebop/` (not in the app).", ""]
+            continue
         wanted = [a for a in ASSETS if a["round"] == rnd and a["status"] in ("requested", "revise")]
         lines.append(f"**Round {rnd} ({title}):** "
                      + (f"{len(wanted)} image{'s' if len(wanted) != 1 else ''} wanted: " + ", ".join(f"`{a['file']}`" for a in wanted) + "."
@@ -1093,7 +1099,6 @@ def render() -> tuple[str, str]:
         "- Classic: " + STYLE,
         "- Art Deco: " + DECO_STYLE,
         *[f"- {t['name']}: {t['style']}" for t in MORE_THEMES],
-        f"- {BEBOP['name']}: {BEBOP['style']}",
         "",
         "**Shared pictures:** the Practice Routine's pictures of an activity (" + ", ".join(i.removeprefix("practice-") for i in SHARED_PICTURES)
         + ") are drawn for Classic, Vintage 60s, Robot Future and Candy only; the other themes use Classic's "

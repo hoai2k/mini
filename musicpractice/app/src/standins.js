@@ -371,16 +371,9 @@ const STEAMPUNK = themed({
   extras: `<circle cx="400" cy="1105" r="30" fill="#efe3c6" stroke="#d9a44a" stroke-width="8"/><path d="M400 1105L418 1088" stroke="#2b1d12" stroke-width="5"/>`,
 });
 
-const BEBOP = themed({
-  shape: 'plates', caseFill: '#14204a', caseLine: '#d9a63e', lineW: 8, face: '#f3ead6', faceLine: '#d9a63e',
-  tick: '#0a1022', metal: '#e6b450', metalLine: '#7a5718', accent: '#d23a3a', base: '#0a1022', record: '#ee3b34',
-  weight: 'bud',
-  extras: `<path d="M165 960H635" stroke="#d23a3a" stroke-width="16"/><path d="${star(600, 200, 30, 4, 0.28)}" fill="#f3ead6"/><path d="${star(210, 420, 18, 4, 0.28)}" fill="#f2c45a"/>`,
-});
-
 export const STANDINS = {
   classic: CLASSIC, deco: DECO,
-  sixties: SIXTIES, baroque: BAROQUE, scifi: SCIFI, nouveau: NOUVEAU, anime: ANIME, steampunk: STEAMPUNK, bebop: BEBOP,
+  sixties: SIXTIES, baroque: BAROQUE, scifi: SCIFI, nouveau: NOUVEAU, anime: ANIME, steampunk: STEAMPUNK,
 };
 
 /** The stand-in for an image in a theme (falling back to Classic's). */
