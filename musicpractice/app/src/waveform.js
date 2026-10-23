@@ -19,6 +19,7 @@ export class Waveform {
     this.mode = 'live';
     this.take = null;
     this.progress = 0;
+    this.loop = null;
     this.dirty = true;
     new ResizeObserver(() => { this.dirty = true; }).observe(canvas);
   }
@@ -57,6 +58,12 @@ export class Waveform {
     this.dirty = true;
   }
 
+  /** A loop to mark on the take: { from, to } (fractions; `to` null while only its start is set), or null. */
+  setLoop(l) {
+    this.loop = l;
+    this.dirty = true;
+  }
+
   setProgress(p) {
     this.progress = p;
     this.dirty = true;
@@ -89,6 +96,17 @@ export class Waveform {
         const top = mid - Math.max(hi, 0.004) * scale * 1.6;
         const bot = mid - Math.min(lo, -0.004) * scale * 1.6;
         g.fillRect(x, Math.max(0, top), 1, Math.min(h, bot) - Math.max(0, top));
+      }
+      if (this.loop) {
+        const a = Math.round(this.loop.from * w);
+        const b = this.loop.to === null ? w : Math.round(this.loop.to * w);
+        g.fillStyle = col('--wave-head');
+        g.globalAlpha = 0.12;
+        g.fillRect(a, 0, b - a, h);
+        g.globalAlpha = 0.7;
+        g.fillRect(a, 0, dpr, h);
+        if (this.loop.to !== null) g.fillRect(b - dpr, 0, dpr, h);
+        g.globalAlpha = 1;
       }
       g.fillStyle = col('--wave-head');
       g.fillRect(Math.round(played) - dpr, 0, 2 * dpr, h);

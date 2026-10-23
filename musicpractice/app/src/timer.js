@@ -164,6 +164,24 @@ export function cleanRoutine(v, base) {
   return v.slice(0, MAX_ITEMS).map(clean).filter((it) => !seen.has(it.id) && seen.add(it.id));
 }
 
+/** Routines: several, each a name and its items; one is chosen. */
+export const MAX_ROUTINES = 20;
+export function newRoutine(name, items = []) {
+  return { id: `r${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, name, items };
+}
+/** Saved routines, or, saved before there were several, the one routine, "My routine". */
+export function cleanRoutines(saved, base) {
+  if (Array.isArray(saved?.routines) && saved.routines.length) {
+    const seen = new Set();
+    const list = saved.routines
+      .filter((r) => r && typeof r === 'object' && typeof r.id === 'string' && r.id && !seen.has(r.id) && seen.add(r.id))
+      .slice(0, MAX_ROUTINES)
+      .map((r) => ({ id: r.id.slice(0, 40), name: typeof r.name === 'string' ? r.name.slice(0, MAX_NAME) : '', items: cleanRoutine(Array.isArray(r.items) ? r.items : [], base) }));
+    if (list.length) return list;
+  }
+  return [{ id: 'r1', name: TEXT.timer.routines.first, items: cleanRoutine(saved?.items, base) }];
+}
+
 /** The chime between items (and at the end), from design/chime-sounds.md's second batch, when chimes are on (chimeOn). */
 export const CHIMES = ['kalimba', 'two-tone', 'celesta'];
 
@@ -176,8 +194,12 @@ export const VOICE_DEFAULT = Math.round(Math.sqrt(0.9 / VOICE_MAX_GAIN) * 100) /
 export function loadTimer(base, storage = globalThis.localStorage) {
   let saved = null;
   try { saved = JSON.parse(storage?.getItem(KEY) || 'null'); } catch { /* start afresh */ }
+  const routines = cleanRoutines(saved, base);
+  const current = routines.find((r) => r.id === saved?.routineId) || routines[0];
   return {
-    items: cleanRoutine(saved?.items, base),
+    routines,
+    routineId: current.id,
+    items: current.items, // the chosen routine's (the same array)
     chime: CHIMES.includes(saved?.chime) ? saved.chime : 'kalimba',
     // Chimes on unless turned off ('none' was once a chime of its own: off).
     chimeOn: saved?.chimeOn !== false && saved?.chime !== 'none',
@@ -192,8 +214,11 @@ export function loadTimer(base, storage = globalThis.localStorage) {
     rest: cleanRest(saved?.rest),
   };
 }
-export function saveTimer({ items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume, metView, rest }, storage = globalThis.localStorage) {
-  try { storage?.setItem(KEY, JSON.stringify({ items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume, metView, rest })); } catch { /* not kept */ }
+export function saveTimer({ routines, routineId, items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume, metView, rest }, storage = globalThis.localStorage) {
+  // `items` (the chosen routine's) is kept too, for an earlier version reading this.
+  const current = routines?.find((r) => r.id === routineId);
+  if (current) current.items = items;
+  try { storage?.setItem(KEY, JSON.stringify({ routines, routineId, items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume, metView, rest })); } catch { /* not kept */ }
 }
 
 /**

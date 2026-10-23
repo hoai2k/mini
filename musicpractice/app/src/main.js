@@ -29,6 +29,7 @@ import { initPro, isPro, onProChange, requirePro, openPaywall } from './pro.js';
 import { FREE_THEME } from './pro-config.js';
 import { nativeAudio, NativeDrone, onNativeStopped } from './nativeaudio.js';
 import { setupTimer } from './timerui.js';
+import { setupLog } from './logui.js';
 import { playChime, playClips, loadClip } from './timer.js';
 import { setupPager } from './pager.js';
 
@@ -166,7 +167,7 @@ function enter(name) {
   if (name === 'drone') droneUI.fit();
   if (name === 'record') checkRecorderMic(); // it starts off: the record button begins the cycle
   if (name === 'tuner') { startTuner(); tuner.fit(); }
-  if (name === 'routine') { if (!rec.recorder?.holdsMic) setSession('playback'); timerUI?.enter(); }
+  if (name === 'routine') { if (!rec.recorder?.holdsMic) setSession('playback'); timerUI?.enter(); practiceLog?.refresh(); }
   if (name === 'home') layoutHome();
   if (name === 'drone') {
     // Like the metronome, the drone doesn't use the mic.
@@ -339,7 +340,7 @@ const {
 
 // The Tuner's screen (tunerui.js), and the mic it shares with the Playback Recorder (recorderui.js).
 const tuner = setupTuner({ settings, persist, chips });
-const rec = setupRecorder({ settings, persist, tuner, screen: () => screen, routineRunning: () => !!timerUI?.running, recordDuringPlayback });
+const rec = setupRecorder({ settings, persist, tuner, screen: () => screen, routineRunning: () => !!timerUI?.running, routineItem: () => timerUI?.item ?? null, recordDuringPlayback });
 const {
   recVolume, listeningActive, engineStuck, restartListening, markNeedsTap,
   configureRecorder, startRecorder, stopRecorder, checkRecorderMic, renderTakes, loadTakes, animateRecorder,
@@ -391,6 +392,7 @@ const droneUI = setupDrone({
  * Recorder on and off, each running with its own settings (timerui.js).
  */
 let timerUI = null;
+let practiceLog = null; // the practice log (logui.js), once set up below
 let pager = null;
 let timerDrone = false; // the routine's Drone card started the drone
 let timerPlayback = false; // the routine's Playback card turned the recorder on
@@ -409,7 +411,7 @@ function routineDrone() {
 const droneChanged = () => { persist(); droneUI.refresh(); if (timerDrone) routineDrone(); };
 const routineTools = {
   metronome: {
-    start: startMetronome,
+    start: () => startMetronome({ exercise: false }),
     stop: stopMetronome,
     on: () => !!met.metronome?.running,
     bpm: () => settings.bpm,
@@ -500,6 +502,12 @@ const timerAudio = {
   },
 };
 timerUI = setupTimer({ settings, tools: routineTools, audio: timerAudio });
+
+// The practice log (logui.js): time counts while something is being practised with.
+practiceLog = setupLog({
+  active: () => !!met.metronome?.running || !!droneUI.playing || timerUI.practising
+    || ['waiting', 'recording'].includes(rec.recorder?.state),
+});
 pager = setupPager({
   home: $('home'),
   timer: $('routine'),
@@ -604,6 +612,7 @@ document.addEventListener('keydown', (e) => {
     if (e.key === ' ' && !typing && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); $('met-toggle').click(); }
     if (!typing && (e.key === 'ArrowUp' || e.key === 'ArrowRight')) { e.preventDefault(); setBpm(settings.bpm + (e.shiftKey ? 10 : 1)); }
     if (!typing && (e.key === 'ArrowDown' || e.key === 'ArrowLeft')) { e.preventDefault(); setBpm(settings.bpm - (e.shiftKey ? 10 : 1)); }
+    if (!typing && (e.key === 't' || e.key === 'T') && !e.repeat && !e.metaKey && !e.ctrlKey) { e.preventDefault(); met.tap(e.timeStamp); }
   }
   if (screen === 'record' && e.key === ' ' && !(e.target instanceof HTMLButtonElement) && !typing) {
     e.preventDefault();

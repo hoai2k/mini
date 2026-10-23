@@ -97,6 +97,13 @@ public class PracticeAudioPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void metronomeExercise(PluginCall call) {
+        engine.mixer.metronomeExercise(call.getInt("gapPlay", 0), call.getInt("gapSilent", 0),
+                call.getDouble("trainerStep", 0.0), call.getInt("trainerEvery", 0), call.getDouble("trainerTo", 0.0));
+        call.resolve();
+    }
+
+    @PluginMethod
     public void metronomeStop(PluginCall call) {
         engine.mixer.metronomeStop();
         engine.setLabels(null, null);

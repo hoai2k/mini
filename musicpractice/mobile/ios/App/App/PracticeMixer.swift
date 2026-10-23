@@ -33,7 +33,10 @@ final class PracticeMixer {
 
     // MARK: metronome
 
-    private var clicks: [[Float]] = [[], [], [], []] // weak, mid, strong, between the beats
+    private var clicks: [[Float]] = [[], [], [], [], []] // weak, mid, strong, between the beats, soft (the weak one, quieter)
+    /// A soft beat (volume per beat): the weak click this much as loud (metronome.js SOFT_GAIN).
+    static let softGain: Float = 0.35
+    static let soft = 4, silent = 5 // click kinds past the strengths and between-the-beats (settings.js SOFT, SILENT)
     private var clickSr = 48000.0
     private var metRunning = false
     private var bpm = 120.0
@@ -46,7 +49,10 @@ final class PracticeMixer {
     private var lastBeat = 0.0 // the frame of the last beat, which the subdivisions count from
     private var subIndex = 1 // the next subdivision of that beat
     private var lastBeatIndex = 0 // that beat's place in the bar
-    private var slots: [Int] = [] // custom strong beats: the click for every position in the bar (empty: the plain rules)
+    private var slots: [Int] = [] // custom strong beats and volume per beat: the click for every position in the bar (empty: the plain rules)
+    private var gapPlay = 0, gapSilent = 0 // silent bars: play this many, then this many silent (0: off)
+    private var trainerStep = 0.0, trainerEvery = 0, trainerTo = 0.0 // the tempo trainer (every 0: off)
+    private var lastMuted = false // the last beat was in a silent bar (its subdivisions too)
     private var clickKind = [Int](repeating: 0, count: 16)
     private var clickPos = [Double](repeating: 0, count: 16) // in click samples
     private var clicksActive = 0
@@ -179,7 +185,7 @@ final class PracticeMixer {
     /// An older page sends no `sub`: the weak click stands in.
     func setClicks(weak: [Float], mid: [Float], strong: [Float], sub: [Float]? = nil, sampleRate: Double) {
         locked {
-            clicks = [weak, mid, strong, sub ?? weak]
+            clicks = [weak, mid, strong, sub ?? weak, weak.map { $0 * PracticeMixer.softGain }]
             clickSr = sampleRate
         }
     }
@@ -194,6 +200,19 @@ final class PracticeMixer {
             nextBeat = Double(frameCount) + 0.05 * sr
             subIndex = Int.max // no subdivisions before the first beat
             stopFade = 0
+            gapPlay = 0; gapSilent = 0; trainerEvery = 0 // until metronomeExercise says otherwise
+        }
+    }
+
+    /// Silent bars (play `gapPlay` bars, then `gapSilent` silent; 0 off) and the tempo
+    /// trainer (`trainerStep` beats per minute every `trainerEvery` bars until `trainerTo`; 0 off).
+    func metronomeExercise(gapPlay: Int, gapSilent: Int, trainerStep: Double, trainerEvery: Int, trainerTo: Double) {
+        locked {
+            self.gapPlay = max(0, gapPlay)
+            self.gapSilent = max(0, gapSilent)
+            self.trainerStep = max(0, trainerStep)
+            self.trainerEvery = max(0, trainerEvery)
+            self.trainerTo = trainerTo
         }
     }
 
@@ -205,7 +224,7 @@ final class PracticeMixer {
     private func update(bpm: Double, strengths: [Int], subdivision: Int, slots: [Int], volume: Double) {
         self.bpm = max(1, bpm)
         self.subdivision = max(1, min(4, subdivision))
-        self.slots = slots.map { max(0, min(3, $0)) }
+        self.slots = slots.map { max(0, min(PracticeMixer.silent, $0)) }
         self.strengths = strengths.isEmpty ? [0] : strengths
         metVolume = volume
         if beat >= self.strengths.count { beat %= self.strengths.count }
@@ -397,8 +416,16 @@ final class PracticeMixer {
             // Metronome: start a click on each beat, then play the clicks sounding.
             let now = Double(frameCount) + Double(f)
             if metRunning && now >= nextBeat {
-                let strength = strengths[beat % strengths.count]
-                startClick(max(0, min(2, strength)), (now - nextBeat) * clickStep)
+                let bar = Int64(strengths.count)
+                // The trainer moves the tempo at the start of every `trainerEvery` bars.
+                if trainerEvery > 0 && trainerStep > 0 && count > 0 && count % (bar * Int64(trainerEvery)) == 0 {
+                    bpm = bpm < trainerTo ? min(trainerTo, bpm + trainerStep) : bpm > trainerTo ? max(trainerTo, bpm - trainerStep) : bpm
+                }
+                lastMuted = gapSilent > 0 && (count / bar) % Int64(gapPlay + gapSilent) >= Int64(gapPlay)
+                let strength = max(0, min(2, strengths[beat % strengths.count]))
+                if !lastMuted {
+                    startClick(slots.isEmpty ? strength : slots[(beat * subdivision) % slots.count], (now - nextBeat) * clickStep)
+                }
                 lastBeat = nextBeat
                 lastBeatIndex = beat
                 subIndex = 1
@@ -411,7 +438,7 @@ final class PracticeMixer {
                 let at = lastBeat + Double(subIndex) * (60 / bpm * sr) / Double(subdivision)
                 if now >= at {
                     let k = lastBeatIndex * subdivision + subIndex
-                    startClick(slots.isEmpty ? 3 : slots[k % slots.count], (now - at) * clickStep)
+                    if !lastMuted { startClick(slots.isEmpty ? 3 : slots[k % slots.count], (now - at) * clickStep) }
                     subIndex += 1
                 }
             }
@@ -489,7 +516,7 @@ final class PracticeMixer {
     }
 
     private func startClick(_ kind: Int, _ pos: Double) {
-        guard clicksActive < clickKind.count else { return }
+        guard kind != PracticeMixer.silent, kind < clicks.count, clicksActive < clickKind.count else { return }
         clickKind[clicksActive] = kind
         clickPos[clicksActive] = pos
         clicksActive += 1

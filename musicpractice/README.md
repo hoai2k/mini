@@ -159,6 +159,10 @@ when the Art Deco art arrives, measure and record its own.
 
 ## Metronome
 
+- **Tap tempo:** the **Tap** button beside the tempo's name (or **T** on a
+  keyboard). From the second tap the tempo follows the taps: the average of
+  the last six (so one slip fades), counted on the finger coming down; a
+  pause of over two seconds starts again (`tapTempo` in `metronome.js`).
 - **The pendulum's weight shows the tempo and sets it**, as on a real
   metronome: it slides up the rod for slower and down for faster
   (`weightAt` in `app/src/metronome.js`), and dragging it with a finger or
@@ -330,6 +334,33 @@ when the Art Deco art arrives, measure and record its own.
   Strong beat on 1, and going back during the same visit brings the pattern
   back; only the one in use is saved (`accentPattern`). The apps' native
   mixers take the click for every position (`slots`).
+- **Volume per beat:** a switch under the strong beats' grid. Off (the
+  ordinary case), a tap makes a place strong or not, as above. On, a tap
+  goes **strong → soft → silent → normal**: soft is the weak click at 35%
+  (`SOFT_GAIN`), silent is no click. The dots show a soft beat faint and a
+  silent one hollow; turning the switch off clears them. They are kept for
+  the time signature (`beatLevels`, `cleanLevels`), apart from the strong
+  beats, and `barPlan` lays them over the bar as two more click kinds,
+  `SOFT` (4) and `SILENT` (5), which the native mixers take in `slots` too
+  (their soft click is the weak one scaled the same). They play in a
+  routine as strong beats do.
+- **Tempo trainer:** a switch in Metronome settings, with a pencil for its
+  numbers: a target tempo, a step (BPM) and how often (every N bars). From
+  the tempo set, the metronome moves a step toward the target at the start
+  of every N bars, then stays there; the number, slider and pendulum follow,
+  and **Stop puts the tempo back** where it started, for another go (turned
+  off part way, it stays where it got to). A line under the tempo (*Tempo
+  trainer: 100 → 140 BPM*) says it is on; a tap opens the settings.
+- **Silent bars:** the same, for some bars with clicks then some without
+  (1 to 16 each), over and over: the beat goes on silently and the clicks
+  come back to show whether it was held. The dots and pendulum keep going.
+- Both run in the scheduler itself (`setExercise` in `metronome.js`; in the
+  apps `metronomeExercise`, so the mixers keep exact time and the trainer
+  goes on with the screen locked, the page reading the tempo back off the
+  clock's period). They apply when the metronome is started from its own
+  screen; a routine's metronome plays plainly. An app built before them
+  plays on plainly (it has no `metronomeExercise`, and plays soft and
+  silent places as the quiet between-the-beats click) until it is rebuilt.
 - The metronome settings hold **Pendulum swing** and **Visualizer rows**
   (1, 2, 4 or 8), each set whether or not it is showing. **Pressing and
   holding** the dots or the Visualizer opens the strong beats (as the
@@ -351,8 +382,14 @@ when the Art Deco art arrives, measure and record its own.
   picked first, as two names can share a tempo: Downtempo and Hip hop both
   have 90), else the name whose range is nearest. Choosing Medium swing shows
   Medium swing, and changing the style renames the tempo at once.
-- **Common tempos:** tapping the marking under the number (Allegro, and so
-  on) opens common tempos by **Style**: Classical (the Italian markings over
+- **Saved tempos:** the tempo sheet (a tap on the marking) starts with the
+  player's own: **Save 72 BPM · 3/4** keeps the tempo and time signature now
+  and puts its name ready to type (a piece, an exercise; left empty it reads
+  "72 · 3/4"); a tap on one brings both back and closes the sheet; its name
+  is renamed where it stands and ✕ deletes it. Save is offered only for a
+  tempo not saved yet; up to 40 (`savedTempos`, `cleanSavedTempos` in
+  `settings.js`).
+- **Common tempos:** below them, the same sheet has common tempos by **Style**: Classical (the Italian markings over
   the metronome's traditional marks), Jazz (ballad to burner), Ballroom
   dance (the competition tempos), Electronic & hip hop, and Marching. Each
   named tempo has one button, its usual tempo, and a chevron beside it
@@ -388,6 +425,13 @@ blocked, comes then rather than when you start to play.
    and a playhead. Then it listens again. **Scrub** while it plays: press
    the waveform and the playhead jumps there and holds while you drag; let
    go and it plays on from that point, to hear a passage again and again.
+   **Speed and loop**: while a take plays, its row in the list grows a
+   second line. *50%*, *75%* and *100%* set how fast takes play, with the
+   pitch kept (the audio element's `preservesPitch`), and are kept between
+   visits. *Loop A–B* marks a loop's start where the take has got to; the
+   button then reads *Set end*, and a tap marks the end (until then, the
+   take's end goes back to the start). *Stop loop* stops looping. The loop
+   is shaded on the waveform, and a looping take plays until it's stopped.
    **Playback volume** is the faint speaker at the right of the record
    button's row (the metronome's tucked-away control, `tuckedvolume.js`):
    drag it, or tap it for the slider. iPhone and iPad ignore an audio
@@ -463,6 +507,12 @@ a message that then disappears; a refusal is shown once it is known.
   ukulele, violin, viola, cello, mandolin, banjo. With strings, the nearest
   string is ringed (green once in tune) and the needle measures against it;
   tap a string to hear its note.
+- **Pitch trace**: a strip under the cents shows the last 6 seconds of
+  pitch, newest at the right: the middle line is in tune, above it sharp,
+  below it flat (±50 cents), with the ±5-cent band shaded. The line is green
+  in tune and red outside, and breaks where the note changes or stops, so a
+  held note shows whether it wavers or drifts. On a window too short for
+  everything, it is the last thing to go, after the gauge has shrunk.
 - **Reference tone**: in Chromatic, *Play A4* (it becomes the last note
   heard) plays a 2.5 s tone with a few harmonics, so low notes still carry
   on a phone speaker. `Space` plays it, or the nearest string's note.
@@ -736,8 +786,33 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
 `app/src/timerui.js` (the screen and the tool cards; the tools themselves
 are main.js's, `routineTools`), `app/src/pager.js` (the second page).
 
-- **A routine is a list of practice items** (on screen each is itself
-  called a routine: "2 routines in all", "Add a Routine", "Last routine").
+- **Routines**: several, each a name and a list of items (`state.routines`
+  in `timer.js`). The routine's name, small and in the accent above the
+  total ("My routine ▾"), opens **Routines**: each with its items and
+  minutes ("2 items · 8 min"); a tap practises it. **New routine** starts an
+  empty one and names it where it stands; the pencil renames, the trash
+  deletes (with Undo while the sheet is open; the last one can't be
+  deleted). The one routine saved before there were several becomes "My
+  routine". `items` is still saved beside them (the chosen routine's), for
+  an earlier version reading it.
+- **Practice log**: a quiet line under the list ("🔥 3-day streak · 1 h 59
+  min in the last 7 days ›", hidden while a routine runs) opens it: days in
+  a row, the last 7 days, today, a bar for each of the last 7 days (minutes
+  over each), and the days practised. Time counts while the metronome or
+  drone plays, the Playback Recorder listens or records, or a routine runs
+  (not paused), once however many are on; a day counts toward a streak from
+  a minute, and a streak runs to today, or to yesterday until today is
+  practised. `practicelog.js` (pure, `test/practicelog.test.mjs`) keeps
+  seconds per local calendar day in localStorage (400 days); `logui.js`
+  ticks every 5 s and adds the time since the last tick, at most 65 s (a
+  phone asleep in a pocket isn't practice).
+- **Takes named after the routine**: a take the Playback card makes while a
+  routine runs is named after the item being practised, numbered on from
+  takes already named so ("Scales 1", "Scales 2"; `routineTakeName` in
+  `takes.js`). It can be renamed like any take.
+- **A routine is a list of practice items** ("2 items in all", "Add an
+  Item", "Last item"; each was called a routine on screen until there could
+  be several routines).
   Set up, each is a plain row: its number, its picture, its name with a
   small **pencil** after it, and its minutes on the right ("1. Intonation ✎
   · 3 min"). **A tap on an item starts the routine from there** (the items
@@ -787,7 +862,7 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
     deleted by its trash button, a swipe or its menu.
   The list's pencil is hidden while a routine runs.
 - A first visit starts with **Intonation** (3 min) and **Scales** (5 min).
-  **+ Add** opens **Add a Routine**: Intonation, Scales, **Arpeggios**,
+  **+ Add** opens **Add an Item**: Intonation, Scales, **Arpeggios**,
   **Metronome**, **Sight Reading**, **Improvisation**, **Clapping Rhythms**,
   **Ghosting** and **Custom…** (a blank item, opening the list for editing
   with its name ready to type), each by its name and its picture
@@ -816,7 +891,7 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
   Skip goes a step at a time (a routine to its break, a break to the next),
   a card's button during a break plays that tool without changing the next
   routine, and there is no break after the last. The total counts the timed
-  breaks ("12:00 · 3 routines in all · 30 s breaks"). `TimerRun` in
+  breaks ("12:00 · 3 items in all · 30 s breaks"). `TimerRun` in
   `app/src/timer.js` (`rest`, `resting`, `waiting`; events `rest` and
   `begin`), `RESTS`.
 - **What the tools do at each moment is decided in one place**:
@@ -952,7 +1027,7 @@ slide read as a snap. The way across is a **smaller Routine button**
   sight-reading, improvisation, round 12; a Metronome item shows the
   Metronome's own home picture, `picture` on its preset), and there is a
   default (`practice-default`, a music stand), shown small in the list, in
-  Add a Routine and beside the running item's name. **The pictures of an
+  Add an Item and beside the running item's name. **The pictures of an
   activity are shared**: in the warm brass-and-gold themes (Art Deco, 18th
   Century, French Nouveau, Steam Punk) each came out a near-copy of
   Classic's, so those themes use Classic's (`SHARED_PICTURES` in
@@ -1061,12 +1136,12 @@ file, on purpose: the privacy page, the device details Send feedback attaches
   moving between screens, app settings and dialogs, keys, the routine's hold
   on the tools, start-up); each screen its own module: `metronomeui.js` the
   Metronome, `recorderui.js` the microphone (shared with the Tuner) and the
-  Playback Recorder, `tunerui.js`, `droneui.js` and `timerui.js` the rest,
+  Playback Recorder, `tunerui.js`, `droneui.js`, `timerui.js` and `logui.js` (the practice log) the rest,
   and `ui.js` the small helpers they share. `metronome.js` the
   scheduler, sounds and pendulum, `recorder.js` the mic and take state
   machine, `capture-worklet.js` the mic tap, `detect.js` the music/noise
   detector and trimming, `waveform.js` the waveform views, `takes.js` saved
-  takes, `settings.js` settings and themes, `audio.js` the shared
+  takes, `practicelog.js` the practice log's days and streaks, `settings.js` settings and themes, `audio.js` the shared
   AudioContext, `art.js` theme art and pendulum anchors, `standins.js` each
   theme's drawn stand-ins. `player.js` take playback through an `<audio>` element,
   `wav.js` the WAV encoding it uses, `mp3.js` and `mp3-worker.js` MP3

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { load, save, sanitize, clampBpm, beatStrengths, resolveMode, THEMES, DEFAULTS, barPlan, cleanPattern, TICKS } from '../src/settings.js';
+import { load, save, sanitize, clampBpm, beatStrengths, resolveMode, THEMES, DEFAULTS, barPlan, cleanPattern, TICKS, cleanLevels, cleanGap, cleanTrainer, trainerNext, SOFT, SILENT } from '../src/settings.js';
 import { pendulumAngle } from '../src/metronome.js';
 
 function memoryStorage() {
@@ -278,4 +278,64 @@ test('Test My Scale difficulty: Hard by default; Custom keeps its own threshold 
   const c = sanitize({ scaleLevel: 'custom', scaleTolerance: 99, scaleAttack: 'end' });
   assert.deepEqual([c.scaleLevel, c.scaleTolerance, c.scaleAttack], ['custom', 50, 'end']);
   assert.deepEqual([sanitize({ scaleLevel: 'expert' }).scaleLevel, sanitize({ scaleAttack: 'peak' }).scaleAttack], ['hard', 'mid']);
+});
+
+test('tap tempo: the taps\' tempo, from the last few; a pause starts again', async () => {
+  const { tapTempo, TAP_RESET } = await import('../src/metronome.js');
+  assert.equal(tapTempo([]), null);
+  assert.equal(tapTempo([1000]), null);
+  assert.equal(tapTempo([1000, 1500]), 120);
+  assert.equal(tapTempo([0, 600, 1200, 1800]), 100);
+  // A slip in the middle is averaged out.
+  assert.equal(tapTempo([0, 500, 1040, 1500, 2000]), 120);
+  // A long pause: only the taps since count.
+  assert.equal(tapTempo([0, 500, 1000, 1000 + TAP_RESET + 1]), null);
+  assert.equal(tapTempo([0, 500, 1000, 1000 + TAP_RESET + 1, 1000 + TAP_RESET + 1001]), 60);
+  // Only the last six taps (five gaps) count: an old tempo fades out.
+  assert.equal(tapTempo([0, 1000, 2000, 2500, 3000, 3500, 4000, 4500]), 120);
+});
+
+test('saved tempos are kept clean: a name, a tempo in range and a real time signature', async () => {
+  const { cleanSavedTempos, SAVED_MAX, load } = await import('../src/settings.js');
+  assert.deepEqual(cleanSavedTempos(null), []);
+  const out = cleanSavedTempos([
+    { id: 'a', name: '  Bach Prelude  ', bpm: 72, meter: '3/4' },
+    { id: 'a', name: 'duplicate', bpm: 80, meter: '4/4' },
+    { id: 'b', bpm: 9999, meter: 'bogus' },
+    { name: 'no id', bpm: 60, meter: '4/4' },
+    'junk',
+  ]);
+  assert.deepEqual(out, [
+    { id: 'a', name: 'Bach Prelude', bpm: 72, meter: '3/4' },
+    { id: 'b', name: '', bpm: 500, meter: '4/4' },
+  ]);
+  assert.equal(cleanSavedTempos(Array.from({ length: 60 }, (_, i) => ({ id: `x${i}`, bpm: 60, meter: '4/4' }))).length, SAVED_MAX);
+  assert.deepEqual(load(null).savedTempos, []);
+});
+
+test('volume per beat: soft and silent positions, cleaned, laid over the bar', () => {
+  assert.equal(cleanLevels({ meter: '4/4', soft: [], silent: [] }, '4/4'), null);
+  assert.equal(cleanLevels({ meter: '3/4', soft: [12] }, '4/4'), null); // another time signature's
+  assert.deepEqual(cleanLevels({ meter: '4/4', soft: [12, 12, 24, 99, 1.5], silent: [24, 36] }, '4/4'), { meter: '4/4', soft: [12], silent: [24, 36] });
+  // Strong beat on 1, beat 2 soft, beat 4 silent: every position has its click.
+  const p = barPlan({ meter: '4/4', accent: true, beatLevels: { meter: '4/4', soft: [TICKS], silent: [3 * TICKS] } });
+  assert.deepEqual(p, { strengths: [2, 0, 0, 0], slots: [2, SOFT, 0, SILENT] });
+  // With eighths and custom strong beats: the "and" of 3 silent.
+  const q = barPlan({ meter: '4/4', accent: true, subdivision: 2, accentPattern: { meter: '4/4', pos: [TICKS] }, beatLevels: { meter: '4/4', soft: [], silent: [2 * TICKS + 6] } });
+  assert.deepEqual(q.slots, [0, 3, 2, 3, 0, SILENT, 0, 3]);
+  // Strong beat off: the levels still apply.
+  assert.deepEqual(barPlan({ meter: '3/4', accent: false, beatLevels: { meter: '3/4', soft: [0] } }).slots, [SOFT, 0, 0]);
+});
+
+test('silent bars and the tempo trainer are kept within their ranges', () => {
+  assert.deepEqual(cleanGap(undefined), { on: false, play: 2, silent: 2 });
+  assert.deepEqual(cleanGap({ on: true, play: 0, silent: 99 }), { on: true, play: 1, silent: 16 });
+  assert.deepEqual(cleanTrainer(null), { on: false, step: 2, every: 4, to: 140 });
+  assert.deepEqual(cleanTrainer({ on: true, step: 50, every: 0, to: 9999 }), { on: true, step: 20, every: 1, to: 500 });
+  assert.equal(trainerNext(100, { step: 4, to: 110 }), 104);
+  assert.equal(trainerNext(108, { step: 4, to: 110 }), 110);
+  assert.equal(trainerNext(110, { step: 4, to: 110 }), 110);
+  assert.equal(trainerNext(120, { step: 5, to: 100 }), 115); // down, toward a slower target
+  const s = sanitize({ gap: { on: true, play: 3, silent: 1 }, trainer: { on: true, step: 3, every: 2, to: 90 }, beatLevels: { meter: '4/4', soft: [12] } });
+  assert.deepEqual([s.gap, s.trainer, s.beatLevels], [{ on: true, play: 3, silent: 1 }, { on: true, step: 3, every: 2, to: 90 }, { meter: '4/4', soft: [12], silent: [] }]);
 });

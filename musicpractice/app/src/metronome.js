@@ -2,7 +2,7 @@
 // beat stays steady even when the page is busy. A worker drives the
 // scheduler, because timers on the page slow down in background tabs.
 
-import { barPlan } from './settings.js';
+import { barPlan, trainerNext, SOFT, SILENT } from './settings.js';
 import { output } from './output.js';
 
 const LOOKAHEAD = 0.12; // seconds of clicks scheduled in advance
@@ -26,6 +26,8 @@ export const SUB = 3;
 export const SUBDIVISIONS = [1, 2, 3, 4];
 
 const SUB_LEVEL = 0.2; // the clicks between the beats: well under the clipper's knee, so clearly quieter
+/** A soft beat (volume per beat): the weak click, this much as loud (the apps' mixers use the same). */
+export const SOFT_GAIN = 0.35;
 // Into the clipper: how hard the clicks are pushed. 6 makes the click's body
 // about 2.5 dB louder than the 2.4 it was at the same peak (more is hardly
 // louder, only harsher), so full volume is louder than it was, and
@@ -72,7 +74,10 @@ export class Metronome {
     // changed its attack from beat to beat.
     this.rendered = {}; // sound -> [weak, mid, strong, between] AudioBuffers
     this.rendering = {};
-    this.recent = []; // beats scheduled, newest last: { time, beat, count, strength }
+    this.recent = []; // beats scheduled, newest last: { time, beat, count, strength, muted }
+    this.gap = null; // silent bars: { play, silent } bars, or null
+    this.trainer = null; // the tempo trainer: { step, every, to }, or null
+    this.onTempo = null; // (bpm) when the trainer moves the tempo
     // Short noise for the woodblock knock and the click.
     const n = Math.round(ctx.sampleRate * 0.05);
     this.noise = ctx.createBuffer(1, n, ctx.sampleRate);
@@ -95,6 +100,18 @@ export class Metronome {
 
   get period() {
     return 60 / this.bpm;
+  }
+
+  /** Silent bars and the tempo trainer for this run ({ gap, trainer }, each or both null). */
+  setExercise({ gap = null, trainer = null } = {}) {
+    this.gap = gap;
+    this.trainer = trainer;
+  }
+
+  /** Is beat `count` in one of the silent bars? */
+  muted(count) {
+    const g = this.gap;
+    return !!g && Math.floor(count / this.strengths.length) % (g.play + g.silent) >= g.play;
   }
 
   start() {
@@ -132,15 +149,24 @@ export class Metronome {
       this.count += missed;
     }
     while (this.next < until) {
-      const strength = this.strengths[this.beat] ?? 0;
-      this.voice(this.next, strength);
-      // Subdivisions: the quieter clicks between the beats (not beats themselves:
-      // the pendulum, lamp and dots keep to the beat).
-      for (let k = 1; k < this.subdivision; k++) {
-        const kind = this.slots ? this.slots[this.beat * this.subdivision + k] ?? SUB : SUB;
-        this.voice(this.next + (k * this.period) / this.subdivision, kind);
+      // The trainer moves the tempo at the start of every `every` bars.
+      const t = this.trainer;
+      if (t && this.count > 0 && this.count % (this.strengths.length * t.every) === 0) {
+        const bpm = trainerNext(this.bpm, t);
+        if (bpm !== this.bpm) { this.bpm = bpm; this.onTempo?.(bpm); }
       }
-      this.recent.push({ time: this.next, beat: this.beat, count: this.count, strength });
+      const strength = this.strengths[this.beat] ?? 0;
+      const muted = this.muted(this.count);
+      if (!muted) {
+        this.voice(this.next, this.slots ? this.slots[this.beat * this.subdivision] ?? strength : strength);
+        // Subdivisions: the quieter clicks between the beats (not beats themselves:
+        // the pendulum, lamp and dots keep to the beat).
+        for (let k = 1; k < this.subdivision; k++) {
+          const kind = this.slots ? this.slots[this.beat * this.subdivision + k] ?? SUB : SUB;
+          this.voice(this.next + (k * this.period) / this.subdivision, kind);
+        }
+      }
+      this.recent.push({ time: this.next, beat: this.beat, count: this.count, strength, muted });
       if (this.recent.length > 16) this.recent.shift();
       this.next += this.period;
       this.beat = (this.beat + 1) % this.strengths.length;
@@ -170,13 +196,20 @@ export class Metronome {
     })).then((bufs) => { this.rendered[sound] = bufs; }).catch(() => {}).finally(() => { delete this.rendering[sound]; });
   }
 
-  /** One click. strength: 2 downbeat, 1 secondary accent, 0 other beats, 3 (SUB) between the beats. */
+  /** One click. strength: 2 downbeat, 1 secondary accent, 0 other beats, 3 (SUB) between the beats, SOFT a soft beat, SILENT none. */
   voice(t, strength) {
-    const buf = this.rendered[this.sound]?.[strength];
-    if (!buf) { this.synth(t, strength); return; }
+    if (strength === SILENT) return;
+    const soft = strength === SOFT;
+    const kind = soft ? 0 : strength;
+    const buf = this.rendered[this.sound]?.[kind];
+    if (!buf) { this.synth(t, kind); return; }
     const s = this.ctx.createBufferSource();
     s.buffer = buf;
-    s.connect(this.out); // already through the clipper
+    if (soft) {
+      const g = this.ctx.createGain();
+      g.gain.value = SOFT_GAIN;
+      s.connect(g).connect(this.out);
+    } else s.connect(this.out); // already through the clipper
     // On a whole sample: played from between two, a click is interpolated,
     // which dulls its brightest part by a different amount each beat.
     const rate = this.ctx.sampleRate;
@@ -261,6 +294,21 @@ export class Metronome {
  * log scale, squeezed further at the fast end, so the everyday tempos get
  * most of the rod.
  */
+/**
+ * Tap tempo: the beats per minute of taps (times in ms, oldest first), from
+ * the last few (TAP_KEEP) so a steady hand settles quickly and a slip fades;
+ * a pause longer than TAP_RESET starts again. null until there are two taps.
+ */
+export const TAP_KEEP = 6;
+export const TAP_RESET = 2000;
+export function tapTempo(times) {
+  let i = times.length - 1;
+  while (i > 0 && times[i] - times[i - 1] <= TAP_RESET) i--;
+  const run = times.slice(Math.max(i, times.length - TAP_KEEP));
+  if (run.length < 2) return null;
+  return Math.round((60000 * (run.length - 1)) / (run[run.length - 1] - run[0]));
+}
+
 export const WEIGHT_BPM = [40, 300];
 const WEIGHT_CURVE = 0.8;
 export function weightAt(bpm, [lo, hi] = WEIGHT_BPM) {
