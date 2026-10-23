@@ -35,7 +35,7 @@ export const ENEMY_TABLES = {
   // Half-Blood Quests. Each board has its signature monsters (the first one
   // or two, and the elite marked *) and mixes the roles round them: fast
   // rushers, steady melee, ranged, an exploder or lobber, a tank or bruiser,
-  // now and then a caster or summoner (monsters.js `role`; groups are mixed
+  // now and then a caster or summoner (data/monsters.js `role`; groups are mixed
   // by role in world/encounters.js).
   museum: [['serpent', 3], ['pup', 2.5], ['harpy', 2], ['spider', 1.2], ['ghost', 1], ['automaton', 0.6], ['fury', 1.4] /* * */, ['dracaena', 0.6], ['empousa', 0.25]],
   storm_hill: [['pup', 4.5], ['harpy', 2.5], ['automaton', 1.5], ['spider', 1], ['hellhound', 0.8] /* * */, ['dracaena', 0.4], ['fury', 0.3]],

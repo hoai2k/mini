@@ -39,7 +39,7 @@
 //     (a part batches only at its base material). Without it: a mesh in
 //     rig.meshes loses its material after the first hit flash.
 // userData.shell, userData.flames, userData.noLint, userData.crowd   an elite's glow shell
-//     (monsters.js addEliteShell), the live flame cubes (flames.js), effects
+//     (monsterFx.js addEliteShell), the live flame cubes (flames.js), effects
 //     out of the animation lint and the bounds, a crowd batch (crowd.js).
 //     Never merged, never batched, left out of the lint, photo and size checks.
 // userData.parts   (charmat.js) a merged part's source geometries and
@@ -49,7 +49,7 @@
 //     warm-up finds the rigs in its group.
 //
 // ---- rig fields ------------------------------------------------------------
-// rig.extras.*   parts code reaches: animated by monsters.js animateExtras
+// rig.extras.*   parts code reaches: animated by models/animate.js animateExtras
 //     (wings, tails, snakes, sway, flameHair, key, tongue, breath), moved by
 //     the boss patterns (bosses.js, bosses-book1.js: heads, fists, crusher,
 //     kilt, blade, ...), named by the checks: trunk (perf/houndlegs.cjs: a

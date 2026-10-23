@@ -6,13 +6,13 @@ import { kit, dropMeshes, BUILD } from '../voxkit.js';
 
 // ---- skins --------------------------------------------------------------------
 // soot-black dog with lava cracks; the glowing jaw shows when it snarls
-// (The hellhounds' darks, pass 5, the owner's "a bit washed out": the source sheet's
-// coat is near-black, RGB 8-47, and the game drew it grey (about 80-90 by day, mostly
-// the open world's distance fog, but also the dielectric sheen of a near-black
-// albedo and its flat hemisphere fill). So the coat palette is HOUND_DIM of what it
-// was, in the same hues and the same spread of tones so the clumps still read, and
-// the coat is matt (roughness 1) with a metalness that swaps some of the diffuse
-// fill for a dark reflection of the albedo. The magma, eyes and teeth are untouched.)
+// (The coat's darks: the source sheet's coat is near-black, RGB 8-47, and the
+// open world's distance fog, the dielectric sheen of a near-black albedo and
+// its flat hemisphere fill would lift it to a grey. So the coat palette is
+// HOUND_DIM of its base tones, in the same hues and the same spread of tones
+// so the clumps read, and the coat is matt (roughness 1) with a metalness that
+// swaps some of the diffuse fill for a dark reflection of the albedo. The
+// magma, eyes and teeth keep their full colour.)
 const HOUND_DIM = 0.75, HOUND_ROUGH = 1, HOUND_METAL = 0.2;
 const houndSurface = (mat) => { mat.roughness = HOUND_ROUGH; mat.metalness = HOUND_METAL; return mat; };
 const dim = (c, k = HOUND_DIM) => { const r = Math.round(((c >> 16) & 255) * k), g = Math.round(((c >> 8) & 255) * k), b = Math.round((c & 255) * k); return (r << 16) | (g << 8) | b; };
@@ -28,16 +28,15 @@ const lavaDog = (o) => (S) => paintQuad(S, { base: dim(o.base ?? 0x221d20), dark
 // The full hellhound (bigHound below): built at rig scale 1.18, the heroes'
 // own voxel size (Percy's root scale is 0.944 = 1.18 x CHAR_SCALE), its dims
 // in skin pixels (Percy stands about 40 of them tall).
-// (pass 4, after the owner's review against vox-enemies: a powerful
-// crouching dog, not a lean column. The trunk is wider than the head and
-// longer, with a deep chest; shorter, thicker legs planted wide, leaning a
-// little outward at rest (stance); the leg roots sit deep in the body
-// (legY) and hang from the torso (legsOnTorso), so a hind leg never parts
-// from the haunch however the body pitches in a walk, a run or a bite)
+// A powerful crouching dog, not a lean column (vox-enemies): the trunk is
+// wider than the head and longer, with a deep chest; short, thick legs
+// planted wide, leaning a little outward at rest (stance); the leg roots sit
+// deep in the body (legY) and hang from the torso (legsOnTorso), so a hind
+// leg never parts from the haunch however the body pitches in a walk, a run
+// or a bite.
 export const HELLHOUND = { big: true, scale: 1.18, bodyL: 60, bodyW: 34, bodyH: 36, legH: 39, legW: 10, legY: 10, legSpread: 2.5, stance: 0.12, legsOnTorso: true, headS: 19, snoutS: 14, ears: true, tail: 6, tailLen: 36, tailW: 4.8, tailCurl: 0.8, gait: 0.5, neckUp: 13, headZ: -3, jawOpen: 0.42 };
-// The hellhound pup (bigPup below; the owner's ruling, 2026-10: "the
-// standard 'Hellhound Puppy' is Mrs O'Leary", so a pup stands taller than a
-// person, though well under a grown hellhound). Built at the heroes' voxel
+// The hellhound pup (bigPup below): a puppy the way Mrs O'Leary is one, so it
+// stands taller than a person, though well under a grown hellhound. Built at the heroes' voxel
 // size like the hellhound, with a puppy's proportions: a round barrel of a
 // body, short thick legs on oversized paws, a big head with a short muzzle,
 // ears that fold over at the tips and a stubby tail held high.
@@ -128,12 +127,12 @@ export function hound(id, spec, opts = {}) {
 // hackled mane of black fur breaking into smoke along the spine, a big head
 // with a massive furnace jaw and long fangs, molten eyes under a scowling
 // brow, ember cracks all over, thick clawed paws with glowing amber claws,
-// a smouldering tail. (pass 4: no smoke puffs at the jaws any more: they read
-// as a nose sticking out and wiggling; the smoke aura, enemy.js, stays.)
+// a smouldering tail. (No smoke puffs at the jaws: they read as a nose
+// sticking out and wiggling; the smoke aura, enemy.js, carries the smoke.)
 // spec: HELLHOUND (big: true); opts as hound(). rig.dims match the QuadRig,
 // so the champions' add-ons (Shadowfang's collar, scars, eyes) still land.
 const DEEP = [0x1a1518, 0x231d21, 0x2c252a].map((c) => dim(c)), SMOKE = [0x3a3438, 0x4e474c, 0x645c62];
-// (pass 4: the cracks as glowing magma, a bright orange-yellow core in a deep
+// (the cracks are glowing magma, a bright orange-yellow core in a deep
 // red rim, both emissive (VoxKit cracks rim), drawn a little proud of the fur)
 const MAGMA = [0xff9a10, 0xffc030], MAGMA_RIM = 0xff2200;
 function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha = false } = {}) {
@@ -166,8 +165,8 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
   // ---- trunk (body 34 x 36 x 60): a deep, broad chest over the front
   // legs, ribs down the flank, a waist only a little tucked and heavy
   // haunches round the hind legs' roots
-  // (pass 4: wider than the head, a fifth longer and deeper in the chest, as
-  // vox-enemies draws it; the haunch reaches well below the hind legs' roots,
+  // (wider than the head, long and deep in the chest, as vox-enemies draws
+  // it; the haunch reaches well below the hind legs' roots,
   // QuadRig legY, so the thigh always enters the body)
   K.box(T, 0, 1, 14, 34, 34, 30, DEEP[1]);           // chest and shoulders
   K.box(T, 0, -14.5, 22, 25, 9, 12, DEEP[0]);        // the brisket
@@ -224,7 +223,7 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
   K.box(N, 0, -7, -4, 18, 22, 16, DEEP[1], 0.2);
   K.clumps(N, [0, -7, -4], [17, 22, 16], { n: Math.round(70 * fe), size: [1.8, 3.4], cols: FUR, faces: 'lrtb', stretch: [1, 1.4, 1.2] });
   if (collar) {
-    // (pass 4: a heavier ring standing proud of the neck's ruff, so the gold
+    // (a heavy ring standing proud of the neck's ruff, so the gold
     // spikes read all round as on the sheet)
     const r = 11.4, n = 20, g = group(N, 0, -5.5, 1.5, -0.6);   // (tipped forward, so its lower arc lies on the chest in front of the neck)
     for (let i = 0; i < n; i++) {
@@ -233,8 +232,8 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
       if (y < r * 0.8) { K.box(g, Math.sin(a) * (r + 2.2), Math.cos(a) * (r + 2.2), 0, 1.8, 3, 1.8, 0xf8d870, 0, 0, -a); K.box(g, Math.sin(a) * (r + 4), Math.cos(a) * (r + 4), 0, 1, 1.4, 1, 0xfff0b0, 0, 0, -a); }
     }
   }
-  // ---- head (pass 4: headS 24 -> 19, the owner's note: a large creature
-  // without a Minecraft head; the body dominates, the head on a thick neck):
+  // ---- head (headS 19: a large creature has no Minecraft head; the body
+  // dominates, the head on a thick neck):
   // a heavy skull, a scowling brow over molten eyes, jaw muscles,
   // a long muzzle and a furnace mouth full of fangs (QuadRig head frame: the
   // skull centred on z = hs * 0.35, the face at z = hs * 0.85)
@@ -271,7 +270,7 @@ function bigHound(id, spec, { fur: nFur = 170, cracks = 14, collar = true, alpha
   for (let i = 0; i < 4; i++) HB(Hd, 0, 2.8 - i * 0.2, 18 + i * 1.8, 8.6, 0.6, 0.8, 0x0a0708);       // snarl wrinkles
   HB(Hd, 0, 0.6, 29.6, 6.4, 3.8, 1.2, 0x050404);                                                    // nose, flush with the muzzle's tip
   HB(Hd, 0, 1.8, 30.05, 4, 1, 0.3, 0x2a2428);
-  // the mouth (pass 4, the owner's note): a dark mouth, pink gums only
+  // the mouth: a dark mouth, pink gums only
   // along the top and bottom jaws, and the teeth standing out of them
   const GUM = 0xb8344a, MAW = 0x1a0909;
   for (const sx of [-1, 1]) {

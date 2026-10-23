@@ -1,13 +1,12 @@
+// Cerberus (buildCerberus at the end): his sculpted body, the wolf heads,
+// the spiked collars and the serpent tail.
 import * as THREE from 'three/webgpu';
 import { QuadRig, paintQuad } from '../../quad.js';
 import { skinMat, group, fur } from '../../parts.js';
 import { sculpt, along, hideSkin, noise } from '../../voxkit.js';
 import { VD } from './parts.js';
 
-// (the sculpting kit, sculpt below, is voxkit.js: cells on a grid of rig.vd, greedy-merged with rig.merge, grain rig.hg)
-
-
-// ---------------------------------------------------------------- shared bits
+// ---------------------------------------------------------------- parts
 // A shaggy wolf-dog head sculpted on a QuadRig-style head group and its jaw
 // (mouth) group: heavy brow, burning eyes, a long muzzle, fangs top and
 // bottom, a red mouth that shows when the jaw drops, tall pointed ears.
@@ -95,8 +94,8 @@ function serpentTail(rig) {
   ]);
   rig.extras.serpent = hd;
 }
-// Cerberus's body (pass 4, after vox-bosses-1 and the owner's review: a
-// giant's body that dominates its three heads), sculpted muscle by muscle on
+// Cerberus's body (after vox-bosses-1: a giant's body that dominates its
+// three heads), sculpted muscle by muscle on
 // a QuadRig of body 19 x 12 x 22: a deep, broad chest with two pectorals
 // over the front legs, heavy shoulder blades and triceps, a shaggy ridge of
 // hackles over the withers, a barrel of ribs, a waist tucked up, round
@@ -115,7 +114,7 @@ function cerberusBody(rig, o) {
   hideSkin(rig.torso);
   const both = (f) => [-1, 1].flatMap(f);
   sculpt(rig, rig.torso, [
-    // (pass 4b: the sheet's massive hump over the shoulders, the back
+    // (the sheet's massive hump over the shoulders, the back
     // sloping from it down to a lower rump, the belly tucked well up)
     E(0, 8.6, 4.5, 3.2, 1.7, 5, { base: 1.4, fuzz: 0.6, bump: 0.35 }),                   // hackles on the hump
     E(0, 6.6, 5, 5.8, 3.2, 6.2, { base: 2.2, fuzz: 0.4 }),                               // the hump over the withers
@@ -153,13 +152,12 @@ function cerberusBody(rig, o) {
 
 // Cerberus: three huge black heads with burning eyes, red mouths, drool and
 // gold spiked collars on one enormous body, and a serpent for a tail.
-// (pass 4, the owner's review against vox-bosses-1: the body is far bigger
-// for its heads, broad and deep, crouched on thick legs planted wide;
-// and then the whole of him made far bigger, at the owner's asking and
-// after the book ("twice the size of a woolly mammoth"), so he towers over
-// every hellhound, the alpha and Shadowfang too: about 7.75 blocks tall at
-// rest (3.5 Percys, 1.2 Shadowfangs), 8.6 wide and 13 long, tail included; bosses.js
-// and bosses-book1.js size his stats and attacks to match)
+// After vox-bosses-1 the body is far bigger than its heads, broad and deep,
+// crouched on thick legs planted wide; after the book ("twice the size of a
+// woolly mammoth") he towers over every hellhound, the alpha and Shadowfang
+// too: about 7.75 blocks tall at rest (3.5 Percys, 1.2 Shadowfangs), 8.6 wide
+// and 13 long, tail included. bosses.js and bosses-book1.js size his stats
+// and attacks to match.
 export function buildCerberus() {
   const m = skinMat('boss_cerberus', (S) => paintQuad(S, { base: 0x1e1c26, dark: 0x0e0d14, belly: 0x2a2834, back: 0x16141c, eye: 0xff4a0a, eyeLow: 0xffa02a, nose: 0x050505, speckles: 50, brow: 0x0a0a10, teeth: 0xfff4e0,
     custom: (s) => { fur(s, 0, 16, 40, 20, 90, 0x0a0a10, 0x3a3848); fur(s, 0, 0, 32, 16, 30, 0x0a0a10, 0x3a3848); s.box(48, 0, 4, 2, 4, 0xa82030, 0.1); s.rect(52, 4, 4, 1, 0xf4f0e0, 0); s.rect(36, 6, 4, 2, 0xc8283a, 0.1); s.box(52, 16, 2, 3, 1, 0x8a2a3a, 0.1); } }), { emit: 3 });
@@ -171,7 +169,7 @@ export function buildCerberus() {
   const heads = [];
   for (const side of [-1, 0, 1]) {
     let neck, head, mouth;
-    const hs = side ? 5.6 : 6;   // (pass 4: heads in a giant dog's proportion, the body dominating)
+    const hs = side ? 5.6 : 6;   // (heads in a giant dog's proportion, the body dominating)
     if (side === 0) { neck = rig.neck; head = rig.head; mouth = rig.mouth; hideSkin(head, mouth); }
     else {
       neck = group(rig.torso, side * W * 0.36, H * 0.3 - 0.8, L / 2 + 0.4, 0, side * 0.5, side * -0.15);

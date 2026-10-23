@@ -6,7 +6,6 @@ import { paintPerson } from '../mortals.js';
 import { HS, solid, skinMat, group } from '../parts.js';
 import { kit, dropMeshes } from '../voxkit.js';
 
-// ---- shared parts -----------------------------------------------------------
 // Wings on the upper back: two segments per side (root = the arm, elbow =
 // the hand) that flap in rig.tick. kind 'feather' (harpy, Stymphalian bird)
 // or 'bat' (Fury). Drawn with the voxel kit: one mesh per segment. Colours
@@ -184,9 +183,8 @@ function harpyWoman(id, { scale = 1, pal = null } = {}) {
       body: (s) => { for (let i = 0; i < 80; i++) s.dot(16 + s.r() * 24, 20 + s.r() * 12, s.r() < 0.5 ? P.dark : P.light); } });
     S.shadeLimbs(); S.saturate(1.1);
   }, { emit: 1, rough: 0.9, res: 2 });
-  // (size audit, round 6: the vox-enemies sheet's upright bird stands about
-  // 1.1x its Percy beside its bird-like peers and the owner wants a harpy at
-  // least Percy's size. She is grown by sculpting more cells at the heroes'
+  // (the vox-enemies sheet's upright bird stands about 1.1x its Percy beside
+  // its bird-like peers, and a harpy is at least Percy's size. She is grown by sculpting more cells at the heroes'
   // voxel size, not by scaling: a longer torso and long bird legs, the head
   // kept at 7 px, so a bigger body gets a less childlike head, size spec
   // design/sizes.json)
@@ -278,8 +276,8 @@ function harpyWoman(id, { scale = 1, pal = null } = {}) {
     K.box(leg, 0, -LEG + 0.4, -1.1, 0.9, 0.8, 1.6, P.gold); K.box(leg, 0, -LEG + 0.2, -2.1, 0.6, 0.8, 0.9, P.talon);
   }
   // wings for arms, from the shoulders: dark ragged feathers, pale-tipped primaries
-  // (round 6: wider, deeper wings for the bigger body, about 2.3x her height
-  // tip to tip, with the feather structure drawn out: coverts in scalloped
+  // (wide, deep wings for her body, about 2.3x her height tip to tip, with
+  // the feather structure drawn out: coverts in scalloped
   // rows over the arm, the alula at the wrist, shafts on the long feathers)
   const SPAN = 31, CH = 13.5;
   const W = addWings(rig, { span: SPAN, chord: CH, kind: 'feather', y: bodyH - 1.4, flap: 1, seed: 57, cols: { main: P.main, tip: P.tip, edge: P.edge, dark: P.dark }, look: mat });

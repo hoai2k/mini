@@ -6,7 +6,7 @@ import { t as txt } from '../text_config.js';
 // The new kinds (world/roamZones.js counts the small ones as fodder).
 export const FODDER_IDS = ['karpos', 'karpos_slinger', 'colchis_calf', 'myrmex', 'myrmex_spitter', 'boarlet', 'crab', 'king_crab', 'basilisk', 'earthborn', 'daedalus_drone', 'laistrygonian', 'shade', 'keres'];
 
-// Stat blocks (as monsters.js MONSTERS). The swarm kinds sit with the other
+// Stat blocks (as data/monsters.js MONSTERS). The swarm kinds sit with the other
 // minors (rat 14 HP, spider 20, pup 32); the larger chargers are minor
 // bruisers; the king crab, the Earthborn and the Laistrygonian are elites.
 export const FODDER_MONSTERS = {
@@ -33,8 +33,8 @@ export const FODDER_MONSTERS = {
   // othrys
   laistrygonian: { name: txt('monsters.laistrygonian.name'), tier: 'elite', role: 'lobber', hp: 220, speed: 2.4, dmg: 18, radius: 1.1, height: 4.4, ai: 'ranged', range: 14, keep: 9, windup: 1.2, cd: 5, xp: 16, coins: [7, 12], model: 'laistrygonian', pitch: 0.45, voice: 'roar', projectile: 'fire', lob: true, armor: 0.1, knockResist: 0.85, superArmor: true },
   // asphodel
-  // (round 10: the shade and the keres stand as grown people, about 1.25x Percy (rig ×1.29 and ×1.26): radius 0.4-0.45 → 0.48-0.52,
-  // height 1.8 → 2.3 and the reach of their longer arms 1.5 → 1.8; windups, cooldowns and damage unchanged)
+  // (the shade and the keres stand as grown people, about 1.25x Percy, so their radius, height and the reach of their
+  // arms are an adult's)
   shade: { name: txt('monsters.shade.name'), tier: 'minor', role: 'fodder', hp: 16, speed: 2.4, dmg: 5, radius: 0.48, height: 2.3, ai: 'melee', range: 1.8, windup: 0.6, cd: 1.6, xp: 2, coins: [0, 2], model: 'shade', pitch: 0.9, voice: 'wail', knockResist: 0 },
   keres: { name: txt('monsters.keres.name'), tier: 'minor', role: 'rusher', hp: 16, speed: 6.6, dmg: 6, radius: 0.52, height: 2.3, ai: 'melee', range: 1.8, windup: 0.35, cd: 1.2, xp: 2, coins: [0, 2], model: 'keres', pitch: 1.2, voice: 'shriek', knockResist: 0, slashColor: 0xff2a2a },
 };

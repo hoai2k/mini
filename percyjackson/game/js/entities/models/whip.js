@@ -31,9 +31,9 @@ export function addWhip(rig, { segs = 7, len = 3.2, color = 0xff7a1a, hand = rig
   rig.whip = { hand, base: chain[0].parent, chain, len, phi0: 0.25, bend: new Float32Array(segs).fill(-0.5) };   // (posed by whipPose)
   return chain;
 }
-// The whip's shape, worked out in the rig's own space so it no longer hangs
-// from the fist wherever the arm points (it used to dangle straight down and
-// trail up to 2 m through the floor). The handle is turned against the hand's
+// The whip's shape, worked out in the rig's own space so it does not simply
+// hang from the fist wherever the arm points (straight down, it would trail
+// through the floor). The handle is turned against the hand's
 // own turn, so the chain lies in the body's upright plane (following the
 // torso's twist), and each segment's angle there (0 straight down, + toward
 // the front, -PI/2 straight back) eases toward one of four shapes:

@@ -43,7 +43,7 @@ const GROUPS = [
   { id: 'heroes', label: 'Heroes' }, { id: 'npcs', label: 'Camp NPCs' }, { id: 'monsters', label: 'Monsters' },
   { id: 'bosses', label: 'Bosses' }, { id: 'champions', label: 'Champions' }, { id: 'mortals', label: 'Mortal disguises' }, { id: 'people', label: 'Open-world people' },
 ];
-// A real mortal (monsters.js 'mortal') is drawn in game as a person (Enemy builds the Mist's mortal look, never its placeholder 'pup' model), so the workbench builds the same: an ordinary museum visitor.
+// A real mortal (data/monsters.js 'mortal') is drawn in game as a person (Enemy builds the Mist's mortal look, never its placeholder 'pup' model), so the workbench builds the same: an ordinary museum visitor.
 const WB_MORTAL = 'tourist';
 // ?capture=1 (or ?thumb=1): a clean frame for a screenshot or page thumbnail
 if (q.has('capture') || q.has('thumb')) document.body.classList.add('capture');

@@ -19,6 +19,13 @@ export function buildRat() {
   return rig;
 }
 
+// Telekhine (design/concept/vox-telekhine.png; the sea-demon smiths of
+// Rhodes, Hephaestus's old forge hands): half dog, half seal, sitting up
+// like a sea lion on wide front flippers, the body tapering back to a
+// fluked tail. Grey-blue hide speckled teal, a cream throat and muzzle, a
+// dog's head with a blunt seal snout, fangs and glowing orange eyes; a
+// leather smith's apron, a harness with brass buckles and tools, and an
+// iron cauldron of green-orange Greek fire on its back that it lobs at you.
 export function buildTelekhine() {
   const hide = 0x4a5a7c, hideD = 0x2c3654, hideL = 0x6a7a9a, sp = 0x3a9a98, cream = 0xe8dcc0, creamD = 0xc8bca0;
   const HIDE = [hide, hideD, hideL, 0x3e4e70, sp, 0x2a7a84];
@@ -26,7 +33,7 @@ export function buildTelekhine() {
   const mat = skinMat('telekhine', (S) => paintQuad(S, { base: hide, dark: hideD, belly: cream, back: 0x3a4866, eye: 0xffa01a, eyeLow: 0xff5a10, nose: 0x14161c, teeth: 0xf4ecd8, speckles: 70, stripes: null,
     custom: (s) => { for (let i = 0; i < 50; i++) s.px(Math.floor(s.r() * 40), 16 + Math.floor(s.r() * 20), i % 2 ? sp : hideL); s.rect(32, 0, 16, 8, cream, 0.1); } }), { emit: 0.9 });
   const rig = new QuadRig({ material: mat, scale: 2.8, bodyL: 10, bodyW: 7, bodyH: 5, legH: 3.5, legW: 2.4, headS: 6, snoutS: 3.8, ears: false, tail: 2, tailLen: 3, tailW: 2.2, tailCurl: 0.1, neckUp: 8.4, headZ: -1.6, gait: 1.3, jawOpen: 0.3 });
-  const K = kit(rig, mat, { seed: 89, rough: 0.7, emit: 0.8, density: BUILD.k * 1.8 });   // (size audit: built 2.6× bigger, adults "at least seven feet tall" as in The Battle of the Labyrinth; cells 1.45× a hero's to hold its triangles)
+  const K = kit(rig, mat, { seed: 89, rough: 0.7, emit: 0.8, density: BUILD.k * 1.8 });   // (adults are "at least seven feet tall" in The Battle of the Labyrinth; cells 1.45× a hero's to hold its triangles)
   const T = rig.torso;
   dropMeshes(rig, T);
   // the body: an upright chest, a sloping middle and a tapering hind end

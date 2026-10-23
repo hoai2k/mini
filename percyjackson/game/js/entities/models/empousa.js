@@ -23,15 +23,14 @@ export function buildEmpousa() {
       } });
     S.shadeLimbs(); S.saturate(1.2);
   }, { emit: 0.7, res: 2 });
-  // (size audit, round 4: the owner wanted her longer-legged and as tall as
-  // Percy; the sheet's cheerleader is half legs: legs 16 px, a shorter torso,
+  // (long-legged and as tall as Percy: the sheet's cheerleader is half legs: legs 16 px, a shorter torso,
   // and Percy's height from her soles to the crown of her hair, flames aside)
   const LEG = 16, f = LEG / 12;
   const rig = new Rig({ material: mat, scale: 1.25, bodyW: 7, bodyH: 10, armW: 3, legH: LEG });
   const K = kit(rig, mat, { seed: 29, emit: 0.7 });
   // flaming hair: red locks under a mane of glowing flame cubes that licks upward
   const flame = group(rig.head, 0, 0, 0);
-  // (pass 3: a champion built bigger, BUILD.k = K.density, gets more and
+  // (a champion built bigger, BUILD.k = K.density, gets more and
   // smaller flame and tassel cubes, so they stay near a hero's voxel size)
   const hk = HS, FL = [0xff5000, 0xff7800, 0xffa000, 0xffc840], D = K.density ?? 1;
   for (let i = 0; i < Math.round(90 * D * D); i++) {

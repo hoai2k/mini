@@ -1,3 +1,5 @@
+// Luke Castellan: sandy curls, a scar down his cheek, the orange camp
+// shirt, and Backbiter, its blade half steel and half celestial bronze.
 import { Rig, HOLD_PITCH } from '../../character.js';
 import { footwear } from '../../herovox.js';
 import { group } from '../../parts.js';
@@ -5,8 +7,6 @@ import { sculpt } from '../../voxkit.js';
 import { markTip } from '../../rigContract.js';
 import { shadeOf, humanSkin, hairMesh, kitBoxes } from './parts.js';
 
-// Luke Castellan: sandy curls, a scar down his cheek, the orange camp
-// shirt, and Backbiter, its blade half steel and half celestial bronze.
 export function buildLuke() {
   const skin = 0xe0a074, orange = 0xe05200;
   const PEG = ['.......##.', '..#....###', '.###..###.', '#####.##..', '.#########', '..#######.', '..##..##..', '..#....#..'];
@@ -25,7 +25,7 @@ export function buildLuke() {
   sculpt(rig, rig.torso, [], {}, [
     ...[0x2a6ab8, 0xc82a1a, 0xf4f0e8, 0x2a8a3a, 0xffd84a].map((c, i) => ({ p: [-2 + i, 11.3 - (i === 2 ? 0.4 : Math.abs(i - 2) === 1 ? 0.2 : 0), 2.3], s: [0.8, 0.8, 0.6], c })),
     // the scabbard at his hip, its mouth up and forward, a gold chape on its tip and a gold throat at its mouth
-    // (the two were set at each other's depth, so the chape floated in front of his thigh: perf/islands.cjs)
+    // (the chape sits at the scabbard's tip, the throat at its mouth, each at its own depth, so neither floats off the thigh: perf/islands.cjs)
     { p: [-4.6, 0, 1], s: [1.4, 13, 1.8], c: 0x5a3018, r: [0.25, 0, -0.12] }, { p: [-5.4, -6.2, -0.6], s: [1.6, 1.6, 2], c: 0xd8a032, m: 'm', r: [0.25, 0, -0.12] }, { p: [-3.8, 6.4, 2.6], s: [1.8, 1.2, 2.2], c: 0xd8a032, m: 'm', r: [0.25, 0, -0.12] },
   ]);
   // Backbiter: half steel, half celestial bronze

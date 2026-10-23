@@ -25,14 +25,13 @@ export function buildCyclops({ id = 'cyclops', pal = {} } = {}) {
   for (const g of [rig.torso, rig.head, rig.armR, rig.armL, rig.legR, rig.legL]) dropMeshes(rig, g);
   rig.handR.position.y = rig.handL.position.y = -11 * PX;
   rig.legR.position.x = -3 * PX; rig.legL.position.x = 3 * PX;
-  // (round 7, head and leg proportions: a giant near twice a hero's height
-  // has a giant's head and legs, not a hero's. The head is sculpted afresh
-  // from the same cells at 0.84 of its old size (round 8: 0.62 went too far;
-  // his sheet, vox-bosses-2, draws the head about 0.22 of his height, and
+  // (head and leg proportions: a giant near twice a hero's height has a
+  // giant's head and legs, not a hero's. The head is reshaped to 0.84 (his
+  // sheet, vox-bosses-2, draws the head about 0.22 of his height, and
   // design/sizes.json "headSheet" holds him to it), the eye kept wide in it;
-  // the legs grow from 10 to 16.4 pixels over the same feet, the kilt with
-  // them, the shoulders broaden and the arms reach as far down the thigh as
-  // before, so he stands about as tall as he did: proportions.js reshape)
+  // the legs stretch from 10 to 16.4 pixels over the same feet, the kilt with
+  // them, the shoulders broaden and the arms reach down the thigh:
+  // proportions.js reshape)
   const HF = 0.84, L1 = 16.4, ANK = -8.2;
   reshape(rig, rig.head, HF);
   reshape(rig, rig.torso, [1.1, 1, 1.05]);
@@ -40,9 +39,9 @@ export function buildCyclops({ id = 'cyclops', pal = {} } = {}) {
   for (const g of [rig.legR, rig.legL]) reshape(rig, g, [1.05, legScale(10, L1, ANK), 1.05], [0, 0, 0], { ankle: ANK });
   for (const g of [rig.armR, rig.armL]) reshape(rig, g, [1.05, 1.3, 1.05]);
   rig.dims.legH = L1; rig.hips.position.y = L1 * PX;
-  // (round 8: the larger head sits 2.2 pixels lower between the shoulders, as
-  // on the sheet, a touch forward of the chest, so he stands as tall as
-  // before and his legs keep their share of his height: design/sizes.json)
+  // (the head sits 2.2 pixels low between the shoulders, as on the sheet, a
+  // touch forward of the chest, so his legs keep their share of his height:
+  // design/sizes.json)
   rig.neck.position.y = (12 - 2.2) * PX; rig.neck.position.z = 0.5 * PX;
   rig.crownY = 10 * HF;   // (a champion's crown sits on the mane, down in the curls: champions.js crownAny)
   // (its triangle budget: cells 0.88 of a hero pixel's density, and a champion
@@ -53,7 +52,7 @@ export function buildCyclops({ id = 'cyclops', pal = {} } = {}) {
   const skin = () => () => SK[Math.floor(K.r() * 3)];   // (a few flat tones, so runs of cells merge)
   // ---- trunk: a deep barrel chest, heavy pecs, a hard belly, traps rising
   // round a short neck (the head sits low between the shoulders)
-  // (pass 3: rounder masses, pw nearer 2, so the chest tapers to the waist as on the sheet)
+  // (round masses, pw near 2, so the chest tapers to the waist as on the sheet)
   K.blob(T, [0, 7.6, 0.2], [5.4, 4.8, 3.3], 1, (x, y, z) => (z > 0.55 && y < -0.05 && y > -0.32 ? skinD : z > 0.7 && Math.abs(x) < 0.08 ? skinD : SK[Math.floor(K.r() * 3)]), { pw: 2.2, run: [2, 5] });
   K.blob(T, [0, 3, 0.4], [4, 3.4, 2.9], 1, (x, y, z) => (z > 0.6 && (Math.abs(x) < 0.07 || Math.abs(y - 0.2) < 0.08) ? skinD : SK[Math.floor(K.r() * 3)]), { pw: 2.2 });
   K.blob(T, [0, 11.2, -0.7], [4.6, 1.9, 2.6], 1, skin(), { pw: 2.2 });
@@ -83,7 +82,7 @@ export function buildCyclops({ id = 'cyclops', pal = {} } = {}) {
   markHeadCore(rig, [0, 4.4, 0.4], [7.8, 9, 7.8]);   // (the skull and face: mane, brow hair and beard aside)
   K.blob(Hd, [0, 4.4, 0.4], [3.9, 4.5, 3.9], 1, (x, y, z) => (z > 0.6 && y > 0.25 && y < 0.62 && Math.abs(x) > 0.55 ? skinD : SK[Math.floor(K.r() * 3)]), { pw: 2.5 });
   K.box(Hd, 0, 7.9, fz - 0.4, 6.8, 1.3, 1.6, HAIR[0], -0.1); K.box(Hd, 0, 7.4, fz - 0.1, 5.6, 0.6, 1.2, skinD);                 // the single brow
-  // (the eye drawn wider than before, round 7: it stays the face's one big feature on the smaller head)
+  // (the eye drawn wide: it stays the face's one big feature on the smaller head)
   K.box(Hd, 0, 6.1, fz - 0.15, 5.6, 3.6, 0.8, 0x3a1a0e);                                                                            // socket
   K.box(Hd, 0, 6.1, fz + 0.1, 5, 3, 0.6, 0xf4f0e6); K.box(Hd, 0, 6, fz + 0.3, 2.9, 2.7, 0.5, iris);
   K.box(Hd, 0, 6, fz + 0.45, 1.45, 1.6, 0.4, 0x0a0a14); K.box(Hd, -0.75, 6.7, fz + 0.6, 0.6, 0.6, 0.2, 0xffffff);
@@ -98,12 +97,12 @@ export function buildCyclops({ id = 'cyclops', pal = {} } = {}) {
   const mane = [[0, 6.2, -0.6], [4.9, 4.7, 4.7]];
   if (!pal.hood) K.clumps(Hd, [0, 6.6, -0.6], [9.4, 8.6, 9], { n: 14, size: [1, 1.8], cols: HAIR, faces: 'tklr', out: 0.1, on: mane });
   if (!pal.hood) K.clumps(Hd, [0, 9.4, 2], [8.4, 1.6, 4.4], { n: 5, size: [1, 1.6], cols: HAIR, faces: 'tf', out: 0.1, on: mane });
-  // (round 7: the beard a little fuller and longer than the smaller head alone would give it, as on the sheet)
+  // (the beard a little fuller and longer than the smaller head alone would give it, as on the sheet)
   K.blob(Hd, [0, 0.7, 2.3], [4.9, 3.7, 2.6], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2], keep: (x, y, z) => !(z > 0.3 && y > 0.12 && Math.abs(x) < 0.44) });
   K.blob(Hd, [0, -2, 2.8], [3.6, 3, 2.1], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2] });
   K.clumps(Hd, [0, 0, 3.4], [8, 6, 2], { n: 9, size: [0.9, 1.6], cols: HAIR, faces: 'flrb', out: 0.25, keep: (x, y) => !(y > 1.1 && Math.abs(x) < 2.2), on: [[0, 0.7, 2.3], [4.9, 3.7, 2.6]] });   // (seated on the beard)
   // ---- the ram's skull with curled horns on the left shoulder
-  const ram = reshape(rig, group(T, 6.6, 12.4, 0.6, 0, -0.35, 0), 0.8); ram.visible = pal.ram !== false;   // (round 7: a little smaller, beside the smaller head)
+  const ram = reshape(rig, group(T, 6.6, 12.4, 0.6, 0, -0.35, 0), 0.8); ram.visible = pal.ram !== false;   // (a little smaller, beside the smaller head)
   const bone = [0xe8e0c8, 0xd8d0b8, 0xf0ead8];
   K.blob(ram, [0, 0, 0.8], [1.8, 1.7, 2], 1, () => K.tone(bone, 0.06));
   K.box(ram, 0, -0.7, 2.9, 1.8, 1.6, 1.8, bone[1]); K.box(ram, 0, -1.2, 3.7, 1.2, 0.8, 0.5, 0x2a2014);
@@ -114,7 +113,7 @@ export function buildCyclops({ id = 'cyclops', pal = {} } = {}) {
   // ---- arms: a round shoulder, a thick upper arm, a heavier forearm in a
   // gold-banded leather bracer, a big blocky fist
   for (const arm of [rig.armR, rig.armL]) {
-    // (pass 3: a round deltoid, a bicep bulging forward over a slimmer arm,
+    // (a round deltoid, a bicep bulging forward over a slimmer arm,
     // a narrow elbow, then the forearm swelling into the bracer: defined, not a column)
     K.blob(arm, [0, 0.5, 0], [3.3, 3.1, 3], 1, skin(), { pw: 2 });
     K.blob(arm, [0, -3.4, 0], [2.1, 3.4, 2.1], 1, skin(), { pw: 2.1 });

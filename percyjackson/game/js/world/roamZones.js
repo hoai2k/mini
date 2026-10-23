@@ -43,7 +43,7 @@ export const ROAM_RULES = {
 // Out in the open world and on the Road West the roaming monsters come in
 // hordes (the Minecraft Dungeons feel): crowds of weak fodder to plow
 // through, with now and then a tougher one in the middle of them.
-// FODDER_KINDS: the swarm kinds, short range and long (entities/fodder.js's
+// FODDER_KINDS: the swarm kinds, short range and long (data/fodder.js's
 // small ones, and the old minors that fight the same way); about three
 // quarters of every region's weight. The rest are its larger, tougher kinds.
 export const FODDER_KINDS = new Set(['karpos', 'karpos_slinger', 'myrmex', 'myrmex_spitter', 'crab', 'basilisk', 'daedalus_drone', 'shade', 'keres', 'spartoi', 'telekhine', 'rat', 'pup', 'spider']);

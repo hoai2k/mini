@@ -99,7 +99,7 @@ export function buildKingCrab() {
   const BEIGE = [0xe0c8a0, 0xd0b088, 0xc8a070, 0xf0dcb8, 0xb89060], CLAW = [0xd0381c, 0xb82a14, 0xe04a24], CLAWM = [0xf06a30, 0xe85a28, 0xff7a3a], CLAWL = [0xff9a50, 0xffb070, 0xf8c090];
   const mat = skinMat('king_crab', flatQuad(P.red, P.redD, cream, eyeT), { rough: 0.5, emit: 0.9 });
   const rig = new QuadRig({ material: mat, scale: 4.5, bodyL: 9, bodyW: 12, bodyH: 6, legH: 6.4, legW: 1.5, headS: 4, legs: 8, splay: 0.01, legSpread: -3, snout: false, neckUp: -1, headZ: -0.6, gait: 1.3, ears: false, jawOpen: 0.1 });
-  const K = kit(rig, mat, { share: 'king_crab', seed: 149, rough: 0.5, emit: 0.85, ao: 0.35, density: voxDensity(rig) / 1.25 });   // (size audit: built 1.5× bigger, at 1.25 hero pixels a cell to keep its triangle budget)
+  const K = kit(rig, mat, { share: 'king_crab', seed: 149, rough: 0.5, emit: 0.85, ao: 0.35, density: voxDensity(rig) / 1.25 });   // (1.25 hero pixels a cell, to keep its triangle budget)
   const T = rig.torso, Hd = rig.head, M = rig.mouth;
   const mix = (K, cols) => cols[Math.floor(K.r() * cols.length)];   // (flat tones, so runs of the hero-sized cells merge)
   dropAll(rig, T); dropAll(rig, Hd);

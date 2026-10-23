@@ -1,3 +1,5 @@
+// Crusty: a big smooth salesman in a white suit and red tie with a red
+// robe over his shoulders, a huge grin and a woodsman's axe.
 import * as THREE from 'three/webgpu';
 import { Rig, PX, HOLD_PITCH } from '../../character.js';
 import { solid, group } from '../../parts.js';
@@ -5,8 +7,6 @@ import { sculpt, sculptMats, sculptGeometry } from '../../voxkit.js';
 import { markTip } from '../../rigContract.js';
 import { shadeOf, humanSkin, hairMesh, bulk, VD } from './parts.js';
 
-// Crusty: a big smooth salesman in a white suit and red tie with a red
-// robe over his shoulders, a huge grin and a woodsman's axe.
 export function buildProcrustes() {
   const skin = 0xc87c50, cream = 0xe6d6b8, creamD = 0xc8b494, red = 0xb01c24;
   const m = humanSkin('boss_procrustes', { skin, hair: 0x141012, fringe: 2, hairSide: 3, hairBack: 6, eye: 0x2a1a0a, brow: 0x141012, scowl: true, mouth: 'grin', stubble: shadeOf(skin, 0.8), top: cream, sleeve: cream, hand: skin, pants: cream, shoes: 0x3a2216,
@@ -22,8 +22,8 @@ export function buildProcrustes() {
       for (const [u, v] of [[0, 16], [16, 48]]) { D(u + 5.5, v + 4, creamD, 1, 10); D(u, v + 4 + 9.5, creamD, 32, 1); }
     } }, { scale: 1.95 });
   const redM = solid(0x9a1820, 0, 0.8);
-  // (pass 3: a tall, lean man as on vox-bosses-1, not a wide box: a
-  // smaller head, longer legs, a slim suit; about the same height)
+  // (a tall, lean man as on vox-bosses-1, not a wide box: a small head, long
+  // legs, a slim suit)
   const rig = new Rig({ material: m, scale: 1.95, headS: 6.6, bodyH: 13, legH: 16, cape: { material: redM, segments: 4, length: 26, width: 12 } });   // (a cape much longer hangs through the floor)
   rig.vd = VD.procrustes;
   // big and smooth, as the sheet draws him: broad, not boxy
@@ -34,8 +34,8 @@ export function buildProcrustes() {
   const reds = [0x8a1218, 0xa01820, 0xb4222a], gold = [0xd8a032, 0xe8b444];
   const panel = (x, y, z, n, h) => { const ax = Math.abs(x); if (ax < 2.9) return [gold[Math.floor(h * 2)], 'm']; return reds[Math.floor((Math.sin(ax * 2.4) * 0.5 + 0.5) * 1.6 + n * 1.4)]; };
   // (the panels below the waist hang on a flap that swings with the
-  // striding leg, character.js swingSkirt: hung on the torso, they stood
-  // still over the thighs and the legs walked through them, perf/props.cjs)
+  // striding leg, character.js swingSkirt: hung on the torso, they would
+  // stand still over the thighs and the legs walk through them, perf/props.cjs)
   const panelCol = (x, y, z, n, h) => (y < -7.4 + h * 1.4 ? null : panel(x, y, z, n, h));
   const flap = { front: group(rig.hips), back: group(rig.hips) };
   sculpt(rig, flap.front, [-1, 1].map((sx) => ({ b: [sx * 2.6, -8.5, 3.5, sx * 6.4, 0, 4.7], col: panelCol, bump: 0 })), { v: 0.8, seed: 83 }).scale.set(0.68, 1, 0.66);

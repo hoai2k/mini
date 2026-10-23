@@ -14,8 +14,9 @@
 // game (a flat floor at y = 0, a training dummy as the target in front of it,
 // and a do-nothing stand-in for audio, particles, markers and the rest), and
 // starts the chosen attack over and over. Nothing here re-implements an
-// attack: when a monster's attack changes in enemy.js, fodder.js or
-// monsters.js, the harness shows the change.
+// attack: when a monster's attack changes in enemy.js, its stat block
+// (js/data) or the fodder's behaviour (models/fodder/behaviour.js), the
+// harness shows the change.
 import * as THREE from 'three/webgpu';
 import { Enemy } from '../js/entities/enemy.js';
 import { Boss, BOSS_DEFS } from '../js/entities/bosses.js';

@@ -42,7 +42,7 @@ const SHARDS = Math.max(1, +(opt('shards') ?? 3));
 const JOBS = Math.max(1, +(opt('jobs') ?? 2));
 
 // ---- the checks -------------------------------------------------------------
-// lane: which page it shares (or 'proc', a child process); slow: left out by --fast
+// lane: which page it shares (or 'proc', a child process); slow: left out by --fast; optIn: run only when named in --only
 const CHECKS = [
   { name: 'node', lane: 'proc', what: 'node tests (game/test)' },
   { name: 'design', lane: 'proc', what: 'design/source/build_requests.py --check' },
@@ -55,7 +55,7 @@ const CHECKS = [
   { name: 'islands', lane: 'wb', slow: true, what: 'islands.cjs --check: floating voxel islands' },
   { name: 'bodysize', lane: 'wb', what: "bodysize.cjs - '' --check: size categories, head and leg rules" },
   { name: 'shots', lane: 'shots', what: 'render-bench.cjs shots: deterministic model images' },
-  { name: 'bench', lane: 'bench', slow: true, what: 'render-bench.cjs wb: draws, triangles, frame CPU per model' },
+  { name: 'bench', lane: 'bench', slow: true, optIn: true, what: 'render-bench.cjs wb: draws, triangles, frame CPU per model' },
 ];
 
 // ---- child processes --------------------------------------------------------
@@ -157,7 +157,7 @@ function digest(files) {
 async function main() {
   const only = list('only'), skip = list('skip'), names = CHECKS.map((c) => c.name);
   for (const n of [...only, ...skip]) if (!names.includes(n)) { console.error(`unknown check "${n}"; the checks: ${names.join(', ')}`); process.exit(2); }
-  const want = (c) => (only.length ? only.includes(c.name) : !(has('fast') && c.slow)) && !skip.includes(c.name);
+  const want = (c) => (only.length ? only.includes(c.name) : !c.optIn && !(has('fast') && c.slow)) && !skip.includes(c.name);   // (bench is opt-in: --only bench; it is a measurement, not a pass/fail check)
   const sel = CHECKS.filter(want), on = new Set(sel.map((c) => c.name));
   const results = new Map(CHECKS.map((c) => [c.name, { name: c.name, status: on.has(c.name) ? 'pending' : 'off', what: c.what }]));
   const logDir = opt('log'); if (logDir) fs.mkdirSync(logDir, { recursive: true });

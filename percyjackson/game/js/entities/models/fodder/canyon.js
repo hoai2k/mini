@@ -23,9 +23,8 @@ export function buildEarthborn() {
   const T = rig.torso, Hd = rig.head, H7 = 8 * HS * 7 / 8;
   dropAll(rig, T); dropAll(rig, Hd);
   rig.neck.position.y = 11.8 * PX;   // (the head sunk between the boulder shoulders)
-  // (round 7, head and leg proportions, proportions.js: the craggy head 0.88
-  // of its old size, sculpted afresh from the same stones, on legs grown from
-  // 9 to 10 pixels over the same feet)
+  // (head and leg proportions, proportions.js: the craggy head reshaped to
+  // 0.88, on legs stretched from 9 to 10 pixels over the same feet)
   const L1 = 10, ANK = -7.2;
   reshape(rig, Hd, 0.88);
   for (const g of [rig.legR, rig.legL]) reshape(rig, g, [1, legScale(9, L1, ANK), 1], [0, 0, 0], { ankle: ANK });

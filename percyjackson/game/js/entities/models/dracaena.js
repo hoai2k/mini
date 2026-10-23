@@ -35,9 +35,9 @@ function kitSnake(K, rig, parent, { len = 2, seg = 2, w = 1.3, cols, belly, at =
 // long serpent tail in dark green scales with a gold belly stripe, coiling on
 // the ground and curling up at the tip; a long gold-tipped spear and a
 // small bronze buckler.
-// (size audit, round 6: the sheet draws her about 2.7x its Percy, as tall as
-// the hellhound beside her; the size spec, design/sizes.json, makes her
-// "bigger", an imposing elite about 1.8x Percy. She stands reared up on a
+// (The sheet draws her about 2.7x its Percy, as tall as the hellhound beside
+// her; the size spec, design/sizes.json, makes her "bigger", an imposing
+// elite about 1.8x Percy. She stands reared up on a
 // long serpent trunk (the rig's legH) at rig scale 1.7, her skin painted
 // finer (skinMat scale) and her scales, belly plates, hair snakes and
 // armour drawn in cells of a hero's voxel size (densityFor), so the bigger

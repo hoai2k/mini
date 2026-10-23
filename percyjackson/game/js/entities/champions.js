@@ -173,9 +173,9 @@ function buildBronzeWarden() {
   for (const g of [rig.torso, rig.head, rig.armR, rig.armL, rig.legR, rig.legL]) dropMeshes(rig, g);   // (every plate is sculpted below: no skin boxes)
   const K = kit(rig, mat, { seed: 113, rough: 0.55, emit: 0.9 });   // (no metalness: a grey sky in it washed the bronze out to tan)
   const T = rig.torso, Hd = rig.head, H8 = 8 * HS;
-  // (round 7, head and leg proportions, proportions.js: a giant automaton
-  // with a helm 0.62 of its old size, on legs grown from 11 to 14.8 pixels
-  // over the same boots, broader across the shoulders and longer in the arm)
+  // (head and leg proportions, proportions.js: a giant automaton with the
+  // helm reshaped to 0.62, on legs stretched from 11 to 14.8 pixels over the
+  // same boots, broad across the shoulders and long in the arm)
   const L1 = 14.8, ANK = -9.5;
   reshape(rig, Hd, 0.62);
   reshape(rig, T, [1.08, 1, 1.04]);
@@ -198,7 +198,7 @@ function buildBronzeWarden() {
   // cheek plates either side of a dark visor, and the one blue eye
   K.vox(Hd, 0, H8 / 2, -0.2, H8 + 0.6, H8 + 0.4, H8 + 0.6, BC, { cell: 1.6, faces: 'tlrk', j: 0.14 });
   markHeadCore(rig, [0, H8 / 2, -0.2], [H8 + 0.6, H8 + 0.4, H8 + 0.6]);   // (the helm; its crest aside)
-  const crest = reshape(rig, markHeadwear(group(Hd, 0, 0, 0)), 0.62);   // (the stepped crest, headwear: measured apart from the helm, round 9)
+  const crest = reshape(rig, markHeadwear(group(Hd, 0, 0, 0)), 0.62);   // (the stepped crest is headwear: measured apart from the helm)
   K.box(crest, 0, H8 + 0.9, -0.6, 4.4, 1.6, H8 - 0.4, BL); K.box(crest, 0, H8 + 2.3, -1, 2.6, 1.4, H8 - 2.4, B); K.box(crest, 0, H8 + 3.2, -1.4, 1.4, 0.8, H8 - 4, BD);
   K.box(Hd, 0, H8 * 0.8, H8 / 2 + 0.2, H8 + 1.2, 1.8, 1, BL);
   K.box(Hd, 0, H8 * 0.43, H8 / 2 + 0.15, H8 - 2.6, H8 * 0.5, 0.4, 0x0e1416);
@@ -318,9 +318,9 @@ function buildBronzeWarden() {
 // loincloth over a short fur kilt; fur cuffs on the forearms (a skull on
 // one), fur wrapped round the shins, bare feet; and a tree-trunk club
 // studded with stones and grown over with moss and vines.
-// His own builder at the heroes' voxel size (parts.js density, the same
-// giant frame and cell size as the cyclops he used to be built on, so the
-// cyclops kind's attacks and slam still fit him). The sheet holds the club
+// His own builder at the heroes' voxel size (parts.js density), on the
+// cyclops's giant frame and cell size, so the cyclops kind's attacks and slam
+// fit him. The sheet holds the club
 // in his left hand; here it is in the right, the hand every monster strikes
 // with, and the trimmings are mirrored with it (the skull cuff and the
 // necklace's big skull on the other side, the strap from the club shoulder).
@@ -336,7 +336,7 @@ function buildGorgos() {
   rig.handR.position.y = rig.handL.position.y = -11 * PX;
   rig.legR.position.x = -3 * PX; rig.legL.position.x = 3 * PX;
   // (head: the sheet draws his skull and face about a sixth of his height,
-  // the bear hood on top; legs grown from 10 to 16.4 pixels over the same
+  // the bear hood on top; legs stretched from 10 to 16.4 pixels over the same
   // feet, the leg rule; broad shoulders and long arms, fists at mid-thigh)
   const HF = 0.68, L1 = 16.4, ANK = -8.2;
   reshape(rig, rig.head, HF);
@@ -421,7 +421,7 @@ function buildGorgos() {
   // ---- the bear's head worn as a hood: a furry skull over his own, its
   // upper jaw jutting over his brow with fangs hanging, a black nose, small
   // gold eyes, round ears, and the pelt falling past his cheeks
-  const hood = markHeadwear(group(Hd, 0, 9.4, 0)); reshape(rig, hood, HF);   // (headwear, round 9: the body is measured to his own crown under it)
+  const hood = markHeadwear(group(Hd, 0, 9.4, 0)); reshape(rig, hood, HF);   // (headwear: the body is measured to his own crown under it)
   K.blob(hood, [0, 0, -0.6], [5.6, 3.4, 5.8], 1.2, pelt, { pw: 2.2, lo: -0.4, run: [1, 2] });
   K.blob(hood, [0, 0.3, 3.4], [4.3, 2.5, 2.8], 1.1, pelt, { pw: 2.2, run: [1, 2] });
   K.blob(hood, [0, -0.5, 6.2], [2.7, 1.7, 2.6], 1, (x, y) => (y > 0.2 ? MUZ[0] : MUZ[1]), { pw: 2.2 });
@@ -497,8 +497,8 @@ function buildPaleKing() {
   const rig = buildSkeleton({ id: 'champ_pale_king', helmet: false, gear: false, pal: { bone: 0xd8d4c4, boneD: 0xa8a494, olive: IRON, oliveD: IRON_D, khaki: 0x3a3428, camo: [IRON, 0x1c1d26, 0x3a3c4a, 0x6a5a2a], boot: { upper: IRON, sole: 0x101014, lace: 0x8a7a3a } } });
   const K = kit(rig, rig.material, { seed: 131, rough: 0.5, metal: 0.3, emit: 0.9 });
   const T = rig.torso, Hd = rig.head, H8 = 8 * HS, GF = [0x3aff6a, 0x8affa0, 0x1ad84a];
-  const hf = rig.shape?.get(Hd)?.f[1] ?? 1;   // (round 9: the skeleton's skull is reshaped smaller for its grown body; the crown is sized to it)
-  crown(K, Hd, { y: H8 + 0.6, w: (H8 + 0.4) * hf, d: (H8 + 0.4) * hf, h: 1.8, spike: 2.4, gold: 0xc89a30, dark: 0x7a5a18, gem: 0x3aff6a });   // (round 7: lower spikes, so the crown no longer tops him past the leg rule's line)
+  const hf = rig.shape?.get(Hd)?.f[1] ?? 1;   // (the skeleton's skull is reshaped smaller for its grown body; the crown is sized to it)
+  crown(K, Hd, { y: H8 + 0.6, w: (H8 + 0.4) * hf, d: (H8 + 0.4) * hf, h: 1.8, spike: 2.4, gold: 0xc89a30, dark: 0x7a5a18, gem: 0x3aff6a });   // (low spikes, so the crown stays under the leg rule's line)
   for (const sx of [-1, 1]) { K.box(Hd, sx * 2.2 * HS, 4.3 * HS, H8 / 2 + 0.2, 1.6, 1.4, 0.3, GF[0]); K.box(Hd, sx * 2.2 * HS, 4.3 * HS, H8 / 2 + 0.3, 0.6, 0.6, 0.3, 0xe0ffe8); }
   // green flame licking up over the crown
   const flame = group(Hd, 0, H8 + 1, 0);
@@ -664,7 +664,7 @@ export function buildChampionRig(id, kind) {
   ring.rotation.x = -Math.PI / 2; ring.position.y = 0.04 / rig.baseScale; ring.scale.setScalar(R); ring.renderOrder = 2;
   rig.root.add(ring); rig.extras.ring = ring;
   rig.championLook = look;
-  // (rig.onTick is the kind's own behaviour, fodder.js: it used to be lost here)
+  // (rig.onTick is the kind's own behaviour, fodder.js: the champion keeps it)
   rig.tick = (dt, e) => {
     animateExtras(rig, dt, e); rig.onTick?.(dt, e); auraTick(rig, look, dt, e);
     ring.visible = !e?.dead; ring.scale.setScalar(R * (1 + Math.sin((rig.t ?? 0) * 3) * 0.06));

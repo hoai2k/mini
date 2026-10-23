@@ -40,12 +40,11 @@ export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, win
       } });
     S.shadeLimbs(); S.saturate(1.15);
   }, { emit: 1, res: 2, scale });
-  // (round 7, head proportions, proportions.js: the plain Fury, 1.4x Percy,
-  // has a head 0.82 of a hero's skin cube; her looming sisters and Alecto,
-  // 1.9x, 0.66 of it (round 8: 0.58 went too far; the Fury of vox-enemies
-  // has a head about 0.185 of her height, design/sizes.json "headSheet"),
-  // their wild curls as big round it as before. Her trunk,
-  // arms and dress grow longer to keep her height; her legs are hidden by
+  // (head proportions, proportions.js: the plain Fury, 1.4x Percy, has a head
+  // 0.82 of a hero's skin cube; her looming sisters and Alecto, 1.9x, 0.66 of
+  // it (the Fury of vox-enemies has a head about 0.185 of her height,
+  // design/sizes.json "headSheet"), their wild curls standing out round it.
+  // Her trunk, arms and dress grow longer to keep her height; her legs are hidden by
   // the dress and she hovers, so the leg rule leaves her be.)
   const big = Math.max(0, Math.min(1, (scale - 2.1) / 0.4)), HF = 0.82 - 0.16 * big, TF = 1.1 + 0.08 * big, LF = 1.1 + 0.07 * big;
   const rig = new Rig({ material: mat, scale, bodyW: 7, armW: 3, legH: 10, headS: 8 * HF });
@@ -54,8 +53,8 @@ export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, win
   rig.dims.legH = 10 * LF; rig.hips.position.y = rig.dims.legH * PX;
   // a Fury drawn bigger than a hero (the plain Fury 2.1, the boss sisters 2.5
   // and 2.8) is made of more, finer strips, curls and claws, not bigger ones;
-  // past Alecto's old 1.75 the strips grow instead, so the sisters cost no
-  // more triangles than before (size audit, round 4)
+  // past scale 1.75 the strips grow instead, which keeps the sisters within
+  // their triangle budget
   const D = Math.max(1, densityFor(Math.min(scale, 1.75)));
   for (const leg of [rig.legR, rig.legL]) dropMeshes(rig, leg);
   const K = kit(rig, mat, { seed, rough: 0.9 });

@@ -1,5 +1,5 @@
 // The open world's fodder (concept sheets design/concept/vox-ow-fodder.png,
-// -2, -3 and -fix, which replaces the earlier ants and king crab): the
+// -2 and -3, with -fix for the ants and the king crab): the
 // monsters you plow through in the Minecraft
 // Dungeons way, in hordes, each region with a few kinds that play
 // differently (short and long range, small and large) and a tough rare one.
@@ -33,14 +33,17 @@
 // strike, and the shooters' shots are restyled (seed pods, mud, bolts,
 // flaming balls).
 //
-// monsters.js wires these in (fodderModels below).
+// monsters.js wires these in (fodderModels below). The stat blocks are
+// js/data/fodder.js; the builders are entities/models/fodder/, a module per
+// region, with the behaviour and death bits they share in behaviour.js.
 import { buildKarpos, buildCalf } from './models/fodder/fields.js';
 import { buildMyrmex, buildBoarlet } from './models/fodder/woods.js';
 import { buildCrab, buildKingCrab } from './models/fodder/shore.js';
-import { buildBasilisk, buildLaistrygonian } from './models/fodder/othrys.js';
 import { buildEarthborn } from './models/fodder/canyon.js';
 import { buildDrone } from './models/fodder/labyrinth.js';
+import { buildBasilisk, buildLaistrygonian } from './models/fodder/othrys.js';
 import { buildShade, buildKeres } from './models/fodder/asphodel.js';
+
 export { FODDER_IDS, FODDER_MONSTERS } from '../data/fodder.js';
 
 // The model builders, keyed by model id (monsters.js takes them in).

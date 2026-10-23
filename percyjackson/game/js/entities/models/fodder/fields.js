@@ -11,7 +11,7 @@ import { finish } from './behaviour.js';
 
 // ---- karpos and karpos slinger -----------------------------------------------------
 // (vox-ow-fodder, top left; vox-ow-fodder-2, top left) A gangly spirit of the
-// grain, about 0.8 of a hero's height (round 9), its plume over his head: a straw hood over a dark face with two
+// grain, about 0.8 of a hero's height, its plume over his head: a straw hood over a dark face with two
 // glowing green eyes, a great spray of ripe wheat ears and green blades
 // fanning up behind the head (its silhouette in a crowd), a body of bound
 // stalks with green leaves woven in, long straw arms bound with twine at the
@@ -28,13 +28,11 @@ export function buildKarpos(slinger = false) {
   const kind = slinger ? 'karpos_slinger' : 'karpos';
   const { gold, goldL, goldD, straw, leaf, leafD, twine, pod } = KG, STRAW = [gold, goldL, goldD, straw, 0xc89038], LEAF = [leaf, leafD, 0x5aa03a, 0x2a7a2a];
   const mat = karposSkin();
-  // (round 9: the owner found them tiny. Measured without the wheat spray
-  // (headwear, its own kit: perf/bodysize.cjs had counted the plume as body,
-  // 0.68x Percy, where the body under it was 0.44x) a karpos now stands about
-  // 0.8x Percy, a gangly fodder that reads at a distance in a swarm: rig scale
-  // 0.74 → 1.27, the legs 8 → 10 pixels over the same root toes, its straw
-  // and leaves in cells of a hero's voxel size (voxDensity), so a bigger
-  // karpos is more cells, not bigger ones)
+  // (measured without the wheat spray, which is headwear in its own kit, a
+  // karpos stands about 0.8x Percy, a gangly fodder that reads at a distance
+  // in a swarm: rig scale 1.27, the legs stretched from 8 to 10 pixels over
+  // the same root toes, its straw and leaves in cells of a hero's voxel size
+  // (voxDensity): more cells, not bigger ones)
   const rig = new Rig({ material: mat, scale: 1.27, legH: 8, bodyH: 9, bodyW: 8, bodyD: 5.4, armW: 2.8, headS: 8, jacket: false });
   const L1 = 10, ANK = -6.9;
   for (const g of [rig.legR, rig.legL]) reshape(rig, g, [1, legScale(8, L1, ANK), 1], [0, 0, 0], { ankle: ANK });
@@ -65,7 +63,7 @@ export function buildKarpos(slinger = false) {
     const sx = Math.sin(tilt), cy = Math.cos(tilt), bx = sx * 2.6;
     KP.box(Hd, bx + sx * L / 2, H8 * 0.7 + cy * L / 2, z, 0.7, L, 0.7, goldD, 0, 0, -tilt);
     for (let k = 0; k < 5; k++) { const d = L + 0.8 + k * 1.3, w = k === 4 ? 1.2 : 1.5; for (const o of [-0.6, 0.6]) KP.box(Hd, bx + sx * (d + (o > 0 ? 0.6 : 0)) + o * cy, H8 * 0.7 + cy * (d + (o > 0 ? 0.6 : 0)) - o * sx, z, w, 1.6, 1.5, KP.tone(k > 2 ? [goldL, gold] : [gold, straw], 0.1), 0, 0, -tilt); }
-    KP.box(Hd, bx + sx * (L + 8.2), H8 * 0.7 + cy * (L + 8.2), z, 0.4, 2.4, 0.4, goldL, 0, 0, -tilt);   // (the awn sunk into the last grain, round 9: it hung off it by a corner)
+    KP.box(Hd, bx + sx * (L + 8.2), H8 * 0.7 + cy * (L + 8.2), z, 0.4, 2.4, 0.4, goldL, 0, 0, -tilt);   // (the awn sunk into the last grain, not hanging off it by a corner)
   }
   for (const [x, rz, L] of [[-5, 1.2, 8], [5, -1.2, 8], [-3.4, 0.7, 9], [3.6, -0.7, 9], [-1.4, 0.3, 10], [1.6, -0.3, 9], [0, 0, 7]]) KP.box(Hd, x - Math.sin(rz) * L * 0.3, H8 * 0.6 + Math.cos(rz) * L * 0.45, -1.4, 1.5, L, 0.5, KP.tone(LEAF, 0.1), 0, 0, rz);
   // long straw arms in bundles, bound at the wrist, big hands of four long clawed fingers
@@ -124,8 +122,8 @@ function plate(K, p, x, y, z, w, h, d, face, C) {
   K.box(p, fx - sx * 0.05, y - h / 2 + 0.25, z, 0.3, 0.5, d, C.brzD);
 }
 export function buildCalf() {
-  // (darker than the old build: bronze-brown, copper and dark-iron plates in a
-  // patchwork, dull brass rivets, nothing yellow)
+  // (dark: bronze-brown, copper and dark-iron plates in a patchwork, dull
+  // brass rivets, nothing yellow)
   const C = { brz: [0x8a5a26, 0x6e4620, 0x94562c, 0x5e3c1c, 0x3a2e28], brzD: 0x34200e, brzL: 0xa0703a, gold: 0xb88840 };
   const iron = 0x2c221e, ironD = 0x1a120e, ironL = 0x3c3028, glow = 0xff8a1a, hot = 0xffd860, horn = 0xe8dcc0, hornD = 0xbcaa88, head = 0x5a3a22, headD = 0x3e2816, snout = 0xb8987a;
   const mat = skinMat('colchis_calf', flatQuad(0x7a5024, 0x3a2410, iron, glow), { rough: 0.4, emit: 1 });

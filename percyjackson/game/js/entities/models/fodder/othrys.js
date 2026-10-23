@@ -110,11 +110,10 @@ export function buildLaistrygonian() {
   rig.neck.position.y = 11.6 * PX;                        // the head sits low between the shoulders
   rig.handR.position.y = rig.handL.position.y = -12.4 * PX;
   rig.legR.position.x = -3 * PX; rig.legL.position.x = 3 * PX;
-  // (round 7, head and leg proportions, proportions.js: a giant's head, 0.86
-  // of the old one sculpted afresh from the same cells (round 8: 0.78 went too
-  // far; his sheets draw the head 0.18-0.2 of his height, design/sizes.json
-  // "headSheet"), on legs grown from 10
-  // to 12.2 pixels over the same feet, the kilt with them; he stands as tall)
+  // (head and leg proportions, proportions.js: a giant's head, reshaped to
+  // 0.86 (his sheets draw the head 0.18-0.2 of his height, design/sizes.json
+  // "headSheet"), on legs stretched from 10 to 12.2 pixels over the same
+  // feet, the kilt with them)
   const L1 = 12.2, ANK = -8;
   reshape(rig, rig.head, 0.86);
   reshape(rig, rig.torso, [1.05, 1, 1.03]);
@@ -122,7 +121,7 @@ export function buildLaistrygonian() {
   for (const g of [rig.legR, rig.legL]) reshape(rig, g, [1.03, legScale(10, L1, ANK), 1.03], [0, 0, 0], { ankle: ANK });
   for (const g of [rig.armR, rig.armL]) reshape(rig, g, [1.03, 1.1, 1.03]);
   rig.dims.legH = L1; rig.hips.position.y = L1 * PX;
-  const K = kit(rig, mat, { share: 'laistrygonian', seed: 167, rough: 0.85, emit: 0.9, ao: 0.3, density: voxDensity(rig) * 0.92 });   // (cells a touch coarser than a hero's, round 7: an elite stays under 20k triangles)
+  const K = kit(rig, mat, { share: 'laistrygonian', seed: 167, rough: 0.85, emit: 0.9, ao: 0.3, density: voxDensity(rig) * 0.92 });   // (cells a touch coarser than a hero's: an elite stays under 20k triangles)
   const T = rig.torso, Hd = rig.head, gold = 0xe8b440, SK = [skin, 0xbc6c36, 0xd4844a], HAIR = [hair, 0x2a2018, 0x141010];
   const sk = () => SK[Math.floor(K.r() * 3)];
   // skin inked with spiral tattoos: rings round a centre (cx, cy in the mass's -1..1)

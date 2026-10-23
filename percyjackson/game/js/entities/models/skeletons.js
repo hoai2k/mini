@@ -31,13 +31,13 @@ export function buildSkeleton({ id = 'skeleton', pal = {}, helmet = true, gear =
       } });
     S.shadeLimbs(); S.saturate(1.15);
   }, { emit: 0.8, res: 2 });
-  // (round 9: a grown soldier made a monster, bigger than Percy; round 10,
-  // the owner: a grown man's size, not a giant's, about 1.25x his body
-  // without the helmet and about 1.3x with it (design/sizes.json "adult").
-  // The rig is drawn at 1.39 (1.15 before round 9, 1.56 in it), and every
-  // mass is sculpted in cells of a hero's voxel size (voxDensity), so the
-  // body is re-voxelised at its new size rather than its cells scaled. A grown man's proportions (proportions.js reshape): the skull
-  // 0.92 of a hero's skin cube, legs grown from 12 to 19 pixels over the same
+  // (a grown soldier made a monster: a grown man's size, not a giant's, about
+  // 1.25x Percy's body without the helmet and about 1.3x with it
+  // (design/sizes.json "adult"). The rig is drawn at 1.39 and every mass is
+  // sculpted in cells of a hero's voxel size (voxDensity), so the body is
+  // voxelised at its size rather than its cells scaled. A grown man's
+  // proportions (proportions.js reshape): the skull
+  // 0.92 of a hero's skin cube, legs stretched from 12 to 19 pixels over the same
   // boots, a longer trunk, slimmer limbs, arms reaching to mid-thigh, a neck of
   // bare vertebrae; the torso is bones under the plate carrier: a ribcage
   // showing at the sides, the lumbar spine and the pelvis between the vest
@@ -155,11 +155,10 @@ export function buildSpartoi() {
       body: (s) => { for (const [x0, y0, w, h] of [[16, 16, 24, 16], [16, 32, 24, 16]]) for (let i = 0; i < w * h / 5; i++) s.rect(x0 + s.r() * w, y0 + s.r() * h, 1, 1.5, RAG[Math.floor(s.r() * RAG.length)], 0); } });
     S.shadeLimbs(); S.saturate(1.15);
   }, { emit: 0.8, res: 2 });
-  // (round 9: the sown men were grown soldiers, so they stand as the skeleton
-  // warrior does; round 10, a grown man's size, not a giant's: about 1.25x
-  // Percy's body without the helmet and its crest, and the crest trimmed so
-  // the whole stands under 1.4x (design/sizes.json "adult"): rig scale 1.0 →
-  // 1.56 → 1.38, a grown man's
+  // (the sown men were grown soldiers, so they stand as the skeleton warrior
+  // does: a grown man's size, not a giant's, about 1.25x Percy's body without
+  // the helmet and its crest, and the crest low enough that the whole stands
+  // under 1.4x (design/sizes.json "adult"): rig scale 1.38, a grown man's
   // proportions by proportions.js reshape (the skull 0.92 of a hero's, legs
   // 12 → 19 pixels over the same boots, a longer trunk, slimmer limbs, arms to
   // mid-thigh, bare neck vertebrae), its rags, plates and crest drawn in cells
@@ -233,13 +232,13 @@ export function buildSpartoi() {
   KH.box(Hd, 0, 5.4, H8 / 2 + 0.55, 1.1, 2.6, 0.8, brz);
   KH.box(Hd, 0, H8 + 1.8, -0.2, 1.6, 1, H8 + 0.6, brzD);
   for (let z = -5.6; z <= 4.8; z += 1.05) {
-    const t = (z + 5.6) / 10.4, h = 2.2 + Math.sin(t * Math.PI) * 1.5 + (KH.r() - 0.5) * 0.6;   // (round 10: a lower crest, so helmet and crest top him at under 1.4x Percy)
+    const t = (z + 5.6) / 10.4, h = 2.2 + Math.sin(t * Math.PI) * 1.5 + (KH.r() - 0.5) * 0.6;   // (a low crest, so helmet and crest top him at under 1.4x Percy)
     KH.box(Hd, 0, H8 + 2.2 + h / 2, z, 2 + KH.r() * 0.4, h, 1.2, KH.tone(CREST, 0.1), -0.25 + t * 0.2);
   }
   for (let i = 0; i < 5; i++) KH.box(Hd, (KH.r() - 0.5) * 0.8, H8 + 1 - i * 1.6, -H8 / 2 - 1.3 - i * 0.2, 1.8, 2, 1.2, KH.tone(CREST, 0.1), 0.2);
   // the curved bronze sword, widening toward the tip. It is held turned over
   // about its own length (rz = PI), so the curve sweeps back like a scimitar's
-  // rather than hooking forward (the owner)
+  // rather than hooking forward
   const blade = group(rig.handR, 0, -1, 1, HOLD_PITCH - Math.PI / 2, 0, Math.PI);   // (built along +z: see the hand-axis convention in character.js)
   K.box(blade, 0, 0, -0.4, 1.2, 1.2, 3, leaD); K.box(blade, 0, 0, -1.9, 1.5, 1.5, 0.8, brzL); K.box(blade, 0, 0, 1.4, 1, 2.6, 0.7, brzL);
   for (let i = 0; i < 6; i++) {
@@ -280,10 +279,9 @@ export function buildStatue() {
     for (let i = 0; i < 70; i++) S.dot(S.r() * 64, S.r() * 64, moss[i % 3], 2, 1);
     S.shadeLimbs(undefined, 1.1, 0.8);
   }, { emit: 0, rough: 0.95, fill: 0.08, res: 2 });
-  // (round 9: a statue of a grown hoplite, so it stands bigger than Percy;
-  // round 10, a grown man's size, not a giant's: about 1.25x his body without
-  // the helmet and crest, under 1.4x with them (design/sizes.json "adult"):
-  // rig scale 1.05 → 1.56 → 1.37, a grown man's proportions by
+  // (a statue of a grown hoplite: a grown man's size, not a giant's, about
+  // 1.25x Percy's body without the helmet and crest, under 1.4x with them
+  // (design/sizes.json "adult"): rig scale 1.37, a grown man's proportions by
   // proportions.js reshape (the head 0.92 of a hero's, legs 12 → 19 pixels
   // over the same plinth, a longer trunk, slimmer limbs, longer arms), the
   // stone of the cuirass, helmet and shield in cells of a hero's voxel size)
@@ -344,12 +342,11 @@ export function buildGhost() {
       body: (s) => { for (let i = 0; i < 50; i++) s.dot(16 + s.r() * 24, 20 + s.r() * 12, s.r() < 0.5 ? 0x6aa0b4 : 0xb0e0ec, 1, 2); } });
     S.saturate(1.1);
   }, { emit: 3, fill: 0.7, dissolve: 0.3, res: 2, scale: 1.74 });
-  // (size audit: a spirit keeps the size it had alive. Round 10, the owner:
-  // the dead were grown people, so the ghost stands as an adult, about 1.25x
-  // Percy's body: rig scale 1.2 → 1.74, with a grown-up's smaller head
-  // (reshape) on the same shoulders, its skin painted finer (skinMat scale)
-  // and its shroud, hair and wisps sculpted in cells of a hero's voxel size
-  // (voxDensity), so it is re-voxelised rather than its cells scaled up)
+  // (a spirit keeps the size it had alive, and the dead were grown people, so
+  // the ghost stands as an adult, about 1.25x Percy's body: rig scale 1.74,
+  // with a grown-up's smaller head (reshape) on the same shoulders, its skin
+  // painted finer (skinMat scale) and its shroud, hair and wisps sculpted in
+  // cells of a hero's voxel size (voxDensity), not its cells scaled up)
   const rig = new Rig({ material: mat, scale: 1.74, armW: 3 });
   reshape(rig, rig.head, 0.9);
   for (const leg of [rig.legR, rig.legL]) dropMeshes(rig, leg);

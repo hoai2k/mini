@@ -143,7 +143,7 @@ export function addFlames(rig, opts) {
   return F;
 }
 
-// rig.tick's part (monsters.js animateExtras calls it): step and spawn.
+// rig.tick's part (models/animate.js animateExtras calls it): step and spawn.
 export function tickFlames(rig, dt, e) {
   const L = rig.flames;
   if (!L) return;

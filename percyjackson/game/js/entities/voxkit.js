@@ -1,6 +1,6 @@
 // The voxel kit: one module for every way a monster, fodder, champion or boss
-// model is sculpted from blocks (it replaces the three kits that lived in
-// monsters.js, fodder.js and bossmodels.js). Units are skin pixels in the
+// model is sculpted from blocks (the builders in entities/models/ and
+// champions.js all draw through it). Units are skin pixels in the
 // frame of the rig group a block is drawn into (PX world units each).
 //
 //   const K = kit(rig, look, opts)    loose blocks, merged into ONE
@@ -591,7 +591,7 @@ const _cols = new Map();
 const toC = (c) => { if (c instanceof THREE.Color) return c; if (!_cols.has(c)) _cols.set(c, new THREE.Color(c)); return _cols.get(c); };
 
 // ---- sculpted cells (sculpt) -----------------------------------------------------
-// The bosses are sculpted from voxels like the concept sheets (bossmodels.js): each rig part
+// The bosses are sculpted from voxels like the concept sheets (models/bosses/): each rig part
 // (torso, head, an arm, a leg, a jaw) gets ONE mesh holding sculpted cells
 // (ellipsoids and boxes filled on a grid, faces between cells culled) and
 // loose boxes (straps, studs, horns), with three material groups: matte,

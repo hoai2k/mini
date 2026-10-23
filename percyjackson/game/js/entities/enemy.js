@@ -5,7 +5,7 @@
 //   tank     dracaena (shield + spear)   teleport fury (blink + whip)
 //   summon   empousa (calls pups)        blob    automaton (Greek-fire burst)
 //   statue   living statue: stands frozen until a hero comes near or hits it
-// Stat-block extras (monsters.js): poison (a hit poisons the hero), regrow
+// Stat-block extras (data/monsters.js): poison (a hit poisons the hero), regrow
 // (a skeleton falls to bones and stands up again unless hit while down),
 // projectile 'bullet' (fast, straight) and 'wisp' (slow, homing), slamR.
 //

@@ -1,23 +1,23 @@
+// Medusa: veiled in black with gold trim; writhing green snakes rise from
+// under the hood; her face is never shown, only her eyes when she stares.
 import { Rig, PX } from '../../character.js';
 import { paintPerson } from '../../mortals.js';
 import { skinMat, group, sway } from '../../parts.js';
 import { sculpt, along, hideSkin, hash3, reshape, applyShape } from '../../voxkit.js';
 import { markHeadCore } from '../../rigContract.js';
 
-// Medusa: veiled in black with gold trim; writhing green snakes rise from
-// under the hood; her face is never shown, only her eyes when she stares.
 export function buildMedusa() {
   const robe = 0x1a1418;
   const m = skinMat('boss_medusa', (S) => paintPerson(S, { skin: 0x0a0808, eye: 0x0a0808, eyeWhite: 0x0a0808, brow: 0x0a0808, mouth: false, top: robe, collar: 0xc9963a, trim: 0xc9963a, sleeve: robe, hand: 0x9ab890, pants: robe, skirt: robe, skirtLen: 12, shoes: false,
     body: (s) => { s.rect(16, 29, 24, 2, 0xc9963a, 0); s.rect(23, 28, 2, 4, 0xffd84a, 0); for (const [u, v] of [[40, 16], [32, 48]]) s.rect(u, v + 12, 16, 1, 0xc9963a, 0); s.rect(32, 0, 32, 16, robe, 0.08); } }), { emit: 2 });
   const rig = new Rig({ material: m, scale: 1.9, bodyW: 8, bodyD: 5, armW: 4, legH: 12 });
-  rig.vd = 1.1;   // (pass 3: a finer grid, the snakes above all, within her budget)
+  rig.vd = 1.1;   // (a fine grid, for the snakes above all, within her budget)
   rig.legR.visible = rig.legL.visible = false;
   hideSkin(rig.torso, rig.head, rig.armR, rig.armL);
-  // (round 7, head proportions, proportions.js: the cowl and the face in it
-  // sculpted afresh at 0.82 of their old size, the veil and the staring
-  // eyes with them; the snakes keep their size, so the hair writhes larger
-  // round the smaller head; a longer trunk and robe keep her height)
+  // (head proportions, proportions.js: the cowl and the face in it reshaped
+  // to 0.82, the veil and the staring eyes with them; the snakes are not, so
+  // the hair writhes large round the smaller head; a longer trunk and robe
+  // keep her height)
   const HF = 0.82, L1 = 13.4;
   reshape(rig, rig.head, HF);
   reshape(rig, rig.torso, [1.04, 1.1, 1.04]);
@@ -75,10 +75,10 @@ export function buildMedusa() {
   sculpt(rig, eyes, [], {}, [{ p: [-1.8, 0, 0], s: [1.8, 0.9, 0.4], c: 0xb8ff40, m: 'e' }, { p: [1.8, 0, 0], s: [1.8, 0.9, 0.4], c: 0xb8ff40, m: 'e' }]);
   eyes.visible = false; rig.extras.eyes = eyes;
   // the snakes: green coils rising round the hood, heads reared outward.
-  // (pass 3: as on vox-bosses-1, slimmer and longer, carved from small
-  // cells: round scaled bodies with a pale belly and dark bands, curving
-  // in an S over six joints, and wedge heads with a snout, glowing eyes,
-  // fangs and a forked tongue; no longer chunky boxes)
+  // (as on vox-bosses-1: slim and long, carved from small cells: round
+  // scaled bodies with a pale belly and dark bands, curving in an S over six
+  // joints, and wedge heads with a snout, glowing eyes, fangs and a forked
+  // tongue)
   const greens = [0x1e5a2a, 0x24703a, 0x2e8444], belly = 0xb8d070;
   const snakeAt = [[-4.2, 7, 1.2, 0.2, -0.5, 0.95], [4.2, 7, 1.2, 0.2, 0.5, -0.95], [-3.6, 9.4, -1.6, -0.35, -0.4, 0.6], [3.6, 9.4, -1.6, -0.35, 0.4, -0.6], [-1.6, 11, -2.2, -0.5, -0.2, 0.22], [1.6, 11, -2.2, -0.5, 0.2, -0.22], [-5, 3.4, -1, 0.1, -0.7, 1.35], [5, 3.4, -1, 0.1, 0.7, -1.35]];
   snakeAt.forEach(([x, y, z, rx, ry, rz], si) => {

@@ -1,3 +1,16 @@
+// The Chimera (after vox-bosses-1): a body about 7 m long, 3.2x Percy,
+// sculpted at that size on a fine grid rather than scaled up. A big cat's body: a deep
+// chest, heavy shoulder blades and haunches, a tucked waist, long legs set
+// wide in a planted stance on big clawed paws. Two heads of equal standing
+// side by side on twin necks from the shoulders (not the goat's behind the
+// lion's, as the sheet half draws it): the lion's, in a fiery
+// mane with amber eyes and a fanged, roaring maw, on its right; the goat's,
+// with great ridged horns, a beard and yellow eyes, on its left. Both
+// breathe fire (rig.mouthWorld(out, i): 0 the lion, 1 the goat). The heads
+// are small against the body, as on the sheet:
+// the lion's face about 0.4 of the shoulder height, the legs under the
+// belly about the same. Its tail is a diamondback rattlesnake rising over
+// the back, its head looking forward.
 import * as THREE from 'three/webgpu';
 import { PX } from '../../character.js';
 import { QuadRig, paintQuad } from '../../quad.js';
@@ -6,20 +19,6 @@ import { skinMat, group, fur } from '../../parts.js';
 import { sculpt, along, hideSkin, hash3 } from '../../voxkit.js';
 import { VD } from './parts.js';
 
-// The Chimera (round 9, the owner's rework, after vox-bosses-1): twice its
-// old size (body 3.5 m, 1.6x Percy, to about 7 m, 3.2x), sculpted afresh at
-// that size on a finer grid rather than scaled up. A big cat's body: a deep
-// chest, heavy shoulder blades and haunches, a tucked waist, long legs set
-// wide in a planted stance on big clawed paws. Two heads of equal standing
-// side by side on twin necks from the shoulders (the owner: not the goat's
-// behind the lion's, as the sheet half draws it): the lion's, in a fiery
-// mane with amber eyes and a fanged, roaring maw, on its right; the goat's,
-// with great ridged horns, a beard and yellow eyes, on its left. Both
-// breathe fire (rig.mouthWorld(out, i): 0 the lion, 1 the goat). The heads
-// are smaller against the body than the old blocky ones, as on the sheet:
-// the lion's face about 0.4 of the shoulder height, the legs under the
-// belly about the same. Its tail is a diamondback rattlesnake rising over
-// the back, its head looking forward.
 export function buildChimera() {
   const m = skinMat('boss_chimera', (S) => paintQuad(S, { base: 0xc8a878, dark: 0x8a7a66, belly: 0xd8c098, back: 0xb8986a, eye: 0xffc81a, eyeLow: 0xff7a1a, nose: 0x3a2214, teeth: 0xfff4e0, speckles: 40,
     custom: (s) => { s.box(0, 0, 8, 8, 8, 0xd89a40, 0.12); s.rect(9, 10, 2, 2, 0xffd84a, 0); s.rect(13, 10, 2, 2, 0xffd84a, 0); s.px(10, 11, 0x1a0a00); s.px(13, 11, 0x1a0a00); s.rect(9, 9, 6, 1, 0x8a5a20, 0); s.box(32, 0, 4, 4, 4, 0xe8b868, 0.1); s.rect(36, 4, 4, 1, 0x3a2214, 0); s.box(48, 0, 4, 2, 4, 0xa8282a, 0.1);
@@ -29,7 +28,7 @@ export function buildChimera() {
   const { legH, legW } = rig.dims, st = rig.spec.stance, both = (f) => [-1, 1].flatMap(f);
   hideSkin(rig.torso, rig.head, rig.mouth, ...rig.legs, ...rig.tail);
   rig.vd = VD.chimera; rig.merge = true; rig.hg = 3;
-  // the coat (round 10, sampled off the sheet by pixel): a warm tawny lion
+  // the coat (sampled off the sheet by pixel): a warm tawny lion
   // over the forequarters, a darker, browner goat over the rear, on dark
   // grey-brown goat legs; each mass shaded dark underneath to light on top,
   // so the muscles read against each other, over a cream belly
@@ -168,7 +167,7 @@ export function buildChimera() {
   // the tail: a diamondback rattlesnake, dark brown with gold diamonds
   // edged in black down its back over a pale belly, rising over the back
   const n = rig.tail.length, seg = rig.spec.tailLen / n, tw = rig.spec.tailW;
-  const DB = { base: [0x2a1c1a, 0x3c2826], dia: [0xdfa35b, 0xc88a48, 0xeab470], edge: 0x170e0d, belly: [0xcab08a, 0xb89c78] };   // (round 10: the sheet's dark and gold bands)
+  const DB = { base: [0x2a1c1a, 0x3c2826], dia: [0xdfa35b, 0xc88a48, 0xeab470], edge: 0x170e0d, belly: [0xcab08a, 0xb89c78] };   // (the sheet's dark and gold bands)
   const diamond = (r, z0) => (x, y, z, nn, h) => {
     if (y < -r * 0.45) return DB.belly[Math.floor(h * 2)];
     const u = (((z0 - z) / 3.4) % 1 + 1) % 1 - 0.5, v = Math.atan2(x, y) / 1.5, d = Math.abs(u) * 1.7 + Math.abs(v);

@@ -2,7 +2,7 @@
 import * as THREE from 'three/webgpu';
 import { paintQuad } from '../../quad.js';
 
-// ---- behaviour (rig.onTick, every frame while alive) --------------------------
+// a colour from a hex
 export const C = (c) => new THREE.Color(c);
 
 // ---- helpers ------------------------------------------------------------------

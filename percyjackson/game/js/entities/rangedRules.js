@@ -3,7 +3,7 @@
 // a shot. entities/enemy.js follows these rules; pure module (no Three.js),
 // so the node tests can load it (test/ranged.test.mjs).
 //
-// Fewer, readable shots (the stat tables in monsters.js and fodder.js):
+// Fewer, readable shots (the stat tables in data/monsters.js and data/fodder.js):
 //   • every shot has a wind-up tell (the cast pose, a glow at the mouth and,
 //     for a straight shot, an aim line on the ground; a lob marks where it
 //     lands) and a long cooldown: about 3.5-5 s between one fodder's shots,

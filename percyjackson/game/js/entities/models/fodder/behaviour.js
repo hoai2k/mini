@@ -5,6 +5,7 @@ import * as THREE from 'three/webgpu';
 import { PX } from '../../character.js';
 import { C } from './parts.js';
 
+// ---- behaviour (rig.onTick, every frame while alive) --------------------------
 const _c = new THREE.Vector3(), _f = new THREE.Vector3();
 const dustCol = C(0xb89a70), fireCol = C(0xff7a1a), fireHot = C(0xffd040), smokeCol = C(0x9a9a9a), redCol = C(0xff2a2a);
 // a shot restyled as it leaves: colour, shape, size, trail and what it leaves where it lands

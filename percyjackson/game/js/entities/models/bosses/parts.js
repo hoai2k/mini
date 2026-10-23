@@ -62,13 +62,12 @@ export function bulk(rig, { w = 1, d = 1, h = 1, armThick = 1, armLen = 1, legTh
 // herovox outfit boxes ({ at, size, col }) as kit boxes, shifted by dy
 export const kitBoxes = (list, dy = 0) => list.map((b) => ({ p: [b.at[0], b.at[1] + dy, b.at[2]], s: b.size, c: b.col }));
 
-// ---------------------------------------------------------------- builders
+// ---------------------------------------------------------------- sculpt density
 // Sculpt grid density per boss (rig.vd, voxkit.js sculpt): a hero's cube is about
 // 1.32 / (rig scale) of a boss's skin pixels, so the full hero density would
 // be vd = 1.32 / (scale * v). Each is set as close to that as its triangle
 // budget (about 40k for a boss) allows.
-// (cerberus: a coarser body and finer heads, pass 3; its cells are greedy-meshed, rig.merge;
-// pass 4: re-sculpted at his new size, the heads smaller, both grids finer)
-// (chimera, round 10: the owner raised its budget to about 70k for cells near a hero's,
-// 0.10 m on the body and 0.085 m on the heads, its jitter in blocks of 3 cells, rig.hg)
+// (cerberus: a coarser body and finer heads, its cells greedy-meshed, rig.merge)
+// (chimera: a budget of about 70k for cells near a hero's, 0.10 m on the body
+// and 0.085 m on the heads, its jitter in blocks of 3 cells, rig.hg)
 export const VD = { minotaur: 1.5, chimera: 1.85, chimeraHead: 1.75, chimeraTail: 1.3, cerberus: 1.25, cerberusHead: 1.15, procrustes: 1.5, ares: 1.5 };

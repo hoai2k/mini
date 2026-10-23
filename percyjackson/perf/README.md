@@ -13,7 +13,7 @@ From the repository root:
 
 ```bash
 NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/check.cjs           # every check, one table; exits 1 on a failure
-NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/check.cjs --fast    # without the slow ones (smoke, islands, bench), for quick iteration
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/check.cjs --fast    # without the slow ones (smoke, islands), for quick iteration
 NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/check.cjs --only weapons,animlint
 ```
 
@@ -35,7 +35,7 @@ browser session, several pages at once:
 | `islands` | floating voxel islands, `--check` (slow) | `islands.cjs` |
 | `bodysize` | size categories, head and leg rules (`design/sizes.json`), `--check` | `bodysize.cjs` |
 | `shots` | the deterministic model images, to `local/percyjackson-perf/results/shots/` (`--shots dir` moves them), with a digest of the files to compare runs by | `render-bench.cjs shots` |
-| `bench` | the render benchmark per model (draws, triangles, frame CPU split; slow), run last and alone so its CPU times are its own | `render-bench.cjs wb` |
+| `bench` | the render benchmark per model (draws, triangles, frame CPU split; slow, about 5 minutes), run last and alone so its CPU times are its own. Opt-in: only with `--only bench` (or naming it with others) | `render-bench.cjs wb` |
 
 It prints one summary table (pass, FAIL or skip per check, its time and its
 key numbers) and the full report of any check that failed, exactly as its
@@ -43,16 +43,28 @@ script prints it. Options: `--only a,b`, `--skip a,b`, `--fast`, `--json`
 (one JSON object instead of the table), `--port N` (use the server already on
 `127.0.0.1:N` instead of starting one), `--log dir` (each check's full report
 to `dir/<check>.txt`), `--verbose` (print them all), `--serial` (one page at a
-time), `--shards N` (how many workbench pages share islands and bodysize,
-default 3), `--shots dir`.
+time), `--jobs N` (pages at once beside the game's, default 2), `--shards N`
+(how many workbench pages split islands, default 3), `--shots dir`.
 
-How it saves time: weapons, houndlegs and animlint share one page (the
-modules load once); props and the rig check share a workbench; islands, the
-slowest check, is split over three workbench pages by model, and on each
-bodysize measures the rigs islands built (both build every model unmerged and
-at rest), against one Percy measured on the first. The pages run at once.
-In the cloud container (4 cores) the separate scripts take about 430 s one
-after another and `check.cjs` about 220 s (see the numbers in the table).
+How it saves time: the game (smoke) and the node tests run throughout while
+the other pages share the remaining cores, two at a time, the biggest first:
+weapons, houndlegs and animlint share one page (the modules load once); props
+and the rig check share a workbench; bodysize gets a fresh workbench (it
+switches the part merge off page-wide, and its builds share the workbench's
+blob cache, so it starts as it does alone); islands, the slowest check, is
+split over three workbench pages by model (it builds every model afresh with
+the blob cache off, so a model's result doesn't depend on its page) and its
+rows put back in order. In the cloud container (4 cores), on the same tree:
+
+| | the separate scripts, one after another | `check.cjs` |
+| --- | --- | --- |
+| every check but the benchmark | 432 s (smoke 141, islands 207, props 22, animlint 28, bodysize 10, weapons 8, houndlegs 5, shots 5, node tests 6) | 173 s (`--skip bench`) |
+| `--fast` (no smoke, islands or bench) | 84 s (the same parts summed) | 42 s |
+| the benchmark (`render-bench.cjs wb`) | 281 s | 301 s (run alone, last; the same work) |
+
+Sharing one build of each model between islands and bodysize was tried and
+left out: islands builds with the blob cache off, bodysize with it on, and a
+seeded comparison showed ten models' sizes moving in the second decimal.
 
 Each check's script still runs on its own as before, and is now a thin
 command line over its module: `require('./weapons.cjs').run({ browser, base,
@@ -63,10 +75,11 @@ the run.
 
 `PERF_SEED=n` makes `Math.random` a seeded generator before each model the
 model checks build (`lib.cjs` `reseed`; the in-page loops call
-`__perfReseed`), so two runs give the same numbers to the last digit:
-without it the idle poses, hair and fodder blobs draw on `Math.random` and
-the second decimals of weapons, props, islands and bodysize wander from run to
-run (the findings don't). The smoke check's levels are random either way.
+`__perfReseed`), so two runs give the same numbers to the last digit (with
+`check.cjs` and with the scripts alone): without it the idle poses, hair and
+blobs draw on `Math.random` and the second decimals of weapons, props, islands
+and bodysize wander from run to run (the findings don't). The smoke check's
+levels are random either way.
 
 ## Run
 

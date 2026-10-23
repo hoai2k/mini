@@ -1,3 +1,5 @@
+// The Minotaur: a towering brown bull-man in white briefs with a gold belt
+// medallion, cream horns, a gold nose ring and red eyes.
 import * as THREE from 'three/webgpu';
 import { Rig, PX } from '../../character.js';
 import { paintPerson } from '../../mortals.js';
@@ -7,8 +9,6 @@ import { sculpt, along, hideSkin, hash3, legScale, reshape, applyShape } from '.
 import { markHeadCore, markHeadwear } from '../../rigContract.js';
 import { VD } from './parts.js';
 
-// The Minotaur: a towering brown bull-man in white briefs with a gold belt
-// medallion, cream horns, a gold nose ring and red eyes.
 export function buildMinotaur() {
   // the skin boxes are hidden under the sculpt; the material still carries the hit flash and glow
   const m = skinMat('boss_minotaur', (S) => paintPerson(S, { skin: 0x86391c, hair: 0x341810, top: 0x86391c, pants: 0x86391c, shoes: 0x2a2424 }), { emit: 3 });
@@ -18,9 +18,9 @@ export function buildMinotaur() {
   bruteLimbs(rig, { armLen: 1.6, armThick: 1.15, legThick: 1.5, legX: 4 });
   rig.neck.position.z = 1.8 * PX;   // the head thrust forward, low between the shoulders
   rig.neck.position.y = 11.6 * PX;
-  // (round 7, head and leg proportions, proportions.js: the bull's head
-  // sculpted afresh at 0.8 of its old size, its horns kept near their old
-  // sweep (HK), on legs grown from 15 to 20 pixels over the same hooves)
+  // (head and leg proportions, proportions.js: the bull's head reshaped to
+  // 0.8, its horns drawn out to a full sweep (HK), on legs stretched from 15
+  // to 20 pixels over the same hooves)
   const L1 = 20, ANK = -12, HK = 1.15;
   reshape(rig, rig.head, 0.8);
   reshape(rig, rig.hips, [1, 1.15, 1]);
@@ -34,9 +34,9 @@ export function buildMinotaur() {
   const gold = [0xd8a032, 0xe8b444, 0xc48a26];
   // torso: a barrel chest, slabs of pecs, a hump of trapezius, ridged abs
   sculpt(rig, rig.torso, [
-    // (pass 3: a V from broad shoulders to a narrow waist, two defined pecs
-    // with a cleft and a shadow under them, a slimmer gut, as on vox-bosses-1)
-    // (the gold belt and its medallion are on the hips now, round 8: the loincloth below)
+    // (a V from broad shoulders to a narrow waist, two defined pecs with a
+    // cleft and a shadow under them, a slim gut, as on vox-bosses-1; the gold
+    // belt and its medallion are on the hips, with the loincloth below)
     { e: [0, -0.6, 0.3, 5.7, 1.5, 4.1], col: [0xe8e0c8, 0xd8ccb0, 0xf4eedc], bump: 0.1 },
     { b: [-0.45, 7, 3.2, 0.45, 11.6, 6], col: 0x5a240e, bump: 0 },
     { e: [-2.9, 9.6, 2.4, 3.6, 2.9, 2.5], col: (x, y) => (y < 7.6 ? 0x6a2a10 : hideL[Math.floor(hash3(Math.floor(x), Math.floor(y), 2, 6) * 3)]) }, { e: [2.9, 9.6, 2.4, 3.6, 2.9, 2.5], col: (x, y) => (y < 7.6 ? 0x6a2a10 : hideL[Math.floor(hash3(Math.floor(x), Math.floor(y), 2, 6) * 3)]) },
@@ -47,16 +47,12 @@ export function buildMinotaur() {
     { e: [0, 8.6, -0.2, 5.6, 5, 3.6], col: hide },
     { e: [0, 4, 0, 4.3, 4, 3.2], col: hide },
   ], { v: 1, seed: 11, bump: 0.12, fuzz: 0.1 });
-  // the loincloth (round 8, after vox-bosses-1, fitted tight in round 9):
-  // white cloth wrapped round the waist under a gold belt with the medallion
-  // in front. The belt hugs the torso's narrow waist (the sculpt measures
-  // about +-4.7 wide and -3.3..4 deep at belt height, so the belt's ring is
-  // 5.6 by 4.1 with the 1 px band standing just clear of it). The hem hangs
-  // in fourteen panels, each on its own pivot under the belt that swings with
-  // the thigh behind it (rig.tick below), so a striding leg carries its panel
-  // along instead of passing through it. A panel falls straight from the
-  // belt and only steps out where the hip and thigh swell (HIP below, read
-  // off the thigh sculpt), so it lies on the thigh rather than flaring.
+  // the loincloth (after vox-bosses-1): white cloth wrapped round the waist
+  // under a gold belt with the medallion in front, and two aprons hanging
+  // from it (below). The belt hugs the torso's narrow waist (the sculpt
+  // measures about +-4.7 wide and -3.3..4 deep at belt height, so the belt's
+  // ring is 5.6 by 4.1 with the 1 px band standing just clear of it). HIP
+  // reads how far the hip and thigh swell off the thigh sculpt.
   const CLOTH = [0xece4cc, 0xe0d6bc, 0xf6f0de], CLOTHD = 0xcfc4a6, TAU = Math.PI * 2, Z0 = 0.3, BY = 3.1, BYS = BY * 1.15;   // (BYS: the belt's height after the hips' 1.15 stretch)
   const BRX = 5.6, BRZ = 4.1;   // the belt's ring, centre line of its 1 px band
   // a point on the waist's rounded oblong (half-widths Rx, Rz) in direction a (0: front)
@@ -86,16 +82,16 @@ export function buildMinotaur() {
     { e: [0, -1.4, 0.3, 5.4, 1.9, 4.1], col: CLOTH },
     { e: [0, BY + 0.6, Z0, BRX - 0.3, 1.6, BRZ - 0.2], col: CLOTH, bump: 0, fuzz: 0 },   // the cloth wound round the waist, showing a little over the belt's top edge
   ], { v: 1, seed: 12 }, beltBoxes);
-  // a front apron and a back apron only (round 9: his thighs are far wider than his waist, so
+  // a front apron and a back apron only (his thighs are far wider than his waist, so
   // cloth all round would flare over them into a skirt), each one flat piece of cloth hung from
   // inside the belt and tipped out just far enough to clear the thigh sculpt (4.7 px in front
   // and behind): between the thighs, a little narrower at the hem, with the ragged hem
-  const kilt = [], PY = BYS;   // (the pivots sit high under the belt, so a swinging apron's top stays tucked in it)
+  const kilt = [], PY = BYS;   // (the pivots sit high under the belt, so an apron's top stays tucked in it)
   for (const [i, dir] of [[0, 1], [1, -1]]) {
     const L = i === 0 ? 9.5 : 8, WT = i === 0 ? 6.4 : 6, WB = i === 0 ? 4.6 : 4.4;
     const z0 = dir * (BRZ + 0.6) + Z0;   // the pivot's z, at the belt's outer face, so the apron hangs in front of (behind) the thighs
     const G = group(rig.hips, 0, PY, z0), I = new THREE.Group(); G.add(I);
-    const tilt = 0.12;   // (just clears the thighs' front at rest. The owner: the aprons hang straight down and the legs may pass through them; they are there for modesty, not cloth physics)
+    const tilt = 0.12;   // (just clears the thighs' front at rest; the aprons hang straight down and the legs may pass through them: they are there for modesty, not cloth physics)
     I.rotation.order = 'YXZ'; I.rotation.set(-tilt, i === 0 ? 0 : Math.PI, 0);
     const hem = (x, y, z, n, h) => (y < -L + 1.5 - Math.abs(Math.sin(x * 1.3 + i * 2.1)) * 0.9 - h * 1.2 ? null : y < -L + 2.6 ? CLOTHD : CLOTH[Math.floor(h * 3)]);
     const rows = [];
@@ -110,8 +106,8 @@ export function buildMinotaur() {
   // arms: a ball of shoulder, a bulging bicep, a forearm like a tree trunk, a knuckled fist
   for (const [arm, s] of [[rig.armR, -1], [rig.armL, 1]]) {
     sculpt(rig, arm, [
-      // (pass 3: a rounder deltoid, a slimmer upper arm and elbow, the
-      // forearm swelling to the fist, all longer so the fists hang low)
+      // (a round deltoid, a slim upper arm and elbow, the forearm swelling
+      // to the fist, all long so the fists hang low)
       { e: [s * 0.2, 0.6, 0, 4, 4.2, 4.1], col: hide },
       { e: [0, -4.4, 0.8, 2.5, 4.4, 2.8], col: (x, y, z, n) => (z > 1.8 && n > 0.45 ? 0xa44c24 : hide[Math.floor(n * 3.99)]) },
       { cap: [0, -9, 0.3, 0, -15, 0.7, 2.3, 3.3], col: (x, y, z, n) => (z < -2 ? furD[Math.floor(n * 2.99)] : hide[Math.floor(n * 3.99)]), fuzz: 0.2 },
@@ -146,12 +142,12 @@ export function buildMinotaur() {
   ], { v: 0.8, seed: 13, bump: 0.12 }, [
     { p: [0, -0.2, 7.9], s: [3.4, 0.8, 0.8], c: 0xe8b444, m: 'm' }, { p: [-1.5, 0.8, 7.9], s: [0.8, 2.4, 0.8], c: 0xd8a032, m: 'm' }, { p: [1.5, 0.8, 7.9], s: [0.8, 2.4, 0.8], c: 0xd8a032, m: 'm' },
   ]);
-  // (round 9: the horns drawn apart from the head, as headwear: perf/bodysize.cjs measures him to the crown, horns aside)
+  // (the horns drawn apart from the head, as headwear: perf/bodysize.cjs measures him to the crown, horns aside)
   markHeadwear(rig, () => sculpt(rig, rig.head, [...horn(-1), ...horn(1)], { v: 0.8, seed: 14, bump: 0.12 }));
   rig.extras.muzzle = muzzle;
   applyShape(rig);
   rig.hunch = 0.32; rig.armSpread = 0.3;
-  // (the aprons no longer swing with the thighs: the owner prefers them hanging still)
+  // (the aprons hang still: the tick poses only the extras)
   rig.tick = (dt, e) => animateExtras(rig, dt, e);
   return rig;
 }

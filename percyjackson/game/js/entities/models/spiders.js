@@ -23,8 +23,8 @@ export function bronzeSpider(id, { scale = 1, queen = false } = {}) {
   // hero's size (kit density, VoxKit.vox), not the small spider's slabs made
   // big. Her plates show their grain and rivets, her legs are jointed, banded
   // and spurred, and her abdomen is a fine chequer of bronze blocks.
-  // (pass 3: a spider built big, the Road West champion at 1.7, takes the
-  // queen's fine build too, without her crown and gears: fine)
+  // (a spider built big, the Road West champion at 1.7, takes the queen's
+  // fine build too, without her crown and gears: fine)
   const fine = queen || BUILD.k >= 1.5;
   const DQ = fine ? densityFor(scale) / 1.25 : 1;
   const K = kit(rig, mat, { seed: queen ? 31 : 13, rough: 0.5, metal: 0.1, emit: 0.7, density: fine ? DQ : undefined });
@@ -159,9 +159,8 @@ export function buildScorpion({ id = 'scorpion', pal = {} } = {}) {
     S.saturate(1.2);
   }, { rough: 0.35, emit: 1 });
   const TN = 9, TL = 27;   // tail segments and length (skin px)
-  // (round 9: the owner wants it bigger than a person, an enemy that
-  // intimidates: 2.24x its old size, rig scale 1.25 → 2.8, its back well
-  // above Percy's waist and its sting, raised, over his head (the tail's
+  // (bigger than a person, an enemy that intimidates: rig scale 2.8, its back
+  // well above Percy's waist and its sting, raised, over his head (the tail's
   // crown at rest is 3.95 blocks: under a dungeon door's 4). It keeps its build;
   // every plate and segment is a shell of hero-sized cells (voxDensity), so
   // the bigger scorpion is more cells, not bigger ones)
@@ -308,6 +307,6 @@ function scorpionPose(rig, dt, speed, a, atk) {
     D(c.jawA, 'y', 0.25 - Q[3] * 0.7); D(c.jawB, 'y', -0.25 + Q[3] * 0.7);
   }
   // the body rocks back on the windup and lunges in on the strike
-  // (lunge in metres at the old plain scorpion's size, before round 9 grew it 2.24×: it grows with it, and a champion's with the champion)
-  rig.hips.position.z += (lunge * 2.24 / rig.extras.s0 - rig.hips.position.z) * f;   // (round 9: ×2.24, the scorpion's growth)
+  // (lunge is in metres for a scorpion of rig scale 1.25, scaled to this one's 2.8; a champion's grows with the champion)
+  rig.hips.position.z += (lunge * 2.24 / rig.extras.s0 - rig.hips.position.z) * f;   // (×2.24: rig scale 2.8 over 1.25)
 }

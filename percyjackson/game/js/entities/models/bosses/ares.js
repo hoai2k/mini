@@ -1,3 +1,6 @@
+// Ares: a huge biker in a spiked black leather jacket, a black T-shirt with
+// a red Spartan helmet, ripped trousers, boots, red-hot sunglasses and a
+// burning sword.
 import * as THREE from 'three/webgpu';
 import { Rig, HOLD_PITCH } from '../../character.js';
 import { animateExtras } from '../animate.js';
@@ -7,9 +10,6 @@ import { sculpt, hideSkin } from '../../voxkit.js';
 import { markTip } from '../../rigContract.js';
 import { shadeOf, humanSkin, hairMesh, bulk, VD } from './parts.js';
 
-// Ares: a huge biker in a spiked black leather jacket, a black T-shirt with
-// a red Spartan helmet, ripped trousers, boots, red-hot sunglasses and a
-// burning sword.
 export function buildAres() {
   const skin = 0xb8683e, leather = 0x161416, ember = 0xe8501a;
   const HELMET = ['....##....', '...####...', '..######..', '.########.', '.########.', '.##....##.', '.##.##.##.', '.##.##.##.', '.###..###.', '..##..##..', '..##..##..'];
@@ -24,15 +24,15 @@ export function buildAres() {
       // cargo pockets, rips at the knees, boot tops
       for (const [u, v] of [[0, 16], [16, 48]]) { D(u, v + 4 + 2, 0x3a2a1c, 8, 4); D(u + 4.5, v + 4 + 5, skin, 3, 2); D(u + 5, v + 4 + 4.5, 0xc8b8a0, 2, 1); D(u, v + 4 + 7, 0x141214, 32, 5); D(u + 1, v + 4 + 3, 0x5a4432, 2, 2); }
     } }, { scale: 1.95 });
-  // (pass 3: as on vox-bosses-1, a smaller head, longer legs and an open
-  // leather jacket over a narrower waist; the chest and arms stay huge)
+  // (as on vox-bosses-1: a small head, long legs and an open leather jacket
+  // over a narrow waist; the chest and arms huge)
   const rig = new Rig({ material: m, scale: 1.95, headS: 6.4, legH: 16 });
   rig.vd = VD.ares;
   // a huge biker, but a man's build: less of a box than he was
   const AT = 1.72, LT = 1.5, aw = 4 * AT, lw = 4 * LT;
   bulk(rig, { w: 1.3, d: 1.3, h: 1.08, armThick: AT, armLen: 1.12, legThick: LT, legX: 3.3 });
   rig.armSpread = 0.2;
-  // (pass 3: a short crop and a trimmed beard, so his face shows as on the sheet)
+  // (a short crop and a trimmed beard, so his face shows as on the sheet)
   hairMesh(rig, { style: 'spiky', base: 0x1a1210, shade: 0x0a0606, light: 0x3a2a22, seed: 91, shape: { c: [0, 7.8, -0.4], r: [4.5, 1.8, 4.7], bump: 0.1, shell: 0.7, fringe: 7.6, jag: 0.4, side: 6, back: 3.6, tuft: 0.15, spike: 0.03 }, beard: { length: 2, mouth: 1 } });
   const hs = HS * rig.dims.headS / 8;
   // red-hot wraparound sunglasses
