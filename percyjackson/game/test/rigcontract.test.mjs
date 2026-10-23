@@ -7,7 +7,7 @@
 import './seed.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 
 const read = (p) => readFileSync(new URL('../' + p, import.meta.url), 'utf8');
 const contract = read('js/entities/rigContract.js');
@@ -36,9 +36,12 @@ test('one voxel kit: every model module draws through voxkit.js', () => {
   const kit = read('js/entities/voxkit.js');
   for (const name of ['class VoxKit', 'const kit =', 'function sculpt(', 'function sculptMats(', 'function sculptGeometry(', 'const BUILD =', 'function withBuild(', 'const voxDensity =', 'function paintShade(']) assert.ok(kit.includes(name), `voxkit.js has ${name}`);
   for (const m of ['blob(p, c, r, cell, col, o)', 'carve(p, cut)']) assert.ok(kit.includes(m), `VoxKit.${m}`);
-  for (const f of ['monsters.js', 'fodder.js', 'bossmodels.js', 'champions.js', 'serpent.js']) {
+  // the model modules: the index modules, champions, the serpent and every builder under entities/models
+  const builders = (function walk(d) { return readdirSync(new URL('../' + d, import.meta.url), { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(`${d}/${e.name}`) : e.name.endsWith('.js') ? [`${d}/${e.name}`.slice('js/entities/'.length)] : [])); })('js/entities/models');
+  assert.ok(builders.length >= 20, `${builders.length} builder modules`);
+  for (const f of ['monsters.js', 'fodder.js', 'bossmodels.js', 'champions.js', 'serpent.js', ...builders]) {
     const src = read('js/entities/' + f);
-    assert.match(src, /from '\.\/voxkit\.js'/, `${f} takes the kit from voxkit.js`);
+    if (/\b(kit|sculpt)\(/.test(src)) assert.match(src, /from '(\.\/|\.\.\/)+voxkit\.js'/, `${f} takes the kit from voxkit.js`);
     // no second kit: the old free functions and kit internals are gone
     assert.doesNotMatch(src, /^(export )?(class VoxKit|function (kitOf|blob|carve|flushBlobs|cells|kitGeometry|kitMats|voxMesh)\b)/m, `${f} defines no kit of its own`);
     assert.doesNotMatch(src, /(?<![.\w])(blob|carve)\(\w+, /, `${f} calls K.blob / K.carve`);

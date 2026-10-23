@@ -9,6 +9,8 @@ import { fileURLToPath } from 'node:url';
 import { OPENING_STEPS, STEP_INFO, openingStep, openingDone, nextStep, stepAfterChapter, advanceOpening } from '../js/story/opening.js';
 import { CAMP_CORE, CAMP_ROAM, ROAM_RULES, inAny, inRect, roamAreaAt, spawnAllowed, packFor, pickKind } from '../js/world/roamZones.js';
 import { freshData, normalizeData } from '../js/save.js';
+import { MONSTERS, MONSTER_IDS } from '../js/data/monsters.js';
+import { t } from '../js/text_config.js';
 
 const JS = join(resolve(dirname(fileURLToPath(import.meta.url)), '..'), 'js');
 const read = (p) => readFileSync(join(JS, p), 'utf8');
@@ -124,14 +126,15 @@ test('roaming packs are small and follow the save lightly', () => {
   }
   assert.equal(packFor(12, 'pup', 0.5).level, 4);
   assert.equal(pickKind([['a', 1], ['b', 0]], 0.99), 'a');
-  for (const a of CAMP_ROAM) for (const [k] of a.kinds) assert.match(read('entities/monsters.js'), new RegExp(`\\n  ${k}: \\{ name:`), `${k} is a monster`);
+  for (const a of CAMP_ROAM) for (const [k] of a.kinds) assert.ok(MONSTER_IDS.includes(k), `${k} is a monster`);
   assert.ok(inRect(CAMP_ROAM[0].area, CAMP_ROAM[0].area.x0, CAMP_ROAM[0].area.z0));
 });
 
 test('rats exist: the prologue monster', () => {
-  const m = read('entities/monsters.js');
-  assert.match(m, /\n  rat: \{ name: txt\('monsters\.rat\.name'\), tier: 'minor'/);
-  assert.match(m, /\n  rat: \(\) => \{/);
+  assert.equal(MONSTERS.rat.name, t('monsters.rat.name'));
+  assert.equal(MONSTERS.rat.tier, 'minor');
+  assert.equal(MONSTERS.rat.model, 'rat');
+  assert.match(read('entities/monsters.js'), /\n  rat: \(\) => buildRat\(\),/, 'the rat has a model');
 });
 
 test('the cutscenes the opening plays exist', () => {

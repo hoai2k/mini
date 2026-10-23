@@ -5,28 +5,24 @@ import './seed.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { t } from '../js/text_config.js';
 import { REGIONS } from '../js/world/owLayout.js';
 import { RT_REGIONS } from '../js/world/rtLayout.js';
 import { FODDER_KINDS, HORDE, hordeFor, isFodder, ROAM_RULES } from '../js/world/roamZones.js';
 import { mulberry32 } from '../js/util.js';
+import { MONSTERS as ALL, MONSTER_IDS } from '../js/data/monsters.js';
+import { FODDER_MONSTERS as FOD } from '../js/data/fodder.js';
 
 const read = (f) => readFileSync(new URL('../js/' + f, import.meta.url), 'utf8');
-// the stat tables, read from the source (the modules build models with Three.js)
-const table = (src, head) => { const i = src.indexOf(head); return new Function('txt', 'return ' + src.slice(i + head.length - 1, src.indexOf('\n};', i) + 2))((key) => key); };
-const MON = table(read('entities/monsters.js'), 'export const MONSTERS = {');
-const FOD = table(read('entities/fodder.js'), 'export const FODDER_MONSTERS = {');
-const ALL = { ...MON, ...FOD };
 const NEW = ['karpos', 'karpos_slinger', 'colchis_calf', 'myrmex', 'myrmex_spitter', 'boarlet', 'crab', 'king_crab', 'basilisk', 'earthborn', 'daedalus_drone', 'laistrygonian', 'shade', 'keres'];
 // the larger and tougher of the new kinds; the rest are fodder
 const BIG = ['colchis_calf', 'boarlet', 'king_crab', 'earthborn', 'laistrygonian'];
 
 test('the fodder monsters: weak swarms, a few larger ones, all named, wired in', () => {
-  const src = read('entities/fodder.js'), mons = read('entities/monsters.js');
+  const src = read('entities/fodder.js'), bits = read('entities/models/fodder/behaviour.js'), mons = read('entities/monsters.js');
   assert.deepEqual(Object.keys(FOD), NEW);
   for (const id of NEW) {
     const d = FOD[id], big = BIG.includes(id);
-    assert.notEqual(t(d.name), d.name, `${id} has a name in text_config`);
+    assert.ok(d.name && !d.name.startsWith('monsters.'), `${id} has a name in text_config`);
     assert.match(src, new RegExp(`\\n    ${d.model}: \\(\\) => build`), `${id} has a model`);
     assert.ok(!d.aura, `${id} carries no particle aura (hordes of them)`);
     assert.equal(FODDER_KINDS.has(id), !big, `${id}: fodder or not`);
@@ -44,18 +40,18 @@ test('the fodder monsters: weak swarms, a few larger ones, all named, wired in',
   assert.ok(FOD.myrmex_spitter.lob && FOD.earthborn.lob && FOD.laistrygonian.lob && !FOD.basilisk.lob);
   assert.ok(FOD.karpos_slinger.range >= 10 && FOD.daedalus_drone.projectile === 'bullet');
   // the basilisk (the books' arm-long snake): small, fast, in threes; a short puff of fire at the spot in front and a poison touch, no projectile
-  assert.ok(FOD.basilisk.ai === 'melee' && !FOD.basilisk.projectile && FOD.basilisk.moves?.every((m) => m.kind === 'sting') && FOD.basilisk.poison && FOD.basilisk.height <= 0.8 && FOD.basilisk.speed > MON.pup.speed && HORDE.basilisk[0] === 3);
-  assert.ok(FOD.shade.speed < MON.spartoi.speed && FOD.keres.speed > MON.pup.speed, 'shades drift, keres dart');
+  assert.ok(FOD.basilisk.ai === 'melee' && !FOD.basilisk.projectile && FOD.basilisk.moves?.every((m) => m.kind === 'sting') && FOD.basilisk.poison && FOD.basilisk.height <= 0.8 && FOD.basilisk.speed > ALL.pup.speed && HORDE.basilisk[0] === 3);
+  assert.ok(FOD.shade.speed < ALL.spartoi.speed && FOD.keres.speed > ALL.pup.speed, 'shades drift, keres dart');
   assert.equal(FOD.king_crab.ai, 'tank');
   for (const id of ['colchis_calf', 'boarlet']) assert.ok(FOD[id].ai === 'melee' && FOD[id].range >= 3, `${id} charges from a distance`);
-  // monsters.js takes them in (so the shader warm-up and the workbench, which walk MONSTER_IDS, do too)
-  assert.match(mons, /Object\.assign\(MONSTERS, FODDER_MONSTERS\);[\s\S]*export const MONSTER_IDS = Object\.keys\(MONSTERS\)/);
+  // the bestiary takes them in (so the shader warm-up and the workbench, which walk MONSTER_IDS, do too)
+  for (const id of NEW) assert.ok(MONSTER_IDS.includes(id) && ALL[id] === FOD[id], `${id} is in MONSTERS`);
   assert.match(mons, /\.\.\.fodderModels\(\)/);
   assert.match(mons, /rig\.onTick\?\.\(dt, e\)/);
   assert.match(read('entities/bosses.js'), /warmupGroup\(kinds = MONSTER_IDS/);
   // each has its own cry and its own bits when it goes
   const audio = read('audio.js');
-  for (const id of NEW) { const v = FOD[id].voice; assert.ok(new RegExp(`case '${v}'`).test(audio) || ['hiss', 'grind', 'roar'].includes(v), `${id} voice ${v}`); assert.match(src, new RegExp(`\\n  ${id}: \\[\\[C\\(`), `${id} death bits`); }
+  for (const id of NEW) { const v = FOD[id].voice; assert.ok(new RegExp(`case '${v}'`).test(audio) || ['hiss', 'grind', 'roar'].includes(v), `${id} voice ${v}`); assert.match(bits, new RegExp(`\\n  ${id}: \\[\\[C\\(`), `${id} death bits`); }
 });
 
 const share = (kinds, f) => kinds.filter(([k]) => f(k)).reduce((s, [, w]) => s + w, 0) / kinds.reduce((s, [, w]) => s + w, 0);

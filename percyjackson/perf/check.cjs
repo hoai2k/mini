@@ -3,18 +3,19 @@
 //
 //   NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/check.cjs
 //     [--only a,b] [--skip a,b] [--fast] [--json] [--port N] [--log dir]
-//     [--serial] [--verbose] [--shards N] [--shots dir]
+//     [--serial] [--verbose] [--shards N] [--jobs N] [--shots dir]
 //
 // It serves the repository itself (Node's http, on a free port, stopped at
 // the end; --port N uses a server already on 127.0.0.1:N instead), launches
-// one Chromium and runs the checks in it, in lanes at once (--serial: one
-// after another), each lane its own page: the game (smoke); a blank page with
-// the workbench's import map (weapons, houndlegs, animlint); the model
-// workbench (props, rig); another (bodysize); --shards N workbench pages
-// (default 3) that split the models between them for islands, the slowest;
-// the shots page; and the node tests and the design check as child
-// processes. The render benchmark (bench) runs last, alone, so its CPU times
-// are not shared with the others.
+// one Chromium and runs the checks in it, several pages at once: the game
+// (smoke, the longest single check) and the node tests and design check (child
+// processes) throughout, and beside them, --jobs N at a time (default 2), the
+// biggest first: --shards N workbench pages (default 3) that split the models
+// between them for islands, the slowest; a blank page with the workbench's
+// import map (weapons, houndlegs, animlint); the model workbench (props,
+// rig); another (bodysize); and the shots page. --serial runs one at a time.
+// The render benchmark (bench) runs last, alone, so its CPU times are not
+// shared with the others.
 //
 // Each check is the module of its old script (smoke.cjs, weapons.cjs, ...;
 // each still runs on its own as before) and reports exactly what that script
@@ -37,6 +38,8 @@ const list = (k) => (opt(k) ?? '').split(',').map((s) => s.trim()).filter(Boolea
 const has = (k) => args.includes('--' + k);
 // islands: how many workbench pages share the models (--shards N)
 const SHARDS = Math.max(1, +(opt('shards') ?? 3));
+// how many pages besides the game's run at once (--jobs N)
+const JOBS = Math.max(1, +(opt('jobs') ?? 2));
 
 // ---- the checks -------------------------------------------------------------
 // lane: which page it shares (or 'proc', a child process); slow: left out by --fast
@@ -139,7 +142,7 @@ async function rigCheck(page, bootErrors) {
     const lines = [`rig contract (${r.how}): ${r.rows.length} models, ${bad.length} failing; page errors ${errs.length}`];
     for (const x of bad) for (const p of x.problems) lines.push(`FAIL  ${x.key.padEnd(26)} ${p}`);
     for (const x of r.rows) for (const p of x.warnings ?? []) lines.push(`warn  ${x.key.padEnd(26)} ${p}`);
-    return { ok: !bad.length && !errs.length, lines, rows: r.rows, summary: { via: r.how, models: r.rows.length, failing: bad.length }, text: `${r.rows.length} models, ${bad.length} failing (${r.how})` };
+    return { ok: !bad.length && !errs.length, lines, rows: r.rows, summary: { via: r.how, models: r.rows.length, failing: bad.length }, text: `${r.rows.length} models, ${bad.length} failing, ${r.rows.reduce((a, x) => a + (x.warnings?.length ?? 0), 0)} warnings (${r.how})` };
   } finally { w.stop(); }
 }
 
@@ -222,40 +225,49 @@ async function main() {
         if (!on.has('bodysize')) return;
         await onWorkbench(['bodysize'], (page, boot) => timed('bodysize', () => require('./bodysize.cjs').run({ browser, base, page, bootErrors: boot, check: true })));
       },
-      // islands, the slowest check: the workbench's models split over SHARDS
-      // workbench pages (it builds every model afresh, its blob cache off, so
-      // a model's result doesn't hang on which models came before it), the
-      // rows put back in the workbench's order and reported as one
-      islands: async () => {
-        if (!on.has('islands')) return;
-        const I = require('./islands.cjs'), t = Date.now(), parts = [];
-        let keys = null;
-        try {
-          await Promise.all(Array.from({ length: SHARDS }, (_, k) => onWorkbench([], async (page, boot) => {
-            const all = await page.evaluate(() => window.__wb.items.map((it) => it.key));
-            keys ??= all;
-            const mine = all.filter((_, i) => i % SHARDS === k); if (!mine.length) return;
-            parts.push({ boot, ...(await I.collect({ browser, base, page, only: mine })) });
-          })));
-        } catch (e) { await timed('islands', async () => { throw e; }, t); return; }
-        const at = new Map(keys.map((k, i) => [k, i]));
-        const boot = [...new Set(parts.flatMap((p) => p.boot))];
-        const errs = [...boot, ...parts.flatMap((p) => p.errors.filter((e) => !boot.includes(e)))];
-        await timed('islands', async () => I.report(parts.flatMap((p) => p.res).sort((a, b) => at.get(a.key) - at.get(b.key)), errs, { check: true }), t);
-      },
       shots: async () => {
         if (!on.has('shots')) return;
         await timed('shots', async () => {
           const dir = opt('shots') ?? path.join(lib.WORK, 'results', 'shots');
           const r = await require('./render-bench.cjs').run({ browser, base, modes: ['shots'], shots: dir });
-          if (r.rows?.files?.length) { r.summary.digest = digest(r.rows.files); r.text += `, digest ${r.summary.digest} (${path.relative(process.cwd(), dir) || dir})`; }
+          if (r.rows?.files?.length) { r.summary.digest = digest(r.rows.files); r.text += `, digest ${r.summary.digest} (${path.resolve(dir)})`; }
           return r;
         });
       },
     };
-    const order = ['islands', 'game', 'models', 'wb', 'sizes', 'shots', 'proc'];
-    if (has('serial')) for (const l of order) await lanes[l]();
-    else await Promise.all(order.map((l) => lanes[l]()));
+    // islands, the slowest check: the workbench's models split over SHARDS
+    // workbench pages (it builds every model afresh, its blob cache off, so a
+    // model's result doesn't hang on which models came before it), the rows
+    // put back in the workbench's order and reported as one
+    const I = require('./islands.cjs'), parts = [];
+    let keys = null, islandsT = null, islandsErr = null;
+    const shard = (k) => async () => {
+      islandsT ??= Date.now();
+      try {
+        await onWorkbench([], async (page, boot) => {
+          const all = await page.evaluate(() => window.__wb.items.map((it) => it.key));
+          keys ??= all;
+          const mine = all.filter((_, i) => i % SHARDS === k); if (!mine.length) return;
+          parts.push({ boot, ...(await I.collect({ browser, base, page, only: mine })) });
+        });
+      } catch (e) { islandsErr ??= e; }
+    };
+    // The game (smoke, the longest single check) and the child processes run
+    // throughout; the other pages go through a pool of JOBS at a time, the
+    // biggest first, so the cores are shared without starving the game.
+    const jobs = [...(on.has('islands') ? Array.from({ length: SHARDS }, (_, k) => shard(k)) : []), lanes.models, lanes.wb, lanes.sizes, lanes.shots];
+    const pool = async () => { for (let j; (j = jobs.shift());) await j(); };
+    if (has('serial')) { await lanes.proc(); await lanes.game(); await pool(); }
+    else await Promise.all([lanes.game(), lanes.proc(), ...Array.from({ length: JOBS }, pool)]);
+    if (on.has('islands')) {
+      if (islandsErr || !keys) await timed('islands', async () => { throw islandsErr ?? new Error('no workbench'); }, islandsT);
+      else {
+        const at = new Map(keys.map((k, i) => [k, i]));
+        const boot = [...new Set(parts.flatMap((p) => p.boot))];
+        const errs = [...boot, ...parts.flatMap((p) => p.errors.filter((e) => !boot.includes(e)))];
+        await timed('islands', async () => I.report(parts.flatMap((p) => p.res).sort((a, b) => at.get(a.key) - at.get(b.key)), errs, { check: true }), islandsT);
+      }
+    }
     if (on.has('bench')) await timed('bench', () => require('./render-bench.cjs').run({ browser, base, modes: ['wb'] }));
   } finally {
     await browser?.close();

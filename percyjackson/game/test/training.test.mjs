@@ -13,6 +13,8 @@ import { SCOLD, scoldLine, mayScold, SCOLD_EVERY, mistForm, MIST_FORMS } from '.
 import { prologueHint, HINTS } from '../js/story/prologueHints.js';
 import { ALL_ART, CUTSCENE_ART, CHAPTER_ART, LOGO, TITLE_BG } from '../js/ui/art.js';
 import { CHAPTERS } from '../js/story/chapters.js';
+import { MONSTERS, MONSTER_IDS } from '../js/data/monsters.js';
+import { t } from '../js/text_config.js';
 
 const GAME = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFileSync(join(GAME, 'js', p), 'utf8');
@@ -63,7 +65,7 @@ test('the walk to the bus: a very short quiet start, then a fight the rest of th
   assert.ok(96.5 - 84 <= 15, 'the quiet start is a dozen metres');
   assert.ok(RAT.dashEvery[1] <= 10 && RAT.maxAggro <= 3, 'steady pressure, never a swarm');
   for (const k of ['trench', 'nests', 'beats', 'movers']) assert.match(m, new RegExp(`\\b${k}\\b`), k);
-  assert.match(read('entities/monsters.js'), /rat: \{[^}]*idle: 'loiter'/, 'only the rat loiters');
+  assert.deepEqual(MONSTER_IDS.filter((k) => MONSTERS[k].idle === 'loiter'), ['rat'], 'only the rat loiters');
   assert.match(read('story/openingFlow.js'), /feet: false/, 'no footprints in the prologue');
   assert.match(read('party.js'), /if \(!companionShouldEngage\(e\)\) continue;/, 'companions leave idle rats and groups milling about to the player (partyRules.js; tested in party.test.mjs)');
 });
@@ -129,13 +131,13 @@ test('under True Sight the disguised are creatures nothing like people', () => {
   for (const ch of CHAPTERS) {
     if (!ch.disguise?.length) continue;
     assert.ok(ch.mistForms?.length, `${ch.id} names what its disguised monsters are`);
-    for (const k of ch.mistForms) { assert.match(m, new RegExp(`\\n  ${k}: \\{ name:`), `${k} is a monster`); assert.ok(!humanlike.includes(k), `${ch.id}: ${k} is not human-like`); }
+    for (const k of ch.mistForms) { assert.ok(MONSTER_IDS.includes(k), `${k} is a monster`); assert.ok(!humanlike.includes(k), `${ch.id}: ${k} is not human-like`); }
   }
   assert.deepEqual(CHAPTERS.find((c) => c.id === 'lt1').mistForms, ['serpent', 'spider', 'ghost']);
   for (let i = 0; i < 10; i++) assert.ok(MIST_FORMS.includes(mistForm(null, i / 10)));
-  assert.match(m, /\n  serpent: \{ name: txt\('monsters\.serpent\.name'\)/); assert.match(m, /\n  serpent: \(\) => buildSerpent\(/);
+  assert.equal(MONSTERS.serpent.name, t('monsters.serpent.name')); assert.match(m, /\n  serpent: \(\) => buildSerpent\(/);
   assert.match(read('entities/serpent.js'), /export function buildSerpent\(/, 'the serpent has a model of its own (entities/serpent.js)');
-  assert.match(m, /\n  mortal: \{[^}]*mortal: true/, 'real mortals');
+  assert.equal(MONSTERS.mortal.mortal, true, 'real mortals');
   assert.match(read('entities/enemy.js'), /if \(!this\.disguised \|\| this\.dead \|\| this\.def\.mortal\) return false;/, 'a real mortal never turns into a monster');
   assert.match(read('resume.js'), /rk: /, 'killed monsters stay gone after Continue');
 });

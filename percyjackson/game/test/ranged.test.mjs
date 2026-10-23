@@ -10,12 +10,9 @@ import { CHAPTERS } from '../js/story/chapters.js';
 import { CHAPTER_LEVEL, missionLevel } from '../js/progression.js';
 import { REGIONS } from '../js/world/owLayout.js';
 import { mulberry32 } from '../js/util.js';
+import { MONSTERS as ALL } from '../js/data/monsters.js';
 
 const read = (f) => readFileSync(new URL('../js/' + f, import.meta.url), 'utf8');
-const table = (src, head) => { const i = src.indexOf(head); return new Function('txt', 'return ' + src.slice(i + head.length - 1, src.indexOf('\n};', i) + 2))((key) => key); };
-const MON = table(read('entities/monsters.js'), 'export const MONSTERS = {');
-const FOD = table(read('entities/fodder.js'), 'export const FODDER_MONSTERS = {');
-const ALL = { ...MON, ...FOD };
 const SHOOTERS = Object.entries(ALL).filter(([, d]) => d.projectile);
 // the enemy tables of the chapter boards (world/levelgen.js), read from the source (it imports the Three.js biomes)
 const LG = read('world/levelgen.js');

@@ -1432,6 +1432,161 @@ REQUESTS += [
     },
 ]
 
+# ---- Round 6: loot (design/loot-design.md). The items are emoji in the game
+# today; these sheets give every item a blocky inventory icon, in the order of
+# loot.js ITEMS (plus the new items the loot design adds), on magenta so the
+# game can key the background out and cut the grid into cells.
+LOOT_GROUP = "Round 6 · Loot: item icons and pickup kit (loaded by the game)"
+
+ICON_STYLE = (
+    "Inventory icons in the blocky voxel style of Minecraft Dungeons: each item a small chunky "
+    "3D voxel model seen from a high three-quarter angle, crisp pixel-art textures (about 16 "
+    "pixels per block) with simple shading and a small highlight, a bold silhouette that still "
+    "reads at 64 pixels, celestial bronze that glows faintly, magic parts with a soft glow. Each "
+    "icon is centred in its own square cell with even padding and never touches its neighbours; "
+    "no frame, border, rarity colour, number or label in the cells (the game adds those). The "
+    "whole sheet sits on a perfectly flat solid magenta #FF00FF background with no gradient, "
+    "texture or cast shadow, so the background can be removed. " + PALETTE
+)
+
+
+def icon_sheet(id_: str, title: str, cols: int, rows: int, items: list[str], use: str) -> dict:
+    assert len(items) == cols * rows, f"{id_}: {len(items)} items for {cols} x {rows} cells"
+    listed = "; ".join(f"{i + 1}. {it}" for i, it in enumerate(items))
+    return {
+        "id": id_, "group": LOOT_GROUP, "title": title,
+        "size": f"{cols * 256} × {rows * 256}", "dest": "game",
+        "references": ["vox-key", "vox-hud"] + ([] if id_ == "icons-weapons-1" else ["icons-weapons-1"]),
+        "use": use,
+        "prompt": (
+            f"A sheet of {cols * rows} game item icons in a grid of {cols} columns by {rows} rows, "
+            f"one item per 256-pixel cell, read left to right and top to bottom in exactly this "
+            f"order: {listed}. {ICON_STYLE} {NO_TEXT}"
+        ),
+    }
+
+
+REQUESTS += [
+    icon_sheet("icons-weapons-1", "Item icons: weapons 1 (common and rare)", 4, 4, [
+        "Camp Training Sword, a plain short bronze practice sword with a leather grip",
+        "Bronze Dagger, a short leaf-shaped bronze dagger",
+        "Camp Spear, a simple wooden spear with a bronze head",
+        "Cyclops Club, a huge wooden table leg used as a club",
+        "Bronze Hand Axe, a one-handed bronze axe with a wide blade",
+        "Shepherd's Crook, a long wooden crook with a hooked top",
+        "Celestial Bronze Xiphos, a leaf-bladed Greek short sword glowing faint gold",
+        "Forge Hammer, a heavy smith's hammer with a glowing orange head",
+        "Reed Staff of Pan, a green reed staff wrapped in vines with tiny floating music notes",
+        "Electric Spear, a bronze spear with blue electricity crackling at the tip",
+        "Labrys of Knossos, a great double-headed axe",
+        "Spartan Kopis, a forward-curved single-edged sword",
+        "Hoplite Dory, a very long spear with a leaf-shaped bronze head",
+        "Empousa Fang, a curved white fang set in a bronze dagger hilt",
+        "Ram's-Horn Mace, a heavy mace whose head is two curling ram's horns",
+        "Forge-Fire Sword, a bronze sword with a red-hot glowing blade and small flames",
+    ], "Inventory, pickup cards and shop icons for the first 16 weapons of loot.js (training_sword to forge_sword, in that order)."),
+    icon_sheet("icons-weapons-2", "Item icons: weapons 2 (legendary and new)", 4, 4, [
+        "Backbiter, a sword whose blade is half celestial bronze and half grey steel, split down the middle",
+        "Stygian Iron Blade, a black sword that seems to drink the light, wisps of shadow",
+        "Twin Huntress Knives, two crossed silver hunting knives",
+        "Imperial Gold Gladius, a short Roman sword of shining gold",
+        "Harpe of Perseus, a bronze sword with a sickle hook near the tip",
+        "Club of Heracles, a huge olive-wood club studded with bronze",
+        "Pelian Spear of Achilles, a tall ash spear with a gleaming bronze point",
+        "Burning Sword of Ares, a broad red-bronze sword wreathed in flames, a boar's head on the guard",
+        "Axe of Boreas, an icy blue-white axe with frost and icicles",
+        "Spear of the Storm, a spear with lightning coiling along the shaft",
+        "Tide-Forged Sword, a sea-green bronze sword with a wave curling along the blade",
+        "Hunter's Moon Knives, a pair of slim silver crescent knives",
+        "Fury's Flaming Lash, a black leather whip wreathed in fire with a bronze handle",
+        "Horn of the Minotaur, a huge curved bull's horn with a wrapped grip, used as a blade",
+        "Chimera Fang Spear, a spear tipped with a big green-dripping fang, a snake-scale grip",
+        "Procrustes's Cleaver, a long cruel bronze cleaver-axe with a bed-frame motif on the haft",
+    ], "Icons for the 11 legendary weapons of loot.js (backbiter to trident_blade) and the 5 new weapons of loot-design.md (hunter_knives, fury_lash, minotaur_horn, chimera_fang, procrustes_axe)."),
+    icon_sheet("icons-armour", "Item icons: armour", 6, 4, [
+        "Camp Half-Blood T-shirt, an orange T-shirt with a small black pegasus",
+        "Bronze Breastplate, a plain bronze cuirass",
+        "Hermes Express Uniform, a brown courier shirt with a winged-sandal patch",
+        "Linothorax, layered white linen armour with shoulder flaps",
+        "Biker Jacket of Ares, a black leather biker jacket with a red boar patch",
+        "Hunter's Silver Parka, a silver hooded parka with a quiver strap",
+        "Sea-Green Mail, sea-green scale mail shimmering like fish scales",
+        "Hoplite Panoply, a full bronze cuirass with a crested helm and greaves",
+        "Spartan Crimson Cloak, a crimson cloak over bronze shoulders",
+        "Satyr's Woven Vest, a vest of living green vines and leaves",
+        "Nemean Lion Pelt, a golden lion pelt with the lion's head as a hood",
+        "Golden Fleece Mantle, a cloak of shining golden fleece",
+        "Fireproof Forge Apron, a heavy leather smith's apron with glowing embers",
+        "Armour of the Amazons, sleek dark armour with a bow motif",
+        "Armour of Achilles, a magnificent gold-and-bronze cuirass with an engraved shield-like chest",
+        "Robe of Hebe, a soft pink-and-white robe with a golden cup emblem",
+        "Cloak of the West Wind, a pale blue cloak billowing with swirls of wind",
+        "Winged Travelling Cloak, a short traveller's cloak and cap with small white wings",
+        "Camp Counsellor Vest, an orange camp vest with pockets and a whistle",
+        "Lotus Hotel Bathrobe, a fluffy white bathrobe with a pink lotus flower emblem",
+        "Cloak of the Mist, a grey-white cloak that fades into drifting fog at the hem",
+        "Wings of the Kindly Ones, a dark leathery cloak shaped like folded bat wings with red trim",
+        "Hellhound Hide, a shaggy black hide with glowing red eyes on the hood",
+        "Drakon-Scale Plate, armour of big overlapping green-gold dragon scales",
+    ], "Icons for the 18 armours of loot.js (camp_shirt to hermes_cap) and the 6 new armours of loot-design.md (counsellor_vest, lotus_robe, mist_cloak, fury_wings, hellhound_hide, drakon_scale)."),
+    icon_sheet("icons-magic", "Item icons: magic items", 7, 4, [
+        "Spark of the Master Bolt, a short javelin of crackling white-gold lightning",
+        "Hephaestus's Golden Net, a folded net of fine golden chain",
+        "Medusa's Head (in a bag), a lumpy sack with snakes poking out of the top",
+        "Nemesis's Fortune Coin, a bronze coin with a different face on each side",
+        "Aegis Charm, a small round shield charm with a gorgon face",
+        "Pegasus Whistle, a silver whistle shaped like a winged horse",
+        "Nectar Flask, a small glass flask of glowing golden nectar",
+        "Bag of Winds, a leather bag tied shut, gusts swirling out",
+        "Shadow of the Helm, a dark bronze helm trailing black smoke",
+        "Winged Sneakers, a pair of sneakers with small white wings",
+        "Jar of Greek Fire, a clay jar with green fire licking from the neck",
+        "Thunder of Zeus, a gold lightning-bolt charm",
+        "Lyre of Orpheus, a small golden lyre with floating music notes",
+        "Golden Apple of Discord, a shining golden apple",
+        "Athena's Owl, a little grey owl with big eyes",
+        "Ariadne's Thread, a ball of glowing golden thread",
+        "Caduceus of Hermes, a winged staff with two twined snakes",
+        "Erymanthian Boar Tusk, a huge curved boar tusk",
+        "Trident of the Sea, a small sea-green trident charm with water drops",
+        "Ray of the Sun Chariot, a golden sun disc with rays",
+        "Hourglass of Kronos, a dark gold hourglass with glowing sand",
+        "Cornucopia, a horn overflowing with fruit and gold coins",
+        "Stymphalian Feathers, a fan of three sharp bronze feathers",
+        "Shield of Ares, a round red-and-bronze shield with a boar's head",
+        "Lotus Casino Card, a glowing green-and-gold casino key card with a lotus",
+        "Cerberus's Red Ball, a big red rubber ball with three bite marks",
+        "Dionysus's Grapevine, a curling purple grapevine with leaves and grapes",
+        "Hermes's Multivitamins, a small bottle of vitamins with a winged cap",
+    ], "Icons for the 23 magic items of loot.js (master_bolt to stymphalian_feathers) and the 5 new ones of loot-design.md (ares_shield, lotus_card, cerberus_ball, dionysus_vine, hermes_vitamins)."),
+    {
+        "id": "ui-loot-kit",
+        "group": LOOT_GROUP,
+        "title": "Loot kit: rarity frames, badges, beam and drachmas",
+        "size": "2048 × 1024",
+        "dest": "game",
+        "references": ["vox-key", "vox-hud", "icons-weapons-1"],
+        "use": "Inventory tile frames per rarity, the NEW badge, the upgrade arrows, the loot beam and ground glint, and the drachma pickups (loot-design.md, pickup feedback).",
+        "prompt": (
+            "A game interface kit sheet in the blocky voxel style of Minecraft Dungeons, laid out "
+            "in a clean grid with generous space between elements. Top row: five empty square "
+            "inventory tile frames, chunky bevelled pixel-art borders with an inner glow: plain "
+            "parchment grey (common), turquoise (rare), violet (heroic), orange-gold (legendary) "
+            "and gold with tiny radiating sparkles (blessed); the orange-gold one has small "
+            "Greek-key corners. Second row: a small rounded yellow badge with a white star burst "
+            "(no letters), a bold green upward arrow and a red downward arrow in chunky pixel art, "
+            "a gold star (favourite), and a wide ribbon banner in orange and gold for a legendary "
+            "find (left blank). Third row: a tall soft vertical light beam texture fading to "
+            "transparent at the top, drawn in white so it can be tinted; a round ground glint "
+            "ring of light, white; a four-point twinkle sparkle sprite, white. Bottom row: one "
+            "golden drachma coin (an owl stamped on it) in voxel style, a small stack of five "
+            f"drachmas, and a bulging coin pouch. Flat solid magenta #FF00FF background with no "
+            f"gradient or shadow so it can be keyed out. {PALETTE} {NO_TEXT}"
+        ),
+    },
+]
+
+
 def path_for(item: dict) -> Path:
     if item.get("dest") == "game":
         return GAME / f"{item['id']}.png"
@@ -1490,6 +1645,15 @@ def build() -> str:
         "Road West road trip has its own strip map (`vox-rt-map`), towns, roadside",
         "kit and roadblocks. The game draws blocky stand-ins for all of them until",
         "the sheets arrive.",
+        "",
+        "### Round 6: loot",
+        "",
+        "Item icons for the inventory, pickup cards and shop, and a kit of rarity",
+        "frames, badges, the loot beam and drachmas (see [the loot design](loot-design.md)).",
+        "Each icon sheet is a grid on flat magenta in the order its prompt lists, so the",
+        "game can key out the background and cut it into cells. Generate",
+        "`icons-weapons-1` first and attach it to the others so the icons match. The",
+        "game shows its emoji icons until the sheets arrive.",
         "",
         "Concept sheets land in `design/concept/`; files marked as game art land in",
         "`game/assets/`. Drop either kind in the intake folder.",

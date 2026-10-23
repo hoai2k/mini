@@ -12,6 +12,7 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, dirname, resolve, relative } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { MONSTER_IDS } from '../js/data/monsters.js';
 
 const GAME = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const JS = join(GAME, 'js');
@@ -87,7 +88,5 @@ test('every playable hero has a kit and a look', () => {
 
 test('enemy tables only use defined monsters', () => {
   const tables = read('world/levelgen.js').match(/export const ENEMY_TABLES = \{([^]*?)\n\};/)?.[1] ?? '';
-  const monsterFile = existsSync(join(JS, 'entities/monsters.js')) ? 'entities/monsters.js' : 'entities/curses.js';
-  const monsters = read(monsterFile);
-  for (const kind of ids(tables, /\['(\w+)',/g)) assert.match(monsters, new RegExp(`\\b${kind}: \\{`), `monster ${kind} is defined in ${monsterFile}`);
+  for (const kind of ids(tables, /\['(\w+)',/g)) assert.ok(MONSTER_IDS.includes(kind), `monster ${kind} is defined in data/monsters.js`);
 });

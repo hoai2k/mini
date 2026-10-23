@@ -6,12 +6,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { FLASK, flaskCooldown, flaskHeal, canDrink, drink, tickFlask, flaskFill, QUIVER, quiverMax, newQuiver, resizeQuiver, shoot, tickQuiver, addBundle, wantsBundle, bundlesFrom, BUNDLE_DROP, ammoInfo, HIT_SCALE, monsterDamage } from '../js/resources.js';
 import { gearStats, rollItem, ENCHANTS } from '../js/loot.js';
-import { readFileSync } from 'node:fs';
 import { mulberry32 } from '../js/util.js';
+import { MONSTERS } from '../js/data/monsters.js';
 
-// monsters.js builds models with Three.js: read just its stat table
-const src = readFileSync(new URL('../js/entities/monsters.js', import.meta.url), 'utf8');
-const MONSTERS = new Function('txt', 'return ' + src.slice(src.indexOf('export const MONSTERS = {') + 'export const MONSTERS = '.length, src.indexOf('\n};', src.indexOf('export const MONSTERS = {')) + 2))((key) => key);   // (txt stub: names stay as their keys)
 
 const close = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, `${a} ≈ ${b}`);
 const run = (f, secs, step = 0.1, fn = tickFlask) => { for (let t = 0; t < secs - 1e-9; t += step) fn(f, step); return f; };

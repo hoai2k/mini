@@ -59,6 +59,22 @@ SFX = {
     'moan': (2, 1.4, 0.5, -22, 'A ghost from the underworld: a low hollow moan that drifts and fades, eerie but not too scary for kids.'),
     'grind': (2, 1.0, 0.5, -20, 'A stone statue coming to life: heavy stone grinding and cracking, gravel trickling.'),
     'arrow': (2, 0.6, 0.55, -21, 'A bow releasing an arrow: a taut string twang and a fast arrow whoosh.'),
+    # Loot feedback (design/loot-design.md). The files in game/assets/sfx are
+    # synthesised by build_loot_sfx.py (no key needed); `build_sfx.py --force <id>`
+    # with a key replaces one with a recorded version. Use one source per id.
+    'pickup_common': (2, 0.4, 0.6, -25, 'Picking up a plain item in a fantasy game: two quick bright glassy blips, rising, tiny and light.'),
+    'pickup_rare': (2, 0.7, 0.6, -23, 'Picking up a rare magic item: a quick rising three-note arpeggio of small bright bells with a little sparkle.'),
+    'pickup_heroic': (1, 1.0, 0.55, -22, 'Picking up a powerful enchanted item: an airy upward whoosh into a rising four-note bell arpeggio and glittering shimmer.'),
+    'pickup_legendary': (1, 1.7, 0.5, -20, 'Picking up a legendary treasure: a soft low thump, a warm choir-like swell and a cascade of golden bells, triumphant but short.'),
+    'loot_common': (1, 0.5, 0.6, -25, 'A small item dropping onto stone in a fantasy game: a soft thud and one tiny bright glint.'),
+    'loot_rare': (1, 0.8, 0.55, -23, 'A rare magic item landing on the ground: a soft thud then two bright bell notes and a few sparkles.'),
+    'loot_heroic': (1, 1.1, 0.55, -21, 'An enchanted item dropping from a defeated monster: a thud, a rising magical whoosh and a three-note bell chime with glitter.'),
+    'loot_legendary': (1, 2.2, 0.5, -18, 'A legendary treasure crashing down from the sky: a deep magical impact, a rising shimmer, a warm swelling choir chord and golden bells, awe-inspiring, audible from far away.'),
+    'coin_stack': (2, 0.5, 0.6, -23, 'A small handful of gold coins clinking together as they are scooped up, bright and quick.'),
+    'chest_rare': (1, 1.3, 0.5, -20, 'A sturdy treasure chest lid thumping open, then a bright magical sparkle and a three-note chime from inside.'),
+    'chest_epic': (1, 1.8, 0.5, -19, 'A grand golden treasure chest bursting open: a heavy lid thump, a rush of magical wind, a warm chord and cascading bells.'),
+    'boss_loot': (1, 3.0, 0.45, -17, 'A short heroic victory fanfare for treasure after a boss fight: a four-note bronze horn call rising, then a held major chord with bells and sparkles. No drums.'),
+    'upgrade': (1, 0.5, 0.6, -23, 'A positive game interface sound for a stronger item: a quick bright rising three-note chime ending on a small bell.'),
 }
 
 
