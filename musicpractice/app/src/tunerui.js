@@ -16,6 +16,8 @@ const HOLD_MS = 1500; // the last note stays up this long after the sound stops
 const STALE_MS = 250; // after this without a reading, the display dims
 const IN_TUNE = 5; // cents either way that count as in tune
 const DEG_PER_CENT = 0.9; // the gauge spans ±50 cents over ±45°
+const TRACE_MS = 6000; // how much the pitch trace shows
+const TRACE_GAP = 250; // ms without a pitch that breaks the trace's line
 const CX = 160;
 const CY = 176;
 const SVG = 'http://www.w3.org/2000/svg';
@@ -56,6 +58,10 @@ export function setupTuner({ settings, persist, chips }) {
   let angle = 0;
   let tone = null; // { handle, key }
   let lastNote = null; // chromatic: the note the reference button plays
+  // The pitch trace: cents off over the last TRACE_MS, a gap where the note changes or stops.
+  const trace = [];
+  const traceCanvas = $('pitch-trace');
+  let traceDrawn = 0;
 
   // ---- gauge
   const ticks = $('gauge-ticks');
@@ -148,6 +154,7 @@ export function setupTuner({ settings, persist, chips }) {
   // ---- readings
   function reset() {
     filled = 0;
+    trace.length = 0;
     reading = null;
     smoother.reset();
     show();
@@ -157,7 +164,7 @@ export function setupTuner({ settings, persist, chips }) {
   // Where it would scroll, the scale test's card loses its subtitle, then
   // shrinks, then loses the space above its rule and its box (the strip under
   // the rule is the button), and only then does the gauge give up the rest (never below
-  // 100 px). Measured, since the controls' height varies by theme, font,
+  // 72 px), and then the pitch trace goes. Measured, since the controls' height varies by theme, font,
   // instrument and window.
   function fit() {
     const scr = $('tuner');
@@ -166,7 +173,7 @@ export function setupTuner({ settings, persist, chips }) {
     const root = document.documentElement;
     const over = () => root.scrollHeight - innerHeight;
     card.classList.remove('compact', 'tight', 'bare');
-    body.classList.remove('tight');
+    body.classList.remove('tight', 'no-trace');
     body.style.removeProperty('--gauge-max');
     for (const step of ['compact', 'tight', 'bare']) if (over() > 0) card.classList.add(step);
     // The gauge, a few times over (a smaller gauge can move other things).
@@ -177,6 +184,7 @@ export function setupTuner({ settings, persist, chips }) {
       if (g <= 72) break;
       body.style.setProperty('--gauge-max', `${Math.max(72, Math.floor(g - o - 2))}px`);
     }
+    if (over() > 0) body.classList.add('no-trace');
     if (over() > 0) body.classList.add('tight');
   }
   let fitQueued = 0;
@@ -367,6 +375,7 @@ export function setupTuner({ settings, persist, chips }) {
     if (r) {
       const hz = smoother.push(r.hz);
       reading = { hz, at: now, ...place(hz) };
+      trace.push({ at: now, cents: reading.cents, midi: reading.midi });
       show();
     } else if (reading && now - reading.at > HOLD_MS) {
       reading = null;
@@ -426,6 +435,52 @@ export function setupTuner({ settings, persist, chips }) {
     if (Math.abs(target - angle) < 0.01) angle = target;
     needle.setAttribute('transform', `rotate(${angle.toFixed(2)} ${CX} ${CY})`);
     body.classList.toggle('held', !!reading && performance.now() - reading.at > STALE_MS);
+    drawTrace();
+  }
+
+  /** The trace: ±50 cents tall, newest at the right, scrolling left. */
+  function drawTrace() {
+    const now = performance.now();
+    while (trace.length && now - trace[0].at > TRACE_MS) trace.shift();
+    // Nothing new and nothing left to scroll off: leave it.
+    if (!trace.length && !traceDrawn) return;
+    const c = traceCanvas;
+    const w = c.clientWidth;
+    const h = c.clientHeight;
+    if (!w || !h) return;
+    const dpr = devicePixelRatio || 1;
+    if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) {
+      c.width = Math.round(w * dpr);
+      c.height = Math.round(h * dpr);
+    }
+    const g = c.getContext('2d');
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, w, h);
+    const css = getComputedStyle(c);
+    const ink = (name) => css.getPropertyValue(name).trim();
+    const y = (cents) => h / 2 - (Math.max(-50, Math.min(50, cents)) / 50) * (h / 2 - 3);
+    const x = (at) => w - ((now - at) / TRACE_MS) * w;
+    // The in-tune band and the middle line.
+    g.fillStyle = ink('--ok-2');
+    g.globalAlpha = 0.14;
+    g.fillRect(0, y(IN_TUNE), w, y(-IN_TUNE) - y(IN_TUNE));
+    g.globalAlpha = 0.5;
+    g.fillRect(0, Math.round(h / 2) - 0.5, w, 1);
+    g.globalAlpha = 1;
+    g.lineWidth = 2.5;
+    g.lineCap = 'round';
+    g.lineJoin = 'round';
+    for (let i = 1; i < trace.length; i++) {
+      const a = trace[i - 1];
+      const b = trace[i];
+      if (a.midi !== b.midi || b.at - a.at > TRACE_GAP) continue;
+      g.strokeStyle = Math.abs(b.cents) <= IN_TUNE ? ink('--ok-2') : ink('--red-2');
+      g.beginPath();
+      g.moveTo(x(a.at), y(a.cents));
+      g.lineTo(x(b.at), y(b.cents));
+      g.stroke();
+    }
+    traceDrawn = trace.length;
   }
 
   // ---- settings

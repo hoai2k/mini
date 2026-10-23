@@ -473,6 +473,12 @@ a message that then disappears; a refusal is shown once it is known.
   ukulele, violin, viola, cello, mandolin, banjo. With strings, the nearest
   string is ringed (green once in tune) and the needle measures against it;
   tap a string to hear its note.
+- **Pitch trace**: a strip under the cents shows the last 6 seconds of
+  pitch, newest at the right: the middle line is in tune, above it sharp,
+  below it flat (±50 cents), with the ±5-cent band shaded. The line is green
+  in tune and red outside, and breaks where the note changes or stops, so a
+  held note shows whether it wavers or drifts. On a window too short for
+  everything, it is the last thing to go, after the gauge has shrunk.
 - **Reference tone**: in Chromatic, *Play A4* (it becomes the last note
   heard) plays a 2.5 s tone with a few harmonics, so low notes still carry
   on a phone speaker. `Space` plays it, or the nearest string's note.

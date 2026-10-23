@@ -359,6 +359,7 @@ export const EN = {
     playReference: (note) => `Play a reference ${note}`,
     cents: (sign, n) => `${sign}${n} cents`,
     hz: (hz) => `${hz} Hz`,
+    trace: 'Pitch over the last few seconds: the middle line is in tune, above it sharp, below it flat',
     hint: {
       playString: 'Play a string',
       playNote: 'Play a note',

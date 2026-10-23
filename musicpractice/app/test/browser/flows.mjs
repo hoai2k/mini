@@ -332,6 +332,17 @@ async function microphone() {
     await p.goto(env.base + '#tuner');
     const read = await until(p, () => document.getElementById('tn-letter').textContent === 'A' && document.getElementById('tn-oct').textContent === '3', 20000);
     c.ok(read >= 0, `the tuner reads the player's A3 (${await p.evaluate(() => document.querySelector('.tuner-note').textContent)})`);
+    // The pitch trace draws the note (solid strokes, not just the band and the middle line).
+    const traced = await until(p, () => {
+      const cv = document.getElementById('pitch-trace');
+      if (!cv.width) return false;
+      const d = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data;
+      let n = 0;
+      for (let i = 3; i < d.length; i += 4) if (d[i] > 200) n++;
+      return n > 50;
+    }, 5000);
+    c.ok(traced >= 0, 'the pitch trace draws the note');
+    if (process.env.SHOTS) await p.screenshot({ path: `${process.env.SHOTS}/tuner-trace.png` });
     // Back on the recorder, the take is still there (kept on the device).
     await p.goto(env.base + '#record');
     await p.reload();
