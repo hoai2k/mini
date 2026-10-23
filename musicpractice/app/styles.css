@@ -760,7 +760,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 .match-score { margin: 0 0 8px; text-align: center; color: var(--ink-3); font-weight: 600; min-height: 1.3em; }
 .match-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .match-actions .pill[hidden] { visibility: hidden; display: inline-flex; }
-.match-actions .big-btn.match-go { margin: 0; min-height: 48px; padding: 0 24px; font-size: 1.1rem; }
+.match-actions .big-btn.match-go { margin: 0; min-height: 44px; min-width: 110px; padding: 0 22px; font-size: 1.17rem; } /* as the strong beats' Done */
 /* The pitch trace (tunerui.js draws it in the theme's --ok-2 and --red-2). */
 .pitch-trace { display: block; width: min(100%, 360px); height: 56px; border-radius: 10px; background: var(--wave-bg); border: 1px solid var(--line); }
 .tuner-body.no-trace .pitch-trace { display: none; }
