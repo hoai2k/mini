@@ -1285,11 +1285,10 @@ export function setupTimer({ settings, tools, audio }) {
   // ------------------------------------------------------------ routines
 
   /*
-   * Practice sets (`state.routines`): several, each a name and its items (on
-   * screen each item is a routine). The name above the total opens Practice
-   * sets, to practise another, add one (it starts empty and is named at
-   * once), rename one or delete one (with Undo while the sheet is open). The
-   * last one can't be deleted.
+   * Routines (`state.routines`): several, each a name and its items. The name
+   * above the total opens Routines, to practise another, add one (it starts
+   * empty and is named at once), rename one or delete one (with Undo while
+   * the sheet is open). The last one can't be deleted.
    */
   const R = T.routines;
   const routineName = (r) => r.name.trim() || R.untitled;

@@ -164,12 +164,12 @@ export function cleanRoutine(v, base) {
   return v.slice(0, MAX_ITEMS).map(clean).filter((it) => !seen.has(it.id) && seen.add(it.id));
 }
 
-/** Sets of routines ("routines" in the code, "Practice sets" on screen): several, each a name and its items; one is chosen. */
+/** Routines: several, each a name and its items; one is chosen. */
 export const MAX_ROUTINES = 20;
 export function newRoutine(name, items = []) {
   return { id: `r${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, name, items };
 }
-/** Saved sets (on screen "Practice sets"; each item is a routine there), or, saved before there were several, the one set, "My set". */
+/** Saved routines, or, saved before there were several, the one routine, "My routine". */
 export function cleanRoutines(saved, base) {
   if (Array.isArray(saved?.routines) && saved.routines.length) {
     const seen = new Set();

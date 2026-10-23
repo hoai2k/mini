@@ -786,15 +786,15 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
 `app/src/timerui.js` (the screen and the tool cards; the tools themselves
 are main.js's, `routineTools`), `app/src/pager.js` (the second page).
 
-- **Practice sets**: several named lists of items (`state.routines` in
-  `timer.js`; on screen each item is a routine, so the lists are *sets*).
-  The set's name, small and in the accent above the total ("My set ▾"),
-  opens **Practice sets**: each set with its routines and minutes ("2
-  routines · 8 min"); a tap practises it. **New set** starts an empty one
-  and names it where it stands; the pencil renames, the trash deletes (with
-  Undo while the sheet is open; the last set can't be deleted). A routine
-  saved before there were sets becomes "My set". `items` is still saved
-  beside the sets (the chosen set's), for an earlier version reading it.
+- **Routines**: several, each a name and a list of items (`state.routines`
+  in `timer.js`). The routine's name, small and in the accent above the
+  total ("My routine ▾"), opens **Routines**: each with its items and
+  minutes ("2 items · 8 min"); a tap practises it. **New routine** starts an
+  empty one and names it where it stands; the pencil renames, the trash
+  deletes (with Undo while the sheet is open; the last one can't be
+  deleted). The one routine saved before there were several becomes "My
+  routine". `items` is still saved beside them (the chosen routine's), for
+  an earlier version reading it.
 - **Practice log**: a quiet line under the list ("🔥 3-day streak · 1 h 59
   min in the last 7 days ›", hidden while a routine runs) opens it: days in
   a row, the last 7 days, today, a bar for each of the last 7 days (minutes
@@ -810,8 +810,9 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
   routine runs is named after the item being practised, numbered on from
   takes already named so ("Scales 1", "Scales 2"; `routineTakeName` in
   `takes.js`). It can be renamed like any take.
-- **A routine is a list of practice items** (on screen each is itself
-  called a routine: "2 routines in all", "Add a Routine", "Last routine").
+- **A routine is a list of practice items** ("2 items in all", "Add an
+  Item", "Last item"; each was called a routine on screen until there could
+  be several routines).
   Set up, each is a plain row: its number, its picture, its name with a
   small **pencil** after it, and its minutes on the right ("1. Intonation ✎
   · 3 min"). **A tap on an item starts the routine from there** (the items
@@ -861,7 +862,7 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
     deleted by its trash button, a swipe or its menu.
   The list's pencil is hidden while a routine runs.
 - A first visit starts with **Intonation** (3 min) and **Scales** (5 min).
-  **+ Add** opens **Add a Routine**: Intonation, Scales, **Arpeggios**,
+  **+ Add** opens **Add an Item**: Intonation, Scales, **Arpeggios**,
   **Metronome**, **Sight Reading**, **Improvisation**, **Clapping Rhythms**,
   **Ghosting** and **Custom…** (a blank item, opening the list for editing
   with its name ready to type), each by its name and its picture
@@ -890,7 +891,7 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
   Skip goes a step at a time (a routine to its break, a break to the next),
   a card's button during a break plays that tool without changing the next
   routine, and there is no break after the last. The total counts the timed
-  breaks ("12:00 · 3 routines in all · 30 s breaks"). `TimerRun` in
+  breaks ("12:00 · 3 items in all · 30 s breaks"). `TimerRun` in
   `app/src/timer.js` (`rest`, `resting`, `waiting`; events `rest` and
   `begin`), `RESTS`.
 - **What the tools do at each moment is decided in one place**:
@@ -1026,7 +1027,7 @@ slide read as a snap. The way across is a **smaller Routine button**
   sight-reading, improvisation, round 12; a Metronome item shows the
   Metronome's own home picture, `picture` on its preset), and there is a
   default (`practice-default`, a music stand), shown small in the list, in
-  Add a Routine and beside the running item's name. **The pictures of an
+  Add an Item and beside the running item's name. **The pictures of an
   activity are shared**: in the warm brass-and-gold themes (Art Deco, 18th
   Century, French Nouveau, Steam Punk) each came out a near-copy of
   Classic's, so those themes use Classic's (`SHARED_PICTURES` in

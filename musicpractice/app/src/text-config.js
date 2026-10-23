@@ -464,20 +464,20 @@ export const EN = {
     barDay: (day, time) => `${day} ${time}`,
   },
   timer: {
-    /** Named sets of routines (each item is a routine on screen): the button above the total, and its sheet. */
+    /** Named routines, each a list of items: the button above the total, and its sheet. */
     routines: {
-      first: 'My set',
-      title: 'Practice sets',
-      pick: (name) => `${name}. Change set`,
-      newName: (n) => `Set ${n}`,
-      add: 'New set',
-      summary: (items, minutes) => `${items} ${items === 1 ? 'routine' : 'routines'} · ${minutes} min`,
+      first: 'My routine',
+      title: 'Routines',
+      pick: (name) => `${name}. Change routine`,
+      newName: (n) => `Routine ${n}`,
+      add: 'New routine',
+      summary: (items, minutes) => `${items} ${items === 1 ? 'item' : 'items'} · ${minutes} min`,
       use: (name) => `Practise ${name}`,
       rename: (name) => `Rename ${name}`,
       remove: (name) => `Delete ${name}`,
-      nameField: 'Set name',
+      nameField: 'Routine name',
       deleted: (name) => `${name} deleted.`,
-      untitled: 'Untitled set',
+      untitled: 'Untitled routine',
     },
     title: 'Practice Routine',
     presets: {
@@ -491,11 +491,11 @@ export const EN = {
       improvisation: 'Improvisation',
     },
     /** Under the list while it is set up. */
-    total: (n) => `${n} ${n === 1 ? 'routine' : 'routines'} in all`,
-    /** After the total, when there are breaks between routines (the total counts timed ones). */
+    total: (n) => `${n} ${n === 1 ? 'item' : 'items'} in all`,
+    /** After the total, when there are breaks between items (the total counts timed ones). */
     totalBreaks: (rest) => (rest === 'pause' ? 'a pause between each' : `${rest < 60 ? `${rest} s` : `${rest / 60} min`} breaks`),
-    /** The break between routines (Practice Routine settings), and the header during one. */
-    rest: 'Break between routines',
+    /** The break between items (Practice Routine settings), and the header during one. */
+    rest: 'Break between items',
     rests: {
       0: 'No break', 15: '15 seconds', 30: '30 seconds', 45: '45 seconds', 60: '1 minute', 90: '1.5 minutes',
       120: '2 minutes', 180: '3 minutes', 300: '5 minutes', 600: '10 minutes', 900: '15 minutes', pause: 'Pause when done',
@@ -503,14 +503,14 @@ export const EN = {
     breakName: 'Break',
     breakWaiting: 'Press play',
     totalEdit: 'Total time: tap to edit the list',
-    empty: 'Nothing to practise yet. Add a routine with +.',
+    empty: 'Nothing to practise yet. Add an item with +.',
     start: 'Start',
     pause: 'Pause',
     resume: 'Resume',
     skip: 'Skip',
     stop: 'Stop',
     next: (name, min) => `Next: ${name} · ${min} min`,
-    lastItem: 'Last routine',
+    lastItem: 'Last item',
     finished: 'All done. Well practised!',
     finishing: 'Finishing the last take',
     finishingNote: 'The routine ends once your take has played back',
@@ -526,7 +526,7 @@ export const EN = {
       startHere: (i, name, min) => `${i}. ${name}, ${min} min. Start the routine here`,
       edit: (name) => `Edit ${name}`,
       editDone: (name) => `Done editing ${name}`,
-      kind: (i) => `Routine ${i}: kind`,
+      kind: (i) => `Item ${i}: kind`,
       inRoutine: (name) => `${name} in the routine`,
       summary: (i, name, min) => `${i}. ${name}, ${min} min`,
       fewer: 'One minute less',
@@ -580,7 +580,7 @@ export const EN = {
       },
     },
     add: 'Add',
-    addTitle: 'Add a Routine',
+    addTitle: 'Add an Item',
     custom: 'Custom…',
     reorderHint: 'Drag to reorder items',
     settingsButton: 'Practice Routine settings',
@@ -596,7 +596,7 @@ export const EN = {
     turnedOff: (name) => `${name} is off`,
     /** Deleting an item that has settings of its own. */
     confirmDelete: {
-      title: 'Delete this routine?',
+      title: 'Delete this item?',
       text: (name, n) => `${name} has ${n} settings of its own (its tools and how they are set). They will be deleted with it.`,
       keep: 'Keep it',
       go: 'Delete',

@@ -29,7 +29,7 @@ test('a first visit starts with Intonation and Scales; + offers eight; each item
 test('saved routines are kept and cleaned, tools and all; an emptied one stays empty', () => {
   const s = mem();
   saveTimer({ items: [], chime: 'celesta' }, s);
-  assert.deepEqual(loadTimer(base, s), { routines: [{ id: 'r1', name: 'My set', items: [] }], routineId: 'r1', items: [], chime: 'celesta', chimeOn: true, lastMinutes: {}, voiceOn: true, voice: 'lily', voiceVolume: VOICE_DEFAULT, metView: 'pendulum', rest: 30 });
+  assert.deepEqual(loadTimer(base, s), { routines: [{ id: 'r1', name: 'My routine', items: [] }], routineId: 'r1', items: [], chime: 'celesta', chimeOn: true, lastMinutes: {}, voiceOn: true, voice: 'lily', voiceVolume: VOICE_DEFAULT, metView: 'pendulum', rest: 30 });
   const items = cleanRoutine([{ id: 'a', name: 'x'.repeat(99), minutes: 999, enabled: false, tools: { playback: true, drone: 'yes' }, met: { bpm: 9999, meter: '13/4', sound: 'gong', sub: 5 }, drn: { midi: 10, voice: '?' }, pb: { silenceSec: 99 } }, { id: 'a' }, 'junk']);
   assert.equal(items.length, 2); // the duplicate id dropped, the junk made a blank item
   assert.equal(items[0].name.length, 60);
@@ -335,12 +335,12 @@ test("a routine's tools at each moment (toolPlan)", async () => {
   assert.throws(() => toolPlan('bogus', {}));
 });
 
-test('routines: one saved before there were several becomes "My set"; several are kept, the chosen one with them', () => {
+test('routines: one saved before there were several becomes "My routine"; several are kept, the chosen one with them', () => {
   const s = mem();
   saveTimer({ items: [newItem('scales', {}, base)], chime: 'kalimba' }, s);
   const t = loadTimer(base, s);
   assert.equal(t.routines.length, 1);
-  assert.equal(t.routines[0].name, 'My set');
+  assert.equal(t.routines[0].name, 'My routine');
   assert.equal(t.items, t.routines[0].items);
   assert.deepEqual(t.items.map((i) => i.name), ['Scales']);
   // A second routine, chosen, with its own items.
@@ -351,7 +351,7 @@ test('routines: one saved before there were several becomes "My set"; several ar
   t.items.push(newItem('scales', {}, base));
   saveTimer(t, s);
   const u = loadTimer(base, s);
-  assert.deepEqual(u.routines.map((r) => [r.name, r.items.length]), [['My set', 1], ['Warm-up', 2]]);
+  assert.deepEqual(u.routines.map((r) => [r.name, r.items.length]), [['My routine', 1], ['Warm-up', 2]]);
   assert.equal(u.routineId, warm.id);
   assert.equal(u.items, u.routines[1].items);
   // Junk and duplicates go; a chosen routine that is gone falls back to the first.

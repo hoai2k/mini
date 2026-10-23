@@ -158,7 +158,7 @@ async function running(env) {
   await p.close();
 }
 
-/** Named routines: one saved before there were several is "My set"; add, switch, rename, delete and undo. */
+/** Named routines: one saved before there were several is "My routine"; add, switch, rename, delete and undo. */
 async function routines(env) {
   const p = await env.page();
   const timer = await routine(p, env.base, [{ kind: 'intonation' }, { kind: 'scales' }]);
@@ -168,13 +168,13 @@ async function routines(env) {
   await p.waitForTimeout(800);
   const pickName = () => p.textContent('#routine-pick-name');
   const rows = () => p.evaluate(() => document.querySelectorAll('#routine-list .routine-row').length);
-  c.ok(await pickName() === 'My set', `a routine saved before there were several is "My set" (${await pickName()})`);
+  c.ok(await pickName() === 'My routine', `a routine saved before there were several is "My routine" (${await pickName()})`);
   await p.click('#routine-pick');
-  c.ok(await p.isVisible('#routines'), 'the name opens Practice sets');
-  c.ok(await rows() === 1 && !(await p.isVisible('.routine-del')), 'one set, which cannot be deleted');
+  c.ok(await p.isVisible('#routines'), 'the name opens Routines');
+  c.ok(await rows() === 1 && !(await p.isVisible('.routine-del')), 'one routine, which cannot be deleted');
   // A new one starts empty, named where it stands.
   await p.click('#routine-add');
-  c.ok(await p.evaluate(() => document.activeElement?.classList.contains('routine-input')), 'a new set is named at once');
+  c.ok(await p.evaluate(() => document.activeElement?.classList.contains('routine-input')), 'a new routine is named at once');
   await p.keyboard.type('Warm-up');
   await p.keyboard.press('Enter');
   c.ok(await rows() === 2 && await pickName() === 'Warm-up', `the new routine is the one shown (${await pickName()})`);
@@ -183,8 +183,8 @@ async function routines(env) {
   // Back to the first: its items are there.
   await p.click('#routine-pick');
   await p.click('#routine-list .routine-row:first-child .routine-use');
-  c.ok(!(await p.isVisible('#routines')), 'picking a routine closes Practice sets');
-  c.ok(await pickName() === 'My set' && await p.evaluate(() => document.querySelectorAll('#timer-list .titem').length) === 2, 'the first routine has its two items');
+  c.ok(!(await p.isVisible('#routines')), 'picking a routine closes Routines');
+  c.ok(await pickName() === 'My routine' && await p.evaluate(() => document.querySelectorAll('#timer-list .titem').length) === 2, 'the first routine has its two items');
   // Delete, undo, delete again; it lasts a reload.
   await p.click('#routine-pick');
   await p.click('#routine-list .routine-row:last-child .routine-del');
