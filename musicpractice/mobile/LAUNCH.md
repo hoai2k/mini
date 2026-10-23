@@ -104,7 +104,9 @@ the app is ready to release, do each of these, and tick them here.
    (`CFBundleDisplayName`), Android's `strings.xml` and the README.
 2. [ ] **The icon.** Decide with the owner whether to keep the wooden
    metronome (see `../design/app-store-review.md`, To plan, and the note on
-   the icon below). Regenerate the sizes with `npx capacitor-assets generate`.
+   the icon below). Two gramophone candidates are requested (image requests,
+   round 14: `icon-gramophone`, `icon-horn`). Regenerate the sizes with
+   `npx capacitor-assets generate`.
 3. [ ] **The App Store listing**, written to lead with what's unusual
    (guideline 4.3(b)): the recorder that starts and stops itself, timed drones
    and sequences, the Practice Routine, four tools in one, eight themes;
