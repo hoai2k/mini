@@ -90,7 +90,8 @@ public class PracticeAudioPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func metronomeExercise(_ call: CAPPluginCall) {
         engine.mixer.metronomeExercise(gapPlay: call.getInt("gapPlay", 0), gapSilent: call.getInt("gapSilent", 0),
-                                       trainerStep: call.getDouble("trainerStep", 0), trainerEvery: call.getInt("trainerEvery", 0), trainerTo: call.getDouble("trainerTo", 0))
+                                       trainerStep: call.getDouble("trainerStep", 0), trainerEvery: call.getInt("trainerEvery", 0), trainerTo: call.getDouble("trainerTo", 0),
+                                       polyN: call.getInt("polyN", 0))
         call.resolve()
     }
 

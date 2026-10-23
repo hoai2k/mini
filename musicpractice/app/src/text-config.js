@@ -174,6 +174,16 @@ export const EN = {
       silent: 'Bars without',
       status: (g) => `Silent bars: ${g.play} + ${g.silent}`,
     },
+    /** The second rhythm, a polyrhythm (Metronome settings). */
+    poly: {
+      title: 'Second rhythm',
+      edit: 'Choose the second rhythm',
+      label: (on, n, beats) => (on ? `Second rhythm: ${n} against ${beats}` : 'Second rhythm'),
+      help: (beats) => `A second, higher click, spaced evenly across each bar: how many against the bar's ${beats} beats? It starts with beat 1, and a row of small dots over the beats shows it.`,
+      option: (n, beats) => `${n}:${beats}`,
+      status: (n, beats) => `Second rhythm ${n}:${beats}`,
+      noBars: 'Second rhythm (needs a time signature)',
+    },
     exerciseOpen: 'Metronome settings',
     /** Common tempos, from the marking. */
     tempos: {

@@ -34,7 +34,7 @@ Images belong to a theme (Settings → Theme); each theme has its own set.
 
 **Round 14 (app icon candidates):** delivered and in use.
 
-**Round 15 (metronome revisions, so each theme's is one metronome):** 6 images wanted: `assets/ui/baroque/home-metronome.webp`, `assets/ui/baroque/metronome-body.webp`, `assets/ui/baroque/metronome-pendulum.webp`, `assets/ui/nouveau/metronome-body.webp`, `assets/ui/baroque/metronome-rod.webp`, `assets/ui/baroque/metronome-weight.webp`.
+**Round 15 (metronome revisions, so each theme's is one metronome):** 9 images wanted: `assets/ui/deco/home-metronome.webp`, `assets/ui/deco/metronome-body.webp`, `assets/ui/baroque/home-metronome.webp`, `assets/ui/baroque/metronome-body.webp`, `assets/ui/baroque/metronome-pendulum.webp`, `assets/ui/nouveau/metronome-body.webp`, `assets/ui/steampunk/home-metronome.webp`, `assets/ui/baroque/metronome-rod.webp`, `assets/ui/baroque/metronome-weight.webp`.
 
 **House styles** (already included in every prompt):
 
@@ -65,9 +65,9 @@ the measured ones for the delivered file in `build_requests.py`.
 | 14 | all | delivered | `icon-gramophone` | `app/icons/icon-gramophone-1024.png` | 1024×1024, PNG, full bleed, no transparency |
 | 14 | all | delivered | `icon-horn` | `app/icons/icon-horn-1024.png` | 1024×1024, PNG, full bleed, no transparency |
 | 1 | all | delivered | `cover` | `app/assets/ui/cover.webp` | 1200×900 (4:3), WebP |
-| 2 | Art Deco | delivered | `home-metronome` | `app/assets/ui/deco/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 15 | Art Deco | revise | `home-metronome` | `app/assets/ui/deco/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 2 | Art Deco | delivered | `home-record` | `app/assets/ui/deco/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 2 | Art Deco | delivered | `metronome-body` | `app/assets/ui/deco/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
+| 15 | Art Deco | revise | `metronome-body` | `app/assets/ui/deco/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
 | 2 | Art Deco | delivered | `metronome-pendulum` | `app/assets/ui/deco/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
 | 4 | Vintage 60s | delivered | `home-metronome` | `app/assets/ui/sixties/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 3 | Vintage 60s | delivered | `home-record` | `app/assets/ui/sixties/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
@@ -89,7 +89,7 @@ the measured ones for the delivered file in `build_requests.py`.
 | 3 | Candy | delivered | `home-record` | `app/assets/ui/anime/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 3 | Candy | delivered | `metronome-body` | `app/assets/ui/anime/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
 | 3 | Candy | delivered | `metronome-pendulum` | `app/assets/ui/anime/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
-| 3 | Steam Punk | delivered | `home-metronome` | `app/assets/ui/steampunk/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 15 | Steam Punk | revise | `home-metronome` | `app/assets/ui/steampunk/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 3 | Steam Punk | delivered | `home-record` | `app/assets/ui/steampunk/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 3 | Steam Punk | delivered | `metronome-body` | `app/assets/ui/steampunk/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
 | 3 | Steam Punk | delivered | `metronome-pendulum` | `app/assets/ui/steampunk/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
@@ -316,14 +316,14 @@ A cosy music practice corner: a walnut metronome mid-swing on the left and a bra
 
 ## Art Deco · Home screen buttons
 
-### `home-metronome` · Art Deco · delivered
+### `home-metronome` · Art Deco · revise
 
 - File: `musicpractice/app/assets/ui/deco/home-metronome.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
-- Note: The big Metronome button on the home screen in the Art Deco theme; the label is written by the app. Tick marks only, no numbers.
+- Note: Round 15: the owner's choice of the Art Deco metronome, a little narrower. The metronome screen's case (metronome-body) is redrawn after it. Replaces the file at the same path.
 
 ```text
-An Art Deco metronome as a stepped ziggurat tower in black lacquer edged in gold, its face an ivory panel with a gold sunburst rising from the bottom, the gold pendulum tilted a little to the right mid-swing, with two thin gold arcs beside the tip of the pendulum like a fan. Seen straight from the front, perfectly symmetrical apart from the pendulum. Art Deco illustration in the manner of a 1920s–30s poster and a Chrysler Building interior: black lacquer and polished onyx, gleaming gold leaf and champagne brass, accents of deep jade green and ivory, crisp geometric forms, stepped (ziggurat) silhouettes, sunburst rays, fan motifs, chevrons and fine parallel gold pinstripes, strict symmetry, flat lacquered surfaces with sharp metallic highlights. Elegant, glamorous, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
+Edit the attached image, musicpractice/app/assets/ui/deco/home-metronome.webp (the Art Deco theme's metronome icon): make the metronome about 15% narrower from side to side, keeping its height, so the stepped (ziggurat) sides rise a little more steeply. Keep everything else as it is: the black lacquer case with jade-green stepped panels and gold pinstripes, the cream face, the gold sunburst behind the pivot, the black-and-jade base with its gold fan, and the gold pendulum with its diamond-shaped tip tilted to the right with its motion lines. Art Deco illustration in the manner of a 1920s–30s poster and a Chrysler Building interior: black lacquer and polished onyx, gleaming gold leaf and champagne brass, accents of deep jade green and ivory, crisp geometric forms, stepped (ziggurat) silhouettes, sunburst rays, fan motifs, chevrons and fine parallel gold pinstripes, strict symmetry, flat lacquered surfaces with sharp metallic highlights. Elegant, glamorous, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, generous even margin on every side, no cast shadow.
 ```
 
 ### `home-record` · Art Deco · delivered
@@ -338,15 +338,15 @@ A 1930s Art Deco radio-studio microphone: a gold rounded-rectangle ribbon microp
 
 ## Art Deco · Metronome animation
 
-### `metronome-body` · Art Deco · delivered
+### `metronome-body` · Art Deco · revise
 
 - File: `musicpractice/app/assets/ui/deco/metronome-body.webp`
 - Size: 800×1200, transparent PNG (shipped as WebP)
-- Anchors (measured): pivot (400, 908) in a 800×1200 canvas
-- Note: The app rotates the Art Deco pendulum over this one about the pivot boss. Ask for (400, 1000) in an 800×1200 canvas, then measure where it really is in the delivered file and record it as this image's pivot anchor; it need not match the Classic art.
+- Anchors (requested): pivot (400, 908) in a 800×1200 canvas
+- Note: Round 15: the delivered case is a taller, narrower tower than the home icon the owner prefers. Ask for the pivot at (400, 908) in an 800×1200 canvas, where the current one is, so the delivered rod and weight still fit: the rod reaches the top of the canvas. Measure the pivot in the delivered file and record it here. Replaces the file at the same path.
 
 ```text
-An Art Deco mechanical metronome seen exactly straight on from the front, perfectly symmetrical, standing upright and filling the canvas top to bottom with a small margin: a tall stepped pyramid like a skyscraper crown, in black lacquer with gold edging and fine gold pinstripes following each step. The front face is a tall narrow ivory panel with evenly spaced fine gold tick marks up the centre (no numbers) and a gold sunburst fanning up from the bottom of the panel. There is NO pendulum, rod or weight anywhere. Near the bottom of the face, centred left-to-right, a round gold pivot boss sits exactly at 50% of the width and 83% of the height. A wider stepped black-and-gold plinth at the bottom with a small chevron band. Art Deco illustration in the manner of a 1920s–30s poster and a Chrysler Building interior: black lacquer and polished onyx, gleaming gold leaf and champagne brass, accents of deep jade green and ivory, crisp geometric forms, stepped (ziggurat) silhouettes, sunburst rays, fan motifs, chevrons and fine parallel gold pinstripes, strict symmetry, flat lacquered surfaces with sharp metallic highlights. Elegant, glamorous, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
+Redraw the metronome in the attached image, musicpractice/app/assets/ui/deco/home-metronome.webp (the Art Deco theme's home-screen icon), as the case for the metronome screen, about 15% narrower than it is there. Keep its design: the broad stepped (ziggurat) pyramid in black lacquer with jade-green stepped panels and gold pinstripes, the cream face, the gold sunburst rays fanning up from the pivot, the black-and-jade base with its gold fan. Seen exactly straight on from the front, perfectly symmetrical, standing upright and filling the canvas top to bottom with a small margin. There is NO pendulum, rod or weight anywhere. The cream face runs from near the top of the case down to the pivot, with fine gold tick marks (no numbers). Near the bottom of the face, centred left-to-right, a round gold pivot boss ringed in black sits exactly at 50% of the width and 76% of the height, at the centre of the sunburst. Art Deco illustration in the manner of a 1920s–30s poster and a Chrysler Building interior: black lacquer and polished onyx, gleaming gold leaf and champagne brass, accents of deep jade green and ivory, crisp geometric forms, stepped (ziggurat) silhouettes, sunburst rays, fan motifs, chevrons and fine parallel gold pinstripes, strict symmetry, flat lacquered surfaces with sharp metallic highlights. Elegant, glamorous, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
 ```
 
 ### `metronome-pendulum` · Art Deco · delivered
@@ -592,14 +592,14 @@ Just the pendulum of a metronome, isolated: a thin straight sky-blue rod with a 
 
 ## Steam Punk · Home screen buttons
 
-### `home-metronome` · Steam Punk · delivered
+### `home-metronome` · Steam Punk · revise
 
 - File: `musicpractice/app/assets/ui/steampunk/home-metronome.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
-- Note: The big Metronome button on the home screen in the Steam Punk theme; the label is written by the app. Tick marks only, no numbers.
+- Note: Round 15: the owner's choice is the metronome on the Steam Punk metronome screen; the delivered icon (a wider case with gears showing through it and gauges on both sides) is redrawn to match it. Replaces the file at the same path.
 
 ```text
-A steampunk metronome of riveted copper plates with visible brass gears and a brass pendulum tilted a little to the right. Seen from the front. Steampunk illustration of Victorian brass machinery: polished brass, copper and dark leather, riveted plates, exposed cogs and gears, small pressure gauges and pipes, warm gaslight glow on dark mahogany. Intricate but readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
+The same metronome as the attached images, musicpractice/app/assets/ui/steampunk/metronome-body.webp with metronome-rod.webp and metronome-weight.webp (the Steam Punk metronome screen), drawn as an icon: the same tapering pyramid of riveted dark copper and burgundy plates with brass edges, the domed brass cap and finial, the tall white face with fine brass tick marks, the brass gears and pipes at its sides, the brass base with the round pressure gauge in front and its turned feet. Its thin brass rod tilted a little to the right from the gear-shaped hub near the bottom of the face, with the small riveted copper weight near the top of the rod. Seen from the front. Steampunk illustration of Victorian brass machinery: polished brass, copper and dark leather, riveted plates, exposed cogs and gears, small pressure gauges and pipes, warm gaslight glow on dark mahogany. Intricate but readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
 ```
 
 ### `home-record` · Steam Punk · delivered

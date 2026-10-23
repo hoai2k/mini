@@ -1109,6 +1109,59 @@ _revise("nouveau", "metronome-body",
               "in the delivered file and record it here. Replaces the file at the same path."))
 
 
+# Art Deco: the home icon's stepped design is the one, a little narrower, and
+# the screen's case is redrawn after it.
+_revise("deco", "home-metronome",
+        prompt=("Edit the attached image, musicpractice/app/assets/ui/deco/home-metronome.webp (the Art "
+                "Deco theme's metronome icon): make the metronome about 15% narrower from side to side, "
+                "keeping its height, so the stepped (ziggurat) sides rise a little more steeply. Keep "
+                "everything else as it is: the black lacquer case with jade-green stepped panels and gold "
+                "pinstripes, the cream face, the gold sunburst behind the pivot, the black-and-jade base "
+                "with its gold fan, and the gold pendulum with its diamond-shaped tip tilted to the right "
+                "with its motion lines. " + DECO_STYLE + " A single centred object on a fully transparent "
+                "background, generous even margin on every side, no cast shadow."),
+        note=("Round 15: the owner's choice of the Art Deco metronome, a little narrower. The metronome "
+              "screen's case (metronome-body) is redrawn after it. Replaces the file at the same path."))
+_revise("deco", "metronome-body",
+        prompt=("Redraw the metronome in the attached image, musicpractice/app/assets/ui/deco/home-metronome.webp "
+                "(the Art Deco theme's home-screen icon), as the case for the metronome screen, about 15% "
+                "narrower than it is there. Keep its design: the broad stepped (ziggurat) pyramid in black "
+                "lacquer with jade-green stepped panels and gold pinstripes, the cream face, the gold "
+                "sunburst rays fanning up from the pivot, the black-and-jade base with its gold fan. Seen "
+                "exactly straight on from the front, perfectly symmetrical, standing upright and filling "
+                "the canvas top to bottom with a small margin. There is NO pendulum, rod or weight "
+                "anywhere. The cream face runs from near the top of the case down to the pivot, with "
+                "fine gold tick marks (no numbers). Near the bottom of the face, centred left-to-right, a "
+                "round gold pivot boss ringed in black sits exactly at 50% of the width and 76% of the "
+                "height, at the centre of the sunburst. " + DECO_STYLE + " Fully transparent background."),
+        note=("Round 15: the delivered case is a taller, narrower tower than the home icon the owner "
+              "prefers. Ask for the pivot at (400, 908) in an 800×1200 canvas, where the current one is, "
+              "so the delivered rod and weight still fit: the rod reaches the top of the canvas. Measure "
+              "the pivot in the delivered file and record it here. Replaces the file at the same path."))
+
+# Steam Punk: the metronome screen's is the one; the icon is redrawn after it.
+_STEAMPUNK = next(t for t in MORE_THEMES if t["id"] == "steampunk")
+_revise("steampunk", "home-metronome",
+        prompt=("The same metronome as the attached images, musicpractice/app/assets/ui/steampunk/metronome-body.webp "
+                "with metronome-rod.webp and metronome-weight.webp (the Steam Punk metronome screen), drawn "
+                "as an icon: the same tapering pyramid of riveted dark copper and burgundy plates with "
+                "brass edges, the domed brass cap and finial, the tall white face with fine brass tick "
+                "marks, the brass gears and pipes at its sides, the brass base with the round pressure "
+                "gauge in front and its turned feet. Its thin brass rod tilted a little to the right from "
+                "the gear-shaped hub near the bottom of the face, with the small riveted copper weight "
+                "near the top of the rod. Seen from the front. " + _STEAMPUNK["style"] + " A single centred "
+                "object on a fully transparent background, bold readable silhouette that still reads at "
+                "64 pixels, generous even margin on every side, no cast shadow."),
+        note=("Round 15: the owner's choice is the metronome on the Steam Punk metronome screen; the "
+              "delivered icon (a wider case with gears showing through it and gauges on both sides) is "
+              "redrawn to match it. Replaces the file at the same path."))
+
+# 18th Century: once the home icon above arrives with its pendulum fixed, the
+# owner wants that metronome on the screen too (its case is redrawn after it).
+next(a for a in ASSETS if a["theme"] == "baroque" and a["id"] == "metronome-body")["note"] = (
+    "Next, once the round 15 home icon is delivered and approved: redraw this case after that icon "
+    "(the wide pyramid with the shell crest and the red-panelled plinth), keeping the pivot at (400, 877).")
+
 # Follow-up: the Baroque screen must use the corrected home icon's exact
 # case and pendulum design, with separate layers for animation and tempo.
 _baroque_layer_subjects = {

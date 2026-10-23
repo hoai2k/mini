@@ -354,10 +354,20 @@ when the Art Deco art arrives, measure and record its own.
 - **Silent bars:** the same, for some bars with clicks then some without
   (1 to 16 each), over and over: the beat goes on silently and the clicks
   come back to show whether it was held. The dots and pendulum keep going.
-- Both run in the scheduler itself (`setExercise` in `metronome.js`; in the
+- **Second rhythm** (a polyrhythm): a switch in Metronome settings and a
+  pencil with 2 to 9 (choosing one turns it on). A second, higher click
+  divides each bar evenly from beat 1: 3 against 4 in 4/4, 2 against 3 in
+  3/4, 5 against 4 and so on. Its click is the mid click played 1.5 times
+  faster at 80% (`POLY`, `POLY_RATE`, `POLY_GAIN`), so it stands apart from
+  the beat in every sound. A row of small diamonds over the beat dots marks
+  its clicks where they fall in the bar (click k of n at k/n of the line from
+  beat 1's dot, measured off the dots so it holds in either dot view; not
+  with the Visualizer), lighting as each sounds. With no bars it is off. It
+  keeps silent bars silent too.
+- These run in the scheduler itself (`setExercise` in `metronome.js`; in the
   apps `metronomeExercise`, so the mixers keep exact time and the trainer
   goes on with the screen locked, the page reading the tempo back off the
-  clock's period). They apply when the metronome is started from its own
+  clock's period; the second rhythm is `polyN`). They apply when the metronome is started from its own
   screen; a routine's metronome plays plainly. An app built before them
   plays on plainly (it has no `metronomeExercise`, and plays soft and
   silent places as the quiet between-the-beats click) until it is rebuilt.

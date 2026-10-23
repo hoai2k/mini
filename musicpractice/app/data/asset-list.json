@@ -68,7 +68,7 @@
     "id": "home-metronome",
     "theme": "deco",
     "file": "assets/ui/deco/home-metronome.webp",
-    "status": "delivered"
+    "status": "revise"
   },
   {
     "id": "home-record",
@@ -80,7 +80,7 @@
     "id": "metronome-body",
     "theme": "deco",
     "file": "assets/ui/deco/metronome-body.webp",
-    "status": "delivered",
+    "status": "revise",
     "canvas": [
       800,
       1200
@@ -343,7 +343,7 @@
     "id": "home-metronome",
     "theme": "steampunk",
     "file": "assets/ui/steampunk/home-metronome.webp",
-    "status": "delivered"
+    "status": "revise"
   },
   {
     "id": "home-record",
