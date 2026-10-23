@@ -2,6 +2,8 @@
 // stored as 16-bit samples. If storage isn't available (private browsing),
 // takes live in memory for the session.
 
+import { TEXT } from './text.js';
+
 const DB = 'musicpractice';
 const STORE = 'takes';
 
@@ -93,4 +95,16 @@ export async function rename(id, name) {
 export async function remove(id) {
   memory.delete(id);
   try { await run('readwrite', (s) => s.delete(id)); } catch { /* memory only */ }
+}
+
+/** A routine take's name: the item's, numbered after the takes already named so ("Scales 2"). */
+export function routineTakeName(item, takes) {
+  const name = item.trim().slice(0, 50);
+  const re = new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} (\\d+)$`);
+  let n = 0;
+  for (const t of takes) {
+    const m = re.exec(t.name || '');
+    if (m) n = Math.max(n, Number(m[1]));
+  }
+  return TEXT.recorder.routineTake(name, n + 1);
 }

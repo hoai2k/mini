@@ -263,6 +263,7 @@ export const EN = {
     /** The file name a take is saved under when it has no name. */
     takeFile: 'Take',
     takeNameField: 'Take name',
+    routineTake: (item, n) => `${item} ${n}`,
     /** The tools in a take's row while it plays: speed and an A–B loop. */
     tools: {
       speed: 'Speed',
@@ -418,6 +419,21 @@ export const EN = {
   },
 
   timer: {
+    /** Named sets of routines (each item is a routine on screen): the button above the total, and its sheet. */
+    routines: {
+      first: 'My set',
+      title: 'Practice sets',
+      pick: (name) => `${name}. Change set`,
+      newName: (n) => `Set ${n}`,
+      add: 'New set',
+      summary: (items, minutes) => `${items} ${items === 1 ? 'routine' : 'routines'} · ${minutes} min`,
+      use: (name) => `Practise ${name}`,
+      rename: (name) => `Rename ${name}`,
+      remove: (name) => `Delete ${name}`,
+      nameField: 'Set name',
+      deleted: (name) => `${name} deleted.`,
+      untitled: 'Untitled set',
+    },
     title: 'Practice Routine',
     presets: {
       intonation: 'Intonation',

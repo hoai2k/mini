@@ -759,6 +759,19 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
 `app/src/timerui.js` (the screen and the tool cards; the tools themselves
 are main.js's, `routineTools`), `app/src/pager.js` (the second page).
 
+- **Practice sets**: several named lists of items (`state.routines` in
+  `timer.js`; on screen each item is a routine, so the lists are *sets*).
+  The set's name, small and in the accent above the total ("My set ▾"),
+  opens **Practice sets**: each set with its routines and minutes ("2
+  routines · 8 min"); a tap practises it. **New set** starts an empty one
+  and names it where it stands; the pencil renames, the trash deletes (with
+  Undo while the sheet is open; the last set can't be deleted). A routine
+  saved before there were sets becomes "My set". `items` is still saved
+  beside the sets (the chosen set's), for an earlier version reading it.
+- **Takes named after the routine**: a take the Playback card makes while a
+  routine runs is named after the item being practised, numbered on from
+  takes already named so ("Scales 1", "Scales 2"; `routineTakeName` in
+  `takes.js`). It can be renamed like any take.
 - **A routine is a list of practice items** (on screen each is itself
   called a routine: "2 routines in all", "Add a Routine", "Last routine").
   Set up, each is a plain row: its number, its picture, its name with a

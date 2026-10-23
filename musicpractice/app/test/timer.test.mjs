@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { TimerRun, cleanRoutine, newItem, PRESETS, TOOLS, totalSeconds, enabledItems, setKind, matchKind, loadTimer, saveTimer, CHIMES, VOICE_DEFAULT, voiceGain, move } from '../src/timer.js';
+import { TimerRun, cleanRoutine, newItem, PRESETS, TOOLS, totalSeconds, enabledItems, setKind, matchKind, loadTimer, saveTimer, newRoutine, MAX_ROUTINES, CHIMES, VOICE_DEFAULT, voiceGain, move } from '../src/timer.js';
 
 const base = { bpm: 100, meter: '3/4', sound: 'beep', subOn: true, subKind: 3, accent: false, volume: 0.5, droneMidi: 50, droneVoice: 'organ', droneFifth: true, droneVolume: 0.4, silenceSec: 2.5, autoPlay: false, playVolume: 0.9 };
 
@@ -29,7 +29,7 @@ test('a first visit starts with Intonation and Scales; + offers eight; each item
 test('saved routines are kept and cleaned, tools and all; an emptied one stays empty', () => {
   const s = mem();
   saveTimer({ items: [], chime: 'celesta' }, s);
-  assert.deepEqual(loadTimer(base, s), { items: [], chime: 'celesta', chimeOn: true, lastMinutes: {}, voiceOn: true, voice: 'lily', voiceVolume: VOICE_DEFAULT, metView: 'pendulum', rest: 30 });
+  assert.deepEqual(loadTimer(base, s), { routines: [{ id: 'r1', name: 'My set', items: [] }], routineId: 'r1', items: [], chime: 'celesta', chimeOn: true, lastMinutes: {}, voiceOn: true, voice: 'lily', voiceVolume: VOICE_DEFAULT, metView: 'pendulum', rest: 30 });
   const items = cleanRoutine([{ id: 'a', name: 'x'.repeat(99), minutes: 999, enabled: false, tools: { playback: true, drone: 'yes' }, met: { bpm: 9999, meter: '13/4', sound: 'gong', sub: 5 }, drn: { midi: 10, voice: '?' }, pb: { silenceSec: 99 } }, { id: 'a' }, 'junk']);
   assert.equal(items.length, 2); // the duplicate id dropped, the junk made a blank item
   assert.equal(items[0].name.length, 60);
@@ -333,4 +333,38 @@ test("a routine's tools at each moment (toolPlan)", async () => {
   // Pause and Stop.
   assert.equal(plan('stop', {}), '+ -metronome,drone,playback');
   assert.throws(() => toolPlan('bogus', {}));
+});
+
+test('routines: one saved before there were several becomes "My set"; several are kept, the chosen one with them', () => {
+  const s = mem();
+  saveTimer({ items: [newItem('scales', {}, base)], chime: 'kalimba' }, s);
+  const t = loadTimer(base, s);
+  assert.equal(t.routines.length, 1);
+  assert.equal(t.routines[0].name, 'My set');
+  assert.equal(t.items, t.routines[0].items);
+  assert.deepEqual(t.items.map((i) => i.name), ['Scales']);
+  // A second routine, chosen, with its own items.
+  const warm = newRoutine('Warm-up', [newItem('arpeggios', {}, base)]);
+  t.routines.push(warm);
+  t.routineId = warm.id;
+  t.items = warm.items;
+  t.items.push(newItem('scales', {}, base));
+  saveTimer(t, s);
+  const u = loadTimer(base, s);
+  assert.deepEqual(u.routines.map((r) => [r.name, r.items.length]), [['My set', 1], ['Warm-up', 2]]);
+  assert.equal(u.routineId, warm.id);
+  assert.equal(u.items, u.routines[1].items);
+  // Junk and duplicates go; a chosen routine that is gone falls back to the first.
+  s.setItem('musicpractice.routine.v1', JSON.stringify({ routines: [{ id: 'a', name: 'A', items: [] }, { id: 'a', name: 'dup' }, 'junk', { id: 'b', name: 7 }], routineId: 'zzz' }));
+  const v = loadTimer(base, s);
+  assert.deepEqual(v.routines.map((r) => [r.id, r.name, r.items.length]), [['a', 'A', 0], ['b', '', 0]]);
+  assert.equal(v.routineId, 'a');
+  assert.ok(MAX_ROUTINES >= 10);
+});
+
+test('a take made in a routine is named after the item, numbered on from the takes named so', async () => {
+  const { routineTakeName } = await import('../src/takes.js');
+  assert.equal(routineTakeName('Scales', []), 'Scales 1');
+  assert.equal(routineTakeName('Scales', [{ name: 'Scales 1' }, { name: 'Scales 3' }, { name: 'Arpeggios 9' }, {}, { name: 'Scales' }]), 'Scales 4');
+  assert.equal(routineTakeName('  C++ (fast) ', [{ name: 'C++ (fast) 2' }]), 'C++ (fast) 3');
 });

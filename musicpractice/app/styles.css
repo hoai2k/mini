@@ -2032,6 +2032,26 @@ html.paging { overflow: hidden; }
 
 /* The pencil beside the total time: edit the list; a check while editing. */
 .timer-total { display: flex; align-items: center; gap: 6px; min-width: 0; }
+/* Which routine (a tap opens Routines). */
+.routine-pick { align-self: flex-start; display: inline-flex; align-items: center; gap: 2px; max-width: 100%; min-height: 32px; margin: 0 0 -2px -6px; padding: 2px 6px; border: 0; border-radius: 8px; background: none; color: var(--brass-2); font: 700 0.95rem var(--ui); }
+.routine-pick span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.routine-pick svg { flex: none; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.routine-pick:hover { background: var(--panel-2); }
+.routine-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.routine-row { display: flex; align-items: center; gap: 4px; min-height: 52px; }
+.routine-use { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--ink); text-align: left; }
+.routine-use[aria-pressed="true"] { border-color: var(--brass); box-shadow: inset 3px 0 0 var(--brass); }
+.routine-name { max-width: 100%; font: 700 1rem var(--ui); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.routine-sum { color: var(--ink-3); font-weight: 600; font-size: 0.85rem; }
+.routine-input { flex: 1; min-width: 0; padding: 12px; border: 0; border-bottom: 1px solid var(--brass); border-radius: 0; background: transparent; color: var(--ink); font: 700 1rem var(--ui); }
+.routine-input:focus { outline: none; }
+.routine-row .icon-btn { flex: none; width: 44px; height: 44px; color: var(--ink-3); }
+.routine-row .icon-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.routine-row .routine-del[hidden] { display: none; }
+.routine-undo { margin: 4px 0 0; color: var(--ink-2); }
+.routine-add { align-self: flex-start; margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; }
+.routine-add svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.routine-add[hidden] { display: none; }
 .timer-total .timer-edit { flex: none; width: 42px; height: 42px; color: var(--ink-2); }
 .timer-total .timer-edit svg { width: 22px; height: 22px; }
 .timer-total { flex-wrap: wrap; row-gap: 6px; }

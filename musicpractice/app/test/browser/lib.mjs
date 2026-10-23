@@ -91,12 +91,15 @@ export async function start({ micFile } = {}) {
  */
 export async function routine(p, base, items, extra = {}) {
   await p.goto(base);
-  return p.evaluate(async ([items, extra]) => {
+  const saved = await p.evaluate(async ([items, extra]) => {
     const m = await import('./src/timer.js');
     const t = m.loadTimer({});
     t.items = items.map(({ kind = null, ...fields }) => Object.assign(m.newItem(kind, {}, {}), fields));
     return JSON.parse(JSON.stringify(Object.assign(t, extra)));
   }, [items, extra]);
+  // The chosen routine's items are `items` (one array, as the app keeps it), so a change to one is a change to both.
+  saved.routines.find((r) => r.id === saved.routineId).items = saved.items;
+  return saved;
 }
 
 export const THEMES = APP_THEMES.map((t) => t.id);

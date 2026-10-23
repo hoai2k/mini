@@ -339,7 +339,7 @@ const {
 
 // The Tuner's screen (tunerui.js), and the mic it shares with the Playback Recorder (recorderui.js).
 const tuner = setupTuner({ settings, persist, chips });
-const rec = setupRecorder({ settings, persist, tuner, screen: () => screen, routineRunning: () => !!timerUI?.running, recordDuringPlayback });
+const rec = setupRecorder({ settings, persist, tuner, screen: () => screen, routineRunning: () => !!timerUI?.running, routineItem: () => timerUI?.item ?? null, recordDuringPlayback });
 const {
   recVolume, listeningActive, engineStuck, restartListening, markNeedsTap,
   configureRecorder, startRecorder, stopRecorder, checkRecorderMic, renderTakes, loadTakes, animateRecorder,

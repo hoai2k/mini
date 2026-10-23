@@ -158,6 +158,53 @@ async function running(env) {
   await p.close();
 }
 
+/** Named routines: one saved before there were several is "My set"; add, switch, rename, delete and undo. */
+async function routines(env) {
+  const p = await env.page();
+  const timer = await routine(p, env.base, [{ kind: 'intonation' }, { kind: 'scales' }]);
+  await p.evaluate((t) => localStorage.setItem('musicpractice.routine.v1', JSON.stringify(t)), timer);
+  await p.goto(env.base + '#routine');
+  await p.reload();
+  await p.waitForTimeout(800);
+  const pickName = () => p.textContent('#routine-pick-name');
+  const rows = () => p.evaluate(() => document.querySelectorAll('#routine-list .routine-row').length);
+  c.ok(await pickName() === 'My set', `a routine saved before there were several is "My set" (${await pickName()})`);
+  await p.click('#routine-pick');
+  c.ok(await p.isVisible('#routines'), 'the name opens Practice sets');
+  c.ok(await rows() === 1 && !(await p.isVisible('.routine-del')), 'one set, which cannot be deleted');
+  // A new one starts empty, named where it stands.
+  await p.click('#routine-add');
+  c.ok(await p.evaluate(() => document.activeElement?.classList.contains('routine-input')), 'a new set is named at once');
+  await p.keyboard.type('Warm-up');
+  await p.keyboard.press('Enter');
+  c.ok(await rows() === 2 && await pickName() === 'Warm-up', `the new routine is the one shown (${await pickName()})`);
+  await p.click('#routines .sheet-head .icon-btn');
+  c.ok(await p.isVisible('#timer-empty') && await p.isDisabled('#timer-go'), 'a new routine is empty');
+  // Back to the first: its items are there.
+  await p.click('#routine-pick');
+  await p.click('#routine-list .routine-row:first-child .routine-use');
+  c.ok(!(await p.isVisible('#routines')), 'picking a routine closes Practice sets');
+  c.ok(await pickName() === 'My set' && await p.evaluate(() => document.querySelectorAll('#timer-list .titem').length) === 2, 'the first routine has its two items');
+  // Delete, undo, delete again; it lasts a reload.
+  await p.click('#routine-pick');
+  await p.click('#routine-list .routine-row:last-child .routine-del');
+  c.ok(await rows() === 1 && await p.isVisible('#routine-undo'), 'a deleted routine goes, with Undo');
+  await p.click('#routine-undo button');
+  c.ok(await rows() === 2, 'Undo puts it back');
+  await p.click('#routine-list .routine-row:first-child .routine-rename');
+  await p.fill('#routine-list .routine-input', 'Daily');
+  await p.press('#routine-list .routine-input', 'Enter');
+  c.ok(await pickName() === 'Daily', 'renaming the routine shown renames its button');
+  await p.click('#routine-list .routine-row:first-child .routine-del');
+  c.ok(await pickName() === 'Warm-up', 'deleting the routine shown shows another');
+  await p.click('#routines .sheet-head .icon-btn');
+  await p.reload();
+  await p.waitForTimeout(800);
+  c.ok(await pickName() === 'Warm-up' && await p.evaluate(() => JSON.parse(localStorage.getItem('musicpractice.routine.v1')).routines.length) === 1, 'it lasts a reload');
+  c.ok(!p.errors.length, `no page errors with routines (${p.errors})`);
+  await p.close();
+}
+
 async function savedTempos(env) {
   const p = await env.page();
   await p.goto(env.base + '#metronome');
@@ -389,7 +436,7 @@ async function themes(env) {
 }
 
 export async function run(env) {
-  for (const part of [list, running, metronomeScreen, savedTempos, strongBeats, microphone, themes]) {
+  for (const part of [list, running, routines, metronomeScreen, savedTempos, strongBeats, microphone, themes]) {
     try { await part(env); } catch (e) { c.ok(false, `${part.name}: ${e.message.split('\n')[0]}`); }
   }
   return c.done();

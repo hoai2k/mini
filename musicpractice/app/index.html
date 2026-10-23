@@ -533,6 +533,8 @@
         <div class="timer-now" id="timer-now">
           <span class="art timer-art" data-asset="home-routine" aria-hidden="true"></span>
           <div class="timer-readout">
+            <!-- Which routine: a tap opens Routines, to pick, add, rename or delete one (timerui.js). -->
+            <button class="routine-pick" id="routine-pick" type="button" aria-haspopup="dialog"><span id="routine-pick-name"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></button>
             <div class="timer-total">
               <!-- A tap on the total turns list editing on or off, as the pencil beside it does. -->
               <p class="timer-clock" id="timer-clock" role="button" tabindex="0" data-text-aria-label="timer.totalEdit"></p>
@@ -592,6 +594,15 @@
             <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
             <button type="button" class="pill open-theme" data-text="common.themeButton"></button>
           </div>
+        </form>
+      </dialog>
+
+      <dialog id="routines" class="sheet" aria-labelledby="routines-title">
+        <form method="dialog">
+          <header class="sheet-head"><h3 id="routines-title" data-text="timer.routines.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <ul class="routine-list" id="routine-list"></ul>
+          <p class="routine-undo" id="routine-undo" role="status" hidden><span></span> <button type="button" class="link-btn" data-text="timer.undo"></button></p>
+          <button type="button" class="pill routine-add" id="routine-add"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span data-text="timer.routines.add"></span></button>
         </form>
       </dialog>
 

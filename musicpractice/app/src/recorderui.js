@@ -28,7 +28,7 @@ import { $, chips, note, saveFile } from './ui.js';
  * Routine is going (it keeps the phone awake too); `recordDuringPlayback()`
  * the parked setting.
  */
-export function setupRecorder({ settings, persist, tuner, screen, routineRunning, recordDuringPlayback }) {
+export function setupRecorder({ settings, persist, tuner, screen, routineRunning, routineItem = () => null, recordDuringPlayback }) {
 
   let recorder = null;
   let wave = null;
@@ -336,9 +336,13 @@ export function setupRecorder({ settings, persist, tuner, screen, routineRunning
 
   async function onTake({ samples, sampleRate, playBack }) {
     const take = { id: 0, created: Date.now(), sampleRate, samples };
+    // In a routine, a take is named after the item practised ("Scales 2").
+    const item = routineItem();
+    if (item) take.name = store.routineTakeName(item, takes);
     takes.unshift(take);
     renderTakes();
     take.id = await store.add(samples, sampleRate, take.created);
+    if (take.name) await store.rename(take.id, take.name);
     if (playBack && settings.autoPlay && recorder.state !== 'off' && recorder.state !== 'paused') {
       play(take, { auto: true });
     }

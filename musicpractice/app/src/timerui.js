@@ -26,7 +26,7 @@ import { noteName } from './tuning.js';
 import { clock } from './droneui.js';
 import { hasArt, showArt, alignPendulum, placeWeight, swingOf } from './art.js';
 import { pendulumAngle, weightAt } from './metronome.js';
-import { PRESETS, TOOLS, CHIMES, SPEAKERS, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, newItem, loadTimer, saveTimer, customCount, CONFIRM_OVER, voiceGain, totalSeconds, RESTS, restSeconds, toolPlan, enabledItems, setKind, matchKind, cues, TimerRun, pictureFor, move, voiceLines, voiceUrl, chimeUrl } from './timer.js';
+import { PRESETS, TOOLS, CHIMES, SPEAKERS, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, newItem, newRoutine, MAX_ROUTINES, loadTimer, saveTimer, customCount, CONFIRM_OVER, voiceGain, totalSeconds, RESTS, restSeconds, toolPlan, enabledItems, setKind, matchKind, cues, TimerRun, pictureFor, move, voiceLines, voiceUrl, chimeUrl } from './timer.js';
 import { $ } from './ui.js';
 
 const TRASH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>';
@@ -67,6 +67,7 @@ export function setupTimer({ settings, tools, audio }) {
   let undo = null; // what Undo puts back (the item just deleted or turned off)
   let toastTimer = 0;
   const save = () => { state.items = items; saveTimer(state); };
+  const routine = () => state.routines.find((r) => r.id === state.routineId);
   let seq = 0; // the announcement in progress (a newer one, Pause or Stop ends it)
   let saying = null; // the voice speaking, to stop
   const label = (it) => it.name.trim() || TEXT.timer.item.untitled;
@@ -1281,6 +1282,143 @@ export function setupTimer({ settings, tools, audio }) {
     if (run && !frame) frame = requestAnimationFrame(animate);
   });
 
+  // ------------------------------------------------------------ routines
+
+  /*
+   * Practice sets (`state.routines`): several, each a name and its items (on
+   * screen each item is a routine). The name above the total opens Practice
+   * sets, to practise another, add one (it starts empty and is named at
+   * once), rename one or delete one (with Undo while the sheet is open). The
+   * last one can't be deleted.
+   */
+  const R = T.routines;
+  const routineName = (r) => r.name.trim() || R.untitled;
+  const routinesSheet = $('routines');
+  let removed = null; // { routine, index, wasCurrent } while Undo is offered
+
+  function showRoutineName() {
+    const r = routine();
+    $('routine-pick-name').textContent = routineName(r);
+    $('routine-pick').setAttribute('aria-label', R.pick(routineName(r)));
+  }
+
+  function useRoutine(id) {
+    if (run || id === state.routineId) return;
+    save();
+    state.routineId = id;
+    items = routine().items;
+    itemEdit = null;
+    typing = null;
+    finishedNote = false;
+    undo = null;
+    $('timer-toast').hidden = true;
+    save();
+    showRoutineName();
+    render();
+  }
+
+  function renderRoutines() {
+    const many = state.routines.length > 1;
+    $('routine-add').hidden = state.routines.length >= MAX_ROUTINES;
+    $('routine-list').replaceChildren(...state.routines.map((r) => {
+      const li = h('li', 'routine-row');
+      li.innerHTML = `<button type="button" class="routine-use"><span class="routine-name"></span><small class="routine-sum"></small></button>
+        <button type="button" class="icon-btn routine-rename">${PENCIL}</button>
+        <button type="button" class="icon-btn routine-del"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>`;
+      const use = li.querySelector('.routine-use');
+      use.querySelector('.routine-name').textContent = routineName(r);
+      use.querySelector('.routine-sum').textContent = R.summary(enabledItems(r.items).length, Math.round(totalSeconds(r.items) / 60));
+      use.setAttribute('aria-pressed', String(r.id === state.routineId));
+      use.setAttribute('aria-label', R.use(routineName(r)));
+      use.addEventListener('click', () => { useRoutine(r.id); routinesSheet.close(); });
+      const ren = li.querySelector('.routine-rename');
+      ren.setAttribute('aria-label', R.rename(routineName(r)));
+      ren.addEventListener('click', () => renameRoutine(r, li));
+      const del = li.querySelector('.routine-del');
+      del.hidden = !many;
+      del.setAttribute('aria-label', R.remove(routineName(r)));
+      del.addEventListener('click', () => removeRoutine(r));
+      return li;
+    }));
+    const u = $('routine-undo');
+    u.hidden = !removed;
+    if (removed) u.querySelector('span').textContent = R.deleted(routineName(removed.routine));
+  }
+
+  function renameRoutine(r, li) {
+    const use = li.querySelector('.routine-use');
+    const input = Object.assign(document.createElement('input'), { type: 'text', className: 'routine-input', maxLength: 60, value: r.name, placeholder: R.untitled });
+    input.setAttribute('aria-label', R.nameField);
+    input.enterKeyHint = 'done';
+    use.replaceWith(input);
+    input.focus();
+    input.select();
+    let done = false;
+    const finish = (keep) => {
+      if (done) return;
+      done = true;
+      if (keep) { r.name = input.value.trim().slice(0, 60); save(); showRoutineName(); }
+      renderRoutines();
+    };
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(false); }
+    });
+    input.addEventListener('blur', () => finish(true));
+  }
+
+  function removeRoutine(r) {
+    if (state.routines.length < 2) return;
+    const index = state.routines.indexOf(r);
+    const wasCurrent = r.id === state.routineId;
+    removed = { routine: r, index, wasCurrent };
+    state.routines.splice(index, 1);
+    if (wasCurrent) {
+      state.routineId = state.routines[Math.min(index, state.routines.length - 1)].id;
+      items = routine().items;
+      itemEdit = null;
+      render();
+    }
+    save();
+    showRoutineName();
+    renderRoutines();
+  }
+
+  $('routine-undo').querySelector('button').addEventListener('click', () => {
+    if (!removed) return;
+    const { routine: r, index, wasCurrent } = removed;
+    removed = null;
+    state.routines.splice(Math.min(index, state.routines.length), 0, r);
+    if (wasCurrent) { state.routineId = ''; useRoutine(r.id); } else save();
+    showRoutineName();
+    renderRoutines();
+  });
+
+  $('routine-add').addEventListener('click', () => {
+    if (state.routines.length >= MAX_ROUTINES) return;
+    let n = state.routines.length + 1;
+    while (state.routines.some((r) => r.name === R.newName(n))) n++;
+    const r = newRoutine(R.newName(n));
+    state.routines.push(r);
+    removed = null;
+    useRoutine(r.id);
+    renderRoutines();
+    // Named where it stands, straight away.
+    const row = $('routine-list').lastElementChild;
+    if (row) renameRoutine(r, row);
+  });
+
+  $('routine-pick').addEventListener('click', () => {
+    if (run) return;
+    removed = null;
+    renderRoutines();
+    routinesSheet.showModal();
+    $('routine-list').querySelector('[aria-pressed="true"]')?.focus();
+  });
+  routinesSheet.addEventListener('close', () => { removed = null; });
+  routinesSheet.addEventListener('click', (e) => { if (e.target === routinesSheet) routinesSheet.close(); });
+
+  showRoutineName();
   render();
 
   return {
@@ -1290,5 +1428,7 @@ export function setupTimer({ settings, tools, audio }) {
     /** A tool changed elsewhere (the Drone's note, say): show it. */
     refresh: () => { if (run) showCards(); },
     get running() { return !!run; },
+    /** The name of the item being practised, while a routine runs (takes are named after it). */
+    get item() { return run ? label(run.item) : null; },
   };
 }
