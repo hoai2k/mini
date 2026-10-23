@@ -44,13 +44,14 @@ function serve(dir) {
   return new Promise((resolve) => server.listen(0, '127.0.0.1', () => resolve({ url: `http://127.0.0.1:${server.address().port}/index.html`, close: () => server.close() })));
 }
 
-/** One browser and one server for a whole run. */
-export async function start() {
+/** One browser and one server for a whole run; `micFile`, a WAV for the fake microphone to play (looped). */
+export async function start({ micFile } = {}) {
   const { chromium } = await playwright();
   const executablePath = existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined;
   const browser = await chromium.launch({
     executablePath,
-    args: ['--autoplay-policy=no-user-gesture-required', '--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'],
+    args: ['--autoplay-policy=no-user-gesture-required', '--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream',
+      ...(micFile ? [`--use-file-for-fake-audio-capture=${micFile}`] : [])],
   });
   const site = await serve(APP);
   return {
@@ -103,4 +104,29 @@ export function checks(name) {
       return failed.length;
     },
   };
+}
+
+/**
+ * A WAV of a player at the microphone, looped by Chromium: silence, a
+ * sustained note (`hz`, with a cello's first few harmonics and a little
+ * vibrato) for `noteSec`, then silence long enough to end a take.
+ */
+export function playerWav(hz = 220, { leadSec = 1.5, noteSec = 3, tailSec = 6, rate = 48000 } = {}) {
+  const n = Math.round((leadSec + noteSec + tailSec) * rate);
+  const data = Buffer.alloc(44 + n * 2);
+  let phase = 0;
+  for (let i = 0; i < n; i++) {
+    const t = i / rate - leadSec;
+    let v = 0;
+    if (t >= 0 && t < noteSec) {
+      phase += (2 * Math.PI * hz * (1 + 0.004 * Math.sin(2 * Math.PI * 5 * t))) / rate;
+      const env = Math.min(1, t / 0.08) * Math.min(1, (noteSec - t) / 0.15);
+      v = 0.35 * env * (Math.sin(phase) + 0.5 * Math.sin(2 * phase) + 0.33 * Math.sin(3 * phase) + 0.2 * Math.sin(4 * phase)) / 2;
+    }
+    data.writeInt16LE(Math.round(Math.max(-1, Math.min(1, v)) * 32767), 44 + i * 2);
+  }
+  data.write('RIFF', 0); data.writeUInt32LE(36 + n * 2, 4); data.write('WAVE', 8); data.write('fmt ', 12);
+  data.writeUInt32LE(16, 16); data.writeUInt16LE(1, 20); data.writeUInt16LE(1, 22); data.writeUInt32LE(rate, 24);
+  data.writeUInt32LE(rate * 2, 28); data.writeUInt16LE(2, 32); data.writeUInt16LE(16, 34); data.write('data', 36); data.writeUInt32LE(n * 2, 40);
+  return data;
 }

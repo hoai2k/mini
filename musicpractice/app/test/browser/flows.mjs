@@ -4,7 +4,10 @@
 // beats heard as they are set, and a saved theme that no longer exists.
 //
 //   node test/browser/flows.mjs
-import { start, routine, checks } from './lib.mjs';
+import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { start, routine, checks, playerWav } from './lib.mjs';
 
 const c = checks('flows');
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -182,6 +185,114 @@ async function strongBeats(env) {
   await p.close();
 }
 
+async function metronomeScreen(env) {
+  for (const touch of [true, false]) {
+    const how = touch ? 'touch' : 'mouse';
+    const p = await env.page({ touch, width: touch ? 390 : 1100, height: 844 });
+    await p.goto(env.base + '#metronome');
+    await p.waitForTimeout(800);
+    const bpm = () => p.evaluate(() => Number(document.getElementById('bpm-input').value));
+    const saved = () => p.evaluate(() => JSON.parse(localStorage.getItem('musicpractice.settings.v1')));
+    const start = await bpm();
+    await p.click('#bpm-up');
+    await p.waitForTimeout(100);
+    c.ok(await bpm() === start + 1 && (await saved()).bpm === start + 1, `${how}: + adds a beat a minute`);
+    await p.fill('#bpm-input', '132');
+    await p.press('#bpm-input', 'Enter');
+    c.ok(await bpm() === 132 && await p.evaluate(() => document.getElementById('bpm-slider').value) === '132', `${how}: a typed tempo moves the slider`);
+    // Start and stop.
+    await p.click('#met-toggle');
+    await p.waitForTimeout(400);
+    const running = await p.evaluate(() => document.getElementById('met-toggle').getAttribute('aria-pressed'));
+    const swinging = await p.evaluate(() => document.getElementById('pendulum').style.transform);
+    await p.click('#met-toggle');
+    c.ok(running === 'true' && /rotate/.test(swinging), `${how}: Start plays and the pendulum swings`);
+    c.ok(await p.evaluate(() => document.getElementById('met-toggle').getAttribute('aria-pressed')) === 'false', `${how}: Stop stops`);
+    // The marking opens common tempos; one picked sets the tempo.
+    await p.click('#marking');
+    const pick = await p.evaluate(() => { const b = document.querySelector('#tempo-list .tempo-main'); return Number(b.textContent); });
+    await p.click('#tempo-list .tempo-main >> nth=0');
+    c.ok(await bpm() === pick && !(await p.evaluate(() => document.getElementById('tempo-picker').open)), `${how}: a common tempo sets ${pick}`);
+    // A tap on the dots shows the next view; a tap on the metronome turns the swing off and on.
+    const views = [];
+    for (let k = 0; k < 3; k++) { await p.click('#met-foot'); await p.waitForTimeout(700); views.push((await saved()).footView); }
+    c.ok(views.join() === 'big,bars,dots', `${how}: the dots cycle big, Visualizer, dots (${views})`);
+    const swing = (await saved()).swing;
+    await p.click('#metronome-art', { position: { x: 20, y: 20 } });
+    c.ok((await saved()).swing === !swing, `${how}: a tap on the metronome turns its swing ${swing ? 'off' : 'on'}`);
+    await p.click('#metronome-art', { position: { x: 20, y: 20 } });
+    // Settings: time signature, eighth notes.
+    await p.click('#met-settings-btn');
+    await p.selectOption('#meter', '3/4');
+    await p.click('#sub-on');
+    const set = await p.evaluate(() => ({ dots: document.querySelectorAll('#beats li').length, note: document.getElementById('meter-note').textContent }));
+    const s2 = await saved();
+    c.ok(set.dots === 3 && s2.meter === '3/4' && s2.subOn === true, `${how}: 3/4 shows three beats and eighths go on (${JSON.stringify(set)})`);
+    // The sync bar opens from Audio check, starts the metronome, and Done closes it.
+    await p.click('#met-settings .open-audio-check');
+    await p.click('#ac-sync-open');
+    await p.waitForTimeout(500);
+    const open = await p.evaluate(() => ({ bar: !document.getElementById('sync-bar').hidden, playing: document.getElementById('met-toggle').getAttribute('aria-pressed') }));
+    await p.click('#sync-down');
+    const ms = (await saved()).syncMs;
+    await p.click('#sync-done');
+    c.ok(open.bar && open.playing === 'true' && await p.evaluate(() => document.getElementById('sync-bar').hidden), `${how}: the sync bar opens with the clicks going, and Done closes it (${JSON.stringify(open)})`);
+    c.ok(typeof ms === 'number', `${how}: the sync adjusts (${ms} ms)`);
+    await p.click('#met-toggle').catch(() => {});
+    // The pendulum's weight: dragged up, the tempo slows.
+    if (!touch) {
+      const before = await bpm();
+      const w = await p.locator('#pend-weight').boundingBox();
+      if (w) {
+        await p.mouse.move(w.x + w.width / 2, w.y + w.height / 2);
+        await p.mouse.down();
+        for (let k = 1; k <= 8; k++) await p.mouse.move(w.x + w.width / 2, w.y + w.height / 2 - k * 8);
+        await p.mouse.up();
+        c.ok(await bpm() < before, `${how}: dragging the weight up slows the tempo (${before} -> ${await bpm()})`);
+      } else c.ok(false, `${how}: the pendulum's weight is on screen`);
+    }
+    c.ok(!p.errors.length, `${how}: no page errors on the metronome (${p.errors})`);
+    await p.close();
+  }
+}
+
+/** The microphone, with a player at it (a looped WAV): the recorder makes a take and plays it back, the tuner reads the note. */
+async function microphone() {
+  const dir = mkdtempSync(join(tmpdir(), 'mp-mic-'));
+  const wav = join(dir, 'player.wav');
+  writeFileSync(wav, playerWav(220)); // A3
+  const env = await start({ micFile: wav });
+  try {
+    const p = await env.page();
+    await p.goto(env.base + '#record');
+    await p.waitForTimeout(1000);
+    const state = () => p.evaluate(() => document.getElementById('rec-toggle').dataset.state);
+    c.ok(await state() === 'off', 'the recorder opens off');
+    await p.click('#rec-toggle');
+    c.ok(await until(p, () => document.getElementById('rec-toggle').dataset.state === 'waiting', 5000) >= 0, 'the record button listens');
+    c.ok(await until(p, () => document.getElementById('rec-toggle').dataset.state === 'recording', 15000) >= 0, 'a note starts a take');
+    c.ok(await until(p, () => document.querySelectorAll('#takes .take').length === 1, 20000) >= 0, 'silence ends it, and the take is listed');
+    c.ok(await until(p, () => document.getElementById('rec-toggle').dataset.state === 'playing', 5000) >= 0, 'the take plays back');
+    const take = await p.evaluate(() => ({ len: document.querySelector('#takes .take .name > span').textContent, label: document.querySelector('#takes .take .title').textContent }));
+    c.ok(/^0:0[2-5]$/.test(take.len), `the take is the note's length (${JSON.stringify(take)})`);
+    await p.click('#rec-toggle');
+    c.ok(await until(p, () => document.getElementById('rec-toggle').dataset.state === 'off', 5000) >= 0, 'the record button turns it off');
+    // The tuner takes the same mic (no new prompt) and reads A3.
+    await p.goto(env.base + '#tuner');
+    const read = await until(p, () => document.getElementById('tn-letter').textContent === 'A' && document.getElementById('tn-oct').textContent === '3', 20000);
+    c.ok(read >= 0, `the tuner reads the player's A3 (${await p.evaluate(() => document.querySelector('.tuner-note').textContent)})`);
+    // Back on the recorder, the take is still there (kept on the device).
+    await p.goto(env.base + '#record');
+    await p.reload();
+    c.ok(await until(p, () => document.querySelectorAll('#takes .take').length === 1, 5000) >= 0, 'the take is kept after a reload');
+    c.ok(!p.errors.length, `no page errors with the microphone (${p.errors})`);
+    await p.close();
+  } finally {
+    await env.stop();
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 async function themes(env) {
   // A theme saved and since taken out (Bebop, archived) opens as Classic.
   const p = await env.page({ theme: 'bebop' });
@@ -195,7 +306,7 @@ async function themes(env) {
 }
 
 export async function run(env) {
-  for (const part of [list, running, strongBeats, themes]) {
+  for (const part of [list, running, metronomeScreen, strongBeats, microphone, themes]) {
     try { await part(env); } catch (e) { c.ok(false, `${part.name}: ${e.message.split('\n')[0]}`); }
   }
   return c.done();

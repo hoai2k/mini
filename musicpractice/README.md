@@ -871,7 +871,7 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
   back, and only then does the routine end (the header says *Finishing the
   last take*, and its card comes into view). A metronome or drone started
   from a card never replaces the audio engine while the mic is using it
-  (`soundCtx` in `main.js`), which would cut the recorder off. The Playback
+  (`soundCtx` in `metronomeui.js`), which would cut the recorder off. The Playback
   Recorder suspends that engine while a take plays back (it always has, so
   the phone leaves call mode), so the metronome and the drone pause under a
   take and carry on after it.
@@ -1030,7 +1030,7 @@ file, on purpose: the privacy page, the device details Send feedback attaches
   read off the limiter by an analyser (`output.js`), so a healthy level from
   a quiet phone shows the loss is after the app. **Export debug data** at the
   foot of Audio check saves all of it as JSON (shared on phones, downloaded
-  elsewhere, as takes are: `saveFile` in `main.js`). Nothing is sent unless
+  elsewhere, as takes are: `saveFile` in `ui.js`). Nothing is sent unless
   the person sends it; `privacy.html#debug-log` says so.
 - `app/privacy.html`: the privacy policy and terms, for the apps' paywall and
   store listings. `app/support.html`: the support page (a contact form into
@@ -1043,7 +1043,12 @@ file, on purpose: the privacy page, the device details Send feedback attaches
   Review rules, what's done, what's left for submission, and review notes.
 
 - `app/index.html`, `app/styles.css`, `app/src/`: the app (static ES
-  modules, no build step). `main.js` the screens, `metronome.js` the
+  modules, no build step). `main.js` the app around the screens (theme,
+  moving between screens, app settings and dialogs, keys, the routine's hold
+  on the tools, start-up); each screen its own module: `metronomeui.js` the
+  Metronome, `recorderui.js` the microphone (shared with the Tuner) and the
+  Playback Recorder, `tunerui.js`, `droneui.js` and `timerui.js` the rest,
+  and `ui.js` the small helpers they share. `metronome.js` the
   scheduler, sounds and pendulum, `recorder.js` the mic and take state
   machine, `capture-worklet.js` the mic tap, `detect.js` the music/noise
   detector and trimming, `waveform.js` the waveform views, `takes.js` saved
@@ -1140,7 +1145,7 @@ the Playback Recorder, in every theme, portrait and landscape.
 ## Leaving the app and coming back
 
 Phones suspend sound, pause media and cut the mic while the app is in the
-background. On return (`visibilitychange` in `app/src/main.js`):
+background. On return (`visibilitychange` in `app/src/recorderui.js`):
 
 - the AudioContext is resumed, so a metronome left running carries on (or
   on the next tap, if the browser wants one); the next Start gets a fresh
