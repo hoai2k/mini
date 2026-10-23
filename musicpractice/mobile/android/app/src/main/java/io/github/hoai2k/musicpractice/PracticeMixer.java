@@ -33,7 +33,10 @@ public final class PracticeMixer {
 
     // ------------------------------------------------------------ metronome
 
-    private final float[][] clicks = new float[4][]; // weak, mid, strong, between the beats
+    private final float[][] clicks = new float[5][]; // weak, mid, strong, between the beats, soft (the weak one, quieter)
+    /** A soft beat (volume per beat): the weak click this much as loud (metronome.js SOFT_GAIN). */
+    static final float SOFT_GAIN = 0.35f;
+    static final int SOFT = 4, SILENT = 5; // click kinds past the strengths and between-the-beats (settings.js SOFT, SILENT)
     private double clickSr = 48000;
     private boolean metRunning;
     private double bpm = 120;
@@ -46,7 +49,11 @@ public final class PracticeMixer {
     private double lastBeat; // the frame of the last beat, which the subdivisions count from
     private int subIndex = 1; // the next subdivision of that beat
     private int lastBeatIndex; // that beat's place in the bar
-    private int[] slots = new int[0]; // custom strong beats: the click for every position in the bar (empty: the plain rules)
+    private int[] slots = new int[0]; // custom strong beats and volume per beat: the click for every position in the bar (empty: the plain rules)
+    private int gapPlay, gapSilent; // silent bars: play this many, then this many silent (0: off)
+    private double trainerStep, trainerTo; // the tempo trainer
+    private int trainerEvery; // (0: off)
+    private boolean lastMuted; // the last beat was in a silent bar (its subdivisions too)
     private final int[] clickKind = new int[16];
     private final double[] clickPos = new double[16]; // in click samples
     private int clicksActive;
@@ -177,6 +184,9 @@ public final class PracticeMixer {
         clicks[1] = mid;
         clicks[2] = strong;
         clicks[3] = sub != null ? sub : weak; // an older page sends none: the weak click stands in
+        float[] soft = new float[weak.length];
+        for (int i = 0; i < weak.length; i++) soft[i] = weak[i] * SOFT_GAIN;
+        clicks[SOFT] = soft;
         clickSr = sampleRate;
     }
 
@@ -201,6 +211,19 @@ public final class PracticeMixer {
         nextBeat = frame + 0.05 * sr;
         subIndex = Integer.MAX_VALUE; // no subdivisions before the first beat
         stopFade = 0;
+        gapPlay = gapSilent = trainerEvery = 0; // until metronomeExercise says otherwise
+    }
+
+    /**
+     * Silent bars (play `gapPlay` bars, then `gapSilent` silent; 0 off) and the tempo
+     * trainer (`trainerStep` beats per minute every `trainerEvery` bars until `trainerTo`; 0 off).
+     */
+    public synchronized void metronomeExercise(int gapPlay, int gapSilent, double trainerStep, int trainerEvery, double trainerTo) {
+        this.gapPlay = Math.max(0, gapPlay);
+        this.gapSilent = Math.max(0, gapSilent);
+        this.trainerStep = Math.max(0, trainerStep);
+        this.trainerEvery = Math.max(0, trainerEvery);
+        this.trainerTo = trainerTo;
     }
 
     public synchronized void metronomeUpdate(double bpm, int[] strengths, double volume) {
@@ -216,7 +239,7 @@ public final class PracticeMixer {
         this.bpm = Math.max(1, bpm);
         this.subdivision = Math.max(1, Math.min(4, subdivision));
         this.slots = new int[slots.length];
-        for (int i = 0; i < slots.length; i++) this.slots[i] = Math.max(0, Math.min(3, slots[i]));
+        for (int i = 0; i < slots.length; i++) this.slots[i] = Math.max(0, Math.min(SILENT, slots[i]));
         this.strengths = strengths.length > 0 ? strengths : new int[] {0};
         metVolume = volume;
         if (beat >= this.strengths.length) beat %= this.strengths.length;
@@ -417,8 +440,16 @@ public final class PracticeMixer {
             // Metronome: start a click on each beat, then play the clicks sounding.
             double now = frame + f;
             if (metRunning && now >= nextBeat) {
-                int strength = strengths[beat % strengths.length];
-                startClick(Math.max(0, Math.min(2, strength)), (now - nextBeat) * clickStep);
+                long bar = strengths.length;
+                // The trainer moves the tempo at the start of every `trainerEvery` bars.
+                if (trainerEvery > 0 && trainerStep > 0 && count > 0 && count % (bar * trainerEvery) == 0) {
+                    bpm = bpm < trainerTo ? Math.min(trainerTo, bpm + trainerStep) : bpm > trainerTo ? Math.max(trainerTo, bpm - trainerStep) : bpm;
+                }
+                lastMuted = gapSilent > 0 && (count / bar) % (gapPlay + gapSilent) >= gapPlay;
+                int strength = Math.max(0, Math.min(2, strengths[beat % strengths.length]));
+                if (!lastMuted) {
+                    startClick(slots.length == 0 ? strength : slots[(beat * subdivision) % slots.length], (now - nextBeat) * clickStep);
+                }
                 lastBeat = nextBeat;
                 lastBeatIndex = beat;
                 subIndex = 1;
@@ -431,7 +462,7 @@ public final class PracticeMixer {
                 double at = lastBeat + subIndex * (60 / bpm * sr) / subdivision;
                 if (now >= at) {
                     int k = lastBeatIndex * subdivision + subIndex;
-                    startClick(slots.length == 0 ? 3 : slots[k % slots.length], (now - at) * clickStep);
+                    if (!lastMuted) startClick(slots.length == 0 ? 3 : slots[k % slots.length], (now - at) * clickStep);
                     subIndex++;
                 }
             }
@@ -514,7 +545,7 @@ public final class PracticeMixer {
     }
 
     private void startClick(int kind, double pos) {
-        if (clicksActive == clickKind.length) return;
+        if (kind == SILENT || kind >= clicks.length || clicksActive == clickKind.length) return;
         clickKind[clicksActive] = kind;
         clickPos[clicksActive] = pos;
         clicksActive++;

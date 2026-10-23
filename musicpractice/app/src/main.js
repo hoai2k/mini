@@ -411,7 +411,7 @@ function routineDrone() {
 const droneChanged = () => { persist(); droneUI.refresh(); if (timerDrone) routineDrone(); };
 const routineTools = {
   metronome: {
-    start: startMetronome,
+    start: () => startMetronome({ exercise: false }),
     stop: stopMetronome,
     on: () => !!met.metronome?.running,
     bpm: () => settings.bpm,

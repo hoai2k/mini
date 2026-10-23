@@ -104,6 +104,29 @@ export class NativeMetronome {
     this.clicksFor = ''; // the sound whose clicks the native side has
     this.clock = null; // { at (s), count, beat, period }: when beat `count` is heard
     this.pollTimer = 0;
+    this.gap = null; // silent bars: { play, silent }, or null
+    this.trainer = null; // the tempo trainer: { step, every, to }, or null
+    this.onTempo = null; // (bpm) when the trainer moves the tempo
+  }
+
+  /** Silent bars and the tempo trainer for this run, as Metronome.setExercise (the native mixer keeps them). */
+  setExercise({ gap = null, trainer = null } = {}) {
+    this.gap = gap;
+    this.trainer = trainer;
+    if (this.running) this.sendExercise();
+  }
+
+  sendExercise() {
+    return run('metronomeExercise', {
+      gapPlay: this.gap?.play ?? 0, gapSilent: this.gap?.silent ?? 0,
+      trainerStep: this.trainer?.step ?? 0, trainerEvery: this.trainer?.every ?? 0, trainerTo: this.trainer?.to ?? 0,
+    }).catch(() => {}); // an app from before this has no exercises: it plays on plainly
+  }
+
+  /** Is beat `count` in one of the silent bars? */
+  muted(count) {
+    const g = this.gap;
+    return !!g && Math.floor(count / this.strengths.length) % (g.play + g.silent) >= g.play;
   }
 
   get period() {
@@ -140,9 +163,11 @@ export class NativeMetronome {
     const clicks = await this.clicks();
     if (!this.running) return;
     await run('metronomeStart', { bpm: this.bpm, strengths: this.strengths, subdivision: this.subdivision, slots: this.slots, volume: this.volume, label: this.label(), ...clicks });
+    await this.sendExercise();
     this.poll();
     clearInterval(this.pollTimer);
-    this.pollTimer = setInterval(() => this.poll(), 1000);
+    // Oftener while the trainer moves the tempo, so the number on screen keeps up.
+    this.pollTimer = setInterval(() => this.poll(), this.trainer ? 250 : 1000);
   }
 
   stop() {
@@ -165,6 +190,11 @@ export class NativeMetronome {
       const c = await run('metronomeClock');
       if (!c?.running) return false;
       this.clock = { at: c.nextBeatAt / 1000, count: c.nextCount, beat: c.nextBeat, period: c.period };
+      const bpm = Math.round(60 / c.period);
+      if (this.trainer && bpm !== this.bpm) {
+        this.bpm = bpm;
+        this.onTempo?.(bpm);
+      }
       return true;
     } catch {
       return this.running;
@@ -185,7 +215,7 @@ export class NativeMetronome {
     if (count < 0) return null;
     const n = this.strengths.length;
     const beat = (((c.beat + k) % n) + n) % n;
-    return { time: c.at + k * c.period, beat, count, strength: this.strengths[beat] ?? 0 };
+    return { time: c.at + k * c.period, beat, count, strength: this.strengths[beat] ?? 0, muted: this.muted(count) };
   }
 
   /** The last few beats heard by `t` (for the sync bar's tap timing). */

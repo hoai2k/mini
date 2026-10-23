@@ -18,6 +18,7 @@ public class PracticeAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "openSettings", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "metronomeStart", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "metronomeUpdate", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "metronomeExercise", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "metronomeStop", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "metronomeClock", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "hasVoice", returnType: CAPPluginReturnPromise),
@@ -84,6 +85,12 @@ public class PracticeAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         setClicks(call)
         engine.mixer.metronomeUpdate(bpm: call.getDouble("bpm", 120), strengths: ints(call.getArray("strengths")), subdivision: call.getInt("subdivision", 1), slots: ints(call.getArray("slots")), volume: call.getDouble("volume", 0.8))
         engine.setLabels(metronome: call.getString("label"), drone: nil)
+        call.resolve()
+    }
+
+    @objc func metronomeExercise(_ call: CAPPluginCall) {
+        engine.mixer.metronomeExercise(gapPlay: call.getInt("gapPlay", 0), gapSilent: call.getInt("gapSilent", 0),
+                                       trainerStep: call.getDouble("trainerStep", 0), trainerEvery: call.getInt("trainerEvery", 0), trainerTo: call.getDouble("trainerTo", 0))
         call.resolve()
     }
 

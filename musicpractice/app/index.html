@@ -172,6 +172,8 @@
             <button type="button" class="marking" id="marking" aria-haspopup="dialog"></button>
             <button type="button" class="pill tap-tempo" id="tap-tempo" data-text-aria-label="metronome.tapHint"><span data-text="metronome.tap"></span></button>
           </div>
+          <!-- The tempo trainer or silent bars, while on: a tap opens Metronome settings. -->
+          <button type="button" class="met-exercise" id="met-exercise" hidden></button>
           <input id="bpm-slider" class="slider" type="range" min="40" max="500" step="1" value="120" data-text-aria-label="metronome.tempoSlider">
           <div class="slider-scale" aria-hidden="true"><span>40</span><span>500</span></div>
           <button class="big-btn" id="met-toggle" aria-pressed="false">
@@ -209,6 +211,15 @@
             <span class="accent-name"><label for="sub-on" id="sub-label"></label><button type="button" class="icon-btn accent-edit" id="sub-edit" data-text-aria-label="metronome.settings.subEdit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></span>
             <input type="checkbox" id="sub-on" role="switch">
           </div>
+          <!-- Practice with the metronome (metronomeui.js): each a switch, and a pencil for its numbers. -->
+          <div class="row toggle accent-row">
+            <span class="accent-name"><label for="trainer-on" id="trainer-label"></label><button type="button" class="icon-btn accent-edit" id="trainer-edit" data-text-aria-label="metronome.trainer.edit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></span>
+            <input type="checkbox" id="trainer-on" role="switch">
+          </div>
+          <div class="row toggle accent-row">
+            <span class="accent-name"><label for="gap-on" id="gap-label"></label><button type="button" class="icon-btn accent-edit" id="gap-edit" data-text-aria-label="metronome.gap.edit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></span>
+            <input type="checkbox" id="gap-on" role="switch">
+          </div>
           <label class="row toggle"><span data-text="metronome.settings.sound"></span><select class="select" id="sound"></select></label>
           <!-- Settings for what can be shown, whether or not it is showing: a tap on the
                metronome turns the swing on or off, a tap on the dots shows the next
@@ -230,11 +241,29 @@
         </form>
       </dialog>
 
+      <!-- The tempo trainer's and silent bars' numbers (metronomeui.js). -->
+      <dialog id="trainer-editor" class="sheet" aria-labelledby="trainer-editor-title">
+        <form method="dialog">
+          <header class="sheet-head"><h3 id="trainer-editor-title" data-text="metronome.trainer.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <p class="help" data-text="metronome.trainer.help"></p>
+          <div class="ex-fields" id="trainer-fields"></div>
+        </form>
+      </dialog>
+      <dialog id="gap-editor" class="sheet" aria-labelledby="gap-editor-title">
+        <form method="dialog">
+          <header class="sheet-head"><h3 id="gap-editor-title" data-text="metronome.gap.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <p class="help" data-text="metronome.gap.help"></p>
+          <div class="ex-fields" id="gap-fields"></div>
+        </form>
+      </dialog>
+
       <!-- Custom strong beats: every place a click falls in the bar (main.js). -->
       <dialog id="accent-editor" class="sheet" aria-labelledby="accent-editor-title">
         <form method="dialog">
           <header class="sheet-head"><h3 id="accent-editor-title" data-text="metronome.accents.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
           <div class="accent-grid" id="accent-grid"></div>
+          <!-- Volume per beat: off, a tap makes a beat strong or not; on, a tap goes strong, soft, silent, normal. -->
+          <label class="row toggle levels-row"><span><span data-text="metronome.accents.levels"></span><small class="help" data-text="metronome.accents.levelsHelp"></small></span><input type="checkbox" id="levels-on" role="switch"></label>
           <div class="accent-actions">
             <button type="button" class="pill" id="accent-clear" data-text="metronome.accents.clear"></button>
             <button type="button" class="big-btn accent-done" id="accent-done" data-text="common.done"></button>

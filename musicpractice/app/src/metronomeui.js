@@ -8,7 +8,7 @@ import { dlog, debugBeat } from './debuglog.js';
 import { Metronome, pendulumAngle, weightAt, bpmAtWeight, tapTempo, TAP_KEEP } from './metronome.js';
 import { NativeMetronome } from './nativeaudio.js';
 import { GENRES, GENRE_IDS, mainTempo, nameFor, genreRange } from './tempos.js';
-import { clampBpm, SAVED_MAX, METERS, SOUNDS, VIZ_BARS, TICKS, barPlan, cleanPattern, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
+import { clampBpm, SAVED_MAX, METERS, SOUNDS, VIZ_BARS, TICKS, barPlan, cleanPattern, cleanLevels, meterOf, beatStrengths, BPM_MIN, BPM_MAX, SOFT, SILENT, GAP_MAX, TRAINER_STEP_MAX, TRAINER_EVERY_MAX } from './settings.js';
 import { swingOf, placeWeight, weightFromPoint } from './art.js';
 import { tuckedVolume } from './tuckedvolume.js';
 import { $, chips, note } from './ui.js';
@@ -53,10 +53,16 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
   function renderBeats() {
     const list = $('beats');
     const strengths = shownBeats();
-    list.replaceChildren(...strengths.map((s) => {
+    // Volume per beat: a soft beat's dot is faint, a silent one's hollow.
+    const { slots } = barPlan(settings);
+    const sub = settings.subdivision || 1;
+    list.replaceChildren(...strengths.map((s, b) => {
       const li = document.createElement('li');
       if (s === 2) li.className = 'strong';
       if (s === 1) li.className = 'mid';
+      const kind = slots?.[b * sub];
+      if (kind === SOFT) li.classList.add('soft');
+      if (kind === SILENT) li.classList.add('silent');
       return li;
     }));
     // The Visualizer: a row per bar of music, a shape per beat, the strong beat red.
@@ -97,10 +103,16 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
    */
   const soundCtx = () => (mic.listening() || mic.playing() ? audio() : freshAudio());
 
-  function startMetronome() {
+  /**
+   * Start. `exercise`: with the tempo trainer and silent bars, if on (from the
+   * Metronome screen; a routine's metronome plays plainly).
+   */
+  function startMetronome({ exercise = true } = {}) {
     if (useNative) {
       if (!metronome?.native) metronome = new NativeMetronome();
       metronome.configure(settings);
+      exercising = exercise;
+      applyExercise();
       metronome.start().catch(() => { note(TEXT.metronome.couldntStart); stopMetronome(); });
     } else {
       // A fresh context if the old one may be stuck on another output (this is a
@@ -112,6 +124,8 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
         if (settings.speaker !== 'default') setContextSpeaker(settings.speaker);
       }
       metronome.configure(settings);
+      exercising = exercise;
+      applyExercise();
       metronome.start();
     }
     dlog('metronome-start', { native: useNative, volume: settings.volume, sound: settings.sound, bpm: settings.bpm, ctx: metronome.ctx?.state ?? null, speaker: settings.speaker === 'default' ? 'default' : 'picked' });
@@ -124,6 +138,10 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
 
   function stopMetronome() {
     if (metronome?.running) { metronome.stop(); dlog('metronome-stop'); }
+    // The trainer's tempo goes back to where it started, for another go.
+    if (trainerFrom !== null) { const from = trainerFrom; trainerFrom = null; setBpm(from); }
+    exercising = false;
+    showExercise();
     pendulum.classList.add('resting');
     pendulum.style.transform = 'rotate(0deg)';
     for (const li of $('beats').children) { li.classList.remove('on'); li.style.removeProperty('--g'); }
@@ -135,6 +153,103 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
   }
 
   $('met-toggle').addEventListener('click', () => (metronome?.running ? stopMetronome() : startMetronome()));
+
+  /*
+   * Practising with the metronome: the tempo trainer (the tempo steps toward
+   * a target every few bars; Stop puts it back) and silent bars (some bars
+   * with clicks, some without). Each is a switch in Metronome settings with a
+   * pencil for its numbers; while on, a line under the tempo says so. Both
+   * run in the metronome itself (and the apps' mixers), so they keep time.
+   */
+  let exercising = false; // this run uses them (started from the Metronome screen)
+  let trainerFrom = null; // the tempo the trainer started from, while it runs
+  function applyExercise() {
+    if (!metronome) return;
+    const trainer = exercising && settings.trainer.on && settings.trainer.to !== settings.bpm ? settings.trainer : null;
+    // Turned off part way, the trainer leaves the tempo where it got to.
+    if (!trainer) trainerFrom = null;
+    else if (trainerFrom === null) trainerFrom = settings.bpm;
+    metronome.onTempo = (bpm) => {
+      settings.bpm = bpm;
+      bpmInput.value = bpm;
+      bpmSlider.value = bpm;
+      showMarking();
+      if (!weightDrag) showWeight();
+      showExercise();
+    };
+    metronome.setExercise({ gap: exercising && settings.gap.on ? settings.gap : null, trainer });
+    showExercise();
+  }
+  function showExercise() {
+    const X = TEXT.metronome;
+    $('trainer-label').textContent = X.trainer.label(settings.trainer.on, settings.trainer);
+    $('trainer-on').checked = settings.trainer.on;
+    $('gap-label').textContent = X.gap.label(settings.gap.on, settings.gap);
+    $('gap-on').checked = settings.gap.on;
+    const parts = [];
+    if (settings.trainer.on) parts.push(X.trainer.status(settings.bpm, settings.trainer.to));
+    if (settings.gap.on) parts.push(X.gap.status(settings.gap));
+    const line = $('met-exercise');
+    const text = parts.join(' · ');
+    if (line.textContent !== text) line.textContent = text;
+    line.setAttribute('aria-label', `${text}. ${X.exerciseOpen}`);
+    if (line.hidden !== !parts.length) { line.hidden = !parts.length; queueFit(); }
+  }
+  /** Changed in settings: kept, and heard at once on a metronome playing. */
+  function exerciseChanged() {
+    persist();
+    if (metronome?.running && exercising) applyExercise(); else showExercise();
+  }
+  $('trainer-on').addEventListener('change', () => { settings.trainer = { ...settings.trainer, on: $('trainer-on').checked }; exerciseChanged(); });
+  $('gap-on').addEventListener('change', () => { settings.gap = { ...settings.gap, on: $('gap-on').checked }; exerciseChanged(); });
+  $('met-exercise').addEventListener('click', () => $('met-settings').showModal());
+
+  /** A row of − value + for one number of an exercise. */
+  function numberRow(label, get, set, min, max) {
+    const row = document.createElement('div');
+    row.classList.add('row', 'toggle', 'ex-row');
+    row.innerHTML = '<span class="ex-name"></span><span class="ex-step"><button type="button" class="step ex-less">−</button><input type="number" inputmode="numeric" class="ex-value"><button type="button" class="step ex-more">+</button></span>';
+    row.querySelector('.ex-name').textContent = label;
+    const input = row.querySelector('.ex-value');
+    Object.assign(input, { min, max, step: 1 });
+    input.setAttribute('aria-label', label);
+    row.querySelector('.ex-less').setAttribute('aria-label', `${label} −`);
+    row.querySelector('.ex-more').setAttribute('aria-label', `${label} +`);
+    const put = (v) => {
+      const n = Math.max(min, Math.min(max, Math.round(Number(v))));
+      if (Number.isFinite(n)) set(n);
+      input.value = get();
+      exerciseChanged();
+    };
+    input.value = get();
+    input.addEventListener('change', () => put(input.value));
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); } });
+    row.querySelector('.ex-less').addEventListener('click', () => put(get() - 1));
+    row.querySelector('.ex-more').addEventListener('click', () => put(get() + 1));
+    return row;
+  }
+  function openTrainer() {
+    const T = TEXT.metronome.trainer;
+    const set = (k) => (v) => { settings.trainer = { ...settings.trainer, [k]: v }; };
+    $('trainer-fields').replaceChildren(
+      numberRow(T.to, () => settings.trainer.to, set('to'), BPM_MIN, BPM_MAX),
+      numberRow(T.step, () => settings.trainer.step, set('step'), 1, TRAINER_STEP_MAX),
+      numberRow(T.every, () => settings.trainer.every, set('every'), 1, TRAINER_EVERY_MAX),
+    );
+    $('trainer-editor').showModal();
+  }
+  function openGap() {
+    const G = TEXT.metronome.gap;
+    const set = (k) => (v) => { settings.gap = { ...settings.gap, [k]: v }; };
+    $('gap-fields').replaceChildren(
+      numberRow(G.play, () => settings.gap.play, set('play'), 1, GAP_MAX),
+      numberRow(G.silent, () => settings.gap.silent, set('silent'), 1, GAP_MAX),
+    );
+    $('gap-editor').showModal();
+  }
+  $('trainer-edit').addEventListener('click', openTrainer);
+  $('gap-edit').addEventListener('click', openGap);
+  queueMicrotask(showExercise); // once the screen's fitting (below) is set up
 
   // Tap tempo: from the second tap the tempo follows the taps (tapTempo in metronome.js).
   let tapTimes = [];
@@ -256,7 +371,26 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
   const customAccents = new Map(); // meter -> pattern, this visit only
   if (settings.accentPattern) customAccents.set(settings.meter, settings.accentPattern);
   const accentEditor = $('accent-editor');
-  let editing = null; // { on: Set of positions, hidden: positions not on this grid }
+  let editing = null; // { on: Set of positions, hidden: positions not on this grid, soft, silent: Sets of positions }
+  /*
+   * Volume per beat (the switch under the grid): with it on, a tap takes a
+   * place from normal to strong, soft, silent and back. Soft and silent are
+   * kept apart from the strong beats (settings.beatLevels), for this time
+   * signature; turning the switch off clears them.
+   */
+  const LEVELS = ['normal', 'strong', 'soft', 'silent'];
+  const levelOf = (at) => (editing.silent.has(at) ? 'silent' : editing.soft.has(at) ? 'soft' : editing.on.has(at) ? 'strong' : 'normal');
+  function setLevel(at, level) {
+    editing.on.delete(at);
+    editing.soft.delete(at);
+    editing.silent.delete(at);
+    if (level === 'strong') editing.on.add(at);
+    if (level === 'soft') editing.soft.add(at);
+    if (level === 'silent') editing.silent.add(at);
+  }
+  function applyLevels() {
+    settings.beatLevels = cleanLevels({ meter: settings.meter, soft: [...editing.soft], silent: [...editing.silent] }, settings.meter);
+  }
 
   function openAccents() {
     const m = meterOf(settings.meter);
@@ -264,7 +398,9 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     const shown = new Set();
     for (let b = 0; b < m.beats; b++) for (let k = 0; k < sub; k++) shown.add(b * TICKS + (k * TICKS) / sub);
     const current = strongPositions();
-    editing = { on: new Set(current.filter((p) => shown.has(p))), hidden: current.filter((p) => !shown.has(p)) };
+    const levels = cleanLevels(settings.beatLevels, settings.meter);
+    editing = { on: new Set(current.filter((p) => shown.has(p))), hidden: current.filter((p) => !shown.has(p)), soft: new Set(levels?.soft), silent: new Set(levels?.silent) };
+    $('levels-on').checked = !!levels;
     const counts = TEXT.metronome.accents.counts[sub] || [];
     $('accent-grid').replaceChildren(...Array.from({ length: m.beats }, (_, b) => {
       const group = document.createElement('div');
@@ -278,10 +414,19 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
         cell.textContent = label;
         const show = () => {
           const on = editing.on.has(at);
+          const level = levelOf(at);
+          cell.dataset.level = level;
           cell.setAttribute('aria-pressed', String(on));
-          cell.setAttribute('aria-label', TEXT.metronome.accents.cell(label, on));
+          cell.setAttribute('aria-label', $('levels-on').checked ? TEXT.metronome.accents.cellLevel(label, TEXT.metronome.accents.levelNames[level])
+            : TEXT.metronome.accents.cell(label, on));
         };
-        cell.addEventListener('click', () => { editing.on.has(at) ? editing.on.delete(at) : editing.on.add(at); show(); applyStrong(); });
+        cell.addEventListener('click', () => {
+          if ($('levels-on').checked) setLevel(at, LEVELS[(LEVELS.indexOf(levelOf(at)) + 1) % LEVELS.length]);
+          else setLevel(at, editing.on.has(at) ? 'normal' : 'strong');
+          show();
+          applyLevels();
+          applyStrong();
+        });
         cell.show = show;
         show();
         group.append(cell);
@@ -291,8 +436,16 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     accentEditor.showModal();
   }
   $('accent-edit').addEventListener('click', openAccents);
+  $('levels-on').addEventListener('change', () => {
+    // Off: back to strong or not (soft and silent go).
+    if (!$('levels-on').checked) { editing.soft.clear(); editing.silent.clear(); applyLevels(); applyStrong(); }
+    for (const c of $('accent-grid').querySelectorAll('.accent-cell')) c.show();
+  });
   $('accent-clear').addEventListener('click', () => {
     editing.on.clear();
+    editing.soft.clear();
+    editing.silent.clear();
+    applyLevels();
     for (const c of $('accent-grid').querySelectorAll('.accent-cell')) c.show();
     applyStrong();
   });

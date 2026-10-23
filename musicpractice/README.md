@@ -334,6 +334,33 @@ when the Art Deco art arrives, measure and record its own.
   Strong beat on 1, and going back during the same visit brings the pattern
   back; only the one in use is saved (`accentPattern`). The apps' native
   mixers take the click for every position (`slots`).
+- **Volume per beat:** a switch under the strong beats' grid. Off (the
+  ordinary case), a tap makes a place strong or not, as above. On, a tap
+  goes **strong → soft → silent → normal**: soft is the weak click at 35%
+  (`SOFT_GAIN`), silent is no click. The dots show a soft beat faint and a
+  silent one hollow; turning the switch off clears them. They are kept for
+  the time signature (`beatLevels`, `cleanLevels`), apart from the strong
+  beats, and `barPlan` lays them over the bar as two more click kinds,
+  `SOFT` (4) and `SILENT` (5), which the native mixers take in `slots` too
+  (their soft click is the weak one scaled the same). They play in a
+  routine as strong beats do.
+- **Tempo trainer:** a switch in Metronome settings, with a pencil for its
+  numbers: a target tempo, a step (BPM) and how often (every N bars). From
+  the tempo set, the metronome moves a step toward the target at the start
+  of every N bars, then stays there; the number, slider and pendulum follow,
+  and **Stop puts the tempo back** where it started, for another go (turned
+  off part way, it stays where it got to). A line under the tempo (*Tempo
+  trainer: 100 → 140 BPM*) says it is on; a tap opens the settings.
+- **Silent bars:** the same, for some bars with clicks then some without
+  (1 to 16 each), over and over: the beat goes on silently and the clicks
+  come back to show whether it was held. The dots and pendulum keep going.
+- Both run in the scheduler itself (`setExercise` in `metronome.js`; in the
+  apps `metronomeExercise`, so the mixers keep exact time and the trainer
+  goes on with the screen locked, the page reading the tempo back off the
+  clock's period). They apply when the metronome is started from its own
+  screen; a routine's metronome plays plainly. An app built before them
+  plays on plainly (it has no `metronomeExercise`, and plays soft and
+  silent places as the quiet between-the-beats click) until it is rebuilt.
 - The metronome settings hold **Pendulum swing** and **Visualizer rows**
   (1, 2, 4 or 8), each set whether or not it is showing. **Pressing and
   holding** the dots or the Visualizer opens the strong beats (as the

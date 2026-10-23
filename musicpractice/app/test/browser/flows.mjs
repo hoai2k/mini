@@ -305,6 +305,97 @@ async function strongBeats(env) {
   await p.close();
 }
 
+/** Practising with the metronome: volume per beat, the tempo trainer and silent bars. */
+async function exercises(env) {
+  const p = await env.page();
+  await p.goto(env.base + '#metronome');
+  await p.waitForTimeout(800);
+  const saved = () => p.evaluate(() => JSON.parse(localStorage.getItem('musicpractice.settings.v1')));
+  // Volume per beat: with the switch on, a tap goes strong, soft, silent, normal.
+  await p.click('#met-settings-btn');
+  await p.click('#accent-edit');
+  await p.click('#levels-on');
+  const cell = '#accent-grid .accent-cell >> nth=1';
+  const level = () => p.getAttribute('#accent-grid .accent-cell >> nth=1', 'data-level');
+  const seen = [];
+  for (let k = 0; k < 4; k++) { await p.click(cell); seen.push(await level()); }
+  c.ok(seen.join(',') === 'strong,soft,silent,normal', `volume per beat: a tap goes strong, soft, silent, normal (${seen})`);
+  await p.click(cell);
+  await p.click(cell);
+  await p.click('#accent-grid .accent-cell >> nth=3');
+  await p.click('#accent-grid .accent-cell >> nth=3');
+  await p.click('#accent-grid .accent-cell >> nth=3');
+  let s = await saved();
+  c.ok(JSON.stringify(s.beatLevels) === '{"meter":"4/4","soft":[12],"silent":[36]}', `beat 2 soft and beat 4 silent are kept (${JSON.stringify(s.beatLevels)})`);
+  const dots = await p.evaluate(() => [...document.querySelectorAll('#beats li')].map((l) => (l.classList.contains('soft') ? 'soft' : l.classList.contains('silent') ? 'silent' : '-')).join(','));
+  c.ok(dots === '-,soft,-,silent', `the dots show them (${dots})`);
+  await p.click('#levels-on');
+  c.ok((await saved()).beatLevels === null, 'turning volume per beat off clears soft and silent');
+  await p.click('#accent-editor .sheet-head .icon-btn');
+  await p.click('#met-settings .sheet-head .icon-btn');
+  // The tempo trainer: from 120, up 10 every bar to 140; Stop goes back to 120.
+  await p.fill('#bpm-input', '120');
+  await p.press('#bpm-input', 'Enter');
+  await p.click('#met-settings-btn');
+  await p.click('#trainer-edit');
+  const field = (n) => `#trainer-fields .ex-row:nth-child(${n}) .ex-value`;
+  await p.fill(field(1), '140');
+  await p.press(field(1), 'Enter');
+  await p.fill(field(2), '10');
+  await p.press(field(2), 'Enter');
+  await p.fill(field(3), '1');
+  await p.press(field(3), 'Enter');
+  await p.click('#trainer-editor .sheet-head .icon-btn');
+  await p.click('#trainer-on');
+  s = await saved();
+  c.ok(JSON.stringify(s.trainer) === '{"on":true,"step":10,"every":1,"to":140}', `the trainer's numbers are kept (${JSON.stringify(s.trainer)})`);
+  c.ok((await p.textContent('#trainer-label')).includes('10 BPM every 1 bar, to 140'), 'its row says what it does');
+  await p.click('#met-settings .sheet-head .icon-btn');
+  c.ok(await p.isVisible('#met-exercise'), 'a line under the tempo says the trainer is on');
+  await p.click('#met-toggle');
+  const climbed = await until(p, () => document.getElementById('bpm-input').value === '140', 9000);
+  c.ok(climbed > 1500, `the tempo climbs bar by bar to 140 (${climbed} ms)`);
+  await p.waitForTimeout(2500);
+  c.ok(await p.inputValue('#bpm-input') === '140', 'and stays at its target');
+  await p.click('#met-toggle');
+  c.ok(await p.inputValue('#bpm-input') === '120' && (await saved()).bpm === 120, 'Stop puts the tempo back where it started');
+  // Silent bars: 2/4 at 240, one bar on and one off: clicks only in every other half second.
+  await p.click('#met-settings-btn');
+  await p.click('#trainer-on');
+  await p.selectOption('#meter', '2/4');
+  await p.click('#gap-edit');
+  await p.fill('#gap-fields .ex-row:nth-child(1) .ex-value', '1');
+  await p.press('#gap-fields .ex-row:nth-child(1) .ex-value', 'Enter');
+  await p.fill('#gap-fields .ex-row:nth-child(2) .ex-value', '1');
+  await p.press('#gap-fields .ex-row:nth-child(2) .ex-value', 'Enter');
+  await p.click('#gap-editor .sheet-head .icon-btn');
+  await p.click('#gap-on');
+  await p.click('#met-settings .sheet-head .icon-btn');
+  await p.fill('#bpm-input', '240');
+  await p.press('#bpm-input', 'Enter');
+  // Every sound the page schedules, with its time: clicks fall only in the bars with clicks.
+  await p.evaluate(() => {
+    window.__starts = [];
+    for (const Node of [AudioBufferSourceNode, OscillatorNode]) {
+      const orig = Node.prototype.start;
+      Node.prototype.start = function (when = 0, ...rest) { window.__starts.push(when); return orig.call(this, when, ...rest); };
+    }
+  });
+  await p.click('#met-toggle');
+  await p.waitForTimeout(3300);
+  await p.click('#met-toggle');
+  const bars = await p.evaluate(() => {
+    const t = window.__starts.filter((x) => x > 0).sort((a, b) => a - b);
+    const t0 = t[0];
+    const out = [0, 0, 0, 0, 0, 0];
+    for (const x of t) { const b = Math.floor((x - t0 + 0.01) / 0.5); if (b < out.length) out[b]++; }
+    return out;
+  });
+  c.ok(bars[0] > 0 && bars[1] === 0 && bars[2] > 0 && bars[3] === 0 && bars[4] > 0 && bars[5] === 0, `silent bars: clicks in every other bar (${bars})`);
+  c.ok(!p.errors.length, `no page errors practising with the metronome (${p.errors})`);
+  await p.close();
+}
+
 async function metronomeScreen(env) {
   for (const touch of [true, false]) {
     const how = touch ? 'touch' : 'mouse';
@@ -465,8 +556,10 @@ async function themes(env) {
   await p.close();
 }
 
-export async function run(env) {
-  for (const part of [list, running, routines, practiceLog, metronomeScreen, savedTempos, strongBeats, microphone, themes]) {
+/** `only`: the names of the parts to run (all of them if empty): node flows.mjs exercises routines */
+export async function run(env, only = []) {
+  for (const part of [list, running, routines, practiceLog, metronomeScreen, savedTempos, strongBeats, exercises, microphone, themes]) {
+    if (only.length && !only.includes(part.name)) continue;
     try { await part(env); } catch (e) { c.ok(false, `${part.name}: ${e.message.split('\n')[0]}`); }
   }
   return c.done();
@@ -474,7 +567,7 @@ export async function run(env) {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const env = await start();
-  const failed = await run(env);
+  const failed = await run(env, process.argv.slice(2));
   await env.stop();
   process.exitCode = failed ? 1 : 0;
 }

@@ -148,7 +148,33 @@ export const EN = {
       /** How each click is counted: the beat's number, then these. */
       counts: { 2: ['&'], 3: ['trip', 'let'], 4: ['e', '&', 'a'] },
       cell: (count, on) => `${count}, ${on ? 'strong' : 'not strong'}`,
+      levels: 'Volume per beat',
+      levelsHelp: 'A tap makes a beat strong, then soft, then silent',
+      levelNames: { strong: 'strong', normal: 'normal', soft: 'soft', silent: 'silent' },
+      cellLevel: (count, level) => `${count}, ${level}`,
     },
+    /** The tempo trainer (Metronome settings). */
+    trainer: {
+      title: 'Tempo trainer',
+      edit: 'Set the tempo trainer',
+      label: (on, t) => (on ? `Tempo trainer: ${t.step} BPM every ${t.every} ${t.every === 1 ? 'bar' : 'bars'}, to ${t.to}` : 'Tempo trainer'),
+      help: 'From the tempo you set, the tempo changes a step at a time until it reaches the target, then stays there. Stop puts it back where it started.',
+      to: 'Target tempo (BPM)',
+      step: 'Change by (BPM)',
+      every: 'Every (bars)',
+      status: (bpm, to) => `Tempo trainer: ${bpm} → ${to} BPM`,
+    },
+    /** Silent bars (Metronome settings). */
+    gap: {
+      title: 'Silent bars',
+      edit: 'Set the silent bars',
+      label: (on, g) => (on ? `Silent bars: ${g.play} with clicks, ${g.silent} without` : 'Silent bars'),
+      help: 'Some bars with clicks, then some without, over and over: keep the beat going through the quiet, and the clicks come back to tell you if you held it.',
+      play: 'Bars with clicks',
+      silent: 'Bars without',
+      status: (g) => `Silent bars: ${g.play} + ${g.silent}`,
+    },
+    exerciseOpen: 'Metronome settings',
     /** Common tempos, from the marking. */
     tempos: {
       title: 'Tempos',

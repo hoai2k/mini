@@ -263,6 +263,42 @@ func metronomeCustomAccents() {
     check(e2 < 1e-3 && e3 < 1e-3, "beat 2 is weak and its '&' the quieter click")
 }
 
+func metronomeExercises() {
+    print("metronome: volume per beat, silent bars and the tempo trainer")
+    var m = mixer()
+    // 4/4 at 120: beat 2 soft, beat 4 silent.
+    m.metronomeStart(bpm: 120, strengths: [2, 0, 0, 0], subdivision: 1, slots: [2, PracticeMixer.soft, 0, PracticeMixer.silent], volume: 0.8)
+    let l = render(m, 2.05).0
+    let weak = clickSets["wood"]![0]
+    var soft = 0.0, silent = 0.0
+    for i in 0..<1500 {
+        soft = max(soft, abs(Double(l[2400 + 24000 + i]) - 0.8 * Double(PracticeMixer.softGain) * Double(weak[i])))
+        silent = max(silent, abs(Double(l[2400 + 72000 + i])))
+    }
+    check(soft < 1e-3, "a soft beat is the weak click, quieter")
+    check(silent < 1e-6, "a silent beat makes no sound")
+    // 2/4 at 120, one bar on and one silent: clicks at 0 and 0.5 s, none at 1 and 1.5, again at 2 and 2.5.
+    m = mixer()
+    m.metronomeStart(bpm: 120, strengths: [2, 0], volume: 0.8)
+    m.metronomeExercise(gapPlay: 1, gapSilent: 1, trainerStep: 0, trainerEvery: 0, trainerTo: 0)
+    var on = onsets(render(m, 2.6).0)
+    // (Strong click to strong click, which find their onsets alike.)
+    check(on.count == 4 && abs(on[2] - on[0] - 96000) <= 1, "silent bars: a bar of clicks, a bar of none, then clicks again (\(on))")
+    check(m.metronomeClock().count == 6, "the silent bar's beats are still counted")
+    // The trainer: 2/4 from 120, up 60 every bar to 240 at most.
+    m = mixer()
+    m.metronomeStart(bpm: 120, strengths: [2, 0], volume: 0.8)
+    m.metronomeExercise(gapPlay: 0, gapSilent: 0, trainerStep: 60, trainerEvery: 1, trainerTo: 240)
+    on = onsets(render(m, 2.0).0)
+    check(on.count >= 5 && abs(on[2] - on[0] - 48000) <= 1 && abs(on[4] - on[2] - 32000) <= 1, "the trainer: a bar at 120, then a bar at 180 (\(on))")
+    _ = render(m, 3.0)
+    check(m.metronomeClock().period == 0.25, "and no faster than its target")
+    // A new start forgets them.
+    m.metronomeStart(bpm: 120, strengths: [2, 0], volume: 0.8)
+    on = onsets(render(m, 2.6).0)
+    check(on.count == 6, "starting again plays plainly until told otherwise (\(on.count) clicks)")
+}
+
 func droneStopQuick() {
     print("drone: pausing stops at once (the long fades are for starting and changing note)")
     let m = mixer()
@@ -321,6 +357,7 @@ metronomeTiming()
 metronomeTempoChange()
 metronomeSubdivision()
 metronomeCustomAccents()
+metronomeExercises()
 droneLevels()
 droneSeamless()
 droneSchedule()

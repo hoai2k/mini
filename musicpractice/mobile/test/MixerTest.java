@@ -30,6 +30,7 @@ public final class MixerTest {
         metronomeTempoChange();
         metronomeSubdivision();
         metronomeCustomAccents();
+        metronomeExercises();
         droneLevels();
         droneSeamless();
         droneSchedule();
@@ -315,6 +316,44 @@ public final class MixerTest {
         }
         check(e1 < 1e-3, "the '&' of 1 is the strong click (" + String.format("%.1e", e1) + ")");
         check(e2 < 1e-3 && e3 < 1e-3, "beat 2 is weak and its '&' the quieter click");
+    }
+
+    static void metronomeExercises() {
+        System.out.println("metronome: volume per beat, silent bars and the tempo trainer");
+        PracticeMixer m = mixer();
+        // 4/4 at 120: beat 2 soft, beat 4 silent.
+        m.metronomeStart(120, new int[] {2, 0, 0, 0}, 1, new int[] {2, PracticeMixer.SOFT, 0, PracticeMixer.SILENT}, 0.8);
+        float[] l = render(m, 2.05)[0];
+        float[] weak = clicks.get("wood")[0];
+        double soft = 0, silent = 0;
+        for (int i = 0; i < 1500; i++) {
+            soft = Math.max(soft, Math.abs(l[2400 + 24000 + i] - 0.8 * PracticeMixer.SOFT_GAIN * weak[i]));
+            silent = Math.max(silent, Math.abs(l[2400 + 72000 + i]));
+        }
+        check(soft < 1e-3, "a soft beat is the weak click, quieter (" + String.format("%.1e", soft) + ")");
+        check(silent < 1e-6, "a silent beat makes no sound");
+        // 2/4 at 120, one bar on and one silent: clicks at 0 and 0.5 s, none at 1 and 1.5, again at 2 and 2.5.
+        m = mixer();
+        m.metronomeStart(120, new int[] {2, 0}, 0.8);
+        m.metronomeExercise(1, 1, 0, 0, 0);
+        List<Integer> on = onsets(render(m, 2.6)[0]);
+        // (Strong click to strong click, which find their onsets alike.)
+        boolean gap = on.size() == 4 && Math.abs(on.get(2) - on.get(0) - 96000) <= 1;
+        check(gap, "silent bars: a bar of clicks, a bar of none, then clicks again (" + on + ")");
+        check(m.metronomeClock()[1] == 6, "the silent bar's beats are still counted");
+        // The trainer: 2/4 from 120, up 60 every bar to 240 at most.
+        m = mixer();
+        m.metronomeStart(120, new int[] {2, 0}, 0.8);
+        m.metronomeExercise(0, 0, 60, 1, 240);
+        on = onsets(render(m, 2.0)[0]);
+        boolean ramp = on.size() >= 5 && Math.abs(on.get(2) - on.get(0) - 48000) <= 1 && Math.abs(on.get(4) - on.get(2) - 32000) <= 1;
+        check(ramp, "the trainer: a bar at 120, then a bar at 180 (" + on + ")");
+        render(m, 3.0);
+        check(m.metronomeClock()[3] == 0.25, "and no faster than its target (" + m.metronomeClock()[3] + " s a beat)");
+        // A new start forgets them.
+        m.metronomeStart(120, new int[] {2, 0}, 0.8);
+        on = onsets(render(m, 2.6)[0]);
+        check(on.size() == 6, "starting again plays plainly until told otherwise (" + on.size() + " clicks)");
     }
 
     static void droneStopQuick() {

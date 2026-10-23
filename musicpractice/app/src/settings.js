@@ -86,11 +86,17 @@ export const DEFAULTS = Object.freeze({
   subdivision: 1, // clicks per beat: 1 quarter notes, 2 eighths, 3 triplets, 4 sixteenths (subOn ? subKind : 1)
   subOn: false, // Add eighth notes (or triplets, sixteenths)
   subKind: 2, // which: 2 eighths, 3 triplets, 4 sixteenths, kept while off
-  accentPattern: null,
+  accentPattern: null, // custom strong beats for the current time signature: { meter, pos } (cleanPattern)
+  // Volume per beat (the strong beats' sheet): positions played soft or not at all, for the current time signature: { meter, soft, silent } (cleanLevels)
+  beatLevels: null,
+  // Silent bars: play `play` bars, then `silent` bars with no clicks, over and over.
+  gap: { on: false, play: 2, silent: 2 },
+  // Tempo trainer: from the tempo set, `step` beats per minute every `every` bars until `to`.
+  trainer: { on: false, step: 2, every: 4, to: 140 },
   tempoGenre: 'classical', // the tempo picker's style, which also names the tempo under the number
   tempoPicked: null, // the name last chosen in the picker (its id), which keeps its name for a tempo two names share
   savedTempos: [], // the player's own tempos (the tempo picker's Saved): [{ id, name, bpm, meter }] (cleanSavedTempos)
-  tempoDefaults: {}, // a named tempo's button, where one was chosen from its list: { 'jazz:ballad': 66 } // custom strong beats for the current time signature: { meter, pos } (cleanPattern)
+  tempoDefaults: {}, // a named tempo's button, where one was chosen from its list: { 'jazz:ballad': 66 }
   swing: true, // the pendulum swings on each beat (a tap on the metronome turns it on or off)
   // Under the metronome (a tap there moves to the next): 'dots' (a small dot
   // per beat), 'big' (big dots that swell and glow on each beat, to be seen
@@ -254,6 +260,9 @@ export function sanitize(raw) {
     tempoDefaults: cleanTempoDefaults(s.tempoDefaults),
     savedTempos: cleanSavedTempos(s.savedTempos),
     accentPattern: cleanPattern(s.accentPattern, oneOf(s.meter, METERS.map((m) => m.id), DEFAULTS.meter)),
+    beatLevels: cleanLevels(s.beatLevels, oneOf(s.meter, METERS.map((m) => m.id), DEFAULTS.meter)),
+    gap: cleanGap(s.gap),
+    trainer: cleanTrainer(s.trainer),
     ...metronomeLook(s),
     vizBars: oneOf(s.vizBars, VIZ_BARS, DEFAULTS.vizBars),
     droneMidi: clamp(Math.round(num(s.droneMidi, DEFAULTS.droneMidi)), 24, 71), // C1 to B4 (drone.js DRONE_MIN, DRONE_MAX)
@@ -339,24 +348,64 @@ export function cleanPattern(p, meterId) {
   return pos.length && !(pos.length === 1 && pos[0] === 0) ? { meter: meterId, pos } : null;
 }
 
+/** Click kinds past the strengths (0-2) and SUB (3, metronome.js): a soft click, and none. */
+export const SOFT = 4;
+export const SILENT = 5;
+
+/** Volume per beat: positions (as in cleanPattern) played soft or silent; null when there are none. */
+export function cleanLevels(v, meterId) {
+  if (!v || typeof v !== 'object' || v.meter !== meterId) return null;
+  const max = meterOf(meterId).beats * TICKS;
+  const list = (a) => (Array.isArray(a) ? [...new Set(a.filter((p) => Number.isInteger(p) && p >= 0 && p < max))].sort((x, y) => x - y) : []);
+  const silent = list(v.silent);
+  const soft = list(v.soft).filter((p) => !silent.includes(p));
+  return soft.length || silent.length ? { meter: meterId, soft, silent } : null;
+}
+
+export const GAP_MAX = 16;
+export function cleanGap(v) {
+  const n = (x, d) => clamp(Math.round(num(x, d)), 1, GAP_MAX);
+  return { on: v?.on === true, play: n(v?.play, DEFAULTS.gap.play), silent: n(v?.silent, DEFAULTS.gap.silent) };
+}
+
+export const TRAINER_STEP_MAX = 20;
+export const TRAINER_EVERY_MAX = 32;
+export function cleanTrainer(v) {
+  return {
+    on: v?.on === true,
+    step: clamp(Math.round(num(v?.step, DEFAULTS.trainer.step)), 1, TRAINER_STEP_MAX),
+    every: clamp(Math.round(num(v?.every, DEFAULTS.trainer.every)), 1, TRAINER_EVERY_MAX),
+    to: clampBpm(num(v?.to, DEFAULTS.trainer.to)),
+  };
+}
+
+/** The next tempo the trainer moves to from `bpm` (toward `to`, `step` at a time). */
+export function trainerNext(bpm, { step, to }) {
+  return bpm < to ? Math.min(to, bpm + step) : bpm > to ? Math.max(to, bpm - step) : bpm;
+}
+
 /**
  * Everything the metronome plays in a bar: `strengths`, one per beat (what
  * the pendulum, lamp, dots and Visualizer show: 2 strong, 1 secondary, 0
  * not), and `slots`, the click for every position the clicks fall on (beat
  * by beat, `subdivision` each: 0-2 as strengths, 3 the quieter click between
- * beats), or null where the plain rules give it (no custom pattern).
+ * beats, SOFT a soft click, SILENT none), or null where the plain rules give
+ * it (no custom strong beats and no volume per beat).
  */
-export function barPlan({ meter, accent, subdivision = 1, accentPattern = null }) {
+export function barPlan({ meter, accent, subdivision = 1, accentPattern = null, beatLevels = null }) {
   const m = meterOf(meter);
   const pattern = accent ? cleanPattern(accentPattern, meter) : null;
-  if (!pattern) return { strengths: beatStrengths(meter, accent), slots: null };
-  const on = new Set(pattern.pos);
-  const strengths = Array.from({ length: m.beats }, (_, b) => (on.has(b * TICKS) ? 2 : 0));
+  const levels = cleanLevels(beatLevels, meter);
+  if (!pattern && !levels) return { strengths: beatStrengths(meter, accent), slots: null };
+  const on = pattern ? new Set(pattern.pos) : null;
+  const strengths = pattern ? Array.from({ length: m.beats }, (_, b) => (on.has(b * TICKS) ? 2 : 0)) : beatStrengths(meter, accent);
+  const soft = new Set(levels?.soft);
+  const silent = new Set(levels?.silent);
   const slots = [];
   for (let b = 0; b < m.beats; b++) {
     for (let k = 0; k < subdivision; k++) {
       const at = b * TICKS + (k * TICKS) / subdivision;
-      slots.push(k === 0 ? strengths[b] : on.has(at) ? 2 : 3);
+      slots.push(silent.has(at) ? SILENT : soft.has(at) ? SOFT : k === 0 ? strengths[b] : on?.has(at) ? 2 : 3);
     }
   }
   return { strengths, slots };
