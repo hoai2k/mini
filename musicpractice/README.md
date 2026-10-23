@@ -112,8 +112,15 @@ and pendulum weight.
 A theme is three things: a `THEMES` entry in `app/src/settings.js` with its
 fonts and the mode it was designed in (the early script in `index.html` lists
 the ids and the dark ones too; a test checks they match), its colours, type and
-shapes in `app/styles.css` (`[data-theme="…"]`, with a
+shapes in `app/styles.css` (one section per theme holding all of it: its
+`[data-theme="…"]` block, its controls and Visualizer bars, and its
 `[data-theme="…"][data-mode="…"]` block for its other mode), and its images.
+A theme restyles the shared controls (`.pill`, `.chip`, `.select`,
+`.big-btn`, `.step`) through `:where([data-theme="…"])`, so its rule weighs
+no more than the control's own and a component's variant of a control still
+wins (the strong beats' Done button was once lost to every theme's pill
+style); where a theme wants a component's control its own way, it names that
+component (the note at the top of the themes in `styles.css`).
 A theme's own rules take their colours from its tokens (`--teal`, `--lacquer`,
 `--arrow` for the dropdown arrow and so on) rather than writing them in, so
 the other mode's block only has to change the tokens. Every image
@@ -1113,7 +1120,7 @@ node test/browser/flows.mjs
 ```
 
 - `readability.mjs` opens every screen and every sheet or dialog the way a
-  person does (26 views, `VIEWS`) in every theme in both modes, and checks
+  person does (27 views, `VIEWS`) in every theme in both modes, and checks
   each piece of text: 4.5:1 against what is behind it (3:1 large), at least
   12.5px. It found 143 failures the first time it ran, which the settings-
   only check had never seen.
@@ -1121,12 +1128,25 @@ node test/browser/flows.mjs
   list (the edit pill, the total's tap, one row height, dragging from a
   name, swiping off, items of their own and names that match a suggestion),
   a routine running (tools waiting for the voice, carrying on or stopping,
-  a real 15-second break, Skip, pause when done), strong beats heard as they
-  are set, and a saved theme that no longer exists.
+  a real 15-second break, Skip, pause when done), the metronome (+ and −,
+  a typed tempo, Start and Stop, common tempos, the dots' views, the swing,
+  3/4 and eighths, the sync bar, dragging the weight), strong beats heard as
+  they are set, the microphone with a player at it (a synthesized note
+  makes a take, which plays back and is kept after a reload, and the tuner
+  reads A3), and a saved theme that no longer exists.
+- `visual.mjs` pictures every still screen and sheet (25) in every theme
+  and mode, `--save <dir>` before a change to the styles and `--compare
+  <dir>` after: a refactor of `styles.css` should change nothing (a few
+  stray antialiased pixels are allowed), and pictures that differ are saved
+  beside the originals to look at. Animation is off, fonts and pictures are
+  waited for and canvases masked, so the same page draws the same picture.
+  Not part of `run.mjs` (it needs a picture from before).
 
 `lib.mjs` finds Playwright (node_modules, `/opt/node-tools`, or global),
-serves `app/` as it is (no build step) and opens pages in a theme and mode
-with a fake microphone.
+serves `app/` as it is (no build step), answers Google Fonts with the apps'
+bundled fonts (`mobile/fonts/`: the same fonts every run, no network) and
+opens pages in a theme and mode with a fake microphone (or a WAV of a
+player, `playerWav`).
 
 The iOS and Android apps (`mobile/`) aren't rebuilt or tested for ordinary
 changes to the web app; they pick the changes up at their next `npm run sync`.

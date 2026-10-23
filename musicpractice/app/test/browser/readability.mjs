@@ -16,6 +16,7 @@ const settings = (button) => async (p) => { await click(p, '#app-settings-btn');
 export const VIEWS = [
   ['home', '', null, 'home'],
   ['metronome', '#metronome', null, 'metronome'],
+  ['metronome visualizer', '#metronome', async (p) => { await click(p, '#met-foot'); await click(p, '#met-foot'); await p.waitForTimeout(900); }, 'metronome'],
   ['metronome playing', '#metronome', (p) => click(p, '#met-toggle'), 'metronome'],
   ['tuner', '#tuner', null, 'tuner'],
   ['drone', '#drone', null, 'drone'],

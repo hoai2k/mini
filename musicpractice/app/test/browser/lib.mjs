@@ -4,7 +4,7 @@
 // a chosen theme and mode with a fake microphone.
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { extname, join, normalize } from 'node:path';
 import { execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -12,6 +12,9 @@ import { fileURLToPath } from 'node:url';
 import { THEMES as APP_THEMES } from '../../src/settings.js';
 
 export const APP = fileURLToPath(new URL('../../', import.meta.url));
+// The themes' fonts as the apps bundle them (mobile/fonts/), served in place
+// of Google Fonts: the same fonts every run, with no network.
+const FONTS = fileURLToPath(new URL('../../../mobile/fonts/', import.meta.url));
 
 async function playwright() {
   for (const name of ['playwright-core', 'playwright']) {
@@ -33,8 +36,10 @@ function serve(dir) {
   const server = createServer(async (req, res) => {
     let path = decodeURIComponent(new URL(req.url, 'http://x').pathname);
     if (path.endsWith('/')) path += 'index.html';
-    const file = normalize(join(dir, path));
-    if (!file.startsWith(normalize(dir))) { res.writeHead(403).end(); return; }
+    const root = path.startsWith('/__fonts/') ? FONTS : dir;
+    if (root === FONTS) path = path.slice('/__fonts'.length);
+    const file = normalize(join(root, path));
+    if (!file.startsWith(normalize(root))) { res.writeHead(403).end(); return; }
     try {
       if ((await stat(file)).isDirectory()) { res.writeHead(404).end(); return; }
       res.writeHead(200, { 'Content-Type': TYPES[extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
@@ -54,6 +59,8 @@ export async function start({ micFile } = {}) {
       ...(micFile ? [`--use-file-for-fake-audio-capture=${micFile}`] : [])],
   });
   const site = await serve(APP);
+  const fontCss = readdirSync(FONTS).filter((f) => f.endsWith('.css')).map((f) => readFileSync(join(FONTS, f), 'utf8')).join('\n')
+    .replaceAll('url(files/', `url(${new URL('/__fonts/files/', site.url)}`);
   return {
     base: site.url,
     /** A page in `theme` and `mode` ('light', 'dark' or 'default'), as a phone (touch) or a desktop. */
@@ -65,6 +72,8 @@ export async function start({ micFile } = {}) {
         localStorage.setItem('musicpractice.settings.v1', JSON.stringify({ theme: t, themeChosen: true, ...(m === 'default' ? {} : { appearance: m, appearanceChosen: true }) }));
         if (routine) localStorage.setItem('musicpractice.routine.v1', JSON.stringify(routine));
       }, [theme, mode, timer || null]);
+      // Google Fonts' stylesheet, answered with every theme's bundled faces.
+      await ctx.route(/^https:\/\/fonts\.(googleapis|gstatic)\.com\//, (route) => route.fulfill({ contentType: 'text/css', body: fontCss }));
       const p = await ctx.newPage();
       p.errors = [];
       p.on('pageerror', (e) => p.errors.push(e.message));
