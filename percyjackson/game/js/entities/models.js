@@ -9,6 +9,7 @@ import { hashStr, mulberry32 } from '../util.js';
 import { heroHair, heroTail, cellMesh, partMaterial, partsMesh, footwear, band, beads, tatters, sleeveTatters } from './herovox.js';
 import { resFor } from './parts.js';
 import { markHeadCore, reshape, applyShape, markHeadwear } from './proportions.js';
+import { dressHero } from './gear/equip.js';
 
 export const CAMP_ORANGE = 0xf28c28;
 const INK = 0x17130f;
@@ -431,26 +432,41 @@ function fleeceCollar(rig, color) {
   rig.torso.add(g); return g;
 }
 
-// Add grid-voxel hair (and a swinging ponytail of curls) to a rig.
-function addHair(rig, look) {
-  const hm = partMaterial();
+// Add grid-voxel hair (and a swinging ponytail of curls) to a rig. cut: the
+// hair cut to fit under gear on the head (gear/armour.js: 'helmet', 'hood',
+// 'cap'); called again with another cut, it swaps the hair (gear/equip.js).
+const hairCells = new Map();
+function addHair(rig, look, cut = null) {
+  const old = rig.extras.hair;
+  if (old) { old.removeFromParent(); const i = rig.meshes.indexOf(old); if (i >= 0) rig.meshes.splice(i, 1); old.geometry.dispose(); }
+  const hm = rig.hairMat ??= partMaterial();
   const hs = (rig.dims.headS / 8) * 1.12;
   // (a hero drawn bigger, Tyson, gets finer hair cells: look.hairRes)
-  const { cells, solid, res } = heroHair({ ...look.vox, res: look.hairRes ?? 1 });
+  const opts = { ...look.vox, res: look.hairRes ?? 1, ...(cut ? { [cut]: true } : {}) };
+  const key = JSON.stringify(opts);
+  if (!hairCells.has(key)) hairCells.set(key, heroHair(opts));
+  const { cells, solid, res } = hairCells.get(key);
   const mesh = cellMesh(cells, PX * hs / res, hm, solid);
   mesh.userData.baseMat = hm; rig.meshes.push(mesh); rig.head.add(mesh);
-  rig.extras.hair = mesh;
-  if (look.tail) {
+  rig.extras.hair = mesh; rig.hairCut = cut;
+  if (look.tail && !old) {
     const piv = new THREE.Group(); piv.position.set(0, 7.6 * PX * hs, -4.2 * PX * hs);
     const tail = cellMesh(heroTail({ ...look.tail, seed: look.vox.seed + 1 }), PX * hs, hm);
     tail.userData.baseMat = hm; rig.meshes.push(tail); piv.add(tail); rig.head.add(piv);
     rig.strands.push({ g: piv, ax: 0, az: 0, vx: 0, vz: 0, stiff: 26, base: [0, 0] });
   }
 }
-// Shoes, cuffs, beads and the rest of the outfit's block detail.
-function addOutfit(rig, o) {
-  const m = partMaterial();
-  const put = (parent, list) => { if (!list.length) return; const mesh = partsMesh(list, m); mesh.userData.baseMat = m; rig.meshes.push(mesh); parent.add(mesh); };
+// Shoes, cuffs, beads and the rest of the outfit's block detail. lists:
+// keep the blocks per bone (rig.outfitLists) for gear/equip.js to draw with
+// the armour, one mesh a bone; else a mesh a bone now (the NPCs).
+function addOutfit(rig, o, { lists = false } = {}) {
+  const m = lists ? null : partMaterial(), out = lists ? (rig.outfitLists = {}) : null;
+  const put = (parent, list) => {
+    if (!list.length) return;
+    if (lists) { out[BONE_OF.get(parent)] = list.map((b) => ({ at: b.at, size: b.size, c: b.col, f: 'outfit' })); return; }
+    const mesh = partsMesh(list, m); mesh.userData.baseMat = m; rig.meshes.push(mesh); parent.add(mesh);
+  };
+  const BONE_OF = new Map([[rig.legR, 'legR'], [rig.legL, 'legL'], [rig.armR, 'armR'], [rig.armL, 'armL'], [rig.torso, 'torso']]);
   for (const [i, leg] of [rig.legR, rig.legL].entries()) {
     const L = [];
     if (o.footwear) L.push(...footwear(o.footwear.kind, { ...o.footwear, seed: (o.footwear.seed ?? 1) + i }));
@@ -473,7 +489,9 @@ function addOutfit(rig, o) {
   put(rig.torso, T);
 }
 
-export function buildHeroModel(id) {
+// gear: { weapon, armor, tier } item ids (gear/equip.js dressHero; gearOf
+// reads them from a hero's equipped items), or none: the hero's own look.
+export function buildHeroModel(id, gear = null) {
   const look = HERO_LOOKS[id] ?? HERO_LOOKS.percy;
   // a hero drawn bigger than the others (Tyson) gets a finer skin, so his
   // texels stay the size of everyone else's (parts.js resFor)
@@ -483,7 +501,7 @@ export function buildHeroModel(id) {
   const material = makeCharMaterial(map, { emitStrength: 0 });
   material.alphaTest = 0.5;
   const rig = new Rig({ material, scale: look.scale ?? 1.18, headS: look.headS });
-  if (look.outfit) addOutfit(rig, look.outfit);
+  if (look.outfit) addOutfit(rig, look.outfit, { lists: true });
   // longer legs (look.legH): the leg, its skin box and its shoes, drawn longer (proportions.js)
   if (look.legH) {
     for (const g of [rig.legR, rig.legL]) reshape(rig, g, [1, look.legH / rig.dims.legH, 1]);
@@ -540,8 +558,12 @@ export function buildHeroModel(id) {
   }
   // (each limb's skin box and its overlay, and the blocks of a held weapon,
   // drawn as one mesh a material: a hero went from 24-54 meshes to about half)
-  for (const b of [rig.torso, rig.head, rig.armR, rig.armL, rig.legR, rig.legL, rig.extras.weapon, rig.extras.pipes]) mergeChildren(rig, b);
-  rig.look = look;
+  for (const b of [rig.torso, rig.head, rig.armR, rig.armL, rig.legR, rig.legL, rig.extras.weapon, rig.extras.pipes, rig.extras.helmet, rig.extras.cap, rig.extras.shield]) mergeChildren(rig, b);
+  rig.look = look; rig.heroId = id;
+  // the gear (gear/equip.js): the signature weapon to put back, the hair to recut, then dressed
+  rig.signature = { weapon: rig.extras.weapon ?? null, hand: rig.handR, pipes: rig.extras.pipes ?? null };
+  rig.rebuildHair = (cut) => { if (look.vox) addHair(rig, look, cut); };
+  dressHero(rig, gear ?? {});
   return rig;
 }
 

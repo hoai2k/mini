@@ -235,6 +235,11 @@ export class Online {
     if (a?.type) e.a = a.type;
     const st = a?.style ?? a?.step?.style; if (st) e.s = st;
     if (p.dodgeT > 0) e.r = 1;
+    // what the hero wears (gear/equip.js; nothing for the hero's own weapon and clothes)
+    const G = p.rig?.gear;
+    if (G?.weapon) e.gw = G.weapon;
+    if (G?.armor) e.ga = G.armor;
+    if (G?.weapon && G.tier === 'heroic') e.gt = 'h';
     return e;
   }
 
@@ -334,6 +339,9 @@ export class Online {
       R.p.ai = e.ai; R.p.remote.missing = false;
       R.track.push({ t: T, x: e.x, y: e.y, z: e.z, f: e.f, vx: e.vx, vy: e.vy, vz: e.vz });
       const p = R.p;
+      // dressed as its owner dressed it (an unknown id: the hero's own look)
+      const gk = `${e.gw ?? ''}|${e.ga ?? ''}|${e.gt ?? ''}`;
+      if (R.gearKey !== gk) { R.gearKey = gk; p.dress?.(null, { weapon: e.gw, armor: e.ga, tier: e.gt }); }
       if (e.hp < p.hp - 0.5 && !e.d) R.flashT = 0.12;
       p.hp = e.hp; p.maxHp = e.mh; p.ce = e.c;
       p.downed = e.d === 1; p.dead = e.d === 2;

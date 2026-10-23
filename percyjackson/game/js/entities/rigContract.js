@@ -100,6 +100,16 @@
 //     <slot>Parts / <slot>Glow); parts.hat its own mesh on the head marked as
 //     headwear; parts.skirt the skirt panels; a hand slot is markTip'd
 //     (def.tip) or markHeld.
+// Hero gear (entities/gear/: equip.js dressHero, weapons.js, armour.js,
+//     gearmesh.js): rig.gear = { weapon, armor, family, tier } what the hero
+//     wears (null: the hero's own weapon and clothes); rig.extras.weapon the
+//     weapon in handR (markTip, label the item id), rig.extras.weaponL the
+//     left of a pair; rig.extras.headgear a helmet, hood or hat (markHeadwear);
+//     rig.restyle(style) the combo's attack style re-posed for the weapon's
+//     family (character.js attackPose); rig.twoHand the left hand on the haft
+//     (idle carry and swings); rig.skirt and rig.cape set by the armour; every
+//     gear mesh carries userData.gearBoxes (its box list, perf/gear.cjs) and
+//     rig.gearParts lists what dressHero hung on, taken off on the next change.
 // rig.isQuad / rig.isSerpent   QuadRig / SerpentRig: the checks branch on
 //     them (no arms, the jaw as hands, legs on the torso).
 // rig.headMesh   the head's skin cube (bodysize.cjs's fallback head).
@@ -116,9 +126,9 @@ export { markTip, markHeld, groundLying, markHeadCore, markHeadwear, keepAbove }
 export const RIG_KINDS = ['hero', 'npc', 'monster', 'boss', 'champion', 'mortal', 'person'];
 export const KIND_OF_GROUP = { heroes: 'hero', npcs: 'npc', monsters: 'monster', bosses: 'boss', champions: 'champion', mortals: 'mortal', people: 'person' };
 // rig.extras keys that name a weapon (it must carry a tip, or be marked held)
-export const WEAPON_KEYS = ['weapon', 'sword', 'spear', 'club', 'axe', 'blade', 'gun', 'hammer', 'arrow'];
+export const WEAPON_KEYS = ['weapon', 'weaponL', 'sword', 'spear', 'club', 'axe', 'blade', 'gun', 'hammer', 'arrow'];
 // rig.extras keys that name headwear (marked, so the size checks leave it out)
-export const HEADWEAR_KEYS = ['helmet', 'cap', 'crown', 'hat', 'crest', 'plume'];
+export const HEADWEAR_KEYS = ['helmet', 'cap', 'crown', 'hat', 'crest', 'plume', 'headgear'];
 // rig.extras keys animateExtras moves every frame (they need rig.tick)
 export const ANIMATED_KEYS = ['wings', 'tails', 'snakes', 'sway', 'flameHair', 'key', 'tongue', 'breath'];
 

@@ -96,7 +96,7 @@ class TysonKit extends Kit {
         }
       }
       if (sh) sh.scale.setScalar(Math.min(1, (this.shieldMax - this.shieldT) * 8, this.shieldT * 6 + 0.05));
-      if (this.shieldT <= 0) { if (sh) sh.visible = false; if (g.pjShield?.owner === p) g.pjShield = null; }
+      if (this.shieldT <= 0) { if (sh) sh.visible = false; if (p.rig.extras.weaponL) p.rig.extras.weaponL.visible = true; if (g.pjShield?.owner === p) g.pjShield = null; }
     }
     if (this.ironT > 0) { this.ironT -= dt; if (Math.random() < dt * 10) g.particles.glow.emit(p.pos.x + (Math.random() - 0.5) * 1.1, p.pos.y + Math.random() * 2.4, p.pos.z + (Math.random() - 0.5) * 1.1, 0, 0.4, 0, 0.5, 1.6, 1.2, 0.7, 0.14, 0, 1, 0.1, 3); }
     // Forge Fire glow
@@ -199,6 +199,7 @@ class TysonKit extends Kit {
     this.shieldMax = this.shieldT = 3 + this.rank('shield_up');
     g.pjShield = { owner: p, until: g.time + this.shieldT };
     const sh = p.rig.extras.shield; if (sh) { sh.visible = true; sh.scale.setScalar(0.05); }
+    if (p.rig.extras.weaponL) p.rig.extras.weaponL.visible = false;   // (the shield takes the left hand: a second knife waits)
     this.cast(0.3, false, { moveScale: 0.6 });
     g.fx.rings.spawn(tmp.set(p.pos.x, p.pos.y + 1.3, p.pos.z), { color: BRONZE, r0: 0.2, r1: 1.4, dur: 0.25, thick: 0.25 });
     g.audio?.tone({ freq: 300, to: 1200, dur: 0.15, gain: 0.1, type: 'square', filter: 2500 });
@@ -319,6 +320,7 @@ class TysonKit extends Kit {
     super.dispose();
     if (this.growing) this.growEnd(this.game);
     const sh = this.p.rig.extras.shield; if (sh) sh.visible = false;
+    if (this.p.rig.extras.weaponL) this.p.rig.extras.weaponL.visible = true;
     if (this.game.pjShield?.owner === this.p) this.game.pjShield = null;
   }
 }

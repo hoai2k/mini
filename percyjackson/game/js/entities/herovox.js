@@ -75,16 +75,18 @@ export const HAIR = {
   messy: { c: [0, 7.3, -0.5], r: [6.2, 5.4, 6.3], bump: 0.34, fringe: 5, jag: 1.6, side: 2.6, back: 0.6, tuft: 0.16, spike: 0.04 },
 };
 
-// opts: { style, base, shade, light, warm?, seed, cap?, helmet? }
+// opts: { style, base, shade, light, warm?, seed, cap?, helmet?, hood? }
+// (cap, helmet, hood: the hair cut to fit under it; a hood leaves only the fringe)
 // shape: overrides for the style's numbers (e.g. { fringe: 7.6 } to lift a fringe).
 // beard: { length, mouth } adds a full voxel beard (head pixels below the chin, the mouth's row).
 // res: cells per head pixel (1 for a hero; a character drawn bigger than a
 // hero takes res > 1, so its hair is made of more, smaller cubes, parts.js
 // voxel density). The cells come back on that finer grid: draw them with
 // cellMesh(cells, unit / res, ..., solid).
-export function heroHair({ style, base, shade, light, warm = null, seed = 1, cap = false, helmet = false, shape = null, beard = null, res = 1 }) {
+export function heroHair({ style, base, shade, light, warm = null, seed = 1, cap = false, helmet = false, hood = false, shape = null, beard = null, res = 1 }) {
   const S = { ...(HAIR[style] ?? HAIR.mop), ...shape };
   if (cap && S.top == null) S.top = 8;
+  if (hood) S.hood = true;
   if (helmet && S.top == null) { S.top = 7; S.helmetFront = true; }
   const r = mulberry32(seed);
   const tones = [new THREE.Color(shade), new THREE.Color(base), new THREE.Color(light)];
@@ -98,6 +100,7 @@ export function heroHair({ style, base, shade, light, warm = null, seed = 1, cap
   const inHeadC = (x, y, z) => x >= -4 && x < 4 && y >= 0 && y < 8 && z >= -4 && z < 4;
   const blocked = (x, y, z) => {
     if (inHeadC(x, y, z)) return true;
+    if (S.hood && (z < 3 || z > 5.2 || Math.abs(x) > 3.8 || y > 7.6)) return true;   // under a hood (gear/armour.js): only the fringe in the face's opening
     if (S.top != null && y > S.top + (z < -2 ? 0.6 : 0)) return true;
     if (S.helmetFront && z > 1.5 && y > 4.6) return true;               // the helmet's cheek guards
     if (Math.abs(x) < 4 && z > 3.6 && y < fr(x)) return true;            // keep the face clear

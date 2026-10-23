@@ -2,7 +2,9 @@
 //   • Top: the hero's level, drachmas, enchantment points and Power (the
 //     average power of what the hero wears); whose gear (your hero, or
 //     playing alone a companion).
-//   • Left: the four slots the hero wears, tabs by kind (with counts) and the
+//   • Left: the hero in their gear (a turning 3D view, ui/heroPreview.js: an
+//     item chosen in the stash is tried on), the four slots the hero wears,
+//     tabs by kind (with counts) and the
 //     stash, new finds first (they glow), then the strongest, then the most
 //     recent (loot.js sortItems). A green ▲ marks an item stronger than what
 //     it would replace; a coloured dot an item another hero wears.
@@ -21,6 +23,8 @@ import { h, toast, confirmDialog } from './ui.js';
 import { HEROES } from '../heroes/index.js';
 import { BLESSED, ENCHANTS, KIND_LABEL, itemInfo, itemRarity, itemTier, salvageValue, enchCost, spentPoints, gearStats, temperCost, rerollCost, rerollRow, sortItems, slotFor, isUpgrade, TEMPER_STEP, boonName, boonText, reforgeCost, reforgeTarget, canReforge, reforge, isOutdated } from '../loot.js';
 import { iconNode } from './icons.js';
+import { heroPreview } from './heroPreview.js';
+import { gearOf } from '../entities/gear/equip.js';
 import { temperCap } from '../progression.js';
 import { flaskCooldown, quiverMax } from '../resources.js';
 import { t as tx, tn } from '../text_config.js';
@@ -234,6 +238,16 @@ export function openInventory(game, player, { forge = false } = {}) {
     // opening: the top of the stash (the newest, strongest find) is chosen and focused
     if (items.length && sel == null) grid.firstChild.setAttribute('data-autofocus', '');
     const detail = h('div', { class: 'detail', 'aria-live': 'polite' });
+    // the hero in their gear (ui/heroPreview.js), with a weapon or armour chosen in the stash tried on
+    const preview = () => {
+      const g = gearOf(cur), it = sel ? save.item(sel) : null, b = it && itemInfo(it);
+      let tryOn = null;
+      if (it && !gear.includes(it.uid) && (b.kind === 'weapon' || b.kind === 'armor')) {
+        if (b.kind === 'weapon') { g.weapon = b.id; g.tier = itemTier(it); } else g.armor = b.id;
+        tryOn = tx('inventory.tryingOn');
+      }
+      return heroPreview(who.hero, g, { tryOn, label: tx('inventory.previewLabel', { hero: HEROES[who.hero].name }) });
+    };
 
     // ---- the detail panel
     const enchLine = (id, level, extra = null, cls = '') => {
@@ -244,6 +258,7 @@ export function openInventory(game, player, { forge = false } = {}) {
         h('div', { class: 'ed' }, E.desc(level)));
     };
     showDetail = () => {
+      preview();
       for (const t of el.querySelectorAll('.item.selected')) t.classList.remove('selected');
       const it = sel ? save.item(sel) : null;
       for (const t of el.querySelectorAll('.item')) if (it && t.dataset.k === 'it-' + it.uid) t.classList.add('selected');
@@ -336,7 +351,7 @@ export function openInventory(game, player, { forge = false } = {}) {
       forge ? h('div', { class: 'hint', style: 'margin:0 0 6px' }, tx('forge.help')) : null,
       heroRow,
       h('div', { class: 'inv' },
-        h('div', { class: 'inv-left' }, h('h3', {}, tx('inventory.equipped', { hero: HEROES[who.hero].name })), eqRow, tabs, h('div', { class: 'hint small' }, tx('inventory.sortHint')), grid),
+        h('div', { class: 'inv-left' }, h('h3', {}, tx('inventory.equipped', { hero: HEROES[who.hero].name })), h('div', { class: 'inv-hero' }, preview(), eqRow), tabs, h('div', { class: 'hint small' }, tx('inventory.sortHint')), grid),
         detail),
       h('div', { class: 'inv-foot' }, h('div', { class: 'hint' }, tx(`inventory.hints.${hintKey}`)), h('button', { class: 'btn', 'data-k': 'close', onclick: close }, tx('inventory.close')))));
   }, {

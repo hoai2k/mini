@@ -14,7 +14,7 @@
 // (character.js makeCharMaterial), so a hit flash, the Helm of Darkness's
 // fade and an elite glow cover the gear as they cover the hero.
 import * as THREE from 'three/webgpu';
-import { attribute, vertexColor, vec3, mix, screenCoordinate, interleavedGradientNoise, float } from 'three/tsl';
+import { attribute, vertexColor, vec3, mix, screenCoordinate, interleavedGradientNoise } from 'three/tsl';
 import { PX } from '../character.js';
 
 // [roughness, metalness, glow]
@@ -22,6 +22,7 @@ export const FINISH = {
   cloth: [0.92, 0, 0], leather: [0.68, 0, 0], fur: [1, 0, 0], wood: [0.8, 0, 0], bone: [0.55, 0, 0.02],
   metal: [0.34, 0.78, 0.04], gold: [0.28, 0.9, 0.08], silver: [0.24, 0.85, 0.06], iron: [0.42, 0.7, 0],
   gem: [0.18, 0.2, 0.5], glow: [0.6, 0, 1.6], ember: [0.7, 0, 0.9],
+  outfit: [0.8, 0, 0],   // (the heroes' own shoes, cuffs and beads: herovox.js, as their material drew them)
 };
 
 // one material per hero skin material (its uniforms), one shader for all
@@ -37,10 +38,9 @@ function make(u) {
   const m = new THREE.MeshStandardNodeMaterial({ vertexColors: true, roughness: 0.8, metalness: 0 });
   const gm = attribute('gm', 'vec3'), vc = vertexColor();
   m.roughnessNode = gm.x; m.metalnessNode = gm.y;
-  const glow = vc.mul(gm.z).add(vc.mul(0.06));
+  const glow = vc.mul(gm.z);
   m.emissiveNode = u ? mix(glow.add(u.glow), vec3(2.2, 2.2, 2.2), u.flash) : glow;
   if (u) m.maskNode = interleavedGradientNoise(screenCoordinate.xy).greaterThan(u.dissolve);
-  else m.maskNode = float(1).greaterThan(0);
   m.name = 'gear';
   return m;
 }

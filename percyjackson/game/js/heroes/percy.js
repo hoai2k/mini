@@ -20,6 +20,7 @@ import { Kit, makeDisc, zap, stun, mark } from './kit.js';
 import { registerKit } from './index.js';
 import { RANGED, lifeOf } from '../combatRules.js';
 import { buildRiptide } from '../entities/models.js';
+import { heldWeaponModel } from '../entities/gear/equip.js';
 import { U } from '../gfx/materials.js';
 
 const SEA = 0x2fd0d8, DEEP = 0x0f6f73, FOAM = 0xc8f6ff, BRONZE = 0xe8b850;
@@ -206,7 +207,8 @@ class PercyKit extends Kit {
     p.facing = Math.atan2(p.aimDir.x, p.aimDir.z);
     const L = 10 + rk * 1.5, dmg = 22 + rk * 8;
     const dir = p.aimDir.clone().setY(0).normalize();
-    const blade = buildRiptide(); blade.position.set(0, 0, 0); blade.scale.setScalar(1.6);
+    // (the weapon he holds: Riptide, or the equipped weapon, gear/equip.js)
+    const blade = heldWeaponModel(p.rig, buildRiptide); blade.position.set(0, 0, 0); blade.scale.setScalar(1.6);
     const spin = new THREE.Group(); spin.add(blade); blade.position.z = -0.35;
     spin.position.copy(this.handPos());
     g.scene.add(spin);
@@ -235,8 +237,9 @@ class PercyKit extends Kit {
         tmp.subVectors(from, pos); const d = tmp.length();
         const sp = 26 + t * 30;
         if (d < sp * dt + 0.4) {
-          g.scene.remove(spin); g.lights.remove(light);
+          g.scene.remove(spin); g.lights.remove(light); spin.traverse((o) => o.geometry?.dispose());
           if (held) held.visible = true;
+          if (p.rig.extras.weapon) p.rig.extras.weapon.visible = true;   // (gear changed while it flew: the new weapon)
           this.thrown = false;
           g.particles.burst(from, { count: 10, color: BRONZE, speed: 3, life: 0.3, size: 0.1, shape: 3 });
           g.audio?.tone({ freq: 1400, to: 1800, dur: 0.12, gain: 0.06, type: 'triangle' });

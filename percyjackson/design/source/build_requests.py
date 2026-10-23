@@ -1587,6 +1587,108 @@ REQUESTS += [
 ]
 
 
+# ---- Round 7: gear on the heroes (game/js/entities/gear/). Every weapon a hero
+# equips is drawn in their hand and every armour changes their outfit, as in
+# Minecraft Dungeons; the models are procedural stand-ins (weapons.js,
+# armour.js) until these sheets fix the look. Concept sheets, not game art.
+GEAR_GROUP = "Round 7 · Gear on the heroes: weapons in hand, armour worn"
+
+GEAR_WEAPON_LAYOUT = (
+    "A model sheet of blocky 3D voxel weapons, each a separate held model laid out in rows on a "
+    "flat light-grey background at one shared scale (a hero's fist is one block), seen from the "
+    "high three-quarter game angle with the grip at the bottom left and the point or head at the "
+    "top right, as a hero holds it; each weapon readable at small size by its silhouette, with a "
+    "small second view of its most distinctive part beside it. "
+)
+GEAR_ARMOUR_LAYOUT = (
+    "A costume sheet: the same blocky voxel hero, Percy Jackson (messy black hair, sea-green "
+    "eyes), shown once per armour set in a row of figures at the same scale, each figure front-on "
+    "with a small view from behind beside it (capes, quivers and wings show from behind), all in a "
+    "neutral standing pose with the face clearly visible: helmets frame the face with cheek "
+    "guards, hoods leave the face and the fringe showing. The armour is built from blocks over "
+    "the hero's body: plates and pads on the chest, shoulders, forearms and shins, short strips "
+    "or a robe hanging from the waist, capes from the shoulders. Flat light-grey background, no "
+    "cast shadow. "
+)
+
+
+def gear_sheet(id_: str, title: str, layout: str, items: list[str], refs: list[str], use: str) -> dict:
+    listed = "; ".join(f"{i + 1}. {it}" for i, it in enumerate(items))
+    return {
+        "id": id_, "group": GEAR_GROUP, "title": title, "size": "2400 × 1600",
+        "references": ["vox-key", "vox-percy", *refs], "use": use,
+        "prompt": f"{layout}In this order: {listed}. {VOXEL_STYLE} {NO_TEXT}",
+    }
+
+
+REQUESTS += [
+    gear_sheet("vox-gear-weapons-1", "Weapons in hand 1: common and rare", GEAR_WEAPON_LAYOUT, [
+        "Camp Training Sword, a plain bronze practice sword with a leather-wrapped grip",
+        "Bronze Dagger, short and leaf-bladed",
+        "Camp Spear, a wooden shaft with a bronze leaf head and a butt spike",
+        "Cyclops Club, a turned wooden table leg",
+        "Bronze Hand Axe, one-handed, the bit curving down",
+        "Shepherd's Crook, a long wooden staff curling over at the top",
+        "Celestial Bronze Xiphos, a leaf-shaped Greek sword glowing faintly gold",
+        "Forge Hammer, a heavy two-handed iron hammer with glowing seams",
+        "Reed Staff of Pan, a green reed staff with leaves, bound reed pipes and a frost-blue charm",
+        "Electric Spear, a dark shaft with a bronze head and yellow lightning crackling at the tip",
+        "Labrys of Knossos, a two-handed double-headed bronze axe",
+        "Spartan Kopis, a forward-curved steel blade with a red grip",
+        "Hoplite Dory, a long ash-wood spear with a big bronze head",
+        "Empousa Fang, a curved white fang set in a bronze hilt",
+        "Ram's-Horn Mace, an iron mace whose head is a ram's skull with curled horns",
+        "Forge-Fire Sword, a blade still glowing orange from the forge",
+        "Hunter's Moon Knives, a pair of silver hunting knives, one for each hand",
+    ], ["icons-weapons-1"], "Fixes the look of the held weapon models (game/js/entities/gear/weapons.js) for the common and rare weapons of loot.js."),
+    gear_sheet("vox-gear-weapons-2", "Weapons in hand 2: the legendaries", GEAR_WEAPON_LAYOUT, [
+        "Backbiter, a sword whose blade is half celestial bronze and half grey steel, split lengthwise, with a dark spiked crossguard",
+        "Stygian Iron Blade, a black sword with a violet glowing edge that drinks the light",
+        "Twin Huntress Knives, a pair of curved silver moon-knives",
+        "Imperial Gold Gladius, a short Roman sword of shining gold with an eagle-head pommel",
+        "Harpe of Perseus, a silver sword with a sickle hook curving off its spine",
+        "Club of Heracles, a huge knotty olive-wood club studded with bronze, held in both hands",
+        "Pelian Spear of Achilles, a long spear banded in gold with a blue pennant",
+        "Burning Sword of Ares, a broad black blade with a red-hot core and flames along its edges",
+        "Axe of Boreas, a two-handed ice-blue axe with frost crystals growing from it",
+        "Spear of the Storm, a silver spear head wrapped in forked white lightning",
+        "Tide-Forged Sword, a sea-green bronze blade with a wave-shaped crossguard and a trident pommel",
+        "Fury's Flaming Lash, a leather handle and a coil of fire held out like a whip",
+        "Horn of the Minotaur, a great curved bull's horn held by its leather-bound root",
+        "Chimera Fang Spear, a spear tipped with a poison-green glowing fang, a lion's mane tassel and a snake tail wound down the shaft",
+        "Procrustes's Cleaver, a butcher's cleaver the size of a door with a measuring rule along it, held in both hands",
+    ], ["icons-weapons-2", "vox-gear-weapons-1"], "Fixes the look of the legendary and boss-signature weapon models (game/js/entities/gear/weapons.js)."),
+    gear_sheet("vox-gear-armour-1", "Armour worn 1: clothes, linen, plate and scale", GEAR_ARMOUR_LAYOUT, [
+        "Hermes Express Uniform: a navy delivery vest with a white stripe, a winged gold badge, a satchel on the back and a navy cap",
+        "Linothorax: a cream linen cuirass in layered bands with blue trim, a shoulder yoke and linen strips at the waist",
+        "Biker Jacket of Ares: a black leather jacket with silver zips and studs, flames up the back",
+        "Hunter's Silver Parka: a silver-white parka with a fur-trimmed hood and a quiver of arrows",
+        "Sea-Green Mail: rows of teal scales, scallop-shell shoulder plates and a gold shell clasp",
+        "Hoplite Panoply: a bronze muscle cuirass, a crested Corinthian helmet, bronze bracers and greaves, leather strips at the waist",
+        "Bronze Breastplate: a plain bronze cuirass with leather straps and a short leather skirt",
+        "Satyr's Woven Vest: an open vest woven from green vines, leaves and a few flowers",
+        "Camp Counsellor Vest: an orange vest with reflective stripes, a lanyard and a whistle",
+        "Fireproof Forge Apron: a thick leather apron with tongs in the pocket, embers in the leather, heavy gloves",
+        "Armour of the Amazons: a red leather cuirass with gold scales, gold bracers, one gold shoulder plate and a quiver",
+        "Drakon-Scale Plate: dark green scale armour with gold belly plates, spiked shoulders and a horned scale helmet",
+    ], ["icons-armour"], "Fixes the look of the armour worn on the heroes (game/js/entities/gear/armour.js), first half."),
+    gear_sheet("vox-gear-armour-2", "Armour worn 2: robes, cloaks, pelts and legends", GEAR_ARMOUR_LAYOUT, [
+        "Spartan Crimson Cloak: a crimson cape with bronze brooches and a crossed leather harness",
+        "Nemean Lion Pelt: the golden lion's head worn as a hood (ears, brow and upper fangs over the forehead), the mane round the shoulders, the forepaws knotted on the chest, the pelt down the back",
+        "Golden Fleece Mantle: a lumpy glowing gold wool mantle and a short fleece cape",
+        "Armour of Achilles: a gold muscle cuirass with a gorgon face, lion-headed shoulder plates, gold greaves, a helmet with a tall white and blue plume and a royal blue cape",
+        "Robe of Hebe: a peach chiton draped over one shoulder with a gold cord and a long robe",
+        "Cloak of the West Wind: a pale sky-blue cape with white wind swirls and a feather clasp",
+        "Winged Travelling Cloak: Hermes's low petasos hat with white wings, a short brown cloak and little wings at the ankles",
+        "Lotus Hotel Bathrobe: a fluffy white bathrobe with a pink lotus and a sash",
+        "Cloak of the Mist: a grey hooded cloak trailing pale wisps",
+        "Wings of the Kindly Ones: a cape of leathery dark bat wings with bone fingers and a scalloped hem, a bone clasp on a harness",
+        "Hellhound Hide: a black shaggy hide worn as a hood with hound ears, a snout and red glowing eyes, a fur mantle and cape",
+        "Camp Half-Blood T-shirt: the hero's own orange camp shirt and jeans, for comparison",
+    ], ["icons-armour", "vox-gear-armour-1"], "Fixes the look of the armour worn on the heroes (game/js/entities/gear/armour.js), second half."),
+]
+
+
 def path_for(item: dict) -> Path:
     if item.get("dest") == "game":
         return GAME / f"{item['id']}.png"
@@ -1654,6 +1756,13 @@ def build() -> str:
         "game can key out the background and cut it into cells. Generate",
         "`icons-weapons-1` first and attach it to the others so the icons match. The",
         "game shows its emoji icons until the sheets arrive.",
+        "",
+        "### Round 7: gear on the heroes",
+        "",
+        "Every weapon a hero equips is drawn in their hand and every armour changes",
+        "their outfit (game/js/entities/gear/). The models are procedural stand-ins",
+        "until these sheets fix their look: generate `vox-gear-weapons-1` and",
+        "`vox-gear-armour-1` first and attach them to the second sheet of each pair.",
         "",
         "Concept sheets land in `design/concept/`; files marked as game art land in",
         "`game/assets/`. Drop either kind in the intake folder.",

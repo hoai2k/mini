@@ -349,6 +349,14 @@ export class Rig {
     this.torso.scale.set(breath, 1 + (breath - 1) * 0.5, breath);
     const a = p.action;
     let snap = 18;
+    // a two-handed weapon carried at the ready: both hands on the haft in front, the head up and forward
+    // (running, the arms swing a little again)
+    if (this.twoHand && !a && !p.air) {
+      const k = 1 - run * 0.55;
+      T.armRX = lerp(T.armRX, -0.75, k); T.armRY = lerp(T.armRY, 0.3, k); T.armRZ = lerp(T.armRZ, 0, k);
+      T.armLX = lerp(T.armLX, -0.85, k); T.armLY = lerp(T.armLY, -0.5, k); T.armLZ = lerp(T.armLZ, 0, k);
+      T.handRX = lerp(T.handRX, -(T.torsoX + T.armRX) - 0.2, k); T.handLX = lerp(T.handLX, -(T.torsoX + T.armLX) - 0.2, k);
+    }
     if (p.air && !a) { T.armRX = -0.6; T.armLX = -0.4; T.armRZ = 0.55; T.armLZ = -0.55; T.legRX = -0.7; T.legLX = 0.35; T.torsoX = 0.1; }
     if (a) {
       const k = a.t;
@@ -546,7 +554,9 @@ export class Rig {
     const e = phase === 0 ? easeOutCubic(k / w) : phase === 1 ? easeOutBack((k - w) / (s - w)) : 1 - easeInCubic((k - s) / (1 - s)) * 0.7;
     // (an attack with no style of its own, the recoil after a shot, enemy.js
     // 'spit': a shooter, rig.levelAim, fires from the aim of its wind-up)
-    const style = a.style || (this.levelAim ? 'shoot' : ['swingR', 'swingL', 'slam'][a.step % 3]);
+    let style = a.style || (this.levelAim ? 'shoot' : ['swingR', 'swingL', 'slam'][a.step % 3]);
+    // (a hero holding an equipped weapon: the kit's style re-posed for its family, gear/weapons.js FAMILY)
+    if (this.restyle) style = this.restyle(style);
     if (style === 'shoot') {
       // held level at the target up to the shot, the kick of the shot at the
       // strike, then lowered to the hip still pointing forward
@@ -588,6 +598,15 @@ export class Rig {
         if (phase === 0) { T.armRX = -2.6 * e; T.armRZ = 0.2; T.torsoY = 0.4 * e; }
         else { T.armRX = lerp(-2.6, -1.2, m); T.torsoY = lerp(0.4, -0.3, m); }
         T.handRX = 1.0; T.armLX = -0.8; break;
+      case 'backhand': // the right hand swung back across the body: out to the right, sweeping across to the left (a one-handed weapon's second cut)
+        if (phase === 0) { T.armRX = -1.25 * e; T.armRY = -0.75 * e; T.armRZ = -0.55 * e; T.torsoY = -0.55 * e; T.handRX = 0.9 * e; }
+        else { T.armRX = -1.5; T.armRY = lerp(-0.75, 0.35, m); T.armRZ = lerp(-0.55, 0.25, m); T.torsoY = lerp(-0.55, 0.4, m); T.handRX = lerp(0.9, 1.5, m); }
+        T.armLX = -0.4; break;
+    }
+    // a two-handed weapon (rig.twoHand, gear/weapons.js): the left hand joins the right on the haft,
+    // the arms turning together and closing in on it; the slam and the spin already swing with both
+    if (this.twoHand && style !== 'slam' && style !== 'spin' && style !== 'throw') {
+      T.armLX = T.armRX; T.armLY = T.armRY - 0.75; T.armLZ = T.armRZ; T.handLX = T.handRX;
     }
   }
   physics(p) {
@@ -595,8 +614,10 @@ export class Rig {
     const v = p.vel || this.lastVel;
     // local velocity (in character space) to swing capes/hair backwards
     const yaw = this.root.rotation.y;
-    const fwd = v.x * Math.sin(yaw) + v.z * Math.cos(yaw);
-    const side = v.x * Math.cos(yaw) - v.z * Math.sin(yaw);
+    // (posed without a velocity, the workbench and the checks: the run's speed lifts the cape as moving would)
+    const still = v.x * v.x + v.z * v.z < 1e-6;
+    const fwd = still ? (p.speed ?? 0) * 5.6 : v.x * Math.sin(yaw) + v.z * Math.cos(yaw);
+    const side = still ? 0 : v.x * Math.cos(yaw) - v.z * Math.sin(yaw);
     const acc = (fwd - (this._lastFwd ?? 0)) / Math.max(dt, 1e-3); this._lastFwd = fwd;
     const wind = Math.sin(this.t * 1.7) * 0.05 + Math.sin(this.t * 4.3) * 0.03;
     let parentAngle = 0;

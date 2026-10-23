@@ -407,6 +407,23 @@ turn and zoom by touch (drag, pinch).
     slot. X salvages (drachmas pop up to the counter), LB / RB or Q / E
     change tabs (Heroic+ shows the best finds). Outdated gear gets an amber
     dot; the HUD bag counts NEW items.
+  - What a hero wears shows on the hero, as in Minecraft Dungeons
+    (`js/entities/gear/`): every weapon item has its own blocky model in the
+    hand (a sword, a pair of knives, a spear, a two-handed axe or hammer, a
+    staff, the Fury's lash, the Horn of the Minotaur...) and the combo is
+    re-posed for it (a hammer slams where a sword thrusts, a one-handed blade
+    cuts back with the backhand, two knives cut with both hands); every armour
+    changes the outfit with pieces on the body's bones (cuirasses, shoulder
+    plates, bracers, greaves, skirts that swing with the legs, helmets and
+    hoods that keep the face clear, capes and wings on the cape's spring).
+    The Camp Training Sword every hero starts with is drawn as the hero's own
+    weapon (Riptide, Annabeth's knife, the spears, Nico's sword, Grover's
+    pipes, Tyson's fists), with the kit's own poses; magic items show when
+    used. Changing gear changes the model at once, in play, on the hero
+    select stage, in the inventory (a turning 3D view of the hero beside the
+    slots, with the item chosen in the stash tried on) and online (the
+    presence carries it). The workbench's Gear dropdowns put any weapon and
+    armour on any hero.
   - Blessed items and hero favourites.
   - The forge: temper items, reforge them to your level and re-roll
     enchantment choices (rarer items cost more).
@@ -574,6 +591,7 @@ across every screen.
 | `game/js/text_config.js` | Every piece of text the game shows, under readable keys (screens, story, heroes, gear, the world, menus, online), with `{placeholders}` and plural forms: edit the wording here. Code reads it with `t('key', vars)`; `setText(pack)` lays a translation over it |
 | `game/js/heroes/` | The hero kits; `skillRules.js` the skill trees and their rules (costs, requirements, gates, loadouts, reset, save migration), pure and tested; the screen is `game/js/ui/skills.js` |
 | `game/js/entities/` | Hero models and voxel hair, monsters, the four-legged rig, mortals, bosses |
+| `game/js/entities/gear/` | The gear on the heroes: `weapons.js` (a held model for every weapon item, its family, grip and re-posed styles), `armour.js` (every armour's pieces per bone), `gearmesh.js` (the blocks, one mesh a bone, one material a hero), `equip.js` (`dressHero`: put gear on a hero model, live) |
 | `game/js/entities/models/` | The monster builders, one module per family, with the fodder's (`fodder/`, one per region) and the bosses' (`bosses/`, one per boss); `entities/monsters.js`, `fodder.js` and `bossmodels.js` are their registries and what callers import |
 | `game/js/data/` | The monster, fodder and champion tables (stats, names, looks), free of Three.js, so the node tests import them |
 | `game/js/world/` | Camp Half-Blood, the biomes, room templates, the level generator |
@@ -598,7 +616,7 @@ across every screen.
 | `game/workbench/models.html` | A turntable of every character model, to compare with the 3D sheets |
 | `game/workbench/` | The model workbench ([published](https://hoai2k.github.io/mini/percyjackson/workbench/)): a thumbnail grid of every character model, an orbit viewer and an inspector. Monsters, champions and bosses also play their own attacks as the game runs them (`ingame.js`: a real Enemy or Boss on a flat floor, lunging at a training dummy), and `animlint.js` checks every pose (a count on the tile, the frames in the inspector) |
 | `game/assets/` | Web copies of the art: chapter cards, hero cards and portraits, title background, logo |
-| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, progression (the XP pacing over a play-through, chapter levels, drop power by area and player level, the gear curve against monster health and sane damage numbers, every enchantment's effect, magic-item charges, the stash order, skill trees with no dead levels), profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, the battle cadence (rooms by role, groups and scouts placed from the seed, traps per chapter, room sizes, kill objectives a level can meet), boss health for the party, the prologue's rats and hints, the Greek-letter timings, the preloaded pictures, people in the Mist, chapter 1's museum (the calm walk, the reveal, hidden blows under the Mist, her three flights to rooms you can walk to, her lines in your device's words), the Ambrosia flask, the quiver and monster hit sizes, knock-back distances, shot reach and the 3D aim, the controller layout |
+| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, every weapon and armour item drawn on the heroes (and carried online), progression (the XP pacing over a play-through, chapter levels, drop power by area and player level, the gear curve against monster health and sane damage numbers, every enchantment's effect, magic-item charges, the stash order, skill trees with no dead levels), profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, the battle cadence (rooms by role, groups and scouts placed from the seed, traps per chapter, room sizes, kill objectives a level can meet), boss health for the party, the prologue's rats and hints, the Greek-letter timings, the preloaded pictures, people in the Mist, chapter 1's museum (the calm walk, the reveal, hidden blows under the Mist, her three flights to rooms you can walk to, her lines in your device's words), the Ambrosia flask, the quiver and monster hit sizes, knock-back distances, shot reach and the 3D aim, the controller layout |
 | `design/` | The design, image requests, concept art and the scripts that make the web copies |
 | `design/audit.md` | The October 2026 audit of gameplay, level design and performance: what was fixed and what is still to do |
 | `perf/` | The performance harness (headless Chromium): load times, frame CPU, draw calls, leaks, a smoke check of every chapter; not published |
@@ -650,7 +668,8 @@ how one moves (`game/js/entities/`):
 
 ```sh
 NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/animlint.cjs   # bodies through the floor, parts flying off, weapons backward at the strike
-NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/weapons.cjs    # every weapon points forward, at rest and in each strike
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/weapons.cjs    # every weapon points forward, at rest and in each strike (every weapon item in every hero's hands too)
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/gear.cjs       # every armour on every hero: no floating pieces, no clipping in walk, run and attack; draws per outfit
 NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/props.cjs      # held props out of the fist (not along the forearm), none through the head or torso, no leg walking through clothing
 NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/bodysize.cjs - '' --check   # every model's size category against Percy (design/sizes.json), and no hero-sized head on a big body
 NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/islands.cjs --check   # no floating voxel islands on heads, hair, manes or held props

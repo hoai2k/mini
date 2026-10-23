@@ -70,6 +70,7 @@ import { HEROES } from './heroes/index.js';
 import { chapter as chapterDef, CHAPTERS, chapterPlayable, chapterOpen } from './story/chapters.js';
 import { placeQuestMarkers } from './story/questMarkers.js';
 import { buildHeroModel, buildNpc } from './entities/models.js';
+import { gearOf } from './entities/gear/equip.js';
 import { openPhotoMode } from './photo.js';
 import { DomainSystem } from './domain.js';
 import { Trench } from './gfx/materials.js';
@@ -237,7 +238,10 @@ class Game {
     this.exitSelectView(true);
     const st = this.level.stage;
     this.selectRigs = slots.map((s, i) => {
-      const rig = buildHeroModel(HERO_IDS[s.char]);
+      // (in the gear the chosen profile has on this hero: gear/equip.js)
+      const id = HERO_IDS[s.char], sv = s.prof && s.prof !== 'new' ? this.profiles?.profile?.(s.prof) : null;
+      let gear = null; try { gear = sv?.data?.heroes?.[id] ? gearOf(sv.gearFor(id)) : null; } catch { /* a profile that can't be read: the hero's own look */ }
+      const rig = buildHeroModel(id, gear);
       rig.root.position.set(st.x + (i - (slots.length - 1) / 2) * 2.4, st.y, st.z);
       this.scene.add(rig.root);
       this.fx.summonCircle(rig.root.position, 0x9a7aff);

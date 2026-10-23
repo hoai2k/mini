@@ -12,7 +12,7 @@
 // processes) throughout, and beside them, --jobs N at a time (default 2), the
 // biggest first: --shards N workbench pages (default 3) that split the models
 // between them for islands, the slowest; a blank page with the workbench's
-// import map (weapons, houndlegs, animlint); the model workbench (props,
+// import map (weapons, houndlegs, animlint, gear); the model workbench (props,
 // rig); another (bodysize); and the shots page. --serial runs one at a time.
 // The render benchmark (bench) runs last, alone, so its CPU times are not
 // shared with the others.
@@ -50,6 +50,7 @@ const CHECKS = [
   { name: 'weapons', lane: 'models', what: 'weapons.cjs: weapons point forward, ranged aim' },
   { name: 'houndlegs', lane: 'models', what: 'houndlegs.cjs: hellhound legs attached' },
   { name: 'animlint', lane: 'models', what: 'animlint.cjs: floor, parts flying off, strikes' },
+  { name: 'gear', lane: 'models', what: 'gear.cjs: every armour on every hero: islands, clipping in walk, run and attack' },
   { name: 'props', lane: 'wb', what: 'props.cjs: grip, arm, clip, cloth, strike' },
   { name: 'rig', lane: 'wb', what: 'the rig contract (validateRig / __validateAll), if the workbench has it' },
   { name: 'islands', lane: 'wb', slow: true, what: 'islands.cjs --check: floating voxel islands' },
@@ -204,7 +205,7 @@ async function main() {
       },
       game: async () => { if (on.has('smoke')) await timed('smoke', () => require('./smoke.cjs').run({ browser, base })); },
       models: async () => {
-        const ms = ['weapons', 'houndlegs', 'animlint'].filter((n) => on.has(n)); if (!ms.length) return;
+        const ms = ['weapons', 'houndlegs', 'animlint', 'gear'].filter((n) => on.has(n)); if (!ms.length) return;
         const { page, errors } = await lib.openModulePage(browser, base);
         try {
           if (errors.length) { for (const n of ms) await timed(n, async () => ({ ok: false, lines: errors, text: 'page errors: ' + errors[0] })); return; }

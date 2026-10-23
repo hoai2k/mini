@@ -363,6 +363,14 @@ function cycleGroup(d) {
 
 // ------------------------------------------------------------------ viewer state
 let current = null;       // { item, rig, m, error }
+// a hero's gear in the viewer (gear/equip.js): ?gear=<weapon>,<armour> or the Gear dropdowns; kept from hero to hero
+const wbGear = (() => { const [weapon, armor] = (q.get('gear') ?? '').split(','); return { weapon: weapon || null, armor: armor || null }; })();
+const gearMod = tryImport('../js/entities/gear/equip.js'), lootMod = tryImport('../js/loot.js');
+async function applyGear(rig) {
+  const [eq] = await Promise.all([gearMod]);
+  if (!rig || !eq.dressHero || current?.rig !== rig) return;
+  eq.dressHero(rig, wbGear);
+}
 let turning = q.get('turn') !== '0';
 let anim = ANIM_FROM_URL();
 let animT = 0, animCycle = 0, animError = null;
@@ -537,6 +545,7 @@ function select(item, { fromHash = false } = {}) {
   current = { item, rig, error };
   if (rig) {
     ingame.prepStatic?.(item.group, item.id, rig);
+    if (item.group === 'heroes' && (wbGear.weapon || wbGear.armor)) gearMod.then((eq) => { if (current?.rig === rig) eq.dressHero?.(rig, wbGear); });
     rig.root.rotation.y = 0.45; holder.add(rig.root);
     current.m = measure(rig);
     fitLights(current.m.center, current.m.r);
@@ -628,6 +637,17 @@ function renderInspector() {
       const power = d.power && el('li', {}, el('b', { text: d.power }), ' ', el('small', { text: 'ultimate' }));
       if (sk?.length || power) slot.replaceWith(el('ul', { class: 'list' }, power, (sk ?? []).map((s) => el('li', {}, el('b', { text: s.name }), ' ', el('small', { text: s.desc ?? '' })))));
       else slot.textContent = 'No ability kit for this hero yet.';
+    });
+    // Gear: see the hero wearing any weapon and armour (gear/equip.js), live
+    const gearSlot = el('div', { class: 'dim', text: 'Loading gear…' }); box.append(sect('Gear', gearSlot));
+    Promise.all([lootMod, gearMod]).then(([loot]) => {
+      if (current?.item !== item || !loot.ITEMS) return;
+      const pick = (kind, keyName, label) => el('label', { class: 'dim', style: 'display:block;margin:2px 0' }, label + ' ',
+        el('select', { 'data-gear': keyName, 'aria-label': label, onchange: (e) => { wbGear[keyName] = e.target.value || null; applyGear(current?.rig); } },
+          el('option', { value: '' }, kind === 'weapon' ? '(own weapon)' : '(own clothes)'),
+          loot.ITEMS.filter((i) => i.kind === kind).map((i) => { const o = el('option', { value: i.id }, `${i.name} · ${loot.RARITY[i.rarity]?.label ?? i.rarity}`); if (wbGear[keyName] === i.id) o.selected = true; return o; })));
+      gearSlot.replaceWith(el('div', {}, pick('weapon', 'weapon', 'Weapon'), pick('armor', 'armor', 'Armour'),
+        el('div', { class: 'dim', text: 'The Camp Training Sword (every hero\'s starter) shows as the hero\'s own weapon. Kept as you pick other heroes; ?gear=<weapon>,<armour> in the link.' })));
     });
     const look = HERO_LOOKS[item.id];
     if (look) {
@@ -777,7 +797,7 @@ if (!fromHash()) { const first = items.find((i) => i.group === 'heroes') ?? item
 status(isGPU ? '' : '');
 stageEl.title = isGPU ? 'WebGPU' : 'WebGL2';
 window.__wbSeek = seekLint;
-window.__wb = { items, thumbs, lints, setAnim, renderer, scene, seek: seekLint, get game() { return game; }, camera, controls, select: (k) => select(itemByKey(k)), get current() { return current; }, backend: isGPU ? 'webgpu' : 'webgl2', queueLength: () => queue.length };
+window.__wb = { items, thumbs, lints, setAnim, setGear: async (g) => { Object.assign(wbGear, g); await applyGear(current?.rig); }, gear: wbGear, renderer, scene, seek: seekLint, get game() { return game; }, camera, controls, select: (k) => select(itemByKey(k)), get current() { return current; }, backend: isGPU ? 'webgpu' : 'webgl2', queueLength: () => queue.length };
 // The rig contract over every model (js/entities/rigContract.js validateRig),
 // for perf/check.cjs's rig check: { [key]: { ok, problems } }, a warning as
 // { warn: true, text }. Built unmerged (charmat.js PART_MERGE off), as the

@@ -34,6 +34,9 @@ export function baseOf(roomId) { const m = /^(.*)-g(\d+)$/.exec(String(roomId ??
 //   k key (profile id, or ai:<hero> for an AI companion)   i owner's player index   h hero id
 //   n name   ai 1 if AI-driven   x y z   f facing   vx vy vz   hp mh   d 0 up / 1 downed / 2 dead
 //   a action type   s action style   t action progress (0..1)   c Power (ce)   r dodge (1 rolling)
+//   gw ga  the weapon and armour item ids the hero wears (loot.js; left out: the hero's
+//          own weapon and clothes)   gt 'h' a Heroic weapon (gear/equip.js draws them)
+const gearId = (v) => (typeof v === 'string' && /^[a-z_]{1,24}$/.test(v) ? v : null);
 export function readHero(o) {
   if (!o || typeof o !== 'object' || typeof o.k !== 'string' || !KEY_RE.test(o.k)) return null;
   const x = o.x, y = o.y, z = o.z;
@@ -43,5 +46,6 @@ export function readHero(o) {
     x, y, z, f: num(o.f, -100, 100), vx: num(o.vx, -80, 80), vy: num(o.vy, -80, 80), vz: num(o.vz, -80, 80),
     hp: num(o.hp, -1e4, 1e5, 100), mh: num(o.mh, 1, 1e5, 100), d: int(o.d, 0, 2), a: str(o.a, 16) || null, s: str(o.s, 16) || null,
     t: num(o.t, 0, 1), c: num(o.c, 0, 1e4), r: o.r === 1,
+    gw: gearId(o.gw), ga: gearId(o.ga), gt: o.gt === 'h' ? 'heroic' : null,
   };
 }

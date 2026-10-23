@@ -1069,6 +1069,8 @@ export const TEXT = {
     filters: { all: 'All', weapon: 'Weapons', armor: 'Armour', artifact: 'Magic items', heroic: 'Heroic+' },
     companion: '{hero} (companion)',
     equipped: 'Equipped · {hero}',
+    tryingOn: 'Trying on',
+    previewLabel: '{hero} in their gear',
     summary: {
       one: 'Level {level} · ◆ {coins} drachmas · {n} enchantment point',
       other: 'Level {level} · ◆ {coins} drachmas · {n} enchantment points',

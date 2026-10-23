@@ -116,7 +116,7 @@ class AnnabethKit extends Kit {
     this.invisT = 5 + this.rank('cap_up') * 1.5;
     p.untargetable = true;
     p.rig.setDissolve(0.82);
-    for (const k of ['weapon', 'cap']) if (p.rig.extras[k]) p.rig.extras[k].visible = false;
+    for (const k of ['weapon', 'weaponL', 'cap']) if (p.rig.extras[k]) p.rig.extras[k].visible = false;
     p.heroLight.intensity = 0.3;
     g.particles.burst(tmp.copy(p.pos).setY(p.pos.y + 1), { count: 24, color: 0xdde6f0, additive: false, speed: 2.5, life: 0.6, size: 0.4, drag: 3, sizeEnd: 1.5 });
     g.fx.rings.spawn(tmp.set(p.pos.x, p.pos.y + 0.06, p.pos.z), { color: NAVY, r0: 1.4, r1: 0.2, dur: 0.35, thick: 0.3 });
@@ -130,7 +130,7 @@ class AnnabethKit extends Kit {
     this.invisT = 0;
     p.untargetable = false;
     p.rig.setDissolve(0);
-    for (const k of ['weapon', 'cap']) if (p.rig.extras[k]) p.rig.extras[k].visible = true;
+    for (const k of ['weapon', 'weaponL', 'cap']) if (p.rig.extras[k] && !(k === 'cap' && p.rig.extras.headgear)) p.rig.extras[k].visible = true;   // (her cap stays off under a helmet or hood: gear/equip.js)
     p.heroLight.intensity = 1.6;
     g.particles.burst(tmp.copy(p.pos).setY(p.pos.y + 1), { count: 12, color: GOLD, speed: 3, life: 0.4, size: 0.1, shape: 3 });
   }

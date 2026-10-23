@@ -24,7 +24,9 @@
 
 const REST_MIN = -0.05, STRIKE_MIN = 0.3, AIM_MIN = 0.85;
 // (every style for both hands: a boss may swing with one arm while the other holds the weapon)
-const ALL = ['swingR', 'swingL', 'punch', 'slam', 'uppercut', 'throw'], STYLES = { R: ALL, L: ALL };
+const ALL = ['swingR', 'swingL', 'punch', 'slam', 'uppercut', 'throw', 'backhand'], STYLES = { R: ALL, L: ALL };
+// (the gear set: every weapon item of loot.js in the hands of every hero, gear/weapons.js, re-posed for its family: GEAR_HEROES)
+const GEAR_HEROES = (process.env.GEAR_HEROES || '').split(',').filter(Boolean);
 
 const { openModulePage, loadModule, watchErrors, reseed, cli } = require('./lib.cjs');
 
@@ -38,6 +40,9 @@ import { BOSS_DEFS, BOSS_IDS } from '../js/entities/bosses.js';
 import { buildPerson, PEOPLE_IDS } from '../js/entities/people.js';
 import { rigOffsets } from '../js/entities/parts.js';
 import { CHAMPION_SHOWCASE, CHAMPION_LOOKS, buildShowcase } from '../js/entities/champions.js';
+import { dressHero } from '../js/entities/gear/equip.js';
+import { WEAPON_IDS } from '../js/entities/gear/weapons.js';
+import { ITEMS } from '../js/loot.js';
 // the models that shoot (enemy.js shoot: the 'spit' attack): ranged and summoning monsters, and champions of those kinds
 const shooter = (set, id) => {
   const kind = set === 'monsters' ? id : set === 'champions' ? (id.startsWith('kind:') ? id.slice(5) : CHAMPION_LOOKS[id]?.kind) : null;
@@ -53,7 +58,11 @@ const SETS = {
   champions: [CHAMPION_SHOWCASE, (id) => buildShowcase(id)],
   people: [PEOPLE_IDS, (id) => buildPerson(id)],
   mortals: [MORTAL_IDS, (id) => buildMortal(id)],
+  // every weapon item in each hero's hands (one rig a hero, re-dressed: gear/equip.js)
+  gear: [(${JSON.stringify(GEAR_HEROES)}.length ? ${JSON.stringify(GEAR_HEROES)} : Object.keys(HERO_LOOKS)).flatMap((h) => ITEMS.filter((i) => i.kind === 'weapon' && WEAPON_IDS.includes(i.id) && i.id !== 'training_sword').map((i) => h + '+' + i.id)),
+    (key) => { const [h, w] = key.split('+'); const r = (gearRigs[h] ??= buildHeroModel(h)); dressHero(r, { weapon: w }); return r; }],
 };
+const gearRigs = {};
 const STYLES = ${JSON.stringify(STYLES)};
 const zero = new THREE.Vector3(), a = new THREE.Vector3(), b = new THREE.Vector3(), fwd = new THREE.Vector3();
 function pose(r, action) {
@@ -97,7 +106,7 @@ function measure(r, t) {
 export function run(only) {
   const rows = [];
   for (const [set, [ids, build]] of Object.entries(SETS)) for (const id of ids) {
-    if (only && !only.includes(id)) continue;
+    if (only && !only.includes(id) && !(set === 'gear' && only.some((o) => id.startsWith(o + '+') || id.endsWith('+' + o)))) continue;
     globalThis.__perfReseed?.();   // (PERF_SEED: lib.cjs reseed)
     let r;
     try { r = build(id); } catch (e) { rows.push({ set, id, error: String(e).slice(0, 120) }); continue; }
@@ -123,7 +132,7 @@ export function run(only) {
 function report(rows) {
   const lines = [];
   const f = (v) => (v == null ? '' : (v >= 0 ? ' ' : '') + v.toFixed(2));
-  const cols = ['swingR', 'swingL', 'punch', 'slam', 'uppercut', 'throw'];
+  const cols = ['swingR', 'swingL', 'punch', 'slam', 'uppercut', 'throw', 'backhand'];
   const shots = ['aim', 'kick', 'lower'];
   lines.push(['set'.padEnd(10), 'model'.padEnd(20), 'weapon'.padEnd(16), 'hand', ' rest', ...cols.map((c) => c.padStart(8)), ...shots.map((c) => c.padStart(6)), ' result'].join(' '));
   let fails = 0;
@@ -134,12 +143,14 @@ function report(rows) {
     if (r.statue != null && r.statue < REST_MIN) bad.push('statue');
     for (const [s, v] of Object.entries(r.strikes)) if (v < STRIKE_MIN) bad.push(s);
     for (const [s, v] of Object.entries(r.shots ?? {})) if (v < (s === 'lower' ? STRIKE_MIN : AIM_MIN)) bad.push('shot ' + s);
-    if (bad.length) fails++;
+    if (bad.length) { fails++; r.fail = true; }
     const name = (r.weapon + (r.hidden ? ' (hidden)' : '')).slice(0, 16);
     lines.push([r.set.padEnd(10), r.id.padEnd(20), name.padEnd(16), (' ' + r.side).padEnd(4), f(r.rest).padStart(5), ...cols.map((c) => f(r.strikes[c]).padStart(8)), ...shots.map((c) => f(r.shots?.[c]).padStart(6)), ' ' + (bad.length ? 'FAIL ' + bad.join(',') : 'ok') + (r.statue != null ? ` (statue pose ${f(r.statue)})` : '') + (r.restOnly ? ' (rest only: never attacks)' : '') + (r.marked ? '' : ' [no tip mark]')].join(' '));
   }
+  const gear = rows.filter((r) => r.set === 'gear');
+  if (gear.length) lines.push(`\ngear: ${new Set(gear.map((r) => r.id.split('+')[1])).size} weapon items in the hands of ${new Set(gear.map((r) => r.id.split('+')[0])).size} heroes (${gear.length} hands), ${gear.filter((r) => r.fail).length} failing`);
   lines.push(`\n${rows.length} weapons checked, ${fails} failing. Columns: forward share of the hand-to-tip direction (1 = straight ahead, 0 = straight up or sideways, -1 = straight back); rest needs >= ${REST_MIN}, each strike >= ${STRIKE_MIN}; a shooter's aim and kick >= ${AIM_MIN} (level at the target), its lowering >= ${STRIKE_MIN}.`);
-  return { ok: !fails, lines, rows, summary: { weapons: rows.length, failing: fails }, text: `${rows.length} weapons, ${fails} failing` };
+  return { ok: !fails, lines, rows, summary: { weapons: rows.length, failing: fails, gearHands: gear.length }, text: `${rows.length} weapons (${gear.length} of them gear items in heroes' hands), ${fails} failing` };
 }
 
 // page: a page under workbench/ with the import map (openModulePage); a new one if not given

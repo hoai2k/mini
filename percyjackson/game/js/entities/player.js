@@ -5,6 +5,7 @@
 import * as THREE from 'three/webgpu';
 import { moveEntity } from '../physics.js';
 import { buildHeroModel } from './models.js';
+import { dressHero, gearOf } from './gear/equip.js';
 import { damp, dampAngle, clamp } from '../util.js';
 import { BASE_COMBO } from '../combat.js';
 import { createKit } from '../heroes/index.js';
@@ -41,7 +42,9 @@ export class Player {
     this.safePos = new THREE.Vector3(); this.safeT = 0;
     this.fallT = 0;
     this.stats = { damage: 1, armor: 0, speed: 1, cdr: 0, ceGain: 1, crit: 0.08, lifesteal: 0 };
-    this.rig = buildHeroModel(hero);
+    // (dressed in the hero's gear: the equipped weapon in hand, the armour on, gear/equip.js)
+    const sv0 = game.saveFor?.(this) ?? game.save;
+    this.rig = buildHeroModel(hero, gearOf(sv0 && !String(device).startsWith('net:') ? sv0.gearFor(hero) : []));
     this.object = this.rig.root;
     this.object.userData.player = this;
     this.stepT = 0;
@@ -79,6 +82,7 @@ export class Player {
     this.skills = sv ? sv.hero(this.hero).skills : {};
     this.loadout = sv ? sv.hero(this.hero).equip : null;
     applyGear(this, sv ? sv.gearFor(this.hero) : []);
+    this.dress(sv);
     resizeQuiver(this.quiver, this.stats);
     this.kit.dispose?.();
     this.kit = createKit(this);
@@ -93,6 +97,11 @@ export class Player {
       s.cdLeft = o === old[k] && o.power !== s.power ? Math.min(s.cd, o.cdLeft ?? 0) : o.cdLeft ?? 0;
       if (s.maxCharges && o.maxCharges) { s.chargesLeft = Math.min(s.maxCharges, o.chargesLeft ?? s.maxCharges); s.recharge = o.recharge ?? 0; s.gate = o.gate ?? 0; }
     }
+  }
+  // The model wears the gear (gear/equip.js): changed live, no rebuild. g: { weapon, armor, tier }
+  // ids (an online hero dressed from its owner's presence), else the profile's equipped items.
+  dress(sv = this.game.saveFor?.(this) ?? this.game.save, g = null) {
+    dressHero(this.rig, g ?? gearOf(sv ? sv.gearFor(this.hero) : []));
   }
   // ---------------------------------------------------------------- vitals
   gainCE(a) { if (this.domainActive) return; this.ce = Math.min(this.maxCe, this.ce + a * this.stats.ceGain); }
