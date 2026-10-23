@@ -568,6 +568,23 @@ async function microphone() {
     c.ok(pureRead >= 0, `A3 over D3 reads as a fifth, a little flat of pure (${await p.textContent('#tn-pure')}; ${await p.textContent('#tn-cents')})`);
     await p.click('#pure-done');
     c.ok(!(await p.isVisible('#pure-bar')) && await p.isVisible('#scale-test'), 'Done goes back to the tuner as it was');
+    // Tone Matching: the cello plays a note (the pick fixed here), then the player's A3 is judged.
+    const matchRound = async (randomValue) => {
+      await p.evaluate((v) => { Math.random = () => v; }, randomValue);
+      await p.click('#match-go');
+      c.ok(await p.textContent('#match-status') === 'Listen…', 'the cello plays the note first');
+      await until(p, () => document.getElementById('match-sheet').dataset.step === 'result', 30000);
+      return p.evaluate(() => ({ verdict: document.getElementById('match-verdict').textContent, detail: document.getElementById('match-detail').textContent, score: document.getElementById('match-score').textContent }));
+    };
+    await p.click('#exercises-open');
+    await p.click('#match-open');
+    c.ok(await p.isVisible('#match-sheet') && await p.textContent('#match-go') === 'Play a note', 'Tone Matching opens ready to play a note');
+    let m = await matchRound(0.7); // A3
+    c.ok(m.verdict === 'Right note: A' && /^(Right in tune|[1-5] cents? (sharp|flat)) · in tune$/.test(m.detail) && m.score === '1 of 1 right', `matching A: right note, in tune (${JSON.stringify(m)})`);
+    m = await matchRound(0); // G2
+    c.ok(m.verdict === 'You played A. The note was G' && m.detail === '2 semitones too high' && m.score === '1 of 2 right', `against G: the wrong note, and by how much (${JSON.stringify(m)})`);
+    await p.click('#match-sheet .sheet-head .icon-btn');
+    c.ok(await until(p, () => document.getElementById('tn-letter').textContent === 'A', 15000) >= 0, 'closing Tone Matching, the tuner reads again');
     if (process.env.SHOTS) await p.screenshot({ path: `${process.env.SHOTS}/tuner-trace.png` });
     // Back on the recorder, the take is still there (kept on the device).
     await p.goto(env.base + '#record');
@@ -575,6 +592,20 @@ async function microphone() {
     c.ok(await until(p, () => document.querySelectorAll('#takes .take').length === 1, 5000) >= 0, 'the take is kept after a reload');
     c.ok(!p.errors.length, `no page errors with the microphone (${p.errors})`);
     await p.close();
+    // On an iPhone, Pure Intervals plays the drone for a few seconds, then the tuner listens again.
+    const ip = await env.page({ userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1' });
+    await ip.goto(env.base + '#tuner');
+    await ip.waitForTimeout(1500);
+    await ip.click('#exercises-open');
+    await ip.click('#pure-open');
+    c.ok(await ip.isVisible('#pure-burst-note') && await ip.textContent('#pure-drone') === 'Hear the drone', 'iPhone: Pure Intervals offers the drone for a few seconds');
+    await ip.click('#pure-drone');
+    c.ok(await until(ip, () => document.getElementById('pure-drone').textContent === 'Drone playing…', 3000) >= 0, 'iPhone: the drone plays');
+    const back = await until(ip, () => document.getElementById('pure-drone').textContent === 'Hear the drone', 12000);
+    c.ok(back > 3500, `iPhone: then it stops (${back} ms)`);
+    c.ok(await until(ip, () => /Perfect fifth|Major|Minor|Unison|Tritone|Perfect fourth/.test(document.getElementById('tn-pure').textContent), 15000) >= 0, 'iPhone: and the tuner listens again, judging against the drone');
+    c.ok(!ip.errors.length, `iPhone: no page errors (${ip.errors})`);
+    await ip.close();
   } finally {
     await env.stop();
     rmSync(dir, { recursive: true, force: true });

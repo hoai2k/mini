@@ -363,8 +363,28 @@ export const EN = {
     /** Intonation Exercises, under the tuner: a choice of the two below. */
     exercises: {
       button: 'Intonation Exercises',
-      buttonSub: 'Test a scale, or tune intervals against a drone',
+      buttonSub: 'Test a scale, match notes, tune intervals',
       title: 'Intonation exercises',
+    },
+    /** Tone Matching: a cello plays a note, the player plays it back (tonematch.js). */
+    match: {
+      button: 'Tone Matching',
+      buttonSub: 'Hear a cello note, then play the same note',
+      title: 'Tone matching',
+      how: 'A cello plays a note. Then play or sing the same note, in any octave, and hold it: you see whether it was the right note and how close.',
+      start: 'Play a note',
+      next: 'Next note',
+      again: 'Hear it again',
+      listen: 'Listen…',
+      yourTurn: 'Your turn: play the note and hold it',
+      noNote: "Didn't hear a steady note. Try again, a little louder or closer to the microphone.",
+      right: (note) => `Right note: ${note}`,
+      wrong: (played, note) => `You played ${played}. The note was ${note}`,
+      cents: (c) => (Math.round(c) === 0 ? 'Right in tune' : `${Math.abs(Math.round(c))} ${Math.abs(Math.round(c)) === 1 ? 'cent' : 'cents'} ${c > 0 ? 'sharp' : 'flat'}`),
+      closeness: { inTune: 'in tune', close: 'close', off: 'still a little out' },
+      away: (n) => `${Math.abs(n)} ${Math.abs(n) === 1 ? 'semitone' : 'semitones'} ${n > 0 ? 'too high' : 'too low'}`,
+      score: (right, total) => `${right} of ${total} right`,
+      micOff: 'The microphone is off, so the tuner can\'t hear you. Close this and start the tuner first.',
     },
     /** Pure Intervals: the tuner judges each note against the pure interval above the drone's note. */
     pure: {
@@ -377,6 +397,10 @@ export const EN = {
       root: (note) => `Drone ${note}`,
       play: 'Play drone',
       stop: 'Stop drone',
+      /** iPhone and iPad: the drone sounds for a few seconds, then the tuner listens. */
+      hear: 'Hear the drone',
+      sounding: 'Drone playing…',
+      burstNote: 'On this device the drone plays for a few seconds, then stops so the tuner can listen: keep playing your note.',
       intervals: ['Unison', 'Minor second', 'Major second', 'Minor third', 'Major third', 'Perfect fourth', 'Tritone', 'Perfect fifth', 'Minor sixth', 'Major sixth', 'Minor seventh', 'Major seventh'],
       reading: (name, shift) => (Math.abs(shift) < 0.5 ? `${name} · pure is the same as the piano`
         : `${name} · pure is ${Math.round(Math.abs(shift))} ${Math.round(Math.abs(shift)) === 1 ? 'cent' : 'cents'} ${shift < 0 ? 'below' : 'above'} the piano`),

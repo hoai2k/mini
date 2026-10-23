@@ -339,7 +339,11 @@ const {
 // ---------------------------------------------------------------- the microphone, the recorder and the tuner
 
 // The Tuner's screen (tunerui.js), and the mic it shares with the Playback Recorder (recorderui.js).
-const tuner = setupTuner({ settings, persist, chips, drone: () => droneUI });
+const tuner = setupTuner({
+  settings, persist, chips, drone: () => droneUI,
+  // Tone Matching closes the mic while its note sounds, where that needs no new prompt.
+  mic: () => ({ pause: stopTuner, resume: startTuner, frees: freesMicForPlayback, open: () => !!rec.recorder?.micOpen }),
+});
 const rec = setupRecorder({ settings, persist, tuner, screen: () => screen, routineRunning: () => !!timerUI?.running, routineItem: () => timerUI?.item ?? null, recordDuringPlayback });
 const {
   recVolume, listeningActive, engineStuck, restartListening, markNeedsTap,
