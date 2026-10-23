@@ -563,6 +563,8 @@ across every screen.
 | `game/js/text_config.js` | Every piece of text the game shows, under readable keys (screens, story, heroes, gear, the world, menus, online), with `{placeholders}` and plural forms: edit the wording here. Code reads it with `t('key', vars)`; `setText(pack)` lays a translation over it |
 | `game/js/heroes/` | The hero kits; `skillRules.js` the skill trees and their rules (costs, requirements, gates, loadouts, reset, save migration), pure and tested; the screen is `game/js/ui/skills.js` |
 | `game/js/entities/` | Hero models and voxel hair, monsters, the four-legged rig, mortals, bosses |
+| `game/js/entities/models/` | The monster builders, one module per family, with the fodder's (`fodder/`, one per region) and the bosses' (`bosses/`, one per boss); `entities/monsters.js`, `fodder.js` and `bossmodels.js` are their registries and what callers import |
+| `game/js/data/` | The monster, fodder and champion tables (stats, names, looks), free of Three.js, so the node tests import them |
 | `game/js/world/` | Camp Half-Blood, the biomes, room templates, the level generator |
 | `game/js/world/owLayout.js`, `openworld.js`, `regions/` | The open world round camp: its map and regions (pure, tested), how it is built, and each region's terrain, places, people and side quests |
 | `game/js/world/rtLayout.js`, `roadtrip.js`, `road/` | The Road West: its map, stretches, roadblocks, rides and stations (pure, tested), how it is built, and each stop |

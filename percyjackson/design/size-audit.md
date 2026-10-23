@@ -1263,6 +1263,114 @@ rendered for this round but are not committed.
   5 → 7.5, and the pounce's landing 3 → 4.5. It stops 5.5 from its target,
   not 3.5.
 
+## History moved out of the model code
+
+The model builders' comments used to carry their history ("pass 4: …",
+"round 9: …", "the owner: …", "was …"). They now say only what the code does
+and why; the history they held is kept here when it was not recorded above.
+The builders live in `game/js/entities/models/` (one module per family, the
+fodder in `models/fodder/`, the bosses in `models/bosses/`), the stat blocks
+in `game/js/data/`.
+
+**Round 8: heads toward each creature's own sheet** (the owner: "it
+shouldn't converge to a single size, only toward the proportion in the
+source image"; design/sizes.json `headSheet`). Round 7's heads went too far
+for three of them:
+
+- **Cyclops:** head 0.62 → 0.84 (vox-bosses-2 draws it about 0.22 of his
+  height). The larger head sits 2.2 pixels lower between the shoulders, a
+  touch forward of the chest, so he stands as tall as before and his legs keep
+  their share of his height.
+- **Laistrygonian:** head 0.78 → 0.86 (his sheets draw it 0.18–0.2 of his
+  height).
+- **Alecto and her sisters:** head 0.58 → 0.66 of a hero's skin cube (the
+  vox-enemies Fury's head is about 0.185 of her height).
+
+**The Minotaur's loincloth.**
+
+- Round 8, after vox-bosses-1: the gold belt and its medallion moved to the
+  hips, with a white loincloth under them.
+- Round 9: fitted tight. The belt's ring (5.6 × 4.1 pixels) hugs the
+  sculpted waist (about ±4.7 wide and −3.3…4 deep at belt height). The hem
+  first hung in fourteen panels, each on its own pivot swinging with the
+  thigh behind it; then, as his thighs are far wider than his waist and cloth
+  all round flared into a skirt, it became a front apron and a back apron
+  only, tipped out just enough to clear the thigh sculpt.
+- The owner then preferred the aprons hanging still: they no longer swing,
+  and the legs may pass through them (they are there for modesty, not cloth
+  physics).
+
+**Model passes** (the comments' "pass 3", "pass 4", "pass 4b" and "pass 5",
+reworks of the looks alongside the size rounds):
+
+- **Pass 3, the bosses after vox-bosses-1:**
+  - Medusa: a finer sculpt grid (`rig.vd` 1.1, the snakes above all); the
+    snakes slimmer and longer, carved from small cells with scaled bodies, a
+    pale belly, dark bands, an S over six joints and wedge heads, where they
+    were chunky boxes.
+  - Minotaur: a V from broad shoulders to a narrow waist, defined pecs with a
+    cleft, a slimmer gut; rounder deltoids, slimmer upper arms and elbows,
+    longer arms so the fists hang low.
+  - Procrustes: a tall, lean man instead of a wide box (a smaller head,
+    longer legs, a slim suit), about the same height.
+  - Ares: a smaller head, longer legs and an open leather jacket over a
+    narrower waist, the chest and arms still huge; a short crop and a trimmed
+    beard, so his face shows.
+  - Cerberus: a coarser body grid and finer heads, greedy-meshed
+    (`rig.merge`).
+  - Cyclops: rounder trunk masses (`pw` nearer 2), round deltoids, biceps
+    bulging forward, narrow elbows.
+  - The empousa and the spider built bigger (a champion, `BUILD.k`): more,
+    smaller flame and tassel cubes; a big spider (the Road West champion at
+    1.7) takes the spider queen's fine build without her crown and gears.
+- **Pass 4, the owner's review against vox-enemies and vox-bosses-1:**
+  - The hellhound: a powerful crouching dog, not a lean column. The trunk
+    wider than the head, a fifth longer and deeper in the chest; shorter,
+    thicker legs planted wide (`stance`), their roots deep in the body
+    (`legY`) and hung from the torso (`legsOnTorso`); the head 24 → 19 pixels
+    (the owner: a large creature without a Minecraft head); a heavier collar
+    ring standing proud of the ruff; a dark mouth with pink gums only along
+    the jaws (the owner's note); the cracks as glowing magma, an orange-yellow
+    core in a deep red rim. The smoke puffs at the jaws were dropped: they
+    read as a nose sticking out and wiggling (the smoke aura stays).
+  - Cerberus: the body far bigger for its heads, broad and deep, crouched on
+    thick legs planted wide; then the whole of him far bigger, at the owner's
+    asking and after the book, about 7.75 blocks tall at rest (3.5 Percys,
+    1.2 Shadowfangs), 8.6 wide and 13 long with the tail, re-sculpted at that
+    size with smaller heads (5.6 and 6) and finer grids. Pass 4b added the
+    sheet's massive hump over the shoulders, the back sloping to a lower rump
+    and the belly tucked well up.
+- **Pass 5, the hellhounds' darks** (the owner: "a bit washed out"): the
+  sheet's coat is near-black, RGB 8–47, and the game drew it at about 80–90
+  by day (mostly the open world's distance fog, also the sheen of a
+  near-black dielectric and the flat hemisphere fill). The coat palette went
+  to 0.75 of its tones (`HOUND_DIM`), matt (roughness 1) with metalness 0.2;
+  the magma, eyes and teeth were left as they were.
+
+**Fixes the comments recorded:**
+
+- The Furies' whip used to hang from the fist wherever the arm pointed,
+  dangling straight down and trailing up to 2 m through the floor. It is
+  now posed in the rig's own space and bent up along the floor
+  (`models/whip.js whipPose`).
+- A champion lost its kind's own behaviour (`rig.onTick`, the fodder's
+  charges and restyled shots) when `buildChampionRig` set its tick; the tick
+  now calls it.
+- Gorgos was first built on the cyclops; he has his own builder on the
+  cyclops's giant frame and cell size, and still fights as the cyclops kind.
+- Procrustes's robe panels below the waist hung on the torso, so they stood
+  still over the thighs while the legs walked through them
+  (`perf/props.cjs`); they hang on a flap that swings with the striding leg
+  (`character.js swingSkirt`).
+- Luke's scabbard chape and throat were set at each other's depth, so the
+  chape floated in front of his thigh (`perf/islands.cjs`).
+- The Colchis bull calf's plates were made darker than its first build:
+  bronze-brown, copper and dark iron, dull brass rivets, nothing yellow.
+- The fodder's concept sheet `vox-ow-fodder-fix` replaced the earlier
+  sheets' ants and king crab.
+- The keres's finer mane clumps of round 10 no longer reached the skull, so
+  each is seated on it (`clumps on`).
+
 ## Proposals left for the owner or the other agents
 
 - **Laistrygonian:** kept as it is by the owner (2.27× Percy, where the books
