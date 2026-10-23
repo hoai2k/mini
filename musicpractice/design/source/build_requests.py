@@ -262,6 +262,22 @@ ASSETS = [
          status="delivered", group="App icon",
          prompt='Create the normal Music Practice app icon for iOS and Android, based on the reference illustration. A single conventional mechanical metronome: simple polished walnut tapering pyramid case, ivory tick-mark face, slender brass pendulum tilted slightly right, small brass sliding weight, conventional wooden base. Faithfully keep this ordinary metronome design; no Art Deco steps, jade panels, sunbursts, neon, microphone, record jewel or other objects. Square full-bleed warm ivory background, soft upper-left studio light, crisp readable silhouette. Keep the whole metronome within the central 70% of the square, centred with generous even margin so maskable icon cropping preserves it. No rounded-square border, no outer frame, no text, no letters or numbers, no watermark. The background is opaque warm ivory all the way to all four corners. Premium calm simple illustration.',
          note="Normal metronome identity: opaque ivory app icons for iOS and Android; transparent normal-metronome favicon and library image. The Art Deco master is preserved as icons/icon-art-deco-1024.png."),
+    # Round 14: app icon candidates for a possible rename (mobile/LAUNCH.md, Part 3)
+    dict(id="icon-gramophone", theme=None, round=14, file="icons/icon-gramophone-1024.png", size="1024×1024, PNG, full bleed, no transparency",
+         status="requested", group="App icon candidates",
+         prompt=("Create a candidate app icon for Music Practice for iOS and Android: a single vintage gramophone, seen from the front and slightly to one side. "
+                 "A compact polished walnut cabinet with a black record on its turntable, a brass tone arm, and a large flared brass horn rising from it and "
+                 "opening towards the viewer, the horn's bell taking up most of the picture, with a soft warm sheen inside it. Simple and bold, few details. "
+                 "Square full-bleed warm ivory background, soft upper-left studio light, crisp readable silhouette that still reads at 60 pixels. Keep the whole object within the central 70% of the square, centred with generous even margin so maskable icon cropping preserves it. No rounded-square border, no outer frame, no text, no letters or numbers, no watermark. The background is opaque warm ivory all the way to all four corners. Same materials, palette and light as the current metronome icon (polished walnut, warm brass, ivory). Premium calm simple illustration."),
+         note=("A candidate, not yet used: says listening and recording (the Playback Recorder) rather than metronome, to stand apart from the many "
+               "metronome icons (design/app-store-review.md, guideline 4.3). Compared with icon-horn and the current icon before choosing.")),
+    dict(id="icon-horn", theme=None, round=14, file="icons/icon-horn-1024.png", size="1024×1024, PNG, full bleed, no transparency",
+         status="requested", group="App icon candidates",
+         prompt=("Create a candidate app icon for Music Practice for iOS and Android: only the large flared brass horn of a vintage gramophone, seen "
+                 "three-quarters from the front, its bell opening towards the viewer and filling most of the picture, its narrow end curving away to a small "
+                 "walnut collar. Within the bell, a few faint concentric rings suggest sound. A simpler, bolder version of a gramophone icon. "
+                 "Square full-bleed warm ivory background, soft upper-left studio light, crisp readable silhouette that still reads at 60 pixels. Keep the whole object within the central 70% of the square, centred with generous even margin so maskable icon cropping preserves it. No rounded-square border, no outer frame, no text, no letters or numbers, no watermark. The background is opaque warm ivory all the way to all four corners. Same materials, palette and light as the current metronome icon (polished walnut, warm brass, ivory). Premium calm simple illustration."),
+         note="A candidate, not yet used: the gramophone idea reduced to its horn, for a clearer shape at small sizes. Compared with icon-gramophone."),
     dict(id="cover", theme=None, round=1, file="assets/ui/cover.webp", size="1200×900 (4:3), WebP",
          status="delivered", group="Game library card",
          prompt="A cosy music practice corner: a walnut metronome mid-swing on the left and a "
@@ -1084,7 +1100,7 @@ def render() -> tuple[str, str]:
                        (10, "Metronome pendulum in two parts, every theme"),
                        (11, "Practice Routine pictures, every theme"),
                        (12, "Arpeggios, Sight reading and Improvisation, every theme"),
-                       (13, "the Bebop theme")):
+                       (13, "the Bebop theme"), (14, "app icon candidates")):
         if rnd == 13 and BEBOP["id"] in ARCHIVED_THEMES:
             lines += ["**Round 13 (the Bebop theme):** archived, art and all, in `design/archive/bebop/` (not in the app).", ""]
             continue

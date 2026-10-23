@@ -50,6 +50,16 @@
     "status": "delivered"
   },
   {
+    "id": "icon-gramophone",
+    "file": "icons/icon-gramophone-1024.png",
+    "status": "requested"
+  },
+  {
+    "id": "icon-horn",
+    "file": "icons/icon-horn-1024.png",
+    "status": "requested"
+  },
+  {
     "id": "cover",
     "file": "assets/ui/cover.webp",
     "status": "delivered"
