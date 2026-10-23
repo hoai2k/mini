@@ -812,6 +812,13 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
   breaks ("12:00 · 3 routines in all · 30 s breaks"). `TimerRun` in
   `app/src/timer.js` (`rest`, `resting`, `waiting`; events `rest` and
   `begin`), `RESTS`.
+- **What the tools do at each moment is decided in one place**:
+  `toolPlan(moment, state)` in `app/src/timer.js`, pure and tested, says
+  which tools start, which stop and whether a take on the go is let finish,
+  for an item starting or going on, the voice finishing, a break, the end,
+  the last take finishing, and Pause or Stop. `timerui.js` only carries the
+  plan out (`act`), so a change to how the routine treats its tools is a
+  change to that function and its test.
 - **Running, the routine is a shell around the tools.** **Start** swaps the
   set-up panel for a **compact header** (the item's picture to the left of
   its name, its time left, what is next, a progress bar, and Pause, Skip and Stop as round buttons) over an
