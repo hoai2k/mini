@@ -7,6 +7,7 @@
 // silence on the first tap.
 
 import { encodeWav } from './wav.js';
+import { dlog, shortId } from './debuglog.js';
 
 let el = null;
 let url = null;
@@ -24,6 +25,9 @@ export function element() {
     el = document.createElement('audio');
     el.preload = 'auto';
     el.setAttribute('playsinline', '');
+    for (const type of ['error', 'stalled', 'waiting']) {
+      el.addEventListener(type, () => dlog('player-event', { type, code: el.error?.code ?? null, paused: el.paused, at: Math.round(el.currentTime * 100) / 100 }));
+    }
   }
   return el;
 }
@@ -85,6 +89,7 @@ export async function playSamples(samples, sampleRate) {
   a.pause();
   if (canSetVolume()) a.volume = volume;
   await load(a, source(samples, sampleRate));
+  dlog('player-play', { seconds: Math.round((samples.length / sampleRate) * 10) / 10, sampleRate, volume, elementVolume: canSetVolume() ? a.volume : 'ignored-ios', sink: shortId(a.sinkId || '') || 'default', muted: a.muted });
   let finish;
   const ended = new Promise((resolve) => { finish = resolve; });
   a.onended = () => finish();
@@ -147,8 +152,10 @@ export async function setSpeaker(id) {
   if (!('setSinkId' in a)) return false;
   try {
     await a.setSinkId(id === 'default' ? '' : id);
+    dlog('player-sink', { ok: true, id: shortId(id) });
     return true;
-  } catch {
+  } catch (err) {
+    dlog('player-sink', { ok: false, id: shortId(id), error: String(err) });
     return false;
   }
 }

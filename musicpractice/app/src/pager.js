@@ -10,7 +10,7 @@ const EASE = 'cubic-bezier(.2, .8, .25, 1)';
 // px that should leave at the finger's v px/ms lasts SLOPE * d / v.
 const SLOPE = 4;
 // What a swipe never starts on: things a finger drags or types into.
-const NO_SWIPE = 'input, select, textarea, [role="slider"], .slider, dialog, .bow-slider, .vslider';
+const NO_SWIPE = 'input, select, textarea, [role="slider"], .slider, dialog, .bow-slider, .vslider, .no-swipe, .titem.editing';
 
 /**
  * @param {{ home: HTMLElement, timer: HTMLElement, current: () => string,

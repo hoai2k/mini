@@ -10,6 +10,7 @@
 import { analyzeFrame, PlayDetector, trimBounds, cut, FRAME } from './detect.js';
 import { listDevices, preferredMic, micPermission, noteFirstRequest, allowedInAdvance } from './devices.js';
 import { isApp } from './native.js';
+import { dlog, shortId } from './debuglog.js';
 
 const PREROLL_SEC = 2;
 const WORKLET_LOADED = new WeakSet(); // contexts with the capture worklet
@@ -42,6 +43,8 @@ export function freesMicForPlayback() {
   if (isApp()) return true;
   return (micPermission() === 'granted' || allowedInAdvance()) && !promptSuspected;
 }
+/** Why the mic is freed or held (for the debug log). */
+export const freeReason = () => ({ frees: freesMicForPlayback(), app: isApp(), permission: micPermission(), allowedInAdvance: allowedInAdvance(), promptSuspected });
 export const promptWasSuspected = () => promptSuspected;
 const SETTLE_SEC = 0.35; // ignore the mic this long after playback (room echo)
 
@@ -199,6 +202,7 @@ export class Recorder extends EventTarget {
     let stream = this.stream;
     if (stream && this.micAlive()) {
       // Reuse the mic we hold: no new request, so no prompt.
+      dlog('mic-reuse', { echo: !!this.echo, state: this.state });
       for (const t of stream.getAudioTracks()) {
         t.enabled = true;
         if (t.getSettings?.().echoCancellation !== undefined && t.getSettings().echoCancellation !== !!this.echo) {
@@ -210,7 +214,13 @@ export class Recorder extends EventTarget {
       if (stream) this.dropStream();
       if (!navigator.mediaDevices?.getUserMedia) throw new Error('unsupported');
       const asked = performance.now();
-      stream = await this.request();
+      dlog('mic-request', { echo: !!this.echo, choice: this.micChoice || 'auto', freedOnPurpose: !!this.freedOnPurpose, state: this.state });
+      try {
+        stream = await this.request();
+      } catch (err) {
+        dlog('mic-error', { name: err?.name, message: String(err?.message || err).slice(0, 200), ms: Math.round(performance.now() - asked) });
+        throw err;
+      }
       // Taking back a mic we freed should be instant; a long wait means the
       // browser asked again, so hold the mic from now on.
       if (this.freedOnPurpose && performance.now() - asked > PROMPT_SUSPECT_MS) promptSuspected = true;
@@ -218,6 +228,9 @@ export class Recorder extends EventTarget {
       this.freedOnPurpose = false;
       stream = await this.preferBuiltIn(stream);
       this.keepStream(stream);
+      const t = stream.getAudioTracks()[0];
+      const st = t?.getSettings?.() || {};
+      dlog('mic-open', { ms: Math.round(performance.now() - asked), label: t?.label || '', device: shortId(st.deviceId), sampleRate: st.sampleRate ?? null, channels: st.channelCount ?? null, echo: st.echoCancellation ?? null, agc: st.autoGainControl ?? null, ns: st.noiseSuppression ?? null, promptSuspected, ctx: this.ctx.state });
       // Turned off (or closed again) while the browser was opening it: hold it, switched off.
       if (ticket !== this.ticket) {
         for (const t of stream.getTracks()) t.enabled = false;
@@ -278,6 +291,7 @@ export class Recorder extends EventTarget {
     const want = preferredMic(inputs, this.micChoice);
     const have = stream.getAudioTracks()[0]?.getSettings?.().deviceId;
     if (!want || want === have) return stream;
+    dlog('mic-switch', { from: shortId(have), to: shortId(want), why: 'prefer-built-in' });
     try {
       const better = await navigator.mediaDevices.getUserMedia(this.constraints(want));
       stream.getTracks().forEach((t) => t.stop());
@@ -291,8 +305,9 @@ export class Recorder extends EventTarget {
     this.stream = stream;
     for (const t of stream.getTracks()) {
       const lost = () => { if (this.stream === stream && this.graph) this.dispatchEvent(new Event('miclost')); };
-      t.addEventListener('ended', lost);
-      t.addEventListener('mute', lost);
+      t.addEventListener('ended', () => { dlog('mic-track', { event: 'ended', listening: !!this.graph }); lost(); });
+      t.addEventListener('mute', () => { dlog('mic-track', { event: 'mute', listening: !!this.graph }); lost(); });
+      t.addEventListener('unmute', () => dlog('mic-track', { event: 'unmute', listening: !!this.graph }));
     }
   }
 
@@ -315,6 +330,7 @@ export class Recorder extends EventTarget {
       else this.graph.node.onaudioprocess = null;
       this.graph = null;
     }
+    if (this.stream) dlog('mic-close', { dead, ...freeReason(), result: dead ? 'dropped-dead' : freesMicForPlayback() ? 'freed' : 'held-switched-off' });
     if (dead) {
       this.dropStream();
     } else if (this.stream && freesMicForPlayback()) {
@@ -344,6 +360,18 @@ export class Recorder extends EventTarget {
     this.pending = new Float32Array(0);
     this.ignoreUntil = this.pos + SETTLE_SEC * this.ctx.sampleRate;
     this.set('waiting');
+  }
+
+  /**
+   * While waiting for playing, take no notice of the mic for `sec` seconds
+   * (the Practice Routine's chime and voice between items, which a phone's
+   * own speaker would otherwise start a take with).
+   */
+  ignoreFor(sec) {
+    if (this.state !== 'waiting') return;
+    this.detector.reset();
+    this.preroll = [];
+    this.ignoreUntil = Math.max(this.ignoreUntil, this.pos + sec * this.ctx.sampleRate);
   }
 
   receive(data) {

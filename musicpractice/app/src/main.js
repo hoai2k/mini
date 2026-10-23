@@ -3,15 +3,17 @@
 import { TEXT, setRich } from './text.js';
 
 import { audio, existingAudio, freshAudio, replaceAudio, audioWasAway, markStale, unlock, setSession, heardNow, keepAwake, setExtraDelay, setContextSpeaker } from './audio.js';
-import { playSamples, primeFromTap, outputSettled, setSpeaker, setPlaybackVolume } from './player.js';
-import { forPlayback } from './loudness.js';
+import { playSamples, primeFromTap, outputSettled, setSpeaker, setPlaybackVolume, element as playerElement } from './player.js';
+import { forPlayback, playbackLevel } from './loudness.js';
+import { dlog, debugState, startDebugLog, debugBeat, debugText, debugJson } from './debuglog.js';
 import { encodeMp3 } from './mp3.js';
 import { openAudioCheck, renderMicTip } from './audiocheck.js';
 import { diag, isWebKit, isIOS, micPermission, onPermissionChange, noteMicRefused, openAppSettings } from './devices.js';
 import { Metronome, pendulumAngle, weightAt, bpmAtWeight } from './metronome.js';
-import { Recorder, freesMicForPlayback } from './recorder.js';
+import { Recorder, freesMicForPlayback, freeReason } from './recorder.js';
 import { setupTuner } from './tunerui.js';
-import { Drone, preload as preloadDrone } from './drone.js';
+import { Drone, preload as preloadDrone, wrap as wrapNote, spelling } from './drone.js';
+import { noteName } from './tuning.js';
 import { setupDrone } from './droneui.js';
 import { isApp, platform, shareFile, onBackButton, exitApp } from './native.js';
 import { setupFeedback } from './feedback.js';
@@ -39,6 +41,8 @@ import { applyArt, alignPendulum, alignBow, swingOf, placeWeight, weightFromPoin
 import { tuckedVolume } from './tuckedvolume.js';
 
 const $ = (id) => document.getElementById(id);
+// Opened from an iPhone's or iPad's home screen: the page keeps clear of the fade iOS draws at the top (styles.css --edge-fade).
+if (navigator.standalone) document.documentElement.classList.add('ios-app');
 const settings = load();
 const persist = () => save(settings);
 
@@ -128,6 +132,7 @@ function route() {
   if (next !== screen || document.getElementById(next).hidden !== false) {
     leave(screen);
     for (const id of SCREENS) $(id).hidden = id !== next;
+    dlog('screen', { from: screen, to: next });
     screen = next;
     enter(next);
   }
@@ -285,6 +290,13 @@ function metronomeConfigured() {
   persist();
 }
 
+/**
+ * The context to start sound on from a tap: a fresh one if the old one may be
+ * stuck on another output, but never while the mic is in use on it (a new
+ * one would cut the Playback Recorder off mid-take).
+ */
+const soundCtx = () => (listeningActive() || playing ? audio() : freshAudio());
+
 function startMetronome() {
   if (useNative) {
     if (!metronome?.native) metronome = new NativeMetronome();
@@ -292,8 +304,8 @@ function startMetronome() {
     metronome.start().catch(() => { note(TEXT.metronome.couldntStart); stopMetronome(); });
   } else {
     // A fresh context if the old one may be stuck on another output (this is a
-    // tap, so the new one may start).
-    const ctx = freshAudio();
+    // tap, so the new one may start), unless the mic is using it.
+    const ctx = soundCtx();
     unlock();
     if (!metronome || metronome.ctx !== ctx) {
       metronome = new Metronome(ctx);
@@ -302,6 +314,8 @@ function startMetronome() {
     metronome.configure(settings);
     metronome.start();
   }
+  dlog('metronome-start', { native: useNative, volume: settings.volume, sound: settings.sound, bpm: settings.bpm, ctx: metronome.ctx?.state ?? null, speaker: settings.speaker === 'default' ? 'default' : 'picked' });
+  setTimeout(debugBeat, 1500); // how loud it came out, once it has been playing a moment
   pendulum.classList.remove('resting');
   $('met-toggle').setAttribute('aria-pressed', 'true');
   $('met-toggle-label').textContent = TEXT.metronome.stop;
@@ -309,7 +323,7 @@ function startMetronome() {
 }
 
 function stopMetronome() {
-  if (metronome?.running) metronome.stop();
+  if (metronome?.running) { metronome.stop(); dlog('metronome-stop'); }
   pendulum.classList.add('resting');
   pendulum.style.transform = 'rotate(0deg)';
   for (const li of $('beats').children) { li.classList.remove('on'); li.style.removeProperty('--g'); }
@@ -395,6 +409,8 @@ appearance.addEventListener('change', () => {
   applyTheme();
 });
 $('reload-page').addEventListener('click', () => location.reload());
+// A browser's button: in the apps it reads as a website in a wrapper to App Review (Guideline 4.2).
+$('reload-page').hidden = isApp();
 
 function setTheme(id) {
   if (id !== FREE_THEME && !requirePro('themes')) {
@@ -587,7 +603,7 @@ function openAccents() {
         cell.setAttribute('aria-pressed', String(on));
         cell.setAttribute('aria-label', TEXT.metronome.accents.cell(label, on));
       };
-      cell.addEventListener('click', () => { editing.on.has(at) ? editing.on.delete(at) : editing.on.add(at); show(); });
+      cell.addEventListener('click', () => { editing.on.has(at) ? editing.on.delete(at) : editing.on.add(at); show(); applyStrong(); });
       cell.show = show;
       show();
       group.append(cell);
@@ -600,7 +616,10 @@ $('accent-edit').addEventListener('click', openAccents);
 $('accent-clear').addEventListener('click', () => {
   editing.on.clear();
   for (const c of $('accent-grid').querySelectorAll('.accent-cell')) c.show();
+  applyStrong();
 });
+/** Each change is heard at once, on a running metronome too; Done (or closing) keeps it. */
+const applyStrong = () => setStrong([...editing.on, ...editing.hidden]);
 /** The strong positions as they are now (Strong beat on 1's, or the custom pattern's). */
 function strongPositions() {
   if (!settings.accent) return [];
@@ -622,10 +641,7 @@ function setStrong(pos) {
   }
   metronomeConfigured();
 }
-$('accent-done').addEventListener('click', () => {
-  setStrong([...editing.on, ...editing.hidden]);
-  accentEditor.close();
-});
+$('accent-done').addEventListener('click', () => accentEditor.close());
 // Pressing and holding the beat dots, or the Visualizer, opens the strong
 // beats (a tap switches between the two). Not with no bars: there is no bar
 // to set beats in.
@@ -1259,10 +1275,11 @@ function ensureRecorder() {
     // Hand over a mic the old recorder still holds, so there is no new prompt.
     if (old?.stream) { recorder.keepStream(old.stream); old.stream = null; }
     recorder.addEventListener('state', () => {
+      if (recorder.state === 'recording') recordingSince = performance.now();
       interruptPlayback();
       showState();
       showTunerState();
-      keepAwake(recorder.state !== 'off');
+      keepAwake(recorder.state !== 'off' || !!timerUI?.running);
     });
     recorder.addEventListener('chunk', (e) => {
       recoverTries = 0;
@@ -1290,7 +1307,7 @@ async function startRecorder() {
   } catch (err) {
     recError = micError(err);
   }
-  if (recorder.micOpen) markStale();
+  if (recorder.micOpen) markStale('mic-open-recorder');
   showMicTip();
   showState();
 }
@@ -1453,7 +1470,7 @@ function restartListening() {
 // won't start again by itself, the next tap starts a new one.
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
-  markStale(); // the output may have changed while away; the next Start gets a fresh context
+  markStale('back-from-background'); // the output may have changed while away; the next Start gets a fresh context
   const c = existingAudio();
   if (c && c.state !== 'running' && c.state !== 'closed') c.resume().catch(() => { /* the next tap resumes it */ });
   if (playing?.handle?.isPaused?.()) playing.handle.resume().catch(() => stopPlayback());
@@ -1557,6 +1574,7 @@ async function play(take, { auto = false } = {}) {
     handle = playWithWebAudio(take); // the browser refused the media element
     record.via = 'Web Audio (the audio element was refused)';
   }
+  dlog('take-play', { ...record, auto, recordDuringPlayback: recordDuringPlayback(), playVolume: settings.playVolume, level: playbackLevel(take.samples), mic: freeReason() });
   if (token !== playToken) { handle.stop(); return; }
   playing.handle = handle;
   handle.ended.then(() => { if (token === playToken) stopPlayback(); });
@@ -1728,24 +1746,33 @@ async function saveTake(take, label, button) {
     }
   }
   const file = new File([take.mp3], `${base}.mp3`, { type: 'audio/mpeg' });
+  const how = await saveFile(file, base);
+  if (how === 'failed') note(TEXT.recorder.saveFailed);
+  if (how === 'needsTap') {
+    button.classList.add('ready');
+    button.setAttribute('aria-label', TEXT.recorder.mp3Ready);
+    note(TEXT.recorder.mp3ReadyNote);
+  }
+}
+
+/**
+ * Save a file: the share sheet in the apps and on phones, a download
+ * elsewhere. Resolves to 'shared', 'downloaded', 'aborted' (the share sheet
+ * was closed), 'needsTap' (iPhone wants a fresh tap to share) or 'failed'.
+ */
+async function saveFile(file, title) {
   if (isApp()) {
     // The app's own share sheet: no "tap again" step, and Android's web view has none.
-    try { await shareFile(file, base); } catch { note(TEXT.recorder.saveFailed); }
-    return;
+    try { await shareFile(file, title); return 'shared'; } catch { return 'failed'; }
   }
   const phone = isIOS() || /Android/i.test(navigator.userAgent);
   if (phone && navigator.canShare?.({ files: [file] })) {
     try {
-      await navigator.share({ files: [file], title: base });
-      return;
+      await navigator.share({ files: [file], title });
+      return 'shared';
     } catch (err) {
-      if (err?.name === 'AbortError') return; // closed the share sheet
-      if (err?.name === 'NotAllowedError') {
-        button.classList.add('ready');
-        button.setAttribute('aria-label', TEXT.recorder.mp3Ready);
-        note(TEXT.recorder.mp3ReadyNote);
-        return;
-      }
+      if (err?.name === 'AbortError') return 'aborted';
+      if (err?.name === 'NotAllowedError') return 'needsTap';
     }
   }
   const url = URL.createObjectURL(file);
@@ -1756,6 +1783,7 @@ async function saveTake(take, label, button) {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 60000);
+  return 'downloaded';
 }
 
 /** A short message at the bottom of the screen. */
@@ -1926,7 +1954,7 @@ async function startTuner() {
     tunerError = micError(err, true);
   }
   tunerStarting = false;
-  if (recorder.micOpen) markStale();
+  if (recorder.micOpen) markStale('mic-open-tuner');
   showTunerState();
 }
 
@@ -1985,7 +2013,7 @@ function droneEngine() {
   }
   // While it sounds, keep its context (so note changes crossfade); from
   // silence, a fresh one if the output may have changed (a Bluetooth speaker).
-  const ctx = drone?.playing && drone.ctx.state !== 'closed' ? drone.ctx : freshAudio();
+  const ctx = drone?.playing && drone.ctx.state !== 'closed' ? drone.ctx : soundCtx();
   if (!drone || drone.ctx !== ctx) {
     drone = new Drone(ctx);
     drone.setVolume(settings.droneVolume);
@@ -2002,48 +2030,119 @@ const droneUI = setupDrone({
   engine: droneEngine,
   onPlaying: (on) => {
     if (on && !recorder?.holdsMic) setSession('playback');
+    dlog(on ? 'drone-start' : 'drone-stop', { native: useNative, volume: settings.droneVolume, voice: settings.droneVoice, midi: settings.droneMidi, ctx: drone?.ctx.state ?? null, micHeld: !!recorder?.holdsMic });
+    if (on) setTimeout(debugBeat, 3000); // past the fade-in
     keepAwake(on);
   },
 });
 // ---------------------------------------------------------------- practice timer
 
 /*
- * The Practice Routine (inside the code, the timer). Its items play the
- * metronome and the drone through the same engines as their own screens, but
- * set up from the item, never from or into the Metronome's or the Drone's
- * settings (sound, accent and volume follow the Metronome's).
+ * The Practice Routine (inside the code, the timer). Running, it is a shell
+ * around the tools: its cards turn the Metronome, the Drone and the Playback
+ * Recorder on and off, each running with its own settings (timerui.js).
  */
 let timerUI = null;
 let pager = null;
-let timerDrone = false; // the timer started the drone
+let timerDrone = false; // the routine's Drone card started the drone
+let timerPlayback = false; // the routine's Playback card turned the recorder on
+let recordingSince = 0; // when the take being recorded began (the card's clock)
 // Chimes and the voice play on the context the metronome plays through, when it does (one context, one output).
 const clipCtx = () => (!useNative && metronome?.running ? metronome.ctx : audio());
+const droneNote = () => {
+  const n = noteName(settings.droneMidi, { flats: spelling(settings.droneAccidentals, settings.droneSpelling) === 'flats' });
+  return `${n.name}${n.octave}`;
+};
+/** The drone, as the routine's Drone card has it: the Drone's own note, instrument and fifth, untimed. */
+function routineDrone() {
+  timerDrone = true;
+  const voice = TEXT.drone.voices[settings.droneVoice] || '';
+  droneEngine().play({ midi: settings.droneMidi, voice: settings.droneVoice, a4: settings.a4, fifth: settings.droneFifth, schedule: null, label: `${TEXT.timer.title} · ${voice}` });
+}
+const droneChanged = () => { persist(); droneUI.refresh(); if (timerDrone) routineDrone(); };
+const routineTools = {
+  metronome: {
+    start: startMetronome,
+    stop: stopMetronome,
+    on: () => !!metronome?.running,
+    bpm: () => settings.bpm,
+    setBpm: (n) => setBpm(n),
+    /** Its settings as a routine item keeps them: tempo, time signature, click, extra notes, accent and volume. */
+    config: () => ({ bpm: settings.bpm, meter: settings.meter, sound: settings.sound, sub: settings.subOn ? settings.subKind : 1, accent: settings.accent, volume: settings.volume }),
+    setConfig: ({ bpm, meter, sound, sub, accent, volume }) => {
+      if (bpm !== settings.bpm) setBpm(bpm);
+      if (volume !== undefined && volume !== settings.volume) { settings.volume = volume; metVolume.show(); }
+      const subNow = settings.subOn ? settings.subKind : 1;
+      if (meter === settings.meter && sound === settings.sound && sub === subNow && (accent === undefined || accent === settings.accent)) {
+        metronome?.configure(settings);
+        persist();
+        return;
+      }
+      if (meter !== settings.meter) { settings.meter = meter; settings.accentPattern = null; meterSelect.value = meter; }
+      if (sound !== settings.sound) { settings.sound = sound; soundSelect.value = sound; }
+      if (accent !== undefined && accent !== settings.accent) { settings.accent = accent; if (!accent) settings.accentPattern = null; $('accent').checked = accent; }
+      if (sub !== subNow) setSub(sub > 1, sub > 1 ? sub : settings.subKind);
+      else metronomeConfigured();
+    },
+    meter: () => (meterOf(settings.meter).beats === 1 ? TEXT.metronome.noBars : settings.meter),
+    beat: () => {
+      const strengths = shownBeats();
+      if (!metronome?.running) return { idx: -1, strengths };
+      const now = metronome.native ? metronome.heardNow(1 / 60) : heardNow(1 / 60);
+      const b = metronome.beatAt(now);
+      return { idx: !b ? -1 : meterOf(settings.meter).beats === 1 ? b.count % strengths.length : b.beat, strengths, at: b, now, period: metronome.period };
+    },
+  },
+  drone: {
+    start: routineDrone,
+    stop: () => { if (timerDrone) { timerDrone = false; droneEngine().stop(); } },
+    on: () => timerDrone,
+    note: droneNote,
+    midi: () => settings.droneMidi,
+    volume: () => settings.droneVolume,
+    /** An item's drone: its note, instrument, fifth and volume (playing on if it was). */
+    set: ({ midi, voice, fifth, volume }) => {
+      if (volume !== undefined && volume !== settings.droneVolume) droneUI.setVolume(volume);
+      if (midi === settings.droneMidi && voice === settings.droneVoice && fifth === settings.droneFifth) return;
+      Object.assign(settings, { droneMidi: wrapNote(midi), droneVoice: voice, droneFifth: fifth });
+      droneChanged();
+    },
+    step: (d) => { settings.droneMidi = wrapNote(settings.droneMidi + d); droneChanged(); },
+    voice: () => settings.droneVoice,
+    setVoice: (v) => { settings.droneVoice = v; droneChanged(); },
+    fifth: () => settings.droneFifth,
+    setFifth: (on) => { settings.droneFifth = on; settings.droneFifthChosen = true; droneChanged(); },
+    allowed: () => isPro(),
+    ask: () => openPaywall('drone'),
+  },
+  playback: {
+    start: () => { timerPlayback = true; startRecorder(); },
+    stop: () => { if (timerPlayback) { timerPlayback = false; stopRecorder(); } },
+    on: () => timerPlayback,
+    status: () => {
+      const state = playing ? 'playing' : recorder?.state ?? 'off';
+      return {
+        state: timerPlayback || state !== 'off' ? state : 'off',
+        seconds: state === 'recording' ? (performance.now() - recordingSince) / 1000 : 0,
+        takes: takes.length,
+      };
+    },
+    busy: () => recorder?.state === 'recording' || !!playing,
+    /** Its settings as a routine item keeps them: the silence it stops after, and whether it plays takes back. */
+    config: () => ({ silenceSec: settings.silenceSec, autoPlay: settings.autoPlay, volume: settings.playVolume }),
+    setConfig: ({ silenceSec, autoPlay, volume }) => {
+      if (volume !== undefined && volume !== settings.playVolume) { settings.playVolume = volume; setPlaybackVolume(volume); recVolume.show(); persist(); }
+      if (silenceSec === settings.silenceSec && autoPlay === settings.autoPlay) return;
+      settings.silenceSec = silenceSec;
+      settings.autoPlay = autoPlay;
+      $('silence').value = silenceSec;
+      $('autoplay').checked = autoPlay;
+      configureRecorder();
+    },
+    ignoreFor: (sec) => recorder?.ignoreFor(sec),
+  },
+};
 const timerAudio = {
-  metronome(met) {
-    const cfg = { ...settings, bpm: met.bpm, meter: met.meter, accentPattern: null, subdivision: 1 };
-    if (useNative) {
-      if (!metronome?.native) metronome = new NativeMetronome();
-      metronome.configure(cfg);
-      if (!metronome.running) metronome.start().catch(() => {});
-      return;
-    }
-    if (metronome?.running) { metronome.configure(cfg); return; }
-    const ctx = freshAudio();
-    unlock();
-    if (!metronome || metronome.ctx !== ctx) {
-      metronome = new Metronome(ctx);
-      if (settings.speaker !== 'default') setContextSpeaker(settings.speaker);
-    }
-    metronome.configure(cfg);
-    metronome.start();
-  },
-  stopMetronome() { if (metronome?.running) metronome.stop(); },
-  drone(drn) {
-    timerDrone = true;
-    const voice = TEXT.drone.voices[drn.voice] || '';
-    droneEngine().play({ midi: drn.midi, voice: drn.voice, a4: settings.a4, fifth: drn.fifth, schedule: null, label: `${TEXT.timer.title} · ${voice}` });
-  },
-  stopDrone() { if (timerDrone) { timerDrone = false; droneEngine().stop(); } },
   // On the context the metronome plays through, when it does (one context, one output).
   chime(id) { return playChime(clipCtx(), id); },
   clips(urls, volume) { return playClips(clipCtx(), urls, volume == null ? {} : { volume }); },
@@ -2053,12 +2152,7 @@ const timerAudio = {
     if (on && !recorder?.holdsMic) setSession('playback');
   },
 };
-timerUI = setupTimer({
-  settings,
-  audio: timerAudio,
-  canDrone: () => isPro(),
-  askDrone: () => openPaywall('drone'),
-});
+timerUI = setupTimer({ settings, tools: routineTools, audio: timerAudio });
 pager = setupPager({
   home: $('home'),
   timer: $('routine'),
@@ -2261,7 +2355,31 @@ function feedbackDetails() {
   }
   return lines.join('\n');
 }
-setupFeedback({ details: feedbackDetails });
+setupFeedback({ details: feedbackDetails, debug: (max) => debugText(max) });
+
+// The debug log (debuglog.js): what the app is doing, each time it looks.
+debugState('app', () => {
+  const ctx = existingAudio();
+  const track = recorder?.stream?.getAudioTracks()[0];
+  const el = playerElement();
+  return {
+    screen,
+    ctx: ctx ? { state: ctx.state, rate: ctx.sampleRate, outputLatency: ctx.outputLatency ?? null, baseLatency: ctx.baseLatency ?? null, sink: ctx.sinkId === undefined ? null : ctx.sinkId ? 'picked' : 'default' } : null,
+    mic: { recorder: recorder?.state ?? 'off', held: !!recorder?.holdsMic, open: !!recorder?.micOpen, enabled: track ? track.enabled : null, muted: track ? track.muted : null, ready: track ? track.readyState : null, label: track?.label ?? null, ...freeReason() },
+    playing: { metronome: !!metronome?.running, drone: !!droneUI.playing, take: !!playing?.handle, element: el.src ? { paused: el.paused, volume: el.volume, muted: el.muted } : null },
+    volumes: { metronome: settings.volume, drone: settings.droneVolume, takes: settings.playVolume },
+    native: useNative,
+  };
+});
+startDebugLog({ app: isApp() ? `${platform()} app` : 'website', settings: { mic: settings.mic === 'auto' ? 'auto' : 'picked', speaker: settings.speaker === 'default' ? 'default' : 'picked', recordDuringPlayback: recordDuringPlayback(), volume: settings.volume, droneVolume: settings.droneVolume, playVolume: settings.playVolume } });
+// Audio check's Export debug data: the whole log as a JSON file, shared or downloaded like a take.
+$('export-debug').addEventListener('click', async () => {
+  dlog('export');
+  const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+  const file = new File([debugJson({ details: feedbackDetails() })], `musicpractice-debug-${stamp}.json`, { type: 'application/json' });
+  const how = await saveFile(file, file.name);
+  if (how === 'failed' || how === 'needsTap') note(TEXT.audioCheck.exportFailed);
+});
 
 // Pro (the apps only): features unlock or lock as it turns on or off.
 function proChanged() {

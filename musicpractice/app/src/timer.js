@@ -1,15 +1,21 @@
 // The Practice Routine's routine and its clock: a list of practice items, each
-// a name, a number of minutes and, optionally, a metronome and a drone set up
-// for that item alone (they never change the Metronome's or the Drone's own
-// settings). Pure: the screen is timerui.js, the sound comes through the
-// engines main.js hands it.
+// a name, a number of minutes, whether it is in the routine (`enabled`), and
+// its own set-up of the tools: which of the Metronome, the Drone and the
+// Playback Recorder are on (`tools`), and each tool's settings: the
+// metronome's tempo, time signature, click, extra notes, accent and volume
+// (`met`), the drone's note, instrument, fifth and volume (`drn`), and the
+// Playback Recorder's silence to stop after, whether it plays takes back,
+// and how loud (`pb`). While it runs, the routine is a
+// shell around the tools: each item's set-up is put on the tools as it
+// starts, and what is changed on their cards is kept with the item for next
+// time. Pure: the screen is timerui.js, the tools come through main.js.
 //
 // Inside the code it is the timer (timer.js, timerui.js, TEXT.timer, #timer-…).
 
 import { TEXT } from './text.js';
-import { METERS, BPM_MIN, BPM_MAX } from './settings.js';
-import { DRONE_MIN, DRONE_MAX, VOICES } from './drone.js';
 import { output } from './output.js';
+import { BPM_MIN, BPM_MAX, METERS, SOUNDS, DEFAULTS } from './settings.js';
+import { DRONE_MIN, DRONE_MAX, VOICES } from './drone.js';
 
 const KEY = 'musicpractice.routine.v1';
 export const MAX_ITEMS = 30;
@@ -17,22 +23,25 @@ export const MIN_MINUTES = 1;
 export const MAX_MINUTES = 120;
 const MAX_NAME = 60;
 
+/** The tools a running routine offers, in the order of their cards. */
+export const TOOLS = ['metronome', 'drone', 'playback'];
+
 /**
- * The suggestions offered by +. Each needs its own picture, practice-<id>,
- * in the image requests (design/source/build_requests.py, PRACTICE_SUBJECT;
- * test/timer.test.mjs checks), shown large while such an item runs.
+ * The suggestions offered by +, and the kinds an item can be. Each needs its
+ * own picture, practice-<id>, in the image requests
+ * (design/source/build_requests.py, PRACTICE_SUBJECT; test/timer.test.mjs
+ * checks).
  */
 export const PRESETS = [
-  { id: 'intonation', minutes: 3, metronome: false, drone: true },
-  { id: 'scales', minutes: 5, metronome: true, drone: false },
-  { id: 'arpeggios', minutes: 5, metronome: false, drone: false },
-  // The metronome is what this one is: on whenever it is added, and its
-  // picture is the Metronome's own.
-  { id: 'metronome', minutes: 5, metronome: true, drone: false, own: true, picture: 'home-metronome' },
-  { id: 'sight-reading', minutes: 5, metronome: false, drone: false },
-  { id: 'improvisation', minutes: 5, metronome: false, drone: false },
-  { id: 'rhythms', minutes: 3, metronome: false, drone: false },
-  { id: 'ghosting', minutes: 3, metronome: false, drone: false },
+  { id: 'intonation', minutes: 3 },
+  { id: 'scales', minutes: 5 },
+  { id: 'arpeggios', minutes: 5 },
+  // Its picture is the Metronome's own.
+  { id: 'metronome', minutes: 5, picture: 'home-metronome' },
+  { id: 'sight-reading', minutes: 5 },
+  { id: 'improvisation', minutes: 5 },
+  { id: 'rhythms', minutes: 3 },
+  { id: 'ghosting', minutes: 3 },
 ];
 /** The routine a first visit starts with. */
 const FIRST_ROUTINE = ['intonation', 'scales'];
@@ -41,28 +50,39 @@ let nextId = 1;
 const newId = () => `i${Date.now().toString(36)}${(nextId++).toString(36)}`;
 
 /**
- * A new item: from a preset (or blank, for Custom…), its metronome and drone
- * starting from the app's current ones (`base`, the settings) and its own from
- * then on. `tools`: whether the preset's metronome or drone starts on (as in
- * the routine a first visit starts with); an item added with + starts with
- * both off.
+ * A new item: from a suggestion (or blank, for Custom…), at the length last
+ * given to its kind, with every tool off and their settings taken from the
+ * app's own (`base`, the settings) as a start.
  */
-export function newItem(presetId, base = {}, lastMinutes = {}, { tools = true } = {}) {
+export function newItem(presetId, lastMinutes = {}, base = {}) {
   const p = PRESETS.find((x) => x.id === presetId);
   const minutes = lastMinutes[presetId || 'custom'] ?? (p ? p.minutes : 5);
   return clean({
-    id: newId(),
-    kind: p ? p.id : null,
-    name: p ? TEXT.timer.presets[p.id] : '',
-    minutes,
-    metronome: !!((tools || p?.own) && p?.metronome),
-    drone: !!((tools || p?.own) && p?.drone),
-    met: { bpm: base.bpm, meter: base.meter },
-    drn: { midi: base.droneMidi, voice: base.droneVoice, fifth: base.droneFifth },
+    id: newId(), kind: p ? p.id : null, name: p ? TEXT.timer.presets[p.id] : '', minutes,
+    met: { bpm: base.bpm, meter: base.meter, sound: base.sound, sub: base.subOn ? base.subKind : 1, accent: base.accent, volume: base.volume },
+    drn: { midi: base.droneMidi, voice: base.droneVoice, fifth: base.droneFifth, volume: base.droneVolume },
+    pb: { silenceSec: base.silenceSec, autoPlay: base.autoPlay, volume: base.playVolume },
   });
 }
 
-export const defaultRoutine = (base) => FIRST_ROUTINE.map((id) => newItem(id, base));
+export const defaultRoutine = (base) => FIRST_ROUTINE.map((id) => newItem(id, {}, base));
+
+/** An item's kind changed (its name follows a suggestion's; Custom keeps the name it has). */
+export function setKind(it, kind) {
+  const p = PRESETS.find((x) => x.id === kind);
+  it.kind = p ? p.id : null;
+  if (p) it.name = TEXT.timer.presets[p.id];
+  return it;
+}
+
+/** `items` with the one at `from` moved to `to` (a new array). */
+export function move(items, from, to) {
+  const out = items.slice();
+  if (from < 0 || from >= out.length) return out;
+  const [it] = out.splice(from, 1);
+  out.splice(Math.max(0, Math.min(out.length, to)), 0, it);
+  return out;
+}
 
 const clampInt = (v, lo, hi, d) => (Number.isFinite(Number(v)) ? Math.max(lo, Math.min(hi, Math.round(Number(v)))) : d);
 
@@ -70,15 +90,27 @@ const clampInt = (v, lo, hi, d) => (Number.isFinite(Number(v)) ? Math.max(lo, Ma
 // A suggestion's name as it is now, or as it was ("Intonation practice", "Clapping rhythms").
 const sameName = (preset, name) => [preset, `${preset} practice`].some((n) => n.toLowerCase() === name.trim().toLowerCase());
 
+/** The suggestion named exactly `name` (any case, spaces round it aside), or null. */
+export const presetNamed = (name) => PRESETS.find((p) => TEXT.timer.presets[p.id].toLowerCase() === name.trim().toLowerCase())?.id ?? null;
+/** One of its own (Custom) named exactly as a suggestion becomes that suggestion: its name, picture and lines. */
+export function matchKind(it) {
+  const k = !it.kind && presetNamed(it.name);
+  if (k) setKind(it, k);
+  return it;
+}
+
 export function clean(it) {
   const o = it && typeof it === 'object' ? it : {};
   const met = o.met && typeof o.met === 'object' ? o.met : {};
   const drn = o.drn && typeof o.drn === 'object' ? o.drn : {};
+  const pb = o.pb && typeof o.pb === 'object' ? o.pb : {};
+  const t = o.tools && typeof o.tools === 'object' ? o.tools : { metronome: o.metronome, drone: o.drone }; // saved before `tools`: its own two
   const saved = typeof o.name === 'string' ? o.name.slice(0, MAX_NAME) : '';
   // Which suggestion it came from (its picture), or null for one of its own.
   // Saved before items knew: by its name, if that is a suggestion's.
+  // One of its own named exactly as a suggestion is that suggestion.
   const kind = PRESETS.some((p) => p.id === o.kind) ? o.kind
-    : o.kind === undefined ? PRESETS.find((p) => sameName(TEXT.timer.presets[p.id], saved))?.id ?? null : null;
+    : o.kind === undefined ? PRESETS.find((p) => sameName(TEXT.timer.presets[p.id], saved))?.id ?? null : presetNamed(saved);
   // A suggestion's name as it is now, where it was saved under an earlier one ("Intonation practice").
   const name = kind && sameName(TEXT.timer.presets[kind], saved) ? TEXT.timer.presets[kind] : saved;
   return {
@@ -86,19 +118,44 @@ export function clean(it) {
     kind,
     name,
     minutes: clampInt(o.minutes, MIN_MINUTES, MAX_MINUTES, 5),
-    metronome: o.metronome === true,
-    drone: o.drone === true,
+    enabled: o.enabled !== false,
+    tools: Object.fromEntries(TOOLS.map((k) => [k, t[k] === true])),
     met: {
       bpm: clampInt(met.bpm, BPM_MIN, BPM_MAX, 80),
       meter: METERS.some((m) => m.id === met.meter) ? met.meter : '4/4',
+      sound: SOUNDS.some((m) => m.id === met.sound) ? met.sound : 'wood',
+      sub: [1, 2, 3, 4].includes(met.sub) ? met.sub : 1,
+      accent: met.accent !== false,
+      volume: unit(met.volume, DEFAULTS.volume),
     },
     drn: {
       midi: clampInt(drn.midi, DRONE_MIN, DRONE_MAX, 48),
       voice: VOICES.some((v) => v.id === drn.voice) ? drn.voice : 'cello',
       fifth: drn.fifth === true,
+      volume: unit(drn.volume, DEFAULTS.droneVolume),
+    },
+    pb: {
+      silenceSec: Number.isFinite(Number(pb.silenceSec)) ? Math.max(1, Math.min(10, Math.round(Number(pb.silenceSec) * 2) / 2)) : 3,
+      autoPlay: pb.autoPlay !== false,
+      volume: unit(pb.volume, DEFAULTS.playVolume),
     },
   };
 }
+const unit = (v, d) => (Number.isFinite(Number(v)) && v !== null ? Math.round(Math.max(0, Math.min(1, Number(v))) * 100) / 100 : d);
+
+/**
+ * How many of an item's settings are its own: each tool turned on, and each
+ * tool setting that differs from the tools' own (`base`, the app's settings,
+ * which a new item starts from). Deleting an item with more than
+ * CONFIRM_OVER of them asks first.
+ */
+export function customCount(it, base = DEFAULTS) {
+  const own = newItem(null, {}, base);
+  let n = TOOLS.filter((t) => it.tools?.[t]).length;
+  for (const k of ['met', 'drn', 'pb']) for (const [f, v] of Object.entries(own[k])) if (it[k]?.[f] !== v) n++;
+  return n;
+}
+export const CONFIRM_OVER = 3;
 
 /** A saved routine, or the default one on a first visit (an emptied one stays empty). */
 export function cleanRoutine(v, base) {
@@ -115,7 +172,7 @@ export const VOICE_MAX_GAIN = 1.6;
 export const voiceGain = (v) => VOICE_MAX_GAIN * Math.max(0, Math.min(1, v)) ** 2;
 export const VOICE_DEFAULT = Math.round(Math.sqrt(0.9 / VOICE_MAX_GAIN) * 100) / 100;
 
-/** The timer's own saved state: the routine and the chime. */
+/** The timer's own saved state: the routine, the chime and the voice. */
 export function loadTimer(base, storage = globalThis.localStorage) {
   let saved = null;
   try { saved = JSON.parse(storage?.getItem(KEY) || 'null'); } catch { /* start afresh */ }
@@ -129,10 +186,14 @@ export function loadTimer(base, storage = globalThis.localStorage) {
     voiceOn: saved?.voiceOn !== false,
     voice: SPEAKERS.includes(saved?.voice) ? saved.voice : SPEAKERS[0],
     voiceVolume: Number.isFinite(saved?.voiceVolume) ? Math.max(0, Math.min(1, saved.voiceVolume)) : VOICE_DEFAULT,
+    // The Metronome card's view of the beat: the pendulum, big dots or the Visualizer.
+    metView: ['pendulum', 'pulse', 'bars'].includes(saved?.metView) ? saved.metView : 'pendulum',
+    // The break between items (RESTS): 30 seconds unless chosen.
+    rest: cleanRest(saved?.rest),
   };
 }
-export function saveTimer({ items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume }, storage = globalThis.localStorage) {
-  try { storage?.setItem(KEY, JSON.stringify({ items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume })); } catch { /* not kept */ }
+export function saveTimer({ items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume, metView, rest }, storage = globalThis.localStorage) {
+  try { storage?.setItem(KEY, JSON.stringify({ items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume, metView, rest })); } catch { /* not kept */ }
 }
 
 /**
@@ -221,20 +282,22 @@ export function playChime(ctx, id, volume = 0.9) {
   return playClips(ctx, [chimeUrl(id)], { volume });
 }
 
-export const totalSeconds = (items) => items.reduce((s, it) => s + it.minutes * 60, 0);
+/** The items in the routine (those not turned off). */
+export const enabledItems = (items) => items.filter((it) => it.enabled !== false);
+export const totalSeconds = (items) => enabledItems(items).reduce((s, it) => s + it.minutes * 60, 0);
 
 /**
- * The picture shown large while `it` runs: its own (practice-<kind>), or,
- * while that is still to come, the Drone's (cello or organ, by its voice)
- * for an item with the drone on, else the Metronome's, else the default
- * practice picture, else the routine's hourglass. `has(id)` says whether a
- * picture is there to show in the current theme.
+ * An item's picture (its icon in the list): its own (practice-<kind>), else
+ * the Drone's (cello or organ, by its voice) for one with its drone on, else
+ * the Metronome's for one with its metronome on, else the default practice
+ * picture, else the routine's hourglass. `has(id)` says whether a picture is
+ * there to show in the current theme.
  */
 export function pictureFor(it, has) {
   const ids = [];
   if (it.kind) ids.push(PRESETS.find((p) => p.id === it.kind)?.picture || `practice-${it.kind}`);
-  if (it.drone) ids.push(it.drn.voice.startsWith('organ') ? 'drone-organ' : 'drone-cello');
-  if (it.metronome) ids.push('home-metronome');
+  if (it.tools?.drone) ids.push(it.drn?.voice?.startsWith('organ') ? 'drone-organ' : 'drone-cello');
+  if (it.tools?.metronome) ids.push('home-metronome');
   ids.push('practice-default');
   return ids.find((id) => has(id)) || 'home-routine';
 }
@@ -260,29 +323,48 @@ export const cues = {
  * is up, as many as are due, and reports what happened; the screen calls it
  * a few times a second and when it is shown again.
  */
+/** Breaks between items: seconds, or 'pause' (the routine waits, paused, for play). */
+export const RESTS = [0, 15, 30, 45, 60, 90, 120, 180, 300, 600, 900, 'pause'];
+export const REST_DEFAULT = 30;
+export const cleanRest = (v) => (RESTS.includes(v) ? v : REST_DEFAULT);
+/** The breaks a routine of `n` items takes, in seconds (none after the last; a paused one counts nothing). */
+export const restSeconds = (n, rest) => (typeof rest === 'number' && n > 1 ? (n - 1) * rest : 0);
+
 export class TimerRun {
-  constructor(items, now = Date.now()) {
+  /**
+   * `rest`: the break between items, in seconds, or 'pause'. While one runs
+   * (`resting`) the next item is already `item` (it is what comes next) and
+   * the clock counts the break down.
+   */
+  constructor(items, now = Date.now(), index = 0, rest = 0) {
     this.items = items;
-    this.index = 0;
+    this.index = Math.min(index, items.length - 1);
+    this.rest = rest;
     this.paused = false;
     this.done = false;
-    this.endsAt = now + this.items[0].minutes * 60000;
+    this.resting = false;
+    this.endsAt = now + this.items[this.index].minutes * 60000;
     this.left = 0; // ms left while paused
   }
 
   get item() { return this.items[this.index]; }
-  get next() { return this.items[this.index + 1] || null; }
+  get next() { return this.resting ? this.item : this.items[this.index + 1] || null; }
+  /** A break that waits for play rather than counting down. */
+  get waiting() { return this.resting && this.rest === 'pause'; }
 
-  /** Seconds left of the current item. */
+  /** Seconds left of the current item (or break). */
   remaining(now = Date.now()) {
     if (this.done) return 0;
+    if (this.waiting) return 0;
     return Math.max(0, (this.paused ? this.left : this.endsAt - now) / 1000);
   }
 
-  /** How far through the current item, 0 to 1. */
+  /** How far through the current item (or break), 0 to 1. */
   progress(now = Date.now()) {
-    const total = this.item ? this.item.minutes * 60 : 1;
-    return this.done ? 1 : Math.min(1, Math.max(0, 1 - this.remaining(now) / total));
+    if (this.done) return 1;
+    if (this.waiting) return 0;
+    const total = this.resting ? this.rest : this.item ? this.item.minutes * 60 : 1;
+    return Math.min(1, Math.max(0, 1 - this.remaining(now) / total));
   }
 
   pause(now = Date.now()) {
@@ -291,34 +373,68 @@ export class TimerRun {
     this.paused = true;
   }
 
+  /**
+   * Go on. A break that waits for play ends here: returns
+   * [{ type: 'begin', item }] then (the item starts), else [].
+   */
   resume(now = Date.now()) {
-    if (!this.paused || this.done) return;
-    this.endsAt = now + this.left;
+    if (!this.paused || this.done) return [];
     this.paused = false;
+    if (this.waiting) return this.begin(now);
+    this.endsAt = now + this.left;
+    return [];
   }
 
-  /** The current item's minutes changed while it runs: its end moves with them. */
+  /** The current item's minutes changed while it runs: its end moves with them (not during a break: it starts afresh). */
   retime(oldMinutes, now = Date.now()) {
+    if (this.resting) return;
     const d = (this.item.minutes - oldMinutes) * 60000;
     if (this.paused) this.left = Math.max(0, this.left + d);
     else this.endsAt += d;
   }
 
+  /** The break is over: the item starts, from `at`. */
+  begin(at) {
+    this.resting = false;
+    this.endsAt = at + this.item.minutes * 60000;
+    if (this.paused) this.left = this.item.minutes * 60000;
+    return [{ type: 'begin', item: this.item }];
+  }
+
   /**
-   * Move on if the time is up (or now, with `force`: Skip). Returns the
-   * changes: [{ type: 'changed', done, next }] or [{ type: 'finished', done }].
+   * Move on if the time is up (or now, with `force`: Skip, one step: an item
+   * to its break, a break to the next item). Returns the changes:
+   * { type: 'changed', done, next } (no break), { type: 'rest', done, next }
+   * (a break begins), { type: 'begin', item } (a break ends), or
+   * { type: 'finished', done }.
    */
   tick(now = Date.now(), force = false) {
     const out = [];
-    // Skip works while paused too: the next item waits, paused, at its full time.
-    while (!this.done && (force || (!this.paused && now >= this.endsAt))) {
-      const done = this.item;
+    // Skip works while paused too: what comes next waits, paused, at its full time.
+    while (!this.done && (force || (!this.paused && !this.waiting && now >= this.endsAt))) {
       const at = force ? now : this.endsAt;
       force = false;
+      if (this.resting) {
+        if (this.waiting) this.paused = false;
+        out.push(...this.begin(at));
+        continue;
+      }
+      const done = this.item;
       if (this.index + 1 >= this.items.length) {
         this.done = true;
         this.paused = false;
         out.push({ type: 'finished', done });
+      } else if (this.rest) {
+        this.index++;
+        this.resting = true;
+        if (this.rest === 'pause') {
+          this.paused = true;
+          this.left = 0;
+        } else {
+          this.endsAt = at + this.rest * 1000;
+          if (this.paused) this.left = this.rest * 1000;
+        }
+        out.push({ type: 'rest', done, next: this.item });
       } else {
         this.index++;
         this.endsAt = at + this.item.minutes * 60000;

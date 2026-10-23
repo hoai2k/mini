@@ -1128,26 +1128,30 @@
   {
     "id": "practice-intonation",
     "theme": "deco",
-    "file": "assets/ui/deco/practice-intonation.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-intonation.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-scales",
     "theme": "deco",
-    "file": "assets/ui/deco/practice-scales.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-scales.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-rhythms",
     "theme": "deco",
-    "file": "assets/ui/deco/practice-rhythms.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-rhythms.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-ghosting",
     "theme": "deco",
-    "file": "assets/ui/deco/practice-ghosting.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-ghosting.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-default",
@@ -1158,20 +1162,23 @@
   {
     "id": "practice-arpeggios",
     "theme": "deco",
-    "file": "assets/ui/deco/practice-arpeggios.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-arpeggios.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-sight-reading",
     "theme": "deco",
-    "file": "assets/ui/deco/practice-sight-reading.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-sight-reading.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-improvisation",
     "theme": "deco",
-    "file": "assets/ui/deco/practice-improvisation.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-improvisation.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-intonation",
@@ -1224,26 +1231,30 @@
   {
     "id": "practice-intonation",
     "theme": "baroque",
-    "file": "assets/ui/baroque/practice-intonation.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-intonation.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-scales",
     "theme": "baroque",
-    "file": "assets/ui/baroque/practice-scales.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-scales.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-rhythms",
     "theme": "baroque",
-    "file": "assets/ui/baroque/practice-rhythms.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-rhythms.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-ghosting",
     "theme": "baroque",
-    "file": "assets/ui/baroque/practice-ghosting.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-ghosting.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-default",
@@ -1254,20 +1265,23 @@
   {
     "id": "practice-arpeggios",
     "theme": "baroque",
-    "file": "assets/ui/baroque/practice-arpeggios.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-arpeggios.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-sight-reading",
     "theme": "baroque",
-    "file": "assets/ui/baroque/practice-sight-reading.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-sight-reading.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-improvisation",
     "theme": "baroque",
-    "file": "assets/ui/baroque/practice-improvisation.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-improvisation.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-intonation",
@@ -1320,26 +1334,30 @@
   {
     "id": "practice-intonation",
     "theme": "nouveau",
-    "file": "assets/ui/nouveau/practice-intonation.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-intonation.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-scales",
     "theme": "nouveau",
-    "file": "assets/ui/nouveau/practice-scales.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-scales.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-rhythms",
     "theme": "nouveau",
-    "file": "assets/ui/nouveau/practice-rhythms.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-rhythms.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-ghosting",
     "theme": "nouveau",
-    "file": "assets/ui/nouveau/practice-ghosting.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-ghosting.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-default",
@@ -1350,20 +1368,23 @@
   {
     "id": "practice-arpeggios",
     "theme": "nouveau",
-    "file": "assets/ui/nouveau/practice-arpeggios.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-arpeggios.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-sight-reading",
     "theme": "nouveau",
-    "file": "assets/ui/nouveau/practice-sight-reading.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-sight-reading.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-improvisation",
     "theme": "nouveau",
-    "file": "assets/ui/nouveau/practice-improvisation.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-improvisation.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-intonation",
@@ -1416,26 +1437,30 @@
   {
     "id": "practice-intonation",
     "theme": "steampunk",
-    "file": "assets/ui/steampunk/practice-intonation.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-intonation.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-scales",
     "theme": "steampunk",
-    "file": "assets/ui/steampunk/practice-scales.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-scales.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-rhythms",
     "theme": "steampunk",
-    "file": "assets/ui/steampunk/practice-rhythms.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-rhythms.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-ghosting",
     "theme": "steampunk",
-    "file": "assets/ui/steampunk/practice-ghosting.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-ghosting.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-default",
@@ -1446,19 +1471,22 @@
   {
     "id": "practice-arpeggios",
     "theme": "steampunk",
-    "file": "assets/ui/steampunk/practice-arpeggios.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-arpeggios.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-sight-reading",
     "theme": "steampunk",
-    "file": "assets/ui/steampunk/practice-sight-reading.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-sight-reading.webp",
+    "status": "delivered",
+    "shared": "classic"
   },
   {
     "id": "practice-improvisation",
     "theme": "steampunk",
-    "file": "assets/ui/steampunk/practice-improvisation.webp",
-    "status": "delivered"
+    "file": "assets/ui/practice-improvisation.webp",
+    "status": "delivered",
+    "shared": "classic"
   }
 ]

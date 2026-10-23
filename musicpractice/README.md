@@ -38,6 +38,17 @@ and on a phone a drag on a sheet passes to the page only where nothing under
 the finger can scroll that way (a touch handler in `main.js`), so a long
 sheet scrolls itself and a short one stays put.
 
+**The top of the screen in the iPhone home-screen app.** Since iOS 26, a web
+app opened from the home screen gets a soft blurred fade drawn over the top
+of the screen, reaching about 40 points past the status bar, above the page:
+no meta tag or CSS turns it off, and an opaque status bar style was reported
+not to move it. So there (`display-mode: standalone` on a touch WebKit, or
+`navigator.standalone`, which sets `html.ios-app`) every screen starts
+`--edge-fade` (36 px) further down: `--safe-top` is the status bar's inset
+plus that band, used by the screens' padding, the home gear and the Sixties
+stripes (whose first stripe fills the band). The backgrounds still run up
+under it. Safari itself and Android draw no fade and are unchanged.
+
 ## Themes
 
 The gear on the home screen opens the app's own settings, the one place the
@@ -92,6 +103,8 @@ before the first paint.
 Theme ids stay fixed when a theme is renamed (Robot Future is `scifi`,
 Candy is `anime`), so saved choices and image paths keep working.
 Each theme loads only its own fonts. All eight themes have delivered images.
+A ninth, Bebop, is archived as a possible expansion in
+`design/archive/bebop/` (its art, styles and how to bring it back).
 The drawings in `app/src/standins.js` remain as loading and error fallbacks;
 the newer themes share one drawing (`themed`), varied by case shape, palette
 and pendulum weight.
@@ -114,7 +127,20 @@ text at least 4.5:1 against what is behind it (3:1 for large or bold large
 text), nothing under 12.5px. That check moved the light themes' highlighted
 values ("440 Hz", "3 s") to a darker accent (`--value`), darkened the
 selected chips in Vintage 60s, French Nouveau and Candy and the help text in
-those three, and raised Send feedback's details to 13px.
+those three, and raised Send feedback's details to 13px. A second check went
+everywhere: every screen (each tool, the routine set up, being edited and
+running, the metronome going) and every sheet and dialog, opened the way a
+person opens them. It found the strong beats' Done button emptied by most
+themes' pill styles (white on white in Robot Future by day; it is now each
+theme's own primary button, as Send feedback is), cream on gold on Classic's
+big buttons by day (now dark ink), Candy's Stop by night, the paywall's links
+and the running item's number in pale gold on light pages (now `--value`),
+red text on light pages (now the deeper `--red`, deeper still in Vintage 60s
+and Candy), the pressed strong-beat cells, Classic's and 18th Century's
+faintest text (`--ink-3`), and a few Art Deco sizes under 12.5px; all pass in
+every theme in both modes. On the theme tiles, Art Deco's and French
+Nouveau's names (hairline faces with one weight) are drawn larger with a
+fine outline.
 
 **Anchors:** the metronome is two layers. The body records its canvas size
 and `pivot`; the pendulum records its canvas, `hub` and `swing` (degrees
@@ -285,7 +311,9 @@ when the Art Deco art arrives, measure and record its own.
 - **Strong beats:** the pencil beside **Strong beat on 1** opens every place a
   click falls in the bar, counted as played (1 & 2 &, 1 trip let, 1 e & a),
   and any of them can be made strong, between the beats included (those
-  play the strong click). Confirming with none chosen turns the switch off;
+  play the strong click). **Each tap is heard at once**, on a running
+  metronome too, so a pattern is tried as it is set; Done and the close
+  button both keep it. With none chosen the switch goes off;
   beat 1 alone is the ordinary setting; anything else reads **Strong beat
   (custom)**, and the lamp, flash, dots and Visualizer mark the beats chosen.
   Positions are kept in twelfths of a beat (`TICKS`, `barPlan` and
@@ -698,54 +726,158 @@ requests; their prompts are in `design/image-deliveries-drone.json`.
 
 Inside the code it is the timer: `app/src/timer.js` (the routine, its saved
 state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
-`app/src/timerui.js` (the screen), `app/src/pager.js` (the second page).
+`app/src/timerui.js` (the screen and the tool cards; the tools themselves
+are main.js's, `routineTools`), `app/src/pager.js` (the second page).
 
 - **A routine is a list of practice items** (on screen each is itself
-  called a routine: "2 routines in all", "Add a Routine", "Last routine"),
-  each a card: a name (typed in
-  place), its minutes (− / + or typed, 1 to 120), and its **tools**. With
-  none, the card shows **+ Tools**; it opens a small sheet (Tools for <its
-  name>) with Metronome and Drone switches, each turning that tool on or
-  off for this routine at once (the Drone asks for Pro in the apps, as
-  before). The tools it has show on the card, lit, followed by a small
-  **+** that opens the sheet again; a tap on a lit tool shows or hides its
-  settings, like the chevron. They keep together at the far end beside
-  the minutes wherever they fit, phones included, and wrap under them,
-  still to the right, only where they don't. With either on, the card's chevron opens that item's own
-  settings: the metronome's tempo (− / +, typed, or the slider) and time
-  signature; the drone's note (− / + or the list), instrument and fifth.
-  These are the item's alone: the Metronome's and the Drone's own settings
-  never change (the click's sound, accent and volume follow the Metronome's,
-  the reference pitch the Drone's). A new item takes the app's current tempo,
-  note and instrument as a start. So Scales can climb in tempo item by item.
-- A first visit starts with **Intonation** (3 min, drone on) and **Scales**
-  (5 min, metronome on). **+ Add** opens **Add a Routine**: Intonation,
-  Scales, **Arpeggios**, **Metronome**, **Sight Reading**,
-  **Improvisation**, **Clapping Rhythms**, **Ghosting** and **Custom…** (a
-  blank item, its name ready to type), each by its name and a small icon:
-  the picture the item shows while it runs (`pictureFor`), which is also on
-  each item's card before its number and name ("1. Intonation", the number
-  plain text rather than a circle that looked like a button), so a glance
-  tells them apart (a Custom
-  item's follows its drone or metronome). Items saved under a suggestion's
-  earlier name ("Intonation practice") still know which it was. An item added this way
-  starts with its Metronome and Drone off (the first visit's two are the
-  only ones that come with theirs on; `newItem`'s `tools`), except a
-  Metronome item, whose metronome is what it is (`own`), and at the
-  minutes last given to its kind (`lastMinutes`, kept with the routine), or
-  its default the first time (3 min for Intonation, Clapping rhythms and
-  Ghosting, 5 for the rest), adjusted on its card. The bin deletes an item at once, with
-  **Undo** for a few seconds after. Kept in `musicpractice.routine.v1`.
-- **Start** runs through the items. The card running is lit, with its
-  progress along its foot, and the panel at the top shows its name, the time
-  left (MM:SS), a progress bar and what is next. **Pause** stops the clock and
-  the sound; **Skip** moves to the next item (paused or not); **Stop** ends
-  the run. Timed by the clock, so a phone that slept catches up when it wakes.
-  While it runs, only items still to come can be deleted; edits to the item
-  running take effect at once (its tempo, its note, more minutes).
-- **A voice says what has finished and what is next**, between the chime
-  and the next item's sound, so the clicks or the drone never start over
-  the words. For example: "Scales are complete. Next, ghosting.", "Let's begin
+  called a routine: "2 routines in all", "Add a Routine", "Last routine").
+  Set up, each is a plain row: its number, its picture, its name with a
+  small **pencil** after it, and its minutes on the right ("1. Intonation ✎
+  · 3 min"). **A tap on an item starts the routine from there** (the items
+  before it are skipped this time; the Start button starts from the first).
+  **The pencil opens that item** for editing, the row lit: its name becomes
+  the list of kinds (the eight suggestions and Custom…; a suggestion's name is
+  its own, and only picking **Custom…** gives a field to type the name in,
+  its name selected to type over, with the list still beside it to change
+  back). An item of its own opens like any other: its name shown with the
+  list (nothing picked in it) and no field until Custom… is picked, so no
+  keyboard comes up. **A name typed exactly as a suggestion's** (any case)
+  **is that suggestion**, with its picture and its spoken lines (`matchKind`
+  in `timer.js`, also applied to saved routines). Its minutes become − / + with the
+  number to type (1 to 120); the pencil turns into a check to close it, and a
+  **trash** button sits at the far right. The kind's chevron sits right after
+  its name. Where room is short (a phone held upright) the open row drops its
+  number and picture. One item is open at a time.
+  **On a phone, a long press on an item** (about half a second) turns the
+  list to editing with that item in hand, ready to drag up or down (the page
+  doesn't scroll under it; a quick swipe still scrolls, and letting go
+  without moving starts nothing). **With a mouse**, the list is rearranged
+  from its edit button (an item in the plain list isn't dragged), and a
+  **right click** on an item opens its menu: **Rename** (the item opens as
+  one of its own, Custom, its name selected to type over), **Turn off** /
+  **Turn on**, and **Delete** (both with Undo). The **pencil** beside the
+  total time (at the top of the screen), or a tap on the total itself, edits
+  the list; while editing it is
+  a pill, **✓ Drag to reorder items**, which says the list is being edited
+  and how to move an item, and is tapped to finish. Each
+  row then has:
+  - a handle to **drag it up or down**, though the **whole row can be
+    dragged**, by touch or mouse (a sideways move is a swipe instead; the
+    others make room as it passes their middles; the arrow keys move it too,
+    from the handle);
+  - its name, its pencil (as above; an open item keeps its handle where it
+    was, hides its switch, and keeps its trash at the far right) and its
+    minutes;
+  - a switch: **in the routine or not**. Turned off, an item keeps
+    everything it has but is left out of the run and the total, and shows
+    only while editing, dimmed and unnumbered, until it is turned on again;
+  - a **trash** button. An item can also be **swiped off** either side
+    (past a third of its width; short of that it springs back). A deleted
+    item has **Undo** for a few seconds. **An item with more than three
+    settings of its own** (`customCount`: each tool it has on, and each tool
+    setting unlike the tools' own, which a new item starts from) asks first,
+    saying they will be deleted with it (*Keep it* / *Delete*), whether it is
+    deleted by its trash button, a swipe or its menu.
+  The list's pencil is hidden while a routine runs.
+- A first visit starts with **Intonation** (3 min) and **Scales** (5 min).
+  **+ Add** opens **Add a Routine**: Intonation, Scales, **Arpeggios**,
+  **Metronome**, **Sight Reading**, **Improvisation**, **Clapping Rhythms**,
+  **Ghosting** and **Custom…** (a blank item, opening the list for editing
+  with its name ready to type), each by its name and its picture
+  (`pictureFor`: its own, `practice-<kind>`; until that is delivered, or for
+  a Custom item, the Drone's for one with its drone on, the Metronome's for
+  one with its metronome on, then the default music stand, then the
+  hourglass). A new item starts at the minutes last given to its kind
+  (`lastMinutes`) or its default the first time (3 min for Intonation,
+  Clapping rhythms and Ghosting, 5 for the rest). Items saved under a
+  suggestion's earlier name ("Intonation practice") still know which it was.
+  Kept in `musicpractice.routine.v1`.
+- **Each item keeps its own settings for every tool**: the Metronome's
+  tempo, time signature, click sound, extra notes, accent and volume
+  (`met`), the Drone's note, instrument, fifth and volume (`drn`), the
+  Playback Recorder's silence to stop after, whether it plays each take back
+  and its playback volume (`pb`), and which of them are on (`tools`). A new item has the tools off and their settings taken from the
+  app's own as a start. Items saved when they had their own metronome and
+  drone keep them on.
+- **A break between routines**, set in Practice Routine settings: **No
+  break**, 15, 30 (the default) or 45 seconds, 1, 1.5, 2, 3, 5, 10 or 15
+  minutes, or **Pause when done**. As a routine ends the chime and voice say
+  what is next and the tools rest (a take on the go is let finish); the
+  header says **Break**, with the hourglass, the break counting down and
+  what comes next, outlined dashed in the list. At the end a chime and the
+  next routine's tools start. *Pause when done* waits, paused, until play.
+  Skip goes a step at a time (a routine to its break, a break to the next),
+  a card's button during a break plays that tool without changing the next
+  routine, and there is no break after the last. The total counts the timed
+  breaks ("12:00 · 3 routines in all · 30 s breaks"). `TimerRun` in
+  `app/src/timer.js` (`rest`, `resting`, `waiting`; events `rest` and
+  `begin`), `RESTS`.
+- **Running, the routine is a shell around the tools.** **Start** swaps the
+  set-up panel for a **compact header** (the item's picture to the left of
+  its name, its time left, what is next, a progress bar, and Pause, Skip and Stop as round buttons) over an
+  **activity area**: a row of **cards, one per tool**, that swipes sideways a
+  card at a time with the next peeking in (dots under it say which, and
+  jump to one), or stands three across where the window is wide enough. Each
+  card is a small version of its tool with, at its foot, **the tool's own
+  way of starting and stopping** rather than a switch: the Metronome's
+  **Start** / **Stop**, the Drone's **Play** / **Pause**, and the Playback
+  Recorder's round **record button** (lit as on its own screen: listening,
+  recording, playing back), all at one height across the cards. A **gear**
+  in its header
+  that opens that tool's settings for the item running (only the tool's: no
+  Audio check or Theme), including whatever the card itself has no room for:
+  the Metronome's tempo (typed or − / +), time signature, click sound, extra
+  notes, *Accent the first beat* and volume; the Drone's note, instrument,
+  fifth and volume; the Playback Recorder's *Stop recording after* (1 to
+  10 s of quiet), *Play each take back* and playback volume. Each is set on
+  the tool at once and kept with the item. On the card:
+  - **Metronome**: off, the tempo (− / + and a slider) and the time
+    signature. **On, the beat instead**, with the tempo and time signature
+    in a line under it, in one of three views that a tap on it steps
+    through, as the Metronome's own dots do (`metView`, remembered): **its
+    picture with the pendulum swinging** (the weight placed for the tempo;
+    no dots), **big dots** that swell into each beat and ease away, or the
+    **Visualizer**'s bars, two bars of music lighting beat by beat (the
+    theme's own bars); the last two without the picture;
+  - **Drone**: the note (− / +), the instrument and the fifth;
+  - **Playback** (the Playback Recorder): what it is doing (listening for
+    you to play, recording with its clock, playing your take back) and how
+    many takes there are.
+  As each item starts, **its settings go on the tools**, and the tools it
+  has on start while the rest stop (one already going carries on). **Those
+  it starts wait for the voice**: when the voice is on, the ones the item
+  turns on start once it has finished speaking (the ones it turns off stop at
+  once), so the announcement isn't spoken over a fresh click or drone, and
+  the recorder isn't listening yet (`afterVoice` in `timerui.js`; Pause, Stop
+  or Skip in the meantime see to them instead, one turned off on its card
+  stays off, and a voice that never reports its end holds them 15 s at
+  most). With the voice off they start at once. Whatever
+  is changed on a card or in its settings is **kept with that item** for next
+  time. **Only the routine's own moves wait for a take**: when an item's time
+  runs out and the next has the Playback Recorder off, a take being recorded
+  is let finish and play back first; what the player does (Skip, Stop, a
+  card's button) acts at once, cancelling it. The tools run as themselves (the Metronome's sound, accent
+  and volume, the Drone's reference pitch), and **their own settings are put
+  back** when the routine ends or is stopped, so a routine's tempos never
+  become the Metronome's. The list stays under the cards, the running item
+  lit with its progress along its foot. In the apps the Drone card asks for
+  Pro, as the Drone does. **Pause** stops the clock and every tool,
+  **Resume** puts the item's set-up back on, **Skip** moves to the next
+  item (paused or not), and **Stop** ends the run. Timed by the clock, so a
+  phone that slept catches up when it wakes.
+- **At the end, every tool stops**, except that when the routine's time
+  runs out by itself (not by Skip) a take on the go is let finish: if the Playback Recorder is recording, everything carries on until
+  the take is in, then the metronome and the drone stop and the take plays
+  back, and only then does the routine end (the header says *Finishing the
+  last take*, and its card comes into view). A metronome or drone started
+  from a card never replaces the audio engine while the mic is using it
+  (`soundCtx` in `main.js`), which would cut the recorder off. The Playback
+  Recorder suspends that engine while a take plays back (it always has, so
+  the phone leaves call mode), so the metronome and the drone pause under a
+  take and carry on after it.
+- **A voice says what has finished and what is next**, after the chime,
+  over whatever tools are on (a Playback Recorder listening for you to play
+  pays the chime and the voice no attention: `ignoreFor` in `recorder.js`). For example: "Scales are complete. Next, ghosting.", "Let's begin
   with intonation practice." at Start, and "…That's the end of your
   practice routine. Well done." at the end. Settings: **Use Voice** on (the
   default) or off (turned on, it says nothing until it has something to
@@ -766,9 +898,8 @@ state and its clock, `TimerRun`, pure and tested in `test/timer.test.mjs`),
   starts; Pause, Skip and Stop cut a line short.
 - **Between items, a chime** (settings: **Use Chimes** on or off, and
   **Chime Sound**, a dropdown: Kalimba, the default, Two-tone or Celesta; each
-  plays as it is picked; a "None" chime saved before is now chimes off): it rings as an item ends and
-  the next item's metronome or drone starts about a second later, so they
-  don't start over it; it also rings at the end. The sounds are
+  plays as it is picked; a "None" chime saved before is now chimes off): it rings as an item ends,
+  and at the end. The sounds are
   `app/assets/audio/timer/`, from the second batch in
   `design/chime-sounds.md`. The settings end, as every settings sheet does,
   with **Audio check…** and **Theme…**.
@@ -802,23 +933,22 @@ slide read as a snap. The way across is a **smaller Routine button**
   is measured at both ends, because the centred home screen spills off the
   top as well as the bottom. Once there is another tool the button version
   will be used everywhere.
-- **While an item runs, its picture fills the top of the panel**, large,
-  so a glance says what is being practised; it fades in at each change of
-  item. Each kind of item has its own (`practice-<kind>`: intonation,
+- **Each kind of item has its picture** (`practice-<kind>`: intonation,
   scales, rhythms, ghosting, image requests round 11; arpeggios,
   sight-reading, improvisation, round 12; a Metronome item shows the
-  Metronome's own home picture, `picture` on its preset), and there is a default
-  (`practice-default`, a music stand). Until a picture is delivered, or for an
-  item of its own (Custom…), the next one there is: the Drone's (cello, or
-  organ by its voice) for an item with its drone on, else the Metronome's,
-  else the default, else the routine's hourglass (`pictureFor` in
-  `timer.js`). Items remember which suggestion they came from (`kind`;
-  saved ones from before are matched by name). **A new suggestion needs a
-  picture too:** add it to `PRACTICE_SUBJECT` in
-  `design/source/build_requests.py`; `test/timer.test.mjs` fails until every
-  suggestion has one in every theme. The pictures are delivered for every
-  theme. If the page was scrolled down (to an item just added, say) when an
-  item starts, it scrolls back up so the picture is in view.
+  Metronome's own home picture, `picture` on its preset), and there is a
+  default (`practice-default`, a music stand), shown small in the list, in
+  Add a Routine and beside the running item's name. **The pictures of an
+  activity are shared**: in the warm brass-and-gold themes (Art Deco, 18th
+  Century, French Nouveau, Steam Punk) each came out a near-copy of
+  Classic's, so those themes use Classic's (`SHARED_PICTURES` in
+  `design/source/build_requests.py`, status `shared`); only Vintage 60s,
+  Robot Future and Candy, whose rendering really differs, have their own.
+  The music stand and the hourglass stay per theme, since they carry the
+  theme in their shape. **A new suggestion needs a picture too:** add it to
+  `PRACTICE_SUBJECT` in `design/source/build_requests.py` (it is asked for
+  in those four themes); `test/timer.test.mjs` fails until every suggestion
+  has one in every theme.
 - Its home button is an hourglass per theme (image requests round 9,
   `home-routine`), delivered for all eight themes. In the apps the drone
   is Pro, as on its own screen. Not done yet: the routine doesn't go on
@@ -882,9 +1012,35 @@ file, on purpose: the privacy page, the device details Send feedback attaches
   a hidden honeypot field, Send held for 3 s, the script's hourly caps. A
   failed send says so and keeps what was written. Empty `ENDPOINT` and the
   buttons disappear.
+  **Include debugging data** (off, and unticked again every time the form
+  opens) adds the debug log's state and its most recent events, as many as
+  fit in what the message and details leave of the script's 4000 characters.
+- `app/src/debuglog.js`: the debug log, for problems only a real phone shows
+  (sound too quiet over Bluetooth, say). Kept in `localStorage`
+  (`musicpractice.debuglog.v1`, the newest 1500 events, across visits), it
+  records each audio context made and its states, why one was marked stale
+  and replaced, every Safari audio session change, every mic request, open,
+  reuse and close with the reason it was freed or held (permission,
+  allowed-in-advance timing, a suspected prompt), mic track events, the
+  speakers and mics reported (ids shortened), each take played (the route,
+  the mic, Safari's mode, how much it was brought up), the metronome and
+  drone starting and stopping with their volumes, screens, page visibility
+  and errors; and every 10 s while sound plays (otherwise on a change) a
+  snapshot of all that with the app's own output level, peak and RMS in dBFS,
+  read off the limiter by an analyser (`output.js`), so a healthy level from
+  a quiet phone shows the loss is after the app. **Export debug data** at the
+  foot of Audio check saves all of it as JSON (shared on phones, downloaded
+  elsewhere, as takes are: `saveFile` in `main.js`). Nothing is sent unless
+  the person sends it; `privacy.html#debug-log` says so.
 - `app/privacy.html`: the privacy policy and terms, for the apps' paywall and
-  store listings.
+  store listings. `app/support.html`: the support page (a contact form into
+  the feedback inbox, and common questions), the listings' Support URL.
+  Settings links to both.
 - `design/mobile-apps.md`: why the apps, what to sell and the store rules.
+- `mobile/LAUNCH.md`: launching the apps: accounts, hardware and installs,
+  the owner's steps in order, and Claude's list before submission.
+- `design/app-store-review.md`: the iOS app checked against Apple's App
+  Review rules, what's done, what's left for submission, and review notes.
 
 - `app/index.html`, `app/styles.css`, `app/src/`: the app (static ES
   modules, no build step). `main.js` the screens, `metronome.js` the

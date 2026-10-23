@@ -10,7 +10,7 @@
   --line: #5a4533;
   --ink: #f6ecda;
   --ink-2: #cdbb9f;
-  --ink-3: #9a876d;
+  --ink-3: #a8957a;
   --brass: #e2b55c;
   --brass-2: #f3d58e;
   --red: #e5484d;
@@ -36,6 +36,27 @@
   color-scheme: dark;
 }
 
+/*
+ * Since iOS 26, a web app opened from the home screen gets a soft blurred
+ * fade drawn over the top of the screen, past the status bar by about 40
+ * points, above the page (no meta tag or CSS turns it off, and an opaque
+ * status bar doesn't move it). So there the page keeps its titles and
+ * buttons below that band; the backgrounds still run up under it. Safari
+ * itself and Android draw no such fade. html.ios-app is set by main.js from
+ * navigator.standalone, for an older home-screen app that doesn't report
+ * display-mode.
+ */
+:root {
+  /* Where the page's own top begins: under the status bar, and, in the app
+     added to an iPhone's or iPad's home screen, under that fade too. */
+  --edge-fade: 0px;
+  --safe-top: calc(env(safe-area-inset-top, 0px) + var(--edge-fade));
+}
+@supports (-webkit-touch-callout: none) {
+  @media (display-mode: standalone) { :root { --edge-fade: 36px; } }
+}
+html.ios-app { --edge-fade: 36px; }
+
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
 /* No double-tap zoom (iPhone zoomed in on quick taps of the drone's − and +);
@@ -60,7 +81,7 @@ button { cursor: pointer; }
   min-height: 100dvh;
   max-width: 1100px;
   margin: 0 auto;
-  padding: max(12px, env(safe-area-inset-top)) var(--gutter) max(20px, env(safe-area-inset-bottom));
+  padding: max(12px, var(--safe-top)) var(--gutter) max(20px, env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   /* Animations draw things scaled or moved out of their boxes (the
@@ -76,7 +97,7 @@ button { cursor: pointer; }
 /* Home */
 #home { justify-content: center; align-items: center; gap: clamp(24px, 6vh, 56px); }
 #home { position: relative; }
-.home-gear { position: absolute; top: max(12px, env(safe-area-inset-top)); right: var(--gutter); }
+.home-gear { position: absolute; top: max(12px, var(--safe-top)); right: var(--gutter); }
 
 /* App settings: one tile per theme, each drawn in its own theme */
 .theme-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -152,7 +173,7 @@ button { cursor: pointer; }
 .choices { --choice-gap: clamp(14px, 4vw, 32px); gap: var(--choice-gap); }
 /* Too little room (main.js layoutHome): tighter spacing and labels, and then
    smaller art (--art-max) until it all fits without scrolling. */
-#home.compact { gap: 10px; padding-top: max(8px, env(safe-area-inset-top)); padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+#home.compact { gap: 10px; padding-top: max(8px, var(--safe-top)); padding-bottom: max(8px, env(safe-area-inset-bottom)); }
 #home.compact .brand { font-size: clamp(1.5rem, 7dvh, 2.4rem); }
 #home.compact .choices { --choice-gap: 10px; }
 #home.compact .choices .choice { padding: 8px 6px 10px; gap: 6px; }
@@ -391,9 +412,10 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
   font-weight: 600; font-size: 0.9rem;
 }
 .accent-cell.on-beat { font-weight: 800; color: var(--ink); font-size: 1.05rem; }
-.accent-cell[aria-pressed="true"] { background: #e5342a; border-color: #b01e16; color: #fff; }
+.accent-cell[aria-pressed="true"] { background: #d42a20; border-color: #a31b14; color: #fff; }
 .accent-actions { display: flex; justify-content: space-between; gap: 12px; }
-.accent-actions .accent-done { background: var(--brass); border-color: var(--brass); color: var(--on-accent); min-width: 96px; }
+/* Done is the theme's own primary button (as Send feedback's is), sized for the sheet's foot. */
+.accent-actions .big-btn.accent-done { margin: 0; min-height: 44px; min-width: 110px; padding: 0 22px; font-size: 1.17rem; }
 
 .slider { width: 100%; height: 36px; accent-color: var(--brass); background: transparent; -webkit-appearance: none; appearance: none; }
 .slider::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: var(--panel-2); }
@@ -1072,7 +1094,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   letter-spacing: 0.16em;
   font-weight: 600;
 }
-[data-theme="deco"] .choice .label { font-size: clamp(0.72rem, 2.9vw, 1.05rem); letter-spacing: 0.06em; color: var(--brass-2); padding: 0 6px; }
+[data-theme="deco"] .choice .label { font-size: clamp(0.79rem, 2.9vw, 1.05rem); letter-spacing: 0.06em; color: var(--brass-2); padding: 0 6px; }
 [data-theme="deco"] .row b { letter-spacing: 0.08em; }
 
 /* Headings */
@@ -1137,7 +1159,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   box-shadow: none;
 }
 [data-theme="deco"] .big-btn[aria-pressed="true"] { background: linear-gradient(180deg, #f8f1de, #d9cca8); }
-[data-theme="deco"] .meter-note { text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.78rem; }
+[data-theme="deco"] .meter-note { text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.79rem; }
 
 /* Settings sheets */
 [data-theme="deco"] .sheet {
@@ -1232,7 +1254,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
    area), with the top bar's controls sitting on them as outlined cream badges. */
 [data-theme="sixties"] {
   --stripe: 18px;
-  --stripes-top: env(safe-area-inset-top, 0px);
+  --stripes-top: var(--safe-top); /* under the status bar and its fade (the first stripe fills them) */
 }
 [data-theme="sixties"] body {
   background:
@@ -1303,7 +1325,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   --display: "IM Fell English", "Times New Roman", serif;
   --ui: "EB Garamond", Garamond, Georgia, serif;
   --bg: #f4ecd9; --bg-2: #fbf6ea; --panel: #fffaf0; --panel-2: #efe3c8; --line: #c9a86a;
-  --ink: #3a2416; --ink-2: #5e4330; --ink-3: #85694f;
+  --ink: #3a2416; --ink-2: #5e4330; --ink-3: #6e5440;
   --brass: #9b7428; --brass-2: #c99a3f; --red: #7c1f2c; --red-2: #9b2a3a; --focus: #7c1f2c;
   --on-accent: #fffaf0; --glow: #fbf6ea;
   --wave-bg: #fffaf0; --wave-axis: rgba(58, 36, 22, 0.15); --wave-idle: rgba(94, 67, 48, 0.25);
@@ -1520,7 +1542,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   --ui: "Special Elite", "Courier New", monospace;
   --bg: #1c130c; --bg-2: #261a10; --panel: #2e2014; --panel-2: #3a2918; --line: #7a5a2e;
   --ink: #f1e2c2; --ink-2: #d2bb8f; --ink-3: #a68d63;
-  --brass: #d9a44a; --brass-2: #f0c56b; --red: #c8452c; --red-2: #e0603e; --focus: #f0c56b;
+  --brass: #d9a44a; --brass-2: #f0c56b; --red: #c8452c; --red-2: #ea7452; --focus: #f0c56b;
   --on-accent: #1c130c; --glow: #3a2516;
   --wave-bg: linear-gradient(180deg, #160e08, #22170e); --wave-axis: rgba(217, 164, 74, 0.22); --wave-idle: rgba(210, 187, 143, 0.25);
   --wave-wait: #d2bb8f; --wave-rec: #e0603e; --wave-take: #7a5a2e; --wave-play: #f0c56b; --wave-head: #f1e2c2; --wave-thumb: #b8743a;
@@ -1548,7 +1570,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="steampunk"] .choice .label { color: var(--brass-2); }
 [data-theme="steampunk"] .big-btn { background: var(--rivets), linear-gradient(180deg, #f0c56b, #b8862f); border: 2px solid #5a3a1e; border-radius: 8px; color: #1c130c; box-shadow: 0 4px 0 #5a3a1e; }
 [data-theme="steampunk"] .big-btn[aria-pressed="true"] { background: var(--rivets), var(--pressed); }
-[data-theme="steampunk"] .step { border: 3px solid #b8743a; background: radial-gradient(circle at 35% 30%, #f0c56b, #9a6a2a); color: #1c130c; }
+[data-theme="steampunk"] .step { border: 3px solid #b8743a; background: radial-gradient(circle at 35% 30%, #f0c56b, #c08f38); color: #1c130c; }
 [data-theme="steampunk"] .chip, [data-theme="steampunk"] .select, [data-theme="steampunk"] .pill { border-radius: 6px; border-color: #b8743a; background-color: var(--panel); }
 [data-theme="steampunk"] .chip[aria-checked="true"] { background: linear-gradient(180deg, #f0c56b, #b8862f); color: #1c130c; }
 [data-theme="steampunk"] .sheet { border: 3px solid #b8743a; border-radius: 8px; background: var(--rivets), var(--bg-2); }
@@ -1558,6 +1580,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="steampunk"] .beats li.on { background: var(--brass-2); }
 [data-theme="steampunk"] .beats li.strong.on { background: var(--red-2); border-color: var(--red-2); }
 [data-theme="steampunk"] .rec-btn { border: 5px solid #b8743a; background: radial-gradient(circle at 35% 30%, var(--plate-a), var(--plate-c)); }
+
 
 /* ================================================================ Light and dark
    Each theme has the other mode too (the appearance setting; resolveMode in
@@ -1633,7 +1656,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   --viz-strong: #e05a6e; --viz-beat: #e8bb5c; /* the Visualizer's lit beats: strong, other */
   --bg: #1d1612; --bg-2: #261d17; --panel: #2e231c; --panel-2: #3a2c22; --line: #8a6c3a;
   --ink: #f0e3c8; --ink-2: #d8c5a2; --ink-3: #b8a27e;
-  --brass: #c99a3f; --brass-2: #e0b660; --red: #a8384a; --red-2: #d0687a; --focus: #e0b660;
+  --brass: #c99a3f; --brass-2: #e0b660; --red: #a8384a; --red-2: #dc7d8e; --focus: #e0b660;
   --value: #e6be6c; --on-accent: #fffaf0; --glow: #2c2119; --vignette: #110c09;
   --wave-bg: #261d17; --wave-axis: rgba(240, 227, 200, 0.14); --wave-idle: rgba(216, 197, 162, 0.25);
   --wave-wait: #d8c5a2; --wave-rec: #d0687a; --wave-take: #6b5638; --wave-play: #c99a3f; --wave-head: #f0e3c8; --wave-thumb: #a98c5c;
@@ -1712,7 +1735,21 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   color-scheme: light;
 }
 
+
 /* ---------------------------------------------------------------- shared theme touches */
+/* Red text on a light page: the deeper red (Delete, required fields). */
+[data-mode="light"] .pill.danger, [data-mode="light"] .fb-field .req, [data-mode="light"] .fb-req-note .req { color: var(--red); }
+/* Classic by day: dark ink on its bright gold buttons (cream on gold was 2:1). */
+[data-theme="classic"][data-mode="light"] .big-btn { color: var(--ink); }
+/* Candy at night: Stop on the light blue it presses to. */
+[data-theme="anime"][data-mode="dark"] .big-btn[aria-pressed="true"] { color: var(--on-accent); }
+[data-theme="sixties"][data-mode="light"] :is(.pill.danger, .fb-field .req, .fb-req-note .req) { color: #b0331b; }
+[data-theme="anime"][data-mode="light"] :is(.pill.danger, .fb-field .req, .fb-req-note .req) { color: #c8105a; }
+[data-theme="deco"][data-mode="light"] .marking { color: #75590f; }
+[data-theme="sixties"][data-mode="light"] .brand em { color: var(--value); }
+[data-theme="steampunk"][data-mode="light"] .brand em { color: #94501d; }
+/* Theme tiles: Art Deco's and French Nouveau's faces are hairlines with one weight; drawn larger, with a fine outline to thicken them. */
+.theme-tile[data-theme="deco"] .tile-name, .theme-tile[data-theme="nouveau"] .tile-name { font-size: 1.22rem; -webkit-text-stroke: 0.5px currentColor; paint-order: stroke fill; }
 /* Slider tracks that show on light grounds */
 [data-mode="light"] .slider::-webkit-slider-runnable-track { background: var(--line); opacity: 0.55; }
 [data-mode="light"] .slider::-moz-range-track { background: var(--line); opacity: 0.55; }
@@ -1800,7 +1837,7 @@ div.ac-status.bad { border-color: var(--red); justify-items: start; }
 }
 .link-btn {
   min-height: 0; padding: 4px 2px; border: 0; background: none; box-shadow: none;
-  color: var(--brass-2); font: inherit; font-weight: 700; text-decoration: underline;
+  color: var(--value, var(--brass-2)); font: inherit; font-weight: 700; text-decoration: underline;
   text-underline-offset: 3px; text-transform: none; letter-spacing: normal;
 }
 .link-btn:disabled { opacity: 0.5; }
@@ -1862,8 +1899,8 @@ div.ac-status.bad { border-color: var(--red); justify-items: start; }
 .fb-status:empty { display: none; }
 .fb-status { margin: 0; font-weight: 700; }
 .fb-status.error { color: var(--red-2); }
-.fb-note { margin: 0; font-size: 0.8rem; }
-.fb-note a { color: var(--ink-2); }
+.fb-note, .sheet-legal { margin: 0; font-size: 0.8rem; }
+.fb-note a, .sheet-legal a { color: var(--ink-2); }
 
 /* The words arrive from src/text-config.js (src/text.js); hold the page until they have. */
 .text-pending body { visibility: hidden; }
@@ -1918,94 +1955,237 @@ html.paging { overflow: hidden; }
 
 /* The timer screen */
 .timer-body { flex: 1; width: min(100%, 620px); margin: 0 auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 24px; }
+#routine.running .timer-body { width: min(100%, 980px); }
 .timer-now {
   display: grid; grid-template-columns: auto 1fr; grid-template-areas: "art read" "act act"; align-items: center; gap: 10px 16px;
   padding: 16px; border-radius: 22px; border: 1px solid var(--line);
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
   box-shadow: 0 10px 30px var(--shadow);
 }
-/* While an item runs, its picture takes the top of the panel, large. */
-.timer-picture { grid-area: pic; display: none; width: clamp(150px, 46vw, 260px); aspect-ratio: 1; justify-self: center; place-items: center; }
-.timer-picture > * { width: 100%; height: 100%; object-fit: contain; }
-.timer-now.running { grid-template-columns: 1fr; grid-template-areas: "pic" "read" "act"; }
-.timer-now.running .timer-picture { display: grid; }
-.timer-now.running .timer-art { display: none; }
-.timer-now.running .timer-readout { text-align: center; align-items: stretch; }
+.timer-now[hidden] { display: none; }
 .timer-art { grid-area: art; width: clamp(64px, 18vw, 96px); aspect-ratio: 1; display: grid; place-items: center; }
 .timer-art > * { width: 100%; height: 100%; object-fit: contain; }
 .timer-readout { grid-area: read; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-.timer-name { margin: 0; font: 700 1.1rem/1.25 var(--display); overflow-wrap: anywhere; }
 .timer-clock { margin: 0; font: 700 clamp(2.6rem, 11vw, 3.6rem)/1 var(--display); font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
-.timer-now.paused .timer-clock { opacity: 0.55; }
+/* A tap on the total edits the list (as the pencil beside it does). */
+.timer-clock[role="button"] { cursor: pointer; border-radius: 8px; }
+.timer-clock[role="button"]:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
 .timer-progress { height: 6px; border-radius: 3px; background: var(--panel-2); overflow: hidden; border: 1px solid var(--line); }
 .timer-progress-fill { height: 100%; width: 0; background: var(--brass); border-radius: 3px; transition: width 0.25s linear; }
 .timer-sub { margin: 0; color: var(--ink-2); font-weight: 600; font-size: 0.92rem; min-height: 1.3em; overflow-wrap: anywhere; }
 .timer-actions { grid-area: act; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
 .timer-actions .big-btn { min-width: 160px; }
-.timer-side { display: flex; gap: 8px; }
-.timer-side[hidden] { display: none; }
 
-/* A practice item */
-.timer-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+/* The pencil beside the total time: edit the list; a check while editing. */
+.timer-total { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.timer-total .timer-edit { flex: none; width: 42px; height: 42px; color: var(--ink-2); }
+.timer-total .timer-edit svg { width: 22px; height: 22px; }
+.timer-total { flex-wrap: wrap; row-gap: 6px; }
+.timer-edit-label { display: none; }
+/* Editing: a pill, the check and how to reorder, tapped to finish. */
+.timer-total .timer-edit.on {
+  width: auto; height: 36px; padding: 0 14px 0 10px; gap: 6px; border-radius: 18px;
+  display: inline-flex; align-items: center; color: var(--ink);
+  background: color-mix(in srgb, var(--brass) 22%, transparent); border: 1px solid var(--brass);
+}
+.timer-total .timer-edit.on svg { width: 18px; height: 18px; color: var(--brass-2); }
+.timer-edit.on .timer-edit-label { display: inline; font: 700 0.9rem var(--ui); white-space: nowrap; }
+#routine .bar { grid-template-columns: 42px 1fr auto; gap: 4px; }
+#routine .bar h2 { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: clamp(0.85rem, 4.1vw, 1.25rem); }
+.bar-end { display: flex; justify-content: flex-end; }
+.bar-end .icon-btn { width: 42px; }
+.timer-edit .i-check, .timer-edit.on .i-pencil { display: none; }
+.timer-edit.on .i-check { display: block; }
+.timer-edit.on { color: var(--brass-2); }
+.timer-edit svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.timer-edit[hidden] { display: none; }
+
+/* Running: a compact header (the item, its time left, what is next, and the buttons) over the tools' cards. */
+.timer-run { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.timer-run[hidden] { display: none; }
+.trun-head {
+  display: grid; grid-template-columns: 1fr auto; grid-template-areas: "text clock" "prog prog" "btns btns"; align-items: center; gap: 6px 12px;
+  padding: 12px 14px; border-radius: 18px; border: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--panel-2), var(--panel)); box-shadow: 0 6px 18px var(--shadow);
+}
+@media (min-width: 560px) { .trun-head { grid-template-columns: 1fr auto auto; grid-template-areas: "text clock btns" "prog prog prog"; } }
+.trun-text { grid-area: text; min-width: 0; display: flex; align-items: center; gap: 10px; }
+.trun-words { min-width: 0; }
+.trun-icon { flex: none; width: 44px; aspect-ratio: 1; display: grid; place-items: center; }
+.trun-icon > * { width: 100%; height: 100%; object-fit: contain; }
+.trun-name { margin: 0; font: 700 1.15rem/1.2 var(--display); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trun-sub { margin: 2px 0 0; color: var(--ink-2); font-weight: 600; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trun-clock { grid-area: clock; margin: 0; font: 700 clamp(1.9rem, 8vw, 2.4rem)/1 var(--display); font-variant-numeric: tabular-nums; }
+.timer-run.paused .trun-clock { opacity: 0.55; }
+.trun-progress { grid-area: prog; height: 5px; }
+.trun-buttons { grid-area: btns; display: flex; justify-content: center; gap: 8px; }
+.trun-buttons .icon-btn { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 50%; }
+.trun-buttons svg { width: 20px; height: 20px; fill: currentColor; }
+.trun-go[aria-pressed="true"] .i-play, .trun-go[aria-pressed="false"] .i-pause { display: none; }
+.trun-buttons .icon-btn:disabled { opacity: 0.35; }
+
+/* The tools' cards: a row that swipes sideways, a card at a time with the next peeking in;
+   all three side by side where there is room. */
+.tool-cards {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 84%; gap: 12px;
+  overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
+  padding: 2px 8% 6px; margin: 0 -2px; scrollbar-width: none; touch-action: pan-x pan-y;
+}
+.tool-cards::-webkit-scrollbar { display: none; }
+@media (min-width: 760px) { .tool-cards { grid-auto-columns: 1fr; padding-inline: 2px; overflow-x: visible; } .tool-dots { display: none !important; } }
+.tool-card {
+  scroll-snap-align: center; min-width: 0; display: flex; flex-direction: column; gap: 10px;
+  padding: 12px 14px 14px; border-radius: 20px; border: 1px solid var(--line); background: var(--panel);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.tool-card.on { border-color: var(--brass); box-shadow: 0 0 0 1px var(--brass), 0 8px 22px var(--shadow); }
+.tool-head { display: flex; align-items: center; gap: 10px; }
+.tool-head h3 { margin: 0; flex: 1; font: 700 1.1rem/1.2 var(--display); }
+.tool-icon { flex: none; width: 40px; height: 40px; display: grid; place-items: center; }
+.tool-icon > * { width: 100%; height: 100%; object-fit: contain; }
+.tool-body { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+/* At the foot of each card, the tool's own Start or Play, or the record button. */
+.tool-foot { display: flex; justify-content: center; }
+.tool-card .big-btn.tool-go { width: 100%; min-height: 48px; margin: 0; font-size: 1.17rem; }
+.tool-card .rec-btn.tool-go { width: 64px; height: 64px; border-width: 3px; }
+.tool-card .rec-btn.tool-go .rec-dot { width: 26px; height: 26px; }
+.tool-card .rec-btn.tool-go[data-state="recording"] .rec-dot { width: 32px; height: 32px; }
+.tool-card:not(.on) .tool-body { opacity: 0.6; }
+.tool-step { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tool-step .step { flex: none; width: 44px; height: 44px; font-size: 1.4rem; }
+.tool-big { flex: 1; min-width: 0; text-align: center; font: 700 clamp(1.7rem, 8vw, 2.2rem)/1 var(--display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tool-big small { font: 700 0.9rem var(--ui); color: var(--ink-2); }
+.tool-beats { list-style: none; margin: 0; padding: 0; display: flex; justify-content: center; gap: 10px; min-height: 16px; }
+.tool-beats li { width: 12px; height: 12px; border-radius: 50%; background: var(--panel-2); border: 1px solid var(--line); transition: background 0.06s; }
+.tool-beats li.strong { width: 16px; height: 16px; }
+.tool-beats li.lit { background: var(--brass); border-color: var(--brass); }
+.tool-beats li.strong.lit { background: var(--red-2, var(--brass)); border-color: var(--red-2, var(--brass)); }
+.tool-note { margin: 0; text-align: center; color: var(--ink-2); font-weight: 700; font-size: 0.9rem; }
+.tool-hint { margin: 0; text-align: center; color: var(--ink-3); font-size: 0.85rem; }
+.tool-hint[hidden] { display: none; }
+.tool-voice { width: 100%; }
+.tool-fifth { margin: 0; }
+.tool-rec { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 56px; }
+.tool-status { margin: 0; font-weight: 700; font-size: 1.05rem; }
+.tool-dots { display: flex; justify-content: center; gap: 4px; }
+.tool-dot { width: 28px; height: 24px; padding: 0; border: 0; background: none; display: grid; place-items: center; }
+.tool-dot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--line); transition: background 0.2s, width 0.2s; }
+.tool-dot[aria-current="true"]::before { width: 18px; border-radius: 4px; background: var(--brass); }
+
+/* A practice item: its number, picture and name on the left, its minutes on the right. */
+.timer-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+#routine.running .timer-list { width: min(100%, 620px); align-self: center; }
 .titem {
-  position: relative; overflow: hidden;
-  border-radius: 18px; border: 1px solid var(--line); background: var(--panel);
-  padding: 10px 10px 12px;
-  display: flex; flex-direction: column; gap: 8px;
+  position: relative; overflow: hidden; touch-action: pan-y;
+  border-radius: 16px; border: 1px solid var(--line); background: var(--panel);
+  padding: 8px 14px 8px 10px; min-height: 52px;
+  display: flex; align-items: center; gap: 10px;
 }
-.titem.now { border-color: var(--brass); box-shadow: 0 0 0 1px var(--brass), 0 8px 22px var(--shadow); }
-.titem.done { opacity: 0.6; }
-.titem-head { display: flex; align-items: center; gap: 8px; }
-/* The item's place in the list, as plain text before its name ("1. Intonation"),
-   so it doesn't read as a button; the one running is lit in the accent colour. */
-.titem-num { flex: none; color: var(--ink-2); font: 700 1.05rem/1.3 var(--ui); font-variant-numeric: tabular-nums; margin-right: -4px; }
-.titem.now .titem-num { color: var(--brass-2); }
-.titem-name {
-  flex: 1; min-width: 0; font: 700 1.05rem/1.3 var(--ui); color: var(--ink);
-  background: transparent; border: 0; border-bottom: 1px solid transparent; padding: 6px 2px; border-radius: 0;
+.titem.now { border-color: var(--brass); box-shadow: 0 0 0 1px var(--brass); }
+/* During a break: what comes next, outlined. */
+.titem.up-next { border-color: var(--brass); border-style: dashed; }
+.titem.done { opacity: 0.55; }
+/* The item's place in the list, as plain text; the one running in the accent colour. */
+.titem-num { flex: none; color: var(--ink-2); font: 700 1.05rem/1.3 var(--ui); font-variant-numeric: tabular-nums; min-width: 1.4em; }
+.titem.now .titem-num { color: var(--value, var(--brass-2)); }
+.titem-name { flex: 1; min-width: 0; font: 700 1.05rem/1.3 var(--ui); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.titem-min { flex: none; margin-left: auto; color: var(--ink-2); font: 700 1rem var(--ui); font-variant-numeric: tabular-nums; padding-left: 6px; }
+.titem > .titem-name { flex: 0 1 auto; }
+/* The pencil after its name: opens its name and minutes for editing (a check closes them). */
+.titem-pencil { flex: none; width: 34px; height: 34px; color: var(--ink-3); }
+.titem-pencil svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.titem-pencil:hover, .titem-pencil.on { color: var(--brass-2); }
+.titem-time { margin-left: auto; }
+.titem.item-edit { background: var(--panel-2); border-color: var(--brass); }
+.titem.item-edit .titem-namebox { flex: 1; }
+/* Open: its delete at the far right (its on/off waits for it to close); where room is short, no number or picture. */
+.titem.item-edit .titem-onoff { display: none; }
+.titem.item-edit:not(.editing) .titem-del { margin: -6px -8px -6px 0; }
+@media (max-width: 520px) {
+  .titem.item-edit .titem-num, .titem.item-edit .titem-icon { display: none; }
+  .titem.item-edit { gap: 6px; }
 }
-.titem-name:hover { border-bottom-color: var(--line); }
-.titem-name:focus { outline: none; border-bottom-color: var(--brass); }
-.titem-name::placeholder { color: var(--ink-3); }
-.titem-time { flex: none; display: flex; align-items: center; gap: 4px; }
-.titem-time .step { width: 32px; height: 32px; font-size: 1.05rem; }
-.titem-min {
-  width: 2.1em; text-align: right; font: 700 1.05rem var(--ui); font-variant-numeric: tabular-nums; color: var(--ink);
-  background: transparent; border: 0; border-bottom: 1px solid var(--line); padding: 4px 0; -moz-appearance: textfield; appearance: textfield;
-}
-.titem-min::-webkit-outer-spin-button, .titem-min::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.titem-min:focus { outline: none; border-bottom-color: var(--brass); }
-.titem-unit { color: var(--ink-3); font-weight: 700; font-size: 0.85rem; }
-.titem-del { flex: none; width: 40px; height: 40px; color: var(--ink-3); }
-.titem-del:hover { color: var(--red-2, var(--ink)); }
-.titem-del:disabled { opacity: 0.3; pointer-events: none; }
-.titem-del svg { width: 22px; height: 22px; }
-.titem-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding-left: 36px; }
-.titem-time { margin-right: 2px; gap: 3px; }
-/* A routine's tools: + Tools when it has none; the ones it has, lit, then a
-   small +. One group, at the far end beside the minutes wherever it fits,
-   and wrapped as a whole under them where it doesn't. */
-.titem-uses { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px 6px; margin-left: auto; }
-/* Wrapped under the minutes, a little room between them. */
-.titem-tools { row-gap: 12px; }
-.titem-tool, .titem-more { min-height: 34px; min-width: 0; }
-.titem-tool { padding: 4px 14px; }
-.titem-more { padding: 4px 12px; color: var(--ink-2); }
-.titem-more.plus { width: 34px; padding: 0; border-radius: 50%; font-size: 1.2rem; font-weight: 700; line-height: 1; }
-.titem-tool[aria-pressed="true"] { background: var(--brass); border-color: var(--brass); color: var(--on-accent); }
-.titem-open { flex: none; width: 40px; height: 40px; }
-.titem-open[hidden] { display: none; }
-.titem-open svg { transition: rotate 0.2s ease; }
-.titem-open[aria-expanded="true"] svg { rotate: 180deg; }
-.titem-detail:empty { display: none; }
-.titem-detail { display: flex; flex-direction: column; gap: 10px; padding: 4px 4px 0 36px; }
-.titem-detail fieldset { margin: 0; padding: 10px 12px 12px; border: 1px solid var(--line); border-radius: 14px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.titem-detail legend { padding: 0 6px; font-weight: 800; color: var(--ink-2); font-size: 0.9rem; }
-.titem-detail .tempo { justify-content: center; }
-.titem-detail .bpm-box input { width: 3.2em; font-size: 2rem; }
-.titem-detail .titem-note { min-width: 96px; }
+/* A tap on an item starts the routine there. */
+.titem.startable { cursor: pointer; }
+.titem.startable:hover { border-color: color-mix(in srgb, var(--brass) 55%, var(--line)); }
+.titem.startable:active { background: var(--panel-2); }
+.titem.startable:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+/* Its kind while editing: the name with a chevron, the whole of it opening the list of kinds;
+   a Custom one typed, with the list beside it. */
+.titem-namebox { position: relative; flex: 1; min-width: 0; display: flex; align-items: center; gap: 2px; }
+.titem-namebox .titem-name { flex: 0 1 auto; min-width: 0; }
+.titem-chev, .titem-pick { flex: none; display: grid; place-items: center; width: 24px; height: 32px; color: var(--ink-2); }
+.titem-chev svg, .titem-pick svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.titem-pick { position: relative; }
+.titem-kind { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font-size: 16px; }
+/* In the routine or not: turned off, it shows only while editing, dimmed. */
+.titem-onoff { flex: none; display: grid; place-items: center; }
+.titem-onoff input { margin: 0; }
+.titem.off > :not(.titem-onoff):not(.titem-handle):not(.titem-del) { opacity: 0.45; }
 .titem-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; }
 .titem-bar-fill { height: 100%; width: 0; background: var(--brass); transition: width 0.25s linear; }
+/* Editing: a handle to drag it by, its name and minutes to change, and a trash button. */
+.titem.editing { padding: 5px 6px 5px 2px; gap: 6px; background: var(--panel-2); }
+.titem.editing .titem-num { min-width: 1.2em; font-size: 0.95rem; }
+input.titem-name {
+  border: 0; border-bottom: 1px dashed var(--line); border-radius: 0; background: none; color: inherit; padding: 4px 2px;
+}
+input.titem-name:focus { outline: none; border-bottom: 1px solid var(--brass); }
+input.titem-name::placeholder { color: var(--ink-3); }
+.titem-time { flex: none; display: flex; align-items: center; gap: 2px; }
+.titem-time .step { width: 30px; height: 30px; font-size: 1rem; }
+.titem-mins {
+  width: 2.4em; text-align: center; border: 0; border-bottom: 1px dashed var(--line); background: none; color: inherit;
+  font: 700 1rem var(--ui); font-variant-numeric: tabular-nums; -moz-appearance: textfield; appearance: textfield; padding: 2px 0;
+}
+.titem-mins::-webkit-outer-spin-button, .titem-mins::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.titem-mins:focus { outline: none; border-bottom: 1px solid var(--brass); }
+.titem-handle { flex: none; width: 36px; height: 40px; cursor: grab; touch-action: none; color: var(--ink-3); }
+.titem-handle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.titem.dragging { z-index: 2; box-shadow: 0 10px 26px var(--shadow); border-color: var(--brass); cursor: grabbing; }
+.titem.swiping { transition: none !important; }
+.timer-list.reordering .titem:not(.dragging) { transition: transform 0.18s ease; }
+.timer-list:not(.editing) .titem { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.timer-list.editing .titem:not(.item-edit) { cursor: grab; touch-action: none; } /* picked up anywhere, by touch too */
+#routine.running .timer-list .titem { cursor: default; }
+/* An item's menu (a right click). */
+.titem-menu {
+  position: fixed; z-index: 20; min-width: 160px; padding: 6px; display: flex; flex-direction: column;
+  border-radius: 14px; border: 1px solid var(--line); background: var(--panel-2); box-shadow: 0 12px 30px var(--shadow);
+}
+.titem-menu[hidden] { display: none; }
+.titem-menu-item { text-align: left; padding: 10px 14px; border: 0; border-radius: 10px; background: none; color: inherit; font: 700 0.95rem var(--ui); }
+.titem-menu-item:hover, .titem-menu-item:focus-visible { background: var(--panel); outline: none; }
+.titem-menu-item:last-child { color: var(--red-2, var(--ink)); }
+/* Deleting an item with settings of its own asks first. */
+.timer-confirm p { margin: 4px 0 12px; line-height: 1.45; }
+.pill.danger { color: var(--red-2, var(--ink)); border-color: color-mix(in srgb, var(--red-2, var(--ink)) 50%, var(--line)); font-weight: 800; }
+/* The Metronome card while it plays: the beat in one of three views (a tap steps through them). */
+.tool-met-idle { display: flex; flex-direction: column; gap: 10px; }
+.tool-met-idle[hidden], .mini-met[hidden] { display: none; }
+.mini-met { height: 150px; display: grid; place-items: center; cursor: pointer; border-radius: 14px; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+.mini-met:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+.mini-met > * { grid-area: 1 / 1; }
+.mini-met:not([data-view="pendulum"]) .mini-met-art, .mini-met:not([data-view="pulse"]) .mini-pulse, .mini-met:not([data-view="bars"]) .mini-bars { display: none; }
+.mini-met-art { position: relative; height: 100%; aspect-ratio: 800 / 1200; }
+.mini-pulse { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; gap: 12px; }
+.mini-pulse li {
+  --g: 0; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line);
+  background: color-mix(in srgb, var(--brass-2) calc(var(--g) * 100%), var(--panel-2));
+  transform: scale(calc(1 + var(--g) * 0.3)); box-shadow: 0 0 calc(var(--g) * 18px) color-mix(in srgb, var(--brass-2) calc(var(--g) * 70%), transparent);
+}
+.mini-pulse li.strong { width: 34px; height: 34px; border-color: var(--brass); background: color-mix(in srgb, var(--red-2, var(--brass-2)) calc(var(--g) * 100%), var(--panel-2)); }
+.mini-bars { width: 100%; --row: 30px; --rg: 10px; padding: 0 4px; }
+/* A tool's settings sheet; the gear on its card. */
+.tool-settings-body { display: flex; flex-direction: column; gap: 4px; }
+.tool-tempo-edit { display: flex; align-items: center; gap: 8px; }
+.tool-tempo-edit .step { width: 40px; height: 40px; font-size: 1.3rem; }
+.tool-num { width: 4.2em; text-align: center; font: 700 1.1rem var(--ui); padding: 6px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: inherit; }
+.tool-gear { flex: none; width: 36px; height: 36px; color: var(--ink-2); }
+.tool-gear svg { width: 20px; height: 20px; }
+.titem-del { flex: none; width: 40px; height: 40px; color: var(--ink-3); }
+.titem-del:hover { color: var(--red-2, var(--ink)); }
+.titem-del svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .timer-add { align-self: center; display: inline-flex; align-items: center; gap: 6px; padding-inline: 18px 22px; }
 .timer-add svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
 .timer-empty { text-align: center; }
@@ -2027,9 +2207,6 @@ html.paging { overflow: hidden; }
 .timer-preset-icon { width: 40px; }
 .titem-icon { width: 34px; }
 .timer-preset-icon > *, .titem-icon > * { width: 100%; height: 100%; object-fit: contain; }
-@media (max-width: 420px) {
-  .titem-tools, .titem-detail { padding-left: 0; }
-}
 
 /* Test My Scale Intonation. Its own feature
    under the tuner, set apart from Play a note: an inviting card that opens

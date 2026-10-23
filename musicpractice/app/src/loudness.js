@@ -108,10 +108,19 @@ export function limit(x, gain, sampleRate) {
   return out;
 }
 
-const cache = new WeakMap(); // samples -> leveled samples
+const cache = new WeakMap(); // samples -> { samples (leveled), gainDb, lufs }
 /** leveled(), worked out once per take. */
 export function forPlayback(samples, sampleRate) {
   let r = cache.get(samples);
-  if (!r) { r = leveled(samples, sampleRate).samples; cache.set(samples, r); }
-  return r;
+  if (!r) {
+    const lufs = loudness(samples, sampleRate);
+    r = { ...leveled(samples, sampleRate), lufs: Number.isFinite(lufs) ? Math.round(lufs * 10) / 10 : null };
+    cache.set(samples, r);
+  }
+  return r.samples;
 }
+/** How a take was brought up for playback: { gainDb, lufs } (after forPlayback). */
+export const playbackLevel = (samples) => {
+  const r = cache.get(samples);
+  return r ? { gainDb: Math.round(r.gainDb * 10) / 10, lufs: r.lufs } : null;
+};

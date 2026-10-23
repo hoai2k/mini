@@ -108,6 +108,8 @@
             <button type="button" class="pill" id="reload-page" data-text="appSettings.reloadPage"></button>
           </div>
           <button type="button" class="pill open-feedback" data-text="appSettings.sendFeedback"></button>
+          <!-- Kept reachable from Settings for App Review (Guideline 5.1.1): opened in the browser, never inside the app. -->
+          <p class="help sheet-legal"><a href="https://hoai2k.github.io/mini/musicpractice/privacy.html" target="_blank" rel="noopener" data-text="appSettings.privacy"></a> · <a href="https://hoai2k.github.io/mini/musicpractice/privacy.html#terms" target="_blank" rel="noopener" data-text="appSettings.terms"></a> · <a href="https://hoai2k.github.io/mini/musicpractice/support.html" target="_blank" rel="noopener" data-text="appSettings.support"></a></p>
           <!-- In the apps only (src/pro.js). -->
           <fieldset id="pro-row" hidden>
             <legend data-text="appSettings.pro.title"></legend>
@@ -231,7 +233,7 @@
           <div class="accent-grid" id="accent-grid"></div>
           <div class="accent-actions">
             <button type="button" class="pill" id="accent-clear" data-text="metronome.accents.clear"></button>
-            <button type="button" class="pill accent-done" id="accent-done" data-text="common.done"></button>
+            <button type="button" class="big-btn accent-done" id="accent-done" data-text="common.done"></button>
           </div>
         </form>
       </dialog>
@@ -502,47 +504,72 @@
     </section>
 
     <!-- Practice Routine. A
-         list of practice items, each a name, minutes and its own metronome
-         and drone; Start runs through them (timerui.js). -->
+         list of practice items, each a name and minutes; Start runs through
+         them, with the Metronome, the Drone and the Playback Recorder on
+         cards to turn on as wanted (timerui.js). -->
     <section id="routine" class="screen" aria-labelledby="timer-title" hidden>
       <header class="bar">
         <a class="icon-btn" href="#" id="timer-back" data-text-aria-label="common.backToStart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
         <h2 id="timer-title" data-text="timer.title"></h2>
+        <div class="bar-end">
         <button class="icon-btn" id="timer-settings-btn" type="button" data-text-aria-label="timer.settingsButton"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
+        </div>
       </header>
       <div class="timer-body">
-        <!-- What is running now (or, before Start, the whole routine's length). -->
+        <!-- Set up: the whole routine's length, and Start. -->
         <div class="timer-now" id="timer-now">
           <span class="art timer-art" data-asset="home-routine" aria-hidden="true"></span>
-          <!-- While an item runs, its picture, large (timer.js pictureFor). -->
-          <span class="art timer-picture" id="timer-picture" data-asset="home-routine" aria-hidden="true"></span>
           <div class="timer-readout">
-            <p class="timer-name" id="timer-name"></p>
-            <p class="timer-clock" id="timer-clock" role="timer" aria-live="off"></p>
-            <div class="timer-progress" aria-hidden="true"><div class="timer-progress-fill" id="timer-fill"></div></div>
+            <div class="timer-total">
+              <!-- A tap on the total turns list editing on or off, as the pencil beside it does. -->
+              <p class="timer-clock" id="timer-clock" role="button" tabindex="0" data-text-aria-label="timer.totalEdit"></p>
+              <!-- Edit the list: rename, change minutes, delete, reorder (timerui.js); while editing, a check that says how to reorder, tapped to finish. -->
+              <button class="icon-btn timer-edit" id="timer-edit" type="button" aria-pressed="false" data-text-aria-label="timer.edit"><svg class="i-pencil" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg><svg class="i-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span class="timer-edit-label" data-text="timer.reorderHint"></span></button>
+            </div>
             <p class="timer-sub" id="timer-sub"></p>
           </div>
           <div class="timer-actions">
-            <button class="big-btn" id="timer-go" type="button" aria-pressed="false">
+            <button class="big-btn" id="timer-go" type="button">
               <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-              <svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
-              <span id="timer-go-label" data-text="timer.start"></span>
+              <span data-text="timer.start"></span>
             </button>
-            <div class="timer-side" id="timer-side" hidden>
-              <button class="pill" id="timer-skip" type="button" data-text="timer.skip"></button>
-              <button class="pill" id="timer-stop" type="button" data-text="timer.stop"></button>
-            </div>
           </div>
+        </div>
+        <!-- Running: a compact header (the item, its time, what is next) over the tools' cards. -->
+        <div class="timer-run" id="timer-run" hidden>
+          <div class="trun-head">
+            <div class="trun-text">
+              <!-- The item's picture, so what is being practised shows at a glance. -->
+              <span class="art trun-icon" id="trun-icon" aria-hidden="true"></span>
+              <div class="trun-words">
+                <p class="trun-name" id="trun-name"></p>
+                <p class="trun-sub" id="trun-sub"></p>
+              </div>
+            </div>
+            <p class="trun-clock" id="trun-clock" role="timer" aria-live="off"></p>
+            <div class="trun-buttons">
+              <button class="icon-btn trun-go" id="trun-go" type="button" aria-pressed="true"><svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
+              <button class="icon-btn" id="trun-skip" type="button" data-text-aria-label="timer.skip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5l9 7-9 7zM17 5v14"/></svg></button>
+              <button class="icon-btn" id="trun-stop" type="button" data-text-aria-label="timer.stop"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></button>
+            </div>
+            <div class="timer-progress trun-progress" aria-hidden="true"><div class="timer-progress-fill" id="trun-fill"></div></div>
+          </div>
+          <!-- The tools, a card each, swiped sideways (all three side by side where there is room). -->
+          <div class="tool-cards no-swipe" id="tool-cards" data-text-aria-label="timer.cards.label" role="group"></div>
+          <div class="tool-dots" id="tool-dots"></div>
         </div>
         <ol class="timer-list" id="timer-list"></ol>
         <p class="help timer-empty" id="timer-empty" data-text="timer.empty" hidden></p>
         <button class="pill timer-add" id="timer-add" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span data-text="timer.add"></span></button>
+        <!-- An item's menu (a right click): Rename, Turn off or on, Delete. -->
+        <div class="titem-menu" id="titem-menu" role="menu" hidden></div>
         <p class="timer-toast" id="timer-toast" role="status" aria-live="polite" hidden><span id="timer-toast-text"></span> <button type="button" class="link-btn" id="timer-undo" data-text="timer.undo"></button></p>
       </div>
 
       <dialog id="timer-settings" class="sheet" aria-labelledby="timer-settings-title">
         <form method="dialog">
           <header class="sheet-head"><h3 id="timer-settings-title" data-text="timer.settingsTitle"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <label class="row toggle"><span data-text="timer.rest"></span><select class="select" id="timer-rest"></select></label>
           <label class="row toggle"><span data-text="timer.chimeOn"></span><input type="checkbox" id="timer-chime-on" role="switch"></label>
           <label class="row toggle" id="timer-chime-row"><span data-text="timer.chime"></span><select class="select" id="timer-chime"></select></label>
           <label class="row toggle"><span data-text="timer.voiceOn"></span><input type="checkbox" id="timer-voice-on" role="switch"></label>
@@ -555,12 +582,23 @@
         </form>
       </dialog>
 
-      <!-- A routine's tools (+ Tools on its card): each on or off for that routine. -->
-      <dialog id="timer-tools-sheet" class="sheet" aria-labelledby="timer-tools-title">
+      <!-- Deleting an item with settings of its own asks first (timerui.js askRemove). -->
+      <dialog id="timer-confirm" class="sheet timer-confirm" aria-labelledby="timer-confirm-title">
         <form method="dialog">
-          <header class="sheet-head"><h3 id="timer-tools-title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-          <label class="row toggle"><span data-text="timer.item.metronome"></span><input type="checkbox" role="switch" id="timer-tool-metronome"></label>
-          <label class="row toggle"><span data-text="timer.item.drone"></span><input type="checkbox" role="switch" id="timer-tool-drone"></label>
+          <header class="sheet-head"><h3 id="timer-confirm-title" data-text="timer.confirmDelete.title"></h3></header>
+          <p id="timer-confirm-text"></p>
+          <div class="sheet-links">
+            <button type="button" class="pill" id="timer-confirm-no" data-text="timer.confirmDelete.keep"></button>
+            <button type="button" class="pill danger" id="timer-confirm-go"></button>
+          </div>
+        </form>
+      </dialog>
+
+      <!-- A tool's settings for the item running (the gear on its card). -->
+      <dialog id="tool-settings" class="sheet" aria-labelledby="tool-settings-title">
+        <form method="dialog">
+          <header class="sheet-head"><h3 id="tool-settings-title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <div class="tool-settings-body" id="tool-settings-body"></div>
         </form>
       </dialog>
 
@@ -612,6 +650,8 @@
         <header class="sheet-head"><h3 id="audio-check-title" data-text="audioCheck.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
         <div id="audio-check-body" aria-live="polite"></div>
         <button type="button" class="pill open-feedback" data-topic="Problem" data-text="audioCheck.reportProblem"></button>
+        <!-- The debug log (debuglog.js), all of it, as a JSON file to send for investigating (main.js). -->
+        <button type="button" class="pill" id="export-debug" data-text="audioCheck.exportDebug"></button>
       </form>
     </dialog>
 
@@ -628,6 +668,9 @@
         <div class="fb-hp" aria-hidden="true"><label><span data-text="feedback.honeypot"></span> <input type="text" id="fb-hp" tabindex="-1" autocomplete="off"></label></div>
         <label class="row toggle"><span data-text="feedback.includeDetails"></span><input type="checkbox" id="fb-details-on" role="switch" checked></label>
         <details class="fb-details-box"><summary data-text="feedback.whatsIncluded"></summary><pre id="fb-details"></pre></details>
+        <!-- The debug log's state and latest events (debuglog.js), as much as fits; unticked every time it opens. -->
+        <label class="row toggle"><span data-text="feedback.includeDebug"></span><input type="checkbox" id="fb-debug-on" role="switch"></label>
+        <p class="help fb-debug-note" data-text="feedback.debugNote"></p>
         <button type="button" class="big-btn fb-send" id="fb-send" data-text="feedback.send" disabled></button>
         <p class="help fb-status" id="fb-status" role="status" aria-live="polite"></p>
         <p class="help fb-note"><span data-text="feedback.privacyNote"></span> <a href="https://hoai2k.github.io/mini/musicpractice/privacy.html#feedback" target="_blank" rel="noopener" data-text="feedback.privacyLink"></a></p>
