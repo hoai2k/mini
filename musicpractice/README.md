@@ -159,6 +159,10 @@ when the Art Deco art arrives, measure and record its own.
 
 ## Metronome
 
+- **Tap tempo:** the **Tap** button beside the tempo's name (or **T** on a
+  keyboard). From the second tap the tempo follows the taps: the average of
+  the last six (so one slip fades), counted on the finger coming down; a
+  pause of over two seconds starts again (`tapTempo` in `metronome.js`).
 - **The pendulum's weight shows the tempo and sets it**, as on a real
   metronome: it slides up the rod for slower and down for faster
   (`weightAt` in `app/src/metronome.js`), and dragging it with a finger or

@@ -378,6 +378,10 @@ dialog:focus { outline: none; }
 .marking { margin: 0; text-align: center; color: var(--ink-2); font-style: italic; font-family: var(--display); min-height: 1.4em; }
 /* The marking is a button: it opens the common tempos. */
 button.marking { align-self: center; border: 0; background: none; padding: 2px 10px; font-size: inherit; text-decoration: underline dotted; text-decoration-color: var(--line); text-underline-offset: 4px; cursor: pointer; }
+/* The tempo's name and Tap beside it. */
+.tempo-names { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.tap-tempo { min-height: 34px; padding: 4px 16px; font-size: 0.95rem; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.tap-tempo.hit { background: var(--brass); border-color: var(--brass); color: var(--on-accent); }
 .tempo-list { display: flex; flex-direction: column; gap: 6px; }
 .tempo-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; }
 .tempo-name { font-weight: 700; min-width: 0; }

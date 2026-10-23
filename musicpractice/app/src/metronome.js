@@ -261,6 +261,21 @@ export class Metronome {
  * log scale, squeezed further at the fast end, so the everyday tempos get
  * most of the rod.
  */
+/**
+ * Tap tempo: the beats per minute of taps (times in ms, oldest first), from
+ * the last few (TAP_KEEP) so a steady hand settles quickly and a slip fades;
+ * a pause longer than TAP_RESET starts again. null until there are two taps.
+ */
+export const TAP_KEEP = 6;
+export const TAP_RESET = 2000;
+export function tapTempo(times) {
+  let i = times.length - 1;
+  while (i > 0 && times[i] - times[i - 1] <= TAP_RESET) i--;
+  const run = times.slice(Math.max(i, times.length - TAP_KEEP));
+  if (run.length < 2) return null;
+  return Math.round((60000 * (run.length - 1)) / (run[run.length - 1] - run[0]));
+}
+
 export const WEIGHT_BPM = [40, 300];
 const WEIGHT_CURVE = 0.8;
 export function weightAt(bpm, [lo, hi] = WEIGHT_BPM) {

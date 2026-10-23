@@ -167,7 +167,11 @@
             </label>
             <button class="step" id="bpm-up" data-text-aria-label="metronome.faster">+</button>
           </div>
-          <button type="button" class="marking" id="marking" aria-haspopup="dialog"></button>
+          <!-- The tempo's name (opens common and saved tempos), and Tap: tap in time to set the tempo (or T). -->
+          <div class="tempo-names">
+            <button type="button" class="marking" id="marking" aria-haspopup="dialog"></button>
+            <button type="button" class="pill tap-tempo" id="tap-tempo" data-text-aria-label="metronome.tapHint"><span data-text="metronome.tap"></span></button>
+          </div>
           <input id="bpm-slider" class="slider" type="range" min="40" max="500" step="1" value="120" data-text-aria-label="metronome.tempoSlider">
           <div class="slider-scale" aria-hidden="true"><span>40</span><span>500</span></div>
           <button class="big-btn" id="met-toggle" aria-pressed="false">

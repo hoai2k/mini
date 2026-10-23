@@ -604,6 +604,7 @@ document.addEventListener('keydown', (e) => {
     if (e.key === ' ' && !typing && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); $('met-toggle').click(); }
     if (!typing && (e.key === 'ArrowUp' || e.key === 'ArrowRight')) { e.preventDefault(); setBpm(settings.bpm + (e.shiftKey ? 10 : 1)); }
     if (!typing && (e.key === 'ArrowDown' || e.key === 'ArrowLeft')) { e.preventDefault(); setBpm(settings.bpm - (e.shiftKey ? 10 : 1)); }
+    if (!typing && (e.key === 't' || e.key === 'T') && !e.repeat && !e.metaKey && !e.ctrlKey) { e.preventDefault(); met.tap(e.timeStamp); }
   }
   if (screen === 'record' && e.key === ' ' && !(e.target instanceof HTMLButtonElement) && !typing) {
     e.preventDefault();

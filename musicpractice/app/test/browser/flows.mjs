@@ -200,6 +200,14 @@ async function metronomeScreen(env) {
     await p.fill('#bpm-input', '132');
     await p.press('#bpm-input', 'Enter');
     c.ok(await bpm() === 132 && await p.evaluate(() => document.getElementById('bpm-slider').value) === '132', `${how}: a typed tempo moves the slider`);
+    // Tap tempo: four taps half a second apart set 120; T on the keyboard taps too.
+    for (let k = 0; k < 4; k++) { await p.locator('#tap-tempo').dispatchEvent('pointerdown', { button: 0 }); await p.waitForTimeout(500); }
+    const tapped = await bpm();
+    c.ok(Math.abs(tapped - 120) <= 3, `${how}: tapping every half second sets about 120 (${tapped})`);
+    await p.waitForTimeout(2500); // a pause starts the taps again
+    for (let k = 0; k < 3; k++) { await p.keyboard.press('t'); await p.waitForTimeout(750); }
+    const keyed = await bpm();
+    c.ok(Math.abs(keyed - 80) <= 3, `${how}: T every 0.75 s sets about 80 (${keyed})`);
     // Start and stop.
     await p.click('#met-toggle');
     await p.waitForTimeout(400);

@@ -5,7 +5,7 @@
 import { TEXT } from './text.js';
 import { audio, freshAudio, unlock, setContextSpeaker, heardNow, keepAwake, setExtraDelay } from './audio.js';
 import { dlog, debugBeat } from './debuglog.js';
-import { Metronome, pendulumAngle, weightAt, bpmAtWeight } from './metronome.js';
+import { Metronome, pendulumAngle, weightAt, bpmAtWeight, tapTempo, TAP_KEEP } from './metronome.js';
 import { NativeMetronome } from './nativeaudio.js';
 import { GENRES, GENRE_IDS, mainTempo, nameFor, genreRange } from './tempos.js';
 import { clampBpm, METERS, SOUNDS, VIZ_BARS, TICKS, barPlan, cleanPattern, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
@@ -135,6 +135,22 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
   }
 
   $('met-toggle').addEventListener('click', () => (metronome?.running ? stopMetronome() : startMetronome()));
+
+  // Tap tempo: from the second tap the tempo follows the taps (tapTempo in metronome.js).
+  let tapTimes = [];
+  let tapLit = 0;
+  function tap(at = performance.now()) {
+    tapTimes = [...tapTimes, at].slice(-TAP_KEEP - 1);
+    const bpm = tapTempo(tapTimes);
+    if (bpm) { settings.tempoPicked = null; setBpm(bpm); }
+    const b = $('tap-tempo');
+    b.classList.add('hit');
+    clearTimeout(tapLit);
+    tapLit = setTimeout(() => b.classList.remove('hit'), 120);
+  }
+  // On the finger coming down (the moment of the beat), not on its release.
+  $('tap-tempo').addEventListener('pointerdown', (e) => { if (!e.button) tap(e.timeStamp); });
+  $('tap-tempo').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tap(); } });
 
   bpmSlider.min = BPM_MIN;
   bpmSlider.max = BPM_MAX;
@@ -864,6 +880,6 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     get metronome() { return metronome; },
     pendulum, metSettings, meterSelect, soundSelect, metVolume,
     setBpm, renderBeats, shownBeats, metronomeConfigured, startMetronome, stopMetronome, soundCtx, setSub,
-    showWeight, queueFit, animateMetronome, visualsShown, setSync, openSync, closeSync,
+    showWeight, queueFit, animateMetronome, visualsShown, setSync, openSync, closeSync, tap,
   };
 }

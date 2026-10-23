@@ -279,3 +279,18 @@ test('Test My Scale difficulty: Hard by default; Custom keeps its own threshold 
   assert.deepEqual([c.scaleLevel, c.scaleTolerance, c.scaleAttack], ['custom', 50, 'end']);
   assert.deepEqual([sanitize({ scaleLevel: 'expert' }).scaleLevel, sanitize({ scaleAttack: 'peak' }).scaleAttack], ['hard', 'mid']);
 });
+
+test('tap tempo: the taps\' tempo, from the last few; a pause starts again', async () => {
+  const { tapTempo, TAP_RESET } = await import('../src/metronome.js');
+  assert.equal(tapTempo([]), null);
+  assert.equal(tapTempo([1000]), null);
+  assert.equal(tapTempo([1000, 1500]), 120);
+  assert.equal(tapTempo([0, 600, 1200, 1800]), 100);
+  // A slip in the middle is averaged out.
+  assert.equal(tapTempo([0, 500, 1040, 1500, 2000]), 120);
+  // A long pause: only the taps since count.
+  assert.equal(tapTempo([0, 500, 1000, 1000 + TAP_RESET + 1]), null);
+  assert.equal(tapTempo([0, 500, 1000, 1000 + TAP_RESET + 1, 1000 + TAP_RESET + 1001]), 60);
+  // Only the last six taps (five gaps) count: an old tempo fades out.
+  assert.equal(tapTempo([0, 1000, 2000, 2500, 3000, 3500, 4000, 4500]), 120);
+});

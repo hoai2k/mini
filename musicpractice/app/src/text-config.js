@@ -119,6 +119,9 @@ export const EN = {
     tempoInput: 'Tempo in beats per minute',
     tempoSlider: 'Tempo',
     bpm: 'BPM',
+    /** Tap tempo, beside the tempo's name. */
+    tap: 'Tap',
+    tapHint: 'Tap tempo: tap in time to set the tempo (or press T)',
     start: 'Start',
     stop: 'Stop',
     couldntStart: 'Couldn\'t start the metronome. Try again.',
