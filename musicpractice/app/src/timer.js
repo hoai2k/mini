@@ -323,6 +323,74 @@ export const cues = {
  * is up, as many as are due, and reports what happened; the screen calls it
  * a few times a second and when it is shown again.
  */
+/**
+ * What a running routine does with its tools at each moment: the decisions,
+ * which timerui.js carries out. `moment` is one of
+ *   'go'        an item starts or goes on (Start, the next item, a break's
+ *               end, Resume): its tools start, the others stop;
+ *   'voiced'    the voice has finished: what was held for it starts;
+ *   'rest'      a break begins: every tool rests;
+ *   'end'       the routine's time is up: everything stops;
+ *   'finishing' while the last take is let finish: once it is recorded the
+ *               metronome and the drone stop, so it is heard;
+ *   'take-in'   the take that was let finish is done: the recorder goes off
+ *               if the item (or a break) doesn't want it;
+ *   'stop'      Pause or Stop: everything stops.
+ * `s` is what is so now: `item` (its `tools`), `on` (which tools are on),
+ * `busy` (a take on the go), `recording` (still being recorded), `user`
+ * (the player's doing: Skip, which never waits for a take), `speaks` (the
+ * voice is about to speak: what would start waits for 'voiced'),
+ * `droneAllowed`, and `resting` (a break).
+ * Returns { start, stop, letFinish }: the tools to start, those to make sure
+ * are off, and whether the recorder stays on until its take is done.
+ */
+export function toolPlan(moment, s) {
+  const on = s.on || {};
+  const want = (t) => !!s.item?.tools?.[t] && (t !== 'drone' || s.droneAllowed !== false);
+  // A take on the go is let finish (recorded and played back) when the routine moves on by itself.
+  const keepTake = !!on.playback && !!s.busy && !s.user;
+  const plan = { start: [], stop: [], letFinish: false };
+  switch (moment) {
+    case 'go':
+      for (const t of TOOLS) {
+        if (want(t) && !on[t] && !s.speaks) plan.start.push(t);
+        if (!want(t) && on[t]) {
+          if (t === 'playback' && keepTake) plan.letFinish = true;
+          else plan.stop.push(t);
+        }
+      }
+      break;
+    case 'voiced':
+      plan.start = TOOLS.filter((t) => want(t) && !on[t]);
+      break;
+    case 'rest':
+      plan.stop = ['metronome', 'drone'];
+      if (on.playback) {
+        if (keepTake) plan.letFinish = true;
+        else plan.stop.push('playback');
+      }
+      break;
+    case 'end':
+      if (keepTake) plan.letFinish = true;
+      else plan.stop = [...TOOLS];
+      break;
+    case 'finishing':
+      if (!s.recording) plan.stop = ['metronome', 'drone'];
+      plan.letFinish = true;
+      break;
+    case 'take-in':
+      if (s.resting || !want('playback')) plan.stop = ['playback'];
+      else plan.letFinish = true;
+      break;
+    case 'stop':
+      plan.stop = [...TOOLS];
+      break;
+    default:
+      throw new Error(`toolPlan: no moment ${moment}`);
+  }
+  return plan;
+}
+
 /** Breaks between items: seconds, or 'pause' (the routine waits, paused, for play). */
 export const RESTS = [0, 15, 30, 45, 60, 90, 120, 180, 300, 600, 900, 'pause'];
 export const REST_DEFAULT = 30;

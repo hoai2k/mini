@@ -1,25 +1,33 @@
-// Music Practice: the home screen, the metronome, the practice recorder and the tuner.
+// Music Practice: the app around its screens. The theme and its art, moving
+// between screens, the app settings and dialogs, the sound unlocking on a
+// tap, the keys, the Practice Routine's hold on the tools, and starting up.
+// Each tool's own screen is its own module: metronomeui.js, recorderui.js
+// (the microphone, shared with the tuner), tunerui.js, droneui.js and
+// timerui.js (the Practice Routine).
 
-import { TEXT, setRich } from './text.js';
+import { TEXT } from './text.js';
 
-import { audio, existingAudio, freshAudio, replaceAudio, audioWasAway, markStale, unlock, setSession, heardNow, keepAwake, setExtraDelay, setContextSpeaker } from './audio.js';
-import { playSamples, primeFromTap, outputSettled, setSpeaker, setPlaybackVolume, element as playerElement } from './player.js';
-import { forPlayback, playbackLevel } from './loudness.js';
+import { audio, existingAudio, unlock, setSession, heardNow, keepAwake, setExtraDelay, setContextSpeaker } from './audio.js';
+import { primeFromTap, setSpeaker, setPlaybackVolume, element as playerElement } from './player.js';
+
 import { dlog, debugState, startDebugLog, debugBeat, debugText, debugJson } from './debuglog.js';
-import { encodeMp3 } from './mp3.js';
-import { openAudioCheck, renderMicTip } from './audiocheck.js';
-import { diag, isWebKit, isIOS, micPermission, onPermissionChange, noteMicRefused, openAppSettings } from './devices.js';
-import { Metronome, pendulumAngle, weightAt, bpmAtWeight } from './metronome.js';
-import { Recorder, freesMicForPlayback, freeReason } from './recorder.js';
+
+import { openAudioCheck } from './audiocheck.js';
+import { diag, micPermission } from './devices.js';
+
+import { freesMicForPlayback, freeReason } from './recorder.js';
 import { setupTuner } from './tunerui.js';
+import { setupMetronome } from './metronomeui.js';
+import { setupRecorder } from './recorderui.js';
+import { $, chips, note, saveFile } from './ui.js';
 import { Drone, preload as preloadDrone, wrap as wrapNote, spelling } from './drone.js';
 import { noteName } from './tuning.js';
 import { setupDrone } from './droneui.js';
-import { isApp, platform, shareFile, onBackButton, exitApp } from './native.js';
+import { isApp, platform, onBackButton, exitApp } from './native.js';
 import { setupFeedback } from './feedback.js';
 import { initPro, isPro, onProChange, requirePro, openPaywall } from './pro.js';
-import { FREE_TAKES, FREE_THEME } from './pro-config.js';
-import { nativeAudio, NativeMetronome, NativeDrone, onNativeStopped } from './nativeaudio.js';
+import { FREE_THEME } from './pro-config.js';
+import { nativeAudio, NativeDrone, onNativeStopped } from './nativeaudio.js';
 import { setupTimer } from './timerui.js';
 import { playChime, playClips, loadClip } from './timer.js';
 import { setupPager } from './pager.js';
@@ -33,14 +41,10 @@ const useNative = nativeAudio();
 // separate: the recorder listens, records, plays the take back, listens again.
 const RECORD_DURING_PLAYBACK = false;
 const recordDuringPlayback = () => RECORD_DURING_PLAYBACK && settings.recordDuringPlayback;
-import { Waveform, drawThumb } from './waveform.js';
-import * as store from './takes.js';
-import { GENRES, GENRE_IDS, mainTempo, nameFor, genreRange } from './tempos.js';
-import { load, save, clampBpm, METERS, SOUNDS, THEMES, APPEARANCES, VIZ_BARS, TICKS, barPlan, cleanPattern, resolveMode, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
-import { applyArt, alignPendulum, alignBow, swingOf, placeWeight, weightFromPoint } from './art.js';
-import { tuckedVolume } from './tuckedvolume.js';
 
-const $ = (id) => document.getElementById(id);
+import { load, save, THEMES, APPEARANCES, resolveMode, meterOf } from './settings.js';
+import { applyArt, alignPendulum, alignBow } from './art.js';
+
 // Opened from an iPhone's or iPad's home screen: the page keeps clear of the fade iOS draws at the top (styles.css --edge-fade).
 if (navigator.standalone) document.documentElement.classList.add('ios-app');
 const settings = load();
@@ -84,7 +88,7 @@ function applyTheme() {
   if (link && link.getAttribute('href') !== fonts) link.setAttribute('href', fonts);
   applyArt(theme.id, () => { alignPendulum($('metronome-case'), $('pendulum')); showWeight(); alignBow(document.querySelector('#dr-bow .art')); });
   // Waveform colours come from the theme.
-  if (wave) wave.dirty = true;
+  if (rec.wave) rec.wave.dirty = true;
   for (const c of document.querySelectorAll('.take canvas')) c.redraw?.();
 }
 
@@ -106,7 +110,7 @@ const wake = (e) => {
   const ctx = existingAudio();
   if (e.type !== 'pointerdown' && listeningActive() && ctx && ctx.state !== 'running') {
     setTimeout(() => {
-      if (listeningActive() && ctx === existingAudio() && ctx.state !== 'running') { needsTap = true; showState(); showTunerState(); }
+      if (listeningActive() && ctx === existingAudio() && ctx.state !== 'running') markNeedsTap();
     }, 700);
   }
 };
@@ -155,18 +159,18 @@ function enter(name) {
     // The metronome doesn't use the mic. A mic the recorder holds (switched
     // off, so permission isn't asked again) is kept; Safari's session is left
     // alone while it is held, since switching could cut it off.
-    if (!recorder?.holdsMic) setSession('playback');
+    if (!rec.recorder?.holdsMic) setSession('playback');
     $('met-toggle').focus({ preventScroll: true });
     queueFit();
   }
   if (name === 'drone') droneUI.fit();
   if (name === 'record') checkRecorderMic(); // it starts off: the record button begins the cycle
   if (name === 'tuner') { startTuner(); tuner.fit(); }
-  if (name === 'routine') { if (!recorder?.holdsMic) setSession('playback'); timerUI?.enter(); }
+  if (name === 'routine') { if (!rec.recorder?.holdsMic) setSession('playback'); timerUI?.enter(); }
   if (name === 'home') layoutHome();
   if (name === 'drone') {
     // Like the metronome, the drone doesn't use the mic.
-    if (!recorder?.holdsMic) setSession('playback');
+    if (!rec.recorder?.holdsMic) setSession('playback');
     droneUI.refresh();
   }
   document.title = TITLES[name] ? TEXT.app.pageTitle(TITLES[name]) : TEXT.app.name;
@@ -174,195 +178,11 @@ function enter(name) {
 
 window.addEventListener('hashchange', route);
 
-// ---------------------------------------------------------------- shared UI
-
-/** A row of single-choice chips bound to one setting. */
-function chips(container, options, get, set) {
-  container.setAttribute('role', 'radiogroup');
-  const buttons = options.map((o) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'chip';
-    b.setAttribute('role', 'radio');
-    b.textContent = o.label || o.id;
-    b.addEventListener('click', () => { set(o.id); sync(); });
-    container.append(b);
-    return [o.id, b];
-  });
-  const sync = () => {
-    for (const [id, b] of buttons) {
-      b.setAttribute('aria-checked', String(get() === id));
-      b.tabIndex = get() === id ? 0 : -1;
-    }
-  };
-  // Arrow keys move between chips, as in a radio group.
-  container.addEventListener('keydown', (e) => {
-    const i = buttons.findIndex(([, b]) => b === document.activeElement);
-    if (i < 0) return;
-    const d = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
-    if (!d) return;
-    e.preventDefault();
-    const [id, b] = buttons[(i + d + buttons.length) % buttons.length];
-    set(id);
-    sync();
-    b.focus();
-  });
-  sync();
-  return sync;
-}
+// ---------------------------------------------------------------- app settings and dialogs
 
 // Close a settings sheet by tapping outside it.
 for (const d of document.querySelectorAll('dialog.sheet')) {
   d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
-}
-
-// ---------------------------------------------------------------- metronome
-
-let metronome = null; // a Metronome, or a NativeMetronome in the apps
-let preview = null; // plays a click when a sound is chosen
-const pendulum = $('pendulum');
-const bpmInput = $('bpm-input');
-const bpmSlider = $('bpm-slider');
-
-/** The name under the number, in the tempo picker's style (Allegro, Medium swing, Waltz…). */
-function marking(bpm) {
-  const genre = settings.tempoGenre;
-  return tempoName(genre, nameFor(genre, bpm, settings.tempoPicked));
-}
-const tempoName = (genre, id) => (genre === 'classical' ? TEXT.metronome.markings[id] : TEXT.metronome.tempos.names[genre][id]);
-function showMarking() {
-  $('marking').textContent = marking(settings.bpm);
-  $('marking').setAttribute('aria-label', TEXT.metronome.tempos.open(marking(settings.bpm)));
-}
-
-let weightDrag = null; // the pendulum's weight while it is dragged (below)
-let weightMoved = false;
-function setBpm(v, { fromInput = false } = {}) {
-  settings.bpm = clampBpm(v);
-  if (!fromInput || document.activeElement !== bpmInput) bpmInput.value = settings.bpm;
-  bpmSlider.value = settings.bpm;
-  showMarking();
-  if (!weightDrag) showWeight();
-  metronome?.configure(settings);
-  persist();
-}
-
-/** No bars: shown as four even beats (dots and Visualizer rows), none strong. */
-const shownBeats = () => (meterOf(settings.meter).beats === 1 ? [0, 0, 0, 0] : barPlan(settings).strengths);
-
-function renderBeats() {
-  const list = $('beats');
-  const strengths = shownBeats();
-  list.replaceChildren(...strengths.map((s) => {
-    const li = document.createElement('li');
-    if (s === 2) li.className = 'strong';
-    if (s === 1) li.className = 'mid';
-    return li;
-  }));
-  // The Visualizer: a row per bar of music, a shape per beat, the strong beat red.
-  $('met-bars').replaceChildren(...Array.from({ length: settings.vizBars }, () => {
-    const row = document.createElement('div');
-    row.className = 'met-measure';
-    row.append(...strengths.map((s) => {
-      const bar = document.createElement('i');
-      bar.className = `met-bar${s === 2 ? ' strong' : s === 1 ? ' mid' : ''}`;
-      // The bar's shape is its child, so a theme can cut it (Art Deco's angled
-      // ends, Robot Future's chamfer) and the glow, drawn round the bar, still follows it.
-      bar.append(Object.assign(document.createElement('i'), { className: 'met-shape' }));
-      return bar;
-    }));
-    return row;
-  }));
-  $('met-bars').style.setProperty('--n', strengths.length);
-  list.style.setProperty('--n', strengths.length);
-  $('met-bars').style.setProperty('--rows', settings.vizBars);
-  const m = meterOf(settings.meter);
-  const accent = !settings.accent ? 'off' : settings.accentPattern ? 'custom' : 'on';
-  $('meter-note').textContent = m.beats === 1 ? TEXT.metronome.noBars : TEXT.metronome.meterNote(m.id, accent);
-  $('accent-label').textContent = accent === 'custom' ? TEXT.metronome.accents.custom : TEXT.metronome.settings.accent;
-  $('accent').checked = settings.accent;
-}
-
-function metronomeConfigured() {
-  renderBeats();
-  queueFit();
-  metronome?.configure(settings);
-  persist();
-}
-
-/**
- * The context to start sound on from a tap: a fresh one if the old one may be
- * stuck on another output, but never while the mic is in use on it (a new
- * one would cut the Playback Recorder off mid-take).
- */
-const soundCtx = () => (listeningActive() || playing ? audio() : freshAudio());
-
-function startMetronome() {
-  if (useNative) {
-    if (!metronome?.native) metronome = new NativeMetronome();
-    metronome.configure(settings);
-    metronome.start().catch(() => { note(TEXT.metronome.couldntStart); stopMetronome(); });
-  } else {
-    // A fresh context if the old one may be stuck on another output (this is a
-    // tap, so the new one may start), unless the mic is using it.
-    const ctx = soundCtx();
-    unlock();
-    if (!metronome || metronome.ctx !== ctx) {
-      metronome = new Metronome(ctx);
-      if (settings.speaker !== 'default') setContextSpeaker(settings.speaker);
-    }
-    metronome.configure(settings);
-    metronome.start();
-  }
-  dlog('metronome-start', { native: useNative, volume: settings.volume, sound: settings.sound, bpm: settings.bpm, ctx: metronome.ctx?.state ?? null, speaker: settings.speaker === 'default' ? 'default' : 'picked' });
-  setTimeout(debugBeat, 1500); // how loud it came out, once it has been playing a moment
-  pendulum.classList.remove('resting');
-  $('met-toggle').setAttribute('aria-pressed', 'true');
-  $('met-toggle-label').textContent = TEXT.metronome.stop;
-  keepAwake(true);
-}
-
-function stopMetronome() {
-  if (metronome?.running) { metronome.stop(); dlog('metronome-stop'); }
-  pendulum.classList.add('resting');
-  pendulum.style.transform = 'rotate(0deg)';
-  for (const li of $('beats').children) { li.classList.remove('on'); li.style.removeProperty('--g'); }
-  for (const b of $('met-bars').querySelectorAll('.met-bar')) b.style.setProperty('--lit', '0');
-  $('metronome-art').style.setProperty('--lit', '0');
-  $('met-toggle').setAttribute('aria-pressed', 'false');
-  $('met-toggle-label').textContent = TEXT.metronome.start;
-  keepAwake(false);
-}
-
-$('met-toggle').addEventListener('click', () => (metronome?.running ? stopMetronome() : startMetronome()));
-
-bpmSlider.min = BPM_MIN;
-bpmSlider.max = BPM_MAX;
-bpmSlider.addEventListener('input', () => setBpm(bpmSlider.value));
-bpmInput.addEventListener('input', () => {
-  const n = Number(bpmInput.value);
-  if (bpmInput.value !== '' && n >= BPM_MIN && n <= BPM_MAX) setBpm(n, { fromInput: true });
-});
-bpmInput.addEventListener('change', () => setBpm(bpmInput.value === '' ? settings.bpm : bpmInput.value));
-bpmInput.addEventListener('blur', () => setBpm(bpmInput.value === '' ? settings.bpm : bpmInput.value));
-bpmInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') { setBpm(bpmInput.value || settings.bpm); bpmInput.blur(); }
-  if (e.key === 'Escape') { bpmInput.value = settings.bpm; bpmInput.blur(); e.stopPropagation(); }
-});
-bpmInput.addEventListener('focus', () => bpmInput.select());
-
-// − and +: one beat per tap, faster while held.
-for (const [id, d] of [['bpm-down', -1], ['bpm-up', 1]]) {
-  const b = $(id);
-  let timer = null;
-  const stop = () => { clearTimeout(timer); timer = null; };
-  const repeat = (delay, n) => {
-    timer = setTimeout(() => { setBpm(settings.bpm + d * (n > 12 ? 5 : 1)); repeat(n > 4 ? 60 : 120, n + 1); }, delay);
-  };
-  b.addEventListener('pointerdown', (e) => { e.preventDefault(); setBpm(settings.bpm + d); repeat(450, 0); });
-  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) b.addEventListener(ev, stop);
-  b.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setBpm(settings.bpm + d); } });
-  b.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
 // Theme: preview tiles in the app settings on the home screen (the only place
@@ -505,1498 +325,26 @@ document.addEventListener('touchmove', (e) => {
   if (e.cancelable) e.preventDefault();
 }, { passive: false });
 
-const metSettings = $('met-settings');
-$('met-settings-btn').addEventListener('click', () => metSettings.showModal());
-const meterSelect = $('meter');
-meterSelect.replaceChildren(...METERS.map((m) => new Option(m.beats === 1 ? TEXT.metronome.noBars : m.id, m.id)));
-meterSelect.value = settings.meter;
-meterSelect.addEventListener('change', () => {
-  // Custom strong beats belong to their time signature: a new one starts
-  // from Strong beat on 1, unless this visit already set it its own.
-  const had = settings.accentPattern;
-  if (had) customAccents.set(settings.meter, had);
-  settings.meter = meterSelect.value;
-  settings.accentPattern = customAccents.get(settings.meter) || null;
-  if (had || settings.accentPattern) settings.accent = true;
-  metronomeConfigured();
-});
-const soundSelect = $('sound');
-soundSelect.replaceChildren(...SOUNDS.map((o) => new Option(o.label, o.id)));
-soundSelect.value = settings.sound;
-soundSelect.addEventListener('change', () => {
-  settings.sound = soundSelect.value;
-  metronomeConfigured();
-  // Let them hear it (through Web Audio, also in the apps).
-  if (!metronome?.running) {
-    const ctx = audio();
-    unlock();
-    if (!preview || preview.ctx !== ctx) preview = new Metronome(ctx);
-    preview.configure(settings);
-    preview.voice(ctx.currentTime + 0.02, 2);
-  }
-});
-// Extra notes between the beats: a switch saying which (Add eighth notes), and
-// a pencil to choose triplets or sixteenths instead.
-function showSub() {
-  $('sub-label').textContent = TEXT.metronome.settings.subAdd[settings.subKind];
-  $('sub-on').checked = settings.subOn;
-}
-function setSub(on, kind = settings.subKind) {
-  settings.subOn = on;
-  settings.subKind = kind;
-  settings.subdivision = on ? kind : 1;
-  showSub();
-  metronomeConfigured();
-}
-$('sub-on').addEventListener('change', () => setSub($('sub-on').checked));
-const syncSubChips = chips($('sub-chips'), [2, 3, 4].map((n) => ({ id: n, label: TEXT.metronome.settings.subdivisions[n] })), () => settings.subKind, (n) => {
-  setSub(true, n); // choosing one turns them on
-  $('sub-editor').close();
-});
-$('sub-edit').addEventListener('click', () => { syncSubChips(); $('sub-editor').showModal(); });
-showSub();
-$('accent').checked = settings.accent;
-$('accent').addEventListener('change', () => {
-  settings.accent = $('accent').checked;
-  // Off forgets a custom pattern for the time being; on brings back this visit's.
-  if (!settings.accent && settings.accentPattern) customAccents.set(settings.meter, settings.accentPattern);
-  settings.accentPattern = settings.accent ? customAccents.get(settings.meter) || null : null;
-  metronomeConfigured();
-});
+// ---------------------------------------------------------------- metronome
 
-// ---------------------------------------------------------------- strong beats
+// The Metronome screen (metronomeui.js).
+const met = setupMetronome({ settings, persist, useNative, mic: { listening: () => listeningActive(), playing: () => rec.playing } });
+const {
+  meterSelect, soundSelect, metVolume,
+  setBpm, renderBeats, shownBeats, metronomeConfigured, startMetronome, stopMetronome, soundCtx, setSub,
+  showWeight, queueFit, animateMetronome, visualsShown, setSync, openSync, closeSync,
+} = met;
 
-/*
- * Custom strong beats: the pencil beside Strong beat on 1 opens every place a
- * click falls in the bar (beats, and the eighths, triplets or sixteenths when
- * those are on). Positions are kept in twelfths of a beat (TICKS in
- * settings.js), so a pattern set with eighths still means the same with
- * sixteenths; one the current clicks don't fall on is kept, just not shown.
- * Each time signature keeps its own pattern for this visit; only the one in
- * use is saved.
- */
-const customAccents = new Map(); // meter -> pattern, this visit only
-if (settings.accentPattern) customAccents.set(settings.meter, settings.accentPattern);
-const accentEditor = $('accent-editor');
-let editing = null; // { on: Set of positions, hidden: positions not on this grid }
+// ---------------------------------------------------------------- the microphone, the recorder and the tuner
 
-function openAccents() {
-  const m = meterOf(settings.meter);
-  const sub = settings.subdivision;
-  const shown = new Set();
-  for (let b = 0; b < m.beats; b++) for (let k = 0; k < sub; k++) shown.add(b * TICKS + (k * TICKS) / sub);
-  const current = strongPositions();
-  editing = { on: new Set(current.filter((p) => shown.has(p))), hidden: current.filter((p) => !shown.has(p)) };
-  const counts = TEXT.metronome.accents.counts[sub] || [];
-  $('accent-grid').replaceChildren(...Array.from({ length: m.beats }, (_, b) => {
-    const group = document.createElement('div');
-    group.className = 'accent-beat';
-    for (let k = 0; k < sub; k++) {
-      const at = b * TICKS + (k * TICKS) / sub;
-      const label = k === 0 ? String(b + 1) : counts[k - 1];
-      const cell = document.createElement('button');
-      cell.type = 'button';
-      cell.className = `accent-cell${k === 0 ? ' on-beat' : ''}`;
-      cell.textContent = label;
-      const show = () => {
-        const on = editing.on.has(at);
-        cell.setAttribute('aria-pressed', String(on));
-        cell.setAttribute('aria-label', TEXT.metronome.accents.cell(label, on));
-      };
-      cell.addEventListener('click', () => { editing.on.has(at) ? editing.on.delete(at) : editing.on.add(at); show(); applyStrong(); });
-      cell.show = show;
-      show();
-      group.append(cell);
-    }
-    return group;
-  }));
-  accentEditor.showModal();
-}
-$('accent-edit').addEventListener('click', openAccents);
-$('accent-clear').addEventListener('click', () => {
-  editing.on.clear();
-  for (const c of $('accent-grid').querySelectorAll('.accent-cell')) c.show();
-  applyStrong();
-});
-/** Each change is heard at once, on a running metronome too; Done (or closing) keeps it. */
-const applyStrong = () => setStrong([...editing.on, ...editing.hidden]);
-/** The strong positions as they are now (Strong beat on 1's, or the custom pattern's). */
-function strongPositions() {
-  if (!settings.accent) return [];
-  return settings.accentPattern ? settings.accentPattern.pos
-    : beatStrengths(settings.meter, true).flatMap((s, b) => (s === 2 ? [b * TICKS] : []));
-}
-/** Make these positions the strong ones (none turns Strong beat on 1 off). */
-function setStrong(pos) {
-  if (!pos.length) {
-    // Nothing strong: the switch goes off.
-    settings.accent = false;
-    settings.accentPattern = null;
-    customAccents.delete(settings.meter);
-  } else {
-    settings.accent = true;
-    settings.accentPattern = cleanPattern({ meter: settings.meter, pos }, settings.meter); // null for beat 1 alone
-    if (settings.accentPattern) customAccents.set(settings.meter, settings.accentPattern);
-    else customAccents.delete(settings.meter);
-  }
-  metronomeConfigured();
-}
-$('accent-done').addEventListener('click', () => accentEditor.close());
-// Pressing and holding the beat dots, or the Visualizer, opens the strong
-// beats (a tap switches between the two). Not with no bars: there is no bar
-// to set beats in.
-const HOLD_MS = 500;
-let hold = null; // { timer, x, y }
-let held = false; // the press just opened the strong beats: not a tap too
-const foot = $('met-foot');
-foot.addEventListener('pointerdown', (e) => {
-  held = false;
-  if (e.button) return;
-  if (meterOf(settings.meter).beats === 1) return;
-  clearTimeout(hold?.timer);
-  hold = { x: e.clientX, y: e.clientY, timer: setTimeout(() => { hold = null; held = true; openAccents(); }, HOLD_MS) };
-});
-foot.addEventListener('pointermove', (e) => {
-  if (hold && Math.hypot(e.clientX - hold.x, e.clientY - hold.y) > 10) { clearTimeout(hold.timer); hold = null; }
-});
-for (const type of ['pointerup', 'pointercancel', 'pointerleave']) {
-  foot.addEventListener(type, () => { clearTimeout(hold?.timer); hold = null; });
-}
-$('met-visual').addEventListener('contextmenu', (e) => e.preventDefault());
-
-// ---------------------------------------------------------------- common tempos
-
-/*
- * The marking under the number opens common tempos by style (tempos.js): a
- * button per named tempo, and beside it a chevron with that name's other
- * common tempos. Choosing one there plays it and makes it the name's button
- * from then on. The style and those choices are remembered.
- */
-const tempoGenre = $('tempo-genre');
-tempoGenre.replaceChildren(...GENRE_IDS.map((g) => new Option(TEXT.metronome.tempos.genres[g], g)));
-// A new style names the tempo in its own terms at once (the number stays).
-tempoGenre.addEventListener('change', () => { settings.tempoGenre = tempoGenre.value; settings.tempoPicked = null; persist(); renderTempos(); showMarking(); showWeight(); });
-
-function renderTempos() {
-  const T = TEXT.metronome.tempos;
-  const genre = settings.tempoGenre;
-  tempoGenre.value = genre;
-  $('tempo-list').replaceChildren(...GENRES[genre].map((t) => {
-    const name = tempoName(genre, t.id);
-    const bpm = mainTempo(genre, t.id, settings.tempoDefaults);
-    const row = document.createElement('div');
-    row.className = 'tempo-row';
-    const label = document.createElement('span');
-    label.className = 'tempo-name';
-    label.textContent = name;
-    const pick = document.createElement('div');
-    pick.className = 'tempo-pick';
-    const main = document.createElement('button');
-    main.type = 'button';
-    main.className = 'chip tempo-main';
-    main.textContent = String(bpm);
-    main.setAttribute('aria-label', T.play(name, bpm));
-    main.setAttribute('aria-pressed', String(settings.bpm === bpm));
-    main.addEventListener('click', () => { settings.tempoPicked = t.id; setBpm(bpm); $('tempo-picker').close(); });
-    const more = document.createElement('select');
-    more.className = 'select tempo-more';
-    more.setAttribute('aria-label', T.more(name));
-    more.replaceChildren(...t.list.map((v) => new Option(T.bpm(v), String(v))));
-    more.value = String(bpm);
-    more.addEventListener('change', () => {
-      const v = Number(more.value);
-      settings.tempoDefaults = { ...settings.tempoDefaults, [`${genre}:${t.id}`]: v };
-      settings.tempoPicked = t.id;
-      setBpm(v);
-      $('tempo-picker').close();
-    });
-    pick.append(main, more);
-    row.append(label, pick);
-    return row;
-  }));
-}
-
-$('marking').addEventListener('click', () => {
-  renderTempos();
-  $('tempo-picker').showModal();
-  $('tempo-list').querySelector('[aria-pressed="true"]')?.focus();
-});
-// Something always shows the beat (the dots at least), so Audio check's
-// visual sync is always worth having.
-const visualsShown = () => true;
-// Pendulum swing: the setting, and a tap on the metronome. It eases in and
-// out (animateMetronome) rather than jumping.
-$('pend-on').checked = settings.swing;
-$('pend-on').addEventListener('change', () => setSwing($('pend-on').checked));
-function setSwing(on) {
-  settings.swing = on;
-  persist();
-  $('pend-on').checked = on;
-  showMetView();
-  if (!metronome?.running) pendulum.style.transform = 'rotate(0deg)';
-}
-const art = $('metronome-art');
-const toggleSwing = () => setSwing(!settings.swing);
-
-/*
- * The pendulum's weight slides along the rod with the tempo, as on a real
- * metronome (high is slow, low is fast; weightAt), and dragging it sets the
- * tempo (bpmAtWeight). While it is dragged the pendulum eases upright (the
- * clicks go on, at the new tempo); a tap on it without a drag is a tap on
- * the metronome, as before.
- */
-const weightEl = $('pend-weight');
-/** The chosen genre's slowest to fastest named tempo: the rod's range. */
-function weightRange() { return genreRange(settings.tempoGenre); }
-function showWeight(t = weightAt(settings.bpm, weightRange())) { placeWeight(pendulum, t); }
-weightEl.addEventListener('pointerdown', (e) => {
-  if (e.button) return;
-  const at = weightFromPoint(pendulum, e.clientY);
-  if (at == null) return;
-  weightDrag = { id: e.pointerId, x: e.clientX, y: e.clientY, offset: weightAt(settings.bpm, weightRange()) - at, moved: false };
-  weightEl.setPointerCapture(e.pointerId);
-});
-weightEl.addEventListener('pointermove', (e) => {
-  const d = weightDrag;
-  if (!d || e.pointerId !== d.id) return;
-  if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 4) return;
-  if (!d.moved) { d.moved = true; weightEl.classList.add('held'); }
-  const at = weightFromPoint(pendulum, e.clientY);
-  if (at == null) return;
-  const t = Math.min(1, Math.max(0, at + d.offset));
-  showWeight(t);
-  const bpm = Math.round(bpmAtWeight(t, weightRange()));
-  if (bpm !== settings.bpm) setBpm(bpm);
-});
-for (const type of ['pointerup', 'pointercancel']) {
-  weightEl.addEventListener(type, (e) => {
-    const d = weightDrag;
-    if (!d || e.pointerId !== d.id) return;
-    weightDrag = null;
-    weightEl.classList.remove('held');
-    weightMoved = d.moved;
-    if (d.moved) setTimeout(() => { weightMoved = false; }, 0); // only the click this release makes
-    showWeight();
-  });
-}
-
-/*
- * Everything you see follows heardNow(): the time of the sound reaching your
- * ears (the output delay the browser knows, plus the Sound and visuals sync
- * adjustment), looked one frame ahead because a frame drawn now appears on
- * screen about a frame later. So the pendulum reaches the end of its swing,
- * the pulse flashes and the beat dot lights as each click is heard.
- */
-let lastFrame = 0;
-let frameSec = 1 / 60;
-let swingAmt = 0; // how much of the swing shows: eased to 1 when swinging, 0 when not
-function animateMetronome() {
-  if (!metronome?.running) return;
-  const t = performance.now();
-  if (lastFrame && t - lastFrame < 100) frameSec = frameSec * 0.9 + ((t - lastFrame) / 1000) * 0.1;
-  lastFrame = t;
-  const now = metronome.native ? metronome.heardNow(frameSec) : heardNow(frameSec);
-  const beat = metronome.beatAt(now);
-  // The pendulum swings in either view (small above the Visualizer). Turned
-  // on or off it eases in or out over about half a second, never jumping.
-  const swingTo = settings.swing && !weightDrag ? 1 : 0; // held upright while its weight is dragged
-  swingAmt += (swingTo - swingAmt) * Math.min(1, frameSec / 0.16);
-  if (Math.abs(swingTo - swingAmt) < 0.002) swingAmt = swingTo;
-  const angle = swingAmt ? swingAmt * pendulumAngle(beat, now, metronome.period, swingOf(pendulum)) : 0;
-  pendulum.classList.remove('resting');
-  pendulum.style.transform = `rotate(${angle.toFixed(2)}deg)`;
-  const dots = $('beats').children;
-  // With no bars the dots count four even beats.
-  const idx = !beat ? -1 : meterOf(settings.meter).beats === 1 ? beat.count % dots.length : beat.beat;
-  const pulse = settings.footView === 'big';
-  if (pulse && beat) {
-    // Pulse: the dot swells into its beat, peaks on it and eases away (a
-    // bell, not a flash), while the next one starts to swell into its own.
-    const p = metronome.period;
-    // Brightest exactly on the beat: a short swell into it, a longer fade after.
-    const w = Math.min(0.07, p * 0.12); // the swell before the beat
-    const after = now - beat.time;
-    const out = Math.exp(-((after / (Math.min(0.24, p * 0.4))) ** 2));
-    const into = p - after > 0 ? Math.exp(-(((p - after) / w) ** 2)) : 0;
-    const next = (idx + 1) % dots.length;
-    for (let i = 0; i < dots.length; i++) {
-      const g = i === idx ? Math.max(out, i === next ? into : 0) : i === next ? into : 0;
-      dots[i].style.setProperty('--g', g.toFixed(3));
-      dots[i].classList.remove('on');
-    }
-  } else {
-    for (let i = 0; i < dots.length; i++) {
-      dots[i].classList.toggle('on', idx === i);
-      dots[i].style.removeProperty('--g');
-    }
-  }
-  // The Visualizer: read like music, left to right and down a row a bar. The
-  // beat's shape lights and fades; with the trail, the beats played so far in
-  // this pass stay faintly lit until it starts again at the top.
-  if (settings.footView === 'bars') {
-    const cells = $('met-bars').querySelectorAll('.met-bar');
-    const n = dots.length || 1;
-    const at = beat ? (Math.floor((beat.count - idx) / n) % settings.vizBars) * n + idx : -1;
-    const lit = beat ? Math.exp(-(now - beat.time) / Math.min(0.35, metronome.period * 0.55)) : 0;
-    const trail = VIZ_TRAIL; // the beats played in this pass stay faintly lit
-    for (let i = 0; i < cells.length; i++) {
-      const v = i === at ? Math.max(lit, trail) : i < at ? trail : 0;
-      cells[i].style.setProperty('--lit', v.toFixed(3));
-    }
-  }
-}
-
-const VIZ_TRAIL = 0.28; // how lit a beat already played in this pass stays
-
-/** What is under the metronome (small dots, big dots or the Visualizer), and the buttons' names. */
-function showMetView() {
-  const view = settings.footView;
-  // The metronome shrinks as the dots grow big or open into the Visualizer
-  // under it, and back (styles.css).
-  $('met-visual').classList.toggle('bars', view === 'bars');
-  $('met-visual').classList.toggle('pulse', view === 'big');
-  $('met-viz').inert = view !== 'bars';
-  art.setAttribute('aria-label', TEXT.metronome.swingButton(settings.swing));
-  foot.setAttribute('aria-label', `${TEXT.metronome.footNext[view]} ${TEXT.metronome.footHold}`);
-  for (const b of $('met-bars').querySelectorAll('.met-bar')) b.style.setProperty('--lit', '0');
-  fitPicture();
-}
-/** Changes made here (view, effect) animate; sizing to the window doesn't. */
-let morphEnd = 0;
-function morph() {
-  $('met-visual').classList.add('morph');
-  clearTimeout(morphEnd);
-  morphEnd = setTimeout(() => $('met-visual').classList.remove('morph'), 800);
-}
-/** Show `view` under the metronome: the dots grow or shrink in place; to or from the Visualizer is a cross-zoom. */
-function setFootView(view) {
-  const from = settings.footView;
-  if (from === view) return;
-  const zoom = (from === 'bars' || view === 'bars') && !matchMedia('(prefers-reduced-motion: reduce)').matches && $('beats').children.length;
-  // A cross-zoom measures what is drawn now (part way through another one,
-  // if a tap came before it ended), puts the dots at their new size at once,
-  // measures where everything rests, and animates from the one to the other.
-  const before = zoom ? zoomBoxes() : null;
-  // Turned back to the dots before big dots had gone into the Visualizer:
-  // they zoom back at the size they are drawn, then shrink in place.
-  const backFromBig = zoom && view === 'dots' && $('met-visual').classList.contains('pulse');
-  const keepBig = zoom && from === 'big';
-  morph();
-  if (zoom) {
-    for (const a of zooms) a.cancel();
-    // Big dots going into the Visualizer stay as they are drawn, even part
-    // way through growing (their transitions are held where they are); any
-    // other cross-zoom puts the dots at their new size at once.
-    if (keepBig) for (const a of $('beats').getAnimations({ subtree: true })) a.pause();
-    else $('met-visual').classList.add('settle');
-  }
-  settings.footView = view;
-  persist();
-  showMetView();
-  // Big dots going into the Visualizer keep their own size while they zoom
-  // away (the small row spaces its dots differently, so they could not be
-  // drawn where they were from it); they are made small, unseen, once gone.
-  if (keepBig || backFromBig) $('met-visual').classList.add('pulse');
-  if (zoom) {
-    const after = zoomBoxes(); // reading it lays the new view out now
-    $('met-visual').classList.remove('settle');
-    const [out] = crossZoom(view === 'bars', before, after);
-    if (backFromBig) {
-      void $('beats').offsetWidth;
-      $('met-visual').classList.remove('pulse'); // the dots' own transition shrinks them
-    }
-    if (keepBig) {
-      out.finished.then(() => {
-        if (settings.footView === 'big') return;
-        $('met-visual').classList.add('settle');
-        $('met-visual').classList.remove('pulse');
-        void $('beats').offsetWidth; // the new size, now, with no transition
-        $('met-visual').classList.remove('settle');
-      }).catch(() => {});
-    }
-  }
-}
-const FOOT_CYCLE = { dots: 'big', big: 'bars', bars: 'dots' };
-
-/*
- * Dots to Visualizer and back, as a cross-zoom: the outgoing one fades out
- * (over the first half) while it is drawn from the box it filled on screen
- * into the incoming one's box, and the incoming one fades in (overlapping, so
- * the place never goes blank) while it is drawn from the outgoing one's box
- * to its own. Every step is a transform and an opacity of a layout that no
- * longer changes (the dots were put at their new size at once), so nothing
- * jumps: the first frame is what was drawn and the last is what will be.
- *
- * What was drawn is measured on screen, through the zoom that may still be
- * running, from the box of the element that zoom moves (the dots' row, the
- * Visualizer) and never from what is inside it: a theme can turn, scale or
- * glow its dots however it likes (Art Deco's diamonds) without moving a
- * measurement. So a tap in the middle of a cross-zoom starts the next one
- * from exactly where things were, at the opacity they had, rather than from
- * where they would have rested.
- */
-const MORPH_MS = 600;
-const MORPH_EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
-/**
- * The dots' row and the Visualizer's rows as drawn, in page pixels, each
- * with the element that carries it, the content's place inside that element
- * (local, unscaled pixels) and the element's opacity now.
- */
-function zoomBoxes() {
-  const box = (el, content) => {
-    // The content's box inside the element, from layout.
-    const lx = Math.min(...content.map((c) => c.offsetLeft));
-    const ly = Math.min(...content.map((c) => c.offsetTop));
-    const lw = Math.max(...content.map((c) => c.offsetLeft + c.offsetWidth)) - lx;
-    const lh = Math.max(...content.map((c) => c.offsetTop + c.offsetHeight)) - ly;
-    // The element on screen is its layout box through its zoom, a scale and
-    // a shift; carried through the same map, the content is where it is drawn.
-    const r = el.getBoundingClientRect();
-    const kx = r.width / (el.offsetWidth || 1), ky = r.height / (el.offsetHeight || 1);
-    return { el, lx, ly, lw, lh, x: r.left + lx * kx, y: r.top + ly * ky, w: lw * kx, h: lh * ky, op: +getComputedStyle(el).opacity };
-  };
-  return { d: box($('beats'), [...$('beats').children]), v: box($('met-viz'), [$('met-bars')]) };
-}
-let zooms = [];
-function crossZoom(toBars, before, after) {
-  for (const a of zooms) a.cancel();
-  // Draw element `a` (resting as box `a`) where box `b` is: a scale about
-  // the content's bottom centre, then a shift taking that point onto b's.
-  const onto = (a, b) => {
-    const sx = b.w / a.w, sy = b.h / a.h;
-    const dx = (b.x + b.w / 2) - (a.x + a.w / 2);
-    const dy = (b.y + b.h) - (a.y + a.h);
-    return `translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px) scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`;
-  };
-  const origin = (a) => `${(a.lx + a.lw / 2).toFixed(2)}px ${(a.ly + a.lh).toFixed(2)}px`;
-  const out = toBars ? 'd' : 'v';
-  const inn = toBars ? 'v' : 'd';
-  // The incoming one comes out of the outgoing one's box, unless it can
-  // still be seen (this tap turned a cross-zoom back): then from its own.
-  const from = before[inn].op > 0.01 ? before[inn] : before[out];
-  const o = after[out], i = after[inn];
-  const opts = { duration: MORPH_MS, easing: MORPH_EASE };
-  zooms = [
-    o.el.animate([
-      { transformOrigin: origin(o), transform: onto(o, before[out]), opacity: before[out].op },
-      { transformOrigin: origin(o), opacity: 0, offset: 0.55 },
-      { transformOrigin: origin(o), transform: onto(o, i), opacity: 0 },
-    ], opts),
-    i.el.animate([
-      { transformOrigin: origin(i), transform: onto(i, from), opacity: before[inn].op },
-      { transformOrigin: origin(i), opacity: before[inn].op, offset: 0.12 },
-      { transformOrigin: origin(i), opacity: 1, offset: 0.75 },
-      { transformOrigin: origin(i), transform: 'none', opacity: 1 },
-    ], opts),
-  ];
-  return zooms;
-}
-// Tapping the dots shows the next of small dots, big dots and the
-// Visualizer; tapping the metronome turns the swing on or off.
-const switchView = () => setFootView(FOOT_CYCLE[settings.footView]);
-foot.addEventListener('click', () => {
-  if (held) { held = false; return; } // that was a press and hold
-  if (metVolume.swallowedTap(foot)) return; // that tap folded the volume away
-  switchView();
-});
-art.addEventListener('click', () => {
-  if (weightMoved) { weightMoved = false; return; } // that was the weight being dragged
-  if (metVolume.swallowedTap(art)) return;
-  toggleSwing();
-});
-for (const [el, act] of [[foot, switchView], [art, toggleSwing]]) {
-  el.addEventListener('keydown', (e) => {
-    if (e.key !== 'Enter' && e.key !== ' ') return;
-    e.preventDefault();
-    e.stopPropagation(); // not the page's Space (start and stop)
-    act();
-  });
-}
-
-// ---------------------------------------------------------------- volume
-
-// The metronome's volume, tucked away at the picture's top right (tuckedvolume.js).
-let volSent = 0;
-let volLater = 0;
-const metVolume = tuckedVolume($('met-vol'), {
-  get: () => settings.volume,
-  set: (v) => {
-    settings.volume = v;
-    settings.volumeChosen = true;
-    // To the sound at most every 60 ms (the apps' mixer is told over the bridge).
-    clearTimeout(volLater);
-    const send = () => { volSent = performance.now(); metronome?.configure(settings); persist(); };
-    if (performance.now() - volSent > 60) send();
-    else volLater = setTimeout(send, 60);
-  },
-});
-
-/*
- * On a phone (one column), the picture, pendulum or Visualizer, takes all
- * the height the controls leave, so the page fills the screen without
- * scrolling or a gap below: measured, since the controls' height varies by
- * theme, font and window. Side by side, the stylesheet sizes it.
- */
-function fitPicture() {
-  const scr = $('metronome');
-  if (scr.hidden) return;
-  const body = scr.querySelector('.met-body');
-  scr.classList.remove('tight');
-  if (getComputedStyle(body).flexDirection !== 'column') {
-    // Side by side: the picture as tall as the stylesheet asks, or the room
-    // below the bar if that is less; and if the controls still don't fit
-    // beside it, smaller controls (#metronome.tight).
-    scr.style.removeProperty('--pic-h');
-    const fit = () => {
-      const vis = $('met-visual');
-      const css = getComputedStyle(vis);
-      const extra = (parseFloat(css.getPropertyValue('--gap')) || 0) + (parseFloat(css.getPropertyValue('--dots')) || 0);
-      const pad = parseFloat(getComputedStyle(scr).paddingBottom) || 0;
-      const room = innerHeight - pad - body.getBoundingClientRect().top - extra - 1;
-      const P = $('metronome-art').offsetHeight;
-      if (P > room) scr.style.setProperty('--pic-h', `${Math.round(Math.max(100, room))}px`);
-    };
-    fit();
-    if (document.documentElement.scrollHeight > innerHeight + 1) { scr.classList.add('tight'); scr.style.removeProperty('--pic-h'); fit(); }
-    sizeFoot();
-    return;
-  }
-  // The picture (metronome and dots, or the small metronome and the
-  // Visualizer) is --P plus the dots' row and the gap, in either view; so
-  // measure what is above and below it rather than the picture itself, which
-  // may be in the middle of changing view.
-  const fit = () => {
-    const stage = scr.querySelector('.met-stage').getBoundingClientRect();
-    const last = Math.max(...[...scr.querySelectorAll('.met-controls > *, .sync-bar > *')]
-      .filter((e) => e.offsetParent).map((e) => e.getBoundingClientRect().bottom));
-    const below = last - stage.bottom;
-    const vis = getComputedStyle($('met-visual'));
-    const extra = (parseFloat(vis.getPropertyValue('--gap')) || 0) + (parseFloat(vis.getPropertyValue('--dots')) || 0);
-    const pad = parseFloat(getComputedStyle(scr).paddingBottom) || 0;
-    const room = innerHeight - pad - stage.top - below - extra - 1;
-    scr.style.setProperty('--pic-h', `${Math.round(Math.max(120, Math.min(560, room)))}px`);
-  };
-  fit();
-  // The picture at its smallest and still no room: smaller controls.
-  if (document.documentElement.scrollHeight > innerHeight + 1) { scr.classList.add('tight'); fit(); }
-  sizeFoot();
-}
-
-/*
- * What goes under the metronome, in pixels: the Visualizer as tall as its
- * rows need (and no taller), and how far the metronome scales down toward
- * its top to make room for it, or for Pulse's big dots, so the picture's
- * height never changes (styles.css: --V, --row, --rg, --s-bars, --s-pulse).
- */
-function sizeFoot() {
-  const vis = $('met-visual');
-  const P = $('metronome-art').offsetHeight; // its own height: the scale is a transform
-  if (!P) return;
-  const css = getComputedStyle(vis);
-  const dots = parseFloat(css.getPropertyValue('--dots')) || 26;
-  const rows = settings.vizBars;
-  const rg = Math.max(8, Math.min(16, P * 0.03));
-  let row = Math.max(12, Math.min(30, P * 0.075));
-  const most = (P + dots) * 0.64; // the metronome keeps at least about a third of its height
-  if (rows * row + (rows - 1) * rg > most) row = Math.max(8, (most - (rows - 1) * rg) / rows);
-  const V = rows * row + (rows - 1) * rg;
-  const big = P * 0.34;
-  vis.style.setProperty('--row', `${row.toFixed(1)}px`);
-  vis.style.setProperty('--rg', `${rg.toFixed(1)}px`);
-  vis.style.setProperty('--V', `${V.toFixed(1)}px`);
-  vis.style.setProperty('--s-bars', ((P + dots - V) / P).toFixed(4));
-  vis.style.setProperty('--s-pulse', ((P + dots - big) / P).toFixed(4));
-  // The small dots' row, scaled down to the foot's width where there are
-  // many (12/8) and the foot is narrow (beside the controls on a phone on its side).
-  const dotsEl = [...$('beats').children];
-  const first = dotsEl[0], last = dotsEl[dotsEl.length - 1];
-  const dotsW = last ? last.offsetLeft + last.offsetWidth - first.offsetLeft : 0; // offsets ignore the scale
-  const fitDots = dotsW ? Math.min(1, $('met-foot').clientWidth / dotsW) : 1;
-  vis.style.setProperty('--dots-fit', fitDots.toFixed(3));
-}
-let fitQueued = 0;
-const queueFit = () => { cancelAnimationFrame(fitQueued); fitQueued = requestAnimationFrame(fitPicture); };
-addEventListener('resize', queueFit);
-visualViewport?.addEventListener('resize', queueFit);
-document.fonts?.ready.then(queueFit);
-document.fonts?.addEventListener?.('loadingdone', queueFit); // a theme's fonts can arrive later
-const vizBars = $('viz-bars');
-vizBars.replaceChildren(...VIZ_BARS.map((n) => new Option(String(n), String(n))));
-vizBars.value = String(settings.vizBars);
-vizBars.addEventListener('change', () => { settings.vizBars = Number(vizBars.value); renderBeats(); sizeFoot(); persist(); });
-
-
-// ---------------------------------------------------------------- visual sync
-
-/*
- * Bluetooth plays late (often 150-300 ms), and not every browser says by how
- * much. The sync bar adjusts the delay while watching and listening, or
- * measures it from taps along with the clicks.
- */
-const syncBar = $('sync-bar');
-let taps = [];
-function showSync() {
-  $('sync-val').textContent = TEXT.metronome.sync.value(settings.syncMs);
-}
-function setSync(ms) {
-  settings.syncMs = Math.max(-200, Math.min(500, Math.round(ms / 10) * 10));
-  setExtraDelay(settings.syncMs / 1000);
-  persist();
-  showSync();
-}
-function openSync() {
-  metSettings.close();
-  taps = [];
-  $('sync-status').textContent = '';
-  syncBar.hidden = false;
-  document.querySelector('.met-controls').hidden = true;
-  queueFit();
-  showSync();
-  if (!metronome?.running) startMetronome();
-}
-function closeSync() {
-  syncBar.hidden = true;
-  document.querySelector('.met-controls').hidden = false;
-  queueFit();
-}
-showSync();
-showMetView();
-$('sync-done').addEventListener('click', closeSync);
-$('sync-down').addEventListener('click', () => setSync(settings.syncMs - 10));
-$('sync-up').addEventListener('click', () => setSync(settings.syncMs + 10));
-const TAPS_NEEDED = 8;
-$('sync-tap').addEventListener('pointerdown', (e) => {
-  e.preventDefault();
-  if (!metronome?.running) { startMetronome(); return; }
-  const native = !!metronome.native;
-  const c = metronome.ctx;
-  // When the finger came down, in the scheduling clock (the system clock for the apps' native metronome).
-  const pressed = Math.max(0, performance.now() - e.timeStamp) / 1000;
-  const at = native ? Date.now() / 1000 - pressed : c.currentTime - pressed;
-  // How long after a click was scheduled the tap came: that's the delay to
-  // the ears (taps come a little late from the screen and a little early from
-  // anticipation, which roughly cancel). Up to a beat, less a little.
-  const p = metronome.period;
-  // The native metronome's beat times are when they're heard, so only the delay it can't know is left.
-  const recent = native ? metronome.beatsUntil(at + 0.1) : metronome.recent.filter((b) => b.time <= at + 0.1);
-  const b = recent[recent.length - 1];
-  if (!b) return;
-  let off = at - b.time;
-  if (off > p - 0.1) off -= p;
-  taps.push(off);
-  if (taps.length <= 2) { $('sync-status').textContent = TEXT.metronome.sync.keepTapping(taps.length, TAPS_NEEDED); return; }
-  const use = taps.slice(2).sort((x, y) => x - y);
-  if (taps.length < TAPS_NEEDED) { $('sync-status').textContent = TEXT.metronome.sync.keepTapping(taps.length, TAPS_NEEDED); return; }
-  const median = use[use.length >> 1];
-  const spread = use[use.length - 1] - use[0];
-  // Already allowed for: the output delay the browser reports.
-  const known = native ? 0 : c.currentTime - heardNow() - settings.syncMs / 1000;
-  if (spread > 0.15) {
-    $('sync-status').textContent = TEXT.metronome.sync.uneven;
-  } else {
-    setSync((median - known) * 1000);
-    $('sync-status').textContent = TEXT.metronome.sync.set(settings.syncMs, Math.round(median * 1000));
-  }
-  taps = [];
-});
-
-// ---------------------------------------------------------------- recorder
-
-let recorder = null;
-let wave = null;
-let takes = []; // newest first
-let playing = null; // { take, auto, handle: { ended, progress(), stop() } once sound starts }
-let recError = '';
-
-const ST = TEXT.recorder.state;
-const STATUS = {
-  off: [ST.off, () => recError || ST.offHint],
-  waiting: [ST.waiting, () => ST.waitingHint],
-  recording: [ST.recording('0:00'), () => ST.recordingHint(fmtSec(settings.silenceSec))],
-  playing: [ST.playing, () => ST.playingHint],
-  paused: [ST.paused, () => ST.pausedHint],
-  tuning: [ST.off, () => ''], // the tuner has the mic (never shown: the screens are separate)
-};
-
-const fmtSec = (s) => (Number.isInteger(s) ? String(s) : s.toFixed(1));
-const fmtDur = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
-
-function fmtWhen(ms) {
-  const d = new Date(ms);
-  const time = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-  const today = new Date();
-  if (d.toDateString() === today.toDateString()) return time;
-  return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })}, ${time}`;
-}
-
-function showState() {
-  const state = recorder?.state || 'off';
-  const btn = $('rec-toggle');
-  btn.dataset.state = state;
-  btn.setAttribute('aria-pressed', String(state !== 'off'));
-  $('rec-toggle-label').textContent = state === 'off' ? TEXT.recorder.turnOn : TEXT.recorder.turnOff;
-  const [title, hint] = STATUS[state];
-  $('rec-state').textContent = state === 'recording' ? ST.recording(fmtDur(recorder.recordingSec)) : title;
-  let h = hint();
-  if (state === 'waiting' && needsTap) h = ST.tapToRestart;
-  else if (state === 'waiting' && audio().state !== 'running') h = ST.tapToHear;
-  $('rec-hint').textContent = h;
-  $('rec-hint').classList.toggle('error', state === 'off' && !!recError);
-  // Recording during playback: the take plays while the mic keeps listening.
-  if (playing?.auto && state === 'waiting') {
-    $('rec-state').textContent = ST.playing;
-    $('rec-hint').textContent = ST.playingDuringHint;
-  }
-  $('rec-skip').hidden = !(playing && playing.auto);
-}
-
-function configureRecorder() {
-  if (recorder) {
-    recorder.configure(settings);
-    recorder.echoCancel = recordDuringPlayback();
-  }
-  setRich($('silence-label'), TEXT.recorder.settings.silence(fmtSec(settings.silenceSec)));
-  $('takes-empty').textContent = TEXT.recorder.takesEmpty(fmtSec(settings.silenceSec));
-  persist();
-  showState();
-}
-
-/**
- * The one Recorder, shared by the recorder and the tuner, so the mic one
- * grants is the mic the other uses and permission is never asked twice.
- */
-function ensureRecorder() {
-  const ctx = audio();
-  if (!wave) wave = new Waveform($('wave'));
-  // A new recorder when the context was replaced (the old one is off by then).
-  if (!recorder || recorder.ctx !== ctx) {
-    const old = recorder;
-    recorder = new Recorder(ctx);
-    // Hand over a mic the old recorder still holds, so there is no new prompt.
-    if (old?.stream) { recorder.keepStream(old.stream); old.stream = null; }
-    recorder.addEventListener('state', () => {
-      if (recorder.state === 'recording') recordingSince = performance.now();
-      interruptPlayback();
-      showState();
-      showTunerState();
-      keepAwake(recorder.state !== 'off' || !!timerUI?.running);
-    });
-    recorder.addEventListener('chunk', (e) => {
-      recoverTries = 0;
-      if (needsTap && existingAudio()?.state === 'running') { needsTap = false; showState(); showTunerState(); }
-      if (e.detail.state === 'tuning') tuner.receive(e.detail.data, recorder.ctx.sampleRate);
-      else wave.push(e.detail.data, recorder.ctx.sampleRate, e.detail.state);
-    });
-    recorder.addEventListener('take', (e) => onTake(e.detail));
-    recorder.addEventListener('miclost', () => { if (document.visibilityState === 'visible') recoverMic(); });
-  }
-  recorder.micChoice = settings.mic;
-  return recorder;
-}
-
-async function startRecorder() {
-  setSession('auto');
-  unlock();
-  ensureRecorder();
-  recorder.configure(settings);
-  recorder.echoCancel = recordDuringPlayback();
-  recorder.micChoice = settings.mic;
-  recError = '';
-  try {
-    await recorder.on();
-  } catch (err) {
-    recError = micError(err);
-  }
-  if (recorder.micOpen) markStale('mic-open-recorder');
-  showMicTip();
-  showState();
-}
-
-/**
- * Opening the Playback Recorder leaves it off until the record button is
- * pressed, but asks for the microphone straight away where it hasn't been
- * allowed yet (and lets it go again), so the permission question, or the
- * news that it is blocked, comes now rather than when you start to play.
- */
-let micChecked = false;
-async function checkRecorderMic() {
-  showState();
-  if (micChecked || recorder?.micOpen || micPermission() === 'granted') return;
-  micChecked = true;
-  if (!navigator.mediaDevices?.getUserMedia) return;
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    for (const t of stream.getTracks()) t.stop();
-    recError = '';
-  } catch (err) {
-    recError = micError(err);
-  }
-  showMicOff();
-  showState();
-}
-
-/**
- * iPhone only: once the recorder has the mic, if it isn't set to Allow (so the
- * app has to keep it open and takes stay off Bluetooth), say so and how to
- * fix it. Its title folds it to one line (remembered); it only goes away for
- * good once the mic is allowed.
- */
-function showMicTip() {
-  const tip = $('mic-tip');
-  const show = isIOS() && !!recorder?.holdsMic && !freesMicForPlayback() && micPermission() !== 'denied';
-  if (show && !tip.firstChild) {
-    renderMicTip(tip, {
-      collapsed: settings.micTipCollapsed,
-      onToggle: (c) => { settings.micTipCollapsed = c; persist(); },
-    });
-  }
-  tip.hidden = !show;
-}
-
-/**
- * In the apps, while the phone has the mic off: a note on the Tuner and the
- * Playback Recorder (the screens that use the mic, and nowhere else) with a
- * button to the app's page in Settings. It goes once the mic is on again
- * (checked on coming back to the app).
- */
-function micOffNote(el) {
-  const M = TEXT.micOff;
-  el.replaceChildren(
-    Object.assign(document.createElement('b'), { textContent: M.title }),
-    Object.assign(document.createElement('p'), { textContent: M.body }),
-    Object.assign(document.createElement('button'), { type: 'button', className: 'pill', textContent: M.open, onclick: openAppSettings }),
-  );
-}
-function showMicOff() {
-  const off = isApp() && micPermission() === 'denied';
-  for (const id of ['rec-mic-off', 'tn-mic-off']) {
-    const el = $(id);
-    if (off && !el.firstChild) micOffNote(el);
-    el.hidden = !off;
-  }
-}
-onPermissionChange(showMicOff);
-showMicOff();
-
-/** Why the mic couldn't open, for the recorder or (`tuner`) the tuner, whose button is Try again. */
-function micError(err, tuner = false) {
-  const t = TEXT.micErrors;
-  if (err?.name === 'NotAllowedError') noteMicRefused();
-  // In the apps the Microphone is off note (with its Settings button) says it.
-  if (err?.name === 'NotAllowedError') return isApp() ? '' : (tuner ? t.tunerRefused : t.refused);
-  if (err?.message === 'unsupported') return t.unsupported;
-  return tuner ? t.tunerFailed : t.failed;
-}
-
-/** Listen again after playback or a pause, reopening the mic if it was closed. */
-async function resumeListening() {
-  if (!recorder || recorder.state === 'off') return;
-  setSession('auto');
-  unlock(); // the audio engine may have been suspended for playback
-  recError = '';
-  try {
-    await recorder.restore();
-  } catch (err) {
-    recError = micError(err);
-  }
-  showState();
-}
-
-/**
- * Reconnect the mic if it stopped delivering while listening or recording.
- * The held mic is reused; it is asked for again only if it is dead.
- */
-let reopening = false;
-let recoverTries = 0; // reset whenever the mic delivers
-function recoverMic(force = false) {
-  if (!recorder || reopening || !recorder.micOpen) return;
-  if (!['waiting', 'recording', 'tuning'].includes(recorder.state)) return;
-  if (!force && recorder.micAlive()) return;
-  // First reconnect the mic we hold; if that stays silent, it is dead even
-  // if the browser says it's fine: ask for it again. If even that gets
-  // nothing, the engine is at fault, and the next tap replaces it.
-  recoverTries++;
-  if (recoverTries > 2) {
-    if (!needsTap) { needsTap = true; showState(); showTunerState(); }
-    return;
-  }
-  reopening = true;
-  recorder.reopen({ fresh: recoverTries > 1 })
-    .catch((err) => { recError = micError(err); tunerError = micError(err, true); recorder.off(); })
-    .finally(() => { reopening = false; showState(); showTunerState(); });
-}
-
-/** Is the mic in use (listening, recording or tuning)? */
-function listeningActive() {
-  return !!recorder && ['waiting', 'recording', 'tuning'].includes(recorder.state);
-}
-
-/** Does listening need a new audio engine (only a tap can start one)? */
-let needsTap = false;
-function engineStuck() {
-  const c = existingAudio();
-  if (!c) return false;
-  return needsTap || (c.state !== 'running' && (c.state === 'interrupted' || audioWasAway()));
-}
-
-/** Is listening on but getting nothing (a stuck engine or a silent mic)? */
-function listeningStuck() {
-  if (!listeningActive()) return false;
-  if (engineStuck() || existingAudio()?.state !== 'running') return true;
-  return recorder.micOpen && recorder.silentFor > 1.5;
-}
-
-/**
- * Start listening (or tuning) again from scratch: a new audio engine, and the
- * mic reconnected (asked for again only if it turns out to be dead). Call it
- * from a tap, which a new engine needs on phones.
- */
-let restartedAt = -1e9;
-function restartListening() {
-  restartedAt = performance.now();
-  needsTap = false;
-  recoverTries = 0;
-  const tuning = recorder?.state === 'tuning';
-  stopPlayback({ resume: false });
-  recorder?.off();
-  replaceAudio();
-  primeFromTap();
-  if (tuning) startTuner();
-  else startRecorder();
-}
-
-// Coming back to the app: phones suspend sound, pause media and cut the mic
-// while it is away. Pick everything up again where it was; if the engine
-// won't start again by itself, the next tap starts a new one.
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState !== 'visible') return;
-  markStale('back-from-background'); // the output may have changed while away; the next Start gets a fresh context
-  const c = existingAudio();
-  if (c && c.state !== 'running' && c.state !== 'closed') c.resume().catch(() => { /* the next tap resumes it */ });
-  if (playing?.handle?.isPaused?.()) playing.handle.resume().catch(() => stopPlayback());
-  recoverMic();
-  showState();
-  showTunerState();
-});
-
-// Starting a new take while a take plays back (record during playback) stops the playback.
-function interruptPlayback() {
-  if (playing?.auto && recorder?.state === 'recording') stopPlayback({ resume: false });
-}
-
-function stopRecorder() {
-  stopPlayback({ resume: false });
-  recorder?.off();
-  hideToast(true);
-  showState();
-}
-
-$('rec-toggle').addEventListener('click', () => {
-  if (performance.now() - restartedAt < 1000) return; // this tap already started listening again
-  if (!recorder || recorder.state === 'off') {
-    // After a trip to another app, start on a new engine (this is a tap).
-    if (audioWasAway() || existingAudio()?.state !== 'running') replaceAudio();
-    startRecorder();
-  } else if (listeningStuck()) {
-    restartListening(); // it says it's listening but hears nothing: start again rather than stop
-  } else {
-    stopRecorder();
-  }
-});
-$('rec-skip').addEventListener('click', () => stopPlayback());
-
-async function onTake({ samples, sampleRate, playBack }) {
-  const take = { id: 0, created: Date.now(), sampleRate, samples };
-  takes.unshift(take);
-  renderTakes();
-  take.id = await store.add(samples, sampleRate, take.created);
-  if (playBack && settings.autoPlay && recorder.state !== 'off' && recorder.state !== 'paused') {
-    play(take, { auto: true });
-  }
-}
-
-/**
- * Play a take. Playing from the list pauses listening. Unless "Record during
- * playback" is on, the mic is closed first and the take waits for the phone
- * to move sound back to its normal output (a Bluetooth speaker, say), since
- * an open mic puts phones in call mode, quieter and on the phone's own
- * speaker; listening resumes when the take ends. With "Record during
- * playback" on, the mic stays open and playing again starts the next take.
- */
-let playToken = 0;
-async function play(take, { auto = false } = {}) {
-  stopPlayback({ resume: false });
-  const token = ++playToken;
-  const hadMic = !!recorder?.holdsMic;
-  if (recorder && recorder.state !== 'off') {
-    if (!auto) recorder.pause();
-    else if (!recordDuringPlayback()) recorder.hold();
-    if (!recordDuringPlayback() && recorder.micOpen) recorder.release();
-  }
-  const freed = hadMic && !recorder?.holdsMic; // the mic was just closed
-  // Playback mode only when no mic is held: switching while Safari holds one
-  // could cut it off and interrupt the record-play-record loop.
-  if (!recorder?.holdsMic) setSession('playback');
-  playing = { take, auto, handle: null };
-  wave?.showTake(take.samples);
-  $('wave').classList.add('scrub');
-  $('wave').setAttribute('aria-label', TEXT.recorder.waveformTake);
-  renderTakes();
-  showState();
-  // With the mic freed, also suspend the audio engine: it ran the mic, and a
-  // running one can keep iOS in call mode (WebKit bugs 198545, 218012); the
-  // take plays through an audio element, not Web Audio. Then give the phone
-  // a moment to move sound back to its normal output (a Bluetooth speaker).
-  const engine = existingAudio();
-  if (freed && engine?.state === 'running') {
-    try { await engine.suspend(); } catch { /* keep going */ }
-  }
-  const waitStart = performance.now();
-  // iOS stays in call mode for several hundred ms after the mic closes.
-  if (freed) await outputSettled(isWebKit() ? 1000 : 700);
-  if (token !== playToken) return; // stopped or replaced while waiting
-  // What happened, for Audio check (to tell why a take didn't reach Bluetooth).
-  const record = {
-    at: Date.now(),
-    micFreed: freed,
-    micHeld: !!recorder?.holdsMic,
-    waitedMs: Math.round(performance.now() - waitStart),
-    session: navigator.audioSession?.type ?? null,
-    sessionState: navigator.audioSession?.state ?? null,
-    engine: existingAudio()?.state ?? 'none',
-    via: 'audio element',
-  };
-  diag.lastPlayback = record;
-  let handle;
-  try {
-    handle = await playSamples(forPlayback(take.samples, take.sampleRate), take.sampleRate); // brought up to a streaming loudness (loudness.js)
-  } catch {
-    handle = playWithWebAudio(take); // the browser refused the media element
-    record.via = 'Web Audio (the audio element was refused)';
-  }
-  dlog('take-play', { ...record, auto, recordDuringPlayback: recordDuringPlayback(), playVolume: settings.playVolume, level: playbackLevel(take.samples), mic: freeReason() });
-  if (token !== playToken) { handle.stop(); return; }
-  playing.handle = handle;
-  handle.ended.then(() => { if (token === playToken) stopPlayback(); });
-}
-
-/** The old way: Web Audio. Used only if the media element is refused. */
-function playWithWebAudio(take) {
-  const ctx = audio(); // not freshAudio(): the recorder may still be using it
-  unlock();
-  const buf = ctx.createBuffer(1, take.samples.length, take.sampleRate);
-  buf.copyToChannel(forPlayback(take.samples, take.sampleRate), 0);
-  const gain = ctx.createGain();
-  gain.gain.value = settings.playVolume;
-  gain.connect(ctx.destination);
-  let finish;
-  const ended = new Promise((resolve) => { finish = resolve; });
-  let source = null;
-  let startedAt = 0; // context time at which the take's start would have played
-  let heldAt = null; // the position held while scrubbing, or null
-  const at = () => (heldAt !== null ? heldAt : Math.min(1, Math.max(0, (ctx.currentTime - startedAt) / buf.duration)));
-  const start = (f) => {
-    if (source) { source.onended = null; try { source.stop(); } catch { /* ended */ } }
-    source = ctx.createBufferSource();
-    source.buffer = buf;
-    source.connect(gain);
-    source.onended = () => finish();
-    const when = ctx.currentTime + 0.03;
-    source.start(when, f * buf.duration);
-    startedAt = when - f * buf.duration;
-  };
-  start(0);
-  webAudioGain = gain;
-  return {
-    ended,
-    progress: at,
-    stop: () => { if (source) { source.onended = null; try { source.stop(); } catch { /* ended */ } } webAudioGain = null; finish(); },
-    hold: () => { heldAt = at(); if (source) { source.onended = null; try { source.stop(); } catch { /* ended */ } source = null; } },
-    seek: (f) => { const c = Math.max(0, Math.min(1, f)); if (heldAt !== null) heldAt = c; else start(c); },
-    go: async () => { const f = heldAt ?? at(); heldAt = null; start(f); },
-  };
-}
-let webAudioGain = null;
-
-function stopPlayback({ resume = true } = {}) {
-  if (!playing) return;
-  const { handle } = playing;
-  playing = null;
-  playToken++;
-  handle?.stop();
-  scrub = null;
-  wave?.showLive();
-  $('wave').classList.remove('scrub');
-  $('wave').setAttribute('aria-label', TEXT.recorder.waveform);
-  if (resume && recorder && (recorder.state === 'playing' || recorder.state === 'paused') && toastTimer === null) resumeListening();
-  renderTakes();
-  showState();
-}
-
-// Playback volume: the faint speaker beside the record button (tuckedvolume.js).
-setPlaybackVolume(settings.playVolume);
-const recVolume = tuckedVolume($('rec-vol'), {
-  get: () => settings.playVolume,
-  set: (v) => {
-    settings.playVolume = v;
-    setPlaybackVolume(v);
-    if (webAudioGain) webAudioGain.gain.setTargetAtTime(v, webAudioGain.context.currentTime, 0.02);
-    persist();
-  },
-});
-
-/*
- * Scrubbing: while a take plays, press the waveform to move the playhead
- * there (it holds still while dragged) and let go to play on from that
- * point, to hear a passage again and again.
- */
-let scrub = null; // { id, f } while the playhead is held
-const waveEl = $('wave');
-const waveAt = (e) => {
-  const r = waveEl.getBoundingClientRect();
-  return Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
-};
-waveEl.addEventListener('pointerdown', (e) => {
-  const handle = playing?.handle;
-  if (e.button || !handle?.hold || recVolume.swallowedTap(waveEl)) return;
-  e.preventDefault();
-  waveEl.setPointerCapture(e.pointerId);
-  handle.hold();
-  scrub = { id: e.pointerId, f: waveAt(e) };
-  handle.seek(scrub.f);
-});
-waveEl.addEventListener('pointermove', (e) => {
-  if (!scrub || e.pointerId !== scrub.id) return;
-  scrub.f = waveAt(e);
-  playing?.handle?.seek(scrub.f);
-});
-function endScrub(e) {
-  if (!scrub || e.pointerId !== scrub.id) return;
-  const handle = playing?.handle;
-  scrub = null;
-  handle?.go().catch(() => stopPlayback());
-}
-waveEl.addEventListener('pointerup', endScrub);
-waveEl.addEventListener('pointercancel', endScrub);
-
-/**
- * Rename a take: its title turns into a text field. Enter or leaving the
- * field keeps the name, Escape cancels, and an empty name goes back to the
- * default. Listening pauses while typing, like any use of the list.
- */
-function renameTake(take, li) {
-  const title = li.querySelector('.title');
-  if (!title) return;
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.className = 'title-input';
-  input.maxLength = 60;
-  input.value = take.name || '';
-  input.placeholder = li.dataset.label;
-  input.setAttribute('aria-label', TEXT.recorder.takeNameField);
-  input.enterKeyHint = 'done';
-  const pausedHere = recorder && (recorder.state === 'waiting' || recorder.state === 'recording');
-  if (pausedHere) recorder.pause();
-  title.replaceWith(input);
-  input.focus();
-  input.select();
-  let done = false;
-  const finish = async (keep) => {
-    if (done) return;
-    done = true;
-    const name = input.value.trim().slice(0, 60);
-    input.replaceWith(title);
-    if (keep && name !== (take.name || '')) {
-      take.name = name;
-      renderTakes();
-      await store.rename(take.id, name);
-    }
-    if (pausedHere && !playing && toastTimer === null && recorder?.state === 'paused') resumeListening();
-  };
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); finish(true); }
-    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(false); }
-  });
-  input.addEventListener('blur', () => finish(true));
-}
-
-/**
- * Save a take as an MP3. On phones it opens the share sheet (Save to Files,
- * AirDrop, Messages, Voice Memos…), the way iPhone saves files from the web;
- * elsewhere, or if sharing isn't offered, it downloads. The MP3 is made once
- * and kept with the take. iPhone only opens the share sheet straight from a
- * tap; if making a long take's MP3 used that up, the button says it's ready
- * and the next tap shares it at once.
- */
-async function saveTake(take, label, button) {
-  if (button.classList.contains('busy')) return;
-  button.classList.remove('ready');
-  const base = (label || TEXT.recorder.takeFile).replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').trim().slice(0, 60) || TEXT.recorder.takeFile;
-  if (!take.mp3) {
-    button.classList.add('busy');
-    button.setAttribute('aria-label', TEXT.recorder.makingMp3);
-    try {
-      take.mp3 = await encodeMp3(take.samples, take.sampleRate);
-    } catch {
-      note(TEXT.recorder.mp3Failed);
-      return;
-    } finally {
-      button.classList.remove('busy');
-      renderTakes();
-    }
-  }
-  const file = new File([take.mp3], `${base}.mp3`, { type: 'audio/mpeg' });
-  const how = await saveFile(file, base);
-  if (how === 'failed') note(TEXT.recorder.saveFailed);
-  if (how === 'needsTap') {
-    button.classList.add('ready');
-    button.setAttribute('aria-label', TEXT.recorder.mp3Ready);
-    note(TEXT.recorder.mp3ReadyNote);
-  }
-}
-
-/**
- * Save a file: the share sheet in the apps and on phones, a download
- * elsewhere. Resolves to 'shared', 'downloaded', 'aborted' (the share sheet
- * was closed), 'needsTap' (iPhone wants a fresh tap to share) or 'failed'.
- */
-async function saveFile(file, title) {
-  if (isApp()) {
-    // The app's own share sheet: no "tap again" step, and Android's web view has none.
-    try { await shareFile(file, title); return 'shared'; } catch { return 'failed'; }
-  }
-  const phone = isIOS() || /Android/i.test(navigator.userAgent);
-  if (phone && navigator.canShare?.({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], title });
-      return 'shared';
-    } catch (err) {
-      if (err?.name === 'AbortError') return 'aborted';
-      if (err?.name === 'NotAllowedError') return 'needsTap';
-    }
-  }
-  const url = URL.createObjectURL(file);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = file.name;
-  document.body.append(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
-  return 'downloaded';
-}
-
-/** A short message at the bottom of the screen. */
-let noteTimer = 0;
-function note(text) {
-  const el = $('note');
-  el.textContent = text;
-  el.hidden = false;
-  clearTimeout(noteTimer);
-  noteTimer = setTimeout(() => { el.hidden = true; }, 3500);
-}
-
-function renderTakes() {
-  const list = $('takes');
-  $('takes-empty').hidden = takes.length > 0;
-  $('takes-count').textContent = takes.length ? TEXT.recorder.takesCount(takes.length) : '';
-  // Without Pro (in the apps) the newest few show; the rest are kept for when Pro is on.
-  const shown = isPro() ? takes : takes.slice(0, FREE_TAKES);
-  const rows = shown.map((take, i) => {
-    let li = list.querySelector(`[data-key="${take.created}"]`);
-    if (!li) {
-      li = document.createElement('li');
-      li.className = 'take';
-      li.dataset.key = take.created;
-      li.innerHTML = `
-        <button class="play" type="button"><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg></button>
-        <div class="meta"><div class="name"><button type="button" class="title"></button><span></span></div><canvas aria-hidden="true"></canvas></div>
-        <button class="save" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14"/></svg></button>
-        <button class="del" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
-        <span class="bar-progress" aria-hidden="true"></span>`;
-      li.querySelector('.play').addEventListener('click', () => (playing?.take === take ? stopPlayback() : play(take)));
-      li.querySelector('.del').addEventListener('click', () => removeTake(take));
-      li.querySelector('.save').addEventListener('click', (e) => { if (requirePro('takes')) saveTake(take, li.dataset.label, e.currentTarget); });
-      li.querySelector('.title').addEventListener('click', () => { if (requirePro('takes')) renameTake(take, li); });
-      const canvas = li.querySelector('canvas');
-      canvas.redraw = () => drawThumb(canvas, take.samples);
-      requestAnimationFrame(canvas.redraw);
-    }
-    const n = takes.length - i;
-    const dur = take.samples.length / take.sampleRate;
-    const title = li.querySelector('.title');
-    const len = li.querySelector('.name > span');
-    const label = take.name || TEXT.recorder.takeName(n, fmtWhen(take.created));
-    li.dataset.label = label;
-    if (title) {
-      title.textContent = label;
-      title.setAttribute('aria-label', TEXT.recorder.renameTake(label));
-    }
-    len.textContent = fmtDur(Math.max(1, Math.round(dur)));
-    li.querySelector('.play').setAttribute('aria-label', playing?.take === take ? TEXT.recorder.stopTake(n) : TEXT.recorder.playTake(n));
-    li.querySelector('.del').setAttribute('aria-label', TEXT.recorder.deleteTake(n));
-    const save = li.querySelector('.save');
-    if (!save.classList.contains('busy') && !save.classList.contains('ready')) save.setAttribute('aria-label', TEXT.recorder.saveTake(n));
-    li.classList.toggle('playing', playing?.take === take);
-    if (playing?.take !== take) li.querySelector('.bar-progress').style.width = '0';
-    return li;
-  });
-  const hidden = takes.length - shown.length;
-  if (hidden > 0) {
-    let more = list.querySelector('.takes-more');
-    if (!more) {
-      more = document.createElement('li');
-      more.className = 'takes-more';
-      more.innerHTML = '<span></span> <button type="button" class="link-btn"></button>';
-      more.querySelector('button').textContent = TEXT.recorder.keepEvery;
-      more.querySelector('button').addEventListener('click', () => openPaywall('older'));
-    }
-    more.querySelector('span').textContent = TEXT.recorder.olderKept(hidden);
-    rows.push(more);
-  }
-  list.replaceChildren(...rows);
-}
-
-// Deleting: the take goes at once, with a few seconds to undo. Listening is
-// paused while the list is in use.
-let toastTimer = null;
-let lastDeleted = null;
-
-function removeTake(take) {
-  if (playing?.take === take) stopPlayback({ resume: false });
-  if (recorder && recorder.state !== 'off') recorder.pause();
-  const index = takes.indexOf(take);
-  takes.splice(index, 1);
-  if (lastDeleted) store.remove(lastDeleted.take.id);
-  lastDeleted = { take, index };
-  renderTakes();
-  $('toast-text').textContent = TEXT.recorder.takeDeleted;
-  $('toast').hidden = false;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => hideToast(), 4000);
-  showState();
-}
-
-function hideToast(final = false) {
-  clearTimeout(toastTimer);
-  toastTimer = null;
-  $('toast').hidden = true;
-  if (lastDeleted) store.remove(lastDeleted.take.id);
-  lastDeleted = null;
-  if (!final && !playing && recorder?.state === 'paused') resumeListening();
-}
-
-$('toast-undo').addEventListener('click', () => {
-  if (lastDeleted) {
-    takes.splice(Math.min(lastDeleted.index, takes.length), 0, lastDeleted.take);
-    lastDeleted = null;
-    renderTakes();
-  }
-  hideToast();
-});
-
-const recSettings = $('rec-settings');
-$('rec-settings-btn').addEventListener('click', () => recSettings.showModal());
-$('silence').value = settings.silenceSec;
-$('silence').addEventListener('input', () => { settings.silenceSec = Number($('silence').value); configureRecorder(); });
-const RS = TEXT.recorder.settings;
-chips($('starton-chips'), [{ id: 'music', label: RS.startOnMusic }, { id: 'any', label: RS.startOnAny }], () => settings.startOn, (v) => { settings.startOn = v; configureRecorder(); });
-chips($('sens-chips'), [{ id: 'low', label: RS.low }, { id: 'medium', label: RS.medium }, { id: 'high', label: RS.high }], () => settings.sensitivity, (v) => { settings.sensitivity = v; configureRecorder(); });
-$('autoplay').checked = settings.autoPlay;
-$('autoplay').addEventListener('change', () => { settings.autoPlay = $('autoplay').checked; configureRecorder(); });
-$('rec-during').checked = recordDuringPlayback();
-$('rec-during').addEventListener('change', () => {
-  settings.recordDuringPlayback = $('rec-during').checked;
-  configureRecorder();
-  // Reopen an idle mic so echo cancellation matches the new choice.
-  if (recorder?.state === 'waiting' && recorder.micOpen && !playing) {
-    recorder.release();
-    resumeListening();
-  }
-});
-
-function animateRecorder() {
-  if (!wave) return;
-  if (playing) {
-    const p = scrub ? scrub.f : playing.handle ? playing.handle.progress() : 0;
-    wave.setProgress(p);
-    const row = $('takes').querySelector(`[data-key="${playing.take.created}"] .bar-progress`);
-    if (row) row.style.width = `${(p * 100).toFixed(1)}%`;
-  }
-  if (recorder?.state === 'recording') $('rec-state').textContent = ST.recording(fmtDur(recorder.recordingSec));
-  // A mic that has gone quiet while the sound is running was cut off: reopen it.
-  if (recorder?.micOpen && (recorder.state === 'waiting' || recorder.state === 'recording')
-      && audio().state === 'running' && recorder.silentFor > 2.5) recoverMic(true);
-  wave.draw();
-}
-
-// ---------------------------------------------------------------- tuner
-
+// The Tuner's screen (tunerui.js), and the mic it shares with the Playback Recorder (recorderui.js).
 const tuner = setupTuner({ settings, persist, chips });
-let tunerError = '';
-
-/** Open the mic for the tuner: the same held mic as the recorder's, so no new prompt. */
-// While the mic is being opened the tuner shows nothing about it: neither
-// "the microphone is off" nor Try again, which would flash up for the moment
-// it takes and go (the answer is shown once there is one).
-let tunerStarting = false;
-async function startTuner() {
-  setSession('auto');
-  unlock();
-  ensureRecorder();
-  tunerError = '';
-  tuner.reset();
-  tunerStarting = true;
-  showTunerState();
-  try {
-    await recorder.tune();
-  } catch (err) {
-    tunerError = micError(err, true);
-  }
-  tunerStarting = false;
-  if (recorder.micOpen) markStale('mic-open-tuner');
-  showTunerState();
-}
-
-function stopTuner() {
-  tuner.stop();
-  if (recorder?.state === 'tuning') recorder.off();
-  showTunerState();
-}
-
-function showTunerState() {
-  if (screen !== 'tuner') return;
-  const state = recorder?.state || 'off';
-  const status = $('tuner-status');
-  let text = '';
-  const opening = tunerStarting && state === 'off';
-  if (opening) text = '';
-  else if (state === 'off') text = tunerError || TEXT.tuner.micOff;
-  else if (needsTap) text = TEXT.tuner.tapToRestart;
-  else if (audio().state !== 'running') text = TEXT.tuner.tapToHear;
-  status.textContent = text;
-  status.hidden = !text;
-  status.classList.toggle('error', state === 'off');
-  $('tuner-retry').hidden = state !== 'off' || opening;
-  if (state === 'off') tuner.reset();
-}
-$('tuner-retry').addEventListener('click', () => {
-  if (performance.now() - restartedAt < 1000) return;
-  if (audioWasAway() || existingAudio()?.state !== 'running') replaceAudio();
-  startTuner();
-});
-
-const tunerSettings = $('tuner-settings');
-$('tuner-settings-btn').addEventListener('click', () => { tuner.refresh(); tunerSettings.showModal(); });
-
-let tunerHintShown = '';
-function animateTuner() {
-  tuner.animate();
-  if (recorder?.micOpen && recorder.state === 'tuning' && audio().state === 'running' && recorder.silentFor > 2.5) recoverMic(true);
-  // The "tap anywhere" note goes once the sound engine runs.
-  const running = existingAudio()?.state === 'running';
-  if (String(running) !== tunerHintShown) { tunerHintShown = String(running); showTunerState(); }
-}
+const rec = setupRecorder({ settings, persist, tuner, screen: () => screen, routineRunning: () => !!timerUI?.running, recordDuringPlayback });
+const {
+  recVolume, listeningActive, engineStuck, restartListening, markNeedsTap,
+  configureRecorder, startRecorder, stopRecorder, checkRecorderMic, renderTakes, loadTakes, animateRecorder,
+  chooseMic, startTuner, stopTuner, animateTuner,
+} = rec;
 
 // ---------------------------------------------------------------- drone
 
@@ -2029,8 +377,8 @@ const droneUI = setupDrone({
   chips,
   engine: droneEngine,
   onPlaying: (on) => {
-    if (on && !recorder?.holdsMic) setSession('playback');
-    dlog(on ? 'drone-start' : 'drone-stop', { native: useNative, volume: settings.droneVolume, voice: settings.droneVoice, midi: settings.droneMidi, ctx: drone?.ctx.state ?? null, micHeld: !!recorder?.holdsMic });
+    if (on && !rec.recorder?.holdsMic) setSession('playback');
+    dlog(on ? 'drone-start' : 'drone-stop', { native: useNative, volume: settings.droneVolume, voice: settings.droneVoice, midi: settings.droneMidi, ctx: drone?.ctx.state ?? null, micHeld: !!rec.recorder?.holdsMic });
     if (on) setTimeout(debugBeat, 3000); // past the fade-in
     keepAwake(on);
   },
@@ -2046,9 +394,8 @@ let timerUI = null;
 let pager = null;
 let timerDrone = false; // the routine's Drone card started the drone
 let timerPlayback = false; // the routine's Playback card turned the recorder on
-let recordingSince = 0; // when the take being recorded began (the card's clock)
 // Chimes and the voice play on the context the metronome plays through, when it does (one context, one output).
-const clipCtx = () => (!useNative && metronome?.running ? metronome.ctx : audio());
+const clipCtx = () => (!useNative && met.metronome?.running ? met.metronome.ctx : audio());
 const droneNote = () => {
   const n = noteName(settings.droneMidi, { flats: spelling(settings.droneAccidentals, settings.droneSpelling) === 'flats' });
   return `${n.name}${n.octave}`;
@@ -2064,7 +411,7 @@ const routineTools = {
   metronome: {
     start: startMetronome,
     stop: stopMetronome,
-    on: () => !!metronome?.running,
+    on: () => !!met.metronome?.running,
     bpm: () => settings.bpm,
     setBpm: (n) => setBpm(n),
     /** Its settings as a routine item keeps them: tempo, time signature, click, extra notes, accent and volume. */
@@ -2074,7 +421,7 @@ const routineTools = {
       if (volume !== undefined && volume !== settings.volume) { settings.volume = volume; metVolume.show(); }
       const subNow = settings.subOn ? settings.subKind : 1;
       if (meter === settings.meter && sound === settings.sound && sub === subNow && (accent === undefined || accent === settings.accent)) {
-        metronome?.configure(settings);
+        met.metronome?.configure(settings);
         persist();
         return;
       }
@@ -2087,10 +434,10 @@ const routineTools = {
     meter: () => (meterOf(settings.meter).beats === 1 ? TEXT.metronome.noBars : settings.meter),
     beat: () => {
       const strengths = shownBeats();
-      if (!metronome?.running) return { idx: -1, strengths };
-      const now = metronome.native ? metronome.heardNow(1 / 60) : heardNow(1 / 60);
-      const b = metronome.beatAt(now);
-      return { idx: !b ? -1 : meterOf(settings.meter).beats === 1 ? b.count % strengths.length : b.beat, strengths, at: b, now, period: metronome.period };
+      if (!met.metronome?.running) return { idx: -1, strengths };
+      const now = met.metronome.native ? met.metronome.heardNow(1 / 60) : heardNow(1 / 60);
+      const b = met.metronome.beatAt(now);
+      return { idx: !b ? -1 : meterOf(settings.meter).beats === 1 ? b.count % strengths.length : b.beat, strengths, at: b, now, period: met.metronome.period };
     },
   },
   drone: {
@@ -2120,14 +467,14 @@ const routineTools = {
     stop: () => { if (timerPlayback) { timerPlayback = false; stopRecorder(); } },
     on: () => timerPlayback,
     status: () => {
-      const state = playing ? 'playing' : recorder?.state ?? 'off';
+      const state = rec.playing ? 'playing' : rec.recorder?.state ?? 'off';
       return {
         state: timerPlayback || state !== 'off' ? state : 'off',
-        seconds: state === 'recording' ? (performance.now() - recordingSince) / 1000 : 0,
-        takes: takes.length,
+        seconds: state === 'recording' ? (performance.now() - rec.recordingSince) / 1000 : 0,
+        takes: rec.takes.length,
       };
     },
-    busy: () => recorder?.state === 'recording' || !!playing,
+    busy: () => rec.recorder?.state === 'recording' || !!rec.playing,
     /** Its settings as a routine item keeps them: the silence it stops after, and whether it plays takes back. */
     config: () => ({ silenceSec: settings.silenceSec, autoPlay: settings.autoPlay, volume: settings.playVolume }),
     setConfig: ({ silenceSec, autoPlay, volume }) => {
@@ -2139,7 +486,7 @@ const routineTools = {
       $('autoplay').checked = autoPlay;
       configureRecorder();
     },
-    ignoreFor: (sec) => recorder?.ignoreFor(sec),
+    ignoreFor: (sec) => rec.recorder?.ignoreFor(sec),
   },
 };
 const timerAudio = {
@@ -2149,7 +496,7 @@ const timerAudio = {
   preload(urls) { const c = clipCtx(); for (const u of urls) loadClip(c, u); },
   running(on) {
     keepAwake(on);
-    if (on && !recorder?.holdsMic) setSession('playback');
+    if (on && !rec.recorder?.holdsMic) setSession('playback');
   },
 };
 timerUI = setupTimer({ settings, tools: routineTools, audio: timerAudio });
@@ -2234,7 +581,7 @@ function layoutHome() {
 // catch up with what they did.
 function syncNative() {
   if (!useNative) return;
-  if (metronome?.native && metronome.running) metronome.poll().then((on) => { if (!on) stopMetronome(); });
+  if (met.metronome?.native && met.metronome.running) met.metronome.poll().then((on) => { if (!on) stopMetronome(); });
   droneUI.syncNative();
 }
 if (useNative) {
@@ -2285,10 +632,7 @@ function frame() {
 setBpm(settings.bpm);
 renderBeats();
 configureRecorder();
-store.list().then((saved) => {
-  takes = [...takes, ...saved.filter((s) => !takes.some((t) => t.created === s.created))];
-  renderTakes();
-});
+loadTakes();
 // The saved pendulum delay; Audio check sets the speaker (where the browser allows).
 setExtraDelay(settings.syncMs / 1000);
 if (settings.speaker !== 'default') setSpeaker(settings.speaker);
@@ -2299,7 +643,7 @@ for (const b of document.querySelectorAll('.open-audio-check')) {
     openAudioCheck({
       settings,
       save: persist,
-      recorder: () => recorder,
+      recorder: () => rec.recorder,
       // The metronome's section: open when Audio check came from the metronome.
       metronome: {
         open: screen === 'metronome',
@@ -2312,14 +656,7 @@ for (const b of document.querySelectorAll('.open-audio-check')) {
           requestAnimationFrame(openSync);
         },
       },
-      onMic: async (id) => {
-        settings.mic = id;
-        persist();
-        if (recorder) {
-          try { await recorder.chooseMic(id); } catch (err) { recError = micError(err); recorder.off(); }
-          showState();
-        }
-      },
+      onMic: chooseMic,
       onSpeaker: async (id) => {
         settings.speaker = id;
         persist();
@@ -2343,7 +680,7 @@ function feedbackDetails() {
   const p = diag.lastPlayback;
   const lines = [
     `Running: ${isApp() ? `${platform()} app, ${isPro() ? 'Pro' : 'free'}` : 'website'}; open on: ${screen}; theme: ${settings.theme}`,
-    `Microphone: permission ${micPermission()}, recorder ${recorder?.state ?? 'off'}, ${freesMicForPlayback() ? 'closed for playback' : 'kept open for playback'}`
+    `Microphone: permission ${micPermission()}, recorder ${rec.recorder?.state ?? 'off'}, ${freesMicForPlayback() ? 'closed for playback' : 'kept open for playback'}`
       + (diag.firstRequestMs != null ? `, first request ${diag.firstRequestMs} ms` : ''),
     `Audio: ${ctx ? `${ctx.state}, ${ctx.sampleRate} Hz, output latency ${Math.round((ctx.outputLatency || 0) * 1000)} ms` : 'not started'}`
       + `${navigator.audioSession ? `; session ${navigator.audioSession.type}/${navigator.audioSession.state ?? '?'}` : ''}${useNative ? '; native metronome and drone' : ''}`,
@@ -2360,13 +697,13 @@ setupFeedback({ details: feedbackDetails, debug: (max) => debugText(max) });
 // The debug log (debuglog.js): what the app is doing, each time it looks.
 debugState('app', () => {
   const ctx = existingAudio();
-  const track = recorder?.stream?.getAudioTracks()[0];
+  const track = rec.recorder?.stream?.getAudioTracks()[0];
   const el = playerElement();
   return {
     screen,
     ctx: ctx ? { state: ctx.state, rate: ctx.sampleRate, outputLatency: ctx.outputLatency ?? null, baseLatency: ctx.baseLatency ?? null, sink: ctx.sinkId === undefined ? null : ctx.sinkId ? 'picked' : 'default' } : null,
-    mic: { recorder: recorder?.state ?? 'off', held: !!recorder?.holdsMic, open: !!recorder?.micOpen, enabled: track ? track.enabled : null, muted: track ? track.muted : null, ready: track ? track.readyState : null, label: track?.label ?? null, ...freeReason() },
-    playing: { metronome: !!metronome?.running, drone: !!droneUI.playing, take: !!playing?.handle, element: el.src ? { paused: el.paused, volume: el.volume, muted: el.muted } : null },
+    mic: { recorder: rec.recorder?.state ?? 'off', held: !!rec.recorder?.holdsMic, open: !!rec.recorder?.micOpen, enabled: track ? track.enabled : null, muted: track ? track.muted : null, ready: track ? track.readyState : null, label: track?.label ?? null, ...freeReason() },
+    playing: { metronome: !!met.metronome?.running, drone: !!droneUI.playing, take: !!rec.playing?.handle, element: el.src ? { paused: el.paused, volume: el.volume, muted: el.muted } : null },
     volumes: { metronome: settings.volume, drone: settings.droneVolume, takes: settings.playVolume },
     native: useNative,
   };

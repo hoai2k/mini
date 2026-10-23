@@ -308,15 +308,6 @@ dialog:focus { outline: none; }
   box-shadow: 0 0 calc(var(--g, 0) * var(--dot) * 0.45) calc(var(--g, 0) * var(--dot) * 0.08) color-mix(in srgb, var(--hot) 70%, transparent);
 }
 .met-visual.pulse .beats li.strong { --hot: var(--red-2); }
-/* Art Deco's dots are squares turned into diamonds, which reach √2 wider
-   than their box, and 1.14 times that at the swell (1.62 in all): the box is
-   drawn that much smaller and given the difference as side margins, so the
-   row is laid out by what is drawn and big diamonds never overlap. */
-[data-theme="deco"] .met-visual.pulse .beats li {
-  --box: calc(var(--dot) * 0.8 / 1.62);
-  width: var(--box); height: var(--box); margin-inline: calc(var(--box) * 0.31);
-}
-[data-theme="deco"] .met-visual.pulse .beats li.strong { --box: calc(var(--dot) / 1.62); }
 .met-layer { position: absolute; }
 .metronome .met-layer { z-index: 1; }
 #metronome .bar { position: relative; z-index: 2; }
@@ -542,13 +533,6 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
 }
 
 /* The Visualizer in each theme's own shapes. Classic keeps the soft pill. */
-/* Art Deco: square bars with angled ends, as its Stop button, a fine gold line. */
-[data-theme="deco"] .met-bar {
-  --bar-r: 0; --bar-w: 0px;
-  --bar-clip: polygon(9px 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 9px 100%, 0 50%);
-  --bar-line: color-mix(in srgb, var(--brass) 45%, transparent);
-}
-[data-theme="deco"] .met-bar.strong { --bar-line: color-mix(in srgb, var(--c) 55%, transparent); }
 /* Clipped shapes are outlined by layering: the line colour underneath, the
    page's own colour cut 1px smaller on top, then the fill. */
 [data-theme="deco"] .met-shape, [data-theme="scifi"] .met-shape { background: var(--bar-line); }
@@ -556,38 +540,6 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
   content: ""; position: absolute; inset: 1px; clip-path: var(--bar-clip); background: var(--bg);
 }
 [data-theme="deco"] .met-shape::after, [data-theme="scifi"] .met-shape::after { inset: 0; }
-/* Robot Future: chamfered segments, like the lights of a readout, glowing. */
-[data-theme="scifi"] .met-bar {
-  --bar-r: 0; --bar-w: 0px; --bar-glow: 9px;
-  --bar-clip: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
-  --bar-line: color-mix(in srgb, var(--brass) 30%, transparent);
-}
-[data-theme="scifi"] .met-bar.strong { --bar-line: color-mix(in srgb, var(--c) 45%, transparent); }
-/* French Nouveau: the leaf shape of its chips. */
-[data-theme="nouveau"] .met-bar { --bar-r: 15px 4px 15px 4px; }
-/* 18th Century: near-square, a fine double gilt line. */
-[data-theme="baroque"] .met-bar { --bar-r: 3px; --bar-w: 3px; --bar-style: double; --bar-line: color-mix(in srgb, var(--brass-2) 50%, transparent); }
-[data-theme="baroque"] .met-bar.strong { --bar-line: color-mix(in srgb, var(--c) 45%, transparent); }
-/* Steam Punk: small brass plates in a copper rim, a rivet at each end; lit like a warm lamp. */
-[data-theme="steampunk"] .met-bar { --bar-r: 5px; --bar-w: 2px; --bar-line: color-mix(in srgb, #b8743a 42%, transparent); --bar-glow: 9px; }
-[data-theme="steampunk"] .met-shape {
-  background:
-    radial-gradient(circle at 7px 50%, color-mix(in srgb, #d9a44a 75%, transparent) 0 1.8px, transparent 2.4px),
-    radial-gradient(circle at calc(100% - 7px) 50%, color-mix(in srgb, #d9a44a 75%, transparent) 0 1.8px, transparent 2.4px),
-    color-mix(in srgb, #b8743a 8%, transparent);
-}
-/* Vintage 60s: its thick print outline, and the bar being played printed with the offset shadow. */
-[data-theme="sixties"] .met-bar { --bar-w: 2.5px; --bar-line: color-mix(in srgb, var(--outline) 35%, transparent); --bar-glow: 0px; }
-[data-theme="sixties"] .met-bar.strong { --bar-line: color-mix(in srgb, var(--c) 50%, transparent); }
-[data-theme="sixties"] .met-shape::after { background: var(--c); border: 2.5px solid var(--outline); box-shadow: 3px 3px 0 var(--print); }
-/* Candy: a bolder ink outline; the bar being played inked with a hard shadow, a sparkle on the strong beat. */
-[data-theme="anime"] .met-bar { --bar-w: 2.5px; --bar-line: color-mix(in srgb, var(--ink) 28%, transparent); --bar-glow: 0px; }
-[data-theme="anime"] .met-bar.strong { --bar-line: color-mix(in srgb, var(--c) 55%, transparent); }
-[data-theme="anime"] .met-shape::after { background: var(--c); border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); }
-[data-theme="anime"] .met-bar.strong::after {
-  content: "\2726"; position: absolute; right: -4px; top: -9px; font-size: 14px; line-height: 1; color: #ffd84d;
-  -webkit-text-stroke: 1px var(--ink); opacity: var(--lit, 0); pointer-events: none;
-}
 
 /* Landscape phones and desktops: metronome left, controls right. The
    picture's foot (dots, Pulse, Visualizer) is as wide as the picture is
@@ -794,10 +746,6 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   position: absolute; left: 50%; bottom: calc(var(--v, 0.8) * 100%); width: 28px; height: 28px; translate: -50% 50%;
   border-radius: 50%; background: var(--brass-2); border: 3px solid var(--bg); box-shadow: 0 1px 4px rgba(0,0,0,.5);
 }
-[data-theme="deco"] .vslider-track, [data-theme="deco"] .vslider-fill { width: 2px; border-radius: 0; }
-[data-theme="deco"] .vslider-track { background: var(--line); }
-[data-theme="deco"] .vslider-thumb { width: 20px; height: 20px; border-radius: 0; rotate: 45deg; border-width: 2px; outline: 1px solid var(--brass); }
-[data-theme="sixties"] .vslider-thumb { border-color: var(--btn-line); background: var(--mustard); }
 .drone-art .art { position: relative; width: 100%; height: 100%; display: grid; place-items: center; }
 .drone-art .art > * { width: 100%; height: 100%; object-fit: contain; }
 .drone-glow {
@@ -984,6 +932,21 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 @keyframes saving { 50% { transform: translateY(3px); } }
 .error { color: var(--red-2); }
 
+/* ================================================================ Themes
+   Each theme below is one section: its colours and type, the shapes of its
+   controls and cards, its Visualizer bars, its other mode (light or dark)
+   and its readability touches, all together (Classic, the default, is the
+   base styles above, with its other mode under Light and dark). A rule
+   shared by two themes stays with the base rules it adjusts.
+
+   A theme restyles the shared controls (.pill, .chip, .select, .big-btn,
+   .step) through :where([data-theme="..."]), which counts for nothing, so
+   its rule weighs no more than the control's own and a component's variant
+   of a control (the strong beats' Done, a toast's button, .pill.danger)
+   still wins over it. Where a theme wants a component's control its own way,
+   it says so in a rule naming that component (its tempo chevrons, its A4 −
+   and +). */
+
 /* ================================================================ Art Deco
    Black lacquer, gold leaf and ivory: thin geometric capitals, double gold
    frames, sunburst fans, diamonds and stepped hexagon buttons. */
@@ -1084,9 +1047,9 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 }
 [data-theme="deco"] .choice:hover { border-color: var(--brass-2); box-shadow: inset 0 0 0 5px var(--lacquer), inset 0 0 0 6px var(--brass), 0 14px 30px var(--drop); }
 [data-theme="deco"] .choice .label,
-[data-theme="deco"] .big-btn,
-[data-theme="deco"] .chip,
-[data-theme="deco"] .pill,
+:where([data-theme="deco"]) .big-btn,
+:where([data-theme="deco"]) .chip,
+:where([data-theme="deco"]) .pill,
 [data-theme="deco"] legend,
 [data-theme="deco"] .row,
 [data-theme="deco"] .bpm-box span {
@@ -1123,7 +1086,8 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="deco"] .beats li.strong { width: 18px; height: 18px; border-color: var(--brass); }
 [data-theme="deco"] .beats li.on { background: var(--brass-2); border-color: var(--brass-2); transform: rotate(45deg) scale(1.2); }
 [data-theme="deco"] .beats li.strong.on { background: var(--red-2); border-color: var(--red-2); }
-[data-theme="deco"] .step {
+:where([data-theme="deco"]) .step,
+:where([data-theme="deco"]) .a4-row .step {
   width: 54px; height: 54px;
   border: 0;
   border-radius: 0;
@@ -1150,7 +1114,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="deco"] .slider::-moz-range-progress { height: 2px; border-radius: 0; background: var(--brass); }
 [data-theme="deco"] .slider::-webkit-slider-thumb { width: 20px; height: 20px; margin-top: -9px; border-radius: 0; transform: rotate(45deg); background: var(--brass-2); border: 2px solid var(--bg); outline: 1px solid var(--brass); }
 [data-theme="deco"] .slider::-moz-range-thumb { width: 16px; height: 16px; border-radius: 0; transform: rotate(45deg); background: var(--brass-2); border: 2px solid var(--bg); }
-[data-theme="deco"] .big-btn {
+:where([data-theme="deco"]) .big-btn {
   border-radius: 0;
   clip-path: polygon(22px 0, calc(100% - 22px) 0, 100% 50%, calc(100% - 22px) 100%, 22px 100%, 0 50%);
   background: var(--gold);
@@ -1158,7 +1122,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   font-size: 1.05rem;
   box-shadow: none;
 }
-[data-theme="deco"] .big-btn[aria-pressed="true"] { background: linear-gradient(180deg, #f8f1de, #d9cca8); }
+:where([data-theme="deco"]) .big-btn[aria-pressed="true"] { background: linear-gradient(180deg, #f8f1de, #d9cca8); }
 [data-theme="deco"] .meter-note { text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.79rem; }
 
 /* Settings sheets */
@@ -1169,7 +1133,8 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 }
 [data-theme="deco"] .sheet-head { background: var(--lacquer); }
 [data-theme="deco"] legend, [data-theme="deco"] .row { font-size: 0.82rem; color: var(--ink-2); }
-[data-theme="deco"] .select {
+:where([data-theme="deco"]) .tempo-list .tempo-more { border-radius: 0; } /* its own corners, not the chevron's joined ones */
+:where([data-theme="deco"]) .select {
   border-radius: 0;
   border-color: var(--brass);
   background-color: transparent;
@@ -1177,8 +1142,8 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   font-weight: 600;
   letter-spacing: 0.1em;
 }
-[data-theme="deco"] .chip { border-radius: 0; font-size: 0.8rem; letter-spacing: 0.1em; padding: 8px 12px; border-color: var(--line); background: transparent; }
-[data-theme="deco"] .chip[aria-checked="true"] { background: var(--gold); color: var(--on-accent); border-color: var(--brass); }
+:where([data-theme="deco"]) .chip { border-radius: 0; font-size: 0.8rem; letter-spacing: 0.1em; padding: 8px 12px; border-color: var(--line); background: transparent; }
+:where([data-theme="deco"]) .chip[aria-checked="true"] { background: var(--gold); color: var(--on-accent); border-color: var(--brass); }
 [data-theme="deco"] input[role="switch"] { border-radius: 0; background: transparent; border-color: var(--line); }
 [data-theme="deco"] input[role="switch"]::after { border-radius: 0; transform: rotate(45deg) scale(0.75); }
 [data-theme="deco"] input[role="switch"]:checked { background: var(--gold); }
@@ -1202,7 +1167,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="deco"] .rec-btn[data-state="recording"] { box-shadow: 0 0 30px rgba(224, 75, 85, 0.45); }
 [data-theme="deco"] .rec-top { gap: 26px; padding-left: 16px; }
 [data-theme="deco"] .rec-state { font-size: 1.2rem; color: var(--brass-2); }
-[data-theme="deco"] .pill { border-radius: 0; font-size: 0.8rem; border-color: var(--brass); background: transparent; }
+:where([data-theme="deco"]) .pill { border-radius: 0; font-size: 0.8rem; border-color: var(--brass); background: transparent; }
 [data-theme="deco"] .wave {
   border-radius: 0;
   border-color: var(--brass);
@@ -1226,6 +1191,46 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="deco"] .take .name { font-weight: 600; letter-spacing: 0.04em; }
 [data-theme="deco"] .toast { border-radius: 0; background: var(--toast); outline: 1px solid var(--brass); outline-offset: 3px; }
 [data-theme="deco"] .toast .pill { color: var(--brass-2); background: var(--on-accent); }
+
+/* ---- Art Deco's own look elsewhere: the Visualizer's shapes, its other mode (light or dark) and its readability touches. */
+/* Art Deco's dots are squares turned into diamonds, which reach √2 wider
+   than their box, and 1.14 times that at the swell (1.62 in all): the box is
+   drawn that much smaller and given the difference as side margins, so the
+   row is laid out by what is drawn and big diamonds never overlap. */
+[data-theme="deco"] .met-visual.pulse .beats li {
+  --box: calc(var(--dot) * 0.8 / 1.62);
+  width: var(--box); height: var(--box); margin-inline: calc(var(--box) * 0.31);
+}
+[data-theme="deco"] .met-visual.pulse .beats li.strong { --box: calc(var(--dot) / 1.62); }
+/* Art Deco: square bars with angled ends, as its Stop button, a fine gold line. */
+[data-theme="deco"] .met-bar {
+  --bar-r: 0; --bar-w: 0px;
+  --bar-clip: polygon(9px 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 9px 100%, 0 50%);
+  --bar-line: color-mix(in srgb, var(--brass) 45%, transparent);
+}
+[data-theme="deco"] .met-bar.strong { --bar-line: color-mix(in srgb, var(--c) 55%, transparent); }
+[data-theme="deco"] .vslider-track, [data-theme="deco"] .vslider-fill { width: 2px; border-radius: 0; }
+[data-theme="deco"] .vslider-track { background: var(--line); }
+[data-theme="deco"] .vslider-thumb { width: 20px; height: 20px; border-radius: 0; rotate: 45deg; border-width: 2px; outline: 1px solid var(--brass); }
+/* Art Deco by day: ivory and black lacquer trim, darker gold. */
+[data-theme="deco"][data-mode="light"] {
+  --viz-strong: #c42a35; --viz-beat: #a8841e; /* the Visualizer's lit beats: strong, other */
+  --bg: #f3eee2; --bg-2: #faf7ef; --panel: #fffdf7; --panel-2: #ebe4d1; --line: #b39a5a;
+  --ink: #15161c; --ink-2: #3b3a36; --ink-3: #5e5747;
+  --brass: #a08020; --brass-2: #75590f; --red: #a3262f; --red-2: #c0313b; --focus: #75590f;
+  --on-accent: #0b0c0f; --glow: #f6efd9;
+  --lacquer: #fffdf7; --lacquer-hi: #fbf6ea; --well: #fffdf7; --deep: #ede2c2;
+  --drop: rgba(80, 60, 20, 0.16); --toast: #15161c;
+  --wave-bg: #fffdf7; --wave-axis: rgba(160, 128, 32, 0.25); --wave-idle: rgba(59, 58, 54, 0.22);
+  --wave-wait: #3b3a36; --wave-rec: #c0313b; --wave-take: #cdb985; --wave-play: #a08020; --wave-head: #15161c; --wave-thumb: #b39a5a;
+  --pressed: linear-gradient(180deg, #2a2b33, #15161c); --shadow: rgba(80, 60, 20, 0.16); --backdrop: rgba(21, 22, 28, 0.4);
+  --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 17l-6-8h12z' fill='%23a08020'/%3E%3C/svg%3E");
+  color-scheme: light;
+}
+:where([data-theme="deco"][data-mode="light"]) .big-btn[aria-pressed="true"] { background: var(--pressed); color: #f1d98a; }
+[data-theme="deco"][data-mode="light"] .toast { color: #f4ecd6; }
+[data-theme="deco"][data-mode="light"] .toast .pill { color: #75590f; background: #f4ecd6; }
+[data-theme="deco"][data-mode="light"] .marking { color: #75590f; }
 
 /* ================================================================ Vintage 60s
    Cream, mustard, orange and teal; rounded shapes, offset print shadows,
@@ -1302,11 +1307,11 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="sixties"] .choice { border: 3px solid var(--outline); border-radius: 32px; background: var(--card); box-shadow: 7px 7px 0 var(--print-2); }
 [data-theme="sixties"] .choice:hover { border-color: var(--outline); box-shadow: 9px 9px 0 var(--brass); }
 [data-theme="sixties"] .choice .label { color: var(--ink); font-weight: 800; }
-[data-theme="sixties"] .big-btn { background: var(--brass); color: var(--on-accent); border: 3px solid var(--btn-line); box-shadow: 5px 5px 0 var(--print); }
-[data-theme="sixties"] .big-btn[aria-pressed="true"] { background: var(--teal); color: var(--teal-ink); }
-[data-theme="sixties"] .step { border: 3px solid var(--btn-line); background: var(--mustard); color: var(--mustard-ink); }
-[data-theme="sixties"] .chip, [data-theme="sixties"] .select, [data-theme="sixties"] .pill { border: 2px solid var(--outline); background-color: var(--panel); }
-[data-theme="sixties"] .chip[aria-checked="true"] { background: var(--teal); border-color: var(--btn-line); color: var(--teal-ink); }
+:where([data-theme="sixties"]) .big-btn { background: var(--brass); color: var(--on-accent); border: 3px solid var(--btn-line); box-shadow: 5px 5px 0 var(--print); }
+:where([data-theme="sixties"]) .big-btn[aria-pressed="true"] { background: var(--teal); color: var(--teal-ink); }
+:where([data-theme="sixties"]) .step { border: 3px solid var(--btn-line); background: var(--mustard); color: var(--mustard-ink); }
+:where([data-theme="sixties"]) .chip, :where([data-theme="sixties"]) .select, :where([data-theme="sixties"]) .pill { border: 2px solid var(--outline); background-color: var(--panel); }
+:where([data-theme="sixties"]) .chip[aria-checked="true"] { background: var(--teal); border-color: var(--btn-line); color: var(--teal-ink); }
 [data-theme="sixties"] .beats li { border-color: var(--outline); }
 [data-theme="sixties"] .beats li.on { background: var(--mustard); border-color: var(--btn-line); }
 [data-theme="sixties"] .beats li.strong.on { background: var(--brass); }
@@ -1315,6 +1320,37 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="sixties"] .take { border: 2px solid var(--outline); border-radius: 22px; background: var(--panel); }
 [data-theme="sixties"] .rec-btn { border-color: var(--outline); background: var(--panel); }
 [data-theme="sixties"] .slider::-webkit-slider-thumb { border-color: var(--btn-line); background: var(--mustard); }
+
+/* ---- Vintage 60s's own look elsewhere: the Visualizer's shapes, its other mode (light or dark) and its readability touches. */
+/* Vintage 60s: its thick print outline, and the bar being played printed with the offset shadow. */
+[data-theme="sixties"] .met-bar { --bar-w: 2.5px; --bar-line: color-mix(in srgb, var(--outline) 35%, transparent); --bar-glow: 0px; }
+[data-theme="sixties"] .met-bar.strong { --bar-line: color-mix(in srgb, var(--c) 50%, transparent); }
+[data-theme="sixties"] .met-shape::after { background: var(--c); border: 2.5px solid var(--outline); box-shadow: 3px 3px 0 var(--print); }
+[data-theme="sixties"] .vslider-thumb { border-color: var(--btn-line); background: var(--mustard); }
+/* Vintage 60s after dark: espresso and walnut, the same orange, mustard and teal turned up. */
+[data-theme="sixties"][data-mode="dark"] {
+  --viz-strong: #ff7a3d; --viz-beat: #4fc9c2; /* the Visualizer's lit beats: strong, other */
+  --bg: #2a201a; --bg-2: #352820; --panel: #3e2f25; --panel-2: #4b392c; --line: #9a7a4e;
+  --ink: #f8ecd4; --ink-2: #e3cfac; --ink-3: #c9ae88;
+  --brass: #f07a43; --brass-2: #f2b54f; --red: #f0694f; --red-2: #ff7b5c; --focus: #57c9c3;
+  --value: #f2b54f; --on-accent: #22170f; --glow: #352820;
+  --teal: #45b4ae; --teal-ink: #14100c; --mustard: #f2b54f; --mustard-ink: #22170f; --cream: #3e2f25;
+  --dots: rgba(242, 181, 79, 0.1);
+  /* The same print at night: shadows are real shadows (near black, not teal
+     slabs that read as glowing edges), outlines a soft tan rather than
+     bright cream, buttons keep their dark printed outline, and the badges on
+     the stripes stay cream with dark ink, as by day. */
+  --outline: #c9a87a; --btn-line: #160f0a; --print: #0f0a06; --print-2: #0f0a06;
+  --card: linear-gradient(180deg, #4a382c, #3e2f25);
+  --badge: #fbefd8; --badge-ink: #2a201a;
+  --wave-bg: #3e2f25; --wave-axis: rgba(248, 236, 212, 0.14); --wave-idle: rgba(227, 207, 172, 0.25);
+  --wave-wait: #45b4ae; --wave-rec: #f07a43; --wave-take: #7a6046; --wave-play: #45b4ae; --wave-head: #f8ecd4; --wave-thumb: #c9a06a;
+  --pressed: #45b4ae; --shadow: rgba(0, 0, 0, 0.45); --backdrop: rgba(10, 6, 3, 0.6);
+  --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23f8ecd4' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  color-scheme: dark;
+}
+[data-theme="sixties"][data-mode="light"] :is(.pill.danger, .fb-field .req, .fb-req-note .req) { color: #b0331b; }
+[data-theme="sixties"][data-mode="light"] .brand em { color: var(--value); }
 
 /* ================================================================ 18th Century
    Parchment, sepia ink, gilt and burgundy; engraved type, small capitals,
@@ -1358,16 +1394,36 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="baroque"] .marking { font-family: var(--display); }
 [data-theme="baroque"] .choice { border: 4px double var(--brass-2); border-radius: 4px; background: var(--panel); }
 [data-theme="baroque"] .choice .label, [data-theme="baroque"] .row, [data-theme="baroque"] legend { font-variant: small-caps; letter-spacing: 0.04em; }
-[data-theme="baroque"] .big-btn { background: var(--red); color: var(--on-accent); border: 2px solid var(--brass-2); border-radius: 4px; box-shadow: inset 0 0 0 3px var(--red), inset 0 0 0 4px rgba(201, 154, 63, 0.7); font-variant: small-caps; letter-spacing: 0.06em; }
-[data-theme="baroque"] .big-btn[aria-pressed="true"] { background: var(--pressed); color: var(--red); box-shadow: none; }
-[data-theme="baroque"] .step { border: 2px solid var(--brass-2); background: var(--panel); color: var(--red); }
-[data-theme="baroque"] .chip, [data-theme="baroque"] .select, [data-theme="baroque"] .pill { border-radius: 4px; border-color: var(--brass-2); background-color: var(--panel); }
-[data-theme="baroque"] .chip[aria-checked="true"] { background: var(--red); border-color: var(--red); color: var(--on-accent); }
+:where([data-theme="baroque"]) .big-btn { background: var(--red); color: var(--on-accent); border: 2px solid var(--brass-2); border-radius: 4px; box-shadow: inset 0 0 0 3px var(--red), inset 0 0 0 4px rgba(201, 154, 63, 0.7); font-variant: small-caps; letter-spacing: 0.06em; }
+:where([data-theme="baroque"]) .big-btn[aria-pressed="true"] { background: var(--pressed); color: var(--red); box-shadow: none; }
+:where([data-theme="baroque"]) .step { border: 2px solid var(--brass-2); background: var(--panel); color: var(--red); }
+:where([data-theme="baroque"]) .chip, :where([data-theme="baroque"]) .select, :where([data-theme="baroque"]) .pill { border-radius: 4px; border-color: var(--brass-2); background-color: var(--panel); }
+:where([data-theme="baroque"]) .chip[aria-checked="true"] { background: var(--red); border-color: var(--red); color: var(--on-accent); }
 [data-theme="baroque"] .sheet { border: 4px double var(--brass-2); border-radius: 4px; }
 [data-theme="baroque"] .wave, [data-theme="baroque"] .take { border-radius: 4px; border: 1px solid var(--brass-2); background: var(--panel); }
 [data-theme="baroque"] .beats li.on { background: var(--brass-2); }
 [data-theme="baroque"] .beats li.strong.on { background: var(--red); border-color: var(--red); }
 [data-theme="baroque"] .rec-btn { border-style: double; border-width: 6px; border-color: var(--brass-2); background: var(--panel); }
+
+/* ---- 18th Century's own look elsewhere: the Visualizer's shapes, its other mode (light or dark) and its readability touches. */
+/* 18th Century: near-square, a fine double gilt line. */
+[data-theme="baroque"] .met-bar { --bar-r: 3px; --bar-w: 3px; --bar-style: double; --bar-line: color-mix(in srgb, var(--brass-2) 50%, transparent); }
+[data-theme="baroque"] .met-bar.strong { --bar-line: color-mix(in srgb, var(--c) 45%, transparent); }
+/* 18th Century by candlelight: dark walnut, parchment ink, gilt and claret. */
+[data-theme="baroque"][data-mode="dark"] {
+  --viz-strong: #e05a6e; --viz-beat: #e8bb5c; /* the Visualizer's lit beats: strong, other */
+  --bg: #1d1612; --bg-2: #261d17; --panel: #2e231c; --panel-2: #3a2c22; --line: #8a6c3a;
+  --ink: #f0e3c8; --ink-2: #d8c5a2; --ink-3: #b8a27e;
+  --brass: #c99a3f; --brass-2: #e0b660; --red: #a8384a; --red-2: #dc7d8e; --focus: #e0b660;
+  --value: #e6be6c; --on-accent: #fffaf0; --glow: #2c2119; --vignette: #110c09;
+  --wave-bg: #261d17; --wave-axis: rgba(240, 227, 200, 0.14); --wave-idle: rgba(216, 197, 162, 0.25);
+  --wave-wait: #d8c5a2; --wave-rec: #d0687a; --wave-take: #6b5638; --wave-play: #c99a3f; --wave-head: #f0e3c8; --wave-thumb: #a98c5c;
+  --pressed: linear-gradient(180deg, #3a2c22, #2e231c); --shadow: rgba(0, 0, 0, 0.5); --backdrop: rgba(8, 5, 3, 0.6);
+  --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23e0b660' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  color-scheme: dark;
+}
+[data-theme="baroque"][data-mode="dark"] .brand em { color: var(--red-2); }
+:where([data-theme="baroque"][data-mode="dark"]) .step, :where([data-theme="baroque"][data-mode="dark"]) .big-btn[aria-pressed="true"] { color: var(--red-2); }
 
 /* ================================================================ Robot Future (id scifi)
    Deep space navy, cyan and magenta light, a HUD grid, chamfered panels and
@@ -1404,14 +1460,15 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="scifi"] .brand em { color: var(--brass); }
 [data-theme="scifi"] .bar h2 { font-size: clamp(0.95rem, 4vw, 1.2rem); }
 [data-theme="scifi"] .choice { border-radius: 0; clip-path: var(--chamfer); border: 1px solid var(--brass); background: linear-gradient(160deg, var(--plate-a), var(--plate-b)); box-shadow: inset 0 0 30px rgba(62, 242, 255, 0.12); }
-[data-theme="scifi"] .choice .label, [data-theme="scifi"] .big-btn, [data-theme="scifi"] .chip, [data-theme="scifi"] legend, [data-theme="scifi"] .row { text-transform: uppercase; letter-spacing: 0.1em; }
+[data-theme="scifi"] .choice .label, :where([data-theme="scifi"]) .big-btn, :where([data-theme="scifi"]) .chip, [data-theme="scifi"] legend, [data-theme="scifi"] .row { text-transform: uppercase; letter-spacing: 0.1em; }
 [data-theme="scifi"] .choice .label { color: var(--brass-2); }
-[data-theme="scifi"] .big-btn { border-radius: 0; clip-path: var(--chamfer); background: var(--brass); box-shadow: 0 0 24px rgba(62, 242, 255, 0.45); }
-[data-theme="scifi"] .big-btn[aria-pressed="true"] { background: var(--pressed); color: var(--pressed-ink); box-shadow: 0 0 24px rgba(255, 60, 172, 0.5); }
-[data-theme="scifi"] .step { border-radius: 0; clip-path: var(--chamfer); border-color: var(--brass); color: var(--brass); background: var(--panel); }
+:where([data-theme="scifi"]) .big-btn { border-radius: 0; clip-path: var(--chamfer); background: var(--brass); box-shadow: 0 0 24px rgba(62, 242, 255, 0.45); }
+:where([data-theme="scifi"]) .big-btn[aria-pressed="true"] { background: var(--pressed); color: var(--pressed-ink); box-shadow: 0 0 24px rgba(255, 60, 172, 0.5); }
+:where([data-theme="scifi"]) .step { border-radius: 0; clip-path: var(--chamfer); border-color: var(--brass); color: var(--brass); background: var(--panel); }
 [data-theme="scifi"] .bpm-box input { color: var(--brass-2); text-shadow: 0 0 16px var(--neon); }
-[data-theme="scifi"] .chip, [data-theme="scifi"] .select, [data-theme="scifi"] .pill { border-radius: 0; border-color: var(--line); background-color: transparent; }
-[data-theme="scifi"] .chip[aria-checked="true"] { background: var(--brass); color: var(--on-accent); box-shadow: 0 0 12px rgba(62, 242, 255, 0.5); }
+:where([data-theme="scifi"]) .chip, :where([data-theme="scifi"]) .select, :where([data-theme="scifi"]) .pill { border-radius: 0; border-color: var(--line); background-color: transparent; }
+:where([data-theme="scifi"]) .chip[aria-checked="true"] { background: var(--brass); border-color: var(--line); color: var(--on-accent); box-shadow: 0 0 12px rgba(62, 242, 255, 0.5); }
+:where([data-theme="scifi"]) .tempo-list .tempo-more { border-radius: 0; }
 [data-theme="scifi"] .sheet { border-radius: 0; border: 1px solid var(--brass); box-shadow: 0 0 40px rgba(62, 242, 255, 0.2); }
 [data-theme="scifi"] .beats li { border-radius: 2px; }
 [data-theme="scifi"] .beats li.on { background: var(--brass); box-shadow: 0 0 12px var(--brass); }
@@ -1421,6 +1478,30 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="scifi"] .take .play { border-radius: 0; clip-path: var(--chamfer); }
 [data-theme="scifi"] .rec-btn { border-color: var(--brass); box-shadow: 0 0 18px rgba(62, 242, 255, 0.35); }
 [data-theme="scifi"] .icon-btn svg { filter: drop-shadow(0 0 6px var(--neon)); }
+
+/* ---- Robot Future's own look elsewhere: the Visualizer's shapes, its other mode (light or dark) and its readability touches. */
+/* Robot Future: chamfered segments, like the lights of a readout, glowing. */
+[data-theme="scifi"] .met-bar {
+  --bar-r: 0; --bar-w: 0px; --bar-glow: 9px;
+  --bar-clip: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  --bar-line: color-mix(in srgb, var(--brass) 30%, transparent);
+}
+[data-theme="scifi"] .met-bar.strong { --bar-line: color-mix(in srgb, var(--c) 45%, transparent); }
+/* Robot Future in a white lab: pale steel, deep cyan and magenta. */
+[data-theme="scifi"][data-mode="light"] {
+  --viz-strong: #d0157e; --viz-beat: #0a8fa0; /* the Visualizer's lit beats: strong, other */
+  --bg: #e8f0f5; --bg-2: #f4f8fb; --panel: #ffffff; --panel-2: #dce8f0; --line: #8eb0c3;
+  --ink: #0a1a2b; --ink-2: #2b475b; --ink-3: #46617a;
+  --brass: #087583; --brass-2: #065e69; --red: #c0157a; --red-2: #d02a8b; --focus: #c0157a;
+  --on-accent: #ffffff; --glow: #d6e8f2;
+  --plate-a: #ffffff; --plate-b: #eaf2f7; --deep: #d3e6f1; --grid: rgba(8, 117, 131, 0.07);
+  --neon: rgba(8, 117, 131, 0.22); --pressed-ink: #ffffff;
+  --wave-bg: #ffffff; --wave-axis: rgba(8, 117, 131, 0.2); --wave-idle: rgba(43, 71, 91, 0.22);
+  --wave-wait: #065e69; --wave-rec: #c0157a; --wave-take: #9cc7d3; --wave-play: #087583; --wave-head: #0a1a2b; --wave-thumb: #5fa3b5;
+  --pressed: linear-gradient(180deg, #d02a8b, #c0157a); --shadow: rgba(10, 26, 43, 0.15); --backdrop: rgba(10, 26, 43, 0.35);
+  --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23087583' stroke-width='2.5' stroke-linecap='square'/%3E%3C/svg%3E");
+  color-scheme: light;
+}
 
 /* ================================================================ French Nouveau
    Sage, cream, muted gold and rose; organic asymmetric curves and the
@@ -1464,11 +1545,12 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="nouveau"] .bar h2, [data-theme="nouveau"] .sheet-head h3, [data-theme="nouveau"] .rec-state, [data-theme="nouveau"] .takes-title { font-weight: 400; letter-spacing: 0.04em; }
 [data-theme="nouveau"] .choice { border: 2px solid var(--brass-2); border-radius: var(--organic); background: linear-gradient(170deg, var(--leaf-a), var(--leaf-b)); }
 [data-theme="nouveau"] .choice:hover { border-color: var(--red-2); }
-[data-theme="nouveau"] .big-btn { background: var(--sage); color: var(--sage-ink); border: 2px solid var(--brass-2); border-radius: 30px 8px 30px 8px; box-shadow: none; }
-[data-theme="nouveau"] .big-btn[aria-pressed="true"] { background: var(--pressed); color: var(--ink); }
-[data-theme="nouveau"] .step { border: 2px solid var(--brass-2); background: var(--panel); color: var(--brass); border-radius: 26px 6px 26px 6px; }
-[data-theme="nouveau"] .chip, [data-theme="nouveau"] .select, [data-theme="nouveau"] .pill { border-color: var(--brass-2); background-color: var(--panel); border-radius: 18px 4px 18px 4px; }
-[data-theme="nouveau"] .chip[aria-checked="true"] { background: var(--sage); border-color: var(--sage); color: var(--sage-ink); }
+:where([data-theme="nouveau"]) .big-btn { background: var(--sage); color: var(--sage-ink); border: 2px solid var(--brass-2); border-radius: 30px 8px 30px 8px; box-shadow: none; }
+:where([data-theme="nouveau"]) .big-btn[aria-pressed="true"] { background: var(--pressed); color: var(--ink); }
+:where([data-theme="nouveau"]) .step { border: 2px solid var(--brass-2); background: var(--panel); color: var(--brass); border-radius: 26px 6px 26px 6px; }
+:where([data-theme="nouveau"]) .chip, :where([data-theme="nouveau"]) .select, :where([data-theme="nouveau"]) .pill { border-color: var(--brass-2); background-color: var(--panel); border-radius: 18px 4px 18px 4px; }
+:where([data-theme="nouveau"]) .tempo-list .tempo-more { border-radius: 18px 4px 18px 4px; }
+:where([data-theme="nouveau"]) .chip[aria-checked="true"] { background: var(--sage); border-color: var(--sage); color: var(--sage-ink); }
 [data-theme="nouveau"] .sheet { border: 2px solid var(--brass-2); border-radius: var(--organic); }
 [data-theme="nouveau"] .wave { border: 2px solid var(--brass-2); border-radius: var(--organic); }
 [data-theme="nouveau"] .take { border-radius: 28px 6px 28px 6px; background: var(--panel); border: 1px solid var(--line); }
@@ -1483,6 +1565,30 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="nouveau"] { --art-pop: saturate(1.35) contrast(1.12) drop-shadow(0 0 0.7px rgba(31, 40, 28, 0.85)) drop-shadow(0 4px 7px rgba(47, 58, 42, 0.3)); }
 [data-theme="nouveau"][data-mode="dark"] { --art-pop: saturate(1.3) contrast(1.08) brightness(1.06) drop-shadow(0 0 0.7px rgba(0, 0, 0, 0.9)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5)); }
 [data-theme="nouveau"] [data-asset] > img, [data-theme="nouveau"] [data-asset] > svg { filter: var(--art-pop); }
+
+/* ---- French Nouveau's own look elsewhere: the Visualizer's shapes, its other mode (light or dark) and its readability touches. */
+/* French Nouveau: the leaf shape of its chips. */
+[data-theme="nouveau"] .met-bar { --bar-r: 15px 4px 15px 4px; }
+/* French Nouveau in the evening: dark sage, cream, gold and rose. */
+[data-theme="nouveau"][data-mode="dark"] {
+  --viz-strong: #e2899f; --viz-beat: #9cc293; /* the Visualizer's lit beats: strong, other */
+  --bg: #1a201a; --bg-2: #212921; --panel: #283128; --panel-2: #313c30; --line: #8a7a4c;
+  --ink: #eee9d6; --ink-2: #d2d4bc; --ink-3: #adb299;
+  --brass: #c9a75a; --brass-2: #dcbf78; --red: #d0849a; --red-2: #dd9cad; --focus: #dd9cad;
+  --value: #e3c67f; --on-accent: #1a201a; --glow: #222b22;
+  --sage: #93ae8b; --sage-ink: #141a14; --leaf-a: #2b352b; --leaf-b: #212921;
+  --wave-bg: #283128; --wave-axis: rgba(238, 233, 214, 0.14); --wave-idle: rgba(210, 212, 188, 0.25);
+  --wave-wait: #93ae8b; --wave-rec: #dd9cad; --wave-take: #5d6650; --wave-play: #c9a75a; --wave-head: #eee9d6; --wave-thumb: #9aa883;
+  --pressed: linear-gradient(180deg, #313c30, #283128); --shadow: rgba(0, 0, 0, 0.45); --backdrop: rgba(5, 8, 5, 0.6);
+  --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23c9a75a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  color-scheme: dark;
+}
+[data-theme="nouveau"][data-mode="dark"] body {
+  background:
+    radial-gradient(120% 60% at 0% 100%, rgba(127, 154, 122, 0.18), transparent 60%) fixed,
+    radial-gradient(110% 55% at 100% 0%, rgba(208, 132, 154, 0.1), transparent 60%) fixed,
+    var(--bg);
+}
 
 /* ================================================================ Candy (id anime)
    Candy pink and sky blue on white, bold outlines, hard manga-panel
@@ -1517,11 +1623,11 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="anime"] .choice { border: 3px solid var(--ink); border-radius: 24px; background: var(--panel); box-shadow: 6px 6px 0 var(--ink); }
 [data-theme="anime"] .choice:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--brass); border-color: var(--ink); }
 [data-theme="anime"] .choice .label { font-weight: 800; }
-[data-theme="anime"] .big-btn { background: var(--brass); color: var(--on-accent); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); font-weight: 800; }
-[data-theme="anime"] .big-btn[aria-pressed="true"] { background: var(--pressed); color: var(--ink); }
-[data-theme="anime"] .step { border: 3px solid var(--ink); background: var(--brass-2); color: var(--ink); font-weight: 800; box-shadow: 3px 3px 0 var(--ink); }
-[data-theme="anime"] .chip, [data-theme="anime"] .select, [data-theme="anime"] .pill { border: 2px solid var(--ink); background-color: var(--panel); font-weight: 800; }
-[data-theme="anime"] .chip[aria-checked="true"] { background: var(--chip-bg); color: var(--chip-ink); border-color: var(--ink); }
+:where([data-theme="anime"]) .big-btn { background: var(--brass); color: var(--on-accent); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); font-weight: 800; }
+:where([data-theme="anime"]) .big-btn[aria-pressed="true"] { background: var(--pressed); color: var(--ink); }
+:where([data-theme="anime"]) .step { border: 3px solid var(--ink); background: var(--brass-2); color: var(--ink); font-weight: 800; box-shadow: 3px 3px 0 var(--ink); }
+:where([data-theme="anime"]) .chip, :where([data-theme="anime"]) .select, :where([data-theme="anime"]) .pill { border: 2px solid var(--ink); background-color: var(--panel); font-weight: 800; }
+:where([data-theme="anime"]) .chip[aria-checked="true"] { background: var(--chip-bg); color: var(--chip-ink); border-color: var(--ink); }
 [data-theme="anime"] .sheet { border: 3px solid var(--ink); border-radius: 24px; box-shadow: 8px 8px 0 var(--ink); }
 [data-theme="anime"] .wave { border: 3px solid var(--ink); border-radius: 20px; }
 [data-theme="anime"] .take { border: 2px solid var(--ink); background: var(--panel); box-shadow: 3px 3px 0 var(--ink); }
@@ -1531,6 +1637,34 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="anime"] .beats li.strong.on { background: var(--brass); }
 [data-theme="anime"] .rec-btn { border-color: var(--ink); background: var(--panel); box-shadow: 4px 4px 0 var(--ink); }
 [data-theme="anime"] .bpm-box input { font-weight: 800; }
+
+/* ---- Candy's own look elsewhere: the Visualizer's shapes, its other mode (light or dark) and its readability touches. */
+/* Candy: a bolder ink outline; the bar being played inked with a hard shadow, a sparkle on the strong beat. */
+[data-theme="anime"] .met-bar { --bar-w: 2.5px; --bar-line: color-mix(in srgb, var(--ink) 28%, transparent); --bar-glow: 0px; }
+[data-theme="anime"] .met-bar.strong { --bar-line: color-mix(in srgb, var(--c) 55%, transparent); }
+[data-theme="anime"] .met-shape::after { background: var(--c); border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+[data-theme="anime"] .met-bar.strong::after {
+  content: "\2726"; position: absolute; right: -4px; top: -9px; font-size: 14px; line-height: 1; color: #ffd84d;
+  -webkit-text-stroke: 1px var(--ink); opacity: var(--lit, 0); pointer-events: none;
+}
+/* Candy at night: grape and midnight, bright pink and sky blue. */
+[data-theme="anime"][data-mode="dark"] {
+  --viz-strong: #ff6fae; --viz-beat: #6fcdff; /* the Visualizer's lit beats: strong, other */
+  --bg: #1c1530; --bg-2: #251d3e; --panel: #2c2348; --panel-2: #3a2e5e; --line: #f6e8f2;
+  --ink: #fbeef6; --ink-2: #e2d3ef; --ink-3: #bcaed8;
+  --brass: #ff6fae; --brass-2: #6fcdff; --red: #ff6b9c; --red-2: #ff6b9c; --focus: #6fcdff;
+  --value: #7fd4ff; --on-accent: #1c1530; --glow: #2a1f4a;
+  --chip-bg: #ff6fae; --chip-ink: #1c1530;
+  --wave-bg: #2c2348; --wave-axis: rgba(251, 238, 246, 0.14); --wave-idle: rgba(226, 211, 239, 0.25);
+  --wave-wait: #6fcdff; --wave-rec: #ff6b9c; --wave-take: #6a4f86; --wave-play: #ff6fae; --wave-head: #fbeef6; --wave-thumb: #ff8fc0;
+  --pressed: #6fcdff; --shadow: rgba(0, 0, 0, 0.45); --backdrop: rgba(8, 5, 18, 0.6);
+  --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23fbeef6' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  color-scheme: dark;
+}
+:where([data-theme="anime"][data-mode="dark"]) .step { color: var(--on-accent); }
+/* Candy at night: Stop on the light blue it presses to. */
+:where([data-theme="anime"][data-mode="dark"]) .big-btn[aria-pressed="true"] { color: var(--on-accent); }
+[data-theme="anime"][data-mode="light"] :is(.pill.danger, .fb-field .req, .fb-req-note .req) { color: #c8105a; }
 
 /* ================================================================ Steam Punk
    Dark leather and mahogany, brass and copper plates with rivets, a
@@ -1568,11 +1702,12 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="steampunk"] .choice { border: 3px solid #b8743a; border-radius: 8px; background: var(--rivets), linear-gradient(160deg, var(--plate-a), var(--plate-b)); box-shadow: inset 0 0 0 1px #5a3a1e, 0 10px 24px var(--shadow); }
 [data-theme="steampunk"] .choice:hover { border-color: var(--brass-2); }
 [data-theme="steampunk"] .choice .label { color: var(--brass-2); }
-[data-theme="steampunk"] .big-btn { background: var(--rivets), linear-gradient(180deg, #f0c56b, #b8862f); border: 2px solid #5a3a1e; border-radius: 8px; color: #1c130c; box-shadow: 0 4px 0 #5a3a1e; }
-[data-theme="steampunk"] .big-btn[aria-pressed="true"] { background: var(--rivets), var(--pressed); }
-[data-theme="steampunk"] .step { border: 3px solid #b8743a; background: radial-gradient(circle at 35% 30%, #f0c56b, #c08f38); color: #1c130c; }
-[data-theme="steampunk"] .chip, [data-theme="steampunk"] .select, [data-theme="steampunk"] .pill { border-radius: 6px; border-color: #b8743a; background-color: var(--panel); }
-[data-theme="steampunk"] .chip[aria-checked="true"] { background: linear-gradient(180deg, #f0c56b, #b8862f); color: #1c130c; }
+:where([data-theme="steampunk"]) .big-btn { background: var(--rivets), linear-gradient(180deg, #f0c56b, #b8862f); border: 2px solid #5a3a1e; border-radius: 8px; color: #1c130c; box-shadow: 0 4px 0 #5a3a1e; }
+:where([data-theme="steampunk"]) .big-btn[aria-pressed="true"] { background: var(--rivets), var(--pressed); }
+:where([data-theme="steampunk"]) .step { border: 3px solid #b8743a; background: radial-gradient(circle at 35% 30%, #f0c56b, #c08f38); color: #1c130c; }
+:where([data-theme="steampunk"]) .chip, :where([data-theme="steampunk"]) .select, :where([data-theme="steampunk"]) .pill { border-radius: 6px; border-color: #b8743a; background-color: var(--panel); }
+:where([data-theme="steampunk"]) .chip[aria-checked="true"] { background: linear-gradient(180deg, #f0c56b, #b8862f); border-color: #b8743a; color: #1c130c; }
+:where([data-theme="steampunk"]) .tempo-list .tempo-more { border-radius: 6px; }
 [data-theme="steampunk"] .sheet { border: 3px solid #b8743a; border-radius: 8px; background: var(--rivets), var(--bg-2); }
 [data-theme="steampunk"] .wave { border: 3px solid #b8743a; border-radius: 8px; }
 [data-theme="steampunk"] .take { border-radius: 8px; border: 1px solid #7a5a2e; background: var(--rivets), var(--panel); padding-left: 14px; padding-right: 14px; }
@@ -1581,6 +1716,32 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="steampunk"] .beats li.strong.on { background: var(--red-2); border-color: var(--red-2); }
 [data-theme="steampunk"] .rec-btn { border: 5px solid #b8743a; background: radial-gradient(circle at 35% 30%, var(--plate-a), var(--plate-c)); }
 
+/* ---- Steam Punk's own look elsewhere: the Visualizer's shapes, its other mode (light or dark) and its readability touches. */
+/* Steam Punk: small brass plates in a copper rim, a rivet at each end; lit like a warm lamp. */
+[data-theme="steampunk"] .met-bar { --bar-r: 5px; --bar-w: 2px; --bar-line: color-mix(in srgb, #b8743a 42%, transparent); --bar-glow: 9px; }
+[data-theme="steampunk"] .met-shape {
+  background:
+    radial-gradient(circle at 7px 50%, color-mix(in srgb, #d9a44a 75%, transparent) 0 1.8px, transparent 2.4px),
+    radial-gradient(circle at calc(100% - 7px) 50%, color-mix(in srgb, #d9a44a 75%, transparent) 0 1.8px, transparent 2.4px),
+    color-mix(in srgb, #b8743a 8%, transparent);
+}
+/* Steam Punk in the drawing office: aged paper, brown ink, brass and copper. */
+[data-theme="steampunk"][data-mode="light"] {
+  --viz-strong: #c23d1f; --viz-beat: #9a6420; /* the Visualizer's lit beats: strong, other */
+  --bg: #eee2c8; --bg-2: #f7eedb; --panel: #fbf4e4; --panel-2: #e8d8b8; --line: #a9824a;
+  --ink: #2c1c0f; --ink-2: #4f3720; --ink-3: #6a5033;
+  --brass: #9a6420; --brass-2: #7c4f14; --red: #b23a22; --red-2: #c8452c; --focus: #7c4f14;
+  --on-accent: #1c130c; --glow: #f6ead0;
+  --plate-a: #fbf4e4; --plate-b: #efe2c6; --plate-c: #e2cfa8; --deep: #e8d4ab; --emboss: rgba(255, 250, 235, 0.8); --flame: #b5652a;
+  --wave-bg: linear-gradient(180deg, #fbf4e4, #f3e7cd); --wave-axis: rgba(154, 100, 32, 0.22); --wave-idle: rgba(79, 55, 32, 0.22);
+  --wave-wait: #4f3720; --wave-rec: #c8452c; --wave-take: #cfb48a; --wave-play: #9a6420; --wave-head: #2c1c0f; --wave-thumb: #b8743a;
+  --pressed: linear-gradient(180deg, #e7a26a, #b8743a); --shadow: rgba(60, 35, 10, 0.2); --backdrop: rgba(44, 28, 15, 0.4);
+  --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%237c4f14' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  color-scheme: light;
+}
+[data-theme="steampunk"][data-mode="light"] .brand em { color: #94501d; }
+/* Long titles and small display faces */
+[data-theme="steampunk"] .bar h2 { font-size: clamp(0.9rem, 4.2vw, 1.25rem); }
 
 /* ================================================================ Light and dark
    Each theme has the other mode too (the appearance setting; resolveMode in
@@ -1607,147 +1768,14 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   border-color: #e0cba8;
   box-shadow: 0 1px 2px rgba(90, 62, 28, 0.08), 0 6px 16px rgba(90, 62, 28, 0.07);
 }
-[data-theme="classic"][data-mode="light"] .big-btn { background: linear-gradient(180deg, #dcae55, #b37d1f); box-shadow: 0 3px 10px rgba(179, 125, 31, 0.22); }
-
-/* Art Deco by day: ivory and black lacquer trim, darker gold. */
-[data-theme="deco"][data-mode="light"] {
-  --viz-strong: #c42a35; --viz-beat: #a8841e; /* the Visualizer's lit beats: strong, other */
-  --bg: #f3eee2; --bg-2: #faf7ef; --panel: #fffdf7; --panel-2: #ebe4d1; --line: #b39a5a;
-  --ink: #15161c; --ink-2: #3b3a36; --ink-3: #5e5747;
-  --brass: #a08020; --brass-2: #75590f; --red: #a3262f; --red-2: #c0313b; --focus: #75590f;
-  --on-accent: #0b0c0f; --glow: #f6efd9;
-  --lacquer: #fffdf7; --lacquer-hi: #fbf6ea; --well: #fffdf7; --deep: #ede2c2;
-  --drop: rgba(80, 60, 20, 0.16); --toast: #15161c;
-  --wave-bg: #fffdf7; --wave-axis: rgba(160, 128, 32, 0.25); --wave-idle: rgba(59, 58, 54, 0.22);
-  --wave-wait: #3b3a36; --wave-rec: #c0313b; --wave-take: #cdb985; --wave-play: #a08020; --wave-head: #15161c; --wave-thumb: #b39a5a;
-  --pressed: linear-gradient(180deg, #2a2b33, #15161c); --shadow: rgba(80, 60, 20, 0.16); --backdrop: rgba(21, 22, 28, 0.4);
-  --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 17l-6-8h12z' fill='%23a08020'/%3E%3C/svg%3E");
-  color-scheme: light;
-}
-[data-theme="deco"][data-mode="light"] .big-btn[aria-pressed="true"] { background: var(--pressed); color: #f1d98a; }
-[data-theme="deco"][data-mode="light"] .toast { color: #f4ecd6; }
-[data-theme="deco"][data-mode="light"] .toast .pill { color: #75590f; background: #f4ecd6; }
-
-/* Vintage 60s after dark: espresso and walnut, the same orange, mustard and teal turned up. */
-[data-theme="sixties"][data-mode="dark"] {
-  --viz-strong: #ff7a3d; --viz-beat: #4fc9c2; /* the Visualizer's lit beats: strong, other */
-  --bg: #2a201a; --bg-2: #352820; --panel: #3e2f25; --panel-2: #4b392c; --line: #9a7a4e;
-  --ink: #f8ecd4; --ink-2: #e3cfac; --ink-3: #c9ae88;
-  --brass: #f07a43; --brass-2: #f2b54f; --red: #f0694f; --red-2: #ff7b5c; --focus: #57c9c3;
-  --value: #f2b54f; --on-accent: #22170f; --glow: #352820;
-  --teal: #45b4ae; --teal-ink: #14100c; --mustard: #f2b54f; --mustard-ink: #22170f; --cream: #3e2f25;
-  --dots: rgba(242, 181, 79, 0.1);
-  /* The same print at night: shadows are real shadows (near black, not teal
-     slabs that read as glowing edges), outlines a soft tan rather than
-     bright cream, buttons keep their dark printed outline, and the badges on
-     the stripes stay cream with dark ink, as by day. */
-  --outline: #c9a87a; --btn-line: #160f0a; --print: #0f0a06; --print-2: #0f0a06;
-  --card: linear-gradient(180deg, #4a382c, #3e2f25);
-  --badge: #fbefd8; --badge-ink: #2a201a;
-  --wave-bg: #3e2f25; --wave-axis: rgba(248, 236, 212, 0.14); --wave-idle: rgba(227, 207, 172, 0.25);
-  --wave-wait: #45b4ae; --wave-rec: #f07a43; --wave-take: #7a6046; --wave-play: #45b4ae; --wave-head: #f8ecd4; --wave-thumb: #c9a06a;
-  --pressed: #45b4ae; --shadow: rgba(0, 0, 0, 0.45); --backdrop: rgba(10, 6, 3, 0.6);
-  --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23f8ecd4' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  color-scheme: dark;
-}
-
-/* 18th Century by candlelight: dark walnut, parchment ink, gilt and claret. */
-[data-theme="baroque"][data-mode="dark"] {
-  --viz-strong: #e05a6e; --viz-beat: #e8bb5c; /* the Visualizer's lit beats: strong, other */
-  --bg: #1d1612; --bg-2: #261d17; --panel: #2e231c; --panel-2: #3a2c22; --line: #8a6c3a;
-  --ink: #f0e3c8; --ink-2: #d8c5a2; --ink-3: #b8a27e;
-  --brass: #c99a3f; --brass-2: #e0b660; --red: #a8384a; --red-2: #dc7d8e; --focus: #e0b660;
-  --value: #e6be6c; --on-accent: #fffaf0; --glow: #2c2119; --vignette: #110c09;
-  --wave-bg: #261d17; --wave-axis: rgba(240, 227, 200, 0.14); --wave-idle: rgba(216, 197, 162, 0.25);
-  --wave-wait: #d8c5a2; --wave-rec: #d0687a; --wave-take: #6b5638; --wave-play: #c99a3f; --wave-head: #f0e3c8; --wave-thumb: #a98c5c;
-  --pressed: linear-gradient(180deg, #3a2c22, #2e231c); --shadow: rgba(0, 0, 0, 0.5); --backdrop: rgba(8, 5, 3, 0.6);
-  --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23e0b660' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  color-scheme: dark;
-}
-[data-theme="baroque"][data-mode="dark"] .brand em { color: var(--red-2); }
-[data-theme="baroque"][data-mode="dark"] .step, [data-theme="baroque"][data-mode="dark"] .big-btn[aria-pressed="true"] { color: var(--red-2); }
-
-/* Robot Future in a white lab: pale steel, deep cyan and magenta. */
-[data-theme="scifi"][data-mode="light"] {
-  --viz-strong: #d0157e; --viz-beat: #0a8fa0; /* the Visualizer's lit beats: strong, other */
-  --bg: #e8f0f5; --bg-2: #f4f8fb; --panel: #ffffff; --panel-2: #dce8f0; --line: #8eb0c3;
-  --ink: #0a1a2b; --ink-2: #2b475b; --ink-3: #46617a;
-  --brass: #087583; --brass-2: #065e69; --red: #c0157a; --red-2: #d02a8b; --focus: #c0157a;
-  --on-accent: #ffffff; --glow: #d6e8f2;
-  --plate-a: #ffffff; --plate-b: #eaf2f7; --deep: #d3e6f1; --grid: rgba(8, 117, 131, 0.07);
-  --neon: rgba(8, 117, 131, 0.22); --pressed-ink: #ffffff;
-  --wave-bg: #ffffff; --wave-axis: rgba(8, 117, 131, 0.2); --wave-idle: rgba(43, 71, 91, 0.22);
-  --wave-wait: #065e69; --wave-rec: #c0157a; --wave-take: #9cc7d3; --wave-play: #087583; --wave-head: #0a1a2b; --wave-thumb: #5fa3b5;
-  --pressed: linear-gradient(180deg, #d02a8b, #c0157a); --shadow: rgba(10, 26, 43, 0.15); --backdrop: rgba(10, 26, 43, 0.35);
-  --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23087583' stroke-width='2.5' stroke-linecap='square'/%3E%3C/svg%3E");
-  color-scheme: light;
-}
-
-/* French Nouveau in the evening: dark sage, cream, gold and rose. */
-[data-theme="nouveau"][data-mode="dark"] {
-  --viz-strong: #e2899f; --viz-beat: #9cc293; /* the Visualizer's lit beats: strong, other */
-  --bg: #1a201a; --bg-2: #212921; --panel: #283128; --panel-2: #313c30; --line: #8a7a4c;
-  --ink: #eee9d6; --ink-2: #d2d4bc; --ink-3: #adb299;
-  --brass: #c9a75a; --brass-2: #dcbf78; --red: #d0849a; --red-2: #dd9cad; --focus: #dd9cad;
-  --value: #e3c67f; --on-accent: #1a201a; --glow: #222b22;
-  --sage: #93ae8b; --sage-ink: #141a14; --leaf-a: #2b352b; --leaf-b: #212921;
-  --wave-bg: #283128; --wave-axis: rgba(238, 233, 214, 0.14); --wave-idle: rgba(210, 212, 188, 0.25);
-  --wave-wait: #93ae8b; --wave-rec: #dd9cad; --wave-take: #5d6650; --wave-play: #c9a75a; --wave-head: #eee9d6; --wave-thumb: #9aa883;
-  --pressed: linear-gradient(180deg, #313c30, #283128); --shadow: rgba(0, 0, 0, 0.45); --backdrop: rgba(5, 8, 5, 0.6);
-  --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23c9a75a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  color-scheme: dark;
-}
-[data-theme="nouveau"][data-mode="dark"] body {
-  background:
-    radial-gradient(120% 60% at 0% 100%, rgba(127, 154, 122, 0.18), transparent 60%) fixed,
-    radial-gradient(110% 55% at 100% 0%, rgba(208, 132, 154, 0.1), transparent 60%) fixed,
-    var(--bg);
-}
-
-/* Candy at night: grape and midnight, bright pink and sky blue. */
-[data-theme="anime"][data-mode="dark"] {
-  --viz-strong: #ff6fae; --viz-beat: #6fcdff; /* the Visualizer's lit beats: strong, other */
-  --bg: #1c1530; --bg-2: #251d3e; --panel: #2c2348; --panel-2: #3a2e5e; --line: #f6e8f2;
-  --ink: #fbeef6; --ink-2: #e2d3ef; --ink-3: #bcaed8;
-  --brass: #ff6fae; --brass-2: #6fcdff; --red: #ff6b9c; --red-2: #ff6b9c; --focus: #6fcdff;
-  --value: #7fd4ff; --on-accent: #1c1530; --glow: #2a1f4a;
-  --chip-bg: #ff6fae; --chip-ink: #1c1530;
-  --wave-bg: #2c2348; --wave-axis: rgba(251, 238, 246, 0.14); --wave-idle: rgba(226, 211, 239, 0.25);
-  --wave-wait: #6fcdff; --wave-rec: #ff6b9c; --wave-take: #6a4f86; --wave-play: #ff6fae; --wave-head: #fbeef6; --wave-thumb: #ff8fc0;
-  --pressed: #6fcdff; --shadow: rgba(0, 0, 0, 0.45); --backdrop: rgba(8, 5, 18, 0.6);
-  --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23fbeef6' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  color-scheme: dark;
-}
-[data-theme="anime"][data-mode="dark"] .step { color: var(--on-accent); }
-
-/* Steam Punk in the drawing office: aged paper, brown ink, brass and copper. */
-[data-theme="steampunk"][data-mode="light"] {
-  --viz-strong: #c23d1f; --viz-beat: #9a6420; /* the Visualizer's lit beats: strong, other */
-  --bg: #eee2c8; --bg-2: #f7eedb; --panel: #fbf4e4; --panel-2: #e8d8b8; --line: #a9824a;
-  --ink: #2c1c0f; --ink-2: #4f3720; --ink-3: #6a5033;
-  --brass: #9a6420; --brass-2: #7c4f14; --red: #b23a22; --red-2: #c8452c; --focus: #7c4f14;
-  --on-accent: #1c130c; --glow: #f6ead0;
-  --plate-a: #fbf4e4; --plate-b: #efe2c6; --plate-c: #e2cfa8; --deep: #e8d4ab; --emboss: rgba(255, 250, 235, 0.8); --flame: #b5652a;
-  --wave-bg: linear-gradient(180deg, #fbf4e4, #f3e7cd); --wave-axis: rgba(154, 100, 32, 0.22); --wave-idle: rgba(79, 55, 32, 0.22);
-  --wave-wait: #4f3720; --wave-rec: #c8452c; --wave-take: #cfb48a; --wave-play: #9a6420; --wave-head: #2c1c0f; --wave-thumb: #b8743a;
-  --pressed: linear-gradient(180deg, #e7a26a, #b8743a); --shadow: rgba(60, 35, 10, 0.2); --backdrop: rgba(44, 28, 15, 0.4);
-  --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%237c4f14' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  color-scheme: light;
-}
-
+:where([data-theme="classic"][data-mode="light"]) .big-btn,
+:where([data-theme="classic"][data-mode="light"]) .big-btn[aria-pressed="true"] { background: linear-gradient(180deg, #dcae55, #b37d1f); box-shadow: 0 3px 10px rgba(179, 125, 31, 0.22); }
 
 /* ---------------------------------------------------------------- shared theme touches */
 /* Red text on a light page: the deeper red (Delete, required fields). */
 [data-mode="light"] .pill.danger, [data-mode="light"] .fb-field .req, [data-mode="light"] .fb-req-note .req { color: var(--red); }
 /* Classic by day: dark ink on its bright gold buttons (cream on gold was 2:1). */
-[data-theme="classic"][data-mode="light"] .big-btn { color: var(--ink); }
-/* Candy at night: Stop on the light blue it presses to. */
-[data-theme="anime"][data-mode="dark"] .big-btn[aria-pressed="true"] { color: var(--on-accent); }
-[data-theme="sixties"][data-mode="light"] :is(.pill.danger, .fb-field .req, .fb-req-note .req) { color: #b0331b; }
-[data-theme="anime"][data-mode="light"] :is(.pill.danger, .fb-field .req, .fb-req-note .req) { color: #c8105a; }
-[data-theme="deco"][data-mode="light"] .marking { color: #75590f; }
-[data-theme="sixties"][data-mode="light"] .brand em { color: var(--value); }
-[data-theme="steampunk"][data-mode="light"] .brand em { color: #94501d; }
+:where([data-theme="classic"][data-mode="light"]) .big-btn { color: var(--ink); }
 /* Theme tiles: Art Deco's and French Nouveau's faces are hairlines with one weight; drawn larger, with a fine outline to thicken them. */
 .theme-tile[data-theme="deco"] .tile-name, .theme-tile[data-theme="nouveau"] .tile-name { font-size: 1.22rem; -webkit-text-stroke: 0.5px currentColor; paint-order: stroke fill; }
 /* Slider tracks that show on light grounds */
@@ -1755,8 +1783,6 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-mode="light"] .slider::-moz-range-track { background: var(--line); opacity: 0.55; }
 /* Dropdown arrows in each theme's colour (--arrow in its block) */
 [data-theme] .select { background-image: var(--arrow); }
-/* Long titles and small display faces */
-[data-theme="steampunk"] .bar h2 { font-size: clamp(0.9rem, 4.2vw, 1.25rem); }
 [data-theme="baroque"] .choice .label, [data-theme="nouveau"] .choice .label { font-size: clamp(1.05rem, 4.4vw, 1.4rem); }
 
 /* Audio check */

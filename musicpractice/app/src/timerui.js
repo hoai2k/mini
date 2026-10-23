@@ -26,9 +26,9 @@ import { noteName } from './tuning.js';
 import { clock } from './droneui.js';
 import { hasArt, showArt, alignPendulum, placeWeight, swingOf } from './art.js';
 import { pendulumAngle, weightAt } from './metronome.js';
-import { PRESETS, TOOLS, CHIMES, SPEAKERS, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, newItem, loadTimer, saveTimer, customCount, CONFIRM_OVER, voiceGain, totalSeconds, RESTS, restSeconds, enabledItems, setKind, matchKind, cues, TimerRun, pictureFor, move, voiceLines, voiceUrl, chimeUrl } from './timer.js';
+import { PRESETS, TOOLS, CHIMES, SPEAKERS, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, newItem, loadTimer, saveTimer, customCount, CONFIRM_OVER, voiceGain, totalSeconds, RESTS, restSeconds, toolPlan, enabledItems, setKind, matchKind, cues, TimerRun, pictureFor, move, voiceLines, voiceUrl, chimeUrl } from './timer.js';
+import { $ } from './ui.js';
 
-const $ = (id) => document.getElementById(id);
 const TRASH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>';
 const PENCIL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg>';
 const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -936,26 +936,33 @@ export function setupTimer({ settings, tools, audio }) {
     tools.playback.setConfig(pb);
   }
   /**
+   * Carry out what the routine does with its tools at `moment` (toolPlan in
+   * timer.js decides; this only does it), for item `it`. Returns the plan.
+   */
+  function act(moment, { it = run?.item, user = false, speaks = false } = {}) {
+    const plan = toolPlan(moment, {
+      item: it,
+      on: Object.fromEntries(TOOLS.map((t) => [t, tools[t].on()])),
+      busy: tools.playback.busy(),
+      recording: tools.playback.status().state === 'recording',
+      user,
+      speaks,
+      droneAllowed: tools.drone.allowed(),
+      resting: !!run?.resting,
+    });
+    for (const t of plan.stop) tools[t].stop();
+    for (const t of plan.start) tools[t].start();
+    return plan;
+  }
+  /**
    * An item starts (or the routine is resumed): its settings go on the tools,
-   * and those it has on start while the rest stop; one already going carries
-   * on. A take on the go is let finish when the routine moves on by itself,
-   * but not when that is the player's doing (`user`: Skip). With `hold`,
-   * those it has that are not going wait (for the voice to finish): see
-   * afterVoice.
+   * and its tools start (waiting for the voice, with `hold`: see afterVoice)
+   * while the rest stop; a take on the go may be let finish (toolPlan 'go').
    */
   function startTools(it = run?.item, { user = false, hold = false } = {}) {
     if (!it) return;
     applyConfigs(it);
-    playbackLater = false;
-    for (const t of TOOLS) {
-      const want = it.tools[t] && (t !== 'drone' || tools.drone.allowed());
-      if (want && !hold && !tools[t].on()) tools[t].start();
-      if (!want && tools[t].on()) {
-        // A take on the go is let finish (recorded and played back) before the recorder goes off.
-        if (t === 'playback' && !user && tools.playback.busy()) playbackLater = true;
-        else tools[t].stop();
-      }
-    }
+    playbackLater = act('go', { it, user, speaks: hold }).letFinish;
     showCards();
   }
   /**
@@ -967,15 +974,14 @@ export function setupTimer({ settings, tools, audio }) {
   async function afterVoice(said, it) {
     // (A voice that never reports its end, its sound suspended, holds them no longer than VOICE_MAX.)
     if (!(await Promise.race([said, wait(VOICE_MAX).then(() => true)])) || run?.item !== it || run.paused || finishing) return;
-    for (const t of TOOLS) {
-      if (it.tools[t] && (t !== 'drone' || tools.drone.allowed()) && !tools[t].on()) tools[t].start();
-    }
+    act('voiced', { it });
     showCards();
   }
   let playbackLater = false; // the recorder goes off once its take is done
-  function stopTools(which = TOOLS) {
-    if (which.includes('playback')) playbackLater = false;
-    for (const t of which) tools[t].stop();
+  /** Pause, Stop, the end: every tool stops. */
+  function stopTools() {
+    playbackLater = false;
+    act('stop');
   }
 
   // The beats light as they are heard, while the cards are on screen.
@@ -1151,12 +1157,7 @@ export function setupTimer({ settings, tools, audio }) {
   /** A break: the next item's settings go on the tools (its cards show them), and every tool rests. */
   function restTools(it, { user = false } = {}) {
     applyConfigs(it);
-    playbackLater = false;
-    stopTools(['metronome', 'drone']);
-    if (tools.playback.on()) {
-      if (!user && tools.playback.busy()) playbackLater = true;
-      else tools.playback.stop();
-    }
+    playbackLater = act('rest', { it, user }).letFinish;
     showCards();
   }
 
@@ -1169,7 +1170,7 @@ export function setupTimer({ settings, tools, audio }) {
   let lastItem = null;
   function endWhenFree(done, user = false) {
     lastItem = done;
-    if (!user && tools.playback.on() && tools.playback.busy()) {
+    if (act('end', { it: done, user }).letFinish) {
       finishing = true;
       calm = 0;
       showCard('playback');
@@ -1179,8 +1180,7 @@ export function setupTimer({ settings, tools, audio }) {
     finish();
   }
   function finishingTick() {
-    const s = tools.playback.status().state;
-    if (s !== 'recording') stopTools(['metronome', 'drone']); // the take is in: let it be heard
+    act('finishing'); // once the take is in, the metronome and the drone stop so it is heard
     calm = tools.playback.busy() ? 0 : calm + 1;
     if (calm >= 3) finish();
   }
@@ -1205,7 +1205,7 @@ export function setupTimer({ settings, tools, audio }) {
 
   function tick() {
     if (!run) return;
-    if (playbackLater && !tools.playback.busy() && (run.resting || !run.item.tools.playback)) { playbackLater = false; tools.playback.stop(); }
+    if (playbackLater && !tools.playback.busy()) playbackLater = act('take-in').letFinish;
     if (finishing) finishingTick();
     else changes(run.tick(Date.now()));
     if (run) readout();

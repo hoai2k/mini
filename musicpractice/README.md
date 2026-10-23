@@ -112,8 +112,15 @@ and pendulum weight.
 A theme is three things: a `THEMES` entry in `app/src/settings.js` with its
 fonts and the mode it was designed in (the early script in `index.html` lists
 the ids and the dark ones too; a test checks they match), its colours, type and
-shapes in `app/styles.css` (`[data-theme="…"]`, with a
+shapes in `app/styles.css` (one section per theme holding all of it: its
+`[data-theme="…"]` block, its controls and Visualizer bars, and its
 `[data-theme="…"][data-mode="…"]` block for its other mode), and its images.
+A theme restyles the shared controls (`.pill`, `.chip`, `.select`,
+`.big-btn`, `.step`) through `:where([data-theme="…"])`, so its rule weighs
+no more than the control's own and a component's variant of a control still
+wins (the strong beats' Done button was once lost to every theme's pill
+style); where a theme wants a component's control its own way, it names that
+component (the note at the top of the themes in `styles.css`).
 A theme's own rules take their colours from its tokens (`--teal`, `--lacquer`,
 `--arrow` for the dropdown arrow and so on) rather than writing them in, so
 the other mode's block only has to change the tokens. Every image
@@ -812,6 +819,13 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
   breaks ("12:00 · 3 routines in all · 30 s breaks"). `TimerRun` in
   `app/src/timer.js` (`rest`, `resting`, `waiting`; events `rest` and
   `begin`), `RESTS`.
+- **What the tools do at each moment is decided in one place**:
+  `toolPlan(moment, state)` in `app/src/timer.js`, pure and tested, says
+  which tools start, which stop and whether a take on the go is let finish,
+  for an item starting or going on, the voice finishing, a break, the end,
+  the last take finishing, and Pause or Stop. `timerui.js` only carries the
+  plan out (`act`), so a change to how the routine treats its tools is a
+  change to that function and its test.
 - **Running, the routine is a shell around the tools.** **Start** swaps the
   set-up panel for a **compact header** (the item's picture to the left of
   its name, its time left, what is next, a progress bar, and Pause, Skip and Stop as round buttons) over an
@@ -871,7 +885,7 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
   back, and only then does the routine end (the header says *Finishing the
   last take*, and its card comes into view). A metronome or drone started
   from a card never replaces the audio engine while the mic is using it
-  (`soundCtx` in `main.js`), which would cut the recorder off. The Playback
+  (`soundCtx` in `metronomeui.js`), which would cut the recorder off. The Playback
   Recorder suspends that engine while a take plays back (it always has, so
   the phone leaves call mode), so the metronome and the drone pause under a
   take and carry on after it.
@@ -1030,7 +1044,7 @@ file, on purpose: the privacy page, the device details Send feedback attaches
   read off the limiter by an analyser (`output.js`), so a healthy level from
   a quiet phone shows the loss is after the app. **Export debug data** at the
   foot of Audio check saves all of it as JSON (shared on phones, downloaded
-  elsewhere, as takes are: `saveFile` in `main.js`). Nothing is sent unless
+  elsewhere, as takes are: `saveFile` in `ui.js`). Nothing is sent unless
   the person sends it; `privacy.html#debug-log` says so.
 - `app/privacy.html`: the privacy policy and terms, for the apps' paywall and
   store listings. `app/support.html`: the support page (a contact form into
@@ -1043,7 +1057,12 @@ file, on purpose: the privacy page, the device details Send feedback attaches
   Review rules, what's done, what's left for submission, and review notes.
 
 - `app/index.html`, `app/styles.css`, `app/src/`: the app (static ES
-  modules, no build step). `main.js` the screens, `metronome.js` the
+  modules, no build step). `main.js` the app around the screens (theme,
+  moving between screens, app settings and dialogs, keys, the routine's hold
+  on the tools, start-up); each screen its own module: `metronomeui.js` the
+  Metronome, `recorderui.js` the microphone (shared with the Tuner) and the
+  Playback Recorder, `tunerui.js`, `droneui.js` and `timerui.js` the rest,
+  and `ui.js` the small helpers they share. `metronome.js` the
   scheduler, sounds and pendulum, `recorder.js` the mic and take state
   machine, `capture-worklet.js` the mic tap, `detect.js` the music/noise
   detector and trimming, `waveform.js` the waveform views, `takes.js` saved
@@ -1090,6 +1109,45 @@ python3 musicpractice/design/source/build_requests.py --check
 musicpractice/publish.sh local/pages/musicpractice
 ```
 
+**Browser checks** (Chromium through Playwright, a few minutes, so on demand:
+before a push that changes the app's screens, styles or the routine), from
+`musicpractice/app`:
+
+```sh
+node test/browser/run.mjs           # all of them
+node test/browser/readability.mjs   # or one; --themes deco,scifi --modes light
+node test/browser/flows.mjs
+```
+
+- `readability.mjs` opens every screen and every sheet or dialog the way a
+  person does (27 views, `VIEWS`) in every theme in both modes, and checks
+  each piece of text: 4.5:1 against what is behind it (3:1 large), at least
+  12.5px. It found 143 failures the first time it ran, which the settings-
+  only check had never seen.
+- `flows.mjs` drives what a person does, by touch and by mouse: the routine
+  list (the edit pill, the total's tap, one row height, dragging from a
+  name, swiping off, items of their own and names that match a suggestion),
+  a routine running (tools waiting for the voice, carrying on or stopping,
+  a real 15-second break, Skip, pause when done), the metronome (+ and −,
+  a typed tempo, Start and Stop, common tempos, the dots' views, the swing,
+  3/4 and eighths, the sync bar, dragging the weight), strong beats heard as
+  they are set, the microphone with a player at it (a synthesized note
+  makes a take, which plays back and is kept after a reload, and the tuner
+  reads A3), and a saved theme that no longer exists.
+- `visual.mjs` pictures every still screen and sheet (25) in every theme
+  and mode, `--save <dir>` before a change to the styles and `--compare
+  <dir>` after: a refactor of `styles.css` should change nothing (a few
+  stray antialiased pixels are allowed), and pictures that differ are saved
+  beside the originals to look at. Animation is off, fonts and pictures are
+  waited for and canvases masked, so the same page draws the same picture.
+  Not part of `run.mjs` (it needs a picture from before).
+
+`lib.mjs` finds Playwright (node_modules, `/opt/node-tools`, or global),
+serves `app/` as it is (no build step), answers Google Fonts with the apps'
+bundled fonts (`mobile/fonts/`: the same fonts every run, no network) and
+opens pages in a theme and mode with a fake microphone (or a WAV of a
+player, `playerWav`).
+
 The iOS and Android apps (`mobile/`) aren't rebuilt or tested for ordinary
 changes to the web app; they pick the changes up at their next `npm run sync`.
 Build and test them when working on the apps themselves (`mobile/README.md`).
@@ -1114,7 +1172,7 @@ the Playback Recorder, in every theme, portrait and landscape.
 ## Leaving the app and coming back
 
 Phones suspend sound, pause media and cut the mic while the app is in the
-background. On return (`visibilitychange` in `app/src/main.js`):
+background. On return (`visibilitychange` in `app/src/recorderui.js`):
 
 - the AudioContext is resumed, so a metronome left running carries on (or
   on the next tap, if the browser wants one); the next Start gets a fresh

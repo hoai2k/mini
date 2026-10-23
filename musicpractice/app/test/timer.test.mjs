@@ -299,3 +299,38 @@ test('the break setting is kept', () => {
   assert.equal(loadTimer(base, s).rest, 45);
   assert.equal(loadTimer(base, mem()).rest, 30);
 });
+
+test("a routine's tools at each moment (toolPlan)", async () => {
+  const { toolPlan } = await import('../src/timer.js');
+  const item = (metronome, drone, playback) => ({ tools: { metronome, drone, playback } });
+  const on = (metronome, drone, playback) => ({ metronome, drone, playback });
+  const plan = (moment, s) => { const p = toolPlan(moment, s); return `+${p.start.join(',')} -${p.stop.join(',')}${p.letFinish ? ' wait' : ''}`; };
+  // An item starts: its tools start, the others stop, one on in both carries on.
+  assert.equal(plan('go', { item: item(true, false, true), on: on(false, true, false) }), '+metronome,playback -drone');
+  assert.equal(plan('go', { item: item(true, false, false), on: on(true, false, false) }), '+ -');
+  // While the voice is about to speak, what would start waits; what is dropped still stops at once.
+  assert.equal(plan('go', { item: item(true, false, false), on: on(false, true, false), speaks: true }), '+ -drone');
+  assert.equal(plan('voiced', { item: item(true, false, false), on: on(false, false, false) }), '+metronome -');
+  // The drone only where it is allowed (Pro in the apps).
+  assert.equal(plan('go', { item: item(false, true, false), on: on(false, false, false), droneAllowed: false }), '+ -');
+  // A take on the go is let finish when the routine moves on by itself, not on Skip.
+  assert.equal(plan('go', { item: item(true, false, false), on: on(false, false, true), busy: true }), '+metronome - wait');
+  assert.equal(plan('go', { item: item(true, false, false), on: on(false, false, true), busy: true, user: true }), '+metronome -playback');
+  assert.equal(plan('go', { item: item(true, false, false), on: on(false, false, true), busy: false }), '+metronome -playback');
+  // A break: everything rests, a take on the go is let finish.
+  assert.equal(plan('rest', { item: item(true, true, true), on: on(true, true, true), busy: true }), '+ -metronome,drone wait');
+  assert.equal(plan('rest', { item: item(true, true, true), on: on(true, true, true), busy: false }), '+ -metronome,drone,playback');
+  assert.equal(plan('rest', { item: item(true, true, true), on: on(true, true, true), busy: true, user: true }), '+ -metronome,drone,playback');
+  // The end: everything stops, unless a take is on the go (then it is let finish, the clicks stopping once it is recorded).
+  assert.equal(plan('end', { item: item(true, false, true), on: on(true, false, true), busy: true }), '+ - wait');
+  assert.equal(plan('end', { item: item(true, false, true), on: on(true, false, true), busy: true, user: true }), '+ -metronome,drone,playback');
+  assert.equal(plan('finishing', { recording: true }), '+ - wait');
+  assert.equal(plan('finishing', { recording: false }), '+ -metronome,drone wait');
+  // The take that was let finish is done: the recorder goes off if the item (or a break) doesn't want it.
+  assert.equal(plan('take-in', { item: item(false, false, false) }), '+ -playback');
+  assert.equal(plan('take-in', { item: item(false, false, true) }), '+ - wait');
+  assert.equal(plan('take-in', { item: item(false, false, true), resting: true }), '+ -playback');
+  // Pause and Stop.
+  assert.equal(plan('stop', {}), '+ -metronome,drone,playback');
+  assert.throws(() => toolPlan('bogus', {}));
+});

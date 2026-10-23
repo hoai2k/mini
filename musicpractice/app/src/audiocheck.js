@@ -8,11 +8,11 @@ import { freesMicForPlayback } from './recorder.js';
 import { reportedLatency, unlock } from './audio.js';
 import { playSamples } from './player.js';
 import { TEXT, rich } from './text.js';
+import { $ } from './ui.js';
 
 const A = TEXT.audioCheck;
 const R = A.report;
 
-const $ = (id) => document.getElementById(id);
 let ctl = null;
 
 /** A short rising chime, played the way takes are, to hear where sound goes. */

@@ -8,13 +8,13 @@
 import { isApp, platform, call, listen } from './native.js';
 import { REVENUECAT_KEYS, ENTITLEMENT, PRIVACY_URL, TERMS_URL, MANAGE_URL, PLAY_REDEEM_URL } from './pro-config.js';
 import { TEXT } from './text-config.js';
+import { $ } from './ui.js';
 
 const P = TEXT.paywall;
 
 const CACHE = 'musicpractice.pro'; // the last known answer, so Pro shows at once on launch (also read in index.html)
 const INELIGIBLE = 1; // RevenueCat's INTRO_ELIGIBILITY_STATUS_INELIGIBLE
 
-const $ = (id) => document.getElementById(id);
 
 function cached() {
   try { return localStorage.getItem(CACHE) === '1'; } catch { return false; }
