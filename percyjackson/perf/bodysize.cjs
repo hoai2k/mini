@@ -31,9 +31,7 @@
 // lists each failure and exits 1 if there is any.
 // Serves the repository on PERF_PORT (default 8765) if nothing is there yet.
 // As a module (check.cjs): run({ browser, base, page?, bootErrors?, only?,
-// check?, out?, kept? }) resolves to { ok, lines, summary, rows }; kept: the
-// rigs islands.cjs built and left in the page (window.__keptRigs, built the
-// same way: unmerged, at rest), measured instead of building each again.
+// check?, out? }) resolves to { ok, lines, summary, rows }.
 const fs = require('fs');
 const path = require('path');
 const util = require('util');
@@ -42,7 +40,7 @@ const { openWorkbench, watchErrors, reseed, cli } = require('./lib.cjs');
 const SPEC = path.resolve(__dirname, '../design/sizes.json');
 
 // in the workbench page: every model measured
-const PAGE = async ({ only, kept, percyRef = null }) => {
+const PAGE = async ({ only }) => {
   const THREE = await import('three/webgpu');
   const champ = await import('../js/entities/champions.js');
   const mons = await import('../js/entities/monsters.js');
@@ -123,18 +121,14 @@ const PAGE = async ({ only, kept, percyRef = null }) => {
     if (legs.length && !rig.isSerpent) { const w = new THREE.Vector3(); legH = Math.max(...legs.map((g) => g.getWorldPosition(w).y)); }
     return { legH, headH, allTop: all.max.y, allBot: all.min.y, allH: sa.y, bodyTop: body.isEmpty() ? 0 : body.max.y, bodyBot: body.isEmpty() ? 0 : body.min.y, bodyH: sb.y, bodyLong: Math.max(sb.x, sb.z), allLong: Math.max(sa.x, sa.z), float: rig.float ?? 0, parts, tris };
   };
-  // Percy, the yardstick (percyRef: one measured on another page, check.cjs's shards)
-  globalThis.__perfReseed?.();
-  const percy = percyRef ?? measure(models.buildHeroModel('percy'));
-  window.__percyRef = { bodyTop: percy.bodyTop, allH: percy.allH };
+  globalThis.__perfReseed?.();   // (PERF_SEED: lib.cjs reseed)
+  const percy = measure(models.buildHeroModel('percy'));
   const P = percy.bodyTop;
   const out = [];
   for (const it of window.__wb.items) {
     if (only.length && !only.includes(it.key)) continue;
     globalThis.__perfReseed?.();   // (PERF_SEED: lib.cjs reseed)
-    // (kept: the rig islands.cjs just built and measured, unmerged and at rest)
-    let rig = kept ? window.__keptRigs?.get(it.key) : null; if (rig) window.__keptRigs.delete(it.key);
-    if (!rig) try { rig = it.build(); } catch (e) { out.push({ group: it.group, key: it.key, name: it.name, error: String(e.message) }); continue; }
+    let rig; try { rig = it.build(); } catch (e) { out.push({ group: it.group, key: it.key, name: it.name, error: String(e.message) }); continue; }
     const m = measure(rig);
     const d = it.data || {};
     let sh = d.height, sr = d.radius;
@@ -177,13 +171,13 @@ function report(res, errs, { check: CHECK = false, out = null } = {}) {
 }
 
 // The page's raw results and its page errors (check.cjs shards this over pages: only, the keys of one shard)
-async function collect({ browser, base, page = null, bootErrors = [], only = [], kept = false, percyRef = null }) {
+async function collect({ browser, base, page = null, bootErrors = [], only = [] }) {
   const own = page ? null : await openWorkbench(browser, base);
   page = page ?? own.page;
   const w = watchErrors(page);
   try {
     await reseed(page);
-    const res = await page.evaluate(PAGE, { only: only ?? [], kept, percyRef });
+    const res = await page.evaluate(PAGE, { only: only ?? [] });
     return { res, errors: own ? own.errors : [...bootErrors, ...w.errors] };
   } finally { w.stop(); if (own) await own.page.close(); }
 }

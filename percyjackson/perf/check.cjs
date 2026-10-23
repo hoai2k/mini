@@ -3,23 +3,18 @@
 //
 //   NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/check.cjs
 //     [--only a,b] [--skip a,b] [--fast] [--json] [--port N] [--log dir]
-//     [--serial] [--verbose] [--shots dir]
+//     [--serial] [--verbose] [--shards N] [--shots dir]
 //
 // It serves the repository itself (Node's http, on a free port, stopped at
 // the end; --port N uses a server already on 127.0.0.1:N instead), launches
 // one Chromium and runs the checks in it, in lanes at once (--serial: one
 // after another), each lane its own page: the game (smoke); a blank page with
 // the workbench's import map (weapons, houndlegs, animlint); the model
-// workbench (props, rig); --shards N workbench pages (default 3) that split
-// the models between them for islands and bodysize; the shots page; and the
-// node tests and the design check as child processes. The render benchmark
-// (bench) runs last, alone, so its CPU times are not shared with the others.
-//
-// islands and bodysize both measure every workbench model unmerged and at
-// rest: on each shard islands builds its models once and leaves them in the
-// page, and bodysize measures those rigs instead of building its own (the
-// same build, the same rest pose), all against one Percy (measured on the
-// first shard). The rows are put back in the workbench's order.
+// workbench (props, rig); another (bodysize); --shards N workbench pages
+// (default 3) that split the models between them for islands, the slowest;
+// the shots page; and the node tests and the design check as child
+// processes. The render benchmark (bench) runs last, alone, so its CPU times
+// are not shared with the others.
 //
 // Each check is the module of its old script (smoke.cjs, weapons.cjs, ...;
 // each still runs on its own as before) and reports exactly what that script
@@ -40,7 +35,7 @@ const args = process.argv.slice(2);
 const opt = (k) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : null; };
 const list = (k) => (opt(k) ?? '').split(',').map((s) => s.trim()).filter(Boolean);
 const has = (k) => args.includes('--' + k);
-// islands and bodysize: how many workbench pages share the models (--shards N)
+// islands: how many workbench pages share the models (--shards N)
 const SHARDS = Math.max(1, +(opt('shards') ?? 3));
 
 // ---- the checks -------------------------------------------------------------
@@ -220,36 +215,33 @@ async function main() {
           if (on.has('rig')) await timed('rig', () => rigCheck(page, boot));
         });
       },
-      // islands (the slowest check) and bodysize: the workbench's models split
-      // over SHARDS workbench pages, each building its share once for both;
-      // the rows are put back in the workbench's order and reported as one
+      // bodysize: a workbench of its own (it switches the part merge off,
+      // page-wide, and its builds share the workbench's blob cache, so it
+      // starts from a fresh page as it does alone)
       sizes: async () => {
-        const ms = ['islands', 'bodysize'].filter((n) => on.has(n)); if (!ms.length) return;
-        const I = require('./islands.cjs'), B = require('./bodysize.cjs'), both = ms.length === 2;
-        const t = Date.now(), parts = [];
-        let keys = null, gotPercy;
-        // (bodysize measures every model against Percy: one Percy for all the shards, measured on the first)
-        const percy = new Promise((r) => { gotPercy = r; });
+        if (!on.has('bodysize')) return;
+        await onWorkbench(['bodysize'], (page, boot) => timed('bodysize', () => require('./bodysize.cjs').run({ browser, base, page, bootErrors: boot, check: true })));
+      },
+      // islands, the slowest check: the workbench's models split over SHARDS
+      // workbench pages (it builds every model afresh, its blob cache off, so
+      // a model's result doesn't hang on which models came before it), the
+      // rows put back in the workbench's order and reported as one
+      islands: async () => {
+        if (!on.has('islands')) return;
+        const I = require('./islands.cjs'), t = Date.now(), parts = [];
+        let keys = null;
         try {
           await Promise.all(Array.from({ length: SHARDS }, (_, k) => onWorkbench([], async (page, boot) => {
-            try {
-              const all = await page.evaluate(() => window.__wb.items.map((it) => it.key));
-              keys ??= all;
-              if (k === 0 && on.has('bodysize')) { await B.collect({ browser, base, page, only: ['\u0000percy only'] }); gotPercy(await page.evaluate(() => window.__percyRef)); }
-              const mine = all.filter((_, i) => i % SHARDS === k); if (!mine.length) return;
-              const part = { boot };
-              if (on.has('islands')) part.islands = await I.collect({ browser, base, page, only: mine, keep: both });
-              if (on.has('bodysize')) part.bodysize = await B.collect({ browser, base, page, only: mine, kept: both, percyRef: await percy });
-              parts.push(part);
-            } finally { if (k === 0) gotPercy(null); }
+            const all = await page.evaluate(() => window.__wb.items.map((it) => it.key));
+            keys ??= all;
+            const mine = all.filter((_, i) => i % SHARDS === k); if (!mine.length) return;
+            parts.push({ boot, ...(await I.collect({ browser, base, page, only: mine })) });
           })));
-        } catch (e) { gotPercy(null); for (const n of ms) await timed(n, async () => { throw e; }); return; }
-        const at = new Map(keys.map((k, i) => [k, i])), order = (a, b) => at.get(a.key) - at.get(b.key);
+        } catch (e) { await timed('islands', async () => { throw e; }, t); return; }
+        const at = new Map(keys.map((k, i) => [k, i]));
         const boot = [...new Set(parts.flatMap((p) => p.boot))];
-        const errs = (n) => [...boot, ...parts.flatMap((p) => p[n].errors.filter((e) => !boot.includes(e)))];
-        // (the two share their pages and builds: each one's time is the lane's)
-        if (on.has('islands')) await timed('islands', async () => I.report(parts.flatMap((p) => p.islands.res).sort(order), errs('islands'), { check: true }), t);
-        if (on.has('bodysize')) await timed('bodysize', async () => B.report({ percy: parts[0].bodysize.res.percy, rows: parts.flatMap((p) => p.bodysize.res.rows).sort(order) }, errs('bodysize'), { check: true }), t);
+        const errs = [...boot, ...parts.flatMap((p) => p.errors.filter((e) => !boot.includes(e)))];
+        await timed('islands', async () => I.report(parts.flatMap((p) => p.res).sort((a, b) => at.get(a.key) - at.get(b.key)), errs, { check: true }), t);
       },
       shots: async () => {
         if (!on.has('shots')) return;
@@ -261,7 +253,7 @@ async function main() {
         });
       },
     };
-    const order = ['sizes', 'game', 'models', 'wb', 'shots', 'proc'];
+    const order = ['islands', 'game', 'models', 'wb', 'sizes', 'shots', 'proc'];
     if (has('serial')) for (const l of order) await lanes[l]();
     else await Promise.all(order.map((l) => lanes[l]()));
     if (on.has('bench')) await timed('bench', () => require('./render-bench.cjs').run({ browser, base, modes: ['wb'] }));

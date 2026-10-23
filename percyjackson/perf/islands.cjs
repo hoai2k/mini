@@ -25,8 +25,8 @@
 // fangs on a jaw that is its own group.
 // Serves the repository on PERF_PORT (default 8765) if nothing is there yet.
 // As a module (check.cjs): run({ browser, base, page?, bootErrors?, only?,
-// check?, all?, out?, keep? }) resolves to { ok, lines, summary, rows }; keep:
-// leave each rig in the page (window.__keptRigs) for bodysize.cjs to measure.
+// check?, all?, out? }) resolves to { ok, lines, summary, rows }; collect()
+// returns the raw rows, for check.cjs to split the models over pages.
 const fs = require('fs');
 const path = require('path');
 const util = require('util');
@@ -36,7 +36,7 @@ const SPEC = path.resolve(__dirname, '../design/sizes.json');
 const GRID = +(process.env.ISLAND_GRID || 0.25), MIN = +(process.env.ISLAND_MIN || 2), FACE = process.env.ISLAND_N !== '26';
 
 // in the workbench page: every model's islands
-const PAGE = async ({ only, GRID, MIN, FACE, keep }) => {
+const PAGE = async ({ only, GRID, MIN, FACE }) => {
   const THREE = await import('three/webgpu');
   const chr = await import('../js/entities/character.js');
   (await import('../js/entities/charmat.js')).PART_MERGE.on = false;   // (each mesh as drawn)
@@ -172,8 +172,7 @@ const PAGE = async ({ only, GRID, MIN, FACE, keep }) => {
       }
     }
     out.push({ group: it.group, key: it.key, quad: !!(rig.isQuad || rig.isSerpent), islands: found });
-    if (keep) (window.__keptRigs ??= new Map()).set(it.key, rig);   // (bodysize.cjs measures it next)
-    else rig.root.traverse((o) => o.geometry?.dispose?.());
+    rig.root.traverse((o) => o.geometry?.dispose?.());
   }
   return out;
 };
@@ -205,13 +204,13 @@ function report(res, errs, { check: CHECK = false, all: ALL = false, out = null 
 }
 
 // The page's raw results and its page errors (check.cjs shards this over pages: only, the keys of one shard)
-async function collect({ browser, base, page = null, bootErrors = [], only = [], keep = false }) {
+async function collect({ browser, base, page = null, bootErrors = [], only = [] }) {
   const own = page ? null : await openWorkbench(browser, base);
   page = page ?? own.page;
   const w = watchErrors(page);
   try {
     await reseed(page);
-    const res = await page.evaluate(PAGE, { only: only ?? [], GRID, MIN, FACE, keep });
+    const res = await page.evaluate(PAGE, { only: only ?? [], GRID, MIN, FACE });
     return { res, errors: own ? own.errors : [...bootErrors, ...w.errors] };
   } finally { w.stop(); if (own) await own.page.close(); }
 }
