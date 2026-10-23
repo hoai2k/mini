@@ -286,3 +286,5 @@ Built-in image generation; prompts, references and sizing notes are recorded per
 | [ui-loot-kit](../../game/assets/ui-loot-kit.png) | [record](generation-2026-10-23/ui-loot-kit.json) |
 | [vox-gear-weapons-1](vox-gear-weapons-1.png) | [record](generation-2026-10-23/vox-gear-weapons-1.json) |
 | [vox-gear-armour-1](vox-gear-armour-1.png) | [record](generation-2026-10-23/vox-gear-armour-1.json) |
+| [vox-gear-weapons-2](vox-gear-weapons-2.png) | [record](generation-2026-10-23/vox-gear-weapons-2.json) |
+| [vox-gear-armour-2](vox-gear-armour-2.png) | [record](generation-2026-10-23/vox-gear-armour-2.json) |
