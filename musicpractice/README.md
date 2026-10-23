@@ -544,14 +544,42 @@ note changes. Tests check sine tones from 31 Hz to 1.3 kHz to within a cent,
 and instrument-like tones (strong overtones, a weak fundamental, odd
 harmonics only) to within 1.5 cents and in the right octave.
 
+### Intonation Exercises
+
+A quiet **Intonation Exercises** button under the tuner (no fill or
+shadow, an outlined icon in the theme's accent, so it doesn't compete with
+the tuner), set apart from Play a note by a rule and space (an icon, a line
+saying what it does, an arrow). It opens a small sheet with the two
+exercises, each a button of the same kind: **Test My Scale Intonation**
+and **Pure Intervals**.
+
+### Pure Intervals
+
+Against a held note, an interval is in tune when its frequencies make a
+simple ratio (a fifth 3:2, a major third 5:4): it then sounds still, where
+the piano's equal steps beat slowly. Those pure intervals differ from the
+piano's by a few cents, and by 14 to 16 for the thirds and sixths (a pure
+major third is 14 cents under the piano's, a minor third 16 over). String
+and wind players and singers tune to them over a drone.
+
+Chosen from Intonation Exercises, the tuner turns into the exercise: a bar
+over the gauge says what to do and holds the drone's note (− and + step it,
+which is the Drone's own note, `droneMidi`), **Play drone** (it plays with
+the Drone's instrument and volume) and **Done**. Every note is then judged
+against the pure interval it is nearest above (or below) the drone's note
+(`pureTarget` and the 5-limit `PURE_RATIOS` in `app/src/tuning.js`, in
+`test/tuning.test.mjs`): the needle, cents, hint and pitch trace are all
+about pure, and a line under the reading names the interval and how far
+pure is from the piano (*Perfect fifth · pure is 2 cents above the piano*).
+The instrument, strings, reference tone and the exercises button step aside
+while it is on. Done, or leaving the tuner, ends it and stops a drone it
+started. The bar suggests headphones: over a speaker the tuner also hears
+the drone.
+
 ### Test My Scale Intonation
 
-A quiet **Test My Scale Intonation** button under the tuner (no fill or
-shadow, an outlined icon in the theme's accent, so it doesn't compete with
-the tuner; it was behind `?scale` while in testing, a parameter now
-gone), a feature of its own set apart from Play a note by a
-rule and space (an icon, a line saying what it does, an arrow). It opens a
-sheet that explains it in three steps (press record, play a scale, stop
+The first of the Intonation Exercises (it was behind `?scale` while in
+testing, a parameter now gone). It opens a sheet that explains it in three steps (press record, play a scale, stop
 for 3 seconds) under a record button (the Playback Recorder's, so each
 theme draws it its own way). Pressed, it listens for the scale to begin
 (the Recorder's own start detection, a steady note): it pulses while

@@ -149,7 +149,7 @@ if (timerTile) $('choices').append(timerTile); // the newest button last
 function leave(name) {
   if (name === 'metronome') { stopMetronome(); closeSync(); }
   if (name === 'record') stopRecorder();
-  if (name === 'tuner') { stopTuner(); tuner.stopScale(); }
+  if (name === 'tuner') { stopTuner(); tuner.stopScale(); tuner.stopPure(); }
   if (name === 'drone') droneUI.stop();
   if (name === 'routine') timerUI?.leave();
   for (const d of document.querySelectorAll('dialog[open]')) d.close();
@@ -339,7 +339,7 @@ const {
 // ---------------------------------------------------------------- the microphone, the recorder and the tuner
 
 // The Tuner's screen (tunerui.js), and the mic it shares with the Playback Recorder (recorderui.js).
-const tuner = setupTuner({ settings, persist, chips });
+const tuner = setupTuner({ settings, persist, chips, drone: () => droneUI });
 const rec = setupRecorder({ settings, persist, tuner, screen: () => screen, routineRunning: () => !!timerUI?.running, routineItem: () => timerUI?.item ?? null, recordDuringPlayback });
 const {
   recVolume, listeningActive, engineStuck, restartListening, markNeedsTap,

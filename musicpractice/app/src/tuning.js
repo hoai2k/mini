@@ -164,3 +164,34 @@ export class PitchSmoother {
     this.values = [];
   }
 }
+
+/*
+ * Pure intervals (just intonation): against a held note (the drone), each
+ * interval in tune is a simple ratio of frequencies, which sounds still where
+ * the piano's equal steps beat. The 5-limit ratios, by semitones above the
+ * drone's note; a major third is 5:4, about 14 cents under the piano's.
+ */
+export const PURE_RATIOS = [[1, 1], [16, 15], [9, 8], [6, 5], [5, 4], [4, 3], [45, 32], [3, 2], [8, 5], [5, 3], [9, 5], [15, 8]];
+/** Each interval's pure size in cents above the root, within the octave. */
+export const PURE_CENTS = PURE_RATIOS.map(([a, b]) => 1200 * Math.log2(a / b));
+
+/**
+ * A pitch judged against the pure interval it is nearest above (or below) a
+ * root: `interval` 0-11 (semitones, within the octave), `octaves` up from the
+ * root (negative below), `cents` off the pure interval, and `shift`, how far
+ * the pure interval is from the piano's (cents; −13.7 for a major third).
+ */
+export function pureTarget(hz, rootMidi, a4 = 440) {
+  const exact = hzToMidi(hz, a4) - rootMidi; // semitones above the root
+  let best = null;
+  for (const s of [Math.floor(exact), Math.ceil(exact)]) {
+    const interval = ((s % 12) + 12) % 12;
+    const octaves = Math.floor(s / 12);
+    const target = octaves * 12 + PURE_CENTS[interval] / 100;
+    const cents = (exact - target) * 100;
+    if (!best || Math.abs(cents) < Math.abs(best.cents)) {
+      best = { interval, octaves, cents, shift: PURE_CENTS[interval] - interval * 100, midi: rootMidi + s };
+    }
+  }
+  return best;
+}

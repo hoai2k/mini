@@ -554,6 +554,20 @@ async function microphone() {
       return n > 50;
     }, 5000);
     c.ok(traced >= 0, 'the pitch trace draws the note');
+    // Intonation Exercises → Pure Intervals: against a D3 drone, A3 is a fifth, and a pure fifth is 2 cents wider than the piano's.
+    await p.click('#exercises-open');
+    c.ok(await p.isVisible('#scale-open') && await p.isVisible('#pure-open'), 'Intonation Exercises offers the scale test and Pure Intervals');
+    await p.click('#pure-open');
+    c.ok(await p.isVisible('#pure-bar') && !(await p.isVisible('#scale-test')), 'Pure Intervals puts its bar over the gauge');
+    for (let k = 0; k < 30 && (await p.textContent('#pure-root')) !== 'Drone D3'; k++) {
+      const midi = await p.evaluate(() => JSON.parse(localStorage.getItem('musicpractice.settings.v1')).droneMidi);
+      await p.click(midi > 50 ? '#pure-down' : '#pure-up');
+    }
+    c.ok(await p.textContent('#pure-root') === 'Drone D3', `the drone's note steps to D3 (${await p.textContent('#pure-root')})`);
+    const pureRead = await until(p, () => /Perfect fifth/.test(document.getElementById('tn-pure').textContent) && /^−[1-3] cents$/.test(document.getElementById('tn-cents').textContent), 15000);
+    c.ok(pureRead >= 0, `A3 over D3 reads as a fifth, a little flat of pure (${await p.textContent('#tn-pure')}; ${await p.textContent('#tn-cents')})`);
+    await p.click('#pure-done');
+    c.ok(!(await p.isVisible('#pure-bar')) && await p.isVisible('#scale-test'), 'Done goes back to the tuner as it was');
     if (process.env.SHOTS) await p.screenshot({ path: `${process.env.SHOTS}/tuner-trace.png` });
     // Back on the recorder, the take is still there (kept on the device).
     await p.goto(env.base + '#record');

@@ -81,3 +81,24 @@ test('smoothing follows a note, steadies it, and restarts on a new one', () => {
   assert.equal(s.push(440.5), 440.5);
   assert.equal(s.push(330), 330); // new note: starts again
 });
+
+test('pure intervals: judged against just ratios above the drone', async () => {
+  const { pureTarget, PURE_CENTS, midiToHz } = await import('../src/tuning.js');
+  assert.ok(Math.abs(PURE_CENTS[4] - 386.31) < 0.01); // 5:4
+  assert.ok(Math.abs(PURE_CENTS[7] - 701.96) < 0.01); // 3:2
+  const d3 = 50;
+  const root = midiToHz(d3);
+  // F#3 a pure major third above D3: in tune, 13.7 cents under the piano's.
+  const third = pureTarget(root * 5 / 4, d3);
+  assert.equal(third.interval, 4);
+  assert.equal(third.midi, 54);
+  assert.ok(Math.abs(third.cents) < 0.01);
+  assert.ok(Math.abs(third.shift + 13.69) < 0.01);
+  // The piano's F#3 reads 13.7 cents sharp of pure.
+  assert.ok(Math.abs(pureTarget(midiToHz(54), d3).cents - 13.69) < 0.01);
+  // A fifth an octave up, and a note below the root.
+  const fifth = pureTarget(root * 3, d3);
+  assert.deepEqual([fifth.interval, fifth.octaves, Math.round(fifth.cents)], [7, 1, 0]);
+  const below = pureTarget(root * 3 / 4, d3); // a fourth below = a fifth an octave down
+  assert.deepEqual([below.interval, below.octaves, Math.round(below.cents)], [7, -1, 0]);
+});

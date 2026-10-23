@@ -4,7 +4,7 @@
 // chosen instrument, and how far off it is, and plays reference tones.
 
 import { TEXT, setRich } from './text.js';
-import { detectPitch, describe, nearestString, noteName, midiToHz, TUNINGS, TRANSPOSE, A4_MIN, A4_MAX, PitchSmoother } from './tuning.js';
+import { detectPitch, describe, nearestString, noteName, midiToHz, pureTarget, TUNINGS, TRANSPOSE, A4_MIN, A4_MAX, PitchSmoother } from './tuning.js';
 import { playSamples } from './player.js';
 import { forPlayback } from './loudness.js';
 import { ScaleListener, resultTier, correctedRate, judgeNote, scaleRule, scoreOutOf10, celebrates, scoreText, SCORE_PARTS, LEVEL_IDS, MEASURES } from './scaletest.js';
@@ -48,7 +48,8 @@ export function referenceTone(hz, sec = 2.5, sampleRate = 44100) {
   return out;
 }
 
-export function setupTuner({ settings, persist, chips }) {
+/** `drone()`: the Drone's controls (droneui.js: toggle, step, stop, playing), for Pure Intervals. */
+export function setupTuner({ settings, persist, chips, drone = () => null }) {
   const body = $('tuner-body');
   const needle = $('needle');
   const buf = new Float32Array(WINDOW);
@@ -222,7 +223,64 @@ export function setupTuner({ settings, persist, chips }) {
     scale = null;
     if (sheet.dataset.step === 'listening') scaleStep('ready');
   }
+  /*
+   * Intonation Exercises: the button under the tuner opens a choice of Test
+   * My Scale Intonation (its sheet, below) and Pure Intervals. Pure Intervals
+   * turns the tuner itself: a bar over the gauge holds the drone's note (− and
+   * +, the Drone's own note) and a button to play it, and every note is judged
+   * against the pure interval above it (pureTarget in tuning.js), with its
+   * name and how far pure is from the piano under the reading. Done, or leaving
+   * the tuner, ends it, and stops a drone it started.
+   */
+  const exercises = $('exercises-sheet');
+  $('exercises-open').addEventListener('click', () => { stopTone(); exercises.showModal(); });
+  exercises.addEventListener('click', (e) => { if (e.target === exercises) exercises.close(); });
+  let pure = false;
+  let pureDrone = false; // Pure Intervals started the drone
+  function showPure() {
+    body.classList.toggle('pure', pure);
+    $('pure-bar').hidden = !pure;
+    const n = noteName(settings.droneMidi, { flats: settings.flats });
+    $('pure-root').textContent = TEXT.tuner.pure.root(`${n.name}${n.octave}`);
+    const on = !!drone()?.playing;
+    const btn = $('pure-drone');
+    btn.setAttribute('aria-pressed', String(on));
+    const label = on ? TEXT.tuner.pure.stop : TEXT.tuner.pure.play;
+    if (btn.textContent !== label) btn.textContent = label;
+    queueFit();
+  }
+  function startPure() {
+    pure = true;
+    stopTone();
+    reset();
+    showPure();
+  }
+  function stopPure() {
+    if (!pure) return;
+    pure = false;
+    if (pureDrone && drone()?.playing) drone().stop();
+    pureDrone = false;
+    reset();
+    showPure();
+  }
+  $('pure-open').addEventListener('click', () => { exercises.close(); startPure(); });
+  $('pure-done').addEventListener('click', stopPure);
+  $('pure-drone').addEventListener('click', () => {
+    const d = drone();
+    if (!d) return;
+    if (!d.playing) pureDrone = true;
+    d.toggle();
+    setTimeout(showPure, 50);
+  });
+  const stepRoot = (by) => {
+    drone()?.step(by);
+    reset();
+    showPure();
+  };
+  $('pure-down').addEventListener('click', () => stepRoot(-1));
+  $('pure-up').addEventListener('click', () => stepRoot(1));
   $('scale-open').addEventListener('click', () => {
+    exercises.close();
     scaleStep('ready');
     stopTone();
     reset(); // the tuner pauses while the sheet is up (receive), showing nothing
@@ -386,6 +444,12 @@ export function setupTuner({ settings, persist, chips }) {
 
   /** Where a pitch sits: the note (or string) it is nearest, and the cents off. */
   function place(hz) {
+    if (pure) {
+      // Against the pure interval above the drone's note (never a string).
+      const p = pureTarget(hz, settings.droneMidi, settings.a4);
+      const n = noteName(p.midi, { flats: settings.flats, transpose: settings.transpose });
+      return { midi: p.midi, cents: p.cents, string: -1, name: n.name, octave: n.octave, interval: p.interval, shift: p.shift };
+    }
     const t = tuning();
     if (t.strings) {
       const s = nearestString(hz, t.strings, settings.a4);
@@ -421,6 +485,10 @@ export function setupTuner({ settings, persist, chips }) {
       b.classList.toggle('near', !!r && Number(b.dataset.index) === r.string);
       b.classList.toggle('tuned', !!r && Number(b.dataset.index) === r.string && inTune);
     }
+    const pureLine = $('tn-pure');
+    pureLine.hidden = !pure;
+    const pureText = pure && r ? TEXT.tuner.pure.reading(TEXT.tuner.pure.intervals[r.interval], r.shift) : ' ';
+    if (pure && pureLine.textContent !== pureText) pureLine.textContent = pureText;
     if (r && !tuning().strings && r.midi !== lastNote && tone?.key !== 'ref') {
       // The reference button plays the concert pitch of the note shown.
       lastNote = r.midi;
@@ -435,6 +503,8 @@ export function setupTuner({ settings, persist, chips }) {
     if (Math.abs(target - angle) < 0.01) angle = target;
     needle.setAttribute('transform', `rotate(${angle.toFixed(2)} ${CX} ${CY})`);
     body.classList.toggle('held', !!reading && performance.now() - reading.at > STALE_MS);
+    // The drone button follows the drone (it can stop from elsewhere: the lock screen).
+    if (pure && $('pure-drone').getAttribute('aria-pressed') !== String(!!drone()?.playing)) showPure();
     drawTrace();
   }
 
@@ -545,6 +615,8 @@ export function setupTuner({ settings, persist, chips }) {
     receive,
     /** Leaving the tuner ends a scale test that is listening. */
     stopScale,
+    /** Leaving the tuner ends Pure Intervals (and a drone it started). */
+    stopPure,
     fit: queueFit,
     animate,
     /** Leaving the screen or the mic closing: stop any tone and clear the reading. */
