@@ -28,6 +28,10 @@ export const SUBDIVISIONS = [1, 2, 3, 4];
 const SUB_LEVEL = 0.2; // the clicks between the beats: well under the clipper's knee, so clearly quieter
 /** A soft beat (volume per beat): the weak click, this much as loud (the apps' mixers use the same). */
 export const SOFT_GAIN = 0.35;
+/** The second rhythm's click: the mid click, this much faster (so higher and shorter) and this loud (the apps' mixers use the same). */
+export const POLY = 6;
+export const POLY_RATE = 1.5;
+export const POLY_GAIN = 0.8;
 // Into the clipper: how hard the clicks are pushed. 6 makes the click's body
 // about 2.5 dB louder than the 2.4 it was at the same peak (more is hardly
 // louder, only harsher), so full volume is louder than it was, and
@@ -77,6 +81,11 @@ export class Metronome {
     this.recent = []; // beats scheduled, newest last: { time, beat, count, strength, muted }
     this.gap = null; // silent bars: { play, silent } bars, or null
     this.trainer = null; // the tempo trainer: { step, every, to }, or null
+    this.poly = 0; // the second rhythm: clicks across each bar, or 0
+    this.polyAt = 0; // its bar: when it starts, how long it is, the next click, and whether it is silent
+    this.polyLen = 0;
+    this.polyIdx = Infinity;
+    this.polyMuted = false;
     this.onTempo = null; // (bpm) when the trainer moves the tempo
     // Short noise for the woodblock knock and the click.
     const n = Math.round(ctx.sampleRate * 0.05);
@@ -102,10 +111,22 @@ export class Metronome {
     return 60 / this.bpm;
   }
 
-  /** Silent bars and the tempo trainer for this run ({ gap, trainer }, each or both null). */
-  setExercise({ gap = null, trainer = null } = {}) {
+  /** Silent bars, the tempo trainer and the second rhythm for this run ({ gap, trainer, poly }, each null or 0 if off). */
+  setExercise({ gap = null, trainer = null, poly = 0 } = {}) {
     this.gap = gap;
     this.trainer = trainer;
+    this.poly = poly || 0;
+  }
+
+  /** The second rhythm's clicks due before `until`. */
+  polyClicks(until) {
+    const n = this.poly;
+    while (n && this.polyIdx < n) {
+      const t = this.polyAt + (this.polyIdx * this.polyLen) / n;
+      if (t >= until) break;
+      if (!this.polyMuted) this.voice(t, POLY);
+      this.polyIdx++;
+    }
   }
 
   /** Is beat `count` in one of the silent bars? */
@@ -121,6 +142,7 @@ export class Metronome {
     this.count = 0;
     this.recent = [];
     this.next = this.ctx.currentTime + 0.08;
+    this.polyIdx = Infinity;
     this.startedAt = this.next;
     this.tick();
     this.timer.start();
@@ -147,6 +169,7 @@ export class Metronome {
       this.next += missed * this.period;
       this.beat = (this.beat + missed) % this.strengths.length;
       this.count += missed;
+      this.polyIdx = Infinity; // the second rhythm picks up at the next bar
     }
     while (this.next < until) {
       // The trainer moves the tempo at the start of every `every` bars.
@@ -155,8 +178,16 @@ export class Metronome {
         const bpm = trainerNext(this.bpm, t);
         if (bpm !== this.bpm) { this.bpm = bpm; this.onTempo?.(bpm); }
       }
+      this.polyClicks(this.next);
       const strength = this.strengths[this.beat] ?? 0;
       const muted = this.muted(this.count);
+      // The second rhythm divides the bar from its first beat.
+      if (this.beat === 0) {
+        this.polyAt = this.next;
+        this.polyLen = this.strengths.length * this.period;
+        this.polyIdx = 0;
+        this.polyMuted = muted;
+      }
       if (!muted) {
         this.voice(this.next, this.slots ? this.slots[this.beat * this.subdivision] ?? strength : strength);
         // Subdivisions: the quieter clicks between the beats (not beats themselves:
@@ -172,6 +203,7 @@ export class Metronome {
       this.beat = (this.beat + 1) % this.strengths.length;
       this.count++;
     }
+    this.polyClicks(until);
   }
 
   /** The beat being heard at context time `t`, or null before the first. */
@@ -200,14 +232,16 @@ export class Metronome {
   voice(t, strength) {
     if (strength === SILENT) return;
     const soft = strength === SOFT;
-    const kind = soft ? 0 : strength;
+    const poly = strength === POLY;
+    const kind = soft ? 0 : poly ? 1 : strength;
     const buf = this.rendered[this.sound]?.[kind];
     if (!buf) { this.synth(t, kind); return; }
     const s = this.ctx.createBufferSource();
     s.buffer = buf;
-    if (soft) {
+    if (poly) s.playbackRate.value = POLY_RATE;
+    if (soft || poly) {
       const g = this.ctx.createGain();
-      g.gain.value = SOFT_GAIN;
+      g.gain.value = soft ? SOFT_GAIN : POLY_GAIN;
       s.connect(g).connect(this.out);
     } else s.connect(this.out); // already through the clipper
     // On a whole sample: played from between two, a click is interpolated,

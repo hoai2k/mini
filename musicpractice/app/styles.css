@@ -284,6 +284,15 @@ dialog:focus { outline: none; }
    while it is drawn growing or shrinking into the other's box. These are
    where each ends up. */
 .met-visual.bars .beats { opacity: 0; pointer-events: none; }
+/* The second rhythm: a row of small diamonds just over the beat dots, evenly spread across their width. */
+.met-foot .poly-beats {
+  position: absolute; left: 0; right: 0; margin: 0; padding: 0; list-style: none;
+  bottom: calc(var(--dots) * 0.5 + 18px); height: 12px;
+}
+.met-foot .poly-beats[hidden], .met-visual.bars .poly-beats { display: none; }
+.met-visual.pulse .poly-beats { bottom: calc(var(--big) - 6px); }
+.poly-beats li { position: absolute; top: 0; left: var(--x, 0); margin-left: -6px; width: 9px; height: 9px; rotate: 45deg; border: 2px solid var(--ink-3); background: transparent; transition: background 0.08s, scale 0.08s; }
+.poly-beats li.on { background: var(--value, var(--brass-2)); border-color: var(--value, var(--brass-2)); scale: 1.3; }
 /* For a cross-zoom the dots are put at their new size at once (crossZoom
    carries the whole change, from what was drawn to what will be). */
 .met-visual.settle .beats, .met-visual.settle .beats li { transition: none !important; }

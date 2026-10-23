@@ -392,6 +392,29 @@ async function exercises(env) {
     return out;
   });
   c.ok(bars[0] > 0 && bars[1] === 0 && bars[2] > 0 && bars[3] === 0 && bars[4] > 0 && bars[5] === 0, `silent bars: clicks in every other bar (${bars})`);
+  // The second rhythm: 3 against 4 at 120 (a bar is 2 s): the higher click a third of a bar apart.
+  await p.click('#met-settings-btn');
+  await p.click('#gap-on');
+  await p.selectOption('#meter', '4/4');
+  await p.click('#poly-edit');
+  await p.click('#poly-chips .chip >> nth=1');
+  c.ok(await p.isChecked('#poly-on') && (await p.textContent('#poly-label')) === 'Second rhythm: 3 against 4', `choosing 3 turns the second rhythm on (${await p.textContent('#poly-label')})`);
+  await p.click('#poly-editor .sheet-head .icon-btn');
+  await p.click('#met-settings .sheet-head .icon-btn');
+  await p.fill('#bpm-input', '120');
+  await p.press('#bpm-input', 'Enter');
+  await p.evaluate(() => {
+    window.__poly = [];
+    const orig = AudioBufferSourceNode.prototype.start;
+    AudioBufferSourceNode.prototype.start = function (when = 0, ...rest) { if (this.playbackRate.value === 1.5) window.__poly.push(when); return orig.call(this, when, ...rest); };
+  });
+  await p.click('#met-toggle');
+  await p.waitForTimeout(4300);
+  const lit = await p.evaluate(() => document.querySelectorAll('#poly-beats li').length);
+  await p.click('#met-toggle');
+  const gaps = await p.evaluate(() => window.__poly.slice(0, 5).map((t, i, a) => (i ? Math.round((t - a[i - 1]) * 1000) : 0)).slice(1));
+  c.ok(gaps.length >= 3 && gaps.every((g) => Math.abs(g - 667) <= 2), `the second rhythm clicks every third of a bar (${gaps} ms)`);
+  c.ok(lit === 3, `three small dots show it (${lit})`);
   c.ok(!p.errors.length, `no page errors practising with the metronome (${p.errors})`);
   await p.close();
 }

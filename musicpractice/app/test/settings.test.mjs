@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { load, save, sanitize, clampBpm, beatStrengths, resolveMode, THEMES, DEFAULTS, barPlan, cleanPattern, TICKS, cleanLevels, cleanGap, cleanTrainer, trainerNext, SOFT, SILENT } from '../src/settings.js';
+import { load, save, sanitize, clampBpm, beatStrengths, resolveMode, THEMES, DEFAULTS, barPlan, cleanPattern, TICKS, cleanLevels, cleanGap, cleanTrainer, cleanPoly, trainerNext, SOFT, SILENT } from '../src/settings.js';
 import { pendulumAngle } from '../src/metronome.js';
 
 function memoryStorage() {
@@ -338,4 +338,11 @@ test('silent bars and the tempo trainer are kept within their ranges', () => {
   assert.equal(trainerNext(120, { step: 5, to: 100 }), 115); // down, toward a slower target
   const s = sanitize({ gap: { on: true, play: 3, silent: 1 }, trainer: { on: true, step: 3, every: 2, to: 90 }, beatLevels: { meter: '4/4', soft: [12] } });
   assert.deepEqual([s.gap, s.trainer, s.beatLevels], [{ on: true, play: 3, silent: 1 }, { on: true, step: 3, every: 2, to: 90 }, { meter: '4/4', soft: [12], silent: [] }]);
+});
+
+test('the second rhythm: 2 to 9 clicks across the bar', () => {
+  assert.deepEqual(cleanPoly(undefined), { on: false, n: 3 });
+  assert.deepEqual(cleanPoly({ on: true, n: 5 }), { on: true, n: 5 });
+  assert.deepEqual(cleanPoly({ on: true, n: 12 }), { on: true, n: 3 });
+  assert.deepEqual(sanitize({ poly: { on: true, n: 4 } }).poly, { on: true, n: 4 });
 });

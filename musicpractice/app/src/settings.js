@@ -93,6 +93,8 @@ export const DEFAULTS = Object.freeze({
   gap: { on: false, play: 2, silent: 2 },
   // Tempo trainer: from the tempo set, `step` beats per minute every `every` bars until `to`.
   trainer: { on: false, step: 2, every: 4, to: 140 },
+  // Second rhythm (a polyrhythm): `n` evenly spaced clicks across each bar, in a higher click (3 against 4 in 4/4).
+  poly: { on: false, n: 3 },
   tempoGenre: 'classical', // the tempo picker's style, which also names the tempo under the number
   tempoPicked: null, // the name last chosen in the picker (its id), which keeps its name for a tempo two names share
   savedTempos: [], // the player's own tempos (the tempo picker's Saved): [{ id, name, bpm, meter }] (cleanSavedTempos)
@@ -263,6 +265,7 @@ export function sanitize(raw) {
     beatLevels: cleanLevels(s.beatLevels, oneOf(s.meter, METERS.map((m) => m.id), DEFAULTS.meter)),
     gap: cleanGap(s.gap),
     trainer: cleanTrainer(s.trainer),
+    poly: cleanPoly(s.poly),
     ...metronomeLook(s),
     vizBars: oneOf(s.vizBars, VIZ_BARS, DEFAULTS.vizBars),
     droneMidi: clamp(Math.round(num(s.droneMidi, DEFAULTS.droneMidi)), 24, 71), // C1 to B4 (drone.js DRONE_MIN, DRONE_MAX)
@@ -377,6 +380,12 @@ export function cleanTrainer(v) {
     every: clamp(Math.round(num(v?.every, DEFAULTS.trainer.every)), 1, TRAINER_EVERY_MAX),
     to: clampBpm(num(v?.to, DEFAULTS.trainer.to)),
   };
+}
+
+/** The second rhythm: 2 to 9 clicks across each bar. */
+export const POLY_COUNTS = [2, 3, 4, 5, 6, 7, 8, 9];
+export function cleanPoly(v) {
+  return { on: v?.on === true, n: oneOf(v?.n, POLY_COUNTS, DEFAULTS.poly.n) };
 }
 
 /** The next tempo the trainer moves to from `bpm` (toward `to`, `step` at a time). */

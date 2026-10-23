@@ -33,10 +33,14 @@ public final class PracticeMixer {
 
     // ------------------------------------------------------------ metronome
 
-    private final float[][] clicks = new float[5][]; // weak, mid, strong, between the beats, soft (the weak one, quieter)
+    private final float[][] clicks = new float[7][]; // weak, mid, strong, between the beats, soft (the weak one, quieter), silent (none), the second rhythm's
     /** A soft beat (volume per beat): the weak click this much as loud (metronome.js SOFT_GAIN). */
     static final float SOFT_GAIN = 0.35f;
     static final int SOFT = 4, SILENT = 5; // click kinds past the strengths and between-the-beats (settings.js SOFT, SILENT)
+    /** The second rhythm's click: the mid one this much faster and this loud (metronome.js POLY, POLY_RATE, POLY_GAIN). */
+    static final int POLY = 6;
+    static final double POLY_RATE = 1.5;
+    static final float POLY_GAIN = 0.8f;
     private double clickSr = 48000;
     private boolean metRunning;
     private double bpm = 120;
@@ -54,6 +58,10 @@ public final class PracticeMixer {
     private double trainerStep, trainerTo; // the tempo trainer
     private int trainerEvery; // (0: off)
     private boolean lastMuted; // the last beat was in a silent bar (its subdivisions too)
+    private int polyN; // the second rhythm: clicks across each bar (0: off)
+    private double polyStart, polyLen; // its bar, in frames
+    private int polyIndex = Integer.MAX_VALUE; // its next click
+    private boolean polyMuted;
     private final int[] clickKind = new int[16];
     private final double[] clickPos = new double[16]; // in click samples
     private int clicksActive;
@@ -187,6 +195,9 @@ public final class PracticeMixer {
         float[] soft = new float[weak.length];
         for (int i = 0; i < weak.length; i++) soft[i] = weak[i] * SOFT_GAIN;
         clicks[SOFT] = soft;
+        float[] poly = new float[(int) (mid.length / POLY_RATE)];
+        for (int i = 0; i < poly.length; i++) poly[i] = (float) linear(mid, i * POLY_RATE) * POLY_GAIN;
+        clicks[POLY] = poly;
         clickSr = sampleRate;
     }
 
@@ -211,7 +222,8 @@ public final class PracticeMixer {
         nextBeat = frame + 0.05 * sr;
         subIndex = Integer.MAX_VALUE; // no subdivisions before the first beat
         stopFade = 0;
-        gapPlay = gapSilent = trainerEvery = 0; // until metronomeExercise says otherwise
+        gapPlay = gapSilent = trainerEvery = polyN = 0; // until metronomeExercise says otherwise
+        polyIndex = Integer.MAX_VALUE;
     }
 
     /**
@@ -219,6 +231,12 @@ public final class PracticeMixer {
      * trainer (`trainerStep` beats per minute every `trainerEvery` bars until `trainerTo`; 0 off).
      */
     public synchronized void metronomeExercise(int gapPlay, int gapSilent, double trainerStep, int trainerEvery, double trainerTo) {
+        metronomeExercise(gapPlay, gapSilent, trainerStep, trainerEvery, trainerTo, 0);
+    }
+
+    /** And the second rhythm: `polyN` clicks across each bar, from its first beat (0 off). */
+    public synchronized void metronomeExercise(int gapPlay, int gapSilent, double trainerStep, int trainerEvery, double trainerTo, int polyN) {
+        this.polyN = Math.max(0, Math.min(9, polyN));
         this.gapPlay = Math.max(0, gapPlay);
         this.gapSilent = Math.max(0, gapSilent);
         this.trainerStep = Math.max(0, trainerStep);
@@ -450,6 +468,13 @@ public final class PracticeMixer {
                 if (!lastMuted) {
                     startClick(slots.length == 0 ? strength : slots[(beat * subdivision) % slots.length], (now - nextBeat) * clickStep);
                 }
+                // The second rhythm divides the bar from its first beat.
+                if (beat == 0) {
+                    polyStart = nextBeat;
+                    polyLen = strengths.length * 60 / bpm * sr;
+                    polyIndex = 0;
+                    polyMuted = lastMuted;
+                }
                 lastBeat = nextBeat;
                 lastBeatIndex = beat;
                 subIndex = 1;
@@ -464,6 +489,13 @@ public final class PracticeMixer {
                     int k = lastBeatIndex * subdivision + subIndex;
                     if (!lastMuted) startClick(slots.length == 0 ? 3 : slots[k % slots.length], (now - at) * clickStep);
                     subIndex++;
+                }
+            }
+            if (metRunning && polyN > 0 && polyIndex < polyN) {
+                double at = polyStart + polyIndex * polyLen / polyN;
+                if (now >= at) {
+                    if (!polyMuted) startClick(POLY, (now - at) * clickStep);
+                    polyIndex++;
                 }
             }
             metGain += (metVolume - metGain) * metCoef;

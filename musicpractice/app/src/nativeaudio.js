@@ -106,13 +106,15 @@ export class NativeMetronome {
     this.pollTimer = 0;
     this.gap = null; // silent bars: { play, silent }, or null
     this.trainer = null; // the tempo trainer: { step, every, to }, or null
+    this.poly = 0; // the second rhythm: clicks across each bar, or 0
     this.onTempo = null; // (bpm) when the trainer moves the tempo
   }
 
-  /** Silent bars and the tempo trainer for this run, as Metronome.setExercise (the native mixer keeps them). */
-  setExercise({ gap = null, trainer = null } = {}) {
+  /** Silent bars, the tempo trainer and the second rhythm for this run, as Metronome.setExercise (the native mixer keeps them). */
+  setExercise({ gap = null, trainer = null, poly = 0 } = {}) {
     this.gap = gap;
     this.trainer = trainer;
+    this.poly = poly || 0;
     if (this.running) this.sendExercise();
   }
 
@@ -120,6 +122,7 @@ export class NativeMetronome {
     return run('metronomeExercise', {
       gapPlay: this.gap?.play ?? 0, gapSilent: this.gap?.silent ?? 0,
       trainerStep: this.trainer?.step ?? 0, trainerEvery: this.trainer?.every ?? 0, trainerTo: this.trainer?.to ?? 0,
+      polyN: this.poly,
     }).catch(() => {}); // an app from before this has no exercises: it plays on plainly
   }
 

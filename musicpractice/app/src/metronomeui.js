@@ -8,7 +8,7 @@ import { dlog, debugBeat } from './debuglog.js';
 import { Metronome, pendulumAngle, weightAt, bpmAtWeight, tapTempo, TAP_KEEP } from './metronome.js';
 import { NativeMetronome } from './nativeaudio.js';
 import { GENRES, GENRE_IDS, mainTempo, nameFor, genreRange } from './tempos.js';
-import { clampBpm, SAVED_MAX, METERS, SOUNDS, VIZ_BARS, TICKS, barPlan, cleanPattern, cleanLevels, meterOf, beatStrengths, BPM_MIN, BPM_MAX, SOFT, SILENT, GAP_MAX, TRAINER_STEP_MAX, TRAINER_EVERY_MAX } from './settings.js';
+import { clampBpm, SAVED_MAX, METERS, SOUNDS, VIZ_BARS, TICKS, barPlan, cleanPattern, cleanLevels, meterOf, beatStrengths, BPM_MIN, BPM_MAX, SOFT, SILENT, GAP_MAX, TRAINER_STEP_MAX, TRAINER_EVERY_MAX, POLY_COUNTS } from './settings.js';
 import { swingOf, placeWeight, weightFromPoint } from './art.js';
 import { tuckedVolume } from './tuckedvolume.js';
 import { $, chips, note } from './ui.js';
@@ -145,6 +145,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     pendulum.classList.add('resting');
     pendulum.style.transform = 'rotate(0deg)';
     for (const li of $('beats').children) { li.classList.remove('on'); li.style.removeProperty('--g'); }
+    for (const li of $('poly-beats').children) li.classList.remove('on');
     for (const b of $('met-bars').querySelectorAll('.met-bar')) b.style.setProperty('--lit', '0');
     $('metronome-art').style.setProperty('--lit', '0');
     $('met-toggle').setAttribute('aria-pressed', 'false');
@@ -177,11 +178,18 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
       if (!weightDrag) showWeight();
       showExercise();
     };
-    metronome.setExercise({ gap: exercising && settings.gap.on ? settings.gap : null, trainer });
+    metronome.setExercise({ gap: exercising && settings.gap.on ? settings.gap : null, trainer, poly: exercising ? polyNow() : 0 });
     showExercise();
   }
+  /** The second rhythm's clicks across the bar, if on (none with no bars). */
+  const polyNow = () => (settings.poly.on && meterOf(settings.meter).beats > 1 ? settings.poly.n : 0);
   function showExercise() {
     const X = TEXT.metronome;
+    const beats = meterOf(settings.meter).beats;
+    $('poly-label').textContent = beats > 1 ? X.poly.label(settings.poly.on, settings.poly.n, beats) : X.poly.noBars;
+    $('poly-on').checked = settings.poly.on;
+    $('poly-on').disabled = beats === 1;
+    showPolyDots();
     $('trainer-label').textContent = X.trainer.label(settings.trainer.on, settings.trainer);
     $('trainer-on').checked = settings.trainer.on;
     $('gap-label').textContent = X.gap.label(settings.gap.on, settings.gap);
@@ -189,6 +197,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     const parts = [];
     if (settings.trainer.on) parts.push(X.trainer.status(settings.bpm, settings.trainer.to));
     if (settings.gap.on) parts.push(X.gap.status(settings.gap));
+    if (polyNow()) parts.push(X.poly.status(settings.poly.n, beats));
     const line = $('met-exercise');
     const text = parts.join(' · ');
     if (line.textContent !== text) line.textContent = text;
@@ -203,6 +212,42 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
   $('trainer-on').addEventListener('change', () => { settings.trainer = { ...settings.trainer, on: $('trainer-on').checked }; exerciseChanged(); });
   $('gap-on').addEventListener('change', () => { settings.gap = { ...settings.gap, on: $('gap-on').checked }; exerciseChanged(); });
   $('met-exercise').addEventListener('click', () => $('met-settings').showModal());
+  $('poly-on').addEventListener('change', () => { settings.poly = { ...settings.poly, on: $('poly-on').checked }; exerciseChanged(); });
+  const syncPolyChips = chips($('poly-chips'), POLY_COUNTS.map((n) => ({ id: n, label: String(n) })), () => settings.poly.n, (n) => {
+    settings.poly = { on: true, n }; // choosing one turns it on
+    exerciseChanged();
+  });
+  $('poly-edit').addEventListener('click', () => {
+    const beats = meterOf(settings.meter).beats;
+    $('poly-help').textContent = TEXT.metronome.poly.help(beats);
+    for (const [i, b] of [...$('poly-chips').children].entries()) b.setAttribute('aria-label', TEXT.metronome.poly.option(POLY_COUNTS[i], beats));
+    syncPolyChips();
+    $('poly-editor').showModal();
+  });
+  /** The second rhythm's dots, over the beat dots (not with the Visualizer). */
+  function showPolyDots() {
+    const n = polyNow();
+    const row = $('poly-beats');
+    if (row.children.length !== n) row.replaceChildren(...Array.from({ length: n }, () => document.createElement('li')));
+    row.hidden = !n;
+    placePolyDots();
+  }
+  /**
+   * Where the bar's time runs, the beat dots mark it: beat b at the centre of
+   * dot b. A second-rhythm click k of n is at k/n of the bar along that line,
+   * so the first sits over beat 1 and the rest fall between the beats as they
+   * sound. Measured, since the dots change size with the view.
+   */
+  function placePolyDots() {
+    const poly = $('poly-beats').children;
+    const dots = $('beats').children;
+    if (!poly.length || dots.length < 2) return;
+    const foot = $('met-foot').getBoundingClientRect();
+    const centre = (el) => { const r = el.getBoundingClientRect(); return r.left + r.width / 2 - foot.left; };
+    const c0 = centre(dots[0]);
+    const pitch = centre(dots[1]) - c0;
+    for (let k = 0; k < poly.length; k++) poly[k].style.setProperty('--x', `${(c0 + (k / poly.length) * dots.length * pitch).toFixed(1)}px`);
+  }
 
   /** A row of − value + for one number of an exercise. */
   function numberRow(label, get, set, min, max) {
@@ -311,6 +356,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     settings.accentPattern = customAccents.get(settings.meter) || null;
     if (had || settings.accentPattern) settings.accent = true;
     metronomeConfigured();
+    exerciseChanged(); // the second rhythm is counted against the new bar
   }
   meterSelect.addEventListener('change', () => setMeter(meterSelect.value));
   const soundSelect = $('sound');
@@ -724,6 +770,16 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
         dots[i].classList.toggle('on', idx === i);
         dots[i].style.removeProperty('--g');
       }
+    }
+    // The second rhythm: the dot of its click just played, by where the bar has got to.
+    const poly = $('poly-beats').children;
+    if (poly.length) {
+      placePolyDots(); // the dots grow and shrink between views
+      const beats = metronome.strengths.length;
+      const at = beat && !beat.muted ? (beat.beat + Math.min(1, (now - beat.time) / metronome.period)) / beats : -1;
+      const k = at < 0 ? -1 : Math.floor(at * poly.length + 1e-6);
+      const since = at < 0 ? Infinity : (at * poly.length - k) * (beats * metronome.period) / poly.length;
+      for (let i = 0; i < poly.length; i++) poly[i].classList.toggle('on', i === k && since < 0.15);
     }
     // The Visualizer: read like music, left to right and down a row a bar. The
     // beat's shape lights and fades; with the trail, the beats played so far in
