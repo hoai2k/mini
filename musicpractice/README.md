@@ -1090,6 +1090,32 @@ python3 musicpractice/design/source/build_requests.py --check
 musicpractice/publish.sh local/pages/musicpractice
 ```
 
+**Browser checks** (Chromium through Playwright, a few minutes, so on demand:
+before a push that changes the app's screens, styles or the routine), from
+`musicpractice/app`:
+
+```sh
+node test/browser/run.mjs           # all of them
+node test/browser/readability.mjs   # or one; --themes deco,scifi --modes light
+node test/browser/flows.mjs
+```
+
+- `readability.mjs` opens every screen and every sheet or dialog the way a
+  person does (26 views, `VIEWS`) in every theme in both modes, and checks
+  each piece of text: 4.5:1 against what is behind it (3:1 large), at least
+  12.5px. It found 143 failures the first time it ran, which the settings-
+  only check had never seen.
+- `flows.mjs` drives what a person does, by touch and by mouse: the routine
+  list (the edit pill, the total's tap, one row height, dragging from a
+  name, swiping off, items of their own and names that match a suggestion),
+  a routine running (tools waiting for the voice, carrying on or stopping,
+  a real 15-second break, Skip, pause when done), strong beats heard as they
+  are set, and a saved theme that no longer exists.
+
+`lib.mjs` finds Playwright (node_modules, `/opt/node-tools`, or global),
+serves `app/` as it is (no build step) and opens pages in a theme and mode
+with a fake microphone.
+
 The iOS and Android apps (`mobile/`) aren't rebuilt or tested for ordinary
 changes to the web app; they pick the changes up at their next `npm run sync`.
 Build and test them when working on the apps themselves (`mobile/README.md`).
