@@ -331,7 +331,7 @@ and Greek myth. The full list is in `game/js/loot.js`; its rules are tested in
   elite, a boss or epic chest, a quest, the store), the player's level (no
   Heroic or Legendary at level 1, more as you level) and the difficulty
   (+25% Heroic and Legendary a step). The store never sells Legendaries.
-  The Fates' Thread: after 40 drops without a Legendary, the next drop from a
+  The Fates' Thread: after 30 drops without a Legendary, the next drop from a
   rare chest, an elite, a champion, a boss or an epic chest is Legendary.
 - **Power:** an item's power grows with the difficulty and your level. An item
   marked as a hero's favourite (★) gives that hero 10% more power.

@@ -105,7 +105,8 @@ test('chests and bosses: per player, harder places give rarer gear', () => {
   assert.ok(share(12) > share(1) + 0.1, 'more rare and legendary items in the Fields of Asphodel than the Strawberry Fields');
   const boss = rollChest(10, 'boss', { rng, level: 27 }), chest = rollChest(10, 'common', { rng, level: 27 });
   assert.ok(boss[0].power >= chest[0].power - 4, 'a boss’s first item is at least as strong as a chest’s');
-  assert.ok(['rare', 'unique'].includes(ITEMS.find((b) => b.id === boss[0].id).rarity));
+  // the boss table has no Commons: every item is Rare, Heroic (a roll on a Common or Rare base) or Legendary
+  for (let i = 0; i < 200; i++) for (const it of rollChest(10, 'boss', { rng, level: 27 })) assert.notEqual(itemTier(it), 'common', 'a boss chest never gives a Common');
 });
 
 // ---------------------------------------------------------------- the gear curve
