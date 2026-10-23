@@ -1,0 +1,28 @@
+{
+  "id": "ui-loot-kit",
+  "group": "Round 6 \u00b7 Loot: item icons and pickup kit (loaded by the game)",
+  "title": "Loot kit: rarity frames, badges, beam and drachmas",
+  "size": "2048 \u00d7 1024",
+  "dest": "game",
+  "references": [
+    "vox-key",
+    "vox-hud",
+    "icons-weapons-1"
+  ],
+  "use": "Inventory tile frames per rarity, the NEW badge, the upgrade arrows, the loot beam and ground glint, and the drachma pickups (loot-design.md, pickup feedback).",
+  "prompt": "A game interface kit sheet in the blocky voxel style of Minecraft Dungeons, laid out in a clean grid with generous space between elements. Top row: five empty square inventory tile frames, chunky bevelled pixel-art borders with an inner glow: plain parchment grey (common), turquoise (rare), violet (heroic), orange-gold (legendary) and gold with tiny radiating sparkles (blessed); the orange-gold one has small Greek-key corners. Second row: a small rounded yellow badge with a white star burst (no letters), a bold green upward arrow and a red downward arrow in chunky pixel art, a gold star (favourite), and a wide ribbon banner in orange and gold for a legendary find (left blank). Third row: a tall soft vertical light beam texture fading to transparent at the top, drawn in white so it can be tinted; a round ground glint ring of light, white; a four-point twinkle sparkle sprite, white. Bottom row: one golden drachma coin (an owl stamped on it) in voxel style, a small stack of five drachmas, and a bulging coin pouch. Flat solid magenta #FF00FF background with no gradient or shadow so it can be keyed out. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.",
+  "generation_prompt": "Use case: stylized-concept. Generate a new game asset sheet. Attached images are references in this order: vox-key, vox-hud, icons-weapons-1. vox-key establishes 3D voxel construction and palette; vox-hud establishes the game aesthetic only, do not copy its background or borders. Other sheets establish consistent subjects and materials.\nA game interface kit sheet in the blocky voxel style of Minecraft Dungeons, laid out in a clean grid with generous space between elements. Top row: five empty square inventory tile frames, chunky bevelled pixel-art borders with an inner glow: plain parchment grey (common), turquoise (rare), violet (heroic), orange-gold (legendary) and gold with tiny radiating sparkles (blessed); the orange-gold one has small Greek-key corners. Second row: a small rounded yellow badge with a white star burst (no letters), a bold green upward arrow and a red downward arrow in chunky pixel art, a gold star (favourite), and a wide ribbon banner in orange and gold for a legendary find (left blank). Third row: a tall soft vertical light beam texture fading to transparent at the top, drawn in white so it can be tinted; a round ground glint ring of light, white; a four-point twinkle sparkle sprite, white. Bottom row: one golden drachma coin (an owl stamped on it) in voxel style, a small stack of five drachmas, and a bulging coin pouch. Flat solid magenta #FF00FF background with no gradient or shadow so it can be keyed out. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.\nOutput PNG at 2048 \u00d7 1024 pixels. Follow the exact grid and item order in the request; keep every icon isolated with even cell padding.",
+  "attached_references": [
+    "vox-key",
+    "vox-hud",
+    "icons-weapons-1"
+  ],
+  "tool": "built-in image_gen",
+  "width": 2048,
+  "height": 1024,
+  "native_dimensions": [
+    1774,
+    887
+  ],
+  "sizing": "Lanczos resize to requested dimensions, no crop; original retained outside repository."
+}
