@@ -2037,6 +2037,28 @@ html.paging { overflow: hidden; }
 .routine-pick span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .routine-pick svg { flex: none; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .routine-pick:hover { background: var(--panel-2); }
+/* The practice log: a quiet line under the routine, and its sheet (logui.js). */
+.practice-log-link { align-self: center; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-top: 10px; padding: 6px 12px; border: 0; border-radius: 999px; background: none; color: var(--ink-2); font: 600 0.92rem var(--ui); }
+.practice-log-link:hover { background: var(--panel-2); color: var(--ink); }
+.practice-log-link svg { flex: none; width: 18px; height: 18px; }
+.practice-log-link .log-flame { fill: var(--brass); }
+.practice-log-link .log-chev { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; width: 16px; height: 16px; }
+#routine.running .practice-log-link { display: none; }
+.log-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.log-stats p { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 4px; border-radius: 12px; background: var(--panel); text-align: center; }
+.log-stats strong { font: 700 clamp(1.02rem, 4.6vw, 1.35rem)/1.1 var(--display); color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.log-stats span { color: var(--ink-3); font-weight: 600; font-size: 0.82rem; }
+.log-bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; height: 120px; margin: 14px 0 4px; }
+.log-bar { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px; min-height: 0; }
+.log-bar-fill { width: min(100%, 26px); min-height: 3px; border-radius: 6px 6px 2px 2px; background: var(--brass); }
+.log-bar.empty .log-bar-fill { background: var(--line); }
+.log-bar-time { color: var(--ink-2); font-size: 0.75rem; font-weight: 700; font-variant-numeric: tabular-nums; min-height: 1em; }
+.log-bar-day { color: var(--ink-3); font-size: 0.78rem; font-weight: 700; }
+.log-bar.today .log-bar-day { color: var(--ink); }
+.log-heading { margin: 14px 0 6px; font: 700 1rem var(--display); }
+.log-days { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.log-days li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 2px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.log-days li span:last-child { color: var(--ink-2); font-weight: 700; }
 .routine-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .routine-row { display: flex; align-items: center; gap: 4px; min-height: 52px; }
 .routine-use { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--ink); text-align: left; }

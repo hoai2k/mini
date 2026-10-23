@@ -29,6 +29,7 @@ import { initPro, isPro, onProChange, requirePro, openPaywall } from './pro.js';
 import { FREE_THEME } from './pro-config.js';
 import { nativeAudio, NativeDrone, onNativeStopped } from './nativeaudio.js';
 import { setupTimer } from './timerui.js';
+import { setupLog } from './logui.js';
 import { playChime, playClips, loadClip } from './timer.js';
 import { setupPager } from './pager.js';
 
@@ -166,7 +167,7 @@ function enter(name) {
   if (name === 'drone') droneUI.fit();
   if (name === 'record') checkRecorderMic(); // it starts off: the record button begins the cycle
   if (name === 'tuner') { startTuner(); tuner.fit(); }
-  if (name === 'routine') { if (!rec.recorder?.holdsMic) setSession('playback'); timerUI?.enter(); }
+  if (name === 'routine') { if (!rec.recorder?.holdsMic) setSession('playback'); timerUI?.enter(); practiceLog?.refresh(); }
   if (name === 'home') layoutHome();
   if (name === 'drone') {
     // Like the metronome, the drone doesn't use the mic.
@@ -391,6 +392,7 @@ const droneUI = setupDrone({
  * Recorder on and off, each running with its own settings (timerui.js).
  */
 let timerUI = null;
+let practiceLog = null; // the practice log (logui.js), once set up below
 let pager = null;
 let timerDrone = false; // the routine's Drone card started the drone
 let timerPlayback = false; // the routine's Playback card turned the recorder on
@@ -500,6 +502,12 @@ const timerAudio = {
   },
 };
 timerUI = setupTimer({ settings, tools: routineTools, audio: timerAudio });
+
+// The practice log (logui.js): time counts while something is being practised with.
+practiceLog = setupLog({
+  active: () => !!met.metronome?.running || !!droneUI.playing || timerUI.practising
+    || ['waiting', 'recording'].includes(rec.recorder?.state),
+});
 pager = setupPager({
   home: $('home'),
   timer: $('routine'),

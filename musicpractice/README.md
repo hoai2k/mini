@@ -768,6 +768,17 @@ are main.js's, `routineTools`), `app/src/pager.js` (the second page).
   Undo while the sheet is open; the last set can't be deleted). A routine
   saved before there were sets becomes "My set". `items` is still saved
   beside the sets (the chosen set's), for an earlier version reading it.
+- **Practice log**: a quiet line under the list ("🔥 3-day streak · 1 h 59
+  min in the last 7 days ›", hidden while a routine runs) opens it: days in
+  a row, the last 7 days, today, a bar for each of the last 7 days (minutes
+  over each), and the days practised. Time counts while the metronome or
+  drone plays, the Playback Recorder listens or records, or a routine runs
+  (not paused), once however many are on; a day counts toward a streak from
+  a minute, and a streak runs to today, or to yesterday until today is
+  practised. `practicelog.js` (pure, `test/practicelog.test.mjs`) keeps
+  seconds per local calendar day in localStorage (400 days); `logui.js`
+  ticks every 5 s and adds the time since the last tick, at most 65 s (a
+  phone asleep in a pocket isn't practice).
 - **Takes named after the routine**: a take the Playback card makes while a
   routine runs is named after the item being practised, numbered on from
   takes already named so ("Scales 1", "Scales 2"; `routineTakeName` in
@@ -1097,12 +1108,12 @@ file, on purpose: the privacy page, the device details Send feedback attaches
   moving between screens, app settings and dialogs, keys, the routine's hold
   on the tools, start-up); each screen its own module: `metronomeui.js` the
   Metronome, `recorderui.js` the microphone (shared with the Tuner) and the
-  Playback Recorder, `tunerui.js`, `droneui.js` and `timerui.js` the rest,
+  Playback Recorder, `tunerui.js`, `droneui.js`, `timerui.js` and `logui.js` (the practice log) the rest,
   and `ui.js` the small helpers they share. `metronome.js` the
   scheduler, sounds and pendulum, `recorder.js` the mic and take state
   machine, `capture-worklet.js` the mic tap, `detect.js` the music/noise
   detector and trimming, `waveform.js` the waveform views, `takes.js` saved
-  takes, `settings.js` settings and themes, `audio.js` the shared
+  takes, `practicelog.js` the practice log's days and streaks, `settings.js` settings and themes, `audio.js` the shared
   AudioContext, `art.js` theme art and pendulum anchors, `standins.js` each
   theme's drawn stand-ins. `player.js` take playback through an `<audio>` element,
   `wav.js` the WAV encoding it uses, `mp3.js` and `mp3-worker.js` MP3

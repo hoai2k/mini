@@ -1428,6 +1428,8 @@ export function setupTimer({ settings, tools, audio }) {
     /** A tool changed elsewhere (the Drone's note, say): show it. */
     refresh: () => { if (run) showCards(); },
     get running() { return !!run; },
+    /** A routine is going and not paused (practice, for the log). */
+    get practising() { return !!run && !run.paused && !run.waiting; },
     /** The name of the item being practised, while a routine runs (takes are named after it). */
     get item() { return run ? label(run.item) : null; },
   };

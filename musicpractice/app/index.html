@@ -576,6 +576,8 @@
         <ol class="timer-list" id="timer-list"></ol>
         <p class="help timer-empty" id="timer-empty" data-text="timer.empty" hidden></p>
         <button class="pill timer-add" id="timer-add" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span data-text="timer.add"></span></button>
+        <!-- The practice log (logui.js): its streak and week, opening the log. -->
+        <button class="practice-log-link" id="log-open" type="button" aria-haspopup="dialog"><svg class="log-flame" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.2 1-3.6 2-4.5.2 1.6 1 2.6 2 3 0-3 .3-5.6 1-8.5z"/></svg><span id="log-summary"></span><svg class="log-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
         <!-- An item's menu (a right click): Rename, Turn off or on, Delete. -->
         <div class="titem-menu" id="titem-menu" role="menu" hidden></div>
         <p class="timer-toast" id="timer-toast" role="status" aria-live="polite" hidden><span id="timer-toast-text"></span> <button type="button" class="link-btn" id="timer-undo" data-text="timer.undo"></button></p>
@@ -594,6 +596,22 @@
             <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
             <button type="button" class="pill open-theme" data-text="common.themeButton"></button>
           </div>
+        </form>
+      </dialog>
+
+      <dialog id="practice-log" class="sheet" aria-labelledby="practice-log-title">
+        <form method="dialog">
+          <header class="sheet-head"><h3 id="practice-log-title" data-text="log.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <div class="log-stats">
+            <p><strong id="log-streak"></strong><span id="log-streak-label"></span></p>
+            <p><strong id="log-week"></strong><span data-text="log.week"></span></p>
+            <p><strong id="log-today"></strong><span data-text="log.today"></span></p>
+          </div>
+          <div class="log-bars" id="log-bars" role="img"></div>
+          <h4 class="log-heading" data-text="log.recent"></h4>
+          <ul class="log-days" id="log-days"></ul>
+          <p class="help" id="log-none" data-text="log.none" hidden></p>
+          <p class="help" data-text="log.how"></p>
         </form>
       </dialog>
 

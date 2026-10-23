@@ -418,6 +418,25 @@ export const EN = {
     },
   },
 
+  /** The practice log (the line under the Practice Routine, and its sheet). */
+  log: {
+    title: 'Practice log',
+    open: 'Practice log',
+    summary: (streak, week) => (streak > 1 ? `${streak}-day streak · ${week} in the last 7 days` : week ? `${week} in the last 7 days` : 'Practice log'),
+    streakLabel: (n) => (n === 1 ? 'day in a row' : 'days in a row'),
+    week: 'last 7 days',
+    today: 'today',
+    recent: 'Days practised',
+    none: 'Nothing logged yet. Practice counts from the first minute.',
+    how: 'Practice counts while the metronome or drone plays, the Playback Recorder listens or records, or a routine runs, once however many are on. It is kept on this device.',
+    duration: (s) => {
+      const m = Math.floor(s / 60);
+      if (m < 1) return s > 0 ? '<1 min' : '0 min';
+      return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h${m % 60 ? ` ${m % 60} min` : ''}`;
+    },
+    bars: (days) => `Minutes practised over the last 7 days: ${days}`,
+    barDay: (day, time) => `${day} ${time}`,
+  },
   timer: {
     /** Named sets of routines (each item is a routine on screen): the button above the total, and its sheet. */
     routines: {

@@ -205,6 +205,36 @@ async function routines(env) {
   await p.close();
 }
 
+/** The practice log: a seeded log shows its streak and days; the metronome playing adds to today. */
+async function practiceLog(env) {
+  const p = await env.page();
+  await p.goto(env.base);
+  const days = await p.evaluate(() => {
+    const key = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+    const log = { days: { [key(1)]: 1500, [key(2)]: 600, [key(3)]: 30, [key(4)]: 900 } };
+    localStorage.setItem('musicpractice.log.v1', JSON.stringify(log));
+    return log.days;
+  });
+  await p.goto(env.base + '#routine');
+  await p.reload();
+  await p.waitForTimeout(800);
+  const summary = await p.textContent('#log-summary');
+  c.ok(summary === '2-day streak · 50 min in the last 7 days', `the line under the routine: streak and week (${summary})`);
+  await p.click('#log-open');
+  const shown = await p.evaluate(() => ({ streak: document.getElementById('log-streak').textContent, week: document.getElementById('log-week').textContent, today: document.getElementById('log-today').textContent, bars: document.querySelectorAll('#log-bars .log-bar').length, days: document.querySelectorAll('#log-days li').length }));
+  c.ok(shown.streak === '2' && shown.week === '50 min' && shown.today === '0 min' && shown.bars === 7 && shown.days === 3, `the log: streak, week, today, 7 bars, 3 days practised (${JSON.stringify(shown)})`);
+  await p.click('#practice-log .sheet-head .icon-btn');
+  // Practice counts: the metronome playing adds to today.
+  await p.goto(env.base + '#metronome');
+  await p.click('#met-toggle');
+  await p.waitForTimeout(11500);
+  await p.click('#met-toggle');
+  const today = await p.evaluate((seeded) => Object.entries(JSON.parse(localStorage.getItem('musicpractice.log.v1')).days).find(([k]) => !(k in seeded))?.[1] ?? 0, days);
+  c.ok(today >= 5 && today <= 13, `the metronome playing counts as practice (${today} s)`);
+  c.ok(!p.errors.length, `no page errors with the practice log (${p.errors})`);
+  await p.close();
+}
+
 async function savedTempos(env) {
   const p = await env.page();
   await p.goto(env.base + '#metronome');
@@ -436,7 +466,7 @@ async function themes(env) {
 }
 
 export async function run(env) {
-  for (const part of [list, running, routines, metronomeScreen, savedTempos, strongBeats, microphone, themes]) {
+  for (const part of [list, running, routines, practiceLog, metronomeScreen, savedTempos, strongBeats, microphone, themes]) {
     try { await part(env); } catch (e) { c.ok(false, `${part.name}: ${e.message.split('\n')[0]}`); }
   }
   return c.done();
