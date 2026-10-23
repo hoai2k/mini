@@ -352,3 +352,46 @@ test('old saves load and gain the loot fields; old items get their tier and no b
   assert.match(read('ui/screens.js'), /itemTier\(it\) === 'unique'\)\) d\.shop = null/);
 });
 function read(f) { return readFileSync(new URL('../js/' + f, import.meta.url), 'utf8'); }
+
+test('icon sheets: each item is found where it really lies, over a cell line, without a neighbour’s spark', async () => {
+  const { segmentData, cellsOf, pieceData, keyMagentaData, keyWhiteGlowData } = await import('../js/ui/icons.js');
+  // a 2 × 2 sheet of 64-pixel cells on magenta: cell 0 a bar that reaches 10 px into cell 1,
+  // cell 1 a block, cell 3 a body with a spark over the line in cell 1, cell 2 empty but for dust and a stray spark
+  const W = 128, H = 128, d = new Uint8ClampedArray(W * H * 4);
+  for (let i = 0; i < W * H; i++) d.set([252, 2, 250, 255], i * 4);
+  const fill = (x0, y0, x1, y1, rgb) => { for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) d.set([...rgb, 255], (y * W + x) * 4); };
+  fill(8, 20, 74, 34, [200, 150, 60]);      // cell 0's bar, over the line into cell 1
+  fill(90, 8, 120, 50, [40, 120, 200]);      // cell 1's block
+  fill(84, 70, 120, 120, [220, 60, 40]);     // cell 3's body
+  fill(78, 58, 82, 62, [255, 220, 80]);      // cell 3's spark: its centre is in cell 1, but by cell 3's body
+  fill(40, 70, 44, 74, [255, 220, 80]);      // a stray spark in cell 2, far from every body
+  fill(30, 100, 32, 102, [255, 255, 255]);   // dust in cell 2, nothing near
+  keyMagentaData(d);
+  assert.equal(d[3], 0, 'magenta keyed out'); assert.equal(d[(25 * W + 20) * 4 + 3], 255, 'the bar stays');
+  const seg = segmentData(d, W, H, { minBlocks: 1 });
+  const cells = cellsOf(seg, W, H, 2, 2);
+  assert.ok(cells[0] && cells[0].x1 >= 74 && cells[0].x0 <= 8, 'the bar is whole, over the cell line');
+  assert.ok(cells[1] && cells[1].x0 >= 88, 'the block keeps out the bar reaching in');
+  assert.equal(cells[2], null, 'dust and a stray spark make no picture');
+  assert.ok(cells[3] && cells[3].x0 <= 78 && cells[3].y0 <= 58, 'the spark joins the body it belongs to');
+  assert.ok(cells[1].y1 <= 52, 'and not the block of the cell it lies in');
+  // the cut is masked: cell 1's box holds none of the bar
+  const p = pieceData(d, W, seg, cells[1]);
+  let bar = 0; for (let y = 0; y < p.h; y++) for (let x = 0; x < p.w; x++) { const o = (y * p.w + x) * 4; if (p.data[o + 3] && p.data[o] === 200) bar++; }
+  assert.equal(bar, 0);
+  // a white glow over magenta: its strength is the alpha
+  const g = new Uint8ClampedArray([252, 2, 250, 255, 255, 255, 255, 255, 253, 128, 253, 255]);
+  keyWhiteGlowData(g);
+  assert.deepEqual([g[3], g[7], g[11] > 100 && g[11] < 160], [0, 255, true]);
+});
+
+test('the loot kit: its regions lie on the sheet, apart, and a frame for every rarity', async () => {
+  const { KIT_REGIONS, KIT_W, KIT_H, FRAME_FOR } = await import('../js/ui/lootkit.js');
+  const R = Object.entries(KIT_REGIONS);
+  for (const [n, { r }] of R) assert.ok(r[0] >= 0 && r[1] >= 0 && r[2] <= KIT_W && r[3] <= KIT_H && r[2] > r[0] && r[3] > r[1], n);
+  for (let i = 0; i < R.length; i++) for (let j = i + 1; j < R.length; j++) {
+    const [a, b] = [R[i][1].r, R[j][1].r];
+    assert.ok(a[2] <= b[0] || b[2] <= a[0] || a[3] <= b[1] || b[3] <= a[1], `${R[i][0]} and ${R[j][0]} overlap`);
+  }
+  for (const t of ['common', 'rare', 'heroic', 'unique', 'blessed']) assert.ok(KIT_REGIONS[FRAME_FOR[t]], t);
+});

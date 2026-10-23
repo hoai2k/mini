@@ -806,9 +806,29 @@ The code follows sections 4 and 5, with these differences:
 - **Drakon-type champions** don't exist yet: the Drakon-Scale Plate is in the
   ordinary Legendary pool, and `maybeDropFromMonster` makes it the signature
   of any champion whose kind or id names a drakon.
-- **Icons:** `ui/icons.js` cuts the `icons-*` sheets once they are listed in
-  `game/assets/icons.json` (empty until they are delivered; a test keeps the
-  list in step with the files), so the game never requests a missing sheet.
+- **Icons:** `ui/icons.js` loads the `icons-*` sheets listed in
+  `game/assets/icons.json` (a test keeps the list in step with the files, so
+  the game never requests a missing sheet). All four were delivered on
+  2026-10-23. Their pictures keep the request's order but drift over the cell
+  lines, so instead of cutting 256 px cells it keys out the magenta, labels the
+  connected shapes, and gives each body to the cell its centre lies in. A
+  spark or note joins the nearest body. Each item is cut as its own shapes,
+  masked so a neighbour reaching into its box stays out. An item whose cell
+  comes out empty keeps its emoji.
+- **The loot kit** (`ui-loot-kit`, delivered 2026-10-23): `ui/lootkit.js` cuts
+  its pieces by named regions of the sheet and puts them on the page as CSS
+  variables under `html.kit`:
+  - the rarity frames, as border images on every item tile (inventory, forge,
+    shop, results), with their parchment centres left out;
+  - the NEW badge, the green ▲ and red ▼, and the favourite star;
+  - the Legendary card's ribbon;
+  - the drachma coin (HUD, inventory, forge and shop prices), the coin stack
+    (results) and the pouch (shop).
+
+  In the world, `lootdrops.js` puts the white beam texture on the beam and
+  the Legendary light shafts, a glint ring on the ground and a twinkle on
+  the item, all tinted by rarity. A piece that is missing or the wrong shape
+  leaves the CSS look and the plain beam as they were.
 - **Minimap marks** for Heroic and Legendary drops are on the chapter
   minimap; the open world has no minimap.
 

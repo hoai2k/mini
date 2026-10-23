@@ -1411,6 +1411,9 @@ REQUESTS += [
 
 # The harpy had no drawing of its own (vox-enemies only drew a Stymphalian bird),
 # so both were built as the same eagle; in the books a harpy is a bird-woman.
+# Delivered 2026-10-23: the game's harpy (entities/models/birds.js harpyWoman)
+# takes its colours, rag and straps from it; the sheet also gives her arms under
+# the wings, which the game leaves out (the brief: wings instead of arms).
 REQUESTS += [
     {
         "id": "vox-harpy",
@@ -1432,10 +1435,12 @@ REQUESTS += [
     },
 ]
 
-# ---- Round 6: loot (design/loot-design.md). The items are emoji in the game
-# today; these sheets give every item a blocky inventory icon, in the order of
-# loot.js ITEMS (plus the new items the loot design adds), on magenta so the
-# game can key the background out and cut the grid into cells.
+# ---- Round 6: loot (design/loot-design.md). These sheets give every item a
+# blocky inventory icon, in the order of loot.js ITEMS (plus the new items the
+# loot design adds), on magenta so the game can key the background out.
+# Delivered 2026-10-23 and loaded by the game: the pictures keep the order but
+# drift over the cell lines, so game/js/ui/icons.js finds each one by its shapes
+# rather than cutting fixed cells; game/js/ui/lootkit.js cuts the kit's pieces.
 LOOT_GROUP = "Round 6 · Loot: item icons and pickup kit (loaded by the game)"
 
 ICON_STYLE = (
@@ -1589,8 +1594,8 @@ REQUESTS += [
 
 # ---- Round 7: gear on the heroes (game/js/entities/gear/). Every weapon a hero
 # equips is drawn in their hand and every armour changes their outfit, as in
-# Minecraft Dungeons; the models are procedural stand-ins (weapons.js,
-# armour.js) until these sheets fix the look. Concept sheets, not game art.
+# Minecraft Dungeons; the models are procedural (weapons.js, armour.js), tuned
+# to these sheets once they were delivered (2026-10-23). Concept sheets, not game art.
 GEAR_GROUP = "Round 7 · Gear on the heroes: weapons in hand, armour worn"
 
 GEAR_WEAPON_LAYOUT = (
@@ -1754,15 +1759,15 @@ def build() -> str:
         "frames, badges, the loot beam and drachmas (see [the loot design](loot-design.md)).",
         "Each icon sheet is a grid on flat magenta in the order its prompt lists, so the",
         "game can key out the background and cut it into cells. Generate",
-        "`icons-weapons-1` first and attach it to the others so the icons match. The",
-        "game shows its emoji icons until the sheets arrive.",
+        "`icons-weapons-1` first and attach it to the others so the icons match. All five",
+        "were delivered on 2026-10-23 and the game loads them; an item whose picture is",
+        "missing shows its emoji.",
         "",
         "### Round 7: gear on the heroes",
         "",
         "Every weapon a hero equips is drawn in their hand and every armour changes",
-        "their outfit (game/js/entities/gear/). The models are procedural stand-ins",
-        "until these sheets fix their look: generate `vox-gear-weapons-1` and",
-        "`vox-gear-armour-1` first and attach them to the second sheet of each pair.",
+        "their outfit (game/js/entities/gear/). The models are procedural; the four",
+        "sheets were delivered on 2026-10-23 and the models were tuned to them.",
         "",
         "Concept sheets land in `design/concept/`; files marked as game art land in",
         "`game/assets/`. Drop either kind in the intake folder.",

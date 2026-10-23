@@ -51,15 +51,15 @@ Item icons for the inventory, pickup cards and shop, and a kit of rarity
 frames, badges, the loot beam and drachmas (see [the loot design](loot-design.md)).
 Each icon sheet is a grid on flat magenta in the order its prompt lists, so the
 game can key out the background and cut it into cells. Generate
-`icons-weapons-1` first and attach it to the others so the icons match. The
-game shows its emoji icons until the sheets arrive.
+`icons-weapons-1` first and attach it to the others so the icons match. All five
+were delivered on 2026-10-23 and the game loads them; an item whose picture is
+missing shows its emoji.
 
 ### Round 7: gear on the heroes
 
 Every weapon a hero equips is drawn in their hand and every armour changes
-their outfit (game/js/entities/gear/). The models are procedural stand-ins
-until these sheets fix their look: generate `vox-gear-weapons-1` and
-`vox-gear-armour-1` first and attach them to the second sheet of each pair.
+their outfit (game/js/entities/gear/). The models are procedural; the four
+sheets were delivered on 2026-10-23 and the models were tuned to them.
 
 Concept sheets land in `design/concept/`; files marked as game art land in
 `game/assets/`. Drop either kind in the intake folder.

@@ -168,10 +168,18 @@ const toneHex = (c, k) => { const x = new THREE.Color(c); x.r = Math.min(0.9, x.
 // torn strips past the hips; scaly yellow bird legs and black talons. She
 // stands upright, so from above she reads as a pale face and grey mane
 // between two dark wings: nothing like the level bronze Stymphalian.
+// Her colours follow her own sheet (vox-harpy, top row): wings of dark
+// violet-grey feathers browning toward their ragged tips, a torn tan-brown
+// rag over the feathered body, crossed leather straps with a bone charm,
+// a lavender-grey mane. (The sheet also gives her arms under the wings; the
+// game keeps the brief's wings in their place, so she never reads as a
+// winged woman with hands.)
 // pal: colour overrides (a champion's plumage), any of main, light, dark,
-// breast, tip, edge, skin, hair, gold, goldD, talon, eye.
+// breast, tip, edge, skin, hair, gold, goldD, talon, eye, rag, ragD (the rag
+// takes the plumage's main and dark when a champion's pal gives no rag).
 function harpyWoman(id, { scale = 1, pal = null } = {}) {
-  const P = { main: 0x3a3236, light: 0x5a5056, dark: 0x1c181c, breast: 0x4a4048, tip: 0x6a6270, edge: 0x2c2628, skin: 0xa8b8a0, hair: 0x747a84, gold: 0xe0b428, goldD: 0xa07a14, talon: 0x141010, eye: 0xffd000, ...pal };
+  const P = { main: 0x3a3046, light: 0x5e5470, dark: 0x1e1a26, breast: 0x4a4058, tip: 0x7a5a3a, edge: 0x4a3426, skin: 0xa8b8a0, hair: 0x9a94a6, gold: 0xe0b428, goldD: 0xa07a14, talon: 0x141010, eye: 0xffd000, rag: 0x8a6a48, ragD: 0x5a4430, strap: 0x4a2e1a, bone: 0xe0d4b8, ...pal };
+  if (pal && !pal.rag) { P.rag = P.main; P.ragD = P.dark; }
   const mouth = 0x2a0a0c, fang = 0xe8e0d0;
   const mat = skinMat(id, (S) => {
     paintPerson(S, { skin: P.skin, hair: P.hair, fringe: 2, hairSide: 5, hairBack: 8, eye: 0x1a1000, eyeWhite: P.eye, scowl: true, brow: P.dark, mouth: false, top: P.main, sleeve: P.main, hand: P.skin, pants: P.main, shoes: false,
@@ -194,7 +202,7 @@ function harpyWoman(id, { scale = 1, pal = null } = {}) {
   for (const leg of [rig.legR, rig.legL]) dropMeshes(rig, leg);
   dropMeshes(rig, rig.torso);
   const K = kit(rig, mat, { seed: 53, rough: 0.9, emit: 0.7 });
-  const T = rig.torso, Hd = rig.head, hk = HS * 7 / 8, fz = 4 * hk, FE = [P.main, P.dark, P.light], RAG = [P.main, P.dark, P.edge];
+  const T = rig.torso, Hd = rig.head, hk = HS * 7 / 8, fz = 4 * hk, FE = [P.main, P.dark, P.light], RAG = [P.rag, P.ragD, P.edge];
   // a lean grey-green body under a coat of ragged feathers: a scrawny bare
   // neck and collarbone, a narrow chest over a narrower, pinched waist
   K.box(T, 0, bodyH * 0.72, 0, bodyW - 1, bodyH * 0.56, 4.2, P.dark);
@@ -206,12 +214,17 @@ function harpyWoman(id, { scale = 1, pal = null } = {}) {
   for (let r = 0, y = bodyH - 3; y > 1.5; r++, y -= 1.5) {
     const half = y > bodyH * 0.45 ? 3.2 : 2.2;
     for (let x = -half + (r % 2) * 0.75; x <= half + 0.01; x += 1.5) {
-      const z = y > bodyH * 0.45 ? 2.35 : 1.95, col = r < 3 ? [P.breast, P.main] : FE;
+      const z = y > bodyH * 0.45 ? 2.35 : 1.95, col = r < 2 ? [P.breast, P.main] : RAG;
       K.box(T, x, y, z, 1.5, 2.1, 0.8, K.tone(col, 0.12), -0.2);
       K.box(T, x, y - 0.85, z + 0.2, 1.2, 0.5, 0.5, K.tone([P.dark, P.edge], 0.1), -0.2);
       if ((r + Math.round(x * 2)) % 3 === 0) K.box(T, x, y + 0.2, z + 0.42, 0.25, 1.5, 0.2, P.tip, -0.2);
     }
   }
+  // the crossed leather straps of her rag and a bone charm where they meet
+  for (const sx of [-1, 1]) for (let i = 0; i < 6; i++) K.box(T, sx * (2.6 - i * 0.95), bodyH - 2.6 - i * 1.25, i > 3 ? 2.25 : 2.65, 1.1, 1.1, 0.5, P.strap);
+  K.box(T, 0, bodyH - 8.6, 2.55, 1.6, 1.4, 0.6, P.bone); K.box(T, 0, bodyH - 9.8, 2.4, 0.7, 1.2, 0.5, P.bone);
+  for (const sx of [-1, 1]) K.box(T, sx * 0.4, bodyH - 8.5, 2.9, 0.35, 0.35, 0.2, P.dark);
+  K.box(T, 0, 2.2, 0, bodyW - 1.6, 0.9, 4.4, P.strap);   // a belt of cord at the waist
   // the back: long overlapping feathers, then the sides
   for (let y = bodyH - 1.5; y > 1; y -= 2.1) for (let x = -2.6; x <= 2.7; x += 1.3) { const z = y > bodyH * 0.45 ? -2.3 : -1.9; K.box(T, x, y, z, 1.5, 3, 0.8, K.tone(FE, 0.1), 0.2); if (K.r() < 0.4) K.box(T, x, y - 1.2, z - 0.35, 1, 0.8, 0.4, P.tip, 0.2); }
   for (const sx of [-1, 1]) {

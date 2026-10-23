@@ -271,20 +271,50 @@ The basilisk in `vox-ow-fodder-3` is a crowned lizard as big as Percy. The game 
 
 Built-in image generation; prompts, references and sizing notes are recorded per asset.
 
-| Asset | Generation record |
-| --- | --- |
-| [vox-ow-people-3](vox-ow-people-3.png) | [record](generation-2026-10-23/vox-ow-people-3.json) |
-| [vox-ow-fodder](vox-ow-fodder.png) | [record](generation-2026-10-23/vox-ow-fodder.json) |
-| [vox-ow-fodder-2](vox-ow-fodder-2.png) | [record](generation-2026-10-23/vox-ow-fodder-2.json) |
-| [vox-ow-fodder-3](vox-ow-fodder-3.png) | [record](generation-2026-10-23/vox-ow-fodder-3.json) |
-| [vox-ow-fodder-fix](vox-ow-fodder-fix.png) | [record](generation-2026-10-23/vox-ow-fodder-fix.json) |
-| [vox-harpy](vox-harpy.png) | [record](generation-2026-10-23/vox-harpy.json) |
-| [icons-weapons-1](../../game/assets/icons-weapons-1.png) | [record](generation-2026-10-23/icons-weapons-1.json) |
-| [icons-weapons-2](../../game/assets/icons-weapons-2.png) | [record](generation-2026-10-23/icons-weapons-2.json) |
-| [icons-armour](../../game/assets/icons-armour.png) | [record](generation-2026-10-23/icons-armour.json) |
-| [icons-magic](../../game/assets/icons-magic.png) | [record](generation-2026-10-23/icons-magic.json) |
-| [ui-loot-kit](../../game/assets/ui-loot-kit.png) | [record](generation-2026-10-23/ui-loot-kit.json) |
-| [vox-gear-weapons-1](vox-gear-weapons-1.png) | [record](generation-2026-10-23/vox-gear-weapons-1.json) |
-| [vox-gear-armour-1](vox-gear-armour-1.png) | [record](generation-2026-10-23/vox-gear-armour-1.json) |
-| [vox-gear-weapons-2](vox-gear-weapons-2.png) | [record](generation-2026-10-23/vox-gear-weapons-2.json) |
-| [vox-gear-armour-2](vox-gear-armour-2.png) | [record](generation-2026-10-23/vox-gear-armour-2.json) |
+| Asset | Generation record | Used |
+| --- | --- | --- |
+| [vox-ow-people-3](vox-ow-people-3.png) | [record](generation-2026-10-23/vox-ow-people-3.json) | |
+| [vox-ow-fodder](vox-ow-fodder.png) | [record](generation-2026-10-23/vox-ow-fodder.json) | |
+| [vox-ow-fodder-2](vox-ow-fodder-2.png) | [record](generation-2026-10-23/vox-ow-fodder-2.json) | |
+| [vox-ow-fodder-3](vox-ow-fodder-3.png) | [record](generation-2026-10-23/vox-ow-fodder-3.json) | |
+| [vox-ow-fodder-fix](vox-ow-fodder-fix.png) | [record](generation-2026-10-23/vox-ow-fodder-fix.json) | |
+| [vox-harpy](vox-harpy.png) | [record](generation-2026-10-23/vox-harpy.json) | **Used:** the harpy and the harpy champions (`game/js/entities/models/birds.js` `harpyWoman`) |
+| [icons-weapons-1](../../game/assets/icons-weapons-1.png) | [record](generation-2026-10-23/icons-weapons-1.json) | **Used in the game:** item icons (`game/js/ui/icons.js`) |
+| [icons-weapons-2](../../game/assets/icons-weapons-2.png) | [record](generation-2026-10-23/icons-weapons-2.json) | **Used in the game:** item icons |
+| [icons-armour](../../game/assets/icons-armour.png) | [record](generation-2026-10-23/icons-armour.json) | **Used in the game:** item icons |
+| [icons-magic](../../game/assets/icons-magic.png) | [record](generation-2026-10-23/icons-magic.json) | **Used in the game:** item icons |
+| [ui-loot-kit](../../game/assets/ui-loot-kit.png) | [record](generation-2026-10-23/ui-loot-kit.json) | **Used in the game:** frames, badges, ribbon, beam, glint, twinkle, drachmas (`game/js/ui/lootkit.js`) |
+| [vox-gear-weapons-1](vox-gear-weapons-1.png) | [record](generation-2026-10-23/vox-gear-weapons-1.json) | **Used:** reference for `game/js/entities/gear/weapons.js` |
+| [vox-gear-weapons-2](vox-gear-weapons-2.png) | [record](generation-2026-10-23/vox-gear-weapons-2.json) | **Used:** reference for `weapons.js` (the legendaries and signatures) |
+| [vox-gear-armour-1](vox-gear-armour-1.png) | [record](generation-2026-10-23/vox-gear-armour-1.json) | **Used:** reference for `game/js/entities/gear/armour.js` |
+| [vox-gear-armour-2](vox-gear-armour-2.png) | [record](generation-2026-10-23/vox-gear-armour-2.json) | **Used:** reference for `armour.js` |
+
+What the delivered files show, checked against their requests:
+
+- **Sizes** match every request (the icon sheets 1024 × 1024, 1024 × 1024,
+  1536 × 1024 and 1792 × 1024; the kit 2048 × 1024; the concept sheets
+  2400 × 1600). They are resized copies: the weapon icons were drawn at
+  1254 px and shrunk, while the magic icons (1659 × 948), the kit (1774 × 887)
+  and every concept sheet (1536 × 1024) were enlarged.
+- **Magenta:** the icon sheets and the kit sit on flat magenta (about
+  #FB03FA, varying by 2 to 4 per channel), which keys out cleanly. White
+  glows (the kit's beam, glint and twinkle, the sparks round some icons) are
+  blended into it, so the kit's glows are keyed by their strength instead.
+- **Order:** every icon sheet holds its items in the requested order, one per
+  cell, 84 in all, each matching its description. **Grid:** the pictures do
+  not keep to their 256-pixel cells. They drift by up to a quarter of a cell,
+  and spears, glows and sparks reach over the lines (most in `icons-magic`
+  and the bottom rows), so the game finds each picture by its shapes rather
+  than cutting fixed cells.
+- **ui-loot-kit:** it has every piece requested, in the requested rows. The
+  tile frames have parchment centres, not empty ones; the game draws only
+  their borders.
+- **vox-gear-weapons-1 / -2:** all 17 and all 15 weapons, in order.
+- **vox-gear-armour-1 / -2:** all 24 sets. The first sheet draws the Hunter's
+  Silver Parka twice (fourth and fifth) and gives the Counsellor Vest a winged
+  navy cap that belongs to Hermes.
+- **vox-harpy:** the harpy and the Stymphalian bird, each front, side and
+  mid-attack, beside Percy. The sheet gives the harpy arms under her wings (the
+  brief said wings instead of arms; the game keeps the brief) and draws her
+  about three times Percy's height; the game keeps her size category
+  (`design/sizes.json`).

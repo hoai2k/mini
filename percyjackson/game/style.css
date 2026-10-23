@@ -590,7 +590,7 @@ body.reduce-motion .trk-pin .chev { animation: none; }
 }
 
 /* ---- loot rework (design/loot-design.md §5.2): icons, cards by rarity, the bag badge, edge arrows ---- */
-.ico-img { width: 78%; height: 78%; object-fit: contain; image-rendering: pixelated; pointer-events: none; display: block; }
+.ico-img { width: 84%; height: 84%; object-fit: contain; pointer-events: none; display: block; }
 .big-ico .ico-img { width: 1.3em; height: 1.3em; display: inline-block; vertical-align: middle; }
 .loot-card .lc-icon .ico-img { width: 40px; height: 40px; }
 .loot-card .lc-pw { color: #fff3c8; }
@@ -624,3 +624,23 @@ body.reduce-motion .trk-pin .chev { animation: none; }
 .loot-edge i::before { content: ''; position: absolute; left: 6px; top: 6px; border-left: 22px solid var(--rc, #ff9a2a); border-top: 10px solid transparent; border-bottom: 10px solid transparent; filter: drop-shadow(0 0 6px var(--rc, #ff9a2a)); animation: edge-pulse 1s ease-in-out infinite; }
 .loot-edge.hidden { display: none; }
 @keyframes edge-pulse { 50% { opacity: .5; } }
+
+/* ---- The loot kit (ui/lootkit.js, ui-loot-kit.png): on once the sheet is cut.
+   html.kit: the rarity tile frames as border images (no `fill`, so the
+   parchment centres stay out and the icon sits on the dark tile);
+   html.kit-<piece>: that piece is there. Without them the rules above stand. */
+.kit .item.common { --kf: var(--kit-frame-common); } .kit .item.rare { --kf: var(--kit-frame-rare); } .kit .item.heroic { --kf: var(--kit-frame-heroic); } .kit .item.unique { --kf: var(--kit-frame-legendary); } .kit .item.blessed { --kf: var(--kit-frame-blessed); }
+.kit .item:is(.common, .rare, .heroic, .unique) { border: 9px solid transparent; border-image: var(--kf) 30 / 9px / 0 stretch; border-radius: 3px; background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--rc, #888) 22%, #17130f), #0d0a07 75%) padding-box; }
+.kit .loot-list .item, .kit .mission .mi.item { border-width: 8px; border-image-width: 8px; }
+.kit-badge-new .item .badge-new { top: -8px; left: -8px; width: 22px; height: 22px; padding: 0; border-radius: 0; font-size: 0; color: transparent; background: var(--kit-badge-new) center / contain no-repeat; filter: drop-shadow(0 1px 1px #000); z-index: 1; }
+.kit-arrow-up .item .badge-up { position: absolute; bottom: -7px; left: -7px; width: 18px; height: 18px; font-size: 0; color: transparent; text-shadow: none; background: var(--kit-arrow-up) center / contain no-repeat; filter: drop-shadow(0 0 4px rgba(90, 255, 122, .8)); z-index: 1; }
+.kit-star .item .badge-fav { top: -7px; right: -7px; bottom: auto; width: 17px; height: 17px; font-size: 0; color: transparent; background: var(--kit-star) center / contain no-repeat; filter: drop-shadow(0 1px 1px #000); z-index: 1; }
+.kit-arrow-up .cmp.up .arrow, .kit-arrow-down .cmp.down .arrow { display: inline-block; width: 14px; height: 14px; font-size: 0; color: transparent; vertical-align: -2px; background: var(--kit-arrow-up) center / contain no-repeat; }
+.kit-arrow-down .cmp.down .arrow { background-image: var(--kit-arrow-down); }
+.kit-ribbon .loot-card .lc-ribbon { top: -16px; left: 4px; right: 4px; padding: 5px 4px 6px; border-radius: 0; background: none; box-shadow: none; border: solid transparent; border-width: 0 15px; border-image: var(--kit-ribbon) 0 96 fill / 0 15px stretch; color: #fff3c8; text-shadow: 0 1px 0 #6a2a04, 0 0 4px #6a2a04; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .45)); }
+.kit-ribbon .loot-card.legendary { padding-top: 22px; }
+.kit-coin .coins .coin svg { display: none; } .kit-coin .coins .coin { background: var(--kit-coin) center / contain no-repeat; filter: drop-shadow(0 1px 1px #000); }
+.kit-coin .inv-coin { width: 18px; height: 18px; font-size: 0; color: transparent; text-shadow: none; background: var(--kit-coin) center / contain no-repeat; }
+.kit-coin-img { width: 1.15em; height: 1.15em; vertical-align: -0.22em; display: inline-block; margin: 0 .12em; }
+.kit-coin-img.stack, .kit-coin-img.pouch { width: 1.6em; height: 1.6em; vertical-align: -0.45em; margin-right: .3em; }
+.loot-card.legendary .lc-icon .ico-img { width: 58px; height: 58px; }

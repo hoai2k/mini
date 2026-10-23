@@ -80,6 +80,7 @@ import { Roaming } from './world/roaming.js';
 import { LiveSigns } from './world/liveSign.js';
 import { preloadArt, prepareLogo, ALL_ART } from './ui/art.js';
 import { loadIcons, iconNode } from './ui/icons.js';
+import { loadLootKit, kitImg } from './ui/lootkit.js';
 import { OpeningFlow } from './story/openingFlow.js';
 import { Crowd, CROWD } from './gfx/crowd.js';
 // crowd batching (gfx/crowd.js): on unless the quality tier turns it off or ?batch=0
@@ -126,6 +127,7 @@ class Game {
     // the pictures the screens show load alongside everything else (ui/art.js)
     const art = preloadArt(ALL_ART, (n, total) => { loadBar.art = n / total; progress(null); });
     loadIcons();   // the item icon sheets, once delivered (ui/icons.js; emoji until then)
+    loadLootKit();   // the rarity frames, badges, beam and drachmas (ui/lootkit.js; CSS and plain beams without it)
     progress(0.02, t('game.loading.gpu'));
     this.gr = new GameRenderer();
     this.startedWebGL = settings.forceWebGL;
@@ -751,7 +753,7 @@ class Game {
         this.chapter && victory && this.chapter.outro ? h('p', { class: 'outro' }, this.chapter.outro) : null,
         h('div', { class: 'stat-line' }, t('game.results.kills'), h('b', {}, String(st.kills ?? 0))),
         h('div', { class: 'stat-line' }, t('game.results.time'), h('b', {}, `${mins}:${String(secs).padStart(2, '0')}`)),
-        h('div', { class: 'stat-line' }, t('game.results.coins'), h('b', {}, String(st.coins ?? 0))),
+        h('div', { class: 'stat-line' }, t('game.results.coins'), h('b', {}, kitImg('coin_stack', 'kit-coin-img stack'), String(st.coins ?? 0))),
         h('div', { class: 'stat-line' }, t('game.results.secrets'), h('b', {}, String(st.secrets ?? 0))),
         h('div', { class: 'loot-list', id: 'results-loot' }),
         h('div', { class: 'row', style: 'justify-content:center;margin-top:10px' },

@@ -11,11 +11,17 @@
 // card (compact for a Common, large with a ribbon for a Legendary). A
 // Legendary off screen gets an arrow at the edge of the screen (offscreen(),
 // ui/hud.js); Heroic and Legendary drops show on the minimap.
+//
+// With the loot kit (ui/lootkit.js, ui-loot-kit.png) the beam and the light
+// shafts wear its white beam texture, a glint ring lies on the ground under
+// the item and a twinkle flashes on it, all tinted the rarity colour; without
+// it the beam is the plain glowing cylinder and there is no glint or twinkle.
 import * as THREE from 'three/webgpu';
 import { itemInfo, itemRarity, itemTier, tierInfo, KIND_LABEL, gearStats, normalizeItem, isUpgrade, boonText, boonName, ENCHANTS, recordSignature } from './loot.js';
 import { HEROES } from './heroes/index.js';
 import { h } from './ui/ui.js';
 import { iconNode } from './ui/icons.js';
+import { kitCanvas } from './ui/lootkit.js';
 import { t, tn } from './text_config.js';
 
 const SLOT = { weapon: [0], armor: [1], artifact: [2, 3] };
@@ -38,6 +44,17 @@ const RISE_G = 20;                  // gravity while an item rises
 const COMMON_MERGE_MS = 2000;       // 3 Commons within this merge into one card
 const MAX_CARDS = 3;
 
+// the kit's beam, glint and twinkle as textures (null until the kit is cut, or without it)
+const kitTex = new Map();
+export function kitTexture(name) {
+  let t = kitTex.get(name); if (t) return t;
+  const c = kitCanvas(name); if (!c) return null;
+  t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping;
+  kitTex.set(name, t); return t;
+}
+// how big the glint ring is (metres across) and how often the twinkle flashes, by rarity
+export const KIT_FX = { common: { glint: 1.3, twinkle: 0.35, every: 2.6 }, rare: { glint: 1.7, twinkle: 0.45, every: 2.2 }, heroic: { glint: 2.1, twinkle: 0.55, every: 1.8 }, unique: { glint: 2.8, twinkle: 0.75, every: 1.3 } };
+
 const geoCache = new Map();
 const geo = (key, make) => { let g = geoCache.get(key); if (!g) { g = make(); geoCache.set(key, g); } return g; };
 
@@ -47,6 +64,7 @@ export class LootDrops {
     this.ring = new THREE.TorusGeometry(0.75, 0.06, 6, 24).rotateX(Math.PI / 2);
     this.outer = new THREE.TorusGeometry(1.05, 0.05, 6, 32).rotateX(Math.PI / 2);
     this.shaft = new THREE.PlaneGeometry(0.5, 1).translate(0, 0.5, 0);
+    this.glintGeo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
     this.cards = document.createElement('div');
     this.cards.className = 'loot-cards';
     this.cards.setAttribute('aria-live', 'polite');
@@ -63,17 +81,31 @@ export class LootDrops {
     const block = new THREE.Mesh(geo('box' + F.size, () => new THREE.BoxGeometry(F.size, F.size, F.size)), new THREE.MeshStandardNodeMaterial({ color: col, emissive: col, emissiveIntensity: F.emissive, roughness: 0.3, metalness: 0.5 }));
     block.castShadow = true;
     const [bh, br, bo] = F.beam;
-    const beam = new THREE.Mesh(geo('beam' + tier, () => new THREE.CylinderGeometry(br, br * 1.9, bh, 8, 1, true).translate(0, bh / 2, 0)), new THREE.MeshBasicNodeMaterial({ color: col.clone().multiplyScalar(1.6), transparent: true, opacity: bo, depthWrite: false, side: THREE.DoubleSide }));
+    const beamTex = kitTexture('beam'), K = KIT_FX[tier];
+    const beam = new THREE.Mesh(geo('beam' + tier, () => new THREE.CylinderGeometry(br, br * 1.9, bh, 8, 1, true).translate(0, bh / 2, 0)), beamTex
+      ? new THREE.MeshBasicNodeMaterial({ map: beamTex, color: col.clone().multiplyScalar(1.6), transparent: true, opacity: Math.min(1, bo * 2.2), depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })
+      : new THREE.MeshBasicNodeMaterial({ color: col.clone().multiplyScalar(1.6), transparent: true, opacity: bo, depthWrite: false, side: THREE.DoubleSide }));
     beam.scale.y = 0.001; beam.visible = false;
     const owner = new THREE.Color(player.color ?? '#ffffff');
     const ring = new THREE.Mesh(this.ring, new THREE.MeshBasicNodeMaterial({ color: owner.multiplyScalar(2), transparent: true, opacity: 0.85 }));
     ring.position.y = 0.06; ring.visible = false;
     const base = new THREE.Group(); base.add(beam, ring);   // stays on the ground while the block bobs
     grp.add(block, base);
+    // the kit's glint ring on the ground and the twinkle on the item
+    let glint = null, twinkle = null;
+    const glintTex = kitTexture('glint'), twinkleTex = kitTexture('twinkle');
+    if (glintTex) {
+      glint = new THREE.Mesh(this.glintGeo, new THREE.MeshBasicNodeMaterial({ map: glintTex, color: col.clone().multiplyScalar(1.5), transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending }));
+      glint.position.y = 0.05; glint.scale.setScalar(K.glint); glint.visible = false; base.add(glint);
+    }
+    if (twinkleTex) {
+      twinkle = new THREE.Sprite(new THREE.SpriteNodeMaterial({ map: twinkleTex, color: col.clone().lerp(new THREE.Color(0xffffff), 0.5).multiplyScalar(1.6), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+      twinkle.scale.setScalar(0.001); twinkle.visible = false; grp.add(twinkle);
+    }
     const shafts = [];
     if (F.outer) { const m = new THREE.Mesh(this.outer, new THREE.MeshBasicNodeMaterial({ color: col.clone().multiplyScalar(2), transparent: true, opacity: 0.7 })); m.position.y = 0.05; m.visible = false; base.add(m); shafts.push(m); }
     for (let i = 0; i < (F.shafts ?? 0); i++) {
-      const s = new THREE.Mesh(this.shaft, new THREE.MeshBasicNodeMaterial({ color: col.clone().multiplyScalar(1.4), transparent: true, opacity: 0.18, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }));
+      const s = new THREE.Mesh(this.shaft, new THREE.MeshBasicNodeMaterial({ map: beamTex, color: col.clone().multiplyScalar(1.4), transparent: true, opacity: beamTex ? 0.4 : 0.18, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }));
       s.scale.set(1, bh * 0.9, 1); s.rotation.y = i * Math.PI / 2; s.visible = false; base.add(s); shafts.push(s);
     }
     g.scene.add(grp);
@@ -83,7 +115,7 @@ export class LootDrops {
     const out = o.ring ? (2 + Math.random() * 1.5) / flight : F.out * (0.7 + Math.random() * 0.6);
     const vel = new THREE.Vector3(Math.cos(a) * out, F.up, Math.sin(a) * out);
     const light = g.lights.attach(block, (item.blessed ? col.clone().lerp(new THREE.Color(BLESSED_FX.color), 0.4) : col).getHex(), F.light[0] * 0.5, F.light[1], { offsetY: 0.3 });
-    const d = { item, tier, F, col, grp, block, beam, ring, base, shafts, player, device: player.device, t: 0, light, vel, air: true, bounces: F.bounce > 0 ? 1 : 0, landT: 0, blessed: !!item.blessed };
+    const d = { item, tier, F, K, col, grp, block, beam, ring, glint, twinkle, base, shafts, player, device: player.device, t: 0, light, vel, air: true, bounces: F.bounce > 0 ? 1 : 0, landT: 0, blessed: !!item.blessed };
     this.list.push(d);
     g.particles.burst(grp.position.clone(), { count: Math.round(F.parts * 0.4), color: col, speed: 2, up: 2, life: 0.5, size: 0.12, shape: 1 });
     return d;
@@ -92,6 +124,7 @@ export class LootDrops {
   land(d) {
     const g = this.game, F = d.F, at = d.grp.position;
     d.air = false; d.landT = 0; d.ring.visible = true; d.beam.visible = true; for (const s of d.shafts) s.visible = true;
+    if (d.glint) d.glint.visible = true; if (d.twinkle) d.twinkle.visible = true;
     d.light.intensity = F.light[0];
     g.particles.burst(at.clone().setY(at.y + 0.6), { count: F.parts, color: d.col, speed: 3, up: 3, life: 0.8, size: 0.14, shape: 1 });
     if (d.blessed) g.particles.burst(at.clone().setY(at.y + 0.8), { count: BLESSED_FX.parts, color: BLESSED_FX.color, speed: 2.5, up: 4, life: 1, size: 0.12, shape: 1 });
@@ -145,11 +178,18 @@ export class LootDrops {
       }
       d.block.rotation.y += dt * 1.8; d.block.position.y = 0.7 + Math.sin(d.t * 2.5) * 0.12;
       d.ring.scale.setScalar(1 + Math.sin(d.t * 4) * 0.06);
+      if (d.glint) { d.glint.scale.setScalar(d.K.glint * grow * (1 + Math.sin(d.t * 2.2) * 0.05)); d.glint.rotation.y += dt * 0.4; }
+      if (d.twinkle) {
+        // a flash every K.every seconds at the block's top corner: up fast, down slower
+        const ph = (d.t % d.K.every) / d.K.every, f = ph < 0.12 ? ph / 0.12 : Math.max(0, 1 - (ph - 0.12) / 0.25);
+        d.twinkle.scale.setScalar(Math.max(0.001, d.K.twinkle * f)); d.twinkle.material.rotation = d.t * 1.5;
+        d.twinkle.position.set(F.size * 0.45, d.block.position.y + F.size * 0.5, F.size * 0.3);
+      }
       // loot belongs to the person, not the hero: after a switch it follows
       // the device to whichever hero they now control
       const owner = g.players.find((q) => !q.ai && !q.remote && q.device === d.device) ?? (g.players.includes(d.player) && !d.player.ai ? d.player : null);
       const who = owner && !owner.dead && !owner.downed && !owner.ai ? owner : null;
-      if (who && d.landT > 0.2 && who.pos.distanceTo(P) < GEAR_MAGNET) { d.fly = { t: 0, who, from: P.clone() }; d.ring.visible = false; d.beam.visible = false; for (const s of d.shafts) s.visible = false; }
+      if (who && d.landT > 0.2 && who.pos.distanceTo(P) < GEAR_MAGNET) { d.fly = { t: 0, who, from: P.clone() }; d.ring.visible = false; d.beam.visible = false; for (const s of d.shafts) s.visible = false; if (d.glint) d.glint.visible = false; if (d.twinkle) d.twinkle.visible = false; }
     }
   }
   // Legendaries on the ground that this screen's players can't see (the HUD's edge arrows).
@@ -167,7 +207,7 @@ export class LootDrops {
   marks() { return this.list.filter((d) => d.F.map && !d.fly).map((d) => ({ x: d.grp.position.x, z: d.grp.position.z, color: '#' + d.col.getHexString(), mark: d.F.map })); }
   dispose(d) {
     this.game.scene.remove(d.grp); this.game.lights.remove(d.light);
-    d.grp.traverse((m) => { if (m.isMesh) m.material?.dispose?.(); });
+    d.grp.traverse((m) => { if (m.isMesh || m.isSprite) m.material?.dispose?.(); });   // (the kit textures are shared and stay)
   }
   collect(d, p) {
     const g = this.game, sv = g.saveFor?.(p) ?? g.save, save = sv.data;   // net: into that player's profile

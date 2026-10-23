@@ -23,6 +23,7 @@ import { h, toast, confirmDialog } from './ui.js';
 import { HEROES } from '../heroes/index.js';
 import { BLESSED, ENCHANTS, KIND_LABEL, itemInfo, itemRarity, itemTier, salvageValue, enchCost, spentPoints, gearStats, temperCost, rerollCost, rerollRow, sortItems, slotFor, isUpgrade, TEMPER_STEP, boonName, boonText, reforgeCost, reforgeTarget, canReforge, reforge, isOutdated } from '../loot.js';
 import { iconNode } from './icons.js';
+import { coinText } from './lootkit.js';
 import { heroPreview } from './heroPreview.js';
 import { gearOf } from '../entities/gear/equip.js';
 import { temperCap } from '../progression.js';
@@ -207,7 +208,7 @@ export function openInventory(game, player, { forge = false } = {}) {
     // ---- the header: level, drachmas, points, Power
     const chips = h('div', { class: 'inv-chips' },
       h('span', { class: 'ichip' }, tx('inventory.level', { n: d.level })),
-      h('span', { class: 'ichip ic-coins', 'data-k': 'coins' }, tx('inventory.coins', { n: d.coins })),
+      h('span', { class: 'ichip ic-coins', 'data-k': 'coins' }, coinText(tx('inventory.coins', { n: d.coins }))),
       h('span', { class: 'ichip ic-pts' + (d.enchantPoints ? ' has' : '') }, tn('inventory.points', d.enchantPoints)),
       h('span', { class: 'ichip ic-power', title: tx('inventory.heroPowerTip', { hero: HEROES[who.hero].name }) }, tx('inventory.heroPower', { n: stats.heroPower })));
     const heroes = editable(game, player);
@@ -278,7 +279,7 @@ export function openInventory(game, player, { forge = false } = {}) {
       const other = wornBy(d, it.uid, who.hero);
       const btn = (k, cls, label, fn, extra = {}) => h('button', { class: 'btn ' + cls, 'data-k': k, onclick: fn, ...extra }, label);
       const forgeRow = forge ? h('div', { class: 'row inv-forge' },
-        btn('temper', 'small', tx('forge.temper', { n: TEMPER_STEP, cost: temperCost(it) }), () => {
+        btn('temper', 'small', coinText(tx('forge.temper', { n: TEMPER_STEP, cost: temperCost(it) })), () => {
           if (it.power >= temperCap(d.level)) { toast(tx('forge.temperCap')); return; }
           const c = temperCost(it); if (d.coins < c) { toast(tx('forge.noDrachmas')); return; }
           d.coins -= c; it.power += TEMPER_STEP; save.write(); apply(); game.audio?.impact?.(0.6);
@@ -286,7 +287,7 @@ export function openInventory(game, player, { forge = false } = {}) {
           redraw('temper');
         }),
         // Reforge to level: straight up to what drops now (the rarer, the dearer)
-        btn('reforge', 'small', canReforge(it, d.level) ? tx('forge.reforge', { power: reforgeTarget(it, d.level), cost: reforgeCost(it, d.level) }) : tx('forge.reforgeNone'), () => {
+        btn('reforge', 'small', canReforge(it, d.level) ? coinText(tx('forge.reforge', { power: reforgeTarget(it, d.level), cost: reforgeCost(it, d.level) })) : tx('forge.reforgeNone'), () => {
           if (!canReforge(it, d.level)) { toast(tx('forge.reforgeNone')); return; }
           const c = reforgeCost(it, d.level); if (d.coins < c) { toast(tx('forge.noDrachmas')); return; }
           d.coins -= c; reforge(it, d.level); save.write(); apply(); game.audio?.impact?.(0.8); game.audio?.upgrade?.();
@@ -310,7 +311,7 @@ export function openInventory(game, player, { forge = false } = {}) {
             ? btn('unequip', 'small', tx('inventory.unequip'), () => unequip(it))
             : btn('equip', 'primary', there ? tx('inventory.swapIn') : tx('inventory.equipBtn'), () => equipTo(it, slot)),
           b.kind === 'artifact' && eqIdx < 0 && cur[2] && cur[3] ? btn('equip2', 'small', tx('inventory.equip', { slot: SLOT_NAMES[slot === 2 ? 3 : 2] }), () => equipTo(it, slot === 2 ? 3 : 2)) : null,
-          eqIdx < 0 ? btn('salvage', 'small danger', tx('inventory.salvage', { coins: salvageValue(it) }), () => salvage(it)) : null),
+          eqIdx < 0 ? btn('salvage', 'small danger', coinText(tx('inventory.salvage', { coins: salvageValue(it) })), () => salvage(it)) : null),
         forgeRow,
         eqIdx < 0 ? h('div', { class: 'cmp-box' },
           h('div', { class: 'hint' }, there ? tx('inventory.compareTitle', { name: itemInfo(there).name }) : tx('inventory.compareEmpty', { slot: SLOT_NAMES[slot] })),
@@ -331,7 +332,7 @@ export function openInventory(game, player, { forge = false } = {}) {
             }), forge ? h('button', { class: 'btn small', 'data-k': `rr-${row}`, onclick: () => {
               const c = rerollCost(it); if (d.coins < c) { toast(tx('forge.noDrachmas')); return; }
               d.coins -= c; rerollRow(it, row); save.write(); game.audio?.ui('buy'); redraw(`rr-${row}`);
-            } }, tx('forge.reroll', { cost: rerollCost(it) })) : null);
+            } }, coinText(tx('forge.reroll', { cost: rerollCost(it) }))) : null);
           }
           const next = e.level + 1, cost = enchCost(e.pick, next);
           const line = enchLine(e.pick, e.level);

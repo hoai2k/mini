@@ -23,6 +23,8 @@
 //     under a hood: herovox.js heroHair 'hood'), and hair is cut to fit
 //     under a helmet, a hood or a hat;
 //   - nothing floats: every piece overlaps the body or another piece;
+//   - colours and details follow the costume sheets vox-gear-armour-1 and -2
+//     (design/concept/), Percy in each set front and back;
 //   - no clipping through the body in walk, run and the attacks: torso
 //     pieces keep within the arms' swing (4.5 px from the middle), leg
 //     pieces within the other leg's, skirts on the swinging panels, capes
@@ -132,7 +134,7 @@ function cap(L, c, { brim = null, logo = null } = {}) {
   if (logo) { L.push(box(0, 9.6, 4.75, 1.6, 1.4, 0.3, logo, 'gold')); for (const s of [-1, 1]) L.push(box(s * 1.5, 10, 4.75, 1.4, 0.7, 0.3, 0xf0f0f0, 'cloth')); }
 }
 // ---- capes (the chain hangs from the torso's back at the shoulders; segment lists are in the segment's frame, hanging down from y 0)
-function cape(c, { trim = null, len = 13.5, w = 8.4, flare = 0.5, kind = 'cloth', f = 'cloth', alt = null } = {}) {
+function cape(c, { trim = null, len = 13.5, w = 8.4, flare = 0.5, kind = 'cloth', f = 'cloth', alt = null, hem = null } = {}) {
   const segs = [], n = 2, sh = len / n;
   for (let i = 0; i < n; i++) {
     const L = [], wi = w + flare * (i + 0.5);
@@ -148,7 +150,7 @@ function cape(c, { trim = null, len = 13.5, w = 8.4, flare = 0.5, kind = 'cloth'
     }
     if (i === n - 1) {
       // the hem: blocks hanging from the cape's lower edge (each overlapping it), a wing's tips longest
-      if (kind === 'wing') for (let k = 0; k < 4; k++) { const h = 1.6 + (k === 0 || k === 3 ? 1.2 : 0); L.push(box(-wi / 2 + wi / 8 + k * wi / 4, -sh + 0.4 - h / 2, -0.3, wi / 4 - 0.9, h, 0.5, c, f)); }
+      if (kind === 'wing') for (let k = 0; k < 4; k++) { const h = 1.6 + (k === 0 || k === 3 ? 1.2 : 0); L.push(box(-wi / 2 + wi / 8 + k * wi / 4, -sh + 0.4 - h / 2, -0.3, wi / 4 - 0.9, h, 0.5, hem ?? c, f)); }
       else if (kind === 'fur') for (let k = 0; k < 5; k++) { const h = 1.6 + (k % 2) * 0.6; L.push(box(-wi / 2 + 0.9 + k * (wi - 1.8) / 4, -sh + 0.4 - h / 2, -0.3, 1.5, h, 0.6, shade(c, 0.85), 'fur')); }
       else if (trim) L.push(box(0, -sh + 0.4, -0.35, wi + 0.1, 0.8, 0.7, trim, f === 'cloth' ? 'cloth' : f));
     }
@@ -204,7 +206,9 @@ export const ARMOUR_LOOKS = {
   hunter_parka: { fam: 'clothes', build: () => {
     const S = 0xc8d0dc, W = 0xf4f6f8, T = []; shell(T, S, 'cloth', 0.4, 12);
     T.push(box(0, 6.2, HD + 0.1, 0.4, 11, 0.3, 0x9aa4b4, 'silver')); band(T, W, 'fur', 0.6, 1.2);
-    quiver(T, 0x8a96a8, W);
+    quiver(T, 0x6a3a1e, W);
+    for (let i = 0; i < 7; i++) T.push(box(2.6 - i * 0.9, 10.6 - i * 1.35, HD + 0.3, 1.2, 1.1, 0.4, LEATHER, 'leather'));   // the quiver's strap across the chest
+    belt(T, LEATHER, 'leather', 2.2, BRONZE);
     const [aR, aL] = both((L) => { sleeve(L, S, 'cloth', 2.4, -7.6, 4.75); L.push(box(0, -7.6, 0, 5.2, 1.2, 5.2, W, 'fur')); });
     const H = []; hood(H, S, 'cloth', { rim: W });
     return { torso: T, armR: aR, armL: aL, head: H, hair: 'hood', front: panel(S, 'cloth', 3.6, { trim: W }), back: panel(S, 'cloth', 3.6, { z: -2.65, trim: W }), covers: true };
@@ -214,8 +218,9 @@ export const ARMOUR_LOOKS = {
     band(T, 0x9af0e0, 'gem', 11.4, 0.5);
     T.push(box(0, 8.6, HD + 0.55, 2.4, 2, 0.4, GOLD, 'gold')); for (const x of [-0.8, 0, 0.8]) T.push(box(x, 9.9, HD + 0.55, 0.4, 0.9, 0.35, GOLD, 'gold'));   // a shell clasp, a trident mark
     // scallop-shell shoulder plates: ridged fans
-    const [aR, aL] = both((L, s) => { for (let i = 0; i < 4; i++) L.push(box(s * (0.2 + i * 0.6), 2.7 - i * 0.55, 0, 1.2, 1, 5.2 - i * 0.4, i % 2 ? 0x3ab8a0 : 0x2a9a8a, 'metal')); L.push(box(s * 2.5, 0.8, 0, 0.6, 2.6, 4.8, 0x1f7f78, 'metal')); bracer(L, 0x1f7f78, 'metal', { trim: 0x9af0e0 }); });
-    return { torso: T, armR: aR, armL: aL, front: strips(0x2a9a8a, 'metal', 3, { alt: 0x1f7f78 }), back: strips(0x2a9a8a, 'metal', 3, { z: -2.6, alt: 0x1f7f78 }), covers: true };
+    const [aR, aL] = both((L, s) => { for (let i = 0; i < 4; i++) L.push(box(s * (0.2 + i * 0.6), 2.7 - i * 0.55, 0, 1.2, 1, 5.2 - i * 0.4, i % 2 ? GOLD : GOLD_D, 'gold')); L.push(box(s * 2.5, 0.8, 0, 0.6, 2.6, 4.8, GOLD_D, 'gold')); bracer(L, GOLD, 'gold', { trim: 0x9af0e0 }); });
+    const [lR, lL] = both((L, s) => greave(L, s, GOLD, 'gold'));
+    return { torso: T, armR: aR, armL: aL, legR: lR, legL: lL, front: strips(0x2a9a8a, 'metal', 3, { alt: 0x1f7f78 }), back: strips(0x2a9a8a, 'metal', 3, { z: -2.6, alt: 0x1f7f78 }), covers: true };
   } },
   hoplite_panoply: { fam: 'plate', build: () => {
     const T = []; shell(T, BRONZE, 'metal', 1.2, 11.7); muscles(T, BRONZE); band(T, BRONZE_D, 'metal', 1.5, 0.6); straps(T, BRONZE_D, 'metal');
@@ -225,19 +230,23 @@ export const ARMOUR_LOOKS = {
     return { torso: T, armR: aR, armL: aL, legR: lR, legL: lL, head: H, hair: 'helmet', front: strips(LEATHER, 'leather', 4, { trim: BRONZE }), back: strips(LEATHER, 'leather', 4, { z: -2.6, trim: BRONZE }), covers: true };
   } },
   spartan_cloak: { fam: 'cloak', build: () => {
-    const T = []; for (const s of [-1, 1]) for (let i = 0; i < 7; i++) T.push(box(s * (-2.7 + i * 0.9), 10.8 - i * 1.4, HD + 0.2, 1.1, 1.1, 0.4, LEATHER, 'leather'));   // a harness crossed on the chest
+    const T = []; shell(T, BRONZE, 'metal', 1.2, 11.6); muscles(T, BRONZE);
+    for (const s of [-1, 1]) for (let i = 0; i < 7; i++) T.push(box(s * (-2.7 + i * 0.9), 10.8 - i * 1.4, HD + 0.2, 1.1, 1.1, 0.4, LEATHER, 'leather'));   // a harness crossed on the chest
     T.push(box(0, 6.6, HD + 0.4, 1.6, 1.6, 0.4, BRONZE, 'metal'));
     band(T, CRIMSON, 'cloth', 1, 1.6);
     capeBar(T, CRIMSON); for (const s of [-1, 1]) T.push(box(s * 3, 11.5, HD - 0.1, 1.6, 1.6, 0.8, BRONZE, 'metal'));   // the brooches
     T.push(box(0, 12.15, 0, 7.6, 0.6, HD * 2 + 1, CRIMSON, 'cloth'));
-    const [aR, aL] = both((L) => bracer(L, LEATHER, 'leather', { trim: BRONZE_D }));
-    return { torso: T, armR: aR, armL: aL, cape: cape(CRIMSON, { trim: 0x6a0c10, len: 14 }) };
+    const [aR, aL] = both((L) => bracer(L, BRONZE, 'metal', { trim: BRONZE_D }));
+    const [lR, lL] = both((L, s) => greave(L, s, BRONZE, 'metal'));
+    return { torso: T, armR: aR, armL: aL, legR: lR, legL: lL, front: strips(LEATHER, 'leather', 3.6, { trim: CRIMSON }), back: strips(LEATHER, 'leather', 3.6, { z: -2.6, trim: CRIMSON }), cape: cape(CRIMSON, { trim: GOLD_D, len: 14 }), covers: true };
   } },
   satyr_vest: { fam: 'clothes', build: () => {
-    const G1 = 0x4a7a2a, G2 = 0x6a9a3a, T = []; shell(T, G1, 'cloth', 2, 11.8, { open: 2.6 });
+    const G1 = 0x5a3a1e, G2 = 0x4a8a2a, T = []; shell(T, G1, 'leather', 2, 11.8, { open: 2.6 });
+    for (const [x, y] of [[-3.4, 9.6], [-2.6, 7.2], [-3.6, 4.4], [2.8, 10], [3.4, 7.6], [2.6, 3.6], [-2.2, 11.2], [3.6, 5.4]]) { T.push(box(x, y, HD + 0.32, 1.4, 1.2, 0.4, 0x3a9a3a, 'cloth')); T.push(box(x, y, -HD - 0.32, 1.4, 1.2, 0.4, 0x3a9a3a, 'cloth')); }   // leaves all over, front and back
+    for (const [x, y] of [[-3, 8], [3, 4.6], [2.4, 9]]) T.push(box(x, y, -HD - 0.4, 0.8, 0.8, 0.4, 0xf8f4e8, 'cloth'));
     for (let y = 2.6; y < 11.4; y += 1.3) for (const x of [-3.6, -2.4, 2.4, 3.6]) T.push(box(x, y, HD + 0.08, 1, 0.5, 0.3, (Math.round(y) + x) % 2 ? G2 : 0x3a5a1e, 'cloth'));   // the weave
     for (const [x, y, z, r] of [[-3.4, 12.3, 1.4, 0.4], [3.4, 12.3, -1.4, -0.4], [-3.4, 2.2, HD + 0.2, 0.6], [3.4, 2.8, -HD - 0.2, -0.5], [-2, 2, HD + 0.3, 0.2]]) T.push(box(x, y, z, 1.8, 0.4, 1.2, 0x6ab83a, 'cloth', [0, 0, r]));   // leaves
-    for (const [x, y, c] of [[-3, 10.4, 0xf06aa0], [3.2, 6, 0xf0d040], [-3.4, 5, 0xf0f0f0]]) T.push(box(x, y, HD + 0.35, 0.8, 0.8, 0.4, c, 'cloth'));   // flowers
+    for (const [x, y, c] of [[-3, 10.4, 0xf8f4e8], [3.2, 6, 0xf8f4e8], [-3.4, 5, 0xf8f4e8], [3, 8.6, 0xffd84a]]) T.push(box(x, y, HD + 0.45, 0.8, 0.8, 0.4, c, 'cloth'));   // white flowers
     const [aR, aL] = both((L, s) => { L.push(box(0, -6.4, 0, 4.7, 1, 4.7, G1, 'cloth')); L.push(box(s * 2.5, -6.2, 1, 0.5, 1.2, 1.6, 0x6ab83a, 'cloth')); });
     return { torso: T, armR: aR, armL: aL, covers: true };
   } },
@@ -260,8 +269,10 @@ export const ARMOUR_LOOKS = {
     for (let i = 0; i < 6; i++) T.push(box(-3.5 + i * 1.4, 11.6 + (i % 2) * 0.5, HD + 0.2, 1.6, 1.8, 0.8, i % 2 ? G : G2, 'gem'));   // the woolly mantle
     for (const s of [-1, 1]) for (let i = 0; i < 3; i++) T.push(box(s * 3.6, 11.8 - i * 0.3, -1.6 + i * 1.6, 1.6, 1.6, 1.6, i % 2 ? G : G2, 'gem'));
     T.push(box(0, 10.6, HD + 0.7, 1.4, 1.4, 0.4, 0xfff0a0, 'glow'));
+    for (const sx of [-1, 1]) for (let i = 0; i < 3; i++) T.push(box(sx * (3.2 - i * 0.3), 9.8 - i * 1.6, HD + 0.3, 1.8, 1.8, 0.8, i % 2 ? G2 : G, 'gem'));   // the fleece hanging down the chest
+    shell(T, LINEN, 'cloth', 1.4, 9.4, { open: 3 }); belt(T, LEATHER, 'leather', 1.2, GOLD);
     capeBar(T, G2, 'gem');
-    return { torso: T, cape: cape(G, { kind: 'fleece', len: 11.5, w: 8.4, flare: 0.6, f: 'gem', alt: G2 }) };
+    return { torso: T, cape: cape(G, { kind: 'fleece', len: 11.5, w: 8.4, flare: 0.6, f: 'gem', alt: G2 }), covers: true };
   } },
   forge_apron: { fam: 'clothes', build: () => {
     const A = 0x5a3a24, T = [];
@@ -270,9 +281,10 @@ export const ARMOUR_LOOKS = {
     T.push(box(-1, 6.6, HD + 0.25, 0.4, 2.6, 0.4, 0x5a5a62, 'iron')); T.push(box(-0.3, 6.6, HD + 0.25, 0.4, 2.4, 0.4, 0x5a5a62, 'iron'));
     for (const s of [-1, 1]) T.push(box(s * 2.6, 12.1, 0, 1.2, 0.6, HD * 2 + 0.2, A, 'leather'));   // straps over the shoulders
     band(T, A, 'leather', 1.4, 0.9);
-    for (const [x, y] of [[2.2, 9.4], [-2.4, 3], [1.6, 2.4]]) T.push(box(x, y, HD + 0.15, 0.5, 0.5, 0.3, 0xff8a2a, 'glow'));   // embers in the leather
+    for (const [x, y, w] of [[2.2, 9.4, 0.5], [-2.4, 3, 0.9], [1.6, 2.4, 0.6], [-2.2, 8.2, 0.7], [2.6, 5.6, 0.8]]) T.push(box(x, y, HD + 0.15, w, 0.5, 0.3, 0xff8a2a, 'glow'));   // embers in the leather
     const [aR, aL] = both((L) => glove(L, 0x4a2e1c, 'leather', 0x7a4a2a));
-    return { torso: T, armR: aR, armL: aL, front: panel(A, 'leather', 7.4, { trim: 0x3a2214, w: 7.2 }) };
+    const F = panel(A, 'leather', 7.4, { trim: 0x3a2214, w: 7.2 }); for (const [x, y] of [[-2, -2.4], [1.8, -4.6], [-0.6, -5.8]]) F.push(box(x, y, 3, 0.9, 0.5, 0.3, 0xff7a1a, 'glow'));
+    return { torso: T, armR: aR, armL: aL, front: F };
   } },
   amazon_armor: { fam: 'plate', build: () => {
     const R = 0x8a1a1a, T = []; shell(T, R, 'leather', 1.2, 11.6);
@@ -309,18 +321,24 @@ export const ARMOUR_LOOKS = {
     capeBar(T, B); T.push(box(0, 11.9, HD + 0.2, 2, 1.4, 0.5, 0xd8e0e8, 'silver')); for (const s of [-1, 1]) T.push(box(s * 1.4, 12.1, HD + 0.25, 1.2, 0.5, 0.4, W, 'cloth', [0, 0, s * 0.5]));   // a feather clasp
     for (const s of [-1, 1]) T.push(box(s * 3.4, 11.9, 0, 1.8, 0.7, HD * 2 + 0.6, B, 'cloth'));
     const [aR, aL] = both((L, s) => { bracer(L, B, 'cloth', { y: -6.6, h: 3 }); for (let i = 0; i < 3; i++) L.push(box(s * 2.5, -5.4 - i * 1.1, 1.4 - i * 1.3, 0.4, 0.5, 1.4, W, 'cloth')); });
-    const C = cape(B, { trim: W, len: 14, flare: 1 }); C.segs[0].push(box(-2.4, -3.4, -0.65, 2.2, 0.5, 0.2, W, 'cloth', [0, 0, 0.5])); C.segs[1].push(box(2, -2.6, -0.65, 2.6, 0.5, 0.2, W, 'cloth', [0, 0, -0.5]));   // swirls of wind
+    const C = cape(B, { trim: W, len: 14, flare: 1 });
+    // swirls of wind: white curls on the cape
+    for (const [k, x, y, r] of [[0, -2.4, -3.4, 0.5], [0, 1.6, -5, -0.6], [0, 2.6, -2.2, 0.9], [1, 2, -2.6, -0.5], [1, -2.2, -4.2, 0.6], [1, -0.4, -1.4, -1]]) { C.segs[k].push(box(x, y, -0.65, 2.4, 0.5, 0.2, W, 'cloth', [0, 0, r])); C.segs[k].push(box(x + 1, y - 0.6, -0.65, 0.6, 1, 0.2, W, 'cloth')); }
+    for (const sx of [-1, 1]) for (let i = 0; i < 3; i++) T.push(box(sx * (3.4 - i * 0.4), 10.6 - i * 1.4, HD + 0.2, 1.4, 1.4, 0.5, i % 2 ? W : B, 'cloth'));   // the cape over the shoulders
     return { torso: T, armR: aR, armL: aL, cape: C };
   } },
   hermes_cap: { fam: 'cloak', build: () => {
     const B = 0x7a5a3a, W = 0xf6f6f2, T = []; capeBar(T, B); for (const s of [-1, 1]) T.push(box(s * 3.4, 11.9, 0, 1.8, 0.7, HD * 2 + 0.6, B, 'cloth'));
     T.push(box(0, 11.6, HD + 0.2, 1.4, 1.4, 0.4, GOLD, 'gold'));
     // the petasos: a low crown, a round brim, white wings at its sides
-    const H = [box(0, 8.7, -0.2, 11.4, 0.6, 11.2, 0x8a6a3a, 'cloth'), box(0, 9.8, -0.3, 9, 1.8, 8.8, 0x9a7a48, 'cloth'), box(0, 10.9, -0.3, 6.6, 0.7, 6.6, 0x9a7a48, 'cloth')];
+    const H = [box(0, 8.7, -0.2, 11.4, 0.6, 11.2, 0x1e2e52, 'cloth'), box(0, 9.8, -0.3, 9, 1.8, 8.8, NAVY, 'cloth'), box(0, 10.9, -0.3, 6.6, 0.7, 6.6, NAVY, 'cloth'), box(0, 9.1, 4.4, 1.2, 1.2, 0.4, GOLD, 'gold')];
+    for (const sx of [-1, 1]) for (let i = 0; i < 4; i++) T.push(box(sx * (3.6 - i * 0.5), 11.2 - i * 0.9, HD + 0.2, 1.4, 1.6 + (i % 2) * 0.6, 0.5, i % 2 ? shade(B, 0.85) : B, 'cloth'));   // the capelet's shaggy front
+    shell(T, LINEN, 'cloth', 1.4, 9.6, { open: 2.4 }); belt(T, LEATHER, 'leather', 1.6, GOLD);
+    T.push(box(-3.2, 2.6, HD + 0.5, 2.4, 2.4, 0.9, LEATHER, 'leather'));   // a courier's pouch
     for (const s of [-1, 1]) { H.push(box(s * 4.7, 10.6, -0.8, 0.6, 2, 3.2, W, 'cloth')); H.push(box(s * 4.8, 11.9, -1.6, 0.5, 1.6, 2.6, W, 'cloth')); H.push(box(s * 4.9, 12.9, -2.4, 0.5, 1.2, 1.8, 0xe8e8e0, 'cloth')); }
     // little wings at the ankles
     const [lR, lL] = both((L, s) => { L.push(box(0, -6.8, 0, 4.8, 0.8, 4.8, GOLD, 'gold')); L.push(box(s * 2.7, -6.2, -0.6, 0.5, 1.8, 2.4, W, 'cloth')); L.push(box(s * 2.8, -5.2, -1.6, 0.4, 1.4, 1.8, W, 'cloth')); });
-    return { torso: T, legR: lR, legL: lL, head: H, hair: 'cap', cape: cape(B, { trim: GOLD, len: 11, flare: 0.4 }) };
+    return { torso: T, legR: lR, legL: lL, head: H, hair: 'cap', cape: cape(B, { kind: 'fur', len: 11, flare: 0.4 }), covers: true };
   } },
   counsellor_vest: { fam: 'clothes', build: () => {
     const O = 0xf07a14, T = []; shell(T, O, 'cloth', 2, 11.7, { open: 2 });
@@ -335,6 +353,7 @@ export const ARMOUR_LOOKS = {
     for (let i = 0; i < 5; i++) T.push(box(-1.6 + i * 0.4, 11 - i * 1.5, HD + 0.1, 1.6, 1.6, 0.5, W2, 'fur', [0, 0, 0.5]));   // the wrap's edge
     T.push(box(2.4, 8.6, HD + 0.15, 1.4, 1, 0.3, 0xf08aa8, 'cloth')); T.push(box(2.4, 9.3, HD + 0.15, 0.6, 0.6, 0.3, 0xf8b8c8, 'cloth'));   // the lotus
     band(T, 0xf08aa8, 'cloth', 3.6, 1);
+    for (const [x, y, w, h, c] of [[0, 7.6, 1.2, 2.6, 0xf08aa8], [-1.3, 7.2, 1.2, 1.8, 0xf8b8c8], [1.3, 7.2, 1.2, 1.8, 0xf8b8c8], [-2.3, 6.6, 1, 1, 0xf08aa8], [2.3, 6.6, 1, 1, 0xf08aa8], [0, 6, 4.4, 0.6, 0x7ac86a]]) T.push(box(x, y, -HD - 0.15, w, h, 0.3, c, 'cloth'));   // the lotus on the back
     const [aR, aL] = both((L) => { sleeve(L, W, 'fur', 2.4, -7.2, 4.9); L.push(box(0, -7, 0, 5.3, 1.1, 5.3, W2, 'fur')); });
     return { torso: T, armR: aR, armL: aL, front: panel(W, 'fur', 8, { trim: W2 }), back: panel(W, 'fur', 8, { z: -2.65, trim: W2 }), covers: true };
   } },
@@ -353,7 +372,10 @@ export const ARMOUR_LOOKS = {
     T.push(box(0, 6.6, HD + 0.4, 1.8, 1.8, 0.5, 0xe8dcc0, 'bone'));
     capeBar(T, D, 'leather');
     for (const s of [-1, 1]) { T.push(box(s * 4.5, 12.6, -2.9, 1, 2.2, 1, 0xe8dcc0, 'bone')); T.push(box(s * 4.7, 14, -2.9, 0.7, 1, 0.7, 0x5a4a3a, 'bone')); }   // the wings' wrists above the shoulders (beside the head, not behind it)
-    return { torso: T, cape: cape(D, { kind: 'wing', len: 12.5, w: 8.4, flare: 1.2, f: 'leather', alt: 0x8a7a72 }) };
+    const C = cape(D, { kind: 'wing', len: 12.5, w: 8.4, flare: 1.2, f: 'leather', alt: 0xe8dcc0, hem: 0xa81a1a });
+    for (const sx of [-1, 1]) C.segs[1].push(box(sx * 2.8, -3.6, -0.5, 3, 2.4, 0.3, 0x8a1418, 'leather'));   // the red inner membrane
+    T.push(box(0, 7.4, HD + 0.6, 0.6, 0.4, 0.3, 0x1a1010, 'leather')); for (const sx of [-1, 1]) T.push(box(sx * 0.45, 6.8, HD + 0.65, 0.4, 0.4, 0.3, 0x1a1010, 'leather'));   // the skull's eyes on the clasp
+    return { torso: T, cape: C };
   } },
   hellhound_hide: { fam: 'pelt', build: () => {
     const K = 0x1a1618, K2 = 0x2e2628, T = [];
@@ -364,15 +386,18 @@ export const ARMOUR_LOOKS = {
     const H = []; hood(H, K, 'fur', { rim: K2 });
     H.push(box(0, 9.4, 4.2, 6.4, 1.8, 2.4, K2, 'fur')); H.push(box(0, 9.2, 5.8, 3, 1.4, 1.6, K, 'fur')); H.push(box(0, 9.6, 6.7, 1.2, 0.8, 0.4, 0x0a0808, 'leather'));   // the hound's brow and snout
     for (const s of [-1, 1]) { H.push(box(s * 2, 10.4, 5.4, 1, 0.6, 0.4, 0xff2a1a, 'glow')); H.push(box(s * 3.3, 10.2, -0.6, 1.4, 2.4, 1.4, K, 'fur', [0, 0, s * 0.3])); H.push(box(s * 3.6, 11.6, -0.7, 0.9, 1.4, 0.9, K2, 'fur', [0, 0, s * 0.3])); }
-    return { torso: T, head: H, hair: 'hood', cape: cape(K, { kind: 'fur', len: 11, w: 8.4, flare: 0.8 }), covers: true };
+    const C = cape(K, { kind: 'fur', len: 11, w: 8.4, flare: 0.8 });
+    for (const [k, x, y] of [[0, -2.6, -2], [0, 2.2, -4], [1, -1.4, -3], [1, 3, -1.6], [1, 0.6, -4.6]]) C.segs[k].push(box(x, y, -0.8, 0.7, 0.7, 0.3, 0xff2a1a, 'glow'));
+    return { torso: T, head: H, hair: 'hood', cape: C, covers: true };
   } },
   drakon_scale: { fam: 'scale', build: () => {
     const cs = [0x2a4a2a, 0x3a5e32, 0x1e3a22, 0x4a6e3a], Y = 0xc8a83a, T = []; shell(T, 0x1e3a22, 'metal', 1, 11.8);
     scales(T, cs, 'metal', 1.2, 11.6);
     for (let i = 0; i < 4; i++) T.push(box(0, 2.6 + i * 2.2, HD + 0.5, 3.6 - i * 0.2, 1.8, 0.45, i % 2 ? Y : shade(Y, 0.85), 'gold'));   // the drakon's belly plates
-    const [aR, aL] = both((L, s) => { pauldron(L, s, 0x2a4a2a, 'metal', { layers: 2 }); for (let i = 0; i < 3; i++) L.push(box(s * (0.6 + i * 0.9), 3.6, -1 + i, 0.7, 1.8, 0.7, 0xe8dcc0, 'bone', [0, 0, -s * 0.4])); bracer(L, 0x1e3a22, 'metal', { trim: Y }); });
+    const [aR, aL] = both((L, s) => { pauldron(L, s, 0x2a4a2a, 'metal', { layers: 2 }); for (let i = 0; i < 3; i++) L.push(box(s * (0.6 + i * 0.9), 3.6, -1 + i, 0.7, 1.8, 0.7, Y, 'gold', [0, 0, -s * 0.4])); bracer(L, 0x1e3a22, 'metal', { trim: Y }); });
     const [lR, lL] = both((L, s) => greave(L, s, 0x2a4a2a, 'metal', { trim: Y }));
-    const H = []; helmet(H, 0x2a4a2a, 'metal', { ridge: 0xe8dcc0 });
+    const H = []; helmet(H, 0x2a4a2a, 'metal', { ridge: Y });
+    for (const sx of [-1, 1]) { H.push(box(sx * 4.2, 12.4, -0.6, 1.2, 2.2, 1.2, Y, 'gold', [0, 0, -sx * 0.35])); H.push(box(sx * 4.9, 13.9, -0.8, 0.8, 1.4, 0.8, shade(Y, 1.1), 'gold', [0, 0, -sx * 0.5])); }   // gold horns
     for (const s of [-1, 1]) H.push(box(s * 2.6, 8.6, 5.15, 0.8, 0.5, 0.3, 0xffd030, 'glow'));
     return { torso: T, armR: aR, armL: aL, legR: lR, legL: lL, head: H, hair: 'helmet', front: strips(0x2a4a2a, 'metal', 3.6, { alt: 0x1e3a22, trim: Y }), back: strips(0x2a4a2a, 'metal', 3.6, { z: -2.6, alt: 0x1e3a22, trim: Y }), covers: true };
   } },
