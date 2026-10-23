@@ -299,7 +299,7 @@ test('capstones add their stats, and damage passives multiply', () => {
 import { rollBossLoot, itemTier, itemInfo } from '../js/loot.js';
 test('drop chances, chest counts and the boss’s share: about 12-13 items a chapter per player', () => {
   assert.deepEqual(P.DROP_CHANCE, { minor: 0.02, fodder: 0.004, elite: 0.08, affixed: 0.25, champion: 0.6, owChampion: 1 });
-  assert.equal(P.PITY_AT, 40); assert.deepEqual(P.PITY_SOURCES, ['rare', 'elite', 'champion', 'boss', 'epic']);
+  assert.equal(P.PITY_AT, 30); assert.deepEqual(P.PITY_SOURCES, ['rare', 'elite', 'champion', 'boss', 'epic']);
   assert.equal(P.SOURCE_BONUS.elite, 0.4);
   // §4.3's estimate: 120 minor kills, 8 elite-tier, 3 affixed elites, 4.5 chests (1 rare), the boss and the chapter reward
   const chests = 3.5 * (P.CHEST_ITEMS.common[0] + P.CHEST_ITEMS.common[1]) + (P.CHEST_ITEMS.rare[0] + P.CHEST_ITEMS.rare[1]);
@@ -315,12 +315,13 @@ test('drop chances, chest counts and the boss’s share: about 12-13 items a cha
   assert.match(main, /DROP_CHANCE\.minor/); assert.match(main, /lootHumans\(e\.pos\)/); assert.match(main, /q\.stats\?\.lootChance/);
   assert.match(main, /rollBossLoot\(key, area/); assert.match(main, /rollChapterReward\(cid/);
 });
-test('the level ramp: MCD2’s factors with the 0.15 floor', () => {
+test('the level ramp: MCD2’s factors with the 0.15 floor (0.25 for Legendary)', () => {
   const f = P.levelFactors;
   assert.deepEqual(f(1), { common: 1, rare: 0.6, heroic: 0, unique: 0 });
   assert.equal(f(6).common, 0.5); assert.equal(f(5).rare, 1); assert.equal(f(15).rare, 0.5);
-  assert.equal(f(11).heroic, 1); assert.equal(f(13).unique, 1); assert.equal(f(40).unique, 1);
-  for (let L = 2; L <= 50; L++) assert.ok(f(L).heroic >= 0.15 && f(L).unique >= 0.15, `level ${L}`);
+  assert.equal(f(11).heroic, 1); assert.equal(f(2).unique, 0.25); assert.equal(f(10).unique, 1); assert.equal(f(40).unique, 1);
+  assert.ok(Math.abs(f(6).unique - 5 / 9) < 1e-9);
+  for (let L = 2; L <= 50; L++) assert.ok(f(L).heroic >= 0.15 && f(L).unique >= 0.25, `level ${L}`);
   const leg = (L) => P.rarityWeights('boss', L).unique;
   assert.ok(leg(13) > leg(10) && leg(10) > leg(6) && leg(6) > leg(4) && leg(4) > leg(1), 'Legendaries get commoner as you level');
 });

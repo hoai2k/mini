@@ -98,30 +98,31 @@ export const temperCap = (playerLevel = 1) => Math.round(powerAt(expectedArea(pl
 // Minecraft Dungeons II's Special) and unique (Legendary). Each source has its
 // own weights (MCD2's, as fan sites read them from the game data); the weights
 // are multiplied by the player-level factors (MCD2's ramp, with a 0.15 floor
-// for Heroic and Legendary from level 2) and Heroic and Legendary by the
+// for Heroic from level 2, 0.25 and a faster ramp for Legendary) and Heroic and Legendary by the
 // difficulty factor. The Shop never sells Legendaries.
 export const RARITY_TIERS = ['common', 'rare', 'heroic', 'unique'];
 const W = (common, rare, heroic, unique) => ({ common, rare, heroic, unique });
 export const RARITY_WEIGHTS = {
-  monster: W(50, 25, 20, 5),     // minor and elite-tier kinds
-  chest: W(25, 25, 20, 5),       // a common chest
-  rare: W(0, 50, 40, 10),        // a rare chest
-  elite: W(0, 50, 40, 10),       // an affixed elite
-  champion: W(0, 50, 40, 10),    // a champion-tier kind, an open-world champion
-  boss: W(0, 30, 20, 10),
-  epic: W(0, 30, 20, 10),        // an epic chest (a champion's, a trial's)
-  quest: W(30, 60, 40, 5),       // a side quest, the chapter reward
+  monster: W(50, 25, 20, 8),     // minor and elite-tier kinds
+  chest: W(25, 25, 20, 8),       // a common chest
+  rare: W(0, 50, 40, 16),        // a rare chest
+  elite: W(0, 50, 40, 16),       // an affixed elite
+  champion: W(0, 50, 40, 16),    // a champion-tier kind, an open-world champion
+  boss: W(0, 30, 20, 18),
+  epic: W(0, 30, 20, 18),        // an epic chest (a champion's, a trial's)
+  quest: W(30, 60, 40, 8),       // a side quest, the chapter reward
   shop: W(40, 40, 20, 0),
 };
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
 export const RARITY_FLOOR = 0.15;
+export const UNIQUE_FLOOR = 0.25;   // Legendary's own floor from level 2 (it ramps over 9 levels, not 12)
 export function levelFactors(L = 1) {
   L = Math.max(1, L);
   return {
     common: 1 - 0.5 * clamp01((L - 1) / 5),
     rare: L <= 5 ? 0.6 + 0.4 * (L - 1) / 4 : 1 - 0.5 * clamp01((L - 5) / 10),
     heroic: L < 2 ? 0 : Math.max(RARITY_FLOOR, clamp01((L - 1) / 10)),
-    unique: L < 2 ? 0 : Math.max(RARITY_FLOOR, clamp01((L - 1) / 12)),
+    unique: L < 2 ? 0 : Math.max(UNIQUE_FLOOR, clamp01((L - 1) / 9)),
   };
 }
 // Mortal ×1, then +25% a difficulty step (Heroic and Legendary only).
@@ -155,7 +156,7 @@ export const blessedChance = (gl = 1) => Math.min(0.06, 0.012 + 0.003 * gl);
 // Each profile counts the item drops since its last Legendary
 // (save.data.sinceLegendary). At PITY_AT, the next drop from one of these
 // sources is Legendary; any Legendary resets the count (loot.js applyPity).
-export const PITY_AT = 40;
+export const PITY_AT = 30;
 export const PITY_SOURCES = ['rare', 'elite', 'champion', 'boss', 'epic'];
 
 // ---------------------------------------------------------------- drops (§4.3)
