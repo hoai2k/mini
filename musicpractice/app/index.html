@@ -380,7 +380,7 @@
         <!-- Pure Intervals (tunerui.js): while on, the tuner judges each note
              against the pure interval above the drone's note. -->
         <div class="pure-bar" id="pure-bar" hidden>
-          <p class="pure-title"><strong data-text="tuner.pure.title"></strong> <span class="help" data-text="tuner.pure.help"></span></p>
+          <p class="pure-title"><strong data-text="tuner.pure.title"></strong> <span class="help" data-text="tuner.pure.help"></span> <span class="help" id="pure-burst-note" data-text="tuner.pure.burstNote" hidden></span></p>
           <div class="pure-controls">
             <span class="pure-root-pick">
               <button type="button" class="step" id="pure-down" data-text-aria-label="tuner.pure.rootDown">−</button>
@@ -431,11 +431,35 @@
               <span class="scale-cta-text"><strong data-text="tuner.scale.button"></strong><small data-text="tuner.scale.buttonSub"></small></span>
               <svg class="scale-cta-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
             </button>
+            <button class="scale-cta exercise-option" id="match-open" type="button">
+              <span class="scale-cta-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 15c0 3 2 5 4.5 5S15 18 15 16c0-2 3-3 3-7a6 6 0 1 0-12 0"/><path d="M10 9.5a2 2 0 1 1 3 1.7c-.8.5-1 1.2-1 2"/></svg></span>
+              <span class="scale-cta-text"><strong data-text="tuner.match.button"></strong><small data-text="tuner.match.buttonSub"></small></span>
+              <svg class="scale-cta-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+            </button>
             <button class="scale-cta exercise-option" id="pure-open" type="button">
               <span class="scale-cta-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/><path d="M3 17h18"/></svg></span>
               <span class="scale-cta-text"><strong data-text="tuner.pure.button"></strong><small data-text="tuner.pure.buttonSub"></small></span>
               <svg class="scale-cta-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
             </button>
+          </div>
+        </form>
+      </dialog>
+
+      <!-- Tone Matching (tunerui.js, tonematch.js): ready, listen (the cello's
+           note), play (the player's turn), then the result (data-step). -->
+      <dialog id="match-sheet" class="sheet" aria-labelledby="match-title" data-step="ready">
+        <form method="dialog">
+          <header class="sheet-head"><h3 id="match-title" data-text="tuner.match.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <p class="help match-how" data-text="tuner.match.how"></p>
+          <div class="match-stage" aria-live="polite">
+            <p class="match-status" id="match-status"></p>
+            <p class="match-verdict" id="match-verdict"></p>
+            <p class="match-detail" id="match-detail"></p>
+          </div>
+          <p class="match-score" id="match-score"></p>
+          <div class="match-actions">
+            <button type="button" class="pill" id="match-again" data-text="tuner.match.again"></button>
+            <button type="button" class="big-btn match-go" id="match-go"></button>
           </div>
         </form>
       </dialog>

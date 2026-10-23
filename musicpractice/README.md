@@ -549,9 +549,29 @@ harmonics only) to within 1.5 cents and in the right octave.
 A quiet **Intonation Exercises** button under the tuner (no fill or
 shadow, an outlined icon in the theme's accent, so it doesn't compete with
 the tuner), set apart from Play a note by a rule and space (an icon, a line
-saying what it does, an arrow). It opens a small sheet with the two
-exercises, each a button of the same kind: **Test My Scale Intonation**
-and **Pure Intervals**.
+saying what it does, an arrow). It opens a small sheet with the
+exercises, each a button of the same kind: **Test My Scale Intonation**,
+**Tone Matching** and **Pure Intervals**.
+
+### Tone Matching
+
+A cello plays a note (an exact note, picked at random from G2 to D4, never
+the same note name twice running; the Drone's sampled cello at the Drone's
+volume), then the player plays or sings the same note in any octave and
+holds it. Once a note has held steady for 0.7 s (its readings within 40
+cents), it is judged twice (`app/src/tonematch.js`, in
+`test/tonematch.test.mjs`): **the right note or not** (*Right note: A*, or
+*You played B. The note was A* and *2 semitones too high*), and for the
+right note **how close** (*12 cents sharp · close*: in tune within 5 cents,
+close within 15). A running score (*3 of 4 right*), **Hear it again** and
+**Next note**. If no steady note comes within 12 s it says so.
+
+The note never sounds while the microphone listens: it is closed while the
+cello plays (where it can be taken back without a prompt) and the phone
+given time to leave call mode, so it is heard at full volume on any
+speaker; then listening starts again, ignoring the first 0.4 s (the room's
+echo). Where closing the mic would bring the prompt back, it stays open and
+what it hears while the note sounds is ignored.
 
 ### Pure Intervals
 
@@ -575,6 +595,14 @@ The instrument, strings, reference tone and the exercises button step aside
 while it is on. Done, or leaving the tuner, ends it and stops a drone it
 started. The bar suggests headphones: over a speaker the tuner also hears
 the drone.
+
+**On iPhone and iPad** an open microphone holds the phone in call mode, so a
+drone under listening would play quietly on the phone's own speaker. There
+the button is **Hear the drone**: the drone sounds for 4 s with the
+microphone closed (as Tone Matching's note does), then stops and the tuner
+listens, judging the note the player goes on playing against it (*Drone
+playing…* meanwhile, and the bar says so). The drone and the microphone
+never overlap.
 
 ### Test My Scale Intonation
 
