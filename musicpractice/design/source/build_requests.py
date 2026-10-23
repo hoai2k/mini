@@ -1109,6 +1109,50 @@ _revise("nouveau", "metronome-body",
               "in the delivered file and record it here. Replaces the file at the same path."))
 
 
+# Follow-up: the Baroque screen must use the corrected home icon's exact
+# case and pendulum design, with separate layers for animation and tempo.
+_baroque_layer_subjects = {
+    "metronome-body": "the same complete case, without the rising rod or sliding shell weight; retain only the small fixed rosette pivot near the lower centre of the painted ivory dial",
+    "metronome-pendulum": "only its straight gilt pendulum, upright, with the same round rosette hub at the bottom and the small scalloped-shell sliding weight high on the rod",
+    "metronome-rod": "only its straight gilt rod and small round rosette hub at the bottom, upright, without the sliding shell weight or any hanging bob",
+    "metronome-weight": "only its small scalloped-shell sliding weight, centred, without the long rod, hub or case",
+}
+for _asset_id, _subject in _baroque_layer_subjects.items():
+    _revise("baroque", _asset_id,
+            prompt=("Using the corrected 18th Century home metronome, "
+                    "musicpractice/app/assets/ui/baroque/home-metronome.webp, as the exact design reference, draw "
+                    + _subject + ". Preserve the same walnut, gilt, burgundy, powder blue, cream, "
+                    "engraved texture, lighting and proportions. Seen straight on. The rod must meet its "
+                    "lower pivot cleanly on the case's symmetry axis. No clock-style top suspension, "
+                    "no hanging ball, no additional decoration, no text or numbers. Fully transparent "
+                    "background. " + _BAROQUE["style"]),
+            note=("Round 15 user follow-up: full-size separated artwork matching the corrected "
+                  "home icon, replacing the screen's slightly different metronome. Measure the "
+                  "pivot, hub, sliding-weight centre and safe travel so the layers align."))
+
+
+# App icon candidates and metronome corrections are delivered in batches.
+_round14_15_delivery = ROOT / "design" / "image-deliveries-rounds-14-15.json"
+if _round14_15_delivery.exists():
+    _delivered = {
+        (a.get("theme"), a["id"]): a
+        for a in json.loads(_round14_15_delivery.read_text())["assets"]
+        if a.get("status") == "delivered"
+    }
+    for asset in ASSETS:
+        if asset["round"] not in (14, 15):
+            continue
+        delivery = _delivered.get((asset.get("theme"), asset["id"]))
+        if not delivery:
+            continue
+        asset["status"] = "delivered"
+        for key in ("canvas", "anchors", "swing", "scale", "travel"):
+            if delivery.get(key) is not None:
+                asset[key] = delivery[key]
+        asset["note"] = delivery.get("delivery_note", asset["note"])
+        asset["note"] += " PNG masters, exact prompts and exports: design/image-deliveries-rounds-14-15.json."
+
+
 # Shared pictures. Most Practice Routine pictures came out as near-copies
 # across the warm brass-and-gold themes: the same tuning fork or staff, a
 # different drawing. Those themes use Classic's; a theme keeps its own only

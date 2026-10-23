@@ -22,5 +22,6 @@
     1254,
     1254
   ],
-  "sizing": "Lanczos resize to requested dimensions, no crop; original retained outside repository."
+  "sizing": "Lanczos resize to requested dimensions, no crop; original retained outside repository.",
+  "destination": "game/assets/icons-weapons-1.png"
 }

@@ -52,12 +52,12 @@
   {
     "id": "icon-gramophone",
     "file": "icons/icon-gramophone-1024.png",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "icon-horn",
     "file": "icons/icon-horn-1024.png",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "cover",
@@ -171,7 +171,7 @@
     "id": "metronome-body",
     "theme": "baroque",
     "file": "assets/ui/baroque/metronome-body.webp",
-    "status": "delivered",
+    "status": "revise",
     "canvas": [
       800,
       1200
@@ -187,7 +187,7 @@
     "id": "metronome-pendulum",
     "theme": "baroque",
     "file": "assets/ui/baroque/metronome-pendulum.webp",
-    "status": "delivered",
+    "status": "revise",
     "canvas": [
       200,
       1000
@@ -901,7 +901,7 @@
     "id": "metronome-rod",
     "theme": "baroque",
     "file": "assets/ui/baroque/metronome-rod.webp",
-    "status": "delivered",
+    "status": "revise",
     "canvas": [
       200,
       1000
@@ -923,7 +923,7 @@
     "id": "metronome-weight",
     "theme": "baroque",
     "file": "assets/ui/baroque/metronome-weight.webp",
-    "status": "delivered",
+    "status": "revise",
     "canvas": [
       200,
       111

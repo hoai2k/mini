@@ -32,9 +32,9 @@ Images belong to a theme (Settings → Theme); each theme has its own set.
 
 **Round 13 (the Bebop theme):** archived, art and all, in `design/archive/bebop/` (not in the app).
 
-**Round 14 (app icon candidates):** 2 images wanted: `icons/icon-gramophone-1024.png`, `icons/icon-horn-1024.png`.
+**Round 14 (app icon candidates):** delivered and in use.
 
-**Round 15 (metronome revisions, so each theme's is one metronome):** 2 images wanted: `assets/ui/baroque/home-metronome.webp`, `assets/ui/nouveau/metronome-body.webp`.
+**Round 15 (metronome revisions, so each theme's is one metronome):** 6 images wanted: `assets/ui/baroque/home-metronome.webp`, `assets/ui/baroque/metronome-body.webp`, `assets/ui/baroque/metronome-pendulum.webp`, `assets/ui/nouveau/metronome-body.webp`, `assets/ui/baroque/metronome-rod.webp`, `assets/ui/baroque/metronome-weight.webp`.
 
 **House styles** (already included in every prompt):
 
@@ -62,8 +62,8 @@ the measured ones for the delivered file in `build_requests.py`.
 | 1 | Classic | delivered | `metronome-body` | `app/assets/ui/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
 | 1 | Classic | delivered | `metronome-pendulum` | `app/assets/ui/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
 | 1 | all | delivered | `icon` | `app/icons/icon-1024.png` | 1024×1024, PNG, full bleed, no transparency |
-| 14 | all | requested | `icon-gramophone` | `app/icons/icon-gramophone-1024.png` | 1024×1024, PNG, full bleed, no transparency |
-| 14 | all | requested | `icon-horn` | `app/icons/icon-horn-1024.png` | 1024×1024, PNG, full bleed, no transparency |
+| 14 | all | delivered | `icon-gramophone` | `app/icons/icon-gramophone-1024.png` | 1024×1024, PNG, full bleed, no transparency |
+| 14 | all | delivered | `icon-horn` | `app/icons/icon-horn-1024.png` | 1024×1024, PNG, full bleed, no transparency |
 | 1 | all | delivered | `cover` | `app/assets/ui/cover.webp` | 1200×900 (4:3), WebP |
 | 2 | Art Deco | delivered | `home-metronome` | `app/assets/ui/deco/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 2 | Art Deco | delivered | `home-record` | `app/assets/ui/deco/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
@@ -75,8 +75,8 @@ the measured ones for the delivered file in `build_requests.py`.
 | 3 | Vintage 60s | delivered | `metronome-pendulum` | `app/assets/ui/sixties/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
 | 15 | 18th Century | revise | `home-metronome` | `app/assets/ui/baroque/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 3 | 18th Century | delivered | `home-record` | `app/assets/ui/baroque/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 3 | 18th Century | delivered | `metronome-body` | `app/assets/ui/baroque/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
-| 3 | 18th Century | delivered | `metronome-pendulum` | `app/assets/ui/baroque/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
+| 15 | 18th Century | revise | `metronome-body` | `app/assets/ui/baroque/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
+| 15 | 18th Century | revise | `metronome-pendulum` | `app/assets/ui/baroque/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
 | 3 | Robot Future | delivered | `home-metronome` | `app/assets/ui/scifi/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 3 | Robot Future | delivered | `home-record` | `app/assets/ui/scifi/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 3 | Robot Future | delivered | `metronome-body` | `app/assets/ui/scifi/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
@@ -147,8 +147,8 @@ the measured ones for the delivered file in `build_requests.py`.
 | 10 | Art Deco | delivered | `metronome-weight` | `app/assets/ui/deco/metronome-weight.webp` | 200×156 canvas at the pendulum's scale, transparent PNG, shipped as WebP |
 | 10 | Vintage 60s | delivered | `metronome-rod` | `app/assets/ui/sixties/metronome-rod.webp` | 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP |
 | 10 | Vintage 60s | delivered | `metronome-weight` | `app/assets/ui/sixties/metronome-weight.webp` | 200×108 canvas at the pendulum's scale, transparent PNG, shipped as WebP |
-| 10 | 18th Century | delivered | `metronome-rod` | `app/assets/ui/baroque/metronome-rod.webp` | 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP |
-| 10 | 18th Century | delivered | `metronome-weight` | `app/assets/ui/baroque/metronome-weight.webp` | 200×111 canvas at the pendulum's scale, transparent PNG, shipped as WebP |
+| 15 | 18th Century | revise | `metronome-rod` | `app/assets/ui/baroque/metronome-rod.webp` | 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP |
+| 15 | 18th Century | revise | `metronome-weight` | `app/assets/ui/baroque/metronome-weight.webp` | 200×111 canvas at the pendulum's scale, transparent PNG, shipped as WebP |
 | 10 | Robot Future | delivered | `metronome-rod` | `app/assets/ui/scifi/metronome-rod.webp` | 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP |
 | 10 | Robot Future | delivered | `metronome-weight` | `app/assets/ui/scifi/metronome-weight.webp` | 200×97 canvas at the pendulum's scale, transparent PNG, shipped as WebP |
 | 10 | French Nouveau | delivered | `metronome-rod` | `app/assets/ui/nouveau/metronome-rod.webp` | 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP |
@@ -282,21 +282,21 @@ Create the normal Music Practice app icon for iOS and Android, based on the refe
 
 ## App icon candidates
 
-### `icon-gramophone` · all themes · requested
+### `icon-gramophone` · all themes · delivered
 
 - File: `musicpractice/app/icons/icon-gramophone-1024.png`
 - Size: 1024×1024, PNG, full bleed, no transparency
-- Note: A candidate, not yet used: says listening and recording (the Playback Recorder) rather than metronome, to stand apart from the many metronome icons (design/app-store-review.md, guideline 4.3). Compared with icon-horn and the current icon before choosing.
+- Note: A candidate, not yet used: says listening and recording (the Playback Recorder) rather than metronome, to stand apart from the many metronome icons (design/app-store-review.md, guideline 4.3). Compared with icon-horn and the current icon before choosing. PNG masters, exact prompts and exports: design/image-deliveries-rounds-14-15.json.
 
 ```text
 Create a candidate app icon for Music Practice for iOS and Android: a single vintage gramophone, seen from the front and slightly to one side. A compact polished walnut cabinet with a black record on its turntable, a brass tone arm, and a large flared brass horn rising from it and opening towards the viewer, the horn's bell taking up most of the picture, with a soft warm sheen inside it. Simple and bold, few details. Square full-bleed warm ivory background, soft upper-left studio light, crisp readable silhouette that still reads at 60 pixels. Keep the whole object within the central 70% of the square, centred with generous even margin so maskable icon cropping preserves it. No rounded-square border, no outer frame, no text, no letters or numbers, no watermark. The background is opaque warm ivory all the way to all four corners. Same materials, palette and light as the current metronome icon (polished walnut, warm brass, ivory). Premium calm simple illustration.
 ```
 
-### `icon-horn` · all themes · requested
+### `icon-horn` · all themes · delivered
 
 - File: `musicpractice/app/icons/icon-horn-1024.png`
 - Size: 1024×1024, PNG, full bleed, no transparency
-- Note: A candidate, not yet used: the gramophone idea reduced to its horn, for a clearer shape at small sizes. Compared with icon-gramophone.
+- Note: A candidate, not yet used: the gramophone idea reduced to its horn, for a clearer shape at small sizes. Compared with icon-gramophone. PNG masters, exact prompts and exports: design/image-deliveries-rounds-14-15.json.
 
 ```text
 Create a candidate app icon for Music Practice for iOS and Android: only the large flared brass horn of a vintage gramophone, seen three-quarters from the front, its bell opening towards the viewer and filling most of the picture, its narrow end curving away to a small walnut collar. Within the bell, a few faint concentric rings suggest sound. A simpler, bolder version of a gramophone icon. Square full-bleed warm ivory background, soft upper-left studio light, crisp readable silhouette that still reads at 60 pixels. Keep the whole object within the central 70% of the square, centred with generous even margin so maskable icon cropping preserves it. No rounded-square border, no outer frame, no text, no letters or numbers, no watermark. The background is opaque warm ivory all the way to all four corners. Same materials, palette and light as the current metronome icon (polished walnut, warm brass, ivory). Premium calm simple illustration.
@@ -430,26 +430,26 @@ A period-inspired recording horn: a gilded flared brass horn on a carved walnut 
 
 ## 18th Century · Metronome animation
 
-### `metronome-body` · 18th Century · delivered
+### `metronome-body` · 18th Century · revise
 
 - File: `musicpractice/app/assets/ui/baroque/metronome-body.webp`
 - Size: 800×1200, transparent PNG (shipped as WebP)
-- Anchors (measured): pivot (400, 877) in a 800×1200 canvas
-- Note: The app rotates the 18th Century pendulum over this one about the pivot. Ask for (400, 1000) in an 800×1200 canvas, then measure where it really is in the delivered file and record it as this image's pivot anchor.
+- Anchors (requested): pivot (400, 877) in a 800×1200 canvas
+- Note: Round 15 user follow-up: full-size separated artwork matching the corrected home icon, replacing the screen's slightly different metronome. Measure the pivot, hub, sliding-weight centre and safe travel so the layers align.
 
 ```text
-An 18th-century style metronome case in carved walnut with a tall arched top crowned by a small gilt finial, gilt rococo scrolls and shell ornaments around its edges, and a tall ivory dial panel with fine engraved tick marks (no numbers), on a moulded plinth with small gilt scroll feet. Seen exactly straight on from the front, perfectly symmetrical, standing upright and filling the canvas top to bottom with a small margin. There is NO pendulum, rod or weight anywhere. Near the bottom of the face, centred left-to-right, a round gilt rosette sits exactly at 50% of the width and 83% of the height. 18th-century illustration in the manner of a Rococo engraving and a gilded harpsichord: warm ivory and parchment, carved walnut and fruitwood, burnished gilt, deep burgundy and a little powder blue, scrolling acanthus leaves, shell (rocaille) ornaments and fine engraved hatching. Elegant and refined. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
+Using the corrected 18th Century home metronome, musicpractice/app/assets/ui/baroque/home-metronome.webp, as the exact design reference, draw the same complete case, without the rising rod or sliding shell weight; retain only the small fixed rosette pivot near the lower centre of the painted ivory dial. Preserve the same walnut, gilt, burgundy, powder blue, cream, engraved texture, lighting and proportions. Seen straight on. The rod must meet its lower pivot cleanly on the case's symmetry axis. No clock-style top suspension, no hanging ball, no additional decoration, no text or numbers. Fully transparent background. 18th-century illustration in the manner of a Rococo engraving and a gilded harpsichord: warm ivory and parchment, carved walnut and fruitwood, burnished gilt, deep burgundy and a little powder blue, scrolling acanthus leaves, shell (rocaille) ornaments and fine engraved hatching. Elegant and refined. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.
 ```
 
-### `metronome-pendulum` · 18th Century · delivered
+### `metronome-pendulum` · 18th Century · revise
 
 - File: `musicpractice/app/assets/ui/baroque/metronome-pendulum.webp`
 - Size: 200×1000, transparent PNG (shipped as WebP)
-- Anchors (measured): hub (99.4, 866.3) in a 200×1000 canvas; swings ±24°
-- Note: The app rotates this about the hub. Ask for (100, 960) in a 200×1000 canvas, then record the measured hub as this image's anchor. The rod must be exactly vertical.
+- Anchors (requested): hub (99.4, 866.3) in a 200×1000 canvas; swings ±24°
+- Note: Round 15 user follow-up: full-size separated artwork matching the corrected home icon, replacing the screen's slightly different metronome. Measure the pivot, hub, sliding-weight centre and safe travel so the layers align.
 
 ```text
-Just the pendulum of a metronome, isolated: a thin straight gilt rod with a small gilt sliding weight shaped like a scalloped shell, and a round gilt rosette hub. The rod is perfectly straight and perfectly vertical down the exact centre of a tall narrow canvas, from about 3% from the top to the hub, whose centre is at 96% of the height; the weight sits on the rod at about 30% of the height. Seen straight on, symmetrical, nothing else in the picture. 18th-century illustration in the manner of a Rococo engraving and a gilded harpsichord: warm ivory and parchment, carved walnut and fruitwood, burnished gilt, deep burgundy and a little powder blue, scrolling acanthus leaves, shell (rocaille) ornaments and fine engraved hatching. Elegant and refined. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
+Using the corrected 18th Century home metronome, musicpractice/app/assets/ui/baroque/home-metronome.webp, as the exact design reference, draw only its straight gilt pendulum, upright, with the same round rosette hub at the bottom and the small scalloped-shell sliding weight high on the rod. Preserve the same walnut, gilt, burgundy, powder blue, cream, engraved texture, lighting and proportions. Seen straight on. The rod must meet its lower pivot cleanly on the case's symmetry axis. No clock-style top suspension, no hanging ball, no additional decoration, no text or numbers. Fully transparent background. 18th-century illustration in the manner of a Rococo engraving and a gilded harpsichord: warm ivory and parchment, carved walnut and fruitwood, burnished gilt, deep burgundy and a little powder blue, scrolling acanthus leaves, shell (rocaille) ornaments and fine engraved hatching. Elegant and refined. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.
 ```
 
 ## Robot Future · Home screen buttons
@@ -1278,26 +1278,26 @@ From the attached image, musicpractice/app/assets/ui/sixties/metronome-pendulum.
 
 ## 18th Century · Metronome pendulum in two parts
 
-### `metronome-rod` · 18th Century · delivered
+### `metronome-rod` · 18th Century · revise
 
 - File: `musicpractice/app/assets/ui/baroque/metronome-rod.webp`
 - Size: 200×1000 canvas (as the pendulum), transparent PNG, shipped as WebP
-- Anchors (measured): hub (99, 865) in a 200×1000 canvas; swings ±24°
-- Note: Delivered rod and bob without the sliding weight, normalized to the original pendulum's scale. The hub is measured on this layer; the separate weight's centre travels from y 82.5 to y 676.5. PNG masters, prompts and export details: design/image-deliveries-rounds-9-10.json. The app holds the slowest place at y 183.0, so the weight stays inside the face rather than on the crown.
+- Anchors (requested): hub (99, 865) in a 200×1000 canvas; swings ±24°
+- Note: Round 15 user follow-up: full-size separated artwork matching the corrected home icon, replacing the screen's slightly different metronome. Measure the pivot, hub, sliding-weight centre and safe travel so the layers align.
 
 ```text
-Edit the attached image, musicpractice/app/assets/ui/baroque/metronome-pendulum.webp (this theme's metronome pendulum): remove the sliding weight that sits on the rod about a quarter of the way down, and change nothing else. Where the weight covered the rod, continue the rod exactly as it runs above and below it (same width, colour, shading and texture), so the rod is whole from its tip to the bob. The bob at the bottom, the hub and the rod's tip stay exactly where they are. Same canvas and framing, so the two images line up exactly. Fully transparent background, no shadow, no text.
+Using the corrected 18th Century home metronome, musicpractice/app/assets/ui/baroque/home-metronome.webp, as the exact design reference, draw only its straight gilt rod and small round rosette hub at the bottom, upright, without the sliding shell weight or any hanging bob. Preserve the same walnut, gilt, burgundy, powder blue, cream, engraved texture, lighting and proportions. Seen straight on. The rod must meet its lower pivot cleanly on the case's symmetry axis. No clock-style top suspension, no hanging ball, no additional decoration, no text or numbers. Fully transparent background. 18th-century illustration in the manner of a Rococo engraving and a gilded harpsichord: warm ivory and parchment, carved walnut and fruitwood, burnished gilt, deep burgundy and a little powder blue, scrolling acanthus leaves, shell (rocaille) ornaments and fine engraved hatching. Elegant and refined. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.
 ```
 
-### `metronome-weight` · 18th Century · delivered
+### `metronome-weight` · 18th Century · revise
 
 - File: `musicpractice/app/assets/ui/baroque/metronome-weight.webp`
 - Size: 200×111 canvas at the pendulum's scale, transparent PNG, shipped as WebP
-- Anchors (measured): center (99.0, 55.0) in a 200×111 canvas
-- Note: Delivered sliding ornament at the pendulum's scale, on its own transparent canvas. The center anchor places it on the rod as the tempo changes. PNG masters, prompts and export details: design/image-deliveries-rounds-9-10.json.
+- Anchors (requested): center (99.0, 55.0) in a 200×111 canvas
+- Note: Round 15 user follow-up: full-size separated artwork matching the corrected home icon, replacing the screen's slightly different metronome. Measure the pivot, hub, sliding-weight centre and safe travel so the layers align.
 
 ```text
-From the attached image, musicpractice/app/assets/ui/baroque/metronome-pendulum.webp (this theme's metronome pendulum), draw only its sliding weight, the ornament that sits on the rod about a quarter of the way down, exactly as it is drawn there: same size, colours, lighting and detail. Keep the short piece of rod that shows through it, and nothing else: no rod above or below it, no bob. Centred left to right where the rod runs, on a canvas as wide as the pendulum's and just tall enough to hold the weight. Fully transparent background, no shadow, no text.
+Using the corrected 18th Century home metronome, musicpractice/app/assets/ui/baroque/home-metronome.webp, as the exact design reference, draw only its small scalloped-shell sliding weight, centred, without the long rod, hub or case. Preserve the same walnut, gilt, burgundy, powder blue, cream, engraved texture, lighting and proportions. Seen straight on. The rod must meet its lower pivot cleanly on the case's symmetry axis. No clock-style top suspension, no hanging ball, no additional decoration, no text or numbers. Fully transparent background. 18th-century illustration in the manner of a Rococo engraving and a gilded harpsichord: warm ivory and parchment, carved walnut and fruitwood, burnished gilt, deep burgundy and a little powder blue, scrolling acanthus leaves, shell (rocaille) ornaments and fine engraved hatching. Elegant and refined. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.
 ```
 
 ## Robot Future · Metronome pendulum in two parts

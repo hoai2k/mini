@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-23",
+  "rounds": [
+    14,
+    15
+  ],
+  "scope": "Two candidate app identities, without changing the chosen icon; correct the Baroque home pendulum and match the Nouveau screen case to its home icon.",
+  "tool": "built-in image_gen",
+  "assets": [
+    {
+      "id": "icon-gramophone",
+      "theme": null,
+      "round": 14,
+      "file": "musicpractice/app/icons/icon-gramophone-1024.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "status": "delivered",
+      "group": "App icon candidates",
+      "prompt": "Use case: precise-object-edit. Keep this exact gramophone design, materials, colors, lighting, perspective, detail and warm ivory opaque background. Change ONLY its size on the square canvas: make the entire object noticeably SMALLER and center it with generous blank ivory space on all sides. The ENTIRE object including every extremity, cabinet, feet or collar must fit within the CENTRAL 60% of image width AND height (from x20% to80%, y20% to80%). At least 20% empty ivory margin on all four sides. This is a maskable app icon candidate. No border or rounded square, no text or new objects. Full-bleed opaque warm ivory, no transparency.",
+      "note": "A candidate, not yet used: says listening and recording (the Playback Recorder) rather than metronome, to stand apart from the many metronome icons (design/app-store-review.md, guideline 4.3). Compared with icon-horn and the current icon before choosing.",
+      "generated_source": "exec-2521b532-582a-4520-aaf6-a29b4787ed98.png",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-4bd3c56f-27e1-40cf-8dc0-fd981bc86403.png"
+      ],
+      "native_size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "processing": "Preserve the generated opaque full-bleed composition; resize to a 1024px RGB PNG candidate. The current chosen icon and its platform exports are unchanged.",
+      "source": "musicpractice/design/generated/round-14/icon-gramophone.png",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "icon-horn",
+      "theme": null,
+      "round": 14,
+      "file": "musicpractice/app/icons/icon-horn-1024.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "status": "delivered",
+      "group": "App icon candidates",
+      "prompt": "Use case: precise-object-edit. Keep this exact isolated gramophone horn design, materials, colors, lighting, perspective, detail and warm ivory opaque background. Change ONLY its size on the square canvas: make the entire object noticeably SMALLER and center it with generous blank ivory space on all sides. The ENTIRE object including every extremity, cabinet, feet or collar must fit within the CENTRAL 60% of image width AND height (from x20% to80%, y20% to80%). At least 20% empty ivory margin on all four sides. This is a maskable app icon candidate. No border or rounded square, no text or new objects. Full-bleed opaque warm ivory, no transparency.",
+      "note": "A candidate, not yet used: the gramophone idea reduced to its horn, for a clearer shape at small sizes. Compared with icon-gramophone.",
+      "generated_source": "exec-4b0e67fa-fa72-422f-9bb2-7bb00dde89f6.png",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-25a55ed0-14dd-4c52-b977-45391e464f40.png"
+      ],
+      "native_size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "processing": "Preserve the generated opaque full-bleed composition; resize to a 1024px RGB PNG candidate. The current chosen icon and its platform exports are unchanged.",
+      "source": "musicpractice/design/generated/round-14/icon-horn.png",
+      "tool": "built-in image_gen"
+    }
+  ]
+}

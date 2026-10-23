@@ -23,5 +23,6 @@
     1536,
     1024
   ],
-  "sizing": "Lanczos resize to requested dimensions, no crop; original retained outside repository."
+  "sizing": "Lanczos resize to requested dimensions, no crop; original retained outside repository.",
+  "destination": "design/concept/vox-harpy.png"
 }

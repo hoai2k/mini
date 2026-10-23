@@ -266,3 +266,23 @@ Generated on 2026-10-17 with the built-in image generator. Per-asset prompts, re
 The myrmekes in `vox-ow-fodder` and `-2` had eight legs (they read as spiders) and the king crab was no bigger than a crab, so `vox-ow-fodder-fix` drew them again. Its ants now have the three body segments of an ant, though the front views still show about eight legs; the game's models have six.
 
 The basilisk in `vox-ow-fodder-3` is a crowned lizard as big as Percy. The game now follows the books instead (*The Son of Neptune*: a little green snake as long as a man's arm, with a collar of white spikes) and keeps only the sheet's colours and crown; see `../size-audit.md`.
+
+## Gear, loot and additional monster sheets (2026-10-23)
+
+Built-in image generation; prompts, references and sizing notes are recorded per asset.
+
+| Asset | Generation record |
+| --- | --- |
+| [vox-ow-people-3](vox-ow-people-3.png) | [record](generation-2026-10-23/vox-ow-people-3.json) |
+| [vox-ow-fodder](vox-ow-fodder.png) | [record](generation-2026-10-23/vox-ow-fodder.json) |
+| [vox-ow-fodder-2](vox-ow-fodder-2.png) | [record](generation-2026-10-23/vox-ow-fodder-2.json) |
+| [vox-ow-fodder-3](vox-ow-fodder-3.png) | [record](generation-2026-10-23/vox-ow-fodder-3.json) |
+| [vox-ow-fodder-fix](vox-ow-fodder-fix.png) | [record](generation-2026-10-23/vox-ow-fodder-fix.json) |
+| [vox-harpy](vox-harpy.png) | [record](generation-2026-10-23/vox-harpy.json) |
+| [icons-weapons-1](../../game/assets/icons-weapons-1.png) | [record](generation-2026-10-23/icons-weapons-1.json) |
+| [icons-weapons-2](../../game/assets/icons-weapons-2.png) | [record](generation-2026-10-23/icons-weapons-2.json) |
+| [icons-armour](../../game/assets/icons-armour.png) | [record](generation-2026-10-23/icons-armour.json) |
+| [icons-magic](../../game/assets/icons-magic.png) | [record](generation-2026-10-23/icons-magic.json) |
+| [ui-loot-kit](../../game/assets/ui-loot-kit.png) | [record](generation-2026-10-23/ui-loot-kit.json) |
+| [vox-gear-weapons-1](vox-gear-weapons-1.png) | [record](generation-2026-10-23/vox-gear-weapons-1.json) |
+| [vox-gear-armour-1](vox-gear-armour-1.png) | [record](generation-2026-10-23/vox-gear-armour-1.json) |
