@@ -9,6 +9,7 @@ import { playSamples } from './player.js';
 import { forPlayback } from './loudness.js';
 import { ScaleListener, resultTier, correctedRate, judgeNote, scaleRule, scoreOutOf10, celebrates, scoreText, SCORE_PARTS, LEVEL_IDS, MEASURES } from './scaletest.js';
 import { confetti } from './confetti.js';
+import { $ } from './ui.js';
 
 const WINDOW = 4096; // samples analysed at a time (enough for a low B on a 5-string bass)
 const HOLD_MS = 1500; // the last note stays up this long after the sound stops
@@ -19,7 +20,6 @@ const CX = 160;
 const CY = 176;
 const SVG = 'http://www.w3.org/2000/svg';
 
-const $ = (id) => document.getElementById(id);
 
 function polar(cents, r) {
   const a = (cents * DEG_PER_CENT * Math.PI) / 180;

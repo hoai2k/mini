@@ -21,6 +21,7 @@
 
 import { isApp, platform, call } from './native.js';
 import { TEXT } from './text-config.js';
+import { $ } from './ui.js';
 
 export const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyu8lINxYMmtqFhFarxqqIwHbGupWWoWjmeN_OW-kNSPW6Hgh6-KdkQuZAaWOcamTFF/exec';
 export const GAME = 'musicpractice';
@@ -121,7 +122,6 @@ const TOPICS = ['Problem', 'Idea', 'Other'];
  * Include debugging data, which starts unticked every time.
  */
 export function setupFeedback({ details, debug }) {
-  const $ = (id) => document.getElementById(id);
   const dialog = $('feedback');
   const openers = [...document.querySelectorAll('.open-feedback')];
   if (!feedbackEnabled() || !dialog) {

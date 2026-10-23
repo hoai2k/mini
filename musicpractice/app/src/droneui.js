@@ -7,8 +7,8 @@ import { TEXT, setRich } from './text.js';
 import { droneTiming } from './settings.js';
 import { DRONE_MIN, DRONE_MAX, VOICES, SEQUENCES, SEQ_DIRECTION, sequenceNote, wrap, spelling } from './drone.js';
 import { noteName, midiToHz, A4_MIN, A4_MAX } from './tuning.js';
+import { $ } from './ui.js';
 
-const $ = (id) => document.getElementById(id);
 const fmt = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
 /** A practice time as MM:SS, or H:MM:SS from an hour. */
 export const clock = (sec) => {
