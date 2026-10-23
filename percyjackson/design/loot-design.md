@@ -348,26 +348,29 @@ starting values, kept as named constants in phase 2 so they can be tuned.
 
 ### 4.2 Rarity weights by source, level and difficulty
 
-These are MCD2's source weights [S1] [S2], used as given:
+These are MCD2's source weights [S1] [S2], except the Legendary column, which
+the owner raised about 1.6× (it was 5 / 10 / 10 / 5) after repeat runs found
+the best weapon a few per cent weaker at levels 3 to 12:
 
 | Source (`source`) | Common | Rare | Heroic | Legendary |
 | --- | --- | --- | --- | --- |
-| `monster` (minor and elite-tier) | 50 | 25 | 20 | 5 |
-| `chest` (common chest) | 25 | 25 | 20 | 5 |
-| `rare` (rare chest), `elite` (affixed elite), `champion` | 0 | 50 | 40 | 10 |
-| `boss`, `epic` (epic chest) | 0 | 30 | 20 | 10 |
-| `quest` (side quest, chapter reward) | 30 | 60 | 40 | 5 |
+| `monster` (minor and elite-tier) | 50 | 25 | 20 | 8 |
+| `chest` (common chest) | 25 | 25 | 20 | 8 |
+| `rare` (rare chest), `elite` (affixed elite), `champion` | 0 | 50 | 40 | 16 |
+| `boss`, `epic` (epic chest) | 0 | 30 | 20 | 18 |
+| `quest` (side quest, chapter reward) | 30 | 60 | 40 | 8 |
 | `shop` | 40 | 40 | 20 | **0** (MCD2 merchants never sell Uniques) |
 
 The weights are multiplied by **player-level factors**. These are MCD2's ramp
-[S11], with a floor of 0.15 for Heroic and Legendary from level 2, because our
+[S11], with a floor of 0.15 for Heroic and 0.25 for Legendary from level 2 (the
+Legendary ramp is also faster, over 9 levels instead of 12), because our
 campaign ends near level 35 rather than 100:
 
 ```
 common(L)    = 1 − 0.5 · clamp((L − 1) / 5)
 rare(L)      = L ≤ 5 ? 0.6 + 0.4 · (L − 1) / 4 : 1 − 0.5 · clamp((L − 5) / 10)
 heroic(L)    = L < 2 ? 0 : max(0.15, clamp((L − 1) / 10))
-legendary(L) = L < 2 ? 0 : max(0.15, clamp((L − 1) / 12))
+legendary(L) = L < 2 ? 0 : max(0.25, clamp((L − 1) / 9))
 ```
 
 Heroic and Legendary are then multiplied by the **difficulty** factor
@@ -379,11 +382,11 @@ The resulting odds, as Common / Rare / Heroic / Legendary in %:
 
 | Source | Level 1 | Level 4 | Level 6 | Level 10 | Level 13+ | Level 13+, top difficulty |
 | --- | --- | --- | --- | --- | --- | --- |
-| Monster | 77 / 23 / 0 / 0 | 54 / 35 / 9 / 1.9 | 41 / 39 / 16 / 3.4 | 38 / 29 / 28 / 5.7 | 38 / 23 / 31 / **7.7** | 30 / 18 / 42 / 10.4 |
-| Common chest | 63 / 38 / 0 / 0 | 37 / 48 / 13 / 2.6 | 26 / 49 / 21 / 4.3 | 24 / 35 / 34 / 7.1 | 24 / 29 / 38 / **9.5** | 18 / 21 / 49 / 12.3 |
-| Rare chest, elite, champion | 0 / 100 / 0 / 0 | 0 / 76 / 20 / 4.2 | 0 / 66 / 28 / 5.8 | 0 / 46 / 44 / 9.3 | 0 / 38 / 50 / **12.5** | 0 / 26 / 60 / 14.9 |
-| Boss, epic chest | 0 / 100 / 0 / 0 | 0 / 76 / 17 / 7.0 | 0 / 67 / 23 / 9.8 | 0 / 47 / 38 / 15.6 | 0 / 38 / 42 / **20.8** | 0 / 26 / 50 / 24.8 |
-| Quest, chapter reward | 45 / 55 / 0 / 0 | 24 / 61 / 14 / 1.4 | 16 / 61 / 21 / 2.2 | 15 / 45 / 36 / 3.8 | 16 / 38 / 42 / **5.2** | 12 / 28 / 54 / 6.7 |
+| Monster | 77 / 23 / 0 / 0 | 53 / 34 / 9.1 / 4 | 40 / 38 / 16 / 7 | 36 / 27 / 26 / 11 | 37 / 22 / 29 / **12** | 28 / 17 / 39 / 16 |
+| Common chest | 63 / 38 / 0 / 0 | 36 / 46 / 12 / 5.5 | 25 / 47 / 20 / 8.8 | 22 / 33 / 31 / 14 | 23 / 27 / 36 / **14** | 16 / 20 / 46 / 18 |
+| Rare chest, elite, champion | 0 / 100 / 0 / 0 | 0 / 72 / 19 / 8.6 | 0 / 62 / 26 / 12 | 0 / 42 / 40 / 18 | 0 / 35 / 47 / **19** | 0 / 23 / 55 / 22 |
+| Boss, epic chest | 0 / 100 / 0 / 0 | 0 / 69 / 15 / 15 | 0 / 59 / 21 / 21 | 0 / 38 / 31 / 31 | 0 / 32 / 36 / **32** | 0 / 21 / 41 / 37 |
+| Quest, chapter reward | 45 / 55 / 0 / 0 | 23 / 60 / 13 / 3 | 16 / 59 / 21 / 4.6 | 14 / 43 / 35 / 7.7 | 15 / 36 / 40 / **8.1** | 11 / 27 / 52 / 10 |
 
 At level 1 no random drop is Heroic or Legendary. The first boss's guaranteed
 **signature legendary** (§4.4) gives chapter 1 its big moment instead.
@@ -392,10 +395,10 @@ Rare and better only.
 
 **The Fates' Thread (gentle pity, our addition; MCD2 has none):** each profile
 counts the item drops since its last Legendary (`save.data.sinceLegendary`).
-At **40**, the next drop from a rare chest, elite, champion, boss or epic chest
+At **30**, the next drop from a rare chest, elite, champion, boss or epic chest
 is Legendary. Any Legendary resets the count. At about 13 drops a chapter that
-is at most about 3 chapters without one. Normal play almost never reaches it
-(at level 6, 40 drops miss a Legendary about 15% of the time).
+is at most about 2 to 3 chapters without one. Normal play rarely reaches it
+(at level 6, 30 drops miss a Legendary about 5 to 8% of the time).
 
 ### 4.3 Drop frequency
 
@@ -672,7 +675,7 @@ steps needs `entities/`, except that fodder kills may need a hook (step 4).
      and `rarityWeights(source, playerLevel, difficulty)`, which return
      normalised `{ common, rare, heroic, unique }`.
    - Replace `rarityOdds(gl)`, keeping a shim for old callers.
-   - Add `DROP_CHANCE` (§4.3), `COIN_DROPS` and `PITY_AT = 40`.
+   - Add `DROP_CHANCE` (§4.3), `COIN_DROPS` and `PITY_AT = 30`.
    - `SOURCE_BONUS`: add `elite: 0.4`.
    - Add `rarityCost`.
 2. **`loot.js`:**
@@ -777,9 +780,15 @@ The code follows sections 4 and 5, with these differences:
   chapter's drops, against pups, hellhounds, affixed hellhounds and an
   open-world cyclops champion) found the mean weapon damage of a drop within
   about 6% of before at every gear level (tested in
-  `progression.test.mjs`); the best weapon of a repeat run is 10-20% weaker
-  from level 6 on, because Legendaries are rarer at low levels (the MCD2
-  ramp), and on a first win the signature makes up the difference.
+  `progression.test.mjs`). The best weapon of a repeat run was a few per cent
+  (1.5-6%) weaker than before at gear levels 3 to 12, because Legendaries
+  were rare at low levels (the MCD2 ramp). The owner therefore raised the
+  Legendary odds about 1.6x (weights 5 / 10 / 10 / 5 became 8 / 16 / 18 / 8,
+  the level factor `max(0.25, (L - 1) / 9)` from level 2, `PITY_AT` 30). The
+  sweep's repeat-run best weapon is now within 5% of before at gear levels 3
+  to 12 (-2.5%, -0.7%, -1.1%, +4.2% at 3, 6, 9, 12); gear level 1 has no
+  random Legendaries and stays about 7% down. On a first win the signature
+  adds to that.
 - **Drachmas:** the level factor (1 + 0.15 a level) applies to every payout,
   chests, bosses and pots included, not only the common chest.
 - **Signatures** count once picked up (save.data.signatures is written on

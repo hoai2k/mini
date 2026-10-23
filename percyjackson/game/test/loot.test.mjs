@@ -96,11 +96,11 @@ test('rarity: four tiers with their colours, rows, boons and the smaller hidden 
 
 // §4.2's table of resulting odds (C / R / H / L in %), at Mortal and at the top difficulty
 const TABLE = {
-  monster: { 1: [77, 23, 0, 0], 4: [54, 35, 9, 1.9], 6: [41, 39, 16, 3.4], 10: [38, 29, 28, 5.7], 13: [38, 23, 31, 7.7], top: [30, 18, 42, 10.4] },
-  chest: { 1: [63, 38, 0, 0], 4: [37, 48, 13, 2.6], 6: [26, 49, 21, 4.3], 10: [24, 35, 34, 7.1], 13: [24, 29, 38, 9.5], top: [18, 21, 49, 12.3] },
-  rare: { 1: [0, 100, 0, 0], 4: [0, 76, 20, 4.2], 6: [0, 66, 28, 5.8], 10: [0, 46, 44, 9.3], 13: [0, 38, 50, 12.5], top: [0, 26, 60, 14.9] },
-  boss: { 1: [0, 100, 0, 0], 4: [0, 76, 17, 7.0], 6: [0, 67, 23, 9.8], 10: [0, 47, 38, 15.6], 13: [0, 38, 42, 20.8], top: [0, 26, 50, 24.8] },
-  quest: { 1: [45, 55, 0, 0], 4: [24, 61, 14, 1.4], 6: [16, 61, 21, 2.2], 10: [15, 45, 36, 3.8], 13: [16, 38, 42, 5.2], top: [12, 28, 54, 6.7] },
+  monster: { 1: [77, 23, 0, 0], 4: [53, 34, 9.1, 4], 6: [40, 38, 16, 7], 10: [36, 27, 26, 11], 13: [37, 22, 29, 12], top: [28, 17, 39, 16] },
+  chest: { 1: [63, 38, 0, 0], 4: [36, 46, 12, 5.5], 6: [25, 47, 20, 8.8], 10: [22, 33, 31, 14], 13: [23, 27, 36, 14], top: [16, 20, 46, 18] },
+  rare: { 1: [0, 100, 0, 0], 4: [0, 72, 19, 8.6], 6: [0, 62, 26, 12], 10: [0, 42, 40, 18], 13: [0, 35, 47, 19], top: [0, 23, 55, 22] },
+  boss: { 1: [0, 100, 0, 0], 4: [0, 69, 15, 15], 6: [0, 59, 21, 21], 10: [0, 38, 31, 31], 13: [0, 32, 36, 32], top: [0, 21, 41, 37] },
+  quest: { 1: [45, 55, 0, 0], 4: [23, 60, 13, 3], 6: [16, 59, 21, 4.6], 10: [14, 43, 35, 7.7], 13: [15, 36, 40, 8.1], top: [11, 27, 52, 10] },
 };
 test('rarity weights by source match the design table (and normalise)', () => {
   for (const [src, rows] of Object.entries(TABLE)) for (const [L, want] of Object.entries(rows)) {
@@ -130,8 +130,8 @@ test('no Commons from rare chests, elites, champions, bosses or epic chests; the
   for (const L of [1, 8, 20, 40]) for (const d of [1, 4]) assert.equal(P.rarityWeights('shop', L, d).unique, 0);
   for (let i = 0; i < 3000; i++) assert.notEqual(itemTier(rollItem(60, { rng, source: 'shop', level: 30, difficulty: 4, raider: 0.2 })), 'unique', 'a shop roll is never Legendary, even with Tyche');
   for (const src of Object.keys(P.RARITY_WEIGHTS)) { const o = P.rarityWeights(src, 1, 4); assert.equal(o.heroic + o.unique, 0, `${src} at level 1`); }
-  // the 0.15 floor from level 2, and difficulty raises Heroic and Legendary
-  assert.equal(P.levelFactors(2).heroic, 0.15); assert.equal(P.levelFactors(2).unique, 0.15);
+  // the 0.15 floor (0.25 for Legendary) from level 2, and difficulty raises Heroic and Legendary
+  assert.equal(P.levelFactors(2).heroic, 0.15); assert.equal(P.levelFactors(2).unique, 0.25);
   assert.ok(P.rarityWeights('monster', 2).unique > 0);
   for (const src of ['monster', 'chest', 'boss', 'quest']) {
     const a = P.rarityWeights(src, 8, 1), b = P.rarityWeights(src, 8, 3);
@@ -155,22 +155,22 @@ test('a Heroic is a Common or Rare base raised a tier; a Rare is sometimes a Com
   assert.ok(Math.abs(itemStrength(hc) / itemStrength(c) - 1.05) < 1e-9);
 });
 
-test('the pity rule: a Legendary after 40 item drops without one, from a pity source only', () => {
+test('the pity rule: a Legendary after 30 item drops without one, from a pity source only', () => {
   const d = { sinceLegendary: 0 }, rng = mulberry32(3);
   // level 1: nothing rolls Legendary by luck, so only the Fates' Thread gives one
   for (let i = 0; i < P.PITY_AT; i++) assert.notEqual(itemTier(rollItem(12, { rng, source: 'chest', level: 1, pity: d })), 'unique');
-  assert.equal(d.sinceLegendary, 40);
+  assert.equal(d.sinceLegendary, 30);
   assert.notEqual(itemTier(rollItem(12, { rng, source: 'chest', level: 1, pity: d })), 'unique', 'a common chest is not a pity source');
   const it = rollItem(12, { rng, source: 'rare', level: 1, pity: d });
   assert.equal(itemTier(it), 'unique', 'the next rare chest drop is Legendary');
   assert.equal(d.sinceLegendary, 0, 'and the count starts again');
   // any Legendary resets it, a forced one too; the boss table counts its drops
   d.sinceLegendary = 17; applyPity(d, 'unique', 'quest', false); assert.equal(d.sinceLegendary, 0);
-  d.sinceLegendary = 40; const boss = rollBossLoot('minotaur', 1, { rng, level: 1, pity: d });
-  assert.ok(boss.items.some((x) => itemTier(x) === 'unique'), 'after 40 drops without one, a boss’s first drop is Legendary');
+  d.sinceLegendary = 30; const boss = rollBossLoot('minotaur', 1, { rng, level: 1, pity: d });
+  assert.ok(boss.items.some((x) => itemTier(x) === 'unique'), 'after 30 drops without one, a boss’s first drop is Legendary');
   // a profile without pity data is fine
   assert.equal(applyPity(null, 'rare', 'boss'), 'rare');
-  assert.equal(rollTierFor('boss', { level: 1, rng, pity: { sinceLegendary: 40 } }), 'unique');
+  assert.equal(rollTierFor('boss', { level: 1, rng, pity: { sinceLegendary: 30 } }), 'unique');
 });
 
 test('boss loot: 1 guaranteed + 3 at 50%, Legendaries last, the signature on the first win at each difficulty', () => {
