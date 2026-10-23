@@ -1,0 +1,25 @@
+{
+  "id": "vox-ow-fodder-fix",
+  "title": "Open-world fodder: myrmekes as real ants, and a truly huge king crab",
+  "prompt": "A sheet of three blocky voxel monster kinds beside a blocky Percy for scale, each shown front, side and mid-attack: a myrmex, a dog-sized giant ANT (exactly six legs, three clear body segments: head, narrow thorax, big round abdomen; elbowed antennae; big bronze mandibles; glossy black armour with bronze edges), nothing like a spider; a myrmex spitter, the same ant with a swollen glowing green abdomen arching an acid spray over its head; and a king crab, a hulking barnacled crab TWICE Percy's height and twice as wide as the small shore crabs, one enormous crusher claw the size of its body, a shell like a mossy rock, small eyes on stalks. Each kind shown three times (front, side, mid-attack) beside a blocky Percy for scale, readable from the high three-quarter camera, with a strong silhouette and a bold colour accent so it reads in a crowd, and a cool, characterful design worth seeing a hundred times. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 \u00d7 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.",
+  "width": 2400,
+  "height": 1600,
+  "refs": [
+    "vox-key",
+    "vox-ow-fodder",
+    "vox-ow-fodder-2"
+  ],
+  "destination": "intake/vox-ow-fodder-fix.png",
+  "generation_prompt": "Use case: stylized-concept. Asset type: corrected voxel monster model reference sheet. Attached reference images: image 1 vox-key establishes 3D voxel rendering; images 2 and 3 establish materials and series consistency but have incorrect ant anatomy and undersized king crabs, which MUST be corrected in this new sheet.\nA sheet of three blocky voxel monster kinds beside a blocky Percy for scale, each shown front, side and mid-attack: a myrmex, a dog-sized giant ANT (exactly six legs, three clear body segments: head, narrow thorax, big round abdomen; elbowed antennae; big bronze mandibles; glossy black armour with bronze edges), nothing like a spider; a myrmex spitter, the same ant with a swollen glowing green abdomen arching an acid spray over its head; and a king crab, a hulking barnacled crab TWICE Percy's height and twice as wide as the small shore crabs, one enormous crusher claw the size of its body, a shell like a mossy rock, small eyes on stalks. Each kind shown three times (front, side, mid-attack) beside a blocky Percy for scale, readable from the high three-quarter camera, with a strong silhouette and a bold colour accent so it reads in a crowd, and a cool, characterful design worth seeing a hundred times. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 \u00d7 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.\nComposition: three clearly separated horizontal rows: top row myrmex, middle row myrmex spitter, bottom row king crab. Each row contains a front, side and action view plus a full-body Percy at a consistent scale. Ant side views must make the insect anatomy explicit: head connected to a slim thorax, a narrow waist connecting thorax to round abdomen; all six legs attach to thorax, three legs per side, exactly six total, zero legs on abdomen, elbowed antennae. Ant shoulder height is knee-high to Percy (dog-sized). Crab shell top is exactly twice Percy's full height and its crusher claw is body-sized. Avoid any spider anatomy from the references. Output PNG 2400 \u00d7 1600, light-grey background, no text.",
+  "attached_references": [
+    "vox-key",
+    "vox-ow-fodder",
+    "vox-ow-fodder-2"
+  ],
+  "tool": "built-in image_gen",
+  "native_dimensions": [
+    1536,
+    1024
+  ],
+  "sizing": "Lanczos resize to requested dimensions, no crop; original retained outside repository."
+}
