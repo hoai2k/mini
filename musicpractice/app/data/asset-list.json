@@ -159,7 +159,7 @@
     "id": "home-metronome",
     "theme": "baroque",
     "file": "assets/ui/baroque/home-metronome.webp",
-    "status": "delivered"
+    "status": "revise"
   },
   {
     "id": "home-record",
@@ -263,7 +263,7 @@
     "id": "metronome-body",
     "theme": "nouveau",
     "file": "assets/ui/nouveau/metronome-body.webp",
-    "status": "delivered",
+    "status": "revise",
     "canvas": [
       800,
       1200

@@ -1060,6 +1060,55 @@ if _round13_delivery.exists():
         asset["note"] += " Delivered PNG masters, prompts and measured geometry: design/image-deliveries-round-13.json."
 
 
+# Round 15: revisions, so a theme's metronome is one metronome. The delivered
+# file stays in use (status "revise") until its replacement arrives.
+def _revise(theme: str, asset_id: str, **fields) -> None:
+    asset = next(a for a in ASSETS if a["theme"] == theme and a["id"] == asset_id)
+    asset.update(round=15, status="revise", **fields)
+
+
+_BAROQUE = next(t for t in MORE_THEMES if t["id"] == "baroque")
+_revise("baroque", "home-metronome",
+        prompt=("Edit the attached image, musicpractice/app/assets/ui/baroque/home-metronome.webp (the "
+                "18th Century theme's metronome icon): its pendulum is drawn like a clock's, hanging from "
+                "a pivot at the top of the dial with a round gilt ball near the bottom. Redraw only the "
+                "pendulum the way a metronome's works: a round gilt rosette pivot near the BOTTOM of the "
+                "ivory dial, just above the lower scroll ornament, and from it a thin straight gilt rod "
+                "rising UP, tilted a little to the right, almost to the top of the dial, with a small gilt "
+                "sliding weight shaped like a scalloped shell on the upper part of the rod, about a "
+                "quarter of the way down from its tip. No ball or bob anywhere, nothing hanging from the "
+                "top of the dial. Change nothing else: the same case, crest, scrolls, dial ornaments, "
+                "plinth, colours, lighting, size and framing. " + _BAROQUE["style"] + " A single centred "
+                "object on a fully transparent background, no cast shadow."),
+        note=("Round 15: the delivered icon's pendulum hangs from the top like a clock's, with its "
+              "weight at the bottom. Wanted: the same icon with a metronome's pendulum (pivot at the "
+              "bottom, the weight up the rod), as on the 18th Century metronome screen "
+              "(assets/ui/baroque/metronome-rod.webp and metronome-weight.webp). Replaces the file at "
+              "the same path."))
+
+_NOUVEAU = next(t for t in MORE_THEMES if t["id"] == "nouveau")
+_revise("nouveau", "metronome-body",
+        prompt=("Redraw the metronome in the attached image, musicpractice/app/assets/ui/nouveau/home-metronome.webp "
+                "(the French Nouveau theme's home-screen icon), as the case for the metronome screen. Keep "
+                "its design and proportions: the same slim case that curves like a lily stem, narrow at "
+                "the top and only gently widening to a narrow base (NOT a wide flared bottom), the same "
+                "lily-flower crown at the top, the same sage green enamel, gold vine edges, dusty-rose "
+                "iris ornaments, cream face and curling gold feet. Seen exactly straight on from the "
+                "front, perfectly symmetrical (the crown's lilies mirrored left and right), standing "
+                "upright and filling the canvas top to bottom with a small margin. There is NO "
+                "pendulum, rod or weight anywhere. The cream face is a tall plain panel with fine gold "
+                "tick marks (no numbers) running from about 13% of the height down to the pivot. Near "
+                "the bottom of the face, centred left-to-right, a round gold flower-shaped pivot sits "
+                "exactly at 50% of the width and 78% of the height. " + _NOUVEAU["style"]
+                + " Fully transparent background."),
+        note=("Round 15: the delivered case is much wider at the bottom than the French Nouveau "
+              "home-screen metronome (assets/ui/nouveau/home-metronome.webp). Wanted: that icon's "
+              "metronome as the screen's case. Ask for the pivot at (400, 937) in an 800×1200 canvas, "
+              "where the current one is, so the delivered rod and weight (metronome-rod.webp, "
+              "metronome-weight.webp) still fit: the rod reaches up to about y 174. Measure the pivot "
+              "in the delivered file and record it here. Replaces the file at the same path."))
+
+
 # Shared pictures. Most Practice Routine pictures came out as near-copies
 # across the warm brass-and-gold themes: the same tuning fork or staff, a
 # different drawing. Those themes use Classic's; a theme keeps its own only
@@ -1100,7 +1149,8 @@ def render() -> tuple[str, str]:
                        (10, "Metronome pendulum in two parts, every theme"),
                        (11, "Practice Routine pictures, every theme"),
                        (12, "Arpeggios, Sight reading and Improvisation, every theme"),
-                       (13, "the Bebop theme"), (14, "app icon candidates")):
+                       (13, "the Bebop theme"), (14, "app icon candidates"),
+                       (15, "metronome revisions, so each theme's is one metronome")):
         if rnd == 13 and BEBOP["id"] in ARCHIVED_THEMES:
             lines += ["**Round 13 (the Bebop theme):** archived, art and all, in `design/archive/bebop/` (not in the app).", ""]
             continue

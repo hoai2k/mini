@@ -34,6 +34,8 @@ Images belong to a theme (Settings → Theme); each theme has its own set.
 
 **Round 14 (app icon candidates):** 2 images wanted: `icons/icon-gramophone-1024.png`, `icons/icon-horn-1024.png`.
 
+**Round 15 (metronome revisions, so each theme's is one metronome):** 2 images wanted: `assets/ui/baroque/home-metronome.webp`, `assets/ui/nouveau/metronome-body.webp`.
+
 **House styles** (already included in every prompt):
 
 - Classic: Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.
@@ -71,7 +73,7 @@ the measured ones for the delivered file in `build_requests.py`.
 | 3 | Vintage 60s | delivered | `home-record` | `app/assets/ui/sixties/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 3 | Vintage 60s | delivered | `metronome-body` | `app/assets/ui/sixties/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
 | 3 | Vintage 60s | delivered | `metronome-pendulum` | `app/assets/ui/sixties/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
-| 3 | 18th Century | delivered | `home-metronome` | `app/assets/ui/baroque/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 15 | 18th Century | revise | `home-metronome` | `app/assets/ui/baroque/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 3 | 18th Century | delivered | `home-record` | `app/assets/ui/baroque/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 3 | 18th Century | delivered | `metronome-body` | `app/assets/ui/baroque/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
 | 3 | 18th Century | delivered | `metronome-pendulum` | `app/assets/ui/baroque/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
@@ -81,7 +83,7 @@ the measured ones for the delivered file in `build_requests.py`.
 | 3 | Robot Future | delivered | `metronome-pendulum` | `app/assets/ui/scifi/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
 | 3 | French Nouveau | delivered | `home-metronome` | `app/assets/ui/nouveau/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 3 | French Nouveau | delivered | `home-record` | `app/assets/ui/nouveau/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 3 | French Nouveau | delivered | `metronome-body` | `app/assets/ui/nouveau/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
+| 15 | French Nouveau | revise | `metronome-body` | `app/assets/ui/nouveau/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
 | 3 | French Nouveau | delivered | `metronome-pendulum` | `app/assets/ui/nouveau/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
 | 3 | Candy | delivered | `home-metronome` | `app/assets/ui/anime/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 3 | Candy | delivered | `home-record` | `app/assets/ui/anime/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
@@ -406,14 +408,14 @@ Just the pendulum of a metronome, isolated: a thin straight chrome rod with a ro
 
 ## 18th Century · Home screen buttons
 
-### `home-metronome` · 18th Century · delivered
+### `home-metronome` · 18th Century · revise
 
 - File: `musicpractice/app/assets/ui/baroque/home-metronome.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
-- Note: The big Metronome button on the home screen in the 18th Century theme; the label is written by the app. Tick marks only, no numbers.
+- Note: Round 15: the delivered icon's pendulum hangs from the top like a clock's, with its weight at the bottom. Wanted: the same icon with a metronome's pendulum (pivot at the bottom, the weight up the rod), as on the 18th Century metronome screen (assets/ui/baroque/metronome-rod.webp and metronome-weight.webp). Replaces the file at the same path.
 
 ```text
-An elegant 18th-century metronome case in carved walnut with gilt acanthus scrolls and an ivory dial panel, its gilt pendulum tilted a little to the right. Seen from the front. 18th-century illustration in the manner of a Rococo engraving and a gilded harpsichord: warm ivory and parchment, carved walnut and fruitwood, burnished gilt, deep burgundy and a little powder blue, scrolling acanthus leaves, shell (rocaille) ornaments and fine engraved hatching. Elegant and refined. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
+Edit the attached image, musicpractice/app/assets/ui/baroque/home-metronome.webp (the 18th Century theme's metronome icon): its pendulum is drawn like a clock's, hanging from a pivot at the top of the dial with a round gilt ball near the bottom. Redraw only the pendulum the way a metronome's works: a round gilt rosette pivot near the BOTTOM of the ivory dial, just above the lower scroll ornament, and from it a thin straight gilt rod rising UP, tilted a little to the right, almost to the top of the dial, with a small gilt sliding weight shaped like a scalloped shell on the upper part of the rod, about a quarter of the way down from its tip. No ball or bob anywhere, nothing hanging from the top of the dial. Change nothing else: the same case, crest, scrolls, dial ornaments, plinth, colours, lighting, size and framing. 18th-century illustration in the manner of a Rococo engraving and a gilded harpsichord: warm ivory and parchment, carved walnut and fruitwood, burnished gilt, deep burgundy and a little powder blue, scrolling acanthus leaves, shell (rocaille) ornaments and fine engraved hatching. Elegant and refined. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, no cast shadow.
 ```
 
 ### `home-record` · 18th Century · delivered
@@ -520,15 +522,15 @@ An art nouveau microphone wrapped in gold vines and an iris flower on a curving 
 
 ## French Nouveau · Metronome animation
 
-### `metronome-body` · French Nouveau · delivered
+### `metronome-body` · French Nouveau · revise
 
 - File: `musicpractice/app/assets/ui/nouveau/metronome-body.webp`
 - Size: 800×1200, transparent PNG (shipped as WebP)
-- Anchors (measured): pivot (400, 937) in a 800×1200 canvas
-- Note: The app rotates the French Nouveau pendulum over this one about the pivot. Ask for (400, 1000) in an 800×1200 canvas, then measure where it really is in the delivered file and record it as this image's pivot anchor.
+- Anchors (requested): pivot (400, 937) in a 800×1200 canvas
+- Note: Round 15: the delivered case is much wider at the bottom than the French Nouveau home-screen metronome (assets/ui/nouveau/home-metronome.webp). Wanted: that icon's metronome as the screen's case. Ask for the pivot at (400, 937) in an 800×1200 canvas, where the current one is, so the delivered rod and weight (metronome-rod.webp, metronome-weight.webp) still fit: the rod reaches up to about y 174. Measure the pivot in the delivered file and record it here. Replaces the file at the same path.
 
 ```text
-An art nouveau metronome: a tall case with gently curving whiplash sides and a rounded arched top, in sage green enamel with gold vine and lily ornaments climbing its edges, a cream front face with fine gold tick marks (no numbers), on a softly flared base with curling gold feet. Seen exactly straight on from the front, perfectly symmetrical, standing upright and filling the canvas top to bottom with a small margin. There is NO pendulum, rod or weight anywhere. Near the bottom of the face, centred left-to-right, a round gold flower-shaped pivot sits exactly at 50% of the width and 83% of the height. French Art Nouveau illustration in the manner of Alphonse Mucha and a Paris Métro entrance: soft sage and olive green, cream, muted gold, dusty rose and plum, flowing whiplash curves, lilies, irises and vines, elegant outlined forms with flat, gently graded colour. Graceful and organic. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
+Redraw the metronome in the attached image, musicpractice/app/assets/ui/nouveau/home-metronome.webp (the French Nouveau theme's home-screen icon), as the case for the metronome screen. Keep its design and proportions: the same slim case that curves like a lily stem, narrow at the top and only gently widening to a narrow base (NOT a wide flared bottom), the same lily-flower crown at the top, the same sage green enamel, gold vine edges, dusty-rose iris ornaments, cream face and curling gold feet. Seen exactly straight on from the front, perfectly symmetrical (the crown's lilies mirrored left and right), standing upright and filling the canvas top to bottom with a small margin. There is NO pendulum, rod or weight anywhere. The cream face is a tall plain panel with fine gold tick marks (no numbers) running from about 13% of the height down to the pivot. Near the bottom of the face, centred left-to-right, a round gold flower-shaped pivot sits exactly at 50% of the width and 78% of the height. French Art Nouveau illustration in the manner of Alphonse Mucha and a Paris Métro entrance: soft sage and olive green, cream, muted gold, dusty rose and plum, flowing whiplash curves, lilies, irises and vines, elegant outlined forms with flat, gently graded colour. Graceful and organic. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
 ```
 
 ### `metronome-pendulum` · French Nouveau · delivered
