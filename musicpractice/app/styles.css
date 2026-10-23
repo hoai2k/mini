@@ -936,6 +936,12 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   border: 1px solid var(--brass); border-radius: 6px; background: var(--bg-2); color: var(--ink); font: inherit;
 }
 .take .save svg, .take .del svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.take .take-tools { grid-column: 1 / -1; display: none; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.take.playing .take-tools { display: flex; }
+.take .take-speed { flex-wrap: nowrap; }
+.take .take-speed .chip { min-height: 36px; padding-inline: 12px; }
+.take .take-loop { min-height: 36px; padding-block: 4px; }
+.take .take-loop[data-state="armed"], .take .take-loop[data-state="on"] { border-color: var(--brass); color: var(--brass-2); }
 .take .bar-progress { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--brass); width: 0; }
 .takes-empty { color: var(--ink-3); margin: 8px 0 0; }
 .toast {

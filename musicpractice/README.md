@@ -398,6 +398,13 @@ blocked, comes then rather than when you start to play.
    and a playhead. Then it listens again. **Scrub** while it plays: press
    the waveform and the playhead jumps there and holds while you drag; let
    go and it plays on from that point, to hear a passage again and again.
+   **Speed and loop**: while a take plays, its row in the list grows a
+   second line. *50%*, *75%* and *100%* set how fast takes play, with the
+   pitch kept (the audio element's `preservesPitch`), and are kept between
+   visits. *Loop A–B* marks a loop's start where the take has got to; the
+   button then reads *Set end*, and a tap marks the end (until then, the
+   take's end goes back to the start). *Stop loop* stops looping. The loop
+   is shaded on the waveform, and a looping take plays until it's stopped.
    **Playback volume** is the faint speaker at the right of the record
    button's row (the metronome's tucked-away control, `tuckedvolume.js`):
    drag it, or tap it for the slider. iPhone and iPad ignore an audio

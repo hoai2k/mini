@@ -18,6 +18,7 @@ let volume = 1;
 // sound at the new level, from where it was).
 let elementVolume = null;
 let current = null; // { samples, sampleRate, remake } while a take plays
+let rate = 1; // how fast takes play, with the pitch kept
 
 /** The one audio element takes play through (also for checks and diagnostics). */
 export function element() {
@@ -79,16 +80,30 @@ export function setPlaybackVolume(v) {
   current?.remake();
 }
 
+/** How fast takes play (0.5 to 1), keeping the pitch; a take playing changes at once. */
+export function setPlaybackRate(r) {
+  rate = r;
+  applyRate(element());
+}
+
+function applyRate(a) {
+  a.preservesPitch = true;
+  a.webkitPreservesPitch = true;
+  a.defaultPlaybackRate = rate;
+  a.playbackRate = rate;
+}
+
 /**
  * Play samples. Resolves to a handle once playback has started, or rejects
  * if the browser refuses (the caller then plays them another way).
- * @returns {Promise<{ ended: Promise<void>, progress: () => number, stop: () => void, seek: (f: number) => void, hold: () => void, go: () => Promise<void> }>}
+ * @returns {Promise<{ ended: Promise<void>, progress: () => number, stop: () => void, setLoop: (l: { from: number, to: number } | null) => void, seek: (f: number) => void, hold: () => void, go: () => Promise<void> }>}
  */
 export async function playSamples(samples, sampleRate) {
   const a = element();
   a.pause();
   if (canSetVolume()) a.volume = volume;
   await load(a, source(samples, sampleRate));
+  applyRate(a);
   dlog('player-play', { seconds: Math.round((samples.length / sampleRate) * 10) / 10, sampleRate, volume, elementVolume: canSetVolume() ? a.volume : 'ignored-ios', sink: shortId(a.sinkId || '') || 'default', muted: a.muted });
   let finish;
   const ended = new Promise((resolve) => { finish = resolve; });
@@ -105,17 +120,35 @@ export async function playSamples(samples, sampleRate) {
         const at = a.currentTime;
         const wasPlaying = !a.paused;
         await load(a, source(samples, sampleRate));
+        applyRate(a);
         a.currentTime = at;
         if (wasPlaying && !held) a.play().catch(() => {});
       }, 150);
     },
   };
-  const done = () => { clearTimeout(remaking); current = null; finish(); };
-  a.onended = done;
+  // A loop (fractions of the take): past its end, back to its start.
+  let loop = null;
+  let looping = 0;
+  const done = () => { clearTimeout(remaking); clearInterval(looping); current = null; finish(); };
+  a.onended = () => {
+    if (!loop) { done(); return; }
+    a.currentTime = loop.from * duration;
+    a.play().catch(done);
+  };
   return {
     ended,
     progress: () => Math.min(1, a.currentTime / duration),
     stop: () => { a.onended = null; a.pause(); done(); },
+    /** Loop `from` to `to` (fractions), or stop looping with null. */
+    setLoop: (l) => {
+      loop = l;
+      clearInterval(looping);
+      if (l && l.to < 1) {
+        looping = setInterval(() => {
+          if (!held && a.currentTime >= l.to * duration) a.currentTime = l.from * duration;
+        }, 15);
+      }
+    },
     // Phones pause media when the app is left; carry on from there on return.
     isPaused: () => a.paused && !a.ended && !held,
     resume: () => a.play(),

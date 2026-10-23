@@ -328,6 +328,27 @@ async function microphone() {
     c.ok(/^0:0[2-5]$/.test(take.len), `the take is the note's length (${JSON.stringify(take)})`);
     await p.click('#rec-toggle');
     c.ok(await until(p, () => document.getElementById('rec-toggle').dataset.state === 'off', 5000) >= 0, 'the record button turns it off');
+    // Played from the list, the take shows its tools: speed and an A–B loop.
+    await p.click('#takes .take .play');
+    c.ok(await until(p, () => {
+      const t = document.querySelector('#takes .take.playing .take-tools');
+      return t && t.offsetHeight > 0 && !t.querySelector('.take-loop').disabled;
+    }, 8000) >= 0, 'a playing take shows its speed and loop');
+    await p.click('#takes .take.playing .take-speed .chip:first-child');
+    c.ok(await p.evaluate(() => JSON.parse(localStorage.getItem('musicpractice.settings.v1')).playRate) === 0.5, 'half speed is chosen and kept');
+    await p.click('#takes .take.playing .take-loop');
+    c.ok(await p.evaluate(() => document.querySelector('#takes .take-loop').dataset.state) === 'armed', 'the loop button marks a start');
+    // At half speed the take would be over in 10 s at most; armed, it goes back to the start instead.
+    await p.waitForTimeout(11000);
+    c.ok(await p.evaluate(() => !!document.querySelector('#takes .take.playing')), 'a loop with only a start keeps playing past the end');
+    await p.click('#takes .take.playing .take-loop');
+    c.ok(await p.evaluate(() => document.querySelector('#takes .take-loop').dataset.state) === 'on', 'a second tap marks the end');
+    if (process.env.SHOTS) await p.screenshot({ path: `${process.env.SHOTS}/take-tools.png` });
+    await p.click('#takes .take.playing .take-loop');
+    c.ok(await p.evaluate(() => document.querySelector('#takes .take-loop').dataset.state) === 'off', 'a third tap stops looping');
+    await p.click('#takes .take.playing .take-speed .chip:last-child');
+    await p.click('#takes .take.playing .play');
+    c.ok(await until(p, () => !document.querySelector('#takes .take.playing'), 3000) >= 0, 'its play button stops it');
     // The tuner takes the same mic (no new prompt) and reads A3.
     await p.goto(env.base + '#tuner');
     const read = await until(p, () => document.getElementById('tn-letter').textContent === 'A' && document.getElementById('tn-oct').textContent === '3', 20000);

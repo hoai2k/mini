@@ -74,6 +74,7 @@ export const DEFAULTS = Object.freeze({
   volume: 0.75, // METRONOME_DEFAULT: the loudness full volume had before the clicks were made louder
   volumeChosen: false,
   playVolume: 1, // the Playback Recorder's takes, played back (its tucked-away speaker)
+  playRate: 1, // how fast takes play (1, 0.75 or 0.5), pitch kept
   silenceSec: 3,
   sensitivity: 'medium',
   startOn: 'music',
@@ -146,7 +147,8 @@ const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 const num = (v, d) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
 const oneOf = (v, list, d) => (list.includes(v) ? v : d);
 
-/** Clean up a tempo typed or dragged in: whole beats, 40 to 500. */
+/** The speeds a take can play at. */
+export const PLAY_RATES = [0.5, 0.75, 1];
 /** Saved tempos (the tempo picker's Saved): at most SAVED_MAX, each a name, a tempo and a time signature. */
 export const SAVED_MAX = 40;
 export function cleanSavedTempos(list) {
@@ -162,6 +164,7 @@ export function cleanSavedTempos(list) {
     }));
 }
 
+/** Clean up a tempo typed or dragged in: whole beats, 40 to 500. */
 export function clampBpm(v) {
   const n = Math.round(Number(v));
   return Number.isFinite(n) ? clamp(n, BPM_MIN, BPM_MAX) : DEFAULTS.bpm;
@@ -233,6 +236,7 @@ export function sanitize(raw) {
     volume: s.volumeChosen === true ? clamp(num(s.volume, 1) * (louder ? 1 : 0.75), 0, 1) : DEFAULTS.volume,
     volumeChosen: s.volumeChosen === true,
     playVolume: clamp(num(s.playVolume, 1), 0, 1),
+    playRate: PLAY_RATES.includes(s.playRate) ? s.playRate : 1,
     silenceSec: clamp(Math.round(num(s.silenceSec, DEFAULTS.silenceSec) * 2) / 2, 1, 10),
     sensitivity: oneOf(s.sensitivity, ['low', 'medium', 'high'], DEFAULTS.sensitivity),
     startOn: oneOf(s.startOn, ['music', 'any'], DEFAULTS.startOn),

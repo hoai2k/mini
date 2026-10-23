@@ -6,7 +6,8 @@
 // and its settings. main.js passes in what it shares and uses what this returns.
 import { TEXT, setRich } from './text.js';
 import { audio, existingAudio, replaceAudio, audioWasAway, markStale, unlock, setSession, keepAwake } from './audio.js';
-import { playSamples, primeFromTap, outputSettled, setPlaybackVolume } from './player.js';
+import { playSamples, primeFromTap, outputSettled, setPlaybackVolume, setPlaybackRate } from './player.js';
+import { PLAY_RATES } from './settings.js';
 import { forPlayback, playbackLevel } from './loudness.js';
 import { dlog } from './debuglog.js';
 import { encodeMp3 } from './mp3.js';
@@ -32,7 +33,7 @@ export function setupRecorder({ settings, persist, tuner, screen, routineRunning
   let recorder = null;
   let wave = null;
   let takes = []; // newest first
-  let playing = null; // { take, auto, handle: { ended, progress(), stop() } once sound starts }
+  let playing = null; // { take, auto, handle: { ended, progress(), stop() } once sound starts, loop: { from, to? } | null }
   let recError = '';
   let recordingSince = 0; // when the take being recorded began (the routine card's clock)
 
@@ -365,7 +366,7 @@ export function setupRecorder({ settings, persist, tuner, screen, routineRunning
     // Playback mode only when no mic is held: switching while Safari holds one
     // could cut it off and interrupt the record-play-record loop.
     if (!recorder?.holdsMic) setSession('playback');
-    playing = { take, auto, handle: null };
+    playing = { take, auto, handle: null, loop: null };
     wave?.showTake(take.samples);
     $('wave').classList.add('scrub');
     $('wave').setAttribute('aria-label', TEXT.recorder.waveformTake);
@@ -406,6 +407,7 @@ export function setupRecorder({ settings, persist, tuner, screen, routineRunning
     if (token !== playToken) { handle.stop(); return; }
     playing.handle = handle;
     handle.ended.then(() => { if (token === playToken) stopPlayback(); });
+    renderTakes(); // the loop button can be used now
   }
 
   /** The old way: Web Audio. Used only if the media element is refused. */
@@ -453,6 +455,7 @@ export function setupRecorder({ settings, persist, tuner, screen, routineRunning
     playToken++;
     handle?.stop();
     scrub = null;
+    wave?.setLoop(null);
     wave?.showLive();
     $('wave').classList.remove('scrub');
     $('wave').setAttribute('aria-label', TEXT.recorder.waveform);
@@ -463,6 +466,44 @@ export function setupRecorder({ settings, persist, tuner, screen, routineRunning
 
   // Playback volume: the faint speaker beside the record button (tuckedvolume.js).
   setPlaybackVolume(settings.playVolume);
+  setPlaybackRate(settings.playRate);
+
+  /*
+   * The playing take's tools. Speed (50, 75 or 100%, the pitch kept) is kept
+   * between visits. The loop button marks a start where the take has got to,
+   * then an end; until the end is marked, reaching the take's end goes back to
+   * the start. A third tap stops looping.
+   */
+  function stepLoop() {
+    const handle = playing?.handle;
+    if (!handle?.setLoop) return;
+    const at = scrub ? scrub.f : handle.progress();
+    const l = playing.loop;
+    if (!l) playing.loop = { from: at };
+    else if (l.to === undefined) {
+      // Tapped again too soon (or after scrubbing back): a loop needs some length.
+      const [from, to] = at >= l.from ? [l.from, at] : [at, l.from];
+      playing.loop = to - from < 0.01 ? { from } : { from, to };
+    } else playing.loop = null;
+    const now = playing.loop;
+    handle.setLoop(now && { from: now.from, to: now.to ?? 1 });
+    wave?.setLoop(now && { from: now.from, to: now.to ?? null });
+    renderTakes();
+  }
+
+  function syncTools(li, take) {
+    li.syncSpeed();
+    const btn = li.querySelector('.take-loop');
+    const mine = playing?.take === take;
+    const l = mine ? playing.loop : null;
+    const T = TEXT.recorder.tools;
+    const dur = take.samples.length / take.sampleRate;
+    btn.disabled = !mine || !playing.handle?.setLoop;
+    btn.dataset.state = !l ? 'off' : l.to === undefined ? 'armed' : 'on';
+    btn.textContent = !l ? T.loopOff : l.to === undefined ? T.loopArmed : T.loopOn;
+    btn.setAttribute('aria-label', !l ? T.loopOffHint : l.to === undefined ? T.loopArmedHint
+      : T.loopOnHint(fmtDur(l.from * dur), fmtDur(l.to * dur)));
+  }
   const recVolume = tuckedVolume($('rec-vol'), {
     get: () => settings.playVolume,
     set: (v) => {
@@ -600,7 +641,16 @@ export function setupRecorder({ settings, persist, tuner, screen, routineRunning
         <div class="meta"><div class="name"><button type="button" class="title"></button><span></span></div><canvas aria-hidden="true"></canvas></div>
         <button class="save" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14"/></svg></button>
         <button class="del" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
+        <div class="take-tools"><div class="chips take-speed"></div><button class="pill take-loop" type="button"></button></div>
         <span class="bar-progress" aria-hidden="true"></span>`;
+        const speed = li.querySelector('.take-speed');
+        speed.setAttribute('aria-label', TEXT.recorder.tools.speed);
+        li.syncSpeed = chips(speed, PLAY_RATES.map((r) => ({ id: r, label: TEXT.recorder.tools.rate(r) })), () => settings.playRate, (r) => {
+          settings.playRate = r;
+          setPlaybackRate(r);
+          persist();
+        });
+        li.querySelector('.take-loop').addEventListener('click', stepLoop);
         li.querySelector('.play').addEventListener('click', () => (playing?.take === take ? stopPlayback() : play(take)));
         li.querySelector('.del').addEventListener('click', () => removeTake(take));
         li.querySelector('.save').addEventListener('click', (e) => { if (requirePro('takes')) saveTake(take, li.dataset.label, e.currentTarget); });
@@ -625,6 +675,7 @@ export function setupRecorder({ settings, persist, tuner, screen, routineRunning
       const save = li.querySelector('.save');
       if (!save.classList.contains('busy') && !save.classList.contains('ready')) save.setAttribute('aria-label', TEXT.recorder.saveTake(n));
       li.classList.toggle('playing', playing?.take === take);
+      syncTools(li, take);
       if (playing?.take !== take) li.querySelector('.bar-progress').style.width = '0';
       return li;
     });

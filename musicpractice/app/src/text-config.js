@@ -263,6 +263,17 @@ export const EN = {
     /** The file name a take is saved under when it has no name. */
     takeFile: 'Take',
     takeNameField: 'Take name',
+    /** The tools in a take's row while it plays: speed and an A–B loop. */
+    tools: {
+      speed: 'Speed',
+      rate: (r) => `${Math.round(r * 100)}%`,
+      loopOff: 'Loop A–B',
+      loopArmed: 'Set end',
+      loopOn: 'Stop loop',
+      loopOffHint: 'Start a loop here, then tap again where it should end',
+      loopArmedHint: 'End the loop here (or let the take reach its end)',
+      loopOnHint: (from, to) => `Looping ${from} to ${to}. Tap to stop looping`,
+    },
     renameTake: (label) => `${label}. Tap to rename`,
     playTake: (n) => `Play take ${n}`,
     stopTake: (n) => `Stop take ${n}`,
