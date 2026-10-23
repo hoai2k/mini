@@ -9,338 +9,22 @@
 // gold armour, flaming-haired cheerleader empousai, white-haired Furies in
 // ragged black with leather wings, skeletons in combat gear.
 import * as THREE from 'three/webgpu';
-import { vertexColor, vec3, mix, step, screenCoordinate, interleavedGradientNoise, uniform } from 'three/tsl';
-import { Rig, PX, HOLD_PITCH, markTip, markHeld } from './character.js';
+import { Rig, PX, HOLD_PITCH } from './character.js';
 import { QuadRig, paintQuad } from './quad.js';
 import { paintPerson } from './mortals.js';
 import { t as txt } from '../text_config.js';
-import { HS, solid, skinMat, prop, group, lavaCracks, fur, sway, rng, bruteLimbs, BUILD, withBuild, rigDensity, voxDensity, densityFor, keepAbove } from './parts.js';
+import { HS, solid, skinMat, prop, group, lavaCracks, fur, sway, bruteLimbs } from './parts.js';
 import { heroHair, cellMesh, footwear } from './herovox.js';
-import { FODDER_MONSTERS, fodderModels, blob, carve, flushBlobs, paintShade } from './fodder.js';
+import { FODDER_MONSTERS, fodderModels } from './fodder.js';
 import { buildSerpent } from './serpent.js';
 import { addFlames, tickFlames } from './flames.js';
 import { mergeRig } from './charmat.js';
-import { shapeX, unshapeX, shapeK, legScale, reshape, applyShape, markHeadCore, markHeadwear } from './proportions.js';
+import { kit, voxMat, dropMeshes, BUILD, withBuild, voxDensity, densityFor, legScale, reshape, applyShape } from './voxkit.js';
+import { markTip, markHeld, markHeadCore, markHeadwear, keepAbove } from './rigContract.js';
 
-export { skinMat, blob, carve, paintShade, rigDensity, voxDensity };
+// (compatibility: perf/islands.cjs reaches the kit class through this module; the kit is voxkit.js)
+export { VoxKit } from './voxkit.js';
 
-// ---- voxel detail kit -----------------------------------------------------------
-// Loose boxes (in skin pixels, optionally rotated) collected per parent group
-// and merged into ONE vertex-coloured mesh per parent, so a model can carry
-// hundreds of fur clumps, plates, rivets and feathers for a handful of draw
-// calls. The material is cached per look and shares the skin material's
-// flash, glow and dissolve uniforms, so hit flashes, elite glows and the
-// ghost's see-through dissolve cover the detail too. Any colour with a
-// channel at full strength (0xff) glows: eyes, lava cracks, fire.
-const voxMats = new Map();
-export function voxMat(look, { rough = 0.75, metal = 0, emit = 0.7, fill = 0.12 } = {}) {
-  const key = `${look.uuid}:${rough}:${metal}:${emit}:${fill}`;
-  if (voxMats.has(key)) return voxMats.get(key);
-  const u = look.userData;
-  const m = new THREE.MeshStandardNodeMaterial({ vertexColors: true, roughness: rough, metalness: metal });
-  const vc = vertexColor();
-  const hot = step(0.985, vc.r.max(vc.g).max(vc.b));
-  m.colorNode = vec3(1, 1, 1).mul(hot.oneMinus());   // glowing cells are pure light
-  // (emit and fill as uniforms, not constants: every kind's detail material
-  // then has the same shader code and shares one program, where constants
-  // made a program per kind, compiled when the kind first drew)
-  m.emissiveNode = mix(vc.mul(hot).mul(uniform(emit)).add(vc.mul(uniform(fill))).add(u.glow), vec3(2.2, 2.2, 2.2), u.flash);
-  m.maskNode = interleavedGradientNoise(screenCoordinate.xy).greaterThan(u.dissolve);
-  m.userData = u;
-  m.voxParams = { rough, metal, emit, fill };   // (charmat.js: a bone's skin and detail drawn as one part)
-  voxMats.set(key, m);
-  return m;
-}
-const KFACES = [
-  [[1, 0, 0], [[1, -1, 1], [1, -1, -1], [1, 1, -1], [1, 1, 1]], 0.9],
-  [[-1, 0, 0], [[-1, -1, -1], [-1, -1, 1], [-1, 1, 1], [-1, 1, -1]], 0.9],
-  [[0, 1, 0], [[-1, 1, 1], [1, 1, 1], [1, 1, -1], [-1, 1, -1]], 1.1],
-  [[0, -1, 0], [[-1, -1, -1], [1, -1, -1], [1, -1, 1], [-1, -1, 1]], 0.62],
-  [[0, 0, 1], [[-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]], 1],
-  [[0, 0, -1], [[1, -1, -1], [-1, -1, -1], [-1, 1, -1], [1, 1, -1]], 0.84],
-];
-const _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _v = new THREE.Vector3(), _n = new THREE.Vector3(), _one = new THREE.Vector3(1, 1, 1), _p = new THREE.Vector3();
-const _qi = new THREE.Quaternion(), _w = new THREE.Vector3();
-// Hidden faces: a box face that lies wholly inside another box of the same
-// part (boxes that touch or overlap) is never seen, so it is not drawn. A
-// box is convex, so a face is inside another box exactly when its four
-// corners are (pushed a hair out along the face's normal, so faces that only
-// meet a coplanar face stay). Boxes are found through a coarse grid.
-const HID_EPS = 0.02, HID_TOL = 0.002, GRID = 4;
-const UNION = true;
-function hiddenFaces(list) {
-  const n = list.length, hidden = new Uint8Array(n * 6);
-  if (n < 2) return hidden;
-  const Q = new Array(n), grid = new Map();
-  const cellKey = (i, j, k) => (i + 512) + 1024 * ((j + 512) + 1024 * (k + 512));
-  for (let b = 0; b < n; b++) {
-    const B = list[b], rot = B.rx || B.ry || B.rz;
-    Q[b] = rot ? new THREE.Quaternion().setFromEuler(_e.set(B.rx, B.ry, B.rz, B.order ?? 'XYZ')) : null;
-    // a bounding box (the circumscribed sphere for a turned box)
-    const ex = rot ? Math.hypot(B.w, B.h, B.d) / 2 : B.w / 2, ey = rot ? ex : B.h / 2, ez = rot ? ex : B.d / 2;
-    const i0 = Math.floor((B.x - ex) / GRID), i1 = Math.floor((B.x + ex) / GRID), j0 = Math.floor((B.y - ey) / GRID), j1 = Math.floor((B.y + ey) / GRID), k0 = Math.floor((B.z - ez) / GRID), k1 = Math.floor((B.z + ez) / GRID);
-    if ((i1 - i0 + 1) * (j1 - j0 + 1) * (k1 - k0 + 1) > 4000) continue;   // (a huge slab covers nothing worth the cells)
-    for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) for (let k = k0; k <= k1; k++) { const key = cellKey(i, j, k); let L = grid.get(key); if (!L) grid.set(key, L = []); L.push(b); }
-  }
-  const inside = (b, x, y, z) => {
-    const B = list[b]; _w.set(x - B.x, y - B.y, z - B.z);
-    if (Q[b]) _w.applyQuaternion(_qi.copy(Q[b]).invert());
-    return Math.abs(_w.x) <= B.w / 2 + HID_TOL && Math.abs(_w.y) <= B.h / 2 + HID_TOL && Math.abs(_w.z) <= B.d / 2 + HID_TOL;
-  };
-  const C = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]], ctr = [0, 0, 0];
-  for (let b = 0; b < n; b++) {
-    const B = list[b];
-    for (let f = 0; f < 6; f++) {
-      const [nn, vs] = KFACES[f];
-      _n.set(nn[0], nn[1], nn[2]); if (Q[b]) _n.applyQuaternion(Q[b]);
-      ctr[0] = ctr[1] = ctr[2] = 0;
-      for (let q = 0; q < 4; q++) {
-        const v = vs[q];
-        _v.set(v[0] * B.w / 2, v[1] * B.h / 2, v[2] * B.d / 2); if (Q[b]) _v.applyQuaternion(Q[b]);
-        C[q][0] = B.x + _v.x + _n.x * HID_EPS; C[q][1] = B.y + _v.y + _n.y * HID_EPS; C[q][2] = B.z + _v.z + _n.z * HID_EPS;
-        ctr[0] += C[q][0] / 4; ctr[1] += C[q][1] / 4; ctr[2] += C[q][2] / 4;
-      }
-      const L = grid.get(cellKey(Math.floor(ctr[0] / GRID), Math.floor(ctr[1] / GRID), Math.floor(ctr[2] / GRID)));
-      if (!L) continue;
-      let one = false;
-      for (const o of L) {
-        if (o === b) continue;
-        if (inside(o, ...C[0]) && inside(o, ...C[1]) && inside(o, ...C[2]) && inside(o, ...C[3])) { hidden[b * 6 + f] = 1; one = true; break; }
-      }
-      // (or covered by several boxes together: a 4 x 4 grid of points over
-      // the face, each inside some other box)
-      if (one || !UNION) continue;
-      let all = true;
-      for (let u = 0; u < 4 && all; u++) for (let v = 0; v < 4 && all; v++) {
-        const fu = (u + 0.5) / 4, fv = (v + 0.5) / 4;
-        const x = C[0][0] + (C[1][0] - C[0][0]) * fu + (C[3][0] - C[0][0]) * fv, y = C[0][1] + (C[1][1] - C[0][1]) * fu + (C[3][1] - C[0][1]) * fv, z = C[0][2] + (C[1][2] - C[0][2]) * fu + (C[3][2] - C[0][2]) * fv;
-        let hit = false; for (const o of L) if (o !== b && inside(o, x, y, z)) { hit = true; break; }
-        all = hit;
-      }
-      if (all) hidden[b * 6 + f] = 1;
-    }
-  }
-  return hidden;
-}
-function kitGeometry(list, extra = null) {
-  const P = [], N = [], C = [];
-  const hidden = hiddenFaces(list);
-  for (let bi = 0; bi < list.length; bi++) {
-    const b = list[bi];
-    const c = b.col, hot = Math.max(c.r, c.g, c.b) >= 0.999;
-    const rot = b.rx || b.ry || b.rz;
-    if (rot) { _q.setFromEuler(_e.set(b.rx, b.ry, b.rz, b.order ?? 'XYZ')); _m4.compose(_p.set(b.x, b.y, b.z), _q, _one); }
-    for (let f = 0; f < 6; f++) {
-      if (hidden[bi * 6 + f] || (b.only != null && f !== b.only)) continue;   // (b.only: a flat decal, its one outward face)
-      const [n, vs, sh] = KFACES[f];
-      _n.set(n[0], n[1], n[2]); if (rot) _n.applyQuaternion(_q);
-      const k = hot ? 1 : sh;
-      for (const q of [0, 1, 2, 0, 2, 3]) {
-        const v = vs[q];
-        _v.set(v[0] * b.w / 2, v[1] * b.h / 2, v[2] * b.d / 2);
-        if (rot) _v.applyMatrix4(_m4); else _v.add(_p.set(b.x, b.y, b.z));
-        // sides fade a little toward their bottom edge
-        const g = hot ? 1 : k * (n[1] === 0 ? 0.95 + v[1] * 0.05 : 1);
-        P.push(_v.x * PX, _v.y * PX, _v.z * PX); N.push(_n.x, _n.y, _n.z); C.push(c.r * g, c.g * g, c.b * g);
-      }
-    }
-  }
-  // rounded masses (fodder.js blob) add their open cell faces as they are
-  if (extra) { for (const v of extra.P) P.push(v); for (const v of extra.N) N.push(v); for (const v of extra.C) C.push(v); }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
-  g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3));
-  g.setAttribute('color', new THREE.Float32BufferAttribute(C, 3));
-  return g;
-}
-// Built geometry, per model build (BUILD.key, parts.js withBuild) and kit:
-// every spawn of a kind shares the first spawn's geometry, so a crowd costs
-// no geometry work. The builds are seeded, so the parts come in the same order.
-const KIT_GEO = new Map();
-const colCache = new Map();
-const toCol = (c) => { if (c instanceof THREE.Color) return c; if (!colCache.has(c)) colCache.set(c, new THREE.Color(c)); return colCache.get(c); };
-// Usage: const K = kit(rig, look); K.box(parent, x, y, z, w, h, d, col, rx, ry, rz) ... K.done().
-export class VoxKit {
-  // opts.density: how many hero pixels make one of this model's skin pixels
-  // (rigDensity(rig) for a model made big with its rig scale; a champion's
-  // build multiplies it, parts.js BUILD.k). clumps, shag, cracks, vox and
-  // blobs scale their block size down and their count up with it.
-  constructor(rig, look, opts = {}) {
-    this.rig = rig; this.mat = voxMat(look, opts); this.lists = new Map(); this.vfaces = new Map(); this.r = rng(opts.seed ?? 7);
-    this.density = opts.density ?? BUILD.k; this.ao = opts.ao ?? 0;
-    this.cacheKey = BUILD.key ? `${BUILD.key}@${BUILD.k.toFixed(3)}#${BUILD.n++}` : null;
-    this.cached = !!(this.cacheKey && KIT_GEO.has(this.cacheKey));   // (blobs skip their cell work)
-  }
-  // A part reshaped by its builder (proportions.js reshape): what is drawn
-  // into it lands through its shape. Clumps, shag, cracks and vox() cells
-  // keep their own size (only their layout moves), so they draw raw.
-  _sh(p) { return this._raw ? null : this.rig.shape?.get(p) ?? null; }
-  _rawDo(fn) { this._raw = (this._raw ?? 0) + 1; try { return fn(); } finally { this._raw--; } }
-  box(p, x, y, z, w, h, d, col, rx = 0, ry = 0, rz = 0) {
-    const S = this._sh(p);
-    if (S) { h *= shapeK(S, y, 1); x = shapeX(S, x, 0); y = shapeX(S, y, 1); z = shapeX(S, z, 2); w *= S.f[0]; d *= S.f[2]; }
-    if (!this.lists.has(p)) this.lists.set(p, []);
-    this.lists.get(p).push({ x, y, z, w, h, d, col: toCol(col), rx, ry, rz });
-    return this;
-  }
-  // a skirt strip: turned to face outward (yaw about y), then its hem tilted
-  // out by tilt (rad)
-  flare(p, x, y, z, w, h, d, col, yaw, tilt) { this.box(p, x, y, z, w, h, d, col, -tilt, yaw, 0); this.lists.get(p).at(-1).order = 'YXZ'; return this; }
-  // a box in a local frame at o turned by ry about y (no extra group or mesh)
-  boxY(p, o, ry, x, y, z, w, h, d, col, rx = 0) {
-    const c = Math.cos(ry), sn = Math.sin(ry);
-    return this.box(p, o[0] + x * c + z * sn, o[1] + y, o[2] - x * sn + z * c, w, h, d, col, rx, ry, 0);
-  }
-  // a box in the frame of a child group g (offset and turned about z only,
-  // like a QuadRig knee), drawn into g's parent so it costs no extra mesh
-  boxZ(g, x, y, z, w, h, d, col, rx = 0) {
-    const rz = g.rotation.z, c = Math.cos(rz), sn = Math.sin(rz), P = g.position;
-    return this.box(g.parent, P.x / PX + x * c - y * sn, P.y / PX + x * sn + y * c, P.z / PX + z, w, h, d, col, rx, 0, rz);
-  }
-  // a colour picked from cols with a little brightness jitter
-  tone(cols, j = 0.12) { const c = toCol(cols[Math.floor(this.r() * cols.length)]); if (Math.max(c.r, c.g, c.b) >= 0.999) return c; return c.clone().multiplyScalar(1 + (this.r() - 0.5) * j); }
-  // Clumps scattered over the faces of a box (centre c, size s), each half
-  // sunk into the surface: fur, scales, rubble. faces: any of 'tbfklr'
-  // (top, bottom, front +z, back -z, left -x, right +x).
-  // on: [centre, radii, pw] of the rounded mass (a blob) they grow from: a
-  // clump the box face leaves in the air beyond it (a corner of the box
-  // round a round mane) is drawn in toward its centre until it sits half
-  // sunk on its surface, so no clump floats (perf/islands.cjs).
-  clumps(p, c, s, { n = 20, size = [1, 1.8], cols, faces = 'tfklr', out = 0.1, stretch = [1, 1, 1], j = 0.14, keep = null, on = null } = {}) {
-    const S = this._sh(p);
-    if (S) {   // (as many clumps a face area as before: fewer on a part drawn smaller)
-      const f = S.f, k = (f[0] * f[1] + f[1] * f[2] + f[0] * f[2]) / 3, kp = keep && ((x, y, z, ff) => keep(unshapeX(S, x, 0), unshapeX(S, y, 1), unshapeX(S, z, 2), ff));
-      const on2 = on && [on[0].map((v, a) => shapeX(S, v, a)), on[1].map((v, a) => v * shapeK(S, on[0][1], a)), on[2]];
-      return this._rawDo(() => this.clumps(p, c.map((v, a) => shapeX(S, v, a)), s.map((v, a) => v * shapeK(S, c[1], a)), { n: Math.max(1, Math.round(n * k)), size, cols, faces, out, stretch, j, keep: kp, on: on2 }));
-    }
-    const D = this.density; if (D !== 1) { n = Math.round(n * D * D); size = [size[0] / D, size[1] / D]; }
-    const F = [...faces].map((f) => ({ f, a: f === 't' || f === 'b' ? s[0] * s[2] : f === 'f' || f === 'k' ? s[0] * s[1] : s[1] * s[2] }));
-    const tot = F.reduce((a, b) => a + b.a, 0);
-    for (let i = 0; i < n; i++) {
-      let r = this.r() * tot, f = F[0].f; for (const q of F) { r -= q.a; if (r <= 0) { f = q.f; break; } }
-      const z = size[0] + this.r() * (size[1] - size[0]);
-      let x = c[0] + (this.r() - 0.5) * s[0], y = c[1] + (this.r() - 0.5) * s[1], zz = c[2] + (this.r() - 0.5) * s[2];
-      const o = z * out;
-      if (f === 't') y = c[1] + s[1] / 2 + o; else if (f === 'b') y = c[1] - s[1] / 2 - o;
-      else if (f === 'f') zz = c[2] + s[2] / 2 + o; else if (f === 'k') zz = c[2] - s[2] / 2 - o;
-      else if (f === 'l') x = c[0] - s[0] / 2 - o; else x = c[0] + s[0] / 2 + o;
-      if (keep && !keep(x, y, zz, f)) continue;
-      if (on) {
-        const [oc, or, pw = 2] = on, d = (Math.abs((x - oc[0]) / or[0]) ** pw + Math.abs((y - oc[1]) / or[1]) ** pw + Math.abs((zz - oc[2]) / or[2]) ** pw) ** (1 / pw);
-        if (d > 1) { x = oc[0] + (x - oc[0]) / d; y = oc[1] + (y - oc[1]) / d; zz = oc[2] + (zz - oc[2]) / d; }
-      }
-      this.box(p, x, y, zz, z * stretch[0], z * stretch[1], z * stretch[2], this.tone(cols, j));
-    }
-    return this;
-  }
-  // Shaggy coat on a box (centre c, size s): rows of hanging tufts down the
-  // sides that sweep back, and tufts along the top that bristle up and back.
-  // rows: side rows from the top edge; low: how far down the sides they reach (0..1).
-  shag(p, c, s, { cols, step = 1.6, len = [1.8, 3], w = 1, low = 0.8, top = true, sides = true, sweep = 0.35, bristle = 0.55, j = 0.1, ember = 0, embers = [0xff3a00, 0xff8a00] } = {}) {
-    const S = this._sh(p);
-    if (S) return this._rawDo(() => this.shag(p, c.map((v, a) => shapeX(S, v, a)), s.map((v, a) => v * shapeK(S, c[1], a)), { cols, step, len, w, low, top, sides, sweep, bristle, j, ember, embers }));
-    const D = this.density; if (D !== 1) { step /= D; w /= D; }
-    const [cx, cy, cz] = c, [sw, sh, sd] = s;
-    if (sides) for (const sx of [-1, 1]) for (let y = cy + sh / 2; y > cy + sh / 2 - sh * low; y -= step * 0.9) for (let z = cz + sd / 2 - step / 2; z > cz - sd / 2; z -= step) {
-      const L = len[0] + this.r() * (len[1] - len[0]), zz = z + (this.r() - 0.5) * step * 0.5;
-      this.box(p, cx + sx * (sw / 2 + w * 0.3), y - L * 0.4, zz, w, L, step * 1.05, this.tone(cols, j), sweep, 0, sx * 0.12);
-      // embers: a glowing seam showing between the tufts
-      if (ember && this.r() < ember) this.box(p, cx + sx * (sw / 2 + w * 0.75), y - L * 0.75, zz - step * 0.45, 0.25, L * 0.6, 0.5, embers[this.r() < 0.3 ? 1 : 0], sweep, 0, sx * 0.12);
-    }
-    if (top) for (let x = cx - sw / 2 + step / 2; x < cx + sw / 2; x += step) for (let z = cz + sd / 2 - step / 2; z > cz - sd / 2; z -= step) {
-      const L = len[0] + this.r() * (len[1] - len[0]);
-      this.box(p, x + (this.r() - 0.5) * 0.4, cy + sh / 2 + w * 0.3, z, step * 1.05, w, L, this.tone(cols, j), bristle, 0, 0);
-    }
-    return this;
-  }
-  // Glowing cracks: short random walks of thin cells on the faces of a box.
-  // rim: a colour for a wider glowing edge under each cell (magma: a bright
-  // core in a deep red rim); then each cell is drawn as two flat decals, only
-  // their outward faces, which costs less than one plain crack cell. rimKit:
-  // another kit to draw the rims with (one with a lower emit, so the rim
-  // glows deep red under the tone mapping where the core glows bright).
-  cracks(p, c, s, { n = 4, len = [3, 6], cols = [0xff4a00, 0xff7a10], faces = 'tfklr', cell = 0.6, rim = null, rimKit = this } = {}) {
-    const S = this._sh(p);
-    if (S) { const c2 = c.map((v, a) => shapeX(S, v, a)), s2 = s.map((v, a) => v * shapeK(S, c[1], a)); return this._rawDo(() => (rimKit === this ? this.cracks(p, c2, s2, { n, len, cols, faces, cell, rim, rimKit }) : rimKit._rawDo(() => this.cracks(p, c2, s2, { n, len, cols, faces, cell, rim, rimKit })))); }
-    const D = this.density; if (D !== 1) { cell /= D; len = [Math.round(len[0] * D), Math.round(len[1] * D)]; }
-    const rimC = rim != null ? toCol(rim) : null, FI = { r: 0, l: 1, t: 2, f: 4, k: 5 };
-    for (let i = 0; i < n; i++) {
-      const f = faces[Math.floor(this.r() * faces.length)];
-      const L = len[0] + Math.floor(this.r() * (len[1] - len[0] + 1));
-      // face axes: u, v in the face plane, fixed coordinate on the normal
-      let u = (this.r() - 0.5) * 0.9, v = (this.r() - 0.5) * 0.9;
-      for (let k = 0; k < L; k++) {
-        const col = toCol(cols[this.r() < 0.3 ? 1 : 0]);
-        const t = 0.15;
-        if (rimC) {
-          // the rim, wide and flush; the core, narrow and a hair proud of it
-          const at = (K, o, w, cc) => {
-            if (f === 't') K.box(p, c[0] + u * s[0], c[1] + s[1] / 2 + o, c[2] + v * s[2], w, t * 0.5, w, cc);
-            else if (f === 'f' || f === 'k') K.box(p, c[0] + u * s[0], c[1] + v * s[1], c[2] + (f === 'f' ? 1 : -1) * (s[2] / 2 + o), w, w, t * 0.5, cc);
-            else K.box(p, c[0] + (f === 'r' ? 1 : -1) * (s[0] / 2 + o), c[1] + v * s[1], c[2] + u * s[2], t * 0.5, w, w, cc);
-            K.lists.get(p).at(-1).only = FI[f];
-          };
-          at(rimKit, t * 0.25, cell * 2, rimC); at(this, t * 0.75, cell * 1.1, col);
-        } else if (f === 't') this.box(p, c[0] + u * s[0], c[1] + s[1] / 2 + t / 2, c[2] + v * s[2], cell, t, cell, col);
-        else if (f === 'f' || f === 'k') this.box(p, c[0] + u * s[0], c[1] + v * s[1], c[2] + (f === 'f' ? 1 : -1) * (s[2] / 2 + t / 2), cell, cell, t, col);
-        else this.box(p, c[0] + (f === 'r' ? 1 : -1) * (s[0] / 2 + t / 2), c[1] + v * s[1], c[2] + u * s[2], t, cell, cell, col);
-        if (this.r() < 0.55) u += (this.r() < 0.5 ? 1 : -1) * cell / Math.max(1, f === 'l' || f === 'r' ? s[2] : s[0]); else v -= cell / Math.max(1, f === 't' ? s[2] : s[1]);
-        if (Math.abs(u) > 0.5 || Math.abs(v) > 0.5) break;
-      }
-    }
-    return this;
-  }
-  // A box drawn as a shell of cells (centre, size and turn as box()), each
-  // cell a tone from cols: a big slab gains the grain of the model's density
-  // instead of reading as one flat block. cell: the cell size (default one
-  // hero pixel, 1 / density); relief: a share of cells that stand out a
-  // little; faces: which sides get cells (others stay one flat face).
-  vox(p, x, y, z, w, h, d, cols, { cell = 1 / this.density, j = 0.12, relief = 0, out = 0.35, rx = 0, ry = 0, rz = 0, faces = 'tbfklr' } = {}) {
-    const S = this._sh(p);
-    if (S) return this._rawDo(() => this.vox(p, shapeX(S, x, 0), shapeX(S, y, 1), shapeX(S, z, 2), w * S.f[0], h * shapeK(S, y, 1), d * S.f[2], cols, { cell, j, relief, out, rx, ry, rz, faces }));
-    const nx = Math.max(1, Math.round(w / cell)), ny = Math.max(1, Math.round(h / cell)), nz = Math.max(1, Math.round(d / cell));
-    const cx = w / nx, cy = h / ny, cz = d / nz, rot = rx || ry || rz;
-    if (rot) _q.setFromEuler(_e.set(rx, ry, rz));
-    const put = (lx, ly, lz, sw, sh, sd, col) => {
-      _v.set(lx, ly, lz); if (rot) _v.applyQuaternion(_q);
-      this.box(p, x + _v.x, y + _v.y, z + _v.z, sw, sh, sd, col, rx, ry, rz);
-    };
-    // the core, so the shell's inner faces are hidden
-    if (nx > 2 && ny > 2 && nz > 2) put(0, 0, 0, w - 2 * cx + 0.02, h - 2 * cy + 0.02, d - 2 * cz + 0.02, this.tone(cols, 0));
-    else if (faces !== 'tbfklr') put(0, 0, 0, w * 0.98, h * 0.98, d * 0.98, this.tone(cols, 0));
-    for (let i = 0; i < nx; i++) for (let jy = 0; jy < ny; jy++) for (let k = 0; k < nz; k++) {
-      const sx = i === 0 ? -1 : i === nx - 1 ? 1 : 0, sy = jy === 0 ? -1 : jy === ny - 1 ? 1 : 0, sz = k === 0 ? -1 : k === nz - 1 ? 1 : 0;
-      if (!sx && !sy && !sz) continue;
-      const on = (sx < 0 && faces.includes('l')) || (sx > 0 && faces.includes('r')) || (sy > 0 && faces.includes('t')) || (sy < 0 && faces.includes('b')) || (sz > 0 && faces.includes('f')) || (sz < 0 && faces.includes('k'));
-      if (!on) continue;
-      let lx = -w / 2 + (i + 0.5) * cx, ly = -h / 2 + (jy + 0.5) * cy, lz = -d / 2 + (k + 0.5) * cz;
-      if (relief && this.r() < relief) { const o = cell * out * (0.5 + this.r()); lx += sx * o; ly += sy * o; lz += sz * o; }
-      put(lx, ly, lz, cx, cy, cz, this.tone(cols, j));
-    }
-    return this;
-  }
-  // vox() in the frame of a child group g (as boxZ)
-  voxZ(g, x, y, z, w, h, d, cols, o = {}) {
-    const rz = g.rotation.z, c = Math.cos(rz), sn = Math.sin(rz), P = g.position;
-    return this.vox(g.parent, P.x / PX + x * c - y * sn, P.y / PX + x * sn + y * c, P.z / PX + z, w, h, d, cols, { ...o, rz });
-  }
-  done() {
-    flushBlobs(this);
-    const hit = this.cacheKey && !this.nocache ? KIT_GEO.get(this.cacheKey) : null, parts = [...this.lists.keys()];
-    const geos = hit && hit.length === parts.length ? hit : parts.map((p) => kitGeometry(this.lists.get(p), this.vfaces.get(p)));
-    if (geos !== hit && this.ao) for (const g of geos) paintShade(g, this.ao);   // (opts.ao: each part darkens toward its underside)
-    if (this.cacheKey && !this.nocache && !hit) KIT_GEO.set(this.cacheKey, geos);
-    parts.forEach((p, i) => {
-      const m = new THREE.Mesh(geos[i], this.mat); m.castShadow = true; m.receiveShadow = true; m.userData.baseMat = this.mat;
-      this.rig.meshes.push(m); p.add(m); this.rig.shapeDone?.add(m);
-    });
-    this.lists.clear(); this.vfaces.clear();
-    return this.rig;
-  }
-}
-export const kit = (rig, look = rig.material, opts) => new VoxKit(rig, look, opts);
-// Drop the skin boxes of a rig part (the kit draws a better one in its place).
-export function dropMeshes(rig, g) { for (const m of [...g.children]) if (m.isMesh) { g.remove(m); rig.meshes.splice(rig.meshes.indexOf(m), 1); } }
 
 // ---- shared parts -----------------------------------------------------------
 // Wings on the upper back: two segments per side (root = the arm, elbow =
@@ -620,7 +304,7 @@ const MODELS = {
   // entities/mistPeople.js): a long green snake banded in gold, rearing its
   // head and hood, with a flickering forked tongue. Nothing like a person.
   // (entities/serpent.js: a legless spine that slithers, rears and strikes)
-  serpent: () => buildSerpent({ kit }),
+  serpent: () => buildSerpent(),
   automaton: () => buildAutomaton(),
   harpy: () => eagle('harpy', { scale: 1.2 }),   // (size audit: ×1.2, then round 6 sculpted her taller at that voxel size, about 1.1× Percy)
   // Stymphalian bird: a level bronze bird of prey in knife feathers (bronzeHunter)
@@ -649,7 +333,7 @@ const MODELS = {
   gorgon_statue: () => buildStatue(),
   ghost: () => buildGhost(),
   // the open world's and the Road West's fodder and their larger kin (entities/fodder.js)
-  ...fodderModels({ kit }),
+  ...fodderModels(),
 };
 // Hellhounds (vox-enemies, left): soot-black shaggy fur in chunky clumps,
 // a hump of hackles over heavy shoulders, glowing lava cracks, a furnace in
@@ -971,7 +655,7 @@ function bigPup(id, spec, { cracks = 10 } = {}) {
   const RK = kit(rig, mat, { seed: 55, emit: 0.4, fill: 0 });   // (the magma's deep red rims, as bigHound)
   const { legH, legW, hs } = rig.dims, T = rig.torso, Hd = rig.head, M = rig.mouth, N = rig.neck;
   for (const g of [T, Hd, M, ...rig.legs, ...rig.tail]) dropMeshes(rig, g);
-  // (a champion is built finer, parts.js BUILD.k: the clump counts grow with k only)
+  // (a champion is built finer, voxkit.js BUILD.k: the clump counts grow with k only)
   const D = BUILD.k, fe = 0.55 / D, ss = 1.35 * Math.sqrt(D), FURL = [...FUR, dim(0x5a4a54)], fang = 0xe6dcc0, claw = 0xe0a428;
   const GUM = 0xb8344a, MAW = 0x1a0909, side = (sx) => (sx < 0 ? 'l' : 'r');
   // a limb segment from a to b ([y, z] in the part's frame), coated in short blocky fur
@@ -2255,13 +1939,13 @@ export function buildCyclops({ id = 'cyclops', pal = {} } = {}) {
   // ---- trunk: a deep barrel chest, heavy pecs, a hard belly, traps rising
   // round a short neck (the head sits low between the shoulders)
   // (pass 3: rounder masses, pw nearer 2, so the chest tapers to the waist as on the sheet)
-  blob(K, T, [0, 7.6, 0.2], [5.4, 4.8, 3.3], 1, (x, y, z) => (z > 0.55 && y < -0.05 && y > -0.32 ? skinD : z > 0.7 && Math.abs(x) < 0.08 ? skinD : SK[Math.floor(K.r() * 3)]), { pw: 2.2, run: [2, 5] });
-  blob(K, T, [0, 3, 0.4], [4, 3.4, 2.9], 1, (x, y, z) => (z > 0.6 && (Math.abs(x) < 0.07 || Math.abs(y - 0.2) < 0.08) ? skinD : SK[Math.floor(K.r() * 3)]), { pw: 2.2 });
-  blob(K, T, [0, 11.2, -0.7], [4.6, 1.9, 2.6], 1, skin(), { pw: 2.2 });
+  K.blob(T, [0, 7.6, 0.2], [5.4, 4.8, 3.3], 1, (x, y, z) => (z > 0.55 && y < -0.05 && y > -0.32 ? skinD : z > 0.7 && Math.abs(x) < 0.08 ? skinD : SK[Math.floor(K.r() * 3)]), { pw: 2.2, run: [2, 5] });
+  K.blob(T, [0, 3, 0.4], [4, 3.4, 2.9], 1, (x, y, z) => (z > 0.6 && (Math.abs(x) < 0.07 || Math.abs(y - 0.2) < 0.08) ? skinD : SK[Math.floor(K.r() * 3)]), { pw: 2.2 });
+  K.blob(T, [0, 11.2, -0.7], [4.6, 1.9, 2.6], 1, skin(), { pw: 2.2 });
   // the fleece: wool over the left shoulder and chest, falling across the
   // belly to the right hip (the right breast bare), curls standing out
-  blob(K, T, [0.3, 6.6, 0.25], [5.7, 5.4, 3.7], 1, () => wool[Math.floor(K.r() * wool.length)], { pw: 2.2, run: [1, 2], keep: (x, y) => x * 0.95 - y * 0.75 > -0.25 });
-  blob(K, T, [3.6, 11, -0.4], [3.3, 2.4, 3.3], 1, () => wool[Math.floor(K.r() * wool.length)], { run: [1, 2] });
+  K.blob(T, [0.3, 6.6, 0.25], [5.7, 5.4, 3.7], 1, () => wool[Math.floor(K.r() * wool.length)], { pw: 2.2, run: [1, 2], keep: (x, y) => x * 0.95 - y * 0.75 > -0.25 });
+  K.blob(T, [3.6, 11, -0.4], [3.3, 2.4, 3.3], 1, () => wool[Math.floor(K.r() * wool.length)], { run: [1, 2] });
   K.clumps(T, [2.6, 9.5, 0], [6, 5, 7.6], { n: 9, size: [1, 1.6], cols: wool, faces: 'tfkr', out: 0.3 });
   K.clumps(T, [0, 4.5, 3.7], [8, 5, 1], { n: 4, size: [0.9, 1.4], cols: wool, faces: 'f', out: 0.2, keep: (x, y) => x * 0.95 - (y - 6.6) * 0.75 * 6 / 5.4 > -1.4 });
   // a gold strap over the right shoulder, the belt with its round bosses
@@ -2282,7 +1966,7 @@ export function buildCyclops({ id = 'cyclops', pal = {} } = {}) {
   // roaring mouth; a curly mane and a beard down onto the chest
   const fz = 4.3;
   markHeadCore(rig, [0, 4.4, 0.4], [7.8, 9, 7.8]);   // (the skull and face: mane, brow hair and beard aside)
-  blob(K, Hd, [0, 4.4, 0.4], [3.9, 4.5, 3.9], 1, (x, y, z) => (z > 0.6 && y > 0.25 && y < 0.62 && Math.abs(x) > 0.55 ? skinD : SK[Math.floor(K.r() * 3)]), { pw: 2.5 });
+  K.blob(Hd, [0, 4.4, 0.4], [3.9, 4.5, 3.9], 1, (x, y, z) => (z > 0.6 && y > 0.25 && y < 0.62 && Math.abs(x) > 0.55 ? skinD : SK[Math.floor(K.r() * 3)]), { pw: 2.5 });
   K.box(Hd, 0, 7.9, fz - 0.4, 6.8, 1.3, 1.6, HAIR[0], -0.1); K.box(Hd, 0, 7.4, fz - 0.1, 5.6, 0.6, 1.2, skinD);                 // the single brow
   // (the eye drawn wider than before, round 7: it stays the face's one big feature on the smaller head)
   K.box(Hd, 0, 6.1, fz - 0.15, 5.6, 3.6, 0.8, 0x3a1a0e);                                                                            // socket
@@ -2293,20 +1977,20 @@ export function buildCyclops({ id = 'cyclops', pal = {} } = {}) {
   for (let x = -1.35; x <= 1.36; x += 0.9) { K.box(Hd, x, 2.95, fz + 0.2, 0.75, 0.6, 0.5, 0xf4f0e0); K.box(Hd, x, 1.2, fz + 0.2, 0.75, 0.45, 0.5, 0xe8e0d0); }
   for (const sx of [-1, 1]) { K.box(Hd, sx * 4, 4.8, 0.4, 0.9, 2.2, 1.6, SK[1]); K.box(Hd, sx * 4.3, 4.6, 0.5, 0.3, 1, 0.8, skinD); }      // ears
   // (pal.hood: a champion's hood covers the crown, so only the mane below it is built)
-  blob(K, Hd, [0, 6.2, -0.6], [4.9, 4.7, 4.7], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2], keep: (x, y, z) => !(z > 0.15 && y < 0.72 && Math.abs(x) < 0.8) && !(pal.hood && y > -0.1) });
-  if (!pal.hood) blob(K, Hd, [0, 3.4, 0.6], [4.9, 2.6, 3.4], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2], keep: (x, y, z) => Math.abs(x) > 0.82 });   // side locks down to the jaw (a hood's flaps cover them)
+  K.blob(Hd, [0, 6.2, -0.6], [4.9, 4.7, 4.7], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2], keep: (x, y, z) => !(z > 0.15 && y < 0.72 && Math.abs(x) < 0.8) && !(pal.hood && y > -0.1) });
+  if (!pal.hood) K.blob(Hd, [0, 3.4, 0.6], [4.9, 2.6, 3.4], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2], keep: (x, y, z) => Math.abs(x) > 0.82 });   // side locks down to the jaw (a hood's flaps cover them)
   // (the curls seated on the mane, on: none hangs in the air off a corner of the box they are scattered over)
   const mane = [[0, 6.2, -0.6], [4.9, 4.7, 4.7]];
   if (!pal.hood) K.clumps(Hd, [0, 6.6, -0.6], [9.4, 8.6, 9], { n: 14, size: [1, 1.8], cols: HAIR, faces: 'tklr', out: 0.1, on: mane });
   if (!pal.hood) K.clumps(Hd, [0, 9.4, 2], [8.4, 1.6, 4.4], { n: 5, size: [1, 1.6], cols: HAIR, faces: 'tf', out: 0.1, on: mane });
   // (round 7: the beard a little fuller and longer than the smaller head alone would give it, as on the sheet)
-  blob(K, Hd, [0, 0.7, 2.3], [4.9, 3.7, 2.6], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2], keep: (x, y, z) => !(z > 0.3 && y > 0.12 && Math.abs(x) < 0.44) });
-  blob(K, Hd, [0, -2, 2.8], [3.6, 3, 2.1], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2] });
+  K.blob(Hd, [0, 0.7, 2.3], [4.9, 3.7, 2.6], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2], keep: (x, y, z) => !(z > 0.3 && y > 0.12 && Math.abs(x) < 0.44) });
+  K.blob(Hd, [0, -2, 2.8], [3.6, 3, 2.1], 1, () => HAIR[Math.floor(K.r() * 4)], { run: [1, 2] });
   K.clumps(Hd, [0, 0, 3.4], [8, 6, 2], { n: 9, size: [0.9, 1.6], cols: HAIR, faces: 'flrb', out: 0.25, keep: (x, y) => !(y > 1.1 && Math.abs(x) < 2.2), on: [[0, 0.7, 2.3], [4.9, 3.7, 2.6]] });   // (seated on the beard)
   // ---- the ram's skull with curled horns on the left shoulder
   const ram = reshape(rig, group(T, 6.6, 12.4, 0.6, 0, -0.35, 0), 0.8); ram.visible = pal.ram !== false;   // (round 7: a little smaller, beside the smaller head)
   const bone = [0xe8e0c8, 0xd8d0b8, 0xf0ead8];
-  blob(K, ram, [0, 0, 0.8], [1.8, 1.7, 2], 1, () => K.tone(bone, 0.06));
+  K.blob(ram, [0, 0, 0.8], [1.8, 1.7, 2], 1, () => K.tone(bone, 0.06));
   K.box(ram, 0, -0.7, 2.9, 1.8, 1.6, 1.8, bone[1]); K.box(ram, 0, -1.2, 3.7, 1.2, 0.8, 0.5, 0x2a2014);
   for (const sx of [-1, 1]) {
     K.box(ram, sx * 0.75, 0.3, 2.6, 0.8, 0.8, 0.3, 0x1a1410);
@@ -2317,24 +2001,24 @@ export function buildCyclops({ id = 'cyclops', pal = {} } = {}) {
   for (const arm of [rig.armR, rig.armL]) {
     // (pass 3: a round deltoid, a bicep bulging forward over a slimmer arm,
     // a narrow elbow, then the forearm swelling into the bracer: defined, not a column)
-    blob(K, arm, [0, 0.5, 0], [3.3, 3.1, 3], 1, skin(), { pw: 2 });
-    blob(K, arm, [0, -3.4, 0], [2.1, 3.4, 2.1], 1, skin(), { pw: 2.1 });
-    blob(K, arm, [0, -3, 0.8], [1.8, 2.4, 1.6], 1, skin(), { pw: 2 });
-    blob(K, arm, [0, -7.8, 0.2], [2.6, 3, 2.5], 1, skin(), { pw: 2.2 });
+    K.blob(arm, [0, 0.5, 0], [3.3, 3.1, 3], 1, skin(), { pw: 2 });
+    K.blob(arm, [0, -3.4, 0], [2.1, 3.4, 2.1], 1, skin(), { pw: 2.1 });
+    K.blob(arm, [0, -3, 0.8], [1.8, 2.4, 1.6], 1, skin(), { pw: 2 });
+    K.blob(arm, [0, -7.8, 0.2], [2.6, 3, 2.5], 1, skin(), { pw: 2.2 });
     K.vox(arm, 0, -8.6, 0.2, 5.6, 2.6, 5.4, [leather, leatherD, 0x7a4c2a], { relief: 0.15 });
     K.box(arm, 0, -7.3, 0.2, 5.8, 0.5, 5.6, gold); K.box(arm, 0, -9.9, 0.2, 5.8, 0.5, 5.6, gold);
-    blob(K, arm, [0, -11.5, 0.4], [2.7, 2.2, 2.7], 1, skin(), { pw: 3 });
+    K.blob(arm, [0, -11.5, 0.4], [2.7, 2.2, 2.7], 1, skin(), { pw: 3 });
     for (let i = 0; i < 4; i++) K.box(arm, -1.8 + i * 1.2, -12.4, 2.6, 1.1, 1.3, 1, i % 2 ? SK[1] : SK[2]);   // knuckles
     K.box(arm, (arm === rig.armR ? 1 : -1) * 2.4, -11, 1.4, 1, 2, 1.6, SK[1]);                                   // the thumb
   }
   // ---- legs: thick thighs under the kilt, heavy calves bound with leather,
   // broad feet on strapped sandals
   for (const leg of [rig.legR, rig.legL]) {
-    blob(K, leg, [0, -2.6, 0], [2.8, 3.4, 2.8], 1, skin(), { pw: 2.2 });
-    blob(K, leg, [0, -6.6, -0.2], [2.4, 3, 2.5], 1, skin(), { pw: 2.2 });
+    K.blob(leg, [0, -2.6, 0], [2.8, 3.4, 2.8], 1, skin(), { pw: 2.2 });
+    K.blob(leg, [0, -6.6, -0.2], [2.4, 3, 2.5], 1, skin(), { pw: 2.2 });
     for (const y of [-5.6, -7.6]) K.vox(leg, 0, y, -0.2, 5.4, 1, 5.6, [leather, leatherD], {});
     // (the foot stops a hair above the leg's end and short of a long toe: a long foot's tip dipped through the floor as the leg swung in the run)
-    blob(K, leg, [0, -9, 0.6], [2.5, 0.85, 3.1], 1, skin(), { pw: 3 });
+    K.blob(leg, [0, -9, 0.6], [2.5, 0.85, 3.1], 1, skin(), { pw: 3 });
     K.box(leg, 0, -9.6, 0.6, 5.4, 0.5, 6.4, leatherD);
     for (let i = 0; i < 4; i++) K.box(leg, -1.65 + i * 1.1, -9.15, 3.6, 1, 0.9, 0.9, i % 2 ? SK[1] : SK[2]);         // toes
     for (const z of [-1, 1.6]) K.box(leg, 0, -8.7, z, 5.4, 0.5, 0.6, leather);
@@ -2343,8 +2027,8 @@ export function buildCyclops({ id = 'cyclops', pal = {} } = {}) {
   // ---- the club: a knotted log thickening to a studded head
   const club = group(rig.handR, 0, -1, 1, HOLD_PITCH, 0, 0);   // (along +y, angled forward at the foe: see the hand-axis convention in character.js)
   const WOOD = [0x5a3418, 0x6a3e1e, 0x7a4a24, 0x4a2a12];
-  blob(K, club, [0, 5, 0], [1.3, 7, 1.3], 1, () => K.tone(WOOD, 0.1), { pw: 2.6 });
-  blob(K, club, [0, 15.6, 0], [2.6, 5.4, 2.6], 1, () => K.tone(WOOD, 0.1), { pw: 2.4 });
+  K.blob(club, [0, 5, 0], [1.3, 7, 1.3], 1, () => K.tone(WOOD, 0.1), { pw: 2.6 });
+  K.blob(club, [0, 15.6, 0], [2.6, 5.4, 2.6], 1, () => K.tone(WOOD, 0.1), { pw: 2.4 });
   for (const [x, y, z] of [[1.6, 9, 0.6], [-1.5, 6.6, -0.4], [0.2, 11.6, 1.6]]) K.box(club, x, y, z, 1, 1.4, 1, WOOD[3]);   // knots
   for (const [x, y, z] of [[2.6, 15, 0], [-2.6, 17.5, 0], [0, 16.5, 2.6], [0, 14, -2.6], [2.2, 19, 0.8], [-1.4, 13.5, 2.3], [0.6, 19, -2.2], [-1.9, 15.2, -1.8]]) { K.box(club, x, y, z, 1.3, 1.3, 1.3, 0x8a8a94); K.box(club, x * 1.08, y + 0.3, z * 1.08, 0.6, 0.6, 0.6, 0xb8b8c4); }
   K.vox(club, 0, -1.6, 0, 3, 2.2, 3, [leather, leatherD], {});
@@ -2560,7 +2244,7 @@ export function buildScorpion({ id = 'scorpion', pal = {} } = {}) {
   const T = rig.torso, { legW } = rig.dims;
   // Its plates and segments are drawn as shells of hero-sized cells, so the
   // armour shows grain instead of plain slabs. (Cells 0.8 of a hero pixel's
-  // density, and a champion, built bigger (parts.js BUILD.k), gains density
+  // density, and a champion, built bigger (voxkit.js BUILD.k), gains density
   // only with the square root of its size: the plain scorpion stays near 15k
   // triangles and the Red King under 25k, as the cyclops does)
   const fine = true, cell = 1 / (voxDensity(rig) * 0.8 / Math.sqrt(BUILD.k));
@@ -2765,7 +2449,7 @@ export const MONSTER_IDS = Object.keys(MONSTERS);
 export const CURSES = MONSTERS;
 export const resolveKind = (kind) => (MONSTERS[kind] ? (LEGACY_KINDS[kind] ?? kind) : 'pup');
 
-// opts.k: build it this much bigger (a champion, parts.js withBuild): its skin,
+// opts.k: build it this much bigger (a champion, voxkit.js withBuild): its skin,
 // kit and blobs are made finer to match, so it is not just the kind enlarged.
 export function buildMonsterModel(model, { k } = {}) { const id = MODELS[model] ? model : 'pup'; const rig = withBuild({ k, key: `m:${id}` }, () => MODELS[id]()); rig.tick = (dt, e) => { animateExtras(rig, dt, e); rig.onTick?.(dt, e); }; mergeRig(rig); rig.batchKey ??= `m:${id}@${(k ?? 1).toFixed(3)}`; rig.root.userData.rig = rig; return rig; }   // (batchKey: gfx/crowd.js draws a crowd of one kind as instanced parts)
 export const buildCurseModel = buildMonsterModel;

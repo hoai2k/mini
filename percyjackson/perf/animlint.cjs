@@ -10,22 +10,14 @@
 // ids: a comma list of model ids to check (default: all). --hero-styles also
 // plays the hero poses a monster never uses (listed as info, never failing).
 // --all prints the passing models too. Exits 1 if any check fails. Serves the
-// repository on PERF_PORT (default 8765) if nothing is there yet.
-const fs = require('fs');
-const path = require('path');
-const { spawn } = require('child_process');
-const { chromium } = require('playwright');
-const { findChrome } = require('./lib.cjs');
+// repository on PERF_PORT (default 8765) if nothing is there yet. As a module
+// (check.cjs): run({ browser, base, page?, only?, heroStyles?, all? })
+// resolves to { ok, lines, summary, rows }.
+const { openModulePage, loadModule, watchErrors, reseed, cli } = require('./lib.cjs');
 
-const PORT = +(process.env.PERF_PORT || 8765);
-const ROOT = path.resolve(__dirname, '../..');
-const GAME = `http://127.0.0.1:${PORT}/percyjackson/game/`;
-
-function page() {
-  const wb = fs.readFileSync(path.join(ROOT, 'percyjackson/game/workbench/models.html'), 'utf8');
-  const map = wb.match(/<script type="importmap">[\s\S]*?<\/script>/)[0];
-  return `<!doctype html><html><head><meta charset="utf-8">${map}</head><body><script type="module">
-import { buildHeroModel, buildNpc, buildDummy, HERO_LOOKS } from '../js/entities/models.js';
+// The in-page module (served beside the workbench as workbench/__animlint.js).
+function moduleSource() {
+  return `import { buildHeroModel, buildNpc, buildDummy, HERO_LOOKS } from '../js/entities/models.js';
 import { buildMonsterModel, MONSTERS, MONSTER_IDS } from '../js/entities/monsters.js';
 import { buildMortal, MORTAL_IDS } from '../js/entities/mortals.js';
 import { BOSS_DEFS, BOSS_IDS } from '../js/entities/bosses.js';
@@ -41,47 +33,48 @@ const SETS = {
   mortals: [MORTAL_IDS, (id) => buildMortal(id)],
   people: [PEOPLE_IDS, (id) => buildPerson(id)],
 };
-window.list = (only) => { const out = []; for (const [group, [ids]] of Object.entries(SETS)) for (const id of ids) if (!only || only.includes(id)) out.push([group, id]); return out; };
-window.lint = (group, id, heroStyles) => {
+export const list = (only) => { const out = []; for (const [group, [ids]] of Object.entries(SETS)) for (const id of ids) if (!only || only.includes(id)) out.push([group, id]); return out; };
+export const lint = (group, id, heroStyles) => {
+  globalThis.__perfReseed?.();   // (PERF_SEED: lib.cjs reseed)
   const t0 = performance.now();
   const r = lintModel({ group, id, build: () => SETS[group][1](id) }, { heroStyles });
   return { group, id, ms: Math.round(performance.now() - t0), poses: r.poses.length, failing: r.failing, problems: r.problems.map((p) => ({ ...p, text: describe(p) })) };
 };
-window.ready = true;
-</script></body></html>`;
+`;
 }
 
-async function serve() {
-  const up = async () => { try { return (await fetch(GAME)).ok; } catch { return false; } };
-  if (await up()) return;
-  spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore', detached: true }).unref();
-  for (let i = 0; i < 40 && !(await up()); i++) await new Promise((r) => setTimeout(r, 250));
-}
 
-(async () => {
-  const args = process.argv.slice(2), flags = new Set(args.filter((a) => a.startsWith('--')));
-  const only = args.find((a) => !a.startsWith('--'))?.split(',') ?? null;
-  await serve();
-  const browser = await chromium.launch({ executablePath: findChrome(), args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-  const pg = await browser.newPage();
-  const errors = [];
-  pg.on('pageerror', (e) => errors.push(String(e.message).slice(0, 300)));
-  const url = GAME + 'workbench/__animlint.html';
-  await pg.route(url, (r) => r.fulfill({ contentType: 'text/html', body: page() }));
-  await pg.goto(url);
-  await pg.waitForFunction(() => window.ready || false, null, { timeout: 180000 }).catch(() => {});
-  if (errors.length) { console.log(errors.join('\n')); await browser.close(); process.exit(1); }
-  const list = await pg.evaluate((o) => window.list(o), only);
-  const rows = [];
-  for (const [group, id] of list) rows.push(await pg.evaluate(([g, i, h]) => window.lint(g, i, h), [group, id, flags.has('--hero-styles')]));
-  await browser.close();
+function report(rows, all) {
+  const lines = [];
   let fails = 0, models = 0;
-  console.log(['set'.padEnd(10), 'model'.padEnd(22), 'pose'.padEnd(26), 'check'.padEnd(9), 'frame'.padStart(5), '   s', ' detail'].join(' '));
+  lines.push(['set'.padEnd(10), 'model'.padEnd(22), 'pose'.padEnd(26), 'check'.padEnd(9), 'frame'.padStart(5), '   s', ' detail'].join(' '));
   for (const r of rows) {
     if (r.failing) { fails += r.failing; models++; }
-    if (!r.problems.length) { if (flags.has('--all')) console.log([r.group.padEnd(10), r.id.padEnd(22), `(${r.poses} poses)`.padEnd(26), 'ok'].join(' ')); continue; }
-    for (const p of r.problems) console.log([r.group.padEnd(10), r.id.padEnd(22), String(p.label).slice(0, 26).padEnd(26), (p.info ? 'info' : p.check).padEnd(9), String(p.frame).padStart(5), p.time.toFixed(2).padStart(5), ' ' + p.text].join(' '));
+    if (!r.problems.length) { if (all) lines.push([r.group.padEnd(10), r.id.padEnd(22), `(${r.poses} poses)`.padEnd(26), 'ok'].join(' ')); continue; }
+    for (const p of r.problems) lines.push([r.group.padEnd(10), r.id.padEnd(22), String(p.label).slice(0, 26).padEnd(26), (p.info ? 'info' : p.check).padEnd(9), String(p.frame).padStart(5), p.time.toFixed(2).padStart(5), ' ' + p.text].join(' '));
   }
-  console.log(`\n${rows.length} models checked, ${models} with problems, ${fails} problems (frames at 30 per second from the start of the pose, after 0.6 s at rest).`);
-  process.exit(fails ? 1 : 0);
-})();
+  lines.push(`\n${rows.length} models checked, ${models} with problems, ${fails} problems (frames at 30 per second from the start of the pose, after 0.6 s at rest).`);
+  const poses = rows.reduce((a, r) => a + r.poses, 0);
+  return { ok: !fails, lines, rows, summary: { models: rows.length, poses, withProblems: models, problems: fails }, text: `${rows.length} models, ${poses} poses, ${fails} problems` };
+}
+
+async function run({ browser, base, page = null, only = null, heroStyles = false, all = false }) {
+  const own = page ? null : await openModulePage(browser, base);
+  page = page ?? own.page;
+  const w = watchErrors(page, (e) => String(e.message).slice(0, 300));
+  const errs = () => (own ? own.errors : w.errors);
+  try {
+    const err = await loadModule(page, base, 'animlint', moduleSource());
+    if (err && !errs().length) errs().push(err);
+    if (errs().length) return { ok: false, lines: [errs().join('\n')], rows: [], summary: { pageErrors: errs().length }, text: `page errors: ${errs()[0]}` };
+    await reseed(page);
+    const rows = await page.evaluate(([o, h]) => import('./__animlint.js').then((m) => m.list(o).map(([g, i]) => m.lint(g, i, h))), [only, heroStyles]);
+    return report(rows, all);
+  } finally { w.stop(); if (own) await own.page.close(); }
+}
+
+module.exports = { run, moduleSource, report };
+if (require.main === module) {
+  const args = process.argv.slice(2), flags = new Set(args.filter((a) => a.startsWith('--')));
+  cli(run, { only: args.find((a) => !a.startsWith('--'))?.split(',') ?? null, heroStyles: flags.has('--hero-styles'), all: flags.has('--all') });
+}

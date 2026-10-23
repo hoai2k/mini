@@ -778,3 +778,23 @@ status(isGPU ? '' : '');
 stageEl.title = isGPU ? 'WebGPU' : 'WebGL2';
 window.__wbSeek = seekLint;
 window.__wb = { items, thumbs, lints, setAnim, renderer, scene, seek: seekLint, get game() { return game; }, camera, controls, select: (k) => select(itemByKey(k)), get current() { return current; }, backend: isGPU ? 'webgpu' : 'webgl2', queueLength: () => queue.length };
+// The rig contract over every model (js/entities/rigContract.js validateRig),
+// for perf/check.cjs's rig check: { [key]: { ok, problems } }, a warning as
+// { warn: true, text }. Built unmerged (charmat.js PART_MERGE off), as the
+// size checks measure them, so marks on single meshes are seen as built.
+// opts.only: a list of keys.
+window.__validateAll = async ({ only = null } = {}) => {
+  const [{ validateRig, KIND_OF_GROUP }, { PART_MERGE }] = await Promise.all([import('../js/entities/rigContract.js'), import('../js/entities/charmat.js')]);
+  const out = {};
+  for (const it of items) {
+    if (only && !only.includes(it.key)) continue;
+    const was = PART_MERGE.on; PART_MERGE.on = false;
+    let rig = null;
+    try { rig = it.build(); } catch (e) { out[it.key] = { ok: false, problems: ['did not build: ' + e.message] }; } finally { PART_MERGE.on = was; }
+    if (!rig) continue;
+    const r = validateRig(rig, KIND_OF_GROUP[it.group]);
+    out[it.key] = { ok: r.ok, problems: [...r.problems, ...r.warnings.map((text) => ({ warn: true, text }))] };
+    await new Promise((res) => setTimeout(res, 0));   // (the page keeps drawing between models)
+  }
+  return out;
+};

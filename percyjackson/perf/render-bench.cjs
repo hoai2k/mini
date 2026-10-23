@@ -29,13 +29,15 @@
 // local/percyjackson-perf/results/render-bench.json).
 const fs = require('fs');
 const path = require('path');
-const { spawn } = require('child_process');
-const { launch, WORK } = require('./lib.cjs');
+const { launch: launch0, WORK, ensureServer } = require('./lib.cjs');
 
 const PORT = +(process.env.PERF_PORT || 8765);
 const ROOT = path.resolve(__dirname, '../..');
-const GAME = `http://127.0.0.1:${PORT}/percyjackson/game/`;
-const args = process.argv.slice(2);
+let GAME = `http://127.0.0.1:${PORT}/percyjackson/game/`;
+// (run(): a shared browser, check.cjs's; each part opens its own context in it)
+let SHARED = null;
+const launch = (o) => launch0({ ...o, browser: SHARED });
+const args = require.main === module ? process.argv.slice(2) : [];   // (as a module: the defaults)
 const opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d; };
 const modes = args.filter((a, i) => !a.startsWith('--') && !(i && args[i - 1].startsWith('--')));
 const MODES = new Set(modes.length ? modes : ['wb', 'bg', 'game']);
@@ -46,13 +48,6 @@ const OUT = opt('out', path.join(WORK, 'results', 'render-bench.json'));
 const SHOTS = opt('shots', null);
 const QUERY = opt('query', '');   // (e.g. --query ?batch=0: the game without crowd batching, gfx/crowd.js)
 const SHOT_IDS = opt('shot-ids', 'automaton,cerberus,hellhound,minotaur,spider,scorpion,kind:hellhound,percy').split(',');
-
-async function serve() {
-  const up = async () => { try { return (await fetch(GAME)).ok; } catch { return false; } };
-  if (await up()) return;
-  spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore', detached: true }).unref();
-  for (let i = 0; i < 40 && !(await up()); i++) await new Promise((r) => setTimeout(r, 250));
-}
 
 // ---- in-page: wrap the parts of a frame (ms accumulated per section)
 const INSTALL = () => {
@@ -312,7 +307,7 @@ window.clear = () => { if (window.__last) scene.remove(window.__last.root); };
 window.ready = true;
 </script></body></html>`;
 }
-async function takeShots(dir) {
+async function takeShots(dir, ids = SHOT_IDS, log = console.log) {
   const { browser, page } = await launch({ flags: 'webgl', width: 480, height: 480 });
   const url = GAME + 'workbench/__shots.html';
   await page.route(url, (r) => r.fulfill({ contentType: 'text/html', body: shotPage() }));
@@ -321,31 +316,53 @@ async function takeShots(dir) {
   await page.waitForFunction(() => window.ready || false, null, { timeout: 180000 });
   fs.mkdirSync(dir, { recursive: true });
   const done = [];
-  for (const id of SHOT_IDS) {
+  const missing = [];
+  for (const id of ids) {
     const r = await page.evaluate((i) => window.shot(i), id);
-    if (r.error) { console.log(id, r.error); continue; }
+    if (r.error) { log(id, r.error); missing.push(id); continue; }
     const f = path.join(dir, `shot-${id.replace(/[^a-z0-9_]+/gi, '_')}.png`);
     await page.locator('canvas').screenshot({ path: f }); done.push(f);
     await page.evaluate(() => window.clear());
   }
   await browser.close();
-  if (errors.length) console.log('page errors:', errors.join('\n'));
-  return done;
+  if (errors.length) log('page errors:', errors.join('\n'));
+  return { files: done, errors, missing };
 }
 
-(async () => {
-  await serve();
-  const out = { when: new Date().toISOString(), anim: ANIM, secs: SECS, wb: [], bg: [], game: [] };
-  if (MODES.has('shots')) { const f = await takeShots(SHOTS ?? path.join(WORK, 'results', 'shots')); console.log('shots:', f.join(' ')); if (MODES.size === 1) return; }
-  if (MODES.has('compiles')) for (const sc of ['lt2', 'hub']) { const r = await benchCompiles(sc); (out.compiles ??= []).push(r); console.log(`compiles ${sc}: load ${r.load.n} pipelines ${r.load.ms} ms; in play ${r.play.n} pipelines ${r.play.ms} ms (worst ${r.play.max} ms)`); for (const st of r.steps) if (st[1]) console.log('   ', st.join(' | ')); }
-  if (MODES.has('wb')) for (const id of IDS) { const r = await benchModel(id); out.wb.push(r); console.log(JSON.stringify(r)); }
-  if (MODES.has('bg')) { const r = await benchModel('automaton', { bg: true, secs: 20 }); out.bg.push(r); console.log(JSON.stringify(r)); }
-  if (MODES.has('game')) for (const s of ['openworld', 'automatons']) { const r = await benchGame(s); out.game.push(r); console.log(JSON.stringify(r)); }
-  fs.mkdirSync(path.dirname(OUT), { recursive: true });
-  fs.writeFileSync(OUT, JSON.stringify(out, null, 1));
+// As a module (check.cjs): run({ browser, base, modes, ids, shotIds, shots, secs, out, quiet })
+// resolves to { ok, lines, summary, rows }: the same work as the command line.
+async function run({ browser = null, base = GAME, modes = [...MODES], ids = IDS, shotIds = SHOT_IDS, shots = SHOTS, secs = SECS, out: OUTF = OUT } = {}) {
+  SHARED = browser; GAME = base;
+  const M = new Set(modes), lines = [], log = (...a) => lines.push(require('util').format(...a));
+  const out = { when: new Date().toISOString(), anim: ANIM, secs, wb: [], bg: [], game: [] };
+  let shotFiles = null, errors = 0;
+  if (M.has('shots')) { shotFiles = await takeShots(shots ?? path.join(WORK, 'results', 'shots'), shotIds, log); log('shots:', shotFiles.files.join(' ')); errors += shotFiles.errors.length + shotFiles.missing.length; if (M.size === 1) return { ok: !errors, lines, rows: shotFiles, summary: { shots: shotFiles.files.length, of: shotIds.length, errors }, text: `${shotFiles.files.length}/${shotIds.length} shots` + (errors ? `, ${errors} errors` : '') }; }
+  if (M.has('compiles')) for (const sc of ['lt2', 'hub']) { const r = await benchCompiles(sc); (out.compiles ??= []).push(r); log(`compiles ${sc}: load ${r.load.n} pipelines ${r.load.ms} ms; in play ${r.play.n} pipelines ${r.play.ms} ms (worst ${r.play.max} ms)`); for (const st of r.steps) if (st[1]) log('   ', st.join(' | ')); }
+  if (M.has('wb')) for (const id of ids) { const r = await benchModel(id, { secs }); out.wb.push(r); log(JSON.stringify(r)); }
+  if (M.has('bg')) { const r = await benchModel('automaton', { bg: true, secs: 20 }); out.bg.push(r); log(JSON.stringify(r)); }
+  if (M.has('game')) for (const s of ['openworld', 'automatons']) { const r = await benchGame(s, secs); out.game.push(r); errors += r.errors.length; log(JSON.stringify(r)); }
+  fs.mkdirSync(path.dirname(OUTF), { recursive: true });
+  fs.writeFileSync(OUTF, JSON.stringify(out, null, 1));
   const row = (r) => [r.id.padEnd(18), String(r.info.draws).padStart(5), String(r.info.tris).padStart(7), String(r.scene.visible).padStart(5), String(r.scene.casters).padStart(5), String(r.scene.materials).padStart(4), String(r.info.programs).padStart(4), String(r.info.tex).padStart(4),
     ...['frame', 'animate', 'rigAnimate', 'guards', 'tick', 'rigTick', 'flames', 'render'].filter((k) => r.ms[k] != null).map((k) => `${k}=${r.ms[k]}`), ...(r.frameCpu ? [`p50=${r.frameCpu.p50}`, `p95=${r.frameCpu.p95}`] : []), `alloc=${r.alloc.kbPerSec}KB/s`, `lt=${r.longtasks.n}/${r.longtasks.ms}ms`, `raf95=${r2(r.raf.p95)}`].join(' ');
-  console.log('\nmodel              draws    tris  mesh  cast  mat prog  tex  (ms per frame)');
-  for (const r of [...out.wb, ...out.bg, ...out.game]) console.log(row(r));
-  console.log('\nwritten', OUT);
-})().catch((e) => { console.error(e); process.exit(1); });
+  log('\nmodel              draws    tris  mesh  cast  mat prog  tex  (ms per frame)');
+  const all = [...out.wb, ...out.bg, ...out.game];
+  for (const r of all) log(row(r));
+  log('\nwritten', OUTF);
+  // (a benchmark: it fails only when a model draws nothing or the game throws)
+  const empty = all.filter((r) => !r.info.draws).map((r) => r.id);
+  if (empty.length) log('drew nothing:', empty.join(', '));
+  const frame = out.wb.map((r) => r.ms.frame), draws = out.wb.map((r) => r.info.draws);
+  return { ok: !errors && !empty.length, lines, rows: out, summary: { models: out.wb.length, scenes: out.game.length, maxDraws: Math.max(0, ...draws), maxFrameMs: Math.max(0, ...frame), errors, empty: empty.length },
+    text: [out.wb.length && `${out.wb.length} models, draws ${Math.min(...draws)}-${Math.max(...draws)}, frame CPU up to ${Math.max(...frame)} ms`, out.game.length && out.game.map((r) => `${r.id} ${r.info.draws} draws p95 ${r.frameCpu.p95} ms`).join(', '), shotFiles && `${shotFiles.files.length} shots`].filter(Boolean).join('; ') + (errors ? `; ${errors} errors` : '') };
+}
+
+module.exports = { run };
+if (require.main === module) {
+  (async () => {
+    const srv = await ensureServer(PORT);
+    let res; try { res = await run({ base: srv.base }); } finally { await srv.close(); }
+    for (const l of res.lines) console.log(l);
+    // (as before: a benchmark exits 0 unless it crashed)
+  })().catch((e) => { console.error(e); process.exit(1); });
+}

@@ -9,22 +9,14 @@
 // exits 1 on any failure.
 //   NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/houndlegs.cjs
 // Serves the repository on PERF_PORT (default 8765) if nothing is there yet.
-const fs = require('fs');
-const path = require('path');
-const { spawn } = require('child_process');
-const { chromium } = require('playwright');
-const { findChrome } = require('./lib.cjs');
+// As a module (check.cjs): run({ browser, base, page? }) resolves to { ok, lines, summary, rows }.
+const { openModulePage, loadModule, watchErrors, reseed, cli } = require('./lib.cjs');
 
-const PORT = +(process.env.PERF_PORT || 8765);
-const ROOT = path.resolve(__dirname, '../..');
-const GAME = `http://127.0.0.1:${PORT}/percyjackson/game/`;
 const MARGIN = 2, MIN_VERTS = 8;
 
-function page() {
-  const wb = fs.readFileSync(path.join(ROOT, 'percyjackson/game/workbench/models.html'), 'utf8');
-  const map = wb.match(/<script type="importmap">[\s\S]*?<\/script>/)[0];
-  return `<!doctype html><html><head><meta charset="utf-8">${map}</head><body><script type="module">
-import * as THREE from 'three/webgpu';
+// The in-page module (served beside the workbench as workbench/__houndlegs.js).
+function moduleSource() {
+  return `import * as THREE from 'three/webgpu';
 import { PX } from '../js/entities/character.js';
 import { buildMonsterModel } from '../js/entities/monsters.js';
 import { BOSS_DEFS } from '../js/entities/bosses.js';
@@ -45,7 +37,8 @@ const POSES = {
   dodge: (f) => ({ speed: 0.6, action: { type: 'dodge', t: (f / 30 / 0.5) % 1 } }),
 };
 const inv = new THREE.Matrix4(), M = new THREE.Matrix4(), v = new THREE.Vector3();
-window.check = (id) => {
+export function check(id) {
+  globalThis.__perfReseed?.();   // (PERF_SEED: lib.cjs reseed)
   const out = [];
   for (const [pose, at] of Object.entries(POSES)) {
     const rig = MODELS[id](), T = rig.extras.trunk;
@@ -86,40 +79,42 @@ window.check = (id) => {
     out.push({ pose, depth: +worst.depth.toFixed(1), verts: worst.verts, fail });
   }
   return out;
-};
-window.ids = Object.keys(MODELS);
-window.ready = true;
-</script></body></html>`;
+}
+export const ids = Object.keys(MODELS);
+`;
 }
 
-async function serve() {
-  const up = async () => { try { return (await fetch(GAME)).ok; } catch { return false; } };
-  if (await up()) return;
-  spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore', detached: true }).unref();
-  for (let i = 0; i < 40 && !(await up()); i++) await new Promise((r) => setTimeout(r, 250));
-}
 
-(async () => {
-  await serve();
-  const browser = await chromium.launch({ executablePath: findChrome(), args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-  const pg = await browser.newPage();
-  const errors = [];
-  pg.on('pageerror', (e) => errors.push(String(e.message).slice(0, 300)));
-  const url = GAME + 'workbench/__houndlegs.html';
-  await pg.route(url, (r) => r.fulfill({ contentType: 'text/html', body: page() }));
-  await pg.goto(url);
-  await pg.waitForFunction(() => window.ready || false, null, { timeout: 180000 }).catch(() => {});
-  if (errors.length) { console.log(errors.join('\n')); await browser.close(); process.exit(1); }
+function report(rows, errors) {
+  const lines = [];
   let fails = 0;
-  console.log(['model'.padEnd(18), 'pose'.padEnd(16), 'joint depth px'.padStart(14), 'leg verts in'.padStart(13), '  result'].join(' '));
-  for (const id of await pg.evaluate(() => window.ids)) {
-    for (const r of await pg.evaluate((i) => window.check(i), id)) {
+  lines.push(['model'.padEnd(18), 'pose'.padEnd(16), 'joint depth px'.padStart(14), 'leg verts in'.padStart(13), '  result'].join(' '));
+  for (const [id, list] of rows) {
+    for (const r of list) {
       if (r.fail) fails++;
-      console.log([id.padEnd(18), r.pose.padEnd(16), String(r.depth).padStart(14), String(r.verts).padStart(13), '  ' + (r.fail ? 'FAIL: ' + r.fail : 'ok')].join(' '));
+      lines.push([id.padEnd(18), r.pose.padEnd(16), String(r.depth).padStart(14), String(r.verts).padStart(13), '  ' + (r.fail ? 'FAIL: ' + r.fail : 'ok')].join(' '));
     }
   }
-  if (errors.length) { console.log(errors.join('\n')); fails++; }
-  await browser.close();
-  console.log(fails ? `\n${fails} failing` : '\nall legs stay attached');
-  process.exit(fails ? 1 : 0);
-})();
+  if (errors.length) { lines.push(errors.join('\n')); fails++; }
+  lines.push(fails ? `\n${fails} failing` : '\nall legs stay attached');
+  const all = rows.flatMap(([, l]) => l), worst = Math.min(...all.map((r) => r.depth));
+  return { ok: !fails, lines, rows, summary: { models: rows.length, poses: all.length, failing: fails, minDepth: worst }, text: `${rows.length} hounds x ${all.length / Math.max(1, rows.length)} poses, ${fails} failing, min joint depth ${worst} px` };
+}
+
+async function run({ browser, base, page = null }) {
+  const own = page ? null : await openModulePage(browser, base);
+  page = page ?? own.page;
+  const w = watchErrors(page, (e) => String(e.message).slice(0, 300));
+  const errs = () => (own ? own.errors : w.errors);
+  try {
+    const err = await loadModule(page, base, 'houndlegs', moduleSource());
+    if (err && !errs().length) errs().push(err);
+    if (errs().length) return { ok: false, lines: [errs().join('\n')], rows: [], summary: { pageErrors: errs().length }, text: `page errors: ${errs()[0]}` };
+    await reseed(page);
+    const rows = await page.evaluate(() => import('./__houndlegs.js').then((m) => m.ids.map((id) => [id, m.check(id)])));
+    return report(rows, [...errs()]);
+  } finally { w.stop(); if (own) await own.page.close(); }
+}
+
+module.exports = { run, moduleSource, report };
+if (require.main === module) cli(run);

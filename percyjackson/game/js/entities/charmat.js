@@ -3,7 +3,7 @@
 // A monster's bone used to carry two or more meshes: its skin box (a
 // textured material, parts.js skinMat / character.js makeCharMaterial) and
 // the voxel detail the kit merged onto it (a vertex-coloured material per
-// look and finish, monsters.js voxMat). Every mesh is a draw, two with the
+// look and finish, voxkit.js voxMat). Every mesh is a draw, two with the
 // sun's shadow, and three.js spends 30-50 µs of CPU on each whatever its size.
 //
 // mergeRig() draws all of them on a bone as one mesh with one material, the
@@ -60,7 +60,7 @@ export function partMaterial(skin, u) {
   m.name = 'part';
   const cm = varying(attribute('cm', 'vec4')).setInterpolation(THREE.InterpolationSamplingType.FLAT);
   const isKit = cm.x.greaterThanEqual(0);
-  // the detail (monsters.js voxMat): any colour with a channel at full strength glows
+  // the detail (voxkit.js voxMat): any colour with a channel at full strength glows
   const vc = vertexColor();
   const hot = step(0.985, vc.r.max(vc.g).max(vc.b));
   const kitColor = vec4(vec3(1, 1, 1).mul(hot.oneMinus())).mul(vc);

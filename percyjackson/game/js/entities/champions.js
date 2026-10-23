@@ -11,14 +11,14 @@
 //   buildChampionRig(id, kind)  the rig alone (the workbench uses it)
 //   applyChampionLook(e, id)    swap a spawned Enemy's rig for its champion look
 import * as THREE from 'three/webgpu';
-import { Rig, PX, makeCharMaterial, HOLD_PITCH, markTip } from './character.js';
+import { Rig, PX, makeCharMaterial, HOLD_PITCH } from './character.js';
 import { paintPerson } from './mortals.js';
-import { skinMat, group, HS, bruteLimbs, sway, withBuild, voxDensity, keepAbove } from './parts.js';
-import { MONSTERS, HELLHOUND, buildMonsterModel, animateExtras, kit, dropMeshes, eagle, hound, buildScorpion, buildSkeleton, cycDensity } from './monsters.js';
-import { blob } from './fodder.js';
+import { skinMat, group, HS, bruteLimbs, sway } from './parts.js';
+import { MONSTERS, HELLHOUND, buildMonsterModel, animateExtras, eagle, hound, buildScorpion, buildSkeleton, cycDensity } from './monsters.js';
+import { kit, dropMeshes, withBuild, reshape, applyShape, legScale } from './voxkit.js';
 import { addFlames, remapFlames } from './flames.js';
 import { mergeRig, PART_MERGE } from './charmat.js';
-import { reshape, applyShape, markHeadCore, legScale, markHeadwear } from './proportions.js';
+import { markTip, markHeadCore, markHeadwear, keepAbove } from './rigContract.js';
 
 const GOLD = 0xf0b030, GOLD_D = 0xb87a14, GOLD_L = 0xffe070;
 
@@ -348,11 +348,11 @@ function buildGorgos() {
   const T = rig.torso, Hd = rig.head, H = rig.hips;
   const sk = () => SK[Math.floor(K.r() * 3)], pelt = () => PELT[Math.floor(K.r() * 4)], hair = () => HAIR[Math.floor(K.r() * 4)];
   // ---- trunk: a deep bare chest, heavy pecs, a hard belly, traps round a short neck
-  blob(K, T, [0, 7.6, 0.3], [5.5, 4.8, 3.3], 1, (x, y, z) => (z > 0.55 && y < -0.05 && y > -0.3 ? skinD : z > 0.7 && Math.abs(x) < 0.08 ? skinD : sk()), { pw: 2.2, run: [2, 5] });
-  blob(K, T, [0, 3, 0.4], [4.4, 3.4, 3], 1, (x, y, z) => (z > 0.6 && (Math.abs(x) < 0.07 || Math.abs(y - 0.2) < 0.08) ? skinD : sk()), { pw: 2.2 });
-  blob(K, T, [0, 11.2, -0.7], [4.8, 1.9, 2.6], 1, sk, { pw: 2.2 });
+  K.blob(T, [0, 7.6, 0.3], [5.5, 4.8, 3.3], 1, (x, y, z) => (z > 0.55 && y < -0.05 && y > -0.3 ? skinD : z > 0.7 && Math.abs(x) < 0.08 ? skinD : sk()), { pw: 2.2, run: [2, 5] });
+  K.blob(T, [0, 3, 0.4], [4.4, 3.4, 3], 1, (x, y, z) => (z > 0.6 && (Math.abs(x) < 0.07 || Math.abs(y - 0.2) < 0.08) ? skinD : sk()), { pw: 2.2 });
+  K.blob(T, [0, 11.2, -0.7], [4.8, 1.9, 2.6], 1, sk, { pw: 2.2 });
   // the bear pelt: over both shoulders and down the back to the knees
-  blob(K, T, [0, 11.6, -2.2], [6.4, 2.4, 2.4], 1, pelt, { run: [1, 2], keep: (x, y, z) => z < 0.35 });
+  K.blob(T, [0, 11.6, -2.2], [6.4, 2.4, 2.4], 1, pelt, { run: [1, 2], keep: (x, y, z) => z < 0.35 });
   K.shag(T, [0, 12, -0.8], [12, 1.4, 6.4], { cols: PELT, step: 2, len: [2.2, 3.6], w: 1.1, low: 1, top: true, sides: true, sweep: 0.25, bristle: 0.35 });
   for (let x = -5.6; x <= 5.7; x += 1.4) { const L = 13 + K.r() * 6; K.box(T, x, 12.4 - L / 2, -3.9 - K.r() * 0.4, 1.5, L, 0.9, K.tone(PELT, 0.12)); }
   // a leather strap from the club shoulder to the other hip, gold studs on it
@@ -397,7 +397,7 @@ function buildGorgos() {
   // mouth with fangs, all in a big black beard
   const fz = 4.3;
   markHeadCore(rig, [0, 4.4, 0.4], [7.8, 9, 7.8]);   // (the skull and face: the hood, mane and beard aside)
-  blob(K, Hd, [0, 4.4, 0.4], [3.9, 4.5, 3.9], 1, (x, y, z) => (z > 0.6 && y > 0.25 && y < 0.6 && Math.abs(x) > 0.55 ? skinD : sk()), { pw: 2.5 });
+  K.blob(Hd, [0, 4.4, 0.4], [3.9, 4.5, 3.9], 1, (x, y, z) => (z > 0.6 && y > 0.25 && y < 0.6 && Math.abs(x) > 0.55 ? skinD : sk()), { pw: 2.5 });
   K.box(Hd, 0, 6.9, fz - 0.2, 6.6, 1.1, 1.5, skinD);   // the brow ridge
   for (const sx of [-1, 1]) {
     K.box(Hd, sx * 1.6, 7.25, fz + 0.45, 2.6, 0.8, 0.6, HAIR[0], 0, 0, -sx * 0.3);   // a scowling brow
@@ -410,27 +410,27 @@ function buildGorgos() {
   for (const sx of [-1, 1]) { K.box(Hd, sx * 1.55, 1.55, fz + 0.2, 0.7, 1.3, 0.5, 0xf4f0e0); K.box(Hd, sx * 0.5, 1.15, fz + 0.2, 0.6, 0.45, 0.5, 0xe8e0d0); }
   // the beard: from the cheekbones down over the chest, the mouth left open
   // (it juts forward as it falls, so it lies over the chest instead of sinking into it)
-  blob(K, Hd, [0, 1.3, 2.6], [4.8, 3.6, 2.9], 1, hair, { run: [1, 2], keep: (x, y, z) => !(z > 0.2 && y > -0.1 && Math.abs(x) < 0.5) && !(z > 0.3 && y > 0.55) });
-  blob(K, Hd, [0, -1.6, 4], [4.4, 3, 2.6], 1, hair, { run: [1, 2] });
-  blob(K, Hd, [0, -4.2, 5.4], [3.4, 2.6, 2.1], 1, hair, { run: [1, 2] });
-  blob(K, Hd, [0, -6.4, 6.1], [2.1, 1.9, 1.5], 1, hair, { run: [1, 2] });
+  K.blob(Hd, [0, 1.3, 2.6], [4.8, 3.6, 2.9], 1, hair, { run: [1, 2], keep: (x, y, z) => !(z > 0.2 && y > -0.1 && Math.abs(x) < 0.5) && !(z > 0.3 && y > 0.55) });
+  K.blob(Hd, [0, -1.6, 4], [4.4, 3, 2.6], 1, hair, { run: [1, 2] });
+  K.blob(Hd, [0, -4.2, 5.4], [3.4, 2.6, 2.1], 1, hair, { run: [1, 2] });
+  K.blob(Hd, [0, -6.4, 6.1], [2.1, 1.9, 1.5], 1, hair, { run: [1, 2] });
   K.clumps(Hd, [0, -2.4, 5], [7.6, 8, 3.2], { n: 10, size: [0.9, 1.6], cols: HAIR, faces: 'flr', out: 0.25, keep: (x, y) => !(y > 0.6 && Math.abs(x) < 2.2) });
-  blob(K, Hd, [0, 5.6, -1], [4.6, 3.8, 4], 1, hair, { run: [1, 2], keep: (x, y, z) => z < 0.1 || Math.abs(x) > 0.86 });   // black hair under the hood
+  K.blob(Hd, [0, 5.6, -1], [4.6, 3.8, 4], 1, hair, { run: [1, 2], keep: (x, y, z) => z < 0.1 || Math.abs(x) > 0.86 });   // black hair under the hood
   // ---- the bear's head worn as a hood: a furry skull over his own, its
   // upper jaw jutting over his brow with fangs hanging, a black nose, small
   // gold eyes, round ears, and the pelt falling past his cheeks
   const hood = markHeadwear(group(Hd, 0, 9.4, 0)); reshape(rig, hood, HF);   // (headwear, round 9: the body is measured to his own crown under it)
-  blob(K, hood, [0, 0, -0.6], [5.6, 3.4, 5.8], 1.2, pelt, { pw: 2.2, lo: -0.4, run: [1, 2] });
-  blob(K, hood, [0, 0.3, 3.4], [4.3, 2.5, 2.8], 1.1, pelt, { pw: 2.2, run: [1, 2] });
-  blob(K, hood, [0, -0.5, 6.2], [2.7, 1.7, 2.6], 1, (x, y) => (y > 0.2 ? MUZ[0] : MUZ[1]), { pw: 2.2 });
+  K.blob(hood, [0, 0, -0.6], [5.6, 3.4, 5.8], 1.2, pelt, { pw: 2.2, lo: -0.4, run: [1, 2] });
+  K.blob(hood, [0, 0.3, 3.4], [4.3, 2.5, 2.8], 1.1, pelt, { pw: 2.2, run: [1, 2] });
+  K.blob(hood, [0, -0.5, 6.2], [2.7, 1.7, 2.6], 1, (x, y) => (y > 0.2 ? MUZ[0] : MUZ[1]), { pw: 2.2 });
   K.box(hood, 0, 0.1, 8.6, 2.4, 1.4, 1, 0x141010); K.box(hood, 0, 0.5, 9.1, 1.4, 0.5, 0.2, 0x3a3434);
   K.box(hood, 0, -1.95, 5.8, 4.2, 0.6, 4.4, 0x5a1a10);   // the roof of its mouth
   for (const sx of [-1, 1]) {
     K.box(hood, sx * 2.65, -3.1, 7.2, 0.8, 2.2, 0.8, BONE[0]); K.box(hood, sx * 2.65, -4.3, 7.2, 0.45, 0.5, 0.45, BONE[2]);   // the fangs, outside his eyes
     K.box(hood, sx * 0.7, -2.6, 7.7, 0.55, 1.1, 0.55, BONE[1]); K.box(hood, sx * 1.7, -2.55, 7.5, 0.5, 0.9, 0.5, BONE[1]);
     K.box(hood, sx * 2.5, 1.5, 5.2, 0.9, 0.7, 0.3, 0xffc020);   // the bear's eyes
-    blob(K, hood, [sx * 4.4, 2.6, 0.2], [1.5, 1.5, 0.9], 1, () => PELT[1], { pw: 2 }); K.box(hood, sx * 4.4, 2.6, 0.9, 1.1, 1.1, 0.2, 0x3a2010);
-    blob(K, hood, [sx * 5.2, -5.6, -0.8], [1.6, 5, 4], 1.2, pelt, { pw: 2.2, run: [1, 2] });
+    K.blob(hood, [sx * 4.4, 2.6, 0.2], [1.5, 1.5, 0.9], 1, () => PELT[1], { pw: 2 }); K.box(hood, sx * 4.4, 2.6, 0.9, 1.1, 1.1, 0.2, 0x3a2010);
+    K.blob(hood, [sx * 5.2, -5.6, -0.8], [1.6, 5, 4], 1.2, pelt, { pw: 2.2, run: [1, 2] });
   }
   K.clumps(hood, [0, 0.4, -0.4], [10.6, 5.6, 10.4], { n: 12, size: [1, 1.7], cols: PELT, faces: 'tlrk', out: 0.1 });
   for (let i = 0; i < 9; i++) K.box(hood, -5 + i * 1.25, -4.4 - (i % 3) * 0.8, -5.4, 1.3, 7.6 + (i % 3) * 1.4, 1, PELT[i % 4]);
@@ -438,16 +438,16 @@ function buildGorgos() {
   // with studded leather on the forearms (a skull on the left one), big fists
   for (const arm of [rig.armR, rig.armL]) {
     const sd = arm === rig.armR ? -1 : 1;
-    blob(K, arm, [0, 0.5, 0], [3.4, 3.1, 3.1], 1, sk, { pw: 2 });
-    blob(K, arm, [sd * 0.2, 1.6, -0.2], [3.6, 2.6, 3.4], 1, pelt, { pw: 2, run: [1, 2], keep: (x, y) => y > -0.5 });
+    K.blob(arm, [0, 0.5, 0], [3.4, 3.1, 3.1], 1, sk, { pw: 2 });
+    K.blob(arm, [sd * 0.2, 1.6, -0.2], [3.6, 2.6, 3.4], 1, pelt, { pw: 2, run: [1, 2], keep: (x, y) => y > -0.5 });
     K.clumps(arm, [sd * 0.2, 0, -0.2], [7, 3, 6.6], { n: 10, size: [1, 1.8], cols: PELT, faces: 'lrfk', out: 0.1, stretch: [1, 1.8, 1] });
-    blob(K, arm, [0, -3.4, 0], [2.2, 3.4, 2.2], 1, sk, { pw: 2.1 });
-    blob(K, arm, [0, -3, 0.8], [1.9, 2.4, 1.6], 1, sk, { pw: 2 });
-    blob(K, arm, [0, -7.8, 0.2], [3, 2.6, 2.9], 1, pelt, { pw: 2.4, run: [1, 2] });
+    K.blob(arm, [0, -3.4, 0], [2.2, 3.4, 2.2], 1, sk, { pw: 2.1 });
+    K.blob(arm, [0, -3, 0.8], [1.9, 2.4, 1.6], 1, sk, { pw: 2 });
+    K.blob(arm, [0, -7.8, 0.2], [3, 2.6, 2.9], 1, pelt, { pw: 2.4, run: [1, 2] });
     K.clumps(arm, [0, -7.8, 0.2], [5.8, 4.6, 5.6], { n: 7, size: [0.9, 1.4], cols: PELT, faces: 'lrfk', out: 0.15 });
     for (const y of [-6.4, -9.2]) K.box(arm, 0, y, 0.2, 6.2, 0.7, 6, leaD);
     for (const [x, z] of [[-1.6, 3.2], [1.6, 3.2], [sd * 3.15, 0.2]]) K.box(arm, x, -6.4, z, 0.55, 0.55, 0.5, gold);
-    blob(K, arm, [0, -11.5, 0.4], [2.8, 2.2, 2.8], 1, sk, { pw: 3 });
+    K.blob(arm, [0, -11.5, 0.4], [2.8, 2.2, 2.8], 1, sk, { pw: 3 });
     for (let i = 0; i < 4; i++) K.box(arm, -1.8 + i * 1.2, -12.4, 2.7, 1.1, 1.3, 1, i % 2 ? SK[1] : SK[2]);
     K.box(arm, -sd * 2.4, -11, 1.4, 1, 2, 1.6, SK[1]);   // the thumb
   }
@@ -457,21 +457,21 @@ function buildGorgos() {
   // ---- legs: thick bare thighs, shins wrapped in shaggy fur bound with
   // studded straps, broad bare feet with big toes
   for (const leg of [rig.legR, rig.legL]) {
-    blob(K, leg, [0, -2.6, 0], [2.9, 3.4, 2.9], 1, sk, { pw: 2.2 });
-    blob(K, leg, [0, -6.4, -0.1], [3.1, 2.6, 3.1], 1, pelt, { pw: 2.4, run: [1, 2] });
+    K.blob(leg, [0, -2.6, 0], [2.9, 3.4, 2.9], 1, sk, { pw: 2.2 });
+    K.blob(leg, [0, -6.4, -0.1], [3.1, 2.6, 3.1], 1, pelt, { pw: 2.4, run: [1, 2] });
     K.clumps(leg, [0, -6.2, -0.1], [6, 4.4, 6], { n: 8, size: [0.9, 1.5], cols: PELT, faces: 'lrfk', out: 0.15 });
     K.box(leg, 0, -5.2, -0.1, 6.4, 0.7, 6.4, leaD); K.box(leg, 0, -7.6, -0.1, 6.4, 0.7, 6.4, lea);
     for (const x of [-1.4, 1.4]) K.box(leg, x, -5.2, 3.2, 0.6, 0.6, 0.4, gold);
     K.box(leg, 0.4, -7.6, 3.25, 1.3, 1.1, 0.4, goldL);
     // (the foot stops a hair above the leg's end and short of a long toe: a long foot's tip dipped through the floor as the leg swung in the run)
-    blob(K, leg, [0, -9, 0.6], [2.6, 0.9, 3.2], 1, sk, { pw: 3 });
+    K.blob(leg, [0, -9, 0.6], [2.6, 0.9, 3.2], 1, sk, { pw: 3 });
     for (let i = 0; i < 4; i++) K.box(leg, -1.65 + i * 1.1, -9.15, 3.6, 1, 0.9, 0.9, i % 2 ? SK[1] : SK[2]);
   }
   // ---- the club: a tree trunk, thickening to a head studded with stones,
   // a cut top, moss and a vine twined up it
   const club = group(rig.handR, 0, -1, 1, HOLD_PITCH, 0, 0);   // (along +y, angled forward at the foe: see the hand-axis convention in character.js)
-  blob(K, club, [0, 5, 0], [1.5, 7, 1.5], 1, () => K.tone(WOOD, 0.1), { pw: 2.6 });
-  blob(K, club, [0, 15.4, 0], [2.9, 5.8, 2.9], 1, () => K.tone(WOOD, 0.1), { pw: 2.4 });
+  K.blob(club, [0, 5, 0], [1.5, 7, 1.5], 1, () => K.tone(WOOD, 0.1), { pw: 2.6 });
+  K.blob(club, [0, 15.4, 0], [2.9, 5.8, 2.9], 1, () => K.tone(WOOD, 0.1), { pw: 2.4 });
   K.box(club, 0, 20.9, 0, 3.8, 0.5, 3.8, 0xb08050); K.box(club, 0, 21, 0, 2.2, 0.5, 2.2, 0x8a6036);
   for (const [x, y, z] of [[1.7, 9, 0.6], [-1.6, 6.6, -0.4], [0.2, 11.6, 1.7]]) K.box(club, x, y, z, 1, 1.4, 1, WOOD[3]);   // knots
   for (const [x, y, z, s] of [[2.8, 15, 0, 2.2], [-2.8, 17.4, 0.4, 2], [0.2, 16.4, 2.8, 2.3], [0, 13.6, -2.8, 1.9], [2.2, 19, 1.2, 1.7], [-1.8, 13.4, 2.2, 1.7], [-2, 19.4, -1.6, 1.6], [2, 12.4, -1.8, 1.5]]) {
@@ -669,7 +669,7 @@ function ringMat(color) {
 }
 
 // The champion's rig, scaled and with its outline glow and aura tick.
-// The champion is built at its size (look.scale, parts.js withBuild), so its
+// The champion is built at its size (look.scale, voxkit.js withBuild), so its
 // skin, voxel detail and blobs come out finer, not as the kind enlarged.
 export function buildChampionRig(id, kind) {
   const look = championLook(id, kind), ks = look.scale ?? 1.3;

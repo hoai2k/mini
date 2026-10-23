@@ -50,7 +50,7 @@ test('the fodder monsters: weak swarms, a few larger ones, all named, wired in',
   for (const id of ['colchis_calf', 'boarlet']) assert.ok(FOD[id].ai === 'melee' && FOD[id].range >= 3, `${id} charges from a distance`);
   // monsters.js takes them in (so the shader warm-up and the workbench, which walk MONSTER_IDS, do too)
   assert.match(mons, /Object\.assign\(MONSTERS, FODDER_MONSTERS\);[\s\S]*export const MONSTER_IDS = Object\.keys\(MONSTERS\)/);
-  assert.match(mons, /\.\.\.fodderModels\(\{ kit \}\)/);
+  assert.match(mons, /\.\.\.fodderModels\(\)/);
   assert.match(mons, /rig\.onTick\?\.\(dt, e\)/);
   assert.match(read('entities/bosses.js'), /warmupGroup\(kinds = MONSTER_IDS/);
   // each has its own cry and its own bits when it goes

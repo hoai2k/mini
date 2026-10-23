@@ -5,7 +5,7 @@
 //   reshape(rig, group, [fx, fy, fz])   every voxel-kit box, blob, clump, shag
 //                                       and cell drawn into that group lands
 //                                       scaled about the group's origin
-// The kits (monsters.js VoxKit, fodder.js blob, bossmodels.js vox) read
+// The voxel kit (voxkit.js: VoxKit box, blob and the rest, and sculpt) reads
 // rig.shape at draw time and re-voxelise at the model's own cell size, so a
 // smaller head is a new sculpt of the same hero-sized cells, its features
 // re-drawn smaller, never a scaled-down copy of the old blocks. Clumps, shag

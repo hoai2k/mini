@@ -24,7 +24,8 @@
 import * as THREE from 'three/webgpu';
 import { PX, CHAR_SCALE, extremePoints } from './character.js';
 import { damp, clamp, easeOutCubic, easeInCubic } from '../util.js';
-import { skinMat, voxDensity } from './parts.js';
+import { skinMat } from './parts.js';
+import { kit, voxDensity } from './voxkit.js';
 import { paintQuad } from './quad.js';
 
 const NN = 7, NG = 15, SEG = 3.4, NSEG = 3.8;   // neck segments, ground segments, segment lengths (px)
@@ -201,9 +202,8 @@ export class SerpentRig {
   mouthWorld(out = new THREE.Vector3()) { return this.mouth.getWorldPosition(out); }
 }
 
-// Build the serpent with the voxel kit (monsters.js kit, passed in: this file
-// is imported by monsters.js).
-export function buildSerpent({ kit }) {
+// Build the serpent with the voxel kit (voxkit.js).
+export function buildSerpent() {
   const mat = skinMat('serpent', (S) => paintQuad(S, { base: GREEN[0], dark: DARK, belly: CREAM, back: GREEN[1], stripes: GOLD, eye: EYE, eyeLow: 0xff8a10, nose: DARK, teeth: FANG, speckles: 30 }), { emit: 0.9 });
   const rig = new SerpentRig({ material: mat, scale: 1.18 });
   const K = kit(rig, mat, { seed: 61, rough: 0.45, emit: 0.9, ao: 0.25, density: voxDensity(rig) });

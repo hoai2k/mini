@@ -19,26 +19,18 @@
 // prop with no point to aim (a shield, a sling, a trailing whip).
 //   NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/weapons.cjs
 // Prints a table; exits 1 if any check fails. Serves the repository on
-// PERF_PORT (default 8765) if nothing is there yet.
-const fs = require('fs');
-const path = require('path');
-const { spawn } = require('child_process');
-const { chromium } = require('playwright');
-const { findChrome } = require('./lib.cjs');
+// PERF_PORT (default 8765) if nothing is there yet. As a module (check.cjs):
+// run({ browser, base, page?, only? }) resolves to { ok, lines, summary, rows }.
 
-const PORT = +(process.env.PERF_PORT || 8765);
-const ROOT = path.resolve(__dirname, '../..');
-const GAME = `http://127.0.0.1:${PORT}/percyjackson/game/`;
 const REST_MIN = -0.05, STRIKE_MIN = 0.3, AIM_MIN = 0.85;
 // (every style for both hands: a boss may swing with one arm while the other holds the weapon)
 const ALL = ['swingR', 'swingL', 'punch', 'slam', 'uppercut', 'throw'], STYLES = { R: ALL, L: ALL };
 
-// The check page: the workbench's import map and a module that builds and poses the models.
-function page() {
-  const wb = fs.readFileSync(path.join(ROOT, 'percyjackson/game/workbench/models.html'), 'utf8');
-  const map = wb.match(/<script type="importmap">[\s\S]*?<\/script>/)[0];
-  return `<!doctype html><html><head><meta charset="utf-8">${map}</head><body><script type="module">
-import * as THREE from 'three/webgpu';
+const { openModulePage, loadModule, watchErrors, reseed, cli } = require('./lib.cjs');
+
+// The in-page module (served beside the workbench as workbench/__weapons.js): builds and poses the models.
+function moduleSource() {
+  return `import * as THREE from 'three/webgpu';
 import { buildHeroModel, buildNpc, HERO_LOOKS } from '../js/entities/models.js';
 import { buildMonsterModel, MONSTERS, MONSTER_IDS } from '../js/entities/monsters.js';
 import { buildMortal, MORTAL_IDS } from '../js/entities/mortals.js';
@@ -102,10 +94,11 @@ function measure(r, t) {
   const d = a.sub(b), L = d.length();
   return L > 1e-6 ? d.dot(fwd) / L : 0;
 }
-window.run = (only) => {
+export function run(only) {
   const rows = [];
   for (const [set, [ids, build]] of Object.entries(SETS)) for (const id of ids) {
     if (only && !only.includes(id)) continue;
+    globalThis.__perfReseed?.();   // (PERF_SEED: lib.cjs reseed)
     let r;
     try { r = build(id); } catch (e) { rows.push({ set, id, error: String(e).slice(0, 120) }); continue; }
     if (!r?.root || !r.animate) continue;
@@ -122,39 +115,20 @@ window.run = (only) => {
     }
   }
   return rows;
-};
-window.ready = true;
-</script></body></html>`;
+}
+`;
 }
 
-async function serve() {
-  const up = async () => { try { return (await fetch(GAME)).ok; } catch { return false; } };
-  if (await up()) return;
-  spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore', detached: true }).unref();
-  for (let i = 0; i < 40 && !(await up()); i++) await new Promise((r) => setTimeout(r, 250));
-}
 
-(async () => {
-  await serve();
-  const browser = await chromium.launch({ executablePath: findChrome(), args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-  const pg = await browser.newPage();
-  const errors = [];
-  pg.on('pageerror', (e) => errors.push(String(e.message).slice(0, 300)));
-  const url = GAME + 'workbench/__weapons.html';
-  await pg.route(url, (r) => r.fulfill({ contentType: 'text/html', body: page() }));
-  await pg.goto(url);
-  await pg.waitForFunction(() => window.ready || false, null, { timeout: 180000 }).catch(() => {});
-  if (errors.length) { console.log(errors.join('\n')); await browser.close(); process.exit(1); }
-  const only = process.argv[2] ? process.argv[2].split(',') : null;
-  const rows = await pg.evaluate((o) => window.run(o), only);
-  await browser.close();
+function report(rows) {
+  const lines = [];
   const f = (v) => (v == null ? '' : (v >= 0 ? ' ' : '') + v.toFixed(2));
   const cols = ['swingR', 'swingL', 'punch', 'slam', 'uppercut', 'throw'];
   const shots = ['aim', 'kick', 'lower'];
-  console.log(['set'.padEnd(10), 'model'.padEnd(20), 'weapon'.padEnd(16), 'hand', ' rest', ...cols.map((c) => c.padStart(8)), ...shots.map((c) => c.padStart(6)), ' result'].join(' '));
+  lines.push(['set'.padEnd(10), 'model'.padEnd(20), 'weapon'.padEnd(16), 'hand', ' rest', ...cols.map((c) => c.padStart(8)), ...shots.map((c) => c.padStart(6)), ' result'].join(' '));
   let fails = 0;
   for (const r of rows) {
-    if (r.error) { console.log(r.set.padEnd(10), r.id.padEnd(20), 'ERROR', r.error); fails++; continue; }
+    if (r.error) { lines.push([r.set.padEnd(10), r.id.padEnd(20), 'ERROR', r.error].join(' ')); fails++; continue; }
     const bad = [];
     if (r.rest < REST_MIN) bad.push('rest');
     if (r.statue != null && r.statue < REST_MIN) bad.push('statue');
@@ -162,8 +136,26 @@ async function serve() {
     for (const [s, v] of Object.entries(r.shots ?? {})) if (v < (s === 'lower' ? STRIKE_MIN : AIM_MIN)) bad.push('shot ' + s);
     if (bad.length) fails++;
     const name = (r.weapon + (r.hidden ? ' (hidden)' : '')).slice(0, 16);
-    console.log([r.set.padEnd(10), r.id.padEnd(20), name.padEnd(16), (' ' + r.side).padEnd(4), f(r.rest).padStart(5), ...cols.map((c) => f(r.strikes[c]).padStart(8)), ...shots.map((c) => f(r.shots?.[c]).padStart(6)), ' ' + (bad.length ? 'FAIL ' + bad.join(',') : 'ok') + (r.statue != null ? ` (statue pose ${f(r.statue)})` : '') + (r.restOnly ? ' (rest only: never attacks)' : '') + (r.marked ? '' : ' [no tip mark]')].join(' '));
+    lines.push([r.set.padEnd(10), r.id.padEnd(20), name.padEnd(16), (' ' + r.side).padEnd(4), f(r.rest).padStart(5), ...cols.map((c) => f(r.strikes[c]).padStart(8)), ...shots.map((c) => f(r.shots?.[c]).padStart(6)), ' ' + (bad.length ? 'FAIL ' + bad.join(',') : 'ok') + (r.statue != null ? ` (statue pose ${f(r.statue)})` : '') + (r.restOnly ? ' (rest only: never attacks)' : '') + (r.marked ? '' : ' [no tip mark]')].join(' '));
   }
-  console.log(`\n${rows.length} weapons checked, ${fails} failing. Columns: forward share of the hand-to-tip direction (1 = straight ahead, 0 = straight up or sideways, -1 = straight back); rest needs >= ${REST_MIN}, each strike >= ${STRIKE_MIN}; a shooter's aim and kick >= ${AIM_MIN} (level at the target), its lowering >= ${STRIKE_MIN}.`);
-  process.exit(fails ? 1 : 0);
-})();
+  lines.push(`\n${rows.length} weapons checked, ${fails} failing. Columns: forward share of the hand-to-tip direction (1 = straight ahead, 0 = straight up or sideways, -1 = straight back); rest needs >= ${REST_MIN}, each strike >= ${STRIKE_MIN}; a shooter's aim and kick >= ${AIM_MIN} (level at the target), its lowering >= ${STRIKE_MIN}.`);
+  return { ok: !fails, lines, rows, summary: { weapons: rows.length, failing: fails }, text: `${rows.length} weapons, ${fails} failing` };
+}
+
+// page: a page under workbench/ with the import map (openModulePage); a new one if not given
+async function run({ browser, base, page = null, only = null }) {
+  const own = page ? null : await openModulePage(browser, base);
+  page = page ?? own.page;
+  const w = watchErrors(page, (e) => String(e.message).slice(0, 300));
+  try {
+    const err = await loadModule(page, base, 'weapons', moduleSource());
+    const errors = [...(own ? own.errors : w.errors)]; if (err && !errors.length) errors.push(err);
+    if (errors.length) return { ok: false, lines: [errors.join('\n')], rows: [], summary: { pageErrors: errors.length }, text: `page errors: ${errors[0]}` };
+    await reseed(page);
+    const rows = await page.evaluate((o) => import('./__weapons.js').then((m) => m.run(o)), only);
+    return report(rows);
+  } finally { w.stop(); if (own) await own.page.close(); }
+}
+
+module.exports = { run, moduleSource, report };
+if (require.main === module) cli(run, { only: process.argv[2] ? process.argv[2].split(',') : null });

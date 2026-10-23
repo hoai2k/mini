@@ -36,15 +36,8 @@ const FLAG_SETS = {
   gpu: ['--enable-gpu', '--ignore-gpu-blocklist', '--enable-unsafe-webgpu'],
 };
 
-async function launch({ flags = process.env.PERF_FLAGS || 'swiftshader', headless = true, width = 1280, height = 720 } = {}) {
-  const browser = await chromium.launch({
-    executablePath: findChrome(),
-    headless,
-    args: [...(FLAG_SETS[flags] || FLAG_SETS.swiftshader), '--enable-precise-memory-info', '--js-flags=--expose-gc', '--autoplay-policy=no-user-gesture-required'],
-  });
-  const context = await browser.newContext({ viewport: { width, height }, ignoreHTTPSErrors: true, deviceScaleFactor: 1 });
-  const net = [];
-  // CDN / fonts: serve from the disk cache, fill it on a miss
+// CDN / fonts: serve from the disk cache, fill it on a miss
+async function cacheCdn(context) {
   await context.route(/^https:\/\/(cdn\.jsdelivr\.net|fonts\.googleapis\.com|fonts\.gstatic\.com)\//, async (route) => {
     const url = route.request().url();
     const key = crypto.createHash('sha1').update(url).digest('hex');
@@ -68,6 +61,20 @@ async function launch({ flags = process.env.PERF_FLAGS || 'swiftshader', headles
       return route.fulfill({ status, headers, body: fs.readFileSync(f) });
     } catch (e) { console.error('cache miss failed', url, e.message); return route.abort(); }
   });
+}
+
+const EXTRA_ARGS = ['--enable-precise-memory-info', '--js-flags=--expose-gc', '--autoplay-policy=no-user-gesture-required'];
+// shared: a browser passed in (check.cjs runs every check in one) gets a new
+// context, and the returned browser's close() closes only that context
+async function launch({ flags = process.env.PERF_FLAGS || 'swiftshader', headless = true, width = 1280, height = 720, browser: shared = null } = {}) {
+  const browser = shared ? { close: () => context.close(), shared } : await chromium.launch({
+    executablePath: findChrome(),
+    headless,
+    args: [...(FLAG_SETS[flags] || FLAG_SETS.swiftshader), ...EXTRA_ARGS],
+  });
+  const context = await (shared ?? browser).newContext({ viewport: { width, height }, ignoreHTTPSErrors: true, deviceScaleFactor: 1 });
+  const net = [];
+  await cacheCdn(context);
   const page = await context.newPage();
   page.on('response', async (r) => {
     const url = r.url();
@@ -114,4 +121,120 @@ const INSTRUMENT = () => {
   requestAnimationFrame(tick);
 };
 
-module.exports = { launch, seed, INSTRUMENT, BASE, findChrome, FLAG_SETS, HERE, WORK };
+// ---- the checks (check.cjs and the check scripts it runs) ---------------------
+const http = require('http');
+const ROOT = path.resolve(HERE, '../..');
+const gameUrl = (port) => `http://127.0.0.1:${port}/percyjackson/game/`;
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.cjs': 'text/javascript', '.json': 'application/json', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif', '.svg': 'image/svg+xml', '.mp3': 'audio/mpeg', '.ogg': 'audio/ogg', '.wav': 'audio/wav', '.wasm': 'application/wasm', '.glb': 'model/gltf-binary', '.gltf': 'model/gltf+json', '.txt': 'text/plain', '.md': 'text/markdown', '.woff2': 'font/woff2', '.ico': 'image/x-icon' };
+// A static file server over the repository root (Node's http, no Python), on
+// a free port when port is 0. Resolves to { port, base, close }.
+function serveStatic(root = ROOT, port = 0) {
+  const server = http.createServer((req, res) => {
+    let rel;
+    try { rel = decodeURIComponent(new URL(req.url, 'http://x').pathname); } catch { res.writeHead(400); return res.end(); }
+    const file = path.join(root, path.normalize(rel));
+    if (!file.startsWith(root)) { res.writeHead(403); return res.end(); }
+    fs.stat(file, (err, st) => {
+      if (!err && st.isDirectory()) {
+        if (!rel.endsWith('/')) { res.writeHead(301, { Location: rel + '/' }); return res.end(); }
+        return send(path.join(file, 'index.html'));
+      }
+      send(file);
+    });
+    function send(f) {
+      fs.readFile(f, (err, body) => {
+        if (err) { res.writeHead(404, { 'Content-Type': 'text/plain' }); return res.end('not found'); }
+        res.writeHead(200, { 'Content-Type': TYPES[path.extname(f).toLowerCase()] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
+        res.end(body);
+      });
+    }
+  });
+  return new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(port, '127.0.0.1', () => {
+      const p = server.address().port;
+      resolve({ port: p, base: gameUrl(p), close: () => new Promise((r) => { server.closeAllConnections?.(); server.close(() => r()); }) });
+    });
+  });
+}
+// The game on PERF_PORT (default 8765): the server already there, else one
+// started here (stopped by close()).
+async function ensureServer(port = +(process.env.PERF_PORT || 8765)) {
+  const base = gameUrl(port);
+  try { if ((await fetch(base)).ok) return { port, base, close: async () => {} }; } catch { /* nothing there */ }
+  return serveStatic(ROOT, port);
+}
+// the browser the checks run in: SwiftShader's WebGL (three.js's WebGL2 backend)
+const CHECK_ARGS = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'];
+const launchChecks = (args = CHECK_ARGS) => chromium.launch({ executablePath: findChrome(), args });
+// The workbench's import map (models.html), for a page of the check's own.
+function importMap() {
+  const wb = fs.readFileSync(path.join(ROOT, 'percyjackson/game/workbench/models.html'), 'utf8');
+  return wb.match(/<script type="importmap">[\s\S]*?<\/script>/)[0];
+}
+// Serve a check's in-page module at <game>/workbench/__<name>.js on this
+// page's context (beside the workbench, so its '../js/...' imports resolve),
+// for page.evaluate to import('./__<name>.js') on any page under workbench/.
+async function routeModule(page, base, name, source) {
+  await page.context().route(`${base}workbench/__${name}.js`, (r) => r.fulfill({ contentType: 'text/javascript', body: source }));
+}
+// A blank page under workbench/ with the workbench's import map, for the
+// checks' own modules (loadModule). Its .errors collects what it throws.
+async function openModulePage(browser, base) {
+  const page = await browser.newPage();
+  await cacheCdn(page.context());
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e.message).slice(0, 300)));
+  const url = `${base}workbench/__checks.html`;
+  await page.route(url, (r) => r.fulfill({ contentType: 'text/html', body: `<!doctype html><html><head><meta charset="utf-8">${importMap()}</head><body></body></html>` }));
+  await page.goto(url);
+  return { page, errors };
+}
+// Serve a check's module and import it on the page: null when it loaded,
+// else the error it (or a module it imports) threw.
+async function loadModule(page, base, name, source) {
+  await routeModule(page, base, name, source);
+  return page.evaluate((n) => import(`./__${n}.js`).then(() => null, (e) => String(e?.message ?? e).slice(0, 300)), name);
+}
+// The model workbench as the size, island and props checks open it.
+async function openWorkbench(browser, base) {
+  const page = await browser.newPage({ viewport: { width: 800, height: 600 } });
+  await cacheCdn(page.context());
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto(`${base}workbench/?turn=0&lazy=1&lint=0&bg=light`);
+  await page.waitForFunction(() => window.__wb, null, { timeout: 180000 });
+  return { page, errors };
+}
+// PERF_SEED=n: Math.random on the page made a seeded generator just before a
+// check's work (reseed), so two runs (the old scripts against check.cjs, or
+// before and after a change) compare number for number. Unset: left alone.
+const SEED_FN = (seed) => { let a = seed >>> 0; Math.random = () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
+async function reseed(page) {
+  if (process.env.PERF_SEED == null || process.env.PERF_SEED === '') return;
+  // (and again before each model: the loops call __perfReseed, so a model's numbers don't hang on the ones before it)
+  await page.evaluate(([f, seed]) => { const fn = new Function('return ' + f)(); window.__perfReseed = () => fn(seed); window.__perfReseed(); }, [SEED_FN.toString(), +process.env.PERF_SEED]);
+}
+// Collects the page errors thrown from now until stop().
+function watchErrors(page, map = (e) => e.message) {
+  const out = [], f = (e) => out.push(map(e));
+  page.on('pageerror', f);
+  return { errors: out, stop: () => { page.off('pageerror', f); return out; } };
+}
+// Run a check module as its old command line did: a server if none is up,
+// one browser, the check, its report printed, the exit code set.
+async function cli(run, opts = {}) {
+  const srv = await ensureServer();
+  let browser, res;
+  try {
+    browser = await launchChecks();
+    res = await run({ browser, base: srv.base, ...opts });
+  } finally {
+    await browser?.close();
+    await srv.close();
+  }
+  for (const l of res.lines) console.log(l);
+  process.exit(res.ok ? 0 : 1);
+}
+
+module.exports = { launch, seed, INSTRUMENT, BASE, findChrome, FLAG_SETS, HERE, WORK, ROOT, cacheCdn, serveStatic, ensureServer, gameUrl, CHECK_ARGS, launchChecks, importMap, routeModule, openModulePage, loadModule, openWorkbench, watchErrors, reseed, SEED_FN, cli };

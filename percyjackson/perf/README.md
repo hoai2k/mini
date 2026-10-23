@@ -7,6 +7,67 @@ and a cache of the CDN files go to `local/percyjackson-perf/` (ignored by Git;
 The findings it produced, and what is still to do, are in
 [../design/audit.md](../design/audit.md).
 
+## The pre-push checks: one runner
+
+From the repository root:
+
+```bash
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/check.cjs           # every check, one table; exits 1 on a failure
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/check.cjs --fast    # without the slow ones (smoke, islands, bench), for quick iteration
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/check.cjs --only weapons,animlint
+```
+
+`check.cjs` serves the repository itself (Node's `http` on a free port,
+stopped at the end; no Python needed), launches one Chromium
+(`--use-angle=swiftshader --enable-unsafe-swiftshader`) and runs, in one
+browser session, several pages at once:
+
+| Check | What | Its script |
+| --- | --- | --- |
+| `node` | the node tests, `cd game && node --test test/*.test.mjs` | |
+| `design` | `python3 design/source/build_requests.py --check` | |
+| `smoke` | every chapter loads and runs, no page errors (slow) | `smoke.cjs` |
+| `weapons` | weapons point forward at rest and in each strike, ranged aim | `weapons.cjs` |
+| `houndlegs` | the hellhounds' legs stay attached | `houndlegs.cjs` |
+| `animlint` | floor clipping, parts flying off, strikes backward | `animlint.cjs` |
+| `props` | held-prop grip, arm, clip, cloth, strike | `props.cjs` |
+| `rig` | the rig contract (`js/entities/rigContract.js` `validateRig`, through the workbench's `window.__validateAll`); skipped with a note where the workbench has neither | |
+| `islands` | floating voxel islands, `--check` (slow) | `islands.cjs` |
+| `bodysize` | size categories, head and leg rules (`design/sizes.json`), `--check` | `bodysize.cjs` |
+| `shots` | the deterministic model images, to `local/percyjackson-perf/results/shots/` (`--shots dir` moves them), with a digest of the files to compare runs by | `render-bench.cjs shots` |
+| `bench` | the render benchmark per model (draws, triangles, frame CPU split; slow), run last and alone so its CPU times are its own | `render-bench.cjs wb` |
+
+It prints one summary table (pass, FAIL or skip per check, its time and its
+key numbers) and the full report of any check that failed, exactly as its
+script prints it. Options: `--only a,b`, `--skip a,b`, `--fast`, `--json`
+(one JSON object instead of the table), `--port N` (use the server already on
+`127.0.0.1:N` instead of starting one), `--log dir` (each check's full report
+to `dir/<check>.txt`), `--verbose` (print them all), `--serial` (one page at a
+time), `--shards N` (how many workbench pages share islands and bodysize,
+default 3), `--shots dir`.
+
+How it saves time: weapons, houndlegs and animlint share one page (the
+modules load once); props and the rig check share a workbench; islands, the
+slowest check, is split over three workbench pages by model, and on each
+bodysize measures the rigs islands built (both build every model unmerged and
+at rest), against one Percy measured on the first. The pages run at once.
+In the cloud container (4 cores) the separate scripts take about 430 s one
+after another and `check.cjs` about 220 s (see the numbers in the table).
+
+Each check's script still runs on its own as before, and is now a thin
+command line over its module: `require('./weapons.cjs').run({ browser, base,
+page })` (and the same for the others) resolves to `{ ok, lines, summary,
+rows }`, `lines` being what the script prints. Run alone, a script uses the
+server on `PERF_PORT` (default 8765) or starts its own Node server there for
+the run.
+
+`PERF_SEED=n` makes `Math.random` a seeded generator before each model the
+model checks build (`lib.cjs` `reseed`; the in-page loops call
+`__perfReseed`), so two runs give the same numbers to the last digit:
+without it the idle poses, hair and fodder blobs draw on `Math.random` and
+the second decimals of weapons, props, islands and bodysize wander from run to
+run (the findings don't). The smoke check's levels are random either way.
+
 ## Run
 
 From the repository root:
@@ -27,7 +88,8 @@ NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/props.cjs   # what
 It needs Node, Playwright (`NODE_PATH` points at a global install; default
 `/opt/node22/lib/node_modules`) and a Chromium under `/opt/pw-browsers`, as in
 the Claude Code cloud container. `run-all.sh` serves the repository on
-`127.0.0.1:8765` (python `http.server`) if nothing is there yet.
+`127.0.0.1:8765` (python `http.server`) if nothing is there yet; the check
+scripts start a Node server there for the run if nothing is, and stop it.
 
 Environment: `PERF_PORT`, `PERF_W` / `PERF_H` (viewport, default 640 x 360),
 `PERF_FLAGS` (`webgl` default; `swiftshader` tries WebGPU; `gpu` for a real GPU),
@@ -35,6 +97,7 @@ Environment: `PERF_PORT`, `PERF_W` / `PERF_H` (viewport, default 640 x 360),
 
 | Script | What it does | Output (in `local/percyjackson-perf/results/`) |
 | --- | --- | --- |
+| `check.cjs [--only a,b] [--skip a,b] [--fast] [--json] [--port N] [--log dir]` | Every pre-push check in one Chromium, one table (above) | stdout |
 | `run.cjs [--quality low/medium/high] [--secs N] [--scenes a,b] [--no-profile] [--no-leak] [--leak-cycles N]` | Boot timing and network; then per scene: the synchronous load time, the first 30 frames, N s of scripted play (a WASD loop and attacks, the party kept alive), frame CPU time per subsystem, rAF intervals, long tasks, heap and allocation rate, `renderer.info` (draws, triangles, geometries, textures, programs) and scene-graph counts. A CPU profile and an allocation profile of the `combat` scene. A leak loop: camp → chapter → camp with forced GC. | `run-<quality>.json` |
 | `profile-load.cjs [hub,lt1,...]` | CPU profiles of boot and of each level build plus its first 20 frames; meshes, geometries, materials and triangles per hero, monster and boss model; whether two builds share geometry | `load-profile.json` |
 | `leak-hunt.cjs [cycles] [--snapshot]` | Live instances per class (CDP `Runtime.queryObjects`) after each round trip; detached meshes grouped by root; whether an old level is still reachable | `leak-hunt.json` |

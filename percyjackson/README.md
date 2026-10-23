@@ -595,9 +595,32 @@ across every screen.
 
 ## Checks
 
+Before a push, from the repository root:
+
 ```sh
-cd percyjackson/game && node --test test/*.test.mjs
-python3 percyjackson/design/source/build_requests.py --check
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/check.cjs
+```
+
+It runs every check below in one headless Chromium (it serves the
+repository itself) and prints one table, pass or fail per check with its key
+numbers, and the full report of any that failed; it exits 1 on a failure.
+`--fast` leaves out the slow ones (the smoke check, islands and the render
+benchmark) for quick iteration; `--only a,b` and `--skip a,b` pick checks;
+`--json` prints the results as JSON. The checks, its options and how it
+shares pages between them are in [perf/README.md](perf/README.md#the-pre-push-checks-one-runner).
+It covers:
+
+- the node tests (`cd percyjackson/game && node --test test/*.test.mjs`) and
+  the design check (`python3 percyjackson/design/source/build_requests.py --check`);
+- the browser smoke check of every chapter (`perf/smoke.cjs`);
+- the model checks: weapons, the hellhounds' legs, the animation lint, held
+  props and clothing, floating voxel islands, the size check, the rig
+  contract (where the workbench has it) and the model shots and render
+  benchmark (`perf/render-bench.cjs`).
+
+The art checks are separate:
+
+```sh
 python3 percyjackson/design/source/build_cards.py --check
 python3 percyjackson/design/source/build_hero_art.py --check
 ```
@@ -608,15 +631,17 @@ their own seeded `rng`. To look for a test that only passes by luck, run the
 suite under other seeds, for example
 `for s in $(seq 1 50); do TEST_SEED=$s node --test test/*.test.mjs | grep '^not ok'; done`.
 
-When a change touches a model or how one moves (`game/js/entities/`), run the
-animation lint, the weapon check, the props check and the size check
-(headless Chromium; each prints a table and exits 1 on a failure):
+Each browser check also runs on its own (headless Chromium; each prints a
+table and exits 1 on a failure), for example when a change touches a model or
+how one moves (`game/js/entities/`):
 
 ```sh
 NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/animlint.cjs   # bodies through the floor, parts flying off, weapons backward at the strike
 NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/weapons.cjs    # every weapon points forward, at rest and in each strike
 NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/props.cjs      # held props out of the fist (not along the forearm), none through the head or torso, no leg walking through clothing
 NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/bodysize.cjs - '' --check   # every model's size category against Percy (design/sizes.json), and no hero-sized head on a big body
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/islands.cjs --check   # no floating voxel islands on heads, hair, manes or held props
+NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/houndlegs.cjs   # the hellhounds' legs stay rooted in the body
 ```
 
 A new model needs an entry in [design/sizes.json](design/sizes.json) (its
@@ -627,9 +652,8 @@ included, and the model workbench shows the same results on each tile and in
 the inspector. Problems it still lists that are known and not yet fixed are
 in [perf/README.md](perf/README.md#animation-lint).
 
-Performance and a browser smoke check of every chapter (not needed for every
-change; see [perf/README.md](perf/README.md)):
-`bash percyjackson/perf/run-all.sh` and
+Performance (not needed for every change; see [perf/README.md](perf/README.md)):
+`bash percyjackson/perf/run-all.sh`. The smoke check alone:
 `NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/smoke.cjs`.
 
 To try it locally, serve the repository root (for example

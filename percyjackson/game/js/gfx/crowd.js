@@ -3,7 +3,7 @@
 //
 // A monster is a jointed rig of 5-30 meshes, and each mesh is a draw (two
 // with the sun's shadow) that costs three.js 30-50 µs of CPU. Same-kind
-// monsters share their geometry and materials (monsters.js KIT_GEO, the
+// monsters share their geometry and materials (entities/voxkit.js KIT_GEO, the
 // per-kind skins, charmat.js), so part k of every pup on screen can be one
 // InstancedMesh: the instance matrices are those meshes' own world matrices,
 // written each frame after the game has posed them. The rigs keep running as

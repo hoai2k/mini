@@ -7,33 +7,13 @@ import { Skin, makeCharMaterial, PX } from './character.js';
 import { solidMat } from './mortals.js';
 import { buildVoxelHair, voxelMesh } from './voxhair.js';
 import { mulberry32 } from '../util.js';
+import { densityFor } from './voxkit.js';
 
 export const HS = 1.12;           // the Rig's head scale: one head pixel is PX * HS
 export const solid = solidMat;
 
-// ---- voxel density ----------------------------------------------------------------
-// A hero is drawn at rig scale 1.18 (root 0.944 = 1.18 x CHAR_SCALE): one skin
-// pixel is about 0.055 m, and its 128 x 128 skin (res 2) has two texels per
-// skin pixel. A model made big with its rig scale should keep those sizes, so
-// a big model is made of more blocks rather than bigger ones (the owner's rule).
-// density = how many hero pixels fit in one of the model's own skin pixels.
-export const HERO_SCALE = 1.18;
-// The build in progress: k is the extra scale a champion is built at (its
-// look.scale, champions.js buildChampionRig); key names the build for the
-// voxel kit's geometry cache (monsters.js); n counts the kits it made.
-export const BUILD = { k: 1, key: null, n: 0 };
-export function withBuild(opts, fn) {
-  const prev = { k: BUILD.k, key: BUILD.key, n: BUILD.n };
-  BUILD.k = opts.k ?? prev.k; BUILD.key = opts.key ?? null; BUILD.n = 0;
-  try { return fn(); } finally { Object.assign(BUILD, prev); }
-}
-// density of a model built at rig scale s (the champion factor included)
-export const densityFor = (s = HERO_SCALE) => (s / HERO_SCALE) * BUILD.k;
-export const rigDensity = (rig) => (rig.baseScale / (HERO_SCALE * 0.8)) * BUILD.k;
-// the same for loose cubes and cells: a hero's voxel hair and outfit cubes
-// are 1.12 of its skin pixels (the measured hero cube, 0.0615 m)
-export const HERO_CUBE = 1.12;
-export const voxDensity = (rig) => rigDensity(rig) / HERO_CUBE;
+// ---- voxel density (voxkit.js: a big model is made of more blocks, not bigger ones)
+export { HERO_SCALE, BUILD, withBuild, densityFor, rigDensity, HERO_CUBE, voxDensity } from './voxkit.js';
 // skin resolution (1, 2 or 4) whose texels match a hero's at rig scale s
 export const resFor = (s) => Math.max(1, Math.min(4, 2 ** Math.round(Math.log2(2 * densityFor(s)))));
 
