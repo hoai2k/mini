@@ -68,7 +68,7 @@
     "id": "home-metronome",
     "theme": "deco",
     "file": "assets/ui/deco/home-metronome.webp",
-    "status": "revise"
+    "status": "delivered"
   },
   {
     "id": "home-record",
@@ -80,7 +80,7 @@
     "id": "metronome-body",
     "theme": "deco",
     "file": "assets/ui/deco/metronome-body.webp",
-    "status": "revise",
+    "status": "delivered",
     "canvas": [
       800,
       1200
@@ -88,7 +88,7 @@
     "anchors": {
       "pivot": [
         400,
-        908
+        875
       ]
     }
   },
@@ -107,7 +107,8 @@
         917
       ]
     },
-    "swing": 26
+    "swing": 26,
+    "scale": 0.72
   },
   {
     "id": "home-metronome",
@@ -159,7 +160,7 @@
     "id": "home-metronome",
     "theme": "baroque",
     "file": "assets/ui/baroque/home-metronome.webp",
-    "status": "revise"
+    "status": "delivered"
   },
   {
     "id": "home-record",
@@ -171,7 +172,7 @@
     "id": "metronome-body",
     "theme": "baroque",
     "file": "assets/ui/baroque/metronome-body.webp",
-    "status": "revise",
+    "status": "delivered",
     "canvas": [
       800,
       1200
@@ -179,7 +180,7 @@
     "anchors": {
       "pivot": [
         400,
-        877
+        716
       ]
     }
   },
@@ -187,19 +188,19 @@
     "id": "metronome-pendulum",
     "theme": "baroque",
     "file": "assets/ui/baroque/metronome-pendulum.webp",
-    "status": "revise",
+    "status": "delivered",
     "canvas": [
       200,
       1000
     ],
     "anchors": {
       "hub": [
-        99.4,
-        866.3
+        100.3,
+        911.2
       ]
     },
     "swing": 24,
-    "scale": 0.8
+    "scale": 0.6
   },
   {
     "id": "home-metronome",
@@ -263,7 +264,7 @@
     "id": "metronome-body",
     "theme": "nouveau",
     "file": "assets/ui/nouveau/metronome-body.webp",
-    "status": "revise",
+    "status": "delivered",
     "canvas": [
       800,
       1200
@@ -271,7 +272,7 @@
     "anchors": {
       "pivot": [
         400,
-        937
+        874
       ]
     }
   },
@@ -291,7 +292,7 @@
       ]
     },
     "swing": 24,
-    "scale": 0.85
+    "scale": 0.68
   },
   {
     "id": "home-metronome",
@@ -343,7 +344,7 @@
     "id": "home-metronome",
     "theme": "steampunk",
     "file": "assets/ui/steampunk/home-metronome.webp",
-    "status": "revise"
+    "status": "delivered"
   },
   {
     "id": "home-record",
@@ -838,6 +839,7 @@
       ]
     },
     "swing": 26,
+    "scale": 0.72,
     "travel": [
       250.0,
       726.0
@@ -901,37 +903,37 @@
     "id": "metronome-rod",
     "theme": "baroque",
     "file": "assets/ui/baroque/metronome-rod.webp",
-    "status": "revise",
+    "status": "delivered",
     "canvas": [
       200,
       1000
     ],
     "anchors": {
       "hub": [
-        99,
-        865
+        100.3,
+        912
       ]
     },
     "swing": 24,
-    "scale": 0.8,
+    "scale": 0.6,
     "travel": [
-      183.0,
-      676.5
+      140,
+      740
     ]
   },
   {
     "id": "metronome-weight",
     "theme": "baroque",
     "file": "assets/ui/baroque/metronome-weight.webp",
-    "status": "revise",
+    "status": "delivered",
     "canvas": [
       200,
-      111
+      260
     ],
     "anchors": {
       "center": [
-        99.0,
-        55.0
+        100,
+        139
       ]
     }
   },
@@ -989,7 +991,7 @@
       ]
     },
     "swing": 24,
-    "scale": 0.85,
+    "scale": 0.68,
     "travel": [
       85.0,
       501.0

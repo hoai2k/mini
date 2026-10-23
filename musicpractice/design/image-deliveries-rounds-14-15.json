@@ -4,7 +4,7 @@
     14,
     15
   ],
-  "scope": "Two candidate app identities, without changing the chosen icon; correct the Baroque home pendulum and match the Nouveau screen case to its home icon.",
+  "scope": "Two candidate app identities without changing the chosen icon; five matching Baroque metronome layers and home art, matching Nouveau and Deco cases, narrowed Deco home art, and a Steam Punk home icon assembled from its screen layers.",
   "tool": "built-in image_gen",
   "assets": [
     {
@@ -58,6 +58,424 @@
       "processing": "Preserve the generated opaque full-bleed composition; resize to a 1024px RGB PNG candidate. The current chosen icon and its platform exports are unchanged.",
       "source": "musicpractice/design/generated/round-14/icon-horn.png",
       "tool": "built-in image_gen"
+    },
+    {
+      "id": "home-metronome",
+      "theme": "baroque",
+      "round": 15,
+      "file": "musicpractice/app/assets/ui/baroque/home-metronome.webp",
+      "size": [
+        384,
+        384
+      ],
+      "status": "delivered",
+      "group": "18th Century \u00b7 Home screen buttons",
+      "prompt": "Use case: precise-object-edit. Correct ONLY the alignment of the gilt metronome pendulum. Put the CENTER of its round lower rosette pivot exactly on the case's vertical symmetry axis, x=50% of the square (x=627 on this 1254px image), keeping its current vertical height near y=797 (63.6%). It is currently offset left. The thin rising rod must enter this hub cleanly at the hub center and tilt about 6 degrees to the RIGHT from the bottom pivot. Move its upper scalloped shell weight with the rod so it stays centered on the shaft. A clean mechanical joint, with no gap and no second pivot, no curved rod. Keep every other part of this exact ornate wooden case, painted cream dial, acanthus scrolls, gilt crown, burgundy base, lighting, scale, positioning and transparent background unchanged. No top suspension point and no hanging bob. No text, notes, wings, mist or new decorations.",
+      "note": "Round 15: the delivered icon's pendulum hangs from the top like a clock's, with its weight at the bottom. Wanted: the same icon with a metronome's pendulum (pivot at the bottom, the weight up the rod), as on the 18th Century metronome screen (assets/ui/baroque/metronome-rod.webp and metronome-weight.webp). Replaces the file at the same path.",
+      "generated_source": "musicpractice-r15-baroque-home-assembled.png",
+      "reference_files": [
+        "musicpractice/app/assets/ui/baroque/metronome-body.webp",
+        "musicpractice/app/assets/ui/baroque/metronome-rod.webp",
+        "musicpractice/app/assets/ui/baroque/metronome-weight.webp"
+      ],
+      "previous_generated_source": "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-0ff5c624-d869-4ebb-8261-ef0f3154c366.png",
+      "tool": "built-in image_gen; user-authorized deterministic layer assembly",
+      "compositing": {
+        "method": "Place shell weight on rod using recorded centre, place rod hub exactly on case pivot with a subpixel affine transform, rotate around that pivot, then pad and downsample the same assembled image for the home icon.",
+        "pivot": [
+          400,
+          716
+        ],
+        "hub": [
+          100.3,
+          912
+        ],
+        "weight_center": [
+          100,
+          139
+        ],
+        "rod_scale": 0.6,
+        "weight_position": 0.21,
+        "tilt_degrees_right": 4,
+        "assembled_source": "musicpractice/design/generated/round-15/baroque-metronome-assembled.png",
+        "component_files": [
+          "musicpractice/app/assets/ui/baroque/metronome-body.webp",
+          "musicpractice/app/assets/ui/baroque/metronome-rod.webp",
+          "musicpractice/app/assets/ui/baroque/metronome-weight.webp"
+        ],
+        "home_master_canvas": [
+          1024,
+          1024
+        ]
+      },
+      "delivery_note": "Round 15 delivered: home icon assembled from the exact screen case, rod and sliding weight, with measured pivot alignment; no separately redrawn metronome.",
+      "native_size": [
+        1200,
+        1200
+      ],
+      "mode": "RGBA",
+      "processing": "Preserve generated artwork and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into the PNG master; export lossless WebP with measured geometry.",
+      "replaced_sha256": "2710df7fc5cf160c1415fd153e66feb1f192cf76ed81392f4945e094dd68804d",
+      "source": "musicpractice/design/generated/round-15/baroque-home-metronome.png"
+    },
+    {
+      "id": "metronome-body",
+      "theme": "baroque",
+      "round": 15,
+      "file": "musicpractice/app/assets/ui/baroque/metronome-body.webp",
+      "size": [
+        800,
+        1200
+      ],
+      "status": "delivered",
+      "group": "18th Century \u00b7 Metronome animation",
+      "prompt": "Use case: precise-object-edit. Using the corrected 18th Century home metronome, musicpractice/app/assets/ui/baroque/home-metronome.webp, as the exact design reference, draw the same complete case, without the rising rod or sliding shell weight; retain only the small fixed rosette pivot near the lower centre of the painted ivory dial. Preserve the same walnut, gilt, burgundy, powder blue, cream, engraved texture, lighting and proportions. Seen straight on. The rod must meet its lower pivot cleanly on the case's symmetry axis. No clock-style top suspension, no hanging ball, no additional decoration, no text or numbers. Fully transparent background. 18th-century illustration in the manner of a Rococo engraving and a gilded harpsichord: warm ivory and parchment, carved walnut and fruitwood, burnished gilt, deep burgundy and a little powder blue, scrolling acanthus leaves, shell (rocaille) ornaments and fine engraved hatching. Elegant and refined. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Reference image is the exact target case. Produce a high-resolution portrait 2:3 canvas, equivalent to 800x1200. Keep the COMPLETE ornate walnut case, large gilt shell crown, acanthus scrolls, powder-blue floral painting on cream dial, burgundy and gilt plinth, and curled feet, exactly the same design and proportions as reference. Remove the ENTIRE diagonal pendulum: the rising shaft, upper scalloped shell, and lower circular rosette hub, restoring the cream dial's floral painting beneath. The face must contain NO pivot disk, no rod, no sliding weight; we will place the separate pivot ourselves. In particular keep the central gold painted lower dial ornament, symmetric, intact. Case perfectly frontal and centered, modest top and bottom margin, transparent background. No glow, shadow, numbers, notes, mist or wings.",
+      "note": "Round 15 user follow-up: full-size separated artwork matching the corrected home icon, replacing the screen's slightly different metronome. Measure the pivot, hub, sliding-weight centre and safe travel so the layers align.",
+      "canvas": [
+        800,
+        1200
+      ],
+      "anchors": {
+        "pivot": [
+          400,
+          716
+        ]
+      },
+      "generated_source": "exec-00dea5e0-bcb6-42a2-8d5d-ab028bd9d1f8.png",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-0ff5c624-d869-4ebb-8261-ef0f3154c366.png"
+      ],
+      "delivery_note": "Round 15 delivered: full-size case matching the home icon, with no baked-in pendulum; the lower hub is placed precisely at (400,716) from the separate animation layer.",
+      "native_size": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "processing": "Preserve generated artwork and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into the PNG master; export lossless WebP with measured geometry.",
+      "replaced_sha256": "b00e1663f2a4279ca774b16bd29658f2a6346a13be40acb11b524b98de9fa7c9",
+      "source": "musicpractice/design/generated/round-15/baroque-metronome-body.png",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "metronome-pendulum",
+      "theme": "baroque",
+      "round": 15,
+      "file": "musicpractice/app/assets/ui/baroque/metronome-pendulum.webp",
+      "size": [
+        200,
+        1000
+      ],
+      "status": "delivered",
+      "group": "18th Century \u00b7 Metronome animation",
+      "prompt": "Use case: precise-object-edit. Using the corrected 18th Century home metronome, musicpractice/app/assets/ui/baroque/home-metronome.webp, as the exact design reference, draw only its straight gilt pendulum, upright, with the same round rosette hub at the bottom and the small scalloped-shell sliding weight high on the rod. Preserve the same walnut, gilt, burgundy, powder blue, cream, engraved texture, lighting and proportions. Seen straight on. The rod must meet its lower pivot cleanly on the case's symmetry axis. No clock-style top suspension, no hanging ball, no additional decoration, no text or numbers. Fully transparent background. 18th-century illustration in the manner of a Rococo engraving and a gilded harpsichord: warm ivory and parchment, carved walnut and fruitwood, burnished gilt, deep burgundy and a little powder blue, scrolling acanthus leaves, shell (rocaille) ornaments and fine engraved hatching. Elegant and refined. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Draw just the isolated metronome pendulum from this reference, standing PERFECTLY VERTICAL, with a perfectly straight thin gilt rod, a small circular flower/rosette hub at its BOTTOM, and the same small scalloped-shell sliding weight near the TOP, one-quarter of the shaft length below its tip. The lower hub must be a small simple circular flower matching the reference, not a large hanging bob, no extra lower ornament. No case or backdrop. All three parts exactly share ONE central vertical axis. Tall narrow composition equivalent to a 200x1000 strip, tip near y30, circular hub centered near y950. Keep entire art in middle 18% of a portrait image for narrow cropping. Thin rod around 15/200 canvas pixels wide; small rosette diameter around 100/200 canvas pixels; shell weight around 130/200 pixels wide. Transparent background, no stars, notes, wings, mist or shadows.",
+      "note": "Round 15 user follow-up: full-size separated artwork matching the corrected home icon, replacing the screen's slightly different metronome. Measure the pivot, hub, sliding-weight centre and safe travel so the layers align.",
+      "canvas": [
+        200,
+        1000
+      ],
+      "anchors": {
+        "hub": [
+          100.3,
+          911.2
+        ]
+      },
+      "swing": 24,
+      "scale": 0.6,
+      "generated_source": "exec-9e2a9046-c05a-414f-bcef-cb139a17df1a.png",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-0ff5c624-d869-4ebb-8261-ef0f3154c366.png"
+      ],
+      "export_canvas": [
+        200,
+        1000
+      ],
+      "native_size": [
+        887,
+        1774
+      ],
+      "mode": "RGBA",
+      "processing": "Preserve generated artwork and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into the PNG master; export lossless WebP with measured geometry.",
+      "replaced_sha256": "4a1b20c8b6b4c54b883567418372545b6823490b6c823a20089dfd5f2315f93d",
+      "source": "musicpractice/design/generated/round-15/baroque-metronome-pendulum.png",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "metronome-rod",
+      "theme": "baroque",
+      "round": 15,
+      "file": "musicpractice/app/assets/ui/baroque/metronome-rod.webp",
+      "size": [
+        200,
+        1000
+      ],
+      "status": "delivered",
+      "group": "18th Century \u00b7 Metronome pendulum in two parts",
+      "prompt": "Use case: precise-object-edit. Reference image is the EDIT TARGET. Remove ONLY the scalloped shell sliding weight near the top of this upright gilt metronome pendulum. Continue the perfectly straight uniform gilt rod exactly through the vacated area. Retain the complete small circular flower rosette hub at the bottom, its exact centre, its size, engraved petals, the rod tip, rod thickness, colours, texture, lighting, canvas and all framing unchanged. Do not move, crop, rescale or redesign anything. The shaft must be a straight unbroken line entering the exact centre of the lower rosette. NO extra collar or ring where the shell used to be. NO hanging bob below the hub. Same tall portrait transparent canvas and side margins, no shadow, no text, no other objects.",
+      "note": "Round 15 user follow-up: full-size separated artwork matching the corrected home icon, replacing the screen's slightly different metronome. Measure the pivot, hub, sliding-weight centre and safe travel so the layers align.",
+      "canvas": [
+        200,
+        1000
+      ],
+      "anchors": {
+        "hub": [
+          100.3,
+          912
+        ]
+      },
+      "swing": 24,
+      "scale": 0.6,
+      "travel": [
+        140,
+        740
+      ],
+      "generated_source": "exec-1f7eef34-2c00-4597-99c7-f7ee434c28fc.png",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-9e2a9046-c05a-414f-bcef-cb139a17df1a.png"
+      ],
+      "export_canvas": [
+        200,
+        1000
+      ],
+      "native_size": [
+        887,
+        1774
+      ],
+      "mode": "RGBA",
+      "processing": "Preserve generated artwork and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into the PNG master; export lossless WebP with measured geometry.",
+      "replaced_sha256": "63c3048c76828252fe0fb80596d1d9c3a955d8de05d66e7b1a7e3b9633e509c8",
+      "source": "musicpractice/design/generated/round-15/baroque-metronome-rod.png",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "metronome-weight",
+      "theme": "baroque",
+      "round": 15,
+      "file": "musicpractice/app/assets/ui/baroque/metronome-weight.webp",
+      "size": [
+        200,
+        260
+      ],
+      "status": "delivered",
+      "group": "18th Century \u00b7 Metronome pendulum in two parts",
+      "prompt": "Use case: precise-object-edit. Reference image shows the exact desired sliding weight and its original materials. Extract and redraw ONLY the scalloped-shell sliding weight near the top of this metronome pendulum, including its gold shell, burgundy inset and small powder-blue lower flourish. Preserve this exact design, orientation, shading and engraving; do not invent a new shell. Keep only the very short central shaft section passing through the shell, with no long rod above or below, no bottom rosette hub, no case. Centre the ornament and its vertical shaft axis on a square fully transparent canvas. High resolution transparent image, no shadow or other objects.",
+      "note": "Round 15 user follow-up: full-size separated artwork matching the corrected home icon, replacing the screen's slightly different metronome. Measure the pivot, hub, sliding-weight centre and safe travel so the layers align.",
+      "canvas": [
+        200,
+        260
+      ],
+      "anchors": {
+        "center": [
+          100,
+          139
+        ]
+      },
+      "generated_source": "exec-d6aa566d-cf16-40f1-9c8f-153e65381cdb.png",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-9e2a9046-c05a-414f-bcef-cb139a17df1a.png"
+      ],
+      "export_canvas": [
+        200,
+        260
+      ],
+      "fit_size": [
+        263,
+        263
+      ],
+      "native_size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "processing": "Preserve generated artwork and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into the PNG master; export lossless WebP with measured geometry.",
+      "replaced_sha256": "1dd4f96101966e6a7b74199397028b9c156158d5593542ca55f64af0235d3612",
+      "source": "musicpractice/design/generated/round-15/baroque-metronome-weight.png",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "home-metronome",
+      "theme": "deco",
+      "round": 15,
+      "file": "musicpractice/app/assets/ui/deco/home-metronome.webp",
+      "size": [
+        384,
+        384
+      ],
+      "status": "delivered",
+      "group": "Art Deco \u00b7 Home screen buttons",
+      "prompt": "Use case: precise-object-edit. Edit the attached image, musicpractice/app/assets/ui/deco/home-metronome.webp (the Art Deco theme's metronome icon): make the metronome about 15% narrower from side to side, keeping its height, so the stepped (ziggurat) sides rise a little more steeply. Keep everything else as it is: the black lacquer case with jade-green stepped panels and gold pinstripes, the cream face, the gold sunburst behind the pivot, the black-and-jade base with its gold fan, and the gold pendulum with its diamond-shaped tip tilted to the right with its motion lines. Art Deco illustration in the manner of a 1920s\u201330s poster and a Chrysler Building interior: black lacquer and polished onyx, gleaming gold leaf and champagne brass, accents of deep jade green and ivory, crisp geometric forms, stepped (ziggurat) silhouettes, sunburst rays, fan motifs, chevrons and fine parallel gold pinstripes, strict symmetry, flat lacquered surfaces with sharp metallic highlights. Elegant, glamorous, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, generous even margin on every side, no cast shadow. Reference is the exact edit target. Narrow the case by about 15% while preserving all existing design details and height. Keep the pendulum lower hub exactly on the case's central symmetry axis and its straight shaft entering its centre. No redesign and no extra ornaments. Square fully transparent canvas; no wings, mist or floating notes.",
+      "note": "Round 15: the owner's choice of the Art Deco metronome, a little narrower. The metronome screen's case (metronome-body) is redrawn after it. Replaces the file at the same path.",
+      "generated_source": "exec-a893163e-73d6-4a40-a4cd-3ef0d7ab1f16.png",
+      "reference_files": [
+        "musicpractice/app/assets/ui/deco/home-metronome.webp"
+      ],
+      "native_size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "processing": "Preserve generated artwork and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into the PNG master; export lossless WebP with measured geometry.",
+      "replaced_sha256": "df51f6ef1366f5fdc5222bb6b3c52477b6c2f4a22ff10ad9f5a73f98ee966fb4",
+      "source": "musicpractice/design/generated/round-15/deco-home-metronome.png",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "metronome-body",
+      "theme": "deco",
+      "round": 15,
+      "file": "musicpractice/app/assets/ui/deco/metronome-body.webp",
+      "size": [
+        800,
+        1200
+      ],
+      "status": "delivered",
+      "group": "Art Deco \u00b7 Metronome animation",
+      "prompt": "Use case: precise-object-edit. Redraw the metronome in the attached image, musicpractice/app/assets/ui/deco/home-metronome.webp (the Art Deco theme's home-screen icon), as the case for the metronome screen, about 15% narrower than it is there. Keep its design: the broad stepped (ziggurat) pyramid in black lacquer with jade-green stepped panels and gold pinstripes, the cream face, the gold sunburst rays fanning up from the pivot, the black-and-jade base with its gold fan. Seen exactly straight on from the front, perfectly symmetrical, standing upright and filling the canvas top to bottom with a small margin. There is NO pendulum, rod or weight anywhere. The cream face runs from near the top of the case down to the pivot, with fine gold tick marks (no numbers). Near the bottom of the face, centred left-to-right, a round gold pivot boss ringed in black sits exactly at 50% of the width and 76% of the height, at the centre of the sunburst. Art Deco illustration in the manner of a 1920s\u201330s poster and a Chrysler Building interior: black lacquer and polished onyx, gleaming gold leaf and champagne brass, accents of deep jade green and ivory, crisp geometric forms, stepped (ziggurat) silhouettes, sunburst rays, fan motifs, chevrons and fine parallel gold pinstripes, strict symmetry, flat lacquered surfaces with sharp metallic highlights. Elegant, glamorous, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background. Reference is the newly narrowed, approved design: preserve its exact case proportions without narrowing it a second time. Remove the diagonal pendulum, diamond ornament and all detached motion marks completely, restore the cream-and-gold sunburst face behind them. Keep one fixed central round pivot boss where the sunburst rays originate. No vertical rod or shaft anywhere: fine tick marks only. The portrait 2:3 canvas is equivalent to 800x1200; pivot requested near (400,908), at 50% width and75.67%height. Face starts high enough for the existing rod to fit. Fully transparent background, no surrounding glow or shadow, no wings, mist or musical notes. Preserve all jade panels, stepped black lacquer case, gold pinstripes, gold base fan and overall silhouette.",
+      "note": "Round 15: the delivered case is a taller, narrower tower than the home icon the owner prefers. Ask for the pivot at (400, 908) in an 800\u00d71200 canvas, where the current one is, so the delivered rod and weight still fit: the rod reaches the top of the canvas. Measure the pivot in the delivered file and record it here. Replaces the file at the same path.",
+      "canvas": [
+        800,
+        1200
+      ],
+      "anchors": {
+        "pivot": [
+          400,
+          875
+        ]
+      },
+      "generated_source": "exec-a0e6b005-1009-42d6-9e9e-7564f74edde5.png",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-a893163e-73d6-4a40-a4cd-3ef0d7ab1f16.png"
+      ],
+      "related_geometry": [
+        {
+          "theme": "deco",
+          "id": "metronome-rod",
+          "scale": 0.72
+        },
+        {
+          "theme": "deco",
+          "id": "metronome-pendulum",
+          "scale": 0.72
+        }
+      ],
+      "delivery_note": "Round 15 delivered: matching narrowed stepped black-and-jade case from the revised home icon. Measured pivot (400,875); existing rod and pendulum use scale 0.72 so the rod tip and sliding weight remain on the cream face, with their artwork unchanged.",
+      "native_size": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "processing": "Preserve generated artwork and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into the PNG master; export lossless WebP with measured geometry.",
+      "replaced_sha256": "ddfb951a062d0a8ee3c2be3c2c3e9f4c70953364959a19f50323f1a0a1a085c5",
+      "source": "musicpractice/design/generated/round-15/deco-metronome-body.png",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "metronome-body",
+      "theme": "nouveau",
+      "round": 15,
+      "file": "musicpractice/app/assets/ui/nouveau/metronome-body.webp",
+      "size": [
+        800,
+        1200
+      ],
+      "status": "delivered",
+      "group": "French Nouveau \u00b7 Metronome animation",
+      "prompt": "Use case: precise-object-edit. Edit this slim French Nouveau metronome case while preserving its sage, cream, gold, dusty rose materials, flat outlined Art Nouveau rendering, lily crown design, side iris decoration, narrow outline and curling feet. Correct the ANIMATION GEOMETRY: on a portrait 800x1200 equivalent canvas, the gold flower pivot center must be (400,937), exactly 50% width and 78.08% height. Move it DOWN from the current 70%. The cream dial must start near y156 (13%) so the existing rod tip at y174 fits within it. Reduce the height of the lily crown and move the dial crest upward as needed: crown contained in top 12%, with same mirrored lily flowers, no lost petals. Cream dial continues uninterrupted from 13% height to just below the pivot at 80% height. Fine short gold tick marks, NO center vertical line (the separate animated rod will be placed over it). Preserve a slim gently widening case, never broad triangular base. Perfectly frontal and symmetric. Static body ONLY, no pendulum, rod, weight or bob. Genuinely transparent background, no surrounding amber halo, no background glow or mist. Small top and bottom margin. No text or notes.",
+      "note": "Round 15: the delivered case is much wider at the bottom than the French Nouveau home-screen metronome (assets/ui/nouveau/home-metronome.webp). Wanted: that icon's metronome as the screen's case. Ask for the pivot at (400, 937) in an 800\u00d71200 canvas, where the current one is, so the delivered rod and weight (metronome-rod.webp, metronome-weight.webp) still fit: the rod reaches up to about y 174. Measure the pivot in the delivered file and record it here. Replaces the file at the same path.",
+      "canvas": [
+        800,
+        1200
+      ],
+      "anchors": {
+        "pivot": [
+          400,
+          874
+        ]
+      },
+      "generated_source": "exec-720754f7-9255-4122-a3f6-1ee883f3805c.png",
+      "reference_files": [
+        "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-b75ff311-4990-4006-b087-a04b12d63330.png"
+      ],
+      "related_geometry": [
+        {
+          "theme": "nouveau",
+          "id": "metronome-rod",
+          "scale": 0.68
+        },
+        {
+          "theme": "nouveau",
+          "id": "metronome-pendulum",
+          "scale": 0.68
+        }
+      ],
+      "delivery_note": "Round 15 delivered: the slim lily-crowned home metronome now supplies the matching screen case. Measured pivot (400,874); existing pendulum and rod use scale 0.68 so the tip and full sliding-weight travel fit the new cream face, with their image files unchanged.",
+      "native_size": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "processing": "Preserve generated artwork and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into the PNG master; export lossless WebP with measured geometry.",
+      "replaced_sha256": "90925ab06cd987341e6f07627200507e3b08f96c96af046a869e5f0acd432b29",
+      "source": "musicpractice/design/generated/round-15/nouveau-metronome-body.png",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "home-metronome",
+      "theme": "steampunk",
+      "round": 15,
+      "file": "musicpractice/app/assets/ui/steampunk/home-metronome.webp",
+      "size": [
+        384,
+        384
+      ],
+      "status": "delivered",
+      "group": "Steam Punk \u00b7 Home screen buttons",
+      "prompt": "Use case: precise-object-edit. The same metronome as the attached images, musicpractice/app/assets/ui/steampunk/metronome-body.webp with metronome-rod.webp and metronome-weight.webp (the Steam Punk metronome screen), drawn as an icon: the same tapering pyramid of riveted dark copper and burgundy plates with brass edges, the domed brass cap and finial, the tall white face with fine brass tick marks, the brass gears and pipes at its sides, the brass base with the round pressure gauge in front and its turned feet. Its thin brass rod tilted a little to the right from the gear-shaped hub near the bottom of the face, with the small riveted copper weight near the top of the rod. Seen from the front. Steampunk illustration of Victorian brass machinery: polished brass, copper and dark leather, riveted plates, exposed cogs and gears, small pressure gauges and pipes, warm gaslight glow on dark mahogany. Intricate but readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow. Reference1 is exact case design. References2 and3 are the rod/hub and sliding-weight design. Combine those exact designs into a single small icon with the hub precisely meeting the lower face pivot, rod tilted to the right and the copper weight on its upper section. No duplicate or offset hubs. Square fully transparent canvas; no wings, mist or floating notes.",
+      "note": "Round 15: the owner's choice is the metronome on the Steam Punk metronome screen; the delivered icon (a wider case with gears showing through it and gauges on both sides) is redrawn to match it. Replaces the file at the same path.",
+      "generated_source": "musicpractice-r15-steampunk-home-assembled.png",
+      "reference_files": [
+        "musicpractice/app/assets/ui/steampunk/metronome-body.webp",
+        "musicpractice/app/assets/ui/steampunk/metronome-rod.webp",
+        "musicpractice/app/assets/ui/steampunk/metronome-weight.webp"
+      ],
+      "previous_generated_source": "/Users/hoai/.codex/generated_images/01a14b8c-1f8a-7ee3-a638-19ba0b366f45/exec-502b387a-4c47-4538-b509-0cfbb47cf60c.png",
+      "tool": "built-in image_gen; user-authorized deterministic layer assembly",
+      "compositing": {
+        "method": "Place shell weight on rod using recorded centre, place rod hub exactly on case pivot with a subpixel affine transform, rotate around that pivot, then pad and downsample the same assembled image for the home icon.",
+        "pivot": [
+          400,
+          776
+        ],
+        "hub": [
+          95,
+          870
+        ],
+        "weight_center": [
+          94.5,
+          54.5
+        ],
+        "rod_scale": 0.65,
+        "weight_position": 0.28,
+        "tilt_degrees_right": 9,
+        "assembled_source": "musicpractice/design/generated/round-15/steampunk-metronome-assembled.png",
+        "component_files": [
+          "musicpractice/app/assets/ui/steampunk/metronome-body.webp",
+          "musicpractice/app/assets/ui/steampunk/metronome-rod.webp",
+          "musicpractice/app/assets/ui/steampunk/metronome-weight.webp"
+        ],
+        "home_master_canvas": [
+          1024,
+          1024
+        ]
+      },
+      "delivery_note": "Round 15 delivered: home icon assembled from the exact screen case, rod and sliding weight, with measured pivot alignment; no separately redrawn metronome.",
+      "native_size": [
+        1200,
+        1200
+      ],
+      "mode": "RGBA",
+      "processing": "Preserve generated artwork and alpha; clear imperceptible 1/255 alpha noise; fit without distortion into the PNG master; export lossless WebP with measured geometry.",
+      "replaced_sha256": "25630fb636e6dbb01d7f34d164554569a3f0f80a082167b3385001425e95e559",
+      "source": "musicpractice/design/generated/round-15/steampunk-home-metronome.png"
     }
   ]
 }

@@ -1469,6 +1469,22 @@ Art Deco icons. `design/image-deliveries-normal-icons.json` records the art
 and references. The Art Deco master and derivatives remain under
 `icon-art-deco-*` and `favicon-art-deco-*` for a future switch.
 
+Round 14 delivers two app-icon candidates, `icons/icon-gramophone-1024.png`
+and `icons/icon-horn-1024.png`, with opaque ivory backgrounds and generous
+maskable margins. Their comparison sheet is
+`design/generated/round-14/icon-candidates.webp`; the selected app identity
+continues to use the normal metronome.
+
+Round 15 delivers the narrowed Art Deco home icon and matching screen case,
+the slim lily-crowned French Nouveau screen case, and matching 18th Century
+and Steam Punk home/screen artwork. The 18th Century case, pendulum, rod and
+sliding shell are separate full-size PNGs in `design/generated/round-15/`.
+Its home icon is sampled down from those exact layers with a precisely
+aligned lower pivot; Steam Punk likewise uses its existing screen layers.
+`design/source/assemble_metronome_icons.py` reproduces both assemblies
+(`--check` verifies them). Exact prompts, exports, measured anchors, scales
+and assembly positions are in `design/image-deliveries-rounds-14-15.json`.
+
 The **Drone** home icons (a cello and bow in each of the eight themes:
 `assets/ui/home-drone.webp` for Classic and `assets/ui/<theme>/home-drone.webp`
 for the others) are Round 6 of the image requests and in use;

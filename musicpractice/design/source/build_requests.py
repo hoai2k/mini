@@ -1165,7 +1165,7 @@ next(a for a in ASSETS if a["theme"] == "baroque" and a["id"] == "metronome-body
 # Follow-up: the Baroque screen must use the corrected home icon's exact
 # case and pendulum design, with separate layers for animation and tempo.
 _baroque_layer_subjects = {
-    "metronome-body": "the same complete case, without the rising rod or sliding shell weight; retain only the small fixed rosette pivot near the lower centre of the painted ivory dial",
+    "metronome-body": "the same complete case, without the rod, sliding shell weight or pivot disk; restore the painted ivory dial so the separate pendulum can supply its precisely placed lower rosette hub",
     "metronome-pendulum": "only its straight gilt pendulum, upright, with the same round rosette hub at the bottom and the small scalloped-shell sliding weight high on the rod",
     "metronome-rod": "only its straight gilt rod and small round rosette hub at the bottom, upright, without the sliding shell weight or any hanging bob",
     "metronome-weight": "only its small scalloped-shell sliding weight, centred, without the long rod, hub or case",
@@ -1204,6 +1204,14 @@ if _round14_15_delivery.exists():
                 asset[key] = delivery[key]
         asset["note"] = delivery.get("delivery_note", asset["note"])
         asset["note"] += " PNG masters, exact prompts and exports: design/image-deliveries-rounds-14-15.json."
+    for delivery in _delivered.values():
+        for geometry in delivery.get("related_geometry", []):
+            related = next(a for a in ASSETS
+                           if a.get("theme") == geometry["theme"] and a["id"] == geometry["id"])
+            for key in ("canvas", "anchors", "swing", "scale", "travel"):
+                if key in geometry:
+                    related[key] = geometry[key]
+            related["note"] += " Measured layout for the revised case: design/image-deliveries-rounds-14-15.json."
 
 
 # Shared pictures. Most Practice Routine pictures came out as near-copies
