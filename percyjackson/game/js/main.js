@@ -51,7 +51,7 @@ import './heroes/clarisse.js';
 import { Profiles } from './profiles.js';
 import { Slots, slotPrefix } from './slots.js';
 import { Resume } from './resume.js';
-import { rollChest, rollItem, powerFor, itemInfo, itemTier, itemRarity, RARITY, rollBossLoot, rollChapterReward, signatureKey, signatureDue, normalizeItem } from './loot.js';
+import { rollChest, rollItem, powerFor, itemInfo, itemTier, itemRarity, RARITY, rollBossLoot, rollChapterReward, signatureKey, signatureDue, normalizeItem, rollTierFor, BOSS_SIGNATURE } from './loot.js';
 import { killXp, chapterXp, bossXp, rollCoins, coinLevel, DROP_CHANCE, DROP_RANGE, OW_CHAMPION_SECOND, AFFIXED_COINS } from './progression.js';
 import { FODDER_MONSTERS } from './data/fodder.js';
 import { TIER_LEVEL } from './heroes/skillRules.js';
@@ -773,10 +773,10 @@ class Game {
     }, { dim: true, onBack: () => { this.ui.close('map'); this.paused = false; } });
   }
   // Drachmas are shared (design/loot-design.md §1.3, MCD2 co-op): a coin a hero
-  // on this screen picks up goes to every player on this screen; items stay
-  // per player. net: a remote hero's pickup goes to its own profile, as before.
+  // or companion on this screen picks up goes to every player on this screen;
+  // items stay per player. net: a remote hero's pickup goes to its own profile, as before.
   addCoins(n, p = null) {
-    const saves = p && !p.remote && !p.ai ? this.localSaves() : [this.saveFor(p)];
+    const saves = !p || !p.remote ? this.localSaves() : [this.saveFor(p)];   // (a companion's pickup is shared too)
     for (const sv of saves) sv.data.coins += n;
     if (this.mission) this.mission.stats.coins += n;
   }
@@ -914,7 +914,11 @@ class Game {
     for (const q of this.lootHumans(e.pos)) {
       const n = e.champion ? 1 + (Math.random() < OW_CHAMPION_SECOND ? 1 : 0) : Math.random() < chance + (q.stats?.lootChance ?? 0) ? 1 : 0;
       for (let i = 0; i < n; i++) {
-        const it = rollItem(powerFor(area, this.saveFor(q).data.level, Math.random, source), { ...this.lootOpts(q, e.pos), source });
+        const o = { ...this.lootOpts(q, e.pos), source }, pw = powerFor(area, this.saveFor(q).data.level, Math.random, source);
+        // a drakon-type champion: a Legendary from it is its signature half the time (loot.js BOSS_SIGNATURE.drakon)
+        const drakon = e.champion && /drakon/.test(`${e.kind} ${e.owChampion ?? ''}`) && BOSS_SIGNATURE.drakon;
+        const tier = drakon ? rollTierFor(source, o) : null;
+        const it = drakon && tier === 'unique' && Math.random() < 0.5 ? rollItem(pw, { ...o, id: BOSS_SIGNATURE.drakon, pity: null }) : rollItem(pw, { ...o, tier, pity: tier ? null : o.pity });
         setTimeout(() => this.loot.drop(it, e.pos, q), 150 + i * 200);
       }
     }

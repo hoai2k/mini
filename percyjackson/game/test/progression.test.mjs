@@ -115,6 +115,7 @@ test('the gear curve keeps pace with the monsters’ health, and damage numbers 
     const pw = P.powerAt(A);
     const w = rollItem(pw, { id: 'xiphos', rng: mulberry32(A), blessed: false }); w.power = pw;
     const a = rollItem(pw, { id: 'spartan_cloak', rng: mulberry32(A), blessed: false }); a.power = pw;
+    w.boons = []; a.boons = [];   // (the curve itself: no rolled boons)
     const s = gearStats([w, a, null, null]).s;
     rows.push({ A, melee: s.meleeMult / 1.2, hp: s.maxHp, tech: s.techMult });
   }
@@ -292,4 +293,62 @@ test('capstones add their stats, and damage passives multiply', () => {
   assert.match(read('heroes/percy.js'), /meleeMult \*= 1 \+ r\('riptide'\)/);
   assert.match(read('heroes/kit.js'), /applyNodeStats\(player\.hero, player\.skills, st\)/);
   assert.ok(TIER_LEVEL[2] === 12);
+});
+
+// ---------------------------------------------------------------- the loot rework (design/loot-design.md §4)
+import { rollBossLoot, itemTier, itemInfo } from '../js/loot.js';
+test('drop chances, chest counts and the boss’s share: about 12-13 items a chapter per player', () => {
+  assert.deepEqual(P.DROP_CHANCE, { minor: 0.02, fodder: 0.004, elite: 0.08, affixed: 0.25, champion: 0.6, owChampion: 1 });
+  assert.equal(P.PITY_AT, 40); assert.deepEqual(P.PITY_SOURCES, ['rare', 'elite', 'champion', 'boss', 'epic']);
+  assert.equal(P.SOURCE_BONUS.elite, 0.4);
+  // §4.3's estimate: 120 minor kills, 8 elite-tier, 3 affixed elites, 4.5 chests (1 rare), the boss and the chapter reward
+  const chests = 3.5 * (P.CHEST_ITEMS.common[0] + P.CHEST_ITEMS.common[1]) + (P.CHEST_ITEMS.rare[0] + P.CHEST_ITEMS.rare[1]);
+  const boss = P.BOSS_ITEMS.guaranteed + P.BOSS_ITEMS.extra * P.BOSS_ITEMS.chance;
+  const total = 120 * P.DROP_CHANCE.minor + 8 * P.DROP_CHANCE.elite + 3 * P.DROP_CHANCE.affixed + chests + boss + 1;
+  assert.ok(total >= 11.5 && total <= 13.5, `about 12-13 items a chapter (${total.toFixed(1)})`);
+  assert.equal(boss, 2.5);
+  // the boss's own rolls: n items, never a Common
+  const rng = mulberry32(9);
+  for (let i = 0; i < 200; i++) { const r = rollBossLoot('ares', 11, { rng, level: 28 }); assert.ok(r.items.length >= 1 && r.items.length <= 4); assert.ok(r.items.every((x) => itemTier(x) !== 'common')); }
+  // the game uses them: per human player near the kill, by tier, with Hermes's Haul
+  const main = read('main.js');
+  assert.match(main, /DROP_CHANCE\.minor/); assert.match(main, /lootHumans\(e\.pos\)/); assert.match(main, /q\.stats\?\.lootChance/);
+  assert.match(main, /rollBossLoot\(key, area/); assert.match(main, /rollChapterReward\(cid/);
+});
+test('the level ramp: MCD2’s factors with the 0.15 floor', () => {
+  const f = P.levelFactors;
+  assert.deepEqual(f(1), { common: 1, rare: 0.6, heroic: 0, unique: 0 });
+  assert.equal(f(6).common, 0.5); assert.equal(f(5).rare, 1); assert.equal(f(15).rare, 0.5);
+  assert.equal(f(11).heroic, 1); assert.equal(f(13).unique, 1); assert.equal(f(40).unique, 1);
+  for (let L = 2; L <= 50; L++) assert.ok(f(L).heroic >= 0.15 && f(L).unique >= 0.15, `level ${L}`);
+  const leg = (L) => P.rarityWeights('boss', L).unique;
+  assert.ok(leg(13) > leg(10) && leg(10) > leg(6) && leg(6) > leg(4) && leg(4) > leg(1), 'Legendaries get commoner as you level');
+});
+test('Reforge to level and the outdated mark follow what drops now', () => {
+  for (const L of [1, 6, 14, 22, 30]) {
+    assert.equal(P.reforgePower(L), Math.round(P.powerAt(P.gearLevel(P.expectedArea(L), L))));
+    assert.ok(P.reforgePower(L) <= P.temperCap(L), 'reforging never passes the tempering cap');
+  }
+  assert.deepEqual(P.RARITY_COST, { common: 1, rare: 1.1, heroic: 1.2, unique: 1.3 });
+  assert.equal(P.OUTDATED_BY, P.POWER_STEP);
+});
+// The balance check of the rework (design §4.1: the hidden rarity strength
+// fell from ×1.12 / 1.25 to ×1.02-1.08; powerMult went from 2% to 2.1% a
+// point to make up for it). The mean weapon damage of a drop, against the
+// old rules worked out here, stays within 7% at every gear level.
+test('balance: a drop’s average weapon damage stays near what it was before the loot rework', () => {
+  const weapons = ITEMS.filter((i) => i.kind === 'weapon' && !i.sig && i.id !== 'hunter_knives');   // (the 27 weapons of before)
+  const avg = (r) => { const l = weapons.filter((i) => i.rarity === r); return l.reduce((a, i) => a + (i.dmg ?? 1) * (i.speed ?? 1), 0) / l.length; };
+  const OLD_MULT = { common: 1, rare: 1.12, unique: 1.25 };
+  const rng = mulberry32(2026);
+  for (const A of [1, 3, 6, 9, 12]) {
+    const L = Math.round(1 + (A - 1) * P.LEVEL_PER_AREA), pw = P.powerAt(A);
+    const u = Math.min(0.2, 0.03 + 0.012 * A), r = Math.min(0.5, 0.2 + 0.025 * A);   // the old rarityOdds(gl)
+    const old = (1 + 0.02 * (pw - 10)) * ((1 - u - r) * avg('common') * OLD_MULT.common + r * avg('rare') * OLD_MULT.rare + u * avg('unique') * OLD_MULT.unique);
+    let sum = 0, n = 0;
+    for (let i = 0; i < 6000; i++) { const it = rollItem(pw, { rng, kind: 'weapon', level: L, source: 'chest' }); it.power = pw; const b = itemInfo(it); sum += gearStats([{ ...it, boons: [] }]).s.meleeMult / (1 + 0) * (b.speed ?? 1); n++; }
+    const now = sum / n;
+    assert.ok(Math.abs(now / old - 1) < 0.07, `gear level ${A} (player level ${L}): ×${(now / old).toFixed(3)} of before`);
+  }
+  assert.equal(P.POWER_PCT, 0.021);
 });

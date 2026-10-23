@@ -4,7 +4,9 @@ This document compares our loot with *Minecraft Dungeons II* (MCD2, 2026), and
 with the original *Minecraft Dungeons* (MCD1) where that helps. It then
 proposes the numbers, items, feedback and sounds that bring us in line with
 MCD2. It is the phase-1 research and design. Phase 2 (the code) follows the
-plan at the end. Nothing under `game/js/` has changed yet.
+plan at the end and is in the game; section 2 describes the game as it was
+before it, and "Phase 2: as built" at the end of section 7 lists where the
+code differs from this design.
 
 Sources are listed at the end and cited inline as [S1], [S2] and so on. Most
 MCD2 figures come from fan sites that read the game's data files, not from
@@ -765,6 +767,41 @@ steps needs `entities/`, except that fodder kills may need a hook (step 4).
 14. **Docs:** update the "Loot and items" section of `game-design.md` (the
     counts, the tiers, signatures, drops and feedback), and the README if it
     lists items.
+
+### Phase 2: as built
+
+The code follows sections 4 and 5, with these differences:
+
+- **`powerMult` is 2.1% a point** (was 2%), the make-up §4.1 names. A
+  time-to-kill sweep (a hero on the level curve, the best weapon of a
+  chapter's drops, against pups, hellhounds, affixed hellhounds and an
+  open-world cyclops champion) found the mean weapon damage of a drop within
+  about 6% of before at every gear level (tested in
+  `progression.test.mjs`); the best weapon of a repeat run is 10-20% weaker
+  from level 6 on, because Legendaries are rarer at low levels (the MCD2
+  ramp), and on a first win the signature makes up the difference.
+- **Drachmas:** the level factor (1 + 0.15 a level) applies to every payout,
+  chests, bosses and pots included, not only the common chest.
+- **Signatures** count once picked up (save.data.signatures is written on
+  pickup, so a signature lost by quitting drops again). On the first win the
+  50% "signature instead of a Legendary" rule is off (the signature already
+  drops). Saves from before the rework hold no signatures, so a boss beaten
+  before drops its signature on the next win.
+- **The chapter reward** comes from the exit's reward chest; a player who
+  leaves without opening it (and chapter 8, which has no boss) gets it
+  straight into the inventory when the chapter completes. Chapter 8's
+  signature, the Lotus Casino Card, comes with it on the first clear.
+- **Drachmas are shared** by everyone on one screen (a companion's pickup
+  too), as MCD2 does; items stay per player. Online, each screen keeps its
+  own, as before.
+- **Drakon-type champions** don't exist yet: the Drakon-Scale Plate is in the
+  ordinary Legendary pool, and `maybeDropFromMonster` makes it the signature
+  of any champion whose kind or id names a drakon.
+- **Icons:** `ui/icons.js` cuts the `icons-*` sheets once they are listed in
+  `game/assets/icons.json` (empty until they are delivered; a test keeps the
+  list in step with the files), so the game never requests a missing sheet.
+- **Minimap marks** for Heroic and Legendary drops are on the chapter
+  minimap; the open world has no minimap.
 
 ---
 

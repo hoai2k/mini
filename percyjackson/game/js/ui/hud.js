@@ -182,7 +182,7 @@ export class HUD {
     const key = n + ':' + old;
     if (this.bagKey === key) return; this.bagKey = key;
     this.bagN.textContent = String(n); this.bagN.classList.toggle('hidden', !n);
-    this.bagN.title = tn('hud.bagNew', n);
+    this.bagN.title = n ? tn('hud.bagNew', n) : '';
     this.bagDot.classList.toggle('hidden', !old);
     this.bag.classList.toggle('hidden', !n && !old);
     if (n) { this.bag.classList.remove('bump'); void this.bag.offsetWidth; this.bag.classList.add('bump'); }

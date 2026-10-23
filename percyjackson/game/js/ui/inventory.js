@@ -19,14 +19,17 @@
 //     items glow. (Shorter with prefers-reduced-motion: style.css.)
 import { h, toast, confirmDialog } from './ui.js';
 import { HEROES } from '../heroes/index.js';
-import { BLESSED, ENCHANTS, KIND_LABEL, itemInfo, itemRarity, salvageValue, enchCost, spentPoints, gearStats, temperCost, rerollCost, rerollRow, sortItems, slotFor, isUpgrade, TEMPER_STEP } from '../loot.js';
+import { BLESSED, ENCHANTS, KIND_LABEL, itemInfo, itemRarity, itemTier, salvageValue, enchCost, spentPoints, gearStats, temperCost, rerollCost, rerollRow, sortItems, slotFor, isUpgrade, TEMPER_STEP, boonName, boonText, reforgeCost, reforgeTarget, canReforge, reforge, isOutdated } from '../loot.js';
+import { iconNode } from './icons.js';
 import { temperCap } from '../progression.js';
 import { flaskCooldown, quiverMax } from '../resources.js';
 import { t as tx, tn } from '../text_config.js';
 
 const SLOT_NAMES = [tx('inventory.slots.weapon'), tx('inventory.slots.armor'), tx('inventory.slots.artifact1'), tx('inventory.slots.artifact2')];
 const SLOT_ICON = ['🗡️', '🛡️', '✨', '✨'];
-const FILTERS = [['all', tx('inventory.filters.all')], ['weapon', tx('inventory.filters.weapon')], ['armor', tx('inventory.filters.armor')], ['artifact', tx('inventory.filters.artifact')]];
+const FILTERS = [['all', tx('inventory.filters.all')], ['weapon', tx('inventory.filters.weapon')], ['armor', tx('inventory.filters.armor')], ['artifact', tx('inventory.filters.artifact')], ['heroic', tx('inventory.filters.heroic')]];
+// a tab's items: a kind, or Heroic and Legendary finds
+const inFilter = (it, f) => f === 'all' || (f === 'heroic' ? ['heroic', 'unique'].includes(itemTier(it)) : itemInfo(it).kind === f);
 const roman = ['', 'I', 'II', 'III'];
 
 // Heroes this player may outfit: their own, plus AI companions when alone.
@@ -130,6 +133,7 @@ export function openInventory(game, player, { forge = false } = {}) {
   const hintKey = device.startsWith('pad') ? 'pad' : device === 'touch' ? 'touch' : 'kbm';
   const close = () => {
     for (const it of save.data.inventory) delete it.isNew;
+    save.data.newCount = 0;
     save.write();
     ui.close('inventory'); game.paused = false; game.last = performance.now();
   };
@@ -177,7 +181,7 @@ export function openInventory(game, player, { forge = false } = {}) {
       redraw('grid0');
     };
     const other = wornBy(d, it.uid, who.hero);
-    if (b.rarity !== 'common' || it.blessed || pts || other) {
+    if (itemTier(it) !== 'common' || it.blessed || pts || other) {
       confirmDialog(game, { title: tx('inventory.salvageTitle'), text: (other ? tx('inventory.salvageWorn', { hero: HEROES[other]?.name ?? other }) + ' ' : '') + (pts ? tx('inventory.salvageTextPoints', { name: b.name, coins, points: pts }) : tx('inventory.salvageText', { name: b.name, coins })), yes: tx('inventory.salvageYes'), no: tx('inventory.salvageNo'), danger: true, onYes: doIt });
     } else doIt();
   };
@@ -194,7 +198,7 @@ export function openInventory(game, player, { forge = false } = {}) {
     const d = save.data, S = save.hero(who.hero), gear = S.gear;
     const cur = gear.map((u) => (u ? save.item(u) : null));
     const all = d.inventory.filter((it) => !gear.includes(it.uid));
-    const items = sortItems(all.filter((it) => filter === 'all' || itemInfo(it).kind === filter));
+    const items = sortItems(all.filter((it) => inFilter(it, filter)));
     const stats = gearStats(cur, who.hero).s;
     // ---- the header: level, drachmas, points, Power
     const chips = h('div', { class: 'inv-chips' },
@@ -207,11 +211,12 @@ export function openInventory(game, player, { forge = false } = {}) {
     // ---- a tile
     const tile = (it, k, slotIdx = -1) => {
       const b = itemInfo(it), R = itemRarity(it), worn = slotIdx >= 0, other = worn ? null : wornBy(d, it.uid, who.hero);
-      const up = !worn && isUpgrade(it, cur, who.hero);
-      const t = h('button', { class: `item ${b.rarity}${it.blessed ? ' blessed' : ''}${worn ? ' equipped' : ''}${sel === it.uid ? ' selected' : ''}${it.isNew ? ' new' : ''}`, 'data-k': k, style: `--rc:${R.color}`,
+      const up = !worn && isUpgrade(it, cur, who.hero), old = worn && isOutdated(it, d.level);
+      const t = h('button', { class: `item ${itemTier(it)}${it.blessed ? ' blessed' : ''}${worn ? ' equipped' : ''}${sel === it.uid ? ' selected' : ''}${it.isNew ? ' new' : ''}`, 'data-k': k, style: `--rc:${R.color}`,
         'aria-label': tx(worn ? 'inventory.itemLabelEquipped' : 'inventory.itemLabel', { name: b.name, power: it.power }) + (up ? ' · ' + tx('inventory.better') : ''),
         onclick: () => press(it) },
-        h('span', { class: 'ico' }, b.icon), h('span', { class: 'pw' }, String(it.power)),
+        h('span', { class: 'ico' }, iconNode(b)), h('span', { class: 'pw' }, String(it.power)),
+        old ? h('span', { class: 'badge-old', title: tx('inventory.outdatedTitle') }) : null,
         it.isNew ? h('span', { class: 'badge-new' }, tx('inventory.new')) : null,
         up ? h('span', { class: 'badge-up', title: tx('inventory.better') }, '▲') : null,
         b.hero === who.hero ? h('span', { class: 'badge-fav', title: tx('inventory.favouriteTitle', { hero: HEROES[who.hero].name }) }, '★') : null,
@@ -223,7 +228,7 @@ export function openInventory(game, player, { forge = false } = {}) {
     const eqRow = h('div', { class: 'slots-eq' }, ...cur.map((it, i) => it ? tile(it, 'slot-' + i, i)
       : h('button', { class: 'item empty', 'data-k': 'slot-' + i, title: SLOT_NAMES[i], onclick: () => { filter = i === 0 ? 'weapon' : i === 1 ? 'armor' : 'artifact'; redraw('grid0'); } },
         h('span', { class: 'slot-ico' }, SLOT_ICON[i]), h('span', { class: 'slot-name' }, SLOT_NAMES[i]))));
-    const count = (k) => all.filter((it) => k === 'all' || itemInfo(it).kind === k).length;
+    const count = (k) => all.filter((it) => inFilter(it, k)).length;
     const tabs = h('div', { class: 'row inv-filters', role: 'tablist' }, ...FILTERS.map(([k, label]) => h('button', { class: 'btn small tab' + (filter === k ? ' primary' : ''), 'data-k': 'tab-' + k, role: 'tab', 'aria-selected': filter === k ? 'true' : 'false', onclick: () => { filter = k; redraw('tab-' + k); } }, tx('inventory.tabCount', { label, n: count(k) }))));
     const grid = h('div', { class: 'inv-grid' }, ...(items.length ? items.map((it) => tile(it, 'it-' + it.uid)) : [h('div', { class: 'hint' }, tx('inventory.empty'))]));
     // opening: the top of the stash (the newest, strongest find) is chosen and focused
@@ -264,14 +269,26 @@ export function openInventory(game, player, { forge = false } = {}) {
           d.coins -= c; it.power += TEMPER_STEP; save.write(); apply(); game.audio?.impact?.(0.6);
           after = () => flash(byK('it-' + it.uid) ?? byK('slot-' + eqIdx), 'equip-flash');
           redraw('temper');
-        })) : null;
+        }),
+        // Reforge to level: straight up to what drops now (the rarer, the dearer)
+        btn('reforge', 'small', canReforge(it, d.level) ? tx('forge.reforge', { power: reforgeTarget(it, d.level), cost: reforgeCost(it, d.level) }) : tx('forge.reforgeNone'), () => {
+          if (!canReforge(it, d.level)) { toast(tx('forge.reforgeNone')); return; }
+          const c = reforgeCost(it, d.level); if (d.coins < c) { toast(tx('forge.noDrachmas')); return; }
+          d.coins -= c; reforge(it, d.level); save.write(); apply(); game.audio?.impact?.(0.8); game.audio?.upgrade?.();
+          toast(tx('forge.reforged', { n: it.power }));
+          after = () => flash(byK('it-' + it.uid) ?? byK('slot-' + eqIdx), 'equip-flash');
+          redraw('reforge');
+        }, canReforge(it, d.level) ? {} : { disabled: true })) : null;
       detail.append(...[
-        h('div', { class: 'iname', style: `color:${R.color}` }, h('span', { class: 'big-ico' }, b.icon), ` ${it.blessed ? tx('loot.blessedName', { name: b.name }) : b.name}`),
+        h('div', { class: 'iname', style: `color:${R.color}` }, h('span', { class: 'big-ico' }, iconNode(b)), ` ${it.blessed ? tx('loot.blessedName', { name: b.name }) : b.name}`),
         h('div', { class: 'rar', style: `color:${R.color}` }, tx('inventory.rarityLine', { rarity: R.label, kind: KIND_LABEL[b.kind], power: it.power })),
         eqIdx >= 0 ? h('div', { class: 'cmp-chip same' }, tx('inventory.wearing')) : there ? h('div', { class: 'cmp-chip ' + (dp > 0 ? 'up' : dp < 0 ? 'down' : 'same') }, dp ? tx('inventory.powerVs', { arrow: dp > 0 ? '▲' : '▼', n: Math.abs(dp), name: itemInfo(there).name }) : tx('inventory.samePower', { name: itemInfo(there).name })) : h('div', { class: 'cmp-chip up' }, tx('inventory.fillsSlot', { slot: SLOT_NAMES[slot] })),
         other ? h('div', { class: 'hint' }, tx('inventory.wornBy', { hero: HEROES[other]?.name ?? other })) : null,
+        eqIdx >= 0 && isOutdated(it, d.level) ? h('div', { class: 'cmp-chip down outdated' }, tx('inventory.outdated')) : null,
         b.hero && HEROES[b.hero] ? h('div', { class: 'fav' }, tx('inventory.favourite', { hero: HEROES[b.hero].name })) : null,
         h('div', { class: 'desc' }, b.desc, b.cd ? h('span', { class: 'cd' }, ' ' + tx('inventory.cooldown', { n: b.cd })) : null, (b.charges ?? 1) > 1 ? h('span', { class: 'cd' }, ' ' + tx('inventory.charges', { n: b.charges })) : null),
+        // boons: the small rolled bonuses (loot.js BOONS)
+        it.boons?.length ? h('div', { class: 'boons' }, h('div', { class: 'hint small' }, tx('inventory.boonsHeading')), ...it.boons.map((x) => h('div', { class: 'boon' }, h('b', {}, boonName(x)), ' ' + boonText(x)))) : null,
         // the action buttons first, so A and a tap are always close by
         h('div', { class: 'row inv-actions' },
           eqIdx >= 0

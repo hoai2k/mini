@@ -18,6 +18,12 @@ export function burnOn(e, dps, dur, src, now) {
   const keep = e.pjBurn && e.pjBurn.until > now ? e.pjBurn.dps : 0;
   e.pjBurn = { until: now + dur, dps: Math.max(dps, keep), src, tick: e.pjBurn?.tick ?? 0.3 };
 }
+// Poison a monster (heroes/kit.js statusTick deals it; entities/enemy.js slows it).
+export function venomOn(e, dps, dur, slow, src, now) {
+  if (e.dead) return;
+  const keep = e.pjVenom && e.pjVenom.until > now ? e.pjVenom.dps : 0;
+  e.pjVenom = { until: now + dur, dps: Math.max(dps, keep), slow, src, tick: e.pjVenom?.tick ?? 0.5 };
+}
 // Freeze a monster solid: held in place and its attack cancelled (not a boss).
 export function freezeSolid(e, dur, now) {
   if (e.dead || e.isBoss || e.isDummy) return false;
@@ -30,7 +36,7 @@ export function freezeSolid(e, dur, now) {
 
 // After a hero's hit on e lands: `base` is the hit before the hero's
 // multipliers, `dealt` what it did. Returns what happened, for the tests:
-// [['heal', n], ['burn', dps], ['freeze'], ['chain', [targets]], ['shock', n]].
+// [['heal', n], ['burn', dps], ['venom', dps], ['freeze'], ['chain', [targets]], ['shock', n]].
 export function hitEffects(src, e, base, dealt, o, api, rng = Math.random) {
   const out = [];
   if (!src?.isPlayer || !o?.melee || dealt <= 0) return out;
@@ -46,6 +52,8 @@ export function hitEffects(src, e, base, dealt, o, api, rng = Math.random) {
   if (!own) return out;
   // Forge Flame: sets the monster burning
   if (P.burn && !e.dead) { const dps = base * PROC.burn(P.burn); burnOn(e, dps, PROC.burnFor, src, api.time); out.push(['burn', dps]); api.fx?.burn?.(e); }
+  // Chimera Venom: poisons (a share of the hit a second) and slows
+  if (P.venom && !e.dead) { const dps = base * PROC.venom(P.venom); venomOn(e, dps, PROC.venomFor, PROC.venomSlow, src, api.time); out.push(['venom', dps]); }
   // Chain Lightning: leaps to the monsters near the one hit
   if (P.chain && rng() < PROC.chain(P.chain)) {
     const list = api.near(e, PROC.chainRange, PROC.chainTargets(P.chain));

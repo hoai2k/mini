@@ -301,28 +301,44 @@ and Greek myth. The full list is in `game/js/loot.js`; its rules are tested in
 
 - **Slots:** each hero has a weapon, an armour and two magic items (D-pad ← / →,
   or R / T). Gear is kept per hero, and companions can be equipped too.
-- **Items:** 61 in all.
-  - 22 weapons. They differ in damage, speed, reach, swing width and
-    knock-back, and some hit twice or pierce shields. Examples: the Labrys of
-    Knossos, Backbiter, the Harpe of Perseus, the Club of Heracles and the
-    Pelian Spear.
-  - 16 armours. They differ in health, protection, speed, cooldowns,
-    healing over time and the chance to dodge a hit. Examples: the Nemean Lion
-    Pelt, the Armour of Achilles and the Golden Fleece Mantle.
-  - 23 magic items, each with its own effect. Examples: Medusa's Head
-    petrifies, the Lyre of Orpheus puts monsters to sleep, the Golden Apple of
-    Discord turns monsters on each other, the Hourglass of Kronos slows time,
-    the Bag of Winds hurls monsters away, the Shadow of the Helm hides the
-    team, and Ariadne's Thread shows the way.
-- **Rarity:** Common, Rare and Legendary. Legendary items carry a built-in
-  enchantment. A Blessed item, a god's gift, adds an enchantment already at
-  III and extra power.
+- **Items:** 84 base items (`design/loot-design.md` has the full design).
+  - 32 weapons (6 Common, 11 Rare, 15 Legendary). They differ in damage,
+    speed, reach, swing width and knock-back, and some hit twice or pierce
+    shields. Examples: the Labrys of Knossos, Backbiter, the Harpe of Perseus,
+    the Club of Heracles, the Pelian Spear and the Horn of the Minotaur.
+  - 24 armours (5 / 10 / 9). They differ in health, protection, speed,
+    cooldowns, healing over time and the chance to dodge a hit. Examples: the
+    Nemean Lion Pelt, the Armour of Achilles, the Golden Fleece Mantle and the
+    Hellhound Hide.
+  - 28 magic items (6 / 13 / 9), each with its own effect. Examples: Medusa's
+    Head petrifies, the Lyre of Orpheus puts monsters to sleep, the Golden
+    Apple of Discord turns monsters on each other, the Hourglass of Kronos
+    slows time, the Bag of Winds hurls monsters away, the Shadow of the Helm
+    hides the team, Ariadne's Thread shows the way, the Shield of Ares raises
+    a dome that stops shots, and the Lotus Casino Card dazes every monster
+    near you.
+  - Items carry place tags (sea, fire, storm, underworld, wild, forge, hunt,
+    war, mortal, lotus); in a place that lists a tag, its items drop three
+    times as often.
+- **Rarity** is rolled for each drop: Common (parchment), Rare (turquoise),
+  Heroic (violet: a Common or Rare base raised a tier) and Legendary
+  (orange). The tier gives the enchantment rows (1 / 2 / 2 / 3) and the boons,
+  small rolled bonuses such as Keen (+4-8% melee damage) or Fleet (+3-6% move
+  speed): 0 / 1 / 2 / 1. Legendary items carry a built-in enchantment. A
+  Blessed item, a god's gift, adds an enchantment already at III and extra
+  power.
+- **Rarity odds** depend on the source (a monster, a chest, a rare chest or
+  elite, a boss or epic chest, a quest, the store), the player's level (no
+  Heroic or Legendary at level 1, more as you level) and the difficulty
+  (+25% Heroic and Legendary a step). The store never sells Legendaries.
+  The Fates' Thread: after 40 drops without a Legendary, the next drop from a
+  rare chest, an elite, a champion, a boss or an epic chest is Legendary.
 - **Power:** an item's power grows with the difficulty and your level. An item
   marked as a hero's favourite (★) gives that hero 10% more power.
 - **Enchanting:** an item has one row of enchantments per rarity level. Each
   row offers two or three choices, and you put enchantment points into ONE of
   them, raising it to II and III. Powerful choices (✦) cost a point more per
-  level. There are 25 enchantments, for example:
+  level. There are 33 enchantments, for example:
   - Celestial Edge
   - Zeus's Spark, which calls down lightning on a hit
   - Echo, a chance to strike twice
@@ -332,24 +348,49 @@ and Greek myth. The full list is in `game/js/loot.js`; its rules are tested in
   - Hephaestus's Embers
   - Tyche's Luck, more drachmas
   - Nimble as a Satyr, a chance to dodge a hit
+  - Chimera Venom, which poisons and slows
+  - Hermes's Haul (monsters drop items more often) and Tyche's Favour
+    (drops are sometimes a rarity better)
 
   Points come from levelling up. Salvaging an item refunds every point spent,
-  plus drachmas.
-- **The forge** (camp): temper an item for +1 power, up to a cap that rises
-  with your level, and re-roll the choices of a row you haven't invested in.
-  Both cost drachmas.
+  plus drachmas (Common 8, Rare 18, Heroic 30, Legendary 45, more for power
+  and Blessed items).
+- **The forge** (camp): temper an item for a quarter of a gear level, up to a
+  cap that rises with your level; reforge it straight up to what drops now;
+  and re-roll the choices of a row you haven't invested in. All cost
+  drachmas, more for rarer items. Gear more than a gear level behind is
+  marked outdated (an amber dot on its slot and on the HUD bag).
 - **The camp store** sells a rotating set of items, tilted toward your hero's
-  favourites.
-- **Drops are per player.** A chest drops one item for every human hero, and a
-  boss drops two each. Elites and champions sometimes drop one for whoever
-  beat them. A drop shows as a beam in its rarity colour, with a ring in its
-  owner's player colour, and only that player can pick it up, so co-op
-  players never compete for loot. After switching heroes, your drops follow
-  you. Online, each browser rolls and keeps its own loot.
+  favourites, and never a Legendary.
+- **Drops are per player.** Every human hero near a kill or a chest gets their
+  own: a minor monster drops an item 2% of the time (swarm fodder 0.4%), an
+  elite-tier kind 8%, an affixed elite 25%, a champion kind 60%, an
+  open-world champion one and often two. A chest drops one (a rare chest one
+  and often two, an epic chest two). A boss drops one to four (2.5 on
+  average) and, the first time you beat it at a difficulty, its **signature
+  Legendary** (12 chapters, 12 signatures: Fury's Flaming Lash, the Horn of
+  the Minotaur, Hellhound Hide, the Wings of the Kindly Ones, Medusa's Head,
+  the Chimera Fang Spear, the Shield of Ares, the Lotus Casino Card,
+  Procrustes's Cleaver, Cerberus's Red Ball, the Burning Sword of Ares and
+  Backbiter). The chest by the exit holds the chapter reward: one item and 20
+  drachmas a level. About 12-13 items a chapter in all.
+- **On the ground**, an item pops out in an arc and lands under a beam of its
+  rarity colour, taller and brighter for rarer items (a Legendary's falls
+  slowly and lands with a shockwave), with a ring in its owner's player
+  colour; only that player can pick it up, and it flies to them from 2.6 m.
+  A Legendary off screen gets an arrow at the edge of the screen; Heroic and
+  Legendary drops show on the minimap. Each rarity has its own landing and
+  pickup sound. After switching heroes, your drops follow you. Online, each
+  browser rolls and keeps its own loot.
 - **Picking an item up** shows a card that compares it with what that hero has
-  equipped (▲ / ▼). New items are marked NEW in the inventory.
-- **Golden drachmas** are the currency. Spend them in the store and at the
-  forge.
+  equipped (▲ / ▼): one line for a Common (three in a row merge), the full
+  card for a Rare, its boons for a Heroic, and a large card with a LEGENDARY
+  ribbon for a Legendary. New items are marked NEW in the inventory, and the
+  HUD bag counts them.
+- **Golden drachmas** are the currency, shared by the players on one screen.
+  Minor monsters pay only now and then; chests, bosses and broken pots,
+  crates and barrels pay most. A payout of five or more drops as stacks
+  worth five. Spend them in the store and at the forge.
 - **Ambrosia** (a square) and **nectar** (a cup) heal.
 
 ## Camp Half-Blood (the home base)

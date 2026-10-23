@@ -521,9 +521,9 @@ function signatureItem(key, power, difficulty, o) {
   return it;
 }
 // A boss's loot for ONE player (§4.3-4.4): 1 guaranteed + 3 at 50% on the boss
-// table; a Legendary from it is the boss's signature half the time; and on
-// the first win at this difficulty (first: true) the signature itself, on
-// top, at boss power. Returns { items (Legendaries last), signature }.
+// table; on a later win a Legendary from it is the boss's signature half the
+// time; on the first win at this difficulty (first: true) the signature
+// itself comes on top, at boss power. Returns { items (Legendaries last), signature }.
 export function rollBossLoot(key, area, o = {}) {
   const rng = o.rng ?? Math.random, level = o.level ?? 1, difficulty = o.difficulty ?? 1;
   const sigId = BOSS_SIGNATURE[key];
@@ -532,7 +532,7 @@ export function rollBossLoot(key, area, o = {}) {
   for (let i = 0; i < n; i++) {
     const pw = powerFor(area, level, rng, 'boss');
     const tier = rollTierFor('boss', { level, difficulty, rng, raider: o.raider ?? 0, pity: o.pity });
-    if (tier === 'unique' && sigId && rng() < SIGNATURE_REPEAT) items.push(rollItem(pw, { ...o, rng, level, id: sigId, pity: null }));
+    if (tier === 'unique' && sigId && !o.first && rng() < SIGNATURE_REPEAT) items.push(rollItem(pw, { ...o, rng, level, id: sigId, pity: null }));
     else items.push(rollItem(pw, { ...o, rng, level, source: 'boss', tier, pity: null }));
   }
   const signature = o.first && sigId ? signatureItem(key, powerFor(area, level, rng, 'boss'), difficulty, { ...o, rng, level }) : null;

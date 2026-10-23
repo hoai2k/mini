@@ -100,6 +100,15 @@ export function statusTick(g, dt) {
         if (b.tick <= 0) { b.tick = 0.4; g.combat.damageEnemy(e, b.dps * 0.4, b.src, { stagger: 0, ceGain: 0, color: '#ff9a3a', crit: false, burn: true }); }
       }
     }
+    if (e.pjVenom) {   // Chimera Venom (gearEffects.js): green poison ticks
+      const v = e.pjVenom;
+      if (v.until <= g.time) e.pjVenom = null;
+      else {
+        v.tick -= dt;
+        if (Math.random() < dt * 14) P.emit(e.pos.x + (Math.random() - 0.5) * 0.6, e.pos.y + Math.random() * h, e.pos.z + (Math.random() - 0.5) * 0.6, 0, 0.8, 0, 0.5, 0.4, 2.4, 0.5, 0.14, -0.5, 1, 1, 1);
+        if (v.tick <= 0) { v.tick = 0.5; g.combat.damageEnemy(e, v.dps * 0.5, v.src, { stagger: 0, ceGain: 0, color: '#9aff5a', crit: false, burn: true }); }
+      }
+    }
     if (e.pjFear) {
       const f = e.pjFear;
       if (f.until <= g.time || e.dead) e.pjFear = null;

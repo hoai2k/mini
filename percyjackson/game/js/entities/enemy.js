@@ -21,6 +21,8 @@
 //   mark         seconds: takes +50% damage while > 0
 //   slowT        seconds: legacy 40% speed slow (hazards, frost procs)
 //   sealT        seconds: held in place (artifacts)
+//   dazeT        seconds: dazed (the Lotus Casino Card): 40% speed, +20% damage taken
+//   pjVenom      { until, dps, slow, src }: poisoned by Chimera Venom (heroes/kit.js statusTick)
 //   awake        a 'statue' monster is moving (set true to spawn it awake)
 //   bossSummon   the boss that called this monster (it may clear them on death)
 //   scold(hero)  a mortal-looking person (disguised, or a real mortal: def.mortal)
@@ -230,7 +232,7 @@ export class Enemy {
     if (this.foe && !this.foe.hunt) { this.foe.hunt = true; this.foe.provoked = true; }   // (the museum: hit one, and it fights back)
     if (this.bones) { this.hp = 0; this.die({ ...o, scattered: true }); return amount; }   // scatter the bones
     if (this.def.ai === 'statue' && !this.awake) this.wake();
-    let dmg = amount * (this.mark > 0 ? 1.5 : 1);
+    let dmg = amount * (this.mark > 0 ? 1.5 : 1) * (this.dazeT > 0 ? 1.2 : 1);   // (dazed by the Lotus Casino Card: +20%)
     // Bulwark shields block frontal hits
     if (this.def.shield && src && !o.unblockable && this.state !== 'stagger') {
       const from = Math.atan2(src.pos.x - this.pos.x, src.pos.z - this.pos.z);
@@ -357,7 +359,7 @@ export class Enemy {
     const want = tmp.copy(dir).setY(0);
     if (this.foe?.hunt) this.foe.route?.(this, want);   // (the museum: far from the heroes, follow the way through the rooms)
     if (want.lengthSq() > 0) want.normalize();
-    const slow = (this.slowT > 0 ? 0.4 : 1) * (this.status.slow > 0 ? 0.5 : 1);
+    const slow = (this.slowT > 0 ? 0.4 : 1) * (this.status.slow > 0 ? 0.5 : 1) * (this.dazeT > 0 ? 0.4 : 1) * (this.pjVenom?.until > g.time ? 1 - this.pjVenom.slow : 1);   // (dazeT: the Lotus Casino Card; pjVenom: Chimera Venom)
     want.multiplyScalar(this.speed * speedMul * slow * (this.dashT > 0 ? 1.12 : 1));
     // separation: a push at full walking speed (not scaled by speedMul), so
     // monsters crowding a hero still spread out round them
@@ -435,7 +437,7 @@ export class Enemy {
     if (this.bones) return this.updateBones(dt);
     if (this.def.ai === 'statue' && !this.awake) return this.updateDormant(dt);
     const S = this.status;
-    S.fear = Math.max(0, S.fear - dt); S.root = Math.max(0, S.root - dt); S.slow = Math.max(0, S.slow - dt); this.mark = Math.max(0, this.mark - dt);
+    S.fear = Math.max(0, S.fear - dt); S.root = Math.max(0, S.root - dt); S.slow = Math.max(0, S.slow - dt); this.mark = Math.max(0, this.mark - dt); this.dazeT = Math.max(0, (this.dazeT ?? 0) - dt);
     let t;
     if (this.foe && !this.foe.hunt) {
       // the museum: seen through the Mist but not after you (yet): it goes about its business

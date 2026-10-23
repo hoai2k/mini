@@ -16,7 +16,7 @@
 //                  (gearLevel), plus a little for better sources (a champion's
 //                  epic chest, a boss). Item power is 10 at gear level 1 and
 //                  13 more per level (powerAt), and an item's strength grows
-//                  2% per point of power (powerMult), so a weapon from level-12
+//                  2.1% per point of power (powerMult), so a weapon from level-12
 //                  monsters hits about four times as hard as the training
 //                  sword, as those monsters have about five times the health.
 //
@@ -84,8 +84,12 @@ export function itemPowerFor(area = 1, playerLevel = 1, source = 'chest', rng = 
   const gl = gearLevel(area, playerLevel) + (SOURCE_BONUS[source] ?? 0) + (rng() - 0.5) * 0.8;
   return Math.max(1, Math.round(powerAt(Math.max(1, gl))));
 }
-// How much stronger an item of this power is (×): 2% a point.
-export const powerMult = (power = 10) => Math.max(0.5, 1 + (power - POWER_BASE) * 0.02);
+// How much stronger an item of this power is (×): 2.1% a point. (It was 2%;
+// the loot rework shrank rarity's hidden strength from ×1.12 / 1.25 to
+// ×1.02-1.08, and design/loot-design.md §4.1 names 2.1% as the make-up:
+// the time-to-kill sweep in its phase-2 notes.)
+export const POWER_PCT = 0.021;
+export const powerMult = (power = 10) => Math.max(0.5, 1 + (power - POWER_BASE) * POWER_PCT);
 // The cap on tempering at the forge: a little above what you'd find now.
 export const temperCap = (playerLevel = 1) => Math.round(powerAt(expectedArea(playerLevel) + 1));
 

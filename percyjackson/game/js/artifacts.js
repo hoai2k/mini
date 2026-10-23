@@ -15,6 +15,7 @@ export function useArtifact(game, p, art) {
   // average, and an ally's hits count as the hero's), so `power` is the
   // item's share on top; an ally's health takes the whole of it.
   const full = itemStrength(art.it), power = full / Math.max(1, p.stats.gearScale ?? 1);
+  const L = art.lasting ?? 1;   // the Lasting boon: this item's effect lasts longer (loot.js BOONS)
   const from = p.pos.clone().setY(p.pos.y + 1.1);
   const aim = p.aimDir.clone().setY(0).normalize();
   switch (b.act) {
@@ -133,7 +134,7 @@ export function useArtifact(game, p, art) {
     // ---------------------------------------------------------------- control
     case 'prison': { // Medusa's Head: petrify nearby monsters
       p.kit.cast(0.5, true);
-      near(g, p.pos, 8, (e) => { if (e.isBoss) { e.stunT = Math.max(e.stunT ?? 0, 1.2); return; } e.sealT = 4; g.fx.summonCircle(e.pos, 0xb8b0a0); });
+      near(g, p.pos, 8, (e) => { if (e.isBoss) { e.stunT = Math.max(e.stunT ?? 0, 1.2); return; } e.sealT = 4 * L; g.fx.summonCircle(e.pos, 0xb8b0a0); });
       g.fx.shockwave(p.pos, 0xc8c0b0, 8);
       g.fx.flash(0xc8c0b0, 0.25, 0.25);
       g.audio?.gong();
@@ -173,7 +174,7 @@ export function useArtifact(game, p, art) {
       break;
     }
     case 'hourglass': { // Hourglass of Kronos: monsters slow to a crawl
-      g.battleSense?.(4);
+      g.battleSense?.(4 * L);
       g.fx.flash(0xc8a060, 0.3, 0.4);
       g.fx.screenWave(p.pos.clone().setY(p.pos.y + 1), 1, 0.8);
       g.audio?.gong();
@@ -187,7 +188,7 @@ export function useArtifact(game, p, art) {
     }
     // ---------------------------------------------------------------- support
     case 'barrier': { // Aegis Charm
-      p.barrierT = 5;
+      p.barrierT = 5 * L;
       g.fx.rings.spawn(tmp.set(p.pos.x, p.pos.y + 0.06, p.pos.z), { color: 0xffe08a, r0: 0.5, r1: 3, dur: 0.5, thick: 0.12 });
       g.audio?.energy('infinity');
       break;
@@ -202,12 +203,12 @@ export function useArtifact(game, p, art) {
       const team = g.players.filter((q) => !q.dead && !q.remote);
       for (const q of team) { q.invisible = true; q.rig.setDissolve?.(0.55); g.particles.burst(q.pos.clone().setY(q.pos.y + 1), { count: 20, color: 0x1a1426, additive: false, speed: 2, life: 0.8, size: 0.5, sizeEnd: 1.6 }); }
       for (const e of g.enemies) if (e.target && team.includes(e.target)) e.target = null;
-      setTimeout(() => { for (const q of team) { q.invisible = false; q.rig.setDissolve?.(0); } }, 5000);
+      setTimeout(() => { for (const q of team) { q.invisible = false; q.rig.setDissolve?.(0); } }, 5000 * L);
       g.audio?.energy('infinity');
       break;
     }
     case 'shoes': { // Winged Sneakers
-      p.speedBuffT = 6; p.speedBuff = 0.45;
+      p.speedBuffT = 6 * L; p.speedBuff = 0.45;
       g.particles.burst(p.pos.clone().setY(p.pos.y + 0.3), { count: 16, color: 0xffffff, speed: 2, up: 1, life: 0.5, size: 0.18, shape: 1 });
       g.audio?.whoosh(0.8);
       break;
@@ -230,20 +231,75 @@ export function useArtifact(game, p, art) {
       g.pickups.drop('heal', p.pos, 3);
       g.pickups.drop('coin', p.pos, 8 + Math.round(full * 4));
       g.pickups.drop('ce', p.pos, 2);
-      g.audio?.loot?.('rare');
+      g.audio?.lootDrop?.('rare');
+      break;
+    }
+    // ---------------------------------------------------------------- the loot rework's magic items (design/loot-design.md §4.5)
+    case 'bulwark': { // Shield of Ares: a bronze dome that stops shots and shoves monsters back
+      const R = 3.5, dur = 4 * L;
+      const dome = new THREE.Mesh(new THREE.SphereGeometry(R, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicNodeMaterial({ color: new THREE.Color(0xd8a040).multiplyScalar(1.4), transparent: true, opacity: 0.22, depthWrite: false, side: THREE.DoubleSide }));
+      dome.position.copy(p.pos); g.scene.add(dome);
+      g.fx.shockwave(p.pos, 0xd8a040, R);
+      let t = 0;
+      g.addUpdater((dt) => {
+        t += dt; dome.position.copy(p.pos);
+        dome.material.opacity = 0.22 * Math.min(1, (dur - t) * 3) * (0.85 + 0.15 * Math.sin(t * 9));
+        for (const q of [...g.projectiles.list]) if (q.team !== 'player' && q.pos.distanceTo(p.pos) < R + 0.3) { g.fx.hitSpark(q.pos, null, { color: 0xffd890 }); g.projectiles.kill(q, 'blocked'); }
+        near(g, p.pos, R + 0.4, (e) => { if (e.bulwarkT > g.time) return; e.bulwarkT = g.time + 0.6; e.knock?.add(tmp.subVectors(e.pos, p.pos).setY(0).normalize().multiplyScalar(e.isBoss ? 4 : 14)); e.cancelAttack?.(); if (!e.isBoss) { e.state = 'stagger'; e.stateT = 0; } });
+        if (t >= dur || p.dead) { g.scene.remove(dome); dome.geometry.dispose(); dome.material.dispose(); return false; }
+        return true;
+      });
+      g.toast?.(tr('artifacts.bulwark'));
+      g.audio?.impact(1.2, 'metal');
+      break;
+    }
+    case 'lotus': { // Lotus Casino Card: monsters near you forget the fight (slow, and take more damage)
+      p.kit.cast(0.4, true);
+      const n = near(g, p.pos, 8, (e) => { e.dazeT = Math.max(e.dazeT ?? 0, (e.isBoss ? 2 : 5) * L); if (!e.isBoss) e.target = null; g.particles.burst(e.pos.clone().setY(e.pos.y + (e.height ?? 1.5)), { count: 8, color: 0x7aff9a, speed: 1, up: 1, life: 1, size: 0.18, shape: 1 }); });
+      g.fx.shockwave(p.pos, 0x7aff9a, 8);
+      g.fx.flash(0x9affc0, 0.18, 0.3);
+      g.toast?.(tn('artifacts.lotus', n));
+      g.audio?.tone({ freq: 523, to: 784, dur: 0.6, gain: 0.08, type: 'triangle', rev: 0.6 });
+      break;
+    }
+    case 'fetch': { // Cerberus's Red Ball: a spectral three-headed pup chases the ball, biting what it passes
+      p.kit.cast(0.3);
+      g.projectiles.fire({ pos: from, vel: aim.clone().multiplyScalar(16), team: 'player', shape: 'orb', color: 0xe8302a, emissive: 1.6, life: 0.7, radius: 0.4, scale: 1.2, gravity: 6, onHit: (e) => g.combat.damageEnemy(e, 8 * power, p, { stagger: 0.3 }) });
+      const pup = new Ally(g, p, 'dog', p.pos.clone().addScaledVector(aim, 1.2), { life: 8 * L, hpMult: full, dmgMult: 0.46 * power, color: 0x8a2a3a });
+      g.allies.push(pup);
+      g.toast?.(tr('artifacts.fetch'));
+      g.audio?.voiceSample?.('bark', 1.1);
+      break;
+    }
+    case 'vines': { // Dionysus's Grapevine: vines hold monsters near you in place
+      p.kit.cast(0.4, true);
+      const n = near(g, p.pos, 6, (e) => { e.status && (e.status.root = Math.max(e.status.root, (e.isBoss ? 1 : 3) * L)); g.fx.summonCircle(e.pos, 0x6a2a8a); g.particles.burst(e.pos.clone().setY(e.pos.y + 0.3), { count: 12, color: 0x5aa83a, speed: 1.5, up: 3, life: 0.9, size: 0.2, shape: 1 }); });
+      g.fx.shockwave(p.pos, 0x5aa83a, 6);
+      g.toast?.(tn('artifacts.vines', n));
+      g.audio?.noise?.({ dur: 0.5, gain: 0.25, type: 'bandpass', freq: 500, sweep: 1500, q: 1 });
+      break;
+    }
+    case 'vitamins': { // Hermes's Multivitamins: run faster and heal for a few seconds
+      const dur = 4 * L;
+      p.speedBuffT = Math.max(p.speedBuffT ?? 0, dur); p.speedBuff = Math.max(p.speedBuffT > dur ? p.speedBuff ?? 0 : 0, 0.25);
+      const r = p.healOverTime; p.healOverTime = { left: (r?.left ?? 0) + p.maxHp * 0.15, t: Math.max(dur, r?.t ?? 0) };
+      g.fx.heal(p.pos, 0xffe07a);
+      g.particles.burst(p.pos.clone().setY(p.pos.y + 1), { count: 14, color: 0xffe07a, speed: 2, up: 2, life: 0.6, size: 0.16, shape: 1 });
+      g.toast?.(tr('artifacts.vitamins'));
+      g.audio?.energy?.('heal');
       break;
     }
     case 'pegasus': // Pegasus Whistle: a diving ally
     case 'corpse': {
       const pos = p.pos.clone().addScaledVector(aim, 1.5);
-      g.allies.push(new Ally(g, p, 'nue', pos, { life: 12, hpMult: full, dmgMult: power, color: 0xf4f4ff }));
+      g.allies.push(new Ally(g, p, 'nue', pos, { life: 12 * L, hpMult: full, dmgMult: power, color: 0xf4f4ff }));
       g.audio?.energy('summon');
       break;
     }
     case 'snakes': { // Caduceus: George and Martha
       for (const s of [-1, 1]) {
         const pos = p.pos.clone().add(new THREE.Vector3(Math.cos(p.facing) * s * 1.2, 0, -Math.sin(p.facing) * s * 1.2));
-        g.allies.push(new Ally(g, p, 'dog', pos, { life: 12, hpMult: full * 0.8, dmgMult: power, color: 0x4a9a4a }));
+        g.allies.push(new Ally(g, p, 'dog', pos, { life: 12 * L, hpMult: full * 0.8, dmgMult: power, color: 0x4a9a4a }));
       }
       g.audio?.energy('summon');
       break;

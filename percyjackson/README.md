@@ -371,21 +371,28 @@ turn and zoom by touch (drag, pinch).
     Demigod and Hero add their step on top. The prologue's rats bite for about
     6%.
 - **Gear:** in the Minecraft Dungeons style, from Greek myth.
-  - 68 weapons, armours and magic items, common, rare and legendary.
+  - 84 weapons, armours and magic items. Rarity is rolled for each drop:
+    Common, Rare, Heroic (a Common or Rare item raised a tier) and Legendary,
+    by the source, your level and the difficulty; the tier gives enchantment
+    rows and boons (small rolled bonuses). Every chapter boss has a signature
+    Legendary that drops on the first win at each difficulty, and the Fates'
+    Thread makes a Legendary certain after 40 drops without one
+    (`design/loot-design.md`).
   - Item power follows the monster level of the place (a chapter's level, a
     chest's spot, the monster that dropped it), nudged toward your own
     level, with more for a rare chest, a boss or a champion's epic chest
     (`js/progression.js`). Power 10 at monster level 1, 13 more a level; an
-    item grows 2% stronger a point, so level-12 gear keeps pace with
+    item grows 2.1% stronger a point, so level-12 gear keeps pace with
     level-12 monsters (about five times the health). Abilities, shots and
     magic items scale with the average power of what you wear (your Power).
   - Chapters take the monster level of the place they start (chapters 1-2
     level 1, chapter 12 level 12), plus one a difficulty step.
-  - 30 enchantments, each with a plain-words line in the inventory: Vampire's
+  - 33 enchantments, each with a plain-words line in the inventory: Vampire's
     Kiss (life steal), Forge Flame (sets monsters on fire), Boreas's Chill
     (slows, sometimes freezes solid), Chain Lightning, Poseidon's Shove (a
     knock-back burst), Whirlwind, critical hits, Winged Heels (speed after a
-    magic item), Ambrosia Shield (half damage after a drink), cooldowns and
+    magic item), Ambrosia Shield (half damage after a drink), Chimera Venom,
+    Hermes's Haul (more item drops), Tyche's Favour (rarer drops), cooldowns and
     more (`js/gearEffects.js`, numbers in `loot.js` PROC).
   - Some magic items hold charges (Greek Fire, the Master Bolt, the Boar
     Tusk, the Winged Sneakers, the Stymphalian Feathers); one comes back
@@ -398,10 +405,14 @@ turn and zoom by touch (drag, pinch).
     ▲ / red ▼, before → after) and its enchantments in plain words; press it
     again (A, Enter, a second click or tap) to equip it: it flies into its
     slot. X salvages (drachmas pop up to the counter), LB / RB or Q / E
-    change tabs.
+    change tabs (Heroic+ shows the best finds). Outdated gear gets an amber
+    dot; the HUD bag counts NEW items.
   - Blessed items and hero favourites.
-  - The forge: temper items and re-roll enchantment choices.
-  - Loot drops separately for every player.
+  - The forge: temper items, reforge them to your level and re-roll
+    enchantment choices (rarer items cost more).
+  - Loot drops separately for every player: beams, light and sound grow with
+    the rarity, with an arrow at the screen's edge for a Legendary off
+    screen; the store never sells Legendaries.
 - **Camp minigames:** the archery range and the climbing wall.
 - **Multiplayer:** up to four players on one screen (press Start on a
   controller to join), and online play from the hero select (Play online, Y)
@@ -417,8 +428,8 @@ turn and zoom by touch (drag, pinch).
   resume point is the one that counts; guests just rejoin.
 - **Profiles:** every player has their own saved progress, chosen on the hero
   select (X on a controller cycles it): level, drachmas, gear for each hero,
-  unlocked heroes, chapters and the prophecy. Loot and drachmas go to whoever
-  picks them up; finishing a chapter credits everyone. A profile's code
+  unlocked heroes, chapters and the prophecy. Loot goes to whoever it dropped for and
+  drachmas are shared by the players on one screen; finishing a chapter credits everyone. A profile's code
   (Profiles on the hero select) carries it to another device, where it merges
   with what's there.
 - **Story:** story cards with the concept art, and a prophecy scroll whose

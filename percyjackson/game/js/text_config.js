@@ -1175,7 +1175,7 @@ export const TEXT = {
     noDrachmas: 'Not enough drachmas',
     reroll: 'Re-roll choices (◆{cost})',
     temper: 'Temper +{n} power (◆{cost})',
-    help: 'Temper makes an item stronger. Re-roll swaps the choices of an enchantment row you haven’t used.',
+    help: 'Temper makes an item a little stronger; Reforge brings it straight up to what you find now (rarer items cost more). Re-roll swaps the choices of an enchantment row you haven’t used.',
     temperCap: 'This item is as strong as the forge can make it for now',
     reforge: 'Reforge to level {power} (◆{cost})',
     reforged: 'Reforged to power {n}!',
