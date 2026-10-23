@@ -71,7 +71,15 @@ export class Minimap {
       else { ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2); ctx.fill(); }
     };
     for (const it of L.objective.items) if (!it.done && this.revealed.has(it.room)) dot(it.pos.x, it.pos.z, '#ffd84a', full ? 5 : 3.5, 's');
-    for (const c of L.chests) if (!c.opened && this.revealed.has(c.room)) dot(c.pos.x, c.pos.z, c.rarity === 'rare' ? '#4ad0ff' : '#c8a060', full ? 4 : 3, 's');
+    for (const c of L.chests) if (!c.opened && this.revealed.has(c.room)) dot(c.pos.x, c.pos.z, c.rarity === 'rare' ? '#3fe0b0' : c.rarity === 'reward' ? '#b884ff' : '#c8a060', full ? 4 : 3, 's');
+    // Heroic drops: a dot; Legendaries: a star (lootdrops.js marks())
+    for (const m of g.loot?.marks?.() ?? []) {
+      const px = ox + m.x * scale, py = oy + m.z * scale;
+      if (!full && (px < -5 || py < -5 || px > cw + 5 || py > ch + 5)) continue;
+      ctx.fillStyle = m.color; ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
+      if (m.mark === 'star') { const R = full ? 7 : 5; ctx.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? R * 0.45 : R; ctx.lineTo(px + Math.cos(a) * r, py + Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.stroke(); }
+      else { ctx.beginPath(); ctx.arc(px, py, full ? 4 : 3, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); }
+    }
     for (const e of g.enemies) if (!e.dead && !e.isDummy && !e.disguised) dot(e.pos.x, e.pos.z, e.isBoss ? '#ff4a3a' : e.elite ? '#f0c867' : '#e8664a', e.isBoss ? 5 : 2);
     if (g.objectiveDone || full) { const b = L.bossRoom.center; if (g.objectiveDone) dot(b.x, b.z, '#ff3a3a', full ? 7 : 4, 's'); }
     if (g.exitPortal) dot(g.exitPortal.pos.x, g.exitPortal.pos.z, '#5fe0d0', full ? 7 : 4);

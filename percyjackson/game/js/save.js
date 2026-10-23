@@ -42,6 +42,12 @@ export function freshData(name = t('profiles.player1'), id = newId()) {
     stats: { kills: 0, missions: 0, deaths: 0, domains: 0 },
     minigames: {},
     shop: null,
+    // loot (design/loot-design.md): drops since the last Legendary (the Fates'
+    // Thread pity rule), each boss's signature won at which difficulty, and
+    // the NEW items not yet seen in the inventory (the HUD badge)
+    sinceLegendary: 0,
+    signatures: {},
+    newCount: 0,
   };
 }
 
@@ -65,6 +71,12 @@ export function normalizeData(d, fallbackName = t('profiles.player1')) {
   out.stats = { ...base.stats, ...(d.stats && typeof d.stats === 'object' ? d.stats : {}) };
   out.minigames = d.minigames && typeof d.minigames === 'object' ? d.minigames : {};
   for (const k of ['coins', 'level', 'xp', 'enchantPoints', 'rev', 'updated']) out[k] = Number.isFinite(d[k]) ? d[k] : base[k];
+  // loot fields (saves from before the loot rework have none: they start at zero,
+  // and a boss beaten before still drops its signature on the next win)
+  out.sinceLegendary = Number.isFinite(d.sinceLegendary) ? Math.max(0, Math.floor(d.sinceLegendary)) : 0;
+  out.signatures = {};
+  if (d.signatures && typeof d.signatures === 'object') for (const [k, v] of Object.entries(d.signatures)) if (Number.isFinite(v) && v > 0) out.signatures[k] = Math.min(4, Math.floor(v));
+  out.newCount = out.inventory.filter((it) => it.isNew).length;
   out.level = Math.max(1, Math.floor(out.level));
   // skill trees: old ids moved, the rules applied, points = level - spent (heroes/skillRules.js)
   for (const [k, h] of Object.entries(out.heroes)) migrateHero(k, h, out.level);

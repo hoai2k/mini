@@ -14,6 +14,9 @@ const MUSIC_FILES = { title: 'title', hub: 'camp', camp: 'camp', museum: 'museum
 // Ambiences with a recorded bed under assets/ambience/ (replacing the synthesised chirps).
 const AMB_FILES = { forest: 'crickets', night: 'crickets' };
 
+// loot sounds by tier (assets/sfx/loot_<id>, pickup_<id>) and the notes they fall back to
+const LOOT_SFX = { common: 'common', rare: 'rare', heroic: 'heroic', unique: 'legendary', legendary: 'legendary' };
+const LOOT_NOTES = { common: [2637], rare: [1568, 2093], heroic: [988, 1319, 1568], legendary: [784, 1047, 1319, 1568, 2093] };
 const FODDER_VOICES = new Set(['rustle', 'chitter', 'clack', 'wail', 'snort', 'whir', 'shriek']);
 export class Audio {
   constructor() {
@@ -218,8 +221,52 @@ export class Audio {
     this.noise({ dur: 0.6, gain: 0.9, type: 'lowpass', freq: 6000, sweep: 60, rev: 0.8, at: 1.3 });
   }
   gong() { this.tone({ freq: 110, to: 105, dur: 3, gain: 0.35, type: 'sine', rev: 0.8 }); this.tone({ freq: 277, to: 270, dur: 2.5, gain: 0.12, type: 'sine', rev: 0.8 }); this.tone({ freq: 413, dur: 2, gain: 0.06, type: 'sine', rev: 0.8 }); }
-  coin() { if (this.throttle('coin', 40)) return; if (this.sample('coin', { gain: 0.6, jitter: 0.08 })) return; this.tone({ freq: 1568, dur: 0.08, gain: 0.07, type: 'square', filter: 5000 }); this.tone({ freq: 2093, dur: 0.12, gain: 0.06, type: 'square', filter: 5000, at: 0.06 }); }
-  loot(rarity) { if (this.sample('loot', { gain: rarity === 'unique' ? 1 : 0.8, rate: rarity === 'unique' ? 0.92 : 1 }) && rarity !== 'unique') return; const f = rarity === 'unique' ? [523, 784, 1046, 1568] : rarity === 'rare' ? [659, 988, 1318] : [784, 1046]; f.forEach((x, i) => this.tone({ freq: x, dur: 0.35, gain: 0.09, type: 'triangle', rev: 0.4, at: i * 0.08 })); }
+  coin(stack = false) { if (stack) { this.note('coin', 'stack'); if (this.throttle('coin_stack', 60)) return; if (this.sample('coin_stack', { gain: 0.7, jitter: 0.06 })) return; } if (this.throttle('coin', 40)) return; if (this.sample('coin', { gain: 0.6, jitter: 0.08 })) return; this.tone({ freq: 1568, dur: 0.08, gain: 0.07, type: 'square', filter: 5000 }); this.tone({ freq: 2093, dur: 0.12, gain: 0.06, type: 'square', filter: 5000, at: 0.06 }); }
+  // ---- loot (design/loot-design.md §5.4): a sound per tier when an item lands
+  // and when it is picked up, chests by kind, the boss's loot and the
+  // upgrade chime. Each plays its recorded file (assets/sfx/, made by
+  // design/source/build_loot_sfx.py) and falls back to these synthesised notes.
+  // note(): when the page sets window.__lootAudio = [], every loot sound is
+  // logged there (the browser checks read it).
+  note(kind, arg) { const L = typeof window !== 'undefined' && window.__lootAudio; if (Array.isArray(L)) L.push({ kind, arg, t: Math.round(performance.now()) }); }
+  lootDrop(tier = 'common', { far = false } = {}) {
+    this.note('lootDrop', tier);
+    const id = LOOT_SFX[tier] ?? 'common';
+    if (this.throttle('loot-' + id, 50)) return;
+    if (this.sample('loot_' + id, { gain: far ? 0.5 : 0.9, jitter: 0.02 })) return;
+    if (!this.started) return;
+    this.noise({ dur: 0.12, gain: 0.25, freq: 400 });
+    LOOT_NOTES[id].forEach((f, i) => this.tone({ freq: f, dur: 0.35, gain: 0.08, type: 'triangle', rev: 0.4, at: i * 0.07 }));
+    if (id === 'legendary') this.tone({ freq: 95, to: 32, dur: 0.5, gain: 0.3 });
+  }
+  lootPickup(tier = 'common', blessed = false) {
+    this.note('lootPickup', tier);
+    const id = LOOT_SFX[tier] ?? 'common';
+    if (!this.sample('pickup_' + id, { gain: 0.9, jitter: 0.03 }) && this.started) LOOT_NOTES[id].forEach((f, i) => this.tone({ freq: f, dur: 0.2, gain: 0.08, type: 'sine', rev: 0.3, at: i * 0.055 }));
+    if (blessed && !this.sample('pickup_rare', { gain: 0.45, rate: 1.25, at: 0.12 }) && this.started) this.tone({ freq: 2637, dur: 0.3, gain: 0.04, type: 'triangle', rev: 0.4, at: 0.12 });
+  }
+  chestOpen(kind = 'common') {
+    this.note('chestOpen', kind);
+    const id = kind === 'common' ? 'chest' : kind === 'rare' ? 'chest_rare' : 'chest_epic';
+    if (this.sample(id, { gain: 0.9 })) return;
+    if (id !== 'chest' && this.sample('chest', { gain: 0.9 })) { this.lootDrop(kind === 'rare' ? 'rare' : 'heroic'); return; }
+    this.lootDrop(kind === 'common' ? 'common' : kind === 'rare' ? 'rare' : 'heroic');
+  }
+  bossLoot() {
+    this.note('bossLoot');
+    if (this.sample('boss_loot', { gain: 1, jitter: 0 })) return;
+    if (!this.started) return;
+    [196, 262, 330, 392, 523].forEach((f, i) => this.tone({ freq: f, dur: 0.4, gain: 0.1, type: 'square', filter: 3000, at: i * 0.09, rev: 0.3 }));
+    setTimeout(() => this.gong(), 480);
+  }
+  upgrade(at = 0) {
+    this.note('upgrade');
+    if (this.sample('upgrade', { gain: 0.85, at })) return;
+    if (!this.started) return;
+    [1047, 1319, 1568].forEach((f, i) => this.tone({ freq: f, dur: 0.18, gain: 0.06, type: 'triangle', at: at + i * 0.05 }));
+  }
+  // (the old one-sound-for-all: kept for older callers)
+  loot(rarity) { this.lootDrop(rarity); }
   breakBlock(kind = 'wood') { if (this.throttle('break', 30)) return; if (this.sample(kind === 'wood' ? 'break_wood' : 'break_pot', { gain: 0.8 })) return; this.noise({ dur: 0.25, gain: 0.35, type: 'bandpass', freq: kind === 'wood' ? 700 : 1400, sweep: 200, q: 1.2 }); this.tone({ freq: kind === 'wood' ? 180 : 120, to: 60, dur: 0.15, gain: 0.2 }); }
   boss() { if (this.sample('boss')) return; this.gong(); this.tone({ freq: 55, dur: 2.5, gain: 0.5, type: 'sawtooth', filter: 300, attack: 0.5, rev: 0.5 }); }
   warn() { if (this.throttle('warn', 150)) return; this.tone({ freq: 880, dur: 0.12, gain: 0.06, type: 'square', filter: 3000 }); }

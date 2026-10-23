@@ -5,9 +5,11 @@ import { BLOCKS } from './world/blocks.js';
 import { tileAvgColor } from './gfx/textures.js';
 import { angleDiff } from './util.js';
 import { bundlesFrom } from './resources.js';
+import { rollCoins } from './progression.js';
 import { hitEffects } from './gearEffects.js';
 import { t as tx } from './text_config.js';
 
+const BREAKABLE_COINS = /^(crate|barrel)$|pot|urn|amphora/;
 const v1 = new THREE.Vector3(), v2 = new THREE.Vector3(), v3 = new THREE.Vector3(), v4 = new THREE.Vector3();
 
 // Default three-hit combo (heroes override / extend it).
@@ -214,6 +216,8 @@ export class Combat {
     g.onBlockBroken?.(bx, by, bz, def);
     // a broken crate or barrel sometimes holds an ammo bundle
     if ((def.name === 'crate' || def.name === 'barrel') && g.pickups && bundlesFrom('crate')) g.pickups.drop('arrows', center, 1);
+    // pots, urns, crates and barrels pay drachmas now and then (design/loot-design.md §4.3: 30%, 1 + 4 × 50%)
+    if (BREAKABLE_COINS.test(def.name) && g.pickups && (g.mission || g.ow)) { const n = rollCoins('pot', g.mission?.def.level ?? 1); if (n) g.pickups.coins(center, n); }
     if (def.name.includes('pillar') || def.name === 'cracked_brick') {
       for (let y = by + 1; y < by + 12; y++) { const up = w.get(bx, y, bz); if (up === id || (up && BLOCKS[up].name === 'dark_planks' && y === by + 1 + 0)) { w.set(bx, y, bz, 0); g.debris?.burst(new THREE.Vector3(bx + 0.5, y + 0.5, bz + 0.5), BLOCKS[up], 4); } else break; }
       for (let y = by - 1; y > by - 12; y--) { const dn = w.get(bx, y, bz); if (dn === id) { w.set(bx, y, bz, 0); g.debris?.burst(new THREE.Vector3(bx + 0.5, y + 0.5, bz + 0.5), BLOCKS[dn], 4); } else break; }

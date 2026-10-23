@@ -6,7 +6,7 @@
 //   { type: 'reach', x, z, radius? }          go somewhere
 //   { type: 'camp' | 'champion' | 'shrine' | 'chest', id }   clear / beat / win / open it
 //   { type: 'return' }                        go back to the person who asked
-// then a reward: { xp, coins, item: 'common' | 'rare' | 'unique' }.
+// then a reward: { xp, coins, item: 'common' | 'rare' | 'heroic' | 'unique' } (no item rarity: the quest table).
 // requires: [questId] — offered only once those are done.
 //
 // Text (js/text_config.js, sq.<questId>): title, offer: [lines], steps: [one
@@ -121,10 +121,11 @@ export class Quests {
     const xp = R.xp ?? 60 * lvl;
     for (const sv of g.localSaves()) if (sv.addXp(xp)) g.levelUp(sv);
     const giver = this.people.get(q.giver)?.n.pos ?? g.players[0].pos;
-    g.pickups.drop('coin', giver, R.coins ?? 20 * lvl, 1);
+    g.pickups.coins(giver, R.coins ?? 20 * lvl, { fountain: true });
     const humans = g.players.filter((p) => !p.ai && !p.remote);
     for (const p of humans) {
-      const it = rollItem(powerFor(lvl, g.saveFor(p).data.level, Math.random, 'quest'), { hero: p.hero, rarity: R.item === 'unique' ? 'unique' : R.item === 'rare' ? 'rare' : null });
+      // the quest's own rarity if it names one, else the quest table (progression.js RARITY_WEIGHTS)
+      const it = rollItem(powerFor(lvl, g.saveFor(p).data.level, Math.random, 'quest'), { ...(g.lootOpts?.(p, giver) ?? { hero: p.hero }), source: 'quest', rarity: ['unique', 'heroic', 'rare', 'common'].includes(R.item) ? R.item : null });
       setTimeout(() => g.loot.drop(it, giver, p), 400);
     }
     toast(t('ow.quest.completed', { title: t(`sq.${q.id}.title`), xp }), 'big');
@@ -168,7 +169,7 @@ export class Quests {
   collect(it) {
     const q = this.def(it.quest); if (!q) return;
     const st = this.step(q); if (st?.type !== 'collect') return;
-    this.game.fx.heal(it.pos, 0xffd84a); this.game.audio?.loot?.('common');
+    this.game.fx.heal(it.pos, 0xffd84a); this.game.audio?.lootPickup?.('common');
     it.got = true;
     const s = this.data[q.id]; (s.got ??= []).push(it.id);   // (saved, so a picked-up item stays picked up)
     this.bump(q);

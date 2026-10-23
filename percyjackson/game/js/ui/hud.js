@@ -11,6 +11,7 @@ import { isMobile } from '../util.js';
 import { ammoInfo } from '../resources.js';
 import { PAD_LABEL, KEY_LABEL } from '../padmap.js';
 import { t as tx, tn } from '../text_config.js';
+import { isOutdated } from '../loot.js';
 
 const KEYS = KEY_LABEL;   // the keyboard layout (padmap.js)
 const PADKEYS = PAD_LABEL;   // the Xbox layout (padmap.js)
@@ -41,6 +42,15 @@ export class HUD {
     r.appendChild(h('div', { class: 'mini-frame' }, this.mini));
     this.coins = h('div', { class: 'coins', 'aria-label': tx('hud.drachmas') }, h('span', { class: 'coin', html: COIN }), h('span', { class: 'n' }, '0'));
     r.appendChild(this.coins);
+    // the inventory bag: how many NEW items wait in the stash, and an amber dot
+    // when something a hero wears is outdated (design/loot-design.md §4.6, §5.2)
+    this.bagN = h('span', { class: 'badge-count hidden' });
+    this.bagDot = h('span', { class: 'dot-outdated hidden', title: tx('hud.bagOutdated') });
+    this.bag = h('div', { class: 'bag', role: 'img', 'aria-label': tx('hud.bag') }, h('span', { class: 'bi' }, '🎒'), this.bagN, this.bagDot);
+    r.appendChild(this.bag);
+    // arrows at the screen's edge pointing to Legendaries on the ground off screen
+    this.edges = h('div', { class: 'loot-edges' }); r.appendChild(this.edges);
+    this.bagT = 0;
     this.join = h('div', { class: 'join-hint' }, isMobile ? '' : tx('hud.joinHint')); r.appendChild(this.join);
     this.prompts = new Map();
     this.says = [];   // speech bubbles over people (say())
@@ -158,6 +168,39 @@ export class HUD {
       s.el.classList.toggle('out', s.t < 0.3 || v.z > 1);
     }
   }
+  // The bag: NEW items over this screen's players, and the outdated-gear dot.
+  updateBag(dt) {
+    this.bagT -= dt; if (this.bagT > 0) return; this.bagT = 0.4;
+    const g = this.game, saves = g.localSaves?.() ?? (g.save ? [g.save] : []);
+    let n = 0, old = false;
+    for (const sv of saves) {
+      const d = sv.data; if (!d?.inventory) continue;
+      n += d.inventory.reduce((a, it) => a + (it.isNew ? 1 : 0), 0);
+      d.newCount = n;
+      for (const p of g.players) if (!p.remote && (g.saveFor?.(p) ?? g.save) === sv) for (const u of d.heroes?.[p.hero]?.gear ?? []) { const it = u ? sv.item(u) : null; if (it && isOutdated(it, d.level)) old = true; }
+    }
+    const key = n + ':' + old;
+    if (this.bagKey === key) return; this.bagKey = key;
+    this.bagN.textContent = String(n); this.bagN.classList.toggle('hidden', !n);
+    this.bagN.title = tn('hud.bagNew', n);
+    this.bagDot.classList.toggle('hidden', !old);
+    this.bag.classList.toggle('hidden', !n && !old);
+    if (n) { this.bag.classList.remove('bump'); void this.bag.offsetWidth; this.bag.classList.add('bump'); }
+    g.touch?.setBadge?.('inv', n, old);
+  }
+  // Edge arrows for Legendaries off screen (lootdrops.js offscreen()).
+  updateEdges() {
+    const g = this.game, list = g.loot?.offscreen?.(g.rig.camera) ?? [];
+    while (this.edges.children.length < list.length) this.edges.appendChild(h('div', { class: 'loot-edge', title: tx('hud.legendaryArrow') }, h('i')));
+    [...this.edges.children].forEach((el, i) => {
+      const o = list[i]; el.classList.toggle('hidden', !o); if (!o) return;
+      let x = o.v.x, y = o.v.y; if (o.v.z > 1) { x = -x; y = -y; }
+      const k = 0.9 / Math.max(Math.abs(x), Math.abs(y), 1e-3), ex = x * Math.min(1, k), ey = y * Math.min(1, k);
+      const W = window.innerWidth, H = window.innerHeight;
+      el.style.left = ((ex * 0.5 + 0.5) * W).toFixed(0) + 'px'; el.style.top = ((-ey * 0.5 + 0.5) * H).toFixed(0) + 'px';
+      el.style.setProperty('--a', Math.atan2(-y, x).toFixed(3) + 'rad'); el.style.setProperty('--rc', o.color);
+    });
+  }
   // world-anchored prompt ("E  Talk")
   prompt(id, pos, text, onTap) {
     let el = this.prompts.get(id);
@@ -232,6 +275,8 @@ export class HUD {
       this.boss.querySelector('b').style.width = (f * 100).toFixed(1) + '%';
       if (b.dead) this.setBoss(null);
     }
+    this.updateBag(dt);
+    this.updateEdges();
     const coins = g.run?.coins ?? g.save?.data?.coins ?? 0;
     if (this.lastCoins !== coins) { this.coins.querySelector('.n').textContent = String(coins); this.lastCoins = coins; }
     const canJoin = !isMobile && g.players.length < 4 && g.state === 'playing';

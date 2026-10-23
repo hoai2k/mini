@@ -12,7 +12,8 @@ import { openStoryCards } from './storyCards.js';
 import { openTitle } from './title.js';
 import { openSelect } from './partySelect.js';
 import { t as tx } from '../text_config.js';
-import { ENCHANTS, itemInfo, itemRarity, itemPrice, rollItem, powerFor, KIND_LABEL } from '../loot.js';
+import { ENCHANTS, itemInfo, itemRarity, itemTier, itemPrice, rollItem, powerFor, KIND_LABEL } from '../loot.js';
+import { iconNode } from './icons.js';
 import { expectedArea } from '../progression.js';
 
 export { openTitle, openSelect, openChapterMap, openProphecy, openStoryCards, openInstructions, openSettings };
@@ -31,7 +32,8 @@ export { openSkills };
 // ------------------------------------------------------------------ shop
 export function openShop(game, player) {
   const ui = game.ui, save = game.saveFor?.(player) ?? game.save, d = save.data;   // net: this player's profile
-  if (!d.shop || !d.shop.items?.length) d.shop = { items: [0, 1, 2, 3, 4, 5].map((i) => rollItem(powerFor(expectedArea(d.level), d.level, Math.random, 'shop'), { kind: ['weapon', 'armor', 'artifact', 'artifact', 'weapon', null][i], hero: player.hero })) };
+  if (d.shop?.items?.some((it) => itemTier(it) === 'unique')) d.shop = null;   // (stock from before the loot rework: the shop never sells Legendaries now)
+  if (!d.shop || !d.shop.items?.length) d.shop = { items: [0, 1, 2, 3, 4, 5].map((i) => rollItem(powerFor(expectedArea(d.level), d.level, Math.random, 'shop'), { kind: ['weapon', 'armor', 'artifact', 'artifact', 'weapon', null][i], hero: player.hero, source: 'shop', level: d.level })) };   // (the shop table: never a Legendary)
   game.paused = true;
   const close = () => { ui.close('shop'); game.paused = false; };
   ui.open('shop', (el) => {
@@ -40,7 +42,7 @@ export function openShop(game, player) {
       return h('button', { class: 'mission', style: 'width:100%;text-align:left;color:inherit', onclick: () => {
         if (d.coins < price) { toast(tx('screens.shop.notEnough')); game.audio?.ui('back'); return; }
         d.coins -= price; it.isNew = true; it.got = Date.now(); d.inventory.push(it); d.shop.items.splice(i, 1); save.write(); game.audio?.ui('buy'); toast(tx('screens.shop.bought', { name: b.name })); ui.refresh('shop');
-      } }, h('div', { class: `mi item ${b.rarity}` }, b.icon), h('div', {}, h('div', { class: 'mt', style: `color:${R.color}` }, b.name), h('div', { class: 'md' }, tx('screens.shop.itemLine', { rarity: R.label, kind: KIND_LABEL[b.kind], power: it.power, desc: b.desc, enchants: it.ench.map((e) => e.options.map((o) => ENCHANTS[o].name).join(' / ')).join('; ') }))), h('div', { class: 'diff' }, tx('screens.shop.price', { n: price })));
+      } }, h('div', { class: `mi item ${itemTier(it)}`, style: `--rc:${R.color}` }, iconNode(b)), h('div', {}, h('div', { class: 'mt', style: `color:${R.color}` }, b.name), h('div', { class: 'md' }, tx('screens.shop.itemLine', { rarity: R.label, kind: KIND_LABEL[b.kind], power: it.power, desc: b.desc, enchants: it.ench.map((e) => e.options.map((o) => ENCHANTS[o].name).join(' / ')).join('; ') }))), h('div', { class: 'diff' }, tx('screens.shop.price', { n: price })));
     });
     el.appendChild(h('div', { class: 'panel', style: 'width:min(620px,96vw)' }, h('h2', {}, tx('screens.shop.title')),
       h('div', { class: 'hint', style: 'margin:0 0 8px' }, tx('screens.shop.yourDrachmas', { n: d.coins })), ...rows,

@@ -138,7 +138,7 @@ export class Resume {
       room.waves = room.waves.map((w) => { const k = Math.min(n, w.length); n -= k; return w.slice(k); }).filter((w) => w.length);
     });
     m.obj.items.forEach((it, i) => { if (on(s.it, i) && !it.done) m.completeItem(it); });
-    const chests = () => m.L.chests.forEach((c, i) => { if (on(s.ch, i) && !c.opened) { c.opened = true; if (c.lid) c.lid.rotation.x = -1.9; } });
+    const chests = () => m.L.chests.forEach((c, i) => { if (on(s.ch, i) && !c.opened) { c.opened = true; if (c.lid) c.lid.rotation.x = -1.9; if (c.rarity === 'reward') m.rewardClaimed = true; } });
     chests();
     m.L.gates.forEach((gt, i) => { if (on(s.gt, i)) m.openGate(gt); });
     if (s.x) { try { m.applyNet?.(s.x); } catch (e) { /* the objective starts over */ } }

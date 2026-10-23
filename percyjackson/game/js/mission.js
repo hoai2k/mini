@@ -35,7 +35,7 @@ import { makeStatue, makeTrap, makeRift } from './objectives/props.js';
 import { isGuest, sendAct, mainPath, doorBetween } from './objectives/common.js';
 import { chapter as chapterDef, chapterPlayable } from './story/chapters.js';
 import { chapterMissionDef, resolveBoss, resolveBiome } from './story/missionDef.js';
-import { missionLevel } from './progression.js';
+import { missionLevel, rollCoins } from './progression.js';
 import { bundlesFrom } from './resources.js';
 import { Pack, packLoiter } from './entities/packRules.js';
 import { mulberry32 } from './util.js';
@@ -212,7 +212,7 @@ export class Mission {
   makeChest(c) {
     const g = this.game;
     const grp = new THREE.Group(); grp.position.copy(c.pos);
-    const wood = new THREE.MeshStandardNodeMaterial({ color: c.rarity === 'rare' ? 0x2a4a8a : 0x7a5230, roughness: 0.7 });
+    const wood = new THREE.MeshStandardNodeMaterial({ color: c.rarity === 'rare' ? 0x2a4a8a : c.rarity === 'reward' ? 0x5a2a7a : 0x7a5230, roughness: 0.7 });
     const trim = new THREE.MeshStandardNodeMaterial({ color: 0xd8b040, roughness: 0.3, metalness: 0.8 });
     const body = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.7, 0.8), wood); body.position.y = 0.35; body.castShadow = true;
     const lid = new THREE.Group(); lid.position.set(0, 0.7, -0.4);
@@ -226,12 +226,12 @@ export class Mission {
   openChest(c, p) {
     if (c.opened) return; c.opened = true;
     const g = this.game;
-    g.audio?.loot(c.rarity);
     let k = 0; g.addUpdater((dt) => { k += dt; c.lid.rotation.x = -Math.min(1.9, k * 6); return k < 0.4; });
-    g.particles.burst(c.pos.clone().setY(c.pos.y + 0.8), { count: 24, color: c.rarity === 'rare' ? 0x4ad0ff : 0xffd23a, speed: 4, up: 2, life: 0.8, size: 0.14, shape: 1 });
-    g.pickups.drop('coin', c.pos, 6 + Math.floor(Math.random() * 6) + (c.rarity === 'rare' ? 10 : 0), 1);
+    g.particles.burst(c.pos.clone().setY(c.pos.y + 0.8), { count: 24, color: c.rarity === 'rare' ? 0x3fe0b0 : 0xffd23a, speed: 4, up: 2, life: 0.8, size: 0.14, shape: 1 });
+    // a drachma fountain (progression.js COIN_DROPS: common 12.5, rare 22 on average; the reward chest pays the chapter reward: main.js)
+    if (c.rarity !== 'reward') g.pickups.coins(c.pos, rollCoins(c.rarity === 'rare' ? 'rare' : 'chest', this.def.level ?? this.def.difficulty ?? 1), { fountain: true });
     if (Math.random() < 0.5) g.pickups.drop('heal', c.pos, 1);
-    const nb = bundlesFrom(c.rarity === 'rare' ? 'rareChest' : 'chest'); if (nb) g.pickups.drop('arrows', c.pos, nb);
+    const nb = bundlesFrom(c.rarity === 'rare' || c.rarity === 'reward' ? 'rareChest' : 'chest'); if (nb) g.pickups.drop('arrows', c.pos, nb);
     g.onChestOpened?.(c, p);
     if (c.room.type === 'secret') { this.stats.secrets++; toast(t('mission.secretFound')); }
   }
@@ -663,7 +663,9 @@ export class Mission {
   }
   onBossKilled(boss) {
     const g = this.game;
-    g.pickups.drop('coin', boss.pos, 40, 1);
+    // the drachma fountain comes with the boss's loot (main.js bossLoot, design/loot-design.md §5.3: t = 1.2 s)
+    // (a resumed chapter replays this without a boss: no second reward)
+    if (boss.isBoss) { const at = boss.pos.clone(), n = rollCoins('boss', boss.level ?? this.def.level ?? 1); setTimeout(() => { if (g.mission === this) g.pickups.coins(at, n, { fountain: true }); }, 1200); }
     g.pickups.drop('heal', boss.pos, 3);
     g.pickups.drop('arrows', boss.pos, bundlesFrom('boss'));
     // a moment of the story as the boss falls (chapter 3: Percy is claimed)
@@ -674,7 +676,8 @@ export class Mission {
       const exit = boss.home.clone();
       g.exitPortal = { pos: exit };
       this.makeExit(exit, t('mission.returnToCamp'), () => g.completeMission());
-      const chest = { pos: exit.clone().add(new THREE.Vector3(3, 0, 0)), room: this.L.bossRoom, rarity: 'rare', opened: false, boss: true };
+      // the chapter-reward chest (main.js onChestOpened: the quest table and 20 drachmas a level)
+      const chest = { pos: exit.clone().add(new THREE.Vector3(3, 0, 0)), room: this.L.bossRoom, rarity: 'reward', opened: false, reward: true };
       chest.pos.y = g.world.groundBelow(chest.pos.x, chest.pos.z, chest.pos.y + 3); if (!isFinite(chest.pos.y)) chest.pos.y = exit.y;
       this.L.chests.push(chest); this.makeChest(chest);
       for (const gate of this.L.gates) this.openGate(gate);

@@ -1,13 +1,17 @@
-// Pickups dropped by monsters, chests and crates: drachmas, health orbs,
-// Power orbs and ammo bundles (a sheaf of arrows that tops up the quiver,
-// resources.js). They pop out, bounce, then magnet to the nearest hero who
-// can use them.
+// Pickups dropped by monsters, chests and crates: drachmas (single coins and
+// stacks worth 5, design/loot-design.md §4.3), health orbs, Power orbs and
+// ammo bundles (a sheaf of arrows that tops up the quiver, resources.js).
+// They pop out, bounce, then magnet to the nearest hero who can use them
+// (from MAGNET metres).
 import * as THREE from 'three/webgpu';
 import { addBundle, wantsBundle, QUIVER } from './resources.js';
+import { coinStacks, COIN_STACK } from './progression.js';
 import { t } from './text_config.js';
 
+export const MAGNET = 4.5;   // metres (was 3.8)
 const KINDS = {
   coin: { color: 0xffc83a, emissive: 1.5, size: 0.22, geo: 'oct' },
+  stack: { color: 0xffd24a, emissive: 1.8, size: 0.3, geo: 'stack' },
   heal: { color: 0x5aff8a, emissive: 2.5, size: 0.28, geo: 'box' },
   ce: { color: 0x4ac8ff, emissive: 2.5, size: 0.24, geo: 'oct' },
   arrows: { color: 0xffe0a0, emissive: 0, size: 1.7, geo: 'bundle' },
@@ -38,11 +42,18 @@ function arrowBundle() {
 export class Pickups {
   constructor(game) {
     this.game = game; this.list = [];
-    this.geos = { oct: new THREE.OctahedronGeometry(1, 0), box: new THREE.BoxGeometry(1.4, 1.4, 1.4) };
+    this.geos = { oct: new THREE.OctahedronGeometry(1, 0), box: new THREE.BoxGeometry(1.4, 1.4, 1.4), stack: new THREE.CylinderGeometry(0.9, 0.9, 1.1, 10) };
     this.mats = {};
     for (const k in KINDS) this.mats[k] = new THREE.MeshStandardNodeMaterial({ color: KINDS[k].color, emissive: KINDS[k].color, emissiveIntensity: KINDS[k].emissive, roughness: 0.3, metalness: 0.6 });
   }
-  drop(kind, pos, n = 1, value = 1) {
+  // A payout of drachmas: 5 or more as stacks worth COIN_STACK (fewer meshes,
+  // a bigger sound), the rest as single coins. fountain: thrown higher (a chest, a boss).
+  coins(pos, n, o = {}) {
+    const [stacks, singles] = coinStacks(Math.max(0, Math.round(n)));
+    if (stacks) this.drop('stack', pos, stacks, COIN_STACK, o);
+    if (singles) this.drop('coin', pos, singles, 1, o);
+  }
+  drop(kind, pos, n = 1, value = 1, { fountain = false } = {}) {
     for (let i = 0; i < n; i++) {
       const K = KINDS[kind];
       const m = K.geo === 'bundle' ? arrowBundle() : new THREE.Mesh(this.geos[K.geo], this.mats[kind]);
@@ -50,7 +61,7 @@ export class Pickups {
       m.position.copy(pos).add(new THREE.Vector3(0, 0.8, 0));
       this.game.scene.add(m);
       const a = Math.random() * Math.PI * 2, sp = 1.5 + Math.random() * 3;
-      this.list.push({ kind, mesh: m, pos: m.position, vel: new THREE.Vector3(Math.cos(a) * sp, 5 + Math.random() * 3, Math.sin(a) * sp), t: 0, value });
+      this.list.push({ kind, mesh: m, pos: m.position, vel: new THREE.Vector3(Math.cos(a) * sp, (5 + Math.random() * 3) * (fountain ? 1.5 : 1), Math.sin(a) * sp), t: 0, value });
     }
   }
   update(dt) {
@@ -60,14 +71,14 @@ export class Pickups {
       const p = this.list[i];
       p.t += dt;
       // nearest living player
-      let best = null, bd = 3.8;
+      let best = null, bd = MAGNET;
       for (const pl of g.players) {
         if (pl.dead || pl.downed) continue;
         // a bundle goes to the nearest hero on this screen whose quiver isn't full
         if (p.kind === 'arrows' && (pl.remote || !wantsBundle(pl.quiver))) continue;
         const d = pl.pos.distanceTo(p.pos); if (d < bd) { bd = d; best = pl; }
       }
-      if (best && p.t > 0.45 && (p.kind === 'coin' || (p.kind === 'heal' && best.hp < best.maxHp) || p.kind === 'ce' || p.kind === 'arrows')) {
+      if (best && p.t > 0.45 && (p.kind === 'coin' || p.kind === 'stack' || (p.kind === 'heal' && best.hp < best.maxHp) || p.kind === 'ce' || p.kind === 'arrows')) {
         const to = best.pos.clone().setY(best.pos.y + 1).sub(p.pos);
         const d = to.length();
         p.vel.lerp(to.normalize().multiplyScalar(14), Math.min(1, dt * 10));
@@ -75,17 +86,17 @@ export class Pickups {
       } else {
         p.vel.y -= 20 * dt;
         const gy = w.groundBelow(p.pos.x, p.pos.z, p.pos.y + 0.5);
-        if (isFinite(gy) && p.pos.y + p.vel.y * dt < gy + 0.25) { p.pos.y = gy + 0.25; p.vel.y *= -0.4; p.vel.x *= 0.7; p.vel.z *= 0.7; }
+        if (isFinite(gy) && p.pos.y + p.vel.y * dt < gy + 0.25) { if (p.kind === 'stack' && !p.landed && p.vel.y < -3) { p.landed = true; g.audio?.coin?.(true); } p.pos.y = gy + 0.25; p.vel.y *= -0.4; p.vel.x *= 0.7; p.vel.z *= 0.7; }
       }
       p.pos.addScaledVector(p.vel, dt);
-      p.mesh.rotation.y += dt * 3; if (p.kind !== 'arrows') p.mesh.rotation.x += dt;
+      p.mesh.rotation.y += dt * 3; if (p.kind !== 'arrows' && p.kind !== 'stack') p.mesh.rotation.x += dt;
       if (p.t > (p.kind === 'arrows' ? 60 : 40) || p.pos.y < -20) { g.scene.remove(p.mesh); this.list.splice(i, 1); }
     }
   }
   collect(p, pl) {
     const g = this.game;
     g.scene.remove(p.mesh);
-    if (p.kind === 'coin') { g.addCoins(Math.round(p.value * (1 + (pl.stats?.luck ?? 0))), pl); /* net: (pl) to whoever picked them up */ g.audio?.coin(); }
+    if (p.kind === 'coin' || p.kind === 'stack') { g.addCoins(Math.round(p.value * (1 + (pl.stats?.luck ?? 0))), pl); /* net: (pl) shared by this screen's players (main.js addCoins) */ g.audio?.coin(p.kind === 'stack'); }
     else if (p.kind === 'heal') { pl.heal(pl.maxHp * 0.12); g.audio?.energy('heal'); }
     else if (p.kind === 'ce') { pl.gainCE(8); g.audio?.tone({ freq: 1200, to: 1800, dur: 0.1, gain: 0.05, type: 'sine' }); }
     else if (p.kind === 'arrows') {

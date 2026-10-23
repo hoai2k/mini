@@ -51,8 +51,9 @@ import './heroes/clarisse.js';
 import { Profiles } from './profiles.js';
 import { Slots, slotPrefix } from './slots.js';
 import { Resume } from './resume.js';
-import { rollChest, rollItem, powerFor, itemInfo, RARITY } from './loot.js';
-import { killXp, chapterXp, bossXp } from './progression.js';
+import { rollChest, rollItem, powerFor, itemInfo, itemTier, itemRarity, RARITY, rollBossLoot, rollChapterReward, signatureKey, signatureDue, normalizeItem } from './loot.js';
+import { killXp, chapterXp, bossXp, rollCoins, coinLevel, DROP_CHANCE, DROP_RANGE, OW_CHAMPION_SECOND, AFFIXED_COINS } from './progression.js';
+import { FODDER_MONSTERS } from './data/fodder.js';
 import { TIER_LEVEL } from './heroes/skillRules.js';
 import * as Screens from './ui/screens.js';
 import { openTitle, openInventory, openForge, openSkills, openShop, openMapTable } from './ui/screens.js';
@@ -77,6 +78,7 @@ import { Tracker } from './ui/tracker.js';
 import { Roaming } from './world/roaming.js';
 import { LiveSigns } from './world/liveSign.js';
 import { preloadArt, prepareLogo, ALL_ART } from './ui/art.js';
+import { loadIcons, iconNode } from './ui/icons.js';
 import { OpeningFlow } from './story/openingFlow.js';
 import { Crowd, CROWD } from './gfx/crowd.js';
 // crowd batching (gfx/crowd.js): on unless the quality tier turns it off or ?batch=0
@@ -122,6 +124,7 @@ class Game {
   async boot() {
     // the pictures the screens show load alongside everything else (ui/art.js)
     const art = preloadArt(ALL_ART, (n, total) => { loadBar.art = n / total; progress(null); });
+    loadIcons();   // the item icon sheets, once delivered (ui/icons.js; emoji until then)
     progress(0.02, t('game.loading.gpu'));
     this.gr = new GameRenderer();
     this.startedWebGL = settings.forceWebGL;
@@ -700,6 +703,7 @@ class Game {
         for (const [hid, info] of Object.entries(HEROES)) if ((info.unlock === ch.id || (ch.book === 'book1' && info.unlock === 'ch' + ch.num)) && !(d.unlockedHeroes ??= []).includes(hid)) { d.unlockedHeroes.push(hid); if (sv === this.save) setTimeout(() => toast(t('game.joinsQuest', { name: info.full }), 'big'), 1200); }
       }
       d.stats.missions++; d.stats.kills += m.stats.kills;
+      if (!m.rewardClaimed) this.grantChapterReward(sv);   // (the reward chest left unopened, or a chapter without a boss)
       if (sv.addXp(chapterXp(m.def.level ?? m.def.difficulty, m.def.difficulty))) levelled.push(sv);   // (progression.js: by the chapter's monster level)
       sv.write();
     }
@@ -710,6 +714,27 @@ class Game {
     this.audio.levelUp();
     this.showResults(true);
     for (const sv of levelled) this.levelUp(sv);
+  }
+  // The chapter reward (design/loot-design.md §4.3): one item on the quest
+  // table and 20 drachmas a monster level, for every player on this screen.
+  // It comes from the reward chest by the exit; a player who leaves without
+  // opening it (or a chapter without a boss) gets it straight into the
+  // inventory, and it shows in the results.
+  chapterRewardFor(q, sv = this.saveFor(q)) {
+    const m = this.mission, d = sv.data, cid = m.def.chapter ?? null, diff = m.def.difficulty ?? 1;
+    const first = !!cid && !this.chapter?.boss && signatureDue(d, cid, diff);
+    const r = rollChapterReward(cid, m.def.level ?? diff, { ...this.lootOpts(q, null, sv), first });
+    for (const it of r.items) if (it.signature) it.sigDifficulty = diff;
+    return r;
+  }
+  grantChapterReward(sv) {
+    const m = this.mission; if (!m) return;
+    const q = this.players.find((p) => !p.ai && !p.remote && this.saveFor(p) === sv) ?? this.players.find((p) => !p.ai && !p.remote);
+    if (!q) return;
+    const r = this.chapterRewardFor(q, sv);
+    for (const it of r.items) { normalizeItem(it); it.isNew = true; it.finder = q.hero; it.got = Date.now(); if (it.signature) { (sv.data.signatures ??= {})[it.signature] = Math.max(sv.data.signatures[it.signature] ?? 0, it.sigDifficulty ?? 1); delete it.signature; } sv.data.inventory.push(it); m.stats.loot.push(it); }
+    sv.data.newCount = sv.data.inventory.filter((it) => it.isNew).length;
+    sv.data.coins += r.coins; m.stats.coins += r.coins;
   }
   showResults(victory) {
     this.audio?.stinger?.(victory ? 'victory' : 'defeat');
@@ -729,7 +754,7 @@ class Game {
           !victory ? h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => { const d = m.def; this.ui.close('results'); this.startMission(d); } }, t('game.results.retry')) : null,
           victory && this.openingNext ? h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => { this.ui.close('results'); this.paused = false; const n = this.openingNext; this.openingNext = null; this.opening.run(n); } }, t('game.results.continueStory')) : h('button', { class: 'btn' + (victory ? ' primary' : ''), 'data-autofocus': victory, onclick: () => { this.ui.close('results'); this.paused = false; this.returnToHub(); if (this.newProphecy && Screens.openProphecy) { const b = this.newProphecy; this.newProphecy = null; setTimeout(() => { Screens.openProphecy(this, b); this.audio?.stinger?.('prophecy-line'); }, 600); } } }, t('game.results.returnToCamp')))));
       const lootEl = el.querySelector('#results-loot');
-      for (const it of st.loot ?? []) { const b = itemInfo(it); lootEl.appendChild(h('div', { class: `item ${b.rarity}`, title: b.name }, b.icon, h('span', { class: 'pw' }, String(it.power)))); }
+      for (const it of st.loot ?? []) { const b = itemInfo(it); lootEl.appendChild(h('div', { class: `item ${itemTier(it)}${it.blessed ? ' blessed' : ''}`, style: `--rc:${itemRarity(it).color}`, title: `${b.name} · ${itemRarity(it).label}` }, iconNode(b), h('span', { class: 'pw' }, String(it.power)))); }
       if (!(st.loot ?? []).length) lootEl.appendChild(h('div', { class: 'hint' }, t('game.results.noLoot')));
     }, { dim: true });
   }
@@ -747,7 +772,14 @@ class Game {
       this.minimap.draw(cv, { full: true });
     }, { dim: true, onBack: () => { this.ui.close('map'); this.paused = false; } });
   }
-  addCoins(n, p = null) { this.saveFor(p).data.coins += n; if (this.mission) this.mission.stats.coins += n; }   // net: to whoever picked them up
+  // Drachmas are shared (design/loot-design.md §1.3, MCD2 co-op): a coin a hero
+  // on this screen picks up goes to every player on this screen; items stay
+  // per player. net: a remote hero's pickup goes to its own profile, as before.
+  addCoins(n, p = null) {
+    const saves = p && !p.remote && !p.ai ? this.localSaves() : [this.saveFor(p)];
+    for (const sv of saves) sv.data.coins += n;
+    if (this.mission) this.mission.stats.coins += n;
+  }
   addPlayer(device, hero) {
     const i = this.players.length;
     const p = new Player(this, i, device, hero);
@@ -809,15 +841,21 @@ class Game {
       const xp = killXp(e.def.xp ?? 3, e.level ?? 1, { elite: !!e.elite, champion: !!e.champion });   // (progression.js: XP grows with a monster's level as its health does)
       for (const sv of this.localSaves()) if (sv.addXp(xp)) this.levelUp(sv);   // net: every player's profile
       this.ow?.onKill(e);
-      const [a, b] = e.def.coins ?? [1, 2];
-      this.pickups.drop('coin', e.pos, Math.round((a + Math.floor(Math.random() * (b - a + 1))) * (1 + 0.15 * Math.max(0, (e.level ?? 1) - 1))));   // (more drachmas from tougher monsters: gear costs more at the forge)
+      // drachmas (progression.js COIN_DROPS): minor monsters only now and then, the
+      // bigger kinds their own handful; more from tougher monsters (gear costs more at the forge)
+      const tier = e.def.tier ?? 'minor', lvl = e.level ?? 1;
+      let coins;
+      if (tier === 'minor') coins = rollCoins(FODDER_MONSTERS[e.kind] ? 'fodder' : 'minor', lvl);
+      else { const [a, b] = e.def.coins ?? [1, 2]; coins = Math.round((a + Math.floor(Math.random() * (b - a + 1))) * coinLevel(lvl)); }
+      if (e.elite) coins *= AFFIXED_COINS;
+      if (coins) this.pickups.coins(e.pos, coins);
       if (Math.random() < 0.08) this.pickups.drop('heal', e.pos, 1);
       if (Math.random() < 0.12) this.pickups.drop('ce', e.pos, 1);
       const nb = bundlesFrom(e.elite ? 'elite' : e.def.tier ?? 'minor'); if (nb) this.pickups.drop('arrows', e.pos, nb);   // ammo bundles (resources.js)
       this.maybeDropFromMonster(e);
     }
   }
-  onBossKilled(b) { this.mission?.onBossKilled(b); for (const sv of this.localSaves()) if (sv.addXp(bossXp(b?.level ?? 1))) this.levelUp(sv); }
+  onBossKilled(b) { this.mission?.onBossKilled(b); this.bossLoot(b); for (const sv of this.localSaves()) if (sv.addXp(bossXp(b?.level ?? 1))) this.levelUp(sv); }
   levelUp(sv = this.save) {
     const d = sv.data;
     const many = this.localSaves().length > 1;
@@ -828,30 +866,84 @@ class Game {
     for (const p of this.players) if (!p.remote && (this.saveFor(p) === sv || p.ai)) { this.fx.heal(p.pos, 0xffd23a); p.hp = p.maxHp; }
     sv.write();
   }
-  // Chests and bosses drop a separate item (or two) for every human player.
+  // ---------------------------------------------------------------- loot (design/loot-design.md)
+  // The place a drop is made in: a chapter's biome, or the open-world region (for the tag pools).
+  lootPlace(pos) {
+    if (this.mission) return this.chapter?.biome ?? this.mission.def.biome;
+    const lay = this.ow?.lay; return pos && lay ? lay.regionAt(pos.x, pos.z)?.id ?? null : null;
+  }
+  lootDifficulty() { return this.mission?.def.difficulty ?? 1; }
+  // rollItem's options for player q: level, difficulty, hero, place, pity, Tyche's Favour.
+  lootOpts(q, pos = null, sv = this.saveFor(q)) {
+    return { level: sv.data.level, difficulty: this.lootDifficulty(), hero: q.hero, place: this.lootPlace(pos ?? q.pos), pity: sv.data, raider: q.stats?.raider ?? 0 };
+  }
+  // the human heroes on this screen who share in a drop at `pos` (within DROP_RANGE)
+  lootHumans(pos = null) { return this.players.filter((q) => !q.ai && !q.remote && (!pos || q.pos.distanceTo(pos) < DROP_RANGE)); }
+  // Chests drop a separate item (or two) for every human player. The exit's
+  // reward chest holds the chapter reward.
   onChestOpened(c) {
-    this.audio?.sample?.('chest');
+    const kind = c.rarity === 'reward' ? 'reward' : c.boss || c.rarity === 'epic' ? 'epic' : c.rarity === 'rare' ? 'rare' : 'common';
+    this.audio?.chestOpen?.(kind === 'reward' ? 'epic' : kind);
     // the place's monster level: the chapter's, or the chest's spot in the open world (progression.js)
     const diff = this.mission ? (this.mission.def.level ?? this.mission.def.difficulty ?? 1) : (c.level ?? c.difficulty ?? 1);
-    const humans = this.players.filter((q) => !q.ai && !q.remote);
-    humans.forEach((q, n) => {
-      const items = rollChest(diff, c.boss ? 'boss' : c.rarity, { level: this.saveFor(q).data.level, hero: q.hero });
-      items.forEach((it, i) => setTimeout(() => this.loot.drop(it, c.pos, q), 300 + (n * items.length + i) * 260));
+    const humans = this.lootHumans();
+    let at = 450;   // (after the drachma fountain)
+    humans.forEach((q) => {
+      let items;
+      if (kind === 'reward' && this.mission) {
+        const r = this.chapterRewardFor(q); items = r.items;
+        this.mission.rewardClaimed = true; this.pickups.coins(c.pos, r.coins, { fountain: true });
+      } else items = rollChest(diff, kind, this.lootOpts(q, c.pos));
+      for (const it of items) { setTimeout(() => this.loot.drop(it, c.pos, q), at); at += 200; }
+      this.saveFor(q).write?.();
     });
-    const col = new THREE.Color(c.boss ? 0xff9a2a : c.rarity === 'rare' ? 0x4ad0ff : 0xd8cfbd);
-    this.particles.burst(c.pos.clone().setY(c.pos.y + 1), { count: 30, color: col, speed: 3, up: 4, life: 1.2, size: 0.18, gravity: -2, shape: 1 });
-    this.lights.flash(c.pos.clone().setY(c.pos.y + 2), col, 8, 8, 1.2);
+    const col = new THREE.Color(kind === 'common' ? 0xd8cfbd : kind === 'rare' ? RARITY.rare.color : kind === 'reward' ? 0xffd84a : RARITY.unique.color);
+    this.particles.burst(c.pos.clone().setY(c.pos.y + 1), { count: kind === 'common' ? 30 : kind === 'rare' ? 40 : 60, color: col, speed: 3, up: 4, life: 1.2, size: 0.18, gravity: -2, shape: 1 });
+    this.lights.flash(c.pos.clone().setY(c.pos.y + 2), col, kind === 'common' ? 6 : 10, 8, 1.2);
   }
-  // Elites and champions sometimes drop an item for the hero who beat them.
+  // Monsters drop items now and then (§4.3), for each human hero near the
+  // kill: minor 2%, swarm fodder 0.4%, elite-tier kinds 8%, affixed elites
+  // 25% (no Commons), champion kinds 60%, an open-world champion 1 + 50% a
+  // second; Hermes's Haul adds to the chance.
   maybeDropFromMonster(e) {
-    const tier = e.def?.tier;
-    const chance = e.champion ? 1 : e.elite ? 0.18 : tier === 'champion' ? 0.5 : tier === 'elite' ? 0.06 : 0;
-    if (!chance || Math.random() > chance || (!this.mission && !this.ow)) return;
-    const diff = e.level ?? this.mission?.def.level ?? 1;   // (gear for the monster's level: progression.js)
-    const k = e.lastAttacker;
-    const q = k?.isPlayer && !k.ai && !k.remote ? k : this.players.find((x) => !x.ai && !x.remote);
-    if (!q) return;
-    this.loot.drop(rollItem(powerFor(diff, this.saveFor(q).data.level, Math.random, e.champion ? 'champion' : 'monster'), { hero: q.hero, rarity: e.champion ? (Math.random() < 0.35 ? 'unique' : 'rare') : null }), e.pos, q);
+    if ((!this.mission && !this.ow) || e.isDummy) return;
+    const tier = e.def?.tier ?? 'minor';
+    const [chance, source] = e.champion ? [DROP_CHANCE.owChampion, 'champion'] : tier === 'champion' ? [DROP_CHANCE.champion, 'champion'] : e.elite ? [DROP_CHANCE.affixed, 'elite']
+      : tier === 'elite' ? [DROP_CHANCE.elite, 'monster'] : FODDER_MONSTERS[e.kind] ? [DROP_CHANCE.fodder, 'monster'] : [DROP_CHANCE.minor, 'monster'];
+    const area = e.level ?? this.mission?.def.level ?? 1;   // (gear for the monster's level: progression.js)
+    for (const q of this.lootHumans(e.pos)) {
+      const n = e.champion ? 1 + (Math.random() < OW_CHAMPION_SECOND ? 1 : 0) : Math.random() < chance + (q.stats?.lootChance ?? 0) ? 1 : 0;
+      for (let i = 0; i < n; i++) {
+        const it = rollItem(powerFor(area, this.saveFor(q).data.level, Math.random, source), { ...this.lootOpts(q, e.pos), source });
+        setTimeout(() => this.loot.drop(it, e.pos, q), 150 + i * 200);
+      }
+    }
+  }
+  // A chapter boss's loot (§5.3): a fanfare and a gold shockwave at 1 s, then
+  // per player the items erupt in a ring, 120 ms apart, the Legendaries last;
+  // the first win at this difficulty adds the boss's signature item.
+  bossLoot(b) {
+    const m = this.mission; if (!m || !b?.pos) return;
+    const key = signatureKey(this.chapter?.id, this.chapter?.boss ?? b.id), area = b.level ?? m.def.level ?? 1, diff = m.def.difficulty ?? 1;
+    const at = b.pos.clone();
+    setTimeout(() => {
+      if (this.mission !== m) return;
+      this.audio?.bossLoot?.();
+      this.fx.shockwave?.(at, 0xffd84a, 7);
+      this.lights.flash(at.clone().setY(at.y + 2), new THREE.Color(0xffd84a), 14, 16, 0.8);
+    }, 1000);
+    setTimeout(() => {
+      if (this.mission !== m) return;
+      const sigs = [];
+      for (const q of this.lootHumans()) {
+        const sv = this.saveFor(q);
+        const { items, signature } = rollBossLoot(key, area, { ...this.lootOpts(q, at, sv), first: signatureDue(sv.data, key, diff) });
+        if (signature) { signature.sigDifficulty = diff; sigs.push([q, signature]); }
+        items.forEach((it, i) => setTimeout(() => this.loot.drop(it, at, q, { ring: true }), i * 120));
+        sv.write?.();
+      }
+      if (sigs.length) setTimeout(() => { for (const [q, it] of sigs) toast(t(this.lootHumans().length > 1 ? 'loot.card.signatureToastFor' : 'loot.card.signatureToast', { n: q.index + 1, name: itemInfo(it).name }), 'big'); }, 1300);
+    }, 1200);
   }
   onPlayerDied(p) {
     if (this.wipeLeft > 0 || !this.players.length || !this.players.every((q) => q.dead || q.downed)) return;

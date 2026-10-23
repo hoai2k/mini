@@ -126,6 +126,10 @@ export const TEXT = {
     trueSight: { meter: 'True Sight meter', label: 'True Sight' },
     minimap: 'Minimap',
     drachmas: 'Drachmas',
+    bag: 'Inventory',
+    bagNew: { one: '{n} new item', other: '{n} new items' },
+    bagOutdated: 'Some of your gear is outdated',
+    legendaryArrow: 'Legendary item',
     joinHint: 'Controller: press Start to join',
     playerName: 'P{n} · {name}',
     battleSense: 'Battle Sense',
@@ -942,6 +946,23 @@ export const TEXT = {
     kronos_hourglass: { name: 'Hourglass of Kronos', desc: 'The Titan of time’s sand: monsters slow to a crawl for 4 seconds.' },
     cornucopia: { name: 'Cornucopia', desc: 'The horn of plenty spills healing fruit and drachmas.' },
     stymphalian_feathers: { name: 'Stymphalian Feathers', desc: 'A fan of bronze feathers, thrown like knives.' },
+    // the loot rework (design/loot-design.md §4.5): the bosses' signatures and the new finds
+    hunter_knives: { name: 'Hunter’s Moon Knives', desc: 'A pair of silver knives of Artemis’s Hunters. Every cut strikes twice.' },
+    fury_lash: { name: 'Fury’s Flaming Lash', desc: 'Mrs Dodds’s whip of fire, long enough to reach monsters out of sword range.' },
+    minotaur_horn: { name: 'Horn of the Minotaur', desc: 'The horn Percy tore from the bull-man on Half-Blood Hill. It hits like a charge.' },
+    chimera_fang: { name: 'Chimera Fang Spear', desc: 'A spear tipped with the Chimera’s poisoned fang. Its hits leave monsters poisoned and slow.' },
+    procrustes_axe: { name: 'Procrustes’s Cleaver', desc: 'Crusty’s huge axe, made to cut everything down to size.' },
+    counsellor_vest: { name: 'Camp Counsellor Vest', desc: 'An orange vest with a whistle on it. Counsellors always know where to be.' },
+    lotus_robe: { name: 'Lotus Hotel Bathrobe', desc: 'So comfy you heal while you wear it, and Ambrosia comes back sooner.' },
+    mist_cloak: { name: 'Cloak of the Mist', desc: 'Woven from the Mist itself: monsters miss you more often.' },
+    fury_wings: { name: 'Wings of the Kindly Ones', desc: 'Leathery Fury wings, sewn into a cape. Fast, and hard to hit.' },
+    hellhound_hide: { name: 'Hellhound Hide', desc: 'The alpha’s thick black hide. Monsters that bite you get hurt back.' },
+    drakon_scale: { name: 'Drakon-Scale Plate', desc: 'Armour of drakon scales, the toughest in the world. A little heavy.' },
+    ares_shield: { name: 'Shield of Ares', desc: 'Ares’s shield from Waterland: raise a bronze dome that stops shots and shoves monsters back.' },
+    lotus_card: { name: 'Lotus Casino Card', desc: 'Flash the card: monsters near you forget what they were doing, slow down and take more damage.' },
+    cerberus_ball: { name: 'Cerberus’s Red Ball', desc: 'Throw it: a ghostly three-headed pup chases it, biting every monster on the way.' },
+    dionysus_vine: { name: 'Dionysus’s Grapevine', desc: 'Grapevines burst out of the ground and hold monsters near you in place.' },
+    hermes_vitamins: { name: 'Hermes’s Multivitamins', desc: 'Two chewable vitamins: run faster and heal for a few seconds.' },
   },
 
   // Enchantments ({n} is the number the level works out to; {n2} a second one)
@@ -978,12 +999,36 @@ export const TEXT = {
     embers: { name: 'Hephaestus’s Embers', desc: 'Burn monsters right next to you for {n} damage a second', plain: 'Monsters right next to you burn.' },
     evasion: { name: 'Nimble as a Satyr', desc: '{n}% chance to dodge a hit', plain: 'Sometimes a hit misses you.' },
     lucky: { name: 'Tyche’s Luck', desc: '+{n}% drachmas found', plain: 'You find more drachmas.' },
+    // Loot (armour and magic items) and the Chimera’s fang
+    hermes_haul: { name: 'Hermes’s Haul', desc: '+{n}% chance a monster drops an item', plain: 'Monsters drop items more often.' },
+    tyche_favour: { name: 'Tyche’s Favour', desc: '{n}% chance a drop is one rarity better', plain: 'Your drops are sometimes rarer.' },
+    venom: { name: 'Chimera Venom', desc: 'Hits poison monsters for {s} s ({n}% of the hit each second) and slow them {p}%', plain: 'Hits poison monsters and slow them.' },
+  },
+
+  // Boons: small rolled bonuses on an item, a line each ({n}: the number it rolled)
+  boons: {
+    keen: { name: 'Keen', desc: '+{n}% melee damage' },
+    swift: { name: 'Swift', desc: '+{n}% attack speed' },
+    giant: { name: 'Giant-Slayer', desc: '+{n}% damage to elites, champions and bosses' },
+    vicious: { name: 'Vicious', desc: '+{n}% critical chance' },
+    reach: { name: 'Long Reach', desc: '+{n}% reach' },
+    sturdy: { name: 'Sturdy', desc: '+{n} health' },
+    guarded: { name: 'Guarded', desc: '+{n}% damage reduction' },
+    fleet: { name: 'Fleet', desc: '+{n}% move speed' },
+    focused: { name: 'Focused', desc: '−{n}% cooldowns' },
+    hale: { name: 'Hale', desc: '+{n}% healing' },
+    deep: { name: 'Deep Quiver', desc: '+{n} shots' },
+    potent: { name: 'Potent', desc: '+{n}% ability damage' },
+    surging: { name: 'Surging', desc: '+{n}% Power gain' },
+    lasting: { name: 'Lasting', desc: 'Its effect lasts {n}% longer' },
+    fortunate: { name: 'Fortunate', desc: '+{n}% drachmas' },
   },
 
   // Rarity names (also used for the Blessed gift of a god)
   rarity: {
     common: 'Common',
     rare: 'Rare',
+    heroic: 'Heroic',
     unique: 'Legendary',
     blessed: 'Blessed',
   },
@@ -1005,14 +1050,23 @@ export const TEXT = {
       sub: '{rarity} {kind} · Power {power}',
       subFavourite: '{rarity} {kind} · Power {power} · {hero}’s favourite',
       hint: 'Equip it from the inventory (pause menu, or I)',
+      compact: '{name} · Power {power}',
+      merged: { one: '+{n} common item', other: '+{n} common items' },
+      legendary: 'LEGENDARY',
+      signature: 'Signature drop',
+      signatureToast: 'Signature drop · {name}',
+      signatureToastFor: 'P{n} · Signature drop · {name}',
+      upgrade: '▲ Better than what you wear',
+      boon: '{name}: {desc}',
     },
+    reward: 'Chapter reward',
   },
 
   // Inventory screen (pause menu, or I)
   inventory: {
     title: 'Inventory',
     slots: { weapon: 'Weapon', armor: 'Armour', artifact1: 'Magic item 1', artifact2: 'Magic item 2' },
-    filters: { all: 'All', weapon: 'Weapons', armor: 'Armour', artifact: 'Magic items' },
+    filters: { all: 'All', weapon: 'Weapons', armor: 'Armour', artifact: 'Magic items', heroic: 'Heroic+' },
     companion: '{hero} (companion)',
     equipped: 'Equipped · {hero}',
     summary: {
@@ -1082,6 +1136,9 @@ export const TEXT = {
     tabCount: '{label} · {n}',
     sortHint: 'New finds first, then the strongest.',
     better: 'Better than what you wear',
+    outdated: 'Outdated: new finds are a lot stronger. Reforge it at the forge, or swap it.',
+    outdatedTitle: 'Outdated',
+    boonsHeading: 'Boons',
     wornBy: 'Worn by {hero}',
     // The item
     wearing: 'You are wearing this',
@@ -1120,6 +1177,9 @@ export const TEXT = {
     temper: 'Temper +{n} power (◆{cost})',
     help: 'Temper makes an item stronger. Re-roll swaps the choices of an enchantment row you haven’t used.',
     temperCap: 'This item is as strong as the forge can make it for now',
+    reforge: 'Reforge to level {power} (◆{cost})',
+    reforged: 'Reforged to power {n}!',
+    reforgeNone: 'Already as strong as what drops now',
   },
 
   // Store: shop listings use the item, rarity and kind names above
@@ -1147,6 +1207,11 @@ export const TEXT = {
     owlMarks: { one: 'The owl marks {n} monster', other: 'The owl marks {n} monsters' },
     owlSeesNone: 'The owl sees no monsters',
     threadStill: 'The thread lies still: nothing left to find here',
+    bulwark: 'Shield of Ares!',
+    lotus: { one: '{n} monster forgets the fight', other: '{n} monsters forget the fight' },
+    fetch: 'Fetch, boy!',
+    vines: { one: 'The vines hold {n} monster', other: 'The vines hold {n} monsters' },
+    vitamins: 'Vitamins!',
   },
 
   // ======================================================================

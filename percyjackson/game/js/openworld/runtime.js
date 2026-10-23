@@ -26,7 +26,7 @@ import { bundlesFrom } from '../resources.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { applyChampionLook, buildChampionRig } from '../entities/champions.js';
 import { MONSTERS, prewarmModels } from '../entities/monsters.js';
-import { shrineXp } from '../progression.js';
+import { shrineXp, rollCoins } from '../progression.js';
 
 export const RESPAWN = { camp: 8 * 60, champion: 15 * 60, shrine: 6 * 60 };   // seconds of play
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -205,12 +205,12 @@ export class OpenWorld {
     if (c.opened) return; c.opened = true;
     const g = this.game;
     if (c.id) { this.data.chests[c.id] = true; g.save.write?.(); }
-    g.audio?.loot?.(c.rarity === 'common' ? 'common' : 'rare');
     let k = 0; g.addUpdater((dt) => { k += dt; c.lid.rotation.x = -Math.min(1.9, k * 6); return k < 0.4; });
-    g.pickups.drop('coin', c.pos, 8 + Math.floor(Math.random() * 8) + (c.rarity === 'common' ? 0 : c.rarity === 'rare' ? 14 : 30), 1);
+    // a drachma fountain (progression.js COIN_DROPS: common 12.5, rare 22, epic 40 on average, × the spot's level)
+    g.pickups.coins(c.pos, rollCoins(c.rarity === 'common' ? 'chest' : c.rarity === 'rare' ? 'rare' : 'epic', c.level ?? 1), { fountain: true });
     if (Math.random() < 0.6) g.pickups.drop('heal', c.pos, 1);
     const nb = bundlesFrom(c.rarity === 'common' ? 'chest' : 'rareChest'); if (nb) g.pickups.drop('arrows', c.pos, nb);
-    g.onChestOpened?.({ ...c, rarity: c.rarity === 'epic' ? 'rare' : c.rarity, boss: c.rarity === 'epic' }, p);
+    g.onChestOpened?.({ ...c, rarity: c.rarity === 'epic' ? 'epic' : c.rarity === 'rare' ? 'rare' : 'common' }, p);
     toast(t('ow.chest.found'));
     this.quests.onEvent({ type: 'chest', id: c.id });
   }

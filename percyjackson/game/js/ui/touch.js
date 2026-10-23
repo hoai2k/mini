@@ -72,6 +72,13 @@ export class TouchControls {
     if (c.textContent !== text) c.textContent = text;
     b.classList.toggle('empty', text === '0');
   }
+  // the inventory button's NEW count and outdated dot (ui/hud.js updateBag)
+  setBadge(a, n, dot = false) {
+    const b = this.btns[a]; if (!b) return;
+    let c = b.querySelector('.badge-count'); if (!c) { c = document.createElement('i'); c.className = 'badge-count'; b.appendChild(c); }
+    c.textContent = n ? String(n) : ''; c.classList.toggle('hidden', !n);
+    b.classList.toggle('outdated', !!dot);
+  }
   setCooldown(a, frac, ready = false) {
     const b = this.btns[a]; if (!b) return;
     b.firstChild.style.setProperty('--p', (frac * 100).toFixed(0) + '%');
