@@ -731,6 +731,23 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 .tuner-body.held .tuner-note, .tuner-body.held .tuner-readout { opacity: 0.55; }
 .tuner-readout { margin: 0; display: flex; gap: 14px; justify-content: center; color: var(--ink-2); font-variant-numeric: tabular-nums; font-weight: 700; min-height: 1.4em; }
 .tuner-readout #tn-hz { color: var(--ink-3); font-weight: 600; }
+/* Pure Intervals (tunerui.js): the drone's note and its button over the gauge, the interval under the reading. */
+.pure-bar { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+.pure-bar[hidden], .pure-reading[hidden] { display: none; }
+.pure-title { margin: 0; text-align: center; font-size: 0.9rem; line-height: 1.35; }
+.pure-title strong { display: block; font: 700 1.05rem var(--display); color: var(--ink); }
+.pure-title .help { color: var(--ink-3); }
+.pure-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 12px; }
+.pure-root-pick { display: inline-flex; align-items: center; gap: 8px; }
+.pure-root-pick .step { width: 40px; height: 40px; font-size: 1.2rem; }
+.pure-root { min-width: 5.5em; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pure-controls .pill { min-height: 40px; }
+#pure-drone[aria-pressed="true"] { border-color: var(--brass); color: var(--value, var(--brass-2)); }
+.pure-reading { margin: 0; color: var(--ink-2); font-weight: 600; font-size: 0.92rem; text-align: center; min-height: 1.3em; }
+.tuner-body.pure :is(.tuner-instrument, #strings, #ref-tone, #scale-test) { display: none; }
+/* Intonation Exercises: the two choices, each like the button that opens them. */
+.exercise-list { display: flex; flex-direction: column; gap: 10px; }
+.exercise-list .scale-cta { width: 100%; }
 /* The pitch trace (tunerui.js draws it in the theme's --ok-2 and --red-2). */
 .pitch-trace { display: block; width: min(100%, 360px); height: 56px; border-radius: 10px; background: var(--wave-bg); border: 1px solid var(--line); }
 .tuner-body.no-trace .pitch-trace { display: none; }

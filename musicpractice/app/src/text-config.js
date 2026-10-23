@@ -360,6 +360,27 @@ export const EN = {
   },
 
   tuner: {
+    /** Intonation Exercises, under the tuner: a choice of the two below. */
+    exercises: {
+      button: 'Intonation Exercises',
+      buttonSub: 'Test a scale, or tune intervals against a drone',
+      title: 'Intonation exercises',
+    },
+    /** Pure Intervals: the tuner judges each note against the pure interval above the drone's note. */
+    pure: {
+      button: 'Pure Intervals',
+      buttonSub: 'Play over a drone and tune each interval pure: still, with no beating',
+      title: 'Pure intervals',
+      help: 'Play any note over the drone: the needle shows how far it is from the pure interval. Headphones help the tuner hear only you.',
+      rootDown: 'Drone note down a semitone',
+      rootUp: 'Drone note up a semitone',
+      root: (note) => `Drone ${note}`,
+      play: 'Play drone',
+      stop: 'Stop drone',
+      intervals: ['Unison', 'Minor second', 'Major second', 'Minor third', 'Major third', 'Perfect fourth', 'Tritone', 'Perfect fifth', 'Minor sixth', 'Major sixth', 'Minor seventh', 'Major seventh'],
+      reading: (name, shift) => (Math.abs(shift) < 0.5 ? `${name} · pure is the same as the piano`
+        : `${name} · pure is ${Math.round(Math.abs(shift))} ${Math.round(Math.abs(shift)) === 1 ? 'cent' : 'cents'} ${shift < 0 ? 'below' : 'above'} the piano`),
+    },
     /** Test My Scale Intonation, under the tuner. */
     scale: {
       button: 'Test My Scale Intonation',
