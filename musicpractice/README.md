@@ -355,8 +355,14 @@ when the Art Deco art arrives, measure and record its own.
   picked first, as two names can share a tempo: Downtempo and Hip hop both
   have 90), else the name whose range is nearest. Choosing Medium swing shows
   Medium swing, and changing the style renames the tempo at once.
-- **Common tempos:** tapping the marking under the number (Allegro, and so
-  on) opens common tempos by **Style**: Classical (the Italian markings over
+- **Saved tempos:** the tempo sheet (a tap on the marking) starts with the
+  player's own: **Save 72 BPM · 3/4** keeps the tempo and time signature now
+  and puts its name ready to type (a piece, an exercise; left empty it reads
+  "72 · 3/4"); a tap on one brings both back and closes the sheet; its name
+  is renamed where it stands and ✕ deletes it. Save is offered only for a
+  tempo not saved yet; up to 40 (`savedTempos`, `cleanSavedTempos` in
+  `settings.js`).
+- **Common tempos:** below them, the same sheet has common tempos by **Style**: Classical (the Italian markings over
   the metronome's traditional marks), Jazz (ballad to burner), Ballroom
   dance (the competition tempos), Electronic & hip hop, and Marching. Each
   named tempo has one button, its usual tempo, and a chevron beside it

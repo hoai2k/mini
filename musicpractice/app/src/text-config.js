@@ -151,8 +151,18 @@ export const EN = {
     },
     /** Common tempos, from the marking. */
     tempos: {
-      title: 'Common tempos',
-      open: (marking) => `${marking}: common tempos`,
+      title: 'Tempos',
+      /** Saved tempos, at the top of the sheet. */
+      saved: 'Saved',
+      save: (bpm, meter) => `Save ${bpm} BPM · ${meter}`,
+      savedDefault: (bpm, meter) => `${bpm} · ${meter}`,
+      savedNone: 'Save a tempo to come back to it: for a piece, an exercise or a goal.',
+      use: (name, bpm, meter) => `${name}: ${bpm} BPM, ${meter}`,
+      rename: (name) => `Rename ${name}`,
+      remove: (name) => `Delete ${name}`,
+      nameField: 'Name of this tempo',
+      common: 'Common tempos',
+      open: (marking) => `${marking}: saved and common tempos`,
       genre: 'Style',
       genres: {
         classical: 'Classical',

@@ -8,7 +8,7 @@ import { dlog, debugBeat } from './debuglog.js';
 import { Metronome, pendulumAngle, weightAt, bpmAtWeight, tapTempo, TAP_KEEP } from './metronome.js';
 import { NativeMetronome } from './nativeaudio.js';
 import { GENRES, GENRE_IDS, mainTempo, nameFor, genreRange } from './tempos.js';
-import { clampBpm, METERS, SOUNDS, VIZ_BARS, TICKS, barPlan, cleanPattern, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
+import { clampBpm, SAVED_MAX, METERS, SOUNDS, VIZ_BARS, TICKS, barPlan, cleanPattern, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
 import { swingOf, placeWeight, weightFromPoint } from './art.js';
 import { tuckedVolume } from './tuckedvolume.js';
 import { $, chips, note } from './ui.js';
@@ -186,16 +186,18 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
   const meterSelect = $('meter');
   meterSelect.replaceChildren(...METERS.map((m) => new Option(m.beats === 1 ? TEXT.metronome.noBars : m.id, m.id)));
   meterSelect.value = settings.meter;
-  meterSelect.addEventListener('change', () => {
-    // Custom strong beats belong to their time signature: a new one starts
-    // from Strong beat on 1, unless this visit already set it its own.
+  /** A new time signature. Custom strong beats belong to their time signature: a new one starts from Strong beat on 1, unless this visit already set it its own. */
+  function setMeter(id) {
+    if (id === settings.meter) return;
     const had = settings.accentPattern;
     if (had) customAccents.set(settings.meter, had);
-    settings.meter = meterSelect.value;
+    settings.meter = id;
+    meterSelect.value = id;
     settings.accentPattern = customAccents.get(settings.meter) || null;
     if (had || settings.accentPattern) settings.accent = true;
     metronomeConfigured();
-  });
+  }
+  meterSelect.addEventListener('change', () => setMeter(meterSelect.value));
   const soundSelect = $('sound');
   soundSelect.replaceChildren(...SOUNDS.map((o) => new Option(o.label, o.id)));
   soundSelect.value = settings.sound;
@@ -392,8 +394,72 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     }));
   }
 
+  /*
+   * Saved tempos: the player's own, at the top of the tempo sheet. Save keeps
+   * the tempo and time signature now (named after them until renamed); a tap
+   * brings both back; the name is renamed where it stands, and ✕ deletes.
+   */
+  const ST = TEXT.metronome.tempos;
+  const savedName = (t) => t.name || ST.savedDefault(t.bpm, t.meter);
+  function renderSaved() {
+    const list = settings.savedTempos;
+    $('saved-none').hidden = list.length > 0;
+    const save = $('save-tempo');
+    save.textContent = ST.save(settings.bpm, settings.meter);
+    // Offered only for a tempo not saved yet (and while there is room).
+    save.hidden = list.length >= SAVED_MAX || list.some((t) => t.bpm === settings.bpm && t.meter === settings.meter);
+    $('saved-list').replaceChildren(...list.map((t) => {
+      const li = document.createElement('li');
+      li.className = 'saved-row';
+      li.innerHTML = '<button type="button" class="chip saved-use"></button><button type="button" class="saved-name"></button><button type="button" class="icon-btn saved-del"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>';
+      const use = li.querySelector('.saved-use');
+      use.textContent = String(t.bpm);
+      use.setAttribute('aria-label', ST.use(savedName(t), t.bpm, t.meter));
+      use.setAttribute('aria-pressed', String(t.bpm === settings.bpm && t.meter === settings.meter));
+      use.addEventListener('click', () => { settings.tempoPicked = null; setMeter(t.meter); setBpm(t.bpm); $('tempo-picker').close(); });
+      const name = li.querySelector('.saved-name');
+      name.textContent = savedName(t);
+      name.setAttribute('aria-label', ST.rename(savedName(t)));
+      name.addEventListener('click', () => renameSaved(t, name));
+      const del = li.querySelector('.saved-del');
+      del.setAttribute('aria-label', ST.remove(savedName(t)));
+      del.addEventListener('click', () => { settings.savedTempos = settings.savedTempos.filter((x) => x !== t); persist(); renderSaved(); });
+      return li;
+    }));
+  }
+  function renameSaved(t, name) {
+    const input = Object.assign(document.createElement('input'), { type: 'text', className: 'saved-input', maxLength: 40, value: t.name, placeholder: ST.savedDefault(t.bpm, t.meter) });
+    input.setAttribute('aria-label', ST.nameField);
+    input.enterKeyHint = 'done';
+    name.replaceWith(input);
+    input.focus();
+    input.select();
+    let done = false;
+    const finish = (keep) => {
+      if (done) return;
+      done = true;
+      if (keep) { t.name = input.value.trim().slice(0, 40); persist(); }
+      renderSaved();
+    };
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(false); }
+    });
+    input.addEventListener('blur', () => finish(true));
+  }
+  $('save-tempo').addEventListener('click', () => {
+    const id = `t${Date.now().toString(36)}`;
+    settings.savedTempos = [...settings.savedTempos, { id, name: '', bpm: settings.bpm, meter: settings.meter }];
+    persist();
+    renderSaved();
+    // Named where it stands, straight away (a name is optional: leaving it keeps "120 · 4/4").
+    const row = $('saved-list').lastElementChild;
+    row?.querySelector('.saved-name')?.click();
+  });
+
   $('marking').addEventListener('click', () => {
     renderTempos();
+    renderSaved();
     $('tempo-picker').showModal();
     $('tempo-list').querySelector('[aria-pressed="true"]')?.focus();
   });

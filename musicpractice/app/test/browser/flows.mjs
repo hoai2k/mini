@@ -158,6 +158,49 @@ async function running(env) {
   await p.close();
 }
 
+async function savedTempos(env) {
+  const p = await env.page();
+  await p.goto(env.base + '#metronome');
+  await p.waitForTimeout(800);
+  const bpm = () => p.evaluate(() => Number(document.getElementById('bpm-input').value));
+  const saved = () => p.evaluate(() => JSON.parse(localStorage.getItem('musicpractice.settings.v1')).savedTempos);
+  await p.fill('#bpm-input', '72');
+  await p.press('#bpm-input', 'Enter');
+  await p.click('#met-settings-btn');
+  await p.selectOption('#meter', '3/4');
+  await p.click('#met-settings .sheet-head .icon-btn');
+  // Save it from the tempo sheet, naming it as it is saved.
+  await p.click('#marking');
+  c.ok(await p.textContent('#save-tempo') === 'Save 72 BPM · 3/4' && await p.isVisible('#saved-none'), 'the tempo sheet offers to save this tempo');
+  await p.click('#save-tempo');
+  await p.waitForTimeout(150);
+  c.ok(await p.evaluate(() => document.activeElement?.classList.contains('saved-input')), 'a saved tempo is ready to be named');
+  await p.keyboard.type('Bach prelude');
+  await p.keyboard.press('Enter');
+  await p.waitForTimeout(150);
+  c.ok(await p.evaluate(() => document.getElementById('tempo-picker').open), 'Enter names it without closing the sheet');
+  c.ok(JSON.stringify((await saved()).map(({ name, bpm, meter }) => [name, bpm, meter])) === '[["Bach prelude",72,"3/4"]]', `it is kept (${JSON.stringify(await saved())})`);
+  c.ok(await p.evaluate(() => document.getElementById('save-tempo').hidden), 'the same tempo isn\'t offered twice');
+  await p.click('#tempo-picker .sheet-head .icon-btn');
+  // Somewhere else, then back to it in one tap: tempo and time signature.
+  await p.fill('#bpm-input', '140');
+  await p.press('#bpm-input', 'Enter');
+  await p.click('#met-settings-btn');
+  await p.selectOption('#meter', '4/4');
+  await p.click('#met-settings .sheet-head .icon-btn');
+  await p.reload();
+  await p.waitForTimeout(800);
+  await p.click('#marking');
+  await p.click('#saved-list .saved-use');
+  const back = await p.evaluate(() => ({ bpm: Number(document.getElementById('bpm-input').value), meter: document.getElementById('meter').value, open: document.getElementById('tempo-picker').open }));
+  c.ok(back.bpm === 72 && back.meter === '3/4' && !back.open, `a saved tempo comes back in one tap, after a reload (${JSON.stringify(back)})`);
+  await p.click('#marking');
+  await p.click('#saved-list .saved-del');
+  c.ok((await saved()).length === 0 && await p.isVisible('#saved-none'), '✕ deletes it');
+  c.ok(!p.errors.length, `no page errors with saved tempos (${p.errors})`);
+  await p.close();
+}
+
 async function strongBeats(env) {
   const p = await env.page({ theme: 'scifi', mode: 'light' });
   await p.goto(env.base + '#metronome');
@@ -314,7 +357,7 @@ async function themes(env) {
 }
 
 export async function run(env) {
-  for (const part of [list, running, metronomeScreen, strongBeats, microphone, themes]) {
+  for (const part of [list, running, metronomeScreen, savedTempos, strongBeats, microphone, themes]) {
     try { await part(env); } catch (e) { c.ok(false, `${part.name}: ${e.message.split('\n')[0]}`); }
   }
   return c.done();

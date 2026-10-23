@@ -383,6 +383,21 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
 .tap-tempo { min-height: 34px; padding: 4px 16px; font-size: 0.95rem; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 .tap-tempo.hit { background: var(--brass); border-color: var(--brass); color: var(--on-accent); }
 .tempo-list { display: flex; flex-direction: column; gap: 6px; }
+/* Saved tempos, above the common ones. */
+.tempo-heading { margin: 4px 0 0; font: 700 0.85rem var(--ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+.saved-tempos { display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.saved-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.saved-row { display: flex; align-items: center; gap: 10px; min-height: 48px; }
+.saved-use { flex: none; min-width: 64px; }
+.saved-list .saved-use[aria-pressed="true"] { background: var(--brass); border-color: var(--brass); color: var(--on-accent); }
+.saved-name, .saved-input { flex: 1; min-width: 0; text-align: left; font: 700 1rem var(--ui); color: var(--ink); }
+.saved-name { border: 0; background: none; padding: 6px 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: text; }
+.saved-input { border: 0; border-bottom: 1px solid var(--brass); background: transparent; padding: 6px 2px; border-radius: 0; }
+.saved-input:focus { outline: none; }
+.saved-del { flex: none; width: 40px; height: 40px; color: var(--ink-3); }
+.saved-del svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.save-tempo { align-self: flex-start; }
+.save-tempo[hidden] { display: none; }
 .tempo-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; }
 .tempo-name { font-weight: 700; min-width: 0; }
 .tempo-pick { display: flex; align-items: center; flex: none; }

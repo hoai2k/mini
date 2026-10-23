@@ -246,6 +246,14 @@
       <dialog id="tempo-picker" class="sheet" aria-labelledby="tempo-picker-title">
         <form method="dialog">
           <header class="sheet-head"><h3 id="tempo-picker-title" data-text="metronome.tempos.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <!-- The player's own tempos: save this one, and pick, rename or delete those saved. -->
+          <section class="saved-tempos" aria-labelledby="saved-tempos-title">
+            <h4 class="tempo-heading" id="saved-tempos-title" data-text="metronome.tempos.saved"></h4>
+            <ul class="saved-list" id="saved-list"></ul>
+            <p class="help" id="saved-none" data-text="metronome.tempos.savedNone"></p>
+            <button type="button" class="pill save-tempo" id="save-tempo"></button>
+          </section>
+          <h4 class="tempo-heading" data-text="metronome.tempos.common"></h4>
           <label class="row toggle"><span data-text="metronome.tempos.genre"></span><select class="select" id="tempo-genre"></select></label>
           <div class="tempo-list" id="tempo-list"></div>
         </form>

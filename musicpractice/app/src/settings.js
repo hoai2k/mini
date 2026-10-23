@@ -88,6 +88,7 @@ export const DEFAULTS = Object.freeze({
   accentPattern: null,
   tempoGenre: 'classical', // the tempo picker's style, which also names the tempo under the number
   tempoPicked: null, // the name last chosen in the picker (its id), which keeps its name for a tempo two names share
+  savedTempos: [], // the player's own tempos (the tempo picker's Saved): [{ id, name, bpm, meter }] (cleanSavedTempos)
   tempoDefaults: {}, // a named tempo's button, where one was chosen from its list: { 'jazz:ballad': 66 } // custom strong beats for the current time signature: { meter, pos } (cleanPattern)
   swing: true, // the pendulum swings on each beat (a tap on the metronome turns it on or off)
   // Under the metronome (a tap there moves to the next): 'dots' (a small dot
@@ -146,6 +147,21 @@ const num = (v, d) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
 const oneOf = (v, list, d) => (list.includes(v) ? v : d);
 
 /** Clean up a tempo typed or dragged in: whole beats, 40 to 500. */
+/** Saved tempos (the tempo picker's Saved): at most SAVED_MAX, each a name, a tempo and a time signature. */
+export const SAVED_MAX = 40;
+export function cleanSavedTempos(list) {
+  if (!Array.isArray(list)) return [];
+  const seen = new Set();
+  return list.filter((t) => t && typeof t === 'object' && typeof t.id === 'string' && t.id && !seen.has(t.id) && seen.add(t.id))
+    .slice(0, SAVED_MAX)
+    .map((t) => ({
+      id: t.id.slice(0, 40),
+      name: typeof t.name === 'string' ? t.name.trim().slice(0, 40) : '',
+      bpm: clampBpm(t.bpm),
+      meter: oneOf(t.meter, METERS.map((m) => m.id), DEFAULTS.meter),
+    }));
+}
+
 export function clampBpm(v) {
   const n = Math.round(Number(v));
   return Number.isFinite(n) ? clamp(n, BPM_MIN, BPM_MAX) : DEFAULTS.bpm;
@@ -232,6 +248,7 @@ export function sanitize(raw) {
     tempoGenre: oneOf(s.tempoGenre, GENRE_IDS, DEFAULTS.tempoGenre),
     tempoPicked: typeof s.tempoPicked === 'string' && s.tempoPicked.length < 40 ? s.tempoPicked : null,
     tempoDefaults: cleanTempoDefaults(s.tempoDefaults),
+    savedTempos: cleanSavedTempos(s.savedTempos),
     accentPattern: cleanPattern(s.accentPattern, oneOf(s.meter, METERS.map((m) => m.id), DEFAULTS.meter)),
     ...metronomeLook(s),
     vizBars: oneOf(s.vizBars, VIZ_BARS, DEFAULTS.vizBars),

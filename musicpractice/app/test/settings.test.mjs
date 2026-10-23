@@ -294,3 +294,21 @@ test('tap tempo: the taps\' tempo, from the last few; a pause starts again', asy
   // Only the last six taps (five gaps) count: an old tempo fades out.
   assert.equal(tapTempo([0, 1000, 2000, 2500, 3000, 3500, 4000, 4500]), 120);
 });
+
+test('saved tempos are kept clean: a name, a tempo in range and a real time signature', async () => {
+  const { cleanSavedTempos, SAVED_MAX, load } = await import('../src/settings.js');
+  assert.deepEqual(cleanSavedTempos(null), []);
+  const out = cleanSavedTempos([
+    { id: 'a', name: '  Bach Prelude  ', bpm: 72, meter: '3/4' },
+    { id: 'a', name: 'duplicate', bpm: 80, meter: '4/4' },
+    { id: 'b', bpm: 9999, meter: 'bogus' },
+    { name: 'no id', bpm: 60, meter: '4/4' },
+    'junk',
+  ]);
+  assert.deepEqual(out, [
+    { id: 'a', name: 'Bach Prelude', bpm: 72, meter: '3/4' },
+    { id: 'b', name: '', bpm: 500, meter: '4/4' },
+  ]);
+  assert.equal(cleanSavedTempos(Array.from({ length: 60 }, (_, i) => ({ id: `x${i}`, bpm: 60, meter: '4/4' }))).length, SAVED_MAX);
+  assert.deepEqual(load(null).savedTempos, []);
+});
