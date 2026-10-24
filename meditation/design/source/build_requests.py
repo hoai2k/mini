@@ -54,15 +54,20 @@ ASSETS = [
                 "middle 80% so rounded-corner masks never cut it. " + STYLE,
          note="Home-screen icon; the 512, 192 and 180 px sizes are made from it by design/source/make_icons.mjs. "
               "Until it arrives they are made from the SVG stand-in (app/icon.svg)."),
-    dict(id="favicon", file="icons/favicon-256.png", size="256×256, transparent PNG", status="delivered", group="Brand",
-         prompt="A tiny browser-tab mark for a meditation timer: the plain silhouette of a singing bowl, a "
-                "wide shallow curve with a flat rim, in warm brass (#c9a15b) with a single arc of sound "
-                "rising above it. Flat, two tones at most, very thick shapes, no fine detail and no "
-                "gradient, so it still reads at 16 and 32 pixels. Centred, filling most of the square, on "
-                "a fully transparent background. No text, no letters, no frame.",
-         note="The browser-tab icon (favicon). make_icons.mjs makes the 32 px favicon.png and favicon.ico from it; "
-              "a full icon shrunk to 16 px turns to mud, so this one is drawn simpler. Until it arrives the tab "
-              "uses the SVG stand-in."),
+    dict(id="favicon", file="icons/favicon-256.png", size="256×256, transparent PNG", status="revise", group="Brand",
+         prompt="A tiny browser-tab mark for a meditation timer: the plain side-on silhouette of a singing "
+                "bowl, a wide shallow bowl shape with a flat rim and a small flat foot, in warm brass "
+                "(#c9a15b). Above it, two short curved sound waves, like the arcs of a wifi symbol, "
+                "floating free: a clear gap of empty space between the rim and the lower arc, and between "
+                "the two arcs, each arc narrower than the bowl and nowhere touching it, so it can never be "
+                "read as a handle, a basket or a bag. Flat, a single colour, very thick shapes, no fine "
+                "detail and no gradient, so it still reads at 16 and 32 pixels. The bowl fills the lower "
+                "60% of the square, the arcs the upper 30%, centred, on a fully transparent background. "
+                "No text, no letters, no frame.",
+         note="Round 2 (revise): the delivered favicon draws one arc joined to both ends of the rim, so at "
+              "16 and 32 px it reads as a basket or handbag rather than a ringing bowl. It stays in use until "
+              "the new one arrives. make_icons.mjs makes the 32 px favicon-32.png and favicon.ico from it; a "
+              "full icon shrunk to 16 px turns to mud, so this one is drawn simpler."),
     dict(id="cover", file="assets/ui/cover.webp", size="1200×900 (4:3), WebP", status="delivered", group="Brand",
          prompt="Cover art for a meditation timer on an app shelf: a brass singing bowl and its wooden striker "
                 "resting on a round indigo cushion on a low wooden table, a small pair of tingsha cymbals on "
@@ -135,8 +140,11 @@ def render() -> tuple[str, str]:
         "need no art. The chime sounds are recordings and synthesis, not images; see",
         "`meditation/README.md`.",
         "",
-        ("**Round 1:** " + str(len(requested)) + " image" + ("s" if len(requested) != 1 else "") + " wanted, marked `requested` or `revise`."
-         if requested else "**Round 1:** delivered and in use."),
+        "**Round 1:** delivered and in use.",
+        "",
+        ("**Round 2:** " + str(len(requested)) + " image" + ("s" if len(requested) != 1 else "") + " wanted, marked `requested` or `revise` (see the note): "
+         + ", ".join(f"`{i}`" for i in requested) + "."
+         if requested else "**Round 2:** delivered and in use."),
         "",
         "**House style** (already included in every prompt but the favicon's): " + STYLE,
         "",
