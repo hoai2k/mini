@@ -46,7 +46,7 @@ INSTRUMENT = (
 
 ASSETS = [
     # Brand
-    dict(id="icon", file="icons/icon-1024.png", size="1024×1024, PNG, full bleed, no transparency", status="requested", group="Brand",
+    dict(id="icon", file="icons/icon-1024.png", size="1024×1024, PNG, full bleed, no transparency", status="delivered", group="Brand",
          prompt="An app icon for a meditation timer: a hammered brass singing bowl seen from slightly above, "
                 "glowing softly from within, three faint concentric sound rings rising from its rim like "
                 "ripples, on a deep night-indigo (#141826) ground with a soft warm halo behind the bowl. "
@@ -54,7 +54,7 @@ ASSETS = [
                 "middle 80% so rounded-corner masks never cut it. " + STYLE,
          note="Home-screen icon; the 512, 192 and 180 px sizes are made from it by design/source/make_icons.mjs. "
               "Until it arrives they are made from the SVG stand-in (app/icon.svg)."),
-    dict(id="favicon", file="icons/favicon-256.png", size="256×256, transparent PNG", status="requested", group="Brand",
+    dict(id="favicon", file="icons/favicon-256.png", size="256×256, transparent PNG", status="delivered", group="Brand",
          prompt="A tiny browser-tab mark for a meditation timer: the plain silhouette of a singing bowl, a "
                 "wide shallow curve with a flat rim, in warm brass (#c9a15b) with a single arc of sound "
                 "rising above it. Flat, two tones at most, very thick shapes, no fine detail and no "
@@ -63,7 +63,7 @@ ASSETS = [
          note="The browser-tab icon (favicon). make_icons.mjs makes the 32 px favicon.png and favicon.ico from it; "
               "a full icon shrunk to 16 px turns to mud, so this one is drawn simpler. Until it arrives the tab "
               "uses the SVG stand-in."),
-    dict(id="cover", file="assets/ui/cover.webp", size="1200×900 (4:3), WebP", status="requested", group="Brand",
+    dict(id="cover", file="assets/ui/cover.webp", size="1200×900 (4:3), WebP", status="delivered", group="Brand",
          prompt="Cover art for a meditation timer on an app shelf: a brass singing bowl and its wooden striker "
                 "resting on a round indigo cushion on a low wooden table, a small pair of tingsha cymbals on "
                 "a leather cord beside it, a thin curl of incense smoke, a window behind with the first pale "
@@ -71,7 +71,7 @@ ASSETS = [
          note="The card on the game library page (index.html). Until it arrives the card shows a gradient and the icon."),
 
     # Screens
-    dict(id="bowl", file="assets/ui/bowl.webp", size="1200×1200, transparent PNG (shipped as WebP)", status="requested", group="Screens",
+    dict(id="bowl", file="assets/ui/bowl.webp", size="1200×1200, transparent PNG (shipped as WebP)", status="delivered", group="Screens",
          prompt="The meditation bowl at the heart of the timer screen: a large hand-hammered Tibetan singing "
                 "bowl in warm burnished brass with a darker bronze inner wall and fine hammer marks, a "
                 "softly polished rim catching a candle-glow highlight, sitting on a round, plump "
@@ -79,7 +79,7 @@ ASSETS = [
                 "suede leaning against the cushion. Seen from slightly above, centred." + INSTRUMENT,
          note="Shown in the middle of the timer ring at about 220 px wide on a phone, and glows gently while a "
               "chime rings. Until it arrives the screen draws an SVG bowl."),
-    dict(id="backdrop", file="assets/ui/backdrop.webp", size="1600×2400 (2:3, portrait), WebP", status="requested", group="Screens",
+    dict(id="backdrop", file="assets/ui/backdrop.webp", size="1600×2400 (2:3, portrait), WebP", status="delivered", group="Screens",
          prompt="A quiet background for a meditation timer, made to sit behind text and a large ring: a dim "
                 "night-indigo room at the hour before dawn, a soft out-of-focus warm glow low in the centre "
                 "as if from a hidden candle, faint drifting haze, the barest suggestion of a window's edge "
@@ -89,32 +89,32 @@ ASSETS = [
               "uses a CSS gradient."),
 
     # Chime instruments (one per sound in the chime picker)
-    dict(id="instrument-bowl-large", file="assets/instruments/bowl-large.webp", size="600×600, transparent PNG (shipped as WebP)", status="requested", group="Chime instruments",
+    dict(id="instrument-bowl-large", file="assets/instruments/bowl-large.webp", size="600×600, transparent PNG (shipped as WebP)", status="delivered", group="Chime instruments",
          prompt="A large, deep Tibetan singing bowl, about 28 cm across, hand-hammered bronze with a dark "
                 "patina inside, wide and shallow, a broad flat rim with two thin engraved rings, sitting on "
                 "a small round dark cushion." + INSTRUMENT,
          note="The “Large singing bowl” card in the chime picker, at about 96 px."),
-    dict(id="instrument-bowl-small", file="assets/instruments/bowl-small.webp", size="600×600, transparent PNG (shipped as WebP)", status="requested", group="Chime instruments",
+    dict(id="instrument-bowl-small", file="assets/instruments/bowl-small.webp", size="600×600, transparent PNG (shipped as WebP)", status="delivered", group="Chime instruments",
          prompt="A small, bright singing bowl, about 11 cm across, smooth polished golden brass, taller and "
                 "rounder than a large bowl, its rim gleaming, resting on a tiny ring cushion of woven cord, "
                 "a slim wooden striker beside it." + INSTRUMENT,
          note="The “Small singing bowl” card in the chime picker."),
-    dict(id="instrument-rin", file="assets/instruments/rin.webp", size="600×600, transparent PNG (shipped as WebP)", status="requested", group="Chime instruments",
+    dict(id="instrument-rin", file="assets/instruments/rin.webp", size="600×600, transparent PNG (shipped as WebP)", status="delivered", group="Chime instruments",
          prompt="A Japanese rin, the temple bowl bell of a Buddhist altar: a deep, steep-sided polished brass "
                 "bowl with a slightly inward rim, sitting on a square brocade cushion in deep red and gold "
                 "on a small black lacquer stand, a short lacquered striker (bai) lying in front." + INSTRUMENT,
          note="The “Rin” card in the chime picker."),
-    dict(id="instrument-tingsha", file="assets/instruments/tingsha.webp", size="600×600, transparent PNG (shipped as WebP)", status="requested", group="Chime instruments",
+    dict(id="instrument-tingsha", file="assets/instruments/tingsha.webp", size="600×600, transparent PNG (shipped as WebP)", status="delivered", group="Chime instruments",
          prompt="A pair of Tibetan tingsha: two small thick bronze cymbals, each with a raised central dome "
                 "embossed with a simple eight-spoked wheel, joined by a knotted brown leather cord, one "
                 "lying flat and the other tilted against it so both faces show." + INSTRUMENT,
          note="The “Tingsha” card in the chime picker."),
-    dict(id="instrument-koshi", file="assets/instruments/koshi.webp", size="600×600, transparent PNG (shipped as WebP)", status="requested", group="Chime instruments",
+    dict(id="instrument-koshi", file="assets/instruments/koshi.webp", size="600×600, transparent PNG (shipped as WebP)", status="delivered", group="Chime instruments",
          prompt="A Koshi wind chime: a slim cylinder of pale bamboo about 15 cm tall with eight fine metal "
                 "rods hanging inside around a small glass-bead clapper, a wooden top and bottom, hanging "
                 "from a short braided cord with a round wooden sail below." + INSTRUMENT,
          note="The “Koshi chimes” card in the chime picker."),
-    dict(id="instrument-bell", file="assets/instruments/bell.webp", size="600×600, transparent PNG (shipped as WebP)", status="requested", group="Chime instruments",
+    dict(id="instrument-bell", file="assets/instruments/bell.webp", size="600×600, transparent PNG (shipped as WebP)", status="delivered", group="Chime instruments",
          prompt="A small temple bell in the shape of a Japanese bonshō: a tall rounded bronze bell with a "
                 "verdigris-green patina and a band of raised bosses near the top, hanging from a dark "
                 "wooden frame by a thick rope, a short wooden beam striker hanging beside it." + INSTRUMENT,

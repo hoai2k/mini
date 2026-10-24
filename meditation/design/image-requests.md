@@ -8,27 +8,27 @@ Buttons (start, pause, stop, settings) are drawn as inline SVG in the app and
 need no art. The chime sounds are recordings and synthesis, not images; see
 `meditation/README.md`.
 
-**Round 1:** 11 images wanted, marked `requested` or `revise`.
+**Round 1:** delivered and in use.
 
 **House style** (already included in every prompt but the favicon's): Calm, quiet artwork for a meditation app: a deep night-indigo palette (#141826 to #232a40) with warm burnished brass and bronze (#c9a15b) and a soft candle-glow light, painterly but clean, gentle gradients, soft rim light on metal, a faint warm haze, generous empty space, nothing busy or bright. Serene and still, like early morning before sunrise. No people, no text, no letters, no logos, no watermark, no frame or border.
 
 | Status | Id | File | Size |
 | --- | --- | --- | --- |
-| requested | `icon` | `app/icons/icon-1024.png` | 1024×1024, PNG, full bleed, no transparency |
-| requested | `favicon` | `app/icons/favicon-256.png` | 256×256, transparent PNG |
-| requested | `cover` | `app/assets/ui/cover.webp` | 1200×900 (4:3), WebP |
-| requested | `bowl` | `app/assets/ui/bowl.webp` | 1200×1200, transparent PNG (shipped as WebP) |
-| requested | `backdrop` | `app/assets/ui/backdrop.webp` | 1600×2400 (2:3, portrait), WebP |
-| requested | `instrument-bowl-large` | `app/assets/instruments/bowl-large.webp` | 600×600, transparent PNG (shipped as WebP) |
-| requested | `instrument-bowl-small` | `app/assets/instruments/bowl-small.webp` | 600×600, transparent PNG (shipped as WebP) |
-| requested | `instrument-rin` | `app/assets/instruments/rin.webp` | 600×600, transparent PNG (shipped as WebP) |
-| requested | `instrument-tingsha` | `app/assets/instruments/tingsha.webp` | 600×600, transparent PNG (shipped as WebP) |
-| requested | `instrument-koshi` | `app/assets/instruments/koshi.webp` | 600×600, transparent PNG (shipped as WebP) |
-| requested | `instrument-bell` | `app/assets/instruments/bell.webp` | 600×600, transparent PNG (shipped as WebP) |
+| delivered | `icon` | `app/icons/icon-1024.png` | 1024×1024, PNG, full bleed, no transparency |
+| delivered | `favicon` | `app/icons/favicon-256.png` | 256×256, transparent PNG |
+| delivered | `cover` | `app/assets/ui/cover.webp` | 1200×900 (4:3), WebP |
+| delivered | `bowl` | `app/assets/ui/bowl.webp` | 1200×1200, transparent PNG (shipped as WebP) |
+| delivered | `backdrop` | `app/assets/ui/backdrop.webp` | 1600×2400 (2:3, portrait), WebP |
+| delivered | `instrument-bowl-large` | `app/assets/instruments/bowl-large.webp` | 600×600, transparent PNG (shipped as WebP) |
+| delivered | `instrument-bowl-small` | `app/assets/instruments/bowl-small.webp` | 600×600, transparent PNG (shipped as WebP) |
+| delivered | `instrument-rin` | `app/assets/instruments/rin.webp` | 600×600, transparent PNG (shipped as WebP) |
+| delivered | `instrument-tingsha` | `app/assets/instruments/tingsha.webp` | 600×600, transparent PNG (shipped as WebP) |
+| delivered | `instrument-koshi` | `app/assets/instruments/koshi.webp` | 600×600, transparent PNG (shipped as WebP) |
+| delivered | `instrument-bell` | `app/assets/instruments/bell.webp` | 600×600, transparent PNG (shipped as WebP) |
 
 ## Brand
 
-### `icon` · requested
+### `icon` · delivered
 
 - File: `meditation/app/icons/icon-1024.png`
 - Size: 1024×1024, PNG, full bleed, no transparency
@@ -38,7 +38,7 @@ need no art. The chime sounds are recordings and synthesis, not images; see
 An app icon for a meditation timer: a hammered brass singing bowl seen from slightly above, glowing softly from within, three faint concentric sound rings rising from its rim like ripples, on a deep night-indigo (#141826) ground with a soft warm halo behind the bowl. Centred, bold and simple, readable at 60 pixels, full bleed with the subject inside the middle 80% so rounded-corner masks never cut it. Calm, quiet artwork for a meditation app: a deep night-indigo palette (#141826 to #232a40) with warm burnished brass and bronze (#c9a15b) and a soft candle-glow light, painterly but clean, gentle gradients, soft rim light on metal, a faint warm haze, generous empty space, nothing busy or bright. Serene and still, like early morning before sunrise. No people, no text, no letters, no logos, no watermark, no frame or border.
 ```
 
-### `favicon` · requested
+### `favicon` · delivered
 
 - File: `meditation/app/icons/favicon-256.png`
 - Size: 256×256, transparent PNG
@@ -48,7 +48,7 @@ An app icon for a meditation timer: a hammered brass singing bowl seen from slig
 A tiny browser-tab mark for a meditation timer: the plain silhouette of a singing bowl, a wide shallow curve with a flat rim, in warm brass (#c9a15b) with a single arc of sound rising above it. Flat, two tones at most, very thick shapes, no fine detail and no gradient, so it still reads at 16 and 32 pixels. Centred, filling most of the square, on a fully transparent background. No text, no letters, no frame.
 ```
 
-### `cover` · requested
+### `cover` · delivered
 
 - File: `meditation/app/assets/ui/cover.webp`
 - Size: 1200×900 (4:3), WebP
@@ -60,7 +60,7 @@ Cover art for a meditation timer on an app shelf: a brass singing bowl and its w
 
 ## Screens
 
-### `bowl` · requested
+### `bowl` · delivered
 
 - File: `meditation/app/assets/ui/bowl.webp`
 - Size: 1200×1200, transparent PNG (shipped as WebP)
@@ -70,7 +70,7 @@ Cover art for a meditation timer on an app shelf: a brass singing bowl and its w
 The meditation bowl at the heart of the timer screen: a large hand-hammered Tibetan singing bowl in warm burnished brass with a darker bronze inner wall and fine hammer marks, a softly polished rim catching a candle-glow highlight, sitting on a round, plump night-indigo silk cushion with a gold-thread edge, a turned wooden striker wrapped in suede leaning against the cushion. Seen from slightly above, centred. Shown alone, three-quarter view from slightly above, centred with a little space around it, isolated on a fully transparent background with a soft shadow beneath. Calm, quiet artwork for a meditation app: a deep night-indigo palette (#141826 to #232a40) with warm burnished brass and bronze (#c9a15b) and a soft candle-glow light, painterly but clean, gentle gradients, soft rim light on metal, a faint warm haze, generous empty space, nothing busy or bright. Serene and still, like early morning before sunrise. No people, no text, no letters, no logos, no watermark, no frame or border.
 ```
 
-### `backdrop` · requested
+### `backdrop` · delivered
 
 - File: `meditation/app/assets/ui/backdrop.webp`
 - Size: 1600×2400 (2:3, portrait), WebP
@@ -82,7 +82,7 @@ A quiet background for a meditation timer, made to sit behind text and a large r
 
 ## Chime instruments
 
-### `instrument-bowl-large` · requested
+### `instrument-bowl-large` · delivered
 
 - File: `meditation/app/assets/instruments/bowl-large.webp`
 - Size: 600×600, transparent PNG (shipped as WebP)
@@ -92,7 +92,7 @@ A quiet background for a meditation timer, made to sit behind text and a large r
 A large, deep Tibetan singing bowl, about 28 cm across, hand-hammered bronze with a dark patina inside, wide and shallow, a broad flat rim with two thin engraved rings, sitting on a small round dark cushion. Shown alone, three-quarter view from slightly above, centred with a little space around it, isolated on a fully transparent background with a soft shadow beneath. Calm, quiet artwork for a meditation app: a deep night-indigo palette (#141826 to #232a40) with warm burnished brass and bronze (#c9a15b) and a soft candle-glow light, painterly but clean, gentle gradients, soft rim light on metal, a faint warm haze, generous empty space, nothing busy or bright. Serene and still, like early morning before sunrise. No people, no text, no letters, no logos, no watermark, no frame or border.
 ```
 
-### `instrument-bowl-small` · requested
+### `instrument-bowl-small` · delivered
 
 - File: `meditation/app/assets/instruments/bowl-small.webp`
 - Size: 600×600, transparent PNG (shipped as WebP)
@@ -102,7 +102,7 @@ A large, deep Tibetan singing bowl, about 28 cm across, hand-hammered bronze wit
 A small, bright singing bowl, about 11 cm across, smooth polished golden brass, taller and rounder than a large bowl, its rim gleaming, resting on a tiny ring cushion of woven cord, a slim wooden striker beside it. Shown alone, three-quarter view from slightly above, centred with a little space around it, isolated on a fully transparent background with a soft shadow beneath. Calm, quiet artwork for a meditation app: a deep night-indigo palette (#141826 to #232a40) with warm burnished brass and bronze (#c9a15b) and a soft candle-glow light, painterly but clean, gentle gradients, soft rim light on metal, a faint warm haze, generous empty space, nothing busy or bright. Serene and still, like early morning before sunrise. No people, no text, no letters, no logos, no watermark, no frame or border.
 ```
 
-### `instrument-rin` · requested
+### `instrument-rin` · delivered
 
 - File: `meditation/app/assets/instruments/rin.webp`
 - Size: 600×600, transparent PNG (shipped as WebP)
@@ -112,7 +112,7 @@ A small, bright singing bowl, about 11 cm across, smooth polished golden brass, 
 A Japanese rin, the temple bowl bell of a Buddhist altar: a deep, steep-sided polished brass bowl with a slightly inward rim, sitting on a square brocade cushion in deep red and gold on a small black lacquer stand, a short lacquered striker (bai) lying in front. Shown alone, three-quarter view from slightly above, centred with a little space around it, isolated on a fully transparent background with a soft shadow beneath. Calm, quiet artwork for a meditation app: a deep night-indigo palette (#141826 to #232a40) with warm burnished brass and bronze (#c9a15b) and a soft candle-glow light, painterly but clean, gentle gradients, soft rim light on metal, a faint warm haze, generous empty space, nothing busy or bright. Serene and still, like early morning before sunrise. No people, no text, no letters, no logos, no watermark, no frame or border.
 ```
 
-### `instrument-tingsha` · requested
+### `instrument-tingsha` · delivered
 
 - File: `meditation/app/assets/instruments/tingsha.webp`
 - Size: 600×600, transparent PNG (shipped as WebP)
@@ -122,7 +122,7 @@ A Japanese rin, the temple bowl bell of a Buddhist altar: a deep, steep-sided po
 A pair of Tibetan tingsha: two small thick bronze cymbals, each with a raised central dome embossed with a simple eight-spoked wheel, joined by a knotted brown leather cord, one lying flat and the other tilted against it so both faces show. Shown alone, three-quarter view from slightly above, centred with a little space around it, isolated on a fully transparent background with a soft shadow beneath. Calm, quiet artwork for a meditation app: a deep night-indigo palette (#141826 to #232a40) with warm burnished brass and bronze (#c9a15b) and a soft candle-glow light, painterly but clean, gentle gradients, soft rim light on metal, a faint warm haze, generous empty space, nothing busy or bright. Serene and still, like early morning before sunrise. No people, no text, no letters, no logos, no watermark, no frame or border.
 ```
 
-### `instrument-koshi` · requested
+### `instrument-koshi` · delivered
 
 - File: `meditation/app/assets/instruments/koshi.webp`
 - Size: 600×600, transparent PNG (shipped as WebP)
@@ -132,7 +132,7 @@ A pair of Tibetan tingsha: two small thick bronze cymbals, each with a raised ce
 A Koshi wind chime: a slim cylinder of pale bamboo about 15 cm tall with eight fine metal rods hanging inside around a small glass-bead clapper, a wooden top and bottom, hanging from a short braided cord with a round wooden sail below. Shown alone, three-quarter view from slightly above, centred with a little space around it, isolated on a fully transparent background with a soft shadow beneath. Calm, quiet artwork for a meditation app: a deep night-indigo palette (#141826 to #232a40) with warm burnished brass and bronze (#c9a15b) and a soft candle-glow light, painterly but clean, gentle gradients, soft rim light on metal, a faint warm haze, generous empty space, nothing busy or bright. Serene and still, like early morning before sunrise. No people, no text, no letters, no logos, no watermark, no frame or border.
 ```
 
-### `instrument-bell` · requested
+### `instrument-bell` · delivered
 
 - File: `meditation/app/assets/instruments/bell.webp`
 - Size: 600×600, transparent PNG (shipped as WebP)
