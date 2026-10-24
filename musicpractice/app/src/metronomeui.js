@@ -5,7 +5,7 @@
 import { TEXT } from './text.js';
 import { audio, freshAudio, unlock, setContextSpeaker, heardNow, keepAwake, setExtraDelay } from './audio.js';
 import { dlog, debugBeat } from './debuglog.js';
-import { Metronome, pendulumAngle, weightAt, bpmAtWeight, tapTempo, TAP_KEEP, TAP_RESET } from './metronome.js';
+import { Metronome, pendulumAngle, weightAt, bpmAtWeight, tapTempo, TAP_KEEP } from './metronome.js';
 import { NativeMetronome } from './nativeaudio.js';
 import { GENRES, GENRE_IDS, mainTempo, nameFor, genreRange } from './tempos.js';
 import { clampBpm, SAVED_MAX, METERS, SOUNDS, VIZ_BARS, TICKS, barPlan, cleanPattern, cleanLevels, meterOf, beatStrengths, BPM_MIN, BPM_MAX, SOFT, SILENT, GAP_MAX, TRAINER_STEP_MAX, TRAINER_EVERY_MAX, POLY_COUNTS } from './settings.js';
@@ -314,10 +314,13 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
    * The tap pad: the first tap grows the Tap button into a big pad (the
    * tempo across its top, a line of what to do, a big circle), so the taps
    * that follow land somewhere easy to hit and nothing else on the screen
-   * competes. Taps anywhere on it count. Once they stop (TAP_RESET, when a
-   * new tap would start counting afresh) it shrinks back into the button,
+   * competes. Taps anywhere on it count. It waits PAD_FIRST for the second
+   * tap (and closes, the tempo as it was, if none comes); once there is a
+   * tempo, PAD_DONE after the last tap it shrinks back into the button,
    * leaving the tempo set. Escape closes it at once.
    */
+  const PAD_FIRST = 3000;
+  const PAD_DONE = 2000; // as TAP_RESET: a longer pause would start the count afresh anyway
   const pad = $('tap-pad');
   let padClose = 0;
   const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -344,7 +347,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     void circle.offsetWidth; // restart the pulse
     circle.classList.add('hit');
     clearTimeout(padClose);
-    padClose = setTimeout(closePad, TAP_RESET);
+    padClose = setTimeout(closePad, counted ? PAD_DONE : PAD_FIRST);
   }
   function closePad() {
     clearTimeout(padClose);

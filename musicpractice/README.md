@@ -167,9 +167,10 @@ when the Art Deco art arrives, measure and record its own.
   (animated from the button's own place and size): the tempo large across
   its top (– until the second tap), a line of what to do (*Keep tapping in
   time…*, then *Stop tapping to keep this tempo*) and a big circle that
-  pulses with each tap; a tap anywhere on the pad counts. Two seconds after
-  the last tap (when a new one would start counting afresh) it shrinks back
-  into the button, the new tempo set. Escape closes it at once; Space and
+  pulses with each tap; a tap anywhere on the pad counts. It waits 3 s for
+  the second tap (and closes, the tempo as it was, if none comes); once
+  there is a tempo, 2 s after the last tap (when a new one would start
+  counting afresh) it shrinks back into the button, the new tempo set. Escape closes it at once; Space and
   Enter tap on it too. With reduced motion it appears and goes without
   growing or shrinking.
 - **The pendulum's weight shows the tempo and sets it**, as on a real

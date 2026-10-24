@@ -259,9 +259,14 @@ async function tapPad(env) {
   const want = await p.evaluate(() => Math.round((60000 * (window.__taps.length - 1)) / (window.__taps.at(-1) - window.__taps[0])));
   const shown = Number(await p.textContent('#tap-pad-bpm'));
   c.ok(Math.abs(shown - want) <= 6 && shown > 90, `taps about every half second show their tempo at the top (${shown}, taps ${want})`);
-  c.ok(await until(p, () => document.getElementById('tap-pad').hidden, 4000) >= 1500, 'once the taps stop it shrinks back');
+  const gone = await until(p, () => document.getElementById('tap-pad').hidden, 4000);
+  c.ok(gone >= 1500 && gone <= 2600, `2 s after the last tap it shrinks back (${gone} ms)`);
   const bpm = Number(await p.inputValue('#bpm-input'));
   c.ok(bpm === shown, `leaving the tempo set (${bpm})`);
+  // One tap and nothing more: it waits 3 s for the next, then closes with the tempo as it was.
+  await p.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+  const waited = await until(p, () => document.getElementById('tap-pad').hidden, 5000);
+  c.ok(waited >= 2600 && waited <= 3600 && Number(await p.inputValue('#bpm-input')) === bpm, `a lone tap waits 3 s, then closes leaving the tempo (${waited} ms)`);
   // Escape closes it at once.
   await p.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
   await p.keyboard.press('Escape');
