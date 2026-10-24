@@ -43,6 +43,7 @@ public final class SmoothcraftClientGameTest implements FabricClientGameTest {
 			// Each scene is photographed with Smoothcraft on, then again with it off.
 			String[][] scenes = {
 				{"villager", (open.getX() + 0.5) + " " + (open.getY() + 0.6) + " " + (open.getZ() + 0.5) + " -90 10"},
+				{"villager-close", (open.getX() + 1.6) + " " + (open.getY() - 0.45) + " " + (open.getZ() - 0.4) + " -70 4"},
 				{"terrain-noon", (ground.getX() - 14) + " " + eyeY + " " + (ground.getZ() - 14) + " -45 25"},
 				{"shore", (shore.getX() - 7.5) + " " + (shore.getY() + 7) + " " + (shore.getZ() + 0.5) + " -90 40"},
 				{"underwater", (shore.getX() - 9.5) + " " + (shore.getY() - 1.6) + " " + (shore.getZ() + 0.5) + " -90 30"},

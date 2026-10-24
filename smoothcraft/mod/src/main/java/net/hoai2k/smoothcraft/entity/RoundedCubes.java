@@ -3,6 +3,7 @@ package net.hoai2k.smoothcraft.entity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import net.hoai2k.smoothcraft.SmoothConfig;
@@ -14,6 +15,9 @@ import org.joml.Vector3f;
 /**
  * Rounded versions of model boxes, built once per box and drawn in place of
  * the six flat faces. The vanilla pose, animation and UVs all still apply.
+ * Sides where a box joins another box of the same model part stay sharp (see
+ * {@link #registerPart}), so a villager's folded arms read as one limb with
+ * rounded elbows and shoulders rather than three rounded pieces.
  */
 public final class RoundedCubes {
 	private record Mesh(int version, float[] vertices) {
@@ -21,8 +25,27 @@ public final class RoundedCubes {
 
 	private static final float[] NONE = new float[0];
 	private static final Map<ModelPart.Cube, Mesh> MESHES = Collections.synchronizedMap(new WeakHashMap<>());
+	private static final Map<ModelPart.Cube, Integer> ATTACHED = Collections.synchronizedMap(new WeakHashMap<>());
 
 	private RoundedCubes() {
+	}
+
+	/** Called as each model part is built: notes which sides of its boxes touch one another. */
+	public static void registerPart(List<ModelPart.Cube> cubes) {
+		if (cubes.size() < 2) {
+			return;
+		}
+		float[][] bounds = new float[cubes.size()][];
+		for (int i = 0; i < bounds.length; i++) {
+			ModelPart.Cube c = cubes.get(i);
+			bounds[i] = new float[] {c.minX, c.minY, c.minZ, c.maxX, c.maxY, c.maxZ};
+		}
+		for (int i = 0; i < bounds.length; i++) {
+			int mask = RoundedBox.attachedSides(bounds[i], bounds);
+			if (mask != 0) {
+				ATTACHED.put(cubes.get(i), mask);
+			}
+		}
 	}
 
 	/** Draws the box rounded; false when it should be drawn the vanilla way. */
@@ -69,7 +92,7 @@ public final class RoundedCubes {
 				faces[f][k] = new float[] {vx.x(), vx.y(), vx.z(), vx.u(), vx.v()};
 			}
 		}
-		float[] out = RoundedBox.build(faces, config.entityRoundness, config.entityMaxRadius, config.entityBands);
+		float[] out = RoundedBox.build(faces, config.entityRoundness, config.entityMaxRadius, config.entityBands, ATTACHED.getOrDefault(cube, 0));
 		return out == null ? NONE : out;
 	}
 }

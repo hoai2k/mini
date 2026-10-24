@@ -8,15 +8,29 @@ import java.util.Arrays;
  * <p>Each face is cut into a grid that is fine near the edges and coarse in
  * the middle, and every grid point is pushed onto the box with its edges and
  * corners rounded to radius r (the Minkowski sum of a smaller box and a
- * sphere). The texture coordinates stay those of the flat face, so the
- * vanilla UV layout (and any high-resolution texture painted on it) wraps the
- * rounded shape. Neighbouring faces meet exactly at the old edges.
+ * sphere, or an ellipsoid where the sides differ). Sides marked as attached
+ * (where the box joins another box of the same part, like a villager's
+ * forearm meeting its upper arms) get no rounding, so the edges around them
+ * stay sharp and the pieces join flush instead of looking cut apart. The
+ * texture coordinates stay those of the flat face, so the vanilla UV layout
+ * (and any high-resolution texture painted on it) wraps the rounded shape.
+ * Neighbouring faces meet exactly at the old edges.
  */
 public final class RoundedBox {
 	/** Floats per output vertex: x, y, z, u, v, nx, ny, nz. */
 	public static final int STRIDE = 8;
 
+	/** Bit for each side in an attached mask: -x, +x, -y, +y, -z, +z. */
+	public static int side(int axis, boolean positive) {
+		return 1 << (axis * 2 + (positive ? 1 : 0));
+	}
+
 	private RoundedBox() {
+	}
+
+	/** A box rounded on every side. */
+	public static float[] build(float[][][] faces, float roundness, float maxRadius, int bands) {
+		return build(faces, roundness, maxRadius, bands, 0);
 	}
 
 	/**
@@ -24,65 +38,87 @@ public final class RoundedBox {
 	 * @param roundness radius as a fraction of the box's smallest half-extent (0 keeps it square)
 	 * @param maxRadius cap on the radius, in the same units as the positions
 	 * @param bands     grid lines across each rounded band (1 = a single bevel)
+	 * @param attached  {@link #side} bits for the sides that join another box and stay sharp
 	 * @return vertices, 4 per quad, {@link #STRIDE} floats each; null when the box can't be rounded
 	 */
-	public static float[] build(float[][][] faces, float roundness, float maxRadius, int bands) {
-		float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, minZ = Float.MAX_VALUE;
-		float maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE, maxZ = -Float.MAX_VALUE;
+	public static float[] build(float[][][] faces, float roundness, float maxRadius, int bands, int attached) {
+		float[] min = {Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE};
+		float[] max = {-Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE};
 		for (float[][] face : faces) {
 			for (float[] v : face) {
-				minX = Math.min(minX, v[0]);
-				minY = Math.min(minY, v[1]);
-				minZ = Math.min(minZ, v[2]);
-				maxX = Math.max(maxX, v[0]);
-				maxY = Math.max(maxY, v[1]);
-				maxZ = Math.max(maxZ, v[2]);
+				for (int c = 0; c < 3; c++) {
+					min[c] = Math.min(min[c], v[c]);
+					max[c] = Math.max(max[c], v[c]);
+				}
 			}
 		}
-		float half = Math.min(maxX - minX, Math.min(maxY - minY, maxZ - minZ)) * 0.5f;
+		float half = Math.min(max[0] - min[0], Math.min(max[1] - min[1], max[2] - min[2])) * 0.5f;
 		float r = Math.min(half * roundness, maxRadius);
-		if (faces.length == 0 || r < 1e-3f) {
+		if (faces.length == 0 || r < 1e-3f || (attached & 0x3F) == 0x3F) {
 			return null;
 		}
-		float[] lo = {minX + r, minY + r, minZ + r};
-		float[] hi = {maxX - r, maxY - r, maxZ - r};
+		// Radius on each side: rNeg[a] toward -a, rPos[a] toward +a.
+		float[] rNeg = new float[3], rPos = new float[3], lo = new float[3], hi = new float[3];
+		for (int a = 0; a < 3; a++) {
+			rNeg[a] = (attached & side(a, false)) != 0 ? 0f : r;
+			rPos[a] = (attached & side(a, true)) != 0 ? 0f : r;
+			lo[a] = min[a] + rNeg[a];
+			hi[a] = max[a] - rPos[a];
+		}
 
 		float[] out = new float[0];
 		int n = 0;
 		for (float[][] face : faces) {
-			float[] a = face[0], b = face[1], d = face[3];
-			float ls = dist(a, b), lt = dist(b, face[2]);
-			float[] ss = params(ls, r, bands), ts = params(lt, r, bands);
+			float[] ss = edgeParams(face[0], face[1], rNeg, rPos, bands);
+			float[] ts = edgeParams(face[1], face[2], rNeg, rPos, bands);
 			int quads = (ss.length - 1) * (ts.length - 1);
 			out = Arrays.copyOf(out, out.length + quads * 4 * STRIDE);
 			float[] faceNormal = faceNormal(face);
 			for (int i = 0; i + 1 < ss.length; i++) {
 				for (int j = 0; j + 1 < ts.length; j++) {
-					n = vertex(out, n, face, ss[i], ts[j], lo, hi, r, faceNormal);
-					n = vertex(out, n, face, ss[i + 1], ts[j], lo, hi, r, faceNormal);
-					n = vertex(out, n, face, ss[i + 1], ts[j + 1], lo, hi, r, faceNormal);
-					n = vertex(out, n, face, ss[i], ts[j + 1], lo, hi, r, faceNormal);
+					n = vertex(out, n, face, ss[i], ts[j], lo, hi, rNeg, rPos, faceNormal);
+					n = vertex(out, n, face, ss[i + 1], ts[j], lo, hi, rNeg, rPos, faceNormal);
+					n = vertex(out, n, face, ss[i + 1], ts[j + 1], lo, hi, rNeg, rPos, faceNormal);
+					n = vertex(out, n, face, ss[i], ts[j + 1], lo, hi, rNeg, rPos, faceNormal);
 				}
 			}
 		}
 		return out;
 	}
 
+	/** Grid positions along the face edge from a to b, with a rounded band at each end as wide as that side's radius. */
+	private static float[] edgeParams(float[] a, float[] b, float[] rNeg, float[] rPos, int bands) {
+		int axis = 0;
+		for (int c = 1; c < 3; c++) {
+			if (Math.abs(b[c] - a[c]) > Math.abs(b[axis] - a[axis])) {
+				axis = c;
+			}
+		}
+		boolean increasing = b[axis] > a[axis];
+		return params(dist(a, b), increasing ? rNeg[axis] : rPos[axis], increasing ? rPos[axis] : rNeg[axis], bands);
+	}
+
+	/** Uniform bands at both ends. */
+	static float[] params(float length, float r, int bands) {
+		return params(length, r, r, bands);
+	}
+
 	/**
 	 * Grid positions (0..1) along an edge of the given length: inside each
-	 * rounded band of width r they are spaced by equal angle on the rounding.
+	 * rounded band (rStart at 0, rEnd at 1) they are spaced by equal angle on
+	 * the rounding.
 	 */
-	static float[] params(float length, float r, int bands) {
+	static float[] params(float length, float rStart, float rEnd, int bands) {
 		if (length < 1e-5f) {
 			return new float[] {0f, 1f};
 		}
-		float band = Math.min(r, length * 0.5f);
+		float bandStart = Math.min(rStart, length * 0.5f), bandEnd = Math.min(rEnd, length * 0.5f);
 		float[] p = new float[2 * bands + 2];
 		int k = 0;
 		for (int i = 0; i <= bands; i++) {
-			float inset = i == bands ? 0f : (float) (band * (1 - Math.tan(Math.PI / 4 * i / bands))) / length;
-			p[k++] = inset;
-			p[k++] = 1 - inset;
+			float shape = i == bands ? 0f : (float) (1 - Math.tan(Math.PI / 4 * i / bands));
+			p[k++] = bandStart * shape / length;
+			p[k++] = 1 - bandEnd * shape / length;
 		}
 		Arrays.sort(p);
 		float[] unique = new float[p.length];
@@ -95,33 +131,48 @@ public final class RoundedBox {
 		return Arrays.copyOf(unique, u);
 	}
 
-	private static int vertex(float[] out, int n, float[][] f, float s, float t, float[] lo, float[] hi, float r, float[] faceNormal) {
+	private static int vertex(float[] out, int n, float[][] f, float s, float t, float[] lo, float[] hi, float[] rNeg, float[] rPos, float[] faceNormal) {
 		float w0 = (1 - s) * (1 - t), w1 = s * (1 - t), w2 = s * t, w3 = (1 - s) * t;
 		float[] p = new float[5];
 		for (int c = 0; c < 5; c++) {
 			p[c] = f[0][c] * w0 + f[1][c] * w1 + f[2][c] * w2 + f[3][c] * w3;
 		}
-		float cx = clamp(p[0], lo[0], hi[0]), cy = clamp(p[1], lo[1], hi[1]), cz = clamp(p[2], lo[2], hi[2]);
-		float dx = p[0] - cx, dy = p[1] - cy, dz = p[2] - cz;
-		float len = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
-		float nx, ny, nz;
-		if (len < 1e-6f) {
-			nx = faceNormal[0];
-			ny = faceNormal[1];
-			nz = faceNormal[2];
-		} else {
-			nx = dx / len;
-			ny = dy / len;
-			nz = dz / len;
+		// Offset from the inner box, measured in units of each side's radius.
+		float[] core = new float[3], d = new float[3], e = new float[3];
+		float len2 = 0;
+		for (int c = 0; c < 3; c++) {
+			core[c] = clamp(p[c], lo[c], hi[c]);
+			d[c] = p[c] - core[c];
+			float r = d[c] > 0 ? rPos[c] : rNeg[c];
+			e[c] = r > 1e-6f ? d[c] / r : 0f;
+			len2 += e[c] * e[c];
 		}
-		out[n] = cx + nx * r;
-		out[n + 1] = cy + ny * r;
-		out[n + 2] = cz + nz * r;
+		float len = (float) Math.sqrt(len2);
+		float[] q = new float[3], nrm = new float[3];
+		if (len < 1e-6f) {
+			System.arraycopy(p, 0, q, 0, 3);
+			System.arraycopy(faceNormal, 0, nrm, 0, 3);
+		} else {
+			float nl = 0;
+			for (int c = 0; c < 3; c++) {
+				float r = d[c] > 0 ? rPos[c] : rNeg[c];
+				q[c] = core[c] + d[c] / len;
+				nrm[c] = r > 1e-6f ? e[c] / r : 0f;
+				nl += nrm[c] * nrm[c];
+			}
+			nl = (float) Math.sqrt(nl);
+			for (int c = 0; c < 3; c++) {
+				nrm[c] /= nl;
+			}
+		}
+		out[n] = q[0];
+		out[n + 1] = q[1];
+		out[n + 2] = q[2];
 		out[n + 3] = p[3];
 		out[n + 4] = p[4];
-		out[n + 5] = nx;
-		out[n + 6] = ny;
-		out[n + 7] = nz;
+		out[n + 5] = nrm[0];
+		out[n + 6] = nrm[1];
+		out[n + 7] = nrm[2];
 		return n + STRIDE;
 	}
 
@@ -140,5 +191,38 @@ public final class RoundedBox {
 
 	private static float clamp(float v, float lo, float hi) {
 		return lo > hi ? (lo + hi) * 0.5f : Math.max(lo, Math.min(hi, v));
+	}
+
+	/**
+	 * Which sides of box {@code a} join one of {@code others} (all as
+	 * {minX, minY, minZ, maxX, maxY, maxZ}): a side is attached when another box
+	 * reaches its plane and covers part of it.
+	 */
+	public static int attachedSides(float[] a, float[][] others) {
+		final float eps = 0.01f;
+		int mask = 0;
+		for (float[] b : others) {
+			if (b == a) {
+				continue;
+			}
+			for (int axis = 0; axis < 3; axis++) {
+				int u = (axis + 1) % 3, v = (axis + 2) % 3;
+				boolean overlapsFace = Math.min(a[u + 3], b[u + 3]) - Math.max(a[u], b[u]) > eps
+						&& Math.min(a[v + 3], b[v + 3]) - Math.max(a[v], b[v]) > eps;
+				if (!overlapsFace) {
+					continue;
+				}
+				// A side is attached when the other box reaches its plane from outside
+				// (touching it, or crossing it), not when it sits inside flush with it.
+				float top = a[axis + 3], bottom = a[axis];
+				if (b[axis] <= top + eps && b[axis + 3] >= top - eps && (b[axis + 3] > top + eps || b[axis] >= top - eps)) {
+					mask |= side(axis, true);
+				}
+				if (b[axis] <= bottom + eps && b[axis + 3] >= bottom - eps && (b[axis] < bottom - eps || b[axis + 3] <= bottom + eps)) {
+					mask |= side(axis, false);
+				}
+			}
+		}
+		return mask;
 	}
 }
