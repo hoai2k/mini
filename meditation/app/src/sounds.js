@@ -16,9 +16,9 @@ export const SOUNDS = [
   },
   {
     id: 'bowl-small', name: 'Small singing bowl', image: 'instrument-bowl-small',
-    f0: 528, attack: 0.004, noise: { freq: 2600, q: 1.5, level: 0.05, decay: 0.02 },
-    partials: [[1, 1, 6, 1.1], [2.71, 0.5, 3.4, 2], [5.12, 0.24, 1.8, 2.8], [8.1, 0.08, 1, 3.4]],
-    length: 18, file: null,
+    f0: 361, attack: 0.004, noise: { freq: 2600, q: 1.5, level: 0.05, decay: 0.02 },
+    partials: [[1, 1, 7, 1.1], [2.77, 0.5, 4, 2], [5.17, 0.24, 2.2, 2.8], [8, 0.1, 1.2, 3.4]],
+    length: 22, file: 'sounds/bowl-small.mp3',
   },
   {
     id: 'rin', name: 'Rin', image: 'instrument-rin',
@@ -65,6 +65,11 @@ export const CREDITS = [
     sound: 'rin', title: 'Japanese rin played as struck idiophone', author: 'MichaelMaggs',
     url: 'https://commons.wikimedia.org/wiki/File:Japanese_rin_played_as_struck_idiophone.ogg',
     license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/', changes: 'trimmed to the last strike, level matched, faded',
+  },
+  {
+    sound: 'bowl-small', title: 'Tibetan Singing Bowl hit 4.5inch', author: 'דג בלי מלח (Dag Bli Melah)',
+    url: 'https://commons.wikimedia.org/wiki/File:Tibetan_Singing_Bowl_hit_4.5inch.flac',
+    license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/', changes: 'level matched, faded',
   },
   {
     sound: 'koshi', title: 'Windglockenspiel.Koshi', author: 'Membeth',

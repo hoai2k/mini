@@ -5,7 +5,7 @@
     python3 meditation/design/source/make_sounds.py --check  # every used recording is made and credited
 
 The originals are in meditation/design/recordings/, downloaded unchanged from
-Wikimedia Commons (`url`). Each is trimmed to one strike and its ring-out
+Wikimedia Commons (`url`; a `.flac.mp3` is Commons' own MP3 of the original). Each is trimmed to one strike and its ring-out
 (`start`, `length` in seconds), filtered below 50 Hz, peak-matched to the
 synthesized chimes (-6 dBFS), faded over its last `fade` seconds and written
 as mono MP3. A recording is used by the app when `sound` names its instrument
@@ -30,6 +30,11 @@ RECORDINGS = [
          author="MichaelMaggs", license="CC BY-SA 4.0",
          # The recording is a roll of soft taps building to one full strike at 4.6 s; keep that strike.
          start=4.57, length=15, fade=3),
+    dict(sound="bowl-small", original="Tibetan_Singing_Bowl_hit_4.5inch.flac.mp3",
+         url="https://commons.wikimedia.org/wiki/File:Tibetan_Singing_Bowl_hit_4.5inch.flac",
+         author="דג בלי מלח (Dag Bli Melah)", license="CC BY-SA 4.0",
+         # Commons' MP3 transcode of the FLAC original (the FLAC was rate-limited when fetched).
+         start=0.05, length=22, fade=5),
     dict(sound="koshi", original="Windglockenspiel.Koshi.ogg",
          url="https://commons.wikimedia.org/wiki/File:Windglockenspiel.Koshi.ogg",
          author="Membeth", license="CC0 1.0",
