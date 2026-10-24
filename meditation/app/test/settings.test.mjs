@@ -54,3 +54,9 @@ test('the service worker caches every module', () => {
   const sw = readFileSync(new URL('sw.js', app), 'utf8');
   for (const f of ['main', 'timer', 'settings', 'sounds', 'chimes', 'icons']) assert.ok(sw.includes(`'src/${f}.js'`), f);
 });
+
+test('every file the service worker pre-caches exists', () => {
+  const sw = readFileSync(new URL('sw.js', app), 'utf8');
+  const shell = sw.slice(sw.indexOf('SHELL = ['), sw.indexOf('];')).match(/'([^']+)'/g).map((s) => s.slice(1, -1));
+  for (const f of shell.filter((f) => f !== './')) assert.ok(existsSync(new URL(f, app)), f);
+});

@@ -73,7 +73,7 @@ svg { display: block; width: 100%; height: 100%; }
 [data-phase="preroll"] .bowl, [data-phase="paused"] .bowl { filter: brightness(.82); }
 
 /* Duration picker (idle only). */
-.durations { display: flex; align-items: center; gap: 6px; width: 100%; justify-content: center; }
+.durations { display: flex; align-items: center; gap: 6px; width: 100%; max-width: 400px; justify-content: center; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 .chip {
   min-width: 44px; height: 36px; padding: 0 12px; border-radius: 18px; cursor: pointer;

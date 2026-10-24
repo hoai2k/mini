@@ -30,6 +30,11 @@ RECORDINGS = [
          author="MichaelMaggs", license="CC BY-SA 4.0",
          # The recording is a roll of soft taps building to one full strike at 4.6 s; keep that strike.
          start=4.57, length=15, fade=3),
+    dict(sound="bowl-large", original="Tibetan_Singing_Bowl_hit_11inch.flac.mp3",
+         url="https://commons.wikimedia.org/wiki/File:Tibetan_Singing_Bowl_hit_11inch.flac",
+         author="דג בלי מלח (Dag Bli Melah)", license="CC BY-SA 4.0",
+         # The original stops at 16 s while the bowl still rings, so a long fade completes the decay.
+         start=0.03, length=15.9, fade=8),
     dict(sound="bowl-small", original="Tibetan_Singing_Bowl_hit_4.5inch.flac.mp3",
          url="https://commons.wikimedia.org/wiki/File:Tibetan_Singing_Bowl_hit_4.5inch.flac",
          author="דג בלי מלח (Dag Bli Melah)", license="CC BY-SA 4.0",

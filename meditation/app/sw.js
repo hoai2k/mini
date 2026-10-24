@@ -6,6 +6,7 @@ const SHELL = [
   './', 'index.html', 'styles.css', 'icon.svg', 'manifest.webmanifest', 'data/asset-list.json',
   'src/main.js', 'src/timer.js', 'src/settings.js', 'src/sounds.js', 'src/chimes.js', 'src/icons.js',
   'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/favicon-32.png', 'icons/favicon.ico',
+  'sounds/bowl-large.mp3', 'sounds/bowl-small.mp3', 'sounds/rin.mp3', 'sounds/koshi.mp3',
 ];
 
 self.addEventListener('install', (e) => {

@@ -56,11 +56,26 @@ fallback. The recordings come from
 [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:Singing_bowls),
 which records the author and licence of every file; Freesound has more
 (filter its search by the CC0 licence) but needs an account to download.
-The candidates, all checked for licence:
+The candidates, each checked for its licence:
 
 | Instrument | Recording | Author | Licence |
 | --- | --- | --- | --- |
-RECORDINGS_TABLE
+| Large singing bowl | [Tibetan Singing Bowl hit 11inch](https://commons.wikimedia.org/wiki/File:Tibetan_Singing_Bowl_hit_11inch.flac) (used) | דג בלי מלח (Dag Bli Melah) | CC BY-SA 4.0 |
+| Small singing bowl | [Tibetan Singing Bowl hit 4.5inch](https://commons.wikimedia.org/wiki/File:Tibetan_Singing_Bowl_hit_4.5inch.flac) (used) | דג בלי מלח (Dag Bli Melah) | CC BY-SA 4.0 |
+| Rin | [Japanese rin played as struck idiophone](https://commons.wikimedia.org/wiki/File:Japanese_rin_played_as_struck_idiophone.ogg) (used: its last, full strike) | MichaelMaggs | CC BY-SA 4.0 |
+| Koshi chimes | [Windglockenspiel.Koshi](https://commons.wikimedia.org/wiki/File:Windglockenspiel.Koshi.ogg) (used: its first gust) | Membeth | CC0 |
+| Singing bowl | [SingingBowl1](https://commons.wikimedia.org/wiki/File:SingingBowl1.ogg) (not used: low bit rate, cut off mid-ring) | BambooBeast | public domain |
+| Singing bowl | [The sound of a singing bowl](https://commons.wikimedia.org/wiki/File:The_sound_of_a_singing_bowl.wav) (not fetched yet: Commons rate-limited the download) | Valera N. Trubin | CC BY 4.0 |
+| Temple bell | [Gong or bell vibrant (short)](https://commons.wikimedia.org/wiki/File:Gong_or_bell_vibrant_(short).ogg) (not used: 5.6 s, cut off mid-ring) | Stephan, via PDSounds | CC0 |
+
+The tingsha and the temple bell are synthesized: no freely licensed recording
+of either with a full ring-out turned up. A better one (or any recording you
+prefer) can go in `intake/`.
+
+The large-bowl and small-bowl originals are Commons' own MP3 transcodes of the
+FLAC files, because the FLAC downloads were rate-limited. The large bowl's
+original stops at 16 s while the bowl is still ringing, so its last 8 seconds
+are a fade.
 
 Recordings are made from the originals in `design/recordings/` by
 `design/source/make_sounds.py`, which trims each to a single strike and its

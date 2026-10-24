@@ -12,7 +12,7 @@ export const SOUNDS = [
     id: 'bowl-large', name: 'Large singing bowl', image: 'instrument-bowl-large',
     f0: 174, attack: 0.006, noise: { freq: 900, q: 1.2, level: 0.05, decay: 0.03 },
     partials: [[1, 1, 9, 0.8], [2.74, 0.55, 5.5, 1.5], [5.08, 0.3, 3, 2.3], [7.96, 0.14, 1.8, 3], [11.4, 0.06, 1, 3.6]],
-    length: 26, file: null,
+    length: 26, file: 'sounds/bowl-large.mp3',
   },
   {
     id: 'bowl-small', name: 'Small singing bowl', image: 'instrument-bowl-small',
@@ -65,6 +65,11 @@ export const CREDITS = [
     sound: 'rin', title: 'Japanese rin played as struck idiophone', author: 'MichaelMaggs',
     url: 'https://commons.wikimedia.org/wiki/File:Japanese_rin_played_as_struck_idiophone.ogg',
     license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/', changes: 'trimmed to the last strike, level matched, faded',
+  },
+  {
+    sound: 'bowl-large', title: 'Tibetan Singing Bowl hit 11inch', author: 'דג בלי מלח (Dag Bli Melah)',
+    url: 'https://commons.wikimedia.org/wiki/File:Tibetan_Singing_Bowl_hit_11inch.flac',
+    license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/', changes: 'level matched, tail faded',
   },
   {
     sound: 'bowl-small', title: 'Tibetan Singing Bowl hit 4.5inch', author: 'דג בלי מלח (Dag Bli Melah)',
