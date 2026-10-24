@@ -30,6 +30,11 @@ RECORDINGS = [
          author="MichaelMaggs", license="CC BY-SA 4.0",
          # The recording is a roll of soft taps building to one full strike at 4.6 s; keep that strike.
          start=4.57, length=15, fade=3),
+    dict(sound="koshi", original="Windglockenspiel.Koshi.ogg",
+         url="https://commons.wikimedia.org/wiki/File:Windglockenspiel.Koshi.ogg",
+         author="Membeth", license="CC0 1.0",
+         # A minute of chimes in a breeze; the first gust, from its first rod.
+         start=0.2, length=9, fade=3.5),
 ]
 
 

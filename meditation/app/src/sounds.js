@@ -42,7 +42,7 @@ export const SOUNDS = [
     scale: [440, 587.33, 698.46, 783.99, 880, 1174.66, 1396.91, 1760],
     gust: { notes: 9, spread: 3.6 },
     level: 0.4, // the rods overlap, so each is quieter
-    length: 10, file: null,
+    length: 10, file: 'sounds/koshi.mp3',
   },
   {
     id: 'bell', name: 'Temple bell', image: 'instrument-bell',
@@ -65,5 +65,10 @@ export const CREDITS = [
     sound: 'rin', title: 'Japanese rin played as struck idiophone', author: 'MichaelMaggs',
     url: 'https://commons.wikimedia.org/wiki/File:Japanese_rin_played_as_struck_idiophone.ogg',
     license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/', changes: 'trimmed to the last strike, level matched, faded',
+  },
+  {
+    sound: 'koshi', title: 'Windglockenspiel.Koshi', author: 'Membeth',
+    url: 'https://commons.wikimedia.org/wiki/File:Windglockenspiel.Koshi.ogg',
+    license: 'CC0 1.0', changes: 'trimmed to one gust, level matched, faded',
   },
 ];
