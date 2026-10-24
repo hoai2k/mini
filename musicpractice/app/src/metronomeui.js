@@ -9,7 +9,7 @@ import { Metronome, pendulumAngle, weightAt, bpmAtWeight, tapTempo, TAP_KEEP } f
 import { NativeMetronome } from './nativeaudio.js';
 import { GENRES, GENRE_IDS, mainTempo, nameFor, genreRange } from './tempos.js';
 import { clampBpm, SAVED_MAX, METERS, SOUNDS, VIZ_BARS, TICKS, barPlan, cleanPattern, cleanLevels, meterOf, beatStrengths, BPM_MIN, BPM_MAX, SOFT, SILENT, GAP_MAX, TRAINER_STEP_MAX, TRAINER_EVERY_MAX, POLY_COUNTS } from './settings.js';
-import { swingOf, placeWeight, weightFromPoint } from './art.js';
+import { swingOf, placeWeight, uprightRod, unrotate } from './art.js';
 import { tuckedVolume } from './tuckedvolume.js';
 import { $, chips, note } from './ui.js';
 
@@ -36,7 +36,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
   }
 
   let weightDrag = null; // the pendulum's weight while it is dragged (below)
-  let weightMoved = false;
+  let weightNear = false; // the last press was on the weight or the rod (not a tap on the metronome)
   function setBpm(v, { fromInput = false } = {}) {
     settings.bpm = clampBpm(v);
     if (!fromInput || document.activeElement !== bpmInput) bpmInput.value = settings.bpm;
@@ -747,33 +747,75 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
   /** The chosen genre's slowest to fastest named tempo: the rod's range. */
   function weightRange() { return genreRange(settings.tempoGenre); }
   function showWeight(t = weightAt(settings.bpm, weightRange())) { placeWeight(pendulum, t); }
-  weightEl.addEventListener('pointerdown', (e) => {
+  /*
+   * Grabbing: a press anywhere near the rod (the weight, or the rod above or
+   * below it) takes hold, wherever the pendulum is in its swing: the press is
+   * turned back into the rod's own upright frame (unrotate) to see whether it
+   * was near the rod, the pendulum then stands upright at once (no easing,
+   * so nothing shifts under the pointer), and from there the weight follows
+   * the pointer up and down the rod, the same movement always the same
+   * change. A press on the weight keeps the weight where it was under the
+   * pointer; a press on the rod brings the weight there. A press near the
+   * rod never counts as a tap on the metronome (which turns the swing on or
+   * off), dragged or not.
+   */
+  const GRAB = 22; // px either side of the rod that still take hold of it
+  const swingNow = () => Number(/rotate\((-?[\d.]+)deg\)/.exec(pendulum.style.transform)?.[1] ?? 0);
+  /** Where a point is along the rod (0 to 1 of the weight's travel) in the upright rod `u`. */
+  const along = (u, y) => (((y - u.top) / u.height) * u.canvas[1] - u.travel[0]) / (u.travel[1] - u.travel[0]);
+  /** The press's place on the rod, or null if it is not near it. */
+  function grabAt(x, y) {
+    const u = uprightRod(pendulum);
+    if (!u || weightEl.hidden) return null;
+    const [ux, uy] = unrotate(x, y, u.hubX, u.hubY, swingNow());
+    const w = weightEl.getBoundingClientRect();
+    const half = Math.max(GRAB, w.width / 2);
+    if (Math.abs(ux - u.hubX) > half || uy < u.top - GRAB || uy > u.hubY + GRAB) return null;
+    return { u, t: along(u, uy) };
+  }
+  art.addEventListener('pointerdown', (e) => {
+    weightNear = false;
     if (e.button) return;
-    const at = weightFromPoint(pendulum, e.clientY);
-    if (at == null) return;
-    weightDrag = { id: e.pointerId, x: e.clientX, y: e.clientY, offset: weightAt(settings.bpm, weightRange()) - at, moved: false };
-    weightEl.setPointerCapture(e.pointerId);
-  });
-  weightEl.addEventListener('pointermove', (e) => {
+    const g = grabAt(e.clientX, e.clientY);
+    if (!g) return;
+    weightNear = true;
+    e.preventDefault(); // no text selection or image drag under a mouse
+    const now = weightAt(settings.bpm, weightRange());
+    // On the weight itself (within its own height), it stays under the pointer; on the rod, it comes there.
+    const span = weightEl.getBoundingClientRect().height / g.u.height * g.u.canvas[1] / (g.u.travel[1] - g.u.travel[0]);
+    const offset = Math.abs(g.t - now) <= span / 2 + 0.02 ? now - g.t : 0;
+    weightDrag = { id: e.pointerId, x: e.clientX, y: e.clientY, y0: e.clientY, t0: g.t + offset, moved: false };
+    // Upright at once, and held there while the weight is dragged.
+    swingAmt = 0;
+    pendulum.style.transform = 'rotate(0deg)';
+    art.setPointerCapture(e.pointerId);
+  }, true);
+  art.addEventListener('pointermove', (e) => {
     const d = weightDrag;
-    if (!d || e.pointerId !== d.id) return;
+    if (!d) {
+      // A pointer over the rod shows it can be taken hold of.
+      if (e.pointerType === 'mouse') art.classList.toggle('grab', !!grabAt(e.clientX, e.clientY));
+      return;
+    }
+    if (e.pointerId !== d.id) return;
     if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 4) return;
-    if (!d.moved) { d.moved = true; weightEl.classList.add('held'); }
-    const at = weightFromPoint(pendulum, e.clientY);
-    if (at == null) return;
-    const t = Math.min(1, Math.max(0, at + d.offset));
+    if (!d.moved) { d.moved = true; weightEl.classList.add('held'); art.classList.add('grabbing'); }
+    const u = uprightRod(pendulum);
+    if (!u) return;
+    // Down the screen is down the rod (faster), by the rod's own scale.
+    const t = Math.min(1, Math.max(0, d.t0 + along(u, e.clientY) - along(u, d.y0)));
     showWeight(t);
     const bpm = Math.round(bpmAtWeight(t, weightRange()));
     if (bpm !== settings.bpm) setBpm(bpm);
   });
+  art.addEventListener('pointerleave', () => art.classList.remove('grab'));
   for (const type of ['pointerup', 'pointercancel']) {
-    weightEl.addEventListener(type, (e) => {
+    art.addEventListener(type, (e) => {
       const d = weightDrag;
       if (!d || e.pointerId !== d.id) return;
       weightDrag = null;
       weightEl.classList.remove('held');
-      weightMoved = d.moved;
-      if (d.moved) setTimeout(() => { weightMoved = false; }, 0); // only the click this release makes
+      art.classList.remove('grabbing');
       showWeight();
     });
   }
@@ -1008,7 +1050,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     switchView();
   });
   art.addEventListener('click', () => {
-    if (weightMoved) { weightMoved = false; return; } // that was the weight being dragged
+    if (weightNear) { weightNear = false; return; } // that was the weight (or the rod) taken hold of
     if (metVolume.swallowedTap(art)) return;
     toggleSwing();
   });

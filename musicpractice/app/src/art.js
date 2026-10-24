@@ -165,12 +165,29 @@ export function placeWeight(pendulumEl, t) {
   return y;
 }
 
-/** The place on the rod (0 to 1) for a point `clientY` on screen, with the pendulum upright. */
-export function weightFromPoint(pendulumEl, clientY) {
+/** A point turned back by `deg` about (hx, hy): where it is in the frame of a layer rotated by `deg` (CSS rotate, clockwise on screen). */
+export function unrotate(x, y, hx, hy, deg) {
+  const a = (-deg * Math.PI) / 180;
+  const dx = x - hx, dy = y - hy;
+  return [hx + dx * Math.cos(a) - dy * Math.sin(a), hy + dx * Math.sin(a) + dy * Math.cos(a)];
+}
+
+/**
+ * The rod as it stands upright on screen, whatever the pendulum's swing:
+ * its box, its hub and the canvas it is drawn on. The swing is a rotation
+ * about the hub, so it is taken off for the measurement and put back at once
+ * (within the same frame, so nothing is drawn without it).
+ */
+export function uprightRod(pendulumEl) {
   const rodEl = pendulumEl.querySelector('.met-rod');
   const rod = rodOf(pendulumEl);
   if (!rod?.travel || !rodEl) return null;
+  const was = pendulumEl.style.transform;
+  pendulumEl.style.transform = 'none';
   const r = rodEl.getBoundingClientRect();
-  const y = ((clientY - r.top) / r.height) * rod.canvas[1];
-  return (y - rod.travel[0]) / (rod.travel[1] - rod.travel[0]);
+  pendulumEl.style.transform = was;
+  const [cw, ch] = rod.canvas;
+  const [hx, hy] = rod.anchors?.hub ?? [cw / 2, ch * 0.96];
+  return { left: r.left, top: r.top, width: r.width, height: r.height, hubX: r.left + (hx / cw) * r.width, hubY: r.top + (hy / ch) * r.height, canvas: rod.canvas, travel: rod.travel };
 }
+
