@@ -1,0 +1,1115 @@
+{
+  "generator": "image_gen.imagegen",
+  "date": "2026-10-24",
+  "status": "needs-review",
+  "style": "Photoreal, finely detailed base-colour (albedo) map. Flat, even, shadowless lighting: no baked shadows, ambient occlusion, highlights or reflections (Smoothcraft lights every surface itself). Keep the vanilla colours and overall read so the game is still recognisable.",
+  "preparation": "Generated 4x4 atlases; cropped cells with ImageMagick and resized to the requested 256x256 PNG size. No procedural replacement textures.",
+  "review": "Dimensions and opacity checked. Seamless edges and removal of baked lighting still need work before HD pack integration. Requests remain requested.",
+  "textures": [
+    {
+      "id": "block/stone",
+      "file": "block/stone.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "6b4fb1c8c4025e894af7f64b1c01d9e4c80670cf5b98226a01c6150cdc38493c",
+      "source_sha256": "c9c99722c4bc1b124ef7e887c509de9a243fc80d8544938dfe036a0c8f8a567e",
+      "source_cell": 1,
+      "prompt": "Grey limestone bedrock face with natural cracks and subtle strata."
+    },
+    {
+      "id": "block/andesite",
+      "file": "block/andesite.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "1c3a43696614753d3daf3066c6acfc0f13327022905df5b48de5ae2933c13a26",
+      "source_sha256": "c9c99722c4bc1b124ef7e887c509de9a243fc80d8544938dfe036a0c8f8a567e",
+      "source_cell": 2,
+      "prompt": "Fine grey andesite with small darker flecks."
+    },
+    {
+      "id": "block/diorite",
+      "file": "block/diorite.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "8bfef6456ddbb9644e2856f17603fb4b128f68e43c0233fe051317ab37ff5049",
+      "source_sha256": "c9c99722c4bc1b124ef7e887c509de9a243fc80d8544938dfe036a0c8f8a567e",
+      "source_cell": 3,
+      "prompt": "White and grey speckled diorite, salt-and-pepper crystals."
+    },
+    {
+      "id": "block/granite",
+      "file": "block/granite.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "3a71b678787db7a61330dd814f4d1321dbb17b42ee10cf6cad1b2815abae4a31",
+      "source_sha256": "c9c99722c4bc1b124ef7e887c509de9a243fc80d8544938dfe036a0c8f8a567e",
+      "source_cell": 4,
+      "prompt": "Pink-red granite, coarse crystals of feldspar, quartz and black mica."
+    },
+    {
+      "id": "block/dirt",
+      "file": "block/dirt.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "6120305465a9a1d487d288d5d7540805c4b0fdb329ec35ebb6a96d3bf2055446",
+      "source_sha256": "c9c99722c4bc1b124ef7e887c509de9a243fc80d8544938dfe036a0c8f8a567e",
+      "source_cell": 5,
+      "prompt": "Moist dark-brown topsoil with small pebbles, fine roots and crumbly clods."
+    },
+    {
+      "id": "block/coarse_dirt",
+      "file": "block/coarse_dirt.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "82aadba63471ca2678164a5b89cc7bb9f860b43750c6484b78e9c0f8cc9a89cf",
+      "source_sha256": "c9c99722c4bc1b124ef7e887c509de9a243fc80d8544938dfe036a0c8f8a567e",
+      "source_cell": 6,
+      "prompt": "Dry coarse dirt with lots of gravel and small stones mixed in."
+    },
+    {
+      "id": "block/gravel",
+      "file": "block/gravel.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "204e87c46cc35cff528468d70f18d13755c9028e3ca79c831e0939e91d30482d",
+      "source_sha256": "c9c99722c4bc1b124ef7e887c509de9a243fc80d8544938dfe036a0c8f8a567e",
+      "source_cell": 7,
+      "prompt": "Loose river gravel of rounded grey and brown pebbles of mixed sizes."
+    },
+    {
+      "id": "block/sand",
+      "file": "block/sand.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "2fb3532413d00a07b745d9feba54e86fcf91acd39c298c7358a97b37a7d520fd",
+      "source_sha256": "c9c99722c4bc1b124ef7e887c509de9a243fc80d8544938dfe036a0c8f8a567e",
+      "source_cell": 8,
+      "prompt": "Fine pale-yellow beach sand with ripples and a few shell fragments."
+    },
+    {
+      "id": "block/red_sand",
+      "file": "block/red_sand.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "315ec32b794d9ff3c719f7fcd1493c1bf238f3a7673a32a283850679faeb86cd",
+      "source_sha256": "c9c99722c4bc1b124ef7e887c509de9a243fc80d8544938dfe036a0c8f8a567e",
+      "source_cell": 9,
+      "prompt": "Fine rust-red desert sand with gentle ripples."
+    },
+    {
+      "id": "block/clay",
+      "file": "block/clay.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "f7b74973d6268ab04b9c54d48e156ae7ac640efc9e4ce35c9592873aa79713cc",
+      "source_sha256": "c9c99722c4bc1b124ef7e887c509de9a243fc80d8544938dfe036a0c8f8a567e",
+      "source_cell": 10,
+      "prompt": "Smooth pale blue-grey clay with fine sculpted ridges."
+    },
+    {
+      "id": "block/calcite",
+      "file": "block/calcite.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "68763b3820fa482e49def064aa0e492a5e78555dca8983e184207ca4af8dcae5",
+      "source_sha256": "c9c99722c4bc1b124ef7e887c509de9a243fc80d8544938dfe036a0c8f8a567e",
+      "source_cell": 11,
+      "prompt": "White calcite with soft crystalline texture and faint veins."
+    },
+    {
+      "id": "block/tuff",
+      "file": "block/tuff.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "d92724d8ef5755d6ec082b9eedfc09eab6047dfb031d7e432600611b80a1c1fe",
+      "source_sha256": "c9c99722c4bc1b124ef7e887c509de9a243fc80d8544938dfe036a0c8f8a567e",
+      "source_cell": 12,
+      "prompt": "Grey-green volcanic tuff, porous with small embedded fragments."
+    },
+    {
+      "id": "block/deepslate",
+      "file": "block/deepslate.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "b031daa997c45a7c3bbf8fe0481a6c32c2a3ff76c757ae7ce6bc6c68c0e9e4e6",
+      "source_sha256": "c9c99722c4bc1b124ef7e887c509de9a243fc80d8544938dfe036a0c8f8a567e",
+      "source_cell": 13,
+      "prompt": "Dark grey-blue slate rock with fine vertical foliation lines."
+    },
+    {
+      "id": "block/cobbled_deepslate",
+      "file": "block/cobbled_deepslate.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "9a854688d3fbed2ca87ee4235b538cc6aea445c082acafbc3bc2ce73c134edc8",
+      "source_sha256": "c9c99722c4bc1b124ef7e887c509de9a243fc80d8544938dfe036a0c8f8a567e",
+      "source_cell": 14,
+      "prompt": "Rough broken pieces of dark slate packed together."
+    },
+    {
+      "id": "block/cobblestone",
+      "file": "block/cobblestone.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "908b542a5a5568c1b93506cfcb07b911762a7bfdbcfcb0e2b3a4a35c8280ef42",
+      "source_sha256": "c9c99722c4bc1b124ef7e887c509de9a243fc80d8544938dfe036a0c8f8a567e",
+      "source_cell": 15,
+      "prompt": "Rough rounded grey stones packed together with dark gaps of mortar and dirt between them."
+    },
+    {
+      "id": "block/bedrock",
+      "file": "block/bedrock.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "3169de3dbd2be4b1404b76664534665105364a708d437fba9bf6f6ac0e9e303b",
+      "source_sha256": "c9c99722c4bc1b124ef7e887c509de9a243fc80d8544938dfe036a0c8f8a567e",
+      "source_cell": 16,
+      "prompt": "Unbreakable bedrock: chaotic mix of very dark and grey hard rock."
+    },
+    {
+      "id": "block/acacia_log",
+      "file": "block/acacia_log.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "889ed9f2883c375aadc5a1002ee0005ffd9d5492befc107852db042ce7a7f0e8",
+      "source_sha256": "33d4212ddbf3ce91d4ae438acc40e688b557df8990d83ccd85b4d7bb3c55835e",
+      "source_cell": 1,
+      "prompt": "Acacia bark: grey, rough bark with orange inner wood showing in the cracks."
+    },
+    {
+      "id": "block/birch_log",
+      "file": "block/birch_log.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "3bcaff4acee5eb32de1a6fef2716976863fb20678771cc87cba3b2d50f93d73c",
+      "source_sha256": "33d4212ddbf3ce91d4ae438acc40e688b557df8990d83ccd85b4d7bb3c55835e",
+      "source_cell": 2,
+      "prompt": "Birch bark: white papery bark with black horizontal lenticels and peeling strips."
+    },
+    {
+      "id": "block/birch_log_top",
+      "file": "block/birch_log_top.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "c98fb05c0851b899282aa7165abef967f3fe7f25ad9b3bd929e2188998c8925f",
+      "source_sha256": "33d4212ddbf3ce91d4ae438acc40e688b557df8990d83ccd85b4d7bb3c55835e",
+      "source_cell": 3,
+      "prompt": "End grain of a birch log with pale rings and a white bark rim."
+    },
+    {
+      "id": "block/birch_planks",
+      "file": "block/birch_planks.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "7fd6eff7b2ba69d644c791c61db4c370f4da764167d333f2768bc58a6fec009e",
+      "source_sha256": "33d4212ddbf3ce91d4ae438acc40e688b557df8990d83ccd85b4d7bb3c55835e",
+      "source_cell": 4,
+      "prompt": "Pale cream birch planks with fine grain."
+    },
+    {
+      "id": "block/bookshelf",
+      "file": "block/bookshelf.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "2a2429e16a00e5a74b6106bc479d159073a89e693eb3e69faafb5aee809dd965",
+      "source_sha256": "33d4212ddbf3ce91d4ae438acc40e688b557df8990d83ccd85b4d7bb3c55835e",
+      "source_cell": 5,
+      "prompt": "Shelf of old leather-bound books in varied colours, worn spines and gold lettering, oak shelf boards top and bottom."
+    },
+    {
+      "id": "block/bricks",
+      "file": "block/bricks.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "429582c96b51a7e72b27bdab4bd577d781d6b0af8dc032d06c006e7e7799c68f",
+      "source_sha256": "33d4212ddbf3ce91d4ae438acc40e688b557df8990d83ccd85b4d7bb3c55835e",
+      "source_cell": 6,
+      "prompt": "Red clay bricks in a running bond with pale grey mortar, slightly chipped edges."
+    },
+    {
+      "id": "block/cherry_log",
+      "file": "block/cherry_log.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "e25587dcc84afa8c6d868d3f19b019dd95ba916e4fe01f003c77047392788b48",
+      "source_sha256": "33d4212ddbf3ce91d4ae438acc40e688b557df8990d83ccd85b4d7bb3c55835e",
+      "source_cell": 7,
+      "prompt": "Cherry bark: dark maroon bark with horizontal lenticels."
+    },
+    {
+      "id": "block/coal_ore",
+      "file": "block/coal_ore.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "b68036b9d805e182dd8f5beb233db1f31bc8632455b6fcb86218f3ba6d468493",
+      "source_sha256": "33d4212ddbf3ce91d4ae438acc40e688b557df8990d83ccd85b4d7bb3c55835e",
+      "source_cell": 8,
+      "prompt": "Grey stone with embedded black lumps of coal."
+    },
+    {
+      "id": "block/copper_ore",
+      "file": "block/copper_ore.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "005f7d2ce821e824b629ecec211f656e2e68600a844f45abdefeefc4a303b46d",
+      "source_sha256": "33d4212ddbf3ce91d4ae438acc40e688b557df8990d83ccd85b4d7bb3c55835e",
+      "source_cell": 9,
+      "prompt": "Grey stone with orange and green-tinged copper ore veins."
+    },
+    {
+      "id": "block/cracked_stone_bricks",
+      "file": "block/cracked_stone_bricks.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "1744f8b340f06c417d729d6c06017b07ea667f0874dde0004984306cfb1c3df0",
+      "source_sha256": "33d4212ddbf3ce91d4ae438acc40e688b557df8990d83ccd85b4d7bb3c55835e",
+      "source_cell": 10,
+      "prompt": "Dressed grey stone blocks with deep cracks and chipped corners."
+    },
+    {
+      "id": "block/crafting_table_front",
+      "file": "block/crafting_table_front.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "f5bb5a7f9da38cf9eefa0880c10a410c8920374b07f8217226c60e29851f8310",
+      "source_sha256": "33d4212ddbf3ce91d4ae438acc40e688b557df8990d83ccd85b4d7bb3c55835e",
+      "source_cell": 11,
+      "prompt": "Front of a crafting table: oak boards with a saw and hammer hanging on it."
+    },
+    {
+      "id": "block/crafting_table_side",
+      "file": "block/crafting_table_side.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "4bf566a1d0cf36c6f7c3062e581925bf4068a439009ded8cf4123870b390b03c",
+      "source_sha256": "33d4212ddbf3ce91d4ae438acc40e688b557df8990d83ccd85b4d7bb3c55835e",
+      "source_cell": 12,
+      "prompt": "Side of a crafting table: oak boards with hanging tools."
+    },
+    {
+      "id": "block/crafting_table_top",
+      "file": "block/crafting_table_top.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "a8669ac7d0463c0235cf4950df1f43ea22499cf1f90d4ce05fb9e8e61ab1f511",
+      "source_sha256": "33d4212ddbf3ce91d4ae438acc40e688b557df8990d83ccd85b4d7bb3c55835e",
+      "source_cell": 13,
+      "prompt": "Top of a crafting table: a 3x3 grid of engraved squares in an oak work top, tool scratches."
+    },
+    {
+      "id": "block/dark_oak_log",
+      "file": "block/dark_oak_log.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "68d4d9adb918e5eaa954b26afcf3cbbc06f05323dc767c6f8d676e647e303d88",
+      "source_sha256": "33d4212ddbf3ce91d4ae438acc40e688b557df8990d83ccd85b4d7bb3c55835e",
+      "source_cell": 14,
+      "prompt": "Dark oak bark: very dark, thick, blocky bark."
+    },
+    {
+      "id": "block/dark_oak_planks",
+      "file": "block/dark_oak_planks.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "c737a33c5da3ac7940296222e001539eaa484f5fde0f23acac7faa5a8f6bcec2",
+      "source_sha256": "33d4212ddbf3ce91d4ae438acc40e688b557df8990d83ccd85b4d7bb3c55835e",
+      "source_cell": 15,
+      "prompt": "Rich chocolate-brown dark oak planks."
+    },
+    {
+      "id": "block/deepslate_diamond_ore",
+      "file": "block/deepslate_diamond_ore.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "d033e42acbf04fb44a08737f3555f83a7b472ee8aa14f3e917eb770f0e8678de",
+      "source_sha256": "33d4212ddbf3ce91d4ae438acc40e688b557df8990d83ccd85b4d7bb3c55835e",
+      "source_cell": 16,
+      "prompt": "Dark slate with pale cyan diamond crystals."
+    },
+    {
+      "id": "block/deepslate_iron_ore",
+      "file": "block/deepslate_iron_ore.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "9ee1d18cf7b068cb40a100cecaab5acb345eafb90f470125965397edbd89fb93",
+      "source_sha256": "22866f87c95309a4779cb00b4f6495ed4c2412f4a2daa487c2d1060417b4986c",
+      "source_cell": 1,
+      "prompt": "Dark slate with beige-orange iron ore nuggets."
+    },
+    {
+      "id": "block/deepslate_top",
+      "file": "block/deepslate_top.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "04c0de69076d4921b509a75362d08f00f1608c4eb7468bf7dd4eb9bb9cf887be",
+      "source_sha256": "22866f87c95309a4779cb00b4f6495ed4c2412f4a2daa487c2d1060417b4986c",
+      "source_cell": 2,
+      "prompt": "End face of deepslate: dark slate with concentric layered grain."
+    },
+    {
+      "id": "block/diamond_block",
+      "file": "block/diamond_block.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "f4528c8916044f4f207d5e33979119b1e283579995e3c09ee04ade65254b3bd8",
+      "source_sha256": "22866f87c95309a4779cb00b4f6495ed4c2412f4a2daa487c2d1060417b4986c",
+      "source_cell": 3,
+      "prompt": "Block of diamond: cut pale cyan gem tiles."
+    },
+    {
+      "id": "block/diamond_ore",
+      "file": "block/diamond_ore.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "158ba515c434dc82a34d6c2478b1b501e4c57e9aabd9c6f9d49535be11b22f64",
+      "source_sha256": "22866f87c95309a4779cb00b4f6495ed4c2412f4a2daa487c2d1060417b4986c",
+      "source_cell": 4,
+      "prompt": "Grey stone with pale cyan diamond crystals poking out."
+    },
+    {
+      "id": "block/dirt_path_top",
+      "file": "block/dirt_path_top.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "f0b5609e5678e0a8d98ead23dc38ad4f19176f7e97967c48ea4d9c6b2c502619",
+      "source_sha256": "22866f87c95309a4779cb00b4f6495ed4c2412f4a2daa487c2d1060417b4986c",
+      "source_cell": 5,
+      "prompt": "Trampled, compacted dirt footpath with fine dust, a few flattened grass blades at the edges."
+    },
+    {
+      "id": "block/emerald_ore",
+      "file": "block/emerald_ore.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "1f3bce87dd29cd0d9479b2d0031be62178fe2849ab6f0489a265538be4ec9028",
+      "source_sha256": "22866f87c95309a4779cb00b4f6495ed4c2412f4a2daa487c2d1060417b4986c",
+      "source_cell": 6,
+      "prompt": "Grey stone with small hexagonal green emerald crystals."
+    },
+    {
+      "id": "block/end_stone",
+      "file": "block/end_stone.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "ce8d8e76e496abc51883c8ed8161cf1bbc656331489a50d4689b465cfbfef6d3",
+      "source_sha256": "22866f87c95309a4779cb00b4f6495ed4c2412f4a2daa487c2d1060417b4986c",
+      "source_cell": 7,
+      "prompt": "Pale yellow pitted alien stone."
+    },
+    {
+      "id": "block/farmland",
+      "file": "block/farmland.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "ca774a1a991b6047387ecd79d7dc18f1355926755f9944daa23732d16c9eb257",
+      "source_sha256": "22866f87c95309a4779cb00b4f6495ed4c2412f4a2daa487c2d1060417b4986c",
+      "source_cell": 8,
+      "prompt": "Dry tilled farmland, parallel furrows of loose soil."
+    },
+    {
+      "id": "block/farmland_moist",
+      "file": "block/farmland_moist.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "1d21353f9ecda8e864f40cc961d4d7576c70775dfa39f78953c1f8678319d9bf",
+      "source_sha256": "22866f87c95309a4779cb00b4f6495ed4c2412f4a2daa487c2d1060417b4986c",
+      "source_cell": 9,
+      "prompt": "Wet dark tilled farmland, parallel furrows glistening with moisture (paint it dark, not shiny)."
+    },
+    {
+      "id": "block/furnace_front",
+      "file": "block/furnace_front.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "986ab8ac80e7ff26384accbca7798a189faf9295fd231d08683532bcb73ed1b8",
+      "source_sha256": "22866f87c95309a4779cb00b4f6495ed4c2412f4a2daa487c2d1060417b4986c",
+      "source_cell": 10,
+      "prompt": "Front of a stone furnace: cobblestone with an iron-framed opening, cold and dark inside."
+    },
+    {
+      "id": "block/furnace_front_on",
+      "file": "block/furnace_front_on.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "ac12eb341effc1d7db7de172990cb8e6b3078a1e9eadc0f1d99b2ff4835e74e3",
+      "source_sha256": "22866f87c95309a4779cb00b4f6495ed4c2412f4a2daa487c2d1060417b4986c",
+      "source_cell": 11,
+      "prompt": "Front of a lit stone furnace: iron-framed opening with glowing embers and flames inside."
+    },
+    {
+      "id": "block/furnace_side",
+      "file": "block/furnace_side.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "49144970d6787cc129e33183e3fb1d38873fe829e5e2a28650b34fb816a3e4e2",
+      "source_sha256": "22866f87c95309a4779cb00b4f6495ed4c2412f4a2daa487c2d1060417b4986c",
+      "source_cell": 12,
+      "prompt": "Side of a stone furnace: smooth cut stone."
+    },
+    {
+      "id": "block/furnace_top",
+      "file": "block/furnace_top.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "3a93b0bccad10b2d65e92615d654c97d24ccc310d605732c486e0525cc88e1d9",
+      "source_sha256": "22866f87c95309a4779cb00b4f6495ed4c2412f4a2daa487c2d1060417b4986c",
+      "source_cell": 13,
+      "prompt": "Top of a stone furnace: smooth cut stone."
+    },
+    {
+      "id": "block/glowstone",
+      "file": "block/glowstone.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "736a8e54d6ccdee943fd2538cd273d8b152a8fc0d3699db09fdea4e21463111d",
+      "source_sha256": "22866f87c95309a4779cb00b4f6495ed4c2412f4a2daa487c2d1060417b4986c",
+      "source_cell": 14,
+      "prompt": "Glowing yellow crystalline clusters packed together, bright and self-lit."
+    },
+    {
+      "id": "block/gold_block",
+      "file": "block/gold_block.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "103fe3d2edb3fad1c26301adffb9dea0950043bcaa6e9df624551db7964a2321",
+      "source_sha256": "22866f87c95309a4779cb00b4f6495ed4c2412f4a2daa487c2d1060417b4986c",
+      "source_cell": 15,
+      "prompt": "Block of gold: polished stamped gold plates."
+    },
+    {
+      "id": "block/gold_ore",
+      "file": "block/gold_ore.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "4bc24a272980bf8652de3df79c4d7c7ad3e275259be0ffc5f7a06feb9e250d98",
+      "source_sha256": "22866f87c95309a4779cb00b4f6495ed4c2412f4a2daa487c2d1060417b4986c",
+      "source_cell": 16,
+      "prompt": "Grey stone with bright gold ore nuggets."
+    },
+    {
+      "id": "block/grass_block_side",
+      "file": "block/grass_block_side.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "0a131a69ffd6561f1e75551a3be27db507b90feb0f324f3f2aea331c6c4ef01f",
+      "source_sha256": "5fcdeb47cab8f69f6ecf2f74fae0993aab1a10ae6eafec8c11f5964507caee1c",
+      "source_cell": 1,
+      "prompt": "Side of a grass block: a cross-section of rich brown soil with small stones and roots; the top 3/16 is a ragged fringe of grass overhanging the edge."
+    },
+    {
+      "id": "block/grass_block_snow",
+      "file": "block/grass_block_snow.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "9fc7906b748515009e6faccde891e3dac08e8c1ca46b4a3df928691637479cb4",
+      "source_sha256": "5fcdeb47cab8f69f6ecf2f74fae0993aab1a10ae6eafec8c11f5964507caee1c",
+      "source_cell": 2,
+      "prompt": "Side of a snowy grass block: brown soil with roots and a thick, soft layer of snow with a rounded lip along the top."
+    },
+    {
+      "id": "block/grass_block_top",
+      "file": "block/grass_block_top.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "cc43c66d42bc352cfaad7754e40bae98643f4c67bd90e11a4980867137153871",
+      "source_sha256": "5fcdeb47cab8f69f6ecf2f74fae0993aab1a10ae6eafec8c11f5964507caee1c",
+      "source_cell": 3,
+      "prompt": "Top of a grass block seen straight down: dense short meadow grass blades with a few clover leaves, painted greyscale-to-light-green because the game tints it by biome; no flowers."
+    },
+    {
+      "id": "block/iron_block",
+      "file": "block/iron_block.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "ac11cc147a3b7b15bb0c050f41d84fd01c70e6c09937a95ea4bc5fe8eb20256a",
+      "source_sha256": "5fcdeb47cab8f69f6ecf2f74fae0993aab1a10ae6eafec8c11f5964507caee1c",
+      "source_cell": 4,
+      "prompt": "Block of iron: riveted brushed steel plates."
+    },
+    {
+      "id": "block/iron_ore",
+      "file": "block/iron_ore.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "0be16c64ba220abb639be87f392213beb9630a73ac393d6e1c37e212acce058b",
+      "source_sha256": "5fcdeb47cab8f69f6ecf2f74fae0993aab1a10ae6eafec8c11f5964507caee1c",
+      "source_cell": 5,
+      "prompt": "Grey stone with embedded beige-orange iron ore nuggets."
+    },
+    {
+      "id": "block/jungle_log",
+      "file": "block/jungle_log.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "80a034b6d20ee30a8c5ac4ebd401907b24e21ca04e2e8edb0f1ef5670cd5d7a2",
+      "source_sha256": "5fcdeb47cab8f69f6ecf2f74fae0993aab1a10ae6eafec8c11f5964507caee1c",
+      "source_cell": 6,
+      "prompt": "Jungle tree bark: tan bark with moss and vertical ridges."
+    },
+    {
+      "id": "block/lapis_ore",
+      "file": "block/lapis_ore.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "d68c32590fdde7d47b67cf90ef97a120a53db1e379055d0e45f3cca31e1ac02d",
+      "source_sha256": "5fcdeb47cab8f69f6ecf2f74fae0993aab1a10ae6eafec8c11f5964507caee1c",
+      "source_cell": 7,
+      "prompt": "Grey stone with deep blue lapis lazuli flecks."
+    },
+    {
+      "id": "block/mangrove_log",
+      "file": "block/mangrove_log.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "1031ac9616e7ef94e1a45494de2e91217a7800a27485602c0921d9da68255b51",
+      "source_sha256": "5fcdeb47cab8f69f6ecf2f74fae0993aab1a10ae6eafec8c11f5964507caee1c",
+      "source_cell": 8,
+      "prompt": "Mangrove bark: reddish-brown smooth bark."
+    },
+    {
+      "id": "block/mossy_cobblestone",
+      "file": "block/mossy_cobblestone.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "6d42dba80498c4f21101b5e9b8b18680a5612fb5b4a3fb0c61d7c3427fbcf829",
+      "source_sha256": "5fcdeb47cab8f69f6ecf2f74fae0993aab1a10ae6eafec8c11f5964507caee1c",
+      "source_cell": 9,
+      "prompt": "Rough rounded grey stones with thick green moss growing in the gaps and over the tops."
+    },
+    {
+      "id": "block/mossy_stone_bricks",
+      "file": "block/mossy_stone_bricks.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "fa05989ee67555642316449c8bbb92e33fe4007a2b7e62a3b15a25607c5988e0",
+      "source_sha256": "5fcdeb47cab8f69f6ecf2f74fae0993aab1a10ae6eafec8c11f5964507caee1c",
+      "source_cell": 10,
+      "prompt": "Dressed grey stone blocks with moss growing along the joints."
+    },
+    {
+      "id": "block/mud",
+      "file": "block/mud.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "bcba57fc0cdc636d85e8921f229fa7e9e676a16aa7cc826269dd1c7f44891ead",
+      "source_sha256": "5fcdeb47cab8f69f6ecf2f74fae0993aab1a10ae6eafec8c11f5964507caee1c",
+      "source_cell": 11,
+      "prompt": "Wet dark grey-brown mud with puddle shapes and footprints, no reflections."
+    },
+    {
+      "id": "block/mycelium_side",
+      "file": "block/mycelium_side.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "5b3ad7270975aeca0b57ebf575125f800a983fca332d068eb86caf290d8f594d",
+      "source_sha256": "5fcdeb47cab8f69f6ecf2f74fae0993aab1a10ae6eafec8c11f5964507caee1c",
+      "source_cell": 12,
+      "prompt": "Soil cross-section topped with a purple-grey fungal mat."
+    },
+    {
+      "id": "block/mycelium_top",
+      "file": "block/mycelium_top.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "0e535d442c71ca95c378bae4b2f261a46fee5e4ae4f92dc390f3b74cd6fe6c7f",
+      "source_sha256": "5fcdeb47cab8f69f6ecf2f74fae0993aab1a10ae6eafec8c11f5964507caee1c",
+      "source_cell": 13,
+      "prompt": "Purple-grey fungal mat over soil, fine white threads and tiny spore specks."
+    },
+    {
+      "id": "block/netherrack",
+      "file": "block/netherrack.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "2d58348100836922426ee45b5ffd7675b08657dcb69844c4a5a69a98beba0ede",
+      "source_sha256": "5fcdeb47cab8f69f6ecf2f74fae0993aab1a10ae6eafec8c11f5964507caee1c",
+      "source_cell": 14,
+      "prompt": "Fleshy dark-red porous rock of the Nether."
+    },
+    {
+      "id": "block/oak_log",
+      "file": "block/oak_log.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "f48ec6a4cc89a348747f6318a03f6c911a7001568c08d03a7c018785304dbe36",
+      "source_sha256": "5fcdeb47cab8f69f6ecf2f74fae0993aab1a10ae6eafec8c11f5964507caee1c",
+      "source_cell": 15,
+      "prompt": "Oak bark: thick, deeply furrowed grey-brown bark running vertically."
+    },
+    {
+      "id": "block/oak_log_top",
+      "file": "block/oak_log_top.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "a2b2425cb2186e5c14885666653dbd017d0257f64018465fa66ec9db548a0041",
+      "source_sha256": "5fcdeb47cab8f69f6ecf2f74fae0993aab1a10ae6eafec8c11f5964507caee1c",
+      "source_cell": 16,
+      "prompt": "End grain of an oak log: growth rings, pale heartwood and a bark rim around the edge."
+    },
+    {
+      "id": "block/oak_planks",
+      "file": "block/oak_planks.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "9cc0648a8d6559f4992744c351b37b6b22656ebd876085fffbd67f70c7c38c16",
+      "source_sha256": "629aa807e73ea07f60cbc49789148df89d1196b78497e5167bd2e87abae2382f",
+      "source_cell": 1,
+      "prompt": "Oak floor planks: four horizontal boards with visible grain, small knots and butt joints."
+    },
+    {
+      "id": "block/obsidian",
+      "file": "block/obsidian.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "e5a83882d833f6617967a2e06b3f8999bad42b1dc2666fa1c74fe30750305856",
+      "source_sha256": "629aa807e73ea07f60cbc49789148df89d1196b78497e5167bd2e87abae2382f",
+      "source_cell": 2,
+      "prompt": "Black volcanic obsidian with deep purple sheen streaks and conchoidal fracture shapes."
+    },
+    {
+      "id": "block/packed_ice",
+      "file": "block/packed_ice.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "ef9502e41eb3cac71625fe2595881ad2d5ddb77e14002149b71a0bbb29c5e894",
+      "source_sha256": "629aa807e73ea07f60cbc49789148df89d1196b78497e5167bd2e87abae2382f",
+      "source_cell": 3,
+      "prompt": "Dense opaque pale-blue compacted ice with long fracture lines."
+    },
+    {
+      "id": "block/podzol_side",
+      "file": "block/podzol_side.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "10a234fa85172273c2abdecb15034c118f661ab110c43b3ec7adfa9e945cbe45",
+      "source_sha256": "629aa807e73ea07f60cbc49789148df89d1196b78497e5167bd2e87abae2382f",
+      "source_cell": 4,
+      "prompt": "Side of podzol: soil cross-section with a layer of needle litter on top."
+    },
+    {
+      "id": "block/podzol_top",
+      "file": "block/podzol_top.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "773d023c9c13948317b26a3900fdf0b32269202ccdd81d0a10a2e5db1e091084",
+      "source_sha256": "629aa807e73ea07f60cbc49789148df89d1196b78497e5167bd2e87abae2382f",
+      "source_cell": 5,
+      "prompt": "Forest floor: brown soil covered in spruce needles, small twigs and decayed leaves."
+    },
+    {
+      "id": "block/polished_andesite",
+      "file": "block/polished_andesite.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "95d8e8393334169c5a0f84070177e4721ed8ddc2f61b9f6bbe549a46b6f4b347",
+      "source_sha256": "629aa807e73ea07f60cbc49789148df89d1196b78497e5167bd2e87abae2382f",
+      "source_cell": 6,
+      "prompt": "Polished grey andesite tile."
+    },
+    {
+      "id": "block/polished_diorite",
+      "file": "block/polished_diorite.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "347ffa62971a9fead7108b1365bee21fff16c48cc0398b92815a4f38066dd998",
+      "source_sha256": "629aa807e73ea07f60cbc49789148df89d1196b78497e5167bd2e87abae2382f",
+      "source_cell": 7,
+      "prompt": "Polished speckled diorite tile."
+    },
+    {
+      "id": "block/polished_granite",
+      "file": "block/polished_granite.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "39a1ad3c3ffa77ca2bbf326a0747fbe2e0cde9b608b1dc8740bbf64035e2ef29",
+      "source_sha256": "629aa807e73ea07f60cbc49789148df89d1196b78497e5167bd2e87abae2382f",
+      "source_cell": 8,
+      "prompt": "Polished pink granite tile."
+    },
+    {
+      "id": "block/redstone_ore",
+      "file": "block/redstone_ore.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "fe32a30a4ffc1a7af5b7aa8b92c865a36b3432346da6220c8abdb54ffc699d98",
+      "source_sha256": "629aa807e73ea07f60cbc49789148df89d1196b78497e5167bd2e87abae2382f",
+      "source_cell": 9,
+      "prompt": "Grey stone with glittering deep red crystal clusters."
+    },
+    {
+      "id": "block/sandstone",
+      "file": "block/sandstone.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "c940256c53735b8b5224020bbfd9214e99f63481ae0ad34d4604e04f7a0e7503",
+      "source_sha256": "629aa807e73ea07f60cbc49789148df89d1196b78497e5167bd2e87abae2382f",
+      "source_cell": 10,
+      "prompt": "Layered yellow sandstone, horizontal strata, wind-worn."
+    },
+    {
+      "id": "block/sandstone_top",
+      "file": "block/sandstone_top.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "9c7de9fc8a5a7fed3c84a465d8191233c2ca857aac8dac88677c6281d34b8561",
+      "source_sha256": "629aa807e73ea07f60cbc49789148df89d1196b78497e5167bd2e87abae2382f",
+      "source_cell": 11,
+      "prompt": "Top of sandstone: flat, fine-grained yellow sandstone."
+    },
+    {
+      "id": "block/smooth_stone",
+      "file": "block/smooth_stone.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "8dce38eec072c2c7b5e792ea925735a0000dc29919aa9cc24a09b8ab993a14e2",
+      "source_sha256": "629aa807e73ea07f60cbc49789148df89d1196b78497e5167bd2e87abae2382f",
+      "source_cell": 12,
+      "prompt": "Smooth, honed grey stone slab surface with a faint bevelled border."
+    },
+    {
+      "id": "block/snow",
+      "file": "block/snow.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "e849bdbc66a1baa16dd452532e36b192351e457d796494aa4d17721c93cc2645",
+      "source_sha256": "629aa807e73ea07f60cbc49789148df89d1196b78497e5167bd2e87abae2382f",
+      "source_cell": 13,
+      "prompt": "Fresh fluffy snow surface with soft dimples."
+    },
+    {
+      "id": "block/soul_sand",
+      "file": "block/soul_sand.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "d5fadaf357661d0efcc4e9a7e25968421843a075ff9e670e7972c95404370d6a",
+      "source_sha256": "629aa807e73ea07f60cbc49789148df89d1196b78497e5167bd2e87abae2382f",
+      "source_cell": 14,
+      "prompt": "Dark brown sand with faint anguished faces pressed into it."
+    },
+    {
+      "id": "block/spruce_log",
+      "file": "block/spruce_log.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "08f4cbbc317e2accc79d410b217422697a8cd4ee11529aa3f246fe705b5d17ce",
+      "source_sha256": "629aa807e73ea07f60cbc49789148df89d1196b78497e5167bd2e87abae2382f",
+      "source_cell": 15,
+      "prompt": "Spruce bark: dark brown scaly bark."
+    },
+    {
+      "id": "block/spruce_log_top",
+      "file": "block/spruce_log_top.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "f0bbc0ed66476758adadc4779198486951c61050fe62fe51549dfdcf8fafb288",
+      "source_sha256": "629aa807e73ea07f60cbc49789148df89d1196b78497e5167bd2e87abae2382f",
+      "source_cell": 16,
+      "prompt": "End grain of a spruce log with tight rings and dark bark rim."
+    },
+    {
+      "id": "block/spruce_planks",
+      "file": "block/spruce_planks.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "4eada68c88074ad2cdec575f59ad1e3b37bad230ac2b511806e5694b643847e1",
+      "source_sha256": "2174cfd5c906f96149da488425908231ccf24aea06a08de064c3016a19c2d92d",
+      "source_cell": 1,
+      "prompt": "Mid-brown spruce planks with straight grain."
+    },
+    {
+      "id": "block/stone_bricks",
+      "file": "block/stone_bricks.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "15eaf9ea0d743348669081acecd171f28de16a0e454d08087a00abf70f60142a",
+      "source_sha256": "2174cfd5c906f96149da488425908231ccf24aea06a08de064c3016a19c2d92d",
+      "source_cell": 2,
+      "prompt": "Dressed rectangular grey stone blocks laid in a running bond with mortar joints, slightly weathered."
+    },
+    {
+      "id": "block/terracotta",
+      "file": "block/terracotta.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "e8ef3581b859820a6e553d2f9f764cf2f01a4c5d160364b31ad6f467c8dddf61",
+      "source_sha256": "2174cfd5c906f96149da488425908231ccf24aea06a08de064c3016a19c2d92d",
+      "source_cell": 3,
+      "prompt": "Plain orange-brown fired clay, matte, faint tool marks."
+    },
+    {
+      "id": "block/tnt_side",
+      "file": "block/tnt_side.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "03fdd25fba892daf6082351f88ac0b09ebba01a06fd5621e8f8bdda025a6f9db",
+      "source_sha256": "2174cfd5c906f96149da488425908231ccf24aea06a08de064c3016a19c2d92d",
+      "source_cell": 4,
+      "prompt": "A bundle of red dynamite sticks wrapped with a white paper band reading TNT."
+    },
+    {
+      "id": "block/white_wool",
+      "file": "block/white_wool.png",
+      "size": [
+        256,
+        256
+      ],
+      "status": "needs-review",
+      "sha256": "aed81c35b1102564eee102b97d82a992f744d30147648bfccee7fd80866a4447",
+      "source_sha256": "2174cfd5c906f96149da488425908231ccf24aea06a08de064c3016a19c2d92d",
+      "source_cell": 5,
+      "prompt": "White sheep's wool felt with soft visible fibres."
+    }
+  ]
+}
