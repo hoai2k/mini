@@ -1,0 +1,504 @@
+{
+  "_comment": "Surface materials. Each material's index (0-based, in this order) is written into the vertex alpha of every terrain quad and looked up in shaders/include/smoothcraft_materials.glsl, which tools/gen_materials.py generates from this file. Rules match block-atlas sprite paths (without 'block/'), first match wins. roughness: 0 mirror .. 1 chalk. metal: 0 dielectric .. 1 metal (specular tinted by albedo). f0: dielectric reflectance at normal incidence. subsurface: light passing through thin or scattering surfaces. emissive: self-lit strength. bump: strength of the detail normals derived from the texture. sheen: soft fibre highlight. wet: how much rain darkens and glosses it.",
+  "materials": [
+    {
+      "name": "default",
+      "roughness": 0.8,
+      "metal": 0,
+      "f0": 0.04,
+      "subsurface": 0.0,
+      "emissive": 0.0,
+      "bump": 0.5,
+      "sheen": 0.0,
+      "wet": 0.5
+    },
+    {
+      "name": "stone",
+      "roughness": 0.85,
+      "metal": 0,
+      "f0": 0.04,
+      "subsurface": 0.0,
+      "emissive": 0.0,
+      "bump": 1.0,
+      "sheen": 0.0,
+      "wet": 0.8
+    },
+    {
+      "name": "polished_stone",
+      "roughness": 0.3,
+      "metal": 0,
+      "f0": 0.045,
+      "subsurface": 0.0,
+      "emissive": 0.0,
+      "bump": 0.25,
+      "sheen": 0.0,
+      "wet": 0.6
+    },
+    {
+      "name": "soil",
+      "roughness": 0.95,
+      "metal": 0,
+      "f0": 0.03,
+      "subsurface": 0.0,
+      "emissive": 0.0,
+      "bump": 0.8,
+      "sheen": 0.0,
+      "wet": 1.0
+    },
+    {
+      "name": "grass",
+      "roughness": 0.75,
+      "metal": 0,
+      "f0": 0.035,
+      "subsurface": 0.35,
+      "emissive": 0.0,
+      "bump": 0.6,
+      "sheen": 0.15,
+      "wet": 0.7
+    },
+    {
+      "name": "sand",
+      "roughness": 0.9,
+      "metal": 0,
+      "f0": 0.04,
+      "subsurface": 0.05,
+      "emissive": 0.0,
+      "bump": 0.9,
+      "sheen": 0.0,
+      "wet": 1.0
+    },
+    {
+      "name": "wood",
+      "roughness": 0.65,
+      "metal": 0,
+      "f0": 0.04,
+      "subsurface": 0.0,
+      "emissive": 0.0,
+      "bump": 0.6,
+      "sheen": 0.05,
+      "wet": 0.7
+    },
+    {
+      "name": "bark",
+      "roughness": 0.92,
+      "metal": 0,
+      "f0": 0.035,
+      "subsurface": 0.0,
+      "emissive": 0.0,
+      "bump": 1.2,
+      "sheen": 0.0,
+      "wet": 0.9
+    },
+    {
+      "name": "foliage",
+      "roughness": 0.55,
+      "metal": 0,
+      "f0": 0.04,
+      "subsurface": 0.75,
+      "emissive": 0.0,
+      "bump": 0.4,
+      "sheen": 0.1,
+      "wet": 0.6
+    },
+    {
+      "name": "iron",
+      "roughness": 0.35,
+      "metal": 1,
+      "f0": 0.56,
+      "subsurface": 0.0,
+      "emissive": 0.0,
+      "bump": 0.3,
+      "sheen": 0.0,
+      "wet": 0.3
+    },
+    {
+      "name": "gold",
+      "roughness": 0.22,
+      "metal": 1,
+      "f0": 0.9,
+      "subsurface": 0.0,
+      "emissive": 0.0,
+      "bump": 0.25,
+      "sheen": 0.0,
+      "wet": 0.2
+    },
+    {
+      "name": "copper",
+      "roughness": 0.35,
+      "metal": 1,
+      "f0": 0.85,
+      "subsurface": 0.0,
+      "emissive": 0.0,
+      "bump": 0.3,
+      "sheen": 0.0,
+      "wet": 0.3
+    },
+    {
+      "name": "patina",
+      "roughness": 0.7,
+      "metal": 0,
+      "f0": 0.05,
+      "subsurface": 0.0,
+      "emissive": 0.0,
+      "bump": 0.6,
+      "sheen": 0.0,
+      "wet": 0.6
+    },
+    {
+      "name": "glass",
+      "roughness": 0.05,
+      "metal": 0,
+      "f0": 0.04,
+      "subsurface": 0.0,
+      "emissive": 0.0,
+      "bump": 0.05,
+      "sheen": 0.0,
+      "wet": 0.0
+    },
+    {
+      "name": "ice",
+      "roughness": 0.1,
+      "metal": 0,
+      "f0": 0.02,
+      "subsurface": 0.45,
+      "emissive": 0.0,
+      "bump": 0.15,
+      "sheen": 0.0,
+      "wet": 0.0
+    },
+    {
+      "name": "snow",
+      "roughness": 0.65,
+      "metal": 0,
+      "f0": 0.03,
+      "subsurface": 0.6,
+      "emissive": 0.0,
+      "bump": 0.3,
+      "sheen": 0.2,
+      "wet": 0.2
+    },
+    {
+      "name": "water",
+      "roughness": 0.04,
+      "metal": 0,
+      "f0": 0.02,
+      "subsurface": 0.3,
+      "emissive": 0.0,
+      "bump": 0.0,
+      "sheen": 0.0,
+      "wet": 0.0
+    },
+    {
+      "name": "lava",
+      "roughness": 0.6,
+      "metal": 0,
+      "f0": 0.04,
+      "subsurface": 0.0,
+      "emissive": 1.6,
+      "bump": 0.6,
+      "sheen": 0.0,
+      "wet": 0.0
+    },
+    {
+      "name": "glowing",
+      "roughness": 0.5,
+      "metal": 0,
+      "f0": 0.04,
+      "subsurface": 0.3,
+      "emissive": 1.0,
+      "bump": 0.3,
+      "sheen": 0.0,
+      "wet": 0.2
+    },
+    {
+      "name": "gem",
+      "roughness": 0.12,
+      "metal": 0,
+      "f0": 0.08,
+      "subsurface": 0.25,
+      "emissive": 0.0,
+      "bump": 0.3,
+      "sheen": 0.0,
+      "wet": 0.1
+    },
+    {
+      "name": "cloth",
+      "roughness": 1.0,
+      "metal": 0,
+      "f0": 0.03,
+      "subsurface": 0.1,
+      "emissive": 0.0,
+      "bump": 0.9,
+      "sheen": 0.6,
+      "wet": 0.9
+    },
+    {
+      "name": "concrete",
+      "roughness": 0.8,
+      "metal": 0,
+      "f0": 0.04,
+      "subsurface": 0.0,
+      "emissive": 0.0,
+      "bump": 0.2,
+      "sheen": 0.0,
+      "wet": 0.8
+    },
+    {
+      "name": "ceramic",
+      "roughness": 0.85,
+      "metal": 0,
+      "f0": 0.04,
+      "subsurface": 0.0,
+      "emissive": 0.0,
+      "bump": 0.7,
+      "sheen": 0.0,
+      "wet": 0.9
+    },
+    {
+      "name": "glazed",
+      "roughness": 0.15,
+      "metal": 0,
+      "f0": 0.05,
+      "subsurface": 0.0,
+      "emissive": 0.0,
+      "bump": 0.15,
+      "sheen": 0.0,
+      "wet": 0.2
+    },
+    {
+      "name": "obsidian",
+      "roughness": 0.1,
+      "metal": 0,
+      "f0": 0.05,
+      "subsurface": 0.0,
+      "emissive": 0.0,
+      "bump": 0.3,
+      "sheen": 0.0,
+      "wet": 0.2
+    },
+    {
+      "name": "nether",
+      "roughness": 0.9,
+      "metal": 0,
+      "f0": 0.04,
+      "subsurface": 0.05,
+      "emissive": 0.0,
+      "bump": 1.0,
+      "sheen": 0.0,
+      "wet": 0.5
+    },
+    {
+      "name": "gel",
+      "roughness": 0.08,
+      "metal": 0,
+      "f0": 0.03,
+      "subsurface": 0.7,
+      "emissive": 0.0,
+      "bump": 0.1,
+      "sheen": 0.0,
+      "wet": 0.0
+    },
+    {
+      "name": "bone",
+      "roughness": 0.5,
+      "metal": 0,
+      "f0": 0.04,
+      "subsurface": 0.25,
+      "emissive": 0.0,
+      "bump": 0.5,
+      "sheen": 0.0,
+      "wet": 0.5
+    },
+    {
+      "name": "organic",
+      "roughness": 0.65,
+      "metal": 0,
+      "f0": 0.04,
+      "subsurface": 0.35,
+      "emissive": 0.0,
+      "bump": 0.6,
+      "sheen": 0.0,
+      "wet": 0.6
+    },
+    {
+      "name": "paper",
+      "roughness": 0.85,
+      "metal": 0,
+      "f0": 0.04,
+      "subsurface": 0.15,
+      "emissive": 0.0,
+      "bump": 0.5,
+      "sheen": 0.0,
+      "wet": 0.6
+    },
+    {
+      "name": "ore",
+      "roughness": 0.7,
+      "metal": 0,
+      "f0": 0.06,
+      "subsurface": 0.0,
+      "emissive": 0.0,
+      "bump": 1.0,
+      "sheen": 0.0,
+      "wet": 0.7
+    }
+  ],
+  "rules": [
+    [
+      "^(water_still|water_flow|water_overlay)$",
+      "water"
+    ],
+    [
+      "^lava_",
+      "lava"
+    ],
+    [
+      "(^torch$|soul_torch|nether_portal)",
+      "glowing"
+    ],
+    [
+      "(candle|dried_ghast)",
+      "organic"
+    ],
+    [
+      "(shulker_box)",
+      "glazed"
+    ],
+    [
+      "(coal_block|end_portal_frame|crafter_)",
+      "stone"
+    ],
+    [
+      "(tnt_)",
+      "paper"
+    ],
+    [
+      "(dragon_egg)",
+      "obsidian"
+    ],
+    [
+      "(honeycomb_block)",
+      "gel"
+    ],
+    [
+      "(creaking_heart)",
+      "bark"
+    ],
+    [
+      "(magma|glowstone|sea_lantern|shroomlight|froglight|redstone_lamp_on|_lit$|_on$|jack_o_lantern|beacon|end_rod|fire_|^fire|soul_fire|campfire_fire|respawn_anchor_top$|crying_obsidian|glow_lichen|amethyst_cluster|sculk_catalyst_.*bloom|ochre|verdant|pearlescent)",
+      "glowing"
+    ],
+    [
+      "(_ore$|ancient_debris)",
+      "ore"
+    ],
+    [
+      "(ice$|^ice|frosted_ice)",
+      "ice"
+    ],
+    [
+      "(snow|powder_snow)",
+      "snow"
+    ],
+    [
+      "(glass|tinted)",
+      "glass"
+    ],
+    [
+      "(slime|honey_block|resin_block)",
+      "gel"
+    ],
+    [
+      "(gold_block|raw_gold_block|bell_)",
+      "gold"
+    ],
+    [
+      "(oxidized|weathered|exposed)_.*copper|(oxidized|weathered|exposed)_(cut_)?copper|_copper_.*(oxidized|weathered|exposed)",
+      "patina"
+    ],
+    [
+      "(copper)",
+      "copper"
+    ],
+    [
+      "(iron|anvil|chain|lantern|_bars$|hopper|cauldron|rail|netherite|piston_|heavy_core|lodestone|lightning_rod)",
+      "iron"
+    ],
+    [
+      "(diamond_block|emerald_block|lapis_block|amethyst|redstone_block|quartz_bricks|budding|prismarine|sea_pickle|conduit)",
+      "gem"
+    ],
+    [
+      "(obsidian)",
+      "obsidian"
+    ],
+    [
+      "(polished_|smooth_stone|smooth_basalt|quartz_block|quartz_pillar|chiseled_quartz|_tiles$|calcite)",
+      "polished_stone"
+    ],
+    [
+      "(glazed_terracotta)",
+      "glazed"
+    ],
+    [
+      "(concrete_powder)",
+      "sand"
+    ],
+    [
+      "(concrete)",
+      "concrete"
+    ],
+    [
+      "(terracotta|bricks|brick$|clay|mud|decorated_pot|flower_pot)",
+      "ceramic"
+    ],
+    [
+      "(wool|carpet|_bed_|cobweb|target|hay_block|moss_carpet)",
+      "cloth"
+    ],
+    [
+      "(bone_block|dripstone|pointed_dripstone)",
+      "bone"
+    ],
+    [
+      "(bookshelf|lectern|loom|cartography|fletching|paper)",
+      "paper"
+    ],
+    [
+      "(_log$|_log_top$|_stem$|_stem_top$|_wood$|_hyphae$|mangrove_roots|bamboo_block)",
+      "bark"
+    ],
+    [
+      "(planks|_door_|_trapdoor$|_sign$|barrel|crafting_table|composter|chest|scaffolding|bamboo|smithing|beehive|bee_nest|note_block|jukebox|ladder|_shelf$|stripped_|chiseled_bookshelf)",
+      "wood"
+    ],
+    [
+      "(leaves|vine|grass$|short_grass|tall_grass|fern|sapling|flower|tulip|poppy|dandelion|orchid|allium|bluet|daisy|cornflower|lily|rose|peony|lilac|sunflower|kelp|seagrass|sugar_cane|bush|azalea|dripleaf|spore_blossom|crop|wheat_|carrots_|potatoes_|beetroots_|stem|melon|pumpkin|cactus|cocoa|roots|sprouts|fungus|wart|mangrove_propagule|pitcher|torchflower|petals|eyeblossom|moss|lichen|hanging_moss|leaf_litter|cattail|firefly_bush)",
+      "foliage"
+    ],
+    [
+      "(grass_block_top|grass_block_side|mycelium|podzol_top|nylium)",
+      "grass"
+    ],
+    [
+      "(dirt|podzol|farmland|dirt_path|rooted|soul_soil|mud$|packed_mud)",
+      "soil"
+    ],
+    [
+      "(sand|gravel|suspicious|soul_sand)",
+      "sand"
+    ],
+    [
+      "(netherrack|nether_bricks|warped_wart|nether_wart_block|crimson|warped|blackstone|basalt|magma)",
+      "nether"
+    ],
+    [
+      "(coral|sponge|mushroom|sculk|shroom|chorus|frogspawn|turtle_egg|sniffer_egg|dried_kelp|melon_side|pumpkin_side|cake)",
+      "organic"
+    ],
+    [
+      "(stone|cobble|deepslate|andesite|diorite|granite|tuff|bedrock|end_stone|purpur|sandstone|furnace|smoker|dispenser|dropper|observer|cinnabar|sulfur|reinforced|vault|trial_spawner|spawner|grindstone|stonecutter|enchanting|brewing|respawn_anchor|lodestone)",
+      "stone"
+    ]
+  ]
+}

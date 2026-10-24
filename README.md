@@ -23,6 +23,10 @@ is at https://hoai2k.github.io/mini/.
 - **[Kingdom of the Fairies](https://hoai2k.github.io/mini/kingdomofthefairies/)** · [`kingdomofthefairies/`](kingdomofthefairies/README.md)
 - **[Bronze Drum](https://hoai2k.github.io/mini/bronzedrum/)** · [`bronzedrum/`](bronzedrum/README.md)
 
+## Mods
+
+- **Smoothcraft** · [`smoothcraft/`](smoothcraft/README.md): a Minecraft Java mod that renders the world as smooth shapes, with realistic materials, lighting and textures
+
 ## Sites
 
 - [`sites/`](sites/README.md): band, label and other web pages, published under https://hoai2k.github.io/mini/sites/
