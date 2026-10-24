@@ -8,1180 +8,1180 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 
 | Texture | Size | Material | Prompt | Status |
 | --- | --- | --- | --- | --- |
-| `block/acacia_door_bottom` | 256x256 (cutout) | wood | Realistic, high-detail acacia door (bottom face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/acacia_door_top` | 256x256 (cutout) | wood | Realistic, high-detail acacia door (top face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/acacia_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail acacia hanging sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/acacia_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail acacia leaves: living plant matter, leaves and stems with veins. | requested |
-| `block/acacia_log_top` | 256x256 | bark | Realistic, high-detail acacia log (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/acacia_planks` | 256x256 | wood | Realistic, high-detail acacia planks: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/acacia_sapling` | 256x256 (cutout) | foliage | Realistic, high-detail acacia sapling: living plant matter, leaves and stems with veins. | requested |
-| `block/acacia_shelf` | 256x256 | wood | Realistic, high-detail acacia shelf: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/acacia_sign` | 256x256 (cutout) | wood | Realistic, high-detail acacia sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/acacia_trapdoor` | 256x256 (cutout) | wood | Realistic, high-detail acacia trapdoor: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/activator_rail` | 256x256 (cutout) | iron | Realistic, high-detail activator rail: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/activator_rail_on` | 256x256 (cutout) | glowing | Realistic, high-detail activator rail (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/allium` | 256x256 (cutout) | foliage | Realistic, high-detail allium: living plant matter, leaves and stems with veins. | requested |
-| `block/amethyst_block` | 256x256 | gem | Realistic, high-detail amethyst block: faceted crystalline gemstone. | requested |
-| `block/amethyst_cluster` | 256x256 (cutout) | glowing | Realistic, high-detail amethyst cluster: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/ancient_debris_side` | 256x256 | ore | Realistic, high-detail ancient debris (side face): natural rock with embedded raw mineral crystals or nuggets. | requested |
-| `block/ancient_debris_top` | 256x256 | ore | Realistic, high-detail ancient debris (top face): natural rock with embedded raw mineral crystals or nuggets. | requested |
-| `block/anvil` | 256x256 | iron | Realistic, high-detail anvil: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/anvil_top` | 256x256 (cutout) | iron | Realistic, high-detail anvil (top face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/attached_melon_stem` | 256x256 (cutout) | bark | Realistic, high-detail attached melon stem: deeply furrowed natural tree bark. | requested |
-| `block/attached_pumpkin_stem` | 256x256 (cutout) | bark | Realistic, high-detail attached pumpkin stem: deeply furrowed natural tree bark. | requested |
-| `block/azalea_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail azalea leaves: living plant matter, leaves and stems with veins. | requested |
-| `block/azalea_plant` | 256x256 (cutout) | foliage | Realistic, high-detail azalea plant: living plant matter, leaves and stems with veins. | requested |
-| `block/azalea_side` | 256x256 (cutout) | foliage | Realistic, high-detail azalea (side face): living plant matter, leaves and stems with veins. | requested |
-| `block/azalea_top` | 256x256 | foliage | Realistic, high-detail azalea (top face): living plant matter, leaves and stems with veins. | requested |
-| `block/azure_bluet` | 256x256 (cutout) | foliage | Realistic, high-detail azure bluet: living plant matter, leaves and stems with veins. | requested |
-| `block/bamboo_block` | 256x256 | bark | Realistic, high-detail bamboo block: deeply furrowed natural tree bark. | requested |
-| `block/bamboo_block_top` | 256x256 | bark | Realistic, high-detail bamboo block (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/bamboo_door_bottom` | 256x256 | wood | Realistic, high-detail bamboo door (bottom face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/bamboo_door_top` | 256x256 (cutout) | wood | Realistic, high-detail bamboo door (top face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/bamboo_fence` | 256x256 (cutout) | wood | Realistic, high-detail bamboo fence: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/bamboo_fence_gate` | 256x256 (cutout) | wood | Realistic, high-detail bamboo fence gate: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/bamboo_fence_gate_particle` | 256x256 | wood | Realistic, high-detail bamboo fence gate particle: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/bamboo_fence_particle` | 256x256 | wood | Realistic, high-detail bamboo fence particle: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/bamboo_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail bamboo hanging sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/bamboo_large_leaves` | 256x256 (cutout) | wood | Realistic, high-detail bamboo large leaves: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/bamboo_mosaic` | 256x256 | wood | Realistic, high-detail bamboo mosaic: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/bamboo_planks` | 256x256 | wood | Realistic, high-detail bamboo planks: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/bamboo_shelf` | 256x256 | wood | Realistic, high-detail bamboo shelf: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/bamboo_sign` | 256x256 (cutout) | wood | Realistic, high-detail bamboo sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/bamboo_singleleaf` | 256x256 (cutout) | wood | Realistic, high-detail bamboo singleleaf: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/bamboo_small_leaves` | 256x256 (cutout) | wood | Realistic, high-detail bamboo small leaves: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/bamboo_stage0` | 256x256 (cutout) | wood | Realistic, high-detail bamboo (growth stage 0): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/bamboo_stalk` | 256x256 | wood | Realistic, high-detail bamboo stalk: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/bamboo_trapdoor` | 256x256 (cutout) | wood | Realistic, high-detail bamboo trapdoor: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/barrel_bottom` | 256x256 | wood | Realistic, high-detail barrel (bottom face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/barrel_side` | 256x256 | wood | Realistic, high-detail barrel (side face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/barrel_top` | 256x256 | wood | Realistic, high-detail barrel (top face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/barrel_top_open` | 256x256 | wood | Realistic, high-detail barrel top (open state): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/basalt_side` | 256x256 | nether | Realistic, high-detail basalt (side face): hellish porous rock, fungal growth and flesh-like matter. | requested |
-| `block/basalt_top` | 256x256 | nether | Realistic, high-detail basalt (top face): hellish porous rock, fungal growth and flesh-like matter. | requested |
-| `block/beacon` | 256x256 | glowing | Realistic, high-detail beacon: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/bed_down` | 256x256 | default | Realistic, high-detail bed down: a believable real-world material. | requested |
-| `block/bed_head_north` | 256x256 (cutout) | default | Realistic, high-detail bed head north: a believable real-world material. | requested |
-| `block/bee_nest_bottom` | 256x256 | wood | Realistic, high-detail bee nest (bottom face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/bee_nest_front` | 256x256 | wood | Realistic, high-detail bee nest (front face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/bee_nest_front_honey` | 256x256 | wood | Realistic, high-detail bee nest front honey: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/bee_nest_side` | 256x256 | wood | Realistic, high-detail bee nest (side face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/bee_nest_top` | 256x256 | wood | Realistic, high-detail bee nest (top face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/beehive_end` | 256x256 | wood | Realistic, high-detail beehive (end face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/beehive_front` | 256x256 | wood | Realistic, high-detail beehive (front face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/beehive_front_honey` | 256x256 | wood | Realistic, high-detail beehive front honey: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/beehive_side` | 256x256 | wood | Realistic, high-detail beehive (side face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/beetroots_stage0` | 256x256 (cutout) | foliage | Realistic, high-detail beetroots (growth stage 0): living plant matter, leaves and stems with veins. | requested |
-| `block/beetroots_stage1` | 256x256 (cutout) | foliage | Realistic, high-detail beetroots (growth stage 1): living plant matter, leaves and stems with veins. | requested |
-| `block/beetroots_stage2` | 256x256 (cutout) | foliage | Realistic, high-detail beetroots (growth stage 2): living plant matter, leaves and stems with veins. | requested |
-| `block/beetroots_stage3` | 256x256 (cutout) | foliage | Realistic, high-detail beetroots (growth stage 3): living plant matter, leaves and stems with veins. | requested |
-| `block/bell_bottom` | 256x256 (cutout) | gold | Realistic, high-detail bell (bottom face): polished gold with soft wear. | requested |
-| `block/bell_side` | 256x256 (cutout) | gold | Realistic, high-detail bell (side face): polished gold with soft wear. | requested |
-| `block/bell_top` | 256x256 (cutout) | gold | Realistic, high-detail bell (top face): polished gold with soft wear. | requested |
-| `block/big_dripleaf_side` | 256x256 (cutout) | foliage | Realistic, high-detail big dripleaf (side face): living plant matter, leaves and stems with veins. | requested |
-| `block/big_dripleaf_stem` | 256x256 (cutout) | bark | Realistic, high-detail big dripleaf stem: deeply furrowed natural tree bark. | requested |
-| `block/big_dripleaf_tip` | 256x256 (cutout) | foliage | Realistic, high-detail big dripleaf tip: living plant matter, leaves and stems with veins. | requested |
-| `block/big_dripleaf_top` | 256x256 (cutout) | foliage | Realistic, high-detail big dripleaf (top face): living plant matter, leaves and stems with veins. | requested |
-| `block/birch_door_bottom` | 256x256 | wood | Realistic, high-detail birch door (bottom face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/birch_door_top` | 256x256 | wood | Realistic, high-detail birch door (top face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/birch_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail birch hanging sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/birch_sapling` | 256x256 (cutout) | foliage | Realistic, high-detail birch sapling: living plant matter, leaves and stems with veins. | requested |
-| `block/birch_shelf` | 256x256 | wood | Realistic, high-detail birch shelf: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/birch_sign` | 256x256 (cutout) | wood | Realistic, high-detail birch sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/birch_trapdoor` | 256x256 | wood | Realistic, high-detail birch trapdoor: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/black_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail black bed foot east: woven wool or felt with visible fibres and weave. | requested |
-| `block/black_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail black bed foot south: woven wool or felt with visible fibres and weave. | requested |
-| `block/black_bed_foot_up` | 256x256 | cloth | Realistic, high-detail black bed foot up: woven wool or felt with visible fibres and weave. | requested |
-| `block/black_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail black bed foot west: woven wool or felt with visible fibres and weave. | requested |
-| `block/black_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail black bed head east: woven wool or felt with visible fibres and weave. | requested |
-| `block/black_bed_head_up` | 256x256 | cloth | Realistic, high-detail black bed head up: woven wool or felt with visible fibres and weave. | requested |
-| `block/black_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail black bed head west: woven wool or felt with visible fibres and weave. | requested |
-| `block/black_candle` | 256x256 (cutout) | organic | Realistic, high-detail black candle: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/black_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail black candle (lit state): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/black_concrete` | 256x256 | concrete | Realistic, high-detail black concrete: smooth matte concrete with fine pores. | requested |
-| `block/black_concrete_powder` | 256x256 | sand | Realistic, high-detail black concrete powder: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/black_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail black glazed terracotta: glossy glazed ceramic tile. | requested |
-| `block/black_shulker_box` | 256x256 | glazed | Realistic, high-detail black shulker box: glossy glazed ceramic tile. | requested |
-| `block/black_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail black stained glass: clear glass with faint imperfections. | requested |
-| `block/black_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail black stained glass pane (top face): clear glass with faint imperfections. | requested |
-| `block/black_terracotta` | 256x256 | ceramic | Realistic, high-detail black terracotta: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/black_wool` | 256x256 | cloth | Realistic, high-detail black wool: woven wool or felt with visible fibres and weave. | requested |
-| `block/blackstone` | 256x256 | nether | Realistic, high-detail blackstone: hellish porous rock, fungal growth and flesh-like matter. | requested |
-| `block/blackstone_top` | 256x256 | nether | Realistic, high-detail blackstone (top face): hellish porous rock, fungal growth and flesh-like matter. | requested |
-| `block/blast_furnace_front` | 256x256 | stone | Realistic, high-detail blast furnace (front face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/blast_furnace_front_on` | 256x512 (2 frames) | glowing | Realistic, high-detail blast furnace front (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/blast_furnace_side` | 256x256 | stone | Realistic, high-detail blast furnace (side face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/blast_furnace_top` | 256x256 | stone | Realistic, high-detail blast furnace (top face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/blue_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail blue bed foot east: woven wool or felt with visible fibres and weave. | requested |
-| `block/blue_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail blue bed foot south: woven wool or felt with visible fibres and weave. | requested |
-| `block/blue_bed_foot_up` | 256x256 | cloth | Realistic, high-detail blue bed foot up: woven wool or felt with visible fibres and weave. | requested |
-| `block/blue_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail blue bed foot west: woven wool or felt with visible fibres and weave. | requested |
-| `block/blue_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail blue bed head east: woven wool or felt with visible fibres and weave. | requested |
-| `block/blue_bed_head_up` | 256x256 | cloth | Realistic, high-detail blue bed head up: woven wool or felt with visible fibres and weave. | requested |
-| `block/blue_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail blue bed head west: woven wool or felt with visible fibres and weave. | requested |
-| `block/blue_candle` | 256x256 (cutout) | organic | Realistic, high-detail blue candle: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/blue_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail blue candle (lit state): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/blue_concrete` | 256x256 | concrete | Realistic, high-detail blue concrete: smooth matte concrete with fine pores. | requested |
-| `block/blue_concrete_powder` | 256x256 | sand | Realistic, high-detail blue concrete powder: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/blue_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail blue glazed terracotta: glossy glazed ceramic tile. | requested |
-| `block/blue_ice` | 256x256 | ice | Realistic, high-detail blue ice: compacted clear ice with trapped bubbles and cracks. | requested |
-| `block/blue_orchid` | 256x256 (cutout) | foliage | Realistic, high-detail blue orchid: living plant matter, leaves and stems with veins. | requested |
-| `block/blue_shulker_box` | 256x256 | glazed | Realistic, high-detail blue shulker box: glossy glazed ceramic tile. | requested |
-| `block/blue_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail blue stained glass: clear glass with faint imperfections. | requested |
-| `block/blue_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail blue stained glass pane (top face): clear glass with faint imperfections. | requested |
-| `block/blue_terracotta` | 256x256 | ceramic | Realistic, high-detail blue terracotta: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/blue_wool` | 256x256 | cloth | Realistic, high-detail blue wool: woven wool or felt with visible fibres and weave. | requested |
-| `block/bone_block_side` | 256x256 | bone | Realistic, high-detail bone block (side face): bleached bone, calcite or dripstone. | requested |
-| `block/bone_block_top` | 256x256 | bone | Realistic, high-detail bone block (top face): bleached bone, calcite or dripstone. | requested |
-| `block/brain_coral` | 256x256 (cutout) | organic | Realistic, high-detail brain coral: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/brain_coral_block` | 256x256 | organic | Realistic, high-detail brain coral block: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/brain_coral_fan` | 256x256 (cutout) | organic | Realistic, high-detail brain coral fan: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/brewing_stand` | 256x256 (cutout) | stone | Realistic, high-detail brewing stand: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/brewing_stand_base` | 256x256 | stone | Realistic, high-detail brewing stand base: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/brown_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail brown bed foot east: woven wool or felt with visible fibres and weave. | requested |
-| `block/brown_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail brown bed foot south: woven wool or felt with visible fibres and weave. | requested |
-| `block/brown_bed_foot_up` | 256x256 | cloth | Realistic, high-detail brown bed foot up: woven wool or felt with visible fibres and weave. | requested |
-| `block/brown_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail brown bed foot west: woven wool or felt with visible fibres and weave. | requested |
-| `block/brown_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail brown bed head east: woven wool or felt with visible fibres and weave. | requested |
-| `block/brown_bed_head_up` | 256x256 | cloth | Realistic, high-detail brown bed head up: woven wool or felt with visible fibres and weave. | requested |
-| `block/brown_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail brown bed head west: woven wool or felt with visible fibres and weave. | requested |
-| `block/brown_candle` | 256x256 (cutout) | organic | Realistic, high-detail brown candle: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/brown_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail brown candle (lit state): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/brown_concrete` | 256x256 | concrete | Realistic, high-detail brown concrete: smooth matte concrete with fine pores. | requested |
-| `block/brown_concrete_powder` | 256x256 | sand | Realistic, high-detail brown concrete powder: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/brown_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail brown glazed terracotta: glossy glazed ceramic tile. | requested |
-| `block/brown_mushroom` | 256x256 (cutout) | organic | Realistic, high-detail brown mushroom: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/brown_mushroom_block` | 256x256 | organic | Realistic, high-detail brown mushroom block: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/brown_shulker_box` | 256x256 | glazed | Realistic, high-detail brown shulker box: glossy glazed ceramic tile. | requested |
-| `block/brown_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail brown stained glass: clear glass with faint imperfections. | requested |
-| `block/brown_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail brown stained glass pane (top face): clear glass with faint imperfections. | requested |
-| `block/brown_terracotta` | 256x256 | ceramic | Realistic, high-detail brown terracotta: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/brown_wool` | 256x256 | cloth | Realistic, high-detail brown wool: woven wool or felt with visible fibres and weave. | requested |
-| `block/bubble_coral` | 256x256 (cutout) | organic | Realistic, high-detail bubble coral: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/bubble_coral_block` | 256x256 | organic | Realistic, high-detail bubble coral block: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/bubble_coral_fan` | 256x256 (cutout) | organic | Realistic, high-detail bubble coral fan: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/budding_amethyst` | 256x256 | gem | Realistic, high-detail budding amethyst: faceted crystalline gemstone. | requested |
-| `block/bush` | 256x256 (cutout) | foliage | Realistic, high-detail bush: living plant matter, leaves and stems with veins. | requested |
-| `block/cactus_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail cactus (bottom face): living plant matter, leaves and stems with veins. | requested |
-| `block/cactus_flower` | 256x256 (cutout) | foliage | Realistic, high-detail cactus flower: living plant matter, leaves and stems with veins. | requested |
-| `block/cactus_side` | 256x256 (cutout) | foliage | Realistic, high-detail cactus (side face): living plant matter, leaves and stems with veins. | requested |
-| `block/cactus_top` | 256x256 (cutout) | foliage | Realistic, high-detail cactus (top face): living plant matter, leaves and stems with veins. | requested |
-| `block/cake_bottom` | 256x256 (cutout) | organic | Realistic, high-detail cake (bottom face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/cake_inner` | 256x256 (cutout) | organic | Realistic, high-detail cake (inside face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/cake_side` | 256x256 (cutout) | organic | Realistic, high-detail cake (side face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/cake_top` | 256x256 (cutout) | organic | Realistic, high-detail cake (top face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/calibrated_sculk_sensor_amethyst` | 256x256 (cutout) | gem | Realistic, high-detail calibrated sculk sensor amethyst: faceted crystalline gemstone. | requested |
-| `block/calibrated_sculk_sensor_input_side` | 256x256 (cutout) | organic | Realistic, high-detail calibrated sculk sensor input (side face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/calibrated_sculk_sensor_top` | 256x256 | organic | Realistic, high-detail calibrated sculk sensor (top face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/campfire_fire` | 256x2048 (8 frames, cutout) | glowing | Realistic, high-detail campfire fire: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/campfire_log` | 256x256 (cutout) | glowing | Realistic, high-detail campfire log: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/campfire_log_lit` | 256x1024 (4 frames) | glowing | Realistic, high-detail campfire log (lit state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/candle` | 256x256 (cutout) | organic | Realistic, high-detail candle: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail candle (lit state): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/carrots_stage0` | 256x256 (cutout) | foliage | Realistic, high-detail carrots (growth stage 0): living plant matter, leaves and stems with veins. | requested |
-| `block/carrots_stage1` | 256x256 (cutout) | foliage | Realistic, high-detail carrots (growth stage 1): living plant matter, leaves and stems with veins. | requested |
-| `block/carrots_stage2` | 256x256 (cutout) | foliage | Realistic, high-detail carrots (growth stage 2): living plant matter, leaves and stems with veins. | requested |
-| `block/carrots_stage3` | 256x256 (cutout) | foliage | Realistic, high-detail carrots (growth stage 3): living plant matter, leaves and stems with veins. | requested |
-| `block/cartography_table_side1` | 256x256 | paper | Realistic, high-detail cartography table (side face): paper, books and worked wood. | requested |
-| `block/cartography_table_side2` | 256x256 | paper | Realistic, high-detail cartography table (side face): paper, books and worked wood. | requested |
-| `block/cartography_table_side3` | 256x256 | paper | Realistic, high-detail cartography table (side face): paper, books and worked wood. | requested |
-| `block/cartography_table_top` | 256x256 | paper | Realistic, high-detail cartography table (top face): paper, books and worked wood. | requested |
-| `block/carved_pumpkin` | 256x256 | foliage | Realistic, high-detail carved pumpkin: living plant matter, leaves and stems with veins. | requested |
-| `block/cauldron_bottom` | 256x256 (cutout) | iron | Realistic, high-detail cauldron (bottom face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/cauldron_inner` | 256x256 | iron | Realistic, high-detail cauldron (inside face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/cauldron_side` | 256x256 | iron | Realistic, high-detail cauldron (side face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/cauldron_top` | 256x256 (cutout) | iron | Realistic, high-detail cauldron (top face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/cave_vines` | 256x256 (cutout) | foliage | Realistic, high-detail cave vines: living plant matter, leaves and stems with veins. | requested |
-| `block/cave_vines_lit` | 256x256 (cutout) | glowing | Realistic, high-detail cave vines (lit state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/cave_vines_plant` | 256x256 (cutout) | foliage | Realistic, high-detail cave vines plant: living plant matter, leaves and stems with veins. | requested |
-| `block/cave_vines_plant_lit` | 256x256 (cutout) | glowing | Realistic, high-detail cave vines plant (lit state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/chain_command_block_back` | 256x1024 (4 frames) | iron | Realistic, high-detail chain command block (back face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/chain_command_block_conditional` | 256x1024 (4 frames) | iron | Realistic, high-detail chain command block conditional: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/chain_command_block_front` | 256x1024 (4 frames) | iron | Realistic, high-detail chain command block (front face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/chain_command_block_side` | 256x1024 (4 frames) | iron | Realistic, high-detail chain command block (side face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/cherry_door_bottom` | 256x256 (cutout) | wood | Realistic, high-detail cherry door (bottom face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/cherry_door_top` | 256x256 (cutout) | wood | Realistic, high-detail cherry door (top face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/cherry_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail cherry hanging sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/cherry_log_top` | 256x256 | bark | Realistic, high-detail cherry log (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/cherry_planks` | 256x256 | wood | Realistic, high-detail cherry planks: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/cherry_sapling` | 256x256 (cutout) | foliage | Realistic, high-detail cherry sapling: living plant matter, leaves and stems with veins. | requested |
-| `block/cherry_shelf` | 256x256 | wood | Realistic, high-detail cherry shelf: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/cherry_sign` | 256x256 (cutout) | wood | Realistic, high-detail cherry sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/cherry_trapdoor` | 256x256 (cutout) | wood | Realistic, high-detail cherry trapdoor: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/chipped_anvil_top` | 256x256 (cutout) | iron | Realistic, high-detail chipped anvil (top face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/chiseled_bookshelf_empty` | 256x256 | paper | Realistic, high-detail chiseled bookshelf empty: paper, books and worked wood. | requested |
-| `block/chiseled_bookshelf_occupied` | 256x256 | paper | Realistic, high-detail chiseled bookshelf occupied: paper, books and worked wood. | requested |
-| `block/chiseled_bookshelf_side` | 256x256 | paper | Realistic, high-detail chiseled bookshelf (side face): paper, books and worked wood. | requested |
-| `block/chiseled_bookshelf_top` | 256x256 | paper | Realistic, high-detail chiseled bookshelf (top face): paper, books and worked wood. | requested |
-| `block/chiseled_cinnabar` | 256x256 | stone | Realistic, high-detail chiseled cinnabar: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/chiseled_copper` | 256x256 | copper | Realistic, high-detail chiseled copper: fresh salmon-orange copper with hammer marks. | requested |
-| `block/chiseled_deepslate` | 256x256 | stone | Realistic, high-detail chiseled deepslate: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/chiseled_nether_bricks` | 256x256 | ceramic | Realistic, high-detail chiseled nether bricks: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/chiseled_polished_blackstone` | 256x256 | polished_stone | Realistic, high-detail chiseled polished blackstone: cut and polished stone with subtle veining. | requested |
-| `block/chiseled_quartz_block` | 256x256 | polished_stone | Realistic, high-detail chiseled quartz block: cut and polished stone with subtle veining. | requested |
-| `block/chiseled_quartz_block_top` | 256x256 | polished_stone | Realistic, high-detail chiseled quartz block (top face): cut and polished stone with subtle veining. | requested |
-| `block/chiseled_red_sandstone` | 256x256 | sand | Realistic, high-detail chiseled red sandstone: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/chiseled_resin_bricks` | 256x256 | ceramic | Realistic, high-detail chiseled resin bricks: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/chiseled_sandstone` | 256x256 | sand | Realistic, high-detail chiseled sandstone: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/chiseled_stone_bricks` | 256x256 | ceramic | Realistic, high-detail chiseled stone bricks: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/chiseled_sulfur` | 256x256 | stone | Realistic, high-detail chiseled sulfur: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/chiseled_tuff` | 256x256 | stone | Realistic, high-detail chiseled tuff: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/chiseled_tuff_bricks` | 256x256 | ceramic | Realistic, high-detail chiseled tuff bricks: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/chiseled_tuff_bricks_top` | 256x256 | ceramic | Realistic, high-detail chiseled tuff bricks (top face): fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/chiseled_tuff_top` | 256x256 | stone | Realistic, high-detail chiseled tuff (top face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/chorus_flower` | 256x256 | foliage | Realistic, high-detail chorus flower: living plant matter, leaves and stems with veins. | requested |
-| `block/chorus_flower_dead` | 256x256 | foliage | Realistic, high-detail chorus flower dead: living plant matter, leaves and stems with veins. | requested |
-| `block/chorus_plant` | 256x256 | organic | Realistic, high-detail chorus plant: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/cinnabar` | 256x256 | stone | Realistic, high-detail cinnabar: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/cinnabar_bricks` | 256x256 | ceramic | Realistic, high-detail cinnabar bricks: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/closed_eyeblossom` | 256x256 (cutout) | foliage | Realistic, high-detail closed eyeblossom: living plant matter, leaves and stems with veins. | requested |
-| `block/coal_block` | 256x256 | stone | Realistic, high-detail coal block: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/cobweb` | 256x256 (cutout) | cloth | Realistic, high-detail cobweb: woven wool or felt with visible fibres and weave. | requested |
-| `block/cocoa_stage0` | 256x256 (cutout) | foliage | Realistic, high-detail cocoa (growth stage 0): living plant matter, leaves and stems with veins. | requested |
-| `block/cocoa_stage1` | 256x256 (cutout) | foliage | Realistic, high-detail cocoa (growth stage 1): living plant matter, leaves and stems with veins. | requested |
-| `block/cocoa_stage2` | 256x256 (cutout) | foliage | Realistic, high-detail cocoa (growth stage 2): living plant matter, leaves and stems with veins. | requested |
-| `block/command_block_back` | 256x1024 (4 frames) | default | Realistic, high-detail command block (back face): a believable real-world material. | requested |
-| `block/command_block_conditional` | 256x1024 (4 frames) | default | Realistic, high-detail command block conditional: a believable real-world material. | requested |
-| `block/command_block_front` | 256x1024 (4 frames) | default | Realistic, high-detail command block (front face): a believable real-world material. | requested |
-| `block/command_block_side` | 256x1024 (4 frames) | default | Realistic, high-detail command block (side face): a believable real-world material. | requested |
-| `block/comparator` | 256x256 | default | Realistic, high-detail comparator: a believable real-world material. | requested |
-| `block/comparator_on` | 256x256 | glowing | Realistic, high-detail comparator (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/composter_bottom` | 256x256 | wood | Realistic, high-detail composter (bottom face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/composter_compost` | 256x256 (cutout) | wood | Realistic, high-detail composter compost: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/composter_ready` | 256x256 (cutout) | wood | Realistic, high-detail composter ready: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/composter_side` | 256x256 | wood | Realistic, high-detail composter (side face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/composter_top` | 256x256 (cutout) | wood | Realistic, high-detail composter (top face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/conduit` | 256x256 (cutout) | gem | Realistic, high-detail conduit: faceted crystalline gemstone. | requested |
-| `block/copper_bars` | 256x256 (cutout) | copper | Realistic, high-detail copper bars: fresh salmon-orange copper with hammer marks. | requested |
-| `block/copper_block` | 256x256 | copper | Realistic, high-detail copper block: fresh salmon-orange copper with hammer marks. | requested |
-| `block/copper_bulb` | 256x256 | copper | Realistic, high-detail copper bulb: fresh salmon-orange copper with hammer marks. | requested |
-| `block/copper_bulb_lit` | 256x256 | glowing | Realistic, high-detail copper bulb (lit state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/copper_bulb_lit_powered` | 256x256 | copper | Realistic, high-detail copper bulb lit powered: fresh salmon-orange copper with hammer marks. | requested |
-| `block/copper_bulb_powered` | 256x256 | copper | Realistic, high-detail copper bulb powered: fresh salmon-orange copper with hammer marks. | requested |
-| `block/copper_chain` | 256x256 (cutout) | copper | Realistic, high-detail copper chain: fresh salmon-orange copper with hammer marks. | requested |
-| `block/copper_door_bottom` | 256x256 | copper | Realistic, high-detail copper door (bottom face): fresh salmon-orange copper with hammer marks. | requested |
-| `block/copper_door_top` | 256x256 (cutout) | copper | Realistic, high-detail copper door (top face): fresh salmon-orange copper with hammer marks. | requested |
-| `block/copper_grate` | 256x256 (cutout) | copper | Realistic, high-detail copper grate: fresh salmon-orange copper with hammer marks. | requested |
-| `block/copper_lantern` | 256x768 (3 frames, cutout) | copper | Realistic, high-detail copper lantern: fresh salmon-orange copper with hammer marks. | requested |
-| `block/copper_torch` | 256x256 (cutout) | copper | Realistic, high-detail copper torch: fresh salmon-orange copper with hammer marks. | requested |
-| `block/copper_trapdoor` | 256x256 (cutout) | copper | Realistic, high-detail copper trapdoor: fresh salmon-orange copper with hammer marks. | requested |
-| `block/cornflower` | 256x256 (cutout) | foliage | Realistic, high-detail cornflower: living plant matter, leaves and stems with veins. | requested |
-| `block/cracked_deepslate_bricks` | 256x256 | ceramic | Realistic, high-detail cracked deepslate bricks: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/cracked_deepslate_tiles` | 256x256 | polished_stone | Realistic, high-detail cracked deepslate tiles: cut and polished stone with subtle veining. | requested |
-| `block/cracked_nether_bricks` | 256x256 | ceramic | Realistic, high-detail cracked nether bricks: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/cracked_polished_blackstone_bricks` | 256x256 | polished_stone | Realistic, high-detail cracked polished blackstone bricks: cut and polished stone with subtle veining. | requested |
-| `block/crafter_bottom` | 256x256 | stone | Realistic, high-detail crafter (bottom face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/crafter_east` | 256x256 | stone | Realistic, high-detail crafter east: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/crafter_east_crafting` | 256x256 | stone | Realistic, high-detail crafter east crafting: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/crafter_east_triggered` | 256x256 | stone | Realistic, high-detail crafter east triggered: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/crafter_north` | 256x256 | stone | Realistic, high-detail crafter north: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/crafter_north_crafting` | 256x256 | stone | Realistic, high-detail crafter north crafting: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/crafter_south` | 256x256 | stone | Realistic, high-detail crafter south: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/crafter_south_triggered` | 256x256 | stone | Realistic, high-detail crafter south triggered: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/crafter_top` | 256x256 | stone | Realistic, high-detail crafter (top face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/crafter_top_crafting` | 256x256 | stone | Realistic, high-detail crafter top crafting: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/crafter_top_triggered` | 256x256 | stone | Realistic, high-detail crafter top triggered: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/crafter_west` | 256x256 | stone | Realistic, high-detail crafter west: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/crafter_west_crafting` | 256x256 | stone | Realistic, high-detail crafter west crafting: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/crafter_west_triggered` | 256x256 | stone | Realistic, high-detail crafter west triggered: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/creaking_heart` | 256x256 | bark | Realistic, high-detail creaking heart: deeply furrowed natural tree bark. | requested |
-| `block/creaking_heart_awake` | 256x256 | bark | Realistic, high-detail creaking heart awake: deeply furrowed natural tree bark. | requested |
-| `block/creaking_heart_dormant` | 256x256 | bark | Realistic, high-detail creaking heart dormant: deeply furrowed natural tree bark. | requested |
-| `block/creaking_heart_top` | 256x256 | bark | Realistic, high-detail creaking heart (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/creaking_heart_top_awake` | 256x256 | bark | Realistic, high-detail creaking heart top awake: deeply furrowed natural tree bark. | requested |
-| `block/creaking_heart_top_dormant` | 256x256 | bark | Realistic, high-detail creaking heart top dormant: deeply furrowed natural tree bark. | requested |
-| `block/crimson_door_bottom` | 256x256 | wood | Realistic, high-detail crimson door (bottom face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/crimson_door_top` | 256x256 | wood | Realistic, high-detail crimson door (top face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/crimson_fungus` | 256x256 (cutout) | foliage | Realistic, high-detail crimson fungus: living plant matter, leaves and stems with veins. | requested |
-| `block/crimson_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail crimson hanging sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/crimson_nylium` | 256x256 | grass | Realistic, high-detail crimson nylium: dense living grass and soil. | requested |
-| `block/crimson_nylium_side` | 256x256 | grass | Realistic, high-detail crimson nylium (side face): dense living grass and soil. | requested |
-| `block/crimson_planks` | 256x256 | wood | Realistic, high-detail crimson planks: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/crimson_roots` | 256x256 (cutout) | foliage | Realistic, high-detail crimson roots: living plant matter, leaves and stems with veins. | requested |
-| `block/crimson_roots_pot` | 256x256 (cutout) | foliage | Realistic, high-detail crimson roots pot: living plant matter, leaves and stems with veins. | requested |
-| `block/crimson_shelf` | 256x256 | wood | Realistic, high-detail crimson shelf: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/crimson_sign` | 256x256 (cutout) | wood | Realistic, high-detail crimson sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/crimson_stem` | 256x1280 (5 frames) | bark | Realistic, high-detail crimson stem: deeply furrowed natural tree bark. | requested |
-| `block/crimson_stem_top` | 256x256 | bark | Realistic, high-detail crimson stem (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/crimson_trapdoor` | 256x256 (cutout) | wood | Realistic, high-detail crimson trapdoor: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/crying_obsidian` | 256x256 | glowing | Realistic, high-detail crying obsidian: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/cut_copper` | 256x256 | copper | Realistic, high-detail cut copper: fresh salmon-orange copper with hammer marks. | requested |
-| `block/cut_red_sandstone` | 256x256 | sand | Realistic, high-detail cut red sandstone: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/cut_sandstone` | 256x256 | sand | Realistic, high-detail cut sandstone: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/cyan_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail cyan bed foot east: woven wool or felt with visible fibres and weave. | requested |
-| `block/cyan_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail cyan bed foot south: woven wool or felt with visible fibres and weave. | requested |
-| `block/cyan_bed_foot_up` | 256x256 | cloth | Realistic, high-detail cyan bed foot up: woven wool or felt with visible fibres and weave. | requested |
-| `block/cyan_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail cyan bed foot west: woven wool or felt with visible fibres and weave. | requested |
-| `block/cyan_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail cyan bed head east: woven wool or felt with visible fibres and weave. | requested |
-| `block/cyan_bed_head_up` | 256x256 | cloth | Realistic, high-detail cyan bed head up: woven wool or felt with visible fibres and weave. | requested |
-| `block/cyan_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail cyan bed head west: woven wool or felt with visible fibres and weave. | requested |
-| `block/cyan_candle` | 256x256 (cutout) | organic | Realistic, high-detail cyan candle: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/cyan_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail cyan candle (lit state): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/cyan_concrete` | 256x256 | concrete | Realistic, high-detail cyan concrete: smooth matte concrete with fine pores. | requested |
-| `block/cyan_concrete_powder` | 256x256 | sand | Realistic, high-detail cyan concrete powder: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/cyan_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail cyan glazed terracotta: glossy glazed ceramic tile. | requested |
-| `block/cyan_shulker_box` | 256x256 | glazed | Realistic, high-detail cyan shulker box: glossy glazed ceramic tile. | requested |
-| `block/cyan_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail cyan stained glass: clear glass with faint imperfections. | requested |
-| `block/cyan_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail cyan stained glass pane (top face): clear glass with faint imperfections. | requested |
-| `block/cyan_terracotta` | 256x256 | ceramic | Realistic, high-detail cyan terracotta: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/cyan_wool` | 256x256 | cloth | Realistic, high-detail cyan wool: woven wool or felt with visible fibres and weave. | requested |
-| `block/damaged_anvil_top` | 256x256 (cutout) | iron | Realistic, high-detail damaged anvil (top face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/dandelion` | 256x256 (cutout) | foliage | Realistic, high-detail dandelion: living plant matter, leaves and stems with veins. | requested |
-| `block/dark_oak_door_bottom` | 256x256 | wood | Realistic, high-detail dark oak door (bottom face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/dark_oak_door_top` | 256x256 | wood | Realistic, high-detail dark oak door (top face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/dark_oak_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail dark oak hanging sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/dark_oak_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail dark oak leaves: living plant matter, leaves and stems with veins. | requested |
-| `block/dark_oak_log_top` | 256x256 | bark | Realistic, high-detail dark oak log (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/dark_oak_sapling` | 256x256 (cutout) | foliage | Realistic, high-detail dark oak sapling: living plant matter, leaves and stems with veins. | requested |
-| `block/dark_oak_shelf` | 256x256 | wood | Realistic, high-detail dark oak shelf: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/dark_oak_sign` | 256x256 (cutout) | wood | Realistic, high-detail dark oak sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/dark_oak_trapdoor` | 256x256 | wood | Realistic, high-detail dark oak trapdoor: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/dark_prismarine` | 256x256 | gem | Realistic, high-detail dark prismarine: faceted crystalline gemstone. | requested |
-| `block/daylight_detector_inverted_top` | 256x256 | default | Realistic, high-detail daylight detector inverted (top face): a believable real-world material. | requested |
-| `block/daylight_detector_side` | 256x256 | default | Realistic, high-detail daylight detector (side face): a believable real-world material. | requested |
-| `block/daylight_detector_top` | 256x256 | default | Realistic, high-detail daylight detector (top face): a believable real-world material. | requested |
-| `block/dead_brain_coral` | 256x256 (cutout) | organic | Realistic, high-detail dead brain coral: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dead_brain_coral_block` | 256x256 | organic | Realistic, high-detail dead brain coral block: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dead_brain_coral_fan` | 256x256 (cutout) | organic | Realistic, high-detail dead brain coral fan: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dead_bubble_coral` | 256x256 (cutout) | organic | Realistic, high-detail dead bubble coral: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dead_bubble_coral_block` | 256x256 | organic | Realistic, high-detail dead bubble coral block: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dead_bubble_coral_fan` | 256x256 (cutout) | organic | Realistic, high-detail dead bubble coral fan: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dead_bush` | 256x256 (cutout) | foliage | Realistic, high-detail dead bush: living plant matter, leaves and stems with veins. | requested |
-| `block/dead_fire_coral` | 256x256 (cutout) | glowing | Realistic, high-detail dead fire coral: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/dead_fire_coral_block` | 256x256 | glowing | Realistic, high-detail dead fire coral block: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/dead_fire_coral_fan` | 256x256 (cutout) | glowing | Realistic, high-detail dead fire coral fan: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/dead_horn_coral` | 256x256 (cutout) | organic | Realistic, high-detail dead horn coral: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dead_horn_coral_block` | 256x256 | organic | Realistic, high-detail dead horn coral block: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dead_horn_coral_fan` | 256x256 (cutout) | organic | Realistic, high-detail dead horn coral fan: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dead_tube_coral` | 256x256 (cutout) | organic | Realistic, high-detail dead tube coral: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dead_tube_coral_block` | 256x256 | organic | Realistic, high-detail dead tube coral block: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dead_tube_coral_fan` | 256x256 (cutout) | organic | Realistic, high-detail dead tube coral fan: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/deepslate_bricks` | 256x256 | ceramic | Realistic, high-detail deepslate bricks: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/deepslate_coal_ore` | 256x256 | ore | Realistic, high-detail deepslate coal ore: natural rock with embedded raw mineral crystals or nuggets. | requested |
-| `block/deepslate_copper_ore` | 256x256 | ore | Realistic, high-detail deepslate copper ore: natural rock with embedded raw mineral crystals or nuggets. | requested |
-| `block/deepslate_emerald_ore` | 256x256 | ore | Realistic, high-detail deepslate emerald ore: natural rock with embedded raw mineral crystals or nuggets. | requested |
-| `block/deepslate_gold_ore` | 256x256 | ore | Realistic, high-detail deepslate gold ore: natural rock with embedded raw mineral crystals or nuggets. | requested |
-| `block/deepslate_lapis_ore` | 256x256 | ore | Realistic, high-detail deepslate lapis ore: natural rock with embedded raw mineral crystals or nuggets. | requested |
-| `block/deepslate_redstone_ore` | 256x256 | ore | Realistic, high-detail deepslate redstone ore: natural rock with embedded raw mineral crystals or nuggets. | requested |
-| `block/deepslate_tiles` | 256x256 | polished_stone | Realistic, high-detail deepslate tiles: cut and polished stone with subtle veining. | requested |
-| `block/destroy_stage_0` | 256x256 (translucent) | default | Realistic, high-detail destroy (growth stage 0): a believable real-world material. | requested |
-| `block/destroy_stage_1` | 256x256 (translucent) | default | Realistic, high-detail destroy (growth stage 1): a believable real-world material. | requested |
-| `block/destroy_stage_2` | 256x256 (translucent) | default | Realistic, high-detail destroy (growth stage 2): a believable real-world material. | requested |
-| `block/destroy_stage_3` | 256x256 (translucent) | default | Realistic, high-detail destroy (growth stage 3): a believable real-world material. | requested |
-| `block/destroy_stage_4` | 256x256 (translucent) | default | Realistic, high-detail destroy (growth stage 4): a believable real-world material. | requested |
-| `block/destroy_stage_5` | 256x256 (translucent) | default | Realistic, high-detail destroy (growth stage 5): a believable real-world material. | requested |
-| `block/destroy_stage_6` | 256x256 (translucent) | default | Realistic, high-detail destroy (growth stage 6): a believable real-world material. | requested |
-| `block/destroy_stage_7` | 256x256 (translucent) | default | Realistic, high-detail destroy (growth stage 7): a believable real-world material. | requested |
-| `block/destroy_stage_8` | 256x256 (translucent) | default | Realistic, high-detail destroy (growth stage 8): a believable real-world material. | requested |
-| `block/destroy_stage_9` | 256x256 (translucent) | default | Realistic, high-detail destroy (growth stage 9): a believable real-world material. | requested |
-| `block/detector_rail` | 256x256 (cutout) | iron | Realistic, high-detail detector rail: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/detector_rail_on` | 256x256 (cutout) | glowing | Realistic, high-detail detector rail (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/dirt_path_side` | 256x256 (cutout) | soil | Realistic, high-detail dirt path (side face): loose earthy soil with small pebbles, roots and crumbs. | requested |
-| `block/dispenser_front` | 256x256 | stone | Realistic, high-detail dispenser (front face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/dispenser_front_vertical` | 256x256 | stone | Realistic, high-detail dispenser front vertical: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/dragon_egg` | 256x256 | obsidian | Realistic, high-detail dragon egg: glassy black volcanic obsidian with conchoidal fractures. | requested |
-| `block/dried_ghast_hydration_0_bottom` | 256x256 | organic | Realistic, high-detail dried ghast hydration 0 (bottom face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_0_east` | 256x256 | organic | Realistic, high-detail dried ghast hydration 0 east: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_0_north` | 256x256 | organic | Realistic, high-detail dried ghast hydration 0 north: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_0_south` | 256x256 | organic | Realistic, high-detail dried ghast hydration 0 south: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_0_tentacles` | 256x256 | organic | Realistic, high-detail dried ghast hydration 0 tentacles: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_0_top` | 256x256 | organic | Realistic, high-detail dried ghast hydration 0 (top face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_0_west` | 256x256 | organic | Realistic, high-detail dried ghast hydration 0 west: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_1_bottom` | 256x256 | organic | Realistic, high-detail dried ghast hydration 1 (bottom face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_1_east` | 256x256 | organic | Realistic, high-detail dried ghast hydration 1 east: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_1_north` | 256x256 | organic | Realistic, high-detail dried ghast hydration 1 north: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_1_south` | 256x256 | organic | Realistic, high-detail dried ghast hydration 1 south: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_1_tentacles` | 256x256 | organic | Realistic, high-detail dried ghast hydration 1 tentacles: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_1_top` | 256x256 | organic | Realistic, high-detail dried ghast hydration 1 (top face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_1_west` | 256x256 | organic | Realistic, high-detail dried ghast hydration 1 west: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_2_bottom` | 256x256 | organic | Realistic, high-detail dried ghast hydration 2 (bottom face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_2_east` | 256x256 | organic | Realistic, high-detail dried ghast hydration 2 east: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_2_north` | 256x256 | organic | Realistic, high-detail dried ghast hydration 2 north: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_2_south` | 256x256 | organic | Realistic, high-detail dried ghast hydration 2 south: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_2_tentacles` | 256x256 | organic | Realistic, high-detail dried ghast hydration 2 tentacles: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_2_top` | 256x256 | organic | Realistic, high-detail dried ghast hydration 2 (top face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_2_west` | 256x256 | organic | Realistic, high-detail dried ghast hydration 2 west: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_3_bottom` | 256x256 | organic | Realistic, high-detail dried ghast hydration 3 (bottom face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_3_east` | 256x256 | organic | Realistic, high-detail dried ghast hydration 3 east: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_3_north` | 256x256 | organic | Realistic, high-detail dried ghast hydration 3 north: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_3_south` | 256x256 | organic | Realistic, high-detail dried ghast hydration 3 south: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_3_tentacles` | 256x256 | organic | Realistic, high-detail dried ghast hydration 3 tentacles: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_3_top` | 256x256 | organic | Realistic, high-detail dried ghast hydration 3 (top face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_ghast_hydration_3_west` | 256x256 | organic | Realistic, high-detail dried ghast hydration 3 west: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/dried_kelp_bottom` | 256x256 | foliage | Realistic, high-detail dried kelp (bottom face): living plant matter, leaves and stems with veins. | requested |
-| `block/dried_kelp_side` | 256x256 | foliage | Realistic, high-detail dried kelp (side face): living plant matter, leaves and stems with veins. | requested |
-| `block/dried_kelp_top` | 256x256 | foliage | Realistic, high-detail dried kelp (top face): living plant matter, leaves and stems with veins. | requested |
-| `block/dripstone_block` | 256x256 | bone | Realistic, high-detail dripstone block: bleached bone, calcite or dripstone. | requested |
-| `block/dropper_front` | 256x256 | stone | Realistic, high-detail dropper (front face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/dropper_front_vertical` | 256x256 | stone | Realistic, high-detail dropper front vertical: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/emerald_block` | 256x256 | gem | Realistic, high-detail emerald block: faceted crystalline gemstone. | requested |
-| `block/enchanting_table_bottom` | 256x256 | stone | Realistic, high-detail enchanting table (bottom face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/enchanting_table_side` | 256x256 (cutout) | stone | Realistic, high-detail enchanting table (side face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/enchanting_table_top` | 256x256 | stone | Realistic, high-detail enchanting table (top face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/end_portal_frame_eye` | 256x256 (cutout) | stone | Realistic, high-detail end portal frame eye: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/end_portal_frame_side` | 256x256 (cutout) | stone | Realistic, high-detail end portal frame (side face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/end_portal_frame_top` | 256x256 | stone | Realistic, high-detail end portal frame (top face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/end_rod` | 256x256 (cutout) | glowing | Realistic, high-detail end rod: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/end_stone_bricks` | 256x256 | ceramic | Realistic, high-detail end stone bricks: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/exposed_chiseled_copper` | 256x256 | patina | Realistic, high-detail exposed chiseled copper: weathered copper with blue-green verdigris patina. | requested |
-| `block/exposed_copper` | 256x256 | patina | Realistic, high-detail exposed copper: weathered copper with blue-green verdigris patina. | requested |
-| `block/exposed_copper_bars` | 256x256 (cutout) | patina | Realistic, high-detail exposed copper bars: weathered copper with blue-green verdigris patina. | requested |
-| `block/exposed_copper_bulb` | 256x256 | patina | Realistic, high-detail exposed copper bulb: weathered copper with blue-green verdigris patina. | requested |
-| `block/exposed_copper_bulb_lit` | 256x256 | glowing | Realistic, high-detail exposed copper bulb (lit state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/exposed_copper_bulb_lit_powered` | 256x256 | patina | Realistic, high-detail exposed copper bulb lit powered: weathered copper with blue-green verdigris patina. | requested |
-| `block/exposed_copper_bulb_powered` | 256x256 | patina | Realistic, high-detail exposed copper bulb powered: weathered copper with blue-green verdigris patina. | requested |
-| `block/exposed_copper_chain` | 256x256 (cutout) | patina | Realistic, high-detail exposed copper chain: weathered copper with blue-green verdigris patina. | requested |
-| `block/exposed_copper_door_bottom` | 256x256 | patina | Realistic, high-detail exposed copper door (bottom face): weathered copper with blue-green verdigris patina. | requested |
-| `block/exposed_copper_door_top` | 256x256 (cutout) | patina | Realistic, high-detail exposed copper door (top face): weathered copper with blue-green verdigris patina. | requested |
-| `block/exposed_copper_grate` | 256x256 (cutout) | patina | Realistic, high-detail exposed copper grate: weathered copper with blue-green verdigris patina. | requested |
-| `block/exposed_copper_lantern` | 256x768 (3 frames, cutout) | patina | Realistic, high-detail exposed copper lantern: weathered copper with blue-green verdigris patina. | requested |
-| `block/exposed_copper_trapdoor` | 256x256 (cutout) | patina | Realistic, high-detail exposed copper trapdoor: weathered copper with blue-green verdigris patina. | requested |
-| `block/exposed_cut_copper` | 256x256 | patina | Realistic, high-detail exposed cut copper: weathered copper with blue-green verdigris patina. | requested |
-| `block/exposed_lightning_rod` | 256x256 (cutout) | iron | Realistic, high-detail exposed lightning rod: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/fern` | 256x256 (cutout) | foliage | Realistic, high-detail fern: living plant matter, leaves and stems with veins. | requested |
-| `block/fire_0` | 64x2048 (32 frames, cutout) | glowing | Realistic, high-detail fire 0: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/fire_1` | 64x2048 (32 frames, cutout) | glowing | Realistic, high-detail fire 1: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/fire_coral` | 256x256 (cutout) | glowing | Realistic, high-detail fire coral: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/fire_coral_block` | 256x256 | glowing | Realistic, high-detail fire coral block: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/fire_coral_fan` | 256x256 (cutout) | glowing | Realistic, high-detail fire coral fan: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/firefly_bush` | 256x256 (cutout) | glowing | Realistic, high-detail firefly bush: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/firefly_bush_emissive` | 128x1280 (10 frames, cutout) | glowing | Realistic, high-detail firefly bush emissive: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/fletching_table_front` | 256x256 | paper | Realistic, high-detail fletching table (front face): paper, books and worked wood. | requested |
-| `block/fletching_table_side` | 256x256 | paper | Realistic, high-detail fletching table (side face): paper, books and worked wood. | requested |
-| `block/fletching_table_top` | 256x256 | paper | Realistic, high-detail fletching table (top face): paper, books and worked wood. | requested |
-| `block/flower_pot` | 256x256 (cutout) | ceramic | Realistic, high-detail flower pot: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/flowering_azalea_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail flowering azalea leaves: living plant matter, leaves and stems with veins. | requested |
-| `block/flowering_azalea_side` | 256x256 (cutout) | foliage | Realistic, high-detail flowering azalea (side face): living plant matter, leaves and stems with veins. | requested |
-| `block/flowering_azalea_top` | 256x256 | foliage | Realistic, high-detail flowering azalea (top face): living plant matter, leaves and stems with veins. | requested |
-| `block/frogspawn` | 256x256 (cutout) | organic | Realistic, high-detail frogspawn: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/frosted_ice_0` | 256x256 (translucent) | ice | Realistic, high-detail frosted ice 0: compacted clear ice with trapped bubbles and cracks. | requested |
-| `block/frosted_ice_1` | 256x256 (translucent) | ice | Realistic, high-detail frosted ice 1: compacted clear ice with trapped bubbles and cracks. | requested |
-| `block/frosted_ice_2` | 256x256 (translucent) | ice | Realistic, high-detail frosted ice 2: compacted clear ice with trapped bubbles and cracks. | requested |
-| `block/frosted_ice_3` | 256x256 (translucent) | ice | Realistic, high-detail frosted ice 3: compacted clear ice with trapped bubbles and cracks. | requested |
-| `block/gilded_blackstone` | 256x256 | nether | Realistic, high-detail gilded blackstone: hellish porous rock, fungal growth and flesh-like matter. | requested |
-| `block/glass_pane_top` | 256x256 (cutout) | glass | Realistic, high-detail glass pane (top face): clear glass with faint imperfections. | requested |
-| `block/glow_item_frame` | 256x256 | default | Realistic, high-detail glow item frame: a believable real-world material. | requested |
-| `block/glow_lichen` | 256x256 (cutout) | glowing | Realistic, high-detail glow lichen: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/golden_dandelion` | 256x256 (cutout) | foliage | Realistic, high-detail golden dandelion: living plant matter, leaves and stems with veins. | requested |
-| `block/gray_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail gray bed foot east: woven wool or felt with visible fibres and weave. | requested |
-| `block/gray_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail gray bed foot south: woven wool or felt with visible fibres and weave. | requested |
-| `block/gray_bed_foot_up` | 256x256 | cloth | Realistic, high-detail gray bed foot up: woven wool or felt with visible fibres and weave. | requested |
-| `block/gray_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail gray bed foot west: woven wool or felt with visible fibres and weave. | requested |
-| `block/gray_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail gray bed head east: woven wool or felt with visible fibres and weave. | requested |
-| `block/gray_bed_head_up` | 256x256 | cloth | Realistic, high-detail gray bed head up: woven wool or felt with visible fibres and weave. | requested |
-| `block/gray_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail gray bed head west: woven wool or felt with visible fibres and weave. | requested |
-| `block/gray_candle` | 256x256 (cutout) | organic | Realistic, high-detail gray candle: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/gray_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail gray candle (lit state): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/gray_concrete` | 256x256 | concrete | Realistic, high-detail gray concrete: smooth matte concrete with fine pores. | requested |
-| `block/gray_concrete_powder` | 256x256 | sand | Realistic, high-detail gray concrete powder: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/gray_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail gray glazed terracotta: glossy glazed ceramic tile. | requested |
-| `block/gray_shulker_box` | 256x256 | glazed | Realistic, high-detail gray shulker box: glossy glazed ceramic tile. | requested |
-| `block/gray_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail gray stained glass: clear glass with faint imperfections. | requested |
-| `block/gray_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail gray stained glass pane (top face): clear glass with faint imperfections. | requested |
-| `block/gray_terracotta` | 256x256 | ceramic | Realistic, high-detail gray terracotta: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/gray_wool` | 256x256 | cloth | Realistic, high-detail gray wool: woven wool or felt with visible fibres and weave. | requested |
-| `block/green_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail green bed foot east: woven wool or felt with visible fibres and weave. | requested |
-| `block/green_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail green bed foot south: woven wool or felt with visible fibres and weave. | requested |
-| `block/green_bed_foot_up` | 256x256 | cloth | Realistic, high-detail green bed foot up: woven wool or felt with visible fibres and weave. | requested |
-| `block/green_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail green bed foot west: woven wool or felt with visible fibres and weave. | requested |
-| `block/green_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail green bed head east: woven wool or felt with visible fibres and weave. | requested |
-| `block/green_bed_head_up` | 256x256 | cloth | Realistic, high-detail green bed head up: woven wool or felt with visible fibres and weave. | requested |
-| `block/green_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail green bed head west: woven wool or felt with visible fibres and weave. | requested |
-| `block/green_candle` | 256x256 (cutout) | organic | Realistic, high-detail green candle: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/green_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail green candle (lit state): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/green_concrete` | 256x256 | concrete | Realistic, high-detail green concrete: smooth matte concrete with fine pores. | requested |
-| `block/green_concrete_powder` | 256x256 | sand | Realistic, high-detail green concrete powder: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/green_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail green glazed terracotta: glossy glazed ceramic tile. | requested |
-| `block/green_shulker_box` | 256x256 | glazed | Realistic, high-detail green shulker box: glossy glazed ceramic tile. | requested |
-| `block/green_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail green stained glass: clear glass with faint imperfections. | requested |
-| `block/green_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail green stained glass pane (top face): clear glass with faint imperfections. | requested |
-| `block/green_terracotta` | 256x256 | ceramic | Realistic, high-detail green terracotta: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/green_wool` | 256x256 | cloth | Realistic, high-detail green wool: woven wool or felt with visible fibres and weave. | requested |
-| `block/grindstone_pivot` | 256x256 (cutout) | stone | Realistic, high-detail grindstone pivot: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/grindstone_round` | 256x256 (cutout) | stone | Realistic, high-detail grindstone round: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/grindstone_side` | 256x256 (cutout) | stone | Realistic, high-detail grindstone (side face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/hanging_roots` | 256x256 (cutout) | foliage | Realistic, high-detail hanging roots: living plant matter, leaves and stems with veins. | requested |
-| `block/hay_block_side` | 256x256 | cloth | Realistic, high-detail hay block (side face): woven wool or felt with visible fibres and weave. | requested |
-| `block/hay_block_top` | 256x256 | cloth | Realistic, high-detail hay block (top face): woven wool or felt with visible fibres and weave. | requested |
-| `block/heavy_core` | 256x256 (cutout) | iron | Realistic, high-detail heavy core: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/honey_block_bottom` | 256x256 (translucent) | gel | Realistic, high-detail honey block (bottom face): translucent glossy gel. | requested |
-| `block/honey_block_side` | 256x256 (translucent) | gel | Realistic, high-detail honey block (side face): translucent glossy gel. | requested |
-| `block/honey_block_top` | 256x256 (translucent) | gel | Realistic, high-detail honey block (top face): translucent glossy gel. | requested |
-| `block/honeycomb_block` | 256x256 | gel | Realistic, high-detail honeycomb block: translucent glossy gel. | requested |
-| `block/hopper_inside` | 256x256 | iron | Realistic, high-detail hopper inside: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/hopper_outside` | 256x256 | iron | Realistic, high-detail hopper outside: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/hopper_top` | 256x256 (cutout) | iron | Realistic, high-detail hopper (top face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/horn_coral` | 256x256 (cutout) | organic | Realistic, high-detail horn coral: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/horn_coral_block` | 256x256 | organic | Realistic, high-detail horn coral block: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/horn_coral_fan` | 256x256 (cutout) | organic | Realistic, high-detail horn coral fan: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/iron_bars` | 256x256 (cutout) | iron | Realistic, high-detail iron bars: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/iron_chain` | 256x256 (cutout) | iron | Realistic, high-detail iron chain: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/iron_door_bottom` | 256x256 | iron | Realistic, high-detail iron door (bottom face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/iron_door_top` | 256x256 (cutout) | iron | Realistic, high-detail iron door (top face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/iron_trapdoor` | 256x256 (cutout) | iron | Realistic, high-detail iron trapdoor: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/item_frame` | 256x256 | default | Realistic, high-detail item frame: a believable real-world material. | requested |
-| `block/jack_o_lantern` | 256x256 | glowing | Realistic, high-detail jack o lantern: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/jukebox_side` | 256x256 | wood | Realistic, high-detail jukebox (side face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/jukebox_top` | 256x256 | wood | Realistic, high-detail jukebox (top face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/jungle_door_bottom` | 256x256 | wood | Realistic, high-detail jungle door (bottom face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/jungle_door_top` | 256x256 (cutout) | wood | Realistic, high-detail jungle door (top face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/jungle_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail jungle hanging sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/jungle_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail jungle leaves: living plant matter, leaves and stems with veins. | requested |
-| `block/jungle_log_top` | 256x256 | bark | Realistic, high-detail jungle log (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/jungle_planks` | 256x256 | wood | Realistic, high-detail jungle planks: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/jungle_sapling` | 256x256 (cutout) | foliage | Realistic, high-detail jungle sapling: living plant matter, leaves and stems with veins. | requested |
-| `block/jungle_shelf` | 256x256 | wood | Realistic, high-detail jungle shelf: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/jungle_sign` | 256x256 (cutout) | wood | Realistic, high-detail jungle sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/jungle_trapdoor` | 256x256 (cutout) | wood | Realistic, high-detail jungle trapdoor: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/kelp` | 64x1280 (20 frames, cutout) | foliage | Realistic, high-detail kelp: living plant matter, leaves and stems with veins. | requested |
-| `block/kelp_plant` | 64x1280 (20 frames, cutout) | foliage | Realistic, high-detail kelp plant: living plant matter, leaves and stems with veins. | requested |
-| `block/ladder` | 256x256 (cutout) | wood | Realistic, high-detail ladder: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/lantern` | 256x768 (3 frames, cutout) | iron | Realistic, high-detail lantern: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/lapis_block` | 256x256 | gem | Realistic, high-detail lapis block: faceted crystalline gemstone. | requested |
-| `block/large_amethyst_bud` | 256x256 (cutout) | gem | Realistic, high-detail large amethyst bud: faceted crystalline gemstone. | requested |
-| `block/large_fern_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail large fern (bottom face): living plant matter, leaves and stems with veins. | requested |
-| `block/large_fern_top` | 256x256 (cutout) | foliage | Realistic, high-detail large fern (top face): living plant matter, leaves and stems with veins. | requested |
-| `block/leaf_litter` | 256x256 (cutout) | foliage | Realistic, high-detail leaf litter: living plant matter, leaves and stems with veins. | requested |
-| `block/lectern_base` | 256x256 | paper | Realistic, high-detail lectern base: paper, books and worked wood. | requested |
-| `block/lectern_front` | 256x256 | paper | Realistic, high-detail lectern (front face): paper, books and worked wood. | requested |
-| `block/lectern_sides` | 256x256 | paper | Realistic, high-detail lectern sides: paper, books and worked wood. | requested |
-| `block/lectern_top` | 256x256 | paper | Realistic, high-detail lectern (top face): paper, books and worked wood. | requested |
-| `block/lever` | 256x256 (cutout) | default | Realistic, high-detail lever: a believable real-world material. | requested |
-| `block/light_blue_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail light blue bed foot east: woven wool or felt with visible fibres and weave. | requested |
-| `block/light_blue_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail light blue bed foot south: woven wool or felt with visible fibres and weave. | requested |
-| `block/light_blue_bed_foot_up` | 256x256 | cloth | Realistic, high-detail light blue bed foot up: woven wool or felt with visible fibres and weave. | requested |
-| `block/light_blue_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail light blue bed foot west: woven wool or felt with visible fibres and weave. | requested |
-| `block/light_blue_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail light blue bed head east: woven wool or felt with visible fibres and weave. | requested |
-| `block/light_blue_bed_head_up` | 256x256 | cloth | Realistic, high-detail light blue bed head up: woven wool or felt with visible fibres and weave. | requested |
-| `block/light_blue_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail light blue bed head west: woven wool or felt with visible fibres and weave. | requested |
-| `block/light_blue_candle` | 256x256 (cutout) | organic | Realistic, high-detail light blue candle: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/light_blue_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail light blue candle (lit state): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/light_blue_concrete` | 256x256 | concrete | Realistic, high-detail light blue concrete: smooth matte concrete with fine pores. | requested |
-| `block/light_blue_concrete_powder` | 256x256 | sand | Realistic, high-detail light blue concrete powder: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/light_blue_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail light blue glazed terracotta: glossy glazed ceramic tile. | requested |
-| `block/light_blue_shulker_box` | 256x256 | glazed | Realistic, high-detail light blue shulker box: glossy glazed ceramic tile. | requested |
-| `block/light_blue_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail light blue stained glass: clear glass with faint imperfections. | requested |
-| `block/light_blue_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail light blue stained glass pane (top face): clear glass with faint imperfections. | requested |
-| `block/light_blue_terracotta` | 256x256 | ceramic | Realistic, high-detail light blue terracotta: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/light_blue_wool` | 256x256 | cloth | Realistic, high-detail light blue wool: woven wool or felt with visible fibres and weave. | requested |
-| `block/light_gray_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail light gray bed foot east: woven wool or felt with visible fibres and weave. | requested |
-| `block/light_gray_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail light gray bed foot south: woven wool or felt with visible fibres and weave. | requested |
-| `block/light_gray_bed_foot_up` | 256x256 | cloth | Realistic, high-detail light gray bed foot up: woven wool or felt with visible fibres and weave. | requested |
-| `block/light_gray_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail light gray bed foot west: woven wool or felt with visible fibres and weave. | requested |
-| `block/light_gray_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail light gray bed head east: woven wool or felt with visible fibres and weave. | requested |
-| `block/light_gray_bed_head_up` | 256x256 | cloth | Realistic, high-detail light gray bed head up: woven wool or felt with visible fibres and weave. | requested |
-| `block/light_gray_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail light gray bed head west: woven wool or felt with visible fibres and weave. | requested |
-| `block/light_gray_candle` | 256x256 (cutout) | organic | Realistic, high-detail light gray candle: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/light_gray_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail light gray candle (lit state): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/light_gray_concrete` | 256x256 | concrete | Realistic, high-detail light gray concrete: smooth matte concrete with fine pores. | requested |
-| `block/light_gray_concrete_powder` | 256x256 | sand | Realistic, high-detail light gray concrete powder: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/light_gray_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail light gray glazed terracotta: glossy glazed ceramic tile. | requested |
-| `block/light_gray_shulker_box` | 256x256 | glazed | Realistic, high-detail light gray shulker box: glossy glazed ceramic tile. | requested |
-| `block/light_gray_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail light gray stained glass: clear glass with faint imperfections. | requested |
-| `block/light_gray_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail light gray stained glass pane (top face): clear glass with faint imperfections. | requested |
-| `block/light_gray_terracotta` | 256x256 | ceramic | Realistic, high-detail light gray terracotta: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/light_gray_wool` | 256x256 | cloth | Realistic, high-detail light gray wool: woven wool or felt with visible fibres and weave. | requested |
-| `block/lightning_rod` | 256x256 (cutout) | iron | Realistic, high-detail lightning rod: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/lightning_rod_on` | 256x256 | glowing | Realistic, high-detail lightning rod (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/lilac_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail lilac (bottom face): living plant matter, leaves and stems with veins. | requested |
-| `block/lilac_top` | 256x256 (cutout) | foliage | Realistic, high-detail lilac (top face): living plant matter, leaves and stems with veins. | requested |
-| `block/lily_of_the_valley` | 256x256 (cutout) | foliage | Realistic, high-detail lily of the valley: living plant matter, leaves and stems with veins. | requested |
-| `block/lily_pad` | 256x256 (cutout) | foliage | Realistic, high-detail lily pad: living plant matter, leaves and stems with veins. | requested |
-| `block/lime_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail lime bed foot east: woven wool or felt with visible fibres and weave. | requested |
-| `block/lime_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail lime bed foot south: woven wool or felt with visible fibres and weave. | requested |
-| `block/lime_bed_foot_up` | 256x256 | cloth | Realistic, high-detail lime bed foot up: woven wool or felt with visible fibres and weave. | requested |
-| `block/lime_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail lime bed foot west: woven wool or felt with visible fibres and weave. | requested |
-| `block/lime_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail lime bed head east: woven wool or felt with visible fibres and weave. | requested |
-| `block/lime_bed_head_up` | 256x256 | cloth | Realistic, high-detail lime bed head up: woven wool or felt with visible fibres and weave. | requested |
-| `block/lime_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail lime bed head west: woven wool or felt with visible fibres and weave. | requested |
-| `block/lime_candle` | 256x256 (cutout) | organic | Realistic, high-detail lime candle: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/lime_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail lime candle (lit state): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/lime_concrete` | 256x256 | concrete | Realistic, high-detail lime concrete: smooth matte concrete with fine pores. | requested |
-| `block/lime_concrete_powder` | 256x256 | sand | Realistic, high-detail lime concrete powder: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/lime_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail lime glazed terracotta: glossy glazed ceramic tile. | requested |
-| `block/lime_shulker_box` | 256x256 | glazed | Realistic, high-detail lime shulker box: glossy glazed ceramic tile. | requested |
-| `block/lime_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail lime stained glass: clear glass with faint imperfections. | requested |
-| `block/lime_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail lime stained glass pane (top face): clear glass with faint imperfections. | requested |
-| `block/lime_terracotta` | 256x256 | ceramic | Realistic, high-detail lime terracotta: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/lime_wool` | 256x256 | cloth | Realistic, high-detail lime wool: woven wool or felt with visible fibres and weave. | requested |
-| `block/lodestone_side` | 256x256 | iron | Realistic, high-detail lodestone (side face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/lodestone_top` | 256x256 | iron | Realistic, high-detail lodestone (top face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/loom_bottom` | 256x256 | paper | Realistic, high-detail loom (bottom face): paper, books and worked wood. | requested |
-| `block/loom_front` | 256x256 | paper | Realistic, high-detail loom (front face): paper, books and worked wood. | requested |
-| `block/loom_side` | 256x256 | paper | Realistic, high-detail loom (side face): paper, books and worked wood. | requested |
-| `block/loom_top` | 256x256 | paper | Realistic, high-detail loom (top face): paper, books and worked wood. | requested |
-| `block/magenta_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail magenta bed foot east: woven wool or felt with visible fibres and weave. | requested |
-| `block/magenta_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail magenta bed foot south: woven wool or felt with visible fibres and weave. | requested |
-| `block/magenta_bed_foot_up` | 256x256 | cloth | Realistic, high-detail magenta bed foot up: woven wool or felt with visible fibres and weave. | requested |
-| `block/magenta_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail magenta bed foot west: woven wool or felt with visible fibres and weave. | requested |
-| `block/magenta_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail magenta bed head east: woven wool or felt with visible fibres and weave. | requested |
-| `block/magenta_bed_head_up` | 256x256 | cloth | Realistic, high-detail magenta bed head up: woven wool or felt with visible fibres and weave. | requested |
-| `block/magenta_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail magenta bed head west: woven wool or felt with visible fibres and weave. | requested |
-| `block/magenta_candle` | 256x256 (cutout) | organic | Realistic, high-detail magenta candle: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/magenta_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail magenta candle (lit state): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/magenta_concrete` | 256x256 | concrete | Realistic, high-detail magenta concrete: smooth matte concrete with fine pores. | requested |
-| `block/magenta_concrete_powder` | 256x256 | sand | Realistic, high-detail magenta concrete powder: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/magenta_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail magenta glazed terracotta: glossy glazed ceramic tile. | requested |
-| `block/magenta_shulker_box` | 256x256 | glazed | Realistic, high-detail magenta shulker box: glossy glazed ceramic tile. | requested |
-| `block/magenta_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail magenta stained glass: clear glass with faint imperfections. | requested |
-| `block/magenta_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail magenta stained glass pane (top face): clear glass with faint imperfections. | requested |
-| `block/magenta_terracotta` | 256x256 | ceramic | Realistic, high-detail magenta terracotta: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/magenta_wool` | 256x256 | cloth | Realistic, high-detail magenta wool: woven wool or felt with visible fibres and weave. | requested |
-| `block/magma` | 256x768 (3 frames) | glowing | Realistic, high-detail magma: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/mangrove_door_bottom` | 256x256 | wood | Realistic, high-detail mangrove door (bottom face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/mangrove_door_top` | 256x256 | wood | Realistic, high-detail mangrove door (top face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/mangrove_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail mangrove hanging sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/mangrove_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail mangrove leaves: living plant matter, leaves and stems with veins. | requested |
-| `block/mangrove_log_top` | 256x256 | bark | Realistic, high-detail mangrove log (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/mangrove_planks` | 256x256 | wood | Realistic, high-detail mangrove planks: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/mangrove_propagule` | 256x256 (cutout) | foliage | Realistic, high-detail mangrove propagule: living plant matter, leaves and stems with veins. | requested |
-| `block/mangrove_propagule_hanging` | 256x256 (cutout) | foliage | Realistic, high-detail mangrove propagule hanging: living plant matter, leaves and stems with veins. | requested |
-| `block/mangrove_roots_side` | 256x256 (cutout) | bark | Realistic, high-detail mangrove roots (side face): deeply furrowed natural tree bark. | requested |
-| `block/mangrove_roots_top` | 256x256 (cutout) | bark | Realistic, high-detail mangrove roots (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/mangrove_shelf` | 256x256 | wood | Realistic, high-detail mangrove shelf: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/mangrove_sign` | 256x256 (cutout) | wood | Realistic, high-detail mangrove sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/mangrove_trapdoor` | 256x256 (cutout) | wood | Realistic, high-detail mangrove trapdoor: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/medium_amethyst_bud` | 256x256 (cutout) | gem | Realistic, high-detail medium amethyst bud: faceted crystalline gemstone. | requested |
-| `block/melon_side` | 256x256 | foliage | Realistic, high-detail melon (side face): living plant matter, leaves and stems with veins. | requested |
-| `block/melon_stem` | 256x256 (cutout) | bark | Realistic, high-detail melon stem: deeply furrowed natural tree bark. | requested |
-| `block/melon_top` | 256x256 | foliage | Realistic, high-detail melon (top face): living plant matter, leaves and stems with veins. | requested |
-| `block/moss_block` | 256x256 | foliage | Realistic, high-detail moss block: living plant matter, leaves and stems with veins. | requested |
-| `block/mud_bricks` | 256x256 | ceramic | Realistic, high-detail mud bricks: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/muddy_mangrove_roots_side` | 256x256 | ceramic | Realistic, high-detail muddy mangrove roots (side face): fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/muddy_mangrove_roots_top` | 256x256 | ceramic | Realistic, high-detail muddy mangrove roots (top face): fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/mushroom_block_inside` | 256x256 | organic | Realistic, high-detail mushroom block inside: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/mushroom_stem` | 256x256 | bark | Realistic, high-detail mushroom stem: deeply furrowed natural tree bark. | requested |
-| `block/nether_bricks` | 256x256 | ceramic | Realistic, high-detail nether bricks: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/nether_gold_ore` | 256x256 | ore | Realistic, high-detail nether gold ore: natural rock with embedded raw mineral crystals or nuggets. | requested |
-| `block/nether_portal` | 64x2048 (32 frames, translucent) | glowing | Realistic, high-detail nether portal: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/nether_quartz_ore` | 256x256 | ore | Realistic, high-detail nether quartz ore: natural rock with embedded raw mineral crystals or nuggets. | requested |
-| `block/nether_sprouts` | 256x256 (cutout) | foliage | Realistic, high-detail nether sprouts: living plant matter, leaves and stems with veins. | requested |
-| `block/nether_wart_block` | 256x256 | foliage | Realistic, high-detail nether wart block: living plant matter, leaves and stems with veins. | requested |
-| `block/nether_wart_stage0` | 256x256 (cutout) | foliage | Realistic, high-detail nether wart (growth stage 0): living plant matter, leaves and stems with veins. | requested |
-| `block/nether_wart_stage1` | 256x256 (cutout) | foliage | Realistic, high-detail nether wart (growth stage 1): living plant matter, leaves and stems with veins. | requested |
-| `block/nether_wart_stage2` | 256x256 (cutout) | foliage | Realistic, high-detail nether wart (growth stage 2): living plant matter, leaves and stems with veins. | requested |
-| `block/netherite_block` | 256x256 | iron | Realistic, high-detail netherite block: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/note_block` | 256x256 | wood | Realistic, high-detail note block: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/oak_door_bottom` | 256x256 | wood | Realistic, high-detail oak door (bottom face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/oak_door_top` | 256x256 (cutout) | wood | Realistic, high-detail oak door (top face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/oak_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail oak hanging sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/oak_sapling` | 256x256 (cutout) | foliage | Realistic, high-detail oak sapling: living plant matter, leaves and stems with veins. | requested |
-| `block/oak_shelf` | 256x256 | wood | Realistic, high-detail oak shelf: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/oak_sign` | 256x256 (cutout) | wood | Realistic, high-detail oak sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/oak_trapdoor` | 256x256 (cutout) | wood | Realistic, high-detail oak trapdoor: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/observer_back` | 256x256 | stone | Realistic, high-detail observer (back face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/observer_back_on` | 256x256 | glowing | Realistic, high-detail observer back (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/observer_front` | 256x256 | stone | Realistic, high-detail observer (front face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/observer_side` | 256x256 | stone | Realistic, high-detail observer (side face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/observer_top` | 256x256 | stone | Realistic, high-detail observer (top face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/ochre_froglight_side` | 256x256 | glowing | Realistic, high-detail ochre froglight (side face): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/ochre_froglight_top` | 256x256 | glowing | Realistic, high-detail ochre froglight (top face): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/open_eyeblossom` | 256x256 (cutout) | foliage | Realistic, high-detail open eyeblossom: living plant matter, leaves and stems with veins. | requested |
-| `block/open_eyeblossom_emissive` | 256x256 (cutout) | foliage | Realistic, high-detail open eyeblossom emissive: living plant matter, leaves and stems with veins. | requested |
-| `block/orange_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail orange bed foot east: woven wool or felt with visible fibres and weave. | requested |
-| `block/orange_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail orange bed foot south: woven wool or felt with visible fibres and weave. | requested |
-| `block/orange_bed_foot_up` | 256x256 | cloth | Realistic, high-detail orange bed foot up: woven wool or felt with visible fibres and weave. | requested |
-| `block/orange_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail orange bed foot west: woven wool or felt with visible fibres and weave. | requested |
-| `block/orange_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail orange bed head east: woven wool or felt with visible fibres and weave. | requested |
-| `block/orange_bed_head_up` | 256x256 | cloth | Realistic, high-detail orange bed head up: woven wool or felt with visible fibres and weave. | requested |
-| `block/orange_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail orange bed head west: woven wool or felt with visible fibres and weave. | requested |
-| `block/orange_candle` | 256x256 (cutout) | organic | Realistic, high-detail orange candle: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/orange_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail orange candle (lit state): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/orange_concrete` | 256x256 | concrete | Realistic, high-detail orange concrete: smooth matte concrete with fine pores. | requested |
-| `block/orange_concrete_powder` | 256x256 | sand | Realistic, high-detail orange concrete powder: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/orange_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail orange glazed terracotta: glossy glazed ceramic tile. | requested |
-| `block/orange_poplar_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail orange poplar leaves: living plant matter, leaves and stems with veins. | requested |
-| `block/orange_shulker_box` | 256x256 | glazed | Realistic, high-detail orange shulker box: glossy glazed ceramic tile. | requested |
-| `block/orange_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail orange stained glass: clear glass with faint imperfections. | requested |
-| `block/orange_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail orange stained glass pane (top face): clear glass with faint imperfections. | requested |
-| `block/orange_terracotta` | 256x256 | ceramic | Realistic, high-detail orange terracotta: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/orange_tulip` | 256x256 (cutout) | foliage | Realistic, high-detail orange tulip: living plant matter, leaves and stems with veins. | requested |
-| `block/orange_wool` | 256x256 | cloth | Realistic, high-detail orange wool: woven wool or felt with visible fibres and weave. | requested |
-| `block/oxeye_daisy` | 256x256 (cutout) | foliage | Realistic, high-detail oxeye daisy: living plant matter, leaves and stems with veins. | requested |
-| `block/oxidized_chiseled_copper` | 256x256 | patina | Realistic, high-detail oxidized chiseled copper: weathered copper with blue-green verdigris patina. | requested |
-| `block/oxidized_copper` | 256x256 | patina | Realistic, high-detail oxidized copper: weathered copper with blue-green verdigris patina. | requested |
-| `block/oxidized_copper_bars` | 256x256 (cutout) | patina | Realistic, high-detail oxidized copper bars: weathered copper with blue-green verdigris patina. | requested |
-| `block/oxidized_copper_bulb` | 256x256 | patina | Realistic, high-detail oxidized copper bulb: weathered copper with blue-green verdigris patina. | requested |
-| `block/oxidized_copper_bulb_lit` | 256x256 | glowing | Realistic, high-detail oxidized copper bulb (lit state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/oxidized_copper_bulb_lit_powered` | 256x256 | patina | Realistic, high-detail oxidized copper bulb lit powered: weathered copper with blue-green verdigris patina. | requested |
-| `block/oxidized_copper_bulb_powered` | 256x256 | patina | Realistic, high-detail oxidized copper bulb powered: weathered copper with blue-green verdigris patina. | requested |
-| `block/oxidized_copper_chain` | 256x256 (cutout) | patina | Realistic, high-detail oxidized copper chain: weathered copper with blue-green verdigris patina. | requested |
-| `block/oxidized_copper_door_bottom` | 256x256 | patina | Realistic, high-detail oxidized copper door (bottom face): weathered copper with blue-green verdigris patina. | requested |
-| `block/oxidized_copper_door_top` | 256x256 (cutout) | patina | Realistic, high-detail oxidized copper door (top face): weathered copper with blue-green verdigris patina. | requested |
-| `block/oxidized_copper_grate` | 256x256 (cutout) | patina | Realistic, high-detail oxidized copper grate: weathered copper with blue-green verdigris patina. | requested |
-| `block/oxidized_copper_lantern` | 256x768 (3 frames, cutout) | patina | Realistic, high-detail oxidized copper lantern: weathered copper with blue-green verdigris patina. | requested |
-| `block/oxidized_copper_trapdoor` | 256x256 (cutout) | patina | Realistic, high-detail oxidized copper trapdoor: weathered copper with blue-green verdigris patina. | requested |
-| `block/oxidized_cut_copper` | 256x256 | patina | Realistic, high-detail oxidized cut copper: weathered copper with blue-green verdigris patina. | requested |
-| `block/oxidized_lightning_rod` | 256x256 (cutout) | iron | Realistic, high-detail oxidized lightning rod: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/packed_mud` | 256x256 | ceramic | Realistic, high-detail packed mud: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/pale_hanging_moss` | 256x256 (cutout) | foliage | Realistic, high-detail pale hanging moss: living plant matter, leaves and stems with veins. | requested |
-| `block/pale_hanging_moss_tip` | 256x256 (cutout) | foliage | Realistic, high-detail pale hanging moss tip: living plant matter, leaves and stems with veins. | requested |
-| `block/pale_moss_block` | 256x256 | foliage | Realistic, high-detail pale moss block: living plant matter, leaves and stems with veins. | requested |
-| `block/pale_moss_carpet` | 256x256 | cloth | Realistic, high-detail pale moss carpet: woven wool or felt with visible fibres and weave. | requested |
-| `block/pale_moss_carpet_side_small` | 256x256 (cutout) | cloth | Realistic, high-detail pale moss carpet side small: woven wool or felt with visible fibres and weave. | requested |
-| `block/pale_moss_carpet_side_tall` | 256x256 (cutout) | cloth | Realistic, high-detail pale moss carpet side tall: woven wool or felt with visible fibres and weave. | requested |
-| `block/pale_oak_door_bottom` | 256x256 | wood | Realistic, high-detail pale oak door (bottom face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/pale_oak_door_top` | 256x256 | wood | Realistic, high-detail pale oak door (top face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/pale_oak_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail pale oak hanging sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/pale_oak_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail pale oak leaves: living plant matter, leaves and stems with veins. | requested |
-| `block/pale_oak_log` | 256x256 | bark | Realistic, high-detail pale oak log: deeply furrowed natural tree bark. | requested |
-| `block/pale_oak_log_top` | 256x256 | bark | Realistic, high-detail pale oak log (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/pale_oak_planks` | 256x256 | wood | Realistic, high-detail pale oak planks: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/pale_oak_sapling` | 256x256 (cutout) | foliage | Realistic, high-detail pale oak sapling: living plant matter, leaves and stems with veins. | requested |
-| `block/pale_oak_shelf` | 256x256 | wood | Realistic, high-detail pale oak shelf: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/pale_oak_sign` | 256x256 (cutout) | wood | Realistic, high-detail pale oak sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/pale_oak_trapdoor` | 256x256 | wood | Realistic, high-detail pale oak trapdoor: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/pearlescent_froglight_side` | 256x256 | glowing | Realistic, high-detail pearlescent froglight (side face): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/pearlescent_froglight_top` | 256x256 | glowing | Realistic, high-detail pearlescent froglight (top face): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/peony_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail peony (bottom face): living plant matter, leaves and stems with veins. | requested |
-| `block/peony_top` | 256x256 (cutout) | foliage | Realistic, high-detail peony (top face): living plant matter, leaves and stems with veins. | requested |
-| `block/pink_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail pink bed foot east: woven wool or felt with visible fibres and weave. | requested |
-| `block/pink_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail pink bed foot south: woven wool or felt with visible fibres and weave. | requested |
-| `block/pink_bed_foot_up` | 256x256 | cloth | Realistic, high-detail pink bed foot up: woven wool or felt with visible fibres and weave. | requested |
-| `block/pink_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail pink bed foot west: woven wool or felt with visible fibres and weave. | requested |
-| `block/pink_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail pink bed head east: woven wool or felt with visible fibres and weave. | requested |
-| `block/pink_bed_head_up` | 256x256 | cloth | Realistic, high-detail pink bed head up: woven wool or felt with visible fibres and weave. | requested |
-| `block/pink_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail pink bed head west: woven wool or felt with visible fibres and weave. | requested |
-| `block/pink_candle` | 256x256 (cutout) | organic | Realistic, high-detail pink candle: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/pink_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail pink candle (lit state): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/pink_concrete` | 256x256 | concrete | Realistic, high-detail pink concrete: smooth matte concrete with fine pores. | requested |
-| `block/pink_concrete_powder` | 256x256 | sand | Realistic, high-detail pink concrete powder: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/pink_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail pink glazed terracotta: glossy glazed ceramic tile. | requested |
-| `block/pink_petals` | 256x256 (cutout) | foliage | Realistic, high-detail pink petals: living plant matter, leaves and stems with veins. | requested |
-| `block/pink_petals_stem` | 256x256 (cutout) | bark | Realistic, high-detail pink petals stem: deeply furrowed natural tree bark. | requested |
-| `block/pink_shulker_box` | 256x256 | glazed | Realistic, high-detail pink shulker box: glossy glazed ceramic tile. | requested |
-| `block/pink_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail pink stained glass: clear glass with faint imperfections. | requested |
-| `block/pink_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail pink stained glass pane (top face): clear glass with faint imperfections. | requested |
-| `block/pink_terracotta` | 256x256 | ceramic | Realistic, high-detail pink terracotta: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/pink_tulip` | 256x256 (cutout) | foliage | Realistic, high-detail pink tulip: living plant matter, leaves and stems with veins. | requested |
-| `block/pink_wool` | 256x256 | cloth | Realistic, high-detail pink wool: woven wool or felt with visible fibres and weave. | requested |
-| `block/piston_bottom` | 256x256 | iron | Realistic, high-detail piston (bottom face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/piston_inner` | 256x256 | iron | Realistic, high-detail piston (inside face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/piston_side` | 256x256 | iron | Realistic, high-detail piston (side face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/piston_top` | 256x256 | iron | Realistic, high-detail piston (top face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/piston_top_sticky` | 256x256 | iron | Realistic, high-detail piston top sticky: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/pitcher_crop_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail pitcher crop (bottom face): living plant matter, leaves and stems with veins. | requested |
-| `block/pitcher_crop_bottom_stage_1` | 256x256 (cutout) | foliage | Realistic, high-detail pitcher crop bottom (growth stage 1): living plant matter, leaves and stems with veins. | requested |
-| `block/pitcher_crop_bottom_stage_2` | 256x256 (cutout) | foliage | Realistic, high-detail pitcher crop bottom (growth stage 2): living plant matter, leaves and stems with veins. | requested |
-| `block/pitcher_crop_bottom_stage_3` | 256x256 (cutout) | foliage | Realistic, high-detail pitcher crop bottom (growth stage 3): living plant matter, leaves and stems with veins. | requested |
-| `block/pitcher_crop_bottom_stage_4` | 256x256 (cutout) | foliage | Realistic, high-detail pitcher crop bottom (growth stage 4): living plant matter, leaves and stems with veins. | requested |
-| `block/pitcher_crop_side` | 256x256 (cutout) | foliage | Realistic, high-detail pitcher crop (side face): living plant matter, leaves and stems with veins. | requested |
-| `block/pitcher_crop_top` | 256x256 (cutout) | foliage | Realistic, high-detail pitcher crop (top face): living plant matter, leaves and stems with veins. | requested |
-| `block/pitcher_crop_top_stage_3` | 256x256 (cutout) | foliage | Realistic, high-detail pitcher crop top (growth stage 3): living plant matter, leaves and stems with veins. | requested |
-| `block/pitcher_crop_top_stage_4` | 256x256 (cutout) | foliage | Realistic, high-detail pitcher crop top (growth stage 4): living plant matter, leaves and stems with veins. | requested |
-| `block/pointed_dripstone_down_base` | 256x256 (cutout) | bone | Realistic, high-detail pointed dripstone down base: bleached bone, calcite or dripstone. | requested |
-| `block/pointed_dripstone_down_frustum` | 256x256 (cutout) | bone | Realistic, high-detail pointed dripstone down frustum: bleached bone, calcite or dripstone. | requested |
-| `block/pointed_dripstone_down_middle` | 256x256 (cutout) | bone | Realistic, high-detail pointed dripstone down middle: bleached bone, calcite or dripstone. | requested |
-| `block/pointed_dripstone_down_tip` | 256x256 (cutout) | bone | Realistic, high-detail pointed dripstone down tip: bleached bone, calcite or dripstone. | requested |
-| `block/pointed_dripstone_down_tip_merge` | 256x256 (cutout) | bone | Realistic, high-detail pointed dripstone down tip merge: bleached bone, calcite or dripstone. | requested |
-| `block/pointed_dripstone_up_base` | 256x256 (cutout) | bone | Realistic, high-detail pointed dripstone up base: bleached bone, calcite or dripstone. | requested |
-| `block/pointed_dripstone_up_frustum` | 256x256 (cutout) | bone | Realistic, high-detail pointed dripstone up frustum: bleached bone, calcite or dripstone. | requested |
-| `block/pointed_dripstone_up_middle` | 256x256 (cutout) | bone | Realistic, high-detail pointed dripstone up middle: bleached bone, calcite or dripstone. | requested |
-| `block/pointed_dripstone_up_tip` | 256x256 (cutout) | bone | Realistic, high-detail pointed dripstone up tip: bleached bone, calcite or dripstone. | requested |
-| `block/pointed_dripstone_up_tip_merge` | 256x256 (cutout) | bone | Realistic, high-detail pointed dripstone up tip merge: bleached bone, calcite or dripstone. | requested |
-| `block/polished_basalt_side` | 256x256 | polished_stone | Realistic, high-detail polished basalt (side face): cut and polished stone with subtle veining. | requested |
-| `block/polished_basalt_top` | 256x256 | polished_stone | Realistic, high-detail polished basalt (top face): cut and polished stone with subtle veining. | requested |
-| `block/polished_blackstone` | 256x256 | polished_stone | Realistic, high-detail polished blackstone: cut and polished stone with subtle veining. | requested |
-| `block/polished_blackstone_bricks` | 256x256 | polished_stone | Realistic, high-detail polished blackstone bricks: cut and polished stone with subtle veining. | requested |
-| `block/polished_cinnabar` | 256x256 | polished_stone | Realistic, high-detail polished cinnabar: cut and polished stone with subtle veining. | requested |
-| `block/polished_deepslate` | 256x256 | polished_stone | Realistic, high-detail polished deepslate: cut and polished stone with subtle veining. | requested |
-| `block/polished_sulfur` | 256x256 | polished_stone | Realistic, high-detail polished sulfur: cut and polished stone with subtle veining. | requested |
-| `block/polished_tuff` | 256x256 | polished_stone | Realistic, high-detail polished tuff: cut and polished stone with subtle veining. | requested |
-| `block/poplar_door_bottom` | 256x256 | wood | Realistic, high-detail poplar door (bottom face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/poplar_door_top` | 256x256 (cutout) | wood | Realistic, high-detail poplar door (top face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/poplar_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail poplar hanging sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/poplar_log` | 256x256 | bark | Realistic, high-detail poplar log: deeply furrowed natural tree bark. | requested |
-| `block/poplar_log_top` | 256x256 | bark | Realistic, high-detail poplar log (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/poplar_planks` | 256x256 | wood | Realistic, high-detail poplar planks: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/poplar_sapling` | 256x256 (cutout) | foliage | Realistic, high-detail poplar sapling: living plant matter, leaves and stems with veins. | requested |
-| `block/poplar_shelf` | 256x256 | wood | Realistic, high-detail poplar shelf: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/poplar_sign` | 256x256 (cutout) | wood | Realistic, high-detail poplar sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/poplar_trapdoor` | 256x256 (cutout) | wood | Realistic, high-detail poplar trapdoor: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/poppy` | 256x256 (cutout) | foliage | Realistic, high-detail poppy: living plant matter, leaves and stems with veins. | requested |
-| `block/potatoes_stage0` | 256x256 (cutout) | foliage | Realistic, high-detail potatoes (growth stage 0): living plant matter, leaves and stems with veins. | requested |
-| `block/potatoes_stage1` | 256x256 (cutout) | foliage | Realistic, high-detail potatoes (growth stage 1): living plant matter, leaves and stems with veins. | requested |
-| `block/potatoes_stage2` | 256x256 (cutout) | foliage | Realistic, high-detail potatoes (growth stage 2): living plant matter, leaves and stems with veins. | requested |
-| `block/potatoes_stage3` | 256x256 (cutout) | foliage | Realistic, high-detail potatoes (growth stage 3): living plant matter, leaves and stems with veins. | requested |
-| `block/potent_sulfur` | 256x256 | stone | Realistic, high-detail potent sulfur: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/potted_azalea_bush_plant` | 256x256 (cutout) | foliage | Realistic, high-detail potted azalea bush plant: living plant matter, leaves and stems with veins. | requested |
-| `block/potted_azalea_bush_side` | 256x256 (cutout) | foliage | Realistic, high-detail potted azalea bush (side face): living plant matter, leaves and stems with veins. | requested |
-| `block/potted_azalea_bush_top` | 256x256 (cutout) | foliage | Realistic, high-detail potted azalea bush (top face): living plant matter, leaves and stems with veins. | requested |
-| `block/potted_flowering_azalea_bush_plant` | 256x256 (cutout) | foliage | Realistic, high-detail potted flowering azalea bush plant: living plant matter, leaves and stems with veins. | requested |
-| `block/potted_flowering_azalea_bush_side` | 256x256 (cutout) | foliage | Realistic, high-detail potted flowering azalea bush (side face): living plant matter, leaves and stems with veins. | requested |
-| `block/potted_flowering_azalea_bush_top` | 256x256 (cutout) | foliage | Realistic, high-detail potted flowering azalea bush (top face): living plant matter, leaves and stems with veins. | requested |
-| `block/powder_snow` | 256x256 | snow | Realistic, high-detail powder snow: soft packed snow with crystalline sparkle. | requested |
-| `block/powered_rail` | 256x256 (cutout) | iron | Realistic, high-detail powered rail: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/powered_rail_on` | 256x256 (cutout) | glowing | Realistic, high-detail powered rail (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/prismarine` | 256x1024 (4 frames) | gem | Realistic, high-detail prismarine: faceted crystalline gemstone. | requested |
-| `block/prismarine_bricks` | 256x256 | gem | Realistic, high-detail prismarine bricks: faceted crystalline gemstone. | requested |
-| `block/pumpkin_side` | 256x256 | foliage | Realistic, high-detail pumpkin (side face): living plant matter, leaves and stems with veins. | requested |
-| `block/pumpkin_stem` | 256x256 (cutout) | bark | Realistic, high-detail pumpkin stem: deeply furrowed natural tree bark. | requested |
-| `block/pumpkin_top` | 256x256 | foliage | Realistic, high-detail pumpkin (top face): living plant matter, leaves and stems with veins. | requested |
-| `block/purple_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail purple bed foot east: woven wool or felt with visible fibres and weave. | requested |
-| `block/purple_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail purple bed foot south: woven wool or felt with visible fibres and weave. | requested |
-| `block/purple_bed_foot_up` | 256x256 | cloth | Realistic, high-detail purple bed foot up: woven wool or felt with visible fibres and weave. | requested |
-| `block/purple_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail purple bed foot west: woven wool or felt with visible fibres and weave. | requested |
-| `block/purple_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail purple bed head east: woven wool or felt with visible fibres and weave. | requested |
-| `block/purple_bed_head_up` | 256x256 | cloth | Realistic, high-detail purple bed head up: woven wool or felt with visible fibres and weave. | requested |
-| `block/purple_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail purple bed head west: woven wool or felt with visible fibres and weave. | requested |
-| `block/purple_candle` | 256x256 (cutout) | organic | Realistic, high-detail purple candle: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/purple_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail purple candle (lit state): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/purple_concrete` | 256x256 | concrete | Realistic, high-detail purple concrete: smooth matte concrete with fine pores. | requested |
-| `block/purple_concrete_powder` | 256x256 | sand | Realistic, high-detail purple concrete powder: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/purple_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail purple glazed terracotta: glossy glazed ceramic tile. | requested |
-| `block/purple_shulker_box` | 256x256 | glazed | Realistic, high-detail purple shulker box: glossy glazed ceramic tile. | requested |
-| `block/purple_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail purple stained glass: clear glass with faint imperfections. | requested |
-| `block/purple_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail purple stained glass pane (top face): clear glass with faint imperfections. | requested |
-| `block/purple_terracotta` | 256x256 | ceramic | Realistic, high-detail purple terracotta: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/purple_wool` | 256x256 | cloth | Realistic, high-detail purple wool: woven wool or felt with visible fibres and weave. | requested |
-| `block/purpur_block` | 256x256 | stone | Realistic, high-detail purpur block: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/purpur_pillar_side` | 256x256 | stone | Realistic, high-detail purpur pillar (side face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/purpur_pillar_top` | 256x256 | stone | Realistic, high-detail purpur pillar (top face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/quartz_block_bottom` | 256x256 | polished_stone | Realistic, high-detail quartz block (bottom face): cut and polished stone with subtle veining. | requested |
-| `block/quartz_block_side` | 256x256 | polished_stone | Realistic, high-detail quartz block (side face): cut and polished stone with subtle veining. | requested |
-| `block/quartz_block_top` | 256x256 | polished_stone | Realistic, high-detail quartz block (top face): cut and polished stone with subtle veining. | requested |
-| `block/quartz_bricks` | 256x256 | gem | Realistic, high-detail quartz bricks: faceted crystalline gemstone. | requested |
-| `block/quartz_pillar_side` | 256x256 | polished_stone | Realistic, high-detail quartz pillar (side face): cut and polished stone with subtle veining. | requested |
-| `block/quartz_pillar_top` | 256x256 | polished_stone | Realistic, high-detail quartz pillar (top face): cut and polished stone with subtle veining. | requested |
-| `block/rail` | 256x256 (cutout) | iron | Realistic, high-detail rail: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/rail_corner` | 256x256 (cutout) | iron | Realistic, high-detail rail corner: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/raw_copper_block` | 256x256 | copper | Realistic, high-detail raw copper block: fresh salmon-orange copper with hammer marks. | requested |
-| `block/raw_gold_block` | 256x256 | gold | Realistic, high-detail raw gold block: polished gold with soft wear. | requested |
-| `block/raw_iron_block` | 256x256 | iron | Realistic, high-detail raw iron block: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/red_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail red bed foot east: woven wool or felt with visible fibres and weave. | requested |
-| `block/red_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail red bed foot south: woven wool or felt with visible fibres and weave. | requested |
-| `block/red_bed_foot_up` | 256x256 | cloth | Realistic, high-detail red bed foot up: woven wool or felt with visible fibres and weave. | requested |
-| `block/red_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail red bed foot west: woven wool or felt with visible fibres and weave. | requested |
-| `block/red_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail red bed head east: woven wool or felt with visible fibres and weave. | requested |
-| `block/red_bed_head_up` | 256x256 | cloth | Realistic, high-detail red bed head up: woven wool or felt with visible fibres and weave. | requested |
-| `block/red_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail red bed head west: woven wool or felt with visible fibres and weave. | requested |
-| `block/red_candle` | 256x256 (cutout) | organic | Realistic, high-detail red candle: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/red_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail red candle (lit state): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/red_concrete` | 256x256 | concrete | Realistic, high-detail red concrete: smooth matte concrete with fine pores. | requested |
-| `block/red_concrete_powder` | 256x256 | sand | Realistic, high-detail red concrete powder: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/red_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail red glazed terracotta: glossy glazed ceramic tile. | requested |
-| `block/red_mushroom` | 256x256 (cutout) | organic | Realistic, high-detail red mushroom: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/red_mushroom_block` | 256x256 | organic | Realistic, high-detail red mushroom block: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/red_nether_bricks` | 256x256 | ceramic | Realistic, high-detail red nether bricks: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/red_poplar_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail red poplar leaves: living plant matter, leaves and stems with veins. | requested |
-| `block/red_sandstone` | 256x256 | sand | Realistic, high-detail red sandstone: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/red_sandstone_bottom` | 256x256 | sand | Realistic, high-detail red sandstone (bottom face): fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/red_sandstone_top` | 256x256 | sand | Realistic, high-detail red sandstone (top face): fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/red_shrub` | 256x256 (cutout) | default | Realistic, high-detail red shrub: a believable real-world material. | requested |
-| `block/red_shulker_box` | 256x256 | glazed | Realistic, high-detail red shulker box: glossy glazed ceramic tile. | requested |
-| `block/red_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail red stained glass: clear glass with faint imperfections. | requested |
-| `block/red_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail red stained glass pane (top face): clear glass with faint imperfections. | requested |
-| `block/red_terracotta` | 256x256 | ceramic | Realistic, high-detail red terracotta: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/red_tulip` | 256x256 (cutout) | foliage | Realistic, high-detail red tulip: living plant matter, leaves and stems with veins. | requested |
-| `block/red_wool` | 256x256 | cloth | Realistic, high-detail red wool: woven wool or felt with visible fibres and weave. | requested |
-| `block/redstone_block` | 256x256 | gem | Realistic, high-detail redstone block: faceted crystalline gemstone. | requested |
-| `block/redstone_dust_dot` | 256x256 (cutout) | stone | Realistic, high-detail redstone dust dot: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/redstone_dust_line0` | 256x256 (cutout) | stone | Realistic, high-detail redstone dust line0: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/redstone_dust_line1` | 256x256 (cutout) | stone | Realistic, high-detail redstone dust line1: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/redstone_dust_overlay` | 256x256 (cutout) | stone | Realistic, high-detail redstone dust (overlay layer): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/redstone_lamp` | 256x256 | stone | Realistic, high-detail redstone lamp: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/redstone_lamp_on` | 256x256 | glowing | Realistic, high-detail redstone lamp (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/redstone_torch` | 256x256 (cutout) | stone | Realistic, high-detail redstone torch: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/redstone_torch_off` | 256x256 (cutout) | stone | Realistic, high-detail redstone torch off: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/reinforced_deepslate_bottom` | 256x256 | stone | Realistic, high-detail reinforced deepslate (bottom face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/reinforced_deepslate_side` | 256x256 | stone | Realistic, high-detail reinforced deepslate (side face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/reinforced_deepslate_top` | 256x256 | stone | Realistic, high-detail reinforced deepslate (top face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/repeater` | 256x256 | default | Realistic, high-detail repeater: a believable real-world material. | requested |
-| `block/repeater_on` | 256x256 | glowing | Realistic, high-detail repeater (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/repeating_command_block_back` | 256x1024 (4 frames) | default | Realistic, high-detail repeating command block (back face): a believable real-world material. | requested |
-| `block/repeating_command_block_conditional` | 256x1024 (4 frames) | default | Realistic, high-detail repeating command block conditional: a believable real-world material. | requested |
-| `block/repeating_command_block_front` | 256x1024 (4 frames) | default | Realistic, high-detail repeating command block (front face): a believable real-world material. | requested |
-| `block/repeating_command_block_side` | 256x1024 (4 frames) | default | Realistic, high-detail repeating command block (side face): a believable real-world material. | requested |
-| `block/resin_block` | 256x256 | gel | Realistic, high-detail resin block: translucent glossy gel. | requested |
-| `block/resin_bricks` | 256x256 | ceramic | Realistic, high-detail resin bricks: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/resin_clump` | 256x256 (cutout) | default | Realistic, high-detail resin clump: a believable real-world material. | requested |
-| `block/respawn_anchor_bottom` | 256x256 | stone | Realistic, high-detail respawn anchor (bottom face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/respawn_anchor_side0` | 256x256 | stone | Realistic, high-detail respawn anchor (side face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/respawn_anchor_side1` | 256x256 | stone | Realistic, high-detail respawn anchor (side face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/respawn_anchor_side2` | 256x256 | stone | Realistic, high-detail respawn anchor (side face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/respawn_anchor_side3` | 256x256 | stone | Realistic, high-detail respawn anchor (side face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/respawn_anchor_side4` | 256x256 | stone | Realistic, high-detail respawn anchor (side face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/respawn_anchor_top` | 64x2048 (32 frames) | glowing | Realistic, high-detail respawn anchor (top face): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/respawn_anchor_top_off` | 256x256 | stone | Realistic, high-detail respawn anchor top off: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/rooted_dirt` | 256x256 | soil | Realistic, high-detail rooted dirt: loose earthy soil with small pebbles, roots and crumbs. | requested |
-| `block/rose_bush_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail rose bush (bottom face): living plant matter, leaves and stems with veins. | requested |
-| `block/rose_bush_top` | 256x256 (cutout) | foliage | Realistic, high-detail rose bush (top face): living plant matter, leaves and stems with veins. | requested |
-| `block/sandstone_bottom` | 256x256 | sand | Realistic, high-detail sandstone (bottom face): fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/scaffolding_bottom` | 256x256 (cutout) | wood | Realistic, high-detail scaffolding (bottom face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/scaffolding_side` | 256x256 (cutout) | wood | Realistic, high-detail scaffolding (side face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/scaffolding_top` | 256x256 (cutout) | wood | Realistic, high-detail scaffolding (top face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/sculk` | 256x1024 (4 frames) | organic | Realistic, high-detail sculk: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sculk_catalyst_bottom` | 256x256 | organic | Realistic, high-detail sculk catalyst (bottom face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sculk_catalyst_side` | 256x256 | organic | Realistic, high-detail sculk catalyst (side face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sculk_catalyst_side_bloom` | 256x2048 (8 frames) | glowing | Realistic, high-detail sculk catalyst side bloom: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/sculk_catalyst_top` | 256x256 | organic | Realistic, high-detail sculk catalyst (top face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sculk_catalyst_top_bloom` | 256x2048 (8 frames) | glowing | Realistic, high-detail sculk catalyst top bloom: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/sculk_sensor_bottom` | 256x256 | organic | Realistic, high-detail sculk sensor (bottom face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sculk_sensor_side` | 256x256 (cutout) | organic | Realistic, high-detail sculk sensor (side face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sculk_sensor_tendril_active` | 128x2048 (16 frames, cutout) | organic | Realistic, high-detail sculk sensor tendril active: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sculk_sensor_tendril_inactive` | 128x2048 (16 frames, cutout) | organic | Realistic, high-detail sculk sensor tendril inactive: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sculk_sensor_top` | 256x256 | organic | Realistic, high-detail sculk sensor (top face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sculk_shrieker_bottom` | 256x256 | organic | Realistic, high-detail sculk shrieker (bottom face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sculk_shrieker_can_summon_inner_top` | 128x1280 (10 frames) | organic | Realistic, high-detail sculk shrieker can summon (top face, inside face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sculk_shrieker_inner_top` | 128x1280 (10 frames) | organic | Realistic, high-detail sculk shrieker (top face, inside face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sculk_shrieker_side` | 256x256 (cutout) | organic | Realistic, high-detail sculk shrieker (side face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sculk_shrieker_top` | 256x256 (cutout) | organic | Realistic, high-detail sculk shrieker (top face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sculk_vein` | 256x1024 (4 frames, cutout) | organic | Realistic, high-detail sculk vein: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sea_lantern` | 256x1280 (5 frames) | glowing | Realistic, high-detail sea lantern: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/sea_pickle` | 256x256 (cutout) | gem | Realistic, high-detail sea pickle: faceted crystalline gemstone. | requested |
-| `block/seagrass` | 64x1152 (18 frames, cutout) | foliage | Realistic, high-detail seagrass: living plant matter, leaves and stems with veins. | requested |
-| `block/shelf_mushroom_particle` | 256x256 | organic | Realistic, high-detail shelf mushroom particle: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/shelf_mushroom_stage0` | 256x256 | organic | Realistic, high-detail shelf mushroom (growth stage 0): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/shelf_mushroom_stage1` | 256x256 | organic | Realistic, high-detail shelf mushroom (growth stage 1): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/short_dry_grass` | 256x256 (cutout) | foliage | Realistic, high-detail short dry grass: living plant matter, leaves and stems with veins. | requested |
-| `block/short_grass` | 256x256 (cutout) | foliage | Realistic, high-detail short grass: living plant matter, leaves and stems with veins. | requested |
-| `block/shroomlight` | 256x256 | glowing | Realistic, high-detail shroomlight: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/shulker_box` | 256x256 | glazed | Realistic, high-detail shulker box: glossy glazed ceramic tile. | requested |
-| `block/slime_block` | 256x256 (translucent) | gel | Realistic, high-detail slime block: translucent glossy gel. | requested |
-| `block/small_amethyst_bud` | 256x256 (cutout) | gem | Realistic, high-detail small amethyst bud: faceted crystalline gemstone. | requested |
-| `block/small_dripleaf_side` | 256x256 (cutout) | foliage | Realistic, high-detail small dripleaf (side face): living plant matter, leaves and stems with veins. | requested |
-| `block/small_dripleaf_stem_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail small dripleaf stem (bottom face): living plant matter, leaves and stems with veins. | requested |
-| `block/small_dripleaf_stem_top` | 256x256 (cutout) | bark | Realistic, high-detail small dripleaf stem (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/small_dripleaf_top` | 256x256 (cutout) | foliage | Realistic, high-detail small dripleaf (top face): living plant matter, leaves and stems with veins. | requested |
-| `block/smithing_table_bottom` | 256x256 | wood | Realistic, high-detail smithing table (bottom face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/smithing_table_front` | 256x256 | wood | Realistic, high-detail smithing table (front face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/smithing_table_side` | 256x256 | wood | Realistic, high-detail smithing table (side face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/smithing_table_top` | 256x256 | wood | Realistic, high-detail smithing table (top face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/smoker_bottom` | 256x256 | stone | Realistic, high-detail smoker (bottom face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/smoker_front` | 256x256 | stone | Realistic, high-detail smoker (front face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/smoker_front_on` | 256x768 (3 frames) | glowing | Realistic, high-detail smoker front (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/smoker_side` | 256x256 | stone | Realistic, high-detail smoker (side face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/smoker_top` | 256x256 | stone | Realistic, high-detail smoker (top face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/smooth_basalt` | 256x256 | polished_stone | Realistic, high-detail smooth basalt: cut and polished stone with subtle veining. | requested |
-| `block/smooth_stone_slab_side` | 256x256 | polished_stone | Realistic, high-detail smooth stone slab (side face): cut and polished stone with subtle veining. | requested |
-| `block/sniffer_egg_not_cracked_bottom` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg not cracked (bottom face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sniffer_egg_not_cracked_east` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg not cracked east: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sniffer_egg_not_cracked_north` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg not cracked north: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sniffer_egg_not_cracked_south` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg not cracked south: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sniffer_egg_not_cracked_top` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg not cracked (top face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sniffer_egg_not_cracked_west` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg not cracked west: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sniffer_egg_slightly_cracked_bottom` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg slightly cracked (bottom face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sniffer_egg_slightly_cracked_east` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg slightly cracked east: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sniffer_egg_slightly_cracked_north` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg slightly cracked north: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sniffer_egg_slightly_cracked_south` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg slightly cracked south: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sniffer_egg_slightly_cracked_top` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg slightly cracked (top face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sniffer_egg_slightly_cracked_west` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg slightly cracked west: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sniffer_egg_very_cracked_bottom` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg very cracked (bottom face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sniffer_egg_very_cracked_east` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg very cracked east: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sniffer_egg_very_cracked_north` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg very cracked north: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sniffer_egg_very_cracked_south` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg very cracked south: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sniffer_egg_very_cracked_top` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg very cracked (top face): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/sniffer_egg_very_cracked_west` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg very cracked west: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/soul_campfire_fire` | 256x2048 (8 frames, cutout) | glowing | Realistic, high-detail soul campfire fire: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/soul_campfire_log_lit` | 256x1024 (4 frames) | glowing | Realistic, high-detail soul campfire log (lit state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/soul_fire_0` | 64x2048 (32 frames, cutout) | glowing | Realistic, high-detail soul fire 0: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/soul_fire_1` | 64x2048 (32 frames, cutout) | glowing | Realistic, high-detail soul fire 1: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/soul_lantern` | 256x768 (3 frames, cutout) | iron | Realistic, high-detail soul lantern: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/soul_soil` | 256x256 | soil | Realistic, high-detail soul soil: loose earthy soil with small pebbles, roots and crumbs. | requested |
-| `block/soul_torch` | 256x256 (cutout) | glowing | Realistic, high-detail soul torch: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/spawner` | 256x256 (cutout) | stone | Realistic, high-detail spawner: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/sponge` | 256x256 | organic | Realistic, high-detail sponge: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/spore_blossom` | 256x256 (cutout) | foliage | Realistic, high-detail spore blossom: living plant matter, leaves and stems with veins. | requested |
-| `block/spore_blossom_base` | 256x256 (cutout) | foliage | Realistic, high-detail spore blossom base: living plant matter, leaves and stems with veins. | requested |
-| `block/spruce_door_bottom` | 256x256 | wood | Realistic, high-detail spruce door (bottom face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/spruce_door_top` | 256x256 | wood | Realistic, high-detail spruce door (top face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/spruce_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail spruce hanging sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/spruce_sapling` | 256x256 (cutout) | foliage | Realistic, high-detail spruce sapling: living plant matter, leaves and stems with veins. | requested |
-| `block/spruce_shelf` | 256x256 | wood | Realistic, high-detail spruce shelf: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/spruce_sign` | 256x256 (cutout) | wood | Realistic, high-detail spruce sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/spruce_trapdoor` | 256x256 | wood | Realistic, high-detail spruce trapdoor: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/stonecutter_bottom` | 256x256 | stone | Realistic, high-detail stonecutter (bottom face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/stonecutter_saw` | 256x768 (3 frames, cutout) | stone | Realistic, high-detail stonecutter saw: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/stonecutter_side` | 256x256 (cutout) | stone | Realistic, high-detail stonecutter (side face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/stonecutter_top` | 256x256 | stone | Realistic, high-detail stonecutter (top face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/straw_bed` | 512x512 (cutout) | default | Realistic, high-detail straw bed: a believable real-world material. | requested |
-| `block/straw_bed_particle` | 256x256 | cloth | Realistic, high-detail straw bed particle: woven wool or felt with visible fibres and weave. | requested |
-| `block/stripped_acacia_log` | 256x256 | bark | Realistic, high-detail stripped acacia log: deeply furrowed natural tree bark. | requested |
-| `block/stripped_acacia_log_top` | 256x256 | bark | Realistic, high-detail stripped acacia log (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/stripped_bamboo_block` | 256x256 | bark | Realistic, high-detail stripped bamboo block: deeply furrowed natural tree bark. | requested |
-| `block/stripped_bamboo_block_top` | 256x256 | bark | Realistic, high-detail stripped bamboo block (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/stripped_birch_log` | 256x256 | bark | Realistic, high-detail stripped birch log: deeply furrowed natural tree bark. | requested |
-| `block/stripped_birch_log_top` | 256x256 | bark | Realistic, high-detail stripped birch log (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/stripped_cherry_log` | 256x256 | bark | Realistic, high-detail stripped cherry log: deeply furrowed natural tree bark. | requested |
-| `block/stripped_cherry_log_top` | 256x256 | bark | Realistic, high-detail stripped cherry log (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/stripped_crimson_stem` | 256x256 | bark | Realistic, high-detail stripped crimson stem: deeply furrowed natural tree bark. | requested |
-| `block/stripped_crimson_stem_top` | 256x256 | bark | Realistic, high-detail stripped crimson stem (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/stripped_dark_oak_log` | 256x256 | bark | Realistic, high-detail stripped dark oak log: deeply furrowed natural tree bark. | requested |
-| `block/stripped_dark_oak_log_top` | 256x256 | bark | Realistic, high-detail stripped dark oak log (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/stripped_jungle_log` | 256x256 | bark | Realistic, high-detail stripped jungle log: deeply furrowed natural tree bark. | requested |
-| `block/stripped_jungle_log_top` | 256x256 | bark | Realistic, high-detail stripped jungle log (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/stripped_mangrove_log` | 256x256 | bark | Realistic, high-detail stripped mangrove log: deeply furrowed natural tree bark. | requested |
-| `block/stripped_mangrove_log_top` | 256x256 | bark | Realistic, high-detail stripped mangrove log (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/stripped_oak_log` | 256x256 | bark | Realistic, high-detail stripped oak log: deeply furrowed natural tree bark. | requested |
-| `block/stripped_oak_log_top` | 256x256 | bark | Realistic, high-detail stripped oak log (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/stripped_pale_oak_log` | 256x256 | bark | Realistic, high-detail stripped pale oak log: deeply furrowed natural tree bark. | requested |
-| `block/stripped_pale_oak_log_top` | 256x256 | bark | Realistic, high-detail stripped pale oak log (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/stripped_poplar_log` | 256x256 | bark | Realistic, high-detail stripped poplar log: deeply furrowed natural tree bark. | requested |
-| `block/stripped_poplar_log_top` | 256x256 | bark | Realistic, high-detail stripped poplar log (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/stripped_spruce_log` | 256x256 | bark | Realistic, high-detail stripped spruce log: deeply furrowed natural tree bark. | requested |
-| `block/stripped_spruce_log_top` | 256x256 | bark | Realistic, high-detail stripped spruce log (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/stripped_warped_stem` | 256x256 | bark | Realistic, high-detail stripped warped stem: deeply furrowed natural tree bark. | requested |
-| `block/stripped_warped_stem_top` | 256x256 | bark | Realistic, high-detail stripped warped stem (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/sugar_cane` | 256x256 (cutout) | foliage | Realistic, high-detail sugar cane: living plant matter, leaves and stems with veins. | requested |
-| `block/sulfur` | 256x256 | stone | Realistic, high-detail sulfur: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/sulfur_bricks` | 256x256 | ceramic | Realistic, high-detail sulfur bricks: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/sulfur_spike_down_base` | 256x256 (cutout) | stone | Realistic, high-detail sulfur spike down base: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/sulfur_spike_down_frustum` | 256x256 (cutout) | stone | Realistic, high-detail sulfur spike down frustum: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/sulfur_spike_down_middle` | 256x256 (cutout) | stone | Realistic, high-detail sulfur spike down middle: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/sulfur_spike_down_tip` | 256x256 (cutout) | stone | Realistic, high-detail sulfur spike down tip: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/sulfur_spike_down_tip_merge` | 256x256 (cutout) | stone | Realistic, high-detail sulfur spike down tip merge: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/sulfur_spike_up_base` | 256x256 (cutout) | stone | Realistic, high-detail sulfur spike up base: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/sulfur_spike_up_frustum` | 256x256 (cutout) | stone | Realistic, high-detail sulfur spike up frustum: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/sulfur_spike_up_middle` | 256x256 (cutout) | stone | Realistic, high-detail sulfur spike up middle: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/sulfur_spike_up_tip` | 256x256 (cutout) | stone | Realistic, high-detail sulfur spike up tip: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/sulfur_spike_up_tip_merge` | 256x256 (cutout) | stone | Realistic, high-detail sulfur spike up tip merge: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/sunflower_back` | 256x256 (cutout) | foliage | Realistic, high-detail sunflower (back face): living plant matter, leaves and stems with veins. | requested |
-| `block/sunflower_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail sunflower (bottom face): living plant matter, leaves and stems with veins. | requested |
-| `block/sunflower_front` | 256x256 (cutout) | foliage | Realistic, high-detail sunflower (front face): living plant matter, leaves and stems with veins. | requested |
-| `block/sunflower_top` | 256x256 (cutout) | foliage | Realistic, high-detail sunflower (top face): living plant matter, leaves and stems with veins. | requested |
-| `block/suspicious_gravel_0` | 256x256 | sand | Realistic, high-detail suspicious gravel 0: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/suspicious_gravel_1` | 256x256 | sand | Realistic, high-detail suspicious gravel 1: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/suspicious_gravel_2` | 256x256 | sand | Realistic, high-detail suspicious gravel 2: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/suspicious_gravel_3` | 256x256 | sand | Realistic, high-detail suspicious gravel 3: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/suspicious_sand_0` | 256x256 | sand | Realistic, high-detail suspicious sand 0: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/suspicious_sand_1` | 256x256 | sand | Realistic, high-detail suspicious sand 1: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/suspicious_sand_2` | 256x256 | sand | Realistic, high-detail suspicious sand 2: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/suspicious_sand_3` | 256x256 | sand | Realistic, high-detail suspicious sand 3: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/sweet_berry_bush_stage0` | 256x256 (cutout) | foliage | Realistic, high-detail sweet berry bush (growth stage 0): living plant matter, leaves and stems with veins. | requested |
-| `block/sweet_berry_bush_stage1` | 256x256 (cutout) | foliage | Realistic, high-detail sweet berry bush (growth stage 1): living plant matter, leaves and stems with veins. | requested |
-| `block/sweet_berry_bush_stage2` | 256x256 (cutout) | foliage | Realistic, high-detail sweet berry bush (growth stage 2): living plant matter, leaves and stems with veins. | requested |
-| `block/sweet_berry_bush_stage3` | 256x256 (cutout) | foliage | Realistic, high-detail sweet berry bush (growth stage 3): living plant matter, leaves and stems with veins. | requested |
-| `block/tall_dry_grass` | 256x256 (cutout) | foliage | Realistic, high-detail tall dry grass: living plant matter, leaves and stems with veins. | requested |
-| `block/tall_grass_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail tall grass (bottom face): living plant matter, leaves and stems with veins. | requested |
-| `block/tall_grass_top` | 256x256 (cutout) | foliage | Realistic, high-detail tall grass (top face): living plant matter, leaves and stems with veins. | requested |
-| `block/tall_seagrass_bottom` | 64x1216 (19 frames, cutout) | foliage | Realistic, high-detail tall seagrass (bottom face): living plant matter, leaves and stems with veins. | requested |
-| `block/tall_seagrass_top` | 64x1216 (19 frames, cutout) | foliage | Realistic, high-detail tall seagrass (top face): living plant matter, leaves and stems with veins. | requested |
-| `block/target_side` | 256x256 | cloth | Realistic, high-detail target (side face): woven wool or felt with visible fibres and weave. | requested |
-| `block/target_top` | 256x256 | cloth | Realistic, high-detail target (top face): woven wool or felt with visible fibres and weave. | requested |
-| `block/tinted_glass` | 256x256 (translucent) | glass | Realistic, high-detail tinted glass: clear glass with faint imperfections. | requested |
-| `block/tnt_bottom` | 256x256 | paper | Realistic, high-detail tnt (bottom face): paper, books and worked wood. | requested |
-| `block/tnt_top` | 256x256 | paper | Realistic, high-detail tnt (top face): paper, books and worked wood. | requested |
-| `block/torchflower` | 256x256 (cutout) | foliage | Realistic, high-detail torchflower: living plant matter, leaves and stems with veins. | requested |
-| `block/torchflower_crop_stage0` | 256x256 (cutout) | foliage | Realistic, high-detail torchflower crop (growth stage 0): living plant matter, leaves and stems with veins. | requested |
-| `block/torchflower_crop_stage1` | 256x256 (cutout) | foliage | Realistic, high-detail torchflower crop (growth stage 1): living plant matter, leaves and stems with veins. | requested |
-| `block/trial_spawner_bottom` | 256x256 (cutout) | stone | Realistic, high-detail trial spawner (bottom face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/trial_spawner_side_active` | 256x256 (cutout) | stone | Realistic, high-detail trial spawner side active: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/trial_spawner_side_active_ominous` | 256x256 (cutout) | stone | Realistic, high-detail trial spawner side active ominous: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/trial_spawner_side_inactive` | 256x256 (cutout) | stone | Realistic, high-detail trial spawner side inactive: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/trial_spawner_side_inactive_ominous` | 256x256 (cutout) | stone | Realistic, high-detail trial spawner side inactive ominous: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/trial_spawner_top_active` | 256x256 | stone | Realistic, high-detail trial spawner top active: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/trial_spawner_top_active_ominous` | 256x256 | stone | Realistic, high-detail trial spawner top active ominous: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/trial_spawner_top_ejecting_reward` | 256x256 | stone | Realistic, high-detail trial spawner top ejecting reward: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/trial_spawner_top_ejecting_reward_ominous` | 256x256 | stone | Realistic, high-detail trial spawner top ejecting reward ominous: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/trial_spawner_top_inactive` | 256x256 | stone | Realistic, high-detail trial spawner top inactive: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/trial_spawner_top_inactive_ominous` | 256x256 | stone | Realistic, high-detail trial spawner top inactive ominous: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/tripwire` | 256x256 (translucent) | default | Realistic, high-detail tripwire: a believable real-world material. | requested |
-| `block/tripwire_hook` | 256x256 (cutout) | default | Realistic, high-detail tripwire hook: a believable real-world material. | requested |
-| `block/tube_coral` | 256x256 (cutout) | organic | Realistic, high-detail tube coral: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/tube_coral_block` | 256x256 | organic | Realistic, high-detail tube coral block: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/tube_coral_fan` | 256x256 (cutout) | organic | Realistic, high-detail tube coral fan: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/tuff_bricks` | 256x256 | ceramic | Realistic, high-detail tuff bricks: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/turtle_egg` | 256x256 (cutout) | organic | Realistic, high-detail turtle egg: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/turtle_egg_slightly_cracked` | 256x256 (cutout) | organic | Realistic, high-detail turtle egg slightly cracked: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/turtle_egg_very_cracked` | 256x256 (cutout) | organic | Realistic, high-detail turtle egg very cracked: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/twisting_vines` | 256x256 (cutout) | foliage | Realistic, high-detail twisting vines: living plant matter, leaves and stems with veins. | requested |
-| `block/twisting_vines_plant` | 256x256 (cutout) | foliage | Realistic, high-detail twisting vines plant: living plant matter, leaves and stems with veins. | requested |
-| `block/vault_bottom` | 256x256 | stone | Realistic, high-detail vault (bottom face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/vault_bottom_ominous` | 256x256 | stone | Realistic, high-detail vault bottom ominous: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/vault_front_ejecting` | 256x256 (cutout) | stone | Realistic, high-detail vault front ejecting: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/vault_front_ejecting_ominous` | 256x256 (cutout) | stone | Realistic, high-detail vault front ejecting ominous: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/vault_front_off` | 256x256 (cutout) | stone | Realistic, high-detail vault front off: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/vault_front_off_ominous` | 256x256 (cutout) | stone | Realistic, high-detail vault front off ominous: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/vault_front_on` | 256x256 (cutout) | glowing | Realistic, high-detail vault front (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/vault_front_on_ominous` | 256x256 (cutout) | stone | Realistic, high-detail vault front on ominous: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/vault_side_off` | 256x256 (cutout) | stone | Realistic, high-detail vault side off: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/vault_side_off_ominous` | 256x256 (cutout) | stone | Realistic, high-detail vault side off ominous: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/vault_side_on` | 256x256 (cutout) | glowing | Realistic, high-detail vault side (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/vault_side_on_ominous` | 256x256 (cutout) | stone | Realistic, high-detail vault side on ominous: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/vault_top` | 256x256 | stone | Realistic, high-detail vault (top face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/vault_top_ejecting` | 256x256 | stone | Realistic, high-detail vault top ejecting: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/vault_top_ejecting_ominous` | 256x256 | stone | Realistic, high-detail vault top ejecting ominous: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/vault_top_ominous` | 256x256 | stone | Realistic, high-detail vault top ominous: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/verdant_froglight_side` | 256x256 | glowing | Realistic, high-detail verdant froglight (side face): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/verdant_froglight_top` | 256x256 | glowing | Realistic, high-detail verdant froglight (top face): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/vine` | 256x256 (cutout) | foliage | Realistic, high-detail vine: living plant matter, leaves and stems with veins. | requested |
-| `block/warped_door_bottom` | 256x256 | wood | Realistic, high-detail warped door (bottom face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/warped_door_top` | 256x256 | wood | Realistic, high-detail warped door (top face): sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/warped_fungus` | 256x256 (cutout) | foliage | Realistic, high-detail warped fungus: living plant matter, leaves and stems with veins. | requested |
-| `block/warped_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail warped hanging sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/warped_nylium` | 256x256 | grass | Realistic, high-detail warped nylium: dense living grass and soil. | requested |
-| `block/warped_nylium_side` | 256x256 | grass | Realistic, high-detail warped nylium (side face): dense living grass and soil. | requested |
-| `block/warped_planks` | 256x256 | wood | Realistic, high-detail warped planks: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/warped_roots` | 256x256 (cutout) | foliage | Realistic, high-detail warped roots: living plant matter, leaves and stems with veins. | requested |
-| `block/warped_roots_pot` | 256x256 (cutout) | foliage | Realistic, high-detail warped roots pot: living plant matter, leaves and stems with veins. | requested |
-| `block/warped_shelf` | 256x256 | wood | Realistic, high-detail warped shelf: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/warped_sign` | 256x256 (cutout) | wood | Realistic, high-detail warped sign: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/warped_stem` | 256x1280 (5 frames) | bark | Realistic, high-detail warped stem: deeply furrowed natural tree bark. | requested |
-| `block/warped_stem_top` | 256x256 | bark | Realistic, high-detail warped stem (top face): end grain with growth rings inside a rim of bark. | requested |
-| `block/warped_trapdoor` | 256x256 (cutout) | wood | Realistic, high-detail warped trapdoor: sawn and planed timber with clear grain, knots and joints. | requested |
-| `block/warped_wart_block` | 256x256 | foliage | Realistic, high-detail warped wart block: living plant matter, leaves and stems with veins. | requested |
-| `block/water_overlay` | 256x256 (translucent) | water | Realistic, high-detail water (overlay layer): clear water surface. | requested |
-| `block/weathered_chiseled_copper` | 256x256 | patina | Realistic, high-detail weathered chiseled copper: weathered copper with blue-green verdigris patina. | requested |
-| `block/weathered_copper` | 256x256 | patina | Realistic, high-detail weathered copper: weathered copper with blue-green verdigris patina. | requested |
-| `block/weathered_copper_bars` | 256x256 (cutout) | patina | Realistic, high-detail weathered copper bars: weathered copper with blue-green verdigris patina. | requested |
-| `block/weathered_copper_bulb` | 256x256 | patina | Realistic, high-detail weathered copper bulb: weathered copper with blue-green verdigris patina. | requested |
-| `block/weathered_copper_bulb_lit` | 256x256 | glowing | Realistic, high-detail weathered copper bulb (lit state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/weathered_copper_bulb_lit_powered` | 256x256 | patina | Realistic, high-detail weathered copper bulb lit powered: weathered copper with blue-green verdigris patina. | requested |
-| `block/weathered_copper_bulb_powered` | 256x256 | patina | Realistic, high-detail weathered copper bulb powered: weathered copper with blue-green verdigris patina. | requested |
-| `block/weathered_copper_chain` | 256x256 (cutout) | patina | Realistic, high-detail weathered copper chain: weathered copper with blue-green verdigris patina. | requested |
-| `block/weathered_copper_door_bottom` | 256x256 | patina | Realistic, high-detail weathered copper door (bottom face): weathered copper with blue-green verdigris patina. | requested |
-| `block/weathered_copper_door_top` | 256x256 (cutout) | patina | Realistic, high-detail weathered copper door (top face): weathered copper with blue-green verdigris patina. | requested |
-| `block/weathered_copper_grate` | 256x256 (cutout) | patina | Realistic, high-detail weathered copper grate: weathered copper with blue-green verdigris patina. | requested |
-| `block/weathered_copper_lantern` | 256x768 (3 frames, cutout) | patina | Realistic, high-detail weathered copper lantern: weathered copper with blue-green verdigris patina. | requested |
-| `block/weathered_copper_trapdoor` | 256x256 (cutout) | patina | Realistic, high-detail weathered copper trapdoor: weathered copper with blue-green verdigris patina. | requested |
-| `block/weathered_cut_copper` | 256x256 | patina | Realistic, high-detail weathered cut copper: weathered copper with blue-green verdigris patina. | requested |
-| `block/weathered_lightning_rod` | 256x256 (cutout) | iron | Realistic, high-detail weathered lightning rod: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/weeping_vines` | 256x256 (cutout) | foliage | Realistic, high-detail weeping vines: living plant matter, leaves and stems with veins. | requested |
-| `block/weeping_vines_plant` | 256x256 (cutout) | foliage | Realistic, high-detail weeping vines plant: living plant matter, leaves and stems with veins. | requested |
-| `block/wet_sponge` | 256x256 | organic | Realistic, high-detail wet sponge: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/wheat_stage0` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 0): living plant matter, leaves and stems with veins. | requested |
-| `block/wheat_stage1` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 1): living plant matter, leaves and stems with veins. | requested |
-| `block/wheat_stage2` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 2): living plant matter, leaves and stems with veins. | requested |
-| `block/wheat_stage3` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 3): living plant matter, leaves and stems with veins. | requested |
-| `block/wheat_stage4` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 4): living plant matter, leaves and stems with veins. | requested |
-| `block/wheat_stage5` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 5): living plant matter, leaves and stems with veins. | requested |
-| `block/wheat_stage6` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 6): living plant matter, leaves and stems with veins. | requested |
-| `block/wheat_stage7` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 7): living plant matter, leaves and stems with veins. | requested |
-| `block/white_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail white bed foot east: woven wool or felt with visible fibres and weave. | requested |
-| `block/white_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail white bed foot south: woven wool or felt with visible fibres and weave. | requested |
-| `block/white_bed_foot_up` | 256x256 | cloth | Realistic, high-detail white bed foot up: woven wool or felt with visible fibres and weave. | requested |
-| `block/white_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail white bed foot west: woven wool or felt with visible fibres and weave. | requested |
-| `block/white_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail white bed head east: woven wool or felt with visible fibres and weave. | requested |
-| `block/white_bed_head_up` | 256x256 | cloth | Realistic, high-detail white bed head up: woven wool or felt with visible fibres and weave. | requested |
-| `block/white_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail white bed head west: woven wool or felt with visible fibres and weave. | requested |
-| `block/white_candle` | 256x256 (cutout) | organic | Realistic, high-detail white candle: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/white_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail white candle (lit state): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/white_concrete` | 256x256 | concrete | Realistic, high-detail white concrete: smooth matte concrete with fine pores. | requested |
-| `block/white_concrete_powder` | 256x256 | sand | Realistic, high-detail white concrete powder: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/white_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail white glazed terracotta: glossy glazed ceramic tile. | requested |
-| `block/white_shulker_box` | 256x256 | glazed | Realistic, high-detail white shulker box: glossy glazed ceramic tile. | requested |
-| `block/white_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail white stained glass: clear glass with faint imperfections. | requested |
-| `block/white_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail white stained glass pane (top face): clear glass with faint imperfections. | requested |
-| `block/white_terracotta` | 256x256 | ceramic | Realistic, high-detail white terracotta: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/white_tulip` | 256x256 (cutout) | foliage | Realistic, high-detail white tulip: living plant matter, leaves and stems with veins. | requested |
-| `block/wildflowers` | 256x256 (cutout) | foliage | Realistic, high-detail wildflowers: living plant matter, leaves and stems with veins. | requested |
-| `block/wildflowers_stem` | 256x256 (cutout) | bark | Realistic, high-detail wildflowers stem: deeply furrowed natural tree bark. | requested |
-| `block/wither_rose` | 256x256 (cutout) | foliage | Realistic, high-detail wither rose: living plant matter, leaves and stems with veins. | requested |
-| `block/yellow_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail yellow bed foot east: woven wool or felt with visible fibres and weave. | requested |
-| `block/yellow_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail yellow bed foot south: woven wool or felt with visible fibres and weave. | requested |
-| `block/yellow_bed_foot_up` | 256x256 | cloth | Realistic, high-detail yellow bed foot up: woven wool or felt with visible fibres and weave. | requested |
-| `block/yellow_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail yellow bed foot west: woven wool or felt with visible fibres and weave. | requested |
-| `block/yellow_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail yellow bed head east: woven wool or felt with visible fibres and weave. | requested |
-| `block/yellow_bed_head_up` | 256x256 | cloth | Realistic, high-detail yellow bed head up: woven wool or felt with visible fibres and weave. | requested |
-| `block/yellow_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail yellow bed head west: woven wool or felt with visible fibres and weave. | requested |
-| `block/yellow_candle` | 256x256 (cutout) | organic | Realistic, high-detail yellow candle: organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/yellow_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail yellow candle (lit state): organic living matter (coral, fungus, sponge, wax). | requested |
-| `block/yellow_concrete` | 256x256 | concrete | Realistic, high-detail yellow concrete: smooth matte concrete with fine pores. | requested |
-| `block/yellow_concrete_powder` | 256x256 | sand | Realistic, high-detail yellow concrete powder: fine loose granular sand or gravel, individual grains visible. | requested |
-| `block/yellow_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail yellow glazed terracotta: glossy glazed ceramic tile. | requested |
-| `block/yellow_poplar_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail yellow poplar leaves: living plant matter, leaves and stems with veins. | requested |
-| `block/yellow_shulker_box` | 256x256 | glazed | Realistic, high-detail yellow shulker box: glossy glazed ceramic tile. | requested |
-| `block/yellow_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail yellow stained glass: clear glass with faint imperfections. | requested |
-| `block/yellow_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail yellow stained glass pane (top face): clear glass with faint imperfections. | requested |
-| `block/yellow_terracotta` | 256x256 | ceramic | Realistic, high-detail yellow terracotta: fired clay, brick or terracotta with mortar and small chips. | requested |
-| `block/yellow_wool` | 256x256 | cloth | Realistic, high-detail yellow wool: woven wool or felt with visible fibres and weave. | requested |
+| `block/acacia_door_bottom` | 256x256 (cutout) | wood | Realistic, high-detail acacia door (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/acacia_door_top` | 256x256 (cutout) | wood | Realistic, high-detail acacia door (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/acacia_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail acacia hanging sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/acacia_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail acacia leaves: living plant matter, leaves and stems with veins. | delivered |
+| `block/acacia_log_top` | 256x256 | bark | Realistic, high-detail acacia log (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/acacia_planks` | 256x256 | wood | Realistic, high-detail acacia planks: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/acacia_sapling` | 256x256 (cutout) | foliage | Realistic, high-detail acacia sapling: living plant matter, leaves and stems with veins. | delivered |
+| `block/acacia_shelf` | 256x256 | wood | Realistic, high-detail acacia shelf: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/acacia_sign` | 256x256 (cutout) | wood | Realistic, high-detail acacia sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/acacia_trapdoor` | 256x256 (cutout) | wood | Realistic, high-detail acacia trapdoor: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/activator_rail` | 256x256 (cutout) | iron | Realistic, high-detail activator rail: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/activator_rail_on` | 256x256 (cutout) | glowing | Realistic, high-detail activator rail (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/allium` | 256x256 (cutout) | foliage | Realistic, high-detail allium: living plant matter, leaves and stems with veins. | delivered |
+| `block/amethyst_block` | 256x256 | gem | Realistic, high-detail amethyst block: faceted crystalline gemstone. | delivered |
+| `block/amethyst_cluster` | 256x256 (cutout) | glowing | Realistic, high-detail amethyst cluster: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/ancient_debris_side` | 256x256 | ore | Realistic, high-detail ancient debris (side face): natural rock with embedded raw mineral crystals or nuggets. | delivered |
+| `block/ancient_debris_top` | 256x256 | ore | Realistic, high-detail ancient debris (top face): natural rock with embedded raw mineral crystals or nuggets. | delivered |
+| `block/anvil` | 256x256 | iron | Realistic, high-detail anvil: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/anvil_top` | 256x256 (cutout) | iron | Realistic, high-detail anvil (top face): forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/attached_melon_stem` | 256x256 (cutout) | bark | Realistic, high-detail attached melon stem: deeply furrowed natural tree bark. | delivered |
+| `block/attached_pumpkin_stem` | 256x256 (cutout) | bark | Realistic, high-detail attached pumpkin stem: deeply furrowed natural tree bark. | delivered |
+| `block/azalea_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail azalea leaves: living plant matter, leaves and stems with veins. | delivered |
+| `block/azalea_plant` | 256x256 (cutout) | foliage | Realistic, high-detail azalea plant: living plant matter, leaves and stems with veins. | delivered |
+| `block/azalea_side` | 256x256 (cutout) | foliage | Realistic, high-detail azalea (side face): living plant matter, leaves and stems with veins. | delivered |
+| `block/azalea_top` | 256x256 | foliage | Realistic, high-detail azalea (top face): living plant matter, leaves and stems with veins. | delivered |
+| `block/azure_bluet` | 256x256 (cutout) | foliage | Realistic, high-detail azure bluet: living plant matter, leaves and stems with veins. | delivered |
+| `block/bamboo_block` | 256x256 | bark | Realistic, high-detail bamboo block: deeply furrowed natural tree bark. | delivered |
+| `block/bamboo_block_top` | 256x256 | bark | Realistic, high-detail bamboo block (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/bamboo_door_bottom` | 256x256 | wood | Realistic, high-detail bamboo door (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/bamboo_door_top` | 256x256 (cutout) | wood | Realistic, high-detail bamboo door (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/bamboo_fence` | 256x256 (cutout) | wood | Realistic, high-detail bamboo fence: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/bamboo_fence_gate` | 256x256 (cutout) | wood | Realistic, high-detail bamboo fence gate: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/bamboo_fence_gate_particle` | 256x256 | wood | Realistic, high-detail bamboo fence gate particle: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/bamboo_fence_particle` | 256x256 | wood | Realistic, high-detail bamboo fence particle: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/bamboo_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail bamboo hanging sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/bamboo_large_leaves` | 256x256 (cutout) | wood | Realistic, high-detail bamboo large leaves: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/bamboo_mosaic` | 256x256 | wood | Realistic, high-detail bamboo mosaic: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/bamboo_planks` | 256x256 | wood | Realistic, high-detail bamboo planks: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/bamboo_shelf` | 256x256 | wood | Realistic, high-detail bamboo shelf: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/bamboo_sign` | 256x256 (cutout) | wood | Realistic, high-detail bamboo sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/bamboo_singleleaf` | 256x256 (cutout) | wood | Realistic, high-detail bamboo singleleaf: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/bamboo_small_leaves` | 256x256 (cutout) | wood | Realistic, high-detail bamboo small leaves: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/bamboo_stage0` | 256x256 (cutout) | wood | Realistic, high-detail bamboo (growth stage 0): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/bamboo_stalk` | 256x256 | wood | Realistic, high-detail bamboo stalk: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/bamboo_trapdoor` | 256x256 (cutout) | wood | Realistic, high-detail bamboo trapdoor: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/barrel_bottom` | 256x256 | wood | Realistic, high-detail barrel (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/barrel_side` | 256x256 | wood | Realistic, high-detail barrel (side face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/barrel_top` | 256x256 | wood | Realistic, high-detail barrel (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/barrel_top_open` | 256x256 | wood | Realistic, high-detail barrel top (open state): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/basalt_side` | 256x256 | nether | Realistic, high-detail basalt (side face): hellish porous rock, fungal growth and flesh-like matter. | delivered |
+| `block/basalt_top` | 256x256 | nether | Realistic, high-detail basalt (top face): hellish porous rock, fungal growth and flesh-like matter. | delivered |
+| `block/beacon` | 256x256 | glowing | Realistic, high-detail beacon: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/bed_down` | 256x256 | default | Realistic, high-detail bed down: a believable real-world material. | delivered |
+| `block/bed_head_north` | 256x256 (cutout) | default | Realistic, high-detail bed head north: a believable real-world material. | delivered |
+| `block/bee_nest_bottom` | 256x256 | wood | Realistic, high-detail bee nest (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/bee_nest_front` | 256x256 | wood | Realistic, high-detail bee nest (front face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/bee_nest_front_honey` | 256x256 | wood | Realistic, high-detail bee nest front honey: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/bee_nest_side` | 256x256 | wood | Realistic, high-detail bee nest (side face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/bee_nest_top` | 256x256 | wood | Realistic, high-detail bee nest (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/beehive_end` | 256x256 | wood | Realistic, high-detail beehive (end face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/beehive_front` | 256x256 | wood | Realistic, high-detail beehive (front face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/beehive_front_honey` | 256x256 | wood | Realistic, high-detail beehive front honey: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/beehive_side` | 256x256 | wood | Realistic, high-detail beehive (side face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/beetroots_stage0` | 256x256 (cutout) | foliage | Realistic, high-detail beetroots (growth stage 0): living plant matter, leaves and stems with veins. | delivered |
+| `block/beetroots_stage1` | 256x256 (cutout) | foliage | Realistic, high-detail beetroots (growth stage 1): living plant matter, leaves and stems with veins. | delivered |
+| `block/beetroots_stage2` | 256x256 (cutout) | foliage | Realistic, high-detail beetroots (growth stage 2): living plant matter, leaves and stems with veins. | delivered |
+| `block/beetroots_stage3` | 256x256 (cutout) | foliage | Realistic, high-detail beetroots (growth stage 3): living plant matter, leaves and stems with veins. | delivered |
+| `block/bell_bottom` | 256x256 (cutout) | gold | Realistic, high-detail bell (bottom face): polished gold with soft wear. | delivered |
+| `block/bell_side` | 256x256 (cutout) | gold | Realistic, high-detail bell (side face): polished gold with soft wear. | delivered |
+| `block/bell_top` | 256x256 (cutout) | gold | Realistic, high-detail bell (top face): polished gold with soft wear. | delivered |
+| `block/big_dripleaf_side` | 256x256 (cutout) | foliage | Realistic, high-detail big dripleaf (side face): living plant matter, leaves and stems with veins. | delivered |
+| `block/big_dripleaf_stem` | 256x256 (cutout) | bark | Realistic, high-detail big dripleaf stem: deeply furrowed natural tree bark. | delivered |
+| `block/big_dripleaf_tip` | 256x256 (cutout) | foliage | Realistic, high-detail big dripleaf tip: living plant matter, leaves and stems with veins. | delivered |
+| `block/big_dripleaf_top` | 256x256 (cutout) | foliage | Realistic, high-detail big dripleaf (top face): living plant matter, leaves and stems with veins. | delivered |
+| `block/birch_door_bottom` | 256x256 | wood | Realistic, high-detail birch door (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/birch_door_top` | 256x256 | wood | Realistic, high-detail birch door (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/birch_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail birch hanging sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/birch_sapling` | 256x256 (cutout) | foliage | Realistic, high-detail birch sapling: living plant matter, leaves and stems with veins. | delivered |
+| `block/birch_shelf` | 256x256 | wood | Realistic, high-detail birch shelf: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/birch_sign` | 256x256 (cutout) | wood | Realistic, high-detail birch sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/birch_trapdoor` | 256x256 | wood | Realistic, high-detail birch trapdoor: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/black_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail black bed foot east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/black_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail black bed foot south: woven wool or felt with visible fibres and weave. | delivered |
+| `block/black_bed_foot_up` | 256x256 | cloth | Realistic, high-detail black bed foot up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/black_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail black bed foot west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/black_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail black bed head east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/black_bed_head_up` | 256x256 | cloth | Realistic, high-detail black bed head up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/black_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail black bed head west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/black_candle` | 256x256 (cutout) | organic | Realistic, high-detail black candle: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/black_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail black candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/black_concrete` | 256x256 | concrete | Realistic, high-detail black concrete: smooth matte concrete with fine pores. | delivered |
+| `block/black_concrete_powder` | 256x256 | sand | Realistic, high-detail black concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/black_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail black glazed terracotta: glossy glazed ceramic tile. | delivered |
+| `block/black_shulker_box` | 256x256 | glazed | Realistic, high-detail black shulker box: glossy glazed ceramic tile. | delivered |
+| `block/black_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail black stained glass: clear glass with faint imperfections. | delivered |
+| `block/black_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail black stained glass pane (top face): clear glass with faint imperfections. | delivered |
+| `block/black_terracotta` | 256x256 | ceramic | Realistic, high-detail black terracotta: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/black_wool` | 256x256 | cloth | Realistic, high-detail black wool: woven wool or felt with visible fibres and weave. | delivered |
+| `block/blackstone` | 256x256 | nether | Realistic, high-detail blackstone: hellish porous rock, fungal growth and flesh-like matter. | delivered |
+| `block/blackstone_top` | 256x256 | nether | Realistic, high-detail blackstone (top face): hellish porous rock, fungal growth and flesh-like matter. | delivered |
+| `block/blast_furnace_front` | 256x256 | stone | Realistic, high-detail blast furnace (front face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/blast_furnace_front_on` | 256x512 (2 frames) | glowing | Realistic, high-detail blast furnace front (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/blast_furnace_side` | 256x256 | stone | Realistic, high-detail blast furnace (side face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/blast_furnace_top` | 256x256 | stone | Realistic, high-detail blast furnace (top face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/blue_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail blue bed foot east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/blue_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail blue bed foot south: woven wool or felt with visible fibres and weave. | delivered |
+| `block/blue_bed_foot_up` | 256x256 | cloth | Realistic, high-detail blue bed foot up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/blue_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail blue bed foot west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/blue_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail blue bed head east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/blue_bed_head_up` | 256x256 | cloth | Realistic, high-detail blue bed head up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/blue_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail blue bed head west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/blue_candle` | 256x256 (cutout) | organic | Realistic, high-detail blue candle: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/blue_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail blue candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/blue_concrete` | 256x256 | concrete | Realistic, high-detail blue concrete: smooth matte concrete with fine pores. | delivered |
+| `block/blue_concrete_powder` | 256x256 | sand | Realistic, high-detail blue concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/blue_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail blue glazed terracotta: glossy glazed ceramic tile. | delivered |
+| `block/blue_ice` | 256x256 | ice | Realistic, high-detail blue ice: compacted clear ice with trapped bubbles and cracks. | delivered |
+| `block/blue_orchid` | 256x256 (cutout) | foliage | Realistic, high-detail blue orchid: living plant matter, leaves and stems with veins. | delivered |
+| `block/blue_shulker_box` | 256x256 | glazed | Realistic, high-detail blue shulker box: glossy glazed ceramic tile. | delivered |
+| `block/blue_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail blue stained glass: clear glass with faint imperfections. | delivered |
+| `block/blue_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail blue stained glass pane (top face): clear glass with faint imperfections. | delivered |
+| `block/blue_terracotta` | 256x256 | ceramic | Realistic, high-detail blue terracotta: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/blue_wool` | 256x256 | cloth | Realistic, high-detail blue wool: woven wool or felt with visible fibres and weave. | delivered |
+| `block/bone_block_side` | 256x256 | bone | Realistic, high-detail bone block (side face): bleached bone, calcite or dripstone. | delivered |
+| `block/bone_block_top` | 256x256 | bone | Realistic, high-detail bone block (top face): bleached bone, calcite or dripstone. | delivered |
+| `block/brain_coral` | 256x256 (cutout) | organic | Realistic, high-detail brain coral: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/brain_coral_block` | 256x256 | organic | Realistic, high-detail brain coral block: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/brain_coral_fan` | 256x256 (cutout) | organic | Realistic, high-detail brain coral fan: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/brewing_stand` | 256x256 (cutout) | stone | Realistic, high-detail brewing stand: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/brewing_stand_base` | 256x256 | stone | Realistic, high-detail brewing stand base: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/brown_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail brown bed foot east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/brown_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail brown bed foot south: woven wool or felt with visible fibres and weave. | delivered |
+| `block/brown_bed_foot_up` | 256x256 | cloth | Realistic, high-detail brown bed foot up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/brown_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail brown bed foot west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/brown_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail brown bed head east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/brown_bed_head_up` | 256x256 | cloth | Realistic, high-detail brown bed head up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/brown_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail brown bed head west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/brown_candle` | 256x256 (cutout) | organic | Realistic, high-detail brown candle: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/brown_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail brown candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/brown_concrete` | 256x256 | concrete | Realistic, high-detail brown concrete: smooth matte concrete with fine pores. | delivered |
+| `block/brown_concrete_powder` | 256x256 | sand | Realistic, high-detail brown concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/brown_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail brown glazed terracotta: glossy glazed ceramic tile. | delivered |
+| `block/brown_mushroom` | 256x256 (cutout) | organic | Realistic, high-detail brown mushroom: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/brown_mushroom_block` | 256x256 | organic | Realistic, high-detail brown mushroom block: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/brown_shulker_box` | 256x256 | glazed | Realistic, high-detail brown shulker box: glossy glazed ceramic tile. | delivered |
+| `block/brown_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail brown stained glass: clear glass with faint imperfections. | delivered |
+| `block/brown_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail brown stained glass pane (top face): clear glass with faint imperfections. | delivered |
+| `block/brown_terracotta` | 256x256 | ceramic | Realistic, high-detail brown terracotta: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/brown_wool` | 256x256 | cloth | Realistic, high-detail brown wool: woven wool or felt with visible fibres and weave. | delivered |
+| `block/bubble_coral` | 256x256 (cutout) | organic | Realistic, high-detail bubble coral: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/bubble_coral_block` | 256x256 | organic | Realistic, high-detail bubble coral block: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/bubble_coral_fan` | 256x256 (cutout) | organic | Realistic, high-detail bubble coral fan: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/budding_amethyst` | 256x256 | gem | Realistic, high-detail budding amethyst: faceted crystalline gemstone. | delivered |
+| `block/bush` | 256x256 (cutout) | foliage | Realistic, high-detail bush: living plant matter, leaves and stems with veins. | delivered |
+| `block/cactus_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail cactus (bottom face): living plant matter, leaves and stems with veins. | delivered |
+| `block/cactus_flower` | 256x256 (cutout) | foliage | Realistic, high-detail cactus flower: living plant matter, leaves and stems with veins. | delivered |
+| `block/cactus_side` | 256x256 (cutout) | foliage | Realistic, high-detail cactus (side face): living plant matter, leaves and stems with veins. | delivered |
+| `block/cactus_top` | 256x256 (cutout) | foliage | Realistic, high-detail cactus (top face): living plant matter, leaves and stems with veins. | delivered |
+| `block/cake_bottom` | 256x256 (cutout) | organic | Realistic, high-detail cake (bottom face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/cake_inner` | 256x256 (cutout) | organic | Realistic, high-detail cake (inside face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/cake_side` | 256x256 (cutout) | organic | Realistic, high-detail cake (side face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/cake_top` | 256x256 (cutout) | organic | Realistic, high-detail cake (top face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/calibrated_sculk_sensor_amethyst` | 256x256 (cutout) | gem | Realistic, high-detail calibrated sculk sensor amethyst: faceted crystalline gemstone. | delivered |
+| `block/calibrated_sculk_sensor_input_side` | 256x256 (cutout) | organic | Realistic, high-detail calibrated sculk sensor input (side face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/calibrated_sculk_sensor_top` | 256x256 | organic | Realistic, high-detail calibrated sculk sensor (top face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/campfire_fire` | 256x2048 (8 frames, cutout) | glowing | Realistic, high-detail campfire fire: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/campfire_log` | 256x256 (cutout) | glowing | Realistic, high-detail campfire log: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/campfire_log_lit` | 256x1024 (4 frames) | glowing | Realistic, high-detail campfire log (lit state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/candle` | 256x256 (cutout) | organic | Realistic, high-detail candle: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/carrots_stage0` | 256x256 (cutout) | foliage | Realistic, high-detail carrots (growth stage 0): living plant matter, leaves and stems with veins. | delivered |
+| `block/carrots_stage1` | 256x256 (cutout) | foliage | Realistic, high-detail carrots (growth stage 1): living plant matter, leaves and stems with veins. | delivered |
+| `block/carrots_stage2` | 256x256 (cutout) | foliage | Realistic, high-detail carrots (growth stage 2): living plant matter, leaves and stems with veins. | delivered |
+| `block/carrots_stage3` | 256x256 (cutout) | foliage | Realistic, high-detail carrots (growth stage 3): living plant matter, leaves and stems with veins. | delivered |
+| `block/cartography_table_side1` | 256x256 | paper | Realistic, high-detail cartography table (side face): paper, books and worked wood. | delivered |
+| `block/cartography_table_side2` | 256x256 | paper | Realistic, high-detail cartography table (side face): paper, books and worked wood. | delivered |
+| `block/cartography_table_side3` | 256x256 | paper | Realistic, high-detail cartography table (side face): paper, books and worked wood. | delivered |
+| `block/cartography_table_top` | 256x256 | paper | Realistic, high-detail cartography table (top face): paper, books and worked wood. | delivered |
+| `block/carved_pumpkin` | 256x256 | foliage | Realistic, high-detail carved pumpkin: living plant matter, leaves and stems with veins. | delivered |
+| `block/cauldron_bottom` | 256x256 (cutout) | iron | Realistic, high-detail cauldron (bottom face): forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/cauldron_inner` | 256x256 | iron | Realistic, high-detail cauldron (inside face): forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/cauldron_side` | 256x256 | iron | Realistic, high-detail cauldron (side face): forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/cauldron_top` | 256x256 (cutout) | iron | Realistic, high-detail cauldron (top face): forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/cave_vines` | 256x256 (cutout) | foliage | Realistic, high-detail cave vines: living plant matter, leaves and stems with veins. | delivered |
+| `block/cave_vines_lit` | 256x256 (cutout) | glowing | Realistic, high-detail cave vines (lit state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/cave_vines_plant` | 256x256 (cutout) | foliage | Realistic, high-detail cave vines plant: living plant matter, leaves and stems with veins. | delivered |
+| `block/cave_vines_plant_lit` | 256x256 (cutout) | glowing | Realistic, high-detail cave vines plant (lit state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/chain_command_block_back` | 256x1024 (4 frames) | iron | Realistic, high-detail chain command block (back face): forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/chain_command_block_conditional` | 256x1024 (4 frames) | iron | Realistic, high-detail chain command block conditional: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/chain_command_block_front` | 256x1024 (4 frames) | iron | Realistic, high-detail chain command block (front face): forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/chain_command_block_side` | 256x1024 (4 frames) | iron | Realistic, high-detail chain command block (side face): forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/cherry_door_bottom` | 256x256 (cutout) | wood | Realistic, high-detail cherry door (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/cherry_door_top` | 256x256 (cutout) | wood | Realistic, high-detail cherry door (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/cherry_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail cherry hanging sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/cherry_log_top` | 256x256 | bark | Realistic, high-detail cherry log (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/cherry_planks` | 256x256 | wood | Realistic, high-detail cherry planks: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/cherry_sapling` | 256x256 (cutout) | foliage | Realistic, high-detail cherry sapling: living plant matter, leaves and stems with veins. | delivered |
+| `block/cherry_shelf` | 256x256 | wood | Realistic, high-detail cherry shelf: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/cherry_sign` | 256x256 (cutout) | wood | Realistic, high-detail cherry sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/cherry_trapdoor` | 256x256 (cutout) | wood | Realistic, high-detail cherry trapdoor: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/chipped_anvil_top` | 256x256 (cutout) | iron | Realistic, high-detail chipped anvil (top face): forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/chiseled_bookshelf_empty` | 256x256 | paper | Realistic, high-detail chiseled bookshelf empty: paper, books and worked wood. | delivered |
+| `block/chiseled_bookshelf_occupied` | 256x256 | paper | Realistic, high-detail chiseled bookshelf occupied: paper, books and worked wood. | delivered |
+| `block/chiseled_bookshelf_side` | 256x256 | paper | Realistic, high-detail chiseled bookshelf (side face): paper, books and worked wood. | delivered |
+| `block/chiseled_bookshelf_top` | 256x256 | paper | Realistic, high-detail chiseled bookshelf (top face): paper, books and worked wood. | delivered |
+| `block/chiseled_cinnabar` | 256x256 | stone | Realistic, high-detail chiseled cinnabar: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/chiseled_copper` | 256x256 | copper | Realistic, high-detail chiseled copper: fresh salmon-orange copper with hammer marks. | delivered |
+| `block/chiseled_deepslate` | 256x256 | stone | Realistic, high-detail chiseled deepslate: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/chiseled_nether_bricks` | 256x256 | ceramic | Realistic, high-detail chiseled nether bricks: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/chiseled_polished_blackstone` | 256x256 | polished_stone | Realistic, high-detail chiseled polished blackstone: cut and polished stone with subtle veining. | delivered |
+| `block/chiseled_quartz_block` | 256x256 | polished_stone | Realistic, high-detail chiseled quartz block: cut and polished stone with subtle veining. | delivered |
+| `block/chiseled_quartz_block_top` | 256x256 | polished_stone | Realistic, high-detail chiseled quartz block (top face): cut and polished stone with subtle veining. | delivered |
+| `block/chiseled_red_sandstone` | 256x256 | sand | Realistic, high-detail chiseled red sandstone: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/chiseled_resin_bricks` | 256x256 | ceramic | Realistic, high-detail chiseled resin bricks: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/chiseled_sandstone` | 256x256 | sand | Realistic, high-detail chiseled sandstone: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/chiseled_stone_bricks` | 256x256 | ceramic | Realistic, high-detail chiseled stone bricks: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/chiseled_sulfur` | 256x256 | stone | Realistic, high-detail chiseled sulfur: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/chiseled_tuff` | 256x256 | stone | Realistic, high-detail chiseled tuff: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/chiseled_tuff_bricks` | 256x256 | ceramic | Realistic, high-detail chiseled tuff bricks: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/chiseled_tuff_bricks_top` | 256x256 | ceramic | Realistic, high-detail chiseled tuff bricks (top face): fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/chiseled_tuff_top` | 256x256 | stone | Realistic, high-detail chiseled tuff (top face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/chorus_flower` | 256x256 | foliage | Realistic, high-detail chorus flower: living plant matter, leaves and stems with veins. | delivered |
+| `block/chorus_flower_dead` | 256x256 | foliage | Realistic, high-detail chorus flower dead: living plant matter, leaves and stems with veins. | delivered |
+| `block/chorus_plant` | 256x256 | organic | Realistic, high-detail chorus plant: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/cinnabar` | 256x256 | stone | Realistic, high-detail cinnabar: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/cinnabar_bricks` | 256x256 | ceramic | Realistic, high-detail cinnabar bricks: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/closed_eyeblossom` | 256x256 (cutout) | foliage | Realistic, high-detail closed eyeblossom: living plant matter, leaves and stems with veins. | delivered |
+| `block/coal_block` | 256x256 | stone | Realistic, high-detail coal block: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/cobweb` | 256x256 (cutout) | cloth | Realistic, high-detail cobweb: woven wool or felt with visible fibres and weave. | delivered |
+| `block/cocoa_stage0` | 256x256 (cutout) | foliage | Realistic, high-detail cocoa (growth stage 0): living plant matter, leaves and stems with veins. | delivered |
+| `block/cocoa_stage1` | 256x256 (cutout) | foliage | Realistic, high-detail cocoa (growth stage 1): living plant matter, leaves and stems with veins. | delivered |
+| `block/cocoa_stage2` | 256x256 (cutout) | foliage | Realistic, high-detail cocoa (growth stage 2): living plant matter, leaves and stems with veins. | delivered |
+| `block/command_block_back` | 256x1024 (4 frames) | default | Realistic, high-detail command block (back face): a believable real-world material. | delivered |
+| `block/command_block_conditional` | 256x1024 (4 frames) | default | Realistic, high-detail command block conditional: a believable real-world material. | delivered |
+| `block/command_block_front` | 256x1024 (4 frames) | default | Realistic, high-detail command block (front face): a believable real-world material. | delivered |
+| `block/command_block_side` | 256x1024 (4 frames) | default | Realistic, high-detail command block (side face): a believable real-world material. | delivered |
+| `block/comparator` | 256x256 | default | Realistic, high-detail comparator: a believable real-world material. | delivered |
+| `block/comparator_on` | 256x256 | glowing | Realistic, high-detail comparator (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/composter_bottom` | 256x256 | wood | Realistic, high-detail composter (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/composter_compost` | 256x256 (cutout) | wood | Realistic, high-detail composter compost: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/composter_ready` | 256x256 (cutout) | wood | Realistic, high-detail composter ready: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/composter_side` | 256x256 | wood | Realistic, high-detail composter (side face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/composter_top` | 256x256 (cutout) | wood | Realistic, high-detail composter (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/conduit` | 256x256 (cutout) | gem | Realistic, high-detail conduit: faceted crystalline gemstone. | delivered |
+| `block/copper_bars` | 256x256 (cutout) | copper | Realistic, high-detail copper bars: fresh salmon-orange copper with hammer marks. | delivered |
+| `block/copper_block` | 256x256 | copper | Realistic, high-detail copper block: fresh salmon-orange copper with hammer marks. | delivered |
+| `block/copper_bulb` | 256x256 | copper | Realistic, high-detail copper bulb: fresh salmon-orange copper with hammer marks. | delivered |
+| `block/copper_bulb_lit` | 256x256 | glowing | Realistic, high-detail copper bulb (lit state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/copper_bulb_lit_powered` | 256x256 | copper | Realistic, high-detail copper bulb lit powered: fresh salmon-orange copper with hammer marks. | delivered |
+| `block/copper_bulb_powered` | 256x256 | copper | Realistic, high-detail copper bulb powered: fresh salmon-orange copper with hammer marks. | delivered |
+| `block/copper_chain` | 256x256 (cutout) | copper | Realistic, high-detail copper chain: fresh salmon-orange copper with hammer marks. | delivered |
+| `block/copper_door_bottom` | 256x256 | copper | Realistic, high-detail copper door (bottom face): fresh salmon-orange copper with hammer marks. | delivered |
+| `block/copper_door_top` | 256x256 (cutout) | copper | Realistic, high-detail copper door (top face): fresh salmon-orange copper with hammer marks. | delivered |
+| `block/copper_grate` | 256x256 (cutout) | copper | Realistic, high-detail copper grate: fresh salmon-orange copper with hammer marks. | delivered |
+| `block/copper_lantern` | 256x768 (3 frames, cutout) | copper | Realistic, high-detail copper lantern: fresh salmon-orange copper with hammer marks. | delivered |
+| `block/copper_torch` | 256x256 (cutout) | copper | Realistic, high-detail copper torch: fresh salmon-orange copper with hammer marks. | delivered |
+| `block/copper_trapdoor` | 256x256 (cutout) | copper | Realistic, high-detail copper trapdoor: fresh salmon-orange copper with hammer marks. | delivered |
+| `block/cornflower` | 256x256 (cutout) | foliage | Realistic, high-detail cornflower: living plant matter, leaves and stems with veins. | delivered |
+| `block/cracked_deepslate_bricks` | 256x256 | ceramic | Realistic, high-detail cracked deepslate bricks: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/cracked_deepslate_tiles` | 256x256 | polished_stone | Realistic, high-detail cracked deepslate tiles: cut and polished stone with subtle veining. | delivered |
+| `block/cracked_nether_bricks` | 256x256 | ceramic | Realistic, high-detail cracked nether bricks: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/cracked_polished_blackstone_bricks` | 256x256 | polished_stone | Realistic, high-detail cracked polished blackstone bricks: cut and polished stone with subtle veining. | delivered |
+| `block/crafter_bottom` | 256x256 | stone | Realistic, high-detail crafter (bottom face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/crafter_east` | 256x256 | stone | Realistic, high-detail crafter east: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/crafter_east_crafting` | 256x256 | stone | Realistic, high-detail crafter east crafting: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/crafter_east_triggered` | 256x256 | stone | Realistic, high-detail crafter east triggered: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/crafter_north` | 256x256 | stone | Realistic, high-detail crafter north: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/crafter_north_crafting` | 256x256 | stone | Realistic, high-detail crafter north crafting: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/crafter_south` | 256x256 | stone | Realistic, high-detail crafter south: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/crafter_south_triggered` | 256x256 | stone | Realistic, high-detail crafter south triggered: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/crafter_top` | 256x256 | stone | Realistic, high-detail crafter (top face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/crafter_top_crafting` | 256x256 | stone | Realistic, high-detail crafter top crafting: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/crafter_top_triggered` | 256x256 | stone | Realistic, high-detail crafter top triggered: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/crafter_west` | 256x256 | stone | Realistic, high-detail crafter west: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/crafter_west_crafting` | 256x256 | stone | Realistic, high-detail crafter west crafting: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/crafter_west_triggered` | 256x256 | stone | Realistic, high-detail crafter west triggered: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/creaking_heart` | 256x256 | bark | Realistic, high-detail creaking heart: deeply furrowed natural tree bark. | delivered |
+| `block/creaking_heart_awake` | 256x256 | bark | Realistic, high-detail creaking heart awake: deeply furrowed natural tree bark. | delivered |
+| `block/creaking_heart_dormant` | 256x256 | bark | Realistic, high-detail creaking heart dormant: deeply furrowed natural tree bark. | delivered |
+| `block/creaking_heart_top` | 256x256 | bark | Realistic, high-detail creaking heart (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/creaking_heart_top_awake` | 256x256 | bark | Realistic, high-detail creaking heart top awake: deeply furrowed natural tree bark. | delivered |
+| `block/creaking_heart_top_dormant` | 256x256 | bark | Realistic, high-detail creaking heart top dormant: deeply furrowed natural tree bark. | delivered |
+| `block/crimson_door_bottom` | 256x256 | wood | Realistic, high-detail crimson door (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/crimson_door_top` | 256x256 | wood | Realistic, high-detail crimson door (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/crimson_fungus` | 256x256 (cutout) | foliage | Realistic, high-detail crimson fungus: living plant matter, leaves and stems with veins. | delivered |
+| `block/crimson_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail crimson hanging sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/crimson_nylium` | 256x256 | grass | Realistic, high-detail crimson nylium: dense living grass and soil. | delivered |
+| `block/crimson_nylium_side` | 256x256 | grass | Realistic, high-detail crimson nylium (side face): dense living grass and soil. | delivered |
+| `block/crimson_planks` | 256x256 | wood | Realistic, high-detail crimson planks: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/crimson_roots` | 256x256 (cutout) | foliage | Realistic, high-detail crimson roots: living plant matter, leaves and stems with veins. | delivered |
+| `block/crimson_roots_pot` | 256x256 (cutout) | foliage | Realistic, high-detail crimson roots pot: living plant matter, leaves and stems with veins. | delivered |
+| `block/crimson_shelf` | 256x256 | wood | Realistic, high-detail crimson shelf: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/crimson_sign` | 256x256 (cutout) | wood | Realistic, high-detail crimson sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/crimson_stem` | 256x1280 (5 frames) | bark | Realistic, high-detail crimson stem: deeply furrowed natural tree bark. | delivered |
+| `block/crimson_stem_top` | 256x256 | bark | Realistic, high-detail crimson stem (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/crimson_trapdoor` | 256x256 (cutout) | wood | Realistic, high-detail crimson trapdoor: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/crying_obsidian` | 256x256 | glowing | Realistic, high-detail crying obsidian: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/cut_copper` | 256x256 | copper | Realistic, high-detail cut copper: fresh salmon-orange copper with hammer marks. | delivered |
+| `block/cut_red_sandstone` | 256x256 | sand | Realistic, high-detail cut red sandstone: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/cut_sandstone` | 256x256 | sand | Realistic, high-detail cut sandstone: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/cyan_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail cyan bed foot east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/cyan_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail cyan bed foot south: woven wool or felt with visible fibres and weave. | delivered |
+| `block/cyan_bed_foot_up` | 256x256 | cloth | Realistic, high-detail cyan bed foot up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/cyan_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail cyan bed foot west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/cyan_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail cyan bed head east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/cyan_bed_head_up` | 256x256 | cloth | Realistic, high-detail cyan bed head up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/cyan_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail cyan bed head west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/cyan_candle` | 256x256 (cutout) | organic | Realistic, high-detail cyan candle: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/cyan_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail cyan candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/cyan_concrete` | 256x256 | concrete | Realistic, high-detail cyan concrete: smooth matte concrete with fine pores. | delivered |
+| `block/cyan_concrete_powder` | 256x256 | sand | Realistic, high-detail cyan concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/cyan_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail cyan glazed terracotta: glossy glazed ceramic tile. | delivered |
+| `block/cyan_shulker_box` | 256x256 | glazed | Realistic, high-detail cyan shulker box: glossy glazed ceramic tile. | delivered |
+| `block/cyan_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail cyan stained glass: clear glass with faint imperfections. | delivered |
+| `block/cyan_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail cyan stained glass pane (top face): clear glass with faint imperfections. | delivered |
+| `block/cyan_terracotta` | 256x256 | ceramic | Realistic, high-detail cyan terracotta: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/cyan_wool` | 256x256 | cloth | Realistic, high-detail cyan wool: woven wool or felt with visible fibres and weave. | delivered |
+| `block/damaged_anvil_top` | 256x256 (cutout) | iron | Realistic, high-detail damaged anvil (top face): forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/dandelion` | 256x256 (cutout) | foliage | Realistic, high-detail dandelion: living plant matter, leaves and stems with veins. | delivered |
+| `block/dark_oak_door_bottom` | 256x256 | wood | Realistic, high-detail dark oak door (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/dark_oak_door_top` | 256x256 | wood | Realistic, high-detail dark oak door (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/dark_oak_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail dark oak hanging sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/dark_oak_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail dark oak leaves: living plant matter, leaves and stems with veins. | delivered |
+| `block/dark_oak_log_top` | 256x256 | bark | Realistic, high-detail dark oak log (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/dark_oak_sapling` | 256x256 (cutout) | foliage | Realistic, high-detail dark oak sapling: living plant matter, leaves and stems with veins. | delivered |
+| `block/dark_oak_shelf` | 256x256 | wood | Realistic, high-detail dark oak shelf: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/dark_oak_sign` | 256x256 (cutout) | wood | Realistic, high-detail dark oak sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/dark_oak_trapdoor` | 256x256 | wood | Realistic, high-detail dark oak trapdoor: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/dark_prismarine` | 256x256 | gem | Realistic, high-detail dark prismarine: faceted crystalline gemstone. | delivered |
+| `block/daylight_detector_inverted_top` | 256x256 | default | Realistic, high-detail daylight detector inverted (top face): a believable real-world material. | delivered |
+| `block/daylight_detector_side` | 256x256 | default | Realistic, high-detail daylight detector (side face): a believable real-world material. | delivered |
+| `block/daylight_detector_top` | 256x256 | default | Realistic, high-detail daylight detector (top face): a believable real-world material. | delivered |
+| `block/dead_brain_coral` | 256x256 (cutout) | organic | Realistic, high-detail dead brain coral: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dead_brain_coral_block` | 256x256 | organic | Realistic, high-detail dead brain coral block: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dead_brain_coral_fan` | 256x256 (cutout) | organic | Realistic, high-detail dead brain coral fan: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dead_bubble_coral` | 256x256 (cutout) | organic | Realistic, high-detail dead bubble coral: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dead_bubble_coral_block` | 256x256 | organic | Realistic, high-detail dead bubble coral block: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dead_bubble_coral_fan` | 256x256 (cutout) | organic | Realistic, high-detail dead bubble coral fan: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dead_bush` | 256x256 (cutout) | foliage | Realistic, high-detail dead bush: living plant matter, leaves and stems with veins. | delivered |
+| `block/dead_fire_coral` | 256x256 (cutout) | glowing | Realistic, high-detail dead fire coral: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/dead_fire_coral_block` | 256x256 | glowing | Realistic, high-detail dead fire coral block: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/dead_fire_coral_fan` | 256x256 (cutout) | glowing | Realistic, high-detail dead fire coral fan: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/dead_horn_coral` | 256x256 (cutout) | organic | Realistic, high-detail dead horn coral: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dead_horn_coral_block` | 256x256 | organic | Realistic, high-detail dead horn coral block: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dead_horn_coral_fan` | 256x256 (cutout) | organic | Realistic, high-detail dead horn coral fan: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dead_tube_coral` | 256x256 (cutout) | organic | Realistic, high-detail dead tube coral: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dead_tube_coral_block` | 256x256 | organic | Realistic, high-detail dead tube coral block: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dead_tube_coral_fan` | 256x256 (cutout) | organic | Realistic, high-detail dead tube coral fan: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/deepslate_bricks` | 256x256 | ceramic | Realistic, high-detail deepslate bricks: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/deepslate_coal_ore` | 256x256 | ore | Realistic, high-detail deepslate coal ore: natural rock with embedded raw mineral crystals or nuggets. | delivered |
+| `block/deepslate_copper_ore` | 256x256 | ore | Realistic, high-detail deepslate copper ore: natural rock with embedded raw mineral crystals or nuggets. | delivered |
+| `block/deepslate_emerald_ore` | 256x256 | ore | Realistic, high-detail deepslate emerald ore: natural rock with embedded raw mineral crystals or nuggets. | delivered |
+| `block/deepslate_gold_ore` | 256x256 | ore | Realistic, high-detail deepslate gold ore: natural rock with embedded raw mineral crystals or nuggets. | delivered |
+| `block/deepslate_lapis_ore` | 256x256 | ore | Realistic, high-detail deepslate lapis ore: natural rock with embedded raw mineral crystals or nuggets. | delivered |
+| `block/deepslate_redstone_ore` | 256x256 | ore | Realistic, high-detail deepslate redstone ore: natural rock with embedded raw mineral crystals or nuggets. | delivered |
+| `block/deepslate_tiles` | 256x256 | polished_stone | Realistic, high-detail deepslate tiles: cut and polished stone with subtle veining. | delivered |
+| `block/destroy_stage_0` | 256x256 (translucent) | default | Realistic, high-detail destroy (growth stage 0): a believable real-world material. | delivered |
+| `block/destroy_stage_1` | 256x256 (translucent) | default | Realistic, high-detail destroy (growth stage 1): a believable real-world material. | delivered |
+| `block/destroy_stage_2` | 256x256 (translucent) | default | Realistic, high-detail destroy (growth stage 2): a believable real-world material. | delivered |
+| `block/destroy_stage_3` | 256x256 (translucent) | default | Realistic, high-detail destroy (growth stage 3): a believable real-world material. | delivered |
+| `block/destroy_stage_4` | 256x256 (translucent) | default | Realistic, high-detail destroy (growth stage 4): a believable real-world material. | delivered |
+| `block/destroy_stage_5` | 256x256 (translucent) | default | Realistic, high-detail destroy (growth stage 5): a believable real-world material. | delivered |
+| `block/destroy_stage_6` | 256x256 (translucent) | default | Realistic, high-detail destroy (growth stage 6): a believable real-world material. | delivered |
+| `block/destroy_stage_7` | 256x256 (translucent) | default | Realistic, high-detail destroy (growth stage 7): a believable real-world material. | delivered |
+| `block/destroy_stage_8` | 256x256 (translucent) | default | Realistic, high-detail destroy (growth stage 8): a believable real-world material. | delivered |
+| `block/destroy_stage_9` | 256x256 (translucent) | default | Realistic, high-detail destroy (growth stage 9): a believable real-world material. | delivered |
+| `block/detector_rail` | 256x256 (cutout) | iron | Realistic, high-detail detector rail: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/detector_rail_on` | 256x256 (cutout) | glowing | Realistic, high-detail detector rail (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/dirt_path_side` | 256x256 (cutout) | soil | Realistic, high-detail dirt path (side face): loose earthy soil with small pebbles, roots and crumbs. | delivered |
+| `block/dispenser_front` | 256x256 | stone | Realistic, high-detail dispenser (front face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/dispenser_front_vertical` | 256x256 | stone | Realistic, high-detail dispenser front vertical: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/dragon_egg` | 256x256 | obsidian | Realistic, high-detail dragon egg: glassy black volcanic obsidian with conchoidal fractures. | delivered |
+| `block/dried_ghast_hydration_0_bottom` | 256x256 | organic | Realistic, high-detail dried ghast hydration 0 (bottom face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_0_east` | 256x256 | organic | Realistic, high-detail dried ghast hydration 0 east: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_0_north` | 256x256 | organic | Realistic, high-detail dried ghast hydration 0 north: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_0_south` | 256x256 | organic | Realistic, high-detail dried ghast hydration 0 south: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_0_tentacles` | 256x256 | organic | Realistic, high-detail dried ghast hydration 0 tentacles: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_0_top` | 256x256 | organic | Realistic, high-detail dried ghast hydration 0 (top face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_0_west` | 256x256 | organic | Realistic, high-detail dried ghast hydration 0 west: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_1_bottom` | 256x256 | organic | Realistic, high-detail dried ghast hydration 1 (bottom face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_1_east` | 256x256 | organic | Realistic, high-detail dried ghast hydration 1 east: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_1_north` | 256x256 | organic | Realistic, high-detail dried ghast hydration 1 north: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_1_south` | 256x256 | organic | Realistic, high-detail dried ghast hydration 1 south: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_1_tentacles` | 256x256 | organic | Realistic, high-detail dried ghast hydration 1 tentacles: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_1_top` | 256x256 | organic | Realistic, high-detail dried ghast hydration 1 (top face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_1_west` | 256x256 | organic | Realistic, high-detail dried ghast hydration 1 west: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_2_bottom` | 256x256 | organic | Realistic, high-detail dried ghast hydration 2 (bottom face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_2_east` | 256x256 | organic | Realistic, high-detail dried ghast hydration 2 east: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_2_north` | 256x256 | organic | Realistic, high-detail dried ghast hydration 2 north: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_2_south` | 256x256 | organic | Realistic, high-detail dried ghast hydration 2 south: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_2_tentacles` | 256x256 | organic | Realistic, high-detail dried ghast hydration 2 tentacles: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_2_top` | 256x256 | organic | Realistic, high-detail dried ghast hydration 2 (top face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_2_west` | 256x256 | organic | Realistic, high-detail dried ghast hydration 2 west: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_3_bottom` | 256x256 | organic | Realistic, high-detail dried ghast hydration 3 (bottom face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_3_east` | 256x256 | organic | Realistic, high-detail dried ghast hydration 3 east: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_3_north` | 256x256 | organic | Realistic, high-detail dried ghast hydration 3 north: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_3_south` | 256x256 | organic | Realistic, high-detail dried ghast hydration 3 south: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_3_tentacles` | 256x256 | organic | Realistic, high-detail dried ghast hydration 3 tentacles: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_3_top` | 256x256 | organic | Realistic, high-detail dried ghast hydration 3 (top face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_ghast_hydration_3_west` | 256x256 | organic | Realistic, high-detail dried ghast hydration 3 west: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/dried_kelp_bottom` | 256x256 | foliage | Realistic, high-detail dried kelp (bottom face): living plant matter, leaves and stems with veins. | delivered |
+| `block/dried_kelp_side` | 256x256 | foliage | Realistic, high-detail dried kelp (side face): living plant matter, leaves and stems with veins. | delivered |
+| `block/dried_kelp_top` | 256x256 | foliage | Realistic, high-detail dried kelp (top face): living plant matter, leaves and stems with veins. | delivered |
+| `block/dripstone_block` | 256x256 | bone | Realistic, high-detail dripstone block: bleached bone, calcite or dripstone. | delivered |
+| `block/dropper_front` | 256x256 | stone | Realistic, high-detail dropper (front face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/dropper_front_vertical` | 256x256 | stone | Realistic, high-detail dropper front vertical: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/emerald_block` | 256x256 | gem | Realistic, high-detail emerald block: faceted crystalline gemstone. | delivered |
+| `block/enchanting_table_bottom` | 256x256 | stone | Realistic, high-detail enchanting table (bottom face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/enchanting_table_side` | 256x256 (cutout) | stone | Realistic, high-detail enchanting table (side face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/enchanting_table_top` | 256x256 | stone | Realistic, high-detail enchanting table (top face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/end_portal_frame_eye` | 256x256 (cutout) | stone | Realistic, high-detail end portal frame eye: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/end_portal_frame_side` | 256x256 (cutout) | stone | Realistic, high-detail end portal frame (side face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/end_portal_frame_top` | 256x256 | stone | Realistic, high-detail end portal frame (top face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/end_rod` | 256x256 (cutout) | glowing | Realistic, high-detail end rod: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/end_stone_bricks` | 256x256 | ceramic | Realistic, high-detail end stone bricks: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/exposed_chiseled_copper` | 256x256 | patina | Realistic, high-detail exposed chiseled copper: weathered copper with blue-green verdigris patina. | delivered |
+| `block/exposed_copper` | 256x256 | patina | Realistic, high-detail exposed copper: weathered copper with blue-green verdigris patina. | delivered |
+| `block/exposed_copper_bars` | 256x256 (cutout) | patina | Realistic, high-detail exposed copper bars: weathered copper with blue-green verdigris patina. | delivered |
+| `block/exposed_copper_bulb` | 256x256 | patina | Realistic, high-detail exposed copper bulb: weathered copper with blue-green verdigris patina. | delivered |
+| `block/exposed_copper_bulb_lit` | 256x256 | glowing | Realistic, high-detail exposed copper bulb (lit state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/exposed_copper_bulb_lit_powered` | 256x256 | patina | Realistic, high-detail exposed copper bulb lit powered: weathered copper with blue-green verdigris patina. | delivered |
+| `block/exposed_copper_bulb_powered` | 256x256 | patina | Realistic, high-detail exposed copper bulb powered: weathered copper with blue-green verdigris patina. | delivered |
+| `block/exposed_copper_chain` | 256x256 (cutout) | patina | Realistic, high-detail exposed copper chain: weathered copper with blue-green verdigris patina. | delivered |
+| `block/exposed_copper_door_bottom` | 256x256 | patina | Realistic, high-detail exposed copper door (bottom face): weathered copper with blue-green verdigris patina. | delivered |
+| `block/exposed_copper_door_top` | 256x256 (cutout) | patina | Realistic, high-detail exposed copper door (top face): weathered copper with blue-green verdigris patina. | delivered |
+| `block/exposed_copper_grate` | 256x256 (cutout) | patina | Realistic, high-detail exposed copper grate: weathered copper with blue-green verdigris patina. | delivered |
+| `block/exposed_copper_lantern` | 256x768 (3 frames, cutout) | patina | Realistic, high-detail exposed copper lantern: weathered copper with blue-green verdigris patina. | delivered |
+| `block/exposed_copper_trapdoor` | 256x256 (cutout) | patina | Realistic, high-detail exposed copper trapdoor: weathered copper with blue-green verdigris patina. | delivered |
+| `block/exposed_cut_copper` | 256x256 | patina | Realistic, high-detail exposed cut copper: weathered copper with blue-green verdigris patina. | delivered |
+| `block/exposed_lightning_rod` | 256x256 (cutout) | iron | Realistic, high-detail exposed lightning rod: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/fern` | 256x256 (cutout) | foliage | Realistic, high-detail fern: living plant matter, leaves and stems with veins. | delivered |
+| `block/fire_0` | 64x2048 (32 frames, cutout) | glowing | Realistic, high-detail fire 0: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/fire_1` | 64x2048 (32 frames, cutout) | glowing | Realistic, high-detail fire 1: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/fire_coral` | 256x256 (cutout) | glowing | Realistic, high-detail fire coral: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/fire_coral_block` | 256x256 | glowing | Realistic, high-detail fire coral block: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/fire_coral_fan` | 256x256 (cutout) | glowing | Realistic, high-detail fire coral fan: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/firefly_bush` | 256x256 (cutout) | glowing | Realistic, high-detail firefly bush: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/firefly_bush_emissive` | 128x1280 (10 frames, cutout) | glowing | Realistic, high-detail firefly bush emissive: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/fletching_table_front` | 256x256 | paper | Realistic, high-detail fletching table (front face): paper, books and worked wood. | delivered |
+| `block/fletching_table_side` | 256x256 | paper | Realistic, high-detail fletching table (side face): paper, books and worked wood. | delivered |
+| `block/fletching_table_top` | 256x256 | paper | Realistic, high-detail fletching table (top face): paper, books and worked wood. | delivered |
+| `block/flower_pot` | 256x256 (cutout) | ceramic | Realistic, high-detail flower pot: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/flowering_azalea_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail flowering azalea leaves: living plant matter, leaves and stems with veins. | delivered |
+| `block/flowering_azalea_side` | 256x256 (cutout) | foliage | Realistic, high-detail flowering azalea (side face): living plant matter, leaves and stems with veins. | delivered |
+| `block/flowering_azalea_top` | 256x256 | foliage | Realistic, high-detail flowering azalea (top face): living plant matter, leaves and stems with veins. | delivered |
+| `block/frogspawn` | 256x256 (cutout) | organic | Realistic, high-detail frogspawn: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/frosted_ice_0` | 256x256 (translucent) | ice | Realistic, high-detail frosted ice 0: compacted clear ice with trapped bubbles and cracks. | delivered |
+| `block/frosted_ice_1` | 256x256 (translucent) | ice | Realistic, high-detail frosted ice 1: compacted clear ice with trapped bubbles and cracks. | delivered |
+| `block/frosted_ice_2` | 256x256 (translucent) | ice | Realistic, high-detail frosted ice 2: compacted clear ice with trapped bubbles and cracks. | delivered |
+| `block/frosted_ice_3` | 256x256 (translucent) | ice | Realistic, high-detail frosted ice 3: compacted clear ice with trapped bubbles and cracks. | delivered |
+| `block/gilded_blackstone` | 256x256 | nether | Realistic, high-detail gilded blackstone: hellish porous rock, fungal growth and flesh-like matter. | delivered |
+| `block/glass_pane_top` | 256x256 (cutout) | glass | Realistic, high-detail glass pane (top face): clear glass with faint imperfections. | delivered |
+| `block/glow_item_frame` | 256x256 | default | Realistic, high-detail glow item frame: a believable real-world material. | delivered |
+| `block/glow_lichen` | 256x256 (cutout) | glowing | Realistic, high-detail glow lichen: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/golden_dandelion` | 256x256 (cutout) | foliage | Realistic, high-detail golden dandelion: living plant matter, leaves and stems with veins. | delivered |
+| `block/gray_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail gray bed foot east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/gray_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail gray bed foot south: woven wool or felt with visible fibres and weave. | delivered |
+| `block/gray_bed_foot_up` | 256x256 | cloth | Realistic, high-detail gray bed foot up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/gray_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail gray bed foot west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/gray_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail gray bed head east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/gray_bed_head_up` | 256x256 | cloth | Realistic, high-detail gray bed head up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/gray_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail gray bed head west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/gray_candle` | 256x256 (cutout) | organic | Realistic, high-detail gray candle: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/gray_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail gray candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/gray_concrete` | 256x256 | concrete | Realistic, high-detail gray concrete: smooth matte concrete with fine pores. | delivered |
+| `block/gray_concrete_powder` | 256x256 | sand | Realistic, high-detail gray concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/gray_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail gray glazed terracotta: glossy glazed ceramic tile. | delivered |
+| `block/gray_shulker_box` | 256x256 | glazed | Realistic, high-detail gray shulker box: glossy glazed ceramic tile. | delivered |
+| `block/gray_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail gray stained glass: clear glass with faint imperfections. | delivered |
+| `block/gray_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail gray stained glass pane (top face): clear glass with faint imperfections. | delivered |
+| `block/gray_terracotta` | 256x256 | ceramic | Realistic, high-detail gray terracotta: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/gray_wool` | 256x256 | cloth | Realistic, high-detail gray wool: woven wool or felt with visible fibres and weave. | delivered |
+| `block/green_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail green bed foot east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/green_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail green bed foot south: woven wool or felt with visible fibres and weave. | delivered |
+| `block/green_bed_foot_up` | 256x256 | cloth | Realistic, high-detail green bed foot up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/green_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail green bed foot west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/green_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail green bed head east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/green_bed_head_up` | 256x256 | cloth | Realistic, high-detail green bed head up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/green_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail green bed head west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/green_candle` | 256x256 (cutout) | organic | Realistic, high-detail green candle: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/green_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail green candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/green_concrete` | 256x256 | concrete | Realistic, high-detail green concrete: smooth matte concrete with fine pores. | delivered |
+| `block/green_concrete_powder` | 256x256 | sand | Realistic, high-detail green concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/green_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail green glazed terracotta: glossy glazed ceramic tile. | delivered |
+| `block/green_shulker_box` | 256x256 | glazed | Realistic, high-detail green shulker box: glossy glazed ceramic tile. | delivered |
+| `block/green_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail green stained glass: clear glass with faint imperfections. | delivered |
+| `block/green_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail green stained glass pane (top face): clear glass with faint imperfections. | delivered |
+| `block/green_terracotta` | 256x256 | ceramic | Realistic, high-detail green terracotta: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/green_wool` | 256x256 | cloth | Realistic, high-detail green wool: woven wool or felt with visible fibres and weave. | delivered |
+| `block/grindstone_pivot` | 256x256 (cutout) | stone | Realistic, high-detail grindstone pivot: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/grindstone_round` | 256x256 (cutout) | stone | Realistic, high-detail grindstone round: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/grindstone_side` | 256x256 (cutout) | stone | Realistic, high-detail grindstone (side face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/hanging_roots` | 256x256 (cutout) | foliage | Realistic, high-detail hanging roots: living plant matter, leaves and stems with veins. | delivered |
+| `block/hay_block_side` | 256x256 | cloth | Realistic, high-detail hay block (side face): woven wool or felt with visible fibres and weave. | delivered |
+| `block/hay_block_top` | 256x256 | cloth | Realistic, high-detail hay block (top face): woven wool or felt with visible fibres and weave. | delivered |
+| `block/heavy_core` | 256x256 (cutout) | iron | Realistic, high-detail heavy core: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/honey_block_bottom` | 256x256 (translucent) | gel | Realistic, high-detail honey block (bottom face): translucent glossy gel. | delivered |
+| `block/honey_block_side` | 256x256 (translucent) | gel | Realistic, high-detail honey block (side face): translucent glossy gel. | delivered |
+| `block/honey_block_top` | 256x256 (translucent) | gel | Realistic, high-detail honey block (top face): translucent glossy gel. | delivered |
+| `block/honeycomb_block` | 256x256 | gel | Realistic, high-detail honeycomb block: translucent glossy gel. | delivered |
+| `block/hopper_inside` | 256x256 | iron | Realistic, high-detail hopper inside: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/hopper_outside` | 256x256 | iron | Realistic, high-detail hopper outside: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/hopper_top` | 256x256 (cutout) | iron | Realistic, high-detail hopper (top face): forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/horn_coral` | 256x256 (cutout) | organic | Realistic, high-detail horn coral: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/horn_coral_block` | 256x256 | organic | Realistic, high-detail horn coral block: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/horn_coral_fan` | 256x256 (cutout) | organic | Realistic, high-detail horn coral fan: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/iron_bars` | 256x256 (cutout) | iron | Realistic, high-detail iron bars: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/iron_chain` | 256x256 (cutout) | iron | Realistic, high-detail iron chain: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/iron_door_bottom` | 256x256 | iron | Realistic, high-detail iron door (bottom face): forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/iron_door_top` | 256x256 (cutout) | iron | Realistic, high-detail iron door (top face): forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/iron_trapdoor` | 256x256 (cutout) | iron | Realistic, high-detail iron trapdoor: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/item_frame` | 256x256 | default | Realistic, high-detail item frame: a believable real-world material. | delivered |
+| `block/jack_o_lantern` | 256x256 | glowing | Realistic, high-detail jack o lantern: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/jukebox_side` | 256x256 | wood | Realistic, high-detail jukebox (side face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/jukebox_top` | 256x256 | wood | Realistic, high-detail jukebox (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/jungle_door_bottom` | 256x256 | wood | Realistic, high-detail jungle door (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/jungle_door_top` | 256x256 (cutout) | wood | Realistic, high-detail jungle door (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/jungle_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail jungle hanging sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/jungle_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail jungle leaves: living plant matter, leaves and stems with veins. | delivered |
+| `block/jungle_log_top` | 256x256 | bark | Realistic, high-detail jungle log (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/jungle_planks` | 256x256 | wood | Realistic, high-detail jungle planks: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/jungle_sapling` | 256x256 (cutout) | foliage | Realistic, high-detail jungle sapling: living plant matter, leaves and stems with veins. | delivered |
+| `block/jungle_shelf` | 256x256 | wood | Realistic, high-detail jungle shelf: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/jungle_sign` | 256x256 (cutout) | wood | Realistic, high-detail jungle sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/jungle_trapdoor` | 256x256 (cutout) | wood | Realistic, high-detail jungle trapdoor: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/kelp` | 64x1280 (20 frames, cutout) | foliage | Realistic, high-detail kelp: living plant matter, leaves and stems with veins. | delivered |
+| `block/kelp_plant` | 64x1280 (20 frames, cutout) | foliage | Realistic, high-detail kelp plant: living plant matter, leaves and stems with veins. | delivered |
+| `block/ladder` | 256x256 (cutout) | wood | Realistic, high-detail ladder: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/lantern` | 256x768 (3 frames, cutout) | iron | Realistic, high-detail lantern: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/lapis_block` | 256x256 | gem | Realistic, high-detail lapis block: faceted crystalline gemstone. | delivered |
+| `block/large_amethyst_bud` | 256x256 (cutout) | gem | Realistic, high-detail large amethyst bud: faceted crystalline gemstone. | delivered |
+| `block/large_fern_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail large fern (bottom face): living plant matter, leaves and stems with veins. | delivered |
+| `block/large_fern_top` | 256x256 (cutout) | foliage | Realistic, high-detail large fern (top face): living plant matter, leaves and stems with veins. | delivered |
+| `block/leaf_litter` | 256x256 (cutout) | foliage | Realistic, high-detail leaf litter: living plant matter, leaves and stems with veins. | delivered |
+| `block/lectern_base` | 256x256 | paper | Realistic, high-detail lectern base: paper, books and worked wood. | delivered |
+| `block/lectern_front` | 256x256 | paper | Realistic, high-detail lectern (front face): paper, books and worked wood. | delivered |
+| `block/lectern_sides` | 256x256 | paper | Realistic, high-detail lectern sides: paper, books and worked wood. | delivered |
+| `block/lectern_top` | 256x256 | paper | Realistic, high-detail lectern (top face): paper, books and worked wood. | delivered |
+| `block/lever` | 256x256 (cutout) | default | Realistic, high-detail lever: a believable real-world material. | delivered |
+| `block/light_blue_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail light blue bed foot east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/light_blue_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail light blue bed foot south: woven wool or felt with visible fibres and weave. | delivered |
+| `block/light_blue_bed_foot_up` | 256x256 | cloth | Realistic, high-detail light blue bed foot up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/light_blue_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail light blue bed foot west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/light_blue_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail light blue bed head east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/light_blue_bed_head_up` | 256x256 | cloth | Realistic, high-detail light blue bed head up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/light_blue_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail light blue bed head west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/light_blue_candle` | 256x256 (cutout) | organic | Realistic, high-detail light blue candle: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/light_blue_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail light blue candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/light_blue_concrete` | 256x256 | concrete | Realistic, high-detail light blue concrete: smooth matte concrete with fine pores. | delivered |
+| `block/light_blue_concrete_powder` | 256x256 | sand | Realistic, high-detail light blue concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/light_blue_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail light blue glazed terracotta: glossy glazed ceramic tile. | delivered |
+| `block/light_blue_shulker_box` | 256x256 | glazed | Realistic, high-detail light blue shulker box: glossy glazed ceramic tile. | delivered |
+| `block/light_blue_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail light blue stained glass: clear glass with faint imperfections. | delivered |
+| `block/light_blue_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail light blue stained glass pane (top face): clear glass with faint imperfections. | delivered |
+| `block/light_blue_terracotta` | 256x256 | ceramic | Realistic, high-detail light blue terracotta: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/light_blue_wool` | 256x256 | cloth | Realistic, high-detail light blue wool: woven wool or felt with visible fibres and weave. | delivered |
+| `block/light_gray_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail light gray bed foot east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/light_gray_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail light gray bed foot south: woven wool or felt with visible fibres and weave. | delivered |
+| `block/light_gray_bed_foot_up` | 256x256 | cloth | Realistic, high-detail light gray bed foot up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/light_gray_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail light gray bed foot west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/light_gray_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail light gray bed head east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/light_gray_bed_head_up` | 256x256 | cloth | Realistic, high-detail light gray bed head up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/light_gray_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail light gray bed head west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/light_gray_candle` | 256x256 (cutout) | organic | Realistic, high-detail light gray candle: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/light_gray_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail light gray candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/light_gray_concrete` | 256x256 | concrete | Realistic, high-detail light gray concrete: smooth matte concrete with fine pores. | delivered |
+| `block/light_gray_concrete_powder` | 256x256 | sand | Realistic, high-detail light gray concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/light_gray_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail light gray glazed terracotta: glossy glazed ceramic tile. | delivered |
+| `block/light_gray_shulker_box` | 256x256 | glazed | Realistic, high-detail light gray shulker box: glossy glazed ceramic tile. | delivered |
+| `block/light_gray_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail light gray stained glass: clear glass with faint imperfections. | delivered |
+| `block/light_gray_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail light gray stained glass pane (top face): clear glass with faint imperfections. | delivered |
+| `block/light_gray_terracotta` | 256x256 | ceramic | Realistic, high-detail light gray terracotta: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/light_gray_wool` | 256x256 | cloth | Realistic, high-detail light gray wool: woven wool or felt with visible fibres and weave. | delivered |
+| `block/lightning_rod` | 256x256 (cutout) | iron | Realistic, high-detail lightning rod: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/lightning_rod_on` | 256x256 | glowing | Realistic, high-detail lightning rod (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/lilac_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail lilac (bottom face): living plant matter, leaves and stems with veins. | delivered |
+| `block/lilac_top` | 256x256 (cutout) | foliage | Realistic, high-detail lilac (top face): living plant matter, leaves and stems with veins. | delivered |
+| `block/lily_of_the_valley` | 256x256 (cutout) | foliage | Realistic, high-detail lily of the valley: living plant matter, leaves and stems with veins. | delivered |
+| `block/lily_pad` | 256x256 (cutout) | foliage | Realistic, high-detail lily pad: living plant matter, leaves and stems with veins. | delivered |
+| `block/lime_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail lime bed foot east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/lime_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail lime bed foot south: woven wool or felt with visible fibres and weave. | delivered |
+| `block/lime_bed_foot_up` | 256x256 | cloth | Realistic, high-detail lime bed foot up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/lime_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail lime bed foot west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/lime_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail lime bed head east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/lime_bed_head_up` | 256x256 | cloth | Realistic, high-detail lime bed head up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/lime_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail lime bed head west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/lime_candle` | 256x256 (cutout) | organic | Realistic, high-detail lime candle: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/lime_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail lime candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/lime_concrete` | 256x256 | concrete | Realistic, high-detail lime concrete: smooth matte concrete with fine pores. | delivered |
+| `block/lime_concrete_powder` | 256x256 | sand | Realistic, high-detail lime concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/lime_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail lime glazed terracotta: glossy glazed ceramic tile. | delivered |
+| `block/lime_shulker_box` | 256x256 | glazed | Realistic, high-detail lime shulker box: glossy glazed ceramic tile. | delivered |
+| `block/lime_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail lime stained glass: clear glass with faint imperfections. | delivered |
+| `block/lime_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail lime stained glass pane (top face): clear glass with faint imperfections. | delivered |
+| `block/lime_terracotta` | 256x256 | ceramic | Realistic, high-detail lime terracotta: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/lime_wool` | 256x256 | cloth | Realistic, high-detail lime wool: woven wool or felt with visible fibres and weave. | delivered |
+| `block/lodestone_side` | 256x256 | iron | Realistic, high-detail lodestone (side face): forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/lodestone_top` | 256x256 | iron | Realistic, high-detail lodestone (top face): forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/loom_bottom` | 256x256 | paper | Realistic, high-detail loom (bottom face): paper, books and worked wood. | delivered |
+| `block/loom_front` | 256x256 | paper | Realistic, high-detail loom (front face): paper, books and worked wood. | delivered |
+| `block/loom_side` | 256x256 | paper | Realistic, high-detail loom (side face): paper, books and worked wood. | delivered |
+| `block/loom_top` | 256x256 | paper | Realistic, high-detail loom (top face): paper, books and worked wood. | delivered |
+| `block/magenta_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail magenta bed foot east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/magenta_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail magenta bed foot south: woven wool or felt with visible fibres and weave. | delivered |
+| `block/magenta_bed_foot_up` | 256x256 | cloth | Realistic, high-detail magenta bed foot up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/magenta_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail magenta bed foot west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/magenta_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail magenta bed head east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/magenta_bed_head_up` | 256x256 | cloth | Realistic, high-detail magenta bed head up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/magenta_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail magenta bed head west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/magenta_candle` | 256x256 (cutout) | organic | Realistic, high-detail magenta candle: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/magenta_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail magenta candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/magenta_concrete` | 256x256 | concrete | Realistic, high-detail magenta concrete: smooth matte concrete with fine pores. | delivered |
+| `block/magenta_concrete_powder` | 256x256 | sand | Realistic, high-detail magenta concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/magenta_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail magenta glazed terracotta: glossy glazed ceramic tile. | delivered |
+| `block/magenta_shulker_box` | 256x256 | glazed | Realistic, high-detail magenta shulker box: glossy glazed ceramic tile. | delivered |
+| `block/magenta_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail magenta stained glass: clear glass with faint imperfections. | delivered |
+| `block/magenta_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail magenta stained glass pane (top face): clear glass with faint imperfections. | delivered |
+| `block/magenta_terracotta` | 256x256 | ceramic | Realistic, high-detail magenta terracotta: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/magenta_wool` | 256x256 | cloth | Realistic, high-detail magenta wool: woven wool or felt with visible fibres and weave. | delivered |
+| `block/magma` | 256x768 (3 frames) | glowing | Realistic, high-detail magma: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/mangrove_door_bottom` | 256x256 | wood | Realistic, high-detail mangrove door (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/mangrove_door_top` | 256x256 | wood | Realistic, high-detail mangrove door (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/mangrove_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail mangrove hanging sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/mangrove_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail mangrove leaves: living plant matter, leaves and stems with veins. | delivered |
+| `block/mangrove_log_top` | 256x256 | bark | Realistic, high-detail mangrove log (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/mangrove_planks` | 256x256 | wood | Realistic, high-detail mangrove planks: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/mangrove_propagule` | 256x256 (cutout) | foliage | Realistic, high-detail mangrove propagule: living plant matter, leaves and stems with veins. | delivered |
+| `block/mangrove_propagule_hanging` | 256x256 (cutout) | foliage | Realistic, high-detail mangrove propagule hanging: living plant matter, leaves and stems with veins. | delivered |
+| `block/mangrove_roots_side` | 256x256 (cutout) | bark | Realistic, high-detail mangrove roots (side face): deeply furrowed natural tree bark. | delivered |
+| `block/mangrove_roots_top` | 256x256 (cutout) | bark | Realistic, high-detail mangrove roots (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/mangrove_shelf` | 256x256 | wood | Realistic, high-detail mangrove shelf: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/mangrove_sign` | 256x256 (cutout) | wood | Realistic, high-detail mangrove sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/mangrove_trapdoor` | 256x256 (cutout) | wood | Realistic, high-detail mangrove trapdoor: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/medium_amethyst_bud` | 256x256 (cutout) | gem | Realistic, high-detail medium amethyst bud: faceted crystalline gemstone. | delivered |
+| `block/melon_side` | 256x256 | foliage | Realistic, high-detail melon (side face): living plant matter, leaves and stems with veins. | delivered |
+| `block/melon_stem` | 256x256 (cutout) | bark | Realistic, high-detail melon stem: deeply furrowed natural tree bark. | delivered |
+| `block/melon_top` | 256x256 | foliage | Realistic, high-detail melon (top face): living plant matter, leaves and stems with veins. | delivered |
+| `block/moss_block` | 256x256 | foliage | Realistic, high-detail moss block: living plant matter, leaves and stems with veins. | delivered |
+| `block/mud_bricks` | 256x256 | ceramic | Realistic, high-detail mud bricks: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/muddy_mangrove_roots_side` | 256x256 | ceramic | Realistic, high-detail muddy mangrove roots (side face): fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/muddy_mangrove_roots_top` | 256x256 | ceramic | Realistic, high-detail muddy mangrove roots (top face): fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/mushroom_block_inside` | 256x256 | organic | Realistic, high-detail mushroom block inside: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/mushroom_stem` | 256x256 | bark | Realistic, high-detail mushroom stem: deeply furrowed natural tree bark. | delivered |
+| `block/nether_bricks` | 256x256 | ceramic | Realistic, high-detail nether bricks: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/nether_gold_ore` | 256x256 | ore | Realistic, high-detail nether gold ore: natural rock with embedded raw mineral crystals or nuggets. | delivered |
+| `block/nether_portal` | 64x2048 (32 frames, translucent) | glowing | Realistic, high-detail nether portal: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/nether_quartz_ore` | 256x256 | ore | Realistic, high-detail nether quartz ore: natural rock with embedded raw mineral crystals or nuggets. | delivered |
+| `block/nether_sprouts` | 256x256 (cutout) | foliage | Realistic, high-detail nether sprouts: living plant matter, leaves and stems with veins. | delivered |
+| `block/nether_wart_block` | 256x256 | foliage | Realistic, high-detail nether wart block: living plant matter, leaves and stems with veins. | delivered |
+| `block/nether_wart_stage0` | 256x256 (cutout) | foliage | Realistic, high-detail nether wart (growth stage 0): living plant matter, leaves and stems with veins. | delivered |
+| `block/nether_wart_stage1` | 256x256 (cutout) | foliage | Realistic, high-detail nether wart (growth stage 1): living plant matter, leaves and stems with veins. | delivered |
+| `block/nether_wart_stage2` | 256x256 (cutout) | foliage | Realistic, high-detail nether wart (growth stage 2): living plant matter, leaves and stems with veins. | delivered |
+| `block/netherite_block` | 256x256 | iron | Realistic, high-detail netherite block: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/note_block` | 256x256 | wood | Realistic, high-detail note block: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/oak_door_bottom` | 256x256 | wood | Realistic, high-detail oak door (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/oak_door_top` | 256x256 (cutout) | wood | Realistic, high-detail oak door (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/oak_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail oak hanging sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/oak_sapling` | 256x256 (cutout) | foliage | Realistic, high-detail oak sapling: living plant matter, leaves and stems with veins. | delivered |
+| `block/oak_shelf` | 256x256 | wood | Realistic, high-detail oak shelf: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/oak_sign` | 256x256 (cutout) | wood | Realistic, high-detail oak sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/oak_trapdoor` | 256x256 (cutout) | wood | Realistic, high-detail oak trapdoor: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/observer_back` | 256x256 | stone | Realistic, high-detail observer (back face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/observer_back_on` | 256x256 | glowing | Realistic, high-detail observer back (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/observer_front` | 256x256 | stone | Realistic, high-detail observer (front face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/observer_side` | 256x256 | stone | Realistic, high-detail observer (side face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/observer_top` | 256x256 | stone | Realistic, high-detail observer (top face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/ochre_froglight_side` | 256x256 | glowing | Realistic, high-detail ochre froglight (side face): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/ochre_froglight_top` | 256x256 | glowing | Realistic, high-detail ochre froglight (top face): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/open_eyeblossom` | 256x256 (cutout) | foliage | Realistic, high-detail open eyeblossom: living plant matter, leaves and stems with veins. | delivered |
+| `block/open_eyeblossom_emissive` | 256x256 (cutout) | foliage | Realistic, high-detail open eyeblossom emissive: living plant matter, leaves and stems with veins. | delivered |
+| `block/orange_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail orange bed foot east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/orange_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail orange bed foot south: woven wool or felt with visible fibres and weave. | delivered |
+| `block/orange_bed_foot_up` | 256x256 | cloth | Realistic, high-detail orange bed foot up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/orange_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail orange bed foot west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/orange_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail orange bed head east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/orange_bed_head_up` | 256x256 | cloth | Realistic, high-detail orange bed head up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/orange_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail orange bed head west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/orange_candle` | 256x256 (cutout) | organic | Realistic, high-detail orange candle: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/orange_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail orange candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/orange_concrete` | 256x256 | concrete | Realistic, high-detail orange concrete: smooth matte concrete with fine pores. | delivered |
+| `block/orange_concrete_powder` | 256x256 | sand | Realistic, high-detail orange concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/orange_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail orange glazed terracotta: glossy glazed ceramic tile. | delivered |
+| `block/orange_poplar_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail orange poplar leaves: living plant matter, leaves and stems with veins. | delivered |
+| `block/orange_shulker_box` | 256x256 | glazed | Realistic, high-detail orange shulker box: glossy glazed ceramic tile. | delivered |
+| `block/orange_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail orange stained glass: clear glass with faint imperfections. | delivered |
+| `block/orange_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail orange stained glass pane (top face): clear glass with faint imperfections. | delivered |
+| `block/orange_terracotta` | 256x256 | ceramic | Realistic, high-detail orange terracotta: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/orange_tulip` | 256x256 (cutout) | foliage | Realistic, high-detail orange tulip: living plant matter, leaves and stems with veins. | delivered |
+| `block/orange_wool` | 256x256 | cloth | Realistic, high-detail orange wool: woven wool or felt with visible fibres and weave. | delivered |
+| `block/oxeye_daisy` | 256x256 (cutout) | foliage | Realistic, high-detail oxeye daisy: living plant matter, leaves and stems with veins. | delivered |
+| `block/oxidized_chiseled_copper` | 256x256 | patina | Realistic, high-detail oxidized chiseled copper: weathered copper with blue-green verdigris patina. | delivered |
+| `block/oxidized_copper` | 256x256 | patina | Realistic, high-detail oxidized copper: weathered copper with blue-green verdigris patina. | delivered |
+| `block/oxidized_copper_bars` | 256x256 (cutout) | patina | Realistic, high-detail oxidized copper bars: weathered copper with blue-green verdigris patina. | delivered |
+| `block/oxidized_copper_bulb` | 256x256 | patina | Realistic, high-detail oxidized copper bulb: weathered copper with blue-green verdigris patina. | delivered |
+| `block/oxidized_copper_bulb_lit` | 256x256 | glowing | Realistic, high-detail oxidized copper bulb (lit state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/oxidized_copper_bulb_lit_powered` | 256x256 | patina | Realistic, high-detail oxidized copper bulb lit powered: weathered copper with blue-green verdigris patina. | delivered |
+| `block/oxidized_copper_bulb_powered` | 256x256 | patina | Realistic, high-detail oxidized copper bulb powered: weathered copper with blue-green verdigris patina. | delivered |
+| `block/oxidized_copper_chain` | 256x256 (cutout) | patina | Realistic, high-detail oxidized copper chain: weathered copper with blue-green verdigris patina. | delivered |
+| `block/oxidized_copper_door_bottom` | 256x256 | patina | Realistic, high-detail oxidized copper door (bottom face): weathered copper with blue-green verdigris patina. | delivered |
+| `block/oxidized_copper_door_top` | 256x256 (cutout) | patina | Realistic, high-detail oxidized copper door (top face): weathered copper with blue-green verdigris patina. | delivered |
+| `block/oxidized_copper_grate` | 256x256 (cutout) | patina | Realistic, high-detail oxidized copper grate: weathered copper with blue-green verdigris patina. | delivered |
+| `block/oxidized_copper_lantern` | 256x768 (3 frames, cutout) | patina | Realistic, high-detail oxidized copper lantern: weathered copper with blue-green verdigris patina. | delivered |
+| `block/oxidized_copper_trapdoor` | 256x256 (cutout) | patina | Realistic, high-detail oxidized copper trapdoor: weathered copper with blue-green verdigris patina. | delivered |
+| `block/oxidized_cut_copper` | 256x256 | patina | Realistic, high-detail oxidized cut copper: weathered copper with blue-green verdigris patina. | delivered |
+| `block/oxidized_lightning_rod` | 256x256 (cutout) | iron | Realistic, high-detail oxidized lightning rod: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/packed_mud` | 256x256 | ceramic | Realistic, high-detail packed mud: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/pale_hanging_moss` | 256x256 (cutout) | foliage | Realistic, high-detail pale hanging moss: living plant matter, leaves and stems with veins. | delivered |
+| `block/pale_hanging_moss_tip` | 256x256 (cutout) | foliage | Realistic, high-detail pale hanging moss tip: living plant matter, leaves and stems with veins. | delivered |
+| `block/pale_moss_block` | 256x256 | foliage | Realistic, high-detail pale moss block: living plant matter, leaves and stems with veins. | delivered |
+| `block/pale_moss_carpet` | 256x256 | cloth | Realistic, high-detail pale moss carpet: woven wool or felt with visible fibres and weave. | delivered |
+| `block/pale_moss_carpet_side_small` | 256x256 (cutout) | cloth | Realistic, high-detail pale moss carpet side small: woven wool or felt with visible fibres and weave. | delivered |
+| `block/pale_moss_carpet_side_tall` | 256x256 (cutout) | cloth | Realistic, high-detail pale moss carpet side tall: woven wool or felt with visible fibres and weave. | delivered |
+| `block/pale_oak_door_bottom` | 256x256 | wood | Realistic, high-detail pale oak door (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/pale_oak_door_top` | 256x256 | wood | Realistic, high-detail pale oak door (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/pale_oak_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail pale oak hanging sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/pale_oak_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail pale oak leaves: living plant matter, leaves and stems with veins. | delivered |
+| `block/pale_oak_log` | 256x256 | bark | Realistic, high-detail pale oak log: deeply furrowed natural tree bark. | delivered |
+| `block/pale_oak_log_top` | 256x256 | bark | Realistic, high-detail pale oak log (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/pale_oak_planks` | 256x256 | wood | Realistic, high-detail pale oak planks: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/pale_oak_sapling` | 256x256 (cutout) | foliage | Realistic, high-detail pale oak sapling: living plant matter, leaves and stems with veins. | delivered |
+| `block/pale_oak_shelf` | 256x256 | wood | Realistic, high-detail pale oak shelf: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/pale_oak_sign` | 256x256 (cutout) | wood | Realistic, high-detail pale oak sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/pale_oak_trapdoor` | 256x256 | wood | Realistic, high-detail pale oak trapdoor: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/pearlescent_froglight_side` | 256x256 | glowing | Realistic, high-detail pearlescent froglight (side face): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/pearlescent_froglight_top` | 256x256 | glowing | Realistic, high-detail pearlescent froglight (top face): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/peony_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail peony (bottom face): living plant matter, leaves and stems with veins. | delivered |
+| `block/peony_top` | 256x256 (cutout) | foliage | Realistic, high-detail peony (top face): living plant matter, leaves and stems with veins. | delivered |
+| `block/pink_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail pink bed foot east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/pink_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail pink bed foot south: woven wool or felt with visible fibres and weave. | delivered |
+| `block/pink_bed_foot_up` | 256x256 | cloth | Realistic, high-detail pink bed foot up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/pink_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail pink bed foot west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/pink_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail pink bed head east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/pink_bed_head_up` | 256x256 | cloth | Realistic, high-detail pink bed head up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/pink_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail pink bed head west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/pink_candle` | 256x256 (cutout) | organic | Realistic, high-detail pink candle: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/pink_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail pink candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/pink_concrete` | 256x256 | concrete | Realistic, high-detail pink concrete: smooth matte concrete with fine pores. | delivered |
+| `block/pink_concrete_powder` | 256x256 | sand | Realistic, high-detail pink concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/pink_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail pink glazed terracotta: glossy glazed ceramic tile. | delivered |
+| `block/pink_petals` | 256x256 (cutout) | foliage | Realistic, high-detail pink petals: living plant matter, leaves and stems with veins. | delivered |
+| `block/pink_petals_stem` | 256x256 (cutout) | bark | Realistic, high-detail pink petals stem: deeply furrowed natural tree bark. | delivered |
+| `block/pink_shulker_box` | 256x256 | glazed | Realistic, high-detail pink shulker box: glossy glazed ceramic tile. | delivered |
+| `block/pink_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail pink stained glass: clear glass with faint imperfections. | delivered |
+| `block/pink_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail pink stained glass pane (top face): clear glass with faint imperfections. | delivered |
+| `block/pink_terracotta` | 256x256 | ceramic | Realistic, high-detail pink terracotta: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/pink_tulip` | 256x256 (cutout) | foliage | Realistic, high-detail pink tulip: living plant matter, leaves and stems with veins. | delivered |
+| `block/pink_wool` | 256x256 | cloth | Realistic, high-detail pink wool: woven wool or felt with visible fibres and weave. | delivered |
+| `block/piston_bottom` | 256x256 | iron | Realistic, high-detail piston (bottom face): forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/piston_inner` | 256x256 | iron | Realistic, high-detail piston (inside face): forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/piston_side` | 256x256 | iron | Realistic, high-detail piston (side face): forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/piston_top` | 256x256 | iron | Realistic, high-detail piston (top face): forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/piston_top_sticky` | 256x256 | iron | Realistic, high-detail piston top sticky: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/pitcher_crop_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail pitcher crop (bottom face): living plant matter, leaves and stems with veins. | delivered |
+| `block/pitcher_crop_bottom_stage_1` | 256x256 (cutout) | foliage | Realistic, high-detail pitcher crop bottom (growth stage 1): living plant matter, leaves and stems with veins. | delivered |
+| `block/pitcher_crop_bottom_stage_2` | 256x256 (cutout) | foliage | Realistic, high-detail pitcher crop bottom (growth stage 2): living plant matter, leaves and stems with veins. | delivered |
+| `block/pitcher_crop_bottom_stage_3` | 256x256 (cutout) | foliage | Realistic, high-detail pitcher crop bottom (growth stage 3): living plant matter, leaves and stems with veins. | delivered |
+| `block/pitcher_crop_bottom_stage_4` | 256x256 (cutout) | foliage | Realistic, high-detail pitcher crop bottom (growth stage 4): living plant matter, leaves and stems with veins. | delivered |
+| `block/pitcher_crop_side` | 256x256 (cutout) | foliage | Realistic, high-detail pitcher crop (side face): living plant matter, leaves and stems with veins. | delivered |
+| `block/pitcher_crop_top` | 256x256 (cutout) | foliage | Realistic, high-detail pitcher crop (top face): living plant matter, leaves and stems with veins. | delivered |
+| `block/pitcher_crop_top_stage_3` | 256x256 (cutout) | foliage | Realistic, high-detail pitcher crop top (growth stage 3): living plant matter, leaves and stems with veins. | delivered |
+| `block/pitcher_crop_top_stage_4` | 256x256 (cutout) | foliage | Realistic, high-detail pitcher crop top (growth stage 4): living plant matter, leaves and stems with veins. | delivered |
+| `block/pointed_dripstone_down_base` | 256x256 (cutout) | bone | Realistic, high-detail pointed dripstone down base: bleached bone, calcite or dripstone. | delivered |
+| `block/pointed_dripstone_down_frustum` | 256x256 (cutout) | bone | Realistic, high-detail pointed dripstone down frustum: bleached bone, calcite or dripstone. | delivered |
+| `block/pointed_dripstone_down_middle` | 256x256 (cutout) | bone | Realistic, high-detail pointed dripstone down middle: bleached bone, calcite or dripstone. | delivered |
+| `block/pointed_dripstone_down_tip` | 256x256 (cutout) | bone | Realistic, high-detail pointed dripstone down tip: bleached bone, calcite or dripstone. | delivered |
+| `block/pointed_dripstone_down_tip_merge` | 256x256 (cutout) | bone | Realistic, high-detail pointed dripstone down tip merge: bleached bone, calcite or dripstone. | delivered |
+| `block/pointed_dripstone_up_base` | 256x256 (cutout) | bone | Realistic, high-detail pointed dripstone up base: bleached bone, calcite or dripstone. | delivered |
+| `block/pointed_dripstone_up_frustum` | 256x256 (cutout) | bone | Realistic, high-detail pointed dripstone up frustum: bleached bone, calcite or dripstone. | delivered |
+| `block/pointed_dripstone_up_middle` | 256x256 (cutout) | bone | Realistic, high-detail pointed dripstone up middle: bleached bone, calcite or dripstone. | delivered |
+| `block/pointed_dripstone_up_tip` | 256x256 (cutout) | bone | Realistic, high-detail pointed dripstone up tip: bleached bone, calcite or dripstone. | delivered |
+| `block/pointed_dripstone_up_tip_merge` | 256x256 (cutout) | bone | Realistic, high-detail pointed dripstone up tip merge: bleached bone, calcite or dripstone. | delivered |
+| `block/polished_basalt_side` | 256x256 | polished_stone | Realistic, high-detail polished basalt (side face): cut and polished stone with subtle veining. | delivered |
+| `block/polished_basalt_top` | 256x256 | polished_stone | Realistic, high-detail polished basalt (top face): cut and polished stone with subtle veining. | delivered |
+| `block/polished_blackstone` | 256x256 | polished_stone | Realistic, high-detail polished blackstone: cut and polished stone with subtle veining. | delivered |
+| `block/polished_blackstone_bricks` | 256x256 | polished_stone | Realistic, high-detail polished blackstone bricks: cut and polished stone with subtle veining. | delivered |
+| `block/polished_cinnabar` | 256x256 | polished_stone | Realistic, high-detail polished cinnabar: cut and polished stone with subtle veining. | delivered |
+| `block/polished_deepslate` | 256x256 | polished_stone | Realistic, high-detail polished deepslate: cut and polished stone with subtle veining. | delivered |
+| `block/polished_sulfur` | 256x256 | polished_stone | Realistic, high-detail polished sulfur: cut and polished stone with subtle veining. | delivered |
+| `block/polished_tuff` | 256x256 | polished_stone | Realistic, high-detail polished tuff: cut and polished stone with subtle veining. | delivered |
+| `block/poplar_door_bottom` | 256x256 | wood | Realistic, high-detail poplar door (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/poplar_door_top` | 256x256 (cutout) | wood | Realistic, high-detail poplar door (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/poplar_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail poplar hanging sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/poplar_log` | 256x256 | bark | Realistic, high-detail poplar log: deeply furrowed natural tree bark. | delivered |
+| `block/poplar_log_top` | 256x256 | bark | Realistic, high-detail poplar log (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/poplar_planks` | 256x256 | wood | Realistic, high-detail poplar planks: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/poplar_sapling` | 256x256 (cutout) | foliage | Realistic, high-detail poplar sapling: living plant matter, leaves and stems with veins. | delivered |
+| `block/poplar_shelf` | 256x256 | wood | Realistic, high-detail poplar shelf: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/poplar_sign` | 256x256 (cutout) | wood | Realistic, high-detail poplar sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/poplar_trapdoor` | 256x256 (cutout) | wood | Realistic, high-detail poplar trapdoor: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/poppy` | 256x256 (cutout) | foliage | Realistic, high-detail poppy: living plant matter, leaves and stems with veins. | delivered |
+| `block/potatoes_stage0` | 256x256 (cutout) | foliage | Realistic, high-detail potatoes (growth stage 0): living plant matter, leaves and stems with veins. | delivered |
+| `block/potatoes_stage1` | 256x256 (cutout) | foliage | Realistic, high-detail potatoes (growth stage 1): living plant matter, leaves and stems with veins. | delivered |
+| `block/potatoes_stage2` | 256x256 (cutout) | foliage | Realistic, high-detail potatoes (growth stage 2): living plant matter, leaves and stems with veins. | delivered |
+| `block/potatoes_stage3` | 256x256 (cutout) | foliage | Realistic, high-detail potatoes (growth stage 3): living plant matter, leaves and stems with veins. | delivered |
+| `block/potent_sulfur` | 256x256 | stone | Realistic, high-detail potent sulfur: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/potted_azalea_bush_plant` | 256x256 (cutout) | foliage | Realistic, high-detail potted azalea bush plant: living plant matter, leaves and stems with veins. | delivered |
+| `block/potted_azalea_bush_side` | 256x256 (cutout) | foliage | Realistic, high-detail potted azalea bush (side face): living plant matter, leaves and stems with veins. | delivered |
+| `block/potted_azalea_bush_top` | 256x256 (cutout) | foliage | Realistic, high-detail potted azalea bush (top face): living plant matter, leaves and stems with veins. | delivered |
+| `block/potted_flowering_azalea_bush_plant` | 256x256 (cutout) | foliage | Realistic, high-detail potted flowering azalea bush plant: living plant matter, leaves and stems with veins. | delivered |
+| `block/potted_flowering_azalea_bush_side` | 256x256 (cutout) | foliage | Realistic, high-detail potted flowering azalea bush (side face): living plant matter, leaves and stems with veins. | delivered |
+| `block/potted_flowering_azalea_bush_top` | 256x256 (cutout) | foliage | Realistic, high-detail potted flowering azalea bush (top face): living plant matter, leaves and stems with veins. | delivered |
+| `block/powder_snow` | 256x256 | snow | Realistic, high-detail powder snow: soft packed snow with crystalline sparkle. | delivered |
+| `block/powered_rail` | 256x256 (cutout) | iron | Realistic, high-detail powered rail: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/powered_rail_on` | 256x256 (cutout) | glowing | Realistic, high-detail powered rail (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/prismarine` | 256x1024 (4 frames) | gem | Realistic, high-detail prismarine: faceted crystalline gemstone. | delivered |
+| `block/prismarine_bricks` | 256x256 | gem | Realistic, high-detail prismarine bricks: faceted crystalline gemstone. | delivered |
+| `block/pumpkin_side` | 256x256 | foliage | Realistic, high-detail pumpkin (side face): living plant matter, leaves and stems with veins. | delivered |
+| `block/pumpkin_stem` | 256x256 (cutout) | bark | Realistic, high-detail pumpkin stem: deeply furrowed natural tree bark. | delivered |
+| `block/pumpkin_top` | 256x256 | foliage | Realistic, high-detail pumpkin (top face): living plant matter, leaves and stems with veins. | delivered |
+| `block/purple_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail purple bed foot east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/purple_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail purple bed foot south: woven wool or felt with visible fibres and weave. | delivered |
+| `block/purple_bed_foot_up` | 256x256 | cloth | Realistic, high-detail purple bed foot up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/purple_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail purple bed foot west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/purple_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail purple bed head east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/purple_bed_head_up` | 256x256 | cloth | Realistic, high-detail purple bed head up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/purple_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail purple bed head west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/purple_candle` | 256x256 (cutout) | organic | Realistic, high-detail purple candle: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/purple_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail purple candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/purple_concrete` | 256x256 | concrete | Realistic, high-detail purple concrete: smooth matte concrete with fine pores. | delivered |
+| `block/purple_concrete_powder` | 256x256 | sand | Realistic, high-detail purple concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/purple_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail purple glazed terracotta: glossy glazed ceramic tile. | delivered |
+| `block/purple_shulker_box` | 256x256 | glazed | Realistic, high-detail purple shulker box: glossy glazed ceramic tile. | delivered |
+| `block/purple_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail purple stained glass: clear glass with faint imperfections. | delivered |
+| `block/purple_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail purple stained glass pane (top face): clear glass with faint imperfections. | delivered |
+| `block/purple_terracotta` | 256x256 | ceramic | Realistic, high-detail purple terracotta: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/purple_wool` | 256x256 | cloth | Realistic, high-detail purple wool: woven wool or felt with visible fibres and weave. | delivered |
+| `block/purpur_block` | 256x256 | stone | Realistic, high-detail purpur block: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/purpur_pillar_side` | 256x256 | stone | Realistic, high-detail purpur pillar (side face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/purpur_pillar_top` | 256x256 | stone | Realistic, high-detail purpur pillar (top face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/quartz_block_bottom` | 256x256 | polished_stone | Realistic, high-detail quartz block (bottom face): cut and polished stone with subtle veining. | delivered |
+| `block/quartz_block_side` | 256x256 | polished_stone | Realistic, high-detail quartz block (side face): cut and polished stone with subtle veining. | delivered |
+| `block/quartz_block_top` | 256x256 | polished_stone | Realistic, high-detail quartz block (top face): cut and polished stone with subtle veining. | delivered |
+| `block/quartz_bricks` | 256x256 | gem | Realistic, high-detail quartz bricks: faceted crystalline gemstone. | delivered |
+| `block/quartz_pillar_side` | 256x256 | polished_stone | Realistic, high-detail quartz pillar (side face): cut and polished stone with subtle veining. | delivered |
+| `block/quartz_pillar_top` | 256x256 | polished_stone | Realistic, high-detail quartz pillar (top face): cut and polished stone with subtle veining. | delivered |
+| `block/rail` | 256x256 (cutout) | iron | Realistic, high-detail rail: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/rail_corner` | 256x256 (cutout) | iron | Realistic, high-detail rail corner: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/raw_copper_block` | 256x256 | copper | Realistic, high-detail raw copper block: fresh salmon-orange copper with hammer marks. | delivered |
+| `block/raw_gold_block` | 256x256 | gold | Realistic, high-detail raw gold block: polished gold with soft wear. | delivered |
+| `block/raw_iron_block` | 256x256 | iron | Realistic, high-detail raw iron block: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/red_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail red bed foot east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/red_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail red bed foot south: woven wool or felt with visible fibres and weave. | delivered |
+| `block/red_bed_foot_up` | 256x256 | cloth | Realistic, high-detail red bed foot up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/red_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail red bed foot west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/red_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail red bed head east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/red_bed_head_up` | 256x256 | cloth | Realistic, high-detail red bed head up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/red_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail red bed head west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/red_candle` | 256x256 (cutout) | organic | Realistic, high-detail red candle: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/red_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail red candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/red_concrete` | 256x256 | concrete | Realistic, high-detail red concrete: smooth matte concrete with fine pores. | delivered |
+| `block/red_concrete_powder` | 256x256 | sand | Realistic, high-detail red concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/red_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail red glazed terracotta: glossy glazed ceramic tile. | delivered |
+| `block/red_mushroom` | 256x256 (cutout) | organic | Realistic, high-detail red mushroom: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/red_mushroom_block` | 256x256 | organic | Realistic, high-detail red mushroom block: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/red_nether_bricks` | 256x256 | ceramic | Realistic, high-detail red nether bricks: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/red_poplar_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail red poplar leaves: living plant matter, leaves and stems with veins. | delivered |
+| `block/red_sandstone` | 256x256 | sand | Realistic, high-detail red sandstone: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/red_sandstone_bottom` | 256x256 | sand | Realistic, high-detail red sandstone (bottom face): fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/red_sandstone_top` | 256x256 | sand | Realistic, high-detail red sandstone (top face): fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/red_shrub` | 256x256 (cutout) | default | Realistic, high-detail red shrub: a believable real-world material. | delivered |
+| `block/red_shulker_box` | 256x256 | glazed | Realistic, high-detail red shulker box: glossy glazed ceramic tile. | delivered |
+| `block/red_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail red stained glass: clear glass with faint imperfections. | delivered |
+| `block/red_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail red stained glass pane (top face): clear glass with faint imperfections. | delivered |
+| `block/red_terracotta` | 256x256 | ceramic | Realistic, high-detail red terracotta: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/red_tulip` | 256x256 (cutout) | foliage | Realistic, high-detail red tulip: living plant matter, leaves and stems with veins. | delivered |
+| `block/red_wool` | 256x256 | cloth | Realistic, high-detail red wool: woven wool or felt with visible fibres and weave. | delivered |
+| `block/redstone_block` | 256x256 | gem | Realistic, high-detail redstone block: faceted crystalline gemstone. | delivered |
+| `block/redstone_dust_dot` | 256x256 (cutout) | stone | Realistic, high-detail redstone dust dot: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/redstone_dust_line0` | 256x256 (cutout) | stone | Realistic, high-detail redstone dust line0: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/redstone_dust_line1` | 256x256 (cutout) | stone | Realistic, high-detail redstone dust line1: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/redstone_dust_overlay` | 256x256 (cutout) | stone | Realistic, high-detail redstone dust (overlay layer): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/redstone_lamp` | 256x256 | stone | Realistic, high-detail redstone lamp: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/redstone_lamp_on` | 256x256 | glowing | Realistic, high-detail redstone lamp (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/redstone_torch` | 256x256 (cutout) | stone | Realistic, high-detail redstone torch: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/redstone_torch_off` | 256x256 (cutout) | stone | Realistic, high-detail redstone torch off: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/reinforced_deepslate_bottom` | 256x256 | stone | Realistic, high-detail reinforced deepslate (bottom face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/reinforced_deepslate_side` | 256x256 | stone | Realistic, high-detail reinforced deepslate (side face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/reinforced_deepslate_top` | 256x256 | stone | Realistic, high-detail reinforced deepslate (top face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/repeater` | 256x256 | default | Realistic, high-detail repeater: a believable real-world material. | delivered |
+| `block/repeater_on` | 256x256 | glowing | Realistic, high-detail repeater (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/repeating_command_block_back` | 256x1024 (4 frames) | default | Realistic, high-detail repeating command block (back face): a believable real-world material. | delivered |
+| `block/repeating_command_block_conditional` | 256x1024 (4 frames) | default | Realistic, high-detail repeating command block conditional: a believable real-world material. | delivered |
+| `block/repeating_command_block_front` | 256x1024 (4 frames) | default | Realistic, high-detail repeating command block (front face): a believable real-world material. | delivered |
+| `block/repeating_command_block_side` | 256x1024 (4 frames) | default | Realistic, high-detail repeating command block (side face): a believable real-world material. | delivered |
+| `block/resin_block` | 256x256 | gel | Realistic, high-detail resin block: translucent glossy gel. | delivered |
+| `block/resin_bricks` | 256x256 | ceramic | Realistic, high-detail resin bricks: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/resin_clump` | 256x256 (cutout) | default | Realistic, high-detail resin clump: a believable real-world material. | delivered |
+| `block/respawn_anchor_bottom` | 256x256 | stone | Realistic, high-detail respawn anchor (bottom face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/respawn_anchor_side0` | 256x256 | stone | Realistic, high-detail respawn anchor (side face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/respawn_anchor_side1` | 256x256 | stone | Realistic, high-detail respawn anchor (side face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/respawn_anchor_side2` | 256x256 | stone | Realistic, high-detail respawn anchor (side face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/respawn_anchor_side3` | 256x256 | stone | Realistic, high-detail respawn anchor (side face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/respawn_anchor_side4` | 256x256 | stone | Realistic, high-detail respawn anchor (side face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/respawn_anchor_top` | 64x2048 (32 frames) | glowing | Realistic, high-detail respawn anchor (top face): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/respawn_anchor_top_off` | 256x256 | stone | Realistic, high-detail respawn anchor top off: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/rooted_dirt` | 256x256 | soil | Realistic, high-detail rooted dirt: loose earthy soil with small pebbles, roots and crumbs. | delivered |
+| `block/rose_bush_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail rose bush (bottom face): living plant matter, leaves and stems with veins. | delivered |
+| `block/rose_bush_top` | 256x256 (cutout) | foliage | Realistic, high-detail rose bush (top face): living plant matter, leaves and stems with veins. | delivered |
+| `block/sandstone_bottom` | 256x256 | sand | Realistic, high-detail sandstone (bottom face): fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/scaffolding_bottom` | 256x256 (cutout) | wood | Realistic, high-detail scaffolding (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/scaffolding_side` | 256x256 (cutout) | wood | Realistic, high-detail scaffolding (side face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/scaffolding_top` | 256x256 (cutout) | wood | Realistic, high-detail scaffolding (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/sculk` | 256x1024 (4 frames) | organic | Realistic, high-detail sculk: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sculk_catalyst_bottom` | 256x256 | organic | Realistic, high-detail sculk catalyst (bottom face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sculk_catalyst_side` | 256x256 | organic | Realistic, high-detail sculk catalyst (side face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sculk_catalyst_side_bloom` | 256x2048 (8 frames) | glowing | Realistic, high-detail sculk catalyst side bloom: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/sculk_catalyst_top` | 256x256 | organic | Realistic, high-detail sculk catalyst (top face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sculk_catalyst_top_bloom` | 256x2048 (8 frames) | glowing | Realistic, high-detail sculk catalyst top bloom: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/sculk_sensor_bottom` | 256x256 | organic | Realistic, high-detail sculk sensor (bottom face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sculk_sensor_side` | 256x256 (cutout) | organic | Realistic, high-detail sculk sensor (side face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sculk_sensor_tendril_active` | 128x2048 (16 frames, cutout) | organic | Realistic, high-detail sculk sensor tendril active: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sculk_sensor_tendril_inactive` | 128x2048 (16 frames, cutout) | organic | Realistic, high-detail sculk sensor tendril inactive: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sculk_sensor_top` | 256x256 | organic | Realistic, high-detail sculk sensor (top face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sculk_shrieker_bottom` | 256x256 | organic | Realistic, high-detail sculk shrieker (bottom face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sculk_shrieker_can_summon_inner_top` | 128x1280 (10 frames) | organic | Realistic, high-detail sculk shrieker can summon (top face, inside face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sculk_shrieker_inner_top` | 128x1280 (10 frames) | organic | Realistic, high-detail sculk shrieker (top face, inside face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sculk_shrieker_side` | 256x256 (cutout) | organic | Realistic, high-detail sculk shrieker (side face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sculk_shrieker_top` | 256x256 (cutout) | organic | Realistic, high-detail sculk shrieker (top face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sculk_vein` | 256x1024 (4 frames, cutout) | organic | Realistic, high-detail sculk vein: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sea_lantern` | 256x1280 (5 frames) | glowing | Realistic, high-detail sea lantern: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/sea_pickle` | 256x256 (cutout) | gem | Realistic, high-detail sea pickle: faceted crystalline gemstone. | delivered |
+| `block/seagrass` | 64x1152 (18 frames, cutout) | foliage | Realistic, high-detail seagrass: living plant matter, leaves and stems with veins. | delivered |
+| `block/shelf_mushroom_particle` | 256x256 | organic | Realistic, high-detail shelf mushroom particle: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/shelf_mushroom_stage0` | 256x256 | organic | Realistic, high-detail shelf mushroom (growth stage 0): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/shelf_mushroom_stage1` | 256x256 | organic | Realistic, high-detail shelf mushroom (growth stage 1): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/short_dry_grass` | 256x256 (cutout) | foliage | Realistic, high-detail short dry grass: living plant matter, leaves and stems with veins. | delivered |
+| `block/short_grass` | 256x256 (cutout) | foliage | Realistic, high-detail short grass: living plant matter, leaves and stems with veins. | delivered |
+| `block/shroomlight` | 256x256 | glowing | Realistic, high-detail shroomlight: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/shulker_box` | 256x256 | glazed | Realistic, high-detail shulker box: glossy glazed ceramic tile. | delivered |
+| `block/slime_block` | 256x256 (translucent) | gel | Realistic, high-detail slime block: translucent glossy gel. | delivered |
+| `block/small_amethyst_bud` | 256x256 (cutout) | gem | Realistic, high-detail small amethyst bud: faceted crystalline gemstone. | delivered |
+| `block/small_dripleaf_side` | 256x256 (cutout) | foliage | Realistic, high-detail small dripleaf (side face): living plant matter, leaves and stems with veins. | delivered |
+| `block/small_dripleaf_stem_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail small dripleaf stem (bottom face): living plant matter, leaves and stems with veins. | delivered |
+| `block/small_dripleaf_stem_top` | 256x256 (cutout) | bark | Realistic, high-detail small dripleaf stem (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/small_dripleaf_top` | 256x256 (cutout) | foliage | Realistic, high-detail small dripleaf (top face): living plant matter, leaves and stems with veins. | delivered |
+| `block/smithing_table_bottom` | 256x256 | wood | Realistic, high-detail smithing table (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/smithing_table_front` | 256x256 | wood | Realistic, high-detail smithing table (front face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/smithing_table_side` | 256x256 | wood | Realistic, high-detail smithing table (side face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/smithing_table_top` | 256x256 | wood | Realistic, high-detail smithing table (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/smoker_bottom` | 256x256 | stone | Realistic, high-detail smoker (bottom face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/smoker_front` | 256x256 | stone | Realistic, high-detail smoker (front face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/smoker_front_on` | 256x768 (3 frames) | glowing | Realistic, high-detail smoker front (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/smoker_side` | 256x256 | stone | Realistic, high-detail smoker (side face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/smoker_top` | 256x256 | stone | Realistic, high-detail smoker (top face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/smooth_basalt` | 256x256 | polished_stone | Realistic, high-detail smooth basalt: cut and polished stone with subtle veining. | delivered |
+| `block/smooth_stone_slab_side` | 256x256 | polished_stone | Realistic, high-detail smooth stone slab (side face): cut and polished stone with subtle veining. | delivered |
+| `block/sniffer_egg_not_cracked_bottom` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg not cracked (bottom face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sniffer_egg_not_cracked_east` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg not cracked east: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sniffer_egg_not_cracked_north` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg not cracked north: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sniffer_egg_not_cracked_south` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg not cracked south: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sniffer_egg_not_cracked_top` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg not cracked (top face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sniffer_egg_not_cracked_west` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg not cracked west: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sniffer_egg_slightly_cracked_bottom` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg slightly cracked (bottom face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sniffer_egg_slightly_cracked_east` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg slightly cracked east: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sniffer_egg_slightly_cracked_north` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg slightly cracked north: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sniffer_egg_slightly_cracked_south` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg slightly cracked south: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sniffer_egg_slightly_cracked_top` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg slightly cracked (top face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sniffer_egg_slightly_cracked_west` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg slightly cracked west: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sniffer_egg_very_cracked_bottom` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg very cracked (bottom face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sniffer_egg_very_cracked_east` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg very cracked east: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sniffer_egg_very_cracked_north` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg very cracked north: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sniffer_egg_very_cracked_south` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg very cracked south: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sniffer_egg_very_cracked_top` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg very cracked (top face): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/sniffer_egg_very_cracked_west` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg very cracked west: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/soul_campfire_fire` | 256x2048 (8 frames, cutout) | glowing | Realistic, high-detail soul campfire fire: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/soul_campfire_log_lit` | 256x1024 (4 frames) | glowing | Realistic, high-detail soul campfire log (lit state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/soul_fire_0` | 64x2048 (32 frames, cutout) | glowing | Realistic, high-detail soul fire 0: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/soul_fire_1` | 64x2048 (32 frames, cutout) | glowing | Realistic, high-detail soul fire 1: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/soul_lantern` | 256x768 (3 frames, cutout) | iron | Realistic, high-detail soul lantern: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/soul_soil` | 256x256 | soil | Realistic, high-detail soul soil: loose earthy soil with small pebbles, roots and crumbs. | delivered |
+| `block/soul_torch` | 256x256 (cutout) | glowing | Realistic, high-detail soul torch: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/spawner` | 256x256 (cutout) | stone | Realistic, high-detail spawner: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/sponge` | 256x256 | organic | Realistic, high-detail sponge: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/spore_blossom` | 256x256 (cutout) | foliage | Realistic, high-detail spore blossom: living plant matter, leaves and stems with veins. | delivered |
+| `block/spore_blossom_base` | 256x256 (cutout) | foliage | Realistic, high-detail spore blossom base: living plant matter, leaves and stems with veins. | delivered |
+| `block/spruce_door_bottom` | 256x256 | wood | Realistic, high-detail spruce door (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/spruce_door_top` | 256x256 | wood | Realistic, high-detail spruce door (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/spruce_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail spruce hanging sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/spruce_sapling` | 256x256 (cutout) | foliage | Realistic, high-detail spruce sapling: living plant matter, leaves and stems with veins. | delivered |
+| `block/spruce_shelf` | 256x256 | wood | Realistic, high-detail spruce shelf: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/spruce_sign` | 256x256 (cutout) | wood | Realistic, high-detail spruce sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/spruce_trapdoor` | 256x256 | wood | Realistic, high-detail spruce trapdoor: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/stonecutter_bottom` | 256x256 | stone | Realistic, high-detail stonecutter (bottom face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/stonecutter_saw` | 256x768 (3 frames, cutout) | iron | Realistic, high-detail stonecutter saw: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/stonecutter_side` | 256x256 (cutout) | stone | Realistic, high-detail stonecutter (side face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/stonecutter_top` | 256x256 | stone | Realistic, high-detail stonecutter (top face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/straw_bed` | 512x512 (cutout) | default | Realistic, high-detail straw bed: a believable real-world material. | delivered |
+| `block/straw_bed_particle` | 256x256 | cloth | Realistic, high-detail straw bed particle: woven wool or felt with visible fibres and weave. | delivered |
+| `block/stripped_acacia_log` | 256x256 | bark | Realistic, high-detail stripped acacia log: deeply furrowed natural tree bark. | delivered |
+| `block/stripped_acacia_log_top` | 256x256 | bark | Realistic, high-detail stripped acacia log (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/stripped_bamboo_block` | 256x256 | bark | Realistic, high-detail stripped bamboo block: deeply furrowed natural tree bark. | delivered |
+| `block/stripped_bamboo_block_top` | 256x256 | bark | Realistic, high-detail stripped bamboo block (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/stripped_birch_log` | 256x256 | bark | Realistic, high-detail stripped birch log: deeply furrowed natural tree bark. | delivered |
+| `block/stripped_birch_log_top` | 256x256 | bark | Realistic, high-detail stripped birch log (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/stripped_cherry_log` | 256x256 | bark | Realistic, high-detail stripped cherry log: deeply furrowed natural tree bark. | delivered |
+| `block/stripped_cherry_log_top` | 256x256 | bark | Realistic, high-detail stripped cherry log (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/stripped_crimson_stem` | 256x256 | bark | Realistic, high-detail stripped crimson stem: deeply furrowed natural tree bark. | delivered |
+| `block/stripped_crimson_stem_top` | 256x256 | bark | Realistic, high-detail stripped crimson stem (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/stripped_dark_oak_log` | 256x256 | bark | Realistic, high-detail stripped dark oak log: deeply furrowed natural tree bark. | delivered |
+| `block/stripped_dark_oak_log_top` | 256x256 | bark | Realistic, high-detail stripped dark oak log (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/stripped_jungle_log` | 256x256 | bark | Realistic, high-detail stripped jungle log: deeply furrowed natural tree bark. | delivered |
+| `block/stripped_jungle_log_top` | 256x256 | bark | Realistic, high-detail stripped jungle log (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/stripped_mangrove_log` | 256x256 | bark | Realistic, high-detail stripped mangrove log: deeply furrowed natural tree bark. | delivered |
+| `block/stripped_mangrove_log_top` | 256x256 | bark | Realistic, high-detail stripped mangrove log (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/stripped_oak_log` | 256x256 | bark | Realistic, high-detail stripped oak log: deeply furrowed natural tree bark. | delivered |
+| `block/stripped_oak_log_top` | 256x256 | bark | Realistic, high-detail stripped oak log (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/stripped_pale_oak_log` | 256x256 | bark | Realistic, high-detail stripped pale oak log: deeply furrowed natural tree bark. | delivered |
+| `block/stripped_pale_oak_log_top` | 256x256 | bark | Realistic, high-detail stripped pale oak log (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/stripped_poplar_log` | 256x256 | bark | Realistic, high-detail stripped poplar log: deeply furrowed natural tree bark. | delivered |
+| `block/stripped_poplar_log_top` | 256x256 | bark | Realistic, high-detail stripped poplar log (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/stripped_spruce_log` | 256x256 | bark | Realistic, high-detail stripped spruce log: deeply furrowed natural tree bark. | delivered |
+| `block/stripped_spruce_log_top` | 256x256 | bark | Realistic, high-detail stripped spruce log (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/stripped_warped_stem` | 256x256 | bark | Realistic, high-detail stripped warped stem: deeply furrowed natural tree bark. | delivered |
+| `block/stripped_warped_stem_top` | 256x256 | bark | Realistic, high-detail stripped warped stem (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/sugar_cane` | 256x256 (cutout) | foliage | Realistic, high-detail sugar cane: living plant matter, leaves and stems with veins. | delivered |
+| `block/sulfur` | 256x256 | stone | Realistic, high-detail sulfur: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/sulfur_bricks` | 256x256 | ceramic | Realistic, high-detail sulfur bricks: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/sulfur_spike_down_base` | 256x256 (cutout) | stone | Realistic, high-detail sulfur spike down base: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/sulfur_spike_down_frustum` | 256x256 (cutout) | stone | Realistic, high-detail sulfur spike down frustum: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/sulfur_spike_down_middle` | 256x256 (cutout) | stone | Realistic, high-detail sulfur spike down middle: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/sulfur_spike_down_tip` | 256x256 (cutout) | stone | Realistic, high-detail sulfur spike down tip: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/sulfur_spike_down_tip_merge` | 256x256 (cutout) | stone | Realistic, high-detail sulfur spike down tip merge: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/sulfur_spike_up_base` | 256x256 (cutout) | stone | Realistic, high-detail sulfur spike up base: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/sulfur_spike_up_frustum` | 256x256 (cutout) | stone | Realistic, high-detail sulfur spike up frustum: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/sulfur_spike_up_middle` | 256x256 (cutout) | stone | Realistic, high-detail sulfur spike up middle: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/sulfur_spike_up_tip` | 256x256 (cutout) | stone | Realistic, high-detail sulfur spike up tip: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/sulfur_spike_up_tip_merge` | 256x256 (cutout) | stone | Realistic, high-detail sulfur spike up tip merge: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/sunflower_back` | 256x256 (cutout) | foliage | Realistic, high-detail sunflower (back face): living plant matter, leaves and stems with veins. | delivered |
+| `block/sunflower_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail sunflower (bottom face): living plant matter, leaves and stems with veins. | delivered |
+| `block/sunflower_front` | 256x256 (cutout) | foliage | Realistic, high-detail sunflower (front face): living plant matter, leaves and stems with veins. | delivered |
+| `block/sunflower_top` | 256x256 (cutout) | foliage | Realistic, high-detail sunflower (top face): living plant matter, leaves and stems with veins. | delivered |
+| `block/suspicious_gravel_0` | 256x256 | sand | Realistic, high-detail suspicious gravel 0: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/suspicious_gravel_1` | 256x256 | sand | Realistic, high-detail suspicious gravel 1: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/suspicious_gravel_2` | 256x256 | sand | Realistic, high-detail suspicious gravel 2: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/suspicious_gravel_3` | 256x256 | sand | Realistic, high-detail suspicious gravel 3: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/suspicious_sand_0` | 256x256 | sand | Realistic, high-detail suspicious sand 0: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/suspicious_sand_1` | 256x256 | sand | Realistic, high-detail suspicious sand 1: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/suspicious_sand_2` | 256x256 | sand | Realistic, high-detail suspicious sand 2: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/suspicious_sand_3` | 256x256 | sand | Realistic, high-detail suspicious sand 3: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/sweet_berry_bush_stage0` | 256x256 (cutout) | foliage | Realistic, high-detail sweet berry bush (growth stage 0): living plant matter, leaves and stems with veins. | delivered |
+| `block/sweet_berry_bush_stage1` | 256x256 (cutout) | foliage | Realistic, high-detail sweet berry bush (growth stage 1): living plant matter, leaves and stems with veins. | delivered |
+| `block/sweet_berry_bush_stage2` | 256x256 (cutout) | foliage | Realistic, high-detail sweet berry bush (growth stage 2): living plant matter, leaves and stems with veins. | delivered |
+| `block/sweet_berry_bush_stage3` | 256x256 (cutout) | foliage | Realistic, high-detail sweet berry bush (growth stage 3): living plant matter, leaves and stems with veins. | delivered |
+| `block/tall_dry_grass` | 256x256 (cutout) | foliage | Realistic, high-detail tall dry grass: living plant matter, leaves and stems with veins. | delivered |
+| `block/tall_grass_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail tall grass (bottom face): living plant matter, leaves and stems with veins. | delivered |
+| `block/tall_grass_top` | 256x256 (cutout) | foliage | Realistic, high-detail tall grass (top face): living plant matter, leaves and stems with veins. | delivered |
+| `block/tall_seagrass_bottom` | 64x1216 (19 frames, cutout) | foliage | Realistic, high-detail tall seagrass (bottom face): living plant matter, leaves and stems with veins. | delivered |
+| `block/tall_seagrass_top` | 64x1216 (19 frames, cutout) | foliage | Realistic, high-detail tall seagrass (top face): living plant matter, leaves and stems with veins. | delivered |
+| `block/target_side` | 256x256 | cloth | Realistic, high-detail target (side face): woven wool or felt with visible fibres and weave. | delivered |
+| `block/target_top` | 256x256 | cloth | Realistic, high-detail target (top face): woven wool or felt with visible fibres and weave. | delivered |
+| `block/tinted_glass` | 256x256 (translucent) | glass | Realistic, high-detail tinted glass: clear glass with faint imperfections. | delivered |
+| `block/tnt_bottom` | 256x256 | paper | Realistic, high-detail tnt (bottom face): paper, books and worked wood. | delivered |
+| `block/tnt_top` | 256x256 | paper | Realistic, high-detail tnt (top face): paper, books and worked wood. | delivered |
+| `block/torchflower` | 256x256 (cutout) | foliage | Realistic, high-detail torchflower: living plant matter, leaves and stems with veins. | delivered |
+| `block/torchflower_crop_stage0` | 256x256 (cutout) | foliage | Realistic, high-detail torchflower crop (growth stage 0): living plant matter, leaves and stems with veins. | delivered |
+| `block/torchflower_crop_stage1` | 256x256 (cutout) | foliage | Realistic, high-detail torchflower crop (growth stage 1): living plant matter, leaves and stems with veins. | delivered |
+| `block/trial_spawner_bottom` | 256x256 (cutout) | stone | Realistic, high-detail trial spawner (bottom face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/trial_spawner_side_active` | 256x256 (cutout) | stone | Realistic, high-detail trial spawner side active: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/trial_spawner_side_active_ominous` | 256x256 (cutout) | stone | Realistic, high-detail trial spawner side active ominous: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/trial_spawner_side_inactive` | 256x256 (cutout) | stone | Realistic, high-detail trial spawner side inactive: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/trial_spawner_side_inactive_ominous` | 256x256 (cutout) | stone | Realistic, high-detail trial spawner side inactive ominous: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/trial_spawner_top_active` | 256x256 | stone | Realistic, high-detail trial spawner top active: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/trial_spawner_top_active_ominous` | 256x256 | stone | Realistic, high-detail trial spawner top active ominous: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/trial_spawner_top_ejecting_reward` | 256x256 | stone | Realistic, high-detail trial spawner top ejecting reward: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/trial_spawner_top_ejecting_reward_ominous` | 256x256 | stone | Realistic, high-detail trial spawner top ejecting reward ominous: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/trial_spawner_top_inactive` | 256x256 | stone | Realistic, high-detail trial spawner top inactive: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/trial_spawner_top_inactive_ominous` | 256x256 | stone | Realistic, high-detail trial spawner top inactive ominous: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/tripwire` | 256x256 (translucent) | default | Realistic, high-detail tripwire: a believable real-world material. | delivered |
+| `block/tripwire_hook` | 256x256 (cutout) | default | Realistic, high-detail tripwire hook: a believable real-world material. | delivered |
+| `block/tube_coral` | 256x256 (cutout) | organic | Realistic, high-detail tube coral: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/tube_coral_block` | 256x256 | organic | Realistic, high-detail tube coral block: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/tube_coral_fan` | 256x256 (cutout) | organic | Realistic, high-detail tube coral fan: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/tuff_bricks` | 256x256 | ceramic | Realistic, high-detail tuff bricks: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/turtle_egg` | 256x256 (cutout) | organic | Realistic, high-detail turtle egg: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/turtle_egg_slightly_cracked` | 256x256 (cutout) | organic | Realistic, high-detail turtle egg slightly cracked: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/turtle_egg_very_cracked` | 256x256 (cutout) | organic | Realistic, high-detail turtle egg very cracked: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/twisting_vines` | 256x256 (cutout) | foliage | Realistic, high-detail twisting vines: living plant matter, leaves and stems with veins. | delivered |
+| `block/twisting_vines_plant` | 256x256 (cutout) | foliage | Realistic, high-detail twisting vines plant: living plant matter, leaves and stems with veins. | delivered |
+| `block/vault_bottom` | 256x256 | stone | Realistic, high-detail vault (bottom face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/vault_bottom_ominous` | 256x256 | stone | Realistic, high-detail vault bottom ominous: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/vault_front_ejecting` | 256x256 (cutout) | stone | Realistic, high-detail vault front ejecting: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/vault_front_ejecting_ominous` | 256x256 (cutout) | stone | Realistic, high-detail vault front ejecting ominous: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/vault_front_off` | 256x256 (cutout) | stone | Realistic, high-detail vault front off: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/vault_front_off_ominous` | 256x256 (cutout) | stone | Realistic, high-detail vault front off ominous: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/vault_front_on` | 256x256 (cutout) | glowing | Realistic, high-detail vault front (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/vault_front_on_ominous` | 256x256 (cutout) | stone | Realistic, high-detail vault front on ominous: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/vault_side_off` | 256x256 (cutout) | stone | Realistic, high-detail vault side off: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/vault_side_off_ominous` | 256x256 (cutout) | stone | Realistic, high-detail vault side off ominous: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/vault_side_on` | 256x256 (cutout) | glowing | Realistic, high-detail vault side (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/vault_side_on_ominous` | 256x256 (cutout) | stone | Realistic, high-detail vault side on ominous: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/vault_top` | 256x256 | stone | Realistic, high-detail vault (top face): natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/vault_top_ejecting` | 256x256 | stone | Realistic, high-detail vault top ejecting: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/vault_top_ejecting_ominous` | 256x256 | stone | Realistic, high-detail vault top ejecting ominous: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/vault_top_ominous` | 256x256 | stone | Realistic, high-detail vault top ominous: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/verdant_froglight_side` | 256x256 | glowing | Realistic, high-detail verdant froglight (side face): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/verdant_froglight_top` | 256x256 | glowing | Realistic, high-detail verdant froglight (top face): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/vine` | 256x256 (cutout) | foliage | Realistic, high-detail vine: living plant matter, leaves and stems with veins. | delivered |
+| `block/warped_door_bottom` | 256x256 | wood | Realistic, high-detail warped door (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/warped_door_top` | 256x256 | wood | Realistic, high-detail warped door (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/warped_fungus` | 256x256 (cutout) | foliage | Realistic, high-detail warped fungus: living plant matter, leaves and stems with veins. | delivered |
+| `block/warped_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail warped hanging sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/warped_nylium` | 256x256 | grass | Realistic, high-detail warped nylium: dense living grass and soil. | delivered |
+| `block/warped_nylium_side` | 256x256 | grass | Realistic, high-detail warped nylium (side face): dense living grass and soil. | delivered |
+| `block/warped_planks` | 256x256 | wood | Realistic, high-detail warped planks: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/warped_roots` | 256x256 (cutout) | foliage | Realistic, high-detail warped roots: living plant matter, leaves and stems with veins. | delivered |
+| `block/warped_roots_pot` | 256x256 (cutout) | foliage | Realistic, high-detail warped roots pot: living plant matter, leaves and stems with veins. | delivered |
+| `block/warped_shelf` | 256x256 | wood | Realistic, high-detail warped shelf: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/warped_sign` | 256x256 (cutout) | wood | Realistic, high-detail warped sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/warped_stem` | 256x1280 (5 frames) | bark | Realistic, high-detail warped stem: deeply furrowed natural tree bark. | delivered |
+| `block/warped_stem_top` | 256x256 | bark | Realistic, high-detail warped stem (top face): end grain with growth rings inside a rim of bark. | delivered |
+| `block/warped_trapdoor` | 256x256 (cutout) | wood | Realistic, high-detail warped trapdoor: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/warped_wart_block` | 256x256 | foliage | Realistic, high-detail warped wart block: living plant matter, leaves and stems with veins. | delivered |
+| `block/water_overlay` | 256x256 (translucent) | water | Realistic, high-detail water (overlay layer): clear water surface. | delivered |
+| `block/weathered_chiseled_copper` | 256x256 | patina | Realistic, high-detail weathered chiseled copper: weathered copper with blue-green verdigris patina. | delivered |
+| `block/weathered_copper` | 256x256 | patina | Realistic, high-detail weathered copper: weathered copper with blue-green verdigris patina. | delivered |
+| `block/weathered_copper_bars` | 256x256 (cutout) | patina | Realistic, high-detail weathered copper bars: weathered copper with blue-green verdigris patina. | delivered |
+| `block/weathered_copper_bulb` | 256x256 | patina | Realistic, high-detail weathered copper bulb: weathered copper with blue-green verdigris patina. | delivered |
+| `block/weathered_copper_bulb_lit` | 256x256 | glowing | Realistic, high-detail weathered copper bulb (lit state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/weathered_copper_bulb_lit_powered` | 256x256 | patina | Realistic, high-detail weathered copper bulb lit powered: weathered copper with blue-green verdigris patina. | delivered |
+| `block/weathered_copper_bulb_powered` | 256x256 | patina | Realistic, high-detail weathered copper bulb powered: weathered copper with blue-green verdigris patina. | delivered |
+| `block/weathered_copper_chain` | 256x256 (cutout) | patina | Realistic, high-detail weathered copper chain: weathered copper with blue-green verdigris patina. | delivered |
+| `block/weathered_copper_door_bottom` | 256x256 | patina | Realistic, high-detail weathered copper door (bottom face): weathered copper with blue-green verdigris patina. | delivered |
+| `block/weathered_copper_door_top` | 256x256 (cutout) | patina | Realistic, high-detail weathered copper door (top face): weathered copper with blue-green verdigris patina. | delivered |
+| `block/weathered_copper_grate` | 256x256 (cutout) | patina | Realistic, high-detail weathered copper grate: weathered copper with blue-green verdigris patina. | delivered |
+| `block/weathered_copper_lantern` | 256x768 (3 frames, cutout) | patina | Realistic, high-detail weathered copper lantern: weathered copper with blue-green verdigris patina. | delivered |
+| `block/weathered_copper_trapdoor` | 256x256 (cutout) | patina | Realistic, high-detail weathered copper trapdoor: weathered copper with blue-green verdigris patina. | delivered |
+| `block/weathered_cut_copper` | 256x256 | patina | Realistic, high-detail weathered cut copper: weathered copper with blue-green verdigris patina. | delivered |
+| `block/weathered_lightning_rod` | 256x256 (cutout) | iron | Realistic, high-detail weathered lightning rod: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/weeping_vines` | 256x256 (cutout) | foliage | Realistic, high-detail weeping vines: living plant matter, leaves and stems with veins. | delivered |
+| `block/weeping_vines_plant` | 256x256 (cutout) | foliage | Realistic, high-detail weeping vines plant: living plant matter, leaves and stems with veins. | delivered |
+| `block/wet_sponge` | 256x256 | organic | Realistic, high-detail wet sponge: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/wheat_stage0` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 0): living plant matter, leaves and stems with veins. | delivered |
+| `block/wheat_stage1` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 1): living plant matter, leaves and stems with veins. | delivered |
+| `block/wheat_stage2` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 2): living plant matter, leaves and stems with veins. | delivered |
+| `block/wheat_stage3` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 3): living plant matter, leaves and stems with veins. | delivered |
+| `block/wheat_stage4` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 4): living plant matter, leaves and stems with veins. | delivered |
+| `block/wheat_stage5` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 5): living plant matter, leaves and stems with veins. | delivered |
+| `block/wheat_stage6` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 6): living plant matter, leaves and stems with veins. | delivered |
+| `block/wheat_stage7` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 7): living plant matter, leaves and stems with veins. | delivered |
+| `block/white_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail white bed foot east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/white_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail white bed foot south: woven wool or felt with visible fibres and weave. | delivered |
+| `block/white_bed_foot_up` | 256x256 | cloth | Realistic, high-detail white bed foot up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/white_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail white bed foot west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/white_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail white bed head east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/white_bed_head_up` | 256x256 | cloth | Realistic, high-detail white bed head up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/white_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail white bed head west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/white_candle` | 256x256 (cutout) | organic | Realistic, high-detail white candle: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/white_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail white candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/white_concrete` | 256x256 | concrete | Realistic, high-detail white concrete: smooth matte concrete with fine pores. | delivered |
+| `block/white_concrete_powder` | 256x256 | sand | Realistic, high-detail white concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/white_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail white glazed terracotta: glossy glazed ceramic tile. | delivered |
+| `block/white_shulker_box` | 256x256 | glazed | Realistic, high-detail white shulker box: glossy glazed ceramic tile. | delivered |
+| `block/white_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail white stained glass: clear glass with faint imperfections. | delivered |
+| `block/white_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail white stained glass pane (top face): clear glass with faint imperfections. | delivered |
+| `block/white_terracotta` | 256x256 | ceramic | Realistic, high-detail white terracotta: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/white_tulip` | 256x256 (cutout) | foliage | Realistic, high-detail white tulip: living plant matter, leaves and stems with veins. | delivered |
+| `block/wildflowers` | 256x256 (cutout) | foliage | Realistic, high-detail wildflowers: living plant matter, leaves and stems with veins. | delivered |
+| `block/wildflowers_stem` | 256x256 (cutout) | bark | Realistic, high-detail wildflowers stem: deeply furrowed natural tree bark. | delivered |
+| `block/wither_rose` | 256x256 (cutout) | foliage | Realistic, high-detail wither rose: living plant matter, leaves and stems with veins. | delivered |
+| `block/yellow_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail yellow bed foot east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/yellow_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail yellow bed foot south: woven wool or felt with visible fibres and weave. | delivered |
+| `block/yellow_bed_foot_up` | 256x256 | cloth | Realistic, high-detail yellow bed foot up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/yellow_bed_foot_west` | 256x256 (cutout) | cloth | Realistic, high-detail yellow bed foot west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/yellow_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail yellow bed head east: woven wool or felt with visible fibres and weave. | delivered |
+| `block/yellow_bed_head_up` | 256x256 | cloth | Realistic, high-detail yellow bed head up: woven wool or felt with visible fibres and weave. | delivered |
+| `block/yellow_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail yellow bed head west: woven wool or felt with visible fibres and weave. | delivered |
+| `block/yellow_candle` | 256x256 (cutout) | organic | Realistic, high-detail yellow candle: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/yellow_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail yellow candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/yellow_concrete` | 256x256 | concrete | Realistic, high-detail yellow concrete: smooth matte concrete with fine pores. | delivered |
+| `block/yellow_concrete_powder` | 256x256 | sand | Realistic, high-detail yellow concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
+| `block/yellow_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail yellow glazed terracotta: glossy glazed ceramic tile. | delivered |
+| `block/yellow_poplar_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail yellow poplar leaves: living plant matter, leaves and stems with veins. | delivered |
+| `block/yellow_shulker_box` | 256x256 | glazed | Realistic, high-detail yellow shulker box: glossy glazed ceramic tile. | delivered |
+| `block/yellow_stained_glass` | 256x256 (translucent) | glass | Realistic, high-detail yellow stained glass: clear glass with faint imperfections. | delivered |
+| `block/yellow_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail yellow stained glass pane (top face): clear glass with faint imperfections. | delivered |
+| `block/yellow_terracotta` | 256x256 | ceramic | Realistic, high-detail yellow terracotta: fired clay, brick or terracotta with mortar and small chips. | delivered |
+| `block/yellow_wool` | 256x256 | cloth | Realistic, high-detail yellow wool: woven wool or felt with visible fibres and weave. | delivered |

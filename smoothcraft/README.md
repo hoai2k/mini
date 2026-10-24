@@ -40,8 +40,9 @@ renders the world as smooth shapes instead of cubes:
   rippling reflective water and an ACES filmic tonemap. Sun light only reaches
   where the sky does, a cheap stand-in for shadows.
 - **High-resolution realistic textures** from the image requests: a
-  built-in resource pack, "Smoothcraft HD textures", on by default, holds
-  each one as it is delivered. Until then vanilla's textures are used.
+  built-in resource pack, "Smoothcraft HD textures", on by default, contains
+  all 2,024 requested block, entity and sky textures, including 56 animated
+  sheets. Vanilla textures remain available for assets outside that catalog.
 
 Press **F8** in game to switch the smooth world off and on (for comparing);
 the settings live in `config/smoothcraft.json`:
@@ -62,7 +63,9 @@ Known limits, for now: no real shadow maps (sky access stands in for
 them); the water surface itself stays flat (its edges are covered by the
 shore strip, but waterfalls and flowing water keep their block shapes);
 mobs get the rounded shape but not per-mob materials (the entity shader is
-vanilla's); and the HD pack is empty until the requested images arrive.
+vanilla's). Automated texture checks cover sizes, masks, tint maps, repeating
+edges and animation metadata; in-game visual review covers representative scenes
+and mobs, rather than every variant.
 
 ## Install
 
@@ -107,6 +110,16 @@ upscaled copy of each vanilla texture from your own jar into
 `local/smoothcraft/references/` (outside Git) to paint over. Delivered images
 go in [`intake/`](intake/README.md).
 
+All current requests are delivered in the built-in HD pack. Generation provenance,
+file hashes and preparation details are in
+[`design/generated/reference-guided/`](design/generated/reference-guided/README.md).
+From the repository root, validate the complete pack against your matching client jar:
+
+```sh
+python3 smoothcraft/tools/check_textures.py --jar path/to/minecraft-client.jar --complete
+python3 -m unittest discover -s smoothcraft/tools -p 'test_*.py'
+```
+
 ## Build and checks
 
 From `smoothcraft/mod` (Java 25; the Gradle wrapper fetches Gradle 9.8):
@@ -127,6 +140,8 @@ shader does not compile or the chunks never finish meshing. Without a GPU it run
 on a virtual display with software OpenGL:
 `Xvfb :99 -screen 0 1280x720x24 & DISPLAY=:99 ./gradlew runClientGameTest`
 (the test source set asks for a non-sRGB window, which Xvfb needs).
+Set `SMOOTHCRAFT_TEXTURE_REVIEW=true` to include close views of sixteen mob types
+and the iron golem's damage overlay.
 
 Smoothcraft is a mod, not a browser game, so it has no `publish.sh` and is
 not built by the Pages workflow.

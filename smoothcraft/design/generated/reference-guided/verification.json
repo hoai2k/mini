@@ -1,0 +1,45 @@
+{
+  "minecraft_version": "26.3",
+  "checked_on": "2026-10-24",
+  "texture_checks": {
+    "missing": 0,
+    "invalid": 0,
+    "structurally-valid": 2024
+  },
+  "categories": {
+    "block": 1274,
+    "entity": 740,
+    "environment": 10
+  },
+  "animated_sheets": 56,
+  "total_frames": 2606,
+  "metadata_files": 121,
+  "python_contract_tests": {
+    "passed": 13
+  },
+  "gradle_build": "passed",
+  "java_tests": {
+    "passed": 20,
+    "failures": 0,
+    "errors": 0
+  },
+  "jar_texture_hashes": "All 2024 match manifest",
+  "client_game_test": {
+    "state": "passed",
+    "screenshots": 28,
+    "mob_types": 16,
+    "damaged_iron_golem": true,
+    "hd_pack_loaded": true
+  },
+  "manifest_sha256": "cef11fc17000dc7389d835341fb8fd6467d9a243ff0e9d15ab3fed3793f5f386",
+  "review_image": "review.jpg",
+  "review_scenes": [
+    "0002_smoothcraft-terrain-noon-on.png",
+    "0006_smoothcraft-texture-camel-on.png",
+    "0012_smoothcraft-texture-wolf-on.png",
+    "0016_smoothcraft-texture-iron-golem-damaged-on.png",
+    "0020_smoothcraft-texture-cat-on.png",
+    "0021_smoothcraft-texture-llama-on.png"
+  ],
+  "visual_review_scope": "Representative repeats, animation sheets and in-game scenes; this is not an exhaustive visual certification of every variant."
+}

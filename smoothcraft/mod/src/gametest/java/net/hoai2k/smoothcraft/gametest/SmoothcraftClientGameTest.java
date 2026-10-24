@@ -51,6 +51,9 @@ public final class SmoothcraftClientGameTest implements FabricClientGameTest {
 			for (String[] scene : scenes) {
 				photograph(context, world, scene, "on");
 			}
+			if (Boolean.getBoolean("smoothcraft.textureReview") || Boolean.parseBoolean(System.getenv("SMOOTHCRAFT_TEXTURE_REVIEW"))) {
+				photographEntityTextures(context, world, open);
+			}
 			world.getServer().runCommand("tp @p " + scenes[1][1]);
 			world.getServer().runCommand("time set 23200");
 			context.waitTicks(20);
@@ -82,6 +85,30 @@ public final class SmoothcraftClientGameTest implements FabricClientGameTest {
 		world.getConnection().waitForChunksRender(20 * 60 * 6);
 		context.waitTicks(40);
 		context.takeScreenshot("smoothcraft-" + scene[0] + "-" + state);
+	}
+
+	/** Optional close views of varied UV layouts and dye layers for HD pack review. */
+	private static void photographEntityTextures(ClientGameTestContext context, TestSingleplayerContext world, BlockPos origin) {
+		String[] types = {"bee", "camel", "cow", "chicken", "frog", "pig", "sheep", "wolf", "creeper", "enderman", "iron_golem", "parrot", "blaze", "allay", "cat", "llama"};
+		double[] heights = {.6, 2.375, 1.4, .7, .5, .9, 1.3, .85, 1.7, 2.9, 2.7, .9, 1.8, .6, .7, 1.87};
+		for (int i = 0; i < types.length; i++) {
+			// Keep the gallery above nearby hills and tree canopies so spectator
+			// cameras cannot clip into the terrain as the row extends away.
+			BlockPos position = origin.offset(12, 64, i * 5);
+			world.getServer().runCommand("fill " + (position.getX() - 2) + " " + (position.getY() - 1) + " " + (position.getZ() - 2)
+					+ " " + (position.getX() + 2) + " " + (position.getY() - 1) + " " + (position.getZ() + 2) + " smooth_stone");
+			world.getServer().runCommand("summon " + types[i] + " " + position.getX() + " " + position.getY() + " " + position.getZ()
+					+ " {NoAI:1b,NoGravity:1b,Invulnerable:1b,PersistenceRequired:1b,Rotation:[90f,0f]}");
+			double distance = Math.max(1.4, heights[i] * 1.6);
+			// tp positions the player's feet; account for the spectator eye height.
+			String camera = (position.getX() - distance) + " " + (position.getY() + heights[i] * .65 - 1.62)
+					+ " " + (position.getZ() - distance * .3) + " -73.3 0";
+			photograph(context, world, new String[] {"texture-" + types[i], camera}, "on");
+			if (types[i].equals("iron_golem")) {
+				world.getServer().runCommand("data merge entity @e[type=iron_golem,limit=1] {Health:20f}");
+				photograph(context, world, new String[] {"texture-iron-golem-damaged", camera}, "on");
+			}
+		}
 	}
 
 	/** Open water near spawn with dry land five blocks to the east: a shoreline to look at. */

@@ -4,7 +4,7 @@
 
 Smoothcraft replaces Minecraft's 16 px textures with high-resolution, realistic
 ones: "the thing itself, imagined in detail". There are 2024 requests;
-0 delivered so far.
+2024 delivered so far.
 
 - **Tier 1** (below, 151): the common things, each with its own prompt.
   Do these first; they cover most of what is on screen.
@@ -49,7 +49,7 @@ resource pack at the listed file path.
 
 ## Tier 1: the common things
 
-### `block/acacia_log`  (requested)
+### `block/acacia_log`  (delivered)
 
 Acacia bark: grey, rough bark with orange inner wood showing in the cracks.
 
@@ -57,7 +57,7 @@ Acacia bark: grey, rough bark with orange inner wood showing in the cracks.
 - Material: bark
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/acacia_log.png`
 
-### `block/andesite`  (requested)
+### `block/andesite`  (delivered)
 
 Fine grey andesite with small darker flecks.
 
@@ -65,7 +65,7 @@ Fine grey andesite with small darker flecks.
 - Material: stone
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/andesite.png`
 
-### `block/bedrock`  (requested)
+### `block/bedrock`  (delivered)
 
 Unbreakable bedrock: chaotic mix of very dark and grey hard rock.
 
@@ -73,7 +73,7 @@ Unbreakable bedrock: chaotic mix of very dark and grey hard rock.
 - Material: stone
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/bedrock.png`
 
-### `block/birch_leaves`  (requested)
+### `block/birch_leaves`  (delivered)
 
 Small toothed birch leaves, greyscale for tint, gaps transparent.
 
@@ -81,7 +81,7 @@ Small toothed birch leaves, greyscale for tint, gaps transparent.
 - Material: foliage
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/birch_leaves.png`
 
-### `block/birch_log`  (requested)
+### `block/birch_log`  (delivered)
 
 Birch bark: white papery bark with black horizontal lenticels and peeling strips.
 
@@ -89,7 +89,7 @@ Birch bark: white papery bark with black horizontal lenticels and peeling strips
 - Material: bark
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/birch_log.png`
 
-### `block/birch_log_top`  (requested)
+### `block/birch_log_top`  (delivered)
 
 End grain of a birch log with pale rings and a white bark rim.
 
@@ -97,7 +97,7 @@ End grain of a birch log with pale rings and a white bark rim.
 - Material: bark
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/birch_log_top.png`
 
-### `block/birch_planks`  (requested)
+### `block/birch_planks`  (delivered)
 
 Pale cream birch planks with fine grain.
 
@@ -105,7 +105,7 @@ Pale cream birch planks with fine grain.
 - Material: wood
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/birch_planks.png`
 
-### `block/bookshelf`  (requested)
+### `block/bookshelf`  (delivered)
 
 Shelf of old leather-bound books in varied colours, worn spines and gold lettering, oak shelf boards top and bottom.
 
@@ -113,7 +113,7 @@ Shelf of old leather-bound books in varied colours, worn spines and gold letteri
 - Material: paper
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/bookshelf.png`
 
-### `block/bricks`  (requested)
+### `block/bricks`  (delivered)
 
 Red clay bricks in a running bond with pale grey mortar, slightly chipped edges.
 
@@ -121,7 +121,7 @@ Red clay bricks in a running bond with pale grey mortar, slightly chipped edges.
 - Material: ceramic
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/bricks.png`
 
-### `block/calcite`  (requested)
+### `block/calcite`  (delivered)
 
 White calcite with soft crystalline texture and faint veins.
 
@@ -129,7 +129,7 @@ White calcite with soft crystalline texture and faint veins.
 - Material: polished_stone
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/calcite.png`
 
-### `block/cherry_leaves`  (requested)
+### `block/cherry_leaves`  (delivered)
 
 Pink cherry blossom clusters with a few leaves, gaps transparent.
 
@@ -137,7 +137,7 @@ Pink cherry blossom clusters with a few leaves, gaps transparent.
 - Material: foliage
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/cherry_leaves.png`
 
-### `block/cherry_log`  (requested)
+### `block/cherry_log`  (delivered)
 
 Cherry bark: dark maroon bark with horizontal lenticels.
 
@@ -145,7 +145,7 @@ Cherry bark: dark maroon bark with horizontal lenticels.
 - Material: bark
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/cherry_log.png`
 
-### `block/clay`  (requested)
+### `block/clay`  (delivered)
 
 Smooth pale blue-grey clay with fine sculpted ridges.
 
@@ -153,7 +153,7 @@ Smooth pale blue-grey clay with fine sculpted ridges.
 - Material: ceramic
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/clay.png`
 
-### `block/coal_ore`  (requested)
+### `block/coal_ore`  (delivered)
 
 Grey stone with embedded black lumps of coal.
 
@@ -161,7 +161,7 @@ Grey stone with embedded black lumps of coal.
 - Material: ore
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/coal_ore.png`
 
-### `block/coarse_dirt`  (requested)
+### `block/coarse_dirt`  (delivered)
 
 Dry coarse dirt with lots of gravel and small stones mixed in.
 
@@ -169,7 +169,7 @@ Dry coarse dirt with lots of gravel and small stones mixed in.
 - Material: soil
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/coarse_dirt.png`
 
-### `block/cobbled_deepslate`  (requested)
+### `block/cobbled_deepslate`  (delivered)
 
 Rough broken pieces of dark slate packed together.
 
@@ -177,7 +177,7 @@ Rough broken pieces of dark slate packed together.
 - Material: stone
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/cobbled_deepslate.png`
 
-### `block/cobblestone`  (requested)
+### `block/cobblestone`  (delivered)
 
 Rough rounded grey stones packed together with dark gaps of mortar and dirt between them.
 
@@ -185,7 +185,7 @@ Rough rounded grey stones packed together with dark gaps of mortar and dirt betw
 - Material: stone
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/cobblestone.png`
 
-### `block/copper_ore`  (requested)
+### `block/copper_ore`  (delivered)
 
 Grey stone with orange and green-tinged copper ore veins.
 
@@ -193,7 +193,7 @@ Grey stone with orange and green-tinged copper ore veins.
 - Material: ore
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/copper_ore.png`
 
-### `block/cracked_stone_bricks`  (requested)
+### `block/cracked_stone_bricks`  (delivered)
 
 Dressed grey stone blocks with deep cracks and chipped corners.
 
@@ -201,7 +201,7 @@ Dressed grey stone blocks with deep cracks and chipped corners.
 - Material: ceramic
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/cracked_stone_bricks.png`
 
-### `block/crafting_table_front`  (requested)
+### `block/crafting_table_front`  (delivered)
 
 Front of a crafting table: oak boards with a saw and hammer hanging on it.
 
@@ -209,7 +209,7 @@ Front of a crafting table: oak boards with a saw and hammer hanging on it.
 - Material: wood
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/crafting_table_front.png`
 
-### `block/crafting_table_side`  (requested)
+### `block/crafting_table_side`  (delivered)
 
 Side of a crafting table: oak boards with hanging tools.
 
@@ -217,7 +217,7 @@ Side of a crafting table: oak boards with hanging tools.
 - Material: wood
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/crafting_table_side.png`
 
-### `block/crafting_table_top`  (requested)
+### `block/crafting_table_top`  (delivered)
 
 Top of a crafting table: a 3x3 grid of engraved squares in an oak work top, tool scratches.
 
@@ -225,7 +225,7 @@ Top of a crafting table: a 3x3 grid of engraved squares in an oak work top, tool
 - Material: wood
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/crafting_table_top.png`
 
-### `block/dark_oak_log`  (requested)
+### `block/dark_oak_log`  (delivered)
 
 Dark oak bark: very dark, thick, blocky bark.
 
@@ -233,7 +233,7 @@ Dark oak bark: very dark, thick, blocky bark.
 - Material: bark
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/dark_oak_log.png`
 
-### `block/dark_oak_planks`  (requested)
+### `block/dark_oak_planks`  (delivered)
 
 Rich chocolate-brown dark oak planks.
 
@@ -241,7 +241,7 @@ Rich chocolate-brown dark oak planks.
 - Material: wood
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/dark_oak_planks.png`
 
-### `block/deepslate`  (requested)
+### `block/deepslate`  (delivered)
 
 Dark grey-blue slate rock with fine vertical foliation lines.
 
@@ -249,7 +249,7 @@ Dark grey-blue slate rock with fine vertical foliation lines.
 - Material: stone
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/deepslate.png`
 
-### `block/deepslate_diamond_ore`  (requested)
+### `block/deepslate_diamond_ore`  (delivered)
 
 Dark slate with pale cyan diamond crystals.
 
@@ -257,7 +257,7 @@ Dark slate with pale cyan diamond crystals.
 - Material: ore
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/deepslate_diamond_ore.png`
 
-### `block/deepslate_iron_ore`  (requested)
+### `block/deepslate_iron_ore`  (delivered)
 
 Dark slate with beige-orange iron ore nuggets.
 
@@ -265,7 +265,7 @@ Dark slate with beige-orange iron ore nuggets.
 - Material: ore
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/deepslate_iron_ore.png`
 
-### `block/deepslate_top`  (requested)
+### `block/deepslate_top`  (delivered)
 
 End face of deepslate: dark slate with concentric layered grain.
 
@@ -273,7 +273,7 @@ End face of deepslate: dark slate with concentric layered grain.
 - Material: stone
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/deepslate_top.png`
 
-### `block/diamond_block`  (requested)
+### `block/diamond_block`  (delivered)
 
 Block of diamond: cut pale cyan gem tiles.
 
@@ -281,7 +281,7 @@ Block of diamond: cut pale cyan gem tiles.
 - Material: gem
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/diamond_block.png`
 
-### `block/diamond_ore`  (requested)
+### `block/diamond_ore`  (delivered)
 
 Grey stone with pale cyan diamond crystals poking out.
 
@@ -289,7 +289,7 @@ Grey stone with pale cyan diamond crystals poking out.
 - Material: ore
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/diamond_ore.png`
 
-### `block/diorite`  (requested)
+### `block/diorite`  (delivered)
 
 White and grey speckled diorite, salt-and-pepper crystals.
 
@@ -297,7 +297,7 @@ White and grey speckled diorite, salt-and-pepper crystals.
 - Material: stone
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/diorite.png`
 
-### `block/dirt`  (requested)
+### `block/dirt`  (delivered)
 
 Moist dark-brown topsoil with small pebbles, fine roots and crumbly clods.
 
@@ -305,7 +305,7 @@ Moist dark-brown topsoil with small pebbles, fine roots and crumbly clods.
 - Material: soil
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/dirt.png`
 
-### `block/dirt_path_top`  (requested)
+### `block/dirt_path_top`  (delivered)
 
 Trampled, compacted dirt footpath with fine dust, a few flattened grass blades at the edges.
 
@@ -313,7 +313,7 @@ Trampled, compacted dirt footpath with fine dust, a few flattened grass blades a
 - Material: soil
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/dirt_path_top.png`
 
-### `block/emerald_ore`  (requested)
+### `block/emerald_ore`  (delivered)
 
 Grey stone with small hexagonal green emerald crystals.
 
@@ -321,7 +321,7 @@ Grey stone with small hexagonal green emerald crystals.
 - Material: ore
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/emerald_ore.png`
 
-### `block/end_stone`  (requested)
+### `block/end_stone`  (delivered)
 
 Pale yellow pitted alien stone.
 
@@ -329,7 +329,7 @@ Pale yellow pitted alien stone.
 - Material: stone
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/end_stone.png`
 
-### `block/farmland`  (requested)
+### `block/farmland`  (delivered)
 
 Dry tilled farmland, parallel furrows of loose soil.
 
@@ -337,7 +337,7 @@ Dry tilled farmland, parallel furrows of loose soil.
 - Material: soil
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/farmland.png`
 
-### `block/farmland_moist`  (requested)
+### `block/farmland_moist`  (delivered)
 
 Wet dark tilled farmland, parallel furrows glistening with moisture (paint it dark, not shiny).
 
@@ -345,7 +345,7 @@ Wet dark tilled farmland, parallel furrows glistening with moisture (paint it da
 - Material: soil
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/farmland_moist.png`
 
-### `block/furnace_front`  (requested)
+### `block/furnace_front`  (delivered)
 
 Front of a stone furnace: cobblestone with an iron-framed opening, cold and dark inside.
 
@@ -353,7 +353,7 @@ Front of a stone furnace: cobblestone with an iron-framed opening, cold and dark
 - Material: stone
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/furnace_front.png`
 
-### `block/furnace_front_on`  (requested)
+### `block/furnace_front_on`  (delivered)
 
 Front of a lit stone furnace: iron-framed opening with glowing embers and flames inside.
 
@@ -361,7 +361,7 @@ Front of a lit stone furnace: iron-framed opening with glowing embers and flames
 - Material: glowing
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/furnace_front_on.png`
 
-### `block/furnace_side`  (requested)
+### `block/furnace_side`  (delivered)
 
 Side of a stone furnace: smooth cut stone.
 
@@ -369,7 +369,7 @@ Side of a stone furnace: smooth cut stone.
 - Material: stone
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/furnace_side.png`
 
-### `block/furnace_top`  (requested)
+### `block/furnace_top`  (delivered)
 
 Top of a stone furnace: smooth cut stone.
 
@@ -377,7 +377,7 @@ Top of a stone furnace: smooth cut stone.
 - Material: stone
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/furnace_top.png`
 
-### `block/glass`  (requested)
+### `block/glass`  (delivered)
 
 Clear window pane with a thin wooden-free bevelled edge and faint streaks; transparent interior as in vanilla.
 
@@ -385,7 +385,7 @@ Clear window pane with a thin wooden-free bevelled edge and faint streaks; trans
 - Material: glass
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/glass.png`
 
-### `block/glowstone`  (requested)
+### `block/glowstone`  (delivered)
 
 Glowing yellow crystalline clusters packed together, bright and self-lit.
 
@@ -393,7 +393,7 @@ Glowing yellow crystalline clusters packed together, bright and self-lit.
 - Material: glowing
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/glowstone.png`
 
-### `block/gold_block`  (requested)
+### `block/gold_block`  (delivered)
 
 Block of gold: polished stamped gold plates.
 
@@ -401,7 +401,7 @@ Block of gold: polished stamped gold plates.
 - Material: gold
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/gold_block.png`
 
-### `block/gold_ore`  (requested)
+### `block/gold_ore`  (delivered)
 
 Grey stone with bright gold ore nuggets.
 
@@ -409,7 +409,7 @@ Grey stone with bright gold ore nuggets.
 - Material: ore
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/gold_ore.png`
 
-### `block/granite`  (requested)
+### `block/granite`  (delivered)
 
 Pink-red granite, coarse crystals of feldspar, quartz and black mica.
 
@@ -417,7 +417,7 @@ Pink-red granite, coarse crystals of feldspar, quartz and black mica.
 - Material: stone
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/granite.png`
 
-### `block/grass_block_side`  (requested)
+### `block/grass_block_side`  (delivered)
 
 Side of a grass block: a cross-section of rich brown soil with small stones and roots; the top 3/16 is a ragged fringe of grass overhanging the edge.
 
@@ -425,7 +425,7 @@ Side of a grass block: a cross-section of rich brown soil with small stones and 
 - Material: grass
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/grass_block_side.png`
 
-### `block/grass_block_side_overlay`  (requested)
+### `block/grass_block_side_overlay`  (delivered)
 
 Only the grass fringe from the side of a grass block, greyscale (biome-tinted in game), on a fully transparent background.
 
@@ -433,7 +433,7 @@ Only the grass fringe from the side of a grass block, greyscale (biome-tinted in
 - Material: grass
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/grass_block_side_overlay.png`
 
-### `block/grass_block_snow`  (requested)
+### `block/grass_block_snow`  (delivered)
 
 Side of a snowy grass block: brown soil with roots and a thick, soft layer of snow with a rounded lip along the top.
 
@@ -441,7 +441,7 @@ Side of a snowy grass block: brown soil with roots and a thick, soft layer of sn
 - Material: snow
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/grass_block_snow.png`
 
-### `block/grass_block_top`  (requested)
+### `block/grass_block_top`  (delivered)
 
 Top of a grass block seen straight down: dense short meadow grass blades with a few clover leaves, painted greyscale-to-light-green because the game tints it by biome; no flowers.
 
@@ -449,7 +449,7 @@ Top of a grass block seen straight down: dense short meadow grass blades with a 
 - Material: grass
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/grass_block_top.png`
 
-### `block/gravel`  (requested)
+### `block/gravel`  (delivered)
 
 Loose river gravel of rounded grey and brown pebbles of mixed sizes.
 
@@ -457,7 +457,7 @@ Loose river gravel of rounded grey and brown pebbles of mixed sizes.
 - Material: sand
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/gravel.png`
 
-### `block/ice`  (requested)
+### `block/ice`  (delivered)
 
 Clear blue lake ice with internal cracks and trapped bubbles (semi-transparent as in vanilla).
 
@@ -465,7 +465,7 @@ Clear blue lake ice with internal cracks and trapped bubbles (semi-transparent a
 - Material: ice
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/ice.png`
 
-### `block/iron_block`  (requested)
+### `block/iron_block`  (delivered)
 
 Block of iron: riveted brushed steel plates.
 
@@ -473,7 +473,7 @@ Block of iron: riveted brushed steel plates.
 - Material: iron
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/iron_block.png`
 
-### `block/iron_ore`  (requested)
+### `block/iron_ore`  (delivered)
 
 Grey stone with embedded beige-orange iron ore nuggets.
 
@@ -481,7 +481,7 @@ Grey stone with embedded beige-orange iron ore nuggets.
 - Material: ore
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/iron_ore.png`
 
-### `block/jungle_log`  (requested)
+### `block/jungle_log`  (delivered)
 
 Jungle tree bark: tan bark with moss and vertical ridges.
 
@@ -489,7 +489,7 @@ Jungle tree bark: tan bark with moss and vertical ridges.
 - Material: bark
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/jungle_log.png`
 
-### `block/lapis_ore`  (requested)
+### `block/lapis_ore`  (delivered)
 
 Grey stone with deep blue lapis lazuli flecks.
 
@@ -497,7 +497,7 @@ Grey stone with deep blue lapis lazuli flecks.
 - Material: ore
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/lapis_ore.png`
 
-### `block/lava_flow`  (requested)
+### `block/lava_flow`  (delivered)
 
 Animated flowing lava streaks with crust breaking up; seamless loop.
 
@@ -505,7 +505,7 @@ Animated flowing lava streaks with crust breaking up; seamless loop.
 - Material: lava
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/lava_flow.png`
 
-### `block/lava_still`  (requested)
+### `block/lava_still`  (delivered)
 
 Animated molten lava: bright orange-yellow liquid rock with slowly drifting dark crust; seamless loop.
 
@@ -513,7 +513,7 @@ Animated molten lava: bright orange-yellow liquid rock with slowly drifting dark
 - Material: lava
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/lava_still.png`
 
-### `block/mangrove_log`  (requested)
+### `block/mangrove_log`  (delivered)
 
 Mangrove bark: reddish-brown smooth bark.
 
@@ -521,7 +521,7 @@ Mangrove bark: reddish-brown smooth bark.
 - Material: bark
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/mangrove_log.png`
 
-### `block/mossy_cobblestone`  (requested)
+### `block/mossy_cobblestone`  (delivered)
 
 Rough rounded grey stones with thick green moss growing in the gaps and over the tops.
 
@@ -529,7 +529,7 @@ Rough rounded grey stones with thick green moss growing in the gaps and over the
 - Material: foliage
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/mossy_cobblestone.png`
 
-### `block/mossy_stone_bricks`  (requested)
+### `block/mossy_stone_bricks`  (delivered)
 
 Dressed grey stone blocks with moss growing along the joints.
 
@@ -537,7 +537,7 @@ Dressed grey stone blocks with moss growing along the joints.
 - Material: ceramic
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/mossy_stone_bricks.png`
 
-### `block/mud`  (requested)
+### `block/mud`  (delivered)
 
 Wet dark grey-brown mud with puddle shapes and footprints, no reflections.
 
@@ -545,7 +545,7 @@ Wet dark grey-brown mud with puddle shapes and footprints, no reflections.
 - Material: ceramic
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/mud.png`
 
-### `block/mycelium_side`  (requested)
+### `block/mycelium_side`  (delivered)
 
 Soil cross-section topped with a purple-grey fungal mat.
 
@@ -553,7 +553,7 @@ Soil cross-section topped with a purple-grey fungal mat.
 - Material: grass
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/mycelium_side.png`
 
-### `block/mycelium_top`  (requested)
+### `block/mycelium_top`  (delivered)
 
 Purple-grey fungal mat over soil, fine white threads and tiny spore specks.
 
@@ -561,7 +561,7 @@ Purple-grey fungal mat over soil, fine white threads and tiny spore specks.
 - Material: grass
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/mycelium_top.png`
 
-### `block/netherrack`  (requested)
+### `block/netherrack`  (delivered)
 
 Fleshy dark-red porous rock of the Nether.
 
@@ -569,7 +569,7 @@ Fleshy dark-red porous rock of the Nether.
 - Material: nether
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/netherrack.png`
 
-### `block/oak_leaves`  (requested)
+### `block/oak_leaves`  (delivered)
 
 Clusters of oak leaves with lobed edges, greyscale for biome tint, gaps transparent.
 
@@ -577,7 +577,7 @@ Clusters of oak leaves with lobed edges, greyscale for biome tint, gaps transpar
 - Material: foliage
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/oak_leaves.png`
 
-### `block/oak_log`  (requested)
+### `block/oak_log`  (delivered)
 
 Oak bark: thick, deeply furrowed grey-brown bark running vertically.
 
@@ -585,7 +585,7 @@ Oak bark: thick, deeply furrowed grey-brown bark running vertically.
 - Material: bark
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/oak_log.png`
 
-### `block/oak_log_top`  (requested)
+### `block/oak_log_top`  (delivered)
 
 End grain of an oak log: growth rings, pale heartwood and a bark rim around the edge.
 
@@ -593,7 +593,7 @@ End grain of an oak log: growth rings, pale heartwood and a bark rim around the 
 - Material: bark
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/oak_log_top.png`
 
-### `block/oak_planks`  (requested)
+### `block/oak_planks`  (delivered)
 
 Oak floor planks: four horizontal boards with visible grain, small knots and butt joints.
 
@@ -601,7 +601,7 @@ Oak floor planks: four horizontal boards with visible grain, small knots and but
 - Material: wood
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/oak_planks.png`
 
-### `block/obsidian`  (requested)
+### `block/obsidian`  (delivered)
 
 Black volcanic obsidian with deep purple sheen streaks and conchoidal fracture shapes.
 
@@ -609,7 +609,7 @@ Black volcanic obsidian with deep purple sheen streaks and conchoidal fracture s
 - Material: obsidian
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/obsidian.png`
 
-### `block/packed_ice`  (requested)
+### `block/packed_ice`  (delivered)
 
 Dense opaque pale-blue compacted ice with long fracture lines.
 
@@ -617,7 +617,7 @@ Dense opaque pale-blue compacted ice with long fracture lines.
 - Material: ice
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/packed_ice.png`
 
-### `block/podzol_side`  (requested)
+### `block/podzol_side`  (delivered)
 
 Side of podzol: soil cross-section with a layer of needle litter on top.
 
@@ -625,7 +625,7 @@ Side of podzol: soil cross-section with a layer of needle litter on top.
 - Material: soil
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/podzol_side.png`
 
-### `block/podzol_top`  (requested)
+### `block/podzol_top`  (delivered)
 
 Forest floor: brown soil covered in spruce needles, small twigs and decayed leaves.
 
@@ -633,7 +633,7 @@ Forest floor: brown soil covered in spruce needles, small twigs and decayed leav
 - Material: grass
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/podzol_top.png`
 
-### `block/polished_andesite`  (requested)
+### `block/polished_andesite`  (delivered)
 
 Polished grey andesite tile.
 
@@ -641,7 +641,7 @@ Polished grey andesite tile.
 - Material: polished_stone
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/polished_andesite.png`
 
-### `block/polished_diorite`  (requested)
+### `block/polished_diorite`  (delivered)
 
 Polished speckled diorite tile.
 
@@ -649,7 +649,7 @@ Polished speckled diorite tile.
 - Material: polished_stone
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/polished_diorite.png`
 
-### `block/polished_granite`  (requested)
+### `block/polished_granite`  (delivered)
 
 Polished pink granite tile.
 
@@ -657,7 +657,7 @@ Polished pink granite tile.
 - Material: polished_stone
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/polished_granite.png`
 
-### `block/red_sand`  (requested)
+### `block/red_sand`  (delivered)
 
 Fine rust-red desert sand with gentle ripples.
 
@@ -665,7 +665,7 @@ Fine rust-red desert sand with gentle ripples.
 - Material: sand
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/red_sand.png`
 
-### `block/redstone_ore`  (requested)
+### `block/redstone_ore`  (delivered)
 
 Grey stone with glittering deep red crystal clusters.
 
@@ -673,7 +673,7 @@ Grey stone with glittering deep red crystal clusters.
 - Material: ore
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/redstone_ore.png`
 
-### `block/sand`  (requested)
+### `block/sand`  (delivered)
 
 Fine pale-yellow beach sand with ripples and a few shell fragments.
 
@@ -681,7 +681,7 @@ Fine pale-yellow beach sand with ripples and a few shell fragments.
 - Material: sand
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/sand.png`
 
-### `block/sandstone`  (requested)
+### `block/sandstone`  (delivered)
 
 Layered yellow sandstone, horizontal strata, wind-worn.
 
@@ -689,7 +689,7 @@ Layered yellow sandstone, horizontal strata, wind-worn.
 - Material: sand
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/sandstone.png`
 
-### `block/sandstone_top`  (requested)
+### `block/sandstone_top`  (delivered)
 
 Top of sandstone: flat, fine-grained yellow sandstone.
 
@@ -697,7 +697,7 @@ Top of sandstone: flat, fine-grained yellow sandstone.
 - Material: sand
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/sandstone_top.png`
 
-### `block/smooth_stone`  (requested)
+### `block/smooth_stone`  (delivered)
 
 Smooth, honed grey stone slab surface with a faint bevelled border.
 
@@ -705,7 +705,7 @@ Smooth, honed grey stone slab surface with a faint bevelled border.
 - Material: polished_stone
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/smooth_stone.png`
 
-### `block/snow`  (requested)
+### `block/snow`  (delivered)
 
 Fresh fluffy snow surface with soft dimples.
 
@@ -713,7 +713,7 @@ Fresh fluffy snow surface with soft dimples.
 - Material: snow
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/snow.png`
 
-### `block/soul_sand`  (requested)
+### `block/soul_sand`  (delivered)
 
 Dark brown sand with faint anguished faces pressed into it.
 
@@ -721,7 +721,7 @@ Dark brown sand with faint anguished faces pressed into it.
 - Material: sand
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/soul_sand.png`
 
-### `block/spruce_leaves`  (requested)
+### `block/spruce_leaves`  (delivered)
 
 Spruce needle sprays, greyscale for tint, gaps transparent.
 
@@ -729,7 +729,7 @@ Spruce needle sprays, greyscale for tint, gaps transparent.
 - Material: foliage
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/spruce_leaves.png`
 
-### `block/spruce_log`  (requested)
+### `block/spruce_log`  (delivered)
 
 Spruce bark: dark brown scaly bark.
 
@@ -737,7 +737,7 @@ Spruce bark: dark brown scaly bark.
 - Material: bark
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/spruce_log.png`
 
-### `block/spruce_log_top`  (requested)
+### `block/spruce_log_top`  (delivered)
 
 End grain of a spruce log with tight rings and dark bark rim.
 
@@ -745,7 +745,7 @@ End grain of a spruce log with tight rings and dark bark rim.
 - Material: bark
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/spruce_log_top.png`
 
-### `block/spruce_planks`  (requested)
+### `block/spruce_planks`  (delivered)
 
 Mid-brown spruce planks with straight grain.
 
@@ -753,7 +753,7 @@ Mid-brown spruce planks with straight grain.
 - Material: wood
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/spruce_planks.png`
 
-### `block/stone`  (requested)
+### `block/stone`  (delivered)
 
 Grey limestone bedrock face with natural cracks and subtle strata.
 
@@ -761,7 +761,7 @@ Grey limestone bedrock face with natural cracks and subtle strata.
 - Material: stone
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/stone.png`
 
-### `block/stone_bricks`  (requested)
+### `block/stone_bricks`  (delivered)
 
 Dressed rectangular grey stone blocks laid in a running bond with mortar joints, slightly weathered.
 
@@ -769,7 +769,7 @@ Dressed rectangular grey stone blocks laid in a running bond with mortar joints,
 - Material: ceramic
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/stone_bricks.png`
 
-### `block/terracotta`  (requested)
+### `block/terracotta`  (delivered)
 
 Plain orange-brown fired clay, matte, faint tool marks.
 
@@ -777,7 +777,7 @@ Plain orange-brown fired clay, matte, faint tool marks.
 - Material: ceramic
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/terracotta.png`
 
-### `block/tnt_side`  (requested)
+### `block/tnt_side`  (delivered)
 
 A bundle of red dynamite sticks wrapped with a white paper band reading TNT.
 
@@ -785,7 +785,7 @@ A bundle of red dynamite sticks wrapped with a white paper band reading TNT.
 - Material: paper
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/tnt_side.png`
 
-### `block/torch`  (requested)
+### `block/torch`  (delivered)
 
 A wooden torch stick with a burning cloth-wrapped head, on transparent background, in the same thin column as vanilla.
 
@@ -793,7 +793,7 @@ A wooden torch stick with a burning cloth-wrapped head, on transparent backgroun
 - Material: glowing
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/torch.png`
 
-### `block/tuff`  (requested)
+### `block/tuff`  (delivered)
 
 Grey-green volcanic tuff, porous with small embedded fragments.
 
@@ -801,7 +801,7 @@ Grey-green volcanic tuff, porous with small embedded fragments.
 - Material: stone
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/tuff.png`
 
-### `block/water_flow`  (requested)
+### `block/water_flow`  (delivered)
 
 Animated flowing water streaks, greyscale for biome tint; same frame count, seamless loop.
 
@@ -809,7 +809,7 @@ Animated flowing water streaks, greyscale for biome tint; same frame count, seam
 - Material: water
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/water_flow.png`
 
-### `block/water_still`  (requested)
+### `block/water_still`  (delivered)
 
 Animated still water: clear rippling surface, greyscale (the game tints it by biome); same frame count as vanilla, each frame flowing into the next.
 
@@ -817,7 +817,7 @@ Animated still water: clear rippling surface, greyscale (the game tints it by bi
 - Material: water
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/water_still.png`
 
-### `block/white_wool`  (requested)
+### `block/white_wool`  (delivered)
 
 White sheep's wool felt with soft visible fibres.
 
@@ -825,378 +825,378 @@ White sheep's wool felt with soft visible fibres.
 - Material: cloth
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/white_wool.png`
 
-### `entity/axolotl/axolotl_lucy`  (requested)
+### `entity/axolotl/axolotl_lucy`  (delivered)
 
 Pink axolotl on its UV layout: smooth wet skin, feathery gills.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/axolotl/axolotl_lucy.png`
 
-### `entity/bat/bat`  (requested)
+### `entity/bat/bat`  (delivered)
 
 Bat on its UV layout: furry brown body, thin leathery wings.
 
 - Deliver: 256x256 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/bat/bat.png`
 
-### `entity/bee/bee`  (requested)
+### `entity/bee/bee`  (delivered)
 
 Bee on its UV layout: fuzzy yellow and black banded bee with translucent wings.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/bee/bee.png`
 
-### `entity/cat/cat_tabby`  (requested)
+### `entity/cat/cat_tabby`  (delivered)
 
 Tabby cat on its UV layout: striped brown tabby fur, green eyes, pink nose.
 
 - Deliver: 512x256 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/cat/cat_tabby.png`
 
-### `entity/chicken/chicken_temperate`  (requested)
+### `entity/chicken/chicken_temperate`  (delivered)
 
 Chicken on its UV layout: white feathers with realistic barbs, red comb and wattle, yellow beak and scaly legs.
 
 - Deliver: 512x256 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/chicken/chicken_temperate.png`
 
-### `entity/cow/cow_temperate`  (requested)
+### `entity/cow/cow_temperate`  (delivered)
 
 Cow on its UV layout: realistic Holstein hide, black and white short fur, pink muzzle, real cow eyes, small horns.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/cow/cow_temperate.png`
 
-### `entity/creeper/creeper`  (requested)
+### `entity/creeper/creeper`  (delivered)
 
 Creeper on its UV layout: mottled green leafy-scaly hide like a plant-reptile, the iconic black frowning face rendered as dark hollow pits.
 
 - Deliver: 512x256 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); keep vanilla's partial transparency
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/creeper/creeper.png`
 
-### `entity/enderman/enderman`  (requested)
+### `entity/enderman/enderman`  (delivered)
 
 Enderman on its UV layout: very dark charcoal-black skin with a faint purple sheen, textured like smooth stone-flesh.
 
 - Deliver: 512x256 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/enderman/enderman.png`
 
-### `entity/enderman/enderman_eyes`  (requested)
+### `entity/enderman/enderman_eyes`  (delivered)
 
 Enderman eyes glow layer: bright purple-magenta glowing eyes only, everything else transparent.
 
 - Deliver: 512x256 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/enderman/enderman_eyes.png`
 
-### `entity/fox/fox`  (requested)
+### `entity/fox/fox`  (delivered)
 
 Red fox on its UV layout: orange fur, white chest and muzzle, black legs.
 
 - Deliver: 384x256 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/fox/fox.png`
 
-### `entity/horse/horse_brown`  (requested)
+### `entity/horse/horse_brown`  (delivered)
 
 Brown horse on its UV layout: glossy short bay coat, dark mane and tail, realistic horse eyes and nostrils.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/horse/horse_brown.png`
 
-### `entity/iron_golem/iron_golem`  (requested)
+### `entity/iron_golem/iron_golem`  (delivered)
 
 Iron golem on its UV layout: riveted iron plates with rust streaks and vines, a long stony nose, deep-set red eyes.
 
 - Deliver: 1024x1024 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/iron_golem/iron_golem.png`
 
-### `entity/pig/pig_temperate`  (requested)
+### `entity/pig/pig_temperate`  (delivered)
 
 Pig on its UV layout: realistic pink pig skin with sparse bristles, wet snout with nostrils, small eyes.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/pig/pig_temperate.png`
 
-### `entity/player/slim/alex`  (requested)
+### `entity/player/slim/alex`  (delivered)
 
 Alex on the slim player UV layout: realistic young woman, ginger hair in a side ponytail, green eyes, freckles, light green shirt, brown trousers.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/player/slim/alex.png`
 
-### `entity/player/wide/steve`  (requested)
+### `entity/player/wide/steve`  (delivered)
 
 Steve on the player UV layout: realistic young man, short brown hair, blue eyes, light stubble, cyan t-shirt, blue jeans, grey shoes.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/player/wide/steve.png`
 
-### `entity/sheep/sheep`  (requested)
+### `entity/sheep/sheep`  (delivered)
 
 Sheep (shorn body) on its UV layout: pale skin with short fleece stubble, a realistic sheep face.
 
 - Deliver: 512x256 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/sheep/sheep.png`
 
-### `entity/sheep/sheep_wool`  (requested)
+### `entity/sheep/sheep_wool`  (delivered)
 
 Sheep wool coat on its UV layout: thick curly white fleece, greyscale-white (the game dyes it).
 
 - Deliver: 512x256 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/sheep/sheep_wool.png`
 
-### `entity/skeleton/skeleton`  (requested)
+### `entity/skeleton/skeleton`  (delivered)
 
 Skeleton on its UV layout: real bleached human bones, skull with deep eye sockets and teeth, ribcage detail.
 
 - Deliver: 512x256 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/skeleton/skeleton.png`
 
-### `entity/skeleton/stray`  (requested)
+### `entity/skeleton/stray`  (delivered)
 
 Stray: frost-covered skeleton with tattered ice-blue rags.
 
 - Deliver: 512x256 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/skeleton/stray.png`
 
-### `entity/skeleton/wither_skeleton`  (requested)
+### `entity/skeleton/wither_skeleton`  (delivered)
 
 Wither skeleton: charred black bones, cracked skull.
 
 - Deliver: 512x256 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/skeleton/wither_skeleton.png`
 
-### `entity/slime/slime`  (requested)
+### `entity/slime/slime`  (delivered)
 
 Slime cube on its UV layout: translucent green gel with suspended bubbles and a darker inner core with face.
 
 - Deliver: 512x256 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); keep vanilla's partial transparency
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/slime/slime.png`
 
-### `entity/spider/cave_spider`  (requested)
+### `entity/spider/cave_spider`  (delivered)
 
 Cave spider: blue-teal hairy spider with red eyes.
 
 - Deliver: 512x256 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/spider/cave_spider.png`
 
-### `entity/spider/spider`  (requested)
+### `entity/spider/spider`  (delivered)
 
 Spider on its UV layout: realistic dark hairy tarantula body, glossy red multiple eyes.
 
 - Deliver: 512x256 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/spider/spider.png`
 
-### `entity/villager/profession/armorer`  (requested)
+### `entity/villager/profession/armorer`  (delivered)
 
 Armorer profession overlay: a dark welding mask pushed up and a heavy leather apron.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/profession/armorer.png`
 
-### `entity/villager/profession/butcher`  (requested)
+### `entity/villager/profession/butcher`  (delivered)
 
 Butcher profession overlay: a white apron with stains and a red headband.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/profession/butcher.png`
 
-### `entity/villager/profession/cartographer`  (requested)
+### `entity/villager/profession/cartographer`  (delivered)
 
 Cartographer profession overlay: a monocle, gold-trimmed vest.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/profession/cartographer.png`
 
-### `entity/villager/profession/cleric`  (requested)
+### `entity/villager/profession/cleric`  (delivered)
 
 Cleric profession overlay: purple and gold vestments.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/profession/cleric.png`
 
-### `entity/villager/profession/farmer`  (requested)
+### `entity/villager/profession/farmer`  (delivered)
 
 Farmer profession overlay: a wide straw hat and a work apron.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/profession/farmer.png`
 
-### `entity/villager/profession/fisherman`  (requested)
+### `entity/villager/profession/fisherman`  (delivered)
 
 Fisherman profession overlay: a woven fishing hat and an oilskin apron.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/profession/fisherman.png`
 
-### `entity/villager/profession/fletcher`  (requested)
+### `entity/villager/profession/fletcher`  (delivered)
 
 Fletcher profession overlay: a feathered hat and a quiver strap.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/profession/fletcher.png`
 
-### `entity/villager/profession/leatherworker`  (requested)
+### `entity/villager/profession/leatherworker`  (delivered)
 
 Leatherworker profession overlay: a tooled leather apron and cap.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/profession/leatherworker.png`
 
-### `entity/villager/profession/librarian`  (requested)
+### `entity/villager/profession/librarian`  (delivered)
 
 Librarian profession overlay: a white cloth cap and a red-leather apron with pen and paper.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/profession/librarian.png`
 
-### `entity/villager/profession/mason`  (requested)
+### `entity/villager/profession/mason`  (delivered)
 
 Mason profession overlay: a dusty apron and a leather bucket hat.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/profession/mason.png`
 
-### `entity/villager/profession/nitwit`  (requested)
+### `entity/villager/profession/nitwit`  (delivered)
 
 Nitwit profession overlay: a green smock.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/profession/nitwit.png`
 
-### `entity/villager/profession/shepherd`  (requested)
+### `entity/villager/profession/shepherd`  (delivered)
 
 Shepherd profession overlay: a wool hat and a sheepskin vest.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/profession/shepherd.png`
 
-### `entity/villager/profession/toolsmith`  (requested)
+### `entity/villager/profession/toolsmith`  (delivered)
 
 Toolsmith profession overlay: a blacksmith's apron with tool pockets.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/profession/toolsmith.png`
 
-### `entity/villager/profession/weaponsmith`  (requested)
+### `entity/villager/profession/weaponsmith`  (delivered)
 
 Weaponsmith profession overlay: an eye patch and a scarred leather apron.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/profession/weaponsmith.png`
 
-### `entity/villager/type/desert`  (requested)
+### `entity/villager/type/desert`  (delivered)
 
 Desert villager outfit overlay: sun-bleached cotton robes and a head wrap in sand tones.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/type/desert.png`
 
-### `entity/villager/type/jungle`  (requested)
+### `entity/villager/type/jungle`  (delivered)
 
 Jungle villager outfit overlay: woven leaf and bark fibre garments.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/type/jungle.png`
 
-### `entity/villager/type/plains`  (requested)
+### `entity/villager/type/plains`  (delivered)
 
 Plains villager outfit overlay (biome clothing) on the vanilla UV layout: brown and green wool tunic with a rope belt; transparent wherever vanilla is transparent.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/type/plains.png`
 
-### `entity/villager/type/savanna`  (requested)
+### `entity/villager/type/savanna`  (delivered)
 
 Savanna villager outfit overlay: warm orange woven cloth and beads.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/type/savanna.png`
 
-### `entity/villager/type/snow`  (requested)
+### `entity/villager/type/snow`  (delivered)
 
 Snowy villager outfit overlay: fur-lined coat and hood.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/type/snow.png`
 
-### `entity/villager/type/swamp`  (requested)
+### `entity/villager/type/swamp`  (delivered)
 
 Swamp villager outfit overlay: damp green-brown oilcloth with reeds.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/type/swamp.png`
 
-### `entity/villager/type/taiga`  (requested)
+### `entity/villager/type/taiga`  (delivered)
 
 Taiga villager outfit overlay: woollen layers and a fur hat.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/type/taiga.png`
 
-### `entity/villager/villager`  (requested)
+### `entity/villager/villager`  (delivered)
 
 Villager base skin on the vanilla UV layout. Realistic weathered human face: long face, heavy single dark unibrow, deep-set green eyes with real irises and catchlights, very large long nose (the nose has its own small box in the layout: paint it as a fleshy, real nose), fine wrinkles, tanned skin; plain brown homespun robe with folds and stitching; hands as real hands on the crossed-arms box.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/villager.png`
 
-### `entity/wandering_trader/wandering_trader`  (requested)
+### `entity/wandering_trader/wandering_trader`  (delivered)
 
 Wandering trader on the villager UV layout: same realistic face style as the villager, a dark blue travelling cloak with hood and patches.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/wandering_trader/wandering_trader.png`
 
-### `entity/wolf/wolf`  (requested)
+### `entity/wolf/wolf`  (delivered)
 
 Wild wolf on its UV layout: grey-white thick fur, amber eyes, dark nose.
 
 - Deliver: 512x256 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/wolf/wolf.png`
 
-### `entity/wolf/wolf_tame`  (requested)
+### `entity/wolf/wolf_tame`  (delivered)
 
 Tame wolf on its UV layout: same fur, friendlier eyes.
 
 - Deliver: 512x256 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/wolf/wolf_tame.png`
 
-### `entity/zombie/drowned`  (requested)
+### `entity/zombie/drowned`  (delivered)
 
 Drowned on the player UV layout: waterlogged blue-green zombie with seaweed and barnacles.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/zombie/drowned.png`
 
-### `entity/zombie/husk`  (requested)
+### `entity/zombie/husk`  (delivered)
 
 Husk on the player UV layout: desiccated sun-dried zombie, cracked leathery tan skin, tattered desert clothing.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/zombie/husk.png`
 
-### `entity/zombie/zombie`  (requested)
+### `entity/zombie/zombie`  (delivered)
 
 Zombie on the player UV layout: decaying green-grey human skin, sunken dark eye sockets with dim eyes, torn cyan shirt and dark blue trousers, realistic rot and stitch detail.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/zombie/zombie.png`
 
-### `entity/zombie_villager/zombie_villager`  (requested)
+### `entity/zombie_villager/zombie_villager`  (delivered)
 
 Zombie villager base on the villager layout: the realistic villager face rotting green-grey, big nose, torn robe.
 
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/zombie_villager/zombie_villager.png`
 
-### `environment/celestial/moon/full_moon`  (requested)
+### `environment/celestial/moon/full_moon`  (delivered)
 
 The full moon, realistic craters and maria, on black.
 
 - Deliver: 256x256 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/environment/celestial/moon/full_moon.png`
 
-### `environment/celestial/sun`  (requested)
+### `environment/celestial/sun`  (delivered)
 
 The sun: a bright white-yellow disc with a soft limb and faint glow, centred, on black; square image.
 

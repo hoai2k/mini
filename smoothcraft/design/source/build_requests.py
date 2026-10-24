@@ -262,6 +262,9 @@ def load_textures() -> list[Texture]:
 
 
 def material_for(name: str, rules) -> str:
+    # The saw is steel; matching "stone" in the workstation name paints rock.
+    if name == "stonecutter_saw":
+        return "iron"
     for pattern, material in rules:
         if pattern.search(name):
             return material
@@ -302,6 +305,10 @@ def describe_name(name: str) -> str:
 
 def auto_prompt(tex: Texture, material: str) -> str:
     what = describe_name(tex.path)
+    if tex.path.startswith("entity/player/"):
+        return (f"Realistic adult human {what} on the exact vanilla player UV layout: human skin pores, "
+                "human facial features and rounded ears; preserve the source skin tone, hairstyle, "
+                "clothing and colours. No fur, animal features, pointed ears, horns or fantasy species.")
     if tex.path.startswith("block/"):
         words = MATERIAL_WORDS[material]
         if material == "bark":
