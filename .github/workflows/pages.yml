@@ -183,6 +183,11 @@ jobs:
       - name: Image Annotator tests
         if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
         run: node --test imageannotator/app/test/*.test.mjs && python3 imageannotator/design/source/build_requests.py --check
+      - name: Build Meditation Timer
+        run: .github/scripts/build-game.sh meditation 'meditation/publish.sh local/pages/meditation'
+      - name: Meditation Timer tests
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: node --test meditation/app/test/*.test.mjs && python3 meditation/design/source/build_requests.py --check
       - name: Fail only if no game built
         run: .github/scripts/check-games.sh
       - uses: actions/upload-pages-artifact@v3
