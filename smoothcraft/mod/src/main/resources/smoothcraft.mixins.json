@@ -1,0 +1,15 @@
+{
+	"required": true,
+	"package": "net.hoai2k.smoothcraft.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"BufferBuilderMixin",
+		"FluidRendererMixin",
+		"GlobalSettingsUniformMixin",
+		"ModelPartCubeMixin",
+		"SkyRendererMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
