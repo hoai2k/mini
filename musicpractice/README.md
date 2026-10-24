@@ -184,9 +184,19 @@ when the Art Deco art arrives, measure and record its own.
   The scale is logarithmic, squeezed further at the fast end, so the slower,
   everyday tempos get more of the rod; tempos past either end leave it at
   that end (they can still be typed).
-  While it is dragged the pendulum eases upright and the clicks go on at the
-  new tempo; a tap on it without a drag is a tap on the metronome. It
-  slides to its place when the tempo changes any other way. The pendulum is
+  **It can be taken hold of anywhere on the rod**, mid-swing included: a
+  press within 22 px of the rod (the weight, or the rod above or below it)
+  is turned back into the rod's own upright frame (`unrotate`,
+  `uprightRod` in `app/src/art.js`) to see whether it was near it, so a
+  swinging weight is caught where it is, not where it was. The pendulum
+  then stands upright at once (no easing, so nothing shifts under the
+  pointer) and the clicks go on at the new tempo; the weight follows the
+  pointer up and down the rod, measured on the upright rod, so the same
+  movement is always the same change. A press on the weight keeps it under
+  the pointer; a press on the rod brings it there. A mouse over the rod
+  shows a hand. A press near the rod, dragged or not, is never a tap on the
+  metronome (which turns the swing on or off); a tap on the case still is.
+  It slides to its place when the tempo changes any other way. The pendulum is
   drawn in two parts for this, its rod (`metronome-rod`, with the weight's
   `travel` along it) and its weight (`metronome-weight`, with its `center`
   on the rod; `placeWeight` in `app/src/art.js`). Round 10 delivers both

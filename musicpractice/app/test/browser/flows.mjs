@@ -275,6 +275,52 @@ async function tapPad(env) {
   await p.close();
 }
 
+/** The weight with a mouse, the metronome swinging: taken hold of anywhere on the rod, the same drag always the same change. */
+async function weightGrab(env) {
+  const p = await env.page({ touch: false, width: 1100, height: 900 });
+  await p.goto(env.base + '#metronome');
+  await p.waitForTimeout(1200);
+  const bpm = () => p.evaluate(() => Number(document.getElementById('bpm-input').value));
+  const setBpm = async (n) => { await p.fill('#bpm-input', String(n)); await p.press('#bpm-input', 'Enter'); };
+  const swinging = () => p.evaluate(() => JSON.parse(localStorage.getItem('musicpractice.settings.v1')).swing);
+  await setBpm(60);
+  await p.click('#met-toggle');
+  // The same 60 px drag, grabbed at different points in the swing.
+  const changes = [];
+  for (let trial = 0; trial < 4; trial++) {
+    await setBpm(60);
+    await p.waitForTimeout(250 + trial * 290);
+    const r = await p.locator('#pend-weight').boundingBox();
+    const x = r.x + r.width / 2, y = r.y + r.height / 2;
+    await p.mouse.move(x, y);
+    await p.mouse.down();
+    for (let k = 1; k <= 6; k++) await p.mouse.move(x, y + k * 10);
+    await p.mouse.up();
+    changes.push((await bpm()) - 60);
+  }
+  c.ok(changes.every((d) => d > 0 && Math.abs(d - changes[0]) <= 1), `the same drag is the same change wherever the swing was (${changes})`);
+  c.ok(await swinging(), 'grabbing the weight leaves the swing on');
+  // A press on the rod well above the weight brings the weight there (slower); a plain press there never turns the swing off.
+  await setBpm(120);
+  await p.waitForTimeout(700);
+  const art = await p.locator('#metronome-art').boundingBox();
+  await p.evaluate(() => { document.getElementById('pendulum').style.transform = 'rotate(0deg)'; });
+  const w = await p.locator('#pend-weight').boundingBox();
+  await p.mouse.click(w.x + w.width / 2, w.y - 60);
+  c.ok(await bpm() === 120 && await swinging(), 'a click on the rod (no drag) neither moves the tempo nor turns the swing off');
+  await p.mouse.move(w.x + w.width / 2, w.y - 60);
+  await p.mouse.down();
+  await p.mouse.move(w.x + w.width / 2, w.y - 50);
+  await p.mouse.move(w.x + w.width / 2, w.y - 60);
+  await p.mouse.up();
+  c.ok(await bpm() < 120, `pressing on the rod above the weight and moving brings it up there, slower (${await bpm()})`);
+  // A click on the case away from the rod is still a tap on the metronome: the swing goes off.
+  await p.mouse.click(art.x + art.width * 0.15, art.y + art.height * 0.85);
+  c.ok(!(await swinging()), 'a click on the case away from the rod still turns the swing off');
+  c.ok(!p.errors.length, `no page errors grabbing the weight (${p.errors})`);
+  await p.close();
+}
+
 async function savedTempos(env) {
   const p = await env.page();
   await p.goto(env.base + '#metronome');
@@ -665,7 +711,7 @@ async function themes(env) {
 
 /** `only`: the names of the parts to run (all of them if empty): node flows.mjs exercises routines */
 export async function run(env, only = []) {
-  for (const part of [list, running, routines, practiceLog, metronomeScreen, tapPad, savedTempos, strongBeats, exercises, microphone, themes]) {
+  for (const part of [list, running, routines, practiceLog, metronomeScreen, tapPad, weightGrab, savedTempos, strongBeats, exercises, microphone, themes]) {
     if (only.length && !only.includes(part.name)) continue;
     try { await part(env); } catch (e) { c.ok(false, `${part.name}: ${e.message.split('\n')[0]}`); }
   }

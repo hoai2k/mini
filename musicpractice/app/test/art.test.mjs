@@ -51,3 +51,14 @@ test('every theme has stand-ins with anchors for every themed image', () => {
     assert.ok(a.canvas && a.anchors, a.file);
   }
 });
+
+test('a point turned back into a rotated layer\'s own frame (the swinging rod)', async () => {
+  const { unrotate } = await import('../src/art.js');
+  const near = (a, b) => Math.abs(a[0] - b[0]) < 1e-9 && Math.abs(a[1] - b[1]) < 1e-9;
+  // Rotated 90° clockwise about (0, 0), a point to the right of the hub was straight above it.
+  assert.ok(near(unrotate(10, 0, 0, 0, 90), [0, -10]));
+  // A point on a rod tilted 24° (the swing), 100 px from a hub at (200, 500), is 100 px straight up once upright.
+  const a = (24 * Math.PI) / 180;
+  assert.ok(near(unrotate(200 + 100 * Math.sin(a), 500 - 100 * Math.cos(a), 200, 500, 24), [200, 400]));
+  assert.ok(near(unrotate(5, 7, 5, 7, 33), [5, 7])); // the hub stays put
+});

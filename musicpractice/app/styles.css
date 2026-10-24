@@ -344,6 +344,10 @@ dialog:focus { outline: none; }
 /* Its weight, placed on the rod by art.js placeWeight (high is slow). It
    slides when the tempo changes, follows the finger when dragged, and has a
    grip wider than itself so a finger finds it. */
+/* The rod can be taken hold of anywhere (metronomeui.js): a finger on it drags rather than scrolls, a mouse shows a hand. */
+.met-pendulum { touch-action: none; }
+.metronome.grab { cursor: grab; }
+.metronome.grabbing, .metronome.grabbing * { cursor: grabbing; }
 .met-pendulum > .met-weight { position: absolute; display: block; transition: top 0.25s ease-out; touch-action: none; cursor: grab; z-index: 1; }
 .met-pendulum > .met-weight[hidden] { display: none; }
 .met-pendulum > .met-weight.held { transition: none; cursor: grabbing; }
