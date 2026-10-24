@@ -65,7 +65,7 @@ The candidates, each checked for its licence:
 | Rin | [Japanese rin played as struck idiophone](https://commons.wikimedia.org/wiki/File:Japanese_rin_played_as_struck_idiophone.ogg) (used: its last, full strike) | MichaelMaggs | CC BY-SA 4.0 |
 | Koshi chimes | [Windglockenspiel.Koshi](https://commons.wikimedia.org/wiki/File:Windglockenspiel.Koshi.ogg) (used: its first gust) | Membeth | CC0 |
 | Singing bowl | [SingingBowl1](https://commons.wikimedia.org/wiki/File:SingingBowl1.ogg) (not used: low bit rate, cut off mid-ring) | BambooBeast | public domain |
-| Singing bowl | [The sound of a singing bowl](https://commons.wikimedia.org/wiki/File:The_sound_of_a_singing_bowl.wav) (not fetched yet: Commons rate-limited the download) | Valera N. Trubin | CC BY 4.0 |
+| Singing bowl | [The sound of a singing bowl](https://commons.wikimedia.org/wiki/File:The_sound_of_a_singing_bowl.wav) (not used: a continuous rubbed tone that never decays, not a strike) | Valera N. Trubin | CC BY 4.0 |
 | Temple bell | [Gong or bell vibrant (short)](https://commons.wikimedia.org/wiki/File:Gong_or_bell_vibrant_(short).ogg) (not used: 5.6 s, cut off mid-ring) | Stephan, via PDSounds | CC0 |
 
 The tingsha and the temple bell are synthesized: no freely licensed recording
