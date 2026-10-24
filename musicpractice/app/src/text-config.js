@@ -162,8 +162,6 @@ export const EN = {
     /** The tempo trainer (Metronome settings). */
     trainer: {
       title: 'Tempo trainer',
-      edit: 'Set the tempo trainer',
-      label: (on, t) => (on ? `Tempo trainer: ${t.step} BPM every ${t.every} ${t.every === 1 ? 'bar' : 'bars'}, to ${t.to}` : 'Tempo trainer'),
       help: 'From the tempo you set, the tempo changes a step at a time until it reaches the target, then stays there. Stop puts it back where it started.',
       to: 'Target tempo (BPM)',
       step: 'Change by (BPM)',
@@ -180,15 +178,15 @@ export const EN = {
       silent: 'Bars without',
       status: (g) => `Silent bars: ${g.play} + ${g.silent}`,
     },
-    /** The second rhythm, a polyrhythm (Metronome settings). */
+    /** The polyrhythm (Metronome settings). */
     poly: {
-      title: 'Second rhythm',
-      edit: 'Choose the second rhythm',
-      label: (on, n, beats) => (on ? `Second rhythm: ${n} against ${beats}` : 'Second rhythm'),
+      title: 'Polyrhythm',
+      edit: 'Choose the polyrhythm',
+      label: (on, n, beats) => (on ? `Polyrhythm: ${n} against ${beats}` : 'Polyrhythm'),
       help: (beats) => `A second, higher click, spaced evenly across each bar: how many against the bar's ${beats} beats? It starts with beat 1, and a row of small dots over the beats shows it.`,
       option: (n, beats) => `${n}:${beats}`,
-      status: (n, beats) => `Second rhythm ${n}:${beats}`,
-      noBars: 'Second rhythm (needs a time signature)',
+      status: (n, beats) => `Polyrhythm ${n}:${beats}`,
+      noBars: 'Polyrhythm (needs a time signature)',
     },
     exerciseOpen: 'Metronome settings',
     /** Common tempos, from the marking. */

@@ -220,11 +220,7 @@
             <span class="accent-name"><label for="sub-on" id="sub-label"></label><button type="button" class="icon-btn accent-edit" id="sub-edit" data-text-aria-label="metronome.settings.subEdit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></span>
             <input type="checkbox" id="sub-on" role="switch">
           </div>
-          <!-- Practice with the metronome (metronomeui.js): each a switch, and a pencil for its numbers. -->
-          <div class="row toggle accent-row">
-            <span class="accent-name"><label for="trainer-on" id="trainer-label"></label><button type="button" class="icon-btn accent-edit" id="trainer-edit" data-text-aria-label="metronome.trainer.edit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></span>
-            <input type="checkbox" id="trainer-on" role="switch">
-          </div>
+          <!-- Practice with the metronome (metronomeui.js): silent bars and the polyrhythm a switch and a pencil, the tempo trainer a switch that opens its numbers. -->
           <div class="row toggle accent-row">
             <span class="accent-name"><label for="gap-on" id="gap-label"></label><button type="button" class="icon-btn accent-edit" id="gap-edit" data-text-aria-label="metronome.gap.edit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></span>
             <input type="checkbox" id="gap-on" role="switch">
@@ -232,6 +228,12 @@
           <div class="row toggle accent-row">
             <span class="accent-name"><label for="poly-on" id="poly-label"></label><button type="button" class="icon-btn accent-edit" id="poly-edit" data-text-aria-label="metronome.poly.edit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></span>
             <input type="checkbox" id="poly-on" role="switch">
+          </div>
+          <!-- The tempo trainer: turned on, its numbers open under it. -->
+          <label class="row toggle"><span id="trainer-label" data-text="metronome.trainer.title"></span><input type="checkbox" id="trainer-on" role="switch"></label>
+          <div class="trainer-section" id="trainer-section" hidden>
+            <p class="help" data-text="metronome.trainer.help"></p>
+            <div class="ex-fields" id="trainer-fields"></div>
           </div>
           <label class="row toggle"><span data-text="metronome.settings.sound"></span><select class="select" id="sound"></select></label>
           <!-- Settings for what can be shown, whether or not it is showing: a tap on the
@@ -254,14 +256,7 @@
         </form>
       </dialog>
 
-      <!-- The tempo trainer's and silent bars' numbers (metronomeui.js). -->
-      <dialog id="trainer-editor" class="sheet" aria-labelledby="trainer-editor-title">
-        <form method="dialog">
-          <header class="sheet-head"><h3 id="trainer-editor-title" data-text="metronome.trainer.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-          <p class="help" data-text="metronome.trainer.help"></p>
-          <div class="ex-fields" id="trainer-fields"></div>
-        </form>
-      </dialog>
+      <!-- The silent bars' numbers and the polyrhythm's count (metronomeui.js). -->
       <dialog id="poly-editor" class="sheet" aria-labelledby="poly-editor-title">
         <form method="dialog">
           <header class="sheet-head"><h3 id="poly-editor-title" data-text="metronome.poly.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>

@@ -354,8 +354,9 @@ when the Art Deco art arrives, measure and record its own.
   `SOFT` (4) and `SILENT` (5), which the native mixers take in `slots` too
   (their soft click is the weak one scaled the same). They play in a
   routine as strong beats do.
-- **Tempo trainer:** a switch in Metronome settings, with a pencil for its
-  numbers: a target tempo, a step (BPM) and how often (every N bars). From
+- **Tempo trainer:** a switch in Metronome settings, under Polyrhythm
+  (after Silent bars). Turned on, its numbers open under it, set in under a
+  rule: a target tempo, a step (BPM) and how often (every N bars). From
   the tempo set, the metronome moves a step toward the target at the start
   of every N bars, then stays there; the number, slider and pendulum follow,
   and **Stop puts the tempo back** where it started, for another go (turned
@@ -364,7 +365,7 @@ when the Art Deco art arrives, measure and record its own.
 - **Silent bars:** the same, for some bars with clicks then some without
   (1 to 16 each), over and over: the beat goes on silently and the clicks
   come back to show whether it was held. The dots and pendulum keep going.
-- **Second rhythm** (a polyrhythm): a switch in Metronome settings and a
+- **Polyrhythm**: a switch in Metronome settings and a
   pencil with 2 to 9 (choosing one turns it on). A second, higher click
   divides each bar evenly from beat 1: 3 against 4 in 4/4, 2 against 3 in
   3/4, 5 against 4 and so on. Its click is the mid click played 1.5 times
@@ -377,7 +378,7 @@ when the Art Deco art arrives, measure and record its own.
 - These run in the scheduler itself (`setExercise` in `metronome.js`; in the
   apps `metronomeExercise`, so the mixers keep exact time and the trainer
   goes on with the screen locked, the page reading the tempo back off the
-  clock's period; the second rhythm is `polyN`). They apply when the metronome is started from its own
+  clock's period; the polyrhythm is `polyN`). They apply when the metronome is started from its own
   screen; a routine's metronome plays plainly. An app built before them
   plays on plainly (it has no `metronomeExercise`, and plays soft and
   silent places as the quiet between-the-beats click) until it is rebuilt.

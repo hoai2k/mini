@@ -377,7 +377,9 @@ async function exercises(env) {
   await p.fill('#bpm-input', '120');
   await p.press('#bpm-input', 'Enter');
   await p.click('#met-settings-btn');
-  await p.click('#trainer-edit');
+  c.ok(!(await p.isVisible('#trainer-section')), 'the tempo trainer is a switch, its numbers folded away');
+  await p.click('#trainer-on');
+  c.ok(await p.isVisible('#trainer-section'), 'turned on, its numbers open under it');
   const field = (n) => `#trainer-fields .ex-row:nth-child(${n}) .ex-value`;
   await p.fill(field(1), '140');
   await p.press(field(1), 'Enter');
@@ -385,11 +387,8 @@ async function exercises(env) {
   await p.press(field(2), 'Enter');
   await p.fill(field(3), '1');
   await p.press(field(3), 'Enter');
-  await p.click('#trainer-editor .sheet-head .icon-btn');
-  await p.click('#trainer-on');
   s = await saved();
   c.ok(JSON.stringify(s.trainer) === '{"on":true,"step":10,"every":1,"to":140}', `the trainer's numbers are kept (${JSON.stringify(s.trainer)})`);
-  c.ok((await p.textContent('#trainer-label')).includes('10 BPM every 1 bar, to 140'), 'its row says what it does');
   await p.click('#met-settings .sheet-head .icon-btn');
   c.ok(await p.isVisible('#met-exercise'), 'a line under the tempo says the trainer is on');
   await p.click('#met-toggle');
@@ -432,13 +431,13 @@ async function exercises(env) {
     return out;
   });
   c.ok(bars[0] > 0 && bars[1] === 0 && bars[2] > 0 && bars[3] === 0 && bars[4] > 0 && bars[5] === 0, `silent bars: clicks in every other bar (${bars})`);
-  // The second rhythm: 3 against 4 at 120 (a bar is 2 s): the higher click a third of a bar apart.
+  // The polyrhythm: 3 against 4 at 120 (a bar is 2 s): the higher click a third of a bar apart.
   await p.click('#met-settings-btn');
   await p.click('#gap-on');
   await p.selectOption('#meter', '4/4');
   await p.click('#poly-edit');
   await p.click('#poly-chips .chip >> nth=1');
-  c.ok(await p.isChecked('#poly-on') && (await p.textContent('#poly-label')) === 'Second rhythm: 3 against 4', `choosing 3 turns the second rhythm on (${await p.textContent('#poly-label')})`);
+  c.ok(await p.isChecked('#poly-on') && (await p.textContent('#poly-label')) === 'Polyrhythm: 3 against 4', `choosing 3 turns the polyrhythm on (${await p.textContent('#poly-label')})`);
   await p.click('#poly-editor .sheet-head .icon-btn');
   await p.click('#met-settings .sheet-head .icon-btn');
   await p.fill('#bpm-input', '120');
@@ -453,7 +452,7 @@ async function exercises(env) {
   const lit = await p.evaluate(() => document.querySelectorAll('#poly-beats li').length);
   await p.click('#met-toggle');
   const gaps = await p.evaluate(() => window.__poly.slice(0, 5).map((t, i, a) => (i ? Math.round((t - a[i - 1]) * 1000) : 0)).slice(1));
-  c.ok(gaps.length >= 3 && gaps.every((g) => Math.abs(g - 667) <= 2), `the second rhythm clicks every third of a bar (${gaps} ms)`);
+  c.ok(gaps.length >= 3 && gaps.every((g) => Math.abs(g - 667) <= 2), `the polyrhythm clicks every third of a bar (${gaps} ms)`);
   c.ok(lit === 3, `three small dots show it (${lit})`);
   c.ok(!p.errors.length, `no page errors practising with the metronome (${p.errors})`);
   await p.close();

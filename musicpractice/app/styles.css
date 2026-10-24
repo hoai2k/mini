@@ -468,6 +468,10 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
 .levels-row { align-items: center; }
 .levels-row > span { display: flex; flex-direction: column; gap: 2px; }
 .levels-row small.help { margin: 0; font-size: 0.82rem; }
+/* The tempo trainer's numbers, open under its switch while it is on: set in, under a rule. */
+.trainer-section { display: flex; flex-direction: column; gap: 6px; margin: -4px 0 4px; padding: 0 0 0 12px; border-left: 2px solid var(--line); }
+.trainer-section[hidden] { display: none; }
+.trainer-section > .help { margin: 0 0 2px; }
 /* The tempo trainer's and silent bars' numbers. */
 .ex-fields { display: flex; flex-direction: column; gap: 6px; }
 .ex-row .ex-name { min-width: 0; }

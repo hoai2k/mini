@@ -190,8 +190,12 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     $('poly-on').checked = settings.poly.on;
     $('poly-on').disabled = beats === 1;
     showPolyDots();
-    $('trainer-label').textContent = X.trainer.label(settings.trainer.on, settings.trainer);
     $('trainer-on').checked = settings.trainer.on;
+    // Turned on, the trainer's numbers open under its switch.
+    if ($('trainer-section').hidden === settings.trainer.on) {
+      if (settings.trainer.on) fillTrainer();
+      $('trainer-section').hidden = !settings.trainer.on;
+    }
     $('gap-label').textContent = X.gap.label(settings.gap.on, settings.gap);
     $('gap-on').checked = settings.gap.on;
     const parts = [];
@@ -273,7 +277,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     row.querySelector('.ex-more').addEventListener('click', () => put(get() + 1));
     return row;
   }
-  function openTrainer() {
+  function fillTrainer() {
     const T = TEXT.metronome.trainer;
     const set = (k) => (v) => { settings.trainer = { ...settings.trainer, [k]: v }; };
     $('trainer-fields').replaceChildren(
@@ -281,7 +285,6 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
       numberRow(T.step, () => settings.trainer.step, set('step'), 1, TRAINER_STEP_MAX),
       numberRow(T.every, () => settings.trainer.every, set('every'), 1, TRAINER_EVERY_MAX),
     );
-    $('trainer-editor').showModal();
   }
   function openGap() {
     const G = TEXT.metronome.gap;
@@ -292,7 +295,6 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     );
     $('gap-editor').showModal();
   }
-  $('trainer-edit').addEventListener('click', openTrainer);
   $('gap-edit').addEventListener('click', openGap);
   queueMicrotask(showExercise); // once the screen's fitting (below) is set up
 
