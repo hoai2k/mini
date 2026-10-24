@@ -18,8 +18,8 @@ TARGET = RES / "shaders" / "include" / "materials.glsl"
 
 def render() -> str:
     materials = json.loads(SOURCE.read_text())["materials"]
-    if len(materials) > 255:
-        raise SystemExit("at most 255 materials fit in the vertex alpha")
+    if len(materials) > 32:
+        raise SystemExit("at most 32 materials fit in the vertex alpha (5 bits; the other 3 carry blend weights)")
     a = [f"    vec4({m['roughness']:.3f}, {m['metal']:.3f}, {m['f0']:.3f}, {m['subsurface']:.3f})" for m in materials]
     b = [f"    vec4({m['emissive']:.3f}, {m['bump']:.3f}, {m['sheen']:.3f}, {m['wet']:.3f})" for m in materials]
     names = "\n".join(f"#define SMOOTH_MAT_{m['name'].upper()} {i}" for i, m in enumerate(materials))

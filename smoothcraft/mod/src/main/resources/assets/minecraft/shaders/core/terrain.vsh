@@ -35,6 +35,8 @@ layout(location = 7) out vec2 lightLevel;
 layout(location = 8) flat out int material;
 layout(location = 9) out float hasNormal;
 layout(location = 10) out vec3 lightmapColor;
+layout(location = 11) flat out int blendOverlay;
+layout(location = 12) out float blendShare;
 
 void main() {
     vec3 pos = Position + (ChunkPosition - CameraBlockPos) + CameraOffset;
@@ -49,7 +51,12 @@ void main() {
     ivec2 light = ivec2(blockHalf & 0xFF, skyHalf & 0xFF);
     hasNormal = (blockHalf & 0x8000) != 0 ? 1.0 : 0.0;
     vertexNormal = hasNormal > 0.5 ? smooth_unpack_normal(blockHalf, skyHalf) : vec3(0.0, 1.0, 0.0);
-    material = 255 - int(Color.a * 255.0 + 0.5);
+    // Alpha holds 255 - code: low 5 bits the material, top 3 a blend overlay's share (1..7, 0 for none).
+    int code = 255 - int(Color.a * 255.0 + 0.5);
+    material = code & 31;
+    int share = code >> 5;
+    blendOverlay = share;
+    blendShare = share > 0 ? float(share - 1) / 6.0 : 1.0;
     lightLevel = vec2(light) / 240.0;
     viewPos = pos;
     vec4 color = vec4(Color.rgb, 1.0);

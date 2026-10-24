@@ -23,6 +23,8 @@ public final class SmoothConfig {
 	public float terrainStrength = 1.0f;
 	/** Each smoothed block face is cut into this many rows and columns. */
 	public int terrainSubdivisions = 2;
+	/** Let neighbouring terrain types' textures meet along curved, wandering borders instead of block edges. */
+	public boolean blendBorders = true;
 	/** Sun, sky and torch light with physically based materials; off falls back to vanilla lighting. */
 	public boolean realisticLighting = true;
 	/** Round the boxes of every mob, player and block entity model. */

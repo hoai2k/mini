@@ -22,7 +22,9 @@ import net.minecraft.server.packs.resources.Resource;
  * Picks the surface material of each terrain quad from the name of its
  * texture, using the rules in assets/smoothcraft/materials.json. The material
  * index travels to the shader in the vertex colour's alpha, stored as
- * 255 - index so an untouched vertex (alpha 255) reads as "default".
+ * 255 - code so an untouched vertex (alpha 255) reads as "default". The code's
+ * low 5 bits are the material (so at most 32); the top 3 bits mark a blend
+ * overlay and carry its weight (see {@link #withBlend}).
  */
 public final class Materials {
 	public static final Identifier FILE = Smoothcraft.id("materials.json");
@@ -53,6 +55,7 @@ public final class Materials {
 		protected void apply(List<Rule> prepared, PreparableReloadListener.SharedState state) {
 			rules = prepared;
 			BY_SPRITE.clear();
+			net.hoai2k.smoothcraft.terrain.Looks.clear();
 		}
 	};
 
@@ -102,7 +105,18 @@ public final class Materials {
 
 	/** Replaces a vertex colour's alpha with the encoded material. */
 	public static int withMaterial(int argb, int material) {
-		return (argb & 0x00FFFFFF) | (255 - material) << 24;
+		return (argb & 0x00FFFFFF) | (255 - (material & 31)) << 24;
+	}
+
+	/**
+	 * The same for a vertex of a blend overlay, a second layer drawn where
+	 * another surface type's texture reaches over the border: {@code weight}
+	 * (0..1) is how much of that type surrounds the vertex; the shader keeps
+	 * the overlay where the interpolated weight beats a wobbling threshold.
+	 */
+	public static int withBlend(int argb, int material, float weight) {
+		int level = 1 + Math.round(Math.max(0f, Math.min(1f, weight)) * 6f);
+		return (argb & 0x00FFFFFF) | (255 - ((material & 31) | level << 5)) << 24;
 	}
 
 	/** The water material, for fluids (which are not drawn from block models). */

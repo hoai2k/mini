@@ -11,12 +11,12 @@ public interface CellField {
 	byte SMOOTH = 1;
 	/** Built or otherwise solid blocks that keep their shape: corners touching one never move. */
 	byte HARD = 2;
-	/** Water and lava: solid for the surface (shores round off) but never pinning. */
+	/** Water and lava: open space for the surface, so lake and sea beds smooth like dry ground. */
 	byte FLUID = 3;
 
 	byte cell(int x, int y, int z);
 
 	static boolean solid(byte cell) {
-		return cell != EMPTY;
+		return cell == SMOOTH || cell == HARD;
 	}
 }

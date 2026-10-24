@@ -29,14 +29,10 @@ public final class SmoothcraftClientGameTest implements FabricClientGameTest {
 			world.getServer().runCommand("weather clear");
 			BlockPos ground = world.getServer().computeOnServer(server -> hilliest(server.overworld()));
 			BlockPos open = world.getServer().computeOnServer(server -> openGround(server.overworld()));
+			BlockPos shore = world.getServer().computeOnServer(server -> shore(server.overworld()));
 			BlockPos villager = open.offset(3, 0, 0);
 			world.getServer().runCommand("summon villager " + villager.getX() + " " + villager.getY() + " " + villager.getZ()
 					+ " {NoAI:1b,Rotation:[90f,0f]}");
-			world.getServer().runCommand("tp @p " + (open.getX() + 0.5) + " " + (open.getY() + 0.6) + " " + (open.getZ() + 0.5) + " -90 10");
-			world.getConnection().waitForChunksRender(20 * 60 * 6);
-			context.waitTicks(40);
-			context.takeScreenshot("smoothcraft-villager-on");
-
 			int eyeY = world.getServer().computeOnServer(server -> {
 				int highest = ground.getY();
 				for (int d = 0; d <= 14; d += 2) {
@@ -44,11 +40,17 @@ public final class SmoothcraftClientGameTest implements FabricClientGameTest {
 				}
 				return highest + 6;
 			});
-			world.getServer().runCommand("tp @p " + (ground.getX() - 14) + " " + eyeY + " " + (ground.getZ() - 14) + " -45 25");
-			world.getConnection().waitForChunksRender(20 * 60 * 6);
-			context.waitTicks(40);
-			context.takeScreenshot("smoothcraft-terrain-noon-on");
-
+			// Each scene is photographed with Smoothcraft on, then again with it off.
+			String[][] scenes = {
+				{"villager", (open.getX() + 0.5) + " " + (open.getY() + 0.6) + " " + (open.getZ() + 0.5) + " -90 10"},
+				{"terrain-noon", (ground.getX() - 14) + " " + eyeY + " " + (ground.getZ() - 14) + " -45 25"},
+				{"shore", (shore.getX() - 7.5) + " " + (shore.getY() + 7) + " " + (shore.getZ() + 0.5) + " -90 40"},
+				{"underwater", (shore.getX() - 9.5) + " " + (shore.getY() - 1.6) + " " + (shore.getZ() + 0.5) + " -90 30"},
+			};
+			for (String[] scene : scenes) {
+				photograph(context, world, scene, "on");
+			}
+			world.getServer().runCommand("tp @p " + scenes[1][1]);
 			world.getServer().runCommand("time set 23200");
 			context.waitTicks(20);
 			context.takeScreenshot("smoothcraft-terrain-sunrise-on");
@@ -61,13 +63,9 @@ public final class SmoothcraftClientGameTest implements FabricClientGameTest {
 				SmoothConfig.changed();
 				Smoothcraft.rebuildWorld(client);
 			});
-			world.getConnection().waitForChunksRender(20 * 60 * 6);
-			context.waitTicks(40);
-			context.takeScreenshot("smoothcraft-terrain-noon-off");
-			world.getServer().runCommand("tp @p " + (open.getX() + 0.5) + " " + (open.getY() + 0.6) + " " + (open.getZ() + 0.5) + " -90 10");
-			world.getConnection().waitForChunksRender(20 * 60 * 6);
-			context.waitTicks(20);
-			context.takeScreenshot("smoothcraft-villager-off");
+			for (String[] scene : scenes) {
+				photograph(context, world, scene, "off");
+			}
 
 			context.runOnClient(client -> {
 				SmoothConfig.get().smoothTerrain = true;
@@ -76,6 +74,36 @@ public final class SmoothcraftClientGameTest implements FabricClientGameTest {
 				SmoothConfig.changed();
 			});
 		}
+	}
+
+	private static void photograph(ClientGameTestContext context, TestSingleplayerContext world, String[] scene, String state) {
+		world.getServer().runCommand("tp @p " + scene[1]);
+		world.getConnection().waitForChunksRender(20 * 60 * 6);
+		context.waitTicks(40);
+		context.takeScreenshot("smoothcraft-" + scene[0] + "-" + state);
+	}
+
+	/** Open water near spawn with dry land five blocks to the east: a shoreline to look at. */
+	private static BlockPos shore(ServerLevel level) {
+		BlockPos spawn = level.getRespawnData().globalPos().pos();
+		for (int r = 0; r <= 160; r += 4) {
+			for (int dx = -r; dx <= r; dx += 4) {
+				for (int dz = -r; dz <= r; dz += 4) {
+					if (Math.max(Math.abs(dx), Math.abs(dz)) != r) {
+						continue;
+					}
+					BlockPos top = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, new BlockPos(spawn.getX() + dx, 0, spawn.getZ() + dz));
+					BlockPos land = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, top.offset(5, 0, 0));
+					boolean water = !level.getBlockState(top.below()).getFluidState().isEmpty()
+							&& !level.getBlockState(top.below(4)).getFluidState().isEmpty();
+					boolean dry = level.getBlockState(land.below()).getFluidState().isEmpty() && Math.abs(land.getY() - top.getY()) <= 3;
+					if (water && dry) {
+						return top;
+					}
+				}
+			}
+		}
+		return surface(level, spawn.getX(), spawn.getZ());
 	}
 
 	/** A spot near spawn with the steepest ground around it, so the photos show hills. */

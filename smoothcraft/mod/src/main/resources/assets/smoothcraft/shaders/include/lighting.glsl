@@ -87,6 +87,32 @@ vec3 smooth_bump(sampler2D tex, vec2 uv, vec2 texel, vec3 n, vec3 viewPos, float
     return dot(bumped, n) > 0.2 ? bumped : n;
 }
 
+float smooth_hash(vec3 p) {
+    p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3));
+    p *= 17.0;
+    return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
+
+// Smooth value noise, 0..1.
+float smooth_noise(vec3 p) {
+    vec3 i = floor(p);
+    vec3 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(
+        mix(mix(smooth_hash(i), smooth_hash(i + vec3(1, 0, 0)), f.x),
+            mix(smooth_hash(i + vec3(0, 1, 0)), smooth_hash(i + vec3(1, 1, 0)), f.x), f.y),
+        mix(mix(smooth_hash(i + vec3(0, 0, 1)), smooth_hash(i + vec3(1, 0, 1)), f.x),
+            mix(smooth_hash(i + vec3(0, 1, 1)), smooth_hash(i + vec3(1, 1, 1)), f.x), f.y),
+        f.z);
+}
+
+// Where a blended border falls: half way, pushed about by two octaves of noise
+// so it meanders on the scale of a block and frays on the scale of a pixel.
+float smooth_border_threshold(vec3 worldPos) {
+    float n = smooth_noise(worldPos * 0.9) * 0.65 + smooth_noise(worldPos * 4.1) * 0.35;
+    return clamp(0.5 + (n - 0.5) * 0.9, 0.18, 0.82);
+}
+
 // Small moving ripples on top of water.
 vec3 smooth_water_normal(vec3 worldPos, float time, vec3 n) {
     if (n.y < 0.5) {

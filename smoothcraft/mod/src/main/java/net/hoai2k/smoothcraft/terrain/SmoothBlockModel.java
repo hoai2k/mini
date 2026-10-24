@@ -1,6 +1,9 @@
 package net.hoai2k.smoothcraft.terrain;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
+import net.fabricmc.fabric.api.util.TriState;
 import net.fabricmc.fabric.api.client.model.loading.v1.wrapper.WrapperBlockStateModel;
 import net.fabricmc.fabric.api.client.renderer.v1.Renderer;
 import net.fabricmc.fabric.api.client.renderer.v1.mesh.MutableMesh;
@@ -14,18 +17,25 @@ import net.fabricmc.fabric.api.client.renderer.v1.sprite.FabricTextureAtlas;
 import net.fabricmc.fabric.api.client.renderer.v1.sprite.SpriteFinder;
 import net.hoai2k.smoothcraft.SmoothConfig;
 import net.hoai2k.smoothcraft.geom.CellField;
+import net.hoai2k.smoothcraft.geom.FaceBlend;
 import net.hoai2k.smoothcraft.geom.SmoothSurface;
 import net.hoai2k.smoothcraft.material.Materials;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.chunk.RenderSectionRegion;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.data.AtlasIds;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.util.ARGB;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
@@ -35,6 +45,8 @@ import org.jspecify.annotations.Nullable;
  * <li>tags each quad with its surface material (from the texture name),</li>
  * <li>for natural terrain, cuts each face into a grid and moves every point
  *     onto the smooth surface, with smooth per-vertex normals, and</li>
+ * <li>blends the textures of neighbouring terrain types along curved borders,</li>
+ * <li>lays a strip of water over shore blocks so the waterline follows the ground, and</li>
  * <li>moves plants and snow layers with the smoothed ground under them.</li>
  * </ul>
  * Everywhere else (items, falling blocks, pistons) it draws the model as is.
@@ -106,11 +118,13 @@ public final class SmoothBlockModel extends WrapperBlockStateModel {
 		// First pass: the block's top and bottom looks, and the first quad of each face.
 		Look[] caps = new Look[2];
 		int[] firstOfFace = {-1, -1, -1, -1, -1, -1};
+		int[] quadsOnFace = new int[6];
 		int[] counter = {0};
 		mesh.forEach(quad -> {
 			int index = counter[0]++;
 			if (isFullFace(quad)) {
 				Direction face = quad.nominalFace();
+				quadsOnFace[face.ordinal()]++;
 				if (firstOfFace[face.ordinal()] < 0) {
 					firstOfFace[face.ordinal()] = index;
 				}
@@ -123,9 +137,12 @@ public final class SmoothBlockModel extends WrapperBlockStateModel {
 		});
 
 		counter[0] = 0;
+		int grid = divisions + 1;
+		float[][] raw = new float[grid * grid][3];
+		float[][] points = new float[grid * grid][3];
+		float[][] normals = new float[grid * grid][3];
 		float[][] corners = new float[4][3];
-		float[][] normals = new float[4][3];
-		float[][] st = new float[4][2];
+		float[][] cornerNormals = new float[4][3];
 		mesh.forEach(quad -> {
 			int index = counter[0]++;
 			Direction cull = quad.cullFace();
@@ -140,8 +157,8 @@ public final class SmoothBlockModel extends WrapperBlockStateModel {
 					corners[v][0] = quad.x(v) + pos.getX();
 					corners[v][1] = quad.y(v) + pos.getY();
 					corners[v][2] = quad.z(v) + pos.getZ();
-					place(corners[v], normals[v], quad, surface);
-					write(emitter, v, corners[v], normals[v], pos, quad.u(v), quad.v(v), Materials.withMaterial(quad.color(v), own.material), quad.lightmap(v));
+					place(corners[v], cornerNormals[v], quad, surface);
+					write(emitter, v, corners[v], cornerNormals[v], pos, quad.u(v), quad.v(v), Materials.withMaterial(quad.color(v), own.material), quad.lightmap(v));
 				}
 				emitter.shadeMode(ShadeMode.ENHANCED);
 				emitter.emit();
@@ -149,45 +166,232 @@ public final class SmoothBlockModel extends WrapperBlockStateModel {
 			}
 			Direction face = quad.nominalFace();
 			boolean side = face.getAxis().isHorizontal();
+			for (int i = 0; i < grid; i++) {
+				for (int j = 0; j < grid; j++) {
+					int g = i * grid + j;
+					bilinearPos(quad, (float) i / divisions, (float) j / divisions, pos, raw[g]);
+					points[g][0] = raw[g][0];
+					points[g][1] = raw[g][1];
+					points[g][2] = raw[g][2];
+					place(points[g], normals[g], quad, surface);
+				}
+			}
+			boolean primary = index == firstOfFace[face.ordinal()];
+			Blend blend = config.blendBorders && primary && quadsOnFace[face.ordinal()] == 1
+					? Blend.of(cells, level, pos, state, face, own, raw, sprites) : null;
+
 			for (int i = 0; i < divisions; i++) {
 				for (int j = 0; j < divisions; j++) {
-					float s0 = (float) i / divisions, s1 = (float) (i + 1) / divisions;
-					float t0 = (float) j / divisions, t1 = (float) (j + 1) / divisions;
-					float[][] params = {{s0, t0}, {s1, t0}, {s1, t1}, {s0, t1}};
+					int[] g = {i * grid + j, (i + 1) * grid + j, (i + 1) * grid + j + 1, i * grid + j + 1};
+					float[][] st = {{(float) i / divisions, (float) j / divisions}, {(float) (i + 1) / divisions, (float) j / divisions},
+						{(float) (i + 1) / divisions, (float) (j + 1) / divisions}, {(float) i / divisions, (float) (j + 1) / divisions}};
 					float ny = 0;
 					for (int v = 0; v < 4; v++) {
-						st[v][0] = params[v][0];
-						st[v][1] = params[v][1];
-						bilinearPos(quad, st[v][0], st[v][1], pos, corners[v]);
-						place(corners[v], normals[v], quad, surface);
-						ny += normals[v][1] * 0.25f;
+						ny += normals[g[v]][1] * 0.25f;
 					}
 					// A side face the smoothing has turned to face the sky (a grass slope) wears
 					// the top's texture, and one turned to face down wears the bottom's: no
 					// stripes of dirt across a smoothed hillside.
-					Look look = own;
 					if (side && (ny > 0.6f && caps[0] != null || ny < -0.6f && caps[1] != null)) {
-						if (index != firstOfFace[face.ordinal()]) {
-							continue;
+						if (primary) {
+							emitLayer(emitter, quad, ny > 0 ? caps[0] : caps[1], points, normals, g, st, pos, null, 0);
 						}
-						look = ny > 0 ? caps[0] : caps[1];
+						continue;
 					}
-					emitter.copyFrom(quad);
-					emitter.tintIndex(look.tintIndex);
-					for (int v = 0; v < 4; v++) {
-						write(emitter, v, corners[v], normals[v], pos, look.u(st[v][0], st[v][1]), look.v(st[v][0], st[v][1]),
-								Materials.withMaterial(look.color(st[v][0], st[v][1]), look.material), quad.lightmap(0));
+					if (blend == null) {
+						emitLayer(emitter, quad, own, points, normals, g, st, pos, null, 0);
+						continue;
 					}
-					emitter.shadeMode(ShadeMode.ENHANCED);
-					emitter.emit();
+					// Blended borders: the lowest-ranked type underneath, then each type above
+					// it as an overlay where its share reaches; skip layers fully covered.
+					int bottom = 0;
+					for (int k = blend.looks.length - 1; k > 0; k--) {
+						if (blend.min(k, g) >= 0.9f) {
+							bottom = k;
+							break;
+						}
+					}
+					emitLayer(emitter, quad, blend.looks[bottom], points, normals, g, st, pos, null, 0);
+					for (int k = bottom + 1; k < blend.looks.length; k++) {
+						if (blend.max(k, g) >= 0.15f) {
+							emitLayer(emitter, quad, blend.looks[k], points, normals, g, st, pos, blend.cumulative[k], k - bottom);
+						}
+					}
 				}
 			}
 		});
 		mesh.clear();
+		emitShoreWater(emitter, cells, level, pos);
 	}
 
-	/** How a face is painted: texture coordinates, colours and tint at its corners, and its material. */
-	private record Look(float[] us, float[] vs, int[] colors, int tintIndex, int material) {
+	/**
+	 * Draws one layer of a sub-quad. With {@code shares}, it is a blend overlay:
+	 * each corner carries the share of this layer's type, and the layer sits a
+	 * hair above the ones below it.
+	 */
+	private static void emitLayer(QuadEmitter emitter, QuadView quad, Look look, float[][] points, float[][] normals, int[] g, float[][] st,
+			BlockPos pos, float @Nullable [] shares, int lift) {
+		emitter.copyFrom(quad);
+		emitter.tintIndex(look.tintIndex);
+		float[] p = new float[3];
+		for (int v = 0; v < 4; v++) {
+			float[] n = normals[g[v]];
+			for (int c = 0; c < 3; c++) {
+				p[c] = points[g[v]][c] + n[c] * 0.002f * lift;
+			}
+			float s = st[v][0], t = st[v][1];
+			int color = shares == null
+					? Materials.withMaterial(look.color(s, t), look.material)
+					: Materials.withBlend(look.color(s, t), look.material, shares[g[v]]);
+			write(emitter, v, p, n, pos, look.u(s, t), look.v(s, t), color, quad.lightmap(0));
+		}
+		emitter.shadeMode(ShadeMode.ENHANCED);
+		emitter.emit();
+	}
+
+	/**
+	 * A strip of water surface over a shore block, at the water's height. Where
+	 * the smoothed ground dips below the waterline it shows; elsewhere the
+	 * ground hides it. So the shoreline follows the curved ground instead of the
+	 * edges of the water blocks.
+	 */
+	private static void emitShoreWater(QuadEmitter emitter, RegionCells cells, BlockAndTintGetter level, BlockPos pos) {
+		int x = pos.getX(), y = pos.getY(), z = pos.getZ();
+		BlockState above = cells.state(x, y + 1, z);
+		if (CellField.solid(cells.cell(x, y + 1, z)) || !above.getFluidState().isEmpty()) {
+			return;
+		}
+		boolean shore = false;
+		// Two blocks in from the water: smoothing can lower the ground below the waterline that far.
+		for (int dx = -2; dx <= 2 && !shore; dx++) {
+			for (int dz = -2; dz <= 2 && !shore; dz++) {
+				shore = (dx != 0 || dz != 0) && cells.state(x + dx, y, z + dz).getFluidState().is(FluidTags.WATER);
+			}
+		}
+		if (!shore) {
+			return;
+		}
+		TextureAtlasSprite water = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS)
+				.getSprite(Identifier.withDefaultNamespace("block/water_still"));
+		int color = Materials.withMaterial(0xFF000000 | BiomeColors.getAverageWaterColor(level, pos), Materials.water());
+		int light = LightCoordsUtil.getLightCoords(level, pos.above());
+		float h = 8f / 9f - 0.002f;
+		float[][] corners = {{0, h, 0}, {0, h, 1}, {1, h, 1}, {1, h, 0}};
+		for (int v = 0; v < 4; v++) {
+			emitter.pos(v, corners[v][0], corners[v][1], corners[v][2]);
+			emitter.uv(v, water.getU(corners[v][0]), water.getV(corners[v][2]));
+			emitter.color(v, color);
+			emitter.lightmap(v, light);
+			emitter.normal(v, 0f, 1f, 0f);
+		}
+		emitter.nominalFace(Direction.UP);
+		emitter.atlas(QuadAtlas.BLOCK);
+		emitter.chunkLayer(ChunkSectionLayer.TRANSLUCENT);
+		emitter.animated(true);
+		emitter.ambientOcclusion(TriState.FALSE);
+		emitter.emit();
+	}
+
+	/** The surface types around one face, ready to draw in layers. */
+	private static final class Blend {
+		final Look[] looks;
+		/** Per layer, per grid point: the share of this layer's type and every layer above it. */
+		final float[][] cumulative;
+
+		private Blend(Look[] looks, float[][] cumulative) {
+			this.looks = looks;
+			this.cumulative = cumulative;
+		}
+
+		float min(int layer, int[] g) {
+			float m = 1;
+			for (int i : g) {
+				m = Math.min(m, cumulative[layer][i]);
+			}
+			return m;
+		}
+
+		float max(int layer, int[] g) {
+			float m = 0;
+			for (int i : g) {
+				m = Math.max(m, cumulative[layer][i]);
+			}
+			return m;
+		}
+
+		static @Nullable Blend of(RegionCells cells, BlockAndTintGetter level, BlockPos pos, BlockState own, Direction face, Look ownLook,
+				float[][] raw, @Nullable SpriteFinder sprites) {
+			if (!ownLook.blendable()) {
+				return null;
+			}
+			int axis = face.getAxis().ordinal();
+			int layer = axis == 0 ? pos.getX() : axis == 1 ? pos.getY() : pos.getZ();
+			int dx = face.getStepX(), dy = face.getStepY(), dz = face.getStepZ();
+			FaceBlend.Surface surface = (x, y, z) -> cells.kind(x, y, z) == CellField.SMOOTH && !CellField.solid(cells.cell(x + dx, y + dy, z + dz))
+					? Block.BLOCK_STATE_REGISTRY.getId(cells.state(x, y, z)) : -1;
+
+			int points = raw.length;
+			int[] allTypes = new int[8];
+			int typeCount = 0;
+			int[][] types = new int[points][8];
+			float[][] weights = new float[points][8];
+			int[] counts = new int[points];
+			for (int g = 0; g < points; g++) {
+				float a = raw[g][(axis + 1) % 3], b = raw[g][(axis + 2) % 3];
+				counts[g] = FaceBlend.weigh(surface, axis, layer, a, b, types[g], weights[g]);
+				for (int k = 0; k < counts[g]; k++) {
+					int type = types[g][k];
+					boolean seen = false;
+					for (int m = 0; m < typeCount; m++) {
+						seen |= allTypes[m] == type;
+					}
+					if (!seen && typeCount < allTypes.length) {
+						allTypes[typeCount++] = type;
+					}
+				}
+			}
+			if (typeCount <= 1) {
+				return null;
+			}
+			// Keep the types that can be drawn as a plain opaque face, lowest state id first.
+			int ownId = Block.BLOCK_STATE_REGISTRY.getId(own);
+			int[] sorted = java.util.Arrays.copyOf(allTypes, typeCount);
+			java.util.Arrays.sort(sorted);
+			List<Look> looks = new ArrayList<>();
+			List<Integer> kept = new ArrayList<>();
+			for (int type : sorted) {
+				Look look = type == ownId ? ownLook : Looks.tinted(Block.BLOCK_STATE_REGISTRY.byId(type), face, level, pos, sprites);
+				if (look != null && look.blendable()) {
+					looks.add(look);
+					kept.add(type);
+				}
+			}
+			if (looks.size() <= 1 || !kept.contains(ownId)) {
+				return null;
+			}
+			float[][] cumulative = new float[looks.size()][points];
+			for (int g = 0; g < points; g++) {
+				float total = 0;
+				float[] share = new float[looks.size()];
+				for (int k = 0; k < counts[g]; k++) {
+					int at = kept.indexOf(types[g][k]);
+					if (at >= 0) {
+						share[at] += weights[g][k];
+						total += weights[g][k];
+					}
+				}
+				float above = 0;
+				for (int k = looks.size() - 1; k >= 0; k--) {
+					above += total > 0 ? share[k] / total : 0;
+					cumulative[k][g] = above;
+				}
+			}
+			return new Blend(looks.toArray(new Look[0]), cumulative);
+		}
+	}
+
+	/** How a face is painted: texture coordinates, colours and tint at its corners, its material and render layer. */
+	record Look(float[] us, float[] vs, int[] colors, int tintIndex, int material, ChunkSectionLayer layer) {
 		static Look of(QuadView quad, int material) {
 			float[] us = new float[4], vs = new float[4];
 			int[] colors = new int[4];
@@ -196,7 +400,21 @@ public final class SmoothBlockModel extends WrapperBlockStateModel {
 				vs[v] = quad.v(v);
 				colors[v] = quad.color(v);
 			}
-			return new Look(us, vs, colors, quad.tintIndex(), material);
+			return new Look(us, vs, colors, quad.tintIndex(), material, quad.chunkLayer());
+		}
+
+		/** Only plain opaque faces take part in border blending (not leaves, glass or overlays). */
+		boolean blendable() {
+			return layer == ChunkSectionLayer.SOLID;
+		}
+
+		/** The same look with a tint colour already applied, for drawing on a block of another kind. */
+		Look withTint(int tint) {
+			int[] tinted = new int[4];
+			for (int v = 0; v < 4; v++) {
+				tinted[v] = ARGB.multiply(colors[v], 0xFF000000 | tint);
+			}
+			return new Look(us, vs, tinted, -1, material, layer);
 		}
 
 		float u(float s, float t) {
@@ -243,7 +461,7 @@ public final class SmoothBlockModel extends WrapperBlockStateModel {
 	}
 
 	/** True for a quad covering a whole side of the block: those are the ones that get cut into a grid. */
-	private static boolean isFullFace(QuadView quad) {
+	static boolean isFullFace(QuadView quad) {
 		Direction face = quad.nominalFace();
 		if (face == null) {
 			return false;
@@ -289,7 +507,7 @@ public final class SmoothBlockModel extends WrapperBlockStateModel {
 		}
 	}
 
-	private static int material(QuadView quad, SpriteFinder sprites) {
+	static int material(QuadView quad, @Nullable SpriteFinder sprites) {
 		if (sprites == null || quad.atlas() != QuadAtlas.BLOCK) {
 			return 0;
 		}

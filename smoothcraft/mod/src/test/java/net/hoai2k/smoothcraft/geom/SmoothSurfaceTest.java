@@ -131,4 +131,17 @@ class SmoothSurfaceTest {
 		s.normal(1f, -0.5f, 0.5f, n);
 		assertEquals(n[0], n[1], 0.15f, "slope normal is diagonal");
 	}
+
+	@Test
+	void seabedSmoothsLikeDryGround() {
+		// A one-block ledge on the bottom of a lake: water fills everything above the ground.
+		CellField dry = (x, y, z) -> y < 0 || (y == 0 && x < 0) ? CellField.SMOOTH : CellField.EMPTY;
+		CellField wet = (x, y, z) -> y < 0 || (y == 0 && x < 0) ? CellField.SMOOTH : CellField.FLUID;
+		float[] a = {0f, 1f, 0.5f};
+		float[] b = {0f, 1f, 0.5f};
+		new SmoothSurface(dry, 1f).project(a);
+		new SmoothSurface(wet, 1f).project(b);
+		assertTrue(a[1] < 1f, "the ledge rounds off");
+		assertArrayEquals(a, b, 0f);
+	}
 }

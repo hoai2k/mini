@@ -25,6 +25,8 @@ layout(location = 7) in vec2 lightLevel;
 layout(location = 8) flat in int material;
 layout(location = 9) in float hasNormal;
 layout(location = 10) in vec3 lightmapColor;
+layout(location = 11) flat in int blendOverlay;
+layout(location = 12) in float blendShare;
 
 #ifndef OIT_ALPHA_ONLY
 layout(location = 0) out vec4 fragColor;
@@ -72,6 +74,14 @@ vec4 smoothLit(vec4 color) {
 #endif
 
 void main() {
+    if (blendOverlay > 0) {
+        // A neighbour's texture reaching over a border: keep it where its share beats a
+        // threshold that wanders with position, so the border curves and frays naturally.
+        vec3 worldPos = viewPos - CameraOffset + vec3(CameraBlockPos);
+        if (blendShare < smooth_border_threshold(worldPos)) {
+            discard;
+        }
+    }
     vec4 color = (UseRgss == 1 ? sampleRGSS(Sampler0, texCoord0, 1.0f / TextureSize) : sampleNearest(Sampler0, texCoord0, 1.0f / TextureSize)) * vertexColor;
     #ifdef ALPHA_CUTOUT
     if (color.a < ALPHA_CUTOUT) {
