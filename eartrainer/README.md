@@ -283,10 +283,6 @@ page back if it ever ends up zoomed.
     same licence), C2 to C7. It trims each note and matches levels. Bowed and
     blown notes that swell in slowly start at half their height, so every note
     begins clearly.
-  - The Cello plays Music Practice's drone cello up to E5: its ElevenLabs loops
-    on D2, G2, D3, A3 and A4, copied to `samples/cello-drone/`, retuned exactly
-    to each note, with a short bow attack added. Above E5 it uses MusyngKite's
-    cello.
 
   How the samples behave:
   - **In tune:** each sample's pitch is measured (to 2 cents) and its offset
