@@ -59,6 +59,7 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
 | `stocks/` | Stocks (stock and ETF charts with total return: price only, with dividends, or dividends reinvested; live data through its own `mini-stocks` Cloudflare Worker in `stocks/server/`, separate from the relay) | https://hoai2k.github.io/mini/stocks/ |
 | `mp3player/` | MP3 Player (the music files on the device, played like a streaming app: songs, albums, artists, shuffle, repeat, a queue and a custom order; songs are copied into the browser's storage, never changed on the device) | https://hoai2k.github.io/mini/mp3player/ |
 | `imageannotator/` | Image Annotator (open a picture, point things out with arrows, circles and free drawing, each with an optional title that is placed clear of the others; save, then export as the original format, JPEG or JPEG for web) | https://hoai2k.github.io/mini/imageannotator/ |
+| `meditation/` | Meditation Timer (a sitting timer: a preroll to settle, 5 seconds by default, then a starting chime, the time, and an ending chime; singing bowls, rin, tingsha, Koshi chimes or a temple bell, recorded or synthesized) | https://hoai2k.github.io/mini/meditation/ |
 | `smoothcraft/` | Smoothcraft (a Minecraft Java Edition mod for Fabric: smooth terrain, rounded mobs, physically based materials and lighting, high-resolution textures from its image requests); a Gradle project in `smoothcraft/mod/`, not a browser game, so it has no `publish.sh`, Pages step or library card | — |
 | `chat/` | Games Chat (video chat with face effects and minigames); its iPhone/iPad app, calls server and TestFlight guide are in `chat/ios/` | https://hoai2k.github.io/mini/chat/ |
 | `multiplayer/` | Shared online-multiplayer relay (Cloudflare Worker) and its browser client, used by any game; see `MULTIPLAYER.md` | https://mini-rooms.hoai2k.workers.dev |
@@ -81,7 +82,7 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
   the games and sites and nothing more; each game's details belong in its own
   README. `index.html` is the game library published at
   https://hoai2k.github.io/mini/, one card per game. Apps (tools such as Ear Trainer,
-  Ai-Ching, Music Practice, Stocks, MP3 Player and Image Annotator) go on its mini apps shelf below the games, with Music
+  Ai-Ching, Music Practice, Stocks, MP3 Player, Image Annotator and Meditation Timer) go on its mini apps shelf below the games, with Music
   Practice pinned first and Games Chat second, then the rest newest first. Games that haven't turned out as hoped yet are listed as
   plain links in its Prototype archive, at the bottom. `GAME_GUIDELINES.md` applies to every game.
 - **The Prototype archive is code-locked.** The library shows it only to
@@ -159,7 +160,7 @@ and load the real file; stand-ins remain for tests.
 ## Intake
 
 Each game has its own drop box at `<game>/intake/` (`hopper/intake/`,
-`widowsbay/intake/`, `bronzedrum/intake/`, `chat/intake/`, `gliders/intake/`, `icecreamcone/intake/`, `onemonster/intake/`, `fibreart/intake/`, `percyjackson/intake/`, `aiching/intake/`, `eartrainer/intake/`, `musicpractice/intake/`, `bookzam/intake/`, `stocks/intake/`, `mp3player/intake/`, `imageannotator/intake/`, `smoothcraft/intake/`). The user drops files there for
+`widowsbay/intake/`, `bronzedrum/intake/`, `chat/intake/`, `gliders/intake/`, `icecreamcone/intake/`, `onemonster/intake/`, `fibreart/intake/`, `percyjackson/intake/`, `aiching/intake/`, `eartrainer/intake/`, `musicpractice/intake/`, `bookzam/intake/`, `stocks/intake/`, `mp3player/intake/`, `imageannotator/intake/`, `meditation/intake/`, `smoothcraft/intake/`). The user drops files there for
 integration: artwork, audio, models, exported data, notes from another agent.
 A file belongs to the game whose intake it was dropped in. If it plainly
 belongs to a different game, move it there; if that is unclear, ask.
