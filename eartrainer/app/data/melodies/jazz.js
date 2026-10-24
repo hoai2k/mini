@@ -9,7 +9,7 @@ export default [
   { id: 'summertime', title: 'Summertime', by: 'George Gershwin', cat: 'jazz', bpm: 80,
     notes: 'E5:1.5 C5:0.5 E5:4 D5:0.5 C5:0.5 D5:1 E5:0.5 C5:1.5' },
   // F major: 9 7 7 6, twice.
-  { id: 'girl-from-ipanema', title: 'The Girl from Ipanema', by: 'Antônio Carlos Jobim', cat: 'jazz', bpm: 130,
+  { id: 'girl-from-ipanema', title: 'The Girl from Ipanema', by: 'Antônio Carlos Jobim', cat: 'jazz', bpm: 130, feel: 'straight',
     notes: 'G4:1.5 E4:0.5 E4:1 D4:1 G4:1.5 E4:0.5 E4:1 D4:1' },
   // C major (Am7 Dm7 G7 Cmaj7): stepwise descent C B A G F, then G A C.
   { id: 'fly-me-to-the-moon', title: 'Fly Me to the Moon', by: 'Bart Howard', cat: 'jazz', bpm: 120,

@@ -295,3 +295,46 @@ test('the player’s touch: no note is cut off; held keys sustain longer', () =>
   assert.ok(tap.tau >= base * 2.5, 'even a tap fades gently, not cut off');
   assert.deepEqual(touchRelease(5, base), held, 'no more than full sustain');
 });
+
+import { swingFor, swingAt } from '../src/perform.js';
+import { INSTRUMENTS } from '../src/audio.js';
+import { existsSync, readFileSync } from 'node:fs';
+
+test('jazz is swung, Latin and everything else straight', () => {
+  const lib = buildLibrary();
+  const blueMonk = lib.find((m) => m.id === 'blue-monk');
+  assert.ok(swingFor(blueMonk) > 0.6, 'Blue Monk swings');
+  const ipanema = lib.find((m) => m.id === 'girl-from-ipanema' || /Ipanema/.test(m.title));
+  if (ipanema?.feel === 'straight') assert.equal(swingFor(ipanema), 0.5);
+  assert.equal(swingFor(lib.find((m) => m.cat === 'children')), 0.5);
+  // The second eighth of a beat comes late; downbeats stay put.
+  assert.equal(swingAt(2, 0.64), 2);
+  assert.ok(Math.abs(swingAt(2.5, 0.64) - 2.64) < 1e-9);
+  // Swung playback keeps the notes' order and the melody's length.
+  const plan = perform(blueMonk.parsed, 0.4, { swing: 0.64 });
+  for (let i = 1; i < plan.length; i++) assert.ok(plan[i].on > plan[i - 1].on);
+});
+
+test('held instruments let go with a short natural tail', () => {
+  const piano = touchRelease(1, 0.16), organ = touchRelease(1, 0.12, { sustained: true });
+  assert.ok(organ.tau < piano.tau / 2);
+  assert.ok(touchRelease(0.05, 0.12, { sustained: true }).delay > 0, 'a tap still sounds');
+});
+
+test('every instrument has its samples', () => {
+  const here = new URL('../assets/samples/', import.meta.url);
+  const names = Object.keys(INSTRUMENTS);
+  assert.ok(names.length >= 25);
+  for (const [name, def] of Object.entries(INSTRUMENTS)) {
+    const lo = def.lo || 21, hi = def.hi || 108;
+    for (let m = 21; m <= 108; m += 3) {
+      if (m < lo || m > hi || (def.dir === 'grand' && m === 108)) continue;
+      assert.ok(existsSync(new URL(`${def.dir}/${m}.mp3`, here)), `${name} ${m}`);
+    }
+    if (def.sustain) {
+      const loops = JSON.parse(readFileSync(new URL(`${def.dir}/loops.json`, here)));
+      assert.ok(Object.keys(loops).length > 0, `${name} loops`);
+    }
+    if (def.drone) assert.ok(JSON.parse(readFileSync(new URL(`${def.drone}/loops.json`, here))).length >= 5);
+  }
+});

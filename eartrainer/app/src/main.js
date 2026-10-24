@@ -4,7 +4,7 @@ import { createKeyboard } from './keyboard.js';
 import { createNavigator } from './navigator.js';
 import { createStaff } from './staff.js';
 import { noteName } from './music.js';
-import { perform, secondsPerBeat, MAX_HOLD, touchRelease } from './perform.js';
+import { perform, secondsPerBeat, MAX_HOLD, touchRelease, swingFor } from './perform.js';
 import { createRound, press, redo, stars, points, starsForTry, pointsForTry } from './round.js';
 import { SONG_LISTS, buildLibrary, buildSongs, inBook, transpose, randomShift, pickNext, pickSong, isSongs, countAt, SONGBOOKS, LEVELS, LEVEL_ALIASES } from './library.js';
 import { createChrome, requestFullscreen, wantFullscreen, exitFullscreen, fullscreenElement, preventZoom, onFullscreenFail } from './chrome.js';
@@ -439,7 +439,7 @@ function playMelody({ light = false } = {}) {
   const t0 = audio.now() + 0.12;
   const token = {};
   const voices = [], timers = [];
-  const plan = perform(S.melody.notes, spb, { maxHold: MAX_HOLD / settings.speed });
+  const plan = perform(S.melody.notes, spb, { maxHold: MAX_HOLD / settings.speed, swing: swingFor(S.melody, S.melody.bpm * settings.speed) });
   plan.forEach((p, i) => {
     const on = t0 + p.on;
     const v = audio.noteOn(p.midi, { when: on, velocity: p.velocity, melody: true });
@@ -515,7 +515,7 @@ function keyUp(midi) {
   const v = S.held.get(midi);
   if (!v) return;
   S.held.delete(midi);
-  const { delay, tau } = touchRelease(audio.now() - v.t, audio.instrument.release);
+  const { delay, tau } = touchRelease(audio.now() - v.t, audio.instrument.release, { sustained: !!audio.instrument.sustain });
   audio.noteOff(v, audio.now() + delay, tau);
 }
 function sparkOn(midi) {
@@ -863,17 +863,32 @@ function chips(container, options, get, set) {
   container.innerHTML = '';
   for (const [value, label] of options) {
     const b = document.createElement('button');
-    b.className = 'chip'; b.dataset.focus = ''; b.setAttribute('role', 'radio'); b.textContent = label;
+    b.className = 'chip'; b.dataset.focus = ''; b.dataset.value = value; b.setAttribute('role', 'radio'); b.textContent = label;
     b.setAttribute('aria-checked', String(get() === value));
     b.addEventListener('click', () => { set(value); for (const c of container.children) c.setAttribute('aria-checked', String(c === b)); });
     container.append(b);
   }
 }
 function syncSettings() {
-  chips($('#set-sound'), Object.entries(INSTRUMENTS).map(([k, v]) => [k, v.label]), () => settings.sound, (v) => {
-    settings.sound = v; save();
-    loadSound(v, false).then(() => { audio.unlock(); const now = audio.now(); [60, 64, 67, 72].forEach((m, i) => { const x = audio.noteOn(m, { when: now + 0.05 + i * 0.09, velocity: 0.75 }); audio.noteOff(x, now + 1.4); }); });
-  });
+  // The instruments, by family: a heading, then its chips.
+  const snd = $('#set-sound');
+  snd.innerHTML = '';
+  const groups = [...new Set(Object.values(INSTRUMENTS).map((v) => v.group))];
+  for (const g of groups) {
+    const h = document.createElement('span'); h.className = 'chip-group'; h.textContent = g;
+    const row = document.createElement('div'); row.className = 'chips';
+    snd.append(h, row);
+    chips(row, Object.entries(INSTRUMENTS).filter(([, v]) => v.group === g).map(([k, v]) => [k, v.label]), () => settings.sound, (v) => {
+      settings.sound = v; save();
+      for (const c of snd.querySelectorAll('.chip')) c.setAttribute('aria-checked', String(c.dataset.value === v));
+      loadSound(v, false).then(() => {
+        audio.unlock();
+        const now = audio.now();
+        const held = audio.instrument.sustain;
+        [60, 64, 67, 72].forEach((m, i) => { const x = audio.noteOn(m, { when: now + 0.05 + i * (held ? 0.32 : 0.09), velocity: 0.75 }); audio.noteOff(x, now + (held ? 0.05 + i * 0.32 + 0.3 : 1.4), audio.instrument.release); });
+      });
+    });
+  }
   chips($('#set-labels'), [['none', 'None'], ['c', 'C only'], ['white', 'White keys'], ['all', 'All keys']], () => settings.labels, (v) => { settings.labels = v; kbd.setLabels(v); save(); });
   chips($('#set-key'), [['written', 'As written'], ['random', 'Any key']], () => settings.key, (v) => { settings.key = v; save(); });
   $('#set-volume').value = settings.volume; $('#set-volume-out').textContent = `${Math.round(settings.volume * 100)}%`;

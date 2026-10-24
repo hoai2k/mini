@@ -1,14 +1,42 @@
-// The piano: sampled notes (one every minor third, transposed to fill in),
+// The instruments: sampled notes (one every minor third, transposed to fill in),
 // a little room reverb, a compressor, and a chime for a solved melody.
 //
 // Each instrument loads its samples once; the AudioContext is created at load
 // (decoding works while it is suspended) and resumed on the first gesture.
 
+// Each instrument: its samples' folder (`dir`), the time constant of its
+// release when a note is let go, its level, an attack ramp, and for the
+// newer sets (design/source/fetch_instruments.py) the range of samples,
+// tune.json (each sample's measured offset in cents, corrected for) and, for
+// held instruments (`sustain`), loops.json (a seamless loop in each sample,
+// so a held key sounds as long as it is held). The cello plays Music
+// Practice's drone cello loops up to `droneHi`, and its own samples above.
 export const INSTRUMENTS = {
-  grand: { label: 'Concert Grand', dir: 'grand', release: 0.16, gain: 1 },
-  felt: { label: 'Felt Piano', dir: 'grand', release: 0.24, gain: 1.35, lowpass: 1500, attack: 0.018 },
-  bright: { label: 'Bright Piano', dir: 'bright', release: 0.14, gain: 0.95 },
-  epiano: { label: 'Electric Piano', dir: 'epiano', release: 0.22, gain: 1.05 },
+  grand: { label: 'Concert Grand', group: 'Pianos', dir: 'grand', release: 0.16, gain: 1 },
+  felt: { label: 'Felt Piano', group: 'Pianos', dir: 'grand', release: 0.24, gain: 1.35, lowpass: 1500, attack: 0.018 },
+  bright: { label: 'Bright Piano', group: 'Pianos', dir: 'bright', release: 0.14, gain: 0.95 },
+  epiano: { label: 'Electric Piano', group: 'Pianos', dir: 'epiano', release: 0.22, gain: 1.05 },
+  epiano2: { label: 'FM Electric Piano', group: 'Pianos', dir: 'epiano2', release: 0.2, gain: 1, lo: 36, hi: 96, meta: true },
+  harpsichord: { label: 'Harpsichord', group: 'Pianos', dir: 'harpsichord', release: 0.1, gain: 0.95, lo: 36, hi: 96, meta: true },
+  vibraphone: { label: 'Vibraphone', group: 'Mallets', dir: 'vibraphone', release: 0.4, gain: 1.05, lo: 36, hi: 96, meta: true },
+  marimba: { label: 'Marimba', group: 'Mallets', dir: 'marimba', release: 0.2, gain: 1.1, lo: 36, hi: 96, meta: true },
+  celesta: { label: 'Celesta', group: 'Mallets', dir: 'celesta', release: 0.35, gain: 1, lo: 48, hi: 96, meta: true },
+  musicbox: { label: 'Music Box', group: 'Mallets', dir: 'musicbox', release: 0.4, gain: 1, lo: 48, hi: 96, meta: true },
+  nylon: { label: 'Nylon Guitar', group: 'Guitars and harp', dir: 'nylon', release: 0.18, gain: 1.05, lo: 36, hi: 96, meta: true },
+  steel: { label: 'Steel Guitar', group: 'Guitars and harp', dir: 'steel', release: 0.18, gain: 1, lo: 36, hi: 96, meta: true },
+  jazzguitar: { label: 'Jazz Guitar', group: 'Guitars and harp', dir: 'jazzguitar', release: 0.16, gain: 1.05, lo: 36, hi: 96, meta: true },
+  cleanguitar: { label: 'Electric Guitar', group: 'Guitars and harp', dir: 'cleanguitar', release: 0.18, gain: 1, lo: 36, hi: 96, meta: true },
+  harp: { label: 'Harp', group: 'Guitars and harp', dir: 'harp', release: 0.35, gain: 1.05, lo: 36, hi: 96, meta: true },
+  violin: { label: 'Violin', group: 'Strings', dir: 'violin', release: 0.16, gain: 1, attack: 0.035, sustain: true, lo: 36, hi: 96, meta: true },
+  cello: { label: 'Cello', group: 'Strings', dir: 'cello', release: 0.18, gain: 1, attack: 0.045, sustain: true, lo: 75, hi: 96, meta: true, drone: 'cello-drone', droneHi: 76, droneGain: 0.9 },
+  strings: { label: 'String Section', group: 'Strings', dir: 'strings', release: 0.28, gain: 1, attack: 0.05, sustain: true, lo: 36, hi: 96, meta: true },
+  flute: { label: 'Flute', group: 'Winds and brass', dir: 'flute', release: 0.1, gain: 1, attack: 0.03, sustain: true, lo: 36, hi: 96, meta: true },
+  clarinet: { label: 'Clarinet', group: 'Winds and brass', dir: 'clarinet', release: 0.09, gain: 1, attack: 0.025, sustain: true, lo: 36, hi: 96, meta: true },
+  sax: { label: 'Alto Sax', group: 'Winds and brass', dir: 'sax', release: 0.09, gain: 1, attack: 0.02, sustain: true, lo: 36, hi: 96, meta: true },
+  trumpet: { label: 'Trumpet', group: 'Winds and brass', dir: 'trumpet', release: 0.08, gain: 0.95, attack: 0.015, sustain: true, lo: 36, hi: 96, meta: true },
+  organ: { label: 'Pipe Organ', group: 'Organs', dir: 'organ', release: 0.12, gain: 0.95, attack: 0.02, sustain: true, lo: 36, hi: 96, meta: true },
+  jazzorgan: { label: 'Jazz Organ', group: 'Organs', dir: 'jazzorgan', release: 0.06, gain: 1, attack: 0.008, sustain: true, lo: 36, hi: 96, meta: true },
+  accordion: { label: 'Accordion', group: 'Organs', dir: 'accordion', release: 0.08, gain: 1, attack: 0.02, sustain: true, lo: 36, hi: 96, meta: true },
 };
 export const SAMPLE_LO = 21; // A0
 export const SAMPLE_HI = 108; // C8
@@ -65,34 +93,70 @@ export function createAudio({ base = 'assets/samples/', context } = {}) {
     return b;
   }
 
-  function load(dir, onProgress) {
+  const getJSON = (url) => fetch(url).then((r) => (r.ok ? r.json() : {})).catch(() => ({}));
+  const decode = async (url) => {
+    const data = await (await fetch(url)).arrayBuffer();
+    return new Promise((ok, no) => ctx.decodeAudioData(data, ok, no));
+  };
+
+  function load(def, onProgress) {
+    const { dir } = def;
     if (kits[dir]) return kits[dir].ready;
     const buffers = new Map();
+    const kit = { buffers, tune: {}, loops: {}, drone: null };
     const list = [];
-    for (let m = SAMPLE_LO; m <= SAMPLE_HI; m += STEP) if (!MISSING.has(`${dir}/${m}`)) list.push(m);
+    for (let m = SAMPLE_LO; m <= SAMPLE_HI; m += STEP) {
+      if ((def.lo && m < def.lo) || (def.hi && m > def.hi) || MISSING.has(`${dir}/${m}`)) continue;
+      list.push(m);
+    }
     let done = 0;
-    const ready = Promise.all(list.map(async (m) => {
-      try {
-        const res = await fetch(`${base}${dir}/${m}.mp3`);
-        const data = await res.arrayBuffer();
-        const buf = await new Promise((ok, no) => ctx.decodeAudioData(data, ok, no));
-        buffers.set(m, buf);
-      } catch { /* a missing sample borrows its neighbour's */ }
-      done++;
-      onProgress?.(done, list.length);
-    })).then(() => buffers.size > 0);
-    kits[dir] = { buffers, ready };
-    return ready;
+    const total = list.length + (def.drone ? 1 : 0);
+    const tick = () => { done++; onProgress?.(done, total); };
+    const jobs = list.map(async (m) => {
+      try { buffers.set(m, await decode(`${base}${dir}/${m}.mp3`)); } catch { /* a missing sample borrows its neighbour's */ }
+      tick();
+    });
+    if (def.meta) {
+      jobs.push(getJSON(`${base}${dir}/tune.json`).then((t) => { kit.tune = t; }));
+      if (def.sustain) jobs.push(getJSON(`${base}${dir}/loops.json`).then((l) => { kit.loops = l; }));
+    }
+    if (def.drone) {
+      jobs.push(getJSON(`${base}${def.drone}/loops.json`).then(async (list) => {
+        const loops = await Promise.all((Array.isArray(list) ? list : []).map(async (l) => {
+          try { return { ...l, buf: await decode(`${base}${def.drone}/${l.file}`) }; } catch { return null; }
+        }));
+        kit.drone = loops.filter(Boolean);
+        tick();
+      }));
+    }
+    kit.ready = Promise.all(jobs).then(() => buffers.size > 0);
+    kits[dir] = kit;
+    return kit.ready;
   }
 
+  /** The buffer, playback rate and loop (if any) that sound a midi note on the current instrument. */
   function bufferFor(midi) {
     const kit = kits[inst.dir];
     if (!kit) return null;
+    // The drone cello: the loop nearest in pitch, retuned exactly to the note.
+    if (kit.drone?.length && midi <= inst.droneHi) {
+      const hz = 440 * 2 ** ((midi - 69) / 12);
+      let best = null;
+      for (const l of kit.drone) {
+        const d = Math.abs(Math.log2(hz / l.hz));
+        if (!best || d < best.d) best = { d, l };
+      }
+      const { l } = best;
+      return { buf: l.buf, rate: hz / l.hz, loop: l.loop, offset: l.loop[0], gain: inst.droneGain || 1 };
+    }
     let { sample, rate } = sampleFor(midi);
     for (let d = 0; d <= 90; d += STEP) {
       for (const s of [sample - d, sample + d]) {
         const b = kit.buffers.get(s);
-        if (b) return { buf: b, rate: rate * 2 ** ((sample - s) / 12) };
+        if (b) {
+          const cents = kit.tune[s] || 0;
+          return { buf: b, rate: rate * 2 ** ((sample - s) / 12) * 2 ** (-cents / 1200), loop: kit.loops[s] || null };
+        }
       }
     }
     return null;
@@ -121,14 +185,20 @@ export function createAudio({ base = 'assets/samples/', context } = {}) {
     const src = ctx.createBufferSource();
     src.buffer = found.buf;
     src.playbackRate.value = found.rate;
+    if (found.loop) {
+      // A held instrument: its steady part loops for as long as the note lasts.
+      src.loop = true;
+      src.loopStart = found.loop[0];
+      src.loopEnd = found.loop[1];
+    }
     const g = ctx.createGain();
     // Louder strikes are brighter: approximate with a gentle level curve.
-    const level = inst.gain * (0.25 + 0.75 * velocity ** 1.6);
+    const level = inst.gain * (found.gain || 1) * (0.25 + 0.75 * velocity ** 1.6);
     const a = inst.attack || 0.004;
     g.gain.setValueAtTime(0, t);
     g.gain.linearRampToValueAtTime(level, t + a);
     src.connect(g); g.connect(melody ? melodyBus : bus);
-    src.start(t);
+    src.start(t, found.offset || 0);
     const v = { midi, src, g, t, level, melody, stopped: false };
     src.onended = () => { const i = voices.indexOf(v); if (i >= 0) voices.splice(i, 1); g.disconnect(); };
     voices.push(v);
@@ -171,7 +241,7 @@ export function createAudio({ base = 'assets/samples/', context } = {}) {
   async function setInstrument(name, onProgress) {
     inst = INSTRUMENTS[name] || INSTRUMENTS.grand;
     bus.frequency.setTargetAtTime(inst.lowpass || 20000, ctx.currentTime, 0.02);
-    return load(inst.dir, onProgress);
+    return load(inst, onProgress);
   }
 
   function unlock() {

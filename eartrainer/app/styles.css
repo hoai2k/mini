@@ -413,3 +413,7 @@ html.ios-scroll.ios-scroll-play, html.ios-scroll.ios-scroll-play body { touch-ac
   .mode .mode-icon { width: 22px; height: 22px; padding: 7px; }
   .mode .meter { margin-top: 5px; }
 }
+
+/* Settings → Sound: the instruments by family */
+.sound-groups { display: flex; flex-direction: column; gap: 4px; }
+.sound-groups .chip-group { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
