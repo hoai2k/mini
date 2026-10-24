@@ -28,7 +28,7 @@ export const SUBDIVISIONS = [1, 2, 3, 4];
 const SUB_LEVEL = 0.2; // the clicks between the beats: well under the clipper's knee, so clearly quieter
 /** A soft beat (volume per beat): the weak click, this much as loud (the apps' mixers use the same). */
 export const SOFT_GAIN = 0.35;
-/** The second rhythm's click: the mid click, this much faster (so higher and shorter) and this loud (the apps' mixers use the same). */
+/** The polyrhythm's click: the mid click, this much faster (so higher and shorter) and this loud (the apps' mixers use the same). */
 export const POLY = 6;
 export const POLY_RATE = 1.5;
 export const POLY_GAIN = 0.8;
@@ -81,7 +81,7 @@ export class Metronome {
     this.recent = []; // beats scheduled, newest last: { time, beat, count, strength, muted }
     this.gap = null; // silent bars: { play, silent } bars, or null
     this.trainer = null; // the tempo trainer: { step, every, to }, or null
-    this.poly = 0; // the second rhythm: clicks across each bar, or 0
+    this.poly = 0; // the polyrhythm: clicks across each bar, or 0
     this.polyAt = 0; // its bar: when it starts, how long it is, the next click, and whether it is silent
     this.polyLen = 0;
     this.polyIdx = Infinity;
@@ -111,14 +111,14 @@ export class Metronome {
     return 60 / this.bpm;
   }
 
-  /** Silent bars, the tempo trainer and the second rhythm for this run ({ gap, trainer, poly }, each null or 0 if off). */
+  /** Silent bars, the tempo trainer and the polyrhythm for this run ({ gap, trainer, poly }, each null or 0 if off). */
   setExercise({ gap = null, trainer = null, poly = 0 } = {}) {
     this.gap = gap;
     this.trainer = trainer;
     this.poly = poly || 0;
   }
 
-  /** The second rhythm's clicks due before `until`. */
+  /** The polyrhythm's clicks due before `until`. */
   polyClicks(until) {
     const n = this.poly;
     while (n && this.polyIdx < n) {
@@ -169,7 +169,7 @@ export class Metronome {
       this.next += missed * this.period;
       this.beat = (this.beat + missed) % this.strengths.length;
       this.count += missed;
-      this.polyIdx = Infinity; // the second rhythm picks up at the next bar
+      this.polyIdx = Infinity; // the polyrhythm picks up at the next bar
     }
     while (this.next < until) {
       // The trainer moves the tempo at the start of every `every` bars.
@@ -181,7 +181,7 @@ export class Metronome {
       this.polyClicks(this.next);
       const strength = this.strengths[this.beat] ?? 0;
       const muted = this.muted(this.count);
-      // The second rhythm divides the bar from its first beat.
+      // The polyrhythm divides the bar from its first beat.
       if (this.beat === 0) {
         this.polyAt = this.next;
         this.polyLen = this.strengths.length * this.period;

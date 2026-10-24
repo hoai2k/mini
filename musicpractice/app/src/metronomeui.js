@@ -181,7 +181,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     metronome.setExercise({ gap: exercising && settings.gap.on ? settings.gap : null, trainer, poly: exercising ? polyNow() : 0 });
     showExercise();
   }
-  /** The second rhythm's clicks across the bar, if on (none with no bars). */
+  /** The polyrhythm's clicks across the bar, if on (none with no bars). */
   const polyNow = () => (settings.poly.on && meterOf(settings.meter).beats > 1 ? settings.poly.n : 0);
   function showExercise() {
     const X = TEXT.metronome;
@@ -228,7 +228,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     syncPolyChips();
     $('poly-editor').showModal();
   });
-  /** The second rhythm's dots, over the beat dots (not with the Visualizer). */
+  /** The polyrhythm's dots, over the beat dots (not with the Visualizer). */
   function showPolyDots() {
     const n = polyNow();
     const row = $('poly-beats');
@@ -413,7 +413,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     settings.accentPattern = customAccents.get(settings.meter) || null;
     if (had || settings.accentPattern) settings.accent = true;
     metronomeConfigured();
-    exerciseChanged(); // the second rhythm is counted against the new bar
+    exerciseChanged(); // the polyrhythm is counted against the new bar
   }
   meterSelect.addEventListener('change', () => setMeter(meterSelect.value));
   const soundSelect = $('sound');
@@ -828,7 +828,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
         dots[i].style.removeProperty('--g');
       }
     }
-    // The second rhythm: the dot of its click just played, by where the bar has got to.
+    // The polyrhythm: the dot of its click just played, by where the bar has got to.
     const poly = $('poly-beats').children;
     if (poly.length) {
       placePolyDots(); // the dots grow and shrink between views

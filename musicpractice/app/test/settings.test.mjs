@@ -340,7 +340,7 @@ test('silent bars and the tempo trainer are kept within their ranges', () => {
   assert.deepEqual([s.gap, s.trainer, s.beatLevels], [{ on: true, play: 3, silent: 1 }, { on: true, step: 3, every: 2, to: 90 }, { meter: '4/4', soft: [12], silent: [] }]);
 });
 
-test('the second rhythm: 2 to 9 clicks across the bar', () => {
+test('the polyrhythm: 2 to 9 clicks across the bar', () => {
   assert.deepEqual(cleanPoly(undefined), { on: false, n: 3 });
   assert.deepEqual(cleanPoly({ on: true, n: 5 }), { on: true, n: 5 });
   assert.deepEqual(cleanPoly({ on: true, n: 12 }), { on: true, n: 3 });

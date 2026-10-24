@@ -33,11 +33,11 @@ final class PracticeMixer {
 
     // MARK: metronome
 
-    private var clicks: [[Float]] = [[], [], [], [], [], [], []] // weak, mid, strong, between the beats, soft (the weak one, quieter), silent (none), the second rhythm's
+    private var clicks: [[Float]] = [[], [], [], [], [], [], []] // weak, mid, strong, between the beats, soft (the weak one, quieter), silent (none), the polyrhythm's
     /// A soft beat (volume per beat): the weak click this much as loud (metronome.js SOFT_GAIN).
     static let softGain: Float = 0.35
     static let soft = 4, silent = 5 // click kinds past the strengths and between-the-beats (settings.js SOFT, SILENT)
-    /// The second rhythm's click: the mid one this much faster and this loud (metronome.js POLY, POLY_RATE, POLY_GAIN).
+    /// The polyrhythm's click: the mid one this much faster and this loud (metronome.js POLY, POLY_RATE, POLY_GAIN).
     static let poly = 6
     static let polyRate = 1.5, polyGain: Float = 0.8
     private var clickSr = 48000.0
@@ -56,7 +56,7 @@ final class PracticeMixer {
     private var gapPlay = 0, gapSilent = 0 // silent bars: play this many, then this many silent (0: off)
     private var trainerStep = 0.0, trainerEvery = 0, trainerTo = 0.0 // the tempo trainer (every 0: off)
     private var lastMuted = false // the last beat was in a silent bar (its subdivisions too)
-    private var polyN = 0 // the second rhythm: clicks across each bar (0: off)
+    private var polyN = 0 // the polyrhythm: clicks across each bar (0: off)
     private var polyStart = 0.0, polyLen = 0.0, polyIndex = Int.max, polyMuted = false // its bar: start and length in frames, the next click
     private var clickKind = [Int](repeating: 0, count: 16)
     private var clickPos = [Double](repeating: 0, count: 16) // in click samples
@@ -214,7 +214,7 @@ final class PracticeMixer {
 
     /// Silent bars (play `gapPlay` bars, then `gapSilent` silent; 0 off) and the tempo
     /// trainer (`trainerStep` beats per minute every `trainerEvery` bars until `trainerTo`; 0 off).
-    /// And the second rhythm: `polyN` clicks across each bar, from its first beat (0 off).
+    /// And the polyrhythm: `polyN` clicks across each bar, from its first beat (0 off).
     func metronomeExercise(gapPlay: Int, gapSilent: Int, trainerStep: Double, trainerEvery: Int, trainerTo: Double, polyN: Int = 0) {
         locked {
             self.polyN = max(0, min(9, polyN))
@@ -436,7 +436,7 @@ final class PracticeMixer {
                 if !lastMuted {
                     startClick(slots.isEmpty ? strength : slots[(beat * subdivision) % slots.count], (now - nextBeat) * clickStep)
                 }
-                // The second rhythm divides the bar from its first beat.
+                // The polyrhythm divides the bar from its first beat.
                 if beat == 0 {
                     polyStart = nextBeat
                     polyLen = Double(strengths.count) * 60 / bpm * sr

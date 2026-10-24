@@ -33,11 +33,11 @@ public final class PracticeMixer {
 
     // ------------------------------------------------------------ metronome
 
-    private final float[][] clicks = new float[7][]; // weak, mid, strong, between the beats, soft (the weak one, quieter), silent (none), the second rhythm's
+    private final float[][] clicks = new float[7][]; // weak, mid, strong, between the beats, soft (the weak one, quieter), silent (none), the polyrhythm's
     /** A soft beat (volume per beat): the weak click this much as loud (metronome.js SOFT_GAIN). */
     static final float SOFT_GAIN = 0.35f;
     static final int SOFT = 4, SILENT = 5; // click kinds past the strengths and between-the-beats (settings.js SOFT, SILENT)
-    /** The second rhythm's click: the mid one this much faster and this loud (metronome.js POLY, POLY_RATE, POLY_GAIN). */
+    /** The polyrhythm's click: the mid one this much faster and this loud (metronome.js POLY, POLY_RATE, POLY_GAIN). */
     static final int POLY = 6;
     static final double POLY_RATE = 1.5;
     static final float POLY_GAIN = 0.8f;
@@ -58,7 +58,7 @@ public final class PracticeMixer {
     private double trainerStep, trainerTo; // the tempo trainer
     private int trainerEvery; // (0: off)
     private boolean lastMuted; // the last beat was in a silent bar (its subdivisions too)
-    private int polyN; // the second rhythm: clicks across each bar (0: off)
+    private int polyN; // the polyrhythm: clicks across each bar (0: off)
     private double polyStart, polyLen; // its bar, in frames
     private int polyIndex = Integer.MAX_VALUE; // its next click
     private boolean polyMuted;
@@ -234,7 +234,7 @@ public final class PracticeMixer {
         metronomeExercise(gapPlay, gapSilent, trainerStep, trainerEvery, trainerTo, 0);
     }
 
-    /** And the second rhythm: `polyN` clicks across each bar, from its first beat (0 off). */
+    /** And the polyrhythm: `polyN` clicks across each bar, from its first beat (0 off). */
     public synchronized void metronomeExercise(int gapPlay, int gapSilent, double trainerStep, int trainerEvery, double trainerTo, int polyN) {
         this.polyN = Math.max(0, Math.min(9, polyN));
         this.gapPlay = Math.max(0, gapPlay);
@@ -468,7 +468,7 @@ public final class PracticeMixer {
                 if (!lastMuted) {
                     startClick(slots.length == 0 ? strength : slots[(beat * subdivision) % slots.length], (now - nextBeat) * clickStep);
                 }
-                // The second rhythm divides the bar from its first beat.
+                // The polyrhythm divides the bar from its first beat.
                 if (beat == 0) {
                     polyStart = nextBeat;
                     polyLen = strengths.length * 60 / bpm * sr;

@@ -106,11 +106,11 @@ export class NativeMetronome {
     this.pollTimer = 0;
     this.gap = null; // silent bars: { play, silent }, or null
     this.trainer = null; // the tempo trainer: { step, every, to }, or null
-    this.poly = 0; // the second rhythm: clicks across each bar, or 0
+    this.poly = 0; // the polyrhythm: clicks across each bar, or 0
     this.onTempo = null; // (bpm) when the trainer moves the tempo
   }
 
-  /** Silent bars, the tempo trainer and the second rhythm for this run, as Metronome.setExercise (the native mixer keeps them). */
+  /** Silent bars, the tempo trainer and the polyrhythm for this run, as Metronome.setExercise (the native mixer keeps them). */
   setExercise({ gap = null, trainer = null, poly = 0 } = {}) {
     this.gap = gap;
     this.trainer = trainer;

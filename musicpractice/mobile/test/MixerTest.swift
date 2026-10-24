@@ -293,7 +293,7 @@ func metronomeExercises() {
     check(on.count >= 5 && abs(on[2] - on[0] - 48000) <= 1 && abs(on[4] - on[2] - 32000) <= 1, "the trainer: a bar at 120, then a bar at 180 (\(on))")
     _ = render(m, 3.0)
     check(m.metronomeClock().period == 0.25, "and no faster than its target")
-    // The second rhythm: 3 across a bar of 4/4 at 120 (a bar is 96000 frames): the mid click, faster and quieter.
+    // The polyrhythm: 3 across a bar of 4/4 at 120 (a bar is 96000 frames): the mid click, faster and quieter.
     m = mixer()
     m.metronomeStart(bpm: 120, strengths: [2, 0, 0, 0], volume: 0.8)
     m.metronomeExercise(gapPlay: 0, gapSilent: 0, trainerStep: 0, trainerEvery: 0, trainerTo: 0, polyN: 3)
@@ -306,7 +306,7 @@ func metronomeExercises() {
         third = max(third, abs(Double(p[2400 + 32000 + i]) - want))
         twoThirds = max(twoThirds, abs(Double(p[2400 + 64000 + i]) - want))
     }
-    check(third < 1e-3 && twoThirds < 1e-3, "a second rhythm of 3 clicks a third and two thirds of the way through the bar")
+    check(third < 1e-3 && twoThirds < 1e-3, "a polyrhythm of 3 clicks a third and two thirds of the way through the bar")
     // A new start forgets them.
     m.metronomeStart(bpm: 120, strengths: [2, 0], volume: 0.8)
     on = onsets(render(m, 2.6).0)

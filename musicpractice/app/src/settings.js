@@ -93,7 +93,7 @@ export const DEFAULTS = Object.freeze({
   gap: { on: false, play: 2, silent: 2 },
   // Tempo trainer: from the tempo set, `step` beats per minute every `every` bars until `to`.
   trainer: { on: false, step: 2, every: 4, to: 140 },
-  // Second rhythm (a polyrhythm): `n` evenly spaced clicks across each bar, in a higher click (3 against 4 in 4/4).
+  // Polyrhythm (a polyrhythm): `n` evenly spaced clicks across each bar, in a higher click (3 against 4 in 4/4).
   poly: { on: false, n: 3 },
   tempoGenre: 'classical', // the tempo picker's style, which also names the tempo under the number
   tempoPicked: null, // the name last chosen in the picker (its id), which keeps its name for a tempo two names share
@@ -382,7 +382,7 @@ export function cleanTrainer(v) {
   };
 }
 
-/** The second rhythm: 2 to 9 clicks across each bar. */
+/** The polyrhythm: 2 to 9 clicks across each bar. */
 export const POLY_COUNTS = [2, 3, 4, 5, 6, 7, 8, 9];
 export function cleanPoly(v) {
   return { on: v?.on === true, n: oneOf(v?.n, POLY_COUNTS, DEFAULTS.poly.n) };

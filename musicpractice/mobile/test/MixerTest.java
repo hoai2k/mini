@@ -350,7 +350,7 @@ public final class MixerTest {
         check(ramp, "the trainer: a bar at 120, then a bar at 180 (" + on + ")");
         render(m, 3.0);
         check(m.metronomeClock()[3] == 0.25, "and no faster than its target (" + m.metronomeClock()[3] + " s a beat)");
-        // The second rhythm: 3 across a bar of 4/4 at 120 (a bar is 96000 frames): the mid click, faster and quieter.
+        // The polyrhythm: 3 across a bar of 4/4 at 120 (a bar is 96000 frames): the mid click, faster and quieter.
         m = mixer();
         m.metronomeStart(120, new int[] {2, 0, 0, 0}, 0.8);
         m.metronomeExercise(0, 0, 0, 0, 0, 3);
@@ -363,7 +363,7 @@ public final class MixerTest {
             third = Math.max(third, Math.abs(p[2400 + 32000 + i] - want));
             twoThirds = Math.max(twoThirds, Math.abs(p[2400 + 64000 + i] - want));
         }
-        check(third < 1e-3 && twoThirds < 1e-3, "a second rhythm of 3 clicks a third and two thirds of the way through the bar ("
+        check(third < 1e-3 && twoThirds < 1e-3, "a polyrhythm of 3 clicks a third and two thirds of the way through the bar ("
             + String.format("%.1e, %.1e", third, twoThirds) + ")");
         // A new start forgets them.
         m.metronomeStart(120, new int[] {2, 0}, 0.8);
