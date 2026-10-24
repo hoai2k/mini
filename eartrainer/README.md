@@ -22,8 +22,8 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
   what to do, as five cards in a two-column grid (Melody Challenges, the main
   one, across both; one column on a narrow window): **Melody Challenges** (the songbook at the
   difficulty), **Free Play**, **Your Ears**, **Focus Mode** and **Full Songs**
-  (both in the songbook). The dropdowns are dialogs, so a controller's A and
-  B, Escape and a tap outside work in them; the songbook and difficulty are
+  (both in the songbook). The dropdowns are dialogs, so Escape and a tap
+  outside close them; the songbook and difficulty are
   saved (an older save whose level was Focus or Full songs gets Adaptive as its
   difficulty). It fits a phone held sideways without
   scrolling (checked at 844×390 and 667×375).
@@ -195,10 +195,8 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
 
 Controls: touch; computer keys (home row `A S D F G H J K L ; '` for the white
 keys on screen, the row above for the black keys, `Space` repeat, `Backspace`
-redo, `3` practice, `-`/`=` speed, `Enter` next, `Esc` menu); Xbox controller
-(D-pad or left stick moves a key cursor, A plays it, X repeat, B redo, Y
-practice, LB/RB speed, D-pad up/down an octave, View or RT next, Menu
-pauses). `,` `.` slide an octave and `9` `0` show fewer or more keys. Fullscreen works as in
+redo, `3` practice, `-`/`=` speed, `Enter` next, `Esc` menu). It's an app, not a game, so it has no game-controller
+support. `,` `.` slide an octave and `9` `0` show fewer or more keys. Fullscreen works as in
 Kingdom of the Fairies (`app/src/chrome.js`): a tap in landscape asks for
 fullscreen while it is off, unless the player left it themselves (Chrome's
 "swipe down to exit" notice, the back gesture, the button): then taps stop

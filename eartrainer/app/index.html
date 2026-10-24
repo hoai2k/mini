@@ -33,7 +33,6 @@
         <p class="tagline">Hear a melody. Play it back.</p>
         <button id="start" class="press-start" data-focus>Press Start</button>
         <p class="load-status" id="load-status" aria-live="polite">Tuning the piano…</p>
-        <p class="pad-hint" id="pad-hint" hidden>Move left stick for options</p>
       </div>
       <nav class="utility" aria-label="Options">
         <button class="icon" id="btn-instructions" data-focus aria-label="Instructions" data-tip="Instructions">
@@ -171,73 +170,20 @@
       <div class="sheet">
         <header class="sheet-head"><h2 id="inst-title">How to play</h2><button class="icon ghost" data-close data-focus aria-label="Close">✕</button></header>
         <div class="scroll" tabindex="0" data-scroll>
-          <p class="lead">A melody plays. Play it back on the keyboard, note by note.</p>
+          <p class="lead">Hear a melody, then play it back on the keys.</p>
           <ul class="howto">
-            <li><b>The staff</b> above the keys has a slot for every note. Notes you've found appear on it; the brass <b>?</b> is the note to find next, and the grey ones are still to come. Tap any slot, found or not, to hear its note on its own.</li>
-            <li>Got through with wrong notes? That doesn't count yet: it plays again for another try (or just start playing), until you play it with none. Next always moves on (as a skip).</li>
-            <li>Once a melody is finished, the next one starts by itself after a moment (the <b>Next</b> button fills up). Play on, or press Repeat or Redo, to stay with it; Settings can turn this off.</li>
-            <li><b>The glowing dot</b> on the keyboard marks the first note. It disappears once you've played it, and wrong keys before you find it don't count.</li>
-            <li><b>Wrong note?</b> Keep trying: the melody waits for the right one. Wrong notes cost stars and points; timing never matters.</li>
-            <li><b>Repeat</b> plays the melody again; you can play along while it plays (it sits a little quieter than your keys). <b>Redo</b> starts your answer over from the first note and plays the melody again.</li>
-            <li>The keys follow your touch, and no note is cut off: a quick tap rings out and fades gently, a press held a moment rings on longer, and a held key sustains with a long tail when you let go.</li>
-            <li><b>Adaptive</b> keeps a level for each skill (each interval, up or down, notes outside the key, minor keys, long and fast melodies): it gives your weakest skill melodies at the lowest level you slip at, and raises each skill on its own as you get it right.</li>
-            <li><b>Focus</b> works on what you find hardest, one skill at a time: a melody to test it, short drills when it slips (a step harder after each clean one, a step easier after a slip), then a different melody of the same kind to check. Something else comes every third time, so you learn the sound rather than the exercise. It never says what it is working on, since that would give the notes away, but tells you once you've got it. <b>Your ears</b>, on the choice screen and in the menu, shows what it has found.</li>
-            <li><b>Practice</b> lets you try notes freely without answering. Turn it off to carry on where you were.</li>
-            <li><b>Tempo</b> − and + slow the melody down or speed it up.</li>
-            <li><b>The bar above the keys</b> is the whole piano in miniature. Drag its bright window (or tap anywhere on it) to slide along the keyboard; ‹ › move an octave, and − + show fewer or more keys.</li>
-            <li><b>Free play</b> (on the choice screen) gives you all 88 keys with nothing to find; the staff shows what you play.</li>
-            <li><b>Stars:</b> a melody is finished when you play it with no wrong notes: three stars on the first try, two on the second, one after that, and none if you skip it. Clean first tries in a row build a streak bonus.</li>
-            <li><b>The choice screen:</b> pick a <b>songbook</b> and a <b>difficulty</b> from the two dropdowns at the top, then what to do: <b>Melody Challenges</b>, <b>Free Play</b>, <b>Your Ears</b>, <b>Focus Mode</b> or <b>Full Songs</b>. The songbook is used by Melody Challenges, Focus and Full Songs; the difficulty by Melody Challenges.</li>
-            <li><b>Difficulties</b> run from 1 Beginner (a few small steps) to 5 Expert (long, leaping, chromatic lines). <b>Adaptive</b> moves you up as you do well and down when they're tough.</li>
+            <li>The glowing dot marks the first note. Wrong notes don't stop you: keep trying until you find the right one. Timing doesn't matter.</li>
+            <li>Play it once with no wrong notes to finish it: three stars on the first try, two on the second, one after that.</li>
+            <li><b>Repeat</b> plays it again. <b>Redo</b> starts over. <b>Practice</b> lets you try notes freely. <b>Tempo</b> slows it down or speeds it up.</li>
+            <li>Tap a note on the staff to hear it. Drag the little piano above the keys to move along the keyboard.</li>
+            <li>On the choice screen, pick a songbook and a difficulty, then <b>Melody Challenges</b>, <b>Full Songs</b> (a whole song, phrase by phrase), <b>Focus Mode</b> (works on what you find hardest), <b>Your Ears</b> (what you hear well) or <b>Free Play</b>.</li>
           </ul>
           <h3>Keyboard</h3>
           <table class="map">
-            <tr><td><kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> … <kbd>'</kbd></td><td>White keys on screen, left to right</td></tr>
-            <tr><td><kbd>W</kbd> <kbd>E</kbd> <kbd>T</kbd> …</td><td>The black keys between them</td></tr>
-            <tr><td><kbd>Space</kbd> or <kbd>1</kbd></td><td>Repeat</td></tr>
-            <tr><td><kbd>Backspace</kbd> or <kbd>2</kbd></td><td>Redo</td></tr>
-            <tr><td><kbd>3</kbd></td><td>Practice on / off</td></tr>
-            <tr><td><kbd>-</kbd> <kbd>=</kbd></td><td>Slower / faster</td></tr>
-            <tr><td><kbd>,</kbd> <kbd>.</kbd></td><td>Slide down / up an octave</td></tr>
-            <tr><td><kbd>9</kbd> <kbd>0</kbd></td><td>Fewer / more keys on screen</td></tr>
-            <tr><td><kbd>Enter</kbd></td><td>Next melody (once solved) · skip</td></tr>
-            <tr><td><kbd>Esc</kbd></td><td>Menu</td></tr>
+            <tr><td><kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> … / <kbd>W</kbd> <kbd>E</kbd> …</td><td>White / black keys</td></tr>
+            <tr><td><kbd>Space</kbd> · <kbd>Backspace</kbd> · <kbd>3</kbd></td><td>Repeat · Redo · Practice</td></tr>
+            <tr><td><kbd>Enter</kbd> · <kbd>Esc</kbd></td><td>Next · Menu</td></tr>
           </table>
-          <h3>Xbox controller</h3>
-          <figure class="pad">
-            <svg viewBox="0 0 520 250" role="img" aria-label="Xbox controller diagram">
-              <path d="M140 60h240c46 0 70 30 82 80l20 70c8 30-28 46-48 22l-34-40H120l-34 40c-20 24-56 8-48-22l20-70c12-50 36-80 82-80z" fill="var(--panel-2)" stroke="var(--line-2)" stroke-width="3"/>
-              <rect x="120" y="40" width="70" height="16" rx="8" fill="var(--line-2)"/><rect x="330" y="40" width="70" height="16" rx="8" fill="var(--line-2)"/>
-              <circle cx="150" cy="105" r="22" fill="var(--bg)" stroke="var(--line-2)" stroke-width="3"/>
-              <path d="M200 140h18v-18h14v18h18v14h-18v18h-14v-18h-18z" fill="var(--ink)" opacity=".85"/>
-              <circle cx="320" cy="160" r="18" fill="var(--bg)" stroke="var(--line-2)" stroke-width="3"/>
-              <circle cx="372" cy="128" r="12" fill="#3aa35a"/><circle cx="396" cy="104" r="12" fill="#d9493f"/><circle cx="348" cy="104" r="12" fill="#3f7fd9"/><circle cx="372" cy="80" r="12" fill="#e2b33d"/>
-              <text x="372" y="132" class="b">A</text><text x="396" y="108" class="b">B</text><text x="348" y="108" class="b">X</text><text x="372" y="84" class="b">Y</text>
-              <circle cx="236" cy="98" r="8" fill="var(--line-2)"/><circle cx="284" cy="98" r="8" fill="var(--line-2)"/>
-              <g class="call"><path d="M155 40V18"/><text x="155" y="14">LB slower</text></g>
-              <g class="call"><path d="M365 40V18"/><text x="365" y="14">RB faster</text></g>
-              <g class="call"><path d="M225 175v40"/><text x="225" y="232">D-pad ◀ ▶ choose key</text></g>
-              <g class="call"><path d="M128 105H40"/><text x="44" y="96" text-anchor="start">Left stick: choose key</text></g>
-              <g class="call"><path d="M384 128h60v60"/><text x="448" y="204">A play key</text></g>
-              <g class="call"><path d="M408 104h70"/><text x="482" y="100" text-anchor="end">B redo</text></g>
-              <g class="call"><path d="M336 100l-30-40"/><text x="290" y="54">X repeat</text></g>
-              <g class="call"><path d="M372 68V40"/><text x="372" y="36" dx="0" dy="0"></text></g>
-              <g class="call"><path d="M284 90l10-30"/><text x="300" y="80" text-anchor="start"></text></g>
-            </svg>
-            <figcaption>
-              <table class="map">
-                <tr><td>D-pad ◀ ▶ or left stick</td><td>Move the key cursor</td></tr>
-                <tr><td><span class="xb a">A</span></td><td>Play the key under the cursor</td></tr>
-                <tr><td><span class="xb x">X</span></td><td>Repeat</td></tr>
-                <tr><td><span class="xb b">B</span></td><td>Redo (in menus: back)</td></tr>
-                <tr><td><span class="xb y">Y</span></td><td>Practice on / off</td></tr>
-                <tr><td>LB / RB</td><td>Slower / faster</td></tr>
-                <tr><td>D-pad ▲ ▼</td><td>Slide up / down an octave</td></tr>
-                <tr><td>View or RT</td><td>Next melody (once solved) · skip</td></tr>
-                <tr><td>Menu</td><td>Menu</td></tr>
-              </table>
-            </figcaption>
-          </figure>
           <h3>Credits</h3>
           <p class="small">Concert Grand and Felt Piano: <a href="https://archive.org/details/SalamanderGrandPianoV3" target="_blank" rel="noopener">Salamander Grand Piano V3</a> by Alexander Holm (CC BY 3.0). Bright Piano and Electric Piano: FluidR3 GM by Frank Wen (MIT), via <a href="https://github.com/gleitz/midi-js-soundfonts" target="_blank" rel="noopener">midi-js-soundfonts</a>. The other instruments: MusyngKite by Michael Kite (CC BY-SA 3.0; the prepared samples are shared under the same terms), via the same. The staff's clefs, notes and accidentals are drawn from <a href="https://github.com/steinbergmedia/bravura" target="_blank" rel="noopener">Bravura</a> by Steinberg (SIL Open Font License). Melodies are short opening phrases for ear training; each names its composer or tradition when you solve it. Many were extracted from <a href="https://github.com/00sapo/OpenEWLD" target="_blank" rel="noopener">OpenEWLD</a> (F. Simonetta, MIT) the <a href="https://github.com/jukedeck/nottingham-dataset" target="_blank" rel="noopener">Nottingham Music Database</a> (Eric Foxley; GPL v3), Mark Veltzer's <a href="https://github.com/veltzer/openbook" target="_blank" rel="noopener">OpenBook</a> of jazz standards (MIT), and the <a href="https://homepages.loria.fr/evincent/omnibook/" target="_blank" rel="noopener">Charlie Parker Omnibook MusicXML</a> by Ken Déguernel, Emmanuel Vincent and Gérard Assayag (CC BY-NC-SA 2.0).</p>
         </div>
