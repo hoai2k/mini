@@ -3,8 +3,7 @@
 
 The pianos come from fetch_samples.py. These are the rest: one sample every
 minor third from C2 to C7 (the melodies' whole range), from the MusyngKite
-General MIDI soundfont, plus the cello's low and middle range from Music
-Practice's drone cello (see below).
+General MIDI soundfont.
 
     python3 eartrainer/design/source/fetch_instruments.py [name ...]
 
@@ -30,7 +29,6 @@ How each file is prepared:
 from __future__ import annotations
 
 import json
-import shutil
 import subprocess
 import sys
 import urllib.request
@@ -61,26 +59,13 @@ INSTRUMENTS = {
     "cleanguitar": ("electric_guitar_clean", "decay", 36, 96),
     "harp": ("orchestral_harp", "decay", 36, 96),
     "violin": ("violin", "sustain", 36, 96),
-    "cello": ("cello", "sustain", 75, 96),  # below: the drone cello's loops
+    "cello": ("cello", "sustain", 36, 96),
     "strings": ("string_ensemble_1", "sustain", 36, 96),
     "flute": ("flute", "sustain", 36, 96),
     "clarinet": ("clarinet", "sustain", 36, 96),
     "sax": ("alto_sax", "sustain", 36, 96),
     "trumpet": ("trumpet", "sustain", 36, 96),
 }
-
-# Music Practice's drone cello (ElevenLabs recordings cut into seamless,
-# steady loops; see musicpractice/app/src/drone.js). Copied, not linked: each
-# app keeps its own files. (file, measured pitch in Hz, loop start, loop length)
-DRONE = ROOT / "musicpractice" / "app" / "assets" / "audio" / "drone"
-CELLO_LOOPS = [
-    ("cello-D2.mp3", 74.246, 0.3, 4.943265),
-    ("cello-G2.mp3", 99.77, 0.3, 5.813152),
-    ("cello-D3.mp3", 144.6, 0.3, 6.245238),
-    ("cello-A3.mp3", 220.49, 0.3, 11.274376),
-    ("cello-A4.mp3", 440.989, 0.3, 7.360544),
-]
-
 
 def decode(data: bytes):
     raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", "pipe:0", "-f", "f32le", "-ac", "1", "-ar", str(SR), "pipe:1"],
@@ -181,23 +166,10 @@ def fetch(key: str):
     print(key, gm, kind, len(list(d.glob("*.mp3"))), "samples")
 
 
-def cello_drone():
-    d = OUT / "cello-drone"
-    d.mkdir(parents=True, exist_ok=True)
-    meta = []
-    for f, hz, start, length in CELLO_LOOPS:
-        shutil.copyfile(DRONE / f, d / f)
-        meta.append({"file": f, "hz": hz, "loop": [start, round(start + length, 6)]})
-    (d / "loops.json").write_text(json.dumps(meta, indent=1) + "\n")
-    print("cello-drone", len(meta), "loops")
-
-
 def main() -> int:
     keys = sys.argv[1:] or list(INSTRUMENTS)
     for k in keys:
         fetch(k)
-    if "cello" in keys:
-        cello_drone()
     return 0
 
 

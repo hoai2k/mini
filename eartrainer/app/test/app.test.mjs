@@ -335,6 +335,5 @@ test('every instrument has its samples', () => {
       const loops = JSON.parse(readFileSync(new URL(`${def.dir}/loops.json`, here)));
       assert.ok(Object.keys(loops).length > 0, `${name} loops`);
     }
-    if (def.drone) assert.ok(JSON.parse(readFileSync(new URL(`${def.drone}/loops.json`, here))).length >= 5);
   }
 });

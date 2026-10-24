@@ -9,8 +9,7 @@
 // newer sets (design/source/fetch_instruments.py) the range of samples,
 // tune.json (each sample's measured offset in cents, corrected for) and, for
 // held instruments (`sustain`), loops.json (a seamless loop in each sample,
-// so a held key sounds as long as it is held). The cello plays Music
-// Practice's drone cello loops up to `droneHi`, and its own samples above.
+// so a held key sounds as long as it is held).
 export const INSTRUMENTS = {
   grand: { label: 'Concert Grand', group: 'Pianos', dir: 'grand', release: 0.16, gain: 1 },
   felt: { label: 'Felt Piano', group: 'Pianos', dir: 'grand', release: 0.24, gain: 1.35, lowpass: 1500, attack: 0.018 },
@@ -28,7 +27,7 @@ export const INSTRUMENTS = {
   cleanguitar: { label: 'Electric Guitar', group: 'Guitars and harp', dir: 'cleanguitar', release: 0.18, gain: 1, lo: 36, hi: 96, meta: true },
   harp: { label: 'Harp', group: 'Guitars and harp', dir: 'harp', release: 0.35, gain: 1.05, lo: 36, hi: 96, meta: true },
   violin: { label: 'Violin', group: 'Strings', dir: 'violin', release: 0.16, gain: 1, attack: 0.035, sustain: true, lo: 36, hi: 96, meta: true },
-  cello: { label: 'Cello', group: 'Strings', dir: 'cello', release: 0.18, gain: 1, attack: 0.045, sustain: true, lo: 75, hi: 96, meta: true, drone: 'cello-drone', droneHi: 76, droneGain: 0.9 },
+  cello: { label: 'Cello', group: 'Strings', dir: 'cello', release: 0.18, gain: 1, attack: 0.045, sustain: true, lo: 36, hi: 96, meta: true },
   strings: { label: 'String Section', group: 'Strings', dir: 'strings', release: 0.28, gain: 1, attack: 0.05, sustain: true, lo: 36, hi: 96, meta: true },
   flute: { label: 'Flute', group: 'Winds and brass', dir: 'flute', release: 0.1, gain: 1, attack: 0.03, sustain: true, lo: 36, hi: 96, meta: true },
   clarinet: { label: 'Clarinet', group: 'Winds and brass', dir: 'clarinet', release: 0.09, gain: 1, attack: 0.025, sustain: true, lo: 36, hi: 96, meta: true },
@@ -103,14 +102,14 @@ export function createAudio({ base = 'assets/samples/', context } = {}) {
     const { dir } = def;
     if (kits[dir]) return kits[dir].ready;
     const buffers = new Map();
-    const kit = { buffers, tune: {}, loops: {}, drone: null };
+    const kit = { buffers, tune: {}, loops: {} };
     const list = [];
     for (let m = SAMPLE_LO; m <= SAMPLE_HI; m += STEP) {
       if ((def.lo && m < def.lo) || (def.hi && m > def.hi) || MISSING.has(`${dir}/${m}`)) continue;
       list.push(m);
     }
     let done = 0;
-    const total = list.length + (def.drone ? 1 : 0);
+    const total = list.length;
     const tick = () => { done++; onProgress?.(done, total); };
     const jobs = list.map(async (m) => {
       try { buffers.set(m, await decode(`${base}${dir}/${m}.mp3`)); } catch { /* a missing sample borrows its neighbour's */ }
@@ -119,15 +118,6 @@ export function createAudio({ base = 'assets/samples/', context } = {}) {
     if (def.meta) {
       jobs.push(getJSON(`${base}${dir}/tune.json`).then((t) => { kit.tune = t; }));
       if (def.sustain) jobs.push(getJSON(`${base}${dir}/loops.json`).then((l) => { kit.loops = l; }));
-    }
-    if (def.drone) {
-      jobs.push(getJSON(`${base}${def.drone}/loops.json`).then(async (list) => {
-        const loops = await Promise.all((Array.isArray(list) ? list : []).map(async (l) => {
-          try { return { ...l, buf: await decode(`${base}${def.drone}/${l.file}`) }; } catch { return null; }
-        }));
-        kit.drone = loops.filter(Boolean);
-        tick();
-      }));
     }
     kit.ready = Promise.all(jobs).then(() => buffers.size > 0);
     kits[dir] = kit;
@@ -138,17 +128,6 @@ export function createAudio({ base = 'assets/samples/', context } = {}) {
   function bufferFor(midi) {
     const kit = kits[inst.dir];
     if (!kit) return null;
-    // The drone cello: the loop nearest in pitch, retuned exactly to the note.
-    if (kit.drone?.length && midi <= inst.droneHi) {
-      const hz = 440 * 2 ** ((midi - 69) / 12);
-      let best = null;
-      for (const l of kit.drone) {
-        const d = Math.abs(Math.log2(hz / l.hz));
-        if (!best || d < best.d) best = { d, l };
-      }
-      const { l } = best;
-      return { buf: l.buf, rate: hz / l.hz, loop: l.loop, offset: l.loop[0], gain: inst.droneGain || 1 };
-    }
     let { sample, rate } = sampleFor(midi);
     for (let d = 0; d <= 90; d += STEP) {
       for (const s of [sample - d, sample + d]) {
@@ -193,12 +172,12 @@ export function createAudio({ base = 'assets/samples/', context } = {}) {
     }
     const g = ctx.createGain();
     // Louder strikes are brighter: approximate with a gentle level curve.
-    const level = inst.gain * (found.gain || 1) * (0.25 + 0.75 * velocity ** 1.6);
+    const level = inst.gain * (0.25 + 0.75 * velocity ** 1.6);
     const a = inst.attack || 0.004;
     g.gain.setValueAtTime(0, t);
     g.gain.linearRampToValueAtTime(level, t + a);
     src.connect(g); g.connect(melody ? melodyBus : bus);
-    src.start(t, found.offset || 0);
+    src.start(t);
     const v = { midi, src, g, t, level, melody, stopped: false };
     src.onended = () => { const i = voices.indexOf(v); if (i >= 0) voices.splice(i, 1); g.disconnect(); };
     voices.push(v);
