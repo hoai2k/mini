@@ -121,6 +121,12 @@ export const EN = {
     bpm: 'BPM',
     /** Tap tempo, beside the tempo's name. */
     tap: 'Tap',
+    /** The big tap pad the Tap button grows into. */
+    tapPad: {
+      label: 'Tap tempo',
+      first: 'Keep tapping in time with the tempo you want',
+      tapping: 'Stop tapping to keep this tempo',
+    },
     tapHint: 'Tap tempo: tap in time to set the tempo (or press T)',
     start: 'Start',
     stop: 'Stop',

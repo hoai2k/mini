@@ -163,6 +163,15 @@ when the Art Deco art arrives, measure and record its own.
   keyboard). From the second tap the tempo follows the taps: the average of
   the last six (so one slip fades), counted on the finger coming down; a
   pause of over two seconds starts again (`tapTempo` in `metronome.js`).
+  **The first tap grows the button into a big tap pad** over the screen
+  (animated from the button's own place and size): the tempo large across
+  its top (– until the second tap), a line of what to do (*Keep tapping in
+  time…*, then *Stop tapping to keep this tempo*) and a big circle that
+  pulses with each tap; a tap anywhere on the pad counts. Two seconds after
+  the last tap (when a new one would start counting afresh) it shrinks back
+  into the button, the new tempo set. Escape closes it at once; Space and
+  Enter tap on it too. With reduced motion it appears and goes without
+  growing or shrinking.
 - **The pendulum's weight shows the tempo and sets it**, as on a real
   metronome: it slides up the rod for slower and down for faster
   (`weightAt` in `app/src/metronome.js`), and dragging it with a finger or

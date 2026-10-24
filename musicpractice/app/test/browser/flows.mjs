@@ -235,6 +235,41 @@ async function practiceLog(env) {
   await p.close();
 }
 
+/** Tap tempo, big: the first tap grows the button into a pad; taps on it set the tempo; it shrinks back when they stop. */
+async function tapPad(env) {
+  const p = await env.page();
+  await p.goto(env.base + '#metronome');
+  await p.waitForTimeout(800);
+  // When each tap really landed (each takes the test a moment), button and pad alike.
+  await p.evaluate(() => {
+    window.__taps = [];
+    for (const id of ['tap-tempo', 'tap-pad']) document.getElementById(id).addEventListener('pointerdown', (e) => window.__taps.push(e.timeStamp));
+  });
+  const box = await p.locator('#tap-tempo').boundingBox();
+  await p.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+  c.ok(await p.isVisible('#tap-pad') && await p.textContent('#tap-pad-bpm') === '–', 'the first tap grows the Tap button into the pad');
+  await p.waitForTimeout(400); // grown
+  const padBox = await p.locator('#tap-pad').boundingBox();
+  c.ok(padBox.width > 300 && padBox.height > 400, `the pad is big (${Math.round(padBox.width)}×${Math.round(padBox.height)})`);
+  const circle = await p.locator('#tap-pad-circle').boundingBox();
+  for (let k = 0; k < 5; k++) {
+    await p.waitForTimeout(450);
+    await p.touchscreen.tap(circle.x + circle.width / 2, circle.y + circle.height / 2);
+  }
+  const want = await p.evaluate(() => Math.round((60000 * (window.__taps.length - 1)) / (window.__taps.at(-1) - window.__taps[0])));
+  const shown = Number(await p.textContent('#tap-pad-bpm'));
+  c.ok(Math.abs(shown - want) <= 6 && shown > 90, `taps about every half second show their tempo at the top (${shown}, taps ${want})`);
+  c.ok(await until(p, () => document.getElementById('tap-pad').hidden, 4000) >= 1500, 'once the taps stop it shrinks back');
+  const bpm = Number(await p.inputValue('#bpm-input'));
+  c.ok(bpm === shown, `leaving the tempo set (${bpm})`);
+  // Escape closes it at once.
+  await p.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+  await p.keyboard.press('Escape');
+  c.ok(await until(p, () => document.getElementById('tap-pad').hidden, 1000) >= 0, 'Escape closes the pad');
+  c.ok(!p.errors.length, `no page errors with the tap pad (${p.errors})`);
+  await p.close();
+}
+
 async function savedTempos(env) {
   const p = await env.page();
   await p.goto(env.base + '#metronome');
@@ -626,7 +661,7 @@ async function themes(env) {
 
 /** `only`: the names of the parts to run (all of them if empty): node flows.mjs exercises routines */
 export async function run(env, only = []) {
-  for (const part of [list, running, routines, practiceLog, metronomeScreen, savedTempos, strongBeats, exercises, microphone, themes]) {
+  for (const part of [list, running, routines, practiceLog, metronomeScreen, tapPad, savedTempos, strongBeats, exercises, microphone, themes]) {
     if (only.length && !only.includes(part.name)) continue;
     try { await part(env); } catch (e) { c.ok(false, `${part.name}: ${e.message.split('\n')[0]}`); }
   }

@@ -5,7 +5,7 @@
 import { TEXT } from './text.js';
 import { audio, freshAudio, unlock, setContextSpeaker, heardNow, keepAwake, setExtraDelay } from './audio.js';
 import { dlog, debugBeat } from './debuglog.js';
-import { Metronome, pendulumAngle, weightAt, bpmAtWeight, tapTempo, TAP_KEEP } from './metronome.js';
+import { Metronome, pendulumAngle, weightAt, bpmAtWeight, tapTempo, TAP_KEEP, TAP_RESET } from './metronome.js';
 import { NativeMetronome } from './nativeaudio.js';
 import { GENRES, GENRE_IDS, mainTempo, nameFor, genreRange } from './tempos.js';
 import { clampBpm, SAVED_MAX, METERS, SOUNDS, VIZ_BARS, TICKS, barPlan, cleanPattern, cleanLevels, meterOf, beatStrengths, BPM_MIN, BPM_MAX, SOFT, SILENT, GAP_MAX, TRAINER_STEP_MAX, TRAINER_EVERY_MAX, POLY_COUNTS } from './settings.js';
@@ -307,7 +307,59 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     b.classList.add('hit');
     clearTimeout(tapLit);
     tapLit = setTimeout(() => b.classList.remove('hit'), 120);
+    padTap(!!bpm);
   }
+
+  /*
+   * The tap pad: the first tap grows the Tap button into a big pad (the
+   * tempo across its top, a line of what to do, a big circle), so the taps
+   * that follow land somewhere easy to hit and nothing else on the screen
+   * competes. Taps anywhere on it count. Once they stop (TAP_RESET, when a
+   * new tap would start counting afresh) it shrinks back into the button,
+   * leaving the tempo set. Escape closes it at once.
+   */
+  const pad = $('tap-pad');
+  let padClose = 0;
+  const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /** The transform that lays the pad over the Tap button. */
+  function fromButton() {
+    const a = $('tap-tempo').getBoundingClientRect();
+    const b = pad.getBoundingClientRect();
+    return `translate(${a.left + a.width / 2 - (b.left + b.width / 2)}px, ${a.top + a.height / 2 - (b.top + b.height / 2)}px) scale(${a.width / b.width}, ${a.height / b.height})`;
+  }
+  function padTap(counted) {
+    const T = TEXT.metronome.tapPad;
+    $('tap-pad-bpm').textContent = counted ? String(settings.bpm) : '–';
+    $('tap-pad-hint').textContent = counted ? T.tapping : T.first;
+    if (pad.hidden) {
+      pad.hidden = false;
+      pad.getAnimations().forEach((a) => a.cancel());
+      if (!reduced()) {
+        pad.animate([{ transform: fromButton(), opacity: 0.6 }, { transform: 'none', opacity: 1 }], { duration: 240, easing: 'cubic-bezier(.2,.8,.2,1)' });
+      }
+      document.addEventListener('keydown', padKey);
+    }
+    const circle = $('tap-pad-circle');
+    circle.classList.remove('hit');
+    void circle.offsetWidth; // restart the pulse
+    circle.classList.add('hit');
+    clearTimeout(padClose);
+    padClose = setTimeout(closePad, TAP_RESET);
+  }
+  function closePad() {
+    clearTimeout(padClose);
+    if (pad.hidden) return;
+    document.removeEventListener('keydown', padKey);
+    const done = () => { pad.hidden = true; };
+    if (reduced()) { done(); return; }
+    pad.animate([{ transform: 'none', opacity: 1 }, { transform: fromButton(), opacity: 0.2 }], { duration: 220, easing: 'ease-in' }).finished.then(done, done);
+  }
+  function padKey(e) {
+    if (e.target === $('tap-tempo')) return; // the button taps for itself
+    if (e.key === 'Escape') { e.preventDefault(); closePad(); }
+    if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); tap(e.timeStamp); }
+  }
+  pad.addEventListener('pointerdown', (e) => { if (!e.button) { e.preventDefault(); tap(e.timeStamp); } });
   // On the finger coming down (the moment of the beat), not on its release.
   $('tap-tempo').addEventListener('pointerdown', (e) => { if (!e.button) tap(e.timeStamp); });
   $('tap-tempo').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tap(); } });
