@@ -10,14 +10,14 @@ need no art. The chime sounds are recordings and synthesis, not images; see
 
 **Round 1:** delivered and in use.
 
-**Round 2:** 1 image wanted, marked `requested` or `revise` (see the note): `favicon`.
+**Round 2:** delivered and in use.
 
 **House style** (already included in every prompt but the favicon's): Calm, quiet artwork for a meditation app: a deep night-indigo palette (#141826 to #232a40) with warm burnished brass and bronze (#c9a15b) and a soft candle-glow light, painterly but clean, gentle gradients, soft rim light on metal, a faint warm haze, generous empty space, nothing busy or bright. Serene and still, like early morning before sunrise. No people, no text, no letters, no logos, no watermark, no frame or border.
 
 | Status | Id | File | Size |
 | --- | --- | --- | --- |
 | delivered | `icon` | `app/icons/icon-1024.png` | 1024×1024, PNG, full bleed, no transparency |
-| revise | `favicon` | `app/icons/favicon-256.png` | 256×256, transparent PNG |
+| delivered | `favicon` | `app/icons/favicon-256.png` | 256×256, transparent PNG |
 | delivered | `cover` | `app/assets/ui/cover.webp` | 1200×900 (4:3), WebP |
 | delivered | `bowl` | `app/assets/ui/bowl.webp` | 1200×1200, transparent PNG (shipped as WebP) |
 | delivered | `backdrop` | `app/assets/ui/backdrop.webp` | 1600×2400 (2:3, portrait), WebP |
@@ -40,11 +40,11 @@ need no art. The chime sounds are recordings and synthesis, not images; see
 An app icon for a meditation timer: a hammered brass singing bowl seen from slightly above, glowing softly from within, three faint concentric sound rings rising from its rim like ripples, on a deep night-indigo (#141826) ground with a soft warm halo behind the bowl. Centred, bold and simple, readable at 60 pixels, full bleed with the subject inside the middle 80% so rounded-corner masks never cut it. Calm, quiet artwork for a meditation app: a deep night-indigo palette (#141826 to #232a40) with warm burnished brass and bronze (#c9a15b) and a soft candle-glow light, painterly but clean, gentle gradients, soft rim light on metal, a faint warm haze, generous empty space, nothing busy or bright. Serene and still, like early morning before sunrise. No people, no text, no letters, no logos, no watermark, no frame or border.
 ```
 
-### `favicon` · revise
+### `favicon` · delivered
 
 - File: `meditation/app/icons/favicon-256.png`
 - Size: 256×256, transparent PNG
-- Note: Round 2 (revise): the delivered favicon draws one arc joined to both ends of the rim, so at 16 and 32 px it reads as a basket or handbag rather than a ringing bowl. It stays in use until the new one arrives. make_icons.mjs makes the 32 px favicon-32.png and favicon.ico from it; a full icon shrunk to 16 px turns to mud, so this one is drawn simpler.
+- Note: Round 2 delivered: two separate sound-wave arcs float above the bowl with clear gaps, keeping the mark readable as a ringing bowl at 16 and 32 px. make_icons.mjs makes favicon-32.png and favicon.ico from this simplified art.
 
 ```text
 A tiny browser-tab mark for a meditation timer: the plain side-on silhouette of a singing bowl, a wide shallow bowl shape with a flat rim and a small flat foot, in warm brass (#c9a15b). Above it, two short curved sound waves, like the arcs of a wifi symbol, floating free: a clear gap of empty space between the rim and the lower arc, and between the two arcs, each arc narrower than the bowl and nowhere touching it, so it can never be read as a handle, a basket or a bag. Flat, a single colour, very thick shapes, no fine detail and no gradient, so it still reads at 16 and 32 pixels. The bowl fills the lower 60% of the square, the arcs the upper 30%, centred, on a fully transparent background. No text, no letters, no frame.

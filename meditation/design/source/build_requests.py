@@ -54,7 +54,7 @@ ASSETS = [
                 "middle 80% so rounded-corner masks never cut it. " + STYLE,
          note="Home-screen icon; the 512, 192 and 180 px sizes are made from it by design/source/make_icons.mjs. "
               "Until it arrives they are made from the SVG stand-in (app/icon.svg)."),
-    dict(id="favicon", file="icons/favicon-256.png", size="256×256, transparent PNG", status="revise", group="Brand",
+    dict(id="favicon", file="icons/favicon-256.png", size="256×256, transparent PNG", status="delivered", group="Brand",
          prompt="A tiny browser-tab mark for a meditation timer: the plain side-on silhouette of a singing "
                 "bowl, a wide shallow bowl shape with a flat rim and a small flat foot, in warm brass "
                 "(#c9a15b). Above it, two short curved sound waves, like the arcs of a wifi symbol, "
@@ -64,10 +64,9 @@ ASSETS = [
                 "detail and no gradient, so it still reads at 16 and 32 pixels. The bowl fills the lower "
                 "60% of the square, the arcs the upper 30%, centred, on a fully transparent background. "
                 "No text, no letters, no frame.",
-         note="Round 2 (revise): the delivered favicon draws one arc joined to both ends of the rim, so at "
-              "16 and 32 px it reads as a basket or handbag rather than a ringing bowl. It stays in use until "
-              "the new one arrives. make_icons.mjs makes the 32 px favicon-32.png and favicon.ico from it; a "
-              "full icon shrunk to 16 px turns to mud, so this one is drawn simpler."),
+         note="Round 2 delivered: two separate sound-wave arcs float above the bowl with clear gaps, "
+              "keeping the mark readable as a ringing bowl at 16 and 32 px. make_icons.mjs makes "
+              "favicon-32.png and favicon.ico from this simplified art."),
     dict(id="cover", file="assets/ui/cover.webp", size="1200×900 (4:3), WebP", status="delivered", group="Brand",
          prompt="Cover art for a meditation timer on an app shelf: a brass singing bowl and its wooden striker "
                 "resting on a round indigo cushion on a low wooden table, a small pair of tingsha cymbals on "
