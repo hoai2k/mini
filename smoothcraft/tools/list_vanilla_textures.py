@@ -22,8 +22,8 @@ OUT = Path(__file__).resolve().parent.parent / "design" / "source" / "vanilla_te
 
 def alpha_kind(img: Image.Image) -> str:
     """opaque, cutout (only fully clear or fully solid pixels) or translucent."""
-    if img.mode not in ("RGBA", "LA", "P"):
-        return "opaque"
+    # RGB and greyscale PNGs can also use a tRNS colour key. Converting to
+    # RGBA resolves that key as well as palette and explicit alpha channels.
     histogram = img.convert("RGBA").getchannel("A").histogram()
     if not any(histogram[:255]):
         return "opaque"

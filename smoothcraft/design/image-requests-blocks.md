@@ -26,9 +26,9 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/ancient_debris_side` | 256x256 | ore | Realistic, high-detail ancient debris (side face): natural rock with embedded raw mineral crystals or nuggets. | requested |
 | `block/ancient_debris_top` | 256x256 | ore | Realistic, high-detail ancient debris (top face): natural rock with embedded raw mineral crystals or nuggets. | requested |
 | `block/anvil` | 256x256 | iron | Realistic, high-detail anvil: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
-| `block/anvil_top` | 256x256 | iron | Realistic, high-detail anvil (top face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
+| `block/anvil_top` | 256x256 (cutout) | iron | Realistic, high-detail anvil (top face): forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
 | `block/attached_melon_stem` | 256x256 (cutout) | bark | Realistic, high-detail attached melon stem: deeply furrowed natural tree bark. | requested |
-| `block/attached_pumpkin_stem` | 256x256 | bark | Realistic, high-detail attached pumpkin stem: deeply furrowed natural tree bark. | requested |
+| `block/attached_pumpkin_stem` | 256x256 (cutout) | bark | Realistic, high-detail attached pumpkin stem: deeply furrowed natural tree bark. | requested |
 | `block/azalea_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail azalea leaves: living plant matter, leaves and stems with veins. | requested |
 | `block/azalea_plant` | 256x256 (cutout) | foliage | Realistic, high-detail azalea plant: living plant matter, leaves and stems with veins. | requested |
 | `block/azalea_side` | 256x256 (cutout) | foliage | Realistic, high-detail azalea (side face): living plant matter, leaves and stems with veins. | requested |
@@ -439,8 +439,8 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/exposed_cut_copper` | 256x256 | patina | Realistic, high-detail exposed cut copper: weathered copper with blue-green verdigris patina. | requested |
 | `block/exposed_lightning_rod` | 256x256 (cutout) | iron | Realistic, high-detail exposed lightning rod: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
 | `block/fern` | 256x256 (cutout) | foliage | Realistic, high-detail fern: living plant matter, leaves and stems with veins. | requested |
-| `block/fire_0` | 64x2048 (32 frames) | glowing | Realistic, high-detail fire 0: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/fire_1` | 64x2048 (32 frames) | glowing | Realistic, high-detail fire 1: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
+| `block/fire_0` | 64x2048 (32 frames, cutout) | glowing | Realistic, high-detail fire 0: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
+| `block/fire_1` | 64x2048 (32 frames, cutout) | glowing | Realistic, high-detail fire 1: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
 | `block/fire_coral` | 256x256 (cutout) | glowing | Realistic, high-detail fire coral: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
 | `block/fire_coral_block` | 256x256 | glowing | Realistic, high-detail fire coral block: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
 | `block/fire_coral_fan` | 256x256 (cutout) | glowing | Realistic, high-detail fire coral fan: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
@@ -498,8 +498,8 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/green_terracotta` | 256x256 | ceramic | Realistic, high-detail green terracotta: fired clay, brick or terracotta with mortar and small chips. | requested |
 | `block/green_wool` | 256x256 | cloth | Realistic, high-detail green wool: woven wool or felt with visible fibres and weave. | requested |
 | `block/grindstone_pivot` | 256x256 (cutout) | stone | Realistic, high-detail grindstone pivot: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/grindstone_round` | 256x256 | stone | Realistic, high-detail grindstone round: natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/grindstone_side` | 256x256 | stone | Realistic, high-detail grindstone (side face): natural rough rock with grain, small fractures and mineral variation. | requested |
+| `block/grindstone_round` | 256x256 (cutout) | stone | Realistic, high-detail grindstone round: natural rough rock with grain, small fractures and mineral variation. | requested |
+| `block/grindstone_side` | 256x256 (cutout) | stone | Realistic, high-detail grindstone (side face): natural rough rock with grain, small fractures and mineral variation. | requested |
 | `block/hanging_roots` | 256x256 (cutout) | foliage | Realistic, high-detail hanging roots: living plant matter, leaves and stems with veins. | requested |
 | `block/hay_block_side` | 256x256 | cloth | Realistic, high-detail hay block (side face): woven wool or felt with visible fibres and weave. | requested |
 | `block/hay_block_top` | 256x256 | cloth | Realistic, high-detail hay block (top face): woven wool or felt with visible fibres and weave. | requested |
@@ -541,7 +541,7 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/large_amethyst_bud` | 256x256 (cutout) | gem | Realistic, high-detail large amethyst bud: faceted crystalline gemstone. | requested |
 | `block/large_fern_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail large fern (bottom face): living plant matter, leaves and stems with veins. | requested |
 | `block/large_fern_top` | 256x256 (cutout) | foliage | Realistic, high-detail large fern (top face): living plant matter, leaves and stems with veins. | requested |
-| `block/leaf_litter` | 256x256 | foliage | Realistic, high-detail leaf litter: living plant matter, leaves and stems with veins. | requested |
+| `block/leaf_litter` | 256x256 (cutout) | foliage | Realistic, high-detail leaf litter: living plant matter, leaves and stems with veins. | requested |
 | `block/lectern_base` | 256x256 | paper | Realistic, high-detail lectern base: paper, books and worked wood. | requested |
 | `block/lectern_front` | 256x256 | paper | Realistic, high-detail lectern (front face): paper, books and worked wood. | requested |
 | `block/lectern_sides` | 256x256 | paper | Realistic, high-detail lectern sides: paper, books and worked wood. | requested |
@@ -586,7 +586,7 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/lilac_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail lilac (bottom face): living plant matter, leaves and stems with veins. | requested |
 | `block/lilac_top` | 256x256 (cutout) | foliage | Realistic, high-detail lilac (top face): living plant matter, leaves and stems with veins. | requested |
 | `block/lily_of_the_valley` | 256x256 (cutout) | foliage | Realistic, high-detail lily of the valley: living plant matter, leaves and stems with veins. | requested |
-| `block/lily_pad` | 256x256 | foliage | Realistic, high-detail lily pad: living plant matter, leaves and stems with veins. | requested |
+| `block/lily_pad` | 256x256 (cutout) | foliage | Realistic, high-detail lily pad: living plant matter, leaves and stems with veins. | requested |
 | `block/lime_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail lime bed foot east: woven wool or felt with visible fibres and weave. | requested |
 | `block/lime_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail lime bed foot south: woven wool or felt with visible fibres and weave. | requested |
 | `block/lime_bed_foot_up` | 256x256 | cloth | Realistic, high-detail lime bed foot up: woven wool or felt with visible fibres and weave. | requested |
@@ -643,7 +643,7 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/mangrove_trapdoor` | 256x256 (cutout) | wood | Realistic, high-detail mangrove trapdoor: sawn and planed timber with clear grain, knots and joints. | requested |
 | `block/medium_amethyst_bud` | 256x256 (cutout) | gem | Realistic, high-detail medium amethyst bud: faceted crystalline gemstone. | requested |
 | `block/melon_side` | 256x256 | foliage | Realistic, high-detail melon (side face): living plant matter, leaves and stems with veins. | requested |
-| `block/melon_stem` | 256x256 | bark | Realistic, high-detail melon stem: deeply furrowed natural tree bark. | requested |
+| `block/melon_stem` | 256x256 (cutout) | bark | Realistic, high-detail melon stem: deeply furrowed natural tree bark. | requested |
 | `block/melon_top` | 256x256 | foliage | Realistic, high-detail melon (top face): living plant matter, leaves and stems with veins. | requested |
 | `block/moss_block` | 256x256 | foliage | Realistic, high-detail moss block: living plant matter, leaves and stems with veins. | requested |
 | `block/mud_bricks` | 256x256 | ceramic | Realistic, high-detail mud bricks: fired clay, brick or terracotta with mortar and small chips. | requested |
@@ -974,8 +974,8 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/sniffer_egg_very_cracked_west` | 256x256 (cutout) | organic | Realistic, high-detail sniffer egg very cracked west: organic living matter (coral, fungus, sponge, wax). | requested |
 | `block/soul_campfire_fire` | 256x2048 (8 frames, cutout) | glowing | Realistic, high-detail soul campfire fire: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
 | `block/soul_campfire_log_lit` | 256x1024 (4 frames) | glowing | Realistic, high-detail soul campfire log (lit state): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/soul_fire_0` | 64x2048 (32 frames) | glowing | Realistic, high-detail soul fire 0: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/soul_fire_1` | 64x2048 (32 frames) | glowing | Realistic, high-detail soul fire 1: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
+| `block/soul_fire_0` | 64x2048 (32 frames, cutout) | glowing | Realistic, high-detail soul fire 0: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
+| `block/soul_fire_1` | 64x2048 (32 frames, cutout) | glowing | Realistic, high-detail soul fire 1: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
 | `block/soul_lantern` | 256x768 (3 frames, cutout) | iron | Realistic, high-detail soul lantern: forged and worn iron or steel, scratches and slight rust in the crevices. | requested |
 | `block/soul_soil` | 256x256 | soil | Realistic, high-detail soul soil: loose earthy soil with small pebbles, roots and crumbs. | requested |
 | `block/soul_torch` | 256x256 (cutout) | glowing | Realistic, high-detail soul torch: a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
@@ -991,7 +991,7 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/spruce_sign` | 256x256 (cutout) | wood | Realistic, high-detail spruce sign: sawn and planed timber with clear grain, knots and joints. | requested |
 | `block/spruce_trapdoor` | 256x256 | wood | Realistic, high-detail spruce trapdoor: sawn and planed timber with clear grain, knots and joints. | requested |
 | `block/stonecutter_bottom` | 256x256 | stone | Realistic, high-detail stonecutter (bottom face): natural rough rock with grain, small fractures and mineral variation. | requested |
-| `block/stonecutter_saw` | 256x768 (3 frames) | stone | Realistic, high-detail stonecutter saw: natural rough rock with grain, small fractures and mineral variation. | requested |
+| `block/stonecutter_saw` | 256x768 (3 frames, cutout) | stone | Realistic, high-detail stonecutter saw: natural rough rock with grain, small fractures and mineral variation. | requested |
 | `block/stonecutter_side` | 256x256 (cutout) | stone | Realistic, high-detail stonecutter (side face): natural rough rock with grain, small fractures and mineral variation. | requested |
 | `block/stonecutter_top` | 256x256 | stone | Realistic, high-detail stonecutter (top face): natural rough rock with grain, small fractures and mineral variation. | requested |
 | `block/straw_bed` | 512x512 (cutout) | default | Realistic, high-detail straw bed: a believable real-world material. | requested |
@@ -1104,7 +1104,7 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/vault_top_ominous` | 256x256 | stone | Realistic, high-detail vault top ominous: natural rough rock with grain, small fractures and mineral variation. | requested |
 | `block/verdant_froglight_side` | 256x256 | glowing | Realistic, high-detail verdant froglight (side face): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
 | `block/verdant_froglight_top` | 256x256 | glowing | Realistic, high-detail verdant froglight (top face): a self-lit glowing material: bright light-emitting parts with darker structure. | requested |
-| `block/vine` | 256x256 | foliage | Realistic, high-detail vine: living plant matter, leaves and stems with veins. | requested |
+| `block/vine` | 256x256 (cutout) | foliage | Realistic, high-detail vine: living plant matter, leaves and stems with veins. | requested |
 | `block/warped_door_bottom` | 256x256 | wood | Realistic, high-detail warped door (bottom face): sawn and planed timber with clear grain, knots and joints. | requested |
 | `block/warped_door_top` | 256x256 | wood | Realistic, high-detail warped door (top face): sawn and planed timber with clear grain, knots and joints. | requested |
 | `block/warped_fungus` | 256x256 (cutout) | foliage | Realistic, high-detail warped fungus: living plant matter, leaves and stems with veins. | requested |

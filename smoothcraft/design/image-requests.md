@@ -429,7 +429,7 @@ Side of a grass block: a cross-section of rich brown soil with small stones and 
 
 Only the grass fringe from the side of a grass block, greyscale (biome-tinted in game), on a fully transparent background.
 
-- Deliver: 256x256 px PNG; tiles seamlessly on all four edges
+- Deliver: 256x256 px PNG; tiles seamlessly on all four edges; transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - Material: grass
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/grass_block_side_overlay.png`
 
@@ -725,7 +725,7 @@ Dark brown sand with faint anguished faces pressed into it.
 
 Spruce needle sprays, greyscale for tint, gaps transparent.
 
-- Deliver: 256x256 px PNG; tiles seamlessly on all four edges
+- Deliver: 256x256 px PNG; tiles seamlessly on all four edges; transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - Material: foliage
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/block/spruce_leaves.png`
 
