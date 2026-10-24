@@ -78,7 +78,7 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/bell_bottom` | 256x256 (cutout) | gold | Realistic, high-detail bell (bottom face): polished gold with soft wear. | delivered |
 | `block/bell_side` | 256x256 (cutout) | gold | Realistic, high-detail bell (side face): polished gold with soft wear. | delivered |
 | `block/bell_top` | 256x256 (cutout) | gold | Realistic, high-detail bell (top face): polished gold with soft wear. | delivered |
-| `block/big_dripleaf_side` | 256x256 (cutout) | foliage | Realistic, high-detail big dripleaf (side face): living plant matter, leaves and stems with veins. | delivered |
+| `block/big_dripleaf_side` | 256x256 (cutout) | foliage | Realistic, high-detail big dripleaf (side face): living plant matter, leaves and stems with veins. | regenerate |
 | `block/big_dripleaf_stem` | 256x256 (cutout) | bark | Realistic, high-detail big dripleaf stem: deeply furrowed natural tree bark. | delivered |
 | `block/big_dripleaf_tip` | 256x256 (cutout) | foliage | Realistic, high-detail big dripleaf tip: living plant matter, leaves and stems with veins. | delivered |
 | `block/big_dripleaf_top` | 256x256 (cutout) | foliage | Realistic, high-detail big dripleaf (top face): living plant matter, leaves and stems with veins. | delivered |
@@ -119,8 +119,8 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/blue_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail blue bed head east: woven wool or felt with visible fibres and weave. | delivered |
 | `block/blue_bed_head_up` | 256x256 | cloth | Realistic, high-detail blue bed head up: woven wool or felt with visible fibres and weave. | delivered |
 | `block/blue_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail blue bed head west: woven wool or felt with visible fibres and weave. | delivered |
-| `block/blue_candle` | 256x256 (cutout) | organic | Realistic, high-detail blue candle: organic living matter (coral, fungus, sponge, wax). | delivered |
-| `block/blue_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail blue candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/blue_candle` | 256x256 (cutout) | organic | Realistic, high-detail blue candle: organic living matter (coral, fungus, sponge, wax). | regenerate |
+| `block/blue_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail blue candle (lit state): organic living matter (coral, fungus, sponge, wax). | regenerate |
 | `block/blue_concrete` | 256x256 | concrete | Realistic, high-detail blue concrete: smooth matte concrete with fine pores. | delivered |
 | `block/blue_concrete_powder` | 256x256 | sand | Realistic, high-detail blue concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
 | `block/blue_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail blue glazed terracotta: glossy glazed ceramic tile. | delivered |
@@ -176,8 +176,8 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/campfire_fire` | 256x2048 (8 frames, cutout) | glowing | Realistic, high-detail campfire fire: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
 | `block/campfire_log` | 256x256 (cutout) | glowing | Realistic, high-detail campfire log: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
 | `block/campfire_log_lit` | 256x1024 (4 frames) | glowing | Realistic, high-detail campfire log (lit state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
-| `block/candle` | 256x256 (cutout) | organic | Realistic, high-detail candle: organic living matter (coral, fungus, sponge, wax). | delivered |
-| `block/candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/candle` | 256x256 (cutout) | organic | Realistic, high-detail candle: organic living matter (coral, fungus, sponge, wax). | regenerate |
+| `block/candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail candle (lit state): organic living matter (coral, fungus, sponge, wax). | regenerate |
 | `block/carrots_stage0` | 256x256 (cutout) | foliage | Realistic, high-detail carrots (growth stage 0): living plant matter, leaves and stems with veins. | delivered |
 | `block/carrots_stage1` | 256x256 (cutout) | foliage | Realistic, high-detail carrots (growth stage 1): living plant matter, leaves and stems with veins. | delivered |
 | `block/carrots_stage2` | 256x256 (cutout) | foliage | Realistic, high-detail carrots (growth stage 2): living plant matter, leaves and stems with veins. | delivered |
@@ -421,7 +421,7 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/end_portal_frame_eye` | 256x256 (cutout) | stone | Realistic, high-detail end portal frame eye: natural rough rock with grain, small fractures and mineral variation. | delivered |
 | `block/end_portal_frame_side` | 256x256 (cutout) | stone | Realistic, high-detail end portal frame (side face): natural rough rock with grain, small fractures and mineral variation. | delivered |
 | `block/end_portal_frame_top` | 256x256 | stone | Realistic, high-detail end portal frame (top face): natural rough rock with grain, small fractures and mineral variation. | delivered |
-| `block/end_rod` | 256x256 (cutout) | glowing | Realistic, high-detail end rod: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/end_rod` | 256x256 (cutout) | glowing | Realistic, high-detail end rod: a self-lit glowing material: bright light-emitting parts with darker structure. | regenerate |
 | `block/end_stone_bricks` | 256x256 | ceramic | Realistic, high-detail end stone bricks: fired clay, brick or terracotta with mortar and small chips. | delivered |
 | `block/exposed_chiseled_copper` | 256x256 | patina | Realistic, high-detail exposed chiseled copper: weathered copper with blue-green verdigris patina. | delivered |
 | `block/exposed_copper` | 256x256 | patina | Realistic, high-detail exposed copper: weathered copper with blue-green verdigris patina. | delivered |
@@ -437,7 +437,7 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/exposed_copper_lantern` | 256x768 (3 frames, cutout) | patina | Realistic, high-detail exposed copper lantern: weathered copper with blue-green verdigris patina. | delivered |
 | `block/exposed_copper_trapdoor` | 256x256 (cutout) | patina | Realistic, high-detail exposed copper trapdoor: weathered copper with blue-green verdigris patina. | delivered |
 | `block/exposed_cut_copper` | 256x256 | patina | Realistic, high-detail exposed cut copper: weathered copper with blue-green verdigris patina. | delivered |
-| `block/exposed_lightning_rod` | 256x256 (cutout) | iron | Realistic, high-detail exposed lightning rod: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/exposed_lightning_rod` | 256x256 (cutout) | iron | Realistic, high-detail exposed lightning rod: forged and worn iron or steel, scratches and slight rust in the crevices. | regenerate |
 | `block/fern` | 256x256 (cutout) | foliage | Realistic, high-detail fern: living plant matter, leaves and stems with veins. | delivered |
 | `block/fire_0` | 64x2048 (32 frames, cutout) | glowing | Realistic, high-detail fire 0: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
 | `block/fire_1` | 64x2048 (32 frames, cutout) | glowing | Realistic, high-detail fire 1: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
@@ -487,8 +487,8 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/green_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail green bed head east: woven wool or felt with visible fibres and weave. | delivered |
 | `block/green_bed_head_up` | 256x256 | cloth | Realistic, high-detail green bed head up: woven wool or felt with visible fibres and weave. | delivered |
 | `block/green_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail green bed head west: woven wool or felt with visible fibres and weave. | delivered |
-| `block/green_candle` | 256x256 (cutout) | organic | Realistic, high-detail green candle: organic living matter (coral, fungus, sponge, wax). | delivered |
-| `block/green_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail green candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/green_candle` | 256x256 (cutout) | organic | Realistic, high-detail green candle: organic living matter (coral, fungus, sponge, wax). | regenerate |
+| `block/green_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail green candle (lit state): organic living matter (coral, fungus, sponge, wax). | regenerate |
 | `block/green_concrete` | 256x256 | concrete | Realistic, high-detail green concrete: smooth matte concrete with fine pores. | delivered |
 | `block/green_concrete_powder` | 256x256 | sand | Realistic, high-detail green concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
 | `block/green_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail green glazed terracotta: glossy glazed ceramic tile. | delivered |
@@ -498,7 +498,7 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/green_terracotta` | 256x256 | ceramic | Realistic, high-detail green terracotta: fired clay, brick or terracotta with mortar and small chips. | delivered |
 | `block/green_wool` | 256x256 | cloth | Realistic, high-detail green wool: woven wool or felt with visible fibres and weave. | delivered |
 | `block/grindstone_pivot` | 256x256 (cutout) | stone | Realistic, high-detail grindstone pivot: natural rough rock with grain, small fractures and mineral variation. | delivered |
-| `block/grindstone_round` | 256x256 (cutout) | stone | Realistic, high-detail grindstone round: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/grindstone_round` | 256x256 (cutout) | stone | Realistic, high-detail grindstone round: natural rough rock with grain, small fractures and mineral variation. | regenerate |
 | `block/grindstone_side` | 256x256 (cutout) | stone | Realistic, high-detail grindstone (side face): natural rough rock with grain, small fractures and mineral variation. | delivered |
 | `block/hanging_roots` | 256x256 (cutout) | foliage | Realistic, high-detail hanging roots: living plant matter, leaves and stems with veins. | delivered |
 | `block/hay_block_side` | 256x256 | cloth | Realistic, high-detail hay block (side face): woven wool or felt with visible fibres and weave. | delivered |
@@ -526,7 +526,7 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/jungle_door_bottom` | 256x256 | wood | Realistic, high-detail jungle door (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
 | `block/jungle_door_top` | 256x256 (cutout) | wood | Realistic, high-detail jungle door (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
 | `block/jungle_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail jungle hanging sign: sawn and planed timber with clear grain, knots and joints. | delivered |
-| `block/jungle_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail jungle leaves: living plant matter, leaves and stems with veins. | delivered |
+| `block/jungle_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail jungle leaves: living plant matter, leaves and stems with veins. | regenerate |
 | `block/jungle_log_top` | 256x256 | bark | Realistic, high-detail jungle log (top face): end grain with growth rings inside a rim of bark. | delivered |
 | `block/jungle_planks` | 256x256 | wood | Realistic, high-detail jungle planks: sawn and planed timber with clear grain, knots and joints. | delivered |
 | `block/jungle_sapling` | 256x256 (cutout) | foliage | Realistic, high-detail jungle sapling: living plant matter, leaves and stems with veins. | delivered |
@@ -541,7 +541,7 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/large_amethyst_bud` | 256x256 (cutout) | gem | Realistic, high-detail large amethyst bud: faceted crystalline gemstone. | delivered |
 | `block/large_fern_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail large fern (bottom face): living plant matter, leaves and stems with veins. | delivered |
 | `block/large_fern_top` | 256x256 (cutout) | foliage | Realistic, high-detail large fern (top face): living plant matter, leaves and stems with veins. | delivered |
-| `block/leaf_litter` | 256x256 (cutout) | foliage | Realistic, high-detail leaf litter: living plant matter, leaves and stems with veins. | delivered |
+| `block/leaf_litter` | 256x256 (cutout) | foliage | Realistic, high-detail leaf litter: living plant matter, leaves and stems with veins. | regenerate |
 | `block/lectern_base` | 256x256 | paper | Realistic, high-detail lectern base: paper, books and worked wood. | delivered |
 | `block/lectern_front` | 256x256 | paper | Realistic, high-detail lectern (front face): paper, books and worked wood. | delivered |
 | `block/lectern_sides` | 256x256 | paper | Realistic, high-detail lectern sides: paper, books and worked wood. | delivered |
@@ -554,8 +554,8 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/light_blue_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail light blue bed head east: woven wool or felt with visible fibres and weave. | delivered |
 | `block/light_blue_bed_head_up` | 256x256 | cloth | Realistic, high-detail light blue bed head up: woven wool or felt with visible fibres and weave. | delivered |
 | `block/light_blue_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail light blue bed head west: woven wool or felt with visible fibres and weave. | delivered |
-| `block/light_blue_candle` | 256x256 (cutout) | organic | Realistic, high-detail light blue candle: organic living matter (coral, fungus, sponge, wax). | delivered |
-| `block/light_blue_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail light blue candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/light_blue_candle` | 256x256 (cutout) | organic | Realistic, high-detail light blue candle: organic living matter (coral, fungus, sponge, wax). | regenerate |
+| `block/light_blue_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail light blue candle (lit state): organic living matter (coral, fungus, sponge, wax). | regenerate |
 | `block/light_blue_concrete` | 256x256 | concrete | Realistic, high-detail light blue concrete: smooth matte concrete with fine pores. | delivered |
 | `block/light_blue_concrete_powder` | 256x256 | sand | Realistic, high-detail light blue concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
 | `block/light_blue_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail light blue glazed terracotta: glossy glazed ceramic tile. | delivered |
@@ -581,7 +581,7 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/light_gray_stained_glass_pane_top` | 256x256 (translucent) | glass | Realistic, high-detail light gray stained glass pane (top face): clear glass with faint imperfections. | delivered |
 | `block/light_gray_terracotta` | 256x256 | ceramic | Realistic, high-detail light gray terracotta: fired clay, brick or terracotta with mortar and small chips. | delivered |
 | `block/light_gray_wool` | 256x256 | cloth | Realistic, high-detail light gray wool: woven wool or felt with visible fibres and weave. | delivered |
-| `block/lightning_rod` | 256x256 (cutout) | iron | Realistic, high-detail lightning rod: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/lightning_rod` | 256x256 (cutout) | iron | Realistic, high-detail lightning rod: forged and worn iron or steel, scratches and slight rust in the crevices. | regenerate |
 | `block/lightning_rod_on` | 256x256 | glowing | Realistic, high-detail lightning rod (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
 | `block/lilac_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail lilac (bottom face): living plant matter, leaves and stems with veins. | delivered |
 | `block/lilac_top` | 256x256 (cutout) | foliage | Realistic, high-detail lilac (top face): living plant matter, leaves and stems with veins. | delivered |
@@ -594,8 +594,8 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/lime_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail lime bed head east: woven wool or felt with visible fibres and weave. | delivered |
 | `block/lime_bed_head_up` | 256x256 | cloth | Realistic, high-detail lime bed head up: woven wool or felt with visible fibres and weave. | delivered |
 | `block/lime_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail lime bed head west: woven wool or felt with visible fibres and weave. | delivered |
-| `block/lime_candle` | 256x256 (cutout) | organic | Realistic, high-detail lime candle: organic living matter (coral, fungus, sponge, wax). | delivered |
-| `block/lime_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail lime candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/lime_candle` | 256x256 (cutout) | organic | Realistic, high-detail lime candle: organic living matter (coral, fungus, sponge, wax). | regenerate |
+| `block/lime_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail lime candle (lit state): organic living matter (coral, fungus, sponge, wax). | regenerate |
 | `block/lime_concrete` | 256x256 | concrete | Realistic, high-detail lime concrete: smooth matte concrete with fine pores. | delivered |
 | `block/lime_concrete_powder` | 256x256 | sand | Realistic, high-detail lime concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
 | `block/lime_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail lime glazed terracotta: glossy glazed ceramic tile. | delivered |
@@ -617,8 +617,8 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/magenta_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail magenta bed head east: woven wool or felt with visible fibres and weave. | delivered |
 | `block/magenta_bed_head_up` | 256x256 | cloth | Realistic, high-detail magenta bed head up: woven wool or felt with visible fibres and weave. | delivered |
 | `block/magenta_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail magenta bed head west: woven wool or felt with visible fibres and weave. | delivered |
-| `block/magenta_candle` | 256x256 (cutout) | organic | Realistic, high-detail magenta candle: organic living matter (coral, fungus, sponge, wax). | delivered |
-| `block/magenta_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail magenta candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/magenta_candle` | 256x256 (cutout) | organic | Realistic, high-detail magenta candle: organic living matter (coral, fungus, sponge, wax). | regenerate |
+| `block/magenta_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail magenta candle (lit state): organic living matter (coral, fungus, sponge, wax). | regenerate |
 | `block/magenta_concrete` | 256x256 | concrete | Realistic, high-detail magenta concrete: smooth matte concrete with fine pores. | delivered |
 | `block/magenta_concrete_powder` | 256x256 | sand | Realistic, high-detail magenta concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
 | `block/magenta_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail magenta glazed terracotta: glossy glazed ceramic tile. | delivered |
@@ -630,7 +630,7 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/magma` | 256x768 (3 frames) | glowing | Realistic, high-detail magma: a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
 | `block/mangrove_door_bottom` | 256x256 | wood | Realistic, high-detail mangrove door (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
 | `block/mangrove_door_top` | 256x256 | wood | Realistic, high-detail mangrove door (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
-| `block/mangrove_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail mangrove hanging sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/mangrove_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail mangrove hanging sign: sawn and planed timber with clear grain, knots and joints. | regenerate |
 | `block/mangrove_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail mangrove leaves: living plant matter, leaves and stems with veins. | delivered |
 | `block/mangrove_log_top` | 256x256 | bark | Realistic, high-detail mangrove log (top face): end grain with growth rings inside a rim of bark. | delivered |
 | `block/mangrove_planks` | 256x256 | wood | Realistic, high-detail mangrove planks: sawn and planed timber with clear grain, knots and joints. | delivered |
@@ -686,7 +686,7 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/orange_bed_head_up` | 256x256 | cloth | Realistic, high-detail orange bed head up: woven wool or felt with visible fibres and weave. | delivered |
 | `block/orange_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail orange bed head west: woven wool or felt with visible fibres and weave. | delivered |
 | `block/orange_candle` | 256x256 (cutout) | organic | Realistic, high-detail orange candle: organic living matter (coral, fungus, sponge, wax). | delivered |
-| `block/orange_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail orange candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/orange_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail orange candle (lit state): organic living matter (coral, fungus, sponge, wax). | regenerate |
 | `block/orange_concrete` | 256x256 | concrete | Realistic, high-detail orange concrete: smooth matte concrete with fine pores. | delivered |
 | `block/orange_concrete_powder` | 256x256 | sand | Realistic, high-detail orange concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
 | `block/orange_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail orange glazed terracotta: glossy glazed ceramic tile. | delivered |
@@ -712,7 +712,7 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/oxidized_copper_lantern` | 256x768 (3 frames, cutout) | patina | Realistic, high-detail oxidized copper lantern: weathered copper with blue-green verdigris patina. | delivered |
 | `block/oxidized_copper_trapdoor` | 256x256 (cutout) | patina | Realistic, high-detail oxidized copper trapdoor: weathered copper with blue-green verdigris patina. | delivered |
 | `block/oxidized_cut_copper` | 256x256 | patina | Realistic, high-detail oxidized cut copper: weathered copper with blue-green verdigris patina. | delivered |
-| `block/oxidized_lightning_rod` | 256x256 (cutout) | iron | Realistic, high-detail oxidized lightning rod: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/oxidized_lightning_rod` | 256x256 (cutout) | iron | Realistic, high-detail oxidized lightning rod: forged and worn iron or steel, scratches and slight rust in the crevices. | regenerate |
 | `block/packed_mud` | 256x256 | ceramic | Realistic, high-detail packed mud: fired clay, brick or terracotta with mortar and small chips. | delivered |
 | `block/pale_hanging_moss` | 256x256 (cutout) | foliage | Realistic, high-detail pale hanging moss: living plant matter, leaves and stems with veins. | delivered |
 | `block/pale_hanging_moss_tip` | 256x256 (cutout) | foliage | Realistic, high-detail pale hanging moss tip: living plant matter, leaves and stems with veins. | delivered |
@@ -722,7 +722,7 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/pale_moss_carpet_side_tall` | 256x256 (cutout) | cloth | Realistic, high-detail pale moss carpet side tall: woven wool or felt with visible fibres and weave. | delivered |
 | `block/pale_oak_door_bottom` | 256x256 | wood | Realistic, high-detail pale oak door (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
 | `block/pale_oak_door_top` | 256x256 | wood | Realistic, high-detail pale oak door (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
-| `block/pale_oak_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail pale oak hanging sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/pale_oak_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail pale oak hanging sign: sawn and planed timber with clear grain, knots and joints. | regenerate |
 | `block/pale_oak_leaves` | 256x256 (cutout) | foliage | Realistic, high-detail pale oak leaves: living plant matter, leaves and stems with veins. | delivered |
 | `block/pale_oak_log` | 256x256 | bark | Realistic, high-detail pale oak log: deeply furrowed natural tree bark. | delivered |
 | `block/pale_oak_log_top` | 256x256 | bark | Realistic, high-detail pale oak log (top face): end grain with growth rings inside a rim of bark. | delivered |
@@ -789,7 +789,7 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/polished_tuff` | 256x256 | polished_stone | Realistic, high-detail polished tuff: cut and polished stone with subtle veining. | delivered |
 | `block/poplar_door_bottom` | 256x256 | wood | Realistic, high-detail poplar door (bottom face): sawn and planed timber with clear grain, knots and joints. | delivered |
 | `block/poplar_door_top` | 256x256 (cutout) | wood | Realistic, high-detail poplar door (top face): sawn and planed timber with clear grain, knots and joints. | delivered |
-| `block/poplar_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail poplar hanging sign: sawn and planed timber with clear grain, knots and joints. | delivered |
+| `block/poplar_hanging_sign` | 256x256 (cutout) | wood | Realistic, high-detail poplar hanging sign: sawn and planed timber with clear grain, knots and joints. | regenerate |
 | `block/poplar_log` | 256x256 | bark | Realistic, high-detail poplar log: deeply furrowed natural tree bark. | delivered |
 | `block/poplar_log_top` | 256x256 | bark | Realistic, high-detail poplar log (top face): end grain with growth rings inside a rim of bark. | delivered |
 | `block/poplar_planks` | 256x256 | wood | Realistic, high-detail poplar planks: sawn and planed timber with clear grain, knots and joints. | delivered |
@@ -803,19 +803,19 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/potatoes_stage2` | 256x256 (cutout) | foliage | Realistic, high-detail potatoes (growth stage 2): living plant matter, leaves and stems with veins. | delivered |
 | `block/potatoes_stage3` | 256x256 (cutout) | foliage | Realistic, high-detail potatoes (growth stage 3): living plant matter, leaves and stems with veins. | delivered |
 | `block/potent_sulfur` | 256x256 | stone | Realistic, high-detail potent sulfur: natural rough rock with grain, small fractures and mineral variation. | delivered |
-| `block/potted_azalea_bush_plant` | 256x256 (cutout) | foliage | Realistic, high-detail potted azalea bush plant: living plant matter, leaves and stems with veins. | delivered |
-| `block/potted_azalea_bush_side` | 256x256 (cutout) | foliage | Realistic, high-detail potted azalea bush (side face): living plant matter, leaves and stems with veins. | delivered |
+| `block/potted_azalea_bush_plant` | 256x256 (cutout) | foliage | Realistic, high-detail potted azalea bush plant: living plant matter, leaves and stems with veins. | regenerate |
+| `block/potted_azalea_bush_side` | 256x256 (cutout) | foliage | Realistic, high-detail potted azalea bush (side face): living plant matter, leaves and stems with veins. | regenerate |
 | `block/potted_azalea_bush_top` | 256x256 (cutout) | foliage | Realistic, high-detail potted azalea bush (top face): living plant matter, leaves and stems with veins. | delivered |
-| `block/potted_flowering_azalea_bush_plant` | 256x256 (cutout) | foliage | Realistic, high-detail potted flowering azalea bush plant: living plant matter, leaves and stems with veins. | delivered |
-| `block/potted_flowering_azalea_bush_side` | 256x256 (cutout) | foliage | Realistic, high-detail potted flowering azalea bush (side face): living plant matter, leaves and stems with veins. | delivered |
-| `block/potted_flowering_azalea_bush_top` | 256x256 (cutout) | foliage | Realistic, high-detail potted flowering azalea bush (top face): living plant matter, leaves and stems with veins. | delivered |
+| `block/potted_flowering_azalea_bush_plant` | 256x256 (cutout) | foliage | Realistic, high-detail potted flowering azalea bush plant: living plant matter, leaves and stems with veins. | regenerate |
+| `block/potted_flowering_azalea_bush_side` | 256x256 (cutout) | foliage | Realistic, high-detail potted flowering azalea bush (side face): living plant matter, leaves and stems with veins. | regenerate |
+| `block/potted_flowering_azalea_bush_top` | 256x256 (cutout) | foliage | Realistic, high-detail potted flowering azalea bush (top face): living plant matter, leaves and stems with veins. | regenerate |
 | `block/powder_snow` | 256x256 | snow | Realistic, high-detail powder snow: soft packed snow with crystalline sparkle. | delivered |
-| `block/powered_rail` | 256x256 (cutout) | iron | Realistic, high-detail powered rail: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
-| `block/powered_rail_on` | 256x256 (cutout) | glowing | Realistic, high-detail powered rail (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
+| `block/powered_rail` | 256x256 (cutout) | iron | Realistic, high-detail powered rail: forged and worn iron or steel, scratches and slight rust in the crevices. | regenerate |
+| `block/powered_rail_on` | 256x256 (cutout) | glowing | Realistic, high-detail powered rail (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | regenerate |
 | `block/prismarine` | 256x1024 (4 frames) | gem | Realistic, high-detail prismarine: faceted crystalline gemstone. | delivered |
 | `block/prismarine_bricks` | 256x256 | gem | Realistic, high-detail prismarine bricks: faceted crystalline gemstone. | delivered |
 | `block/pumpkin_side` | 256x256 | foliage | Realistic, high-detail pumpkin (side face): living plant matter, leaves and stems with veins. | delivered |
-| `block/pumpkin_stem` | 256x256 (cutout) | bark | Realistic, high-detail pumpkin stem: deeply furrowed natural tree bark. | delivered |
+| `block/pumpkin_stem` | 256x256 (cutout) | bark | Realistic, high-detail pumpkin stem: deeply furrowed natural tree bark. | regenerate |
 | `block/pumpkin_top` | 256x256 | foliage | Realistic, high-detail pumpkin (top face): living plant matter, leaves and stems with veins. | delivered |
 | `block/purple_bed_foot_east` | 256x256 (cutout) | cloth | Realistic, high-detail purple bed foot east: woven wool or felt with visible fibres and weave. | delivered |
 | `block/purple_bed_foot_south` | 256x256 (cutout) | cloth | Realistic, high-detail purple bed foot south: woven wool or felt with visible fibres and weave. | delivered |
@@ -855,7 +855,7 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/red_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail red bed head east: woven wool or felt with visible fibres and weave. | delivered |
 | `block/red_bed_head_up` | 256x256 | cloth | Realistic, high-detail red bed head up: woven wool or felt with visible fibres and weave. | delivered |
 | `block/red_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail red bed head west: woven wool or felt with visible fibres and weave. | delivered |
-| `block/red_candle` | 256x256 (cutout) | organic | Realistic, high-detail red candle: organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/red_candle` | 256x256 (cutout) | organic | Realistic, high-detail red candle: organic living matter (coral, fungus, sponge, wax). | regenerate |
 | `block/red_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail red candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
 | `block/red_concrete` | 256x256 | concrete | Realistic, high-detail red concrete: smooth matte concrete with fine pores. | delivered |
 | `block/red_concrete_powder` | 256x256 | sand | Realistic, high-detail red concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
@@ -875,9 +875,9 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/red_tulip` | 256x256 (cutout) | foliage | Realistic, high-detail red tulip: living plant matter, leaves and stems with veins. | delivered |
 | `block/red_wool` | 256x256 | cloth | Realistic, high-detail red wool: woven wool or felt with visible fibres and weave. | delivered |
 | `block/redstone_block` | 256x256 | gem | Realistic, high-detail redstone block: faceted crystalline gemstone. | delivered |
-| `block/redstone_dust_dot` | 256x256 (cutout) | stone | Realistic, high-detail redstone dust dot: natural rough rock with grain, small fractures and mineral variation. | delivered |
-| `block/redstone_dust_line0` | 256x256 (cutout) | stone | Realistic, high-detail redstone dust line0: natural rough rock with grain, small fractures and mineral variation. | delivered |
-| `block/redstone_dust_line1` | 256x256 (cutout) | stone | Realistic, high-detail redstone dust line1: natural rough rock with grain, small fractures and mineral variation. | delivered |
+| `block/redstone_dust_dot` | 256x256 (cutout) | stone | Realistic, high-detail redstone dust dot: natural rough rock with grain, small fractures and mineral variation. | regenerate |
+| `block/redstone_dust_line0` | 256x256 (cutout) | stone | Realistic, high-detail redstone dust line0: natural rough rock with grain, small fractures and mineral variation. | regenerate |
+| `block/redstone_dust_line1` | 256x256 (cutout) | stone | Realistic, high-detail redstone dust line1: natural rough rock with grain, small fractures and mineral variation. | regenerate |
 | `block/redstone_dust_overlay` | 256x256 (cutout) | stone | Realistic, high-detail redstone dust (overlay layer): natural rough rock with grain, small fractures and mineral variation. | delivered |
 | `block/redstone_lamp` | 256x256 | stone | Realistic, high-detail redstone lamp: natural rough rock with grain, small fractures and mineral variation. | delivered |
 | `block/redstone_lamp_on` | 256x256 | glowing | Realistic, high-detail redstone lamp (switched-on state): a self-lit glowing material: bright light-emitting parts with darker structure. | delivered |
@@ -939,7 +939,7 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/shulker_box` | 256x256 | glazed | Realistic, high-detail shulker box: glossy glazed ceramic tile. | delivered |
 | `block/slime_block` | 256x256 (translucent) | gel | Realistic, high-detail slime block: translucent glossy gel. | delivered |
 | `block/small_amethyst_bud` | 256x256 (cutout) | gem | Realistic, high-detail small amethyst bud: faceted crystalline gemstone. | delivered |
-| `block/small_dripleaf_side` | 256x256 (cutout) | foliage | Realistic, high-detail small dripleaf (side face): living plant matter, leaves and stems with veins. | delivered |
+| `block/small_dripleaf_side` | 256x256 (cutout) | foliage | Realistic, high-detail small dripleaf (side face): living plant matter, leaves and stems with veins. | regenerate |
 | `block/small_dripleaf_stem_bottom` | 256x256 (cutout) | foliage | Realistic, high-detail small dripleaf stem (bottom face): living plant matter, leaves and stems with veins. | delivered |
 | `block/small_dripleaf_stem_top` | 256x256 (cutout) | bark | Realistic, high-detail small dripleaf stem (top face): end grain with growth rings inside a rim of bark. | delivered |
 | `block/small_dripleaf_top` | 256x256 (cutout) | foliage | Realistic, high-detail small dripleaf (top face): living plant matter, leaves and stems with veins. | delivered |
@@ -1135,14 +1135,14 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/weathered_copper_lantern` | 256x768 (3 frames, cutout) | patina | Realistic, high-detail weathered copper lantern: weathered copper with blue-green verdigris patina. | delivered |
 | `block/weathered_copper_trapdoor` | 256x256 (cutout) | patina | Realistic, high-detail weathered copper trapdoor: weathered copper with blue-green verdigris patina. | delivered |
 | `block/weathered_cut_copper` | 256x256 | patina | Realistic, high-detail weathered cut copper: weathered copper with blue-green verdigris patina. | delivered |
-| `block/weathered_lightning_rod` | 256x256 (cutout) | iron | Realistic, high-detail weathered lightning rod: forged and worn iron or steel, scratches and slight rust in the crevices. | delivered |
+| `block/weathered_lightning_rod` | 256x256 (cutout) | iron | Realistic, high-detail weathered lightning rod: forged and worn iron or steel, scratches and slight rust in the crevices. | regenerate |
 | `block/weeping_vines` | 256x256 (cutout) | foliage | Realistic, high-detail weeping vines: living plant matter, leaves and stems with veins. | delivered |
 | `block/weeping_vines_plant` | 256x256 (cutout) | foliage | Realistic, high-detail weeping vines plant: living plant matter, leaves and stems with veins. | delivered |
 | `block/wet_sponge` | 256x256 | organic | Realistic, high-detail wet sponge: organic living matter (coral, fungus, sponge, wax). | delivered |
-| `block/wheat_stage0` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 0): living plant matter, leaves and stems with veins. | delivered |
-| `block/wheat_stage1` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 1): living plant matter, leaves and stems with veins. | delivered |
-| `block/wheat_stage2` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 2): living plant matter, leaves and stems with veins. | delivered |
-| `block/wheat_stage3` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 3): living plant matter, leaves and stems with veins. | delivered |
+| `block/wheat_stage0` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 0): living plant matter, leaves and stems with veins. | regenerate |
+| `block/wheat_stage1` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 1): living plant matter, leaves and stems with veins. | regenerate |
+| `block/wheat_stage2` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 2): living plant matter, leaves and stems with veins. | regenerate |
+| `block/wheat_stage3` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 3): living plant matter, leaves and stems with veins. | regenerate |
 | `block/wheat_stage4` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 4): living plant matter, leaves and stems with veins. | delivered |
 | `block/wheat_stage5` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 5): living plant matter, leaves and stems with veins. | delivered |
 | `block/wheat_stage6` | 256x256 (cutout) | foliage | Realistic, high-detail wheat (growth stage 6): living plant matter, leaves and stems with veins. | delivered |
@@ -1154,8 +1154,8 @@ size. File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraf
 | `block/white_bed_head_east` | 256x256 (cutout) | cloth | Realistic, high-detail white bed head east: woven wool or felt with visible fibres and weave. | delivered |
 | `block/white_bed_head_up` | 256x256 | cloth | Realistic, high-detail white bed head up: woven wool or felt with visible fibres and weave. | delivered |
 | `block/white_bed_head_west` | 256x256 (cutout) | cloth | Realistic, high-detail white bed head west: woven wool or felt with visible fibres and weave. | delivered |
-| `block/white_candle` | 256x256 (cutout) | organic | Realistic, high-detail white candle: organic living matter (coral, fungus, sponge, wax). | delivered |
-| `block/white_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail white candle (lit state): organic living matter (coral, fungus, sponge, wax). | delivered |
+| `block/white_candle` | 256x256 (cutout) | organic | Realistic, high-detail white candle: organic living matter (coral, fungus, sponge, wax). | regenerate |
+| `block/white_candle_lit` | 256x256 (cutout) | organic | Realistic, high-detail white candle (lit state): organic living matter (coral, fungus, sponge, wax). | regenerate |
 | `block/white_concrete` | 256x256 | concrete | Realistic, high-detail white concrete: smooth matte concrete with fine pores. | delivered |
 | `block/white_concrete_powder` | 256x256 | sand | Realistic, high-detail white concrete powder: fine loose granular sand or gravel, individual grains visible. | delivered |
 | `block/white_glazed_terracotta` | 256x256 | glazed | Realistic, high-detail white glazed terracotta: glossy glazed ceramic tile. | delivered |

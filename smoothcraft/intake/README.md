@@ -2,7 +2,11 @@
 
 Drop files for Smoothcraft (the `smoothcraft/` folder) here and ask for them to
 be integrated: generated textures from the image requests
-([`../design/image-requests.md`](../design/image-requests.md)), material
+([`../design/image-requests.md`](../design/image-requests.md)), replacements
+for the ones queued in
+[`../design/image-requests-regenerate.md`](../design/image-requests-regenerate.md)
+(a delivered replacement leaves the list once it passes
+`../tools/audit_textures.py` and review), material
 tweaks, screenshots of something that looks wrong.
 
 Name a texture by its request id, either as a path (`block/oak_log.png`,

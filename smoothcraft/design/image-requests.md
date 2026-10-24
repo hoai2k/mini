@@ -3,21 +3,28 @@
 # Smoothcraft image requests
 
 Smoothcraft replaces Minecraft's 16 px textures with high-resolution, realistic
-ones: "the thing itself, imagined in detail". There are 2024 requests;
-2024 delivered so far.
+ones: "the thing itself, imagined in detail". There are 2907 requests:
+1914 delivered and accepted, 110 delivered but to be regenerated, and
+883 still to make.
 
+- **Regenerate first** ([image-requests-regenerate.md](image-requests-regenerate.md), 110):
+  delivered images that failed review (black patches from a leaked colour key,
+  wrong colours, pre-coloured textures the game tints). Each says what to fix.
 - **Tier 1** (below, 151): the common things, each with its own prompt.
   Do these first; they cover most of what is on screen.
 - **Tier 2** ([image-requests-blocks.md](image-requests-blocks.md), 1177): every other block texture.
 - **Tier 3** ([image-requests-entities.md](image-requests-entities.md), 696): every other mob, object and sky texture.
+- **Tier 4** ([image-requests-items.md](image-requests-items.md), 831): every item, as held, dropped, worn and in the inventory.
+- **Tier 5** ([image-requests-paintings.md](image-requests-paintings.md), 52): every painting.
 - Machine-readable: [image-requests.json](image-requests.json).
 
 ## Rules for every image
 
 Photoreal, finely detailed base-colour (albedo) map. Flat, even, shadowless lighting: no baked shadows, ambient occlusion, highlights or reflections (Smoothcraft lights every surface itself). Keep the vanilla colours and overall read so the game is still recognisable.
 
-1. **Size.** Block textures are 16x the vanilla size (a 16x16 face becomes
-   256x256); mobs, objects and the sky are 8x (a 64x64 skin becomes 512x512),
+1. **Size.** Block textures and paintings are 16x the vanilla size (a 16x16
+   face becomes 256x256); mobs, objects, items and the sky are 8x (a 64x64 skin
+   becomes 512x512, a 16x16 item 128x128),
    capped at 2048 px. Generate larger if you like and downscale to exactly the
    listed size: the game needs the exact multiple.
 2. **Block textures tile.** Each one repeats edge to edge across the world, so
@@ -930,7 +937,7 @@ Steve on the player UV layout: realistic young man, short brown hair, blue eyes,
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/player/wide/steve.png`
 
-### `entity/sheep/sheep`  (delivered)
+### `entity/sheep/sheep`  (regenerate)
 
 Sheep (shorn body) on its UV layout: pale skin with short fleece stubble, a realistic sheep face.
 
@@ -1126,7 +1133,7 @@ Swamp villager outfit overlay: damp green-brown oilcloth with reeds.
 - Deliver: 512x512 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/villager/type/swamp.png`
 
-### `entity/villager/type/taiga`  (delivered)
+### `entity/villager/type/taiga`  (regenerate)
 
 Taiga villager outfit overlay: woollen layers and a fur hat.
 
@@ -1154,7 +1161,7 @@ Wild wolf on its UV layout: grey-white thick fur, amber eyes, dark nose.
 - Deliver: 512x256 px PNG; keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py); transparent wherever vanilla is transparent, hard alpha edges (0 or 255)
 - File: `smoothcraft/mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/entity/wolf/wolf.png`
 
-### `entity/wolf/wolf_tame`  (delivered)
+### `entity/wolf/wolf_tame`  (regenerate)
 
 Tame wolf on its UV layout: same fur, friendlier eyes.
 

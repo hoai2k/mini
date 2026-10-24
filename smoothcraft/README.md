@@ -63,9 +63,9 @@ Known limits, for now: no real shadow maps (sky access stands in for
 them); the water surface itself stays flat (its edges are covered by the
 shore strip, but waterfalls and flowing water keep their block shapes);
 mobs get the rounded shape but not per-mob materials (the entity shader is
-vanilla's). Automated texture checks cover sizes, masks, tint maps, repeating
-edges and animation metadata; in-game visual review covers representative scenes
-and mobs, rather than every variant.
+vanilla's). 110 delivered textures are queued for regeneration (black
+patches, wrong colours, pre-tinted maps; see below), and items and paintings
+are still vanilla pixel art until their requests are delivered.
 
 ## Install
 
@@ -101,7 +101,11 @@ The textures are requested in [`design/image-requests.md`](design/image-requests
 [`design/image-requests-blocks.md`](design/image-requests-blocks.md) (tier 2,
 every other block) and
 [`design/image-requests-entities.md`](design/image-requests-entities.md)
-(tier 3, every other mob, object and the sky), with a machine-readable
+(tier 3, every other mob, object and the sky),
+[`design/image-requests-items.md`](design/image-requests-items.md) (tier 4,
+every item: held, dropped, worn and in the inventory) and
+[`design/image-requests-paintings.md`](design/image-requests-paintings.md)
+(tier 5, every painting), with a machine-readable
 [`design/image-requests.json`](design/image-requests.json). They are generated
 by `design/source/build_requests.py` from `design/source/vanilla_textures.tsv`
 (written from the game jar by `tools/list_vanilla_textures.py`); edit the
@@ -110,14 +114,27 @@ upscaled copy of each vanilla texture from your own jar into
 `local/smoothcraft/references/` (outside Git) to paint over. Delivered images
 go in [`intake/`](intake/README.md).
 
-All current requests are delivered in the built-in HD pack. Generation provenance,
-file hashes and preparation details are in
+Tiers 1-3 (2,024 block, mob and sky textures) are delivered in the built-in
+HD pack; tiers 4 and 5 (831 items, 52 paintings) are still to make.
+Generation provenance, file hashes and preparation details are in
 [`design/generated/reference-guided/`](design/generated/reference-guided/README.md).
-From the repository root, validate the complete pack against your matching client jar:
+
+Every delivered texture is audited against its vanilla original by
+`tools/audit_textures.py`: exact size, `.mcmeta` kept, transparency mask
+matching vanilla, tinted textures left grey, no repeat seams worse than
+vanilla's, no solid black or blank white blobs where vanilla has colour (the
+trace of a generator colour key), and the colour drift and least-repainted
+outliers listed for review. Its report, plus review of side-by-side sheets and
+in-game screenshots, feeds `design/source/regenerate.json`: textures that
+failed, each with what is wrong. They show as "regenerate" in the requests and
+are listed with their fixes in
+[`design/image-requests-regenerate.md`](design/image-requests-regenerate.md).
+From the repository root, with your matching client jar:
 
 ```sh
-python3 smoothcraft/tools/check_textures.py --jar path/to/minecraft-client.jar --complete
-python3 -m unittest discover -s smoothcraft/tools -p 'test_*.py'
+python3 smoothcraft/tools/audit_textures.py path/to/minecraft-client.jar   # report in local/smoothcraft/audit.json
+python3 smoothcraft/tools/check_textures.py --jar path/to/minecraft-client.jar
+python3 -m unittest discover -s smoothcraft/tools -p 'test_*.py'          # needs SciPy
 ```
 
 ## Build and checks

@@ -12,10 +12,17 @@ Outputs (in design/):
   image-requests.md           how to deliver, plus every tier 1 request in full
   image-requests-blocks.md    every other block texture (tier 2)
   image-requests-entities.md  every other entity and sky texture (tier 3)
+  image-requests-items.md     every item: held, dropped, worn and in the inventory (tier 4)
+  image-requests-paintings.md every painting hung in the world (tier 5)
+  image-requests-regenerate.md  delivered images that failed review, with what to fix
   image-requests.json         the same list, machine readable, with each status
 
 A request is "delivered" when its file exists in the HD resource pack
-(mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/...).
+(mod/src/main/resources/resourcepacks/hd/assets/minecraft/textures/...), and
+"regenerate" when it is delivered but listed in regenerate.json (texture id ->
+what is wrong and what the new image must do; from tools/audit_textures.py and
+review). tinted_items.txt (from tools/list_vanilla_textures.py) names the item
+textures the game tints.
 Edit the data here and rerun:  python3 design/source/build_requests.py
 """
 from __future__ import annotations
@@ -36,7 +43,10 @@ SKIP = re.compile(
     r"^block/(debug|debug2|destroy_oit_stage_\d|jigsaw_.*|structure_block.*|test_block_.*|test_instance_block|barrier|light_\d+)$"
     r"|^environment/(clouds|end_sky|rain|snow)$"
     r"|^entity/(experience/.*|end_portal|beacon_beam|enchantment/.*|guardian_beam|fishing/.*)$"
+    r"|^item/(empty_armor_slot_.*|empty_slot_.*)$"
 )
+REGENERATE: dict[str, str] = json.loads((HERE / "regenerate.json").read_text())
+TINTED_ITEMS = set((HERE / "tinted_items.txt").read_text().split())
 
 STYLE = (
     "Photoreal, finely detailed base-colour (albedo) map. Flat, even, shadowless lighting: "
@@ -272,8 +282,8 @@ def material_for(name: str, rules) -> str:
 
 
 def scale_for(tex: Texture) -> int:
-    """Blocks 16x (a 16 px face becomes 256 px); everything else 8x, capped at 2048 px."""
-    if tex.path.startswith("block/") and tex.width <= 16:
+    """Blocks and paintings 16x (a 16 px face becomes 256 px); everything else 8x, capped at 2048 px."""
+    if tex.path.startswith("painting/") or tex.path.startswith("block/") and tex.width <= 16:
         scale = 16
     else:
         scale = 8
@@ -315,6 +325,18 @@ def auto_prompt(tex: Texture, material: str) -> str:
             words = ("end grain with growth rings inside a rim of bark" if tex.path.endswith("_top")
                      else "deeply furrowed natural tree bark")
         return f"Realistic, high-detail {what}: {words}."
+    if tex.path.startswith("item/"):
+        if tex.path in TINTED_ITEMS:
+            return (f"Realistic {what} as an inventory object, painted in light neutral greys: the game colours "
+                    "this layer (dye or potion colour), so it must carry the shape and material detail but no hue.")
+        return (f"Realistic, high-detail {what} as a single object seen from the same angle as the vanilla sprite, "
+                "in its real materials, filling the same silhouette on a transparent background.")
+    if tex.path.startswith("painting/"):
+        if tex.path.endswith("/back"):
+            return "The back of a painted canvas: rough linen stretched over a wooden frame, with tacks."
+        return (f"The painting \"{what}\" re-imagined as a finished oil painting on canvas: the same scene, "
+                "composition, colours and figures as the vanilla pixel painting, painted with real brushwork "
+                "and detail. No frame (the game draws the frame).")
     if tex.path.startswith("entity/"):
         group = tex.path.split("/")[1].replace("_", " ")
         return (f"Realistic {what} ({group}) painted onto the vanilla UV layout: real fur, skin, scales, "
@@ -330,6 +352,11 @@ def delivery_notes(tex: Texture, scale: int) -> list[str]:
         notes.append(f"animation strip of {tex.frames} frames ({fw}x{fh} each), stacked as in vanilla; keep the vanilla .mcmeta timing")
     if tex.path.startswith("block/"):
         notes.append("tiles seamlessly on all four edges")
+    elif tex.path.startswith("item/"):
+        notes.append("one object on a transparent background, inside vanilla's silhouette scaled up "
+                     "(the game builds a held item's 3D shape from the outline)")
+    elif tex.path.startswith("painting/"):
+        notes.append("one picture filling the canvas, edge to edge, no frame")
     else:
         notes.append("keep the vanilla UV layout exactly: every region where vanilla puts it (use the reference from tools/make_references.py)")
     if tex.alpha == "cutout":
@@ -353,8 +380,10 @@ def main() -> None:
         name = tex.path.split("/", 1)[1] if tex.path.startswith("block/") else tex.path
         material = material_for(name, rules) if tex.path.startswith("block/") else "-"
         scale = scale_for(tex)
-        tier = 1 if tex.path in PROMPTS else (2 if tex.path.startswith("block/") else 3)
+        tier = (1 if tex.path in PROMPTS else 2 if tex.path.startswith("block/") else 4 if tex.path.startswith("item/")
+                else 5 if tex.path.startswith("painting/") else 3)
         target = f"{PACK}/{tex.path}.png"
+        delivered = (ROOT / target).exists()
         requests.append({
             "id": tex.path,
             "tier": tier,
@@ -366,8 +395,12 @@ def main() -> None:
             "target": f"smoothcraft/{target}",
             "prompt": PROMPTS.get(tex.path) or auto_prompt(tex, material if material != "-" else "default"),
             "delivery": delivery_notes(tex, scale),
-            "status": "delivered" if (ROOT / target).exists() else "requested",
+            "status": ("regenerate" if tex.path in REGENERATE else "delivered") if delivered else "requested",
+            **({"fix": REGENERATE[tex.path]} if delivered and tex.path in REGENERATE else {}),
         })
+    unknown = sorted(set(REGENERATE) - {r["id"] for r in requests})
+    if unknown:
+        raise SystemExit(f"regenerate.json names textures that are not requests: {unknown}")
 
     lines = ",\n".join("  " + json.dumps({k: v for k, v in r.items() if k != "delivery"}, separators=(",", ":"))
                         for r in requests)
@@ -377,6 +410,9 @@ def main() -> None:
     tier1 = [r for r in requests if r["tier"] == 1]
     tier2 = [r for r in requests if r["tier"] == 2]
     tier3 = [r for r in requests if r["tier"] == 3]
+    tier4 = [r for r in requests if r["tier"] == 4]
+    tier5 = [r for r in requests if r["tier"] == 5]
+    redo = [r for r in requests if r["status"] == "regenerate"]
     done = sum(r["status"] == "delivered" for r in requests)
 
     def full(r) -> str:
@@ -401,21 +437,28 @@ def main() -> None:
     (DESIGN / "image-requests.md").write_text(header + f"""# Smoothcraft image requests
 
 Smoothcraft replaces Minecraft's 16 px textures with high-resolution, realistic
-ones: "the thing itself, imagined in detail". There are {len(requests)} requests;
-{done} delivered so far.
+ones: "the thing itself, imagined in detail". There are {len(requests)} requests:
+{done} delivered and accepted, {len(redo)} delivered but to be regenerated, and
+{len(requests) - done - len(redo)} still to make.
 
+- **Regenerate first** ([image-requests-regenerate.md](image-requests-regenerate.md), {len(redo)}):
+  delivered images that failed review (black patches from a leaked colour key,
+  wrong colours, pre-coloured textures the game tints). Each says what to fix.
 - **Tier 1** (below, {len(tier1)}): the common things, each with its own prompt.
   Do these first; they cover most of what is on screen.
 - **Tier 2** ([image-requests-blocks.md](image-requests-blocks.md), {len(tier2)}): every other block texture.
 - **Tier 3** ([image-requests-entities.md](image-requests-entities.md), {len(tier3)}): every other mob, object and sky texture.
+- **Tier 4** ([image-requests-items.md](image-requests-items.md), {len(tier4)}): every item, as held, dropped, worn and in the inventory.
+- **Tier 5** ([image-requests-paintings.md](image-requests-paintings.md), {len(tier5)}): every painting.
 - Machine-readable: [image-requests.json](image-requests.json).
 
 ## Rules for every image
 
 {STYLE}
 
-1. **Size.** Block textures are 16x the vanilla size (a 16x16 face becomes
-   256x256); mobs, objects and the sky are 8x (a 64x64 skin becomes 512x512),
+1. **Size.** Block textures and paintings are 16x the vanilla size (a 16x16
+   face becomes 256x256); mobs, objects, items and the sky are 8x (a 64x64 skin
+   becomes 512x512, a 16x16 item 128x128),
    capped at 2048 px. Generate larger if you like and downscale to exactly the
    listed size: the game needs the exact multiple.
 2. **Block textures tile.** Each one repeats edge to edge across the world, so
@@ -466,7 +509,57 @@ File: `smoothcraft/{PACK}/<texture>.png`.
 
 {table_head}""" + "\n".join(row(r) for r in tier3) + "\n")
 
-    print(f"{len(requests)} requests: tier 1 {len(tier1)}, tier 2 {len(tier2)}, tier 3 {len(tier3)}; {done} delivered")
+    (DESIGN / "image-requests-items.md").write_text(header + f"""# Smoothcraft image requests, tier 4: items
+
+{len(tier4)} item textures: what the player holds, drops, wears and sees in the
+inventory. The rules in [image-requests.md](image-requests.md) apply: {STYLE}
+Each is one object on a transparent background, 8x the vanilla size, inside
+vanilla's silhouette scaled up: the game extrudes a held item's 3D shape from
+its outline. Textures the game tints (leather, potion liquid, dyed layers) stay
+light grey. File: `smoothcraft/{PACK}/<texture>.png`.
+
+{table_head}""" + "\n".join(row(r) for r in tier4) + "\n")
+
+    (DESIGN / "image-requests-paintings.md").write_text(header + f"""# Smoothcraft image requests, tier 5: paintings
+
+{len(tier5)} paintings, hung in the world. Each is re-imagined as a real oil
+painting of the same scene, 16x the vanilla size (16 px per block becomes
+256). The rules in [image-requests.md](image-requests.md) apply, except that a
+painting is a picture, not a repeating texture. File:
+`smoothcraft/{PACK}/<texture>.png`.
+
+{table_head}""" + "\n".join(row(r) for r in tier5) + "\n")
+
+    def redo_entry(r) -> str:
+        w, h = r["size"]
+        return (f"### `{r['id']}`\n\n**What is wrong:** {r['fix']}\n\n**Prompt:** {r['prompt']}\n\n"
+                f"- Deliver: {'; '.join(r['delivery'])}\n- Replaces: `{r['target']}` ({w}x{h})\n")
+
+    (DESIGN / "image-requests-regenerate.md").write_text(header + f"""# Smoothcraft image requests: regenerate
+
+{len(redo)} delivered textures failed review and need new images. Found by
+`tools/audit_textures.py` (every delivered file against its vanilla original:
+size, transparency mask, solid black or blank white blobs where vanilla has
+colour, tinted textures that came out coloured) and by looking at the
+side-by-side sheets and in-game screenshots. Each entry says what is wrong and
+what the new image must do; the original prompt and delivery rules still apply.
+The rules in [image-requests.md](image-requests.md) apply to every one: {STYLE}
+
+Common causes, so the next batch avoids them:
+
+- **Black patches.** A black colour key leaked into the painted image: regions
+  the generator left empty came back solid black. Every region where vanilla
+  has colour must be painted.
+- **Tinted textures painted in colour.** Leaves, leaf litter and redstone dust
+  are grey in vanilla because the game colours them per biome or by redstone
+  power. Paint them in neutral greys.
+- **Wrong material or colour.** Copper drawn as rusty iron, a black rabbit drawn
+  white: keep vanilla's colours.
+
+""" + "\n".join(redo_entry(r) for r in redo))
+
+    print(f"{len(requests)} requests: tier 1 {len(tier1)}, tier 2 {len(tier2)}, tier 3 {len(tier3)}, "
+          f"tier 4 {len(tier4)}, tier 5 {len(tier5)}; {done} delivered, {len(redo)} to regenerate")
 
 
 if __name__ == "__main__":
