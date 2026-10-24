@@ -125,7 +125,7 @@ export const EN = {
     tapPad: {
       label: 'Tap tempo',
       first: 'Keep tapping in time with the tempo you want',
-      tapping: 'Stop tapping to keep this tempo',
+      tapping: 'Keep tapping until you get the tempo you want',
     },
     tapHint: 'Tap tempo: tap in time to set the tempo (or press T)',
     start: 'Start',
