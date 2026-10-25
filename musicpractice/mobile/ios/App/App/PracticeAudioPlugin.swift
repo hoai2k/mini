@@ -120,6 +120,9 @@ public class PracticeAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         guard let list = call.getArray("clicks"), list.count >= 3 else { return }
         let c = list.prefix(4).map { decode($0 as? String) }
         engine.mixer.setClicks(weak: c[0], mid: c[1], strong: c[2], sub: c.count > 3 ? c[3] : nil, sampleRate: call.getDouble("clickRate", engine.outputSampleRate()))
+        // The Voice sound's words (none for the other sounds), sent with the clicks.
+        let words = (call.getArray("words") ?? []).map { decode($0 as? String) }
+        engine.mixer.setWords(words, lead: call.getDouble("lead", 0))
     }
 
     // MARK: drone

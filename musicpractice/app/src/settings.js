@@ -31,7 +31,11 @@ export const SOUNDS = [
   { id: 'stick', label: TEXT.metronome.sounds.stick },
   { id: 'cowbell', label: TEXT.metronome.sounds.cowbell },
   { id: 'hihat', label: TEXT.metronome.sounds.hihat },
+  { id: 'voice', label: TEXT.metronome.sounds.voice }, // a voice counting (count.js), in one of SPEAKERS
 ];
+
+/** The voices: the Practice Routine's (between items) and the metronome's Voice sound (counting). */
+export const SPEAKERS = ['lily', 'matilda', 'george', 'clara', 'autumn', 'theo'];
 
 /**
  * Looks for the whole app. A theme also needs its block in styles.css, its
@@ -76,6 +80,7 @@ export const DEFAULTS = Object.freeze({
   meter: '4/4',
   accent: true,
   sound: 'wood',
+  countVoice: 'lily', // who counts for the Voice sound (SPEAKERS)
   volume: 0.75, // METRONOME_DEFAULT: the loudness full volume had before the clicks were made louder
   volumeChosen: false,
   playVolume: 1, // the Playback Recorder's takes, played back (its tucked-away speaker)
@@ -244,6 +249,7 @@ export function sanitize(raw) {
     meter: oneOf(s.meter, METERS.map((m) => m.id), DEFAULTS.meter),
     accent: typeof s.accent === 'boolean' ? s.accent : DEFAULTS.accent,
     sound: oneOf(s.sound, SOUNDS.map((m) => m.id), DEFAULTS.sound),
+    countVoice: oneOf(s.countVoice, SPEAKERS, DEFAULTS.countVoice),
     // The metronome's volume (the slider tucked beside the picture); full until
     // it is moved there, since earlier saves' volume was a removed control's.
     volume: s.volumeChosen === true ? clamp(num(s.volume, 1) * (louder ? 1 : 0.75), 0, 1) : DEFAULTS.volume,

@@ -10,6 +10,7 @@ import { TEXT } from './text-config.js';
 import { call, hasPlugin, listen } from './native.js';
 import { Metronome, SUB, clickSec, trimClick } from './metronome.js';
 import { barPlan } from './settings.js';
+import { COUNT_WORDS, COUNT_LEAD, COUNT_CLICK, countSlots, countUrl, wordGain } from './count.js';
 import { SAMPLED, loadLoop, renderSynthLoop, synthSpec, SYNTH_ANCHORS, SYNTH_MAX_SHIFT, droneGain, DRONE_DEFAULT } from './drone.js';
 import { extraDelaySec } from './audio.js';
 
@@ -48,6 +49,31 @@ export async function renderClicks(sound, sampleRate) {
     out.push(trimClick((await ctx.startRendering()).getChannelData(0)));
   }
   return out;
+}
+
+/**
+ * The Voice sound for the apps' mixers, at `sampleRate`: { clicks, words,
+ * lengths }. The words (COUNT_WORDS' order) at their loudness (wordGain), and
+ * the clicks it plays where it says nothing, padded by COUNT_LEAD so they are
+ * heard where a word's vowel is: the mixer starts everything COUNT_LEAD early.
+ */
+export async function renderCount(voice, sampleRate) {
+  const lead = Math.round(COUNT_LEAD * sampleRate);
+  const clicks = (await renderClicks(COUNT_CLICK, sampleRate)).map((c) => {
+    const d = new Float32Array(lead + c.length);
+    d.set(c, lead);
+    return d;
+  });
+  const ctx = new OfflineAudioContext(1, 1, sampleRate); // decodes at its own rate
+  const words = [];
+  const lengths = {};
+  for (const w of COUNT_WORDS) {
+    const buf = await ctx.decodeAudioData(await (await fetch(countUrl(voice, w))).arrayBuffer());
+    const g = wordGain(w);
+    words.push(buf.getChannelData(0).map((v) => v * g));
+    lengths[w] = buf.duration - COUNT_LEAD;
+  }
+  return { clicks, words, lengths };
 }
 
 /** A drone voice's loops, as plain samples: { level, wet, lowpass, maxShift, loops: [{ hz, sampleRate, channels, samples }] }. */
@@ -101,7 +127,9 @@ export class NativeMetronome {
     this.strengths = [2, 0, 0, 0];
     this.volume = 0.8;
     this.sound = 'wood';
-    this.clicksFor = ''; // the sound whose clicks the native side has
+    this.countVoice = 'lily'; // who counts, for the Voice sound
+    this.clicksFor = ''; // the sound whose clicks the native side has (for the Voice sound, and whose voice)
+    this.countLengths = null; // the Voice sound's words' lengths, once rendered (count.js countSlots)
     this.clock = null; // { at (s), count, beat, period }: when beat `count` is heard
     this.pollTimer = 0;
     this.gap = null; // silent bars: { play, silent }, or null
@@ -141,10 +169,17 @@ export class NativeMetronome {
     this.subdivision = s.subdivision || 1;
     const plan = barPlan(s);
     this.strengths = plan.strengths;
-    this.slots = plan.slots || []; // custom strong beats: the click for every position (empty: the plain rules)
+    this.plan = plan;
     this.volume = s.volume;
     this.sound = s.sound;
+    if (s.countVoice) this.countVoice = s.countVoice;
     if (this.running) this.update();
+  }
+
+  /** The click for every position (empty: the plain rules): custom strong beats, or what the Voice sound says at this tempo. */
+  get slots() {
+    if (this.sound === 'voice' && this.countLengths) return countSlots({ ...this.plan, subdivision: this.subdivision, bpm: this.bpm }, this.countLengths);
+    return this.plan?.slots || [];
   }
 
   label() {
@@ -152,12 +187,19 @@ export class NativeMetronome {
   }
 
   async clicks() {
-    if (this.clicksFor === this.sound) return null;
+    const key = this.sound === 'voice' ? `voice:${this.countVoice}` : this.sound;
+    if (this.clicksFor === key) return null;
     const rate = await outputRate();
-    const sound = this.sound;
-    const c = await renderClicks(sound, rate);
-    this.clicksFor = sound;
-    return { clicks: c.map(encode), clickRate: rate };
+    if (this.sound === 'voice') {
+      const c = await renderCount(this.countVoice, rate);
+      this.clicksFor = key;
+      this.countLengths = c.lengths;
+      return { clicks: c.clicks.map(encode), words: c.words.map(encode), lead: COUNT_LEAD, clickRate: rate };
+    }
+    const c = await renderClicks(this.sound, rate);
+    this.clicksFor = key;
+    this.countLengths = null;
+    return { clicks: c.map(encode), words: [], lead: 0, clickRate: rate };
   }
 
   async start() {

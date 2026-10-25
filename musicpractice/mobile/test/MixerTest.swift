@@ -263,6 +263,34 @@ func metronomeCustomAccents() {
     check(e2 < 1e-3 && e3 < 1e-3, "beat 2 is weak and its '&' the quieter click")
 }
 
+func metronomeWords() {
+    print("metronome: the Voice sound's words, each cutting off the one before, on a clock that allows for their lead")
+    let m = mixer()
+    let shortWord = [Float](repeating: 0.5, count: 2400), longWord = [Float](repeating: 0.25, count: 36000) // 50 ms of 0.5, 0.75 s of 0.25
+    m.setWords([shortWord, longWord], lead: 0.1)
+    // 2/4 at 120: the long word on 1 and the weak click on 2, then the short word on 1.
+    m.metronomeStart(bpm: 120, strengths: [2, 0], subdivision: 1, slots: [PracticeMixer.word + 1, 0], volume: 0.8)
+    check(abs(m.metronomeClock().nextBeat - 0.15 * SR) < 1e-6, "the clock says when the first word is heard: its lead after it starts (\(m.metronomeClock().nextBeat / SR) s)")
+    var l = render(m, 0.9).0
+    check(abs(Double(l[2400 + 100]) - 0.2) < 1e-3, "the word plays at the volume (\(l[2400 + 100]))")
+    check(abs(Double(l[2400 + 24000 + 10000]) - 0.2) < 1e-3, "a click doesn't cut a word off (\(l[2400 + 24000 + 10000]))")
+    m.metronomeUpdate(bpm: 120, strengths: [2, 0], subdivision: 1, slots: [PracticeMixer.word, PracticeMixer.word + 1], volume: 0.8)
+    // From 0.9 s: beat 1 at 1.05 s (the short word), beat 2 at 1.55 s (the long word), beat 1 at 2.05 s (the short word, cutting it off).
+    l = render(m, 1.6).0
+    let b1 = Int(0.15 * SR), b3 = b1 + 48000
+    check(abs(Double(l[b1 + 100]) - 0.4) < 1e-3 && abs(l[b1 + 3000]) < 1e-6, "the short word, then silence (\(l[b1 + 100]), \(l[b1 + 3000]))")
+    let choke = Int(PracticeMixer.chokeSec * SR)
+    check(abs(Double(l[b3 + choke / 2]) - 0.5) < 0.01, "a word cut off fades out under the next (\(l[b3 + choke / 2]))")
+    check(abs(Double(l[b3 + choke + 10]) - 0.4) < 1e-3, "and is gone once it has (\(l[b3 + choke + 10]))")
+    m.metronomeUpdate(bpm: 120, strengths: [2, 0], subdivision: 1, slots: [PracticeMixer.word + 5, PracticeMixer.word + 5], volume: 0.8)
+    _ = render(m, 0.2)
+    let rest = render(m, 1.0).0
+    check(rest.allSatisfy { abs($0) < 1e-6 }, "a kind past the words plays nothing")
+    let before = m.metronomeClock().nextBeat
+    m.setWords([], lead: 0)
+    check(abs(before - m.metronomeClock().nextBeat - 0.1 * SR) < 1e-6, "without words the clock has no lead")
+}
+
 func metronomeExercises() {
     print("metronome: volume per beat, silent bars and the tempo trainer")
     var m = mixer()
@@ -372,6 +400,7 @@ metronomeTempoChange()
 metronomeSubdivision()
 metronomeCustomAccents()
 metronomeExercises()
+metronomeWords()
 droneLevels()
 droneSeamless()
 droneSchedule()

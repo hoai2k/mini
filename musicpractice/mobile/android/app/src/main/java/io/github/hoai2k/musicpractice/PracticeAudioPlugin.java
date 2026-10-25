@@ -132,6 +132,11 @@ public class PracticeAudioPlugin extends Plugin {
         try {
             engine.mixer.setClicks(decode(clicks.getString(0)), decode(clicks.getString(1)), decode(clicks.getString(2)),
                 clicks.length() > 3 ? decode(clicks.getString(3)) : null, call.getDouble("clickRate", (double) engine.sampleRate));
+            // The Voice sound's words (none for the other sounds), sent with the clicks.
+            JSArray words = call.getArray("words");
+            float[][] w = new float[words == null ? 0 : words.length()][];
+            for (int i = 0; i < w.length; i++) w[i] = decode(words.getString(i));
+            engine.mixer.setWords(w, call.getDouble("lead", 0.0));
         } catch (JSONException ignored) {
             // keep the clicks it has
         }

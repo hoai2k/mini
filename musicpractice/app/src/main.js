@@ -331,7 +331,7 @@ document.addEventListener('touchmove', (e) => {
 // The Metronome screen (metronomeui.js).
 const met = setupMetronome({ settings, persist, useNative, mic: { listening: () => listeningActive(), playing: () => rec.playing } });
 const {
-  meterSelect, soundSelect, metVolume,
+  meterSelect, soundSelect, showCountVoice, metVolume,
   setBpm, renderBeats, shownBeats, metronomeConfigured, startMetronome, stopMetronome, soundCtx, setSub,
   showWeight, queueFit, animateMetronome, visualsShown, setSync, openSync, closeSync,
 } = met;
@@ -432,7 +432,7 @@ const routineTools = {
         return;
       }
       if (meter !== settings.meter) { settings.meter = meter; settings.accentPattern = null; meterSelect.value = meter; }
-      if (sound !== settings.sound) { settings.sound = sound; soundSelect.value = sound; }
+      if (sound !== settings.sound) { settings.sound = sound; soundSelect.value = sound; showCountVoice(); }
       if (accent !== undefined && accent !== settings.accent) { settings.accent = accent; if (!accent) settings.accentPattern = null; $('accent').checked = accent; }
       if (sub !== subNow) setSub(sub > 1, sub > 1 ? sub : settings.subKind);
       else metronomeConfigured();

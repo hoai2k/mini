@@ -361,9 +361,55 @@ when the Art Deco art arrives, measure and record its own.
   and 0.5 s, the rest 0.1 s); the apps' mixers get each recording cut
   after its last audible sample (`trimClick`). Each was levelled against
   the woodblock, every recorded peak inside full scale (a browser check
-  renders all eight). There is no
-  volume control: the metronome plays at full level and the device's own
-  volume sets it.
+  renders all eight).
+- **Voice (counting)**, the last Sound: a voice counts the bar, in one of
+  the Practice Routine's voices (**Voice Personality**, shown under Sound
+  when Voice is chosen; Lily, Matilda, George, Clara, Autumn, Theo; the
+  choice says "one" to let it be heard). The beats are numbered (one to
+  twelve, so 6/8 is counted to six and 12/8 to twelve; no bars says "one"
+  on every beat), and between them it says "and" (eighths), "trip let"
+  (triplets) or "e and a" (sixteenths). `app/src/count.js`:
+  - The words are recordings, one file each,
+    `app/assets/audio/count/<voice>/<word>.wav` (16-bit mono, 24 kHz, about
+    370 KB a voice; only the chosen one is fetched, once a page, and every
+    metronome shares it). They are made by
+    `design/source/count_voice.py`: ElevenLabs, generated as raw PCM (an
+    MP3's encoder delay would move every word off the beat), each word on
+    its own as a short sentence ("Seven."), steadier and quicker than the
+    routine's lines. Every word was checked by transcribing it (local
+    faster-whisper); "Ee." came back as "uh", so "e" is asked for as the
+    letter, and a take that was misheard was made again.
+  - **On the beat:** a count is heard where its vowel is, and a word's
+    lead-in ("s" of "six", "tr" of "trip") takes up to 0.13 s. So every file
+    is padded (or its lead-in cut, fading in) to put the vowel exactly
+    `COUNT_LEAD` (0.12 s) in, and the Voice sound starts everything that much
+    early: the web metronome schedules a word at the beat minus the lead
+    (looking that much further ahead), and the apps' mixers start every
+    click early and add the lead back to the clock they report.
+  - **Faster, it says less** (`countSlots`): a word is cut off by the next
+    word (never by a click), with a 12 ms fade, and needs `COUNT_NEED` (65%)
+    of its length after the vowel before then. At each tempo it says every
+    word if all have room; else the beats with soft clicks between; else
+    "one" with clicks on the other beats; else clicks only. Measured on the
+    six voices: eighths to about 135 to 170 BPM, triplets to 86 to 109,
+    sixteenths to 67 to 85, the beats of a bar of four to 270 to 340. The
+    clicks are the Click sound's; a soft beat is its soft click and a silent
+    one nothing, and the word before has their time too. The downbeat's
+    "one" is fullest, the other numbers a little under (0.8), the words
+    between under those (0.55): about as loud as the woodblock.
+  - In the apps, the page sends the words with the clicks (the Click
+    sound's, padded by the lead) and the lead; a word is click kind 7 and on
+    in the slots, which say what is said where at that tempo
+    (`renderCount`, `NativeMetronome.slots`; `setWords` in both mixers,
+    which cut a word off with the next, tested in `mobile/test`). The
+    tempo trainer, run by the native mixer, keeps the words chosen for the
+    tempo it started at, each cut off by the next as the tempo rises.
+- **Volume:** the faint speaker at the picture's top right
+  (`tuckedvolume.js`): drag it up or down, or tap it for the slider. The
+  slider is linear in amplitude (the click's gain is the slider's value),
+  so its top half covers only the loudest 6 dB, the next quarter the next
+  6 dB, and the bottom quarter everything quieter; 0.27 is -11 dB. Each change goes into the debug log once it
+  settles (`metronome-volume`), so a log says when the volume moved.
 - **Strong beats:** the pencil beside **Strong beat on 1** opens every place a
   click falls in the bar, counted as played (1 & 2 &, 1 trip let, 1 e & a),
   and any of them can be made strong, between the beats included (those

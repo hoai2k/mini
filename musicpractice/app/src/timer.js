@@ -14,7 +14,7 @@
 
 import { TEXT } from './text.js';
 import { output } from './output.js';
-import { BPM_MIN, BPM_MAX, METERS, SOUNDS, DEFAULTS } from './settings.js';
+import { BPM_MIN, BPM_MAX, METERS, SOUNDS, DEFAULTS, SPEAKERS } from './settings.js';
 import { DRONE_MIN, DRONE_MAX, VOICES } from './drone.js';
 
 const KEY = 'musicpractice.routine.v1';
@@ -240,7 +240,7 @@ function cleanLastMinutes(v) {
  * settings); each a calm read of every line (design/voice-samples.md):
  * assets/audio/voice/<voice>/<line>.mp3.
  */
-export const SPEAKERS = ['lily', 'matilda', 'george', 'clara', 'autumn', 'theo'];
+export { SPEAKERS }; // settings.js: the metronome's Voice sound counts in these voices too
 
 /*
  * What is said. Every kind of item (a suggestion's id) has its own lines,

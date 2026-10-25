@@ -33,7 +33,12 @@ public final class PracticeMixer {
 
     // ------------------------------------------------------------ metronome
 
-    private final float[][] clicks = new float[7][]; // weak, mid, strong, between the beats, soft (the weak one, quieter), silent (none), the polyrhythm's
+    private float[][] clicks = new float[7][]; // weak, mid, strong, between the beats, soft (the weak one, quieter), silent (none), the polyrhythm's; then the Voice sound's words
+    /** The first of the Voice sound's words, after the clicks (metronome.js WORD). */
+    static final int WORD = 7;
+    /** A word cut off by the next fades out over this long (metronome.js COUNT_CHOKE). */
+    static final double CHOKE_SEC = 0.012;
+    private double clickLead; // seconds every click is started early (the Voice sound's words are padded to their vowel); the clock adds it back
     /** A soft beat (volume per beat): the weak click this much as loud (metronome.js SOFT_GAIN). */
     static final float SOFT_GAIN = 0.35f;
     static final int SOFT = 4, SILENT = 5; // click kinds past the strengths and between-the-beats (settings.js SOFT, SILENT)
@@ -64,6 +69,7 @@ public final class PracticeMixer {
     private boolean polyMuted;
     private final int[] clickKind = new int[16];
     private final double[] clickPos = new double[16]; // in click samples
+    private final int[] clickFade = new int[16]; // frames left of a word's fade, cut off by the next word (-1: not fading; 0: faded out)
     private int clicksActive;
     private int stopFade; // frames left of a quick fade after Stop
     private int stopFadeLen;
@@ -201,6 +207,21 @@ public final class PracticeMixer {
         clickSr = sampleRate;
     }
 
+    /**
+     * The Voice sound's words, rendered at the clicks' rate (none for the other
+     * sounds): click kinds WORD and on, which the slots name. `lead`: seconds
+     * from the start of every click to where it is heard (the words' vowels; the
+     * Voice sound's clicks are padded to match), so the clock says when a beat is heard.
+     */
+    public synchronized void setWords(float[][] words, double lead) {
+        float[][] c = new float[WORD + words.length][];
+        System.arraycopy(clicks, 0, c, 0, WORD);
+        System.arraycopy(words, 0, c, WORD, words.length);
+        clicks = c;
+        clickLead = Math.max(0, lead);
+        clicksActive = 0;
+    }
+
     public synchronized void setClicks(float[] weak, float[] mid, float[] strong, double sampleRate) {
         setClicks(weak, mid, strong, null, sampleRate);
     }
@@ -257,7 +278,7 @@ public final class PracticeMixer {
         this.bpm = Math.max(1, bpm);
         this.subdivision = Math.max(1, Math.min(4, subdivision));
         this.slots = new int[slots.length];
-        for (int i = 0; i < slots.length; i++) this.slots[i] = Math.max(0, Math.min(SILENT, slots[i]));
+        for (int i = 0; i < slots.length; i++) this.slots[i] = Math.max(0, slots[i] == POLY ? 0 : slots[i]); // a kind past the clicks (no such word) is silent
         this.strengths = strengths.length > 0 ? strengths : new int[] {0};
         metVolume = volume;
         if (beat >= this.strengths.length) beat %= this.strengths.length;
@@ -275,7 +296,7 @@ public final class PracticeMixer {
 
     /** { next beat's frame, its count, its place in the bar, seconds per beat }. */
     public synchronized double[] metronomeClock() {
-        return new double[] {nextBeat, count, beat, 60 / bpm};
+        return new double[] {nextBeat + clickLead * sr, count, beat, 60 / bpm};
     }
 
     // ------------------------------------------------------------ drone API
@@ -501,17 +522,24 @@ public final class PracticeMixer {
             metGain += (metVolume - metGain) * metCoef;
             if (clicksActive > 0) {
                 double c = 0;
+                int choke = Math.max(1, (int) (CHOKE_SEC * sr));
                 for (int i = 0; i < clicksActive; i++) {
                     float[] buf = clicks[clickKind[i]];
-                    c += buf == null ? 0 : linear(buf, clickPos[i]);
+                    double v = buf == null ? 0 : linear(buf, clickPos[i]);
+                    if (clickFade[i] >= 0) {
+                        v *= clickFade[i] / (double) choke;
+                        if (clickFade[i] > 0) clickFade[i]--;
+                    }
+                    c += v;
                     clickPos[i] += clickStep;
                 }
                 for (int i = clicksActive - 1; i >= 0; i--) {
                     float[] buf = clicks[clickKind[i]];
-                    if (buf == null || clickPos[i] >= buf.length) {
+                    if (buf == null || clickPos[i] >= buf.length || clickFade[i] == 0) {
                         clicksActive--;
                         clickKind[i] = clickKind[clicksActive];
                         clickPos[i] = clickPos[clicksActive];
+                        clickFade[i] = clickFade[clicksActive];
                     }
                 }
                 double fade = 1;
@@ -577,9 +605,15 @@ public final class PracticeMixer {
     }
 
     private void startClick(int kind, double pos) {
-        if (kind == SILENT || kind >= clicks.length || clicksActive == clickKind.length) return;
+        if (kind == SILENT || kind >= clicks.length || clicks[kind] == null || clicksActive == clickKind.length) return;
+        // A word cuts off the word before it (a count is one voice), with a short fade.
+        if (kind >= WORD) {
+            int choke = Math.max(1, (int) (CHOKE_SEC * sr));
+            for (int i = 0; i < clicksActive; i++) if (clickKind[i] >= WORD && clickFade[i] < 0) clickFade[i] = choke;
+        }
         clickKind[clicksActive] = kind;
         clickPos[clicksActive] = pos;
+        clickFade[clicksActive] = -1;
         clicksActive++;
     }
 

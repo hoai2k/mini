@@ -568,8 +568,9 @@ async function sounds(env) {
   const p = await env.page();
   await p.goto(env.base + '#metronome');
   await p.waitForTimeout(800);
-  const ids = await p.$$eval('#sound option', (o) => o.map((x) => x.value));
-  c.ok(ids.join() === 'wood,click,beep,mechanical,claves,stick,cowbell,hihat', `every sound is offered (${ids})`);
+  const all = await p.$$eval('#sound option', (o) => o.map((x) => x.value));
+  c.ok(all.join() === 'wood,click,beep,mechanical,claves,stick,cowbell,hihat,voice', `every sound is offered (${all})`);
+  const ids = all.filter((id) => id !== 'voice'); // the clicks (the Voice sound has its own check: voiceCount)
   // Each sound's clicks, as the page plays them and as the apps' mixers get
   // them: audible, inside full scale, the downbeat no quieter than a beat.
   const r = await p.evaluate(async (list) => {
@@ -603,6 +604,87 @@ async function sounds(env) {
   const saved = await p.evaluate(() => JSON.parse(localStorage.getItem('musicpractice.settings.v1')).sound);
   c.ok(saved === 'cowbell', `the chosen sound is saved (${saved})`);
   c.ok(!p.errors.length, `no page errors in sounds (${p.errors})`);
+  await p.close();
+}
+
+async function voiceCount(env) {
+  const p = await env.page();
+  await p.goto(env.base + '#metronome');
+  await p.waitForTimeout(800);
+  const saved = () => p.evaluate(() => JSON.parse(localStorage.getItem('musicpractice.settings.v1')));
+  // Every buffer the page plays (not those recording clicks), with when and how long: the words are the long ones.
+  await p.evaluate(() => {
+    window.__starts = [];
+    const orig = AudioBufferSourceNode.prototype.start;
+    AudioBufferSourceNode.prototype.start = function (when = 0, ...rest) { if (!(this.context instanceof OfflineAudioContext)) window.__starts.push({ when, dur: this.buffer?.duration ?? 0 }); return orig.call(this, when, ...rest); };
+  });
+  await p.click('#met-settings-btn');
+  c.ok(await p.isHidden('#count-voice-row'), 'no voice to choose for a click');
+  await p.selectOption('#sound', 'voice');
+  c.ok(await p.isVisible('#count-voice-row'), 'choosing Voice shows who counts, under it');
+  const names = await p.$$eval('#count-voice option', (o) => o.map((x) => x.textContent));
+  c.ok(names.join() === 'Lily,Matilda,George,Clara,Autumn,Theo', `the routine's voices (${names})`);
+  await p.selectOption('#count-voice', 'george');
+  await p.waitForTimeout(1500);
+  let s = await saved();
+  c.ok(s.sound === 'voice' && s.countVoice === 'george', `saved (${s.sound}, ${s.countVoice})`);
+  c.ok(await p.evaluate(() => window.__starts.some((x) => x.dur > 0.2)), 'choosing a voice says a word');
+  // 4/4 at 100 with eighths: a word every 0.3 s ("one and two and ...").
+  await p.selectOption('#meter', '4/4');
+  await p.click('#sub-on');
+  await p.click('#met-settings .sheet-head .icon-btn');
+  await p.fill('#bpm-input', '100');
+  await p.press('#bpm-input', 'Enter');
+  const run = async (ms) => {
+    await p.evaluate(() => { window.__starts = []; });
+    await p.click('#met-toggle');
+    await p.waitForTimeout(ms);
+    await p.click('#met-toggle');
+    return p.evaluate(() => {
+      const words = window.__starts.filter((x) => x.dur > 0.2).map((x) => x.when).sort((a, b) => a - b);
+      const clicks = window.__starts.filter((x) => x.dur > 0 && x.dur <= 0.2).map((x) => x.when).sort((a, b) => a - b);
+      const gaps = words.slice(1).map((t, i) => Math.round((t - words[i]) * 1000));
+      return { words: words.length, clicks: clicks.length, gaps, detail: window.__starts.filter((x) => x.dur <= 0.2).map((x) => [Math.round((x.when - words[0]) * 1000), x.dur]) };
+    });
+  };
+  let r = await run(2500);
+  c.ok(r.words >= 6 && r.gaps.slice(1).every((g) => Math.abs(g - 300) <= 2) && r.clicks === 0, `eighths at 100: a word every 0.3 s and no clicks (${JSON.stringify(r)})`);
+  // At 280 the eighths are too quick to say: the beats are counted, clicks between them.
+  await p.fill('#bpm-input', '280');
+  await p.press('#bpm-input', 'Enter');
+  r = await run(2000);
+  const beat = Math.round(60000 / 280);
+  c.ok(r.words >= 5 && r.gaps.slice(1).every((g) => Math.abs(g - beat) <= 2) && r.clicks >= 4, `eighths at 280: a word on each beat, clicks between (${JSON.stringify(r)})`);
+  // In the apps: the words, the lead and what is said at each position go to the native mixer with the clicks.
+  const sent = await p.evaluate(async () => {
+    const calls = [];
+    globalThis.Capacitor = {
+      isNativePlatform: () => true, getPlatform: () => 'ios', PluginHeaders: [{ name: 'PracticeAudio' }],
+      nativePromise: async (plugin, method, options) => { calls.push({ method, options }); return method === 'info' ? { sampleRate: 48000 } : method === 'metronomeClock' ? { running: false } : {}; },
+      nativeCallback: () => null,
+    };
+    const { NativeMetronome } = await import('./src/nativeaudio.js');
+    const { COUNT_WORDS, WORD } = await import('./src/count.js');
+    const m = new NativeMetronome();
+    m.configure({ bpm: 100, meter: '3/4', accent: true, subdivision: 2, sound: 'voice', countVoice: 'theo', volume: 1 });
+    await m.start();
+    const start = calls.find((x) => x.method === 'metronomeStart').options;
+    m.configure({ bpm: 100, meter: '3/4', accent: true, subdivision: 2, sound: 'wood', volume: 1 });
+    await new Promise((r) => setTimeout(r, 500));
+    m.stop();
+    const update = calls.filter((x) => x.method === 'metronomeUpdate').at(-1).options;
+    delete globalThis.Capacitor;
+    const samples = (b64) => atob(b64).length / 2;
+    return {
+      words: start.words.length, lead: start.lead, said: start.slots.map((k) => (k >= WORD ? COUNT_WORDS[k - WORD] : k)).join(' '),
+      clickPad: start.clicks.map(samples).every((n) => n > 0.12 * 48000), wordLen: start.words.map(samples).every((n) => n > 0.12 * 48000),
+      after: { words: update.words.length, lead: update.lead, slots: update.slots.length },
+    };
+  });
+  c.ok(sent.words === 17 && sent.lead === 0.12 && sent.clickPad && sent.wordLen, `the apps get every word and the clicks padded by the lead (${JSON.stringify(sent)})`);
+  c.ok(sent.said === 'one and two and three and', `and what is said where (${sent.said})`);
+  c.ok(sent.after.words === 0 && sent.after.lead === 0 && sent.after.slots === 0, `another sound takes the words away (${JSON.stringify(sent.after)})`);
+  c.ok(!p.errors.length, `no page errors in voice counting (${p.errors})`);
   await p.close();
 }
 
@@ -813,7 +895,7 @@ async function themes(env) {
 
 /** `only`: the names of the parts to run (all of them if empty): node flows.mjs exercises routines */
 export async function run(env, only = []) {
-  for (const part of [list, running, routines, practiceLog, metronomeScreen, sounds, tapPad, weightGrab, keys, savedTempos, strongBeats, exercises, microphone, themes]) {
+  for (const part of [list, running, routines, practiceLog, metronomeScreen, sounds, voiceCount, tapPad, weightGrab, keys, savedTempos, strongBeats, exercises, microphone, themes]) {
     if (only.length && !only.includes(part.name)) continue;
     try { await part(env); } catch (e) { c.ok(false, `${part.name}: ${e.message.split('\n')[0]}`); }
   }

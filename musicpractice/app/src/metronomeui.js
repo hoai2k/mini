@@ -8,9 +8,10 @@ import { dlog, debugBeat } from './debuglog.js';
 import { Metronome, pendulumAngle, weightAt, bpmAtWeight, tapTempo, TAP_KEEP } from './metronome.js';
 import { NativeMetronome } from './nativeaudio.js';
 import { GENRES, GENRE_IDS, mainTempo, nameFor, genreRange } from './tempos.js';
-import { clampBpm, SAVED_MAX, METERS, SOUNDS, VIZ_BARS, TICKS, barPlan, cleanPattern, cleanLevels, meterOf, beatStrengths, BPM_MIN, BPM_MAX, SOFT, SILENT, GAP_MAX, TRAINER_STEP_MAX, TRAINER_EVERY_MAX, POLY_COUNTS } from './settings.js';
+import { clampBpm, SAVED_MAX, METERS, SOUNDS, SPEAKERS, VIZ_BARS, TICKS, barPlan, cleanPattern, cleanLevels, meterOf, beatStrengths, BPM_MIN, BPM_MAX, SOFT, SILENT, GAP_MAX, TRAINER_STEP_MAX, TRAINER_EVERY_MAX, POLY_COUNTS } from './settings.js';
 import { swingOf, placeWeight, uprightRod, unrotate } from './art.js';
 import { tuckedVolume } from './tuckedvolume.js';
+import { COUNT_LEAD } from './count.js';
 import { $, chips, note, pressKey } from './ui.js';
 
 /**
@@ -419,17 +420,34 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
   const soundSelect = $('sound');
   soundSelect.replaceChildren(...SOUNDS.map((o) => new Option(o.label, o.id)));
   soundSelect.value = settings.sound;
+  // With the Voice sound, who counts (the Practice Routine's voices).
+  const countVoiceSelect = $('count-voice');
+  countVoiceSelect.replaceChildren(...SPEAKERS.map((id) => new Option(TEXT.timer.voices[id], id)));
+  countVoiceSelect.value = settings.countVoice;
+  const showCountVoice = () => { $('count-voice-row').hidden = settings.sound !== 'voice'; };
+  showCountVoice();
+  /** Let them hear the sound chosen (through Web Audio, also in the apps): a downbeat, or the voice saying "one". */
+  async function previewSound() {
+    if (metronome?.running) return;
+    const ctx = audio();
+    unlock();
+    if (!preview || preview.ctx !== ctx) preview = new Metronome(ctx);
+    preview.configure(settings);
+    if (settings.sound !== 'voice') { preview.voice(ctx.currentTime + 0.02, 2); return; }
+    const voice = settings.countVoice;
+    await preview.loadWords(voice);
+    if (settings.sound === 'voice' && settings.countVoice === voice && !metronome?.running) preview.say(ctx.currentTime + COUNT_LEAD + 0.02, 'one');
+  }
   soundSelect.addEventListener('change', () => {
     settings.sound = soundSelect.value;
+    showCountVoice();
     metronomeConfigured();
-    // Let them hear it (through Web Audio, also in the apps).
-    if (!metronome?.running) {
-      const ctx = audio();
-      unlock();
-      if (!preview || preview.ctx !== ctx) preview = new Metronome(ctx);
-      preview.configure(settings);
-      preview.voice(ctx.currentTime + 0.02, 2);
-    }
+    previewSound();
+  });
+  countVoiceSelect.addEventListener('change', () => {
+    settings.countVoice = countVoiceSelect.value;
+    metronomeConfigured();
+    previewSound();
   });
   // Extra notes between the beats: a switch saying which (Add eighth notes), and
   // a pencil to choose triplets or sixteenths instead.
@@ -1068,6 +1086,9 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
   // The metronome's volume, tucked away at the picture's top right (tuckedvolume.js).
   let volSent = 0;
   let volLater = 0;
+  // Into the debug log once it settles, so a log says when the volume moved (and to what).
+  let volLogLater = 0;
+  const volLog = () => { clearTimeout(volLogLater); volLogLater = setTimeout(() => dlog('metronome-volume', { volume: settings.volume }), 800); };
   const metVolume = tuckedVolume($('met-vol'), {
     get: () => settings.volume,
     set: (v) => {
@@ -1075,7 +1096,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
       settings.volumeChosen = true;
       // To the sound at most every 60 ms (the apps' mixer is told over the bridge).
       clearTimeout(volLater);
-      const send = () => { volSent = performance.now(); metronome?.configure(settings); persist(); };
+      const send = () => { volSent = performance.now(); metronome?.configure(settings); persist(); volLog(); };
       if (performance.now() - volSent > 60) send();
       else volLater = setTimeout(send, 60);
     },
@@ -1252,7 +1273,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
 
   return {
     get metronome() { return metronome; },
-    pendulum, metSettings, meterSelect, soundSelect, metVolume,
+    pendulum, metSettings, meterSelect, soundSelect, showCountVoice, metVolume,
     setBpm, renderBeats, shownBeats, metronomeConfigured, startMetronome, stopMetronome, soundCtx, setSub,
     showWeight, queueFit, animateMetronome, visualsShown, setSync, openSync, closeSync, tap,
   };

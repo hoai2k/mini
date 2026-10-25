@@ -4,6 +4,7 @@
 
 import { barPlan, trainerNext, SOFT, SILENT } from './settings.js';
 import { output } from './output.js';
+import { COUNT_WORDS, WORD, COUNT_LEAD, COUNT_CHOKE, COUNT_CLICK, countSlots, countUrl, wordGain } from './count.js';
 
 const LOOKAHEAD = 0.12; // seconds of clicks scheduled in advance
 const TICK_MS = 25;
@@ -61,6 +62,21 @@ function softClip(n = 2048) {
   return curve;
 }
 
+/** Each voice's counting words, decoded once a page (an AudioBuffer plays in any context): voice -> Promise<{ buffers, lengths }>. */
+const counts = {};
+const countsReady = {}; // voice -> { buffers, lengths }, once decoded
+function loadCount(voice, ctx) {
+  counts[voice] ??= Promise.all(COUNT_WORDS.map(async (w) => {
+    const res = await fetch(countUrl(voice, w));
+    return [w, await ctx.decodeAudioData(await res.arrayBuffer())];
+  })).then((list) => (countsReady[voice] = {
+    buffers: Object.fromEntries(list),
+    lengths: Object.fromEntries(list.map(([w, b]) => [w, b.duration - COUNT_LEAD])),
+  }));
+  counts[voice].catch(() => { delete counts[voice]; }); // a failed fetch is tried again next time
+  return counts[voice];
+}
+
 export class Metronome {
   /**
    * @param {BaseAudioContext} ctx
@@ -90,6 +106,10 @@ export class Metronome {
     this.bpm = 120;
     this.strengths = [2, 0, 0, 0];
     this.sound = 'wood';
+    this.countVoice = 'lily'; // who counts, for the Voice sound (count.js)
+    this.words = {}; // voice -> { buffers: { word: AudioBuffer }, lengths: { word: seconds heard } }, once loaded
+    this.lastWord = null; // the word last scheduled { src, gain, level, end }, which the next cuts off
+    this.live = new Set(); // sources scheduled and not yet ended, stopped by stop()
     this.timer = makeTimer(() => this.tick());
     // Each sound's four clicks, rendered once (below) and played back as they
     // are, so every beat is the very same click. Built live, the woodblock's
@@ -120,15 +140,70 @@ export class Metronome {
     this.subdivision = s.subdivision || 1;
     const plan = barPlan(s);
     this.strengths = plan.strengths;
-    this.slots = plan.slots; // custom strong beats: the click for every position, or null
+    this.plan = plan;
     this.sound = s.sound;
-    this.prepare(s.sound);
+    if (s.countVoice) this.countVoice = s.countVoice;
+    if (this.sound === 'voice') this.loadWords(this.countVoice);
+    this.recount(); // custom strong beats (or the Voice sound's words): the click for every position, or null
+    this.prepare(this.clickSound());
     this.out.gain.setTargetAtTime(s.volume, this.ctx.currentTime, 0.02);
     if (this.beat >= this.strengths.length) this.beat %= this.strengths.length;
   }
 
   get period() {
     return 60 / this.bpm;
+  }
+
+  /** The clicks this sound plays: its own, or for the Voice sound the ones it plays where it says nothing. */
+  clickSound() {
+    return this.sound === 'voice' ? COUNT_CLICK : this.sound;
+  }
+
+  /** The click (or word) for every position in the bar: the plan's, or for the Voice sound what is said at this tempo. */
+  recount() {
+    const words = this.sound === 'voice' && this.words[this.countVoice];
+    this.slots = words ? countSlots({ ...this.plan, subdivision: this.subdivision, bpm: this.bpm }, words.lengths) : this.plan?.slots ?? null;
+  }
+
+  /** Fetch and decode `voice`'s counting words (once a page: every metronome shares them); until they are in, the Voice sound plays its clicks. */
+  loadWords(voice) {
+    this.words[voice] ??= countsReady[voice]; // decoded already: at once, from the first beat
+    if (this.words[voice]) return Promise.resolve();
+    if (typeof OfflineAudioContext === 'undefined' || this.ctx instanceof OfflineAudioContext) return Promise.resolve();
+    return loadCount(voice, this.ctx).then((words) => {
+      this.words[voice] = words;
+      if (this.sound === 'voice' && this.countVoice === voice) this.recount();
+    }).catch(() => {});
+  }
+
+  /** Say `word` so its vowel falls at `t`, cutting off the word before it. */
+  say(t, word) {
+    const buf = this.words[this.countVoice]?.buffers[word];
+    if (!buf) return;
+    const c = this.ctx;
+    const at = t - COUNT_LEAD;
+    const start = Math.max(c.currentTime, at);
+    const prev = this.lastWord;
+    if (prev && prev.end > start) {
+      prev.gain.gain.setValueAtTime(prev.level, start);
+      prev.gain.gain.linearRampToValueAtTime(0, start + COUNT_CHOKE);
+      try { prev.src.stop(start + COUNT_CHOKE); } catch { /* already stopped */ }
+    }
+    const src = c.createBufferSource();
+    src.buffer = buf;
+    const gain = c.createGain();
+    const level = wordGain(word);
+    gain.gain.value = level;
+    src.connect(gain).connect(this.out); // past the clipper: a voice, levelled already
+    src.start(start, start - at);
+    this.track(src);
+    this.lastWord = { src, gain, level, end: at + buf.duration };
+  }
+
+  /** Keep `src` until it ends, so stop() can silence it. */
+  track(src) {
+    this.live.add(src);
+    src.onended = () => this.live.delete(src);
   }
 
   /** Silent bars, the tempo trainer and the polyrhythm for this run ({ gap, trainer, poly }, each null or 0 if off). */
@@ -161,7 +236,7 @@ export class Metronome {
     this.beat = 0;
     this.count = 0;
     this.recent = [];
-    this.next = this.ctx.currentTime + 0.08;
+    this.next = this.ctx.currentTime + 0.08 + (this.sound === 'voice' ? COUNT_LEAD : 0); // a word starts its lead early
     this.polyIdx = Infinity;
     this.startedAt = this.next;
     this.tick();
@@ -178,11 +253,15 @@ export class Metronome {
     this.out.gain.setValueAtTime(0, now + 0.005);
     this.out.gain.setValueAtTime(v, now + 0.15);
     for (const b of this.recent) if (b.time > now) b.time = Infinity;
+    // The Voice sound schedules further ahead (its words start early): those too.
+    for (const src of this.live) { try { src.stop(now + 0.005); } catch { /* not started */ } }
+    this.live.clear();
+    this.lastWord = null;
   }
 
   tick() {
     if (!this.running) return;
-    const until = this.ctx.currentTime + LOOKAHEAD;
+    const until = this.ctx.currentTime + LOOKAHEAD + (this.sound === 'voice' ? COUNT_LEAD : 0);
     // If the page stalled for long, skip ahead rather than firing a burst.
     if (this.next < this.ctx.currentTime - 0.05) {
       const missed = Math.ceil((this.ctx.currentTime - this.next) / this.period);
@@ -196,7 +275,7 @@ export class Metronome {
       const t = this.trainer;
       if (t && this.count > 0 && this.count % (this.strengths.length * t.every) === 0) {
         const bpm = trainerNext(this.bpm, t);
-        if (bpm !== this.bpm) { this.bpm = bpm; this.onTempo?.(bpm); }
+        if (bpm !== this.bpm) { this.bpm = bpm; this.recount(); this.onTempo?.(bpm); }
       }
       this.polyClicks(this.next);
       const strength = this.strengths[this.beat] ?? 0;
@@ -251,10 +330,11 @@ export class Metronome {
   /** One click. strength: 2 downbeat, 1 secondary accent, 0 other beats, 3 (SUB) between the beats, SOFT a soft beat, SILENT none. */
   voice(t, strength) {
     if (strength === SILENT) return;
+    if (strength >= WORD) { this.say(t, COUNT_WORDS[strength - WORD]); return; }
     const soft = strength === SOFT;
     const poly = strength === POLY;
     const kind = soft ? 0 : poly ? 1 : strength;
-    const buf = this.rendered[this.sound]?.[kind];
+    const buf = this.rendered[this.clickSound()]?.[kind];
     if (!buf) { this.synth(t, kind); return; }
     const s = this.ctx.createBufferSource();
     s.buffer = buf;
@@ -268,6 +348,7 @@ export class Metronome {
     // which dulls its brightest part by a different amount each beat.
     const rate = this.ctx.sampleRate;
     s.start(Math.max(this.ctx.currentTime, Math.round(t * rate) / rate));
+    this.track(s);
   }
 
   /** Build one click live (rendered once by prepare(); also until that is ready). */
@@ -277,7 +358,8 @@ export class Metronome {
     g.connect(this.drive);
     // Ordinary beats a little under the downbeat, not far under it.
     const level = [0.7, 0.85, 1, SUB_LEVEL][strength];
-    if (this.sound === 'beep') {
+    const sound = this.clickSound();
+    if (sound === 'beep') {
       const o = c.createOscillator();
       o.type = 'sine';
       o.frequency.value = [880, 1100, 1320, 880][strength];
@@ -290,7 +372,7 @@ export class Metronome {
       o.stop(t + 0.09);
       return;
     }
-    if (this.sound === 'click') {
+    if (sound === 'click') {
       const s = c.createBufferSource();
       s.buffer = this.noise;
       const f = c.createBiquadFilter();
@@ -304,7 +386,7 @@ export class Metronome {
       s.stop(t + 0.05);
       return;
     }
-    if (this.sound === 'mechanical') {
+    if (sound === 'mechanical') {
       // A wind-up metronome: a dry escapement tick (a narrow knock and a short
       // tone), and on the downbeat its little bell, ringing on past the tick.
       this.knock(t, [2800, 3000, 3200, 2600][strength], 4, 0.014, level * 5, g);
@@ -320,7 +402,7 @@ export class Metronome {
       }
       return;
     }
-    if (this.sound === 'claves') {
+    if (sound === 'claves') {
       // Two hardwood sticks: a bright, near-pure ring around 2.5 kHz, gone in a blink, with a crack on top.
       const f = [2450, 2600, 2800, 2350][strength];
       this.tone(t, 'sine', f, 0.06, level * 0.55, g);
@@ -328,14 +410,14 @@ export class Metronome {
       this.knock(t, 4500, 1.5, 0.004, level * 1.2, g);
       return;
     }
-    if (this.sound === 'stick') {
+    if (sound === 'stick') {
       // A side stick (rim click): the stick across the rim, a woody knock with the drum's short body under it.
       this.knock(t, [1700, 1850, 2100, 1600][strength], 1.4, 0.035, level * 3.2, g);
       this.tone(t, 'triangle', [380, 420, 470, 360][strength], 0.03, level * 0.6, g, 0.8);
       this.tone(t, 'sine', [1050, 1150, 1300, 1000][strength], 0.018, level * 0.25, g);
       return;
     }
-    if (this.sound === 'cowbell') {
+    if (sound === 'cowbell') {
       // The drum machine's cowbell: two square waves a little under a fifth
       // apart, through a band-pass, a sharp strike and a short ring; past the
       // clipper, so the ring fades rather than holding.
@@ -362,7 +444,7 @@ export class Metronome {
       bp.connect(env).connect(bell).connect(this.out);
       return;
     }
-    if (this.sound === 'hihat') {
+    if (sound === 'hihat') {
       // A closed hi-hat: bright noise, the downbeat a touch longer and fuller.
       const s = c.createBufferSource();
       s.buffer = this.noise;

@@ -31,6 +31,7 @@ public final class MixerTest {
         metronomeSubdivision();
         metronomeCustomAccents();
         metronomeExercises();
+        metronomeWords();
         droneLevels();
         droneSeamless();
         droneSchedule();
@@ -369,6 +370,42 @@ public final class MixerTest {
         m.metronomeStart(120, new int[] {2, 0}, 0.8);
         on = onsets(render(m, 2.6)[0]);
         check(on.size() == 6, "starting again plays plainly until told otherwise (" + on.size() + " clicks)");
+    }
+
+    static void metronomeWords() {
+        System.out.println("metronome: the Voice sound's words, each cutting off the one before, on a clock that allows for their lead");
+        PracticeMixer m = mixer();
+        float[] shortWord = new float[2400], longWord = new float[36000]; // 50 ms of 0.5, 0.75 s of 0.25
+        java.util.Arrays.fill(shortWord, 0.5f);
+        java.util.Arrays.fill(longWord, 0.25f);
+        m.setWords(new float[][] {shortWord, longWord}, 0.1);
+        // 2/4 at 120: the long word on 1 and the weak click on 2, then the short word on 1.
+        m.metronomeStart(120, new int[] {2, 0}, 1, new int[] {PracticeMixer.WORD + 1, 0}, 0.8);
+        double[] clock = m.metronomeClock();
+        check(Math.abs(clock[0] - 0.15 * SR) < 1e-6, "the clock says when the first word is heard: its lead after it starts (" + clock[0] / SR + " s)");
+        float[] l = render(m, 0.9)[0];
+        check(Math.abs(l[2400 + 100] - 0.2) < 1e-3, "the word plays at the volume (" + l[2400 + 100] + ")");
+        check(Math.abs(l[2400 + 24000 + 10000] - 0.2) < 1e-3, "a click doesn't cut a word off (" + l[2400 + 24000 + 10000] + ")");
+        m.metronomeUpdate(120, new int[] {2, 0}, 1, new int[] {PracticeMixer.WORD, PracticeMixer.WORD + 1}, 0.8);
+        // From 0.9 s: beat 1 at 1.05 s (the short word), beat 2 at 1.55 s (the long word), beat 1 at 2.05 s (the short word, cutting it off).
+        l = render(m, 1.6)[0];
+        int b1 = (int) (0.15 * SR), b2 = b1 + 24000, b3 = b2 + 24000;
+        check(Math.abs(l[b1 + 100] - 0.4) < 1e-3 && Math.abs(l[b1 + 3000]) < 1e-6, "the short word, then silence (" + l[b1 + 100] + ", " + l[b1 + 3000] + ")");
+        int choke = (int) (PracticeMixer.CHOKE_SEC * SR);
+        check(Math.abs(l[b3 + choke / 2] - (0.4 + 0.1)) < 0.01, "a word cut off fades out under the next (" + l[b3 + choke / 2] + ")");
+        check(Math.abs(l[b3 + choke + 10] - 0.4) < 1e-3, "and is gone once it has (" + l[b3 + choke + 10] + ")");
+        m.metronomeUpdate(120, new int[] {2, 0}, 1, new int[] {PracticeMixer.WORD + 5, PracticeMixer.WORD + 5}, 0.8);
+        render(m, 0.2);
+        check(rmsAll(render(m, 1.0)[0]) < 1e-6, "a kind past the words plays nothing");
+        double before = m.metronomeClock()[0];
+        m.setWords(new float[0][], 0);
+        check(Math.abs(before - m.metronomeClock()[0] - 0.1 * SR) < 1e-6, "without words the clock has no lead");
+    }
+
+    static double rmsAll(float[] x) {
+        double e = 0;
+        for (float v : x) e += v * v;
+        return Math.sqrt(e / x.length);
     }
 
     static void droneStopQuick() {

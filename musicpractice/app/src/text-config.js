@@ -240,6 +240,7 @@ export const EN = {
       stick: 'Side stick',
       cowbell: 'Cowbell',
       hihat: 'Hi-hat',
+      voice: 'Voice (counting)',
     },
     settings: {
       title: 'Metronome settings',
@@ -256,6 +257,7 @@ export const EN = {
         4: 'Sixteenth notes',
       },
       sound: 'Sound',
+      countVoice: 'Voice Personality',
       swing: 'Pendulum swing',
       vizBars: 'Visualizer rows',
       sync: 'Sound and visuals sync',
