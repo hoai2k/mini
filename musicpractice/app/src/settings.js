@@ -68,6 +68,17 @@ export function resolveMode(theme, appearance, systemDark) {
 /** The Visualizer's choice of how many bars to show at a time. */
 export const VIZ_BARS = [1, 2, 4, 8];
 
+/*
+ * The metronome's volume: the slider (0 to 1) to the click's gain, on a curve
+ * so equal moves sound like equal steps (as the drone's and the voice's), full
+ * gain at the top. On a straight line the top half of the slider was only the
+ * loudest 6 dB. Volumes saved on the straight line are carried over at the
+ * same loudness (sanitize; timer.js for routine items).
+ */
+export const metronomeGain = (v) => Math.max(0, Math.min(1, v)) ** 2;
+/** The slider position that gives `gain` (metronomeGain's inverse), to the slider's step. */
+export const metronomeSlider = (gain) => Math.round(Math.sqrt(Math.max(0, Math.min(1, gain))) * 100) / 100;
+
 export const BPM_MIN = 40;
 export const BPM_MAX = 500;
 
@@ -81,7 +92,7 @@ export const DEFAULTS = Object.freeze({
   accent: true,
   sound: 'wood',
   countVoice: 'lily', // who counts for the Voice sound (SPEAKERS)
-  volume: 0.75, // METRONOME_DEFAULT: the loudness full volume had before the clicks were made louder
+  volume: 0.87, // the slider at METRONOME_DEFAULT's gain (0.76): the loudness full volume had before the clicks were made louder
   volumeChosen: false,
   playVolume: 1, // the Playback Recorder's takes, played back (its tucked-away speaker)
   playRate: 1, // how fast takes play (1, 0.75 or 0.5), pitch kept
@@ -252,7 +263,11 @@ export function sanitize(raw) {
     countVoice: oneOf(s.countVoice, SPEAKERS, DEFAULTS.countVoice),
     // The metronome's volume (the slider tucked beside the picture); full until
     // it is moved there, since earlier saves' volume was a removed control's.
-    volume: s.volumeChosen === true ? clamp(num(s.volume, 1) * (louder ? 1 : 0.75), 0, 1) : DEFAULTS.volume,
+    // Saved on the straight line (before volumeCurve), it was the gain: the slider position with that gain.
+    volume: s.volumeChosen !== true ? DEFAULTS.volume
+      : s.volumeCurve === true ? clamp(num(s.volume, 1), 0, 1)
+      : metronomeSlider(clamp(num(s.volume, 1) * (louder ? 1 : 0.75), 0, 1)),
+    volumeCurve: true,
     volumeChosen: s.volumeChosen === true,
     playVolume: clamp(num(s.playVolume, 1), 0, 1),
     playRate: PLAY_RATES.includes(s.playRate) ? s.playRate : 1,

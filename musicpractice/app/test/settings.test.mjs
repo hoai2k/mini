@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { load, save, sanitize, clampBpm, beatStrengths, resolveMode, THEMES, DEFAULTS, barPlan, cleanPattern, TICKS, cleanLevels, cleanGap, cleanTrainer, cleanPoly, trainerNext, SOFT, SILENT } from '../src/settings.js';
+import { load, save, sanitize, clampBpm, beatStrengths, resolveMode, THEMES, DEFAULTS, barPlan, cleanPattern, TICKS, cleanLevels, cleanGap, cleanTrainer, cleanPoly, trainerNext, metronomeGain, metronomeSlider, SOFT, SILENT } from '../src/settings.js';
 import { pendulumAngle, clickSec, trimClick } from '../src/metronome.js';
 
 function memoryStorage() {
@@ -198,10 +198,18 @@ test('extra notes: off by default, a kind kept while off, saves from the Clicks 
   assert.equal(sanitize({ subOn: true, subKind: 3 }).subdivision, 3);
   const old = sanitize({ subdivision: 4 }); // the old Clicks list
   assert.deepEqual([old.subOn, old.subKind, old.subdivision], [true, 4, 4]);
-  assert.equal(sanitize({ volume: 0.3 }).volume, 0.75); // an earlier save's, from a removed control: the default
-  assert.equal(sanitize({ volume: 0.3, volumeChosen: true, louder: true }).volume, 0.3); // the metronome's own slider
-  assert.ok(Math.abs(sanitize({ volume: 0.4, volumeChosen: true }).volume - 0.3) < 1e-9); // saved before the louder clicks: as loud as it was
-  assert.equal(sanitize({ volume: 7, volumeChosen: true }).volume, 1);
+  assert.equal(sanitize({ volume: 0.3 }).volume, DEFAULTS.volume); // an earlier save's, from a removed control: the default
+  assert.equal(sanitize({ volume: 0.3, volumeChosen: true, louder: true, volumeCurve: true }).volume, 0.3); // the metronome's own slider
+  assert.equal(sanitize({ volume: 7, volumeChosen: true, volumeCurve: true }).volume, 1);
+  // Saved on the straight line, the volume was the gain: the slider position with that gain (0.3 -> 0.55).
+  assert.equal(sanitize({ volume: 0.3, volumeChosen: true, louder: true }).volume, 0.55);
+  assert.equal(sanitize({ volume: 0.4, volumeChosen: true }).volume, 0.55); // saved before the louder clicks too: 0.4 x 0.75
+  assert.equal(sanitize({ volume: 1, volumeChosen: true, louder: true }).volume, 1); // full stays full
+  assert.equal(sanitize({}).volumeCurve, true);
+  // The curve: equal moves, equal steps; full at the top, a quarter of the gain (-12 dB) half way.
+  assert.equal(metronomeGain(1), 1);
+  assert.equal(metronomeGain(0.5), 0.25);
+  assert.equal(metronomeSlider(metronomeGain(0.37)), 0.37);
 });
 
 test('drone accidentals: Auto by default, and only real choices kept', () => {
@@ -237,7 +245,7 @@ test('the pendulum weight: high is slow, the everyday tempos get most of the rod
 test('louder volumes: the defaults sound as before, and older saves keep their loudness', async () => {
   const { droneGain, droneSlider, DRONE_DEFAULT, DRONE_MAX_GAIN } = await import('../src/drone.js');
   const { METRONOME_DEFAULT } = await import('../src/metronome.js');
-  assert.equal(DEFAULTS.volume, METRONOME_DEFAULT);
+  assert.ok(Math.abs(metronomeGain(DEFAULTS.volume) - METRONOME_DEFAULT) < 0.01); // the default sounds as before
   assert.equal(DEFAULTS.droneVolume, DRONE_DEFAULT);
   assert.ok(Math.abs(droneGain(DRONE_DEFAULT) - 1.37) < 0.02); // about -14 LUFS, YouTube's level
   // The old default, saved without the slider being moved, becomes the new one; a chosen volume stays.

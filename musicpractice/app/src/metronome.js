@@ -2,7 +2,7 @@
 // beat stays steady even when the page is busy. A worker drives the
 // scheduler, because timers on the page slow down in background tabs.
 
-import { barPlan, trainerNext, SOFT, SILENT } from './settings.js';
+import { barPlan, trainerNext, metronomeGain, SOFT, SILENT } from './settings.js';
 import { output } from './output.js';
 import { COUNT_WORDS, WORD, COUNT_LEAD, COUNT_CHOKE, COUNT_CLICK, countSlots, countUrl, wordGain } from './count.js';
 
@@ -47,7 +47,8 @@ export const POLY_GAIN = 0.8;
 // Into the clipper: how hard the clicks are pushed. 6 makes the click's body
 // about 2.5 dB louder than the 2.4 it was at the same peak (more is hardly
 // louder, only harsher), so full volume is louder than it was, and
-// METRONOME_DEFAULT (0.75) is the old full volume's loudness.
+// METRONOME_DEFAULT (0.75) is the old full volume's loudness: the default
+// volume's gain (settings.js DEFAULTS.volume, through metronomeGain).
 const DRIVE = 6;
 export const METRONOME_DEFAULT = 0.75;
 const KNEE = 1.6; // the tanh curve's steepness
@@ -146,7 +147,7 @@ export class Metronome {
     if (this.sound === 'voice') this.loadWords(this.countVoice);
     this.recount(); // custom strong beats (or the Voice sound's words): the click for every position, or null
     this.prepare(this.clickSound());
-    this.out.gain.setTargetAtTime(s.volume, this.ctx.currentTime, 0.02);
+    this.out.gain.setTargetAtTime(metronomeGain(s.volume), this.ctx.currentTime, 0.02);
     if (this.beat >= this.strengths.length) this.beat %= this.strengths.length;
   }
 

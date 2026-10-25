@@ -9,7 +9,7 @@
 import { TEXT } from './text-config.js';
 import { call, hasPlugin, listen } from './native.js';
 import { Metronome, SUB, clickSec, trimClick } from './metronome.js';
-import { barPlan } from './settings.js';
+import { barPlan, metronomeGain } from './settings.js';
 import { COUNT_WORDS, COUNT_LEAD, COUNT_CLICK, countSlots, countUrl, wordGain } from './count.js';
 import { SAMPLED, loadLoop, renderSynthLoop, synthSpec, SYNTH_ANCHORS, SYNTH_MAX_SHIFT, droneGain, DRONE_DEFAULT } from './drone.js';
 import { extraDelaySec } from './audio.js';
@@ -170,7 +170,7 @@ export class NativeMetronome {
     const plan = barPlan(s);
     this.strengths = plan.strengths;
     this.plan = plan;
-    this.volume = s.volume;
+    this.volume = metronomeGain(s.volume); // the mixer takes the gain
     this.sound = s.sound;
     if (s.countVoice) this.countVoice = s.countVoice;
     if (this.running) this.update();

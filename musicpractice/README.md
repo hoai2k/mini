@@ -406,10 +406,16 @@ when the Art Deco art arrives, measure and record its own.
     tempo it started at, each cut off by the next as the tempo rises.
 - **Volume:** the faint speaker at the picture's top right
   (`tuckedvolume.js`): drag it up or down, or tap it for the slider. The
-  slider is linear in amplitude (the click's gain is the slider's value),
-  so its top half covers only the loudest 6 dB, the next quarter the next
-  6 dB, and the bottom quarter everything quieter; 0.27 is -11 dB. Each change goes into the debug log once it
-  settles (`metronome-volume`), so a log says when the volume moved.
+  slider is on a curve, as the drone's is: the click's gain is the slider
+  squared (`metronomeGain` in `settings.js`), so equal moves sound like
+  equal steps (half way is -12 dB, full is as loud as it ever was). It was
+  a straight line, whose top half was only the loudest 6 dB and where 0.27
+  was already -11 dB; volumes saved then, the metronome's and each routine
+  item's, are carried over at the same loudness (`volumeCurve` in the
+  saves; the slider simply sits higher). The default is 0.87, the gain
+  0.76 it had. The apps' mixers are sent the gain. Each change goes into
+  the debug log once it settles (`metronome-volume`, the slider's
+  position), so a log says when the volume moved.
 - **Strong beats:** the pencil beside **Strong beat on 1** opens every place a
   click falls in the bar, counted as played (1 & 2 &, 1 trip let, 1 e & a),
   and any of them can be made strong, between the beats included (those
