@@ -58,17 +58,11 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      # Everything but smoothcraft/: the mod's hundreds of megabytes of
-      # textures are never published, so the deploy doesn't download them. A
-      # blobless partial clone keeps it that way when build-game.sh fetches the
-      # live commit to rebuild a failed game: only the files it needs come down.
+      # A plain full checkout, smoothcraft/ included. Leaving it out was tried
+      # (a blobless partial clone with a sparse checkout, October 2026): it
+      # saves only the mod's ~8% of the data, and fetching the rest blob by
+      # blob during checkout was slower than one ordinary fetch of everything.
       - uses: actions/checkout@v4
-        with:
-          filter: blob:none
-          sparse-checkout: |
-            /*
-            !/smoothcraft/
-          sparse-checkout-cone-mode: false
       - uses: pnpm/action-setup@v4
         with:
           version: 10
