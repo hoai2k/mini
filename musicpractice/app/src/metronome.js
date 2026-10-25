@@ -20,6 +20,17 @@ function makeTimer(fn) {
   }
 }
 
+/** How long a sound's clicks are recorded for (seconds; then trimmed to the last audible sample): the ringing ones longer. */
+export const CLICK_SEC = { cowbell: 0.3, mechanical: 0.5 };
+export const clickSec = (sound) => CLICK_SEC[sound] ?? 0.1;
+
+/** A recorded click cut off after its last audible sample (so the apps' mixers don't play silence as a click). */
+export function trimClick(d, floor = 1e-4) {
+  let end = d.length;
+  while (end > 1 && Math.abs(d[end - 1]) < floor) end--;
+  return end < d.length ? d.slice(0, end + 1) : d;
+}
+
 /** The strength of a subdivision click (between the beats), after weak (0), mid (1) and strong (2). */
 export const SUB = 3;
 /** Clicks per beat: quarter notes, eighths, triplets, sixteenths. */
@@ -228,7 +239,7 @@ export class Metronome {
     if (this.rendered[sound] || this.rendering[sound] || typeof OfflineAudioContext === 'undefined' || this.ctx instanceof OfflineAudioContext) return;
     const rate = this.ctx.sampleRate;
     this.rendering[sound] = Promise.all([0, 1, 2, SUB].map((strength) => {
-      const off = new OfflineAudioContext(1, Math.ceil(0.1 * rate), rate);
+      const off = new OfflineAudioContext(1, Math.ceil(clickSec(sound) * rate), rate);
       const m = new Metronome(off, { render: true });
       m.sound = sound;
       m.out.gain.value = 1;
@@ -293,6 +304,85 @@ export class Metronome {
       s.stop(t + 0.05);
       return;
     }
+    if (this.sound === 'mechanical') {
+      // A wind-up metronome: a dry escapement tick (a narrow knock and a short
+      // tone), and on the downbeat its little bell, ringing on past the tick.
+      this.knock(t, [2800, 3000, 3200, 2600][strength], 4, 0.014, level * 5, g);
+      this.tone(t, 'sine', [1500, 1600, 1700, 1400][strength], 0.022, level * 0.5, g);
+      if (strength === 2) {
+        // The bell rings: past the clipper, so its tail fades as a bell's does.
+        const bell = c.createGain();
+        bell.gain.value = 0.24;
+        bell.connect(this.out);
+        // Struck just after the tick, as the hammer follows the escapement (and so the two don't peak together).
+        this.tone(t + 0.008, 'sine', 2093, 0.45, 1, bell); // C7
+        this.tone(t + 0.008, 'sine', 2093 * 2.76, 0.18, 0.35, bell); // a bell's bright upper partial
+      }
+      return;
+    }
+    if (this.sound === 'claves') {
+      // Two hardwood sticks: a bright, near-pure ring around 2.5 kHz, gone in a blink, with a crack on top.
+      const f = [2450, 2600, 2800, 2350][strength];
+      this.tone(t, 'sine', f, 0.06, level * 0.55, g);
+      this.tone(t, 'sine', f * 2.2, 0.02, level * 0.12, g);
+      this.knock(t, 4500, 1.5, 0.004, level * 1.2, g);
+      return;
+    }
+    if (this.sound === 'stick') {
+      // A side stick (rim click): the stick across the rim, a woody knock with the drum's short body under it.
+      this.knock(t, [1700, 1850, 2100, 1600][strength], 1.4, 0.035, level * 3.2, g);
+      this.tone(t, 'triangle', [380, 420, 470, 360][strength], 0.03, level * 0.6, g, 0.8);
+      this.tone(t, 'sine', [1050, 1150, 1300, 1000][strength], 0.018, level * 0.25, g);
+      return;
+    }
+    if (this.sound === 'cowbell') {
+      // The drum machine's cowbell: two square waves a little under a fifth
+      // apart, through a band-pass, a sharp strike and a short ring; past the
+      // clipper, so the ring fades rather than holding.
+      const k = [1, 1.04, 1.08, 1][strength];
+      const bell = c.createGain();
+      bell.gain.value = [0.62, 0.66, 0.7, 0.38][strength];
+      const bp = c.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 1400 * k;
+      bp.Q.value = 1;
+      const env = c.createGain();
+      env.gain.setValueAtTime(0, t);
+      env.gain.linearRampToValueAtTime(1, t + 0.001);
+      env.gain.exponentialRampToValueAtTime(0.35, t + 0.02);
+      env.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+      for (const f of [587, 845]) {
+        const o = c.createOscillator();
+        o.type = 'square';
+        o.frequency.value = f * k;
+        o.connect(bp);
+        o.start(t);
+        o.stop(t + 0.26);
+      }
+      bp.connect(env).connect(bell).connect(this.out);
+      return;
+    }
+    if (this.sound === 'hihat') {
+      // A closed hi-hat: bright noise, the downbeat a touch longer and fuller.
+      const s = c.createBufferSource();
+      s.buffer = this.noise;
+      s.loop = true;
+      const hp = c.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 7000;
+      const bp = c.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 10000;
+      bp.Q.value = 0.7;
+      const dur = [0.045, 0.055, 0.075, 0.035][strength];
+      const env = c.createGain();
+      env.gain.setValueAtTime(level * 4, t);
+      env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      s.connect(hp).connect(bp).connect(env).connect(g);
+      s.start(t);
+      s.stop(t + dur + 0.01);
+      return;
+    }
     // Woodblock: a hollow tone that drops slightly in pitch, with a knock on top.
     const base = [1000, 1250, 1600, 1000][strength];
     const o = c.createOscillator();
@@ -318,6 +408,39 @@ export class Metronome {
     s.connect(f).connect(ng).connect(g);
     s.start(t);
     s.stop(t + 0.02);
+  }
+
+  /** A burst of band-passed noise (`freq`, `q`), at `gain`, dying away over `dur`. */
+  knock(t, freq, q, dur, gain, dest) {
+    const c = this.ctx;
+    const s = c.createBufferSource();
+    s.buffer = this.noise;
+    const f = c.createBiquadFilter();
+    f.type = 'bandpass';
+    f.frequency.value = freq;
+    f.Q.value = q;
+    const g = c.createGain();
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(f).connect(g).connect(dest);
+    s.start(t);
+    s.stop(t + dur + 0.01);
+  }
+
+  /** A tone (`type` at `freq`, its pitch falling to `drop` of it), struck at `gain` and dying away over `dur`. */
+  tone(t, type, freq, dur, gain, dest, drop = 1) {
+    const c = this.ctx;
+    const o = c.createOscillator();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t);
+    if (drop !== 1) o.frequency.exponentialRampToValueAtTime(freq * drop, t + dur);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(gain, t + 0.001);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(dest);
+    o.start(t);
+    o.stop(t + dur + 0.01);
   }
 }
 

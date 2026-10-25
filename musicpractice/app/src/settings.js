@@ -26,6 +26,11 @@ export const SOUNDS = [
   { id: 'wood', label: TEXT.metronome.sounds.wood },
   { id: 'click', label: TEXT.metronome.sounds.click },
   { id: 'beep', label: TEXT.metronome.sounds.beep },
+  { id: 'mechanical', label: TEXT.metronome.sounds.mechanical },
+  { id: 'claves', label: TEXT.metronome.sounds.claves },
+  { id: 'stick', label: TEXT.metronome.sounds.stick },
+  { id: 'cowbell', label: TEXT.metronome.sounds.cowbell },
+  { id: 'hihat', label: TEXT.metronome.sounds.hihat },
 ];
 
 /**

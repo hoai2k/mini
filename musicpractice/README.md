@@ -346,7 +346,22 @@ when the Art Deco art arrives, measure and record its own.
   an ordinary beat, 10 dB for Beep, and are not beats themselves: the
   pendulum, lamp, dots and Visualizer keep to the beat; the apps' native
   mixers play them the same way, `subdivision` and a fourth rendered
-  click), and **Sound** (Woodblock, Click, Beep, a dropdown). There is no
+  click), and **Sound** (a dropdown: Woodblock, Click, Beep, Mechanical,
+  Claves, Side stick, Cowbell, Hi-hat; all synthesized in
+  `Metronome.synth()` and recorded once, like the first three). Mechanical
+  is a wind-up metronome: a dry escapement tick, and on the downbeat its
+  little bell (C7 with a bright upper partial) struck 8 ms after the tick
+  and ringing for about 0.45 s. Claves are a near-pure ring around 2.5 kHz
+  with a crack on top; Side stick a woody band-passed knock over a short
+  falling drum tone; Cowbell the drum machine's (two square waves at 587
+  and 845 Hz through a band-pass, a 0.25 s ring); Hi-hat closed, bright
+  high-passed noise, longer on the downbeat. The ringing parts (the bell,
+  the cowbell) go past the click's clipper so their tails fade as they
+  should, and those two sounds are recorded for longer (`CLICK_SEC`: 0.3
+  and 0.5 s, the rest 0.1 s); the apps' mixers get each recording cut
+  after its last audible sample (`trimClick`). Each was levelled against
+  the woodblock, every recorded peak inside full scale (a browser check
+  renders all eight). There is no
   volume control: the metronome plays at full level and the device's own
   volume sets it.
 - **Strong beats:** the pencil beside **Strong beat on 1** opens every place a

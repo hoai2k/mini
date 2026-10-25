@@ -8,7 +8,7 @@
 
 import { TEXT } from './text-config.js';
 import { call, hasPlugin, listen } from './native.js';
-import { Metronome, SUB } from './metronome.js';
+import { Metronome, SUB, clickSec, trimClick } from './metronome.js';
 import { barPlan } from './settings.js';
 import { SAMPLED, loadLoop, renderSynthLoop, synthSpec, SYNTH_ANCHORS, SYNTH_MAX_SHIFT, droneGain, DRONE_DEFAULT } from './drone.js';
 import { extraDelaySec } from './audio.js';
@@ -41,11 +41,11 @@ export function encode(samples) {
 export async function renderClicks(sound, sampleRate) {
   const out = [];
   for (const strength of [0, 1, 2, SUB]) {
-    const ctx = new OfflineAudioContext(1, Math.ceil(0.1 * sampleRate), sampleRate);
+    const ctx = new OfflineAudioContext(1, Math.ceil(clickSec(sound) * sampleRate), sampleRate);
     const m = new Metronome(ctx, { render: true }); // the native mixer has its own limiter, as output.js
     m.configure({ bpm: 120, meter: '4/4', accent: true, sound, volume: 1 });
     m.synth(0, strength);
-    out.push((await ctx.startRendering()).getChannelData(0));
+    out.push(trimClick((await ctx.startRendering()).getChannelData(0)));
   }
   return out;
 }
