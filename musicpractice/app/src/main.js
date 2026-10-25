@@ -19,7 +19,7 @@ import { freesMicForPlayback, freeReason } from './recorder.js';
 import { setupTuner } from './tunerui.js';
 import { setupMetronome } from './metronomeui.js';
 import { setupRecorder } from './recorderui.js';
-import { $, chips, note, saveFile } from './ui.js';
+import { $, chips, note, saveFile, keyboardFocus } from './ui.js';
 import { Drone, preload as preloadDrone, wrap as wrapNote, spelling } from './drone.js';
 import { noteName } from './tuning.js';
 import { setupDrone } from './droneui.js';
@@ -606,31 +606,56 @@ $('drone-settings-btn').addEventListener('click', () => { droneUI.refresh(); dro
 
 // ---------------------------------------------------------------- keys
 
+/*
+ * Keys on each screen. Space plays and stops whatever the screen plays (the
+ * metronome, the drone, Record, a routine; on the Tuner, the reference
+ * tone), wherever the focus is, except in a text field or a list, or on a
+ * control the keyboard reached with Tab (Space presses that, as usual): a
+ * button the mouse clicked keeps the focus, and Space pressing it again
+ * (the drone's note down, say) is never what was meant. Arrows (and + and −)
+ * move the tempo or the note, with Shift or Page Up and Down by 10 on the
+ * metronome; T taps the tempo; Escape goes back to the start.
+ */
+const CONTROL = 'button, [role="button"], [role="switch"], [role="radio"], [role="slider"], input, summary, a[href]';
+let spaceTaken = false; // this Space was play/stop: its key-up must not press the focused button
 document.addEventListener('keydown', (e) => {
   if (document.querySelector('dialog[open]')) return;
+  if (!$('tap-pad').hidden) return; // the tap pad has the keys (metronomeui.js)
   const t = e.target;
   // Typing in a field (a take's name, the tempo) keeps its keys.
-  const typing = (t instanceof HTMLInputElement && t.type !== 'checkbox') || t instanceof HTMLTextAreaElement || t?.isContentEditable;
+  const typing = (t instanceof HTMLInputElement && !['checkbox', 'radio', 'button', 'range'].includes(t.type)) || t instanceof HTMLTextAreaElement || t?.isContentEditable;
+  const keys = !typing && !(t instanceof HTMLSelectElement) && !e.metaKey && !e.ctrlKey && !e.altKey;
+  // A slider has its own arrows (the tempo slider sets the tempo as it moves).
+  const slider = t instanceof HTMLInputElement && t.type === 'range';
+  const control = t?.closest?.(CONTROL);
+  const space = e.key === ' ' && keys && !(control && keyboardFocus());
+  const up = keys && !slider && (e.key === 'ArrowUp' || e.key === 'ArrowRight' || e.key === '+' || e.key === '=');
+  const down = keys && !slider && (e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === '-');
+  const play = (fn) => { e.preventDefault(); if (!e.repeat) { spaceTaken = true; fn(); } };
   if (e.key === 'Escape' && screen !== 'home') { location.hash = ''; return; }
   if (screen === 'metronome') {
-    if (e.key === ' ' && !typing && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); $('met-toggle').click(); }
-    if (!typing && (e.key === 'ArrowUp' || e.key === 'ArrowRight')) { e.preventDefault(); setBpm(settings.bpm + (e.shiftKey ? 10 : 1)); }
-    if (!typing && (e.key === 'ArrowDown' || e.key === 'ArrowLeft')) { e.preventDefault(); setBpm(settings.bpm - (e.shiftKey ? 10 : 1)); }
-    if (!typing && (e.key === 't' || e.key === 'T') && !e.repeat && !e.metaKey && !e.ctrlKey) { e.preventDefault(); met.tap(e.timeStamp); }
+    if (space) play(() => $('met-toggle').click());
+    const big = e.shiftKey || e.key === 'PageUp' || e.key === 'PageDown';
+    if (up || (keys && e.key === 'PageUp')) { e.preventDefault(); setBpm(settings.bpm + (big ? 10 : 1)); }
+    if (down || (keys && e.key === 'PageDown')) { e.preventDefault(); setBpm(settings.bpm - (big ? 10 : 1)); }
+    if (keys && (e.key === 't' || e.key === 'T') && !e.repeat) { e.preventDefault(); met.tap(e.timeStamp); }
   }
-  if (screen === 'record' && e.key === ' ' && !(e.target instanceof HTMLButtonElement) && !typing) {
-    e.preventDefault();
-    $('rec-toggle').click();
+  if (screen === 'record' && space) play(() => $('rec-toggle').click());
+  if (screen === 'drone') {
+    if (space) play(() => droneUI.toggle());
+    if (up) { e.preventDefault(); droneUI.step(1); }
+    if (down) { e.preventDefault(); droneUI.step(-1); }
   }
-  if (screen === 'drone' && !typing && !(e.target instanceof HTMLSelectElement)) {
-    if (e.key === ' ' && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); droneUI.toggle(); }
-    if (e.key === 'ArrowUp' || e.key === 'ArrowRight') { e.preventDefault(); droneUI.step(1); }
-    if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') { e.preventDefault(); droneUI.step(-1); }
+  if (screen === 'tuner' && space) play(() => tuner.playReference());
+  if (screen === 'routine' && space) {
+    // Start, or pause and carry on while it runs.
+    const go = timerUI?.running ? $('trun-go') : $('timer-go');
+    if (!go.disabled) play(() => go.click());
   }
-  if (screen === 'tuner' && e.key === ' ' && !typing && !(e.target instanceof HTMLButtonElement) && !(e.target instanceof HTMLSelectElement)) {
-    e.preventDefault();
-    tuner.playReference();
-  }
+});
+// A button activates on Space's key-up: not when that Space was play/stop.
+document.addEventListener('keyup', (e) => {
+  if (e.key === ' ' && spaceTaken) { e.preventDefault(); spaceTaken = false; }
 });
 
 // ---------------------------------------------------------------- start

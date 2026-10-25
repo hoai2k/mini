@@ -5,6 +5,23 @@ import { isIOS } from './devices.js';
 
 export const $ = (id) => document.getElementById(id);
 
+/**
+ * Did the keyboard bring the focus where it is (Tab), rather than a click or
+ * a tap? A clicked button keeps the focus, and Space would press it again: on
+ * a control the pointer reached, Space is the screen's play/stop instead, as
+ * in any player. A control reached with Tab is pressed by Space as usual.
+ * (Not `:focus-visible`: Chrome turns that on for whatever has the focus as
+ * soon as any key is pressed, Space included.)
+ */
+let byKeyboard = false;
+if (typeof document !== 'undefined') {
+  document.addEventListener('pointerdown', () => { byKeyboard = false; }, true);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Tab') byKeyboard = true; }, true);
+}
+export const keyboardFocus = () => byKeyboard;
+/** A control's own activating key: Enter, or Space where the keyboard brought the focus. */
+export const pressKey = (e) => e.key === 'Enter' || (e.key === ' ' && keyboardFocus());
+
 /** A row of single-choice chips bound to one setting. */
 export function chips(container, options, get, set) {
   container.setAttribute('role', 'radiogroup');

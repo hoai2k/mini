@@ -1133,9 +1133,24 @@ slide read as a snap. The way across is a **smaller Routine button**
 
 ## Controls
 
-Touch or mouse throughout. Keyboard: `Space` starts/stops the metronome or
-turns listening on/off, or plays the tuner's reference tone, arrow keys change the tempo (`Shift` for 10),
-`Esc` goes back or closes settings. As a tool on the mini apps shelf it skips
+Touch or mouse throughout. Keyboard (`main.js`, the keys section):
+
+- **`Space` plays and stops** what the screen plays: the metronome, the
+  drone, Record (listening on or off), a routine (start, then pause and
+  carry on); on the Tuner it plays the reference tone. It does so wherever
+  the focus is, even on a button just clicked (a clicked button keeps the
+  focus, and Space would otherwise press it again: the drone's note down,
+  say), except in a text field or a list, or on a control reached with
+  `Tab`, which Space presses as usual. Which it was is tracked by the last
+  input (`keyboardFocus` in `ui.js`: a click or tap, or `Tab`), not by
+  `:focus-visible`, which Chrome turns on as soon as any key is pressed.
+  The controls with keys of their own (the tempo's − and +, Tap, the
+  picture, the volume knob, a routine's rows) take Space only when `Tab`
+  brought the focus there.
+- **Arrows and `+`/`−`** move the tempo on the metronome (`Shift`, or
+  `Page Up`/`Page Down`, by 10) and the note on the drone; a focused slider
+  keeps its own arrows. **`T`** taps the tempo.
+- **`Esc`** goes back to the start, or closes the sheet that is open. As a tool on the mini apps shelf it skips
 the game title screen and controller support from `GAME_GUIDELINES.md` in
 favour of the two-button home screen.
 

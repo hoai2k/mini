@@ -321,6 +321,65 @@ async function weightGrab(env) {
   await p.close();
 }
 
+/** Keys: Space plays and stops on every screen, even with a clicked button focused; a button reached with Tab is pressed by it. */
+async function keys(env) {
+  const p = await env.page({ touch: false, width: 1100, height: 900 });
+  const saved = () => p.evaluate(() => JSON.parse(localStorage.getItem('musicpractice.settings.v1')));
+  // The drone: click the note down, then Space starts it (the note stays), Space again stops it.
+  await p.goto(env.base + '#drone');
+  await p.waitForTimeout(1000);
+  await p.click('#dr-down');
+  await p.waitForTimeout(300);
+  const note = () => p.evaluate(() => document.getElementById('dr-pitch').value);
+  const droneOn = () => p.evaluate(() => document.getElementById('dr-toggle').getAttribute('aria-pressed') === 'true');
+  const midi = await note();
+  await p.keyboard.press(' ');
+  c.ok(await until(p, () => document.getElementById('dr-toggle').getAttribute('aria-pressed') === 'true', 8000) >= 0, 'drone: Space starts it');
+  c.ok(await note() === midi, `drone: Space after clicking the note down doesn't move the note (${midi} -> ${await note()})`);
+  await p.keyboard.press(' ');
+  await p.waitForTimeout(400);
+  c.ok(!(await droneOn()), 'drone: Space again stops it');
+  await p.keyboard.press('ArrowUp');
+  await p.waitForTimeout(200);
+  c.ok(Number(await note()) === Number(midi) + 1, 'drone: the up arrow moves the note up');
+  // The metronome: click +, then Space starts it (the tempo stays).
+  await p.goto(env.base + '#metronome');
+  await p.waitForTimeout(800);
+  await p.click('#bpm-up');
+  const bpm = (await saved()).bpm;
+  await p.keyboard.press(' ');
+  await p.waitForTimeout(300);
+  c.ok(await p.getAttribute('#met-toggle', 'aria-pressed') === 'true' && (await saved()).bpm === bpm, `metronome: Space after clicking + starts it, the tempo as it was (${bpm})`);
+  await p.keyboard.press('PageUp');
+  c.ok((await saved()).bpm === bpm + 10, 'metronome: Page Up is 10 faster');
+  await p.keyboard.press('-');
+  c.ok((await saved()).bpm === bpm + 9, 'metronome: − is 1 slower');
+  await p.keyboard.press(' ');
+  await p.waitForTimeout(300);
+  c.ok(await p.getAttribute('#met-toggle', 'aria-pressed') === 'false', 'metronome: Space stops it');
+  // A button reached with Tab is pressed by Space, as usual (here the tempo's +).
+  await p.focus('#bpm-down');
+  await p.keyboard.press('Tab');
+  const focused = await p.evaluate(() => document.activeElement?.id);
+  if (focused === 'bpm-up') {
+    const before = (await saved()).bpm;
+    await p.keyboard.press(' ');
+    await p.waitForTimeout(200);
+    c.ok((await saved()).bpm === before + 1 && await p.getAttribute('#met-toggle', 'aria-pressed') === 'false', 'metronome: Space presses a button reached with Tab, and does not start it');
+  }
+  // The routine: Space starts it, and pauses it.
+  await p.goto(env.base + '#routine');
+  await p.waitForTimeout(800);
+  await p.keyboard.press(' ');
+  c.ok(await until(p, () => !document.getElementById('timer-run').hidden, 3000) >= 0, 'routine: Space starts it');
+  await p.waitForTimeout(400);
+  await p.keyboard.press(' ');
+  c.ok(await p.getAttribute('#trun-go', 'aria-pressed') === 'false', 'routine: Space pauses it');
+  await p.click('#trun-stop');
+  c.ok(!p.errors.length, `no page errors with the keys (${p.errors})`);
+  await p.close();
+}
+
 async function savedTempos(env) {
   const p = await env.page();
   await p.goto(env.base + '#metronome');
@@ -711,7 +770,7 @@ async function themes(env) {
 
 /** `only`: the names of the parts to run (all of them if empty): node flows.mjs exercises routines */
 export async function run(env, only = []) {
-  for (const part of [list, running, routines, practiceLog, metronomeScreen, tapPad, weightGrab, savedTempos, strongBeats, exercises, microphone, themes]) {
+  for (const part of [list, running, routines, practiceLog, metronomeScreen, tapPad, weightGrab, keys, savedTempos, strongBeats, exercises, microphone, themes]) {
     if (only.length && !only.includes(part.name)) continue;
     try { await part(env); } catch (e) { c.ok(false, `${part.name}: ${e.message.split('\n')[0]}`); }
   }
