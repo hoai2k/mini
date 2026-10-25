@@ -27,7 +27,7 @@ import { clock } from './droneui.js';
 import { hasArt, showArt, alignPendulum, placeWeight, swingOf } from './art.js';
 import { pendulumAngle, weightAt } from './metronome.js';
 import { PRESETS, TOOLS, CHIMES, SPEAKERS, MAX_ITEMS, MIN_MINUTES, MAX_MINUTES, newItem, newRoutine, MAX_ROUTINES, loadTimer, saveTimer, customCount, CONFIRM_OVER, voiceGain, totalSeconds, RESTS, restSeconds, toolPlan, enabledItems, setKind, matchKind, cues, TimerRun, pictureFor, move, voiceLines, voiceUrl, chimeUrl } from './timer.js';
-import { $ } from './ui.js';
+import { $, pressKey } from './ui.js';
 
 const TRASH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>';
 const PENCIL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg>';
@@ -213,7 +213,7 @@ export function setupTimer({ settings, tools, audio }) {
           if (e.target.closest('button, input, select') || Date.now() < quietUntil) return;
           start(it);
         });
-        li.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === li) { e.preventDefault(); start(it); } });
+        li.addEventListener('keydown', (e) => { if (pressKey(e) && e.target === li) { e.preventDefault(); start(it); } });
       } else if (run) li.setAttribute('aria-label', I.summary(n, label(it), it.minutes));
       if (open) li.append(delButton(it)); // open, it can be deleted from here too
       gestures(li, it);
@@ -501,7 +501,7 @@ export function setupTimer({ settings, tools, audio }) {
   $('timer-edit').addEventListener('click', () => setEditing(!editing));
   // The total time too: a tap turns list editing on or off.
   $('timer-clock').addEventListener('click', () => { if (!run) setEditing(!editing); });
-  $('timer-clock').addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && !run) { e.preventDefault(); setEditing(!editing); } });
+  $('timer-clock').addEventListener('keydown', (e) => { if (pressKey(e) && !run) { e.preventDefault(); setEditing(!editing); } });
 
   // ---- add and delete
   function add(presetId) {
@@ -688,7 +688,7 @@ export function setupTimer({ settings, tools, audio }) {
     const NEXT = { pendulum: 'pulse', pulse: 'bars', bars: 'pendulum' };
     const step = () => { state.metView = NEXT[state.metView] || 'pendulum'; save(); show(); };
     view.addEventListener('click', step);
-    view.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); step(); } });
+    view.addEventListener('keydown', (e) => { if (pressKey(e)) { e.preventDefault(); step(); } });
     let shownBeats = '';
     let aligned = '';
     function build(strengths) {
