@@ -301,10 +301,11 @@ async function weightGrab(env) {
   c.ok(changes.every((d) => d > 0 && Math.abs(d - changes[0]) <= 1), `the same drag is the same change wherever the swing was (${changes})`);
   c.ok(await swinging(), 'grabbing the weight leaves the swing on');
   // A press on the rod well above the weight brings the weight there (slower); a plain press there never turns the swing off.
+  // (Stopped, so the rod stands still where it is measured.)
+  await p.click('#met-toggle');
   await setBpm(120);
   await p.waitForTimeout(700);
   const art = await p.locator('#metronome-art').boundingBox();
-  await p.evaluate(() => { document.getElementById('pendulum').style.transform = 'rotate(0deg)'; });
   const w = await p.locator('#pend-weight').boundingBox();
   await p.mouse.click(w.x + w.width / 2, w.y - 60);
   c.ok(await bpm() === 120 && await swinging(), 'a click on the rod (no drag) neither moves the tempo nor turns the swing off');

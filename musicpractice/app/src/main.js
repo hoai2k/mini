@@ -620,8 +620,12 @@ const CONTROL = 'button, [role="button"], [role="switch"], [role="radio"], [role
 let spaceTaken = false; // this Space was play/stop: its key-up must not press the focused button
 document.addEventListener('keydown', (e) => {
   if (document.querySelector('dialog[open]')) return;
-  if (!$('tap-pad').hidden) return; // the tap pad has the keys (metronomeui.js)
   const t = e.target;
+  // The tap pad has the keys (metronomeui.js), but for T, which taps there too.
+  if (!$('tap-pad').hidden) {
+    if ((e.key === 't' || e.key === 'T') && !e.repeat && !e.metaKey && !e.ctrlKey) { e.preventDefault(); met.tap(e.timeStamp); }
+    return;
+  }
   // Typing in a field (a take's name, the tempo) keeps its keys.
   const typing = (t instanceof HTMLInputElement && !['checkbox', 'radio', 'button', 'range'].includes(t.type)) || t instanceof HTMLTextAreaElement || t?.isContentEditable;
   const keys = !typing && !(t instanceof HTMLSelectElement) && !e.metaKey && !e.ctrlKey && !e.altKey;
