@@ -17,6 +17,11 @@ name: Deploy games to GitHub Pages
 on:
   push:
     branches: [main]
+    # Smoothcraft is a Minecraft mod, not part of the site: a push that only
+    # changes it has nothing to deploy. A push that also changes anything
+    # else still deploys as usual.
+    paths-ignore:
+      - 'smoothcraft/**'
   workflow_dispatch:
     inputs:
       tests:
@@ -53,7 +58,17 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
+      # Everything but smoothcraft/: the mod's hundreds of megabytes of
+      # textures are never published, so the deploy doesn't download them. A
+      # blobless partial clone keeps it that way when build-game.sh fetches the
+      # live commit to rebuild a failed game: only the files it needs come down.
       - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/smoothcraft/
+          sparse-checkout-cone-mode: false
       - uses: pnpm/action-setup@v4
         with:
           version: 10
