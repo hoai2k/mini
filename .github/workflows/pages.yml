@@ -22,6 +22,8 @@ on:
     # else still deploys as usual.
     paths-ignore:
       - 'smoothcraft/**'
+      - '**.md'
+      - '.claude/**'
   workflow_dispatch:
     inputs:
       tests:
@@ -50,6 +52,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 40  # a hung run otherwise bills up to 6 h
     permissions:
       contents: read
       # build-game.sh asks for the last successful run to rebuild a failed
@@ -206,6 +209,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10  # a hung run otherwise bills up to 6 h
     permissions:
       pages: write
       id-token: write
