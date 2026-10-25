@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { load, save, sanitize, clampBpm, beatStrengths, resolveMode, THEMES, DEFAULTS, barPlan, cleanPattern, TICKS, cleanLevels, cleanGap, cleanTrainer, cleanPoly, trainerNext, SOFT, SILENT } from '../src/settings.js';
-import { pendulumAngle } from '../src/metronome.js';
+import { pendulumAngle, clickSec, trimClick } from '../src/metronome.js';
 
 function memoryStorage() {
   const m = new Map();
@@ -345,4 +345,15 @@ test('the polyrhythm: 2 to 9 clicks across the bar', () => {
   assert.deepEqual(cleanPoly({ on: true, n: 5 }), { on: true, n: 5 });
   assert.deepEqual(cleanPoly({ on: true, n: 12 }), { on: true, n: 3 });
   assert.deepEqual(sanitize({ poly: { on: true, n: 4 } }).poly, { on: true, n: 4 });
+});
+
+test('the metronome sounds: every one is kept as saved, an unknown one falls back to the woodblock', () => {
+  for (const sound of ['wood', 'click', 'beep', 'mechanical', 'claves', 'stick', 'cowbell', 'hihat']) assert.equal(sanitize({ sound }).sound, sound);
+  assert.equal(sanitize({ sound: 'gong' }).sound, 'wood');
+  // The ringing ones are recorded for longer; the rest in a tenth of a second.
+  assert.ok(clickSec('cowbell') > 0.2 && clickSec('mechanical') > 0.4);
+  assert.equal(clickSec('claves'), 0.1);
+  // A recording is cut after its last audible sample, and one that rings to the end is kept whole.
+  assert.deepEqual([...trimClick(Float32Array.from([0.5, -0.25, 0.125, 0, 0, 0]))], [0.5, -0.25, 0.125, 0]);
+  assert.equal(trimClick(Float32Array.from([0.5, 0.4])).length, 2);
 });

@@ -564,6 +564,48 @@ async function exercises(env) {
   await p.close();
 }
 
+async function sounds(env) {
+  const p = await env.page();
+  await p.goto(env.base + '#metronome');
+  await p.waitForTimeout(800);
+  const ids = await p.$$eval('#sound option', (o) => o.map((x) => x.value));
+  c.ok(ids.join() === 'wood,click,beep,mechanical,claves,stick,cowbell,hihat', `every sound is offered (${ids})`);
+  // Each sound's clicks, as the page plays them and as the apps' mixers get
+  // them: audible, inside full scale, the downbeat no quieter than a beat.
+  const r = await p.evaluate(async (list) => {
+    const { Metronome, SUB } = await import('./src/metronome.js');
+    const { renderClicks } = await import('./src/nativeaudio.js');
+    const out = {};
+    for (const sound of list) {
+      const m = new Metronome(new AudioContext());
+      m.prepare(sound);
+      await m.rendering[sound];
+      const peak = (d) => d.reduce((a, v) => Math.max(a, Math.abs(v)), 0);
+      const energy = (d) => d.reduce((a, v) => a + v * v, 0);
+      const live = m.rendered[sound].map((b) => b.getChannelData(0));
+      const native = await renderClicks(sound, 48000);
+      out[sound] = { peaks: live.map(peak), strong: energy(live[2]), weak: energy(live[0]), lens: native.slice(0, 4).map((d) => d.length), sub: SUB };
+      m.ctx.close();
+    }
+    return out;
+  }, ids);
+  for (const [sound, v] of Object.entries(r)) {
+    c.ok(v.peaks.every((x) => x > 0.05 && x <= 1.0001), `${sound}: every click audible and inside full scale (${v.peaks.map((x) => x.toFixed(2))})`);
+    c.ok(v.strong >= v.weak * 0.95, `${sound}: the downbeat is no quieter than a beat (${v.strong.toFixed(1)} vs ${v.weak.toFixed(1)})`);
+    c.ok(v.lens.every((n) => n > 480), `${sound}: the apps get whole clicks (${v.lens})`);
+  }
+  c.ok(r.mechanical.lens[2] > 48000 * 0.2 && r.mechanical.lens[0] < 48000 * 0.1, `the mechanical downbeat rings with its bell, the other beats are a dry tick (${r.mechanical.lens})`);
+  // Chosen on the screen, a sound is saved and the running metronome plays it.
+  await p.click('#met-toggle');
+  await p.click('#met-settings-btn');
+  await p.selectOption('#sound', 'cowbell');
+  await p.waitForTimeout(600);
+  const saved = await p.evaluate(() => JSON.parse(localStorage.getItem('musicpractice.settings.v1')).sound);
+  c.ok(saved === 'cowbell', `the chosen sound is saved (${saved})`);
+  c.ok(!p.errors.length, `no page errors in sounds (${p.errors})`);
+  await p.close();
+}
+
 async function metronomeScreen(env) {
   for (const touch of [true, false]) {
     const how = touch ? 'touch' : 'mouse';
@@ -771,7 +813,7 @@ async function themes(env) {
 
 /** `only`: the names of the parts to run (all of them if empty): node flows.mjs exercises routines */
 export async function run(env, only = []) {
-  for (const part of [list, running, routines, practiceLog, metronomeScreen, tapPad, weightGrab, keys, savedTempos, strongBeats, exercises, microphone, themes]) {
+  for (const part of [list, running, routines, practiceLog, metronomeScreen, sounds, tapPad, weightGrab, keys, savedTempos, strongBeats, exercises, microphone, themes]) {
     if (only.length && !only.includes(part.name)) continue;
     try { await part(env); } catch (e) { c.ok(false, `${part.name}: ${e.message.split('\n')[0]}`); }
   }

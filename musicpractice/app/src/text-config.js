@@ -235,6 +235,11 @@ export const EN = {
       wood: 'Woodblock',
       click: 'Click',
       beep: 'Beep',
+      mechanical: 'Mechanical',
+      claves: 'Claves',
+      stick: 'Side stick',
+      cowbell: 'Cowbell',
+      hihat: 'Hi-hat',
     },
     settings: {
       title: 'Metronome settings',
