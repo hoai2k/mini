@@ -42,7 +42,7 @@ export async function renderClicks(sound, sampleRate) {
   const out = [];
   for (const strength of [0, 1, 2, SUB]) {
     const ctx = new OfflineAudioContext(1, Math.ceil(0.1 * sampleRate), sampleRate);
-    const m = new Metronome(ctx);
+    const m = new Metronome(ctx, { render: true }); // the native mixer has its own limiter, as output.js
     m.configure({ bpm: 120, meter: '4/4', accent: true, sound, volume: 1 });
     m.synth(0, strength);
     out.push((await ctx.startRendering()).getChannelData(0));

@@ -19,6 +19,7 @@ permissions:
 jobs:
   build:
     runs-on: macos-15
+    timeout-minutes: 45  # a hung run otherwise bills up to 6 h
     steps:
       - uses: actions/checkout@v4
         with:

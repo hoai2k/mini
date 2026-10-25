@@ -51,15 +51,24 @@ function softClip(n = 2048) {
 }
 
 export class Metronome {
-  /** @param {AudioContext} ctx */
-  constructor(ctx) {
+  /**
+   * @param {BaseAudioContext} ctx
+   * @param {{ render?: boolean }} [opts] `render`: this one only records clicks
+   *   (prepare(), the apps' renderClicks): straight out, not through the
+   *   shared limiter. The limiter is for what is heard, and it is still on
+   *   the way out when the recording plays; recorded through it, from the
+   *   very start of a context (its lookahead and attack), a click came out
+   *   13 to 15 dB quieter (the beep 5) and 10 ms late.
+   */
+  constructor(ctx, { render = false } = {}) {
     this.ctx = ctx;
     // Clicks are driven into a soft clipper (tanh), so the whole click sits
     // near full scale rather than only its first instant: about 8 dB louder
     // at the same peak. The volume comes after it, so turning down keeps the
     // tone. The apps' clicks are rendered through this same chain.
     this.out = ctx.createGain();
-    this.out.connect(output(ctx)); // the shared limiter: with the drone, the chimes and the voice, nothing clips
+    // The shared limiter: with the drone, the chimes and the voice, nothing clips.
+    this.out.connect(render ? ctx.destination : output(ctx));
     this.drive = ctx.createGain();
     this.drive.gain.value = DRIVE;
     const shaper = ctx.createWaveShaper();
@@ -220,7 +229,7 @@ export class Metronome {
     const rate = this.ctx.sampleRate;
     this.rendering[sound] = Promise.all([0, 1, 2, SUB].map((strength) => {
       const off = new OfflineAudioContext(1, Math.ceil(0.1 * rate), rate);
-      const m = new Metronome(off);
+      const m = new Metronome(off, { render: true });
       m.sound = sound;
       m.out.gain.value = 1;
       m.synth(0, strength);

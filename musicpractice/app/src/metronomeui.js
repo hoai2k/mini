@@ -11,7 +11,7 @@ import { GENRES, GENRE_IDS, mainTempo, nameFor, genreRange } from './tempos.js';
 import { clampBpm, SAVED_MAX, METERS, SOUNDS, VIZ_BARS, TICKS, barPlan, cleanPattern, cleanLevels, meterOf, beatStrengths, BPM_MIN, BPM_MAX, SOFT, SILENT, GAP_MAX, TRAINER_STEP_MAX, TRAINER_EVERY_MAX, POLY_COUNTS } from './settings.js';
 import { swingOf, placeWeight, uprightRod, unrotate } from './art.js';
 import { tuckedVolume } from './tuckedvolume.js';
-import { $, chips, note } from './ui.js';
+import { $, chips, note, pressKey } from './ui.js';
 
 /**
  * `mic` says what the Playback Recorder is doing with the sound engine
@@ -367,7 +367,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
   pad.addEventListener('pointerdown', (e) => { if (!e.button) { e.preventDefault(); tap(e.timeStamp); } });
   // On the finger coming down (the moment of the beat), not on its release.
   $('tap-tempo').addEventListener('pointerdown', (e) => { if (!e.button) tap(e.timeStamp); });
-  $('tap-tempo').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tap(); } });
+  $('tap-tempo').addEventListener('keydown', (e) => { if (pressKey(e)) { e.preventDefault(); tap(); } });
 
   bpmSlider.min = BPM_MIN;
   bpmSlider.max = BPM_MAX;
@@ -394,7 +394,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     };
     b.addEventListener('pointerdown', (e) => { e.preventDefault(); setBpm(settings.bpm + d); repeat(450, 0); });
     for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) b.addEventListener(ev, stop);
-    b.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setBpm(settings.bpm + d); } });
+    b.addEventListener('keydown', (e) => { if (pressKey(e)) { e.preventDefault(); setBpm(settings.bpm + d); } });
     b.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 
@@ -1056,7 +1056,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
   });
   for (const [el, act] of [[foot, switchView], [art, toggleSwing]]) {
     el.addEventListener('keydown', (e) => {
-      if (e.key !== 'Enter' && e.key !== ' ') return;
+      if (!pressKey(e)) return;
       e.preventDefault();
       e.stopPropagation(); // not the page's Space (start and stop)
       act();

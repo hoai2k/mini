@@ -298,7 +298,17 @@ when the Art Deco art arrives, measure and record its own.
   beat (start times land between samples), which the clipper turned into
   a different attack: two weak beats correlated at -0.01; now 1.000 for
   every sound, and Click's level no longer wanders by 10%. The apps play
-  the same renderings.
+  the same renderings. **They are recorded straight, not through the shared
+  limiter** (`new Metronome(ctx, { render: true })`; the limiter is still
+  on the way out when they play, and the apps' mixers have their own):
+  recorded through it, from the very start of a context (its lookahead
+  and attack), the clicks had come out 13 to 15 dB quieter than meant
+  (Beep 5) and 10 ms late, so what was heard at full volume was woodblock
+  -21 dB, Click -26, Beep -10 over a click's first 60 ms, and the first
+  clicks of a start (played live until the recordings were ready) were
+  louder than the rest. Now -7, -10 and -3, every peak just under full
+  scale, from the first click to the last. (It was also what failed the
+  apps' mixer tests on beat timing: their clicks are rendered the same way.)
 - Everything you see follows one clock, `heardNow()` in `app/src/audio.js`:
   the time of the sound reaching your ears. It takes the smoother of the
   context's output timestamp (`getOutputTimestamp`, which includes the
@@ -1133,9 +1143,24 @@ slide read as a snap. The way across is a **smaller Routine button**
 
 ## Controls
 
-Touch or mouse throughout. Keyboard: `Space` starts/stops the metronome or
-turns listening on/off, or plays the tuner's reference tone, arrow keys change the tempo (`Shift` for 10),
-`Esc` goes back or closes settings. As a tool on the mini apps shelf it skips
+Touch or mouse throughout. Keyboard (`main.js`, the keys section):
+
+- **`Space` plays and stops** what the screen plays: the metronome, the
+  drone, Record (listening on or off), a routine (start, then pause and
+  carry on); on the Tuner it plays the reference tone. It does so wherever
+  the focus is, even on a button just clicked (a clicked button keeps the
+  focus, and Space would otherwise press it again: the drone's note down,
+  say), except in a text field or a list, or on a control reached with
+  `Tab`, which Space presses as usual. Which it was is tracked by the last
+  input (`keyboardFocus` in `ui.js`: a click or tap, or `Tab`), not by
+  `:focus-visible`, which Chrome turns on as soon as any key is pressed.
+  The controls with keys of their own (the tempo's − and +, Tap, the
+  picture, the volume knob, a routine's rows) take Space only when `Tab`
+  brought the focus there.
+- **Arrows and `+`/`−`** move the tempo on the metronome (`Shift`, or
+  `Page Up`/`Page Down`, by 10) and the note on the drone; a focused slider
+  keeps its own arrows. **`T`** taps the tempo.
+- **`Esc`** goes back to the start, or closes the sheet that is open. As a tool on the mini apps shelf it skips
 the game title screen and controller support from `GAME_GUIDELINES.md` in
 favour of the two-button home screen.
 

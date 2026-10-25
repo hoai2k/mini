@@ -301,10 +301,11 @@ async function weightGrab(env) {
   c.ok(changes.every((d) => d > 0 && Math.abs(d - changes[0]) <= 1), `the same drag is the same change wherever the swing was (${changes})`);
   c.ok(await swinging(), 'grabbing the weight leaves the swing on');
   // A press on the rod well above the weight brings the weight there (slower); a plain press there never turns the swing off.
+  // (Stopped, so the rod stands still where it is measured.)
+  await p.click('#met-toggle');
   await setBpm(120);
   await p.waitForTimeout(700);
   const art = await p.locator('#metronome-art').boundingBox();
-  await p.evaluate(() => { document.getElementById('pendulum').style.transform = 'rotate(0deg)'; });
   const w = await p.locator('#pend-weight').boundingBox();
   await p.mouse.click(w.x + w.width / 2, w.y - 60);
   c.ok(await bpm() === 120 && await swinging(), 'a click on the rod (no drag) neither moves the tempo nor turns the swing off');
@@ -318,6 +319,65 @@ async function weightGrab(env) {
   await p.mouse.click(art.x + art.width * 0.15, art.y + art.height * 0.85);
   c.ok(!(await swinging()), 'a click on the case away from the rod still turns the swing off');
   c.ok(!p.errors.length, `no page errors grabbing the weight (${p.errors})`);
+  await p.close();
+}
+
+/** Keys: Space plays and stops on every screen, even with a clicked button focused; a button reached with Tab is pressed by it. */
+async function keys(env) {
+  const p = await env.page({ touch: false, width: 1100, height: 900 });
+  const saved = () => p.evaluate(() => JSON.parse(localStorage.getItem('musicpractice.settings.v1')));
+  // The drone: click the note down, then Space starts it (the note stays), Space again stops it.
+  await p.goto(env.base + '#drone');
+  await p.waitForTimeout(1000);
+  await p.click('#dr-down');
+  await p.waitForTimeout(300);
+  const note = () => p.evaluate(() => document.getElementById('dr-pitch').value);
+  const droneOn = () => p.evaluate(() => document.getElementById('dr-toggle').getAttribute('aria-pressed') === 'true');
+  const midi = await note();
+  await p.keyboard.press(' ');
+  c.ok(await until(p, () => document.getElementById('dr-toggle').getAttribute('aria-pressed') === 'true', 8000) >= 0, 'drone: Space starts it');
+  c.ok(await note() === midi, `drone: Space after clicking the note down doesn't move the note (${midi} -> ${await note()})`);
+  await p.keyboard.press(' ');
+  await p.waitForTimeout(400);
+  c.ok(!(await droneOn()), 'drone: Space again stops it');
+  await p.keyboard.press('ArrowUp');
+  await p.waitForTimeout(200);
+  c.ok(Number(await note()) === Number(midi) + 1, 'drone: the up arrow moves the note up');
+  // The metronome: click +, then Space starts it (the tempo stays).
+  await p.goto(env.base + '#metronome');
+  await p.waitForTimeout(800);
+  await p.click('#bpm-up');
+  const bpm = (await saved()).bpm;
+  await p.keyboard.press(' ');
+  await p.waitForTimeout(300);
+  c.ok(await p.getAttribute('#met-toggle', 'aria-pressed') === 'true' && (await saved()).bpm === bpm, `metronome: Space after clicking + starts it, the tempo as it was (${bpm})`);
+  await p.keyboard.press('PageUp');
+  c.ok((await saved()).bpm === bpm + 10, 'metronome: Page Up is 10 faster');
+  await p.keyboard.press('-');
+  c.ok((await saved()).bpm === bpm + 9, 'metronome: − is 1 slower');
+  await p.keyboard.press(' ');
+  await p.waitForTimeout(300);
+  c.ok(await p.getAttribute('#met-toggle', 'aria-pressed') === 'false', 'metronome: Space stops it');
+  // A button reached with Tab is pressed by Space, as usual (here the tempo's +).
+  await p.focus('#bpm-down');
+  await p.keyboard.press('Tab');
+  const focused = await p.evaluate(() => document.activeElement?.id);
+  if (focused === 'bpm-up') {
+    const before = (await saved()).bpm;
+    await p.keyboard.press(' ');
+    await p.waitForTimeout(200);
+    c.ok((await saved()).bpm === before + 1 && await p.getAttribute('#met-toggle', 'aria-pressed') === 'false', 'metronome: Space presses a button reached with Tab, and does not start it');
+  }
+  // The routine: Space starts it, and pauses it.
+  await p.goto(env.base + '#routine');
+  await p.waitForTimeout(800);
+  await p.keyboard.press(' ');
+  c.ok(await until(p, () => !document.getElementById('timer-run').hidden, 3000) >= 0, 'routine: Space starts it');
+  await p.waitForTimeout(400);
+  await p.keyboard.press(' ');
+  c.ok(await p.getAttribute('#trun-go', 'aria-pressed') === 'false', 'routine: Space pauses it');
+  await p.click('#trun-stop');
+  c.ok(!p.errors.length, `no page errors with the keys (${p.errors})`);
   await p.close();
 }
 
@@ -711,7 +771,7 @@ async function themes(env) {
 
 /** `only`: the names of the parts to run (all of them if empty): node flows.mjs exercises routines */
 export async function run(env, only = []) {
-  for (const part of [list, running, routines, practiceLog, metronomeScreen, tapPad, weightGrab, savedTempos, strongBeats, exercises, microphone, themes]) {
+  for (const part of [list, running, routines, practiceLog, metronomeScreen, tapPad, weightGrab, keys, savedTempos, strongBeats, exercises, microphone, themes]) {
     if (only.length && !only.includes(part.name)) continue;
     try { await part(env); } catch (e) { c.ok(false, `${part.name}: ${e.message.split('\n')[0]}`); }
   }
