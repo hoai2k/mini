@@ -1,0 +1,2 @@
+# The built mod jar lives here (Git LFS; see .gitattributes), unlike other dist/ folders.
+!/dist/

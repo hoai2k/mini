@@ -69,9 +69,18 @@ are still vanilla pixel art until their requests are delivered.
 
 ## Install
 
-Needs Java 25, [Fabric Loader](https://fabricmc.net/use/) 0.20.1+ and
-Fabric API 0.165.0+26.3. Build the jar (below) and put
-`mod/build/libs/smoothcraft-<version>.jar` in the `mods` folder. It uses
+Download the built mod:
+**https://github.com/hoai2k/mini/raw/main/smoothcraft/dist/smoothcraft-0.1.0.jar**
+(354 MB, textures included; kept in Git LFS under [`dist/`](dist/), so a
+clone has it only after `git lfs pull`). Rebuild it with `./gradlew build`
+(below) and copy `mod/build/libs/smoothcraft-<version>.jar` over it when the
+mod or its textures change.
+
+Needs Minecraft Java Edition 26.3 (the launcher brings Java 25),
+[Fabric Loader](https://fabricmc.net/use/installer/) 0.20.1+ and
+[Fabric API](https://modrinth.com/mod/fabric-api) 0.165.0+26.3. Put the
+Smoothcraft and Fabric API jars in `.minecraft/mods` and play the
+fabric-loader-26.3 profile. It uses
 Fabric's own renderer (Indigo), so it does not work alongside Sodium or Iris,
 and replaces the terrain shader, so it does not combine with resource packs
 that replace `terrain.vsh`/`terrain.fsh` either.
