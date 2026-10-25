@@ -72,9 +72,12 @@ are still vanilla pixel art until their requests are delivered.
 Download the built mod:
 **https://github.com/hoai2k/mini/raw/main/smoothcraft/dist/smoothcraft-0.1.0.jar**
 (354 MB, textures included; kept in Git LFS under [`dist/`](dist/), so a
-clone has it only after `git lfs pull`). Rebuild it with `./gradlew build`
-(below) and copy `mod/build/libs/smoothcraft-<version>.jar` over it when the
-mod or its textures change.
+clone has it only after `git lfs pull`). This one jar stays as it is: **don't
+update it or add any other file to Git LFS** (see "No Git LFS" in
+[`CLAUDE.md`](../CLAUDE.md)), because GitHub never frees LFS storage, even for
+deleted files. A newer build goes somewhere else (a GitHub Release, which the
+owner creates) when one is wanted; until then build it with `./gradlew build`
+(below) and use `mod/build/libs/smoothcraft-<version>.jar` locally.
 
 Needs Minecraft Java Edition 26.3 (the launcher brings Java 25),
 [Fabric Loader](https://fabricmc.net/use/installer/) 0.20.1+ and

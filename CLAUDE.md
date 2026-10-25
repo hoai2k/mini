@@ -184,6 +184,17 @@ or the model left unset so it inherits, for design, architecture, gameplay
 feel and anything open-ended. Give an agent the exact files, interfaces and
 checks it must satisfy so a cheaper model can finish the job without guessing.
 
+## No Git LFS
+
+Don't use Git LFS anywhere in this repository: don't track new files with
+it, and don't update the one file already in it
+(`smoothcraft/dist/smoothcraft-0.1.0.jar`, kept as it is at the owner's
+request). GitHub never frees LFS storage: a deleted or replaced LFS file keeps
+counting against the account's 10 GiB until the whole repository is deleted
+and recreated, and the allowance is shared by every project. Files over
+GitHub's 100 MB limit go somewhere else (a GitHub Release, which the owner
+creates), or ask.
+
 ## Tests and deploys
 
 Pushes to `main` build and deploy only; they run no tests. Tests are your job
