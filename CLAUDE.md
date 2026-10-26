@@ -84,7 +84,13 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
   https://hoai2k.github.io/mini/, one card per game. Apps (tools such as Ear Trainer,
   Ai-Ching, Music Practice, Stocks, MP3 Player, Image Annotator and Meditation Timer) go on its mini apps shelf below the games, with Music
   Practice pinned first and Games Chat second, then the rest newest first. Games that haven't turned out as hoped yet are listed as
-  plain links in its Prototype archive, at the bottom. `GAME_GUIDELINES.md` applies to every game.
+  plain links in its Prototype archive, at the bottom. The games shelf also
+  carries cards for invite-only games from the `swingers` repository (Spider
+  Swingers, Wobblers, Wobbly Battles and Swingers, published at
+  `/swingers/...` on the same site). Their gates ignore the public-access
+  switch, so their cards sit in `<template data-invite>` blocks that the
+  library reveals only to visitors holding an invite pass, like the archive;
+  they keep the shelf's newest-first order. `GAME_GUIDELINES.md` applies to every game.
 - **The Prototype archive is code-locked.** The library shows it only to
   visitors holding an invite pass, and every game or app listed there sits
   behind the shared invite gate opened with `ignorePublicAccess: true`, so the

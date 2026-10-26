@@ -119,6 +119,10 @@
   .mp3player .cover img { width: 30%; height: auto; border-radius: 22%; filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .6)); }
   .stocks .cover { background: radial-gradient(circle at 70% 20%, #1d3557, #0b1220 75%); }
   .stocks .cover img { width: 40%; height: auto; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .45)); }
+  .spiders .cover { background: #0b0d24 url("../swingers/spiders/assets/web/title_bg.jpg") center / cover; }
+  .wobblers .cover { background: #6cc4f0 url("../swingers/wobblers/assets/posters/painting_island.png") center / cover; }
+  .battles .cover { background: #7fc44a url("../swingers/battles/assets/ui/map-grass.jpg") center / cover; }
+  .swingers .cover { background: #141a3a url("../swingers/assets/web/keyart.jpg") center / cover; }
   .percyjackson .cover { background: #10233d url("percyjackson/assets/title-bg.jpg") center / cover; }
   .percyjackson .cover img { width: 80%; height: auto; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .6)); }
   .tankwars .cover {
@@ -165,6 +169,49 @@
        that haven't turned out as hoped yet go in the prototype archive at the
        bottom as plain links, in the same order. -->
   <section class="shelf" aria-label="Games">
+    <!-- Swingers-repo games (Spider Swingers, Wobblers, Wobbly Battles here,
+         Swingers further down) sit behind the shared invite gate with
+         ignorePublicAccess: true, so like the prototype archive their cards
+         live in <template data-invite> and appear only to visitors holding an
+         invite pass (revealed by the script after the archive). -->
+    <template data-invite>
+    <a class="game spiders" href="../swingers/spiders/">
+      <div class="cover">
+        <span class="tag">8 players</span>
+        <img src="../swingers/spiders/assets/web/logo.png" alt="Spider Swingers" loading="lazy">
+      </div>
+      <div class="info">
+        <h2>Spider Swingers</h2>
+        <p>A Rounders spider brawler: swing on stretchy webs, climb the walls and duel with sabers and pistols, up to eight players on one screen.</p>
+        <span class="play">Play →</span>
+      </div>
+    </a>
+
+    <a class="game wobblers" href="../swingers/wobblers/">
+      <div class="cover">
+        <span class="tag">8 players</span>
+        <img src="../swingers/wobblers/assets/ui/logo.png" alt="Wobblers" loading="lazy">
+      </div>
+      <div class="info">
+        <h2>Wobblers</h2>
+        <p>A wobbly open-world island in the spirit of Wobbly Life: drive, ride, climb, grab and fall off things, and work odd jobs for coins, split screen for up to eight.</p>
+        <span class="play">Play →</span>
+      </div>
+    </a>
+
+    <a class="game battles" href="../swingers/battles/">
+      <div class="cover">
+        <span class="tag">2 players</span>
+        <img src="../swingers/battles/assets/ui/logo.png" alt="Wobbly Battles" loading="lazy">
+      </div>
+      <div class="info">
+        <h2>Wobbly Battles</h2>
+        <p>Wobbly ragdoll armies in the style of Totally Accurate Battle Simulator: both players build at once in split screen, then watch the battle together.</p>
+        <span class="play">Play →</span>
+      </div>
+    </a>
+    </template>
+
     <a class="game percyjackson" href="percyjackson/">
       <div class="cover">
         <span class="tag">Co-op</span>
@@ -229,6 +276,20 @@
         <span class="play">Play →</span>
       </div>
     </a>
+
+    <template data-invite>
+    <a class="game swingers" href="../swingers/">
+      <div class="cover">
+        <span class="tag">4 players</span>
+        <img src="../swingers/assets/web/logo.png" alt="Swingers" loading="lazy">
+      </div>
+      <div class="info">
+        <h2>Swingers</h2>
+        <p>A Heave Ho-style climbing party game with the Rounders cast: grab, swing and fling your way across 34 boards of ropes, spinners and spikes, racing or together, up to four.</p>
+        <span class="play">Play →</span>
+      </div>
+    </a>
+    </template>
 
     <a class="game tankwars" href="tankwars/">
       <div class="cover">
@@ -366,8 +427,9 @@
       try { pass = JSON.parse(localStorage.getItem('gate.pass') || 'null'); } catch (e) { /* private mode */ }
       var hasPass = !!pass && typeof pass.id === 'string' && pass.id !== '';
       if (!hasPass && !(local && !/[?&]gatetest/.test(location.search))) return;
-      var t = document.getElementById('prototype-archive');
-      t.replaceWith(t.content.cloneNode(true));
+      document.querySelectorAll('template[data-invite], #prototype-archive').forEach(function (t) {
+        t.replaceWith(t.content.cloneNode(true));
+      });
     })();
   </script>
 
