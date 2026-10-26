@@ -813,7 +813,11 @@ async function microphone() {
     await p.goto(env.base + '#tuner');
     const read = await until(p, () => document.getElementById('tn-letter').textContent === 'A' && document.getElementById('tn-oct').textContent === '3', 20000);
     c.ok(read >= 0, `the tuner reads the player's A3 (${await p.evaluate(() => document.querySelector('.tuner-note').textContent)})`);
-    // The pitch trace draws the note (solid strokes, not just the band and the middle line).
+    // Pitch over time starts folded away; opened, it draws the note (solid strokes, not just the band and the middle line).
+    c.ok(await p.isHidden('#pitch-trace') && await p.isVisible('#trace-toggle'), 'pitch over time starts folded away, with a button to show it');
+    await p.click('#trace-toggle');
+    c.ok(await p.isVisible('#pitch-trace') && await p.getAttribute('#trace-toggle', 'aria-expanded') === 'true', 'the button shows it');
+    c.ok(await p.evaluate(() => JSON.parse(localStorage.getItem('musicpractice.settings.v1')).traceOn) === true, 'and that is kept');
     const traced = await until(p, () => {
       const cv = document.getElementById('pitch-trace');
       if (!cv.width) return false;

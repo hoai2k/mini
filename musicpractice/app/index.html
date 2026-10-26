@@ -407,7 +407,9 @@
         </div>
         <p class="tuner-readout"><span id="tn-cents">&nbsp;</span><span id="tn-hz"></span></p>
         <p class="pure-reading" id="tn-pure" hidden></p>
-        <canvas class="pitch-trace" id="pitch-trace" role="img" data-text-aria-label="tuner.trace"></canvas>
+        <!-- Pitch over time: folded away until asked for (settings.traceOn). -->
+        <button type="button" class="trace-toggle" id="trace-toggle" aria-expanded="false" aria-controls="pitch-trace"><span id="trace-toggle-label"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <canvas class="pitch-trace" id="pitch-trace" role="img" data-text-aria-label="tuner.trace" hidden></canvas>
         <p class="tuner-hint" id="tn-hint" aria-live="polite"></p>
         <aside class="mic-tip mic-off" id="tn-mic-off" aria-live="polite" hidden></aside>
         <div class="strings" id="strings" role="group" data-text-aria-label="tuner.strings"></div>
@@ -526,6 +528,11 @@
             <div class="chips" id="flats-chips"></div>
           </fieldset>
           <label class="row"><span data-text="tuner.settings.transpose"></span><select class="select" id="transpose"></select></label>
+          <fieldset>
+            <legend data-text="tuner.settings.traceSensitivity"></legend>
+            <div class="chips" id="trace-chips"></div>
+            <p class="help" data-text="tuner.settings.traceSensitivityHelp"></p>
+          </fieldset>
           <div class="sheet-links">
             <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
             <button type="button" class="pill open-theme" data-text="common.themeButton"></button>

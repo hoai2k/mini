@@ -4,7 +4,7 @@
 // chosen instrument, and how far off it is, and plays reference tones.
 
 import { TEXT, setRich } from './text.js';
-import { detectPitch, describe, nearestString, noteName, midiToHz, pureTarget, TUNINGS, TRANSPOSE, A4_MIN, A4_MAX, PitchSmoother } from './tuning.js';
+import { detectPitch, describe, nearestString, noteName, midiToHz, pureTarget, TUNINGS, TRANSPOSE, A4_MIN, A4_MAX, PitchSmoother, TraceSmoother, TRACE_SMOOTH } from './tuning.js';
 import { playSamples, outputSettled } from './player.js';
 import { Drone } from './drone.js';
 import { audio, unlock } from './audio.js';
@@ -70,6 +70,22 @@ export function setupTuner({ settings, persist, chips, drone = () => null, mic =
   const trace = [];
   const traceCanvas = $('pitch-trace');
   let traceDrawn = 0;
+  // Its line: a running average of the readings, as steady as its sensitivity says (Tuner settings).
+  const traceSmoother = new TraceSmoother(TRACE_SMOOTH[settings.traceSensitivity], TRACE_GAP);
+  // Folded away until asked for; the choice is kept.
+  const traceToggle = $('trace-toggle');
+  function showTraceToggle() {
+    traceCanvas.hidden = !settings.traceOn;
+    traceToggle.setAttribute('aria-expanded', String(settings.traceOn));
+    $('trace-toggle-label').textContent = settings.traceOn ? TEXT.tuner.traceHide : TEXT.tuner.traceShow;
+  }
+  showTraceToggle();
+  traceToggle.addEventListener('click', () => {
+    settings.traceOn = !settings.traceOn;
+    showTraceToggle();
+    persist();
+    queueFit();
+  });
 
   // ---- gauge
   const ticks = $('gauge-ticks');
@@ -163,6 +179,7 @@ export function setupTuner({ settings, persist, chips, drone = () => null, mic =
   function reset() {
     filled = 0;
     trace.length = 0;
+    traceSmoother.reset();
     reading = null;
     smoother.reset();
     show();
@@ -610,7 +627,7 @@ export function setupTuner({ settings, persist, chips, drone = () => null, mic =
     if (r) {
       const hz = smoother.push(r.hz);
       reading = { hz, at: now, ...place(hz) };
-      trace.push({ at: now, cents: reading.cents, midi: reading.midi });
+      trace.push({ at: now, cents: traceSmoother.push(now, reading.cents, reading.midi), midi: reading.midi });
       show();
     } else if (reading && now - reading.at > HOLD_MS) {
       reading = null;
@@ -687,6 +704,7 @@ export function setupTuner({ settings, persist, chips, drone = () => null, mic =
 
   /** The trace: ±50 cents tall, newest at the right, scrolling left. */
   function drawTrace() {
+    if (!settings.traceOn) return;
     const now = performance.now();
     while (trace.length && now - trace[0].at > TRACE_MS) trace.shift();
     // Nothing new and nothing left to scroll off: leave it.
@@ -748,6 +766,9 @@ export function setupTuner({ settings, persist, chips, drone = () => null, mic =
   chips($('flats-chips'), [{ id: 'sharps', label: TEXT.tuner.settings.sharps }, { id: 'flats', label: TEXT.tuner.settings.flats }],
     () => (settings.flats ? 'flats' : 'sharps'),
     (v) => { settings.flats = v === 'flats'; persist(); render(); });
+  chips($('trace-chips'), ['high', 'medium', 'low'].map((id) => ({ id, label: TEXT.tuner.settings.traceSensitivities[id] })),
+    () => settings.traceSensitivity,
+    (v) => { settings.traceSensitivity = v; traceSmoother.tau = TRACE_SMOOTH[v]; persist(); });
   const transpose = $('transpose');
   for (const t of TRANSPOSE) transpose.append(new Option(t.label, t.id));
   transpose.value = settings.transpose;

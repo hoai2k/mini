@@ -464,6 +464,8 @@ export const EN = {
     cents: (sign, n) => `${sign}${n} cents`,
     hz: (hz) => `${hz} Hz`,
     trace: 'Pitch over the last few seconds: the middle line is in tune, above it sharp, below it flat',
+    traceShow: 'Show pitch over time',
+    traceHide: 'Hide pitch over time',
     hint: {
       playString: 'Play a string',
       playNote: 'Play a note',
@@ -480,6 +482,9 @@ export const EN = {
       sharps: 'Sharps (C♯)',
       flats: 'Flats (D♭)',
       transpose: 'Transposing instrument',
+      traceSensitivity: 'Pitch over time sensitivity',
+      traceSensitivities: { high: 'High', medium: 'Medium', low: 'Low' },
+      traceSensitivityHelp: 'How closely the line follows small changes in pitch. Lower draws a held note as a steadier line.',
       scaleLevel: 'Difficulty',
       scaleLevels: { beginner: 'Beginner', easy: 'Easy', medium: 'Medium', hard: 'Hard', advanced: 'Advanced', custom: 'Custom' },
       scaleTolerance: (c) => `Threshold: ${c}¢`,

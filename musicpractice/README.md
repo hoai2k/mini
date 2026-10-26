@@ -621,6 +621,16 @@ a message that then disappears; a refusal is shown once it is known.
   in tune and red outside, and breaks where the note changes or stops, so a
   held note shows whether it wavers or drifts. On a window too short for
   everything, it is the last thing to go, after the gauge has shrunk.
+  It starts folded away: *Show pitch over time* under the readout opens it
+  (and *Hide* folds it again), and the choice is kept (`traceOn`). Its line
+  is a running average of the readings (`TraceSmoother` in `tuning.js`),
+  as steady as **Pitch over time sensitivity** in Tuner settings says
+  (`traceSensitivity`): High draws every reading the needle shows (as the
+  trace always did), Medium (the default) averages over 0.15 s and Low over
+  0.4 s, starting again at a new note or after a gap. Readings wander a few
+  cents on a held note (an open cello string read as a wavy line); Medium
+  draws it about a quarter as wavy, while a real change still shows within
+  a second. The needle is never averaged this way.
 - **Reference tone**: in Chromatic, *Play A4* (it becomes the last note
   heard) plays a 2.5 s tone with a few harmonics, so low notes still carry
   on a phone speaker. `Space` plays it, or the nearest string's note.

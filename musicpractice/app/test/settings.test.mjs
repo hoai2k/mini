@@ -365,3 +365,11 @@ test('the metronome sounds: every one is kept as saved, an unknown one falls bac
   assert.deepEqual([...trimClick(Float32Array.from([0.5, -0.25, 0.125, 0, 0, 0]))], [0.5, -0.25, 0.125, 0]);
   assert.equal(trimClick(Float32Array.from([0.5, 0.4])).length, 2);
 });
+
+test('the tuner\'s pitch over time: folded away by default, its line a little less sensitive than the readings', () => {
+  assert.equal(DEFAULTS.traceOn, false);
+  assert.equal(DEFAULTS.traceSensitivity, 'medium');
+  assert.equal(sanitize({ traceOn: true, traceSensitivity: 'low' }).traceSensitivity, 'low');
+  assert.equal(sanitize({ traceOn: true }).traceOn, true);
+  assert.equal(sanitize({ traceSensitivity: 'max' }).traceSensitivity, 'medium');
+});
