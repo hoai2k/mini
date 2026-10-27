@@ -384,13 +384,14 @@ Check before merging: the server tests pass; host, join, presence and topics
 work across two windows; the lobby count updates; a guest returns to the
 lobby when the host exits; and local (offline) play still works.
 
-The GitHub Pages workflow runs `npm ci && npm test` in `multiplayer/server` on
-every push to `main`.
+The relay workflow (below) runs `npm ci && npm test` in `multiplayer/server`
+before every deploy of it.
 
 ## Deploying the relay
 
-Pushing a change under `multiplayer/server/` to `main` runs
-`.github/workflows/relay.yml`, which tests the relay and deploys it if the
+Deploying a change under `multiplayer/server/` (pushing it to the `deploy`
+branch with `git push origin main:deploy`; see "Deploy state" in `CLAUDE.md`)
+runs `.github/workflows/relay.yml`, which tests the relay and deploys it if the
 repository has the secrets `CLOUDFLARE_API_TOKEN` (a Cloudflare API token
 with the "Edit Cloudflare Workers" template) and `CLOUDFLARE_ACCOUNT_ID`.
 Without them the workflow only warns, and you deploy from a machine logged in

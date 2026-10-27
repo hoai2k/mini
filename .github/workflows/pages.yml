@@ -1,6 +1,10 @@
 name: Deploy games to GitHub Pages
 
-# A push to main builds and deploys only. Each game's build is its own step
+# Deploys from the `deploy` branch, not `main`: pushing to main runs nothing,
+# and the site is published only when `deploy` is moved forward to main
+# (`git push origin main:deploy`; see "Deploy state" in CLAUDE.md).
+#
+# A push to deploy builds and deploys only. Each game's build is its own step
 # through .github/scripts/build-game.sh: a game that fails to build is
 # published from its live copy instead (rebuilt from the live commit, or
 # crawled off the site), with a warning and a line in the job summary, so one
@@ -16,7 +20,7 @@ name: Deploy games to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [deploy]
     # Smoothcraft is a Minecraft mod, not part of the site: a push that only
     # changes it has nothing to deploy. A push that also changes anything
     # else still deploys as usual.
@@ -42,7 +46,7 @@ permissions:
 # on every push instead can starve the site: a steady stream
 # of pushes would cancel every deploy before it finished. Per-game groups
 # would not help either: there is one Pages site, and every run builds and
-# publishes ALL games from the latest main, so a newer run already contains
+# publishes ALL games from the latest deploy, so a newer run already contains
 # whatever a superseded one would have published. (Before October 2026 this
 # was group github-pages, also never-cancel.)
 concurrency:

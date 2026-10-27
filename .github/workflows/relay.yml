@@ -1,6 +1,8 @@
 name: Deploy the mini-rooms relay
 
-# Deploys multiplayer/server to Cloudflare when it changes on main. Needs the
+# Deploys multiplayer/server to Cloudflare when it changes on the `deploy`
+# branch (like the site: pushing to main runs nothing; see "Deploy state" in
+# CLAUDE.md). Needs the
 # repository secrets CLOUDFLARE_API_TOKEN (a token with "Edit Cloudflare
 # Workers" permission) and CLOUDFLARE_ACCOUNT_ID; without them the deploy
 # step is skipped and the relay must be deployed by hand (npx wrangler deploy).
@@ -13,7 +15,7 @@ name: Deploy the mini-rooms relay
 
 on:
   push:
-    branches: [main]
+    branches: [deploy]
     paths: ['multiplayer/server/**', '.github/workflows/relay.yml']
   workflow_dispatch:
     inputs:

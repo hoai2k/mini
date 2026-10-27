@@ -34,7 +34,8 @@ Dependencies and build output are regenerated locally and ignored by Git.
 
 ## GitHub Pages
 
-Pushes to `main` run `.github/workflows/pages.yml`, which builds Hopper and
+Deploys (pushes to the `deploy` branch, see "Deploy state" in the root
+`CLAUDE.md`) run `.github/workflows/pages.yml`, which builds Hopper and
 publishes the other games and sites beside it. The source entry is
 `hopper/index.html`, and its compiled version is published at
 `/mini/hopper/index.html`; GitHub redirects `/mini/hopper` to `/mini/hopper/`.
