@@ -148,6 +148,15 @@ async function refreshChipQuotes() {
 
 /* ---------- Loading ---------- */
 
+function showProgress(note) {
+  $("progressNote").textContent = note;
+  $("progress").hidden = false;
+}
+
+function hideProgress() {
+  $("progress").hidden = true;
+}
+
 async function select(sym) {
   sym = sym.toUpperCase();
   if (!state.watch.includes(sym)) state.watch.push(sym);
@@ -168,6 +177,7 @@ async function select(sym) {
   $("chart").classList.add("loading");
 
   const token = ++state.loadToken;
+  showProgress(`Loading today's prices for ${sym}…`);
   loadQuote(sym)
     .then((q) => {
       if (token !== state.loadToken) return;
@@ -184,11 +194,17 @@ async function select(sym) {
       state.hist = h;
       state.source = source;
       $("chart").classList.remove("loading");
+      // The built-in copy shows at once; say the live prices are still coming.
+      if (source === "snapshot") showProgress("Showing the built-in copy while today's prices load…");
       render();
     });
-    if (token === state.loadToken && src === "live") state.live = true;
+    if (token === state.loadToken) {
+      if (src === "live") state.live = true;
+      hideProgress();
+    }
   } catch (e) {
     if (token !== state.loadToken) return;
+    hideProgress();
     $("chart").classList.remove("loading");
     $("sub").textContent = "";
     const err = $("error");
