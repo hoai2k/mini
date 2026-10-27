@@ -9,7 +9,7 @@ chapters in story order: four battles, four call-and-answer chapters (echo
 the caller's rhythm), and one casting chapter (keep pace with the bellows).
 [`design/design.md`](design/design.md) lists them.
 It sits behind the shared invite gate (`game/src/gate/gate.js`, a
-byte-identical copy of the one in the `hoai2k.github.io` repository, loaded by
+copy of `gate/loader.js` from the `hoai2k.github.io` repository, which loads the shared door, loaded by
 `game/src/boot.js`), which is off on localhost. The sound workbench is not gated.
 
 **Drum Practice**, on the title screen, has no right or wrong. In free drumming

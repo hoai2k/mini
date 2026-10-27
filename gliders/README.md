@@ -56,8 +56,8 @@ glider, ▲ ▼ colours, Y (F / \ on keyboards) inverts pitch, A ready, B back.
 ## Invite gate
 
 Gliders is in the library's prototype archive, so it sits behind the shared
-invite gate (`game/src/gate/gate.js`, a byte-identical copy of the one in the
-`hoai2k.github.io` repository): `src/boot.js` opens the door, then imports
+invite gate (`game/src/gate/gate.js`, a copy of `gate/loader.js` from the `hoai2k.github.io` repository, which loads the
+shared door): `src/boot.js` opens the door, then imports
 `main.js`. It passes `ignorePublicAccess: true`, so the owner's public-access
 switch for the finished games does not open it; only an invite pass does. To
 let it follow the switch like the finished games, set `game/public-access.json`
