@@ -533,7 +533,9 @@ main > section.story {
   display: grid;
   /* Phone-shot clips stay 9:16 when they play; the thumbnail is capped so a
      portrait video does not take over the page. */
-  grid-template-columns: repeat(2, minmax(0, 240px));
+  /* The clips share the row, at least 180px each, so they sit side by side
+     whenever there is room and only wrap when there isn't. */
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: clamp(1rem, 3vw, 2rem);
   align-items: start;
   justify-content: start;
