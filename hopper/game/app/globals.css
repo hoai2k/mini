@@ -1327,6 +1327,12 @@ button:focus-visible,
     font-size: 7px;
     letter-spacing: 1px;
   }
+  /* The controller note is wider than the gap left of the icon row, so on a
+     narrow screen it sits just above the row instead. */
+  .title-footer:has(.controller-note) {
+    bottom: calc(5% + 54px);
+    font-size: 8px;
+  }
   .edition {
     font-size: 7px;
   }

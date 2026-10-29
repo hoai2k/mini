@@ -655,6 +655,22 @@ export default function Home() {
       if (engine.current === e) engine.current = null;
     };
   }, [edition]);
+  // The frame loop polls the pads; these events (and a check on load) keep
+  // the title's controller note current the moment a pad comes or goes.
+  useEffect(() => {
+    const check = () =>
+      setConnected(
+        typeof navigator.getGamepads === 'function' &&
+          Array.from(navigator.getGamepads()).some((p) => !!p && p.connected),
+      );
+    check();
+    window.addEventListener('gamepadconnected', check);
+    window.addEventListener('gamepaddisconnected', check);
+    return () => {
+      window.removeEventListener('gamepadconnected', check);
+      window.removeEventListener('gamepaddisconnected', check);
+    };
+  }, []);
   useEffect(() => {
     if (screen === 'playing' || screen === 'title') return;
     const id = requestAnimationFrame(() =>
@@ -816,10 +832,29 @@ export default function Home() {
           </div>
           <div className="title-footer">
             <p>THREE WORLDS. ONE EXTRAORDINARY FRIEND.</p>
-            <span>
-              <Gamepad2 size={17} />
-              {connected ? 'CONTROLLER CONNECTED' : 'XBOX CONTROLLER READY'}
-            </span>
+            {connected ? (
+              <span>
+                <Gamepad2 size={17} />
+                CONTROLLER CONNECTED
+              </span>
+            ) : (
+              // Until a pad is connected, the footer recommends one.
+              <span className="controller-note">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="1.25em"
+                  height="1.25em"
+                  aria-hidden="true"
+                  style={{ verticalAlign: '-0.25em' }}
+                >
+                  <path
+                    fill="currentColor"
+                    d="M7 6h10a5 5 0 0 1 4.9 6l-1 4.6a2.6 2.6 0 0 1-4.5 1.2L14.6 16H9.4l-1.8 1.8a2.6 2.6 0 0 1-4.5-1.2l-1-4.6A5 5 0 0 1 7 6zm0 3v1.5H5.5v1.5H7v1.5h1.5V12H10v-1.5H8.5V9H7zm9.5.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"
+                  />
+                </svg>
+                XBOX CONTROLLER HIGHLY RECOMMENDED
+              </span>
+            )}
           </div>
         </div>
       )}
