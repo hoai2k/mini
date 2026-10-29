@@ -425,7 +425,9 @@
         || /\.local$/.test(h) || /^192\.168\./.test(h) || /^10\./.test(h);
       var pass = null;
       try { pass = JSON.parse(localStorage.getItem('gate.pass') || 'null'); } catch (e) { /* private mode */ }
-      var hasPass = !!pass && typeof pass.id === 'string' && pass.id !== '';
+      // A pass from a "public games" code (scope: 'public') opens only what the
+      // public-access switch would, so it does not reveal these either.
+      var hasPass = !!pass && typeof pass.id === 'string' && pass.id !== '' && pass.scope !== 'public';
       if (!hasPass && !(local && !/[?&]gatetest/.test(location.search))) return;
       document.querySelectorAll('template[data-invite], #prototype-archive').forEach(function (t) {
         t.replaceWith(t.content.cloneNode(true));
