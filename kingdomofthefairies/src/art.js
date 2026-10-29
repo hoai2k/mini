@@ -172,7 +172,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   const tctx = tint.getContext('2d');
   const P = painter();
   const fx = { particles: [], flash: 0, shake: 0, texts: [] };
-  const witch = { x: 1450, y: 150, tx: 1450, ty: 150, face: -1 };
+  const witch = { x: 1450, y: 150, tx: 1450, ty: 150, face: 1 };
   let reg = { x: 0, y: 0, n: 0 };
   const grain = makeGrain();
   const dye = makeDye();
@@ -303,10 +303,11 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
       else if (view.state.witchAt) { witch.tx = view.state.witchAt.x; witch.ty = view.state.witchAt.y; }
       else if (b.phase !== 'sail') { witch.tx = 1500; }
       else if (witch.x > 1300 || Math.abs(witch.tx - witch.x) < 10) { witch.tx = 1500; }
-      const old = witch.x;
       witch.x += (witch.tx - witch.x) * Math.min(1, dt * 1.6);
       witch.y += (witch.ty - witch.y) * Math.min(1, dt * 1.6);
-      if (Math.abs(witch.x - old) > 0.3) witch.face = witch.x < old ? -1 : 1;
+      // She faces the ship she is attacking, whichever way she glides (her art,
+      // and the drawn stand-in, face left: 1 draws them as painted).
+      witch.face = witch.x >= b.ship.x ? 1 : -1;
     }
   }
 

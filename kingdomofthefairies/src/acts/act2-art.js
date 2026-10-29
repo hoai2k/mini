@@ -435,14 +435,10 @@ function sleeper(k, st, sl, t) {
   if (sl.y > SHELF_Y + 50 && !sl.floor) ledge(k, st, x, sl.y + 4, 170);
   if (sit && rise > 0) return wakeSitting(k, st, sl, id, sit, x, y, rise, t);
   const up = easeInOut(rise / 0.8);       // 0 lying .. 1 upright
-  // The film edition's crew lie asleep in their own lying-down cut-outs
-  // (two of them, alternately mirrored), and stand as they wake.
+  // The film edition's crew lie asleep on the floor as themselves (asleepAs),
+  // alternately mirrored, and stand as they wake.
   if (FILM && up < 0.5 && k.img('crew-asleep')) {
-    const n = st.sleepers.indexOf(sl), id = n % 4 >= 2 && k.img('crew-asleep-b') ? 'crew-asleep-b' : 'crew-asleep';
-    c.save(); c.translate(x - 5, y + 2); if (n % 2) c.scale(-1, 1);
-    c.globalAlpha = 1 - up * 2;
-    k.asset(id, 0, 0, 140, 65);
-    c.restore();
+    asleepAs(k, st, sl, id, x, y, 1 - up * 2);
     if (up > 0) { c.save(); c.globalAlpha = up * 2; } else return asleepBubbles(k, sl, x, y, t);
   } else c.save();
   c.translate(x + 62 * (1 - up), y - 14 * (1 - up) + Math.sin(t * 1.5 + x) * 3 * up);
@@ -454,16 +450,26 @@ function sleeper(k, st, sl, t) {
   asleepBubbles(k, sl, x, y, t);
 }
 
+// A sleeper on the cave floor, as himself: his own lying sprite (F21) at his
+// standing scale, or until it comes the nearer of the two generic ones (the
+// squire's for the squire and the bosun, the man-at-arms' for him and the
+// helmsman), which the loader draws at the crew's size (POSE_FIT).
+function asleepAs(k, st, sl, id, x, y, alpha) {
+  const c = k.c, crew = CREW_OF[id], face = st.sleepers.indexOf(sl) % 2 ? -1 : 1;
+  if (crew && drawPose(k, crew + '-asleep', x, y + 2, 135, { std: 420, face, alpha })) return;
+  const lie = (crew === 'crew-manatarms' || crew === 'crew-helmsman') && k.img('crew-asleep-b') ? 'crew-asleep-b' : 'crew-asleep';
+  c.save(); c.translate(x - 5, y + 2); if (face < 0) c.scale(-1, 1); c.globalAlpha *= alpha;
+  k.asset(lie, 0, 0, 140, 65);
+  c.restore();
+}
+
 // Waking in the film: from his lying-down cut-out he sits up (his own
 // sprite), holds a moment, then stands and floats up (the standing figure is
 // 135 tall; the crew's sprites are 420 px to a standing figure).
 function wakeSitting(k, st, sl, id, sit, x, y, rise, t) {
   const c = k.c, n = st.sleepers.indexOf(sl), face = n % 2 ? -1 : 1;
   const a = clamp(rise / 0.4, 0, 1), b = clamp((rise - 1.1) / 0.4, 0, 1);
-  if (a < 1) {
-    const lie = n % 4 >= 2 && k.img('crew-asleep-b') ? 'crew-asleep-b' : 'crew-asleep';
-    c.save(); c.translate(x - 5, y + 2); if (n % 2) c.scale(-1, 1); c.globalAlpha = 1 - a; k.asset(lie, 0, 0, 140, 65); c.restore();
-  }
+  if (a < 1) asleepAs(k, st, sl, id, x, y, 1 - a);
   if (b < 1) drawPose(k, sit, x, y + 2, 135, { std: 420, face, alpha: a * (1 - b) });
   if (b > 0) {
     c.save(); c.globalAlpha = b * (rise > 3.5 ? clamp(1 - (rise - 3.5) / 1.5, 0, 1) : 1);
