@@ -79,6 +79,26 @@
     height: auto;
     filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.5));
   }
+  /* "Controller recommended", bottom left of a controller game's cover. */
+  .pad-badge {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px 3px 7px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .pad-badge svg { width: 1.25em; height: 1.25em; color: var(--accent); }
   .tag {
     position: absolute;
     top: 10px;
@@ -177,6 +197,7 @@
     <template data-invite>
     <a class="game spiders" href="../swingers/spiders/">
       <div class="cover">
+        <span class="pad-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 6h10a5 5 0 0 1 4.9 6l-1 4.6a2.6 2.6 0 0 1-4.5 1.2L14.6 16H9.4l-1.8 1.8a2.6 2.6 0 0 1-4.5-1.2l-1-4.6A5 5 0 0 1 7 6zm0 3v1.5H5.5v1.5H7v1.5h1.5V12H10v-1.5H8.5V9H7zm9.5.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>Controller recommended</span>
         <span class="tag">8 players</span>
         <img src="../swingers/spiders/assets/web/logo.png" alt="Spider Swingers" loading="lazy">
       </div>
@@ -189,6 +210,7 @@
 
     <a class="game wobblers" href="../swingers/wobblers/">
       <div class="cover">
+        <span class="pad-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 6h10a5 5 0 0 1 4.9 6l-1 4.6a2.6 2.6 0 0 1-4.5 1.2L14.6 16H9.4l-1.8 1.8a2.6 2.6 0 0 1-4.5-1.2l-1-4.6A5 5 0 0 1 7 6zm0 3v1.5H5.5v1.5H7v1.5h1.5V12H10v-1.5H8.5V9H7zm9.5.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>Controller recommended</span>
         <span class="tag">8 players</span>
         <img src="../swingers/wobblers/assets/ui/logo.png" alt="Wobblers" loading="lazy">
       </div>
@@ -201,6 +223,7 @@
 
     <a class="game battles" href="../swingers/battles/">
       <div class="cover">
+        <span class="pad-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 6h10a5 5 0 0 1 4.9 6l-1 4.6a2.6 2.6 0 0 1-4.5 1.2L14.6 16H9.4l-1.8 1.8a2.6 2.6 0 0 1-4.5-1.2l-1-4.6A5 5 0 0 1 7 6zm0 3v1.5H5.5v1.5H7v1.5h1.5V12H10v-1.5H8.5V9H7zm9.5.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>Controller recommended</span>
         <span class="tag">2 players</span>
         <img src="../swingers/battles/assets/ui/logo.png" alt="Wobbly Battles" loading="lazy">
       </div>
@@ -214,6 +237,7 @@
 
     <a class="game percyjackson" href="percyjackson/">
       <div class="cover">
+        <span class="pad-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 6h10a5 5 0 0 1 4.9 6l-1 4.6a2.6 2.6 0 0 1-4.5 1.2L14.6 16H9.4l-1.8 1.8a2.6 2.6 0 0 1-4.5-1.2l-1-4.6A5 5 0 0 1 7 6zm0 3v1.5H5.5v1.5H7v1.5h1.5V12H10v-1.5H8.5V9H7zm9.5.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>Controller recommended</span>
         <span class="tag">Co-op</span>
         <img src="percyjackson/assets/logo-web.png" alt="Half-Blood Quests" loading="lazy">
       </div>
@@ -259,6 +283,7 @@
 
     <a class="game fibreart" href="fibreart/">
       <div class="cover">
+        <span class="pad-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 6h10a5 5 0 0 1 4.9 6l-1 4.6a2.6 2.6 0 0 1-4.5 1.2L14.6 16H9.4l-1.8 1.8a2.6 2.6 0 0 1-4.5-1.2l-1-4.6A5 5 0 0 1 7 6zm0 3v1.5H5.5v1.5H7v1.5h1.5V12H10v-1.5H8.5V9H7zm9.5.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>Controller recommended</span>
         <img src="fibreart/web/ui/logo.webp" alt="Fibre Art">
       </div>
       <div class="info">
@@ -269,7 +294,7 @@
     </a>
 
     <a class="game hopper" href="hopper/">
-      <div class="cover"><img src="hopper/assets/hopper-logo.png" alt="Hopper the Grasshopper"></div>
+      <div class="cover"><span class="pad-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 6h10a5 5 0 0 1 4.9 6l-1 4.6a2.6 2.6 0 0 1-4.5 1.2L14.6 16H9.4l-1.8 1.8a2.6 2.6 0 0 1-4.5-1.2l-1-4.6A5 5 0 0 1 7 6zm0 3v1.5H5.5v1.5H7v1.5h1.5V12H10v-1.5H8.5V9H7zm9.5.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>Controller recommended</span><img src="hopper/assets/hopper-logo.png" alt="Hopper the Grasshopper"></div>
       <div class="info">
         <h2>Hopper the Grasshopper</h2>
         <p>A controller-first platformer. Jump, ride and blast through fields, foundries and stranger places.</p>
@@ -280,6 +305,7 @@
     <template data-invite>
     <a class="game swingers" href="../swingers/">
       <div class="cover">
+        <span class="pad-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 6h10a5 5 0 0 1 4.9 6l-1 4.6a2.6 2.6 0 0 1-4.5 1.2L14.6 16H9.4l-1.8 1.8a2.6 2.6 0 0 1-4.5-1.2l-1-4.6A5 5 0 0 1 7 6zm0 3v1.5H5.5v1.5H7v1.5h1.5V12H10v-1.5H8.5V9H7zm9.5.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>Controller recommended</span>
         <span class="tag">4 players</span>
         <img src="../swingers/assets/web/logo.png" alt="Swingers" loading="lazy">
       </div>
