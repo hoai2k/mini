@@ -4649,6 +4649,86 @@
       ],
       "anchor": "bottom centre",
       "edition": "film"
+    },
+    "crew-squire-asleep": {
+      "status": "requested",
+      "file": "crew-squire-asleep.webp",
+      "size": [
+        440,
+        160
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-squire-asleep-tinted": {
+      "status": "requested",
+      "file": "crew-squire-asleep-tinted.webp",
+      "size": [
+        440,
+        160
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-bosun-asleep": {
+      "status": "requested",
+      "file": "crew-bosun-asleep.webp",
+      "size": [
+        440,
+        160
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-bosun-asleep-tinted": {
+      "status": "requested",
+      "file": "crew-bosun-asleep-tinted.webp",
+      "size": [
+        440,
+        160
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-helmsman-asleep": {
+      "status": "requested",
+      "file": "crew-helmsman-asleep.webp",
+      "size": [
+        440,
+        160
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-helmsman-asleep-tinted": {
+      "status": "requested",
+      "file": "crew-helmsman-asleep-tinted.webp",
+      "size": [
+        440,
+        160
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-manatarms-asleep": {
+      "status": "requested",
+      "file": "crew-manatarms-asleep.webp",
+      "size": [
+        440,
+        160
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-manatarms-asleep-tinted": {
+      "status": "requested",
+      "file": "crew-manatarms-asleep-tinted.webp",
+      "size": [
+        440,
+        160
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
     }
   },
   "audio": {
