@@ -12,7 +12,7 @@ Artwork for the prototypes in `micro/prototypes/`. Generated from `source/build_
 
 ## Status
 
-13 requested, 32 delivered, 45 in total.
+9 requested, 36 delivered, 45 in total.
 
 ## Launcher cards
 
@@ -92,7 +92,7 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Springtail card on the prototypes page.
 - **Stand-in until delivered:** A moss-green gradient with the title.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Podura aquatica; external body and limb proportions.](../research/assets/references/production/springtail.jpg) · Christian Fischer, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:PoduraAquatica.jpg)
   - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](../research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
@@ -110,7 +110,7 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Bacterium card on the prototypes page.
 - **Stand-in until delivered:** A dark slate gradient with the title.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Magnetospirillum gryphiswaldense; electron-microscopy reference. Internal detail is not visible in ordinary light microscopy.](../research/assets/references/production/magnetotactic.png) · Caulobacter subvibrioides (Diskussion), CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png)
   - [Bdellovibrio cryotomogram section; ultrastructure reference, not a live light-microscope view.](../research/assets/references/production/bdellovibrio.jpg) · Eikosi, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Slice_from_electron_cryotomogram_of_Bdellovibrio_bacteriovorus_cell.jpg)
@@ -409,7 +409,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Size:** 2560 x 1080, opaque
 - **Used for:** The far backdrop, wrapped around the scene at springtail height.
 - **Stand-in until delivered:** Soft green-brown gradient with blurred shapes.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Sphagnum capitulum structure and colour; macro habitat reference.](../research/assets/references/production/bog-hummock.jpg) · OolaEei, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Capitulum.jpg)
   - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](../research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
@@ -426,7 +426,7 @@ Macro-photography look: a real photograph through a macro lens at 2 to 5 times l
 - **Size:** 1536 x 1536, transparent
 - **Used for:** The sundew leaf hazard: sticky tentacles that hold the springtail.
 - **Stand-in until delivered:** Procedural red stalks with clear droplets.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Round-leaved sundew leaf and glandular tentacles.](../research/assets/references/production/sundew.jpg) · Petr Dlouhý, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Drosera_rotundifolia_leaf1.jpg)
   - [Podura aquatica; external body and limb proportions.](../research/assets/references/production/springtail.jpg) · Christian Fischer, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:PoduraAquatica.jpg)

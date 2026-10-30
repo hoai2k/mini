@@ -165,7 +165,7 @@ GROUPS = [
                 "prompt": f"{CARD} {DARKFIELD} Paramecium caudatum about 230 µm long, slipper-shaped with a blunt front and a tapered rear, an oral groove running diagonally along one side, a dense coat of short cilia shimmering as a fine bright fringe, two star-shaped contractile vacuoles and many food vacuoles inside, swimming in a gentle helical path past green Spirogyra filaments and a cluster of bell-shaped Vorticella on stalks. A faint motion trail of displaced particles behind it. {SCIENCE}",
             },
             {
-                "id": "MP-U05", "status": "requested", "name": "Springtail card (macro photography)",
+                "id": "MP-U05", "status": "delivered", "name": "Springtail card (macro photography)",
                 "file": "assets/cards/springtail.webp", "size": "1200 x 800, opaque",
                 "used": "The Springtail card on the prototypes page.",
                 "standin": "A moss-green gradient with the title.",
@@ -173,7 +173,7 @@ GROUPS = [
                 "prompt": f"{CARD} {MACRO} A water springtail, Podura aquatica, about 1.5 mm long, standing on the bare surface film of a Sphagnum bog pool: a plump blue-black to slate-grey granular body, short four-segmented antennae, six short legs whose claws dimple but do not break the water surface, the forked springing organ (furcula) folded forward under the abdomen and held by its catch, the stubby ventral tube (collophore) touching the film. Its reflection and the dimples under its feet are visible. Sphagnum capitula and a red sundew leaf blur softly at the pool edge behind. Exactly six legs, no wings. {SCIENCE}",
             },
             {
-                "id": "MP-U06", "status": "requested", "name": "Bacterium card (phase contrast)",
+                "id": "MP-U06", "status": "delivered", "name": "Bacterium card (phase contrast)",
                 "file": "assets/cards/bacterium.webp", "size": "1200 x 800, opaque",
                 "used": "The Bacterium card on the prototypes page.",
                 "standin": "A dark slate gradient with the title.",
@@ -339,7 +339,7 @@ GROUPS = [
                 "prompt": f"{TILE} {MACRO} A Sphagnum bog lawn seen from directly above at about 40 mm across: densely packed capitula (the star-shaped heads of the moss shoots, each 5 to 10 mm across, with short curved branches in tight rosettes), mixing green and wine-red Sphagnum species, with water droplets caught between the branches and a few dead brown leaves of sedge lying across them. Even focus across the frame. No animals, no flowers.",
             },
             {
-                "id": "MP-S03", "status": "requested", "name": "Bog backdrop plate",
+                "id": "MP-S03", "status": "delivered", "name": "Bog backdrop plate",
                 "file": "assets/springtail/bog-backdrop.webp", "size": "2560 x 1080, opaque",
                 "used": "The far backdrop, wrapped around the scene at springtail height.",
                 "standin": "Soft green-brown gradient with blurred shapes.",
@@ -347,7 +347,7 @@ GROUPS = [
                 "prompt": f"{MACRO} A wide panoramic view taken from a lens resting on the water at the edge of a Sphagnum bog pool, at the eye height of a 1.5 mm springtail: the pool surface stretching away as a bright reflective plane, the far edge a wall of Sphagnum hummocks, cotton-grass and sundew rosettes, all heavily out of focus into soft shapes of green, wine red and straw, a pale grey sky above. Horizon at about one third height so it can wrap around a scene. No animals. {SCIENCE}",
             },
             {
-                "id": "MP-S04", "status": "requested", "name": "Sundew leaf plate",
+                "id": "MP-S04", "status": "delivered", "name": "Sundew leaf plate",
                 "file": "assets/springtail/sundew-leaf.png", "size": "1536 x 1536, transparent",
                 "used": "The sundew leaf hazard: sticky tentacles that hold the springtail.",
                 "standin": "Procedural red stalks with clear droplets.",

@@ -19,11 +19,11 @@ export const ASSETS = {
   },
   "MP-U05": {
     "file": "assets/cards/springtail.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-U06": {
     "file": "assets/cards/bacterium.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-M01": {
     "file": "assets/mite/sem-moss-leaf.webp",
@@ -91,11 +91,11 @@ export const ASSETS = {
   },
   "MP-S03": {
     "file": "assets/springtail/bog-backdrop.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-S04": {
     "file": "assets/springtail/sundew-leaf.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-S05": {
     "file": "assets/springtail/ripples.png",

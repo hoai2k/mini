@@ -192,6 +192,134 @@
     ]
   },
   {
+    "id": "MP-U05",
+    "name": "Springtail card (macro photography)",
+    "file": "assets/cards/springtail.webp",
+    "size": "1200 x 800, opaque",
+    "used": "The Springtail card on the prototypes page.",
+    "prompt": "Use case: photorealistic-natural. Asset type: one finished landscape 3:2 game art plate. Input images are photographs or micrographs for anatomy and environment reference, and any last concept board for mood only; do not paste a photograph collage. Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Macro-photography look: a real photograph through a macro lens at 2 to 5 times life size, natural overcast daylight, real colours, very shallow depth of field with creamy out-of-focus areas, fine water droplets and surface tension visible where they are real, no studio flash glare, no HDR, no colour grading. A water springtail, Podura aquatica, about 1.5 mm long, standing on the bare surface film of a Sphagnum bog pool: a plump blue-black to slate-grey granular body, short four-segmented antennae, six short legs whose claws dimple but do not break the water surface, the forked springing organ (furcula) folded forward under the abdomen and held by its catch, the stubby ventral tube (collophore) touching the film. Its reflection and the dimples under its feet are visible. Sphagnum capitula and a red sundew leaf blur softly at the pool edge behind. Exactly six legs, no wings. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nOutput aspect: landscape 3:2. No text or overlays. Exactly SIX short walking legs; this is a wingless blue-grey Podura, not a beetle. Its water dimples and reflection must be physically plausible. No giant pollen.",
+    "requested_prompt": "Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Macro-photography look: a real photograph through a macro lens at 2 to 5 times life size, natural overcast daylight, real colours, very shallow depth of field with creamy out-of-focus areas, fine water droplets and surface tension visible where they are real, no studio flash glare, no HDR, no colour grading. A water springtail, Podura aquatica, about 1.5 mm long, standing on the bare surface film of a Sphagnum bog pool: a plump blue-black to slate-grey granular body, short four-segmented antennae, six short legs whose claws dimple but do not break the water surface, the forked springing organ (furcula) folded forward under the abdomen and held by its catch, the stubby ventral tube (collophore) touching the film. Its reflection and the dimples under its feet are visible. Sphagnum capitula and a red sundew leaf blur softly at the pool edge behind. Exactly six legs, no wings. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-fe0df7cf-2542-42ac-89a6-8b3a7dbaad1a.png",
+    "input_images": [
+      "research/assets/references/production/springtail.jpg",
+      "research/assets/references/production/bog-pool.jpg",
+      "research/assets/references/production/sundew.jpg",
+      "research/assets/references/moss.jpg",
+      "research/assets/concepts/01-moss-frontier.webp"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1536,
+      1024
+    ],
+    "width": 1200,
+    "height": 800,
+    "sha256": "b93324875fdf59dc94b67ce3ee0d7ecd51cfa8ec45aabe5712ebc4fcbfee94bc",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "springtail",
+        "local": "assets/references/production/springtail.jpg",
+        "author": "Christian Fischer",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:PoduraAquatica.jpg"
+      },
+      {
+        "id": "bog-pool",
+        "local": "assets/references/production/bog-pool.jpg",
+        "author": "JarroNevsbaru",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg"
+      },
+      {
+        "id": "sundew",
+        "local": "assets/references/production/sundew.jpg",
+        "author": "Petr Dlouhý",
+        "license": "CC BY-SA 3.0",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "source": "https://commons.wikimedia.org/wiki/File:Drosera_rotundifolia_leaf1.jpg"
+      },
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      }
+    ],
+    "mood_boards": [
+      "01-moss-frontier.webp"
+    ]
+  },
+  {
+    "id": "MP-U06",
+    "name": "Bacterium card (phase contrast)",
+    "file": "assets/cards/bacterium.webp",
+    "size": "1200 x 800, opaque",
+    "used": "The Bacterium card on the prototypes page.",
+    "prompt": "Use case: scientific-educational. Asset type: one finished landscape 3:2 game art plate. Input images are photographs or micrographs for anatomy and environment reference, and any last concept board for mood only; do not paste a photograph collage. Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Phase-contrast microscope look at 1000x oil immersion: mid-grey background, transparent cells dark with thin bright halos at their edges, colourless, slight optical softness at the limit of resolution (nothing sharper than about 0.2 µm), very shallow depth of field. A field of bog-sediment bacteria at 1000x, about 40 µm across: short rods and curved vibrios 1 to 3 µm long, a few swimming with faint motion blur, one curved magnetotactic spirillum near the centre slightly sharper than the rest, loose clumps of cells in a faint matrix, and at one edge the out-of-focus curved margin of a much larger ciliate looming as a soft dark wall with a blurred fringe of cilia. No cell drawn with more detail than the optics allow. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nOutput aspect: landscape 3:2. No text or overlays. Respect optical resolution: NO visible flagella, magnetosome crystals or internal molecular detail. Bacteria are tiny soft short rods in a broad field.",
+    "requested_prompt": "Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Phase-contrast microscope look at 1000x oil immersion: mid-grey background, transparent cells dark with thin bright halos at their edges, colourless, slight optical softness at the limit of resolution (nothing sharper than about 0.2 µm), very shallow depth of field. A field of bog-sediment bacteria at 1000x, about 40 µm across: short rods and curved vibrios 1 to 3 µm long, a few swimming with faint motion blur, one curved magnetotactic spirillum near the centre slightly sharper than the rest, loose clumps of cells in a faint matrix, and at one edge the out-of-focus curved margin of a much larger ciliate looming as a soft dark wall with a blurred fringe of cilia. No cell drawn with more detail than the optics allow. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-01f84c65-b084-4d40-b76f-9398a55257bc.png",
+    "input_images": [
+      "research/assets/references/production/magnetotactic.png",
+      "research/assets/references/production/bdellovibrio.jpg",
+      "research/assets/references/production/biofilm-fluorescence.png",
+      "research/assets/references/biofilm-sem.jpg",
+      "research/assets/concepts/04-cell-neighborhood.webp"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1536,
+      1024
+    ],
+    "width": 1200,
+    "height": 800,
+    "sha256": "69f8b095f2061f5f516f04e07dabd6d90fb6b2400b8c1642b608a0ee3910e809",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "magnetotactic",
+        "local": "assets/references/production/magnetotactic.png",
+        "author": "Caulobacter subvibrioides (Diskussion)",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png"
+      },
+      {
+        "id": "bdellovibrio",
+        "local": "assets/references/production/bdellovibrio.jpg",
+        "author": "Eikosi",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Slice_from_electron_cryotomogram_of_Bdellovibrio_bacteriovorus_cell.jpg"
+      },
+      {
+        "id": "biofilm-fluorescence",
+        "local": "assets/references/production/biofilm-fluorescence.png",
+        "author": "Schwarz, Michael (ORCID: 0009-0002-1414-3291)",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:NFDI4BIOIMAGE_Calendar_March_2025_-_image_march.png"
+      },
+      {
+        "id": "biofilm-sem",
+        "local": "assets/references/biofilm-sem.jpg",
+        "author": "Timo Kohn, Rast, P., Kallscheuer, N., Wiegand, S., Boedeker, C., Jetten, M.S., Jeske, O., Vollmers, J., Kaster, A.K., Rohde, M. and Jogler, M.",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Electron_microscopic_analysis_of_seagrass_biofilms.jpg"
+      }
+    ],
+    "mood_boards": [
+      "04-cell-neighborhood.webp"
+    ]
+  },
+  {
     "id": "MP-M01",
     "name": "SEM moss leaf surface",
     "file": "assets/mite/sem-moss-leaf.webp",
@@ -967,6 +1095,104 @@
       "interior_horizontal": 6.747,
       "interior_vertical": 6.635
     }
+  },
+  {
+    "id": "MP-S03",
+    "name": "Bog backdrop plate",
+    "file": "assets/springtail/bog-backdrop.webp",
+    "size": "2560 x 1080, opaque",
+    "used": "The far backdrop, wrapped around the scene at springtail height.",
+    "prompt": "Use case: photorealistic-natural. Asset type: one finished ultrawide panoramic 64:27 game art plate. Input images are photographs or micrographs for anatomy and environment reference, and any last concept board for mood only; do not paste a photograph collage. Macro-photography look: a real photograph through a macro lens at 2 to 5 times life size, natural overcast daylight, real colours, very shallow depth of field with creamy out-of-focus areas, fine water droplets and surface tension visible where they are real, no studio flash glare, no HDR, no colour grading. A wide panoramic view taken from a lens resting on the water at the edge of a Sphagnum bog pool, at the eye height of a 1.5 mm springtail: the pool surface stretching away as a bright reflective plane, the far edge a wall of Sphagnum hummocks, cotton-grass and sundew rosettes, all heavily out of focus into soft shapes of green, wine red and straw, a pale grey sky above. Horizon at about one third height so it can wrap around a scene. No animals. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nOutput aspect: ultrawide panoramic 64:27. No text or overlays. Environment only. No animals, hands or people. Low water-level point of view; blurred far Sphagnum bank, no mountains or landscape-scale trees.",
+    "requested_prompt": "Macro-photography look: a real photograph through a macro lens at 2 to 5 times life size, natural overcast daylight, real colours, very shallow depth of field with creamy out-of-focus areas, fine water droplets and surface tension visible where they are real, no studio flash glare, no HDR, no colour grading. A wide panoramic view taken from a lens resting on the water at the edge of a Sphagnum bog pool, at the eye height of a 1.5 mm springtail: the pool surface stretching away as a bright reflective plane, the far edge a wall of Sphagnum hummocks, cotton-grass and sundew rosettes, all heavily out of focus into soft shapes of green, wine red and straw, a pale grey sky above. Horizon at about one third height so it can wrap around a scene. No animals. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-0b6631b5-0ff7-468c-8009-5cc78aa9d99d.png",
+    "input_images": [
+      "research/assets/references/production/bog-hummock.jpg",
+      "research/assets/references/production/bog-pool.jpg",
+      "research/assets/references/production/sundew.jpg",
+      "research/assets/concepts/01-moss-frontier.webp"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1930,
+      815
+    ],
+    "width": 2560,
+    "height": 1080,
+    "sha256": "5423fa4656faa1be51f2c6fdb47822412f731ea7075dff7127a2fc83c0fe8cc6",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "bog-hummock",
+        "local": "assets/references/production/bog-hummock.jpg",
+        "author": "OolaEei",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_Capitulum.jpg"
+      },
+      {
+        "id": "bog-pool",
+        "local": "assets/references/production/bog-pool.jpg",
+        "author": "JarroNevsbaru",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg"
+      },
+      {
+        "id": "sundew",
+        "local": "assets/references/production/sundew.jpg",
+        "author": "Petr Dlouhý",
+        "license": "CC BY-SA 3.0",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "source": "https://commons.wikimedia.org/wiki/File:Drosera_rotundifolia_leaf1.jpg"
+      }
+    ],
+    "mood_boards": [
+      "01-moss-frontier.webp"
+    ]
+  },
+  {
+    "id": "MP-S04",
+    "name": "Sundew leaf plate",
+    "file": "assets/springtail/sundew-leaf.png",
+    "size": "1536 x 1536, transparent",
+    "used": "The sundew leaf hazard: sticky tentacles that hold the springtail.",
+    "prompt": "Use case: photorealistic-natural. Asset type: one finished square 1:1 game art plate. Input images are photographs or micrographs for anatomy and environment reference, and any last concept board for mood only; do not paste a photograph collage. Macro-photography look: a real photograph through a macro lens at 2 to 5 times life size, natural overcast daylight, real colours, very shallow depth of field with creamy out-of-focus areas, fine water droplets and surface tension visible where they are real, no studio flash glare, no HDR, no colour grading. One round-leaved sundew leaf (Drosera rotundifolia) seen from directly above, isolated: a round green-to-red blade about 8 mm across on a narrow petiole pointing down, covered with about 200 red glandular tentacles, short ones in the centre and long ones at the margin, each tipped with a clear glistening droplet of sticky mucilage; a few marginal tentacles bending inward. No insect on it. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nOutput aspect: square 1:1. Real transparent alpha background, not a checkerboard or magenta. The single round leaf and petiole fit wholly inside the square with clear margin.No insects or other creatures.",
+    "requested_prompt": "Macro-photography look: a real photograph through a macro lens at 2 to 5 times life size, natural overcast daylight, real colours, very shallow depth of field with creamy out-of-focus areas, fine water droplets and surface tension visible where they are real, no studio flash glare, no HDR, no colour grading. One round-leaved sundew leaf (Drosera rotundifolia) seen from directly above, isolated: a round green-to-red blade about 8 mm across on a narrow petiole pointing down, covered with about 200 red glandular tentacles, short ones in the centre and long ones at the margin, each tipped with a clear glistening droplet of sticky mucilage; a few marginal tentacles bending inward. No insect on it. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-32c6688f-845c-44df-872b-24fcf79a8c2c.png",
+    "input_images": [
+      "research/assets/references/production/sundew.jpg",
+      "research/assets/references/production/springtail.jpg"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 1536,
+    "height": 1536,
+    "sha256": "e2a127241a882c2cbf79781ab4a5cb4cc6737e1cdc60da90ba5552bbf4c0c1bd",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "sundew",
+        "local": "assets/references/production/sundew.jpg",
+        "author": "Petr Dlouhý",
+        "license": "CC BY-SA 3.0",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "source": "https://commons.wikimedia.org/wiki/File:Drosera_rotundifolia_leaf1.jpg"
+      },
+      {
+        "id": "springtail",
+        "local": "assets/references/production/springtail.jpg",
+        "author": "Christian Fischer",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:PoduraAquatica.jpg"
+      }
+    ],
+    "mood_boards": []
   },
   {
     "id": "MP-R01",
