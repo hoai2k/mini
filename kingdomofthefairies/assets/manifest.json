@@ -4809,6 +4809,66 @@
       ],
       "anchor": "bottom centre",
       "edition": "film"
+    },
+    "azurine-swoon": {
+      "status": "requested",
+      "file": "azurine-swoon.webp",
+      "size": [
+        260,
+        380
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "azurine-swoon-tinted": {
+      "status": "requested",
+      "file": "azurine-swoon-tinted.webp",
+      "size": [
+        260,
+        380
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "demon-red-carry": {
+      "status": "requested",
+      "file": "demon-red-carry.webp",
+      "size": [
+        260,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "demon-red-carry-tinted": {
+      "status": "requested",
+      "file": "demon-red-carry-tinted.webp",
+      "size": [
+        260,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "demon-teal-carry": {
+      "status": "requested",
+      "file": "demon-teal-carry.webp",
+      "size": [
+        260,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "demon-teal-carry-tinted": {
+      "status": "requested",
+      "file": "demon-teal-carry-tinted.webp",
+      "size": [
+        260,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
     }
   },
   "audio": {
