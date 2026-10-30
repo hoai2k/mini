@@ -85,7 +85,9 @@ void main() {
   if (uMode < 0.5) {
     vec3 l3 = vec3(lap);
     if (uChroma > 0.5) l3 = vec3(lapAt(vUv, P.r, s * 1.3, px) * 0.8, lap, lapAt(vUv, P.r, s * 0.8, px) * 1.15);
-    vec3 tie = 1. + uTie * uFocusK * l3 * 1.25;
+    // A broader second scale gives the bright halo just outside a thick cell's edge.
+    float lapWide = lapAt(vUv, P.r, s * 3.5, px) / 4.;
+    vec3 tie = 1. + uTie * uFocusK * (l3 * 1.25 + lapWide * 1.6);
     float refr = 1. - uRefr * clamp(dot(grad, grad) * 22., 0., 0.55);
     col = bg * T * clamp(tie, 0.2, 2.) * refr;
     col *= 1. - 0.05 * clamp(P.r, 0., 1.);

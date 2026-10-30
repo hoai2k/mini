@@ -85,7 +85,7 @@ export class View {
 
   setPhoto(tex, mean) {
     // MP-A03 delivered: replaces the procedural out-of-focus filaments.
-    const m = propertyMaterial({ vertexShader: QUAD_VS, fragmentShader: PHOTO_FS, uniforms: { uSize: { value: new THREE.Vector2(1, 1) }, uTex: { value: tex }, uMean: { value: new THREE.Vector3(...mean) }, uDim: { value: 0.5 }, uTile: { value: new THREE.Vector2(3600, 2025) } } });
+    const m = propertyMaterial({ vertexShader: QUAD_VS, fragmentShader: PHOTO_FS, uniforms: { uSize: { value: new THREE.Vector2(1, 1) }, uTex: { value: tex }, uMean: { value: new THREE.Vector3(...mean) }, uDim: { value: 0.36 }, uTile: { value: new THREE.Vector2(3600, 2025) } } });
     tex.wrapS = tex.wrapT = THREE.MirroredRepeatWrapping;
     tex.needsUpdate = true;
     this.photo = new THREE.Mesh(this.quadGeo, m);
@@ -213,7 +213,7 @@ export class View {
     bu.uUroid.value.set(b.ux, b.uy, 60);
     let t = 0;
     for (const pod of b.pods) {
-      const on = this.flags.caps && pod.s > 0.12 && t < 5;
+      const on = this.flags.caps && pod.s > 0.1 && t < 5;
       if (on) bu.uTips.value[t++].set(pod.x, pod.y, Math.min(1, pod.s * 1.3), 0);
     }
     for (; t < 5; t++) bu.uTips.value[t].set(0, 0, 0, 0);

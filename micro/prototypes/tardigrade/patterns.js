@@ -70,18 +70,18 @@ export function sphagCell(u, v) {
 export const cellAt = (kind, u, v) => (kind === 'sphagnum' ? sphagCell(u, v) : laminaCell(u, v));
 
 /**
- * Find a wall for a claw near (u, v) within radius R: a coarse search, then a
+ * Find a wall for a claw near (u, v) within radius R (cellFn(u, v) -> { dist, junction }): a coarse search, then a
  * few Newton steps onto the wall line. Returns { u, v, dist, quality } or null.
  * quality 0..1: junctions and walls across the pull direction hold best.
  */
-export function snapToWall(kind, u, v, R, pullU = 1, pullV = 0) {
+export function snapToWall(cellFn, u, v, R, pullU = 1, pullV = 0) {
   let best = null, bestScore = Infinity;
   const N = 6;
   for (let i = -N; i <= N; i++) for (let j = -N; j <= N; j++) {
     const su = u + (i / N) * R, sv = v + (j / N) * R;
     const d0 = Math.hypot(su - u, sv - v);
     if (d0 > R) continue;
-    const c = cellAt(kind, su, sv);
+    const c = cellFn(su, sv);
     const score = c.dist * 6 + d0 * 0.6;
     if (score < bestScore) { bestScore = score; best = [su, sv]; }
   }
@@ -89,19 +89,19 @@ export function snapToWall(kind, u, v, R, pullU = 1, pullV = 0) {
   let [pu, pv] = best;
   const e = 0.004;
   for (let k = 0; k < 4; k++) {
-    const f = cellAt(kind, pu, pv).dist;
+    const f = cellFn(pu, pv).dist;
     if (f < 0.003) break;
-    const gu = (cellAt(kind, pu + e, pv).dist - cellAt(kind, pu - e, pv).dist) / (2 * e);
-    const gv = (cellAt(kind, pu, pv + e).dist - cellAt(kind, pu, pv - e).dist) / (2 * e);
+    const gu = (cellFn(pu + e, pv).dist - cellFn(pu - e, pv).dist) / (2 * e);
+    const gv = (cellFn(pu, pv + e).dist - cellFn(pu, pv - e).dist) / (2 * e);
     const g2 = gu * gu + gv * gv;
     if (g2 < 1e-6) break;
     pu -= (f * gu) / g2; pv -= (f * gv) / g2;
   }
-  const c = cellAt(kind, pu, pv);
+  const c = cellFn(pu, pv);
   if (c.dist > 0.02 || Math.hypot(pu - u, pv - v) > R * 1.15) return null;
   // Wall direction from the gradient: claws hook best across their pull.
-  const gu = cellAt(kind, pu + 0.03, pv).dist - cellAt(kind, pu - 0.03, pv).dist;
-  const gv = cellAt(kind, pu, pv + 0.03).dist - cellAt(kind, pu, pv - 0.03).dist;
+  const gu = cellFn(pu + 0.03, pv).dist - cellFn(pu - 0.03, pv).dist;
+  const gv = cellFn(pu, pv + 0.03).dist - cellFn(pu, pv - 0.03).dist;
   const gl = Math.hypot(gu, gv) || 1, pl = Math.hypot(pullU, pullV) || 1;
   const across = Math.abs((gu * pullU + gv * pullV) / (gl * pl));
   const junction = c.junction < 0.05 ? 0.25 : 0;

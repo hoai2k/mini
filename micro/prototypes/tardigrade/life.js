@@ -12,7 +12,6 @@
 // muscle-driven shape change). A finished tun on a dry leaf skips ahead to
 // the next rain; then it rehydrates, which takes time, and it might not wake.
 import * as THREE from '../shared/vendor/three.module.min.js';
-import { sphagCell } from './patterns.js';
 
 export const COMPRESSIONS = { '240× (a day in 6 min)': 240, '60× (a day in 24 min)': 60, '1440× (a day in 1 min)': 1440, 'Paused (no drying)': 0 };
 
@@ -174,7 +173,7 @@ export class Life {
           this.world.foodGroup.remove(f.item.mesh);
           this.world.food.splice(this.world.food.indexOf(f.item), 1);
         } else {
-          f.leaf.eaten[f.cell] = 255; f.leaf.eatenTex.needsUpdate = true;
+          f.leaf.eat(...f.cell);
         }
         this.events.toast(`Fed on ${f.name} (+${Math.round(f.value * 100)}% reserves)`);
         this.feeding = null;
@@ -199,13 +198,9 @@ export class Life {
     // Otherwise pierce the leaf cell under the mouth (grazers suck moss cells).
     const loc = w.leaf.toLocal(mouth, {});
     const L = w.leaf;
-    if (!L.inside(loc.u, loc.v)) { this.events.toast('Nothing to bite here'); return; }
-    if (L.kind === 'sphagnum') {
-      // Only the narrow green chlorophyllose cells are alive.
-      if (sphagCell(loc.u, loc.v).dist > 0.03) { this.events.toast('A hyaline cell: dead, empty, only water'); return; }
-    } else if (Math.abs(loc.v) < 0.22) { this.events.toast('The costa: thick-walled, nothing to suck'); return; }
-    const cell = L.cellIndex(loc.u, loc.v);
-    if (cell < 0 || L.eaten[cell]) { this.events.toast('This cell is already empty'); return; }
+    const why = L.whyNotEat(loc.u, loc.v);
+    if (why) { this.events.toast(why); return; }
+    const cell = [loc.u, loc.v];
     this.feeding = { leaf: L, cell, t: 0, dur: 3.2, value: 0.07, gut: [0.45, 0.62, 0.25], name: 'a leaf cell' };
     this.events.toast('Piercing a leaf cell with the stylets…');
   }

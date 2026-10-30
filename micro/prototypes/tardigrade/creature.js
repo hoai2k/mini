@@ -49,16 +49,16 @@ function bodyParts() {
   const P = [];
   P.push({ id: 0, sdf: sd.ellipsoid([1.18, 0.02, 0], [0.5, 0.44, 0.46]) });
   P.push({ id: 0, sdf: sd.roundCone([1.36, -0.02, 0], [1.72, -0.1, 0], 0.3, 0.13), blend: 0.12 });
-  P.push({ id: 1, sdf: sd.ellipsoid([0.6, 0.07, 0], [0.56, 0.53, 0.57]), blend: 0.2 });
-  P.push({ id: 2, sdf: sd.ellipsoid([-0.04, 0.09, 0], [0.56, 0.55, 0.6]), blend: 0.2 });
-  P.push({ id: 3, sdf: sd.ellipsoid([-0.66, 0.06, 0], [0.52, 0.52, 0.56]), blend: 0.2 });
+  P.push({ id: 1, sdf: sd.ellipsoid([0.6, 0.09, 0], [0.56, 0.58, 0.58]), blend: 0.2 });
+  P.push({ id: 2, sdf: sd.ellipsoid([-0.04, 0.11, 0], [0.56, 0.6, 0.61]), blend: 0.2 });
+  P.push({ id: 3, sdf: sd.ellipsoid([-0.66, 0.08, 0], [0.52, 0.57, 0.57]), blend: 0.2 });
   P.push({ id: 4, sdf: sd.ellipsoid([-1.16, 0.0, 0], [0.44, 0.43, 0.44]), blend: 0.2 });
   for (const L of LEGS) {
     const foot = L.ground.clone().add(new THREE.Vector3(0, 0.12, 0));
-    const r0 = L.pair === 3 ? 0.19 : 0.21;
-    P.push({ id: LEG_ID(L.index), sdf: sd.roundCone(L.hip.toArray(), foot.toArray(), r0, 0.135), blend: 0.13 });
+    const r0 = L.pair === 3 ? 0.21 : 0.235;
+    P.push({ id: LEG_ID(L.index), sdf: sd.roundCone(L.hip.toArray(), foot.toArray(), r0, 0.155), blend: 0.13 });
     // A slight bulge of the foot (the "sole" the claws sit on).
-    P.push({ id: LEG_ID(L.index), sdf: sd.ellipsoid(foot.clone().add(new THREE.Vector3(0, -0.02, 0)).toArray(), [0.14, 0.11, 0.14]), blend: 0.06 });
+    P.push({ id: LEG_ID(L.index), sdf: sd.ellipsoid(foot.clone().add(new THREE.Vector3(0, -0.02, 0)).toArray(), [0.155, 0.12, 0.155]), blend: 0.06 });
   }
   // Cuticle folds between the leg-bearing regions.
   for (const [cx, ry, rz] of [[0.93, 0.47, 0.5], [0.3, 0.57, 0.6], [-0.36, 0.57, 0.6], [-0.93, 0.5, 0.52]]) {
@@ -125,7 +125,7 @@ export class Creature {
     this.gutAbs = new THREE.Vector3(0.5, 0.45, 0.7);
 
     // Body (with legs): the SDF mesh.
-    const geo = buildSdfMesh(bodyParts(), { min: [-2.0, -0.92, -1.02], max: [2.0, 0.76, 1.02], cell: 0.03 });
+    const geo = buildSdfMesh(bodyParts(), { min: [-2.0, -0.92, -1.02], max: [2.0, 0.82, 1.02], cell: 0.03 });
     this.body = this.addPart('cuticle and body', geo, { dn: 0.04, absorb: [0.05, 0.08, 0.18] }, { color: 0xeadfc6, opacity: 0.55, roughness: 0.4 });
     this.restBody = geo.attributes.position.array.slice();
 

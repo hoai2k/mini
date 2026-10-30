@@ -90,7 +90,7 @@ void main() {
   vec3 c = texture2D(uCyto, (vW + uCytoOff) / uCytoTile).rgb;
   vec3 cod = -log(clamp(c / uCytoMean, 0.08, 4.));
   float e2 = endo * clear;
-  od += e2 * (vec3(0.12, 0.125, 0.2) + cod * 0.3);
+  od += e2 * (vec3(0.1, 0.1, 0.15) + h * vec3(0.5, 0.5, 0.66) + cod * 0.4);
   phase += e2 * (0.08 + dot(cod, vec3(0.08)));
   // The uroid: the crumpled rear, denser and darker.
   float u = 1. - smoothstep(0., uUroid.z, distance(vW, uUroid.xy));
@@ -122,7 +122,7 @@ void main() {
   float sph = sqrt(clamp(1. - r * r, 0., 1.));
   float edge = 1. - smoothstep(0.85, 1.15, r);
   float ph = 0.; vec3 od = vec3(0.);
-  if (k < 0.5) { ph = 0.16 * sph; od = vec3(0.2, 0.21, 0.26) * edge; }
+  if (k < 0.5) { ph = 0.18 * sph; od = vec3(0.3, 0.31, 0.38) * edge; }
   else if (k < 1.5) { ph = 0.22 * sph; od = vec3(0.05) * edge; }
   else if (k < 2.5) {
     // Bipyramidal crystal: a strongly refractile diamond outline.
@@ -261,8 +261,8 @@ void main() {
   float body = 1. - smoothstep(-wpx, wpx, sd);
   float yn = clamp(p.y / r, -1., 1.);
   float h = sqrt(max(1. - yn * yn, 0.)) * body;
-  float ph = h * 0.45;
-  vec3 od = h * vec3(0.02, 0.02, 0.03);
+  float ph = h * 0.6 + 0.25 * exp(-sd * sd / 1.2);
+  vec3 od = h * vec3(0.02, 0.02, 0.03) + OD_CHL * 0.12 * h;
   // Cross walls between cells.
   float cw = abs(fract((p.x + uSeed * 300.) / uCell) - 0.5) * uCell;
   float wall = smoothstep(uCell * 0.5 - 1.6, uCell * 0.5 - 0.3, cw) * body;
@@ -270,11 +270,11 @@ void main() {
   // Helical chloroplast ribbons with serrated edges and pyrenoids.
   float chl = 0.;
   float pyr = 0.;
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < 3; i++) {
     if (float(i) >= uStrands) break;
-    float th = 6.28318 * (p.x / uPitch) + float(i) * 3.14159 + uSeed * 6.;
+    float th = 6.28318 * (p.x / uPitch) + float(i) * 6.28318 / uStrands + uSeed * 6.;
     float yr = r * 0.8 * cos(th);
-    float w = 3. + 2.6 * abs(sin(th));
+    float w = 4.5 + 4.5 * abs(sin(th));
     float serr = 0.75 + 0.5 * vnoise(vec2(p.x * 0.6, float(i) * 9. + uSeed * 20.));
     float band = 1. - smoothstep(w * serr * 0.6, w * serr, abs(p.y - yr));
     float front = 0.7 + 0.3 * sin(th);
@@ -283,7 +283,7 @@ void main() {
     pyr += band * exp(-pow((pp - 0.5) * 9., 2.)) * exp(-pow((p.y - yr) / 1.6, 2.));
   }
   // Cells near each wall are a little paler (chloroplast ends).
-  od += OD_CHL * clamp(chl, 0., 1.2) * 0.85 * body * (0.75 + 0.25 * vnoise(p * 0.3));
+  od += OD_CHL * clamp(chl, 0., 1.2) * 0.7 * body * (0.75 + 0.25 * vnoise(p * 0.3));
   ph += chl * 0.12 + pyr * 0.35;
   // A thin mucilage sheath.
   ph += 0.05 * (1. - smoothstep(0., 4., sd)) * step(0., sd);
@@ -306,11 +306,11 @@ void main() {
     sd = length(max(d, 0.)) + min(max(d.x, d.y), 0.) - 3.;
   } else {
     b = b0 * pow(max(1. - xn * xn, 0.), 0.62);
-    sd = abs(xn) < 1. ? (abs(p.y) - b) * 0.95 : (abs(p.x) - a);
+    sd = abs(xn) < 1. ? (abs(p.y) - b) * 0.95 : length(vec2(abs(p.x) - a, p.y));
   }
   float body = 1. - smoothstep(-wpx, wpx, sd);
   float h = sqrt(clamp(-sd / max(b, 1.), 0., 1.)) * body;
-  float ph = h * 0.4 + 0.35 * exp(-sd * sd / 0.8);
+  float ph = h * 0.4 + 0.35 * exp(-sd * sd / 0.8) * step(abs(xn), 1.02);
   vec3 od = h * vec3(0.02, 0.03, 0.05);
   if (uGirdle > 0.5) {
     ph += 0.15 * exp(-pow((abs(p.y) - b * 0.55) / 0.7, 2.)) * body;

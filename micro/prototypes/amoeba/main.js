@@ -108,7 +108,7 @@ F({ id: 'mask', group: 'Rendering', label: 'MSAA membrane mask', fixed: true,
 F({ id: 'wrinkle', group: 'Body', label: 'Crumpled uroid', on: true,
   about: 'Small folds at the rear (the uroid) where the membrane is being taken back in.', onChange: (v) => { view.flags.wrinkle = v; } });
 F({ id: 'caps', group: 'Body', label: 'Hyaline caps', on: true,
-  about: 'A clear cap of cytoplasm at each advancing tip, free of granules.', onChange: (v) => { view.flags.caps = v; } });
+  about: 'A clear cap of cytoplasm at each advancing tip, free of granules.', onChange: (v) => { view.flags.caps = v; cyto.caps = v; } });
 F({ id: 'area', group: 'Body', label: 'Volume conservation (area pressure)', on: true,
   about: 'An exact area projection after each step: any arm pushed out is paid for elsewhere. Off, the cell shrinks under tension and arms are free. Module: shared/techniques/amoeba-softbody.js.',
   onChange: (v) => { body.opts.area = v; } });

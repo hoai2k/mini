@@ -7,7 +7,7 @@
 // the leaf axils, where leaves nearly touch, and in random hollows) minus one
 // global dryness value that rises through the day.
 import * as THREE from '../shared/vendor/three.module.min.js';
-import { cellAt, snapToWall, LAMINA, SPHAG, hash1 } from './patterns.js';
+import { cellAt, sphagCell, snapToWall, LAMINA, SPHAG, hash1 } from './patterns.js';
 import { opticalMaterial, leafOpticalMaterial, particleOpticalMaterial, litMaterial, leafLitMaterial } from './materials.js';
 
 export const LAYER_SUBSTRATE = 1;
@@ -32,7 +32,9 @@ export class Leaf {
     this.V = new THREE.Vector3().crossVectors(this.N, this.U);
     this.base = new THREE.Vector3(...base);
     this.matrix = new THREE.Matrix4().makeBasis(this.U, this.V, this.N).setPosition(this.base);
-    this.uniforms = { uDry: { value: 0 }, uTex: { value: null }, uHasTex: { value: 0 } };
+    this.uniforms = { uDry: { value: 0 }, uTex: { value: null }, uHasTex: { value: 0 }, uWallMap: { value: null }, uTile: { value: 2 }, uTexMean: { value: new THREE.Vector3(0.7, 0.7, 0.7) } };
+    this.wallMap = null; // set when the delivered micrograph arrives (wallmap.js)
+    this.cellFn = (u, v) => (this.wallMap ? this.wallMap.cell(u, v) : cellAt(this.kind, u, v));
     this.cap = new Float32Array(FL * FW);
     this.filmData = new Uint8Array(FL * FW);
     this.filmTex = new THREE.DataTexture(this.filmData, FL, FW, THREE.RedFormat, THREE.UnsignedByteType);
@@ -83,6 +85,25 @@ export class Leaf {
     const col = c.col + this.eatenInfo.w, row = c.row + this.eatenInfo.z;
     if (col < 0 || row < 0 || col >= this.eatenInfo.x || row >= this.eatenInfo.y) return -1;
     return row * this.eatenInfo.x + col;
+  }
+
+  /** Can the stylets get anything from the cell under (u, v)? Returns null if so, else why not. */
+  whyNotEat(u, v) {
+    if (!this.inside(u, v)) return 'Nothing to bite here';
+    if (this.wallMap) {
+      if (!this.wallMap.living(u, v)) return this.kind === 'sphagnum' ? 'A hyaline cell: dead, empty, only water' : 'A cell wall: nothing to suck';
+      return this.wallMap.isEaten(u, v) ? 'This cell is already empty' : null;
+    }
+    if (this.kind === 'sphagnum' && sphagCell(u, v).dist > 0.03) return 'A hyaline cell: dead, empty, only water';
+    if (this.kind === 'lamina' && Math.abs(v) < LAMINA.costaW) return 'The costa: thick-walled, nothing to suck';
+    const i = this.cellIndex(u, v);
+    return i < 0 || this.eaten[i] ? 'This cell is already empty' : null;
+  }
+
+  eat(u, v) {
+    if (this.wallMap) { this.wallMap.eat(u, v); return; }
+    const i = this.cellIndex(u, v);
+    if (i >= 0) { this.eaten[i] = 255; this.eatenTex.needsUpdate = true; }
   }
 
   buildMesh() {
@@ -211,7 +232,7 @@ export class World {
   /** Find a wall for a claw on leaf L near (u, v). */
   foothold(L, u, v, R, pullU, pullV) {
     if (!L.inside(u, v, 0.02)) return null;
-    return snapToWall(L.kind, u, v, R, pullU, pullV);
+    return snapToWall(L.cellFn, u, v, R, pullU, pullV);
   }
 }
 
@@ -233,9 +254,14 @@ export class Particles {
   constructor(scene, atlasUniform, count = 500) {
     this.count = count;
     const pos = new Float32Array(count * 3), info = new Float32Array(count * 2);
+    // Atlas layout (MP-T04): row 1 detritus, row 2 small green algae,
+    // tiles 8-9 bacteria, 10 diatom, 11 pollen/spore, row 4 mixed debris.
+    // Mostly bacteria, drawn at their real ~3-5 µm size.
     for (let i = 0; i < count; i++) {
-      info[2 * i] = Math.floor(Math.random() * 16);
-      info[2 * i + 1] = info[2 * i] < 10 ? 0.025 + Math.random() * 0.02 : 0.06 + Math.random() * 0.06;
+      const r = Math.random();
+      const tile = r < 0.6 ? 8 + (i & 1) : r < 0.75 ? 4 + (i & 3) : r < 0.9 ? (i & 3) : 10 + (i % 6);
+      info[2 * i] = tile > 15 ? 12 : tile;
+      info[2 * i + 1] = tile >= 8 && tile <= 9 ? 0.05 + Math.random() * 0.03 : tile >= 4 && tile <= 7 ? 0.08 + Math.random() * 0.04 : 0.1 + Math.random() * 0.08;
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));

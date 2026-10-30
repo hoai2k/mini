@@ -9,7 +9,7 @@ export function buildWorld(seed = 7) {
   const obstacles = [];
   // Spirogyra: ~40 µm wide filaments, cells about 2–3 widths long.
   const spiro = (x, y, ang, L, D, layer) => obstacles.push({
-    type: 'spiro', x, y, ang, L, W: D, layer, seed: r(), cell: r.range(2.0, 3.0) * D, pitch: r.range(34, 46), strands: r() < 0.5 ? 1 : 2,
+    type: 'spiro', x, y, ang, L, W: D, layer, seed: r(), cell: r.range(2.0, 3.0) * D, pitch: r.range(34, 46), strands: r() < 0.4 ? 2 : 3,
   });
   spiro(260, 420, -0.38, 1900, 42, 'focus');
   spiro(-900, -260, 1.25, 1700, 38, 'focus');

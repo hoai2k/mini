@@ -43,6 +43,9 @@ export function leafOpticalMaterial(leaf) {
       uKind: { value: leaf.kind === 'sphagnum' ? 1 : 0 },
       uTex: leaf.uniforms.uTex,
       uHasTex: leaf.uniforms.uHasTex,
+      uWallMap: leaf.uniforms.uWallMap,
+      uTile: leaf.uniforms.uTile,
+      uTexMean: leaf.uniforms.uTexMean,
     },
     vertexShader: VERT,
     fragmentShader: FRAG_HEAD + PATTERN_GLSL + /* glsl */ `
@@ -55,6 +58,9 @@ uniform vec4 uFilmInfo;  // len, hw0
 uniform int uKind;
 uniform sampler2D uTex;
 uniform float uHasTex;
+uniform sampler2D uWallMap;
+uniform float uTile;
+uniform vec3 uTexMean;
 
 float eaten(float row, float col) {
   vec2 t = vec2((col + uEatenInfo.w + 0.5) / uEatenInfo.x, (row + uEatenInfo.z + 0.5) / uEatenInfo.y);
@@ -113,12 +119,21 @@ void main() {
       groove = exp(-pow(d / 0.04, 2.0));
     }
     if (uHasTex > 0.5) {
-      // A delivered DIC micrograph replaces the drawn cells (tile = 400 µm).
-      vec3 t = texture(uTex, p / 4.0).rgb;
+      // A delivered micrograph (cells along the leaf = the image's vertical):
+      // its colour gives pigment, its derived wall map gives optical path, so
+      // the relief follows this microscope's shear, not the photo's.
+      vec2 st = vec2(p.y, p.x) / uTile;
+      vec3 t = texture(uTex, vec2(st.x, 1.0 - st.y)).rgb;
+      vec4 m = texture(uWallMap, st);
+      float d = m.r * 0.1;
       float l = dot(t, vec3(0.299, 0.587, 0.114));
-      direct += (l - 0.55) * 1.2;
-      extraAb += max(-log(max(t / max(l, 0.05), vec3(0.05))), 0.0) * 0.6;
-      wallOpd *= 0.15; green = 0.0;
+      wallOpd = exp(-pow(d / 0.014, 2.0)) * 0.009 + smoothstep(0.0, 0.09, d) * 0.0008;
+      groove = exp(-pow(d / 0.05, 2.0));
+      direct += (l - dot(uTexMean, vec3(0.299, 0.587, 0.114))) * 0.3;
+      // Pigment relative to the lamp (the image's mean colour), so only the chloroplasts tint.
+      vec3 a = max(-log(max(t / max(uTexMean, vec3(0.05)), vec3(0.05))), 0.0) * 0.8;
+      green = 0.0;
+      extraAb += a * mix(1.4, 0.25, m.g) + m.g * vec3(0.05, 0.12, 0.3) * 0.4;
     }
     // Water film: thickness from capacity - dryness, held in the grooves.
     vec2 fuv = vec2(p.x / uFilmInfo.x, (p.y + uFilmInfo.y) / (2.0 * uFilmInfo.y));
@@ -201,6 +216,8 @@ export function leafLitMaterial(leaf) {
       uKind: { value: leaf.kind === 'sphagnum' ? 1 : 0 },
       uTex: leaf.uniforms.uTex,
       uHasTex: leaf.uniforms.uHasTex,
+      uWallMap: leaf.uniforms.uWallMap,
+      uTile: leaf.uniforms.uTile,
       uSun: { value: new THREE.Vector3(0.4, 1, 0.3).normalize() },
     },
     vertexShader: /* glsl */ `
@@ -221,11 +238,14 @@ uniform vec4 uFilmInfo;
 uniform int uKind;
 uniform sampler2D uTex;
 uniform float uHasTex;
+uniform sampler2D uWallMap;
+uniform float uTile;
 uniform vec3 uSun;
 varying vec3 vLocal;
 varying vec3 vWorldN;
 varying vec3 vWorldP;
 float wallD(vec2 p) {
+  if (uHasTex > 0.5) return texture(uWallMap, vec2(p.y, p.x) / uTile).r * 0.1;
   if (uKind == 0) { vec4 l; return laminaCell(p, l).x; }
   vec2 r; return sphagCell(p, r).x;
 }
@@ -240,7 +260,13 @@ void main() {
   vec3 base = uKind == 0 ? vec3(0.42, 0.62, 0.22) : vec3(0.62, 0.7, 0.5);
   vec3 col = mix(base, vec3(0.86, 0.9, 0.7), wall);
   if (uKind == 1) col = mix(col, vec3(0.25, 0.55, 0.18), smoothstep(0.03, 0.012, d));
-  if (uHasTex > 0.5) col = texture(uTex, p / 4.0).rgb * 1.2;
+  if (uHasTex > 0.5) {
+    vec2 st = vec2(p.y, p.x) / uTile;
+    vec3 t = texture(uTex, vec2(st.x, 1.0 - st.y)).rgb;
+    float chl = clamp((t.g - 0.5 * (t.r + t.b)) * 6.0, 0.0, 1.0);
+    col = mix(base * (0.75 + 0.4 * dot(t, vec3(0.333))), vec3(0.2, 0.5, 0.12), chl);
+    col = mix(col, vec3(0.86, 0.9, 0.7), wall * 0.6);
+  }
   vec2 fuv = vec2(p.x / uFilmInfo.x, (p.y + uFilmInfo.y) / (2.0 * uFilmInfo.y));
   float h = texture(uFilm, fuv).r * 2.5 - 0.5 - uDry + exp(-pow(d / 0.05, 2.0)) * 0.12;
   float wet = smoothstep(0.0, 0.08, h);

@@ -95,7 +95,7 @@ export class Cytoplasm {
 
     const fl = {}, gr = {};
     const orgs = this.obstacleList();
-    const tipCaps = body.pods.filter((p) => p.s > 0.12 && !p.idle || p.s > 0.2);
+    const tipCaps = this.caps === false ? [] : body.pods.filter((p) => p.s > 0.1);
     const r = this.rand;
     for (let i = 0; i < n; i++) {
       let x = px[i], y = py[i];
@@ -120,7 +120,7 @@ export class Cytoplasm {
       for (const pod of tipCaps) {
         const ex = x - pod.x, ey = y - pod.y;
         const dd = Math.hypot(ex, ey);
-        const cap = 16 + 14 * pod.s;
+        const cap = 20 + 18 * Math.min(1, pod.s);
         if (dd < cap) {
           const bx = body.cx - pod.x, by = body.cy - pod.y;
           const bm = Math.hypot(bx, by) || 1;

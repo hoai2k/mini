@@ -57,7 +57,7 @@ export const P = {
   kN: 4, // 1/s, cortical tension (normal part of the Laplacian)
   kT: 26, // 1/s, tangential spacing
   dMin: 9, // µm, self-contact
-  vClose: 24, // µm/s, rims closing over prey
+  vClose: 40, // µm/s, rims closing over prey
   vRetract: 9, // µm/s, a released pseudopod drawn back
   vRear: 22, // µm/s, uroid contraction at full drive
 };
@@ -237,7 +237,7 @@ export class Body {
           const d2 = ex * ex + ey * ey;
           if (d2 > 4 * R * R) continue;
           const f = 1 - smooth(R * 0.9, R * 1.9, Math.sqrt(d2));
-          const face = smooth(-0.35, 0.35, nx[j] * pod.dx + ny[j] * pod.dy);
+          const face = smooth(-0.75, 0.1, nx[j] * pod.dx + ny[j] * pod.dy);
           const g = f * face;
           if (g <= 0) continue;
           const dxj = pod.dx + 0.12 * nx[j], dyj = pod.dy + 0.12 * ny[j];
@@ -287,13 +287,13 @@ export class Body {
     if (this.closing) {
       const c = this.closing;
       for (const end of [c.i0, c.i1]) {
-        for (let r = -6; r <= 6; r++) {
+        for (let r = -10; r <= 10; r++) {
           const j = (end + r + N) % N;
-          const g = Math.exp(-(r / 3) * (r / 3));
+          const g = Math.exp(-(r / 5) * (r / 5));
           const ex = c.mx - x[j], ey = c.my - y[j];
           const m = Math.hypot(ex, ey);
           if (m < 0.5) continue;
-          const v = Math.min(P.vClose, m * 2);
+          const v = Math.min(P.vClose, m * 6);
           ddx[j] += (ex / m) * v * g * dt;
           ddy[j] += (ey / m) * v * g * dt;
           G[j] += g;
@@ -302,7 +302,7 @@ export class Body {
       // The cup lining holds still (it does not need to touch the prey); only the
       // rims advance across the mouth.
       const n = c.run.length;
-      for (let k = 7; k < n - 7; k++) this.frozen[c.run[k]] = 1;
+      for (let k = 11; k < n - 11; k++) this.frozen[c.run[k]] = 1;
     }
     if (this.zip) {
       const z = this.zip;
