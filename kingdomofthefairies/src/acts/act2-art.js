@@ -9,6 +9,7 @@ import {
 } from './act2.js';
 import { clamp, lerp, easeOut, easeInOut, beatPhase, SPENT } from './shared.js';
 import { FILM, words } from '../theme.js';
+import { REST_GAP } from '../sprite-fit.js';
 import { drawPose, CREW_OF } from '../pose.js';
 import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
 
@@ -454,11 +455,20 @@ function sleeper(k, st, sl, t) {
 // standing scale, or until it comes the nearer of the two generic ones (the
 // squire's for the squire and the bosun, the man-at-arms' for him and the
 // helmsman), which the loader draws at the crew's size (POSE_FIT).
+// The art rows below a lying figure's body (its halberd, rope or hem lie on
+// the canvas bottom), in the look drawn: the body, not the props, rests on
+// the ground (design/sprite-audit.md, REST_GAP).
+const restGap = (k, id) => { const im = k.img(id); return (im && REST_GAP[id + (/-tinted\./.test(im.src || '') ? '-tinted' : '')]) || 0; };
+// How far a sleeper settles into what they lie on, so they lie in it rather
+// than on its outline: the shelf's painted top is ~10 px below the sleepers'
+// line, and a ledge's leafy edge (drawn 4 px below it) is thin at the top.
+const sink = (sl) => (!FILM || sl.floor ? 0 : sl.y < SHELF_Y + 50 ? 10 : 5);
 function asleepAs(k, st, sl, id, x, y, alpha) {
   const c = k.c, crew = CREW_OF[id], face = st.sleepers.indexOf(sl) % 2 ? -1 : 1;
-  if (crew && drawPose(k, crew + '-asleep', x, y + 2, 135, { std: 420, face, alpha })) return;
+  y += sink(sl);
+  if (crew && drawPose(k, crew + '-asleep', x, y + 2 + restGap(k, crew + '-asleep') * 135 / 420, 135, { std: 420, face, alpha })) return;
   const lie = (crew === 'crew-manatarms' || crew === 'crew-helmsman') && k.img('crew-asleep-b') ? 'crew-asleep-b' : 'crew-asleep';
-  c.save(); c.translate(x - 5, y + 2); if (face < 0) c.scale(-1, 1); c.globalAlpha *= alpha;
+  c.save(); c.translate(x - 5, y + 2 + restGap(k, lie) * 65 / 120); if (face < 0) c.scale(-1, 1); c.globalAlpha *= alpha;
   k.asset(lie, 0, 0, 140, 65);
   c.restore();
 }
@@ -470,7 +480,7 @@ function wakeSitting(k, st, sl, id, sit, x, y, rise, t) {
   const c = k.c, n = st.sleepers.indexOf(sl), face = n % 2 ? -1 : 1;
   const a = clamp(rise / 0.4, 0, 1), b = clamp((rise - 1.1) / 0.4, 0, 1);
   if (a < 1) asleepAs(k, st, sl, id, x, y, 1 - a);
-  if (b < 1) drawPose(k, sit, x, y + 2, 135, { std: 420, face, alpha: a * (1 - b) });
+  if (b < 1) drawPose(k, sit, x, y + 2 + sink(sl), 135, { std: 420, face, alpha: a * (1 - b) });
   if (b > 0) {
     c.save(); c.globalAlpha = b * (rise > 3.5 ? clamp(1 - (rise - 3.5) / 1.5, 0, 1) : 1);
     c.translate(x, y + Math.sin(t * 1.5 + x) * 3 * b); c.rotate(Math.sin(t * 2 + x) * 0.08 * b); if (face < 0) c.scale(-1, 1);

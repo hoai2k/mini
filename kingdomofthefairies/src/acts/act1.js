@@ -14,13 +14,21 @@ export const LANTERNS = 4; // paper lanterns lit on the beat during the party
 export const CUES = { strike: 1.2, shipBreak: 2.0, splash: 3.2 };
 // Where the revellers land on the deck set (stage px, feet; s = scale). The
 // first two are the big and small barrels, so only one of them is used.
-export const SPOTS = [
+// In the film's tempest the crew stand on the deck's planks (around the
+// hatches and before the mast), not up on the barrels and rope.
+const FILM_SPOTS = [
+  { x: 250, y: 464, s: 0.8 }, { x: 1022, y: 460, s: 0.8 },  // by the rail, left and right
+  { x: 548, y: 420, s: 0.7 }, { x: 742, y: 420, s: 0.7 },   // either side of the mast's foot
+  { x: 640, y: 478, s: 0.82 },                              // before the mast, between the hatches
+];
+const CLASSIC_SPOTS = [
   { x: 418, y: 296, s: 0.62 }, { x: 372, y: 360, s: 0.58 },   // on the barrels by the left hatch
   { x: 870, y: 316, s: 0.62 },                                // on the right barrel
   { x: 520, y: 390, s: 0.64 },                                // on the coil of rope
   { x: 262, y: 466, s: 0.8 }, { x: 1012, y: 460, s: 0.8 },    // at the rail, left and right
   { x: 748, y: 402, s: 0.66 },                                // by the bell
 ];
+export const SPOTS = FILM ? FILM_SPOTS : CLASSIC_SPOTS;
 
 const ORDER = ['landho', 'party', 'turn', 'wreck', 'sink', 'iris'];
 
@@ -175,7 +183,7 @@ function next(st) {
 // barrels by the left hatch), shuffled with the voyage's own random numbers.
 function placeRevellers(st) {
   const r = st.board.rand;
-  const pool = [r() < 0.5 ? 0 : 1, 2, 3, 4, 5, 6];
+  const pool = FILM ? FILM_SPOTS.map((_, i) => i) : [r() < 0.5 ? 0 : 1, 2, 3, 4, 5, 6];
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
   st.party.spots = pool.slice(0, 4);
 }

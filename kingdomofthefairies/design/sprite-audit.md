@@ -233,6 +233,25 @@ Head size of each pose against its reference sprite (same look). Beyond 6% the g
 | `demon-teal-carry` | `demon-teal`, by eye | 1.00 | — | as painted |
 | `demon-teal-carry-tinted` | `demon-teal-tinted`, by eye | 1.00 | — | as painted |
 
+## Where lying figures rest
+
+Rows between the body's underside (the lowest row at least 35% of the figure's width) and the canvas bottom; the game sets the body, not the props beneath it, on the ground (`REST_GAP` in `src/sprite-fit.js`).
+
+| Sprite | Canvas | Rest gap |
+| --- | --- | --- |
+| `crew-asleep` | 260 × 120 | 2 |
+| `crew-asleep-b` | 260 × 120 | 7 |
+| `crew-asleep-b-tinted` | 260 × 120 | 7 |
+| `crew-asleep-tinted` | 260 × 120 | 2 |
+| `crew-bosun-asleep` | 440 × 160 | 10 |
+| `crew-bosun-asleep-tinted` | 440 × 160 | 9 |
+| `crew-helmsman-asleep` | 440 × 160 | 12 |
+| `crew-helmsman-asleep-tinted` | 440 × 160 | 12 |
+| `crew-manatarms-asleep` | 440 × 160 | 9 |
+| `crew-manatarms-asleep-tinted` | 440 × 160 | 22 |
+| `crew-squire-asleep` | 440 × 160 | 9 |
+| `crew-squire-asleep-tinted` | 440 × 160 | 26 |
+
 ## To redraw
 
 Nothing.
