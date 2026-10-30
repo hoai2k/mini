@@ -131,7 +131,7 @@ GROUPS = [
         "intro": "Textures for the scanning-electron-microscope mite prototype. The moss, grains and mite are geometry built in code; these add surface detail and a far backdrop. Greyscale only.",
         "items": [
             {
-                "id": "MP-M01", "name": "SEM moss leaf surface",
+                "id": "MP-M01", "status": "delivered", "name": "SEM moss leaf surface",
                 "file": "assets/mite/sem-moss-leaf.webp", "size": "2048 x 2048, opaque, tileable",
                 "used": "Detail texture on the moss leaf blades the mite walks over.",
                 "standin": "Procedural elongated cell pattern with bright cell walls.",
@@ -139,7 +139,7 @@ GROUPS = [
                 "prompt": f"{TILE} {SEM} The dried surface of a moss leaf (Bryum or Sphagnum-like lamina) at about 300 µm across: long narrow rhomboid cells in parallel rows, each cell slightly sunken with raised cell-wall ridges between them, occasional papillae and a few scattered bacteria and fungal spores. The cell rows run vertically in the image.",
             },
             {
-                "id": "MP-M02", "name": "SEM litter and mineral grains",
+                "id": "MP-M02", "status": "delivered", "name": "SEM litter and mineral grains",
                 "file": "assets/mite/sem-litter.webp", "size": "2048 x 2048, opaque, tileable",
                 "used": "The ground plane between moss stems.",
                 "standin": "Procedural grains and noise.",
@@ -169,7 +169,7 @@ GROUPS = [
         "intro": "Images for the tardigrade climbing prototype, seen through a DIC-style wet mount. The leaf cells are geometry; these textures give them the real surface.",
         "items": [
             {
-                "id": "MP-T01", "name": "Moss lamina cells (DIC)",
+                "id": "MP-T01", "status": "delivered", "name": "Moss lamina cells (DIC)",
                 "file": "assets/tardigrade/lamina-dic.webp", "size": "2048 x 2048, opaque, tileable",
                 "used": "Surface of the leaf the tardigrade climbs on.",
                 "standin": "Procedural cell walls with directional relief.",
@@ -177,7 +177,7 @@ GROUPS = [
                 "prompt": f"{TILE} {DIC} A single-cell-thick moss leaf lamina at about 400 µm across: long rectangular to rhomboid cells 15 to 25 µm wide and 60 to 120 µm long in parallel rows running vertically, thick bright cell walls, each cell holding a few lens-shaped green chloroplasts pressed against the wall. Faint colour only in the chloroplasts.",
             },
             {
-                "id": "MP-T02", "name": "Sphagnum hyaline cells (DIC)",
+                "id": "MP-T02", "status": "delivered", "name": "Sphagnum hyaline cells (DIC)",
                 "file": "assets/tardigrade/sphagnum-dic.webp", "size": "2048 x 2048, opaque, tileable",
                 "used": "A second leaf type, with big water-holding cells and pores.",
                 "standin": "Procedural large cells with fibril bands.",

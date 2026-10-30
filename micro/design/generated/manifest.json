@@ -192,6 +192,116 @@
     ]
   },
   {
+    "id": "MP-M01",
+    "name": "SEM moss leaf surface",
+    "file": "assets/mite/sem-moss-leaf.webp",
+    "size": "2048 x 2048, opaque, tileable",
+    "used": "Detail texture on the moss leaf blades the mite walks over.",
+    "prompt": "Use case: precise-object-edit. The supplied image is the texture edit target. Repair its wrapping seams for use as a repeatable game texture. Preserve its microscope look, scale, grey or restrained green palette and overall density. The current edge cuts do not connect when placed in a2x2repeat. Re-render the surface as a single continuous periodic tile: material exiting the left edge enters the right at the same height and shape, and material leaving the top enters the bottom at the same horizontal position and shape. All four corners must meet. Use a regular periodic lattice of slender rhomboid moss cells in parallel vertical columns. Precisely repeat the phase of cell-wall positions at opposite edges. Uniform exposure, no vignette, no frame, no faded border and no visual grid lines superimposed. Texture fills every pixel. Output one square2048×2048 texture, not a tiled preview or contact sheet. No creatures, labels, symbols, scale bars, or text. Scientific appearance follows this original brief: Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Scanning-electron-microscope look: greyscale secondary-electron image, bright edges where surfaces tilt away from the detector, soft dark crevices, very deep focus, crisp tactile surface detail, slight fine grain, no colour. The dried surface of a moss leaf (Bryum or Sphagnum-like lamina) at about 300 µm across: long narrow rhomboid cells in parallel rows, each cell slightly sunken with raised cell-wall ridges between them, occasional papillae and a few scattered bacteria and fungal spores. The cell rows run vertically in the image.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Scanning-electron-microscope look: greyscale secondary-electron image, bright edges where surfaces tilt away from the detector, soft dark crevices, very deep focus, crisp tactile surface detail, slight fine grain, no colour. The dried surface of a moss leaf (Bryum or Sphagnum-like lamina) at about 300 µm across: long narrow rhomboid cells in parallel rows, each cell slightly sunken with raised cell-wall ridges between them, occasional papillae and a few scattered bacteria and fungal spores. The cell rows run vertically in the image.",
+    "tool": "Built-in image_gen; conventional seam correction authorized by user",
+    "source_artifact": "sem-moss-leaf.webp",
+    "width": 2048,
+    "height": 2048,
+    "input_images": [
+      "design/generated/review/sem-moss-leaf.webp"
+    ],
+    "references": [
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      },
+      {
+        "id": "tardigrade-sem",
+        "local": "assets/references/tardigrade-sem.png",
+        "author": "Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012)",
+        "license": "CC BY 2.5",
+        "license_url": "https://creativecommons.org/licenses/by/2.5",
+        "source": "https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png"
+      },
+      {
+        "id": "biofilm-sem",
+        "local": "assets/references/biofilm-sem.jpg",
+        "author": "Timo Kohn, Rast, P., Kallscheuer, N., Wiegand, S., Boedeker, C., Jetten, M.S., Jeske, O., Vollmers, J., Kaster, A.K., Rohde, M. and Jogler, M.",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Electron_microscopic_analysis_of_seagrass_biofilms.jpg"
+      }
+    ],
+    "mood_boards": [
+      "01-moss-frontier.webp"
+    ],
+    "export": "Minimum-error cuts across 20% opposing-edge overlaps, a five-pixel feather, LANCZOS resizing to requested dimensions and lossless WebP encoding. Original generated candidate retained in review/.",
+    "seam_metrics_before": {
+      "horizontal_join": 60.191,
+      "vertical_join": 58.939,
+      "interior_horizontal": 15.833,
+      "interior_vertical": 10.597
+    },
+    "seam_metrics_after": {
+      "horizontal_join": 14.211,
+      "vertical_join": 9.717,
+      "interior_horizontal": 12.852,
+      "interior_vertical": 8.576
+    },
+    "sha256": "e653e006f084e8b1ca032deb138fcf29c541425535bcd20364476630a89a8bee"
+  },
+  {
+    "id": "MP-M02",
+    "name": "SEM litter and mineral grains",
+    "file": "assets/mite/sem-litter.webp",
+    "size": "2048 x 2048, opaque, tileable",
+    "used": "The ground plane between moss stems.",
+    "prompt": "Use case: precise-object-edit. The supplied image is the texture edit target. Repair its wrapping seams for use as a repeatable game texture. Preserve its microscope look, scale, grey or restrained green palette and overall density. The current edge cuts do not connect when placed in a2x2repeat. Re-render the surface as a single continuous periodic tile: material exiting the left edge enters the right at the same height and shape, and material leaving the top enters the bottom at the same horizontal position and shape. All four corners must meet. Keep the entire soil surface evenly textured with small grains, hyphae and tiny spores. No broad dark regions; no large edge-crossing dominant leaf. Uniform exposure, no vignette, no frame, no faded border and no visual grid lines superimposed. Texture fills every pixel. Output one square2048×2048 texture, not a tiled preview or contact sheet. No creatures, labels, symbols, scale bars, or text. Scientific appearance follows this original brief: Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Scanning-electron-microscope look: greyscale secondary-electron image, bright edges where surfaces tilt away from the detector, soft dark crevices, very deep focus, crisp tactile surface detail, slight fine grain, no colour. Soil and leaf litter at about 2 mm across: angular quartz and clay mineral grains from 20 to 200 µm, flakes of decomposing leaf with visible cell outlines, a loose net of fungal hyphae 3 to 5 µm thick draped between grains, a few round fungal spores and pollen grains.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Scanning-electron-microscope look: greyscale secondary-electron image, bright edges where surfaces tilt away from the detector, soft dark crevices, very deep focus, crisp tactile surface detail, slight fine grain, no colour. Soil and leaf litter at about 2 mm across: angular quartz and clay mineral grains from 20 to 200 µm, flakes of decomposing leaf with visible cell outlines, a loose net of fungal hyphae 3 to 5 µm thick draped between grains, a few round fungal spores and pollen grains.",
+    "tool": "Built-in image_gen; conventional seam correction authorized by user",
+    "source_artifact": "sem-litter.webp",
+    "width": 2048,
+    "height": 2048,
+    "input_images": [
+      "design/generated/review/sem-litter.webp"
+    ],
+    "references": [
+      {
+        "id": "biofilm-sem",
+        "local": "assets/references/biofilm-sem.jpg",
+        "author": "Timo Kohn, Rast, P., Kallscheuer, N., Wiegand, S., Boedeker, C., Jetten, M.S., Jeske, O., Vollmers, J., Kaster, A.K., Rohde, M. and Jogler, M.",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Electron_microscopic_analysis_of_seagrass_biofilms.jpg"
+      },
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      }
+    ],
+    "mood_boards": [
+      "01-moss-frontier.webp"
+    ],
+    "export": "Minimum-error cuts across 20% opposing-edge overlaps, a five-pixel feather, LANCZOS resizing to requested dimensions and lossless WebP encoding. Original generated candidate retained in review/.",
+    "seam_metrics_before": {
+      "horizontal_join": 39.362,
+      "vertical_join": 39.994,
+      "interior_horizontal": 18.377,
+      "interior_vertical": 18.874
+    },
+    "seam_metrics_after": {
+      "horizontal_join": 16.396,
+      "vertical_join": 16.677,
+      "interior_horizontal": 15.039,
+      "interior_vertical": 15.34
+    },
+    "sha256": "9610e2ab4af19f1308390b7b5d180b5253d2b1560f0e72e4051cb85a8349c7e5"
+  },
+  {
     "id": "MP-M03",
     "name": "SEM oribatid cuticle",
     "file": "assets/mite/sem-cuticle.webp",
@@ -270,6 +380,100 @@
     "mood_boards": [
       "01-moss-frontier.webp"
     ]
+  },
+  {
+    "id": "MP-T01",
+    "name": "Moss lamina cells (DIC)",
+    "file": "assets/tardigrade/lamina-dic.webp",
+    "size": "2048 x 2048, opaque, tileable",
+    "used": "Surface of the leaf the tardigrade climbs on.",
+    "prompt": "Use case: precise-object-edit. The supplied image is the texture edit target. Repair its wrapping seams for use as a repeatable game texture. Preserve its microscope look, scale, grey or restrained green palette and overall density. The current edge cuts do not connect when placed in a2x2repeat. Re-render the surface as a single continuous periodic tile: material exiting the left edge enters the right at the same height and shape, and material leaving the top enters the bottom at the same horizontal position and shape. All four corners must meet. Use a regular periodic lattice of moss cells in vertical columns. All cell-wall rows must continue smoothly across the top-bottom join; column spacing and wall positions must match across the left-right join. Preserve the specific moss type: long narrow lamina cells with a few green chloroplasts. Uniform exposure, no vignette, no frame, no faded border and no visual grid lines superimposed. Texture fills every pixel. Output one square2048×2048 texture, not a tiled preview or contact sheet. No creatures, labels, symbols, scale bars, or text. Scientific appearance follows this original brief: Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Differential-interference-contrast (Nomarski) microscope look: smooth grey background, transparent structures rendered with directional pseudo-relief (light on one side, dark on the other, the same direction everywhere), gentle colourless tones with at most a faint amber cast, shallow depth of field. A single-cell-thick moss leaf lamina at about 400 µm across: long rectangular to rhomboid cells 15 to 25 µm wide and 60 to 120 µm long in parallel rows running vertically, thick bright cell walls, each cell holding a few lens-shaped green chloroplasts pressed against the wall. Faint colour only in the chloroplasts.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Differential-interference-contrast (Nomarski) microscope look: smooth grey background, transparent structures rendered with directional pseudo-relief (light on one side, dark on the other, the same direction everywhere), gentle colourless tones with at most a faint amber cast, shallow depth of field. A single-cell-thick moss leaf lamina at about 400 µm across: long rectangular to rhomboid cells 15 to 25 µm wide and 60 to 120 µm long in parallel rows running vertically, thick bright cell walls, each cell holding a few lens-shaped green chloroplasts pressed against the wall. Faint colour only in the chloroplasts.",
+    "tool": "Built-in image_gen; conventional seam correction authorized by user",
+    "source_artifact": "lamina-dic.webp",
+    "width": 2048,
+    "height": 2048,
+    "input_images": [
+      "design/generated/review/lamina-dic.webp"
+    ],
+    "references": [
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      },
+      {
+        "id": "tardigrade-light",
+        "local": "assets/references/tardigrade-light.png",
+        "author": "Dorathyexplorer",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png"
+      }
+    ],
+    "mood_boards": [
+      "02-waterfilm.webp"
+    ],
+    "export": "Minimum-error cuts across 20% opposing-edge overlaps, a five-pixel feather, LANCZOS resizing to requested dimensions and lossless WebP encoding. Original generated candidate retained in review/.",
+    "seam_metrics_before": {
+      "horizontal_join": 24.23,
+      "vertical_join": 31.159,
+      "interior_horizontal": 12.4,
+      "interior_vertical": 5.739
+    },
+    "seam_metrics_after": {
+      "horizontal_join": 17.062,
+      "vertical_join": 4.627,
+      "interior_horizontal": 10.079,
+      "interior_vertical": 4.619
+    },
+    "sha256": "3ad9f9adf8472075861ab73bc22bcabf6ea660f9c5578641f4e740e35f131aa5"
+  },
+  {
+    "id": "MP-T02",
+    "name": "Sphagnum hyaline cells (DIC)",
+    "file": "assets/tardigrade/sphagnum-dic.webp",
+    "size": "2048 x 2048, opaque, tileable",
+    "used": "A second leaf type, with big water-holding cells and pores.",
+    "prompt": "Use case: precise-object-edit. The supplied image is the texture edit target. Repair its wrapping seams for use as a repeatable game texture. Preserve its microscope look, scale, grey or restrained green palette and overall density. The current edge cuts do not connect when placed in a2x2repeat. Re-render the surface as a single continuous periodic tile: material exiting the left edge enters the right at the same height and shape, and material leaving the top enters the bottom at the same horizontal position and shape. All four corners must meet. Use a regular periodic lattice of moss cells in vertical columns. All cell-wall rows must continue smoothly across the top-bottom join; column spacing and wall positions must match across the left-right join. Preserve the specific moss type: empty hyaline cells with fibril bands, small pores and narrow green connecting cells. Uniform exposure, no vignette, no frame, no faded border and no visual grid lines superimposed. Texture fills every pixel. Output one square2048×2048 texture, not a tiled preview or contact sheet. No creatures, labels, symbols, scale bars, or text. Scientific appearance follows this original brief: Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Differential-interference-contrast (Nomarski) microscope look: smooth grey background, transparent structures rendered with directional pseudo-relief (light on one side, dark on the other, the same direction everywhere), gentle colourless tones with at most a faint amber cast, shallow depth of field. A Sphagnum leaf at about 400 µm across: large empty hyaline cells with spiral fibril reinforcing bands and round pores, framed by a network of narrow green chlorophyllose cells between them, as in the classic Sphagnum leaf micrograph.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Differential-interference-contrast (Nomarski) microscope look: smooth grey background, transparent structures rendered with directional pseudo-relief (light on one side, dark on the other, the same direction everywhere), gentle colourless tones with at most a faint amber cast, shallow depth of field. A Sphagnum leaf at about 400 µm across: large empty hyaline cells with spiral fibril reinforcing bands and round pores, framed by a network of narrow green chlorophyllose cells between them, as in the classic Sphagnum leaf micrograph.",
+    "tool": "Built-in image_gen; conventional seam correction authorized by user",
+    "source_artifact": "sphagnum-dic.webp",
+    "width": 2048,
+    "height": 2048,
+    "input_images": [
+      "design/generated/review/sphagnum-dic.webp"
+    ],
+    "references": [
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      }
+    ],
+    "mood_boards": [
+      "02-waterfilm.webp"
+    ],
+    "export": "Minimum-error cuts across 20% opposing-edge overlaps, a five-pixel feather, LANCZOS resizing to requested dimensions and lossless WebP encoding. Original generated candidate retained in review/.",
+    "seam_metrics_before": {
+      "horizontal_join": 25.934,
+      "vertical_join": 44.539,
+      "interior_horizontal": 13.218,
+      "interior_vertical": 8.426
+    },
+    "seam_metrics_after": {
+      "horizontal_join": 7.31,
+      "vertical_join": 6.617,
+      "interior_horizontal": 10.793,
+      "interior_vertical": 6.933
+    },
+    "sha256": "4efb03cce7967cb4df68ce947d9f4b26118c80b04da21349a4dcadfd9a3c3e0d"
   },
   {
     "id": "MP-T03",

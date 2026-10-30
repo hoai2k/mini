@@ -19,11 +19,11 @@ export const ASSETS = {
   },
   "MP-M01": {
     "file": "assets/mite/sem-moss-leaf.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-M02": {
     "file": "assets/mite/sem-litter.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-M03": {
     "file": "assets/mite/sem-cuticle.webp",
@@ -35,11 +35,11 @@ export const ASSETS = {
   },
   "MP-T01": {
     "file": "assets/tardigrade/lamina-dic.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-T02": {
     "file": "assets/tardigrade/sphagnum-dic.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-T03": {
     "file": "assets/tardigrade/film-backdrop.webp",
