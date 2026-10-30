@@ -17,7 +17,7 @@ import { createRequire } from 'node:module';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const shots = process.env.SHOTS || tmpdir();
-const ALL = ['', 'springtail/', 'mite/', 'tardigrade/', 'amoeba/', 'paramecium/', 'bacterium/'];
+const ALL = ['', 'springtail/', 'mite/', 'tardigrade/', 'amoeba/', 'paramecium/', 'bacterium/', 'zoom/'];
 const pages = process.argv.length > 2 ? process.argv.slice(2).map((p) => (p === 'index' ? '' : p.replace(/\/?$/, '/'))) : ALL;
 
 // Syntax check every module first.

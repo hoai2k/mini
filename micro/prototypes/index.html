@@ -61,6 +61,11 @@
         <div class="body"><h2>Bacterium</h2><p class="look">At the limit of the light microscope</p>
           <p>Run and tumble: a bacterium can't steer, only choose when to tumble. Follow gradients, dodge grazers and phages.</p></div>
       </a>
+      <a class="card" href="zoom/" data-art="" data-bg="radial-gradient(circle at 50% 50%,#f4e9c8 0 18%,#6b6f73 19% 34%,#2f4a2c 35%,#08090c 100%)">
+        <div class="art"></div>
+        <div class="body"><h2>Zoom transitions</h2><p class="look">Every look, world to world</p>
+          <p>Reach a highlighted spot, then zoom into it: the spot becomes the next world. Try switching the look before, during or after the zoom.</p></div>
+      </a>
     </div>
     <footer>Background: the <a href="https://github.com/hoai2k/mini/tree/main/micro">Micro research atlas</a>. Press A on a controller to open the selected card.</footer>
   </main>
@@ -71,7 +76,7 @@
     boot(() => {
       const cards = [...document.querySelectorAll('a.card')];
       for (const c of cards) {
-        const a = ASSETS[c.dataset.art];
+        const a = c.dataset.art ? ASSETS[c.dataset.art] : null;
         c.querySelector('.art').style.background = a && a.status === 'delivered' ? `center / cover url(${a.file})` : c.dataset.bg;
       }
       // Controller navigation: d-pad or left stick moves, A opens.
