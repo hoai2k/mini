@@ -4,21 +4,36 @@ A box mite (Oribatida: Phthiracaridae), about 0.6 mm long, walks through a
 few square millimetres of moss cushion, imaged as a scanning electron
 micrograph. Built in three.js (`../shared/vendor`), world units are µm.
 
+A predatory mite (Mesostigmata: Parasitidae) hunts in the same moss: run
+from it, close up against it, or nip it. The mite climbs over grains, flakes
+and stems and pushes through moss blades and hyphae, which bend and spring
+back.
+
 Open `micro/prototypes/mite/` (the invite gate is off on localhost).
 
 ## Controls (Xbox controller; keyboard in brackets)
 
 | Button | Action |
 | --- | --- |
-| LS (WASD) | Walk, relative to the view. The mite turns toward the stick and walks forward |
+The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`):
+
+| Button | Action |
+| --- | --- |
+| LS (WASD) | Walk, relative to the view. The mite turns toward the stick and walks forward; it climbs grains, flakes and stems and pushes through blades |
 | RS (arrows) | Orbit the specimen |
+| **A (Space)** | **Scramble**: 0.6 s at up to ~525 µm/s (2.5× walking), recharging over 2.2 s (the `dash` meter in the corner); with no stick, straight ahead |
+| **X (E)** | **Bite** with the chelicerae: eat a fungal spore or nibble a hyphal branch tip in reach of the mouth; at the predator, a nip that makes it recoil |
+| B (Shift), hold | Ptychoidy: close into a sealed capsule (the predator cannot grip it); release to reopen |
+| Y (R) | Observer mode: SEM data bar and raster lines |
 | LT / RT (Z / X) | Lower / higher magnification (HFW 0.26–4.2 mm) |
-| A or B (Space / Shift), hold | Ptychoidy: close into a sealed capsule; release to reopen |
 | LB / RB (Q / F) | Walk slowly / hurry |
-| Y (R) | Imaging mode: SE (Everhart-Thornley), BSE (low vacuum), SE false colour |
-| X (E) | Observer mode: SEM data bar and raster lines |
-| View (Tab) | Hide the help panel |
+| D-pad ← → (3 / 4) | Imaging mode: SE (Everhart-Thornley), BSE (low vacuum), SE false colour |
+| D-pad ↑ ↓ (1 / 2) | Magnification steps (×1.5) |
 | Menu (Esc) | Features panel: what the prototype does, with switches |
+| View (Tab) | Hide the help panel |
+
+Rumble: a tick on footfalls, a thump on closing, landing and opening, a kick
+on each scramble, a jolt when the predator grabs a leg.
 
 Rumble: a faint tick on each footfall group, a thump on closing, landing and
 opening.
@@ -70,9 +85,36 @@ Built from parts placed by measurements against the reference, never traced:
   tarsus angles down to the claw.
 - **Body**: five ray probes fit a plane to the ground under the body, which
   follows slopes, rides up over grains (steps up to ~140 µm) and onto the
-  lowest moss leaves, which arch down to the floor as ramps. It slides along
-  stems and boulders that are too steep. A 2.5 µm bob and a slight roll keep
-  time with the leg groups.
+  lowest moss leaves, which arch down to the floor as ramps. A 2.5 µm bob and
+  a slight roll keep time with the leg groups.
+- **Climbing**: a face too steep to step onto (a grain, a stem, a flake on
+  edge) tips the body up onto it as it comes within reach (the forward ray
+  sets a target up, eased in over ~0.1 s), so the probes find the face and
+  the mite walks up and over it, its up following the smoothed probe normal.
+  Oribatid claws hold on any of these surfaces, so there is no slipping.
+  Overhangs (faces pointing down) are not climbed; the body slides along
+  them. Walking off the end of something with nothing in reach, the mite lets
+  go after half a second, closes and drops (box mites do drop).
+- **Body clearance**: thirteen rays from the body centre to its ellipsoid
+  (round the waist and up) push the body back out of any rigid surface (at
+  most 30 µm per frame, so a deep overlap eases out), and five belly rays make
+  it stand taller over a ledge the centre has not reached yet. On reopening it
+  is cleared before it stands up. A scripted walk through a moss patch, over a
+  95 µm grain and up a stem measured the deepest ellipsoid overlap with
+  floor, grains, flakes and stems at 10 µm (mean 0.2 µm); the old walker on
+  the same path reached 155 µm (mean up to 51 µm in the moss).
+- **Bending foliage** (`../shared/techniques/mite-foliage.js`): every moss
+  leaf is a bendable blade and every hypha a slack thread (see Features). The
+  mites' bodies push them aside (position-based, so they never pass through),
+  a mite standing on a blade bends it down and rides it, and they spring back
+  in about a second when left. Feet and probes walk on the bent collider.
+- **Scramble (A)**: the speed limit rises to ~525 µm/s with a fast
+  acceleration (tau 0.05 s). The gait phase runs on distance walked, so the
+  legs cycle faster and the stance feet stay planted (swings shorten to
+  80 ms). A stretch: box mites are slow, steady walkers.
+- **Bite (X)**: the rostrum dips and the chelicerae work (0.28 s). Food is
+  the real diet of a phthiracarid: fungal spores (eaten, they vanish) and
+  hyphal branch tips (nibbled; they regrow after 25 s).
 - **Ptychoidy**: the legs pull in and shrink into the cavity and the aspis
   folds down over it in 0.16 s (Heethoff et al. 2018 measured encapsulation
   nearly complete within 150 ms of a beetle's attack). Closed, it cannot move.
@@ -82,6 +124,28 @@ Built from parts placed by measurements against the reference, never traced:
   surface is under it.
 - A second box mite wanders with the same walker and closes up when you come
   near.
+
+## The predator (`predator.js`, `PRED` in `mite.js`)
+
+A parasitid (Mesostigmata: Parasitidae, *Pergamasus* / *Parasitus* type):
+a pale, flattened oval about 0.8 mm long with one dorsal shield, a
+transverse seam, peritremes and rows of fine setae, a projecting gnathosoma
+with long chelate chelicerae and palps, and long legs. Leg I is held up and
+forward as a feeler and taps ahead; legs II–IV walk with the same walker and
+gait as the box mite (createMite with the `PRED` anatomy), so it climbs and
+pushes through blades the same way.
+
+- It wanders until it touches you (~560 µm) or feels you scramble close by
+  (~950 µm), then runs you down at ~360 µm/s: faster than your walk, slower
+  than your scramble.
+- It strikes at legs first: each grab stuns you for 0.7 s and slows you 15%;
+  a grabbed leg recovers after 20 s; three grabs and you are caught (back to
+  the start).
+- Closed up (B), you are a smooth, hard capsule it cannot grip: it gives up
+  after three tries and wanders off for a while. Feeding trials with
+  *Pergamasus* found adult box mites nearly immune (Peschel et al. 2006).
+- A nip (X) makes it recoil for 1.5 s. That is a game rule: box mites do not
+  really fight back.
 
 ## Rendering (`shared/techniques/mite-sem.js`)
 
@@ -144,10 +208,14 @@ field, so feet and probes query it exactly), holding:
 - ten moss shoots with lanceolate leaves on a 137.5° spiral, each leaf with a
   costa, a channelled blade, a serrate apex, real thickness (12 µm) and
   cell relief;
-- 3–5 µm fungal hyphae strung between surfaces, with branches;
+- 3–5 µm fungal hyphae strung between surfaces, with branches (their tips
+  are food);
 - fungal conidia, echinate (aster-type) pollen and bisaccate conifer pollen.
 
 Walking queries go to low-poly colliders, prefiltered by bounding spheres.
+Floor, grains, flakes and stems are rigid; every moss leaf is a `blade`
+collider that bends with its leaf (the lowest leaves, which rest on the floor
+as ramps, are 3× stiffer and give little).
 
 ## Features
 
@@ -157,7 +225,7 @@ live and persist per browser.
 | Group | Feature | Switch |
 | --- | --- | --- |
 | Rendering | Deferred SEM composite | always |
-| Rendering | Imaging mode (SE / BSE / false colour) | choice (Y) |
+| Rendering | Imaging mode (SE / BSE / false colour) | choice (D-pad ← →) |
 | Rendering | Secant-law tilt contrast | on |
 | Rendering | Edge effect | on |
 | Rendering | Detector shadowing (ETD) | on |
@@ -165,7 +233,7 @@ live and persist per browser.
 | Rendering | Surface relief from SEM textures | on |
 | Rendering | Shot noise | on |
 | Rendering | Scan-line jitter | on |
-| Rendering | Observer mode | off (X) |
+| Rendering | Observer mode | off (Y) |
 | Rendering | Dynamic resolution | on |
 | Optics | Infinite depth of field | always |
 | Optics | Narrow scan field, true magnification | always |
@@ -178,9 +246,15 @@ live and persist per browser.
 | Motion | Planted feet, distance-driven phase | always |
 | Motion | Surface following and climbing | always |
 | Motion | Body bob and sway | on |
+| Motion | Climbing rigid surfaces (off: slide along steep faces) | on |
+| Motion | Body clearance | on |
 | Simulation | Ptychoidy speed (real 0.16 s / slowed 4×) | choice |
 | Simulation | Closed capsule rolls and falls | on |
 | Simulation | A second box mite | on |
+| Simulation | Bending blades and hyphae | on |
+| Simulation | Scramble (A) | always |
+| Simulation | Bite and graze (X) | always |
+| Simulation | Predatory mite (Parasitidae) | on |
 | World | Moss shoots, mineral grains, litter, hyphae, spores and pollen | on (each; off also removes it from walking) |
 | World | Procedural SEM textures | always |
 | Controls | Camera-relative walking | always |
@@ -192,6 +266,12 @@ Technique modules other prototypes can borrow:
   composite (SE, BSE, false colour; per-term switches; cutaway).
 - `../shared/techniques/mite-gait.js`: the gaits (tetrapod, wave, pairs),
   distance-driven phase triggers, swing targets and two-bone IK.
+- `../shared/techniques/mite-foliage.js`: bendable foliage. Each thin thing
+  is one rod with a tip offset and a spring (cantilever blades `d·u²`,
+  threads fixed at both ends `d·sin πu`); ellipsoid bodies push their centre
+  lines out, a body standing on one loads it, and the render vertices (a
+  sub-range of a merged mesh), normals and an optional collider are
+  rewritten on the CPU only for rods that move.
 
 `sem.js` here just re-exports `mite-sem.js`.
 
@@ -231,7 +311,15 @@ Not borrowed:
 - **Time**: falling uses a game gravity of 2600 µm/s², far slower than real
   (a mite crosses this world in a few milliseconds of free fall). The walking
   speed (about 210 µm/s) is a plausible order of magnitude for an oribatid
-  but is not measured for this species.
+  but is not measured for this species. The scramble (~525 µm/s) is a
+  stretch.
+- **The predator's rules**: the touch and vibration ranges, its speed, three
+  grabs to be caught, and the recoil after a nip are game values. Going for
+  the legs and failing on a closed capsule follow the biology.
+- **Foliage**: a moss leaf bends as one rod (no twist, no folding along the
+  costa), and blades are pushed by the body and legs as one enlarged
+  ellipsoid. Real leaves this thin are wetted and sticky; here they are dry
+  and springy.
 - **Retraction** is simplified: the legs shrink as they pull in rather than
   folding into a modelled cavity, and the ventral plates do not move.
 - **The moss** is a generic acrocarp (Bryum-like lanceolate leaves), not
@@ -260,6 +348,13 @@ Also:
 - Heethoff, M. et al. (2018), *BMC Zoology*, doi:10.1186/s40850-018-0031-8:
   ptychoid defence of *Euphthiracarus reticulatus*, with encapsulation
   nearly complete within ~150 ms of a beetle's attack.
+- Peschel, K., Norton, R. A., Scheu, S. & Maraun, M. (2006), *Soil Biology
+  and Biochemistry* 38: feeding trials of the predatory mite *Pergamasus
+  septentrionalis* on oribatids; heavily sclerotised and ptychoid adults are
+  rarely eaten.
+- Schmelzle, S. & Blüthgen, N. (2019), *Frontiers in Zoology*: force
+  resistance of box mites (the closed capsule withstands far more than the
+  mite weighs).
 - Parry's SEM revisions of the Phthiracaridae: aspis, collar, sensilli, and
   leg I longest with monodactyl legs.
 - Standard SEM texts on secondary-electron topographic contrast (the edge

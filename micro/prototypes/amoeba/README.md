@@ -3,8 +3,10 @@
 *Amoeba proteus* crawling on a wet-mount slide and hunting the way it really
 does: it pushes out pseudopods, cups them round a ciliate or flagellate
 without needing to touch it, and closes the cup into a food vacuole. The cell
-keeps its volume, so every arm takes body from somewhere else. Built in
-three.js (`../shared/vendor`, no addons); world units are µm.
+keeps its volume, so every arm takes body from somewhere else. Ciliates flee
+the approaching membrane, so the surge (A) matters, and the trap hyphae of a
+predatory fungus wait on the slide. Built in three.js (`../shared/vendor`, no
+addons); world units are µm.
 
 Open `micro/prototypes/amoeba/` (the invite gate is off on localhost).
 
@@ -16,20 +18,23 @@ Open `micro/prototypes/amoeba/` (the invite gate is off on localhost).
 | RS (arrows) | Pseudopod 2, so the two sticks can wrap a cup round prey from both sides |
 | RT (X) | Push harder |
 | LT (Z) | Spread out / relax: the cell flattens (its footprint grows, since the volume is fixed), rounds up and its pseudopods relax |
-| A (Space) | Close the food cup round the prey it wraps (needs ≥ 190° of membrane round it; the rims must meet, which takes a few seconds) |
+| **A (Space)** | **Surge**: for 0.9 s every active pseudopod extends up to 2.5× faster and may run a little further ahead, the rear contracts harder and streaming surges to the tips, so the whole cell lunges; recharges over 2.4 s (the `dash` meter). With no stick held it surges along the cell's heading. Tears the membrane free of a fungal trap |
+| **X (E)** | **Close the food cup** round the prey it wraps (needs ≥ 190° of membrane round it): the rims advance and endoplasm floods in to fill round the prey until they meet |
 | B (Shift) | Let go while closing; otherwise egest the oldest food vacuole at the uroid (a live, barely digested prey swims away) |
-| X (E) | Optics: brightfield → phase contrast → darkfield → hypothetical immersive lit view |
-| Y (R) | Labels (nucleus, contractile vacuole, uroid, hyaline caps, ectoplasm, endoplasm, prey with real sizes) |
-| LB / RB (Q / F) | 10× objective (1.8 mm field) / 20× objective (0.9 mm field) |
-| D-pad up / down (1 / 2) | Fine focus: changes the sign and size of the defocus contrast and how blurred the layer above is |
-| View (Tab) | Hide the help panel |
+| Y (R) | Labels (nucleus, contractile vacuole, uroid, hyaline caps, ectoplasm, endoplasm, prey with real sizes, trap hyphae) |
+| LB / RB (Q / F) | Fine focus down / up: changes the sign and size of the defocus contrast and how blurred the layer above is |
+| D-pad ← → (3 / 4) | Optics: brightfield, phase contrast, darkfield, hypothetical immersive lit view |
+| D-pad ↑ ↓ (1 / 2) | 20× objective (0.9 mm field) / 10× objective (1.8 mm field) |
 | Menu (Esc) | Features panel: what the prototype does, with switches |
+| View (Tab) | Hide the help panel |
 
 Centre a stick to let that pseudopod flow slowly back. Centre it and push
 again to start a new one elsewhere. A dashed ring marks the prey the
-membrane wraps furthest, with the angle; it turns green when A will close.
-Rumble: a tick on prey contact, a heavy jolt when a Paramecium fires its
-trichocysts, a pulse on capture.
+membrane wraps furthest, with the angle; it turns green when X will close.
+Rumble: a tick on prey contact, a kick on each surge, a heavy jolt when a
+Paramecium fires its trichocysts or a trap hypha grabs the membrane, a pulse
+on capture. The two sticks keep the amoeba's own scheme; A, X, B, Y and the
+d-pad follow the shared one (`../CONTROLS.md`).
 
 ## The biology it follows
 
@@ -96,7 +101,29 @@ trichocysts, a pulse on capture.
   in the endoplasm, prey to stay out, the renderer for the thickness dome.
 - **Cytoplasm** (`cytoplasm.js`): 2600 particles advected by the fountain
   flow, with crowding diffusion, saltatory jitter, exclusion from organelles,
-  the ectoplasm margin and the hyaline caps.
+  the ectoplasm margin and the hyaline caps. Streaming scales with the
+  pseudopod speed and the surge, and while a cup closes it floods toward the
+  cup mouth (filling in).
+- **Pseudopod speed.** Pseudopods ramp up and advance 2× faster than the
+  first tuning (`body.opts.speed`, Features: Quick 2× / Original); the area
+  conservation and rear retraction are unchanged, so the reshaping feel is
+  the same. Measured: a held stick gains 88 µm of tip reach in 1.5 s against
+  54 µm before (1.6×, since a pseudopod is held back as it nears full reach).
+- **Surge (A)** (`body.opts.boost`): eased in and out over 0.9 s, up to 2.5×
+  on the player's pseudopods' ramp and speed, a little more reach before the
+  body must follow, and a harder rear contraction, so the cell body follows
+  the arm and the whole cell moves. Inspired by blebbing, the fastest
+  protrusion of *A. proteus*; the strength is a game value.
+- **Fleeing ciliates.** *Tetrahymena*, *Colpidium* and *Paramecium* that come
+  within ~75 µm of the membrane turn away from it and swim off at ~2.2× for
+  2.5 s. A plain pseudopod rarely catches them; a surge does. Slow
+  flagellates (*Chilomonas*, *Chlamydomonas*) still just show the avoidance
+  reaction on contact.
+- **Fungal traps.** Three trap hyphae of a zoopagalean fungus (*Stylopage* /
+  *Zoopage* type: thin, septate, with adhesive knobs) lie on the slide.
+  Membrane that touches one sticks (it keeps 8% of each step's motion); a
+  surge tears it free. Stuck for 8 s, a haustorium takes a bite (−7% of the
+  cell's area) and lets go.
 
 ## Rendering
 
@@ -158,7 +185,12 @@ above are hidden when it is present).
 | Simulation | Fountain streaming, Brownian jitter, Contractile vacuole cycle | on |
 | Simulation | Granules: 2600, 1300, 600 | 2600 |
 | Simulation | Food cup and food vacuoles; avoidance reaction and trichocysts | always |
+| Simulation | Ciliates flee the membrane | on |
+| Simulation | Filling in (X) | on |
+| Motion | Pseudopod speed: Quick (2×), Original | Quick |
+| Motion | Surge (A) | always |
 | World | Obstacles on the slide, Out-of-focus layer | on |
+| World | Fungal trap hyphae (hazard) | on |
 | Controls | Rumble | on; Two sticks, two pseudopods: always |
 
 Technique modules others can reuse (each documents its interface in its
@@ -192,8 +224,9 @@ Not borrowed:
 
 ## Labelled departures
 
-- **Time compression.** Amoeba processes run ×10 (pseudopods advance
-  ~30–45 µm/s on screen, about 3–4 µm/s real; the contractile vacuole cycles
+- **Time compression.** Amoeba processes run ×10, and pseudopods ×20 with
+  the quick pseudopod speed (they advance ~60–90 µm/s on screen, about
+  3–4 µm/s real; the corner shows both; the contractile vacuole cycles
   in ~40 s, minutes in life; digestion takes ~0.5–1.5 min). Swimmers are
   shown at about ×0.1 of their real speed (a Paramecium swims ~1 mm/s): a
   combined factor of ~100 between the two clocks, so an amoeba can catch
@@ -207,6 +240,12 @@ Not borrowed:
 - **Closing the cup on a button** is a game decision; in life the cup closes
   when the prey stimulus and contact are right. The rims advance a few µm
   per second here; the seal is instantaneous once they meet.
+- **The surge** is a game action: blebs are real and fast, but an amoeba
+  does not choose to make every pseudopod 2.5× faster for a second.
+- **Fleeing** ranges and speeds are game values; escape swimming itself is
+  real.
+- **The fungal trap** compresses a slow process (adhesion, then a haustorium
+  over minutes to hours) into seconds; the bite is a game rule.
 - **Trichocysts** are limited to three bursts per Paramecium; real cells
   carry thousands, but discharge is local, so a grabbed region runs out.
 - **Optics.** The image is computed from a model of phase and absorption,
@@ -223,7 +262,7 @@ node micro/prototypes/check.mjs amoeba
 cyto, prey, world, state, features }` plus test hooks: `input` (override
 the sticks), `press(name)`, `setMode(i)`, `pause()`, `renderOnce()`,
 `advance(seconds)` (simulate without rendering), `spawnPrey(kind, x, y)`,
-`clearPrey()`, `resetBody()`, `close()`.
+`clearPrey()`, `resetBody()`, `close()`, and `surge` (the dash) and `ctl`.
 
 ## Sources
 

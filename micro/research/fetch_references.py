@@ -57,12 +57,12 @@ SELECTION = [
 
 def get(url):
     request = urllib.request.Request(url, headers={'User-Agent': 'MicroWorldResearch/1.0 (educational reference atlas)'})
-    for attempt in range(6):
+    for attempt in range(30):
         try:
             with urllib.request.urlopen(request, timeout=45) as response:
                 return response.read()
         except urllib.error.HTTPError as error:
-            if error.code not in (429, 502, 503, 504) or attempt == 5:
+            if error.code not in (429, 502, 503, 504) or attempt == 29:
                 raise
             time.sleep(int(error.headers.get('retry-after') or 10 * (attempt + 1)) + 2)
 

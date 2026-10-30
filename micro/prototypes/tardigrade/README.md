@@ -2,26 +2,33 @@
 
 A ~350 µm eutardigrade climbing the cell walls of overlapping moss leaves with
 its claws, through one compressed day as the water film dries. Seen through a
-DIC (Nomarski) microscope with a real, shallow focal plane. Published at
+DIC (Nomarski) microscope with a real, shallow focal plane. A predatory
+*Milnesium* stalks it through the film. Published at
 https://hoai2k.github.io/mini/micro/prototypes/tardigrade/ (behind the invite
 gate).
 
 ## Controls (Xbox; keyboard in brackets)
 
+The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`):
+
 | Button | Action |
 | --- | --- |
 | LS (WASD) | Crawl, relative to the view. Push into a leaf edge to reach across to a neighbouring leaf, or round the margin onto the underside |
 | RS (arrows) | Turn and tilt the view |
-| LT / RT (Z / X) | Fine focus down / up through the layers |
-| LS click (C) | Refocus on the animal |
-| LB / RB (Q / F) | Objective 10× / 20× / 40× |
-| A (Space), hold | Grip hard / brace: two legs swing at most, slower, much harder to slip |
-| B (Shift) | Bite: stylets into food in reach (algae, diatoms, detritus) or the living leaf cell under the mouth |
+| **A (Space)** | **Scramble**: 0.9 s of fast wave gait (~290 µm/s), recharging over 2.6 s (the `dash` meter); costs ~3.5% water and 2% reserves. With no stick, straight ahead |
+| **X (E)** | **Pierce** with the stylets: food in reach (algae, diatoms, detritus) or the living leaf cell under the mouth; at a Milnesium touching you, a jab that makes it back off |
+| B (Shift), hold | Grip hard / brace: two legs swing at most, slower, much harder to slip |
 | Y (R), hold | Curl into a tun. In a tun on a wet leaf, press again to wake |
-| X (E) | Optical look: DIC / brightfield / lit (hypothetical) |
-| D-pad ↑ / ↓ / ← (1 / 2 / 3) | Rain (test) / new day / anatomy labels |
-| View (Tab) | Hide the help panel |
+| LT / RT (Z / X) | Fine focus down / up through the layers |
+| LB / RB (Q / F) | Anatomy labels / rain (test) |
+| D-pad ← → (3 / 4) | Optical look: DIC / brightfield / lit (hypothetical) |
+| D-pad ↑ ↓ (1 / 2) | Objective 10× / 20× / 40× |
+| LS click (C) | Refocus on the animal |
+| RS click (V) | New day (test) |
 | Menu (Esc) | Features panel: what the prototype is doing, with switches |
+| View (Tab) | Hide the help panel |
+
+When dead (eaten or a tun that did not wake), A starts a new day.
 
 ## What it does
 
@@ -46,6 +53,39 @@ gate).
   with what the slope needs: walking fast up the steep leaf C slips unless you
   brace. Leaves are walkable on both faces, at any angle; transfers happen
   where leaves touch or where the film bridges a wider gap.
+- **Smooth climbing.** The trunk follows its target through three first-order
+  lags in series, so position, velocity and acceleration stay continuous; a
+  change of face (a transfer, the margin, a fall) no longer jumps the target
+  but blends the old pose out over a smootherstep (0.45–0.8 s), and after a
+  transfer every foot steps over to a hold on the new face, back to front,
+  instead of being left stretched across the gap. Slipping has hysteresis:
+  it starts only below 85% of the load for 0.6 s and catches at 75% (or at
+  100% braced) as the claws scrabble. A fall never lands back on the leaf it
+  slid off (the old slip–fall–slip loop on leaf C). The camera follows the
+  smoothed trunk. Scripted 30 s climbs at a fixed 60 Hz (leaf A to the steep
+  leaf C, braced on C; and A to the underside of B): peak trunk jerk fell from
+  853 000 to 7 200 µm/s³ (C) and from 2 100 000 to 7 500 µm/s³ (B) at the old
+  speed, mean jerk from 1 200 to 350 and from 7 500 to 580 µm/s³, and the
+  largest frame-to-frame change in turn rate from 2.3° to 0.2° (C) and 11.6°
+  to 2.8° (B). At the new 1.5× speed the C climb peaks at 7 200 µm/s³ too.
+- **Speed.** Walking is 1.5× the old pace: up to 150 µm/s (~0.4 body
+  lengths/s), inside the 79–263 µm/s Nirody et al. measured. Stride and swing
+  timing follow speed, so footfalls stay matched to the wave.
+- **Scramble (A).** The speed limit rises to ~290 µm/s with a fast pick-up,
+  strides lengthen up to 35% and swings shorten to 90 ms, keeping the
+  back-to-front wave. It costs water and reserves; too weak (reserves under
+  4%) it refuses.
+- **Milnesium (`predator.js`).** A second Walker and Creature at 1.5× scale,
+  with a wide buccal tube and no placoids (true of *Milnesium*), a browner
+  gut and a slightly denser cuticle. It wanders until you come within
+  ~650 µm, then stalks you at up to ~205 µm/s (faster than your walk, slower
+  than your scramble) and bites when its mouth reaches you: −20% reserves
+  each, and empty, you are eaten. Escape by scrambling away, by retreating
+  into film too thin for its bigger body (below ~3.5 µm of water it barely
+  moves; you still can), by jabbing it with the stylets (X) so it backs off
+  for 2.4 s, or by curling into a tun (Y): it cannot get a tun into its mouth
+  quickly and gives up after three tries. It ignores slope load (it never
+  slips).
 - **The Drying (`life.js`, `world.js`).** Each leaf has a film-capacity field
   (wetter towards the stem, in hollows and where leaves nearly touch; margins
   dry first); film = capacity − dryness, which rises through the day. Dry leaf
@@ -99,7 +139,11 @@ wave / front-to-back / pairs in step), claws need cell walls, slope load and
 slipping.
 Simulation: time compression (240× / 60× / 1440× / paused), desiccation,
 revival risk, film capacity field (fixed).
-Controls: anatomy labels, rumble on claw catch, camera-relative crawl (fixed).
+Simulation also has Milnesium (the predator, on).
+Motion also has the scramble (fixed) and smoothed trunk and camera (on; off
+is the old single lag).
+Controls: anatomy labels, rumble (claw catch, slips, scramble, bites),
+camera-relative crawl (fixed).
 
 Technique module: `shared/techniques/tardigrade-dic.js` (DIC and brightfield
 with a focal plane; `opticalMaterial`, `OPTICAL_*` building blocks for custom
@@ -149,8 +193,17 @@ Not borrowed:
 - **Leaves** are flat laminae with cells in the shader; real leaves curve,
   and fold in as they dry. Cell sizes are lax-celled (about 20 × 100 µm
   procedural, ~30 × 60 µm with the delivered art).
-- **Speed:** up to 100 µm/s (~0.3 body lengths/s); Nirody et al. measured
-  79–263 µm/s.
+- **Speed:** up to 150 µm/s walking (~0.4 body lengths/s) and ~290 µm/s
+  scrambling; Nirody et al. measured 79–263 µm/s, so the scramble is a
+  stretch.
+- **Milnesium's rules** are game rules: the sensing range, its speed, the
+  −20% bites, the thin-film refuge threshold, backing off after a stylet jab
+  (tardigrades do not really fight back this way) and giving up on a tun
+  after three tries (a tun's hardness against *Milnesium* is not measured).
+  It is drawn as this prototype's animal at 1.5× with a wider buccal tube and
+  no placoids, not as a separate *Milnesium* model (no peribuccal papillae,
+  different claws).
+- **Not added yet:** rotifers or nematodes as moving prey or competition.
 - **Revival** odds are invented to make the choice matter.
 
 ## Sources
@@ -174,5 +227,5 @@ node micro/prototypes/check.mjs tardigrade
 
 Must print `ok tardigrade` with no console errors. `window.__micro` exposes
 `scene`, `camera`, `renderer`, `world`, `walker`, `creature`, `life`, `mic`,
-`view` and `features` for scripted checks (`?pr=1` forces full resolution on
-software GL).
+`view`, `features`, `predator` and `dash` for scripted checks (`?pr=1` forces
+full resolution on software GL).
