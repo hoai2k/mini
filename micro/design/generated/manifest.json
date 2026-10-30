@@ -1575,6 +1575,48 @@
     "mood_boards": []
   },
   {
+    "id": "MP-R13",
+    "name": "Predatory mite (Pergamasus-type), revision",
+    "file": "assets/reference-sheets/predatory-mite-v2.webp",
+    "size": "2048 x 2048, opaque",
+    "used": "Replaces MP-R04, which came out as a domed, glossy, dark tick-like mite. Modelling the predatory mesostigmatid mite (Levels 0 and 1).",
+    "prompt": "Use case: scientific-educational. ONE SQUARE 1:1 four-view 2x2 model sheet. This is a requested REVISION: prioritize the brief's flatter pale Parasitidae form. The supplied photo is ONLY reference for leg articulation and mouthparts, NOT a colour, doming or silhouette target. Do NOT replicate its dark glossy domed back. Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. A predatory mesostigmatid mite of the family Parasitidae (Pergamasus-type), about 1 mm long, a fast running hunter of soil and moss. Its body is strongly flattened top to bottom like a coin, NOT domed: in the side and front views the body is only about a quarter as tall as it is wide. Pale tan to light honey-yellow, satin rather than glossy, with smooth plate-like dorsal shields (a front and a rear shield meeting across the middle) and a few short fine setae; it must not look like a tick or a round beetle-mite. Exactly eight long slender legs, each with seven visible segments: the first pair is longer and thinner than the others, has no claws, and is held raised and forward like a pair of antennae, as these mites feel their way; the other three pairs are spread wide, walking, each ending in a small claw and pad. At the front, a projecting gnathosoma with a pair of long chelicerae ending in small toothed pincers (chelae), clearly visible from the top and front, and short five-segmented pedipalps beside them. No eyes. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nKey measurable silhouette: the body's height in the SIDE and FRONT views is one quarter of dorsal width. Flattened pale honey-tan oval body with two SATIN shields meeting midway. Eight slender legs: the forward FIRST pair are long tactile legs held raised forward, no claws, not extra antennae. Other three pairs walking. Gnathosoma visibly projects at front with two pincered chelicerae and separate short pedipalps. No eyes. Top-left side faces right; top-right dorsal head up; bottom-left END-ON front with thin flattened body behind mouthparts; bottom-right threequarter. Fit all limbs in their quadrants. Square canvas; no text.",
+    "requested_prompt": "Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. A predatory mesostigmatid mite of the family Parasitidae (Pergamasus-type), about 1 mm long, a fast running hunter of soil and moss. Its body is strongly flattened top to bottom like a coin, NOT domed: in the side and front views the body is only about a quarter as tall as it is wide. Pale tan to light honey-yellow, satin rather than glossy, with smooth plate-like dorsal shields (a front and a rear shield meeting across the middle) and a few short fine setae; it must not look like a tick or a round beetle-mite. Exactly eight long slender legs, each with seven visible segments: the first pair is longer and thinner than the others, has no claws, and is held raised and forward like a pair of antennae, as these mites feel their way; the other three pairs are spread wide, walking, each ending in a small claw and pad. At the front, a projecting gnathosoma with a pair of long chelicerae ending in small toothed pincers (chelae), clearly visible from the top and front, and short five-segmented pedipalps beside them. No eyes. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-f353346f-d6f1-4c48-8e4e-55b909c4f4f0.png",
+    "input_images": [
+      "research/assets/references/production/predatory-mite.jpg"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "2b0d7c4a05110bb5b02bef97cfdbc6998b070f2d40bd7e9c1fe167b44109133f",
+    "export": "Aspect-preserving LANCZOS sizing with neutral outer padding when needed; WebP quality 92. No anatomy edits.",
+    "references": [
+      {
+        "id": "predatory-mite",
+        "local": "assets/references/production/predatory-mite.jpg",
+        "author": "AfroBrazilian",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Pergamasus_diversus_02.jpg"
+      },
+      {
+        "id": "mite",
+        "local": "assets/references/mite.jpg",
+        "author": "S.E. Thorpe",
+        "license": "Public domain",
+        "license_url": "",
+        "source": "https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
     "id": "MP-R05",
     "name": "Predatory tardigrade (Milnesium)",
     "file": "assets/reference-sheets/milnesium.webp",
@@ -1907,5 +1949,225 @@
       ],
       "revision_reason": "Replace repeated lateral pose in bottom-left quadrant with an axial front view."
     }
+  },
+  {
+    "id": "MP-E01",
+    "name": "The bog surface at springtail height",
+    "file": "assets/concepts/bog-surface.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "Concept for Level 0, the bog surface.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE landscape 16:9 environment concept plate. The supplied images are reference material for organism anatomy and habitat; do not make a collage or duplicate microscopy labels. Macro-photography look: a real photograph through a macro lens at 2 to 5 times life size, natural overcast daylight, real colours, very shallow depth of field with creamy out-of-focus areas, fine water droplets and surface tension visible where they are real, no studio flash glare, no HDR, no colour grading. The edge of a small Sphagnum bog pool at the eye height of a 1.5 mm water springtail: in the foreground a group of blue-black Podura aquatica springtails on the dark tea-brown water film, their feet dimpling the surface; a Sphagnum shore of green and red capitula rising like a cliff behind them; a round-leaved sundew leaf on the bank with glistening red tentacles; further out, the long legs of a water strider resting in dimples, and on the mossy edge a slender black Stenus rove beetle. Soft overcast daylight, very shallow depth of field. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nPhotorealistic macro at water-film height; springtails1.5mm, Stenus5mm, Gerrisbody10mm, sundewleaf8mm. Six legs on each insect. Springtails foreground, Stenus on moss bank, Gerris distant on open water. Match macro depth of field, not a fantasy forest, no hands or people. No text, scale bar, UI, labels, arrows or watermark. Single continuous composition, no panels.",
+    "requested_prompt": "Macro-photography look: a real photograph through a macro lens at 2 to 5 times life size, natural overcast daylight, real colours, very shallow depth of field with creamy out-of-focus areas, fine water droplets and surface tension visible where they are real, no studio flash glare, no HDR, no colour grading. The edge of a small Sphagnum bog pool at the eye height of a 1.5 mm water springtail: in the foreground a group of blue-black Podura aquatica springtails on the dark tea-brown water film, their feet dimpling the surface; a Sphagnum shore of green and red capitula rising like a cliff behind them; a round-leaved sundew leaf on the bank with glistening red tentacles; further out, the long legs of a water strider resting in dimples, and on the mossy edge a slender black Stenus rove beetle. Soft overcast daylight, very shallow depth of field. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-fe6bc42c-1de4-497c-ad4d-a3700e39b6fe.png",
+    "input_images": [
+      "research/assets/references/production/bog-pool.jpg",
+      "research/assets/references/production/springtail.jpg",
+      "research/assets/references/production/sundew.jpg",
+      "research/assets/references/production/water-strider-adult.jpg",
+      "research/assets/references/production/stenus.jpg"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "b5772e8ef35460d3991e9a8a88876569837d5091f44e995628bd6b59f658e878",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "bog-pool",
+        "local": "assets/references/production/bog-pool.jpg",
+        "author": "JarroNevsbaru",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg"
+      },
+      {
+        "id": "bog-hummock",
+        "local": "assets/references/production/bog-hummock.jpg",
+        "author": "OolaEei",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_Capitulum.jpg"
+      },
+      {
+        "id": "springtail",
+        "local": "assets/references/production/springtail.jpg",
+        "author": "Christian Fischer",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:PoduraAquatica.jpg"
+      },
+      {
+        "id": "sundew",
+        "local": "assets/references/production/sundew.jpg",
+        "author": "Petr Dlouhý",
+        "license": "CC BY-SA 3.0",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "source": "https://commons.wikimedia.org/wiki/File:Drosera_rotundifolia_leaf1.jpg"
+      },
+      {
+        "id": "water-strider",
+        "local": "assets/references/production/water-strider-adult.jpg",
+        "author": "Richard Bartz",
+        "license": "CC BY-SA 2.5",
+        "license_url": "https://creativecommons.org/licenses/by-sa/2.5",
+        "source": "https://commons.wikimedia.org/wiki/File:Water_strider_Gerris_lacustris.jpg"
+      },
+      {
+        "id": "stenus",
+        "local": "assets/references/production/stenus.jpg",
+        "author": "Elena Regina",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Stenus_(Stenus)_sp_%E2%99%82_adult.jpg"
+      }
+    ],
+    "mood_boards": [
+      "01-moss-frontier.webp"
+    ]
+  },
+  {
+    "id": "MP-E02",
+    "name": "The periphyton at 400x",
+    "file": "assets/concepts/periphyton.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "Concept for Level 4, the periphyton and the trap.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE landscape 16:9 environment concept plate. The supplied images are reference material for organism anatomy and habitat; do not make a collage or duplicate microscopy labels. Differential-interference-contrast (Nomarski) microscope look: smooth grey background, transparent structures rendered with directional pseudo-relief (light on one side, dark on the other, the same direction everywhere), gentle colourless tones with at most a faint amber cast, shallow depth of field. The periphyton on a submerged Utricularia leaf in a bog pool at 400x, about 450 µm across: a felt of diatoms, green algal filaments and desmids on the leaf surface, brown Trachelomonas loricae with spines among them and a green Euglena swimming past, a colourless Peranema gliding with its forward flagellum, an Actinophrys sol with stiff radiating arms waiting at the edge, a few chytrid sporangia like small round flasks on an algal cell. At one side the translucent wall and bristly door of a bladderwort trap. Shallow depth of field. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nThis must look like a transmitted-light DIC WET-MOUNT, no underwater sunlight rays, sky, horizon or rendered cinematic scene. Directional pseudo-relief consistent. Peranema and Actinophrys colourless; green pigment only in algae/Euglena. The bladder trap is partial edge, and the scene is a conceptual assembly, not co-occurrence evidence. No text, scale bar, UI, labels, arrows or watermark. Single continuous composition, no panels.",
+    "requested_prompt": "Differential-interference-contrast (Nomarski) microscope look: smooth grey background, transparent structures rendered with directional pseudo-relief (light on one side, dark on the other, the same direction everywhere), gentle colourless tones with at most a faint amber cast, shallow depth of field. The periphyton on a submerged Utricularia leaf in a bog pool at 400x, about 450 µm across: a felt of diatoms, green algal filaments and desmids on the leaf surface, brown Trachelomonas loricae with spines among them and a green Euglena swimming past, a colourless Peranema gliding with its forward flagellum, an Actinophrys sol with stiff radiating arms waiting at the edge, a few chytrid sporangia like small round flasks on an algal cell. At one side the translucent wall and bristly door of a bladderwort trap. Shallow depth of field. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-a6057cd3-04e8-4e6b-9fb6-faab0cc59e93.png",
+    "input_images": [
+      "research/assets/references/production/trachelomonas.jpg",
+      "research/assets/references/production/peranema.jpg",
+      "research/assets/references/production/actinophrys.jpg",
+      "research/assets/references/diatoms.jpg",
+      "research/assets/references/production/utricularia-bladder.jpg"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "8262aef18d6b02e560c9becd6de7d6d634e2d88710e60800bb93da634b739096",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "trachelomonas",
+        "local": "assets/references/production/trachelomonas.jpg",
+        "author": "Sándor Bancsó",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Bancs%C3%B3_2021_Fig_8-2_Trachelomonas_hispida.jpg"
+      },
+      {
+        "id": "peranema",
+        "local": "assets/references/production/peranema.jpg",
+        "author": "Deuterostome",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Peranema.jpg"
+      },
+      {
+        "id": "actinophrys",
+        "local": "assets/references/production/actinophrys.jpg",
+        "author": "Djpmapfer",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Actinophrys_sol_(phase_contrast_microscopy).jpg"
+      },
+      {
+        "id": "chytrid",
+        "local": "assets/references/production/chytrid.webp",
+        "author": "Estelle S. Kilias, Leandro Junges, Luka Šupraha, Guy Leonard, Katja Metfies & Thomas A. Richards",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Pennate_diatoms_infected_with_chytrid-like_fungal_pathogens.webp"
+      },
+      {
+        "id": "euglena",
+        "local": "assets/references/euglena.jpg",
+        "author": "naturalismus",
+        "license": "CC BY-SA 2.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/2.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Euglena_gracilis.jpg"
+      },
+      {
+        "id": "diatoms",
+        "local": "assets/references/diatoms.jpg",
+        "author": "Prof. Gordon T. Taylor, Stony Brook University",
+        "license": "Public domain",
+        "license_url": "",
+        "source": "https://commons.wikimedia.org/wiki/File:Diatoms_through_the_microscope.jpg"
+      },
+      {
+        "id": "utricularia-bladder",
+        "local": "assets/references/production/utricularia-bladder.jpg",
+        "author": "Stefan.lefnaer",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Utricularia_australis_sl68.jpg"
+      }
+    ],
+    "mood_boards": [
+      "04-cell-neighborhood.webp"
+    ]
+  },
+  {
+    "id": "MP-E04",
+    "name": "The phage level (molecular illustration)",
+    "file": "assets/concepts/phage-level.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "Concept for Level 6, the viruses.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE landscape 16:9 environment concept plate. The supplied images are reference material for organism anatomy and habitat; do not make a collage or duplicate microscopy labels. Molecular-illustration look in the manner of David Goodsell's watercolours: flat, softly outlined shapes with no lighting effects, every protein and nucleic acid drawn at true relative size, crowded as real cytoplasm and water are, a restrained palette (warm pinks and oranges for proteins, purples for nucleic acid, pale yellows and greens for membranes and polysaccharide). Electron microscopes and models show this scale; a light microscope cannot. The world of a bacteriophage at about 1 µm across: in the lower half, a curved section through the surface of a Gram-negative bacterium (outer membrane with lipopolysaccharide chains, periplasm with its thin peptidoglycan layer, inner membrane with embedded proteins, then crowded cytoplasm with ribosomes and DNA); above it, water crowded with small dissolved molecules, a flat clay mineral platelet and a few drifting T4 phages (icosahedral heads, tail sheaths, baseplates, six kinked tail fibres), one landed with its fibres bound to the outer membrane and its sheath contracted, injecting its DNA. Inside the cell a CRISPR-Cas complex and a restriction enzyme on the DNA. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nFlat hand-painted molecular illustration, no gradients, cast shadows, gloss or directional lighting. All T4 heads smaller than bacterium width. Gram-negative envelope has exactly TWO membranes separated by periplasm and thin peptidoglycan; LPS on outside only. Crowd interiors with small irregular protein shapes, ribosomes, DNA, RNA; water above crowded with small molecules. T4 six kinked fibres, sheath-injecting phage at outer surface. No cartoons or humanoids. Molecular colours are explanatory, not naturally visible; no claim of a literal light micrograph. No text, scale bar, UI, labels, arrows or watermark. Single continuous composition, no panels.",
+    "requested_prompt": "Molecular-illustration look in the manner of David Goodsell's watercolours: flat, softly outlined shapes with no lighting effects, every protein and nucleic acid drawn at true relative size, crowded as real cytoplasm and water are, a restrained palette (warm pinks and oranges for proteins, purples for nucleic acid, pale yellows and greens for membranes and polysaccharide). Electron microscopes and models show this scale; a light microscope cannot. The world of a bacteriophage at about 1 µm across: in the lower half, a curved section through the surface of a Gram-negative bacterium (outer membrane with lipopolysaccharide chains, periplasm with its thin peptidoglycan layer, inner membrane with embedded proteins, then crowded cytoplasm with ribosomes and DNA); above it, water crowded with small dissolved molecules, a flat clay mineral platelet and a few drifting T4 phages (icosahedral heads, tail sheaths, baseplates, six kinked tail fibres), one landed with its fibres bound to the outer membrane and its sheath contracted, injecting its DNA. Inside the cell a CRISPR-Cas complex and a restriction enzyme on the DNA. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-bca94aa7-a7ee-4d5a-a6d6-c6d34d5545d3.png",
+    "input_images": [
+      "research/assets/references/production/phage-t4.jpg",
+      "research/assets/references/production/magnetotactic.png",
+      "research/assets/references/biofilm-sem.jpg"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "214eeeb5abbd8b4c7704e6ec06e04effc02dd4b69d166b4cc6a88af8f4dd236b",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      },
+      {
+        "id": "magnetotactic",
+        "local": "assets/references/production/magnetotactic.png",
+        "author": "Caulobacter subvibrioides (Diskussion)",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png"
+      },
+      {
+        "id": "biofilm-sem",
+        "local": "assets/references/biofilm-sem.jpg",
+        "author": "Timo Kohn, Rast, P., Kallscheuer, N., Wiegand, S., Boedeker, C., Jetten, M.S., Jeske, O., Vollmers, J., Kaster, A.K., Rohde, M. and Jogler, M.",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Electron_microscopic_analysis_of_seagrass_biofilms.jpg"
+      }
+    ],
+    "mood_boards": []
   }
 ]

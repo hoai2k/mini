@@ -12,7 +12,7 @@ Artwork for the prototypes in `micro/prototypes/`. Generated from `source/build_
 
 ## Status
 
-6 requested, 40 delivered, 46 in total.
+2 requested, 44 delivered, 46 in total.
 
 ## Launcher cards
 
@@ -585,7 +585,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Replaces MP-R04, which came out as a domed, glossy, dark tick-like mite. Modelling the predatory mesostigmatid mite (Levels 0 and 1).
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Pergamasus diversus; predatory mite morphology, not a species-level bog occurrence claim.](../research/assets/references/production/predatory-mite.jpg) · AfroBrazilian, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Pergamasus_diversus_02.jpg)
   - [Unidentified phthiracarid mite; adult arthropod morphology.](../research/assets/references/mite.jpg) · S.E. Thorpe, Public domain · [source](https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg)
@@ -721,7 +721,7 @@ Concept plates for the levels that have no prototype art yet: the mood, palette 
 - **Size:** 2560 x 1440, opaque
 - **Used for:** Concept for Level 0, the bog surface.
 - **Stand-in until delivered:** None needed.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](../research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
   - [Sphagnum capitulum structure and colour; macro habitat reference.](../research/assets/references/production/bog-hummock.jpg) · OolaEei, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Capitulum.jpg)
@@ -741,7 +741,7 @@ Macro-photography look: a real photograph through a macro lens at 2 to 5 times l
 - **Size:** 2560 x 1440, opaque
 - **Used for:** Concept for Level 4, the periphyton and the trap.
 - **Stand-in until delivered:** None needed.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Trachelomonas hispida; lorica form and surface ornament.](../research/assets/references/production/trachelomonas.jpg) · Sándor Bancsó, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Bancs%C3%B3_2021_Fig_8-2_Trachelomonas_hispida.jpg)
   - [Peranema sp. from a Quebec pond; genus-level morphology reference.](../research/assets/references/production/peranema.jpg) · Deuterostome, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Peranema.jpg)
@@ -780,7 +780,7 @@ Phase-contrast microscope look at 1000x oil immersion: mid-grey background, tran
 - **Size:** 2560 x 1440, opaque
 - **Used for:** Concept for Level 6, the viruses.
 - **Stand-in until delivered:** None needed.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [T4 phage electron micrograph; head, sheath and tail-fibre reference.](../research/assets/references/production/phage-t4.jpg) · 7USSR7, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg)
   - [Magnetospirillum gryphiswaldense; electron-microscopy reference. Internal detail is not visible in ordinary light microscopy.](../research/assets/references/production/magnetotactic.png) · Caulobacter subvibrioides (Diskussion), CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png)

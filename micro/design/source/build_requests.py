@@ -439,7 +439,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} A predatory mesostigmatid mite of the family Parasitidae (Pergamasus-type), about 1 mm long: an oval, flattened, glossy amber-to-chestnut body covered by smooth sclerotised dorsal shields with a few short setae; exactly eight legs, each with seven visible segments, the first pair longer and held forward like antennae, the others walking; at the front a projecting gnathosoma with a pair of long chelicerae ending in small pincers (chelae), and short pedipalps. No eyes. {SCIENCE}",
             },
             {
-                "id": "MP-R13", "name": "Predatory mite (Pergamasus-type), revision",
+                "id": "MP-R13", "status": "delivered", "name": "Predatory mite (Pergamasus-type), revision",
                 "file": "assets/reference-sheets/predatory-mite-v2.webp", "size": "2048 x 2048, opaque",
                 "used": "Replaces MP-R04, which came out as a domed, glossy, dark tick-like mite. Modelling the predatory mesostigmatid mite (Levels 0 and 1).",
                 "standin": "None needed: the model is built from the photographs.",
@@ -517,7 +517,7 @@ GROUPS = [
         "intro": "Concept plates for the levels that have no prototype art yet: the mood, palette and optical look of each place. They guide set dressing and the shaders; they are not used in the game.",
         "items": [
             {
-                "id": "MP-E01", "status": "requested", "name": "The bog surface at springtail height",
+                "id": "MP-E01", "status": "delivered", "name": "The bog surface at springtail height",
                 "file": "assets/concepts/bog-surface.webp", "size": "2560 x 1440, opaque",
                 "used": "Concept for Level 0, the bog surface.",
                 "standin": "None needed.",
@@ -525,7 +525,7 @@ GROUPS = [
                 "prompt": f"{MACRO} The edge of a small Sphagnum bog pool at the eye height of a 1.5 mm water springtail: in the foreground a group of blue-black Podura aquatica springtails on the dark tea-brown water film, their feet dimpling the surface; a Sphagnum shore of green and red capitula rising like a cliff behind them; a round-leaved sundew leaf on the bank with glistening red tentacles; further out, the long legs of a water strider resting in dimples, and on the mossy edge a slender black Stenus rove beetle. Soft overcast daylight, very shallow depth of field. {SCIENCE}",
             },
             {
-                "id": "MP-E02", "status": "requested", "name": "The periphyton at 400x",
+                "id": "MP-E02", "status": "delivered", "name": "The periphyton at 400x",
                 "file": "assets/concepts/periphyton.webp", "size": "2560 x 1440, opaque",
                 "used": "Concept for Level 4, the periphyton and the trap.",
                 "standin": "None needed.",
@@ -541,7 +541,7 @@ GROUPS = [
                 "prompt": f"{PHASE} The bacterial film on bog sediment at 1000x, about 60 µm across: a mounded biofilm of packed rods in the lower third, open water above with swimming rods and spirilla, a magnetotactic spirillum among them, small Bdellovibrio as tiny commas and one prey rod rounded into a sphere (a bdelloplast), and the out-of-focus edge of a large ciliate looming at the top. Nothing shown more sharply than the 0.2 µm limit allows. {SCIENCE}",
             },
             {
-                "id": "MP-E04", "status": "requested", "name": "The phage level (molecular illustration)",
+                "id": "MP-E04", "status": "delivered", "name": "The phage level (molecular illustration)",
                 "file": "assets/concepts/phage-level.webp", "size": "2560 x 1440, opaque",
                 "used": "Concept for Level 6, the viruses.",
                 "standin": "None needed.",

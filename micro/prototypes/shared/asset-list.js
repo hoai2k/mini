@@ -135,7 +135,7 @@ export const ASSETS = {
   },
   "MP-R13": {
     "file": "assets/reference-sheets/predatory-mite-v2.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R05": {
     "file": "assets/reference-sheets/milnesium.webp",
@@ -171,11 +171,11 @@ export const ASSETS = {
   },
   "MP-E01": {
     "file": "assets/concepts/bog-surface.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-E02": {
     "file": "assets/concepts/periphyton.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-E03": {
     "file": "assets/concepts/bacterial-sediment.webp",
@@ -183,6 +183,6 @@ export const ASSETS = {
   },
   "MP-E04": {
     "file": "assets/concepts/phage-level.webp",
-    "status": "requested"
+    "status": "delivered"
   }
 };
