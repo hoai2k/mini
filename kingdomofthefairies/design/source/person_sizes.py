@@ -61,9 +61,11 @@ CAST = {
 # pose; looked at on the sheets, every sprite at one person height.
 # Measured brow to chin against the reference at native scale, 30 Oct 2026.
 BY_EYE = {
-    # her swoon is painted at her standing scale (the template, thrown by the
-    # raised arm and tipped head, read 0.42-0.48)
-    'azurine-swoon': 1.0, 'azurine-swoon-tinted': 1.0,
+    # her swoon is painted larger than her standing figure: her face 26-30 px
+    # eye to chin, tipped back, against 18-20 standing (the template, thrown
+    # by the raised arm, read 0.42-0.48; 1.0 by a glance was wrong, seen in
+    # play 31 Oct 2026)
+    'azurine-swoon': 1.28, 'azurine-swoon-tinted': 1.28,
     # the window is a close bust: her face 33 px brow to chin against 21
     'azurine-window': 1.5, 'azurine-window-tinted': 1.5,
     # the witch's face 35 px in the swoop, 40 in the barrel and the storm,
