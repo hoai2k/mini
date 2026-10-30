@@ -355,7 +355,7 @@ GROUPS = [
                 "prompt": f"{MACRO} One round-leaved sundew leaf (Drosera rotundifolia) seen from directly above, isolated: a round green-to-red blade about 8 mm across on a narrow petiole pointing down, covered with about 200 red glandular tentacles, short ones in the centre and long ones at the margin, each tipped with a clear glistening droplet of sticky mucilage; a few marginal tentacles bending inward. No insect on it. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. {SCIENCE}",
             },
             {
-                "id": "MP-S05", "status": "requested", "name": "Raindrop and ripple sprites",
+                "id": "MP-S05", "status": "delivered", "name": "Raindrop and ripple sprites",
                 "file": "assets/springtail/ripples.png", "size": "2048 x 2048, transparent, 4 x 4 sprite grid",
                 "used": "Raindrop impacts and the ripples they send across the pool surface.",
                 "standin": "Procedural expanding rings.",
@@ -533,7 +533,7 @@ GROUPS = [
                 "prompt": f"{DIC} The periphyton on a submerged Utricularia leaf in a bog pool at 400x, about 450 µm across: a felt of diatoms, green algal filaments and desmids on the leaf surface, brown Trachelomonas loricae with spines among them and a green Euglena swimming past, a colourless Peranema gliding with its forward flagellum, an Actinophrys sol with stiff radiating arms waiting at the edge, a few chytrid sporangia like small round flasks on an algal cell. At one side the translucent wall and bristly door of a bladderwort trap. Shallow depth of field. {SCIENCE}",
             },
             {
-                "id": "MP-E03", "status": "requested", "name": "The bacterial sediment at 1000x",
+                "id": "MP-E03", "status": "delivered", "name": "The bacterial sediment at 1000x",
                 "file": "assets/concepts/bacterial-sediment.webp", "size": "2560 x 1440, opaque",
                 "used": "Concept for Level 5, the film of bacteria.",
                 "standin": "None needed.",

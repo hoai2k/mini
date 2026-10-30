@@ -1195,6 +1195,148 @@
     "mood_boards": []
   },
   {
+    "id": "MP-S05",
+    "name": "Raindrop and ripple sprites",
+    "file": "assets/springtail/ripples.png",
+    "size": "2048 x 2048, transparent, 4 x 4 sprite grid",
+    "used": "Raindrop impacts and the ripples they send across the pool surface.",
+    "prompt": "Use case: scientific-educational. Create ONE SQUARE 1:1 RGBA game VFX sprite atlas with a genuinely TRANSPARENT background. EXACTLY 4 columns and 4 rows of 16 separate sprites. Orthographic camera looking STRAIGHT DOWN at water impact, so rings are PERFECTLY CIRCULAR, never elliptical. Use natural silver-grey photorealistic water highlights, soft optical texture and restrained reflections. No blue or cyan colour, no debris, no grid lines, no opaque water or coloured cell backgrounds. Each of the sixteen sprites is centred in one equal cell and must fit inside the central SIXTY PERCENT of that cell. Keep wide transparent gutters: NOTHING touches any cell edge. Overall output2048x2048, each cell512square, maxspriteextent300x300. Reading left-to-right then top-to-bottom: 1 falling spherical drop as seen directly above; 2 small impact crater circle; 3 low crown ring seen directly above; 4 expanded crown ring from above; 5 central rebound tip viewed from above surrounded by a small circular ring; 6 same tip shrinking; 7 two small circular ripple rings; 8 two slightly larger circular rings; 9-12 expanding three circular ripple rings; 13-16 same circular ripple rings gently fading until very faint but still VISIBLE in frame16. Keep optical scale fixed, each effect centred exactly at the cell centre. Present these as isolated photographic water highlights on alpha, with no water-filled disks. Evenly spaced centres in a strict uniform 4x4 arrangement. No perspective tilt, side view, labels, text, numbering, shadows or watermark.",
+    "requested_prompt": "Macro-photography look: a real photograph through a macro lens at 2 to 5 times life size, natural overcast daylight, real colours, very shallow depth of field with creamy out-of-focus areas, fine water droplets and surface tension visible where they are real, no studio flash glare, no HDR, no colour grading. A 4 by 4 grid of sixteen frames, each centred in its own cell with clear space around it, showing one raindrop hitting still dark water from directly above in sequence: the falling drop, the crater, the crown splash, the rebound jet, then expanding concentric ripple rings that grow and fade. Same scale in every frame, the drop about 3 mm across. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-5e021bcf-ec7c-4945-88fd-2ab864357e2d.png",
+    "input_images": [],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "8a6c1acf2e83e9261ef781f61b859e4aa0e8550e38a1855a1da1756fba963a8e",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "bog-pool",
+        "local": "assets/references/production/bog-pool.jpg",
+        "author": "JarroNevsbaru",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg"
+      }
+    ],
+    "mood_boards": [],
+    "sprite_verification": {
+      "columns": 4,
+      "rows": 4,
+      "cell_size": [
+        512,
+        512
+      ],
+      "visible_frames": 16,
+      "alpha_threshold": 8,
+      "minimum_gutter_pixels": 35,
+      "frame_bounds": [
+        [
+          213,
+          215,
+          312,
+          312
+        ],
+        [
+          147,
+          158,
+          354,
+          362
+        ],
+        [
+          118,
+          135,
+          376,
+          375
+        ],
+        [
+          75,
+          90,
+          429,
+          423
+        ],
+        [
+          156,
+          174,
+          370,
+          358
+        ],
+        [
+          152,
+          172,
+          361,
+          353
+        ],
+        [
+          130,
+          136,
+          383,
+          375
+        ],
+        [
+          94,
+          104,
+          425,
+          408
+        ],
+        [
+          96,
+          96,
+          428,
+          407
+        ],
+        [
+          76,
+          79,
+          438,
+          420
+        ],
+        [
+          65,
+          76,
+          446,
+          436
+        ],
+        [
+          46,
+          53,
+          464,
+          451
+        ],
+        [
+          43,
+          40,
+          477,
+          450
+        ],
+        [
+          43,
+          42,
+          476,
+          448
+        ],
+        [
+          39,
+          47,
+          472,
+          448
+        ],
+        [
+          45,
+          48,
+          464,
+          447
+        ]
+      ],
+      "inspection": "All sixteen frames checked over dark brown and pale teal backgrounds; straight-down rings and no visible frame overlap."
+    }
+  },
+  {
     "id": "MP-B01",
     "name": "Bog-sediment bacteria (phase contrast)",
     "file": "assets/bacterium/sediment-phase.webp",
@@ -1572,7 +1714,8 @@
         "source": "https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg"
       }
     ],
-    "mood_boards": []
+    "mood_boards": [],
+    "superseded_by": "MP-R13"
   },
   {
     "id": "MP-R13",
@@ -2117,6 +2260,79 @@
     "mood_boards": [
       "04-cell-neighborhood.webp"
     ]
+  },
+  {
+    "id": "MP-E03",
+    "name": "The bacterial sediment at 1000x",
+    "file": "assets/concepts/bacterial-sediment.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "Concept for Level 5, the film of bacteria.",
+    "prompt": "Use case: precise-object-edit. Edit target: supplied wide phase-contrast bacteria environment concept. Correct the optical resolution only: remove the discrete black magnetosome beads visible inside the central helical bacterium. Its cell interior must be smoothly translucent and optically unresolved, with a softly blurred grey outline and thin phase halo, like all the surrounding rods. Also soften the filamentous matrix in the lower third enough that no nanometre-scale membrane or protein detail appears resolved. Preserve composition, overall monochrome phase-contrast look, ciliate edge at top, all other bacteria, the bdelloplast sphere and the 16:9 frame. No text, scale bars, arrows, new objects or fluorescence. This is a light-microscope concept, not TEM.",
+    "requested_prompt": "Phase-contrast microscope look at 1000x oil immersion: mid-grey background, transparent cells dark with thin bright halos at their edges, colourless, slight optical softness at the limit of resolution (nothing sharper than about 0.2 µm), very shallow depth of field. The bacterial film on bog sediment at 1000x, about 60 µm across: a mounded biofilm of packed rods in the lower third, open water above with swimming rods and spirilla, a magnetotactic spirillum among them, small Bdellovibrio as tiny commas and one prey rod rounded into a sphere (a bdelloplast), and the out-of-focus edge of a large ciliate looming at the top. Nothing shown more sharply than the 0.2 µm limit allows. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-213060f8-8551-4ad1-bf8b-f64cb7046246.png",
+    "input_images": [
+      "generated/exec-0be1f7e9-fbc1-4d43-9893-8f73d2320925.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "acdf803793a5f6f80f60aa173f66cb8ddf86f6989be54b4b5406a09baf05b1f0",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "magnetotactic",
+        "local": "assets/references/production/magnetotactic.png",
+        "author": "Caulobacter subvibrioides (Diskussion)",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png"
+      },
+      {
+        "id": "bdellovibrio",
+        "local": "assets/references/production/bdellovibrio.jpg",
+        "author": "Eikosi",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Slice_from_electron_cryotomogram_of_Bdellovibrio_bacteriovorus_cell.jpg"
+      },
+      {
+        "id": "biofilm-fluorescence",
+        "local": "assets/references/production/biofilm-fluorescence.png",
+        "author": "Schwarz, Michael (ORCID: 0009-0002-1414-3291)",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:NFDI4BIOIMAGE_Calendar_March_2025_-_image_march.png"
+      },
+      {
+        "id": "biofilm-sem",
+        "local": "assets/references/biofilm-sem.jpg",
+        "author": "Timo Kohn, Rast, P., Kallscheuer, N., Wiegand, S., Boedeker, C., Jetten, M.S., Jeske, O., Vollmers, J., Kaster, A.K., Rohde, M. and Jogler, M.",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Electron_microscopic_analysis_of_seagrass_biofilms.jpg"
+      }
+    ],
+    "mood_boards": [
+      "04-cell-neighborhood.webp"
+    ],
+    "initial_generation": {
+      "tool": "Built-in image_gen",
+      "source_artifact": "exec-0be1f7e9-fbc1-4d43-9893-8f73d2320925.png",
+      "prompt": "Use case: scientific-educational. Asset type: ONE landscape 16:9 environment concept plate. The supplied images are reference material for organism anatomy and habitat; do not make a collage or duplicate microscopy labels. Phase-contrast microscope look at 1000x oil immersion: mid-grey background, transparent cells dark with thin bright halos at their edges, colourless, slight optical softness at the limit of resolution (nothing sharper than about 0.2 µm), very shallow depth of field. The bacterial film on bog sediment at 1000x, about 60 µm across: a mounded biofilm of packed rods in the lower third, open water above with swimming rods and spirilla, a magnetotactic spirillum among them, small Bdellovibrio as tiny commas and one prey rod rounded into a sphere (a bdelloplast), and the out-of-focus edge of a large ciliate looming at the top. Nothing shown more sharply than the 0.2 µm limit allows. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nTrue phase contrast MONOCHROME. Bacteria tiny soft rods and commas, no resolved flagella, magnetosome crystals or molecular features. Lower third dense matrix, top edge blurred ciliate. Biofilm fluorescence input only informs packing, no red or green output. No text, scale bar, UI, labels, arrows or watermark. Single continuous composition, no panels.",
+      "input_images": [
+        "research/assets/references/production/magnetotactic.png",
+        "research/assets/references/production/bdellovibrio.jpg",
+        "research/assets/references/production/biofilm-fluorescence.png",
+        "research/assets/references/biofilm-sem.jpg",
+        "research/assets/concepts/04-cell-neighborhood.webp"
+      ],
+      "revision_reason": "Remove resolved magnetosome crystals and soften matrix detail for a phase-contrast concept."
+    }
   },
   {
     "id": "MP-E04",

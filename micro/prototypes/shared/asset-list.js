@@ -99,7 +99,7 @@ export const ASSETS = {
   },
   "MP-S05": {
     "file": "assets/springtail/ripples.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-B01": {
     "file": "assets/bacterium/sediment-phase.webp",
@@ -179,7 +179,7 @@ export const ASSETS = {
   },
   "MP-E03": {
     "file": "assets/concepts/bacterial-sediment.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-E04": {
     "file": "assets/concepts/phage-level.webp",

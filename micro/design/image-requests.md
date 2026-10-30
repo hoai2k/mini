@@ -12,7 +12,7 @@ Artwork for the prototypes in `micro/prototypes/`. Generated from `source/build_
 
 ## Status
 
-2 requested, 44 delivered, 46 in total.
+0 requested, 46 delivered, 46 in total.
 
 ## Launcher cards
 
@@ -441,7 +441,7 @@ Macro-photography look: a real photograph through a macro lens at 2 to 5 times l
 - **Size:** 2048 x 2048, transparent, 4 x 4 sprite grid
 - **Used for:** Raindrop impacts and the ripples they send across the pool surface.
 - **Stand-in until delivered:** Procedural expanding rings.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](../research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
 
@@ -762,7 +762,7 @@ Differential-interference-contrast (Nomarski) microscope look: smooth grey backg
 - **Size:** 2560 x 1440, opaque
 - **Used for:** Concept for Level 5, the film of bacteria.
 - **Stand-in until delivered:** None needed.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Magnetospirillum gryphiswaldense; electron-microscopy reference. Internal detail is not visible in ordinary light microscopy.](../research/assets/references/production/magnetotactic.png) · Caulobacter subvibrioides (Diskussion), CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png)
   - [Bdellovibrio cryotomogram section; ultrastructure reference, not a live light-microscope view.](../research/assets/references/production/bdellovibrio.jpg) · Eikosi, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Slice_from_electron_cryotomogram_of_Bdellovibrio_bacteriovorus_cell.jpg)
