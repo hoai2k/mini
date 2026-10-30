@@ -190,5 +190,85 @@
     "mood_boards": [
       "03-protist-garden.webp"
     ]
+  },
+  {
+    "id": "MP-M03",
+    "name": "SEM oribatid cuticle",
+    "file": "assets/mite/sem-cuticle.webp",
+    "size": "1024 x 1024, opaque, tileable",
+    "used": "Detail texture on the mite's notogaster and leg segments.",
+    "prompt": "Use case: scientific-educational. Asset type: individual production game texture or backdrop. Supplied images: first 2 are real scientific references (mite, tardigrade-sem), final image is AI mood only. These are references, not edit targets; no labels or layout from them should appear.\nSeamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Scanning-electron-microscope look: greyscale secondary-electron image, bright edges where surfaces tilt away from the detector, soft dark crevices, very deep focus, crisp tactile surface detail, slight fine grain, no colour. The sclerotised cuticle of an oribatid mite's notogaster at about 100 µm across: a smooth gently curved hard surface with fine shallow pits (foveae), a faint cerotegument crust in patches, and a few setal sockets (small raised rings) spaced widely. No whole animal.\nRequested export dimensions: 1024 x 1024, opaque, tileable. Render one texture/image covering the entire canvas; no borders, sample grids or panels. For tileable assets, the border is not a frame: continue every cut form at the opposite edge, keep identical local scale and brightness on all edges, and make both horizontal and vertical repeats continuous. No text.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Scanning-electron-microscope look: greyscale secondary-electron image, bright edges where surfaces tilt away from the detector, soft dark crevices, very deep focus, crisp tactile surface detail, slight fine grain, no colour. The sclerotised cuticle of an oribatid mite's notogaster at about 100 µm across: a smooth gently curved hard surface with fine shallow pits (foveae), a faint cerotegument crust in patches, and a few setal sockets (small raised rings) spaced widely. No whole animal.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-8085ea45-309e-4c57-a466-01f41edcfd2b.png",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 1024,
+    "height": 1024,
+    "sha256": "13841a03d79bc2deccc24bfa3aa2af39b9aff5959dccab28a1556d369ee594a3",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "mite",
+        "local": "assets/references/mite.jpg",
+        "author": "S.E. Thorpe",
+        "license": "Public domain",
+        "license_url": "",
+        "source": "https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg"
+      },
+      {
+        "id": "tardigrade-sem",
+        "local": "assets/references/tardigrade-sem.png",
+        "author": "Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012)",
+        "license": "CC BY 2.5",
+        "license_url": "https://creativecommons.org/licenses/by/2.5",
+        "source": "https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png"
+      }
+    ],
+    "mood_boards": [
+      "01-moss-frontier.webp"
+    ]
+  },
+  {
+    "id": "MP-M04",
+    "name": "SEM moss forest backdrop",
+    "file": "assets/mite/sem-backdrop.webp",
+    "size": "2560 x 1080, opaque",
+    "used": "The far backdrop behind the walkable area, wrapped around the scene.",
+    "prompt": "Use case: scientific-educational. Asset type: individual production game texture or backdrop. Supplied images: first 2 are real scientific references (moss, mite), final image is AI mood only. These are references, not edit targets; no labels or layout from them should appear.\nScanning-electron-microscope look: greyscale secondary-electron image, bright edges where surfaces tilt away from the detector, soft dark crevices, very deep focus, crisp tactile surface detail, slight fine grain, no colour. A wide panoramic view at mite height inside a moss cushion, about 5 mm across: overlapping moss leaves and stems rising like a forest, fungal hyphae strung between them, mineral grains on the ground, depth fading to dark grey with distance as in a low-magnification SEM overview. No animals. Even horizon at about one third height so it can wrap around a scene. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nRequested export dimensions: 2560 x 1080, opaque. Render one texture/image covering the entire canvas; no borders, sample grids or panels. For tileable assets, the border is not a frame: continue every cut form at the opposite edge, keep identical local scale and brightness on all edges, and make both horizontal and vertical repeats continuous. No text.",
+    "requested_prompt": "Scanning-electron-microscope look: greyscale secondary-electron image, bright edges where surfaces tilt away from the detector, soft dark crevices, very deep focus, crisp tactile surface detail, slight fine grain, no colour. A wide panoramic view at mite height inside a moss cushion, about 5 mm across: overlapping moss leaves and stems rising like a forest, fungal hyphae strung between them, mineral grains on the ground, depth fading to dark grey with distance as in a low-magnification SEM overview. No animals. Even horizon at about one third height so it can wrap around a scene. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-a3c899c2-c738-4c1e-8df2-9bd118d08f4b.png",
+    "original_dimensions": [
+      1931,
+      814
+    ],
+    "width": 2560,
+    "height": 1080,
+    "sha256": "6b923369d38eccd7a0ae306a3a05924f40fb1d4e0c97017680d7d5fe628c9e11",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      },
+      {
+        "id": "mite",
+        "local": "assets/references/mite.jpg",
+        "author": "S.E. Thorpe",
+        "license": "Public domain",
+        "license_url": "",
+        "source": "https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg"
+      }
+    ],
+    "mood_boards": [
+      "01-moss-frontier.webp"
+    ]
   }
 ]

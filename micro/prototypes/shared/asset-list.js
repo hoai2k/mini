@@ -27,11 +27,11 @@ export const ASSETS = {
   },
   "MP-M03": {
     "file": "assets/mite/sem-cuticle.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-M04": {
     "file": "assets/mite/sem-backdrop.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-T01": {
     "file": "assets/tardigrade/lamina-dic.webp",

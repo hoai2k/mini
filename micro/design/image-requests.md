@@ -12,7 +12,7 @@ Artwork for the prototypes in `micro/prototypes/`. Generated from `source/build_
 
 ## Status
 
-14 requested, 4 delivered, 18 in total.
+12 requested, 6 delivered, 18 in total.
 
 ## Launcher cards
 
@@ -129,7 +129,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Size:** 1024 x 1024, opaque, tileable
 - **Used for:** Detail texture on the mite's notogaster and leg segments.
 - **Stand-in until delivered:** Procedural fine pitting and sockets.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Unidentified phthiracarid mite; adult arthropod morphology.](../research/assets/references/mite.jpg) · S.E. Thorpe, Public domain · [source](https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg)
   - [SEM of an animal prepared from the active state; not live in-chamber footage.](../research/assets/references/tardigrade-sem.png) · Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012), CC BY 2.5 · [source](https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png)
@@ -145,7 +145,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Size:** 2560 x 1080, opaque
 - **Used for:** The far backdrop behind the walkable area, wrapped around the scene.
 - **Stand-in until delivered:** Dark gradient with fog.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Moss habitat structure; use leaf architecture as environmental reference.](../research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
   - [Unidentified phthiracarid mite; adult arthropod morphology.](../research/assets/references/mite.jpg) · S.E. Thorpe, Public domain · [source](https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg)

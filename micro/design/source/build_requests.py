@@ -147,7 +147,7 @@ GROUPS = [
                 "prompt": f"{TILE} {SEM} Soil and leaf litter at about 2 mm across: angular quartz and clay mineral grains from 20 to 200 µm, flakes of decomposing leaf with visible cell outlines, a loose net of fungal hyphae 3 to 5 µm thick draped between grains, a few round fungal spores and pollen grains.",
             },
             {
-                "id": "MP-M03", "name": "SEM oribatid cuticle",
+                "id": "MP-M03", "status": "delivered", "name": "SEM oribatid cuticle",
                 "file": "assets/mite/sem-cuticle.webp", "size": "1024 x 1024, opaque, tileable",
                 "used": "Detail texture on the mite's notogaster and leg segments.",
                 "standin": "Procedural fine pitting and sockets.",
@@ -155,7 +155,7 @@ GROUPS = [
                 "prompt": f"{TILE} {SEM} The sclerotised cuticle of an oribatid mite's notogaster at about 100 µm across: a smooth gently curved hard surface with fine shallow pits (foveae), a faint cerotegument crust in patches, and a few setal sockets (small raised rings) spaced widely. No whole animal.",
             },
             {
-                "id": "MP-M04", "name": "SEM moss forest backdrop",
+                "id": "MP-M04", "status": "delivered", "name": "SEM moss forest backdrop",
                 "file": "assets/mite/sem-backdrop.webp", "size": "2560 x 1080, opaque",
                 "used": "The far backdrop behind the walkable area, wrapped around the scene.",
                 "standin": "Dark gradient with fog.",
