@@ -56,12 +56,12 @@ export const ARMS = [{ id: 'helmet', x: 820 }, { id: 'shield', x: 640 }, { id: '
 export const AURORA = { from: -110, at: 250, to: -140 };   // her glide on, where she casts, and off
 export const EXIT_X = [50, 1180];   // the ways out of the armoury, once armed: up the stairs at the left, or off at the right
 export const WIGGLES = 4;     // pulls against the cords: any button or push of the stick
-// bind: the witch's binding; free: Aurora glides on (on), casts (cast: the
-// cords break) and the scene moves on; knighted: the last badge settles
+// bind: the witch's binding; free: Aurora glides on (on) and the witch flees
+// (flee to fled), Aurora casts (cast: the cords break) and the scene moves on; knighted: the last badge settles
 // (badge), he is armoured at `armed` and kneels while she glides off (from
 // `leave`, taking `off`), and stands again at `risen`.
 export const T = {
-  defeat: 1.4, curse: 6.6, escape: 1.1, bind: 1.8, strained: 0.5, free: 2.3, on: 1.2, cast: 1.9,
+  defeat: 1.4, curse: 6.6, escape: 1.1, bind: 1.8, strained: 0.5, free: 2.3, on: 1.2, cast: 1.9, flee: 0.35, fled: 1.25,
   badge: 1.75, armed: 3.85, leave: 4.5, off: 1.5, risen: 6.1, iris: 1.3, fade: 0.6,
 };
 const ORDER = ['court', 'curse', 'rampart', 'escape', 'bind', 'free', 'armoury', 'knighted', 'iris'];
@@ -130,6 +130,7 @@ export default {
     else if (ph === 'bind') bind(st, dt, input);
     else if (ph === 'free') {
       const was = st.phaseT - dt;
+      if (was < T.flee && st.phaseT >= T.flee) st.events.push({ type: 'witchFlees', sound: 'witchBreath', gain: 0.7 });
       if (was < T.cast && st.phaseT >= T.cast) st.events.push({ type: 'unbound', x: st.p.x, sound: 'keepsake', gain: 0.8 });
       walk(st, dt, st.phaseT >= T.cast ? input.moveX || 0 : 0, input, { floor: ARM_FLOOR, x1: 1200 });
       if (st.phaseT >= T.free) next(st);
@@ -147,12 +148,13 @@ export default {
       court: 'The betrothal court. Walk to each fairy and press A to receive her gift for Princess Azurine.',
       curse: 'The witch, uninvited, curses the betrothal.',
       rampart: "Her demons bear Azurine away in a chariot of fire. Run after it along the rampart; leap the fire it drops.",
-      bind: 'In the armoury the witch binds the prince.',
-      free: 'Aurora comes and breaks the spell.',
+      bind: 'In the armoury the witch binds the prince, and laughs at him.',
+      free: 'Aurora comes; the witch flees, and Aurora breaks the spell.',
       armoury: 'Take up the helmet, the shield and the enchanted sword Aurora gives you.',
     }[e.phase] || null;
     if (e.type === 'gift') return `${e.from} gives ${e.gift === 'gold' ? 'gold' : 'the ' + e.gift}.`;
     if (e.type === 'betrothed') return 'The prince takes Azurine’s hand.';
+    if (e.type === 'witchFlees') return 'The witch flees from Aurora.';
     if (e.type === 'seized') return 'The witch and her demons seize the princess.';
     if (e.type === 'carriedOff') return 'They carry Azurine away.';
     if (e.type === 'arm') return `The ${e.arm}.`;
@@ -232,6 +234,9 @@ function rampart(st, dt, input) {
 // every pull, as if they might give; then Aurora comes.
 function bind(st, dt, input) {
   const s = st.struggle, mx = input.moveX || 0, my = input.moveY || 0;
+  // the witch laughs at him once she has bound him, and again as he strains
+  const was = st.phaseT - dt;
+  if (was < T.bind && st.phaseT >= T.bind) laugh(st);
   if (st.phaseT < T.bind) return;
   const pushing = Math.hypot(mx, my) > 0.5, side = Math.abs(mx) > 0.5 ? Math.sign(mx) : 0;
   const fresh = input.a || input.x || (pushing && (!s.held || (side && side !== s.heldSide)));
@@ -242,12 +247,20 @@ function bind(st, dt, input) {
     s.dir = Math.abs(mx) > 0.5 && Math.sign(mx) !== s.dir ? Math.sign(mx) : -(s.dir || 1);
     s.n++; s.pullT = 0.3;
     st.events.push({ type: 'strain', n: s.n, x: st.p.x, sound: 'timberCreak', gain: 0.25 + 0.08 * s.n });
+    if (s.n === 2) laugh(st);
   }
   // he leans into each pull, and back upright between them
   s.pullT = Math.max(0, (s.pullT || 0) - dt);
   const want = s.n < WIGGLES || s.pullT > 0 ? (s.pullT > 0 || pushing ? s.dir : 0) * 0.16 : 0;
   s.tilt += (want - s.tilt) * Math.min(1, dt * 14);
   if (s.n >= WIGGLES && (s.doneT += dt) >= T.strained) next(st);
+}
+
+// The witch's cackle (the Crossing's, until her own is generated: witchCackle
+// in design/source/build_sfx.py).
+function laugh(st) {
+  st.laughAt = st.phaseT;
+  st.events.push({ type: 'witchCackle', sound: 'windWarn', gain: 0.7 });
 }
 
 function armoury(st, dt, input) {
