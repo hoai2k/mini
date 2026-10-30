@@ -4729,6 +4729,86 @@
       ],
       "anchor": "bottom centre",
       "edition": "film"
+    },
+    "aurora-glide-a": {
+      "status": "requested",
+      "file": "aurora-glide-a.webp",
+      "size": [
+        300,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "aurora-glide-a-tinted": {
+      "status": "requested",
+      "file": "aurora-glide-a-tinted.webp",
+      "size": [
+        300,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "aurora-glide-b": {
+      "status": "requested",
+      "file": "aurora-glide-b.webp",
+      "size": [
+        300,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "aurora-glide-b-tinted": {
+      "status": "requested",
+      "file": "aurora-glide-b-tinted.webp",
+      "size": [
+        300,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-struggle-a": {
+      "status": "requested",
+      "file": "prince-struggle-a.webp",
+      "size": [
+        260,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-struggle-a-tinted": {
+      "status": "requested",
+      "file": "prince-struggle-a-tinted.webp",
+      "size": [
+        260,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-struggle-b": {
+      "status": "requested",
+      "file": "prince-struggle-b.webp",
+      "size": [
+        260,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-struggle-b-tinted": {
+      "status": "requested",
+      "file": "prince-struggle-b-tinted.webp",
+      "size": [
+        260,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
     }
   },
   "audio": {
