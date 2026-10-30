@@ -482,6 +482,21 @@ GROUPS.append(
 )
 
 
+# Play-testing, 30 October 2026: the betrothal now ends with the witch and her
+# demons seizing Azurine in the court and flying off with her.
+GROUPS.append(
+    ('Azurine seized at the betrothal', 'Requested 30 October 2026: at the end of the betrothal court the witch curses Azurine, she swoons, and the witch and her two demons seize her and fly up and away with her. Until they arrive the game tips azurine-stand over into azurine-asleep, and lifts demon-red and demon-teal (drawn running) tilted beneath her.', [
+        (f'azurine-swoon{t}', f'Azurine swooning under the curse{" (tinted)" if t else ""}', 260, 380, 'bottom centre', TINTED if t else SPRITE,
+         f'{AZURINE}, exactly as in azurine-stand{t}.webp (attach it): the same face, gown, circlet, colours and scale. Swooning under the witch\'s curse: sinking backward at the knees, head thrown back and eyes closing, one hand to her brow and the other arm falling, gown and sleeves billowing as she faints. Facing LEFT, toward the court. Feet on the bottom edge. Nothing but the figure: no ground or shadow.', 'azurine-stand')
+        for t in ('', '-tinted')
+    ] + [
+        (f'demon-{col}-carry{t}', f'{col.capitalize()} demon flying, bearing someone aloft{" (tinted)" if t else ""}', 260, 360, 'bottom centre', TINTED if t else SPRITE,
+         f'{DEMON}, in {col}, exactly as in demon-{col}{t}.webp (attach it): the same face, horned cap, tights and colours, at the same scale. Flying, not running: legs trailing behind and below him, body leaning {"RIGHT" if col == "red" else "LEFT"}, both arms raised above his head with the hands open and cupped as if bearing a sleeping princess aloft on them (she is drawn separately, above his hands), his flaming torch tucked through his belt. Lowest point of the figure on the bottom edge. Nothing but the figure: no princess, ground or shadow.', f'demon-{col}')
+        for col in ('red', 'teal') for t in ('', '-tinted')
+    ]),
+)
+
+
 def ids():
     return [a for _, _, items in GROUPS for a in items]
 
