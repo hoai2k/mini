@@ -83,11 +83,11 @@ export const ASSETS = {
   },
   "MP-S01": {
     "file": "assets/springtail/water-surface.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-S02": {
     "file": "assets/springtail/sphagnum-lawn.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-S03": {
     "file": "assets/springtail/bog-backdrop.webp",
@@ -147,7 +147,7 @@ export const ASSETS = {
   },
   "MP-R08": {
     "file": "assets/reference-sheets/peranema.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R09": {
     "file": "assets/reference-sheets/actinophrys.webp",
@@ -163,7 +163,7 @@ export const ASSETS = {
   },
   "MP-R12": {
     "file": "assets/reference-sheets/phage-t4.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-E01": {
     "file": "assets/concepts/bog-surface.webp",

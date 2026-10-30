@@ -835,6 +835,140 @@
     ]
   },
   {
+    "id": "MP-S01",
+    "name": "Bog pool water surface",
+    "file": "assets/springtail/water-surface.webp",
+    "size": "2048 x 2048, opaque, tileable",
+    "used": "The surface film the springtail walks and jumps on.",
+    "prompt": "Use case: photorealistic-natural. Asset type: square 1:1 repeating game environment texture, 2048 x 2048. Input images are reference photographs and a concept board only, not material to paste. Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Macro-photography look: a real photograph through a macro lens at 2 to 5 times life size, natural overcast daylight, real colours, very shallow depth of field with creamy out-of-focus areas, fine water droplets and surface tension visible where they are real, no studio flash glare, no HDR, no colour grading. The still, tea-brown surface of a small Sphagnum bog pool at about 15 mm across, seen from directly above in soft overcast light: dark peaty water, a faint grey sky reflection, scattered floating debris (yellow pine and birch pollen grains as fine dust, tiny brown leaf fragments, a few single Sphagnum leaves, a shed springtail skin), a thin patchy surface film catching the light. Everything at the same focus. No animals, no ripples from a single source.\nStrictly straight-down flat square, all edges continue naturally. NO hands, fingers, people, animals, printed text, horizons, perspective, border, shadows or vignette. Keep the full square filled with the specified material. No unrelated organism from supplied reference images.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Macro-photography look: a real photograph through a macro lens at 2 to 5 times life size, natural overcast daylight, real colours, very shallow depth of field with creamy out-of-focus areas, fine water droplets and surface tension visible where they are real, no studio flash glare, no HDR, no colour grading. The still, tea-brown surface of a small Sphagnum bog pool at about 15 mm across, seen from directly above in soft overcast light: dark peaty water, a faint grey sky reflection, scattered floating debris (yellow pine and birch pollen grains as fine dust, tiny brown leaf fragments, a few single Sphagnum leaves, a shed springtail skin), a thin patchy surface film catching the light. Everything at the same focus. No animals, no ripples from a single source.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-2c5ad2c3-f95b-4383-9ad6-fd6a5fc6eadc.png",
+    "input_images": [
+      "research/assets/references/production/bog-pool.jpg",
+      "research/assets/references/production/springtail.jpg",
+      "research/assets/references/production/water-strider-adult.jpg",
+      "research/assets/concepts/01-moss-frontier.webp"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "2cc3d1920072067065a605f1ad259e5acfa6996e732ecf0c81607a3bddf8dd11",
+    "export": "LANCZOS sizing; opposing-edge strips quilted with the approved conventional seam-correction workflow; WebP quality 92.",
+    "references": [
+      {
+        "id": "bog-pool",
+        "local": "assets/references/production/bog-pool.jpg",
+        "author": "JarroNevsbaru",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg"
+      },
+      {
+        "id": "springtail",
+        "local": "assets/references/production/springtail.jpg",
+        "author": "Christian Fischer",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:PoduraAquatica.jpg"
+      },
+      {
+        "id": "water-strider",
+        "local": "assets/references/production/water-strider-adult.jpg",
+        "author": "Richard Bartz",
+        "license": "CC BY-SA 2.5",
+        "license_url": "https://creativecommons.org/licenses/by-sa/2.5",
+        "source": "https://commons.wikimedia.org/wiki/File:Water_strider_Gerris_lacustris.jpg"
+      }
+    ],
+    "mood_boards": [
+      "01-moss-frontier.webp"
+    ],
+    "seam_metrics_before": {
+      "horizontal_join": 19.501,
+      "vertical_join": 19.516,
+      "interior_horizontal": 6.797,
+      "interior_vertical": 6.758
+    },
+    "seam_metrics_after": {
+      "horizontal_join": 6.756,
+      "vertical_join": 5.599,
+      "interior_horizontal": 5.359,
+      "interior_vertical": 5.381
+    }
+  },
+  {
+    "id": "MP-S02",
+    "name": "Sphagnum lawn from above",
+    "file": "assets/springtail/sphagnum-lawn.webp",
+    "size": "2048 x 2048, opaque, tileable",
+    "used": "The moss lawn around the pool, the springtail's dry ground.",
+    "prompt": "Use case: photorealistic-natural. Asset type: square 1:1 repeating game environment texture, 2048 x 2048. Input images are reference photographs and a concept board only, not material to paste. Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Macro-photography look: a real photograph through a macro lens at 2 to 5 times life size, natural overcast daylight, real colours, very shallow depth of field with creamy out-of-focus areas, fine water droplets and surface tension visible where they are real, no studio flash glare, no HDR, no colour grading. A Sphagnum bog lawn seen from directly above at about 40 mm across: densely packed capitula (the star-shaped heads of the moss shoots, each 5 to 10 mm across, with short curved branches in tight rosettes), mixing green and wine-red Sphagnum species, with water droplets caught between the branches and a few dead brown leaves of sedge lying across them. Even focus across the frame. No animals, no flowers.\nStrictly straight-down flat square, all edges continue naturally. NO hands, fingers, people, animals, printed text, horizons, perspective, border, shadows or vignette. Keep the full square filled with the specified material. No unrelated organism from supplied reference images.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Macro-photography look: a real photograph through a macro lens at 2 to 5 times life size, natural overcast daylight, real colours, very shallow depth of field with creamy out-of-focus areas, fine water droplets and surface tension visible where they are real, no studio flash glare, no HDR, no colour grading. A Sphagnum bog lawn seen from directly above at about 40 mm across: densely packed capitula (the star-shaped heads of the moss shoots, each 5 to 10 mm across, with short curved branches in tight rosettes), mixing green and wine-red Sphagnum species, with water droplets caught between the branches and a few dead brown leaves of sedge lying across them. Even focus across the frame. No animals, no flowers.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-3ef8bc69-e8e3-4fea-bb7d-6f889bb3beb7.png",
+    "input_images": [
+      "research/assets/references/production/bog-hummock.jpg",
+      "research/assets/references/moss.jpg",
+      "research/assets/references/production/bog-pool.jpg",
+      "research/assets/concepts/01-moss-frontier.webp"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "59bc26fd63fc44652da9f0a1f62e85e7176dc34d76fc36a058b88417bc19497e",
+    "export": "LANCZOS sizing; opposing-edge strips quilted with the approved conventional seam-correction workflow; WebP quality 92.",
+    "references": [
+      {
+        "id": "bog-hummock",
+        "local": "assets/references/production/bog-hummock.jpg",
+        "author": "OolaEei",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_Capitulum.jpg"
+      },
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      },
+      {
+        "id": "bog-pool",
+        "local": "assets/references/production/bog-pool.jpg",
+        "author": "JarroNevsbaru",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg"
+      }
+    ],
+    "mood_boards": [
+      "01-moss-frontier.webp"
+    ],
+    "seam_metrics_before": {
+      "horizontal_join": 24.646,
+      "vertical_join": 23.27,
+      "interior_horizontal": 8.128,
+      "interior_vertical": 7.911
+    },
+    "seam_metrics_after": {
+      "horizontal_join": 6.682,
+      "vertical_join": 7.095,
+      "interior_horizontal": 6.747,
+      "interior_vertical": 6.635
+    }
+  },
+  {
     "id": "MP-R01",
     "name": "Water springtail (Podura aquatica)",
     "file": "assets/reference-sheets/springtail.webp",
@@ -1126,6 +1260,58 @@
     "mood_boards": []
   },
   {
+    "id": "MP-R08",
+    "name": "Peranema trichophorum",
+    "file": "assets/reference-sheets/peranema.webp",
+    "size": "2048 x 2048, opaque",
+    "used": "Modelling Peranema, the gliding predatory euglenid of Level 4.",
+    "prompt": "Use case: precise-object-edit. The supplied generated square four-view sheet is the EDIT TARGET. Change ONLY the bottom-left quadrant to a genuine end-on FRONT view of the same organism. Preserve the other three quadrants exactly, their positions, colours and scale, and the plain grey background. Peranema: view from the flagellar anterior pole straight down its long axis. The spindle body must be strongly foreshortened into a rounded roughly circular oval, with a small flagellar pocket and translucent granules, not a tall spindle side silhouette. Leading flagellum points toward the camera and curves to one side so visible; thin recurrent flagellum along cell. No chloroplast or eyespot. Same anatomical scale, so the frontal body diameter matches WIDTH of other cell views, with ample surrounding blank grey.",
+    "requested_prompt": "Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. The colourless euglenid Peranema trichophorum, about 40 to 70 µm long, as in a brightfield preparation: a flexible, elongated, spindle-to-pear-shaped transparent cell, broad at the rear and tapered at the front, with fine spiral striations on its pellicle; one thick leading flagellum about as long as the body held straight forward with only its tip beating; a second thin trailing flagellum lying along the body; a rod-like feeding apparatus near the front; many refractive granules inside; no chloroplasts, no eyespot. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-c8681250-43b4-4c52-b387-3f889dc24841.png",
+    "input_images": [
+      "generated/exec-fed3c76f-b39c-4e9d-b2a4-fbe2411bad5d.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "3833c9c48aa21281e389dab0f06124d60c53934988890d374d791e188b076596",
+    "export": "Aspect-preserving LANCZOS sizing with neutral outer padding when needed; WebP quality 92. No anatomy edits.",
+    "references": [
+      {
+        "id": "peranema",
+        "local": "assets/references/production/peranema.jpg",
+        "author": "Deuterostome",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Peranema.jpg"
+      },
+      {
+        "id": "euglena",
+        "local": "assets/references/euglena.jpg",
+        "author": "naturalismus",
+        "license": "CC BY-SA 2.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/2.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Euglena_gracilis.jpg"
+      }
+    ],
+    "mood_boards": [],
+    "initial_generation": {
+      "tool": "Built-in image_gen",
+      "source_artifact": "exec-fed3c76f-b39c-4e9d-b2a4-fbe2411bad5d.png",
+      "prompt": "Use case: scientific-educational. Asset type: one completed orthographic model reference sheet for a microscopic-world video-game prototype. Supplied images are references only: peranema: Peranema sp. from a Quebec pond; genus-level morphology reference.; euglena: Euglena gracilis; green pigment and elongated cell silhouette.. Never reproduce their labels, scales or panels. Follow the requested species, not any other organism that appears in a reference. Related species are morphology context only.\nOrthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. The colourless euglenid Peranema trichophorum, about 40 to 70 µm long, as in a brightfield preparation: a flexible, elongated, spindle-to-pear-shaped transparent cell, broad at the rear and tapered at the front, with fine spiral striations on its pellicle; one thick leading flagellum about as long as the body held straight forward with only its tip beating; a second thin trailing flagellum lying along the body; a rod-like feeding apparatus near the front; many refractive granules inside; no chloroplasts, no eyespot. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nOne square2048×2048 sheet, exactly four views arranged in two equal columns and two equal rows, with ample clear light-grey spacing between views and around all appendages. Same individual, same proportions and scale in all four views. The upper-left side view faces right; upper-right is dorsal head-up; lower-left is frontal; lower-right three-quarter. No text, numbers or labels. Render specimen detail for modeling, not a posed character or fake microscope photograph. Peranema must remain colorless with NO green chloroplasts or red eyespot. Magnetospirillum has exactly one flagellum at each pole and a single internal magnetosome chain; keep these forms consistent across views.",
+      "input_images": [
+        "research/assets/references/production/peranema.jpg",
+        "research/assets/references/euglena.jpg"
+      ],
+      "revision_reason": "Replace repeated lateral pose in bottom-left quadrant with an axial front view."
+    }
+  },
+  {
     "id": "MP-R09",
     "name": "Actinophrys sol (sun animalcule)",
     "file": "assets/reference-sheets/actinophrys.webp",
@@ -1226,5 +1412,48 @@
       }
     ],
     "mood_boards": []
+  },
+  {
+    "id": "MP-R12",
+    "name": "Bacteriophage T4",
+    "file": "assets/reference-sheets/phage-t4.webp",
+    "size": "2048 x 2048, opaque",
+    "used": "Modelling the phage protagonist of Level 6 and the phages that threaten Level 5.",
+    "prompt": "Use case: precise-object-edit. The supplied generated square four-view sheet is the EDIT TARGET. Change ONLY the bottom-left quadrant to a genuine end-on FRONT view of the same organism. Preserve the other three quadrants exactly, their positions, colours and scale, and the plain grey background. T4 bacteriophage: view from capsid tip directly down capsid-tail axis. A roughly hexagonal faceted blue-green capsid face is centred with six orange kinked fibres extending radially from the partly hidden baseplate behind it. No vertically hanging tail visible from this axial angle. This is NOT another upright side view. Keep six fibres and use the same physical scale as the other views. No text.",
+    "requested_prompt": "Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. Bacteriophage T4 as reconstructed from cryo-electron microscopy, about 0.2 µm tall: an elongated icosahedral head (a prolate capsid about 110 nm long and 85 nm wide, with flat triangular faces) containing the DNA; a short collar with whiskers below it; a straight cylindrical contractile tail sheath about 100 nm long with helical ridges around a central tube; a hexagonal baseplate at the bottom with six short tail pins; and exactly six long, thin, kinked tail fibres (each bent at a knee halfway along) hanging down and outward from the baseplate corners. Draw in molecular-model colours (soft blues and greens for the capsid, ochre for the sheath, orange for baseplate and fibres). Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-8eb83af3-f848-4710-ae00-c58ae37131b2.png",
+    "input_images": [
+      "generated/exec-6052fa44-4e75-4c12-9da3-6e34dc8d454d.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "3c1c52539207fefa6df326ea5349c1242019e45cfe97dacf500e1a8998f71681",
+    "export": "Aspect-preserving LANCZOS sizing with neutral outer padding when needed; WebP quality 92. No anatomy edits.",
+    "references": [
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      }
+    ],
+    "mood_boards": [],
+    "initial_generation": {
+      "tool": "Built-in image_gen",
+      "source_artifact": "exec-6052fa44-4e75-4c12-9da3-6e34dc8d454d.png",
+      "prompt": "Use case: scientific-educational. Create ONE finished square four-view model reference sheet, not a collage of photographs. Supplied images are morphology references only; remove all labels and microscopy borders. Match the named species, not other species in reference photos. Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. Bacteriophage T4 as reconstructed from cryo-electron microscopy, about 0.2 µm tall: an elongated icosahedral head (a prolate capsid about 110 nm long and 85 nm wide, with flat triangular faces) containing the DNA; a short collar with whiskers below it; a straight cylindrical contractile tail sheath about 100 nm long with helical ridges around a central tube; a hexagonal baseplate at the bottom with six short tail pins; and exactly six long, thin, kinked tail fibres (each bent at a knee halfway along) hanging down and outward from the baseplate corners. Draw in molecular-model colours (soft blues and greens for the capsid, ochre for the sheath, orange for baseplate and fibres). Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nComposition priorities: four separated views in a 2x2 grid; top left side pointing right, top right dorsal head up, bottom left genuinely END-ON frontal view (foreshortened, not a repeated side view), bottom right three-quarter. No background shadows, no text. Fit every appendage inside its own quadrant with clear margins. For cells this is an explanatory reconstruction, not a literal camera view. For T4 the side view has head pointing right and tail left; dorsal view capsid up and tail down; front view viewed along the capsid-tail axis. Exactly six long tail fibres, not insect legs. For Didinium the supplied historical feeding drawing is an anatomical reference, do not copy its drawing style or labels. Exactly two ciliary bands, not a hairy coat.",
+      "input_images": [
+        "research/assets/references/production/phage-t4.jpg"
+      ],
+      "revision_reason": "Replace repeated lateral pose in bottom-left quadrant with an axial front view."
+    }
   }
 ]

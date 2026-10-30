@@ -12,7 +12,7 @@ Artwork for the prototypes in `micro/prototypes/`. Generated from `source/build_
 
 ## Status
 
-17 requested, 28 delivered, 45 in total.
+13 requested, 32 delivered, 45 in total.
 
 ## Launcher cards
 
@@ -375,7 +375,7 @@ Images for the springtail prototype (Level 0, the bog surface), seen as a macro 
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** The surface film the springtail walks and jumps on.
 - **Stand-in until delivered:** Procedural dark water with drifting specks.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](../research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
   - [Podura aquatica; external body and limb proportions.](../research/assets/references/production/springtail.jpg) · Christian Fischer, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:PoduraAquatica.jpg)
@@ -392,7 +392,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** The moss lawn around the pool, the springtail's dry ground.
 - **Stand-in until delivered:** Procedural green star clusters.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Sphagnum capitulum structure and colour; macro habitat reference.](../research/assets/references/production/bog-hummock.jpg) · OolaEei, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Capitulum.jpg)
   - [Moss habitat structure; use leaf architecture as environmental reference.](../research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
@@ -631,7 +631,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling Peranema, the gliding predatory euglenid of Level 4.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Peranema sp. from a Quebec pond; genus-level morphology reference.](../research/assets/references/production/peranema.jpg) · Deuterostome, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Peranema.jpg)
   - [Euglena gracilis; green pigment and elongated cell silhouette.](../research/assets/references/euglena.jpg) · naturalismus, CC BY-SA 2.0 · [source](https://commons.wikimedia.org/wiki/File:Euglena_gracilis.jpg)
@@ -688,7 +688,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the phage protagonist of Level 6 and the phages that threaten Level 5.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [T4 phage electron micrograph; head, sheath and tail-fibre reference.](../research/assets/references/production/phage-t4.jpg) · 7USSR7, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg)
 

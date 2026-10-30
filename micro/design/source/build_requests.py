@@ -323,7 +323,7 @@ GROUPS = [
         "intro": "Images for the springtail prototype (Level 0, the bog surface), seen as a macro photograph in daylight. The springtail, its enemies and the water surface are geometry and shaders built in code; these supply the surface texture, the moss lawn, the far backdrop and the sundew. Real colours, shallow focus.",
         "items": [
             {
-                "id": "MP-S01", "status": "requested", "name": "Bog pool water surface",
+                "id": "MP-S01", "status": "delivered", "name": "Bog pool water surface",
                 "file": "assets/springtail/water-surface.webp", "size": "2048 x 2048, opaque, tileable",
                 "used": "The surface film the springtail walks and jumps on.",
                 "standin": "Procedural dark water with drifting specks.",
@@ -331,7 +331,7 @@ GROUPS = [
                 "prompt": f"{TILE} {MACRO} The still, tea-brown surface of a small Sphagnum bog pool at about 15 mm across, seen from directly above in soft overcast light: dark peaty water, a faint grey sky reflection, scattered floating debris (yellow pine and birch pollen grains as fine dust, tiny brown leaf fragments, a few single Sphagnum leaves, a shed springtail skin), a thin patchy surface film catching the light. Everything at the same focus. No animals, no ripples from a single source.",
             },
             {
-                "id": "MP-S02", "status": "requested", "name": "Sphagnum lawn from above",
+                "id": "MP-S02", "status": "delivered", "name": "Sphagnum lawn from above",
                 "file": "assets/springtail/sphagnum-lawn.webp", "size": "2048 x 2048, opaque, tileable",
                 "used": "The moss lawn around the pool, the springtail's dry ground.",
                 "standin": "Procedural green star clusters.",
@@ -463,7 +463,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} The ciliate Paramecium bursaria, about 120 µm long, as in a brightfield preparation: a broad, slightly flattened slipper or foot shape, shorter and wider than Paramecium caudatum, with a blunt rounded rear; a wide oral groove running diagonally from the front to a mouth at the middle of one side; an even coat of short cilia over the whole surface; the cell packed with hundreds of round green symbiotic Chlorella algae, about 3 to 5 µm each, giving it a uniform grass-green colour, with a pale macronucleus and two contractile vacuoles visible through them. {SCIENCE}",
             },
             {
-                "id": "MP-R08", "status": "requested", "name": "Peranema trichophorum",
+                "id": "MP-R08", "status": "delivered", "name": "Peranema trichophorum",
                 "file": "assets/reference-sheets/peranema.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling Peranema, the gliding predatory euglenid of Level 4.",
                 "standin": "None needed: the model is built from the photographs.",
@@ -495,7 +495,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} The predatory bacterium Bdellovibrio bacteriovorus in its free-swimming attack phase, as reconstructed from electron micrographs: a small comma-shaped (vibrioid) cell about 1 µm long and 0.3 µm wide, with a single thick sheathed flagellum at one pole about three times the cell's length, and fine short pili at the opposite, attacking pole. Pale translucent grey cell body. {SCIENCE}",
             },
             {
-                "id": "MP-R12", "status": "requested", "name": "Bacteriophage T4",
+                "id": "MP-R12", "status": "delivered", "name": "Bacteriophage T4",
                 "file": "assets/reference-sheets/phage-t4.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling the phage protagonist of Level 6 and the phages that threaten Level 5.",
                 "standin": "None needed: the model is built from the photographs.",
