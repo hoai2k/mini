@@ -2,7 +2,7 @@ import { walkPose } from '../walking.js';
 // Prologue drawing: the delivered sets (betrothal-court, rampart-strip,
 // armoury) and the cast's cut-outs, staged as a toy theatre. Draw only from
 // state and t.
-import { FLOOR, ARM_FLOOR, FAIRIES, AZURINE_X, RAMPART, rampartFloor, ARMS, AURORA, ABDUCT, T, sceneOf } from './prologue.js';
+import { FLOOR, ARM_FLOOR, FAIRIES, AZURINE_X, RAMPART, rampartFloor, ARMS, AURORA, ABDUCT, WIGGLES, T, sceneOf } from './prologue.js';
 import { card } from './tableau.js';
 import { clamp, easeOut, easeInOut, lerp } from './shared.js';
 import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
