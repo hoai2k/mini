@@ -255,16 +255,18 @@ export function createAudio() {
     lastPeriod = p.id;
     n.node.onended = () => { if (now?.node === n.node) next(); };
   }
-  function next() {
+  function next(fadeIn) {
     if (!playing) return;
     const p = periodOn ? pick() : null;
-    if (p) playPeriod(p);
+    if (p) playPeriod(p, fadeIn);
     else if (track?.buffer) playTrack(); // nothing else ready: the song again
   }
   function loadPeriods() {
-    // One at a time in the background, after the song has started.
+    // One at a time in the background, after the song has started: first
+    // what suits the scene now (the title's tender piece), so the music
+    // doesn't open on one piece and switch to another as soon as it arrives.
     if (!ac) return;
-    const p = periods.find((q) => q.state === 'idle');
+    const p = periods.find((q) => q.state === 'idle' && q.moods.includes(mood)) || periods.find((q) => q.state === 'idle');
     if (!p) return;
     p.state = 'loading';
     decode(p.url).then((b) => { p.buffer = b; p.state = 'ready'; })
@@ -272,7 +274,13 @@ export function createAudio() {
       .finally(() => {
         // If the song was looping because nothing was ready, let it finish its pass.
         if (now?.kind === 'song' && now.node.loop && anyPeriodReady()) now.node.loop = false, now.node.onended = () => { if (now?.kind === 'song') { track.node = null; next(); } };
-        if (!LEGACY && playing && (!now || (now.kind === 'period' && !now.moods.includes(mood) && p.state === 'ready' && p.moods.includes(mood)))) next();
+        // Nothing playing yet: start, unless a piece that suits the scene is
+        // still on its way (wait for it rather than open on another). A
+        // piece that doesn't suit the scene gives way to one that does with
+        // the usual crossfade.
+        const fitting = periods.some((q) => q.moods.includes(mood) && (q.state === 'idle' || q.state === 'loading'));
+        if (!LEGACY && playing && !now && (p.moods.includes(mood) || !fitting)) next();
+        else if (!LEGACY && playing && now?.kind === 'period' && !now.moods.includes(mood) && p.state === 'ready' && p.moods.includes(mood)) next(FADE);
         loadPeriods();
       });
   }
