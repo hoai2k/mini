@@ -4,6 +4,15 @@ A design specification for the zoom levels of **Zoom Chain**. It builds on the
 research atlas in `micro/research/` (sources S01–S24, cited here by number) and
 adds new sources from S25 onward. Research checked 30 October 2026.
 
+**Revision of 30 October 2026 (owner's decisions):** a new **Level 0** (the
+bog surface, a water springtail) above the mite; **Level 3 corrected** so
+that *Paramecium bursaria* is the protagonist and *Amoeba proteus* a giant
+threat; **Level 5** (bacteria) promoted from epilogue to a full level;
+a new, optional **Level 6** (a bacteriophage); and a **movement** section,
+because the game is about movement and every creature has a **dash (A)** and
+an **attack/eat (X)** (`micro/prototypes/CONTROLS.md`). The per-level movement
+detail is in [`movement.md`](movement.md). New sources are S74–S105.
+
 The atlas's rules still apply:
 
 - **[Observed]** marks biology with a cited source.
@@ -22,7 +31,7 @@ MicroscopyU table [S18].
 
 ---
 
-## 0. The recommended habitat: one Sphagnum bog with ponds
+## The recommended habitat: one Sphagnum bog with ponds
 
 Recommendation: set the whole chain in **one quaking Sphagnum bog with small
 ponds**, modelled on **Simmelried near Konstanz, Germany**. This is the bog
@@ -54,45 +63,184 @@ Why this site, rather than a wall moss cushion or a plain pond margin:
 - Marine images in the atlas (diatoms, biofilm) stay analogues only [atlas
   callout, 04-cells].
 
+### One bog, top to bottom: where Levels 0, 5 and 6 sit
+
+The three new levels do not need a new place. They are the top and the
+bottom of the same pool:
+
+| Level | Where in the Simmelried-type bog | What ties it to its neighbours |
+| --- | --- | --- |
+| **0: the surface** | The **surface film of a hollow pool** and the wet Sphagnum lawn at its edge, with sundews on the lawn | *Podura aquatica* lives its whole life on the film of still water [S74]. *Drosera intermedia* grows in the wetter, lower parts of a bog and *D. rotundifolia* higher up, where it catches more springtails [S79]. Level 1's capitulum is the lawn the springtail lands on. |
+| 1–2 | Lawn and hollow (as before) | — |
+| 3–4 | The open pool, bladderwort, periphyton (as before) | — |
+| **5: the sediment and the biofilm** | The **mud at the bottom of the hollow pool**, at the boundary where oxygen runs out, and the bacterial film under Level 4's periphyton | Magnetotactic bacteria live in sediments and swim to the oxic–anoxic transition zone [S89, S90]. Living ones have been found in **acidic peat soils at pH 4.3–5.7** [S91], close to Simmelried's pH 5–6 ponds [S26]. *Bdellovibrio* lives in fresh water and soil [S94]. |
+| **6: the water itself** | **Everywhere**, but alive mainly below the top few centimetres: the bog's brown, humic water absorbs UV within centimetres [S104] | A phage that infects the Level 5 bacteria. The surface film of Level 0 is where UV is worst, so the chain's top and bottom meet: the springtail's sunlit film is the phage's most dangerous place. |
+
+**Honesty constraints for the new levels:** magnetotactic bacteria are
+recorded in acidic peat in China [S91], not at Simmelried; *Bdellovibrio* is
+recorded from fresh water generally [S94], not from this bog. Both are
+**[Unverified at our site]**. A Sphagnum bog has little mineral clay
+**[Unverified for Simmelried]**, so Level 6's "clay" hazard should be read as
+mineral and peat particles (see 6.3).
+
 ---
 
 ## Level overview
 
-The settled chain has **four core levels plus one optional epilogue**. Body
-size does not shrink in a straight line: a Level 3 amoeba can be longer than
-the Level 1 mite. What narrows at every click is the **field**, the
+The settled chain has **six core levels (0–5) plus one optional level (6)**.
+Body size does not shrink in a straight line: a Level 3 amoeba can be longer
+than the Level 1 mite. What narrows at every click is the **field**, the
 **medium**, and the **optics** [atlas index]. The table makes this explicit.
 
-| # | Level | Protagonist (body) | Objective / total | Field (FN18) | Resolvable (≈ d) | Depth of field (≈) | Optical treatment |
+| # | Level | Protagonist (body) | Objective / total | Field | Resolvable (≈ d) | Depth of field (≈) | Optical treatment |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | **The bog surface** | Water springtail *Podura aquatica*, up to ~1.5 mm [S74] | Macro lens or hand lens, 1–5× | ~2–5 cm (not FN18) | ~0.1 mm by eye, ~20 µm at 5× (approximate) | Millimetres | Daylight, reflected; the water surface as a mirror and a membrane |
 | 1 | **The Sphagnum canopy** | *Limnozetes* oribatid mite, 270–390 µm | Stereo 10–20× (zoom body) | ~6–12 mm (stereo; not FN18) | ~10–20 µm | Hundreds of µm | Reflected light (stereo), daylight |
 | 2 | **The water film** | Grazing eutardigrade 250–500 µm, or bdelloid rotifer | 10× / 100× | 1.8 mm | ~1.1 µm (NA 0.25) | ~8.5 µm | DIC or brightfield, with focal-plane slicing |
-| 3 | **The hollow pool** | *Paramecium bursaria*, 85–150 µm | 20× / 200× | 0.9 mm | ~0.7 µm (NA 0.40) | ~5.8 µm | Brightfield, plus darkfield for threat reveals |
+| 3 | **The hollow pool** | *Paramecium bursaria*, 85–150 µm (*Amoeba proteus*, 160–760 µm, is a giant here) | 20× / 200× | 0.9 mm | ~0.7 µm (NA 0.40) | ~5.8 µm | Brightfield, plus darkfield for threat reveals |
 | 4 | **The periphyton and the trap** | *Trachelomonas hispida*, lorica 20–42 µm (alt. *Euglena* sp.) | 40× / 400× | 450 µm | ~0.42 µm (NA 0.65) | ~1 µm | Phase contrast or DIC |
-| 5 (optional) | **The film of bacteria** | *Bdellovibrio*-type predator, ~0.2–0.5 × 0.5–2.5 µm | 100× oil / 1000× | 180 µm | ~0.2 µm (NA 1.25–1.4) | ~0.2 µm | Phase, at the optical limit (heavy **[Departure]**) |
+| 5 | **The sediment and the biofilm** | A magnetotactic bacterium (rods, spirilla, cocci of a few µm), or *Bdellovibrio* (~0.2–0.5 × 0.5–2.5 µm) | 100× oil / 1000× | 180 µm | ~0.2 µm (NA 1.25–1.4) | ~0.2 µm | Phase contrast and fluorescence at the optical limit; electron-microscope insets for anatomy (see 5.1) |
+| 6 (optional) | **The virus** | T4-like tailed phage, head ~120 × 86 nm, tail ~100–140 nm [S98] | None: below light microscopy | ~1–2 µm (one host cell) | — | — | **[Departure]** molecular illustration and cryo-EM style, labelled as such |
+
+**Why a Level 0 above the mite?** It narrows the field the way the other
+clicks do. The springtail (~1.5 mm) is about five times the mite's length,
+and the field shrinks from a few centimetres (a hand lens over the pool edge)
+to the 6–12 mm of the stereo microscope. It also adds the one medium the chain
+lacked: the **surface film itself**, where the water is a floor and the air
+is the open world.
 
 **Why no extra level between mite and tardigrade?** The two protagonists are
 the same size: a 300 µm *Limnozetes* and a 300 µm tardigrade. Inserting
-another animal level, such as a nematode or springtail, would add a level
-without narrowing the field. The real jump from Level 1 to Level 2 is from
-**air to water and from reflected to transmitted light**, and the transition
-should sell exactly that. Springtails and nematodes stay as characters
-instead: springtails in Level 1, the predatory nematode *Prionchulus* in
-Level 2.
+another animal level, such as a nematode, would add a level without narrowing
+the field. The real jump from Level 1 to Level 2 is from **air to water and
+from reflected to transmitted light**, and the transition should sell exactly
+that. Nematodes stay as characters instead: the predatory nematode
+*Prionchulus* in Level 2. Springtails, now Level 0's protagonist, reappear in
+Level 1 as giants.
 
-**Why the optional Level 5?** It finishes the chain at the limit of light
-microscopy, the point where the next "click" no longer reveals anything new
-[S17]. A bacterial predator such as *Bdellovibrio* is real and dramatic
-[S65], but at about 0.3 µm wide it sits at the optical limit. A
-light-microscope view cannot show its attack in detail. So Level 5 is either
-a short, clearly labelled epilogue or a stylised coda. It should not be a full
-level that pretends the microscope sees more than it does.
+**Why Level 3's protagonist is the ciliate, not the amoeba.** An *Amoeba
+proteus* (160–760 µm) [S29] is the tardigrade's size (250–500 µm) [S02]. With
+the amoeba as protagonist, the step from Level 2 to Level 3 was a change of
+**habitat, not of magnification**: film to open pool, with no smaller hero.
+*P. bursaria* (85–150 µm) [S27] is two to four times shorter than the
+tardigrade, so the field can honestly narrow. The amoeba becomes what it is
+to a *Paramecium*: a slow giant that engulfs ciliates [S87].
+
+**Why Level 5 is now a full level.** The earlier draft kept bacteria as an
+epilogue because a light microscope barely resolves them [S17]. The owner has
+chosen a full level. That is workable if the level is honest about what it
+shows: bacteria are **dots and dashes** under phase contrast, **points of
+light** under fluorescence, and their anatomy (flagella, magnetosome chains,
+the bdelloplast's interior) comes from **electron microscopy of fixed cells**
+[S20, S93]. Section 5.1 sets out the look. The design also makes the level
+about something a microscope does show well: **paths**. Bacteria are tracked
+in exactly this way in the lab [S95].
+
+**Why Level 6 is optional.** No light microscope sees a phage, and a phage
+does not steer: it drifts by Brownian motion until it touches a receptor
+[S99, S100]. Level 6 is therefore a level about **changing odds**, not
+steering, drawn in a frankly illustrative style. It stays optional.
 
 **Possible split [Proposal]:** Level 3 could split into **3a, the open
 hollow pool** and **3b, inside a bladderwort trap**. The trap interior is a
 closed, acidic, nearly anoxic world with its own resident community [S54].
 This spec instead uses the trap as the **transition from Level 3 to Level 4**
 (see 3.6), and makes the trap interior one of Level 4's environments.
+
+---
+
+## Level 0: The bog surface (water springtail)
+
+### 0.1 Scale and optics
+
+- **Protagonist size:** *Podura aquatica* reaches about **1.5 mm** [S74]. A
+  population in one predation study measured 0.8 mm [S78, popular summary].
+- **Field:** about **2–5 cm** across: a hand lens or a macro lens at 1–5×
+  over the edge of a hollow pool. That holds a stretch of open film, the
+  first Sphagnum shoots of the lawn, and a sundew rosette. This is a camera
+  field, not an FN18 figure.
+- **Treatment:** daylight from above and from the water. The surface is the
+  main character: a **mirror** that reflects sky and moss, a **membrane** the
+  springtail stands on, and a curved **meniscus** where it meets a stem. The
+  dimples under each foot and under the furcula should read clearly; for an
+  unwettable animal the surface acts as a floor [S74].
+- **Resolvable:** at reading distance the unaided eye resolves about 0.1 mm;
+  a 5× lens brings this near 20 µm (approximate figures, no source). Legs,
+  antennae, the furcula, the springtail's blue-grey bloom and the sundew's
+  glue droplets are visible. **Not resolvable:** the mite on the moss, which
+  at 0.3 mm is a moving speck **[Proposal: foreshadowing, as the tardigrade is
+  in Level 1]**.
+
+### 0.2 Playable protagonist
+
+| Candidate | Why | Real abilities and costs |
+| --- | --- | --- |
+| ***Podura aquatica***: **recommended** | "Exclusively aquatic": it lives its whole life on the surface of still water [S74] | **[Observed]** A large, flattened furcula lets it jump from the water without breaking the surface [S74]. Its cuticle is unwettable, so the surface works as a floor; a springtail pushed under by waves is wrapped in a silvery air layer that lifts it back up [S74]. It finds water surfaces by sight: adults are phototactic, most sensitive to blue (~484 nm) and green-yellow (~570 nm), and strongly attracted to horizontally polarised blue light, which is how a water surface looks [S74]. Eggs are laid on the surface, are wettable, and sink; the hatchling is unwettable and rises to the surface [S74]. **[Unverified]** Diet in detail: summaries describe surface-film algae, spores, bacteria and decaying matter, and Wikipedia says only "scavenger" [S74]. |
+| ***Sminthurides aquaticus*** (alternative) | A globular water-surface springtail: females up to ~1.0 mm, males 0.3–0.5 mm [S76] | **[Observed]** The male grips the base of the female's antennae with clasping antennae and can be carried for days [S76]. A two-character option (carry, be carried) **[Proposal]**. Globular springtails jump hardest of all measured springtails (see 0.7) [S75]. **[Unverified]** at Simmelried. |
+
+**The collophore.** Springtails carry a ventral tube, the **collophore**, on
+the first abdominal segment. In *P. aquatica* it is hydrophilic and has been
+linked to water uptake, excretion and adhesion to the water surface
+(Noble-Nesbitt 1963, as cited in [S74]). In the semiaquatic *Isotomurus
+retardatus*, the collophore anchors the animal to the water before a jump and
+catches the water on landing; together with body angle and furcula stroke it
+sets the jump's direction [S40]. The function is described differently by
+different sources **[Unverified in detail]**.
+
+**Movement model [Proposal]:** a six-legged walker on a deformable floor,
+plus a ballistic jump. On the film it walks slowly; the jump is its only fast
+move (see the movement section and [`movement.md`](movement.md)).
+
+### 0.3 Enemies and threats
+
+| Threat | Size | How it hunts or harms | How the player could evade or counter | Evidence |
+| --- | --- | --- | --- | --- |
+| **The rove beetle *Stenus*** | About 5 mm (inferred: 400–750 mm/s is given as 80–150 body lengths/s) [S77] | **The harpoon.** Its labium shoots out by **haemolymph pressure in 1–3 ms** (*S. comma*); paired adhesive pads on its tip stick to the prey, and it is withdrawn at once, bringing the prey to the mandibles [S78]. *S. comma* used the labium in almost half its attacks on three springtail species, one of them *P. aquatica* [S78]. The labium works less well on **large springtails, or those covered in scales or setae**, which slip off the pads; against them the beetle lunges with its mandibles [S78]. In standard trials most *Stenus* species caught springtails much more successfully with the labium, which lets a slow-reacting predator catch fast-escaping prey [S78]. **The skim.** On water *Stenus* releases surfactants from its pygidial glands; the lowered surface tension behind it pushes it forward (Marangoni propulsion) at **400–750 mm/s** for *S. comma* [S77]. | **[Observed]** Skimming is an escape and a way back to the bank, not a hunting move [S77]. **[Proposal]** A duel of reaction times: the labium (1–3 ms) against the springtail's jump (~1.7 ms take-off in a globular species [S75]). Jump at the first sign of the strike, not after. Being large helps. Use skimming as the beetle's exit or as a surface-wrecking hazard: its surfactant wake flattens the film **[Departure if it is shown hunting by skimming]**. | S77, S78 |
+| **Sundew** (*Drosera rotundifolia*, *D. intermedia*) | Leaves of a few mm to cm; glue droplets on stalked tentacles | A sticky trap. Collembola were found more often on *D. rotundifolia*, whose leaves lie flat on the moss, than on the erect leaves of *D. intermedia*, which caught more flying insects [S79]. At one English bog, Collembola were **5.8–16.5%** of sundew prey [S79]. | **[Proposal]** A static minefield on the lawn edge. Touch one droplet and you stick; struggling brings neighbouring tentacles in. A jump can carry you onto a leaf: aim matters. **[Unverified]** tentacle timing for *D. rotundifolia*: show the bend as slow (seconds to minutes), never a snap. | S79 |
+| **Water striders** (Gerridae) | ~1 cm and up | They find prey by the ripples it makes in the surface film and grasp it with the front legs; they mostly eat insects that fall onto the water and struggle [S80]. A strider eating a springtail has been photographed [S80]. | **[Proposal]** Ripples are your signature: walking or struggling broadcasts your position. Hold still to vanish; jump to relocate. **[Unverified]** how often striders take springtails; diet studies name flies, bugs and Hymenoptera [S80]. | S80 |
+| **Juvenile spiders** (wolf spiders *Pirata*, the raft spider *Dolomedes fimbriatus*) | Juveniles a few mm | *Pirata piraticus* lives on the sunlit surface of Sphagnum bogs with small ponds [S81]. In moorland, *Dolomedes fimbriatus* juveniles of 6–9 mm took the largest prey relative to their size [S81]. | **[Proposal]** Ambushers at the lawn edge: the open film is safe from them, the moss is not. **[Unverified]** springtails in the diet of these species in bogs. | S81 |
+| **Raindrops** | Drops of 4–100 mg [S82] | A drop is 2–50 times a mosquito's mass, yet mosquitoes survive being hit by moving with the drop rather than resisting it, at accelerations of 100–300 g [S82]. | **[Proposal]** Rain is a weather hazard: drops crater the film and throw you. Being light and unwettable, you bounce and resurface (the air layer [S74]). **[Departure/Unverified]** No study of springtails under raindrops was found; the mosquito work is an analogue only. | S82 |
+
+### 0.4 Environments
+
+| Sub-habitat | Physical rules | Hazards |
+| --- | --- | --- |
+| **Open pool film** | A level, elastic floor. Walking dimples the surface; ripples spread from every move. Sky reflections. | Water striders, rain, the *Stenus* wake |
+| **Meniscus at a stem** | The film curves up against moss stems and sedge leaves: a slope to climb, and a place to hold still. | Being pinned; the climb costs time |
+| **Sphagnum lawn edge** | Wet moss tips rising out of the water; the way into Level 1. | Spiders, *Stenus* hunting on land |
+| **Sundew patch** | Flat rosettes on the moss; glistening tentacles. *D. rotundifolia* sits higher and drier; *D. intermedia* lower and wetter [S79]. | Glue |
+| **Rain** | Drops crater and refill the film. | Being thrown or swamped |
+
+### 0.5 Food and resources
+
+**[Unverified species-level]** Grazing on the surface film: algae, fungal
+spores, bacteria and decaying matter [S74]. **[Proposal]** Pollen and spores
+gather in the meniscus corners; that is where food and danger (the lawn edge)
+meet.
+
+### 0.6 Zoom transition to Level 1
+
+- **The visible thing:** the springtail lands on the Sphagnum lawn edge. On
+  the capitulum beside it, a speck moves: a *Limnozetes* mite.
+- **Handoff [Proposal]:** a jump goes wrong (rain, a *Stenus* strike) and the
+  springtail lands in the moss. The camera follows it down onto a capitulum,
+  the lens changes from a hand lens to a stereo microscope, the field shrinks
+  from centimetres to about 1 cm, and the speck becomes the mite. The
+  springtail stays in Level 1 as a giant neighbour.
+
+### 0.7 Gameplay possibilities [Proposal]
+
+- **Furcula jumps:** the dash. Charge a direction, release, and accept a
+  partly random landing. Holding the collophore anchor makes the take-off
+  more directed; landing upright depends on the aerial "U" pose [S40].
+- **Surface-film walking:** every step makes ripples (stealth versus speed).
+- **Meniscus climbing:** reach the moss edge by climbing the curved film at a
+  stem.
+- **Set piece: the *Stenus* harpoon.** Read the beetle's approach, jump on the
+  strike. A slow-motion window sells the 1–3 ms strike **[Departure: time
+  slowed, and labelled]**.
+- **Sundew field:** cross the lawn edge, choosing landings away from glue.
+- **Departures to label:** slowed time in the duel; any steering in mid-air.
 
 ---
 
@@ -139,8 +287,8 @@ version carries the cost and limit from [S39].
 | Threat | Size | How it hunts or harms | How the player could evade or counter | Evidence |
 | --- | --- | --- | --- | --- |
 | **Predatory mesostigmatid mite** (*Pergamasus*-type, Parasitidae) | Larger than the protagonist; mm class **[Unverified exact size]** | A fast, active hunter. It favours springtails and juvenile mites. When it does attack an oribatid, it **cuts off the legs first, then opens the body** near the genital plates or mouthparts [S38]. | **[Observed]** Hard-bodied adult oribatids were mostly rejected or eaten only occasionally. Adult oribatids live in near "enemy-free space"; soft immatures do not [S38]. **[Proposal]** Hunker to keep the legs tucked. Being an adult is protection; juveniles in the nest are vulnerable. | S38 |
-| **Rove beetle** (Staphylinidae: *Stenus*, *Othius*) | 7–14 mm: a giant, bigger than the whole field | Bites and crushes. *Othius punctulatus* cracked chemically undefended box mites but not equal-sized Phthiracaroidea; *Stenus juno* cracked neither [S39]. | **[Proposal]** A screen-filling set piece, shown only as legs and mandibles. You survive by armour, or by slipping into a leaf axil narrower than its head. | S39 |
-| **Springtails** (Collembola) | ~0.2–2 mm | **Not a predator.** A competitor and a living hazard: its furcula launches it unpredictably, and it can knock small animals aside. Semiaquatic springtails control take-off direction, right themselves in mid-air in ~20 ms, and land on water by adhesion [S40]. | **[Proposal]** Its sudden jumps scatter food and can tip the mite off a leaf edge. Springtails also attract predators: being near them is risky. | S40, S38 |
+| **Rove beetle** (Staphylinidae: *Stenus*, *Othius*; *Stenus* is Level 0's harpooner, see 0.3) | 7–14 mm as given for the trial beetles; *S. comma* is nearer 5 mm (inferred, 0.3): a giant, bigger than the whole field either way | Bites and crushes. *Othius punctulatus* cracked chemically undefended box mites but not equal-sized Phthiracaroidea; *Stenus juno* cracked neither [S39]. | **[Proposal]** A screen-filling set piece, shown only as legs and mandibles. You survive by armour, or by slipping into a leaf axil narrower than its head. | S39 |
+| **Springtails** (Collembola; Level 0's protagonist, now a giant) | ~0.2–2 mm | **Not a predator.** A competitor and a living hazard: its furcula launches it unpredictably, and it can knock small animals aside. Semiaquatic springtails control take-off direction, right themselves in mid-air in ~20 ms, and land on water by adhesion [S40]. | **[Proposal]** Its sudden jumps scatter food and can tip the mite off a leaf edge. Springtails also attract predators (*Stenus* and gamasids hunt them [S38, S78]): being near them is risky. | S40, S38, S78 |
 | **Drying** | Habitat | The capitulum loses water first. Films break and humidity falls. | **[Proposal]** Retreat down the shoot into wetter, more enclosed leaf axils; that is where the Sphagnum mat stays wet. | S68 (hummock vs hollow), atlas environments |
 | **Flooding and the meniscus** | Habitat | When water rises (rain, a sinking quaking mat), the film can pin a small arthropod. | **[Proposal]** The meniscus is a trap you must climb out of, not a pool to swim in. | **[Unverified]** for *Limnozetes* behaviour |
 
@@ -289,12 +437,18 @@ feeding current, and the "dry up and blow away" escape.
 
 ---
 
-## Level 3: The hollow pool (ciliate or amoeba)
+## Level 3: The hollow pool (*Paramecium bursaria*)
+
+**Correction.** An earlier draft offered *Amoeba proteus* as an alternate
+protagonist. It is the tardigrade's size, so with it the step from Level 2 to
+Level 3 was one of habitat, not of magnification (see the overview). The
+protagonist is ***P. bursaria***; *A. proteus* is a **giant threat**.
 
 ### 3.1 Scale and optics
 
 - **Protagonist size:** *Paramecium bursaria* 85–150 µm long, 40–70 µm wide
-  [S27]. The *Amoeba proteus* alternative is 160–760 µm [S29].
+  [S27]. The giant *Amoeba proteus* is 160–760 µm [S29], up to about five
+  times longer, and can fill most of the 0.9 mm field.
 - **Field:** 0.9 mm at 20× / 200×. That is a few large protists, a strand of
   algae, and a corner of a bladderwort leaf.
 - **Treatment:** brightfield as the base. **[Proposal]** Use darkfield as a
@@ -306,23 +460,27 @@ feeding current, and the "dry up and blow away" escape.
   extrusome firing as a blur. **Not resolvable:** single trichocysts in
   flight, membranes as a double line [atlas 04].
 
-### 3.2 Playable protagonists
+### 3.2 Playable protagonist: *Paramecium bursaria*
 
-| Candidate | Movement | Real abilities and costs | Sources |
-| --- | --- | --- | --- |
-| ***Paramecium bursaria***: **recommended** | A ciliary swimmer. It swims on a helical path and does a **ciliary reversal** (back up and turn) on contact [S08]. | **[Observed]** Symbiotic *Chlorella* make it green; in samples it gathers on the side facing the light [S27]. Trichocyst discharge gives a short escape from attackers such as *Dileptus* [S09]. **Costs:** reversal is a short organised manoeuvre, not a dash. Trichocysts are a local defence, not ammunition [S09, atlas powers]. A parasite, *Holospora elegans*, can infect its micronucleus [S27]. | S08, S09, S27 |
-| ***Amoeba proteus*** (alternate chapter) | An amoeboid crawler. It needs a substrate and moves by pseudopods and cytoplasmic streaming [S04, S06]. | **[Observed]** Engulfs prey in a food cup [S05]. Recorded at Simmelried, 160–760 µm [S29]. Kreutz describes an **undescribed exoparasitic fungus** whose conidia anchor in the amoeba's outer cytoplasm and feed from it through a haustorium [S29]. **Costs:** slow, needs contact, digestion takes time. | S04–S06, S29 |
+| Aspect | What is real | Sources |
+| --- | --- | --- |
+| **Movement** | A ciliary swimmer on a helical path. On contact it performs the **avoiding reaction**: a ciliary reversal (back up), a turn, and forward again [S08]. Cruising *Paramecium* swim on the order of **1 mm/s** (measured after an escape in *P. tetraurelia*) [S85]. | S08, S85 |
+| **Escape gaits** | *Paramecium* has three: normal swimming; a faster, synchronised ciliary gait for stronger threats; and for a life-threatening stimulus, a **trichocyst "jump"**: about 8–10 trichocysts, each ~40 µm long, fire toward the threat in under 3 ms, and the cell reaches **~10 mm/s within 5 ms**, slowing again in ~10 ms [S85]. Spent trichocysts take **several hours** to regenerate [S85]. Local trichocyst discharge is a real escape from *Dileptus* [S09]. | S09, S85 |
+| **Symbionts and light** | Hundreds of *Chlorella* (5–6 µm) make it green [S27]. It **gathers in light**: at a light–shade border it performs the avoiding reaction on entering the shade (a step-down photophobic response) and so stays in the light. Cells without algae do not photoaccumulate, and blocking photosynthesis stops it, so the symbionts drive it [S88]. Photoaccumulation is stronger by day, and swimming slows as light gets brighter [S88]. | S27, S88 |
+| **Costs** | The avoiding reaction is a short organised manoeuvre, not a dash. Trichocysts are a local defence, not ammunition [S09, atlas powers], and a spent cell is defenceless for hours [S85]. A parasite, *Holospora elegans*, can infect its micronucleus [S27]. | S09, S27, S85 |
 
 **Why *P. bursaria* rather than *P. caudatum*:** it is recorded at
 Simmelried and very common there [S27]. Its algal symbionts tie it to
-light: it carries photosynthetic partners and seeks light [S27]. That gives
-**light as a resource** that carries into Level 4.
+light [S27, S88]. That gives **light as a resource** that carries into
+Level 4. **[Unverified]** The escape-gait numbers are from *P. tetraurelia*
+[S85]; *P. bursaria* is assumed to behave similarly.
 
 ### 3.3 Enemies and threats
 
 | Threat | Size | Mechanism | Evade or counter | Evidence |
 | --- | --- | --- | --- | --- |
 | ***Didinium nasutum*** | 80–200 µm long [S28] | Mainly eats other ciliates. It **swallows prey much larger than itself**, including *Paramecium* [S28]. On contact, its proboscis fires **pexicysts**, which stick, and **toxicysts**, which penetrate and anchor. Cytoplasmic streaming then reels the prey into the mouth [S56]. Recorded regularly at Simmelried [S28]. | **[Proposal]** It must touch you first, so read its fast, straight approach and reverse early [S08]. The trichocyst escape is a real, limited option [S09]. **[Unverified]** whether trichocysts work as well against *Didinium* as against *Dileptus*. | S28, S56 |
+| ***Amoeba proteus*** (the giant) | 160–760 µm [S29]: up to five times the protagonist's length | An amoeboid crawler on the bottom and on plants. It moves by pseudopods and cytoplasmic streaming [S04, S06]; particles inside a motile *A. proteus* drift at only about **0–3 µm/s** [S86]. It surrounds prey with pseudopods into a **food cup** [S05]. *A. proteus* feeding on *Paramecium aurelia* was studied by Salt (1968) [S87]. Recorded at Simmelried [S29]. | **[Proposal]** The amoeba is hundreds of times slower than you, so it is not a chase but a **trap of terrain**: it creeps across the substrate, and the danger is resting, feeding or being cornered against it. A trichocyst jump breaks a closing cup if you fire before it seals **[Unverified]**. Its own pseudopod lunge is its "dash" (see movement). | S04–S06, S29, S86, S87 |
 | ***Dileptus*** (*D. margaritifer*-type) | Several hundred µm, with a long proboscis **[Unverified exact range]** | A proboscis lined with toxicysts strikes and stuns prey, which is swallowed at the base of the proboscis [S09]. | **[Observed]** *Paramecium* escapes *Dileptus* by **local trichocyst discharge** [S09]. **[Proposal]** The signature duel: time the discharge to the strike. | S09 |
 | **Heliozoans**: *Actinosphaerium eichhornii* | 200–1000 µm across [S31] | A floating star. Its axopods catch ciliates and rotifers on contact, which are taken in by phagocytosis; well-fed cells turn opaque [S31]. | **[Proposal]** A stationary or drifting minefield. Contact with an axopod means capture. Darkfield reveals the arms. **[Unverified at Simmelried]**: recorded at nearby Mindelsee "and often in other sampling areas" [S31]. | S31 |
 | **Suctorians** (*Podophrya*-type) | Tens of µm, on a stalk or free **[Unverified exact]** | Stalked ambushers. Tentacle tips carry **haptocysts** that fix ciliates on contact. Prey cytoplasm is moved through the tentacles by microtubule-driven transport, not suction. Most suctorians catch only particular ciliate taxa [S57]. | **[Proposal]** A static turret forest on detritus. Brushing a tentacle tip is lethal; slow swimmers are captured more often [S57]. | S57 |
@@ -346,7 +504,9 @@ light: it carries photosynthetic partners and seeks light [S27]. That gives
   plus sugars from its *Chlorella* in light [S27]. **[Proposal]** Two
   resource bars: food vacuoles from feeding, and light for the symbionts.
   Dark water starves the symbionts.
-- ***Amoeba proteus*:** engulfs smaller protists and algae [S04, S05].
+- **The giant *Amoeba proteus*** engulfs smaller protists, algae and
+  ciliates [S04, S05, S87]: it competes with you for nothing and eats you if
+  it can.
 
 ### 3.6 Zoom transition to Level 4
 
@@ -378,13 +538,20 @@ light: it carries photosynthetic partners and seeks light [S27]. That gives
   S28]. It wins any contact.
 - **The suctorian forest:** cross a static minefield where speed itself
   protects you [S57].
+- **The amoeba floor:** feed on the detritus floor while a giant *A. proteus*
+  spreads across it. Its cup closes slowly, but resting too long is fatal
+  [S05, S86].
+- **The trichocyst budget:** one jump per long cooldown, since real
+  trichocysts take hours to regenerate [S85]. Spend it on *Dileptus* or the
+  amoeba's cup, not on a bump.
 - **The heliozoan in darkfield:** toggling to darkfield is a "sense" that
   reveals axopods. It costs a short pause, while the brightfield view keeps
   them faint.
 - **Light management:** keep *P. bursaria*'s symbionts lit without straying
   into open, exposed water.
 - **Departures to label:** any duel pacing that makes extrusome discharge
-  repeatable on a cooldown; the speed of trap reset if shortened.
+  repeatable on a cooldown (real regeneration takes hours [S85]); the speed
+  of trap reset if shortened.
 
 ---
 
@@ -421,7 +588,9 @@ anchor [S12] but is **[Unverified]** at pH 5–6 bog ponds. *E. deses* and
 breaks the "field narrows" feel.
 
 **Movement model [Proposal]:** at Re ≪ 1 [S15], a pulled swimmer that stops
-the moment the flagellum stops. It **steers by light**: phototaxis toward
+the moment the flagellum stops. *E. gracilis* swims at about **50–100 µm/s**
+while rolling about its long axis at 1–2 Hz [S105]; no speed was found for
+*Trachelomonas* **[Unverified]**. It **steers by light**: phototaxis toward
 moderate light and away from intense light [S13]. For a *Euglena* chapter,
 add metaboly as a squeeze through gaps, keeping its volume constant.
 
@@ -457,14 +626,17 @@ add metaboly as a squeeze through gaps, keeping its volume constant.
   (a separate overlay, labelled data, not a visible colour [S16, atlas
   environments]).
 
-### 4.6 Zoom transition to Level 5 (optional)
+### 4.6 Zoom transition to Level 5
 
 - **The visible thing:** the **bacterial film** under the periphyton, rods
-  and dots that show only as texture at 400×.
-- **Handoff [Proposal]:** the flagellate settles on the biofilm. The camera
-  holds on a moving rod that suddenly stops against a larger rod. The
-  objective clicks to 100× oil. The new protagonist is the attacker, a
-  *Bdellovibrio*-type predatory bacterium [S65].
+  and dots that show only as texture at 400×; or, if the level was played in
+  the trap, the dark detritus at the bottom of the pool below it.
+- **Handoff [Proposal]:** the flagellate settles on the biofilm or sinks
+  toward the mud. The camera holds on a texture of moving dots, and one of
+  them moves differently: it swims straight down and keeps its heading, as if
+  on a rail. The objective clicks to 100× oil. The new protagonist is a
+  **magnetotactic bacterium** [S89] (or, for the *Bdellovibrio* chapter, a
+  moving dot that suddenly stops against a larger rod [S65]).
 
 ### 4.7 Gameplay possibilities [Proposal]
 

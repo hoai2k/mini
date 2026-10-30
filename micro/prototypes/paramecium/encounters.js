@@ -62,8 +62,9 @@ export function createEncounters(scene, world, cell) {
       if (s.captor === d && s.mode === 'captured') {
         d.state = 'feeding'; speed = 0;
         desired = toP.clone().normalize();
-      } else if (canHunt && dist < (opts.homing ? 560 : 0)) {
-        d.state = 'hunting'; speed = 1050;
+      } else if (canHunt && dist < (opts.homing ? 480 : 0)) {
+        // fast and nearly straight: a dash sideways makes it overshoot
+        d.state = dist < 200 ? 'striking' : 'hunting'; speed = dist < 200 ? 1250 : 1050;
         desired = toP.clone().normalize();
       } else {
         d.state = d.stun > 0 ? 'stunned' : d.sated > 0 ? 'sated' : 'wandering';
@@ -74,15 +75,17 @@ export function createEncounters(scene, world, cell) {
           d.wander = new THREE.Vector3(Math.random() - 0.5, (Math.random() - 0.5) * 0.4, Math.random() - 0.5).normalize();
         }
         desired = d.wander || d.dir;
+        // patrol: drift back toward the player's part of the drop so encounters keep coming
+        if (dist > 900 && d.state === 'wandering') desired = desired.clone().addScaledVector(tmp2.copy(toP).setY(0).normalize(), 0.8).normalize();
         if (d.stun > 0) desired = tmp2.subVectors(d.pos, s.center).normalize();
       }
       // keep inside the drop
       const r = Math.hypot(d.pos.x, d.pos.z);
       if (r > DROP_R - 250) desired = desired.clone().add(tmp2.set(-d.pos.x, 0, -d.pos.z).normalize().multiplyScalar(1.5)).normalize();
-      if (d.pos.y < 90) desired = desired.clone().setY(Math.abs(desired.y) + 0.5).normalize();
-      if (d.pos.y > DEPTH - 90) desired = desired.clone().setY(-Math.abs(desired.y) - 0.5).normalize();
+      if (d.pos.y < 60) desired = desired.clone().setY(Math.abs(desired.y) + 0.5).normalize();
+      if (d.pos.y > DEPTH - 60) desired = desired.clone().setY(-Math.abs(desired.y) - 0.5).normalize();
       // turn toward desired
-      const turnRate = d.state === 'hunting' ? 2.4 : 1.2;
+      const turnRate = d.state === 'striking' ? 1.6 : d.state === 'hunting' ? 2.2 : 1.2;
       const ang = d.dir.angleTo(desired);
       if (ang > 1e-4) {
         qa.setFromUnitVectors(d.dir, desired);
@@ -91,7 +94,7 @@ export function createEncounters(scene, world, cell) {
       }
       d.speed += (speed - d.speed) * (1 - Math.exp(-dt / 0.05));
       d.pos.addScaledVector(d.dir, d.speed * dt).addScaledVector(world.flowAt(d.pos, t), dt);
-      d.pos.y = Math.max(50, Math.min(DEPTH - 50, d.pos.y));
+      d.pos.y = Math.max(45, Math.min(DEPTH - 45, d.pos.y));
       { const rr = Math.hypot(d.pos.x, d.pos.z); if (rr > DROP_R - 60) { d.pos.x *= (DROP_R - 60) / rr; d.pos.z *= (DROP_R - 60) / rr; } }
       // obstacles push it round
       const a = tmp2.copy(d.pos).addScaledVector(d.dir, -25);
@@ -99,11 +102,11 @@ export function createEncounters(scene, world, cell) {
       const hit = world.collide(a, b, 38);
       if (hit && hit.ob.what !== 'Vorticella') d.pos.addScaledVector(hit.n, hit.depth);
       // rotate about its long axis as it swims
-      d.roll += dt * (d.state === 'hunting' ? 10 : 6);
+      d.roll += dt * (d.state === 'hunting' || d.state === 'striking' ? 10 : 6);
       d.group.position.copy(d.pos);
       d.group.quaternion.setFromUnitVectors(X, d.dir);
       d.group.quaternion.multiply(qa.setFromAxisAngle(X, d.roll));
-      d.ring.mat.uniforms.uPhase.value += dt * (d.state === 'hunting' ? 7 : 4);
+      d.ring.mat.uniforms.uPhase.value += dt * (d.state === 'hunting' || d.state === 'striking' ? 7 : 4);
       d.ring.mat.uniforms.uAmp.value = 0.9;
       d.tip = d.tip || new THREE.Vector3();
       d.tip.copy(d.pos).addScaledVector(d.dir, 66);

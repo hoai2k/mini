@@ -1,8 +1,8 @@
-// The pond drop: a wet mount about 3 mm across and 0.65 mm deep (slide at
+// The pond drop: a wet mount about 3 mm across and 0.3 mm deep (slide at
 // y = 0, coverslip at y = DEPTH), all lengths in µm. Spirogyra filaments cross
-// it, detritus flakes float and settle, a cluster of Vorticella feeds on a
-// flake, diatoms sit on the bottom, bacteria drift in a gentle flow, and two
-// Didinium hunt.
+// it, detritus flakes float and settle, three Vorticella feed on a flake,
+// diatoms sit on the bottom and bacteria drift in a gentle flow. Kept sparse
+// so the player's cell is the clearest thing in the field.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { buildSdfMesh, sd } from '../shared/sdf.js';
 import { volumeMaterial, sheetMaterial, pointsMaterial } from './optics.js';
@@ -11,7 +11,8 @@ import { rng, closedTube, axisRef, yAxisRef, segSeg, closestOnSeg, noise3 } from
 import { squirmerFlow, sink } from '../shared/techniques/paramecium-squirmer.js';
 
 export const DROP_R = 1500;
-export const DEPTH = 650;
+export const DEPTH = 300;
+const YS = DEPTH / 650; // the layout was drawn for a 650 µm drop
 
 const v1 = new THREE.Vector3(), v2 = new THREE.Vector3(), v3 = new THREE.Vector3(), v4 = new THREE.Vector3();
 
@@ -169,23 +170,22 @@ export function createWorld(scene) {
 
   // --- Spirogyra filaments ---
   const filaments = [
-    [[-1900, 300, -260], [-600, 330, -170], [600, 290, -60], [1900, 260, 60]],
-    [[-700, 140, -1900], [-420, 170, -600], [-300, 190, 500], [-150, 160, 1900]],
-    [[-1800, 470, 800], [-400, 500, 560], [700, 460, 300], [1900, 430, 380]],
-    [[900, 90, -1900], [700, 110, -500], [820, 120, 600], [600, 100, 1900]],
+    [[-1900, 300, -560], [-600, 330, -470], [600, 290, -360], [1900, 260, -240]],
+    [[-1800, 470, 800], [-400, 500, 660], [700, 460, 500], [1900, 430, 580]],
+    [[1100, 90, -1900], [900, 110, -500], [1020, 120, 600], [800, 100, 1900]],
   ];
-  for (const pts of filaments) spirogyra(group, new THREE.CatmullRomCurve3(pts.map((p) => new THREE.Vector3(...p))), rand, obstacles);
+  for (const pts of filaments) spirogyra(group, new THREE.CatmullRomCurve3(pts.map(([x, y, z]) => new THREE.Vector3(x, y * YS, z))), rand, obstacles);
 
   // --- Detritus ---
   const flakeGeos = [0, 1, 2, 3, 4].map((i) => flakeGeometry(i * 3.7 + 1));
   const flakeMat = volumeMaterial({ dn: 0.024, scatter: 1.2, absorb: [0.004, 0.0065, 0.012], centred: true, pattern: 3 });
   const flakeLists = flakeGeos.map(() => []);
   const flakes = [];
-  for (let i = 0; i < 70; i++) {
-    const size = 15 + rand() ** 2 * 120;
+  for (let i = 0; i < 34; i++) {
+    const size = 15 + rand() ** 2 * 90;
     const a = rand() * Math.PI * 2, r = Math.sqrt(rand()) * (DROP_R - 120);
     const onFloor = rand() < 0.55;
-    const y = onFloor ? size * 0.15 + 2 : 40 + rand() * (DEPTH - 80);
+    const y = onFloor ? size * 0.15 + 2 : 30 + rand() * (DEPTH - 60);
     const m = new THREE.Matrix4().compose(new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r),
       new THREE.Quaternion().setFromEuler(new THREE.Euler(onFloor ? (rand() - 0.5) * 0.3 : rand() * 3, rand() * 6.3, onFloor ? (rand() - 0.5) * 0.3 : rand() * 3)),
       new THREE.Vector3(size, size, size));
@@ -193,7 +193,7 @@ export function createWorld(scene) {
     flakes.push({ m, size });
   }
   // the Vorticella flake, near the start
-  const vFlake = new THREE.Matrix4().compose(new THREE.Vector3(380, 60, 220), new THREE.Quaternion().setFromEuler(new THREE.Euler(0.1, 0.4, -0.05)), new THREE.Vector3(150, 150, 150));
+  const vFlake = new THREE.Matrix4().compose(new THREE.Vector3(560, 30, 330), new THREE.Quaternion().setFromEuler(new THREE.Euler(0.1, 0.4, -0.05)), new THREE.Vector3(150, 150, 150));
   flakeLists[0].push(vFlake);
   flakes.push({ m: vFlake, size: 150 });
   flakeLists.forEach((list, k) => {
@@ -209,7 +209,7 @@ export function createWorld(scene) {
   }
   // sediment on the slide
   {
-    const n = 2200, iPos = new Float32Array(n * 4), iP = new Float32Array(n * 4);
+    const n = 900, iPos = new Float32Array(n * 4), iP = new Float32Array(n * 4);
     for (let i = 0; i < n; i++) {
       const a = rand() * Math.PI * 2, r = Math.sqrt(rand()) * DROP_R;
       iPos.set([Math.cos(a) * r, 1 + rand() * 3, Math.sin(a) * r, 0], i * 4);
@@ -241,13 +241,13 @@ export function createWorld(scene) {
   const vMacroMat = volumeMaterial({ dn: 0.018, scatter: 0.5, centred: true });
   const vorticellas = [];
   const stalkItems = [];
-  const anchorC = new THREE.Vector3(380, 60 + 22, 220);
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2 + rand() * 0.5;
+  const anchorC = new THREE.Vector3(560, 30 + 22, 330);
+  for (let i = 0; i < 3; i++) {
+    const a = (i / 3) * Math.PI * 2 + rand() * 0.5;
     const anchor = anchorC.clone().add(new THREE.Vector3(Math.cos(a) * (20 + rand() * 40), 0, Math.sin(a) * (20 + rand() * 40)));
     const dir = new THREE.Vector3(Math.cos(a) * 0.55, 1, Math.sin(a) * 0.55).add(new THREE.Vector3(rand() - 0.5, 0, rand() - 0.5).multiplyScalar(0.5)).normalize();
     const perp = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0.3, 0.1, 1).normalize()).normalize();
-    const L = 110 + rand() * 80;
+    const L = 90 + rand() * 50;
     stalkItems.push({ base: anchor.toArray(), normal: dir.toArray(), dir: perp.toArray(), length: L, width: 2.4, phase: 0, kind: KIND.STALK });
     const g = new THREE.Group();
     const body = new THREE.Mesh(vGeo, vMat); body.frustumCulled = false; g.add(body);
@@ -300,14 +300,14 @@ export function createWorld(scene) {
     const { geo } = instancedQuads(n, iPos, iP);
     g.add(Object.assign(new THREE.Mesh(geo, pointsMaterial({ absorb: [0.01, 0.012, 0.02] })), { frustumCulled: false }));
     group.add(g);
-    const start = i === 0 ? new THREE.Vector3(-1100, 300, 900) : new THREE.Vector3(1000, 420, -900);
+    const start = i === 0 ? new THREE.Vector3(-900, DEPTH * 0.5, 700) : new THREE.Vector3(1000, DEPTH * 0.6, -800);
     g.position.copy(start);
-    didinia.push({ group: g, ring: rs, pos: start.clone(), dir: new THREE.Vector3(rand() - 0.5, 0, rand() - 0.5).normalize(), roll: 0, phase: 0,
+    didinia.push({ kind: 'didinium', label: 'Didinium', group: g, ring: rs, pos: start.clone(), dir: new THREE.Vector3(rand() - 0.5, 0, rand() - 0.5).normalize(), roll: 0, phase: 0,
       state: 'wander', stun: 0, turnT: 0, speed: 0, vel: new THREE.Vector3() });
   }
 
   // --- Bacteria ---
-  const NB = 7000, BOX = 650;
+  const NB = 2400, BOX = 700;
   const bPos = new Float32Array(NB * 4), bP = new Float32Array(NB * 4), bVel = new Float32Array(NB * 3), bT = new Float32Array(NB);
   for (let i = 0; i < NB; i++) {
     bPos.set([(rand() - 0.5) * 2 * BOX, rand() * DEPTH, (rand() - 0.5) * 2 * BOX, 0], i * 4);
