@@ -103,19 +103,19 @@ export const ASSETS = {
   },
   "MP-B01": {
     "file": "assets/bacterium/sediment-phase.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-B02": {
     "file": "assets/bacterium/biofilm.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-B03": {
     "file": "assets/bacterium/grazer-mouth.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-B04": {
     "file": "assets/bacterium/magnetosomes.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R01": {
     "file": "assets/reference-sheets/springtail.webp",

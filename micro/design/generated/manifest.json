@@ -1195,6 +1195,232 @@
     "mood_boards": []
   },
   {
+    "id": "MP-B01",
+    "name": "Bog-sediment bacteria (phase contrast)",
+    "file": "assets/bacterium/sediment-phase.webp",
+    "size": "2048 x 2048, opaque, tileable",
+    "used": "The far background: the sediment field the bacterium swims over.",
+    "prompt": "Use case: scientific-educational. Asset type: one square 1:1 seamless game texture. Input photographs/micrographs are reference only; concept board is mood reference only. Produce the requested optical modality, regardless of modality of references. Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Phase-contrast microscope look at 1000x oil immersion: mid-grey background, transparent cells dark with thin bright halos at their edges, colourless, slight optical softness at the limit of resolution (nothing sharper than about 0.2 µm), very shallow depth of field. Bog-pool sediment at 1000x, about 60 µm across: scattered bacteria (short rods, cocci, curved vibrios and a few spirilla, 0.5 to 3 µm long), small mineral and humic particles 1 to 5 µm with bright halos, a few empty diatom frustule fragments, mostly clear grey background between them. No large organisms.\nFill the entire SQUARE equally, no frames, no seam or edge lighting, no vignette. True phase contrast monochrome: no fluorescence, no visible flagella, nuclei, crystals or molecular details. Tiny bacteria distributed sparsely. No text, labels, scale bars, UI or watermarks.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Phase-contrast microscope look at 1000x oil immersion: mid-grey background, transparent cells dark with thin bright halos at their edges, colourless, slight optical softness at the limit of resolution (nothing sharper than about 0.2 µm), very shallow depth of field. Bog-pool sediment at 1000x, about 60 µm across: scattered bacteria (short rods, cocci, curved vibrios and a few spirilla, 0.5 to 3 µm long), small mineral and humic particles 1 to 5 µm with bright halos, a few empty diatom frustule fragments, mostly clear grey background between them. No large organisms.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-7c9927d3-cdc9-421d-93eb-ec7f0a3c0f02.png",
+    "input_images": [
+      "research/assets/references/production/magnetotactic.png",
+      "research/assets/references/production/bdellovibrio.jpg",
+      "research/assets/references/biofilm-sem.jpg",
+      "research/assets/concepts/04-cell-neighborhood.webp"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "168f19ff1ca2c18e7505b6599ba9d59115d7331326d91f0b7dda48580e786945",
+    "export": "LANCZOS sizing; opposing-edge strips quilted with the approved conventional seam-correction workflow; WebP quality 92.",
+    "references": [
+      {
+        "id": "magnetotactic",
+        "local": "assets/references/production/magnetotactic.png",
+        "author": "Caulobacter subvibrioides (Diskussion)",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png"
+      },
+      {
+        "id": "bdellovibrio",
+        "local": "assets/references/production/bdellovibrio.jpg",
+        "author": "Eikosi",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Slice_from_electron_cryotomogram_of_Bdellovibrio_bacteriovorus_cell.jpg"
+      },
+      {
+        "id": "biofilm-sem",
+        "local": "assets/references/biofilm-sem.jpg",
+        "author": "Timo Kohn, Rast, P., Kallscheuer, N., Wiegand, S., Boedeker, C., Jetten, M.S., Jeske, O., Vollmers, J., Kaster, A.K., Rohde, M. and Jogler, M.",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Electron_microscopic_analysis_of_seagrass_biofilms.jpg"
+      }
+    ],
+    "mood_boards": [
+      "04-cell-neighborhood.webp"
+    ],
+    "seam_metrics_before": {
+      "horizontal_join": 20.213,
+      "vertical_join": 12.095,
+      "interior_horizontal": 6.976,
+      "interior_vertical": 6.856
+    },
+    "seam_metrics_after": {
+      "horizontal_join": 7.024,
+      "vertical_join": 7.464,
+      "interior_horizontal": 5.553,
+      "interior_vertical": 5.479
+    }
+  },
+  {
+    "id": "MP-B02",
+    "name": "Biofilm surface",
+    "file": "assets/bacterium/biofilm.webp",
+    "size": "2048 x 2048, opaque, tileable",
+    "used": "The biofilm floor: dense cells in matrix, with channels between clusters.",
+    "prompt": "Use case: scientific-educational. Asset type: one square 1:1 seamless game texture. Input photographs/micrographs are reference only; concept board is mood reference only. Produce the requested optical modality, regardless of modality of references. Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Epifluorescence microscope look: black background, structures visible only where they are stained, glowing in one or two saturated stain colours (green as for SYTO 9, red as for propidium iodide or chlorophyll autofluorescence), soft glow and slight out-of-focus haze, no white light. A freshwater bacterial biofilm seen from above at about 50 µm across, stained as in a live/dead assay: mushroom-shaped and mound-shaped microcolonies of densely packed rod cells glowing green, a few red dead cells, darker water channels winding between the clusters, a faint haze of extracellular matrix. Cells about 1 to 2 µm, packed but individually just discernible.\nFill the entire SQUARE equally, no frames, no seam or edge lighting, no vignette. Green/red are stain-encoded signals. Whole image is a flat top-down fluorescence micrograph, not a side landscape of hills. No yellow mineral crystals. No text, labels, scale bars, UI or watermarks.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Epifluorescence microscope look: black background, structures visible only where they are stained, glowing in one or two saturated stain colours (green as for SYTO 9, red as for propidium iodide or chlorophyll autofluorescence), soft glow and slight out-of-focus haze, no white light. A freshwater bacterial biofilm seen from above at about 50 µm across, stained as in a live/dead assay: mushroom-shaped and mound-shaped microcolonies of densely packed rod cells glowing green, a few red dead cells, darker water channels winding between the clusters, a faint haze of extracellular matrix. Cells about 1 to 2 µm, packed but individually just discernible.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-c4019c9a-4477-42e5-babc-3c9df0a4c3ee.png",
+    "input_images": [
+      "research/assets/references/production/biofilm-fluorescence.png",
+      "research/assets/references/biofilm-sem.jpg",
+      "research/assets/concepts/04-cell-neighborhood.webp"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "ca19eaa64145db8f54ba041ac734a147ba6415b6ed372aef6a58f6c94f55d7cf",
+    "export": "LANCZOS sizing; opposing-edge strips quilted with the approved conventional seam-correction workflow; WebP quality 92.",
+    "references": [
+      {
+        "id": "biofilm-fluorescence",
+        "local": "assets/references/production/biofilm-fluorescence.png",
+        "author": "Schwarz, Michael (ORCID: 0009-0002-1414-3291)",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:NFDI4BIOIMAGE_Calendar_March_2025_-_image_march.png"
+      },
+      {
+        "id": "biofilm-sem",
+        "local": "assets/references/biofilm-sem.jpg",
+        "author": "Timo Kohn, Rast, P., Kallscheuer, N., Wiegand, S., Boedeker, C., Jetten, M.S., Jeske, O., Vollmers, J., Kaster, A.K., Rohde, M. and Jogler, M.",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Electron_microscopic_analysis_of_seagrass_biofilms.jpg"
+      }
+    ],
+    "mood_boards": [
+      "04-cell-neighborhood.webp"
+    ],
+    "seam_metrics_before": {
+      "horizontal_join": 15.761,
+      "vertical_join": 12.824,
+      "interior_horizontal": 5.108,
+      "interior_vertical": 4.929
+    },
+    "seam_metrics_after": {
+      "horizontal_join": 6.827,
+      "vertical_join": 5.566,
+      "interior_horizontal": 4.242,
+      "interior_vertical": 4.07
+    }
+  },
+  {
+    "id": "MP-B03",
+    "name": "Grazer's oral region (looming ciliate)",
+    "file": "assets/bacterium/grazer-mouth.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "The looming threat: a ciliate's feeding current and mouth filling the frame.",
+    "prompt": "Use case: scientific-educational. Asset type: one wide 16:9 background plate. Input photographs/micrographs are reference only; concept board is mood reference only. Produce the requested optical modality, regardless of modality of references. Phase-contrast microscope look at 1000x oil immersion: mid-grey background, transparent cells dark with thin bright halos at their edges, colourless, slight optical softness at the limit of resolution (nothing sharper than about 0.2 µm), very shallow depth of field. The oral region of a bacteria-eating ciliate (Paramecium-like) seen at bacterial scale, about 40 µm across: the curved funnel of the oral groove and buccal cavity filling the right two-thirds of the frame as a soft dark wall, rows of beating cilia along its rim blurred by motion, a stream of small rod bacteria and particles being drawn in along curved paths, a forming food vacuole deep inside as a pale round shape. The ciliate itself is too large to be in focus everywhere. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nThe oral groove is a CURVED SIDE FUNNEL of a ciliate, not an animal mouth, cave, monster face or toothy ring. Right two-thirds mostly blurred cell wall, left third water with tiny rod bacteria. No arrows or trajectories drawn; subtle motion blur only.No outlines sharper than optical resolution. Slight phase contrast halos, monochrome grey, no warm colour cast. No text, labels, scale bars, UI or watermarks.",
+    "requested_prompt": "Phase-contrast microscope look at 1000x oil immersion: mid-grey background, transparent cells dark with thin bright halos at their edges, colourless, slight optical softness at the limit of resolution (nothing sharper than about 0.2 µm), very shallow depth of field. The oral region of a bacteria-eating ciliate (Paramecium-like) seen at bacterial scale, about 40 µm across: the curved funnel of the oral groove and buccal cavity filling the right two-thirds of the frame as a soft dark wall, rows of beating cilia along its rim blurred by motion, a stream of small rod bacteria and particles being drawn in along curved paths, a forming food vacuole deep inside as a pale round shape. The ciliate itself is too large to be in focus everywhere. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-943024d5-75c9-4b1c-80ba-2adbe75b7cd1.png",
+    "input_images": [
+      "research/assets/references/paramecium.jpg",
+      "research/assets/references/production/paramecium-bursaria.jpg",
+      "research/assets/references/vorticella.jpg",
+      "research/assets/concepts/03-protist-garden.webp"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "8f34714f4d12d7fa114f673cfac2e137e1485b11226a3fbec1615977a481d395",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "paramecium",
+        "local": "assets/references/paramecium.jpg",
+        "author": "MTadey",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg"
+      },
+      {
+        "id": "paramecium-bursaria",
+        "local": "assets/references/production/paramecium-bursaria.jpg",
+        "author": "Anatoly Mikhaltsov",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Paramecium_bursaria.jpg"
+      },
+      {
+        "id": "vorticella",
+        "local": "assets/references/vorticella.jpg",
+        "author": "Bwiltz",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Vorticella_1.jpg"
+      }
+    ],
+    "mood_boards": [
+      "03-protist-garden.webp"
+    ]
+  },
+  {
+    "id": "MP-B04",
+    "name": "Magnetosome chain (fluorescence texture)",
+    "file": "assets/bacterium/magnetosomes.webp",
+    "size": "1024 x 1024, opaque, tileable",
+    "used": "Texture inside the magnetotactic bacterium's body and on its compass display.",
+    "prompt": "Use case: scientific-educational. Asset type: one square 1:1 seamless game texture. Input photographs/micrographs are reference only; concept board is mood reference only. Produce the requested optical modality, regardless of modality of references. Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Epifluorescence microscope look: black background, structures visible only where they are stained, glowing in one or two saturated stain colours (green as for SYTO 9, red as for propidium iodide or chlorophyll autofluorescence), soft glow and slight out-of-focus haze, no white light. Magnetosome chains of magnetotactic bacteria at about 10 µm across, as seen when the magnetosome membrane protein is tagged with a green fluorescent protein: several thin straight-to-slightly-curved lines of tightly spaced glowing dots (each dot a crystal of magnetite about 50 nm, blurred to the 0.2 µm limit so the dots merge into beaded lines), each chain about 1 to 2 µm long, all roughly parallel to one another, with faint diffuse cell-body glow around each.\nFill the entire SQUARE equally, no frames, no seam or edge lighting, no vignette. The supplied TEM shows morphology only: convert to fluorescence. About 20 short, mostly parallel, faint green chains across a 10µm square field; 50nm particles unresolved and merge into optically blurred beaded lines. Do not draw crisp individual cubes, polygons or crystals. No text, labels, scale bars, UI or watermarks.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Epifluorescence microscope look: black background, structures visible only where they are stained, glowing in one or two saturated stain colours (green as for SYTO 9, red as for propidium iodide or chlorophyll autofluorescence), soft glow and slight out-of-focus haze, no white light. Magnetosome chains of magnetotactic bacteria at about 10 µm across, as seen when the magnetosome membrane protein is tagged with a green fluorescent protein: several thin straight-to-slightly-curved lines of tightly spaced glowing dots (each dot a crystal of magnetite about 50 nm, blurred to the 0.2 µm limit so the dots merge into beaded lines), each chain about 1 to 2 µm long, all roughly parallel to one another, with faint diffuse cell-body glow around each.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-d00e5be4-b235-4181-be02-482acd676a41.png",
+    "input_images": [
+      "research/assets/references/production/magnetotactic.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 1024,
+    "height": 1024,
+    "sha256": "70af337c515678de2e09d4c81f5a5a8a8aee1979ec4aee988afe29a2d13c81c6",
+    "export": "LANCZOS sizing; opposing-edge strips quilted with the approved conventional seam-correction workflow; WebP quality 92.",
+    "references": [
+      {
+        "id": "magnetotactic",
+        "local": "assets/references/production/magnetotactic.png",
+        "author": "Caulobacter subvibrioides (Diskussion)",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png"
+      }
+    ],
+    "mood_boards": [],
+    "seam_metrics_before": {
+      "horizontal_join": 3.791,
+      "vertical_join": 2.252,
+      "interior_horizontal": 1.511,
+      "interior_vertical": 1.67
+    },
+    "seam_metrics_after": {
+      "horizontal_join": 2.314,
+      "vertical_join": 1.414,
+      "interior_horizontal": 1.261,
+      "interior_vertical": 1.372
+    }
+  },
+  {
     "id": "MP-R01",
     "name": "Water springtail (Podura aquatica)",
     "file": "assets/reference-sheets/springtail.webp",

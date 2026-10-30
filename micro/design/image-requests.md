@@ -12,7 +12,7 @@ Artwork for the prototypes in `micro/prototypes/`. Generated from `source/build_
 
 ## Status
 
-10 requested, 36 delivered, 46 in total.
+6 requested, 40 delivered, 46 in total.
 
 ## Launcher cards
 
@@ -459,7 +459,7 @@ Images for the run-and-tumble bacterium prototype (Level 5), at 1000x oil immers
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** The far background: the sediment field the bacterium swims over.
 - **Stand-in until delivered:** Procedural grey field with haloed rods.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Magnetospirillum gryphiswaldense; electron-microscopy reference. Internal detail is not visible in ordinary light microscopy.](../research/assets/references/production/magnetotactic.png) · Caulobacter subvibrioides (Diskussion), CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png)
   - [Bdellovibrio cryotomogram section; ultrastructure reference, not a live light-microscope view.](../research/assets/references/production/bdellovibrio.jpg) · Eikosi, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Slice_from_electron_cryotomogram_of_Bdellovibrio_bacteriovorus_cell.jpg)
@@ -476,7 +476,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** The biofilm floor: dense cells in matrix, with channels between clusters.
 - **Stand-in until delivered:** Procedural cell clusters on a dark field.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Tagged Pseudomonas biofilm; fluorescence and matrix analogue, not a live/dead-stain image.](../research/assets/references/production/biofilm-fluorescence.png) · Schwarz, Michael (ORCID: 0009-0002-1414-3291), CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:NFDI4BIOIMAGE_Calendar_March_2025_-_image_march.png)
   - [Marine seagrass biofilm SEM figure: matrix and surface-reference analogue, not freshwater habitat documentation.](../research/assets/references/biofilm-sem.jpg) · Timo Kohn, Rast, P., Kallscheuer, N., Wiegand, S., Boedeker, C., Jetten, M.S., Jeske, O., Vollmers, J., Kaster, A.K., Rohde, M. and Jogler, M., CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Electron_microscopic_analysis_of_seagrass_biofilms.jpg)
@@ -492,7 +492,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Size:** 2560 x 1440, opaque
 - **Used for:** The looming threat: a ciliate's feeding current and mouth filling the frame.
 - **Stand-in until delivered:** A dark procedural wall with a beating fringe.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Paramecium caudatum; whole-cell outline and internal contrast.](../research/assets/references/paramecium.jpg) · MTadey, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg)
   - [Paramecium bursaria in DIC; green symbionts and body proportions.](../research/assets/references/production/paramecium-bursaria.jpg) · Anatoly Mikhaltsov, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Paramecium_bursaria.jpg)
@@ -509,7 +509,7 @@ Phase-contrast microscope look at 1000x oil immersion: mid-grey background, tran
 - **Size:** 1024 x 1024, opaque, tileable
 - **Used for:** Texture inside the magnetotactic bacterium's body and on its compass display.
 - **Stand-in until delivered:** Procedural dotted chain.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Magnetospirillum gryphiswaldense; electron-microscopy reference. Internal detail is not visible in ordinary light microscopy.](../research/assets/references/production/magnetotactic.png) · Caulobacter subvibrioides (Diskussion), CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png)
 

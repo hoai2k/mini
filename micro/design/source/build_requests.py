@@ -369,7 +369,7 @@ GROUPS = [
         "intro": "Images for the run-and-tumble bacterium prototype (Level 5), at 1000x oil immersion, the limit of the light microscope. The bacterium and its enemies are built in code; these supply the sediment background, the biofilm, a looming grazer and a fluorescence texture. Nothing here may show more detail than the optics can resolve.",
         "items": [
             {
-                "id": "MP-B01", "status": "requested", "name": "Bog-sediment bacteria (phase contrast)",
+                "id": "MP-B01", "status": "delivered", "name": "Bog-sediment bacteria (phase contrast)",
                 "file": "assets/bacterium/sediment-phase.webp", "size": "2048 x 2048, opaque, tileable",
                 "used": "The far background: the sediment field the bacterium swims over.",
                 "standin": "Procedural grey field with haloed rods.",
@@ -377,7 +377,7 @@ GROUPS = [
                 "prompt": f"{TILE} {PHASE} Bog-pool sediment at 1000x, about 60 µm across: scattered bacteria (short rods, cocci, curved vibrios and a few spirilla, 0.5 to 3 µm long), small mineral and humic particles 1 to 5 µm with bright halos, a few empty diatom frustule fragments, mostly clear grey background between them. No large organisms.",
             },
             {
-                "id": "MP-B02", "status": "requested", "name": "Biofilm surface",
+                "id": "MP-B02", "status": "delivered", "name": "Biofilm surface",
                 "file": "assets/bacterium/biofilm.webp", "size": "2048 x 2048, opaque, tileable",
                 "used": "The biofilm floor: dense cells in matrix, with channels between clusters.",
                 "standin": "Procedural cell clusters on a dark field.",
@@ -385,7 +385,7 @@ GROUPS = [
                 "prompt": f"{TILE} {FLUOR} A freshwater bacterial biofilm seen from above at about 50 µm across, stained as in a live/dead assay: mushroom-shaped and mound-shaped microcolonies of densely packed rod cells glowing green, a few red dead cells, darker water channels winding between the clusters, a faint haze of extracellular matrix. Cells about 1 to 2 µm, packed but individually just discernible.",
             },
             {
-                "id": "MP-B03", "status": "requested", "name": "Grazer's oral region (looming ciliate)",
+                "id": "MP-B03", "status": "delivered", "name": "Grazer's oral region (looming ciliate)",
                 "file": "assets/bacterium/grazer-mouth.webp", "size": "2560 x 1440, opaque",
                 "used": "The looming threat: a ciliate's feeding current and mouth filling the frame.",
                 "standin": "A dark procedural wall with a beating fringe.",
@@ -393,7 +393,7 @@ GROUPS = [
                 "prompt": f"{PHASE} The oral region of a bacteria-eating ciliate (Paramecium-like) seen at bacterial scale, about 40 µm across: the curved funnel of the oral groove and buccal cavity filling the right two-thirds of the frame as a soft dark wall, rows of beating cilia along its rim blurred by motion, a stream of small rod bacteria and particles being drawn in along curved paths, a forming food vacuole deep inside as a pale round shape. The ciliate itself is too large to be in focus everywhere. {SCIENCE}",
             },
             {
-                "id": "MP-B04", "status": "requested", "name": "Magnetosome chain (fluorescence texture)",
+                "id": "MP-B04", "status": "delivered", "name": "Magnetosome chain (fluorescence texture)",
                 "file": "assets/bacterium/magnetosomes.webp", "size": "1024 x 1024, opaque, tileable",
                 "used": "Texture inside the magnetotactic bacterium's body and on its compass display.",
                 "standin": "Procedural dotted chain.",
