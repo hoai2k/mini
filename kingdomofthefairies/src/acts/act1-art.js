@@ -39,6 +39,7 @@ export function draw(k, st, t) {
     deckScene(k, st, deck, t);
     if (FILM) tempestRain(k, st, deck, t);
     if (ph === 'turn') spirits(k, pt, t);
+    if (ph === 'turn' && FILM) witchInStorm(k, st, pt, t);
     return;
   }
   if (ph === 'wreck') return wreck(k, st, pt, t);
@@ -61,7 +62,7 @@ export function onEvent(k, e, st) {
     }
     k.text(FILM ? '✦' : '♪', lanternX(i), 140);
   }
-  if (e.type === 'revelry') { k.text(FILM ? 'The lanterns hold!' : 'Revelry!', 640, 260, true); for (const c of LANTERN_COLS) k.burst(640, 300, c, 20, 'confetti'); }
+  if (e.type === 'revelry') { if (!FILM) k.text('Revelry!', 640, 260, true); for (const c of LANTERN_COLS) k.burst(640, 300, c, 20, 'confetti'); }
   if (e.type === 'strike') { k.flash(1); k.shake(0.5); }
   // the keel breaks where the spout holds it up; each half splashes down where it fell
   const sx = st.board.ship.x;
@@ -148,7 +149,7 @@ const dancing = (spot, bob) => ({ x: spot.x, y: spot.y - bob * 16 * spot.s / 0.8
 
 // Where reveller i is (feet x, y, scale), or null while below deck.
 function revellerAt(st, i, bob) {
-  const spot = SPOTS[st.party.spots?.[i] ?? i + 2];
+  const spot = SPOTS[st.party.spots?.[i] ?? (FILM ? i : i + 2)];
   const h = HATCHES[spot.x < 640 ? 0 : 1];
   const pt = st.phaseT;
   if (st.phase === 'party') {
@@ -254,6 +255,38 @@ function figure(k, x0, y0, col, bob = 0, s = 1) {
 }
 
 // ---------------------------------------------------------------- the turn
+// The film's witch in the turn: from over the stern she swoops into the
+// middle of the stage and hovers there while the spirits rise, until the last
+// of the crew has gone down the hatches; then she flies off.
+const WITCH_STORM = { from: { x: 990, y: 220, s: 1.1 }, mid: { x: 640, y: 300, s: 1.25 }, swoop: 0.8, leave: 0.9 };
+// When the last reveller has dropped below (s into the turn).
+function allDown(st) {
+  let last = 0;
+  REVELLERS.forEach((_, i) => {
+    const spot = SPOTS[st.party.spots?.[i] ?? (FILM ? i : i + 2)], h = HATCHES[spot.x < 640 ? 0 : 1];
+    const hops = Math.max(1, Math.ceil(Math.hypot(h.x - spot.x, h.y - spot.y) / FLEE.hopLen));
+    last = Math.max(last, FLEE.from + i * FLEE.stagger + hops * FLEE.hop + FLEE.dive);
+  });
+  return last;
+}
+function witchInStorm(k, st, pt, t) {
+  const c = k.c, W = WITCH_STORM, gone = allDown(st) + 0.45;   // a beat over the empty deck
+  let x, y, s, a = 1;
+  if (pt < W.swoop) {
+    // a swoop: down and across, dipping below the line between
+    const u = easeInOut(pt / W.swoop);
+    x = W.from.x + (W.mid.x - W.from.x) * u; y = W.from.y + (W.mid.y - W.from.y) * u + Math.sin(Math.PI * u) * 70; s = W.from.s + (W.mid.s - W.from.s) * u;
+  } else if (pt < gone) {
+    x = W.mid.x + Math.sin(t * 1.3) * 18; y = W.mid.y + Math.sin(t * 2.1) * 10; s = W.mid.s;
+  } else {
+    const u = easeInOut(clamp((pt - gone) / W.leave, 0, 1));
+    x = W.mid.x + u * 760; y = W.mid.y - u * 420; s = W.mid.s * (1 - 0.3 * u); a = 1 - u * u;
+  }
+  if (a <= 0) return;
+  c.save(); c.globalAlpha = a;
+  if (!k.asset('witch-storm', x, y, 260 * s, 170 * s)) { c.fillStyle = k.col('#2a2430'); k.cloud?.(x, y - 40, 1.2 * s); }
+  c.restore();
+}
 function whiteout(k, pt) {
   // The sky bleaches white, as in the video around 1:00.
   k.wash('#f4f1ea', 0.75 * easeInOut(pt / 1.3) * (1 - easeInOut((pt - 3.0) / 1.4)));
