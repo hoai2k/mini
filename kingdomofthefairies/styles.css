@@ -365,3 +365,16 @@ html.ios-scroll.ios-scroll-play, html.ios-scroll.ios-scroll-play body { overflow
 .unlock-editor { position: fixed; }
 .unlock-editor .card-x { position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; border-radius: 50%; background: #3d1f35; color: #f3c6dc;
   border: 2px solid #7d5470; font-size: 26px; line-height: 1; cursor: pointer; }
+
+/* Loading: until the title's art is in, a spinner on black and nothing else
+   (no drawn stand-ins; src/main.js removes body.booting). */
+#booting { display: none; }
+body.booting #booting { display: grid; place-items: center; position: absolute; inset: 0; background: #0b0710; z-index: 50; }
+body.booting #title, body.booting #icons, body.booting #touch { visibility: hidden; }
+#booting .spinner {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 3px solid rgba(243, 198, 220, 0.18); border-top-color: #f3c6dc;
+  animation: booting-spin 0.9s linear infinite;
+}
+@keyframes booting-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { #booting .spinner { animation-duration: 2.4s; } }
