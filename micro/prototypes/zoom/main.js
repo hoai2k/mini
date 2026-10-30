@@ -530,7 +530,7 @@ function render() {
   zo.post(fx, null);
 }
 
-const fmtMag = (m) => (m >= 100 ? Math.round(m).toLocaleString('en-US') : m.toPrecision(2));
+const fmtMag = (m) => (m >= 99.5 ? Math.round(m).toLocaleString('en-US') : m.toPrecision(2));
 function updateHud() {
   const W = dbuf.x;
   const cssW = innerWidth;

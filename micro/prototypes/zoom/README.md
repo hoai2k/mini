@@ -23,9 +23,9 @@ integrated amount is kept. So the zoom target really contains the next world
 at the right scale, and the hand-off cannot jump: the biofilm's cells are the
 texture the brightfield shows; the leaf whose cells the DIC resolves is the
 leaf the mite walked on; the previous protagonist stays in the new world as a
-giant neighbour (the springtail beside the mite, the mite beside the tun, the
-tardigrade at the edge of the pool field, the Paramecium's flank beside the
-biofilm), as the spec asks.
+giant neighbour (the springtail at the corner of the mite's field, the mite
+beside the tun, the tardigrade at the edge of the pool field), as the spec
+asks.
 
 **One image-formation model for every look.** Every look is a point in one
 model (`../shared/techniques/zoom-optics.js`): reflected light (Lambert, a
@@ -134,8 +134,63 @@ representative scenes drawn into one field.
 
 ## Recommendation
 
-RECOMMENDATION
+From the contact sheets (every transition × strategy at zoom 0, 25, 50, 75
+and 100 % and settled; each highlight style):
+
+| # | Best | Why |
+| --- | --- | --- |
+| 1 Macro → SEM | **Zoom first** | The macro photo's colour leads the eye down to the speck; the SEM then "develops" on the mite. Morphing during the zoom passes through a pale, foggy half-and-half; look first is crisp but spends the whole zoom in SEM, losing the bog. |
+| 2 SEM → DIC | **Look during** | The spec's own beat: the camera holds on the tun while the reflected light fades and the transmitted light comes up. Mid-zoom the mite turns into a silhouette and the film's meniscus appears, which reads as the light changing, not as a blend. |
+| 3 DIC → brightfield | **Look during** | The field stop closes in as the zoom advances, as if the condenser were swung: the most "instrument-like" morph of the five. Crossfade shows a ghost of both frames. |
+| 4 Brightfield → phase | **Look during** (or zoom first, to teach) | During: the stop opens as the bacteria resolve. Zoom first is a good lesson (the cells barely show in brightfield, then phase reveals them) but spends a beat on an almost empty disc. |
+| 5 Phase → cryo-EM → illustration | **Look during** | Passes through grey cryo-EM at mid-zoom, then gains colour, as §5.8 describes. Zoom first shows honest empty magnification (the phase image just blurs past ~0.2 µm), a strong point but a long blank. |
+
+Overall: the parametric morph beats the plain crossfade wherever the field
+stop or the lamp changes (3, 4, 5), where the crossfade shows two frames at
+once; they are close for 1 and 2. **Look first** is best when the new look
+should be read before it is entered (useful for teaching a new optics), never
+worse than a cut. The **cut** at the hand-off is abrupt in every case.
+
+Highlights: the **ring** (around the next world's field) is the clearest; the
+**iris** is the most microscope-like and works best for small zoom ratios (1–3:
+the next field is a large circle) but closes to a pinhole for the 10× and 150×
+zooms (4, 5); the **focus rack** reads well everywhere; the **objective click**
+is a transient best paired with "look during".
+
+## Checks
+
+```bash
+node micro/prototypes/check.mjs zoom
+```
+
+`window.__micro` has test hooks: `start(k)`, `setZoom(p)`, `setProgress(s)`,
+`setStrategy(id)`, `setHighlight(name)`, `snap()` (renders and returns the
+canvas and the scale readout), `state()`.
 
 ## Known issues
 
-KNOWN
+- **Representative scenes, not the prototypes' own.** The six prototypes'
+  scene builders start their own renderers and loops, so the worlds here are
+  lightweight procedural stand-ins drawn with one image model. The looks are
+  tuned to read like the prototypes (see the screenshots), not computed by
+  their modules; `zoom-optics.js` keeps `adapters.js`'s optical-field layout
+  so the real sinks could be wired in later for the rest states.
+- **Delivered art is not used.** The SEM and DIC leaf plates (MP-M01, MP-T02)
+  show the same kind of cell net but are not registered to each other, so a
+  shared procedural cell lattice keeps the leaf aligned across the hand-off.
+- **Sphagnum is stylised**: a capitulum is a rosette of 12 branches of ovate
+  leaves; between overlapping leaves the edges are hard (no anti-aliasing),
+  visible as thin lines at 1000×.
+- **The SEM is a fiction**, as in the mite prototype: water (the pool, the
+  film) is shown flat and grey; a real SEM sample is dried.
+- **Mid-morph between reflected and transmitted light** (1, 2) is pale: the
+  two lamps' images add, which is physically right and low in contrast.
+- **The iris and ring** shrink to 14 px for transitions 4 and 5 (the next
+  field is 1/10 and 1/150 of the screen).
+- **Time:** the tun revives in 3.5 s (minutes to hours in life, ~300× faster,
+  labelled). The phage drifts without its real Brownian motion (D ≈ 4 µm²/s
+  would carry it out of a 0.6 µm field in a fraction of a second). Phage level
+  is a stub: drift only.
+- Level 4 (*Trachelomonas*, 40×) is skipped (no prototype); transition 4 takes
+  the spec's no-trap alternative.
+- The HUD panels overlap on short windows; View hides the controls.
