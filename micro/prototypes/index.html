@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Micro prototypes</title>
+  <meta name="description" content="Prototypes for a game about microscopic creatures: a mite, a tardigrade, an amoeba and a Paramecium, each in a different microscope look.">
+  <link rel="icon" href="../../favicon.ico">
+  <style>
+    :root { --bg: #0b0d10; --ink: #eef1f4; --dim: #9aa4ae; --card: #151a20; --line: #26303a; --accent: #9fd0ff; }
+    html, body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+    main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 48px; }
+    h1 { font-size: 1.8rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+    .lede { color: var(--dim); margin: 0 0 24px; max-width: 64ch; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+    a.card { display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+      overflow: hidden; color: inherit; text-decoration: none; transition: transform .15s, border-color .15s; }
+    a.card:hover, a.card:focus-visible { transform: translateY(-2px); border-color: var(--accent); outline: none; }
+    .art { aspect-ratio: 3 / 2; background-size: cover; background-position: center; }
+    .body { padding: 12px 14px 14px; }
+    .body h2 { font-size: 1.05rem; margin: 0 0 2px; }
+    .look { color: var(--accent); font-size: .8rem; margin: 0 0 6px; }
+    .body p { margin: 0; color: var(--dim); font-size: .9rem; }
+    footer { margin-top: 28px; color: var(--dim); font-size: .85rem; }
+    footer a { color: var(--accent); }
+    a.card.sel { border-color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Micro prototypes</h1>
+    <p class="lede">Small experiments towards a game where you play as microscopic creatures. Each tries a different microscope look and a different way of moving. Every one plays with an Xbox controller (or the keyboard).</p>
+    <div class="grid">
+      <a class="card" href="mite/" data-art="MP-U01" data-bg="linear-gradient(135deg,#6b6f73,#1c1e20)">
+        <div class="art"></div>
+        <div class="body"><h2>Mite</h2><p class="look">Scanning electron microscope</p>
+          <p>An armoured box mite, about 0.6 mm long, walks on eight jointed legs through moss and leaf litter.</p></div>
+      </a>
+      <a class="card" href="tardigrade/" data-art="MP-U02" data-bg="linear-gradient(135deg,#a9b4a0,#3d4a3a)">
+        <div class="art"></div>
+        <div class="body"><h2>Tardigrade</h2><p class="look">Differential interference contrast</p>
+          <p>Climb a moss leaf cell by cell with clawed stubby legs while the water film dries around you.</p></div>
+      </a>
+      <a class="card" href="amoeba/" data-art="MP-U03" data-bg="linear-gradient(135deg,#efe6cf,#a99f84)">
+        <div class="art"></div>
+        <div class="body"><h2>Amoeba</h2><p class="look">Brightfield</p>
+          <p>Amoeba proteus: push out pseudopods (each one draws body from elsewhere) and close a food cup around prey.</p></div>
+      </a>
+      <a class="card" href="paramecium/" data-art="MP-U04" data-bg="linear-gradient(135deg,#1e2f4a,#05070b)">
+        <div class="art"></div>
+        <div class="body"><h2>Paramecium</h2><p class="look">Darkfield and phase contrast</p>
+          <p>A fast ciliate in a pond drop: no gliding at this scale, only beating cilia, reversal and escape.</p></div>
+      </a>
+    </div>
+    <footer>Background: the <a href="https://github.com/hoai2k/mini/tree/main/micro">Micro research atlas</a>. Press A on a controller to open the selected card.</footer>
+  </main>
+  <script type="module">
+    import { boot } from './shared/boot.js';
+    import { ASSETS } from './shared/asset-list.js';
+    import { createPad, BTN } from './shared/pad.js';
+    boot(() => {
+      const cards = [...document.querySelectorAll('a.card')];
+      for (const c of cards) {
+        const a = ASSETS[c.dataset.art];
+        c.querySelector('.art').style.background = a && a.status === 'delivered' ? `center / cover url(${a.file})` : c.dataset.bg;
+      }
+      // Controller navigation: d-pad or left stick moves, A opens.
+      const pad = createPad();
+      let sel = -1, held = 0;
+      const pick = (i) => { sel = (i + cards.length) % cards.length; cards.forEach((c, j) => c.classList.toggle('sel', j === sel)); cards[sel].focus(); };
+      (function loop() {
+        pad.poll();
+        if (pad.kind === 'controller') {
+          const s = pad.ls();
+          const dir = pad.pressed(BTN.RIGHT) || pad.pressed(BTN.DOWN) ? 1 : pad.pressed(BTN.LEFT) || pad.pressed(BTN.UP) ? -1 : 0;
+          const sd = Math.abs(s.x) > 0.6 || Math.abs(s.y) > 0.6 ? Math.sign(s.x || s.y) : 0;
+          if (dir) pick(sel + dir);
+          else if (sd && !held) pick(sel + sd);
+          held = sd;
+          if (pad.pressed(BTN.A)) { if (sel < 0) pick(0); else location.href = cards[sel].href; }
+        }
+        requestAnimationFrame(loop);
+      })();
+    });
+  </script>
+</body>
+</html>
