@@ -121,22 +121,6 @@ export class Walker {
     const L = this.leaf;
     this.grace = Math.max(0, this.grace - dt);
     const ev = this.events;
-    // ---- steering, in leaf coordinates
-    let du = input.dir.dot(L.U), dv = input.dir.dot(L.V);
-    const dl = Math.hypot(du, dv);
-    const mag = input.frozen || this.slipping ? 0 : input.mag * (dl > 0.05 ? 1 : 0);
-    let turn = 0;
-    if (mag > 0) {
-      du /= dl; dv /= dl;
-      const cross = this.hu * dv - this.hv * du, dot = this.hu * du + this.hv * dv;
-      const diff = Math.atan2(cross, dot);
-      const maxTurn = (input.brace ? 0.7 : 1.1) * dt;
-      turn = THREE.MathUtils.clamp(diff, -maxTurn, maxTurn);
-      const c = Math.cos(turn), s = Math.sin(turn);
-      [this.hu, this.hv] = [this.hu * c - this.hv * s, this.hu * s + this.hv * c];
-      this.align = Math.max(0, Math.cos(diff - turn));
-    } else this.align = 0;
-
     // ---- speed: heavy, held back by stretched legs
     let maxErr = 0;
     const tmp = new THREE.Vector3();
@@ -146,6 +130,22 @@ export class Walker {
       maxErr = Math.max(maxErr, f.world.distanceTo(tmp.copy(LEGS[i].ground).applyMatrix4(this.tMat)));
     });
     const stretch = THREE.MathUtils.clamp((MAX_REACH * 1.3 - maxErr) / (MAX_REACH * 0.4), 0.15, 1);
+    // ---- steering, in leaf coordinates
+    let du = input.dir.dot(L.U), dv = input.dir.dot(L.V);
+    const dl = Math.hypot(du, dv);
+    const mag = input.frozen || this.slipping ? 0 : input.mag * (dl > 0.05 ? 1 : 0);
+    let turn = 0;
+    if (mag > 0) {
+      du /= dl; dv /= dl;
+      const cross = this.hu * dv - this.hv * du, dot = this.hu * du + this.hv * dv;
+      const diff = Math.atan2(cross, dot);
+      const maxTurn = (input.brace ? 0.6 : 0.9) * stretch * dt;
+      turn = THREE.MathUtils.clamp(diff, -maxTurn, maxTurn);
+      const c = Math.cos(turn), s = Math.sin(turn);
+      [this.hu, this.hv] = [this.hu * c - this.hv * s, this.hu * s + this.hv * c];
+      this.align = Math.max(0, Math.cos(diff - turn));
+    } else this.align = 0;
+
     const target = MAX_SPEED * mag * this.align * input.film * (input.brace ? 0.45 : 1) * (0.6 + 0.4 * input.energy) * stretch;
     const acc = target > this.speed ? 0.9 : 2.2;
     this.speed += THREE.MathUtils.clamp(target - this.speed, -acc * dt, acc * dt);
@@ -224,6 +224,22 @@ export class Walker {
         if (f.grip > 0.5) ev.catch(f.grip);
       }
     }
+
+    // ---- a lobopod stretches, but not forever: past its reach the claws
+    // scrape off and the foot is dragged after the body.
+    this.feet.forEach((f, i) => {
+      if (f.state !== 'stance') return;
+      const hip = _a.copy(LEGS[i].hip).applyMatrix4(this.tMat);
+      const rest = LEGS[i].ground.distanceTo(LEGS[i].hip);
+      const d = _b.subVectors(f.world, hip);
+      const lim = rest * 1.5;
+      if (d.length() > lim) {
+        f.world.copy(hip).addScaledVector(d.normalize(), lim);
+        const loc = this.leaf.toLocal(f.world, {});
+        this.surfacePoint(loc.u, loc.v, f.world);
+        f.grip = Math.min(f.grip, 0.15);
+      }
+    });
 
     // ---- grip versus load
     const G = this.feet.reduce((s, f) => s + (f.state === 'stance' ? f.grip : 0), 0);
@@ -348,6 +364,17 @@ export class Walker {
       const loc = M.toLocal(hit, {});
       if (!M.inside(loc.u, loc.v, 0.7)) continue;
       if (!best || t < best.t) best = { M, loc, t };
+    }
+    if (!best) {
+      // Nothing straight below: the cushion is dense, so land on the nearest leaf.
+      for (const M of this.world.leaves) {
+        const loc = M.toLocal(p, {});
+        const u = THREE.MathUtils.clamp(loc.u, 1, M.len - 1);
+        const lim = Math.max(0, M.hwAt(u) - 0.8);
+        const v = THREE.MathUtils.clamp(loc.v, -lim, lim);
+        const t = M.toWorld(u, v, 0).distanceTo(p);
+        if (t < 6 && (!best || t < best.t)) best = { M, loc: { u, v }, t };
+      }
     }
     this.slipping = false;
     const fwd = this.forward;

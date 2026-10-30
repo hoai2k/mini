@@ -151,7 +151,7 @@ export class Life {
     P.tun = this.tun;
     // Gut colour follows what was eaten and fades as reserves are used.
     const g = this.gutColour;
-    const absGut = new THREE.Vector3(-Math.log(g.x), -Math.log(g.y), -Math.log(g.z)).multiplyScalar(0.9 + 2.6 * this.energy).addScalar(0.15);
+    const absGut = new THREE.Vector3(-Math.log(g.x), -Math.log(g.y), -Math.log(g.z)).multiplyScalar(0.5 + 1.5 * this.energy).addScalar(0.1);
     this.creature.setGut(absGut);
   }
 

@@ -57,7 +57,7 @@ export const P = {
   kN: 4, // 1/s, cortical tension (normal part of the Laplacian)
   kT: 26, // 1/s, tangential spacing
   dMin: 9, // µm, self-contact
-  vClose: 15, // µm/s, rims closing over prey
+  vClose: 24, // µm/s, rims closing over prey
   vRetract: 9, // µm/s, a released pseudopod drawn back
   vRear: 22, // µm/s, uroid contraction at full drive
 };
@@ -167,7 +167,8 @@ export class Body {
           pod.ret = 0;
         }
         pod.dx = st.dx; pod.dy = st.dy;
-        pod.target = st.m * (1 - 0.7 * this.spread);
+        // While a food cup is closing, the cell commits: the sticks only nudge.
+        pod.target = st.m * (1 - 0.7 * this.spread) * (this.closing ? 0.15 : 1);
       } else if (pod.active) {
         pod.active = false;
         pod.target = 0;
@@ -452,9 +453,29 @@ export class Body {
     }
     if (run.length) flush();
     if (!best) return null;
-    const i0 = best.run[0], i1 = best.run[best.run.length - 1];
+    // The rims: the pair of lining nodes that wraps furthest round the point for
+    // the smallest gap (usually the two pseudopod tips).
+    const lin = best.run, n = lin.length;
+    const W = new Float64Array(n);
+    let prev = Math.atan2(y[lin[0]] - py, x[lin[0]] - px);
+    for (let k = 1; k < n; k++) {
+      const a = Math.atan2(y[lin[k]] - py, x[lin[k]] - px);
+      W[k] = W[k - 1] + wrapAngle(a - prev);
+      prev = a;
+    }
+    let ba = 0, bb = n - 1, bs = -Infinity;
+    const step = n > 90 ? 2 : 1;
+    for (let a = 0; a < n; a += step) {
+      for (let b = a + 4; b < n; b += step) {
+        const gap = Math.hypot(x[lin[b]] - x[lin[a]], y[lin[b]] - y[lin[a]]);
+        const sc = Math.abs(W[b] - W[a]) - (0.8 * gap) / reach;
+        if (sc > bs) { bs = sc; ba = a; bb = b; }
+      }
+    }
+    const sub = lin.slice(ba, bb + 1);
+    const i0 = sub[0], i1 = sub[sub.length - 1];
     return {
-      wrap: Math.abs(best.wind), run: best.run, i0, i1,
+      wrap: Math.abs(W[bb] - W[ba]), run: sub, i0, i1,
       gap: Math.hypot(x[i1] - x[i0], y[i1] - y[i0]),
       mx: 0.5 * (x[i0] + x[i1]), my: 0.5 * (y[i0] + y[i1]),
     };

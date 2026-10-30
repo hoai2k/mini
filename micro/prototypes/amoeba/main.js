@@ -310,7 +310,7 @@ function updateCup(dt) {
   for (const p of prey) {
     if (p.captured || p.layer !== 'focus') continue;
     if (Math.hypot(p.x - body.cx, p.y - body.cy) > body.req + 450) continue;
-    const reach = Math.max(p.sp.L, p.sp.W) / 2 + 50;
+    const reach = Math.max(p.sp.L, p.sp.W) / 2 + 130;
     const cup = body.cupAround(p.x, p.y, reach);
     if (cup && (!best || cup.wrap > best.cup.wrap)) best = { prey: p, cup };
   }
@@ -320,9 +320,9 @@ function updateCup(dt) {
   if (!C) { body.closing = null; return; }
   const p = C.prey;
   C.t += dt;
-  const reach = Math.max(p.sp.L, p.sp.W) / 2 + 50;
+  const reach = Math.max(p.sp.L, p.sp.W) / 2 + 130;
   const cup = body.cupAround(p.x, p.y, reach);
-  if (!cup || cup.wrap < 2.6) C.low += dt; else C.low = 0;
+  if (!cup || cup.wrap < 2.1) C.low += dt; else C.low = 0;
   if (C.low > 0.8 || C.t > 14) { cancelClose(`The ${p.sp.name} slipped away`); return; }
   if (!cup) return;
   body.closing = { i0: cup.i0, i1: cup.i1, mx: cup.mx, my: cup.my, px: p.x, py: p.y, run: cup.run };
@@ -528,4 +528,11 @@ window.__micro = {
   spawnPrey(key, x, y, th = 0) { const p = makePrey(key, x, y, th, rand); prey.push(p); return p; },
   clearPrey() { for (const p of prey.slice()) if (!p.captured) despawn(p); S.respawn = false; },
   close: tryClose,
+  /** Test hook: make the cell a fresh disc at its centroid (organelles kept). */
+  resetBody() {
+    const R = Math.sqrt(body.A0 / Math.PI);
+    for (let i = 0; i < N; i++) { const a = (i / N) * TAU; body.x[i] = body.cx + R * Math.cos(a); body.y[i] = body.cy + R * Math.sin(a); }
+    for (const p of body.pods) { p.s = 0; p.target = 0; p.active = false; p.ret = 0; }
+    body.grid.build(body.x, body.y, N);
+  },
 };

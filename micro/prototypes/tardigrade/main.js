@@ -188,7 +188,7 @@ function frame() {
   const now = performance.now();
   const rawDt = (now - last) / 1000;
   last = now;
-  const dt = Math.min(0.05, rawDt);
+  const dt = Math.min(view.dtMax || 0.05, rawDt);
   if (view.mode !== 2 && !SOFTWARE) mic.autoQuality(rawDt);
   time += dt;
   catchBudget -= dt;

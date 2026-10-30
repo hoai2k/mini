@@ -41,7 +41,8 @@ const LEG_ID = (i) => 10 + i;
 /** Elliptic ring around the x axis: a fold groove in the cuticle. */
 function ringX(cx, cy, ry, rz, r) {
   const rm = Math.min(ry, rz);
-  return (x, y, z) => Math.hypot((Math.hypot((y - cy) / ry, z / rz) - 1) * rm, x - cx) - r;
+  // Only above the leg bases, so the folds never cut into the legs.
+  return (x, y, z) => Math.max(Math.hypot((Math.hypot((y - cy) / ry, z / rz) - 1) * rm, x - cx) - r, -0.12 - y);
 }
 
 function bodyParts() {
@@ -125,7 +126,7 @@ export class Creature {
 
     // Body (with legs): the SDF mesh.
     const geo = buildSdfMesh(bodyParts(), { min: [-2.0, -0.92, -1.02], max: [2.0, 0.76, 1.02], cell: 0.03 });
-    this.body = this.addPart('cuticle and body', geo, { dn: 0.028, absorb: [0.06, 0.1, 0.22] }, { color: 0xeadfc6, opacity: 0.55, roughness: 0.4 });
+    this.body = this.addPart('cuticle and body', geo, { dn: 0.04, absorb: [0.05, 0.08, 0.18] }, { color: 0xeadfc6, opacity: 0.55, roughness: 0.4 });
     this.restBody = geo.attributes.position.array.slice();
 
     // Internals, all deformed with the trunk.
