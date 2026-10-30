@@ -79,6 +79,46 @@ CARD = (
     "calm and fairly even so a title can sit over it."
 )
 
+MACRO = (
+    "Macro-photography look: a real photograph through a macro lens at 2 to 5 times life size, "
+    "natural overcast daylight, real colours, very shallow depth of field with creamy out-of-focus "
+    "areas, fine water droplets and surface tension visible where they are real, no studio "
+    "flash glare, no HDR, no colour grading."
+)
+
+PHASE = (
+    "Phase-contrast microscope look at 1000x oil immersion: mid-grey background, transparent "
+    "cells dark with thin bright halos at their edges, colourless, slight optical softness at the "
+    "limit of resolution (nothing sharper than about 0.2 µm), very shallow depth of field."
+)
+
+FLUOR = (
+    "Epifluorescence microscope look: black background, structures visible only where they are "
+    "stained, glowing in one or two saturated stain colours (green as for SYTO 9, red as for "
+    "propidium iodide or chlorophyll autofluorescence), soft glow and slight out-of-focus haze, "
+    "no white light."
+)
+
+MOLECULAR = (
+    "Molecular-illustration look in the manner of David Goodsell's watercolours: flat, softly "
+    "outlined shapes with no lighting effects, every protein and nucleic acid drawn at true "
+    "relative size, crowded as real cytoplasm and water are, a restrained palette (warm pinks and "
+    "oranges for proteins, purples for nucleic acid, pale yellows and greens for membranes and "
+    "polysaccharide). Electron microscopes and models show this scale; a light microscope cannot."
+)
+
+TURNAROUND = (
+    "Orthographic model reference sheet for building a 3D model: the same single individual shown "
+    "four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front "
+    "view, and a three-quarter view from front-left and slightly above. All four views at exactly "
+    "the same scale and aligned to one another, true orthographic projection for the first three "
+    "(no perspective), even soft studio light from the front, plain flat light-grey background "
+    "(#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. "
+    "Natural colours as the organism really looks (for cells, as in a stained or brightfield "
+    "preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing "
+    "invented. It serves as a measuring tape and a paint source."
+)
+
 
 def ref(*ids: str) -> list[str]:
     return list(ids)
