@@ -284,7 +284,7 @@ void main() {
   vec3 refr = fl * trans + vec3(0.05, 0.035, 0.012) * (1.0 - trans) * (uSkyHor.g + uSunCol.g * 0.2) * 0.25;
   vec3 col = mix(refr, refl, F);
   if (uRing > 0.0) col += uRing * 0.05 * pow(nv, 40.0);
-  if (uShowSurf > 0.5) col = mix(col, col * vec3(1.25, 1.2, 0.7), smoothstep(0.05, 0.4, surf) * 0.6);
+  if (uShowSurf > 0.5) col = mix(col, vec3(0.9, 0.85, 0.2) * (0.3 + uSunCol.g * 0.15), smoothstep(0.02, 0.3, surf) * 0.55);
   // depth for the lens: reflections at the surface, the floor at its apparent depth
   float lr = dot(refl * F, vec3(0.3, 0.5, 0.2)), lt = dot(refr * (1.0 - F), vec3(0.3, 0.5, 0.2));
   float dS = distance(P, cameraPosition);

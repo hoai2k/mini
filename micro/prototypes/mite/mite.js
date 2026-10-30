@@ -765,13 +765,16 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
       st.retract = sstep(0, 0.7, st.t);
       st.aspis = sstep(0.25, 1, st.t);
       if (st.t >= 1) {
-        st.mode = 'closed'; st.vel.set(0, 0, 0); st.angVel.set(0, 0, 0);
+        st.mode = 'closed'; st.vel.set(0, 0, 0); st.angVel.set(0, 0, 0); st.closedT = 0;
         pose(0);
         events.push('closed');
       }
     } else if (st.mode === 'closed') {
       if (cfg.roll) physics(dt); else { st.angVel.set(0, 0, 0); st.airborne = false; }
-      if (!hold && !st.airborne && st.angVel.length() < 2.5) {
+      st.closedT = hold ? 0 : (st.closedT || 0) + dt;
+      // Wedged against something (resting on a stem, say) it may never count
+      // as settled: after a few seconds it opens on whatever is below anyway.
+      if (!hold && ((!st.airborne && st.angVel.length() < 2.5) || st.closedT > 2.5)) {
         // stand up on whatever is underneath
         const g = colliders.cast(st.center.clone(), V3(0, -1, 0), 600);
         if (g) {

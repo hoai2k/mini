@@ -3,6 +3,7 @@
 // simulation and the labelled departures.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { createPad, BTN } from '../shared/pad.js';
+import { createControls, createDash, hudControls } from '../shared/controls.js';
 import { mountHud } from '../shared/hud.js';
 import { loadTexture } from '../shared/assets.js';
 import { createFeatures } from '../shared/features.js';
@@ -11,7 +12,7 @@ import { Cytoplasm } from './cytoplasm.js';
 import { SPECIES, makePrey, PREY_OPTS } from './prey.js';
 import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, DIC_MODES, PARAMECIUM_MODES } from '../shared/techniques/adapters.js';
 import { squirmerFlow } from '../shared/techniques/paramecium-squirmer.js';
-import { buildWorld, worldColliders, addResidue, wetMountCanvas, cytoplasmCanvas, meanColor } from './world.js';
+import { buildWorld, worldColliders, addResidue, wetMountCanvas, cytoplasmCanvas, meanColor, trapCapsules } from './world.js';
 import { View } from './render.js';
 import { rng, TAU, clamp } from './util.js';
 
@@ -20,7 +21,9 @@ const OBJECTIVES = [{ name: '10×', field: 1800 }, { name: '20×', field: 900 }]
 const AMOEBA_TIME = { 'Amoeba ×10': 1, 'Amoeba ×3': 0.3, 'Amoeba ×1 (real time)': 0.1 };
 const SWIM_TIME = { 'Swimmers ×0.1': 1, 'Swimmers ×0.3': 3, 'Swimmers real speed': 10 };
 const GRANULES = { '2600 granules': 2600, '1300 granules': 1300, '600 granules': 600 };
-const CUP_WRAP = 3.3; // radians (≈ 190°) of membrane around the prey before A can close
+const CUP_WRAP = 3.3;
+const PSEUDO_SPEED = { 'Quick (1.8×)': 1.8, 'Original': 1 };
+const SURGE = 2.5; // pseudopod rate multiplier at the peak of a surge // radians (≈ 190°) of membrane around the prey before A can close
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
@@ -28,24 +31,23 @@ renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
 renderer.autoClear = false;
 
 const pad = createPad();
+const ctl = createControls(pad);
+const surge = createDash({ duration: 0.9, cooldown: 2.4 });
 const hud = mountHud({
   title: 'Amoeba',
-  sub: 'Amoeba proteus (~450 µm) on a wet-mount slide. Push out pseudopods, cup them round prey, close the cup.',
-  controls: [
-    ['LS', 'Pseudopod 1: aim and extend'],
-    ['RS', 'Pseudopod 2: aim and extend'],
-    ['RT', 'Push harder'],
-    ['LT', 'Spread out / relax'],
-    ['A', 'Close the food cup round prey'],
-    ['B', 'Let go / egest a food vacuole'],
-    ['X', 'Optics: brightfield, phase, darkfield, immersive'],
-    ['Y', 'Labels'],
-    ['LB', 'Objective 10× (field 1.8 mm)'],
-    ['RB', 'Objective 20× (field 0.9 mm)'],
-    ['D-pad', 'Fine focus (up / down)'],
-    ['View', 'Hide this panel'],
-    ['Menu', 'Features: what it does, switches'],
-  ],
+  sub: 'Amoeba proteus (~450 µm) on a wet-mount slide. Push out pseudopods, chase down ciliates, cup round them and fill in. Mind the fungal traps.',
+  controls: hudControls({
+    move: 'Pseudopod 1: aim and extend',
+    camera: 'Pseudopod 2: aim and extend',
+    dash: 'Surge: pseudopods shoot out 2.5× faster and the cell flows after them',
+    attack: 'Close the food cup: cytoplasm fills in round the prey',
+    defend: 'Let go / egest a food vacuole',
+    special: 'Labels',
+    analog: 'Spread out / push harder',
+    secondary: 'Fine focus down / up',
+    look: 'Optics: brightfield, phase, darkfield, immersive',
+    zoom: 'Objective 10× / 20×',
+  }),
   note: 'Release a stick to let that pseudopod flow back. Every arm takes body from somewhere else: the cell keeps its volume. Time is compressed; see the corner.',
 });
 
@@ -80,18 +82,19 @@ const S = {
   flags: { tie: true, refraction: true, chroma: true, dof: true, bgRefraction: true, vignette: true, grain: true, obstacles: true, above: true },
   streaming: true, brownian: true, cv: true, respawn: true,
   fps: 60, statT: 0, pending: [],
+  flee: true, traps: true, stuckT: 0, stuckN: 0, bitten: 0, surgeK: 1,
 };
 
 // --- features panel ----------------------------------------------------------
 const features = createFeatures({ key: 'amoeba', pad });
 const F = (o) => features.add(o);
 F({ id: 'look', group: 'Optics', label: 'Optical method', choices: MODES, value: MODES[0],
-  about: 'X cycles. Brightfield is the reference look; phase contrast (dark phase with bright halos), darkfield (scattered light on black) and a hypothetical immersive lit view are for comparison. All four read the same property buffer.',
+  about: 'D-pad left/right cycles. Brightfield is the reference look; phase contrast (dark phase with bright halos), darkfield (scattered light on black) and a hypothetical immersive lit view are for comparison. All four read the same property buffer.',
   onChange: (v) => { S.mode = Math.max(0, MODES.indexOf(v)); } });
 F({ id: 'propbuf', group: 'Rendering', label: 'Optical property buffer', fixed: true,
   about: 'Objects draw phase (thickness × refractive step) and red/green/blue optical density additively into a float target, not colour; one composite pass applies the optics. Module: shared/techniques/amoeba-optics.js.' });
 F({ id: 'tie', group: 'Optics', label: 'Defocus contrast (transport of intensity)', on: true,
-  about: 'A transparent cell is nearly invisible in focus; slight defocus gives I ≈ I0(1 − Δz∇²φ): bright and dark lines at edges and granules. Fine focus (d-pad) sets Δz and its sign.',
+  about: 'A transparent cell is nearly invisible in focus; slight defocus gives I ≈ I0(1 − Δz∇²φ): bright and dark lines at edges and granules. Fine focus (LB/RB) sets Δz and its sign.',
   onChange: (v) => { S.flags.tie = v; } });
 F({ id: 'refraction', group: 'Optics', label: 'Edge refraction loss', on: true,
   about: 'Steep slopes at the membrane bend light out of the objective aperture, darkening the edge in proportion to |∇φ|².', onChange: (v) => { S.flags.refraction = v; } });
@@ -123,7 +126,12 @@ F({ id: 'idle', group: 'Body', label: 'Idle pseudopods (polypodial)', on: true,
 F({ id: 'overdamped', group: 'Motion', label: 'Overdamped (low Reynolds number)', fixed: true,
   about: 'Displacement is proportional to force each step; nothing coasts. Stop protruding and the cell stops.' });
 F({ id: 'atime', group: 'Motion', label: 'Amoeba time compression', choices: Object.keys(AMOEBA_TIME), value: 'Amoeba ×10',
-  about: 'A. proteus advances about 1–4 µm/s. ×10 makes a pseudopod grow in seconds; ×1 is real time (very slow).', onChange: (v) => { S.amoebaK = AMOEBA_TIME[v] ?? 1; } });
+  about: 'A. proteus advances about 1–4 µm/s. ×10 is the clock; with quick pseudopods (below) they grow ×18 their real rate, so a pseudopod reaches out in about a second. ×1 is real time (very slow).', onChange: (v) => { S.amoebaK = AMOEBA_TIME[v] ?? 1; } });
+F({ id: 'pspeed', group: 'Motion', label: 'Pseudopod speed', choices: Object.keys(PSEUDO_SPEED), value: 'Quick (1.8×)',
+  about: 'Quick: pseudopods ramp up and advance 1.8× faster than the original tuning (the cell still keeps its area, and the rear still retracts to pay for each arm). The time readout includes it.',
+  onChange: (v) => { body.opts.speed = PSEUDO_SPEED[v] ?? 1.8; } });
+F({ id: 'surge', group: 'Motion', label: 'Surge (A)', fixed: true,
+  about: 'For 0.9 s every active pseudopod extends up to 2.5× faster (eased in and out), may run a little further ahead, the rear contracts harder and streaming surges toward the tips, so the whole cell lunges; recharges over 2.4 s. With no stick held it surges along the cell\'s current heading. It also tears the membrane free of a fungal trap. Inspired by blebbing, A. proteus\'s fastest protrusion; the strength is a game value.' });
 F({ id: 'stime', group: 'Motion', label: 'Swimmer speed', choices: Object.keys(SWIM_TIME), value: 'Swimmers ×0.1',
   about: 'Ciliates swim at 0.3–1 mm/s: far too fast to catch on a ×10 amoeba clock, so swimmers are slowed. Real speed shows why amoebae ambush.', onChange: (v) => { S.swimK = SWIM_TIME[v] ?? 1; } });
 F({ id: 'stream', group: 'Simulation', label: 'Fountain streaming', on: true,
@@ -135,13 +143,22 @@ F({ id: 'cv', group: 'Simulation', label: 'Contractile vacuole cycle', on: true,
   about: 'Fills slowly (≈ 40 s here, minutes in life), then empties in about a second; faster while food vacuoles shed water.', onChange: (v) => { S.cv = v; } });
 F({ id: 'cup', group: 'Simulation', label: 'Food cup and food vacuoles', fixed: true,
   about: 'The membrane run near a prey cell is measured by how far it winds round it; when the rims meet, the lining zips shut and the cup becomes a food vacuole that sheds water, then digests.' });
+F({ id: 'flee', group: 'Simulation', label: 'Ciliates flee the membrane', on: true,
+  about: 'Tetrahymena, Colpidium and Paramecium sense the approaching membrane (a mechanical and chemical cue) and swim away at about 2.2× their speed for a couple of seconds, so a plain pseudopod rarely catches them: surge (A) to close the gap. Escape swimming is real; the range and speed are game values.',
+  onChange: (v) => { S.flee = v; } });
+F({ id: 'traps', group: 'World', label: 'Fungal trap hyphae (hazard)', on: true,
+  about: 'Zoopagalean fungi (Stylopage, Zoopage) catch amoebae on adhesive hyphae, then grow a haustorium into them. Membrane touching a trap hypha sticks (it moves at 8% of its pace); a surge (A) tears it free. Stuck for 8 s, a haustorium takes a bite (−7% of the cell) and lets go. Real predators of amoebae; the timing and the bite are game rules.',
+  onChange: (v) => { S.traps = v; for (const o of world.obstacles) if (o.type === 'trap') o.hidden = !v; } });
+F({ id: 'infill', group: 'Simulation', label: 'Filling in (X)', on: true,
+  about: 'While the cup closes, endoplasm floods toward the cup mouth so the rims visibly fill and thicken as they meet over the prey.',
+  onChange: (v) => { cyto.infill = v; } });
 F({ id: 'avoid', group: 'Simulation', label: 'Avoidance reaction, trichocysts', fixed: true,
   about: 'Ciliates that touch the membrane back up, pivot and swim off. A Paramecium in a closing cup fires a local burst of trichocysts that shoves it clear (three bursts).' });
 F({ id: 'obstacles', group: 'World', label: 'Obstacles on the slide', on: true,
   about: 'Spirogyra filaments, gliding diatoms and detritus flakes the cell must flow round.', onChange: (v) => { S.flags.obstacles = v; } });
 F({ id: 'above', group: 'World', label: 'Out-of-focus layer', on: true,
   about: 'Filaments and flakes floating above the focal plane (MP-A03 when delivered).', onChange: (v) => { S.flags.above = v; } });
-F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true, about: 'Controller rumble on contact, trichocyst bursts and captures.', onChange: (v) => { S.rumble = v; } });
+F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true, about: 'Controller rumble on contact, surges, trichocyst bursts, captures and when a trap hypha grabs the membrane.', onChange: (v) => { S.rumble = v; } });
 F({ id: 'sticks', group: 'Controls', label: 'Two sticks, two pseudopods', fixed: true,
   about: 'Each stick grows one pseudopod from the part of the membrane facing its direction; turning the stick bends it; centring the stick lets it flow back. A game interpretation of chemotactic protrusion.' });
 
@@ -211,11 +228,16 @@ function readInput() {
   if (test.input) {
     const t = test.input;
     const st = (s) => { const m = Math.min(1, Math.hypot(s?.x || 0, s?.y || 0)); return m > 0 ? { m, dx: s.x / m, dy: -s.y / m } : { m: 0, dx: 1, dy: 0 }; };
-    return { pods: [st(t.ls), st(t.rs)], push: t.rt || 0, spread: t.lt || 0 };
+    const pods = [st(t.ls), st(t.rs)];
+    if (surge.active && pods[0].m === 0 && pods[1].m === 0) pods[0] = { m: 1, dx: body.fx || 1, dy: body.fy || 0 };
+    return { pods, push: t.rt || 0, spread: t.lt || 0 };
   }
-  const ls = pad.ls(), rs = pad.rs();
+  const ls = ctl.move(), rs = ctl.camera();
   const st = (s) => (s.m > 0 ? { m: s.m, dx: s.x / Math.hypot(s.x, s.y), dy: -s.y / Math.hypot(s.x, s.y) } : { m: 0, dx: 1, dy: 0 });
-  return { pods: [st(ls), st(rs)], push: pad.rt(), spread: pad.lt() };
+  const pods = [st(ls), st(rs)];
+  // A surge with no stick held goes along the cell's heading.
+  if (surge.active && pods[0].m === 0 && pods[1].m === 0) pods[0] = { m: 1, dx: body.fx || 1, dy: body.fy || 0 };
+  return { pods, push: pad.rt(), spread: pad.lt() };
 }
 const pressed = (b) => pad.pressed(b) || test.presses.has(b);
 
@@ -338,6 +360,13 @@ function stepPrey(dt, col) {
       if (tmp.hits) { p.x += tmp.x; p.y += tmp.y; touched = true; }
     }
     const near = body.nearest(p.x, p.y);
+    // Ciliates flee an approaching membrane (escape swimming), so they must be chased.
+    if (S.flee && p.sp.ciliate && near.d - p.sp.W / 2 < 75 && !touched && p.state === 'swim' && !(S.closing && S.closing.prey === p) && (p.fleeT || 0) <= 0) {
+      const ax = p.x - body.x[near.i], ay = p.y - body.y[near.i];
+      p.th = Math.atan2(ay, ax) + rand.range(-0.5, 0.5);
+      p.speedK = 2.2; p.browse = -1; p.fleeT = 2.5;
+    }
+    p.fleeT = (p.fleeT || 0) - dt;
     if (near.d - p.sp.W / 2 < p.sp.sense || touched) {
       if (!p.touch) rumble(60, 0.15, 0);
       p.touch = 1;
@@ -394,11 +423,45 @@ function updateCup(dt) {
   }
 }
 
+// Membrane on a trap hypha sticks: it keeps only a little of each step's motion.
+const trapX = new Float64Array(N), trapY = new Float64Array(N);
+function stickToTraps(dt, traps) {
+  let n = 0;
+  const free = surge.active;
+  for (let i = 0; i < N; i++) {
+    const x = body.x[i], y = body.y[i];
+    for (const c of traps) {
+      const ex = c.bx - c.ax, ey = c.by - c.ay, l2 = ex * ex + ey * ey;
+      const t = clamp(((x - c.ax) * ex + (y - c.ay) * ey) / l2, 0, 1);
+      if (Math.hypot(x - c.ax - ex * t, y - c.ay - ey * t) < c.r) {
+        n++;
+        if (!free) { body.x[i] = trapX[i] + (x - trapX[i]) * 0.08; body.y[i] = trapY[i] + (y - trapY[i]) * 0.08; }
+        break;
+      }
+    }
+  }
+  if (n && !S.stuckN) { hud.toast('Caught on a fungal trap hypha: surge (A) to tear free'); rumble(250, 0.4, 0.6); }
+  S.stuckN = free ? 0 : n;
+  S.stuckT = S.stuckN ? S.stuckT + dt : Math.max(0, S.stuckT - dt * 2);
+  if (S.stuckT > 8) {
+    S.stuckT = 0; S.bitten++;
+    body.A0 *= 0.93;
+    hud.toast('A haustorium grows in and takes a bite of the cell (−7%)', 2600);
+    rumble(400, 0.7, 0.9);
+  }
+}
+
 function simStep(dt) {
   const input = readInput();
   const col = S.flags.obstacles ? worldColliders(world, dt) : { capsules: [], circles: [] };
   const adt = dt * S.amoebaK;
+  // Surge: ease the pseudopod boost in and out over the dash.
+  const sk = surge.active ? 1 + (SURGE - 1) * Math.sin(Math.PI * Math.min(1, 1 - surge.phase)) ** 0.6 : 1;
+  body.opts.boost = sk; S.surgeK = sk;
+  const traps = S.traps ? trapCapsules(world) : [];
+  if (traps.length) { trapX.set(body.x); trapY.set(body.y); }
   body.step(adt, input, col);
+  if (traps.length) stickToTraps(dt, traps);
   body.grid.build(body.x, body.y, N);
   updateCup(adt);
   stepPrey(dt, col);
@@ -464,7 +527,7 @@ function updateOverlay() {
     reticle.style.borderColor = ready ? 'rgba(40,140,60,.8)' : 'rgba(40,60,90,.5)';
     retText.style.left = `${sx}px`; retText.style.top = `${sy + r + 4}px`;
     const deg = S.cand ? Math.round((S.cand.cup.wrap * 180) / Math.PI) : 0;
-    retText.textContent = S.closing ? 'closing…' : ready ? `${deg}° wrapped: A to close` : `${deg}° wrapped`;
+    retText.textContent = S.closing ? 'filling in…' : ready ? `${deg}° wrapped: X to close` : `${deg}° wrapped`;
   } else {
     reticle.style.display = retText.style.display = 'none';
   }
@@ -481,6 +544,7 @@ function updateOverlay() {
     const e = body.nearest(body.cx + 1000 * body.fy, body.cy - 1000 * body.fx);
     label(i++, body.x[e.i], body.y[e.i], 'ectoplasm (clear gel rim)');
     for (const p of prey) if (!p.captured) label(i++, p.x + p.sp.L / 2, p.y, `${p.sp.name} ${p.sp.real.split(',')[0]}`);
+    if (S.traps) for (const o of world.obstacles) if (o.type === 'trap') label(i++, o.x, o.y, 'fungal trap hypha (Zoopagales)');
     let k = 0;
     for (const o of world.obstacles) {
       if (o.layer !== 'focus' || k > 6) continue;
@@ -521,15 +585,18 @@ function frame(now) {
   const menu = features.update();
   if (!menu) {
     hud.update(pad);
-    if (pressed(BTN.A)) { if (!S.closing) tryClose(); }
+    if (pressed(BTN.A) && surge.trigger()) { rumble(220, 0.3, 0.5); if (S.stuckN) hud.toast('Surge: torn free of the trap'); }
+    if (pressed(BTN.X)) { if (!S.closing) tryClose(); }
     if (pressed(BTN.B)) { if (S.closing) cancelClose('Let go: the cup opens'); else egest(); }
-    if (pressed(BTN.X)) features.set('look', MODES[(S.mode + 1) % MODES.length]);
+    const look = ctl.lookStep() || (test.presses.has(BTN.RIGHT) ? 1 : 0);
+    if (look) features.set('look', MODES[(S.mode + look + MODES.length) % MODES.length]);
     if (pressed(BTN.Y)) S.labels = !S.labels;
-    if (pressed(BTN.LB)) S.objective = 0;
-    if (pressed(BTN.RB)) S.objective = 1;
-    if (pad.down(BTN.UP)) S.focus = clamp(S.focus + dtReal * 0.8, -1, 1);
-    if (pad.down(BTN.DOWN)) S.focus = clamp(S.focus - dtReal * 0.8, -1, 1);
+    const zs = ctl.zoomStep();
+    if (zs) S.objective = zs > 0 ? 1 : 0;
+    const sec = ctl.secondary();
+    if (sec) S.focus = clamp(S.focus + sec * dtReal * 0.8, -1, 1);
   }
+  surge.update(dtReal);
   test.presses.clear();
   if (!menu && !paused) {
     acc += dtReal;
@@ -555,7 +622,8 @@ function frame(now) {
     const swimX = (0.1 * S.swimK).toFixed(1).replace(/\.0$/, '');
     hud.stats([
       `${MODES[S.mode]} · ${ob.name} objective, field ${(ob.field / 1000).toFixed(1)} mm · focus ${S.focus >= 0 ? '+' : ''}${S.focus.toFixed(2)}`,
-      `Time: amoeba ×${amoebaX} · swimmers ×${swimX} of real speed`,
+      `Time: amoeba ×${amoebaX} (pseudopods ×${Math.round(amoebaX * (body.opts.speed || 1))}) · swimmers ×${swimX} of real speed`,
+      `${surge.active ? `SURGE ×${S.surgeK.toFixed(1)}` : surge.text()}${S.stuckN ? ` · STUCK on a trap ${S.stuckT.toFixed(1)} s` : ''}${S.bitten ? ` · bitten ${S.bitten}` : ''}`,
       `Cell ${Math.round(L)} µm long · ${Math.round(body.A0 / 1000)}×10³ µm² · eaten ${S.eaten}`,
       `${S.cand ? `Cup: ${Math.round((S.cand.cup.wrap * 180) / Math.PI)}° round ${S.cand.prey.sp.name}` : 'Cup: none'}${S.closing ? ' · closing' : ''}`,
       `${Math.round(S.fps)} fps`,
@@ -592,7 +660,7 @@ window.__micro = {
   advance(sec) { const n = Math.round(sec * 60); for (let i = 0; i < n; i++) simStep(1 / 60); S.camX = body.cx; S.camY = body.cy; },
   spawnPrey(key, x, y, th = 0) { const p = makePrey(key, x, y, th, rand); prey.push(p); return p; },
   clearPrey() { for (const p of prey.slice()) if (!p.captured) despawn(p); S.respawn = false; },
-  close: tryClose,
+  close: tryClose, surge, ctl,
   /** Test hook: make the cell a fresh disc at its centroid (organelles kept). */
   resetBody() {
     const R = Math.sqrt(body.A0 / Math.PI);

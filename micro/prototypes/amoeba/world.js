@@ -34,12 +34,18 @@ export function buildWorld(seed = 7) {
     const s = r.range(30, 120);
     obstacles.push({ type: 'flake', x: Math.cos(a) * d, y: Math.sin(a) * d, ang: r() * TAU, L: s, W: s * r.range(0.5, 1), layer: 'above', seed: r() });
   }
+  // Trap hyphae of a zoopagalean fungus (Stylopage / Zoopage type), which
+  // catch amoebae on adhesive knobs: the hazard (see README).
+  const trap = (x, y, ang, L) => obstacles.push({ type: 'trap', x, y, ang, L, W: 6, layer: 'focus', seed: r(), trap: true });
+  trap(-470, -170, 0.95, 640);
+  trap(430, 300, -0.35, 560);
+  trap(-150, 560, 0.15, 520);
   for (const o of obstacles) o.collide = colliders(o);
   return { obstacles, rand: r };
 }
 
 function colliders(o) {
-  if (o.layer !== 'focus') return { capsules: [], circles: [] };
+  if (o.layer !== 'focus' || o.type === 'trap') return { capsules: [], circles: [] };
   const c = Math.cos(o.ang), s = Math.sin(o.ang);
   if (o.type === 'spiro' || o.type === 'diatom') {
     const h = o.L / 2 - o.W / 2;
@@ -65,6 +71,14 @@ export function worldColliders(world, dt) {
     circles.push(...o.collide.circles);
   }
   return { capsules, circles };
+}
+
+/** The trap hyphae as capsules {ax, ay, bx, by, r} (they glue, they do not block). */
+export function trapCapsules(world) {
+  return world.obstacles.filter((o) => o.type === 'trap').map((o) => {
+    const c = Math.cos(o.ang), s = Math.sin(o.ang), h = o.L / 2;
+    return { ax: o.x - c * h, ay: o.y - s * h, bx: o.x + c * h, by: o.y + s * h, r: o.W / 2 + 7 };
+  });
 }
 
 /** Add a residue flake (egested food vacuole) to the slide. */

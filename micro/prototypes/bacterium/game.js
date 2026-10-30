@@ -66,6 +66,7 @@ export function createGame(world, swimmer) {
       }
       if (s.inside) {
         s.insideT += dt;
+        if (s.inside.bdelloplast < 1 && world.film.includes(s.inside)) s.inside.bdelloplast = Math.min(1, s.inside.bdelloplast + dt / 1.5);
         if (s.insideT > 4) {
           s.prey++; s.energy = 1;
           const p = s.inside;

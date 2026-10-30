@@ -22,7 +22,7 @@ import * as THREE from '../vendor/three.module.min.js';
 /** Uniforms shared by every macro material (lighting, focus, shadow casters). */
 export const macroShared = {
   uSunDir: { value: new THREE.Vector3(-0.45, 0.55, 0.7).normalize() },
-  uSunCol: { value: new THREE.Vector3(4.2, 3.8, 3.2) },
+  uSunCol: { value: new THREE.Vector3(3.3, 3.0, 2.55) },
   uSkyTop: { value: new THREE.Vector3(0.32, 0.48, 0.85) },
   uSkyHor: { value: new THREE.Vector3(0.8, 0.85, 0.9) },
   uGround: { value: new THREE.Vector3(0.1, 0.09, 0.05) },
@@ -38,7 +38,7 @@ export const macroShared = {
 
 /** Lighting looks: index with the D-pad. dofK scales the aperture for the look. */
 export const MACRO_LOOKS = [
-  { name: 'Macro, low sun', sun: [4.2, 3.8, 3.2], sky: [0.32, 0.48, 0.85], hor: [0.8, 0.85, 0.9], ring: 0, exposure: 1.0, warm: 0.04, dofK: 1, circle: 0 },
+  { name: 'Macro, low sun', sun: [3.3, 3.0, 2.55], sky: [0.32, 0.48, 0.85], hor: [0.8, 0.85, 0.9], ring: 0, exposure: 1.0, warm: 0.04, dofK: 1, circle: 0 },
   { name: 'Macro, overcast', sun: [0.7, 0.72, 0.75], sky: [1.0, 1.08, 1.18], hor: [1.25, 1.28, 1.3], ring: 0, exposure: 1.15, warm: 0, dofK: 1, circle: 0 },
   { name: 'Stereo microscope (ring light)', sun: [0.4, 0.4, 0.4], sky: [0.25, 0.27, 0.3], hor: [0.3, 0.3, 0.3], ring: 3.2, exposure: 1.1, warm: -0.02, dofK: 4, circle: 1 },
 ];
@@ -97,8 +97,9 @@ vec3 envSky(vec3 d) {
   vec3 sky = mix(uSkyHor, uSkyTop, pow(max(d.y, 0.0), 0.55));
   float cl = smoothstep(0.45, 0.8, mFbm(vec2(az * 2.0, d.y * 6.0) + uTime * 0.005));
   sky = mix(sky, uSkyHor * 1.25, cl * smoothstep(0.02, 0.3, d.y) * 0.7);
-  float ridge = 0.04 + 0.09 * mFbm(vec2(az * 9.0, 1.3)) + 0.12 * pow(mNoise(vec2(az * 40.0, 3.0)), 6.0);
-  vec3 veg = mix(vec3(0.05, 0.07, 0.03), vec3(0.16, 0.13, 0.06), mNoise(vec2(az * 30.0, d.y * 20.0)));
+  float ridge = 0.1 + 0.14 * mFbm(vec2(az * 6.0, 1.3)) + 0.25 * pow(mNoise(vec2(az * 30.0, 3.0)), 5.0);
+  vec3 veg = mix(vec3(0.025, 0.04, 0.015), vec3(0.12, 0.07, 0.03), mNoise(vec2(az * 30.0, d.y * 20.0)));
+  veg = mix(veg, vec3(0.1, 0.13, 0.04), smoothstep(0.0, 0.2, d.y) * mNoise(vec2(az * 90.0, d.y * 60.0)));
   vec3 c = d.y > ridge ? sky : veg * (0.6 + 0.6 * uSkyHor.g);
   if (d.y < 0.0) c = mix(veg, uGround, smoothstep(0.0, -0.3, d.y));
   return c;
@@ -139,7 +140,7 @@ vec3 shadeSurf(Surf s, vec3 P, vec3 V, float shadow) {
   float fres = s.f0 + (1.0 - s.f0) * pow(1.0 - max(dot(N, V), 0.0), 5.0);
   vec3 col = s.albedo * (uSunCol * (diff * shadow + back) + hemi * s.ao);
   col += uSunCol * ggx(N, V, L, max(s.rough, 0.04)) * max(nl, 0.0) * shadow * mix(s.f0, 1.0, pow(1.0 - max(dot(normalize(V + L), V), 0.0), 5.0));
-  col += envSky(reflect(-V, N)) * fres * (1.0 - s.rough) * 0.6 * s.ao;
+  col += envSky(reflect(-V, N)) * fres * (1.0 - s.rough) * (1.0 - s.rough) * 0.6 * s.ao;
   col += s.sheenCol * s.sheen * pow(1.0 - max(dot(N, V), 0.0), 3.0) * (hemi + uSunCol * 0.25 * shadow) * s.ao;
   // ring light around the objective: light from the viewer
   if (uRing > 0.0) {
@@ -171,7 +172,10 @@ void main() {
   vLocal = position;
   vec4 wp = vec4(p, 1.0);
 #ifdef USE_INSTANCING
-  wp = instanceMatrix * wp; n = mat3(instanceMatrix) * n;
+  mat3 im = mat3(instanceMatrix);
+  wp = instanceMatrix * wp;
+  // inverse-transpose for a rotation with per-axis scale
+  n = im * (n / vec3(dot(im[0], im[0]), dot(im[1], im[1]), dot(im[2], im[2])));
 #endif
 #ifdef USE_INSTANCING_COLOR
   vColor = instanceColor;
@@ -237,23 +241,29 @@ void main() {
   gl_FragColor = vec4(col, k * 0.5);
 }`;
 
-// Tiles of 8x8 half-res pixels: max |CoC| and max foreground CoC.
+// Tiles of 16x16 half-res pixels (3x3 of them cover the largest disc): max |CoC| and max foreground CoC.
 const TILE_FS = /* glsl */ `
 uniform sampler2D tPre; uniform vec2 uTexel;
 varying vec2 vUv;
 void main() {
   float mx = 0.0, fg = 0.0;
-  for (int j = 0; j < 8; j++) for (int i = 0; i < 8; i++) {
-    float c = texture2D(tPre, vUv + uTexel * (vec2(i, j) - 3.5)).a;
+  for (int j = 0; j < 16; j++) for (int i = 0; i < 16; i++) {
+    float c = texture2D(tPre, vUv + uTexel * (vec2(i, j) - 7.5)).a;
     mx = max(mx, abs(c)); fg = max(fg, -c);
   }
   gl_FragColor = vec4(mx, fg, 0.0, 1.0);
 }`;
 
-// Scatter-as-gather bokeh: 64 taps on a golden-angle spiral scaled to the
-// largest blur that can reach this pixel. A tap counts if its own blur disc
-// covers the distance to the centre; taps behind the centre are clamped to the
-// centre's blur, so sharp objects never smear onto what is behind them.
+// Scatter-as-gather bokeh in two layers. 64 taps on a golden-angle spiral
+// (rotated per pixel to trade pattern for fine noise), scaled to the largest
+// blur that can reach this pixel (from the dilated tiles). Each tap stands for
+// an area pi R^2 / 64 of the image.
+//  - Background (taps at or behind the centre): averaged, each tap's disc
+//    clamped to the centre's own blur, so sharp edges never smear backward.
+//  - Foreground (taps in front): each spreads its colour over its own disc,
+//    so it adds (tap area) / (disc area) of coverage where its disc reaches.
+// The output is the background colour with the foreground composited over it
+// (alpha = foreground coverage), independent of the tap radius.
 const GATHER_FS = /* glsl */ `
 uniform sampler2D tPre, tTile; uniform vec2 uTexel, uTileTexel; uniform float uMaxCoc, uRim;
 varying vec2 vUv;
@@ -264,21 +274,30 @@ void main() {
   for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++) tfg = max(tfg, texture2D(tTile, vUv + uTileTexel * vec2(i, j)).g);
   float R = min(max(cc, tfg), uMaxCoc);
   if (R < 0.75) { gl_FragColor = vec4(c.rgb, 0.0); return; }
-  vec3 acc = c.rgb; float wsum = 1.0, fg = 0.0;
+  float rot = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) * 6.2831853;
+  float tapA = R * R / 64.0; // tap area / pi
+  vec3 bg = c.rgb; float bw = 1.0;
+  vec3 fg = vec3(0.0); float fw = 0.0;
   for (int i = 0; i < 64; i++) {
     float fi = float(i);
     float r = sqrt((fi + 0.5) / 64.0) * R;
-    float th = fi * 2.3999632;
+    float th = fi * 2.3999632 + rot;
     vec4 s = texture2D(tPre, vUv + vec2(cos(th), sin(th)) * r * uTexel);
     float cs = abs(s.a);
-    bool front = s.a < c.a - 0.5;
-    float eff = front ? cs : min(cs, cc);
-    float w = clamp(eff - r + 1.0, 0.0, 1.0);
-    w *= 1.0 + uRim * smoothstep(0.6, 1.0, r / max(eff, 1.0));
-    acc += s.rgb * w; wsum += w;
-    if (front && s.a < -1.0) fg += w;
+    float rim = 1.0 + uRim * smoothstep(0.6, 1.0, r / max(cs, 1.0));
+    if (s.a < c.a - 1.0 && s.a < 0.0) {
+      float w = clamp(cs - r + 1.0, 0.0, 1.0) * tapA / max(cs * cs, 1.0) * rim;
+      fg += s.rgb * w; fw += w;
+    } else {
+      float e = min(cs, cc);
+      float w = clamp(e - r + 1.0, 0.0, 1.0) * rim;
+      bg += s.rgb * w; bw += w;
+    }
   }
-  gl_FragColor = vec4(acc / wsum, clamp(fg / wsum * 1.6, 0.0, 1.0));
+  bg /= bw;
+  float a = clamp(fw, 0.0, 1.0);
+  vec3 f = fw > 0.0 ? fg / fw : bg;
+  gl_FragColor = vec4(mix(bg, f, a), a);
 }`;
 
 const COMP_FS = /* glsl */ `
@@ -291,8 +310,9 @@ void main() {
   vec3 col = s.rgb;
   if (uDof > 0.5) {
     float coc = clamp(uCocK * s.a / max(uFocus + s.a, 1e-3), -uMaxCoc * 2.0, uMaxCoc * 2.0);
-    vec4 b = texture2D(tBlur, vUv);
-    float m = max(smoothstep(0.8, 2.4, abs(coc)), b.a);
+    vec2 bt = 0.75 / uRes * 2.0;
+    vec4 b = 0.25 * (texture2D(tBlur, vUv + bt * vec2(1, 1)) + texture2D(tBlur, vUv + bt * vec2(-1, 1)) + texture2D(tBlur, vUv + bt * vec2(1, -1)) + texture2D(tBlur, vUv + bt * vec2(-1, -1)));
+    float m = max(smoothstep(0.8, 2.4, abs(coc)), smoothstep(0.02, 0.6, b.a));
     col = mix(col, b.rgb, m);
   }
   // slight lateral chromatic aberration toward the frame edge
@@ -345,7 +365,7 @@ export function createMacro(renderer) {
       sceneRT.setSize(w, h);
       const hw = Math.max(1, Math.ceil(w / 2)), hh = Math.max(1, Math.ceil(h / 2));
       preRT.setSize(hw, hh); blurRT.setSize(hw, hh);
-      tileRT.setSize(Math.max(1, Math.ceil(hw / 8)), Math.max(1, Math.ceil(hh / 8)));
+      tileRT.setSize(Math.max(1, Math.ceil(hw / 16)), Math.max(1, Math.ceil(hh / 16)));
       pre.uniforms.uTexel.value.set(1 / w, 1 / h);
       tile.uniforms.uTexel.value.set(1 / hw, 1 / hh);
       gather.uniforms.uTexel.value.set(1 / hw, 1 / hh);

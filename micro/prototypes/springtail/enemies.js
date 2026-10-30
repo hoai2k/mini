@@ -97,7 +97,7 @@ export function createStenus(scene) {
   };
   const ROUTE = [[-18, 8], [-4, 14], [10, 14], [22, -2], [8, -18], [-12, -16], [-24, -2]];
   const hips = [[1.45, 0.48, 0.22], [1.1, 0.45, 0.28], [0.75, 0.45, 0.3]];
-  const footRest = [[2.4, 0, 1.25], [0.9, 0, 1.65], [-0.6, 0, 1.55]];
+  const footRest = [[2.3, 0, 1.15], [0.9, 0, 1.5], [-0.7, 0, 1.4]];
   const feetW = [];
 
   function headPos() { return new THREE.Vector3(st.x + Math.cos(st.a) * 2.35, 0.45, st.z + Math.sin(st.a) * 2.35); }
@@ -214,8 +214,8 @@ export function createStenus(scene) {
       const fx = footRest[k][0] + (ph < 0.5 ? -0.35 + ph * 1.4 : 0.35 - (ph - 0.5) * 1.4) * stride;
       const hip = new THREE.Vector3(hips[k][0], hips[k][1], s * hips[k][2]).applyMatrix4(group.matrixWorld);
       const foot = new THREE.Vector3(fx, sw * 0.25 * stride, s * footRest[k][2]).applyMatrix4(group.matrixWorld);
-      const knee = hip.clone().lerp(foot, 0.45);
-      knee.y += 0.6;
+      const knee = hip.clone().lerp(foot, 0.55);
+      knee.y += 0.28;
       tmpV.set(Math.cos(st.a + Math.PI / 2) * s * 0.0, 0, 0);
       legs.set(i * 2, hip, knee, 0.075);
       legs.set(i * 2 + 1, knee, foot, 0.055);
@@ -314,7 +314,7 @@ export function createStrider(scene) {
     if (!st.enabled) return ev;
     for (const r of ctx.ripples) {
       const d = Math.hypot(r.x - st.x, r.z - st.z);
-      if (d < 32 * r.strength && ctx.player.alive) { st.target = { x: r.x, z: r.z }; st.interest = 5; st.state = 'hunt'; }
+      if (d < 22 * r.strength && ctx.player.alive) { st.target = { x: r.x, z: r.z }; st.interest = 4; st.state = 'hunt'; ev.push('heard'); }
     }
     st.interest -= dt;
     if (st.interest <= 0 && st.state === 'hunt') { st.state = 'idle'; st.target = null; }
@@ -322,8 +322,10 @@ export function createStrider(scene) {
     let goal = null;
     if (st.state === 'hunt') {
       // keep homing on the source while it keeps rippling; follow the player when close
-      if (Math.hypot(P.x - st.x, P.z - st.z) < 10 && P.alive) st.target = { x: P.x, z: P.z };
+      // it feels the prey's ripples: a moving springtail is tracked, a still one is not
+      if (Math.hypot(P.x - st.x, P.z - st.z) < 10 && P.alive && P.moving && !P.hunker) st.target = { x: P.x, z: P.z };
       goal = st.target;
+      if (Math.hypot(goal.x - st.x - Math.cos(st.a) * 4, goal.z - st.z - Math.sin(st.a) * 4) < 1.5) { st.state = 'idle'; st.target = null; goal = null; }
     } else if (st.state === 'idle' && st.t % 9 < dt) goal = { x: (Math.random() - 0.5) * 40, z: (Math.random() - 0.5) * 30 }, st.target = goal;
     else goal = st.target;
     if (goal) {
@@ -331,7 +333,7 @@ export function createStrider(scene) {
       st.a += Math.max(-2 * dt, Math.min(2 * dt, wrapAngle(ta - st.a)));
       const d = Math.hypot(goal.x - st.x, goal.z - st.z);
       st.strokeT += dt;
-      const period = st.state === 'hunt' ? 0.55 : 1.4;
+      const period = st.state === 'hunt' ? 0.75 : 1.5;
       if (st.strokeT > period && d > 3 && Math.abs(wrapAngle(ta - st.a)) < 0.6) {
         st.strokeT = 0; st.stroke = 0;
         ev.push('stroke');
@@ -339,7 +341,7 @@ export function createStrider(scene) {
     }
     if (st.stroke < 1) {
       st.stroke = Math.min(1, st.stroke + dt / 0.12);
-      st.v += (st.state === 'hunt' ? 260 : 140) * dt;
+      st.v += (st.state === 'hunt' ? 170 : 110) * dt;
       // the rowing legs push vortices and waves off the film
       for (const s of [-1, 1]) {
         const f = new THREE.Vector3(-0.5 - (st.stroke - 0.5) * 3, 0, s * 10).applyMatrix4(group.matrixWorld);
@@ -351,7 +353,7 @@ export function createStrider(scene) {
     if (ctx.inPool(nx, nz)) { st.x = nx; st.z = nz; } else { st.v *= 0.3; st.a += Math.PI * dt; }
     // grab with the forelegs
     const hx = st.x + Math.cos(st.a) * 4.6, hz = st.z + Math.sin(st.a) * 4.6;
-    if (P.alive && !P.airborne && Math.hypot(P.x - hx, P.z - hz) < 1.4) ev.push('caught');
+    if (P.alive && !P.airborne && !(P.hunker && !P.moving) && Math.hypot(P.x - hx, P.z - hz) < 1.2) ev.push('caught');
     pose();
     return ev;
   }

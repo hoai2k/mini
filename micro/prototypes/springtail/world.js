@@ -18,8 +18,8 @@ const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
 export function mossTop(x, z) {
   const e = poolE(x, z), d = islandD(x, z);
   let h = -Infinity;
-  if (e >= 0.985) h = 0.7 + 9 * sm(1.0, 1.45, e);
-  if (d <= ISLAND.r + 0.3) h = Math.max(h, 0.7 + 1.6 * sm(ISLAND.r, 1.2, d));
+  if (e >= 0.985) h = 1.4 + 6 * sm(1.0, 1.45, e);
+  if (d <= ISLAND.r + 0.3) h = Math.max(h, 1.4 + 1.6 * sm(ISLAND.r, 1.2, d));
   return h;
 }
 
@@ -108,7 +108,7 @@ void surface(inout Surf s) {
   if (uHasMossTex > 0.5) c = mix(c, texture2D(uMossTex, vWorld.xz / 18.0).rgb * (vColor / max(dot(vColor, vec3(0.333)), 0.05)) * 0.6, 0.65);
   s.albedo = c;
   s.N = normalize(s.N + vec3(rib * 0.12, 0.0, n - 0.5) * 0.3);
-  s.rough = 0.55; s.f0 = 0.03; s.wrap = 0.5; s.trans = 0.9; s.sheen = 0.25; s.sheenCol = vec3(0.6, 0.7, 0.5);
+  s.rough = 0.6; s.f0 = 0.03; s.wrap = 0.5; s.trans = 0.9; s.sheen = 0.12; s.sheenCol = vColor * 2.0 + 0.05;
 }`;
 
 export function buildWorld({ mossTex = null, sundewTex = null } = {}) {
@@ -134,7 +134,7 @@ export function buildWorld({ mossTex = null, sundewTex = null } = {}) {
   for (let i = 0; i < gp.count; i++) {
     const x = gp.getX(i), z = gp.getZ(i);
     const h = mossTop(x, z);
-    gp.setY(i, h === -Infinity ? -6 : h - 1.1);
+    gp.setY(i, h === -Infinity ? -6 : h - 1.8);
   }
   groundGeo.computeVertexNormals();
   const groundMat = litMaterial({ surface: `
@@ -146,12 +146,12 @@ export function buildWorld({ mossTex = null, sundewTex = null } = {}) {
   // capitula
   const mossMat = litMaterial({ surface: MOSS_SURFACE, uniforms: { uMossTex: { value: mossTex }, uHasMossTex: { value: mossTex ? 1 : 0 } } });
   const variants = [capitulumGeometry(rnd), capitulumGeometry(rnd, { spreading: 18, bud: 12 }), capitulumGeometry(rnd, { spreading: 12, bud: 8, sides: 4, segs: 4 })];
-  const palette = [[0.2, 0.42, 0.08], [0.32, 0.45, 0.07], [0.5, 0.12, 0.1], [0.62, 0.42, 0.12], [0.28, 0.36, 0.06], [0.45, 0.2, 0.1]];
+  const palette = [[0.06, 0.16, 0.025], [0.11, 0.18, 0.02], [0.2, 0.03, 0.03], [0.24, 0.14, 0.03], [0.09, 0.13, 0.02], [0.16, 0.05, 0.03]];
   const spots = [[], [], []];
   const tryPlace = (x, z, v, s) => {
     const h = mossTop(x, z);
     if (h === -Infinity) return;
-    spots[v].push({ x, z, y: h - 0.4 * s, s, rot: rnd() * 6.28, c: palette[Math.floor(rnd() * palette.length)] });
+    spots[v].push({ x, z, y: h - 1.3 * s, s, rot: rnd() * 6.28, c: palette[Math.floor(rnd() * palette.length)] });
   };
   for (let i = 0; i < 2600 && spots[0].length + spots[1].length < 170; i++) {
     const a = rnd() * Math.PI * 2, e = 1.0 + rnd() * 0.75;
@@ -341,7 +341,7 @@ function buildFood(group, rnd) {
   const place = (c) => {
     for (let tries = 0; tries < 80; tries++) {
       const x = (rnd() - 0.5) * 64, z = (rnd() - 0.5) * 48;
-      if (poolE(x, z) < 0.9 && Math.hypot(x - ISLAND.x, z - ISLAND.z) > ISLAND.r + 1.5 && Math.hypot(x, z + 12) > 2.5) { c.x = x; c.z = z; return; }
+      if (poolE(x, z) < 0.9 && Math.hypot(x - ISLAND.x, z - ISLAND.z) > ISLAND.r + 1.5 && Math.hypot(x + 8, z - 2) > 2.5) { c.x = x; c.z = z; return; }
     }
   };
   for (let i = 0; i < COUNT; i++) {

@@ -286,5 +286,41 @@
     "modification": "Commons-provided thumbnail when available; no crop or recoloring.",
     "sha256": "a645e8fd69284e08d8b90529b5912ddddb1bad39e16f4787d2109efe2890667f",
     "bytes": 165691
+  },
+  {
+    "id": "bog-pool",
+    "band": "00",
+    "title": "Sphagnum moss in bog pool - geograph.org.uk - 808982.jpg",
+    "local": "assets/references/bog-pool.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_moss_in_bog_pool_-_geograph.org.uk_-_808982.jpg",
+    "original_url": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Sphagnum_moss_in_bog_pool_-_geograph.org.uk_-_808982.jpg",
+    "download_url": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Sphagnum_moss_in_bog_pool_-_geograph.org.uk_-_808982.jpg",
+    "author": "Rose and Trev Clough",
+    "license": "CC BY-SA 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0",
+    "description": "Sphagnum moss in bog pool 13 different species of Sphagnum have been found growing at Drumburgh Moss. [1]",
+    "note": "Sphagnum in a bog pool: the water surface and moss edge.",
+    "accessed": "2026-10-30",
+    "modification": "Commons-provided thumbnail when available; no crop or recoloring.",
+    "sha256": "27bfcfe048d83b63a5f7c7c4df61a77f23c28b4d666a656c61e4f8677f7aae78",
+    "bytes": 434299
+  },
+  {
+    "id": "bog-hummock",
+    "band": "00",
+    "title": "Sphagnum hummock.JPG",
+    "local": "assets/references/bog-hummock.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_hummock.JPG",
+    "original_url": "https://upload.wikimedia.org/wikipedia/commons/2/23/Sphagnum_hummock.JPG",
+    "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/23/Sphagnum_hummock.JPG/1280px-Sphagnum_hummock.JPG",
+    "author": "Rosser1954",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+    "description": "Sphagnum moss hummock, Brown Muir Hill, Beith, North Ayrshire, Scotland.",
+    "note": "A Sphagnum hummock: the bog lawn at landscape scale.",
+    "accessed": "2026-10-30",
+    "modification": "Commons-provided thumbnail when available; no crop or recoloring.",
+    "sha256": "26267232f9a034b05d31f1b17ddee01e3df178093af8b4350465f33badd4fc29",
+    "bytes": 616415
   }
 ]

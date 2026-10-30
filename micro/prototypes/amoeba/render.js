@@ -11,7 +11,7 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { PropertyOptics, propertyMaterial } from '../shared/techniques/amoeba-optics.js';
 import { N } from '../shared/techniques/amoeba-softbody.js';
-import { QUAD_VS, BODY_FS, GRAN_VS, GRAN_FS, PREY_FS, SPIRO_FS, DIATOM_FS, FLAKE_FS, PHOTO_FS } from './shaders.js';
+import { QUAD_VS, BODY_FS, GRAN_VS, GRAN_FS, PREY_FS, SPIRO_FS, DIATOM_FS, FLAKE_FS, PHOTO_FS, TRAP_FS } from './shaders.js';
 
 const SUB = 3; // Catmull-Rom subdivisions per membrane segment for the mask
 
@@ -116,8 +116,8 @@ export class View {
   obstacleMesh(o) {
     let m = this.obMeshes.get(o);
     if (m) return m;
-    const fs = o.type === 'spiro' ? SPIRO_FS : o.type === 'diatom' ? DIATOM_FS : FLAKE_FS;
-    const pad = o.type === 'spiro' ? 8 : o.type === 'diatom' ? 6 : o.L * 0.3;
+    const fs = o.type === 'spiro' ? SPIRO_FS : o.type === 'diatom' ? DIATOM_FS : o.type === 'trap' ? TRAP_FS : FLAKE_FS;
+    const pad = o.type === 'spiro' || o.type === 'trap' ? 10 : o.type === 'diatom' ? 6 : o.L * 0.3;
     const size = new THREE.Vector2(o.L + pad * 2, (o.type === 'flake' ? o.L : o.W) + pad * 2);
     const u = {
       uSize: { value: size }, uL: { value: o.L }, uW: { value: o.W }, uSeed: { value: o.seed }, uPx: { value: 1 },
@@ -241,7 +241,7 @@ export class View {
     // Obstacles.
     for (const ob of this.world.obstacles) {
       const m = this.obstacleMesh(ob);
-      m.visible = ob.layer === 'above' ? flags.above && !this.photo : flags.obstacles || ob.residue;
+      m.visible = ob.layer === 'above' ? flags.above && !this.photo : (flags.obstacles && !ob.hidden) || ob.residue;
       m.position.set(ob.x, ob.y, 0);
       m.rotation.z = ob.ang;
       m.material.uniforms.uPx.value = this.px;

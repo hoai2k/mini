@@ -19,7 +19,10 @@
 //   amoeba-sdfgrid.js: call body.grid.build(body.x, body.y, N) after stepping),
 //   body.cupAround(px, py, reach) / cupContains / seal(cup): food-cup detection and closure,
 //   body.collideCircle(cx, cy, r, share, out), body.blast(x, y, radius, amount).
-//   body.opts: { area, rearWeight, selfContact, idlePods, adhesion } switches (all true by default).
+//   body.opts: { area, rearWeight, selfContact, idlePods, adhesion } switches (all true by default),
+//   plus speed (1: pseudopod extension rate multiplier) and boost (1: a transient
+//   extra multiplier, e.g. a dash, that also drives the rear contraction harder).
+//   body.flowK: speed × boost, for anything that streams with the pseudopods.
 import { SdfGrid } from './amoeba-sdfgrid.js';
 
 const TAU = Math.PI * 2;
@@ -99,7 +102,8 @@ export class Body {
     this.spread = 0;
     this.time = 0;
     this.contact = 0; // how much of the membrane pushed against something this step
-    this.opts = { area: true, rearWeight: true, selfContact: true, idlePods: true, adhesion: true };
+    this.opts = { area: true, rearWeight: true, selfContact: true, idlePods: true, adhesion: true, speed: 1, boost: 1 };
+    this.flowK = 1;
   }
 
   get area() { return polygonArea(this.x, this.y, N); }
@@ -210,9 +214,12 @@ export class Body {
 
     // -- protrusion -------------------------------------------------------------
     const req = this.req;
+    const spd = this.opts.speed ?? 1, boost = this.opts.boost ?? 1;
+    this.flowK = spd * boost;
     let fx = 0, fy = 0, drive = 0;
     for (const pod of pl) {
-      pod.s += (pod.target - pod.s) * Math.min(1, dt * (pod.target > pod.s ? 2.2 : 1.4));
+      const kRamp = pod.idle ? 1 : spd * boost;
+      pod.s += (pod.target - pod.s) * Math.min(1, dt * (pod.target > pod.s ? 2.2 * kRamp : 1.4 * Math.sqrt(spd)));
       if (pod.s > 0.01) {
         // Follow the local extreme of the boundary along the aimed direction, so
         // turning the stick bends the pseudopod instead of starting a new one.
@@ -224,9 +231,10 @@ export class Body {
         }
         pod.tip = best;
         const reach = (x[best] - this.cx) * pod.dx + (y[best] - this.cy) * pod.dy;
-        const lim = clamp(1 - (reach - (req * 1.0 + 110)) / 80, 0, 1);
+        // A boosted pseudopod may run a little further out before the body must follow.
+        const lim = clamp(1 - (reach - (req * 1.0 + 110 + 40 * (boost - 1))) / 80, 0, 1);
         drive += pod.s * (1 - lim) * (pod.idle ? 0.3 : 1);
-        const v = (P.vPro + (pod.idle ? 0 : P.vBoost * (input.push || 0))) * pod.s * lim * (pod.idle ? 0.7 : 1);
+        const v = (P.vPro + (pod.idle ? 0 : P.vBoost * (input.push || 0))) * pod.s * lim * (pod.idle ? 0.7 : spd * boost);
         // A blunt cap of fixed width: membrane within the cap radius of the tip,
         // facing the aimed direction, advances (flat-topped, so the pseudopod
         // stays a roughly constant-width cylinder, as in A. proteus).
@@ -275,7 +283,7 @@ export class Body {
     // forward (posterior contraction); the area projection sends it to the tips.
     // Only when a pseudopod is at full reach: then the cell body must follow.
     if (fm > 0.05 && this.opts.rearWeight && drive > 0.02) {
-      const ux = fx / fm, uy = fy / fm, k = P.vRear * Math.min(1, drive);
+      const ux = fx / fm, uy = fy / fm, k = P.vRear * Math.min(1, drive) * Math.sqrt(spd) * boost;
       for (let i = 0; i < N; i++) {
         const rear = Math.max(0, -(nx[i] * ux + ny[i] * uy));
         const v = k * rear * rear * (1 - Math.min(1, G[i]));

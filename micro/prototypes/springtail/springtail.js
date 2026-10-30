@@ -29,16 +29,16 @@ const ANT_BASE = (s) => new THREE.Vector3(0.69, 0.3, s * 0.075);
 
 function bodyParts() {
   const P = [];
-  const seg = (id, x, y, rx, ry, rz, blend = 0.035) => P.push({ id, sdf: sd.ellipsoid([x, y, 0], [rx, ry, rz]), blend });
+  const seg = (id, x, y, rx, ry, rz, blend = 0.05) => P.push({ id, sdf: sd.ellipsoid([x, y, 0], [rx, ry, rz]), blend });
   // thorax and abdomen: a stout cylinder of rings with furrows between
-  seg(4, 0.29, 0.245, 0.09, 0.185, 0.205, 0);
+  seg(4, 0.29, 0.245, 0.1, 0.185, 0.205, 0);
   seg(3, 0.4, 0.235, 0.055, 0.14, 0.155);
-  seg(5, 0.135, 0.25, 0.09, 0.2, 0.22);
-  seg(6, -0.02, 0.252, 0.088, 0.205, 0.226);
-  seg(7, -0.17, 0.252, 0.088, 0.21, 0.232);
-  seg(8, -0.32, 0.247, 0.092, 0.206, 0.226);
-  seg(9, -0.475, 0.237, 0.1, 0.198, 0.214);
-  seg(10, -0.63, 0.222, 0.082, 0.168, 0.18);
+  seg(5, 0.135, 0.25, 0.1, 0.2, 0.22);
+  seg(6, -0.02, 0.252, 0.1, 0.205, 0.226);
+  seg(7, -0.17, 0.252, 0.1, 0.21, 0.232);
+  seg(8, -0.32, 0.247, 0.104, 0.206, 0.226);
+  seg(9, -0.475, 0.237, 0.112, 0.198, 0.214);
+  seg(10, -0.63, 0.222, 0.092, 0.168, 0.18);
   seg(11, -0.745, 0.21, 0.07, 0.118, 0.128, 0.04);
   // head: rounded, hypognathous, with a ventral mouth cone
   P.push({ id: 0, sdf: sd.ellipsoid([0.565, 0.24, 0], [0.165, 0.158, 0.17]), blend: 0.045 });
@@ -91,10 +91,10 @@ void surface(inout Surf s) {
   vec3 venter = vec3(0.06, 0.028, 0.022);
   vec3 col = mix(venter, slate, dorsal);
   bool limb = (pid >= 12 && pid <= 25);
-  if (limb) col = vec3(0.075, 0.03, 0.022);
-  if (pid >= 19 && pid <= 24) col = mix(col, vec3(0.3, 0.09, 0.055), smoothstep(0.09, 0.0, lp.y));
-  if (pid == 25) col = vec3(0.12, 0.05, 0.035);
-  if (pid == 1 || pid == 2) col = mix(slate * 1.3, vec3(0.3, 0.085, 0.05), smoothstep(0.8, 0.9, lp.x));
+  if (limb) col = vec3(0.05, 0.022, 0.018);
+  if (pid >= 19 && pid <= 24) col = mix(col, vec3(0.16, 0.05, 0.032), smoothstep(0.09, 0.0, lp.y));
+  if (pid == 25) col = vec3(0.09, 0.04, 0.03);
+  if (pid == 1 || pid == 2) col = mix(slate * 1.3, vec3(0.17, 0.05, 0.035), smoothstep(0.8, 0.9, lp.x));
   // granular, velvety cuticle (Podura has no scales: fine secondary granules)
   float g1 = mNoise(lp.xy * 170.0 + lp.z * 37.0), g2 = mNoise(lp.zy * 170.0 + lp.x * 41.0 + 5.0);
   vec3 bump = vec3(g1 - 0.5, 0.0, g2 - 0.5) * 0.5;
@@ -102,15 +102,15 @@ void surface(inout Surf s) {
   if (!limb && pid != 1 && pid != 2) bump.y += sin(lp.x * 210.0 + g1 * 2.0) * 0.12 * dorsal;
   s.N = normalize(s.N + bump);
   s.rough = 0.62; s.f0 = 0.03;
-  s.sheen = limb ? 0.35 : 0.95; s.sheenCol = vec3(0.34, 0.4, 0.58);
+  s.sheen = limb ? 0.25 : 0.6; s.sheenCol = vec3(0.2, 0.24, 0.36);
   // frosty specks: granule tips catch the light
   float speck = smoothstep(0.82, 0.92, mNoise(lp.xz * 260.0 + lp.y * 90.0));
-  col += vec3(0.14, 0.16, 0.22) * speck * dorsal;
+  col += vec3(0.07, 0.08, 0.11) * speck * dorsal;
   // dark furrows between segments: where two parts meet
   if (pid <= 11 && pid != 1 && pid != 2) {
     float f = smoothstep(0.5, 0.78, vPartW);
-    s.ao = mix(0.2, 1.0, f);
-    col *= mix(0.45, 1.0, f);
+    s.ao = mix(0.35, 1.0, f);
+    col *= mix(0.6, 1.0, f);
     s.sheen *= mix(0.2, 1.0, f);
   }
   // eye patches: near-black and glossy

@@ -32,7 +32,7 @@
 //    integrated amount kept (widen and dim), so a 20 nm flagellum carries the
 //    right total signal into the blur.
 // 2. Looks:
-//    phase        positive phase contrast: I = exp(-OD) · (1 - c·tanh(k(φ - α·φ_low))),
+//    phase        positive phase contrast: I = exp(-OD) · (1 - 0.92·tanh(0.95(φ - α·φ_low))),
 //                 φ = 2π·OPD/λ, φ_low a wide blur of φ (the light the finite
 //                 phase ring leaks back). Dark cells with bright halos;
 //                 objects far thinner than λ/20 (flagella, phages) vanish.
@@ -149,7 +149,7 @@ void main() {
   vec3 c;
   if (uLook == 0) {
     float s = phi - uHalo * phiLow + plate * 0.25;
-    float g = 1.0 - 1.15 * tanh(0.95 * s);
+    float g = 1.0 - 0.92 * tanh(0.95 * s); // saturates at ~8 %: thick grains go dark, not black
     c = uBg * g * exp(-od * 1.0);
     c += n * uNoise * 0.06;
   } else if (uLook == 1) {

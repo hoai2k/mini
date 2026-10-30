@@ -330,6 +330,34 @@ void main() {
   gl_FragColor = vec4(ph, od) * uDim;
 }`;
 
+// A zoopagalean trap hypha (Stylopage / Zoopage type): a thin, septate,
+// colourless hypha with adhesive knobs that glue passing amoebae.
+export const TRAP_FS = /* glsl */ `
+${COMMON}
+uniform float uL, uW, uSeed, uPx, uDim;
+varying vec2 vL;
+void main() {
+  vec2 p = vL;
+  float r = uW * 0.5;
+  float dx = max(abs(p.x) - (uL * 0.5 - r), 0.);
+  float sd = length(vec2(dx, p.y)) - r;
+  float wpx = max(0.5, 0.9 / uPx);
+  float body = 1. - smoothstep(-wpx, wpx, sd);
+  float yn = clamp(p.y / r, -1., 1.);
+  float h = sqrt(max(1. - yn * yn, 0.)) * body;
+  float ph = h * 0.35 + 0.22 * exp(-sd * sd / 1.0);
+  float cw = abs(fract((p.x + uSeed * 200.) / 40.) - 0.5) * 40.;
+  ph += smoothstep(19., 19.8, cw) * body * 0.25;
+  float q = (p.x + uSeed * 91.) / 26.;
+  float side = mod(floor(q), 2.) * 2. - 1.;
+  vec2 kc = vec2((floor(q) + 0.5) * 26. - uSeed * 91., side * (r + 3.5));
+  float kd = length(p - kc) - 3.2;
+  float knob = (1. - smoothstep(-wpx, wpx, kd)) * step(abs(p.x), uL * 0.5 - 4.);
+  ph += knob * 0.45 + 0.2 * exp(-kd * kd / 1.5) * step(abs(p.x), uL * 0.5 - 4.);
+  vec3 od = (h + knob) * vec3(0.03, 0.035, 0.05);
+  gl_FragColor = vec4(ph, od) * uDim;
+}`;
+
 export const FLAKE_FS = /* glsl */ `
 ${COMMON}
 uniform float uL, uW, uSeed, uPx, uDim, uResidue;

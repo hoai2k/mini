@@ -54,12 +54,22 @@ export class Cytoplasm {
       const ex = pod.x - x, ey = pod.y - y;
       const m = Math.hypot(ex, ey) || 1;
       // Streaming runs about twice as fast as the front advances.
-      const v = 52 * pod.s * w * core * smoothstep(0, 30, m);
+      const v = 52 * pod.s * w * core * smoothstep(0, 30, m) * (body.flowK || 1);
       vx += (ex / m) * v; vy += (ey / m) * v;
       // Fountain return: near the tip, cytoplasm that reaches the cortex turns
       // to gel and is left behind as the tip moves on (here: drifts back).
       const back = 10 * pod.s * w * (1 - core) * (1 - smoothstep(20, 90, m));
       vx -= (ex / m) * back; vy -= (ey / m) * back;
+    }
+    if (body.closing && this.infill !== false) {
+      // Filling in: while the cup closes, endoplasm floods toward the mouth of
+      // the cup, so the rims fill and thicken as they meet over the prey.
+      const c = body.closing;
+      const ex = c.mx - x, ey = c.my - y;
+      const m = Math.hypot(ex, ey) || 1;
+      const w = Math.exp(-(m * m) / (2 * 130 * 130));
+      const v = 70 * w * core * smoothstep(0, 25, m);
+      vx += (ex / m) * v; vy += (ey / m) * v;
     }
     if (body.spread > 0.02) {
       const ex = x - body.cx, ey = y - body.cy;

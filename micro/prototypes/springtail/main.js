@@ -51,7 +51,7 @@ art('MP-S04', { repeat: false }).then((t) => t && world.sundews.setTexture(t));
 art('MP-S05', { repeat: false }).then((t) => t && rain.setSprite(t));
 
 // ---------------------------------------------------------------- player
-const START = { x: -2, z: -12 };
+const START = { x: -8, z: 2 };
 const pl = {
   x: START.x, z: START.z, y: 0, vx: 0, vz: 0, heading: Math.PI / 2, mode: 'film',
   charge: 0, charging: false, cock: 1, hunker: 0, eatT: 0, flipT: 0, roll: 0, pitch: 0, bend: 0, furc: 0,
@@ -122,14 +122,14 @@ function showCard(title, lines) {
 // ---------------------------------------------------------------- camera rig and optics
 const ZOOMS = [1, 2, 3, 5];
 const APERTURES = [2.8, 4, 5.6, 8, 11, 16, 22];
-const rig = { yaw: -2.2, pitch: 0.34, mode: 'low', zi: 1, ai: 4, focusOff: 0, target: new THREE.Vector3(START.x, 0.25, START.z), look: 0, lens: null };
+const rig = { yaw: Math.PI, pitch: 0.45, pitchLow: 0.45, mode: 'low', zi: 1, ai: 4, focusOff: 0, target: new THREE.Vector3(START.x, 0.25, START.z), look: 0, lens: null };
 let lookDef = applyLook(0);
 function placeCamera(dt) {
   const L = (rig.lens = lens({ hfw: 36 / ZOOMS[rig.zi], N: APERTURES[rig.ai] }));
   const want = new THREE.Vector3(pl.x, pl.y + 0.25, pl.z);
   const k = dt ? 1 - Math.exp(-dt * (pl.mode === 'air' ? 3.5 : 6)) : 1;
   rig.target.lerp(want, k);
-  const wantPitch = rig.mode === 'top' ? 1.5 : rig.pitchLow ?? 0.34;
+  const wantPitch = rig.mode === 'top' ? 1.5 : rig.pitchLow;
   rig.pitch += (wantPitch - rig.pitch) * (dt ? 1 - Math.exp(-dt * 5) : 1);
   const cp = Math.cos(rig.pitch);
   camera.position.set(rig.target.x + Math.cos(rig.yaw) * cp * L.s, rig.target.y + Math.sin(rig.pitch) * L.s, rig.target.z + Math.sin(rig.yaw) * cp * L.s);
@@ -137,7 +137,8 @@ function placeCamera(dt) {
   if (rig.pitch > 1.45) camera.up.set(-Math.cos(rig.yaw), 0, -Math.sin(rig.yaw));
   camera.lookAt(rig.target);
   camera.fov = L.vfov(camera.aspect);
-  camera.near = Math.max(2, L.s * 0.05);
+  // the lens's working distance: nothing between it and ~35 mm before the subject
+  camera.near = Math.max(2, L.s - 35);
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
   const focusD = opt.autofocus ? camera.position.distanceTo(want) : L.s;
@@ -451,12 +452,15 @@ function stepPlayer(dt, inp) {
 function stepWorld(dt) {
   const P = pl;
   const alive = P.mode !== 'dead' && game.phase === 'play';
-  const ctxP = { x: P.x, y: P.mode === 'air' ? P.y : 0, z: P.z, vx: P.air ? P.air.vx : P.vx, vz: P.air ? P.air.vz : P.vz, airborne: P.mode === 'air', hunker: P.hunker > 0.5, moving: P.moved > 0 || P.mode === 'air' || P.mode === 'stuck', alive };
+  const ctxP = { x: P.x, y: P.mode === 'air' ? P.y : 0, z: P.z, vx: P.air ? P.air.vx : P.vx, vz: P.air ? P.air.vz : P.vz, airborne: P.mode === 'air', hunker: P.hunker > 0.5, moving: (P.moved > 0 && P.hunker < 0.5) || P.mode === 'air' || P.mode === 'stuck' || P.eatT > 0, alive };
   for (const e of stenus.update(dt, { player: ctxP, field, inPool })) {
     if (e === 'caught' && alive) { die('Harpooned by the rove beetle\'s labium'); stenus.st.state = 'hold'; stenus.st.t = 0; setTimeout(() => { if (stenus.st.state === 'hold') stenus.st.state = 'recover'; }, 1800); }
     if (e === 'skim') hud.toast('Stenus is skimming at you!', 1000);
   }
-  for (const e of strider.update(dt, { player: ctxP, field, inPool, ripples })) if (e === 'caught' && alive) die('Grabbed by the water strider');
+  for (const e of strider.update(dt, { player: ctxP, field, inPool, ripples })) {
+    if (e === 'caught' && alive) die('Grabbed by the water strider');
+    if (e === 'heard' && alive && strider.st.heardT !== true) { strider.st.heardT = true; hud.toast('A water strider felt your ripples: keep still and hunker (B)', 1800); setTimeout(() => (strider.st.heardT = false), 6000); }
+  }
   ripples.length = 0;
   for (const e of rain.update(dt, { field, inPool, mossAt: (x, z) => Math.max(0, mossTop(x, z)), player: ctxP })) {
     const d = Math.hypot(e.x - P.x, e.z - P.z);
@@ -552,7 +556,7 @@ function readInput(dt) {
   hud.update(pad);
   const rs = ctl.camera();
   rig.yaw += rs.x * 1.9 * dt;
-  if (rig.mode === 'low') rig.pitchLow = THREE.MathUtils.clamp((rig.pitchLow ?? 0.34) - rs.y * 1.0 * dt, 0.08, 1.2);
+  if (rig.mode === 'low') rig.pitchLow = THREE.MathUtils.clamp((rig.pitchLow) - rs.y * 1.0 * dt, 0.15, 1.2);
   if (ctl.special.pressed()) { rig.mode = rig.mode === 'low' ? 'top' : 'low'; hud.toast(rig.mode === 'top' ? 'Top-down' : 'Low macro'); }
   const zs = ctl.zoomStep();
   if (zs) { rig.zi = THREE.MathUtils.clamp(rig.zi + zs, 0, ZOOMS.length - 1); hud.toast(`${ZOOMS[rig.zi]}x · field ${(36 / ZOOMS[rig.zi]).toFixed(1)} mm`); }
@@ -624,6 +628,8 @@ const api = {
   render(dt = 0) { const L = render(dt); updateText(L); },
   jump, newGame, respawn,
   setCam(o) { Object.assign(rig, o); },
+  /** Hide the moss and sundews (turnaround renders on open water). */
+  isolate(on) { world.group.children.forEach((c) => { if (c !== world.sky) c.visible = !on; }); },
 };
 window.__micro = api;
 

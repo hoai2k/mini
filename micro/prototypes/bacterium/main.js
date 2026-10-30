@@ -188,9 +188,9 @@ const debug = {
   reverse() { return swimmer.reverse(); },
   overlay(on) { features.set('overlay', on); },
   species(s) { features.set('species', SPECIES_NAMES[s]); },
-  phageOnMe() { const p = world.newPhage(S.x + Math.cos(S.a) * 0.3, S.y + Math.sin(S.a) * 0.3 + S.sp.r + 0.05); p.z = 0; world.phages.push(p); },
-  nearGrazer(i = 0, d = 14) { const P = world.grazers[i].pose; debug.teleport(P.mouth.x + P.up.x * d, P.mouth.y + P.up.y * d, Math.atan2(P.up.y, P.up.x)); },
-  step(n = 1, dt = 1 / 60) { for (let i = 0; i < n; i++) tick(dt, { attack: false, attackPressed: false }); },
+  phageOnMe() { const p = world.newPhage(S.x, S.y); p.z = 0; world.phages.push(p); const ph = { p, u: (Math.random() - 0.5) * S.sp.L * 0.6, side: 1, t: 0, irreversible: false, shed: false }; p.stuck = ph; S.phages.push(ph); },
+  nearGrazer(i = 0, d = 14) { const P = world.grazers[i].pose; debug.teleport(P.mouth.x + P.up.x * d, P.mouth.y + P.up.y * d, Math.atan2(-P.up.y, -P.up.x)); },
+  step(n = 1, dt = 1 / 60, inp = {}) { for (let i = 0; i < n; i++) tick(dt, { attack: !!inp.attack, attackPressed: !!inp.attack && i === 0 }); },
 };
 
 function doDash() {

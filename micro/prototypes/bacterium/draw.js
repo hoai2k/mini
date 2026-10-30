@@ -180,10 +180,10 @@ export function createDrawer(world) {
       spirillum(S, s.x, s.y, s.a, sp.L, sp.r, sp.amp, sp.wl, s.bodyPhase * s.sense, 0, flPh, { tumbling: s.mode === 'tumble' });
     } else {
       if (s.inside) {
-        // inside the bdelloplast the predator grows as a filament: only a fluorescent label shows it
+        // inside the bdelloplast the predator grows as a filament: only a fluorescent protein shows it (green channel)
         const p = s.inside;
         const k = Math.min(1, s.insideT / 4);
-        S.rod(p.x, p.y, p.a + 0.6, 0.6 + 0.9 * k, 0.15, { dn: 0, scat: 0, fl: [0.8 * chan.memb, 0, 0], memb: 0.4, z: 0 });
+        S.rod(p.x, p.y, p.a + 0.6, 0.6 + 0.9 * k, 0.15, { dn: 0, scat: 0, fl: [0, 6 * chan.flag, 0], z: 0 });
         return;
       }
       vibrio(S, s.x, s.y, s.a, sp.L, sp.r, sp.curve, 0, flPh, s.mode === 'tumble' ? Math.sin((1 - s.tumbleT / sp.tumble) * Math.PI) : 0, { flagellum: !s.boring || s.boreT < 1.5 });
