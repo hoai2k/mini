@@ -455,9 +455,9 @@ function sleeper(k, st, sl, t) {
 // standing scale, or until it comes the nearer of the two generic ones (the
 // squire's for the squire and the bosun, the man-at-arms' for him and the
 // helmsman), which the loader draws at the crew's size (POSE_FIT).
-// The art rows below a lying figure's body (its halberd, rope or hem lie on
-// the canvas bottom), in the look drawn: the body, not the props, rests on
-// the ground (design/sprite-audit.md, REST_GAP).
+// The art rows below a lying figure's lower back, in the look drawn: the
+// hips rest on the ground and the figure drapes over it, head, feet and props
+// lower (design/sprite-audit.md, REST_GAP).
 const restGap = (k, id) => { const im = k.img(id); return (im && REST_GAP[id + (/-tinted\./.test(im.src || '') ? '-tinted' : '')]) || 0; };
 // How far a sleeper settles into what they lie on, so they lie in it rather
 // than on its outline: the shelf's painted top is ~10 px below the sleepers'
