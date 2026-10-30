@@ -93,7 +93,7 @@ GROUPS = [
         "intro": "One card per prototype on the prototypes page (micro/prototypes/). Until they arrive each card shows a live-drawn thumbnail colour and its title.",
         "items": [
             {
-                "id": "MP-U01", "name": "Mite card (SEM)",
+                "id": "MP-U01", "status": "delivered", "name": "Mite card (SEM)",
                 "file": "assets/cards/mite.webp", "size": "1200 x 800, opaque",
                 "used": "The Mite card on the prototypes page.",
                 "standin": "A grey gradient with the title.",
@@ -101,7 +101,7 @@ GROUPS = [
                 "prompt": f"{CARD} {SEM} An armoured oribatid moss mite (box-mite, family Phthiracaridae: a smooth domed notogaster about 0.6 mm long, eight short jointed legs, a hinged prodorsum, a few stiff setae) walking over a dry moss leaf edge among fungal hyphae and angular mineral grains, three-quarter view from slightly above, the mite in the left half of the frame. Exactly eight legs, each with five visible segments and a single claw. {SCIENCE}",
             },
             {
-                "id": "MP-U02", "name": "Tardigrade card",
+                "id": "MP-U02", "status": "delivered", "name": "Tardigrade card",
                 "file": "assets/cards/tardigrade.webp", "size": "1200 x 800, opaque",
                 "used": "The Tardigrade card on the prototypes page.",
                 "standin": "A grey-green gradient with the title.",
@@ -109,7 +109,7 @@ GROUPS = [
                 "prompt": f"{CARD} {DIC} A moss-dwelling tardigrade (a eutardigrade about 0.35 mm long: plump segmented body, exactly four pairs of stubby unjointed lobopod legs, the fourth pair pointing backwards at the rear end, each leg ending in hooked double claws, a pale translucent body with greenish gut contents and two dark eye-spots) gripping the ridged cell walls of a moss leaf lamina under a thin film of water, the long rectangular leaf cells receding diagonally. {SCIENCE}",
             },
             {
-                "id": "MP-U03", "name": "Amoeba card",
+                "id": "MP-U03", "status": "delivered", "name": "Amoeba card",
                 "file": "assets/cards/amoeba.webp", "size": "1200 x 800, opaque",
                 "used": "The Amoeba card on the prototypes page.",
                 "standin": "A pale warm gradient with the title.",
@@ -117,7 +117,7 @@ GROUPS = [
                 "prompt": f"{CARD} {BRIGHTFIELD} Amoeba proteus about 400 µm across with several broad blunt pseudopods, a clear hyaline cap at each advancing tip, granular streaming endoplasm, one disc-shaped nucleus and a round contractile vacuole, two pseudopods curving to form a food cup around a small green flagellate. A strand of Spirogyra with its spiral chloroplast crosses the background out of focus. {SCIENCE}",
             },
             {
-                "id": "MP-U04", "name": "Paramecium card",
+                "id": "MP-U04", "status": "delivered", "name": "Paramecium card",
                 "file": "assets/cards/paramecium.webp", "size": "1200 x 800, opaque",
                 "used": "The Paramecium card on the prototypes page.",
                 "standin": "A dark blue gradient with the title.",

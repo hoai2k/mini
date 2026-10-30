@@ -12,7 +12,7 @@ Artwork for the prototypes in `micro/prototypes/`. Generated from `source/build_
 
 ## Status
 
-18 requested, 0 delivered, 18 in total.
+14 requested, 4 delivered, 18 in total.
 
 ## Launcher cards
 
@@ -24,7 +24,7 @@ One card per prototype on the prototypes page (micro/prototypes/). Until they ar
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Mite card on the prototypes page.
 - **Stand-in until delivered:** A grey gradient with the title.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Unidentified phthiracarid mite; adult arthropod morphology.](../research/assets/references/mite.jpg) · S.E. Thorpe, Public domain · [source](https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg)
   - [Moss habitat structure; use leaf architecture as environmental reference.](../research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
@@ -41,7 +41,7 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Tardigrade card on the prototypes page.
 - **Stand-in until delivered:** A grey-green gradient with the title.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Light-microscope photograph; phone-camera filtering is part of the source image.](../research/assets/references/tardigrade-light.png) · Dorathyexplorer, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png)
   - [SEM of an animal prepared from the active state; not live in-chamber footage.](../research/assets/references/tardigrade-sem.png) · Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012), CC BY 2.5 · [source](https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png)
@@ -58,7 +58,7 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Amoeba card on the prototypes page.
 - **Stand-in until delivered:** A pale warm gradient with the title.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Amoeba proteus with pseudopodia, nucleus and contractile vacuole.](../research/assets/references/amoeba.jpg) · Cymothoa exigua, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Amoeba_proteus.jpg)
   - [Paramecium caudatum; whole-cell outline and internal contrast.](../research/assets/references/paramecium.jpg) · MTadey, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg)
@@ -75,7 +75,7 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Paramecium card on the prototypes page.
 - **Stand-in until delivered:** A dark blue gradient with the title.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Paramecium caudatum; whole-cell outline and internal contrast.](../research/assets/references/paramecium.jpg) · MTadey, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg)
   - [Freshwater filament with spiral chloroplasts; useful habitat scaffolding.](../research/assets/references/spirogyra.jpg) · Wiedehopf20, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg)

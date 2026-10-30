@@ -1,0 +1,194 @@
+[
+  {
+    "id": "MP-U01",
+    "name": "Mite card (SEM)",
+    "file": "assets/cards/mite.webp",
+    "size": "1200 x 800, opaque",
+    "used": "The Mite card on the prototypes page.",
+    "prompt": "Use case: scientific-educational. Asset type: individual finished game launcher illustration. The supplied images are references only, not edit targets. The first 3 images are real organism/habitat references: mite, moss, tardigrade-sem. The final image is an AI concept board for mood only, never anatomy. Do not copy any labels, scale bars, figure panels or text from the references.\nLandscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Scanning-electron-microscope look: greyscale secondary-electron image, bright edges where surfaces tilt away from the detector, soft dark crevices, very deep focus, crisp tactile surface detail, slight fine grain, no colour. An armoured oribatid moss mite (box-mite, family Phthiracaridae: a smooth domed notogaster about 0.6 mm long, eight short jointed legs, a hinged prodorsum, a few stiff setae) walking over a dry moss leaf edge among fungal hyphae and angular mineral grains, three-quarter view from slightly above, the mite in the left half of the frame. Exactly eight legs, each with five visible segments and a single claw. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nOutput a single complete image, exactly 1200 by 800 pixels, not a contact sheet. Keep scientifically grounded morphology and use optical style rather than a conventional fantasy painting. For legged animals, no extra limbs: eight limbs means four left-right pairs total.",
+    "requested_prompt": "Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Scanning-electron-microscope look: greyscale secondary-electron image, bright edges where surfaces tilt away from the detector, soft dark crevices, very deep focus, crisp tactile surface detail, slight fine grain, no colour. An armoured oribatid moss mite (box-mite, family Phthiracaridae: a smooth domed notogaster about 0.6 mm long, eight short jointed legs, a hinged prodorsum, a few stiff setae) walking over a dry moss leaf edge among fungal hyphae and angular mineral grains, three-quarter view from slightly above, the mite in the left half of the frame. Exactly eight legs, each with five visible segments and a single claw. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-e6fdc39b-4bdb-4842-9333-da2f41ed9fbc.png",
+    "original_dimensions": [
+      1536,
+      1024
+    ],
+    "width": 1200,
+    "height": 800,
+    "sha256": "e4e55fac8cc6a6ddc0744087b933ea10eae0da47b84ffe264eefa130bf82b759",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "mite",
+        "local": "assets/references/mite.jpg",
+        "author": "S.E. Thorpe",
+        "license": "Public domain",
+        "license_url": "",
+        "source": "https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg"
+      },
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      },
+      {
+        "id": "tardigrade-sem",
+        "local": "assets/references/tardigrade-sem.png",
+        "author": "Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012)",
+        "license": "CC BY 2.5",
+        "license_url": "https://creativecommons.org/licenses/by/2.5",
+        "source": "https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png"
+      }
+    ],
+    "mood_boards": [
+      "01-moss-frontier.webp"
+    ]
+  },
+  {
+    "id": "MP-U02",
+    "name": "Tardigrade card",
+    "file": "assets/cards/tardigrade.webp",
+    "size": "1200 x 800, opaque",
+    "used": "The Tardigrade card on the prototypes page.",
+    "prompt": "Use case: scientific-educational. Asset type: individual finished game launcher illustration. The supplied images are references only, not edit targets. The first 3 images are real organism/habitat references: tardigrade-light, tardigrade-sem, moss. The final image is an AI concept board for mood only, never anatomy. Do not copy any labels, scale bars, figure panels or text from the references.\nLandscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Differential-interference-contrast (Nomarski) microscope look: smooth grey background, transparent structures rendered with directional pseudo-relief (light on one side, dark on the other, the same direction everywhere), gentle colourless tones with at most a faint amber cast, shallow depth of field. A moss-dwelling tardigrade (a eutardigrade about 0.35 mm long: plump segmented body, exactly four pairs of stubby unjointed lobopod legs, the fourth pair pointing backwards at the rear end, each leg ending in hooked double claws, a pale translucent body with greenish gut contents and two dark eye-spots) gripping the ridged cell walls of a moss leaf lamina under a thin film of water, the long rectangular leaf cells receding diagonally. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nOutput a single complete image, exactly 1200 by 800 pixels, not a contact sheet. Keep scientifically grounded morphology and use optical style rather than a conventional fantasy painting. For legged animals, no extra limbs: eight limbs means four left-right pairs total.",
+    "requested_prompt": "Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Differential-interference-contrast (Nomarski) microscope look: smooth grey background, transparent structures rendered with directional pseudo-relief (light on one side, dark on the other, the same direction everywhere), gentle colourless tones with at most a faint amber cast, shallow depth of field. A moss-dwelling tardigrade (a eutardigrade about 0.35 mm long: plump segmented body, exactly four pairs of stubby unjointed lobopod legs, the fourth pair pointing backwards at the rear end, each leg ending in hooked double claws, a pale translucent body with greenish gut contents and two dark eye-spots) gripping the ridged cell walls of a moss leaf lamina under a thin film of water, the long rectangular leaf cells receding diagonally. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-38949592-3eb9-4a87-83f1-84cb665ec414.png",
+    "original_dimensions": [
+      1536,
+      1024
+    ],
+    "width": 1200,
+    "height": 800,
+    "sha256": "7f46822a0f904c2b93287ac060412e2482fbc7d16f334965200f1c20c61e1638",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "tardigrade-light",
+        "local": "assets/references/tardigrade-light.png",
+        "author": "Dorathyexplorer",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png"
+      },
+      {
+        "id": "tardigrade-sem",
+        "local": "assets/references/tardigrade-sem.png",
+        "author": "Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012)",
+        "license": "CC BY 2.5",
+        "license_url": "https://creativecommons.org/licenses/by/2.5",
+        "source": "https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png"
+      },
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      }
+    ],
+    "mood_boards": [
+      "02-waterfilm.webp"
+    ]
+  },
+  {
+    "id": "MP-U03",
+    "name": "Amoeba card",
+    "file": "assets/cards/amoeba.webp",
+    "size": "1200 x 800, opaque",
+    "used": "The Amoeba card on the prototypes page.",
+    "prompt": "Use case: scientific-educational. Asset type: individual finished game launcher illustration. The supplied images are references only, not edit targets. The first 3 images are real organism/habitat references: amoeba, paramecium, spirogyra. The final image is an AI concept board for mood only, never anatomy. Do not copy any labels, scale bars, figure panels or text from the references.\nLandscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Transmitted-light brightfield microscope look: pale warm-grey to faintly green background, transparent bodies with weak contrast, darker refractive edges, pigment only where it is real (green chloroplasts, brown detritus), soft out-of-focus layers, slight optical softness, no hard drop shadows, no specular highlights. Amoeba proteus about 400 µm across with several broad blunt pseudopods, a clear hyaline cap at each advancing tip, granular streaming endoplasm, one disc-shaped nucleus and a round contractile vacuole, two pseudopods curving to form a food cup around a small green flagellate. A strand of Spirogyra with its spiral chloroplast crosses the background out of focus. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nOutput a single complete image, exactly 1200 by 800 pixels, not a contact sheet. Keep scientifically grounded morphology and use optical style rather than a conventional fantasy painting. For legged animals, no extra limbs: eight limbs means four left-right pairs total.",
+    "requested_prompt": "Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Transmitted-light brightfield microscope look: pale warm-grey to faintly green background, transparent bodies with weak contrast, darker refractive edges, pigment only where it is real (green chloroplasts, brown detritus), soft out-of-focus layers, slight optical softness, no hard drop shadows, no specular highlights. Amoeba proteus about 400 µm across with several broad blunt pseudopods, a clear hyaline cap at each advancing tip, granular streaming endoplasm, one disc-shaped nucleus and a round contractile vacuole, two pseudopods curving to form a food cup around a small green flagellate. A strand of Spirogyra with its spiral chloroplast crosses the background out of focus. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-c8547560-6de6-4072-b45f-0c5a854f3f95.png",
+    "original_dimensions": [
+      1536,
+      1024
+    ],
+    "width": 1200,
+    "height": 800,
+    "sha256": "460b07a173a51b338726e74ba9d021fff6edc44147a410f0fa0d2ac91f07685c",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "amoeba",
+        "local": "assets/references/amoeba.jpg",
+        "author": "Cymothoa exigua",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Amoeba_proteus.jpg"
+      },
+      {
+        "id": "paramecium",
+        "local": "assets/references/paramecium.jpg",
+        "author": "MTadey",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg"
+      },
+      {
+        "id": "spirogyra",
+        "local": "assets/references/spirogyra.jpg",
+        "author": "Wiedehopf20",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg"
+      }
+    ],
+    "mood_boards": [
+      "03-protist-garden.webp"
+    ]
+  },
+  {
+    "id": "MP-U04",
+    "name": "Paramecium card",
+    "file": "assets/cards/paramecium.webp",
+    "size": "1200 x 800, opaque",
+    "used": "The Paramecium card on the prototypes page.",
+    "prompt": "Use case: scientific-educational. Asset type: individual finished game launcher illustration. The supplied images are references only, not edit targets. The first 3 images are real organism/habitat references: paramecium, spirogyra, vorticella. The final image is an AI concept board for mood only, never anatomy. Do not copy any labels, scale bars, figure panels or text from the references.\nLandscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Darkfield microscope look: near-black background, objects visible only as bright scattering edges and internal granules in cool white and pale gold, faint coloured chloroplasts, small particles as sparkling points, shallow depth of field. Paramecium caudatum about 230 µm long, slipper-shaped with a blunt front and a tapered rear, an oral groove running diagonally along one side, a dense coat of short cilia shimmering as a fine bright fringe, two star-shaped contractile vacuoles and many food vacuoles inside, swimming in a gentle helical path past green Spirogyra filaments and a cluster of bell-shaped Vorticella on stalks. A faint motion trail of displaced particles behind it. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nOutput a single complete image, exactly 1200 by 800 pixels, not a contact sheet. Keep scientifically grounded morphology and use optical style rather than a conventional fantasy painting. For legged animals, no extra limbs: eight limbs means four left-right pairs total.",
+    "requested_prompt": "Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Darkfield microscope look: near-black background, objects visible only as bright scattering edges and internal granules in cool white and pale gold, faint coloured chloroplasts, small particles as sparkling points, shallow depth of field. Paramecium caudatum about 230 µm long, slipper-shaped with a blunt front and a tapered rear, an oral groove running diagonally along one side, a dense coat of short cilia shimmering as a fine bright fringe, two star-shaped contractile vacuoles and many food vacuoles inside, swimming in a gentle helical path past green Spirogyra filaments and a cluster of bell-shaped Vorticella on stalks. A faint motion trail of displaced particles behind it. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-c6a8f15c-5931-46bb-a297-59b087ba5e3c.png",
+    "original_dimensions": [
+      1536,
+      1024
+    ],
+    "width": 1200,
+    "height": 800,
+    "sha256": "bb60ade857fec03300558e4fb637548046ba461895ee685c1b48220a7226c5da",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "paramecium",
+        "local": "assets/references/paramecium.jpg",
+        "author": "MTadey",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg"
+      },
+      {
+        "id": "spirogyra",
+        "local": "assets/references/spirogyra.jpg",
+        "author": "Wiedehopf20",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg"
+      },
+      {
+        "id": "vorticella",
+        "local": "assets/references/vorticella.jpg",
+        "author": "Bwiltz",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Vorticella_1.jpg"
+      }
+    ],
+    "mood_boards": [
+      "03-protist-garden.webp"
+    ]
+  }
+]
