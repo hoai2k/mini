@@ -22,10 +22,10 @@ SELECTION = [
     ('bog-pool', 'Sphagnum Bog Pool Bealach na Ba Viewpoint 1.jpg', 'Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.'),
     ('bog-hummock', 'Sphagnum Capitulum.jpg', 'Sphagnum capitulum structure and colour; macro habitat reference.'),
     ('sundew', 'Drosera rotundifolia leaf1.jpg', 'Round-leaved sundew leaf and glandular tentacles.'),
-    ('water-strider', 'Gerris lacustris 15445758.jpg', 'Gerris lacustris; resting leg proportions and body silhouette.'),
+    ('water-strider', 'Water strider Gerris lacustris.jpg', 'Adult Gerris lacustris; six-leg arrangement, short forelegs and long middle/hind legs.'),
     ('stenus', 'Stenus (Stenus) sp ♂ adult.jpg', 'Stenus adult; body, eyes and elytra reference. Extended labium is specified by the brief.'),
     ('predatory-mite', 'Pergamasus diversus 02.jpg', 'Pergamasus diversus; predatory mite morphology, not a species-level bog occurrence claim.'),
-    ('didinium', 'Didinium nasutum consuming a paramecium.jpg', 'Didinium feeding on Paramecium; cell outline and feeding apparatus.'),
+    ('didinium', 'Didinium nasutum consuming a paramecium.jpg', 'Historical morphology drawing of Didinium feeding on Paramecium; anatomy reference, not a photograph or micrograph.'),
     ('paramecium-bursaria', 'Paramecium bursaria.jpg', 'Paramecium bursaria in DIC; green symbionts and body proportions.'),
     ('peranema', 'Peranema.jpg', 'Peranema sp. from a Quebec pond; genus-level morphology reference.'),
     ('actinophrys', 'Actinophrys sol (phase contrast microscopy).jpg', 'Actinophrys sol in phase contrast; radial axopodia and vacuolated body.'),
@@ -68,7 +68,7 @@ def main():
         assert license_name.startswith(('CC BY ', 'CC BY-SA ', 'CC0', 'Public domain')), (title, license_name)
         url = info.get('thumburl', info['url']).split('?')[0]
         extension = Path(urllib.parse.unquote(urllib.parse.urlparse(url).path)).suffix.lower()
-        path = DEST / (ident + extension)
+        path = DEST / (('water-strider-adult' if ident == 'water-strider' else ident) + extension)
         payload = get(url)
         path.write_bytes(payload)
         record = dict(id=ident, local=str(path.relative_to(ROOT / 'research')),

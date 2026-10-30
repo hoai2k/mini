@@ -12,7 +12,7 @@ Artwork for the prototypes in `micro/prototypes/`. Generated from `source/build_
 
 ## Status
 
-24 requested, 21 delivered, 45 in total.
+21 requested, 24 delivered, 45 in total.
 
 ## Launcher cards
 
@@ -379,7 +379,7 @@ Images for the springtail prototype (Level 0, the bog surface), seen as a macro 
 - **Reference images:**
   - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](../research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
   - [Podura aquatica; external body and limb proportions.](../research/assets/references/production/springtail.jpg) · Christian Fischer, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:PoduraAquatica.jpg)
-  - [Gerris lacustris; resting leg proportions and body silhouette.](../research/assets/references/production/water-strider.jpg) · Jason Grant, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Gerris_lacustris_15445758.jpg)
+  - [Adult Gerris lacustris; six-leg arrangement, short forelegs and long middle/hind legs.](../research/assets/references/production/water-strider-adult.jpg) · Richard Bartz, CC BY-SA 2.5 · [source](https://commons.wikimedia.org/wiki/File:Water_strider_Gerris_lacustris.jpg)
   - Concept board (mood only): [`01-moss-frontier.webp`](../research/assets/concepts/01-moss-frontier.webp)
 
 ```text
@@ -558,7 +558,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
 - **Status:** requested
 - **Reference images:**
-  - [Gerris lacustris; resting leg proportions and body silhouette.](../research/assets/references/production/water-strider.jpg) · Jason Grant, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Gerris_lacustris_15445758.jpg)
+  - [Adult Gerris lacustris; six-leg arrangement, short forelegs and long middle/hind legs.](../research/assets/references/production/water-strider-adult.jpg) · Richard Bartz, CC BY-SA 2.5 · [source](https://commons.wikimedia.org/wiki/File:Water_strider_Gerris_lacustris.jpg)
 
 ```text
 Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. A water strider of the genus Gerris, about 10 mm long body: a narrow dark brown-black body covered with a fine velvety silver-grey hair pile, a small head with prominent eyes and four-segmented antennae, a piercing beak (rostrum) folded under the head; exactly six legs: short front legs held forward for grabbing prey, very long thin middle legs spread sideways for rowing, long hind legs trailing backward for steering; the middle and hind legs rest on the water along their last segments with small dimples, not touching the water anywhere else. Show the legs in their natural resting stance on a flat invisible water plane. Wingless form. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.
@@ -585,7 +585,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling Milnesium, the carnivorous tardigrade of Level 2.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Milnesium tardigradum SEM; alias of the existing atlas reference, not a living light-microscope view.](../research/assets/references/tardigrade-sem.png) · Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012), CC BY 2.5 · [source](https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png)
   - [SEM of an animal prepared from the active state; not live in-chamber footage.](../research/assets/references/tardigrade-sem.png) · Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012), CC BY 2.5 · [source](https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png)
@@ -601,9 +601,9 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling Didinium, the Paramecium hunter of Level 3.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
-  - [Didinium feeding on Paramecium; cell outline and feeding apparatus.](../research/assets/references/production/didinium.jpg) · S. O. Mast, Public domain · [source](https://commons.wikimedia.org/wiki/File:Didinium_nasutum_consuming_a_paramecium.jpg)
+  - [Historical morphology drawing of Didinium feeding on Paramecium; anatomy reference, not a photograph or micrograph.](../research/assets/references/production/didinium.jpg) · S. O. Mast, Public domain · [source](https://commons.wikimedia.org/wiki/File:Didinium_nasutum_consuming_a_paramecium.jpg)
   - [Paramecium caudatum; whole-cell outline and internal contrast.](../research/assets/references/paramecium.jpg) · MTadey, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg)
 
 ```text
@@ -674,7 +674,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling Bdellovibrio, the predatory bacterium of Level 5.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Bdellovibrio cryotomogram section; ultrastructure reference, not a live light-microscope view.](../research/assets/references/production/bdellovibrio.jpg) · Eikosi, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Slice_from_electron_cryotomogram_of_Bdellovibrio_bacteriovorus_cell.jpg)
 
@@ -712,7 +712,7 @@ Concept plates for the levels that have no prototype art yet: the mood, palette 
   - [Sphagnum capitulum structure and colour; macro habitat reference.](../research/assets/references/production/bog-hummock.jpg) · OolaEei, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Capitulum.jpg)
   - [Podura aquatica; external body and limb proportions.](../research/assets/references/production/springtail.jpg) · Christian Fischer, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:PoduraAquatica.jpg)
   - [Round-leaved sundew leaf and glandular tentacles.](../research/assets/references/production/sundew.jpg) · Petr Dlouhý, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Drosera_rotundifolia_leaf1.jpg)
-  - [Gerris lacustris; resting leg proportions and body silhouette.](../research/assets/references/production/water-strider.jpg) · Jason Grant, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Gerris_lacustris_15445758.jpg)
+  - [Adult Gerris lacustris; six-leg arrangement, short forelegs and long middle/hind legs.](../research/assets/references/production/water-strider-adult.jpg) · Richard Bartz, CC BY-SA 2.5 · [source](https://commons.wikimedia.org/wiki/File:Water_strider_Gerris_lacustris.jpg)
   - [Stenus adult; body, eyes and elytra reference. Extended labium is specified by the brief.](../research/assets/references/production/stenus.jpg) · Elena Regina, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Stenus_(Stenus)_sp_%E2%99%82_adult.jpg)
   - Concept board (mood only): [`01-moss-frontier.webp`](../research/assets/concepts/01-moss-frontier.webp)
 

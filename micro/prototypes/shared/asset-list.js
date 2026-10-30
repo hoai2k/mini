@@ -135,11 +135,11 @@ export const ASSETS = {
   },
   "MP-R05": {
     "file": "assets/reference-sheets/milnesium.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R06": {
     "file": "assets/reference-sheets/didinium.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R07": {
     "file": "assets/reference-sheets/paramecium-bursaria.webp",
@@ -159,7 +159,7 @@ export const ASSETS = {
   },
   "MP-R11": {
     "file": "assets/reference-sheets/bdellovibrio.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R12": {
     "file": "assets/reference-sheets/phage-t4.webp",

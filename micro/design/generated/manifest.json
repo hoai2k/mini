@@ -835,6 +835,100 @@
     ]
   },
   {
+    "id": "MP-R05",
+    "name": "Predatory tardigrade (Milnesium)",
+    "file": "assets/reference-sheets/milnesium.webp",
+    "size": "2048 x 2048, opaque",
+    "used": "Modelling Milnesium, the carnivorous tardigrade of Level 2.",
+    "prompt": "Use case: scientific-educational. Create ONE finished square four-view model reference sheet, not a collage of photographs. Supplied images are morphology references only; remove all labels and microscopy borders. Match the named species, not other species in reference photos. Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. The carnivorous tardigrade Milnesium, about 0.5 to 0.7 mm long: a plump, barrel-shaped, translucent body with faint segmentation, a smooth cuticle without plates, often brownish-orange gut contents; a broad head with a wide terminal mouth opening surrounded by six small peribuccal papillae and two lateral papillae, a short wide buccal tube with stylets visible through the body wall, two dark eye spots; exactly four pairs of stubby, unjointed lobopod legs, the fourth pair pointing backward at the rear, each leg ending in two double claws of unequal shape (a long slender branch and a short hooked one). Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nComposition priorities: four separated views in a 2x2 grid; top left side pointing right, top right dorsal head up, bottom left genuinely END-ON frontal view (foreshortened, not a repeated side view), bottom right three-quarter. No background shadows, no text. Fit every appendage inside its own quadrant with clear margins. For cells this is an explanatory reconstruction, not a literal camera view. For T4 the side view has head pointing right and tail left; dorsal view capsid up and tail down; front view viewed along the capsid-tail axis. Exactly six long tail fibres, not insect legs. For Didinium the supplied historical feeding drawing is an anatomical reference, do not copy its drawing style or labels. Exactly two ciliary bands, not a hairy coat.",
+    "requested_prompt": "Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. The carnivorous tardigrade Milnesium, about 0.5 to 0.7 mm long: a plump, barrel-shaped, translucent body with faint segmentation, a smooth cuticle without plates, often brownish-orange gut contents; a broad head with a wide terminal mouth opening surrounded by six small peribuccal papillae and two lateral papillae, a short wide buccal tube with stylets visible through the body wall, two dark eye spots; exactly four pairs of stubby, unjointed lobopod legs, the fourth pair pointing backward at the rear, each leg ending in two double claws of unequal shape (a long slender branch and a short hooked one). Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-4b2cbe27-ecd7-44da-963c-08e73068f8d3.png",
+    "input_images": [
+      "research/assets/references/tardigrade-sem.png",
+      "research/assets/references/tardigrade-light.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "f44d2b1496e77771dd22ec4a17b3cbe7d5e2061a05adb82dc5a9899defe73a76",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "milnesium",
+        "local": "assets/references/tardigrade-sem.png",
+        "author": "Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012)",
+        "license": "CC BY 2.5",
+        "license_url": "https://creativecommons.org/licenses/by/2.5",
+        "source": "https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png"
+      },
+      {
+        "id": "tardigrade-sem",
+        "local": "assets/references/tardigrade-sem.png",
+        "author": "Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012)",
+        "license": "CC BY 2.5",
+        "license_url": "https://creativecommons.org/licenses/by/2.5",
+        "source": "https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png"
+      },
+      {
+        "id": "tardigrade-light",
+        "local": "assets/references/tardigrade-light.png",
+        "author": "Dorathyexplorer",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-R06",
+    "name": "Didinium nasutum",
+    "file": "assets/reference-sheets/didinium.webp",
+    "size": "2048 x 2048, opaque",
+    "used": "Modelling Didinium, the Paramecium hunter of Level 3.",
+    "prompt": "Use case: scientific-educational. Create ONE finished square four-view model reference sheet, not a collage of photographs. Supplied images are morphology references only; remove all labels and microscopy borders. Match the named species, not other species in reference photos. Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. The ciliate Didinium nasutum, about 100 µm long, as in a brightfield preparation: a barrel-shaped transparent cell, its front end drawn out into a short cone-shaped proboscis (snout) with the cell mouth at its tip, from which toxicysts are fired; exactly two girdles of cilia (pectinelles) encircling the barrel, one just behind the proboscis and one around the middle, and no other cilia on the body; a curved horseshoe-shaped macronucleus inside, a contractile vacuole at the rear end. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nComposition priorities: four separated views in a 2x2 grid; top left side pointing right, top right dorsal head up, bottom left genuinely END-ON frontal view (foreshortened, not a repeated side view), bottom right three-quarter. No background shadows, no text. Fit every appendage inside its own quadrant with clear margins. For cells this is an explanatory reconstruction, not a literal camera view. For T4 the side view has head pointing right and tail left; dorsal view capsid up and tail down; front view viewed along the capsid-tail axis. Exactly six long tail fibres, not insect legs. For Didinium the supplied historical feeding drawing is an anatomical reference, do not copy its drawing style or labels. Exactly two ciliary bands, not a hairy coat.",
+    "requested_prompt": "Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. The ciliate Didinium nasutum, about 100 µm long, as in a brightfield preparation: a barrel-shaped transparent cell, its front end drawn out into a short cone-shaped proboscis (snout) with the cell mouth at its tip, from which toxicysts are fired; exactly two girdles of cilia (pectinelles) encircling the barrel, one just behind the proboscis and one around the middle, and no other cilia on the body; a curved horseshoe-shaped macronucleus inside, a contractile vacuole at the rear end. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-df9271a3-d658-46f9-a3ba-af998ffab9ec.png",
+    "input_images": [
+      "research/assets/references/production/didinium.jpg",
+      "research/assets/references/paramecium.jpg"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "03c0d2fb50896eea2ed67209cbaff36b851464c5bcc56fb4d2c25151f4970b7f",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "didinium",
+        "local": "assets/references/production/didinium.jpg",
+        "author": "S. O. Mast",
+        "license": "Public domain",
+        "license_url": "",
+        "source": "https://commons.wikimedia.org/wiki/File:Didinium_nasutum_consuming_a_paramecium.jpg"
+      },
+      {
+        "id": "paramecium",
+        "local": "assets/references/paramecium.jpg",
+        "author": "MTadey",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
     "id": "MP-R07",
     "name": "Paramecium bursaria",
     "file": "assets/reference-sheets/paramecium-bursaria.webp",
@@ -941,6 +1035,40 @@
         "license": "CC BY-SA 3.0",
         "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
         "source": "https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-R11",
+    "name": "Bdellovibrio bacteriovorus",
+    "file": "assets/reference-sheets/bdellovibrio.webp",
+    "size": "2048 x 2048, opaque",
+    "used": "Modelling Bdellovibrio, the predatory bacterium of Level 5.",
+    "prompt": "Use case: scientific-educational. Create ONE finished square four-view model reference sheet, not a collage of photographs. Supplied images are morphology references only; remove all labels and microscopy borders. Match the named species, not other species in reference photos. Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. The predatory bacterium Bdellovibrio bacteriovorus in its free-swimming attack phase, as reconstructed from electron micrographs: a small comma-shaped (vibrioid) cell about 1 µm long and 0.3 µm wide, with a single thick sheathed flagellum at one pole about three times the cell's length, and fine short pili at the opposite, attacking pole. Pale translucent grey cell body. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nComposition priorities: four separated views in a 2x2 grid; top left side pointing right, top right dorsal head up, bottom left genuinely END-ON frontal view (foreshortened, not a repeated side view), bottom right three-quarter. No background shadows, no text. Fit every appendage inside its own quadrant with clear margins. For cells this is an explanatory reconstruction, not a literal camera view. For T4 the side view has head pointing right and tail left; dorsal view capsid up and tail down; front view viewed along the capsid-tail axis. Exactly six long tail fibres, not insect legs. For Didinium the supplied historical feeding drawing is an anatomical reference, do not copy its drawing style or labels. Exactly two ciliary bands, not a hairy coat.",
+    "requested_prompt": "Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. The predatory bacterium Bdellovibrio bacteriovorus in its free-swimming attack phase, as reconstructed from electron micrographs: a small comma-shaped (vibrioid) cell about 1 µm long and 0.3 µm wide, with a single thick sheathed flagellum at one pole about three times the cell's length, and fine short pili at the opposite, attacking pole. Pale translucent grey cell body. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-46a8ba62-46b2-4ee3-affe-947b55a57fdf.png",
+    "input_images": [
+      "research/assets/references/production/bdellovibrio.jpg"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "9442e81542009ab88e4fe152b943362382a85e6f27edec048ca8518ed4810176",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "bdellovibrio",
+        "local": "assets/references/production/bdellovibrio.jpg",
+        "author": "Eikosi",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Slice_from_electron_cryotomogram_of_Bdellovibrio_bacteriovorus_cell.jpg"
       }
     ],
     "mood_boards": []

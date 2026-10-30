@@ -439,7 +439,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} A predatory mesostigmatid mite of the family Parasitidae (Pergamasus-type), about 1 mm long: an oval, flattened, glossy amber-to-chestnut body covered by smooth sclerotised dorsal shields with a few short setae; exactly eight legs, each with seven visible segments, the first pair longer and held forward like antennae, the others walking; at the front a projecting gnathosoma with a pair of long chelicerae ending in small pincers (chelae), and short pedipalps. No eyes. {SCIENCE}",
             },
             {
-                "id": "MP-R05", "status": "requested", "name": "Predatory tardigrade (Milnesium)",
+                "id": "MP-R05", "status": "delivered", "name": "Predatory tardigrade (Milnesium)",
                 "file": "assets/reference-sheets/milnesium.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling Milnesium, the carnivorous tardigrade of Level 2.",
                 "standin": "None needed: the model is built from the photographs.",
@@ -447,7 +447,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} The carnivorous tardigrade Milnesium, about 0.5 to 0.7 mm long: a plump, barrel-shaped, translucent body with faint segmentation, a smooth cuticle without plates, often brownish-orange gut contents; a broad head with a wide terminal mouth opening surrounded by six small peribuccal papillae and two lateral papillae, a short wide buccal tube with stylets visible through the body wall, two dark eye spots; exactly four pairs of stubby, unjointed lobopod legs, the fourth pair pointing backward at the rear, each leg ending in two double claws of unequal shape (a long slender branch and a short hooked one). {SCIENCE}",
             },
             {
-                "id": "MP-R06", "status": "requested", "name": "Didinium nasutum",
+                "id": "MP-R06", "status": "delivered", "name": "Didinium nasutum",
                 "file": "assets/reference-sheets/didinium.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling Didinium, the Paramecium hunter of Level 3.",
                 "standin": "None needed: the model is built from the photographs.",
@@ -487,7 +487,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} A magnetotactic spirillum (Magnetospirillum-type), as reconstructed from electron micrographs: a helical, gently twisted rod-shaped cell about 3 µm long and 0.5 µm wide, one and a half to two turns of helix, with a single long flagellum at each end; a straight chain of 15 to 20 cube-octahedral magnetite crystals (magnetosomes, each about 50 nm, dark grey-black, each in its own thin membrane) running along the long axis inside the cell, drawn visible through a pale translucent cell body. {SCIENCE}",
             },
             {
-                "id": "MP-R11", "status": "requested", "name": "Bdellovibrio bacteriovorus",
+                "id": "MP-R11", "status": "delivered", "name": "Bdellovibrio bacteriovorus",
                 "file": "assets/reference-sheets/bdellovibrio.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling Bdellovibrio, the predatory bacterium of Level 5.",
                 "standin": "None needed: the model is built from the photographs.",

@@ -64,7 +64,12 @@ def main():
             original_size = image.size
             # Only normalize the export dimensions and encoding, not the composition.
             if image.size != (width, height):
-                image = image.resize((width, height), Image.Resampling.LANCZOS)
+                if '/reference-sheets/' in request['file']:
+                    # Preserve anatomy when the generator returns a non-square sheet.
+                    image = ImageOps.pad(image, (width, height), Image.Resampling.LANCZOS,
+                                         color=(217, 217, 217))
+                else:
+                    image = image.resize((width, height), Image.Resampling.LANCZOS)
             if 'transparent' in request['size']:
                 assert image.getchannel('A').getextrema()[0] == 0, 'Real alpha required'
                 assert image.getchannel('A').getextrema()[1] == 255, 'Missing opaque particle content'
@@ -83,7 +88,7 @@ def main():
                       reference_usage='References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.',
                       original_dimensions=list(original_size), width=width, height=height,
                       sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
-                      export=('LANCZOS sizing; opposing-edge strips quilted with the approved conventional seam-correction workflow; WebP quality 92.' if seam_data else 'LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.'),
+                      export=('LANCZOS sizing; opposing-edge strips quilted with the approved conventional seam-correction workflow; WebP quality 92.' if seam_data else ('Aspect-preserving LANCZOS sizing with neutral outer padding when needed; WebP quality 92. No anatomy edits.' if '/reference-sheets/' in request['file'] else 'LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.')),
                       references=[{k: references[rid][k] for k in ('id', 'local', 'author', 'license', 'license_url', 'source')} for rid in request['refs']],
                       mood_boards=request.get('concepts', []))
         record.update(seam_data)
