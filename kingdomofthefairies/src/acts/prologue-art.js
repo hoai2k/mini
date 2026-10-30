@@ -6,6 +6,7 @@ import { FLOOR, ARM_FLOOR, FAIRIES, AZURINE_X, RAMPART, rampartFloor, ARMS, AURO
 import { card } from './tableau.js';
 import { clamp, easeOut, easeInOut, lerp } from './shared.js';
 import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
+import { REST_GAP } from '../sprite-fit.js';
 import { drawPose, drawPerson, personPx, personScale, personRef } from '../pose.js';
 
 const FIG = { w: 132, h: 252 };          // a standing figure (220 x 420 art)
@@ -196,7 +197,9 @@ function abduction(k, st, t) {
   }
   if (sw > (swoonArt ? 0 : 0.6)) {
     c.save(); c.globalAlpha = swoonArt ? clamp(sw / 0.6, 0, 1) : clamp((sw - 0.6) / 0.4, 0, 1); c.translate(az.x, az.y + 4); c.rotate(k.img('demon-red-carry') ? Math.sin(t * 3) * 0.015 * lift : -u * 0.25 + Math.sin(t * 3) * 0.03 * lift);
-    if (!drawPerson(k, 'azurine-asleep', 0, 0, personH(k, 'azurine-stand'))) { c.fillStyle = k.col('#c9d8ee'); c.fillRect(-100, -30, 200, 30); }
+    // her hips on the floor, draped over it (REST_GAP)
+    const lieH = personH(k, 'azurine-stand'), drop = restGap(k, 'azurine-asleep') * personScale(k, 'azurine-asleep', lieH) * (1 - lift);
+    if (!drawPerson(k, 'azurine-asleep', 0, drop, lieH)) { c.fillStyle = k.col('#c9d8ee'); c.fillRect(-100, -30, 200, 30); }
     c.restore();
   }
   // her demons: on at a run from behind the right curtain, then holding her
@@ -484,6 +487,9 @@ function figure(k, id, x, by, t, s = 1, face = 1, over = null, onlyOver = false)
   if (!k.idle(id, t, 0, 0, FIG.w * s, FIG.h * s, undefined, over, onlyOver) && !onlyOver) { c.fillStyle = k.col('#b88aa8'); c.fillRect(-18 * s, -FIG.h * s * 0.8, 36 * s, FIG.h * s * 0.8); }
   c.restore();
 }
+
+// The art rows below a lying figure's body, in the look drawn (sprite audit).
+const restGap = (k, id) => { const im = k.img(id); return (im && REST_GAP[id + (/-tinted\./.test(im.src || '') ? '-tinted' : '')]) || 0; };
 
 // A character's person height (stage px) in this staging: their reference
 // sprite fitted to the standing figure's box at scale `s`.
