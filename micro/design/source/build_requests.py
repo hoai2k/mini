@@ -439,6 +439,14 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} A predatory mesostigmatid mite of the family Parasitidae (Pergamasus-type), about 1 mm long: an oval, flattened, glossy amber-to-chestnut body covered by smooth sclerotised dorsal shields with a few short setae; exactly eight legs, each with seven visible segments, the first pair longer and held forward like antennae, the others walking; at the front a projecting gnathosoma with a pair of long chelicerae ending in small pincers (chelae), and short pedipalps. No eyes. {SCIENCE}",
             },
             {
+                "id": "MP-R13", "name": "Predatory mite (Pergamasus-type), revision",
+                "file": "assets/reference-sheets/predatory-mite-v2.webp", "size": "2048 x 2048, opaque",
+                "used": "Replaces MP-R04, which came out as a domed, glossy, dark tick-like mite. Modelling the predatory mesostigmatid mite (Levels 0 and 1).",
+                "standin": "None needed: the model is built from the photographs.",
+                "refs": ref("predatory-mite", "mite"),
+                "prompt": f"{TURNAROUND} A predatory mesostigmatid mite of the family Parasitidae (Pergamasus-type), about 1 mm long, a fast running hunter of soil and moss. Its body is strongly flattened top to bottom like a coin, NOT domed: in the side and front views the body is only about a quarter as tall as it is wide. Pale tan to light honey-yellow, satin rather than glossy, with smooth plate-like dorsal shields (a front and a rear shield meeting across the middle) and a few short fine setae; it must not look like a tick or a round beetle-mite. Exactly eight long slender legs, each with seven visible segments: the first pair is longer and thinner than the others, has no claws, and is held raised and forward like a pair of antennae, as these mites feel their way; the other three pairs are spread wide, walking, each ending in a small claw and pad. At the front, a projecting gnathosoma with a pair of long chelicerae ending in small toothed pincers (chelae), clearly visible from the top and front, and short five-segmented pedipalps beside them. No eyes. {SCIENCE}",
+            },
+            {
                 "id": "MP-R05", "status": "delivered", "name": "Predatory tardigrade (Milnesium)",
                 "file": "assets/reference-sheets/milnesium.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling Milnesium, the carnivorous tardigrade of Level 2.",
