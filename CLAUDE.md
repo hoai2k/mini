@@ -61,6 +61,7 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
 | `mp3player/` | MP3 Player (the music files on the device, played like a streaming app: songs, albums, artists, shuffle, repeat, a queue and a custom order; songs are copied into the browser's storage, never changed on the device) | https://hoai2k.github.io/mini/mp3player/ |
 | `imageannotator/` | Image Annotator (open a picture, point things out with arrows, circles and free drawing, each with an optional title that is placed clear of the others; save, then export as the original format, JPEG or JPEG for web) | https://hoai2k.github.io/mini/imageannotator/ |
 | `meditation/` | Meditation Timer (a sitting timer: a preroll to settle, 5 seconds by default, then a starting chime, the time, and an ending chime; singing bowls, rin, tingsha, Koshi chimes or a temple bell, recorded or synthesized) | https://hoai2k.github.io/mini/meditation/ |
+| `micro/` | Micro (play as microscopic creatures: a cited research atlas in `micro/research/`, the Zoom Chain level spec in `micro/design/`, and playable prototypes in `micro/prototypes/`: an SEM-style mite, a tardigrade climbing leaf cells, an amoeba cupping prey, a Paramecium swimming, each in a different microscope look); in the prototype archive, behind the invite gate | https://hoai2k.github.io/mini/micro/prototypes/ |
 | `smoothcraft/` | Smoothcraft (a Minecraft Java Edition mod for Fabric: smooth terrain, rounded mobs, physically based materials and lighting, high-resolution textures from its image requests); a Gradle project in `smoothcraft/mod/`, not a browser game, so it has no `publish.sh`, Pages step or library card; `pages.yml` skips pushes that only change `smoothcraft/` | — |
 | `chat/` | Games Chat (video chat with face effects and minigames); its iPhone/iPad app, calls server and TestFlight guide are in `chat/ios/` | https://hoai2k.github.io/mini/chat/ |
 | `multiplayer/` | Shared online-multiplayer relay (Cloudflare Worker) and its browser client, used by any game; see `MULTIPLAYER.md` | https://mini-rooms.hoai2k.workers.dev |
@@ -170,7 +171,7 @@ and load the real file; stand-ins remain for tests.
 ## Intake
 
 Each game has its own drop box at `<game>/intake/` (`hopper/intake/`,
-`widowsbay/intake/`, `bronzedrum/intake/`, `chat/intake/`, `gliders/intake/`, `icecreamcone/intake/`, `onemonster/intake/`, `fibreart/intake/`, `percyjackson/intake/`, `aiching/intake/`, `eartrainer/intake/`, `musicpractice/intake/`, `bookzam/intake/`, `stocks/intake/`, `mp3player/intake/`, `imageannotator/intake/`, `meditation/intake/`, `smoothcraft/intake/`). The user drops files there for
+`widowsbay/intake/`, `bronzedrum/intake/`, `chat/intake/`, `gliders/intake/`, `icecreamcone/intake/`, `onemonster/intake/`, `fibreart/intake/`, `percyjackson/intake/`, `aiching/intake/`, `eartrainer/intake/`, `musicpractice/intake/`, `bookzam/intake/`, `stocks/intake/`, `mp3player/intake/`, `imageannotator/intake/`, `meditation/intake/`, `micro/intake/`, `smoothcraft/intake/`). The user drops files there for
 integration: artwork, audio, models, exported data, notes from another agent.
 A file belongs to the game whose intake it was dropped in. If it plainly
 belongs to a different game, move it there; if that is unclear, ask.
