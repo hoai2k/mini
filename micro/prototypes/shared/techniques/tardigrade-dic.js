@@ -207,8 +207,8 @@ export class DicMicroscope {
     this.opts = { dof: true, grain: true, vignette: true, fringes: true, backdrop: true, shear: 260, bias: 95, angle: Math.PI / 4 };
     renderer.extensions.get('EXT_color_buffer_float');
     this.type = renderer.extensions.get('EXT_float_blend') ? THREE.FloatType : THREE.HalfFloatType;
-    const mk = () => {
-      const rt = new THREE.WebGLRenderTarget(4, 4, { count: 2, type: this.type, format: THREE.RGBAFormat, depthBuffer: false });
+    const mk = this.mk = (w = 4, h = 4) => {
+      const rt = new THREE.WebGLRenderTarget(w, h, { count: 2, type: this.type, format: THREE.RGBAFormat, depthBuffer: false });
       for (const t of rt.textures) { t.minFilter = t.magFilter = THREE.LinearFilter; t.generateMipmaps = false; }
       return rt;
     };
@@ -259,7 +259,9 @@ export class DicMicroscope {
 
   setSize(w, h) {
     const W = Math.max(4, Math.round(w * this.scale)), H = Math.max(4, Math.round(h * this.scale));
-    for (const k in this.rt) this.rt[k].setSize(W, H);
+    // Fresh targets rather than setSize: resizing multi-attachment float
+    // targets in place proved very slow on some drivers (SwiftShader).
+    for (const k in this.rt) { this.rt[k].dispose(); this.rt[k] = this.mk(W, H); }
     this.size = new THREE.Vector2(W, H);
     this.out = new THREE.Vector2(w, h);
   }

@@ -56,6 +56,10 @@ export class Cytoplasm {
       // Streaming runs about twice as fast as the front advances.
       const v = 52 * pod.s * w * core * smoothstep(0, 30, m);
       vx += (ex / m) * v; vy += (ey / m) * v;
+      // Fountain return: near the tip, cytoplasm that reaches the cortex turns
+      // to gel and is left behind as the tip moves on (here: drifts back).
+      const back = 22 * pod.s * w * (1 - core) * (1 - smoothstep(20, 90, m));
+      vx -= (ex / m) * back; vy -= (ey / m) * back;
     }
     if (body.spread > 0.02) {
       const ex = x - body.cx, ey = y - body.cy;
@@ -108,7 +112,7 @@ export class Cytoplasm {
       const h = gc * 0.5;
       const ddx = sampleDens(x + h, y) - sampleDens(x - h, y);
       const ddy = sampleDens(x, y + h) - sampleDens(x, y - h);
-      vx -= (ddx / mean) * 9; vy -= (ddy / mean) * 9;
+      vx -= (ddx / mean) * 22; vy -= (ddy / mean) * 22;
       // Brownian and saltatory jitter.
       if (this.brownian !== false) { vx += (r() - 0.5) * 30; vy += (r() - 0.5) * 30; }
       x += vx * dt; y += vy * dt;

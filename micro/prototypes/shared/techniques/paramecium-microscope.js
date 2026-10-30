@@ -423,7 +423,7 @@ export function createOptics(renderer) {
           vec3 bg = vec3(0.47, 0.475, 0.47);
           if (uHasPlate * uPlateOn > 0.5) bg = texture(uPlate, plUv).rgb;
           float v = p - 0.82 * uHalo * L.r;
-          float I = mix(exp(-1.1 * v), 1.0 - 0.7 * tanh(0.9 * v), 0.5);
+          float I = mix(exp(-0.8 * v), 1.0 - 0.65 * tanh(0.65 * v), 0.5);
           col = bg * I * exp(-A * 0.3) * (1.0 - 0.12 * min(sc, 3.0));
         } else if (m == 2) {
           // Brightfield (Köhler, condenser stopped down a little): pale, warm, faint.

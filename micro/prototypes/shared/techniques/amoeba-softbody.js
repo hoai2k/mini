@@ -24,6 +24,7 @@ import { SdfGrid } from './amoeba-sdfgrid.js';
 
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 function wrapAngle(a) { while (a > Math.PI) a -= TAU; while (a < -Math.PI) a += TAU; return a; }
 function segDist2(px, py, ax, ay, bx, by, out) {
   const ex = bx - ax, ey = by - ay, l2 = ex * ex + ey * ey;
@@ -50,13 +51,15 @@ export const P = {
   R0: 172, // µm, radius of the disc with the starting area (≈ 9.3e4 µm²)
   vPro: 30, // µm/s (game time) pseudopod advance at full stick
   vBoost: 16, // extra with RT
-  sigma: 4.6, // tip window, in nodes
-  win: 12,
-  kN: 5.5, // 1/s, cortical tension (normal part of the Laplacian)
+  sigma: 3.0, // tip window, in nodes
+  win: 8,
+  capR: 30, // µm, half-width of a pseudopod's advancing cap
+  kN: 4, // 1/s, cortical tension (normal part of the Laplacian)
   kT: 26, // 1/s, tangential spacing
   dMin: 9, // µm, self-contact
   vClose: 15, // µm/s, rims closing over prey
   vRetract: 9, // µm/s, a released pseudopod drawn back
+  vRear: 22, // µm/s, uroid contraction at full drive
 };
 
 export class Pod {
@@ -85,7 +88,7 @@ export class Body {
     this.A0 = Math.PI * P.R0 * P.R0;
     this.Abase = this.A0;
     this.flat = 1; // thickness scale; spreading flattens the cell, so its footprint grows
-    this.pods = [new Pod(0), new Pod(1), new Pod(2, true), new Pod(3, true), new Pod(4, true)];
+    this.pods = [new Pod(0), new Pod(1), new Pod(2, true), new Pod(3, true), new Pod(4, true), new Pod(5, true)];
     this.pods.forEach((p, k) => { if (p.idle) p.life = k - 1.5; }); // stagger the idle pseudopods
     this.cx = x0; this.cy = y0;
     this.fx = 0; this.fy = 1; this.fm = 0; // front direction and its strength
@@ -127,10 +130,11 @@ export class Body {
   /** The membrane node furthest out along (dx, dy), kept away from another pod's tip. */
   pickTip(dx, dy, avoid = -1) {
     let best = 0, bv = -Infinity;
+    const others = avoid >= 0 ? [avoid] : this.pods.filter((p) => p.s > 0.1).map((p) => p.tip);
     for (let i = 0; i < N; i++) {
       let v = (this.x[i] - this.cx) * dx + (this.y[i] - this.cy) * dy;
-      if (avoid >= 0) {
-        const r = Math.min((i - avoid + N) % N, (avoid - i + N) % N);
+      for (const a of others) {
+        const r = Math.min((i - a + N) % N, (a - i + N) % N);
         if (r < N / 9) v -= 400;
       }
       if (v > bv) { bv = v; best = i; }
@@ -179,7 +183,8 @@ export class Body {
         pod.dx = Math.cos(a); pod.dy = Math.sin(a);
         pod.tip = this.pickTip(pod.dx, pod.dy);
         pod.life = this.rand.range(8, 16);
-        pod.base = this.rand.range(0.35, 0.75);
+        pod.base = this.rand.range(0.45, 0.9);
+        pod.rad = this.rand.range(22, 34);
         pod.active = true;
       }
       // A resting Amoeba proteus is polypodial: a few pseudopods probe at once.
@@ -216,11 +221,21 @@ export class Body {
         pod.tip = best;
         const reach = (x[best] - this.cx) * pod.dx + (y[best] - this.cy) * pod.dy;
         const lim = clamp(1 - (reach - (req * 1.2 + 140)) / 90, 0, 1);
-        const v = (P.vPro + (pod.idle ? 0 : P.vBoost * (input.push || 0))) * pod.s * lim * (pod.idle ? 0.55 : 1);
-        for (let r = -P.win; r <= P.win; r++) {
-          const j = (pod.tip + r + N) % N;
-          const g = Math.exp(-(r / P.sigma) * (r / P.sigma));
-          let dxj = pod.dx + 0.32 * nx[j], dyj = pod.dy + 0.32 * ny[j];
+        const v = (P.vPro + (pod.idle ? 0 : P.vBoost * (input.push || 0))) * pod.s * lim * (pod.idle ? 0.7 : 1);
+        // A blunt cap of fixed width: membrane within the cap radius of the tip,
+        // facing the aimed direction, advances (flat-topped, so the pseudopod
+        // stays a roughly constant-width cylinder, as in A. proteus).
+        const R = pod.rad || P.capR;
+        const tx = x[pod.tip], ty = y[pod.tip];
+        for (let j = 0; j < N; j++) {
+          const ex = x[j] - tx, ey = y[j] - ty;
+          const d2 = ex * ex + ey * ey;
+          if (d2 > 4 * R * R) continue;
+          const f = 1 - smooth(R * 0.9, R * 1.9, Math.sqrt(d2));
+          const face = smooth(-0.35, 0.35, nx[j] * pod.dx + ny[j] * pod.dy);
+          const g = f * face;
+          if (g <= 0) continue;
+          const dxj = pod.dx + 0.12 * nx[j], dyj = pod.dy + 0.12 * ny[j];
           const m = Math.hypot(dxj, dyj) || 1;
           ddx[j] += (dxj / m) * v * g * dt;
           ddy[j] += (dyj / m) * v * g * dt;
@@ -250,6 +265,17 @@ export class Body {
       this.fy += (fy / fm - this.fy) * Math.min(1, dt * 1.5);
     }
     this.fm = fm;
+
+    // The rear cortex contracts while the cell protrudes, squeezing endoplasm
+    // forward (posterior contraction); the area projection sends it to the tips.
+    if (fm > 0.05 && this.opts.rearWeight) {
+      const ux = fx / fm, uy = fy / fm, k = P.vRear * Math.min(1, fm);
+      for (let i = 0; i < N; i++) {
+        const rear = Math.max(0, -(nx[i] * ux + ny[i] * uy));
+        const v = k * rear * rear * (1 - Math.min(1, G[i]));
+        ddx[i] -= nx[i] * v * dt; ddy[i] -= ny[i] * v * dt;
+      }
+    }
 
     // -- closing a food cup ----------------------------------------------------
     if (this.closing) {
@@ -331,9 +357,9 @@ export class Body {
         let wi;
         if (dA < 0) {
           const rear = Math.max(0, -(nx[i] * rx + ny[i] * ry));
-          wi = !this.opts.rearWeight ? 1 - 0.7 * g : 0.12 + (1 - g) * (0.35 + 1.6 * rear * rear) * (1 - 0.6 * this.spread) + 0.6 * this.spread;
+          wi = !this.opts.rearWeight ? 1 - 0.7 * g : 0.05 + (1 - g) * (0.35 + 1.6 * rear * rear) * (1 - 0.6 * this.spread) + 0.6 * this.spread;
         } else {
-          wi = 1 - 0.7 * g;
+          wi = this.opts.rearWeight ? 0.03 + 1.5 * g + 0.8 * this.spread : 1 - 0.7 * g;
         }
         this.w[i] = wi;
         sum += wi * this.len[i];

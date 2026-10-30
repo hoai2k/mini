@@ -95,7 +95,7 @@ void main() {
     col = base * (1. - 1.9 * ph - 0.25 * P.r) * mix(vec3(1.), T, 0.55);
     col += vec3(0.02) * uFocusK * lap * uTie;
   } else if (uMode < 2.5) {
-    float sc = length(grad) * 3.2 + abs(lap) * 0.9 + abs(P.r - Hb.r) * 0.55;
+    float sc = length(grad) * 2.4 + abs(lap) * 0.35 + abs(P.r - Hb.r) * 0.25;
     float bgs = length(bgn - 1.) * 0.6;
     vec3 tint = mix(vec3(0.85, 0.92, 1.), T * 1.4, 0.45);
     vec3 pig = (1. - T) * vec3(0.25, 0.3, 0.12);

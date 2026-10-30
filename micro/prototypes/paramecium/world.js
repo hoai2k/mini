@@ -300,7 +300,7 @@ export function createWorld(scene) {
     const { geo } = instancedQuads(n, iPos, iP);
     g.add(Object.assign(new THREE.Mesh(geo, pointsMaterial({ absorb: [0.01, 0.012, 0.02] })), { frustumCulled: false }));
     group.add(g);
-    const start = i === 0 ? new THREE.Vector3(-700, 300, 500) : new THREE.Vector3(900, 420, -700);
+    const start = i === 0 ? new THREE.Vector3(-1100, 300, 900) : new THREE.Vector3(1000, 420, -900);
     g.position.copy(start);
     didinia.push({ group: g, ring: rs, pos: start.clone(), dir: new THREE.Vector3(rand() - 0.5, 0, rand() - 0.5).normalize(), roll: 0, phase: 0,
       state: 'wander', stun: 0, turnT: 0, speed: 0, vel: new THREE.Vector3() });

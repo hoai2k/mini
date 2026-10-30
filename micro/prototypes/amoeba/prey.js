@@ -124,7 +124,7 @@ export class Prey {
       this.stateT -= dt;
       if (this.stateT <= 0) { this.state = 'swim'; this.speedK = 1.35; }
     }
-    this.wobPhase += sp.wobF * TAU * dt * (0.5 + 0.5 * Math.abs(speed) / sp.speed);
+    this.wobPhase += sp.wobF * TAU * dt * (0.5 + 0.5 * Math.min(1, Math.abs(speed) / (sp.speed || 1)));
     // Rotation about the long axis on a helical path shows as a side-to-side wobble.
     this.heading = this.th + sp.wob * Math.sin(this.wobPhase);
     this.x += Math.cos(this.heading) * speed * dt + this.vx * dt;

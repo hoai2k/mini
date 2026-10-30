@@ -90,8 +90,8 @@ void main() {
   vec3 c = texture2D(uCyto, (vW + uCytoOff) / uCytoTile).rgb;
   vec3 cod = -log(clamp(c / uCytoMean, 0.08, 4.));
   float e2 = endo * clear;
-  od += e2 * (vec3(0.085, 0.09, 0.15) + cod * 0.6);
-  phase += e2 * (0.08 + dot(cod, vec3(0.5)));
+  od += e2 * (vec3(0.12, 0.125, 0.2) + cod * 0.3);
+  phase += e2 * (0.08 + dot(cod, vec3(0.08)));
   // The uroid: the crumpled rear, denser and darker.
   float u = 1. - smoothstep(0., uUroid.z, distance(vW, uUroid.xy));
   od += u * endo * vec3(0.11, 0.12, 0.16) * (0.6 + 0.8 * fbm(vW * 0.08));

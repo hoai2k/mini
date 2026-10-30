@@ -177,7 +177,8 @@ export function createSwimmer(cell, world) {
         const tip = s.captor.tip;
         const dir = tmp.subVectors(s.axis, tip).normalize();
         const reel = HL * 0.95 * (1 - Math.min(1, s.captureT / 4) * 0.9);
-        s.axis.lerp(tmp.copy(tip).addScaledVector(dir, reel), 1 - Math.exp(-dt * 4));
+        const goal = tip.clone().addScaledVector(dir, reel);
+        s.axis.lerp(goal, 1 - Math.exp(-dt * 4));
       } else if (!s.inspect) {
         s.axis.addScaledVector(s.F, s.speed * dt).addScaledVector(flow, dt);
       }

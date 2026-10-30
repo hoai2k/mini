@@ -69,7 +69,7 @@ const view = { fieldStop: true, smoothHelix: true, mode: 0, kind: 'chase', obj: 
 // and the internal resolution steps down until frames keep up.
 const gl = renderer.getContext();
 // a software renderer (headless checks, blocklisted GPUs) starts small
-let renderScale = /SwiftShader|llvmpipe|Software/i.test(gl.getParameter(gl.RENDERER) + (gl.getExtension('WEBGL_debug_renderer_info') ? gl.getParameter(0x9246) : '')) ? 0.45 : 1;
+let renderScale = /SwiftShader|llvmpipe|Software/i.test(gl.getParameter(gl.RENDERER) + (gl.getExtension('WEBGL_debug_renderer_info') ? gl.getParameter(0x9246) : '')) ? 0.4 : 1;
 let fence = null, rendered = 0, renderClock = 0, renderFps = 60;
 function gpuBusy() {
   if (!fence) return false;

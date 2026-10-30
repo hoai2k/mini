@@ -19,7 +19,7 @@ export function createEncounters(scene, world, cell) {
   const CAP = 1600;
   const items = [];
   for (let i = 0; i < CAP; i++) items.push({ base: [0, -1e5, 0], normal: [0, 1, 0], dir: [0, 0, 0], length: 1, width: 0.7, phase: -100, kind: KIND.THREAD });
-  const threads = createStrands(items, { segs: 2, dn: 0.06, scatter: 1.4 });
+  const threads = createStrands(items, { segs: 2, dn: 0.06, scatter: 3.0 });
   scene.add(threads.mesh);
   let head = 0;
 
@@ -32,14 +32,14 @@ export function createEncounters(scene, world, cell) {
     for (let tries = 0; tries < 6000 && n < 240; tries++) {
       const sm = samples[(Math.random() * samples.length) | 0];
       nrmW.fromArray(sm.n).applyQuaternion(state.quat);
-      if (nrmW.dot(toward) < 0.55) continue;
+      if (nrmW.dot(toward) < 0.3) continue;
       surfW.fromArray(sm.p).applyQuaternion(state.quat).add(state.center);
       const i = head; head = (head + 1) % CAP;
       A.iBase.array.set([surfW.x, surfW.y, surfW.z], i * 3);
       A.iNorm.array.set([nrmW.x, nrmW.y, nrmW.z], i * 3);
       A.iDir.array.set([flow.x / 6, flow.y / 6, flow.z / 6], i * 3);
-      // extruded shafts are ≈20–40 µm; drawn 0.7 µm wide (really ≈0.1–0.2 µm)
-      A.iP.array.set([20 + Math.random() * 20, 0.7, t + Math.random() * 0.02, KIND.THREAD], i * 4);
+      // extruded shafts are ≈20–40 µm; drawn 1.2 µm wide (really ≈0.1–0.2 µm)
+      A.iP.array.set([20 + Math.random() * 20, 1.2, t + Math.random() * 0.02, KIND.THREAD], i * 4);
       n++;
     }
     for (const a of Object.values(A)) a.needsUpdate = true;
