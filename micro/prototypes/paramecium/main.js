@@ -110,7 +110,7 @@ function updateCameras(dt, s) {
     const dy = Math.atan2(Math.sin(s.yaw - view.camYaw), Math.cos(s.yaw - view.camYaw));
     view.camYaw += dy * (1 - Math.exp(-dt * 3.5));
     view.camPitch += (s.pitch - view.camPitch) * (1 - Math.exp(-dt * 3));
-    const yaw = view.camYaw + view.orbitYaw, pitch = Math.max(-1.3, Math.min(1.3, view.camPitch * 0.7 + view.orbitPitch));
+    const yaw = view.camYaw + view.orbitYaw, pitch = Math.max(-1.3, Math.min(1.3, view.camPitch * 0.35 + view.orbitPitch));
     const back = new THREE.Vector3(Math.cos(pitch) * Math.cos(yaw), Math.sin(pitch), -Math.cos(pitch) * Math.sin(yaw));
     const target = debug.inspect ? s.center : view.camAxis;
     if (!view.smoothHelix) { view.camYaw = Math.atan2(-s.T.z, s.T.x); view.camPitch = Math.asin(Math.max(-1, Math.min(1, s.T.y))); }
