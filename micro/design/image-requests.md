@@ -12,7 +12,7 @@ Artwork for the prototypes in `micro/prototypes/`. Generated from `source/build_
 
 ## Status
 
-4 requested, 14 delivered, 18 in total.
+0 requested, 18 delivered, 18 in total.
 
 ## Launcher cards
 
@@ -96,7 +96,7 @@ Textures for the scanning-electron-microscope mite prototype. The moss, grains a
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** Detail texture on the moss leaf blades the mite walks over.
 - **Stand-in until delivered:** Procedural elongated cell pattern with bright cell walls.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Moss habitat structure; use leaf architecture as environmental reference.](../research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
   - [SEM of an animal prepared from the active state; not live in-chamber footage.](../research/assets/references/tardigrade-sem.png) · Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012), CC BY 2.5 · [source](https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png)
@@ -113,7 +113,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** The ground plane between moss stems.
 - **Stand-in until delivered:** Procedural grains and noise.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Marine seagrass biofilm SEM figure: matrix and surface-reference analogue, not freshwater habitat documentation.](../research/assets/references/biofilm-sem.jpg) · Timo Kohn, Rast, P., Kallscheuer, N., Wiegand, S., Boedeker, C., Jetten, M.S., Jeske, O., Vollmers, J., Kaster, A.K., Rohde, M. and Jogler, M., CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Electron_microscopic_analysis_of_seagrass_biofilms.jpg)
   - [Moss habitat structure; use leaf architecture as environmental reference.](../research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
@@ -165,7 +165,7 @@ Images for the tardigrade climbing prototype, seen through a DIC-style wet mount
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** Surface of the leaf the tardigrade climbs on.
 - **Stand-in until delivered:** Procedural cell walls with directional relief.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Moss habitat structure; use leaf architecture as environmental reference.](../research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
   - [Light-microscope photograph; phone-camera filtering is part of the source image.](../research/assets/references/tardigrade-light.png) · Dorathyexplorer, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png)
@@ -181,7 +181,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** A second leaf type, with big water-holding cells and pores.
 - **Stand-in until delivered:** Procedural large cells with fibril bands.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Moss habitat structure; use leaf architecture as environmental reference.](../research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
   - Concept board (mood only): [`02-waterfilm.webp`](../research/assets/concepts/02-waterfilm.webp)

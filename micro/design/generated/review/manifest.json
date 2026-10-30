@@ -4,51 +4,55 @@
     "name": "SEM moss leaf surface",
     "candidate": "sem-moss-leaf.webp",
     "requested_file": "micro/prototypes/assets/mite/sem-moss-leaf.webp",
-    "status": "awaiting seam correction",
+    "status": "earlier candidate; finished texture delivered",
     "sha256": "f2c7bd10fa095abf5a2939e78f112624bb422f1e8b41e1007cb6677f5bd9e6af",
     "prompt": "Use case: precise-object-edit. The supplied image is the texture edit target. Repair its wrapping seams for use as a repeatable game texture. Preserve its microscope look, scale, grey or restrained green palette and overall density. The current edge cuts do not connect when placed in a2x2repeat. Re-render the surface as a single continuous periodic tile: material exiting the left edge enters the right at the same height and shape, and material leaving the top enters the bottom at the same horizontal position and shape. All four corners must meet. Use a regular periodic lattice of slender rhomboid moss cells in parallel vertical columns. Precisely repeat the phase of cell-wall positions at opposite edges. Uniform exposure, no vignette, no frame, no faded border and no visual grid lines superimposed. Texture fills every pixel. Output one square2048\u00d72048 texture, not a tiled preview or contact sheet. No creatures, labels, symbols, scale bars, or text. Scientific appearance follows this original brief: Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Scanning-electron-microscope look: greyscale secondary-electron image, bright edges where surfaces tilt away from the detector, soft dark crevices, very deep focus, crisp tactile surface detail, slight fine grain, no colour. The dried surface of a moss leaf (Bryum or Sphagnum-like lamina) at about 300 \u00b5m across: long narrow rhomboid cells in parallel rows, each cell slightly sunken with raised cell-wall ridges between them, occasional papillae and a few scattered bacteria and fungal spores. The cell rows run vertically in the image.",
     "reference_ids": [
       "moss",
       "tardigrade-sem",
       "biofilm-sem"
-    ]
+    ],
+    "finished_file": "micro/prototypes/assets/mite/sem-moss-leaf.webp"
   },
   {
     "id": "MP-M02",
     "name": "SEM litter and mineral grains",
     "candidate": "sem-litter.webp",
     "requested_file": "micro/prototypes/assets/mite/sem-litter.webp",
-    "status": "awaiting seam correction",
+    "status": "earlier candidate; finished texture delivered",
     "sha256": "08585d4e3635aac98d7dbc0a0f0e7583212aca9ebf0e142e498212f1ff333a22",
     "prompt": "Use case: precise-object-edit. The supplied image is the texture edit target. Repair its wrapping seams for use as a repeatable game texture. Preserve its microscope look, scale, grey or restrained green palette and overall density. The current edge cuts do not connect when placed in a2x2repeat. Re-render the surface as a single continuous periodic tile: material exiting the left edge enters the right at the same height and shape, and material leaving the top enters the bottom at the same horizontal position and shape. All four corners must meet. Keep the entire soil surface evenly textured with small grains, hyphae and tiny spores. No broad dark regions; no large edge-crossing dominant leaf. Uniform exposure, no vignette, no frame, no faded border and no visual grid lines superimposed. Texture fills every pixel. Output one square2048\u00d72048 texture, not a tiled preview or contact sheet. No creatures, labels, symbols, scale bars, or text. Scientific appearance follows this original brief: Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Scanning-electron-microscope look: greyscale secondary-electron image, bright edges where surfaces tilt away from the detector, soft dark crevices, very deep focus, crisp tactile surface detail, slight fine grain, no colour. Soil and leaf litter at about 2 mm across: angular quartz and clay mineral grains from 20 to 200 \u00b5m, flakes of decomposing leaf with visible cell outlines, a loose net of fungal hyphae 3 to 5 \u00b5m thick draped between grains, a few round fungal spores and pollen grains.",
     "reference_ids": [
       "biofilm-sem",
       "moss"
-    ]
+    ],
+    "finished_file": "micro/prototypes/assets/mite/sem-litter.webp"
   },
   {
     "id": "MP-T01",
     "name": "Moss lamina cells (DIC)",
     "candidate": "lamina-dic.webp",
     "requested_file": "micro/prototypes/assets/tardigrade/lamina-dic.webp",
-    "status": "awaiting seam correction",
+    "status": "earlier candidate; finished texture delivered",
     "sha256": "5832badded1bd5d34b15d617b188603f1b56061449a56cc8f5434f3b23afd59f",
     "prompt": "Use case: precise-object-edit. The supplied image is the texture edit target. Repair its wrapping seams for use as a repeatable game texture. Preserve its microscope look, scale, grey or restrained green palette and overall density. The current edge cuts do not connect when placed in a2x2repeat. Re-render the surface as a single continuous periodic tile: material exiting the left edge enters the right at the same height and shape, and material leaving the top enters the bottom at the same horizontal position and shape. All four corners must meet. Use a regular periodic lattice of moss cells in vertical columns. All cell-wall rows must continue smoothly across the top-bottom join; column spacing and wall positions must match across the left-right join. Preserve the specific moss type: long narrow lamina cells with a few green chloroplasts. Uniform exposure, no vignette, no frame, no faded border and no visual grid lines superimposed. Texture fills every pixel. Output one square2048\u00d72048 texture, not a tiled preview or contact sheet. No creatures, labels, symbols, scale bars, or text. Scientific appearance follows this original brief: Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Differential-interference-contrast (Nomarski) microscope look: smooth grey background, transparent structures rendered with directional pseudo-relief (light on one side, dark on the other, the same direction everywhere), gentle colourless tones with at most a faint amber cast, shallow depth of field. A single-cell-thick moss leaf lamina at about 400 \u00b5m across: long rectangular to rhomboid cells 15 to 25 \u00b5m wide and 60 to 120 \u00b5m long in parallel rows running vertically, thick bright cell walls, each cell holding a few lens-shaped green chloroplasts pressed against the wall. Faint colour only in the chloroplasts.",
     "reference_ids": [
       "moss",
       "tardigrade-light"
-    ]
+    ],
+    "finished_file": "micro/prototypes/assets/tardigrade/lamina-dic.webp"
   },
   {
     "id": "MP-T02",
     "name": "Sphagnum hyaline cells (DIC)",
     "candidate": "sphagnum-dic.webp",
     "requested_file": "micro/prototypes/assets/tardigrade/sphagnum-dic.webp",
-    "status": "awaiting seam correction",
+    "status": "earlier candidate; finished texture delivered",
     "sha256": "a8873c2b89c2dd2f7ea9e4290cb12484824db0bcb6a140348ed5ec76522c613a",
     "prompt": "Use case: precise-object-edit. The supplied image is the texture edit target. Repair its wrapping seams for use as a repeatable game texture. Preserve its microscope look, scale, grey or restrained green palette and overall density. The current edge cuts do not connect when placed in a2x2repeat. Re-render the surface as a single continuous periodic tile: material exiting the left edge enters the right at the same height and shape, and material leaving the top enters the bottom at the same horizontal position and shape. All four corners must meet. Use a regular periodic lattice of moss cells in vertical columns. All cell-wall rows must continue smoothly across the top-bottom join; column spacing and wall positions must match across the left-right join. Preserve the specific moss type: empty hyaline cells with fibril bands, small pores and narrow green connecting cells. Uniform exposure, no vignette, no frame, no faded border and no visual grid lines superimposed. Texture fills every pixel. Output one square2048\u00d72048 texture, not a tiled preview or contact sheet. No creatures, labels, symbols, scale bars, or text. Scientific appearance follows this original brief: Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Differential-interference-contrast (Nomarski) microscope look: smooth grey background, transparent structures rendered with directional pseudo-relief (light on one side, dark on the other, the same direction everywhere), gentle colourless tones with at most a faint amber cast, shallow depth of field. A Sphagnum leaf at about 400 \u00b5m across: large empty hyaline cells with spiral fibril reinforcing bands and round pores, framed by a network of narrow green chlorophyllose cells between them, as in the classic Sphagnum leaf micrograph.",
     "reference_ids": [
       "moss"
-    ]
+    ],
+    "finished_file": "micro/prototypes/assets/tardigrade/sphagnum-dic.webp"
   }
 ]
