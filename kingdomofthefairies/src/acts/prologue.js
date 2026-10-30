@@ -12,7 +12,7 @@
 //   shield and enchanted sword she gives him, lying between them, each worn
 //   as a badge until all three turn him into the armoured prince. He kneels
 //   while she goes off to the left, up the stairs, and then goes to his ship
-//   the same way.
+//   off either side.
 // The fire it drops burns on: leap it, or each touch costs one of three
 // lanterns of health; at none the chase starts again. B skips a scene.
 // Headless: drawing is in prologue-art.js.
@@ -54,14 +54,14 @@ export const CHARIOT_Y = 165;
 export const BOUND_X = 1010;
 export const ARMS = [{ id: 'helmet', x: 820 }, { id: 'shield', x: 640 }, { id: 'sword', x: 460 }];
 export const AURORA = { from: -110, at: 250, to: -140 };   // her glide on, where she casts, and off
-export const EXIT_X = 50;     // the way out of the armoury, once armed: up the stairs at the left
+export const EXIT_X = [50, 1180];   // the ways out of the armoury, once armed: up the stairs at the left, or off at the right
 export const WIGGLES = 4;     // pulls against the cords: any button or push of the stick
 // bind: the witch's binding; free: Aurora glides on (on), casts (cast: the
 // cords break) and the scene moves on; knighted: the last badge settles
 // (badge), he is armoured at `armed` and kneels while she glides off (from
 // `leave`, taking `off`), and stands again at `risen`.
 export const T = {
-  defeat: 1.4, curse: 6.6, escape: 2.6, bind: 1.8, strained: 0.5, free: 2.3, on: 1.2, cast: 1.9,
+  defeat: 1.4, curse: 6.6, escape: 1.1, bind: 1.8, strained: 0.5, free: 2.3, on: 1.2, cast: 1.9,
   badge: 1.75, armed: 3.85, leave: 4.5, off: 1.5, risen: 6.1, iris: 1.3, fade: 0.6,
 };
 const ORDER = ['court', 'curse', 'rampart', 'escape', 'bind', 'free', 'armoury', 'knighted', 'iris'];
@@ -119,12 +119,14 @@ export default {
       walk(st, dt, input.moveX || 0, input, { x1: AZURINE_X - 50 });
       const was = st.phaseT - dt, at = (q) => was < q && st.phaseT >= q;
       if (at(ABDUCT.swoop)) st.events.push({ type: 'witchSwoop', sound: 'witchBreath', gain: 0.7 });
-      if (at(ABDUCT.seize)) st.events.push({ type: 'seized', sound: 'witchClaim' });
-      if (at(ABDUCT.off + 0.3)) st.events.push({ type: 'carriedOff', sound: 'witchLaugh', gain: 0.8 });
+      if (at(ABDUCT.seize)) st.events.push({ type: 'seized', sound: 'fireRoar', gain: 0.5 });
+      // her cackle over the wind machine, as in the Crossing
+      if (at(ABDUCT.off)) st.events.push({ type: 'carriedOff', sound: 'windWarn' });
       if (st.phaseT >= T.curse) next(st);
     }
     else if (ph === 'rampart') rampart(st, dt, input);
-    else if (ph === 'escape') { walk(st, dt, input.moveX || 0, input, { leap: true, floor: rampartFloor, x0: 60, x1: RAMPART.w - 100 }); st.chariot.up += dt; if (st.phaseT >= T.escape) next(st); }
+    // at the door he runs on through it himself as the chariot climbs away
+    else if (ph === 'escape') { walk(st, dt, 1, {}, { floor: rampartFloor, x0: 60, x1: RAMPART.w - 100 }); st.chariot.up += dt; if (st.phaseT >= T.escape) next(st); }
     else if (ph === 'bind') bind(st, dt, input);
     else if (ph === 'free') {
       const was = st.phaseT - dt;
@@ -134,7 +136,7 @@ export default {
     }
     else if (ph === 'armoury') armoury(st, dt, input);
     else if (ph === 'knighted') knighted(st, dt, input);
-    else if (ph === 'iris') { walk(st, dt, -1, {}, { floor: ARM_FLOOR, x0: -200 }); if (st.phaseT >= T.iris) finish(st); }
+    else if (ph === 'iris') { walk(st, dt, st.exitSide || -1, {}, { floor: ARM_FLOOR, x0: -200, x1: 1480 }); if (st.phaseT >= T.iris) finish(st); }
   },
 
   hud: (st) => (st.phase === 'rampart' || st.phase === 'escape'
@@ -155,7 +157,7 @@ export default {
     if (e.type === 'carriedOff') return 'They carry Azurine away.';
     if (e.type === 'arm') return `The ${e.arm}.`;
     if (e.type === 'armed') return 'Armed for the rescue.';
-    if (e.type === 'toShip') return 'Go to your ship, up the stairs at the left.';
+    if (e.type === 'toShip') return 'Go to your ship.';
     return null;
   },
 
@@ -260,15 +262,15 @@ function armoury(st, dt, input) {
 }
 
 // The last badge settles, the three are drawn into him and he is armoured;
-// he kneels while Aurora glides off, then goes out to his ship, up the
-// stairs at the left.
+// he kneels while Aurora glides off, then goes out to his ship, off either
+// side.
 function knighted(st, dt, input) {
   const was = st.phaseT - dt;
   if (was < T.armed && st.phaseT >= T.armed) { st.armed = true; st.events.push({ type: 'armed', x: st.p.x, sound: 'lampLit' }); }
   if (was < T.risen && st.phaseT >= T.risen) st.events.push({ type: 'toShip' });
   if (st.phaseT < T.risen) { st.p.vx = 0; return; }
-  walk(st, dt, input.moveX || 0, input, { floor: ARM_FLOOR, x0: -100, x1: 1200 });
-  if (st.p.x <= EXIT_X) next(st);
+  walk(st, dt, input.moveX || 0, input, { floor: ARM_FLOOR, x0: -100, x1: 1400 });
+  if (st.p.x <= EXIT_X[0] || st.p.x >= EXIT_X[1]) { st.exitSide = st.p.x <= EXIT_X[0] ? -1 : 1; next(st); }
 }
 
 function enter(st, phase) {

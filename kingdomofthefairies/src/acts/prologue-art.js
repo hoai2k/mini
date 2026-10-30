@@ -55,8 +55,9 @@ export function draw(k, st, t) {
 }
 
 export function drawOver(k, st) {
-  if (st.phase === 'iris') k.iris(120, 460, 820 * (1 - easeInOut(st.phaseT / T.iris)));
-  if (st.status === 'won') k.iris(120, 460, 0);
+  const ix = st.exitSide > 0 ? 1160 : 120;
+  if (st.phase === 'iris') k.iris(ix, 460, 820 * (1 - easeInOut(st.phaseT / T.iris)));
+  if (st.status === 'won') k.iris(ix, 460, 0);
 }
 
 export function onEvent(k, e, st) {
@@ -166,6 +167,10 @@ function curse(k, st, t) {
 // torches; they seize her, flash of fire, and bear her up and away over the
 // right of the stage, the witch leading, toward the rampart.
 const DEMON_S = 0.78;
+// Their raised hands in the carrying poses (F23): the top of the 260 x 360
+// art, this far from its centre (art px); she rests on them, at her shoulders
+// and her knees (GRIP: stage px from her centre, her head to the left).
+const DEMON_HANDS = { 'demon-red-carry': 31, 'demon-teal-carry': -37 }, GRIP = [-70, 52];
 function abduction(k, st, t) {
   const c = k.c, tt = st.phaseT, A = ABDUCT;
   if (tt < A.swoon) return;
@@ -189,7 +194,7 @@ function abduction(k, st, t) {
     c.restore();
   }
   if (sw > (swoonArt ? 0 : 0.6)) {
-    c.save(); c.globalAlpha = swoonArt ? clamp(sw / 0.6, 0, 1) : clamp((sw - 0.6) / 0.4, 0, 1); c.translate(az.x, az.y + 4); c.rotate(-u * 0.25 + Math.sin(t * 3) * 0.03 * lift);
+    c.save(); c.globalAlpha = swoonArt ? clamp(sw / 0.6, 0, 1) : clamp((sw - 0.6) / 0.4, 0, 1); c.translate(az.x, az.y + 4); c.rotate(k.img('demon-red-carry') ? Math.sin(t * 3) * 0.015 * lift : -u * 0.25 + Math.sin(t * 3) * 0.03 * lift);
     if (!k.asset('azurine-asleep', 0, 0, 230, 102)) { c.fillStyle = k.col('#c9d8ee'); c.fillRect(-100, -30, 200, 30); }
     c.restore();
   }
@@ -198,13 +203,20 @@ function abduction(k, st, t) {
   const run = easeOut(clamp((tt - A.swoop) / (A.seize - A.swoop), 0, 1));
   const demons = [['demon-red', 1330, AZURINE_X - 105], ['demon-teal', 1420, AZURINE_X + 100]];
   demons.forEach(([id, x0, x1], i) => {
-    const x = lerp(x0, x1, run) + ox, by = FLOOR + 8 - lift * 70 + oy;
+    let x = lerp(x0, x1, run) + ox, by = FLOOR + 8 - lift * 70 + oy;
     if (tt < A.swoop) return;
-    // flying with her held up (F23), or running figures tilted under her
+    // flying with her held up on their hands (F23), or running figures
+    // tilted under her
     const carry = lift > 0.3 && k.img(id + '-carry');
-    c.save(); c.translate(x, by); c.rotate(carry ? -u * 0.1 : lift * (i ? 0.18 : -0.18) - u * 0.2);
+    if (carry) {
+      // the hands' height above the feet: the art's full height at the drawn scale
+      const sc = Math.min((FIG.h * DEMON_S) / 360, (1.6 * FIG.w * DEMON_S) / 260);
+      x = az.x + GRIP[i] - DEMON_HANDS[id + '-carry'] * sc;
+      by = az.y - 28 + 360 * sc + Math.sin(t * 6 + i) * 2;
+    }
+    c.save(); c.translate(x, by); c.rotate(carry ? 0 : lift * (i ? 0.18 : -0.18) - u * 0.2);
     // (both carrying poses are painted facing her side: red right, teal left)
-    figure(k, carry ? id + '-carry' : id, 0, Math.abs(Math.sin(t * 9 + i)) * -6 * (1 - lift), t + i, DEMON_S, i && !carry ? -1 : 1);
+    figure(k, carry ? id + '-carry' : id, 0, carry ? 0 : Math.abs(Math.sin(t * 9 + i)) * -6 * (1 - lift), t + i, DEMON_S, i && !carry ? -1 : 1);
     c.restore();
   });
   // the witch, flying across the hall to hover over the princess, then off
@@ -236,7 +248,7 @@ function rampartScene(k, st, t) {
     flame(k, x, rampartFloor(f.x) + 4, 0.75, t + f.x);   // it burns on
   }
   // the chariot of fire, with her demons and Azurine asleep
-  const up = st.phase === 'escape' ? easeOut(Math.min(1, ch.up / 2)) : 0;
+  const up = st.phase === 'escape' ? easeOut(Math.min(1, ch.up / T.escape)) : 0;
   chariot(k, ch.x - cx + up * 300, ch.y - up * 420, t);
   prince(k, st, t, cx);
 }

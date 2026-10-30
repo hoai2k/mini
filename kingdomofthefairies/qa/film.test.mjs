@@ -105,6 +105,12 @@ test('prologue: bound, he struggles left and right before Aurora frees him; his 
   assert.equal(st.p.x, ARMS[2].x, 'he kneels while Aurora leaves');
   run(prologue, st, 8, () => ({ moveX: -1, beat: 0 }));
   assert.equal(st.status, 'won', 'out at the left, after Aurora');
+  // or off at the right: either side finishes the scene
+  const s3 = prologue.create({ from: { scene: 2 } });
+  Object.assign(s3, { phase: 'knighted', phaseT: PRO_T.risen, arms: ARMS.map((a) => a.id), armed: true });
+  run(prologue, s3, 8, () => ({ moveX: 1, beat: 0 }));
+  assert.equal(s3.status, 'won', 'out at the right');
+  assert.equal(s3.exitSide, 1);
 });
 
 test('prologue: a gift is taken with either hand, not by walking into her', () => {
