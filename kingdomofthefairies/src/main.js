@@ -90,10 +90,17 @@ syncSettingsUI();
 // ---------------------------------------------------------------- state
 let assets = { slots: {}, images: {} };
 let assetsLoaded = false;
-// How much of the art has arrived: the act card waits for it (up to
-// ART_WAIT s), so a scene never opens on its stand-ins.
+// How much of the art has arrived: the act card waits for all of it, so a
+// scene never opens on its stand-ins (an image that fails still counts as
+// arrived, so the wait always ends).
 let artLoaded = 0, artTotal = 0, artAll = false;
-const ART_WAIT = 12;
+// The title waits behind a spinner for its own art (the first wave and the
+// painted title), so it never shows the drawn stand-ins first.
+let firstArt = false, booted = false;
+// What the title draws (src/art.js scene: the sky, sea and frame); it opens
+// as soon as these are in, or the whole first wave if one of them fails.
+const TITLE_ART = ['proscenium', 'curtain-panel', 'footlight', 'sky-backdrop', 'moon-face', 'cloud', 'waves-back', 'waves-mid', 'waves-front'];
+const titleArt = () => firstArt || (assetsLoaded && TITLE_ART.every((id) => !(assets.slots[id]?.status === 'delivered') || assets.images[id]));
 // The song gates the curtain: 'ready', or given up on ('failed'/'none').
 const songStatus = () => (assetsLoaded ? audio.trackStatus() : { state: 'loading', progress: 0 });
 const songSettled = () => ['ready', 'failed', 'none'].includes(songStatus().state);
@@ -116,7 +123,7 @@ function touchArt(a) {
 }
 
 // Act I and the title load first; the other acts' art follows in the background.
-const FIRST_ART = ['logo', 'rotate-card', 'touch-stick-base', 'touch-stick-knob', 'touch-button', 'touch-pause', 'proscenium', 'sky-backdrop', 'moon-face', 'cloud', 'waves-back', 'waves-mid', 'waves-front',
+const FIRST_ART = ['logo', 'rotate-card', 'touch-stick-base', 'touch-stick-knob', 'touch-button', 'touch-pause', 'proscenium', 'curtain-panel', 'footlight', 'sky-backdrop', 'moon-face', 'cloud', 'waves-back', 'waves-mid', 'waves-front',
   'ship', 'witch-moonboat', 'rock', 'pearl', 'tea-leaf', 'keepsake-tea', 'lighthouse', 'lighthouse-lit', 'band-trio',
   'deck-set', 'reveller-yellow', 'reveller-shaggy', 'reveller-jester', 'reveller-lady', 'lantern-string', 'sea-spirit',
   'ship-wreck-bow', 'ship-wreck-stern', 'guitar-sinking', 'waterspout'];
@@ -139,6 +146,7 @@ loadAssets('assets/', { first: FIRST_ART, onImage: (id, im) => {
   assets = a;
   artTotal = Object.values(a.slots).filter((sl) => sl.status === 'delivered' && sl.file).length;
   a.all.then(() => { artAll = true; });
+  a.ready.then(() => { firstArt = true; });
   const song = a.audio?.song;
   if (song?.status === 'delivered' && song.file) audio.setTrack('assets/' + song.file, song.loopStart, song.loopEnd);
   const sfx = Object.fromEntries(Object.entries(a.sfx || {})
@@ -473,6 +481,14 @@ let last = performance.now(), heldLook = null;
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
+  // Until the title's art is in (and its painted title decoded, or given up
+  // on), only the spinner shows: no drawn stand-ins.
+  if (!booted) {
+    if (!(titleArt() && $('#logo').matches('.has-img, .no-img'))) { requestAnimationFrame(frame); return; }
+    booted = true;
+    document.body.classList.remove('booting');
+    $('#start').focus({ preventScroll: true });
+  }
   // Paused, the stage stands still: lanterns, hooks and water are drawn from
   // this clock, so it stops with the play beneath the pause menu.
   if (!(S.paused && S.mode === 'play')) S.t += dt;
@@ -586,7 +602,7 @@ function update(dt, i) {
     // Hold the card until the song can play and the art has arrived,
     // showing their progress.
     if (!songSettled()) { S.card.loading = songStatus().progress; S.readyT = 0; if (i.pause) pause(); return; }
-    if (!artAll && S.modeT < ART_WAIT) { S.card.loading = artTotal ? Math.min(0.99, artLoaded / artTotal) : 0; S.readyT = 0; if (i.pause) pause(); return; }
+    if (!artAll) { S.card.loading = artTotal ? Math.min(0.99, artLoaded / artTotal) : 0; S.readyT = 0; if (i.pause) pause(); return; }
     if (S.card.loading != null) { S.card.loading = null; announce('Ready.'); }
     S.readyT = (S.readyT || 0) + dt;
     if ((go && S.readyT > 0.4) || S.readyT > (S.card.body ? 12 : 6)) {

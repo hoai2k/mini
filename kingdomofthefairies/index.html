@@ -20,9 +20,11 @@
   <script>window.goatcounter = { path: function () { return location.pathname; } };</script>
   <script data-goatcounter="https://hoai.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
-<body>
+<body class="booting">
   <main id="app">
     <canvas id="stage" width="1280" height="720" aria-label="Kingdom of the Fairies stage"></canvas>
+    <!-- Shown until the title's art has loaded (src/main.js), in place of stand-ins -->
+    <div id="booting" role="status" aria-label="Loading"><span class="spinner"></span></div>
 
     <!-- Title -->
     <section id="title" class="layer" aria-labelledby="logo-text">
