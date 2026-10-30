@@ -651,44 +651,290 @@ add metaboly as a squeeze through gaps, keeping its volume constant.
 
 ---
 
-## Level 5 (optional epilogue): The film of bacteria
+## Level 5: The sediment and the biofilm (bacteria)
 
 ### 5.1 Scale and optics
 
-- **Protagonist:** *Bdellovibrio bacteriovorus*-type. Cells measured about
-  0.2–0.5 µm wide and 0.5–2.5 µm long [MicrobeWiki, via S65]; a reported
-  peak speed of 160 µm/s (one maximum, not typical) **[Unverified]**.
+- **Protagonist sizes:** magnetotactic bacteria are rods, spirilla and cocci
+  of a few µm **[Unverified range for bog forms]**. Their magnetosomes, the
+  magnetic crystals they build, are **35–120 nm** long and lie in one or more
+  chains [S89]. *Bdellovibrio* cells measured about 0.2–0.5 µm wide and
+  0.5–2.5 µm long [MicrobeWiki, via S65].
 - **Field:** 180 µm at 100× oil / 1000×. Resolution ≈ 0.2 µm, at NA 1.25–1.4
-  [S17]. Depth of field ≈ 0.2 µm [S18].
-- **What the microscope shows:** *Bdellovibrio* is about one or two resolution
-  units wide: a moving dot or short dash. Its entry into a prey cell shows
-  only as the prey's change of shape. The prey rod rounds into a sphere, the
-  **bdelloplast** [S65]. **Everything inside is beyond light microscopy.**
+  [S17]. Depth of field ≈ 0.2 µm [S18]. A 2 µm cell is about 1% of the field.
+- **What the light microscope shows, honestly:** a cell 0.5 µm wide is two or
+  three resolution units across: a **dash**. Flagella (the *Bdellovibrio*
+  filament is ~11–12 nm thick [S93]) and magnetosomes (35–120 nm [S89]) are
+  below the resolution limit and **cannot be seen**. What *is* visible is
+  **behaviour**: paths, speeds, reversals, a whole population turning when a
+  magnet is turned, and a prey rod rounding into a sphere (the bdelloplast)
+  [S65, S93].
+- **The look [Proposal]**, in three honest layers:
+  1. **Phase contrast as the play view.** Dark or bright dashes with halos;
+     the halos are optical artefacts [atlas visual-styles]. Swimming tracks
+     drawn as fading trails, the way bacterial motion is recorded in the lab
+     (Berg's tracking microscope followed single cells in 3D [S95]). The
+     trail is an overlay, labelled as one.
+  2. **Fluorescence as a "sense".** Cells as glowing points on black, as
+     with stained or labelled cells. It is useful inside a biofilm, where
+     phase contrast is a muddle. The glow is larger than the cell because
+     resolution does not change [S17]; colours are labels.
+  3. **Electron-microscope insets for anatomy.** The magnetosome chain, the
+     flagellum and the inside of a bdelloplast come from transmission EM and
+     cryo-electron tomography of fixed or frozen cells [S20, S21, S93]. Show
+     them as freeze-frame cards ("frozen cell, not live"), never as the live
+     camera.
+- **[Departure, if chosen]:** playing the level in an SEM-like 3D view would
+  show what no live microscope shows [S20]. If the owner wants that look, it
+  must be labelled on screen as an illustration.
 
-### 5.2 Protagonist and life cycle [Observed]
+### 5.2 Playable protagonists
 
-*Bdellovibrio* attacks Gram-negative bacteria. It enters the **periplasm**,
-the space between the prey's two membranes, sheds its flagellum, rounds the
-prey into a bdelloplast, grows as a filament inside it, then divides into new
-attack-phase cells that burst out [S65].
+| Candidate | Movement | Real abilities and costs | Sources |
+| --- | --- | --- | --- |
+| **Magnetotactic bacterium** (a *Magnetospirillum*-like spirillum or a coccus from the pool mud): **recommended** | Swims along magnetic field lines. Its magnetosome chain is a built-in **compass needle**: the crystals are in the single-domain size range, so the chain is a permanent magnet that turns the whole cell passively [S89]. It swims forward or backward along the line: in *Magnetospirillum gryphiswaldense*, aerotaxis decides when it **reverses**, and its swimming polarity depends on the same sensory pathway [S90]. | **[Observed]** *M. gryphiswaldense* swims at **20–60 µm/s** (mean 41.6 µm/s) in the lab; it reverses most often without oxygen (0.126 per second) and least at 5% oxygen (0.055 per second) [S90]. Magnetotactic cocci are faster, above 100 µm/s, and one two-bundled coccus swims faster than 500 µm/s [S90]. Magnetotactic bacteria navigate toward the **oxic–anoxic transition zone** of layered water and sediment [S89, S90]. Living cells occur in acidic peat soils at pH 4.3–5.7 [S91]. **Cost:** the field locks its heading. It cannot steer sideways, only choose forward or back. | S89, S90, S91 |
+| ***Bdellovibrio*** (the hunter's chapter) | A single sheathed polar flagellum drives fast swimming; on surfaces it **glides** slowly to scout for prey [S92]. | **[Observed]** Up to **160 µm/s** in strain HD100 (35 µm/s in the lab strain 109J), about 100 body lengths a second [S92]. Motility helps it find prey in liquid but is not needed to enter prey [S92]. It attaches with type IV pili and an **attachment plaque**, takes its flagellum into the prey's periplasm and breaks it down, enters through a sealed **portal**, rounds the prey into a **bdelloplast**, grows inside it and leaves as two or three progeny (in the minicells studied) [S93]. The cycle takes about four hours in the lab **[Unverified exact]**. It eats only **Gram-negative** bacteria [S94]. | S65, S92, S93, S94 |
 
-### 5.3 Enemies, environment and food
+**Recommendation [Proposal]:** play the magnetotactic bacterium as the main
+chapter: its magnetic "rail" and oxygen hunt are a movement idea no other
+level has. Offer *Bdellovibrio* as the second chapter, where the hunt is
+yours. Magnetotactic bacteria are Gram-negative, so a *Bdellovibrio* hunting
+one is plausible **[Unverified: no study of *Bdellovibrio* attacking
+magnetotactic bacteria was found]**.
 
-- **Threats:** grazing flagellates and ciliates, which eat bacteria
-  indiscriminately (the Level 3–4 creatures as giants); and running out of
-  prey. **[Unverified]** specific grazers in this bog.
-- **Environment:** the bacterial biofilm under the periphyton, with matrix,
-  channels and gradients [S16].
-- **Food:** the prey cell's contents, digested from inside [S65].
+### 5.3 Run and tumble: the control scheme
 
-### 5.4 Why this is an epilogue, not a level
+**[Observed, *E. coli*]** A bacterium with several flagella swims in
+**runs** of about 1 s, broken by **tumbles** of about 0.1 s that leave it
+pointing in a new, roughly random direction (on average ~60–70° away); run
+speed is ~20 µm/s, between ~10 and 30 µm/s depending on strain [S95]. During
+a run the flagellar motors turn counter-clockwise and the filaments form one
+bundle. A tumble starts when one or more motors switch to clockwise and their
+filaments leave the bundle; the switch is driven by the signalling protein
+CheY-P binding the motor [S95].
 
-The chain's honesty rule is: **zoom cannot create detail the optics cannot
-show** [S17]. A full action level at this scale would need an immersive,
-electron-microscope-like view **[Departure]**. **[Proposal]** Keep it to a
-short coda: the player directs one attack, the light-microscope view shows
-only the prey rounding, and a caption marks the limit of the microscope. That
-ends the chain on the point the atlas makes.
+**How the tumble bias encodes chemotaxis.** The cell cannot steer. It
+compares the attractant concentration now with a few seconds ago. When
+things improve, CheY-P falls, tumbles become rarer, and runs get longer; when
+things get worse, it tumbles at the normal rate. The result is a **biased
+random walk**: runs up the gradient last longer than runs down it [S95].
+
+**The control scheme [Proposal]:**
+
+- The cell runs on its own. **B (tumble)** throws a new random heading. The
+  skill is *when* to tumble, read from a gradient display (oxygen, food,
+  autoinducer), exactly the cell's own "decision".
+- **A (dash)** is a sprint run (see movement); **X** attaches or binds.
+- **For the magnetotactic protagonist:** "tumble" becomes **reverse**, and
+  the heading stays locked to the field line [S90]. The oxygen gradient is
+  vertical, so the puzzle is timing reversals to hold the transition zone.
+- **[Departure]** Run-and-tumble is *E. coli*'s scheme. Spirilla such as
+  *Magnetospirillum* run and reverse [S90], and *Bdellovibrio*'s search
+  pattern was not found **[Unverified]**. Any stick input that biases the new
+  heading after a tumble is a departure; offer a "purist" setting without it.
+
+### 5.4 Enemies and threats
+
+| Threat | Size | Mechanism | Evade or counter | Evidence |
+| --- | --- | --- | --- | --- |
+| **Protist grazers** (flagellates, ciliates: the earlier protagonists as giants) | 10–150 µm | Grazing is **size-selective**: medium-sized bacteria are eaten most, while filaments and microcolonies can be too big to swallow [S96]. Grazing mortality was lowest for large cells (>0.5 µm³) and for **small, highly motile** cells [S96]. *P. bursaria* sweeps bacteria into its oral groove [S27]. | **[Observed]** Speed protects: motile cells are grazed less [S96]. **[Proposal]** The oral current of a passing *P. bursaria* is a moving whirlpool; sprint across it. Join a microcolony to be too big. | S27, S96 |
+| **Amoeba food cups** | 10–760 µm | Pseudopods surround the prey [S05]. | **[Proposal]** A wall that closes slowly; outrun it in liquid, but not when stuck in the biofilm. | S05 |
+| ***Bdellovibrio*** (for the magnetotactic protagonist) | ~1 µm | Faster than you (up to 160 µm/s against your 20–60 µm/s) [S90, S92]. It collides, attaches with pili, builds the attachment plaque and enters [S93]. On surfaces it glides to scout [S92], so the biofilm is not a full refuge. | **[Proposal]** You cannot outrun it, so out-turn it: reverse at the last moment, or stay in moving water where it must swim to find you. Contact before the plaque forms is survivable **[Unverified]**. | S92, S93 |
+| **Phages** (Level 6 foreshadowed) | ~0.2 µm | They drift until they hit a receptor, then inject DNA [S99]. | **[Observed]** Defences are the cell's own: CRISPR and restriction-modification [S101, S102]. **[Proposal]** "Immunity cards" carried from past infections. | S99, S101, S102 |
+| **The wrong oxygen** | Habitat | Magnetotactic bacteria seek the transition zone; reversals depend on oxygen [S90]. | **[Proposal]** Too high or too low drains the cell; reversal timing holds the band. | S90 |
+
+### 5.5 Environments
+
+| Sub-habitat | Physical rules | Hazards |
+| --- | --- | --- |
+| **Mud surface of the hollow pool** | A vertical oxygen gradient: oxygen above, none a short way down. Field lines dip into the mud; the transition zone is the target [S89, S90]. | Grazers above, no oxygen below |
+| **Biofilm under the periphyton** | Matrix, channels, and gradients of oxygen and nutrients [S16]. Diffusion is slower inside. | Gliding *Bdellovibrio* [S92]; amoebae |
+| **Microcolony** | A clump of cells too large to graze [S96]. | Crowding; phage spread |
+| **Inside a bdelloplast** (*Bdellovibrio* chapter) | A rounded prey cell; the predator grows in its periplasm [S93]. Shown as an EM inset. | — |
+
+### 5.6 Food and resources
+
+- **Magnetotactic bacterium:** the right oxygen level, nutrients from the
+  sediment, and **iron** for its magnetosomes **[Unverified: metabolism
+  differs between groups and was not researched]**. **[Proposal]** A
+  "chain" meter: a cell with a weak chain aligns poorly.
+- ***Bdellovibrio*:** the prey cell's contents, digested from inside [S65,
+  S93].
+
+### 5.7 Biofilm by quorum sensing
+
+**[Observed]** Bacteria release small signal molecules, **autoinducers**. As
+the population grows, the signal builds up, and above a threshold the whole
+population changes gene expression [S97]. In *Pseudomonas aeruginosa*,
+biofilms formed **grazing-resistant microcolonies** when a flagellate grazer
+was present, and microcolonies and toxins together let the biofilm resist
+grazing [S96].
+
+**[Proposal]** A task: gather enough cells in one spot (the autoinducer
+display fills), then the colony switches to biofilm mode, a matrix that
+grazers cannot clear. **[Departure]** One cell "leading" the colony; real
+quorum sensing has no leader.
+
+### 5.8 Zoom transition to Level 6 (optional)
+
+- **The visible thing:** nothing, and that is the point. A host cell stops
+  swimming, swells and bursts; the particles that leave it are too small to
+  see.
+- **Handoff [Proposal]:** a caption marks the **end of light microscopy**
+  [S17]. The view changes style completely, to a frozen, grey cryo-EM image
+  that then gains colour as a molecular illustration. The player is one of
+  the released particles.
+
+### 5.9 Gameplay possibilities [Proposal]
+
+- **Gradients:** find and hold the oxic–anoxic band by timing reversals
+  (magnetotactic) or tumbles (run-and-tumble).
+- **Biofilm by quorum sensing:** build a colony big enough to resist grazers.
+- **The *Bdellovibrio* hunt:** as the magnetotactic bacterium, survive it;
+  as *Bdellovibrio*, hunt: sprint, collide, attach, enter, grow, burst.
+- **The grazer gauntlet:** a *P. bursaria* (Level 3's hero) passes overhead
+  as a whirlpool.
+- **Departures to label:** steering bias after a tumble, quorum sensing as a
+  player decision, any SEM-like play view.
+
+---
+
+## Level 6 (optional): The virus (bacteriophage)
+
+### 6.1 Scale and the look
+
+- **The protagonist:** a tailed phage modelled on **T4**: a prolate head
+  about **120 × 86 nm**, a contractile tail ~100–140 nm long (sources
+  differ), a hexagonal baseplate, and **six kinked long tail fibres of
+  ~160 nm** [S98]. Its genome is ~169 kbp [S98]: about 57 µm of DNA
+  (computed at 0.34 nm per base pair), some 500 times the head's length,
+  packed inside.
+- **The field:** one host cell, 1–2 µm: a wall ten to twenty times the
+  phage's length.
+- **No microscope view:** the best light microscope resolves ~0.2 µm [S17];
+  a phage head is ~0.1 µm. Real images of phages infecting cells come from
+  **cryo-electron tomography** of frozen cells: Hu et al. used it to catch T4
+  at successive stages of infection [S99], and Kaplan et al. to catch
+  *Bdellovibrio* [S93].
+- **The look [Proposal]:** a molecular illustration in the manner of David
+  Goodsell's watercolours (crowded, colour-coded molecules), grounded in the
+  shapes from cryo-EM. **[Departure]** Colour, continuous motion and the
+  uncrowded view are all invented; cryo-EM gives grey, frozen snapshots
+  [S99]. Label the level as an illustration.
+- **[Departure]** T4 infects *E. coli*. It stands in for a T4-like tailed
+  phage of a bog bacterium (perhaps the Level 5 hero). Phages of
+  magnetotactic bacteria were not researched **[Unverified]**.
+
+### 6.2 Movement: Brownian motion, not steering
+
+**[Observed]** A phage has no motor. It moves by diffusion until it touches a
+host [S100].
+
+- **Diffusion coefficient:** for T4, about **4 µm²/s** (2.4 × 10⁻⁶ cm² per
+  minute, from Stent 1963 as quoted in [S100]); a 1966 thesis quotes
+  8 µm²/s as the accepted value [S100]. **Illustrative check:** the
+  Stokes–Einstein relation D = kT / (6πηr) for a sphere of radius 50 nm in
+  water at 20 °C gives D ≈ 4.05 × 10⁻²¹ J / (6π × 1.0 × 10⁻³ Pa·s ×
+  5 × 10⁻⁸ m) ≈ **4.3 µm²/s**, in line with the measured value.
+- **Time to cross a distance** (mean-square displacement ⟨r²⟩ = 6Dt in three
+  dimensions, D = 4 µm²/s):
+
+  | Distance | Time | What it means |
+  | --- | --- | --- |
+  | 1 µm | ~0.04 s (~0.12 s along one axis) | Across a host cell: fast |
+  | 10 µm | ~4 s | To the next cell in a biofilm |
+  | 100 µm | ~7 min | Half the Level 5 field |
+  | 180 µm | ~22 min | The whole Level 5 field |
+
+  Diffusion is quick over short distances and hopeless over long ones, since
+  time grows with the square of distance.
+- **Orientation:** the rotational diffusion of the same 50 nm sphere,
+  D_r = kT / (8πηr³), is about 1.3 × 10³ rad²/s, so its orientation is
+  forgotten within about a millisecond (illustrative). The phage cannot hold
+  a heading, even for a moment.
+- **Encounter odds:** T-even phages adsorb with a rate constant of about
+  **2.4 × 10⁻⁹ ml/min** [S100]. The diffusion-limited estimate k = 4πRD
+  for a 1 µm target and D = 4 µm²/s gives about 3 × 10⁻⁹ ml/min, which
+  agrees. **So host density decides everything:** at 10⁶ host cells per
+  ml, the mean time to hit a host is about 1/(kN) ≈ 7 hours; at 10⁸ per ml,
+  about 4 minutes (illustrative). In a gel, T4 diffused more slowly
+  (apparent D 4.2 µm²/s, or 2.4 µm²/s with dead host cells in the gel)
+  [S100].
+- **On the cell surface:** before infection, most T4 long tail fibres are
+  folded back against the virion. Not all of them engage before the short
+  fibres bind, and the virion may **walk randomly across the cell surface**
+  to find a good site [S99].
+
+### 6.3 The infection [Observed, T4]
+
+1. **Reversible binding:** long tail fibres bind lipopolysaccharide or the
+   outer-membrane protein OmpC on *E. coli* [S99].
+2. **Surface walk:** fibres bind and let go as the virion moves [S99].
+3. **Commitment:** short tail fibres bind irreversibly; the baseplate changes
+   from a hexagon to a star; the **tail sheath contracts** and drives the
+   tail tube through the cell envelope to the inner membrane [S98, S99].
+4. **Injection:** the DNA moves into the cell. Membrane fusion does not need
+   the host's proton motive force, but moving the genome in does [S99].
+
+### 6.4 Enemies and hazards
+
+| Hazard | Mechanism | What the player can do | Evidence |
+| --- | --- | --- | --- |
+| **CRISPR-Cas** | An adaptive immune system: the host stores short pieces of past invaders' DNA (spacers) and cuts DNA that matches. Present in roughly 40% of bacterial and 85–90% of archaeal genomes (figures vary by dataset); new spacers are rarely acquired in most species [S101]. | **[Proposal]** A host with a matching spacer is a dead end. Progeny that differ at the target escape **[Unverified here: point-mutation escape is standard biology but was not sourced]**. | S101 |
+| **Restriction-modification** | The host cuts foreign DNA at short recognition sites and protects its own by methylation. R-M systems are widespread in bacterial genomes and nearly absent from phages [S102]. | **[Proposal]** The "passport": phage DNA copied in a host is marked with that host's methylation and passes the same kind of host next time **[Unverified here: host-controlled modification was not sourced]**. | S102 |
+| **Clay and particles** | Phages sorb to clay minerals, mainly by hydrophobic interaction; T-2 sorbed most among three phages tested, and hectorite most among the clays [S103]. | **[Observed]** Sorbed phages are partly **protected from UV**: free PBS1 lost about ten-fold infectivity in 5 minutes while clay-bound phage held steady from 1 to 10 minutes [S103]. **[Proposal]** A trap and a shelter. In a bog, peat and humic particles take clay's role **[Unverified]**. | S103 |
+| **UV** | Sunlight damages phage DNA. In humic lakes UV-B is absorbed within centimetres: 10% of surface UV-B remained at 1.5 cm in the most humic lake, against 55 cm in the clearest [S104]. | **[Proposal]** Depth is safety; the Level 0 surface film is the danger zone. | S104 |
+| **The wrong host** | No receptor, a dead cell, a cell already infected. | **[Proposal]** A wasted commitment: the irreversible bind is the level's one big decision. | S99 |
+
+### 6.5 Gameplay: tilting probabilities, not steering [Proposal]
+
+- **No steering, no dash.** The phage drifts. The screen shows **odds**
+  (an encounter-probability field, the host density, the UV depth), not a
+  direction arrow.
+- **B: fibres out or folded.** Extended fibres widen the capture zone but
+  stick to particles; folded fibres drift cleanly. **[Departure]** A real
+  phage does not choose; the fibres' state follows conditions.
+- **X: commit.** The irreversible bind and sheath contraction, then
+  injection. One use per particle.
+- **Lineage play:** a burst releases many particles. The player picks which
+  one to follow, trading CRISPR and R-M risks (immunity cards, methylation
+  passports) against host density.
+- **Departures to state on screen:** all agency (the phage makes no
+  decisions; the player's choices stand for chance); colour and continuous
+  motion in a cryo-EM-derived style; T4 standing in for a bog phage; and time
+  compression, since an encounter may take hours [S100].
+
+---
+
+## Movement: dash, attack and defence at every level
+
+The owner's rule: the game is **about movement**. Some encounters are
+escapes (run, block, tumble, fight back) and some are chases, so the dash
+(A) is the key verb, with attack/eat on X and defend on B
+(`micro/prototypes/CONTROLS.md`). Each dash is the creature's **fastest real
+move**, or a labelled stretch of one. Full detail, chase/flee dynamics and
+time scaling per level are in [`movement.md`](movement.md).
+
+| Level | Creature | Dash (A): the real fastest move | Attack / eat (X) | Defend / escape (B) |
+| --- | --- | --- | --- | --- |
+| 0 | *Podura aquatica* | **Furcula jump**: take-off ~1 m/s in ~1.7 ms (globular springtail) [S75]; a semiaquatic springtail ~0.7 m/s, up to 48 body lengths [S40, S75] | Graze the surface film [S74] | Hunker in the meniscus; resurface in its air layer [S74] |
+| 0 | *Stenus* (enemy) | **Skimming** at 400–750 mm/s (escape only) [S77] | **Labium harpoon**, out in 1–3 ms [S78] | — |
+| 1 | *Limnozetes* | **Scramble**: oribatids walk only ~0.1–5.7 cm/min in lab studies [S83] **[stretch]** | Chelicerae: graze; nip back **[Departure]** | Hunker; ptychoidy (box mite) [S39] |
+| 2 | Tardigrade | **Scramble**: 79–264 µm/s (mean 163 µm/s, ~0.5 body lengths/s), up to ~2 body lengths/s [S84] | Stylets pierce cells [S02] | Brace with claws; tun [S03] |
+| 3 | *P. bursaria* | **Trichocyst jump**: ~10 mm/s within 5 ms, decays in ~10 ms; hours to rearm [S85] | Oral current feeding [S27] | Avoiding reaction (reverse) [S08] |
+| 3 | *A. proteus* (giant) | **Pseudopod/bleb lunge**: streaming 0–3 µm/s [S86]; bleb bursts 10–20 µm/s in *Entamoeba* [S86] **[stretch]** | Food cup [S05] | Let go or egest **[Proposal]** |
+| 4 | *Trachelomonas* | **Flagellar sprint**: *Euglena* 50–100 µm/s [S105] **[Unverified for *Trachelomonas*]** | Photosynthesis (light) [S13] | The lorica [S34] |
+| 5 | Magnetotactic bacterium | **Run**: 20–60 µm/s; cocci >100, one >500 µm/s [S90] | Bind / attach | **Reverse** (tumble) [S90, S95] |
+| 5 | *Bdellovibrio* | **Run**: up to 160 µm/s, ~100 body lengths/s [S92] | **Attach and bore** [S93] | Tumble or glide away **[Unverified]** |
+| 6 | Phage | **None**: Brownian motion only, D ≈ 4 µm²/s [S100] | Commit and inject [S99] | Fibres folded or out **[Departure]** |
+
+**A cross-level finding:** in body lengths per second, the fastest movers are
+the smallest and the largest: *Stenus* skims at 80–150 body lengths/s [S77]
+and *Bdellovibrio* swims at ~100 [S92], while the mite and the tardigrade
+manage about two at most [S83, S84]. And the time scales run opposite ways:
+Level 0's duel (a 1–3 ms harpoon against a ~1.7 ms jump [S75, S78]) needs
+**slow motion**, while Levels 1 and 2 (walkers at a fraction of a body length
+per second) need **fast-forward**. Both are **[Departures]** to be stated.
 
 ---
 
@@ -698,28 +944,43 @@ ends the chain on the point the atlas makes.
 
 | Creature | Its level | Where it reappears | How it looks there |
 | --- | --- | --- | --- |
+| *Podura aquatica* (springtail) | 0 | **Level 1** | A 1.5 mm giant that lands without warning on the capitulum, five times the mite's length |
+| *Stenus* | 0 | **Level 1** | Legs and mandibles only, crossing a field smaller than the beetle |
 | *Limnozetes* mite | 1 | **Level 2**, same size as the tardigrade (~300 µm) | A dark, armoured walker crossing the film, a quiet reminder that L1→L2 changed the medium, not body size |
 | Tardigrade (protagonist) | 2 | **Level 3**, at the pool edge | A clawed, translucent giant (250–500 µm in a 0.9 mm field) |
 | *Milnesium* | 2 | **Level 3** | Up to 1.2 mm [S42]: it fills more than the whole field |
 | Bdelloid rotifer | 2 | **Level 4** | Its corona's current, a hazard from off-screen |
 | *Utricularia* bladder | 3 | **Level 2** (a dark shape beyond the leaf edge) and **Level 4** (inside) | 0.5–3 mm bladders [S52] |
-| *Amoeba proteus* | 3 (alt.) | **Level 4** | 160–760 µm [S29]: a moving wall |
-| *Paramecium bursaria* | 3 | **Level 4** | A huge, green, ciliated body, perhaps inside the trap |
+| *Amoeba proteus* | 3 (giant threat) | **Level 4** and **Level 5** | 160–760 µm [S29]: a moving wall at 400×; at 1000× only an edge of the field, its food cup a landscape |
+| *Paramecium bursaria* | 3 | **Level 4** and **Level 5** | A huge, green, ciliated body, perhaps inside the trap; at Level 5 its oral current is a whirlpool sweeping bacteria in [S27, S96] |
 | Chlorella symbionts (5–6 µm) | — | **Level 3** inside *P. bursaria*, **Level 4** free | The same algal type, seen at both scales [S27] |
 | Chytrids / fungi | 2–4 | Every wet level | A recurring kind of threat: a spore, an attachment, an injection |
+| *Bdellovibrio* | 5 | **Level 4** (as texture) | A fast dot in the biofilm, invisible as an individual at 400× |
+| The Level 5 bacterium | 5 | **Level 6** | The host: a wall 10–20 times the phage's length |
+| Phages | 6 | **Level 5** | Invisible; known only by their effect, a host that stops and bursts |
 
 ### Keeping one coherent habitat
 
-- **One place:** the Simmelried-type bog, with a gradient from **hummock**
-  (Level 1) through **lawn** (Level 2) to **hollow pool** (Level 3) and the
-  **periphyton and trap** (Level 4) [S26, S55, S68].
-- **One weather:** drying and rewetting carry across all levels: the dew in
-  Level 1, the retreating film in Level 2, the shrinking pond in Level 3, and
-  the trap's sealed fluid in Level 4 [S26].
-- **One light:** daylight from above. Level 1 shows it as reflected light;
-  Levels 2–4 show it as transmitted microscope light. **[Departure]** The
-  microscope's transmitted light is the observer's illumination, not the sun.
-  Light as a resource (Levels 3 and 4) should still be modelled as daylight.
+- **One place:** the Simmelried-type bog, with a gradient from the **pool's
+  surface film** (Level 0) and **hummock** (Level 1) through **lawn**
+  (Level 2) to **hollow pool** (Level 3), the **periphyton and trap**
+  (Level 4), and the **mud and biofilm** at the bottom (Level 5); Level 6's
+  phages are in the water throughout [S26, S55, S68, S79, S89].
+- **One weather:** drying and rewetting carry across all levels: rain on the
+  film in Level 0, the dew in Level 1, the retreating film in Level 2, the
+  shrinking pond in Level 3, and the trap's sealed fluid in Level 4 [S26].
+  Rain and drying also stir and expose the mud of Level 5 **[Proposal]**.
+- **One light:** daylight from above. Levels 0 and 1 show it as reflected
+  light; Levels 2–5 show it as transmitted microscope light (and Level 5 as
+  fluorescence too). **[Departure]** The microscope's light is the observer's
+  illumination, not the sun. Light as a resource (Levels 3 and 4) and as a
+  hazard (UV in Level 6, strongest at the Level 0 surface [S104]) should
+  still be modelled as daylight.
+- **One oxygen gradient:** oxygen from the air at the Level 0 surface, low in
+  the Level 4 trap [S54], and running out in the Level 5 mud, where the
+  magnetotactic bacteria hold the boundary [S89, S90].
+- **One rule for movement:** every level's dash is the creature's real
+  fastest move or a labelled stretch of it (see the Movement section).
 - **One cast:** every creature is either recorded at Simmelried by Kreutz or
   explicitly marked with the nearby site where it is recorded, or as
   **[Unverified]**.
@@ -743,12 +1004,33 @@ ends the chain on the point the atlas makes.
 7. ***Trachelomonas* in bladderwort traps:** euglenids are reported in trap
    fluid generally [S54], but not this genus specifically.
 8. **The *Trachelomonas* parasite:** Kreutz does not name the fungus.
-9. **Speeds.** Swimming and walking speeds for each protagonist were not
-   collected. They need sourced numbers before tuning, and the time
-   compression for each level must be stated.
+9. **Speeds.** Now collected for most creatures (see [`movement.md`](movement.md)).
+   Still missing: *Podura aquatica*'s own jump numbers (the figures are from
+   a globular and a semiaquatic relative [S40, S75]), *Limnozetes*'s walking
+   speed (only other oribatids [S83]), *Trachelomonas* (only *Euglena*
+   [S105]), the *A. proteus* bleb (only *Entamoeba* [S86]), *Didinium*, and
+   all predators of Levels 1–2. The time compression for each level must
+   still be stated.
 10. **Water-holding figures for Sphagnum** (90% between plants, 10% in
     hyaline cells) come from a search summary of an MDPI study and should be
     checked before they set film-thickness rules.
+11. **Level 0 predators at Simmelried:** *Stenus*, water striders, *Pirata*
+    and *Dolomedes* juveniles are bog creatures in general [S77–S81], but
+    their presence and diets at Simmelried were not checked. Whether water
+    striders take springtails regularly is unverified [S80].
+12. **Level 5 protagonist:** magnetotactic bacterium (recommended) or
+    *Bdellovibrio*? Neither is recorded at Simmelried [S91, S94]. Which
+    magnetotactic group (spirillum, coccus) fits a pH 5–6 pool?
+13. **Run-and-tumble as the Level 5 controls:** it is *E. coli*'s scheme
+    [S95]; the magnetotactic spirillum runs and reverses [S90]. Is "tumble
+    becomes reverse" acceptable, and should a stick bias on the new heading
+    be allowed at all?
+14. **Level 5's look:** phase contrast and fluorescence with EM insets, or an
+    SEM-like play view labelled as illustration?
+15. **Level 6:** keep it? If so, which phage stands in for a bog phage, and
+    is lineage play (choosing which progeny to follow) the right frame?
+16. **Phage hazards in a bog:** clay is scarce; do peat and humic particles
+    adsorb phages the way clays do? Not researched [S103].
 
 ---
 

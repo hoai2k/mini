@@ -2,6 +2,7 @@
 // film dries ("The Drying"). Seen through a DIC microscope.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { createPad } from '../shared/pad.js';
+import { createControls, createDash, hudControls } from '../shared/controls.js';
 import { mountHud } from '../shared/hud.js';
 import { createFeatures } from '../shared/features.js';
 import { DicMicroscope } from '../shared/techniques/tardigrade-dic.js';
@@ -11,6 +12,7 @@ import { World, Particles, LAYER_SUBSTRATE, LAYER_SPECIMEN } from './world.js';
 import { Creature } from './creature.js';
 import { Walker, GAITS, setGait, setGaitWith } from './gait.js';
 import { Life, COMPRESSIONS } from './life.js';
+import { Predator } from './predator.js';
 import { wireAssets } from './textures.js';
 import { LEAF_FX } from './materials.js';
 
@@ -46,23 +48,24 @@ for (const l of [hemi, sun]) { l.layers.enableAll(); scene.add(l); }
 scene.add(sun.target);
 
 const pad = createPad();
+const ctl = createControls(pad);
 const hud = mountHud({
   title: 'Tardigrade · The Drying',
-  sub: 'A ~350 µm eutardigrade gripping moss-leaf cell walls in a drying water film. Differential interference contrast (DIC) look.',
-  controls: [
-    ['LS', 'Crawl (relative to the view); push into a leaf edge to reach across'],
-    ['RS', 'Turn and tilt the view'],
-    ['LT', 'Fine focus down'], ['RT', 'Fine focus up'],
-    ['LS click', 'Refocus on the animal'],
-    ['LB', 'Lower-power objective'], ['RB', 'Higher-power objective'],
-    ['A', 'Hold: grip hard / brace (slower, won’t slip)'],
-    ['B', 'Bite: stylets into food or a leaf cell'],
-    ['Y', 'Hold: curl into a tun (again: wake, if wet)'],
-    ['X', 'Optical look: DIC / brightfield / lit'],
-    ['D-pad', '↑ rain (test) · ↓ new day · ← anatomy labels'],
-    ['View', 'Hide this panel'], ['Menu', 'Features: what this is doing, switches'],
-  ],
-  note: '1 s = 4 min of the day (240×; change it in Features). Claws drawn 1.6× longer, ~3× thicker than true. DIC relief is optical path, not height.',
+  sub: 'A ~350 µm eutardigrade gripping moss-leaf cell walls in a drying water film, stalked by a Milnesium. Differential interference contrast (DIC) look.',
+  controls: hudControls({
+    move: 'Crawl (relative to the view); push into a leaf edge to reach across',
+    camera: 'Turn and tilt the view',
+    dash: 'Scramble: a burst of fast wave gait (costs water and reserves)',
+    attack: 'Pierce with the stylets: feed, or jab a Milnesium so it backs off',
+    defend: 'Hold: grip hard / brace (slower, won’t slip)',
+    special: 'Hold: curl into a tun (again: wake, if wet)',
+    analog: 'Fine focus down / up',
+    secondary: 'Anatomy labels / rain (test)',
+    look: 'Optical look: DIC / brightfield / lit',
+    zoom: 'Objective 10× / 20× / 40×',
+    extra: [['LS click', 'Refocus on the animal'], ['RS click', 'New day (test)']],
+  }),
+  note: '1 s = 4 min of the day (240×; change it in Features). Walking and feeding are real time: ~150 µm/s, inside the measured range; the scramble (~290 µm/s) is a stretch. Claws drawn 1.6× longer, ~3× thicker than true. DIC relief is optical path, not height.',
 });
 
 const toast = (t, ms) => hud.toast(t, ms);
@@ -82,7 +85,9 @@ const walker = new Walker(world, creature, {
   fall(t) { toast(t, 2600); rumble(300, 0.6, 0.8); },
   transfer(t) { toast(t); rumble(120, 0.15, 0.3); },
 });
-const life = new Life(world, walker, creature, { toast, rumble });
+const life = new Life(world, walker, creature, { toast, rumble, newDay: () => predator.reset() });
+const predator = new Predator(scene, world, { toast, rumble });
+const dash = createDash({ duration: 0.9, cooldown: 2.6 });
 const mic = new DicMicroscope(renderer, scene, camera, { layers: [LAYER_SUBSTRATE, LAYER_SPECIMEN], backdrop: assets.backdrop });
 if (SOFTWARE) mic.setQuality(PR ? 2 : 0);
 
@@ -102,7 +107,7 @@ function applyMode(m) {
 const features = createFeatures({ key: 'tardigrade', pad });
 const F = (o) => features.add(o);
 F({ id: 'look', group: 'Rendering', label: 'Optical look', choices: MODES, value: MODES[0],
-  about: 'DIC: relief from the gradient of optical path along one shear direction. Brightfield: pigment plus faint refractive edges. Lit: a hypothetical immersive view with ordinary lights (not what a microscope records). X cycles it.',
+  about: 'DIC: relief from the gradient of optical path along one shear direction. Brightfield: pigment plus faint refractive edges. Lit: a hypothetical immersive view with ordinary lights (not what a microscope records). D-pad left/right cycles it.',
   onChange: (v) => applyMode(MODES.indexOf(v)) });
 F({ id: 'opd', group: 'Rendering', label: 'Optical-path buffers (thickness from closed meshes)', fixed: true,
   about: 'Every transparent object adds Δn·thickness, depth·thickness and pigment into two float targets at once (MRT, additive, double sided): front faces subtract their depth, back faces add it, so each pixel holds the chord through the object. Shared as shared/techniques/tardigrade-dic.js.' });
@@ -151,8 +156,16 @@ F({ id: 'desic', group: 'Simulation', label: 'Desiccation', on: true, about: 'Dr
 F({ id: 'risk', group: 'Simulation', label: 'Revival risk', on: true, about: 'A tun may not wake: worse after a hasty tun, on low reserves and long droughts.', onChange: (v) => (life.opts.risk = v) });
 F({ id: 'capacity', group: 'Simulation', label: 'Film capacity field', fixed: true,
   about: 'Per leaf: wetter towards the stem, in random hollows and where another leaf nearly touches (capillary bridges); margins dry first. Film = capacity - dryness, which climbs through the day.' });
-F({ id: 'labels', group: 'Controls', label: 'Anatomy labels', on: false, about: 'Name the claws, leg IV, buccal tube, bulb, eyespot, gut and storage cells (D-pad ←).', onChange: (v) => (view.labels = v) });
-F({ id: 'rumble', group: 'Controls', label: 'Rumble on claw catch', on: true, about: 'A small knock as each claw hooks a wall; heavy on slips and falls.', onChange: (v) => (rumbleOn = v) });
+F({ id: 'labels', group: 'Controls', label: 'Anatomy labels', on: false, about: 'Name the claws, leg IV, buccal tube, bulb, eyespot, gut and storage cells (LB).', onChange: (v) => (view.labels = v) });
+F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true, about: 'A small knock as each claw hooks a wall; heavy on slips and falls; a kick on each scramble and on a Milnesium bite.', onChange: (v) => (rumbleOn = v) });
+F({ id: 'scramble', group: 'Motion', label: 'Scramble (A)', fixed: true,
+  about: 'A 0.9 s burst of the same back-to-front wave gait at about twice the walking pace (~290 µm/s, strides 35% longer, swings as short as 90 ms), recharging over 2.6 s. Each costs ~3.5% water and 2% reserves. A stretch: the fastest walking measured in Hypsibius is ~260 µm/s.' });
+F({ id: 'smooth', group: 'Motion', label: 'Smoothed trunk and camera', on: true,
+  about: 'The trunk follows its target through three lags in series, and a change of face (a transfer, the leaf margin, a fall) blends the old pose out over a smootherstep, so position, velocity and acceleration stay continuous. Slipping uses grip hysteresis (slide below 85% of the load for 0.6 s, catch at 75%). Off: the old single lag.',
+  onChange: (v) => (walker.opts.smooth = v) });
+F({ id: 'milnesium', group: 'Simulation', label: 'Milnesium (predator)', on: true,
+  about: 'A predatory tardigrade 1.5× your size with a wide buccal tube and no placoids. It stalks you within ~650 µm and bites (reserves drain; empty, you are eaten). Escape: scramble (A), retreat into film too thin for its body (it barely moves below ~3.5 µm of water), jab it with the stylets (X) so it backs off, or tun (Y): it cannot get a tun into its mouth quickly and gives up after three tries. The thin-film refuge, the recoil and the tun giving-up are game rules.',
+  onChange: (v) => { predator.on = v; predator.setVisible(v); } });
 F({ id: 'camrel', group: 'Controls', label: 'Camera-relative crawl', fixed: true, about: 'The stick direction on screen is projected onto the leaf the animal is on.' });
 
 // ---------------------------------------------------------------- borrowed (default off)
@@ -218,7 +231,7 @@ let time = 0;
 const dirV = new THREE.Vector3(), right = new THREE.Vector3(), upS = new THREE.Vector3();
 applyMode(view.mode);
 
-window.__micro = { SOFTWARE, scene, camera, renderer, world, walker, creature, life, mic, view, features, applyMode, pad };
+window.__micro = { SOFTWARE, scene, camera, renderer, world, walker, creature, life, mic, view, features, applyMode, pad, predator, dash };
 
 function frame() {
   const now = performance.now();
@@ -235,28 +248,63 @@ function frame() {
   const P = (b) => !inMenu && pad.pressed(b);
   const D = (b) => !inMenu && pad.down(b);
 
-  if (P(B.X)) { const m = (view.mode + 1) % 3; features.set('look', MODES[m]); toast(MODES[m]); }
-  if (P(B.LB) && view.obj > 0) { view.obj--; toast(`Objective ${OBJECTIVES[view.obj].name}`); }
-  if (P(B.RB) && view.obj < 2) { view.obj++; toast(`Objective ${OBJECTIVES[view.obj].name}`); }
-  if (P(B.UP)) life.rain();
-  if (P(B.DOWN)) { life.newDay(); toast('A new day: 05:00, dew-soaked'); }
-  if (P(B.LEFT)) features.set('labels', !view.labels);
+  const look = inMenu ? 0 : ctl.lookStep();
+  if (look) { const m = (view.mode + look + 3) % 3; features.set('look', MODES[m]); toast(MODES[m]); }
+  const zs = inMenu ? 0 : ctl.zoomStep();
+  if (zs < 0 && view.obj > 0) { view.obj--; toast(`Objective ${OBJECTIVES[view.obj].name}`); }
+  if (zs > 0 && view.obj < 2) { view.obj++; toast(`Objective ${OBJECTIVES[view.obj].name}`); }
+  if (P(B.RB)) life.rain();
+  if (P(B.RS)) { life.newDay(); toast('A new day: 05:00, dew-soaked'); }
+  if (P(B.LB)) features.set('labels', !view.labels);
   if (P(B.LS)) { view.focus = 0; toast('Refocused on the animal'); }
-  const rs = inMenu ? { x: 0, y: 0 } : pad.rs();
+  const rs = inMenu ? { x: 0, y: 0 } : ctl.camera();
   view.yaw -= rs.x * dt * 1.6;
   view.pitch = THREE.MathUtils.clamp(view.pitch - rs.y * dt * 1.2, 0.35, 1.52);
-  view.focus = THREE.MathUtils.clamp(view.focus + ((inMenu ? 0 : pad.lt()) - (inMenu ? 0 : pad.rt())) * dt * 0.8, -3, 3);
+  view.focus = THREE.MathUtils.clamp(view.focus - (inMenu ? 0 : ctl.analog()) * dt * 0.8, -3, 3);
+
+  // A: the scramble.
+  dash.update(dt);
+  if (!inMenu && ctl.dash.pressed() && life.state === 'active') {
+    if (life.frozen || walker.slipping) { /* curled, feeding or sliding: no scramble */ }
+    else if (life.energy < 0.04) toast('Too weak to scramble: feed first');
+    else if (dash.trigger()) {
+      life.desic = Math.min(1, life.desic + 0.035);
+      life.energy = Math.max(0, life.energy - 0.02);
+      rumble(160, 0.25, 0.55);
+    }
+  }
 
   // Camera-relative crawl direction.
-  const ls = inMenu ? { x: 0, y: 0, m: 0 } : pad.ls();
+  const ls = inMenu ? { x: 0, y: 0, m: 0 } : ctl.move();
   right.setFromMatrixColumn(camera.matrixWorld, 0);
   upS.setFromMatrixColumn(camera.matrixWorld, 1);
   dirV.set(0, 0, 0).addScaledVector(right, ls.x).addScaledVector(upS, -ls.y);
   const film = life.filmHere();
   const filmF = film < 0.03 ? 0.3 : (0.4 + 0.6 * THREE.MathUtils.smoothstep(film, 0.03, 0.3)) * (film > 1.1 ? 0.7 : 1);
-  walker.update(dt, { dir: dirV, mag: ls.m, brace: D(B.A), frozen: life.frozen, film: filmF, energy: life.energy, tun: life.tun > 0.02 });
+  const dashing = dash.active && !life.frozen;
+  if (dashing && ls.m < 0.2) dirV.copy(walker.forward); // no stick: scramble straight ahead
+  walker.update(dt, { dir: dirV, mag: dashing ? Math.max(ls.m, 1) : ls.m, brace: D(B.B), frozen: life.frozen, film: filmF, energy: life.energy, tun: life.tun > 0.02, dash: dashing });
   if (!view.sway) { creature.pose.sway = 0; creature.pose.surge = 0; creature.pose.bob = 0; }
-  life.update(dt, { yDown: D(B.Y), yPressed: P(B.Y), bPressed: P(B.B), aPressed: P(B.A), moving: walker.speed });
+  // X: a jab at a Milnesium whose head is at your mouth takes priority over feeding.
+  const xPressed = P(B.X);
+  const myMouth = creature.anchorWorld('buccal tube + stylets', new THREE.Vector3());
+  const pev = predator.update(dt, { walker, life, mouth: myMouth }, xPressed && life.state === 'active' && !life.feeding);
+  const jabbed = pev.includes('recoil');
+  life.update(dt, { yDown: D(B.Y), yPressed: P(B.Y), bitePressed: xPressed && !jabbed, aPressed: P(B.A), moving: walker.speed });
+  for (const e of pev) {
+    if (e === 'recoil') { toast('Stylets into its head: the Milnesium backs off'); rumble(220, 0.5, 0.4); creature.pose.stylet = 1; }
+    else if (e === 'stalk') toast('A Milnesium has your scent: scramble (A), jab (X) or tun (Y)', 2600);
+    else if (e === 'tunBite') { toast('The Milnesium mouths your tun but cannot get it in'); rumble(120, 0.2, 0.3); }
+    else if (e === 'givesUp') toast('The Milnesium gives up on the tun and wanders off');
+    else if (e === 'bite') {
+      life.energy = Math.max(0, life.energy - 0.2);
+      life.feeding = null;
+      walker.speed = 0;
+      rumble(300, 0.8, 0.9);
+      if (life.energy <= 0.001) life.eaten();
+      else toast(`Milnesium bites! Reserves ${Math.round(life.energy * 100)}%`);
+    }
+  }
 
   // Creature rig.
   creature.group.matrix.copy(walker.matrix);
@@ -319,7 +367,7 @@ function frame() {
 
   // Readout.
   const st = { active: walker.slipping ? 'SLIPPING' : life.feeding ? 'feeding' : life.tun > 0.02 ? 'curling up…' : walker.speed > 0.03 ? 'walking' : 'holding on',
-    tun: 'tun (dry: waits for rain; wet: Y to wake)', skip: 'tun · time passing…', revive: 'rehydrating…', dead: 'did not wake' }[life.state];
+    tun: 'tun (dry: waits for rain; wet: Y to wake)', skip: 'tun · time passing…', revive: 'rehydrating…', dead: life.energy <= 0.001 ? 'eaten' : 'did not wake' }[life.state];
   const planted = walker.feet.filter((f) => f.state === 'stance' && f.grip > 0.5).length;
   const bar = (x) => '█'.repeat(Math.round(x * 10)).padEnd(10, '·');
   hud.stats([
@@ -332,6 +380,8 @@ function frame() {
     `claws    ${planted}/8 hooked · grip ${walker.gripSum.toFixed(1)} / need ${Math.max(0, walker.required).toFixed(1)}`,
     `state    ${st}${life.state === 'skip' || life.state === 'revive' ? ` · revival ~${Math.round(life.chance * 100)}%` : ''}`,
     walker.candidate ? `reach    ${walker.candidate.M.name}${walker.candidate.bridged ? ' (film bridge)' : ''}` : '',
+    `${dash.active ? 'SCRAMBLE' : dash.text()}   ${Math.round(walker.speed * 100)} µm/s`,
+    predator.on ? `Milnesium ${predator.state === 'wander' ? 'wandering' : predator.state === 'recoil' ? 'backing off' : 'stalking'} · ${Math.round(predator.dist * 100)} µm${predator.thinFilm ? ' · film too thin for it' : ''}` : '',
   ].filter(Boolean).join('\n'));
 
   requestAnimationFrame(frame);

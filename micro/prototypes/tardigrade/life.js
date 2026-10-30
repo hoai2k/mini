@@ -36,7 +36,7 @@ export class Life {
     this.tun = 0; this.hasty = false; this.tunHold = 0;
     this.feeding = null;
     this.creature.pose.tun = 0;
-    if (!first) { this.world.reseed(); this.walker.spawn(this.world.leaves[0], 1, 6.5, 0.6, 1, 0); }
+    if (!first) { this.world.reseed(); this.walker.spawn(this.world.leaves[0], 1, 6.5, 0.6, 1, 0); this.events.newDay?.(); }
   }
 
   rain() {
@@ -73,7 +73,7 @@ export class Life {
     return THREE.MathUtils.clamp(0.97 - (this.hasty ? 0.3 : 0) - 0.7 * Math.max(0, 0.45 - this.energy) - 0.06 * (days - 1), 0.05, 0.99);
   }
 
-  /** input: { yDown, bPressed, aPressed, moving(0..1) } */
+  /** input: { yDown, yPressed, bitePressed (X), aPressed, moving(0..1) } */
   update(dt, input) {
     const ev = this.events;
     const P = this.creature.pose;
@@ -154,6 +154,13 @@ export class Life {
     this.creature.setGut(absGut);
   }
 
+  /** Milnesium got it: the run ends (A starts a new day). */
+  eaten() {
+    if (this.state !== 'active') return;
+    this.state = 'dead'; this.feeding = null; this.tun = 0;
+    this.events.toast('Eaten by Milnesium (A: start a new day)', 6000);
+  }
+
   get frozen() { return this.state !== 'active' || this.tun > 0.02 || !!this.feeding; }
 
   updateFeeding(dt, input) {
@@ -165,7 +172,7 @@ export class Life {
       P.stylet = 0.5 + 0.5 * Math.sin(f.t * 9);
       P.pump = Math.max(0, Math.sin(f.t * 14));
       if (f.item) f.item.mesh.scale.setScalar(Math.max(0.05, 1 - f.t / f.dur));
-      if (input.bPressed && f.t > 0.2) { this.feeding = null; return; }
+      if (input.bitePressed && f.t > 0.2) { this.feeding = null; return; }
       if (f.t >= f.dur) {
         this.energy = Math.min(1, this.energy + f.value);
         this.gutColour.lerp(new THREE.Vector3(...f.gut), 0.45);
@@ -182,7 +189,7 @@ export class Life {
     }
     P.stylet = Math.max(0, P.stylet - dt * 2);
     P.pump = Math.max(0, P.pump - dt * 3);
-    if (!input.bPressed || w.slipping) return;
+    if (!input.bitePressed || w.slipping) return;
     const mouth = this.creature.anchorWorld('buccal tube + stylets');
     let best = null, bd = 0.45;
     const ml = w.leaf.toLocal(mouth, {});
