@@ -35,9 +35,9 @@ const CAPTIONS = {
   curse: ['The Uninvited', 'The witch curses the betrothal'],
   rampart: ['The Abduction', 'Her demons carry Azurine off · run after the chariot'],
   escape: ['The Abduction', 'The chariot is gone into the night'],
-  bind: ['The Armoury', 'The witch binds the prince · struggle ← →'],
+  bind: ['The Armoury', 'The witch binds the prince'],
   free: ['The Arming', 'Aurora breaks the spell'],
-  armoury: ['The Arming', 'Follow her: take up your helmet, shield and the enchanted sword'],
+  armoury: ['The Arming', 'Take up the helmet, shield and enchanted sword she gives you'],
 };
 
 export function draw(k, st, t) {
@@ -48,6 +48,8 @@ export function draw(k, st, t) {
   if (st.near) prompt(k, st, st.near);
   const cap = CAPTIONS[st.phase];
   if (cap) card(k, cap[0], cap[1], Math.min(1, clamp((st.phaseT - 0.3) / 0.5, 0, 1), ['court', 'rampart', 'armoury', 'bind'].includes(st.phase) ? clamp((4.5 - st.phaseT) / 0.6, 0, 1) : 1));
+  // armed, and Aurora gone: now to the ship
+  if (st.phase === 'knighted' && st.phaseT >= T.risen) card(k, 'The Arming', 'Now to your ship', Math.min(1, clamp((st.phaseT - T.risen) / 0.5, 0, 1), clamp((T.risen + 4 - st.phaseT) / 0.6, 0, 1)));
   skipHint(k, st);
   if (st.fade > 0) k.wash('#000000', st.fade);
 }
@@ -215,22 +217,29 @@ function armouryScene(k, st, t) {
   if (ph === 'free' && st.phaseT < T.cast) cords(k, st, t, 1);
 }
 
-// Aurora: off at first; she glides on from the stairs at the left, casts
-// across the room at him, then turns and glides off the way he must go. A
-// fairy, she floats a little above the flagstones, trailing sparkle.
+// Aurora: off at first; she glides on from the stairs at the left and casts
+// across the room at him, stays while he takes up the arms she gives him and
+// casts again as they make him the armoured prince, then turns and glides off
+// the way he must go while he kneels. A fairy, she floats a little above the
+// flagstones, trailing sparkle.
 function aurora(k, st, t) {
   const c = k.c, ph = st.phase;
-  let x, face, id = 'aurora-stand', u;
+  let x = AURORA.at, face = -1, id = 'aurora-stand', u = 0, gliding = false;
   if (ph === 'free') {
     u = clamp(st.phaseT / T.on, 0, 1);
-    x = AURORA.from + (AURORA.at - AURORA.from) * easeOut(u); face = -1;
+    x = AURORA.from + (AURORA.at - AURORA.from) * easeOut(u);
+    gliding = u < 1;
     if (st.phaseT >= T.on - 0.15) id = 'aurora-point';
-  } else if (ph === 'armoury' && st.phaseT < T.off + 0.4) {
-    u = clamp((st.phaseT - 0.4) / T.off, 0, 1);
-    x = AURORA.at + (AURORA.to - AURORA.at) * easeInOut(u); face = u > 0 ? 1 : -1;
-  } else return;
+  } else if (ph === 'knighted') {
+    if (st.phaseT >= T.leave + T.off) return;
+    if (st.phaseT >= T.badge && st.phaseT < T.armed + 0.2) id = 'aurora-point';
+    if (st.phaseT >= T.leave) {
+      u = clamp((st.phaseT - T.leave) / T.off, 0, 1);
+      x = AURORA.at + (AURORA.to - AURORA.at) * easeInOut(u); face = 1; gliding = true;
+    }
+  } else if (ph !== 'armoury') return;
+  if (gliding && k.img('aurora-glide-a')) id = 'aurora-glide-' + (Math.floor(t * 5) % 2 ? 'b' : 'a');
   const lift = 14 + Math.sin(t * 2.4) * 5;
-  const gliding = (ph === 'free' && st.phaseT < T.on) || (ph === 'armoury' && u > 0 && u < 1);
   if (gliding) {
     c.save();
     for (let i = 0; i < 9; i++) {
@@ -298,7 +307,7 @@ function badgeAt(st, i, t) {
 // ring of sparkle closing in, and at its height (T.armed) a flash leaves him
 // armoured, kneeling, before he stands. `front`: the parts drawn over him.
 function transformation(k, st, t, front) {
-  const c = k.c, p = st.p, tt = st.phaseT - T.badge, end = T.risen - T.badge;
+  const c = k.c, p = st.p, tt = st.phaseT - T.badge, end = T.armed + 0.9 - T.badge;
   if (tt < 0 || tt > end) return;
   const peak = T.armed - T.badge;
   const up = clamp((tt - 0.5) / (peak - 0.5), 0, 1), down = clamp((tt - peak) / (end - peak), 0, 1);
@@ -382,7 +391,11 @@ function prince(k, st, t, cx = 0) {
   if (st.phase === 'bind') c.translate(Math.sin(t * 40) * 3 * Math.abs(st.struggle.tilt) / 0.16, 0), c.rotate(st.struggle.tilt);
   c.scale(p.face, 1);
   let id;
-  if ((st.phase === 'bind' || (st.phase === 'free' && st.phaseT < T.cast)) && k.img('prince-bound')) id = 'prince-bound';
+  if ((st.phase === 'bind' || (st.phase === 'free' && st.phaseT < T.cast)) && k.img('prince-bound')) {
+    // straining one way or the other (F22), when the struggle frames are in
+    const lean = st.phase === 'bind' ? st.struggle.tilt * p.face : 0;
+    id = Math.abs(lean) > 0.06 && k.img('prince-struggle-a') ? (lean < 0 ? 'prince-struggle-a' : 'prince-struggle-b') : 'prince-bound';
+  }
   else if (armed) id = !p.on ? 'prince-leap' : moving ? 'prince-' + step : 'prince-stand';
   else id = moving && k.img('prince-court-walk-a') ? 'prince-court-' + step : 'prince-court';
   // without walk frames, the court-dress still rocks as a puppet on its slide
@@ -418,12 +431,9 @@ function drawShown(k, st, t) {
     const end = s.kind === 'gift'
       ? { x: AZURINE_X - 120 + s.slot * 42, by: FLOOR + 4, size: 96 * 0.55 }
       : { ...badgeAt(st, s.slot, t), size: BADGE.size };
-    // up to the middle, or beside him where he would be behind it; it eases
-    // across if he walks under it while it is held up
-    const want = showX(st.p.x);
-    if (s.cx == null) s.cx = want;
-    s.cx += (want - s.cx) * (1 - Math.exp(-6 * Math.max(0, st.t - (s.seen ?? st.t))));
-    s.seen = st.t;
+    // up to the middle, or beside him where he would be behind it; chosen
+    // where he stands as it is taken, and kept there if he walks under it
+    if (s.cx == null) s.cx = showX(st.p.x);
     const mid = { x: s.cx, by: SHOW.y + SHOW.size / 2, size: SHOW.size };
     let a = 1, from = s, to = mid, u;
     if (age < SHOW.rise) u = easeOut(age / SHOW.rise);
