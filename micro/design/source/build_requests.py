@@ -546,7 +546,11 @@ GROUPS = [
 
 
 def load_refs() -> dict:
-    return {r["id"]: r for r in json.loads(MANIFEST.read_text())}
+    references = {r["id"]: r for r in json.loads(MANIFEST.read_text())}
+    production = MANIFEST.with_name("production-manifest.json")
+    if production.exists():
+        references.update({r["id"]: r for r in json.loads(production.read_text())})
+    return references
 
 
 def asset_list() -> str:
