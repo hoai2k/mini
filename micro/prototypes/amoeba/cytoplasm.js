@@ -110,7 +110,7 @@ export class Cytoplasm {
       const ddy = sampleDens(x, y + h) - sampleDens(x, y - h);
       vx -= (ddx / mean) * 9; vy -= (ddy / mean) * 9;
       // Brownian and saltatory jitter.
-      vx += (r() - 0.5) * 30; vy += (r() - 0.5) * 30;
+      if (this.brownian !== false) { vx += (r() - 0.5) * 30; vy += (r() - 0.5) * 30; }
       x += vx * dt; y += vy * dt;
       // Hyaline cap: the advancing tip is clear of granules.
       for (const pod of tipCaps) {

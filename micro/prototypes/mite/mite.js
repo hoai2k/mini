@@ -21,6 +21,10 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 import { buildSdfMesh, sd, combine } from '../shared/sdf.js';
 import { gMaterial } from './sem.js';
 import { HALF, floorH } from './world.js';
+import { GAITS, legOffset, gaitTriggers, swingTarget, twoBoneIK } from '../shared/techniques/mite-gait.js';
+
+/** Live switches, shared by every mite (the feature panel edits it). */
+export const CFG = { gait: 'tetrapod', ik: true, bob: true, roll: true, closeTime: 0.16, setae: true };
 
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
@@ -28,18 +32,18 @@ const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
 
 export const ANAT = {
   noto: { c: [-70, 0, 0], r: [215, 172, 136] },
-  hinge: [126, 64, 0],
-  aspisOpen: -0.34,     // radians about the hinge (rostrum tipped down)
-  aspisClosed: -2.12,   // folded down over the leg cavity
+  hinge: [96, 40, 0],
+  aspisOpen: -0.5,      // radians about the hinge (rostrum tipped down)
+  aspisClosed: -2.3,    // folded down over the leg cavity
   stand: 196,           // body origin above the ground while walking
   stride: 118,
   duty: 0.64,
   // L legs are at -z, R legs at +z. seg: tr, fe, ge, ti, ta; rad likewise.
   legs: [
-    { hip: [168, -96, 36], rest: [322, -196, 132], seg: [24, 82, 30, 56, 74], rad: [13, 14.5, 12, 11, 9.5] },
-    { hip: [140, -114, 52], rest: [212, -196, 196], seg: [22, 68, 26, 46, 62], rad: [12.5, 14, 11.5, 10.5, 9] },
-    { hip: [104, -126, 58], rest: [64, -196, 210], seg: [22, 64, 24, 46, 60], rad: [12.5, 14, 11.5, 10.5, 9] },
-    { hip: [64, -134, 54], rest: [-58, -196, 176], seg: [26, 74, 26, 50, 66], rad: [13, 14.5, 11.5, 10.5, 9] },
+    { hip: [168, -96, 36], rest: [322, -196, 132], seg: [27, 92, 34, 63, 83], rad: [13, 14.5, 12, 11, 9.5] },
+    { hip: [140, -114, 52], rest: [212, -196, 196], seg: [25, 76, 29, 52, 69], rad: [12.5, 14, 11.5, 10.5, 9] },
+    { hip: [104, -126, 58], rest: [64, -196, 210], seg: [25, 72, 27, 52, 67], rad: [12.5, 14, 11.5, 10.5, 9] },
+    { hip: [64, -134, 54], rest: [-58, -196, 176], seg: [29, 83, 29, 56, 74], rad: [13, 14.5, 11.5, 10.5, 9] },
   ],
 };
 
@@ -90,7 +94,7 @@ function notoParts() {
   parts.push({ id: 0, op: 'sub', blend: 3, sdf: groove([-105, yv(-105, -36) + 1, -36], [-105, yv(-105, 0) + 1, 0], 4) });
   parts.push({ id: 0, op: 'sub', blend: 3, sdf: groove([-105, yv(-105, 0) + 1, 0], [-105, yv(-105, 36) + 1, 36], 4) });
   // anterior collar: a groove ringing the front of the shield
-  const x0 = 92, k = Math.sqrt(1 - ((x0 - cx) / rx) ** 2);
+  const x0 = 104, k = Math.sqrt(1 - ((x0 - cx) / rx) ** 2);
   const ring = (a) => [x0, ry * k * Math.cos(a), rz * k * Math.sin(a)];
   for (let a = -2.1; a < 2.1; a += 0.35) parts.push({ id: 0, op: 'sub', blend: 3, sdf: groove(ring(a), ring(a + 0.35), 4.5) });
   return parts;
@@ -98,26 +102,26 @@ function notoParts() {
 
 function aspisParts() {
   const parts = [
-    { id: 2, sdf: sd.ellipsoid([92, -46, 0], [128, 80, 82]) },
-    { id: 2, sdf: sd.roundCone([150, -64, 0], [226, -102, 0], 50, 19), blend: 30 },
+    { id: 2, sdf: sd.ellipsoid([80, -40, 0], [112, 66, 70]) },
+    { id: 2, sdf: sd.roundCone([128, -54, 0], [200, -88, 0], 44, 17), blend: 28 },
     // lateral carinae along the hood
-    { id: 2, sdf: sd.mirrorZ(sd.capsule([10, -10, 74], [178, -78, 40], 5)), blend: 9 },
+    { id: 2, sdf: sd.mirrorZ(sd.capsule([20, -6, 62], [160, -64, 34], 4.5)), blend: 8 },
     // hollow underneath, where the chelicerae and leg I tuck in
-    { id: 2, op: 'sub', sdf: sd.ellipsoid([64, -140, 0], [124, 52, 60]), blend: 12 },
+    { id: 2, op: 'sub', sdf: sd.ellipsoid([56, -122, 0], [110, 46, 52]), blend: 12 },
   ];
   const hood = combine(parts);
-  const both = surfacePoint(hood, V3(92, -46, 40), V3(-0.62, 0.62, 0.55));
+  const both = surfacePoint(hood, V3(80, -40, 30), V3(-0.3, 0.7, 0.62));
   const b = both.p, bn = both.n;
   parts.push({ id: 2, sdf: sd.mirrorZ(sd.sphere([b.x, b.y, b.z], 15)), blend: 8 });
   const cup = b.clone().addScaledVector(bn, 9);
   parts.push({ id: 2, op: 'sub', sdf: sd.mirrorZ(sd.sphere([cup.x, cup.y, cup.z], 8.5)), blend: 2 });
   // chelicerae: stout, chelate, under the rostrum
-  parts.push({ id: 3, sdf: sd.mirrorZ(sd.roundCone([116, -98, 16], [206, -124, 12], 15, 9)), blend: 6 });
-  parts.push({ id: 3, sdf: sd.mirrorZ(sd.roundCone([206, -124, 12], [230, -126, 10], 7, 2.6)), blend: 3 });
-  parts.push({ id: 3, sdf: sd.mirrorZ(sd.roundCone([200, -132, 12], [226, -138, 10], 5.5, 2.2)), blend: 3 });
+  parts.push({ id: 3, sdf: sd.mirrorZ(sd.roundCone([100, -86, 14], [186, -112, 10], 14, 8.5)), blend: 6 });
+  parts.push({ id: 3, sdf: sd.mirrorZ(sd.roundCone([186, -112, 10], [210, -115, 9], 6.5, 2.4)), blend: 3 });
+  parts.push({ id: 3, sdf: sd.mirrorZ(sd.roundCone([180, -120, 10], [205, -127, 9], 5, 2)), blend: 3 });
   // palps
-  parts.push({ id: 4, sdf: sd.mirrorZ(sd.roundCone([98, -112, 40], [150, -140, 46], 9, 7)), blend: 5 });
-  parts.push({ id: 4, sdf: sd.mirrorZ(sd.roundCone([150, -140, 46], [182, -152, 42], 7, 4.5)), blend: 3 });
+  parts.push({ id: 4, sdf: sd.mirrorZ(sd.roundCone([86, -98, 36], [136, -124, 42], 8.5, 6.5)), blend: 5 });
+  parts.push({ id: 4, sdf: sd.mirrorZ(sd.roundCone([136, -124, 42], [166, -134, 38], 6.5, 4.2)), blend: 3 });
   return { parts, bothridium: { p: b.clone().addScaledVector(bn, 3), n: bn } };
 }
 
@@ -170,9 +174,9 @@ function geometry() {
   if (GEO) return GEO;
   const t0 = performance.now();
   const np = notoParts();
-  const noto = buildSdfMesh(np, { min: [-292, -180, -144], max: [152, 178, 144], cell: 5 });
+  const noto = buildSdfMesh(np, { min: [-292, -180, -144], max: [152, 178, 144], cell: 6.5 });
   const ap = aspisParts();
-  const aspis = buildSdfMesh(ap.parts, { min: [-44, -164, -98], max: [252, 52, 98], cell: 4 });
+  const aspis = buildSdfMesh(ap.parts, { min: [-44, -164, -98], max: [252, 52, 98], cell: 5 });
   for (const g of [noto, aspis]) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
   const fNoto = combine(np), fAsp = combine(ap.parts);
 
@@ -184,8 +188,8 @@ function geometry() {
     const k = Math.sqrt(1 - fx * fx);
     const dir = V3(fx * r[0], r[1] * k * Math.cos(a), s * r[2] * k * Math.sin(a));
     const sp = surfacePoint(fNoto, V3(...c), V3(dir.x / r[0], dir.y / r[1], dir.z / r[2]).normalize());
-    const d = sp.n.clone().multiplyScalar(0.5).add(V3(-0.8, 0.05, 0)).normalize();
-    bodySetae.push({ p: sp.p.addScaledVector(sp.n, -1.5), d, len: 38 + ((fx * 31 + a * 7) % 1 + 1) % 1 * 14, rad: 3 });
+    const d = sp.n.clone().multiplyScalar(0.32).add(V3(-0.9, 0.05, 0)).normalize();
+    bodySetae.push({ p: sp.p.addScaledVector(sp.n, -1.5), d, len: 36 + ((fx * 31 + a * 7) % 1 + 1) % 1 * 14, rad: 2.4 });
   }
   // prodorsal setae
   const aspSetae = [];
@@ -196,15 +200,15 @@ function geometry() {
       aspSetae.push({ p: sp.p.addScaledVector(sp.n, -1.5), d, len, rad });
     }
   };
-  aspSeta([196, -84, 0], [0.4, 0.6, 0.45], [1, 0.25, 0, 0.5], 40, 3);   // rostral
-  aspSeta([132, -52, 0], [0.1, 1, 0.42], [1, 0.25, 0, 0.6], 48, 3);     // lamellar
-  aspSeta([58, -40, 0], [-0.1, 1, 0.3], [0.2, 0.7, 0.1, 1], 60, 3.2);   // interlamellar
-  aspSeta([30, -62, 0], [-0.25, 0.05, 1], [-0.3, 0, 0.2, 1], 18, 2.6);   // exobothridial
+  aspSeta([176, -76, 0], [0.4, 0.6, 0.45], [1, 0.25, 0, 0.5], 38, 2.4);   // rostral
+  aspSeta([122, -46, 0], [0.1, 1, 0.42], [1, 0.25, 0, 0.6], 44, 2.4);     // lamellar
+  aspSeta([70, -34, 0], [-0.1, 1, 0.3], [0.2, 0.7, 0.1, 1], 56, 2.6);    // interlamellar
+  aspSeta([52, -52, 0], [-0.1, 0.05, 1], [0.2, 0, 0.2, 1], 18, 2.2);     // exobothridial
   const bp = ap.bothridium;
   const sens = [];
   for (const s of [-1, 1]) {
     const p = V3(bp.p.x, bp.p.y, bp.p.z * s), n = V3(bp.n.x, bp.n.y, bp.n.z * s);
-    sens.push({ p, d: n.clone().add(V3(-0.55, 0.75, 0.25 * s)).normalize(), len: 86, rad: 3.4 });
+    sens.push({ p, d: n.clone().add(V3(-0.2, 0.9, 0.35 * s)).normalize(), len: 80, rad: 3 });
   }
   console.info(`[mite] anatomy meshed in ${(performance.now() - t0).toFixed(0)} ms: notogaster ${noto.index.count / 3} tris, aspis ${aspis.index.count / 3} tris`);
   GEO = { noto, aspis, bodySetae, aspSetae, sens, seta: setaGeo(), sensillus: sensillusGeo(), seg: segGeo(false), tars: segGeo(true), claw: clawGeo() };
@@ -252,7 +256,7 @@ function support(c, r, d, out) {
  * @param {object} colliders world colliders (cast(origin, dir, far))
  * @param {{cls:number, tex:object, name?:string}} opts
  */
-export function createMite(scene, colliders, { cls, tex }) {
+export function createMite(scene, colliders, { cls, tex, cfg = CFG }) {
   const G = geometry();
   const cut = gMaterial({ cls, tex: tex.cuticle, map: 'tri', scale: 150, bump: 1.6, objSpace: true });
   const legMat = gMaterial({ cls });
@@ -264,10 +268,10 @@ export function createMite(scene, colliders, { cls, tex }) {
   const aspis = new THREE.Group();
   aspis.position.set(...ANAT.hinge);
   aspis.add(new THREE.Mesh(G.aspis, cut));
-  aspis.add(staticSetae(G.seta, G.aspSetae, thinMat));
-  aspis.add(staticSetae(G.sensillus, G.sens, thinMat));
+  const setaeMeshes = [staticSetae(G.seta, G.aspSetae, thinMat), staticSetae(G.sensillus, G.sens, thinMat), staticSetae(G.seta, G.bodySetae, thinMat)];
+  aspis.add(setaeMeshes[0], setaeMeshes[1]);
   body.add(aspis);
-  body.add(staticSetae(G.seta, G.bodySetae, thinMat));
+  body.add(setaeMeshes[2]);
   scene.add(body);
   noto.frustumCulled = false;
 
@@ -286,8 +290,7 @@ export function createMite(scene, colliders, { cls, tex }) {
     const sideIdx = side < 0 ? 0 : 1;
     legs.push({
       k, side,
-      group: (k + sideIdx) % 2, // tetrapod: {L1 R2 L3 R4} and {R1 L2 R3 L4}
-      off: ((k + sideIdx) % 2) * 0.5 + (3 - k) * 0.035, // metachronal wave, back to front
+      sideIdx, off: legOffset(cfg.gait, k, sideIdx),
       hip: V3(A.hip[0], A.hip[1], A.hip[2] * side),
       rest: V3(A.rest[0], A.rest[1], A.rest[2] * side),
       seg: A.seg, rad: A.rad,
@@ -373,8 +376,10 @@ export function createMite(scene, colliders, { cls, tex }) {
     return true;
   }
 
+  let gaitNow = cfg.gait;
   function walk(dt, input) {
-    const r = right();
+    if (gaitNow !== cfg.gait) { gaitNow = cfg.gait; for (const L of legs) L.off = legOffset(gaitNow, L.k, L.sideIdx); }
+    const duty = GAITS[gaitNow].duty;
     let want = 0, turn = 0;
     if (input.mag > 0.01) {
       const d = input.dir.clone().addScaledVector(st.up, -input.dir.dot(st.up));
@@ -382,7 +387,7 @@ export function createMite(scene, colliders, { cls, tex }) {
       if (d.lengthSq() > 1e-6) {
         d.normalize();
         const ang = Math.atan2(new THREE.Vector3().crossVectors(st.fwd, d).dot(st.up), st.fwd.dot(d));
-        const rate = 2.4;
+        const rate = 1.5 + 1.2 * clamp(1 - st.speed / 200, 0, 1); // turns tighter when slow
         turn = clamp(ang, -rate * dt, rate * dt);
         want = input.maxSpeed * input.mag * sstep(-0.15, 0.75, Math.cos(ang));
       }
@@ -394,14 +399,15 @@ export function createMite(scene, colliders, { cls, tex }) {
     // wall ahead (taller than a step)?
     let step = st.speed * dt;
     const wall = colliders.cast(st.pos.clone().addScaledVector(st.up, 130), st.fwd, 300 + step);
+    const move = st.fwd.clone().multiplyScalar(step);
     if (wall && wall.normal.dot(st.up) < 0.55) {
-      const tgt = st.up.clone().lerp(wall.normal, 0.7).normalize();
-      if (tgt.y > -0.2) st.up.lerp(tgt, 1 - Math.exp(-dt / 0.25)).normalize();
-      st.fwd.addScaledVector(st.up, -st.fwd.dot(st.up)).normalize();
-      if (wall.dist < 250) step = 0;
+      // too steep to step onto (a stem, a boulder): slide along it instead
+      const n = wall.normal.clone().addScaledVector(st.up, -wall.normal.dot(st.up)).normalize();
+      const into = move.dot(n);
+      if (into < 0) move.addScaledVector(n, -into * clamp((330 - wall.dist) / 60, 0, 1));
     }
     const prev = st.pos.clone();
-    st.pos.addScaledVector(st.fwd, step);
+    st.pos.add(move);
     st.pos.x = clamp(st.pos.x, -HALF + 150, HALF - 150);
     st.pos.z = clamp(st.pos.z, -HALF + 150, HALF - 150);
     if (!settleBody(dt)) { st.pos.copy(prev); st.speed *= 0.5; }
@@ -412,30 +418,30 @@ export function createMite(scene, colliders, { cls, tex }) {
     // gait phase advances with distance travelled (and turning), so stride matches speed
     let err = 0;
     for (const L of legs) if (!L.swing) err = Math.max(err, L.foot.distanceTo(restWorld(L, _x)));
-    let dphi = (moved + Math.abs(turn) * 190) / ANAT.stride;
+    // the front feet are ~330 µm from the centre, so turning sweeps them fast
+    let dphi = (moved + Math.abs(turn) * 330) / ANAT.stride;
     if (dphi < 0.25 * dt && err > 22) dphi = 1.4 * dt; // shuffle feet back under the body when stopped
     const vBody = st.fwd.clone().multiplyScalar(moved / dt);
+    const trig = new Set(gaitTriggers(st.phase, dphi, legs));
     for (const L of legs) {
-      const before = st.phase + L.off;
-      const after = before + dphi;
-      if (!L.swing && (Math.floor(after) > Math.floor(before) || L.foot.distanceTo(restWorld(L, _x)) > ANAT.stride * 1.25)) {
+      if (!L.swing && (trig.has(L) || L.foot.distanceTo(restWorld(L, _x)) > ANAT.stride * 1.25)) {
         L.swing = true; L.s = 0; L.from.copy(L.foot);
         const sp = Math.max(st.speed, 50);
-        L.dur = clamp(((1 - ANAT.duty) * ANAT.stride) / sp, 0.08, 0.26);
+        L.dur = clamp(((1 - duty) * ANAT.stride) / sp, 0.08, 0.3);
       }
     }
     st.phase += dphi;
 
     for (const L of legs) {
       if (!L.swing) continue;
-      L.s = Math.min(1, L.s + dt / L.dur);
+      // progress by time, or by gait phase when that is faster, so a swing
+      // begun slowly never overlaps the other group's
+      L.s = Math.min(1, L.s + Math.max(dt / L.dur, dphi / (1 - duty)));
       // where the rest point will be at touchdown, plus half a stance ahead
       const rw = restWorld(L, new THREE.Vector3());
       const rel = rw.clone().sub(st.pos);
       const vFoot = vBody.clone().add(new THREE.Vector3().crossVectors(st.up, rel).multiplyScalar(st.omega));
-      const tau = (1 - L.s) * L.dur;
-      const ahead = (ANAT.duty * ANAT.stride * 0.5) / Math.max(vBody.length(), 45);
-      const tgt = rw.addScaledVector(vFoot, tau + ahead);
+      const tgt = swingTarget(rw, vFoot, (1 - L.s) * L.dur, duty, ANAT.stride, vBody.length());
       const h = ground(tgt, st.up, 120, 320);
       if (h) L.to.copy(h.point); else L.to.copy(tgt);
       const e = sstep(0, 1, L.s);
@@ -513,8 +519,8 @@ export function createMite(scene, colliders, { cls, tex }) {
   function pose(dt) {
     let q, center;
     if (st.mode === 'walk' || st.mode === 'closing') {
-      const bob = st.mode === 'walk' ? 2.5 * Math.sin(st.phase * Math.PI * 4) : 0;
-      const sway = st.mode === 'walk' ? 0.02 * Math.sin(st.phase * Math.PI * 2) * Math.min(1, st.speed / 120) : 0;
+      const bob = st.mode === 'walk' && cfg.bob ? 2.5 * Math.sin(st.phase * Math.PI * 4) : 0;
+      const sway = st.mode === 'walk' && cfg.bob ? 0.02 * Math.sin(st.phase * Math.PI * 2) * Math.min(1, st.speed / 120) : 0;
       q = basisQ(st.fwd, st.up);
       q.multiply(new THREE.Quaternion().setFromAxisAngle(V3(1, 0, 0), sway));
       let h = ANAT.stand + bob;
@@ -535,6 +541,7 @@ export function createMite(scene, colliders, { cls, tex }) {
     // legs
     const rc = st.retract;
     const hide = rc > 0.97;
+    for (const m of setaeMeshes) m.visible = cfg.setae;
     segIM.count = hide ? 0 : 32; tarIM.count = clawIM.count = hide ? 0 : 8; setIM.count = hide ? 0 : setIM.instanceMatrix.count;
     if (!hide) {
       const U = V3(0, 1, 0).applyQuaternion(q);
@@ -553,22 +560,16 @@ export function createMite(scene, colliders, { cls, tex }) {
         const dirT = tf.normalize().addScaledVector(U, 0.55).normalize();
         const T = H.clone().addScaledVector(dirT, seg[0]);
         // two-bone IK, the knee (femur-genu) bent upward
-        const D = F.clone().sub(T);
-        const d = clamp(D.length(), Math.abs(L1 - L2) + 2, (L1 + L2) * 0.995);
-        const Dn = D.normalize();
-        const Fe = T.clone().addScaledVector(Dn, d);
-        const b = U.clone().addScaledVector(Dn, -Dn.dot(U));
-        if (b.lengthSq() < 1e-4) b.copy(dirT);
-        b.normalize();
-        const a = (L1 * L1 - L2 * L2 + d * d) / (2 * d);
-        const hh = Math.sqrt(Math.max(0, L1 * L1 - a * a));
-        const K = T.clone().addScaledVector(Dn, a).addScaledVector(b, hh);
+        const K = new THREE.Vector3(), Fe = new THREE.Vector3();
+        twoBoneIK(T, F, L1, L2, U, K, Fe, !cfg.ik);
         const u1 = K.clone().sub(T).normalize();
+        const b = U.clone().addScaledVector(u1, -u1.dot(U)).normalize();
         const Fm = T.clone().addScaledVector(u1, seg[1]);
         // tibia a little above the straight line, tarsus angled down to the foot
         const w2 = Fe.clone().sub(K).normalize();
         const bend = b.clone().addScaledVector(w2, -w2.dot(b)).normalize();
-        const tib = w2.clone().multiplyScalar(Math.cos(0.2)).addScaledVector(bend, Math.sin(0.2)).normalize();
+        const tb = cfg.ik ? 0.2 : 0;
+        const tib = bend.lengthSq() > 0.5 ? w2.clone().multiplyScalar(Math.cos(tb)).addScaledVector(bend, Math.sin(tb)).normalize() : w2.clone();
         const J = K.clone().addScaledVector(tib, seg[3]);
         const ta = Fe.clone().sub(J);
         const taLen = ta.length();
@@ -590,7 +591,7 @@ export function createMite(scene, colliders, { cls, tex }) {
           setInst(setIM, si++, base, sdir, U, 2.6 * shrink, (long ? 72 : len) * shrink);
         }
       });
-      setIM.count = si;
+      setIM.count = cfg.setae ? si : 0;
       for (const im of [segIM, tarIM, clawIM, setIM]) im.instanceMatrix.needsUpdate = true;
     }
   }
@@ -603,13 +604,12 @@ export function createMite(scene, colliders, { cls, tex }) {
         st.mode = 'closing'; st.t = 0; st.speed = 0;
         const q = basisQ(st.fwd, st.up);
         const dl = st.up.clone().negate().applyQuaternion(q.clone().invert());
-        st.h0 = -support(ANAT.noto.c, ANAT.noto.r, dl, new THREE.Vector3()).dot(dl) + 0;
         st.h0 = Math.abs(support(ANAT.noto.c, ANAT.noto.r, dl, new THREE.Vector3()).dot(dl));
       } else walk(dt, input);
     }
     if (st.mode === 'closing') {
       // a real phthiracaroid seals itself in about 0.1-0.15 s
-      st.t = Math.min(1, st.t + dt / 0.16);
+      st.t = Math.min(1, st.t + dt / cfg.closeTime);
       st.retract = sstep(0, 0.7, st.t);
       st.aspis = sstep(0.25, 1, st.t);
       if (st.t >= 1) {
@@ -618,7 +618,7 @@ export function createMite(scene, colliders, { cls, tex }) {
         events.push('closed');
       }
     } else if (st.mode === 'closed') {
-      physics(dt);
+      if (cfg.roll) physics(dt); else { st.angVel.set(0, 0, 0); st.airborne = false; }
       if (!hold && !st.airborne && st.angVel.length() < 2.5) {
         // stand up on whatever is underneath
         const g = colliders.cast(st.center.clone(), V3(0, -1, 0), 600);
@@ -637,7 +637,7 @@ export function createMite(scene, colliders, { cls, tex }) {
       }
     } else if (st.mode === 'opening') {
       // reopening is slow and careful
-      st.t = Math.min(1, st.t + dt / 0.9);
+      st.t = Math.min(1, st.t + dt / (0.9 * cfg.closeTime / 0.16));
       st.aspis = 1 - sstep(0, 0.45, st.t);
       st.retract = 1 - sstep(0.3, 1, st.t);
       if (hold) { st.mode = 'closing'; st.t = 1 - st.retract; st.h0 = ANAT.stand; }

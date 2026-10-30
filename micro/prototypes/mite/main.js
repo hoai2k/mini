@@ -6,7 +6,8 @@ import { mountHud } from '../shared/hud.js';
 import { createSem, shared, MODES, CLS } from './sem.js';
 import { semTextures } from './textures.js';
 import { buildWorld, HALF } from './world.js';
-import { createMite } from './mite.js';
+import { createMite, CFG } from './mite.js';
+import { createFeatures } from '../shared/features.js';
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
@@ -39,7 +40,7 @@ scene.add(world.group);
 const mite = createMite(scene, world.colliders, { cls: CLS.CUTICLE, tex });
 mite.place(0, 0, 0.3);
 const npc = createMite(scene, world.colliders, { cls: CLS.NPC, tex });
-npc.place(650, -420, 2.2);
+npc.place(-950, 820, 2.2);
 
 const pad = createPad();
 const hud = mountHud({
@@ -56,6 +57,7 @@ const hud = mountHud({
     ['Y', 'Imaging mode: SE, BSE, false colour'],
     ['X', 'Observer: data bar and scan lines'],
     ['View', 'Hide this panel'],
+    ['Menu', 'Features: what this does, switches'],
   ],
   note: 'A live mite walking in an SEM is a deliberate fiction: real specimens are dried and gold-coated in a vacuum. The mag and scale bar are true to the field of view.',
 });
@@ -69,12 +71,15 @@ let observer = false;
 const rig = { yaw: -0.6, pitch: 0.62, hfw: 1400, target: mite.center.clone() };
 const camFwd = new THREE.Vector3(), camRight = new THREE.Vector3();
 
+let renderScale = 1, dynRes = true, slowEma = 16, scaleT = 0;
 function resize() {
   const w = innerWidth, h = innerHeight;
+  renderer.setPixelRatio(DPR * renderScale);
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  sem.resize(Math.floor(w * DPR), Math.floor(h * DPR));
+  const v = renderer.getDrawingBufferSize(new THREE.Vector2());
+  sem.resize(v.x, v.y);
 }
 addEventListener('resize', resize);
 resize();
@@ -118,23 +123,109 @@ function npcInput(dt) {
   return { dir: new THREE.Vector3(Math.cos(ai.ang), 0, Math.sin(ai.ang)), mag: moving ? 0.6 : 0, maxSpeed: 180, hold: ai.scared > 0 };
 }
 
+// ---------- features panel ----------
+const features = createFeatures({ key: 'mite', pad });
+const LOOKS = ['SE', 'BSE', 'False colour'];
+let npcOn = true, rumbleOn = true;
+const F = (o) => features.add(o);
+F({ id: 'gbuffer', group: 'Rendering', label: 'Deferred SEM composite', fixed: true,
+  about: 'Surfaces write view-space normal, material class and depth to a float G-buffer; one full-screen shader turns that into a micrograph (shared/techniques/mite-sem.js).' });
+F({ id: 'look', group: 'Rendering', label: 'Imaging mode (Y)', choices: LOOKS, value: 'SE',
+  about: 'SE: secondary electrons, topographic. BSE: low-vacuum backscatter, brightness from atomic number. False colour: the SE image tinted by material, like published coloured SEMs.',
+  onChange: (v) => { const i = LOOKS.indexOf(v); if (i !== sem.mode) sem.setMode(i); } });
+F({ id: 'secant', group: 'Rendering', label: 'Secant-law tilt contrast', on: true,
+  about: 'SE yield rises as 1/cos(theta) with the angle between surface and beam, so slopes and rims are bright and faces square to the beam are darker. The beam is the camera, so it moves with the view.',
+  onChange: (v) => (sem.toggles.secant = v) });
+F({ id: 'edge', group: 'Rendering', label: 'Edge effect', on: true,
+  about: 'Electrons escape from two surfaces at silhouettes and thin parts (setae, hyphae, claws), so they glow. Found from depth jumps in the G-buffer plus a thin-feature flag.',
+  onChange: (v) => (sem.toggles.edge = v) });
+F({ id: 'shadow', group: 'Rendering', label: 'Detector shadowing (ETD)', on: true,
+  about: 'The Everhart-Thornley detector sits off to the upper left: faces toward it are brighter, and a short screen-space march toward it darkens points with something in the way. Soft, never black.',
+  onChange: (v) => (sem.toggles.shadow = v) });
+F({ id: 'ao', group: 'Rendering', label: 'Dark crevices (SSAO)', on: true,
+  about: 'Electrons emitted in a crevice are reabsorbed by its walls. Normal-oriented screen-space ambient occlusion over a ~34 µm radius.',
+  onChange: (v) => (sem.toggles.ao = v) });
+F({ id: 'bump', group: 'Rendering', label: 'Surface relief from SEM textures', on: true,
+  about: 'Leaf cells, humus crumbs and cuticle pits as bump mapping: texture luminance read as height (procedural stand-ins until MP-M01..M03 are delivered).',
+  onChange: (v) => (sem.toggles.bump = v) });
+F({ id: 'noise', group: 'Rendering', label: 'Shot noise', on: true,
+  about: 'Per-pixel noise that grows as the signal falls, fresh every frame, like a fast scan.', onChange: (v) => (sem.toggles.noise = v) });
+F({ id: 'lines', group: 'Rendering', label: 'Scan-line jitter', on: true,
+  about: 'Each raster line gets a small random brightness offset, as beam current and scan timing wander.', onChange: (v) => (sem.toggles.lines = v) });
+F({ id: 'observer', group: 'Rendering', label: 'Observer mode (X)', on: false,
+  about: 'A real micrograph data bar (HV, WD, mag, HFW, detector, true scale bar) and visible raster lines.',
+  onChange: (v) => { observer = v; bar.style.display = v ? 'flex' : 'none'; sem.setRaster(v); } });
+F({ id: 'dynres', group: 'Rendering', label: 'Dynamic resolution', on: true,
+  about: 'Renders at a lower resolution while frames take longer than ~40 ms and climbs back when they are fast, so a slow GPU stays responsive.',
+  onChange: (v) => { dynRes = v; if (!v && renderScale !== 1) { renderScale = 1; resize(); } } });
+F({ id: 'dof', group: 'Optics', label: 'Infinite depth of field', fixed: true,
+  about: 'An SEM beam converges at milliradians, so everything is sharp from front to back; no blur is applied anywhere.' });
+F({ id: 'field', group: 'Optics', label: 'Narrow scan field, true magnification', fixed: true,
+  about: 'A 12-degree field (little perspective, like a beam pivoting far above the sample). HFW is the real field width at the mite; mag = 127 mm / HFW; the scale bar is measured from it.' });
+F({ id: 'cut', group: 'Optics', label: 'Cutaway in front of the mite', on: true,
+  about: 'Terrain between the camera and the mite is discarded inside a cylinder, so moss never hides the specimen. A game convenience, not optics.',
+  onChange: (v) => (shared.uCutOn.value = v ? 1 : 0) });
+F({ id: 'sdf', group: 'Body', label: 'Anatomy from SDF parts', fixed: true,
+  about: 'Notogaster, aspis, collar, genitoanal plates, bothridia, chelicerae and palps as signed-distance parts meshed with surface nets; the aspis is a separate hinged mesh.' });
+F({ id: 'setae', group: 'Body', label: 'Setae and sensilli', on: true,
+  about: '14 pairs of notogastral setae, four pairs on the aspis, two sensilli, and setae on every leg segment (drawn ~1.6x thicker than life).',
+  onChange: (v) => (CFG.setae = v) });
+F({ id: 'thick', group: 'Body', label: 'Thin parts thickened', fixed: true,
+  about: 'Legs ~1.3x and setae ~1.6x thicker than life so they survive at screen size.' });
+const GAITL = { 'Alternating tetrapod': 'tetrapod', 'Wave (one leg at a time)': 'wave', 'Pairs (not arachnid)': 'pairs' };
+F({ id: 'gait', group: 'Motion', label: 'Gait', choices: Object.keys(GAITL), value: 'Alternating tetrapod',
+  about: 'Tetrapod: L1 R2 L3 R4 swing together, then R1 L2 R3 L4, with a small back-to-front lag. Wave: one leg at a time per side. Pairs: for comparison (shared/techniques/mite-gait.js).',
+  onChange: (v) => (CFG.gait = GAITL[v]) });
+F({ id: 'ik', group: 'Motion', label: 'Two-bone leg IK', on: true,
+  about: 'Femur+genu and tibia+tarsus solved analytically with the knee bent up, the tarsus angled down to a planted claw. Off: each leg is a stiff strut from trochanter to foot.',
+  onChange: (v) => (CFG.ik = v) });
+F({ id: 'plant', group: 'Motion', label: 'Planted feet, distance-driven phase', fixed: true,
+  about: 'The gait phase advances with distance walked (and turning), feet stay fixed in the world during stance and land half a stance ahead, so they never skate.' });
+F({ id: 'surface', group: 'Motion', label: 'Surface following and climbing', fixed: true,
+  about: 'Five ray probes fit the body to the ground under it; a forward probe tips the body onto walls, so it can climb grains, leaves and stems. Feet are raycast onto the real surfaces.' });
+F({ id: 'bob', group: 'Motion', label: 'Body bob and sway', on: true,
+  about: 'A few µm of rise and fall and a slight roll in time with the alternating leg groups.', onChange: (v) => (CFG.bob = v) });
+F({ id: 'ptych', group: 'Simulation', label: 'Ptychoidy speed', choices: ['Real (0.16 s)', 'Slowed 4x'], value: 'Real (0.16 s)',
+  about: 'Hold A: legs pull in and the aspis folds down to seal the body. Real euphthiracaroids close in about 0.1-0.15 s (Heethoff et al. 2018).',
+  onChange: (v) => (CFG.closeTime = v.startsWith('Real') ? 0.16 : 0.64) });
+F({ id: 'roll', group: 'Simulation', label: 'Closed capsule rolls and falls', on: true,
+  about: 'Closed, the mite is a rigid egg: gravity torque about the contact point tips it, it rolls without slipping down slopes and falls off edges. Off: it stays put.',
+  onChange: (v) => (CFG.roll = v) });
+F({ id: 'npc', group: 'Simulation', label: 'A second box mite', on: true,
+  about: 'Another phthiracarid wanders with the same walker and shuts itself when you come close.',
+  onChange: (v) => { npcOn = v; npc.setVisible(v); } });
+for (const [id, label, about] of [
+  ['moss', 'Moss shoots', 'Stems with lanceolate leaves on a 137.5-degree spiral, costa and cell relief; the lowest leaves arch to the floor as ramps.'],
+  ['grains', 'Mineral grains', 'About 150 angular grains, 20-300 µm, faceted jittered icosahedra.'],
+  ['litter', 'Leaf litter flakes', 'Curled, ragged fragments of dead leaves, walkable.'],
+  ['hyphae', 'Fungal hyphae', 'Threads 3-5 µm thick strung between surfaces, with side branches.'],
+  ['spores', 'Spores and pollen', 'Fungal conidia, echinate (aster-type) pollen and bisaccate conifer pollen.'],
+]) F({ id, group: 'World', label, about: about + ' Off also removes it from walking.', on: true, onChange: (v) => world.setLayer(id, v) });
+F({ id: 'tex', group: 'World', label: 'Procedural SEM textures', fixed: true,
+  about: 'Stand-ins for MP-M01..M04 drawn in code; delivered images replace them automatically.' });
+F({ id: 'camwalk', group: 'Controls', label: 'Camera-relative walking', fixed: true,
+  about: 'LS walks relative to the view; the mite turns toward the stick at a limited rate and walks forward (it does not strafe).' });
+F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true,
+  about: 'A faint tick on footfalls, a thump on closing, landing and opening.', onChange: (v) => (rumbleOn = v) });
+
 let speedMul = 1;
 function tick(dt, input) {
   const ev = mite.update(dt, input);
-  npc.update(dt, npcInput(dt));
+  if (npcOn) npc.update(dt, npcInput(dt));
   return ev;
 }
 
 function readInput(dt) {
   pad.poll();
+  if (features.update()) return { dir: new THREE.Vector3(), mag: 0, maxSpeed: 0, hold: false };
   hud.update(pad);
   const rs = pad.rs();
   rig.yaw += rs.x * 1.8 * dt;
-  rig.pitch = THREE.MathUtils.clamp(rig.pitch - rs.y * 1.2 * dt, 0.12, 1.45);
+  rig.pitch = THREE.MathUtils.clamp(rig.pitch - rs.y * 1.2 * dt, 0.18, 1.5);
   const zoom = pad.rt() - pad.lt();
   rig.hfw = THREE.MathUtils.clamp(rig.hfw * Math.exp(-zoom * 1.3 * dt), 260, 4200);
-  if (pad.pressed(pad.BTN.Y)) { sem.setMode((sem.mode + 1) % MODES.length); hud.toast(MODES[sem.mode]); }
-  if (pad.pressed(pad.BTN.X)) { observer = !observer; bar.style.display = observer ? 'flex' : 'none'; sem.setRaster(observer); hud.toast(observer ? 'Observer mode' : 'Observer mode off'); }
+  if (pad.pressed(pad.BTN.Y)) { features.set('look', LOOKS[(sem.mode + 1) % LOOKS.length]); hud.toast(MODES[sem.mode]); }
+  if (pad.pressed(pad.BTN.X)) { features.set('observer', !observer); hud.toast(observer ? 'Observer mode' : 'Observer mode off'); }
   speedMul = pad.down(pad.BTN.LB) ? 0.45 : pad.down(pad.BTN.RB) ? 1.7 : 1;
   const ls = pad.ls();
   camFwd.set(-Math.cos(rig.yaw), 0, -Math.sin(rig.yaw));
@@ -144,6 +235,7 @@ function readInput(dt) {
 }
 
 function react(ev) {
+  if (!rumbleOn) return;
   for (const e of ev) {
     if (e === 'step') pad.rumble(25, 0.08, 0);
     else if (e === 'closed') { pad.rumble(140, 0.35, 0.7); }
@@ -157,7 +249,7 @@ function updateText(d) {
   const mag = 127000 / rig.hfw; // relative to a 127 mm (Polaroid 4x5) reference image width
   const st = mite.mode === 'walk' ? (mite.speed > 5 ? `walking ${mite.speed.toFixed(0)} µm/s` : 'standing') : mite.mode === 'closed' ? 'closed (ptychoid)' : mite.mode;
   const info = renderer.info.render;
-  hud.stats(`${MODES[sem.mode]}\nHFW ${rig.hfw.toFixed(0)} µm   mag ${mag.toFixed(0)}x\n${st}\n${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
+  hud.stats(`${MODES[sem.mode]}${renderScale < 1 ? `  (res ${(renderScale * 100).toFixed(0)}%)` : ''}\nHFW ${rig.hfw.toFixed(0)} µm   mag ${mag.toFixed(0)}x\n${st}\n${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
   if (observer) {
     const sb = niceScale(rig.hfw);
     const px = (sb / rig.hfw) * innerWidth;
@@ -166,24 +258,49 @@ function updateText(d) {
   }
 }
 
-const clock = new THREE.Clock();
+let last = performance.now();
 const api = {
-  scene, camera, renderer, sem, world, mite, npc, rig, paused: false,
+  scene, camera, renderer, sem, world, mite, npc, rig, features, cfg: CFG, paused: false,
   tick(dt, input = { dir: new THREE.Vector3(), mag: 0, maxSpeed: 210, hold: false }) { return tick(dt, input); },
   render(dt = 1 / 60) { const d = placeCamera(0); sem.render(scene, camera, dt, rig.yaw, rig.pitch); updateText(d); },
   isolate(on) { world.group.visible = !on; npc.setVisible(!on); },
-  setMode(m) { sem.setMode(m); sem.material.uniforms.uScanY.value = 1; },
+  setMode(m) { sem.setMode(m); sem.skipScan(); },
 };
 window.__micro = api;
 
+// Never queue a frame while the last one is still on the GPU (a slow GPU
+// would otherwise build a backlog and lag seconds behind the controls).
+const gl = renderer.getContext();
+let fence = null, lastSubmit = performance.now();
+function gpuBusy() {
+  if (!fence) return false;
+  if (gl.getSyncParameter(fence, gl.SYNC_STATUS) !== gl.SIGNALED) return true;
+  gl.deleteSync(fence); fence = null;
+  return false;
+}
+
 function frame() {
   requestAnimationFrame(frame);
-  const dt = Math.min(clock.getDelta(), 1 / 30);
+  const now = performance.now();
+  const dt = Math.min((now - last) / 1000, 1 / 30);
+  last = now;
   if (api.paused) return;
   const input = readInput(dt);
   react(tick(dt, input));
+  if (gpuBusy()) return;
+  const raw = now - lastSubmit;
+  lastSubmit = now;
+  slowEma += (raw - slowEma) * 0.25;
+  scaleT += raw;
+  if (dynRes && scaleT > 300) {
+    if (raw > 120 && renderScale > 0.26) { renderScale = Math.max(0.25, renderScale * 0.6); resize(); scaleT = 0; }
+    else if (slowEma > 40 && scaleT > 800 && renderScale > 0.26) { renderScale = Math.max(0.25, renderScale * 0.8); resize(); scaleT = 0; }
+    else if (slowEma < 20 && renderScale < 1 && scaleT > 2500) { renderScale = Math.min(1, renderScale * 1.15); resize(); scaleT = 0; }
+  }
   const d = placeCamera(dt);
   sem.render(scene, camera, dt, rig.yaw, rig.pitch);
+  fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+  gl.flush();
   frames++; statT += dt;
   if (statT > 0.25) { updateText(d); statT = 0; }
 }

@@ -1,14 +1,49 @@
-// The amoeba as a 2D soft body: a closed ring of membrane nodes crawling on
-// the slide, overdamped (low Reynolds number: displacement is proportional to
+// Technique: a volume-conserving 2D soft body for an amoeboid cell (from the
+// amoeba prototype). A closed ring of N membrane nodes crawling on a
+// substrate, overdamped (low Reynolds number: displacement is proportional to
 // force, nothing coasts). Each step:
 //   1. cortical tension (curvature flow) and tangential spacing,
-//   2. protrusion pressure at each pseudopod's tip window,
-//   3. obstacles and self-contact,
-//   4. an area projection that conserves the body (volume / mean thickness).
+//   2. protrusion pressure at each pseudopod's tip window (player or idle),
+//   3. obstacles (capsules, circles) and self-contact,
+//   4. an area projection that conserves the body (2D stand-in for volume).
 // Because the area is fixed, whatever a pseudopod gains is taken back
-// elsewhere, mostly at the rear (the uroid), which is how the cell advances.
-import { TAU, clamp, wrapAngle, segDist2, pointInPolygon, polygonArea } from './util.js';
-import { SdfGrid } from './sdfgrid.js';
+// elsewhere, weighted to the rear (the uroid), which is how the cell crawls.
+//
+// Interface (no three.js needed; units are whatever your world uses, tuned for µm):
+//   import { Body, P, N } from '../shared/techniques/amoeba-softbody.js';
+//   const body = new Body(rand, x0, y0);  // rand(): [0,1) with .range(a,b)
+//   body.step(dt, { pods: [{m, dx, dy}, {m, dx, dy}], push, spread },
+//                 { capsules: [{ax,ay,bx,by,r}], circles: [{x,y,r}] });
+//   body.x / body.y (Float64Array ring, counter-clockwise), body.pods[k].x/.y/.s (tips),
+//   body.cx/.cy (centroid), body.ux/.uy (uroid), body.grid (signed distance grid, see
+//   amoeba-sdfgrid.js: call body.grid.build(body.x, body.y, N) after stepping),
+//   body.cupAround(px, py, reach) / cupContains / seal(cup): food-cup detection and closure,
+//   body.collideCircle(cx, cy, r, share, out), body.blast(x, y, radius, amount).
+//   body.opts: { area, rearWeight, selfContact, idlePods } switches (all true by default).
+import { SdfGrid } from './amoeba-sdfgrid.js';
+
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+function wrapAngle(a) { while (a > Math.PI) a -= TAU; while (a < -Math.PI) a += TAU; return a; }
+function segDist2(px, py, ax, ay, bx, by, out) {
+  const ex = bx - ax, ey = by - ay, l2 = ex * ex + ey * ey;
+  const t = clamp(l2 > 1e-9 ? ((px - ax) * ex + (py - ay) * ey) / l2 : 0, 0, 1);
+  const cx = ax + ex * t, cy = ay + ey * t;
+  if (out) { out.t = t; out.x = cx; out.y = cy; }
+  return (px - cx) ** 2 + (py - cy) ** 2;
+}
+function pointInPolygon(px, py, xs, ys, n) {
+  let inside = false;
+  for (let i = 0, j = n - 1; i < n; j = i++) {
+    if ((ys[i] > py) !== (ys[j] > py) && px < ((xs[j] - xs[i]) * (py - ys[i])) / (ys[j] - ys[i]) + xs[i]) inside = !inside;
+  }
+  return inside;
+}
+function polygonArea(xs, ys, n) {
+  let a = 0;
+  for (let i = 0, j = n - 1; i < n; j = i++) a += xs[j] * ys[i] - xs[i] * ys[j];
+  return a * 0.5;
+}
 
 export const N = 160;
 export const P = {
@@ -51,6 +86,7 @@ export class Body {
     this.Abase = this.A0;
     this.flat = 1; // thickness scale; spreading flattens the cell, so its footprint grows
     this.pods = [new Pod(0), new Pod(1), new Pod(2, true), new Pod(3, true), new Pod(4, true)];
+    this.pods.forEach((p, k) => { if (p.idle) p.life = k - 1.5; }); // stagger the idle pseudopods
     this.cx = x0; this.cy = y0;
     this.fx = 0; this.fy = 1; this.fm = 0; // front direction and its strength
     this.ux = x0; this.uy = y0 - P.R0; // uroid
@@ -60,6 +96,7 @@ export class Body {
     this.spread = 0;
     this.time = 0;
     this.contact = 0; // how much of the membrane pushed against something this step
+    this.opts = { area: true, rearWeight: true, selfContact: true, idlePods: true };
   }
 
   get area() { return polygonArea(this.x, this.y, N); }
@@ -141,13 +178,13 @@ export class Body {
         const a = this.rand() * TAU;
         pod.dx = Math.cos(a); pod.dy = Math.sin(a);
         pod.tip = this.pickTip(pod.dx, pod.dy);
-        pod.life = this.rand.range(6, 13);
-        pod.base = this.rand.range(0.18, 0.42);
+        pod.life = this.rand.range(8, 16);
+        pod.base = this.rand.range(0.35, 0.75);
         pod.active = true;
       }
       // A resting Amoeba proteus is polypodial: a few pseudopods probe at once.
       const fade = Math.min(1, pod.life / 2.5);
-      pod.target = (pod.base || 0) * fade * (playing > 0.15 ? 0.25 : 1) * (1 - this.spread);
+      pod.target = (this.opts.idlePods ? 1 : 0) * (pod.base || 0) * fade * (playing > 0.15 ? 0.25 : 1) * (1 - this.spread);
       if (pod.life < 2.5 && pod.ret === 0) pod.ret = 0.4;
     }
 
@@ -198,7 +235,7 @@ export class Body {
         const v = P.vRetract * pod.ret;
         for (let r = -P.win; r <= P.win; r++) {
           const j = (pod.tip + r + N) % N;
-          const g = Math.exp(-(r / (P.sigma * 1.3)) ** 2);
+          const g = Math.exp(-((r / (P.sigma * 1.3)) ** 2));
           const ex = this.cx - x[j], ey = this.cy - y[j];
           const m = Math.hypot(ex, ey) || 1;
           ddx[j] += (ex / m) * v * g * dt;
@@ -279,14 +316,14 @@ export class Body {
         }
       }
     }
-    this.selfContact();
+    if (this.opts.selfContact) this.selfContact();
 
     // -- area (volume) projection ------------------------------------------------
     this.normals();
     let rx = 0, ry = 0;
     if (Math.hypot(this.fx, this.fy) > 0.1) { rx = this.fx; ry = this.fy; }
     const target = this.A0 / this.flat;
-    for (let it = 0; it < 2; it++) {
+    for (let it = 0; it < (this.opts.area ? 2 : 0); it++) {
       const dA = target - polygonArea(x, y, N);
       let sum = 0;
       for (let i = 0; i < N; i++) {
@@ -294,7 +331,7 @@ export class Body {
         let wi;
         if (dA < 0) {
           const rear = Math.max(0, -(nx[i] * rx + ny[i] * ry));
-          wi = 0.12 + (1 - g) * (0.35 + 1.6 * rear * rear) * (1 - 0.6 * this.spread) + 0.6 * this.spread;
+          wi = !this.opts.rearWeight ? 1 - 0.7 * g : 0.12 + (1 - g) * (0.35 + 1.6 * rear * rear) * (1 - 0.6 * this.spread) + 0.6 * this.spread;
         } else {
           wi = 1 - 0.7 * g;
         }

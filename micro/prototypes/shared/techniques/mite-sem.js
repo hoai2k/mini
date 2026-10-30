@@ -1,9 +1,34 @@
-// A scanning-electron-microscope image, built in two passes.
+// mite-sem: a scanning-electron-microscope look for any three.js scene.
+// From the Micro mite prototype (micro/prototypes/mite/). Self-contained.
 //
+// HOW TO PLUG IT IN
+//   import { createSem, gMaterial, shared, CLS, MODES } from '../shared/techniques/mite-sem.js';
+//   const sem = createSem(renderer, backdropTexture);   // backdrop: any texture (or null)
+//   sem.resize(drawingBufferWidth, drawingBufferHeight); // on resize, in device pixels
+//   mesh.material = gMaterial({ cls: CLS.GRAIN, tex, map: 'tri', scale: 160, bump: 2.5 });
+//   each frame: sem.render(scene, camera, dt, yaw, pitch)  // renders to the screen
+//
+// INPUTS
+// - Every visible mesh must use a gMaterial (a G-buffer writer); other
+//   materials would write colours that the composite misreads. Works with
+//   Mesh and InstancedMesh (non-uniform instance scale handled).
+// - A PerspectiveCamera (fov and aspect are read to rebuild view positions).
+// - Units: the AO radius, shadow march and edge thresholds are in scene units
+//   and tuned for µm at fields of 0.3-4 mm.
+// - Buffers: one float RGBA target it owns: view-space normal x, y; material
+//   class (+0.5 = thin feature); linear view depth (0 = background). The
+//   material class drives BSE brightness and false colour (see CLS).
+// - shared.uCutP / uCutR: a cutaway cylinder (view space) that discards
+//   materials made with { cut: true } between the camera and a target;
+//   shared.uCutOn.value = 0 turns it off. shared.uBumpOn likewise for relief.
+// - Switches (sem.toggles, each 0/1 uniform): secant, edge, shadow, ao,
+//   noise, lines, bump; sem.setMode(0 SE | 1 BSE | 2 false colour); sem.setRaster(on).
+//
+// WHAT IT DOES
 // 1. G-buffer: every surface writes its view-space normal (x, y), a material
-//    class (+0.5 for thin features such as setae and hyphae) and its linear
-//    depth in µm to one float target. Surface relief from the SEM textures is
-//    applied here as bump mapping, so the composite sees it as topography.
+//    class and its linear depth to one float target. Surface relief from
+//    textures (luminance read as height) is applied as bump mapping, so the
+//    composite sees it as topography.
 // 2. Composite: a full-screen shader turns that into a micrograph.
 //    - Secondary-electron yield follows the secant law: delta ~ 1/cos(theta),
 //      theta the angle between the surface normal and the beam. The beam comes
@@ -23,7 +48,7 @@
 //   Other modes: low-vacuum backscatter (BSE: composition contrast, flatter
 //   topography, noisier) and false colour (the SE image hand-tinted by
 //   material, the way published "coloured SEMs" are made).
-import * as THREE from '../shared/vendor/three.module.min.js';
+import * as THREE from '../vendor/three.module.min.js';
 
 export const CLS = { BG: 0, CUTICLE: 1, LEAF: 2, STEM: 3, GRAIN: 4, LITTER: 5, HYPHA: 6, SPORE: 7, NPC: 8 };
 export const MODES = ['SE · Everhart-Thornley', 'BSE · low vacuum', 'SE · false colour'];
@@ -33,6 +58,8 @@ export const MODES = ['SE · Everhart-Thornley', 'BSE · low vacuum', 'SE · fal
 export const shared = {
   uCutP: { value: new THREE.Vector3() },
   uCutR: { value: 420 },
+  uBumpOn: { value: 1 },
+  uCutOn: { value: 1 },
 };
 
 const gVert = /* glsl */ `
@@ -60,7 +87,7 @@ const gFrag = /* glsl */ `
   varying vec3 vN; varying vec3 vView; varying vec3 vTri; varying vec3 vTriN; varying vec2 vUv;
   uniform float uCls, uThin, uBump, uScale, uMode, uCut;
   uniform sampler2D uTex;
-  uniform vec3 uCutP; uniform float uCutR;
+  uniform vec3 uCutP; uniform float uCutR; uniform float uBumpOn, uCutOn;
   float heightAt() {
     if (uMode < 0.5) return 0.0;
     if (uMode < 1.5) return texture2D(uTex, vUv * uScale).r;
@@ -69,16 +96,16 @@ const gFrag = /* glsl */ `
     return texture2D(uTex, q.yz).r * w.x + texture2D(uTex, q.xz).r * w.y + texture2D(uTex, q.xy).r * w.z;
   }
   void main() {
-    if (uCut > 0.5) {
+    if (uCut * uCutOn > 0.5) {
       vec3 dir = normalize(uCutP);
       float along = dot(vView, dir);
       float off = length(vView - dir * along);
-      if (along < dot(uCutP, dir) - 180.0 && off < uCutR) discard;
+      if (along < dot(uCutP, dir) - 230.0 && off < uCutR) discard;
     }
-    vec3 n = normalize(vN);
     vec3 V = normalize(-vView);
+    vec3 n = dot(vN, vN) > 1e-6 ? normalize(vN) : V;
     if (dot(n, V) < 0.0) n = -n;
-    if (uBump > 0.0) {
+    if (uBump * uBumpOn > 0.0) {
       float h = heightAt() * uBump;
       vec3 dpx = dFdx(vView), dpy = dFdy(vView);
       float dhx = dFdx(h), dhy = dFdy(h);
@@ -109,7 +136,7 @@ export function gMaterial(o) {
       uTex: { value: o.tex || null }, uMode: { value: o.tex ? mode : 0 },
       uScale: { value: o.scale || 1 }, uBump: { value: o.tex ? (o.bump ?? 2) : 0 },
       uObjSpace: { value: o.objSpace ? 1 : 0 }, uCut: { value: o.cut ? 1 : 0 },
-      uCutP: shared.uCutP, uCutR: shared.uCutR,
+      uCutP: shared.uCutP, uCutR: shared.uCutR, uBumpOn: shared.uBumpOn, uCutOn: shared.uCutOn,
     },
   });
 }
@@ -121,6 +148,7 @@ const compFrag = /* glsl */ `
   uniform sampler2D tG; uniform sampler2D tBack;
   uniform vec2 uRes; uniform vec2 uTan; uniform float uFrame, uMode, uPrevMode, uScanY, uRaster;
   uniform vec3 uDet; uniform vec2 uBackOff;
+  uniform float uSecOn, uEdgeOn, uShadowOn, uAOOn, uNoiseOn, uLineOn;
   const int NS = 8;
 
   float ign(vec2 p) { return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715)))); }
@@ -154,9 +182,9 @@ const compFrag = /* glsl */ `
     float z = g.a;
     float mode = (vUv.y < 1.0 - uScanY) ? uPrevMode : uMode;
     float line = floor(vUv.y * uRes.y);
-    float lineJit = (rnd(vec2(line, uFrame)) - 0.5) * 0.035;
-    float grainN = rnd(vUv * uRes + uFrame * 17.0) - 0.5;
-    float grainN2 = rnd(vUv * uRes * 1.37 + uFrame * 7.0) - 0.5;
+    float lineJit = (rnd(vec2(line, uFrame)) - 0.5) * 0.035 * uLineOn;
+    float grainN = (rnd(vUv * uRes + uFrame * 17.0) - 0.5) * uNoiseOn;
+    float grainN2 = (rnd(vUv * uRes * 1.37 + uFrame * 7.0) - 0.5) * uNoiseOn;
     vec3 col;
     if (z <= 0.0) {
       vec2 bu = vec2(vUv.x * uRes.x / uRes.y * 0.42 + uBackOff.x, clamp(vUv.y * 0.9 + uBackOff.y, 0.0, 1.0));
@@ -188,7 +216,7 @@ const compFrag = /* glsl */ `
         float L = length(d);
         occ += max(0.0, dot(d, n) / (L + 1e-3) - 0.12) * smoothstep(R * 2.5, R * 0.5, L);
       }
-      occ = clamp(occ / float(NS) * 2.2, 0.0, 1.0);
+      occ = clamp(occ / float(NS) * 2.2, 0.0, 1.0) * uAOOn;
 
       // detector shadowing: march toward the detector through the depth buffer
       float sh = 0.0;
@@ -201,7 +229,7 @@ const compFrag = /* glsl */ `
         if (qz > 0.0 && qz < -Q.z - 3.0 && qz > -Q.z - 220.0) sh += 1.0 / (1.0 + float(i) * 0.35);
         t *= 1.55;
       }
-      sh = clamp(sh * 0.45, 0.0, 1.0);
+      sh = clamp(sh * 0.45, 0.0, 1.0) * uShadowOn;
 
       // silhouette: a neighbour much farther away means this pixel is an edge
       float edge = 0.0;
@@ -212,10 +240,11 @@ const compFrag = /* glsl */ `
       }
 
       float facing = dot(n, uDet);
-      float sec = 1.0 / cosT;
+      float sec = mix(1.6, 1.0 / cosT, uSecOn);
+      edge *= uEdgeOn; thin *= uEdgeOn;
       if (mode < 0.5 || mode > 1.5) {
-        float se = 0.30 + 0.20 * min(sec - 1.0, 3.2);           // secant law
-        se *= 0.62 + 0.38 * facing;                               // detector side
+        float se = 0.24 + 0.42 * (1.0 - cosT * uSecOn - 0.6 * (1.0 - uSecOn)) + 0.06 * min(sec - 1.0, 3.0); // secant law, softened by detector saturation
+        se *= 1.0 - uShadowOn * (0.38 - 0.38 * facing);                               // detector side
         se *= 1.0 - 0.42 * sh;                                    // detector shadow
         se *= 1.0 - 0.62 * occ;                                   // reabsorbed in crevices
         se += edge * 0.22 + thin * (0.16 + 0.12 * (sec - 1.0));   // edge effect
@@ -251,6 +280,7 @@ export function createSem(renderer, backTex) {
       // up and to the left of the frame, and toward the pole piece
       uDet: { value: new THREE.Vector3(-0.42, 0.62, 0.66).normalize() },
       uBackOff: { value: new THREE.Vector2() },
+      uSecOn: { value: 1 }, uEdgeOn: { value: 1 }, uShadowOn: { value: 1 }, uAOOn: { value: 1 }, uNoiseOn: { value: 1 }, uLineOn: { value: 1 },
     },
   });
   const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat);
@@ -260,11 +290,21 @@ export function createSem(renderer, backTex) {
   const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   const clear = new THREE.Color(0, 0, 0);
   let mode = 0, scan = 1;
+  const u = mat.uniforms;
+  // live switches for each term of the image model (1 on, 0 off)
+  const toggles = {
+    set secant(v) { u.uSecOn.value = v ? 1 : 0; }, set edge(v) { u.uEdgeOn.value = v ? 1 : 0; },
+    set shadow(v) { u.uShadowOn.value = v ? 1 : 0; }, set ao(v) { u.uAOOn.value = v ? 1 : 0; },
+    set noise(v) { u.uNoiseOn.value = v ? 1 : 0; }, set lines(v) { u.uLineOn.value = v ? 1 : 0; },
+    set bump(v) { shared.uBumpOn.value = v ? 1 : 0; },
+  };
 
   return {
-    target, material: mat,
+    target, material: mat, toggles,
     get mode() { return mode; },
     setMode(m) { mat.uniforms.uPrevMode.value = mode; mode = m; mat.uniforms.uMode.value = m; scan = 0; },
+    /** Finish the mode-change scan sweep at once. */
+    skipScan() { scan = 1; mat.uniforms.uScanY.value = 1; },
     setBackdrop(t) { mat.uniforms.tBack.value = t; },
     setRaster(on) { mat.uniforms.uRaster.value = on ? 1 : 0; },
     resize(w, h) { target.setSize(w, h); mat.uniforms.uRes.value.set(w, h); },
@@ -275,6 +315,8 @@ export function createSem(renderer, backTex) {
       mat.uniforms.uBackOff.value.set(-yaw / (Math.PI * 2) * 2.4, pitch * 0.4);
       scan = Math.min(1, scan + dt / 0.7);
       mat.uniforms.uScanY.value = scan;
+      renderer.info.autoReset = false; // count both passes
+      renderer.info.reset();
       renderer.setRenderTarget(target);
       renderer.setClearColor(clear, 0);
       renderer.clear();

@@ -85,63 +85,69 @@ function wrapDraw(ctx, size, x, y, rad, fn) {
   }
 }
 
+function layer(size) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  return [c, c.getContext('2d')];
+}
+
+/** Draw a layer onto ctx through one blur (tiled 3×3 so the blur wraps). */
+function blurInto(ctx, src, size, px) {
+  ctx.save();
+  ctx.filter = `blur(${px}px)`;
+  for (const dx of [-size, 0, size]) for (const dy of [-size, 0, size]) ctx.drawImage(src, dx, dy);
+  ctx.restore();
+}
+
 /** MP-A01 stand-in: a pale warm-grey brightfield field, tileable, with faint mottling and specks. */
 export function wetMountCanvas(size = 1024, seed = 3) {
   const r = rng(seed);
-  const cv = document.createElement('canvas');
-  cv.width = cv.height = size;
-  const ctx = cv.getContext('2d');
+  const [cv, ctx] = layer(size);
   ctx.fillStyle = 'rgb(196,188,171)';
   ctx.fillRect(0, 0, size, size);
   // Uneven illumination and medium: very soft blobs.
-  ctx.filter = 'blur(40px)';
+  const [l1, c1] = layer(size);
   for (let i = 0; i < 40; i++) {
     const x = r() * size, y = r() * size, rad = r.range(60, 200);
-    const l = r() < 0.5 ? 'rgba(210,203,186,0.35)' : 'rgba(180,172,154,0.3)';
-    wrapDraw(ctx, size, x, y, rad + 80, (X, Y) => { ctx.fillStyle = l; ctx.beginPath(); ctx.arc(X, Y, rad, 0, TAU); ctx.fill(); });
+    c1.fillStyle = r() < 0.5 ? 'rgba(210,203,186,0.35)' : 'rgba(180,172,154,0.3)';
+    wrapDraw(c1, size, x, y, rad, (X, Y) => { c1.beginPath(); c1.arc(X, Y, rad, 0, TAU); c1.fill(); });
   }
-  ctx.filter = 'blur(1.4px)';
+  blurInto(ctx, l1, size, 40);
+  // Faint out-of-focus specks.
+  const [l3, c3] = layer(size);
+  for (let i = 0; i < 60; i++) {
+    const x = r() * size, y = r() * size, rad = r.range(4, 14);
+    c3.fillStyle = `rgba(150,135,105,${r.range(0.08, 0.2)})`;
+    wrapDraw(c3, size, x, y, rad, (X, Y) => { c3.beginPath(); c3.arc(X, Y, rad, 0, TAU); c3.fill(); });
+  }
+  blurInto(ctx, l3, size, 6);
   // Bacteria and tiny particles (barely resolved at this magnification).
+  const [l2, c2] = layer(size);
   for (let i = 0; i < 900; i++) {
     const x = r() * size, y = r() * size, rad = r.range(0.6, 1.8);
     const dark = r() < 0.7;
-    wrapDraw(ctx, size, x, y, 4, (X, Y) => {
-      ctx.fillStyle = dark ? `rgba(120,110,92,${r.range(0.15, 0.4)})` : 'rgba(235,230,215,0.35)';
-      ctx.beginPath(); ctx.ellipse(X, Y, rad * r.range(1, 2.2), rad, r() * TAU, 0, TAU); ctx.fill();
-    });
+    c2.fillStyle = dark ? `rgba(120,110,92,${r.range(0.15, 0.4)})` : 'rgba(235,230,215,0.35)';
+    const ex = rad * r.range(1, 2.2), an = r() * TAU;
+    wrapDraw(c2, size, x, y, 4, (X, Y) => { c2.beginPath(); c2.ellipse(X, Y, ex, rad, an, 0, TAU); c2.fill(); });
   }
-  // Faint out-of-focus specks.
-  ctx.filter = 'blur(6px)';
-  for (let i = 0; i < 60; i++) {
-    const x = r() * size, y = r() * size, rad = r.range(4, 14);
-    wrapDraw(ctx, size, x, y, rad + 20, (X, Y) => {
-      ctx.fillStyle = `rgba(150,135,105,${r.range(0.08, 0.2)})`;
-      ctx.beginPath(); ctx.arc(X, Y, rad, 0, TAU); ctx.fill();
-    });
-  }
-  ctx.filter = 'none';
+  blurInto(ctx, l2, size, 1.2);
   return cv;
 }
 
 /** MP-A02 stand-in: tileable granular endoplasm texture (≈ 80 µm across). */
 export function cytoplasmCanvas(size = 512, seed = 5) {
   const r = rng(seed);
-  const cv = document.createElement('canvas');
-  cv.width = cv.height = size;
-  const ctx = cv.getContext('2d');
+  const [cv, ctx] = layer(size);
   ctx.fillStyle = 'rgb(214,208,190)';
   ctx.fillRect(0, 0, size, size);
   const px = size / 80; // pixels per µm
-  ctx.filter = 'blur(1px)';
+  const [l, c] = layer(size);
   for (let i = 0; i < 1700; i++) {
     const x = r() * size, y = r() * size, rad = r.range(0.4, 1.3) * px;
-    const u = r();
-    wrapDraw(ctx, size, x, y, rad + 4, (X, Y) => {
-      ctx.fillStyle = u < 0.75 ? `rgba(90,88,62,${r.range(0.25, 0.6)})` : `rgba(245,242,230,${r.range(0.3, 0.6)})`;
-      ctx.beginPath(); ctx.arc(X, Y, rad, 0, TAU); ctx.fill();
-    });
+    c.fillStyle = r() < 0.75 ? `rgba(90,88,62,${r.range(0.25, 0.6)})` : `rgba(245,242,230,${r.range(0.3, 0.6)})`;
+    wrapDraw(c, size, x, y, rad + 2, (X, Y) => { c.beginPath(); c.arc(X, Y, rad, 0, TAU); c.fill(); });
   }
-  ctx.filter = 'none';
+  blurInto(ctx, l, size, 1);
   return cv;
 }
 

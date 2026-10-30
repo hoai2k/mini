@@ -25,8 +25,16 @@ const STRIDE = 0.55;               // 55 µm per cycle
 const SWING_FRAC = 0.34;
 const MAX_REACH = 0.4;
 const FOOT_UP = 0.07;              // claw base above the leaf surface
-const OFF = []; // leg phase offsets: back-to-front wave, sides in antiphase
-for (const L of LEGS) OFF[L.index] = ((3 - L.pair) * 0.25 + (L.side > 0 ? 0 : 0.5)) % 1;
+// Leg phase offsets. 'wave': back-to-front along each side, sides in
+// antiphase (Nirody et al. 2021). The others are for comparison.
+export const GAITS = {
+  'Back-to-front wave (measured)': (L) => ((3 - L.pair) * 0.25 + (L.side > 0 ? 0 : 0.5)) % 1,
+  'Front-to-back wave': (L) => (L.pair * 0.25 + (L.side > 0 ? 0 : 0.5)) % 1,
+  'Pairs in step (gallop-like)': (L) => (L.pair * 0.25) % 1,
+};
+const OFF = [];
+export function setGait(name) { for (const L of LEGS) OFF[L.index] = GAITS[name](L); }
+setGait('Back-to-front wave (measured)');
 
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion();
 const UPW = new THREE.Vector3(0, 1, 0);
@@ -36,6 +44,7 @@ export class Walker {
     this.world = world;
     this.creature = creature;
     this.events = events; // { catch(q), slip(), fall(text), transfer(text) }
+    this.opts = { footholds: true, gravity: true };
     this.dispPos = new THREE.Vector3();
     this.dispQuat = new THREE.Quaternion();
     this.matrix = new THREE.Matrix4();
@@ -88,6 +97,7 @@ export class Walker {
     const n = this.neutral(i, _a);
     const u = n.u + this.hu * lead, v = n.v + this.hv * lead;
     const L = this.leaf;
+    if (!this.opts.footholds) return { pos: this.surfacePoint(u, v, new THREE.Vector3()), grip: L.inside(u, v) ? 0.8 : 0 };
     const hold = this.world.foothold(L, u, v, 0.2, this.hu, this.hv);
     if (hold) return { pos: this.surfacePoint(hold.u, hold.v, new THREE.Vector3()), grip: hold.quality };
     // No wall in reach: the foot rests on a cell (poor hold), or dangles off the edge.
@@ -261,6 +271,7 @@ export class Walker {
     let downU = g.dot(this.leaf.U), downV = g.dot(this.leaf.V);
     const l = Math.hypot(downU, downV) || 1;
     downU /= l; downV /= l;
+    if (!this.opts.gravity) return { hang: 0, along: 0, downU, downV, pull: 0, required: 1.0 };
     return { hang, along, downU, downV, pull: along + hang * 0.6, required: 1.6 + 2.6 * along * (1 - hang) + 4.2 * hang };
   }
 

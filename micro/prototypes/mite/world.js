@@ -91,7 +91,10 @@ function sheet(f, nu, nv, thick, uvOf, cu = 10, cv = 4) {
     const s = at(i, j);
     const [i2, j2] = ring[(k + 1) % ring.length];
     const s2 = at(i2, j2);
-    const out = new THREE.Vector3().subVectors(s2.p, s.p).cross(s.n).normalize();
+    let out = new THREE.Vector3().subVectors(s2.p, s.p).cross(s.n);
+    if (out.lengthSq() < 1e-8) { const [i0, j0] = ring[(k + ring.length - 1) % ring.length]; out.subVectors(s.p, at(i0, j0).p).cross(s.n); }
+    if (out.lengthSq() < 1e-8) out.copy(s.n);
+    out.normalize();
     for (const side of [1, -1]) {
       P.copy(s.p).addScaledVector(s.n, side * thick * 0.5);
       pos.push(P.x, P.y, P.z); nrm.push(out.x, out.y, out.z);
@@ -126,6 +129,7 @@ class Colliders {
     this.mat = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
     this.hits = [];
     this._v = new THREE.Vector3();
+    this.off = new Set(); // collider kinds switched off
   }
   add(geo, kind) {
     const m = new THREE.Mesh(geo, this.mat);
@@ -143,6 +147,7 @@ class Colliders {
     ray.set(origin, dir); ray.far = far; ray.near = 0;
     const v = this._v;
     for (const e of this.list) {
+      if (this.off.has(e.kind)) continue;
       v.subVectors(e.c, origin);
       const t = Math.max(0, Math.min(far, v.dot(dir)));
       const dx = v.x - dir.x * t, dy = v.y - dir.y * t, dz = v.z - dir.z * t;
@@ -208,10 +213,10 @@ export function buildWorld(tex) {
   const col = new Colliders();
   const R = rng(1234);
   const mats = {
-    floor: gMaterial({ cls: CLS.LITTER, tex: tex.litter, map: 'tri', scale: 320, bump: 9, cut: true }),
-    grain: gMaterial({ cls: CLS.GRAIN, tex: tex.litter, map: 'tri', scale: 160, bump: 2.5, cut: true }),
+    floor: gMaterial({ cls: CLS.LITTER, tex: tex.litter, map: 'tri', scale: 320, bump: 9 }),
+    grain: gMaterial({ cls: CLS.GRAIN, tex: tex.litter, map: 'tri', scale: 160, bump: 2.5 }),
     litter: gMaterial({ cls: CLS.LITTER, tex: tex.litter, map: 'uv', scale: 1, bump: 5, cut: true, side: THREE.DoubleSide }),
-    leaf: gMaterial({ cls: CLS.LEAF, tex: tex.leaf, map: 'uv', scale: 1, bump: 4, cut: true, side: THREE.DoubleSide }),
+    leaf: gMaterial({ cls: CLS.LEAF, tex: tex.leaf, map: 'uv', scale: 1, bump: 2.5, cut: true, side: THREE.DoubleSide }),
     stem: gMaterial({ cls: CLS.STEM, tex: tex.leaf, map: 'uv', scale: 1, bump: 3, cut: true }),
     hypha: gMaterial({ cls: CLS.HYPHA, thin: 1, cut: true }),
     spore: gMaterial({ cls: CLS.SPORE, thin: 0, cut: true }),
@@ -219,7 +224,7 @@ export function buildWorld(tex) {
   const mesh = (geo, mat) => { const m = new THREE.Mesh(geo, mat); group.add(m); return m; };
 
   // Floor
-  const S = HALF * 2 + 600, NS = 170;
+  const S = HALF * 2 + 4400, NS = 150; // reaches past the walkable square so the view never runs off it
   const fg = new THREE.PlaneGeometry(S, S, NS, NS);
   fg.rotateX(-Math.PI / 2);
   const fp = fg.attributes.position, fn = fg.attributes.normal;
@@ -250,7 +255,8 @@ export function buildWorld(tex) {
     grains.push({ x, z, r });
     if (r > 22) col.add(g, 'grain');
   }
-  mesh(mergeGeos(gGeos), mats.grain);
+  const layers = {};
+  layers.grains = [mesh(mergeGeos(gGeos), mats.grain)];
 
   // Litter flakes: decayed leaf fragments, curled, some propped on grains
   const lGeos = [];
@@ -283,7 +289,7 @@ export function buildWorld(tex) {
     lGeos.push(sh.geo);
     col.add(sh.col, 'litter');
   }
-  mesh(mergeGeos(lGeos), mats.litter);
+  layers.litter = [mesh(mergeGeos(lGeos), mats.litter)];
 
   // Moss shoots: stems with leaves on a 2/5 spiral (137.5 deg divergence)
   const stems = [];
@@ -311,7 +317,7 @@ export function buildWorld(tex) {
     col.add(new THREE.TubeGeometry(curve, 10, rad, 6, false), 'stem');
     stems.push({ x, z, H });
 
-    const nLeaves = Math.floor(H / 120);
+    const nLeaves = Math.floor(H / 62);
     for (let k = 0; k < nLeaves; k++) {
       const t = 0.03 + (k / nLeaves) * 0.95;
       const P0 = curve.getPointAt(t);
@@ -320,11 +326,11 @@ export function buildWorld(tex) {
       const side = new THREE.Vector3(Math.cos(ang), 0, Math.sin(ang));
       side.addScaledVector(T, -side.dot(T)).normalize();
       const young = t; // leaves near the tip are shorter and held closer to the stem
-      const L = (950 + R() * 500) * (1 - 0.45 * young * young) * (near ? 0.85 : 1);
-      const Wd = L * (0.13 + R() * 0.05);
+      const lowest = k < 3;
+      const L = lowest ? 950 + R() * 300 : (480 + R() * 320) * (1 - 0.4 * young * young) * (near ? 0.85 : 1);
+      const Wd = L * (0.085 + R() * 0.035);
       const start = P0.clone().addScaledVector(side, rad * 0.8);
       let tip;
-      const lowest = k < 3;
       if (lowest) {
         // old leaves arch out and rest their tips on the floor: ramps
         const tx = start.x + side.x * L * 0.78, tz = start.z + side.z * L * 0.78;
@@ -364,13 +370,12 @@ export function buildWorld(tex) {
         const p = c.addScaledVector(across, vv * w).addScaledVector(up, cup + costa);
         return { p, n: up.clone().addScaledVector(across, -vv * 0.35).normalize() };
       };
-      const sh = sheet(f, 24, 8, 13, (u, v) => [(v * 2 - 1) * halfW(u) / 140 + 0.5, u * len / 140], 10, 4);
+      const sh = sheet(f, 14, 5, 12, (u, v) => [(v * 2 - 1) * halfW(u) / 140 + 0.5, u * len / 140], lowest ? 10 : 6, 3);
       leafGeos.push(sh.geo);
       col.add(sh.col, 'leaf');
     }
   }
-  mesh(mergeGeos(stemGeos), mats.stem);
-  mesh(mergeGeos(leafGeos), mats.leaf);
+  layers.moss = [mesh(mergeGeos(stemGeos), mats.stem), mesh(mergeGeos(leafGeos), mats.leaf)];
 
   // Ground probe from above, for placing things on the topmost surface
   const down = new THREE.Vector3(0, -1, 0);
@@ -395,7 +400,7 @@ export function buildWorld(tex) {
       pts.push(p);
     }
     const curve = new THREE.CatmullRomCurve3(pts);
-    hGeos.push(new THREE.TubeGeometry(curve, 48, r, 5, false));
+    hGeos.push(new THREE.TubeGeometry(curve, 28, r, 4, false));
     for (let k = 0; k < 2; k++) {
       const t = 0.2 + R() * 0.6;
       const p = curve.getPointAt(t);
@@ -404,10 +409,10 @@ export function buildWorld(tex) {
       const q = p.clone().addScaledVector(d, l);
       q.y = Math.max(q.y, floorH(q.x, q.z) + r);
       const bc = new THREE.CatmullRomCurve3([p, p.clone().lerp(q, 0.5).add(new THREE.Vector3(0, -l * 0.1, 0)), q]);
-      hGeos.push(new THREE.TubeGeometry(bc, 12, r * 0.85, 5, false));
+      hGeos.push(new THREE.TubeGeometry(bc, 8, r * 0.85, 4, false));
     }
   }
-  mesh(mergeGeos(hGeos), mats.hypha);
+  layers.hyphae = [mesh(mergeGeos(hGeos), mats.hypha)];
 
   // Spores and pollen, instanced, resting on surfaces
   const placeInst = (geo, count, size, mat) => {
@@ -429,7 +434,7 @@ export function buildWorld(tex) {
   };
   // fungal conidia: smooth ellipsoids, ~6 x 10 µm
   const spore = new THREE.SphereGeometry(1, 10, 8); spore.scale(0.6, 1, 0.6);
-  placeInst(spore, 160, 5, mats.spore);
+  layers.spores = [placeInst(spore, 160, 5, mats.spore)];
   // echinate pollen (aster type): a ~25 µm ball covered in spines
   const ech = [new THREE.SphereGeometry(1, 16, 12)];
   const dirs = new THREE.IcosahedronGeometry(1, 1).attributes.position;
@@ -443,12 +448,18 @@ export function buildWorld(tex) {
     c.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d));
     ech.push(c);
   }
-  placeInst(mergeGeos(ech), 26, 12, mats.spore);
+  layers.spores.push(placeInst(mergeGeos(ech), 26, 12, mats.spore));
   // bisaccate conifer pollen: a corpus with two air sacs, ~70 µm
   const corp = new THREE.SphereGeometry(1, 16, 12); corp.scale(0.9, 0.62, 0.62);
   const sac1 = new THREE.SphereGeometry(0.62, 14, 10); sac1.translate(0.55, -0.22, 0);
   const sac2 = new THREE.SphereGeometry(0.62, 14, 10); sac2.translate(-0.55, -0.22, 0);
-  placeInst(mergeGeos([corp, sac1, sac2]), 8, 34, mats.spore);
+  layers.spores.push(placeInst(mergeGeos([corp, sac1, sac2]), 8, 34, mats.spore));
 
-  return { group, colliders: col, grains, stems, mats, topAt };
+  const kinds = { grains: ['grain'], litter: ['litter'], moss: ['stem', 'leaf'], hyphae: [], spores: [] };
+  /** Show or hide a layer; hidden layers can't be walked on either. */
+  const setLayer = (name, on) => {
+    for (const m of layers[name]) m.visible = on;
+    for (const k of kinds[name]) { if (on) col.off.delete(k); else col.off.add(k); }
+  };
+  return { group, colliders: col, grains, stems, mats, topAt, layers, setLayer };
 }

@@ -10,6 +10,8 @@
 // threat, with the discharged threads left behind in the water.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { LENGTH, MOUTH } from './cell.js';
+import { DROP_R, DEPTH } from './world.js';
+import { lowRe, helixPose } from '../shared/techniques/paramecium-squirmer.js';
 
 export const VMAX = 1400; // µm/s at full beat (≈6 body lengths/s; measured cells 1–1.5 mm/s)
 const TAU = 0.035; // s, beat-to-speed lag
@@ -39,24 +41,14 @@ export function createSwimmer(cell, world) {
     lastHit: '', hitCount: 0,
     inspect: false,
   };
-  const prevCenter = new THREE.Vector3();
-  const e1 = new THREE.Vector3(), e2 = new THREE.Vector3(), rho = new THREE.Vector3(), drho = new THREE.Vector3();
-  const m = new THREE.Matrix4(), yv = new THREE.Vector3(), zv = new THREE.Vector3(), tmp = new THREE.Vector3();
-  const W = new THREE.Vector3(0, 1, 0);
+  const prevCenter = new THREE.Vector3(), tmp = new THREE.Vector3();
+  // switches (the feature panel): lowRe off = an inertial glide, for comparison
+  const opts = { lowRe: true, helix: true, beatScale: 1 };
 
   function frame() {
     fwdOf(s.yaw, s.pitch, s.F);
-    e1.copy(W).addScaledVector(s.F, -s.F.dot(W)).normalize();
-    e2.crossVectors(s.F, e1);
-    rho.copy(e1).multiplyScalar(Math.cos(s.phi)).addScaledVector(e2, Math.sin(s.phi));
-    drho.copy(e1).multiplyScalar(-Math.sin(s.phi)).addScaledVector(e2, Math.cos(s.phi));
-    s.center.copy(s.axis).addScaledVector(rho, s.rh);
-    // Body axis tilted along the helix (left-handed: the roll runs negative).
-    s.T.copy(s.F).multiplyScalar(Math.cos(s.tilt)).addScaledVector(drho, -Math.sin(s.tilt)).normalize();
-    yv.copy(rho).addScaledVector(s.T, -rho.dot(s.T)).normalize(); // dorsal away from the helix axis
-    zv.crossVectors(s.T, yv);
-    m.makeBasis(s.T, yv, zv);
-    s.quat.setFromRotationMatrix(m);
+    const T = helixPose(s.axis, s.F, s.phi, s.rh, s.tilt, s.center, s.quat);
+    s.T.copy(T);
     s.axisA.copy(s.center).addScaledVector(s.T, -CAPSULE_HALF);
     s.axisB.copy(s.center).addScaledVector(s.T, CAPSULE_HALF);
     s.mouth.copy(MOUTH).applyQuaternion(s.quat).add(s.center);
@@ -88,7 +80,7 @@ export function createSwimmer(cell, world) {
   }
 
   const api = {
-    state: s,
+    state: s, opts,
     startAvoid,
     respawn,
     /**
@@ -159,21 +151,21 @@ export function createSwimmer(cell, world) {
       }
 
       // low Re: speed tracks the beat almost at once
-      s.speed += (targetSpeed - s.speed) * (1 - Math.exp(-dt / TAU));
+      s.speed = lowRe(s.speed, targetSpeed, dt, opts.lowRe ? TAU : 1.4);
 
       // beat (displayed slower than the real 20–35 Hz so the waves can be followed)
       s.freq = s.mode === 'avoid' ? 7 : s.mode === 'captured' ? 9 : 1.3 + 5.2 * inp.thrust + 1.5 * inp.hover;
-      s.beatPhase += s.freq * dt;
+      s.beatPhase += s.freq * opts.beatScale * dt;
       s.amp = s.mode === 'swim' ? 0.55 + 0.45 * Math.max(inp.thrust, 0.3 * inp.hover) : 0.95;
       s.oral = Math.min(1, 0.35 + 0.65 * s.feed + 0.2 * inp.thrust);
 
       // helix and roll: one roll per helix turn (≈1.2 turns/s at 1 mm/s)
       const v = Math.abs(s.speed);
       const omega = 2 * Math.PI * (0.25 + v / HELIX_PITCH);
-      s.phi -= omega * dt;
-      const rhT = s.mode === 'avoid' || s.inspect ? 0 : HELIX_R * Math.min(1, 0.12 + v / 500);
+      s.phi -= omega * dt * (opts.helix ? 1 : 0.25);
+      const rhT = s.mode === 'avoid' || s.inspect || !opts.helix ? 0 : HELIX_R * Math.min(1, 0.12 + v / 500);
       s.rh = approach(s.rh, rhT, dt * 80);
-      s.tilt = approach(s.tilt, s.mode === 'avoid' || s.inspect ? 0 : 0.21 * Math.min(1, v / 400), dt * 1.5);
+      s.tilt = approach(s.tilt, s.mode === 'avoid' || s.inspect || !opts.helix ? 0 : 0.21 * Math.min(1, v / 400), dt * 1.5);
 
       // move
       fwdOf(s.yaw, s.pitch, s.F);
@@ -190,6 +182,11 @@ export function createSwimmer(cell, world) {
         s.axis.addScaledVector(s.F, s.speed * dt).addScaledVector(flow, dt);
       }
       s.axis.addScaledVector(s.burst, dt);
+      // never leave the drop, whatever pushed us
+      s.axis.y = Math.max(30, Math.min(DEPTH - 30, s.axis.y));
+      const rr = Math.hypot(s.axis.x, s.axis.z);
+      if (rr > DROP_R - 40) s.axis.multiplyScalar(1).set(s.axis.x * (DROP_R - 40) / rr, s.axis.y, s.axis.z * (DROP_R - 40) / rr);
+      if (s.inspect) s.safeT = 1;
       s.burst.multiplyScalar(Math.exp(-dt / 0.07));
 
       frame();
@@ -221,6 +218,7 @@ export function createSwimmer(cell, world) {
       if (s.mode === 'captured') { s.mode = 'swim'; s.safeT = 2; if (s.captor) { s.captor.stun = 3; s.captor.released = true; } s.captor = null; s.captureT = 0; }
       return away;
     },
+    release() { if (s.mode === 'captured') { s.mode = 'swim'; s.captor = null; s.captureT = 0; s.safeT = 1; } },
     capture(d) {
       if (s.mode === 'dead' || s.mode === 'captured' || s.safeT > 0) return false;
       s.mode = 'captured'; s.captor = d; s.captureT = 0; s.avoid = null;

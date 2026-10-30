@@ -47,9 +47,12 @@ export function createEncounters(scene, world, cell) {
   }
 
   // --- Didinium ---
+  const opts = { didinium: true, homing: true };
   function updateDidinia(dt, t, swimmer, ev) {
     const s = swimmer.state;
     for (const d of world.didinia) {
+      d.group.visible = opts.didinium;
+      if (!opts.didinium) { if (s.captor === d) swimmer.release(); continue; }
       d.stun = Math.max(0, (d.stun || 0) - dt);
       d.sated = Math.max(0, (d.sated || 0) - dt);
       const toP = tmp.subVectors(s.center, d.pos);
@@ -59,7 +62,7 @@ export function createEncounters(scene, world, cell) {
       if (s.captor === d && s.mode === 'captured') {
         d.state = 'feeding'; speed = 0;
         desired = toP.clone().normalize();
-      } else if (canHunt && dist < 560) {
+      } else if (canHunt && dist < (opts.homing ? 560 : 0)) {
         d.state = 'hunting'; speed = 1050;
         desired = toP.clone().normalize();
       } else {
@@ -88,6 +91,8 @@ export function createEncounters(scene, world, cell) {
       }
       d.speed += (speed - d.speed) * (1 - Math.exp(-dt / 0.05));
       d.pos.addScaledVector(d.dir, d.speed * dt).addScaledVector(world.flowAt(d.pos, t), dt);
+      d.pos.y = Math.max(50, Math.min(DEPTH - 50, d.pos.y));
+      { const rr = Math.hypot(d.pos.x, d.pos.z); if (rr > DROP_R - 60) { d.pos.x *= (DROP_R - 60) / rr; d.pos.z *= (DROP_R - 60) / rr; } }
       // obstacles push it round
       const a = tmp2.copy(d.pos).addScaledVector(d.dir, -25);
       const b = new THREE.Vector3().copy(d.pos).addScaledVector(d.dir, 30);
@@ -117,12 +122,13 @@ export function createEncounters(scene, world, cell) {
   }
 
   return {
+    opts,
     threads,
     discharge,
     update(dt, t, swimmer, ev) { updateDidinia(dt, t, swimmer, ev); },
     nearestThreat(p, within = 420) {
       let best = null, bd = within;
-      for (const d of world.didinia) { const dd = d.pos.distanceTo(p); if (dd < bd) { bd = dd; best = d; } }
+      for (const d of world.didinia) { if (!opts.didinium) break; const dd = d.pos.distanceTo(p); if (dd < bd) { bd = dd; best = d; } }
       return best;
     },
   };

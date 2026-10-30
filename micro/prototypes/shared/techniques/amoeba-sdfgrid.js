@@ -1,9 +1,14 @@
-// A signed distance grid of the amoeba outline, rebuilt every frame on the
-// CPU: scanline fill of the polygon, then an exact Euclidean distance
-// transform (Felzenszwalb & Huttenlocher) inside and outside. Positive values
-// are inside the cell, in micrometres. The cytoplasm uses it to keep granules
-// in the endoplasm, the prey use it to stay out, and the renderer uploads it
-// as a texture to build the thickness dome (distance from the edge).
+// Technique: a signed distance grid of a closed 2D outline (from the amoeba
+// prototype), rebuilt every frame on the CPU: scanline fill of the polygon,
+// then an exact Euclidean distance transform (Felzenszwalb & Huttenlocher)
+// inside and outside. Positive values are inside, in world units.
+//
+// Interface: const g = new SdfGrid(128); g.build(xs, ys, n, margin);
+//   g.sample(x, y) -> signed distance; g.grad(x, y, out) -> unit inward gradient;
+//   g.bytes (Uint8Array res*res, distance*4 clamped 0..255, row 0 = bottom) for a
+//   THREE.DataTexture (RedFormat, LinearFilter) spanning (g.ox, g.oy, g.size).
+// Uses: keep particles inside a soft body, prey outside it, and build a
+// thickness dome (distance from the edge) in a shader.
 
 const INF = 1e20;
 

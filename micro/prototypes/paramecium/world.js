@@ -8,6 +8,7 @@ import { buildSdfMesh, sd } from '../shared/sdf.js';
 import { volumeMaterial, sheetMaterial, pointsMaterial } from './optics.js';
 import { createStrands, KIND } from './strands.js';
 import { rng, closedTube, axisRef, yAxisRef, segSeg, closestOnSeg, noise3 } from './geom.js';
+import { squirmerFlow, sink } from '../shared/techniques/paramecium-squirmer.js';
 
 export const DROP_R = 1500;
 export const DEPTH = 650;
@@ -57,7 +58,7 @@ function spirogyra(group, curve, rand, obstacles) {
     }
     if (c === nCells) break;
     // Chloroplast: one ribbon per cell, ≈3.5 turns, near the wall.
-    const turns = 3.4 + rand() * 0.4, ph = rand() * 6.28;
+    const turns = 4.2 + rand() * 0.6, ph = rand() * 6.28;
     const steps = 90;
     const start = cPos.length / 3;
     for (let k = 0; k <= steps; k++) {
@@ -67,7 +68,7 @@ function spirogyra(group, curve, rand, obstacles) {
       const a = ph + s * turns * Math.PI * 2;
       const radial = g.N.clone().multiplyScalar(Math.cos(a)).addScaledVector(g.B, Math.sin(a));
       const ctr = g.p.clone().addScaledVector(radial, R * 0.78);
-      const w = 3.6 * (1 + 0.38 * Math.sin(s * 120 + c)); // serrated margins
+      const w = 5.2 * (1 + 0.3 * Math.sin(s * 150 + c)); // serrated margins
       for (const sgn of [-1, 1]) {
         const q = ctr.clone().addScaledVector(g.T, sgn * w);
         cPos.push(q.x, q.y, q.z); cRef.push(g.p.x, g.p.y, g.p.z); cN.push(radial.x, radial.y, radial.z); cE.push(sgn);
@@ -212,7 +213,7 @@ export function createWorld(scene) {
     for (let i = 0; i < n; i++) {
       const a = rand() * Math.PI * 2, r = Math.sqrt(rand()) * DROP_R;
       iPos.set([Math.cos(a) * r, 1 + rand() * 3, Math.sin(a) * r, 0], i * 4);
-      iP.set([1 + rand() ** 3 * 5, 0.05, 0.9 + rand(), rand()], i * 4);
+      iP.set([1 + rand() ** 3 * 5, 0.05, 3 + 4 * rand(), rand()], i * 4);
     }
     const { geo } = instancedQuads(n, iPos, iP);
     group.add(Object.assign(new THREE.Mesh(geo, pointsMaterial({ absorb: [0.01, 0.016, 0.03] })), { frustumCulled: false }));
@@ -311,7 +312,7 @@ export function createWorld(scene) {
   for (let i = 0; i < NB; i++) {
     bPos.set([(rand() - 0.5) * 2 * BOX, rand() * DEPTH, (rand() - 0.5) * 2 * BOX, 0], i * 4);
     const rod = rand() < 0.7;
-    bP.set([rod ? 0.55 : 0.7, 0.07, 1.0, rand()], i * 4);
+    bP.set([rod ? 0.55 : 0.7, 0.07, 7.0, rand()], i * 4);
     const a = rand() * 6.28, e = rand() - 0.5;
     const sp = rand() < 0.5 ? 0 : 8 + rand() * 20; // half are motile
     bVel.set([Math.cos(a) * sp, e * sp, Math.sin(a) * sp], i * 3);
@@ -323,9 +324,12 @@ export function createWorld(scene) {
   group.add(bacteria);
 
   // ------------------------------------------------------------------------
+  // switches (the feature panel)
+  const opts = { squirmer: true, feeding: true, ambient: true, tumble: true, vortContract: true };
   const flow = new THREE.Vector3();
   /** Ambient flow (µm/s): a slow drift with gentle eddies. */
   function flowAt(p, t, out = flow) {
+    if (!opts.ambient) return out.set(0, 0, 0);
     return out.set(
       18 + 10 * Math.sin(p.z / 320 + t * 0.05),
       2.5 * Math.sin(p.x / 270 + t * 0.07),
@@ -367,7 +371,7 @@ export function createWorld(scene) {
 
   /** Touch a Vorticella: its stalk snaps into a coil; neighbours may follow. */
   function touchVorticella(v, t) {
-    if (v.coil < 0.5) {
+    if (opts.vortContract && v.coil < 0.5) {
       v.coil = 1; v.hold = 0.5 + Math.random() * 0.4;
       for (const o of vorticellas) if (o !== v && o.coil < 0.5 && o.anchor.distanceTo(v.anchor) < 90 && Math.random() < 0.5) {
         o.pendingAt = t + 0.03 + Math.random() * 0.1;
@@ -378,7 +382,7 @@ export function createWorld(scene) {
   }
 
   const api = {
-    group, obstacles, vorticellas, didinia, diatoms, bacteria, flowAt, collide, touchVorticella,
+    group, obstacles, opts, vorticellas, didinia, diatoms, bacteria, flowAt, collide, touchVorticella,
     bacteriaCount: NB,
     /**
      * @param {number} dt
@@ -422,45 +426,32 @@ export function createWorld(scene) {
       // makes (a neutral squirmer's dipole: carried ahead at the poles, swept
       // back along the sides) + the feeding current into the oral groove.
       const px = player.center.x, pz = player.center.z;
-      const U = player.U, Ul = U.length();
+      const U = player.U;
       let eaten = 0;
       const arr = bAttr.array;
-      const q = v1, f = v2, r = v3;
+      const q = v1, f = v2;
       for (let i = 0; i < NB; i++) {
         const o = i * 4;
         q.set(arr[o], arr[o + 1], arr[o + 2]);
         flowAt(q, t, f);
+        if (!opts.ambient) f.set(0, 0, 0);
         bT[i] -= dt;
         if (bT[i] < 0) { // tumble
           bT[i] = 0.6 + Math.random() * 1.8;
           const sp0 = Math.hypot(bVel[i * 3], bVel[i * 3 + 1], bVel[i * 3 + 2]);
           if (sp0 > 0) { const a = Math.random() * 6.28, e = Math.random() - 0.5; bVel[i * 3] = Math.cos(a) * sp0; bVel[i * 3 + 1] = e * sp0; bVel[i * 3 + 2] = Math.sin(a) * sp0; }
         }
-        f.x += bVel[i * 3]; f.y += bVel[i * 3 + 1]; f.z += bVel[i * 3 + 2];
+        if (opts.tumble) { f.x += bVel[i * 3]; f.y += bVel[i * 3 + 1]; f.z += bVel[i * 3 + 2]; }
         const dx = q.x - player.center.x, dy = q.y - player.center.y, dz = q.z - player.center.z;
         const d2 = dx * dx + dy * dy + dz * dz;
         if (player.alive && d2 < 300 * 300) {
-          closestOnSeg(q, player.axisA, player.axisB, r);
-          r.subVectors(q, r);
-          const rl = Math.max(r.length(), 1);
-          const R = 32;
-          if (Ul > 1 && rl > R * 0.8) {
-            const k = (R * R * R) / (2 * rl * rl * rl);
-            const ud = (U.x * r.x + U.y * r.y + U.z * r.z) / rl;
-            f.x += k * (3 * ud * r.x / rl - U.x); f.y += k * (3 * ud * r.y / rl - U.y); f.z += k * (3 * ud * r.z / rl - U.z);
-          }
+          if (opts.squirmer) squirmerFlow(q, player.axisA, player.axisB, U, 32, f);
           // feeding current toward the cytostome
-          const mx = player.mouth.x - q.x, my = player.mouth.y - q.y, mz = player.mouth.z - q.z;
-          const md = Math.hypot(mx, my, mz);
-          const reach = 90 + 110 * player.feed;
-          if (md < reach) {
-            const s = (40 + 420 * player.feed) * (1 - md / reach) ** 2 / Math.max(md, 1);
-            f.x += mx * s; f.y += my * s; f.z += mz * s;
-          }
+          const md = opts.feeding ? sink(q, player.mouth, 40 + 420 * player.feed, 90 + 110 * player.feed, f) : q.distanceTo(player.mouth);
           if (md < 7 + 3 * player.feed) { eaten++; arr[o + 1] = -1e4; }
         }
         // Vorticella feeding currents
-        for (const v of vorticellas) {
+        if (opts.feeding) for (const v of vorticellas) {
           if (v.coil > 0.2) continue;
           const vx = v.sphere.c.x - q.x, vy = v.sphere.c.y - q.y, vz = v.sphere.c.z - q.z;
           const vd2 = vx * vx + vy * vy + vz * vz;

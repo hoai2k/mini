@@ -14,68 +14,13 @@
 //
 // Lit ("hypothetical immersive"): ordinary three.js materials, for comparison.
 import * as THREE from '../shared/vendor/three.module.min.js';
+import { OPT, OPTICAL_BLEND as ADD, OPTICAL_VERT as VERT, OPTICAL_FRAG_HEAD as FRAG_HEAD, opticalMaterial } from '../shared/techniques/tardigrade-dic.js';
 import { PATTERN_GLSL } from './patterns.js';
 
-/** Uniforms every optical material shares (set once per frame by optics.js). */
-export const OPT = {
-  uRef: { value: 10 },
-};
+export { OPT, opticalMaterial };
 
-const ADD = {
-  blending: THREE.CustomBlending,
-  blendEquation: THREE.AddEquation,
-  blendSrc: THREE.OneFactor,
-  blendDst: THREE.OneFactor,
-  blendEquationAlpha: THREE.AddEquation,
-  blendSrcAlpha: THREE.OneFactor,
-  blendDstAlpha: THREE.OneFactor,
-  depthTest: false,
-  depthWrite: false,
-  side: THREE.DoubleSide,
-  transparent: true,
-  glslVersion: THREE.GLSL3,
-};
-
-const VERT = /* glsl */ `
-precision highp float;
-in vec3 position;
-uniform mat4 modelViewMatrix;
-uniform mat4 projectionMatrix;
-out float vDepth;
-out vec3 vLocal;
-void main() {
-  vec4 mv = modelViewMatrix * vec4(position, 1.0);
-  vDepth = -mv.z;
-  vLocal = position;
-  gl_Position = projectionMatrix * mv;
-}`;
-
-const FRAG_HEAD = /* glsl */ `
-precision highp float;
-in float vDepth;
-in vec3 vLocal;
-uniform float uRef;
-layout(location = 0) out vec4 oOpd;
-layout(location = 1) out vec4 oAbs;
-`;
-
-/** A plain transparent body: refractive index step dn, absorbance per unit thickness. */
-export function opticalMaterial({ dn = 0.03, absorb = [0, 0, 0] } = {}) {
-  return new THREE.RawShaderMaterial({
-    ...ADD,
-    uniforms: { uRef: OPT.uRef, uDn: { value: dn }, uAbs: { value: new THREE.Vector3(...absorb) } },
-    vertexShader: VERT,
-    fragmentShader: FRAG_HEAD + /* glsl */ `
-uniform float uDn;
-uniform vec3 uAbs;
-void main() {
-  float s = gl_FrontFacing ? -1.0 : 1.0;
-  float z = vDepth - uRef;
-  oOpd = vec4(s * z * uDn, s * z * z * 0.5, s * z, 0.0);
-  oAbs = vec4(s * z * uAbs, 0.0);
-}`,
-  });
-}
+/** Leaf detail switches (feature panel): x walls, y chloroplasts, z water film, w meniscus steepening. */
+export const LEAF_FX = { uFx: { value: new THREE.Vector4(1, 1, 1, 1) } };
 
 /**
  * Moss leaf: a thin closed slab (local x = along, y = across, z = normal)
@@ -89,6 +34,7 @@ export function leafOpticalMaterial(leaf) {
     ...ADD,
     uniforms: {
       uRef: OPT.uRef,
+      uFx: LEAF_FX.uFx,
       uDry: leaf.uniforms.uDry,
       uFilm: { value: leaf.filmTex },
       uEaten: { value: leaf.eatenTex },
@@ -100,6 +46,7 @@ export function leafOpticalMaterial(leaf) {
     },
     vertexShader: VERT,
     fragmentShader: FRAG_HEAD + PATTERN_GLSL + /* glsl */ `
+uniform vec4 uFx;
 uniform float uDry;
 uniform sampler2D uFilm;
 uniform sampler2D uEaten;
@@ -177,7 +124,8 @@ void main() {
     vec2 fuv = vec2(p.x / uFilmInfo.x, (p.y + uFilmInfo.y) / (2.0 * uFilmInfo.y));
     float cap = texture(uFilm, fuv).r * 2.5 - 0.5;
     float h = cap - uDry + groove * 0.12;
-    float film = sqrt(max(h, 0.0)) * 0.22;           // units (≈ 22 µm at h = 1)
+    float film = mix(max(h, 0.0), sqrt(max(h, 0.0)), uFx.w) * 0.22 * uFx.z; // units (≈ 22 µm at h = 1)
+    wallOpd *= uFx.x; green *= uFx.y;
     extraOpd = wallOpd + film * 0.33;                 // water - air: Δn 0.33
     extra = wallOpd * 8.0 + film;
     extraAb += green * vec3(0.55, 0.12, 0.62) + amber * vec3(0.05, 0.12, 0.3);

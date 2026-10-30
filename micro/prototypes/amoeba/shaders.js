@@ -30,18 +30,7 @@ void main() {
   gl_Position = projectionMatrix * viewMatrix * w;
 }`;
 
-export const FULL_VS = /* glsl */ `
-varying vec2 vUv;
-void main() { vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }`;
 
-export const BLUR_FS = /* glsl */ `
-uniform sampler2D uTex; uniform vec2 uDir;
-varying vec2 vUv;
-void main() {
-  vec4 s = vec4(0.); float ws = 0.;
-  for (int i = -6; i <= 6; i++) { float w = exp(-float(i * i) / 18.); s += texture2D(uTex, vUv + uDir * float(i)) * w; ws += w; }
-  gl_FragColor = s / ws;
-}`;
 
 // --- the amoeba itself -------------------------------------------------------
 export const BODY_FS = /* glsl */ `
@@ -133,19 +122,19 @@ void main() {
   float sph = sqrt(clamp(1. - r * r, 0., 1.));
   float edge = 1. - smoothstep(0.85, 1.15, r);
   float ph = 0.; vec3 od = vec3(0.);
-  if (k < 0.5) { ph = 0.35 * sph; od = vec3(0.32, 0.34, 0.4) * edge; }
-  else if (k < 1.5) { ph = 0.5 * sph; od = vec3(0.1) * edge; }
+  if (k < 0.5) { ph = 0.16 * sph; od = vec3(0.2, 0.21, 0.26) * edge; }
+  else if (k < 1.5) { ph = 0.22 * sph; od = vec3(0.05) * edge; }
   else if (k < 2.5) {
     // Bipyramidal crystal: a strongly refractile diamond outline.
     float c = cos(seed * 6.28), s = sin(seed * 6.28);
     vec2 p = vec2(c * q.x + s * q.y, -s * q.x + c * q.y) / vR;
     float dia = abs(p.x) * 0.75 + abs(p.y) * 1.25;
-    ph = 1.1 * (1. - smoothstep(0.8, 1.05, dia));
+    ph = 0.55 * (1. - smoothstep(0.8, 1.05, dia));
     od = vec3(0.03) * (1. - smoothstep(0.8, 1.05, dia));
   }
-  else if (k < 3.5) { ph = 0.6 * sph; od = vec3(0.02, 0.04, 0.12) * edge; }
-  else if (k < 4.5) { ph = 0.35 * sph; od = vec3(0.95, 0.22, 0.85) * 0.55 * edge; }
-  else { ph = 0.3 * sph; od = vec3(0.18, 0.48, 0.36) * 0.75 * edge; }
+  else if (k < 3.5) { ph = 0.3 * sph; od = vec3(0.02, 0.04, 0.12) * edge; }
+  else if (k < 4.5) { ph = 0.18 * sph; od = vec3(0.95, 0.22, 0.85) * 0.35 * edge; }
+  else { ph = 0.15 * sph; od = vec3(0.18, 0.48, 0.36) * 0.55 * edge; }
   gl_FragColor = vec4(ph * tw, od);
 }`;
 
@@ -372,79 +361,4 @@ void main() {
   vec3 c = texture2D(uTex, vL / uSize + 0.5).rgb;
   vec3 od = -log(clamp(c / uMean, 0.05, 4.));
   gl_FragColor = vec4(dot(od, vec3(0.3)) * 0.5, od) * uDim;
-}`;
-
-// --- composite -----------------------------------------------------------------
-export const COMPOSITE_FS = /* glsl */ `
-${COMMON}
-uniform sampler2D uFocus, uDef, uHalo, uBg;
-uniform vec2 uRes;
-uniform vec4 uView;          // left, bottom, width, height (µm)
-uniform float uBgTile, uMode, uFocusK, uTime;
-uniform vec3 uBgMean;
-varying vec2 vUv;
-float phaseAt(vec2 uv) { return texture2D(uFocus, uv).r + texture2D(uDef, uv).r; }
-float lapAt(vec2 uv, float c, float s, vec2 px) {
-  return phaseAt(uv + vec2(px.x * s, 0.)) + phaseAt(uv - vec2(px.x * s, 0.)) + phaseAt(uv + vec2(0., px.y * s)) + phaseAt(uv - vec2(0., px.y * s)) - 4. * c;
-}
-void main() {
-  vec2 px = 1. / uRes;
-  vec4 P = texture2D(uFocus, vUv) + texture2D(uDef, vUv);
-  vec4 Hb = texture2D(uHalo, vUv) + texture2D(uDef, vUv);
-  float s = 1.6;
-  float pr = phaseAt(vUv + vec2(px.x * s, 0.)), pl = phaseAt(vUv - vec2(px.x * s, 0.));
-  float pu = phaseAt(vUv + vec2(0., px.y * s)), pd = phaseAt(vUv - vec2(0., px.y * s));
-  float lap = pr + pl + pu + pd - 4. * P.r;
-  vec2 grad = vec2(pr - pl, pu - pd) * 0.5 / s;
-  vec2 world = uView.xy + vUv * uView.zw;
-  vec3 bg = texture2D(uBg, world / uBgTile + grad * 0.01).rgb;
-  vec3 bgn = bg / uBgMean;
-  vec3 T = exp(-P.gba);
-  vec3 col;
-  if (uMode < 0.5) {
-    // Brightfield (transmitted light, Köhler): absorption, plus the weak contrast a transparent cell
-    // gets from slight defocus (transport of intensity: I ≈ I0 (1 − Δz ∇²φ)), plus darkening where
-    // steep slopes at the edge refract light out of the objective's aperture.
-    float lr = lapAt(vUv, P.r, s * 1.3, px), lb = lapAt(vUv, P.r, s * 0.8, px);
-    vec3 tie = 1. + uFocusK * vec3(lr * 0.8, lap, lb * 1.15) * 1.25;
-    float g2 = dot(grad, grad);
-    float refr = 1. - clamp(g2 * 22., 0., 0.55);
-    col = bg * T * clamp(tie, 0.2, 2.) * refr;
-    col *= 1. - 0.05 * clamp(P.r, 0., 1.);
-  } else if (uMode < 1.5) {
-    // Positive phase contrast: phase delays show dark, with the bright halo of a finite phase ring.
-    float ph = P.r - Hb.r;
-    vec3 base = vec3(0.55, 0.6, 0.56) * mix(vec3(1.), bgn, 0.5);
-    col = base * (1. - 1.9 * ph - 0.25 * P.r) * mix(vec3(1.), T, 0.55);
-    col += vec3(0.02) * uFocusK * lap;
-  } else if (uMode < 2.5) {
-    // Darkfield: only light scattered by edges and fine structure reaches the objective.
-    float sc = length(grad) * 3.2 + abs(lap) * 0.9 + abs(P.r - Hb.r) * 0.55;
-    float bgs = length(bgn - 1.) * 0.6;
-    vec3 tint = mix(vec3(0.85, 0.92, 1.), T * 1.4, 0.45);
-    vec3 pig = (1. - T) * vec3(0.25, 0.3, 0.12);
-    col = vec3(0.012, 0.014, 0.02) + tint * (sc + bgs) + pig * (0.3 + sc);
-  } else {
-    // A hypothetical immersive lit view: the phase field read as height and lit like a gel in water.
-    vec3 n = normalize(vec3(-grad * 9., 1.));
-    vec3 L = normalize(vec3(-0.45, 0.55, 0.7));
-    float mask = smoothstep(0.03, 0.12, P.r);
-    float caust = pow(vnoise(world * 0.018 + vec2(uTime * 0.05, 0.)) * vnoise(world * 0.027 - vec2(0., uTime * 0.04)), 1.5);
-    vec3 floorC = vec3(0.30, 0.31, 0.22) * bgn * (0.8 + 1.4 * caust);
-    vec3 under = vec3(0.30, 0.31, 0.22) * (texture2D(uBg, world / uBgTile + n.xy * 0.03).rgb / uBgMean) * (0.8 + 1.4 * caust);
-    float dif = max(dot(n, L), 0.);
-    vec3 Hh = normalize(L + vec3(0., 0., 1.));
-    float spec = pow(max(dot(n, Hh), 0.), 70.);
-    float fres = pow(1. - n.z, 2.);
-    vec3 tint = exp(-P.gba * 1.6);
-    vec3 cell = under * tint * (0.55 + 0.7 * dif) + vec3(0.12, 0.16, 0.14) * P.r + spec * 0.85 + fres * vec3(0.55, 0.85, 0.8) * 0.8;
-    col = mix(floorC * T, cell, mask);
-    float fog = smoothstep(0.0, 1.0, vUv.y);
-    col = mix(col, col * vec3(0.8, 0.95, 1.05), fog * 0.4);
-  }
-  // Vignette and a little sensor grain.
-  vec2 v = vUv - 0.5;
-  col *= 1. - 0.32 * dot(v, v) * (uMode > 1.5 && uMode < 2.5 ? 0.3 : 1.);
-  col += (hash12(gl_FragCoord.xy + fract(uTime) * 100.) - 0.5) * 0.018;
-  gl_FragColor = vec4(clamp(col, 0., 1.), 1.);
 }`;
