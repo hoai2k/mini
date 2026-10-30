@@ -195,6 +195,29 @@ Technique modules other prototypes can borrow:
 
 `sem.js` here just re-exports `mite-sem.js`.
 
+### Borrowed (default off)
+
+`../shared/techniques/adapters.js` holds the adapters: the pipelines meet
+in one "optical field" (optical path, scatter, SEM height, absorbance) that
+any prototype can fill from what it already draws and any borrowed
+microscope can read. SEM of a 3D scene instead redraws the real geometry with
+the mite's G-buffer materials. Borrowed looks are mutually exclusive; each
+has a companion choice for its mode. All start OFF, so the prototype looks
+as designed until one is switched on (or `?f=<id>` is in the address).
+
+| Feature id | Borrowed from | What it does here |
+| --- | --- | --- |
+| `dicTardigrade` (+ `dicTardigradeMode`: DIC / brightfield) | tardigrade | The G-buffer read as a thick specimen (optical path = height above the floor, absorbance by material) shown through the tardigrade's DIC |
+| `opticsAmoeba` (+ `opticsAmoebaMode`) | amoeba | The same field through the amoeba's brightfield, phase, darkfield or immersive optics |
+| `microscopeParamecium` (+ `microscopeParameciumMode`) | paramecium | The same field through the paramecium's darkfield, phase, brightfield, DIC or lit view |
+
+Not borrowed:
+
+- Paramecium cilia: the mite has no ciliated surface, and the strands write only into the paramecium's optical buffers.
+- Paramecium squirmer (low-Re swimming): the mite walks in air; nothing swims.
+- Amoeba soft body and distance grid: a 2D crawling outline has nothing to drive on a rigid, jointed mite.
+- Tardigrade gait offsets: the mite's own wave gait is already the back-to-front wave the tardigrade uses.
+
 ## Departures from biology and optics (deliberate)
 
 - **A live, walking animal in an SEM is a fiction.** Conventional SEM needs a

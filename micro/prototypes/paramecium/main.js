@@ -10,6 +10,7 @@ import { createWorld, DEPTH } from './world.js';
 import { createSwimmer, VMAX } from './swim.js';
 import { createEncounters } from './encounters.js';
 import { createFeatures } from '../shared/features.js';
+import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, AMOEBA_MODES, DIC_MODES } from '../shared/techniques/adapters.js';
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
@@ -234,6 +235,29 @@ features.add({ id: 'didinium', group: 'World', label: 'Didinium hunters', on: tr
 features.add({ id: 'homing', group: 'World', label: 'Didinium homing', on: true, about: 'Within ≈2 body lengths Didinium turns toward you. Real Didinium finds prey by collision; this makes the encounter readable.', onChange: (on) => { enc.opts.homing = on; } });
 features.add({ id: 'vort', group: 'World', label: 'Vorticella stalk contraction', on: true, about: 'Touch a Vorticella and its stalk coils in one frame (really milliseconds), then re-extends over about 3 s; neighbours may follow (S10, S11).', onChange: (on) => { world.opts.vortContract = on; } });
 features.add({ id: 'scenery', group: 'World', label: 'Spirogyra, detritus, diatoms', fixed: true, about: 'Spirogyra filaments with helical serrated chloroplasts, pyrenoids and cross walls; flakes and sediment; Pinnularia and Fragilaria with striae.' });
+// Borrowed (default off).
+const looks = createBorrowedLooks(renderer);
+const borrow = borrowedSwitches(features);
+const bmode = { dic: 0, amoeba: 0 };
+borrow.add({ id: 'semMite', label: 'SEM (scanning electron microscope)', from: 'mite',
+  about: 'The real geometry (slipper body with its oral groove, Didinium, Vorticella, Spirogyra, nuclei) drawn into the mite\'s G-buffer and shaded by its secondary-electron composite: tilt contrast, edge glow, detector shadowing, crevice darkening, noise. Cilia, trichocysts, bacteria and granules are shaped in their own vertex shaders, so they are left out: a bald Paramecium. Physically odd: a swimming cell in an SEM; real SEMs of Paramecium are fixed and dried.' });
+F_SEM_MODE();
+const FIELD = 'The optical-path, scatter and absorption buffers (sharp plus the blurred defocused layer) handed to another prototype\'s image formation.';
+borrow.add({ id: 'dicTardigrade', label: 'Tardigrade DIC (Nomarski)', from: 'tardigrade',
+  about: `The tardigrade's interference model: sin²(π(bias + shear·∂OPD)/λ) at three wavelengths, so relief comes with warm and cool fringes, against this prototype's simpler tanh DIC. ${FIELD}` });
+features.add({ id: 'dicTardigradeMode', group: 'Borrowed', label: 'Tardigrade look', from: 'tardigrade', choices: DIC_MODES, value: DIC_MODES[0],
+  about: 'Which of the tardigrade images the switch above uses: DIC or its brightfield.', onChange: (v) => (bmode.dic = DIC_MODES.indexOf(v)) });
+borrow.add({ id: 'opticsAmoeba', label: 'Amoeba property optics', from: 'amoeba',
+  about: `The amoeba's versions: brightfield with Beer–Lambert absorption, transport-of-intensity defocus and chromatic fringes, phase contrast, darkfield, or its immersive lit view with caustics. ${FIELD}` });
+features.add({ id: 'opticsAmoebaMode', group: 'Borrowed', label: 'Amoeba method', from: 'amoeba', choices: AMOEBA_MODES, value: AMOEBA_MODES[0],
+  about: 'Which optical method the amoeba switch above uses.', onChange: (v) => (bmode.amoeba = AMOEBA_MODES.indexOf(v)) });
+function F_SEM_MODE() {
+  features.add({ id: 'semMiteMode', group: 'Borrowed', label: 'SEM detector', from: 'mite', choices: SEM_LOOKS, value: SEM_LOOKS[0],
+    about: 'SE (topography), BSE (composition: all light organic matter here) or false colour (the Paramecium amber, everything else brown).', onChange: (v) => looks.semMode(SEM_LOOKS.indexOf(v)) });
+}
+const cellMeshes = new Set();
+cell.group.traverse((o) => cellMeshes.add(o));
+
 features.add({ id: 'pad', group: 'Controls', label: 'Xbox controller, keyboard fallback', fixed: true, about: 'RT swim, LT feed, LS steer, LB/RB dive and rise, B avoid, A trichocysts, X technique, Y camera, RS orbit, D-pad objective, View panel, Menu features.' });
 
 // --- loop --------------------------------------------------------------------
@@ -318,11 +342,13 @@ function frame(now) {
   const modeName = MODES[view.mode];
   const plate = modeName === 'darkfield' ? plates.darkfield : modeName === 'phase' ? plates.phase : null;
   const pf = OBJECTIVES[view.obj].field * 4;
-  optics.render(scene, cam, {
+  const optP = {
     mode: view.mode, stop: view.kind === 'scope' && view.fieldStop, plate,
     plateOff: new THREE.Vector2(cam.position.x / pf, -cam.position.z / pf),
     blurScale: view.kind === 'scope' ? 1 : 1.2,
-  });
+  };
+  if (borrow.id) renderBorrowed(cam, optP, dt);
+  else optics.render(scene, cam, optP);
   fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
   rendered++;
 
@@ -338,6 +364,23 @@ function frame(now) {
     threat ? `Didinium ${Math.round(threat.pos.distanceTo(s.center))} µm away (${threat.state})` : 'no predator near',
     `${Math.round(renderFps)} fps · render scale ${renderScale.toFixed(2)}`,
   ].join('\n'));
+}
+
+function renderBorrowed(cam, optP, dt) {
+  const [W, H] = optics.size;
+  const ortho = view.kind === 'scope';
+  const half = OBJECTIVES[view.obj].field / 2 / 0.95;
+  const pxPerUm = ortho ? H / (2 * half) : H / (2 * Math.tan((chase.fov * Math.PI) / 360) * shared.uFocus.value);
+  if (borrow.id === 'semMite') {
+    const d = shared.uFocus.value;
+    looks.semScene(scene, cam, { dt, umPerUnit: 1, tan: ortho ? [(half * W) / H / d, half / d] : undefined, cls: (o) => (cellMeshes.has(o) ? CLS.CUTICLE : CLS.LITTER) });
+    return;
+  }
+  optics.render(scene, cam, { ...optP, upTo: 2 });
+  const { main, pong } = optics.targets;
+  looks.fieldFromBuffers(W, H, { a: { opd: main.textures[0], abs: main.textures[1], scatW: [0, 1, 0, 0] }, b: { opd: pong.textures[0], abs: pong.textures[1], scatW: [0, 1, 0, 0] }, opdK: 1, absK: 1 });
+  if (borrow.id === 'dicTardigrade') looks.dic({ mode: bmode.dic, pxPerUm, time: t, opdK: 1, absK: 1 });
+  else looks.amoeba({ mode: bmode.amoeba, focus: 0.6, time: t, umPerPx: 1 / pxPerUm, phaseK: 1, odK: 1 });
 }
 
 window.__micro = {

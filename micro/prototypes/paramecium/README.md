@@ -214,6 +214,28 @@ Each is self-contained and documents its interface in its header.
 
 `optics.js` and `strands.js` in this folder re-export the first two.
 
+### Borrowed (default off)
+
+`../shared/techniques/adapters.js` holds the adapters: the pipelines meet
+in one "optical field" (optical path, scatter, SEM height, absorbance) that
+any prototype can fill from what it already draws and any borrowed
+microscope can read. SEM of a 3D scene instead redraws the real geometry with
+the mite's G-buffer materials. Borrowed looks are mutually exclusive; each
+has a companion choice for its mode. All start OFF, so the prototype looks
+as designed until one is switched on (or `?f=<id>` is in the address).
+
+| Feature id | Borrowed from | What it does here |
+| --- | --- | --- |
+| `semMite` (+ `semMiteMode`) | mite | The real geometry (body with oral groove, nuclei, Didinium, Vorticella, Spirogyra, diatoms) drawn into the SEM G-buffer; cilia, trichocysts, bacteria and granules are shaped in their vertex shaders and are left out. Works in both cameras |
+| `dicTardigrade` (+ `dicTardigradeMode`) | tardigrade | The optical buffers (sharp and blurred defocused layers) through the tardigrade's three-wavelength DIC or its brightfield |
+| `opticsAmoeba` (+ `opticsAmoebaMode`) | amoeba | The same buffers through the amoeba's brightfield, phase, darkfield or immersive optics |
+
+Not borrowed:
+
+- Amoeba soft body: a 2D crawling outline; the Paramecium is a rigid 3D swimmer.
+- Mite gait and IK: no legs.
+- Tardigrade leg coordination: no legs.
+
 ## Art
 
 Procedural stand-ins are used until the images in

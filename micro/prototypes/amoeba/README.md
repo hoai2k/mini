@@ -166,6 +166,30 @@ header): `shared/techniques/amoeba-optics.js` (property buffer → microscope
 optics), `amoeba-softbody.js` (volume-conserving 2D crawler with food cups),
 `amoeba-sdfgrid.js` (per-frame signed distance grid of an outline).
 
+### Borrowed (default off)
+
+`../shared/techniques/adapters.js` holds the adapters: the pipelines meet
+in one "optical field" (optical path, scatter, SEM height, absorbance) that
+any prototype can fill from what it already draws and any borrowed
+microscope can read. SEM of a 3D scene instead redraws the real geometry with
+the mite's G-buffer materials. Borrowed looks are mutually exclusive; each
+has a companion choice for its mode. All start OFF, so the prototype looks
+as designed until one is switched on (or `?f=<id>` is in the address).
+
+| Feature id | Borrowed from | What it does here |
+| --- | --- | --- |
+| `semMite` (+ `semMiteMode`) | mite | The phase buffer read as a height map (× 40 µm), seen from a virtual beam 4 mm above the glass, shaded by the SEM composite |
+| `dicTardigrade` (+ `dicTardigradeMode`) | tardigrade | The property buffers (out-of-focus layer blurred) through the tardigrade's DIC or brightfield |
+| `microscopeParamecium` (+ `microscopeParameciumMode`) | paramecium | The same through the paramecium microscope (its darkfield, phase, brightfield, DIC, lit view) |
+| `preyLowRe` | paramecium | `lowRe()` on prey: speed follows the beat with a 35 ms lag, and the trichocyst recoil stops in milliseconds instead of gliding ~0.2 s |
+| `preyFlow` | paramecium | `squirmerFlow()`: each swimming prey's dipole flow moves the others |
+
+Not borrowed:
+
+- Paramecium cilia: prey are drawn into the 2D property buffer by their own shaders; the 3D ribbon strands need the paramecium's MRT buffers and a 3D scene.
+- Mite gait and IK: nothing here has legs.
+- Squirmer flow on the amoeba itself: the soft body takes no external flow, and an amoeba crawling on glass is not moved by it noticeably.
+
 ## Labelled departures
 
 - **Time compression.** Amoeba processes run ×10 (pseudopods advance

@@ -105,6 +105,33 @@ Technique module: `shared/techniques/tardigrade-dic.js` (DIC and brightfield
 with a focal plane; `opticalMaterial`, `OPTICAL_*` building blocks for custom
 optical shaders, `DicMicroscope`).
 
+### Borrowed (default off)
+
+`../shared/techniques/adapters.js` holds the adapters: the pipelines meet
+in one "optical field" (optical path, scatter, SEM height, absorbance) that
+any prototype can fill from what it already draws and any borrowed
+microscope can read. SEM of a 3D scene instead redraws the real geometry with
+the mite's G-buffer materials. Borrowed looks are mutually exclusive; each
+has a companion choice for its mode. All start OFF, so the prototype looks
+as designed until one is switched on (or `?f=<id>` is in the address).
+
+| Feature id | Borrowed from | What it does here |
+| --- | --- | --- |
+| `semMite` (+ `semMiteMode`: SE / BSE / false colour) | mite | The real geometry (deformed body, claws, leaves, detritus) drawn into the SEM G-buffer at 100 µm per scene unit; leaf cell walls are drawn per pixel by the optical shader, so the SEM sees bare leaf slabs |
+| `opticsAmoeba` (+ `opticsAmoebaMode`) | amoeba | The DIC buffers (after the focal-plane blur) through the amoeba's optics |
+| `microscopeParamecium` (+ `microscopeParameciumMode`) | paramecium | The same buffers through the paramecium microscope |
+| `miteGait` | mite | The mite's alternating tetrapod offsets on the eight lobopods (overrides Leg coordination while on) |
+
+The field looks need the optical materials, so choosing the Lit look turns
+them off.
+
+Not borrowed:
+
+- Paramecium squirmer and low-Re helpers: the tardigrade crawls on claws; it does not swim.
+- Paramecium cilia: tardigrades have none.
+- Amoeba soft body: a 2D area-conserving outline cannot drive a legged 3D body with a part rig.
+- Mite two-bone IK: lobopods are telescoping, unjointed legs; the part rig already stretches them hip to foot.
+
 ## Departures (labelled)
 
 - **Time:** the day runs 240× by default (1 s = 4 min). Walking and feeding are
