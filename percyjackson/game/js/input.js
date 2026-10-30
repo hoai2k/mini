@@ -5,7 +5,7 @@ import { isMobile } from './util.js';
 import { padFrame, keyFrame } from './padmap.js';
 import { settings } from './settings.js';
 
-const ACTIONS = ['attack', 'ranged', 'dodge', 't1', 't2', 't3', 'domain', 'interact', 'heal', 'map', 'pause', 'rotL', 'rotR', 'art1', 'art2', 'inv', 'sight', 'swap', 'jump', 'trail', 'slam', 'root', 'quest'];
+const ACTIONS = ['attack', 'ranged', 'dodge', 't1', 't2', 't3', 'domain', 'interact', 'heal', 'map', 'pause', 'rotL', 'rotR', 'art1', 'art2', 'inv', 'sight', 'swap', 'jump', 'trail', 'slam', 'root', 'quest', 'skills'];
 // The keyboard-and-mouse layout is in padmap.js too (keyFrame).
 // The Xbox controller layout (after Minecraft Dungeons II) is in padmap.js.
 
@@ -23,6 +23,8 @@ export class Input {
     this.state = new Map();        // device -> current state
     this.lastDevice = isMobile ? 'touch' : 'kbm';
     this.onPadJoin = null;
+    this.holds = new Map();       // device -> 'menu' | 'latch' (see hold)
+    this.edges = new Map();       // device -> this frame's menu presses (menuFrame)
     this.bindKeyboard();
     this.bindTouchPinch();
   }
@@ -89,6 +91,7 @@ export class Input {
     }
     // touch
     this.setState('touch', { move: { ...this.touch.stickVec }, aimStick: null, mouse: false, held: { ...this.touch.buttons }, auto: true });
+    this.menuFrame();
   }
   // AI companions drive their hero through a virtual device with the same
   // shape as a controller: { move (world-space via worldMove), held }.
@@ -97,38 +100,96 @@ export class Input {
     this.setState(dev, { move: { x: 0, y: 0 }, worldMove, aimStick: null, mouse: false, held: full, virtual: true });
   }
   setState(dev, s) {
+    // a held device (its player's own menu is open, or was just closed with a
+    // button still down): its hero gets nothing, so it stands still and
+    // nothing fires when the menu closes (the B that closed it never dodges)
+    const hold = this.holds.get(dev);
+    if (hold && !s.virtual) {
+      const busy = Object.values(s.held).some(Boolean) || s.move.x || s.move.y;
+      if (hold === 'latch' && !busy) this.holds.delete(dev);
+      else s = { move: { x: 0, y: 0 }, aimStick: null, mouse: false, held: blank(), menuHeld: true };
+    }
     const prev = this.state.get(dev);
     const prevHeld = prev ? prev.held : blank();
     s.pressed = {}; s.released = {};
     for (const a of ACTIONS) { s.pressed[a] = s.held[a] && !prevHeld[a]; s.released[a] = !s.held[a] && prevHeld[a]; }
     this.state.set(dev, s);
   }
+  // Hold a device's actions (on: its player's menu is open) or let go (off:
+  // they come back once every button and the stick are let go).
+  hold(dev, on) {
+    if (on) this.holds.set(dev, 'menu');
+    else if (this.holds.get(dev) === 'menu') this.holds.set(dev, 'latch');
+  }
   get(dev) { return this.state.get(dev) || { move: { x: 0, y: 0 }, held: blank(), pressed: blank(), released: blank() }; }
   // consumes wheel/pinch zoom
   takeZoom() { const z = this.wheel + this.pinch; this.wheel = 0; this.pinch = 0; return z; }
 
-  // Menu navigation merged across every device (edge-triggered).
-  menu() {
-    const out = { up: false, down: false, left: false, right: false, confirm: false, back: false, start: false, device: null };
-    const k = this.keys; const pk = this._menuPrevKeys || new Set();
+  // Menu presses, per device, on the frame they go down (worked out once a
+  // frame in poll, so a menu opened this frame never sees the press that
+  // opened it as new: Esc pauses, and only the next Esc resumes).
+  //   up down left right · confirm (A, Enter) · back (B, Esc, Backspace) ·
+  //   start (Menu) · view (View) · tabL tabR (LB RB, Q E, Shift+Tab Tab) ·
+  //   x (X, the keys X and Delete) · lt rt (LT RT, the keys Z C) · esc (the Esc key)
+  menuFrame() {
+    const edges = new Map();
+    const k = this.keys, pk = this._menuPrevKeys || new Set();
     const edge = (code) => k.has(code) && !pk.has(code);
-    if (edge('ArrowUp') || edge('KeyW')) out.up = true; if (edge('ArrowDown') || edge('KeyS')) out.down = true;
-    if (edge('ArrowLeft') || edge('KeyA')) out.left = true; if (edge('ArrowRight') || edge('KeyD')) out.right = true;
-    if (edge('Enter')) { out.confirm = true; out.device = 'kbm'; }
-    if (edge('Escape') || edge('Backspace')) out.back = true;
-    out.keyboard = { up: out.up, down: out.down, left: out.left, right: out.right, confirm: out.confirm, back: out.back };
+    const shift = k.has('ShiftLeft') || k.has('ShiftRight');
+    edges.set('kbm', {
+      up: edge('ArrowUp') || edge('KeyW'), down: edge('ArrowDown') || edge('KeyS'), left: edge('ArrowLeft') || edge('KeyA'), right: edge('ArrowRight') || edge('KeyD'),
+      confirm: edge('Enter'), back: edge('Escape') || edge('Backspace'), esc: edge('Escape'), start: false, view: false,
+      tabL: edge('KeyQ') || (edge('Tab') && shift), tabR: edge('KeyE') || (edge('Tab') && !shift),
+      x: edge('KeyX') || edge('Delete'), lt: edge('KeyZ'), rt: edge('KeyC'),
+      inv: edge('KeyI'), map: edge('KeyM'), skills: edge('KeyK'),   // (a player's own menu: these jump to a tab, or close it)
+    });
     this._menuPrevKeys = new Set(k);
     this._padPrev = this._padPrev || {};
+    const down = (b) => !!b && (b.pressed || b.value > 0.5);
     for (const p of this.pads()) {
       const id = 'pad' + p.index; const prev = this._padPrev[id] || {};
+      const ax = p.axes[0] ?? 0, ay = p.axes[1] ?? 0, B = p.buttons;
       const cur = {
-        up: p.buttons[12]?.pressed || (p.axes[1] ?? 0) < -0.6, down: p.buttons[13]?.pressed || (p.axes[1] ?? 0) > 0.6,
-        left: p.buttons[14]?.pressed || (p.axes[0] ?? 0) < -0.6, right: p.buttons[15]?.pressed || (p.axes[0] ?? 0) > 0.6,
-        confirm: p.buttons[0]?.pressed, back: p.buttons[1]?.pressed, start: p.buttons[9]?.pressed,
+        up: !!B[12]?.pressed || ay < -0.6, down: !!B[13]?.pressed || ay > 0.6, left: !!B[14]?.pressed || ax < -0.6, right: !!B[15]?.pressed || ax > 0.6,
+        confirm: !!B[0]?.pressed, back: !!B[1]?.pressed, start: !!B[9]?.pressed, view: !!B[8]?.pressed,
+        tabL: !!B[4]?.pressed, tabR: !!B[5]?.pressed, x: !!B[2]?.pressed, lt: down(B[6]), rt: down(B[7]), dup: !!B[12]?.pressed,
       };
-      for (const key in cur) if (cur[key] && !prev[key]) { out[key] = true; if (key === 'confirm' || key === 'start') out.device = id; }
+      const e = { esc: false };
+      for (const key in cur) e[key] = cur[key] && !prev[key];
+      edges.set(id, e);
       this._padPrev[id] = cur;
     }
+    this.edges = edges;
+  }
+  // This frame's menu presses of one device (a player's own menu reads only its own).
+  menuFor(dev) { return this.edges.get(dev) ?? {}; }
+  // Forget this frame's presses (a menu just opened: the press that opened it doesn't act in it).
+  swallowMenu(dev = null) { if (dev) this.edges.delete(dev); else this.edges = new Map(); }
+  // Menu navigation merged across every device (edge-triggered), but `skip`'s.
+  menu(skip = null) {
+    const out = { up: false, down: false, left: false, right: false, confirm: false, back: false, start: false, tabL: false, tabR: false, x: false, lt: false, rt: false, device: null };
+    const kb = this.edges.get('kbm') ?? {};
+    out.keyboard = { up: !!kb.up, down: !!kb.down, left: !!kb.left, right: !!kb.right, confirm: !!kb.confirm, back: !!kb.back };
+    for (const [id, e] of this.edges) {
+      if (skip?.has(id)) continue;
+      for (const key in out) if (key !== 'device' && key !== 'keyboard' && e[key]) { out[key] = true; if (key === 'confirm' || key === 'start') out.device = id; }
+    }
     return out;
+  }
+  // Directions held now (for auto-repeat) on the devices `use(dev)` accepts.
+  heldDirs(use = () => true) {
+    const d = { up: false, down: false, left: false, right: false };
+    const k = this.keys;
+    if (use('kbm')) {
+      if (k.has('ArrowUp') || k.has('KeyW')) d.up = true; if (k.has('ArrowDown') || k.has('KeyS')) d.down = true;
+      if (k.has('ArrowLeft') || k.has('KeyA')) d.left = true; if (k.has('ArrowRight') || k.has('KeyD')) d.right = true;
+    }
+    for (const p of this.pads()) {
+      if (!use('pad' + p.index)) continue;
+      const ax = p.axes[0] ?? 0, ay = p.axes[1] ?? 0;
+      if (p.buttons[12]?.pressed || ay < -0.6) d.up = true; if (p.buttons[13]?.pressed || ay > 0.6) d.down = true;
+      if (p.buttons[14]?.pressed || ax < -0.6) d.left = true; if (p.buttons[15]?.pressed || ax > 0.6) d.right = true;
+    }
+    return d;
   }
 }

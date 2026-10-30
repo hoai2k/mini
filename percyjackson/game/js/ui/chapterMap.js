@@ -47,9 +47,10 @@ export function openChapterMap(game) {
   ui.open('chaptermap', (el, scr) => {
     const book = BOOKS.find((b) => b.id === bookId);
     const list = chaptersOf(bookId);
-    const tabs = h('div', { class: 'tabs book-tabs', role: 'tablist' }, ...BOOKS.map((b) => {
+    // the books (LB / RB, Q / E go through them: ui.js [data-tabbar]); the panel keeps one height, so the bar never moves
+    const tabs = h('div', { class: 'tabs book-tabs', role: 'tablist', 'data-tabbar': '' }, ...BOOKS.map((b) => {
       const has = chaptersOf(b.id).some((c) => chapterPlayable(c));
-      return h('button', { class: 'tab' + (b.id === bookId ? ' on' : '') + (has ? '' : ' dim'), role: 'tab', 'aria-selected': String(b.id === bookId), onclick: () => { bookId = b.id; sel = chaptersOf(b.id)[0]?.id ?? null; ui.refresh('chaptermap'); } },
+      return h('button', { class: 'tab' + (b.id === bookId ? ' on' : '') + (has ? '' : ' dim'), role: 'tab', 'aria-selected': String(b.id === bookId), 'data-k': 'book-' + b.id, onclick: () => { bookId = b.id; sel = chaptersOf(b.id)[0]?.id ?? null; ui.refresh('chaptermap'); } },
         h('span', { class: 'bn' }, tx('chapterMap.bookTab', { n: b.num })), h('span', { class: 'bt' }, b.title));
     }));
     const detail = h('aside', { class: 'cdetail', 'aria-live': 'polite' });

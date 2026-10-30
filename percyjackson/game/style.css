@@ -644,3 +644,65 @@ body.reduce-motion .trk-pin .chev { animation: none; }
 .kit-coin-img { width: 1.15em; height: 1.15em; vertical-align: -0.22em; display: inline-block; margin: 0 .12em; }
 .kit-coin-img.stack, .kit-coin-img.pouch { width: 1.6em; height: 1.6em; vertical-align: -0.45em; margin-right: .3em; }
 .loot-card.legendary .lc-icon .ico-img { width: 58px; height: 58px; }
+
+/* ---- tabbed menus (settings, the world map, the forge, the prophecy's books; ui.js [data-tabbar]):
+   one fixed height whichever tab shows, a long tab scrolling inside, so the
+   tab bar never moves as the tabs change ---- */
+.panel.tabbed { display: flex; flex-direction: column; height: min(var(--tabbed-h, 680px), 100%); overflow: hidden; }
+.panel.tabbed > .tab-body { flex: 1 1 0; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-color: var(--gold-lo) transparent; scrollbar-width: thin; }
+.panel.tabbed > h2, .panel.tabbed > .tabs, .panel.tabbed > [data-tabbar], .panel.tabbed > .row { flex: none; }
+.set-panel.tabbed { --tabbed-h: 640px; }
+.set-panel .set-body { padding-right: 4px; }
+.wm-panel.tabbed { --tabbed-h: 900px; }
+.inv2.tabbed { --tabbed-h: 920px; }
+.inv2.tabbed > .inv { flex: 1 1 0; min-height: 0; overflow: auto; }
+.inv2.tabbed > .inv-head, .inv2.tabbed > .inv-foot, .inv2.tabbed > .hint, .inv2.tabbed > .inv-heroes { flex: none; }
+.prophecy.tabbed { height: min(720px, 100%); }
+.prophecy.tabbed .parch { flex: 1 1 0; min-height: 0; }
+@media (max-width: 760px) { .inv2 .detail { height: 46vh; } }   /* (on a phone the item above the stash keeps one height: the kinds below it stay put) */
+
+/* ---- each player's own menu (ui/playerMenu.js): their region of the screen, their own focus ---- */
+#player-menus { position: fixed; inset: 0; z-index: 48; pointer-events: none; }
+#player-menus.dim { background: radial-gradient(ellipse at center, rgba(16, 12, 8, .6), rgba(8, 6, 4, .82)); }
+.pmenu { position: absolute; display: flex; box-sizing: border-box; padding: calc(8px + var(--safe-t)) 8px calc(8px + var(--safe-b)) 8px; pointer-events: none; }
+.pmenu[data-player="1"], .pmenu[data-player="3"] { padding-left: calc(8px + var(--safe-l)); }
+.pmenu[data-player="2"], .pmenu[data-player="4"] { padding-right: calc(8px + var(--safe-r)); }
+.pmenu.solo { padding: calc(16px + var(--safe-t)) calc(16px + var(--safe-r)) calc(16px + var(--safe-b)) calc(16px + var(--safe-l)); justify-content: center; align-items: center; }
+.pmenu-panel { pointer-events: auto; flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; padding: 10px 12px 8px; border-radius: 6px; container: pmenu / inline-size;
+  background: linear-gradient(180deg, var(--panel2), var(--panel)); border: 2px solid var(--pc, var(--gold));
+  box-shadow: 0 0 0 4px #0d0a07, 0 0 0 5px rgba(201, 150, 58, .65), 0 16px 44px rgba(0, 0, 0, .65); }
+.pmenu.solo .pmenu-panel { flex: 0 1 auto; width: min(1100px, 100%); height: min(900px, 100%); }
+.pmenu:not(.solo) .pmenu-panel { background: linear-gradient(180deg, color-mix(in srgb, var(--panel2) 94%, transparent), color-mix(in srgb, var(--panel) 94%, transparent)); }
+.pmenu-head { flex: none; display: flex; align-items: center; gap: 8px; padding-bottom: 8px; margin-bottom: 6px; border-bottom: 2px solid rgba(201, 150, 58, .35); }
+.pmenu-who { font: 700 15px var(--head); color: var(--pc, var(--gold-hi)); white-space: nowrap; letter-spacing: 1px; text-shadow: 0 1px 0 #000; }
+.pmenu-tabs { flex: 1 1 auto; min-width: 0; margin: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; justify-content: safe center; }
+.pmenu-tabs .tab { white-space: nowrap; padding: 5px 12px; font-size: 14px; }
+.pmenu-key { flex: none; font: 700 12px var(--font); color: var(--dim); border: 1px solid var(--gold-lo); border-bottom-width: 3px; border-radius: 4px; padding: 0 5px; background: #0d0a07; }
+.pmenu-x { flex: none; width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--gold-lo); background: #0d0a07; color: var(--parch); font: 700 14px var(--font); cursor: pointer; }
+.pmenu-x:hover { border-color: var(--gold-hi); color: var(--gold-hi); }
+.pmenu-body { flex: 1 1 0; min-height: 0; position: relative; container-type: inline-size; }
+.pmenu-body > .screen { position: absolute; inset: 0; padding: 0; justify-content: flex-start; align-items: stretch; }
+.pmenu-body > .screen:not(.dim) > .panel, .pmenu-body > .screen:not(.dim) > .prophecy { width: 100% !important; max-width: none !important; height: 100%; max-height: 100%; overflow: auto; margin: 0; box-shadow: none; border: none; background: none; padding: 4px 6px 8px; }
+.pmenu-body > .screen:not(.dim) > .prophecy { overflow: hidden; padding: 0 14px; }
+.pmenu-body > .screen:not(.dim) > .panel > h2 { font-size: 20px; margin-bottom: 8px; }
+.pmenu-body > .screen.dim { border-radius: 6px; }
+.pmenu-body .skills-panel { width: 100%; max-width: none; }
+.pmenu-foot { flex: none; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; padding-top: 6px; margin-top: 4px; border-top: 1px solid rgba(201, 150, 58, .25); }
+.pmenu-foot .hint { margin: 0; font-size: 13px; }
+.pmenu-status { color: var(--gold-hi); font: 700 13px var(--font); }
+.pm-map { text-align: center; }
+.pm-map-view canvas { display: block; margin: 0 auto; width: min(100%, 640px); height: auto; max-height: 58vh; object-fit: contain; image-rendering: pixelated; border-radius: 8px; box-shadow: 0 0 0 3px #c9963a, 0 6px 24px #0008; }
+.pm-map-view .mapview { aspect-ratio: 1; width: auto; height: min(58vh, 100cqw); max-width: 100%; }
+.pmenu.quarter .pm-map-view canvas { max-height: 30vh; }
+@container (max-width: 760px) {
+  .inv2 .inv { grid-template-columns: 1fr; }
+  .inv2 .inv-grid { max-height: none; }
+  .inv2 .detail { order: -1; position: sticky; top: -6px; z-index: 2; height: 40vh; max-height: 40vh; overflow: auto; box-shadow: 0 6px 14px rgba(0, 0, 0, .6); }
+  .inv2 .inv-actions .btn.primary { flex: 1 1 100%; }
+  .inv2 .inv-hero { grid-template-columns: 90px minmax(0, 1fr); } .hero-preview { width: 90px; height: 120px; }
+}
+@container (max-width: 720px) { .branches { grid-template-columns: 1fr; } .loadout .lt, .lslot .lk { display: none; } .lslot { flex: 1 1 0; min-width: 0; padding: 4px 6px; gap: 4px; font-size: 13px; } }
+/* the header fits its own menu's width: the player's name goes first, then the key hints */
+@container pmenu (max-width: 760px) { .pmenu-head .pmenu-who { display: none; } .pmenu-tabs .tab { padding: 4px 9px; font-size: 13px; letter-spacing: 0; } }
+@container pmenu (max-width: 470px) { .pmenu-key { display: none; } .pmenu-tabs { gap: 3px; } .pmenu-tabs .tab { padding: 3px 7px; font-size: 12px; } }
+@container (max-width: 760px) { .inv2 .inv-hero .slots-eq { grid-template-columns: repeat(4, minmax(0, 72px)); } .inv2 .slots-eq .item { font-size: 26px; } }

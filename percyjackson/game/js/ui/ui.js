@@ -3,6 +3,7 @@
 import { demigodText, greekOn, GREEK } from './greekText.js';
 import { showFor } from './greekTiming.js';
 import { t as tx, applyText } from '../text_config.js';
+import { pickTarget, cycleTab } from './navmath.js';
 
 // The page's own text (index.html): fills the data-t elements, the tab title and the description.
 export function applyPageText() {
@@ -14,11 +15,18 @@ export function applyPageText() {
 }
 
 const DIRS = ['up', 'down', 'left', 'right'];
-export class UI {
-  constructor(game) {
+// A stack of screens with one focus, inside one root element: the shared
+// screens (UI, below) and each player's own menu (playerMenu.js) are one each.
+// Focus moves spatially (navmath.js pickTarget) and wraps: up on the top item
+// is the bottom item, down on the bottom the top, and in a grid
+// ([data-navgrid]) within its column or row. A screen's tab bar
+// ([data-tabbar], tabs marked .on or aria-selected) switches with LB / RB
+// (Q / E, Tab), round and round.
+export class FocusNav {
+  constructor(game, root, { idPrefix = 'scr-' } = {}) {
     this.game = game;
-    applyPageText();
-    this.root = document.getElementById('screens');
+    this.root = root;
+    this.idPrefix = idPrefix;
     this.stack = [];        // open screens (top = active)
     this.focusEl = null;
     this.rep = {};          // held-direction auto-repeat timers
@@ -29,7 +37,7 @@ export class UI {
     const below = this.top(); if (below) below.savedFocus = this.focusEl;
     const el = document.createElement('section');
     el.className = 'screen' + (opts.dim ? ' dim' : '');
-    el.id = 'scr-' + id;
+    el.id = this.idPrefix + id;
     this.root.appendChild(el);
     const s = { id, el, build, opts };
     this.stack.push(s);
@@ -37,14 +45,16 @@ export class UI {
     this.autoFocus(s);
     return s;
   }
+  // The element of the open screen `id` (null when it isn't open).
+  screen(id) { return this.stack.find((x) => x.id === id)?.el ?? null; }
   refresh(id) {
     const s = this.stack.find((x) => x.id === id); if (!s) return;
     const idx = this.focusables(s).indexOf(this.focusEl);
-    const scroll = [...s.el.querySelectorAll('.panel')].map((p) => p.scrollTop);
+    const scroll = [...s.el.querySelectorAll('.panel, [data-scroll]')].map((p) => p.scrollTop);
     s.el.innerHTML = ''; s.build(s.el, s);
-    [...s.el.querySelectorAll('.panel')].forEach((p, i) => { p.scrollTop = scroll[i] ?? 0; });
+    [...s.el.querySelectorAll('.panel, [data-scroll]')].forEach((p, i) => { p.scrollTop = scroll[i] ?? 0; });
     const f = this.focusables(s);
-    this.setFocus(f[Math.min(Math.max(0, idx), f.length - 1)]);
+    this.setFocus(f[Math.min(Math.max(0, idx), f.length - 1)], { scroll: false });   // (the scroll was put back as it was)
   }
   close(id) {
     const i = this.stack.findIndex((x) => x.id === id);
@@ -53,6 +63,7 @@ export class UI {
     s.el.remove(); s.opts.onClose?.();
     const top = this.top();
     if (top) { const f = top.savedFocus; top.savedFocus = null; if (f && f.isConnected && this.focusables(top).includes(f)) this.setFocus(f); else this.autoFocus(top); }
+    else if (this.focusEl && !this.focusEl.isConnected) this.focusEl = null;
   }
   closeAll() { while (this.stack.length) this.close(this.stack[this.stack.length - 1].id); }
   top() { return this.stack[this.stack.length - 1]; }
@@ -64,13 +75,14 @@ export class UI {
     const pref = s.el.querySelector('[data-autofocus]') || f[0];
     this.setFocus(pref);
   }
-  setFocus(el) {
+  // scroll: bring it into view inside whatever scrolls round it (false: leave the scroll alone)
+  setFocus(el, { scroll = true } = {}) {
     if (this.focusEl) this.focusEl.classList.remove('focus'), this.focusEl.closest('.setting')?.classList.remove('focus');
     this.focusEl = el || null;
     if (el) {
       el.classList.add('focus');
       el.closest('.setting')?.classList.add('focus');
-      el.scrollIntoView?.({ block: 'nearest' });
+      if (scroll) el.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
       el.dispatchEvent(new CustomEvent('navfocus'));
     }
   }
@@ -78,49 +90,43 @@ export class UI {
     const s = this.top(); if (!s) return;
     const f = this.focusables(s); if (!f.length) return;
     if (!this.focusEl || !f.includes(this.focusEl)) return this.setFocus(f[0]);
-    const cur = this.focusEl.getBoundingClientRect();
-    const cx = cur.left + cur.width / 2, cy = cur.top + cur.height / 2;
-    let best = null, bestD = Infinity;
-    for (const e of f) {
-      if (e === this.focusEl) continue;
-      const r = e.getBoundingClientRect();
-      const ex = r.left + r.width / 2, ey = r.top + r.height / 2;
-      const ddx = ex - cx, ddy = ey - cy;
-      const along = ddx * dx + ddy * dy;
-      if (along <= 4) continue;
-      const perp = Math.abs(ddx * dy) + Math.abs(ddy * dx);
-      const d = along + perp * 2.5;
-      if (d < bestD) { bestD = d; best = e; }
-    }
-    if (best) { this.setFocus(best); this.game.audio?.ui('move'); }
+    const grids = new Map();
+    const rects = f.map((e) => {
+      const r = e.getBoundingClientRect(), g = e.closest('[data-navgrid]');
+      if (g && !grids.has(g)) grids.set(g, grids.size);
+      return { left: r.left, top: r.top, width: r.width, height: r.height, grid: g ? grids.get(g) : null };
+    });
+    const i = pickTarget(rects[f.indexOf(this.focusEl)], rects, dx, dy);
+    if (i >= 0 && f[i] !== this.focusEl) { this.setFocus(f[i]); this.game.audio?.ui('move'); }
   }
-  // Directions currently held on any pad or the keyboard (for auto-repeat).
-  heldDirs() {
-    const d = { up: false, down: false, left: false, right: false };
-    const k = this.game.input.keys;
-    if (k.has('ArrowUp') || k.has('KeyW')) d.up = true; if (k.has('ArrowDown') || k.has('KeyS')) d.down = true;
-    if (k.has('ArrowLeft') || k.has('KeyA')) d.left = true; if (k.has('ArrowRight') || k.has('KeyD')) d.right = true;
-    for (const p of this.game.input.pads()) {
-      const ax = p.axes[0] ?? 0, ay = p.axes[1] ?? 0;
-      if (p.buttons[12]?.pressed || ay < -0.6) d.up = true; if (p.buttons[13]?.pressed || ay > 0.6) d.down = true;
-      if (p.buttons[14]?.pressed || ax < -0.6) d.left = true; if (p.buttons[15]?.pressed || ax > 0.6) d.right = true;
-    }
-    return d;
+  // The screen's tab bar: the next tab, round and round (dir +1 or -1).
+  cycleTabs(s, dir) {
+    const bar = s.el.querySelector('[data-tabbar]'); if (!bar) return false;
+    const tabs = [...bar.querySelectorAll('[role=tab], .tab')].filter((b) => !b.disabled);
+    const cur = tabs.find((b) => b.classList.contains('on') || b.getAttribute('aria-selected') === 'true');
+    const next = cycleTab(tabs, cur, dir);
+    if (!next || next === cur) return false;
+    const k = next.dataset.k ?? null;
+    next.click(); this.game.audio?.ui('move');
+    // (the click rebuilt the screen: focus the new tab, as a press on it would)
+    const again = k ? s.el.querySelector(`[data-tabbar] [data-k="${k}"]`) : null;
+    if (again && this.focusables(s).includes(again)) this.setFocus(again);
+    return true;
   }
   // A held direction repeats after a pause, so one push never skips items.
-  repeat(m) {
-    const now = performance.now(), held = this.heldDirs();
+  repeat(m, held) {
+    const now = performance.now();
     for (const dir of DIRS) {
       if (m[dir]) this.rep[dir] = now + 380;
       else if (held[dir]) { if (this.rep[dir] && now >= this.rep[dir]) { m[dir] = true; this.rep[dir] = now + 110; } }
       else delete this.rep[dir];
     }
   }
-  // Called every frame while a screen is open.
-  update() {
+  // One frame of navigation: m the menu presses (input.js menu / menuFor),
+  // held the directions held down (for auto-repeat).
+  step(m, held) {
     const s = this.top(); if (!s || s.opts.passive) return;
-    const m = this.game.input.menu();
-    this.repeat(m);
+    this.repeat(m, held);
     // A screen may claim device-specific input before it reaches shared focus.
     // Character select uses this so one controller cannot click another
     // player's focused button while joining or choosing a hero.
@@ -129,6 +135,7 @@ export class UI {
     const el = this.focusEl;
     const isRange = el && el.tagName === 'INPUT' && el.type === 'range';
     const isSelect = el && el.tagName === 'SELECT';
+    if ((m.tabL || m.tabR) && this.cycleTabs(s, m.tabR ? 1 : -1)) return;
     if (m.up) this.move(0, -1);
     if (m.down) this.move(0, 1);
     if ((m.left || m.right) && (isRange || isSelect)) {
@@ -143,8 +150,21 @@ export class UI {
       else if (!isRange && !isSelect) { el.click(); }
       this.lastConfirmDevice = m.device;
     }
-    if (m.back && s.opts.onBack) { this.game.audio?.ui('back'); s.opts.onBack(); }
+    if (m.back && s.opts.onBack && this.top() === s) { this.game.audio?.ui('back'); s.opts.onBack(); }
   }
+}
+
+// The shared screens (title, pause, settings, results, camp stations, ...):
+// every device drives them.
+export class UI extends FocusNav {
+  constructor(game) {
+    applyPageText();
+    super(game, document.getElementById('screens'));
+  }
+  // Directions currently held on any pad or the keyboard (for auto-repeat).
+  heldDirs() { return this.game.input.heldDirs(); }
+  // Called every frame while a screen is open.
+  update() { this.step(this.game.input.menu(), this.heldDirs()); }
 }
 
 export function h(tag, attrs = {}, ...children) {
@@ -186,8 +206,7 @@ export function toast(text, cls = '') {
 }
 
 // A yes/no confirmation. Focus starts on "No" so a stray press never destroys progress.
-export function confirmDialog(game, { title = tx('common.areYouSure'), text = '', yes = tx('common.yes'), no = tx('common.no'), danger = false, onYes, onNo } = {}) {
-  const ui = game.ui;
+export function confirmDialog(game, { title = tx('common.areYouSure'), text = '', yes = tx('common.yes'), no = tx('common.no'), danger = false, onYes, onNo, ui = game.ui } = {}) {   // ui: a player's own menu (playerMenu.js) opens it there
   const close = () => ui.close('confirm');
   ui.open('confirm', (el) => {
     el.appendChild(h('div', { class: 'panel menu-col confirm', role: 'alertdialog', 'aria-label': title, style: 'max-width:min(440px,94vw);text-align:center' },

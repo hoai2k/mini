@@ -2,12 +2,14 @@
 // path tracer (three-gpu-pathtracer on a WebGL2 canvas), converging sample by
 // sample. The scene is rebuilt from the live one with standard materials so
 // the voxel world, characters, props and lights all bounce light.
+// It opens from Settings → Debug (no hotkey) and shows over the menus, which
+// stay as they were under it: B / Esc (main.js) or Close goes back to them.
 import { t } from './text_config.js';
 
 export async function openPhotoMode(game) {
   if (game.photo) return;
+  const wasPaused = game.paused;
   game.paused = true;
-  game.ui.closeAll();
   const overlay = document.createElement('div');
   overlay.id = 'photo-mode';
   overlay.style.cssText = 'position:fixed;inset:0;z-index:90;background:#000;display:flex;flex-direction:column';
@@ -25,11 +27,10 @@ export async function openPhotoMode(game) {
   const shut = () => {
     running = false;
     try { pt?.dispose?.(); renderer?.dispose(); } catch (e) { /* ignore */ }
-    overlay.remove(); game.photo = null; game.paused = false; game.last = performance.now();
+    overlay.remove(); game.photo = null; game.paused = wasPaused; game.last = performance.now();
   };
   close.onclick = shut;
   game.photo = { close: shut };
-  window.addEventListener('keydown', function esc(e) { if (e.code === 'Escape' && game.photo) { shut(); window.removeEventListener('keydown', esc); } });
   try {
     const T = await import('three-classic');
     const { WebGLPathTracer } = await import('three-gpu-pathtracer');

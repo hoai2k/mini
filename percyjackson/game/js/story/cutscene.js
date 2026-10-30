@@ -7,12 +7,15 @@
 // act and the set's update reach by then (figures walked, the car driven, a
 // sign read) is where the next shot starts; on the last shot it ends the
 // cutscene. One press skips one shot (edge-triggered, with a short cooldown).
-// Holding B pauses it (Esc or Backspace, a long press on a touch screen):
+// Holding B pauses it (Backspace, a long press on a touch screen):
 // the shot's clock, its figures, the camera and the subtitle stand still
 // until it is let go. Skipping the whole cutscene: hold A (Enter / Space, the
 // mouse button), or the Skip all button on a touch screen; a ring fills while
 // you hold. (B used to skip it all too; it pauses now, and Menu no longer
-// skips.) The on-screen hint follows the device last used.
+// skips.) Menu or Esc opens the game's pause menu over it (main.js): while a
+// menu is up the cutscene waits (alone the game is paused; online this
+// screen's cutscene stands still, as when B is held), and a press made in the
+// menu never skips a shot. The on-screen hint follows the device last used.
 //
 // A cutscene definition (story/cutscenes.js) is { id, title, build(game,
 // ctx) } where build loads the set and returns { shots, update?(t, dt),
@@ -40,7 +43,7 @@ import { finishShot, PressGate } from './shotSkip.js';
 
 const HOLD = 0.85;   // seconds of holding to skip
 const LONG = 0.35;   // a touch held this long is a long press (pause), not a tap (next)
-const PAUSE_KEYS = ['Escape', 'Backspace'], SKIP_KEYS = ['Space', 'Enter'];
+const PAUSE_KEYS = ['Backspace'], SKIP_KEYS = ['Space', 'Enter'];   // (Esc: the pause menu, main.js)
 const ease = (k) => k * k * (3 - 2 * k);
 
 export class Cutscene {
@@ -66,6 +69,7 @@ export class Cutscene {
     this.total = this.shots.reduce((s, x) => s + x.dur, 0);
     this.fov0 = g.rig.camera.fov;
     this.onKey = (e) => {
+      if (g.ui?.active && e.type === 'keydown') return;   // (a key pressed in a menu over the cutscene is the menu's)
       const pause = PAUSE_KEYS.includes(e.code), skip = SKIP_KEYS.includes(e.code);
       if (!pause && !skip) return;
       const down = e.type === 'keydown';
@@ -232,7 +236,9 @@ export class Cutscene {
     if (this.done) return;
     const g = this.game;
     let s = this.shots[this.shotIdx];
-    // pause: hold B (Esc, Backspace, a long press): nothing moves on, not the clock, the figures or the camera
+    // a menu over it (the pause menu): it waits, and what was pressed there doesn't skip
+    if (g.ui?.active) { this.press = false; this.padPrevA = this.padA(); this.hold = 0; this.held.key = false; return; }
+    // pause: hold B (Backspace, a long press): nothing moves on, not the clock, the figures or the camera
     if (this.held.touch) this.touchT += dt;
     const paused = this.held.pauseKey || this.pad(1) || (this.held.touch && this.touchT >= LONG);
     if (paused !== this.paused) { this.paused = paused; this.pausedEl.classList.toggle('hidden', !paused); this.el.classList.toggle('paused', paused); }

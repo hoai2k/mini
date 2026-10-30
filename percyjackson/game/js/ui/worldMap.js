@@ -64,9 +64,11 @@ export function openWorldMap(game, { at = null, tab = 'map' } = {}) {
     const found = ow.reg.waystones.filter((w) => d.ways[w.id]);
     const cv = h('canvas', { width: 640, height: Math.round(640 * G.h / G.w), class: 'worldmap-canvas', role: 'img', 'aria-label': t('ow.map.title'), style: 'width:min(640px,62vh,92vw);height:auto;image-rendering:pixelated;border-radius:10px;box-shadow:0 0 0 3px #c9963a, 0 6px 24px #0008' });
     draw(cv, g, at);
-    const tabs = h('div', { style: 'display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap' },
-      h('button', { class: 'btn' + (cur === 'map' ? ' primary' : ''), onclick: () => { cur = 'map'; ui.refresh('worldmap'); } }, t('ow.map.waystones')),
-      h('button', { class: 'btn' + (cur === 'quests' ? ' primary' : ''), onclick: () => { cur = 'quests'; ui.refresh('worldmap'); } }, t('ow.map.quests')),
+    // the tab bar (LB / RB, Q / E switch: ui.js); it stays put as the tabs change (style.css .tabbed)
+    const tab = (id, label) => h('button', { class: 'btn' + (cur === id ? ' primary' : ''), role: 'tab', 'aria-selected': String(cur === id), 'data-k': 'tab-' + id, onclick: () => { cur = id; ui.refresh('worldmap'); } }, label);
+    const tabs = h('div', { class: 'wm-tabs', role: 'tablist', 'data-tabbar': '', style: 'display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;justify-content:center' },
+      tab('map', t('ow.map.waystones')),
+      tab('quests', t('ow.map.quests')),
       h('button', { class: 'btn', onclick: () => { close(); openMapTable(g); } }, t('ow.map.chapters')));
     let side;
     if (cur === 'map') {
@@ -99,12 +101,24 @@ export function openWorldMap(game, { at = null, tab = 'map' } = {}) {
             h('small', {}, st.done ? t('ow.quest.doneShort') : t(`regions.${q.region}.name`) + ' · ' + ow.quests.stepText(q)));
         }));
     }
-    el.appendChild(h('div', { class: 'panel', style: 'max-width:min(1100px,96vw)' },
+    el.appendChild(h('div', { class: 'panel tabbed wm-panel', style: 'max-width:min(1100px,96vw);width:min(1100px,96vw)' },
       h('h2', {}, t('ow.map.title')), tabs,
-      h('div', { style: 'display:flex;gap:16px;flex-wrap:wrap;justify-content:center;align-items:flex-start' }, cv, side),
+      h('div', { class: 'tab-body', 'data-scroll': '', style: 'display:flex;gap:16px;flex-wrap:wrap;justify-content:center;align-items:flex-start' }, cv, side),
       h('div', { class: 'hint', style: 'margin-top:8px' }, t('ow.map.legend')),
       h('button', { class: 'btn', 'data-autofocus': true, onclick: close }, t('ow.map.close'))));
   }, { dim: true, onBack: close });
+}
+
+// The world map as a picture (a player's own menu, Map tab: playerMenu.js),
+// or null where there is no open world.
+export function worldMapCanvas(g, width = 640) {
+  const L = g.level;
+  if (!g.ow || !L?.ow) return null;
+  const G = geometry(L);
+  const cv = h('canvas', { width, height: Math.round(width * G.h / G.w), class: 'worldmap-canvas', role: 'img', 'aria-label': t('ow.map.title') });
+  draw(cv, g, null);
+  cv.redraw = () => draw(cv, g, null);
+  return cv;
 }
 
 function draw(cv, g, at) {

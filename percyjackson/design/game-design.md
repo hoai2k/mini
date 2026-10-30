@@ -177,7 +177,7 @@ to another room of the museum to be found again.
 Each book begins with the Oracle (the mummy in the Big House attic) giving the
 prophecy. It appears on a scroll as Greek letters. Each line rearranges into
 English when the chapter that fulfils it is finished, and a line can be
-re-read at any time from the pause menu. *The Lightning Thief*:
+re-read at any time from the Prophecy tab of each player's own menu. *The Lightning Thief*:
 
 1. *You shall go west, and face the god who has turned* (The Bus)
 2. *You shall find what was stolen, and see it safely returned* (The Underworld)
@@ -448,16 +448,25 @@ follows Minecraft Dungeons II's defaults.
 | Godly power | Y + LB together | 4, or 1 + 2 together |
 | Ambrosia (heal) | LT | E |
 | True Sight | Click the right stick | V |
-| Inventory | D-pad ↑ | I or Tab |
+| Your menu: inventory | D-pad ↑ | I or Tab |
+| Your menu: map | View | M |
+| Your menu: skill tree | — | K |
 | Switch hero | D-pad ↓ | F |
 | Magic items | D-pad ← · → | Z · X |
-| Map (in camp: the chapter map) | View | M (chapter map: J) |
-| Pause | Menu | Esc |
+| Waystones and side quests | Your menu → Map | J |
+| Pause and resume | Menu | Esc |
 | Turn the camera (if on in Settings) | — | [ · ] |
 | Hero select: change profile · play online | X · Y | Click the profile · Play online |
 
 The title screen, instructions (with an Xbox controller diagram), settings and
-pause menu follow `GAME_GUIDELINES.md`.
+pause menu follow `GAME_GUIDELINES.md`. The pause menu holds only what belongs
+to everyone (resume, instructions, settings, return to camp, quit). Each
+player has their own menu (Inventory, Skill tree, Map, Prophecy; LB / RB
+change tabs) in their own region of the screen; it pauses the game only for
+a player alone, and otherwise the game goes on while that hero stands still,
+as in Minecraft Dungeons' co-op. Every menu wraps round, and a menu's tab bar
+never moves as its tabs change. The README's Controls section has the
+details.
 
 ## Build order
 

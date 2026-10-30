@@ -3,8 +3,6 @@
 // store and the pause menu.
 import { h, toast, confirmDialog } from './ui.js';
 import { openSettings } from './settingsScreen.js';
-import { openDebugMenu } from './debugMenu.js';
-import { settings } from '../settings.js';
 import { openInstructions } from './instructions.js';
 import { openChapterMap } from './chapterMap.js';
 import { openProphecy } from './prophecy.js';
@@ -58,25 +56,24 @@ export function openShop(game, player) {
 export function openMapTable(game) { return openChapterMap(game); }
 
 // ------------------------------------------------------------------ pause menu
-// Opens the pause menu; the caller has already set game.paused = true.
+// Opens the pause menu (Menu / Esc); the caller has already set game.paused =
+// true. It holds what belongs to everyone: resume, instructions, settings,
+// return to camp, quit. Each player's own inventory, skill tree, map and
+// prophecy are in their own menu (playerMenu.js); Debug: scenes and Photo
+// mode are in Settings → Debug. Esc / B, or Menu again, resumes.
 export function openPauseMenu(game, player = game.players?.[0]) {
   const ui = game.ui;
   // (chapters 1 and 2 in the opening have no camp to go back to yet)
   const inChapter = (game.mode === 'mission' || game.mode === 'chapter' || !!game.chapter) && !game.openingChapter;
   const resume = () => game.unpause();
-  const bookId = game.chapter?.book ?? game.mission?.chapter?.book ?? 'book1';
+  const dev = String(player?.device ?? game.input?.lastDevice ?? 'kbm');
+  const kind = dev.startsWith('pad') ? 'pad' : dev === 'touch' ? 'touch' : 'kbm';
   ui.open('pause', (el) => {
     el.appendChild(h('div', { class: 'panel menu-col pause-menu', role: 'dialog', 'aria-label': tx('screens.pause.title'), style: 'min-width:min(320px,92vw);text-align:center' },
       h('h2', {}, tx('screens.pause.title')),
       h('button', { class: 'btn primary', 'data-autofocus': true, onclick: resume }, tx('screens.pause.resume')),
       h('button', { class: 'btn', onclick: () => openInstructions(game) }, tx('screens.pause.instructions')),
       h('button', { class: 'btn', onclick: () => openSettings(game) }, tx('screens.pause.settings')),
-      settings.debug ? h('button', { class: 'btn', onclick: () => openDebugMenu(game) }, tx('screens.pause.debug')) : null,
-      h('button', { class: 'btn', onclick: () => openProphecy(game, bookId) }, tx('screens.pause.prophecy')),
-      h('button', { class: 'btn', onclick: () => { ui.close('pause'); openInventory(game, player); } }, tx('screens.pause.inventory')),
-      game.minimap?.level ? h('button', { class: 'btn', onclick: () => { ui.close('pause'); game.paused = false; game.openMap(); } }, tx('screens.pause.map')) : null,
-      h('button', { class: 'btn', onclick: () => { ui.close('pause'); openSkills(game, player); } }, tx('screens.pause.skillTree')),
-      game.openPhotoMode ? h('button', { class: 'btn', onclick: () => { ui.close('pause'); game.openPhotoMode(); } }, tx('screens.pause.photoMode')) : null,
       inChapter ? h('button', { class: 'btn danger', onclick: () => confirmDialog(game, {
         title: tx('screens.pause.returnTitle'), text: tx('screens.pause.returnText'), yes: tx('screens.pause.returnYes'), no: tx('screens.pause.keepPlaying'), danger: true,
         onYes: () => { ui.closeAll(); game.paused = false; game.last = performance.now(); game.returnToHub(); },
@@ -84,6 +81,7 @@ export function openPauseMenu(game, player = game.players?.[0]) {
       h('button', { class: 'btn danger', onclick: () => confirmDialog(game, {
         title: tx('screens.pause.quitTitle'), text: tx('screens.pause.quitText'), yes: tx('screens.pause.quitYes'), no: tx('screens.pause.keepPlaying'), danger: true,
         onYes: () => { ui.closeAll(); game.paused = false; game.save.write(); game.toTitle(); },
-      }) }, tx('screens.pause.quitButton'))));
-  }, { dim: true, onBack: resume });
+      }) }, tx('screens.pause.quitButton')),
+      game.state === 'playing' ? h('div', { class: 'hint', style: 'max-width:300px;margin:8px auto 0' }, tx(`screens.pause.yourMenu.${kind}`)) : null));
+  }, { dim: true, onBack: resume, onNav: (m) => { if (m.start) { m.start = false; m.back = false; resume(); } } });
 }

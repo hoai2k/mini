@@ -13,9 +13,14 @@
 //     in plain words, and big buttons: Equip, Salvage, Unequip (the forge
 //     adds Temper and Re-roll).
 //   • Choosing: focus (pad, keys) or a click / tap shows an item; pressing it
-//     again (A, Enter, a second click or tap) equips it. X salvages; LB / RB
-//     (Q / E) change tabs; B / Esc closes. Every control is a button, so the
-//     shared focus navigation (ui.js) works with every device.
+//     again (A, Enter, a second click or tap) equips it. X salvages; LT / RT
+//     (Z / C; at the forge LB / RB and Q / E too) change the kind shown;
+//     B / Esc closes. Every control is a button, so the shared focus
+//     navigation (ui.js) works with every device. The stash is a grid
+//     ([data-navgrid]): the focus wraps round within its column and row.
+//   • It opens in the player's own menu (playerMenu.js: opts.ui is that menu's
+//     focus, opts.embedded, opts.onExit closes the menu), or on its own as
+//     the forge in camp.
 //   • Animations: an item flies into its slot when equipped, the slot
 //     flashes (gold on a swap), salvage pops drachmas up to the counter, new
 //     items glow. (Shorter with prefers-reduced-motion: style.css.)
@@ -29,6 +34,7 @@ import { gearOf } from '../entities/gear/equip.js';
 import { temperCap } from '../progression.js';
 import { flaskCooldown, quiverMax } from '../resources.js';
 import { t as tx, tn } from '../text_config.js';
+import { cycleTab } from './navmath.js';
 
 const SLOT_NAMES = [tx('inventory.slots.weapon'), tx('inventory.slots.armor'), tx('inventory.slots.artifact1'), tx('inventory.slots.artifact2')];
 const SLOT_ICON = ['🗡️', '🛡️', '✨', '✨'];
@@ -128,28 +134,30 @@ function popCoins(from, to, n) {
 function flash(el, cls) { if (!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); setTimeout(() => el.classList.remove(cls), 900); }
 
 // ---------------------------------------------------------------- the screen
-export function openInventory(game, player, { forge = false } = {}) {
-  const ui = game.ui, save = game.saveFor?.(player) ?? game.save;   // net: this player's profile
+export function openInventory(game, player, { forge = false, ui = game.ui, embedded = false, onExit = null, previewSlot = 0 } = {}) {
+  const save = game.saveFor?.(player) ?? game.save;   // net: this player's profile
   let who = player, sel = null, filter = 'all';
   let after = null;   // what to animate once the screen is rebuilt
   let quiet = false;  // while rebuilding: focus moving by itself doesn't choose an item
-  game.paused = true;
+  if (!embedded) game.paused = true;   // (in a player's own menu, the menu decides: playerMenu.js)
   const device = String(player.device ?? 'kbm');
   const hintKey = device.startsWith('pad') ? 'pad' : device === 'touch' ? 'touch' : 'kbm';
-  const close = () => {
+  // leaving the stash (closed, or another tab of the player's menu): what was new isn't any more
+  const seen = () => {
     for (const it of save.data.inventory) delete it.isNew;
     save.data.newCount = 0;
     save.write();
-    ui.close('inventory'); game.paused = false; game.last = performance.now();
   };
+  const close = embedded ? () => onExit?.() : () => { ui.close('inventory'); game.paused = false; game.last = performance.now(); };
   const apply = () => { for (const q of game.players) if (q.hero === who.hero) q.refreshLoadout(); };
-  const scr = () => document.getElementById('scr-inventory');
+  const scr = () => ui.screen('inventory');
   const byK = (k) => scr()?.querySelector(`[data-k="${k}"]`);
   // Rebuild, then focus `k` and play what `after` asks for.
-  const redraw = (k) => {
+  // (still: the kinds changed, so nothing scrolls and the kinds row stays where it is)
+  const redraw = (k, { still = false } = {}) => {
     quiet = true; ui.refresh('inventory'); quiet = false;
     const el = k === 'grid0' ? scr()?.querySelector('.inv-grid .item') ?? byK('close') : k && byK(k);
-    if (el) ui.setFocus(el);
+    if (el) ui.setFocus(el, { scroll: !still });
     const a = after; after = null;
     if (a) requestAnimationFrame(() => a());
   };
@@ -187,7 +195,7 @@ export function openInventory(game, player, { forge = false } = {}) {
     };
     const other = wornBy(d, it.uid, who.hero);
     if (itemTier(it) !== 'common' || it.blessed || pts || other) {
-      confirmDialog(game, { title: tx('inventory.salvageTitle'), text: (other ? tx('inventory.salvageWorn', { hero: HEROES[other]?.name ?? other }) + ' ' : '') + (pts ? tx('inventory.salvageTextPoints', { name: b.name, coins, points: pts }) : tx('inventory.salvageText', { name: b.name, coins })), yes: tx('inventory.salvageYes'), no: tx('inventory.salvageNo'), danger: true, onYes: doIt });
+      confirmDialog(game, { ui, title: tx('inventory.salvageTitle'), text: (other ? tx('inventory.salvageWorn', { hero: HEROES[other]?.name ?? other }) + ' ' : '') + (pts ? tx('inventory.salvageTextPoints', { name: b.name, coins, points: pts }) : tx('inventory.salvageText', { name: b.name, coins })), yes: tx('inventory.salvageYes'), no: tx('inventory.salvageNo'), danger: true, onYes: doIt });
     } else doIt();
   };
   // A press on an item: show it, or (already shown) equip it.
@@ -234,8 +242,8 @@ export function openInventory(game, player, { forge = false } = {}) {
       : h('button', { class: 'item empty', 'data-k': 'slot-' + i, title: SLOT_NAMES[i], onclick: () => { filter = i === 0 ? 'weapon' : i === 1 ? 'armor' : 'artifact'; redraw('grid0'); } },
         h('span', { class: 'slot-ico' }, SLOT_ICON[i]), h('span', { class: 'slot-name' }, SLOT_NAMES[i]))));
     const count = (k) => all.filter((it) => inFilter(it, k)).length;
-    const tabs = h('div', { class: 'row inv-filters', role: 'tablist' }, ...FILTERS.map(([k, label]) => h('button', { class: 'btn small tab' + (filter === k ? ' primary' : ''), 'data-k': 'tab-' + k, role: 'tab', 'aria-selected': filter === k ? 'true' : 'false', onclick: () => { filter = k; redraw('tab-' + k); } }, tx('inventory.tabCount', { label, n: count(k) }))));
-    const grid = h('div', { class: 'inv-grid' }, ...(items.length ? items.map((it) => tile(it, 'it-' + it.uid)) : [h('div', { class: 'hint' }, tx('inventory.empty'))]));
+    const tabs = h('div', { class: 'row inv-filters', role: 'tablist' }, ...FILTERS.map(([k, label]) => h('button', { class: 'btn small tab' + (filter === k ? ' primary' : ''), 'data-k': 'tab-' + k, role: 'tab', 'aria-selected': filter === k ? 'true' : 'false', onclick: () => { filter = k; redraw('tab-' + k, { still: true }); } }, tx('inventory.tabCount', { label, n: count(k) }))));
+    const grid = h('div', { class: 'inv-grid', 'data-navgrid': '' }, ...(items.length ? items.map((it) => tile(it, 'it-' + it.uid)) : [h('div', { class: 'hint' }, tx('inventory.empty'))]));
     // opening: the top of the stash (the newest, strongest find) is chosen and focused
     if (items.length && sel == null) grid.firstChild.setAttribute('data-autofocus', '');
     const detail = h('div', { class: 'detail', 'aria-live': 'polite' });
@@ -247,7 +255,7 @@ export function openInventory(game, player, { forge = false } = {}) {
         if (b.kind === 'weapon') { g.weapon = b.id; g.tier = itemTier(it); } else g.armor = b.id;
         tryOn = tx('inventory.tryingOn');
       }
-      return heroPreview(who.hero, g, { tryOn, label: tx('inventory.previewLabel', { hero: HEROES[who.hero].name }) });
+      return heroPreview(who.hero, g, { tryOn, label: tx('inventory.previewLabel', { hero: HEROES[who.hero].name }), slot: previewSlot });
     };
 
     // ---- the detail panel
@@ -347,7 +355,7 @@ export function openInventory(game, player, { forge = false } = {}) {
       ].filter(Boolean));
     };
     showDetail();
-    el.appendChild(h('div', { class: 'panel inv-panel inv2', style: 'width:min(1040px,97vw)' },
+    el.appendChild(h('div', { class: 'panel inv-panel inv2' + (embedded ? '' : ' tabbed'), style: embedded ? '' : 'width:min(1040px,97vw)' },
       h('div', { class: 'inv-head' }, h('h2', {}, forge ? tx('forge.title') : tx('inventory.title')), chips),
       forge ? h('div', { class: 'hint', style: 'margin:0 0 6px' }, tx('forge.help')) : null,
       heroRow,
@@ -356,33 +364,21 @@ export function openInventory(game, player, { forge = false } = {}) {
         detail),
       h('div', { class: 'inv-foot' }, h('div', { class: 'hint' }, tx(`inventory.hints.${hintKey}`)), h('button', { class: 'btn', 'data-k': 'close', onclick: close }, tx('inventory.close')))));
   }, {
-    dim: true, onBack: close,
-    // X salvages the focused item, LB / RB (Q / E) change tabs
-    onNav: () => {
-      const pressed = navButtons(game);
-      if (!pressed) return;
-      if (pressed === 'tabL' || pressed === 'tabR') {
-        const i = FILTERS.findIndex(([k]) => k === filter), j = (i + (pressed === 'tabR' ? 1 : FILTERS.length - 1)) % FILTERS.length;
-        filter = FILTERS[j][0]; game.audio?.ui('move'); redraw('tab-' + filter);
-      } else if (pressed === 'salvage') {
+    dim: !embedded, onBack: close, onClose: seen,
+    // X salvages the focused item; LT / RT (Z / C) change the kind shown, and
+    // at the forge LB / RB (Q / E) too (in a player's menu those change its tabs)
+    onNav: (m) => {
+      const dir = m.rt || (!embedded && m.tabR) ? 1 : m.lt || (!embedded && m.tabL) ? -1 : 0;
+      if (dir) {
+        filter = cycleTab(FILTERS.map(([k]) => k), filter, dir);
+        game.audio?.ui('move'); redraw('tab-' + filter, { still: true });
+        m.tabL = m.tabR = false;
+      } else if (m.x) {
         const it = sel ? save.item(sel) : null;
         if (it) salvage(it);
       }
     },
   });
-}
-
-// Pad X / LB / RB and keys X / Delete / Q / E, on the frame they go down.
-const prevNav = new Map();
-function navButtons(game) {
-  let out = null;
-  const keys = game.input?.keys ?? new Set();
-  const cur = { salvage: keys.has('KeyX') || keys.has('Delete'), tabL: keys.has('KeyQ'), tabR: keys.has('KeyE') };
-  for (const p of game.input?.pads?.() ?? []) {
-    cur.salvage ||= !!p.buttons[2]?.pressed; cur.tabL ||= !!p.buttons[4]?.pressed; cur.tabR ||= !!p.buttons[5]?.pressed;
-  }
-  for (const k in cur) { if (cur[k] && !prevNav.get(k)) out = k; prevNav.set(k, cur[k]); }
-  return out;
 }
 
 // The forge in camp: the inventory with tempering and re-rolling.

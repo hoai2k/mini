@@ -204,8 +204,10 @@ test('the cutscene skips a shot with A, ends on the last, and keeps holding to s
   assert.match(C, /cutscenes\.next\.\$\{dev\}/, 'the hint for A');
   for (const k of ['pad', 'touch', 'kbm']) { assert.ok(t(`cutscenes.next.${k}`)); assert.equal(typeof t(`cutscenes.skip.${k}`), 'string'); }
   assert.match(CS, /if \(ctx\?\.ff\) return;/, 'no lightning flashes for a skipped shot');
-  // hold B to pause (Esc, Backspace, a long press): B is the pad's button 1 (padmap.js BTN.B), A button 0
-  assert.match(C, /PAUSE_KEYS = \['Escape', 'Backspace'\]/);
+  // hold B to pause (Backspace, a long press): B is the pad's button 1 (padmap.js BTN.B), A button 0;
+  // Esc is the pause menu over the cutscene (main.js), and the cutscene waits under a menu
+  assert.match(C, /PAUSE_KEYS = \['Backspace'\]/);
+  assert.match(C, /if \(g\.ui\?\.active\) \{[^}]*return; \}/, 'a menu over it: the cutscene waits');
   assert.match(C, /const paused = [^;]*this\.pad\(1\)/);
   assert.match(C, /if \(paused\) \{[^}]*return; \}/, 'paused: the shot stands still');
   assert.match(C, /holding = [^;]*this\.pad\(0\)/, 'holding A skips it all; B no longer does');

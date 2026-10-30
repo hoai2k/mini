@@ -219,7 +219,8 @@ turn and zoom by touch (drag, pinch).
 - **Skill trees:** each hero has a tree of three branches (Percy: Riptide,
   Tides, Son of the Sea; Annabeth: Stealth, Strategy, Workshop; Grover: Wild,
   Reed Pipes, Satyr; Tyson: Fists, Cyclops Hide, Forge and Sea; Clarisse:
-  Spear, Ares, Cabin Five), opened from the pause menu or Chiron in camp.
+  Spear, Ares, Cabin Five), opened from your own menu (K, or its Skill tree
+  tab) or Chiron in camp.
   - A node is a **new power** (an ability for the 1 · 2 · 3 slots), an
     **upgrade** (ranks that improve a power, the ranged move or the godly
     power) or a **passive**. Every hero starts with three powers (the ones it
@@ -404,9 +405,10 @@ turn and zoom by touch (drag, pinch).
     wear. Choose an item to see its power and every stat it changes (green
     ▲ / red ▼, before → after) and its enchantments in plain words; press it
     again (A, Enter, a second click or tap) to equip it: it flies into its
-    slot. X salvages (drachmas pop up to the counter), LB / RB or Q / E
-    change tabs (Heroic+ shows the best finds). Outdated gear gets an amber
-    dot; the HUD bag counts NEW items.
+    slot. X salvages (drachmas pop up to the counter), LT / RT or Z / C
+    change the kind shown (Heroic+ shows the best finds; at the forge LB / RB
+    and Q / E too). Outdated gear gets an amber dot; the HUD bag counts NEW
+    items.
   - What a hero wears shows on the hero, as in Minecraft Dungeons
     (`js/entities/gear/`): every weapon item has its own blocky model in the
     hand (a sword, a pair of knives, a spear, a two-handed axe or hammer, a
@@ -489,9 +491,9 @@ The full design, including the later chapters and books, is in
 
 ## Debug: jump to any scene
 
-For testing and auditing levels and cutscenes. Turn on Settings → Data →
-Debug; a **Debug: scenes** button then shows on the title, in the pause menu
-and in Settings. The menu jumps to:
+For testing and auditing levels and cutscenes. Settings has a **Debug** tab:
+turn on Debug there and a **Debug: scenes** button shows under it. The menu
+jumps to:
 
 - any step of the opening: the Manhattan prologue, the three cutscenes, and
   chapters 1 and 2 in their story form;
@@ -504,8 +506,12 @@ and in Settings. The menu jumps to:
 Nothing is saved while debugging. The first jump swaps the save for one held
 in memory (every hero and chapter unlocked), and Continue's resume point and
 the save-slot list stop writing. A red **DEBUG · nothing is saved** badge
-stays on screen; **Leave** reloads the page with the real save as it was.
-`game/js/ui/debugMenu.js` has the code.
+stays on screen (with its own Scenes button); **Leave** reloads the page with
+the real save as it was. `game/js/ui/debugMenu.js` has the code.
+
+The Debug tab also has **Photo mode** (a path-traced picture of the moment,
+`game/js/photo.js`). It has no hotkey. It shows over the menus, and B, Esc or
+its Close button goes back to the Debug tab.
 
 ## Controls
 
@@ -524,13 +530,55 @@ stays on screen; **Leave** reloads the page with the real save as it was.
 | Godly power | Y + LB together | 4, or 1 + 2 together |
 | Ambrosia (heal) | LT | E |
 | True Sight | Click the right stick | V |
-| Inventory | D-pad ↑ | I or Tab |
+| Your menu: inventory | D-pad ↑ | I or Tab |
+| Your menu: map | View | M |
+| Your menu: skill tree | — | K |
 | Switch hero | D-pad ↓ | F |
 | Magic items | D-pad ← · → | Z · X |
-| Map (in camp: the chapter map) | View | M (chapter map: J) |
-| Pause | Menu | Esc |
+| Waystones and side quests (camp, the Road West) | Your menu → Map → Waystones | J |
+| Pause and resume | Menu | Esc (or P) |
 | Turn the camera (if on in Settings) | — | [ · ] |
 | Hero select: change profile · play online | X · Y | Click the profile · Play online |
+
+In menus:
+
+| Action | Xbox controller | Keyboard and mouse |
+| --- | --- | --- |
+| Move the focus (round from the last item to the first, both ways) | D-pad or left stick | Arrow keys or WASD |
+| Choose | A | Enter (or click) |
+| Back out one level (from the pause menu: resume) | B | Esc (or Backspace) |
+| Next · previous tab (Settings, your menu, the world map, the prophecy's books) | RB · LB | E or Tab · Q or Shift+Tab |
+| In your menu: close it | B on a tab, or View | Esc on a tab, or the key that opened it (I, M, K) |
+| In the inventory: the kind shown · salvage | LT · RT, X | Z · C, X |
+| In a cutscene: pause it · the pause menu | Hold B · Menu | Hold Backspace · Esc |
+
+**Your own menu.** Each player has one: Inventory, Skill tree, Map and
+Prophecy, as tabs (`game/js/ui/playerMenu.js`). Each player's controller or
+keyboard drives only their own menu, with its own focus.
+
+- Alone (AI companions don't count) it pauses the game, as a full-screen menu.
+- With other players on the screen it doesn't: it opens in that player's
+  region (two players: P1 the left half and P2 the right, top and bottom on a
+  portrait screen; three or four: a quarter each), two or more can be open at
+  once, and the game goes on for everyone else. The hero whose menu is open
+  stands still, as with an open inventory in Minecraft Dungeons' co-op, and
+  can't be hurt for its first 8 seconds, so opening it in a fight is safe but
+  it can't be hidden in for good (online menus already worked this way). The
+  button that closes it (B) never makes the hero dodge: the hero waits until
+  it is let go.
+- Online it is this player's alone and never pauses anyone.
+- Menu (Esc) still opens the pause menu over it, for everyone: it holds what
+  belongs to all (resume, instructions, settings, return to camp, quit).
+
+Menus wrap round: up on the top item is the bottom one, and down on the
+bottom the top. In a grid (the inventory's stash) left and right wrap within
+the row, and down on the bottom of a column wraps to its top. Up from the
+stash's top row goes to the kinds row above it, so the d-pad can always leave
+the grid; and when the last row is short, down from a column with nothing
+below it lands on that row's nearest item (rather than skipping the row), and
+down again wraps to the top of that item's column (`game/js/ui/navmath.js`).
+A menu with tabs keeps one height whichever tab shows (a long tab scrolls
+inside it), so its tab bar never moves.
 
 The controller and keyboard layouts follow Minecraft Dungeons II's defaults (`game/js/padmap.js`; WASD still moves), except that B rolls and LB is ability 2 (swapped at the owner's request);
 the in-game Instructions screen has the controller diagram.
@@ -609,6 +657,7 @@ across every screen.
 | `game/js/ui/art.js` | The pictures preloaded behind the loading screen (and the logo, keyed out of its magenta) |
 | `game/js/mist.js`, `party.js`, `loot.js`, `lootdrops.js`, `artifacts.js`, `minigames/`, `net/` | True Sight, companions and switching, gear, loot beams, magic items, minigames, online play |
 | `game/js/padmap.js` | The Xbox controller layout (after Minecraft Dungeons II): buttons, the Y + LB chord, the right-stick flick dodge |
+| `game/js/ui/ui.js`, `ui/navmath.js`, `ui/playerMenu.js` | Menus: the screen stack and its focus (`FocusNav`), the navigation rules (wraparound, grids, tab cycling, when a player's menu pauses, where it sits; pure and tested), and each player's own menu |
 | `game/js/combatRules.js` | Battle feel: knock-back (how far, how heavy monsters resist), the ranged shots' speed, reach and knock, and the 3D aim maths (pitch to a target, the aim line, cursor picking, following the ground); pure and tested |
 | `game/js/resources.js` | The Ambrosia flask's cooldown, the quiver (refill, size, bundle drops) and monster hit scaling by tier |
 | `game/js/save.js`, `profiles.js`, `slots.js`, `resume.js`, `ui/saves.js` | A profile's data, player profiles (merging, export codes), save slots, the resume point for Continue, the Saves screens |
@@ -616,10 +665,10 @@ across every screen.
 | `game/workbench/models.html` | A turntable of every character model, to compare with the 3D sheets |
 | `game/workbench/` | The model workbench ([published](https://hoai2k.github.io/mini/percyjackson/workbench/)): a thumbnail grid of every character model, an orbit viewer and an inspector. Monsters, champions and bosses also play their own attacks as the game runs them (`ingame.js`: a real Enemy or Boss on a flat floor, lunging at a training dummy), and `animlint.js` checks every pose (a count on the tile, the frames in the inspector) |
 | `game/assets/` | Web copies of the art: chapter cards, hero cards and portraits, title background, logo |
-| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, every weapon and armour item drawn on the heroes (and carried online), progression (the XP pacing over a play-through, chapter levels, drop power by area and player level, the gear curve against monster health and sane damage numbers, every enchantment's effect, magic-item charges, the stash order, skill trees with no dead levels), profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, the battle cadence (rooms by role, groups and scouts placed from the seed, traps per chapter, room sizes, kill objectives a level can meet), boss health for the party, the prologue's rats and hints, the Greek-letter timings, the preloaded pictures, people in the Mist, chapter 1's museum (the calm walk, the reveal, hidden blows under the Mist, her three flights to rooms you can walk to, her lines in your device's words), the Ambrosia flask, the quiver and monster hit sizes, knock-back distances, shot reach and the 3D aim, the controller layout |
+| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, every weapon and armour item drawn on the heroes (and carried online), progression (the XP pacing over a play-through, chapter levels, drop power by area and player level, the gear curve against monster health and sane damage numbers, every enchantment's effect, magic-item charges, the stash order, skill trees with no dead levels), profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, the battle cadence (rooms by role, groups and scouts placed from the seed, traps per chapter, room sizes, kill objectives a level can meet), boss health for the party, the prologue's rats and hints, the Greek-letter timings, the preloaded pictures, people in the Mist, chapter 1's museum (the calm walk, the reveal, hidden blows under the Mist, her three flights to rooms you can walk to, her lines in your device's words), the Ambrosia flask, the quiver and monster hit sizes, knock-back distances, shot reach and the 3D aim, the controller layout, menu navigation (wraparound in lists and grids, tab cycling, when a player's own menu pauses, where it sits) |
 | `design/` | The design, image requests, concept art and the scripts that make the web copies |
 | `design/audit.md` | The October 2026 audit of gameplay, level design and performance: what was fixed and what is still to do |
-| `perf/` | The performance harness (headless Chromium): load times, frame CPU, draw calls, leaks, a smoke check of every chapter; not published |
+| `perf/` | The performance harness (headless Chromium): load times, frame CPU, draw calls, leaks, a smoke check of every chapter, the menus check (`menus.cjs`); not published |
 | `reference/` | Private style references (not published) |
 | `intake/` | Drop box for new art |
 | `publish.sh` | Copies the game into the Pages output |
@@ -644,6 +693,9 @@ It covers:
 - the node tests (`cd percyjackson/game && node --test test/*.test.mjs`) and
   the design check (`python3 percyjackson/design/source/build_requests.py --check`);
 - the browser smoke check of every chapter (`perf/smoke.cjs`);
+- the menus check (`perf/menus.cjs`): Esc pauses and resumes, wraparound,
+  Settings → Debug, each player's own menu alone and in co-op, and tab bars
+  that never move, at desktop, small-window and phone sizes;
 - the model checks: weapons, the hellhounds' legs, the animation lint, held
   props and clothing, floating voxel islands, the size check, the rig
   contract (where the workbench has it) and the model shots and render

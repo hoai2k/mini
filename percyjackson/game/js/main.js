@@ -72,6 +72,7 @@ import { placeQuestMarkers } from './story/questMarkers.js';
 import { buildHeroModel, buildNpc } from './entities/models.js';
 import { gearOf } from './entities/gear/equip.js';
 import { openPhotoMode } from './photo.js';
+import { PlayerMenus } from './ui/playerMenu.js';
 import { DomainSystem } from './domain.js';
 import { Trench } from './gfx/materials.js';
 import { isMobile } from './util.js';
@@ -141,6 +142,7 @@ class Game {
     this.rig.shakeScale = settings.shake; this.rig.zoomTarget = settings.cameraZoom;
     this.input = new Input(this.gr.renderer.domElement);
     this.ui = new UI(this);
+    this.playerMenus = new PlayerMenus(this);   // each player's own menu (ui/playerMenu.js)
     this.audio = new Audio();
     const startAudio = () => { this.audio.start(); if (this.audio.pendingAmb) { this.audio.setAmbience(this.audio.pendingAmb); this.audio.pendingAmb = null; } if (this.audio.pendingMusic) { this.audio.setMusic(this.audio.pendingMusic); this.audio.pendingMusic = null; } };
     for (const ev of ['pointerdown', 'keydown', 'touchstart']) window.addEventListener(ev, startAudio, { passive: true });
@@ -224,6 +226,7 @@ class Game {
     this.resume?.flush();   // net: quitting mid-chapter keeps the place to continue from
     if (this.online?.live) this.online.leave({ quiet: true });   // net: quitting to the title leaves the room
     this.endCutscene();
+    this.playerMenus?.closeAll();
     this.opening.running = null; this.openingChapter = null;
     this.state = 'title';
     this.wipeLeft = 0;
@@ -311,7 +314,7 @@ class Game {
   }
   startMinigame(m) {
     if (this.minigame) return;
-    this.ui.closeAll();
+    this.ui.closeAll(); this.playerMenus?.closeAll();
     this.audio?.setOverride?.('minigame');
     m.start();
   }
@@ -404,6 +407,7 @@ class Game {
   }
   // ---------------------------------------------------------------- level lifecycle
   clearLevel() {
+    this.playerMenus?.closeAll();
     this.ow?.dispose(); this.ow = null;
     this.road?.dispose(); this.road = null;
     if (this.rig) this.rig.subject = null;
@@ -769,15 +773,6 @@ class Game {
     if (this.online?.isGuest && this.mode !== 'hub') { this.ui.closeAll(); this.paused = false; toast(t('game.waitingForHost')); return; }
     this.loadHub({ fromChapter: this.lastChapter ?? null }); toast(this.area === 'road' ? t('rt.area') : t('game.camp.name'), 'title');
   }
-  openMap() {
-    if (!this.minimap.level) return;
-    this.paused = true;
-    this.ui.open('map', (el) => {
-      const cv = h('canvas', { class: 'mapview', width: 640, height: 640 });
-      el.appendChild(h('div', { class: 'panel', style: 'text-align:center' }, h('h2', {}, 'Map'), cv, h('div', { class: 'hint' }, '■ objective  ■ chest  ● monster  ■ boss arena  ● exit'), h('button', { class: 'btn', 'data-autofocus': true, onclick: () => { this.ui.close('map'); this.paused = false; } }, 'Close')));
-      this.minimap.draw(cv, { full: true });
-    }, { dim: true, onBack: () => { this.ui.close('map'); this.paused = false; } });
-  }
   // Drachmas are shared (design/loot-design.md §1.3, MCD2 co-op): a coin a hero
   // or companion on this screen picks up goes to every player on this screen;
   // items stay per player. net: a remote hero's pickup goes to its own profile, as before.
@@ -988,13 +983,16 @@ class Game {
     setTimeout(() => { if (!this.audio?.sample?.('thunder', { gain: 0.5 + Math.random() * 0.4, rate: 0.9 + Math.random() * 0.2 })) this.audio?.impact?.(0.6 + Math.random() * 0.4); }, 300 + Math.random() * 900);
   }
   setReadout(on) { this.readoutOn = on; document.getElementById('readout').classList.toggle('hidden', !on); }
+  // The shared pause menu (Menu / Esc), for everyone; also over a player's own menu or a cutscene.
   pause(player = this.players[0]) {
-    if (this.paused) return;
+    if (this.ui.isOpen('pause')) return;
     this.paused = true;
     Screens.openPauseMenu(this, player);
+    this.input.swallowMenu();   // (the Esc or Menu that opened it doesn't also close it)
   }
   // (named unpause: `this.resume` is the resume point for Continue)
-  unpause() { this.ui.close('pause'); this.paused = false; this.last = performance.now(); }
+  // (a lone player's own menu under it keeps the game waiting)
+  unpause() { this.ui.close('pause'); this.paused = !!this.playerMenus?.pausing; this.last = performance.now(); }
 
   // Drop-in co-op: an unassigned controller pressing Start/A joins.
   checkJoin() {
@@ -1062,14 +1060,23 @@ class Game {
     gr.trackFps(realDt, now / 1000, this.state === 'playing' && !this.paused && !this.cutscene && !this.ui.stack.length);
     const playing = this.state === 'playing';
     const cs = this.cutscene;
-    const pausePlayer = playing && !cs && this.players.find((p) => this.input.get(p.device).pressed.pause);
-    const invP = playing && !cs && !this.ui.stack.length && this.players.find((p) => this.input.get(p.device).pressed.inv);
-    if (invP) { openInventory(this, invP); this.input.menu(); }   // (swallow the D-pad ↑ that opened it, so the menu doesn't move)
-    const anyMap = playing && !cs && this.players.some((p) => this.input.get(p.device).pressed.map);
-    const anyQuest = playing && !cs && !this.ui.stack.length && this.players.some((p) => this.input.get(p.device).pressed.quest);   // J: the quest log (the chapter map)
-    if (this.ui.stack.length) { this.ui.update(); if (anyMap && this.ui.isOpen('map')) { this.ui.close('map'); this.paused = false; } }
+    // Photo mode (photo.js) is over everything: B / Esc closes it (back to the
+    // menu it was opened from) and nothing else hears the press.
+    const photo = !!this.photo;
+    if (photo) { if (this.input.menu().back) this.photo.close(); this.input.swallowMenu(); }
+    // each player's own menu (ui/playerMenu.js): only that player's device, its own focus
+    if (!photo) this.playerMenus.update(realDt);
+    // Menu / Esc: the pause menu (in a cutscene too: it waits under it; story/cutscene.js)
+    const pausePlayer = playing && !photo && this.players.find((p) => this.input.get(p.device).pressed.pause);
+    // D-pad ↑ (I, Tab), View (M), K: that player's own menu on the inventory, the map, the skill tree
+    const free = playing && !cs && !photo && !this.ui.stack.length;
+    const asks = (a) => (free ? this.players.find((p) => !p.ai && !p.remote && !this.playerMenus.isOpen(p) && this.input.get(p.device).pressed[a]) : null);
+    for (const [a, tab] of [['inv', 'inventory'], ['map', 'map'], ['skills', 'skills']]) { const p = asks(a); if (p) this.playerMenus.openFor(p, tab); }
+    // J: the waystones and side quests in camp and on the road (shared: travelling takes everyone); in a chapter, the map
+    const questP = asks('quest');
+    if (questP) { if (this.mode === 'hub' && this.ow) openWorldMap(this, { tab: 'quests' }); else this.playerMenus.openFor(questP, 'map'); }
+    if (this.ui.stack.length) this.ui.update();
     else if (pausePlayer && !this.minigame?.el) this.pause(pausePlayer);
-    else if (anyMap || anyQuest) { if (this.mode === 'hub' && this.ow) openWorldMap(this, { tab: anyQuest ? 'quests' : 'map' }); else if (this.mode === 'hub' && !this.online?.isGuest) openMapTable(this); else this.openMap(); }   // in camp: the world map (J: its quest list)   // View / M: the level map; in camp the chapter map (the quest log)
     if (playing && !cs && !this.ui.stack.length && !this.paused) {
       const handled = new Set();     // a switch hands the device to another hero: act once per device
       for (const p of [...this.players]) {

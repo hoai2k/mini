@@ -5,8 +5,10 @@
 //   Y · LB · RB abilities 1 · 2 · 3 · Y + LB together: godly power
 //   B dodge forward · LT Ambrosia · RT ranged
 // (B and LB swapped at the owner's request: B rolls, LB is ability 2)
-//   D-pad ↑ inventory · ↓ switch hero · ← → magic items 1 · 2
-//   View map (in camp: the chapter map) · Menu pause
+//   D-pad ↑ your own menu on the inventory · ↓ switch hero · ← → magic items 1 · 2
+//   View your own menu on the map · Menu pause (and resume)
+// In your own menu (ui/playerMenu.js) LB / RB change its tabs, B backs out,
+// View closes it; Menu pauses the game for everyone.
 // The keyboard and mouse layout (keyFrame below) follows Minecraft Dungeons
 // II's keyboard defaults too, keeping WASD to move.
 // Pure (no browser APIs), so the checks in test/ can drive it with a fake pad.
@@ -71,7 +73,7 @@ export function chord(st, held, y, b, now) {
 // What each action is on the controller (HUD glyphs, hints, prompts).
 export const PAD_LABEL = {
   attack: 'X', jump: 'A', interact: 'A', ranged: 'RT', dodge: 'B', t1: 'Y', t2: 'LB', t3: 'RB', domain: 'Y+LB', heal: 'LT',
-  sight: 'RS', trail: 'LS', inv: '↑', swap: '↓', art1: '←', art2: '→', map: t('controls.view'), pause: t('controls.menu'), slam: t('controls.xAir'), root: '—', quest: t('controls.view'),
+  sight: 'RS', trail: 'LS', inv: '↑', swap: '↓', art1: '←', art2: '→', map: t('controls.view'), pause: t('controls.menu'), slam: t('controls.xAir'), root: '—', quest: t('controls.view'), skills: '—',
 };
 
 // ---------------------------------------------------------------- keyboard and mouse
@@ -80,12 +82,14 @@ export const PAD_LABEL = {
 //   middle click show the way · Mouse 4 / R dodge toward the cursor · Mouse 5
 //   dodge forward · Space jump · Q jump slam · hold Shift: stand still and
 //   attack in place · 1 2 3 abilities · 4 (or 1 + 2 together) godly power ·
-//   E Ambrosia · I / Tab inventory · M map · J chapter map (quest log) ·
-//   F switch hero · V True Sight · Z X magic items · Esc / P pause ·
-//   [ ] turn the camera (when camera rotation is on).
+//   E Ambrosia · I / Tab your own menu on the inventory · M on the map · K on
+//   the skill tree · J waystones and side quests (in camp; in a chapter the
+//   map) · F switch hero · V True Sight · Z X magic items · Esc / P pause ·
+//   [ ] turn the camera (when camera rotation is on). In your own menu Q / E
+//   (Tab, Shift+Tab) change its tabs and Esc backs out.
 export const KEYMAP = {
   Space: 'jump', KeyQ: 'slam', KeyR: 'dodge', Digit1: 't1', Digit2: 't2', Digit3: 't3', Digit4: 'domain', KeyE: 'heal',
-  KeyI: 'inv', Tab: 'inv', KeyM: 'map', KeyJ: 'quest', KeyF: 'swap', KeyV: 'sight', KeyZ: 'art1', KeyX: 'art2',
+  KeyI: 'inv', Tab: 'inv', KeyM: 'map', KeyK: 'skills', KeyJ: 'quest', KeyF: 'swap', KeyV: 'sight', KeyZ: 'art1', KeyX: 'art2',
   ShiftLeft: 'root', ShiftRight: 'root', Escape: 'pause', KeyP: 'pause', BracketLeft: 'rotL', BracketRight: 'rotR',
 };
 // mouse buttons (MouseEvent.button): 0 left, 1 middle, 2 right, 3 back (Mouse 4), 4 forward (Mouse 5)
@@ -113,5 +117,5 @@ export function keyFrame(keys, mouse, st, now, o = {}) {
 // What each action is on the keyboard and mouse (HUD, hints, prompts).
 export const KEY_LABEL = {
   attack: 'LMB', interact: t('controls.click'), ranged: 'RMB', trail: 'MMB', jump: t('controls.space'), slam: 'Q', dodge: 'R', root: t('controls.shift'),
-  t1: '1', t2: '2', t3: '3', domain: '4', heal: 'E', inv: 'I', map: 'M', quest: 'J', swap: 'F', sight: 'V', art1: 'Z', art2: 'X', pause: t('controls.esc'),
+  t1: '1', t2: '2', t3: '3', domain: '4', heal: 'E', inv: 'I', map: 'M', skills: 'K', quest: 'J', swap: 'F', sight: 'V', art1: 'Z', art2: 'X', pause: t('controls.esc'),
 };

@@ -47,6 +47,7 @@ const CHECKS = [
   { name: 'node', lane: 'proc', what: 'node tests (game/test)' },
   { name: 'design', lane: 'proc', what: 'design/source/build_requests.py --check' },
   { name: 'smoke', lane: 'game', slow: true, what: 'smoke.cjs: every chapter loads, no page errors' },
+  { name: 'menus', lane: 'menus', what: "menus.cjs: Esc pauses and resumes, wraparound, Settings → Debug, players' own menus in co-op, tab bars that never move" },
   { name: 'weapons', lane: 'models', what: 'weapons.cjs: weapons point forward, ranged aim' },
   { name: 'houndlegs', lane: 'models', what: 'houndlegs.cjs: hellhound legs attached' },
   { name: 'animlint', lane: 'models', what: 'animlint.cjs: floor, parts flying off, strikes' },
@@ -226,6 +227,8 @@ async function main() {
         if (!on.has('bodysize')) return;
         await onWorkbench(['bodysize'], (page, boot) => timed('bodysize', () => require('./bodysize.cjs').run({ browser, base, page, bootErrors: boot, check: true })));
       },
+      // the menus: a game page of its own, driven with real key presses and fake controllers
+      menus: async () => { if (on.has('menus')) await timed('menus', () => require('./menus.cjs').run({ browser, base })); },
       shots: async () => {
         if (!on.has('shots')) return;
         await timed('shots', async () => {
@@ -256,7 +259,7 @@ async function main() {
     // The game (smoke, the longest single check) and the child processes run
     // throughout; the other pages go through a pool of JOBS at a time, the
     // biggest first, so the cores are shared without starving the game.
-    const jobs = [...(on.has('islands') ? Array.from({ length: SHARDS }, (_, k) => shard(k)) : []), lanes.models, lanes.wb, lanes.sizes, lanes.shots];
+    const jobs = [...(on.has('islands') ? Array.from({ length: SHARDS }, (_, k) => shard(k)) : []), lanes.menus, lanes.models, lanes.wb, lanes.sizes, lanes.shots];
     const pool = async () => { for (let j; (j = jobs.shift());) await j(); };
     if (has('serial')) { await lanes.proc(); await lanes.game(); await pool(); }
     else await Promise.all([lanes.game(), lanes.proc(), ...Array.from({ length: JOBS }, pool)]);

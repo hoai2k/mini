@@ -27,6 +27,7 @@ browser session, several pages at once:
 | `node` | the node tests, `cd game && node --test test/*.test.mjs` | |
 | `design` | `python3 design/source/build_requests.py --check` | |
 | `smoke` | every chapter loads and runs, no page errors (slow) | `smoke.cjs` |
+| `menus` | the menus in the game, with real key presses and fake controllers: Esc pauses, resumes and backs out of Settings; wraparound in the pause menu, Settings and the inventory grid; Settings → Debug (Scenes, Photo mode); each player's own menu alone (it pauses) and in two-player co-op (it doesn't; P1 moves on, both open at once, each driven by its own device); the tab bar of every tabbed menu stays put through all its tabs at a desktop size, a small window and a phone both ways up. `--shots dir` saves screenshots | `menus.cjs` |
 | `weapons` | weapons point forward at rest and in each strike, ranged aim; every weapon item in every hero's hands | `weapons.cjs` |
 | `houndlegs` | the hellhounds' legs stay attached | `houndlegs.cjs` |
 | `animlint` | floor clipping, parts flying off, strikes backward | `animlint.cjs` |

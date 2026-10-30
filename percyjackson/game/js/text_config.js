@@ -44,7 +44,6 @@ export const TEXT = {
     options: 'Options',
     instructions: 'Instructions',
     settings: 'Settings',
-    debug: 'Debug: scenes',
     soundOn: 'Sound on',
     soundOff: 'Sound off',
     fullscreen: 'Fullscreen',
@@ -207,7 +206,7 @@ export const TEXT = {
     completed: 'Completed',
     available: 'Available',
     soon: 'Soon',
-    controls: 'A choose · B close',
+    controls: 'A choose · LB / RB (Q / E) books · B close',
   },
 
   // Prophecy scroll
@@ -244,12 +243,8 @@ export const TEXT = {
       resume: 'Resume',
       instructions: 'Instructions',
       settings: 'Settings',
-      debug: 'Debug: scenes',
-      prophecy: 'Prophecy',
-      inventory: 'Inventory',
-      map: 'Map',
-      skillTree: 'Skill tree',
-      photoMode: 'Photo mode',
+      // (each player's own things are in their own menu: playerMenu below)
+      yourMenu: { pad: 'Your inventory, skill tree, map and prophecy: D-pad ↑ or View', kbm: 'Your inventory, skill tree, map and prophecy: I, K, M (or Tab)', touch: 'Your inventory, skill tree, map and prophecy: 🎒' },
       returnTitle: 'Return to camp?',
       returnText: 'You will leave this chapter and lose its progress.',
       returnYes: 'Return to camp',
@@ -333,7 +328,7 @@ export const TEXT = {
   cutscenes: {
     ariaLabel: 'Cutscene',
     next: { pad: 'A · next', touch: 'Tap · next', kbm: 'Enter · next' },   // (a press skips one shot)
-    pause: { pad: 'hold B · pause', touch: 'hold · pause', kbm: 'hold Esc · pause' },   // (held: the cutscene stands still)
+    pause: { pad: 'hold B · pause · Menu · menu', touch: 'hold · pause', kbm: 'hold Backspace · pause · Esc · menu' },   // (held: the cutscene stands still; Esc or Menu: the pause menu over it)
     hintSep: '\u00a0\u00a0·\u00a0\u00a0',
     skip: { pad: 'hold A · skip all', touch: '', kbm: 'hold Enter · skip all', button: 'Skip all' },   // (on a touch screen, the Skip all button)
     paused: 'Paused',
@@ -1161,8 +1156,8 @@ export const TEXT = {
     salvageWorn: '{hero} is wearing it.',
     coinsGained: '+◆{n}',
     hints: {
-      pad: 'Ⓐ Look · Ⓐ again: Equip · Ⓧ Salvage · LB / RB Tabs · Ⓑ Close',
-      kbm: 'Click to look · Click again (or Enter) to equip · X Salvage · Q / E Tabs · Esc Close',
+      pad: 'Ⓐ Look · Ⓐ again: Equip · Ⓧ Salvage · LT / RT Kinds · Ⓑ Close',
+      kbm: 'Click to look · Click again (or Enter) to equip · X Salvage · Z / C Kinds · Esc Close',
       touch: 'Tap to look · Tap again to equip',
     },
   },
@@ -1757,7 +1752,7 @@ export const TEXT = {
   instructions: {
     title: 'Instructions',
     heading: 'How to Play',
-    scrollHint: 'Scroll: stick, D-pad, arrow keys or mouse wheel · B or Esc to close',
+    scrollHint: 'Scroll: stick, D-pad, arrow keys or mouse wheel · B or Esc to go back',
     close: 'Close',
     quest: {
       heading: 'Your quest',
@@ -1774,11 +1769,11 @@ export const TEXT = {
       godly: '**Godly power. **Fighting fills the Power bar. When it is full, press Y + LB together (or 4) to unleash your hero\'s godly power.',
       ambrosia: '**Ambrosia** (LT, or E) heals about two thirds of your health. You carry one square: after a bite it refills over about 20 seconds, shown round its icon, and the icon glows when it\'s ready and you\'re hurt. Gear with Hebe\'s Cup refills it faster. Collect drachmas to spend at the camp store.',
       ammo: '**Ammo. **The ranged attack (RT, or right click) shoots from a quiver of 20 (knives, water, notes… the count is next to its icon). A second after you stop shooting it refills, one shot every couple of seconds, and ammo bundles dropped by monsters, crates and chests top it up. Abilities don\'t use ammo.',
-      gear: '**Gear. **Press D-pad ↑ (or I) to open the inventory: equip what you find, spend enchantment points and salvage the rest. The forge in camp tempers and re-rolls items.',
+      gear: '**Your menu. **Each player has their own menu: D-pad ↑ (or I) opens it on the inventory, View (or M) on the map, and K on the skill tree; LB / RB (Q / E or Tab) go through Inventory, Skill tree, Map and Prophecy. In the inventory equip what you find, spend enchantment points and salvage the rest. Playing alone the game waits while it is open; with friends it goes on, and your hero stands still. The forge in camp tempers and re-rolls items.',
     },
     pad: {
       heading: 'Xbox controller',
-      aria: 'Xbox controller diagram. Left stick moves, click it to show the way. Right stick flicks a dodge, click it for True Sight. A jump, and interact when a prompt shows. X melee attack, in the air a jump slam. Y, LB and RB abilities 1, 2 and 3; Y plus LB together godly power. B dodge forward. LT Ambrosia, RT ranged. D-pad up inventory, down switch hero, left and right magic items. View map, Menu pause.',
+      aria: 'Xbox controller diagram. Left stick moves, click it to show the way. Right stick flicks a dodge, click it for True Sight. A jump, and interact when a prompt shows. X melee attack, in the air a jump slam. Y, LB and RB abilities 1, 2 and 3; Y plus LB together godly power. B dodge forward. LT Ambrosia, RT ranged. D-pad up your menu on the inventory, down switch hero, left and right magic items. View your menu on the map, Menu pause.',
       leftStick: 'Left stick',
       dpad: 'D-pad',
       rightStick: 'Right stick',
@@ -1788,7 +1783,7 @@ export const TEXT = {
       melee: 'Melee attack',
       meleeSub: 'In the air: jump slam',
       view: 'View',
-      viewMap: 'Map',
+      viewMap: 'Your menu: map',
       menu: 'Menu',
       menuPause: 'Pause',
     },
@@ -1798,7 +1793,7 @@ export const TEXT = {
       lbSub: 'Y + LB together: godly power',
       leftStick: 'Move',
       leftStickSub: 'click: show the way',
-      dpad: '↑ Inventory',
+      dpad: '↑ Your menu',
       dpadSub: ['↓ Switch hero', '← → Magic items'],
       rt: 'Ranged attack',
       rb: 'Ability 3',
@@ -1831,16 +1826,40 @@ export const TEXT = {
       ['Ambrosia (heal)', 'LT', 'E'],
       ['Switch hero (hold for a radial)', 'D-pad ↓', 'F'],
       ['Magic items', 'D-pad ← · →', 'Z · X'],
-      ['Inventory (equip, enchant, salvage)', 'D-pad ↑', 'I or Tab'],
-      ['Map (in camp: the chapter map)', 'View', 'M (chapter map: J)'],
-      ['Pause', 'Menu', 'Esc'],
+      ['Your menu: inventory (equip, enchant, salvage)', 'D-pad ↑', 'I or Tab'],
+      ['Your menu: map', 'View', 'M'],
+      ['Your menu: skill tree', '—', 'K'],
+      ['Your menu: next or previous tab (Inventory, Skill tree, Map, Prophecy)', 'RB · LB', 'E or Tab · Q or Shift+Tab'],
+      ['Your menu: close', 'B, or View', 'Esc, or the key that opened it'],
+      ['Waystones and side quests (in camp and on the road)', 'Your menu: Map', 'J'],
+      ['Pause (and resume)', 'Menu', 'Esc'],
       ['Turn the camera (if on in Settings)', '—', '[ · ]'],
-      ['Menus', 'D-pad or left stick, A confirm, B back', 'Arrow keys or WASD, Enter, Esc, or the mouse'],
+      ['Menus', 'D-pad or left stick (round from the last item to the first), A confirm, B back, LB · RB tabs', 'Arrow keys or WASD, Enter, Esc back, Q · E tabs, or the mouse'],
     ],
     together: {
       heading: 'Playing together',
-      join: 'On the hero screen each player presses **A** or **Start** on their own controller to join (the keyboard player presses Enter). Pick a hero, press A to be ready. During play a controller can join by pressing Start.',
+      join: 'On the hero screen each player presses **A** or **Start** on their own controller to join (the keyboard player presses Enter). Pick a hero, press A to be ready. During play a controller can join by pressing Start. Each player opens their own menu (inventory, skill tree, map, prophecy) on their side of the screen, and two can be open at once; the game goes on for the others while the hero whose menu is open stands still. Menu (or Esc) pauses the game for everyone.',
       touch: '**Touch. **On a phone or tablet drag on the left to move; the buttons on the right attack, dodge and use abilities. Play in landscape.',
+    },
+  },
+
+  // Each player's own menu (js/ui/playerMenu.js)
+  playerMenu: {
+    title: 'P{n} · {hero}',
+    aria: 'Player {n}\'s menu',
+    tabs: { inventory: 'Inventory', skills: 'Skill tree', map: 'Map', prophecy: 'Prophecy' },
+    close: 'Close',
+    hint: { pad: 'LB / RB tabs · B back · View close', kbm: 'Q / E or Tab: tabs · Esc back', touch: 'Tap a tab · ✕ closes' },
+    tabL: { pad: 'LB', kbm: 'Q' },
+    tabR: { pad: 'RB', kbm: 'E' },
+    paused: 'Paused while your menu is open',
+    running: 'The game goes on: your hero stands still',
+    map: {
+      title: 'Map',
+      none: 'No map here.',
+      legendLevel: '■ objective  ■ chest  ● monster  ■ boss arena  ● exit',
+      world: 'Waystones and side quests…',
+      worldHint: 'Travelling takes everyone, so the waystone map pauses the game for all.',
     },
   },
 
@@ -1848,7 +1867,13 @@ export const TEXT = {
   settings: {
     title: 'Settings',
     done: 'Done',
-    tabs: { audio: 'Audio', game: 'Gameplay', graphics: 'Graphics', data: 'Data' },
+    tabs: { audio: 'Audio', game: 'Gameplay', graphics: 'Graphics', data: 'Data', debug: 'Debug' },
+    // Debug tab
+    debugTab: {
+      hint: 'Tools for testing the game and taking pictures of it.',
+      photo: 'Photo mode (a path-traced picture of this moment)',
+      photoHint: 'Photo mode has no hotkey: open it here. B or Esc comes back to this tab.',
+    },
     // Audio tab
     audio: {
       master: 'Master volume',
@@ -1902,7 +1927,7 @@ export const TEXT = {
       skipNo: 'Keep the story',
       skipped: 'The opening is skipped: welcome to camp',
       debug: 'Debug (jump to any scene; nothing is saved)',
-      debugMenu: 'Debug menu',
+      debugMenu: 'Debug: scenes',
       scenes: 'Scenes…',
       erase: 'Erase progress',
       resetSave: 'Reset save…',
@@ -2048,8 +2073,8 @@ export const TEXT = {
       iris: 'Iris message: play online',
       irisActive: 'Iris message: online play',
     },
-    gearHintPad: 'View: inventory · A: jump',
-    gearHintKeys: 'I: inventory · Space: jump',
+    gearHintPad: 'D-pad ↑: your inventory · A: jump',
+    gearHintKeys: 'I: your inventory · Space: jump',
     nextQuest: 'Next quest: {title}',
     hold: '(hold)',
     // Heroes and chapters

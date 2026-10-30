@@ -1,6 +1,12 @@
-// Settings (title and pause): Audio, Gameplay, Graphics and Data tabs. Every
-// control works with a controller: up/down moves, left/right changes a slider,
-// A toggles. Values persist through settings.js.
+// Settings (title and pause): Audio, Gameplay, Graphics, Data and Debug tabs.
+// Every control works with a controller: up/down moves (round from the last
+// to the first), left/right changes a slider, A toggles, LB / RB (Q / E)
+// change tabs. The panel keeps one height whichever tab shows (a long tab
+// scrolls inside it), so the tab bar never moves. Values persist through
+// settings.js.
+//   Debug: the debug switch, Debug: scenes (debugMenu.js, while debug is on)
+//   and Photo mode (photo.js; no hotkey). Photo mode shows over the menus and
+//   B / Esc comes back to this tab.
 import { h, toast, confirmDialog } from './ui.js';
 import { settings, saveSettings, resetSettings } from '../settings.js';
 import { QUALITY_LABEL } from '../gfx/renderer.js';
@@ -31,9 +37,9 @@ export function openSettings(game, onClose) {
       const s = h('select', {}, ...opts.map(([v, text]) => { const o = h('option', { value: v }, text); if (String(settings[key]) === String(v)) o.selected = true; return o; }));
       s.addEventListener('change', () => { settings[key] = s.value; saveSettings(); after?.(s.value); }); return s;
     };
-    const tabs = h('div', { class: 'tabs', role: 'tablist' }, ...[['audio', t('settings.tabs.audio')], ['game', t('settings.tabs.game')], ['graphics', t('settings.tabs.graphics')], ['data', t('settings.tabs.data')]].map(([id, text]) =>
-      h('button', { class: 'tab' + (tab === id ? ' on' : ''), role: 'tab', 'aria-selected': String(tab === id), onclick: () => { tab = id; ui.refresh('settings'); } }, text)));
-    const body = h('div', { class: 'set-body' });
+    const tabs = h('div', { class: 'tabs', role: 'tablist', 'data-tabbar': '' }, ...[['audio', t('settings.tabs.audio')], ['game', t('settings.tabs.game')], ['graphics', t('settings.tabs.graphics')], ['data', t('settings.tabs.data')], ['debug', t('settings.tabs.debug')]].map(([id, text]) =>
+      h('button', { class: 'tab' + (tab === id ? ' on' : ''), role: 'tab', 'aria-selected': String(tab === id), 'data-k': 'tab-' + id, onclick: () => { if (tab === id) return; tab = id; ui.refresh('settings'); const sc = ui.screen('settings'), bd = sc?.querySelector('.set-body'); if (bd) bd.scrollTop = 0; const b = sc?.querySelector(`[data-k="tab-${id}"]`); if (b) ui.setFocus(b); } }, text)));
+    const body = h('div', { class: 'set-body tab-body', 'data-scroll': '' });
     if (tab === 'audio') {
       body.append(
         rrow(t('settings.audio.master'), 'master', 0, 1, 0.05, () => game.audio?.applyVolumes()),
@@ -64,7 +70,17 @@ export function openSettings(game, onClose) {
         row(t('settings.graphics.showFps'), check('showFps', (v) => game.setReadout?.(v))),
         row(t('settings.graphics.forceWebGL'), check('forceWebGL', () => { })),
         h('div', { class: 'hint' }, t('settings.graphics.hint')),
-        h('div', { class: 'row', style: 'margin-top:8px' }, game.openPhotoMode ? h('button', { class: 'btn small', onclick: () => game.openPhotoMode?.() }, t('settings.graphics.photoMode')) : null, settings.forceWebGL !== game.startedWebGL ? h('button', { class: 'btn small primary', onclick: () => location.reload() }, t('settings.graphics.reload')) : null),
+        settings.forceWebGL !== game.startedWebGL ? h('div', { class: 'row', style: 'margin-top:8px' }, h('button', { class: 'btn small primary', onclick: () => location.reload() }, t('settings.graphics.reload'))) : null,
+      );
+    } else if (tab === 'debug') {
+      body.append(
+        h('div', { class: 'hint', style: 'margin:0 0 8px' }, t('settings.debugTab.hint')),
+        // for testing levels and cutscenes: Debug: scenes shows while it is on
+        row(t('settings.data.debug'), check('debug', () => { ui.refresh('settings'); if (ui.isOpen('title')) ui.refresh('title'); })),
+        settings.debug ? row(t('settings.data.debugMenu'), h('button', { class: 'btn small', 'data-k': 'scenes', onclick: () => openDebugMenu(game) }, t('settings.data.scenes'))) : null,
+        // the path-traced still of this frame (photo.js); B / Esc comes back here
+        game.openPhotoMode ? row(t('settings.debugTab.photo'), h('button', { class: 'btn small', 'data-k': 'photo', onclick: () => game.openPhotoMode?.() }, t('settings.graphics.photoMode'))) : null,
+        h('div', { class: 'hint' }, t('settings.debugTab.photoHint')),
       );
     } else {
       body.append(
@@ -76,16 +92,13 @@ export function openSettings(game, onClose) {
           title: t('settings.data.skipTitle'), text: t('settings.data.skipText'), yes: t('settings.data.skipYes'), no: t('settings.data.skipNo'),
           onYes: () => { game.opening.skip(); toast(t('settings.data.skipped')); if (ui.isOpen('settings')) ui.refresh('settings'); },
         }) }, t('settings.data.skipButton'))) : null,
-        // for testing levels and cutscenes: the menu shows on the title and pause screens too
-        row(t('settings.data.debug'), check('debug', () => { ui.refresh('settings'); if (ui.isOpen('title')) ui.refresh('title'); })),
-        settings.debug ? row(t('settings.data.debugMenu'), h('button', { class: 'btn small', onclick: () => openDebugMenu(game) }, t('settings.data.scenes'))) : null,
         row(t('settings.data.erase'), h('button', { class: 'btn small danger', onclick: () => confirmDialog(game, {
           title: t('settings.data.eraseTitle'), text: t('settings.data.eraseText'), yes: t('settings.data.eraseYes'), no: t('settings.data.eraseNo'), danger: true,
           onYes: () => { game.save.reset(); toast(t('settings.data.erased')); if (ui.isOpen('title')) ui.refresh('title'); },
         }) }, t('settings.data.resetSave'))),
       );
     }
-    el.appendChild(h('div', { class: 'panel set-panel', role: 'dialog', 'aria-label': t('settings.title'), 'aria-modal': 'true', style: 'width:min(660px,96vw)' }, h('h2', {}, t('settings.title')), tabs, body,
+    el.appendChild(h('div', { class: 'panel set-panel tabbed', role: 'dialog', 'aria-label': t('settings.title'), 'aria-modal': 'true', style: 'width:min(660px,96vw)' }, h('h2', {}, t('settings.title')), tabs, body,
       h('div', { class: 'row', style: 'margin-top:12px;justify-content:flex-end' }, h('button', { class: 'btn primary', onclick: close }, t('settings.done')))));
   }, { dim: true, onBack: close });
 }

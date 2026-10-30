@@ -15,17 +15,19 @@ import { t as tx, tn } from '../text_config.js';
 
 const KIND = { power: tx('skillsScreen.kind.power'), upgrade: tx('skillsScreen.kind.upgrade'), passive: tx('skillsScreen.kind.passive') };
 
-export function openSkills(game, player) {
-  const ui = game.ui, save = game.saveFor?.(player) ?? game.save;   // net: this player's profile
+// opts: ui, embedded, onExit when it is a tab of the player's own menu
+// (playerMenu.js); on its own (Chiron in camp) it pauses the game.
+export function openSkills(game, player, { ui = game.ui, embedded = false, onExit = null } = {}) {
+  const save = game.saveFor?.(player) ?? game.save;   // net: this player's profile
   const hero = player.hero, T = treeOf(hero);
   // a free reset only in camp: there the choice can be tried again at leisure,
   // in a chapter what you picked is what you fight with
   const inCamp = game.mode === 'hub' && !game.chapter && !game.mission;
   let pick = -1;   // the slot being filled
-  game.paused = true;
-  const close = () => { ui.close('skills'); game.paused = false; };
+  if (!embedded) game.paused = true;
+  const close = embedded ? () => onExit?.() : () => { ui.close('skills'); game.paused = false; };
   // redraw, keeping the focus on the same control (by its data-k)
-  const redraw = (k) => { ui.refresh('skills'); const el = k && document.querySelector(`#scr-skills [data-k="${k}"]`); if (el) ui.setFocus(el); };
+  const redraw = (k) => { ui.refresh('skills'); const el = k && ui.screen('skills')?.querySelector(`[data-k="${k}"]`); if (el) ui.setFocus(el); };
   const changed = () => { save.write(); player.refreshLoadout(); };
   ui.open('skills', (el) => {
     const S = save.hero(hero), level = save.data.level, left = pointsLeft(hero, S, level);
@@ -77,7 +79,7 @@ export function openSkills(game, player) {
     };
     const reset = inCamp
       ? h('button', { class: 'btn small', 'data-k': 'reset', onclick: () => confirmDialog(game, {
-        title: tx('skillsScreen.reset.title'), text: tx('skillsScreen.reset.text', { n: pointsFor(level) }), yes: tx('skillsScreen.reset.yes'), no: tx('skillsScreen.reset.no'),
+        ui, title: tx('skillsScreen.reset.title'), text: tx('skillsScreen.reset.text', { n: pointsFor(level) }), yes: tx('skillsScreen.reset.yes'), no: tx('skillsScreen.reset.no'),
         onYes: () => { respec(hero, S, level); pick = -1; changed(); game.audio?.ui('buy'); toast(tx('skillsScreen.reset.done')); redraw('reset'); },
       }) }, tx('skillsScreen.reset.button'))
       : h('span', { class: 'hint', style: 'margin:0 8px 0 0' }, tx('skillsScreen.reset.hint'));
@@ -88,5 +90,5 @@ export function openSkills(game, player) {
       picker,
       h('div', { class: 'branches' }, ...T.branches.map(branch)),
       h('div', { class: 'row', style: 'justify-content:flex-end;align-items:center;margin-top:10px;flex-wrap:wrap' }, reset, h('button', { class: 'btn', 'data-k': 'close', onclick: close }, tx('common.close')))));
-  }, { dim: true, onBack: () => { if (pick >= 0) { const s = pick; pick = -1; redraw('slot' + s); } else close(); } });
+  }, { dim: !embedded, onBack: () => { if (pick >= 0) { const s = pick; pick = -1; redraw('slot' + s); } else close(); } });
 }
