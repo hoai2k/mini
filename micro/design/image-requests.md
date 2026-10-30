@@ -12,7 +12,7 @@ Artwork for the prototypes in `micro/prototypes/`. Generated from `source/build_
 
 ## Status
 
-17 requested, 28 delivered, 45 in total.
+18 requested, 28 delivered, 46 in total.
 
 ## Launcher cards
 
@@ -577,6 +577,21 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ```text
 Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. A predatory mesostigmatid mite of the family Parasitidae (Pergamasus-type), about 1 mm long: an oval, flattened, glossy amber-to-chestnut body covered by smooth sclerotised dorsal shields with a few short setae; exactly eight legs, each with seven visible segments, the first pair longer and held forward like antennae, the others walking; at the front a projecting gnathosoma with a pair of long chelicerae ending in small pincers (chelae), and short pedipalps. No eyes. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.
+```
+
+### MP-R13 · Predatory mite (Pergamasus-type), revision
+
+- **File:** `micro/prototypes/assets/reference-sheets/predatory-mite-v2.webp`
+- **Size:** 2048 x 2048, opaque
+- **Used for:** Replaces MP-R04, which came out as a domed, glossy, dark tick-like mite. Modelling the predatory mesostigmatid mite (Levels 0 and 1).
+- **Stand-in until delivered:** None needed: the model is built from the photographs.
+- **Status:** requested
+- **Reference images:**
+  - [Pergamasus diversus; predatory mite morphology, not a species-level bog occurrence claim.](../research/assets/references/production/predatory-mite.jpg) · AfroBrazilian, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Pergamasus_diversus_02.jpg)
+  - [Unidentified phthiracarid mite; adult arthropod morphology.](../research/assets/references/mite.jpg) · S.E. Thorpe, Public domain · [source](https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg)
+
+```text
+Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. A predatory mesostigmatid mite of the family Parasitidae (Pergamasus-type), about 1 mm long, a fast running hunter of soil and moss. Its body is strongly flattened top to bottom like a coin, NOT domed: in the side and front views the body is only about a quarter as tall as it is wide. Pale tan to light honey-yellow, satin rather than glossy, with smooth plate-like dorsal shields (a front and a rear shield meeting across the middle) and a few short fine setae; it must not look like a tick or a round beetle-mite. Exactly eight long slender legs, each with seven visible segments: the first pair is longer and thinner than the others, has no claws, and is held raised and forward like a pair of antennae, as these mites feel their way; the other three pairs are spread wide, walking, each ending in a small claw and pad. At the front, a projecting gnathosoma with a pair of long chelicerae ending in small toothed pincers (chelae), clearly visible from the top and front, and short five-segmented pedipalps beside them. No eyes. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.
 ```
 
 ### MP-R05 · Predatory tardigrade (Milnesium)

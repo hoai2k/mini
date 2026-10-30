@@ -133,6 +133,10 @@ export const ASSETS = {
     "file": "assets/reference-sheets/predatory-mite.webp",
     "status": "delivered"
   },
+  "MP-R13": {
+    "file": "assets/reference-sheets/predatory-mite-v2.webp",
+    "status": "requested"
+  },
   "MP-R05": {
     "file": "assets/reference-sheets/milnesium.webp",
     "status": "delivered"
