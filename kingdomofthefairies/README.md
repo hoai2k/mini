@@ -162,6 +162,7 @@ CHROMIUM_PATH=/usr/bin/chromium node kingdomofthefairies/qa/theme-browser.mjs
 CHROMIUM_PATH=/usr/bin/chromium node kingdomofthefairies/qa/walking-browser.mjs
 python3 kingdomofthefairies/design/source/audit_sprites.py --check   # after any art delivery; needs Pillow, numpy, OpenCV
 python3 kingdomofthefairies/design/source/build_climb_map.py --check  # after a climbing cloth changes; needs Pillow
+python3 kingdomofthefairies/design/source/person_sizes.py --check    # after any cast delivery (Azurine, Aurora, the witch, demons, fairies...); rerun without --check to re-measure
 kingdomofthefairies/publish.sh local/pages/kingdomofthefairies
 ```
 

@@ -3,19 +3,19 @@
 export const ASSETS = {
   "MP-U01": {
     "file": "assets/cards/mite.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-U02": {
     "file": "assets/cards/tardigrade.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-U03": {
     "file": "assets/cards/amoeba.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-U04": {
     "file": "assets/cards/paramecium.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-M01": {
     "file": "assets/mite/sem-moss-leaf.webp",
@@ -27,11 +27,11 @@ export const ASSETS = {
   },
   "MP-M03": {
     "file": "assets/mite/sem-cuticle.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-M04": {
     "file": "assets/mite/sem-backdrop.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-T01": {
     "file": "assets/tardigrade/lamina-dic.webp",
@@ -43,34 +43,34 @@ export const ASSETS = {
   },
   "MP-T03": {
     "file": "assets/tardigrade/film-backdrop.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-T04": {
     "file": "assets/tardigrade/particles.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-A01": {
     "file": "assets/amoeba/wetmount.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-A02": {
     "file": "assets/amoeba/cytoplasm.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-A03": {
     "file": "assets/amoeba/filaments.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-P01": {
     "file": "assets/paramecium/darkfield-plate.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-P02": {
     "file": "assets/paramecium/phase-plate.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-P03": {
     "file": "assets/paramecium/pellicle.webp",
-    "status": "requested"
+    "status": "delivered"
   }
 };

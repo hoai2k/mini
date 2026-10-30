@@ -12,7 +12,7 @@ Artwork for the prototypes in `micro/prototypes/`. Generated from `source/build_
 
 ## Status
 
-18 requested, 0 delivered, 18 in total.
+4 requested, 14 delivered, 18 in total.
 
 ## Launcher cards
 
@@ -24,7 +24,7 @@ One card per prototype on the prototypes page (micro/prototypes/). Until they ar
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Mite card on the prototypes page.
 - **Stand-in until delivered:** A grey gradient with the title.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Unidentified phthiracarid mite; adult arthropod morphology.](../research/assets/references/mite.jpg) · S.E. Thorpe, Public domain · [source](https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg)
   - [Moss habitat structure; use leaf architecture as environmental reference.](../research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
@@ -41,7 +41,7 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Tardigrade card on the prototypes page.
 - **Stand-in until delivered:** A grey-green gradient with the title.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Light-microscope photograph; phone-camera filtering is part of the source image.](../research/assets/references/tardigrade-light.png) · Dorathyexplorer, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png)
   - [SEM of an animal prepared from the active state; not live in-chamber footage.](../research/assets/references/tardigrade-sem.png) · Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012), CC BY 2.5 · [source](https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png)
@@ -58,7 +58,7 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Amoeba card on the prototypes page.
 - **Stand-in until delivered:** A pale warm gradient with the title.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Amoeba proteus with pseudopodia, nucleus and contractile vacuole.](../research/assets/references/amoeba.jpg) · Cymothoa exigua, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Amoeba_proteus.jpg)
   - [Paramecium caudatum; whole-cell outline and internal contrast.](../research/assets/references/paramecium.jpg) · MTadey, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg)
@@ -75,7 +75,7 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Paramecium card on the prototypes page.
 - **Stand-in until delivered:** A dark blue gradient with the title.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Paramecium caudatum; whole-cell outline and internal contrast.](../research/assets/references/paramecium.jpg) · MTadey, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg)
   - [Freshwater filament with spiral chloroplasts; useful habitat scaffolding.](../research/assets/references/spirogyra.jpg) · Wiedehopf20, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg)
@@ -129,7 +129,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Size:** 1024 x 1024, opaque, tileable
 - **Used for:** Detail texture on the mite's notogaster and leg segments.
 - **Stand-in until delivered:** Procedural fine pitting and sockets.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Unidentified phthiracarid mite; adult arthropod morphology.](../research/assets/references/mite.jpg) · S.E. Thorpe, Public domain · [source](https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg)
   - [SEM of an animal prepared from the active state; not live in-chamber footage.](../research/assets/references/tardigrade-sem.png) · Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012), CC BY 2.5 · [source](https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png)
@@ -145,7 +145,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Size:** 2560 x 1080, opaque
 - **Used for:** The far backdrop behind the walkable area, wrapped around the scene.
 - **Stand-in until delivered:** Dark gradient with fog.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Moss habitat structure; use leaf architecture as environmental reference.](../research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
   - [Unidentified phthiracarid mite; adult arthropod morphology.](../research/assets/references/mite.jpg) · S.E. Thorpe, Public domain · [source](https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg)
@@ -196,7 +196,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Size:** 2560 x 1440, opaque
 - **Used for:** Out-of-focus plate behind the climbing plane.
 - **Stand-in until delivered:** Soft gradient with blurred leaf shapes.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Moss habitat structure; use leaf architecture as environmental reference.](../research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
   - [Light-microscope photograph; phone-camera filtering is part of the source image.](../research/assets/references/tardigrade-light.png) · Dorathyexplorer, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png)
@@ -213,7 +213,7 @@ Differential-interference-contrast (Nomarski) microscope look: smooth grey backg
 - **Size:** 1024 x 1024, transparent, 4 x 4 sprite grid
 - **Used for:** Drifting particles in the water film and food the tardigrade can reach.
 - **Stand-in until delivered:** Procedural specks.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Light-microscope photograph; phone-camera filtering is part of the source image.](../research/assets/references/tardigrade-light.png) · Dorathyexplorer, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png)
   - [Bdelloid rotifer; compare corona, foot and transparent body.](../research/assets/references/rotifer.jpg) · Juan Carlos Fonseca Mata, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Philodina_sp._(Class%CB%90_Bdelloidea)_-_Phylum_Rotifera.jpg)
@@ -234,7 +234,7 @@ Images for the amoeba prototype, seen in brightfield. The amoeba and its prey ar
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** The slide the amoeba crawls over.
 - **Stand-in until delivered:** Procedural pale field with soft detritus.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Amoeba proteus with pseudopodia, nucleus and contractile vacuole.](../research/assets/references/amoeba.jpg) · Cymothoa exigua, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Amoeba_proteus.jpg)
   - [Freshwater filament with spiral chloroplasts; useful habitat scaffolding.](../research/assets/references/spirogyra.jpg) · Wiedehopf20, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg)
@@ -251,7 +251,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Size:** 1024 x 1024, opaque, tileable
 - **Used for:** Granular endoplasm texture that streams inside the amoeba.
 - **Stand-in until delivered:** Procedural granule noise.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Amoeba proteus with pseudopodia, nucleus and contractile vacuole.](../research/assets/references/amoeba.jpg) · Cymothoa exigua, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Amoeba_proteus.jpg)
   - Concept board (mood only): [`03-protist-garden.webp`](../research/assets/concepts/03-protist-garden.webp)
@@ -266,7 +266,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Size:** 2560 x 1440, opaque
 - **Used for:** Out-of-focus layer above the slide.
 - **Stand-in until delivered:** Blurred procedural filaments.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Freshwater filament with spiral chloroplasts; useful habitat scaffolding.](../research/assets/references/spirogyra.jpg) · Wiedehopf20, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg)
   - [Attached Vorticella ciliates; stalks connect feeding bodies to substrate.](../research/assets/references/vorticella.jpg) · Bwiltz, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Vorticella_1.jpg)
@@ -286,7 +286,7 @@ Images for the Paramecium swimming prototype, which can switch between darkfield
 - **Size:** 2560 x 1440, opaque
 - **Used for:** The far background in darkfield mode.
 - **Stand-in until delivered:** Black field with procedural scattering specks.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Freshwater filament with spiral chloroplasts; useful habitat scaffolding.](../research/assets/references/spirogyra.jpg) · Wiedehopf20, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg)
   - [Attached Vorticella ciliates; stalks connect feeding bodies to substrate.](../research/assets/references/vorticella.jpg) · Bwiltz, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Vorticella_1.jpg)
@@ -303,7 +303,7 @@ Darkfield microscope look: near-black background, objects visible only as bright
 - **Size:** 2560 x 1440, opaque
 - **Used for:** The far background in phase-contrast mode.
 - **Stand-in until delivered:** Mid-grey field with procedural haloed specks.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Freshwater filament with spiral chloroplasts; useful habitat scaffolding.](../research/assets/references/spirogyra.jpg) · Wiedehopf20, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg)
   - [Attached Vorticella ciliates; stalks connect feeding bodies to substrate.](../research/assets/references/vorticella.jpg) · Bwiltz, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Vorticella_1.jpg)
@@ -320,7 +320,7 @@ Phase-contrast microscope look: mid-grey background, transparent structures dark
 - **Size:** 1024 x 1024, opaque, tileable
 - **Used for:** Surface pattern on the cell body under the cilia.
 - **Stand-in until delivered:** Procedural kinety rows.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Paramecium caudatum; whole-cell outline and internal contrast.](../research/assets/references/paramecium.jpg) · MTadey, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg)
   - Concept board (mood only): [`03-protist-garden.webp`](../research/assets/concepts/03-protist-garden.webp)

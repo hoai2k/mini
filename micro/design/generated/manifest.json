@@ -1,0 +1,633 @@
+[
+  {
+    "id": "MP-U01",
+    "name": "Mite card (SEM)",
+    "file": "assets/cards/mite.webp",
+    "size": "1200 x 800, opaque",
+    "used": "The Mite card on the prototypes page.",
+    "prompt": "Use case: scientific-educational. Asset type: individual finished game launcher illustration. The supplied images are references only, not edit targets. The first 3 images are real organism/habitat references: mite, moss, tardigrade-sem. The final image is an AI concept board for mood only, never anatomy. Do not copy any labels, scale bars, figure panels or text from the references.\nLandscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Scanning-electron-microscope look: greyscale secondary-electron image, bright edges where surfaces tilt away from the detector, soft dark crevices, very deep focus, crisp tactile surface detail, slight fine grain, no colour. An armoured oribatid moss mite (box-mite, family Phthiracaridae: a smooth domed notogaster about 0.6 mm long, eight short jointed legs, a hinged prodorsum, a few stiff setae) walking over a dry moss leaf edge among fungal hyphae and angular mineral grains, three-quarter view from slightly above, the mite in the left half of the frame. Exactly eight legs, each with five visible segments and a single claw. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nOutput a single complete image, exactly 1200 by 800 pixels, not a contact sheet. Keep scientifically grounded morphology and use optical style rather than a conventional fantasy painting. For legged animals, no extra limbs: eight limbs means four left-right pairs total.",
+    "requested_prompt": "Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Scanning-electron-microscope look: greyscale secondary-electron image, bright edges where surfaces tilt away from the detector, soft dark crevices, very deep focus, crisp tactile surface detail, slight fine grain, no colour. An armoured oribatid moss mite (box-mite, family Phthiracaridae: a smooth domed notogaster about 0.6 mm long, eight short jointed legs, a hinged prodorsum, a few stiff setae) walking over a dry moss leaf edge among fungal hyphae and angular mineral grains, three-quarter view from slightly above, the mite in the left half of the frame. Exactly eight legs, each with five visible segments and a single claw. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-e6fdc39b-4bdb-4842-9333-da2f41ed9fbc.png",
+    "original_dimensions": [
+      1536,
+      1024
+    ],
+    "width": 1200,
+    "height": 800,
+    "sha256": "e4e55fac8cc6a6ddc0744087b933ea10eae0da47b84ffe264eefa130bf82b759",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "mite",
+        "local": "assets/references/mite.jpg",
+        "author": "S.E. Thorpe",
+        "license": "Public domain",
+        "license_url": "",
+        "source": "https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg"
+      },
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      },
+      {
+        "id": "tardigrade-sem",
+        "local": "assets/references/tardigrade-sem.png",
+        "author": "Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012)",
+        "license": "CC BY 2.5",
+        "license_url": "https://creativecommons.org/licenses/by/2.5",
+        "source": "https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png"
+      }
+    ],
+    "mood_boards": [
+      "01-moss-frontier.webp"
+    ]
+  },
+  {
+    "id": "MP-U02",
+    "name": "Tardigrade card",
+    "file": "assets/cards/tardigrade.webp",
+    "size": "1200 x 800, opaque",
+    "used": "The Tardigrade card on the prototypes page.",
+    "prompt": "Use case: scientific-educational. Asset type: individual finished game launcher illustration. The supplied images are references only, not edit targets. The first 3 images are real organism/habitat references: tardigrade-light, tardigrade-sem, moss. The final image is an AI concept board for mood only, never anatomy. Do not copy any labels, scale bars, figure panels or text from the references.\nLandscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Differential-interference-contrast (Nomarski) microscope look: smooth grey background, transparent structures rendered with directional pseudo-relief (light on one side, dark on the other, the same direction everywhere), gentle colourless tones with at most a faint amber cast, shallow depth of field. A moss-dwelling tardigrade (a eutardigrade about 0.35 mm long: plump segmented body, exactly four pairs of stubby unjointed lobopod legs, the fourth pair pointing backwards at the rear end, each leg ending in hooked double claws, a pale translucent body with greenish gut contents and two dark eye-spots) gripping the ridged cell walls of a moss leaf lamina under a thin film of water, the long rectangular leaf cells receding diagonally. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nOutput a single complete image, exactly 1200 by 800 pixels, not a contact sheet. Keep scientifically grounded morphology and use optical style rather than a conventional fantasy painting. For legged animals, no extra limbs: eight limbs means four left-right pairs total.",
+    "requested_prompt": "Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Differential-interference-contrast (Nomarski) microscope look: smooth grey background, transparent structures rendered with directional pseudo-relief (light on one side, dark on the other, the same direction everywhere), gentle colourless tones with at most a faint amber cast, shallow depth of field. A moss-dwelling tardigrade (a eutardigrade about 0.35 mm long: plump segmented body, exactly four pairs of stubby unjointed lobopod legs, the fourth pair pointing backwards at the rear end, each leg ending in hooked double claws, a pale translucent body with greenish gut contents and two dark eye-spots) gripping the ridged cell walls of a moss leaf lamina under a thin film of water, the long rectangular leaf cells receding diagonally. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-38949592-3eb9-4a87-83f1-84cb665ec414.png",
+    "original_dimensions": [
+      1536,
+      1024
+    ],
+    "width": 1200,
+    "height": 800,
+    "sha256": "7f46822a0f904c2b93287ac060412e2482fbc7d16f334965200f1c20c61e1638",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "tardigrade-light",
+        "local": "assets/references/tardigrade-light.png",
+        "author": "Dorathyexplorer",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png"
+      },
+      {
+        "id": "tardigrade-sem",
+        "local": "assets/references/tardigrade-sem.png",
+        "author": "Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012)",
+        "license": "CC BY 2.5",
+        "license_url": "https://creativecommons.org/licenses/by/2.5",
+        "source": "https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png"
+      },
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      }
+    ],
+    "mood_boards": [
+      "02-waterfilm.webp"
+    ]
+  },
+  {
+    "id": "MP-U03",
+    "name": "Amoeba card",
+    "file": "assets/cards/amoeba.webp",
+    "size": "1200 x 800, opaque",
+    "used": "The Amoeba card on the prototypes page.",
+    "prompt": "Use case: scientific-educational. Asset type: individual finished game launcher illustration. The supplied images are references only, not edit targets. The first 3 images are real organism/habitat references: amoeba, paramecium, spirogyra. The final image is an AI concept board for mood only, never anatomy. Do not copy any labels, scale bars, figure panels or text from the references.\nLandscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Transmitted-light brightfield microscope look: pale warm-grey to faintly green background, transparent bodies with weak contrast, darker refractive edges, pigment only where it is real (green chloroplasts, brown detritus), soft out-of-focus layers, slight optical softness, no hard drop shadows, no specular highlights. Amoeba proteus about 400 µm across with several broad blunt pseudopods, a clear hyaline cap at each advancing tip, granular streaming endoplasm, one disc-shaped nucleus and a round contractile vacuole, two pseudopods curving to form a food cup around a small green flagellate. A strand of Spirogyra with its spiral chloroplast crosses the background out of focus. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nOutput a single complete image, exactly 1200 by 800 pixels, not a contact sheet. Keep scientifically grounded morphology and use optical style rather than a conventional fantasy painting. For legged animals, no extra limbs: eight limbs means four left-right pairs total.",
+    "requested_prompt": "Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Transmitted-light brightfield microscope look: pale warm-grey to faintly green background, transparent bodies with weak contrast, darker refractive edges, pigment only where it is real (green chloroplasts, brown detritus), soft out-of-focus layers, slight optical softness, no hard drop shadows, no specular highlights. Amoeba proteus about 400 µm across with several broad blunt pseudopods, a clear hyaline cap at each advancing tip, granular streaming endoplasm, one disc-shaped nucleus and a round contractile vacuole, two pseudopods curving to form a food cup around a small green flagellate. A strand of Spirogyra with its spiral chloroplast crosses the background out of focus. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-c8547560-6de6-4072-b45f-0c5a854f3f95.png",
+    "original_dimensions": [
+      1536,
+      1024
+    ],
+    "width": 1200,
+    "height": 800,
+    "sha256": "460b07a173a51b338726e74ba9d021fff6edc44147a410f0fa0d2ac91f07685c",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "amoeba",
+        "local": "assets/references/amoeba.jpg",
+        "author": "Cymothoa exigua",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Amoeba_proteus.jpg"
+      },
+      {
+        "id": "paramecium",
+        "local": "assets/references/paramecium.jpg",
+        "author": "MTadey",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg"
+      },
+      {
+        "id": "spirogyra",
+        "local": "assets/references/spirogyra.jpg",
+        "author": "Wiedehopf20",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg"
+      }
+    ],
+    "mood_boards": [
+      "03-protist-garden.webp"
+    ]
+  },
+  {
+    "id": "MP-U04",
+    "name": "Paramecium card",
+    "file": "assets/cards/paramecium.webp",
+    "size": "1200 x 800, opaque",
+    "used": "The Paramecium card on the prototypes page.",
+    "prompt": "Use case: scientific-educational. Asset type: individual finished game launcher illustration. The supplied images are references only, not edit targets. The first 3 images are real organism/habitat references: paramecium, spirogyra, vorticella. The final image is an AI concept board for mood only, never anatomy. Do not copy any labels, scale bars, figure panels or text from the references.\nLandscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Darkfield microscope look: near-black background, objects visible only as bright scattering edges and internal granules in cool white and pale gold, faint coloured chloroplasts, small particles as sparkling points, shallow depth of field. Paramecium caudatum about 230 µm long, slipper-shaped with a blunt front and a tapered rear, an oral groove running diagonally along one side, a dense coat of short cilia shimmering as a fine bright fringe, two star-shaped contractile vacuoles and many food vacuoles inside, swimming in a gentle helical path past green Spirogyra filaments and a cluster of bell-shaped Vorticella on stalks. A faint motion trail of displaced particles behind it. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nOutput a single complete image, exactly 1200 by 800 pixels, not a contact sheet. Keep scientifically grounded morphology and use optical style rather than a conventional fantasy painting. For legged animals, no extra limbs: eight limbs means four left-right pairs total.",
+    "requested_prompt": "Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Darkfield microscope look: near-black background, objects visible only as bright scattering edges and internal granules in cool white and pale gold, faint coloured chloroplasts, small particles as sparkling points, shallow depth of field. Paramecium caudatum about 230 µm long, slipper-shaped with a blunt front and a tapered rear, an oral groove running diagonally along one side, a dense coat of short cilia shimmering as a fine bright fringe, two star-shaped contractile vacuoles and many food vacuoles inside, swimming in a gentle helical path past green Spirogyra filaments and a cluster of bell-shaped Vorticella on stalks. A faint motion trail of displaced particles behind it. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-c6a8f15c-5931-46bb-a297-59b087ba5e3c.png",
+    "original_dimensions": [
+      1536,
+      1024
+    ],
+    "width": 1200,
+    "height": 800,
+    "sha256": "bb60ade857fec03300558e4fb637548046ba461895ee685c1b48220a7226c5da",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "paramecium",
+        "local": "assets/references/paramecium.jpg",
+        "author": "MTadey",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg"
+      },
+      {
+        "id": "spirogyra",
+        "local": "assets/references/spirogyra.jpg",
+        "author": "Wiedehopf20",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg"
+      },
+      {
+        "id": "vorticella",
+        "local": "assets/references/vorticella.jpg",
+        "author": "Bwiltz",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Vorticella_1.jpg"
+      }
+    ],
+    "mood_boards": [
+      "03-protist-garden.webp"
+    ]
+  },
+  {
+    "id": "MP-M03",
+    "name": "SEM oribatid cuticle",
+    "file": "assets/mite/sem-cuticle.webp",
+    "size": "1024 x 1024, opaque, tileable",
+    "used": "Detail texture on the mite's notogaster and leg segments.",
+    "prompt": "Use case: scientific-educational. Asset type: individual production game texture or backdrop. Supplied images: first 2 are real scientific references (mite, tardigrade-sem), final image is AI mood only. These are references, not edit targets; no labels or layout from them should appear.\nSeamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Scanning-electron-microscope look: greyscale secondary-electron image, bright edges where surfaces tilt away from the detector, soft dark crevices, very deep focus, crisp tactile surface detail, slight fine grain, no colour. The sclerotised cuticle of an oribatid mite's notogaster at about 100 µm across: a smooth gently curved hard surface with fine shallow pits (foveae), a faint cerotegument crust in patches, and a few setal sockets (small raised rings) spaced widely. No whole animal.\nRequested export dimensions: 1024 x 1024, opaque, tileable. Render one texture/image covering the entire canvas; no borders, sample grids or panels. For tileable assets, the border is not a frame: continue every cut form at the opposite edge, keep identical local scale and brightness on all edges, and make both horizontal and vertical repeats continuous. No text.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Scanning-electron-microscope look: greyscale secondary-electron image, bright edges where surfaces tilt away from the detector, soft dark crevices, very deep focus, crisp tactile surface detail, slight fine grain, no colour. The sclerotised cuticle of an oribatid mite's notogaster at about 100 µm across: a smooth gently curved hard surface with fine shallow pits (foveae), a faint cerotegument crust in patches, and a few setal sockets (small raised rings) spaced widely. No whole animal.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-8085ea45-309e-4c57-a466-01f41edcfd2b.png",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 1024,
+    "height": 1024,
+    "sha256": "13841a03d79bc2deccc24bfa3aa2af39b9aff5959dccab28a1556d369ee594a3",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "mite",
+        "local": "assets/references/mite.jpg",
+        "author": "S.E. Thorpe",
+        "license": "Public domain",
+        "license_url": "",
+        "source": "https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg"
+      },
+      {
+        "id": "tardigrade-sem",
+        "local": "assets/references/tardigrade-sem.png",
+        "author": "Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012)",
+        "license": "CC BY 2.5",
+        "license_url": "https://creativecommons.org/licenses/by/2.5",
+        "source": "https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png"
+      }
+    ],
+    "mood_boards": [
+      "01-moss-frontier.webp"
+    ]
+  },
+  {
+    "id": "MP-M04",
+    "name": "SEM moss forest backdrop",
+    "file": "assets/mite/sem-backdrop.webp",
+    "size": "2560 x 1080, opaque",
+    "used": "The far backdrop behind the walkable area, wrapped around the scene.",
+    "prompt": "Use case: scientific-educational. Asset type: individual production game texture or backdrop. Supplied images: first 2 are real scientific references (moss, mite), final image is AI mood only. These are references, not edit targets; no labels or layout from them should appear.\nScanning-electron-microscope look: greyscale secondary-electron image, bright edges where surfaces tilt away from the detector, soft dark crevices, very deep focus, crisp tactile surface detail, slight fine grain, no colour. A wide panoramic view at mite height inside a moss cushion, about 5 mm across: overlapping moss leaves and stems rising like a forest, fungal hyphae strung between them, mineral grains on the ground, depth fading to dark grey with distance as in a low-magnification SEM overview. No animals. Even horizon at about one third height so it can wrap around a scene. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nRequested export dimensions: 2560 x 1080, opaque. Render one texture/image covering the entire canvas; no borders, sample grids or panels. For tileable assets, the border is not a frame: continue every cut form at the opposite edge, keep identical local scale and brightness on all edges, and make both horizontal and vertical repeats continuous. No text.",
+    "requested_prompt": "Scanning-electron-microscope look: greyscale secondary-electron image, bright edges where surfaces tilt away from the detector, soft dark crevices, very deep focus, crisp tactile surface detail, slight fine grain, no colour. A wide panoramic view at mite height inside a moss cushion, about 5 mm across: overlapping moss leaves and stems rising like a forest, fungal hyphae strung between them, mineral grains on the ground, depth fading to dark grey with distance as in a low-magnification SEM overview. No animals. Even horizon at about one third height so it can wrap around a scene. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-a3c899c2-c738-4c1e-8df2-9bd118d08f4b.png",
+    "original_dimensions": [
+      1931,
+      814
+    ],
+    "width": 2560,
+    "height": 1080,
+    "sha256": "6b923369d38eccd7a0ae306a3a05924f40fb1d4e0c97017680d7d5fe628c9e11",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      },
+      {
+        "id": "mite",
+        "local": "assets/references/mite.jpg",
+        "author": "S.E. Thorpe",
+        "license": "Public domain",
+        "license_url": "",
+        "source": "https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg"
+      }
+    ],
+    "mood_boards": [
+      "01-moss-frontier.webp"
+    ]
+  },
+  {
+    "id": "MP-T03",
+    "name": "Water-film backdrop",
+    "file": "assets/tardigrade/film-backdrop.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "Out-of-focus plate behind the climbing plane.",
+    "prompt": "Use case: scientific-educational. Asset type: individual production game texture, backdrop or particle sheet. The first 3 supplied images are real references (moss, tardigrade-light, rotifer); the last is an AI mood board only, never an anatomical source. Do not reproduce their captions, scale bars or panel layout.\nDifferential-interference-contrast (Nomarski) microscope look: smooth grey background, transparent structures rendered with directional pseudo-relief (light on one side, dark on the other, the same direction everywhere), gentle colourless tones with at most a faint amber cast, shallow depth of field. A deeply out-of-focus view through a wet moss cushion at about 2 mm across: overlapping translucent leaf blades with cell rows, curved water menisci between them catching light, a bdelloid rotifer barely visible as a blur. Very shallow depth of field, everything soft. No tardigrade. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nOutput dimensions: 2560 x 1440, opaque. One complete asset only. No frame, no text or overlay. For any tileable asset, continue cut forms onto the opposite edges; all four borders are interior texture, never a frame. Match brightness and cell-row spacing across horizontal and vertical repeats.",
+    "requested_prompt": "Differential-interference-contrast (Nomarski) microscope look: smooth grey background, transparent structures rendered with directional pseudo-relief (light on one side, dark on the other, the same direction everywhere), gentle colourless tones with at most a faint amber cast, shallow depth of field. A deeply out-of-focus view through a wet moss cushion at about 2 mm across: overlapping translucent leaf blades with cell rows, curved water menisci between them catching light, a bdelloid rotifer barely visible as a blur. Very shallow depth of field, everything soft. No tardigrade. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-845abdea-4761-41fd-b7b8-8298d4b24824.png",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "4135d7cdf3d204125a25d32712007b8cbde1dd29f9fdb27fcd4217d57bf76a27",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      },
+      {
+        "id": "tardigrade-light",
+        "local": "assets/references/tardigrade-light.png",
+        "author": "Dorathyexplorer",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png"
+      },
+      {
+        "id": "rotifer",
+        "local": "assets/references/rotifer.jpg",
+        "author": "Juan Carlos Fonseca Mata",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Philodina_sp._(Class%CB%90_Bdelloidea)_-_Phylum_Rotifera.jpg"
+      }
+    ],
+    "mood_boards": [
+      "02-waterfilm.webp"
+    ]
+  },
+  {
+    "id": "MP-T04",
+    "name": "Detritus and food particles",
+    "file": "assets/tardigrade/particles.png",
+    "size": "1024 x 1024, transparent, 4 x 4 sprite grid",
+    "used": "Drifting particles in the water film and food the tardigrade can reach.",
+    "prompt": "Use case: scientific-educational. Create a production particle sprite sheet with precisely four columns and four rows, sixteen separate small microscopic objects on genuinely transparent PNG alpha. Square1024×1024. Cells are equal256×256. Each particle centered exactly in its cell with at least32px clean transparent margin and no material crossing cell boundaries. No grid lines. DIC microscopy appearance, clear pale refractive particles and restrained real green/brown pigments; antialiased edges with no red/yellow fringes or detached speckles. Every object represents only about10–40micrometres. Row1: four different small brown decomposing plant flakes. Row2: four small round single green algal cells. Row3: two tiny clumps of rod bacteria, one small pennate diatom frustule, one tiny round pollen grain. Row4: one tiny moss cell fragment, and three different small fungal spores. NO TARDIGRADES, NO ROTIFERS, NO PARAMECIUM, NO AMOEBA, NO LARGE FLAGELLATES, NO ANIMALS. These are food particles and detritus, not a creature bestiary. No frame, labels, text, shadows or backgrounds. Follow the equal4x4spacing strictly.",
+    "requested_prompt": "Differential-interference-contrast (Nomarski) microscope look: smooth grey background, transparent structures rendered with directional pseudo-relief (light on one side, dark on the other, the same direction everywhere), gentle colourless tones with at most a faint amber cast, shallow depth of field. A 4 by 4 grid of sixteen separate small objects, each centred in its own cell with clear space around it: brown detritus flakes, single green algal cells, a few rod bacteria clumps, a diatom, a pollen grain, a moss leaf fragment, fungal spores. Each object at the same scale, about 10 to 40 µm. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-6eac5603-ff0e-49fc-b03d-efdbf6a47cc4.png",
+    "input_images": [],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 1024,
+    "height": 1024,
+    "sha256": "78a150fb095e78955b785b25004623d3ac8cdaacf27f15489e667044ed618e61",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "tardigrade-light",
+        "local": "assets/references/tardigrade-light.png",
+        "author": "Dorathyexplorer",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png"
+      },
+      {
+        "id": "rotifer",
+        "local": "assets/references/rotifer.jpg",
+        "author": "Juan Carlos Fonseca Mata",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Philodina_sp._(Class%CB%90_Bdelloidea)_-_Phylum_Rotifera.jpg"
+      },
+      {
+        "id": "euglena",
+        "local": "assets/references/euglena.jpg",
+        "author": "naturalismus",
+        "license": "CC BY-SA 2.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/2.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Euglena_gracilis.jpg"
+      }
+    ],
+    "mood_boards": [
+      "02-waterfilm.webp"
+    ]
+  },
+  {
+    "id": "MP-A01",
+    "name": "Wet-mount background (brightfield)",
+    "file": "assets/amoeba/wetmount.webp",
+    "size": "2048 x 2048, opaque, tileable",
+    "used": "The slide the amoeba crawls over.",
+    "prompt": "Use case: scientific-educational. Asset type: sparse tileable texture for the glass slide under an amoeba. Supplied amoeba photo is ONLY a reference for the brightfield optical contrast and background tint. Do not draw an amoeba or ANY whole large organism from it. Square2048×2048. Uniform pale warm-grey brightfield field,90percent open negative space, with only a few tiny softly refractive brown detritus flakes, minute bacteria clumps and two or three very small empty diatom frustules. Nothing green, no algae filaments, no Spirogyra, no cells, no ciliates. Low contrast. No large feature and no direction or perspective. All four edges repeat seamlessly, matched neutral background and sparse particles continuing across opposite edges. No vignette, border, text or labels. A quiet slide surface rather than a rich ecosystem composition.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Transmitted-light brightfield microscope look: pale warm-grey to faintly green background, transparent bodies with weak contrast, darker refractive edges, pigment only where it is real (green chloroplasts, brown detritus), soft out-of-focus layers, slight optical softness, no hard drop shadows, no specular highlights. A pond-water wet mount at about 1 mm across, seen at the glass: a pale even field with scattered small brown detritus flakes, a few bacteria clumps, empty diatom frustules and out-of-focus specks, sparse enough that most of the image is clear background. No large organisms.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-2d48fab0-cf35-49cc-a16e-1a17f2a2c994.png",
+    "input_images": [
+      "research/assets/references/amoeba.jpg"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "31c1caae0ceff48991188995cb519c285106ebc3174b3faa2a0effb1fe5e8e97",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "amoeba",
+        "local": "assets/references/amoeba.jpg",
+        "author": "Cymothoa exigua",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Amoeba_proteus.jpg"
+      },
+      {
+        "id": "spirogyra",
+        "local": "assets/references/spirogyra.jpg",
+        "author": "Wiedehopf20",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg"
+      },
+      {
+        "id": "diatoms",
+        "local": "assets/references/diatoms.jpg",
+        "author": "Prof. Gordon T. Taylor, Stony Brook University",
+        "license": "Public domain",
+        "license_url": "",
+        "source": "https://commons.wikimedia.org/wiki/File:Diatoms_through_the_microscope.jpg"
+      }
+    ],
+    "mood_boards": [
+      "03-protist-garden.webp"
+    ]
+  },
+  {
+    "id": "MP-A02",
+    "name": "Amoeba cytoplasm granules",
+    "file": "assets/amoeba/cytoplasm.webp",
+    "size": "1024 x 1024, opaque, tileable",
+    "used": "Granular endoplasm texture that streams inside the amoeba.",
+    "prompt": "Use case: scientific-educational. Asset type: individual production microscopy-game texture or background plate. Supplied images: first 1 are real scientific references (amoeba), last is AI mood reference only. Do not reproduce image panels, scale bars, labels or any text from the references.\nSeamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Transmitted-light brightfield microscope look: pale warm-grey to faintly green background, transparent bodies with weak contrast, darker refractive edges, pigment only where it is real (green chloroplasts, brown detritus), soft out-of-focus layers, slight optical softness, no hard drop shadows, no specular highlights. The granular endoplasm of Amoeba proteus at about 80 µm across: densely packed tiny refractile granules and crystals 1 to 3 µm, a few small food vacuoles and lipid droplets, colourless to faint grey-yellow, on a pale field.\nRequested export: 1024 x 1024, opaque, tileable. Deliver exactly one complete asset, no border or panels. For tileable assets, left-right and top-bottom boundaries must connect naturally with continuous texture and matched brightness. For background plates, keep the field out of focus and do not add the player organism. For cytoplasm, no whole cell, cell outline, membrane or large nucleus; granules cover the full square with no vignette.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Transmitted-light brightfield microscope look: pale warm-grey to faintly green background, transparent bodies with weak contrast, darker refractive edges, pigment only where it is real (green chloroplasts, brown detritus), soft out-of-focus layers, slight optical softness, no hard drop shadows, no specular highlights. The granular endoplasm of Amoeba proteus at about 80 µm across: densely packed tiny refractile granules and crystals 1 to 3 µm, a few small food vacuoles and lipid droplets, colourless to faint grey-yellow, on a pale field.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-50b95e5c-1430-4e2e-bfb7-9424f27dd73b.png",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 1024,
+    "height": 1024,
+    "sha256": "fac2e985d2e17c366f5901a24e0b694b98b6e13af016521f77d0bb419b827587",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "amoeba",
+        "local": "assets/references/amoeba.jpg",
+        "author": "Cymothoa exigua",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Amoeba_proteus.jpg"
+      }
+    ],
+    "mood_boards": [
+      "03-protist-garden.webp"
+    ]
+  },
+  {
+    "id": "MP-A03",
+    "name": "Algal filament backdrop",
+    "file": "assets/amoeba/filaments.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "Out-of-focus layer above the slide.",
+    "prompt": "Use case: scientific-educational. Asset type: individual production microscopy-game texture or background plate. Supplied images: first 2 are real scientific references (spirogyra, vorticella), last is AI mood reference only. Do not reproduce image panels, scale bars, labels or any text from the references.\nTransmitted-light brightfield microscope look: pale warm-grey to faintly green background, transparent bodies with weak contrast, darker refractive edges, pigment only where it is real (green chloroplasts, brown detritus), soft out-of-focus layers, slight optical softness, no hard drop shadows, no specular highlights. Slightly out-of-focus Spirogyra filaments crossing the field diagonally at about 1.5 mm across, each cell showing its spiral ribbon chloroplast, with a few Vorticella on stalks attached to one filament and loose detritus. Shallow depth of field. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nRequested export: 2560 x 1440, opaque. Deliver exactly one complete asset, no border or panels. For tileable assets, left-right and top-bottom boundaries must connect naturally with continuous texture and matched brightness. For background plates, keep the field out of focus and do not add the player organism. For cytoplasm, no whole cell, cell outline, membrane or large nucleus; granules cover the full square with no vignette.",
+    "requested_prompt": "Transmitted-light brightfield microscope look: pale warm-grey to faintly green background, transparent bodies with weak contrast, darker refractive edges, pigment only where it is real (green chloroplasts, brown detritus), soft out-of-focus layers, slight optical softness, no hard drop shadows, no specular highlights. Slightly out-of-focus Spirogyra filaments crossing the field diagonally at about 1.5 mm across, each cell showing its spiral ribbon chloroplast, with a few Vorticella on stalks attached to one filament and loose detritus. Shallow depth of field. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-278c442f-62a5-4263-980b-bc80367d07a5.png",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "2065475cc67d61830cf85994b3cf3160416e4d2a8c9977987451cdff369f12a1",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "spirogyra",
+        "local": "assets/references/spirogyra.jpg",
+        "author": "Wiedehopf20",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg"
+      },
+      {
+        "id": "vorticella",
+        "local": "assets/references/vorticella.jpg",
+        "author": "Bwiltz",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Vorticella_1.jpg"
+      }
+    ],
+    "mood_boards": [
+      "03-protist-garden.webp"
+    ]
+  },
+  {
+    "id": "MP-P01",
+    "name": "Pond habitat plate (darkfield)",
+    "file": "assets/paramecium/darkfield-plate.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "The far background in darkfield mode.",
+    "prompt": "Use case: scientific-educational. Asset type: individual production microscopy-game texture or background plate. Supplied images: first 3 are real scientific references (spirogyra, vorticella, diatoms), last is AI mood reference only. Do not reproduce image panels, scale bars, labels or any text from the references.\nDarkfield microscope look: near-black background, objects visible only as bright scattering edges and internal granules in cool white and pale gold, faint coloured chloroplasts, small particles as sparkling points, shallow depth of field. A pond-water scene at about 2 mm across, out of focus: Spirogyra filaments, flakes of detritus and a cluster of stalked Vorticella, all as glowing edges on black. No Paramecium. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nRequested export: 2560 x 1440, opaque. Deliver exactly one complete asset, no border or panels. For tileable assets, left-right and top-bottom boundaries must connect naturally with continuous texture and matched brightness. For background plates, keep the field out of focus and do not add the player organism. For cytoplasm, no whole cell, cell outline, membrane or large nucleus; granules cover the full square with no vignette.",
+    "requested_prompt": "Darkfield microscope look: near-black background, objects visible only as bright scattering edges and internal granules in cool white and pale gold, faint coloured chloroplasts, small particles as sparkling points, shallow depth of field. A pond-water scene at about 2 mm across, out of focus: Spirogyra filaments, flakes of detritus and a cluster of stalked Vorticella, all as glowing edges on black. No Paramecium. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-14f90130-ee4f-4ef1-bcb8-6d03a5a0c89d.png",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "ac851f19dc0f2ee1817a80708df74895970c6c95765acd8f07b395ba97ee61d8",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "spirogyra",
+        "local": "assets/references/spirogyra.jpg",
+        "author": "Wiedehopf20",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg"
+      },
+      {
+        "id": "vorticella",
+        "local": "assets/references/vorticella.jpg",
+        "author": "Bwiltz",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Vorticella_1.jpg"
+      },
+      {
+        "id": "diatoms",
+        "local": "assets/references/diatoms.jpg",
+        "author": "Prof. Gordon T. Taylor, Stony Brook University",
+        "license": "Public domain",
+        "license_url": "",
+        "source": "https://commons.wikimedia.org/wiki/File:Diatoms_through_the_microscope.jpg"
+      }
+    ],
+    "mood_boards": [
+      "03-protist-garden.webp"
+    ]
+  },
+  {
+    "id": "MP-P02",
+    "name": "Pond habitat plate (phase contrast)",
+    "file": "assets/paramecium/phase-plate.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "The far background in phase-contrast mode.",
+    "prompt": "Use case: style-transfer. The supplied image is the edit target: a darkfield pond habitat plate. Preserve the exact arrangement, silhouette, size and positions of every filament, stalked ciliate, detritus flake and diatom. Change only its optical rendering to phase contrast, as an alternate mode of the same game backdrop. Mid-grey background, colorless transparent structures dark grey with bright modest phase halos at their boundaries. Remove all green and gold pigment color; monochrome grey. Soften the whole plate slightly as an out-of-focus far background. Do not add Paramecium, animals, text or new objects. Requested export 2560 × 1440, landscape16:9. Phase-contrast microscope look: mid-grey background, transparent structures dark with bright halos at their edges, colourless. The same pond-water scene at about 2 mm across, out of focus: Spirogyra filaments, detritus flakes and stalked Vorticella. No Paramecium. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "requested_prompt": "Phase-contrast microscope look: mid-grey background, transparent structures dark with bright halos at their edges, colourless. The same pond-water scene at about 2 mm across, out of focus: Spirogyra filaments, detritus flakes and stalked Vorticella. No Paramecium. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-c251ec50-4a15-4a3f-b61d-9d8a7c8ec357.png",
+    "input_images": [
+      "generated/exec-14f90130-ee4f-4ef1-bcb8-6d03a5a0c89d.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "59544e97b11571176cb81151a41ca5edad782813258e71576472db6ade737592",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "spirogyra",
+        "local": "assets/references/spirogyra.jpg",
+        "author": "Wiedehopf20",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg"
+      },
+      {
+        "id": "vorticella",
+        "local": "assets/references/vorticella.jpg",
+        "author": "Bwiltz",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Vorticella_1.jpg"
+      },
+      {
+        "id": "paramecium",
+        "local": "assets/references/paramecium.jpg",
+        "author": "MTadey",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg"
+      }
+    ],
+    "mood_boards": [
+      "03-protist-garden.webp"
+    ]
+  },
+  {
+    "id": "MP-P03",
+    "name": "Paramecium pellicle",
+    "file": "assets/paramecium/pellicle.webp",
+    "size": "1024 x 1024, opaque, tileable",
+    "used": "Surface pattern on the cell body under the cilia.",
+    "prompt": "Use case: scientific-educational. Individual production tileable microscopic surface texture. The supplied real Paramecium photo provides specimen context and the final concept board is mood only, never a shape template. Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. The pellicle of Paramecium at about 40 µm across as seen in silver-stained or SEM preparations: a regular lattice of hexagonal to rhomboid alveolar units in long parallel rows (kineties) running vertically, a cilium base at the centre of each unit, faint grey on light grey. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI. Single square1024×1024 image with a perfectly repeating, regular lattice: an integer number of parallel vertical kinety rows with equally spaced units, matching spacing and position across left/right and top/bottom. No cilia stalks extending far above the surface; show only their small central sockets. No whole cell, silhouette, nucleus, creatures, border, scale bars, labels, or other text.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. The pellicle of Paramecium at about 40 µm across as seen in silver-stained or SEM preparations: a regular lattice of hexagonal to rhomboid alveolar units in long parallel rows (kineties) running vertically, a cilium base at the centre of each unit, faint grey on light grey. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-804de640-8d88-4543-9ec2-2383b368b6b5.png",
+    "input_images": [
+      "research/assets/references/paramecium.jpg",
+      "research/assets/concepts/03-protist-garden.webp"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 1024,
+    "height": 1024,
+    "sha256": "f578c03f9737415bb7166d41c35fb6299f0bfb355e6340d3e0800daf0d17420a",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "paramecium",
+        "local": "assets/references/paramecium.jpg",
+        "author": "MTadey",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg"
+      }
+    ],
+    "mood_boards": [
+      "03-protist-garden.webp"
+    ]
+  }
+]

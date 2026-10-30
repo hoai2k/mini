@@ -93,7 +93,7 @@ GROUPS = [
         "intro": "One card per prototype on the prototypes page (micro/prototypes/). Until they arrive each card shows a live-drawn thumbnail colour and its title.",
         "items": [
             {
-                "id": "MP-U01", "name": "Mite card (SEM)",
+                "id": "MP-U01", "status": "delivered", "name": "Mite card (SEM)",
                 "file": "assets/cards/mite.webp", "size": "1200 x 800, opaque",
                 "used": "The Mite card on the prototypes page.",
                 "standin": "A grey gradient with the title.",
@@ -101,7 +101,7 @@ GROUPS = [
                 "prompt": f"{CARD} {SEM} An armoured oribatid moss mite (box-mite, family Phthiracaridae: a smooth domed notogaster about 0.6 mm long, eight short jointed legs, a hinged prodorsum, a few stiff setae) walking over a dry moss leaf edge among fungal hyphae and angular mineral grains, three-quarter view from slightly above, the mite in the left half of the frame. Exactly eight legs, each with five visible segments and a single claw. {SCIENCE}",
             },
             {
-                "id": "MP-U02", "name": "Tardigrade card",
+                "id": "MP-U02", "status": "delivered", "name": "Tardigrade card",
                 "file": "assets/cards/tardigrade.webp", "size": "1200 x 800, opaque",
                 "used": "The Tardigrade card on the prototypes page.",
                 "standin": "A grey-green gradient with the title.",
@@ -109,7 +109,7 @@ GROUPS = [
                 "prompt": f"{CARD} {DIC} A moss-dwelling tardigrade (a eutardigrade about 0.35 mm long: plump segmented body, exactly four pairs of stubby unjointed lobopod legs, the fourth pair pointing backwards at the rear end, each leg ending in hooked double claws, a pale translucent body with greenish gut contents and two dark eye-spots) gripping the ridged cell walls of a moss leaf lamina under a thin film of water, the long rectangular leaf cells receding diagonally. {SCIENCE}",
             },
             {
-                "id": "MP-U03", "name": "Amoeba card",
+                "id": "MP-U03", "status": "delivered", "name": "Amoeba card",
                 "file": "assets/cards/amoeba.webp", "size": "1200 x 800, opaque",
                 "used": "The Amoeba card on the prototypes page.",
                 "standin": "A pale warm gradient with the title.",
@@ -117,7 +117,7 @@ GROUPS = [
                 "prompt": f"{CARD} {BRIGHTFIELD} Amoeba proteus about 400 µm across with several broad blunt pseudopods, a clear hyaline cap at each advancing tip, granular streaming endoplasm, one disc-shaped nucleus and a round contractile vacuole, two pseudopods curving to form a food cup around a small green flagellate. A strand of Spirogyra with its spiral chloroplast crosses the background out of focus. {SCIENCE}",
             },
             {
-                "id": "MP-U04", "name": "Paramecium card",
+                "id": "MP-U04", "status": "delivered", "name": "Paramecium card",
                 "file": "assets/cards/paramecium.webp", "size": "1200 x 800, opaque",
                 "used": "The Paramecium card on the prototypes page.",
                 "standin": "A dark blue gradient with the title.",
@@ -147,7 +147,7 @@ GROUPS = [
                 "prompt": f"{TILE} {SEM} Soil and leaf litter at about 2 mm across: angular quartz and clay mineral grains from 20 to 200 µm, flakes of decomposing leaf with visible cell outlines, a loose net of fungal hyphae 3 to 5 µm thick draped between grains, a few round fungal spores and pollen grains.",
             },
             {
-                "id": "MP-M03", "name": "SEM oribatid cuticle",
+                "id": "MP-M03", "status": "delivered", "name": "SEM oribatid cuticle",
                 "file": "assets/mite/sem-cuticle.webp", "size": "1024 x 1024, opaque, tileable",
                 "used": "Detail texture on the mite's notogaster and leg segments.",
                 "standin": "Procedural fine pitting and sockets.",
@@ -155,7 +155,7 @@ GROUPS = [
                 "prompt": f"{TILE} {SEM} The sclerotised cuticle of an oribatid mite's notogaster at about 100 µm across: a smooth gently curved hard surface with fine shallow pits (foveae), a faint cerotegument crust in patches, and a few setal sockets (small raised rings) spaced widely. No whole animal.",
             },
             {
-                "id": "MP-M04", "name": "SEM moss forest backdrop",
+                "id": "MP-M04", "status": "delivered", "name": "SEM moss forest backdrop",
                 "file": "assets/mite/sem-backdrop.webp", "size": "2560 x 1080, opaque",
                 "used": "The far backdrop behind the walkable area, wrapped around the scene.",
                 "standin": "Dark gradient with fog.",
@@ -185,7 +185,7 @@ GROUPS = [
                 "prompt": f"{TILE} {DIC} A Sphagnum leaf at about 400 µm across: large empty hyaline cells with spiral fibril reinforcing bands and round pores, framed by a network of narrow green chlorophyllose cells between them, as in the classic Sphagnum leaf micrograph.",
             },
             {
-                "id": "MP-T03", "name": "Water-film backdrop",
+                "id": "MP-T03", "status": "delivered", "name": "Water-film backdrop",
                 "file": "assets/tardigrade/film-backdrop.webp", "size": "2560 x 1440, opaque",
                 "used": "Out-of-focus plate behind the climbing plane.",
                 "standin": "Soft gradient with blurred leaf shapes.",
@@ -193,7 +193,7 @@ GROUPS = [
                 "prompt": f"{DIC} A deeply out-of-focus view through a wet moss cushion at about 2 mm across: overlapping translucent leaf blades with cell rows, curved water menisci between them catching light, a bdelloid rotifer barely visible as a blur. Very shallow depth of field, everything soft. No tardigrade. {SCIENCE}",
             },
             {
-                "id": "MP-T04", "name": "Detritus and food particles",
+                "id": "MP-T04", "status": "delivered", "name": "Detritus and food particles",
                 "file": "assets/tardigrade/particles.png", "size": "1024 x 1024, transparent, 4 x 4 sprite grid",
                 "used": "Drifting particles in the water film and food the tardigrade can reach.",
                 "standin": "Procedural specks.",
@@ -207,7 +207,7 @@ GROUPS = [
         "intro": "Images for the amoeba prototype, seen in brightfield. The amoeba and its prey are soft bodies built in code; these supply the wet-mount background and the granular cytoplasm.",
         "items": [
             {
-                "id": "MP-A01", "name": "Wet-mount background (brightfield)",
+                "id": "MP-A01", "status": "delivered", "name": "Wet-mount background (brightfield)",
                 "file": "assets/amoeba/wetmount.webp", "size": "2048 x 2048, opaque, tileable",
                 "used": "The slide the amoeba crawls over.",
                 "standin": "Procedural pale field with soft detritus.",
@@ -215,7 +215,7 @@ GROUPS = [
                 "prompt": f"{TILE} {BRIGHTFIELD} A pond-water wet mount at about 1 mm across, seen at the glass: a pale even field with scattered small brown detritus flakes, a few bacteria clumps, empty diatom frustules and out-of-focus specks, sparse enough that most of the image is clear background. No large organisms.",
             },
             {
-                "id": "MP-A02", "name": "Amoeba cytoplasm granules",
+                "id": "MP-A02", "status": "delivered", "name": "Amoeba cytoplasm granules",
                 "file": "assets/amoeba/cytoplasm.webp", "size": "1024 x 1024, opaque, tileable",
                 "used": "Granular endoplasm texture that streams inside the amoeba.",
                 "standin": "Procedural granule noise.",
@@ -223,7 +223,7 @@ GROUPS = [
                 "prompt": f"{TILE} {BRIGHTFIELD} The granular endoplasm of Amoeba proteus at about 80 µm across: densely packed tiny refractile granules and crystals 1 to 3 µm, a few small food vacuoles and lipid droplets, colourless to faint grey-yellow, on a pale field.",
             },
             {
-                "id": "MP-A03", "name": "Algal filament backdrop",
+                "id": "MP-A03", "status": "delivered", "name": "Algal filament backdrop",
                 "file": "assets/amoeba/filaments.webp", "size": "2560 x 1440, opaque",
                 "used": "Out-of-focus layer above the slide.",
                 "standin": "Blurred procedural filaments.",
@@ -237,7 +237,7 @@ GROUPS = [
         "intro": "Images for the Paramecium swimming prototype, which can switch between darkfield and phase contrast. The cell and its cilia are geometry and shaders; these supply the habitat.",
         "items": [
             {
-                "id": "MP-P01", "name": "Pond habitat plate (darkfield)",
+                "id": "MP-P01", "status": "delivered", "name": "Pond habitat plate (darkfield)",
                 "file": "assets/paramecium/darkfield-plate.webp", "size": "2560 x 1440, opaque",
                 "used": "The far background in darkfield mode.",
                 "standin": "Black field with procedural scattering specks.",
@@ -245,7 +245,7 @@ GROUPS = [
                 "prompt": f"{DARKFIELD} A pond-water scene at about 2 mm across, out of focus: Spirogyra filaments, flakes of detritus and a cluster of stalked Vorticella, all as glowing edges on black. No Paramecium. {SCIENCE}",
             },
             {
-                "id": "MP-P02", "name": "Pond habitat plate (phase contrast)",
+                "id": "MP-P02", "status": "delivered", "name": "Pond habitat plate (phase contrast)",
                 "file": "assets/paramecium/phase-plate.webp", "size": "2560 x 1440, opaque",
                 "used": "The far background in phase-contrast mode.",
                 "standin": "Mid-grey field with procedural haloed specks.",
@@ -253,7 +253,7 @@ GROUPS = [
                 "prompt": f"Phase-contrast microscope look: mid-grey background, transparent structures dark with bright halos at their edges, colourless. The same pond-water scene at about 2 mm across, out of focus: Spirogyra filaments, detritus flakes and stalked Vorticella. No Paramecium. {SCIENCE}",
             },
             {
-                "id": "MP-P03", "name": "Paramecium pellicle",
+                "id": "MP-P03", "status": "delivered", "name": "Paramecium pellicle",
                 "file": "assets/paramecium/pellicle.webp", "size": "1024 x 1024, opaque, tileable",
                 "used": "Surface pattern on the cell body under the cilia.",
                 "standin": "Procedural kinety rows.",
