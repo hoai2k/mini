@@ -462,6 +462,26 @@ GROUPS.append(
 )
 
 
+# Play-testing, 30 October 2026: in the armoury Aurora now glides on from the
+# stairs and off again, and the bound prince struggles against the witch's
+# cords before she frees him.
+GROUPS.append(
+    ('Aurora gliding, and the prince struggling', 'Requested 30 October 2026 for the reworked armoury: the prince, bound by the witch, struggles left and right against her cords until Aurora glides on, breaks the spell, arms him and glides off. Until they arrive the game floats aurora-stand across the stage with a sparkle trail, and rocks prince-bound from side to side.', [
+        (f'aurora-glide-{f}{t}', f'Aurora gliding, frame {f.upper()}{" (tinted)" if t else ""}', 300, 420, 'bottom centre', TINTED if t else SPRITE,
+         f'{AURORA}, exactly as in aurora-stand{t}.webp (attach it): the same face, gown, veils, diadem, colours and scale (her figure fills the same height). Gliding through the air facing LEFT, a fairy\'s flight rather than a walk: feet together and pointed just clear of the ground, her body leaning slightly forward into the glide, veils and gown streaming out BEHIND her to the right, wand held forward and low with its star glowing. '
+         + ('Frame A: veils lifted high behind her.' if f == 'a' else 'Frame B: the same glide a moment later, veils falling lower and gown fluttering the other way, so A and B alternate as a gentle flutter.')
+         + ' The lowest point of the figure (her pointed toes) on the bottom edge; centred on the canvas. Nothing but the figure: no sparkle trail, ground or shadow (the game adds the sparkle).', 'aurora-stand')
+        for f in ('a', 'b') for t in ('', '-tinted')
+    ] + [
+        (f'prince-struggle-{f}{t}', f'Prince struggling against the cords, {side}{" (tinted)" if t else ""}', 260, 360, 'bottom centre', TINTED if t else SPRITE,
+         f'Prince Bel-Azor in his court dress exactly as in prince-bound{t}.webp (attach it, and prince-court{t}.webp): the same face, doublet, cloak, colours and scale, his arms still bound to his sides by the glowing teal cords of the witch\'s magic. Wrenching against them {side}: '
+         + ('his whole body twisted and leaning back toward the LEFT, one shoulder heaved up, teeth gritted, the cords biting and stretched tight on the right side, one foot braced.' if f == 'a' else 'his whole body twisted and leaning forward toward the RIGHT, the other shoulder heaved up, straining, the cords stretched tight on the left side, the other foot braced.')
+         + f' Feet on the bottom edge, centred so the two frames line up with prince-bound when swapped. {POSE}', 'prince-bound')
+        for f, side in (('a', 'back to the left'), ('b', 'forward to the right')) for t in ('', '-tinted')
+    ]),
+)
+
+
 def ids():
     return [a for _, _, items in GROUPS for a in items]
 
