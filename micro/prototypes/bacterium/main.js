@@ -44,7 +44,8 @@ const card = Object.assign(document.createElement('div'), { className: 'bx-card'
 const tag = Object.assign(document.createElement('div'), { className: 'bx-tag', textContent: 'DATA OVERLAY · not optics: what the cell senses' });
 const scaleEl = Object.assign(document.createElement('div'), { className: 'bx-scale' });
 const o2El = Object.assign(document.createElement('div'), { className: 'bx-o2' });
-document.body.append(card, tag, scaleEl, o2El);
+const mark = Object.assign(document.createElement('div'), { className: 'bx-mark' });
+document.body.append(card, tag, scaleEl, o2El, mark);
 
 // --- simulation ---
 const world = createWorld();
@@ -69,7 +70,7 @@ safeTexture('MP-B03').then((t) => { if (t) shapes.setTextures({ cil: t }); });
 safeTexture('MP-B04').then((t) => { if (t) shapes.setTextures({ mag: t }); });
 
 const ZOOMS = [180, 90, 45, 22]; // field height in µm: the eyepiece field at 1000×, then camera crops
-const view = { zoom: 2, cx: 0, cy: 30, stage: new THREE.Vector2(), focus: 0, look: 'phase', overlay: false, stop: true, focusFollows: true };
+const view = { mark: true, zoom: 2, cx: 0, cy: 30, stage: new THREE.Vector2(), focus: 0, look: 'phase', overlay: false, stop: true, focusFollows: true };
 
 const gl = renderer.getContext();
 const soft = /SwiftShader|llvmpipe|Software/i.test(String(gl.getParameter(gl.RENDERER)) + (gl.getExtension('WEBGL_debug_renderer_info') ? gl.getParameter(0x9246) : ''));
@@ -112,6 +113,7 @@ features.add({ id: 'chPhage', group: 'Optics', label: 'Stain: phages (SYBR Gold)
 features.add({ id: 'overlay', group: 'Optics', label: 'Data overlay (Y)', on: false,
   about: 'Oxygen (blue too little, green the band, red too much; isolines at 0.1, 1, 10 %), food contours, the field lines and the grazers\' currents, and the magnetosome chain picked out. Marked on screen as data, not optics.',
   onChange: (on) => { view.overlay = on; tag.classList.toggle('show', on); o2El.classList.toggle('show', on); } });
+features.add({ id: 'mark', group: 'Optics', label: 'Mark your cell', on: true, about: 'Corner brackets round your cell (a game marker, not optics): at 1000× you are one small grey rod among many.', onChange: (on) => { view.mark = on; } });
 features.add({ id: 'shapes', group: 'Rendering', label: 'Instanced 2D distance-field specimen', fixed: true,
   about: 'Every cell, filament, phage, grain and giant-cell edge is a quad whose fragment shader computes its true cross-section chord (2√(r²−d²)) and adds optical path, scatter, stain and absorbance into float buffers. Sub-pixel parts are widened with their total kept.' });
 features.add({ id: 'field', group: 'Rendering', label: 'Shared optical field', fixed: true, about: 'The buffers are adapters.js\'s optical field plus a fluorescence attachment, so the borrowed looks read the same specimen.' });
@@ -322,6 +324,15 @@ function render() {
   // scale bar and oxygen ticks
   const bar = fieldH >= 90 ? 20 : fieldH >= 40 ? 5 : 2;
   const cssPerUm = innerHeight / fieldH;
+  const showMark = view.mark && !(S.over && S.over !== 'won' && S.overT > 2.5);
+  mark.style.display = showMark ? 'block' : 'none';
+  if (showMark) {
+    const size = Math.max(26, S.sp.L * cssPerUm + 18);
+    const p = S.inside || S;
+    mark.style.width = mark.style.height = `${size}px`;
+    mark.style.left = `${innerWidth / 2 + (p.x - cx) * cssPerUm - size / 2}px`;
+    mark.style.top = `${innerHeight / 2 - (p.y - cy) * cssPerUm - size / 2}px`;
+  }
   scaleEl.innerHTML = `<i style="width:${Math.round(bar * cssPerUm)}px"></i>${bar} µm · field ${fieldH} µm${view.zoom ? ' (crop)' : ''}`;
   if (view.overlay) {
     const ticks = [0.1, 0.5, 1, 2, 5, 10, 20, 50];

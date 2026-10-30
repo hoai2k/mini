@@ -159,7 +159,8 @@ export function createSwimmer(world) {
     s.flow = Math.hypot(f.x, f.y);
     // walls: the meniscus above; the sediment's grains
     if (s.y > WORLD.y1 - 2) s.y = WORLD.y1 - 2;
-    if (s.y < WORLD.y0 + 30) s.y = WORLD.y0 + 30;
+    const floor = world.surfaceY(s.x) - 20; // the biofilm packs into sediment below this
+    if (s.y < floor) s.y = floor;
     if (s.x < WORLD.x0 + 2) s.x = WORLD.x0 + 2;
     if (s.x > WORLD.x1 - 2) s.x = WORLD.x1 - 2;
     if (world.pushOutOfGrains(s, sp.r + 0.1) && s.mode === 'run') ev.bump = true;

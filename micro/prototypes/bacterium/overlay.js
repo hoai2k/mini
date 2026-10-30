@@ -53,14 +53,14 @@ void main() {
   vec2 B = normalize(uField.xy);
   vec2 Bn = vec2(-B.y, B.x);
   float across = dot(w, Bn), along = dot(w, B);
-  float sp = 9.0;
+  float sp = 16.0;
   float dl = abs(fract(across / sp + 0.5) - 0.5) * sp; // distance to the nearest field line, µm
   float lineB = 1.0 - smoothstep(0.5 * px, 1.5 * px, dl);
   float chev = step(0.8, fract((along + dl * 0.9) / 7.0 - uTime * 0.6));
   float near = 1.0 - smoothstep(0.0, 1.4, dl);
   float showB = clamp(uField.z / 20.0, 0.2, 1.0);
-  c = mix(c, vec4(0.75, 0.8, 1.0, 0.35 * showB), lineB);
-  c = mix(c, vec4(0.85, 0.9, 1.0, 0.7 * showB), chev * near);
+  c = mix(c, vec4(0.75, 0.8, 1.0, 0.18 * showB), lineB);
+  c = mix(c, vec4(0.85, 0.9, 1.0, 0.45 * showB), chev * near);
   // feeding currents: streaks falling into each oral funnel
   for (int i = 0; i < 2; i++) {
     vec4 s = uSink[i];

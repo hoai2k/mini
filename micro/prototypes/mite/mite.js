@@ -385,7 +385,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
     center: V3(0, AN.stand, 0), q: new THREE.Quaternion(),
     vel: V3(), angVel: V3(), airborne: false,
     q0: new THREE.Quaternion(), c0: V3(), h0: 0, lastLand: 0,
-    biteT: 0, time: 0, pen: 0, climbing: 0, groundHit: null,
+    biteT: 0, time: 0, pen: 0, climbing: 0, groundHit: null, lift: 0, liftT: 0, stuck: 0, drop: 0,
   };
   const events = [];
 
@@ -485,7 +485,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
     if (wall && wall.normal.dot(st.up) < 0.55) {
       const n = wall.normal.clone().addScaledVector(st.up, -wall.normal.dot(st.up)).normalize();
       const into = move.dot(n);
-      if (cfg.climb && step > 0.01) {
+      if (cfg.climb && step > 0.01 && wall.normal.dot(st.up) > -0.35) {
         // Too steep to step onto (a grain face, a stem, a flake on edge): the
         // claws hold on any rigid surface, so tip the body up onto the face as
         // it comes within reach. The ground probes then find the face and the
@@ -505,7 +505,12 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
     st.pos.add(move);
     st.pos.x = clamp(st.pos.x, -HALF + 150, HALF - 150);
     st.pos.z = clamp(st.pos.z, -HALF + 150, HALF - 150);
-    if (!settleBody(dt)) { st.pos.copy(prev); st.speed *= 0.5; }
+    if (!settleBody(dt)) {
+      st.pos.copy(prev); st.speed *= 0.5;
+      // Walked off the end or edge of something with nothing within reach:
+      // after a moment the mite lets go, closes and drops (box mites do).
+      if (step > 0.01 && (st.stuck += dt) > 0.5) { st.drop = 0.35; st.stuck = 0; }
+    } else st.stuck = Math.max(0, st.stuck - dt);
     if (cfg.clear) clearance(true);
     const fy = floorH(st.pos.x, st.pos.z);
     if (st.pos.y < fy) st.pos.y = fy;
@@ -560,11 +565,12 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
     const r = AN.noto.r;
     return 1 / Math.sqrt((d.x / r[0]) ** 2 + (d.y / r[1]) ** 2 + (d.z / r[2]) ** 2);
   }
+  const dt60 = 1 / 60;
   function clearance(apply) {
     basisQ(st.fwd, st.up, _cq);
-    _cc.set(AN.noto.c[0], AN.noto.c[1], AN.noto.c[2]).applyQuaternion(_cq).add(st.pos).addScaledVector(st.up, AN.stand);
+    _cc.set(AN.noto.c[0], AN.noto.c[1], AN.noto.c[2]).applyQuaternion(_cq).add(st.pos).addScaledVector(st.up, AN.stand + st.lift);
     _cp.set(0, 0, 0);
-    let pen = 0;
+    let pen = 0, belly = 0;
     for (const dirs of [CLEAR_DIRS, BELLY]) for (const d of dirs) {
       const rr = ellipsoidR(d);
       _cd.copy(d).applyQuaternion(_cq);
@@ -573,11 +579,14 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
       const p = rr - h.dist;
       if (p > pen) { pen = p; st.penInfo = { dir: d.toArray(), kind: h.kind, belly: dirs === BELLY }; }
       if (dirs === CLEAR_DIRS) _cp.addScaledVector(_cd, -p);
+      else belly = Math.max(belly, p * Math.max(0, -d.y));
     }
     st.pen = pen;
-    if (apply && _cp.lengthSq() > 0) {
-      _cp.addScaledVector(st.up, -_cp.dot(st.up));
-      st.pos.addScaledVector(_cp, 0.85);
+    if (apply) {
+      // Something under the belly (a ledge, a grain the centre has not reached
+      // yet): stand taller until the body clears it; the legs reach down.
+      st.liftT = Math.min(140, belly > 0 ? st.lift + belly + 2 : st.liftT * Math.exp(-dt60 / 0.25));
+      if (_cp.lengthSq() > 0) st.pos.add(_cp);
     }
     return pen;
   }
@@ -651,7 +660,8 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
       const sway = st.mode === 'walk' && cfg.bob ? 0.02 * Math.sin(st.phase * Math.PI * 2) * Math.min(1, st.speed / 120) : 0;
       q = basisQ(st.fwd, st.up);
       q.multiply(new THREE.Quaternion().setFromAxisAngle(V3(1, 0, 0), sway));
-      let h = AN.stand + bob;
+      st.lift += (st.liftT - st.lift) * (st.liftT > st.lift ? 0.5 : 0.08);
+      let h = AN.stand + bob + st.lift;
       if (st.mode === 'closing') h = AN.stand + (st.h0 - AN.stand) * sstep(0.2, 1, st.t);
       center = st.pos.clone().addScaledVector(st.up, h);
       st.center.copy(center); st.q.copy(q);
@@ -736,9 +746,11 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
 
   function update(dt, input) {
     events.length = 0;
+    if (!(dt > 0)) return events;
     st.time += dt;
     st.biteT = Math.max(0, st.biteT - dt);
-    const hold = input.hold;
+    st.drop = Math.max(0, st.drop - dt);
+    const hold = input.hold || st.drop > 0;
     if (st.mode === 'walk') {
       if (hold) {
         st.mode = 'closing'; st.t = 0; st.speed = 0;

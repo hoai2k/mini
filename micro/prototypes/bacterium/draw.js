@@ -6,7 +6,7 @@ import { rng, WORLD } from './world.js';
 
 // Stain amounts per µm of chord. Thin things carry a lot of dye for their
 // volume (a filament is mostly surface), so their per-volume amount is high.
-const MEMB = 1.0, FLAG = 260, MAG = 140, PHAGE = 170;
+const MEMB = 1.0, FLAG = 260, MAG = 140, PHAGE = 650;
 
 export function createDrawer(world) {
   const chan = { memb: 1, flag: 1, mag: 1, phage: 1 };
@@ -127,8 +127,8 @@ export function createDrawer(world) {
       if (c.kind === 'coccus') S.disc(c.x, c.y, c.r, { ...cell(), z: c.z });
       else rodCell(S, c, t);
     }
-    for (const g of W.grains) S.disc(g.x, g.y, g.r, { wobble: g.wob, seed: g.seed, cap: g.cap, ang: g.ang, dn: 0.2, scat: 0.35, fl: [0.03, 0.05, 0.0], ab: [0.05, 0.065, 0.09], z: g.z });
-    for (const p of W.specks) S.disc(p.x, p.y, p.r, { wobble: 0.2, seed: p.seed, dn: 0.2, scat: 0.5, fl: [0.03, 0.04, 0], ab: [0.06, 0.08, 0.11], z: p.z });
+    for (const g of W.grains) S.disc(g.x, g.y, g.r, { wobble: g.wob, seed: g.seed, cap: g.cap, ang: g.ang, dn: 0.2, scat: 0.35, fl: [0.006, 0.01, 0.0], ab: [0.05, 0.065, 0.09], z: g.z });
+    for (const p of W.specks) S.disc(p.x, p.y, p.r, { wobble: 0.2, seed: p.seed, dn: 0.2, scat: 0.5, fl: [0.01, 0.015, 0], ab: [0.06, 0.08, 0.11], z: p.z });
     for (const p of W.patches) {
       // a flake of decaying detritus at the patch's heart (the dissolved food itself is invisible)
       S.disc(p.x, p.y, p.flake.r * (0.6 + 0.4 * Math.min(1, p.amt)), { wobble: 0.35, seed: p.flake.seed, ang: p.flake.a, cap: 1.2, dn: 0.05, scat: 0.3, fl: [0.12, 0.14, 0.02], ab: [0.12, 0.16, 0.24], z: 0.3 });

@@ -150,7 +150,7 @@ void main() {
   if (uLook == 0) {
     float s = phi - uHalo * phiLow + plate * 0.25;
     float g = 1.0 - 1.15 * tanh(0.95 * s);
-    c = uBg * g * exp(-od * 1.0) * (1.0 - 0.25 * clamp(f0.g, 0.0, 1.0));
+    c = uBg * g * exp(-od * 1.0);
     c += n * uNoise * 0.06;
   } else if (uLook == 1) {
     vec3 haze = low.gba * 0.35;

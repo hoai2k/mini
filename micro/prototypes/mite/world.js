@@ -12,7 +12,7 @@ import { createFoliage } from '../shared/techniques/mite-foliage.js';
 export const HALF = 2000; // the floor spans -HALF..HALF in x and z (4 x 4 mm)
 
 const smooth = (t) => t * t * (3 - 2 * t);
-const clamp01 = (v) => Math.min(3, Math.max(0.4, v));
+const clamp01 = (v) => Math.min(2.5, Math.max(0.4, v));
 function vnoise(x, z, seed) {
   const xi = Math.floor(x), zi = Math.floor(z);
   const fx = smooth(x - xi), fz = smooth(z - zi);
@@ -377,13 +377,12 @@ export function buildWorld(tex) {
       };
       const sh = sheet(f, 14, 5, 12, (u, v) => [(v * 2 - 1) * halfW(u) / 140 + 0.5, u * len / 140], lowest ? 10 : 6, 3);
       leafGeos.push(sh.geo);
-      // The lowest leaves are old, thick and rest on the floor: rigid ramps.
-      // The others are thin blades held out from the stem: they bend.
-      const e = col.add(sh.col, lowest ? 'leaf' : 'blade');
-      if (!lowest) {
-        const samples = [0.2, 0.4, 0.55, 0.7, 0.85, 1].map((u) => bez(u, new THREE.Vector3()));
-        bladeInfo.push({ geoIndex: leafGeos.length - 1, base: start.clone(), tip: tip.clone(), samples, entry: e, L, stiff: clamp01((560 / L) ** 2 * 1.1) });
-      }
+      // Every leaf is a thin blade (one cell layer) that bends. The lowest,
+      // old leaves that arch out and rest their tips on the floor are much
+      // stiffer (they are ramps: they give a little under a mite, no more).
+      const e = col.add(sh.col, 'blade');
+      const samples = [0.2, 0.4, 0.55, 0.7, 0.85, 1].map((u) => bez(u, new THREE.Vector3()));
+      bladeInfo.push({ geoIndex: leafGeos.length - 1, base: start.clone(), tip: tip.clone(), samples, entry: e, L, stiff: lowest ? 3.2 : clamp01((560 / L) ** 2 * 1.1) });
     }
   }
   const leafMerged = mergeGeos(leafGeos);
@@ -503,7 +502,7 @@ export function buildWorld(tex) {
   const sac2 = new THREE.SphereGeometry(0.62, 14, 10); sac2.translate(-0.55, -0.22, 0);
   layers.spores.push(placeInst(mergeGeos([corp, sac1, sac2]), 8, 34, mats.spore));
 
-  const kinds = { grains: ['grain'], litter: ['litter'], moss: ['stem', 'leaf'], hyphae: [], spores: [] };
+  const kinds = { grains: ['grain'], litter: ['litter'], moss: ['stem', 'blade'], hyphae: [], spores: [] };
   /** Show or hide a layer; hidden layers can't be walked on either. */
   const setLayer = (name, on) => {
     for (const m of layers[name]) m.visible = on;

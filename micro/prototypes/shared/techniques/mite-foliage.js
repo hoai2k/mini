@@ -96,13 +96,14 @@ export function createFoliage(opts = {}) {
      */
     update(dt, bodies) {
       stats.active = 0; stats.moving = 0; stats.maxBend = 0;
-      if (!cfg.on) return;
+      if (!cfg.on || !(dt > 0)) return;
       dt = Math.min(dt, 1 / 30);
       for (const rod of rods) {
         if (rod.follow) continue;
         let near = false;
         for (const b of bodies) if (b.center.distanceTo(rod.mid) < rod.len * 0.5 + cfg.near) { near = true; break; }
         if (!near && !rod.awake) { rod.wrote = false; continue; }
+        if (!Number.isFinite(rod.d.x + rod.d.y + rod.d.z)) { rod.d.set(0, 0, 0); rod.vel.set(0, 0, 0); }
         stats.active++;
         rod.prev = (rod.prev || new THREE.Vector3()).copy(rod.d);
         // Spring back to rest (stiffer rods spring faster), damped, plus load.
