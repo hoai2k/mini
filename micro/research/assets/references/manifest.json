@@ -322,5 +322,41 @@
     "modification": "Commons-provided thumbnail when available; no crop or recoloring.",
     "sha256": "26267232f9a034b05d31f1b17ddee01e3df178093af8b4350465f33badd4fc29",
     "bytes": 616415
+  },
+  {
+    "id": "predatory-mite",
+    "band": "01",
+    "title": "Mesostigmata P1640630b.jpg",
+    "local": "assets/references/predatory-mite.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Mesostigmata_P1640630b.jpg",
+    "original_url": "https://upload.wikimedia.org/wikipedia/commons/3/3d/Mesostigmata_P1640630b.jpg",
+    "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3d/Mesostigmata_P1640630b.jpg/1280px-Mesostigmata_P1640630b.jpg",
+    "author": "xpda",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "description": "Mesostigmata, mites, class: Arachnida",
+    "note": "Mesostigmatid mite: a fast predatory soil mite.",
+    "accessed": "2026-10-30",
+    "modification": "Commons-provided thumbnail when available; no crop or recoloring.",
+    "sha256": "4bd642b5403101613463fc8661d6ce40efcc01670231d16ec4a1b139ea328b19",
+    "bytes": 187736
+  },
+  {
+    "id": "milnesium",
+    "band": "02",
+    "title": "Milnesium tardigradum.jpg",
+    "local": "assets/references/milnesium.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Milnesium_tardigradum.jpg",
+    "original_url": "https://upload.wikimedia.org/wikipedia/commons/c/cc/Milnesium_tardigradum.jpg",
+    "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cc/Milnesium_tardigradum.jpg/1280px-Milnesium_tardigradum.jpg",
+    "author": "Hoddyfool",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "description": "The mega-beast of the Tardigrades, up to 1mm long...",
+    "note": "Milnesium tardigradum, the carnivorous tardigrade, in light microscopy.",
+    "accessed": "2026-10-30",
+    "modification": "Commons-provided thumbnail when available; no crop or recoloring.",
+    "sha256": "bd862da2a9bc96bbebb3a4846f4a24802b3b6fcacb1c978766508b8c1e94ee7b",
+    "bytes": 173105
   }
 ]

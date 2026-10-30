@@ -79,7 +79,7 @@ const hud = mountHud({
     zoom: 'Magnification 1x, 2x, 3x, 5x',
     extra: [['LS click', 'Autofocus on the springtail']],
   }),
-  note: `Goal: eat ${GOAL} clumps of food, then reach the moss edge. The scale bar is true at the focal plane. Jumps are shown slowed ~6x and ripples ~8x slower than life (see Features).`,
+  note: `Goal: eat ${GOAL} clumps of food, then reach the moss edge. The scale bar is true at the focal plane. Jumps are shown slowed ~6x and half as long as life; ripples run ~5x slower (see Features).`,
 });
 
 // ---------------------------------------------------------------- overlay DOM
@@ -185,7 +185,7 @@ F({ id: 'thinlens', group: 'Optics', label: 'Thin-lens macro camera', fixed: tru
 F({ id: 'autofocus', group: 'Optics', label: 'Autofocus on the springtail', on: true,
   about: 'The focal plane follows the springtail; LT/RT offset it. Off: focus stays at the lens\'s set distance from the orbit centre.', onChange: (v) => (opt.autofocus = v) });
 F({ id: 'ripples', group: 'Simulation', label: 'Ripple height field', on: true,
-  about: 'A 256 x 256 damped wave equation over 84 mm (0.33 mm cells), stepped 240 times a second on the CPU. Raindrops, landings, striders\' strokes and walking beetles push it. Ripples run at ~35 mm/s, ~7x slower than real millimetre capillary waves (~0.23 m/s minimum), so you can see and dodge them. shared/techniques/springtail-surface.js.',
+  about: 'A 256 x 256 damped wave equation over 84 mm (0.33 mm cells), stepped 240 times a second on the CPU. Raindrops, landings, striders\' strokes and walking beetles push it. Ripples run at ~43 mm/s, ~5x slower than real millimetre capillary waves (~0.23 m/s minimum), so you can see and dodge them. shared/techniques/springtail-surface.js.',
   onChange: (v) => { field.enabled = v; if (!v) field.clear(); } });
 F({ id: 'marangoni', group: 'Simulation', label: 'Marangoni surfactant', on: true,
   about: 'A second field: Stenus\'s secretion spreads (diffusion), decays, damps capillary waves under it and drives a surface flow down its gradient, which shoves floating food (and you) away from the beetle\'s wake.',

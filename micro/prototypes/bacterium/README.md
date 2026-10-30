@@ -143,7 +143,8 @@ receives the real chord through the cross-section (2√(r² − d²)).
   cysteine-substituted flagellin, green; the bundle in a run, splayed filaments
   in a tumble), the magnetosome chain (MamC-GFP, shown blue so it reads apart)
   and phages (SYBR Gold, green spots). Haze, autofluorescence and shot noise.
-  A labelled Bdellovibrio shows inside its bdelloplast only here.
+  A Bdellovibrio expressing a fluorescent protein shows (green) inside its
+  bdelloplast only here; phase contrast shows only the prey rounding up.
 - **High-intensity darkfield**: the squared high-pass of φ plus scatter, which
   does show flagellar bundles (Macnab 1976).
 - **Data overlay (Y)**, drawn on top and tagged *DATA OVERLAY · not optics*:
@@ -161,7 +162,8 @@ mixed:
 - **Body**: protagonist (Magnetospirillum / Bdellovibrio); flagella on/off;
   how each cell turns (fixed, explained).
 - **Optics**: look; diffraction limit; phase halo; depth of field and focus
-  follow; background; noise; field stop; each stain channel; data overlay.
+  follow; background; noise; field stop; each stain channel; data overlay;
+  the corner brackets that mark your cell (a game marker, not optics).
 - **Rendering**: the instanced distance-field specimen; the shared optical
   field (fixed, explained).
 - **Motion**: tumble bias (assist / honest); spontaneous tumbles (off / real

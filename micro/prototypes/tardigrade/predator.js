@@ -87,8 +87,13 @@ export class Predator {
     const mouthD = mouth.distanceTo(them);
     const tun = prey.life.tun > 0.6;
 
-    // The player's stylet jab: works if Milnesium's head is at the player's mouth.
-    if (jab && prey.mouth.distanceTo(mouth) < 1.25 * SCALE && this.state !== 'recoil') {
+    // The player's stylet jab: works if any part of Milnesium (its axis from
+    // mouth to tail) is at the player's mouth.
+    const tail = _t.copy(me).addScaledVector(w.forward, -1.7 * SCALE);
+    const ax = _a.subVectors(mouth, tail), t = Math.max(0, Math.min(1, _b.subVectors(prey.mouth, tail).dot(ax) / ax.lengthSq()));
+    const jabD = _b.copy(tail).addScaledVector(ax, t).distanceTo(prey.mouth);
+    this.jabD = jabD;
+    if (jab && (jabD < 1.1 * SCALE || this.contact > 0) && this.state !== 'recoil') {
       this.state = 'recoil'; this.recoil = 2.4; this.cool = 2.5;
       ev.push('recoil');
     }
@@ -141,4 +146,4 @@ export class Predator {
     return ev;
   }
 }
-const _m = new THREE.Vector3(), _d = new THREE.Vector3();
+const _m = new THREE.Vector3(), _d = new THREE.Vector3(), _t = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3();
