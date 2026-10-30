@@ -1458,6 +1458,27 @@ background. On return (`visibilitychange` in `app/src/recorderui.js`):
   once, then, if it is still silent, asks for a new one (it is dead whatever
   the browser says), then asks for a tap ("Tap anywhere to start listening
   again"). The tuner recovers the same way.
+- **iPhone or iPad, a mic at another rate than the engine**: the audio
+  engine (one `AudioContext` for the visit) keeps the sample rate it was
+  made at, but the device can change its rate during a visit (playback and
+  recording use the hardware differently; a Bluetooth device comes or
+  goes). Where the mic then runs at another rate, WebKit hands it to the
+  engine broken up and slowed down, and every take is recorded that way
+  until the page is reloaded (seen on an iPad: choppy, slow-motion takes
+  after several good ones, which stayed broken after the reload while new
+  ones were fine). So each time the mic opens (record, back from playback,
+  a reconnect, the tuner) its rate (`getSettings().sampleRate`) is checked
+  against the engine's (`Recorder.rateMismatch`); on WebKit a mismatch
+  replaces the engine with one made at the mic's rate (`useRate` in
+  `audio.js`, which every later engine keeps) and listening starts again
+  on it (`checkMicRate` in `recorderui.js`; outside a tap the new engine may
+  wait for one: "Tap anywhere to start listening again"). Twice at most in
+  a row, so a device that won't give that rate isn't rebuilt forever.
+  Elsewhere (Chrome resamples properly) it is only logged. The debug log
+  has the two rates at every mic open (`mic-rates`), each mismatch and what
+  was done about it (`mic-rate-mismatch`), and each take's length and rates
+  (`take-made`). A browser check fakes it (Safari's `GestureEvent`, a mic
+  that says 22050 Hz) and records a take on the replacement engine.
 
 Stopping the metronome or turning the recorder off before leaving, then
 starting again after coming back, works as on a first visit. All of this was
