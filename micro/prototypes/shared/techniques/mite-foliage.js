@@ -137,7 +137,7 @@ export function createFoliage(opts = {}) {
           }
         }
         // Keep the bend sane (a blade folds, it does not stretch).
-        const lim = cfg.maxBend * rod.len;
+        const lim = cfg.maxBend * rod.len / Math.sqrt(Math.max(1, rod.stiff)); // stiff rods give less
         let m = rod.d.length();
         if (m > lim) { rod.d.multiplyScalar(lim / m); m = lim; }
         // Position-based: velocity is what the step actually did (so a blade

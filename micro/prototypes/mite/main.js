@@ -295,7 +295,7 @@ function biteNow() {
 }
 function bodyOf(m) {
   return { center: _bc.set(...m.anat.noto.c).applyQuaternion(m.quat).add(m.center).clone(), quat: m.quat,
-    radii: [m.radii[0] * 1.2, m.radii[1] * 1.15, m.radii[2] * 1.45],
+    radii: [m.radii[0] * 1.2 + 30, m.radii[1] * 1.15 + 30, m.radii[2] * 1.45 + 30], // legs splay; + half a blade width
     load: m.ground && m.ground.entry && m.ground.entry.rod, weight: m.anat.kind === 'pred' ? 13000 : 16000,
     loadU: m.ground && m.ground.entry && m.ground.entry.rod ? Math.min(1, Math.max(0, m.ground.point.clone().sub(m.ground.entry.rod.base).dot(m.ground.entry.rod.axis) / m.ground.entry.rod.len)) : 0.7 };
 }
@@ -305,6 +305,9 @@ function tick(dt, input) {
   if (play.hurt > 0 && (play.heal += dt) > 20) { play.hurt--; play.heal = 0; }
   for (const f of world.food) if (f.kind === 'hypha' && f.left <= 0 && (f.t -= dt) <= 0) f.left = 1;
   if (play.stun > 0) input = { ...input, mag: 0 };
+  // Blades and hyphae move first (pushed and loaded by where the mites were),
+  // so each mite then settles on, and clears, the surfaces as they are now.
+  world.foliage.update(dt, [mite, ...(npcOn ? [npc] : []), ...(predOn ? [pred] : [])].map(bodyOf));
   const ev = mite.update(dt, input);
   if (npcOn) npc.update(dt, npcInput(dt));
   if (predOn) {
@@ -327,7 +330,6 @@ function tick(dt, input) {
     }
   }
   play.nip = false;
-  world.foliage.update(dt, [mite, ...(npcOn ? [npc] : []), ...(predOn ? [pred] : [])].map(bodyOf));
   return ev;
 }
 

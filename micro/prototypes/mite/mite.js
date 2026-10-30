@@ -566,7 +566,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
     return 1 / Math.sqrt((d.x / r[0]) ** 2 + (d.y / r[1]) ** 2 + (d.z / r[2]) ** 2);
   }
   const dt60 = 1 / 60;
-  function clearance(apply) {
+  function clearance(apply, maxStep = 30) {
     basisQ(st.fwd, st.up, _cq);
     _cc.set(AN.noto.c[0], AN.noto.c[1], AN.noto.c[2]).applyQuaternion(_cq).add(st.pos).addScaledVector(st.up, AN.stand + st.lift);
     _cp.set(0, 0, 0);
@@ -586,7 +586,11 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
       // Something under the belly (a ledge, a grain the centre has not reached
       // yet): stand taller until the body clears it; the legs reach down.
       st.liftT = Math.min(140, belly > 0 ? st.lift + belly + 2 : st.liftT * Math.exp(-dt60 / 0.25));
-      if (_cp.lengthSq() > 0) st.pos.add(_cp);
+      // Resolve at most ~1.8 mm/s, so a deep overlap (after reopening against
+      // a stem, say) eases out instead of teleporting the body.
+      const m = _cp.length();
+      if (m > maxStep) _cp.multiplyScalar(maxStep / m);
+      if (m > 0) st.pos.add(_cp);
     }
     return pen;
   }
@@ -786,6 +790,8 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
           if (f.lengthSq() < 0.01) f.set(1, 0, 0).addScaledVector(st.up, -st.up.x);
           st.fwd.copy(f.normalize());
           settleBody(dt, true);
+          // Stand up clear of whatever it rolled against (a stem, a grain).
+          if (cfg.clear) for (let k = 0; k < 6; k++) { if (clearance(true, 1e9) < 1) break; settleBody(dt, true); }
           for (const L of legs) { restWorld(L, L.to); const h = ground(L.to, st.up); if (h) L.to.copy(h.point); L.foot.copy(L.to); L.swing = false; }
           events.push('opening');
         }

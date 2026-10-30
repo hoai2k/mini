@@ -22,7 +22,7 @@ const AMOEBA_TIME = { 'Amoeba ×10': 1, 'Amoeba ×3': 0.3, 'Amoeba ×1 (real tim
 const SWIM_TIME = { 'Swimmers ×0.1': 1, 'Swimmers ×0.3': 3, 'Swimmers real speed': 10 };
 const GRANULES = { '2600 granules': 2600, '1300 granules': 1300, '600 granules': 600 };
 const CUP_WRAP = 3.3;
-const PSEUDO_SPEED = { 'Quick (1.8×)': 1.8, 'Original': 1 };
+const PSEUDO_SPEED = { 'Quick (2×)': 2, 'Original': 1 };
 const SURGE = 2.5; // pseudopod rate multiplier at the peak of a surge // radians (≈ 190°) of membrane around the prey before A can close
 
 const canvas = document.querySelector('canvas.view');
@@ -126,10 +126,10 @@ F({ id: 'idle', group: 'Body', label: 'Idle pseudopods (polypodial)', on: true,
 F({ id: 'overdamped', group: 'Motion', label: 'Overdamped (low Reynolds number)', fixed: true,
   about: 'Displacement is proportional to force each step; nothing coasts. Stop protruding and the cell stops.' });
 F({ id: 'atime', group: 'Motion', label: 'Amoeba time compression', choices: Object.keys(AMOEBA_TIME), value: 'Amoeba ×10',
-  about: 'A. proteus advances about 1–4 µm/s. ×10 is the clock; with quick pseudopods (below) they grow ×18 their real rate, so a pseudopod reaches out in about a second. ×1 is real time (very slow).', onChange: (v) => { S.amoebaK = AMOEBA_TIME[v] ?? 1; } });
-F({ id: 'pspeed', group: 'Motion', label: 'Pseudopod speed', choices: Object.keys(PSEUDO_SPEED), value: 'Quick (1.8×)',
-  about: 'Quick: pseudopods ramp up and advance 1.8× faster than the original tuning (the cell still keeps its area, and the rear still retracts to pay for each arm). The time readout includes it.',
-  onChange: (v) => { body.opts.speed = PSEUDO_SPEED[v] ?? 1.8; } });
+  about: 'A. proteus advances about 1–4 µm/s. ×10 is the clock; with quick pseudopods (below) they grow ×20 their real rate, so a pseudopod reaches out in about a second. ×1 is real time (very slow).', onChange: (v) => { S.amoebaK = AMOEBA_TIME[v] ?? 1; } });
+F({ id: 'pspeed', group: 'Motion', label: 'Pseudopod speed', choices: Object.keys(PSEUDO_SPEED), value: 'Quick (2×)',
+  about: 'Quick: pseudopods ramp up and advance 2× faster than the original tuning (the cell still keeps its area, and the rear still retracts to pay for each arm). The time readout includes it.',
+  onChange: (v) => { body.opts.speed = PSEUDO_SPEED[v] ?? 2; } });
 F({ id: 'surge', group: 'Motion', label: 'Surge (A)', fixed: true,
   about: 'For 0.9 s every active pseudopod extends up to 2.5× faster (eased in and out), may run a little further ahead, the rear contracts harder and streaming surges toward the tips, so the whole cell lunges; recharges over 2.4 s. With no stick held it surges along the cell\'s current heading. It also tears the membrane free of a fungal trap. Inspired by blebbing, A. proteus\'s fastest protrusion; the strength is a game value.' });
 F({ id: 'stime', group: 'Motion', label: 'Swimmer speed', choices: Object.keys(SWIM_TIME), value: 'Swimmers ×0.1',
