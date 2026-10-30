@@ -88,6 +88,11 @@ test('prologue: bound, he struggles left and right before Aurora frees him; his 
   assert.equal(pulls.length, 4, 'each change of direction is one pull, four in all');
   run(prologue, st, 1, () => ({ beat: 0 }));
   assert.equal(st.phase, 'free');
+  const s2 = prologue.create({ from: { scene: 2 } });
+  run(prologue, s2, PRO_T.bind + 0.1, () => ({ beat: 0 }));
+  for (let i = 0; i < 4; i++) { prologue.step(s2, DT, { a: true, beat: 0 }); run(prologue, s2, 0.2, () => ({ beat: 0 })); }
+  assert.equal(s2.struggle.n, 4, 'any button pulls too: no instruction is needed');
+  assert.equal(s2.near, null);
   assert.ok(ARMS.every((a, i) => i === 0 || a.x < ARMS[i - 1].x) && ARMS[0].x < st.p.x, 'his arms lie to the left, in the order he reaches them');
   run(prologue, st, PRO_T.free + 0.1, () => ({ beat: 0 }));
   assert.equal(st.phase, 'armoury');
@@ -96,6 +101,8 @@ test('prologue: bound, he struggles left and right before Aurora frees him; his 
   assert.equal(st.phase, 'knighted'); assert.ok(!st.armed, 'not until the badges are drawn into him');
   run(prologue, st, PRO_T.armed + 0.1, () => ({ moveX: -1, beat: 0 }));
   assert.ok(st.armed); assert.equal(st.p.x, ARMS[2].x, 'he stands still to be transformed');
+  run(prologue, st, PRO_T.risen - PRO_T.armed - 0.3, () => ({ moveX: -1, beat: 0 }));
+  assert.equal(st.p.x, ARMS[2].x, 'he kneels while Aurora leaves');
   run(prologue, st, 8, () => ({ moveX: -1, beat: 0 }));
   assert.equal(st.status, 'won', 'out at the left, after Aurora');
 });

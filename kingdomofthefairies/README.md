@@ -33,10 +33,11 @@ acts. The first four keep their stage machinery and rules, recast:
 0. Prologue, The Betrothal: a short playable scene on the delivered sets. The
    prince receives the fairies' gifts in the betrothal court, the witch curses
    it, he chases the demons' chariot along the rampart, and in the armoury the
-   witch binds him. He struggles left and right against her cords until Aurora
-   glides on, breaks the spell and goes off to the left; following her, he
-   takes up his helmet, shield and sword, each worn as a badge above his head
-   until all three transform him into the armoured prince. The fire on the
+   witch binds him. He struggles against her cords (any button or push of the
+   stick) until Aurora glides on and breaks the spell; he takes up the helmet,
+   shield and sword she gives him, each worn as a badge above his head until
+   all three transform him into the armoured prince, and kneels while she
+   glides off to the left before he goes to his ship. The fire on the
    rampart burns on: leap it, or each touch costs one of three lanterns, and
    losing all three starts the chase again. Each gift or arm he takes is held
    up big in the middle of the stage, or beside him when he stands there. B
