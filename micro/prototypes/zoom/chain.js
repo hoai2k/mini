@@ -12,8 +12,8 @@ export const CHAIN_CONST = {
   capGrid: 6400,          // the lawn's capitula spacing
   T1: [-900, -700],       // the wet leaf axil with the tun
   T2W1: [-1600, -580],    // the leaf tip in the pool (frame 1)
-  T3W3: [260, -150],      // the biofilm patch (frame 3)
-  host: [0, -0.52],       // the host cell's centre (frame 5)
+  T3W3: [330, 230],      // the biofilm patch (frame 3)
+  host: [0, -0.62],       // the host cell's centre (frame 5)
   hostR: 0.5, hostL: 1.0, // radius and half-length of its axis (µm)
 };
 
@@ -38,16 +38,16 @@ export const toGlobal = (k, v) => [G[k][0] + v[0], G[k][1] + v[1]];
 export const WORLDS = [
   { name: 'The bog pool surface', short: 'Bog surface', field: 18000, look: 'macro', instrument: 'Macro lens 2:1 on full frame',
     amb: 'springtail/amb-bog', creature: 'Water springtail (Podura aquatica), 1.5 mm', radius: 1400, speed: 4000, stride: 420,
-    start: [-15000, -4500], path: [[-6500, -2300], [-2700, -1000]], destR: 450, stepSound: null },
+    start: [-15000, -7500], path: [[-6500, -4500], [-2400, -1700]], destR: 450, stepSound: null },
   { name: 'A Sphagnum capitulum', short: 'Moss capitulum', field: 4200, look: 'sem', instrument: 'SEM (or stereo microscope), HFW 4.2 mm',
     amb: 'mite/amb-moss', creature: 'Box mite (Oribatida), 0.6 mm', radius: 700, speed: 200, stride: 230,
-    start: [0, 0], path: [[-160, -150], [-300, -340]], destR: 60, stepSound: 'mite/step' },
+    start: [0, 0], path: [[-80, -110], [-150, -200]], destR: 60, stepSound: 'mite/step' },
   { name: 'The water film on a leaf', short: 'Water film', field: 1800, look: 'dic', instrument: '10× objective, DIC (field number 18)',
     amb: 'tardigrade/amb-film', creature: 'Tardigrade, 350 µm', radius: 260, speed: 100, stride: 90,
     start: [0, 0], path: [[-200, 40], [-430, 60]], destR: 30, stepSound: 'tardigrade/step' },
   { name: 'The hollow pool', short: 'Pool', field: 900, look: 'bright', instrument: '20× objective, brightfield',
     amb: 'paramecium/amb-pool', creature: 'Paramecium bursaria, 120 µm', radius: 90, speed: 420, stride: 0,
-    start: [0, 0], path: [[-180, 140], [60, 230], [190, 40], [140, -110]], destR: 18, stepSound: null },
+    start: [0, 0], path: [[-160, 120], [40, 300], [215, 275]], destR: 18, stepSound: null },
   { name: 'The biofilm on the leaf', short: 'Biofilm', field: 90, look: 'phase', instrument: '100× oil, 1000×, 90 µm camera crop',
     amb: 'bacterium/amb-sediment', creature: 'Magnetotactic spirillum, 3 µm', radius: 4, speed: 40, stride: 0,
     start: [0, 0], path: [[-14, 10], [6, 16], [19.5, 6.6]], destR: 1.2, stepSound: null },

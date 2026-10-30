@@ -577,6 +577,11 @@ window.__micro = {
   setHighlight(name) { features.set('hl', name); },
   freeze(on = true) { S.frozen = on; },
   hideHud(on = true) { document.querySelector('.hud').classList.toggle('hidden', on); },
+  /** Render now and return the canvas as a data URL plus the scale readout (for contact sheets). */
+  snap() {
+    render(); updateHud();
+    return { img: canvas.toDataURL('image/jpeg', 0.88), scale: [...scaleEl.children].map((e) => e.textContent).filter(Boolean).join(' | '), status: statusText() };
+  },
   state() { return { k: S.k, phase: S.phase, tau: S.tau, st: S.st, field: S.w, look: S.look.label, world: world() }; },
 };
 requestAnimationFrame((n) => { last = n; frame(n); });

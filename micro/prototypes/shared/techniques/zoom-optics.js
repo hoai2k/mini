@@ -267,8 +267,20 @@ layout(location = 0) out vec4 oC;
 void main() {
   vec2 fc = gl_FragCoord.xy;
   float dist = length(fc - uTarget);
-  float lod = uRack * 4.5 * smoothstep(uRackR, uRackR * 1.7 + 8.0, dist);
-  vec3 col = textureLod(tC, vUv, lod).rgb;
+  // focus rack: a disc blur growing with distance from the target (golden-angle taps)
+  float rad = uRack * 14.0 * smoothstep(uRackR, uRackR * 1.7 + 8.0, dist);
+  vec3 col;
+  if (rad < 0.5) col = texture(tC, vUv).rgb;
+  else {
+    col = vec3(0.0);
+    float lod = max(0.0, log2(rad / 4.0));
+    for (int i = 0; i < 16; i++) {
+      float r = sqrt((float(i) + 0.5) / 16.0) * rad;
+      float a = float(i) * 2.39996;
+      col += textureLod(tC, (fc + r * vec2(cos(a), sin(a))) / uRes, lod).rgb;
+    }
+    col /= 16.0;
+  }
   if (uTurret > 0.001) {
     // the nosepiece turning: a rotational blur about the turret axis, off screen
     vec2 piv = vec2(uRes.x * 1.25, -uRes.y * 0.35);

@@ -185,7 +185,7 @@ void lawn(vec2 p, inout S s) {
     float m = best.c;
     s.h = mix(s.h, h, m); s.alb = mix(s.alb, alb, m); s.gloss = mix(s.gloss, mix(0.12, 1.0, wet), m); s.cov = max(s.cov, m);
     float thick = 15.0;
-    s.opd += m * (0.04 * thick + 0.25 * wa - 0.45 * po + 0.08 * fi);
+    s.opd += m * (0.04 * thick + 0.25 * wa - 0.45 * po + 0.03 * fi);
     s.ab = mix(s.ab, vec3(0.0), m) + m * green * vec3(0.55, 0.16, 0.62) * (best.col.r > 0.38 && best.col.g < 0.2 ? 1.6 : 1.0);
     s.scat += m * 0.2 * wa;
     // spores and hyphae on the leaves (frame 1), resolved below ~8 µm per pixel
@@ -305,7 +305,7 @@ void bacteria(vec2 p, inout S s) {
     vec2 t = thin(d, r);
     if (t.y <= 0.0) continue;
     put(s, t.y, s.h + t.x * 0.5, vec3(0.62, 0.55, 0.48), 0.25);
-    optic(s, 0.06 * t.x, t.x * vec3(0.015, 0.02, 0.03), 0.45 * t.y);
+    optic(s, 0.11 * t.x, t.x * vec3(0.03, 0.035, 0.05), 0.45 * t.y);
   }
   // clay and mineral specks
   vec2 k0 = floor(p / 7.0);
