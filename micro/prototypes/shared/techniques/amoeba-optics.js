@@ -108,7 +108,7 @@ void main() {
     float mask = smoothstep(0.03, 0.12, P.r);
     float caust = pow(vnoise(world * 0.018 + vec2(uTime * 0.05, 0.)) * vnoise(world * 0.027 - vec2(0., uTime * 0.04)), 1.5);
     vec3 floorC = vec3(0.30, 0.31, 0.22) * bgn * (0.8 + 1.4 * caust);
-    vec3 under = vec3(0.30, 0.31, 0.22) * (texture2D(uBg, world / uBgTile + n.xy * 0.03 * uBgRefr).rgb / uBgMean) * (0.8 + 1.4 * caust);
+    vec3 under = vec3(0.30, 0.31, 0.22) * (texture2D(uBg, world / uBgTile + n.xy * 0.006 * uBgRefr).rgb / uBgMean) * (0.8 + 1.4 * caust);
     float dif = max(dot(n, L), 0.);
     vec3 Hh = normalize(L + vec3(0., 0., 1.));
     float spec = pow(max(dot(n, Hh), 0.), 70.);
