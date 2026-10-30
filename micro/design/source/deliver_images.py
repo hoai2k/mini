@@ -67,6 +67,8 @@ def main():
         record = {k: request[k] for k in ('id', 'name', 'file', 'size', 'used', 'prompt')}
         record.update(prompt=source['prompt'], requested_prompt=request['prompt'],
                       tool='Built-in image_gen', source_artifact=Path(source['source_path']).name,
+                      input_images=[str(Path(p).relative_to(ROOT)) if Path(p).is_relative_to(ROOT) else 'generated/' + Path(p).name for p in source['inputs']],
+                      reference_usage='References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.',
                       original_dimensions=list(original_size), width=width, height=height,
                       sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
                       export='LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.',

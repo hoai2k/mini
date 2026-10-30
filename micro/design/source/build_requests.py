@@ -193,7 +193,7 @@ GROUPS = [
                 "prompt": f"{DIC} A deeply out-of-focus view through a wet moss cushion at about 2 mm across: overlapping translucent leaf blades with cell rows, curved water menisci between them catching light, a bdelloid rotifer barely visible as a blur. Very shallow depth of field, everything soft. No tardigrade. {SCIENCE}",
             },
             {
-                "id": "MP-T04", "name": "Detritus and food particles",
+                "id": "MP-T04", "status": "delivered", "name": "Detritus and food particles",
                 "file": "assets/tardigrade/particles.png", "size": "1024 x 1024, transparent, 4 x 4 sprite grid",
                 "used": "Drifting particles in the water film and food the tardigrade can reach.",
                 "standin": "Procedural specks.",
@@ -207,7 +207,7 @@ GROUPS = [
         "intro": "Images for the amoeba prototype, seen in brightfield. The amoeba and its prey are soft bodies built in code; these supply the wet-mount background and the granular cytoplasm.",
         "items": [
             {
-                "id": "MP-A01", "name": "Wet-mount background (brightfield)",
+                "id": "MP-A01", "status": "delivered", "name": "Wet-mount background (brightfield)",
                 "file": "assets/amoeba/wetmount.webp", "size": "2048 x 2048, opaque, tileable",
                 "used": "The slide the amoeba crawls over.",
                 "standin": "Procedural pale field with soft detritus.",
@@ -245,7 +245,7 @@ GROUPS = [
                 "prompt": f"{DARKFIELD} A pond-water scene at about 2 mm across, out of focus: Spirogyra filaments, flakes of detritus and a cluster of stalked Vorticella, all as glowing edges on black. No Paramecium. {SCIENCE}",
             },
             {
-                "id": "MP-P02", "name": "Pond habitat plate (phase contrast)",
+                "id": "MP-P02", "status": "delivered", "name": "Pond habitat plate (phase contrast)",
                 "file": "assets/paramecium/phase-plate.webp", "size": "2560 x 1440, opaque",
                 "used": "The far background in phase-contrast mode.",
                 "standin": "Mid-grey field with procedural haloed specks.",
@@ -253,7 +253,7 @@ GROUPS = [
                 "prompt": f"Phase-contrast microscope look: mid-grey background, transparent structures dark with bright halos at their edges, colourless. The same pond-water scene at about 2 mm across, out of focus: Spirogyra filaments, detritus flakes and stalked Vorticella. No Paramecium. {SCIENCE}",
             },
             {
-                "id": "MP-P03", "name": "Paramecium pellicle",
+                "id": "MP-P03", "status": "delivered", "name": "Paramecium pellicle",
                 "file": "assets/paramecium/pellicle.webp", "size": "1024 x 1024, opaque, tileable",
                 "used": "Surface pattern on the cell body under the cilia.",
                 "standin": "Procedural kinety rows.",

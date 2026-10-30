@@ -47,11 +47,11 @@ export const ASSETS = {
   },
   "MP-T04": {
     "file": "assets/tardigrade/particles.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-A01": {
     "file": "assets/amoeba/wetmount.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-A02": {
     "file": "assets/amoeba/cytoplasm.webp",
@@ -67,10 +67,10 @@ export const ASSETS = {
   },
   "MP-P02": {
     "file": "assets/paramecium/phase-plate.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-P03": {
     "file": "assets/paramecium/pellicle.webp",
-    "status": "requested"
+    "status": "delivered"
   }
 };
