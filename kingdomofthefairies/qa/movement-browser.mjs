@@ -26,7 +26,7 @@ try {
     const asset = renderer.kit.asset;
     const draws = [];
     renderer.kit.asset = (...args) => {
-      if (args[0].startsWith('sailor-')) draws.push({ id: args[0], box: args.slice(1, 5), pass: renderer.kit.P.mode });
+      if (args[0].startsWith('sailor-') || args[0].startsWith('prince-wall-')) draws.push({ id: args[0], box: args.slice(1, 5), pass: renderer.kit.P.mode });
       return asset(...args);
     };
     window.__movement = { a, renderer, canvas, draws, act4, act5, HOUSE, climberPos };
@@ -39,7 +39,8 @@ try {
   const cases = [
     ['whale-rise', 'sailor-leap'], ['whale-apex', 'sailor-apex'],
     ['whale-fall', 'sailor-fall'], ['whale-land', 'sailor-land'],
-    ['cliff-reach', 'sailor-climb-a'], ['cliff-pull', 'sailor-climb-b'],
+    // the film's cliff climbs on the prince's own wall frames (F19)
+    ['cliff-reach', 'prince-wall-up-a'], ['cliff-pull', 'prince-wall-up-b'],
     ['cliff-fall', 'sailor-fall'], ['stairs-a', 'sailor-stairs-a'],
     ['stairs-b', 'sailor-stairs-b'], ['ladder', 'sailor-climb-b'],
     ['ivy', 'sailor-climb-b'], ['slope', 'sailor-stairs-b'],
@@ -57,11 +58,10 @@ try {
         else Object.assign(st.s, { on: null, x: 400, y: 270,
           vy: name === 'whale-rise' ? -400 : name === 'whale-fall' ? 1100 : 0 });
       } else if (name.startsWith('cliff-')) {
+        // the continuous climb (src/acts/climb.js): on the wall, climbing up,
+        // a step into the cycle (reach, then pull), or falling
         act = B.act5; st = act.create();
-        const target = st.holds.findIndex((h) => h.y > 180 && h.y < 350 && h.kind !== 'ledge');
-        st.cl.at = target; st.cl.from = Math.max(0, target - 1);
-        st.cl.kind = name === 'cliff-fall' ? 'fall' : 'climb';
-        st.cl.moveDur = 0.34; st.cl.moveT = name === 'cliff-pull' ? 0.25 : 0.08;
+        Object.assign(st.wall, { mode: name === 'cliff-fall' ? 'fall' : 'wall', dir: { x: 0, y: 1 }, dist: name === 'cliff-pull' ? 20 : 0, y: 260, ledge: null });
       } else {
         act = B.act5; st = act.create({ from: { scene: 2 }, carry: { stone: true } });
         const kind = name.startsWith('stairs') ? 'stairs' : name;
@@ -91,7 +91,8 @@ try {
   }
   // Missing delivered pose: the act still draws its previous sailor art.
   const fallback = await page.evaluate(() => {
-    const B = window.__movement; delete B.a.images['sailor-fall'];
+    // (in the film edition sailor-fall is drawn as prince-fall: take both away)
+    const B = window.__movement; for (const id of ['sailor-fall', 'prince-fall', 'prince-fall-tinted']) delete B.a.images[id];
     const st = B.act4.create(); Object.assign(st.s, { on: null, vy: 1100 });
     B.draws.length = 0;
     B.renderer.render({ act: B.act4, state: st, t: 1, film: 'off', curtain: 1 });
