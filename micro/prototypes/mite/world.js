@@ -7,10 +7,12 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { gMaterial, CLS } from './sem.js';
 import { rng, hash } from './textures.js';
+import { createFoliage } from '../shared/techniques/mite-foliage.js';
 
 export const HALF = 2000; // the floor spans -HALF..HALF in x and z (4 x 4 mm)
 
 const smooth = (t) => t * t * (3 - 2 * t);
+const clamp01 = (v) => Math.min(3, Math.max(0.4, v));
 function vnoise(x, z, seed) {
   const xi = Math.floor(x), zi = Math.floor(z);
   const fx = smooth(x - xi), fz = smooth(z - zi);
@@ -135,19 +137,21 @@ class Colliders {
     const m = new THREE.Mesh(geo, this.mat);
     m.updateMatrixWorld(true);
     geo.computeBoundingSphere();
-    this.list.push({ mesh: m, c: geo.boundingSphere.center.clone(), r: geo.boundingSphere.radius, kind });
+    const e = { mesh: m, c: geo.boundingSphere.center.clone(), r: geo.boundingSphere.radius, kind };
+    this.list.push(e);
+    return e;
   }
   /**
    * Nearest hit along a ray within `far`: {point, normal (facing the ray's
-   * origin), dist, kind} or null.
+   * origin), dist, kind, entry} or null. skip: a Set of kinds to ignore.
    */
-  cast(origin, dir, far, skipFloor = false) {
+  cast(origin, dir, far, skipFloor = false, skip = null) {
     let best = null;
     const ray = this.ray;
     ray.set(origin, dir); ray.far = far; ray.near = 0;
     const v = this._v;
     for (const e of this.list) {
-      if (this.off.has(e.kind)) continue;
+      if (this.off.has(e.kind) || (skip && skip.has(e.kind))) continue;
       v.subVectors(e.c, origin);
       const t = Math.max(0, Math.min(far, v.dot(dir)));
       const dx = v.x - dir.x * t, dy = v.y - dir.y * t, dz = v.z - dir.z * t;
@@ -158,7 +162,7 @@ class Colliders {
         if (h.distance <= far && (!best || h.distance < best.dist)) {
           const n = h.face.normal.clone();
           if (n.dot(dir) > 0) n.negate();
-          best = { point: h.point.clone(), normal: n, dist: h.distance, kind: e.kind };
+          best = { point: h.point.clone(), normal: n, dist: h.distance, kind: e.kind, entry: e };
         }
       }
     }
@@ -294,6 +298,7 @@ export function buildWorld(tex) {
   // Moss shoots: stems with leaves on a 2/5 spiral (137.5 deg divergence)
   const stems = [];
   const leafGeos = [], stemGeos = [];
+  const bladeInfo = []; // upper leaves: bendable blades (see shared/techniques/mite-foliage.js)
   const spots = [[900, 400], [-700, 900], [-1200, -500], [500, -1200], [1500, 1300], [-200, 1700], [1600, -300], [-1600, 1500], [100, -400], [-500, 300]];
   for (let s = 0; s < spots.length; s++) {
     const [sx, sz] = spots[s];
@@ -372,10 +377,29 @@ export function buildWorld(tex) {
       };
       const sh = sheet(f, 14, 5, 12, (u, v) => [(v * 2 - 1) * halfW(u) / 140 + 0.5, u * len / 140], lowest ? 10 : 6, 3);
       leafGeos.push(sh.geo);
-      col.add(sh.col, 'leaf');
+      // The lowest leaves are old, thick and rest on the floor: rigid ramps.
+      // The others are thin blades held out from the stem: they bend.
+      const e = col.add(sh.col, lowest ? 'leaf' : 'blade');
+      if (!lowest) {
+        const samples = [0.2, 0.4, 0.55, 0.7, 0.85, 1].map((u) => bez(u, new THREE.Vector3()));
+        bladeInfo.push({ geoIndex: leafGeos.length - 1, base: start.clone(), tip: tip.clone(), samples, entry: e, L, stiff: clamp01((560 / L) ** 2 * 1.1) });
+      }
     }
   }
-  layers.moss = [mesh(mergeGeos(stemGeos), mats.stem), mesh(mergeGeos(leafGeos), mats.leaf)];
+  const leafMerged = mergeGeos(leafGeos);
+  layers.moss = [mesh(mergeGeos(stemGeos), mats.stem), mesh(leafMerged, mats.leaf)];
+  const foliage = createFoliage({ near: 650 });
+  {
+    const starts = [];
+    let o = 0;
+    for (const g of leafGeos) { starts.push(o); o += g.attributes.position.count; }
+    for (const b of bladeInfo) {
+      const rod = foliage.add({ geo: leafMerged, start: starts[b.geoIndex], count: leafGeos[b.geoIndex].attributes.position.count,
+        base: b.base, tip: b.tip, samples: b.samples, kind: 'cantilever', stiff: b.stiff,
+        col: { geo: b.entry.mesh.geometry, onMove: (c, r) => { b.entry.c.copy(c); b.entry.r = r; } } });
+      b.entry.rod = rod;
+    }
+  }
 
   // Ground probe from above, for placing things on the topmost surface
   const down = new THREE.Vector3(0, -1, 0);
@@ -383,6 +407,7 @@ export function buildWorld(tex) {
 
   // Fungal hyphae: 3-5 µm threads strung between surfaces, with side branches
   const hGeos = [];
+  const hyphaInfo = [];
   for (let i = 0; i < 46; i++) {
     const x = (R() * 2 - 1) * HALF * 0.9, z = (R() * 2 - 1) * HALF * 0.9;
     const a = topAt(x, z);
@@ -401,6 +426,8 @@ export function buildWorld(tex) {
     }
     const curve = new THREE.CatmullRomCurve3(pts);
     hGeos.push(new THREE.TubeGeometry(curve, 28, r, 4, false));
+    const main = { geoIndex: hGeos.length - 1, a: pts[0].clone(), b: pts[12].clone(), samples: pts.slice(1, 12), branches: [] };
+    hyphaInfo.push(main);
     for (let k = 0; k < 2; k++) {
       const t = 0.2 + R() * 0.6;
       const p = curve.getPointAt(t);
@@ -410,9 +437,28 @@ export function buildWorld(tex) {
       q.y = Math.max(q.y, floorH(q.x, q.z) + r);
       const bc = new THREE.CatmullRomCurve3([p, p.clone().lerp(q, 0.5).add(new THREE.Vector3(0, -l * 0.1, 0)), q]);
       hGeos.push(new THREE.TubeGeometry(bc, 8, r * 0.85, 4, false));
+      main.branches.push({ geoIndex: hGeos.length - 1, t, tip: q });
     }
   }
-  layers.hyphae = [mesh(mergeGeos(hGeos), mats.hypha)];
+  const hMerged = mergeGeos(hGeos);
+  layers.hyphae = [mesh(hMerged, mats.hypha)];
+  // Hyphae: slack threads fixed at both ends; bodies push them aside. Their
+  // branch tips are food for the mite (X grazes them).
+  const food = [];
+  {
+    const starts = [];
+    let o = 0;
+    for (const g of hGeos) { starts.push(o); o += g.attributes.position.count; }
+    for (const h of hyphaInfo) {
+      const rod = foliage.add({ geo: hMerged, start: starts[h.geoIndex], count: hGeos[h.geoIndex].attributes.position.count,
+        base: h.a, tip: h.b, samples: h.samples, kind: 'string', stiff: 0.35 });
+      for (const br of h.branches) {
+        foliage.add({ geo: hMerged, start: starts[br.geoIndex], count: hGeos[br.geoIndex].attributes.position.count,
+          base: h.a, tip: h.b, kind: 'string', follow: { rod, u: br.t } });
+        food.push({ kind: 'hypha', p: br.tip.clone(), rod, u: br.t, left: 1, t: 0 });
+      }
+    }
+  }
 
   // Spores and pollen, instanced, resting on surfaces
   const placeInst = (geo, count, size, mat) => {
@@ -424,7 +470,9 @@ export function buildWorld(tex) {
       if (!hit) continue;
       const s = size * (0.8 + R() * 0.4);
       q.setFromEuler(e.set(R() * 6, R() * 6, R() * 6));
-      m4.compose(hit.point.clone().addScaledVector(hit.normal, s * 0.4), q, new THREE.Vector3(s, s, s));
+      const at = hit.point.clone().addScaledVector(hit.normal, s * 0.4);
+      m4.compose(at, q, new THREE.Vector3(s, s, s));
+      if (geo === spore) food.push({ kind: 'spore', p: at, im, i: n, left: 1 });
       im.setMatrixAt(n++, m4);
     }
     im.count = n;
@@ -461,5 +509,13 @@ export function buildWorld(tex) {
     for (const m of layers[name]) m.visible = on;
     for (const k of kinds[name]) { if (on) col.off.delete(k); else col.off.add(k); }
   };
-  return { group, colliders: col, grains, stems, mats, topAt, layers, setLayer };
+  /** Eat one spore instance (hide it). */
+  const eatSpore = (f) => {
+    const m4 = new THREE.Matrix4();
+    f.im.getMatrixAt(f.i, m4);
+    m4.scale(new THREE.Vector3(0, 0, 0));
+    f.im.setMatrixAt(f.i, m4);
+    f.im.instanceMatrix.needsUpdate = true;
+  };
+  return { group, colliders: col, grains, stems, mats, topAt, layers, setLayer, foliage, food, eatSpore };
 }

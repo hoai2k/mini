@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bacterium · Micro prototypes</title>
+  <meta name="description" content="Run and tumble as a magnetotactic bacterium (or the predator Bdellovibrio) in bog sediment at 1000×, at the limit of the light microscope: phase contrast, fluorescence, darkfield.">
+  <link rel="icon" href="../../../favicon.ico">
+  <link rel="stylesheet" href="../shared/hud.css">
+  <style>
+    .bx-card { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: min(460px, calc(100vw - 32px));
+      background: rgba(10,12,16,.82); backdrop-filter: blur(8px); border-radius: 12px; padding: 14px 18px; text-align: center; display: none; z-index: 5; }
+    .bx-card.show { display: block; }
+    .bx-card h2 { margin: 0 0 6px; font-size: 17px; } .bx-card p { margin: 0 0 6px; color: #c9d1da; font-size: 13px; }
+    .bx-tag { position: fixed; left: 50%; top: 12px; transform: translateX(-50%); background: rgba(10,12,16,.7); color: #ffd28a;
+      border: 1px solid #ffd28a; border-radius: 999px; padding: 3px 12px; font: 600 12px system-ui, sans-serif; display: none; z-index: 4; }
+    .bx-tag.show { display: block; }
+    .bx-scale { position: fixed; left: 16px; bottom: 16px; color: #eef1f4; font: 12px system-ui, sans-serif; text-shadow: 0 0 3px #000; pointer-events: none; }
+    .bx-scale i { display: block; height: 3px; background: #eef1f4; margin-bottom: 3px; box-shadow: 0 0 3px #000; }
+    .bx-o2 { position: fixed; right: 0; top: 0; bottom: 0; width: 64px; pointer-events: none; display: none; font: 11px ui-monospace, monospace; color: #e8f0ff; }
+    .bx-o2.show { display: block; }
+    .bx-o2 span { position: absolute; right: 6px; transform: translateY(-50%); text-shadow: 0 0 3px #000; white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <canvas class="view"></canvas>
+  <script type="module">
+    import { boot } from '../shared/boot.js';
+    boot(() => import('./main.js'));
+  </script>
+</body>
+</html>

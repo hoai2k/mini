@@ -38,7 +38,7 @@ export function createSwimmer(cell, world) {
     speed: 0, phi: 0, rh: 0, tilt: 0,
     beatPhase: 0, freq: 1, reverse: 1, amp: 0.6, oral: 0.3, feed: 0,
     mode: 'swim', // swim | avoid | captured | dead
-    avoid: null, captor: null, captureT: 0, deadT: 0, safeT: 0,
+    avoid: null, captor: null, captureT: 0, deadT: 0, safeT: 10, // a grace period at the start to find your fins
     charges: 3, recharge: 0, burst: new THREE.Vector3(),
     dashT: 0, dashDir: new THREE.Vector3(), slow: 0,
     center: new THREE.Vector3(), T: new THREE.Vector3(1, 0, 0), F: new THREE.Vector3(1, 0, 0),

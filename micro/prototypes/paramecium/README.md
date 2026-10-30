@@ -1,30 +1,65 @@
 # Paramecium
 
-A playable prototype: swim as *Paramecium caudatum* through a pond drop, and
-compare microscope techniques (darkfield, phase contrast, brightfield, DIC
-and a hypothetical lit view) on the same scene. Published in the prototype
-archive at `micro/prototypes/paramecium/`.
+A playable prototype: swim as *Paramecium bursaria*, the Level 3
+protagonist of the Zoom Chain spec, through a pond drop seen through a
+microscope. Eat prey, keep your symbiotic algae in the light, and outswim
+the hunters: *Didinium*, which harpoons you on contact, and *Amoeba
+proteus*, a slow giant on the slide that cups you in its pseudopods.
+Published in the prototype archive at `micro/prototypes/paramecium/`.
+
+## Playing
+
+- **Where you are:** the default view is the microscope (brightfield, 20×,
+  0.9 mm field), top-down, with the stage keeping your cell centred. The view
+  follows the helix axis (the corkscrew wobble stays on the cell, not the
+  camera), turns slowly with your heading so you swim up the screen, never
+  rolls, and holds still while you steer sideways. A faint outline with a
+  tick at the front marks your cell.
+- **The goal strip** (top centre) shows the round: eat 6 prey, your light
+  meter, the dash meter and trichocyst charges, and a red warning line when
+  something is hunting you.
+- **Prey** (green rings; bright when in reach of a gulp, dashed when at
+  another depth, an arrow at the edge of the field when none is in view):
+  bacterial clumps that drift, and *Chilomonas*, a flagellate that jumps
+  away with its ejectisomes when you get close, so it has to be chased.
+- **Light:** sunlight falls on a slowly wandering patch of the drop; the
+  rest is shaded (darker). In shade your *Chlorella* stop feeding you: the
+  light meter runs down (≈30 s), and with it your top speed (to 62 %) and the
+  dash recharge (to 45 %). A yellow arrow points back to the light.
+- **Hunters** (red rings when they have noticed you, amber when not, arrows
+  at the edge of the field when out of view): *Didinium* turns on you within
+  ≈480 µm and swims nearly straight at about 1 mm/s; a dash sideways makes it
+  overshoot. If its proboscis touches you, you are held and reeled in: X
+  fires trichocysts to break free, A struggles for time, otherwise you are
+  swallowed in 4 s. *Amoeba proteus* creeps toward you on the slide; swim low
+  near it and two pseudopods flank you into a food cup. The cup fills while
+  you stay between the arms (it also holds you back): dash out, or fire
+  trichocysts. Engulfed, you have 3 s.
+- Eat 6 prey and the cell divides (the round counter goes up); eaten, the
+  round starts again. Hunters leave you alone for the first 10 s.
 
 ## Controls
 
+The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
+
 | Xbox | Keyboard | Action |
 | --- | --- | --- |
-| RT | X | Ciliary beat: swim. Speed follows the trigger almost at once; release it and the cell stops (no gliding at low Reynolds number) |
-| LT | Z | Slow beat: hover and feed. The oral cilia draw bacteria into the groove |
-| LS | WASD | Steer (chase camera: yaw and pitch; microscope view: point where to go) |
+| LS | WASD | Steer, relative to the view (microscope: point where to go; chase: yaw and pitch) |
+| RS | Arrows | Move the stage (microscope) or orbit the chase camera |
+| **A** | Space | **Dash**: a ciliary sprint toward the stick (a quick pivot, then up to 2.6 mm/s for 0.32 s), recharging in 1.8 s (slower in shade); rumble. While held: struggle |
+| **X** | E | **Eat**: an oral gulp pulls up to three prey within ≈70 µm of the front of the cell into the groove, each forming a food vacuole. Touching or held by a hunter: **fire trichocysts** at it (3 charges, one back every 9 s) |
+| B | Shift | Avoidance reaction: ciliary reversal, back up, pivot about the posterior, swim off (also fires on any contact) |
+| Y | R | Microscope view (default) / chase camera |
+| LT / RT | Z / X | LT slow feeding beat (hover; draws bacteria into the groove) · RT beat cilia: swim. Speed follows the trigger at once; release it and the cell stops (no gliding) |
 | LB / RB | Q / F | Dive / rise |
-| B | Shift | Avoidance reaction: ciliary reversal, back up, pivot about the posterior, swim off. Also fires on any contact |
-| A | Space | Trichocyst discharge: escape burst away from the nearest threat, with threads left in the water (3 charges, one back every 7 s) |
-| X | E | Next microscope technique |
-| Y | R | Microscope view (top-down, focal plane follows you) or chase camera |
-| RS | Arrows | Orbit the chase camera; in the microscope view, move the stage |
-| D-pad up/down | 1 / 2 | Objective 10× / 20× / 40× (microscope view) or camera distance (chase) |
+| D-pad ←→ | 3 / 4 | Microscope technique (switches a borrowed look off) |
+| D-pad ↑↓ | 1 / 2 | Objective 10× / 20× / 40× (chase camera: distance) |
+| Menu | Esc | Feature panel |
 | View | Tab | Hide or show the controls panel |
-| Menu | Esc | Feature panel: what the prototype is doing, with switches |
 
-The stats corner shows the real speed in µm/s and body lengths per second,
-depth in the drop, trichocyst charges, food vacuoles, bacteria eaten and the
-nearest Didinium.
+The stats corner shows the look on screen (a borrowed one by name and
+source), the field, speed in µm/s and body lengths per second, depth, state,
+prey, food vacuoles and bacteria eaten, the meters, and the nearest hunter.
 
 ## Checks
 
@@ -34,101 +69,95 @@ node micro/prototypes/check.mjs paramecium
 
 It must pass with no console errors. The page exposes `window.__micro`
 (`scene`, `camera`, `renderer`, `cell`, `world`, `swimmer`, `encounters`,
-`optics`, `features`, and `debug` with `setMode`, `setView`, `setOrbit`,
-`avoid`, `burst`, `teleport`, `freeze`, `step`, `inspect`) for screenshot
-scripts.
+`prey`, `amoeba`, `optics`, `features`, `game`, `dash`, `look`, and `debug`
+with `setMode`, `setView`, `setOrbit`, `avoid`, `dash`, `attack`, `burst`,
+`teleport`, `didinium(dx, dz)`, `amoeba(dx, dz)`, `prey(dx, dz, i)`,
+`freeze`, `step`, `inspect`, `clean` (no overlay)) for screenshot scripts:
+freeze, set a scene up, `step(n)`, wait for a render, capture.
 
 ## The cell
 
-All lengths are micrometres, and the scale is honest: the cell is 230 µm
-long (S07: 200–260 µm), the field at 20× is 0.9 mm.
+All lengths are micrometres, and the scale is honest. *P. bursaria* is 120 µm
+long and 56 µm wide (S27: 85–150 µm); in the 0.9 mm field at 20× it is about
+an eighth of the field. *P. caudatum* (230 µm, S07) is a Features choice
+(Body → Species; the page reloads), colourless and without the light meter.
 
 - **Body:** a signed-distance slipper meshed with the shared surface-nets
-  mesher (`shared/sdf.js`). The outline is two superellipse halves joined 20
-  µm behind the middle: a blunt anterior tapering to about 0.78 of the width
-  and a conical, narrowly rounded posterior; the cross-section is slightly
-  flattened dorsoventrally. The **oral groove** is carved by a chain of
-  tapered capsules that twists from the anterior left down to the ventral
-  midline at mid-body, ending in a deeper buccal pocket (the cytostome).
-- **Cilia:** about 4600 on 100 kineties (rows that twist slightly round the
-  body), each 10 µm long, as instanced ribbons animated in the vertex shader.
-  A beat is a straight power stroke toward the posterior and obliquely to the
-  right (which rolls the cell to the left) and a slower recovery stroke with
-  the tip lagging and curled. The **metachronal wave** is a phase offset per
-  cilium along a diagonal of the surface. Oral cilia (three rows, faster and
-  stronger with LT) line the groove; a **caudal tuft** of 22 longer, stiffer
-  cilia trails from the posterior pole.
-- **Trichocysts:** 2600 spindles 3.6 µm long docked just under the pellicle,
-  which give the dense granular margin seen in micrographs.
-- **Contractile vacuoles:** two on the dorsal side, at the anterior and
-  posterior thirds, each with eight radiating collecting canals. The canals
-  swell, empty into the vacuole, the vacuole swells and then empties through
-  its pore; period 6 s, the two half a cycle apart.
-- **Nuclei:** an ellipsoidal macronucleus mid-body and a micronucleus beside
-  it.
-- **Cyclosis:** 1500 granules and crystals and the food vacuoles ride the
-  endoplasm loop (back along the ventral side from the cytostome, forward
-  dorsally). Every ten bacteria eaten form a food vacuole at the cytostome;
+  mesher (`shared/sdf.js`): two superellipse halves joined near the middle.
+  *P. bursaria* is short, plump and rounded at both ends, slightly flattened;
+  *P. caudatum* has a blunt anterior and a conical posterior. The **oral
+  groove** is carved by a chain of tapered capsules that twists from the
+  anterior left down to the ventral midline, ending in a buccal pocket.
+- **Chlorella** (*P. bursaria*): 520 green algae 5–6 µm across fill the
+  cytoplasm and ride the cyclosis; chlorophyll absorbs red and blue, so the
+  cell is green in brightfield and darkfield (S27).
+- **Cilia:** about 2200 (*bursaria*) or 4600 (*caudatum*) on 90–100 kineties,
+  10 µm long, as instanced ribbons beating in the vertex shader: a straight
+  power stroke toward the posterior and obliquely to the right (which rolls
+  the cell to the left) and a slower recovery with the tip lagging. The
+  **metachronal wave** is a phase offset per cilium along a diagonal. Oral
+  cilia line the groove; a **caudal tuft** trails from the posterior pole.
+- **Trichocysts:** spindles 3.6 µm long docked just under the pellicle (the
+  dense granular margin in micrographs).
+- **Contractile vacuoles:** two on the dorsal side, each with eight radiating
+  collecting canals; period 6 s, the two half a cycle apart.
+- **Nuclei:** an ellipsoidal macronucleus and a micronucleus beside it.
+- **Cyclosis:** granules, *Chlorella* and food vacuoles ride the endoplasm
+  loop. Every prey gulped, and every ten bacteria eaten, form a food vacuole;
   vacuoles are egested at the cytoproct after about 1.3 loops.
 - **Pellicle:** a procedural pattern of alveolar units in kinety rows
   (MP-P03 replaces it when delivered).
-
-Turnaround renders of the in-game mesh were checked against
-`research/assets/references/paramecium.jpg` over three rounds: the first
-body (a sine profile) read as a symmetric lens; the second (two blended round
-cones) had a kink at the widest point and a truncated anterior; the third
-(superellipse halves, wider, deeper groove) reads as the slipper of the
-reference, with the groove visible as an oblique line in darkfield and DIC.
 
 ## Swimming
 
 - **Low Reynolds number (S15):** speed relaxes to what the beat produces with
   a 35 ms lag. There is no coasting; the ambient drift (about 20 µm/s with
-  eddies) still carries you. Top speed 1400 µm/s, about 6 body lengths per
-  second (measured cells swim 1–1.5 mm/s).
-- **Helix:** a left-handed helix of radius 29 µm and pitch 850 µm (measured
-  values), one roll per turn, oral side toward the axis, body tilted along the
-  path. The chase camera follows the helix axis and travel heading, not the
-  body, so steering stays calm.
+  eddies) still carries you. Top speed 1000 µm/s for *P. bursaria* (≈8 body
+  lengths/s) and 1400 µm/s for *P. caudatum* (measured 1–1.5 mm/s).
+- **Helix:** left-handed, one roll per turn, oral side toward the axis, body
+  tilted along the path. Radius 29 µm and pitch 850 µm as measured in
+  *P. caudatum*, scaled down for the smaller *P. bursaria*.
 - **Steering** comes from asymmetric beating; turn rate 1.7–3.2 rad/s.
+- **Dash (A):** every cilium beats hard: a pivot of up to 80° toward the
+  stick, then a sprint peaking at 2.6 mm/s (*caudatum* 3 mm/s) that eases off
+  over 0.32 s.
 - **Avoidance reaction (S08):** the stroke reverses within tens of
-  milliseconds, the cell backs up for 0.3 s at 650 µm/s, then pivots about its
-  posterior end for 0.45 s to a new heading (away from what it hit, or toward
-  the stick in the microscope view) and swims on. Any contact with a filament,
-  flake, diatom, Vorticella, the slide, the coverslip or the edge of the drop
-  sets it off.
+  milliseconds, the cell backs up for 0.3 s, then pivots about its posterior
+  end for 0.45 s to a new heading (away from what it hit, or toward the
+  stick in the microscope view). Any contact with a filament, flake, diatom,
+  Vorticella, the slide, the coverslip or the edge of the drop sets it off.
 - **Trichocyst discharge (S09):** about 240 threads 20–40 µm long fire from
-  the patch of pellicle facing the threat (or the anterior if there is none)
-  and the cell is thrown about 100 µm the other way. Rumble on a controller.
+  the patch of pellicle facing the hunter and the cell is thrown about 100 µm
+  the other way; the hunter recoils.
 
 ## The scene
 
-- A wet mount 3 mm across and 650 µm deep (slide at y = 0, coverslip above).
-- **Spirogyra:** four filaments 42 µm thick crossing the drop at different
-  depths, each a closed tube of 88 µm cells with cross walls, a helical
-  chloroplast ribbon with serrated margins (about 4.5 turns per cell) studded
-  with pyrenoids, and a central nucleus.
-- **Detritus:** 70 flakes (noise-displaced, flattened), half settled on the
-  slide, plus 2200 sediment specks.
-- **Vorticella:** eight on a flake near the start, each an inverted bell with
-  a peristome lip, a C-shaped macronucleus and a ring of oral cilia, on a
-  110–190 µm stalk. Touch one and the stalk coils into a tight helix in one
-  frame, then re-extends over about 3 s; neighbours may follow (S10, S11).
-  Their peristome currents feed on the bacteria too.
-- **Diatoms:** three *Pinnularia*-type pennates (striae and raphe, golden
-  plastids) that glide slowly back and forth, and two *Fragilaria*-type
-  ribbon colonies.
-- **Bacteria:** 7000 rods and cocci in a box that travels with you. They drift
-  with the ambient flow, half of them run and tumble, and they visualise the
-  flow you make: a neutral squirmer's dipole field (carried ahead at the
-  poles, swept back along the sides, decaying as 1/r³) plus the feeding
-  current into the oral groove.
-- **Didinium nasutum (S28, S56):** two barrel-shaped hunters about 130 µm long
-  with two girdles of cilia (pectinelles), a proboscis and a horseshoe
-  macronucleus, rotating as they swim. Within about two body lengths one turns
-  on you at 1050 µm/s. If its proboscis touches you, you are held and reeled
-  in; trichocysts break free (B struggles for a moment); after 4 s you are
-  swallowed whole and a new cell swims in.
+Kept sparse so your cell is the clearest thing in the field.
+
+- A wet mount 3 mm across and 300 µm deep (slide at y = 0, coverslip above).
+- **Spirogyra:** three filaments 42 µm thick at different depths, with cross
+  walls, helical serrated chloroplasts, pyrenoids and nuclei.
+- **Detritus:** 35 flakes, half settled on the slide, plus 900 sediment specks.
+- **Vorticella:** three on a flake, each an inverted bell on a contractile
+  stalk; touch one and the stalk coils in one frame, re-extending over about
+  3 s (S10, S11). Their peristome currents feed on the bacteria too.
+- **Diatoms:** *Pinnularia*-type pennates that glide slowly, and two
+  *Fragilaria*-type ribbon colonies.
+- **Bacteria:** 2400 rods and cocci in a box that travels with you, drifting,
+  running and tumbling, and showing the flow you make (a neutral squirmer's
+  dipole field plus the feeding current into the oral groove).
+- **Prey:** 12 bacterial clumps (a ball of rods in a faint slime matrix) and
+  6 *Chilomonas* (25 µm), in a box that travels with you, near your depth.
+- **Didinium nasutum (S28, S56):** two barrel-shaped hunters about 130 µm
+  long with two girdles of cilia, a proboscis and a horseshoe macronucleus,
+  rotating as they swim. Hunting at 1050 µm/s, striking at 1250 µm/s within
+  200 µm; they drift back toward you when far away so encounters keep coming.
+- **Amoeba proteus (S29, S05):** about 300 µm across at rest, up to 600 µm
+  with pseudopods, creeping on the slide: a flattened body deformed every
+  frame by pseudopod lobes, with streaming granules and crystals, a disc
+  nucleus, a contractile vacuole and green food vacuoles. When you swim
+  within ≈150 µm of the slide and close by, two arms flank you into a food
+  cup and close.
 
 ## Rendering: forming a microscope image
 
@@ -164,6 +193,24 @@ The image modes then follow image formation:
 A post pass adds lateral chromatic softness, the objective's point spread,
 sensor noise, and the round eyepiece field stop in the microscope view.
 
+Legibility, so your cell is the clearest thing on screen:
+
+- **Brightfield is the default:** the green *Chlorella* make *P. bursaria*
+  stand out on the pale field, while colourless hunters and the amoeba read
+  as grey. Phase contrast was tried as the default too; its grey field and
+  halos made the green cell no clearer and the plate busier.
+- Brightfield here uses the microscope's `bfSoft` option, a soft limit on
+  its defocus and edge terms, so thick bodies (Didinium, the amoeba) shade
+  grey instead of clipping to black.
+- **The habitat plate** (darkfield and phase) is shown at 30 % and blurred
+  through its mipmaps by default (Features: full or off), and turns with the
+  view.
+- **Strong depth of field:** at 20× only 16 µm round the focal plane is
+  sharp and everything is fully defocused by 75 µm; far layers fade out.
+- **Overlays** (drawn over the image, each switchable): your outline, prey
+  and hunter markers with edge-of-field arrows, and the shade outside the
+  sunlit patch (a multiplied layer).
+
 Performance: the pixel ratio is capped at 1.5, and a GPU fence per frame
 skips the render when the GPU is behind and steps the internal resolution
 down until frames keep up (software renderers start at the 0.4 floor).
@@ -177,26 +224,34 @@ it (for example `?f=-dof,look:DIC (Nomarski)`).
 
 | Group | Feature | Switch |
 | --- | --- | --- |
-| Optics | Microscope technique (synced with X) | choice |
-| Optics | Camera: chase or microscope (synced with Y) | choice |
-| Optics | Objective 10× / 20× / 40× | choice |
-| Optics | Depth of field | on/off |
+| Optics | Microscope technique (synced with D-pad ←→; default brightfield) | choice |
+| Optics | Camera: microscope (default) or chase (synced with Y) | choice |
+| Optics | Microscope view turns with your heading (off: north up) | on/off |
+| Optics | Objective 10× / 20× / 40× (synced with D-pad ↑↓) | choice |
+| Optics | Depth of field: strong (default), mild, off | choice |
 | Optics | Phase halo and shade-off | on/off |
 | Optics | Brightfield defocus contrast | on/off |
-| Optics | Background habitat plate | on/off |
+| Optics | Background habitat plate: dimmed and blurred (default), full, off | choice |
+| Optics | Outline round your cell; hunter markers; prey markers; light and shade | on/off each |
 | Optics | Lateral chromatic softness, objective point spread, camera noise | on/off each |
 | Optics | Eyepiece field stop | on/off |
 | Rendering | Optical-path buffers; front/back-face chord trick; sub-pixel widening | always |
 | Rendering | Adaptive resolution and frame skip | on/off |
+| Body | Species: *P. bursaria* (default) or *P. caudatum* (reloads) | choice |
 | Body | SDF body with carved oral groove | always |
+| Body | Chlorella symbionts (*P. bursaria*) | on/off |
 | Body | Cilia; metachronal waves; pellicle pattern; docked trichocysts; cyclosis; contractile vacuole cycle; nuclei | on/off each |
 | Motion | Low Reynolds number (off: a 1.4 s glide, for comparison) | on/off |
 | Motion | Helical path and roll; camera follows the helix axis | on/off each |
 | Motion | Ciliary beat rate: slowed (readable) or real | choice |
-| Motion | Avoidance reaction; trichocyst discharge | always |
+| Motion | Dash; avoidance reaction; trichocyst defence | always |
 | Simulation | Flow round the swimming cell; feeding currents; ambient drift; bacterial run-and-tumble | on/off each |
-| World | Didinium hunters; Didinium homing; Vorticella stalk contraction | on/off each |
-| World | Spirogyra, detritus, diatoms | always |
+| World | Didinium hunters; Didinium homing; Amoeba proteus; Vorticella stalk contraction | on/off each |
+| World | Spirogyra, detritus, diatoms, prey | always |
+| Borrowed | SEM (mite), tardigrade DIC, amoeba optics, each with its mode | on/off, default off |
+
+Saved state uses the key `paramecium.v2`, so earlier saved settings (which
+defaulted to darkfield and the chase camera) no longer apply.
 
 ### Technique modules (for other prototypes)
 
@@ -205,6 +260,10 @@ Each is self-contained and documents its interface in its header.
 - `shared/techniques/paramecium-microscope.js`: the whole image-formation
   pipeline (optic materials, MRT buffers, defocus layers, darkfield, phase,
   brightfield, DIC and lit modes, post pass, stand-in plates, switches).
+  Options added for this version, all off or unchanged by default so
+  borrowers see no difference: `plateMix`, `plateBlur`, `plateRot` and
+  `bfSoft` on `render()`, `loop` on `pointsMaterial`, `uLen` on
+  `volumeMaterial`.
 - `shared/techniques/paramecium-cilia.js`: instanced ribbon strands beating
   in the vertex shader (cilia with metachronal waves and reversal, caudal
   tufts, docked and extruded trichocysts, coiling stalks).
@@ -249,33 +308,56 @@ automatically: MP-P01 (darkfield plate), MP-P02 (phase plate), MP-P03
   trichocyst threads 1.2 µm (really 0.1–0.2 µm), bacteria about 1.3 µm wide;
   all at least one pixel, with their optical path scaled down to compensate.
   Pellicle units are drawn about 1.5 times their size.
-- **Cilia count and beat:** about 4600 cilia, single rather than paired. The
+- **Cilia count and beat:** about 2200 (*bursaria*) or 4600 (*caudatum*) cilia, single rather than paired. The
   beat is shown at roughly a quarter of the real 15–35 Hz so the strokes and
   waves can be followed (the panel has the real rate).
-- **Depth of field** is far deeper than real: 22 µm sharp and fully blurred at
-  160 µm at 20×, against about 6 µm in a real 20× objective. With the real
+- **Depth of field** is deeper than real: 16 µm sharp and fully blurred at
+  75 µm at 20×, against about 6 µm in a real 20× objective. With the real
   value the cell itself would be mostly out of focus.
+- **Drop depth** 300 µm (shallow for a hollow pool, deep for a wet mount)
+  so the amoeba on the slide can reach a swimming cell.
 - **Cyclosis** runs about five times faster than life; the contractile
   vacuole period (6 s) is within the real range.
-- **Trichocyst recharge** (3 charges, one every 7 s) is invented: re-docking
+- **Trichocyst recharge** (3 charges, one every 9 s) is invented: re-docking
   new trichocysts takes hours. The ≈100 µm throw is a game value.
-- **Didinium homing** within about two body lengths is invented; Didinium
-  finds prey by collision. Whether trichocysts free a Paramecium from
-  Didinium (as they do from *Dileptus*, S09) is unverified. Struggling with B
-  to buy time is invented.
+- **Dash:** escape swimming in Paramecium reaches several mm/s for a moment;
+  the 2.6 mm/s peak, the 80° pivot and the 1.8 s recharge are game values.
+  The *P. bursaria* top speed (1 mm/s) is a game value in the range of
+  measured Paramecium speeds.
+- **Light meter:** *P. bursaria* does gather on the lit side and gets sugars
+  from its *Chlorella* (S27), but the drain rate and its effect on speed and
+  dash are invented. The sunlit patch is drawn over the image, not rendered
+  by the optics.
+- **Didinium homing** within ≈480 µm and its patrol back toward you are
+  invented; Didinium finds prey by collision. Its 1–1.25 mm/s is a game
+  value. Whether trichocysts free a Paramecium from Didinium (as they do from
+  *Dileptus*, S09) is unverified. Struggling with A to buy time is invented.
+- **Amoeba proteus** creeps about 10× faster than life (38 µm/s against
+  0.5–5 µm/s) and its pseudopods extend about 5× faster, so it is a threat
+  within a minute; its food cup reaching 150 µm up into the water from the
+  slide is a stretch. Its body is a deformed flattened sphere, not the
+  amoeba prototype's soft body.
+- **Prey:** *Chilomonas* is drawn without its flagella; its ejectisome jump
+  (≈150 µm at up to 1.5 mm/s) is real in kind but its size here is a game
+  value. The gulp's 70 µm reach and three-prey limit are game values.
 - **Vorticella** contracts in one frame (really a few milliseconds) and
   neighbours may follow a touched cell (individual Vorticella are solitary).
 - **Chase camera** is a hypothetical camera in the water; perspective
   projection of a transmitted-light image is itself a departure. The
   immersive mode is a rendering hypothesis, not microscopy.
-- **Species:** the Zoom Chain spec recommends *P. bursaria* for Level 3; this
-  prototype uses the larger, colourless *P. caudatum* the owner asked about.
-  Dileptus is not in the scene yet.
-- **Scene composition:** Spirogyra, Vorticella, diatoms and Didinium together
-  in one drop is plausible pond water, not a recorded sample.
+- **Species:** *P. bursaria*, as the Zoom Chain spec recommends for Level 3;
+  its shape is drawn from descriptions (S27) rather than measured outlines.
+  *P. caudatum* remains as a choice. Dileptus is not in the scene yet.
+- **Overlays** (outline, markers, shade) are game aids, not microscopy.
+- **Scene composition:** Spirogyra, Vorticella, diatoms, Didinium and
+  Amoeba proteus together in one drop is plausible pond water, not a recorded sample.
 
 ## Sources
 
+- S27 Kreutz, *Paramecium bursaria* (Real Micro Life): 85–150 µm; green with
+  *Chlorella* symbionts 5–6 µm; gathers on the side facing the light.
+- S29 Kreutz, *Amoeba proteus* (Real Micro Life): 160–760 µm. S05: the food
+  cup.
 - S07 Kreutz, *Paramecium caudatum* (Real Micro Life): 170–300 µm (measured
   cells 200–260 µm); blunt anterior, conical posterior; oral groove widening
   anteriorly; two contractile vacuoles with about seven radial canals; ellipsoid

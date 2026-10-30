@@ -568,7 +568,7 @@ function drawOverlay(cam, s) {
   g.clearRect(0, 0, cssW, cssH); sg.clearRect(0, 0, cssW, cssH);
   if (debug.clean) return;
   const scopeV = view.kind === 'scope';
-  const pxPerUm = scopeV ? cssH / (2 * (OBJECTIVES[view.obj].field / 2 / 0.95)) : null;
+  const pxPerUm = scopeV ? cssH / (2 * (OBJECTIVES[view.obj].field / 2 / 0.95)) : cssH / (2 * Math.tan((chase.fov * Math.PI) / 360) * Math.max(1, chase.position.distanceTo(s.center)));
   const cx = cssW / 2, cy = cssH / 2, R = scopeV && view.fieldStop ? cssH * 0.475 : Math.hypot(cssW, cssH) / 2;
   const visible = (q) => q.ok && (scopeV && view.fieldStop ? Math.hypot(q.x - cx, q.y - cy) < R - 6 : q.x > 8 && q.y > 8 && q.x < cssW - 8 && q.y < cssH - 8);
   const dark = MODES[view.mode] === 'darkfield' || (borrow.id === 'semMite');
@@ -612,7 +612,7 @@ function drawOverlay(cam, s) {
       const d = it.pos.distanceTo(gc);
       const inReach = d < GULP_REACH;
       const depthOff = Math.abs(it.pos.y - s.center.y) > 45;
-      const r = Math.max(8, (it.r + 6) * (pxPerUm || 1.2));
+      const r = Math.max(8, (it.r + 6) * pxPerUm);
       g.strokeStyle = inReach ? 'rgba(90,230,110,0.95)' : dark ? 'rgba(120,230,140,0.45)' : 'rgba(30,140,50,0.5)';
       g.lineWidth = inReach ? 2 : 1.2;
       g.setLineDash(depthOff ? [3, 3] : []);
@@ -634,7 +634,7 @@ function drawOverlay(cam, s) {
       const col = hot ? `rgba(255,${isA && amoeba.cup > 0 ? 60 : 90},70,${0.75 + 0.25 * Math.sin(t * 10)})` : 'rgba(255,190,80,0.7)';
       const label = `${th.label}${hot ? (isA ? (amoeba.cup > 0 ? ' · cupping you!' : ' · coming for you') : th.state === 'feeding' ? ' · has you' : ' · hunting you') : ''}`;
       if (visible(q)) {
-        const r = isA ? (amoeba.R + 70) * (pxPerUm || 1) : Math.max(24, 80 * (pxPerUm || 1.2));
+        const r = isA ? (amoeba.R + 70) * pxPerUm : Math.max(24, 80 * pxPerUm);
         g.strokeStyle = col; g.lineWidth = hot ? 2.5 : 1.5; g.setLineDash([8, 6]);
         g.beginPath(); g.arc(q.x, q.y, r, 0, Math.PI * 2); g.stroke(); g.setLineDash([]);
         g.font = '600 12px system-ui, sans-serif'; g.fillStyle = col; g.textAlign = 'center';
@@ -650,7 +650,7 @@ function drawOverlay(cam, s) {
     const c2 = toScreen(s.center, cam);
     let ax = fx - c2.x, ay = fy - c2.y;
     let L = Math.hypot(ax, ay);
-    const scale = pxPerUm || (L > 1 ? L / HL : 1);
+    const scale = pxPerUm;
     if (L < 1) { ax = 0; ay = -1; L = 1; }
     const a = Math.atan2(ay, ax);
     const maj = Math.max(L, HL * scale * 0.5) + 9, min = (WIDTH / 2) * scale + 9;

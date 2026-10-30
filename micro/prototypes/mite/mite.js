@@ -24,7 +24,14 @@ import { HALF, floorH } from './world.js';
 import { GAITS, legOffset, gaitTriggers, swingTarget, twoBoneIK } from '../shared/techniques/mite-gait.js';
 
 /** Live switches, shared by every mite (the feature panel edits it). */
-export const CFG = { gait: 'tetrapod', ik: true, bob: true, roll: true, closeTime: 0.16, setae: true };
+export const CFG = { gait: 'tetrapod', ik: true, bob: true, roll: true, closeTime: 0.16, setae: true, climb: true, clear: true };
+
+/** Collider kinds that bend out of the way instead of being climbed or blocking the body. */
+const SOFT = new Set(['blade']);
+// Directions (body frame) for the body-clearance rays: around the waist, and up.
+const CLEAR_DIRS = [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [1, 0, 1], [1, 0, -1], [-1, 0, 1], [-1, 0, -1],
+  [1, 0.7, 0], [-1, 0.7, 0], [0, 0.7, 1], [0, 0.7, -1], [0, 1, 0]].map(([x, y, z]) => new THREE.Vector3(x, y, z).normalize());
+const BELLY = [[0, -1, 0], [0.6, -1, 0], [-0.6, -1, 0], [0, -1, 0.6], [0, -1, -0.6]].map(([x, y, z]) => new THREE.Vector3(x, y, z).normalize());
 
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
@@ -215,6 +222,75 @@ function geometry() {
   return GEO;
 }
 
+// ---------- the predator: a parasitid (Mesostigmata, Parasitidae) ----------
+// Pergamasus / Parasitus type: a flattened, pale oval about 0.8 mm long, one
+// large dorsal shield with a transverse seam and rows of fine setae, a
+// projecting gnathosoma with long chelate chelicerae and palps, long legs.
+// Leg I is held up and forward as a feeler (gamasids hunt by touch) and does
+// not walk; legs II-IV run a tetrapod-like gait.
+export const PRED = {
+  kind: 'pred',
+  noto: { c: [-40, 0, 0], r: [320, 92, 200] },
+  hinge: [262, -26, 0],
+  aspisOpen: 0, aspisClosed: 0,
+  stand: 215,
+  stride: 190,
+  feelers: true,
+  legs: [
+    { hip: [200, -50, 100], rest: [560, 70, 230], seg: [30, 176, 70, 150, 176], rad: [11, 12, 10, 9, 7] },
+    { hip: [130, -62, 140], rest: [330, -215, 400], seg: [30, 150, 58, 128, 140], rad: [12, 13, 11, 10, 8] },
+    { hip: [30, -66, 150], rest: [10, -215, 440], seg: [30, 150, 58, 128, 140], rad: [12, 13, 11, 10, 8] },
+    { hip: [-80, -60, 132], rest: [-360, -215, 380], seg: [32, 168, 62, 146, 160], rad: [12, 13, 11, 10, 8] },
+  ],
+};
+
+let PGEO = null;
+function predGeometry() {
+  if (PGEO) return PGEO;
+  const { c, r } = PRED.noto;
+  const yv = (x, z) => r[1] * Math.sqrt(Math.max(0, 1 - ((x - c[0]) / r[0]) ** 2 - (z / r[2]) ** 2));
+  const np = [
+    { id: 0, sdf: sd.ellipsoid(c, r) },
+    // a slight dorsal ridge and a flatter rim (the shield overhangs the soft sides)
+    { id: 0, sdf: sd.ellipsoid([-30, 18, 0], [270, 70, 150]), blend: 30 },
+  ];
+  // transverse seam between the podonotal and opisthonotal parts of the shield
+  for (let a = -1.1; a < 1.1; a += 0.22) {
+    const z0 = Math.sin(a) * 150, z1 = Math.sin(a + 0.22) * 150;
+    np.push({ id: 0, op: 'sub', blend: 3, sdf: groove([60, yv(60, z0) + 17, z0], [60, yv(60, z1) + 17, z1], 4) });
+  }
+  // peritremes: the long breathing grooves along each side above legs II-IV
+  for (const s of [-1, 1]) np.push({ id: 0, op: 'sub', blend: 3, sdf: groove([190, -20, s * 165], [20, -10, s * 192], 5) });
+  const noto = buildSdfMesh(np, { min: [-372, -100, -212], max: [292, 160, 212], cell: 7 });
+  const gp = [
+    // basis capituli and tectum
+    { id: 2, sdf: sd.ellipsoid([10, 0, 0], [46, 30, 40]) },
+    // long chelate chelicerae projecting forward
+    { id: 3, sdf: sd.mirrorZ(sd.roundCone([0, 8, 12], [118, -6, 11], 13, 8)), blend: 8 },
+    { id: 3, sdf: sd.mirrorZ(sd.roundCone([118, -6, 11], [150, -10, 13], 7, 2.5)), blend: 3 },
+    { id: 3, sdf: sd.mirrorZ(sd.roundCone([112, -14, 11], [146, -20, 10], 5.5, 2)), blend: 3 },
+    // palps: five-segmented, held out to the sides
+    { id: 4, sdf: sd.mirrorZ(sd.roundCone([10, -14, 32], [64, -26, 52], 10, 8)), blend: 6 },
+    { id: 4, sdf: sd.mirrorZ(sd.roundCone([64, -26, 52], [112, -30, 48], 8, 5)), blend: 4 },
+  ];
+  const aspis = buildSdfMesh(gp, { min: [-40, -50, -70], max: [162, 44, 70], cell: 4 });
+  for (const g of [noto, aspis]) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
+  const fN = combine(np);
+  const bodySetae = [];
+  // j, z, s rows of fine dorsal setae lying back on the shield
+  for (let x = 230; x > -340; x -= 52) for (const zf of [0.18, 0.45, 0.72, 0.92]) for (const s of [-1, 1]) {
+    const zr = zf * r[2] * Math.sqrt(Math.max(0, 1 - ((x - c[0]) / r[0]) ** 2));
+    if (zr < 8) continue;
+    const sp = surfacePoint(fN, V3(x, 0, s * zr * 0.4), V3(0, 1, s * zf * 0.8).normalize());
+    const d = sp.n.clone().multiplyScalar(0.35).add(V3(-0.9, 0, 0)).normalize();
+    bodySetae.push({ p: sp.p.addScaledVector(sp.n, -1.5), d, len: 26 + ((x * 7 + zf * 31) % 1 + 1) % 1 * 16, rad: 2.2 });
+  }
+  console.info(`[mite] predator meshed: idiosoma ${noto.index.count / 3} tris, gnathosoma ${aspis.index.count / 3} tris`);
+  const base = geometry();
+  PGEO = { noto, aspis, bodySetae, aspSetae: [], sens: [], seta: base.seta, sensillus: base.sensillus, seg: base.seg, tars: base.tars, claw: base.claw };
+  return PGEO;
+}
+
 // ---------- helpers ----------
 
 const _x = new THREE.Vector3(), _y = new THREE.Vector3(), _z = new THREE.Vector3(), _m = new THREE.Matrix4();
@@ -256,8 +332,9 @@ function support(c, r, d, out) {
  * @param {object} colliders world colliders (cast(origin, dir, far))
  * @param {{cls:number, tex:object, name?:string}} opts
  */
-export function createMite(scene, colliders, { cls, tex, cfg = CFG }) {
-  const G = geometry();
+export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT }) {
+  const AN = anat;
+  const G = AN.kind === 'pred' ? predGeometry() : geometry();
   const cut = gMaterial({ cls, tex: tex.cuticle, map: 'tri', scale: 150, bump: 1.6, objSpace: true });
   const legMat = gMaterial({ cls });
   const thinMat = gMaterial({ cls, thin: 1 });
@@ -266,7 +343,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG }) {
   const noto = new THREE.Mesh(G.noto, cut);
   body.add(noto);
   const aspis = new THREE.Group();
-  aspis.position.set(...ANAT.hinge);
+  aspis.position.set(...AN.hinge);
   aspis.add(new THREE.Mesh(G.aspis, cut));
   const setaeMeshes = [staticSetae(G.seta, G.aspSetae, thinMat), staticSetae(G.sensillus, G.sens, thinMat), staticSetae(G.seta, G.bodySetae, thinMat)];
   aspis.add(setaeMeshes[0], setaeMeshes[1]);
@@ -286,7 +363,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG }) {
 
   const legs = [];
   for (let k = 0; k < 4; k++) for (const side of [-1, 1]) {
-    const A = ANAT.legs[k];
+    const A = AN.legs[k];
     const sideIdx = side < 0 ? 0 : 1;
     legs.push({
       k, side,
@@ -305,9 +382,10 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG }) {
     mode: 'walk', // walk | closing | closed | opening
     pos: V3(0, 0, 0), up: V3(0, 1, 0), fwd: V3(1, 0, 0),
     speed: 0, omega: 0, phase: 0, t: 0, retract: 0, aspis: 0,
-    center: V3(0, ANAT.stand, 0), q: new THREE.Quaternion(),
+    center: V3(0, AN.stand, 0), q: new THREE.Quaternion(),
     vel: V3(), angVel: V3(), airborne: false,
     q0: new THREE.Quaternion(), c0: V3(), h0: 0, lastLand: 0,
+    biteT: 0, time: 0, pen: 0, climbing: 0, groundHit: null,
   };
   const events = [];
 
@@ -324,8 +402,10 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG }) {
   const down = new THREE.Vector3();
   const ground = (p, up, above = 140, far = 380) => colliders.cast(p.clone().addScaledVector(up, above), down.copy(up).negate(), far);
 
+  const isFeeler = (L) => AN.feelers && L.k === 0;
   function plantAll() {
     for (const L of legs) {
+      if (isFeeler(L)) continue;
       restWorld(L, L.to);
       const h = ground(L.to, st.up);
       if (h) L.to.copy(h.point);
@@ -350,6 +430,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG }) {
     const r = right();
     const hits = PROBES.map(([a, b]) => ground(at.clone().addScaledVector(st.fwd, a).addScaledVector(r, b), st.up));
     if (!hits[0]) return null;
+    st.groundHit = hits[0];
     const h0 = hits[0].point.clone().sub(at).dot(st.up);
     const ok = hits.map((h) => h && Math.abs(h.point.clone().sub(at).dot(st.up) - h0) < 120 ? h : null);
     const n = new THREE.Vector3();
@@ -392,42 +473,58 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG }) {
         want = input.maxSpeed * input.mag * sstep(-0.15, 0.75, Math.cos(ang));
       }
     }
-    st.speed += (want - st.speed) * (1 - Math.exp(-dt / 0.18));
+    st.speed += (want - st.speed) * (1 - Math.exp(-dt / (input.accel || 0.18)));
     st.omega = turn / dt;
     st.fwd.applyAxisAngle(st.up, turn).normalize();
 
     // wall ahead (taller than a step)?
     let step = st.speed * dt;
-    const wall = colliders.cast(st.pos.clone().addScaledVector(st.up, 130), st.fwd, 300 + step);
+    const wall = colliders.cast(st.pos.clone().addScaledVector(st.up, 130), st.fwd, 300 + step, false, SOFT);
     const move = st.fwd.clone().multiplyScalar(step);
+    st.climbing = Math.max(0, st.climbing - dt * 2);
     if (wall && wall.normal.dot(st.up) < 0.55) {
-      // too steep to step onto (a stem, a boulder): slide along it instead
       const n = wall.normal.clone().addScaledVector(st.up, -wall.normal.dot(st.up)).normalize();
       const into = move.dot(n);
-      if (into < 0) move.addScaledVector(n, -into * clamp((330 - wall.dist) / 60, 0, 1));
+      if (cfg.climb && step > 0.01) {
+        // Too steep to step onto (a grain face, a stem, a flake on edge): the
+        // claws hold on any rigid surface, so tip the body up onto the face as
+        // it comes within reach. The ground probes then find the face and the
+        // body walks up it, its up turning toward the face normal.
+        const k = clamp((320 - wall.dist) / 170, 0, 1);
+        st.up.lerp(wall.normal, 1 - Math.exp(-dt * 9 * k)).normalize();
+        st.fwd.addScaledVector(st.up, -st.fwd.dot(st.up)).normalize();
+        st.climbing = Math.max(st.climbing, k);
+        // never step into the face before the body has turned onto it
+        if (into < 0) move.addScaledVector(n, -into * clamp((250 - wall.dist) / 60, 0, 1));
+      } else if (into < 0) {
+        // climbing off: slide along it instead (the old rule)
+        move.addScaledVector(n, -into * clamp((330 - wall.dist) / 60, 0, 1));
+      }
     }
     const prev = st.pos.clone();
     st.pos.add(move);
     st.pos.x = clamp(st.pos.x, -HALF + 150, HALF - 150);
     st.pos.z = clamp(st.pos.z, -HALF + 150, HALF - 150);
     if (!settleBody(dt)) { st.pos.copy(prev); st.speed *= 0.5; }
+    if (cfg.clear) clearance(true);
     const fy = floorH(st.pos.x, st.pos.z);
     if (st.pos.y < fy) st.pos.y = fy;
     const moved = st.pos.distanceTo(prev);
 
     // gait phase advances with distance travelled (and turning), so stride matches speed
     let err = 0;
-    for (const L of legs) if (!L.swing) err = Math.max(err, L.foot.distanceTo(restWorld(L, _x)));
+    for (const L of legs) if (!L.swing && !isFeeler(L)) err = Math.max(err, L.foot.distanceTo(restWorld(L, _x)));
     // the front feet are ~330 µm from the centre, so turning sweeps them fast
-    let dphi = (moved + Math.abs(turn) * 330) / ANAT.stride;
+    let dphi = (moved + Math.abs(turn) * 330) / AN.stride;
     if (dphi < 0.25 * dt && err > 22) dphi = 1.4 * dt; // shuffle feet back under the body when stopped
     const vBody = st.fwd.clone().multiplyScalar(moved / dt);
     const trig = new Set(gaitTriggers(st.phase, dphi, legs));
     for (const L of legs) {
-      if (!L.swing && (trig.has(L) || L.foot.distanceTo(restWorld(L, _x)) > ANAT.stride * 1.25)) {
+      if (isFeeler(L)) continue;
+      if (!L.swing && (trig.has(L) || L.foot.distanceTo(restWorld(L, _x)) > AN.stride * 1.25)) {
         L.swing = true; L.s = 0; L.from.copy(L.foot);
         const sp = Math.max(st.speed, 50);
-        L.dur = clamp(((1 - duty) * ANAT.stride) / sp, 0.08, 0.3);
+        L.dur = clamp(((1 - duty) * AN.stride) / sp, 0.08, 0.3);
       }
     }
     st.phase += dphi;
@@ -441,7 +538,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG }) {
       const rw = restWorld(L, new THREE.Vector3());
       const rel = rw.clone().sub(st.pos);
       const vFoot = vBody.clone().add(new THREE.Vector3().crossVectors(st.up, rel).multiplyScalar(st.omega));
-      const tgt = swingTarget(rw, vFoot, (1 - L.s) * L.dur, duty, ANAT.stride, vBody.length());
+      const tgt = swingTarget(rw, vFoot, (1 - L.s) * L.dur, duty, AN.stride, vBody.length());
       const h = ground(tgt, st.up, 120, 320);
       if (h) L.to.copy(h.point); else L.to.copy(tgt);
       const e = sstep(0, 1, L.s);
@@ -454,10 +551,41 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG }) {
     }
   }
 
+  // Body clearance: rays from the body's centre to its ellipsoid surface. A
+  // rigid surface closer than the ellipsoid pushes the body back along the
+  // ground (never through it), and the deepest overlap is kept as st.pen (µm)
+  // for the checks. Soft blades are left to bend out of the way.
+  const _cq = new THREE.Quaternion(), _cc = new THREE.Vector3(), _cd = new THREE.Vector3(), _cp = new THREE.Vector3();
+  function ellipsoidR(d) {
+    const r = AN.noto.r;
+    return 1 / Math.sqrt((d.x / r[0]) ** 2 + (d.y / r[1]) ** 2 + (d.z / r[2]) ** 2);
+  }
+  function clearance(apply) {
+    basisQ(st.fwd, st.up, _cq);
+    _cc.set(AN.noto.c[0], AN.noto.c[1], AN.noto.c[2]).applyQuaternion(_cq).add(st.pos).addScaledVector(st.up, AN.stand);
+    _cp.set(0, 0, 0);
+    let pen = 0;
+    for (const dirs of [CLEAR_DIRS, BELLY]) for (const d of dirs) {
+      const rr = ellipsoidR(d);
+      _cd.copy(d).applyQuaternion(_cq);
+      const h = colliders.cast(_cc, _cd, rr + 4, false, SOFT);
+      if (!h || h.dist >= rr) continue;
+      const p = rr - h.dist;
+      if (p > pen) { pen = p; st.penInfo = { dir: d.toArray(), kind: h.kind, belly: dirs === BELLY }; }
+      if (dirs === CLEAR_DIRS) _cp.addScaledVector(_cd, -p);
+    }
+    st.pen = pen;
+    if (apply && _cp.lengthSq() > 0) {
+      _cp.addScaledVector(st.up, -_cp.dot(st.up));
+      st.pos.addScaledVector(_cp, 0.85);
+    }
+    return pen;
+  }
+
   // the closed capsule: a rigid egg rolling, tipping and falling
   const GRAV = 2600;
   function physics(dt) {
-    const { c, r } = ANAT.noto;
+    const { c, r } = AN.noto;
     const qi = st.q.clone().invert();
     const dLocal = V3(0, -1, 0).applyQuaternion(qi);
     const sup = support(c, r, dLocal, new THREE.Vector3());
@@ -523,20 +651,25 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG }) {
       const sway = st.mode === 'walk' && cfg.bob ? 0.02 * Math.sin(st.phase * Math.PI * 2) * Math.min(1, st.speed / 120) : 0;
       q = basisQ(st.fwd, st.up);
       q.multiply(new THREE.Quaternion().setFromAxisAngle(V3(1, 0, 0), sway));
-      let h = ANAT.stand + bob;
-      if (st.mode === 'closing') h = ANAT.stand + (st.h0 - ANAT.stand) * sstep(0.2, 1, st.t);
+      let h = AN.stand + bob;
+      if (st.mode === 'closing') h = AN.stand + (st.h0 - AN.stand) * sstep(0.2, 1, st.t);
       center = st.pos.clone().addScaledVector(st.up, h);
       st.center.copy(center); st.q.copy(q);
     } else if (st.mode === 'opening') {
       const e = sstep(0, 0.75, st.t);
       q = st.q0.clone().slerp(basisQ(st.fwd, st.up), e);
-      center = st.c0.clone().lerp(st.pos.clone().addScaledVector(st.up, ANAT.stand), sstep(0.15, 0.9, st.t));
+      center = st.c0.clone().lerp(st.pos.clone().addScaledVector(st.up, AN.stand), sstep(0.15, 0.9, st.t));
       st.center.copy(center); st.q.copy(q);
     } else { q = st.q; center = st.center; }
 
     body.position.copy(center);
     body.quaternion.copy(q);
-    aspis.rotation.z = ANAT.aspisOpen + (ANAT.aspisClosed - ANAT.aspisOpen) * st.aspis;
+    aspis.rotation.z = AN.aspisOpen + (AN.aspisClosed - AN.aspisOpen) * st.aspis;
+    // X: a bite. The box mite dips its rostrum and works the chelicerae; the
+    // predator thrusts its chelicerae forward.
+    const bk = st.biteT > 0 ? Math.sin(Math.PI * (1 - st.biteT / 0.28)) : 0;
+    if (AN.kind === 'pred') aspis.position.set(AN.hinge[0] + 26 * bk, AN.hinge[1], AN.hinge[2]);
+    else aspis.rotation.z -= 0.2 * bk;
 
     // legs
     const rc = st.retract;
@@ -551,6 +684,11 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG }) {
         const hipL = L.hip.clone().add(V3(-24 * rc, 46 * rc, -L.side * 18 * rc));
         const H = toWorld(hipL, center, q);
         let F = L.foot;
+        if (isFeeler(L)) {
+          // leg I as a feeler: held up and forward, tapping ahead
+          const s = L.side, t = st.time;
+          F = toWorld(V3(L.rest.x + 40 * Math.sin(t * 6.1 + s) - 60 * (1 - Math.min(1, st.speed / 200)), L.rest.y + 40 * Math.sin(t * 4.3 + 2 * s) - 90, L.rest.z + 30 * Math.sin(t * 5.2 + s)), center, q);
+        }
         if (rc > 0) F = L.foot.clone().lerp(toWorld(V3(L.hip.x - 30, L.hip.y + 20, L.hip.z * 0.4), center, q), sstep(0, 1, rc));
         const seg = L.seg.map((s) => s * shrink), rad = L.rad.map((s) => s * (1 - 0.3 * rc));
         const L1 = seg[1] + seg[2], L2 = seg[3] + seg[4];
@@ -598,13 +736,15 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG }) {
 
   function update(dt, input) {
     events.length = 0;
+    st.time += dt;
+    st.biteT = Math.max(0, st.biteT - dt);
     const hold = input.hold;
     if (st.mode === 'walk') {
       if (hold) {
         st.mode = 'closing'; st.t = 0; st.speed = 0;
         const q = basisQ(st.fwd, st.up);
         const dl = st.up.clone().negate().applyQuaternion(q.clone().invert());
-        st.h0 = Math.abs(support(ANAT.noto.c, ANAT.noto.r, dl, new THREE.Vector3()).dot(dl));
+        st.h0 = Math.abs(support(AN.noto.c, AN.noto.r, dl, new THREE.Vector3()).dot(dl));
       } else walk(dt, input);
     }
     if (st.mode === 'closing') {
@@ -640,15 +780,27 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG }) {
       st.t = Math.min(1, st.t + dt / (0.9 * cfg.closeTime / 0.16));
       st.aspis = 1 - sstep(0, 0.45, st.t);
       st.retract = 1 - sstep(0.3, 1, st.t);
-      if (hold) { st.mode = 'closing'; st.t = 1 - st.retract; st.h0 = ANAT.stand; }
+      if (hold) { st.mode = 'closing'; st.t = 1 - st.retract; st.h0 = AN.stand; }
       else if (st.t >= 1) { st.mode = 'walk'; st.retract = 0; st.aspis = 0; plantAll(); events.push('opened'); }
     }
     pose(dt);
     return events;
   }
 
+  const _mouth = new THREE.Vector3();
   return {
-    body, update, place, legs, st,
+    body, update, place, legs, st, anat: AN, clearance,
+    /** Where the chelicerae close, in world space. */
+    mouth(out = _mouth) {
+      body.updateMatrixWorld();
+      return aspis.localToWorld(out.set(...(AN.kind === 'pred' ? [150, -12, 0] : [210, -115, 0])));
+    },
+    /** Start a bite (the animation; the caller decides what it hits). */
+    bite() { if (st.biteT > 0.05) return false; st.biteT = 0.28; return true; },
+    get quat() { return st.q; },
+    get radii() { return AN.noto.r; },
+    /** The surface under the body (a collider hit with .kind and .entry), or null. */
+    get ground() { return st.mode === 'walk' ? st.groundHit : null; },
     get center() { return st.center; },
     get mode() { return st.mode; },
     get speed() { return st.speed; },

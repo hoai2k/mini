@@ -212,7 +212,8 @@ function buildSundews(group, rnd, sundewTex) {
   ];
   const leafMat = litMaterial({
     uniforms: { uLeafTex: { value: sundewTex }, uHasLeafTex: { value: sundewTex ? 1 : 0 } },
-    surface: `void surface(inout Surf s) {
+    surface: `uniform sampler2D uLeafTex; uniform float uHasLeafTex;
+    void surface(inout Surf s) {
       float r = length(vLocal.xz);
       s.albedo = mix(vec3(0.16, 0.3, 0.05), vec3(0.42, 0.05, 0.04), smoothstep(0.2, 1.0, r));
       if (uHasLeafTex > 0.5) s.albedo = mix(s.albedo, texture2D(uLeafTex, vLocal.xz * 0.5 + 0.5).rgb, 0.7);
