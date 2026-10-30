@@ -19,11 +19,11 @@ export const ASSETS = {
   },
   "MP-U05": {
     "file": "assets/cards/springtail.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-U06": {
     "file": "assets/cards/bacterium.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-M01": {
     "file": "assets/mite/sem-moss-leaf.webp",
@@ -83,39 +83,39 @@ export const ASSETS = {
   },
   "MP-S01": {
     "file": "assets/springtail/water-surface.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-S02": {
     "file": "assets/springtail/sphagnum-lawn.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-S03": {
     "file": "assets/springtail/bog-backdrop.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-S04": {
     "file": "assets/springtail/sundew-leaf.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-S05": {
     "file": "assets/springtail/ripples.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-B01": {
     "file": "assets/bacterium/sediment-phase.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-B02": {
     "file": "assets/bacterium/biofilm.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-B03": {
     "file": "assets/bacterium/grazer-mouth.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-B04": {
     "file": "assets/bacterium/magnetosomes.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R01": {
     "file": "assets/reference-sheets/springtail.webp",
@@ -135,7 +135,7 @@ export const ASSETS = {
   },
   "MP-R13": {
     "file": "assets/reference-sheets/predatory-mite-v2.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R05": {
     "file": "assets/reference-sheets/milnesium.webp",
@@ -151,7 +151,7 @@ export const ASSETS = {
   },
   "MP-R08": {
     "file": "assets/reference-sheets/peranema.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R09": {
     "file": "assets/reference-sheets/actinophrys.webp",
@@ -167,22 +167,22 @@ export const ASSETS = {
   },
   "MP-R12": {
     "file": "assets/reference-sheets/phage-t4.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-E01": {
     "file": "assets/concepts/bog-surface.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-E02": {
     "file": "assets/concepts/periphyton.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-E03": {
     "file": "assets/concepts/bacterial-sediment.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-E04": {
     "file": "assets/concepts/phage-level.webp",
-    "status": "requested"
+    "status": "delivered"
   }
 };

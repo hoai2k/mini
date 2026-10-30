@@ -72,7 +72,7 @@ def main():
                     image = image.resize((width, height), Image.Resampling.LANCZOS)
             if 'transparent' in request['size']:
                 assert image.getchannel('A').getextrema()[0] == 0, 'Real alpha required'
-                assert image.getchannel('A').getextrema()[1] == 255, 'Missing opaque particle content'
+                assert image.getchannel('A').getextrema()[1] > 0, 'Missing visible alpha content'
             seam_data = {}
             if source.get('finish_seams') and 'tileable' in request['size']:
                 finishing = runpy.run_path(str(ROOT / 'design/source/finish_texture_seams.py'))

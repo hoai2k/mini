@@ -165,7 +165,7 @@ GROUPS = [
                 "prompt": f"{CARD} {DARKFIELD} Paramecium caudatum about 230 µm long, slipper-shaped with a blunt front and a tapered rear, an oral groove running diagonally along one side, a dense coat of short cilia shimmering as a fine bright fringe, two star-shaped contractile vacuoles and many food vacuoles inside, swimming in a gentle helical path past green Spirogyra filaments and a cluster of bell-shaped Vorticella on stalks. A faint motion trail of displaced particles behind it. {SCIENCE}",
             },
             {
-                "id": "MP-U05", "status": "requested", "name": "Springtail card (macro photography)",
+                "id": "MP-U05", "status": "delivered", "name": "Springtail card (macro photography)",
                 "file": "assets/cards/springtail.webp", "size": "1200 x 800, opaque",
                 "used": "The Springtail card on the prototypes page.",
                 "standin": "A moss-green gradient with the title.",
@@ -173,7 +173,7 @@ GROUPS = [
                 "prompt": f"{CARD} {MACRO} A water springtail, Podura aquatica, about 1.5 mm long, standing on the bare surface film of a Sphagnum bog pool: a plump blue-black to slate-grey granular body, short four-segmented antennae, six short legs whose claws dimple but do not break the water surface, the forked springing organ (furcula) folded forward under the abdomen and held by its catch, the stubby ventral tube (collophore) touching the film. Its reflection and the dimples under its feet are visible. Sphagnum capitula and a red sundew leaf blur softly at the pool edge behind. Exactly six legs, no wings. {SCIENCE}",
             },
             {
-                "id": "MP-U06", "status": "requested", "name": "Bacterium card (phase contrast)",
+                "id": "MP-U06", "status": "delivered", "name": "Bacterium card (phase contrast)",
                 "file": "assets/cards/bacterium.webp", "size": "1200 x 800, opaque",
                 "used": "The Bacterium card on the prototypes page.",
                 "standin": "A dark slate gradient with the title.",
@@ -323,7 +323,7 @@ GROUPS = [
         "intro": "Images for the springtail prototype (Level 0, the bog surface), seen as a macro photograph in daylight. The springtail, its enemies and the water surface are geometry and shaders built in code; these supply the surface texture, the moss lawn, the far backdrop and the sundew. Real colours, shallow focus.",
         "items": [
             {
-                "id": "MP-S01", "status": "requested", "name": "Bog pool water surface",
+                "id": "MP-S01", "status": "delivered", "name": "Bog pool water surface",
                 "file": "assets/springtail/water-surface.webp", "size": "2048 x 2048, opaque, tileable",
                 "used": "The surface film the springtail walks and jumps on.",
                 "standin": "Procedural dark water with drifting specks.",
@@ -331,7 +331,7 @@ GROUPS = [
                 "prompt": f"{TILE} {MACRO} The still, tea-brown surface of a small Sphagnum bog pool at about 15 mm across, seen from directly above in soft overcast light: dark peaty water, a faint grey sky reflection, scattered floating debris (yellow pine and birch pollen grains as fine dust, tiny brown leaf fragments, a few single Sphagnum leaves, a shed springtail skin), a thin patchy surface film catching the light. Everything at the same focus. No animals, no ripples from a single source.",
             },
             {
-                "id": "MP-S02", "status": "requested", "name": "Sphagnum lawn from above",
+                "id": "MP-S02", "status": "delivered", "name": "Sphagnum lawn from above",
                 "file": "assets/springtail/sphagnum-lawn.webp", "size": "2048 x 2048, opaque, tileable",
                 "used": "The moss lawn around the pool, the springtail's dry ground.",
                 "standin": "Procedural green star clusters.",
@@ -339,7 +339,7 @@ GROUPS = [
                 "prompt": f"{TILE} {MACRO} A Sphagnum bog lawn seen from directly above at about 40 mm across: densely packed capitula (the star-shaped heads of the moss shoots, each 5 to 10 mm across, with short curved branches in tight rosettes), mixing green and wine-red Sphagnum species, with water droplets caught between the branches and a few dead brown leaves of sedge lying across them. Even focus across the frame. No animals, no flowers.",
             },
             {
-                "id": "MP-S03", "status": "requested", "name": "Bog backdrop plate",
+                "id": "MP-S03", "status": "delivered", "name": "Bog backdrop plate",
                 "file": "assets/springtail/bog-backdrop.webp", "size": "2560 x 1080, opaque",
                 "used": "The far backdrop, wrapped around the scene at springtail height.",
                 "standin": "Soft green-brown gradient with blurred shapes.",
@@ -347,7 +347,7 @@ GROUPS = [
                 "prompt": f"{MACRO} A wide panoramic view taken from a lens resting on the water at the edge of a Sphagnum bog pool, at the eye height of a 1.5 mm springtail: the pool surface stretching away as a bright reflective plane, the far edge a wall of Sphagnum hummocks, cotton-grass and sundew rosettes, all heavily out of focus into soft shapes of green, wine red and straw, a pale grey sky above. Horizon at about one third height so it can wrap around a scene. No animals. {SCIENCE}",
             },
             {
-                "id": "MP-S04", "status": "requested", "name": "Sundew leaf plate",
+                "id": "MP-S04", "status": "delivered", "name": "Sundew leaf plate",
                 "file": "assets/springtail/sundew-leaf.png", "size": "1536 x 1536, transparent",
                 "used": "The sundew leaf hazard: sticky tentacles that hold the springtail.",
                 "standin": "Procedural red stalks with clear droplets.",
@@ -355,7 +355,7 @@ GROUPS = [
                 "prompt": f"{MACRO} One round-leaved sundew leaf (Drosera rotundifolia) seen from directly above, isolated: a round green-to-red blade about 8 mm across on a narrow petiole pointing down, covered with about 200 red glandular tentacles, short ones in the centre and long ones at the margin, each tipped with a clear glistening droplet of sticky mucilage; a few marginal tentacles bending inward. No insect on it. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. {SCIENCE}",
             },
             {
-                "id": "MP-S05", "status": "requested", "name": "Raindrop and ripple sprites",
+                "id": "MP-S05", "status": "delivered", "name": "Raindrop and ripple sprites",
                 "file": "assets/springtail/ripples.png", "size": "2048 x 2048, transparent, 4 x 4 sprite grid",
                 "used": "Raindrop impacts and the ripples they send across the pool surface.",
                 "standin": "Procedural expanding rings.",
@@ -369,7 +369,7 @@ GROUPS = [
         "intro": "Images for the run-and-tumble bacterium prototype (Level 5), at 1000x oil immersion, the limit of the light microscope. The bacterium and its enemies are built in code; these supply the sediment background, the biofilm, a looming grazer and a fluorescence texture. Nothing here may show more detail than the optics can resolve.",
         "items": [
             {
-                "id": "MP-B01", "status": "requested", "name": "Bog-sediment bacteria (phase contrast)",
+                "id": "MP-B01", "status": "delivered", "name": "Bog-sediment bacteria (phase contrast)",
                 "file": "assets/bacterium/sediment-phase.webp", "size": "2048 x 2048, opaque, tileable",
                 "used": "The far background: the sediment field the bacterium swims over.",
                 "standin": "Procedural grey field with haloed rods.",
@@ -377,7 +377,7 @@ GROUPS = [
                 "prompt": f"{TILE} {PHASE} Bog-pool sediment at 1000x, about 60 µm across: scattered bacteria (short rods, cocci, curved vibrios and a few spirilla, 0.5 to 3 µm long), small mineral and humic particles 1 to 5 µm with bright halos, a few empty diatom frustule fragments, mostly clear grey background between them. No large organisms.",
             },
             {
-                "id": "MP-B02", "status": "requested", "name": "Biofilm surface",
+                "id": "MP-B02", "status": "delivered", "name": "Biofilm surface",
                 "file": "assets/bacterium/biofilm.webp", "size": "2048 x 2048, opaque, tileable",
                 "used": "The biofilm floor: dense cells in matrix, with channels between clusters.",
                 "standin": "Procedural cell clusters on a dark field.",
@@ -385,7 +385,7 @@ GROUPS = [
                 "prompt": f"{TILE} {FLUOR} A freshwater bacterial biofilm seen from above at about 50 µm across, stained as in a live/dead assay: mushroom-shaped and mound-shaped microcolonies of densely packed rod cells glowing green, a few red dead cells, darker water channels winding between the clusters, a faint haze of extracellular matrix. Cells about 1 to 2 µm, packed but individually just discernible.",
             },
             {
-                "id": "MP-B03", "status": "requested", "name": "Grazer's oral region (looming ciliate)",
+                "id": "MP-B03", "status": "delivered", "name": "Grazer's oral region (looming ciliate)",
                 "file": "assets/bacterium/grazer-mouth.webp", "size": "2560 x 1440, opaque",
                 "used": "The looming threat: a ciliate's feeding current and mouth filling the frame.",
                 "standin": "A dark procedural wall with a beating fringe.",
@@ -393,7 +393,7 @@ GROUPS = [
                 "prompt": f"{PHASE} The oral region of a bacteria-eating ciliate (Paramecium-like) seen at bacterial scale, about 40 µm across: the curved funnel of the oral groove and buccal cavity filling the right two-thirds of the frame as a soft dark wall, rows of beating cilia along its rim blurred by motion, a stream of small rod bacteria and particles being drawn in along curved paths, a forming food vacuole deep inside as a pale round shape. The ciliate itself is too large to be in focus everywhere. {SCIENCE}",
             },
             {
-                "id": "MP-B04", "status": "requested", "name": "Magnetosome chain (fluorescence texture)",
+                "id": "MP-B04", "status": "delivered", "name": "Magnetosome chain (fluorescence texture)",
                 "file": "assets/bacterium/magnetosomes.webp", "size": "1024 x 1024, opaque, tileable",
                 "used": "Texture inside the magnetotactic bacterium's body and on its compass display.",
                 "standin": "Procedural dotted chain.",
@@ -439,7 +439,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} A predatory mesostigmatid mite of the family Parasitidae (Pergamasus-type), about 1 mm long: an oval, flattened, glossy amber-to-chestnut body covered by smooth sclerotised dorsal shields with a few short setae; exactly eight legs, each with seven visible segments, the first pair longer and held forward like antennae, the others walking; at the front a projecting gnathosoma with a pair of long chelicerae ending in small pincers (chelae), and short pedipalps. No eyes. {SCIENCE}",
             },
             {
-                "id": "MP-R13", "name": "Predatory mite (Pergamasus-type), revision",
+                "id": "MP-R13", "status": "delivered", "name": "Predatory mite (Pergamasus-type), revision",
                 "file": "assets/reference-sheets/predatory-mite-v2.webp", "size": "2048 x 2048, opaque",
                 "used": "Replaces MP-R04, which came out as a domed, glossy, dark tick-like mite. Modelling the predatory mesostigmatid mite (Levels 0 and 1).",
                 "standin": "None needed: the model is built from the photographs.",
@@ -471,7 +471,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} The ciliate Paramecium bursaria, about 120 µm long, as in a brightfield preparation: a broad, slightly flattened slipper or foot shape, shorter and wider than Paramecium caudatum, with a blunt rounded rear; a wide oral groove running diagonally from the front to a mouth at the middle of one side; an even coat of short cilia over the whole surface; the cell packed with hundreds of round green symbiotic Chlorella algae, about 3 to 5 µm each, giving it a uniform grass-green colour, with a pale macronucleus and two contractile vacuoles visible through them. {SCIENCE}",
             },
             {
-                "id": "MP-R08", "status": "requested", "name": "Peranema trichophorum",
+                "id": "MP-R08", "status": "delivered", "name": "Peranema trichophorum",
                 "file": "assets/reference-sheets/peranema.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling Peranema, the gliding predatory euglenid of Level 4.",
                 "standin": "None needed: the model is built from the photographs.",
@@ -503,7 +503,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} The predatory bacterium Bdellovibrio bacteriovorus in its free-swimming attack phase, as reconstructed from electron micrographs: a small comma-shaped (vibrioid) cell about 1 µm long and 0.3 µm wide, with a single thick sheathed flagellum at one pole about three times the cell's length, and fine short pili at the opposite, attacking pole. Pale translucent grey cell body. {SCIENCE}",
             },
             {
-                "id": "MP-R12", "status": "requested", "name": "Bacteriophage T4",
+                "id": "MP-R12", "status": "delivered", "name": "Bacteriophage T4",
                 "file": "assets/reference-sheets/phage-t4.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling the phage protagonist of Level 6 and the phages that threaten Level 5.",
                 "standin": "None needed: the model is built from the photographs.",
@@ -517,7 +517,7 @@ GROUPS = [
         "intro": "Concept plates for the levels that have no prototype art yet: the mood, palette and optical look of each place. They guide set dressing and the shaders; they are not used in the game.",
         "items": [
             {
-                "id": "MP-E01", "status": "requested", "name": "The bog surface at springtail height",
+                "id": "MP-E01", "status": "delivered", "name": "The bog surface at springtail height",
                 "file": "assets/concepts/bog-surface.webp", "size": "2560 x 1440, opaque",
                 "used": "Concept for Level 0, the bog surface.",
                 "standin": "None needed.",
@@ -525,7 +525,7 @@ GROUPS = [
                 "prompt": f"{MACRO} The edge of a small Sphagnum bog pool at the eye height of a 1.5 mm water springtail: in the foreground a group of blue-black Podura aquatica springtails on the dark tea-brown water film, their feet dimpling the surface; a Sphagnum shore of green and red capitula rising like a cliff behind them; a round-leaved sundew leaf on the bank with glistening red tentacles; further out, the long legs of a water strider resting in dimples, and on the mossy edge a slender black Stenus rove beetle. Soft overcast daylight, very shallow depth of field. {SCIENCE}",
             },
             {
-                "id": "MP-E02", "status": "requested", "name": "The periphyton at 400x",
+                "id": "MP-E02", "status": "delivered", "name": "The periphyton at 400x",
                 "file": "assets/concepts/periphyton.webp", "size": "2560 x 1440, opaque",
                 "used": "Concept for Level 4, the periphyton and the trap.",
                 "standin": "None needed.",
@@ -533,7 +533,7 @@ GROUPS = [
                 "prompt": f"{DIC} The periphyton on a submerged Utricularia leaf in a bog pool at 400x, about 450 µm across: a felt of diatoms, green algal filaments and desmids on the leaf surface, brown Trachelomonas loricae with spines among them and a green Euglena swimming past, a colourless Peranema gliding with its forward flagellum, an Actinophrys sol with stiff radiating arms waiting at the edge, a few chytrid sporangia like small round flasks on an algal cell. At one side the translucent wall and bristly door of a bladderwort trap. Shallow depth of field. {SCIENCE}",
             },
             {
-                "id": "MP-E03", "status": "requested", "name": "The bacterial sediment at 1000x",
+                "id": "MP-E03", "status": "delivered", "name": "The bacterial sediment at 1000x",
                 "file": "assets/concepts/bacterial-sediment.webp", "size": "2560 x 1440, opaque",
                 "used": "Concept for Level 5, the film of bacteria.",
                 "standin": "None needed.",
@@ -541,7 +541,7 @@ GROUPS = [
                 "prompt": f"{PHASE} The bacterial film on bog sediment at 1000x, about 60 µm across: a mounded biofilm of packed rods in the lower third, open water above with swimming rods and spirilla, a magnetotactic spirillum among them, small Bdellovibrio as tiny commas and one prey rod rounded into a sphere (a bdelloplast), and the out-of-focus edge of a large ciliate looming at the top. Nothing shown more sharply than the 0.2 µm limit allows. {SCIENCE}",
             },
             {
-                "id": "MP-E04", "status": "requested", "name": "The phage level (molecular illustration)",
+                "id": "MP-E04", "status": "delivered", "name": "The phage level (molecular illustration)",
                 "file": "assets/concepts/phage-level.webp", "size": "2560 x 1440, opaque",
                 "used": "Concept for Level 6, the viruses.",
                 "standin": "None needed.",

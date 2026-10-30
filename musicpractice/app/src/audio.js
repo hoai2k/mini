@@ -5,11 +5,17 @@ import { isApp, keepScreenOn } from './native.js';
 import { dlog, shortId } from './debuglog.js';
 
 let ctx = null;
+// The rate a new context is made at, once the microphone has needed one (useRate); until then the device's own.
+let wantRate = 0;
 
 export function audio() {
   if (!ctx) {
     const AC = globalThis.AudioContext || globalThis.webkitAudioContext;
-    ctx = new AC({ latencyHint: 'interactive' });
+    try {
+      ctx = new AC({ latencyHint: 'interactive', ...(wantRate ? { sampleRate: wantRate } : {}) });
+    } catch {
+      ctx = new AC({ latencyHint: 'interactive' }); // that rate isn't offered
+    }
     const c = ctx;
     dlog('ctx-new', { sampleRate: c.sampleRate, state: c.state, baseLatency: c.baseLatency ?? null, session: navigator.audioSession?.type ?? null });
     c.addEventListener?.('statechange', () => dlog('ctx-state', { state: c.state, current: c === ctx, outputLatency: c.outputLatency ?? null, session: navigator.audioSession?.type ?? null }));
@@ -47,8 +53,18 @@ export function freshAudio() {
  * iPhone can leave a context 'interrupted' for good after another app took
  * the sound (a call, Messenger, a video), and only a new one works again.
  */
-export function replaceAudio() {
-  dlog('ctx-replace', { why: 'replaceAudio' });
+/**
+ * Make new contexts at `rate` (the microphone's), from the next one on. On an
+ * iPhone or iPad a context whose rate isn't the mic's records it broken up and
+ * slowed down (WebKit), and the device can change rate during a visit, so the
+ * recorder asks for its mic's rate (recorderui.js checkMicRate).
+ */
+export function useRate(rate) {
+  wantRate = rate > 0 ? rate : 0;
+}
+
+export function replaceAudio(why = 'replaceAudio') {
+  dlog('ctx-replace', { why, rate: wantRate || null });
   if (ctx) {
     try { ctx.close(); } catch { /* already closed */ }
     ctx = null;

@@ -767,6 +767,41 @@ async function metronomeScreen(env) {
   }
 }
 
+/**
+ * A mic at another rate than the audio engine on an iPhone or iPad (here: Safari's
+ * GestureEvent, and a mic that says 22050 Hz): the engine is replaced at the mic's
+ * rate, listening starts again on it, and takes are made there.
+ */
+async function micRate() {
+  const dir = mkdtempSync(join(tmpdir(), 'mp-rate-'));
+  const wav = join(dir, 'player.wav');
+  writeFileSync(wav, playerWav(220));
+  const env = await start({ micFile: wav });
+  try {
+    const p = await env.page();
+    await p.addInitScript(() => {
+      window.GestureEvent = class GestureEvent extends Event {};
+      const get = MediaStreamTrack.prototype.getSettings;
+      MediaStreamTrack.prototype.getSettings = function () { return { ...get.call(this), sampleRate: 22050 }; };
+    });
+    await p.goto(env.base + '#record');
+    await p.waitForTimeout(1000);
+    await p.click('#rec-toggle');
+    const rate = () => p.evaluate(async () => (await import('./src/audio.js')).existingAudio()?.sampleRate);
+    c.ok(await until(p, async () => (await import('./src/audio.js')).existingAudio()?.sampleRate === 22050 && document.getElementById('rec-toggle').dataset.state === 'waiting', 8000) >= 0,
+      `a mic at another rate gets an engine at its rate, listening (${await rate()})`);
+    c.ok(await until(p, () => document.querySelectorAll('#takes .take').length === 1, 30000) >= 0, 'and records a take on it');
+    const log = await p.evaluate(async () => (await import('./src/debuglog.js')).debugEvents().filter((e) => e.k === 'mic-rate-mismatch' || e.k === 'mic-rates'));
+    const fixes = log.filter((e) => e.k === 'mic-rate-mismatch');
+    c.ok(fixes.length === 1 && fixes[0].fixed === true && fixes[0].mic === 22050, `the debug log says what was done (${JSON.stringify(fixes)})`);
+    c.ok(log.at(-1)?.k === 'mic-rates' && log.at(-1).ctx === 22050, `and the rates since (${JSON.stringify(log.at(-1))})`);
+    c.ok(!p.errors.length, `no page errors with a mic at another rate (${p.errors})`);
+    await p.close();
+  } finally {
+    await env.stop();
+  }
+}
+
 /** The microphone, with a player at it (a looped WAV): the recorder makes a take and plays it back, the tuner reads the note. */
 async function microphone() {
   const dir = mkdtempSync(join(tmpdir(), 'mp-mic-'));
@@ -899,7 +934,7 @@ async function themes(env) {
 
 /** `only`: the names of the parts to run (all of them if empty): node flows.mjs exercises routines */
 export async function run(env, only = []) {
-  for (const part of [list, running, routines, practiceLog, metronomeScreen, sounds, voiceCount, tapPad, weightGrab, keys, savedTempos, strongBeats, exercises, microphone, themes]) {
+  for (const part of [list, running, routines, practiceLog, metronomeScreen, sounds, voiceCount, tapPad, weightGrab, keys, savedTempos, strongBeats, exercises, microphone, micRate, themes]) {
     if (only.length && !only.includes(part.name)) continue;
     try { await part(env); } catch (e) { c.ok(false, `${part.name}: ${e.message.split('\n')[0]}`); }
   }

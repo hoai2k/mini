@@ -12,7 +12,7 @@ Artwork for the prototypes in `micro/prototypes/`. Generated from `source/build_
 
 ## Status
 
-18 requested, 28 delivered, 46 in total.
+0 requested, 46 delivered, 46 in total.
 
 ## Launcher cards
 
@@ -92,7 +92,7 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Springtail card on the prototypes page.
 - **Stand-in until delivered:** A moss-green gradient with the title.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Podura aquatica; external body and limb proportions.](../research/assets/references/production/springtail.jpg) · Christian Fischer, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:PoduraAquatica.jpg)
   - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](../research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
@@ -110,7 +110,7 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Bacterium card on the prototypes page.
 - **Stand-in until delivered:** A dark slate gradient with the title.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Magnetospirillum gryphiswaldense; electron-microscopy reference. Internal detail is not visible in ordinary light microscopy.](../research/assets/references/production/magnetotactic.png) · Caulobacter subvibrioides (Diskussion), CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png)
   - [Bdellovibrio cryotomogram section; ultrastructure reference, not a live light-microscope view.](../research/assets/references/production/bdellovibrio.jpg) · Eikosi, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Slice_from_electron_cryotomogram_of_Bdellovibrio_bacteriovorus_cell.jpg)
@@ -375,7 +375,7 @@ Images for the springtail prototype (Level 0, the bog surface), seen as a macro 
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** The surface film the springtail walks and jumps on.
 - **Stand-in until delivered:** Procedural dark water with drifting specks.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](../research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
   - [Podura aquatica; external body and limb proportions.](../research/assets/references/production/springtail.jpg) · Christian Fischer, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:PoduraAquatica.jpg)
@@ -392,7 +392,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** The moss lawn around the pool, the springtail's dry ground.
 - **Stand-in until delivered:** Procedural green star clusters.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Sphagnum capitulum structure and colour; macro habitat reference.](../research/assets/references/production/bog-hummock.jpg) · OolaEei, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Capitulum.jpg)
   - [Moss habitat structure; use leaf architecture as environmental reference.](../research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
@@ -409,7 +409,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Size:** 2560 x 1080, opaque
 - **Used for:** The far backdrop, wrapped around the scene at springtail height.
 - **Stand-in until delivered:** Soft green-brown gradient with blurred shapes.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Sphagnum capitulum structure and colour; macro habitat reference.](../research/assets/references/production/bog-hummock.jpg) · OolaEei, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Capitulum.jpg)
   - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](../research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
@@ -426,7 +426,7 @@ Macro-photography look: a real photograph through a macro lens at 2 to 5 times l
 - **Size:** 1536 x 1536, transparent
 - **Used for:** The sundew leaf hazard: sticky tentacles that hold the springtail.
 - **Stand-in until delivered:** Procedural red stalks with clear droplets.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Round-leaved sundew leaf and glandular tentacles.](../research/assets/references/production/sundew.jpg) · Petr Dlouhý, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Drosera_rotundifolia_leaf1.jpg)
   - [Podura aquatica; external body and limb proportions.](../research/assets/references/production/springtail.jpg) · Christian Fischer, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:PoduraAquatica.jpg)
@@ -441,7 +441,7 @@ Macro-photography look: a real photograph through a macro lens at 2 to 5 times l
 - **Size:** 2048 x 2048, transparent, 4 x 4 sprite grid
 - **Used for:** Raindrop impacts and the ripples they send across the pool surface.
 - **Stand-in until delivered:** Procedural expanding rings.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](../research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
 
@@ -459,7 +459,7 @@ Images for the run-and-tumble bacterium prototype (Level 5), at 1000x oil immers
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** The far background: the sediment field the bacterium swims over.
 - **Stand-in until delivered:** Procedural grey field with haloed rods.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Magnetospirillum gryphiswaldense; electron-microscopy reference. Internal detail is not visible in ordinary light microscopy.](../research/assets/references/production/magnetotactic.png) · Caulobacter subvibrioides (Diskussion), CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png)
   - [Bdellovibrio cryotomogram section; ultrastructure reference, not a live light-microscope view.](../research/assets/references/production/bdellovibrio.jpg) · Eikosi, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Slice_from_electron_cryotomogram_of_Bdellovibrio_bacteriovorus_cell.jpg)
@@ -476,7 +476,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** The biofilm floor: dense cells in matrix, with channels between clusters.
 - **Stand-in until delivered:** Procedural cell clusters on a dark field.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Tagged Pseudomonas biofilm; fluorescence and matrix analogue, not a live/dead-stain image.](../research/assets/references/production/biofilm-fluorescence.png) · Schwarz, Michael (ORCID: 0009-0002-1414-3291), CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:NFDI4BIOIMAGE_Calendar_March_2025_-_image_march.png)
   - [Marine seagrass biofilm SEM figure: matrix and surface-reference analogue, not freshwater habitat documentation.](../research/assets/references/biofilm-sem.jpg) · Timo Kohn, Rast, P., Kallscheuer, N., Wiegand, S., Boedeker, C., Jetten, M.S., Jeske, O., Vollmers, J., Kaster, A.K., Rohde, M. and Jogler, M., CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Electron_microscopic_analysis_of_seagrass_biofilms.jpg)
@@ -492,7 +492,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Size:** 2560 x 1440, opaque
 - **Used for:** The looming threat: a ciliate's feeding current and mouth filling the frame.
 - **Stand-in until delivered:** A dark procedural wall with a beating fringe.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Paramecium caudatum; whole-cell outline and internal contrast.](../research/assets/references/paramecium.jpg) · MTadey, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg)
   - [Paramecium bursaria in DIC; green symbionts and body proportions.](../research/assets/references/production/paramecium-bursaria.jpg) · Anatoly Mikhaltsov, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Paramecium_bursaria.jpg)
@@ -509,7 +509,7 @@ Phase-contrast microscope look at 1000x oil immersion: mid-grey background, tran
 - **Size:** 1024 x 1024, opaque, tileable
 - **Used for:** Texture inside the magnetotactic bacterium's body and on its compass display.
 - **Stand-in until delivered:** Procedural dotted chain.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Magnetospirillum gryphiswaldense; electron-microscopy reference. Internal detail is not visible in ordinary light microscopy.](../research/assets/references/production/magnetotactic.png) · Caulobacter subvibrioides (Diskussion), CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png)
 
@@ -585,7 +585,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Replaces MP-R04, which came out as a domed, glossy, dark tick-like mite. Modelling the predatory mesostigmatid mite (Levels 0 and 1).
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Pergamasus diversus; predatory mite morphology, not a species-level bog occurrence claim.](../research/assets/references/production/predatory-mite.jpg) · AfroBrazilian, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Pergamasus_diversus_02.jpg)
   - [Unidentified phthiracarid mite; adult arthropod morphology.](../research/assets/references/mite.jpg) · S.E. Thorpe, Public domain · [source](https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg)
@@ -646,7 +646,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling Peranema, the gliding predatory euglenid of Level 4.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Peranema sp. from a Quebec pond; genus-level morphology reference.](../research/assets/references/production/peranema.jpg) · Deuterostome, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Peranema.jpg)
   - [Euglena gracilis; green pigment and elongated cell silhouette.](../research/assets/references/euglena.jpg) · naturalismus, CC BY-SA 2.0 · [source](https://commons.wikimedia.org/wiki/File:Euglena_gracilis.jpg)
@@ -703,7 +703,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the phage protagonist of Level 6 and the phages that threaten Level 5.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [T4 phage electron micrograph; head, sheath and tail-fibre reference.](../research/assets/references/production/phage-t4.jpg) · 7USSR7, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg)
 
@@ -721,7 +721,7 @@ Concept plates for the levels that have no prototype art yet: the mood, palette 
 - **Size:** 2560 x 1440, opaque
 - **Used for:** Concept for Level 0, the bog surface.
 - **Stand-in until delivered:** None needed.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](../research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
   - [Sphagnum capitulum structure and colour; macro habitat reference.](../research/assets/references/production/bog-hummock.jpg) · OolaEei, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Capitulum.jpg)
@@ -741,7 +741,7 @@ Macro-photography look: a real photograph through a macro lens at 2 to 5 times l
 - **Size:** 2560 x 1440, opaque
 - **Used for:** Concept for Level 4, the periphyton and the trap.
 - **Stand-in until delivered:** None needed.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Trachelomonas hispida; lorica form and surface ornament.](../research/assets/references/production/trachelomonas.jpg) · Sándor Bancsó, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Bancs%C3%B3_2021_Fig_8-2_Trachelomonas_hispida.jpg)
   - [Peranema sp. from a Quebec pond; genus-level morphology reference.](../research/assets/references/production/peranema.jpg) · Deuterostome, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Peranema.jpg)
@@ -762,7 +762,7 @@ Differential-interference-contrast (Nomarski) microscope look: smooth grey backg
 - **Size:** 2560 x 1440, opaque
 - **Used for:** Concept for Level 5, the film of bacteria.
 - **Stand-in until delivered:** None needed.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Magnetospirillum gryphiswaldense; electron-microscopy reference. Internal detail is not visible in ordinary light microscopy.](../research/assets/references/production/magnetotactic.png) · Caulobacter subvibrioides (Diskussion), CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png)
   - [Bdellovibrio cryotomogram section; ultrastructure reference, not a live light-microscope view.](../research/assets/references/production/bdellovibrio.jpg) · Eikosi, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Slice_from_electron_cryotomogram_of_Bdellovibrio_bacteriovorus_cell.jpg)
@@ -780,7 +780,7 @@ Phase-contrast microscope look at 1000x oil immersion: mid-grey background, tran
 - **Size:** 2560 x 1440, opaque
 - **Used for:** Concept for Level 6, the viruses.
 - **Stand-in until delivered:** None needed.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [T4 phage electron micrograph; head, sheath and tail-fibre reference.](../research/assets/references/production/phage-t4.jpg) · 7USSR7, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg)
   - [Magnetospirillum gryphiswaldense; electron-microscopy reference. Internal detail is not visible in ordinary light microscopy.](../research/assets/references/production/magnetotactic.png) · Caulobacter subvibrioides (Diskussion), CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png)
