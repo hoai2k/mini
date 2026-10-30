@@ -456,6 +456,7 @@ function stepWorld(dt) {
   for (const e of stenus.update(dt, { player: ctxP, field, inPool })) {
     if (e === 'caught' && alive) { die('Harpooned by the rove beetle\'s labium'); stenus.st.state = 'hold'; stenus.st.t = 0; setTimeout(() => { if (stenus.st.state === 'hold') stenus.st.state = 'recover'; }, 1800); }
     if (e === 'skim') hud.toast('Stenus is skimming at you!', 1000);
+    if (e === 'windup' && alive) rumble(300, 0.15, 0); // the head dips: jump now
   }
   for (const e of strider.update(dt, { player: ctxP, field, inPool, ripples })) {
     if (e === 'caught' && alive) die('Grabbed by the water strider');
