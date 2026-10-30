@@ -32,7 +32,7 @@ acts. The first four keep their stage machinery and rules, recast:
 
 0. Prologue, The Betrothal: a short playable scene on the delivered sets. The
    prince receives the fairies' gifts in the betrothal court, the witch curses
-   it, he chases the demons' chariot along the rampart, and in the armoury the
+   it and she and her demons seize Azurine and fly off with her, he chases the demons' chariot along the rampart, and in the armoury the
    witch binds him. He struggles against her cords (any button or push of the
    stick) until Aurora glides on and breaks the spell; he takes up the helmet,
    shield and sword she gives him, each worn as a badge above his head until

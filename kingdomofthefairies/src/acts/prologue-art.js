@@ -2,9 +2,9 @@ import { walkPose } from '../walking.js';
 // Prologue drawing: the delivered sets (betrothal-court, rampart-strip,
 // armoury) and the cast's cut-outs, staged as a toy theatre. Draw only from
 // state and t.
-import { FLOOR, ARM_FLOOR, FAIRIES, AZURINE_X, RAMPART, rampartFloor, ARMS, AURORA, WIGGLES, T, sceneOf } from './prologue.js';
+import { FLOOR, ARM_FLOOR, FAIRIES, AZURINE_X, RAMPART, rampartFloor, ARMS, AURORA, ABDUCT, WIGGLES, T, sceneOf } from './prologue.js';
 import { card } from './tableau.js';
-import { clamp, easeOut, easeInOut } from './shared.js';
+import { clamp, easeOut, easeInOut, lerp } from './shared.js';
 import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
 import { drawPose } from '../pose.js';
 
@@ -32,7 +32,7 @@ const LABELS = { gold: 'Gold!', flower: 'The flower!', ring: 'The ring!', crown:
 const camX = (st) => (sceneOf(st.phase) === 1 ? clamp(st.p.x - 420, 0, RAMPART.w - 1280) : 0);
 const CAPTIONS = {
   court: ['The Betrothal', 'Receive the fairies’ gifts for Princess Azurine'],
-  curse: ['The Uninvited', 'The witch curses the betrothal'],
+  curse: ['The Uninvited', 'The witch curses the betrothal and carries Azurine off'],
   rampart: ['The Abduction', 'Her demons carry Azurine off · run after the chariot'],
   escape: ['The Abduction', 'The chariot is gone into the night'],
   bind: ['The Armoury', 'The witch binds the prince'],
@@ -47,7 +47,7 @@ export function draw(k, st, t) {
   else armouryScene(k, st, t);
   if (st.near) prompt(k, st, st.near);
   const cap = CAPTIONS[st.phase];
-  if (cap) card(k, cap[0], cap[1], Math.min(1, clamp((st.phaseT - 0.3) / 0.5, 0, 1), ['court', 'rampart', 'armoury', 'bind'].includes(st.phase) ? clamp((4.5 - st.phaseT) / 0.6, 0, 1) : 1));
+  if (cap) card(k, cap[0], cap[1], Math.min(1, clamp((st.phaseT - 0.3) / 0.5, 0, 1), ['court', 'rampart', 'armoury', 'bind'].includes(st.phase) ? clamp((4.5 - st.phaseT) / 0.6, 0, 1) : st.phase === 'curse' ? clamp((ABDUCT.swoon - st.phaseT) / 0.4, 0, 1) : 1));
   // armed, and Aurora gone: now to the ship
   if (st.phase === 'knighted' && st.phaseT >= T.risen) card(k, 'The Arming', 'Now to your ship', Math.min(1, clamp((st.phaseT - T.risen) / 0.5, 0, 1), clamp((T.risen + 4 - st.phaseT) / 0.6, 0, 1)));
   skipHint(k, st);
@@ -75,6 +75,9 @@ export function onEvent(k, e, st) {
   }
   if (e.type === 'betrothed') { k.flash(0.4); k.burst(AZURINE_X - 40, FLOOR - 170, '#f3c6dc', 30, 'sparkle'); }
   if (e.type === 'scene' && e.phase === 'curse') { k.flash(0.6); k.shake(0.4); k.burst(220, FLOOR - 150, '#5f3a6a', 30, 'smoke'); }
+  // she takes flight in a puff of smoke; the seizing is a flash of fire
+  if (e.type === 'witchSwoop') k.burst(210, FLOOR - 170, '#5f3a6a', 26, 'smoke');
+  if (e.type === 'seized') { k.flash(0.45); k.shake(0.35); k.burst(AZURINE_X, FLOOR - 150, '#e9693a', 26, 'streak'); k.burst(AZURINE_X, FLOOR - 150, '#5f3a6a', 20, 'smoke'); }
   if (e.type === 'fireLand') k.burst(e.x - cx, rampartFloor(e.x) - 10, '#e9a46a', 14, 'streak');
   if (e.type === 'scorched') { k.flash(0.2); k.burst(e.x - cx, rampartFloor(e.x) - 60, '#c8321e', 10, 'streak'); }
   // each pull strains the witch's cords: they flare and fray
@@ -127,7 +130,7 @@ function courtScene(k, st, t) {
     // Until then her art holds the gift itself, so once she has given it she
     // vanishes in a burst of sparkle, a stop trick, rather than keep it.
   }
-  figure(k, 'azurine-stand', AZURINE_X, FLOOR + 4, t + 3, 1, 1);
+  if (st.phase !== 'curse' || st.phaseT < ABDUCT.swoon) figure(k, 'azurine-stand', AZURINE_X, FLOOR + 4, t + 3, 1, 1);
   // the gifts laid at her feet; the witch's curse withers the flower
   const wither = st.phase === 'curse' ? clamp((st.phaseT - 1.6) / 1.2, 0, 1) : 0;
   st.gifts.forEach((g, i) => {
@@ -138,22 +141,80 @@ function courtScene(k, st, t) {
   });
   if (st.phase === 'curse') curse(k, st, t);
   prince(k, st, t);
+  if (st.phase === 'curse') abduction(k, st, t);
   for (const draw of held) draw();
   drawShown(k, st, t);
 }
 
 function curse(k, st, t) {
-  const c = k.c, a = clamp(st.phaseT / 0.6, 0, 1);
-  k.wash('#2a1030', 0.35 * a);
+  const c = k.c, a = clamp(st.phaseT / 0.6, 0, 1) * clamp((ABDUCT.swoop + 0.15 - st.phaseT) / 0.3, 0, 1);
+  k.wash('#2a1030', 0.35 * clamp(st.phaseT / 0.6, 0, 1));
   c.save(); c.globalAlpha = a;
-  figure(k, 'witch-hooded', 210, FLOOR + 6, t, 1, -1);
+  if (a > 0) figure(k, 'witch-hooded', 210, FLOOR + 6, t, 1, -1);
   c.restore();
   // her curse, a ribbon of violet smoke to the princess
-  if (st.phaseT > 0.8 && st.phaseT < T.curse - 0.4) {
+  if (st.phaseT > 0.8 && st.phaseT < ABDUCT.swoop) {
     c.save(); c.globalAlpha = 0.5 + 0.2 * Math.sin(t * 12); c.strokeStyle = k.col('#b06ad0'); c.lineWidth = 6;
     c.beginPath(); c.moveTo(250, FLOOR - 170);
     for (let i = 1; i <= 20; i++) { const f = i / 20; c.lineTo(250 + (AZURINE_X - 290) * f, FLOOR - 170 - Math.sin(f * Math.PI) * 120 + Math.sin(t * 9 + f * 12) * 10); }
     c.stroke(); c.restore();
+  }
+}
+
+// The abduction: under the curse Azurine swoons; the witch takes flight
+// across the hall and her two demons run on from the right with their
+// torches; they seize her, flash of fire, and bear her up and away over the
+// right of the stage, the witch leading, toward the rampart.
+const DEMON_S = 0.78;
+function abduction(k, st, t) {
+  const c = k.c, tt = st.phaseT, A = ABDUCT;
+  if (tt < A.swoon) return;
+  // the princess swoons, tipping back, then lies senseless on the floor
+  const sw = clamp((tt - A.swoon) / 0.45, 0, 1);
+  // everyone in the seizing flies off together up to the right
+  const u = easeInOut(clamp((tt - A.off) / (A.gone - A.off), 0, 1));
+  // (clear of the right curtain: they draw her in toward the middle as they
+  // lift her, and rise out of the top of the stage)
+  const lift = clamp((tt - A.seize) / 0.5, 0, 1);
+  const ox = -140 * easeOut(lift) - 160 * easeOut(clamp(u * 1.6, 0, 1)), oy = -u * 760;
+  const az = { x: AZURINE_X + ox, y: FLOOR - easeOut(lift) * 120 + oy };
+  if (sw < 1) {
+    // her swoon (F23), or her standing figure tipping back
+    const art = k.img('azurine-swoon');
+    c.save(); c.translate(AZURINE_X, FLOOR + 4); if (!art) c.rotate(easeInOut(sw) * 0.9); c.globalAlpha = 1 - sw * 0.6;
+    figure(k, art ? 'azurine-swoon' : 'azurine-stand', 0, 0, t + 3, 1, 1);
+    c.restore();
+  }
+  if (sw > 0.6) {
+    c.save(); c.globalAlpha = clamp((sw - 0.6) / 0.4, 0, 1); c.translate(az.x, az.y + 4); c.rotate(-u * 0.25 + Math.sin(t * 3) * 0.03 * lift);
+    if (!k.asset('azurine-asleep', 0, 0, 230, 102)) { c.fillStyle = k.col('#c9d8ee'); c.fillRect(-100, -30, 200, 30); }
+    c.restore();
+  }
+  // her demons: on at a run from behind the right curtain, then holding her
+  // up between them as they rise
+  const run = easeOut(clamp((tt - A.swoop) / (A.seize - A.swoop), 0, 1));
+  const demons = [['demon-red', 1330, AZURINE_X - 105], ['demon-teal', 1420, AZURINE_X + 100]];
+  demons.forEach(([id, x0, x1], i) => {
+    const x = lerp(x0, x1, run) + ox, by = FLOOR + 8 - lift * 70 + oy;
+    if (tt < A.swoop) return;
+    // flying with her held up (F23), or running figures tilted under her
+    const carry = lift > 0.3 && k.img(id + '-carry');
+    c.save(); c.translate(x, by); c.rotate(carry ? -u * 0.1 : lift * (i ? 0.18 : -0.18) - u * 0.2);
+    figure(k, carry ? id + '-carry' : id, 0, Math.abs(Math.sin(t * 9 + i)) * -6 * (1 - lift), t + i, DEMON_S, i ? -1 : 1);
+    c.restore();
+  });
+  // the witch, flying across the hall to hover over the princess, then off
+  // ahead of them
+  if (tt >= A.swoop) {
+    const f = easeInOut(clamp((tt - A.swoop) / (A.seize - A.swoop), 0, 1));
+    const x = lerp(210, AZURINE_X - 20, f) + ox * 1.15, y = FLOOR - 200 - Math.sin(f * Math.PI) * 120 - lift * 110 + oy * 1.1;
+    c.save(); c.translate(x, y + Math.sin(t * 4) * 6); c.scale(-1, 1); c.rotate(-0.1 - u * 0.15);
+    if (!k.asset('witch-swoop', 0, 0, 260, 156)) { c.fillStyle = k.col('#2f5a50'); c.fillRect(-90, -50, 180, 50); }
+    c.restore();
+    // a trail of violet smoke behind her
+    c.save();
+    for (let i = 0; i < 8; i++) { c.globalAlpha = 0.25 * (1 - i / 8); c.fillStyle = k.col('#5f3a6a'); k.circle(x - 120 - i * 22, y - 60 + Math.sin(t * 5 + i) * 8, 16 - i); }
+    c.restore();
   }
 }
 
