@@ -6,6 +6,7 @@ import { createPad } from '../shared/pad.js';
 import { mountHud } from '../shared/hud.js';
 import { createControls, createDash, hudControls } from '../shared/controls.js';
 import { createFeatures } from '../shared/features.js';
+import { createAudio } from '../shared/audio.js';
 import { loadTexture } from '../shared/assets.js';
 import { createLightOptics, LOOK_NAMES, psfSigmaUm } from '../shared/techniques/bacterium-fluorescence.js';
 import { createShapes } from '../shared/techniques/bacterium-shapes.js';
@@ -87,6 +88,16 @@ resize();
 
 // --- features ---
 const features = createFeatures({ key: 'bacterium', pad });
+const audio = createAudio(['bacterium/amb-sediment', 'bacterium/run', 'bacterium/tumble', 'bacterium/sprint', 'bacterium/eat', 'bacterium/phage', 'bacterium/graze']);
+audio.addToFeatures(features);
+audio.loop('bacterium/amb-sediment', { volume: 0.6 });
+const runLoop = audio.loop('bacterium/run', { volume: 0 });
+const snd = { t: 0, lastEat: -9, feeding: false, lastPhage: -9 };
+/** Gamepads fire no DOM events: unlock sound on any pad button. */
+function unlockOnPad() {
+  if (pad.kind !== 'controller') return;
+  for (let b = 0; b < 16; b++) if (pad.value(b) > 0.5) { audio.unlock(); return; }
+}
 const SPECIES_NAMES = { mtb: SPECIES.mtb.name, bdello: SPECIES.bdello.name };
 features.add({ id: 'species', group: 'Body', label: 'Protagonist', choices: [SPECIES_NAMES.mtb, SPECIES_NAMES.bdello], value: SPECIES_NAMES.mtb,
   about: 'Magnetospirillum: a 3 µm helical cell with a chain of magnetite magnetosomes and a flagellum at each pole; it seeks the microaerobic band. Bdellovibrio: a 1 µm curved rod with one sheathed polar flagellum that rams Gram-negative prey, bores into the periplasm and grows inside the rounded "bdelloplast".',
@@ -194,6 +205,7 @@ const debug = {
 };
 
 function doDash() {
+  audio.play('bacterium/sprint', { volume: 0.9 });
   const res = swimmer.dash();
   S.dashOn = true;
   pad.rumble(160, 0.5, 0.7);
@@ -207,6 +219,16 @@ function tick(dt, inp) {
   const ev = {};
   inp.dashActive = dash.active;
   swimmer.step(dt, t, inp, ev);
+  snd.t += dt;
+  const run = S.alive && S.mode !== 'tumble' ? Math.min(1, S.speed / 40) : 0;
+  runLoop.set({ volume: 0.7 * run, rate: 0.8 + 0.6 * run + (dash.active ? 0.2 : 0) });
+  // uptake: a soft eating sound every ~0.7 s while X feeds, and when a prey is finished
+  if ((S.feeding && snd.t - snd.lastEat > 0.7) || (ev.emerged && snd.t - snd.lastEat > 0.2)) {
+    snd.lastEat = snd.t;
+    audio.play('bacterium/eat', { volume: 0.7, rate: 0.95 + Math.random() * 0.1 });
+  }
+  if (ev.phage && snd.t - snd.lastPhage > 0.2) { snd.lastPhage = snd.t; audio.play('bacterium/phage', { volume: 0.8 }); }
+  if (ev.captured) audio.play('bacterium/graze', { volume: 0.9 });
   world.update(dt, t, S);
   game.update(dt, t, inp, ev);
   // focus drifts back to the cell's plane
@@ -236,6 +258,7 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   pad.poll();
+  unlockOnPad();
   blocked = features.update();
   if (!blocked) hud.update(pad);
   const live = !blocked;
@@ -246,6 +269,7 @@ function frame(now) {
       if (ctl.defend.pressed()) {
         const bias = swimmer.opts.bias && ls.m > 0.3 ? { x: ls.x, y: -ls.y } : null;
         if (swimmer.tumble(bias)) {
+          audio.play('bacterium/tumble', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
           pad.rumble(40, 0.2, 0);
           if (S.attacker) { S.attacker.cooldown = 4; S.attacker.prey = null; S.attacker = null; hud.toast('Tumbled free of the Bdellovibrio'); }
         }

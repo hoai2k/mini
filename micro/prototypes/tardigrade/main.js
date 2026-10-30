@@ -5,6 +5,7 @@ import { createPad } from '../shared/pad.js';
 import { createControls, createDash, hudControls } from '../shared/controls.js';
 import { mountHud } from '../shared/hud.js';
 import { createFeatures } from '../shared/features.js';
+import { createAudio } from '../shared/audio.js';
 import { DicMicroscope } from '../shared/techniques/tardigrade-dic.js';
 import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, AMOEBA_MODES, PARAMECIUM_MODES } from '../shared/techniques/adapters.js';
 import { legOffset } from '../shared/techniques/mite-gait.js';
@@ -76,9 +77,24 @@ const creature = new Creature(scene);
 let rumbleOn = true;
 const rumble = (ms, w, s) => { if (rumbleOn) pad.rumble(ms, w, s); };
 let catchBudget = 0;
+const audio = createAudio(['tardigrade/amb-film', 'tardigrade/step', 'tardigrade/dash', 'tardigrade/bite', 'tardigrade/tun', 'tardigrade/revive', 'tardigrade/rain', 'tardigrade/milnesium']);
+audio.loop('tardigrade/amb-film', { volume: 0.6 });
+const snd = { t: 0, lastStep: -1, side: 1, state: 'active', feeding: false, rain: false };
+/** Gamepads fire no DOM events: unlock sound on any pad button. */
+function unlockOnPad() {
+  if (pad.kind !== 'controller') return;
+  for (let b = 0; b < 16; b++) if (pad.value(b) > 0.5) { audio.unlock(); return; }
+}
+/** A claw hooks a wall: a footfall, at most ~8 a second, alternating sides. */
+function footstep(q = 0.5) {
+  if (snd.t - snd.lastStep < 0.13) return;
+  snd.lastStep = snd.t; snd.side = -snd.side;
+  audio.play('tardigrade/step', { volume: 0.3 + 0.15 * Math.random() + 0.1 * q, rate: 0.9 + Math.random() * 0.25, pan: 0.3 * snd.side });
+}
 const walker = new Walker(world, creature, {
   catch(q, big) {
-    if (big) { rumble(180, 0.35, 0.6); return; }
+    if (big) { rumble(180, 0.35, 0.6); footstep(1); return; }
+    footstep(q);
     if (catchBudget <= 0) { rumble(45, 0.04, 0.12 + 0.12 * q); catchBudget = 0.12; }
   },
   slip() { toast('Losing grip! Hold A to brace'); rumble(400, 0.5, 0.2); },
@@ -106,6 +122,7 @@ function applyMode(m) {
 // ---------------------------------------------------------------- features
 const features = createFeatures({ key: 'tardigrade', pad });
 const F = (o) => features.add(o);
+audio.addToFeatures(features);
 F({ id: 'look', group: 'Rendering', label: 'Optical look', choices: MODES, value: MODES[0],
   about: 'DIC: relief from the gradient of optical path along one shear direction. Brightfield: pigment plus faint refractive edges. Lit: a hypothetical immersive view with ordinary lights (not what a microscope records). D-pad left/right cycles it.',
   onChange: (v) => applyMode(MODES.indexOf(v)) });
@@ -242,6 +259,8 @@ function frame() {
   time += dt;
   catchBudget -= dt;
   pad.poll();
+  unlockOnPad();
+  snd.t += dt;
   const inMenu = features.update();
   hud.update(pad);
   const B = pad.BTN;
@@ -268,6 +287,7 @@ function frame() {
     if (life.frozen || walker.slipping) { /* curled, feeding or sliding: no scramble */ }
     else if (life.energy < 0.04) toast('Too weak to scramble: feed first');
     else if (dash.trigger()) {
+      audio.play('tardigrade/dash', { volume: 0.9 });
       life.desic = Math.min(1, life.desic + 0.035);
       life.energy = Math.max(0, life.energy - 0.02);
       rumble(160, 0.25, 0.55);
@@ -291,7 +311,22 @@ function frame() {
   const pev = predator.update(dt, { walker, life, mouth: myMouth }, xPressed && life.state === 'active' && !life.feeding);
   const jabbed = pev.includes('recoil');
   life.update(dt, { yDown: D(B.Y), yPressed: P(B.Y), bitePressed: xPressed && !jabbed, aPressed: P(B.A), moving: walker.speed });
+  // life-state transitions: the tun, the revival, rain, a stylet bite
+  if (life.state !== snd.state) {
+    if (life.state === 'tun') audio.play('tardigrade/tun');
+    else if (life.state === 'revive') audio.play('tardigrade/revive');
+    snd.state = life.state;
+  }
+  const raining = life.rainT > 0;
+  if (raining && !snd.rain) audio.play('tardigrade/rain', { volume: 0.8 });
+  snd.rain = raining;
+  const feeding = !!life.feeding;
+  if (feeding && !snd.feeding) audio.play('tardigrade/bite', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
+  snd.feeding = feeding;
   for (const e of pev) {
+    if (e === 'bite' || e === 'tunBite') audio.play('tardigrade/milnesium', { volume: e === 'bite' ? 1 : 0.6 });
+    else if (e === 'stalk') audio.play('tardigrade/milnesium', { volume: 0.45, rate: 0.85 });
+    else if (e === 'recoil') audio.play('tardigrade/bite', { volume: 1, rate: 0.85 });
     if (e === 'recoil') { toast('Stylets into its head: the Milnesium backs off'); rumble(220, 0.5, 0.4); creature.pose.stylet = 1; }
     else if (e === 'stalk') toast('A Milnesium has your scent: scramble (A), jab (X) or tun (Y)', 2600);
     else if (e === 'tunBite') { toast('The Milnesium mouths your tun but cannot get it in'); rumble(120, 0.2, 0.3); }

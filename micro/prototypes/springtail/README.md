@@ -41,6 +41,8 @@ The HUD has a scale bar that is true at the focal plane, the magnification,
 the f-number (and effective aperture), the depth of field, the food count,
 lives, and a furcula meter (cocking, full jump, re-cocking, struggle).
 
+Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A bog ambience loop; the furcula jump (A), landings on the water film and the sticky sundew landing, grazing (X), raindrops (quieter and panned by distance), and the Stenus skim and harpoon strike.
+
 ## Hazards
 
 - **The rove beetle *Stenus comma*** (5 mm, black, huge eyes, a pale spot on

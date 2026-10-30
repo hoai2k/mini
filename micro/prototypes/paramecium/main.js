@@ -15,6 +15,7 @@ import { createEncounters } from './encounters.js';
 import { createPrey } from './prey.js';
 import { createProteus } from './proteus.js';
 import { createFeatures } from '../shared/features.js';
+import { createAudio } from '../shared/audio.js';
 import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, AMOEBA_MODES, DIC_MODES } from '../shared/techniques/adapters.js';
 
 const SP = SPECIES[SPECIES_ID];
@@ -338,6 +339,38 @@ function lightAt(t) { light.c.set(-260 + 260 * Math.sin(t * 0.021), 60 + 220 * M
 const inLight = (p) => Math.hypot(p.x - light.c.x, p.z - light.c.y) < light.r;
 
 // --- game state --------------------------------------------------------------
+const audio = createAudio(['paramecium/amb-pool', 'paramecium/swim', 'paramecium/dash', 'paramecium/gulp', 'paramecium/trichocysts', 'paramecium/reverse', 'paramecium/didinium', 'paramecium/held']);
+audio.addToFeatures(features);
+audio.loop('paramecium/amb-pool', { volume: 0.6 });
+const swimLoop = audio.loop('paramecium/swim', { volume: 0 });
+const snd = { mode: 'swim', hunting: new WeakMap(), lastHunt: -9, t: 0 };
+/** Gamepads fire no DOM events: unlock sound on any pad button. */
+function unlockOnPad() {
+  if (pad.kind !== 'controller') return;
+  for (let b = 0; b < 16; b++) if (pad.value(b) > 0.5) { audio.unlock(); return; }
+}
+function soundTick(dt) {
+  snd.t += dt;
+  const s = swimmer.state;
+  const k = s.mode === 'dead' ? 0 : Math.min(1, Math.abs(s.speed) / VMAX);
+  swimLoop.set({ volume: 0.15 + 0.7 * k, rate: 0.8 + 0.5 * k + (s.dashT > 0 ? 0.2 : 0) });
+  if (s.mode !== snd.mode) {
+    if (s.mode === 'avoid') audio.play('paramecium/reverse', { volume: 0.8 });
+    snd.mode = s.mode;
+  }
+  // Didinium closing in: once per hunt, quieter the further it is
+  if (enc.opts.didinium && s.mode !== 'dead' && s.mode !== 'captured') {
+    for (const d of world.didinia) {
+      const on = d.state === 'hunting' || d.state === 'striking';
+      if (on && !snd.hunting.get(d) && snd.t - snd.lastHunt > 1.5) {
+        snd.lastHunt = snd.t;
+        const dist = d.pos.distanceTo(s.center);
+        audio.play('paramecium/didinium', { volume: Math.max(0.25, Math.min(1, 700 / (dist + 200))), pan: Math.max(-1, Math.min(1, (d.pos.x - s.center.x) / 800)) });
+      }
+      snd.hunting.set(d, on);
+    }
+  }
+}
 const dash = createDash({ duration: DASH_T, cooldown: 1.8 });
 const game = { eaten: 0, round: 1, sun: 1, gulpT: 0, gulpCool: 0, dashFx: 0, deaths: 0, bacteria: 0 };
 const threats = () => [...(enc.opts.didinium ? world.didinia : []), ...(amoeba.opts.on ? [amoeba] : [])];
@@ -363,6 +396,7 @@ function fireTrichocysts(threat) {
   const at = threat === amoeba ? new THREE.Vector3(amoeba.pos.x, s.center.y - 40, amoeba.pos.z) : threat ? threat.pos : null;
   const held = s.mode === 'captured';
   const away = swimmer.burst(at);
+  if (away) audio.play('paramecium/trichocysts', { volume: 1 });
   if (!away) { hud.toast(held ? 'No trichocysts left: struggle with A!' : 'No trichocysts left: they re-dock over time'); return; }
   const n = enc.discharge(s, away.clone().negate(), t, world.flowAt(s.center, t));
   if (threat === amoeba) amoeba.recoil(); else if (threat) threat.stun = 3;
@@ -377,6 +411,7 @@ function doAttack() {
   if (threat) { fireTrichocysts(threat); return; }
   if (game.gulpCool > 0) return;
   game.gulpCool = 0.5; game.gulpT = 0.6;
+  audio.play('paramecium/gulp', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
   const got = prey.near(updateGulpCentre(s), GULP_REACH).slice(0, 3);
   for (const it of got) prey.gulp(it);
   pad.rumble(90, 0.35, 0.1);
@@ -389,7 +424,7 @@ function doDash(ls) {
   if (!dash.ready) { hud.toast('Dash recharging', 700); return; }
   let yaw = null;
   if (ls.m > 0.3) yaw = view.kind === 'scope' ? swimmer.stickYaw(ls, view.scopeYaw) : s.yaw - ls.x * 1.2;
-  if (swimmer.dash(yaw)) { dash.trigger(); game.dashFx = 0.45; pad.rumble(180, 0.6, 0.9); }
+  if (swimmer.dash(yaw)) { audio.play('paramecium/dash', { volume: 0.9 }); dash.trigger(); game.dashFx = 0.45; pad.rumble(180, 0.6, 0.9); }
 }
 
 // --- loop --------------------------------------------------------------------
@@ -420,6 +455,7 @@ function tick(dt, forced = false) {
   const ev = {};
   if (live && ctl.dash.pressed()) doDash(ls);
   swimmer.step(dt, t, inp, ev);
+  soundTick(dt);
   if (live && ctl.attack.pressed()) doAttack();
   enc.update(dt, t, swimmer, ev);
   amoeba.update(dt, t, swimmer, ev, world.flowAt);
@@ -447,6 +483,7 @@ function tick(dt, forced = false) {
   if (ev.hit) { pad.rumble(70, 0.25, 0.1); if (ev.vorticella) hud.toast('Bumped a Vorticella: its stalk coils (and you reverse)'); }
   if (ev.avoid) pad.rumble(50, 0.15, 0);
   if (ev.captured) {
+    audio.play('paramecium/held', { volume: 1 });
     pad.rumble(400, 0.6, 0.8);
     hud.toast(ev.captured === 'amoeba' ? 'Engulfed by the amoeba\'s food cup! X: trichocysts · A: struggle' : 'Didinium\'s proboscis has you! X: fire trichocysts · A: struggle', 2800);
   }
@@ -459,6 +496,7 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   pad.poll();
+  unlockOnPad();
   blocked = features.update(); // the panel is open: no game input this frame
   if (!blocked) hud.update(pad);
   if (!blocked) {

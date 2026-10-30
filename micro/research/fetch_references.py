@@ -29,14 +29,16 @@ SELECTION = [
     ('biofilm-sem', 'Electron microscopic analysis of seagrass biofilms.jpg', '04', 'Marine seagrass biofilm SEM figure: matrix and surface-reference analogue, not freshwater habitat documentation.'),
     # Zoom Chain additions (bog surface to phage). Bands 00, 05 and 06 are the new levels:
     # 00 bog surface, 05 bacteria, 06 viruses.
-    ('springtail', 'Podura aquatica - 1.jpg', '00', 'Water springtail Podura aquatica: body, antennae, legs and furcula.'),
-    ('stenus', 'Stenus bimaculatus.jpg', '00', 'Stenus rove beetle: big eyes, slender body, short elytra.'),
+    ('springtail-swarm', 'Podura aquatica - 1.jpg', '00', 'A swarm of water springtails (Podura aquatica) on a pool surface among algae: colour, scale and habitat.'),
+    ('stenus', 'Stenus bimaculatus.jpg', '00', 'Stenus rove beetle (S. bimaculatus), a soft phone photo: big eyes, slender body, short elytra.'),
     ('sundew', 'Drosera rotundifolia leaf1.jpg', '00', 'Round-leaved sundew leaf: red glandular tentacles with glue droplets.'),
     ('water-strider', 'Water strider Gerris lacustris.jpg', '00', 'Water strider Gerris lacustris standing on the surface film.'),
-    ('pond-spider', 'Pirata piraticus.jpg', '00', 'Pirate wolf spider Pirata piraticus, a bog-pool hunter (adult; stands in for the juveniles).'),
+    ('springtail', 'Podura aquatica - 2.jpg', '00', 'Water springtail Podura aquatica close up: body, antennae and legs.'),
+    ('springtail-ventral', 'Podura aquatica - retinacle-collophore.jpg', '00', 'Podura aquatica from below: the ventral tube (collophore), the catch (retinaculum) and the folded furcula.'),
+    ('pond-spider', 'Pirata hygrophilus.jpg', '00', 'Pirata hygrophilus, a wolf spider of wet moss and pool edges (adult; stands in for the juveniles).'),
     ('bog-pool', 'Sphagnum moss in bog pool - geograph.org.uk - 808982.jpg', '00', 'Sphagnum in a bog pool: the water surface and moss edge.'),
-    ('bog-hummock', 'Sphagnum hummock.JPG', '00', 'A Sphagnum hummock: the bog lawn at landscape scale.'),
-    ('predatory-mite', 'Mesostigmata P1640630b.jpg', '01', 'Mesostigmatid mite: a fast predatory soil mite.'),
+    ('bog-hummock', 'Sphagnum hummock.JPG', '00', 'A moss hummock among rushes and grasses: the bog lawn at landscape scale.'),
+    ('predatory-mite', 'Pergamasus diversus 01.jpg', '01', 'Pergamasus diversus, a free-living predatory parasitid mite of soil and litter.'),
     ('milnesium', 'Milnesium tardigradum.jpg', '02', 'Milnesium tardigradum, the carnivorous tardigrade, in light microscopy.'),
     ('nebela', 'Nebela flabellulum SEM.png', '02', 'Nebela testate amoeba shell (SEM): a lorica built from recycled plates.'),
     ('didinium', '040 Didinium nasutum.jpg', '03', 'Didinium nasutum: proboscis and two ciliary girdles (1896 drawing).'),
@@ -46,6 +48,7 @@ SELECTION = [
     ('utricularia-bladder', 'Utricularia -- bladder (1).JPG - Photo by V C Balakrishnan.jpg', '03', 'A bladderwort trap: bladder, door and trigger hairs.'),
     ('trachelomonas', 'Bancsó 2021 Fig 8-2 Trachelomonas hispida.jpg', '04', 'Trachelomonas hispida: the spiny brown lorica of the Level 4 protagonist.'),
     ('peranema', 'Peranema (Flagellat) - 400x (8492749542).jpg', '04', 'Peranema: colourless predatory euglenid with a thick leading flagellum.'),
+    ('actinophrys', 'Actinophrys sol (phase contrast microscopy).jpg', '04', 'Actinophrys sol in phase contrast: spherical cell and radiating axopodia.'),
     ('chytrid', 'Pennate diatom infected with two chytrid-like fungal pathogens.png', '04', 'Chytrid-like parasites on a pennate diatom.'),
     ('magnetotactic', 'Magnetospirillum cells.jpg', '05', 'Magnetospirillum cells: helical magnetotactic bacteria.'),
     ('magnetosome-chain', 'Magnetosome chain.png', '05', 'A magnetosome chain of magnetite crystals inside a cell (TEM).'),
@@ -71,12 +74,23 @@ def plain(value):
     return html.unescape(re.sub('<[^>]+>', '', value)).strip()
 
 
-def fetch(ident, title, band, note):
-    query = urllib.parse.urlencode(dict(action='query', format='json', titles='File:' + title,
-                                       prop='imageinfo', iiprop='url|extmetadata', iiurlwidth=1280))
-    data = json.loads(get('https://commons.wikimedia.org/w/api.php?' + query))
-    page = next(iter(data['query']['pages'].values()))
-    info = page['imageinfo'][0]
+def metadata(titles):
+    """Image info for many files in as few API calls as possible (the API takes 50 titles)."""
+    found = {}
+    for start in range(0, len(titles), 50):
+        batch = titles[start:start + 50]
+        query = urllib.parse.urlencode(dict(action='query', format='json', titles='|'.join('File:' + t for t in batch),
+                                           prop='imageinfo', iiprop='url|extmetadata', iiurlwidth=1280))
+        data = json.loads(get('https://commons.wikimedia.org/w/api.php?' + query))
+        names = {n['to']: n['from'] for n in data['query'].get('normalized', [])}
+        for page in data['query']['pages'].values():
+            if 'imageinfo' in page:
+                found[names.get(page['title'], page['title'])[len('File:'):]] = page['imageinfo'][0]
+        time.sleep(2)
+    return found
+
+
+def fetch(ident, title, band, note, info):
     meta = info['extmetadata']
     license_name = plain(meta.get('LicenseShortName', {}).get('value', ''))
     assert license_name.startswith(('CC BY ', 'CC BY-SA ', 'CC0', 'Public domain')), (title, license_name)
@@ -107,19 +121,23 @@ def main():
         wanted = [s[0] for s in SELECTION if s[0] not in existing]
     else:
         wanted = args
+    infos = metadata([title for ident, title, band, note in SELECTION if ident in wanted])
     for ident, title, band, note in SELECTION:
         if ident not in wanted:
             continue
         time.sleep(2)
         try:
-            existing[ident] = fetch(ident, title, band, note)
+            if title not in infos:
+                raise LookupError('no image info for ' + title)
+            existing[ident] = fetch(ident, title, band, note, infos[title])
         except Exception as error:  # a bad licence or a missing file skips that entry only
             print('skipped', ident, repr(error), flush=True)
             continue
         order = [s[0] for s in SELECTION]
-        records = [existing[i] for i in order if i in existing]
+        records = [existing[i] for i in order if i in existing]  # ids dropped from SELECTION drop out
         manifest.write_text(json.dumps(records, ensure_ascii=False, indent=2) + '\n')
         print(ident, existing[ident]['license'], existing[ident]['bytes'], flush=True)
+
 
 if __name__ == '__main__':
     main()

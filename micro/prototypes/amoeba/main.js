@@ -7,6 +7,7 @@ import { createControls, createDash, hudControls } from '../shared/controls.js';
 import { mountHud } from '../shared/hud.js';
 import { loadTexture } from '../shared/assets.js';
 import { createFeatures } from '../shared/features.js';
+import { createAudio } from '../shared/audio.js';
 import { Body, N } from '../shared/techniques/amoeba-softbody.js';
 import { Cytoplasm } from './cytoplasm.js';
 import { SPECIES, makePrey, PREY_OPTS } from './prey.js';
@@ -88,6 +89,30 @@ const S = {
 // --- features panel ----------------------------------------------------------
 const features = createFeatures({ key: 'amoeba', pad });
 const F = (o) => features.add(o);
+const audio = createAudio(['amoeba/amb-pool', 'amoeba/stretch', 'amoeba/boost', 'amoeba/engulf', 'amoeba/vacuole', 'amoeba/digest']);
+audio.addToFeatures(features);
+audio.loop('amoeba/amb-pool', { volume: 0.6 });
+const snd = { t: 0, lastStretch: -9, pods: [], systole: 0 };
+/** Gamepads fire no DOM events: unlock sound on any pad button. */
+function unlockOnPad() {
+  if (pad.kind !== 'controller') return;
+  for (let b = 0; b < 16; b++) if (pad.value(b) > 0.5) { audio.unlock(); return; }
+}
+/** A pseudopod starting to flow out (rate-limited), a vacuole emptying. */
+function soundTick(dt) {
+  snd.t += dt;
+  body.pods.forEach((p, k) => {
+    const on = p.s > 0.15;
+    if (on && !snd.pods[k] && snd.t - snd.lastStretch > 0.9) {
+      snd.lastStretch = snd.t;
+      audio.play('amoeba/stretch', { volume: p.idle ? 0.3 : 0.7, rate: 0.9 + Math.random() * 0.2, pan: k ? 0.3 : -0.3 });
+    }
+    snd.pods[k] = on;
+  });
+  const sy = cyto.cv.systole > 0;
+  if (sy && !snd.systole) audio.play('amoeba/vacuole', { volume: 0.6, rate: 0.95 + Math.random() * 0.1 });
+  snd.systole = sy;
+}
 F({ id: 'look', group: 'Optics', label: 'Optical method', choices: MODES, value: MODES[0],
   about: 'D-pad left/right cycles. Brightfield is the reference look; phase contrast (dark phase with bright halos), darkfield (scattered light on black) and a hypothetical immersive lit view are for comparison. All four read the same property buffer.',
   onChange: (v) => { S.mode = Math.max(0, MODES.indexOf(v)); } });
@@ -252,6 +277,7 @@ function tryClose() {
     return;
   }
   S.closing = { prey: c.prey, t: 0, low: 0 };
+  audio.play('amoeba/engulf', { volume: 0.7 });
   hud.toast(`Closing the food cup round the ${c.prey.sp.name}…`);
 }
 
@@ -278,6 +304,7 @@ function capture(p, cup) {
   S.eaten++;
   S.closing = null;
   hud.toast(`${p.sp.name} engulfed: a food vacuole forms`);
+  audio.play('amoeba/vacuole', { volume: 0.9, rate: 0.85 });
   rumble(300, 0.5, 0.2);
 }
 
@@ -332,6 +359,7 @@ function stepPrey(dt, col) {
       p.update(dt);
       if (p.captured.digest >= 1 && !p.done) {
         p.done = true;
+        audio.play('amoeba/digest', { volume: 0.8 });
         despawn(p);
         p.captured.prey = null;
         p.captured.residue = true;
@@ -465,6 +493,7 @@ function simStep(dt) {
   body.grid.build(body.x, body.y, N);
   updateCup(adt);
   stepPrey(dt, col);
+  soundTick(dt);
   if (preyFlowOn) preyFlow(dt * S.swimK);
   // Optional parts of the cytoplasm simulation.
   const saved = body.pods.map((p) => p.s);
@@ -582,10 +611,11 @@ function frame(now) {
   last = now;
   S.fps += (1 / Math.max(dtReal, 1e-3) - S.fps) * 0.05;
   pad.poll();
+  unlockOnPad();
   const menu = features.update();
   if (!menu) {
     hud.update(pad);
-    if (pressed(BTN.A) && surge.trigger()) { rumble(220, 0.3, 0.5); if (S.stuckN) hud.toast('Surge: torn free of the trap'); }
+    if (pressed(BTN.A) && surge.trigger()) { audio.play('amoeba/boost', { volume: 0.9 }); rumble(220, 0.3, 0.5); if (S.stuckN) hud.toast('Surge: torn free of the trap'); }
     if (pressed(BTN.X)) { if (!S.closing) tryClose(); }
     if (pressed(BTN.B)) { if (S.closing) cancelClose('Let go: the cup opens'); else egest(); }
     const look = ctl.lookStep() || (test.presses.has(BTN.RIGHT) ? 1 : 0);

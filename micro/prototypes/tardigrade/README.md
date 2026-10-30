@@ -30,6 +30,8 @@ The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`):
 
 When dead (eaten or a tun that did not wake), A starts a new day.
 
+Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A water-film ambience loop; claw footfalls (at most ~8 a second), the scramble (A), stylet bites (X), forming the tun (Y), rehydrating, rain, and the Milnesium stalking and lunging.
+
 ## What it does
 
 - **The animal.** Built with `shared/sdf.js` from anatomical parts: head with

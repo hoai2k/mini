@@ -6,6 +6,7 @@ import { createPad } from '../shared/pad.js';
 import { mountHud } from '../shared/hud.js';
 import { createControls, hudControls } from '../shared/controls.js';
 import { createFeatures } from '../shared/features.js';
+import { createAudio } from '../shared/audio.js';
 import { loadTexture } from '../shared/assets.js';
 import { createMacro, lens, macroShared, applyLook, MACRO_LOOKS } from '../shared/techniques/springtail-macro.js';
 import { RippleField, Dimples, waterMaterial, peatFloorTexture } from '../shared/techniques/springtail-surface.js';
@@ -162,6 +163,14 @@ resize();
 // ---------------------------------------------------------------- features
 const features = createFeatures({ key: 'springtail', pad });
 const F = (o) => features.add(o);
+const audio = createAudio(['springtail/amb-bog', 'springtail/jump', 'springtail/land-water', 'springtail/land-sticky', 'springtail/eat', 'springtail/raindrop', 'springtail/stenus-skim', 'springtail/stenus-strike']);
+audio.addToFeatures(features);
+audio.loop('springtail/amb-bog', { volume: 0.6 });
+/** Gamepads fire no DOM events: unlock sound on any pad button. */
+function unlockOnPad() {
+  if (pad.kind !== 'controller') return;
+  for (let b = 0; b < 16; b++) if (pad.value(b) > 0.5) { audio.unlock(); return; }
+}
 F({ id: 'dof', group: 'Rendering', label: 'Depth of field (bokeh gather)', on: true,
   about: 'Every surface writes its distance from the focal plane into the alpha of a half-float target. A half-res pass turns that into a signed blur-disc size (thin-lens CoC), 8x8 tiles record the largest foreground blur, and a 64-tap golden-spiral gather spreads each tap only as far as its own disc reaches (taps behind the centre are clamped to its blur, so sharp edges never smear backward). shared/techniques/springtail-macro.js.',
   onChange: (v) => (macro.options.dof = v) });
@@ -243,7 +252,7 @@ function jump(dirX, dirZ, power, { thrown = false } = {}) {
     field.drop(pl.x - (dirX / n) * 0.6, pl.z - (dirZ / n) * 0.6, 0.4, -0.05 - 0.08 * p);
     ripples.push({ x: pl.x, z: pl.z, strength: 0.5 + 0.4 * p });
   }
-  if (!thrown) rumble(120, 0.25 + 0.4 * p, 0.2 + 0.5 * p);
+  if (!thrown) { rumble(120, 0.25 + 0.4 * p, 0.2 + 0.5 * p); audio.play('springtail/jump', { volume: 0.5 + 0.5 * p, rate: 1.1 - 0.2 * p + Math.random() * 0.06 }); }
 }
 
 function die(cause) {
@@ -283,6 +292,7 @@ function landAt(g) {
   if (!a.upright) { pl.mode = 'flipped'; pl.flipT = 0; pl.roll = Math.PI; rumble(160, 0.4, 0.3); hud.toast('Landed on your back: tap A to flick upright', 1600); }
   else pl.mode = g.kind === 'moss' ? 'moss' : 'film';
   if (g.kind === 'film') {
+    audio.play('springtail/land-water', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
     // adhesive landing: the wet collophore grabs the film, no bounce
     field.drop(pl.x, pl.z, 0.45, -0.07);
     ripples.push({ x: pl.x, z: pl.z, strength: 1 });
@@ -338,6 +348,7 @@ function stepPlayer(dt, inp) {
         P.air = null; P.mode = 'stuck'; P.leaf = leaf; P.y = leaf.y + 0.12; P.struggle = 0; P.pitch = 0; P.roll = 0; P.bend = 0;
         leaf.target = new THREE.Vector3(P.x, P.y + 0.2, P.z);
         hud.toast('Stuck in sundew glue! Mash A to tear free', 2000);
+        audio.play('springtail/land-sticky');
         rumble(200, 0.5, 0.4);
         ripples.push({ x: P.x, z: P.z, strength: 0.3 });
         return;
@@ -433,6 +444,7 @@ function stepPlayer(dt, inp) {
     }
     P.eatT = 0.35;
     if (best) {
+      audio.play('springtail/eat', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
       best.bites--;
       ripples.push({ x: P.x, z: P.z, strength: 0.35 });
       rumble(40, 0.15, 0);
@@ -455,6 +467,8 @@ function stepWorld(dt) {
   const ctxP = { x: P.x, y: P.mode === 'air' ? P.y : 0, z: P.z, vx: P.air ? P.air.vx : P.vx, vz: P.air ? P.air.vz : P.vz, airborne: P.mode === 'air', hunker: P.hunker > 0.5, moving: (P.moved > 0 && P.hunker < 0.5) || P.mode === 'air' || P.mode === 'stuck' || P.eatT > 0, alive };
   for (const e of stenus.update(dt, { player: ctxP, field, inPool })) {
     if (e === 'caught' && alive) { die('Harpooned by the rove beetle\'s labium'); stenus.st.state = 'hold'; stenus.st.t = 0; setTimeout(() => { if (stenus.st.state === 'hold') stenus.st.state = 'recover'; }, 1800); }
+    if (e === 'skim') audio.play('springtail/stenus-skim', { volume: 0.7 });
+    if (e === 'strike') audio.play('springtail/stenus-strike', { volume: 0.9 });
     if (e === 'skim') hud.toast('Stenus is skimming at you!', 1000);
     if (e === 'windup' && alive) rumble(300, 0.15, 0); // the head dips: jump now
   }
@@ -465,6 +479,7 @@ function stepWorld(dt) {
   ripples.length = 0;
   for (const e of rain.update(dt, { field, inPool, mossAt: (x, z) => Math.max(0, mossTop(x, z)), player: ctxP })) {
     const d = Math.hypot(e.x - P.x, e.z - P.z);
+    audio.play('springtail/raindrop', { volume: Math.max(0.12, Math.min(0.9, 4 / (d + 3))), rate: 0.92 + Math.random() * 0.16, pan: Math.max(-1, Math.min(1, (e.x - P.x) / 25)) });
     if (d < 6) rumble(250, Math.min(1, 3 / d), Math.min(1, 2 / d));
     if (!alive) continue;
     if (d < e.r * 1.15 && P.mode !== 'air') die('Swamped by a raindrop');
@@ -552,6 +567,7 @@ function updateContacts() {
 // ---------------------------------------------------------------- input
 function readInput(dt) {
   pad.poll();
+  unlockOnPad();
   const idle = { move: { x: 0, y: 0, m: 0 }, dashDown: false, dashPressed: false, attackPressed: false, defend: false };
   if (features.update()) return idle;
   hud.update(pad);

@@ -10,6 +10,7 @@ import { semTextures } from './textures.js';
 import { buildWorld, HALF } from './world.js';
 import { createMite, CFG, PRED } from './mite.js';
 import { createFeatures } from '../shared/features.js';
+import { createAudio } from '../shared/audio.js';
 import { createBorrowedLooks, borrowedSwitches, AMOEBA_MODES, DIC_MODES, PARAMECIUM_MODES } from '../shared/techniques/adapters.js';
 
 const canvas = document.querySelector('canvas.view');
@@ -133,6 +134,14 @@ function npcInput(dt) {
 
 // ---------- features panel ----------
 const features = createFeatures({ key: 'mite', pad });
+const audio = createAudio(['mite/amb-moss', 'mite/step', 'mite/dash', 'mite/close', 'mite/open', 'mite/bite', 'mite/blade', 'mite/predator']);
+audio.addToFeatures(features);
+audio.loop('mite/amb-moss', { volume: 0.6 });
+/** Gamepads fire no DOM events: unlock sound on any pad button. */
+function unlockOnPad() {
+  if (pad.kind !== 'controller') return;
+  for (let b = 0; b < 16; b++) if (pad.value(b) > 0.5) { audio.unlock(); return; }
+}
 const LOOKS = ['SE', 'BSE', 'False colour'];
 let npcOn = true, rumbleOn = true, predOn = true;
 const F = (o) => features.add(o);
@@ -279,7 +288,7 @@ function biteNow() {
   if (mite.mode !== 'walk' || !mite.bite()) return;
   const m = mite.mouth(new THREE.Vector3());
   // A nip at the predator's legs or body?
-  if (predOn && pred.center.distanceTo(m) < 330) { play.nip = true; return; }
+  if (predOn && pred.center.distanceTo(m) < 330) { play.nip = true; audio.play('mite/bite', { volume: 1, rate: 0.85 }); return; }
   let best = null, bd = 150;
   for (const f of world.food) {
     if (f.left <= 0) continue;
@@ -288,6 +297,7 @@ function biteNow() {
     if (d < bd) { bd = d; best = f; }
   }
   if (!best) { hud.toast('Nothing in reach of the chelicerae'); return; }
+  audio.play('mite/bite', { volume: 0.8, rate: 0.95 + Math.random() * 0.12 });
   play.grazed++;
   if (best.kind === 'spore') { best.left = 0; world.eatSpore(best); hud.toast(`Ate a fungal spore (${play.grazed} grazed)`); }
   else { best.left = 0; best.t = 25; hud.toast(`Nibbled a hyphal tip (${play.grazed} grazed)`); }
@@ -299,6 +309,40 @@ function bodyOf(m) {
     load: m.ground && m.ground.entry && m.ground.entry.rod, weight: m.anat.kind === 'pred' ? 13000 : 16000,
     loadU: m.ground && m.ground.entry && m.ground.entry.rod ? Math.min(1, Math.max(0, m.ground.point.clone().sub(m.ground.entry.rod.base).dot(m.ground.entry.rod.axis) / m.ground.entry.rod.len)) : 0.7 };
 }
+// ---------- sound ----------
+const snd = { t: 0, lastStep: -1, side: 1, lastBlade: -1, mode: 'walk', bladeNear: new Set() };
+function soundTick(dt, ev) {
+  snd.t += dt;
+  if (mite.mode !== snd.mode) {
+    if (mite.mode === 'closing') audio.play('mite/close');
+    else if (mite.mode === 'opening') audio.play('mite/open');
+    snd.mode = mite.mode;
+  }
+  for (const e of ev) {
+    // one plant of the lead leg per stride; at most ~8 a second
+    if (e === 'step' && snd.t - snd.lastStep > 0.125) {
+      snd.lastStep = snd.t; snd.side = -snd.side;
+      audio.play('mite/step', { volume: 0.35 + Math.random() * 0.15, rate: 0.9 + Math.random() * 0.25 + Math.min(0.2, mite.speed / 2000), pan: 0.3 * snd.side });
+    }
+  }
+  // a blade bent past a threshold near the mite brushes (once per bend, rate-limited)
+  if (world.foliage.cfg.on && mite.mode === 'walk' && mite.speed > 20 && snd.t - snd.lastBlade > 0.3) {
+    for (const rod of world.foliage.rods) {
+      if (rod.kind !== 'cantilever' || !rod.awake) continue;
+      const bend = rod.d.length() / rod.len;
+      if (bend < 0.05) { snd.bladeNear.delete(rod); continue; }
+      if (bend > 0.12 && !snd.bladeNear.has(rod)) {
+        snd.bladeNear.add(rod);
+        const d = rod.mid.distanceTo(mite.center);
+        if (d < 700) {
+          snd.lastBlade = snd.t;
+          audio.play('mite/blade', { volume: Math.min(0.8, 0.3 + bend * 2) * (1 - d / 900), rate: 0.9 + Math.random() * 0.2 });
+          break;
+        }
+      }
+    }
+  }
+}
 function tick(dt, input) {
   dash.update(dt);
   play.stun = Math.max(0, play.stun - dt);
@@ -309,11 +353,14 @@ function tick(dt, input) {
   // so each mite then settles on, and clears, the surfaces as they are now.
   world.foliage.update(dt, [mite, ...(npcOn ? [npc] : []), ...(predOn ? [pred] : [])].map(bodyOf));
   const ev = mite.update(dt, input);
+  soundTick(dt, ev);
   if (npcOn) npc.update(dt, npcInput(dt));
   if (predOn) {
     const r = predAI.step(dt, { mite, closed: closedNow(), speed: mite.speed }, play.nip);
     pred.update(dt, r.input);
     for (const e of r.events) {
+      if (e === 'hunt') audio.play('mite/predator', { volume: 0.9 });
+      if (e === 'legHit') audio.play('mite/predator', { volume: 0.6, rate: 1.25 });
       if (e === 'hunt') hud.toast('A predatory mite has touched you: scramble (A), close up (B) or nip it (X)', 2600);
       else if (e === 'recoil') { hud.toast('Nipped: the predator recoils'); if (rumbleOn) pad.rumble(120, 0.4, 0.3); }
       else if (e === 'blocked') { hud.toast('Its chelicerae slide off the closed capsule'); if (rumbleOn) pad.rumble(90, 0.2, 0.35); }
@@ -335,6 +382,7 @@ function tick(dt, input) {
 
 function readInput(dt) {
   pad.poll();
+  unlockOnPad();
   if (features.update()) return { dir: new THREE.Vector3(), mag: 0, maxSpeed: 0, hold: false };
   hud.update(pad);
   const rs = ctl.camera();
@@ -354,7 +402,7 @@ function readInput(dt) {
   camFwd.set(-Math.cos(rig.yaw), 0, -Math.sin(rig.yaw));
   camRight.set(-camFwd.z, 0, camFwd.x);
   const dir = camFwd.clone().multiplyScalar(-ls.y).addScaledVector(camRight, ls.x);
-  if (ctl.dash.pressed() && mite.mode === 'walk' && play.stun <= 0 && dash.trigger()) { if (rumbleOn) pad.rumble(140, 0.3, 0.5); }
+  if (ctl.dash.pressed() && mite.mode === 'walk' && play.stun <= 0 && dash.trigger()) { audio.play('mite/dash', { volume: 0.9 }); if (rumbleOn) pad.rumble(140, 0.3, 0.5); }
   const dashing = dash.active && mite.mode === 'walk';
   if (dashing && ls.m < 0.2) dir.set(1, 0, 0).applyQuaternion(mite.quat).setY(0); // no stick: straight ahead
   return { dir: dir.lengthSq() > 0 ? dir.normalize() : dir, mag: dashing ? 1 : ls.m, maxSpeed: dashing ? 525 : 210 * speedMul * (1 - 0.15 * play.hurt), accel: dashing ? 0.05 : 0.18, hold: ctl.defend.down() };

@@ -36,6 +36,8 @@ Paramecium fires its trichocysts or a trap hypha grabs the membrane, a pulse
 on capture. The two sticks keep the amoeba's own scheme; A, X, B, Y and the
 d-pad follow the shared one (`../CONTROLS.md`).
 
+Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A pool ambience loop; pseudopods flowing out (rate-limited), the surge (A), closing the food cup (X), a vacuole forming, the contractile vacuole emptying, and digestion finishing.
+
 ## The biology it follows
 
 - **Size and shape.** *A. proteus* reaches roughly 600 µm or more [S04]; the

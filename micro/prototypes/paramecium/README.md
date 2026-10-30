@@ -38,6 +38,8 @@ Published in the prototype archive at `micro/prototypes/paramecium/`.
 - Eat 6 prey and the cell divides (the round counter goes up); eaten, the
   round starts again. Hunters leave you alone for the first 10 s.
 
+Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A pond ambience loop and a ciliary swim loop whose volume and rate follow your speed; the dash (A), the feeding gulp and trichocyst discharge (X), the avoidance reaction (B), Didinium closing in and being held.
+
 ## Controls
 
 The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):

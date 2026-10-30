@@ -57,9 +57,9 @@ export const PARAMS = [
   ['stop', 1], ['stopSoft', 1], ['vign', 1], ['grain', 1],
   ['tint', 3], ['sat', 1],
   ['contrast', 1], ['exposure', 1], ['scan', 1], ['outline', 1],
-  ['emitCol', 3], ['flat', 1],
+  ['emitCol', 3], ['flatK', 1],
   ['outside', 3], ['massK', 1],
-  ['haloUm', 1], ['relief', 1], ['auto', 1], ['warm', 1],
+  ['haloUm', 1], ['relief', 1], ['autoF', 1], ['warm', 1],
 ];
 const SIZE = PARAMS.reduce((n, [, c]) => n + c, 0);
 const NV = Math.ceil(SIZE / 4);
@@ -68,7 +68,7 @@ const BASE = {
   surf: 0, trans: 0, emit: 0, semK: 0, lightEl: 0.9, lightAz: 2.3, ambient: 0.35, spec: 0, sky: [0, 0, 0], grey: 0,
   edge: 0, shadow: 0, absK: 1, dic: 0, bg: [1, 1, 1], shearAz: 0.785, lap: 0, phase: 0, halo: 0.8, blurUm: 0,
   stop: 3, stopSoft: 0.02, vign: 0.15, grain: 0.02, tint: [1, 1, 1], sat: 1, contrast: 1, exposure: 1, scan: 0, outline: 0,
-  emitCol: [0.3, 1, 0.45], flat: 0, outside: [0, 0, 0], massK: 0, haloUm: 1.5, relief: 1, auto: 0, warm: 0,
+  emitCol: [0.3, 1, 0.45], flatK: 0, outside: [0, 0, 0], massK: 0, haloUm: 1.5, relief: 1, autoF: 0, warm: 0,
 };
 
 /**
@@ -96,12 +96,12 @@ export const LOOKS = {
     trans: 1, absK: 1, phase: 1, halo: 0.85, haloUm: 1.4, bg: [0.70, 0.74, 0.70], blurUm: 0.11,
     vign: 0.25, grain: 0.02, sat: 0.8, contrast: 1.05, exposure: 1.0 },
   fluor: { ...BASE, name: 'Fluorescence', instrument: 'epifluorescence, DNA stain',
-    emit: 1, emitCol: [0.35, 0.75, 1.0], blurUm: 0.11, auto: 0.04, vign: 0.3, grain: 0.03, exposure: 1.6, contrast: 1.1 },
+    emit: 1, emitCol: [0.35, 0.75, 1.0], blurUm: 0.11, autoF: 0.04, vign: 0.3, grain: 0.03, exposure: 1.6, contrast: 1.1 },
   cryo: { ...BASE, name: 'Cryo-EM', instrument: 'cryo electron microscope (transmitted electrons)',
     trans: 1, absK: 0, massK: 9, lap: 0.00006, bg: [0.62, 0.62, 0.62], blurUm: 0.002, sat: 0, grain: 0.11,
     vign: 0.1, contrast: 1.15, exposure: 1.0 },
   mol: { ...BASE, name: 'Molecular illustration', instrument: 'illustration from structures (not an image)',
-    surf: 1, lightEl: 1.2, lightAz: 2.3, ambient: 0.62, flat: 0.45, outline: 0.75, vign: 0.08, grain: 0,
+    surf: 1, lightEl: 1.2, lightAz: 2.3, ambient: 0.62, flatK: 0.45, outline: 0.75, vign: 0.08, grain: 0,
     sat: 1.1, exposure: 1.12, contrast: 1.0 },
 };
 
@@ -194,12 +194,12 @@ vec3 image(Look L, vec2 uv) {
     float semY = se * (1.0 - 0.45 * L.shadow + 0.45 * L.shadow * det) + max(occl, 0.0) * L.edge * 0.45;
     float shade = mix(diffuse, semY, L.semK);
     shade *= 1.0 + L.shadow * 0.55 * min(occl, 0.0) + (1.0 - L.semK) * 0.35 * min(occl, 0.0);
-    shade = mix(shade, 1.0, L.flat);
+    shade = mix(shade, 1.0, L.flatK);
     vec3 s = alb * shade;
     vec3 H = normalize(Ld + vec3(0.0, 0.0, 1.0));
     float sp = pow(max(dot(n, H), 0.0), 80.0) * gloss * L.spec * 3.0;
     float fres = 0.03 + 0.97 * pow(1.0 - n.z, 5.0);
-    s += (vec3(sp) + L.sky * gloss * (0.1 + fres * 4.0)) * (1.0 - L.flat);
+    s += (vec3(sp) + L.sky * gloss * (0.1 + fres * 4.0)) * (1.0 - L.flatK);
     float ol = smoothstep(0.5, 1.6, length(gh));
     s *= 1.0 - L.outline * ol;
     col += s * L.surf;
@@ -217,7 +217,7 @@ vec3 image(Look L, vec2 uv) {
     col += max(t, 0.0) * L.trans;
   }
   // --- emitted (epifluorescence) ---
-  if (L.emit > 0.001) col += (L.emitCol * f1.a + L.auto * f0.a * vec3(0.5, 0.45, 0.2)) * L.emit;
+  if (L.emit > 0.001) col += (L.emitCol * f1.a + L.autoF * f0.a * vec3(0.5, 0.45, 0.2)) * L.emit;
 
   // --- grade and the instrument's frame ---
   col *= L.exposure * L.tint;

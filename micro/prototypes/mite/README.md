@@ -38,6 +38,8 @@ on each scramble, a jolt when the predator grabs a leg.
 Rumble: a faint tick on each footfall group, a thump on closing, landing and
 opening.
 
+Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A moss ambience loop; footfalls (at most ~8 a second), the scramble (A), closing and opening (B), the bite (X), moss blades brushing as they bend, and the predator closing in or grabbing a leg.
+
 ## Why a box mite
 
 The atlas recommends *Limnozetes* for the Level 1 bog, but the box mite

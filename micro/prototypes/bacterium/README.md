@@ -45,6 +45,8 @@ microaerophile) or too little energy; swept into a grazer's oral funnel; the
 amoeba's edge closing over you; a phage binding irreversibly and injecting;
 (magnetotactic) a Bdellovibrio boring in.
 
+Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A sediment ambience loop and a flagellar-motor run loop whose rate follows your speed; the sprint (A), uptake and finished prey (X), tumbles (B), a phage latching on, and the grazer's feeding current catching you.
+
 ## Checks
 
 ```bash
