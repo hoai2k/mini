@@ -32,10 +32,15 @@ acts. The first four keep their stage machinery and rules, recast:
 
 0. Prologue, The Betrothal: a short playable scene on the delivered sets. The
    prince receives the fairies' gifts in the betrothal court, the witch curses
-   it, he chases the demons' chariot along the rampart, and Aurora arms him in
-   the armoury. The fire on the rampart burns on: leap it, or each touch costs
-   one of three lanterns, and losing all three starts the chase again. B skips
-   a scene; it leads straight into the Royal Crossing.
+   it, he chases the demons' chariot along the rampart, and in the armoury the
+   witch binds him. He struggles left and right against her cords until Aurora
+   glides on, breaks the spell and goes off to the left; following her, he
+   takes up his helmet, shield and sword, each worn as a badge above his head
+   until all three transform him into the armoured prince. The fire on the
+   rampart burns on: leap it, or each touch costs one of three lanterns, and
+   losing all three starts the chase again. Each gift or arm he takes is held
+   up big in the middle of the stage, or beside him when he stands there. B
+   skips a scene; it leads straight into the Royal Crossing.
 1. The Royal Crossing: the royal ship's voyage (the original ship), then the
    witch's tempest, a scene: the crew light the lanterns, she strikes the mast
    and the ship breaks on the rocks.

@@ -6,8 +6,11 @@
 //   curses the betrothal;
 // - the rampart: her demons' chariot of fire carries Azurine off, and he runs
 //   after it along the parapet, leaping the fire it drops;
-// - the armoury: the witch binds him, Aurora frees him, and he takes up his
-//   helmet, shield and the enchanted sword.
+// - the armoury: the witch binds him and he struggles against her cords
+//   until Aurora comes on, breaks the spell and goes off to the left, up the
+//   stairs; following her, he takes up his helmet, shield and the enchanted
+//   sword, each worn as a badge until all three turn him into the armoured
+//   prince.
 // The fire it drops burns on: leap it, or each touch costs one of three
 // lanterns of health; at none the chase starts again. B skips a scene.
 // Headless: drawing is in prologue-art.js.
@@ -44,11 +47,20 @@ export const rampartFloor = (x) => (x <= 440 ? 508 : x >= 600 ? 494 : 508 - ((x 
 export const RAMPART = { w: 2560, y: 494, end: 2260, lead: 340, speed: 210, catchUp: 320, dropEvery: 1.25, fireW: 30, knock: 330, grace: 1.6 };
 export const LANTERNS = 3;
 export const CHARIOT_Y = 165;
-// The armoury: the racks he takes his arms from.
-// clear of the right curtain (its edge is near x 1120)
-export const ARMS = [{ id: 'helmet', x: 760 }, { id: 'shield', x: 900 }, { id: 'sword', x: 1040 }];
-export const DOOR_X = 1230;   // the way out of the armoury, once armed
-export const T = { defeat: 1.4, curse: 4.8, escape: 2.6, bind: 1.8, free: 2.2, knighted: 2.0, iris: 1.3, fade: 0.6 };
+// The armoury: he is bound at the right; Aurora comes on from the stairs at
+// the left, and his arms lie between, in the order he reaches them.
+export const BOUND_X = 1010;
+export const ARMS = [{ id: 'helmet', x: 820 }, { id: 'shield', x: 640 }, { id: 'sword', x: 460 }];
+export const AURORA = { from: -110, at: 250, to: -140 };   // her glide on, where she casts, and off
+export const EXIT_X = 50;     // the way out of the armoury, once armed: up the stairs at the left
+export const WIGGLES = 4;     // pulls against the cords (each a change of direction)
+// bind: the witch's binding; free: Aurora glides on (on), casts (cast: the
+// cords break) and the scene moves on; knighted: the last badge settles
+// (badge), he is armoured at `armed` and stands again at `risen`.
+export const T = {
+  defeat: 1.4, curse: 4.8, escape: 2.6, bind: 1.8, strained: 0.5, free: 2.3, on: 1.2, cast: 1.9, off: 1.4,
+  badge: 1.75, armed: 3.85, risen: 4.6, iris: 1.3, fade: 0.6,
+};
 const ORDER = ['court', 'curse', 'rampart', 'escape', 'bind', 'free', 'armoury', 'knighted', 'iris'];
 export const SCENES = [{ name: 'The Betrothal' }, { name: 'The Abduction' }, { name: 'The Arming' }];
 const SCENE_PHASE = ['court', 'rampart', 'bind'];
@@ -61,7 +73,7 @@ export default {
   scenes: SCENES,
   mood: (st) => (['curse', 'rampart', 'escape', 'bind'].includes(st.phase) ? 'storm' : ['free', 'armoury', 'knighted', 'iris'].includes(st.phase) ? 'tender' : 'revel'),
   touchVerbB: (st) => (st.status === 'play' && st.phase !== 'iris' ? 'Skip' : ''),
-  touchLive: (st) => ['court', 'rampart', 'armoury'].includes(st.phase),
+  touchLive: (st) => ['court', 'rampart', 'armoury'].includes(st.phase) || (st.phase === 'bind' && st.phaseT >= T.bind) || (st.phase === 'knighted' && st.phaseT >= T.risen),
   touchVerb: (st) => (st.phase === 'rampart' ? 'Leap' : st.near ? st.near.verb : ''),
   touchHint: 'drag to walk, tap to take or leap',
   touchScheme: () => ({ mode: 'swipe', hint: 'Drag ↔ to walk · tap to take, give or leap' }),
@@ -73,7 +85,7 @@ export default {
       p: { x: COURT_START, y: FLOOR, vx: 0, vy: 0, face: 1, on: true, walk: 0, buffer: 0, knockT: 0 },
       gifts: [], betrothed: false, near: null,
       chariot: { x: 0, y: 250, up: 0 }, fires: [], dropT: 0, knocks: 0, lanterns: LANTERNS, grace: 0, defeatT: null,
-      arms: [], score: 0,
+      arms: [], armed: false, score: 0, struggle: { n: 0, dir: 0, tilt: 0, doneT: 0 },
     };
     const k = clamp(from?.scene | 0, 0, SCENES.length - 1);
     if (k > 0) { enter(st, SCENE_PHASE[k]); st.gifts = [...GIFTS]; st.betrothed = true; st.checkpoint = { scene: k }; }
@@ -99,12 +111,16 @@ export default {
     else if (ph === 'curse') { walk(st, dt, input.moveX || 0, input, { x1: AZURINE_X - 50 }); if (st.phaseT >= T.curse) next(st); }
     else if (ph === 'rampart') rampart(st, dt, input);
     else if (ph === 'escape') { walk(st, dt, input.moveX || 0, input, { leap: true, floor: rampartFloor, x0: 60, x1: RAMPART.w - 100 }); st.chariot.up += dt; if (st.phaseT >= T.escape) next(st); }
-    else if (ph === 'bind' && st.phaseT >= T.bind) next(st);
-    else if (ph === 'free') { walk(st, dt, st.phaseT > 0.9 ? input.moveX || 0 : 0, input, { floor: ARM_FLOOR }); if (st.phaseT >= T.free) next(st); }
+    else if (ph === 'bind') bind(st, dt, input);
+    else if (ph === 'free') {
+      const was = st.phaseT - dt;
+      if (was < T.cast && st.phaseT >= T.cast) st.events.push({ type: 'unbound', x: st.p.x, sound: 'keepsake', gain: 0.8 });
+      walk(st, dt, st.phaseT >= T.cast ? input.moveX || 0 : 0, input, { floor: ARM_FLOOR, x1: 1200 });
+      if (st.phaseT >= T.free) next(st);
+    }
     else if (ph === 'armoury') armoury(st, dt, input);
-    // armed, he walks out of the armoury's door at the right himself
-    else if (ph === 'knighted') { walk(st, dt, input.moveX || 0, input, { floor: ARM_FLOOR, x1: 1300 }); if (st.p.x >= DOOR_X) next(st); }
-    else if (ph === 'iris') { walk(st, dt, 1, {}, { floor: ARM_FLOOR, x1: 1400 }); if (st.phaseT >= T.iris) finish(st); }
+    else if (ph === 'knighted') knighted(st, dt, input);
+    else if (ph === 'iris') { walk(st, dt, -1, {}, { floor: ARM_FLOOR, x0: -200 }); if (st.phaseT >= T.iris) finish(st); }
   },
 
   hud: (st) => (st.phase === 'rampart' || st.phase === 'escape'
@@ -115,14 +131,14 @@ export default {
       court: 'The betrothal court. Walk to each fairy and press A to receive her gift for Princess Azurine.',
       curse: 'The witch, uninvited, curses the betrothal.',
       rampart: "That night her demons carry Azurine away in a chariot of fire. Run after it along the rampart; leap the fire it drops.",
-      bind: 'In the armoury the witch binds the prince.',
-      free: 'Aurora breaks the spell.',
+      bind: 'In the armoury the witch binds the prince. Struggle against her cords: left, right, left, right.',
+      free: 'Aurora comes and breaks the spell, then goes on ahead, to the left.',
       armoury: 'Take up your helmet, your shield and the enchanted sword.',
     }[e.phase] || null;
     if (e.type === 'gift') return `${e.from} gives ${e.gift === 'gold' ? 'gold' : 'the ' + e.gift}.`;
     if (e.type === 'betrothed') return 'The prince takes Azurine’s hand.';
     if (e.type === 'arm') return `The ${e.arm}.`;
-    if (e.type === 'knighted') return 'Aurora arms him for the rescue. Go out of the door at the right, to the sea.';
+    if (e.type === 'armed') return 'Armed for the rescue. Follow Aurora up the stairs at the left, to the sea.';
     return null;
   },
 
@@ -191,6 +207,25 @@ function rampart(st, dt, input) {
   if (p.x >= R.end) next(st);
 }
 
+// Bound: once the witch has gone he pulls against her cords, left, right,
+// left, right (a stick, keys or A, each press pulling the other way). They
+// strain at every pull, as if they might give; then Aurora comes.
+function bind(st, dt, input) {
+  const s = st.struggle, mx = input.moveX || 0;
+  if (st.phaseT < T.bind) return;
+  st.near = s.n < WIGGLES ? { verb: 'Struggle', at: st.p.x, label: 'Struggle ← →' } : null;
+  let pull = Math.abs(mx) > 0.5 ? Math.sign(mx) : 0;
+  if (input.a) pull = -(s.dir || 1);
+  if (pull && pull !== s.dir && s.n < WIGGLES) {
+    s.dir = pull; s.n++;
+    st.events.push({ type: 'strain', n: s.n, x: st.p.x, sound: 'timberCreak', gain: 0.25 + 0.08 * s.n });
+  }
+  // he leans into each pull, and back upright as he gives up
+  const want = s.n < WIGGLES ? (Math.abs(mx) > 0.5 ? Math.sign(mx) : input.a ? s.dir : 0) * 0.16 : 0;
+  s.tilt += (want - s.tilt) * Math.min(1, dt * 14);
+  if (s.n >= WIGGLES && (s.doneT += dt) >= T.strained) next(st);
+}
+
 function armoury(st, dt, input) {
   walk(st, dt, input.moveX || 0, input, { floor: ARM_FLOOR, x1: 1200 });
   const p = st.p, a = ARMS.find((q) => !st.arms.includes(q.id) && Math.abs(q.x - p.x) < REACH);
@@ -202,11 +237,21 @@ function armoury(st, dt, input) {
   }
 }
 
+// The last badge settles, the three are drawn into him and he is armoured;
+// then he follows Aurora out up the stairs at the left.
+function knighted(st, dt, input) {
+  const was = st.phaseT - dt;
+  if (was < T.armed && st.phaseT >= T.armed) { st.armed = true; st.events.push({ type: 'armed', x: st.p.x, sound: 'lampLit' }); }
+  if (st.phaseT < T.risen) { st.p.vx = 0; return; }
+  walk(st, dt, input.moveX || 0, input, { floor: ARM_FLOOR, x0: -100, x1: 1200 });
+  if (st.p.x <= EXIT_X) next(st);
+}
+
 function enter(st, phase) {
   st.phase = phase; st.phaseT = 0; st.near = null;
   const p = st.p;
   if (phase === 'rampart') { Object.assign(p, { x: 140, y: rampartFloor(140), vx: 0, vy: 0, on: true, face: 1, knockT: 0 }); st.chariot = { x: 480, y: CHARIOT_Y, up: 0 }; st.fires = []; st.dropT = 0; st.fade = 1; st.lanterns = LANTERNS; st.grace = 0; }
-  if (phase === 'bind') { Object.assign(p, { x: 420, y: ARM_FLOOR, vx: 0, vy: 0, on: true, face: 1 }); st.fade = 1; }
+  if (phase === 'bind') { Object.assign(p, { x: BOUND_X, y: ARM_FLOOR, vx: 0, vy: 0, on: true, face: -1 }); st.fade = 1; st.struggle = { n: 0, dir: 0, tilt: 0, doneT: 0 }; st.armed = false; }
   if (phase === 'curse') p.vx = 0;
   st.events.push({ type: 'scene', phase });
   const k = SCENE_PHASE.indexOf(phase);
@@ -219,7 +264,7 @@ function skip(st) {
   const k = sceneOf(st.phase);
   if (k === 0) { st.gifts = [...GIFTS]; st.betrothed = true; return enter(st, 'rampart'); }
   if (k === 1) return enter(st, 'bind');
-  st.arms = ARMS.map((a) => a.id);
+  st.arms = ARMS.map((a) => a.id); st.armed = true;
   return st.phase === 'iris' ? finish(st) : enter(st, 'iris');
 }
 

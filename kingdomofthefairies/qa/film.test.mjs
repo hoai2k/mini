@@ -66,7 +66,8 @@ test('prologue: gifts, her hand, the chase along the rampart and the arming', ()
       const a = ARMS.find((q) => !s.arms.includes(q.id));
       return { moveX: a && Math.abs(a.x - p.x) > 20 ? Math.sign(a.x - p.x) : 0, a: press(!!s.near), beat };
     }
-    if (s.phase === 'knighted') return { moveX: 1, beat };
+    if (s.phase === 'bind') return { moveX: Math.floor(s.phaseT * 4) % 2 ? 1 : -1, beat };   // struggle against the cords
+    if (s.phase === 'knighted') return { moveX: -1, beat };
     return { beat };
   });
   assert.equal(st.status, 'won', st.phase);
@@ -75,6 +76,28 @@ test('prologue: gifts, her hand, the chase along the rampart and the arming', ()
   assert.ok(st.betrothed);
   assert.equal(st.arms.length, 3);
   assert.ok(prologue.intro, 'flows straight into Act I');
+});
+
+test('prologue: bound, he struggles left and right before Aurora frees him; his arms make him the armoured prince', () => {
+  const st = prologue.create({ from: { scene: 2 } });
+  assert.equal(st.phase, 'bind');
+  run(prologue, st, 6, () => ({ beat: 0 }));
+  assert.equal(st.phase, 'bind', 'standing still, he stays bound');
+  const pulls = [];
+  for (const mx of [-1, -1, 1, 1, -1, 1]) { st.events.length = 0; for (let i = 0; i < 6; i++) prologue.step(st, DT, { moveX: mx, beat: 0 }); pulls.push(...st.events.filter((e) => e.type === 'strain')); }
+  assert.equal(pulls.length, 4, 'each change of direction is one pull, four in all');
+  run(prologue, st, 1, () => ({ beat: 0 }));
+  assert.equal(st.phase, 'free');
+  assert.ok(ARMS.every((a, i) => i === 0 || a.x < ARMS[i - 1].x) && ARMS[0].x < st.p.x, 'his arms lie to the left, in the order he reaches them');
+  run(prologue, st, PRO_T.free + 0.1, () => ({ beat: 0 }));
+  assert.equal(st.phase, 'armoury');
+  st.arms = ['helmet', 'shield']; Object.assign(st.p, { x: ARMS[2].x });
+  prologue.step(st, DT, { a: true, beat: 0 });
+  assert.equal(st.phase, 'knighted'); assert.ok(!st.armed, 'not until the badges are drawn into him');
+  run(prologue, st, PRO_T.armed + 0.1, () => ({ moveX: -1, beat: 0 }));
+  assert.ok(st.armed); assert.equal(st.p.x, ARMS[2].x, 'he stands still to be transformed');
+  run(prologue, st, 8, () => ({ moveX: -1, beat: 0 }));
+  assert.equal(st.status, 'won', 'out at the left, after Aurora');
 });
 
 test('prologue: a gift is taken with either hand, not by walking into her', () => {
