@@ -293,6 +293,8 @@ SFX = {
                   'A whole house toppling: a long timber-and-masonry rumble.'),
     'moonboatRise': (2.5, 0.5, False,
                      'Water parting, a harp glissando and a low tuned bell.'),
+    'witchCackle': (2.2, 0.6, False,
+                    "An old crone's wicked cackling laugh, a stage witch, harsh and mocking, a little reverb; no wind."),
     'witchClaim': (2.0, 0.5, False,
                    "A woman's soft laugh over a magical shimmer."),
     'lampLit': (2.0, 0.5, False,

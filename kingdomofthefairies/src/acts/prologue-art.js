@@ -6,7 +6,7 @@ import { FLOOR, ARM_FLOOR, FAIRIES, AZURINE_X, RAMPART, rampartFloor, ARMS, AURO
 import { card } from './tableau.js';
 import { clamp, easeOut, easeInOut, lerp } from './shared.js';
 import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
-import { drawPose } from '../pose.js';
+import { drawPose, drawPerson, personPx, personScale, personRef } from '../pose.js';
 
 const FIG = { w: 132, h: 252 };          // a standing figure (220 x 420 art)
 // Where each fairy holds her gift in her 220 x 420 art (measured from the
@@ -82,6 +82,7 @@ export function onEvent(k, e, st) {
   if (e.type === 'fireLand') k.burst(e.x - cx, rampartFloor(e.x) - 10, '#e9a46a', 14, 'streak');
   if (e.type === 'scorched') { k.flash(0.2); k.burst(e.x - cx, rampartFloor(e.x) - 60, '#c8321e', 10, 'streak'); }
   // each pull strains the witch's cords: they flare and fray
+  if (e.type === 'witchFlees') { k.burst(witchAt().x, witchAt().by - 150, '#5f3a6a', 30, 'smoke'); k.shake(0.15); }
   if (e.type === 'strain') { k.shake(0.06 + 0.03 * e.n); k.burst(e.x + (e.n % 2 ? -26 : 26), ARM_FLOOR - 110 - 12 * e.n, '#5fd0c0', 6 + 3 * e.n, 'streak'); }
   if (e.type === 'unbound') { k.flash(0.5); k.burst(e.x, ARM_FLOOR - 120, '#fff2b0', 34, 'sparkle'); k.burst(e.x, ARM_FLOOR - 110, '#5fd0c0', 18, 'streak'); }
   if (e.type === 'arm' && st) {
@@ -195,7 +196,7 @@ function abduction(k, st, t) {
   }
   if (sw > (swoonArt ? 0 : 0.6)) {
     c.save(); c.globalAlpha = swoonArt ? clamp(sw / 0.6, 0, 1) : clamp((sw - 0.6) / 0.4, 0, 1); c.translate(az.x, az.y + 4); c.rotate(k.img('demon-red-carry') ? Math.sin(t * 3) * 0.015 * lift : -u * 0.25 + Math.sin(t * 3) * 0.03 * lift);
-    if (!k.asset('azurine-asleep', 0, 0, 230, 102)) { c.fillStyle = k.col('#c9d8ee'); c.fillRect(-100, -30, 200, 30); }
+    if (!drawPerson(k, 'azurine-asleep', 0, 0, personH(k, 'azurine-stand'))) { c.fillStyle = k.col('#c9d8ee'); c.fillRect(-100, -30, 200, 30); }
     c.restore();
   }
   // her demons: on at a run from behind the right curtain, then holding her
@@ -210,9 +211,9 @@ function abduction(k, st, t) {
     const carry = lift > 0.3 && k.img(id + '-carry');
     if (carry) {
       // the hands' height above the feet: the art's full height at the drawn scale
-      const sc = Math.min((FIG.h * DEMON_S) / 360, (1.6 * FIG.w * DEMON_S) / 260);
+      const sc = personScale(k, id + '-carry', personH(k, id, DEMON_S));
       x = az.x + GRIP[i] - DEMON_HANDS[id + '-carry'] * sc;
-      by = az.y - 28 + 360 * sc + Math.sin(t * 6 + i) * 2;
+      by = az.y - 40 + 360 * sc + Math.sin(t * 6 + i) * 2;
     }
     c.save(); c.translate(x, by); c.rotate(carry ? 0 : lift * (i ? 0.18 : -0.18) - u * 0.2);
     // (both carrying poses are painted facing her side: red right, teal left)
@@ -225,7 +226,7 @@ function abduction(k, st, t) {
     const f = easeInOut(clamp((tt - A.swoop) / (A.seize - A.swoop), 0, 1));
     const x = lerp(210, AZURINE_X - 20, f) + ox * 1.15, y = FLOOR - 200 - Math.sin(f * Math.PI) * 120 - lift * 110 + oy * 1.1;
     c.save(); c.translate(x, y + Math.sin(t * 4) * 6); c.scale(-1, 1); c.rotate(-0.1 - u * 0.15);
-    if (!k.asset('witch-swoop', 0, 0, 260, 156)) { c.fillStyle = k.col('#2f5a50'); c.fillRect(-90, -50, 180, 50); }
+    if (!drawPerson(k, 'witch-swoop', 0, 0, personH(k, 'witch-hooded'))) { c.fillStyle = k.col('#2f5a50'); c.fillRect(-90, -50, 180, 50); }
     c.restore();
     // a trail of violet smoke behind her
     c.save();
@@ -258,7 +259,8 @@ function chariot(k, x, y, t) {
   c.save(); c.translate(x, y);
   c.rotate(Math.sin(t * 1.3) * 0.04);
   figure(k, 'demon-teal', -60, 10, t, 0.55, 1);
-  if (!k.asset('azurine-asleep', 10, 0, 140, 62)) { c.fillStyle = k.col('#c9d8ee'); c.fillRect(-40, -24, 100, 24); }
+  // she lies at the size of her demons' figures (0.55 of a standing figure)
+  if (!drawPerson(k, 'azurine-asleep', 10, 0, personH(k, 'azurine-stand', 0.55))) { c.fillStyle = k.col('#c9d8ee'); c.fillRect(-40, -24, 100, 24); }
   if (!k.asset('chariot', 0, 80, 300, 160)) {
     c.fillStyle = k.col('#7a2a1a'); c.beginPath(); c.ellipse(0, 40, 140, 40, 0, 0, Math.PI * 2); c.fill();
     flame(k, -100, 40, 0.8, t);
@@ -272,11 +274,7 @@ function armouryScene(k, st, t) {
   const c = k.c;
   if (!k.asset('armoury', 640, 720, 1280, 720)) { c.fillStyle = k.col('#30283a'); c.fillRect(0, 0, 1280, 720); }
   const ph = st.phase;
-  if (ph === 'bind') {
-    // the witch rises in her cloud, binds him and is gone
-    const a = clamp(st.phaseT / 0.5, 0, 1) * clamp((T.bind + 0.5 - st.phaseT) / 0.5, 0, 1);
-    if (a > 0) { c.save(); c.globalAlpha = a; figure(k, 'witch-cloud', 885, ARM_FLOOR + 30, t, 0.9, -1); c.restore(); }
-  }
+  witchOnCloud(k, st, t);
   aurora(k, st, t);
   // the arms on the flagstones, in his way as he follows her
   for (const a of ARMS) {
@@ -292,6 +290,34 @@ function armouryScene(k, st, t) {
   // the witch's cords about him until Aurora breaks them
   if (ph === 'bind') cords(k, st, t, clamp((st.phaseT - 0.4) / 0.4, 0, 1));
   if (ph === 'free' && st.phaseT < T.cast) cords(k, st, t, 1);
+}
+
+// The witch on her cloud: she rises beside him and binds him, hovers there
+// laughing at him as he struggles, and when Aurora comes on she flees, up and
+// away to the right in a puff of smoke, before Aurora breaks her spell.
+// (read when drawn: prologue.js and this module import each other)
+const witchAt = () => ({ x: 820, by: ARM_FLOOR - 30 });
+function witchOnCloud(k, st, t) {
+  const c = k.c, ph = st.phase;
+  if (ph !== 'bind' && !(ph === 'free' && st.phaseT < T.fled)) return;
+  const at = witchAt();
+  let x = at.x, by = at.by + Math.sin(t * 1.8) * 8, a = 1, rot = 0;
+  if (ph === 'bind') {
+    const rise = easeOut(clamp(st.phaseT / 0.7, 0, 1));
+    a = rise; by += (1 - rise) * 60;
+    // she shakes with laughter after each cackle
+    const since = st.phaseT - (st.laughAt ?? -9);
+    if (since >= 0 && since < 1.1) by += Math.sin(since * 40) * 4 * (1 - since / 1.1), rot = Math.sin(since * 22) * 0.03;
+  } else {
+    // up and away to the right, fading into her smoke
+    const u = easeInOut(clamp((st.phaseT - T.flee) / (T.fled - T.flee), 0, 1));
+    x += u * 420; by -= u * 420; a = 1 - u * u; rot = -0.2 * u;
+  }
+  if (a <= 0) return;
+  c.save(); c.globalAlpha = a; c.translate(x, by); c.rotate(rot);
+  // she faces him: her cloud art faces right, toward where he is bound
+  figure(k, 'witch-cloud', 0, 0, t, 1, 1);
+  c.restore();
 }
 
 // Aurora: off at first; she glides on from the stairs at the left and casts
@@ -448,11 +474,24 @@ function cords(k, st, t, a) {
 // ---------------------------------------------------------------- the cast
 // A standing cut-out with the film idle, feet at (x, by); `face` -1 mirrors.
 // `over` draws what she holds (see kit.idle); `onlyOver` draws just that.
+// A character drawn through the person-size data (design/person-sizes.md) is
+// sized by its reference sprite in the standing figure's box, so every sprite
+// of the character comes out at that one person size.
 function figure(k, id, x, by, t, s = 1, face = 1, over = null, onlyOver = false) {
-  const c = k.c;
+  const c = k.c, ref = personRef(id);
+  if (ref && k.img(id) && k.img(ref)) { drawPerson(k, id, x, by, personH(k, ref, s), { face, t, over, onlyOver }); return; }
   c.save(); c.translate(x, by); c.scale(face, 1);
   if (!k.idle(id, t, 0, 0, FIG.w * s, FIG.h * s, undefined, over, onlyOver) && !onlyOver) { c.fillStyle = k.col('#b88aa8'); c.fillRect(-18 * s, -FIG.h * s * 0.8, 36 * s, FIG.h * s * 0.8); }
   c.restore();
+}
+
+// A character's person height (stage px) in this staging: their reference
+// sprite fitted to the standing figure's box at scale `s`.
+function personH(k, ref, s = 1) {
+  const im = k.img(ref);
+  if (!im) return FIG.h * s;
+  const iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height;
+  return personPx(k, ref) * Math.min((FIG.h * s) / ih, (1.6 * FIG.w * s) / iw);
 }
 
 // The prince: in court dress until he takes up his arms, then in armour.
