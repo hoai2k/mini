@@ -38,6 +38,11 @@
 //     focus      focal plane, relative to ref (scene units)
 //     cocPerUnit blur radius in px (at 720p) per unit of defocus; dof = half depth of field
 //     pxPerUnit  screen px per scene unit at the subject (makes relief scale-independent)
+//     fill       optional: fill(rtA) writes both attachments of layer A itself (e.g. an
+//                adapter from another pipeline's buffers, see adapters.js) instead
+//                of rendering the scene; layer B is left empty
+//     buffersOnly optional: stop after the defocus blur and return { a, b } (the
+//                blurred 2-texture targets) instead of composing an image
 //   Options (live): mic.mode 0 DIC / 1 brightfield; mic.opts = { dof, grain, vignette, fringes,
 //     backdrop, shear (nm), bias (nm), angle (shear direction, radians) }.
 //   Performance: mic.setQuality(0..3), or mic.autoQuality(dt) every frame.
@@ -279,8 +284,14 @@ export class DicMicroscope {
       r.clear(true, false, false);
       if (layer !== undefined) r.render(this.scene, cam);
     };
-    pass(this.layers[0], this.rt.a);
-    pass(this.layers[1], this.rt.b);
+    if (p.fill) {
+      pass(undefined, this.rt.a);
+      pass(undefined, this.rt.b);
+      p.fill(this.rt.a);
+    } else {
+      pass(this.layers[0], this.rt.a);
+      pass(this.layers[1], this.rt.b);
+    }
     cam.layers.mask = prevMask;
     const scale = this.size.y / 720;
     const bu = this.blurMat.uniforms;
@@ -297,6 +308,11 @@ export class DicMicroscope {
     };
     blur(this.rt.a, this.rt.ab);
     blur(this.rt.b, this.rt.bb);
+    if (p.buffersOnly) {
+      r.setRenderTarget(null);
+      r.setClearColor(prevClear, prevA);
+      return { a: this.rt.ab, b: this.rt.bb };
+    }
     const cu = this.compMat.uniforms;
     cu.tOpdA.value = this.rt.ab.textures[0]; cu.tAbsA.value = this.rt.ab.textures[1];
     cu.tOpdB.value = this.rt.bb.textures[0]; cu.tAbsB.value = this.rt.bb.textures[1];

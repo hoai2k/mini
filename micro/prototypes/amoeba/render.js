@@ -195,7 +195,7 @@ export class View {
     this.maskGeo.attributes.position.needsUpdate = true;
   }
 
-  render({ time, prey, mode, focus, flags, granuleCount }) {
+  render({ time, prey, mode, focus, flags, granuleCount, buffersOnly = false }) {
     const b = this.body, cyto = this.cyto, r = this.renderer;
     this.updateMask(time);
 
@@ -279,6 +279,7 @@ export class View {
     r.render(this.focusScene, this.camera);
     r.setRenderTarget(this.optics.defRT);
     r.render(this.aboveScene, this.camera);
+    if (buffersOnly) return; // a borrowed look reads optics.focusRT / defRT itself
     this.optics.compose({
       view: this.view, bg: this.tex.bg, bgMean: this.tex.bgMean, bgTile: 1400,
       mode, focus, time, flags,

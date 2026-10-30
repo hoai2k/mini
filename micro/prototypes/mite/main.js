@@ -8,6 +8,7 @@ import { semTextures } from './textures.js';
 import { buildWorld, HALF } from './world.js';
 import { createMite, CFG } from './mite.js';
 import { createFeatures } from '../shared/features.js';
+import { createBorrowedLooks, borrowedSwitches, AMOEBA_MODES, DIC_MODES, PARAMECIUM_MODES } from '../shared/techniques/adapters.js';
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
@@ -208,6 +209,44 @@ F({ id: 'camwalk', group: 'Controls', label: 'Camera-relative walking', fixed: t
 F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true,
   about: 'A faint tick on footfalls, a thump on closing, landing and opening.', onChange: (v) => (rumbleOn = v) });
 
+// ---------- borrowed looks (default off; shared/techniques/adapters.js) ----------
+// The G-buffer is still drawn; an adapter reads it as a thick specimen
+// (thickness = height above the floor, absorbance by material) and hands that
+// to another prototype's microscope instead of the SEM composite.
+const looks = createBorrowedLooks(renderer);
+const borrow = borrowedSwitches(features);
+const bmode = { dic: 0, amoeba: 0, par: 0 };
+const THICK = 'Opaque scene read as a thick transparent specimen: optical path = height above the floor (from the G-buffer depth), tinted by material (cuticle amber, moss green). Physically odd: moss and a mite in air are opaque, not phase objects.';
+borrow.add({ id: 'dicTardigrade', label: 'DIC (Nomarski) relief', from: 'tardigrade',
+  about: `The tardigrade's interference image: relief from the gradient of optical path along one shear direction, three-wavelength fringes. ${THICK}` });
+F({ id: 'dicTardigradeMode', group: 'Borrowed', label: 'Tardigrade look', from: 'tardigrade', choices: DIC_MODES, value: DIC_MODES[0],
+  about: 'Which of the tardigrade images the switch above uses: DIC or its brightfield.', onChange: (v) => (bmode.dic = DIC_MODES.indexOf(v)) });
+borrow.add({ id: 'opticsAmoeba', label: 'Amoeba property optics', from: 'amoeba',
+  about: `Brightfield (Beer–Lambert and transport-of-intensity defocus), phase contrast, darkfield or the immersive lit view, from a phase + optical-density buffer. ${THICK}` });
+F({ id: 'opticsAmoebaMode', group: 'Borrowed', label: 'Amoeba method', from: 'amoeba', choices: AMOEBA_MODES, value: AMOEBA_MODES[0],
+  about: 'Which optical method the amoeba switch above uses.', onChange: (v) => (bmode.amoeba = AMOEBA_MODES.indexOf(v)) });
+borrow.add({ id: 'microscopeParamecium', label: 'Paramecium microscope', from: 'paramecium',
+  about: `Darkfield, phase contrast, brightfield, DIC or the lit view, formed the paramecium way (high-pass, phase ring with halo, post pass with chromatic softness and grain). ${THICK}` });
+F({ id: 'microscopeParameciumMode', group: 'Borrowed', label: 'Paramecium technique', from: 'paramecium', choices: PARAMECIUM_MODES, value: PARAMECIUM_MODES[0],
+  about: 'Which technique the paramecium switch above uses.', onChange: (v) => (bmode.par = PARAMECIUM_MODES.indexOf(v)) });
+// Material classes (CLS order): background, cuticle, leaf, stem, grain, litter, hypha, spore, other mite. Optical density per µm of height.
+const MITE_ABS = [[0, 0, 0], [0.0012, 0.0026, 0.006], [0.004, 0.0012, 0.0045], [0.003, 0.0015, 0.0035], [0.0003, 0.0003, 0.0004],
+  [0.0035, 0.0045, 0.0065], [0.0004, 0.0005, 0.0007], [0.001, 0.0016, 0.004], [0.001, 0.0035, 0.006]];
+
+function renderView(dt) {
+  if (!borrow.id) { sem.render(scene, camera, dt, rig.yaw, rig.pitch); return; }
+  renderer.info.autoReset = false;
+  renderer.info.reset();
+  sem.renderGBuffer(scene, camera);
+  const t = sem.target;
+  looks.fieldFromGBuffer(t.texture, t.width, t.height, { camera, base: -60, dn: 0.008, hMax: 900, absorb: MITE_ABS });
+  const time = performance.now() / 1000;
+  const pxPerUm = t.width / rig.hfw;
+  if (borrow.id === 'dicTardigrade') looks.dic({ mode: bmode.dic, pxPerUm, time, absK: 1 });
+  else if (borrow.id === 'opticsAmoeba') looks.amoeba({ mode: bmode.amoeba, time, umPerPx: 1 / pxPerUm, phaseK: 0.6 });
+  else looks.paramecium({ mode: bmode.par, time, opdK: 0.35 });
+}
+
 let speedMul = 1;
 function tick(dt, input) {
   const ev = mite.update(dt, input);
@@ -262,7 +301,7 @@ let last = performance.now();
 const api = {
   scene, camera, renderer, sem, world, mite, npc, rig, features, cfg: CFG, paused: false,
   tick(dt, input = { dir: new THREE.Vector3(), mag: 0, maxSpeed: 210, hold: false }) { return tick(dt, input); },
-  render(dt = 1 / 60) { const d = placeCamera(0); sem.render(scene, camera, dt, rig.yaw, rig.pitch); updateText(d); },
+  render(dt = 1 / 60) { const d = placeCamera(0); renderView(dt); updateText(d); },
   isolate(on) { world.group.visible = !on; npc.setVisible(!on); },
   setMode(m) { sem.setMode(m); sem.skipScan(); },
 };
@@ -298,7 +337,7 @@ function frame() {
     else if (slowEma < 20 && renderScale < 1 && scaleT > 2500) { renderScale = Math.min(1, renderScale * 1.15); resize(); scaleT = 0; }
   }
   const d = placeCamera(dt);
-  sem.render(scene, camera, dt, rig.yaw, rig.pitch);
+  renderView(dt);
   fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
   gl.flush();
   frames++; statT += dt;

@@ -7,6 +7,11 @@
 //   sem.resize(drawingBufferWidth, drawingBufferHeight); // on resize, in device pixels
 //   mesh.material = gMaterial({ cls: CLS.GRAIN, tex, map: 'tri', scale: 160, bump: 2.5 });
 //   each frame: sem.render(scene, camera, dt, yaw, pitch)  // renders to the screen
+//   or in two steps: sem.renderGBuffer(scene, camera); (adjust sem.target here);
+//     sem.composite(camera, dt, yaw, pitch, { tan })
+//     tan: [x, y] half-field tangents, for an orthographic or virtual camera
+//     (default: from camera.fov and camera.aspect). A pass that writes the
+//     G-buffer itself (see adapters.js) calls only composite().
 //
 // INPUTS
 // - Every visible mesh must use a gMaterial (a G-buffer writer); other
@@ -14,7 +19,8 @@
 //   Mesh and InstancedMesh (non-uniform instance scale handled).
 // - A PerspectiveCamera (fov and aspect are read to rebuild view positions).
 // - Units: the AO radius, shadow march and edge thresholds are in scene units
-//   and tuned for µm at fields of 0.3-4 mm.
+//   and tuned for µm at fields of 0.3-4 mm. shared.uDepthScale (µm per scene
+//   unit, default 1) lets a scene in other units write µm depths.
 // - Buffers: one float RGBA target it owns: view-space normal x, y; material
 //   class (+0.5 = thin feature); linear view depth (0 = background). The
 //   material class drives BSE brightness and false colour (see CLS).
@@ -60,6 +66,7 @@ export const shared = {
   uCutR: { value: 420 },
   uBumpOn: { value: 1 },
   uCutOn: { value: 1 },
+  uDepthScale: { value: 1 },
 };
 
 const gVert = /* glsl */ `
@@ -87,7 +94,7 @@ const gFrag = /* glsl */ `
   varying vec3 vN; varying vec3 vView; varying vec3 vTri; varying vec3 vTriN; varying vec2 vUv;
   uniform float uCls, uThin, uBump, uScale, uMode, uCut;
   uniform sampler2D uTex;
-  uniform vec3 uCutP; uniform float uCutR; uniform float uBumpOn, uCutOn;
+  uniform vec3 uCutP; uniform float uCutR; uniform float uBumpOn, uCutOn, uDepthScale;
   float heightAt() {
     if (uMode < 0.5) return 0.0;
     if (uMode < 1.5) return texture2D(uTex, vUv * uScale).r;
@@ -116,7 +123,7 @@ const gFrag = /* glsl */ `
     }
     // keep normals facing the beam so z can be rebuilt from x and y
     if (dot(n, V) < 0.02) n = normalize(n + V * (0.02 - dot(n, V)));
-    gl_FragColor = vec4(n.x, n.y, uCls + uThin * 0.5, -vView.z);
+    gl_FragColor = vec4(n.x, n.y, uCls + uThin * 0.5, -vView.z * uDepthScale);
   }`;
 
 /**
@@ -136,7 +143,7 @@ export function gMaterial(o) {
       uTex: { value: o.tex || null }, uMode: { value: o.tex ? mode : 0 },
       uScale: { value: o.scale || 1 }, uBump: { value: o.tex ? (o.bump ?? 2) : 0 },
       uObjSpace: { value: o.objSpace ? 1 : 0 }, uCut: { value: o.cut ? 1 : 0 },
-      uCutP: shared.uCutP, uCutR: shared.uCutR, uBumpOn: shared.uBumpOn, uCutOn: shared.uCutOn,
+      uCutP: shared.uCutP, uCutR: shared.uCutR, uBumpOn: shared.uBumpOn, uCutOn: shared.uCutOn, uDepthScale: shared.uDepthScale,
     },
   });
 }
@@ -309,18 +316,29 @@ export function createSem(renderer, backTex) {
     setRaster(on) { mat.uniforms.uRaster.value = on ? 1 : 0; },
     resize(w, h) { target.setSize(w, h); mat.uniforms.uRes.value.set(w, h); },
     render(scene3d, camera, dt, yaw, pitch) {
-      const t = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
-      mat.uniforms.uTan.value.set(t * camera.aspect, t);
-      mat.uniforms.uFrame.value = (mat.uniforms.uFrame.value + 1) % 997;
-      mat.uniforms.uBackOff.value.set(-yaw / (Math.PI * 2) * 2.4, pitch * 0.4);
-      scan = Math.min(1, scan + dt / 0.7);
-      mat.uniforms.uScanY.value = scan;
       renderer.info.autoReset = false; // count both passes
       renderer.info.reset();
+      this.renderGBuffer(scene3d, camera);
+      this.composite(camera, dt, yaw, pitch);
+    },
+    /** Step 1: the scene (gMaterials only) into the G-buffer. */
+    renderGBuffer(scene3d, camera) {
       renderer.setRenderTarget(target);
       renderer.setClearColor(clear, 0);
       renderer.clear();
       renderer.render(scene3d, camera);
+    },
+    /** Step 2: the micrograph from the G-buffer, to the screen. */
+    composite(camera, dt, yaw = 0, pitch = 0, { tan } = {}) {
+      if (tan) mat.uniforms.uTan.value.set(tan[0], tan[1]);
+      else {
+        const t = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
+        mat.uniforms.uTan.value.set(t * camera.aspect, t);
+      }
+      mat.uniforms.uFrame.value = (mat.uniforms.uFrame.value + 1) % 997;
+      mat.uniforms.uBackOff.value.set(-yaw / (Math.PI * 2) * 2.4, pitch * 0.4);
+      scan = Math.min(1, scan + dt / 0.7);
+      mat.uniforms.uScanY.value = scan;
       renderer.setRenderTarget(null);
       renderer.render(scene, cam);
     },

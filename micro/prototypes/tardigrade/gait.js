@@ -33,7 +33,9 @@ export const GAITS = {
   'Pairs in step (gallop-like)': (L) => (L.pair * 0.25) % 1,
 };
 const OFF = [];
-export function setGait(name) { for (const L of LEGS) OFF[L.index] = GAITS[name](L); }
+export function setGait(name) { setGaitWith(GAITS[name]); }
+/** Any offset function of a leg ({ pair 0 = front .. 3, side ±1 }), e.g. a borrowed gait. */
+export function setGaitWith(fn) { for (const L of LEGS) OFF[L.index] = ((fn(L) % 1) + 1) % 1; }
 setGait('Back-to-front wave (measured)');
 
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion();

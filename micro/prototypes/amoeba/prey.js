@@ -5,6 +5,12 @@
 // grabbed in a food cup fires a local burst of trichocysts that shoves it
 // clear (Knoll et al. 1991, S09).
 import { TAU, clamp, wrapAngle } from './util.js';
+import { lowRe } from '../shared/techniques/paramecium-squirmer.js';
+
+// Borrowed from the paramecium prototype (Features panel, default off):
+// lowRe makes speed follow the beat with its 35 ms lag and stops the
+// trichocyst recoil within milliseconds instead of gliding for ~0.2 s.
+export const PREY_OPTS = { lowRe: false };
 
 // Lengths and widths in µm. Speeds are game speeds: swimmers are shown at
 // about one tenth of their real speed (a labelled departure).
@@ -127,9 +133,11 @@ export class Prey {
     this.wobPhase += sp.wobF * TAU * dt * (0.5 + 0.5 * Math.min(1, Math.abs(speed) / (sp.speed || 1)));
     // Rotation about the long axis on a helical path shows as a side-to-side wobble.
     this.heading = this.th + sp.wob * Math.sin(this.wobPhase);
+    this.v = PREY_OPTS.lowRe ? lowRe(this.v ?? speed, speed, dt) : speed;
+    speed = this.v;
     this.x += Math.cos(this.heading) * speed * dt + this.vx * dt;
     this.y += Math.sin(this.heading) * speed * dt + this.vy * dt;
-    const decay = Math.exp(-dt * 5);
+    const decay = PREY_OPTS.lowRe ? Math.exp(-dt / 0.035) : Math.exp(-dt * 5);
     this.vx *= decay; this.vy *= decay;
     this.th = wrapAngle(this.th);
   }

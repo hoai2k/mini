@@ -15,6 +15,10 @@
 //     shared.uPxPersp = 2 tan(fov/2) / height or shared.uPxOrtho = frustum height / height,
 //     shared.uTime; then optics.render(scene, camera, { mode, stop, plate, plateOff })
 //     draws to the screen. mode: index into MODES.
+//     Optional: fill(main) writes the four attachments itself (e.g. an adapter
+//     from another pipeline's buffers, see adapters.js) instead of rendering
+//     the scene; upTo: 2 stops after the defocus blur (read optics.targets:
+//     main.textures[0..1] sharp, pong.textures[0..1] blurred defocused layer).
 //
 // INPUTS
 // - Every visible object must use one of the optic materials (volumeMaterial,
@@ -512,11 +516,12 @@ export function createOptics(renderer) {
     /** 0/1 switches: halo (phase ring leakage), tie (brightfield defocus), plate, chroma, soft, grain. */
     toggles: { halo: formMat.uniforms.uHalo, tie: formMat.uniforms.uTie, plate: formMat.uniforms.uPlateOn, chroma: postMat.uniforms.uChroma, soft: postMat.uniforms.uSoft, grain: postMat.uniforms.uGrain },
     /** Render the scene with `camera` and form the image in `mode` (index into MODES). */
-    render(scene, camera, { mode, stop, plate, plateOff, blurScale = 1, upTo = 9 }) {
+    render(scene, camera, { mode, stop, plate, plateOff, blurScale = 1, upTo = 9, fill = null }) {
       renderer.setRenderTarget(main);
       renderer.setClearColor(0x000000, 0);
       renderer.clear();
-      renderer.render(scene, camera);
+      if (fill) fill(main);
+      else renderer.render(scene, camera);
 
       downMat.uniforms.tS0.value = main.textures[0];
       downMat.uniforms.tB0.value = main.textures[2];

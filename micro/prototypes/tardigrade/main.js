@@ -5,9 +5,11 @@ import { createPad } from '../shared/pad.js';
 import { mountHud } from '../shared/hud.js';
 import { createFeatures } from '../shared/features.js';
 import { DicMicroscope } from '../shared/techniques/tardigrade-dic.js';
+import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, AMOEBA_MODES, PARAMECIUM_MODES } from '../shared/techniques/adapters.js';
+import { legOffset } from '../shared/techniques/mite-gait.js';
 import { World, Particles, LAYER_SUBSTRATE, LAYER_SPECIMEN } from './world.js';
 import { Creature } from './creature.js';
-import { Walker, GAITS, setGait } from './gait.js';
+import { Walker, GAITS, setGait, setGaitWith } from './gait.js';
 import { Life, COMPRESSIONS } from './life.js';
 import { wireAssets } from './textures.js';
 import { LEAF_FX } from './materials.js';
@@ -136,8 +138,9 @@ F({ id: 'claws', group: 'Body', label: 'Claw size', choices: ['Enhanced (1.6× l
 F({ id: 'rig', group: 'Body', label: 'Part rig on the CPU', fixed: true,
   about: 'Each vertex knows its part: legs stretch and turn from hip to foot (telescoping lobopods), the trunk carries a travelling lateral wave and the tun contraction, blended where parts meet.' });
 F({ id: 'sway', group: 'Motion', label: 'Soft-body sway and surge', on: true, about: 'The trunk bends side to side with the gait and surges with each wave of legs.', onChange: (v) => (view.sway = v) });
+let miteGait = false;
 F({ id: 'gait', group: 'Motion', label: 'Leg coordination', choices: Object.keys(GAITS), value: Object.keys(GAITS)[0],
-  about: 'Measured in Hypsibius (Nirody et al. 2021): steps run back to front along each side, the sides half a cycle apart, a tetrapod-like pattern. Alternatives for comparison.', onChange: setGait });
+  about: 'Measured in Hypsibius (Nirody et al. 2021): steps run back to front along each side, the sides half a cycle apart, a tetrapod-like pattern. Alternatives for comparison.', onChange: (v) => { if (!miteGait) setGait(v); } });
 F({ id: 'footholds', group: 'Motion', label: 'Claws need cell walls', on: true,
   about: 'Each foot searches for the nearest wall within reach and hooks it; junctions and walls across the pull hold best. Off: feet grip anywhere.', onChange: (v) => (walker.opts.footholds = v) });
 F({ id: 'gravity', group: 'Motion', label: 'Slope load and slipping (exaggerated)', on: true,
@@ -151,6 +154,37 @@ F({ id: 'capacity', group: 'Simulation', label: 'Film capacity field', fixed: tr
 F({ id: 'labels', group: 'Controls', label: 'Anatomy labels', on: false, about: 'Name the claws, leg IV, buccal tube, bulb, eyespot, gut and storage cells (D-pad ←).', onChange: (v) => (view.labels = v) });
 F({ id: 'rumble', group: 'Controls', label: 'Rumble on claw catch', on: true, about: 'A small knock as each claw hooks a wall; heavy on slips and falls.', onChange: (v) => (rumbleOn = v) });
 F({ id: 'camrel', group: 'Controls', label: 'Camera-relative crawl', fixed: true, about: 'The stick direction on screen is projected onto the leaf the animal is on.' });
+
+// ---------------------------------------------------------------- borrowed (default off)
+const looks = createBorrowedLooks(renderer);
+const borrow = borrowedSwitches(features);
+const bmode = { amoeba: 0, par: 0 };
+const leafMeshes = new Set(world.leaves.map((l) => l.mesh));
+const bodyMeshes = new Set();
+creature.group.traverse((o) => bodyMeshes.add(o));
+borrow.add({ id: 'semMite', label: 'SEM (scanning electron microscope)', from: 'mite',
+  about: 'The real geometry drawn into the mite\'s G-buffer (normal, material, depth in µm) and shaded by its secondary-electron composite: secant-law tilt contrast, edge glow, detector shadowing, crevice darkening, shot noise. Physically odd: a hydrated animal in a water film cannot go into a vacuum, and the cell walls (drawn per pixel by the optical leaf shader) are missing, so the leaves are bare slabs.',
+  onChange: (v) => { if (v && view.mode === 2) features.set('look', MODES[0]); } });
+F({ id: 'semMiteMode', group: 'Borrowed', label: 'SEM detector', from: 'mite', choices: SEM_LOOKS, value: SEM_LOOKS[0],
+  about: 'SE (topography), BSE (composition: everything here is light organic matter, so it is flat) or false colour (animal amber, leaves green).', onChange: (v) => looks.semMode(SEM_LOOKS.indexOf(v)) });
+const FIELD = 'The DIC optical-path and pigment buffers (after the focal-plane blur) handed to another microscope\'s image formation, so the focus and depth of field still work.';
+borrow.add({ id: 'opticsAmoeba', label: 'Amoeba property optics', from: 'amoeba',
+  about: `Brightfield with transport-of-intensity defocus contrast, phase contrast, darkfield or the immersive lit view. ${FIELD}`,
+  onChange: (v) => { if (v && view.mode === 2) features.set('look', MODES[0]); } });
+F({ id: 'opticsAmoebaMode', group: 'Borrowed', label: 'Amoeba method', from: 'amoeba', choices: AMOEBA_MODES, value: AMOEBA_MODES[0],
+  about: 'Which optical method the amoeba switch above uses.', onChange: (v) => (bmode.amoeba = AMOEBA_MODES.indexOf(v)) });
+borrow.add({ id: 'microscopeParamecium', label: 'Paramecium microscope', from: 'paramecium',
+  about: `Darkfield, phase contrast (with the phase-ring halo), brightfield, the paramecium's simpler DIC or its lit view. ${FIELD}`,
+  onChange: (v) => { if (v && view.mode === 2) features.set('look', MODES[0]); } });
+F({ id: 'microscopeParameciumMode', group: 'Borrowed', label: 'Paramecium technique', from: 'paramecium', choices: PARAMECIUM_MODES, value: PARAMECIUM_MODES[0],
+  about: 'Which technique the paramecium switch above uses.', onChange: (v) => (bmode.par = PARAMECIUM_MODES.indexOf(v)) });
+features.add({ id: 'miteGait', group: 'Borrowed', label: 'Arachnid alternating tetrapod gait', from: 'mite', on: false,
+  about: 'The mite\'s gait offsets (mite-gait.js) on the eight lobopods: diagonal groups {L1 R2 L3 R4} and {R1 L2 R3 L4} alternate, with a slight back-to-front lag. Not what tardigrades do (they run a back-to-front wave), here to compare. Overrides Leg coordination while on.',
+  onChange: (v) => {
+    miteGait = v;
+    if (v) setGaitWith((L) => legOffset('tetrapod', L.pair, L.name.endsWith('L') ? 0 : 1, 4));
+    else setGait(features.get('gait'));
+  } });
 
 // ---------------------------------------------------------------- labels
 const labelBox = document.createElement('div');
@@ -229,7 +263,7 @@ function frame() {
   creature.group.matrixWorldNeedsUpdate = true;
   creature.deformAll();
   if (view.claws !== 1) for (const c of creature.claws) { const s = view.claws; c.matrix.multiply(new THREE.Matrix4().makeScale(s, s, s)); }
-  if (view.mode === 2) creature.refreshNormals();
+  if (view.mode === 2 || borrow.id === 'semMite') creature.refreshNormals();
   particles.update(dt, walker.dispPos, walker.leaf, walker.side, world);
 
   // Camera orbit on the animal.
@@ -258,8 +292,19 @@ function frame() {
   const ref = camera.position.distanceTo(walker.dispPos);
   const pxPerUnit = H / (2 * ref * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
   for (const m of [particles.optMat]) m.uniforms.uPx.value = H / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
-  if (view.mode === 2) renderer.render(scene, camera);
-  else mic.render({ ref, focus: view.focus, cocPerUnit: ob.coc, dof: ob.dof, pxPerUnit, time, backOff: new THREE.Vector3(view.yaw * 0.15, view.pitch * 0.1, 1) });
+  // The lit look swaps in ordinary materials, so the optical buffers would be empty.
+  if (borrow.id && borrow.id !== 'semMite' && view.mode === 2) features.set(borrow.id, false);
+  const micP = { ref, focus: view.focus, cocPerUnit: ob.coc, dof: ob.dof, pxPerUnit, time, backOff: new THREE.Vector3(view.yaw * 0.15, view.pitch * 0.1, 1) };
+  if (borrow.id === 'semMite') {
+    looks.semScene(scene, camera, { dt, umPerUnit: 100, cls: (o) => (bodyMeshes.has(o) ? CLS.CUTICLE : leafMeshes.has(o) ? CLS.LEAF : CLS.LITTER) });
+  } else if (borrow.id) {
+    // Optical-path units are scene units (100 µm): ×100 gives µm of path.
+    const { a, b } = mic.render({ ...micP, buffersOnly: true });
+    looks.fieldFromBuffers(a.width, a.height, { a: { opd: a.textures[0], abs: a.textures[1] }, b: { opd: b.textures[0], abs: b.textures[1] }, opdK: 100, absK: 1 });
+    if (borrow.id === 'opticsAmoeba') looks.amoeba({ mode: bmode.amoeba, focus: 0.6, time, umPerPx: 100 / pxPerUnit, phaseK: 0.3, odK: 1 });
+    else looks.paramecium({ mode: bmode.par, time, opdK: 0.5, absK: 1 });
+  } else if (view.mode === 2) renderer.render(scene, camera);
+  else mic.render(micP);
 
   // Labels.
   labelBox.style.display = view.labels ? '' : 'none';

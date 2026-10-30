@@ -8,7 +8,9 @@ import { loadTexture } from '../shared/assets.js';
 import { createFeatures } from '../shared/features.js';
 import { Body, N } from '../shared/techniques/amoeba-softbody.js';
 import { Cytoplasm } from './cytoplasm.js';
-import { SPECIES, makePrey } from './prey.js';
+import { SPECIES, makePrey, PREY_OPTS } from './prey.js';
+import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, DIC_MODES, PARAMECIUM_MODES } from '../shared/techniques/adapters.js';
+import { squirmerFlow } from '../shared/techniques/paramecium-squirmer.js';
 import { buildWorld, worldColliders, addResidue, wetMountCanvas, cytoplasmCanvas, meanColor } from './world.js';
 import { View } from './render.js';
 import { rng, TAU, clamp } from './util.js';
@@ -143,6 +145,33 @@ F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true, about: 'Controll
 F({ id: 'sticks', group: 'Controls', label: 'Two sticks, two pseudopods', fixed: true,
   about: 'Each stick grows one pseudopod from the part of the membrane facing its direction; turning the stick bends it; centring the stick lets it flow back. A game interpretation of chemotactic protrusion.' });
 
+// --- borrowed (default off) ----------------------------------------------------
+// The property buffers (phase, optical density; the out-of-focus layer blurred)
+// become the shared optical field (shared/techniques/adapters.js), which other
+// prototypes' image formation reads instead of this one's composite.
+const looks = createBorrowedLooks(renderer);
+const borrow = borrowedSwitches(features);
+const bmode = { dic: 0, par: 0 };
+borrow.add({ id: 'semMite', label: 'SEM (scanning electron microscope)', from: 'mite',
+  about: 'The phase buffer read as a height map (phase × 40 µm, roughly the dome of a crawling cell), turned into the mite\'s G-buffer as seen from a virtual beam 4 mm above the slide, then shaded by its secondary-electron composite: tilt contrast, detector shadows on the glass, crevice darkening, noise. Physically odd: a live amoeba cannot be imaged in a vacuum; real SEMs of A. proteus are fixed and dried (S05).' });
+F({ id: 'semMiteMode', group: 'Borrowed', label: 'SEM detector', from: 'mite', choices: SEM_LOOKS, value: SEM_LOOKS[0],
+  about: 'SE (topography), BSE (the glass slide outshines the organic cell) or false colour.', onChange: (v) => looks.semMode(SEM_LOOKS.indexOf(v)) });
+borrow.add({ id: 'dicTardigrade', label: 'DIC (Nomarski) relief', from: 'tardigrade',
+  about: 'The tardigrade\'s interference image from the same phase and absorbance: relief from the gradient of optical path along one shear direction, warm and cool fringes. Real Nomarski images of amoebae look much like this.' });
+F({ id: 'dicTardigradeMode', group: 'Borrowed', label: 'Tardigrade look', from: 'tardigrade', choices: DIC_MODES, value: DIC_MODES[0],
+  about: 'Which of the tardigrade images the switch above uses: DIC or its brightfield.', onChange: (v) => (bmode.dic = DIC_MODES.indexOf(v)) });
+borrow.add({ id: 'microscopeParamecium', label: 'Paramecium microscope', from: 'paramecium',
+  about: 'Darkfield, phase contrast with the phase-ring halo, brightfield, a simpler DIC or the lit view, formed the paramecium way (high-pass of the path, post pass with chromatic softness and grain), from the same buffers.' });
+F({ id: 'microscopeParameciumMode', group: 'Borrowed', label: 'Paramecium technique', from: 'paramecium', choices: PARAMECIUM_MODES, value: PARAMECIUM_MODES[0],
+  about: 'Which technique the paramecium switch above uses.', onChange: (v) => (bmode.par = PARAMECIUM_MODES.indexOf(v)) });
+F({ id: 'preyLowRe', group: 'Borrowed', label: 'Prey: no-coasting recoil (low Re)', from: 'paramecium', on: false,
+  about: 'The paramecium\'s lowRe(): prey speed follows the beat with a 35 ms lag, and a trichocyst burst stops within milliseconds (≈7 µm) instead of gliding for ≈0.2 s (≈38 µm). Truer to low Reynolds number; a grabbed Paramecium escapes the cup less easily.',
+  onChange: (v) => (PREY_OPTS.lowRe = v) });
+let preyFlowOn = false;
+F({ id: 'preyFlow', group: 'Borrowed', label: 'Prey: squirmer flow round swimmers', from: 'paramecium', on: false,
+  about: 'Each swimming prey stirs the water as a neutral squirmer (source dipole, decaying as 1/r³), and other prey nearby drift in it: pushed ahead at its poles, swept back along its sides. Weak unless they pass close.',
+  onChange: (v) => (preyFlowOn = v) });
+
 // --- prey ------------------------------------------------------------------
 const MIX = ['chilomonas', 'chilomonas', 'chilomonas', 'chilomonas', 'chilomonas', 'chlamydomonas', 'chlamydomonas', 'chlamydomonas',
   'tetrahymena', 'tetrahymena', 'tetrahymena', 'colpidium', 'colpidium', 'paramecium'];
@@ -253,6 +282,25 @@ function egest() {
   v.egest = true;
 }
 
+// Borrowed squirmer flow: each swimming prey's dipole field moves the others (2D, z = 0).
+const fA = new THREE.Vector3(), fB = new THREE.Vector3(), fU = new THREE.Vector3(), fQ = new THREE.Vector3(), fOut = new THREE.Vector3();
+function preyFlow(dt) {
+  const free = prey.filter((p) => !p.captured);
+  const moves = free.map((p) => {
+    fOut.set(0, 0, 0);
+    fQ.set(p.x, p.y, 0);
+    for (const q of free) {
+      if (q === p) continue;
+      const c = Math.cos(q.heading), sn = Math.sin(q.heading), h = q.sp.L / 2;
+      fA.set(q.x - c * h, q.y - sn * h, 0); fB.set(q.x + c * h, q.y + sn * h, 0);
+      fU.set(c * (q.v || 0), sn * (q.v || 0), 0);
+      squirmerFlow(fQ, fA, fB, fU, q.sp.W / 2, fOut);
+    }
+    return [fOut.x, fOut.y];
+  });
+  free.forEach((p, i) => { p.x += moves[i][0] * dt; p.y += moves[i][1] * dt; });
+}
+
 const tmp = {};
 function stepPrey(dt, col) {
   const swim = S.swimK;
@@ -354,6 +402,7 @@ function simStep(dt) {
   body.grid.build(body.x, body.y, N);
   updateCup(adt);
   stepPrey(dt, col);
+  if (preyFlowOn) preyFlow(dt * S.swimK);
   // Optional parts of the cytoplasm simulation.
   const saved = body.pods.map((p) => p.s);
   if (!S.streaming) for (const p of body.pods) p.s = 0;
@@ -493,7 +542,8 @@ function frame(now) {
   S.camX += (tx - S.camX) * Math.min(1, dtReal * 0.8);
   S.camY += (ty - S.camY) * Math.min(1, dtReal * 0.8);
   view.setView(S.camX, S.camY, OBJECTIVES[S.objective].field * (innerWidth > innerHeight ? 1 : 0.6));
-  view.render({ time: S.time, prey: [...prey, ...ambient], mode: S.mode, focus: S.focus, flags: S.flags, granuleCount: S.granules });
+  view.render({ time: S.time, prey: [...prey, ...ambient], mode: S.mode, focus: S.focus, flags: S.flags, granuleCount: S.granules, buffersOnly: !!borrow.id });
+  if (borrow.id) renderBorrowed(dtReal);
   updateOverlay();
   S.statT -= dtReal;
   if (S.statT <= 0) {
@@ -513,6 +563,17 @@ function frame(now) {
   }
   requestAnimationFrame(frame);
 }
+function renderBorrowed(dt) {
+  const o = view.optics;
+  let def = o.defRT;
+  if (S.flags.dof) { o.blur(o.defRT.texture, o.tmpRT, o.defBlurRT, 7 + 5 * (1 - S.focus)); def = o.defBlurRT; }
+  looks.fieldFromBuffers(o.w, o.h, { a: { opd: o.focusRT.texture, absSwz: 'gba' }, b: { opd: def.texture, absSwz: 'gba' }, opdK: 1, absK: 1, heightK: 40 });
+  const umPerPx = view.view[2] / view.bw;
+  if (borrow.id === 'semMite') looks.semFromField({ umPerPx, dist: 4000, cls: CLS.CUTICLE, subCls: CLS.GRAIN, dt });
+  else if (borrow.id === 'dicTardigrade') looks.dic({ mode: bmode.dic, pxPerUm: 1 / umPerPx, time: S.time, opdK: 1, absK: 1 });
+  else looks.paramecium({ mode: bmode.par, time: S.time, opdK: 1, absK: 1 });
+}
+
 let paused = false;
 let renderOnce = false;
 requestAnimationFrame(frame);
