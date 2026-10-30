@@ -397,7 +397,7 @@ GROUPS = [
                 "file": "assets/bacterium/magnetosomes.webp", "size": "1024 x 1024, opaque, tileable",
                 "used": "Texture inside the magnetotactic bacterium's body and on its compass display.",
                 "standin": "Procedural dotted chain.",
-                "refs": ref("magnetosome-chain", "magnetotactic"),
+                "refs": ref("magnetotactic"),
                 "prompt": f"{TILE} {FLUOR} Magnetosome chains of magnetotactic bacteria at about 10 µm across, as seen when the magnetosome membrane protein is tagged with a green fluorescent protein: several thin straight-to-slightly-curved lines of tightly spaced glowing dots (each dot a crystal of magnetite about 50 nm, blurred to the 0.2 µm limit so the dots merge into beaded lines), each chain about 1 to 2 µm long, all roughly parallel to one another, with faint diffuse cell-body glow around each.",
             },
         ],
@@ -407,7 +407,7 @@ GROUPS = [
         "intro": "One orthographic turnaround sheet per creature or enemy that will be built as a 3D model in code. Each shows the same individual from the side, top, front and three-quarter view on plain grey at one scale: a measuring tape for proportions and a paint source for colours, the method that worked for the sibling Wobblers project. Check every sheet against its reference photographs before modelling from it; where the sheet and the photographs disagree, the photographs win.",
         "items": [
             {
-                "id": "MP-R01", "status": "requested", "name": "Water springtail (Podura aquatica)",
+                "id": "MP-R01", "status": "delivered", "name": "Water springtail (Podura aquatica)",
                 "file": "assets/reference-sheets/springtail.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling the springtail protagonist (Level 0).",
                 "standin": "None needed: the model is built from the photographs.",
@@ -415,7 +415,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} The water springtail Podura aquatica, about 1.5 mm long: a plump, cylindrical, slightly flattened body with a blue-black to slate-grey granular cuticle; a head with short, stout four-segmented antennae and a dark eye patch of eight eyespots on each side; a thorax and abdomen of segments without wings; exactly three pairs of short five-part legs ending in a single claw each; a ventral tube (collophore) projecting downward from the first abdominal segment; and the furcula, a forked springing organ, folded forward under the abdomen and clipped in a small catch (retinaculum) on the third abdominal segment, its two flattened tines (mucrones) broad at the tips. In the side view show the furcula folded; in the three-quarter view show it folded too. No wings, no fantasy features. {SCIENCE}",
             },
             {
-                "id": "MP-R02", "status": "requested", "name": "Rove beetle (Stenus)",
+                "id": "MP-R02", "status": "delivered", "name": "Rove beetle (Stenus)",
                 "file": "assets/reference-sheets/stenus.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling the Stenus rove beetle that skims on the water and harpoons springtails.",
                 "standin": "None needed: the model is built from the photographs.",
@@ -423,15 +423,15 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} A rove beetle of the genus Stenus, about 5 mm long: a slender black body with fine dense punctures and a faint lead-grey sheen; a broad head with very large bulging compound eyes on each side; long thin eleven-segmented antennae; a narrow cylindrical pronotum; short elytra covering only the front of the abdomen, leaving a long, flexible, segmented abdomen exposed and slightly raised; exactly six long slender legs. The labium (lower lip) is extended forward as a long thin rod far beyond the head, ending in a pair of small sticky pads: the labial harpoon it shoots out to catch springtails. Show the harpoon extended in the side and three-quarter views and retracted under the head in the top and front views. {SCIENCE}",
             },
             {
-                "id": "MP-R03", "status": "requested", "name": "Water strider (Gerris)",
+                "id": "MP-R03", "status": "delivered", "name": "Water strider (Gerris)",
                 "file": "assets/reference-sheets/water-strider.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling the water strider standing on the pool surface.",
                 "standin": "None needed: the model is built from the photographs.",
                 "refs": ref("water-strider"),
-                "prompt": f"{TURNAROUND} A water strider of the genus Gerris, about 10 mm long body: a narrow dark brown-black body covered with a fine velvety silver-grey hair pile, a small head with prominent eyes and four-segmented antennae, a piercing beak (rostrum) folded under the head; exactly six legs: short front legs held forward for grabbing prey, very long thin middle legs spread sideways for rowing, long hind legs trailing backward for steering; the middle and hind legs rest on the water along their last segments with small dimples, not touching the water anywhere else. Show the legs in their natural resting stance on a flat invisible water plane. Winged form, with the dark wings folded flat over the abdomen. {SCIENCE}",
+                "prompt": f"{TURNAROUND} A water strider of the genus Gerris, about 10 mm long body: a narrow dark brown-black body covered with a fine velvety silver-grey hair pile, a small head with prominent eyes and four-segmented antennae, a piercing beak (rostrum) folded under the head; exactly six legs: short front legs held forward for grabbing prey, very long thin middle legs spread sideways for rowing, long hind legs trailing backward for steering; the middle and hind legs rest on the water along their last segments with small dimples, not touching the water anywhere else. Show the legs in their natural resting stance on a flat invisible water plane. Wingless form. {SCIENCE}",
             },
             {
-                "id": "MP-R04", "status": "requested", "name": "Predatory mite (Pergamasus-type)",
+                "id": "MP-R04", "status": "delivered", "name": "Predatory mite (Pergamasus-type)",
                 "file": "assets/reference-sheets/predatory-mite.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling the predatory mesostigmatid mite (Levels 0 and 1).",
                 "standin": "None needed: the model is built from the photographs.",
@@ -439,7 +439,15 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} A predatory mesostigmatid mite of the family Parasitidae (Pergamasus-type), about 1 mm long: an oval, flattened, glossy amber-to-chestnut body covered by smooth sclerotised dorsal shields with a few short setae; exactly eight legs, each with seven visible segments, the first pair longer and held forward like antennae, the others walking; at the front a projecting gnathosoma with a pair of long chelicerae ending in small pincers (chelae), and short pedipalps. No eyes. {SCIENCE}",
             },
             {
-                "id": "MP-R05", "status": "requested", "name": "Predatory tardigrade (Milnesium)",
+                "id": "MP-R13", "name": "Predatory mite (Pergamasus-type), revision",
+                "file": "assets/reference-sheets/predatory-mite-v2.webp", "size": "2048 x 2048, opaque",
+                "used": "Replaces MP-R04, which came out as a domed, glossy, dark tick-like mite. Modelling the predatory mesostigmatid mite (Levels 0 and 1).",
+                "standin": "None needed: the model is built from the photographs.",
+                "refs": ref("predatory-mite", "mite"),
+                "prompt": f"{TURNAROUND} A predatory mesostigmatid mite of the family Parasitidae (Pergamasus-type), about 1 mm long, a fast running hunter of soil and moss. Its body is strongly flattened top to bottom like a coin, NOT domed: in the side and front views the body is only about a quarter as tall as it is wide. Pale tan to light honey-yellow, satin rather than glossy, with smooth plate-like dorsal shields (a front and a rear shield meeting across the middle) and a few short fine setae; it must not look like a tick or a round beetle-mite. Exactly eight long slender legs, each with seven visible segments: the first pair is longer and thinner than the others, has no claws, and is held raised and forward like a pair of antennae, as these mites feel their way; the other three pairs are spread wide, walking, each ending in a small claw and pad. At the front, a projecting gnathosoma with a pair of long chelicerae ending in small toothed pincers (chelae), clearly visible from the top and front, and short five-segmented pedipalps beside them. No eyes. {SCIENCE}",
+            },
+            {
+                "id": "MP-R05", "status": "delivered", "name": "Predatory tardigrade (Milnesium)",
                 "file": "assets/reference-sheets/milnesium.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling Milnesium, the carnivorous tardigrade of Level 2.",
                 "standin": "None needed: the model is built from the photographs.",
@@ -447,15 +455,15 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} The carnivorous tardigrade Milnesium, about 0.5 to 0.7 mm long: a plump, barrel-shaped, translucent body with faint segmentation, a smooth cuticle without plates, often brownish-orange gut contents; a broad head with a wide terminal mouth opening surrounded by six small peribuccal papillae and two lateral papillae, a short wide buccal tube with stylets visible through the body wall, two dark eye spots; exactly four pairs of stubby, unjointed lobopod legs, the fourth pair pointing backward at the rear, each leg ending in two double claws of unequal shape (a long slender branch and a short hooked one). {SCIENCE}",
             },
             {
-                "id": "MP-R06", "status": "requested", "name": "Didinium nasutum",
+                "id": "MP-R06", "status": "delivered", "name": "Didinium nasutum",
                 "file": "assets/reference-sheets/didinium.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling Didinium, the Paramecium hunter of Level 3.",
                 "standin": "None needed: the model is built from the photographs.",
-                "refs": ref("didinium", "didinium-feeding", "paramecium"),
+                "refs": ref("didinium", "paramecium"),
                 "prompt": f"{TURNAROUND} The ciliate Didinium nasutum, about 100 µm long, as in a brightfield preparation: a barrel-shaped transparent cell, its front end drawn out into a short cone-shaped proboscis (snout) with the cell mouth at its tip, from which toxicysts are fired; exactly two girdles of cilia (pectinelles) encircling the barrel, one just behind the proboscis and one around the middle, and no other cilia on the body; a curved horseshoe-shaped macronucleus inside, a contractile vacuole at the rear end. {SCIENCE}",
             },
             {
-                "id": "MP-R07", "status": "requested", "name": "Paramecium bursaria",
+                "id": "MP-R07", "status": "delivered", "name": "Paramecium bursaria",
                 "file": "assets/reference-sheets/paramecium-bursaria.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling the Level 3 protagonist, the green Paramecium.",
                 "standin": "None needed: the model is built from the photographs.",
@@ -471,7 +479,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} The colourless euglenid Peranema trichophorum, about 40 to 70 µm long, as in a brightfield preparation: a flexible, elongated, spindle-to-pear-shaped transparent cell, broad at the rear and tapered at the front, with fine spiral striations on its pellicle; one thick leading flagellum about as long as the body held straight forward with only its tip beating; a second thin trailing flagellum lying along the body; a rod-like feeding apparatus near the front; many refractive granules inside; no chloroplasts, no eyespot. {SCIENCE}",
             },
             {
-                "id": "MP-R09", "status": "requested", "name": "Actinophrys sol (sun animalcule)",
+                "id": "MP-R09", "status": "delivered", "name": "Actinophrys sol (sun animalcule)",
                 "file": "assets/reference-sheets/actinophrys.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling Actinophrys, the radiating ambush predator of Level 4.",
                 "standin": "None needed: the model is built from the photographs.",
@@ -479,15 +487,15 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} The heliozoan Actinophrys sol, a cell body about 40 µm across, as in a brightfield preparation: a spherical, frothy, vacuolated transparent cell with one central nucleus, from which many straight, stiff, thin radiating arms (axopodia) about as long as the cell's diameter project evenly in all directions, each with tiny granules (extrusomes) scattered along it. Being spherical it looks the same from every side: keep the views identical in proportion and arm density. {SCIENCE}",
             },
             {
-                "id": "MP-R10", "status": "requested", "name": "Magnetotactic bacterium",
+                "id": "MP-R10", "status": "delivered", "name": "Magnetotactic bacterium",
                 "file": "assets/reference-sheets/magnetotactic.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling the Level 5 protagonist.",
                 "standin": "None needed: the model is built from the photographs.",
-                "refs": ref("magnetotactic", "magnetosome-chain"),
+                "refs": ref("magnetotactic"),
                 "prompt": f"{TURNAROUND} A magnetotactic spirillum (Magnetospirillum-type), as reconstructed from electron micrographs: a helical, gently twisted rod-shaped cell about 3 µm long and 0.5 µm wide, one and a half to two turns of helix, with a single long flagellum at each end; a straight chain of 15 to 20 cube-octahedral magnetite crystals (magnetosomes, each about 50 nm, dark grey-black, each in its own thin membrane) running along the long axis inside the cell, drawn visible through a pale translucent cell body. {SCIENCE}",
             },
             {
-                "id": "MP-R11", "status": "requested", "name": "Bdellovibrio bacteriovorus",
+                "id": "MP-R11", "status": "delivered", "name": "Bdellovibrio bacteriovorus",
                 "file": "assets/reference-sheets/bdellovibrio.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling Bdellovibrio, the predatory bacterium of Level 5.",
                 "standin": "None needed: the model is built from the photographs.",
@@ -499,7 +507,7 @@ GROUPS = [
                 "file": "assets/reference-sheets/phage-t4.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling the phage protagonist of Level 6 and the phages that threaten Level 5.",
                 "standin": "None needed: the model is built from the photographs.",
-                "refs": ref("phage-t4", "phage-t4-model"),
+                "refs": ref("phage-t4"),
                 "prompt": f"{TURNAROUND} Bacteriophage T4 as reconstructed from cryo-electron microscopy, about 0.2 µm tall: an elongated icosahedral head (a prolate capsid about 110 nm long and 85 nm wide, with flat triangular faces) containing the DNA; a short collar with whiskers below it; a straight cylindrical contractile tail sheath about 100 nm long with helical ridges around a central tube; a hexagonal baseplate at the bottom with six short tail pins; and exactly six long, thin, kinked tail fibres (each bent at a knee halfway along) hanging down and outward from the baseplate corners. Draw in molecular-model colours (soft blues and greens for the capsid, ochre for the sheath, orange for baseplate and fibres). {SCIENCE}",
             },
         ],
@@ -513,7 +521,7 @@ GROUPS = [
                 "file": "assets/concepts/bog-surface.webp", "size": "2560 x 1440, opaque",
                 "used": "Concept for Level 0, the bog surface.",
                 "standin": "None needed.",
-                "refs": ref("bog-pool", "bog-hummock", "springtail", "sundew", "water-strider", "stenus", "pond-spider"), "concepts": ["01-moss-frontier.webp"],
+                "refs": ref("bog-pool", "bog-hummock", "springtail", "sundew", "water-strider", "stenus"), "concepts": ["01-moss-frontier.webp"],
                 "prompt": f"{MACRO} The edge of a small Sphagnum bog pool at the eye height of a 1.5 mm water springtail: in the foreground a group of blue-black Podura aquatica springtails on the dark tea-brown water film, their feet dimpling the surface; a Sphagnum shore of green and red capitula rising like a cliff behind them; a round-leaved sundew leaf on the bank with glistening red tentacles; further out, the long legs of a water strider resting in dimples, and on the mossy edge a slender black Stenus rove beetle. Soft overcast daylight, very shallow depth of field. {SCIENCE}",
             },
             {
@@ -529,7 +537,7 @@ GROUPS = [
                 "file": "assets/concepts/bacterial-sediment.webp", "size": "2560 x 1440, opaque",
                 "used": "Concept for Level 5, the film of bacteria.",
                 "standin": "None needed.",
-                "refs": ref("magnetotactic", "bdellovibrio", "biofilm-fluorescence", "biofilm-sem", "paramecium-bursaria"), "concepts": ["04-cell-neighborhood.webp"],
+                "refs": ref("magnetotactic", "bdellovibrio", "biofilm-fluorescence", "biofilm-sem"), "concepts": ["04-cell-neighborhood.webp"],
                 "prompt": f"{PHASE} The bacterial film on bog sediment at 1000x, about 60 µm across: a mounded biofilm of packed rods in the lower third, open water above with swimming rods and spirilla, a magnetotactic spirillum among them, small Bdellovibrio as tiny commas and one prey rod rounded into a sphere (a bdelloplast), and the out-of-focus edge of a large ciliate looming at the top. Nothing shown more sharply than the 0.2 µm limit allows. {SCIENCE}",
             },
             {
@@ -537,7 +545,7 @@ GROUPS = [
                 "file": "assets/concepts/phage-level.webp", "size": "2560 x 1440, opaque",
                 "used": "Concept for Level 6, the viruses.",
                 "standin": "None needed.",
-                "refs": ref("phage-t4", "phage-t4-model", "bdellovibrio"),
+                "refs": ref("phage-t4", "magnetotactic", "biofilm-sem"),
                 "prompt": f"{MOLECULAR} The world of a bacteriophage at about 1 µm across: in the lower half, a curved section through the surface of a Gram-negative bacterium (outer membrane with lipopolysaccharide chains, periplasm with its thin peptidoglycan layer, inner membrane with embedded proteins, then crowded cytoplasm with ribosomes and DNA); above it, water crowded with small dissolved molecules, a flat clay mineral platelet and a few drifting T4 phages (icosahedral heads, tail sheaths, baseplates, six kinked tail fibres), one landed with its fibres bound to the outer membrane and its sheath contracted, injecting its DNA. Inside the cell a CRISPR-Cas complex and a restriction enzyme on the DNA. {SCIENCE}",
             },
         ],
@@ -546,7 +554,11 @@ GROUPS = [
 
 
 def load_refs() -> dict:
-    return {r["id"]: r for r in json.loads(MANIFEST.read_text())}
+    references = {r["id"]: r for r in json.loads(MANIFEST.read_text())}
+    production = MANIFEST.with_name("production-manifest.json")
+    if production.exists():
+        references.update({r["id"]: r for r in json.loads(production.read_text())})
+    return references
 
 
 def asset_list() -> str:

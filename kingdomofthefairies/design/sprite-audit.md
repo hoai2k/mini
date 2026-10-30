@@ -233,6 +233,27 @@ Head size of each pose against its reference sprite (same look). Beyond 6% the g
 | `demon-teal-carry` | `demon-teal`, by eye | 1.00 | — | as painted |
 | `demon-teal-carry-tinted` | `demon-teal-tinted`, by eye | 1.00 | — | as painted |
 
+## Where lying figures rest
+
+Rows between the underside of the lower back (the lowest row at least 60% filled across the middle fifth of the figure) and the canvas bottom; the game lays the hips on the ground, so the figure drapes over it, head, feet and props lower (`REST_GAP` in `src/sprite-fit.js`).
+
+| Sprite | Canvas | Rest gap |
+| --- | --- | --- |
+| `azurine-asleep` | 360 × 160 | 18 |
+| `azurine-asleep-tinted` | 360 × 160 | 20 |
+| `crew-asleep` | 260 × 120 | 2 |
+| `crew-asleep-b` | 260 × 120 | 5 |
+| `crew-asleep-b-tinted` | 260 × 120 | 6 |
+| `crew-asleep-tinted` | 260 × 120 | 2 |
+| `crew-bosun-asleep` | 440 × 160 | 15 |
+| `crew-bosun-asleep-tinted` | 440 × 160 | 11 |
+| `crew-helmsman-asleep` | 440 × 160 | 14 |
+| `crew-helmsman-asleep-tinted` | 440 × 160 | 17 |
+| `crew-manatarms-asleep` | 440 × 160 | 15 |
+| `crew-manatarms-asleep-tinted` | 440 × 160 | 22 |
+| `crew-squire-asleep` | 440 × 160 | 11 |
+| `crew-squire-asleep-tinted` | 440 × 160 | 24 |
+
 ## To redraw
 
 Nothing.

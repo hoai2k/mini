@@ -287,6 +287,28 @@ def audit():
         if slots.get(pid, {}).get('status') == 'delivered':
             lines.append(f'| `{pid}` | `{rid}`, by eye | 1.00 | — | as painted |')
     lines.append('')
+    # 5. where a lying figure rests: the underside of its lower back, the
+    # middle fifth of the figure (a lying figure is often at an angle, so it
+    # drapes over the ground from the hips, its head, feet, a halberd, rope or
+    # trailing hand reaching below the line)
+    rest = {}
+    lying = sorted(i for i in slots if slots[i].get('status') == 'delivered' and 'asleep' in i
+                   and (i.startswith('crew-') or i.startswith('azurine-')) and (ASSETS / f'{i}.webp').exists())
+    if lying:
+        lines += ['## Where lying figures rest', '',
+                  'Rows between the underside of the lower back (the lowest row at least 60% filled across the middle '
+                  'fifth of the figure) and the canvas bottom; the game lays the hips on the ground, so the figure '
+                  'drapes over it, head, feet and props lower (`REST_GAP` in `src/sprite-fit.js`).', '', '| Sprite | Canvas | Rest gap |', '| --- | --- | --- |']
+        for i in lying:
+            im = Image.open(ASSETS / f'{i}.webp')
+            a = np.asarray(im.convert('RGBA'))[:, :, 3] > 60
+            cols = np.where(a.any(0))[0]
+            x0, width = cols.min(), cols.max() - cols.min() + 1
+            mid = a[:, x0 + int(0.4 * width):x0 + int(0.6 * width) + 1].mean(1)
+            line = max(y for y in range(a.shape[0]) if mid[y] >= 0.6)
+            rest[i] = int(a.shape[0] - 1 - line)
+            lines.append(f'| `{i}` | {im.size[0]} × {im.size[1]} | {rest[i]} |')
+        lines.append('')
     lines += ['## To redraw', '']
     lines += [f'- {p}' for p in problems] or ['Nothing.']
     lines.append('')
@@ -300,6 +322,11 @@ def audit():
            '// against a reference sprite); the game draws each at this scale.',
            'export const POSE_FIT = {']
     js += [f"  '{k}': {v}," for k, v in sorted(pose_fit.items())]
+    js += ['};', '',
+           '// Lying figures: art rows from the underside of the lower back to the',
+           '// canvas bottom; the hips rest on the ground and the figure drapes over it.',
+           'export const REST_GAP = {']
+    js += [f"  '{k}': {v}," for k, v in sorted(rest.items())]
     js += ['};', '']
     return '\n'.join(lines), '\n'.join(js)
 

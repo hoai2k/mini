@@ -77,7 +77,7 @@ const GUITAR_PATH = [[0, 880], [700, 760], [1300, 640], [1700, 520], [2100, 720]
 // Scenes, for checkpoints and the scene select. Scenes 1-3 begin in the
 // bubbles of a vent partway down; `y` is where the sailor starts.
 export const SCENES = [
-  { name: 'The Wreck Shelf' },
+  { name: 'The Wreck' },
   { name: 'Into the Grotto', vent: 0 },
   { name: 'The Deep Caves', vent: 2 },
   { name: "The Dragon's Floor", vent: 3 },

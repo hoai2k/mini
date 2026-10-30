@@ -128,6 +128,18 @@ test('prologue: a gift is taken with either hand, not by walking into her', () =
   assert.deepEqual(st.gifts, ['ring', 'crown']);
 });
 
+test('prologue: at the rampart door he runs on, without a stop, until he is off the stage', () => {
+  const st = prologue.create({ from: { scene: 1 } });
+  Object.assign(st.p, { x: RAMPART.end - 5, vx: 250 }); st.fires.length = 0;
+  let minV = Infinity, lastX = st.p.x;
+  for (let i = 0; i < 300 && st.phase !== 'bind'; i++) {
+    prologue.step(st, DT, { beat: 0 });
+    if (st.phase === 'escape') { minV = Math.min(minV, (st.p.x - lastX) / DT); lastX = st.p.x; }
+  }
+  assert.equal(st.phase, 'bind');
+  assert.ok(minV > 200, `never slows at the door (${minV.toFixed(0)} px/s)`);
+});
+
 test('prologue: his leap is silent and his landing a quiet thud', () => {
   const st = prologue.create({ from: { scene: 1 } });
   st.fires.length = 0;

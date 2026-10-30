@@ -12,7 +12,7 @@ Artwork for the prototypes in `micro/prototypes/`. Generated from `source/build_
 
 ## Status
 
-27 requested, 18 delivered, 45 in total.
+18 requested, 28 delivered, 46 in total.
 
 ## Launcher cards
 
@@ -94,9 +94,9 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 - **Stand-in until delivered:** A moss-green gradient with the title.
 - **Status:** requested
 - **Reference images:**
-  - `springtail`: reference photograph still being collected for the atlas
-  - `bog-pool`: reference photograph still being collected for the atlas
-  - `sundew`: reference photograph still being collected for the atlas
+  - [Podura aquatica; external body and limb proportions.](../research/assets/references/production/springtail.jpg) · Christian Fischer, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:PoduraAquatica.jpg)
+  - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](../research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
+  - [Round-leaved sundew leaf and glandular tentacles.](../research/assets/references/production/sundew.jpg) · Petr Dlouhý, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Drosera_rotundifolia_leaf1.jpg)
   - [Moss habitat structure; use leaf architecture as environmental reference.](../research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
   - Concept board (mood only): [`01-moss-frontier.webp`](../research/assets/concepts/01-moss-frontier.webp)
 
@@ -112,9 +112,9 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 - **Stand-in until delivered:** A dark slate gradient with the title.
 - **Status:** requested
 - **Reference images:**
-  - `magnetotactic`: reference photograph still being collected for the atlas
-  - `bdellovibrio`: reference photograph still being collected for the atlas
-  - `biofilm-fluorescence`: reference photograph still being collected for the atlas
+  - [Magnetospirillum gryphiswaldense; electron-microscopy reference. Internal detail is not visible in ordinary light microscopy.](../research/assets/references/production/magnetotactic.png) · Caulobacter subvibrioides (Diskussion), CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png)
+  - [Bdellovibrio cryotomogram section; ultrastructure reference, not a live light-microscope view.](../research/assets/references/production/bdellovibrio.jpg) · Eikosi, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Slice_from_electron_cryotomogram_of_Bdellovibrio_bacteriovorus_cell.jpg)
+  - [Tagged Pseudomonas biofilm; fluorescence and matrix analogue, not a live/dead-stain image.](../research/assets/references/production/biofilm-fluorescence.png) · Schwarz, Michael (ORCID: 0009-0002-1414-3291), CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:NFDI4BIOIMAGE_Calendar_March_2025_-_image_march.png)
   - [Marine seagrass biofilm SEM figure: matrix and surface-reference analogue, not freshwater habitat documentation.](../research/assets/references/biofilm-sem.jpg) · Timo Kohn, Rast, P., Kallscheuer, N., Wiegand, S., Boedeker, C., Jetten, M.S., Jeske, O., Vollmers, J., Kaster, A.K., Rohde, M. and Jogler, M., CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Electron_microscopic_analysis_of_seagrass_biofilms.jpg)
   - Concept board (mood only): [`04-cell-neighborhood.webp`](../research/assets/concepts/04-cell-neighborhood.webp)
 
@@ -377,9 +377,9 @@ Images for the springtail prototype (Level 0, the bog surface), seen as a macro 
 - **Stand-in until delivered:** Procedural dark water with drifting specks.
 - **Status:** requested
 - **Reference images:**
-  - `bog-pool`: reference photograph still being collected for the atlas
-  - `springtail`: reference photograph still being collected for the atlas
-  - `water-strider`: reference photograph still being collected for the atlas
+  - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](../research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
+  - [Podura aquatica; external body and limb proportions.](../research/assets/references/production/springtail.jpg) · Christian Fischer, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:PoduraAquatica.jpg)
+  - [Adult Gerris lacustris; six-leg arrangement, short forelegs and long middle/hind legs.](../research/assets/references/production/water-strider-adult.jpg) · Richard Bartz, CC BY-SA 2.5 · [source](https://commons.wikimedia.org/wiki/File:Water_strider_Gerris_lacustris.jpg)
   - Concept board (mood only): [`01-moss-frontier.webp`](../research/assets/concepts/01-moss-frontier.webp)
 
 ```text
@@ -394,9 +394,9 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Stand-in until delivered:** Procedural green star clusters.
 - **Status:** requested
 - **Reference images:**
-  - `bog-hummock`: reference photograph still being collected for the atlas
+  - [Sphagnum capitulum structure and colour; macro habitat reference.](../research/assets/references/production/bog-hummock.jpg) · OolaEei, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Capitulum.jpg)
   - [Moss habitat structure; use leaf architecture as environmental reference.](../research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
-  - `bog-pool`: reference photograph still being collected for the atlas
+  - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](../research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
   - Concept board (mood only): [`01-moss-frontier.webp`](../research/assets/concepts/01-moss-frontier.webp)
 
 ```text
@@ -411,9 +411,9 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Stand-in until delivered:** Soft green-brown gradient with blurred shapes.
 - **Status:** requested
 - **Reference images:**
-  - `bog-hummock`: reference photograph still being collected for the atlas
-  - `bog-pool`: reference photograph still being collected for the atlas
-  - `sundew`: reference photograph still being collected for the atlas
+  - [Sphagnum capitulum structure and colour; macro habitat reference.](../research/assets/references/production/bog-hummock.jpg) · OolaEei, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Capitulum.jpg)
+  - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](../research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
+  - [Round-leaved sundew leaf and glandular tentacles.](../research/assets/references/production/sundew.jpg) · Petr Dlouhý, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Drosera_rotundifolia_leaf1.jpg)
   - Concept board (mood only): [`01-moss-frontier.webp`](../research/assets/concepts/01-moss-frontier.webp)
 
 ```text
@@ -428,8 +428,8 @@ Macro-photography look: a real photograph through a macro lens at 2 to 5 times l
 - **Stand-in until delivered:** Procedural red stalks with clear droplets.
 - **Status:** requested
 - **Reference images:**
-  - `sundew`: reference photograph still being collected for the atlas
-  - `springtail`: reference photograph still being collected for the atlas
+  - [Round-leaved sundew leaf and glandular tentacles.](../research/assets/references/production/sundew.jpg) · Petr Dlouhý, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Drosera_rotundifolia_leaf1.jpg)
+  - [Podura aquatica; external body and limb proportions.](../research/assets/references/production/springtail.jpg) · Christian Fischer, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:PoduraAquatica.jpg)
 
 ```text
 Macro-photography look: a real photograph through a macro lens at 2 to 5 times life size, natural overcast daylight, real colours, very shallow depth of field with creamy out-of-focus areas, fine water droplets and surface tension visible where they are real, no studio flash glare, no HDR, no colour grading. One round-leaved sundew leaf (Drosera rotundifolia) seen from directly above, isolated: a round green-to-red blade about 8 mm across on a narrow petiole pointing down, covered with about 200 red glandular tentacles, short ones in the centre and long ones at the margin, each tipped with a clear glistening droplet of sticky mucilage; a few marginal tentacles bending inward. No insect on it. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.
@@ -443,7 +443,7 @@ Macro-photography look: a real photograph through a macro lens at 2 to 5 times l
 - **Stand-in until delivered:** Procedural expanding rings.
 - **Status:** requested
 - **Reference images:**
-  - `bog-pool`: reference photograph still being collected for the atlas
+  - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](../research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
 
 ```text
 Macro-photography look: a real photograph through a macro lens at 2 to 5 times life size, natural overcast daylight, real colours, very shallow depth of field with creamy out-of-focus areas, fine water droplets and surface tension visible where they are real, no studio flash glare, no HDR, no colour grading. A 4 by 4 grid of sixteen frames, each centred in its own cell with clear space around it, showing one raindrop hitting still dark water from directly above in sequence: the falling drop, the crater, the crown splash, the rebound jet, then expanding concentric ripple rings that grow and fade. Same scale in every frame, the drop about 3 mm across. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.
@@ -461,8 +461,8 @@ Images for the run-and-tumble bacterium prototype (Level 5), at 1000x oil immers
 - **Stand-in until delivered:** Procedural grey field with haloed rods.
 - **Status:** requested
 - **Reference images:**
-  - `magnetotactic`: reference photograph still being collected for the atlas
-  - `bdellovibrio`: reference photograph still being collected for the atlas
+  - [Magnetospirillum gryphiswaldense; electron-microscopy reference. Internal detail is not visible in ordinary light microscopy.](../research/assets/references/production/magnetotactic.png) · Caulobacter subvibrioides (Diskussion), CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png)
+  - [Bdellovibrio cryotomogram section; ultrastructure reference, not a live light-microscope view.](../research/assets/references/production/bdellovibrio.jpg) · Eikosi, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Slice_from_electron_cryotomogram_of_Bdellovibrio_bacteriovorus_cell.jpg)
   - [Marine seagrass biofilm SEM figure: matrix and surface-reference analogue, not freshwater habitat documentation.](../research/assets/references/biofilm-sem.jpg) · Timo Kohn, Rast, P., Kallscheuer, N., Wiegand, S., Boedeker, C., Jetten, M.S., Jeske, O., Vollmers, J., Kaster, A.K., Rohde, M. and Jogler, M., CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Electron_microscopic_analysis_of_seagrass_biofilms.jpg)
   - Concept board (mood only): [`04-cell-neighborhood.webp`](../research/assets/concepts/04-cell-neighborhood.webp)
 
@@ -478,7 +478,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Stand-in until delivered:** Procedural cell clusters on a dark field.
 - **Status:** requested
 - **Reference images:**
-  - `biofilm-fluorescence`: reference photograph still being collected for the atlas
+  - [Tagged Pseudomonas biofilm; fluorescence and matrix analogue, not a live/dead-stain image.](../research/assets/references/production/biofilm-fluorescence.png) · Schwarz, Michael (ORCID: 0009-0002-1414-3291), CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:NFDI4BIOIMAGE_Calendar_March_2025_-_image_march.png)
   - [Marine seagrass biofilm SEM figure: matrix and surface-reference analogue, not freshwater habitat documentation.](../research/assets/references/biofilm-sem.jpg) · Timo Kohn, Rast, P., Kallscheuer, N., Wiegand, S., Boedeker, C., Jetten, M.S., Jeske, O., Vollmers, J., Kaster, A.K., Rohde, M. and Jogler, M., CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Electron_microscopic_analysis_of_seagrass_biofilms.jpg)
   - Concept board (mood only): [`04-cell-neighborhood.webp`](../research/assets/concepts/04-cell-neighborhood.webp)
 
@@ -495,7 +495,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Status:** requested
 - **Reference images:**
   - [Paramecium caudatum; whole-cell outline and internal contrast.](../research/assets/references/paramecium.jpg) · MTadey, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg)
-  - `paramecium-bursaria`: reference photograph still being collected for the atlas
+  - [Paramecium bursaria in DIC; green symbionts and body proportions.](../research/assets/references/production/paramecium-bursaria.jpg) · Anatoly Mikhaltsov, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Paramecium_bursaria.jpg)
   - [Attached Vorticella ciliates; stalks connect feeding bodies to substrate.](../research/assets/references/vorticella.jpg) · Bwiltz, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Vorticella_1.jpg)
   - Concept board (mood only): [`03-protist-garden.webp`](../research/assets/concepts/03-protist-garden.webp)
 
@@ -511,7 +511,7 @@ Phase-contrast microscope look at 1000x oil immersion: mid-grey background, tran
 - **Stand-in until delivered:** Procedural dotted chain.
 - **Status:** requested
 - **Reference images:**
-  - `magnetotactic`: reference photograph still being collected for the atlas
+  - [Magnetospirillum gryphiswaldense; electron-microscopy reference. Internal detail is not visible in ordinary light microscopy.](../research/assets/references/production/magnetotactic.png) · Caulobacter subvibrioides (Diskussion), CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png)
 
 ```text
 Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Epifluorescence microscope look: black background, structures visible only where they are stained, glowing in one or two saturated stain colours (green as for SYTO 9, red as for propidium iodide or chlorophyll autofluorescence), soft glow and slight out-of-focus haze, no white light. Magnetosome chains of magnetotactic bacteria at about 10 µm across, as seen when the magnetosome membrane protein is tagged with a green fluorescent protein: several thin straight-to-slightly-curved lines of tightly spaced glowing dots (each dot a crystal of magnetite about 50 nm, blurred to the 0.2 µm limit so the dots merge into beaded lines), each chain about 1 to 2 µm long, all roughly parallel to one another, with faint diffuse cell-body glow around each.
@@ -527,9 +527,9 @@ One orthographic turnaround sheet per creature or enemy that will be built as a 
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the springtail protagonist (Level 0).
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
-  - `springtail`: reference photograph still being collected for the atlas
+  - [Podura aquatica; external body and limb proportions.](../research/assets/references/production/springtail.jpg) · Christian Fischer, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:PoduraAquatica.jpg)
 
 ```text
 Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. The water springtail Podura aquatica, about 1.5 mm long: a plump, cylindrical, slightly flattened body with a blue-black to slate-grey granular cuticle; a head with short, stout four-segmented antennae and a dark eye patch of eight eyespots on each side; a thorax and abdomen of segments without wings; exactly three pairs of short five-part legs ending in a single claw each; a ventral tube (collophore) projecting downward from the first abdominal segment; and the furcula, a forked springing organ, folded forward under the abdomen and clipped in a small catch (retinaculum) on the third abdominal segment, its two flattened tines (mucrones) broad at the tips. In the side view show the furcula folded; in the three-quarter view show it folded too. No wings, no fantasy features. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.
@@ -541,10 +541,10 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the Stenus rove beetle that skims on the water and harpoons springtails.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
-  - `stenus`: reference photograph still being collected for the atlas
-  - `springtail`: reference photograph still being collected for the atlas
+  - [Stenus adult; body, eyes and elytra reference. Extended labium is specified by the brief.](../research/assets/references/production/stenus.jpg) · Elena Regina, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Stenus_(Stenus)_sp_%E2%99%82_adult.jpg)
+  - [Podura aquatica; external body and limb proportions.](../research/assets/references/production/springtail.jpg) · Christian Fischer, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:PoduraAquatica.jpg)
 
 ```text
 Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. A rove beetle of the genus Stenus, about 5 mm long: a slender black body with fine dense punctures and a faint lead-grey sheen; a broad head with very large bulging compound eyes on each side; long thin eleven-segmented antennae; a narrow cylindrical pronotum; short elytra covering only the front of the abdomen, leaving a long, flexible, segmented abdomen exposed and slightly raised; exactly six long slender legs. The labium (lower lip) is extended forward as a long thin rod far beyond the head, ending in a pair of small sticky pads: the labial harpoon it shoots out to catch springtails. Show the harpoon extended in the side and three-quarter views and retracted under the head in the top and front views. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.
@@ -556,9 +556,9 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the water strider standing on the pool surface.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
-  - `water-strider`: reference photograph still being collected for the atlas
+  - [Adult Gerris lacustris; six-leg arrangement, short forelegs and long middle/hind legs.](../research/assets/references/production/water-strider-adult.jpg) · Richard Bartz, CC BY-SA 2.5 · [source](https://commons.wikimedia.org/wiki/File:Water_strider_Gerris_lacustris.jpg)
 
 ```text
 Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. A water strider of the genus Gerris, about 10 mm long body: a narrow dark brown-black body covered with a fine velvety silver-grey hair pile, a small head with prominent eyes and four-segmented antennae, a piercing beak (rostrum) folded under the head; exactly six legs: short front legs held forward for grabbing prey, very long thin middle legs spread sideways for rowing, long hind legs trailing backward for steering; the middle and hind legs rest on the water along their last segments with small dimples, not touching the water anywhere else. Show the legs in their natural resting stance on a flat invisible water plane. Wingless form. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.
@@ -570,13 +570,28 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the predatory mesostigmatid mite (Levels 0 and 1).
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
-  - `predatory-mite`: reference photograph still being collected for the atlas
+  - [Pergamasus diversus; predatory mite morphology, not a species-level bog occurrence claim.](../research/assets/references/production/predatory-mite.jpg) · AfroBrazilian, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Pergamasus_diversus_02.jpg)
   - [Unidentified phthiracarid mite; adult arthropod morphology.](../research/assets/references/mite.jpg) · S.E. Thorpe, Public domain · [source](https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg)
 
 ```text
 Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. A predatory mesostigmatid mite of the family Parasitidae (Pergamasus-type), about 1 mm long: an oval, flattened, glossy amber-to-chestnut body covered by smooth sclerotised dorsal shields with a few short setae; exactly eight legs, each with seven visible segments, the first pair longer and held forward like antennae, the others walking; at the front a projecting gnathosoma with a pair of long chelicerae ending in small pincers (chelae), and short pedipalps. No eyes. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.
+```
+
+### MP-R13 · Predatory mite (Pergamasus-type), revision
+
+- **File:** `micro/prototypes/assets/reference-sheets/predatory-mite-v2.webp`
+- **Size:** 2048 x 2048, opaque
+- **Used for:** Replaces MP-R04, which came out as a domed, glossy, dark tick-like mite. Modelling the predatory mesostigmatid mite (Levels 0 and 1).
+- **Stand-in until delivered:** None needed: the model is built from the photographs.
+- **Status:** requested
+- **Reference images:**
+  - [Pergamasus diversus; predatory mite morphology, not a species-level bog occurrence claim.](../research/assets/references/production/predatory-mite.jpg) · AfroBrazilian, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Pergamasus_diversus_02.jpg)
+  - [Unidentified phthiracarid mite; adult arthropod morphology.](../research/assets/references/mite.jpg) · S.E. Thorpe, Public domain · [source](https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg)
+
+```text
+Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. A predatory mesostigmatid mite of the family Parasitidae (Pergamasus-type), about 1 mm long, a fast running hunter of soil and moss. Its body is strongly flattened top to bottom like a coin, NOT domed: in the side and front views the body is only about a quarter as tall as it is wide. Pale tan to light honey-yellow, satin rather than glossy, with smooth plate-like dorsal shields (a front and a rear shield meeting across the middle) and a few short fine setae; it must not look like a tick or a round beetle-mite. Exactly eight long slender legs, each with seven visible segments: the first pair is longer and thinner than the others, has no claws, and is held raised and forward like a pair of antennae, as these mites feel their way; the other three pairs are spread wide, walking, each ending in a small claw and pad. At the front, a projecting gnathosoma with a pair of long chelicerae ending in small toothed pincers (chelae), clearly visible from the top and front, and short five-segmented pedipalps beside them. No eyes. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.
 ```
 
 ### MP-R05 · Predatory tardigrade (Milnesium)
@@ -585,9 +600,9 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling Milnesium, the carnivorous tardigrade of Level 2.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
-  - `milnesium`: reference photograph still being collected for the atlas
+  - [Milnesium tardigradum SEM; alias of the existing atlas reference, not a living light-microscope view.](../research/assets/references/tardigrade-sem.png) · Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012), CC BY 2.5 · [source](https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png)
   - [SEM of an animal prepared from the active state; not live in-chamber footage.](../research/assets/references/tardigrade-sem.png) · Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012), CC BY 2.5 · [source](https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png)
   - [Light-microscope photograph; phone-camera filtering is part of the source image.](../research/assets/references/tardigrade-light.png) · Dorathyexplorer, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png)
 
@@ -601,9 +616,9 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling Didinium, the Paramecium hunter of Level 3.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
-  - `didinium`: reference photograph still being collected for the atlas
+  - [Historical morphology drawing of Didinium feeding on Paramecium; anatomy reference, not a photograph or micrograph.](../research/assets/references/production/didinium.jpg) · S. O. Mast, Public domain · [source](https://commons.wikimedia.org/wiki/File:Didinium_nasutum_consuming_a_paramecium.jpg)
   - [Paramecium caudatum; whole-cell outline and internal contrast.](../research/assets/references/paramecium.jpg) · MTadey, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg)
 
 ```text
@@ -616,9 +631,9 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the Level 3 protagonist, the green Paramecium.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
-  - `paramecium-bursaria`: reference photograph still being collected for the atlas
+  - [Paramecium bursaria in DIC; green symbionts and body proportions.](../research/assets/references/production/paramecium-bursaria.jpg) · Anatoly Mikhaltsov, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Paramecium_bursaria.jpg)
   - [Paramecium caudatum; whole-cell outline and internal contrast.](../research/assets/references/paramecium.jpg) · MTadey, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg)
 
 ```text
@@ -633,7 +648,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
 - **Status:** requested
 - **Reference images:**
-  - `peranema`: reference photograph still being collected for the atlas
+  - [Peranema sp. from a Quebec pond; genus-level morphology reference.](../research/assets/references/production/peranema.jpg) · Deuterostome, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Peranema.jpg)
   - [Euglena gracilis; green pigment and elongated cell silhouette.](../research/assets/references/euglena.jpg) · naturalismus, CC BY-SA 2.0 · [source](https://commons.wikimedia.org/wiki/File:Euglena_gracilis.jpg)
 
 ```text
@@ -646,9 +661,9 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling Actinophrys, the radiating ambush predator of Level 4.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
-  - `actinophrys`: reference photograph still being collected for the atlas
+  - [Actinophrys sol in phase contrast; radial axopodia and vacuolated body.](../research/assets/references/production/actinophrys.jpg) · Djpmapfer, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Actinophrys_sol_(phase_contrast_microscopy).jpg)
 
 ```text
 Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. The heliozoan Actinophrys sol, a cell body about 40 µm across, as in a brightfield preparation: a spherical, frothy, vacuolated transparent cell with one central nucleus, from which many straight, stiff, thin radiating arms (axopodia) about as long as the cell's diameter project evenly in all directions, each with tiny granules (extrusomes) scattered along it. Being spherical it looks the same from every side: keep the views identical in proportion and arm density. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.
@@ -660,9 +675,9 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the Level 5 protagonist.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
-  - `magnetotactic`: reference photograph still being collected for the atlas
+  - [Magnetospirillum gryphiswaldense; electron-microscopy reference. Internal detail is not visible in ordinary light microscopy.](../research/assets/references/production/magnetotactic.png) · Caulobacter subvibrioides (Diskussion), CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png)
 
 ```text
 Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. A magnetotactic spirillum (Magnetospirillum-type), as reconstructed from electron micrographs: a helical, gently twisted rod-shaped cell about 3 µm long and 0.5 µm wide, one and a half to two turns of helix, with a single long flagellum at each end; a straight chain of 15 to 20 cube-octahedral magnetite crystals (magnetosomes, each about 50 nm, dark grey-black, each in its own thin membrane) running along the long axis inside the cell, drawn visible through a pale translucent cell body. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.
@@ -674,9 +689,9 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling Bdellovibrio, the predatory bacterium of Level 5.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
-  - `bdellovibrio`: reference photograph still being collected for the atlas
+  - [Bdellovibrio cryotomogram section; ultrastructure reference, not a live light-microscope view.](../research/assets/references/production/bdellovibrio.jpg) · Eikosi, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Slice_from_electron_cryotomogram_of_Bdellovibrio_bacteriovorus_cell.jpg)
 
 ```text
 Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. The predatory bacterium Bdellovibrio bacteriovorus in its free-swimming attack phase, as reconstructed from electron micrographs: a small comma-shaped (vibrioid) cell about 1 µm long and 0.3 µm wide, with a single thick sheathed flagellum at one pole about three times the cell's length, and fine short pili at the opposite, attacking pole. Pale translucent grey cell body. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.
@@ -690,7 +705,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
 - **Status:** requested
 - **Reference images:**
-  - `phage-t4`: reference photograph still being collected for the atlas
+  - [T4 phage electron micrograph; head, sheath and tail-fibre reference.](../research/assets/references/production/phage-t4.jpg) · 7USSR7, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg)
 
 ```text
 Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. Bacteriophage T4 as reconstructed from cryo-electron microscopy, about 0.2 µm tall: an elongated icosahedral head (a prolate capsid about 110 nm long and 85 nm wide, with flat triangular faces) containing the DNA; a short collar with whiskers below it; a straight cylindrical contractile tail sheath about 100 nm long with helical ridges around a central tube; a hexagonal baseplate at the bottom with six short tail pins; and exactly six long, thin, kinked tail fibres (each bent at a knee halfway along) hanging down and outward from the baseplate corners. Draw in molecular-model colours (soft blues and greens for the capsid, ochre for the sheath, orange for baseplate and fibres). Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.
@@ -708,12 +723,12 @@ Concept plates for the levels that have no prototype art yet: the mood, palette 
 - **Stand-in until delivered:** None needed.
 - **Status:** requested
 - **Reference images:**
-  - `bog-pool`: reference photograph still being collected for the atlas
-  - `bog-hummock`: reference photograph still being collected for the atlas
-  - `springtail`: reference photograph still being collected for the atlas
-  - `sundew`: reference photograph still being collected for the atlas
-  - `water-strider`: reference photograph still being collected for the atlas
-  - `stenus`: reference photograph still being collected for the atlas
+  - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](../research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
+  - [Sphagnum capitulum structure and colour; macro habitat reference.](../research/assets/references/production/bog-hummock.jpg) · OolaEei, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Capitulum.jpg)
+  - [Podura aquatica; external body and limb proportions.](../research/assets/references/production/springtail.jpg) · Christian Fischer, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:PoduraAquatica.jpg)
+  - [Round-leaved sundew leaf and glandular tentacles.](../research/assets/references/production/sundew.jpg) · Petr Dlouhý, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Drosera_rotundifolia_leaf1.jpg)
+  - [Adult Gerris lacustris; six-leg arrangement, short forelegs and long middle/hind legs.](../research/assets/references/production/water-strider-adult.jpg) · Richard Bartz, CC BY-SA 2.5 · [source](https://commons.wikimedia.org/wiki/File:Water_strider_Gerris_lacustris.jpg)
+  - [Stenus adult; body, eyes and elytra reference. Extended labium is specified by the brief.](../research/assets/references/production/stenus.jpg) · Elena Regina, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Stenus_(Stenus)_sp_%E2%99%82_adult.jpg)
   - Concept board (mood only): [`01-moss-frontier.webp`](../research/assets/concepts/01-moss-frontier.webp)
 
 ```text
@@ -728,13 +743,13 @@ Macro-photography look: a real photograph through a macro lens at 2 to 5 times l
 - **Stand-in until delivered:** None needed.
 - **Status:** requested
 - **Reference images:**
-  - `trachelomonas`: reference photograph still being collected for the atlas
-  - `peranema`: reference photograph still being collected for the atlas
-  - `actinophrys`: reference photograph still being collected for the atlas
-  - `chytrid`: reference photograph still being collected for the atlas
+  - [Trachelomonas hispida; lorica form and surface ornament.](../research/assets/references/production/trachelomonas.jpg) · Sándor Bancsó, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Bancs%C3%B3_2021_Fig_8-2_Trachelomonas_hispida.jpg)
+  - [Peranema sp. from a Quebec pond; genus-level morphology reference.](../research/assets/references/production/peranema.jpg) · Deuterostome, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Peranema.jpg)
+  - [Actinophrys sol in phase contrast; radial axopodia and vacuolated body.](../research/assets/references/production/actinophrys.jpg) · Djpmapfer, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Actinophrys_sol_(phase_contrast_microscopy).jpg)
+  - [Marine melt-pond diatoms with putative chytrid-like infections; morphology analogue, not bog co-occurrence evidence.](../research/assets/references/production/chytrid.webp) · Estelle S. Kilias, Leandro Junges, Luka Šupraha, Guy Leonard, Katja Metfies & Thomas A. Richards, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Pennate_diatoms_infected_with_chytrid-like_fungal_pathogens.webp)
   - [Euglena gracilis; green pigment and elongated cell silhouette.](../research/assets/references/euglena.jpg) · naturalismus, CC BY-SA 2.0 · [source](https://commons.wikimedia.org/wiki/File:Euglena_gracilis.jpg)
   - [Marine Antarctic sea-ice diatoms: morphology reference, not evidence of freshwater co-occurrence.](../research/assets/references/diatoms.jpg) · Prof. Gordon T. Taylor, Stony Brook University, Public domain · [source](https://commons.wikimedia.org/wiki/File:Diatoms_through_the_microscope.jpg)
-  - `utricularia-bladder`: reference photograph still being collected for the atlas
+  - [Utricularia australis bladder trap from an Austrian pond; trap anatomy analogue.](../research/assets/references/production/utricularia-bladder.jpg) · Stefan.lefnaer, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Utricularia_australis_sl68.jpg)
   - Concept board (mood only): [`04-cell-neighborhood.webp`](../research/assets/concepts/04-cell-neighborhood.webp)
 
 ```text
@@ -749,9 +764,9 @@ Differential-interference-contrast (Nomarski) microscope look: smooth grey backg
 - **Stand-in until delivered:** None needed.
 - **Status:** requested
 - **Reference images:**
-  - `magnetotactic`: reference photograph still being collected for the atlas
-  - `bdellovibrio`: reference photograph still being collected for the atlas
-  - `biofilm-fluorescence`: reference photograph still being collected for the atlas
+  - [Magnetospirillum gryphiswaldense; electron-microscopy reference. Internal detail is not visible in ordinary light microscopy.](../research/assets/references/production/magnetotactic.png) · Caulobacter subvibrioides (Diskussion), CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png)
+  - [Bdellovibrio cryotomogram section; ultrastructure reference, not a live light-microscope view.](../research/assets/references/production/bdellovibrio.jpg) · Eikosi, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Slice_from_electron_cryotomogram_of_Bdellovibrio_bacteriovorus_cell.jpg)
+  - [Tagged Pseudomonas biofilm; fluorescence and matrix analogue, not a live/dead-stain image.](../research/assets/references/production/biofilm-fluorescence.png) · Schwarz, Michael (ORCID: 0009-0002-1414-3291), CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:NFDI4BIOIMAGE_Calendar_March_2025_-_image_march.png)
   - [Marine seagrass biofilm SEM figure: matrix and surface-reference analogue, not freshwater habitat documentation.](../research/assets/references/biofilm-sem.jpg) · Timo Kohn, Rast, P., Kallscheuer, N., Wiegand, S., Boedeker, C., Jetten, M.S., Jeske, O., Vollmers, J., Kaster, A.K., Rohde, M. and Jogler, M., CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Electron_microscopic_analysis_of_seagrass_biofilms.jpg)
   - Concept board (mood only): [`04-cell-neighborhood.webp`](../research/assets/concepts/04-cell-neighborhood.webp)
 
@@ -767,8 +782,8 @@ Phase-contrast microscope look at 1000x oil immersion: mid-grey background, tran
 - **Stand-in until delivered:** None needed.
 - **Status:** requested
 - **Reference images:**
-  - `phage-t4`: reference photograph still being collected for the atlas
-  - `magnetotactic`: reference photograph still being collected for the atlas
+  - [T4 phage electron micrograph; head, sheath and tail-fibre reference.](../research/assets/references/production/phage-t4.jpg) · 7USSR7, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg)
+  - [Magnetospirillum gryphiswaldense; electron-microscopy reference. Internal detail is not visible in ordinary light microscopy.](../research/assets/references/production/magnetotactic.png) · Caulobacter subvibrioides (Diskussion), CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png)
   - [Marine seagrass biofilm SEM figure: matrix and surface-reference analogue, not freshwater habitat documentation.](../research/assets/references/biofilm-sem.jpg) · Timo Kohn, Rast, P., Kallscheuer, N., Wiegand, S., Boedeker, C., Jetten, M.S., Jeske, O., Vollmers, J., Kaster, A.K., Rohde, M. and Jogler, M., CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Electron_microscopic_analysis_of_seagrass_biofilms.jpg)
 
 ```text

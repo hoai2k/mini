@@ -25,6 +25,8 @@ def esc(value):
 
 
 def gallery(records):
+    module = runpy.run_path(str(REQUEST_SOURCE))
+    total = sum(len(group['items']) for group in module['GROUPS'])
     cards = []
     for record in records:
         image = '../../prototypes/' + record['file']
@@ -38,6 +40,7 @@ def gallery(records):
     if (PROVENANCE.parent / 'review/index.html').exists():
         label = 'Pending texture review' if len(records) < 18 else 'Earlier texture review'
         output = output.replace('</nav>', f' · <a href="review/index.html">{label}</a></nav>')
+    output = output.replace('of 18 requested assets', f'of {total} requested assets')
     (PROVENANCE.parent / 'index.html').write_text(output.replace('COUNT', str(len(records))).replace('CARDS', ''.join(cards)) + '\n')
 
 
@@ -61,12 +64,23 @@ def main():
             original_size = image.size
             # Only normalize the export dimensions and encoding, not the composition.
             if image.size != (width, height):
-                image = image.resize((width, height), Image.Resampling.LANCZOS)
+                if '/reference-sheets/' in request['file']:
+                    # Preserve anatomy when the generator returns a non-square sheet.
+                    image = ImageOps.pad(image, (width, height), Image.Resampling.LANCZOS,
+                                         color=(217, 217, 217))
+                else:
+                    image = image.resize((width, height), Image.Resampling.LANCZOS)
             if 'transparent' in request['size']:
                 assert image.getchannel('A').getextrema()[0] == 0, 'Real alpha required'
                 assert image.getchannel('A').getextrema()[1] == 255, 'Missing opaque particle content'
+            seam_data = {}
+            if source.get('finish_seams') and 'tileable' in request['size']:
+                finishing = runpy.run_path(str(ROOT / 'design/source/finish_texture_seams.py'))
+                seam_data['seam_metrics_before'] = finishing['metrics'](image)
+                image = finishing['quilt'](image)
+                seam_data['seam_metrics_after'] = finishing['metrics'](image)
             path.parent.mkdir(parents=True, exist_ok=True)
-            image.save(path, **({'quality': 93, 'method': 6} if path.suffix == '.webp' else {}))
+            image.save(path, **({'quality': 92, 'method': 6} if path.suffix == '.webp' else {}))
         record = {k: request[k] for k in ('id', 'name', 'file', 'size', 'used', 'prompt')}
         record.update(prompt=source['prompt'], requested_prompt=request['prompt'],
                       tool='Built-in image_gen', source_artifact=Path(source['source_path']).name,
@@ -74,14 +88,20 @@ def main():
                       reference_usage='References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.',
                       original_dimensions=list(original_size), width=width, height=height,
                       sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
-                      export='LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.',
+                      export=('LANCZOS sizing; opposing-edge strips quilted with the approved conventional seam-correction workflow; WebP quality 92.' if seam_data else ('Aspect-preserving LANCZOS sizing with neutral outer padding when needed; WebP quality 92. No anatomy edits.' if '/reference-sheets/' in request['file'] else 'LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.')),
                       references=[{k: references[rid][k] for k in ('id', 'local', 'author', 'license', 'license_url', 'source')} for rid in request['refs']],
                       mood_boards=request.get('concepts', []))
+        record.update(seam_data)
         records.append(record)
         text = REQUEST_SOURCE.read_text()
         marker = '"id": "' + ident + '",'
         assert text.count(marker) == 1
-        REQUEST_SOURCE.write_text(text.replace(marker, marker + ' "status": "delivered",', 1))
+        explicit = marker + ' "status": "requested",'
+        if explicit in text:
+            text = text.replace(explicit, marker + ' "status": "delivered",', 1)
+        else:
+            text = text.replace(marker, marker + ' "status": "delivered",', 1)
+        REQUEST_SOURCE.write_text(text)
         print('Delivered', ident, path.relative_to(ROOT), image.size)
     PROVENANCE.parent.mkdir(parents=True, exist_ok=True)
     order = {key: index for index, key in enumerate(requests)}

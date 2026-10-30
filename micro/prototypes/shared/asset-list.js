@@ -119,31 +119,35 @@ export const ASSETS = {
   },
   "MP-R01": {
     "file": "assets/reference-sheets/springtail.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R02": {
     "file": "assets/reference-sheets/stenus.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R03": {
     "file": "assets/reference-sheets/water-strider.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R04": {
     "file": "assets/reference-sheets/predatory-mite.webp",
+    "status": "delivered"
+  },
+  "MP-R13": {
+    "file": "assets/reference-sheets/predatory-mite-v2.webp",
     "status": "requested"
   },
   "MP-R05": {
     "file": "assets/reference-sheets/milnesium.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R06": {
     "file": "assets/reference-sheets/didinium.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R07": {
     "file": "assets/reference-sheets/paramecium-bursaria.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R08": {
     "file": "assets/reference-sheets/peranema.webp",
@@ -151,15 +155,15 @@ export const ASSETS = {
   },
   "MP-R09": {
     "file": "assets/reference-sheets/actinophrys.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R10": {
     "file": "assets/reference-sheets/magnetotactic.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R11": {
     "file": "assets/reference-sheets/bdellovibrio.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R12": {
     "file": "assets/reference-sheets/phage-t4.webp",

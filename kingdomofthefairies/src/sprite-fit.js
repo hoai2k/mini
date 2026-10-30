@@ -80,3 +80,22 @@ export const POSE_FIT = {
   'prince-wall-up-d': 0.781,
   'prince-wall-up-d-tinted': 0.806,
 };
+
+// Lying figures: art rows from the underside of the lower back to the
+// canvas bottom; the hips rest on the ground and the figure drapes over it.
+export const REST_GAP = {
+  'azurine-asleep': 18,
+  'azurine-asleep-tinted': 20,
+  'crew-asleep': 2,
+  'crew-asleep-b': 5,
+  'crew-asleep-b-tinted': 6,
+  'crew-asleep-tinted': 2,
+  'crew-bosun-asleep': 15,
+  'crew-bosun-asleep-tinted': 11,
+  'crew-helmsman-asleep': 14,
+  'crew-helmsman-asleep-tinted': 17,
+  'crew-manatarms-asleep': 15,
+  'crew-manatarms-asleep-tinted': 22,
+  'crew-squire-asleep': 11,
+  'crew-squire-asleep-tinted': 24,
+};
