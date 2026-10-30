@@ -21,7 +21,7 @@ import * as art from './prologue-art.js';
 
 export const BEAT_S = 60 / 76.5;
 export const FLOOR = 600;                       // the court's floor
-export const ARM_FLOOR = 628;                   // the armoury's flagstones, below its stairs
+export const ARM_FLOOR = 650;                   // the armoury's flagstones, toward their front edge (by the racks' bases)
 export const PHYS = { g: 2000, jump: 760, walk: 250, acc: 2200, cut: 2400, buffer: 0.13 };
 export const REACH = 70;                        // how near he must stand to take or give
 // Who stands where in the court (stage px, feet on the floor unless `y`).
@@ -48,6 +48,8 @@ export const COURT_START = 205;   // just inside the left curtain
 export const rampartFloor = (x) => (x <= 440 ? 508 : x >= 600 ? 494 : 508 - ((x - 440) / 160) * 14);
 export const RAMPART = { w: 2560, y: 494, end: 2260, lead: 340, speed: 210, catchUp: 320, dropEvery: 1.25, fireW: 30, knock: 330, grace: 1.6 };
 export const LANTERNS = 3;
+// Stage x past which a figure is hidden by the right curtain and off.
+export const OFFSTAGE_X = 1180;
 export const CHARIOT_Y = 165;
 // The armoury: he is bound at the right; Aurora comes on from the stairs at
 // the left, and his arms lie between, in the order he reaches them.
@@ -125,8 +127,14 @@ export default {
       if (st.phaseT >= T.curse) next(st);
     }
     else if (ph === 'rampart') rampart(st, dt, input);
-    // at the door he runs on through it himself as the chariot climbs away
-    else if (ph === 'escape') { walk(st, dt, 1, {}, { floor: rampartFloor, x0: 60, x1: RAMPART.w - 100 }); st.chariot.up += dt; if (st.phaseT >= T.escape) next(st); }
+    // at the door he runs on through it himself, at full stride, and the
+    // scene moves on only once he is off the stage (past the right curtain)
+    // as the chariot climbs away
+    else if (ph === 'escape') {
+      st.p.vx = Math.max(st.p.vx, PHYS.walk);
+      walk(st, dt, 1, {}, { floor: rampartFloor, x0: 60, x1: RAMPART.w + 400 }); st.chariot.up += dt;
+      if (st.p.x - (RAMPART.w - 1280) > OFFSTAGE_X + 70 || st.phaseT >= T.escape * 3) next(st);   // his whole figure (half 70 px) past it
+    }
     else if (ph === 'bind') bind(st, dt, input);
     else if (ph === 'free') {
       const was = st.phaseT - dt;
