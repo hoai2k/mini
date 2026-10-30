@@ -127,7 +127,7 @@ SOUNDS = [
     # Paramecium: a fast swimmer in the pond.
     S("paramecium/amb-pool", "loop", 12, "Ambience: open pond water.",
       "Faint underwater ambience in clear pond water: a very soft airy hiss, tiny distant ticks and fizzes, calm. "
-      "Even, continuous, seamless. " + CLEAN, 0.5),
+      "Even, continuous, seamless. " + CLEAN, 0.5, volume=0.35),
     S("paramecium/swim", "loop", 6, "The cilia beating (volume and rate follow the swim speed).",
       "A soft continuous rhythmic shimmering rustle, like thousands of tiny feathers fluttering in water, steady. "
       "Continuous, seamless. " + CLOSE, 0.6, volume=0.7),
