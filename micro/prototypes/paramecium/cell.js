@@ -1,4 +1,7 @@
-// Paramecium caudatum, built from its anatomy (all lengths in µm).
+// Paramecium, built from its anatomy (all lengths in µm). Two species:
+// P. bursaria (the Level 3 protagonist: 85–150 µm, plump, green with
+// symbiotic Chlorella, S27) and the larger, colourless P. caudatum (S07).
+// The species is picked once at load (the Features choice reloads the page).
 // Local frame: +x anterior, +y dorsal, −y ventral (oral side), +z the cell's
 // left. The body is a slipper: blunt anterior, more pointed posterior,
 // widest a little behind the middle; the oral groove runs obliquely from the
@@ -8,24 +11,43 @@ import { buildSdfMesh, sd, combine } from '../shared/sdf.js';
 import { volumeMaterial, pointsMaterial } from './optics.js';
 import { createStrands, KIND } from './strands.js';
 
-export const LENGTH = 230; // S07: 200–260 µm in Kreutz's population
+export const SPECIES = {
+  bursaria: { name: 'P. bursaria (green, 120 µm)', latin: 'Paramecium bursaria', L: 120, XM: -6, RMAX: 28, pA: 2.6, pP: 2.4, taper: 0.12, FLAT: 0.8, chlorella: 520 },
+  caudatum: { name: 'P. caudatum (colourless, 230 µm)', latin: 'Paramecium caudatum', L: 230, XM: -20, RMAX: 31, pA: 3, pP: 1.8, taper: 0.22, FLAT: 0.86, chlorella: 0 },
+};
+export const FEATURE_KEY = 'paramecium.v2';
+/** The species chosen in the feature panel (or ?f=species:...), read once at load. */
+function pickSpecies() {
+  let v = null;
+  try {
+    const f = new URL(location.href).searchParams.get('f') || '';
+    for (const part of f.split(',')) { const [k, x] = part.split(':'); if (k === 'species' && x) v = x; }
+    if (!v) v = (JSON.parse(localStorage.getItem(`micro.features.${FEATURE_KEY}`) || '{}') || {}).species;
+  } catch { /* private mode */ }
+  return Object.keys(SPECIES).find((k) => SPECIES[k].name === v || k === v) || 'bursaria';
+}
+export const SPECIES_ID = pickSpecies();
+const SP = SPECIES[SPECIES_ID];
+export const LENGTH = SP.L; // bursaria 85–150 µm (S27); caudatum 200–260 µm (S07)
 const HL = LENGTH / 2;
-const FLAT = 0.86; // dorsoventral flattening of the cross-section
+const K = LENGTH / 230; // scale of the caudatum-tuned anatomy
+const FLAT = SP.FLAT; // dorsoventral flattening of the cross-section
 
 const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 // Outline: two superellipse halves joined at the widest point, 20 µm behind
 // the middle. The anterior half (p = 3, tapering to about 0.78 of the width)
 // ends bluntly; the posterior half (p = 1.8) is conical and narrowly rounded.
-const XM = -20, RMAX = 31;
+const XM = SP.XM, RMAX = SP.RMAX;
+export const WIDTH = RMAX * 2;
 /** Body radius (the z half-width) at axial position x. */
 export function radiusAt(x) {
   if (x >= XM) {
     const s = Math.min(1, (x - XM) / (HL - XM));
-    return RMAX * (1 - 0.22 * s * s) * Math.pow(Math.max(0, 1 - s ** 3), 1 / 3);
+    return RMAX * (1 - SP.taper * s * s) * Math.pow(Math.max(0, 1 - s ** SP.pA), 1 / SP.pA);
   }
   const s = Math.min(1, (XM - x) / (XM + HL));
-  return RMAX * Math.pow(Math.max(0, 1 - s ** 1.8), 1 / 1.8);
+  return RMAX * Math.pow(Math.max(0, 1 - s ** SP.pP), 1 / SP.pP);
 }
 const rawBody = (x, y, z) => Math.max(Math.hypot(y / FLAT, z) - radiusAt(x), Math.abs(x) - HL);
 
@@ -39,12 +61,12 @@ function surf(x, a, inset = 0) {
 const GROOVE = [];
 for (let i = 0; i <= 7; i++) {
   const k = i / 7;
-  const x = 100 - k * 102;
+  const x = (100 - k * 102) * K;
   const a = 1.25 * (1 - k) ** 1.3;
-  const rad = 14 - 5.5 * k;
+  const rad = (14 - 5.5 * k) * Math.sqrt(K) * (RMAX / 31);
   GROOVE.push({ x, a, rad, c: surf(x, a, rad * 0.12) });
 }
-export const MOUTH = new THREE.Vector3(...surf(-4, 0, -6)); // the cytostome, at the end of the buccal cavity
+export const MOUTH = new THREE.Vector3(...surf(-4 * K, 0, -6 * Math.sqrt(K))); // the cytostome, at the end of the buccal cavity
 
 function bodyParts() {
   const parts = [{ id: 0, sdf: rawBody }];
@@ -53,7 +75,8 @@ function bodyParts() {
     parts.push({ id: 1, op: 'sub', blend: 5, sdf: sd.roundCone(a.c, b.c, a.rad, b.rad) });
   }
   // the buccal cavity, a deeper pocket where the groove ends
-  parts.push({ id: 1, op: 'sub', blend: 4, sdf: sd.ellipsoid(surf(-2, 0, 1), [17, 11, 9]) });
+  const kb = Math.sqrt(K);
+  parts.push({ id: 1, op: 'sub', blend: 4, sdf: sd.ellipsoid(surf(-2 * K, 0, 1), [17 * kb, 11 * kb, 9 * kb]) });
   return parts;
 }
 
@@ -64,7 +87,7 @@ export function createCell() {
   group.name = 'paramecium';
   const parts = bodyParts();
   const field = combine(parts);
-  const geo = buildSdfMesh(parts, { min: [-HL - 6, -34, -36], max: [HL + 6, 34, 36], cell: 1.8 });
+  const geo = buildSdfMesh(parts, { min: [-HL - 6, -RMAX * FLAT - 4, -RMAX - 5], max: [HL + 6, RMAX * FLAT + 4, RMAX + 5], cell: Math.max(1.2, 1.8 * Math.sqrt(K)) });
   // aRef: the axis point under each vertex (for the chord trick); aUv: (t, angle/2π) for the pellicle.
   const pos = geo.attributes.position;
   const ref = new Float32Array(pos.count * 3), uv = new Float32Array(pos.count * 2);
@@ -76,7 +99,8 @@ export function createCell() {
   }
   geo.setAttribute('aRef', new THREE.BufferAttribute(ref, 3));
   geo.setAttribute('aUv', new THREE.BufferAttribute(uv, 2));
-  const bodyMat = volumeMaterial({ dn: 0.026, scatter: 1.0, absorb: [0.0011, 0.0016, 0.0032], pattern: 1, rimPow: 2.5 });
+  const bodyMat = volumeMaterial({ dn: 0.026, scatter: 1.0, absorb: SP.chlorella ? [0.0016, 0.0012, 0.0026] : [0.0011, 0.0016, 0.0032], pattern: 1, rimPow: 2.5 });
+  bodyMat.uniforms.uLen.value = LENGTH;
   const body = new THREE.Mesh(geo, bodyMat);
   body.frustumCulled = false;
   group.add(body);
@@ -116,7 +140,7 @@ export function createCell() {
   // offset along a diagonal, so waves sweep over the surface.
   const rand = rng(7);
   const cilia = [];
-  const ROWS = 100, PER = 46;
+  const ROWS = SP.chlorella ? 90 : 100, PER = Math.round(46 * K);
   const surfaceSamples = [];
   for (let k = 0; k < ROWS; k++) {
     for (let j = 0; j < PER; j++) {
@@ -127,15 +151,15 @@ export function createCell() {
       let D = tangentDir(n, [-1, 0, 0]);
       D = rotAbout(D, n, 0.32);
       const arc = a * 26;
-      const phase = -(x * 0.85 + arc * 0.5) / 15 + rand() * 0.04;
+      const phase = -(x / K * 0.85 + arc * 0.5) / 15 + rand() * 0.04;
       cilia.push({ base: p, normal: n, dir: D, length: 10 + rand() * 1.5, width: 0.8, phase, kind: KIND.CILIUM });
       surfaceSamples.push({ p, n });
     }
   }
   // Oral cilia: rows of longer, faster cilia lining the groove and the buccal cavity.
   for (let i = 0; i < GROOVE.length - 1; i++) {
-    for (let q = 0; q < 14; q++) {
-      const f = q / 14;
+    for (let q = 0; q < Math.round(14 * K + 4); q++) {
+      const f = q / Math.round(14 * K + 4);
       const x = GROOVE[i].x + (GROOVE[i + 1].x - GROOVE[i].x) * f;
       const a = GROOVE[i].a + (GROOVE[i + 1].a - GROOVE[i].a) * f;
       for (const da of [-0.13, 0, 0.13]) {
@@ -158,7 +182,7 @@ export function createCell() {
 
   // --- Trichocysts: a dense layer of spindles just below the pellicle -------
   const tri = [];
-  for (let i = 0; i < 2600; i++) {
+  for (let i = 0; i < Math.round(2600 * K); i++) {
     const t = 0.03 + rand() * 0.94;
     const x = -HL + t * LENGTH;
     const a = rand() * Math.PI * 2;
@@ -171,21 +195,22 @@ export function createCell() {
 
   // --- Nuclei ---------------------------------------------------------------
   const sph = new THREE.SphereGeometry(1, 28, 18);
-  const macroGeo = sph.clone().scale(24, 11.5, 13);
+  const kn = SP.chlorella ? 0.62 : 1;
+  const macroGeo = sph.clone().scale(24 * kn, 11.5 * kn, 13 * kn);
   const macro = new THREE.Mesh(macroGeo, volumeMaterial({ dn: 0.016, scatter: 0.45, absorb: [0.002, 0.002, 0.0025], centred: true }));
-  macro.position.set(-6, 4, -2);
+  macro.position.set(-6 * K, 4 * kn, -2);
   macro.rotation.z = 0.12;
   group.add(macro);
   const micro = new THREE.Mesh(sph, volumeMaterial({ dn: 0.022, scatter: 0.6, centred: true }));
-  micro.scale.setScalar(4);
-  micro.position.set(14, 11, -4);
+  micro.scale.setScalar(SP.chlorella ? 3 : 4);
+  micro.position.set(14 * K + 6 * kn, 11 * kn, -4);
   group.add(micro);
 
   // --- Contractile vacuoles, each with 8 radiating collecting canals --------
   const cvMat = volumeMaterial({ dn: -0.026, scatter: 0.9, centred: true, rimPow: 1.5 });
-  const cvs = [60, -62].map((x, i) => {
+  const cvs = [60 * K, -62 * K].map((x, i) => {
     const r = radiusAt(x);
-    const c = new THREE.Vector3(x, r * FLAT - 8, i ? -3 : 3);
+    const c = new THREE.Vector3(x, r * FLAT - 8 * Math.sqrt(K), i ? -3 : 3);
     const m = new THREE.Mesh(sph, cvMat);
     m.position.copy(c);
     group.add(m);
@@ -196,6 +221,7 @@ export function createCell() {
   canals.frustumCulled = false;
   group.add(canals);
 
+  const LOOP = [72 * K, 15 * (RMAX / 31) * (SP.chlorella ? 1.3 : 1), 30 * (RMAX / 31)];
   // --- Food vacuoles in cyclosis ---------------------------------------------
   const FV_MAX = 16;
   const fvMesh = new THREE.InstancedMesh(sph, volumeMaterial({ dn: 0.024, scatter: 0.9, absorb: [0.0025, 0.004, 0.008], centred: true }), FV_MAX);
@@ -203,7 +229,7 @@ export function createCell() {
   group.add(fvMesh);
   const food = [];
   const loopPos = (u, rs, tilt, zoff, out) => {
-    const a = 72 * rs, b = 15 * rs;
+    const a = LOOP[0] * rs, b = LOOP[1] * rs;
     const q = [Math.cos(u) * a, Math.sin(u) * b, zoff];
     const ct = Math.cos(tilt), st = Math.sin(tilt);
     return out.set(q[0], q[1] * ct - q[2] * st, q[1] * st + q[2] * ct);
@@ -211,7 +237,7 @@ export function createCell() {
   for (let i = 0; i < 6; i++) food.push({ u: -Math.PI / 2 - 1.1 * i, travelled: 1.1 * i, r: 4 + rand() * 3, rs: 0.6 + rand() * 0.25, tilt: rand() - 0.5, z: (rand() - 0.5) * 10, age: 10 });
 
   // --- Cytoplasmic granules and crystals, streaming ---------------------------
-  const NG = 1500;
+  const NG = Math.round(1500 * K * (SP.chlorella ? 0.6 : 1));
   const gPos = new Float32Array(NG * 4), gP = new Float32Array(NG * 4);
   for (let i = 0; i < NG; i++) {
     const crystal = i < 140;
@@ -224,10 +250,32 @@ export function createCell() {
   gGeo.setAttribute('iPos', new THREE.InstancedBufferAttribute(gPos, 4));
   gGeo.setAttribute('iP', new THREE.InstancedBufferAttribute(gP, 4));
   gGeo.instanceCount = NG;
-  const gMat = pointsMaterial({ cyclosis: true, absorb: [0.0012, 0.0016, 0.0026] });
+  const gMat = pointsMaterial({ cyclosis: true, absorb: [0.0012, 0.0016, 0.0026], loop: LOOP });
   const granules = new THREE.Mesh(gGeo, gMat);
   granules.frustumCulled = false;
   group.add(granules);
+
+  // --- Chlorella symbionts (P. bursaria): a few hundred green algae 5–6 µm
+  // across filling the cytoplasm and riding the cyclosis (S27). Chlorophyll
+  // absorbs red and blue, so the cell is green in brightfield.
+  let chlorella = null, cMat = null;
+  if (SP.chlorella) {
+    const NC = SP.chlorella;
+    const cPos = new Float32Array(NC * 4), cP = new Float32Array(NC * 4);
+    for (let i = 0; i < NC; i++) {
+      cPos.set([rand(), -(0.008 + rand() * 0.01), 0.3 + Math.sqrt(rand()) * 0.85, (rand() - 0.5) * 2.6], i * 4);
+      cP.set([2.5 + rand() * 0.5, 0.045, 0.5, rand()], i * 4);
+    }
+    const cGeo = new THREE.InstancedBufferGeometry();
+    cGeo.index = quad.index; cGeo.attributes.position = quad.attributes.position;
+    cGeo.setAttribute('iPos', new THREE.InstancedBufferAttribute(cPos, 4));
+    cGeo.setAttribute('iP', new THREE.InstancedBufferAttribute(cP, 4));
+    cGeo.instanceCount = NC;
+    cMat = pointsMaterial({ cyclosis: true, absorb: [0.11, 0.022, 0.12], loop: [LOOP[0] * 1.15, LOOP[1] * 1.25, LOOP[2] * 1.5] });
+    chlorella = new THREE.Mesh(cGeo, cMat);
+    chlorella.frustumCulled = false;
+    group.add(chlorella);
+  }
 
   // --------------------------------------------------------------------------
   const m4 = new THREE.Matrix4(), v3 = new THREE.Vector3(), q4 = new THREE.Quaternion(), s3 = new THREE.Vector3();
@@ -237,13 +285,13 @@ export function createCell() {
 
   const opts = { cyclosis: true, cv: true };
   const api = {
-    opts, granules, macro, micro, group, body, cilia: ciliaS, trichocysts: triS, surfaceSamples, food,
+    opts, granules, chlorella, macro, micro, group, body, cilia: ciliaS, trichocysts: triS, surfaceSamples, food, species: SP,
     get foodCount() { return food.length; },
     /** A bacterium (or a few) reached the cytostome; every 10 makes a food vacuole. */
     ingested: 0,
-    ingest() {
+    ingest(n = 10) {
       api.ingested++;
-      if (api.ingested % 10 === 0) {
+      if (api.ingested % n === 0) {
         if (food.length >= FV_MAX) food.shift();
         food.push({ u: -Math.PI / 2, travelled: 0, r: 1, rs: 0.55 + rand() * 0.3, tilt: rand() - 0.5, z: (rand() - 0.5) * 8, age: 0 });
         return true;
@@ -260,6 +308,7 @@ export function createCell() {
       // Cyclosis (sped up roughly fivefold so it reads in play).
       if (opts.cyclosis) cyc += dt;
       gMat.uniforms.uCyclosis.value = cyc;
+      if (cMat) cMat.uniforms.uCyclosis.value = cyc;
 
       // Contractile vacuoles: canals swell, empty into the vacuole, the vacuole
       // swells and then empties through its pore (systole). Period 6 s, the two

@@ -19,6 +19,12 @@
 //     from another pipeline's buffers, see adapters.js) instead of rendering
 //     the scene; upTo: 2 stops after the defocus blur (read optics.targets:
 //     main.textures[0..1] sharp, pong.textures[0..1] blurred defocused layer).
+//     Optional: plateMix (0..1, how much of the habitat plate shows over the
+//     plain background; default 1), plateBlur (mip bias, default 0) and
+//     plateRot (radians, for a view that turns) keep a plate from competing
+//     with the subject. pointsMaterial({ loop: [a, b, zSpread] }) sizes the
+//     cyclosis loop (default the 230 µm P. caudatum: [72, 15, 30]);
+//     volumeMaterial's uLen uniform sets the pellicle's cell length (230).
 //
 // INPUTS
 // - Every visible object must use one of the optic materials (volumeMaterial,
@@ -141,7 +147,7 @@ export function volumeMaterial({ dn = 0.03, scatter = 1, absorb = [0, 0, 0], pat
     uniforms: {
       uDn: { value: dn }, uScatter: { value: scatter }, uAbsorb: { value: new THREE.Vector3(...absorb) },
       uRimPow: { value: rimPow }, uPattern: { value: pattern },
-      uPellicle: { value: null }, uHasPellicle: { value: 0 }, uAlpha: { value: 1 }, uPelOn: { value: 1 },
+      uPellicle: { value: null }, uHasPellicle: { value: 0 }, uAlpha: { value: 1 }, uPelOn: { value: 1 }, uLen: { value: 230 },
       ...extra,
     },
     defines: { CENTRED: centred ? 1 : 0, PATTERN: pattern },
@@ -184,7 +190,7 @@ export function volumeMaterial({ dn = 0.03, scatter = 1, absorb = [0, 0, 0], pat
     fragmentShader: /* glsl */ `
       ${GLSL_FRAG_COMMON}
       uniform float uDn; uniform float uScatter; uniform vec3 uAbsorb; uniform float uRimPow; uniform float uAlpha;
-      uniform sampler2D uPellicle; uniform float uHasPellicle; uniform float uPelOn;
+      uniform sampler2D uPellicle; uniform float uHasPellicle; uniform float uPelOn; uniform float uLen;
       varying float vDepth; varying float vRef; varying vec3 vN; varying vec3 vV; varying vec3 vLocal;
       #if PATTERN == 1
       varying vec2 vUv;
@@ -202,11 +208,11 @@ export function volumeMaterial({ dn = 0.03, scatter = 1, absorb = [0, 0, 0], pat
         // each unit ≈2.3 µm (drawn ≈1.5× larger so it reads). A delivered texture
         // (MP-P03) replaces the procedural rows.
         float rows = 96.0;
-        vec2 g = vec2(vUv.y * rows, vUv.x * 230.0 / 3.4);
+        vec2 g = vec2(vUv.y * rows, vUv.x * uLen / 3.4);
         g.y += 0.5 * floor(g.x);
         float ridge;
         if (uHasPellicle > 0.5) {
-          ridge = 1.0 - texture(uPellicle, vec2(vUv.y * rows / 24.0, vUv.x * 230.0 / 3.4 / 24.0)).g;
+          ridge = 1.0 - texture(uPellicle, vec2(vUv.y * rows / 24.0, vUv.x * uLen / 3.4 / 24.0)).g;
         } else {
           vec2 f = abs(fract(g) - 0.5);
           ridge = smoothstep(0.30, 0.48, max(f.x * 1.15, f.y));
@@ -266,15 +272,16 @@ export function sheetMaterial({ dn = 0.04, thick = 2, scatter = 0.6, absorb = [0
  * With CYCLOSIS defined, iPos is instead (u0, speed, ring scale, tilt) and
  * the position follows the cytoplasmic loop inside the cell.
  */
-export function pointsMaterial({ cyclosis = false, absorb = [0, 0, 0], rod = false } = {}) {
+export function pointsMaterial({ cyclosis = false, absorb = [0, 0, 0], rod = false, loop = [72, 15, 30] } = {}) {
   return opticMaterial({
-    uniforms: { uAbsorb: { value: new THREE.Vector3(...absorb) }, uCyclosis: { value: 0 }, uHalfLen: { value: 115 } },
+    uniforms: { uAbsorb: { value: new THREE.Vector3(...absorb) }, uCyclosis: { value: 0 }, uHalfLen: { value: 115 }, uLoop: { value: new THREE.Vector3(...loop) } },
     defines: { CYCLOSIS: cyclosis ? 1 : 0, ROD: rod ? 1 : 0 },
     vertexShader: /* glsl */ `
       ${GLSL_VERT_COMMON}
       attribute vec4 iPos;
       attribute vec4 iP;
       uniform float uCyclosis;
+      uniform vec3 uLoop;
       varying vec2 vQ; varying float vK; varying float vRef; varying vec4 vP;
       void main() {
         vec3 c;
@@ -282,8 +289,8 @@ export function pointsMaterial({ cyclosis = false, absorb = [0, 0, 0], rod = fal
         // Endoplasm loop: back along the ventral side from the cytostome, up through
         // the posterior, forward along the dorsal side (Paramecium cyclosis).
         float u = fract(iPos.x + uCyclosis * iPos.y) * 6.2831853;
-        float a = 72.0 * iPos.z, b = 15.0 * iPos.z;
-        vec3 q = vec3(cos(u) * a, sin(u) * b, (iP.w - 0.5) * 30.0 * iPos.z);
+        float a = uLoop.x * iPos.z, b = uLoop.y * iPos.z;
+        vec3 q = vec3(cos(u) * a, sin(u) * b, (iP.w - 0.5) * uLoop.z * iPos.z);
         float ct = cos(iPos.w), st = sin(iPos.w);
         c = vec3(q.x, q.y * ct - q.z * st, q.y * st + q.z * ct);
         #else
@@ -388,12 +395,12 @@ export function createOptics(renderer) {
       tS0: { value: null }, tS1: { value: null }, tB0: { value: null }, tB1: { value: null }, tL: { value: null },
       uTexel: { value: new THREE.Vector2() }, uMode: { value: 0 }, uPlate: { value: null }, uHasPlate: { value: 0 },
       uPlateOff: { value: new THREE.Vector2() }, uAspect: { value: 1 }, uTime: shared.uTime,
-      uHalo: { value: 1 }, uTie: { value: 1 }, uPlateOn: { value: 1 },
+      uHalo: { value: 1 }, uTie: { value: 1 }, uPlateOn: { value: 1 }, uPlateMix: { value: 1 }, uPlateBlur: { value: 0 }, uPlateRot: { value: 0 },
     },
     fragmentShader: /* glsl */ `
       layout(location = 0) out highp vec4 oC;
       uniform sampler2D tS0, tS1, tB0, tB1, tL, uPlate;
-      uniform vec2 uTexel, uPlateOff; uniform float uMode, uHasPlate, uAspect, uTime, uHalo, uTie, uPlateOn;
+      uniform vec2 uTexel, uPlateOff; uniform float uMode, uHasPlate, uAspect, uTime, uHalo, uTie, uPlateOn, uPlateMix, uPlateBlur, uPlateRot;
       varying vec2 vUv;
       float phi(vec2 uv) { return texture(tS0, uv).r + texture(tB0, uv).r; }
       void main() {
@@ -408,13 +415,15 @@ export function createOptics(renderer) {
         float gx = phi(vUv + vec2(e.x, 0)) - phi(vUv - vec2(e.x, 0));
         float gy = phi(vUv + vec2(0, e.y)) - phi(vUv - vec2(0, e.y));
         float g2 = gx * gx + gy * gy;
-        vec2 plUv = vec2((vUv.x - 0.5) * uAspect / 1.7778 + 0.5, vUv.y) + uPlateOff;
+        vec2 pc = vec2((vUv.x - 0.5) * uAspect / 1.7778, vUv.y - 0.5);
+        float pcs = cos(uPlateRot), psn = sin(uPlateRot);
+        vec2 plUv = vec2(pcs * pc.x - psn * pc.y, psn * pc.x + pcs * pc.y) + 0.5 + uPlateOff;
         vec3 col;
         int m = int(uMode + 0.5);
         if (m == 0) {
           // Darkfield: only light scattered out of the cone reaches the eye.
           vec3 bg = vec3(0.004, 0.006, 0.01);
-          if (uHasPlate * uPlateOn > 0.5) bg = texture(uPlate, plUv).rgb * 0.4;
+          if (uHasPlate * uPlateOn > 0.5) bg = mix(bg, texture(uPlate, plUv, uPlateBlur).rgb * 0.4, uPlateMix);
           float edge = 2.2 * g2 + 0.45 * hp * hp;
           float I = 1.0 - exp(-(edge + 0.06 * sc));
           vec3 tint = exp(-A * 0.55);
@@ -425,7 +434,7 @@ export function createOptics(renderer) {
           // direct light; the finite phase ring lets the low-pass leak back,
           // which gives the bright halo and the shade-off of large objects.
           vec3 bg = vec3(0.47, 0.475, 0.47);
-          if (uHasPlate * uPlateOn > 0.5) bg = texture(uPlate, plUv).rgb;
+          if (uHasPlate * uPlateOn > 0.5) bg = mix(bg, texture(uPlate, plUv, uPlateBlur).rgb, uPlateMix);
           float v = p - 0.82 * uHalo * L.r;
           float I = mix(exp(-0.8 * v), 1.0 - 0.65 * tanh(0.65 * v), 0.5);
           col = bg * I * exp(-A * 0.3) * (1.0 - 0.12 * min(sc, 3.0));
@@ -516,7 +525,7 @@ export function createOptics(renderer) {
     /** 0/1 switches: halo (phase ring leakage), tie (brightfield defocus), plate, chroma, soft, grain. */
     toggles: { halo: formMat.uniforms.uHalo, tie: formMat.uniforms.uTie, plate: formMat.uniforms.uPlateOn, chroma: postMat.uniforms.uChroma, soft: postMat.uniforms.uSoft, grain: postMat.uniforms.uGrain },
     /** Render the scene with `camera` and form the image in `mode` (index into MODES). */
-    render(scene, camera, { mode, stop, plate, plateOff, blurScale = 1, upTo = 9, fill = null }) {
+    render(scene, camera, { mode, stop, plate, plateOff, blurScale = 1, upTo = 9, fill = null, plateMix = 1, plateBlur = 0, plateRot = 0 }) {
       renderer.setRenderTarget(main);
       renderer.setClearColor(0x000000, 0);
       renderer.clear();
@@ -545,6 +554,7 @@ export function createOptics(renderer) {
       f.uMode.value = mode;
       f.uPlate.value = plate || null; f.uHasPlate.value = plate ? 1 : 0;
       if (plateOff) f.uPlateOff.value.copy(plateOff);
+      f.uPlateMix.value = plateMix; f.uPlateBlur.value = plateBlur; f.uPlateRot.value = plateRot;
       draw(formMat, img);
       if (upTo < 4) return;
 
