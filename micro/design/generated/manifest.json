@@ -270,5 +270,173 @@
     "mood_boards": [
       "01-moss-frontier.webp"
     ]
+  },
+  {
+    "id": "MP-T03",
+    "name": "Water-film backdrop",
+    "file": "assets/tardigrade/film-backdrop.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "Out-of-focus plate behind the climbing plane.",
+    "prompt": "Use case: scientific-educational. Asset type: individual production game texture, backdrop or particle sheet. The first 3 supplied images are real references (moss, tardigrade-light, rotifer); the last is an AI mood board only, never an anatomical source. Do not reproduce their captions, scale bars or panel layout.\nDifferential-interference-contrast (Nomarski) microscope look: smooth grey background, transparent structures rendered with directional pseudo-relief (light on one side, dark on the other, the same direction everywhere), gentle colourless tones with at most a faint amber cast, shallow depth of field. A deeply out-of-focus view through a wet moss cushion at about 2 mm across: overlapping translucent leaf blades with cell rows, curved water menisci between them catching light, a bdelloid rotifer barely visible as a blur. Very shallow depth of field, everything soft. No tardigrade. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nOutput dimensions: 2560 x 1440, opaque. One complete asset only. No frame, no text or overlay. For any tileable asset, continue cut forms onto the opposite edges; all four borders are interior texture, never a frame. Match brightness and cell-row spacing across horizontal and vertical repeats.",
+    "requested_prompt": "Differential-interference-contrast (Nomarski) microscope look: smooth grey background, transparent structures rendered with directional pseudo-relief (light on one side, dark on the other, the same direction everywhere), gentle colourless tones with at most a faint amber cast, shallow depth of field. A deeply out-of-focus view through a wet moss cushion at about 2 mm across: overlapping translucent leaf blades with cell rows, curved water menisci between them catching light, a bdelloid rotifer barely visible as a blur. Very shallow depth of field, everything soft. No tardigrade. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-845abdea-4761-41fd-b7b8-8298d4b24824.png",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "4135d7cdf3d204125a25d32712007b8cbde1dd29f9fdb27fcd4217d57bf76a27",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      },
+      {
+        "id": "tardigrade-light",
+        "local": "assets/references/tardigrade-light.png",
+        "author": "Dorathyexplorer",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png"
+      },
+      {
+        "id": "rotifer",
+        "local": "assets/references/rotifer.jpg",
+        "author": "Juan Carlos Fonseca Mata",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Philodina_sp._(Class%CB%90_Bdelloidea)_-_Phylum_Rotifera.jpg"
+      }
+    ],
+    "mood_boards": [
+      "02-waterfilm.webp"
+    ]
+  },
+  {
+    "id": "MP-A02",
+    "name": "Amoeba cytoplasm granules",
+    "file": "assets/amoeba/cytoplasm.webp",
+    "size": "1024 x 1024, opaque, tileable",
+    "used": "Granular endoplasm texture that streams inside the amoeba.",
+    "prompt": "Use case: scientific-educational. Asset type: individual production microscopy-game texture or background plate. Supplied images: first 1 are real scientific references (amoeba), last is AI mood reference only. Do not reproduce image panels, scale bars, labels or any text from the references.\nSeamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Transmitted-light brightfield microscope look: pale warm-grey to faintly green background, transparent bodies with weak contrast, darker refractive edges, pigment only where it is real (green chloroplasts, brown detritus), soft out-of-focus layers, slight optical softness, no hard drop shadows, no specular highlights. The granular endoplasm of Amoeba proteus at about 80 µm across: densely packed tiny refractile granules and crystals 1 to 3 µm, a few small food vacuoles and lipid droplets, colourless to faint grey-yellow, on a pale field.\nRequested export: 1024 x 1024, opaque, tileable. Deliver exactly one complete asset, no border or panels. For tileable assets, left-right and top-bottom boundaries must connect naturally with continuous texture and matched brightness. For background plates, keep the field out of focus and do not add the player organism. For cytoplasm, no whole cell, cell outline, membrane or large nucleus; granules cover the full square with no vignette.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Transmitted-light brightfield microscope look: pale warm-grey to faintly green background, transparent bodies with weak contrast, darker refractive edges, pigment only where it is real (green chloroplasts, brown detritus), soft out-of-focus layers, slight optical softness, no hard drop shadows, no specular highlights. The granular endoplasm of Amoeba proteus at about 80 µm across: densely packed tiny refractile granules and crystals 1 to 3 µm, a few small food vacuoles and lipid droplets, colourless to faint grey-yellow, on a pale field.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-50b95e5c-1430-4e2e-bfb7-9424f27dd73b.png",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 1024,
+    "height": 1024,
+    "sha256": "fac2e985d2e17c366f5901a24e0b694b98b6e13af016521f77d0bb419b827587",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "amoeba",
+        "local": "assets/references/amoeba.jpg",
+        "author": "Cymothoa exigua",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Amoeba_proteus.jpg"
+      }
+    ],
+    "mood_boards": [
+      "03-protist-garden.webp"
+    ]
+  },
+  {
+    "id": "MP-A03",
+    "name": "Algal filament backdrop",
+    "file": "assets/amoeba/filaments.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "Out-of-focus layer above the slide.",
+    "prompt": "Use case: scientific-educational. Asset type: individual production microscopy-game texture or background plate. Supplied images: first 2 are real scientific references (spirogyra, vorticella), last is AI mood reference only. Do not reproduce image panels, scale bars, labels or any text from the references.\nTransmitted-light brightfield microscope look: pale warm-grey to faintly green background, transparent bodies with weak contrast, darker refractive edges, pigment only where it is real (green chloroplasts, brown detritus), soft out-of-focus layers, slight optical softness, no hard drop shadows, no specular highlights. Slightly out-of-focus Spirogyra filaments crossing the field diagonally at about 1.5 mm across, each cell showing its spiral ribbon chloroplast, with a few Vorticella on stalks attached to one filament and loose detritus. Shallow depth of field. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nRequested export: 2560 x 1440, opaque. Deliver exactly one complete asset, no border or panels. For tileable assets, left-right and top-bottom boundaries must connect naturally with continuous texture and matched brightness. For background plates, keep the field out of focus and do not add the player organism. For cytoplasm, no whole cell, cell outline, membrane or large nucleus; granules cover the full square with no vignette.",
+    "requested_prompt": "Transmitted-light brightfield microscope look: pale warm-grey to faintly green background, transparent bodies with weak contrast, darker refractive edges, pigment only where it is real (green chloroplasts, brown detritus), soft out-of-focus layers, slight optical softness, no hard drop shadows, no specular highlights. Slightly out-of-focus Spirogyra filaments crossing the field diagonally at about 1.5 mm across, each cell showing its spiral ribbon chloroplast, with a few Vorticella on stalks attached to one filament and loose detritus. Shallow depth of field. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-278c442f-62a5-4263-980b-bc80367d07a5.png",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "2065475cc67d61830cf85994b3cf3160416e4d2a8c9977987451cdff369f12a1",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "spirogyra",
+        "local": "assets/references/spirogyra.jpg",
+        "author": "Wiedehopf20",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg"
+      },
+      {
+        "id": "vorticella",
+        "local": "assets/references/vorticella.jpg",
+        "author": "Bwiltz",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Vorticella_1.jpg"
+      }
+    ],
+    "mood_boards": [
+      "03-protist-garden.webp"
+    ]
+  },
+  {
+    "id": "MP-P01",
+    "name": "Pond habitat plate (darkfield)",
+    "file": "assets/paramecium/darkfield-plate.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "The far background in darkfield mode.",
+    "prompt": "Use case: scientific-educational. Asset type: individual production microscopy-game texture or background plate. Supplied images: first 3 are real scientific references (spirogyra, vorticella, diatoms), last is AI mood reference only. Do not reproduce image panels, scale bars, labels or any text from the references.\nDarkfield microscope look: near-black background, objects visible only as bright scattering edges and internal granules in cool white and pale gold, faint coloured chloroplasts, small particles as sparkling points, shallow depth of field. A pond-water scene at about 2 mm across, out of focus: Spirogyra filaments, flakes of detritus and a cluster of stalked Vorticella, all as glowing edges on black. No Paramecium. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nRequested export: 2560 x 1440, opaque. Deliver exactly one complete asset, no border or panels. For tileable assets, left-right and top-bottom boundaries must connect naturally with continuous texture and matched brightness. For background plates, keep the field out of focus and do not add the player organism. For cytoplasm, no whole cell, cell outline, membrane or large nucleus; granules cover the full square with no vignette.",
+    "requested_prompt": "Darkfield microscope look: near-black background, objects visible only as bright scattering edges and internal granules in cool white and pale gold, faint coloured chloroplasts, small particles as sparkling points, shallow depth of field. A pond-water scene at about 2 mm across, out of focus: Spirogyra filaments, flakes of detritus and a cluster of stalked Vorticella, all as glowing edges on black. No Paramecium. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-14f90130-ee4f-4ef1-bcb8-6d03a5a0c89d.png",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "ac851f19dc0f2ee1817a80708df74895970c6c95765acd8f07b395ba97ee61d8",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 93 for opaque assets, PNG with original alpha for particles. No composition edits.",
+    "references": [
+      {
+        "id": "spirogyra",
+        "local": "assets/references/spirogyra.jpg",
+        "author": "Wiedehopf20",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg"
+      },
+      {
+        "id": "vorticella",
+        "local": "assets/references/vorticella.jpg",
+        "author": "Bwiltz",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Vorticella_1.jpg"
+      },
+      {
+        "id": "diatoms",
+        "local": "assets/references/diatoms.jpg",
+        "author": "Prof. Gordon T. Taylor, Stony Brook University",
+        "license": "Public domain",
+        "license_url": "",
+        "source": "https://commons.wikimedia.org/wiki/File:Diatoms_through_the_microscope.jpg"
+      }
+    ],
+    "mood_boards": [
+      "03-protist-garden.webp"
+    ]
   }
 ]

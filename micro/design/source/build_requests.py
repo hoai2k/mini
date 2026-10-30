@@ -185,7 +185,7 @@ GROUPS = [
                 "prompt": f"{TILE} {DIC} A Sphagnum leaf at about 400 µm across: large empty hyaline cells with spiral fibril reinforcing bands and round pores, framed by a network of narrow green chlorophyllose cells between them, as in the classic Sphagnum leaf micrograph.",
             },
             {
-                "id": "MP-T03", "name": "Water-film backdrop",
+                "id": "MP-T03", "status": "delivered", "name": "Water-film backdrop",
                 "file": "assets/tardigrade/film-backdrop.webp", "size": "2560 x 1440, opaque",
                 "used": "Out-of-focus plate behind the climbing plane.",
                 "standin": "Soft gradient with blurred leaf shapes.",
@@ -215,7 +215,7 @@ GROUPS = [
                 "prompt": f"{TILE} {BRIGHTFIELD} A pond-water wet mount at about 1 mm across, seen at the glass: a pale even field with scattered small brown detritus flakes, a few bacteria clumps, empty diatom frustules and out-of-focus specks, sparse enough that most of the image is clear background. No large organisms.",
             },
             {
-                "id": "MP-A02", "name": "Amoeba cytoplasm granules",
+                "id": "MP-A02", "status": "delivered", "name": "Amoeba cytoplasm granules",
                 "file": "assets/amoeba/cytoplasm.webp", "size": "1024 x 1024, opaque, tileable",
                 "used": "Granular endoplasm texture that streams inside the amoeba.",
                 "standin": "Procedural granule noise.",
@@ -223,7 +223,7 @@ GROUPS = [
                 "prompt": f"{TILE} {BRIGHTFIELD} The granular endoplasm of Amoeba proteus at about 80 µm across: densely packed tiny refractile granules and crystals 1 to 3 µm, a few small food vacuoles and lipid droplets, colourless to faint grey-yellow, on a pale field.",
             },
             {
-                "id": "MP-A03", "name": "Algal filament backdrop",
+                "id": "MP-A03", "status": "delivered", "name": "Algal filament backdrop",
                 "file": "assets/amoeba/filaments.webp", "size": "2560 x 1440, opaque",
                 "used": "Out-of-focus layer above the slide.",
                 "standin": "Blurred procedural filaments.",
@@ -237,7 +237,7 @@ GROUPS = [
         "intro": "Images for the Paramecium swimming prototype, which can switch between darkfield and phase contrast. The cell and its cilia are geometry and shaders; these supply the habitat.",
         "items": [
             {
-                "id": "MP-P01", "name": "Pond habitat plate (darkfield)",
+                "id": "MP-P01", "status": "delivered", "name": "Pond habitat plate (darkfield)",
                 "file": "assets/paramecium/darkfield-plate.webp", "size": "2560 x 1440, opaque",
                 "used": "The far background in darkfield mode.",
                 "standin": "Black field with procedural scattering specks.",

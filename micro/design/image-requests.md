@@ -12,7 +12,7 @@ Artwork for the prototypes in `micro/prototypes/`. Generated from `source/build_
 
 ## Status
 
-12 requested, 6 delivered, 18 in total.
+8 requested, 10 delivered, 18 in total.
 
 ## Launcher cards
 
@@ -196,7 +196,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Size:** 2560 x 1440, opaque
 - **Used for:** Out-of-focus plate behind the climbing plane.
 - **Stand-in until delivered:** Soft gradient with blurred leaf shapes.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Moss habitat structure; use leaf architecture as environmental reference.](../research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
   - [Light-microscope photograph; phone-camera filtering is part of the source image.](../research/assets/references/tardigrade-light.png) · Dorathyexplorer, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png)
@@ -251,7 +251,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Size:** 1024 x 1024, opaque, tileable
 - **Used for:** Granular endoplasm texture that streams inside the amoeba.
 - **Stand-in until delivered:** Procedural granule noise.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Amoeba proteus with pseudopodia, nucleus and contractile vacuole.](../research/assets/references/amoeba.jpg) · Cymothoa exigua, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Amoeba_proteus.jpg)
   - Concept board (mood only): [`03-protist-garden.webp`](../research/assets/concepts/03-protist-garden.webp)
@@ -266,7 +266,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 - **Size:** 2560 x 1440, opaque
 - **Used for:** Out-of-focus layer above the slide.
 - **Stand-in until delivered:** Blurred procedural filaments.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Freshwater filament with spiral chloroplasts; useful habitat scaffolding.](../research/assets/references/spirogyra.jpg) · Wiedehopf20, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg)
   - [Attached Vorticella ciliates; stalks connect feeding bodies to substrate.](../research/assets/references/vorticella.jpg) · Bwiltz, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Vorticella_1.jpg)
@@ -286,7 +286,7 @@ Images for the Paramecium swimming prototype, which can switch between darkfield
 - **Size:** 2560 x 1440, opaque
 - **Used for:** The far background in darkfield mode.
 - **Stand-in until delivered:** Black field with procedural scattering specks.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Freshwater filament with spiral chloroplasts; useful habitat scaffolding.](../research/assets/references/spirogyra.jpg) · Wiedehopf20, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg)
   - [Attached Vorticella ciliates; stalks connect feeding bodies to substrate.](../research/assets/references/vorticella.jpg) · Bwiltz, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Vorticella_1.jpg)
