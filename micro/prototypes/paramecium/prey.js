@@ -36,7 +36,7 @@ export function createPrey(scene) {
     const matrix = i % (PER + 1) === PER;
     q.p.array.set(matrix ? [9, 0.012, 0.25, Math.random()] : [0.75, 0.08, 6, Math.random()], i * 4);
   }
-  const clumps = new THREE.Mesh(q.g, pointsMaterial({ absorb: [0.022, 0.03, 0.05], rod: true }));
+  const clumps = new THREE.Mesh(q.g, pointsMaterial({ absorb: [0.06, 0.07, 0.1], rod: true }));
   clumps.frustumCulled = false;
   group.add(clumps);
   for (let i = 0; i < N_CLUMP; i++) {

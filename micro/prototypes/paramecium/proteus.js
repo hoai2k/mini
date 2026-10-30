@@ -26,7 +26,7 @@ export function createProteus(scene, start = new THREE.Vector3(-760, 0, -520)) {
   scene.add(group);
   const geo = new THREE.SphereGeometry(1, 72, 28);
   const base = geo.attributes.position.array.slice();
-  const body = new THREE.Mesh(geo, volumeMaterial({ dn: 0.018, scatter: 1.15, absorb: [0.0016, 0.002, 0.0028], centred: true, rimPow: 2.2 }));
+  const body = new THREE.Mesh(geo, volumeMaterial({ dn: 0.012, scatter: 1.15, absorb: [0.0005, 0.0006, 0.0009], centred: true, rimPow: 2.2 }));
   body.frustumCulled = false;
   group.add(body);
 
@@ -48,7 +48,7 @@ export function createProteus(scene, start = new THREE.Vector3(-760, 0, -520)) {
   gGeo.setAttribute('iPos', gAttr);
   gGeo.setAttribute('iP', new THREE.InstancedBufferAttribute(gP, 4));
   gGeo.instanceCount = NG;
-  const granules = new THREE.Mesh(gGeo, pointsMaterial({ absorb: [0.004, 0.005, 0.007] }));
+  const granules = new THREE.Mesh(gGeo, pointsMaterial({ absorb: [0.03, 0.035, 0.045] }));
   granules.frustumCulled = false;
   group.add(granules);
   // nucleus (a disc), contractile vacuole, food vacuoles with green algae

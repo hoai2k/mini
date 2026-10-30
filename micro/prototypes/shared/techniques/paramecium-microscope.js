@@ -22,7 +22,8 @@
 //     Optional: plateMix (0..1, how much of the habitat plate shows over the
 //     plain background; default 1), plateBlur (mip bias, default 0) and
 //     plateRot (radians, for a view that turns) keep a plate from competing
-//     with the subject. pointsMaterial({ loop: [a, b, zSpread] }) sizes the
+//     with the subject; bfSoft (0..1, default 0) soft-limits brightfield's
+//     defocus and edge terms so thick bodies shade rather than clip to black. pointsMaterial({ loop: [a, b, zSpread] }) sizes the
 //     cyclosis loop (default the 230 µm P. caudatum: [72, 15, 30]);
 //     volumeMaterial's uLen uniform sets the pellicle's cell length (230).
 //
@@ -395,12 +396,12 @@ export function createOptics(renderer) {
       tS0: { value: null }, tS1: { value: null }, tB0: { value: null }, tB1: { value: null }, tL: { value: null },
       uTexel: { value: new THREE.Vector2() }, uMode: { value: 0 }, uPlate: { value: null }, uHasPlate: { value: 0 },
       uPlateOff: { value: new THREE.Vector2() }, uAspect: { value: 1 }, uTime: shared.uTime,
-      uHalo: { value: 1 }, uTie: { value: 1 }, uPlateOn: { value: 1 }, uPlateMix: { value: 1 }, uPlateBlur: { value: 0 }, uPlateRot: { value: 0 },
+      uHalo: { value: 1 }, uTie: { value: 1 }, uPlateOn: { value: 1 }, uPlateMix: { value: 1 }, uPlateBlur: { value: 0 }, uPlateRot: { value: 0 }, uBfSoft: { value: 0 },
     },
     fragmentShader: /* glsl */ `
       layout(location = 0) out highp vec4 oC;
       uniform sampler2D tS0, tS1, tB0, tB1, tL, uPlate;
-      uniform vec2 uTexel, uPlateOff; uniform float uMode, uHasPlate, uAspect, uTime, uHalo, uTie, uPlateOn, uPlateMix, uPlateBlur, uPlateRot;
+      uniform vec2 uTexel, uPlateOff; uniform float uMode, uHasPlate, uAspect, uTime, uHalo, uTie, uPlateOn, uPlateMix, uPlateBlur, uPlateRot, uBfSoft;
       varying vec2 vUv;
       float phi(vec2 uv) { return texture(tS0, uv).r + texture(tB0, uv).r; }
       void main() {
@@ -441,8 +442,9 @@ export function createOptics(renderer) {
         } else if (m == 2) {
           // Brightfield (Köhler, condenser stopped down a little): pale, warm, faint.
           vec3 lamp = vec3(0.95, 0.9, 0.76);
-          float tie = -0.55 * hp * uTie;                     // defocus contrast, transport of intensity
-          float edgeDark = 0.55 * sqrt(g2);
+          // bfSoft: a soft limit so thick bodies shade instead of clipping to black
+          float tie = mix(-0.55 * hp, -0.45 * tanh(1.2 * hp), uBfSoft) * uTie; // defocus contrast, transport of intensity
+          float edgeDark = mix(0.55 * sqrt(g2), 0.5 * tanh(1.1 * sqrt(g2)), uBfSoft);
           col = lamp * exp(-A) * (1.0 + tie) * (1.0 - edgeDark) * (1.0 - 0.05 * min(sc, 4.0));
         } else if (m == 3) {
           // DIC: the derivative of φ along the shear direction, on a grey bias.
@@ -525,7 +527,7 @@ export function createOptics(renderer) {
     /** 0/1 switches: halo (phase ring leakage), tie (brightfield defocus), plate, chroma, soft, grain. */
     toggles: { halo: formMat.uniforms.uHalo, tie: formMat.uniforms.uTie, plate: formMat.uniforms.uPlateOn, chroma: postMat.uniforms.uChroma, soft: postMat.uniforms.uSoft, grain: postMat.uniforms.uGrain },
     /** Render the scene with `camera` and form the image in `mode` (index into MODES). */
-    render(scene, camera, { mode, stop, plate, plateOff, blurScale = 1, upTo = 9, fill = null, plateMix = 1, plateBlur = 0, plateRot = 0 }) {
+    render(scene, camera, { mode, stop, plate, plateOff, blurScale = 1, upTo = 9, fill = null, plateMix = 1, plateBlur = 0, plateRot = 0, bfSoft = 0 }) {
       renderer.setRenderTarget(main);
       renderer.setClearColor(0x000000, 0);
       renderer.clear();
@@ -554,7 +556,7 @@ export function createOptics(renderer) {
       f.uMode.value = mode;
       f.uPlate.value = plate || null; f.uHasPlate.value = plate ? 1 : 0;
       if (plateOff) f.uPlateOff.value.copy(plateOff);
-      f.uPlateMix.value = plateMix; f.uPlateBlur.value = plateBlur; f.uPlateRot.value = plateRot;
+      f.uPlateMix.value = plateMix; f.uPlateBlur.value = plateBlur; f.uPlateRot.value = plateRot; f.uBfSoft.value = bfSoft;
       draw(formMat, img);
       if (upTo < 4) return;
 

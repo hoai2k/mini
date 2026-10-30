@@ -504,6 +504,7 @@ function frame(now) {
     blurScale: view.kind === 'scope' ? (view.dof === 'strong' ? 1.6 : 1) : 1.2,
     plateMix: view.plate === 'full' ? 1 : 0.3, plateBlur: view.plate === 'full' ? 0 : 3.5,
     plateRot: view.kind === 'scope' ? view.scopeYaw - Math.PI / 2 : 0,
+    bfSoft: 1,
   };
   if (borrow.id) renderBorrowed(cam, optP, dt);
   else optics.render(scene, cam, optP);
