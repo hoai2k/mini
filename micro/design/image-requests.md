@@ -12,7 +12,7 @@ Artwork for the prototypes in `micro/prototypes/`. Generated from `source/build_
 
 ## Status
 
-21 requested, 24 delivered, 45 in total.
+17 requested, 28 delivered, 45 in total.
 
 ## Launcher cards
 
@@ -527,7 +527,7 @@ One orthographic turnaround sheet per creature or enemy that will be built as a 
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the springtail protagonist (Level 0).
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Podura aquatica; external body and limb proportions.](../research/assets/references/production/springtail.jpg) · Christian Fischer, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:PoduraAquatica.jpg)
 
@@ -541,7 +541,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the Stenus rove beetle that skims on the water and harpoons springtails.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Stenus adult; body, eyes and elytra reference. Extended labium is specified by the brief.](../research/assets/references/production/stenus.jpg) · Elena Regina, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Stenus_(Stenus)_sp_%E2%99%82_adult.jpg)
   - [Podura aquatica; external body and limb proportions.](../research/assets/references/production/springtail.jpg) · Christian Fischer, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:PoduraAquatica.jpg)
@@ -556,7 +556,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the water strider standing on the pool surface.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Adult Gerris lacustris; six-leg arrangement, short forelegs and long middle/hind legs.](../research/assets/references/production/water-strider-adult.jpg) · Richard Bartz, CC BY-SA 2.5 · [source](https://commons.wikimedia.org/wiki/File:Water_strider_Gerris_lacustris.jpg)
 
@@ -570,7 +570,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the predatory mesostigmatid mite (Levels 0 and 1).
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Pergamasus diversus; predatory mite morphology, not a species-level bog occurrence claim.](../research/assets/references/production/predatory-mite.jpg) · AfroBrazilian, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Pergamasus_diversus_02.jpg)
   - [Unidentified phthiracarid mite; adult arthropod morphology.](../research/assets/references/mite.jpg) · S.E. Thorpe, Public domain · [source](https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg)

@@ -407,7 +407,7 @@ GROUPS = [
         "intro": "One orthographic turnaround sheet per creature or enemy that will be built as a 3D model in code. Each shows the same individual from the side, top, front and three-quarter view on plain grey at one scale: a measuring tape for proportions and a paint source for colours, the method that worked for the sibling Wobblers project. Check every sheet against its reference photographs before modelling from it; where the sheet and the photographs disagree, the photographs win.",
         "items": [
             {
-                "id": "MP-R01", "status": "requested", "name": "Water springtail (Podura aquatica)",
+                "id": "MP-R01", "status": "delivered", "name": "Water springtail (Podura aquatica)",
                 "file": "assets/reference-sheets/springtail.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling the springtail protagonist (Level 0).",
                 "standin": "None needed: the model is built from the photographs.",
@@ -415,7 +415,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} The water springtail Podura aquatica, about 1.5 mm long: a plump, cylindrical, slightly flattened body with a blue-black to slate-grey granular cuticle; a head with short, stout four-segmented antennae and a dark eye patch of eight eyespots on each side; a thorax and abdomen of segments without wings; exactly three pairs of short five-part legs ending in a single claw each; a ventral tube (collophore) projecting downward from the first abdominal segment; and the furcula, a forked springing organ, folded forward under the abdomen and clipped in a small catch (retinaculum) on the third abdominal segment, its two flattened tines (mucrones) broad at the tips. In the side view show the furcula folded; in the three-quarter view show it folded too. No wings, no fantasy features. {SCIENCE}",
             },
             {
-                "id": "MP-R02", "status": "requested", "name": "Rove beetle (Stenus)",
+                "id": "MP-R02", "status": "delivered", "name": "Rove beetle (Stenus)",
                 "file": "assets/reference-sheets/stenus.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling the Stenus rove beetle that skims on the water and harpoons springtails.",
                 "standin": "None needed: the model is built from the photographs.",
@@ -423,7 +423,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} A rove beetle of the genus Stenus, about 5 mm long: a slender black body with fine dense punctures and a faint lead-grey sheen; a broad head with very large bulging compound eyes on each side; long thin eleven-segmented antennae; a narrow cylindrical pronotum; short elytra covering only the front of the abdomen, leaving a long, flexible, segmented abdomen exposed and slightly raised; exactly six long slender legs. The labium (lower lip) is extended forward as a long thin rod far beyond the head, ending in a pair of small sticky pads: the labial harpoon it shoots out to catch springtails. Show the harpoon extended in the side and three-quarter views and retracted under the head in the top and front views. {SCIENCE}",
             },
             {
-                "id": "MP-R03", "status": "requested", "name": "Water strider (Gerris)",
+                "id": "MP-R03", "status": "delivered", "name": "Water strider (Gerris)",
                 "file": "assets/reference-sheets/water-strider.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling the water strider standing on the pool surface.",
                 "standin": "None needed: the model is built from the photographs.",
@@ -431,7 +431,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} A water strider of the genus Gerris, about 10 mm long body: a narrow dark brown-black body covered with a fine velvety silver-grey hair pile, a small head with prominent eyes and four-segmented antennae, a piercing beak (rostrum) folded under the head; exactly six legs: short front legs held forward for grabbing prey, very long thin middle legs spread sideways for rowing, long hind legs trailing backward for steering; the middle and hind legs rest on the water along their last segments with small dimples, not touching the water anywhere else. Show the legs in their natural resting stance on a flat invisible water plane. Wingless form. {SCIENCE}",
             },
             {
-                "id": "MP-R04", "status": "requested", "name": "Predatory mite (Pergamasus-type)",
+                "id": "MP-R04", "status": "delivered", "name": "Predatory mite (Pergamasus-type)",
                 "file": "assets/reference-sheets/predatory-mite.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling the predatory mesostigmatid mite (Levels 0 and 1).",
                 "standin": "None needed: the model is built from the photographs.",

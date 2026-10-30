@@ -119,19 +119,19 @@ export const ASSETS = {
   },
   "MP-R01": {
     "file": "assets/reference-sheets/springtail.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R02": {
     "file": "assets/reference-sheets/stenus.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R03": {
     "file": "assets/reference-sheets/water-strider.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R04": {
     "file": "assets/reference-sheets/predatory-mite.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R05": {
     "file": "assets/reference-sheets/milnesium.webp",
