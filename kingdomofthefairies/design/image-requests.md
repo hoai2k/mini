@@ -94,7 +94,7 @@ and the production art for the film edition (F1–F4) after them.
 
 Requested 11 October 2026: 376 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 354 of 376 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 376 of 376 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -2720,14 +2720,14 @@ Requested 16 October 2026 after play-testing Act II: a sleeper on the cave floor
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `crew-squire-asleep` | 440 × 160 | bottom centre | `crew-asleep` | requested |
-| `crew-squire-asleep-tinted` | 440 × 160 | bottom centre | `crew-asleep` | requested |
-| `crew-bosun-asleep` | 440 × 160 | bottom centre | `crew-asleep` | requested |
-| `crew-bosun-asleep-tinted` | 440 × 160 | bottom centre | `crew-asleep` | requested |
-| `crew-helmsman-asleep` | 440 × 160 | bottom centre | `crew-asleep-b` | requested |
-| `crew-helmsman-asleep-tinted` | 440 × 160 | bottom centre | `crew-asleep-b` | requested |
-| `crew-manatarms-asleep` | 440 × 160 | bottom centre | `crew-asleep-b` | requested |
-| `crew-manatarms-asleep-tinted` | 440 × 160 | bottom centre | `crew-asleep-b` | requested |
+| `crew-squire-asleep` | 440 × 160 | bottom centre | `crew-asleep` | [delivered](../assets/crew-squire-asleep.webp) |
+| `crew-squire-asleep-tinted` | 440 × 160 | bottom centre | `crew-asleep` | [delivered](../assets/crew-squire-asleep-tinted.webp) |
+| `crew-bosun-asleep` | 440 × 160 | bottom centre | `crew-asleep` | [delivered](../assets/crew-bosun-asleep.webp) |
+| `crew-bosun-asleep-tinted` | 440 × 160 | bottom centre | `crew-asleep` | [delivered](../assets/crew-bosun-asleep-tinted.webp) |
+| `crew-helmsman-asleep` | 440 × 160 | bottom centre | `crew-asleep-b` | [delivered](../assets/crew-helmsman-asleep.webp) |
+| `crew-helmsman-asleep-tinted` | 440 × 160 | bottom centre | `crew-asleep-b` | [delivered](../assets/crew-helmsman-asleep-tinted.webp) |
+| `crew-manatarms-asleep` | 440 × 160 | bottom centre | `crew-asleep-b` | [delivered](../assets/crew-manatarms-asleep.webp) |
+| `crew-manatarms-asleep-tinted` | 440 × 160 | bottom centre | `crew-asleep-b` | [delivered](../assets/crew-manatarms-asleep-tinted.webp) |
 
 #### `crew-squire-asleep` — The squire, asleep on the cave floor
 
@@ -2783,14 +2783,14 @@ Requested 30 October 2026 for the reworked armoury: the prince, bound by the wit
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `aurora-glide-a` | 300 × 420 | bottom centre | `aurora-stand` | requested |
-| `aurora-glide-a-tinted` | 300 × 420 | bottom centre | `aurora-stand` | requested |
-| `aurora-glide-b` | 300 × 420 | bottom centre | `aurora-stand` | requested |
-| `aurora-glide-b-tinted` | 300 × 420 | bottom centre | `aurora-stand` | requested |
-| `prince-struggle-a` | 260 × 360 | bottom centre | `prince-bound` | requested |
-| `prince-struggle-a-tinted` | 260 × 360 | bottom centre | `prince-bound` | requested |
-| `prince-struggle-b` | 260 × 360 | bottom centre | `prince-bound` | requested |
-| `prince-struggle-b-tinted` | 260 × 360 | bottom centre | `prince-bound` | requested |
+| `aurora-glide-a` | 300 × 420 | bottom centre | `aurora-stand` | [delivered](../assets/aurora-glide-a.webp) |
+| `aurora-glide-a-tinted` | 300 × 420 | bottom centre | `aurora-stand` | [delivered](../assets/aurora-glide-a-tinted.webp) |
+| `aurora-glide-b` | 300 × 420 | bottom centre | `aurora-stand` | [delivered](../assets/aurora-glide-b.webp) |
+| `aurora-glide-b-tinted` | 300 × 420 | bottom centre | `aurora-stand` | [delivered](../assets/aurora-glide-b-tinted.webp) |
+| `prince-struggle-a` | 260 × 360 | bottom centre | `prince-bound` | [delivered](../assets/prince-struggle-a.webp) |
+| `prince-struggle-a-tinted` | 260 × 360 | bottom centre | `prince-bound` | [delivered](../assets/prince-struggle-a-tinted.webp) |
+| `prince-struggle-b` | 260 × 360 | bottom centre | `prince-bound` | [delivered](../assets/prince-struggle-b.webp) |
+| `prince-struggle-b-tinted` | 260 × 360 | bottom centre | `prince-bound` | [delivered](../assets/prince-struggle-b-tinted.webp) |
 
 #### `aurora-glide-a` — Aurora gliding, frame A
 
@@ -2846,12 +2846,12 @@ Requested 30 October 2026: at the end of the betrothal court the witch curses Az
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `azurine-swoon` | 260 × 380 | bottom centre | `azurine-stand` | requested |
-| `azurine-swoon-tinted` | 260 × 380 | bottom centre | `azurine-stand` | requested |
-| `demon-red-carry` | 260 × 360 | bottom centre | `demon-red` | requested |
-| `demon-red-carry-tinted` | 260 × 360 | bottom centre | `demon-red` | requested |
-| `demon-teal-carry` | 260 × 360 | bottom centre | `demon-teal` | requested |
-| `demon-teal-carry-tinted` | 260 × 360 | bottom centre | `demon-teal` | requested |
+| `azurine-swoon` | 260 × 380 | bottom centre | `azurine-stand` | [delivered](../assets/azurine-swoon.webp) |
+| `azurine-swoon-tinted` | 260 × 380 | bottom centre | `azurine-stand` | [delivered](../assets/azurine-swoon-tinted.webp) |
+| `demon-red-carry` | 260 × 360 | bottom centre | `demon-red` | [delivered](../assets/demon-red-carry.webp) |
+| `demon-red-carry-tinted` | 260 × 360 | bottom centre | `demon-red` | [delivered](../assets/demon-red-carry-tinted.webp) |
+| `demon-teal-carry` | 260 × 360 | bottom centre | `demon-teal` | [delivered](../assets/demon-teal-carry.webp) |
+| `demon-teal-carry-tinted` | 260 × 360 | bottom centre | `demon-teal` | [delivered](../assets/demon-teal-carry-tinted.webp) |
 
 #### `azurine-swoon` — Azurine swooning under the curse
 
