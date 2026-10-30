@@ -200,7 +200,7 @@ export class Walker {
       const leg = LEGS[i];
       const ipsi = [i - 2, i + 2].filter((j) => j >= 0 && j < 8);
       const contra = i ^ 1;
-      const limit = input.brace ? 1 : 3;
+      const limit = input.brace ? 2 : 3;
       const ok = !ipsi.some(isSwing) && !isSwing(contra) && swinging() < limit && !input.tun;
       if (!ok && f.state !== 'drag') continue;
       // Lift.

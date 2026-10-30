@@ -185,9 +185,10 @@ export class Life {
     P.pump = Math.max(0, P.pump - dt * 3);
     if (!input.bPressed || w.slipping) return;
     const mouth = this.creature.anchorWorld('buccal tube + stylets');
-    let best = null, bd = 0.5;
+    let best = null, bd = 0.45;
+    const ml = w.leaf.toLocal(mouth, {});
     for (const item of this.world.food) {
-      const d = item.mesh.position.distanceTo(mouth);
+      const d = Math.hypot(item.u - ml.u, item.v - ml.v); // along the leaf: the mouth is above it
       if (d < bd && item.leaf === w.leaf && item.side === w.side) { bd = d; best = item; }
     }
     if (best) {

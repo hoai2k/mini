@@ -211,7 +211,9 @@ function cancelClose(msg) {
 }
 
 function capture(p, cup) {
-  const area = body.seal(cup);
+  // Sealed across the mouth (cup) or already enclosed by the membrane (no cup).
+  const area = cup ? body.seal(cup) : 1.3 * Math.PI * (p.sp.L / 2) * (p.sp.W / 2);
+  if (!cup) { body.A0 += area; body.closing = null; }
   const { L, W } = p.sp;
   const rx0 = L / 2 + 5, ry0 = W / 2 + 5;
   const v = {
@@ -269,7 +271,8 @@ function stepPrey(dt, col) {
     }
     for (let s = 0; s < subs; s++) p.update((dt * swim) / subs);
     p.updateCircles();
-    const share = p.sp.kind === 4 ? 0.55 : 0.85;
+    // The membrane yields to the prey it is closing round, so it is not squeezed out.
+    const share = S.closing && S.closing.prey === p ? 0.2 : p.sp.kind === 4 ? 0.55 : 0.85;
     let touched = false;
     for (const c of p.circles) {
       for (const cap of col.capsules) {
@@ -335,7 +338,8 @@ function updateCup(dt) {
       hud.toast(p.charges ? 'Trichocysts! The Paramecium blasts the cup open' : 'Its last nearby trichocysts are spent');
     }
   }
-  if (cup.gap < 13) {
+  if (body.grid.sample(p.x, p.y) > p.sp.W * 0.25) { capture(p, null); return; }
+  if (cup.gap < 16) {
     const { inside } = body.cupContains(cup, p.x, p.y);
     if (inside) capture(p, cup);
     else cancelClose(`The ${p.sp.name} got out before the rims met`);

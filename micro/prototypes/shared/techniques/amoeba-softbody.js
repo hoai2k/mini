@@ -78,7 +78,7 @@ export class Body {
     this.rand = rand;
     const f = () => new Float64Array(N);
     this.x = f(); this.y = f(); this.nx = f(); this.ny = f();
-    this.ddx = f(); this.ddy = f(); this.G = f(); this.Gp = f(); this.w = f(); this.len = f();
+    this.ddx = f(); this.ddy = f(); this.G = f(); this.Gp = f(); this.frozen = new Uint8Array(N); this.w = f(); this.len = f();
     this.noSelf = new Float64Array(N);
     for (let i = 0; i < N; i++) {
       const a = (i / N) * TAU;
@@ -154,7 +154,7 @@ export class Body {
     this.flat = 1 - 0.26 * this.spread;
     const x = this.x, y = this.y, nx = this.nx, ny = this.ny;
     const ddx = this.ddx, ddy = this.ddy, G = this.G;
-    ddx.fill(0); ddy.fill(0); G.fill(0);
+    ddx.fill(0); ddy.fill(0); G.fill(0); this.frozen.fill(0);
 
     // -- pseudopod controls ---------------------------------------------------
     const pl = this.pods;
@@ -299,13 +299,10 @@ export class Body {
           G[j] += g;
         }
       }
-      // The cup lining hugs the prey a little.
-      for (const j of c.run) {
-        const ex = c.px - x[j], ey = c.py - y[j];
-        const m = Math.hypot(ex, ey) || 1;
-        ddx[j] += (ex / m) * 3 * dt; ddy[j] += (ey / m) * 3 * dt;
-        G[j] += 0.5;
-      }
+      // The cup lining holds still (it does not need to touch the prey); only the
+      // rims advance across the mouth.
+      const n = c.run.length;
+      for (let k = 7; k < n - 7; k++) this.frozen[c.run[k]] = 1;
     }
     if (this.zip) {
       const z = this.zip;
@@ -320,7 +317,7 @@ export class Body {
     }
 
     // Substrate adhesion: membrane that is not protruding is held to the slide.
-    for (let i = 0; i < N; i++) { x[i] += ddx[i]; y[i] += ddy[i]; }
+    for (let i = 0; i < N; i++) { if (!this.frozen[i]) { x[i] += ddx[i]; y[i] += ddy[i]; } }
     this.Gp.set(G);
 
     // -- obstacles and self-contact -------------------------------------------
@@ -369,6 +366,7 @@ export class Body {
         } else {
           wi = this.opts.rearWeight ? 0.03 + 1.5 * g + 0.8 * this.spread : 1 - 0.7 * g;
         }
+        if (this.frozen[i]) wi = 0;
         this.w[i] = wi;
         sum += wi * this.len[i];
       }
