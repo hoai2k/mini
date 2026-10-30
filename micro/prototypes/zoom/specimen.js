@@ -599,7 +599,7 @@ void spirillum(vec2 p, vec4 cr, vec4 cb, inout S s) {
   vec2 t = thin(dax, 0.16);
   if (t.y > 0.0) {
     put(s, t.y, s.h + t.x * 0.5, vec3(0.60, 0.50, 0.78), 0.3);
-    optic(s, 0.075 * t.x * t.y, t.x * t.y * vec3(0.03, 0.035, 0.05), 1.4 * t.y);
+    optic(s, 0.12 * t.x * t.y, t.x * t.y * vec3(0.05, 0.055, 0.08), 1.4 * t.y);
     // magnetosome chain: ~50 nm magnetite crystals along the axis
     float mg = step(abs(x), 0.6) * smoothstep(0.035, 0.02, length(vec2(fract(q.x / 0.1 + 0.5) - 0.5, (q.y - y) / 0.1)) * 0.1);
     s.ab += vec3(3.0) * mg * t.y;

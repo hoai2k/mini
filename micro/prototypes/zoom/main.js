@@ -530,6 +530,7 @@ function render() {
   zo.post(fx, null);
 }
 
+const fmtMag = (m) => (m >= 100 ? Math.round(m).toLocaleString('en-US') : m.toPrecision(2));
 function updateHud() {
   const W = dbuf.x;
   const cssW = innerWidth;
@@ -537,7 +538,7 @@ function updateHud() {
   scaleEl.querySelector('.bar').style.width = `${sb.px.toFixed(1)}px`;
   scaleEl.querySelector('.big').textContent = `${sb.label}`;
   const wN = world();
-  scaleEl.querySelector('.mag').textContent = `field ${fmtLen(S.w)} · ≈${eyepieceMag(S.w).toPrecision(3).replace(/\.0+$/, '')}× (10× eyepiece equiv.)`;
+  scaleEl.querySelector('.mag').textContent = `field ${fmtLen(S.w)} · ≈${fmtMag(eyepieceMag(S.w))}× (10× eyepiece equiv.)`;
   const inst = S.phase === 'trans' ? `${WORLDS[S.k - 1].instrument} → ${WORLDS[S.k].instrument}` : WORLDS[wN].instrument;
   scaleEl.querySelector('.look').textContent = `${S.look.label} · ${inst}`;
   const key = `${S.k}|${S.phase}|${opts.strategy}|${opts.miteLook}|${opts.bactLook}|${S.tl?.end}|${S.phase === 'trans' ? Math.round(S.tau * 20) : 0}`;
