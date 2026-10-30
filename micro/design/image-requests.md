@@ -12,7 +12,7 @@ Artwork for the prototypes in `micro/prototypes/`. Generated from `source/build_
 
 ## Status
 
-27 requested, 18 delivered, 45 in total.
+24 requested, 21 delivered, 45 in total.
 
 ## Launcher cards
 
@@ -616,7 +616,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the Level 3 protagonist, the green Paramecium.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Paramecium bursaria in DIC; green symbionts and body proportions.](../research/assets/references/production/paramecium-bursaria.jpg) · Anatoly Mikhaltsov, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Paramecium_bursaria.jpg)
   - [Paramecium caudatum; whole-cell outline and internal contrast.](../research/assets/references/paramecium.jpg) · MTadey, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg)
@@ -646,7 +646,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling Actinophrys, the radiating ambush predator of Level 4.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Actinophrys sol in phase contrast; radial axopodia and vacuolated body.](../research/assets/references/production/actinophrys.jpg) · Djpmapfer, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Actinophrys_sol_(phase_contrast_microscopy).jpg)
 
@@ -660,7 +660,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the Level 5 protagonist.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
+- **Status:** delivered
 - **Reference images:**
   - [Magnetospirillum gryphiswaldense; electron-microscopy reference. Internal detail is not visible in ordinary light microscopy.](../research/assets/references/production/magnetotactic.png) · Caulobacter subvibrioides (Diskussion), CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png)
 

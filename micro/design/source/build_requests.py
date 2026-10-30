@@ -455,7 +455,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} The ciliate Didinium nasutum, about 100 µm long, as in a brightfield preparation: a barrel-shaped transparent cell, its front end drawn out into a short cone-shaped proboscis (snout) with the cell mouth at its tip, from which toxicysts are fired; exactly two girdles of cilia (pectinelles) encircling the barrel, one just behind the proboscis and one around the middle, and no other cilia on the body; a curved horseshoe-shaped macronucleus inside, a contractile vacuole at the rear end. {SCIENCE}",
             },
             {
-                "id": "MP-R07", "status": "requested", "name": "Paramecium bursaria",
+                "id": "MP-R07", "status": "delivered", "name": "Paramecium bursaria",
                 "file": "assets/reference-sheets/paramecium-bursaria.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling the Level 3 protagonist, the green Paramecium.",
                 "standin": "None needed: the model is built from the photographs.",
@@ -471,7 +471,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} The colourless euglenid Peranema trichophorum, about 40 to 70 µm long, as in a brightfield preparation: a flexible, elongated, spindle-to-pear-shaped transparent cell, broad at the rear and tapered at the front, with fine spiral striations on its pellicle; one thick leading flagellum about as long as the body held straight forward with only its tip beating; a second thin trailing flagellum lying along the body; a rod-like feeding apparatus near the front; many refractive granules inside; no chloroplasts, no eyespot. {SCIENCE}",
             },
             {
-                "id": "MP-R09", "status": "requested", "name": "Actinophrys sol (sun animalcule)",
+                "id": "MP-R09", "status": "delivered", "name": "Actinophrys sol (sun animalcule)",
                 "file": "assets/reference-sheets/actinophrys.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling Actinophrys, the radiating ambush predator of Level 4.",
                 "standin": "None needed: the model is built from the photographs.",
@@ -479,7 +479,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} The heliozoan Actinophrys sol, a cell body about 40 µm across, as in a brightfield preparation: a spherical, frothy, vacuolated transparent cell with one central nucleus, from which many straight, stiff, thin radiating arms (axopodia) about as long as the cell's diameter project evenly in all directions, each with tiny granules (extrusomes) scattered along it. Being spherical it looks the same from every side: keep the views identical in proportion and arm density. {SCIENCE}",
             },
             {
-                "id": "MP-R10", "status": "requested", "name": "Magnetotactic bacterium",
+                "id": "MP-R10", "status": "delivered", "name": "Magnetotactic bacterium",
                 "file": "assets/reference-sheets/magnetotactic.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling the Level 5 protagonist.",
                 "standin": "None needed: the model is built from the photographs.",

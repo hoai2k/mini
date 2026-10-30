@@ -143,7 +143,7 @@ export const ASSETS = {
   },
   "MP-R07": {
     "file": "assets/reference-sheets/paramecium-bursaria.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R08": {
     "file": "assets/reference-sheets/peranema.webp",
@@ -151,11 +151,11 @@ export const ASSETS = {
   },
   "MP-R09": {
     "file": "assets/reference-sheets/actinophrys.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R10": {
     "file": "assets/reference-sheets/magnetotactic.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R11": {
     "file": "assets/reference-sheets/bdellovibrio.webp",
