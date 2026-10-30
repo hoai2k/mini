@@ -24,3 +24,10 @@
   `design/sprite-audit.md` and the walking compensation in
   `src/sprite-fit.js`; request redraws for whatever it lists. Look at the
   frames in play as well, side by side and animated.
+- Every other character keeps one person size across their sprites:
+  `design/source/person_sizes.py` measures each sprite against the
+  character's reference by the head (checked by eye on its `--sheet`, with
+  `BY_EYE` where the template misreads) into `src/person-size.js` and
+  `design/person-sizes.md`. Draw a character's sprites with `drawPerson` (or
+  `personPx` as a pose's `std`) at one person height per scene, never into
+  boxes of their own; add new sprites to its `CAST` and rerun it.
