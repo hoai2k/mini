@@ -85,7 +85,7 @@ export const LOOKS = {
     vign: 0.25, grain: 0.012, tint: [1.0, 1.0, 0.95], contrast: 1.05, exposure: 1.35 },
   sem: { ...BASE, name: 'SEM', instrument: 'scanning electron microscope, SE detector',
     surf: 1, semK: 1, grey: 1, lightAz: 2.35, ambient: 0.2, edge: 1, shadow: 1, vign: 0.05, grain: 0.07, sat: 0,
-    contrast: 1.18, exposure: 1.35, scan: 1, relief: 1 },
+    contrast: 1.25, exposure: 1.05, scan: 1, relief: 1 },
   dic: { ...BASE, name: 'DIC', instrument: 'Nomarski differential interference contrast',
     trans: 1, absK: 0.55, dic: 0.55, bg: [0.66, 0.64, 0.58], shearAz: 0.785, lap: 0, blurUm: 0.9,
     vign: 0.22, grain: 0.012, tint: [1.0, 0.98, 0.92], sat: 0.8, contrast: 1.05, exposure: 1.05 },
@@ -187,19 +187,23 @@ vec3 image(Look L, vec2 uv) {
     float lam = max(dot(n, Ld), 0.0);
     float diffuse = L.ambient + (1.0 - L.ambient) * lam / max(Ld.z, 0.3);
     float sec = 1.0 / max(n.z, 0.12);
-    float se = 0.34 * pow(sec, 1.15);
+    float se = 0.2 * pow(sec, 1.35);
+    // occlusion at two scales: rims and pits (8 px), and deep cavities (~40 px)
     float hLow = textureLod(tF0, uv, lod + 3.0).b;
+    float hDeep = textureLod(tF0, uv, lod + 5.5).b;
     float occl = clamp((f0.b - hLow) / (8.0 * du), -1.0, 1.0);
+    float deep = clamp((f0.b - hDeep) / (45.0 * du), -1.0, 1.0);
     float det = clamp(0.5 + 0.9 * dot(n.xy, vec2(cos(L.lightAz), sin(L.lightAz))), 0.0, 1.0);
-    float semY = se * (1.0 - 0.45 * L.shadow + 0.45 * L.shadow * det) + max(occl, 0.0) * L.edge * 0.45;
+    float semY = se * (1.0 - 0.5 * L.shadow + 0.5 * L.shadow * det) + max(occl, 0.0) * L.edge * 0.35;
+    semY *= 1.0 + L.shadow * 0.7 * min(deep, 0.0);
     float shade = mix(diffuse, semY, L.semK);
-    shade *= 1.0 + L.shadow * 0.55 * min(occl, 0.0) + (1.0 - L.semK) * 0.35 * min(occl, 0.0);
+    shade *= 1.0 + L.shadow * 0.45 * min(occl, 0.0) + (1.0 - L.semK) * (0.35 * min(occl, 0.0) + 0.3 * min(deep, 0.0));
     shade = mix(shade, 1.0, L.flatK);
     vec3 s = alb * shade;
     vec3 H = normalize(Ld + vec3(0.0, 0.0, 1.0));
     float sp = pow(max(dot(n, H), 0.0), 80.0) * gloss * L.spec * 3.0;
     float fres = 0.03 + 0.97 * pow(1.0 - n.z, 5.0);
-    s += (vec3(sp) + L.sky * gloss * (0.1 + fres * 4.0)) * (1.0 - L.flatK);
+    s += (vec3(sp) + L.sky * gloss * (0.03 + fres * 3.0)) * (1.0 - L.flatK);
     float ol = smoothstep(0.5, 1.6, length(gh));
     s *= 1.0 - L.outline * ol;
     col += s * L.surf;
@@ -208,7 +212,7 @@ vec3 image(Look L, vec2 uv) {
   if (L.trans > 0.001) {
     vec3 A = f1.rgb * L.absK + L.massK * max(f0.r, 0.0);
     vec2 sd = vec2(cos(L.shearAz), sin(L.shearAz));
-    float dicT = L.dic * tanh(dot(go, sd) * 3.0);
+    float dicT = L.dic * tanh(dot(go, sd) * 8.0);
     float lapT = tanh(lapO * L.lap);
     float phi = 6.2832 * f0.r / 0.55;
     float phiLow = 6.2832 * textureLod(tF0, uv, log2(max(1.0, L.haloUm / uPx))).r / 0.55;
