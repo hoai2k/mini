@@ -7,6 +7,7 @@
 //
 // Markup: .tuck-vol > button.tuck-vol-knob + .tuck-vol-panel > .vslider >
 // .vslider-track > .vslider-fill + .vslider-thumb (styles.css).
+import { pressKey } from './ui.js';
 
 /**
  * @param {HTMLElement} root the .tuck-vol element
@@ -61,7 +62,7 @@ export function tuckedVolume(root, { get, set }) {
   });
   knob.addEventListener('pointercancel', () => { grab = null; });
   knob.addEventListener('keydown', (e) => {
-    if (e.key !== 'Enter' && e.key !== ' ') return;
+    if (!pressKey(e)) return; // Space after a click on it is the screen's play/stop
     e.preventDefault();
     e.stopPropagation();
     open(!root.classList.contains('open'));

@@ -163,6 +163,16 @@ when the Art Deco art arrives, measure and record its own.
   keyboard). From the second tap the tempo follows the taps: the average of
   the last six (so one slip fades), counted on the finger coming down; a
   pause of over two seconds starts again (`tapTempo` in `metronome.js`).
+  **The first tap grows the button into a big tap pad** over the screen
+  (animated from the button's own place and size): the tempo large across
+  its top (– until the second tap), a line of what to do (*Keep tapping in
+  time…*, then *Keep tapping until you get the tempo you want*) and a big circle that
+  pulses with each tap; a tap anywhere on the pad counts. It waits 3 s for
+  the second tap (and closes, the tempo as it was, if none comes); once
+  there is a tempo, 2 s after the last tap (when a new one would start
+  counting afresh) it shrinks back into the button, the new tempo set. Escape closes it at once; Space and
+  Enter tap on it too. With reduced motion it appears and goes without
+  growing or shrinking.
 - **The pendulum's weight shows the tempo and sets it**, as on a real
   metronome: it slides up the rod for slower and down for faster
   (`weightAt` in `app/src/metronome.js`), and dragging it with a finger or
@@ -174,9 +184,19 @@ when the Art Deco art arrives, measure and record its own.
   The scale is logarithmic, squeezed further at the fast end, so the slower,
   everyday tempos get more of the rod; tempos past either end leave it at
   that end (they can still be typed).
-  While it is dragged the pendulum eases upright and the clicks go on at the
-  new tempo; a tap on it without a drag is a tap on the metronome. It
-  slides to its place when the tempo changes any other way. The pendulum is
+  **It can be taken hold of anywhere on the rod**, mid-swing included: a
+  press within 22 px of the rod (the weight, or the rod above or below it)
+  is turned back into the rod's own upright frame (`unrotate`,
+  `uprightRod` in `app/src/art.js`) to see whether it was near it, so a
+  swinging weight is caught where it is, not where it was. The pendulum
+  then stands upright at once (no easing, so nothing shifts under the
+  pointer) and the clicks go on at the new tempo; the weight follows the
+  pointer up and down the rod, measured on the upright rod, so the same
+  movement is always the same change. A press on the weight keeps it under
+  the pointer; a press on the rod brings it there. A mouse over the rod
+  shows a hand. A press near the rod, dragged or not, is never a tap on the
+  metronome (which turns the swing on or off); a tap on the case still is.
+  It slides to its place when the tempo changes any other way. The pendulum is
   drawn in two parts for this, its rod (`metronome-rod`, with the weight's
   `travel` along it) and its weight (`metronome-weight`, with its `center`
   on the rod; `placeWeight` in `app/src/art.js`). Round 10 delivers both
@@ -278,7 +298,17 @@ when the Art Deco art arrives, measure and record its own.
   beat (start times land between samples), which the clipper turned into
   a different attack: two weak beats correlated at -0.01; now 1.000 for
   every sound, and Click's level no longer wanders by 10%. The apps play
-  the same renderings.
+  the same renderings. **They are recorded straight, not through the shared
+  limiter** (`new Metronome(ctx, { render: true })`; the limiter is still
+  on the way out when they play, and the apps' mixers have their own):
+  recorded through it, from the very start of a context (its lookahead
+  and attack), the clicks had come out 13 to 15 dB quieter than meant
+  (Beep 5) and 10 ms late, so what was heard at full volume was woodblock
+  -21 dB, Click -26, Beep -10 over a click's first 60 ms, and the first
+  clicks of a start (played live until the recordings were ready) were
+  louder than the rest. Now -7, -10 and -3, every peak just under full
+  scale, from the first click to the last. (It was also what failed the
+  apps' mixer tests on beat timing: their clicks are rendered the same way.)
 - Everything you see follows one clock, `heardNow()` in `app/src/audio.js`:
   the time of the sound reaching your ears. It takes the smoother of the
   context's output timestamp (`getOutputTimestamp`, which includes the
@@ -316,9 +346,76 @@ when the Art Deco art arrives, measure and record its own.
   an ordinary beat, 10 dB for Beep, and are not beats themselves: the
   pendulum, lamp, dots and Visualizer keep to the beat; the apps' native
   mixers play them the same way, `subdivision` and a fourth rendered
-  click), and **Sound** (Woodblock, Click, Beep, a dropdown). There is no
-  volume control: the metronome plays at full level and the device's own
-  volume sets it.
+  click), and **Sound** (a dropdown: Woodblock, Click, Beep, Mechanical,
+  Claves, Side stick, Cowbell, Hi-hat; all synthesized in
+  `Metronome.synth()` and recorded once, like the first three). Mechanical
+  is a wind-up metronome: a dry escapement tick, and on the downbeat its
+  little bell (C7 with a bright upper partial) struck 8 ms after the tick
+  and ringing for about 0.45 s. Claves are a near-pure ring around 2.5 kHz
+  with a crack on top; Side stick a woody band-passed knock over a short
+  falling drum tone; Cowbell the drum machine's (two square waves at 587
+  and 845 Hz through a band-pass, a 0.25 s ring); Hi-hat closed, bright
+  high-passed noise, longer on the downbeat. The ringing parts (the bell,
+  the cowbell) go past the click's clipper so their tails fade as they
+  should, and those two sounds are recorded for longer (`CLICK_SEC`: 0.3
+  and 0.5 s, the rest 0.1 s); the apps' mixers get each recording cut
+  after its last audible sample (`trimClick`). Each was levelled against
+  the woodblock, every recorded peak inside full scale (a browser check
+  renders all eight).
+- **Voice (counting)**, the last Sound: a voice counts the bar, in one of
+  the Practice Routine's voices (**Voice Personality**, shown under Sound
+  when Voice is chosen; Lily, Matilda, George, Clara, Autumn, Theo; the
+  choice says "one" to let it be heard). The beats are numbered (one to
+  twelve, so 6/8 is counted to six and 12/8 to twelve; no bars says "one"
+  on every beat), and between them it says "and" (eighths), "trip let"
+  (triplets) or "e and a" (sixteenths). `app/src/count.js`:
+  - The words are recordings, one file each,
+    `app/assets/audio/count/<voice>/<word>.wav` (16-bit mono, 24 kHz, about
+    370 KB a voice; only the chosen one is fetched, once a page, and every
+    metronome shares it). They are made by
+    `design/source/count_voice.py`: ElevenLabs, generated as raw PCM (an
+    MP3's encoder delay would move every word off the beat), each word on
+    its own as a short sentence ("Seven."), steadier and quicker than the
+    routine's lines. Every word was checked by transcribing it (local
+    faster-whisper); "Ee." came back as "uh", so "e" is asked for as the
+    letter, and a take that was misheard was made again.
+  - **On the beat:** a count is heard where its vowel is, and a word's
+    lead-in ("s" of "six", "tr" of "trip") takes up to 0.13 s. So every file
+    is padded (or its lead-in cut, fading in) to put the vowel exactly
+    `COUNT_LEAD` (0.12 s) in, and the Voice sound starts everything that much
+    early: the web metronome schedules a word at the beat minus the lead
+    (looking that much further ahead), and the apps' mixers start every
+    click early and add the lead back to the clock they report.
+  - **Faster, it says less** (`countSlots`): a word is cut off by the next
+    word (never by a click), with a 12 ms fade, and needs `COUNT_NEED` (65%)
+    of its length after the vowel before then. At each tempo it says every
+    word if all have room; else the beats with soft clicks between; else
+    "one" with clicks on the other beats; else clicks only. Measured on the
+    six voices: eighths to about 135 to 170 BPM, triplets to 86 to 109,
+    sixteenths to 67 to 85, the beats of a bar of four to 270 to 340. The
+    clicks are the Click sound's; a soft beat is its soft click and a silent
+    one nothing, and the word before has their time too. The downbeat's
+    "one" is fullest, the other numbers a little under (0.8), the words
+    between under those (0.55): about as loud as the woodblock.
+  - In the apps, the page sends the words with the clicks (the Click
+    sound's, padded by the lead) and the lead; a word is click kind 7 and on
+    in the slots, which say what is said where at that tempo
+    (`renderCount`, `NativeMetronome.slots`; `setWords` in both mixers,
+    which cut a word off with the next, tested in `mobile/test`). The
+    tempo trainer, run by the native mixer, keeps the words chosen for the
+    tempo it started at, each cut off by the next as the tempo rises.
+- **Volume:** the faint speaker at the picture's top right
+  (`tuckedvolume.js`): drag it up or down, or tap it for the slider. The
+  slider is on a curve, as the drone's is: the click's gain is the slider
+  squared (`metronomeGain` in `settings.js`), so equal moves sound like
+  equal steps (half way is -12 dB, full is as loud as it ever was). It was
+  a straight line, whose top half was only the loudest 6 dB and where 0.27
+  was already -11 dB; volumes saved then, the metronome's and each routine
+  item's, are carried over at the same loudness (`volumeCurve` in the
+  saves; the slider simply sits higher). The default is 0.87, the gain
+  0.76 it had. The apps' mixers are sent the gain. Each change goes into
+  the debug log once it settles (`metronome-volume`, the slider's
+  position), so a log says when the volume moved.
 - **Strong beats:** the pencil beside **Strong beat on 1** opens every place a
   click falls in the bar, counted as played (1 & 2 &, 1 trip let, 1 e & a),
   and any of them can be made strong, between the beats included (those
@@ -344,8 +441,9 @@ when the Art Deco art arrives, measure and record its own.
   `SOFT` (4) and `SILENT` (5), which the native mixers take in `slots` too
   (their soft click is the weak one scaled the same). They play in a
   routine as strong beats do.
-- **Tempo trainer:** a switch in Metronome settings, with a pencil for its
-  numbers: a target tempo, a step (BPM) and how often (every N bars). From
+- **Tempo trainer:** a switch in Metronome settings, under Polyrhythm
+  (after Silent bars). Turned on, its numbers open under it, set in under a
+  rule: a target tempo, a step (BPM) and how often (every N bars). From
   the tempo set, the metronome moves a step toward the target at the start
   of every N bars, then stays there; the number, slider and pendulum follow,
   and **Stop puts the tempo back** where it started, for another go (turned
@@ -354,7 +452,7 @@ when the Art Deco art arrives, measure and record its own.
 - **Silent bars:** the same, for some bars with clicks then some without
   (1 to 16 each), over and over: the beat goes on silently and the clicks
   come back to show whether it was held. The dots and pendulum keep going.
-- **Second rhythm** (a polyrhythm): a switch in Metronome settings and a
+- **Polyrhythm**: a switch in Metronome settings and a
   pencil with 2 to 9 (choosing one turns it on). A second, higher click
   divides each bar evenly from beat 1: 3 against 4 in 4/4, 2 against 3 in
   3/4, 5 against 4 and so on. Its click is the mid click played 1.5 times
@@ -367,7 +465,7 @@ when the Art Deco art arrives, measure and record its own.
 - These run in the scheduler itself (`setExercise` in `metronome.js`; in the
   apps `metronomeExercise`, so the mixers keep exact time and the trainer
   goes on with the screen locked, the page reading the tempo back off the
-  clock's period; the second rhythm is `polyN`). They apply when the metronome is started from its own
+  clock's period; the polyrhythm is `polyN`). They apply when the metronome is started from its own
   screen; a routine's metronome plays plainly. An app built before them
   plays on plainly (it has no `metronomeExercise`, and plays soft and
   silent places as the quiet between-the-beats click) until it is rebuilt.
@@ -523,6 +621,16 @@ a message that then disappears; a refusal is shown once it is known.
   in tune and red outside, and breaks where the note changes or stops, so a
   held note shows whether it wavers or drifts. On a window too short for
   everything, it is the last thing to go, after the gauge has shrunk.
+  It starts folded away: *Show pitch over time* under the readout opens it
+  (and *Hide* folds it again), and the choice is kept (`traceOn`). Its line
+  is a running average of the readings (`TraceSmoother` in `tuning.js`),
+  as steady as **Pitch over time sensitivity** in Tuner settings says
+  (`traceSensitivity`): High draws every reading the needle shows (as the
+  trace always did), Medium (the default) averages over 0.15 s and Low over
+  0.4 s, starting again at a new note or after a gap. Readings wander a few
+  cents on a held note (an open cello string read as a wavy line); Medium
+  draws it about a quarter as wavy, while a real change still shows within
+  a second. The needle is never averaged this way.
 - **Reference tone**: in Chromatic, *Play A4* (it becomes the last note
   heard) plays a 2.5 s tone with a few harmonics, so low notes still carry
   on a phone speaker. `Space` plays it, or the nearest string's note.
@@ -549,9 +657,29 @@ harmonics only) to within 1.5 cents and in the right octave.
 A quiet **Intonation Exercises** button under the tuner (no fill or
 shadow, an outlined icon in the theme's accent, so it doesn't compete with
 the tuner), set apart from Play a note by a rule and space (an icon, a line
-saying what it does, an arrow). It opens a small sheet with the two
-exercises, each a button of the same kind: **Test My Scale Intonation**
-and **Pure Intervals**.
+saying what it does, an arrow). It opens a small sheet with the
+exercises, each a button of the same kind: **Test My Scale Intonation**,
+**Tone Matching** and **Pure Intervals**.
+
+### Tone Matching
+
+A cello plays a note (an exact note, picked at random from G2 to D4, never
+the same note name twice running; the Drone's sampled cello at the Drone's
+volume), then the player plays or sings the same note in any octave and
+holds it. Once a note has held steady for 0.7 s (its readings within 40
+cents), it is judged twice (`app/src/tonematch.js`, in
+`test/tonematch.test.mjs`): **the right note or not** (*Right note: A*, or
+*You played B. The note was A* and *2 semitones too high*), and for the
+right note **how close** (*12 cents sharp · close*: in tune within 5 cents,
+close within 15). A running score (*3 of 4 right*), **Hear it again** and
+**Next note**. If no steady note comes within 12 s it says so.
+
+The note never sounds while the microphone listens: it is closed while the
+cello plays (where it can be taken back without a prompt) and the phone
+given time to leave call mode, so it is heard at full volume on any
+speaker; then listening starts again, ignoring the first 0.4 s (the room's
+echo). Where closing the mic would bring the prompt back, it stays open and
+what it hears while the note sounds is ignored.
 
 ### Pure Intervals
 
@@ -575,6 +703,14 @@ The instrument, strings, reference tone and the exercises button step aside
 while it is on. Done, or leaving the tuner, ends it and stops a drone it
 started. The bar suggests headphones: over a speaker the tuner also hears
 the drone.
+
+**On iPhone and iPad** an open microphone holds the phone in call mode, so a
+drone under listening would play quietly on the phone's own speaker. There
+the button is **Hear the drone**: the drone sounds for 4 s with the
+microphone closed (as Tone Matching's note does), then stops and the tuner
+listens, judging the note the player goes on playing against it (*Drone
+playing…* meanwhile, and the bar says so). The drone and the microphone
+never overlap.
 
 ### Test My Scale Intonation
 
@@ -1084,9 +1220,24 @@ slide read as a snap. The way across is a **smaller Routine button**
 
 ## Controls
 
-Touch or mouse throughout. Keyboard: `Space` starts/stops the metronome or
-turns listening on/off, or plays the tuner's reference tone, arrow keys change the tempo (`Shift` for 10),
-`Esc` goes back or closes settings. As a tool on the mini apps shelf it skips
+Touch or mouse throughout. Keyboard (`main.js`, the keys section):
+
+- **`Space` plays and stops** what the screen plays: the metronome, the
+  drone, Record (listening on or off), a routine (start, then pause and
+  carry on); on the Tuner it plays the reference tone. It does so wherever
+  the focus is, even on a button just clicked (a clicked button keeps the
+  focus, and Space would otherwise press it again: the drone's note down,
+  say), except in a text field or a list, or on a control reached with
+  `Tab`, which Space presses as usual. Which it was is tracked by the last
+  input (`keyboardFocus` in `ui.js`: a click or tap, or `Tab`), not by
+  `:focus-visible`, which Chrome turns on as soon as any key is pressed.
+  The controls with keys of their own (the tempo's − and +, Tap, the
+  picture, the volume knob, a routine's rows) take Space only when `Tab`
+  brought the focus there.
+- **Arrows and `+`/`−`** move the tempo on the metronome (`Shift`, or
+  `Page Up`/`Page Down`, by 10) and the note on the drone; a focused slider
+  keeps its own arrows. **`T`** taps the tempo.
+- **`Esc`** goes back to the start, or closes the sheet that is open. As a tool on the mini apps shelf it skips
 the game title screen and controller support from `GAME_GUIDELINES.md` in
 favour of the two-button home screen.
 

@@ -8,8 +8,9 @@
 
 import { TEXT } from './text-config.js';
 import { call, hasPlugin, listen } from './native.js';
-import { Metronome, SUB } from './metronome.js';
-import { barPlan } from './settings.js';
+import { Metronome, SUB, clickSec, trimClick } from './metronome.js';
+import { barPlan, metronomeGain } from './settings.js';
+import { COUNT_WORDS, COUNT_LEAD, COUNT_CLICK, countSlots, countUrl, wordGain } from './count.js';
 import { SAMPLED, loadLoop, renderSynthLoop, synthSpec, SYNTH_ANCHORS, SYNTH_MAX_SHIFT, droneGain, DRONE_DEFAULT } from './drone.js';
 import { extraDelaySec } from './audio.js';
 
@@ -41,13 +42,38 @@ export function encode(samples) {
 export async function renderClicks(sound, sampleRate) {
   const out = [];
   for (const strength of [0, 1, 2, SUB]) {
-    const ctx = new OfflineAudioContext(1, Math.ceil(0.1 * sampleRate), sampleRate);
-    const m = new Metronome(ctx);
+    const ctx = new OfflineAudioContext(1, Math.ceil(clickSec(sound) * sampleRate), sampleRate);
+    const m = new Metronome(ctx, { render: true }); // the native mixer has its own limiter, as output.js
     m.configure({ bpm: 120, meter: '4/4', accent: true, sound, volume: 1 });
     m.synth(0, strength);
-    out.push((await ctx.startRendering()).getChannelData(0));
+    out.push(trimClick((await ctx.startRendering()).getChannelData(0)));
   }
   return out;
+}
+
+/**
+ * The Voice sound for the apps' mixers, at `sampleRate`: { clicks, words,
+ * lengths }. The words (COUNT_WORDS' order) at their loudness (wordGain), and
+ * the clicks it plays where it says nothing, padded by COUNT_LEAD so they are
+ * heard where a word's vowel is: the mixer starts everything COUNT_LEAD early.
+ */
+export async function renderCount(voice, sampleRate) {
+  const lead = Math.round(COUNT_LEAD * sampleRate);
+  const clicks = (await renderClicks(COUNT_CLICK, sampleRate)).map((c) => {
+    const d = new Float32Array(lead + c.length);
+    d.set(c, lead);
+    return d;
+  });
+  const ctx = new OfflineAudioContext(1, 1, sampleRate); // decodes at its own rate
+  const words = [];
+  const lengths = {};
+  for (const w of COUNT_WORDS) {
+    const buf = await ctx.decodeAudioData(await (await fetch(countUrl(voice, w))).arrayBuffer());
+    const g = wordGain(w);
+    words.push(buf.getChannelData(0).map((v) => v * g));
+    lengths[w] = buf.duration - COUNT_LEAD;
+  }
+  return { clicks, words, lengths };
 }
 
 /** A drone voice's loops, as plain samples: { level, wet, lowpass, maxShift, loops: [{ hz, sampleRate, channels, samples }] }. */
@@ -101,16 +127,18 @@ export class NativeMetronome {
     this.strengths = [2, 0, 0, 0];
     this.volume = 0.8;
     this.sound = 'wood';
-    this.clicksFor = ''; // the sound whose clicks the native side has
+    this.countVoice = 'lily'; // who counts, for the Voice sound
+    this.clicksFor = ''; // the sound whose clicks the native side has (for the Voice sound, and whose voice)
+    this.countLengths = null; // the Voice sound's words' lengths, once rendered (count.js countSlots)
     this.clock = null; // { at (s), count, beat, period }: when beat `count` is heard
     this.pollTimer = 0;
     this.gap = null; // silent bars: { play, silent }, or null
     this.trainer = null; // the tempo trainer: { step, every, to }, or null
-    this.poly = 0; // the second rhythm: clicks across each bar, or 0
+    this.poly = 0; // the polyrhythm: clicks across each bar, or 0
     this.onTempo = null; // (bpm) when the trainer moves the tempo
   }
 
-  /** Silent bars, the tempo trainer and the second rhythm for this run, as Metronome.setExercise (the native mixer keeps them). */
+  /** Silent bars, the tempo trainer and the polyrhythm for this run, as Metronome.setExercise (the native mixer keeps them). */
   setExercise({ gap = null, trainer = null, poly = 0 } = {}) {
     this.gap = gap;
     this.trainer = trainer;
@@ -141,10 +169,17 @@ export class NativeMetronome {
     this.subdivision = s.subdivision || 1;
     const plan = barPlan(s);
     this.strengths = plan.strengths;
-    this.slots = plan.slots || []; // custom strong beats: the click for every position (empty: the plain rules)
-    this.volume = s.volume;
+    this.plan = plan;
+    this.volume = metronomeGain(s.volume); // the mixer takes the gain
     this.sound = s.sound;
+    if (s.countVoice) this.countVoice = s.countVoice;
     if (this.running) this.update();
+  }
+
+  /** The click for every position (empty: the plain rules): custom strong beats, or what the Voice sound says at this tempo. */
+  get slots() {
+    if (this.sound === 'voice' && this.countLengths) return countSlots({ ...this.plan, subdivision: this.subdivision, bpm: this.bpm }, this.countLengths);
+    return this.plan?.slots || [];
   }
 
   label() {
@@ -152,12 +187,19 @@ export class NativeMetronome {
   }
 
   async clicks() {
-    if (this.clicksFor === this.sound) return null;
+    const key = this.sound === 'voice' ? `voice:${this.countVoice}` : this.sound;
+    if (this.clicksFor === key) return null;
     const rate = await outputRate();
-    const sound = this.sound;
-    const c = await renderClicks(sound, rate);
-    this.clicksFor = sound;
-    return { clicks: c.map(encode), clickRate: rate };
+    if (this.sound === 'voice') {
+      const c = await renderCount(this.countVoice, rate);
+      this.clicksFor = key;
+      this.countLengths = c.lengths;
+      return { clicks: c.clicks.map(encode), words: c.words.map(encode), lead: COUNT_LEAD, clickRate: rate };
+    }
+    const c = await renderClicks(this.sound, rate);
+    this.clicksFor = key;
+    this.countLengths = null;
+    return { clicks: c.map(encode), words: [], lead: 0, clickRate: rate };
   }
 
   async start() {

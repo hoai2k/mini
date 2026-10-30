@@ -1,0 +1,57 @@
+[
+  {
+    "id": "icon",
+    "file": "icons/icon-1024.png",
+    "status": "delivered"
+  },
+  {
+    "id": "favicon",
+    "file": "icons/favicon-256.png",
+    "status": "delivered"
+  },
+  {
+    "id": "cover",
+    "file": "assets/ui/cover.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "bowl",
+    "file": "assets/ui/bowl.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "backdrop",
+    "file": "assets/ui/backdrop.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "instrument-bowl-large",
+    "file": "assets/instruments/bowl-large.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "instrument-bowl-small",
+    "file": "assets/instruments/bowl-small.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "instrument-rin",
+    "file": "assets/instruments/rin.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "instrument-tingsha",
+    "file": "assets/instruments/tingsha.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "instrument-koshi",
+    "file": "assets/instruments/koshi.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "instrument-bell",
+    "file": "assets/instruments/bell.webp",
+    "status": "delivered"
+  }
+]

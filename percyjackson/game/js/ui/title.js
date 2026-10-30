@@ -18,6 +18,7 @@ const ICONS = {
   soundOn: '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></g></svg>',
   soundOff: '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></g></svg>',
   fullscreen: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  pad: '<svg viewBox="0 0 24 24" width="1.25em" height="1.25em" aria-hidden="true" style="vertical-align:-0.25em"><path fill="currentColor" d="M7 6h10a5 5 0 0 1 4.9 6l-1 4.6a2.6 2.6 0 0 1-4.5 1.2L14.6 16H9.4l-1.8 1.8a2.6 2.6 0 0 1-4.5-1.2l-1-4.6A5 5 0 0 1 7 6zm0 3v1.5H5.5v1.5H7v1.5h1.5V12H10v-1.5H8.5V9H7zm9.5.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>',
   exitfs: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
 
@@ -79,7 +80,16 @@ export function openTitle(game) {
     b.setAttribute('aria-label', label); b.title = label; b.querySelector('.lbl').textContent = label;
   };
   const toggleSound = () => { game.audio?.setMuted(!game.audio.muted); saveSettings(); syncSound(); };
-  const cleanup = () => { window.removeEventListener('keydown', onKey); document.removeEventListener('fullscreenchange', onFs); };
+  // "Xbox controller highly recommended": shown only while no controller is connected.
+  const syncPadNote = () => {
+    const note = root?.querySelector('.title-pad-note'); if (!note) return;
+    note.hidden = [...(navigator.getGamepads?.() || [])].some(Boolean);
+  };
+  const onPads = () => setTimeout(syncPadNote, 0);
+  const cleanup = () => {
+    window.removeEventListener('keydown', onKey); document.removeEventListener('fullscreenchange', onFs);
+    window.removeEventListener('gamepadconnected', onPads); window.removeEventListener('gamepaddisconnected', onPads);
+  };
 
   const util = (act, label, icon, fn) => h('button', { class: 'util-btn', 'data-act': act, 'aria-label': label, title: label, onclick: fn },
     h('span', { class: 'ic', html: icon }), h('span', { class: 'lbl', 'aria-hidden': 'true' }, label));
@@ -93,7 +103,8 @@ export function openTitle(game) {
       h('div', { class: 'title-center' },
         makeLogo(),
         h('button', { class: 'press-start', 'data-autofocus': true, onclick: () => start() }, h('span', {}, tx('title.pressStart'))),
-        h('div', { class: 'title-hint', 'aria-live': 'polite' }, hintText())),
+        h('div', { class: 'title-hint', 'aria-live': 'polite' }, hintText()),
+        h('div', { class: 'title-pad-note', html: ICONS.pad + ' ' + tx('title.padNote') })),
       h('div', { class: 'title-foot' }, tx('title.footer', { level: save.level, coins: save.coins })),
       h('div', { class: 'title-utils', role: 'group', 'aria-label': tx('title.options') },
         util('instructions', tx('title.instructions'), ICONS.instructions, () => open(openInstructions)),
@@ -102,7 +113,8 @@ export function openTitle(game) {
         util('fullscreen', tx('title.fullscreen'), ICONS.fullscreen, toggleFs)));
     window.addEventListener('keydown', onKey);
     document.addEventListener('fullscreenchange', onFs);
-    onFs(); syncSound();
+    window.addEventListener('gamepadconnected', onPads); window.addEventListener('gamepaddisconnected', onPads);
+    onFs(); syncSound(); syncPadNote();
   }, {
     onClose: cleanup,
     onNav: (m) => {

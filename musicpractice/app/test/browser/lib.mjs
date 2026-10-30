@@ -64,8 +64,8 @@ export async function start({ micFile } = {}) {
   return {
     base: site.url,
     /** A page in `theme` and `mode` ('light', 'dark' or 'default'), as a phone (touch) or a desktop. */
-    async page({ theme = 'classic', mode = 'default', width = 390, height = 844, touch = true, timer } = {}) {
-      const ctx = await browser.newContext({ viewport: { width, height }, hasTouch: touch, isMobile: touch, permissions: ['microphone'] });
+    async page({ theme = 'classic', mode = 'default', width = 390, height = 844, touch = true, timer, userAgent } = {}) {
+      const ctx = await browser.newContext({ viewport: { width, height }, hasTouch: touch, isMobile: touch, permissions: ['microphone'], ...(userAgent ? { userAgent } : {}) });
       await ctx.addInitScript(([t, m, routine]) => {
         if (sessionStorage.getItem('seeded')) return; // seeded once: a reload keeps what the page saved
         sessionStorage.setItem('seeded', '1');

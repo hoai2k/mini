@@ -1,0 +1,24 @@
+{
+	"schemaVersion": 1,
+	"id": "smoothcraft",
+	"version": "${version}",
+	"name": "Smoothcraft",
+	"description": "Renders the world as smooth shapes: terrain melts into continuous surfaces, mobs become rounded models of their voxel selves, every surface gets a physically based material under sun, sky and torch light, and the textures can be replaced with realistic high-resolution ones.",
+	"authors": ["hoai2k"],
+	"license": "All-Rights-Reserved",
+	"environment": "client",
+	"entrypoints": {
+		"client": ["net.hoai2k.smoothcraft.Smoothcraft"]
+	},
+	"mixins": ["smoothcraft.mixins.json"],
+	"depends": {
+		"fabricloader": ">=0.20.1",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	},
+	"breaks": {
+		"sodium": "*",
+		"iris": "*"
+	}
+}

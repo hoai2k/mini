@@ -14,7 +14,7 @@
 
 import { TEXT } from './text.js';
 import { output } from './output.js';
-import { BPM_MIN, BPM_MAX, METERS, SOUNDS, DEFAULTS } from './settings.js';
+import { BPM_MIN, BPM_MAX, METERS, SOUNDS, DEFAULTS, SPEAKERS, metronomeSlider } from './settings.js';
 import { DRONE_MIN, DRONE_MAX, VOICES } from './drone.js';
 
 const KEY = 'musicpractice.routine.v1';
@@ -190,10 +190,19 @@ export const VOICE_MAX_GAIN = 1.6;
 export const voiceGain = (v) => VOICE_MAX_GAIN * Math.max(0, Math.min(1, v)) ** 2;
 export const VOICE_DEFAULT = Math.round(Math.sqrt(0.9 / VOICE_MAX_GAIN) * 100) / 100;
 
+/** Items' metronome volumes saved on the straight line (before volumeCurve) were the gain: the slider position with that gain (settings.js metronomeGain). */
+function curveVolumes(saved) {
+  const items = [...(Array.isArray(saved.items) ? saved.items : []), ...(Array.isArray(saved.routines) ? saved.routines.flatMap((r) => (Array.isArray(r?.items) ? r.items : [])) : [])];
+  for (const it of new Set(items)) {
+    if (Number.isFinite(it?.met?.volume)) it.met.volume = metronomeSlider(it.met.volume);
+  }
+}
+
 /** The timer's own saved state: the routine, the chime and the voice. */
 export function loadTimer(base, storage = globalThis.localStorage) {
   let saved = null;
   try { saved = JSON.parse(storage?.getItem(KEY) || 'null'); } catch { /* start afresh */ }
+  if (saved && saved.volumeCurve !== true) curveVolumes(saved);
   const routines = cleanRoutines(saved, base);
   const current = routines.find((r) => r.id === saved?.routineId) || routines[0];
   return {
@@ -218,7 +227,7 @@ export function saveTimer({ routines, routineId, items, chime, chimeOn, lastMinu
   // `items` (the chosen routine's) is kept too, for an earlier version reading this.
   const current = routines?.find((r) => r.id === routineId);
   if (current) current.items = items;
-  try { storage?.setItem(KEY, JSON.stringify({ routines, routineId, items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume, metView, rest })); } catch { /* not kept */ }
+  try { storage?.setItem(KEY, JSON.stringify({ routines, routineId, items, chime, chimeOn, lastMinutes, voiceOn, voice, voiceVolume, metView, rest, volumeCurve: true })); } catch { /* not kept */ }
 }
 
 /**
@@ -240,7 +249,7 @@ function cleanLastMinutes(v) {
  * settings); each a calm read of every line (design/voice-samples.md):
  * assets/audio/voice/<voice>/<line>.mp3.
  */
-export const SPEAKERS = ['lily', 'matilda', 'george', 'clara', 'autumn', 'theo'];
+export { SPEAKERS }; // settings.js: the metronome's Voice sound counts in these voices too
 
 /*
  * What is said. Every kind of item (a suggestion's id) has its own lines,

@@ -80,6 +80,8 @@ html, body {
 .press-start:focus-visible, .press-start.focused { outline-color: var(--focus); }
 @keyframes breathe { 50% { transform: scale(1.035); } }
 @media (prefers-reduced-motion: reduce) { .press-start { animation: none; } }
+/* Under Press Start until a controller is connected. */
+.pad-note { margin: 0.5rem 0 0; padding: 0.2rem 0.8rem; border-radius: 999px; background: rgba(22, 13, 46, 0.5); color: rgba(246, 238, 220, 0.88); font-size: 0.95rem; letter-spacing: 0.02em; text-shadow: 0 1px 3px #000; }
 .hint { margin: 0.4rem 0 0; color: var(--cloth); opacity: 0.85; font-size: 0.95rem; text-shadow: 0 1px 4px #000; }
 
 .corner-buttons {
@@ -282,6 +284,9 @@ html, body {
   .title-block { padding: 0.5rem; gap: 0.3rem; }
   #logo-img { width: min(78vw, 100vh); }
   .press-start { margin-top: 0.3rem; }
+  .pad-note { margin-top: 0.2rem; font-size: 0.85rem; }
+  /* Lifted clear of the corner buttons. */
+  .title-block { padding-bottom: 4.6rem; }
 }
 /* A narrow screen: the hint wraps above the corner buttons instead of under them. */
 @media (max-width: 600px) {

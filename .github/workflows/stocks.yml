@@ -4,14 +4,18 @@ name: Stocks data and API
 #
 # api      Deploys stocks/server, the mini-stocks Worker the page reads live
 #          prices, dividends and search suggestions from, then checks it
-#          answers. Runs when stocks/server changes on main. Needs the same
+#          answers. Runs when stocks/server changes on the `deploy` branch
+#          (pushing to main runs nothing; see "Deploy state" in CLAUDE.md). Needs the same
 #          CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID secrets as relay.yml.
 #          It is a separate Worker from mini-rooms, so the relay is untouched.
 #
 # snapshot Refreshes the built-in history in stocks/app/data/ (the page's
-#          fallback when the Worker can't be reached) and commits it, then
-#          starts a Pages deploy. Manual only: Actions -> Stocks data and API
-#          -> Run workflow -> snapshot (optionally with extra symbols).
+#          fallback when the Worker can't be reached) and commits it to the
+#          branch it ran on; it goes live with the next deploy. Manual only:
+#          Actions -> Stocks data and API -> Run workflow -> snapshot
+#          (optionally with extra symbols). Nothing refreshes it on a schedule:
+#          the page fetches today's prices from the Worker every time it loads,
+#          so the built-in copy is only a fallback and need not be current.
 #
 # A push to the working branch claude/stocks-data runs both, committing the
 # snapshot back to that branch; that is how a session without network access
@@ -19,7 +23,7 @@ name: Stocks data and API
 
 on:
   push:
-    branches: [main, claude/stocks-data]
+    branches: [deploy, claude/stocks-data]
     paths: ['stocks/server/**', 'stocks/tools/**', '.github/workflows/stocks.yml']
   workflow_dispatch:
     inputs:
@@ -46,6 +50,7 @@ jobs:
       (github.event_name == 'push') ||
       (github.event_name == 'workflow_dispatch' && inputs.job != 'snapshot')
     runs-on: ubuntu-latest
+    timeout-minutes: 20  # a hung run otherwise bills up to 6 h
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -81,9 +86,9 @@ jobs:
       (github.event_name == 'push' && github.ref == 'refs/heads/claude/stocks-data') ||
       (github.event_name == 'workflow_dispatch' && inputs.job != 'api')
     runs-on: ubuntu-latest
+    timeout-minutes: 20  # a hung run otherwise bills up to 6 h
     permissions:
       contents: write
-      actions: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -92,7 +97,6 @@ jobs:
       - name: Fetch history
         run: node stocks/tools/snapshot.mjs ${{ github.event_name == 'workflow_dispatch' && inputs.symbols || '' }}
       - name: Commit
-        id: commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
@@ -100,11 +104,3 @@ jobs:
           if git diff --cached --quiet; then echo "No changes."; exit 0; fi
           git commit -m "Stocks: refresh built-in price and dividend history [skip ci]"
           git push
-          echo "pushed=1" >> "$GITHUB_OUTPUT"
-      # A commit made with GITHUB_TOKEN starts no workflows, so ask for the
-      # Pages deploy explicitly when the data on main changed.
-      - name: Deploy Pages
-        if: steps.commit.outputs.pushed == '1' && github.ref == 'refs/heads/main'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run pages.yml --ref main

@@ -40,6 +40,20 @@ POSES = [
     *[(p, 'prince-carry', 45, ()) for p in ('prince-carry-climb-a', 'prince-carry-climb-b')],
     *[(p, 'prince-court', 45, ()) for p in ('prince-court-leap', 'prince-court-fall', 'prince-court-reach')],
 ]
+# The crew's poses, matched on each crewman's own face (box in his standing
+# sprite, x0, y0, x1, y1 art px, per look); a hat, plume or halberd would
+# spoil a template of the whole top of the figure.
+CREW_FACES = {
+    'squire': {'': (45, 90, 105, 150), '-tinted': (57, 103, 120, 150)},
+    'bosun': {'': (95, 70, 140, 120), '-tinted': (73, 80, 127, 123)},
+    'helmsman': {'': (60, 75, 110, 125), '-tinted': (73, 60, 133, 110)},
+    'manatarms': {'': (80, 60, 140, 125), '-tinted': (77, 53, 143, 110)},
+}
+CREW_POSES = ('sit-up', 'crawl', 'tumble')
+# Sprites no template can read (a sleeping face turned on its side), sized by
+# eye against the standing crewman at the game's drawing scale, 16 Oct 2026:
+# the lying squire is painted about 1.3x his standing size, the man-at-arms\' a little small.
+BY_EYE = {'crew-asleep': 0.77, 'crew-asleep-tinted': 0.72, 'crew-asleep-b': 1.08, 'crew-asleep-b-tinted': 1.2}
 POSE_TOL = 0.06      # a head within 6% of the reference's is drawn as painted
 POSE_MATCH = 0.55    # below this match score the measure is not trusted
 DIP = 0.025          # the head's natural dip at a contact, of figure height
@@ -90,18 +104,23 @@ def body_scale(ref, aid, frac=0.24):
     return 1 / best[1], best[0]
 
 
-def head_scale(ref, aid, rot):
+def head_scale(ref, aid, rot, box=None):
     """How large `aid`'s figure is against `ref`'s, by the head (the top 17%
-    of the reference figure), searched over size and a little rotation."""
+    of the reference figure, or the face in `box`), searched over size and
+    rotation."""
     g, a = load(ref)
-    t, b, l, r = bounds(a)
-    band = a[t:t + int((b - t) * 0.17)]
-    cols = np.where(band.max(0) > 40)[0]
-    tpl = g[t:t + int((b - t) * 0.17), cols.min():cols.max() + 1]
+    if box:
+        x0, y0, x1, y1 = box
+        tpl = g[y0:y1, x0:x1]
+    else:
+        t, b, l, r = bounds(a)
+        band = a[t:t + int((b - t) * 0.17)]
+        cols = np.where(band.max(0) > 40)[0]
+        tpl = g[t:t + int((b - t) * 0.17), cols.min():cols.max() + 1]
     G, _ = load(aid)
     best = (-1.0, 1.0)
-    for ang in range(-rot, rot + 1, 15):
-        for s in np.arange(0.7, 1.7, 0.02):
+    for ang in range(-rot, rot + 1, 15 if not box else 10):
+        for s in np.arange(0.6 if box else 0.7, 1.7, 0.02):
             T = cv2.resize(tpl, None, fx=s, fy=s, interpolation=cv2.INTER_AREA)
             if ang:
                 M = cv2.getRotationMatrix2D((T.shape[1] / 2, T.shape[0] / 2), ang, 1)
@@ -227,6 +246,27 @@ def audit():
                         pose_fit[i + t] = f
                 note = f'drawn × {f:.3f}' + (f' (and its {len(shared)} set)' if shared else '')
             lines.append(f'| `{pid}` | `{rid}` | {size:.2f} | {q:.2f} | {note} |')
+    for crew, boxes in CREW_FACES.items():
+        for pose in CREW_POSES:
+            for t, box in boxes.items():
+                pid = f'crew-{crew}-{pose}{t}'
+                rid = f'crew-{crew}{t}' + ('-redo' if crew == 'manatarms' else '')
+                if not all(slots.get(i, {}).get('status') == 'delivered' and (ASSETS / f'{i}.webp').exists() for i in (pid, rid)):
+                    continue
+                size, q = head_scale(rid, pid, 120 if pose == 'tumble' else 60, box)
+                # a best size at the search's edge is no measure
+                trusted = q >= 0.58 and 0.62 < size < 1.68
+                note = 'as painted'
+                if trusted and abs(size - 1) > POSE_TOL:
+                    pose_fit[pid] = round(1 / size, 3)
+                    note = f'drawn × {pose_fit[pid]:.3f}'
+                elif not trusted:
+                    note = 'as painted (no reliable match)'
+                lines.append(f'| `{pid}` | `{rid}` face | {size:.2f} | {q:.2f} | {note} |')
+    for pid, f in BY_EYE.items():
+        if slots.get(pid, {}).get('status') == 'delivered':
+            pose_fit[pid] = f
+            lines.append(f'| `{pid}` | standing crewman, by eye | {1 / f:.2f} | — | drawn × {f:.3f} |')
     lines.append('')
     lines += ['## To redraw', '']
     lines += [f'- {p}' for p in problems] or ['Nothing.']

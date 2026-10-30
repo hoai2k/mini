@@ -40,6 +40,7 @@ export const TEXT = {
     hintNav: 'A select · B back · Menu start',
     hintTap: 'Tap Press Start',
     hintIdle: 'Move left stick for options',
+    padNote: 'Xbox controller highly recommended',
     footer: 'Level {level} · {coins} drachmas',
     options: 'Options',
     instructions: 'Instructions',

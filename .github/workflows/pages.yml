@@ -1,6 +1,10 @@
 name: Deploy games to GitHub Pages
 
-# A push to main builds and deploys only. Each game's build is its own step
+# Deploys from the `deploy` branch, not `main`: pushing to main runs nothing,
+# and the site is published only when `deploy` is moved forward to main
+# (`git push origin main:deploy`; see "Deploy state" in CLAUDE.md).
+#
+# A push to deploy builds and deploys only. Each game's build is its own step
 # through .github/scripts/build-game.sh: a game that fails to build is
 # published from its live copy instead (rebuilt from the live commit, or
 # crawled off the site), with a warning and a line in the job summary, so one
@@ -16,7 +20,14 @@ name: Deploy games to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [deploy]
+    # Smoothcraft is a Minecraft mod, not part of the site: a push that only
+    # changes it has nothing to deploy. A push that also changes anything
+    # else still deploys as usual.
+    paths-ignore:
+      - 'smoothcraft/**'
+      - '**.md'
+      - '.claude/**'
   workflow_dispatch:
     inputs:
       tests:
@@ -35,7 +46,7 @@ permissions:
 # on every push instead can starve the site: a steady stream
 # of pushes would cancel every deploy before it finished. Per-game groups
 # would not help either: there is one Pages site, and every run builds and
-# publishes ALL games from the latest main, so a newer run already contains
+# publishes ALL games from the latest deploy, so a newer run already contains
 # whatever a superseded one would have published. (Before October 2026 this
 # was group github-pages, also never-cancel.)
 concurrency:
@@ -45,6 +56,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 40  # a hung run otherwise bills up to 6 h
     permissions:
       contents: read
       # build-game.sh asks for the last successful run to rebuild a failed
@@ -53,6 +65,10 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
+      # A plain full checkout, smoothcraft/ included. Leaving it out was tried
+      # (a blobless partial clone with a sparse checkout, October 2026): it
+      # saves only the mod's ~8% of the data, and fetching the rest blob by
+      # blob during checkout was slower than one ordinary fetch of everything.
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
@@ -183,6 +199,11 @@ jobs:
       - name: Image Annotator tests
         if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
         run: node --test imageannotator/app/test/*.test.mjs && python3 imageannotator/design/source/build_requests.py --check
+      - name: Build Meditation Timer
+        run: .github/scripts/build-game.sh meditation 'meditation/publish.sh local/pages/meditation'
+      - name: Meditation Timer tests
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: node --test meditation/app/test/*.test.mjs && python3 meditation/design/source/build_requests.py --check
       - name: Fail only if no game built
         run: .github/scripts/check-games.sh
       - uses: actions/upload-pages-artifact@v3
@@ -192,6 +213,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10  # a hung run otherwise bills up to 6 h
     permissions:
       pages: write
       id-token: write

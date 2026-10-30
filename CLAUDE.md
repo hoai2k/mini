@@ -2,44 +2,45 @@
 
 ## Deploy state: **ENABLED**
 
-This switch overrides every other instruction in this file about pushing,
-merging or fast-forwarding `main`, opening or merging pull requests into it,
-and deploying.
+Deploy branch: `deploy`
 
-- **DISABLED** means `main` is frozen to save GitHub Actions minutes:
-  - Commit your work and push **only your working branch** (name it
-    `claude/<topic>`; pushes to a working branch run no workflows). Never push,
-    merge or fast-forward `main`, and don't merge pull requests into it.
-  - Run tests and builds locally as usual (they cost no Actions minutes).
-  - End every change with this warning to the owner:
-    > ⚠️ Deploys are disabled for this repo: the change is on branch
-    > `<branch>`, NOT on `main`, and NOT deployed.
-- **ENABLED** means follow the normal push and deploy rules in this file.
-- **Turning deploys on** happens only when the owner explicitly asks for a push
-  to `main` (or to enable deploys). Then:
-  1. Change the heading above to `**ENABLED**` (this is what lets the push
-     guard below allow the push).
-  2. Merge the pending work: `git fetch origin && git branch -r --no-merged
-     origin/main` lists it. Merge oldest first, resolve conflicts, and run the
-     tests.
-  3. Push `main` once; that push deploys. If the owner disabled the deploy
-     workflow in the Actions tab, remind them to re-enable it.
+This repository deploys from the `deploy` branch, not from `main`. Pushing to
+`main` runs no workflow and costs nothing; the site is published only when
+`deploy` is moved forward to `main`. This switch overrides every other
+instruction in this file about deploying.
+
+- **ENABLED** means deploy after every change, exactly as before the deploy
+  branch existed: commit, push `main` as the rest of this file says, then
+  publish it with `git push origin main:deploy`. That push deploys. A deploy
+  that is already running always finishes, and pushes waiting behind it
+  collapse into the newest one.
+- **DISABLED** means deploys are off to save GitHub Actions minutes. Commit and
+  push `main` as usual, so finished work still lands on `main`, but never push,
+  merge or fast-forward `deploy`. End every change with this warning to the
+  owner:
+  > ⚠️ Deploys are disabled for this repo: the change is on `main` but NOT
+  > deployed. The live site is still whatever `deploy` holds.
+- **Turning deploys on** happens only when the owner explicitly asks to deploy,
+  to enable deploys, or for a push to `main` that should go live. Change the
+  heading above to `**ENABLED**`, commit and push `main`, then
+  `git push origin main:deploy`. If the owner disabled the deploy workflow in
+  the Actions tab, remind them to re-enable it.
 - **Turning deploys off**, when the owner asks: change the heading to
-  `**DISABLED**`, commit only that change with `[skip ci]` in the message (so
-  the push runs no workflow), and push `main`.
+  `**DISABLED**`, commit and push `main`. It costs nothing.
+- `git push origin main:deploy` is always a fast-forward. Never force-push
+  `deploy`. If the push is refused, `deploy` has commits `main` lacks: merge
+  `origin/deploy` into `main` first, then push both.
 - `.claude/hooks/deploy-guard.sh` enforces this for Claude sessions: while the
-  heading says DISABLED it refuses a `git push` to `main` and pull-request
-  merges into it, except a `[skip ci]` push that changes only this file and
-  `.claude/` (config, no workflow runs). It
-  reads the heading at the moment of the push, so flipping it to ENABLED is all
-  it takes to let the push through.
+  heading says DISABLED it refuses any push to `deploy`. It reads the heading
+  at the moment of the push, so flipping it to ENABLED is all it takes to let
+  the push through.
 
 Repository-wide instructions for Claude Code sessions in this repository.
 
 ## Repository layout: one folder per game
 
 `mini` is a collection. **Each top-level folder is a separate game**, apart
-from `sites/`, `multiplayer/` and `local/`:
+from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod rather than a browser game):
 
 | Folder | What it is | Published at |
 | --- | --- | --- |
@@ -59,6 +60,8 @@ from `sites/`, `multiplayer/` and `local/`:
 | `stocks/` | Stocks (stock and ETF charts with total return: price only, with dividends, or dividends reinvested; live data through its own `mini-stocks` Cloudflare Worker in `stocks/server/`, separate from the relay) | https://hoai2k.github.io/mini/stocks/ |
 | `mp3player/` | MP3 Player (the music files on the device, played like a streaming app: songs, albums, artists, shuffle, repeat, a queue and a custom order; songs are copied into the browser's storage, never changed on the device) | https://hoai2k.github.io/mini/mp3player/ |
 | `imageannotator/` | Image Annotator (open a picture, point things out with arrows, circles and free drawing, each with an optional title that is placed clear of the others; save, then export as the original format, JPEG or JPEG for web) | https://hoai2k.github.io/mini/imageannotator/ |
+| `meditation/` | Meditation Timer (a sitting timer: a preroll to settle, 5 seconds by default, then a starting chime, the time, and an ending chime; singing bowls, rin, tingsha, Koshi chimes or a temple bell, recorded or synthesized) | https://hoai2k.github.io/mini/meditation/ |
+| `smoothcraft/` | Smoothcraft (a Minecraft Java Edition mod for Fabric: smooth terrain, rounded mobs, physically based materials and lighting, high-resolution textures from its image requests); a Gradle project in `smoothcraft/mod/`, not a browser game, so it has no `publish.sh`, Pages step or library card; `pages.yml` skips pushes that only change `smoothcraft/` | — |
 | `chat/` | Games Chat (video chat with face effects and minigames); its iPhone/iPad app, calls server and TestFlight guide are in `chat/ios/` | https://hoai2k.github.io/mini/chat/ |
 | `multiplayer/` | Shared online-multiplayer relay (Cloudflare Worker) and its browser client, used by any game; see `MULTIPLAYER.md` | https://mini-rooms.hoai2k.workers.dev |
 | `sites/` | A collection of websites (band, label and other pages), not a game | https://hoai2k.github.io/mini/sites/<name>/ |
@@ -80,9 +83,15 @@ from `sites/`, `multiplayer/` and `local/`:
   the games and sites and nothing more; each game's details belong in its own
   README. `index.html` is the game library published at
   https://hoai2k.github.io/mini/, one card per game. Apps (tools such as Ear Trainer,
-  Ai-Ching, Music Practice, Stocks, MP3 Player and Image Annotator) go on its mini apps shelf below the games, with Music
+  Ai-Ching, Music Practice, Stocks, MP3 Player, Image Annotator and Meditation Timer) go on its mini apps shelf below the games, with Music
   Practice pinned first and Games Chat second, then the rest newest first. Games that haven't turned out as hoped yet are listed as
-  plain links in its Prototype archive, at the bottom. `GAME_GUIDELINES.md` applies to every game.
+  plain links in its Prototype archive, at the bottom. The games shelf also
+  carries cards for invite-only games from the `swingers` repository (Spider
+  Swingers, Wobblers, Wobbly Battles and Swingers, published at
+  `/swingers/...` on the same site). Their gates ignore the public-access
+  switch, so their cards sit in `<template data-invite>` blocks that the
+  library reveals only to visitors holding an invite pass, like the archive;
+  they keep the shelf's newest-first order. `GAME_GUIDELINES.md` applies to every game.
 - **The Prototype archive is code-locked.** The library shows it only to
   visitors holding an invite pass, and every game or app listed there sits
   behind the shared invite gate opened with `ignorePublicAccess: true`, so the
@@ -113,14 +122,16 @@ generates art from the request documents on `main`.
    finished, and push the branch (pushes to a working branch run nothing).
 2. Verify the change by running the checks of each game it touched. Each game's
    README lists them (for Hopper, `pnpm test`, `pnpm typecheck`, `pnpm lint`,
-   `pnpm build` in `hopper/game`). This is the only place the tests run: a push
-   to `main` builds and deploys without them (see "Tests and deploys" below).
+   `pnpm build` in `hopper/game`). This is the only place the tests run: a
+   deploy builds and publishes without them (see "Tests and deploys" below).
    For changes that affect a published build, confirm the deployed page still
    plays.
-3. Merge that branch into `main` and push `main`, once, at the end of the task.
-   The GitHub Pages workflow (`.github/workflows/pages.yml`) then builds and
-   deploys every game and site; a game whose build fails keeps its live copy
-   and the run says so in a warning.
+3. Merge that branch into `main` and push `main`, once, at the end of the task,
+   then (while deploys are ENABLED, see "Deploy state" above) publish it with
+   `git push origin main:deploy`. The GitHub Pages workflow
+   (`.github/workflows/pages.yml`) then builds and deploys every game and site;
+   a game whose build fails keeps its live copy and the run says so in a
+   warning.
 4. Report the merge and the resulting `main` commit.
 
 Open a pull request only when the user explicitly asks for one; otherwise merge
@@ -133,7 +144,8 @@ and push them to `main` together at the end of the task.
 **Image and asset requests go first.** They are the one exception to a single
 push at the end: when a task needs new artwork, write the request entries (and
 regenerate the request documents) and push them to `main` before building the
-feature that uses them, so the user can start generating
+feature that uses them (a push to `main` deploys nothing, so this costs no
+Actions minutes), so the user can start generating
 while the rest is written. The game keeps drawing its stand-ins until the art
 arrives.
 
@@ -158,7 +170,7 @@ and load the real file; stand-ins remain for tests.
 ## Intake
 
 Each game has its own drop box at `<game>/intake/` (`hopper/intake/`,
-`widowsbay/intake/`, `bronzedrum/intake/`, `chat/intake/`, `gliders/intake/`, `icecreamcone/intake/`, `onemonster/intake/`, `fibreart/intake/`, `percyjackson/intake/`, `aiching/intake/`, `eartrainer/intake/`, `musicpractice/intake/`, `bookzam/intake/`, `stocks/intake/`, `mp3player/intake/`, `imageannotator/intake/`). The user drops files there for
+`widowsbay/intake/`, `bronzedrum/intake/`, `chat/intake/`, `gliders/intake/`, `icecreamcone/intake/`, `onemonster/intake/`, `fibreart/intake/`, `percyjackson/intake/`, `aiching/intake/`, `eartrainer/intake/`, `musicpractice/intake/`, `bookzam/intake/`, `stocks/intake/`, `mp3player/intake/`, `imageannotator/intake/`, `meditation/intake/`, `smoothcraft/intake/`). The user drops files there for
 integration: artwork, audio, models, exported data, notes from another agent.
 A file belongs to the game whose intake it was dropped in. If it plainly
 belongs to a different game, move it there; if that is unclear, ask.
@@ -182,10 +194,21 @@ or the model left unset so it inherits, for design, architecture, gameplay
 feel and anything open-ended. Give an agent the exact files, interfaces and
 checks it must satisfy so a cheaper model can finish the job without guessing.
 
+## No Git LFS
+
+Don't use Git LFS anywhere in this repository: don't track new files with
+it, and don't update the one file already in it
+(`smoothcraft/dist/smoothcraft-0.1.0.jar`, kept as it is at the owner's
+request). GitHub never frees LFS storage: a deleted or replaced LFS file keeps
+counting against the account's 10 GiB until the whole repository is deleted
+and recreated, and the allowance is shared by every project. Files over
+GitHub's 100 MB limit go somewhere else (a GitHub Release, which the owner
+creates), or ask.
+
 ## Tests and deploys
 
-Pushes to `main` build and deploy only; they run no tests. Tests are your job
-before you commit:
+Deploys (pushes to `deploy`) build and publish only; they run no tests. Tests
+are your job before you commit:
 
 - Run the checks of each game your change touches (each game's README lists
   them; for Hopper, `pnpm test`, `pnpm typecheck`, `pnpm lint`,
@@ -196,15 +219,19 @@ before you commit:
   Pages → Run workflow → tests: full. iOS builds (`chat-ios.yml`) run only
   that way.
 - The one exception is the multiplayer relay: `relay.yml` runs
-  `multiplayer/server`'s `npm test` on every push that changes it and will not
+  `multiplayer/server`'s `npm test` on every deploy that changes it and will not
   deploy on a failure, because every online game shares that live server. Run
   the tests before committing anyway.
 
 Every deploy is paid for in GitHub Actions minutes while the repository is
-private, so batch a task's work into one push to `main` at the end rather than
-pushing after every small step. Pushes to a working branch run nothing. A
-deploy that is already running always finishes, and pushes waiting behind it
-collapse into the newest one.
+private, so batch a task's work into one deploy at the end rather than
+deploying after every small step. Pushes to `main` and to working branches run
+nothing. A deploy
+that is already running always finishes — never cancel one unless the owner asks
+— and pushes waiting behind it collapse into the newest one. Pushes that only
+change Markdown or `.claude/` don't deploy at all (`paths-ignore` in the deploy
+workflow), and every workflow job carries a `timeout-minutes`, so a hung run
+cannot bill for hours. Keep all three when editing a workflow.
 
 ## Models
 
@@ -219,5 +246,7 @@ collapse into the newest one.
 
 ## Deployment reminder
 
-`main` is the deployed branch. Pushing to `main` publishes every game and site;
-treat every merge as a release and check that the build succeeds afterwards.
+`deploy` is the deployed branch. Pushing it (`git push origin main:deploy`)
+publishes every game and site, the multiplayer relay and the Stocks Worker when
+they changed; treat every deploy as a release and check that the build succeeds
+afterwards.

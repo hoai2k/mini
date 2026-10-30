@@ -125,6 +125,9 @@ input.focus, select.focus { outline: 3px solid var(--gold-hi); outline-offset: 2
 .title-screen:not(.nav) .press-start.focus:not(:hover):not(:focus-visible)::before, .title-screen:not(.nav) .press-start.focus:not(:hover):not(:focus-visible)::after { filter: none; }
 .title-screen.nav .press-start { animation: none; }
 .title-hint { color: #e6d9bb; font-size: 16px; letter-spacing: .5px; text-shadow: 0 1px 3px #000, 0 0 10px #000; min-height: 1.3em; }
+.title-pad-note { margin-top: calc(-1 * clamp(6px, 2vh, 22px)); color: rgba(244, 234, 213, .7); font-size: 14px; letter-spacing: .5px; text-shadow: 0 1px 3px #000, 0 0 10px #000; }
+.title-pad-note[hidden] { display: none; }
+.title-screen:not(:last-child) .title-pad-note { visibility: hidden; }
 .title-foot { position: absolute; left: calc(18px + var(--safe-l)); bottom: calc(14px + var(--safe-b)); color: rgba(244, 234, 213, .7); font-size: 14px; text-shadow: 0 1px 3px #000; }
 .title-utils { position: absolute; right: calc(16px + var(--safe-r)); bottom: calc(14px + var(--safe-b)); display: flex; gap: 10px; align-items: center; }
 .util-btn { position: relative; display: inline-flex; align-items: center; gap: 0; height: 48px; min-width: 48px; padding: 0 11px; color: var(--gold-hi); background: linear-gradient(rgba(36, 29, 20, .9), rgba(16, 12, 8, .92)); border: 2px solid var(--gold); border-radius: 999px; cursor: pointer; outline: none; box-shadow: 0 0 0 2px #0d0a07, 0 4px 14px rgba(0, 0, 0, .55); transition: background .12s, color .12s, transform .06s; }

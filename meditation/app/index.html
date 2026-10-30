@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Meditation Timer</title>
+<meta name="description" content="A quiet meditation timer with a starting and an ending chime.">
+<meta name="theme-color" content="#141826">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Meditate">
+<link rel="icon" href="icons/favicon.ico" sizes="any">
+<link rel="icon" href="icons/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="styles.css">
+  <!-- Visit counting (GoatCounter: no cookies, no identifiers), read by games.hoai.net/stats/. -->
+  <script>window.goatcounter = { path: function () { return location.pathname; } };</script>
+  <script data-goatcounter="https://hoai.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="backdrop" aria-hidden="true"></div>
+<main class="app" data-phase="">
+  <header class="top">
+    <h1>Meditation</h1>
+    <button class="icon-btn" id="open-settings" type="button" aria-label="Settings"></button>
+  </header>
+
+  <section class="dial" aria-live="polite">
+    <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
+      <circle class="track" cx="100" cy="100" r="92"/>
+      <circle class="progress" id="progress" cx="100" cy="100" r="92"/>
+    </svg>
+    <div class="ripples" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="bowl" id="bowl" aria-hidden="true"></div>
+    <div class="readout">
+      <div class="time" id="time">10:00</div>
+      <div class="status" id="status">Ready</div>
+    </div>
+  </section>
+
+  <section class="durations" id="durations" aria-label="Meditation length">
+    <button class="icon-btn step" id="minus" type="button" aria-label="One minute less"></button>
+    <div class="chips" id="duration-chips"></div>
+    <button class="icon-btn step" id="plus" type="button" aria-label="One minute more"></button>
+  </section>
+
+  <section class="controls">
+    <button class="primary" id="start" type="button"><span class="ico"></span><span class="label">Begin</span></button>
+    <button class="secondary" id="stop" type="button" hidden><span class="ico"></span><span class="label">End</span></button>
+  </section>
+
+  <p class="hint" id="hint"></p>
+</main>
+
+<dialog class="sheet" id="settings" aria-labelledby="settings-title">
+  <form method="dialog" class="sheet-body">
+    <header class="sheet-top">
+      <h2 id="settings-title">Settings</h2>
+      <button class="icon-btn" value="close" aria-label="Close" id="close-settings"></button>
+    </header>
+
+    <fieldset>
+      <legend>Preroll</legend>
+      <p class="help">Quiet time to settle before the first chime.</p>
+      <div class="row">
+        <div class="chips" id="preroll-chips"></div>
+        <label class="num"><input type="number" id="preroll" min="0" max="120" inputmode="numeric"> s</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Starting chime</legend>
+      <div class="instruments" id="start-sound"></div>
+      <div class="row"><span>Strikes</span><div class="chips" id="start-strikes"></div></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Ending chime</legend>
+      <div class="instruments" id="end-sound"></div>
+      <div class="row"><span>Strikes</span><div class="chips" id="end-strikes"></div></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Interval chime</legend>
+      <p class="help">A single soft chime every few minutes during the sitting.</p>
+      <div class="row"><div class="chips" id="interval-chips"></div></div>
+      <div class="instruments" id="interval-sound"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Sound</legend>
+      <div class="row">
+        <label class="slider"><span class="ico" id="vol-ico"></span><input type="range" id="volume" min="0" max="100" step="1" aria-label="Volume"><output id="volume-out"></output></label>
+      </div>
+      <label class="toggle"><input type="checkbox" id="keep-awake"> <span>Keep the screen on during a sitting</span></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Meditation length</legend>
+      <div class="row"><label class="num"><input type="number" id="duration" min="1" max="180" inputmode="numeric"> minutes</label></div>
+    </fieldset>
+
+    <div class="sheet-actions">
+      <button type="button" class="link" id="reset">Reset to defaults</button>
+    </div>
+
+    <details class="credits">
+      <summary>About the sounds</summary>
+      <div id="credits"></div>
+    </details>
+  </form>
+</dialog>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

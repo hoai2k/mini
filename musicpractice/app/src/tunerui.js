@@ -4,8 +4,12 @@
 // chosen instrument, and how far off it is, and plays reference tones.
 
 import { TEXT, setRich } from './text.js';
-import { detectPitch, describe, nearestString, noteName, midiToHz, pureTarget, TUNINGS, TRANSPOSE, A4_MIN, A4_MAX, PitchSmoother } from './tuning.js';
-import { playSamples } from './player.js';
+import { detectPitch, describe, nearestString, noteName, midiToHz, pureTarget, TUNINGS, TRANSPOSE, A4_MIN, A4_MAX, PitchSmoother, TraceSmoother, TRACE_SMOOTH } from './tuning.js';
+import { playSamples, outputSettled } from './player.js';
+import { Drone } from './drone.js';
+import { audio, unlock } from './audio.js';
+import { isIOS, isWebKit } from './devices.js';
+import { pickNote, judgeMatch, SteadyNote, TONE_SEC } from './tonematch.js';
 import { forPlayback } from './loudness.js';
 import { ScaleListener, resultTier, correctedRate, judgeNote, scaleRule, scoreOutOf10, celebrates, scoreText, SCORE_PARTS, LEVEL_IDS, MEASURES } from './scaletest.js';
 import { confetti } from './confetti.js';
@@ -48,8 +52,11 @@ export function referenceTone(hz, sec = 2.5, sampleRate = 44100) {
   return out;
 }
 
-/** `drone()`: the Drone's controls (droneui.js: toggle, step, stop, playing), for Pure Intervals. */
-export function setupTuner({ settings, persist, chips, drone = () => null }) {
+/**
+ * `drone()`: the Drone's controls (droneui.js: toggle, step, stop, playing), for Pure Intervals.
+ * `mic()`: the tuner's microphone (recorderui.js: pause, resume, frees), for Tone Matching.
+ */
+export function setupTuner({ settings, persist, chips, drone = () => null, mic = () => null }) {
   const body = $('tuner-body');
   const needle = $('needle');
   const buf = new Float32Array(WINDOW);
@@ -63,6 +70,22 @@ export function setupTuner({ settings, persist, chips, drone = () => null }) {
   const trace = [];
   const traceCanvas = $('pitch-trace');
   let traceDrawn = 0;
+  // Its line: a running average of the readings, as steady as its sensitivity says (Tuner settings).
+  const traceSmoother = new TraceSmoother(TRACE_SMOOTH[settings.traceSensitivity], TRACE_GAP);
+  // Folded away until asked for; the choice is kept.
+  const traceToggle = $('trace-toggle');
+  function showTraceToggle() {
+    traceCanvas.hidden = !settings.traceOn;
+    traceToggle.setAttribute('aria-expanded', String(settings.traceOn));
+    $('trace-toggle-label').textContent = settings.traceOn ? TEXT.tuner.traceHide : TEXT.tuner.traceShow;
+  }
+  showTraceToggle();
+  traceToggle.addEventListener('click', () => {
+    settings.traceOn = !settings.traceOn;
+    showTraceToggle();
+    persist();
+    queueFit();
+  });
 
   // ---- gauge
   const ticks = $('gauge-ticks');
@@ -156,6 +179,7 @@ export function setupTuner({ settings, persist, chips, drone = () => null }) {
   function reset() {
     filled = 0;
     trace.length = 0;
+    traceSmoother.reset();
     reading = null;
     smoother.reset();
     show();
@@ -242,10 +266,11 @@ export function setupTuner({ settings, persist, chips, drone = () => null }) {
     $('pure-bar').hidden = !pure;
     const n = noteName(settings.droneMidi, { flats: settings.flats });
     $('pure-root').textContent = TEXT.tuner.pure.root(`${n.name}${n.octave}`);
-    const on = !!drone()?.playing;
+    const on = burst ? !!bursting : !!drone()?.playing;
     const btn = $('pure-drone');
     btn.setAttribute('aria-pressed', String(on));
-    const label = on ? TEXT.tuner.pure.stop : TEXT.tuner.pure.play;
+    btn.disabled = burst && !!bursting;
+    const label = burst ? (bursting ? TEXT.tuner.pure.sounding : TEXT.tuner.pure.hear) : on ? TEXT.tuner.pure.stop : TEXT.tuner.pure.play;
     if (btn.textContent !== label) btn.textContent = label;
     queueFit();
   }
@@ -258,14 +283,34 @@ export function setupTuner({ settings, persist, chips, drone = () => null }) {
   function stopPure() {
     if (!pure) return;
     pure = false;
+    if (bursting) { bursting = 0; clearTimeout(soundTimer); cello?.stop(); }
     if (pureDrone && drone()?.playing) drone().stop();
     pureDrone = false;
     reset();
     showPure();
   }
   $('pure-open').addEventListener('click', () => { exercises.close(); startPure(); });
+  /*
+   * On iPhone and iPad an open microphone holds the phone in call mode, so a
+   * drone under listening plays quietly on its own speaker. There the drone
+   * sounds for PURE_BURST seconds with the mic closed, then stops and the
+   * tuner listens: the player keeps playing the note they chose against it.
+   */
+  const burst = isIOS();
+  const PURE_BURST = 4;
+  let bursting = 0; // a burst under way (its number)
+  async function pureBurst() {
+    const n = ++bursting;
+    reset();
+    showPure();
+    await soundThenListen({ midi: settings.droneMidi, voice: settings.droneVoice, seconds: PURE_BURST, current: () => pure && n === bursting });
+    if (n === bursting) bursting = 0;
+    showPure();
+  }
+  $('pure-burst-note').hidden = !burst;
   $('pure-done').addEventListener('click', stopPure);
   $('pure-drone').addEventListener('click', () => {
+    if (burst) { pureBurst(); return; }
     const d = drone();
     if (!d) return;
     if (!d.playing) pureDrone = true;
@@ -279,6 +324,138 @@ export function setupTuner({ settings, persist, chips, drone = () => null }) {
   };
   $('pure-down').addEventListener('click', () => stepRoot(-1));
   $('pure-up').addEventListener('click', () => stepRoot(1));
+  /*
+   * Tone Matching: a cello plays a note (an exact note, G2 to D4), then the
+   * player plays or sings it back in any octave and holds it; the tuner hears
+   * the held note (SteadyNote) and judges it (judgeMatch): the right note or
+   * not, then how many cents off. The note sounds with the microphone closed
+   * where it can be taken back without a prompt (the phone leaves call mode,
+   * so it is heard at full volume); elsewhere the mic stays open and what it
+   * hears while the note sounds is ignored.
+   */
+  const matchSheet = $('match-sheet');
+  const steady = new SteadyNote();
+  const MATCH_WAIT = 12000; // ms to wait for a held note before saying none was heard
+  const IGNORE_AFTER = 400; // ms after the note stops before listening (the room's echo)
+  let match = null; // { target, step, listenFrom, token, right, total }
+  let cello = null; // the Drone that plays the note
+  let matchTimer = 0;
+  const M = TEXT.tuner.match;
+  const fullName = (midi) => { const n = noteName(midi, { flats: settings.flats, transpose: settings.transpose }); return n.name; };
+
+  function matchStep(step) {
+    match.step = step;
+    matchSheet.dataset.step = step;
+    $('match-status').textContent = step === 'listen' ? M.listen : step === 'play' ? M.yourTurn : '';
+    if (step !== 'result') { $('match-verdict').textContent = ''; $('match-detail').textContent = ''; }
+    $('match-score').textContent = match.total ? M.score(match.right, match.total) : '';
+    const go = $('match-go');
+    go.textContent = match.total || step === 'result' ? M.next : M.start;
+    go.disabled = step === 'listen';
+    $('match-again').hidden = !match.target || step === 'ready';
+    $('match-again').disabled = step === 'listen';
+  }
+
+  /**
+   * Sound a note for `seconds` with the microphone closed where it can be
+   * taken back without a prompt (so the phone leaves call mode and plays it
+   * at full volume), then open it again. `current()` says the request still
+   * stands (a newer one, or closing, ends it).
+   */
+  let soundTimer = 0;
+  async function soundThenListen({ midi, voice, seconds, current }) {
+    const m = mic();
+    const freed = !!m?.frees() && m.open();
+    if (freed) {
+      m.pause();
+      await outputSettled(isWebKit() ? 1000 : 500); // the phone leaving call mode
+    }
+    if (current()) {
+      try {
+        const ctx = audio();
+        await unlock();
+        if (!cello || cello.ctx !== ctx) cello = new Drone(ctx);
+        cello.setVolume(settings.droneVolume);
+        await cello.play({ midi, voice, a4: settings.a4 });
+      } catch { /* heard or not, listening comes back */ }
+      await new Promise((r) => { clearTimeout(soundTimer); soundTimer = setTimeout(r, seconds * 1000); });
+      cello?.stop();
+    }
+    if (freed && location.hash === '#tuner') await m.resume();
+  }
+
+  /** Play the note (the mic closed meanwhile where it can be), then listen for it. */
+  async function hearNote() {
+    const token = ++match.token;
+    clearTimeout(matchTimer);
+    steady.reset();
+    match.listenFrom = Infinity;
+    matchStep('listen');
+    await soundThenListen({ midi: match.target, voice: 'cello', seconds: TONE_SEC, current: () => token === match?.token });
+    if (token !== match?.token) return;
+    const m = mic();
+    if (!m?.open()) { // nothing to listen with (refused, or it failed to open)
+      matchStep('result');
+      $('match-verdict').textContent = M.micOff;
+      return;
+    }
+    match.listenFrom = performance.now() + IGNORE_AFTER;
+    matchStep('play');
+    matchTimer = setTimeout(() => { if (token === match.token && match.step === 'play') showMatch(null); }, MATCH_WAIT);
+  }
+
+  /** The result: `hz` the note held, or null if none was. */
+  function showMatch(hz) {
+    clearTimeout(matchTimer);
+    if (hz === null) {
+      matchStep('result');
+      $('match-verdict').textContent = M.noNote;
+      return;
+    }
+    const j = judgeMatch(hz, match.target, settings.a4);
+    match.total++;
+    if (j.right) match.right++;
+    matchStep('result');
+    $('match-verdict').textContent = j.right ? M.right(fullName(match.target)) : M.wrong(fullName(j.played), fullName(match.target));
+    $('match-detail').textContent = j.right ? `${M.cents(j.cents)} · ${M.closeness[j.closeness]}` : M.away(j.semitones);
+    matchSheet.dataset.verdict = j.right ? j.closeness : 'wrong';
+  }
+
+  /** Mic samples' pitch, while it is the player's turn. */
+  function matchHeard(hz) {
+    if (!match || match.step !== 'play' || performance.now() < match.listenFrom) return;
+    const held = steady.push(hz, performance.now());
+    if (held) showMatch(held);
+  }
+
+  $('match-open').addEventListener('click', () => {
+    exercises.close();
+    stopTone();
+    reset();
+    match = { target: null, step: 'ready', listenFrom: Infinity, token: 0, right: 0, total: 0 };
+    delete matchSheet.dataset.verdict;
+    matchStep('ready');
+    matchSheet.showModal();
+  });
+  $('match-go').addEventListener('click', () => {
+    match.target = pickNote(match.target);
+    delete matchSheet.dataset.verdict;
+    hearNote();
+  });
+  $('match-again').addEventListener('click', () => { delete matchSheet.dataset.verdict; hearNote(); });
+  matchSheet.addEventListener('click', (e) => { if (e.target === matchSheet) matchSheet.close(); });
+  matchSheet.addEventListener('close', () => {
+    if (!match) return;
+    const wasListening = match.step === 'listen';
+    match.token++;
+    clearTimeout(matchTimer);
+    clearTimeout(soundTimer);
+    cello?.stop();
+    match = null;
+    // Closed while the note sounded (the mic closed): the tuner listens again.
+    if (wasListening && location.hash === '#tuner' && mic() && !mic().open()) mic().resume();
+  });
+
   $('scale-open').addEventListener('click', () => {
     exercises.close();
     scaleStep('ready');
@@ -404,6 +581,16 @@ export function setupTuner({ settings, persist, chips, drone = () => null }) {
     }
   }
 
+  /** Tone Matching's ear: the same window and detector as the needle. */
+  function matchPitch(data, sampleRate) {
+    if (data.length >= WINDOW) buf.set(data.subarray(data.length - WINDOW));
+    else { buf.copyWithin(0, data.length); buf.set(data, WINDOW - data.length); }
+    filled = Math.min(WINDOW, filled + data.length);
+    if (filled < WINDOW) return;
+    const r = detectPitch(buf, sampleRate);
+    if (r) matchHeard(r.hz);
+  }
+
   /** Mic samples (blocks of any size) while the recorder is in its 'tuning' state. */
   function receive(data, sampleRate) {
     if (scale) {
@@ -418,8 +605,15 @@ export function setupTuner({ settings, persist, chips, drone = () => null }) {
         scaleStep('listening');
       }
     }
-    // The tuner rests behind the scale test's sheet (it would only distract).
+    // The tuner rests behind the exercises' sheets (it would only distract);
+    // Tone Matching hears through it.
+    if (matchSheet.open) {
+      matchPitch(data, sampleRate);
+      return;
+    }
     if (sheet.open) return;
+    // A Pure Intervals drone sounding on its own (iPhone): not the player.
+    if (bursting) return;
     if (data.length >= WINDOW) {
       buf.set(data.subarray(data.length - WINDOW));
     } else {
@@ -433,7 +627,7 @@ export function setupTuner({ settings, persist, chips, drone = () => null }) {
     if (r) {
       const hz = smoother.push(r.hz);
       reading = { hz, at: now, ...place(hz) };
-      trace.push({ at: now, cents: reading.cents, midi: reading.midi });
+      trace.push({ at: now, cents: traceSmoother.push(now, reading.cents, reading.midi), midi: reading.midi });
       show();
     } else if (reading && now - reading.at > HOLD_MS) {
       reading = null;
@@ -504,12 +698,13 @@ export function setupTuner({ settings, persist, chips, drone = () => null }) {
     needle.setAttribute('transform', `rotate(${angle.toFixed(2)} ${CX} ${CY})`);
     body.classList.toggle('held', !!reading && performance.now() - reading.at > STALE_MS);
     // The drone button follows the drone (it can stop from elsewhere: the lock screen).
-    if (pure && $('pure-drone').getAttribute('aria-pressed') !== String(!!drone()?.playing)) showPure();
+    if (pure && !burst && $('pure-drone').getAttribute('aria-pressed') !== String(!!drone()?.playing)) showPure();
     drawTrace();
   }
 
   /** The trace: ±50 cents tall, newest at the right, scrolling left. */
   function drawTrace() {
+    if (!settings.traceOn) return;
     const now = performance.now();
     while (trace.length && now - trace[0].at > TRACE_MS) trace.shift();
     // Nothing new and nothing left to scroll off: leave it.
@@ -571,6 +766,9 @@ export function setupTuner({ settings, persist, chips, drone = () => null }) {
   chips($('flats-chips'), [{ id: 'sharps', label: TEXT.tuner.settings.sharps }, { id: 'flats', label: TEXT.tuner.settings.flats }],
     () => (settings.flats ? 'flats' : 'sharps'),
     (v) => { settings.flats = v === 'flats'; persist(); render(); });
+  chips($('trace-chips'), ['high', 'medium', 'low'].map((id) => ({ id, label: TEXT.tuner.settings.traceSensitivities[id] })),
+    () => settings.traceSensitivity,
+    (v) => { settings.traceSensitivity = v; traceSmoother.tau = TRACE_SMOOTH[v]; persist(); });
   const transpose = $('transpose');
   for (const t of TRANSPOSE) transpose.append(new Option(t.label, t.id));
   transpose.value = settings.transpose;

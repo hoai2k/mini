@@ -33,7 +33,7 @@ echo "::group::$folder failed to build; restoring the live copy"
 rm -rf "$out"
 how=""
 
-live_sha="$(gh run list --workflow pages.yml --branch main --status success --limit 1 \
+live_sha="$(gh run list --workflow pages.yml --status success --limit 1 \
   --json headSha --jq '.[0].headSha' 2>/dev/null || true)"
 if [ -n "$live_sha" ]; then
   old="$(mktemp -d)"

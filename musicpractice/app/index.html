@@ -38,6 +38,9 @@
       document.documentElement.dataset.mode = dark ? 'dark' : 'light';
     } catch (e) { document.documentElement.dataset.theme = 'classic'; document.documentElement.dataset.mode = 'dark'; }
   </script>
+  <!-- Visit counting (GoatCounter: no cookies, no identifiers), read by games.hoai.net/stats/. -->
+  <script>window.goatcounter = { path: function () { return location.pathname; } };</script>
+  <script data-goatcounter="https://hoai.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
   <!-- Gradients shared by the stand-in art in src/standins.js. -->
@@ -174,6 +177,13 @@
             <button type="button" class="marking" id="marking" aria-haspopup="dialog"></button>
             <button type="button" class="pill tap-tempo" id="tap-tempo" data-text-aria-label="metronome.tapHint"><span data-text="metronome.tap"></span></button>
           </div>
+          <!-- Tap tempo, big: the first tap grows the Tap button into this pad;
+               taps anywhere on it count, and it shrinks back once they stop (metronomeui.js). -->
+          <div class="tap-pad" id="tap-pad" role="dialog" aria-modal="false" data-text-aria-label="metronome.tapPad.label" hidden>
+            <p class="tap-pad-bpm"><span id="tap-pad-bpm"></span><small data-text="metronome.bpm"></small></p>
+            <p class="tap-pad-hint" id="tap-pad-hint"></p>
+            <div class="tap-pad-circle" id="tap-pad-circle" aria-hidden="true"><span data-text="metronome.tap"></span></div>
+          </div>
           <!-- The tempo trainer or silent bars, while on: a tap opens Metronome settings. -->
           <button type="button" class="met-exercise" id="met-exercise" hidden></button>
           <input id="bpm-slider" class="slider" type="range" min="40" max="500" step="1" value="120" data-text-aria-label="metronome.tempoSlider">
@@ -213,11 +223,7 @@
             <span class="accent-name"><label for="sub-on" id="sub-label"></label><button type="button" class="icon-btn accent-edit" id="sub-edit" data-text-aria-label="metronome.settings.subEdit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></span>
             <input type="checkbox" id="sub-on" role="switch">
           </div>
-          <!-- Practice with the metronome (metronomeui.js): each a switch, and a pencil for its numbers. -->
-          <div class="row toggle accent-row">
-            <span class="accent-name"><label for="trainer-on" id="trainer-label"></label><button type="button" class="icon-btn accent-edit" id="trainer-edit" data-text-aria-label="metronome.trainer.edit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></span>
-            <input type="checkbox" id="trainer-on" role="switch">
-          </div>
+          <!-- Practice with the metronome (metronomeui.js): silent bars and the polyrhythm a switch and a pencil, the tempo trainer a switch that opens its numbers. -->
           <div class="row toggle accent-row">
             <span class="accent-name"><label for="gap-on" id="gap-label"></label><button type="button" class="icon-btn accent-edit" id="gap-edit" data-text-aria-label="metronome.gap.edit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></span>
             <input type="checkbox" id="gap-on" role="switch">
@@ -226,7 +232,15 @@
             <span class="accent-name"><label for="poly-on" id="poly-label"></label><button type="button" class="icon-btn accent-edit" id="poly-edit" data-text-aria-label="metronome.poly.edit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></span>
             <input type="checkbox" id="poly-on" role="switch">
           </div>
+          <!-- The tempo trainer: turned on, its numbers open under it. -->
+          <label class="row toggle"><span id="trainer-label" data-text="metronome.trainer.title"></span><input type="checkbox" id="trainer-on" role="switch"></label>
+          <div class="trainer-section" id="trainer-section" hidden>
+            <p class="help" data-text="metronome.trainer.help"></p>
+            <div class="ex-fields" id="trainer-fields"></div>
+          </div>
           <label class="row toggle"><span data-text="metronome.settings.sound"></span><select class="select" id="sound"></select></label>
+          <!-- With the Voice sound: who counts. -->
+          <label class="row toggle" id="count-voice-row" hidden><span data-text="metronome.settings.countVoice"></span><select class="select" id="count-voice"></select></label>
           <!-- Settings for what can be shown, whether or not it is showing: a tap on the
                metronome turns the swing on or off, a tap on the dots shows the next
                of small dots, big dots and the Visualizer. -->
@@ -247,14 +261,7 @@
         </form>
       </dialog>
 
-      <!-- The tempo trainer's and silent bars' numbers (metronomeui.js). -->
-      <dialog id="trainer-editor" class="sheet" aria-labelledby="trainer-editor-title">
-        <form method="dialog">
-          <header class="sheet-head"><h3 id="trainer-editor-title" data-text="metronome.trainer.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-          <p class="help" data-text="metronome.trainer.help"></p>
-          <div class="ex-fields" id="trainer-fields"></div>
-        </form>
-      </dialog>
+      <!-- The silent bars' numbers and the polyrhythm's count (metronomeui.js). -->
       <dialog id="poly-editor" class="sheet" aria-labelledby="poly-editor-title">
         <form method="dialog">
           <header class="sheet-head"><h3 id="poly-editor-title" data-text="metronome.poly.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
@@ -380,7 +387,7 @@
         <!-- Pure Intervals (tunerui.js): while on, the tuner judges each note
              against the pure interval above the drone's note. -->
         <div class="pure-bar" id="pure-bar" hidden>
-          <p class="pure-title"><strong data-text="tuner.pure.title"></strong> <span class="help" data-text="tuner.pure.help"></span></p>
+          <p class="pure-title"><strong data-text="tuner.pure.title"></strong> <span class="help" data-text="tuner.pure.help"></span> <span class="help" id="pure-burst-note" data-text="tuner.pure.burstNote" hidden></span></p>
           <div class="pure-controls">
             <span class="pure-root-pick">
               <button type="button" class="step" id="pure-down" data-text-aria-label="tuner.pure.rootDown">−</button>
@@ -403,7 +410,9 @@
         </div>
         <p class="tuner-readout"><span id="tn-cents">&nbsp;</span><span id="tn-hz"></span></p>
         <p class="pure-reading" id="tn-pure" hidden></p>
-        <canvas class="pitch-trace" id="pitch-trace" role="img" data-text-aria-label="tuner.trace"></canvas>
+        <!-- Pitch over time: folded away until asked for (settings.traceOn). -->
+        <button type="button" class="trace-toggle" id="trace-toggle" aria-expanded="false" aria-controls="pitch-trace"><span id="trace-toggle-label"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <canvas class="pitch-trace" id="pitch-trace" role="img" data-text-aria-label="tuner.trace" hidden></canvas>
         <p class="tuner-hint" id="tn-hint" aria-live="polite"></p>
         <aside class="mic-tip mic-off" id="tn-mic-off" aria-live="polite" hidden></aside>
         <div class="strings" id="strings" role="group" data-text-aria-label="tuner.strings"></div>
@@ -431,11 +440,35 @@
               <span class="scale-cta-text"><strong data-text="tuner.scale.button"></strong><small data-text="tuner.scale.buttonSub"></small></span>
               <svg class="scale-cta-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
             </button>
+            <button class="scale-cta exercise-option" id="match-open" type="button">
+              <span class="scale-cta-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 15c0 3 2 5 4.5 5S15 18 15 16c0-2 3-3 3-7a6 6 0 1 0-12 0"/><path d="M10 9.5a2 2 0 1 1 3 1.7c-.8.5-1 1.2-1 2"/></svg></span>
+              <span class="scale-cta-text"><strong data-text="tuner.match.button"></strong><small data-text="tuner.match.buttonSub"></small></span>
+              <svg class="scale-cta-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+            </button>
             <button class="scale-cta exercise-option" id="pure-open" type="button">
               <span class="scale-cta-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/><path d="M3 17h18"/></svg></span>
               <span class="scale-cta-text"><strong data-text="tuner.pure.button"></strong><small data-text="tuner.pure.buttonSub"></small></span>
               <svg class="scale-cta-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
             </button>
+          </div>
+        </form>
+      </dialog>
+
+      <!-- Tone Matching (tunerui.js, tonematch.js): ready, listen (the cello's
+           note), play (the player's turn), then the result (data-step). -->
+      <dialog id="match-sheet" class="sheet" aria-labelledby="match-title" data-step="ready">
+        <form method="dialog">
+          <header class="sheet-head"><h3 id="match-title" data-text="tuner.match.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <p class="help match-how" data-text="tuner.match.how"></p>
+          <div class="match-stage" aria-live="polite">
+            <p class="match-status" id="match-status"></p>
+            <p class="match-verdict" id="match-verdict"></p>
+            <p class="match-detail" id="match-detail"></p>
+          </div>
+          <p class="match-score" id="match-score"></p>
+          <div class="match-actions">
+            <button type="button" class="pill" id="match-again" data-text="tuner.match.again"></button>
+            <button type="button" class="big-btn match-go" id="match-go"></button>
           </div>
         </form>
       </dialog>
@@ -498,6 +531,11 @@
             <div class="chips" id="flats-chips"></div>
           </fieldset>
           <label class="row"><span data-text="tuner.settings.transpose"></span><select class="select" id="transpose"></select></label>
+          <fieldset>
+            <legend data-text="tuner.settings.traceSensitivity"></legend>
+            <div class="chips" id="trace-chips"></div>
+            <p class="help" data-text="tuner.settings.traceSensitivityHelp"></p>
+          </fieldset>
           <div class="sheet-links">
             <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
             <button type="button" class="pill open-theme" data-text="common.themeButton"></button>

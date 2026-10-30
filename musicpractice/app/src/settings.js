@@ -26,7 +26,16 @@ export const SOUNDS = [
   { id: 'wood', label: TEXT.metronome.sounds.wood },
   { id: 'click', label: TEXT.metronome.sounds.click },
   { id: 'beep', label: TEXT.metronome.sounds.beep },
+  { id: 'mechanical', label: TEXT.metronome.sounds.mechanical },
+  { id: 'claves', label: TEXT.metronome.sounds.claves },
+  { id: 'stick', label: TEXT.metronome.sounds.stick },
+  { id: 'cowbell', label: TEXT.metronome.sounds.cowbell },
+  { id: 'hihat', label: TEXT.metronome.sounds.hihat },
+  { id: 'voice', label: TEXT.metronome.sounds.voice }, // a voice counting (count.js), in one of SPEAKERS
 ];
+
+/** The voices: the Practice Routine's (between items) and the metronome's Voice sound (counting). */
+export const SPEAKERS = ['lily', 'matilda', 'george', 'clara', 'autumn', 'theo'];
 
 /**
  * Looks for the whole app. A theme also needs its block in styles.css, its
@@ -59,6 +68,17 @@ export function resolveMode(theme, appearance, systemDark) {
 /** The Visualizer's choice of how many bars to show at a time. */
 export const VIZ_BARS = [1, 2, 4, 8];
 
+/*
+ * The metronome's volume: the slider (0 to 1) to the click's gain, on a curve
+ * so equal moves sound like equal steps (as the drone's and the voice's), full
+ * gain at the top. On a straight line the top half of the slider was only the
+ * loudest 6 dB. Volumes saved on the straight line are carried over at the
+ * same loudness (sanitize; timer.js for routine items).
+ */
+export const metronomeGain = (v) => Math.max(0, Math.min(1, v)) ** 2;
+/** The slider position that gives `gain` (metronomeGain's inverse), to the slider's step. */
+export const metronomeSlider = (gain) => Math.round(Math.sqrt(Math.max(0, Math.min(1, gain))) * 100) / 100;
+
 export const BPM_MIN = 40;
 export const BPM_MAX = 500;
 
@@ -71,7 +91,8 @@ export const DEFAULTS = Object.freeze({
   meter: '4/4',
   accent: true,
   sound: 'wood',
-  volume: 0.75, // METRONOME_DEFAULT: the loudness full volume had before the clicks were made louder
+  countVoice: 'lily', // who counts for the Voice sound (SPEAKERS)
+  volume: 0.87, // the slider at METRONOME_DEFAULT's gain (0.76): the loudness full volume had before the clicks were made louder
   volumeChosen: false,
   playVolume: 1, // the Playback Recorder's takes, played back (its tucked-away speaker)
   playRate: 1, // how fast takes play (1, 0.75 or 0.5), pitch kept
@@ -93,7 +114,7 @@ export const DEFAULTS = Object.freeze({
   gap: { on: false, play: 2, silent: 2 },
   // Tempo trainer: from the tempo set, `step` beats per minute every `every` bars until `to`.
   trainer: { on: false, step: 2, every: 4, to: 140 },
-  // Second rhythm (a polyrhythm): `n` evenly spaced clicks across each bar, in a higher click (3 against 4 in 4/4).
+  // Polyrhythm (a polyrhythm): `n` evenly spaced clicks across each bar, in a higher click (3 against 4 in 4/4).
   poly: { on: false, n: 3 },
   tempoGenre: 'classical', // the tempo picker's style, which also names the tempo under the number
   tempoPicked: null, // the name last chosen in the picker (its id), which keeps its name for a tempo two names share
@@ -132,6 +153,8 @@ export const DEFAULTS = Object.freeze({
   a4: 440, // tuner reference pitch, 415-466 Hz
   flats: false, // tuner: spell notes with flats
   transpose: 'C', // tuner: written pitch for a transposing instrument
+  traceOn: false, // tuner: Pitch over time shown (it starts folded away)
+  traceSensitivity: 'medium', // tuner: how closely its line follows the readings (tuning.js TRACE_SMOOTH)
   scaleLevel: 'hard', // Test My Scale Intonation's difficulty (scaletest.js LEVEL_IDS); Hard is how it always judged
   scaleTolerance: 15, // Custom difficulty: cents either way that count as in tune
   scaleAttack: 'mid', // Custom difficulty: which part of a note is judged: 'mid' (average), 'start' or 'end'
@@ -239,9 +262,14 @@ export function sanitize(raw) {
     meter: oneOf(s.meter, METERS.map((m) => m.id), DEFAULTS.meter),
     accent: typeof s.accent === 'boolean' ? s.accent : DEFAULTS.accent,
     sound: oneOf(s.sound, SOUNDS.map((m) => m.id), DEFAULTS.sound),
+    countVoice: oneOf(s.countVoice, SPEAKERS, DEFAULTS.countVoice),
     // The metronome's volume (the slider tucked beside the picture); full until
     // it is moved there, since earlier saves' volume was a removed control's.
-    volume: s.volumeChosen === true ? clamp(num(s.volume, 1) * (louder ? 1 : 0.75), 0, 1) : DEFAULTS.volume,
+    // Saved on the straight line (before volumeCurve), it was the gain: the slider position with that gain.
+    volume: s.volumeChosen !== true ? DEFAULTS.volume
+      : s.volumeCurve === true ? clamp(num(s.volume, 1), 0, 1)
+      : metronomeSlider(clamp(num(s.volume, 1) * (louder ? 1 : 0.75), 0, 1)),
+    volumeCurve: true,
     volumeChosen: s.volumeChosen === true,
     playVolume: clamp(num(s.playVolume, 1), 0, 1),
     playRate: PLAY_RATES.includes(s.playRate) ? s.playRate : 1,
@@ -289,6 +317,8 @@ export function sanitize(raw) {
     a4: clamp(Math.round(num(s.a4, DEFAULTS.a4)), 415, 466),
     flats: s.flats === true,
     transpose: oneOf(s.transpose, ['C', 'Bb', 'Eb', 'F'], DEFAULTS.transpose),
+    traceOn: s.traceOn === true,
+    traceSensitivity: oneOf(s.traceSensitivity, ['high', 'medium', 'low'], DEFAULTS.traceSensitivity),
     scaleLevel: oneOf(s.scaleLevel, ['beginner', 'easy', 'medium', 'hard', 'advanced', 'custom'], DEFAULTS.scaleLevel),
     scaleTolerance: clamp(Math.round(num(s.scaleTolerance, DEFAULTS.scaleTolerance)), 3, 50),
     scaleAttack: oneOf(s.scaleAttack, ['mid', 'start', 'end'], DEFAULTS.scaleAttack),
@@ -382,7 +412,7 @@ export function cleanTrainer(v) {
   };
 }
 
-/** The second rhythm: 2 to 9 clicks across each bar. */
+/** The polyrhythm: 2 to 9 clicks across each bar. */
 export const POLY_COUNTS = [2, 3, 4, 5, 6, 7, 8, 9];
 export function cleanPoly(v) {
   return { on: v?.on === true, n: oneOf(v?.n, POLY_COUNTS, DEFAULTS.poly.n) };

@@ -235,6 +235,152 @@ async function practiceLog(env) {
   await p.close();
 }
 
+/** Tap tempo, big: the first tap grows the button into a pad; taps on it set the tempo; it shrinks back when they stop. */
+async function tapPad(env) {
+  const p = await env.page();
+  await p.goto(env.base + '#metronome');
+  await p.waitForTimeout(800);
+  // When each tap really landed (each takes the test a moment), button and pad alike.
+  await p.evaluate(() => {
+    window.__taps = [];
+    for (const id of ['tap-tempo', 'tap-pad']) document.getElementById(id).addEventListener('pointerdown', (e) => window.__taps.push(e.timeStamp));
+  });
+  const box = await p.locator('#tap-tempo').boundingBox();
+  await p.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+  c.ok(await p.isVisible('#tap-pad') && await p.textContent('#tap-pad-bpm') === '–', 'the first tap grows the Tap button into the pad');
+  await p.waitForTimeout(400); // grown
+  const padBox = await p.locator('#tap-pad').boundingBox();
+  c.ok(padBox.width > 300 && padBox.height > 400, `the pad is big (${Math.round(padBox.width)}×${Math.round(padBox.height)})`);
+  const circle = await p.locator('#tap-pad-circle').boundingBox();
+  for (let k = 0; k < 5; k++) {
+    await p.waitForTimeout(450);
+    await p.touchscreen.tap(circle.x + circle.width / 2, circle.y + circle.height / 2);
+  }
+  const want = await p.evaluate(() => Math.round((60000 * (window.__taps.length - 1)) / (window.__taps.at(-1) - window.__taps[0])));
+  const shown = Number(await p.textContent('#tap-pad-bpm'));
+  c.ok(Math.abs(shown - want) <= 6 && shown > 90, `taps about every half second show their tempo at the top (${shown}, taps ${want})`);
+  const gone = await until(p, () => document.getElementById('tap-pad').hidden, 4000);
+  c.ok(gone >= 1500 && gone <= 2600, `2 s after the last tap it shrinks back (${gone} ms)`);
+  const bpm = Number(await p.inputValue('#bpm-input'));
+  c.ok(bpm === shown, `leaving the tempo set (${bpm})`);
+  // One tap and nothing more: it waits 3 s for the next, then closes with the tempo as it was.
+  await p.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+  const waited = await until(p, () => document.getElementById('tap-pad').hidden, 5000);
+  c.ok(waited >= 2600 && waited <= 3600 && Number(await p.inputValue('#bpm-input')) === bpm, `a lone tap waits 3 s, then closes leaving the tempo (${waited} ms)`);
+  // Escape closes it at once.
+  await p.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+  await p.keyboard.press('Escape');
+  c.ok(await until(p, () => document.getElementById('tap-pad').hidden, 1000) >= 0, 'Escape closes the pad');
+  c.ok(!p.errors.length, `no page errors with the tap pad (${p.errors})`);
+  await p.close();
+}
+
+/** The weight with a mouse, the metronome swinging: taken hold of anywhere on the rod, the same drag always the same change. */
+async function weightGrab(env) {
+  const p = await env.page({ touch: false, width: 1100, height: 900 });
+  await p.goto(env.base + '#metronome');
+  await p.waitForTimeout(1200);
+  const bpm = () => p.evaluate(() => Number(document.getElementById('bpm-input').value));
+  const setBpm = async (n) => { await p.fill('#bpm-input', String(n)); await p.press('#bpm-input', 'Enter'); };
+  const swinging = () => p.evaluate(() => JSON.parse(localStorage.getItem('musicpractice.settings.v1')).swing);
+  await setBpm(60);
+  await p.click('#met-toggle');
+  // The same 60 px drag, grabbed at different points in the swing.
+  const changes = [];
+  for (let trial = 0; trial < 4; trial++) {
+    await setBpm(60);
+    await p.waitForTimeout(250 + trial * 290);
+    const r = await p.locator('#pend-weight').boundingBox();
+    const x = r.x + r.width / 2, y = r.y + r.height / 2;
+    await p.mouse.move(x, y);
+    await p.mouse.down();
+    for (let k = 1; k <= 6; k++) await p.mouse.move(x, y + k * 10);
+    await p.mouse.up();
+    changes.push((await bpm()) - 60);
+  }
+  c.ok(changes.every((d) => d > 0 && Math.abs(d - changes[0]) <= 1), `the same drag is the same change wherever the swing was (${changes})`);
+  c.ok(await swinging(), 'grabbing the weight leaves the swing on');
+  // A press on the rod well above the weight brings the weight there (slower); a plain press there never turns the swing off.
+  // (Stopped, so the rod stands still where it is measured.)
+  await p.click('#met-toggle');
+  await setBpm(120);
+  await p.waitForTimeout(700);
+  const art = await p.locator('#metronome-art').boundingBox();
+  const w = await p.locator('#pend-weight').boundingBox();
+  await p.mouse.click(w.x + w.width / 2, w.y - 60);
+  c.ok(await bpm() === 120 && await swinging(), 'a click on the rod (no drag) neither moves the tempo nor turns the swing off');
+  await p.mouse.move(w.x + w.width / 2, w.y - 60);
+  await p.mouse.down();
+  await p.mouse.move(w.x + w.width / 2, w.y - 50);
+  await p.mouse.move(w.x + w.width / 2, w.y - 60);
+  await p.mouse.up();
+  c.ok(await bpm() < 120, `pressing on the rod above the weight and moving brings it up there, slower (${await bpm()})`);
+  // A click on the case away from the rod is still a tap on the metronome: the swing goes off.
+  await p.mouse.click(art.x + art.width * 0.15, art.y + art.height * 0.85);
+  c.ok(!(await swinging()), 'a click on the case away from the rod still turns the swing off');
+  c.ok(!p.errors.length, `no page errors grabbing the weight (${p.errors})`);
+  await p.close();
+}
+
+/** Keys: Space plays and stops on every screen, even with a clicked button focused; a button reached with Tab is pressed by it. */
+async function keys(env) {
+  const p = await env.page({ touch: false, width: 1100, height: 900 });
+  const saved = () => p.evaluate(() => JSON.parse(localStorage.getItem('musicpractice.settings.v1')));
+  // The drone: click the note down, then Space starts it (the note stays), Space again stops it.
+  await p.goto(env.base + '#drone');
+  await p.waitForTimeout(1000);
+  await p.click('#dr-down');
+  await p.waitForTimeout(300);
+  const note = () => p.evaluate(() => document.getElementById('dr-pitch').value);
+  const droneOn = () => p.evaluate(() => document.getElementById('dr-toggle').getAttribute('aria-pressed') === 'true');
+  const midi = await note();
+  await p.keyboard.press(' ');
+  c.ok(await until(p, () => document.getElementById('dr-toggle').getAttribute('aria-pressed') === 'true', 8000) >= 0, 'drone: Space starts it');
+  c.ok(await note() === midi, `drone: Space after clicking the note down doesn't move the note (${midi} -> ${await note()})`);
+  await p.keyboard.press(' ');
+  await p.waitForTimeout(400);
+  c.ok(!(await droneOn()), 'drone: Space again stops it');
+  await p.keyboard.press('ArrowUp');
+  await p.waitForTimeout(200);
+  c.ok(Number(await note()) === Number(midi) + 1, 'drone: the up arrow moves the note up');
+  // The metronome: click +, then Space starts it (the tempo stays).
+  await p.goto(env.base + '#metronome');
+  await p.waitForTimeout(800);
+  await p.click('#bpm-up');
+  const bpm = (await saved()).bpm;
+  await p.keyboard.press(' ');
+  await p.waitForTimeout(300);
+  c.ok(await p.getAttribute('#met-toggle', 'aria-pressed') === 'true' && (await saved()).bpm === bpm, `metronome: Space after clicking + starts it, the tempo as it was (${bpm})`);
+  await p.keyboard.press('PageUp');
+  c.ok((await saved()).bpm === bpm + 10, 'metronome: Page Up is 10 faster');
+  await p.keyboard.press('-');
+  c.ok((await saved()).bpm === bpm + 9, 'metronome: − is 1 slower');
+  await p.keyboard.press(' ');
+  await p.waitForTimeout(300);
+  c.ok(await p.getAttribute('#met-toggle', 'aria-pressed') === 'false', 'metronome: Space stops it');
+  // A button reached with Tab is pressed by Space, as usual (here the tempo's +).
+  await p.focus('#bpm-down');
+  await p.keyboard.press('Tab');
+  const focused = await p.evaluate(() => document.activeElement?.id);
+  if (focused === 'bpm-up') {
+    const before = (await saved()).bpm;
+    await p.keyboard.press(' ');
+    await p.waitForTimeout(200);
+    c.ok((await saved()).bpm === before + 1 && await p.getAttribute('#met-toggle', 'aria-pressed') === 'false', 'metronome: Space presses a button reached with Tab, and does not start it');
+  }
+  // The routine: Space starts it, and pauses it.
+  await p.goto(env.base + '#routine');
+  await p.waitForTimeout(800);
+  await p.keyboard.press(' ');
+  c.ok(await until(p, () => !document.getElementById('timer-run').hidden, 3000) >= 0, 'routine: Space starts it');
+  await p.waitForTimeout(400);
+  await p.keyboard.press(' ');
+  c.ok(await p.getAttribute('#trun-go', 'aria-pressed') === 'false', 'routine: Space pauses it');
+  await p.click('#trun-stop');
+  c.ok(!p.errors.length, `no page errors with the keys (${p.errors})`);
+  await p.close();
+}
+
 async function savedTempos(env) {
   const p = await env.page();
   await p.goto(env.base + '#metronome');
@@ -337,7 +483,9 @@ async function exercises(env) {
   await p.fill('#bpm-input', '120');
   await p.press('#bpm-input', 'Enter');
   await p.click('#met-settings-btn');
-  await p.click('#trainer-edit');
+  c.ok(!(await p.isVisible('#trainer-section')), 'the tempo trainer is a switch, its numbers folded away');
+  await p.click('#trainer-on');
+  c.ok(await p.isVisible('#trainer-section'), 'turned on, its numbers open under it');
   const field = (n) => `#trainer-fields .ex-row:nth-child(${n}) .ex-value`;
   await p.fill(field(1), '140');
   await p.press(field(1), 'Enter');
@@ -345,11 +493,8 @@ async function exercises(env) {
   await p.press(field(2), 'Enter');
   await p.fill(field(3), '1');
   await p.press(field(3), 'Enter');
-  await p.click('#trainer-editor .sheet-head .icon-btn');
-  await p.click('#trainer-on');
   s = await saved();
   c.ok(JSON.stringify(s.trainer) === '{"on":true,"step":10,"every":1,"to":140}', `the trainer's numbers are kept (${JSON.stringify(s.trainer)})`);
-  c.ok((await p.textContent('#trainer-label')).includes('10 BPM every 1 bar, to 140'), 'its row says what it does');
   await p.click('#met-settings .sheet-head .icon-btn');
   c.ok(await p.isVisible('#met-exercise'), 'a line under the tempo says the trainer is on');
   await p.click('#met-toggle');
@@ -392,13 +537,13 @@ async function exercises(env) {
     return out;
   });
   c.ok(bars[0] > 0 && bars[1] === 0 && bars[2] > 0 && bars[3] === 0 && bars[4] > 0 && bars[5] === 0, `silent bars: clicks in every other bar (${bars})`);
-  // The second rhythm: 3 against 4 at 120 (a bar is 2 s): the higher click a third of a bar apart.
+  // The polyrhythm: 3 against 4 at 120 (a bar is 2 s): the higher click a third of a bar apart.
   await p.click('#met-settings-btn');
   await p.click('#gap-on');
   await p.selectOption('#meter', '4/4');
   await p.click('#poly-edit');
   await p.click('#poly-chips .chip >> nth=1');
-  c.ok(await p.isChecked('#poly-on') && (await p.textContent('#poly-label')) === 'Second rhythm: 3 against 4', `choosing 3 turns the second rhythm on (${await p.textContent('#poly-label')})`);
+  c.ok(await p.isChecked('#poly-on') && (await p.textContent('#poly-label')) === 'Polyrhythm: 3 against 4', `choosing 3 turns the polyrhythm on (${await p.textContent('#poly-label')})`);
   await p.click('#poly-editor .sheet-head .icon-btn');
   await p.click('#met-settings .sheet-head .icon-btn');
   await p.fill('#bpm-input', '120');
@@ -413,9 +558,133 @@ async function exercises(env) {
   const lit = await p.evaluate(() => document.querySelectorAll('#poly-beats li').length);
   await p.click('#met-toggle');
   const gaps = await p.evaluate(() => window.__poly.slice(0, 5).map((t, i, a) => (i ? Math.round((t - a[i - 1]) * 1000) : 0)).slice(1));
-  c.ok(gaps.length >= 3 && gaps.every((g) => Math.abs(g - 667) <= 2), `the second rhythm clicks every third of a bar (${gaps} ms)`);
+  c.ok(gaps.length >= 3 && gaps.every((g) => Math.abs(g - 667) <= 2), `the polyrhythm clicks every third of a bar (${gaps} ms)`);
   c.ok(lit === 3, `three small dots show it (${lit})`);
   c.ok(!p.errors.length, `no page errors practising with the metronome (${p.errors})`);
+  await p.close();
+}
+
+async function sounds(env) {
+  const p = await env.page();
+  await p.goto(env.base + '#metronome');
+  await p.waitForTimeout(800);
+  const all = await p.$$eval('#sound option', (o) => o.map((x) => x.value));
+  c.ok(all.join() === 'wood,click,beep,mechanical,claves,stick,cowbell,hihat,voice', `every sound is offered (${all})`);
+  const ids = all.filter((id) => id !== 'voice'); // the clicks (the Voice sound has its own check: voiceCount)
+  // Each sound's clicks, as the page plays them and as the apps' mixers get
+  // them: audible, inside full scale, the downbeat no quieter than a beat.
+  const r = await p.evaluate(async (list) => {
+    const { Metronome, SUB } = await import('./src/metronome.js');
+    const { renderClicks } = await import('./src/nativeaudio.js');
+    const out = {};
+    for (const sound of list) {
+      const m = new Metronome(new AudioContext());
+      m.prepare(sound);
+      await m.rendering[sound];
+      const peak = (d) => d.reduce((a, v) => Math.max(a, Math.abs(v)), 0);
+      const energy = (d) => d.reduce((a, v) => a + v * v, 0);
+      const live = m.rendered[sound].map((b) => b.getChannelData(0));
+      const native = await renderClicks(sound, 48000);
+      out[sound] = { peaks: live.map(peak), strong: energy(live[2]), weak: energy(live[0]), lens: native.slice(0, 4).map((d) => d.length), sub: SUB };
+      m.ctx.close();
+    }
+    return out;
+  }, ids);
+  for (const [sound, v] of Object.entries(r)) {
+    c.ok(v.peaks.every((x) => x > 0.05 && x <= 1.0001), `${sound}: every click audible and inside full scale (${v.peaks.map((x) => x.toFixed(2))})`);
+    c.ok(v.strong >= v.weak * 0.95, `${sound}: the downbeat is no quieter than a beat (${v.strong.toFixed(1)} vs ${v.weak.toFixed(1)})`);
+    c.ok(v.lens.every((n) => n > 480), `${sound}: the apps get whole clicks (${v.lens})`);
+  }
+  c.ok(r.mechanical.lens[2] > 48000 * 0.2 && r.mechanical.lens[0] < 48000 * 0.1, `the mechanical downbeat rings with its bell, the other beats are a dry tick (${r.mechanical.lens})`);
+  // Chosen on the screen, a sound is saved and the running metronome plays it.
+  await p.click('#met-toggle');
+  await p.click('#met-settings-btn');
+  await p.selectOption('#sound', 'cowbell');
+  await p.waitForTimeout(600);
+  const saved = await p.evaluate(() => JSON.parse(localStorage.getItem('musicpractice.settings.v1')).sound);
+  c.ok(saved === 'cowbell', `the chosen sound is saved (${saved})`);
+  c.ok(!p.errors.length, `no page errors in sounds (${p.errors})`);
+  await p.close();
+}
+
+async function voiceCount(env) {
+  const p = await env.page();
+  await p.goto(env.base + '#metronome');
+  await p.waitForTimeout(800);
+  const saved = () => p.evaluate(() => JSON.parse(localStorage.getItem('musicpractice.settings.v1')));
+  // Every buffer the page plays (not those recording clicks), with when and how long: the words are the long ones.
+  await p.evaluate(() => {
+    window.__starts = [];
+    const orig = AudioBufferSourceNode.prototype.start;
+    AudioBufferSourceNode.prototype.start = function (when = 0, ...rest) { if (!(this.context instanceof OfflineAudioContext)) window.__starts.push({ when, dur: this.buffer?.duration ?? 0 }); return orig.call(this, when, ...rest); };
+  });
+  await p.click('#met-settings-btn');
+  c.ok(await p.isHidden('#count-voice-row'), 'no voice to choose for a click');
+  await p.selectOption('#sound', 'voice');
+  c.ok(await p.isVisible('#count-voice-row'), 'choosing Voice shows who counts, under it');
+  const names = await p.$$eval('#count-voice option', (o) => o.map((x) => x.textContent));
+  c.ok(names.join() === 'Lily,Matilda,George,Clara,Autumn,Theo', `the routine's voices (${names})`);
+  await p.selectOption('#count-voice', 'george');
+  await p.waitForTimeout(1500);
+  let s = await saved();
+  c.ok(s.sound === 'voice' && s.countVoice === 'george', `saved (${s.sound}, ${s.countVoice})`);
+  c.ok(await p.evaluate(() => window.__starts.some((x) => x.dur > 0.2)), 'choosing a voice says a word');
+  // 4/4 at 100 with eighths: a word every 0.3 s ("one and two and ...").
+  await p.selectOption('#meter', '4/4');
+  await p.click('#sub-on');
+  await p.click('#met-settings .sheet-head .icon-btn');
+  await p.fill('#bpm-input', '100');
+  await p.press('#bpm-input', 'Enter');
+  const run = async (ms) => {
+    await p.evaluate(() => { window.__starts = []; });
+    await p.click('#met-toggle');
+    await p.waitForTimeout(ms);
+    await p.click('#met-toggle');
+    return p.evaluate(() => {
+      const words = window.__starts.filter((x) => x.dur > 0.2).map((x) => x.when).sort((a, b) => a - b);
+      const clicks = window.__starts.filter((x) => x.dur > 0 && x.dur <= 0.2).map((x) => x.when).sort((a, b) => a - b);
+      const gaps = words.slice(1).map((t, i) => Math.round((t - words[i]) * 1000));
+      return { words: words.length, clicks: clicks.length, gaps, detail: window.__starts.filter((x) => x.dur <= 0.2).map((x) => [Math.round((x.when - words[0]) * 1000), x.dur]) };
+    });
+  };
+  let r = await run(2500);
+  c.ok(r.words >= 6 && r.gaps.slice(1).every((g) => Math.abs(g - 300) <= 2) && r.clicks === 0, `eighths at 100: a word every 0.3 s and no clicks (${JSON.stringify(r)})`);
+  // At 280 the eighths are too quick to say: the beats are counted, clicks between them.
+  await p.fill('#bpm-input', '280');
+  await p.press('#bpm-input', 'Enter');
+  r = await run(2000);
+  const beat = Math.round(60000 / 280);
+  c.ok(r.words >= 5 && r.gaps.slice(1).every((g) => Math.abs(g - beat) <= 2) && r.clicks >= 4, `eighths at 280: a word on each beat, clicks between (${JSON.stringify(r)})`);
+  // In the apps: the words, the lead and what is said at each position go to the native mixer with the clicks.
+  const sent = await p.evaluate(async () => {
+    const calls = [];
+    globalThis.Capacitor = {
+      isNativePlatform: () => true, getPlatform: () => 'ios', PluginHeaders: [{ name: 'PracticeAudio' }],
+      nativePromise: async (plugin, method, options) => { calls.push({ method, options }); return method === 'info' ? { sampleRate: 48000 } : method === 'metronomeClock' ? { running: false } : {}; },
+      nativeCallback: () => null,
+    };
+    const { NativeMetronome } = await import('./src/nativeaudio.js');
+    const { COUNT_WORDS, WORD } = await import('./src/count.js');
+    const m = new NativeMetronome();
+    m.configure({ bpm: 100, meter: '3/4', accent: true, subdivision: 2, sound: 'voice', countVoice: 'theo', volume: 1 });
+    await m.start();
+    const start = calls.find((x) => x.method === 'metronomeStart').options;
+    m.configure({ bpm: 100, meter: '3/4', accent: true, subdivision: 2, sound: 'wood', volume: 1 });
+    await new Promise((r) => setTimeout(r, 500));
+    m.stop();
+    const update = calls.filter((x) => x.method === 'metronomeUpdate').at(-1).options;
+    delete globalThis.Capacitor;
+    const samples = (b64) => atob(b64).length / 2;
+    return {
+      words: start.words.length, lead: start.lead, said: start.slots.map((k) => (k >= WORD ? COUNT_WORDS[k - WORD] : k)).join(' '),
+      clickPad: start.clicks.map(samples).every((n) => n > 0.12 * 48000), wordLen: start.words.map(samples).every((n) => n > 0.12 * 48000),
+      after: { words: update.words.length, lead: update.lead, slots: update.slots.length },
+    };
+  });
+  c.ok(sent.words === 17 && sent.lead === 0.12 && sent.clickPad && sent.wordLen, `the apps get every word and the clicks padded by the lead (${JSON.stringify(sent)})`);
+  c.ok(sent.said === 'one and two and three and', `and what is said where (${sent.said})`);
+  c.ok(sent.after.words === 0 && sent.after.lead === 0 && sent.after.slots === 0, `another sound takes the words away (${JSON.stringify(sent.after)})`);
+  c.ok(!p.errors.length, `no page errors in voice counting (${p.errors})`);
   await p.close();
 }
 
@@ -544,7 +813,11 @@ async function microphone() {
     await p.goto(env.base + '#tuner');
     const read = await until(p, () => document.getElementById('tn-letter').textContent === 'A' && document.getElementById('tn-oct').textContent === '3', 20000);
     c.ok(read >= 0, `the tuner reads the player's A3 (${await p.evaluate(() => document.querySelector('.tuner-note').textContent)})`);
-    // The pitch trace draws the note (solid strokes, not just the band and the middle line).
+    // Pitch over time starts folded away; opened, it draws the note (solid strokes, not just the band and the middle line).
+    c.ok(await p.isHidden('#pitch-trace') && await p.isVisible('#trace-toggle'), 'pitch over time starts folded away, with a button to show it');
+    await p.click('#trace-toggle');
+    c.ok(await p.isVisible('#pitch-trace') && await p.getAttribute('#trace-toggle', 'aria-expanded') === 'true', 'the button shows it');
+    c.ok(await p.evaluate(() => JSON.parse(localStorage.getItem('musicpractice.settings.v1')).traceOn) === true, 'and that is kept');
     const traced = await until(p, () => {
       const cv = document.getElementById('pitch-trace');
       if (!cv.width) return false;
@@ -568,6 +841,23 @@ async function microphone() {
     c.ok(pureRead >= 0, `A3 over D3 reads as a fifth, a little flat of pure (${await p.textContent('#tn-pure')}; ${await p.textContent('#tn-cents')})`);
     await p.click('#pure-done');
     c.ok(!(await p.isVisible('#pure-bar')) && await p.isVisible('#scale-test'), 'Done goes back to the tuner as it was');
+    // Tone Matching: the cello plays a note (the pick fixed here), then the player's A3 is judged.
+    const matchRound = async (randomValue) => {
+      await p.evaluate((v) => { Math.random = () => v; }, randomValue);
+      await p.click('#match-go');
+      c.ok(await p.textContent('#match-status') === 'Listen…', 'the cello plays the note first');
+      await until(p, () => document.getElementById('match-sheet').dataset.step === 'result', 30000);
+      return p.evaluate(() => ({ verdict: document.getElementById('match-verdict').textContent, detail: document.getElementById('match-detail').textContent, score: document.getElementById('match-score').textContent }));
+    };
+    await p.click('#exercises-open');
+    await p.click('#match-open');
+    c.ok(await p.isVisible('#match-sheet') && await p.textContent('#match-go') === 'Play a note', 'Tone Matching opens ready to play a note');
+    let m = await matchRound(0.7); // A3
+    c.ok(m.verdict === 'Right note: A' && /^(Right in tune|[1-5] cents? (sharp|flat)) · in tune$/.test(m.detail) && m.score === '1 of 1 right', `matching A: right note, in tune (${JSON.stringify(m)})`);
+    m = await matchRound(0); // G2
+    c.ok(m.verdict === 'You played A. The note was G' && m.detail === '2 semitones too high' && m.score === '1 of 2 right', `against G: the wrong note, and by how much (${JSON.stringify(m)})`);
+    await p.click('#match-sheet .sheet-head .icon-btn');
+    c.ok(await until(p, () => document.getElementById('tn-letter').textContent === 'A', 15000) >= 0, 'closing Tone Matching, the tuner reads again');
     if (process.env.SHOTS) await p.screenshot({ path: `${process.env.SHOTS}/tuner-trace.png` });
     // Back on the recorder, the take is still there (kept on the device).
     await p.goto(env.base + '#record');
@@ -575,6 +865,20 @@ async function microphone() {
     c.ok(await until(p, () => document.querySelectorAll('#takes .take').length === 1, 5000) >= 0, 'the take is kept after a reload');
     c.ok(!p.errors.length, `no page errors with the microphone (${p.errors})`);
     await p.close();
+    // On an iPhone, Pure Intervals plays the drone for a few seconds, then the tuner listens again.
+    const ip = await env.page({ userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1' });
+    await ip.goto(env.base + '#tuner');
+    await ip.waitForTimeout(1500);
+    await ip.click('#exercises-open');
+    await ip.click('#pure-open');
+    c.ok(await ip.isVisible('#pure-burst-note') && await ip.textContent('#pure-drone') === 'Hear the drone', 'iPhone: Pure Intervals offers the drone for a few seconds');
+    await ip.click('#pure-drone');
+    c.ok(await until(ip, () => document.getElementById('pure-drone').textContent === 'Drone playing…', 3000) >= 0, 'iPhone: the drone plays');
+    const back = await until(ip, () => document.getElementById('pure-drone').textContent === 'Hear the drone', 12000);
+    c.ok(back > 3500, `iPhone: then it stops (${back} ms)`);
+    c.ok(await until(ip, () => /Perfect fifth|Major|Minor|Unison|Tritone|Perfect fourth/.test(document.getElementById('tn-pure').textContent), 15000) >= 0, 'iPhone: and the tuner listens again, judging against the drone');
+    c.ok(!ip.errors.length, `iPhone: no page errors (${ip.errors})`);
+    await ip.close();
   } finally {
     await env.stop();
     rmSync(dir, { recursive: true, force: true });
@@ -595,7 +899,7 @@ async function themes(env) {
 
 /** `only`: the names of the parts to run (all of them if empty): node flows.mjs exercises routines */
 export async function run(env, only = []) {
-  for (const part of [list, running, routines, practiceLog, metronomeScreen, savedTempos, strongBeats, exercises, microphone, themes]) {
+  for (const part of [list, running, routines, practiceLog, metronomeScreen, sounds, voiceCount, tapPad, weightGrab, keys, savedTempos, strongBeats, exercises, microphone, themes]) {
     if (only.length && !only.includes(part.name)) continue;
     try { await part(env); } catch (e) { c.ok(false, `${part.name}: ${e.message.split('\n')[0]}`); }
   }

@@ -22,8 +22,8 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
   what to do, as five cards in a two-column grid (Melody Challenges, the main
   one, across both; one column on a narrow window): **Melody Challenges** (the songbook at the
   difficulty), **Free Play**, **Your Ears**, **Focus Mode** and **Full Songs**
-  (both in the songbook). The dropdowns are dialogs, so a controller's A and
-  B, Escape and a tap outside work in them; the songbook and difficulty are
+  (both in the songbook). The dropdowns are dialogs, so Escape and a tap
+  outside close them; the songbook and difficulty are
   saved (an older save whose level was Focus or Full songs gets Adaptive as its
   difficulty). It fits a phone held sideways without
   scrolling (checked at 844×390 and 667×375).
@@ -51,6 +51,25 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
   bar-long notes are only waiting in ear training. It plays on its own channel about 7 dB under the player's keys
   (Settings → Melody volume), and keeps playing when you press keys, so you
   can play along.
+- **Swing:** jazz, bebop and the licks are swung. The second eighth of each
+  beat comes late (64% of the beat at medium tempos, lighter for very fast
+  tunes and ballads). Latin tunes (`feel: 'straight'`) and melodies not
+  written in eighths play as written (`swingFor` in `perform.js`).
+- **Tempos** (`design/source/extract_melodies.py`, the Tempo section). The
+  datasets mostly have none:
+  - **OpenBook:** its `\tempo` is a placeholder ("Allegro", 4 = 130), so the
+    Real Book's own marking in its `piece` field sets it: Ballad 66, Slowly
+    66, Moderately 120, Medium Swing 120, Bossa 128, Bright 184 and so on.
+  - **Lead sheets:** take their metre and note values. A 3/4 waltz is 150, a
+    cut-time song 168 (it moves in halves), a 4/4 song written in half notes
+    160; carols run a little slower.
+  - **Dance tunes:** take their kind. Reels 176, jigs and slip jigs 150 (a
+    hundred dotted quarters), hornpipes 144, waltzes 162, morris and Playford
+    by metre.
+  - **Parker's Omnibook:** keeps its recording tempos up to 180; faster ones
+    are brought within hearing in the same order (Ko-Ko's 308 plays at 212).
+  - Then a guard keeps the typical gap from note to note between 0.14 s and
+    0.75 s.
 - Your keys follow your touch (`touchRelease` in `perform.js`), but no note
   is ever cut off: every note sounds for at least 0.4 s and then fades
   gently. How long you hold a key sets how long it rings:
@@ -176,10 +195,8 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
 
 Controls: touch; computer keys (home row `A S D F G H J K L ; '` for the white
 keys on screen, the row above for the black keys, `Space` repeat, `Backspace`
-redo, `3` practice, `-`/`=` speed, `Enter` next, `Esc` menu); Xbox controller
-(D-pad or left stick moves a key cursor, A plays it, X repeat, B redo, Y
-practice, LB/RB speed, D-pad up/down an octave, View or RT next, Menu
-pauses). `,` `.` slide an octave and `9` `0` show fewer or more keys. Fullscreen works as in
+redo, `3` practice, `-`/`=` speed, `Enter` next, `Esc` menu). It's an app, not a game, so it has no game-controller
+support. `,` `.` slide an octave and `9` `0` show fewer or more keys. Fullscreen works as in
 Kingdom of the Fairies (`app/src/chrome.js`): a tap in landscape asks for
 fullscreen while it is off, unless the player left it themselves (Chrome's
 "swipe down to exit" notice, the back gesture, the button): then taps stop
@@ -244,11 +261,40 @@ page back if it ever ends up zoomed.
   `{ id, title, by, cat, bpm, notes: 'E4:0.5 D4:0.5 C4 r:1 ...' }`
   (middle C is C4; durations in beats, default 1). 3–16 notes within 16
   semitones, so it always fits the keyboard.
-- `app/assets/samples/`: one sample every minor third from A0 to C8 for each
-  kit, transposed by up to a semitone and a half to fill in the rest. Made by
-  `design/source/fetch_samples.py` from the Salamander Grand Piano V3
-  (Alexander Holm, CC BY 3.0) and FluidR3 GM (Frank Wen, MIT) via
-  midi-js-soundfonts.
+- `app/assets/samples/`: one sample every minor third for each instrument,
+  transposed by up to a semitone and a half to fill in the rest. Settings →
+  Sound offers 25 instruments, grouped by family:
+  - **Pianos:** Concert Grand, Felt Piano, Bright Piano, Electric Piano, FM
+    Electric Piano, Harpsichord.
+  - **Mallets:** Vibraphone, Marimba, Celesta, Music Box.
+  - **Guitars and harp:** Nylon, Steel, Jazz and Electric Guitar, Harp.
+  - **Strings:** Violin, Cello, String Section.
+  - **Winds and brass:** Flute, Clarinet, Alto Sax, Trumpet.
+  - **Organs:** Pipe Organ, Jazz Organ, Accordion.
+
+  Sources:
+  - The four original pianos come from `design/source/fetch_samples.py`: the
+    Salamander Grand Piano V3 (Alexander Holm, CC BY 3.0) and FluidR3 GM
+    (Frank Wen, MIT), via midi-js-soundfonts.
+  - The rest come from `design/source/fetch_instruments.py`: the MusyngKite
+    soundfont (Michael Kite, CC BY-SA 3.0, so the prepared samples carry the
+    same licence), C2 to C7. It trims each note and matches levels. Bowed and
+    blown notes that swell in slowly start at half their height, so every note
+    begins clearly.
+
+  How the samples behave:
+  - **In tune:** each sample's pitch is measured (to 2 cents) and its offset
+    kept in `tune.json`, which the app corrects for, so neighbouring samples
+    agree.
+  - **Held notes:** held instruments (strings, winds, organs) have a seamless
+    loop in each sample (`loops.json`). A held key sounds as long as it's
+    held and lets go with a short natural tail, not the piano's pedalled ring.
+    The loop points sit inside a stretch copied from the loop's start, so a
+    decoder's shift of up to 50 ms still loops cleanly.
+
+  Checked in a browser by rendering every instrument at four pitches: each
+  sounds, held ones still sound after 2.5 s, plucked ones fade, and the pitch
+  is right.
 - `app/src/staff.js` draws the staff; `app/src/glyphs.js` holds the Bravura
   clef, note and accidental outlines, generated by
   `design/source/make_glyphs.py`.

@@ -1,0 +1,14 @@
+{
+	"schemaVersion": 1,
+	"id": "smoothcraft-gametest",
+	"version": "1.0.0",
+	"name": "Smoothcraft game tests",
+	"environment": "client",
+	"entrypoints": {
+		"fabric-client-gametest": ["net.hoai2k.smoothcraft.gametest.SmoothcraftClientGameTest"]
+	},
+	"mixins": ["smoothcraft-gametest.mixins.json"],
+	"depends": {
+		"smoothcraft": "*"
+	}
+}

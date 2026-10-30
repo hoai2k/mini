@@ -182,6 +182,34 @@ Head size of each pose against its reference sprite (same look). Beyond 6% the g
 | `prince-court-fall-tinted` | `prince-court-tinted` | 1.24 | 0.68 | drawn × 0.806 |
 | `prince-court-reach` | `prince-court` | 1.32 | 0.73 | drawn × 0.758 |
 | `prince-court-reach-tinted` | `prince-court-tinted` | 1.34 | 0.81 | drawn × 0.746 |
+| `crew-squire-sit-up` | `crew-squire` face | 1.02 | 0.76 | as painted |
+| `crew-squire-sit-up-tinted` | `crew-squire-tinted` face | 0.94 | 0.83 | as painted |
+| `crew-squire-crawl` | `crew-squire` face | 0.98 | 0.71 | as painted |
+| `crew-squire-crawl-tinted` | `crew-squire-tinted` face | 0.80 | 0.86 | drawn × 1.250 |
+| `crew-squire-tumble` | `crew-squire` face | 0.86 | 0.72 | drawn × 1.163 |
+| `crew-squire-tumble-tinted` | `crew-squire-tinted` face | 0.88 | 0.81 | drawn × 1.136 |
+| `crew-bosun-sit-up` | `crew-bosun` face | 0.80 | 0.59 | drawn × 1.250 |
+| `crew-bosun-sit-up-tinted` | `crew-bosun-tinted` face | 0.82 | 0.90 | drawn × 1.220 |
+| `crew-bosun-crawl` | `crew-bosun` face | 0.86 | 0.53 | as painted (no reliable match) |
+| `crew-bosun-crawl-tinted` | `crew-bosun-tinted` face | 0.86 | 0.67 | drawn × 1.163 |
+| `crew-bosun-tumble` | `crew-bosun` face | 0.60 | 0.52 | as painted (no reliable match) |
+| `crew-bosun-tumble-tinted` | `crew-bosun-tinted` face | 0.82 | 0.72 | drawn × 1.220 |
+| `crew-helmsman-sit-up` | `crew-helmsman` face | 0.80 | 0.76 | drawn × 1.250 |
+| `crew-helmsman-sit-up-tinted` | `crew-helmsman-tinted` face | 0.76 | 0.90 | drawn × 1.316 |
+| `crew-helmsman-crawl` | `crew-helmsman` face | 0.78 | 0.60 | drawn × 1.282 |
+| `crew-helmsman-crawl-tinted` | `crew-helmsman-tinted` face | 0.82 | 0.74 | drawn × 1.220 |
+| `crew-helmsman-tumble` | `crew-helmsman` face | 0.78 | 0.66 | drawn × 1.282 |
+| `crew-helmsman-tumble-tinted` | `crew-helmsman-tinted` face | 0.60 | 0.78 | as painted (no reliable match) |
+| `crew-manatarms-sit-up` | `crew-manatarms-redo` face | 0.88 | 0.69 | drawn × 1.136 |
+| `crew-manatarms-sit-up-tinted` | `crew-manatarms-tinted-redo` face | 0.84 | 0.89 | drawn × 1.190 |
+| `crew-manatarms-crawl` | `crew-manatarms-redo` face | 0.84 | 0.73 | drawn × 1.190 |
+| `crew-manatarms-crawl-tinted` | `crew-manatarms-tinted-redo` face | 0.96 | 0.86 | as painted |
+| `crew-manatarms-tumble` | `crew-manatarms-redo` face | 0.86 | 0.77 | drawn × 1.163 |
+| `crew-manatarms-tumble-tinted` | `crew-manatarms-tinted-redo` face | 1.02 | 0.77 | as painted |
+| `crew-asleep` | standing crewman, by eye | 1.30 | — | drawn × 0.770 |
+| `crew-asleep-tinted` | standing crewman, by eye | 1.39 | — | drawn × 0.720 |
+| `crew-asleep-b` | standing crewman, by eye | 0.93 | — | drawn × 1.080 |
+| `crew-asleep-b-tinted` | standing crewman, by eye | 0.83 | — | drawn × 1.200 |
 
 ## To redraw
 

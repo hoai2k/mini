@@ -1,0 +1,16 @@
+block/bush
+block/fern
+block/large_fern_top
+block/lily_pad
+block/short_grass
+block/tall_grass_top
+block/vine
+item/firework_star_overlay
+item/leather_boots
+item/leather_chestplate
+item/leather_helmet
+item/leather_horse_armor
+item/leather_leggings
+item/potion_overlay
+item/tipped_arrow_head
+item/wolf_armor_overlay

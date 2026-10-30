@@ -29,7 +29,8 @@ export const MAX_HOLD = 1.1;
  * the start. `spb` is seconds per beat; `maxHold` caps the time from one note
  * to the next (pass MAX_HOLD / speed so slowing down still slows the holds).
  */
-export function perform(notes, spb, { maxHold = MAX_HOLD } = {}) {
+export function perform(notes, spb, { maxHold = MAX_HOLD, swing = 0.5 } = {}) {
+  if (swing !== 0.5) notes = notes.map((x) => { const at = swingAt(x.at, swing); return { ...x, at, beats: swingAt(x.at + x.beats, swing) - at }; });
   const n = notes.length;
   const lo = Math.min(...notes.map((x) => x.midi));
   const hi = Math.max(...notes.map((x) => x.midi));
@@ -90,12 +91,39 @@ export const TOUCH = {
  * own release time constant is `base`: { delay, tau } — wait `delay` seconds,
  * then fade with time constant `tau`.
  */
-export function touchRelease(held, base) {
+export function touchRelease(held, base, { sustained = false } = {}) {
   const h = Math.max(0, held);
   const x = Math.min(1, Math.max(0, (h - TOUCH.tap) / (TOUCH.held - TOUCH.tap)));
   const ease = x * x * (3 - 2 * x); // gentle at both ends
+  // A held instrument (organ, strings, winds) sounds while the key is down,
+  // so its tail is short and natural rather than a pedalled ring.
+  const [tapTail, heldTail] = sustained ? SUSTAINED_TAILS : [TOUCH.tapTail, TOUCH.heldTail];
   return {
-    delay: Math.max(0, TOUCH.minSound - h),
-    tau: base * (TOUCH.tapTail + (TOUCH.heldTail - TOUCH.tapTail) * ease),
+    delay: Math.max(0, (sustained ? SUSTAINED_MIN : TOUCH.minSound) - h),
+    tau: base * (tapTail + (heldTail - tapTail) * ease),
   };
+}
+const SUSTAINED_TAILS = [1.4, 2.2];
+const SUSTAINED_MIN = 0.3;
+
+// ---------------------------------------------------------------- swing
+// Jazz is written in even eighths and played swung: the second eighth of
+// each beat comes late. The lilt is strongest at medium tempos and evens out
+// when the tune is very fast (or a ballad). Latin tunes (feel: 'straight')
+// and anything not in eighths stay as written.
+export function swingFor(m, bpm = m.bpm) {
+  if (!['jazz', 'bebop', 'licks'].includes(m.cat) || m.feel === 'straight') return 0.5;
+  const notes = m.parsed || m.notes;
+  const frac = notes.map((n) => Math.round((n.at % 1) * 1000) / 1000);
+  const eighthy = frac.filter((f) => f === 0 || f === 0.5).length / notes.length;
+  if (eighthy < 0.9 || !frac.includes(0.5)) return 0.5;
+  if (bpm >= 220) return 0.58;
+  if (bpm < 90) return 0.6;
+  return 0.64;
+}
+/** Where a written beat position falls when swung at `ratio` (0.5 = straight). */
+export function swingAt(at, ratio) {
+  if (ratio === 0.5) return at;
+  const beat = Math.floor(at), f = at - beat;
+  return beat + (f <= 0.5 ? (f / 0.5) * ratio : ratio + ((f - 0.5) / 0.5) * (1 - ratio));
 }

@@ -19,8 +19,8 @@ bird passed (its own book painting, IC-B01..B28, or its game's scene until
 that arrives).
 
 Play it at https://hoai2k.github.io/mini/icecreamcone/. It sits behind the
-shared invite gate (`game/src/gate/gate.js`, a byte-identical copy of the one
-in the `hoai2k.github.io` repository), which is off on localhost.
+shared invite gate (`game/src/gate/gate.js`, a copy of `gate/loader.js` from the
+`hoai2k.github.io` repository, which loads the shared door), which is off on localhost.
 
 - [`design/design.md`](design/design.md): the flow, the guide, the sticker
   book, the controls and the first ten minigames; the other 18 are in

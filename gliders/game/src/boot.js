@@ -1,5 +1,5 @@
 // The game's entry point, behind the shared invite door (src/gate/gate.js, a
-// byte-identical copy of the one in the hoai2k.github.io repository). The door
+// copy of gate/loader.js from hoai2k.github.io, which loads the shared door). The door
 // is off on localhost; once through, the game itself is imported, which starts it.
 import { openGate } from './gate/gate.js';
 

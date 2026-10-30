@@ -1,0 +1,9 @@
+{
+	"required": true,
+	"package": "net.hoai2k.smoothcraft.gametest.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"client": ["GlBackendMixin"],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

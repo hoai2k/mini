@@ -39,9 +39,14 @@ calls three fixed Yahoo endpoints and sends CORS headers only to the mini
 sites and localhost. It is a separate Worker from the multiplayer relay
 (`mini-rooms`), so changing it never touches online play.
 
-`.github/workflows/stocks.yml` deploys the Worker when `server/` changes on
-`main`, and refreshes the built-in history on demand (Actions → Stocks data and
-API → Run workflow → snapshot, with optional extra symbols to build in). The
+The page fetches today's prices from the Worker every time it loads, showing a
+loading bar under the period line (over the built-in copy, where there is one)
+until they arrive; nothing refreshes the data on a schedule, so it costs no
+GitHub Actions minutes. `.github/workflows/stocks.yml` deploys the Worker when
+`server/` changes on the `deploy` branch, and refreshes the built-in history
+only on demand (Actions → Stocks data and API → Run workflow → snapshot, with
+optional extra symbols to build in); the refreshed copy goes live with the next
+deploy. The
 snapshot falls back to reading through the Worker, because Yahoo often refuses
 GitHub's runners.
 

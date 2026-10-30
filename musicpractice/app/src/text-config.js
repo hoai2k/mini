@@ -121,6 +121,12 @@ export const EN = {
     bpm: 'BPM',
     /** Tap tempo, beside the tempo's name. */
     tap: 'Tap',
+    /** The big tap pad the Tap button grows into. */
+    tapPad: {
+      label: 'Tap tempo',
+      first: 'Keep tapping in time with the tempo you want',
+      tapping: 'Keep tapping until you get the tempo you want',
+    },
     tapHint: 'Tap tempo: tap in time to set the tempo (or press T)',
     start: 'Start',
     stop: 'Stop',
@@ -156,8 +162,6 @@ export const EN = {
     /** The tempo trainer (Metronome settings). */
     trainer: {
       title: 'Tempo trainer',
-      edit: 'Set the tempo trainer',
-      label: (on, t) => (on ? `Tempo trainer: ${t.step} BPM every ${t.every} ${t.every === 1 ? 'bar' : 'bars'}, to ${t.to}` : 'Tempo trainer'),
       help: 'From the tempo you set, the tempo changes a step at a time until it reaches the target, then stays there. Stop puts it back where it started.',
       to: 'Target tempo (BPM)',
       step: 'Change by (BPM)',
@@ -174,15 +178,15 @@ export const EN = {
       silent: 'Bars without',
       status: (g) => `Silent bars: ${g.play} + ${g.silent}`,
     },
-    /** The second rhythm, a polyrhythm (Metronome settings). */
+    /** The polyrhythm (Metronome settings). */
     poly: {
-      title: 'Second rhythm',
-      edit: 'Choose the second rhythm',
-      label: (on, n, beats) => (on ? `Second rhythm: ${n} against ${beats}` : 'Second rhythm'),
+      title: 'Polyrhythm',
+      edit: 'Choose the polyrhythm',
+      label: (on, n, beats) => (on ? `Polyrhythm: ${n} against ${beats}` : 'Polyrhythm'),
       help: (beats) => `A second, higher click, spaced evenly across each bar: how many against the bar's ${beats} beats? It starts with beat 1, and a row of small dots over the beats shows it.`,
       option: (n, beats) => `${n}:${beats}`,
-      status: (n, beats) => `Second rhythm ${n}:${beats}`,
-      noBars: 'Second rhythm (needs a time signature)',
+      status: (n, beats) => `Polyrhythm ${n}:${beats}`,
+      noBars: 'Polyrhythm (needs a time signature)',
     },
     exerciseOpen: 'Metronome settings',
     /** Common tempos, from the marking. */
@@ -231,6 +235,12 @@ export const EN = {
       wood: 'Woodblock',
       click: 'Click',
       beep: 'Beep',
+      mechanical: 'Mechanical',
+      claves: 'Claves',
+      stick: 'Side stick',
+      cowbell: 'Cowbell',
+      hihat: 'Hi-hat',
+      voice: 'Voice (counting)',
     },
     settings: {
       title: 'Metronome settings',
@@ -247,6 +257,7 @@ export const EN = {
         4: 'Sixteenth notes',
       },
       sound: 'Sound',
+      countVoice: 'Voice Personality',
       swing: 'Pendulum swing',
       vizBars: 'Visualizer rows',
       sync: 'Sound and visuals sync',
@@ -363,8 +374,28 @@ export const EN = {
     /** Intonation Exercises, under the tuner: a choice of the two below. */
     exercises: {
       button: 'Intonation Exercises',
-      buttonSub: 'Test a scale, or tune intervals against a drone',
+      buttonSub: 'Test a scale, match notes, tune intervals',
       title: 'Intonation exercises',
+    },
+    /** Tone Matching: a cello plays a note, the player plays it back (tonematch.js). */
+    match: {
+      button: 'Tone Matching',
+      buttonSub: 'Hear a cello note, then play the same note',
+      title: 'Tone matching',
+      how: 'A cello plays a note. Then play or sing the same note, in any octave, and hold it: you see whether it was the right note and how close.',
+      start: 'Play a note',
+      next: 'Next note',
+      again: 'Hear it again',
+      listen: 'Listen…',
+      yourTurn: 'Your turn: play the note and hold it',
+      noNote: "Didn't hear a steady note. Try again, a little louder or closer to the microphone.",
+      right: (note) => `Right note: ${note}`,
+      wrong: (played, note) => `You played ${played}. The note was ${note}`,
+      cents: (c) => (Math.round(c) === 0 ? 'Right in tune' : `${Math.abs(Math.round(c))} ${Math.abs(Math.round(c)) === 1 ? 'cent' : 'cents'} ${c > 0 ? 'sharp' : 'flat'}`),
+      closeness: { inTune: 'in tune', close: 'close', off: 'still a little out' },
+      away: (n) => `${Math.abs(n)} ${Math.abs(n) === 1 ? 'semitone' : 'semitones'} ${n > 0 ? 'too high' : 'too low'}`,
+      score: (right, total) => `${right} of ${total} right`,
+      micOff: 'The microphone is off, so the tuner can\'t hear you. Close this and start the tuner first.',
     },
     /** Pure Intervals: the tuner judges each note against the pure interval above the drone's note. */
     pure: {
@@ -377,6 +408,10 @@ export const EN = {
       root: (note) => `Drone ${note}`,
       play: 'Play drone',
       stop: 'Stop drone',
+      /** iPhone and iPad: the drone sounds for a few seconds, then the tuner listens. */
+      hear: 'Hear the drone',
+      sounding: 'Drone playing…',
+      burstNote: 'On this device the drone plays for a few seconds, then stops so the tuner can listen: keep playing your note.',
       intervals: ['Unison', 'Minor second', 'Major second', 'Minor third', 'Major third', 'Perfect fourth', 'Tritone', 'Perfect fifth', 'Minor sixth', 'Major sixth', 'Minor seventh', 'Major seventh'],
       reading: (name, shift) => (Math.abs(shift) < 0.5 ? `${name} · pure is the same as the piano`
         : `${name} · pure is ${Math.round(Math.abs(shift))} ${Math.round(Math.abs(shift)) === 1 ? 'cent' : 'cents'} ${shift < 0 ? 'below' : 'above'} the piano`),
@@ -429,6 +464,8 @@ export const EN = {
     cents: (sign, n) => `${sign}${n} cents`,
     hz: (hz) => `${hz} Hz`,
     trace: 'Pitch over the last few seconds: the middle line is in tune, above it sharp, below it flat',
+    traceShow: 'Show pitch over time',
+    traceHide: 'Hide pitch over time',
     hint: {
       playString: 'Play a string',
       playNote: 'Play a note',
@@ -445,6 +482,9 @@ export const EN = {
       sharps: 'Sharps (C♯)',
       flats: 'Flats (D♭)',
       transpose: 'Transposing instrument',
+      traceSensitivity: 'Pitch over time sensitivity',
+      traceSensitivities: { high: 'High', medium: 'Medium', low: 'Low' },
+      traceSensitivityHelp: 'How closely the line follows small changes in pitch. Lower draws a held note as a steadier line.',
       scaleLevel: 'Difficulty',
       scaleLevels: { beginner: 'Beginner', easy: 'Easy', medium: 'Medium', hard: 'Hard', advanced: 'Advanced', custom: 'Custom' },
       scaleTolerance: (c) => `Threshold: ${c}¢`,

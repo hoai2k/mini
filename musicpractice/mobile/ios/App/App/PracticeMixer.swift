@@ -33,11 +33,16 @@ final class PracticeMixer {
 
     // MARK: metronome
 
-    private var clicks: [[Float]] = [[], [], [], [], [], [], []] // weak, mid, strong, between the beats, soft (the weak one, quieter), silent (none), the second rhythm's
+    private var clicks: [[Float]] = [[], [], [], [], [], [], []] // weak, mid, strong, between the beats, soft (the weak one, quieter), silent (none), the polyrhythm's; then the Voice sound's words
+    /// The first of the Voice sound's words, after the clicks (metronome.js WORD).
+    static let word = 7
+    /// A word cut off by the next fades out over this long (metronome.js COUNT_CHOKE).
+    static let chokeSec = 0.012
+    private var clickLead = 0.0 // seconds every click is started early (the Voice sound's words are padded to their vowel); the clock adds it back
     /// A soft beat (volume per beat): the weak click this much as loud (metronome.js SOFT_GAIN).
     static let softGain: Float = 0.35
     static let soft = 4, silent = 5 // click kinds past the strengths and between-the-beats (settings.js SOFT, SILENT)
-    /// The second rhythm's click: the mid one this much faster and this loud (metronome.js POLY, POLY_RATE, POLY_GAIN).
+    /// The polyrhythm's click: the mid one this much faster and this loud (metronome.js POLY, POLY_RATE, POLY_GAIN).
     static let poly = 6
     static let polyRate = 1.5, polyGain: Float = 0.8
     private var clickSr = 48000.0
@@ -56,10 +61,11 @@ final class PracticeMixer {
     private var gapPlay = 0, gapSilent = 0 // silent bars: play this many, then this many silent (0: off)
     private var trainerStep = 0.0, trainerEvery = 0, trainerTo = 0.0 // the tempo trainer (every 0: off)
     private var lastMuted = false // the last beat was in a silent bar (its subdivisions too)
-    private var polyN = 0 // the second rhythm: clicks across each bar (0: off)
+    private var polyN = 0 // the polyrhythm: clicks across each bar (0: off)
     private var polyStart = 0.0, polyLen = 0.0, polyIndex = Int.max, polyMuted = false // its bar: start and length in frames, the next click
     private var clickKind = [Int](repeating: 0, count: 16)
     private var clickPos = [Double](repeating: 0, count: 16) // in click samples
+    private var clickFade = [Int](repeating: -1, count: 16) // frames left of a word's fade, cut off by the next word (-1: not fading; 0: faded out)
     private var clicksActive = 0
     private var stopFade = 0 // frames left of a quick fade after Stop
     private var stopFadeLen = 240
@@ -192,8 +198,20 @@ final class PracticeMixer {
         locked {
             let polyCount = Int(Double(mid.count) / PracticeMixer.polyRate)
             let poly = (0..<polyCount).map { Float(PracticeMixer.linear(mid, Double($0) * PracticeMixer.polyRate)) * PracticeMixer.polyGain }
-            clicks = [weak, mid, strong, sub ?? weak, weak.map { $0 * PracticeMixer.softGain }, [], poly]
+            clicks = [weak, mid, strong, sub ?? weak, weak.map { $0 * PracticeMixer.softGain }, [], poly] + clicks.dropFirst(PracticeMixer.word)
             clickSr = sampleRate
+        }
+    }
+
+    /// The Voice sound's words, rendered at the clicks' rate (none for the other
+    /// sounds): click kinds `word` and on, which the slots name. `lead`: seconds
+    /// from the start of every click to where it is heard (the words' vowels; the
+    /// Voice sound's clicks are padded to match), so the clock says when a beat is heard.
+    func setWords(_ words: [[Float]], lead: Double) {
+        locked {
+            clicks = Array(clicks.prefix(PracticeMixer.word)) + words
+            clickLead = max(0, lead)
+            clicksActive = 0
         }
     }
 
@@ -214,7 +232,7 @@ final class PracticeMixer {
 
     /// Silent bars (play `gapPlay` bars, then `gapSilent` silent; 0 off) and the tempo
     /// trainer (`trainerStep` beats per minute every `trainerEvery` bars until `trainerTo`; 0 off).
-    /// And the second rhythm: `polyN` clicks across each bar, from its first beat (0 off).
+    /// And the polyrhythm: `polyN` clicks across each bar, from its first beat (0 off).
     func metronomeExercise(gapPlay: Int, gapSilent: Int, trainerStep: Double, trainerEvery: Int, trainerTo: Double, polyN: Int = 0) {
         locked {
             self.polyN = max(0, min(9, polyN))
@@ -234,7 +252,7 @@ final class PracticeMixer {
     private func update(bpm: Double, strengths: [Int], subdivision: Int, slots: [Int], volume: Double) {
         self.bpm = max(1, bpm)
         self.subdivision = max(1, min(4, subdivision))
-        self.slots = slots.map { max(0, min(PracticeMixer.silent, $0)) }
+        self.slots = slots.map { $0 == PracticeMixer.poly ? 0 : max(0, $0) } // a kind past the clicks (no such word) is silent
         self.strengths = strengths.isEmpty ? [0] : strengths
         metVolume = volume
         if beat >= self.strengths.count { beat %= self.strengths.count }
@@ -254,7 +272,7 @@ final class PracticeMixer {
 
     /// (next beat's frame, its count, its place in the bar, seconds per beat).
     func metronomeClock() -> (nextBeat: Double, count: Int64, beat: Int, period: Double) {
-        locked { (nextBeat, count, beat, 60 / bpm) }
+        locked { (nextBeat + clickLead * sr, count, beat, 60 / bpm) }
     }
 
     // MARK: drone API
@@ -436,7 +454,7 @@ final class PracticeMixer {
                 if !lastMuted {
                     startClick(slots.isEmpty ? strength : slots[(beat * subdivision) % slots.count], (now - nextBeat) * clickStep)
                 }
-                // The second rhythm divides the bar from its first beat.
+                // The polyrhythm divides the bar from its first beat.
                 if beat == 0 {
                     polyStart = nextBeat
                     polyLen = Double(strengths.count) * 60 / bpm * sr
@@ -469,16 +487,23 @@ final class PracticeMixer {
             metGain += (metVolume - metGain) * metCoef
             if clicksActive > 0 {
                 var c = 0.0
+                let choke = max(1, Int(PracticeMixer.chokeSec * sr))
                 for i in 0..<clicksActive {
-                    c += PracticeMixer.linear(clicks[clickKind[i]], clickPos[i])
+                    var v = PracticeMixer.linear(clicks[clickKind[i]], clickPos[i])
+                    if clickFade[i] >= 0 {
+                        v *= Double(clickFade[i]) / Double(choke)
+                        if clickFade[i] > 0 { clickFade[i] -= 1 }
+                    }
+                    c += v
                     clickPos[i] += clickStep
                 }
                 var i = clicksActive - 1
                 while i >= 0 {
-                    if clickPos[i] >= Double(clicks[clickKind[i]].count) {
+                    if clickPos[i] >= Double(clicks[clickKind[i]].count) || clickFade[i] == 0 {
                         clicksActive -= 1
                         clickKind[i] = clickKind[clicksActive]
                         clickPos[i] = clickPos[clicksActive]
+                        clickFade[i] = clickFade[clicksActive]
                     }
                     i -= 1
                 }
@@ -540,9 +565,15 @@ final class PracticeMixer {
     }
 
     private func startClick(_ kind: Int, _ pos: Double) {
-        guard kind != PracticeMixer.silent, kind < clicks.count, clicksActive < clickKind.count else { return }
+        guard kind != PracticeMixer.silent, kind < clicks.count, !clicks[kind].isEmpty, clicksActive < clickKind.count else { return }
+        // A word cuts off the word before it (a count is one voice), with a short fade.
+        if kind >= PracticeMixer.word {
+            let choke = max(1, Int(PracticeMixer.chokeSec * sr))
+            for i in 0..<clicksActive where clickKind[i] >= PracticeMixer.word && clickFade[i] < 0 { clickFade[i] = choke }
+        }
         clickKind[clicksActive] = kind
         clickPos[clicksActive] = pos
+        clickFade[clicksActive] = -1
         clicksActive += 1
     }
 

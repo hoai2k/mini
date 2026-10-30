@@ -20,7 +20,7 @@ Each 3D district is a **trail**: a smooth route from the start totem through eve
 
 ## Play
 
-Play the published game at **https://hoai2k.github.io/mini/hopper/**. `pnpm build:pages` produces the static GitHub Pages edition; pushes to `main` deploy it automatically.
+Play the published game at **https://hoai2k.github.io/mini/hopper/**. `pnpm build:pages` produces the static GitHub Pages edition; each deploy (a push to the `deploy` branch) publishes it.
 
 Run `pnpm install`, then `pnpm dev`. Open the displayed local address. The title screen carries a single action (plus an icon row at the bottom right: Instructions, Settings, Sound, Fullscreen): Press Start, Enter, or any controller button opens the play-select screen, requests fullscreen and starts the music where autoplay was refused. Play-select lists Continue (once there is a save) and the unlocked episodes, with the controller diagram alongside. Browsers that decline a fullscreen or audio request from controller polling can be activated with the on-screen fullscreen and sound buttons.
 

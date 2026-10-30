@@ -165,6 +165,39 @@ export class PitchSmoother {
   }
 }
 
+/**
+ * The pitch line's sensitivity (the tuner's Pitch over time): how many
+ * seconds its average reaches back. High draws every reading the needle
+ * shows; Medium (the default) and Low draw a running average of them, so a
+ * held note (an open string) draws as the steady line it sounds, rather than
+ * every few cents the readings wander.
+ */
+export const TRACE_SMOOTH = { high: 0, medium: 0.15, low: 0.4 };
+
+/** The pitch line's average: of the cents each reading is off, over `tau` seconds, starting again at a new note or after a gap of `gap` ms. */
+export class TraceSmoother {
+  constructor(tau = 0, gap = 250) {
+    this.tau = tau;
+    this.gap = gap;
+    this.reset();
+  }
+
+  /** A reading at `at` ms, `cents` off note `midi`: the line's cents there. */
+  push(at, cents, midi) {
+    if (!this.tau || midi !== this.midi || at - this.at > this.gap) this.value = cents;
+    else this.value += (1 - Math.exp(-(at - this.at) / 1000 / this.tau)) * (cents - this.value);
+    this.at = at;
+    this.midi = midi;
+    return this.value;
+  }
+
+  reset() {
+    this.value = null;
+    this.at = -Infinity;
+    this.midi = null;
+  }
+}
+
 /*
  * Pure intervals (just intonation): against a held note (the drone), each
  * interval in tune is a simple ratio of frequencies, which sounds still where

@@ -248,7 +248,8 @@ def write_js(path: Path, header: list[str], sections: list[tuple[str, list[dict]
         for m in items:
             lines.append(
                 f"  {{ id: {js_str(m['id'])}, title: {js_str(m['title'])}, by: {js_str(m['by'])}, "
-                f"cat: {js_str(m['cat'])}, bpm: {m['bpm']}, notes: {js_str(m['notes'])} }},"
+                f"cat: {js_str(m['cat'])}, bpm: {m['bpm']}, "
+                + (f"feel: {js_str(m['feel'])}, " if m.get("feel") else "") + f"notes: {js_str(m['notes'])} }},"
             )
     lines.append("];")
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -624,6 +625,112 @@ def parse_musicxml(root, skip_first_endings=False):
 
 
 # --------------------------------------------------------------------------
+# Tempo. Most sources have no usable tempo: the lead sheets and the dance
+# tunes have none, and OpenBook's \tempo is a placeholder ("Allegro" 4 = 130)
+# while its "piece" field has the Real Book's own marking ("Ballad", "Medium
+# Swing", "Bossa"). So a tempo comes from, in order: a real marking (words or
+# a number), the kind of tune (a reel, a jig, a waltz), its metre and how it
+# is written (a song written in half notes moves in halves); and then a guard
+# keeps the notes neither crawling nor too fast to hear. All in quarter notes
+# a minute, the unit of `bpm`.
+
+TEMPO_WORDS = [
+    (r"very slow", 58), (r"slow bossa", 104), (r"slow blues", 72),
+    (r"moderately slow|andante|smoothly|relaxed|easy|gently|not dragging", 92),
+    (r"ballad|slow|adagio|largo|expressi|dreamily|tenderly|freely|rubato|tragic", 66),
+    (r"bossa", 128), (r"samba|calypso", 160), (r"waltz", 156),
+    (r"bright|lively|up ?tempo|upbeat|fast|quick|presto|bop|fierc|spirit|jump|allegro", 184),
+    (r"moderat|medium|med\b|med\.|swing|blues|beat|tango|shuffle|groove|bounce|jazz|latin|rhythm|lift|funk|in one", 120),
+]
+
+
+def word_tempo(text: str):
+    t = (text or "").lower()
+    for rx, bpm in TEMPO_WORDS:
+        if re.search(rx, t):
+            return bpm
+    return None
+
+
+def meter_tempo(meter: str, notes, cat: str = ""):
+    """A default for a song with no marking, from its metre and note values."""
+    durs = sorted(float(e[4]) for e in notes if e and e[0] == "n") or [1.0]
+    med = durs[len(durs) // 2]
+    hymn = cat in ("holiday",)
+    base = {"2/2": 168, "3/4": 150, "6/8": 120, "9/8": 120, "12/8": 96, "2/4": 104, "3/2": 144, "6/4": 150, "3/8": 100}.get(meter, 112)
+    if meter in ("4/4", "C", "") and med >= 2:
+        base = 160  # written in half notes: it moves in halves
+    elif meter in ("4/4", "C", "") and med >= 1.5:
+        base = 136
+    if meter == "3/4" and med < 1:
+        base = 120  # a 3/4 tune in eighths is no fast waltz
+    return base * (0.85 if hymn else 1)
+
+
+# The Nottingham tunes: (file prefix, metre) -> tempo, by the dance.
+NOTT_TEMPO = {
+    "reels": {"4/4": 176, "2/2": 176, "2/4": 120},
+    "jigs": {"6/8": 150, "9/8": 150, "12/8": 150},
+    "slip": {"9/8": 150, "6/8": 150},
+    "hpps": {"4/4": 144, "2/4": 120},
+    "waltzes": {"3/4": 162},
+    "morris": {"4/4": 120, "6/8": 132, "3/4": 132, "2/4": 112},
+    "playford": {"4/4": 120, "6/8": 132, "3/4": 132, "9/8": 132, "2/4": 112, "3/2": 150},
+    "ashover": {"4/4": 150, "6/8": 144, "3/4": 150, "2/4": 120},
+    "xmas": {"4/4": 100, "3/4": 120, "6/8": 116, "2/4": 100},
+}
+
+
+def nott_tempo(fname: str, meter: str, q: str = ""):
+    m = re.search(r"(?:(\d+)/(\d+)=)?(\d+)", q or "")
+    if m:  # Q:3/8=100 is a hundred dotted quarters a minute
+        unit = Fraction(int(m.group(1)), int(m.group(2))) * 4 if m.group(1) else Fraction(1)
+        return float(int(m.group(3)) * unit)
+    for k, table in NOTT_TEMPO.items():
+        if fname.startswith(k) and meter in table:
+            return table[meter]
+    return {"6/8": 140, "9/8": 140, "12/8": 140, "3/4": 150, "2/4": 116}.get(meter, 150)
+
+
+def fast_bop(t: float) -> float:
+    """Parker's recordings run up to 340: keep their order but bring the fastest within hearing."""
+    return t if t <= 180 else 180 + (t - 180) * 0.25
+
+
+def guard_bpm(bpm: float, notes) -> int:
+    """Neither crawling nor too fast to hear: the typical time from note to
+    note between 0.14 s and 0.75 s. `notes` is a notes string or a list of them."""
+    gaps = []
+    for s_ in ([notes] if isinstance(notes, str) else notes):
+        at, prev = 0.0, None
+        for tok in s_.split():
+            name, _, d = tok.partition(":")
+            b = float(d) if d else 1.0
+            if name != "r":
+                if prev is not None:
+                    gaps.append(at - prev)
+                prev = at
+            at += b
+    if gaps:
+        gaps.sort()
+        med = gaps[len(gaps) // 2] * 60 / bpm
+        if med > 0.75:
+            bpm *= med / 0.75
+        elif med < 0.14:
+            bpm *= med / 0.14
+    return int(round(min(240, max(48, bpm))))
+
+
+def xml_meter(root) -> str:
+    t = root.find(".//time")
+    return f"{t.findtext('beats')}/{t.findtext('beat-type')}" if t is not None else ""
+
+
+def xml_words(root) -> str:
+    return " ".join(w.text for w in root.findall(".//direction-type/words")[:4] if w.text)
+
+
+# --------------------------------------------------------------------------
 # Phrases. A melody here is the opening phrase of its tune, ended where a
 # musician would hear it end, never cut off mid-line. The finder reads the bar
 # lines (and, for lead sheets, the lyrics) in the source and scores each
@@ -881,8 +988,8 @@ def leadsheets(lib: Library):
         notes = place_phrase(ev[start:], 12, {i - start for i in midword if i >= start})
         if not notes:
             continue
-        bpm = int(round(tempo)) if tempo and 40 <= tempo <= 260 else (
-            110 if cat in ("traditional", "holiday") else 120)
+        bpm = guard_bpm(tempo if tempo and 40 <= tempo <= 260 else (
+            word_tempo(xml_words(root)) or meter_tempo(xml_meter(root), ev, cat)), notes)
         cats[cat].append({"id": lib.add(title), "title": title, "by": who, "cat": cat,
                           "bpm": bpm, "notes": notes})
     header = [
@@ -1135,10 +1242,7 @@ def nottingham(lib: Library):
             notes = place_phrase([e for e, _ in ev], 14)
             if not notes:
                 continue
-            bpm = 110
-            q = re.search(r"(?:\d+/\d+=)?(\d+)", h.get("Q", ""))
-            if q and 40 <= int(q.group(1)) <= 260:
-                bpm = int(q.group(1))
+            bpm = guard_bpm(nott_tempo(fname, meter, h.get("Q", "")), notes)
             c, by = cat, label
             if cat == "holiday" and not re.search(r"christmas|ding dong|noel|carol|boar", title, re.I):
                 c, by = "traditional", "Traditional"  # the Christmas file also holds rounds
@@ -1361,15 +1465,11 @@ def openbook_songs(base: Path):
         name = next((n for n in order if n in parts), next(iter(parts), None))
         if not name or "title" not in attrs:
             continue
-        yield attrs["title"], attrs.get("composer", ""), attrs.get("style", "Jazz"), parts[name]
+        yield attrs["title"], attrs.get("composer", ""), attrs.get("piece", ""), parts[name]
 
 
 # Composers whose tunes go in the Bebop Heads songbook.
 BEBOP = re.compile(r"Parker|Dizzy'? Gillespie|Monk|Bud Powell|Dameron|Navarro|Benny Harris|Sonny Stitt|J\.?\s?J\.? Johnson|Kenny Clarke|Denzil Best|Jimmy Heath|Benny Golson|Horace Silver|Sonny Rollins|Clifford Brown|Kenny Dorham|Hank Mobley", re.I)
-
-
-def clamp_bpm(t, default=132):
-    return int(round(min(200, max(60, t)))) if t else default
 
 
 def jazzheads(lib: Library):
@@ -1391,8 +1491,13 @@ def jazzheads(lib: Library):
             continue
         for wrong, right in (("Thelonius", "Thelonious"), ("Errol Garner", "Erroll Garner")):
             by = by.replace(wrong, right)
-        items.append({"id": lib.add(title), "title": title, "by": by, "cat": "bebop" if BEBOP.search(by) else "jazz",
-                      "bpm": clamp_bpm(tempo, 132), "notes": notes})
+        # The Real Book's marking ("Ballad", "Medium Swing") over the placeholder \tempo.
+        bpm = word_tempo(style) or (tempo if tempo and tempo != 130 else 132)
+        item = {"id": lib.add(title), "title": title, "by": by, "cat": "bebop" if BEBOP.search(by) else "jazz",
+                "bpm": guard_bpm(bpm, notes), "notes": notes}
+        if re.search(r"bossa|samba|latin|calypso|tango|funk", style or "", re.I):
+            item["feel"] = "straight"  # not swung
+        items.append(item)
     sections.append(("Jazz standards from OpenBook (opening phrase of the Real Book melody);"
                      " bebop and hard-bop composers' tunes are in the Bebop Heads songbook", items))
     # Charlie Parker's Omnibook
@@ -1419,7 +1524,7 @@ def jazzheads(lib: Library):
             continue
         seen.add(title.lower())
         bop.append({"id": lib.add(title, "bop"), "title": title, "by": "Charlie Parker", "cat": "bebop",
-                    "bpm": clamp_bpm(tempo, 160), "notes": notes})
+                    "bpm": guard_bpm(fast_bop(tempo or 160), notes), "notes": notes})
     sections.append(("Bebop heads from Charlie Parker's Omnibook (the head's opening line)", bop))
     count = sum(len(x) for _, x in sections)
     header = [
@@ -1582,8 +1687,8 @@ def songs():
         if not got:
             continue
         seen.add(norm(title))
-        bpm = int(round(tempo)) if tempo and 40 <= tempo <= 260 else (
-            110 if cat in ("traditional", "holiday") else 120)
+        bpm = guard_bpm(tempo if tempo and 40 <= tempo <= 260 else (
+            word_tempo(xml_words(root)) or meter_tempo(xml_meter(root), ev, cat)), got)
         lead[cat].append({"id": sid(title), "title": title, "by": who, "cat": cat, "bpm": bpm, "phrases": got})
     sections = [(f"Lead sheets from OpenEWLD: {c}", lead[c]) for c in lead]
     # Nottingham: every tune of the chosen files that splits cleanly.
@@ -1612,10 +1717,7 @@ def songs():
             if not got:
                 continue
             seen.add(norm(title))
-            bpm = 110
-            q = re.search(r"(?:\d+/\d+=)?(\d+)", h.get("Q", ""))
-            if q and 40 <= int(q.group(1)) <= 260:
-                bpm = int(q.group(1))
+            bpm = guard_bpm(nott_tempo(fname, meter, h.get("Q", "")), got)
             c, by = cat, label
             if cat == "holiday" and not re.search(r"christmas|ding dong|noel|carol|boar", title, re.I):
                 c, by = "traditional", "Traditional"

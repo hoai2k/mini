@@ -8,10 +8,11 @@ import { dlog, debugBeat } from './debuglog.js';
 import { Metronome, pendulumAngle, weightAt, bpmAtWeight, tapTempo, TAP_KEEP } from './metronome.js';
 import { NativeMetronome } from './nativeaudio.js';
 import { GENRES, GENRE_IDS, mainTempo, nameFor, genreRange } from './tempos.js';
-import { clampBpm, SAVED_MAX, METERS, SOUNDS, VIZ_BARS, TICKS, barPlan, cleanPattern, cleanLevels, meterOf, beatStrengths, BPM_MIN, BPM_MAX, SOFT, SILENT, GAP_MAX, TRAINER_STEP_MAX, TRAINER_EVERY_MAX, POLY_COUNTS } from './settings.js';
-import { swingOf, placeWeight, weightFromPoint } from './art.js';
+import { clampBpm, SAVED_MAX, METERS, SOUNDS, SPEAKERS, VIZ_BARS, TICKS, barPlan, cleanPattern, cleanLevels, meterOf, beatStrengths, BPM_MIN, BPM_MAX, SOFT, SILENT, GAP_MAX, TRAINER_STEP_MAX, TRAINER_EVERY_MAX, POLY_COUNTS } from './settings.js';
+import { swingOf, placeWeight, uprightRod, unrotate } from './art.js';
 import { tuckedVolume } from './tuckedvolume.js';
-import { $, chips, note } from './ui.js';
+import { COUNT_LEAD } from './count.js';
+import { $, chips, note, pressKey } from './ui.js';
 
 /**
  * `mic` says what the Playback Recorder is doing with the sound engine
@@ -36,7 +37,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
   }
 
   let weightDrag = null; // the pendulum's weight while it is dragged (below)
-  let weightMoved = false;
+  let weightNear = false; // the last press was on the weight or the rod (not a tap on the metronome)
   function setBpm(v, { fromInput = false } = {}) {
     settings.bpm = clampBpm(v);
     if (!fromInput || document.activeElement !== bpmInput) bpmInput.value = settings.bpm;
@@ -181,7 +182,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     metronome.setExercise({ gap: exercising && settings.gap.on ? settings.gap : null, trainer, poly: exercising ? polyNow() : 0 });
     showExercise();
   }
-  /** The second rhythm's clicks across the bar, if on (none with no bars). */
+  /** The polyrhythm's clicks across the bar, if on (none with no bars). */
   const polyNow = () => (settings.poly.on && meterOf(settings.meter).beats > 1 ? settings.poly.n : 0);
   function showExercise() {
     const X = TEXT.metronome;
@@ -190,8 +191,12 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     $('poly-on').checked = settings.poly.on;
     $('poly-on').disabled = beats === 1;
     showPolyDots();
-    $('trainer-label').textContent = X.trainer.label(settings.trainer.on, settings.trainer);
     $('trainer-on').checked = settings.trainer.on;
+    // Turned on, the trainer's numbers open under its switch.
+    if ($('trainer-section').hidden === settings.trainer.on) {
+      if (settings.trainer.on) fillTrainer();
+      $('trainer-section').hidden = !settings.trainer.on;
+    }
     $('gap-label').textContent = X.gap.label(settings.gap.on, settings.gap);
     $('gap-on').checked = settings.gap.on;
     const parts = [];
@@ -224,7 +229,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     syncPolyChips();
     $('poly-editor').showModal();
   });
-  /** The second rhythm's dots, over the beat dots (not with the Visualizer). */
+  /** The polyrhythm's dots, over the beat dots (not with the Visualizer). */
   function showPolyDots() {
     const n = polyNow();
     const row = $('poly-beats');
@@ -273,7 +278,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     row.querySelector('.ex-more').addEventListener('click', () => put(get() + 1));
     return row;
   }
-  function openTrainer() {
+  function fillTrainer() {
     const T = TEXT.metronome.trainer;
     const set = (k) => (v) => { settings.trainer = { ...settings.trainer, [k]: v }; };
     $('trainer-fields').replaceChildren(
@@ -281,7 +286,6 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
       numberRow(T.step, () => settings.trainer.step, set('step'), 1, TRAINER_STEP_MAX),
       numberRow(T.every, () => settings.trainer.every, set('every'), 1, TRAINER_EVERY_MAX),
     );
-    $('trainer-editor').showModal();
   }
   function openGap() {
     const G = TEXT.metronome.gap;
@@ -292,7 +296,6 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     );
     $('gap-editor').showModal();
   }
-  $('trainer-edit').addEventListener('click', openTrainer);
   $('gap-edit').addEventListener('click', openGap);
   queueMicrotask(showExercise); // once the screen's fitting (below) is set up
 
@@ -307,10 +310,65 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     b.classList.add('hit');
     clearTimeout(tapLit);
     tapLit = setTimeout(() => b.classList.remove('hit'), 120);
+    padTap(!!bpm);
   }
+
+  /*
+   * The tap pad: the first tap grows the Tap button into a big pad (the
+   * tempo across its top, a line of what to do, a big circle), so the taps
+   * that follow land somewhere easy to hit and nothing else on the screen
+   * competes. Taps anywhere on it count. It waits PAD_FIRST for the second
+   * tap (and closes, the tempo as it was, if none comes); once there is a
+   * tempo, PAD_DONE after the last tap it shrinks back into the button,
+   * leaving the tempo set. Escape closes it at once.
+   */
+  const PAD_FIRST = 3000;
+  const PAD_DONE = 2000; // as TAP_RESET: a longer pause would start the count afresh anyway
+  const pad = $('tap-pad');
+  let padClose = 0;
+  const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /** The transform that lays the pad over the Tap button. */
+  function fromButton() {
+    const a = $('tap-tempo').getBoundingClientRect();
+    const b = pad.getBoundingClientRect();
+    return `translate(${a.left + a.width / 2 - (b.left + b.width / 2)}px, ${a.top + a.height / 2 - (b.top + b.height / 2)}px) scale(${a.width / b.width}, ${a.height / b.height})`;
+  }
+  function padTap(counted) {
+    const T = TEXT.metronome.tapPad;
+    $('tap-pad-bpm').textContent = counted ? String(settings.bpm) : '–';
+    $('tap-pad-hint').textContent = counted ? T.tapping : T.first;
+    if (pad.hidden) {
+      pad.hidden = false;
+      pad.getAnimations().forEach((a) => a.cancel());
+      if (!reduced()) {
+        pad.animate([{ transform: fromButton(), opacity: 0.6 }, { transform: 'none', opacity: 1 }], { duration: 240, easing: 'cubic-bezier(.2,.8,.2,1)' });
+      }
+      document.addEventListener('keydown', padKey);
+    }
+    const circle = $('tap-pad-circle');
+    circle.classList.remove('hit');
+    void circle.offsetWidth; // restart the pulse
+    circle.classList.add('hit');
+    clearTimeout(padClose);
+    padClose = setTimeout(closePad, counted ? PAD_DONE : PAD_FIRST);
+  }
+  function closePad() {
+    clearTimeout(padClose);
+    if (pad.hidden) return;
+    document.removeEventListener('keydown', padKey);
+    const done = () => { pad.hidden = true; };
+    if (reduced()) { done(); return; }
+    pad.animate([{ transform: 'none', opacity: 1 }, { transform: fromButton(), opacity: 0.2 }], { duration: 220, easing: 'ease-in' }).finished.then(done, done);
+  }
+  function padKey(e) {
+    if (e.target === $('tap-tempo')) return; // the button taps for itself
+    if (e.key === 'Escape') { e.preventDefault(); closePad(); }
+    if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); tap(e.timeStamp); }
+  }
+  pad.addEventListener('pointerdown', (e) => { if (!e.button) { e.preventDefault(); tap(e.timeStamp); } });
   // On the finger coming down (the moment of the beat), not on its release.
   $('tap-tempo').addEventListener('pointerdown', (e) => { if (!e.button) tap(e.timeStamp); });
-  $('tap-tempo').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tap(); } });
+  $('tap-tempo').addEventListener('keydown', (e) => { if (pressKey(e)) { e.preventDefault(); tap(); } });
 
   bpmSlider.min = BPM_MIN;
   bpmSlider.max = BPM_MAX;
@@ -337,7 +395,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     };
     b.addEventListener('pointerdown', (e) => { e.preventDefault(); setBpm(settings.bpm + d); repeat(450, 0); });
     for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) b.addEventListener(ev, stop);
-    b.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setBpm(settings.bpm + d); } });
+    b.addEventListener('keydown', (e) => { if (pressKey(e)) { e.preventDefault(); setBpm(settings.bpm + d); } });
     b.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 
@@ -356,23 +414,40 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     settings.accentPattern = customAccents.get(settings.meter) || null;
     if (had || settings.accentPattern) settings.accent = true;
     metronomeConfigured();
-    exerciseChanged(); // the second rhythm is counted against the new bar
+    exerciseChanged(); // the polyrhythm is counted against the new bar
   }
   meterSelect.addEventListener('change', () => setMeter(meterSelect.value));
   const soundSelect = $('sound');
   soundSelect.replaceChildren(...SOUNDS.map((o) => new Option(o.label, o.id)));
   soundSelect.value = settings.sound;
+  // With the Voice sound, who counts (the Practice Routine's voices).
+  const countVoiceSelect = $('count-voice');
+  countVoiceSelect.replaceChildren(...SPEAKERS.map((id) => new Option(TEXT.timer.voices[id], id)));
+  countVoiceSelect.value = settings.countVoice;
+  const showCountVoice = () => { $('count-voice-row').hidden = settings.sound !== 'voice'; };
+  showCountVoice();
+  /** Let them hear the sound chosen (through Web Audio, also in the apps): a downbeat, or the voice saying "one". */
+  async function previewSound() {
+    if (metronome?.running) return;
+    const ctx = audio();
+    unlock();
+    if (!preview || preview.ctx !== ctx) preview = new Metronome(ctx);
+    preview.configure(settings);
+    if (settings.sound !== 'voice') { preview.voice(ctx.currentTime + 0.02, 2); return; }
+    const voice = settings.countVoice;
+    await preview.loadWords(voice);
+    if (settings.sound === 'voice' && settings.countVoice === voice && !metronome?.running) preview.say(ctx.currentTime + COUNT_LEAD + 0.02, 'one');
+  }
   soundSelect.addEventListener('change', () => {
     settings.sound = soundSelect.value;
+    showCountVoice();
     metronomeConfigured();
-    // Let them hear it (through Web Audio, also in the apps).
-    if (!metronome?.running) {
-      const ctx = audio();
-      unlock();
-      if (!preview || preview.ctx !== ctx) preview = new Metronome(ctx);
-      preview.configure(settings);
-      preview.voice(ctx.currentTime + 0.02, 2);
-    }
+    previewSound();
+  });
+  countVoiceSelect.addEventListener('change', () => {
+    settings.countVoice = countVoiceSelect.value;
+    metronomeConfigured();
+    previewSound();
   });
   // Extra notes between the beats: a switch saying which (Add eighth notes), and
   // a pencil to choose triplets or sixteenths instead.
@@ -690,33 +765,75 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
   /** The chosen genre's slowest to fastest named tempo: the rod's range. */
   function weightRange() { return genreRange(settings.tempoGenre); }
   function showWeight(t = weightAt(settings.bpm, weightRange())) { placeWeight(pendulum, t); }
-  weightEl.addEventListener('pointerdown', (e) => {
+  /*
+   * Grabbing: a press anywhere near the rod (the weight, or the rod above or
+   * below it) takes hold, wherever the pendulum is in its swing: the press is
+   * turned back into the rod's own upright frame (unrotate) to see whether it
+   * was near the rod, the pendulum then stands upright at once (no easing,
+   * so nothing shifts under the pointer), and from there the weight follows
+   * the pointer up and down the rod, the same movement always the same
+   * change. A press on the weight keeps the weight where it was under the
+   * pointer; a press on the rod brings the weight there. A press near the
+   * rod never counts as a tap on the metronome (which turns the swing on or
+   * off), dragged or not.
+   */
+  const GRAB = 22; // px either side of the rod that still take hold of it
+  const swingNow = () => Number(/rotate\((-?[\d.]+)deg\)/.exec(pendulum.style.transform)?.[1] ?? 0);
+  /** Where a point is along the rod (0 to 1 of the weight's travel) in the upright rod `u`. */
+  const along = (u, y) => (((y - u.top) / u.height) * u.canvas[1] - u.travel[0]) / (u.travel[1] - u.travel[0]);
+  /** The press's place on the rod, or null if it is not near it. */
+  function grabAt(x, y) {
+    const u = uprightRod(pendulum);
+    if (!u || weightEl.hidden) return null;
+    const [ux, uy] = unrotate(x, y, u.hubX, u.hubY, swingNow());
+    const w = weightEl.getBoundingClientRect();
+    const half = Math.max(GRAB, w.width / 2);
+    if (Math.abs(ux - u.hubX) > half || uy < u.top - GRAB || uy > u.hubY + GRAB) return null;
+    return { u, t: along(u, uy) };
+  }
+  art.addEventListener('pointerdown', (e) => {
+    weightNear = false;
     if (e.button) return;
-    const at = weightFromPoint(pendulum, e.clientY);
-    if (at == null) return;
-    weightDrag = { id: e.pointerId, x: e.clientX, y: e.clientY, offset: weightAt(settings.bpm, weightRange()) - at, moved: false };
-    weightEl.setPointerCapture(e.pointerId);
-  });
-  weightEl.addEventListener('pointermove', (e) => {
+    const g = grabAt(e.clientX, e.clientY);
+    if (!g) return;
+    weightNear = true;
+    e.preventDefault(); // no text selection or image drag under a mouse
+    const now = weightAt(settings.bpm, weightRange());
+    // On the weight itself (within its own height), it stays under the pointer; on the rod, it comes there.
+    const span = weightEl.getBoundingClientRect().height / g.u.height * g.u.canvas[1] / (g.u.travel[1] - g.u.travel[0]);
+    const offset = Math.abs(g.t - now) <= span / 2 + 0.02 ? now - g.t : 0;
+    weightDrag = { id: e.pointerId, x: e.clientX, y: e.clientY, y0: e.clientY, t0: g.t + offset, moved: false };
+    // Upright at once, and held there while the weight is dragged.
+    swingAmt = 0;
+    pendulum.style.transform = 'rotate(0deg)';
+    art.setPointerCapture(e.pointerId);
+  }, true);
+  art.addEventListener('pointermove', (e) => {
     const d = weightDrag;
-    if (!d || e.pointerId !== d.id) return;
+    if (!d) {
+      // A pointer over the rod shows it can be taken hold of.
+      if (e.pointerType === 'mouse') art.classList.toggle('grab', !!grabAt(e.clientX, e.clientY));
+      return;
+    }
+    if (e.pointerId !== d.id) return;
     if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 4) return;
-    if (!d.moved) { d.moved = true; weightEl.classList.add('held'); }
-    const at = weightFromPoint(pendulum, e.clientY);
-    if (at == null) return;
-    const t = Math.min(1, Math.max(0, at + d.offset));
+    if (!d.moved) { d.moved = true; weightEl.classList.add('held'); art.classList.add('grabbing'); }
+    const u = uprightRod(pendulum);
+    if (!u) return;
+    // Down the screen is down the rod (faster), by the rod's own scale.
+    const t = Math.min(1, Math.max(0, d.t0 + along(u, e.clientY) - along(u, d.y0)));
     showWeight(t);
     const bpm = Math.round(bpmAtWeight(t, weightRange()));
     if (bpm !== settings.bpm) setBpm(bpm);
   });
+  art.addEventListener('pointerleave', () => art.classList.remove('grab'));
   for (const type of ['pointerup', 'pointercancel']) {
-    weightEl.addEventListener(type, (e) => {
+    art.addEventListener(type, (e) => {
       const d = weightDrag;
       if (!d || e.pointerId !== d.id) return;
       weightDrag = null;
       weightEl.classList.remove('held');
-      weightMoved = d.moved;
-      if (d.moved) setTimeout(() => { weightMoved = false; }, 0); // only the click this release makes
+      art.classList.remove('grabbing');
       showWeight();
     });
   }
@@ -771,7 +888,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
         dots[i].style.removeProperty('--g');
       }
     }
-    // The second rhythm: the dot of its click just played, by where the bar has got to.
+    // The polyrhythm: the dot of its click just played, by where the bar has got to.
     const poly = $('poly-beats').children;
     if (poly.length) {
       placePolyDots(); // the dots grow and shrink between views
@@ -951,13 +1068,13 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
     switchView();
   });
   art.addEventListener('click', () => {
-    if (weightMoved) { weightMoved = false; return; } // that was the weight being dragged
+    if (weightNear) { weightNear = false; return; } // that was the weight (or the rod) taken hold of
     if (metVolume.swallowedTap(art)) return;
     toggleSwing();
   });
   for (const [el, act] of [[foot, switchView], [art, toggleSwing]]) {
     el.addEventListener('keydown', (e) => {
-      if (e.key !== 'Enter' && e.key !== ' ') return;
+      if (!pressKey(e)) return;
       e.preventDefault();
       e.stopPropagation(); // not the page's Space (start and stop)
       act();
@@ -969,6 +1086,9 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
   // The metronome's volume, tucked away at the picture's top right (tuckedvolume.js).
   let volSent = 0;
   let volLater = 0;
+  // Into the debug log once it settles, so a log says when the volume moved (and to what).
+  let volLogLater = 0;
+  const volLog = () => { clearTimeout(volLogLater); volLogLater = setTimeout(() => dlog('metronome-volume', { volume: settings.volume }), 800); };
   const metVolume = tuckedVolume($('met-vol'), {
     get: () => settings.volume,
     set: (v) => {
@@ -976,7 +1096,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
       settings.volumeChosen = true;
       // To the sound at most every 60 ms (the apps' mixer is told over the bridge).
       clearTimeout(volLater);
-      const send = () => { volSent = performance.now(); metronome?.configure(settings); persist(); };
+      const send = () => { volSent = performance.now(); metronome?.configure(settings); persist(); volLog(); };
       if (performance.now() - volSent > 60) send();
       else volLater = setTimeout(send, 60);
     },
@@ -1153,7 +1273,7 @@ export function setupMetronome({ settings, persist, useNative, mic }) {
 
   return {
     get metronome() { return metronome; },
-    pendulum, metSettings, meterSelect, soundSelect, metVolume,
+    pendulum, metSettings, meterSelect, soundSelect, showCountVoice, metVolume,
     setBpm, renderBeats, shownBeats, metronomeConfigured, startMetronome, stopMetronome, soundCtx, setSub,
     showWeight, queueFit, animateMetronome, visualsShown, setSync, openSync, closeSync, tap,
   };

@@ -4,11 +4,10 @@ import { createKeyboard } from './keyboard.js';
 import { createNavigator } from './navigator.js';
 import { createStaff } from './staff.js';
 import { noteName } from './music.js';
-import { perform, secondsPerBeat, MAX_HOLD, touchRelease } from './perform.js';
+import { perform, secondsPerBeat, MAX_HOLD, touchRelease, swingFor } from './perform.js';
 import { createRound, press, redo, stars, points, starsForTry, pointsForTry } from './round.js';
 import { SONG_LISTS, buildLibrary, buildSongs, inBook, transpose, randomShift, pickNext, pickSong, isSongs, countAt, SONGBOOKS, LEVELS, LEVEL_ALIASES } from './library.js';
 import { createChrome, requestFullscreen, wantFullscreen, exitFullscreen, fullscreenElement, preventZoom, onFullscreenFail } from './chrome.js';
-import { createGamepads, BTN } from './gamepad.js';
 import { createFx } from './fx.js';
 import { loadState, saveState, DEFAULTS } from './store.js';
 import { SKILLS, SKILL, judge, record, emptyEars, accuracy, weakSkills, levelOf, overallLevel, topConfusions, describeConfusion } from './skills.js';
@@ -37,7 +36,6 @@ const skillName = (id) => (SKILL[id] ? SKILL[id].name.toLowerCase() : id);
 
 const S = {
   mode: 'title',
-  utilityNav: false,
   melody: null,
   round: null,
   replay: false, // a solved melody played again: not scored
@@ -87,7 +85,6 @@ kbd.showRange(60, 72, false); // middle C
 const fx = createFx($('#fx'));
 // Tapping a found note on the staff plays it on its own.
 const staff = createStaff($('#staff'), { onTap: (midi) => { cancelAuto(); audio.unlock(); const v = audio.noteOn(midi, { velocity: 0.8 }); audio.noteOff(v, audio.now() + 0.7); } });
-const pads = createGamepads({ onButton: padButton, onButtonUp: padButtonUp, onDirection: padDirection, onStick: padStick, onDisconnect: () => { if (S.mode === 'play' && !dialogs.length) openPause(); } });
 preventZoom();
 const chrome = createChrome({
   touch: TOUCH, isPlaying: () => S.mode === 'play' && !dialogs.length, hintEl: $('#bars-hint'),
@@ -98,7 +95,6 @@ const chrome = createChrome({
 function haptic(ms) {
   if (!settings.vibrate) return;
   try { navigator.vibrate?.(ms); } catch { /* not supported */ }
-  pads.vibrate(typeof ms === 'number' ? ms : 40);
 }
 
 // ---------------------------------------------------------------- delivered art (see design/image-requests.md)
@@ -118,7 +114,6 @@ function show(mode) {
   $('#books').hidden = mode !== 'books';
   $('#play').hidden = mode !== 'play';
   chrome.update();
-  if (mode === 'title') { S.utilityNav = false; clearPadFocus(); }
   if (mode === 'play') requestAnimationFrame(() => kbd.layout());
 }
 
@@ -228,7 +223,7 @@ function openPicker(btn, menu) {
   panel.style.top = `${r.bottom + 6}px`;
   panel.style.maxHeight = `${innerHeight - r.bottom - 6 - margin}px`;
   const chosen = panel.querySelector('[aria-selected="true"]');
-  if (chosen) { chosen.scrollIntoView?.({ block: 'nearest' }); if (padMode || !TOUCH) focusEl(chosen); }
+  if (chosen) { chosen.scrollIntoView?.({ block: 'nearest' }); if (!TOUCH) focusEl(chosen); }
 }
 
 function renderBookMenu() {
@@ -312,7 +307,7 @@ function freeNote(midi) {
 }
 $('#btn-clear').addEventListener('click', () => { S.freeNotes = []; staff.clear('Cleared. Play on.'); });
 
-function toTitle() { closeAllDialogs(); stopPlayback(); kbd.releaseAll(); show('title'); focusEl($('#start'), false); }
+function toTitle() { closeAllDialogs(); stopPlayback(); kbd.releaseAll(); show('title'); focusEl($('#start')); }
 
 // ---------------------------------------------------------------- a round
 function nextMelody() {
@@ -364,7 +359,6 @@ function nextMelody() {
   kbd.clearLights();
   kbd.showRange(S.melody.lo, S.melody.hi, true);
   nav.setRange(S.melody.lo, S.melody.hi);
-  if (kbd.cursor != null && !kbd.visible(kbd.cursor)) kbd.setCursor(null);
   staff.set(S.melody.notes, S.melody.shift !== 0 || !!S.melody.drill);
   syncStaff();
   syncMarker();
@@ -439,7 +433,7 @@ function playMelody({ light = false } = {}) {
   const t0 = audio.now() + 0.12;
   const token = {};
   const voices = [], timers = [];
-  const plan = perform(S.melody.notes, spb, { maxHold: MAX_HOLD / settings.speed });
+  const plan = perform(S.melody.notes, spb, { maxHold: MAX_HOLD / settings.speed, swing: swingFor(S.melody, S.melody.bpm * settings.speed) });
   plan.forEach((p, i) => {
     const on = t0 + p.on;
     const v = audio.noteOn(p.midi, { when: on, velocity: p.velocity, melody: true });
@@ -515,7 +509,7 @@ function keyUp(midi) {
   const v = S.held.get(midi);
   if (!v) return;
   S.held.delete(midi);
-  const { delay, tau } = touchRelease(audio.now() - v.t, audio.instrument.release);
+  const { delay, tau } = touchRelease(audio.now() - v.t, audio.instrument.release, { sustained: !!audio.instrument.sustain });
   audio.noteOff(v, audio.now() + delay, tau);
 }
 function sparkOn(midi) {
@@ -830,7 +824,7 @@ function closeDialog() {
   }
   d.el.hidden = true;
   $$(`[aria-controls="${d.el.id}"]`).forEach((b) => b.setAttribute('aria-expanded', 'false'));
-  if (d.returnFocus?.isConnected && !d.returnFocus.closest('[hidden]')) focusEl(d.returnFocus, padMode);
+  if (d.returnFocus?.isConnected && !d.returnFocus.closest('[hidden]')) focusEl(d.returnFocus);
   chrome.update();
 }
 function closeAllDialogs() { while (dialogs.length) closeDialog(); }
@@ -854,7 +848,7 @@ $$('#pause [data-act]').forEach((b) => b.addEventListener('click', () => {
   if (a === 'fullscreen') { closeDialog(); wantFullscreen({ lock: TOUCH }); }
 }));
 let confirmYes = null;
-function confirmBox(text, yes) { $('#confirm-text').textContent = text; confirmYes = yes; openDialog($('#confirm')); focusEl($('#confirm [data-act=no]'), padMode); }
+function confirmBox(text, yes) { $('#confirm-text').textContent = text; confirmYes = yes; openDialog($('#confirm')); focusEl($('#confirm [data-act=no]')); }
 $('#confirm [data-act=no]').addEventListener('click', closeDialog);
 $('#confirm [data-act=yes]').addEventListener('click', () => { closeDialog(); confirmYes?.(); });
 
@@ -863,17 +857,32 @@ function chips(container, options, get, set) {
   container.innerHTML = '';
   for (const [value, label] of options) {
     const b = document.createElement('button');
-    b.className = 'chip'; b.dataset.focus = ''; b.setAttribute('role', 'radio'); b.textContent = label;
+    b.className = 'chip'; b.dataset.focus = ''; b.dataset.value = value; b.setAttribute('role', 'radio'); b.textContent = label;
     b.setAttribute('aria-checked', String(get() === value));
     b.addEventListener('click', () => { set(value); for (const c of container.children) c.setAttribute('aria-checked', String(c === b)); });
     container.append(b);
   }
 }
 function syncSettings() {
-  chips($('#set-sound'), Object.entries(INSTRUMENTS).map(([k, v]) => [k, v.label]), () => settings.sound, (v) => {
-    settings.sound = v; save();
-    loadSound(v, false).then(() => { audio.unlock(); const now = audio.now(); [60, 64, 67, 72].forEach((m, i) => { const x = audio.noteOn(m, { when: now + 0.05 + i * 0.09, velocity: 0.75 }); audio.noteOff(x, now + 1.4); }); });
-  });
+  // The instruments, by family: a heading, then its chips.
+  const snd = $('#set-sound');
+  snd.innerHTML = '';
+  const groups = [...new Set(Object.values(INSTRUMENTS).map((v) => v.group))];
+  for (const g of groups) {
+    const h = document.createElement('span'); h.className = 'chip-group'; h.textContent = g;
+    const row = document.createElement('div'); row.className = 'chips';
+    snd.append(h, row);
+    chips(row, Object.entries(INSTRUMENTS).filter(([, v]) => v.group === g).map(([k, v]) => [k, v.label]), () => settings.sound, (v) => {
+      settings.sound = v; save();
+      for (const c of snd.querySelectorAll('.chip')) c.setAttribute('aria-checked', String(c.dataset.value === v));
+      loadSound(v, false).then(() => {
+        audio.unlock();
+        const now = audio.now();
+        const held = audio.instrument.sustain;
+        [60, 64, 67, 72].forEach((m, i) => { const x = audio.noteOn(m, { when: now + 0.05 + i * (held ? 0.32 : 0.09), velocity: 0.75 }); audio.noteOff(x, now + (held ? 0.05 + i * 0.32 + 0.3 : 1.4), audio.instrument.release); });
+      });
+    });
+  }
   chips($('#set-labels'), [['none', 'None'], ['c', 'C only'], ['white', 'White keys'], ['all', 'All keys']], () => settings.labels, (v) => { settings.labels = v; kbd.setLabels(v); save(); });
   chips($('#set-key'), [['written', 'As written'], ['random', 'Any key']], () => settings.key, (v) => { settings.key = v; save(); });
   $('#set-volume').value = settings.volume; $('#set-volume-out').textContent = `${Math.round(settings.volume * 100)}%`;
@@ -905,122 +914,24 @@ $('#set-reset').addEventListener('click', () => confirmBox('Reset your score, st
   save(); syncHud(); toast('Progress reset');
 }));
 
-// ---------------------------------------------------------------- focus (keyboard and controller menus)
-let padMode = false;
-function activeLayer() {
-  if (dialogs.length) return dialogs[dialogs.length - 1].el;
-  return { title: $('#title'), books: $('#books'), play: $('#solved') }[S.mode];
-}
-function focusables(layer = activeLayer()) {
+// ---------------------------------------------------------------- focus (keyboard menus)
+function focusables(layer) {
   return layer ? $$('[data-focus], .dialog .chip, .dialog input', layer).filter((e) => !e.closest('[hidden]') && e.offsetParent !== null) : [];
 }
-function clearPadFocus() { $$('.pad-focus').forEach((e) => e.classList.remove('pad-focus')); }
-function focusEl(el, visible = padMode) {
+function focusEl(el) {
   if (!el) return;
-  clearPadFocus();
   el.focus({ preventScroll: false });
-  if (visible) el.classList.add('pad-focus');
   el.scrollIntoView?.({ block: 'nearest' });
 }
 function focusFirst(layer) {
   const f = focusables(layer);
   const pick = layer.id === 'books' ? f.find((e) => e.dataset.mode === 'melody') || f[0] : f[0];
-  if (padMode || !TOUCH) focusEl(pick); else document.activeElement?.blur?.();
-}
-function moveFocus(dir) {
-  const f = focusables();
-  if (!f.length) return;
-  const cur = f.includes(document.activeElement) ? document.activeElement : null;
-  if (!cur) return focusEl(f[0], true);
-  const a = cur.getBoundingClientRect();
-  const ax = a.left + a.width / 2, ay = a.top + a.height / 2;
-  let best = null, bestScore = Infinity;
-  for (const el of f) {
-    if (el === cur) continue;
-    const b = el.getBoundingClientRect();
-    const dx = b.left + b.width / 2 - ax, dy = b.top + b.height / 2 - ay;
-    const along = { left: -dx, right: dx, up: -dy, down: dy }[dir];
-    if (along <= 4) continue;
-    const across = dir === 'left' || dir === 'right' ? Math.abs(dy) : Math.abs(dx);
-    const score = along + across * 2.2;
-    if (score < bestScore) { bestScore = score; best = el; }
-  }
-  if (!best) {
-    // wrap through the list order for up/down
-    const i = f.indexOf(cur);
-    if (dir === 'down' || dir === 'right') best = f[(i + 1) % f.length];
-    else best = f[(i - 1 + f.length) % f.length];
-  }
-  focusEl(best, true);
-}
-function adjustRange(el, dir) {
-  const step = Number(el.step) || 0.05;
-  el.value = Math.min(Number(el.max), Math.max(Number(el.min), Number(el.value) + step * (dir === 'right' ? 1 : -1)));
-  el.dispatchEvent(new Event('input', { bubbles: true }));
-}
-
-// ---------------------------------------------------------------- controller
-function padStick() {
-  if (S.mode === 'title' && !dialogs.length && !S.utilityNav) { S.utilityNav = true; padMode = true; focusEl($('#start'), true); }
-}
-function padDirection(dir) {
-  padMode = true;
-  if (S.mode === 'play' && !dialogs.length) {
-    if (dir === 'left' || dir === 'right') {
-      if (kbd.cursor == null && S.round && settings.first) kbd.setCursor(S.round.notes[S.round.pos]?.midi ?? null);
-      kbd.moveCursor(dir === 'right' ? 1 : -1);
-    } else nav.octave(dir === 'up' ? 1 : -1);
-    return;
-  }
-  if (S.mode === 'title' && !dialogs.length && !S.utilityNav) { S.utilityNav = true; focusEl($('#start'), true); return; }
-  const el = document.activeElement;
-  if (el?.type === 'range' && (dir === 'left' || dir === 'right')) return adjustRange(el, dir);
-  moveFocus(dir);
-}
-let padHeld = null;
-function padButton(i) {
-  padMode = true;
-  $('#pad-hint').hidden = false;
-  if (dialogs.length) {
-    const top = dialogs[dialogs.length - 1].el;
-    if (i === BTN.A) { const el = document.activeElement; if (el && top.contains(el)) { if (el.type === 'checkbox') { el.checked = !el.checked; el.dispatchEvent(new Event('change')); } else el.click(); } }
-    else if (i === BTN.B || (i === BTN.MENU && top.id === 'pause')) closeDialog();
-    return;
-  }
-  if (S.mode === 'title') {
-    if (!S.utilityNav) { start(); return; }
-    if (i === BTN.A) document.activeElement?.click();
-    else if (i === BTN.MENU) start();
-    else if (i === BTN.B) { S.utilityNav = false; clearPadFocus(); }
-    return;
-  }
-  if (S.mode === 'books') {
-    if (i === BTN.A) { const el = document.activeElement; if (el?.closest('#books')) el.click(); else focusFirst($('#books')); }
-    else if (i === BTN.B) toTitle();
-    return;
-  }
-  if (S.mode === 'play') {
-    if (i === BTN.A) {
-      if (S.solvedShown && $('#solved').contains(document.activeElement) && document.activeElement.classList.contains('pad-focus')) { document.activeElement.click(); return; }
-      if (kbd.cursor == null) kbd.setCursor(S.round?.notes[S.round.pos]?.midi ?? kbd.start + 12);
-      padHeld = kbd.pressCursor();
-    } else if (i === BTN.X) doRepeat();
-    else if (i === BTN.B) doRedo();
-    else if (i === BTN.Y) doPractice();
-    else if (i === BTN.LB) setSpeed(settings.speed - 0.1);
-    else if (i === BTN.RB) setSpeed(settings.speed + 0.1);
-    else if (i === BTN.VIEW || i === BTN.RT) { if (S.round?.done) nextMelody(); else doNext(); }
-    else if (i === BTN.MENU) openPause();
-  }
-}
-function padButtonUp(i) {
-  if (i === BTN.A && padHeld != null) { kbd.releaseCursor(padHeld); padHeld = null; }
+  if (!TOUCH) focusEl(pick); else document.activeElement?.blur?.();
 }
 
 // ---------------------------------------------------------------- computer keyboard
 addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
-  padMode = false;
   if (dialogs.length) {
     if (e.key === 'Escape') { e.preventDefault(); closeDialog(); }
     return;
@@ -1047,7 +958,6 @@ addEventListener('keydown', (e) => {
   else if (k === 'Escape') openPause();
 });
 addEventListener('keyup', (e) => { if (S.mode === 'play') kbd.keyup(e); });
-addEventListener('pointerdown', () => { if (padMode) { padMode = false; clearPadFocus(); } }, { capture: true });
 
 // ---------------------------------------------------------------- orientation, focus loss
 function checkRotate() {
@@ -1081,6 +991,6 @@ function announce(text) {
 
 // Start on the title with Press Start ready for the keyboard.
 show('title');
-if (!TOUCH) focusEl($('#start'), false);
+if (!TOUCH) focusEl($('#start'));
 // For the browser checks.
 window.__eartrainer = { S, LIB, progress, settings, audio, kbd, press: (m) => { keyDown(m); keyUp(m); } };

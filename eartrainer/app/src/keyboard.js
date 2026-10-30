@@ -38,7 +38,6 @@ export function createKeyboard(root, { lo = 21, hi = 108, whites = 11, onDown, o
   const total = whiteAt.length;
   let pos = whiteIndex.get(60); // left edge of the view, in white keys (may be fractional while dragging)
   let keyW = 60;
-  let cursor = null;
   let labelMode = 'c';
   const mirrors = []; // (midi, class, on) listeners: the navigator copies key states
 
@@ -226,18 +225,6 @@ export function createKeyboard(root, { lo = 21, hi = 108, whites = 11, onDown, o
   function light(m, on) { keys.get(m)?.classList.toggle('lit', on); mirror(m, 'lit', on); }
   function clearLights() { for (const [m, el] of keys) if (el.classList.contains('lit')) light(m, false); }
 
-  // ---- controller cursor: moves chromatically across the keys on screen
-  function moveCursor(dir) {
-    const ws = shown();
-    let i = ws.indexOf(cursor);
-    i = i < 0 ? Math.floor(ws.length / 2) : Math.max(0, Math.min(ws.length - 1, i + dir));
-    setCursor(ws[i]);
-  }
-  function setCursor(m) {
-    if (cursor != null) keys.get(cursor)?.classList.remove('cursor');
-    cursor = m;
-    if (m != null) keys.get(m)?.classList.add('cursor');
-  }
 
   addEventListener('resize', () => requestAnimationFrame(layout));
   window.visualViewport?.addEventListener('resize', () => requestAnimationFrame(layout));
@@ -246,10 +233,6 @@ export function createKeyboard(root, { lo = 21, hi = 108, whites = 11, onDown, o
 
   return {
     setWindow, scrollTo, showRange, setWhites, layout, flash, setMarker, light, clearLights, keydown, keyup,
-    moveCursor, setCursor,
-    get cursor() { return cursor; },
-    pressCursor() { if (cursor != null) down(cursor, 'pad'); return cursor; },
-    releaseCursor(m) { if (m != null) up(m, 'pad'); },
     releaseAll() { for (const m of held.values()) up(m, 'pointer'); held.clear(); for (const c of codeHeld) { const m = codeMap.get(c); if (m != null) up(m, 'key'); } codeHeld.clear(); },
     setLabels(mode) { labelMode = mode; labels(); },
     addMirror(f) { mirrors.push(f); },

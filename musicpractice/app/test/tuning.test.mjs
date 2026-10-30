@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { detectPitch, describe, nearestString, noteName, midiToHz, hzToMidi, TUNINGS, PitchSmoother } from '../src/tuning.js';
+import { detectPitch, describe, nearestString, noteName, midiToHz, hzToMidi, TUNINGS, PitchSmoother, TraceSmoother, TRACE_SMOOTH } from '../src/tuning.js';
 
 const SR = 48000;
 const N = 4096;
@@ -101,4 +101,26 @@ test('pure intervals: judged against just ratios above the drone', async () => {
   assert.deepEqual([fifth.interval, fifth.octaves, Math.round(fifth.cents)], [7, 1, 0]);
   const below = pureTarget(root * 3 / 4, d3); // a fourth below = a fifth an octave down
   assert.deepEqual([below.interval, below.octaves, Math.round(below.cents)], [7, -1, 0]);
+});
+
+test('the pitch line\'s sensitivity: High draws every reading, Medium and Low a steadier running average', () => {
+  // A held note whose readings wander ±6 cents every 25 ms.
+  const wander = (tau) => {
+    const t = new TraceSmoother(tau);
+    const out = [];
+    for (let i = 0; i < 80; i++) out.push(t.push(i * 25, i % 2 ? 6 : -6, 57));
+    const tail = out.slice(40);
+    return Math.max(...tail) - Math.min(...tail);
+  };
+  assert.equal(wander(TRACE_SMOOTH.high), 12); // as read
+  assert.ok(wander(TRACE_SMOOTH.medium) < 3, String(wander(TRACE_SMOOTH.medium)));
+  assert.ok(wander(TRACE_SMOOTH.low) < wander(TRACE_SMOOTH.medium));
+  // It still follows: a note settling 10 cents sharp is there within a second, even on Low.
+  const t = new TraceSmoother(TRACE_SMOOTH.low);
+  let v = 0;
+  for (let i = 0; i <= 40; i++) v = t.push(i * 25, 10, 57);
+  assert.ok(v > 9, String(v));
+  // A new note, or a gap, starts it again.
+  assert.equal(t.push(1100, -20, 58), -20);
+  assert.equal(t.push(1600, 30, 58), 30);
 });

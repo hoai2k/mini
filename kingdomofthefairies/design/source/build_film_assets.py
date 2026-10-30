@@ -447,6 +447,21 @@ GROUPS.append(
 )
 
 
+
+# Play-testing, 16 October 2026: waking the crew in Act II's dive, each
+# sleeper changed size and person. The two lying sprites are generic (a
+# sleeping squire and a sleeping man-at-arms, drawn for every crewman) and
+# painted at a different scale from the standing crew.
+GROUPS.append(
+    ('Each crewman asleep, at his own scale', 'Requested 16 October 2026 after play-testing Act II: a sleeper on the cave floor wakes, sits up and stands, but the two lying sprites (crew-asleep, crew-asleep-b) are a generic squire and a generic man-at-arms, so the bosun and the helmsman woke as someone else, and both are painted larger or smaller than the standing crew (the game corrects their size meanwhile). Each crewman now gets his own, painted at his standing scale so he stays the same man and the same size from lying to sitting up (crew-*-sit-up) to standing. Until they arrive the game draws the squire and the man-at-arms on the old sprites, size-corrected, and the bosun and the helmsman on the nearest of them.', [
+        (f'crew-{c}-asleep{t}', f'{name[0].upper() + name[1:]}, asleep on the cave floor{" (tinted)" if t else ""}', 440, 160, 'bottom centre', TINTED if t else SPRITE,
+         f'{name[0].upper() + name[1:]} of the prince\'s crew exactly as in crew-{c}{t}{"-redo" if c == "manatarms" else ""}.webp (attach it, and crew-{c}-sit-up{t}.webp, the pose he wakes into): the same face, livery, {"helmet" if c == "manatarms" else "cap and plume"} and colours. Lying asleep on his back on the ground, drowned in an enchanted sleep, head to the LEFT, feet to the RIGHT, eyes closed, one arm across his chest, the other at his side, {"his halberd beside him" if c in ("squire", "manatarms") else "his " + ("lantern and coiled rope" if c == "bosun" else "coil of rope") + " beside him"}. At exactly his standing scale: his head the same size as in his standing sprite, so lying full length he is about 420 px long, filling the 440 px canvas from side to side; the lowest point of the figure on the bottom edge. Nothing but the figure: no ground or shadow.', 'crew-asleep' if c in ('squire', 'bosun') else 'crew-asleep-b')
+        for c, name in (('squire', 'the squire'), ('bosun', 'the bosun'), ('helmsman', 'the helmsman'), ('manatarms', 'the man-at-arms'))
+        for t in ('', '-tinted')
+    ]),
+)
+
+
 def ids():
     return [a for _, _, items in GROUPS for a in items]
 

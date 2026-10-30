@@ -1,5 +1,5 @@
 // The door in front of a private site: the shared invite gate (gate.js, a
-// byte-identical copy of the one the games carry), opened with
+// copy of gate/loader.js from hoai2k.github.io, which loads the shared door), opened with
 // `ignorePublicAccess: true`. The owner's public-access switch opens the games to
 // everyone for a while; it never opens these pages unless the site's own
 // public-access.json says { "followPublicAccess": true }. A visitor holding a real

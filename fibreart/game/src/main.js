@@ -69,8 +69,20 @@ function show(screen) {
   $('#hud').hidden = screen !== 'play';
   ui.focus = 0;
   refreshFocus();
+  updatePadNote();
   chrome?.update();
 }
+
+// The "Xbox controller highly recommended" note: on the title only, with
+// nothing open over it, and only while no controller is connected.
+function updatePadNote() {
+  const note = document.getElementById('pad-note');
+  if (!note) return;
+  const pads = [...(navigator.getGamepads?.() || [])].some(Boolean);
+  note.hidden = pads || ui.screen !== 'title' || ui.modals.length > 0;
+}
+addEventListener('gamepadconnected', updatePadNote);
+addEventListener('gamepaddisconnected', () => setTimeout(updatePadNote, 0));
 
 function openModal(id) {
   const el = document.getElementById(id);
@@ -92,6 +104,7 @@ function openModal(id) {
   const [hx, hy] = input.leftStick();
   ui.stick = Math.hypot(hx, hy) > 0.35 ? { dir: stickDirection(hx, hy), next: Infinity } : null;
   refreshFocus(true);
+  updatePadNote();
   chrome?.update();
 }
 
@@ -105,6 +118,7 @@ function closeModal() {
   input.lockHeld();
   if (!ui.modals.length && ui.screen === 'play') resume();
   refreshFocus(true);
+  updatePadNote();
   chrome?.update();
 }
 

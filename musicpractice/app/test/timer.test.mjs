@@ -36,7 +36,7 @@ test('saved routines are kept and cleaned, tools and all; an emptied one stays e
   assert.equal(items[0].minutes, 120);
   assert.equal(items[0].enabled, false);
   assert.deepEqual(items[0].tools, { metronome: false, drone: false, playback: true });
-  assert.deepEqual(items[0].met, { bpm: 500, meter: '4/4', sound: 'wood', sub: 1, accent: true, volume: 0.75 });
+  assert.deepEqual(items[0].met, { bpm: 500, meter: '4/4', sound: 'wood', sub: 1, accent: true, volume: 0.87 });
   assert.deepEqual(items[0].pb, { silenceSec: 10, autoPlay: true, volume: 1 });
   assert.deepEqual(items[0].drn, { midi: 24, voice: 'cello', fifth: false, volume: 0.7 });
   assert.equal(items[1].enabled, true);
@@ -367,4 +367,16 @@ test('a take made in a routine is named after the item, numbered on from the tak
   assert.equal(routineTakeName('Scales', []), 'Scales 1');
   assert.equal(routineTakeName('Scales', [{ name: 'Scales 1' }, { name: 'Scales 3' }, { name: 'Arpeggios 9' }, {}, { name: 'Scales' }]), 'Scales 4');
   assert.equal(routineTakeName('  C++ (fast) ', [{ name: 'C++ (fast) 2' }]), 'C++ (fast) 3');
+});
+
+test('items\' metronome volumes saved on the straight line keep their loudness on the curve', () => {
+  const s = mem();
+  // Saved before the curve: the volume was the gain.
+  s.setItem('musicpractice.routine.v1', JSON.stringify({ routines: [{ id: 'r1', name: '', items: [{ id: 'a', met: { bpm: 90, volume: 0.25 } }, { id: 'b', met: { bpm: 90, volume: 1 } }] }], routineId: 'r1' }));
+  let t = loadTimer(base, s);
+  assert.deepEqual(t.items.map((it) => it.met.volume), [0.5, 1]);
+  // Saved since: as it is.
+  saveTimer(t, s);
+  t = loadTimer(base, s);
+  assert.deepEqual(t.items.map((it) => it.met.volume), [0.5, 1]);
 });

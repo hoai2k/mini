@@ -1,0 +1,21 @@
+{
+  "_comment": "Which blocks the smooth surface is made of. Patterns are regular expressions matched against the whole block id (minecraft:stone). 'smooth': full blocks of natural terrain that melt into one continuous surface. 'follow': small plants and layers that ride on the smoothed ground under them. Every other block with a collision shape keeps its shape and pins the terrain corners touching it, so buildings stay crisp; everything else (air, torches, rails...) is ignored. Water and lava count as solid for the surface but never pin it. A resource pack can replace this file.",
+  "smooth": [
+    "minecraft:(stone|granite|diorite|andesite|deepslate|tuff|calcite|dripstone_block|bedrock|smooth_basalt|basalt|blackstone)",
+    "minecraft:(dirt|coarse_dirt|rooted_dirt|grass_block|podzol|mycelium|mud|clay|moss_block|pale_moss_block|sculk)",
+    "minecraft:(sand|red_sand|gravel|suspicious_sand|suspicious_gravel|sandstone|red_sandstone)",
+    "minecraft:(terracotta|(white|orange|yellow|red|brown|light_gray)_terracotta)",
+    "minecraft:(.*_ore|ancient_debris|raw_.*_block|amethyst_block|budding_amethyst|infested_(stone|deepslate))",
+    "minecraft:(netherrack|crimson_nylium|warped_nylium|soul_sand|soul_soil|magma_block|end_stone)",
+    "minecraft:(snow_block|powder_snow|packed_ice|blue_ice)",
+    "minecraft:(.*_leaves)"
+  ],
+  "follow": [
+    "minecraft:(short_grass|tall_grass|fern|large_fern|dead_bush|bush|firefly_bush|short_dry_grass|tall_dry_grass)",
+    "minecraft:(.*_sapling|dandelion|poppy|.*_tulip|blue_orchid|allium|azure_bluet|oxeye_daisy|cornflower|lily_of_the_valley|wither_rose|torchflower|open_eyeblossom|closed_eyeblossom|cactus_flower)",
+    "minecraft:(sunflower|lilac|rose_bush|peony|pitcher_plant)",
+    "minecraft:(brown_mushroom|red_mushroom|crimson_fungus|warped_fungus|crimson_roots|warped_roots|nether_sprouts)",
+    "minecraft:(snow|.*_petals|wildflowers|leaf_litter|moss_carpet|pale_moss_carpet|sweet_berry_bush|sugar_cane)",
+    "minecraft:(seagrass|tall_seagrass|kelp|kelp_plant|sea_pickle)"
+  ]
+}

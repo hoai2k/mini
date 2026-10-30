@@ -5,6 +5,7 @@ is at https://hoai2k.github.io/mini/.
 
 ## Games
 
+- **[Meditation Timer](https://hoai2k.github.io/mini/meditation/)** · [`meditation/`](meditation/README.md): a quiet sitting timer with a starting and an ending chime
 - **[Image Annotator](https://hoai2k.github.io/mini/imageannotator/)** · [`imageannotator/`](imageannotator/README.md): point things out on a picture with arrows, circles and drawing
 - **[MP3 Player](https://hoai2k.github.io/mini/mp3player/)** · [`mp3player/`](mp3player/README.md): the music on your device, played like a streaming app
 - **[Stocks](https://hoai2k.github.io/mini/stocks/)** · [`stocks/`](stocks/README.md): price history with total return, dividends paid out or reinvested
@@ -22,6 +23,10 @@ is at https://hoai2k.github.io/mini/.
 - **[Hopper the Grasshopper](https://hoai2k.github.io/mini/hopper/)** · [`hopper/`](hopper/README.md)
 - **[Kingdom of the Fairies](https://hoai2k.github.io/mini/kingdomofthefairies/)** · [`kingdomofthefairies/`](kingdomofthefairies/README.md)
 - **[Bronze Drum](https://hoai2k.github.io/mini/bronzedrum/)** · [`bronzedrum/`](bronzedrum/README.md)
+
+## Mods
+
+- **Smoothcraft** · [`smoothcraft/`](smoothcraft/README.md): a Minecraft Java mod that renders the world as smooth shapes, with realistic materials, lighting and textures
 
 ## Sites
 

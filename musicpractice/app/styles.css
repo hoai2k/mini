@@ -344,6 +344,10 @@ dialog:focus { outline: none; }
 /* Its weight, placed on the rod by art.js placeWeight (high is slow). It
    slides when the tempo changes, follows the finger when dragged, and has a
    grip wider than itself so a finger finds it. */
+/* The rod can be taken hold of anywhere (metronomeui.js): a finger on it drags rather than scrolls, a mouse shows a hand. */
+.met-pendulum { touch-action: none; }
+.metronome.grab { cursor: grab; }
+.metronome.grabbing, .metronome.grabbing * { cursor: grabbing; }
 .met-pendulum > .met-weight { position: absolute; display: block; transition: top 0.25s ease-out; touch-action: none; cursor: grab; z-index: 1; }
 .met-pendulum > .met-weight[hidden] { display: none; }
 .met-pendulum > .met-weight.held { transition: none; cursor: grabbing; }
@@ -395,6 +399,31 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
 .met-exercise { align-self: center; max-width: 100%; margin: 0; padding: 2px 10px; border: 0; border-radius: 999px; background: none; color: var(--value, var(--brass-2)); font: 700 0.85rem var(--ui); font-variant-numeric: tabular-nums; }
 .met-exercise[hidden] { display: none; }
 .tap-tempo { min-height: 34px; padding: 4px 16px; font-size: 0.95rem; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+/* The tap pad the Tap button grows into (metronomeui.js): over the screen, easy to hit anywhere. */
+.tap-pad {
+  position: fixed; inset: 0; margin: auto; z-index: 40;
+  width: min(calc(100vw - 32px), 440px); height: min(calc(100dvh - 120px), 580px);
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 28px 20px 32px; border-radius: 28px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--ink); box-shadow: 0 24px 60px rgb(0 0 0 / 0.45);
+  touch-action: manipulation; user-select: none; -webkit-user-select: none; cursor: pointer; transform-origin: 50% 50%;
+}
+.tap-pad[hidden] { display: none; }
+.tap-pad-bpm { margin: 0; display: flex; align-items: baseline; gap: 8px; font: 700 clamp(3.4rem, 18vw, 5.2rem)/1 var(--display); font-variant-numeric: tabular-nums; }
+.tap-pad-bpm small { font: 700 1rem var(--ui); color: var(--ink-3); letter-spacing: 0.06em; }
+.tap-pad-hint { margin: 0; text-align: center; color: var(--ink-2); font-weight: 600; max-width: 26ch; min-height: 2.6em; }
+.tap-pad-circle {
+  flex: 1; width: min(100%, 300px); max-height: 300px; aspect-ratio: 1; min-height: 0;
+  display: grid; place-items: center; border-radius: 50%;
+  border: 3px solid var(--brass); background: var(--panel-2); color: var(--ink-2);
+  font: 700 1.6rem var(--display); letter-spacing: 0.04em;
+}
+.tap-pad-circle.hit { animation: tap-pulse 0.28s ease-out; }
+@keyframes tap-pulse {
+  from { background: var(--brass); color: var(--on-accent); transform: scale(0.96); }
+  to { background: var(--panel-2); color: var(--ink-2); transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) { .tap-pad-circle.hit { animation: none; background: var(--brass); color: var(--on-accent); } }
 .tap-tempo.hit { background: var(--brass); border-color: var(--brass); color: var(--on-accent); }
 .tempo-list { display: flex; flex-direction: column; gap: 6px; }
 /* Saved tempos, above the common ones. */
@@ -443,6 +472,10 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
 .levels-row { align-items: center; }
 .levels-row > span { display: flex; flex-direction: column; gap: 2px; }
 .levels-row small.help { margin: 0; font-size: 0.82rem; }
+/* The tempo trainer's numbers, open under its switch while it is on: set in, under a rule. */
+.trainer-section { display: flex; flex-direction: column; gap: 6px; margin: -4px 0 4px; padding: 0 0 0 12px; border-left: 2px solid var(--line); }
+.trainer-section[hidden] { display: none; }
+.trainer-section > .help { margin: 0 0 2px; }
 /* The tempo trainer's and silent bars' numbers. */
 .ex-fields { display: flex; flex-direction: column; gap: 6px; }
 .ex-row .ex-name { min-width: 0; }
@@ -748,9 +781,28 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 /* Intonation Exercises: the two choices, each like the button that opens them. */
 .exercise-list { display: flex; flex-direction: column; gap: 10px; }
 .exercise-list .scale-cta { width: 100%; }
+.exercise-list .scale-cta[hidden] { display: none; }
+/* Tone Matching: what is happening, then the verdict (green in tune or close, red otherwise). */
+.match-stage { min-height: 7.5em; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 8px 0; }
+.match-status { margin: 0; font: 700 1.2rem/1.3 var(--display); color: var(--ink-2); }
+#match-sheet[data-step="listen"] .match-status { animation: breathe 1.4s ease-in-out infinite; }
+.match-verdict { margin: 0; font: 700 1.3rem/1.3 var(--display); color: var(--ink); }
+.match-detail { margin: 0; font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+#match-sheet[data-verdict="inTune"] .match-verdict, #match-sheet[data-verdict="close"] .match-verdict { color: var(--ok-2); }
+#match-sheet[data-verdict="wrong"] .match-verdict { color: var(--red-2); }
+.match-score { margin: 0 0 8px; text-align: center; color: var(--ink-3); font-weight: 600; min-height: 1.3em; }
+.match-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.match-actions .pill[hidden] { visibility: hidden; display: inline-flex; }
+.match-actions .big-btn.match-go { margin: 0; min-height: 44px; min-width: 110px; padding: 0 22px; font-size: 1.17rem; } /* as the strong beats' Done */
 /* The pitch trace (tunerui.js draws it in the theme's --ok-2 and --red-2). */
 .pitch-trace { display: block; width: min(100%, 360px); height: 56px; border-radius: 10px; background: var(--wave-bg); border: 1px solid var(--line); }
-.tuner-body.no-trace .pitch-trace { display: none; }
+.pitch-trace[hidden] { display: none; }
+.tuner-body.no-trace .pitch-trace, .tuner-body.no-trace .trace-toggle { display: none; }
+/* Pitch over time, folded away: a quiet line of text with a chevron that turns when it opens. */
+.trace-toggle { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 10px; border: 0; border-radius: 16px; background: none; color: var(--ink-3); font: 600 0.85rem/1 var(--body, inherit); cursor: pointer; }
+.trace-toggle:hover, .trace-toggle:focus-visible { color: var(--ink); }
+.trace-toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: rotate 0.2s; }
+.trace-toggle[aria-expanded="true"] svg { rotate: 180deg; }
 .tuner-hint { margin: 0; font: 700 1.25rem/1.3 var(--display); color: var(--ink-2); min-height: 1.3em; text-align: center; }
 .tuner-body.in-tune .tuner-hint { color: var(--ok-2); }
 .tuner-body.flat .tuner-hint, .tuner-body.sharp .tuner-hint { color: var(--red-2); }

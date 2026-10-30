@@ -35,6 +35,7 @@ export const VIEWS = [
   ['tuner settings', '#tuner', (p) => click(p, '#tuner-settings-btn'), 'tuner-settings'],
   ['intonation exercises', '#tuner', (p) => click(p, '#exercises-open'), 'exercises-sheet'],
   ['scale test', '#tuner', async (p) => { await click(p, '#exercises-open'); await click(p, '#scale-open'); }, 'scale-sheet'],
+  ['tone matching', '#tuner', async (p) => { await click(p, '#exercises-open'); await click(p, '#match-open'); }, 'match-sheet'],
   ['pure intervals', '#tuner', async (p) => { await click(p, '#exercises-open'); await click(p, '#pure-open'); }, 'tuner'],
   ['drone settings', '#drone', (p) => click(p, '#drone-settings-btn'), 'drone-settings'],
   ['recorder settings', '#record', (p) => click(p, '#rec-settings-btn'), 'rec-settings'],
