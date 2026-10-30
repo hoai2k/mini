@@ -3,7 +3,7 @@
 // The View button (Tab) hides and shows it.
 
 const CHIP = { A: 'a', B: 'b', X: 'x', Y: 'y' };
-const KEYS = { A: 'Space', B: 'Shift', X: 'E', Y: 'R', LB: 'Q', RB: 'F', LT: 'Z', RT: 'X', LS: 'WASD', RS: 'Arrows', View: 'Tab', Menu: 'Esc', 'D-pad': '1–4' };
+const KEYS = { 'LT/RT': 'Z / X', 'LB/RB': 'Q / F', A: 'Space', B: 'Shift', X: 'E', Y: 'R', LB: 'Q', RB: 'F', LT: 'Z', RT: 'X', LS: 'WASD', RS: 'Arrows', View: 'Tab', Menu: 'Esc', 'D-pad': '1–4' };
 
 /**
  * @param {{ title: string, sub: string, controls: [string, string][], note?: string }} opts

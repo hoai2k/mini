@@ -29,3 +29,11 @@ Keyboard fallbacks are in `shared/pad.js`.
 | Amoeba | Bleb lunge (a fast eruptive pseudopod) | Close the food cup | Let go or egest |
 | Paramecium | Trichocyst burst or ciliary sprint | Feed (oral current) | Avoidance reaction (reverse) |
 | Bacterium | Sprint run (all flagella bundled) | Attach / bore (Bdellovibrio) or bind | Tumble |
+
+## In code
+
+Read the controls through `shared/controls.js` (`createControls(pad)`), not raw
+buttons, and build the HUD list with `hudControls({...})` so every prototype
+lists the same buttons in the same order. `createDash()` gives a dash with a
+recharge and a HUD meter. The amoeba keeps its own two-stick pseudopod scheme
+for now (both sticks grow pseudopods), but still uses A to dash and X to eat.
