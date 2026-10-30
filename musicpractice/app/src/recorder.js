@@ -256,6 +256,18 @@ export class Recorder extends EventTarget {
     }
     src.connect(node).connect(sink);
     this.graph = { src, node, sink };
+    dlog('mic-rates', { mic: this.micRate(), ctx: this.ctx.sampleRate, session: navigator.audioSession?.type ?? null });
+  }
+
+  /** The microphone's sample rate, if the browser says (getSettings), else 0. */
+  micRate() {
+    return this.stream?.getAudioTracks()[0]?.getSettings?.().sampleRate || 0;
+  }
+
+  /** Does the open mic run at a rate other than the audio context's? */
+  get rateMismatch() {
+    const r = this.micRate();
+    return !!this.graph && r > 0 && r !== this.ctx.sampleRate;
   }
 
   constraints(deviceId) {
@@ -427,6 +439,7 @@ export class Recorder extends EventTarget {
     const samples = cut(all, b.start, b.end, this.ctx.sampleRate);
     this.chunks = [];
     d.reset();
+    dlog('take-made', { sec: Math.round((samples.length / this.ctx.sampleRate) * 10) / 10, ctx: this.ctx.sampleRate, mic: this.micRate(), kept: samples.length > this.ctx.sampleRate * 0.25 });
     if (samples.length > this.ctx.sampleRate * 0.25) {
       this.dispatchEvent(new CustomEvent('take', { detail: { samples, sampleRate: this.ctx.sampleRate, playBack } }));
       return true;
