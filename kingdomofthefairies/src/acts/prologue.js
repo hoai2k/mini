@@ -3,7 +3,8 @@
 // cut-outs, leading straight into Act I (`intro: true`, src/main.js):
 // - the betrothal court: the prince, in his court dress, receives the four
 //   fairies' gifts for his bride and takes Azurine's hand; the uninvited witch
-//   curses the betrothal;
+//   curses the betrothal, and she and her demons seize Azurine and fly off
+//   with her;
 // - the rampart: her demons' chariot of fire carries Azurine off, and he runs
 //   after it along the parapet, leaping the fire it drops;
 // - the armoury: the witch binds him and he struggles against her cords
@@ -60,10 +61,14 @@ export const WIGGLES = 4;     // pulls against the cords: any button or push of 
 // (badge), he is armoured at `armed` and kneels while she glides off (from
 // `leave`, taking `off`), and stands again at `risen`.
 export const T = {
-  defeat: 1.4, curse: 4.8, escape: 2.6, bind: 1.8, strained: 0.5, free: 2.3, on: 1.2, cast: 1.9,
+  defeat: 1.4, curse: 6.6, escape: 2.6, bind: 1.8, strained: 0.5, free: 2.3, on: 1.2, cast: 1.9,
   badge: 1.75, armed: 3.85, leave: 4.5, off: 1.5, risen: 6.1, iris: 1.3, fade: 0.6,
 };
 const ORDER = ['court', 'curse', 'rampart', 'escape', 'bind', 'free', 'armoury', 'knighted', 'iris'];
+// The curse, then the abduction (curse phase, seconds): Azurine swoons, the
+// witch takes flight and her demons run on, they seize the princess and fly
+// off with her into the night.
+export const ABDUCT = { swoon: 2.4, swoop: 2.8, seize: 3.8, off: 4.4, gone: 6.0 };
 export const SCENES = [{ name: 'The Betrothal' }, { name: 'The Abduction' }, { name: 'The Arming' }];
 const SCENE_PHASE = ['court', 'rampart', 'bind'];
 export const sceneOf = (phase) => (['court', 'curse'].includes(phase) ? 0 : ['rampart', 'escape'].includes(phase) ? 1 : 2);
@@ -110,7 +115,14 @@ export default {
     }
     if (input.b && st.phaseT > 0.3) return skip(st);
     if (ph === 'court') court(st, dt, input);
-    else if (ph === 'curse') { walk(st, dt, input.moveX || 0, input, { x1: AZURINE_X - 50 }); if (st.phaseT >= T.curse) next(st); }
+    else if (ph === 'curse') {
+      walk(st, dt, input.moveX || 0, input, { x1: AZURINE_X - 50 });
+      const was = st.phaseT - dt, at = (q) => was < q && st.phaseT >= q;
+      if (at(ABDUCT.swoop)) st.events.push({ type: 'witchSwoop', sound: 'witchBreath', gain: 0.7 });
+      if (at(ABDUCT.seize)) st.events.push({ type: 'seized', sound: 'witchClaim' });
+      if (at(ABDUCT.off + 0.3)) st.events.push({ type: 'carriedOff', sound: 'witchLaugh', gain: 0.8 });
+      if (st.phaseT >= T.curse) next(st);
+    }
     else if (ph === 'rampart') rampart(st, dt, input);
     else if (ph === 'escape') { walk(st, dt, input.moveX || 0, input, { leap: true, floor: rampartFloor, x0: 60, x1: RAMPART.w - 100 }); st.chariot.up += dt; if (st.phaseT >= T.escape) next(st); }
     else if (ph === 'bind') bind(st, dt, input);
@@ -132,13 +144,15 @@ export default {
     if (e.type === 'scene') return {
       court: 'The betrothal court. Walk to each fairy and press A to receive her gift for Princess Azurine.',
       curse: 'The witch, uninvited, curses the betrothal.',
-      rampart: "That night her demons carry Azurine away in a chariot of fire. Run after it along the rampart; leap the fire it drops.",
+      rampart: "Her demons bear Azurine away in a chariot of fire. Run after it along the rampart; leap the fire it drops.",
       bind: 'In the armoury the witch binds the prince.',
       free: 'Aurora comes and breaks the spell.',
       armoury: 'Take up the helmet, the shield and the enchanted sword Aurora gives you.',
     }[e.phase] || null;
     if (e.type === 'gift') return `${e.from} gives ${e.gift === 'gold' ? 'gold' : 'the ' + e.gift}.`;
     if (e.type === 'betrothed') return 'The prince takes Azurine’s hand.';
+    if (e.type === 'seized') return 'The witch and her demons seize the princess.';
+    if (e.type === 'carriedOff') return 'They carry Azurine away.';
     if (e.type === 'arm') return `The ${e.arm}.`;
     if (e.type === 'armed') return 'Armed for the rescue.';
     if (e.type === 'toShip') return 'Go to your ship, up the stairs at the left.';
