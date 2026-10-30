@@ -210,6 +210,28 @@ Head size of each pose against its reference sprite (same look). Beyond 6% the g
 | `crew-asleep-tinted` | standing crewman, by eye | 1.39 | — | drawn × 0.720 |
 | `crew-asleep-b` | standing crewman, by eye | 0.93 | — | drawn × 1.080 |
 | `crew-asleep-b-tinted` | standing crewman, by eye | 0.83 | — | drawn × 1.200 |
+| `crew-squire-asleep` | `crew-squire`, by eye | 1.00 | — | as painted |
+| `crew-squire-asleep-tinted` | `crew-squire-tinted`, by eye | 1.00 | — | as painted |
+| `crew-bosun-asleep` | `crew-bosun`, by eye | 1.00 | — | as painted |
+| `crew-bosun-asleep-tinted` | `crew-bosun-tinted`, by eye | 1.00 | — | as painted |
+| `crew-helmsman-asleep` | `crew-helmsman`, by eye | 1.00 | — | as painted |
+| `crew-helmsman-asleep-tinted` | `crew-helmsman-tinted`, by eye | 1.00 | — | as painted |
+| `crew-manatarms-asleep` | `crew-manatarms-redo`, by eye | 1.00 | — | as painted |
+| `crew-manatarms-asleep-tinted` | `crew-manatarms-tinted-redo`, by eye | 1.00 | — | as painted |
+| `prince-struggle-a` | `prince-bound`, by eye | 1.00 | — | as painted |
+| `prince-struggle-a-tinted` | `prince-bound-tinted`, by eye | 1.00 | — | as painted |
+| `prince-struggle-b` | `prince-bound`, by eye | 1.00 | — | as painted |
+| `prince-struggle-b-tinted` | `prince-bound-tinted`, by eye | 1.00 | — | as painted |
+| `aurora-glide-a` | `aurora-stand`, by eye | 1.00 | — | as painted |
+| `aurora-glide-a-tinted` | `aurora-stand-tinted`, by eye | 1.00 | — | as painted |
+| `aurora-glide-b` | `aurora-stand`, by eye | 1.00 | — | as painted |
+| `aurora-glide-b-tinted` | `aurora-stand-tinted`, by eye | 1.00 | — | as painted |
+| `azurine-swoon` | `azurine-stand`, by eye | 1.00 | — | as painted |
+| `azurine-swoon-tinted` | `azurine-stand-tinted`, by eye | 1.00 | — | as painted |
+| `demon-red-carry` | `demon-red`, by eye | 1.00 | — | as painted |
+| `demon-red-carry-tinted` | `demon-red-tinted`, by eye | 1.00 | — | as painted |
+| `demon-teal-carry` | `demon-teal`, by eye | 1.00 | — | as painted |
+| `demon-teal-carry-tinted` | `demon-teal-tinted`, by eye | 1.00 | — | as painted |
 
 ## To redraw
 

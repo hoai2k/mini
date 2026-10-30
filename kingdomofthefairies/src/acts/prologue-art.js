@@ -169,8 +169,10 @@ const DEMON_S = 0.78;
 function abduction(k, st, t) {
   const c = k.c, tt = st.phaseT, A = ABDUCT;
   if (tt < A.swoon) return;
-  // the princess swoons, tipping back, then lies senseless on the floor
-  const sw = clamp((tt - A.swoon) / 0.45, 0, 1);
+  // the princess swoons (held a moment when her swoon is drawn), then lies
+  // senseless on the floor
+  const swoonArt = !!k.img('azurine-swoon');
+  const sw = clamp((tt - A.swoon - (swoonArt ? 0.75 : 0)) / (swoonArt ? 0.3 : 0.45), 0, 1);
   // everyone in the seizing flies off together up to the right
   const u = easeInOut(clamp((tt - A.off) / (A.gone - A.off), 0, 1));
   // (clear of the right curtain: they draw her in toward the middle as they
@@ -180,13 +182,14 @@ function abduction(k, st, t) {
   const az = { x: AZURINE_X + ox, y: FLOOR - easeOut(lift) * 120 + oy };
   if (sw < 1) {
     // her swoon (F23), or her standing figure tipping back
-    const art = k.img('azurine-swoon');
-    c.save(); c.translate(AZURINE_X, FLOOR + 4); if (!art) c.rotate(easeInOut(sw) * 0.9); c.globalAlpha = 1 - sw * 0.6;
-    figure(k, art ? 'azurine-swoon' : 'azurine-stand', 0, 0, t + 3, 1, 1);
+    c.save(); c.translate(AZURINE_X, FLOOR + 4);
+    if (swoonArt) c.rotate(easeInOut(sw) * 0.5), c.globalAlpha = 1 - sw;
+    else c.rotate(easeInOut(sw) * 0.9), c.globalAlpha = 1 - sw * 0.6;
+    figure(k, swoonArt ? 'azurine-swoon' : 'azurine-stand', 0, 0, t + 3, 1, 1);
     c.restore();
   }
-  if (sw > 0.6) {
-    c.save(); c.globalAlpha = clamp((sw - 0.6) / 0.4, 0, 1); c.translate(az.x, az.y + 4); c.rotate(-u * 0.25 + Math.sin(t * 3) * 0.03 * lift);
+  if (sw > (swoonArt ? 0 : 0.6)) {
+    c.save(); c.globalAlpha = swoonArt ? clamp(sw / 0.6, 0, 1) : clamp((sw - 0.6) / 0.4, 0, 1); c.translate(az.x, az.y + 4); c.rotate(-u * 0.25 + Math.sin(t * 3) * 0.03 * lift);
     if (!k.asset('azurine-asleep', 0, 0, 230, 102)) { c.fillStyle = k.col('#c9d8ee'); c.fillRect(-100, -30, 200, 30); }
     c.restore();
   }
@@ -200,7 +203,8 @@ function abduction(k, st, t) {
     // flying with her held up (F23), or running figures tilted under her
     const carry = lift > 0.3 && k.img(id + '-carry');
     c.save(); c.translate(x, by); c.rotate(carry ? -u * 0.1 : lift * (i ? 0.18 : -0.18) - u * 0.2);
-    figure(k, carry ? id + '-carry' : id, 0, Math.abs(Math.sin(t * 9 + i)) * -6 * (1 - lift), t + i, DEMON_S, i ? -1 : 1);
+    // (both carrying poses are painted facing her side: red right, teal left)
+    figure(k, carry ? id + '-carry' : id, 0, Math.abs(Math.sin(t * 9 + i)) * -6 * (1 - lift), t + i, DEMON_S, i && !carry ? -1 : 1);
     c.restore();
   });
   // the witch, flying across the hall to hover over the princess, then off
@@ -410,13 +414,16 @@ function cords(k, st, t, a) {
   if (a <= 0) return;
   const c = k.c, p = st.p, s = st.struggle, tilt = s.tilt;
   const strain = s.n / WIGGLES, flare = Math.abs(tilt) / 0.16;
-  c.save(); c.translate(p.x, p.y); c.rotate(tilt); c.globalAlpha = a; c.strokeStyle = k.col('#5fd0c0');
+  c.save(); c.translate(p.x, p.y); c.rotate(tilt * (k.img('prince-struggle-a') ? 0.35 : 1)); c.globalAlpha = a; c.strokeStyle = k.col('#5fd0c0');
   for (let i = 0; i < 4; i++) {
     const y = -70 - i * 30 + Math.sin(t * 6 + i) * 3;
     const real = !k.img('prince-bound');
-    c.lineWidth = real ? 4 : 2 + 2 * flare;
-    c.globalAlpha = a * (real ? 1 : 0.25 + 0.5 * flare + 0.2 * Math.sin(t * 9 + i));
-    c.beginPath(); c.ellipse(0, y, 40 + 6 * flare, 10, 0.1 * Math.sin(t * 3 + i), 0, Math.PI * 2); c.stroke();
+    // the struggle frames paint their own straining cords: only sparks there
+    if (!k.img('prince-struggle-a')) {
+      c.lineWidth = real ? 4 : 2 + 2 * flare;
+      c.globalAlpha = a * (real ? 1 : 0.25 + 0.5 * flare + 0.2 * Math.sin(t * 9 + i));
+      c.beginPath(); c.ellipse(0, y, 40 + 6 * flare, 10, 0.1 * Math.sin(t * 3 + i), 0, Math.PI * 2); c.stroke();
+    }
     // the cords fray as he strains: little gaps that open with each pull
     if (strain > 0 && flare > 0.3) {
       c.globalAlpha = a * flare; c.fillStyle = k.col('#e8fff9');
@@ -449,7 +456,7 @@ function prince(k, st, t, cx = 0) {
   if (pose && st.phase !== 'bind' && drawPose(k, pose, p.x - cx, p.y, PRINCE.h, { face: p.face })) { c.globalAlpha = 1; return; }
   c.save(); c.translate(p.x - cx, p.y);
   // bound, he wrenches this way and that against the cords
-  if (st.phase === 'bind') c.translate(Math.sin(t * 40) * 3 * Math.abs(st.struggle.tilt) / 0.16, 0), c.rotate(st.struggle.tilt);
+  if (st.phase === 'bind') c.translate(Math.sin(t * 40) * 3 * Math.abs(st.struggle.tilt) / 0.16, 0), c.rotate(st.struggle.tilt * (k.img('prince-struggle-a') ? 0.35 : 1));
   c.scale(p.face, 1);
   let id;
   if ((st.phase === 'bind' || (st.phase === 'free' && st.phaseT < T.cast)) && k.img('prince-bound')) {

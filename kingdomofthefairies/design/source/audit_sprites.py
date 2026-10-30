@@ -54,6 +54,19 @@ CREW_POSES = ('sit-up', 'crawl', 'tumble')
 # eye against the standing crewman at the game's drawing scale, 16 Oct 2026:
 # the lying squire is painted about 1.3x his standing size, the man-at-arms\' a little small.
 BY_EYE = {'crew-asleep': 0.77, 'crew-asleep-tinted': 0.72, 'crew-asleep-b': 1.08, 'crew-asleep-b-tinted': 1.2}
+# Checked by eye against their reference at the game's drawing scale, 30 Oct
+# 2026, and drawn as painted: veils, raised arms and faces on their side throw
+# the head template off (it read 0.5-0.76, or 0.74-1.08 for the sleepers, where
+# the heads match). Each crewman asleep against his standing sprite, the
+# armoury's and the abduction's poses against the figure they replace.
+AS_PAINTED = {
+    **{f'crew-{c}-asleep{t}': f'crew-{c}{t}' + ('-redo' if c == 'manatarms' else '')
+       for c in ('squire', 'bosun', 'helmsman', 'manatarms') for t in ('', '-tinted')},
+    **{f'{p}{t}': f'{r}{t}' for p, r in (('prince-struggle-a', 'prince-bound'), ('prince-struggle-b', 'prince-bound'),
+                                          ('aurora-glide-a', 'aurora-stand'), ('aurora-glide-b', 'aurora-stand'),
+                                          ('azurine-swoon', 'azurine-stand'), ('demon-red-carry', 'demon-red'),
+                                          ('demon-teal-carry', 'demon-teal')) for t in ('', '-tinted')},
+}
 POSE_TOL = 0.06      # a head within 6% of the reference's is drawn as painted
 POSE_MATCH = 0.55    # below this match score the measure is not trusted
 DIP = 0.025          # the head's natural dip at a contact, of figure height
@@ -120,7 +133,7 @@ def head_scale(ref, aid, rot, box=None):
     G, _ = load(aid)
     best = (-1.0, 1.0)
     for ang in range(-rot, rot + 1, 15 if not box else 10):
-        for s in np.arange(0.6 if box else 0.7, 1.7, 0.02):
+        for s in np.arange(0.6 if box else 0.5, 1.7, 0.02):
             T = cv2.resize(tpl, None, fx=s, fy=s, interpolation=cv2.INTER_AREA)
             if ang:
                 M = cv2.getRotationMatrix2D((T.shape[1] / 2, T.shape[0] / 2), ang, 1)
@@ -239,7 +252,10 @@ def audit():
                 continue
             size, q = head_scale(rid, pid, rot)
             note = 'as painted'
-            if q >= POSE_MATCH and abs(size - 1) > POSE_TOL:
+            # a best size at the search's edge is no measure
+            if not 0.52 < size < 1.68:
+                note = 'as painted (no reliable match)'
+            elif q >= POSE_MATCH and abs(size - 1) > POSE_TOL:
                 f = round(1 / size, 3)
                 for i in (pose, *shared):
                     if slots.get(i + t, {}).get('status') == 'delivered':
@@ -267,6 +283,9 @@ def audit():
         if slots.get(pid, {}).get('status') == 'delivered':
             pose_fit[pid] = f
             lines.append(f'| `{pid}` | standing crewman, by eye | {1 / f:.2f} | — | drawn × {f:.3f} |')
+    for pid, rid in AS_PAINTED.items():
+        if slots.get(pid, {}).get('status') == 'delivered':
+            lines.append(f'| `{pid}` | `{rid}`, by eye | 1.00 | — | as painted |')
     lines.append('')
     lines += ['## To redraw', '']
     lines += [f'- {p}' for p in problems] or ['Nothing.']
