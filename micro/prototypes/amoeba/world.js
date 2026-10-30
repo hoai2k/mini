@@ -29,8 +29,8 @@ export function buildWorld(seed = 7) {
   // Floating above the focal plane: blurred.
   spiro(-300, 160, 0.62, 2600, 46, 'above');
   spiro(500, -300, 2.1, 2400, 40, 'above');
-  for (let i = 0; i < 14; i++) {
-    const a = r() * TAU, d = r.range(0, 1600);
+  for (let i = 0; i < 8; i++) {
+    const a = r() * TAU, d = r.range(200, 1600);
     const s = r.range(30, 120);
     obstacles.push({ type: 'flake', x: Math.cos(a) * d, y: Math.sin(a) * d, ang: r() * TAU, L: s, W: s * r.range(0.5, 1), layer: 'above', seed: r() });
   }

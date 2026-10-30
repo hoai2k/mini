@@ -173,7 +173,8 @@ void main() {
   if (uMode == 0) {
     vec2 s = uDir * px * 1.5;
     float g = (opd(vUv + s) - opd(vUv - s)) / (3.0 / uPxPerUnit);
-    float gamma = uBias + uShear * g + back * 40.0;
+    // Strong steps (menisci, leaf margins) saturate softly instead of clipping.
+    float gamma = uBias + 230.0 * tanh(uShear * g / 230.0) + back * 40.0;
     vec3 lam = mix(vec3(540.0), vec3(630.0, 540.0, 465.0), uFringes);
     vec3 I = sin(3.14159265 * gamma / lam); I = I * I;
     float I0 = sin(3.14159265 * uBias / 540.0); I0 = I0 * I0;

@@ -58,7 +58,7 @@ export class Cytoplasm {
       vx += (ex / m) * v; vy += (ey / m) * v;
       // Fountain return: near the tip, cytoplasm that reaches the cortex turns
       // to gel and is left behind as the tip moves on (here: drifts back).
-      const back = 22 * pod.s * w * (1 - core) * (1 - smoothstep(20, 90, m));
+      const back = 10 * pod.s * w * (1 - core) * (1 - smoothstep(20, 90, m));
       vx -= (ex / m) * back; vy -= (ey / m) * back;
     }
     if (body.spread > 0.02) {
@@ -135,7 +135,7 @@ export class Cytoplasm {
       }
       // The ectoplasm rim: keep granules a few µm inside the membrane.
       d = grid.sample(x, y);
-      const margin = 5 + this.size[i];
+      const margin = 7 + this.size[i];
       if (d < margin) {
         grid.grad(x, y, gr);
         const k = Math.min(margin - d, 30);

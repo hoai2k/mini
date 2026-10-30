@@ -21,7 +21,16 @@ const OBJECTIVES = [
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+// Software GL (SwiftShader, as in headless checks) cannot afford full-screen
+// float passes at full size: draw small and let the browser scale it up.
+const glInfo = (() => {
+  const gl = renderer.getContext();
+  const ext = gl.getExtension('WEBGL_debug_renderer_info');
+  return ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : '';
+})();
+const SOFTWARE = /swiftshader|llvmpipe|software/i.test(glInfo);
+const PR = Number(new URLSearchParams(location.search).get('pr')) || 0; // testing override
+renderer.setPixelRatio(PR || (SOFTWARE ? 0.4 : Math.min(devicePixelRatio, 1.5)));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 const scene = new THREE.Scene();
@@ -73,6 +82,7 @@ const walker = new Walker(world, creature, {
 });
 const life = new Life(world, walker, creature, { toast, rumble });
 const mic = new DicMicroscope(renderer, scene, camera, { layers: [LAYER_SUBSTRATE, LAYER_SPECIMEN], backdrop: assets.backdrop });
+if (SOFTWARE) mic.setQuality(PR ? 2 : 0);
 
 // ---------------------------------------------------------------- view state
 const view = { yaw: -0.35, pitch: 1.18, obj: 1, focus: 0, mode: 0, labels: false, target: new THREE.Vector3(), claws: 1, internals: true, sway: true };
@@ -172,14 +182,14 @@ let time = 0;
 const dirV = new THREE.Vector3(), right = new THREE.Vector3(), upS = new THREE.Vector3();
 applyMode(view.mode);
 
-window.__micro = { scene, camera, renderer, world, walker, creature, life, mic, view, features, applyMode, pad };
+window.__micro = { SOFTWARE, scene, camera, renderer, world, walker, creature, life, mic, view, features, applyMode, pad };
 
 function frame() {
   const now = performance.now();
   const rawDt = (now - last) / 1000;
   last = now;
   const dt = Math.min(0.05, rawDt);
-  if (view.mode !== 2) mic.autoQuality(rawDt);
+  if (view.mode !== 2 && !SOFTWARE) mic.autoQuality(rawDt);
   time += dt;
   catchBudget -= dt;
   pad.poll();
@@ -230,6 +240,13 @@ function frame() {
     view.target.y + view.dist * Math.sin(view.pitch),
     view.target.z + view.dist * Math.cos(view.pitch) * Math.cos(view.yaw),
   );
+  if (view.fixed) { // turnaround shots (testing): orbit in the animal's own frame
+    const { yaw, pitch } = view.fixed;
+    const off = new THREE.Vector3(Math.cos(pitch) * Math.sin(yaw), Math.sin(pitch), Math.cos(pitch) * Math.cos(yaw)).multiplyScalar(view.fixed.dist || 9);
+    view.target.copy(walker.dispPos);
+    camera.up.set(0, 1, 0).applyQuaternion(walker.dispQuat);
+    camera.position.copy(walker.dispPos).add(off.applyQuaternion(walker.dispQuat));
+  }
   camera.lookAt(view.target);
   camera.updateMatrixWorld();
   sun.target.position.copy(view.target);

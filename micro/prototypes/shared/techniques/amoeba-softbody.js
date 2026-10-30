@@ -49,8 +49,8 @@ function polygonArea(xs, ys, n) {
 export const N = 160;
 export const P = {
   R0: 172, // µm, radius of the disc with the starting area (≈ 9.3e4 µm²)
-  vPro: 30, // µm/s (game time) pseudopod advance at full stick
-  vBoost: 16, // extra with RT
+  vPro: 44, // µm/s (game time) pseudopod speed parameter at full stick (≈ 30 µm/s net against tension)
+  vBoost: 22, // extra with RT
   sigma: 3.0, // tip window, in nodes
   win: 8,
   capR: 30, // µm, half-width of a pseudopod's advancing cap
@@ -78,7 +78,7 @@ export class Body {
     this.rand = rand;
     const f = () => new Float64Array(N);
     this.x = f(); this.y = f(); this.nx = f(); this.ny = f();
-    this.ddx = f(); this.ddy = f(); this.G = f(); this.w = f(); this.len = f();
+    this.ddx = f(); this.ddy = f(); this.G = f(); this.Gp = f(); this.w = f(); this.len = f();
     this.noSelf = new Float64Array(N);
     for (let i = 0; i < N; i++) {
       const a = (i / N) * TAU;
@@ -200,8 +200,11 @@ export class Body {
       const mx = 0.5 * (x[a] + x[b]) - x[i], my = 0.5 * (y[a] + y[b]) - y[i];
       const dn = mx * nx[i] + my * ny[i];
       const tx = mx - dn * nx[i], ty = my - dn * ny[i];
-      ddx[i] += (kN * dn * nx[i] + kT * tx) * dt;
-      ddy[i] += (kN * dn * ny[i] + kT * ty) * dt;
+      // Substrate adhesion holds membrane that is not protruding (normal motion only;
+      // membrane still slides along itself into growing pseudopods).
+      const hold = this.opts.adhesion ? 0.35 + 0.65 * Math.min(1, this.Gp[i]) : 1;
+      ddx[i] += (kN * hold * dn * nx[i] + kT * tx) * dt;
+      ddy[i] += (kN * hold * dn * ny[i] + kT * ty) * dt;
     }
 
     // -- protrusion -------------------------------------------------------------
@@ -220,7 +223,7 @@ export class Body {
         }
         pod.tip = best;
         const reach = (x[best] - this.cx) * pod.dx + (y[best] - this.cy) * pod.dy;
-        const lim = clamp(1 - (reach - (req * 1.2 + 140)) / 90, 0, 1);
+        const lim = clamp(1 - (reach - (req * 1.0 + 110)) / 80, 0, 1);
         drive += pod.s * (1 - lim) * (pod.idle ? 0.3 : 1);
         const v = (P.vPro + (pod.idle ? 0 : P.vBoost * (input.push || 0))) * pod.s * lim * (pod.idle ? 0.7 : 1);
         // A blunt cap of fixed width: membrane within the cap radius of the tip,
@@ -316,10 +319,8 @@ export class Body {
     }
 
     // Substrate adhesion: membrane that is not protruding is held to the slide.
-    for (let i = 0; i < N; i++) {
-      const hold = this.opts.adhesion ? 0.45 + 0.55 * Math.min(1, G[i]) : 1;
-      x[i] += ddx[i] * hold; y[i] += ddy[i] * hold;
-    }
+    for (let i = 0; i < N; i++) { x[i] += ddx[i]; y[i] += ddy[i]; }
+    this.Gp.set(G);
 
     // -- obstacles and self-contact -------------------------------------------
     this.contact = 0;

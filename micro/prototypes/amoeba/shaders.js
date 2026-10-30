@@ -354,11 +354,10 @@ void main() {
 
 /** MP-A03 delivered: a colour photo turned into optical density, drawn in the out-of-focus layer. */
 export const PHOTO_FS = /* glsl */ `
-uniform sampler2D uTex; uniform vec3 uMean; uniform float uDim;
+uniform sampler2D uTex; uniform vec3 uMean; uniform float uDim; uniform vec2 uTile;
 varying vec2 vL; varying vec2 vW;
-uniform vec2 uSize;
 void main() {
-  vec3 c = texture2D(uTex, vL / uSize + 0.5).rgb;
+  vec3 c = texture2D(uTex, vW / uTile + 0.5).rgb;
   vec3 od = -log(clamp(c / uMean, 0.05, 4.));
-  gl_FragColor = vec4(dot(od, vec3(0.3)) * 0.5, od) * uDim;
+  gl_FragColor = vec4(dot(od, vec3(0.2)) * 0.4, od) * uDim;
 }`;

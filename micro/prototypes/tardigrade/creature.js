@@ -61,7 +61,7 @@ function bodyParts() {
   }
   // Cuticle folds between the leg-bearing regions.
   for (const [cx, ry, rz] of [[0.93, 0.47, 0.5], [0.3, 0.57, 0.6], [-0.36, 0.57, 0.6], [-0.93, 0.5, 0.52]]) {
-    P.push({ id: 99, op: 'sub', sdf: ringX(cx, 0.07, ry, rz, 0.045), blend: 0.05 });
+    P.push({ id: 99, op: 'sub', sdf: ringX(cx, 0.07, ry, rz, 0.06), blend: 0.045 });
   }
   // Mouth opening.
   P.push({ id: 99, op: 'sub', sdf: sd.sphere([1.82, -0.11, 0], 0.075), blend: 0.03 });
@@ -183,10 +183,10 @@ export class Creature {
     const r = () => ((s = (s * 16807) % 2147483647) / 2147483647);
     while (cells.length < 80) {
       const x = -1.4 + r() * 2.6, y = -0.45 + r() * 0.9, z = -0.55 + r() * 1.1;
-      const bodyIn = (x / 1.55) ** 2 + ((y - 0.05) / 0.44) ** 2 + (z / 0.5) ** 2 < 1;
+      const bodyIn = (x / 1.42) ** 2 + ((y - 0.05) / 0.37) ** 2 + (z / 0.43) ** 2 < 1;
       const gutIn = ((x + 0.12) / 0.95) ** 2 + (y / 0.3) ** 2 + (z / 0.33) ** 2 < 1;
       if (!bodyIn || gutIn) continue;
-      const g = new THREE.SphereGeometry(0.03 + r() * 0.022, 8, 6);
+      const g = new THREE.SphereGeometry(0.022 + r() * 0.018, 8, 6);
       g.translate(x, y, z);
       cells.push(g);
     }

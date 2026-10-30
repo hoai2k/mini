@@ -124,11 +124,15 @@ void main() {
     vec2 fuv = vec2(p.x / uFilmInfo.x, (p.y + uFilmInfo.y) / (2.0 * uFilmInfo.y));
     float cap = texture(uFilm, fuv).r * 2.5 - 0.5;
     float h = cap - uDry + groove * 0.12;
+    // The film thins to a meniscus towards the leaf margin.
+    float t = clamp(p.x / uFilmInfo.x, 0.0, 1.0);
+    float hwv = uFilmInfo.y * max(pow(sin(3.14159 * pow(t, 0.62)), 0.75), 0.42 * (1.0 - smoothstep(0.08, 0.25, t)));
+    h *= smoothstep(0.0, 0.35, hwv - abs(p.y));
     float film = mix(max(h, 0.0), sqrt(max(h, 0.0)), uFx.w) * 0.22 * uFx.z; // units (≈ 22 µm at h = 1)
     wallOpd *= uFx.x; green *= uFx.y;
     extraOpd = wallOpd + film * 0.33;                 // water - air: Δn 0.33
     extra = wallOpd * 8.0 + film;
-    extraAb += green * vec3(0.55, 0.12, 0.62) + amber * vec3(0.05, 0.12, 0.3);
+    extraAb += green * vec3(0.34, 0.08, 0.4) + amber * vec3(0.05, 0.12, 0.3);
   }
   oOpd = opd + vec4(extraOpd, extra * z, extra, 0.0);
   oAbs = vec4(ab + extraAb, direct);

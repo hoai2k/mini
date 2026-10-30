@@ -85,7 +85,9 @@ export class View {
 
   setPhoto(tex, mean) {
     // MP-A03 delivered: replaces the procedural out-of-focus filaments.
-    const m = propertyMaterial({ vertexShader: QUAD_VS, fragmentShader: PHOTO_FS, uniforms: { uSize: { value: new THREE.Vector2(1, 1) }, uTex: { value: tex }, uMean: { value: new THREE.Vector3(...mean) }, uDim: { value: 0.8 } } });
+    const m = propertyMaterial({ vertexShader: QUAD_VS, fragmentShader: PHOTO_FS, uniforms: { uSize: { value: new THREE.Vector2(1, 1) }, uTex: { value: tex }, uMean: { value: new THREE.Vector3(...mean) }, uDim: { value: 0.5 }, uTile: { value: new THREE.Vector2(3600, 2025) } } });
+    tex.wrapS = tex.wrapT = THREE.MirroredRepeatWrapping;
+    tex.needsUpdate = true;
     this.photo = new THREE.Mesh(this.quadGeo, m);
     this.photo.frustumCulled = false;
     this.aboveScene.add(this.photo);
@@ -119,7 +121,7 @@ export class View {
     const size = new THREE.Vector2(o.L + pad * 2, (o.type === 'flake' ? o.L : o.W) + pad * 2);
     const u = {
       uSize: { value: size }, uL: { value: o.L }, uW: { value: o.W }, uSeed: { value: o.seed }, uPx: { value: 1 },
-      uDim: { value: o.layer === 'above' ? 0.9 : 1 },
+      uDim: { value: o.layer === 'above' ? 0.45 : 1 },
       uCell: { value: o.cell || 100 }, uPitch: { value: o.pitch || 40 }, uStrands: { value: o.strands || 1 },
       uGirdle: { value: o.girdle || 0 }, uResidue: { value: o.residue ? 1 : 0 },
     };
