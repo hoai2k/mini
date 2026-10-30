@@ -17,6 +17,14 @@ export const ASSETS = {
     "file": "assets/cards/paramecium.webp",
     "status": "delivered"
   },
+  "MP-U05": {
+    "file": "assets/cards/springtail.webp",
+    "status": "requested"
+  },
+  "MP-U06": {
+    "file": "assets/cards/bacterium.webp",
+    "status": "requested"
+  },
   "MP-M01": {
     "file": "assets/mite/sem-moss-leaf.webp",
     "status": "delivered"
@@ -72,5 +80,105 @@ export const ASSETS = {
   "MP-P03": {
     "file": "assets/paramecium/pellicle.webp",
     "status": "delivered"
+  },
+  "MP-S01": {
+    "file": "assets/springtail/water-surface.webp",
+    "status": "requested"
+  },
+  "MP-S02": {
+    "file": "assets/springtail/sphagnum-lawn.webp",
+    "status": "requested"
+  },
+  "MP-S03": {
+    "file": "assets/springtail/bog-backdrop.webp",
+    "status": "requested"
+  },
+  "MP-S04": {
+    "file": "assets/springtail/sundew-leaf.png",
+    "status": "requested"
+  },
+  "MP-S05": {
+    "file": "assets/springtail/ripples.png",
+    "status": "requested"
+  },
+  "MP-B01": {
+    "file": "assets/bacterium/sediment-phase.webp",
+    "status": "requested"
+  },
+  "MP-B02": {
+    "file": "assets/bacterium/biofilm.webp",
+    "status": "requested"
+  },
+  "MP-B03": {
+    "file": "assets/bacterium/grazer-mouth.webp",
+    "status": "requested"
+  },
+  "MP-B04": {
+    "file": "assets/bacterium/magnetosomes.webp",
+    "status": "requested"
+  },
+  "MP-R01": {
+    "file": "assets/reference-sheets/springtail.webp",
+    "status": "requested"
+  },
+  "MP-R02": {
+    "file": "assets/reference-sheets/stenus.webp",
+    "status": "requested"
+  },
+  "MP-R03": {
+    "file": "assets/reference-sheets/water-strider.webp",
+    "status": "requested"
+  },
+  "MP-R04": {
+    "file": "assets/reference-sheets/predatory-mite.webp",
+    "status": "requested"
+  },
+  "MP-R05": {
+    "file": "assets/reference-sheets/milnesium.webp",
+    "status": "requested"
+  },
+  "MP-R06": {
+    "file": "assets/reference-sheets/didinium.webp",
+    "status": "requested"
+  },
+  "MP-R07": {
+    "file": "assets/reference-sheets/paramecium-bursaria.webp",
+    "status": "requested"
+  },
+  "MP-R08": {
+    "file": "assets/reference-sheets/peranema.webp",
+    "status": "requested"
+  },
+  "MP-R09": {
+    "file": "assets/reference-sheets/actinophrys.webp",
+    "status": "requested"
+  },
+  "MP-R10": {
+    "file": "assets/reference-sheets/magnetotactic.webp",
+    "status": "requested"
+  },
+  "MP-R11": {
+    "file": "assets/reference-sheets/bdellovibrio.webp",
+    "status": "requested"
+  },
+  "MP-R12": {
+    "file": "assets/reference-sheets/phage-t4.webp",
+    "status": "requested"
+  },
+  "MP-E01": {
+    "file": "assets/concepts/bog-surface.webp",
+    "status": "requested"
+  },
+  "MP-E02": {
+    "file": "assets/concepts/periphyton.webp",
+    "status": "requested"
+  },
+  "MP-E03": {
+    "file": "assets/concepts/bacterial-sediment.webp",
+    "status": "requested"
+  },
+  "MP-E04": {
+    "file": "assets/concepts/phage-level.webp",
+    "status": "requested"
   }
 };
