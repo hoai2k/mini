@@ -2,7 +2,7 @@ import { walkPose } from '../walking.js';
 // Prologue drawing: the delivered sets (betrothal-court, rampart-strip,
 // armoury) and the cast's cut-outs, staged as a toy theatre. Draw only from
 // state and t.
-import { FLOOR, ARM_FLOOR, FAIRIES, AZURINE_X, RAMPART, rampartFloor, ARMS, T, GIFTS, sceneOf } from './prologue.js';
+import { FLOOR, ARM_FLOOR, FAIRIES, AZURINE_X, RAMPART, rampartFloor, ARMS, AURORA, WIGGLES, T, sceneOf } from './prologue.js';
 import { card } from './tableau.js';
 import { clamp, easeOut, easeInOut } from './shared.js';
 import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
@@ -19,7 +19,13 @@ const GIFT_IN_HAND = {
 const PRINCE = { w: 137, h: 225 };
 // A present held up to the audience as he takes it: it rises from where it
 // was to the middle of the stage, grows, holds, then settles where it goes.
-const SHOW = { rise: 0.45, hold: 1.25, settle: 1.75, x: 640, y: 330, size: 250 };
+// Where he would be behind it, it goes up to one side of him instead (CLEAR
+// apart, centre to centre), on the side with more room.
+const SHOW = { rise: 0.45, hold: 1.25, settle: 1.75, x: 640, y: 330, size: 250, clear: 230, aside: 330 };
+// What the curtains leave of the stage, stage px.
+const OPEN = { x0: 170, x1: 1100 };
+// His arms, once shown, ride above his head as badges until all three are his.
+const BADGE = { size: 50, gap: 66, up: 262, r: 31 };
 const shown = [];                         // { st, kind: 'gift'|'arm', id, x, by, size, t0, slot }
 const giftAt = {};                        // where each held gift was last drawn, stage px
 const LABELS = { gold: 'Gold!', flower: 'The flower!', ring: 'The ring!', crown: 'The crown!', helmet: 'The helmet!', shield: 'The shield!', sword: 'The enchanted sword!' };        // the prince (220 x 360 art)
@@ -29,10 +35,9 @@ const CAPTIONS = {
   curse: ['The Uninvited', 'The witch curses the betrothal'],
   rampart: ['The Abduction', 'Her demons carry Azurine off · run after the chariot'],
   escape: ['The Abduction', 'The chariot is gone into the night'],
-  bind: ['The Armoury', 'The witch binds the prince'],
+  bind: ['The Armoury', 'The witch binds the prince · struggle ← →'],
   free: ['The Arming', 'Aurora breaks the spell'],
-  armoury: ['The Arming', 'Take up your helmet, shield and the enchanted sword'],
-  knighted: ['The Arming', 'Out of the door at the right: to the sea'],
+  armoury: ['The Arming', 'Follow her: take up your helmet, shield and the enchanted sword'],
 };
 
 export function draw(k, st, t) {
@@ -42,14 +47,14 @@ export function draw(k, st, t) {
   else armouryScene(k, st, t);
   if (st.near) prompt(k, st, st.near);
   const cap = CAPTIONS[st.phase];
-  if (cap) card(k, cap[0], cap[1], Math.min(1, clamp((st.phaseT - 0.3) / 0.5, 0, 1), st.phase === 'court' || st.phase === 'rampart' || st.phase === 'armoury' ? clamp((4.5 - st.phaseT) / 0.6, 0, 1) : 1));
+  if (cap) card(k, cap[0], cap[1], Math.min(1, clamp((st.phaseT - 0.3) / 0.5, 0, 1), ['court', 'rampart', 'armoury', 'bind'].includes(st.phase) ? clamp((4.5 - st.phaseT) / 0.6, 0, 1) : 1));
   skipHint(k, st);
   if (st.fade > 0) k.wash('#000000', st.fade);
 }
 
 export function drawOver(k, st) {
-  if (st.phase === 'iris') k.iris(1180, 460, 820 * (1 - easeInOut(st.phaseT / T.iris)));
-  if (st.status === 'won') k.iris(1180, 460, 0);
+  if (st.phase === 'iris') k.iris(120, 460, 820 * (1 - easeInOut(st.phaseT / T.iris)));
+  if (st.status === 'won') k.iris(120, 460, 0);
 }
 
 export function onEvent(k, e, st) {
@@ -70,13 +75,19 @@ export function onEvent(k, e, st) {
   if (e.type === 'scene' && e.phase === 'curse') { k.flash(0.6); k.shake(0.4); k.burst(220, FLOOR - 150, '#5f3a6a', 30, 'smoke'); }
   if (e.type === 'fireLand') k.burst(e.x - cx, rampartFloor(e.x) - 10, '#e9a46a', 14, 'streak');
   if (e.type === 'scorched') { k.flash(0.2); k.burst(e.x - cx, rampartFloor(e.x) - 60, '#c8321e', 10, 'streak'); }
-  if (e.type === 'scene' && e.phase === 'free') { k.flash(0.5); k.burst(st?.p.x ?? 420, ARM_FLOOR - 120, '#fff2b0', 34, 'sparkle'); }
+  // each pull strains the witch's cords: they flare and fray
+  if (e.type === 'strain') { k.shake(0.06 + 0.03 * e.n); k.burst(e.x + (e.n % 2 ? -26 : 26), ARM_FLOOR - 110 - 12 * e.n, '#5fd0c0', 6 + 3 * e.n, 'streak'); }
+  if (e.type === 'unbound') { k.flash(0.5); k.burst(e.x, ARM_FLOOR - 120, '#fff2b0', 34, 'sparkle'); k.burst(e.x, ARM_FLOOR - 110, '#5fd0c0', 18, 'streak'); }
   if (e.type === 'arm' && st) {
     const size = e.arm === 'sword' ? 90 : 84;
     k.burst(e.x, ARM_FLOOR + 2 - size / 2, '#fff2b0', 20, 'sparkle');
-    show(st, 'arm', e.arm, { x: e.x, by: ARM_FLOOR + 2, size }, e.t ?? st.t, -1);
+    show(st, 'arm', e.arm, { x: e.x, by: ARM_FLOOR + 2, size }, e.t ?? st.t, (e.n ?? st.arms.length) - 1);
   }
-  if (e.type === 'knighted') { k.flash(0.6); k.burst(st?.p.x ?? 900, ARM_FLOOR - 120, '#fff2b0', 40, 'sparkle'); }
+  if (e.type === 'armed') {
+    const x = st?.p.x ?? e.x;
+    k.flash(0.9); k.shake(0.25);
+    k.burst(x, ARM_FLOOR - 130, '#ffffff', 40, 'sparkle'); k.burst(x, ARM_FLOOR - 110, '#fff2b0', 50, 'sparkle'); k.burst(x, ARM_FLOOR - 60, '#e9c46a', 24, 'streak');
+  }
 }
 
 // ---------------------------------------------------------------- the court
@@ -183,32 +194,164 @@ function armouryScene(k, st, t) {
   if (!k.asset('armoury', 640, 720, 1280, 720)) { c.fillStyle = k.col('#30283a'); c.fillRect(0, 0, 1280, 720); }
   const ph = st.phase;
   if (ph === 'bind') {
-    const a = clamp(st.phaseT / 0.5, 0, 1);
-    c.save(); c.globalAlpha = a; figure(k, 'witch-cloud', 820, ARM_FLOOR + 30, t, 0.9, 1); c.restore();
+    // the witch rises in her cloud, binds him and is gone
+    const a = clamp(st.phaseT / 0.5, 0, 1) * clamp((T.bind + 0.5 - st.phaseT) / 0.5, 0, 1);
+    if (a > 0) { c.save(); c.globalAlpha = a; figure(k, 'witch-cloud', 885, ARM_FLOOR + 30, t, 0.9, -1); c.restore(); }
   }
-  if (ph === 'free' || ph === 'armoury' || ph === 'knighted' || ph === 'iris') {
-    const a = ph === 'free' ? clamp(st.phaseT / 0.6, 0, 1) : 1;
-    c.save(); c.globalAlpha = a; figure(k, ph === 'free' ? 'aurora-point' : 'aurora-stand', 200, ARM_FLOOR + 4, t, 1, -1); c.restore();
-  }
-  prince(k, st, t);
-  // the arms on the flagstones, in front of him as he comes to take them
+  aurora(k, st, t);
+  // the arms on the flagstones, in his way as he follows her
   for (const a of ARMS) {
     if (st.arms.includes(a.id)) continue;
     c.save(); c.globalAlpha = 0.35 + 0.15 * Math.sin(t * 3 + a.x); c.fillStyle = k.col('#fff2b0'); k.circle(a.x, ARM_FLOOR - 40, 46); c.restore();
     arm(k, a.id, a.x, ARM_FLOOR + 2, t);
   }
+  if (ph === 'knighted') transformation(k, st, t, false);
+  prince(k, st, t);
+  if (ph === 'knighted') transformation(k, st, t, true);
+  badges(k, st, t);
   drawShown(k, st, t);
   // the witch's cords about him until Aurora breaks them
-  if (ph === 'bind' || (ph === 'free' && st.phaseT < 0.9)) cords(k, st, t, ph === 'free' ? 1 - st.phaseT / 0.9 : clamp((st.phaseT - 0.4) / 0.4, 0, 1));
+  if (ph === 'bind') cords(k, st, t, clamp((st.phaseT - 0.4) / 0.4, 0, 1));
+  if (ph === 'free' && st.phaseT < T.cast) cords(k, st, t, 1);
 }
 
+// Aurora: off at first; she glides on from the stairs at the left, casts
+// across the room at him, then turns and glides off the way he must go. A
+// fairy, she floats a little above the flagstones, trailing sparkle.
+function aurora(k, st, t) {
+  const c = k.c, ph = st.phase;
+  let x, face, id = 'aurora-stand', u;
+  if (ph === 'free') {
+    u = clamp(st.phaseT / T.on, 0, 1);
+    x = AURORA.from + (AURORA.at - AURORA.from) * easeOut(u); face = -1;
+    if (st.phaseT >= T.on - 0.15) id = 'aurora-point';
+  } else if (ph === 'armoury' && st.phaseT < T.off + 0.4) {
+    u = clamp((st.phaseT - 0.4) / T.off, 0, 1);
+    x = AURORA.at + (AURORA.to - AURORA.at) * easeInOut(u); face = u > 0 ? 1 : -1;
+  } else return;
+  const lift = 14 + Math.sin(t * 2.4) * 5;
+  const gliding = (ph === 'free' && st.phaseT < T.on) || (ph === 'armoury' && u > 0 && u < 1);
+  if (gliding) {
+    c.save();
+    for (let i = 0; i < 9; i++) {
+      const tx = x - (face === -1 ? 1 : -1) * (20 + i * 16), ty = ARM_FLOOR - 60 - lift - Math.sin(t * 9 + i) * 18 - i * 3;
+      c.globalAlpha = 0.7 * (1 - i / 9); c.fillStyle = k.col(i % 2 ? '#fff2b0' : '#bfe8ff'); k.circle(tx, ty, 4 - i * 0.3);
+    }
+    c.restore();
+  }
+  // her spell: a ribbon of sparkle from her hand across the room to him
+  if (ph === 'free' && st.phaseT > T.on && st.phaseT < T.cast + 0.15) {
+    const hx = x + 52, hy = ARM_FLOOR - 170 - lift, px = st.p.x, py = st.p.y - 120;
+    const g = clamp((st.phaseT - T.on) / (T.cast - T.on), 0, 1);
+    const at = (f) => [hx + (px - hx) * f, hy + (py - hy) * f - Math.sin(f * Math.PI) * 50 + Math.sin(t * 14 + f * 18) * 7];
+    c.save();
+    c.lineCap = 'round';
+    for (const [w, col, al] of [[16, 'rgba(255,242,176,1)', 0.25], [5, 'rgba(255,255,255,1)', 0.7]]) {
+      c.globalAlpha = al; c.strokeStyle = col; c.lineWidth = w; c.beginPath();
+      for (let i = 0; i <= 28 * g; i++) { const [wx, wy] = at(i / 28); i ? c.lineTo(wx, wy) : c.moveTo(wx, wy); }
+      c.stroke();
+    }
+    for (let i = 0; i <= 28 * g; i++) {
+      const [wx, wy] = at(i / 28);
+      c.globalAlpha = 0.5 + 0.5 * Math.sin(t * 20 + i); c.fillStyle = k.col(i % 3 ? '#fff2b0' : '#ffffff'); k.circle(wx, wy + Math.sin(t * 11 + i) * 6, 4.5);
+    }
+    c.restore();
+  }
+  figure(k, id, x, ARM_FLOOR + 4 - lift, t, 1, face);
+}
+
+// His arms as badges above his head, each where its show settled; drawn
+// into him as he is transformed.
+function badges(k, st, t) {
+  if (st.armed || sceneOf(st.phase) !== 2) return;
+  const c = k.c;
+  st.arms.forEach((id, i) => {
+    if (showing(st, id)) return;
+    let { x, by } = badgeAt(st, i, t), size = BADGE.size, a = 1;
+    if (st.phase === 'knighted') {
+      // spiralling in to his heart
+      const u = clamp((st.phaseT - T.badge) / 1.1, 0, 1), e = easeInOut(u);
+      const cx = st.p.x, cy = st.p.y - 120, ang = e * Math.PI * 2.5 + i * 2.1, r = (1 - e) * 60;
+      x = x + (cx - x) * e + Math.cos(ang) * r; by = by + (cy + size / 2 - by) * e + Math.sin(ang) * r * 0.5;
+      size *= 1 - 0.6 * e; a = 1 - clamp((u - 0.85) / 0.15, 0, 1);
+    }
+    if (a <= 0) return;
+    c.save(); c.globalAlpha = a;
+    // a medallion: a gilt rim about a dark ground, so it reads on the busy set
+    const r = BADGE.r * size / BADGE.size, cy = by - size / 2;
+    const g = c.createRadialGradient(x, cy, r * 0.8, x, cy, r * 1.7);
+    g.addColorStop(0, 'rgba(255,242,176,0.55)'); g.addColorStop(1, 'rgba(255,242,176,0)');
+    c.fillStyle = g; c.fillRect(x - r * 1.7, cy - r * 1.7, r * 3.4, r * 3.4);
+    c.fillStyle = k.col('#2a1424'); k.circle(x, cy, r);
+    c.lineWidth = 3; c.strokeStyle = k.col('#e9c46a'); c.beginPath(); c.arc(x, cy, r, 0, Math.PI * 2); c.stroke();
+    c.beginPath(); c.rect(x - r, cy - r, r * 2, r * 2); c.save(); c.beginPath(); c.arc(x, cy, r - 2, 0, Math.PI * 2); c.clip();
+    armShown(k, id, x, by - size * 0.06, size * 0.9, t);
+    c.restore();
+    c.restore();
+  });
+}
+function badgeAt(st, i, t) {
+  return { x: st.p.x + (i - 1) * BADGE.gap, by: st.p.y - BADGE.up - (i === 1 ? 10 : 0) + Math.sin(t * 3 + i * 1.7) * 3 };
+}
+
+// The transformation: the room dims, a column of light rises about him with a
+// ring of sparkle closing in, and at its height (T.armed) a flash leaves him
+// armoured, kneeling, before he stands. `front`: the parts drawn over him.
+function transformation(k, st, t, front) {
+  const c = k.c, p = st.p, tt = st.phaseT - T.badge, end = T.risen - T.badge;
+  if (tt < 0 || tt > end) return;
+  const peak = T.armed - T.badge;
+  const up = clamp((tt - 0.5) / (peak - 0.5), 0, 1), down = clamp((tt - peak) / (end - peak), 0, 1);
+  const glow = tt < peak ? easeInOut(up) : 1 - easeOut(down);
+  if (glow <= 0) return;
+  c.save();
+  if (!front) {
+    c.globalAlpha = 0.45 * glow; c.fillStyle = '#05030a'; c.fillRect(0, 0, 1280, 720);
+    // the column of light
+    const w = 70 + 90 * glow, g = c.createLinearGradient(p.x - w, 0, p.x + w, 0);
+    g.addColorStop(0, 'rgba(255,242,176,0)'); g.addColorStop(0.5, 'rgba(255,248,220,0.85)'); g.addColorStop(1, 'rgba(255,242,176,0)');
+    c.globalAlpha = glow; c.fillStyle = g; c.fillRect(p.x - w, 0, w * 2, p.y + 10);
+    const h = c.createRadialGradient(p.x, p.y - 120, 10, p.x, p.y - 120, 220);
+    h.addColorStop(0, 'rgba(255,255,255,0.9)'); h.addColorStop(1, 'rgba(255,242,176,0)');
+    c.globalAlpha = glow * 0.8; c.fillStyle = h; c.fillRect(p.x - 220, p.y - 340, 440, 440);
+    // a ring of light on the flagstones about his feet
+    c.globalAlpha = glow; c.strokeStyle = 'rgba(255,242,176,0.9)'; c.lineWidth = 4;
+    for (let i = 0; i < 2; i++) { c.beginPath(); c.ellipse(p.x, p.y, (90 + 30 * i) * (0.6 + 0.4 * glow), (18 + 6 * i) * (0.6 + 0.4 * glow), 0, 0, Math.PI * 2); c.stroke(); }
+  } else {
+    // a ring of sparkle closing about him, and motes rising
+    for (let i = 0; i < 26; i++) {
+      const ang = i / 26 * Math.PI * 2 + t * 4, r = 150 - 80 * up + 40 * down;
+      const y = p.y - 30 - ((t * 140 + i * 37) % 260);
+      c.globalAlpha = glow * (0.6 + 0.4 * Math.sin(t * 13 + i));
+      c.fillStyle = k.col(i % 3 ? '#fff2b0' : '#ffffff');
+      k.circle(p.x + Math.cos(ang) * r, y, 3 + 2 * glow);
+      k.circle(p.x + Math.cos(ang + 1) * r * 0.55, p.y - 120 + Math.sin(ang) * r * 0.35, 2.5);
+    }
+    // the white of the moment itself
+    const f = clamp(1 - Math.abs(tt - peak) / 0.25, 0, 1);
+    if (f > 0) { c.globalAlpha = f * 0.85; c.fillStyle = '#fffaf0'; c.fillRect(0, 0, 1280, 720); }
+  }
+  c.restore();
+}
+
+// The witch's spell about him: drawn cords where the bound art is missing,
+// and over either a teal shimmer that flares as he strains against it.
 function cords(k, st, t, a) {
-  if (a <= 0 || k.img('prince-bound')) return;
-  const c = k.c, p = st.p;
-  c.save(); c.globalAlpha = a; c.strokeStyle = k.col('#5fd0c0'); c.lineWidth = 4;
+  if (a <= 0) return;
+  const c = k.c, p = st.p, s = st.struggle, tilt = s.tilt;
+  const strain = s.n / WIGGLES, flare = Math.abs(tilt) / 0.16;
+  c.save(); c.translate(p.x, p.y); c.rotate(tilt); c.globalAlpha = a; c.strokeStyle = k.col('#5fd0c0');
   for (let i = 0; i < 4; i++) {
-    const y = p.y - 70 - i * 30 + Math.sin(t * 6 + i) * 3;
-    c.beginPath(); c.ellipse(p.x, y, 40, 10, 0.1 * Math.sin(t * 3 + i), 0, Math.PI * 2); c.stroke();
+    const y = -70 - i * 30 + Math.sin(t * 6 + i) * 3;
+    const real = !k.img('prince-bound');
+    c.lineWidth = real ? 4 : 2 + 2 * flare;
+    c.globalAlpha = a * (real ? 1 : 0.25 + 0.5 * flare + 0.2 * Math.sin(t * 9 + i));
+    c.beginPath(); c.ellipse(0, y, 40 + 6 * flare, 10, 0.1 * Math.sin(t * 3 + i), 0, Math.PI * 2); c.stroke();
+    // the cords fray as he strains: little gaps that open with each pull
+    if (strain > 0 && flare > 0.3) {
+      c.globalAlpha = a * flare; c.fillStyle = k.col('#e8fff9');
+      k.circle(Math.cos(t * 5 + i * 2) * 40, y + Math.sin(t * 5 + i * 2) * 10, 2 + 3 * strain);
+    }
   }
   c.restore();
 }
@@ -225,18 +368,21 @@ function figure(k, id, x, by, t, s = 1, face = 1, over = null, onlyOver = false)
 
 // The prince: in court dress until he takes up his arms, then in armour.
 function prince(k, st, t, cx = 0) {
-  const c = k.c, p = st.p, armed = st.arms.length === ARMS.length && sceneOf(st.phase) === 2;
+  const c = k.c, p = st.p, armed = st.armed && sceneOf(st.phase) === 2;
   const moving = Math.abs(p.vx) > 20, step = walkPose(p.walk, 34);
   if ((p.knockT > 0 || st.grace > 0) && Math.floor(t * 16) % 2) c.globalAlpha = 0.5;
   // his poses (F20): in court dress he leaps the fires, is knocked back by
   // them, and reaches out as he takes a gift; armed, he kneels to be knighted
   const justTook = shown.some((o) => o.st === st && o.kind === 'gift' && st.t - o.t0 >= 0 && st.t - o.t0 < 0.55);
-  const pose = armed ? (st.phase === 'knighted' && st.phaseT < 1.4 && !moving ? 'prince-kneel' : null)
+  const pose = armed ? (st.phase === 'knighted' && st.phaseT < T.risen && !moving ? 'prince-kneel' : null)
     : st.defeatT != null || p.knockT > 0 ? 'prince-court-fall' : !p.on ? 'prince-court-leap' : justTook && !moving ? 'prince-court-reach' : null;
   if (pose && st.phase !== 'bind' && drawPose(k, pose, p.x - cx, p.y, PRINCE.h, { face: p.face })) { c.globalAlpha = 1; return; }
-  c.save(); c.translate(p.x - cx, p.y); c.scale(p.face, 1);
+  c.save(); c.translate(p.x - cx, p.y);
+  // bound, he wrenches this way and that against the cords
+  if (st.phase === 'bind') c.translate(Math.sin(t * 40) * 3 * Math.abs(st.struggle.tilt) / 0.16, 0), c.rotate(st.struggle.tilt);
+  c.scale(p.face, 1);
   let id;
-  if (st.phase === 'bind' && k.img('prince-bound')) id = 'prince-bound';
+  if ((st.phase === 'bind' || (st.phase === 'free' && st.phaseT < T.cast)) && k.img('prince-bound')) id = 'prince-bound';
   else if (armed) id = !p.on ? 'prince-leap' : moving ? 'prince-' + step : 'prince-stand';
   else id = moving && k.img('prince-court-walk-a') ? 'prince-court-' + step : 'prince-court';
   // without walk frames, the court-dress still rocks as a puppet on its slide
@@ -254,8 +400,16 @@ function show(st, kind, id, at, t0, slot) {
 }
 const showing = (st, id) => shown.some((s) => s.st === st && s.id === id && st.t - s.t0 >= 0 && st.t - s.t0 < SHOW.settle);
 
-// Each present being shown: up to the middle, big, with its name beneath,
-// then down to Azurine's feet (a gift) or onto the prince (his arms).
+// Where a present is held up: the middle, unless he stands where it would
+// cover him; then to one side of him, the side with more room.
+export function showX(px) {
+  if (Math.abs(px - SHOW.x) >= SHOW.clear) return SHOW.x;
+  const half = SHOW.size / 2 + 20;
+  return clamp(px >= SHOW.x ? px - SHOW.aside : px + SHOW.aside, OPEN.x0 + half, OPEN.x1 - half);
+}
+
+// Each present being shown: up, big, with its name beneath, then down to
+// Azurine's feet (a gift) or to its badge above the prince (his arms).
 function drawShown(k, st, t) {
   const c = k.c;
   for (const s of shown) {
@@ -263,12 +417,18 @@ function drawShown(k, st, t) {
     if (s.st !== st || age < 0 || age >= SHOW.settle) continue;
     const end = s.kind === 'gift'
       ? { x: AZURINE_X - 120 + s.slot * 42, by: FLOOR + 4, size: 96 * 0.55 }
-      : { x: st.p.x, by: st.p.y - 70, size: 40 };
-    const mid = { x: SHOW.x, by: SHOW.y + SHOW.size / 2, size: SHOW.size };
+      : { ...badgeAt(st, s.slot, t), size: BADGE.size };
+    // up to the middle, or beside him where he would be behind it; it eases
+    // across if he walks under it while it is held up
+    const want = showX(st.p.x);
+    if (s.cx == null) s.cx = want;
+    s.cx += (want - s.cx) * (1 - Math.exp(-6 * Math.max(0, st.t - (s.seen ?? st.t))));
+    s.seen = st.t;
+    const mid = { x: s.cx, by: SHOW.y + SHOW.size / 2, size: SHOW.size };
     let a = 1, from = s, to = mid, u;
     if (age < SHOW.rise) u = easeOut(age / SHOW.rise);
     else if (age < SHOW.hold) u = 1;
-    else { from = mid; to = end; u = easeInOut((age - SHOW.hold) / (SHOW.settle - SHOW.hold)); if (s.kind === 'arm') a = 1 - u * u; }
+    else { from = mid; to = end; u = easeInOut((age - SHOW.hold) / (SHOW.settle - SHOW.hold)); }
     const x = from.x + (to.x - from.x) * u, by = from.by + (to.by - from.by) * u, size = from.size + (to.size - from.size) * u;
     const big = age < SHOW.hold ? u : 1 - u;   // how far up and grown it is
     c.save();
