@@ -19,7 +19,7 @@
 //   amoeba-sdfgrid.js: call body.grid.build(body.x, body.y, N) after stepping),
 //   body.cupAround(px, py, reach) / cupContains / seal(cup): food-cup detection and closure,
 //   body.collideCircle(cx, cy, r, share, out), body.blast(x, y, radius, amount).
-//   body.opts: { area, rearWeight, selfContact, idlePods } switches (all true by default).
+//   body.opts: { area, rearWeight, selfContact, idlePods, adhesion } switches (all true by default).
 import { SdfGrid } from './amoeba-sdfgrid.js';
 
 const TAU = Math.PI * 2;
@@ -99,7 +99,7 @@ export class Body {
     this.spread = 0;
     this.time = 0;
     this.contact = 0; // how much of the membrane pushed against something this step
-    this.opts = { area: true, rearWeight: true, selfContact: true, idlePods: true };
+    this.opts = { area: true, rearWeight: true, selfContact: true, idlePods: true, adhesion: true };
   }
 
   get area() { return polygonArea(this.x, this.y, N); }
@@ -206,7 +206,7 @@ export class Body {
 
     // -- protrusion -------------------------------------------------------------
     const req = this.req;
-    let fx = 0, fy = 0;
+    let fx = 0, fy = 0, drive = 0;
     for (const pod of pl) {
       pod.s += (pod.target - pod.s) * Math.min(1, dt * (pod.target > pod.s ? 2.2 : 1.4));
       if (pod.s > 0.01) {
@@ -221,6 +221,7 @@ export class Body {
         pod.tip = best;
         const reach = (x[best] - this.cx) * pod.dx + (y[best] - this.cy) * pod.dy;
         const lim = clamp(1 - (reach - (req * 1.2 + 140)) / 90, 0, 1);
+        drive += pod.s * (1 - lim) * (pod.idle ? 0.3 : 1);
         const v = (P.vPro + (pod.idle ? 0 : P.vBoost * (input.push || 0))) * pod.s * lim * (pod.idle ? 0.7 : 1);
         // A blunt cap of fixed width: membrane within the cap radius of the tip,
         // facing the aimed direction, advances (flat-topped, so the pseudopod
@@ -268,8 +269,9 @@ export class Body {
 
     // The rear cortex contracts while the cell protrudes, squeezing endoplasm
     // forward (posterior contraction); the area projection sends it to the tips.
-    if (fm > 0.05 && this.opts.rearWeight) {
-      const ux = fx / fm, uy = fy / fm, k = P.vRear * Math.min(1, fm);
+    // Only when a pseudopod is at full reach: then the cell body must follow.
+    if (fm > 0.05 && this.opts.rearWeight && drive > 0.02) {
+      const ux = fx / fm, uy = fy / fm, k = P.vRear * Math.min(1, drive);
       for (let i = 0; i < N; i++) {
         const rear = Math.max(0, -(nx[i] * ux + ny[i] * uy));
         const v = k * rear * rear * (1 - Math.min(1, G[i]));
@@ -313,7 +315,11 @@ export class Body {
       }
     }
 
-    for (let i = 0; i < N; i++) { x[i] += ddx[i]; y[i] += ddy[i]; }
+    // Substrate adhesion: membrane that is not protruding is held to the slide.
+    for (let i = 0; i < N; i++) {
+      const hold = this.opts.adhesion ? 0.45 + 0.55 * Math.min(1, G[i]) : 1;
+      x[i] += ddx[i] * hold; y[i] += ddy[i] * hold;
+    }
 
     // -- obstacles and self-contact -------------------------------------------
     this.contact = 0;
