@@ -5,7 +5,7 @@
 // back (and scrubbing it), the takes (rename, save as MP3, delete with undo)
 // and its settings. main.js passes in what it shares and uses what this returns.
 import { TEXT, setRich } from './text.js';
-import { audio, existingAudio, replaceAudio, audioWasAway, markStale, unlock, setSession, keepAwake } from './audio.js';
+import { audio, existingAudio, replaceAudio, useRate, audioWasAway, markStale, unlock, setSession, keepAwake } from './audio.js';
 import { playSamples, primeFromTap, outputSettled, setPlaybackVolume, setPlaybackRate } from './player.js';
 import { PLAY_RATES } from './settings.js';
 import { forPlayback, playbackLevel } from './loudness.js';
@@ -136,6 +136,7 @@ export function setupRecorder({ settings, persist, tuner, screen, routineRunning
     } catch (err) {
       recError = micError(err);
     }
+    if (checkMicRate()) return;
     if (recorder.micOpen) markStale('mic-open-recorder');
     showMicTip();
     showState();
@@ -228,7 +229,45 @@ export function setupRecorder({ settings, persist, tuner, screen, routineRunning
     } catch (err) {
       recError = micError(err);
     }
+    if (checkMicRate()) return;
     showState();
+  }
+
+  /*
+   * On an iPhone or iPad, a microphone running at another rate than the audio
+   * engine comes through broken up and slowed down (WebKit resamples it
+   * badly), and every take is recorded that way until the page is reloaded.
+   * The device can change its rate during a visit (playback and recording
+   * use the hardware differently, a Bluetooth device comes or goes), so each
+   * time the mic opens its rate is checked; if it isn't the engine's, the
+   * engine is replaced by one at the mic's rate and listening starts again
+   * on it. Twice at most in a row: a device that won't give that rate is
+   * left as it is (and the debug log says so).
+   */
+  let rateFixes = 0;
+  function checkMicRate() {
+    if (!recorder?.micOpen) return false;
+    if (!recorder.rateMismatch) { rateFixes = 0; return false; }
+    const mic = recorder.micRate();
+    const ctx = recorder.ctx.sampleRate;
+    if (!isWebKit() || rateFixes >= 2) {
+      dlog('mic-rate-mismatch', { mic, ctx, fixed: false, webkit: isWebKit(), tries: rateFixes });
+      return false;
+    }
+    rateFixes++;
+    dlog('mic-rate-mismatch', { mic, ctx, fixed: true, tries: rateFixes });
+    const tuning = recorder.state === 'tuning';
+    stopPlayback({ resume: false });
+    recorder.off();
+    useRate(mic);
+    replaceAudio('mic-rate');
+    // Outside a tap the new engine may not start: then the next tap starts it (Tap to restart).
+    setTimeout(() => {
+      if (existingAudio()?.state !== 'running' && listeningActive()) { needsTap = true; showState(); showTunerState(); }
+    }, 600);
+    if (tuning) startTuner();
+    else startRecorder();
+    return true;
   }
 
   /**
@@ -251,6 +290,7 @@ export function setupRecorder({ settings, persist, tuner, screen, routineRunning
     }
     reopening = true;
     recorder.reopen({ fresh: recoverTries > 1 })
+      .then(() => checkMicRate())
       .catch((err) => { recError = micError(err); tunerError = micError(err, true); recorder.off(); })
       .finally(() => { reopening = false; showState(); showTunerState(); });
   }
@@ -794,6 +834,7 @@ export function setupRecorder({ settings, persist, tuner, screen, routineRunning
       tunerError = micError(err, true);
     }
     tunerStarting = false;
+    if (checkMicRate()) return;
     if (recorder.micOpen) markStale('mic-open-tuner');
     showTunerState();
   }
