@@ -45,7 +45,7 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
 | Folder | What it is | Published at |
 | --- | --- | --- |
 | `hopper/` | Hopper the Grasshopper | https://hoai2k.github.io/mini/hopper/ |
-| `widowsbay/` | Widow's Bay | https://hoai2k.github.io/mini/widowsbay/ |
+| `kingdomofthefairies/` | Kingdom of the Fairies (includes the preserved Widow's Bay edition) | https://hoai2k.github.io/mini/kingdomofthefairies/ |
 | `bronzedrum/` | Bronze Drum | https://hoai2k.github.io/mini/bronzedrum/ |
 | `tankwars/` | Tank Wars | https://hoai2k.github.io/mini/tankwars/ |
 | `gliders/` | Gliders (Superflight-style gliding, 1–4 players split screen); in the prototype archive, behind the invite gate | https://hoai2k.github.io/mini/gliders/ |
@@ -171,7 +171,7 @@ and load the real file; stand-ins remain for tests.
 ## Intake
 
 Each game has its own drop box at `<game>/intake/` (`hopper/intake/`,
-`widowsbay/intake/`, `bronzedrum/intake/`, `chat/intake/`, `gliders/intake/`, `icecreamcone/intake/`, `onemonster/intake/`, `fibreart/intake/`, `percyjackson/intake/`, `aiching/intake/`, `eartrainer/intake/`, `musicpractice/intake/`, `bookzam/intake/`, `stocks/intake/`, `mp3player/intake/`, `imageannotator/intake/`, `meditation/intake/`, `micro/intake/`, `smoothcraft/intake/`). The user drops files there for
+`kingdomofthefairies/intake/`, `bronzedrum/intake/`, `chat/intake/`, `gliders/intake/`, `icecreamcone/intake/`, `onemonster/intake/`, `fibreart/intake/`, `percyjackson/intake/`, `aiching/intake/`, `eartrainer/intake/`, `musicpractice/intake/`, `bookzam/intake/`, `stocks/intake/`, `mp3player/intake/`, `imageannotator/intake/`, `meditation/intake/`, `micro/intake/`, `smoothcraft/intake/`). The user drops files there for
 integration: artwork, audio, models, exported data, notes from another agent.
 A file belongs to the game whose intake it was dropped in. If it plainly
 belongs to a different game, move it there; if that is unclear, ask.
