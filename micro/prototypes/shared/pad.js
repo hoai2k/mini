@@ -16,6 +16,8 @@
 // X E, Y R, LB Q, RB F, LT Z, RT X, View Tab, Menu Esc, LS click C,
 // RS click V, d-pad 1 2 3 4 (up, down, left, right).
 
+import { embed } from './embed.js';
+
 export const BTN = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, VIEW: 8, MENU: 9, LS: 10, RS: 11, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
 
 const KEYS = {
@@ -94,6 +96,9 @@ export function createPad(opts) {
       prev = now;
       now = new Array(17).fill(0);
       axes = [0, 0, 0, 0];
+      // A preloaded world renders its first frames while held. Ignore even
+      // connected controllers until the shell actually starts the world.
+      if (embed.active && embed.paused) return;
       if (gp) {
         gp.buttons.forEach((b, i) => { if (i < 17) now[i] = b.pressed ? Math.max(b.value, 0.5) : b.value; });
         axes = [gp.axes[0] || 0, gp.axes[1] || 0, gp.axes[2] || 0, gp.axes[3] || 0];
