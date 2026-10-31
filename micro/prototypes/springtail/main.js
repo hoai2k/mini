@@ -2,7 +2,10 @@
 // aquatica on a bog pool's surface film, seen through a macro lens.
 // Units: mm and seconds.
 import * as THREE from '../shared/vendor/three.module.min.js';
-import { createPad } from '../shared/pad.js';
+import { embed } from '../shared/embed.js';
+import { createPlayers } from '../shared/players.js';
+import { createSplitScreen } from '../shared/splitscreen.js';
+import { createLandmarks } from '../shared/landmark.js';
 import { mountHud } from '../shared/hud.js';
 import { createControls, hudControls, addInvertY } from '../shared/controls.js';
 import { createFeatures } from '../shared/features.js';
@@ -10,7 +13,8 @@ import { createAudio } from '../shared/audio.js';
 import { loadTexture } from '../shared/assets.js';
 import { createMacro, lens, macroShared, applyLook, MACRO_LOOKS } from '../shared/techniques/springtail-macro.js';
 import { RippleField, Dimples, waterMaterial, waterGeometry, peatFloorTexture } from '../shared/techniques/springtail-surface.js';
-import { buildWorld, inPool, poolE, mossTop, islandEdge, ISLANDS, POOL_GLSL, SHORE_GLSL, BANK_E } from './world.js';
+import { buildWorld, inPool, poolE, mossTop, islandEdge, ISLANDS, POOL_GLSL, SHORE_GLSL, BANK_E, LANDMARK } from './world.js';
+import { createLandmarkProps } from './landmarks.js';
 import { createSpringtail } from './springtail.js';
 import { createStenus, createStrider, createRain } from './enemies.js';
 import { createHunger, createCapture } from '../shared/predation.js';
@@ -43,11 +47,14 @@ scene.add(water);
 
 const world = buildWorld();
 scene.add(world.group);
-const tail = createSpringtail();
+let tail = createSpringtail();
 scene.add(tail.group);
+const tail0 = tail;
 const stenus = createStenus(scene);
 const strider = createStrider(scene);
 const rain = createRain(scene);
+const props = createLandmarkProps(world);
+scene.add(props.group);
 
 art('MP-S01').then((t) => { if (t) { waterMat.uniforms.uSurfTex.value = t; waterMat.uniforms.uHasSurfTex.value = 1; } });
 art('MP-S02').then((t) => t && world.setMossTex(t));
@@ -57,17 +64,39 @@ art('MP-S05', { repeat: false }).then((t) => t && rain.setSprite(t));
 
 // ---------------------------------------------------------------- player
 const START = { x: -8, z: 2 };
-const pl = {
+let pl = {
   x: START.x, z: START.z, y: 0, vx: 0, vz: 0, heading: Math.PI / 2, mode: 'film',
   charge: 0, charging: false, cock: 1, hunker: 0, eatT: 0, flipT: 0, roll: 0, pitch: 0, bend: 0, furc: 0,
   air: null, leaf: null, struggle: 0, deadT: 0, cause: '', walk: 0, lives: 3, food: 0, moved: 0, landPulse: 0, onIsland: false,
   scale: 1, sy: 1, flailK: 0,
 };
+// Local multiplayer (shared/players.js): every player is a springtail of
+// their own (this record is player 1's; others are made by makeRec). Code
+// that acts on "the" player uses `pl` and `tail`, which point at the record
+// being stepped (withRec), and at player 1 otherwise.
+const P1 = pl;
+Object.assign(P1, { slot: 0, tail, ring: null, color: '#d2a24c' });
+const pls = [P1];
+const recs = () => pls.filter(Boolean);
+const multi = () => recs().length > 1;
+const alive = (P) => P.mode !== 'dead' && P.mode !== 'caught';
+function withRec(P, fn) {
+  const sp = pl, st = tail;
+  pl = P; tail = P.tail;
+  try { return fn(); } finally { pl = sp; tail = st; }
+}
 const GOAL = 8;
 const game = { phase: 'title', t: 0, wonT: 0 };
 const opt = { righting: true, slow: true, uPose: true, menisci: 1, rumble: true, autofocus: true, jumpFocus: true, dropShadow: true };
 
-const pad = createPad();
+const joins = [];
+const players = createPlayers({
+  max: 4,
+  onJoin: (p) => { joins.push({ slot: p.slot, padIndex: p.padIndex }); syncPlayers(); hud.toast(`Player ${p.slot + 1} joined`); embed.join(p.slot, p.color, p.name); },
+  onLeave: (p) => { syncPlayers(); hud.toast(`Player ${p.slot + 1} left`); embed.leave(p.slot); },
+  onChange: (list) => hud && hud.players(list),
+});
+const pad = players.pad(0);
 const ctl = createControls(pad);
 const hud = mountHud({
   title: 'Springtail · macro',
@@ -126,6 +155,8 @@ function showCard(title, lines) {
   for (const l of lines) { const p = document.createElement('p'); p.innerHTML = l; card.firstElementChild.appendChild(p); }
   card.classList.remove('hide');
 }
+// In the Micro Zoom game the shell has already shown the intro and the controls.
+if (embed.active) card.classList.add('hide');
 
 // ---------------------------------------------------------------- camera rig and optics
 const ZOOMS = [1, 2, 3, 5];
@@ -163,13 +194,18 @@ function landingPoint() {
 function placeCamera(dt) {
   // while a predator has you, the lens widens (or closes in) to frame you and
   // it together, and swings side-on to the catch
-  const capOn = capture.active && cap.kind;
-  const hfwWant = capOn ? CAP_VIEW[cap.kind].hfw : 36 / ZOOMS[rig.zi];
+  const capOn = capture.active && cap.kind && !multi();
+  // several players: frame the group (the split screen takes over when they part)
+  const grp = recs().filter((P) => alive(P) && P.scale > 0.3);
+  const mp = multi() && grp.length > 0;
+  const gc = mp ? groupCentre(grp) : null;
+  const base = 36 / ZOOMS[rig.zi];
+  const hfwWant = capOn ? CAP_VIEW[cap.kind].hfw : mp ? base * (1 + Math.min(0.5, (gc.spread / base) * 0.6)) : base;
   rig.hfw = rig.hfw === undefined || !dt ? hfwWant : rig.hfw + (hfwWant - rig.hfw) * (1 - Math.exp(-dt * 3));
   const L = (rig.lens = lens({ hfw: rig.hfw, N: APERTURES[rig.ai] }));
-  const want = new THREE.Vector3(pl.x, pl.y + 0.25, pl.z);
+  const want = mp ? new THREE.Vector3(gc.x, gc.y + 0.25, gc.z) : new THREE.Vector3(pl.x, pl.y + 0.25, pl.z);
   // frame a little toward where a jump will land
-  const land = opt.jumpFocus && !capOn ? landingPoint() : null;
+  const land = opt.jumpFocus && !capOn && !mp ? landingPoint() : null;
   rig.aim = land;
   const frameAt = want.clone();
   let capSpan = 0;
@@ -185,9 +221,9 @@ function placeCamera(dt) {
     } else frameAt.set(cap.x0, cap.y0 + 0.3, cap.z0);
   }
   // in a leap, frame low enough that the shadow below stays in the picture
-  if (pl.mode === 'air') { const gy = groundAt(pl.x, pl.z).y; frameAt.y = gy + 0.25 + (pl.y - gy) * 0.35; }
+  if (pl.mode === 'air' && !mp) { const gy = groundAt(pl.x, pl.z).y; frameAt.y = gy + 0.25 + (pl.y - gy) * 0.35; }
   if (land) frameAt.lerp(new THREE.Vector3(land.x, land.y + 0.25, land.z), 0.3);
-  const k = dt ? 1 - Math.exp(-dt * (pl.mode === 'air' ? 3.5 : 6)) : 1;
+  const k = dt ? 1 - Math.exp(-dt * (pl.mode === 'air' && !mp ? 3.5 : 6)) : 1;
   rig.target.lerp(frameAt, k);
   rig.wantPitch = THREE.MathUtils.clamp(rig.wantPitch, PITCH_MIN, PITCH_MAX);
   const pitchWant = capOn ? CAP_VIEW[cap.kind].pitch : rig.wantPitch;
@@ -209,6 +245,12 @@ function placeCamera(dt) {
   let wantK = 1;
   // keep both the predator and you sharp
   if (capOn) { focusD = camera.position.distanceTo(frameAt); wantK = THREE.MathUtils.clamp((capSpan + 1.5) / L.dof, 1, 14); }
+  // a group in one view: deepen the focus (in effect) until every player is sharp
+  if (mp && !capOn) {
+    let far = 0;
+    for (const P of grp) far = Math.max(far, Math.abs(camera.position.distanceTo(_v.set(P.x, P.y + 0.25, P.z)) - focusD));
+    wantK = THREE.MathUtils.clamp((far + 0.6) / L.dof, 1, 14);
+  }
   if (opt.autofocus && land) {
     // focus between the springtail and its landing spot, and stop down (in
     // effect) until both lie inside the depth of field
@@ -222,10 +264,23 @@ function placeCamera(dt) {
   return L;
 }
 
-let renderScale = 1, dynRes = true, slowEma = 16, scaleT = 0;
+const _v = new THREE.Vector3();
+/** Centre (x, y, z) of a group of players and its spread (largest distance from the centre, mm). */
+function groupCentre(list) {
+  let x = 0, y = 0, z = 0;
+  for (const P of list) { x += P.x; y += P.y; z += P.z; }
+  x /= list.length; y /= list.length; z /= list.length;
+  let spread = 0;
+  for (const P of list) spread = Math.max(spread, Math.hypot(P.x - x, P.z - z));
+  return { x, y, z, spread };
+}
+
+// splitK: a split screen renders the macro chain once per view, so each view
+// renders at a lower resolution (the views are smaller anyway)
+let renderScale = 1, dynRes = true, slowEma = 16, scaleT = 0, splitK = 1;
 function resize() {
   const w = innerWidth, h = innerHeight;
-  renderer.setPixelRatio(DPR * renderScale);
+  renderer.setPixelRatio(DPR * renderScale * splitK);
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
@@ -271,16 +326,18 @@ function capBody() {
 function caught(kind) {
   if (capture.active || pl.mode === 'dead' || game.phase !== 'play') return;
   const P = pl;
-  P.lives--;
-  Object.assign(cap, { kind, x0: P.x, y0: P.y, z0: P.z, h0: P.heading, leaf: P.leaf, phase: null });
+  const solo = !multi();
+  if (solo) P.lives--;
+  Object.assign(cap, { kind, who: P, x0: P.x, y0: P.y, z0: P.z, h0: P.heading, leaf: P.leaf, phase: null });
   P.mode = 'caught'; P.air = null; P.charging = false; P.charge = 0; P.vx = P.vz = 0; P.hunker = 0; P.eatT = 0;
   if (kind !== 'sundew') { P.pitch = 0; P.roll = 0; P.bend = 0; }
   if (hunger[kind]) hunger[kind].fed();
   const t = CAP_TEXT[kind];
-  const left = P.lives > 0 ? `. ${P.lives} li${P.lives === 1 ? 'fe' : 'ves'} left` : `. No lives left (you ate ${P.food} clump${P.food === 1 ? '' : 's'}): A starts a new game`;
+  const left = !solo ? `. ${P === P1 ? 'You' : `Player ${P.slot + 1}`} will come back beside a teammate` : P.lives > 0 ? `. ${P.lives} li${P.lives === 1 ? 'fe' : 'ves'} left` : `. No lives left (you ate ${P.food} clump${P.food === 1 ? '' : 's'}): A starts a new game`;
   capture.start({ by: t.by, how: t.how + left });
-  hud.toast(t.phases.strike, 1500);
-  rumble(450, 0.8, 1);
+  hud.toast(solo ? t.phases.strike : `Player ${P.slot + 1}: ${t.phases.strike}`, 1500);
+  embed.captured({ by: kind, player: P.slot });
+  rumbleFor(P, 450, 0.8, 1);
 }
 /** Pose the springtail and its captor for the current phase. */
 function animateCapture(c, dt) {
@@ -392,7 +449,8 @@ F({ id: 'hunger', group: 'World', label: 'Predator hunger', choices: ['Comes and
 addInvertY(features);
 F({ id: 'camrel', group: 'Controls', label: 'Camera-relative walking and aiming', fixed: true, about: 'LS walks and aims relative to the view, in both camera modes.' });
 F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true, about: 'A kick when the furcula fires, a tap on landing, a thump for raindrops and being caught.', onChange: (v) => (opt.rumble = v) });
-const rumble = (ms, a, b) => opt.rumble && pad.rumble(ms, a, b);
+const rumbleFor = (P, ms, a, b) => opt.rumble && players.pad(P.slot || 0).rumble(ms, a, b);
+const rumble = (ms, a, b) => rumbleFor(pl, ms, a, b);
 
 // ---------------------------------------------------------------- gameplay
 const ripples = [];
@@ -437,14 +495,38 @@ function die(cause) {
   pl.mode = 'dead';
   pl.deadT = 0;
   pl.cause = cause;
-  pl.lives--;
-  rumble(450, 0.8, 1);
+  if (!multi()) pl.lives--;
+  rumbleFor(pl, 450, 0.8, 1);
   hud.toast(cause, 2400);
 }
 
+/** Put a springtail down, fresh, at (x, z). */
+function resetBody(P, x, z) {
+  P.x = x; P.z = z; P.vx = P.vz = 0; P.mode = 'film'; P.air = null; P.cock = 1; P.roll = 0; P.pitch = 0; P.charging = false; P.charge = 0;
+  P.bend = 0; P.furc = 0; P.leaf = null; P.struggle = 0; P.scale = 1; P.sy = 1; P.flailK = 0; P.heading = Math.PI / 2; P.hunker = 0; P.eatT = 0; P.deadT = 0;
+  const g = groundAt(x, z);
+  P.y = g.y; P.mode = modeFor(g.kind);
+}
+/** A free spot on the film about `r` mm from (x, z) (or moss when nothing else). */
+function spotNear(x, z, r = 3) {
+  for (let k = 0; k < 24; k++) {
+    const a = k * 2.39996, rr = r + k * 0.4;
+    const cx = x + Math.cos(a) * rr, cz = z + Math.sin(a) * rr;
+    if (poolE(cx, cz) < 0.97 && !world.sundews.leafAt(cx, 0.1, cz)) return { x: cx, z: cz };
+  }
+  return { x, z };
+}
+/** Multiplayer: a player who was eaten (or swamped) comes back beside a teammate. */
+function respawnNear(P) {
+  const mates = recs().filter((q) => q !== P && alive(q));
+  const m = mates.length ? mates[0] : null;
+  const at = m ? spotNear(m.x, m.z, 3) : spotNear(START.x, START.z, 0);
+  if (P.leaf) { P.leaf.target = null; P.leaf.grip = 0; P.leaf.close = 0; }
+  resetBody(P, at.x, at.z);
+  P.landPulse = 1;
+}
 function respawn() {
-  pl.x = START.x; pl.z = START.z; pl.vx = pl.vz = 0; pl.mode = 'film'; pl.air = null; pl.cock = 1; pl.roll = 0; pl.pitch = 0;
-  pl.bend = 0; pl.furc = 0; pl.leaf = null; pl.struggle = 0; pl.scale = 1; pl.sy = 1; pl.flailK = 0; pl.heading = Math.PI / 2;
+  resetBody(pl, START.x, START.z);
   for (const l of world.sundews.leaves) { l.target = null; l.grip = 0; l.close = 0; }
   capture.reset();
   cap.kind = null;
@@ -471,6 +553,8 @@ function placeThreatsAway() {
 function newGame() {
   pl.lives = 3; pl.food = 0;
   respawn();
+  // everyone else starts beside player 1
+  recs().forEach((P, i) => { if (P !== pl) { const at = spotNear(pl.x, pl.z, 2.5 + i); resetBody(P, at.x, at.z); P.food = 0; } });
   game.phase = 'play';
   card.classList.add('hide');
 }
@@ -511,7 +595,8 @@ function stepPlayer(dt, inp) {
   if (P.mode === 'dead') {
     P.deadT += dt;
     if (P.deadT > 2.4) {
-      if (P.lives > 0) respawn();
+      if (multi()) respawnNear(P);
+      else if (P.lives > 0) respawn();
       else { game.phase = 'over'; showCard('Eaten', [`${P.cause}.`, `You ate ${P.food} clump${P.food === 1 ? '' : 's'} of food.`, '<b>Press A to try again</b>']); }
     }
     return;
@@ -662,9 +747,9 @@ function stepPlayer(dt, inp) {
       }
     }
   }
-  if (game.phase === 'play' && P.food >= GOAL && onMoss) {
-    game.phase = 'won';
-    showCard('Level 0 complete', [`Fed and safe up on the Sphagnum, with ${P.lives} li${P.lives === 1 ? 'fe' : 'ves'} to spare.`, 'Next in the Zoom Chain: down into the moss.', '<b>Press A to play again</b>']);
+  if (game.phase === 'play' && P.food >= GOAL && onMoss && !P.fedSaid) {
+    P.fedSaid = true;
+    hud.toast('Fed and safe on the moss. The way on: the red capitula where the bank reaches into the pool', 3200);
   }
 }
 
@@ -678,49 +763,68 @@ function nearbyWater(x, z, r, eMax) {
   return null;
 }
 
+/** The player a predator at (x, z) goes for: the nearest one still free (player 1 when alone). */
+function preyFor(x, z) {
+  let best = null, bd = Infinity;
+  for (const q of recs()) {
+    if (!alive(q)) continue;
+    const d = Math.hypot(q.x - x, q.z - z);
+    if (d < bd) { bd = d; best = q; }
+  }
+  return best || pl;
+}
+function ctxOf(P) {
+  const live = alive(P) && game.phase === 'play';
+  return { x: P.x, y: P.mode === 'air' ? P.y : 0, z: P.z, vx: P.air ? P.air.vx : P.vx, vz: P.air ? P.air.vz : P.vz, airborne: P.mode === 'air', hunker: P.hunker > 0.5, moving: (P.moved > 0 && P.hunker < 0.5) || P.mode === 'air' || P.mode === 'stuck' || P.eatT > 0, alive: live };
+}
 function stepWorld(dt) {
   const P = pl;
-  const alive = P.mode !== 'dead' && P.mode !== 'caught' && game.phase === 'play';
+  const preyS = preyFor(stenus.st.x, stenus.st.z), preyR = preyFor(strider.st.x, strider.st.z);
+  const ctxS = ctxOf(preyS), ctxR = ctxOf(preyR);
   if (game.phase === 'play' && !capture.active) { hunger.stenus.update(dt); hunger.strider.update(dt); }
   rain.calm = hunger.stenus.state === 'grace' && hunger.strider.state === 'grace';
   // the beetle and the strider keep to the water near you, wherever you go
-  if (Math.hypot(stenus.st.x - P.x, stenus.st.z - P.z) > 70 && stenus.st.state === 'patrol') {
-    const c = nearbyWater(P.x, P.z, 32, 0.8);
+  if (Math.hypot(stenus.st.x - preyS.x, stenus.st.z - preyS.z) > 70 && stenus.st.state === 'patrol') {
+    const c = nearbyWater(preyS.x, preyS.z, 32, 0.8);
     if (c) stenus.relocate(c.x, c.z);
   }
-  if (Math.hypot(strider.st.x - P.x, strider.st.z - P.z) > 75 && strider.st.state === 'idle') {
-    const c = nearbyWater(P.x, P.z, 34, 0.85);
+  if (Math.hypot(strider.st.x - preyR.x, strider.st.z - preyR.z) > 75 && strider.st.state === 'idle') {
+    const c = nearbyWater(preyR.x, preyR.z, 34, 0.85);
     if (c) strider.relocate(c.x, c.z);
   }
   world.debris.update(dt, field, inPool);
-  const ctxP = { x: P.x, y: P.mode === 'air' ? P.y : 0, z: P.z, vx: P.air ? P.air.vx : P.vx, vz: P.air ? P.air.vz : P.vz, airborne: P.mode === 'air', hunker: P.hunker > 0.5, moving: (P.moved > 0 && P.hunker < 0.5) || P.mode === 'air' || P.mode === 'stuck' || P.eatT > 0, alive };
-  for (const e of stenus.update(dt, { player: ctxP, field, inPool, hungry: isHungry(hunger.stenus) })) {
-    if (e === 'caught' && alive) caught('stenus');
+  for (const e of stenus.update(dt, { player: ctxS, field, inPool, hungry: isHungry(hunger.stenus) })) {
+    if (e === 'caught' && ctxS.alive) withRec(preyS, () => caught('stenus'));
     if (e === 'miss' && hunger.stenus.hungry) hunger.stenus.missed();
-    if (e === 'spotted' && alive) audio.play('springtail/stenus-skim', { volume: 0.25, rate: 0.8 });
+    if (e === 'spotted' && ctxS.alive) audio.play('springtail/stenus-skim', { volume: 0.25, rate: 0.8 });
     if (e === 'skim') audio.play('springtail/stenus-skim', { volume: 0.7 });
     if (e === 'strike') audio.play('springtail/stenus-strike', { volume: 0.9 });
     if (e === 'skim') hud.toast('Stenus is skimming at you!', 1000);
-    if (e === 'windup' && alive) rumble(300, 0.15, 0); // the head dips: jump now
+    if (e === 'windup' && ctxS.alive) rumbleFor(preyS, 300, 0.15, 0); // the head dips: jump now
   }
-  for (const e of strider.update(dt, { player: ctxP, field, inPool, ripples, hungry: isHungry(hunger.strider) })) {
-    if (e === 'caught' && alive) caught('strider');
+  for (const e of strider.update(dt, { player: ctxR, field, inPool, ripples, hungry: isHungry(hunger.strider) })) {
+    if (e === 'caught' && ctxR.alive) withRec(preyR, () => caught('strider'));
     if (e === 'lost' && hunger.strider.hungry) hunger.strider.missed();
-    if (e === 'heard' && alive && strider.st.heardT !== true) { strider.st.heardT = true; hud.toast('A water strider felt your ripples: keep still and hunker (B)', 1800); setTimeout(() => (strider.st.heardT = false), 6000); }
+    // (timed on the simulation clock, so a paused game holds it too)
+    if (e === 'heard' && ctxR.alive && !(strider.st.heardUntil > simT)) { strider.st.heardUntil = simT + 6; hud.toast('A water strider felt your ripples: keep still and hunker (B)', 1800); }
   }
   ripples.length = 0;
-  for (const e of rain.update(dt, { field, inPool, mossAt: (x, z) => Math.max(0, mossTop(x, z)), player: ctxP })) {
-    const d = Math.hypot(e.x - P.x, e.z - P.z);
-    audio.play('springtail/raindrop', { volume: Math.max(0.12, Math.min(0.9, 4 / (d + 3))), rate: 0.92 + Math.random() * 0.16, pan: Math.max(-1, Math.min(1, (e.x - P.x) / 25)) });
-    if (d < 6) rumble(250, Math.min(1, 3 / d), Math.min(1, 2 / d));
-    if (!alive) continue;
-    if (d < e.r * 0.95 && P.mode !== 'air') die('Swamped by a raindrop');
-    else if (d < e.r * 3 && P.mode !== 'air' && P.mode !== 'stuck') {
-      // thrown out of the crater
-      const ax = P.x - e.x, az = P.z - e.z;
-      P.mode = 'film';
-      jump(ax, az, 0.35 * (1 - d / (e.r * 3)) + 0.15, { thrown: true });
-    }
+  const drops = rain.update(dt, { field, inPool, mossAt: (x, z) => Math.max(0, mossTop(x, z)), player: ctxS });
+  for (const e of drops) {
+    const d0 = Math.hypot(e.x - P.x, e.z - P.z);
+    audio.play('springtail/raindrop', { volume: Math.max(0.12, Math.min(0.9, 4 / (d0 + 3))), rate: 0.92 + Math.random() * 0.16, pan: Math.max(-1, Math.min(1, (e.x - P.x) / 25)) });
+    for (const Q of recs()) withRec(Q, () => {
+      const d = Math.hypot(e.x - Q.x, e.z - Q.z);
+      if (d < 6) rumble(250, Math.min(1, 3 / d), Math.min(1, 2 / d));
+      if (!alive(Q) || game.phase !== 'play') return;
+      if (d < e.r * 0.95 && Q.mode !== 'air') die('Swamped by a raindrop');
+      else if (d < e.r * 3 && Q.mode !== 'air' && Q.mode !== 'stuck') {
+        // thrown out of the crater
+        const ax = Q.x - e.x, az = Q.z - e.z;
+        Q.mode = 'film';
+        jump(ax, az, 0.35 * (1 - d / (e.r * 3)) + 0.15, { thrown: true });
+      }
+    });
   }
   world.sundews.update(dt);
   // food drifts on the film, shoved by the Marangoni flow
@@ -736,6 +840,13 @@ function stepWorld(dt) {
   field.step(dt);
 }
 
+/** The drop shadow (one at a time): straight down from this springtail onto whatever is below. */
+function setDrop(P) {
+  const drop = macroShared.uDrop.value;
+  if (!P || !opt.dropShadow || P.mode === 'dead' || P.mode === 'caught') { drop.set(0, -99, 0, 0); macroShared.uDropK.value = 0; }
+  else if (P.mode === 'air') { drop.set(P.x, P.y + 0.1, P.z, 0.62); macroShared.uDropK.value = 0.85; }
+  else { drop.set(P.x - Math.cos(P.heading) * 0.05, P.y + 0.06, P.z - Math.sin(P.heading) * 0.05, 0.62); macroShared.uDropK.value = 0.45; }
+}
 // pose the springtail model from the player state
 function poseTail(t) {
   const P = pl, p = tail.pose;
@@ -776,13 +887,19 @@ function poseTail(t) {
 
 function updateContacts() {
   dimples.clear();
-  const P = pl;
-  if ((P.mode === 'film' || P.mode === 'flipped') && inPool(P.x, P.z)) {
-    if (P.mode === 'film') for (const f of tail.feet()) dimples.add(f.x, f.z, 0.045, 0.03 + 0.02 * P.hunker);
-    const c = tail.collophore();
-    dimples.add(c.x, c.z, 0.06 + 0.06 * P.hunker, 0.012 + 0.05 * (P.hunker + P.landPulse));
-    if (P.hunker > 0.2 || P.mode === 'flipped') dimples.add(P.x, P.z, 0.22, 0.035 * Math.max(P.hunker, P.mode === 'flipped' ? 1 : 0));
+  for (const P of recs()) {
+    if ((P.mode === 'film' || P.mode === 'flipped') && inPool(P.x, P.z)) {
+      if (P.mode === 'film') for (const f of P.tail.feet()) dimples.add(f.x, f.z, 0.045, 0.03 + 0.02 * P.hunker);
+      const c = P.tail.collophore();
+      dimples.add(c.x, c.z, 0.06 + 0.06 * P.hunker, 0.012 + 0.05 * (P.hunker + P.landPulse));
+      if (P.hunker > 0.2 || P.mode === 'flipped') dimples.add(P.x, P.z, 0.22, 0.035 * Math.max(P.hunker, P.mode === 'flipped' ? 1 : 0));
+    }
   }
+  setDrop(pl);
+  // shadow casters
+  let n = 0;
+  const cast = (x, y, z, r, k) => { if (n < 8) { casters[n].set(x, y, z, r); casterK[n] = k; n++; } };
+  for (const P of recs()) if (P.mode !== 'dead' && P.scale > 0.3) cast(P.x, P.y + 0.25 * P.scale, P.z, 0.3 * P.scale, 0.55);
   for (const c of stenus.contacts()) dimples.add(...c);
   if (strider.group.visible) for (const c of strider.contacts()) dimples.add(...c);
   for (const c of world.food.clumps) {
@@ -790,15 +907,6 @@ function updateContacts() {
     if (Math.hypot(c.x - rig.target.x, c.z - rig.target.z) < 30) dimples.add(c.x, c.z, c.type.spread * 0.7, 0.012 * c.bites);
   }
   world.debris.contacts(rig.target, (x, z, r, d) => dimples.add(x, z, r, d));
-  // the drop shadow: straight down from the springtail onto whatever is below
-  const drop = macroShared.uDrop.value;
-  if (!opt.dropShadow || P.mode === 'dead' || P.mode === 'caught') { drop.set(0, -99, 0, 0); macroShared.uDropK.value = 0; }
-  else if (P.mode === 'air') { drop.set(P.x, P.y + 0.1, P.z, 0.62); macroShared.uDropK.value = 0.85; }
-  else { drop.set(P.x - Math.cos(P.heading) * 0.05, P.y + 0.06, P.z - Math.sin(P.heading) * 0.05, 0.62); macroShared.uDropK.value = 0.45; }
-  // shadow casters
-  let n = 0;
-  const cast = (x, y, z, r, k) => { if (n < 8) { casters[n].set(x, y, z, r); casterK[n] = k; n++; } };
-  if (P.mode !== 'dead' && P.scale > 0.3) cast(P.x, P.y + 0.25 * P.scale, P.z, 0.3 * P.scale, 0.55);
   if (stenus.group.visible) { const s = stenus.st; cast(s.x + Math.cos(s.a) * 1.2, 0.65, s.z + Math.sin(s.a) * 1.2, 0.55, 0.55); cast(s.x - Math.cos(s.a) * 1.2, 0.7, s.z - Math.sin(s.a) * 1.2, 0.45, 0.5); }
   if (strider.group.visible) { const s = strider.st; cast(s.x + Math.cos(s.a) * 1.8, 0.9, s.z + Math.sin(s.a) * 1.8, 0.6, 0.5); cast(s.x - Math.cos(s.a) * 1.6, 0.8, s.z - Math.sin(s.a) * 1.6, 0.5, 0.45); }
   for (const c of rain.casters()) cast(c[0], c[1], c[2], c[3], c[4]);

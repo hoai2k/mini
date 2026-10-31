@@ -79,8 +79,8 @@ at the right scale, and the hand-off cannot jump: the biofilm's cells are the
 texture the brightfield shows; the leaf whose cells the DIC resolves is the
 leaf the mite walked on; the previous protagonist stays in the new world as a
 giant neighbour (the springtail at the corner of the mite's field, the mite
-beside the tun, the tardigrade at the edge of the pool field), as the spec
-asks.
+beside the tun, the amoeba at the edge of the Paramecium's field), as the
+spec asks.
 
 **One image-formation model for every look.** Every look is a point in one
 model (`../shared/techniques/zoom-optics.js`): reflected light (Lambert, a
@@ -110,7 +110,8 @@ at the start, target T and next field F₁ (r = F₁/F₀),
 X = (T − r·c₀)/(1 − r) and c(w) = X + (c₀ − X)·w/F₀. The rectangle's corners
 move straight to the screen's corners, with no drift and no recentring.
 Measured (`__micro.rect()`, 960 × 540): the corner error at p = 1 is 0 px for
-transitions 1, 3 and 5 and 7 × 10⁻¹³ px for 4. The rectangle at the end of
+all four zooms (transitions 1, 4, 5 and 6). A reverse runs the same path
+backwards, so the screen shrinks exactly back into that rectangle. The rectangle at the end of
 the highlight equals the one at p = 0, so nothing jumps when the zoom starts.
 Cropping the rectangle from the p = 0 frame and enlarging it gives the same
 picture as the p = 1 frame, cell for cell (in the zoom-first strategy, where
@@ -195,7 +196,7 @@ are Features choices.
 
 Always the exact rectangle of the next screen: a 3 px line just inside it with
 a dark rim outside (readable on bright fields), and corner marks just outside
-it so even the 6 px frame of transition 5 can be found. Three ways to flash it:
+it so even the 6 px frame of transition 6 can be found. Three ways to flash it:
 
 - **Frame flash**: the frame, and its inside flashes twice.
 - **Pulsing frame**: the frame pulses.
@@ -269,19 +270,25 @@ and 100 % and settled; each highlight style):
 | --- | --- | --- |
 | 1 Macro → SEM | **Zoom first** | The macro photo's colour leads the eye down to the speck; the SEM then "develops" on the mite. Morphing during the zoom passes through a pale, foggy half-and-half; look first is crisp but spends the whole zoom in SEM, losing the bog. |
 | 2 SEM → DIC (hand-off) | **Look while it revives** | The spec's own beat: the camera holds while the reflected light fades and the transmitted light comes up; the mite turns into a silhouette as it walks off, the film's meniscus appears and the tun comes to life in the same few seconds. Look first works too (the light changes, then the tun wakes) but splits one moment into two. |
-| 3 DIC → brightfield | **Look during** | The field stop closes in as the zoom advances, as if the condenser were swung: the most "instrument-like" morph of the five. Crossfade shows a ghost of both frames. |
-| 4 Brightfield → phase | **Look during** (or zoom first, to teach) | During: the stop opens as the bacteria resolve. Zoom first is a good lesson (the cells barely show in brightfield, then phase reveals them) but spends a beat on an almost empty disc. |
-| 5 Phase → cryo-EM → illustration | **Look during** | Passes through grey cryo-EM at mid-zoom, then gains colour, as §5.8 describes. Zoom first shows honest empty magnification (the phase image just blurs past ~0.2 µm), a strong point but a long blank. |
+| 3 DIC → wet mount (hand-off) | **Look during** | The relief of DIC melts into the flat wet mount while the camera crosses the water from the tardigrade to the amoeba: one movement. Look first changes the light over the leaf, before the amoeba is on screen, which reads as unmotivated. |
+| 4 Wet mount → round-field brightfield | **Look during** | The field stop closes in as the zoom advances, as if the condenser were swung for the 20× objective: the most "instrument-like" morph. Crossfade shows a ghost of both frames. (In the earlier five-world chain, DIC → brightfield, the same held.) |
+| 5 Brightfield → phase | **Look during** (or zoom first, to teach) | During: the stop opens as the bacteria resolve. Zoom first is a good lesson (the cells barely show in brightfield, then phase reveals them) but spends a beat on an almost empty disc. |
+| 6 Phase → cryo-EM → illustration | **Look during** | Passes through grey cryo-EM at mid-zoom, then gains colour, as §5.8 describes. Zoom first shows honest empty magnification (the phase image just blurs past ~0.2 µm), a strong point but a long blank. |
+
+These are the `'auto'` (recommended) strategies the player uses by default
+(`chain.js`, `strategy` per transition). Reverses use the same strategy run
+backwards, which reads well for all six: the look returns as the screen
+shrinks back into the frame.
 
 Overall: the parametric morph beats the plain crossfade wherever the field
-stop or the lamp changes (3, 4, 5), where the crossfade shows two frames at
-once; they are close for 1 and 2. **Look first** is best when the new look
+stop or the lamp changes (4, 5, 6), where the crossfade shows two frames at
+once; they are close for 1, 2 and 3. **Look first** is best when the new look
 should be read before it is entered (useful for teaching a new optics), never
 worse than a cut. The **cut** at the hand-off is abrupt in every case.
 
 Highlight: **frame flash** reads best: two flashes say "this is where you are
 going" and the frame then grows into the screen. **Darken outside** is the
-clearest on the 10× and 150× zooms (4, 5), where the frame is small;
+clearest on the 10× and 150× zooms (5, 6), where the frame is small;
 **pulsing frame** is the quietest.
 
 ## Checks
@@ -290,7 +297,12 @@ clearest on the 10× and 150× zooms (4, 5), where the frame is small;
 node micro/prototypes/check.mjs zoom
 ```
 
-`window.__micro` has test hooks: `start(k)`, `setZoom(p)`, `setProgress(s)`,
+The player module and the embed URL were checked from a test page: ids,
+neighbour checks, a forward hand-off, a reverse zoom with a strategy and a
+highlight, `skip()` and `dispose()`; the embed page reports `ready` with
+`provides: ['transition']`, plays on `resume` and posts `done`.
+
+`window.__micro` has test hooks: `start(k, dir)` (dir `'in'` or `'out'`), `setZoom(p)`, `setProgress(s)`,
 `setStrategy(id)`, `setHighlight(name)`, `snap()` (renders and returns the
 canvas and the scale readout), `rect()` (the next frame on screen, in
 drawing-buffer pixels), `profile()` (ms per pass), `state()`. On a software
@@ -315,16 +327,25 @@ resolution at most, so screenshots stay within the check's time limit.
   film) is shown flat and grey; a real SEM sample is dried.
 - **Mid-morph between reflected and transmitted light** (1, 2) is pale: the
   two lamps' images add, which is physically right and low in contrast.
-- **The frame is small for transitions 4 and 5** (1/10 and 1/150 of the
+- **The frame is small for transitions 5 and 6** (1/10 and 1/150 of the
   screen width: 96 × 54 and 6 × 4 px at 960 × 540); the corner marks are what
-  find it in 5.
+  find it in 6.
 - **The highlight camera move:** when the next frame would fall off screen,
   the camera first shifts (as little as possible) to bring it on, so the
   frame is not always exactly where the creature stopped.
 - **Time:** the tun revives in the hand-off's 4.5 s or more (hours in life,
-  labelled). The phage drifts without its real Brownian motion (D ≈ 4 µm²/s
+  labelled); the amoeba crawls 10× faster than life (as in its prototype). The phage drifts without its real Brownian motion (D ≈ 4 µm²/s
   would carry it out of a 0.6 µm field in a fraction of a second). Phage level
   is a stub: drift only.
-- Level 4 (*Trachelomonas*, 40×) is skipped (no prototype); transition 4 takes
-  the spec's no-trap alternative.
+- Level 4 of the spec (*Trachelomonas*, 40×) is not in the game's chain;
+  transition 5 takes the spec's no-trap alternative. The amoeba world is the
+  game's, between the film and the pool; the spec has no zoom-chain section
+  for it.
+- **The springtail is a giant overhead** in the amoeba and Paramecium worlds:
+  it floats on the pool surface just above, so it shows as a dark silhouette
+  at the top edge of those fields.
+- **Speed on software rendering:** under a software renderer (headless
+  checks) frames are slow and the clamped frame step stretches a transition
+  to 20–30 s; the game shell's embed timeout is 30 s. On a GPU a zoom takes
+  about 6 s and a hand-off 5 s.
 - The HUD panels overlap on short windows; View hides the controls.

@@ -156,7 +156,49 @@ export function createDrawer(world) {
       }
     }
     if (W.opts.phages) for (const p of W.phages) if (!p.anim) S.disc(p.x, p.y, 0.03, { dn: 0.15, scat: 18, fl: [0, PHAGE * chan.phage, 0], z: p.stuck ? 0 : p.z, hk: 1 });
-    drawPlayer(S, t, player);
+    if (W.landmarks) landmarks(S, t, W.landmarks);
+    // one player or a list of them (local multiplayer: every cell is drawn alike; main.js marks each in its colour)
+    for (const p of Array.isArray(player) ? player : [player]) drawPlayer(S, t, p);
+  }
+
+  // --- the Micro Zoom landmarks (world.js: landmarks) ---
+  const pr = rng(321);
+  const cilia = Array.from({ length: 46 }, (_, i) => ({ u: (i / 45 - 0.5), len: 9 + pr() * 2.5, ph: i * 0.42 }));
+  const pGran = Array.from({ length: 70 }, () => ({ u: pr() - 0.5, d: 3 + pr() * 80, r: 0.3 + pr() * 0.5, z: (pr() - 0.5) * 3, chl: pr() < 0.45 }));
+  function landmarks(S, t, L) {
+    // Forward: the swollen host cell with phages landing on it. The phages are true size (60 nm):
+    // spots in fluorescence (SYBR) and darkfield, nothing in phase contrast, where only the host's
+    // rounded, swollen body and darker contents show that something is wrong with it.
+    const F = L.forward, ca = Math.cos(F.a), sa = Math.sin(F.a);
+    S.rod(F.x, F.y, F.a, F.L, F.r, { dn: 0.055, scat: 0.18, fl: [MEMB * chan.memb * 1.3, 0, 0], memb: 0.9, ab: [0.012, 0.011, 0.014], z: 0 });
+    // nucleoid and new phage heads crowding inside (the lytic cycle under way)
+    for (let i = 0; i < 9; i++) {
+      const u = ((i * 0.37) % 1 - 0.5) * F.L * 0.75, v = Math.sin(i * 2.3) * F.r * 0.45;
+      S.disc(F.x + ca * u - sa * v, F.y + sa * u + ca * v, 0.12, { dn: 0.25, scat: 6, fl: [0, PHAGE * chan.phage * 0.35, 0], ab: [0.02, 0.02, 0.02], z: 0, hk: 0.5 });
+    }
+    for (const q of F.phages) {
+      const nx = -sa * q.side, ny = ca * q.side;
+      const bx = F.x + ca * q.u + nx * (F.r + 0.12), by = F.y + sa * q.u + ny * (F.r + 0.12);
+      S.disc(bx, by, 0.035, { dn: 0.3, scat: 22, fl: [0, PHAGE * chan.phage, 0], z: 0, hk: 1 });
+    }
+    for (const q of F.incoming) S.disc(F.x + Math.cos(q.ang) * (F.r + q.d), F.y + Math.sin(q.ang) * (F.r + q.d), 0.03, { dn: 0.15, scat: 18, fl: [0, PHAGE * chan.phage, 0], z: (q.d - 3) * 0.1, hk: 1 });
+
+    // Backdoor: the edge of a Paramecium looming in the open water (it is 120 µm long, forty times
+    // you): the pellicle with its trichocyst seam, green Chlorella inside, and the cilia beating.
+    const E = L.back.edge, ec = Math.cos(E.ang), es = Math.sin(E.ang);
+    S.edge(E.x, E.y, E.ang, E.L, E.depth, E.amp, E.seed, { dn: 0.028, scat: 0.07, fl: [0.05 * chan.memb, 0, 0], memb: 1, ab: [0.004, 0.0035, 0.005], z: 0.2 });
+    const at = (lx, ly) => [E.x + ec * lx - es * ly, E.y + es * lx + ec * ly];
+    for (let i = 0; i < 60; i++) { const [x, y] = at((i / 59 - 0.5) * E.L * 0.9, -1.2); S.disc(x, y, 0.28, { dn: 0.09, scat: 0.8, ab: [0.01, 0.01, 0.014], z: 0.1 }); }
+    for (const g of pGran) {
+      const [x, y] = at(g.u * E.L * 0.85, -g.d * 0.9 - 2);
+      S.disc(x, y, g.chl ? 2.6 : g.r, g.chl ? { dn: 0.03, scat: 0.3, ab: [0.11, 0.022, 0.12], fl: [0.02, 0.04, 0], z: g.z } : { dn: 0.06, scat: 0.5, ab: [0.015, 0.015, 0.02], z: g.z });
+    }
+    for (const c of cilia) {
+      const [x, y] = at(c.u * E.L * 0.92, 0.2);
+      const beat = Math.sin(t * (opts.slowBeat ? 4 : 20) - c.ph);
+      const ang = E.ang + Math.PI / 2 - 0.25 + 0.55 * beat; // power stroke along the edge, then recovery
+      S.strand(x, y, ang, c.len, 0.12, 0.35 + 0.25 * beat, 12, { dn: 0.05, scat: 1.1, fl: [0.5 * chan.memb, 0, 0], memb: 1, z: 0.1, phase: t * 2 + c.ph });
+    }
   }
 
   // --- being caught: every run-ending catch is drawn (main.js drives s.catchAnim) ---
@@ -284,5 +326,5 @@ export function createDrawer(world) {
     }
   }
 
-  return { draw, chan, opts };
+  return { draw, drawPlayer, chan, opts };
 }

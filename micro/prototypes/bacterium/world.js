@@ -192,7 +192,25 @@ export function createWorld() {
     return false;
   }
 
+  // --- the landmarks of the Micro Zoom chain ---
+  // Forward (to the phage level): a host cell on the far right, in the band,
+  // swollen and studded with phages landing on it. Phages are 60 nm: phase
+  // contrast shows only the swollen host; fluorescence (SYBR) and darkfield
+  // show the phages as spots. Backdoor (up to the pool): the looming
+  // Paramecium in the open water at the top left, its cilia sweeping the edge
+  // of the field.
+  const landmarks = {
+    forward: { x: 170, y: 20, a: 0.5, L: 4.4, r: 0.72, reach: 1.6, phages: [], incoming: [] },
+    back: { x: -186, y: 96, r: 24, edge: { x: -203, y: 112, ang: Math.atan2(-0.62, -0.78), L: 150, depth: 90, amp: 3, seed: 4.4 } },
+  };
+  {
+    const F = landmarks.forward;
+    for (let i = 0; i < 16; i++) F.phages.push({ u: (r() - 0.5) * F.L * 0.95, side: r() < 0.5 ? -1 : 1, tilt: (r() - 0.5) * 0.6 });
+    for (let i = 0; i < 10; i++) F.incoming.push({ ang: r() * 6.28, d: 2 + r() * 6, v: 0.6 + r() * 1.2 });
+  }
+
   const world = {
+    landmarks,
     opts, hunt, grains, specks, eps, film, cells, phages, patches, grazers, amoeba, slab, surfaceY,
     oxygen, food, eat, insideAmoeba, pushOutOfGrains, grazerPose,
     flowAt(x, y) { const f = grazerFlow(x, y, { x: 0, y: 0 }); return f; },
@@ -252,6 +270,12 @@ export function createWorld() {
         }
       }
       if (phages.length > 260) phages.splice(0, phages.length - 260);
+      // phages diffusing in to land on the forward host, then starting again further out
+      for (const q of landmarks.forward.incoming) {
+        q.d -= q.v * dt * 0.6;
+        q.ang += br * 0.4 * sq * gauss(r);
+        if (q.d < 0.15) { q.d = 5 + r() * 4; q.ang = r() * 6.28; }
+      }
     },
   };
 

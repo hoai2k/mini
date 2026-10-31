@@ -24,6 +24,24 @@ export const ISLANDS = [
 }
 export const ISLAND = ISLANDS[0];
 
+/**
+ * The forward landmark (the Zoom Chain's way on, design §0.6): a tongue of
+ * Sphagnum where the bank reaches into the pool, straight ahead of the start
+ * (+x, ~0.56 m off: a minute or so of full jumps). Its capitula overhang the
+ * water low enough to land on, and on the tallest one a speck moves: the
+ * Limnozetes mite of Level 1. It is an island joined to the bank, so the
+ * shoreline, the water mask and landing on moss all treat it like one.
+ */
+export const LANDMARK = (() => {
+  const a = 0, e = 0.982;
+  const f = 1 + 0.05 * Math.sin(3 * a + 0.5) + 0.035 * Math.sin(5 * a + 1.3);
+  const x = Math.round((e * 600) / f), z = 0, r = 10;
+  for (let i = ISLANDS.length - 1; i >= 16; i--) if (Math.hypot(ISLANDS[i].x - x, ISLANDS[i].z - z) < ISLANDS[i].r + r + 30) ISLANDS.splice(i, 1);
+  const island = { x, z, r, landmark: true };
+  ISLANDS.push(island);
+  return { x, z, r, island, reach: r + 3 };
+})();
+
 /** Normalised pool radius: < 1 inside the pool (matches POOL_GLSL). */
 export function poolE(x, z) {
   const a = Math.atan2(z, x);
@@ -110,7 +128,7 @@ function toGeo(out) {
  * Every branch is a tapered, slightly curved tube (leaves give it a ribbed
  * look in the shader).
  */
-function capitulumGeometry(rnd, { spreading = 22, bud = 14, sides = 5, segs = 5 } = {}) {
+export function capitulumGeometry(rnd, { spreading = 22, bud = 14, sides = 5, segs = 5 } = {}) {
   const out = { pos: [], nrm: [], idx: [] };
   const P = (x, y, z) => new THREE.Vector3(x, y, z);
   for (let i = 0; i < bud; i++) {
@@ -140,7 +158,7 @@ function capitulumGeometry(rnd, { spreading = 22, bud = 14, sides = 5, segs = 5 
   return toGeo(out);
 }
 
-const MOSS_SURFACE = /* glsl */ `
+export const MOSS_SURFACE = /* glsl */ `
 uniform sampler2D uMossTex; uniform float uHasMossTex;
 void surface(inout Surf s) {
   // imbricate leaves along each branch: fine ribbing and pale hyaline cells

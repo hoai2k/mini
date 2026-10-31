@@ -398,6 +398,14 @@ export function createT4({ clip = true } = {}) {
     group, fibres, fibreMesh, geom, state, head, headGroup, materials: { headMat, capsMat },
     NODES, SEG,
     addTo(scene) { scene.add(group); scene.add(fibreMesh); },
+    /** Colour the sheath (a player colour in multiplayer), or null for T4's own gold. */
+    setTint(color) {
+      const a = new THREE.Color(color || T4_COLORS.sheath2), b = new THREE.Color(color || T4_COLORS.sheath);
+      if (color) b.offsetHSL(0, 0, 0.08);
+      for (let i = 0; i < T4.RINGS; i++) sheath.setColorAt(i, i % 2 ? b : a);
+      sheath.instanceColor.needsUpdate = true;
+    },
+    dispose(scene) { api.removeFrom(scene); group.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); fibreMesh.geometry.dispose(); },
     removeFrom(scene) { scene.remove(group); scene.remove(fibreMesh); },
     set(o) { Object.assign(state, o); if (o.capsid && o.capsid !== api._capsid) { api._capsid = o.capsid; setCapsid(o.capsid); } },
     /** Clip the camera-facing half of the capsid (cutaway): pass the camera position. */

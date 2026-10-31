@@ -232,6 +232,19 @@ export function createWorld(scene) {
     });
   };
 
+  // --- the backdoor: a flagellum of the Level 5 bacterium sweeping through open water above the hosts ---
+  // (20 nm wide; a rotating helix reads as a wave travelling along it)
+  const BACKDOOR = new THREE.Vector3(415, 60, -4);
+  const flag = new THREE.Group();
+  const fpts = [];
+  for (let i = 0; i <= 160; i++) { const x = -260 + i * 3.4; const a = i * 0.21; fpts.push(new THREE.Vector3(x, Math.cos(a) * 9, Math.sin(a) * 9)); }
+  const flagMat = toonMaterial({ color: '#9fd0c8', mottle: 0.15 });
+  flag.add(inked(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(fpts), 320, 1.3, 6), flagMat, { width: 0.8 }));
+  const spin = new THREE.Group(); spin.add(flag);
+  spin.position.copy(BACKDOOR); spin.rotation.z = -0.35;
+  scene.add(spin);
+  world.backdoor = { pos: BACKDOOR, radius: 55, group: spin, flag };
+
   // --- the crowd of molecules ---
   const TYPES = [
     { n: 110, s: [1.6, 2.8], sig: 6, geo: blobGeometry([{ p: [0, 0, 0], r: 1, c: '#b58a52' }, { p: [1, 0.4, 0.2], r: 0.8, c: '#c49a5c' }, { p: [-0.7, 0.8, 0], r: 0.7, c: '#a97f4a' }, { p: [0.2, -0.8, 0.5], r: 0.6, c: '#c8a066' }, { p: [-0.9, -0.4, -0.4], r: 0.6, c: '#b88d55' }], 1) },
@@ -265,6 +278,7 @@ export function createWorld(scene) {
     const zTop = Math.min(Z1, camZ - 70);
     world.t = t;
     for (const m of [amoebaMat, amBody.ink.material, podMat]) m.uniforms.uTime.value = t;
+    world.backdoor.flag.rotation.x = -t * 2.2; // the motor turns the helix
     // hosts: slow Brownian drift around home, gentle rocking
     for (const h of world.hosts) {
       if (world.opts.hostBrownian && !h.locked) {

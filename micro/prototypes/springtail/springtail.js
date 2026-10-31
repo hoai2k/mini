@@ -122,12 +122,16 @@ void surface(inout Surf s) {
   s.albedo = col;
 }`;
 
-export function createSpringtail() {
+/**
+ * share: another springtail to take the meshed geometry from (a second
+ * player's springtail costs no new SDF meshing; each has its own bones).
+ */
+export function createSpringtail({ share = null } = {}) {
   const group = new THREE.Group();
   const mat = litMaterial({ surface: SURFACE, skin: BONES });
   // the field's own casterShadow would shadow the animal by itself; skip casters on it
-  const body = new THREE.Mesh(buildSdfMesh(bodyParts(), { min: [-0.86, -0.06, -0.42], max: [0.98, 0.5, 0.42], cell: 0.0125 }), mat);
-  const furc = new THREE.Mesh(buildSdfMesh(furculaParts(), { min: [-0.58, -0.03, -0.12], max: [0.14, 0.12, 0.12], cell: 0.0105 }), mat);
+  const body = new THREE.Mesh(share ? share.body.geometry : buildSdfMesh(bodyParts(), { min: [-0.86, -0.06, -0.42], max: [0.98, 0.5, 0.42], cell: 0.0125 }), mat);
+  const furc = new THREE.Mesh(share ? share.furc.geometry : buildSdfMesh(furculaParts(), { min: [-0.58, -0.03, -0.12], max: [0.14, 0.12, 0.12], cell: 0.0105 }), mat);
   body.frustumCulled = furc.frustumCulled = false;
   group.add(body, furc);
   const bones = mat.uniforms.uBones.value;

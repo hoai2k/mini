@@ -6,9 +6,12 @@
 // Inside, thread the DNA's leading end past the host's restriction enzyme and
 // CRISPR complex until the whole genome is in. See README.md.
 import * as THREE from '../shared/vendor/three.module.min.js';
-import { createPad } from '../shared/pad.js';
+import { createPlayers } from '../shared/players.js';
+import { embed } from '../shared/embed.js';
+import { createSplitScreen } from '../shared/splitscreen.js';
+import { createLandmarks } from '../shared/landmark.js';
 import { mountHud } from '../shared/hud.js';
-import { createControls, createDash, hudControls, addInvertY } from '../shared/controls.js';
+import { createDash, hudControls, addInvertY } from '../shared/controls.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
 import { loadTexture } from '../shared/assets.js';
@@ -50,8 +53,14 @@ addEventListener('resize', resize);
 resize();
 
 // --- input, HUD ---
-const pad = createPad();
-const ctl = createControls(pad);
+// up to four local players (shared/players.js); P1 also on the keyboard
+const players = createPlayers({
+  max: 4,
+  onJoin: (p) => { syncTeam(); hud.toast(`Player ${p.slot + 1} joined`); hud.players(players.list); embed.join(p.slot, p.color, p.name); },
+  onLeave: (p) => { syncTeam(); hud.toast(`Player ${p.slot + 1} left`); hud.players(players.list); embed.leave(p.slot); },
+});
+const pad = players.pad(0);
+let ctl = players.controls(0);
 const hud = mountHud({
   title: 'Phage',
   sub: 'A T4-like phage, 0.2 µm long, in bog water beside its host bacteria: a molecular illustration, not a microscope image. Drift with LS; let go and Brownian motion has you.',
@@ -64,8 +73,9 @@ const hud = mountHud({
     special: 'Odds and receptor overlay (data, not optics)',
     look: 'Look: Goodsell watercolour, cryo-EM greyscale, fluorescence',
     zoom: 'Zoom in / out',
+    extra: [['Y', 'At the flagellum (backdoor): back to the sediment']],
   }),
-  note: 'Time is slowed about 20× (a phage crosses a host cell in ~0.04 s). Goal: find a host with receptors, commit, and get the whole genome in past its defences. Keep below the UV-bright water near the surface.',
+  note: 'Time is slowed about 20× (a phage crosses a host cell in ~0.04 s). Goal: find a host with receptors, commit, and get the whole genome in past its defences. Keep below the UV-bright water near the surface. Up to four players: press any button on another controller to join.',
 });
 const tag = Object.assign(document.createElement('div'), { className: 'ph-tag', textContent: 'DATA OVERLAY · receptors, defences and odds: data, not optics' });
 const label = Object.assign(document.createElement('div'), { className: 'ph-label' });
@@ -77,8 +87,7 @@ document.body.append(tag, label, scaleEl, card, prog, labels);
 
 // --- the world and the phage ---
 const world = createWorld(scene);
-const t4 = createT4({ clip: true });
-t4.addTo(scene);
+let t4 = null; // the current member's model (see use())
 const progenyGeo = t4LiteGeometry();
 const progeny = inkedInstanced(progenyGeo, toonMaterial({ vertexColors: true }), 40, { width: 0.8 });
 progeny.setCount(0);
@@ -107,17 +116,52 @@ for (const h of world.hosts) h.mat.userData = { std: h.mat.uniforms.uMap.value }
 
 // --- phage state ---
 const START = new THREE.Vector3(-60, 30, 0);
-const P = {
+const newP = () => ({
   pos: START.clone(), vel: new THREE.Vector3(), bvel: new THREE.Vector3(), gust: new THREE.Vector3(),
   q: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0.5), angVel: new THREE.Vector3(),
   mode: 'drift', foldTarget: 0, fold: 0, integrity: 1, host: null, walkLocal: new THREE.Vector3(), lift: 4,
   anchors: Array(6).fill(null), stepping: -1, stepT: 0, bound: 0, canCommit: false, commitT: 0, commitHost: null,
   clayT: 0, msgT: 0, kind: null, cutBy: null, burstT: 0, fade: 0, contract: 0, star: 0, shortOut: 0, dna: 1, dark: 0, crack: 0, scale: 1,
-  stuckTip: Array(6).fill(null), lastHost: null,
-};
-const dash = createDash({ duration: 0.5, cooldown: 2.4 });
+  stuckTip: Array(6).fill(null), lastHost: null, inBack: false,
+});
 const hunger = createHunger({ grace: 45 });
-const capture = createCapture({ onRestart: () => resetLevel() });
+
+// --- the team: one phage per player. The update functions below act on the
+// "current" member through P, t4, dash, capture and ctl; use(m) switches them.
+const team = []; // by slot
+let P = null, dash = null, capture = null, cur = null;
+let capsidMode = 'cutaway';
+function use(m) { cur = m; P = m.P; t4 = m.t4; dash = m.dash; capture = m.capture; ctl = players.controls(m.slot); }
+const curPad = () => players.pad(cur ? cur.slot : 0);
+const members = () => team.filter(Boolean);
+const isMulti = () => members().length > 1;
+function makeMember(slot, color) {
+  const m = { slot, color, P: newP(), t4: createT4({ clip: true }), dash: createDash({ duration: 0.5, cooldown: 2.4 }),
+    capture: createCapture({ onRestart: () => resetLevel() }), c: { active: false, phase: null, t: 0 } };
+  m.t4.addTo(scene);
+  m.t4.set({ capsid: capsidMode });
+  team[slot] = m;
+  return m;
+}
+function dropMember(slot) {
+  const m = team[slot];
+  if (!m) return;
+  m.t4.dispose(scene);
+  team[slot] = null;
+}
+/** Make the team match the roster (joins and leaves, a roster from the shell). */
+function syncTeam() {
+  const want = new Set(players.list.map((p) => p.slot));
+  for (const m of members()) if (!want.has(m.slot)) dropMember(m.slot);
+  for (const p of players.list) {
+    if (team[p.slot]) continue;
+    const m = makeMember(p.slot, p.color);
+    if (p.slot > 0 && team[0]) respawn(m); else placeAtStart(m);
+  }
+  const multi = isMulti();
+  for (const m of members()) m.t4.setTint(multi ? m.color : null);
+  if (team[0]) use(team[0]);
+}
 
 // --- features ---
 const features = createFeatures({ key: 'phage', pad });
@@ -132,7 +176,7 @@ features.add({ id: 'look', group: 'Rendering', label: 'Look (D-pad ←→)', cho
   onChange: (v) => { view.look = Math.max(0, LOOKS.indexOf(v)); } });
 features.add({ id: 'capsid', group: 'Rendering', label: 'Capsid', choices: ['Cutaway', 'Translucent', 'Solid'], value: 'Cutaway',
   about: 'Cutaway: the half of the head facing you is clipped away, showing the DNA packed inside as a coaxial spool (~169 kbp, about 57 µm of DNA in a 0.12 µm head [S98]). Translucent: the capsid as a glassy shell. Solid: as it would look from outside.',
-  onChange: (v) => t4.set({ capsid: v.toLowerCase() }) });
+  onChange: (v) => { capsidMode = v.toLowerCase(); for (const m of members()) m.t4.set({ capsid: capsidMode }); } });
 features.add({ id: 'ink', group: 'Rendering', label: 'Ink outlines', on: true, about: 'An inverted-hull outline around every molecule, fading with depth, as in a Goodsell painting.', onChange: (on) => { goodsellShared.uInkOn.value = on ? 1 : 0; } });
 features.add({ id: 'depth', group: 'Rendering', label: 'Depth by desaturation', on: true, about: 'Far things fade toward the water colour and lose saturation (Goodsell\'s depth cue) instead of getting smaller and darker.', onChange: (on) => { goodsellShared.uDepthOn.value = on ? 1 : 0; } });
 features.add({ id: 'art', group: 'Rendering', label: 'Delivered art (MP-V01/V02/V03)', on: true,
@@ -173,9 +217,11 @@ function stickWorld(ls, out) {
 }
 function releaseAnchors() { for (let f = 0; f < 6; f++) { P.anchors[f] = null; t4.fibres[f].anchor = null; } P.stepping = -1; }
 
-function resetLevel() {
-  world.reset();
-  P.pos.copy(START); P.vel.set(0, 0, 0); P.bvel.set(0, 0, 0); P.gust.set(0, 0, 0); P.angVel.set(0, 0, 0);
+/** Put a member back in clear water: at `at` (default the start), whole and drifting. */
+function placeAtStart(m, at = null) {
+  use(m);
+  P.pos.copy(at || START).add(at ? _v.set(0, 0, 0) : _v.set(m.slot * 26, (m.slot % 2) * 14, 0));
+  P.vel.set(0, 0, 0); P.bvel.set(0, 0, 0); P.gust.set(0, 0, 0); P.angVel.set(0, 0, 0);
   P.q.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0.5);
   Object.assign(P, { mode: 'drift', foldTarget: 0, fold: 0, integrity: 1, host: null, canCommit: false, bound: 0, commitT: 0, kind: null, cutBy: null, burstT: 0, fade: 0, contract: 0, star: 0, shortOut: 0, dna: 1, dark: 0, crack: 0, scale: 1 });
   releaseAnchors();
@@ -183,13 +229,31 @@ function resetLevel() {
   t4.set({ contract: 0, star: 0, shortOut: 0, dna: 1, dark: 0, crack: 0 });
   t4.group.scale.setScalar(1);
   t4.group.position.copy(P.pos); t4.group.quaternion.copy(P.q);
-  t4.resetFibres(0);
+  t4.resetFibres(t);
+  if (capture.active) capture.reset(false);
+}
+/** Multiplayer: a caught player comes back beside a teammate who is still in play. */
+function respawn(m) {
+  const mate = members().find((o) => o !== m && (o.P.mode === 'drift' || o.P.mode === 'walk' || o.P.mode === 'clay'));
+  const at = mate ? mate.P.pos.clone().add(new THREE.Vector3(rand(-24, 24), 26, 0)) : null;
+  if (at) at.y = Math.min(at.y, UV.y0 - 20);
+  placeAtStart(m, at);
+  if (m.P === P) say(`${players.get(m.slot)?.name || 'P' + (m.slot + 1)} drifts back in${mate ? ' beside a teammate' : ''}.`, 2000, true);
+}
+let started = false;
+function resetLevel() {
+  world.reset();
+  for (const m of members()) placeAtStart(m);
+  if (team[0]) use(team[0]);
   hunger.reset();
   inside.reset();
   progeny.setCount(0);
   card.classList.remove('show');
+  P.burstSent = false;
   view.target.copy(P.pos);
-  say('You are a T4-like phage in bog water. Drift with LS; fibres out (B) catch a host. It is calm for now.', 4200, true);
+  // in the game shell its intro has already said this
+  if (!embed.active || started) say('You are a T4-like phage in bog water. Drift with LS; fibres out (B) catch a host. It is calm for now.', 4200, true);
+  started = true;
 }
 
 // --- death and capture sequences ---
@@ -198,7 +262,8 @@ function startCapture(kind, by, how) {
   P.kind = kind;
   P.mode = kind === 'cut' ? 'inside' : 'dead';
   capture.start({ by, how });
-  pad.rumble(400, 0.6, 0.9);
+  curPad().rumble(400, 0.6, 0.9);
+  if (isMulti()) embed.captured({ player: cur.slot, kind });
   audio.play(kind === 'amoeba' ? 'bacterium/graze' : kind === 'cut' ? 'bacterium/tumble' : 'bacterium/eat', { volume: 0.9 });
 }
 const TITLES = { amoeba: 'Eaten', uv: 'Inactivated', cut: 'Cut' };
@@ -235,11 +300,12 @@ function captureAnim(phase, t, dt) {
 
 // --- the commit (irreversible) ---
 function tryCommit() {
+  if (members().some((m) => m !== cur && ['commit', 'inside', 'burst'].includes(m.P.mode))) { say('A teammate is already injecting: wait for them.', 2000, true); return; }
   if (P.mode === 'walk' && P.canCommit) {
     P.mode = 'commit'; P.commitT = 0; P.commitHost = P.host; P.host.locked = true;
     say('Committed: short fibres bind for good, the baseplate opens into a star, the sheath contracts…', 3200, true);
     audio.play('bacterium/phage', { volume: 0.9 });
-    pad.rumble(250, 0.3, 0.5);
+    curPad().rumble(250, 0.3, 0.5);
     return;
   }
   if (P.mode === 'walk' && P.host) say('Not here: commitment needs three long fibres bound on an OmpC patch (Y shows the patches).', 2600, true);
@@ -329,7 +395,7 @@ function enterWalk(host) {
   releaseAnchors();
   P.vel.set(0, 0, 0); P.gust.set(0, 0, 0);
   audio.play('bacterium/phage', { volume: 0.5, rate: 1.2 });
-  pad.rumble(80, 0.3, 0.1);
+  curPad().rumble(80, 0.3, 0.1);
   say(`Bound reversibly to ${host.name}'s LPS. Walk with LS to an OmpC patch (Y), then X to commit.`, 3200, true);
 }
 
@@ -416,7 +482,7 @@ function updateWalk(dt, inp) {
   }
   const was = P.canCommit;
   P.bound = bound; P.canCommit = bound >= 3;
-  if (P.canCommit && !was) { say(`${bound} fibres bound to OmpC: X to commit (irreversible).`, 2600, true); pad.rumble(60, 0.2, 0); }
+  if (P.canCommit && !was) { say(`${bound} fibres bound to OmpC: X to commit (irreversible).`, 2600, true); curPad().rumble(60, 0.2, 0); }
 }
 
 function leaveSurface(push) {
@@ -442,7 +508,7 @@ function updateCommit(dt) {
   P.contract = k < 1 ? k * k * (3 - 2 * k) : 1 + Math.sin((c - 1.75) * 18) * 0.05 * Math.exp(-(c - 1.75) * 5);
   P.dna = 1 - ramp(c, 2.1, COMMIT_T) * 0.35;
   P.lift = 4 - ramp(c, 0.3, 1.2) * 3;
-  if (k > 0 && k < 1 && !P.snapped) { P.snapped = true; pad.rumble(200, 0.7, 0.8); audio.play('bacterium/eat', { volume: 0.8, rate: 0.8 }); }
+  if (k > 0 && k < 1 && !P.snapped) { P.snapped = true; curPad().rumble(200, 0.7, 0.8); audio.play('bacterium/eat', { volume: 0.8, rate: 0.8 }); }
   const base = world.toWorld(h, P.walkLocal, new THREE.Vector3());
   world.projectToHost(h, base, P.lift, base, _n);
   P.pos.copy(base);
@@ -479,7 +545,7 @@ function updateBurst(dt) {
     P.pos.copy(h.pos).add(new THREE.Vector3(0, h.r + 40, 0));
     view.target.copy(h.pos);
     audio.play('bacterium/graze', { volume: 0.8, rate: 1.3 });
-    pad.rumble(500, 0.8, 0.8);
+    curPad().rumble(500, 0.8, 0.8);
   }
   P.fade = 1 - ramp(b, 2.6, 3.4);
   for (let i = 0; i < P.progeny.length; i++) {
@@ -567,41 +633,52 @@ function updateOverlay(where) {
 
 // --- frame ---
 const debug = { freeze: false, iso: false, camOverride: null };
+const split = createSplitScreen(renderer, { capture: true, up: null });
+const marks = createLandmarks();
+const bestPatch = () => { const h = world.hosts.find((x) => x.id === 'A'); return world.toWorld(h, h.patchList[1].local); };
 let last = performance.now();
 let blocked = false;
-function frame(now) {
-  requestAnimationFrame(frame);
-  const dt = debug.pause ? 0 : Math.min(debug.maxDt || 0.05, (now - last) / 1000);
-  last = now;
-  t += dt;
-  goodsellShared.uTime.value = t;
-  pad.poll();
-  unlockOnPad();
-  blocked = features.update();
-  if (!blocked) hud.update(pad);
-  toastT -= dt; P.msgT -= dt;
+let nearBack = false;
+const ZERO_LS = { x: 0, y: 0, m: 0 }, ZERO_LOOK = { yaw: 0, pitch: 0, m: 0 };
+const outsideModes = ['drift', 'walk', 'clay'];
+
+function stepMember(m, dt, insideOwner, where) {
+  use(m);
+  P.msgT -= dt;
   dash.update(dt);
-  const ls = blocked ? { x: 0, y: 0, m: 0 } : ctl.move();
-  const look = blocked ? { yaw: 0, pitch: 0, m: 0 } : ctl.look();
+  const pl = players.get(m.slot);
+  const idle = blocked || !pl || pl.waiting;
+  const ls = idle ? ZERO_LS : ctl.move();
   const inp = { stick: null, stickM: 0 };
   if (ls.m > 0) { inp.stick = stickWorld(ls, new THREE.Vector3()).normalize(); inp.stickM = Math.min(1, ls.m); P.lastStick = inp.stick.clone(); }
-  const c = capture.update(dt, pad);
-  if (c.phase === 'eaten') retitleCard();
-  const live = !blocked && !c.active && !debug.freeze;
-
-  // view buttons work in every mode
-  if (!blocked) {
-    const lsS = ctl.lookStep();
-    if (lsS) { features.set('look', LOOKS[(view.look + lsS + LOOKS.length) % LOOKS.length]); say(`Look: ${LOOKS[view.look]}${view.look ? ' (an illustration, labelled)' : ''}`, 1800, true); }
-    const zs = ctl.zoomStep();
-    if (zs) { view.zoom = clamp(view.zoom - zs, 0, ZOOMS.length - 1); }
-    if (ctl.special.pressed()) { view.overlay = !view.overlay; inside.setRadar(view.overlay); }
+  const multi = isMulti();
+  const c = capture.update(dt, multi ? null : pad);
+  m.c = c;
+  if (c.phase === 'eaten') {
+    if (multi) {
+      // multiplayer: no card; the sequence has played, so back in beside a teammate
+      const wasInside = m === insideOwner;
+      capture.reset(false);
+      if (wasInside) { inside.reset(); P.fade = 0; }
+      respawn(m);
+      m.c = { active: false, phase: null, t: 0 };
+      return;
+    }
+    retitleCard();
   }
-
-  let where = 'outside';
+  const frozen = insideOwner && insideOwner !== m; // a teammate is inside a host: wait
+  const live = !idle && !c.active && !debug.freeze && !frozen;
+  if (!idle) {
+    if (ctl.lookStep()) { const d = ctl.lookStep() || (players.pad(m.slot).pressed(15) ? 1 : -1); features.set('look', LOOKS[(view.look + d + LOOKS.length) % LOOKS.length]); say(`Look: ${LOOKS[view.look]}${view.look ? ' (an illustration, labelled)' : ''}`, 1800, true); }
+    const zs = ctl.zoomStep();
+    if (zs) view.zoom = clamp(view.zoom - zs, 0, ZOOMS.length - 1);
+    if (ctl.special.pressed()) {
+      if (where === 'outside' && P.inBack && outsideModes.includes(P.mode)) embed.landmark('back', { player: m.slot });
+      else { view.overlay = !view.overlay; inside.setRadar(view.overlay); }
+    }
+  }
   if (live) {
-    // fibres
-    if (ctl.defend.pressed() && (P.mode === 'drift' || P.mode === 'walk' || P.mode === 'clay')) {
+    if (ctl.defend.pressed() && outsideModes.includes(P.mode)) {
       P.foldTarget = P.foldTarget > 0.5 ? 0 : 1;
       audio.play('bacterium/tumble', { volume: 0.5, rate: P.foldTarget ? 0.9 : 1.15 });
       say(P.foldTarget ? 'Fibres folded back against the sheath: you slip past clay and cells.' : 'Fibres out: a wider net to catch receptors (and clay).', 1800, true);
@@ -614,23 +691,21 @@ function frame(now) {
       else { P.gust.addScaledVector(dir, 70); say('A passing current gust carries you (departure: a phage has no motor).', 1800); }
       world.gust(P.pos, dir);
       audio.play('bacterium/sprint', { volume: 0.8 });
-      pad.rumble(120, 0.4, 0.3);
+      curPad().rumble(120, 0.4, 0.3);
     } else if (ctl.dash.pressed() && P.mode === 'clay') say('Stuck to clay: a gust cannot pull you off. Fold the fibres (B).', 1800, true);
     if (ctl.attack.pressed()) tryCommit();
   }
-  if (card.classList.contains('show') && !blocked && (ctl.dash.pressed() || ctl.attack.pressed()) && P.burstT > 4.6) resetLevel();
-
+  if (frozen) return;
   P.fold += (P.foldTarget - P.fold) * (1 - Math.exp(-dt * 2.6));
-
-  if (P.mode === 'inside' || (P.mode === 'burst' && P.burstT < 2.6)) where = 'inside';
+  const still = { stick: null, stickM: 0 };
   if (!debug.freeze && !c.active) {
-    if (P.mode === 'drift') updateDrift(dt, live ? inp : { stick: null, stickM: 0 });
-    else if (P.mode === 'walk') updateWalk(dt, live ? inp : { stick: null, stickM: 0 });
-    else if (P.mode === 'clay') updateClay(dt, live ? inp : { stick: null, stickM: 0 });
+    if (P.mode === 'drift') updateDrift(dt, live ? inp : still);
+    else if (P.mode === 'walk') updateWalk(dt, live ? inp : still);
+    else if (P.mode === 'clay') updateClay(dt, live ? inp : still);
     else if (P.mode === 'commit') updateCommit(dt);
-    else if (P.mode === 'burst') where = updateBurst(dt);
+    else if (P.mode === 'burst') updateBurst(dt);
   }
-  if (P.mode === 'inside' || (P.mode === 'burst' && where === 'inside')) {
+  if (P.mode === 'inside' || (P.mode === 'burst' && P.burstT < 2.6)) {
     const ev = inside.update(dt, t, { steer: live && ls.m > 0 ? { x: ls.x, y: -ls.y } : null, surge: live && ctl.dash.pressed() }, c.active || debug.freeze);
     if (P.mode === 'inside' && !c.active) P.fade = Math.max(0, P.fade - dt * 1.5);
     if (ev.surged) { audio.play('bacterium/sprint', { volume: 0.6, rate: 1.2 }); say('A surge: the strand is pulled in faster (departure).', 1400); }
@@ -639,121 +714,197 @@ function frame(now) {
       startCapture('cut', ev.cut.kind === 're' ? 'The host\'s restriction enzyme' : 'The host\'s CRISPR complex', ev.cut.kind === 're' ? 'found a recognition site and cut your DNA' : 'matched your DNA to a spacer and cut it');
     }
     if (ev.won && P.mode === 'inside') { P.mode = 'burst'; P.burstT = 0; P.burstStarted = false; say('The whole genome is in. Phage genes switch on; the host\'s DNA is broken down…', 3000, true); audio.play('bacterium/eat', { volume: 0.8 }); }
-    const s = inside.S;
-    prog.style.display = 'block';
-    prog.innerHTML = `<span>Genome in: ${Math.round(s.progress * 169)} of 169 kbp</span><i style="width:${(s.progress * 100).toFixed(1)}%"></i>`;
-  } else prog.style.display = 'none';
-
-  // outside: UV, amoeba, world
-  if (where === 'outside' && !debug.iso) {
-    if (!c.active && !debug.freeze) {
-      if (opts.uv && (P.mode === 'drift' || P.mode === 'walk' || P.mode === 'clay')) {
-        const uv = uvAt(centreOf(_v).y);
-        P.integrity -= uv * 0.11 * dt * (P.mode === 'clay' ? 0.12 : 1);
-        if (uv > 0.15 && P.msgT <= 0) { say(P.mode === 'clay' ? 'UV-bright water, but the clay shields you.' : 'UV-bright water near the surface: it is damaging your DNA. Go deeper.', 2400, true); P.msgT = 5; }
-        P.dark = Math.max(P.dark, (1 - P.integrity) * 0.6);
-        if (P.integrity <= 0) { P.integrity = 0; startCapture('uv', 'UV-B from the sunlit surface', 'darkened and cracked your capsid and broke your DNA'); }
-      }
-      updateAmoeba(dt);
-    }
-    world.update(dt, t, view.target, centreOf(new THREE.Vector3()), camera.position.z);
   }
+  // UV, per phage, outside
+  if (where === 'outside' && !debug.iso && !c.active && !debug.freeze && opts.uv && outsideModes.includes(P.mode)) {
+    const uv = uvAt(centreOf(_v).y);
+    P.integrity -= uv * 0.11 * dt * (P.mode === 'clay' ? 0.12 : 1);
+    if (uv > 0.15 && P.msgT <= 0) { say(P.mode === 'clay' ? 'UV-bright water, but the clay shields you.' : 'UV-bright water near the surface: it is damaging your DNA. Go deeper.', 2400, true); P.msgT = 5; }
+    P.dark = Math.max(P.dark, (1 - P.integrity) * 0.6);
+    if (P.integrity <= 0) { P.integrity = 0; startCapture('uv', 'UV-B from the sunlit surface', 'darkened and cracked your capsid and broke your DNA'); }
+  }
+  // the backdoor: open water at the flagellum, above the hosts
+  P.inBack = where === 'outside' && P.mode === 'drift' && centreOf(_v).distanceTo(world.backdoor.pos) < world.backdoor.radius;
   if (c.active) captureAnim(c.phase, c.t, dt);
-
   // pose the model
   t4.set({ fold: P.fold, contract: P.contract, star: P.star, shortOut: P.shortOut, dna: P.dna, dark: P.dark, crack: P.crack });
-  if (P.mode === 'drift' && !c.active) {
-    // a fine high-frequency tremble on top of the smooth Brownian velocity
-    t4.group.position.copy(P.pos).add(_v.set(Math.sin(t * 13.1) * 0.12, Math.sin(t * 11.7 + 1) * 0.12, 0));
-  } else t4.group.position.copy(P.pos);
+  if (P.mode === 'drift' && !c.active) t4.group.position.copy(P.pos).add(_v.set(Math.sin(t * 13.1 + m.slot) * 0.12, Math.sin(t * 11.7 + 1 + m.slot) * 0.12, 0));
+  else t4.group.position.copy(P.pos);
   t4.group.quaternion.copy(P.q);
   t4.group.scale.setScalar(P.scale);
+  t4.group.visible = t4.fibreMesh.visible = P.mode !== 'inside' && !(P.mode === 'burst');
   for (let f = 0; f < 6; f++) t4.fibres[f].reach = P.mode === 'drift' && inp.stick ? 0.25 : 0;
   t4.state.sway = P.mode === 'walk' || P.mode === 'commit' ? 0.4 : 1;
   t4.update(dt, t);
+}
 
-  // camera
-  if (P.mode === 'commit') { view.yaw *= Math.exp(-dt * 2); view.pitch += (0.1 - view.pitch) * (1 - Math.exp(-dt * 2)); }
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = debug.pause ? 0 : Math.min(debug.maxDt || 0.05, (now - last) / 1000);
+  last = now;
+  t += dt;
+  goodsellShared.uTime.value = t;
+  players.poll();
+  syncTeam();
+  unlockOnPad();
+  blocked = features.update();
+  if (!blocked) hud.update(pad);
+  toastT -= dt;
+  const owner = () => members().find((m) => m.P.mode === 'inside' || (m.P.mode === 'burst' && m.P.burstT < 2.6)) || null;
+  let insideOwner = owner();
+  const where = insideOwner ? 'inside' : 'outside';
+  // the camera stick: any player
+  const look = { yaw: 0, pitch: 0, m: 0 };
+  if (!blocked) for (const m of members()) { const l = players.controls(m.slot).look(); if (l.m > look.m) Object.assign(look, l); }
+  for (const m of members()) stepMember(m, dt, insideOwner, where);
+  insideOwner = owner();
+  const lead = members().find((m) => m.P.mode === 'burst') || insideOwner || team[0];
+  const solo = !isMulti();
+
+  // the amoeba hunts the nearest phage; the crowd moves round the view
+  if (where === 'outside' && !debug.iso) {
+    const prey = members().filter((m) => !m.c.active && outsideModes.includes(m.P.mode))
+      .sort((a, b) => world.sdAmoeba(a.P.pos) - world.sdAmoeba(b.P.pos))[0];
+    if (prey && !debug.freeze) { use(prey); updateAmoeba(dt); }
+    else if (!debug.freeze) hunger.update(dt);
+    use(team[0]);
+    world.update(dt, t, view.target, centreOf(new THREE.Vector3()), camera.position.z);
+  }
+  use(lead);
+  if (lead.P.mode === 'inside' || lead.P.mode === 'burst') {
+    const s = inside.S;
+    prog.style.display = where === 'inside' || lead.P.mode === 'inside' ? 'block' : 'none';
+    prog.innerHTML = `<span>Genome in: ${Math.round(s.progress * 169)} of 169 kbp</span><i style="width:${(s.progress * 100).toFixed(1)}%"></i>`;
+  } else prog.style.display = 'none';
+  // the win: the last world has no next stage, so the burst is the ending
+  if (lead.P.mode === 'burst' && lead.P.burstT > 4 && !lead.P.burstSent) {
+    lead.P.burstSent = true;
+    if (embed.active) embed.landmark('forward', { won: true, burst: 40, host: lead.P.commitHost.id });
+    else showWinCard();
+  }
+  if (card.classList.contains('show') && !blocked) for (const m of members()) { const c2 = players.controls(m.slot); if ((c2.dash.pressed() || c2.attack.pressed()) && lead.P.burstT > 4.6) { resetLevel(); break; } }
+  // backdoor prompt
+  const backNow = where === 'outside' && members().some((m) => m.P.inBack);
+  if (backNow !== nearBack) {
+    nearBack = backNow;
+    embed.near('back', backNow, 'Y: back to Sediment');
+    if (backNow && !embed.active) say('The bacterium\'s flagellum sweeping past: Y goes back to the sediment (in the game).', 2600, true);
+  }
+
+  // camera: frame the group (solo: your phage)
+  const commitFocus = solo && P.mode === 'commit';
+  if (commitFocus) { view.yaw *= Math.exp(-dt * 2); view.pitch += (0.1 - view.pitch) * (1 - Math.exp(-dt * 2)); }
   else if (look.m > 0) { view.yaw = clamp(view.yaw + look.yaw * 1.4 * dt, -1.1, 1.1); view.pitch = clamp(view.pitch + look.pitch * 1.1 * dt, -0.75, 0.75); }
   else { view.yaw *= Math.exp(-dt * 0.4); view.pitch *= Math.exp(-dt * 0.4); }
-  view.dist += ((P.mode === 'commit' ? Math.min(ZOOMS[view.zoom], 75) : ZOOMS[view.zoom]) - view.dist) * (1 - Math.exp(-dt * 2));
+  view.dist += ((commitFocus ? Math.min(ZOOMS[view.zoom], 75) : ZOOMS[view.zoom]) - view.dist) * (1 - Math.exp(-dt * 2));
+  const inPlay = members().filter((m) => m.P.mode !== 'inside' && m.P.mode !== 'burst' && m.P.mode !== 'dead');
+  const focusPts = (inPlay.length ? inPlay : [team[0]]).map((m) => { use(m); return centreOf(new THREE.Vector3()); });
+  use(lead);
+  marks.begin();
   if (where === 'outside') {
-    const want = P.mode === 'burst' ? P.commitHost.pos : centreOf(new THREE.Vector3());
-    view.target.lerp(want, 1 - Math.exp(-dt * (P.mode === 'burst' ? 1 : 2.5)));
+    const want = lead.P.mode === 'burst' ? lead.P.commitHost.pos : split.centroid(focusPts);
+    view.target.lerp(_v.set(want.x, want.y, want.z), 1 - Math.exp(-dt * (lead.P.mode === 'burst' ? 1 : 2.5)));
     const o = debug.camOverride;
-    const yaw = o ? o.yaw : view.yaw, pitch = o ? o.pitch : view.pitch, dist = o ? o.dist : view.dist * (P.mode === 'burst' ? 1.6 : 1);
+    const yaw = o ? o.yaw : view.yaw, pitch = o ? o.pitch : view.pitch, dist = o ? o.dist : view.dist * (lead.P.mode === 'burst' ? 1.6 : 1);
     camera.position.set(Math.sin(yaw) * Math.cos(pitch), -Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch)).multiplyScalar(dist).add(view.target);
     camera.lookAt(view.target);
     camera.updateMatrixWorld();
-    t4.setCutFrom(camera.position);
     goodsellShared.uFogNear.value = dist * 0.8; goodsellShared.uFogFar.value = dist + 300;
     post.uniforms.uWater.value.set('#bcd3ea');
-    // UV line on screen
-    _v.set(view.target.x, UV.y0 + 40, 0).project(camera);
-    post.uniforms.uUvLine.value = _v.y * 0.5 + 0.5;
     post.uniforms.uUv.value = opts.uv && !debug.iso ? 0.9 : 0;
     post.uniforms.uBgOff.value.set(view.target.x * 0.0006, view.target.y * 0.0006);
   } else {
-    inside.frame(dt, look, c.active && P.kind === 'cut' ? 85 : ZOOMS[view.zoom] * 1.05 + 40);
+    inside.frame(dt, look, insideOwner && insideOwner.c.active && insideOwner.P.kind === 'cut' ? 85 : ZOOMS[view.zoom] * 1.05 + 40);
     goodsellShared.uFogNear.value = 150; goodsellShared.uFogFar.value = 360;
     post.uniforms.uWater.value.set('#efc4a0');
     post.uniforms.uUv.value = 0;
   }
   post.uniforms.uLook.value = view.look;
   post.uniforms.uTime.value = t;
-  post.uniforms.uFade.value = P.fade;
-  if (P.kind !== 'uv' || !c.active) post.uniforms.uFlash.value *= Math.exp(-dt * 4);
-  post.uniforms.uFlashColor.value.set(P.kind === 'uv' ? '#efe4ff' : '#ffffff');
-  for (const o of [world.clay.group]) o.visible = !debug.iso;
-  post.render(where === 'outside' ? scene : inside.scene, where === 'outside' ? camera : inside.camera);
+  post.uniforms.uFade.value = lead.P.fade;
+  const uvDying = members().some((m) => m.c.active && m.P.kind === 'uv');
+  if (!uvDying) post.uniforms.uFlash.value *= Math.exp(-dt * 4);
+  post.uniforms.uFlashColor.value.set(uvDying ? '#efe4ff' : '#ffffff');
+  world.clay.group.visible = !debug.iso;
+  if (where === 'outside') {
+    // LEGO split screen: one view while together, split as players drift apart
+    const list = inPlay.length ? inPlay.map((m, i) => ({ slot: m.slot, position: focusPts[i] })) : [{ slot: 0, position: view.target }];
+    split.update(list, { camera }, dt);
+    split.render(camera, () => {
+      for (const m of members()) m.t4.setCutFrom(camera.position);
+      _v.set(camera.position.x, UV.y0 + 40, 0).project(camera);
+      post.uniforms.uUvLine.value = _v.y * 0.5 + 0.5;
+      post.render(scene, camera);
+    });
+    if (!debug.iso && lead.P.mode !== 'burst') {
+      marks.drawSplit(split, bestPatch(), { kind: 'forward', label: 'OmpC', range: 600 });
+      marks.drawSplit(split, world.backdoor.pos, { kind: 'backdoor', label: 'Sediment', range: 600 });
+    }
+  } else post.render(inside.scene, inside.camera);
 
+  use(team[0]);
   updateOverlay(where);
-  // sound: a faint motor-like hiss for drift speed (the bacterium's run loop, pitched down)
   const spd = P.vel.length() + P.gust.length();
   driftLoop.set({ volume: P.mode === 'drift' ? Math.min(0.25, spd / 200) : 0, rate: 0.6 + spd / 200 });
-
-  // scale bar: 100 nm (outside) or 10 nm (inside)
-  const unit = where === 'outside' ? 10 : 10;
   const pxPerUnit = innerHeight / (2 * Math.tan((camera.fov * Math.PI) / 360) * (where === 'outside' ? view.dist : inside.camera.position.distanceTo(inside.tip())));
-  scaleEl.innerHTML = `<i style="width:${(unit * pxPerUnit).toFixed(0)}px"></i>${where === 'outside' ? '100 nm' : '10 nm'}`;
+  scaleEl.innerHTML = `<i style="width:${(10 * pxPerUnit).toFixed(0)}px"></i>${where === 'outside' ? '100 nm' : '10 nm'}`;
   label.textContent = `${LOOKS[view.look]} · an illustration, not a microscope image · time slowed ~20×${opts.drive ? ' · LS drift and gusts are departures' : ''}`;
-
-  // stats
   const n5 = (x) => { const k = Math.round(clamp(x, 0, 1) * 5); return '■'.repeat(k) + '□'.repeat(5 - k); };
   const modeName = { drift: 'drifting', walk: `walking on ${P.host?.name}${P.bound ? ` · ${P.bound} fibres on OmpC` : ''}`, clay: 'stuck on clay (UV shelter)', commit: 'committed: contracting', inside: 'DNA entering the host', burst: 'burst', dead: 'lost' }[P.mode];
   const am = hunger.state === 'grace' ? `calm (${Math.ceil(hunger.left)} s)` : hunger.state === 'hungry' ? 'HUNGRY' : 'resting';
-  hud.stats(`${modeName}\nfibres ${P.foldTarget > 0.5 ? 'folded' : 'extended'}\nintegrity ${n5(P.integrity)}  ${dash.text()}\nUV ${Math.round(uvAt(centreOf(_v).y) * 100)} %  amoeba ${am}\n${where === 'inside' ? `genome in ${Math.round(inside.S.progress * 100)} %` : `x ${(P.pos.x / 100).toFixed(2)} µm  depth below UV ${Math.max(0, (UV.y0 - centreOf(_v).y) / 100).toFixed(2)} µm`}`);
+  const others = isMulti() ? '\n' + members().filter((m) => m.slot).map((m) => `P${m.slot + 1} ${m.P.mode} ${n5(m.P.integrity)}`).join('  ') : '';
+  hud.stats(`${modeName}\nfibres ${P.foldTarget > 0.5 ? 'folded' : 'extended'}\nintegrity ${n5(P.integrity)}  ${dash.text()}\nUV ${Math.round(uvAt(centreOf(_v).y) * 100)} %  amoeba ${am}\n${where === 'inside' ? `genome in ${Math.round(inside.S.progress * 100)} %` : `x ${(P.pos.x / 100).toFixed(2)} µm  depth below UV ${Math.max(0, (UV.y0 - centreOf(_v).y) / 100).toFixed(2)} µm`}${others}`);
 }
 
-// --- debug hooks for scripted screenshots ---
+function showWinCard() {
+  card.innerHTML = `<h2>Burst</h2><p>${lead().P.commitHost.name} lysed and released 40 new phages (real T4 bursts are dozens to hundreds; <i>[Unverified here]</i>). Taking over the cell took ~25 minutes, compressed to seconds.</p><p class="go">Press A to play again</p>`;
+  card.classList.add('show');
+}
+const lead = () => members().find((m) => m.P.mode === 'burst') || team[0];
+
+// --- debug hooks for scripted screenshots (they act on player 1) ---
+const p1 = (fn) => (...a) => { use(team[0]); return fn(...a); };
 Object.assign(debug, {
-  teleport(x, y, z = 0) { P.pos.set(x, y, z); view.target.copy(P.pos); t4.group.position.copy(P.pos); t4.resetFibres(t); if (P.mode !== 'drift') { P.mode = 'drift'; releaseAnchors(); } },
-  orient(ax, ay, az) { P.q.setFromEuler(new THREE.Euler(ax, ay, az)); P.angVel.set(0, 0, 0); },
-  isolate(on) { debug.iso = on; for (const h of world.hosts) h.group.visible = !on; world.opts.crowd = !on; world.amoeba.mesh.visible = !on; for (const o of scene.children) if (o.isInstancedMesh && o !== t4.fibreMesh && o !== progeny) o.visible = !on; },
+  teleport: p1((x, y, z = 0) => { P.pos.set(x, y, z); view.target.copy(P.pos); t4.group.position.copy(P.pos); t4.resetFibres(t); if (P.mode !== 'drift') { P.mode = 'drift'; releaseAnchors(); } }),
+  orient: p1((ax, ay, az) => { P.q.setFromEuler(new THREE.Euler(ax, ay, az)); P.angVel.set(0, 0, 0); }),
+  isolate(on) { debug.iso = on; for (const h of world.hosts) h.group.visible = !on; world.opts.crowd = !on; world.amoeba.mesh.visible = !on; world.backdoor.group.visible = !on; const keep = new Set(members().map((m) => m.t4.fibreMesh)); for (const o of scene.children) if (o.isInstancedMesh && !keep.has(o) && o !== progeny) o.visible = !on; },
   cam(yaw, pitch, dist) { debug.camOverride = yaw == null ? null : { yaw, pitch, dist }; },
-  fold(v) { P.foldTarget = v; },
-  walkOn(id, u = 0, phi = 0) {
+  fold: p1((v) => { P.foldTarget = v; }),
+  walkOn: p1((id, u = 0, phi = 0) => {
     const h = world.hosts.find((x) => x.id === id);
     const local = new THREE.Vector3(u, Math.cos(phi) * (h.r + 6), Math.sin(phi) * (h.r + 6));
     P.pos.copy(world.toWorld(h, local)); P.foldTarget = 0; P.fold = 0;
     P.q.setFromUnitVectors(UP, world.dirToWorld(h, local.clone().setX(0).normalize(), new THREE.Vector3()));
     t4.group.position.copy(P.pos); t4.group.quaternion.copy(P.q); t4.resetFibres(t);
     enterWalk(h);
-  },
-  commit() { if (P.mode === 'walk') { P.canCommit = true; tryCommit(); } },
-  inside(id = 'A') { const h = world.hosts.find((x) => x.id === id); P.commitHost = h; P.mode = 'inside'; inside.start(h); inside.setRadar(view.overlay); P.fade = 0; },
-  win() { if (P.mode === 'inside') { inside.S.nodes.length = 0; P.mode = 'burst'; P.burstT = 0; P.burstStarted = false; for (let i = 0; i < GENOME_NODES; i++) inside.S.nodes.push(new THREE.Vector3(Math.sin(i * 0.2) * 40, 52 - i * 1.0, 0)); inside.S.prev = inside.S.nodes.map((n) => n.clone()); } },
-  capture(kind) {
+  }),
+  commit: p1(() => { if (P.mode === 'walk') { P.canCommit = true; tryCommit(); } }),
+  inside: p1((id = 'A') => { const h = world.hosts.find((x) => x.id === id); P.commitHost = h; P.mode = 'inside'; inside.start(h); inside.setRadar(view.overlay); P.fade = 0; }),
+  win: p1(() => { if (P.mode === 'inside') { inside.S.nodes.length = 0; P.mode = 'burst'; P.burstT = 0; P.burstStarted = false; for (let i = 0; i < GENOME_NODES; i++) inside.S.nodes.push(new THREE.Vector3(Math.sin(i * 0.2) * 40, 52 - i * 1.0, 0)); inside.S.prev = inside.S.nodes.map((n) => n.clone()); } }),
+  capture: p1((kind, slot = 0) => {
+    use(team[slot]);
     if (kind === 'amoeba') { const am = world.amoeba; const c = centreOf(new THREE.Vector3()); am.base.subVectors(c, am.center).normalize().multiplyScalar(am.r - 6).add(am.center); am.tip.copy(c).lerp(am.base, 0.3); am.reach = am.tip.distanceTo(am.base); startCapture('amoeba', 'The amoeba', 'closed a pseudopod round you into a food vacuole'); }
     if (kind === 'uv') startCapture('uv', 'UV-B from the sunlit surface', 'darkened and cracked your capsid and broke your DNA');
     if (kind === 'cut') { if (P.mode !== 'inside') debug.inside('A'); const e = inside.enzymes[0]; e.pos.copy(inside.tip()).add(new THREE.Vector3(14, -6, 0)); P.cutBy = e; startCapture('cut', 'The host\'s restriction enzyme', 'found a recognition site and cut your DNA'); }
-  },
+    use(team[0]);
+  }),
+  /** Move player `slot` to x, y. */
+  place: (slot, x, y) => { const m = team[slot]; if (!m) return; use(m); P.pos.set(x, y, 0); P.vel.set(0, 0, 0); t4.group.position.copy(P.pos); t4.resetFibres(t); use(team[0]); },
   hungry() { hunger.update(1e6); while (!hunger.hungry) hunger.update(1e6); },
   overlay(on) { view.overlay = on; inside.setRadar(on); },
   look(i) { features.set('look', LOOKS[i]); },
   zoom(i) { view.zoom = i; view.dist = ZOOMS[i]; },
   reset: resetLevel,
 });
-window.__micro = { P, t4, world, inside, view, debug, features, hunger, capture, post, get t() { return t; } };
+window.__micro = {
+  get P() { return team[0].P; }, get t4() { return team[0].t4; }, get capture() { return team[0].capture; },
+  team, players, split, world, inside, view, debug, features, hunger, post, get t() { return t; },
+  get nearBack() { return nearBack; }, get where() { return members().some((m) => m.P.mode === 'inside') ? 'inside' : 'outside'; },
+};
+// the roster: from the shell (embed), or P1 alone; joins keep coming during play
+if (embed.players) players.fromJSON(embed.players);
+embed.on('players', (r) => { players.fromJSON(r); syncTeam(); hud.players(players.list); });
+syncTeam();
+hud.players(players.list);
 resetLevel();
 requestAnimationFrame((n) => { last = n; frame(n); });

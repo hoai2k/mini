@@ -5,6 +5,13 @@ import { segDist, gauss } from './world.js';
 
 export const GOAL_PREY = 3;
 
+/**
+ * Oxygen and energy rates (per second). Before: damage (o2 − 8)/60 with no cap
+ * (dead in seconds near the air), starvation 0.02 (50 s in the anoxic sediment),
+ * Bdellovibrio 0.008 even in good water (about two minutes).
+ */
+export const RATE = { stressDiv: 300, stressMax: 0.06, stressHeal: 0.05, anoxic: 0.004, recover: 0.015, bdello: 0.0025, bdelloLow: 0.008 };
+
 export function createGame(world, swimmer) {
   const s = swimmer.state;
   const r = world.r;
@@ -16,16 +23,26 @@ export function createGame(world, swimmer) {
     const mtb = s.species === 'mtb';
 
     // --- oxygen ---
+    // Softened after play tests (an idle cell used to die in about a minute with no
+    // clear cause): damage and starvation now build over minutes, are capped in
+    // rate, recover when the cell is back in a good place, and s.warning says what
+    // is wrong and what to do long before it matters (main.js shows it on screen).
+    s.warning = null;
     if (opts.oxygen) {
       if (mtb) {
         // microaerophile: too much O2 damages it (and stops magnetite forming); too little starves it
-        if (s.o2 > 8) s.stress += ((s.o2 - 8) / 60) * dt; else s.stress = Math.max(0, s.stress - 0.05 * dt);
-        if (s.o2 < 0.3) s.energy -= 0.02 * dt; else s.energy = Math.min(1, s.energy + 0.01 * dt);
-        if (s.stress >= 1) swimmer.end('Oxidative damage: too much oxygen for a microaerophile. Reverse along the field (LB/RB) to swim back down.');
+        if (s.o2 > 8) s.stress = Math.min(1, s.stress + Math.min(RATE.stressMax, (s.o2 - 8) / RATE.stressDiv) * dt);
+        else s.stress = Math.max(0, s.stress - RATE.stressHeal * dt);
+        if (s.o2 < 0.3) s.energy -= RATE.anoxic * dt; else s.energy = Math.min(1, s.energy + RATE.recover * dt);
+        if (s.stress > 0.04 && s.o2 > 8) s.warning = { kind: 'o2high', level: s.stress, text: 'Too much oxygen: head down the field lines' };
+        else if (s.o2 < 0.3 && s.energy < 0.92) s.warning = { kind: 'o2low', level: 1 - s.energy, text: 'No oxygen down here: you are starving. Head up toward the air' };
+        else if (s.stress > 0.04) s.warning = { kind: 'heal', level: s.stress, text: 'Out of the oxygen: the damage is healing' };
+        if (s.stress >= 1) swimmer.end('Oxidative damage: too much oxygen for a microaerophile. Reverse along the field (LB/RB) to swim back down.', 'Too much oxygen');
       } else {
-        s.energy -= (s.o2 < sp.o2[0] ? 0.03 : 0.008) * dt;
+        s.energy -= (s.o2 < sp.o2[0] ? RATE.bdelloLow : RATE.bdello) * dt;
+        if (s.energy < 0.5) s.warning = { kind: 'starve', level: 1 - s.energy, text: s.o2 < sp.o2[0] ? 'Starving, and too little oxygen: swim up and take prey (X on a rod)' : 'Starving: take prey (X on a rod)' };
       }
-      if (s.energy <= 0) swimmer.end(mtb ? 'Starved: no oxygen or other electron acceptor down here.' : 'Starved: no prey, and too little oxygen to keep going.');
+      if (s.energy <= 0) swimmer.end(mtb ? 'Starved: no oxygen or other electron acceptor down here.' : 'Starved: no prey, and too little oxygen to keep going.', 'Starved');
     }
 
     // --- feeding (magnetotactic): X switches on uptake ---
