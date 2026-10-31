@@ -247,8 +247,10 @@ function step(dt) {
   rig.yaw -= THREE.MathUtils.clamp(yaw, -1, 1) * 1.8 * dt;
 }
 
+let lastCam = null;
 function render(dt, snap = false) {
   const cam = placeCamera(dt, snap);
+  lastCam = cam;
   const list = players.list.filter((p) => bodies[p.slot]).map((p) => ({ slot: p.slot, position: bodies[p.slot].mesh.position }));
   split.update(list, { camera: cam }, dt);
   split.render(cam, (view, target) => {
@@ -263,14 +265,23 @@ function render(dt, snap = false) {
   hud.stats(`players ${players.count} · views ${L.views.length}${L.merged ? ' (merged)' : ''} · scale ${Math.round(split.renderScale * 100)}%`);
 }
 
-let frames = 0;
+let frames = 0, manual = false;
 function frame(now) {
-  frames++;
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
-  step(dt);
-  render(dt);
+  if (!manual) { frames++; step(dt); render(dt); }
   requestAnimationFrame(frame);
+}
+
+// A small copy of the frame just drawn (read before the browser presents it).
+let grabCv = null;
+function grabPixels(w) {
+  const h = Math.round(w * canvas.height / canvas.width);
+  if (!grabCv) grabCv = document.createElement('canvas');
+  grabCv.width = w; grabCv.height = h;
+  const g = grabCv.getContext('2d', { willReadFrequently: true });
+  g.drawImage(canvas, 0, 0, w, h);
+  return { w, h, data: Array.from(g.getImageData(0, 0, w, h).data) };
 }
 requestAnimationFrame(frame);
 
@@ -287,4 +298,35 @@ window.__splitDemo = {
   },
   setYaw(v) { rig.yaw = v; render(1 / 60, true); },
   setView(v) { features.set('view', v === 'top' ? 'Top-down' : 'Orbit'); render(1 / 60, true); },
+  /** Manual stepping: the animation loop stops advancing; tick() runs one fixed frame. */
+  set manual(v) { manual = !!v; },
+  get manual() { return manual; },
+  /**
+   * One frame of play at a fixed dt (input from the controllers, mocked or real),
+   * then a sample: the layout as numbers, and optionally the picture
+   * (pixels: width of a downsampled copy; jpeg: a JPEG data URL of the canvas).
+   */
+  tick(dt = 1 / 60, { pixels = 0, jpeg = false } = {}) {
+    frames++;
+    step(dt);
+    render(dt);
+    const L = split.layout;
+    const out = {
+      frame: frames, merged: L.merged, amount: L.amount, spread: L.spread, angle: L.angle,
+      positions: players.list.map((p) => (bodies[p.slot] ? [bodies[p.slot].mesh.position.x, bodies[p.slot].mesh.position.z] : null)),
+      // where each player is in the shared (unsplit) view, CSS px from the top-left
+      screen: players.list.map((p) => {
+        if (!bodies[p.slot]) return null;
+        const v = bodies[p.slot].mesh.position.clone().project(lastCam);
+        return [(v.x + 1) * innerWidth / 2, (1 - v.y) * innerHeight / 2];
+      }),
+      views: L.views.map((v) => ({ slots: v.slots, shift: [v.shift.x, v.shift.y], offset: v.offset.isVector3 ? v.offset.toArray() : [v.offset.x, v.offset.y] })),
+      edges: L.edges.map((e) => ({ slots: e.slots, angle: e.angle, alpha: e.alpha, a: e.a, b: e.b })),
+      regions: L.regions.map((r) => ({ slot: r.slot, view: r.view, area: r.area, anchor: r.anchor })),
+    };
+    if (pixels) out.pixels = grabPixels(pixels);
+    if (jpeg) out.jpeg = canvas.toDataURL('image/jpeg', 0.8);
+    return out;
+  },
+  get yaw() { return rig.yaw; },
 };
