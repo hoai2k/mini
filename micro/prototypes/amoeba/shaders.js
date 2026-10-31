@@ -40,7 +40,7 @@ uniform vec2 uRes; uniform vec3 uGrid;
 uniform vec3 uCytoMean; uniform vec2 uCytoOff; uniform float uCytoTile;
 uniform vec4 uOrgA[12]; uniform vec4 uOrgB[12]; uniform int uOrgN;
 uniform vec4 uTips[5];
-uniform vec3 uUroid; uniform float uFlat, uTime;
+uniform vec3 uUroid; uniform float uFlat, uTime, uDrain;
 varying vec2 vW;
 void main() {
   float m = texture2D(uMask, gl_FragCoord.xy / uRes).r;
@@ -89,12 +89,15 @@ void main() {
   // Endoplasm: granular, faintly olive (stored food and algal remnants).
   vec3 c = texture2D(uCyto, (vW + uCytoOff) / uCytoTile).rgb;
   vec3 cod = -log(clamp(c / uCytoMean, 0.08, 4.));
+  // Drained by a fungus: the cytoplasm darkens and turns brown as it is sucked out.
   float e2 = endo * clear;
   od += e2 * (vec3(0.1, 0.1, 0.15) + h * vec3(0.5, 0.5, 0.66) + cod * 0.4);
   phase += e2 * (0.08 + dot(cod, vec3(0.08)));
   // The uroid: the crumpled rear, denser and darker.
   float u = 1. - smoothstep(0., uUroid.z, distance(vW, uUroid.xy));
   od += u * endo * vec3(0.11, 0.12, 0.16) * (0.6 + 0.8 * fbm(vW * 0.08));
+  od += uDrain * (0.35 + endo) * vec3(0.55, 0.47, 0.32) * (0.7 + 0.6 * fbm(vW * 0.05));
+  phase += uDrain * 0.25 * endo;
   gl_FragColor = vec4(phase, od) * m;
 }`;
 
@@ -332,14 +335,20 @@ void main() {
 
 // A zoopagalean trap hypha (Stylopage / Zoopage type): a thin, septate,
 // colourless hypha with adhesive knobs that glue passing amoebae.
+// uGrow (0..1): how much of it has grown, from its -x end (a calm opening:
+// the hyphae are absent at first and grow in later). uActive: adhesive knobs
+// sticky (1) or dormant (0, small and pale). uKnobs 0: a haustorium (no knobs).
 export const TRAP_FS = /* glsl */ `
 ${COMMON}
-uniform float uL, uW, uSeed, uPx, uDim;
+uniform float uL, uW, uSeed, uPx, uDim, uGrow, uActive, uKnobs;
 varying vec2 vL;
 void main() {
   vec2 p = vL;
   float r = uW * 0.5;
-  float dx = max(abs(p.x) - (uL * 0.5 - r), 0.);
+  float tipX = -uL * 0.5 + uGrow * uL;
+  if (uGrow < 0.002 || p.x > tipX + r) discard;
+  float hl = uL * 0.5 - r;
+  float dx = max(max(-p.x - hl, p.x - min(hl, tipX - r)), 0.);
   float sd = length(vec2(dx, p.y)) - r;
   float wpx = max(0.5, 0.9 / uPx);
   float body = 1. - smoothstep(-wpx, wpx, sd);
@@ -351,10 +360,11 @@ void main() {
   float q = (p.x + uSeed * 91.) / 26.;
   float side = mod(floor(q), 2.) * 2. - 1.;
   vec2 kc = vec2((floor(q) + 0.5) * 26. - uSeed * 91., side * (r + 3.5));
-  float kd = length(p - kc) - 3.2;
-  float knob = (1. - smoothstep(-wpx, wpx, kd)) * step(abs(p.x), uL * 0.5 - 4.);
-  ph += knob * 0.45 + 0.2 * exp(-kd * kd / 1.5) * step(abs(p.x), uL * 0.5 - 4.);
-  vec3 od = (h + knob) * vec3(0.03, 0.035, 0.05);
+  float kd = length(p - kc) - (1.6 + 1.6 * uActive);
+  float onH = step(abs(p.x), uL * 0.5 - 4.) * step(p.x, tipX - 4.) * uKnobs;
+  float knob = (1. - smoothstep(-wpx, wpx, kd)) * onH;
+  ph += knob * (0.2 + 0.25 * uActive) + 0.2 * uActive * exp(-kd * kd / 1.5) * onH;
+  vec3 od = (h * (1. + 1.5 * (1. - uKnobs)) + knob * (0.5 + 0.5 * uActive)) * vec3(0.03, 0.035, 0.05);
   gl_FragColor = vec4(ph, od) * uDim;
 }`;
 

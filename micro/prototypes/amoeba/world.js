@@ -74,10 +74,12 @@ export function worldColliders(world, dt) {
 }
 
 /** The trap hyphae as capsules {ax, ay, bx, by, r} (they glue, they do not block). */
+/** The sticky part of each trap hypha: only what has grown, and only while its knobs are active. */
 export function trapCapsules(world) {
-  return world.obstacles.filter((o) => o.type === 'trap').map((o) => {
-    const c = Math.cos(o.ang), s = Math.sin(o.ang), h = o.L / 2;
-    return { ax: o.x - c * h, ay: o.y - s * h, bx: o.x + c * h, by: o.y + s * h, r: o.W / 2 + 7 };
+  return world.obstacles.filter((o) => o.type === 'trap' && !o.haustorium && !o.hidden && (o.grow ?? 1) > 0.02 && (o.active ?? 1) > 0.5).map((o) => {
+    const c = Math.cos(o.ang), s = Math.sin(o.ang), h = o.L / 2, g = o.grow ?? 1;
+    const ax = o.x - c * h, ay = o.y - s * h;
+    return { ax, ay, bx: ax + c * o.L * g, by: ay + s * o.L * g, r: o.W / 2 + 7, o };
   });
 }
 

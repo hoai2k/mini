@@ -86,7 +86,7 @@ export class View {
         uOrgB: { value: Array.from({ length: 12 }, () => new THREE.Vector4()) },
         uOrgN: { value: 0 },
         uTips: { value: Array.from({ length: 5 }, () => new THREE.Vector4()) },
-        uUroid: { value: new THREE.Vector3() }, uFlat: { value: 1 }, uTime: { value: 0 },
+        uUroid: { value: new THREE.Vector3() }, uFlat: { value: 1 }, uTime: { value: 0 }, uDrain: { value: 0 },
       },
     });
     this.bodyQuad = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), this.bodyMat);
@@ -155,6 +155,7 @@ export class View {
       uDim: { value: o.layer === 'above' ? 0.45 : 1 },
       uCell: { value: o.cell || 100 }, uPitch: { value: o.pitch || 40 }, uStrands: { value: o.strands || 1 },
       uGirdle: { value: o.girdle || 0 }, uResidue: { value: o.residue ? 1 : 0 },
+      uGrow: { value: o.grow ?? 1 }, uActive: { value: o.active ?? 1 }, uKnobs: { value: o.haustorium ? 0 : 1 },
     };
     m = new THREE.Mesh(this.quadGeo, propertyMaterial({ vertexShader: QUAD_VS, fragmentShader: fs, uniforms: u }));
     m.scale.set(size.x, size.y, 1);
@@ -332,6 +333,7 @@ export class View {
       m.position.set(ob.x, ob.y, 0);
       m.rotation.z = ob.ang;
       m.material.uniforms.uPx.value = this.px;
+      if (ob.type === 'trap') { m.material.uniforms.uGrow.value = ob.grow ?? 1; m.material.uniforms.uActive.value = ob.active ?? 1; m.material.uniforms.uL.value = ob.L; }
     }
     if (this.photo) {
       const [l, bt, w, h] = this.view;

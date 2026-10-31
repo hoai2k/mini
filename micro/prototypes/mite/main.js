@@ -111,7 +111,7 @@ function placeCamera(dt) {
   // a catch is framed whole: you and the predator
   if (capture.active) {
     // close in side-on to the catch: your body and the predator's chelicerae in frame
-    rig.target.lerp(_ct.copy(mite.center).lerp(pred.center, 0.3), k);
+    rig.target.lerp(_ct.copy(mite.center).lerp(pred.center, 0.18), k);
     const kc = dt ? 1 - Math.exp(-dt / 0.6) : 1;
     rig.hfw += (1000 - rig.hfw) * kc;
     const ax = Math.atan2(pred.center.z - mite.center.z, pred.center.x - mite.center.x);
@@ -604,7 +604,7 @@ const api = {
   pacing() {
     const d = pred.center.distanceTo(mite.center);
     return { approach: capture.active || predAI.state === 'hunt', captured: capture.active, phase: capture.phase, kind: 'predator',
-      hunger: { predator: hunger.state }, states: { predator: predAI.state }, dist: { predator: Math.round(d) }, mode: mite.mode };
+      hunger: { predator: hunger.state }, states: { predator: predAI.state }, dist: { predator: Math.round(d) }, mode: mite.mode, pen: Math.round(mite.st.pen * mite.scale) };
   },
   /** Testing: the predator seizes you right now (the whole catch plays). */
   forceCapture() {

@@ -332,7 +332,7 @@ function doDash() {
   const res = swimmer.dash();
   S.dashOn = true;
   pad.rumble(160, 0.5, 0.7);
-  if (res === 'shook') hud.toast('Shook the Bdellovibrio off before it could bore in');
+  if (res === 'shook') { bdelloH.missed(); hud.toast('Shook the Bdellovibrio off before it could bore in'); }
   else if (res === 'detached') hud.toast('Let go of the prey');
 }
 
@@ -359,8 +359,7 @@ function tick(dt, inp) {
   if (ev.caught) startCatch(ev.caught);
   stepCatch(dt);
   if (pacing.firstThreat === null && S.alive && (S.flow > 15 || S.phages.length || S.attacker || world.insideAmoeba(S.x, S.y, t) > -3)) pacing.firstThreat = t - pacing.t0;
-  if (ev.attacked === undefined && S.alive === false) { /* caught or over */ }
-  if (S.attacker === null && ev.shookBdello) bdelloH.missed();  // focus drifts back to the cell's plane
+  // focus drifts back to the cell's plane
   if (view.focusFollows && !inp.focusing) view.focus *= Math.exp(-dt * 1.5);
   // camera: the stage follows the cell
   const k = 1 - Math.exp(-dt * 5);
@@ -402,7 +401,7 @@ function frame(now) {
         if (swimmer.tumble(bias)) {
           audio.play('bacterium/tumble', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
           pad.rumble(40, 0.2, 0);
-          if (S.attacker) { S.attacker.cooldown = 4; S.attacker.prey = null; S.attacker = null; hud.toast('Tumbled free of the Bdellovibrio'); }
+          if (S.attacker) { S.attacker.cooldown = 4; S.attacker.prey = null; S.attacker = null; bdelloH.missed(); hud.toast('Tumbled free of the Bdellovibrio'); }
         }
       }
       if (ctl.lb.pressed() || ctl.rb.pressed()) { if (swimmer.reverse()) hud.toast(S.species === 'mtb' ? (S.sense > 0 ? 'Reversed: swimming north, along the field (down)' : 'Reversed: swimming south, against the field (up)') : 'Reversed'); }
@@ -521,7 +520,7 @@ function stats() {
     capture.active ? `CAUGHT by ${CATCH[cat.kind].by.toLowerCase()}: ${cat.phase}` : '',
     `${Math.round(fps)} fps · ${shapes.count} shapes`,
   ];
-  hud.stats(lines.join('\n'));
+  hud.stats(lines.filter((l) => l !== '').join('\n'));
 }
 
 /** Test hook: start a catch ('grazer' | 'amoeba' | 'phage' | 'bdellovibrio'). */
