@@ -143,11 +143,11 @@ export const ASSETS = {
   },
   "MP-G02": {
     "file": "assets/game/title.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G03": {
     "file": "assets/game/menu.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G04": {
     "file": "assets/game/card-frame.png",
@@ -155,7 +155,7 @@ export const ASSETS = {
   },
   "MP-G05": {
     "file": "assets/game/paper.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G06": {
     "file": "assets/game/icon.png",
@@ -163,31 +163,31 @@ export const ASSETS = {
   },
   "MP-G07": {
     "file": "assets/game/intro-springtail.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G08": {
     "file": "assets/game/intro-mite.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G09": {
     "file": "assets/game/intro-tardigrade.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G10": {
     "file": "assets/game/intro-amoeba.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G11": {
     "file": "assets/game/intro-paramecium.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G12": {
     "file": "assets/game/intro-bacterium.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G13": {
     "file": "assets/game/intro-phage.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R01": {
     "file": "assets/reference-sheets/springtail.webp",

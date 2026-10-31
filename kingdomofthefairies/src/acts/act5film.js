@@ -139,13 +139,16 @@ export const DIVE = { y: 372, x0: 170, edge: 360, start: 210 };          // coas
 export const BARREL = {                                                  // cliff-whirlpool's ledge
   y: 412, x0: 150, edge: 728, start: 230, at: 470, hw: 40, push: 150, knock: 320,
 };
-// The witch's last stand on that ledge, before she hides in her barrel: she
-// winds up (warn), then hurls a bolt of fire along the ground (leap it), or
-// blasts him back if he lingers at her side; three strokes of the sword
-// (A beside her) beat her, and she shrinks into the barrel where she stands.
+// The witch's last stand on that ledge: she winds up (warn), then hurls a
+// bolt of fire along the ground (leap it, A), or blasts him back if he lingers
+// at her side; the sword (X) swings, and three blows that reach her beat her.
+// Then, as in the film, Aurora shuts her in a barrel: it drops out of the air
+// over her (`trap`: Aurora casts until `drop`, it falls until `land`, rocks
+// until the end) and he pushes it over the cliff.
 export const DUEL = {
   hp: 3, x: 610, back: 640, idle: [0.9, 1.4], warn: 0.65, reach: 115, near: 150,
-  bolt: 400, boltR: 26, boltH: 34, reel: 0.8, hide: 1.4, hw: 34,
+  bolt: 400, boltR: 26, boltH: 34, reel: 0.8, hw: 34, swing: 0.35,
+  trap: { drop: 0.6, land: 1.05, end: 1.9 },
 };
 // (each walk starts with its figures in view, clear of the left curtain at ~x 170)
 export const WEDDING = { y: 652, x0: 60, gate: 880, start: 330, follow: 96, petals: 14 };
@@ -364,9 +367,13 @@ export const actBurning = {
   sub: 'The witch’s demons set the tower alight.\nClimb to Azurine and carry her out before it falls.',
   action: 'A: leap',
   scenes: BURNING_SCENES,
-  mood: (st) => (st.phase === 'wedding' || st.phase === 'apotheosis' || st.phase === 'iris' ? 'revel' : 'storm'),
+  // the wedding has its own song (period-wedding); until it is delivered the
+  // shell plays the revel march for it
+  mood: (st) => (st.phase === 'wedding' || st.phase === 'apotheosis' || st.phase === 'iris' ? 'wedding' : 'storm'),
   touchLive: (st) => ['house', 'quay'].includes(st.phase) || (st.phase === 'barrel' && st.barrel?.fallT == null),
-  touchVerb: (st) => (st.phase === 'barrel' && st.duel ? (duelReach(st) ? 'Strike' : 'Leap') : ['barrel', 'wedding', 'apotheosis'].includes(st.phase) ? '' : st.phase === 'house' && st.carry?.stone && !st.stoneThrown ? 'Action' : 'Leap'),
+  // the second button swings the sword in the witch's last stand
+  touchVerbB: (st) => (st.phase === 'barrel' && st.duel && st.duel.state !== 'trap' ? 'Strike' : ''),
+  touchVerb: (st) => (st.phase === 'barrel' && st.duel ? 'Leap' : ['barrel', 'wedding', 'apotheosis'].includes(st.phase) ? '' : st.phase === 'house' && st.carry?.stone && !st.stoneThrown ? 'Action' : 'Leap'),
   touchHint: 'drag to walk and climb, A to leap',
   touchScheme: (st) => (['wedding', 'apotheosis'].includes(st.phase) || (st.phase === 'barrel' && !st.duel) ? { mode: 'swipe', hint: 'Drag ↔ to walk' } : { mode: 'stick', hint: 'Drag to walk · up and down on stairs and ladders' }),
 
@@ -418,10 +425,11 @@ export const actBurning = {
     if (e.type === 'liftHer') return 'You lift Azurine. Carry her down: no leaping now.';
     if (e.type === 'floorBreak') return 'The way you came is gone. A ladder drops at the right.';
     if (e.type === 'houseFall') return 'Out onto the clifftop. The tower is falling.';
-    if (e.type === 'witchReturns') return 'The witch attacks one last time! Leap her fire, and strike her with A beside her.';
+    if (e.type === 'witchReturns') return 'The witch attacks one last time! Leap her fire with A, and strike her with the sword with X.';
     if (e.type === 'witchStruck') return e.hp > 0 ? 'You strike the witch.' : 'The witch is beaten.';
     if (e.type === 'witchBlast') return 'She blasts you back.';
-    if (e.type === 'witchInBarrel') return 'She hides in her barrel. Push it over the cliff.';
+    if (e.type === 'witchBeaten') return 'The witch is beaten. Aurora shuts her in a barrel.';
+    if (e.type === 'witchInBarrel') return 'Push the barrel over the cliff.';
     if (e.type === 'barrelFall') return 'Into the whirlpool!';
     if (e.type === 'wedding') return 'The wedding. Walk Azurine along the street to the castle gate; catch the falling petals.';
     if (e.type === 'apotheosis') return 'Walk with Azurine to the light beneath Aurora.';
@@ -487,15 +495,19 @@ function startBarrel(st) {
 function stepDuel(st, dt, input) {
   const d = st.duel, w = st.w;
   const dist = d.x - DUEL.hw - (w.x + PRINCE_HW);   // the gap between them
-  const reach = dist < DUEL.reach - DUEL.hw && d.state !== 'hide';
-  // A beside her strikes with the sword; anywhere else it leaps
-  const strike = input.a && reach && w.on && w.knockT <= 0;
-  walk(w, dt, strike ? { ...input, a: false } : input, { y: BARREL.y, x0: BARREL.x0, x1: d.x - DUEL.hw - PRINCE_HW, leap: true, events: st.events });
+  const reach = dist < DUEL.reach - DUEL.hw && d.state !== 'trap';
+  // A leaps; X swings the sword (wherever he is), and a swing that reaches
+  // her is a blow
+  walk(w, dt, d.state === 'trap' ? {} : input, { y: BARREL.y, x0: BARREL.x0, x1: d.x - DUEL.hw - PRINCE_HW, leap: true, events: st.events });
   d.t += dt; w.strikeT = Math.max(0, (w.strikeT || 0) - dt);
-  if (strike && d.state !== 'reel') {
-    d.hp--; w.strikeT = 0.3; d.state = 'reel'; d.t = 0; d.bolts.length = 0;
-    st.events.push({ type: 'witchStruck', x: d.x, hp: d.hp });
-    if (d.hp <= 0) { d.state = 'hide'; st.score += 300; st.events.push({ type: 'witchHides', x: d.x }); }
+  if (input.x && w.strikeT <= 0 && w.knockT <= 0 && d.state !== 'trap') {
+    w.strikeT = DUEL.swing; st.events.push({ type: 'swordSwing', x: w.x });
+    if (reach && d.state !== 'reel') {
+      d.hp--; d.state = 'reel'; d.t = 0; d.bolts.length = 0;
+      st.events.push({ type: 'witchStruck', x: d.x, hp: d.hp });
+      // beaten: the heroic stinger (victoryStinger, design/music-requests.md)
+      if (d.hp <= 0) { d.state = 'trap'; d.t = 0; st.score += 300; st.events.push({ type: 'witchBeaten', x: d.x, sound: 'victoryStinger' }); }
+    }
   }
   if (d.state === 'idle' && d.t >= d.next) { d.state = 'warn'; d.t = 0; st.events.push({ type: 'witchWinds', x: d.x }); }
   else if (d.state === 'warn' && d.t >= DUEL.warn) {
@@ -508,12 +520,17 @@ function stepDuel(st, dt, input) {
   } else if (d.state === 'reel') {
     d.x = lerp(d.x, DUEL.back, Math.min(1, dt * 6));   // driven back toward the edge
     if (d.t >= DUEL.reel) { d.state = 'idle'; d.t = 0; d.next = DUEL.idle[0]; }
-  } else if (d.state === 'hide' && d.t >= DUEL.hide) {
-    // she has shrunk into her barrel where she stood
-    st.barrel = { x: Math.min(d.x, BARREL.edge - 70), state: 'still', t: 0, fallT: null, rot: 0 };
-    st.duel = null;
-    st.events.push({ type: 'witchInBarrel' });
-    return;
+  } else if (d.state === 'trap') {
+    const T2 = DUEL.trap, was = d.t - dt, at = (q) => was < q && d.t >= q;
+    if (at(0.05)) st.events.push({ type: 'auroraCasts', x: d.x });
+    if (at(T2.land)) st.events.push({ type: 'barrelDrop', x: d.x, sound: 'barrelKnock' });
+    if (d.t >= T2.end) {
+      // shut in Aurora's barrel where she stood
+      st.barrel = { x: Math.min(d.x, BARREL.edge - 70), state: 'still', t: 0, fallT: null, rot: 0 };
+      st.duel = null;
+      st.events.push({ type: 'witchInBarrel' });
+      return;
+    }
   }
   // her bolts run along the ground at him: leap them
   for (const bo of d.bolts) bo.x -= DUEL.bolt * dt;
@@ -523,11 +540,11 @@ function stepDuel(st, dt, input) {
     return true;
   });
 }
-export const duelReach = (st) => !!st.duel && st.duel.x - DUEL.hw - (st.w.x + PRINCE_HW) < DUEL.reach - DUEL.hw && st.duel.state !== 'hide';
+export const duelReach = (st) => !!st.duel && st.duel.x - DUEL.hw - (st.w.x + PRINCE_HW) < DUEL.reach - DUEL.hw && st.duel.state !== 'trap';
 function duelHit(st) {
   if (hit(st, { cause: 'witch' }) && st.defeatT != null) {
     st.lostTitle = 'The Witch\nHolds the Cliff';
-    st.lostSub = 'Leap her fire, and strike with A beside her.';
+    st.lostSub = 'Leap her fire with A; strike her with the sword with X.';
   }
 }
 function stepBarrel(st, dt, input) {

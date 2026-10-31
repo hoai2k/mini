@@ -471,7 +471,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} A game title logo: the words \"MICRO ZOOM\" in capitals, spelled exactly M-I-C-R-O Z-O-O-M, in an elegant engraved serif with brass inlay and a thin ink outline, the O of ZOOM drawn as a microscope objective lens seen end-on with concentric brass rings and a tiny tardigrade silhouette inside. A fine engraved scale rule underlines the words. Wide landscape composition, even margins, no other text, no watermark. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
             },
             {
-                "id": "MP-G02", "name": "Title screen key art",
+                "id": "MP-G02", "status": "delivered", "name": "Title screen key art",
                 "file": "assets/game/title.webp", "size": "2560 x 1440, opaque",
                 "used": "Full-screen behind the title (Press Start).",
                 "standin": "A slow procedural zoom through the worlds' colours.",
@@ -479,7 +479,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} Key art: a brass microscope's objective lens hangs above a single drop of bog water on a glass slide; inside the drop, nested like a spiral of shrinking worlds, a water springtail on the surface film, a mite among moss leaves, a tardigrade gripping a leaf cell, an amoeba, a green Paramecium, rod bacteria and a tiny bacteriophage at the centre, each painted in its own microscope look (macro photo, electron micrograph, DIC, brightfield, phase contrast, molecular illustration). Warm lamplight, deep green shadows. Keep the upper-middle third calm for the logo and the bottom third quiet for the Press Start line. Full-bleed 16:9, no text.",
             },
             {
-                "id": "MP-G03", "name": "Menu background",
+                "id": "MP-G03", "status": "delivered", "name": "Menu background",
                 "file": "assets/game/menu.webp", "size": "2560 x 1440, opaque",
                 "used": "Behind the world-select cards.",
                 "standin": "A dark green-to-ink gradient with a faint engraved grid.",
@@ -495,7 +495,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} An empty portrait frame for a specimen card: a thin polished brass bezel with engraved corner ornaments and a small vernier scale along the bottom edge, like the mount of a microscope slide; the inside is completely empty and transparent; even line weights so it can be stretched as a nine-slice. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
             },
             {
-                "id": "MP-G05", "name": "Paper panel texture",
+                "id": "MP-G05", "status": "delivered", "name": "Paper panel texture",
                 "file": "assets/game/paper.webp", "size": "1024 x 1024, opaque, tileable",
                 "used": "Panels: the intro text, the pause menu, settings and the controls card.",
                 "standin": "A flat warm ivory with procedural grain.",
@@ -511,7 +511,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} An app icon: a brass microscope objective seen end-on, concentric brass and black rings around a glowing round field of view that holds a small plump tardigrade in soft DIC grey-green; on a rounded-square tile of deep ink green. Bold and readable at 48 px. The rounded square fills the frame with transparent corners. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
             },
             {
-                "id": "MP-G07", "name": "World intro: Bog surface (springtail)",
+                "id": "MP-G07", "status": "delivered", "name": "World intro: Bog surface (springtail)",
                 "file": "assets/game/intro-springtail.webp", "size": "2560 x 1440, opaque",
                 "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
                 "standin": "The world's launcher card, enlarged and blurred.",
@@ -519,7 +519,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing macro photograph at about 2:1, natural daylight, very shallow depth of field: a blue-black water springtail (Podura aquatica) standing on the dimpled water film of a bog pool, Sphagnum islands and a sundew in soft focus behind. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
             },
             {
-                "id": "MP-G08", "name": "World intro: Moss canopy (mite)",
+                "id": "MP-G08", "status": "delivered", "name": "World intro: Moss canopy (mite)",
                 "file": "assets/game/intro-mite.webp", "size": "2560 x 1440, opaque",
                 "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
                 "standin": "The world's launcher card, enlarged and blurred.",
@@ -527,7 +527,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing scanning electron micrograph look, greyscale: a small armoured box mite among towering Sphagnum leaves and fungal hyphae, deep focus. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
             },
             {
-                "id": "MP-G09", "name": "World intro: Water film (tardigrade)",
+                "id": "MP-G09", "status": "delivered", "name": "World intro: Water film (tardigrade)",
                 "file": "assets/game/intro-tardigrade.webp", "size": "2560 x 1440, opaque",
                 "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
                 "standin": "The world's launcher card, enlarged and blurred.",
@@ -535,7 +535,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing differential interference contrast microscope look: a plump tardigrade gripping the cell walls of a moss leaf under a thin water film, chloroplasts in the cells, a Milnesium as a soft blur in the distance. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
             },
             {
-                "id": "MP-G10", "name": "World intro: Pool floor (amoeba)",
+                "id": "MP-G10", "status": "delivered", "name": "World intro: Pool floor (amoeba)",
                 "file": "assets/game/intro-amoeba.webp", "size": "2560 x 1440, opaque",
                 "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
                 "standin": "The world's launcher card, enlarged and blurred.",
@@ -543,7 +543,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing brightfield microscope look: Amoeba proteus with broad pseudopods curving round a small ciliate on the slide, Spirogyra filaments out of focus behind. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
             },
             {
-                "id": "MP-G11", "name": "World intro: Hollow pool (Paramecium)",
+                "id": "MP-G11", "status": "delivered", "name": "World intro: Hollow pool (Paramecium)",
                 "file": "assets/game/intro-paramecium.webp", "size": "2560 x 1440, opaque",
                 "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
                 "standin": "The world's launcher card, enlarged and blurred.",
@@ -551,7 +551,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing brightfield microscope look: a green Paramecium bursaria full of Chlorella swimming in a bog pool, a barrel-shaped Didinium approaching, stalked Vorticella in the background. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
             },
             {
-                "id": "MP-G12", "name": "World intro: Sediment (bacterium)",
+                "id": "MP-G12", "status": "delivered", "name": "World intro: Sediment (bacterium)",
                 "file": "assets/game/intro-bacterium.webp", "size": "2560 x 1440, opaque",
                 "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
                 "standin": "The world's launcher card, enlarged and blurred.",
@@ -559,7 +559,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing phase-contrast microscope look at 1000x: a magnetotactic spirillum with a chain of magnetosomes among rods and cocci on a biofilm, the edge of a ciliate's mouth looming. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
             },
             {
-                "id": "MP-G13", "name": "World intro: Host surface (phage)",
+                "id": "MP-G13", "status": "delivered", "name": "World intro: Host surface (phage)",
                 "file": "assets/game/intro-phage.webp", "size": "2560 x 1440, opaque",
                 "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
                 "standin": "The world's launcher card, enlarged and blurred.",

@@ -382,7 +382,7 @@ test('Act VI: out on the cliff, push the barrel over, walk the wedding street an
   run(actBurning, st, 60, (s) => {
     if (!s.duel) return { moveX: 1 };
     const fire = s.duel.bolts.some((b) => b.x > s.w.x && b.x - s.w.x < 90);
-    return { moveX: duelReach(s) ? 0 : 1, a: fresh(fire || (duelReach(s) && s.duel.state !== 'reel')), aHeld: true };
+    return { moveX: duelReach(s) ? 0 : 1, a: fire, aHeld: true, x: fresh(duelReach(s) && s.duel.state !== 'reel') };
   }, (s) => s.phase !== 'barrel');
   assert.equal(st.phase, 'wedding', st.phase);
   assert.equal(st.checkpoint.scene, 4);
@@ -393,20 +393,29 @@ test('Act VI: out on the cliff, push the barrel over, walk the wedding street an
   assert.equal(st.result.ending, 'wedding');
 });
 
-test("Act VI: the witch's last stand: her fire costs a lantern, three blows beat her, then the barrel rolls without a fight", () => {
+test("Act VI: the witch's last stand: her fire costs a lantern, X strikes, three blows beat her, Aurora's barrel traps her and rolls without a fight", () => {
   const st = actBurning.create({ seed: 4, carry: {}, from: { scene: 3 } });
   assert.ok(st.duel && !st.barrel, 'she fights before she hides');
   const lanterns = st.lanterns;
   run(actBurning, st, 8, () => ({}), (s) => s.lanterns < lanterns);
   assert.equal(st.lanterns, lanterns - 1, 'standing still, her fire reaches him');
-  // A away from her leaps; only beside her does it strike
+  // A leaps; X swings the sword, a blow only when it reaches her; walking
+  // into her does nothing
   const s2 = actBurning.create({ seed: 4, carry: {}, from: { scene: 3 } });
   actBurning.step(s2, 1 / 60, { a: true });
   assert.equal(s2.duel.hp, DUEL.hp);
   assert.ok(!s2.w.on, 'a leap');
+  const s3 = actBurning.create({ seed: 4, carry: {}, from: { scene: 3 } });
+  actBurning.step(s3, 1 / 60, { x: true });
+  assert.equal(s3.duel.hp, DUEL.hp, 'a swing out of reach misses');
+  s3.duel.next = 99;
+  run(actBurning, s3, 3, () => ({ moveX: 1 }));
+  assert.equal(s3.duel.hp, DUEL.hp, 'walking into her is no blow');
   let last = false;
   const fresh = (want) => { const a = want && !last; last = want; return a; };
-  run(actBurning, s2, 20, (s) => (s.duel ? { moveX: duelReach(s) ? 0 : 1, a: fresh(duelReach(s) && s.duel.state !== 'reel') } : {}), (s) => !s.duel);
+  let trapped = false;
+  run(actBurning, s2, 20, (s) => { if (s.duel?.state === 'trap') trapped = true; return s.duel ? { moveX: duelReach(s) ? 0 : 1, x: fresh(duelReach(s) && s.duel.state !== 'reel') } : {}; }, (s) => !s.duel);
+  assert.ok(trapped, "Aurora's barrel drops over her");
   assert.ok(!s2.duel && s2.barrel, 'beaten, she hides in her barrel');
   const x0 = s2.barrel.x;
   run(actBurning, s2, 10, () => ({ moveX: 1 }), (s) => s.phase !== 'barrel');
