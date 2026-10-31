@@ -10,8 +10,15 @@ surface is y = 0.
 
 Open `micro/prototypes/springtail/` (the invite gate is off on localhost).
 
-**Goal:** eat 8 clumps of food (each takes three bites), then reach the
-Sphagnum at the pool's edge. You have three lives.
+**Goal:** eat 8 clumps of food (each takes three bites), then climb onto
+moss: one of the Sphagnum islands standing in the pool. You have three lives.
+
+**The water is the ground.** The pool is a 1.2 x 0.9 m sheet of open water
+(some 17 full jumps from the middle to the edge) with 64 moss islands
+standing in it, sundews on some of them, and floating debris and food on the
+film. A steep Sphagnum bank rings it: jump at it and you bounce off and drop
+back onto the water at its foot. The water reaches the horizon wherever you
+are; there is no edge to fall off.
 
 ## Controls (Xbox controller; keyboard in brackets)
 
@@ -20,11 +27,11 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | Button | Action |
 | --- | --- |
 | LS (WASD) | Walk on the film, relative to the view. Slow and a bit slippery: you coast |
-| RS (arrows) | Orbit the camera (pitch in the low view) |
+| RS (arrows) | Orbit the camera. Up looks up (the camera swings down toward the horizon), down looks down, in either view; Features → Invert camera Y flips it (shared by every prototype) |
 | **A** (Space) | **Furcula jump.** Hold to cock it (a tap is a short hop, ~0.7 s of hold is a full jump), release to fire. Aim with LS (no stick: straight ahead). The furcula re-cocks for 0.9 s after landing. When stuck in sundew glue, mash A to tear free; on your back, tap A to flick upright |
 | **X** (E) | Graze: bite the pollen, spores or algae in front of your head |
 | B (Shift) | Hold: hunker. Pressed flat with the collophore: waves cannot flip you, and a still, hunkered springtail makes no ripples for the strider to feel. You cannot move |
-| Y (R) | Camera: low macro view / top-down |
+| Y (R) | Camera: top-down, and back to the low view you had (RS also brings it down) |
 | LT / RT (Z / X) | Focus pull nearer / farther (an offset from autofocus) |
 | LB / RB (Q / F) | Aperture wider / narrower (f/2.8 to f/22) |
 | D-pad ←→ (3 / 4) | Look: macro in low sun, macro overcast, stereo microscope |
@@ -53,8 +60,8 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   shoves floating food (and you) aside. In reach, it lowers its head for
   0.45 s (the wind-up, your cue to jump), then shoots its sticky labium ~2 mm.
   It then needs 1.6 s to recover and 3.5 s before it can skim again.
-- **Sundews** (*Drosera rotundifolia*): four rosettes on the moss edge and the
-  island, their round leaves held just over the water, each with ~90 red
+- **Sundews** (*Drosera rotundifolia*): rosettes on seven of the islands
+  near the start, their round leaves held out over the water on one side, each with ~90 red
   glandular tentacles tipped with glue. Land on a leaf and you stick; the
   tentacles curl over you. Mash A before they close.
 - **A water strider** (*Gerris*, ~9 mm, legs spanning ~23 mm) stands on six
@@ -120,22 +127,30 @@ or overcast.
   **U-pose** (head and tail up), which turns the ventral tube down, and it
   lands on its venter with an **adhesive landing**: no bounce, a deeper
   collophore dimple and a small ring of ripples. 85% of landings are upright,
-  as measured (switchable). Land on a sundew leaf and you stick; on moss you
-  walk on the moss.
+  as measured (switchable). Land on a sundew leaf and you stick; on moss or
+  a piece of floating debris you walk on it (debris carries you as it
+  drifts).
 - **Water surface** (`shared/techniques/springtail-surface.js`):
-  - A 256 x 256 damped wave equation over 84 mm (0.33 mm cells), stepped 240
-    times a second on the CPU and uploaded as an RG half-float texture each
-    frame. The pool's outline is the boundary.
+  - A 256 x 256 damped wave equation over an 84 mm window (0.33 mm cells),
+    stepped 240 times a second on the CPU and uploaded as an RG half-float
+    texture each frame. The window **follows the springtail**
+    (`field.recenter`, whole-cell shifts once you stray ~10 mm), and a sponge
+    rim soaks ripples up before the window's edge. Islands and the bank are
+    the boundary. The water mesh is one wide grid (0.4 mm cells in the
+    middle, coarser out to 1.1 m) re-centred under the camera every frame.
   - A **surfactant** field in the same grid: released by *Stenus* while it
     skims, it diffuses, decays (0.25 /s), damps capillary waves under it, and
     drives a surface flow down its gradient (Marangoni), which moves the
     floating food and you.
-  - **Menisci**: up to 64 analytic dimples per frame (claws, ventral tube,
+  - **Menisci**: up to 96 analytic dimples per frame (claws, ventral tube,
     hunkered body, *Stenus*'s tarsi and abdomen tip, the strider's legs,
-    floating food). Each has a logarithmic profile like the K0 meniscus of a
+    floating food, and a rising meniscus round each piece of debris). Each has a logarithmic profile like the K0 meniscus of a
     small load, `ln((R²+a²)/(r²+a²))`, fading to zero at six contact radii,
     with its analytic gradient for the normal.
-- **Food**: 30 floating clumps of pine pollen (yellow), fungal spores (brown)
+- **Floating debris**: ~100 rafts of dead Sphagnum leaves, birch bark flakes,
+  pine needles and heather twigs, drifting on the flow; you can land and stand
+  on them.
+- **Food**: 90 floating clumps of pine pollen (yellow), fungal spores (brown)
   and green algae (elongated cells), each a few dozen grains with its own
   little meniscus, drifting on the flow. Three bites each; an eaten clump
   reappears elsewhere 6 s later.
@@ -172,14 +187,35 @@ The **macro photography** look is new to the set:
   ripples focus light into bands and every dimple throws a dark spot with a
   bright rim onto the floor, like a water strider's shadow. Soft round shadows
   of the springtail, beetle, strider and the rain telegraph.
+- **Legible surfaces** (game cues drawn by rendering, no HUD markers):
+  - **Water film**: a deep, dark tea pool (the floor fades out except in the
+    shallows by the shores) under a boosted Fresnel sky sheen and a broad sun
+    lobe, faint moving micro-ripples, and fine dust and pollen specks floating
+    on the film that are sharp only in the focal plane, so the film shows as
+    a plane receding in perspective.
+  - **Shores**: a raised meniscus where the water meets an island or the
+    bank, which catches the sky as a bright line, then a wet dark band.
+  - **Moss heads**: a bright backlit rim on every branch and wet dark bases
+    at the waterline, so each head stands out against the water; the island
+    domes carry the MP-S02 moss texture.
+  - **Drop shadow** (`dropShadow` in springtail-macro): a dark core and a
+    soft halo straight below the springtail on whatever is there (water,
+    moss, a sundew leaf, debris). Standing, it is a contact shadow; in a leap
+    it shows your height and the exact spot you will come down on, and the
+    camera frames low enough to keep it in view.
+  - **Focus follows the jump**: while you cock a jump and while you fly, the
+    focal plane moves to between you and the predicted landing spot and the
+    depth of field deepens (up to 14x) until both are acceptably sharp; the
+    framing leans 30% toward the landing. The landing spot comes into focus
+    before you get there.
 - **Lit materials** (`litMaterial`): sun (GGX), sky hemisphere, wrap and
   back-light translucency (moss, sundew leaves, glue), velvet sheen, a ring
   light for the stereo microscope look. Filmic (ACES) tone mapping, vignette,
   faint sensor grain.
-- **Sphagnum lawn**: ~400 instanced capitula (three variants) built from
+- **Sphagnum**: ~1000 instanced capitula (three variants) built from
   curved tapered branch tubes: a tight terminal bud and spreading branches,
-  green, ochre and red, translucent when backlit, rising into hummocks
-  around the pool and on an island.
+  green, ochre and red, translucent when backlit, packed on the islands and
+  along the bank (the bank and the lawn beyond it use the lighter variant).
 - **Looks** (D-pad ←→): macro in low sun, macro overcast (no glints, soft),
   stereo microscope (ring light, round field stop, ~4x the depth of field).
 
@@ -197,6 +233,9 @@ The **macro photography** look is new to the set:
 | Optics | Look (D-pad) | Macro, low sun |
 | Optics | Thin-lens macro camera | always |
 | Optics | Autofocus on the springtail | on |
+| Optics | Focus follows the jump | on |
+| Rendering | Drop shadow under the springtail | on |
+| Rendering | Legible water film (sheen, shore menisci, specks) | on |
 | Simulation | Ripple height field | on |
 | Simulation | Marangoni surfactant | on |
 | Simulation | Show the surfactant (tints the film yellow) | off |
@@ -207,6 +246,7 @@ The **macro photography** look is new to the set:
 | Body | Anatomy from SDF parts | always |
 | World | Rove beetle, water strider | on |
 | World | Rain: sometimes / often / off | sometimes |
+| Controls | Invert camera Y (shared by every prototype) | off |
 | Controls | Camera-relative walking and aiming | always |
 | Controls | Rumble | on |
 
@@ -222,9 +262,9 @@ may not be in `shared/asset-list.js` yet) and has a procedural stand-in:
 | Id | Use | Stand-in |
 | --- | --- | --- |
 | MP-S01 | Water surface texture, mixed into the pool floor seen through the water | Procedural peat floor (humus, sunken Sphagnum leaves, twigs, sand) |
-| MP-S02 | Sphagnum lawn texture on the capitula | Procedural ribbing and colour variation |
+| MP-S02 | Sphagnum lawn texture on the capitula and the island domes | Procedural ribbing and colour variation |
 | MP-S03 | Bog backdrop as an equirectangular environment (reflections, sky) | Procedural sky, clouds and a band of bog vegetation |
-| MP-S04 | Sundew leaf plate on the leaf blades | Green centre to red rim |
+| MP-S04 | Sundew leaf plate: the blade's middle (glands and tentacle bases) mapped onto the leaf blades | Green centre to red rim |
 | MP-S05 | Raindrop/ripple sprite: an expanding splash ring at impacts | Crown droplets and simulated rings only |
 | MP-U05 | Launcher card, also shown on the title card | Title card without an image |
 
@@ -245,6 +285,10 @@ may not be in `shared/asset-list.js` yet) and has a procedural stand-in:
 - **Sundew** tentacles curl in a few seconds here; in life, minutes.
 - **The strider** rows ~4x slower than a real *Gerris* (which can sprint at
   ~1 m/s).
+- **The drop shadow, the shore highlight, the boosted water sheen and the
+  jump focus** are legibility cues, not optics (each can be switched off).
+  The pool is deeper (up to ~14 mm) than many bog pools so the dark water
+  reads as a mirror.
 - **Menisci** are ~3x deeper than life by default (switchable), so the
   dimples and their floor shadows read at screen size. Food grains (pollen
   60–80 µm) are thickened ~1.5x.
@@ -281,7 +325,8 @@ may not be in `shared/asset-list.js` yet) and has a procedural stand-in:
 - `index.html`, `main.js`: the page, the game loop, the camera and optics,
   HUD and features.
 - `springtail.js`: the springtail model, rig and cuticle shader.
-- `world.js`: pool shape, Sphagnum lawn, sundews, food.
+- `world.js`: pool shape and bank, moss islands, Sphagnum, sundews, food,
+  floating debris.
 - `enemies.js`: *Stenus*, the water strider, raindrops.
 - `../shared/techniques/springtail-macro.js`: macro lens, lighting, bokeh
   post chain (reusable).
@@ -294,11 +339,19 @@ may not be in `shared/asset-list.js` yet) and has a procedural stand-in:
 node micro/prototypes/check.mjs springtail
 ```
 
+The camera's pitch was once stuck overhead: top-down was a separate mode in
+which RS pitch was ignored, so only Y brought it back (and the stick raised
+the camera when pushed up). Now one wanted elevation (0.1–1.5 rad) is moved
+by RS in either view through the shared `ctl.look()`, and Y jumps to
+top-down and back.
+
 ## Known issues
 
 - Software WebGL (the headless check) renders a frame in about a second; the
   64-tap gather and the water's dimple loops are the costliest passes. Dynamic
   resolution keeps a slow GPU responsive.
+- The beetle and the strider are moved (out of sight) to water near you when
+  you travel far from them, so the whole pool stays inhabited.
 - On moss the springtail walks over the capitula tops rather than climbing
   through the branches, and can be hidden among them at low angles.
 - Sun shadows are soft round blobs, not true shadow maps.

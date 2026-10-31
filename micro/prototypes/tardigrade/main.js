@@ -18,8 +18,11 @@ import { wireAssets } from './textures.js';
 import { LEAF_FX } from './materials.js';
 
 const MODES = ['DIC (Nomarski)', 'Brightfield', 'Lit (hypothetical)'];
+// The second entry is the 10× objective behind a 1.25× intermediate
+// magnification changer (an Optovar, as on Zeiss stands): 12.5× overall.
 const OBJECTIVES = [
-  { name: '10×/0.25', field: 18, coc: 5, dof: 0.06 },
+  { name: '10×/0.25', field: 18, coc: 12, dof: 0.06 },
+  { name: '10×/0.25 · 1.25× Optovar', field: 14.4, coc: 14, dof: 0.05 },
   { name: '20×/0.40', field: 9, coc: 10, dof: 0.035 },
   { name: '40×/0.65', field: 4.6, coc: 20, dof: 0.018 },
 ];
@@ -63,7 +66,7 @@ const hud = mountHud({
     analog: 'Fine focus down / up',
     secondary: 'Anatomy labels / rain (test)',
     look: 'Optical look: DIC / brightfield / lit',
-    zoom: 'Objective 10× / 20× / 40×',
+    zoom: 'Magnification 10× / 12.5× / 20× / 40×',
     extra: [['LS click', 'Refocus on the animal'], ['RS click', 'New day (test)']],
   }),
   note: '1 s = 4 min of the day (240×; change it in Features). Walking and feeding are real time: up to ~225 µm/s, at the fast end of the measured range; the scramble (~400 µm/s) is a stretch. Claws drawn 1.6× longer, ~3× thicker than true. DIC relief is optical path, not height.',
@@ -108,9 +111,10 @@ const mic = new DicMicroscope(renderer, scene, camera, { layers: [LAYER_SUBSTRAT
 if (SOFTWARE) mic.setQuality(PR ? 2 : 0);
 
 // ---------------------------------------------------------------- view state
-// Starts on the 10× objective (twice the 20× field) so the leaf, the film and
-// the surroundings read; D-pad up steps in.
-const view = { yaw: -0.35, pitch: 1.18, obj: 0, focus: 0, mode: 0, labels: false, target: new THREE.Vector3(), claws: 1, internals: true, sway: true };
+// Starts at 12.5× (10× with the 1.25× Optovar: 1.6× the 20× field) so the
+// leaf, the film and the surroundings read while the animal stays readable;
+// D-pad down steps out to 10×, up in to 20× and 40×.
+const view = { yaw: -0.35, pitch: 1.18, obj: 1, manualFocusT: 99, focus: 0, mode: 0, labels: false, target: new THREE.Vector3(), claws: 1, internals: true, sway: true };
 view.target.copy(walker.dispPos);
 
 function applyMode(m) {
@@ -133,6 +137,9 @@ F({ id: 'opd', group: 'Rendering', label: 'Optical-path buffers (thickness from 
 F({ id: 'dof', group: 'Optics', label: 'Shallow depth of field (focal plane)', on: true,
   about: 'Leaves and specimen are two layers, each blurred by its own mean depth from the focal plane (gather blur). LT/RT turn the fine focus through them. Off: everything sharp.',
   onChange: (v) => (mic.opts.dof = v) });
+F({ id: 'autofocus', group: 'Optics', label: 'Auto-focus on the animal', on: true,
+  about: 'The focal plane follows the animal as it walks. Turning the fine focus (LT/RT) holds your setting while you stand still; walk on and it eases back onto the animal. LS click refocuses at once.',
+  onChange: (v) => (view.autoFocus = v) });
 F({ id: 'fringes', group: 'Optics', label: 'Three-wavelength interference', on: true,
   about: 'Evaluates sin²(π Γ/λ) at red, green and blue wavelengths, giving the warm shadows and cool highlights of real DIC. Off: one wavelength, pure grey.',
   onChange: (v) => (mic.opts.fringes = v) });
@@ -274,7 +281,7 @@ function frame() {
   if (look) { const m = (view.mode + look + 3) % 3; features.set('look', MODES[m]); toast(MODES[m]); }
   const zs = inMenu ? 0 : ctl.zoomStep();
   if (zs < 0 && view.obj > 0) { view.obj--; toast(`Objective ${OBJECTIVES[view.obj].name}`); }
-  if (zs > 0 && view.obj < 2) { view.obj++; toast(`Objective ${OBJECTIVES[view.obj].name}`); }
+  if (zs > 0 && view.obj < OBJECTIVES.length - 1) { view.obj++; toast(`Objective ${OBJECTIVES[view.obj].name}`); }
   if (P(B.RB)) life.rain();
   if (P(B.RS)) { life.newDay(); toast('A new day: 05:00, dew-soaked'); }
   if (P(B.LB)) features.set('labels', !view.labels);
@@ -283,7 +290,13 @@ function frame() {
   const lk = inMenu ? { yaw: 0, pitch: 0 } : ctl.look();
   view.yaw -= lk.yaw * dt * 1.6;
   view.pitch = THREE.MathUtils.clamp(view.pitch - lk.pitch * dt * 1.2, 0.35, 1.52);
-  view.focus = THREE.MathUtils.clamp(view.focus - (inMenu ? 0 : ctl.analog()) * dt * 0.8, -3, 3);
+  const fin = inMenu ? 0 : ctl.analog();
+  view.focus = THREE.MathUtils.clamp(view.focus - fin * dt * 0.8, -3, 3);
+  // Auto-focus: the focal plane follows the animal (focus 0 is its mid-depth).
+  // A manual turn of the fine focus holds for 4 s of standing still; once the
+  // animal walks off, the focus eases back onto it.
+  view.manualFocusT = Math.abs(fin) > 0.05 ? 0 : view.manualFocusT + dt;
+  if (view.autoFocus !== false && view.manualFocusT > 4 && (walker.speed > 0.05 || view.manualFocusT > 8)) view.focus *= Math.exp(-dt / 0.6);
 
   // A: the scramble.
   dash.update(dt);
