@@ -34,9 +34,15 @@
     "file": "macro-fingertip.png",
     "name": "Macro fingertip environment plate",
     "prompt": "Use case: photorealistic-natural.\nAsset type: clean macro environment reference plate for a game ending involving a tiny springtail landing on a human fingertip.\nPrimary request: an extreme macro-lens photograph-like view of the pad of a human fingertip. Show convincing fingerprint ridges, fine dry skin texture, tiny pores and the gently rounded contour of the fingertip, with a useful broad landing area in sharp focus. Fingertip enters the frame naturally, the rest of the hand falls out of focus.\nStyle: natural photographic macro lens, realistic warm skin and soft oblique daylight, shallow depth of field with a sharply resolved ridge area and smooth neutral background. Wide 16:9 framing. The fingertip should feel like large terrain at the size of a tiny insect, while still being recognisably a fingertip.\nConstraints: no creature, no glow, no bite, no wound, no blood, no text, no UI, no measuring scale or microscope markings. This is a reusable clean environment plate, not the ending action itself.",
-    "status": "requested",
+    "status": "delivered",
     "method": "built-in image_gen",
-    "use": "Design reference only; not loaded by the game."
+    "use": "Design reference only; not loaded by the game.",
+    "width": 1672,
+    "height": 941,
+    "sha256": "cfa93673ef03b9b5dbf48b382a1a42b1717a77cb2db76a478698fdcfe6f842d5",
+    "source_artifact": "exec-c611569b-35b0-4117-a61e-5f79c02ff527.png",
+    "generated_on": "2026-10-31",
+    "export": "Original generated PNG; no image edits or resizing."
   },
   {
     "id": "SGR-04",

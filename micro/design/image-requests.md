@@ -2,7 +2,7 @@
 
 Concept references for the [glowing return journey plan](super-gene-return.html). These are future-design references, separate from the delivered prototype assets listed in [the prototype ledger](../image-requests.md).
 
-2 requested, 2 delivered.
+1 requested, 3 delivered.
 
 Generated with the built-in image_gen tool. Exact prompts and delivery metadata are also saved in [the manifest](generated/super-gene-return/manifest.json).
 
@@ -46,9 +46,10 @@ Constraints: no text, no UI, no numerical stats, no new enemies, no weapons, no 
 
 ## SGR-03 · Macro fingertip environment plate
 
-Status: requested.
+Status: delivered.
 File: `micro/design/generated/super-gene-return/macro-fingertip.png`
 Use: design reference only; not a runtime game asset.
+[View image](generated/super-gene-return/macro-fingertip.png) · 1672 × 941 · original PNG.
 
 Prompt:
 
