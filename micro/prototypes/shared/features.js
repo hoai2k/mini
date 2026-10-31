@@ -20,7 +20,15 @@
 //   features.add({ id: 'dic', group: 'Rendering', label: 'DIC relief', from: 'tardigrade', on: false, ... });
 //   features.add({ id: 'ik', group: 'Body', label: 'Two-bone leg IK', fixed: true, about: '...' });
 //   ... each frame, after pad.poll(): if (features.update()) skipGameInput();
+//
+// Inside the Micro Zoom shell (embed mode, see embed.js) Menu belongs to the
+// game: it posts `menu` (the shell pauses) instead of opening the panel, and
+// the tab is hidden. The shell opens the panel from its settings
+// ("Developer: world features") with `features {open}`; closing it reports
+// `features {open: false}`. A `settings {invertY}` message updates the
+// shared Invert Y switch if the prototype registered one (addInvertY).
 import { BTN } from './pad.js';
+import { embed } from './embed.js';
 
 const GROUP_ORDER = ['Rendering', 'Optics', 'Body', 'Motion', 'Simulation', 'World', 'Controls', 'Borrowed'];
 
@@ -79,11 +87,20 @@ export function createFeatures({ key, pad }) {
   let stickHeld = 0;
   const switchable = () => items.filter((it) => !it.fixed);
 
+  if (embed.active) tab.hidden = true;
   function setOpen(v) {
+    const was = open;
     open = v;
     panel.classList.toggle('open', open);
-    tab.style.display = open ? 'none' : '';
+    tab.style.display = open || embed.active ? 'none' : '';
     render();
+    if (was !== open) embed.post('features', { open });
+  }
+  if (embed.active) {
+    embed.on('features', (d) => setOpen(!!d.open));
+    embed.on('settings', (d) => {
+      if (typeof d.invertY === 'boolean' && items.some((x) => x.id === 'invertY')) api.set('invertY', d.invertY);
+    });
   }
 
   function valueText(it) {
@@ -187,7 +204,10 @@ export function createFeatures({ key, pad }) {
      * so the prototype should ignore game input that frame.
      */
     update() {
-      if (pad.pressed(BTN.MENU)) setOpen(!open);
+      if (pad.pressed(BTN.MENU)) {
+        if (embed.active && !open) { embed.menu(); return false; }
+        setOpen(!open);
+      }
       if (!open) return false;
       if (pad.pressed(BTN.B)) { setOpen(false); return true; }
       const sw = switchable();

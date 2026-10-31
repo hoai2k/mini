@@ -77,7 +77,7 @@ export function createWorld(scene) {
       const u = rand(-def.half - def.r * 0.9, def.half + def.r * 0.9), phi = rand(-Math.PI * 0.75, Math.PI * 0.75);
       surf(u, phi, _p, n);
       _q.setFromUnitVectors(UP, n).multiply(new THREE.Quaternion().setFromAxisAngle(UP, Math.random() * 6));
-      _m.compose(_p, _q, _s.setScalar(def.wrong ? rand(0.9, 1.4) : rand(0.8, 1.2)));
+      _m.compose(_p, _q, _s.setScalar(def.wrong ? rand(0.7, 1.0) : rand(0.5, 0.72)));
       lps.setMatrixAt(i, _m);
       lps.setColorAt(i, _c.copy(lc).offsetHSL(rand(-0.04, 0.04), 0, rand(-0.08, 0.08)));
     }
@@ -261,7 +261,8 @@ export function createWorld(scene) {
 
   world.flowAt = (p, t, out = new THREE.Vector3()) => out.set(5 * Math.sin(p.y * 0.011 + t * 0.09), 3 * Math.sin(p.x * 0.013 - t * 0.07), 0);
 
-  world.update = (dt, t, center, phage) => {
+  world.update = (dt, t, center, phage, camZ = 1e9) => {
+    const zTop = Math.min(Z1, camZ - 70);
     world.t = t;
     for (const m of [amoebaMat, amBody.ink.material, podMat]) m.uniforms.uTime.value = t;
     // hosts: slow Brownian drift around home, gentle rocking
@@ -313,7 +314,7 @@ export function createWorld(scene) {
         const dx = it.p.x - center.x, dy = it.p.y - center.y;
         if (dx > HALF.x) it.p.x -= 2 * HALF.x; else if (dx < -HALF.x) it.p.x += 2 * HALF.x;
         if (dy > HALF.y) it.p.y -= 2 * HALF.y; else if (dy < -HALF.y) it.p.y += 2 * HALF.y;
-        if (it.p.z > Z1) it.p.z = Z0 + 2; else if (it.p.z < Z0) it.p.z = Z1 - 2;
+        if (it.p.z > zTop) it.p.z = Z0 + 2; else if (it.p.z < Z0) it.p.z = zTop - 2;
         _q.setFromAxisAngle(_s.copy(it.w).normalize(), it.w.length() * dt);
         it.q.multiply(_q);
         _m.compose(it.p, it.q, _s.setScalar(it.s));

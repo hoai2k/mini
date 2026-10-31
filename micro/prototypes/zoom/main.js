@@ -99,13 +99,18 @@ fsScene.add(fsMesh);
 const fsCam = new THREE.Camera();
 
 const dbuf = new THREE.Vector2();
-// a software rasteriser (headless checks) draws the specimen at half resolution at most
-const SOFTWARE = (() => { try { const g = renderer.getContext(); return /swiftshader|llvmpipe|software/i.test(String(g.getParameter(g.RENDERER))); } catch { return false; } })();
+// a software rasteriser (headless checks) draws the specimen at 35 % resolution at most
+const SOFTWARE = (() => {
+  try {
+    const g = renderer.getContext(), ext = g.getExtension('WEBGL_debug_renderer_info');
+    return /swiftshader|llvmpipe|software/i.test(String(g.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : g.RENDERER)));
+  } catch { return false; }
+})();
 function resize() {
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.25));
   renderer.setSize(innerWidth, innerHeight, false);
   renderer.getDrawingBufferSize(dbuf);
-  zo.resize(dbuf.x, dbuf.y, SOFTWARE ? Math.min(opts.scale, 0.5) : opts.scale);
+  zo.resize(dbuf.x, dbuf.y, SOFTWARE ? Math.min(opts.scale, 0.35) : opts.scale);
 }
 addEventListener('resize', resize);
 resize();
@@ -256,7 +261,7 @@ const ambs = WORLDS.map((W, i) => audio.loop(W.amb, { volume: 0, rate: i === 5 ?
 // ---------------------------------------------------------------- HUD extras
 const style = document.createElement('style');
 style.textContent = `
-.zt-menu { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(10,12,16,.66); backdrop-filter: blur(6px);
+.zt-menu { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(10,12,16,.78);
   border-radius: 10px; padding: 8px 10px; font: 12px/1.35 system-ui, sans-serif; color: #eef1f4; min-width: 330px; max-width: calc(100vw - 24px); z-index: 3; }
 .zt-menu .row { display: flex; gap: 8px; padding: 2px 6px; border-radius: 6px; color: #a9b2bc; white-space: nowrap; }
 .zt-menu .row.sel { background: rgba(255,214,110,.16); color: #fff2c8; outline: 1px solid rgba(255,214,110,.45); }
@@ -615,6 +620,18 @@ window.__micro = {
   snap() {
     render(); updateHud();
     return { img: canvas.toDataURL('image/jpeg', 0.88), scale: [...scaleEl.children].map((e) => e.textContent).filter(Boolean).join(' | '), status: statusText() };
+  },
+  /** Time each pass (ms), with a GPU sync after each. */
+  profile() {
+    const gl = renderer.getContext(), px = new Uint8Array(4);
+    const sync = () => { gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); return performance.now(); };
+    const out = {}; let t = sync();
+    renderer.setRenderTarget(zo.field); renderer.render(fsScene, fsCam); renderer.setRenderTarget(null); out.field = -t + (t = sync());
+    const L = currentLook(); zo.compose({ a: L.a, b: L.b, t: L.t, cross: L.cross, umPerPx: S.w / zo.field.width, time: S.time }); renderer.setRenderTarget(null); out.compose = -t + (t = sync());
+    zo.post({}, null); out.post = -t + (t = sync());
+    updateHud(); out.hud = -t + (t = performance.now());
+    out.size = [zo.field.width, zo.field.height, dbuf.x, dbuf.y];
+    return out;
   },
   state() { return { k: S.k, phase: S.phase, tau: S.tau, st: S.st, field: S.w, look: S.look.label, world: world() }; },
 };

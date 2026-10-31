@@ -85,7 +85,7 @@ export function createInside() {
 
   // the crowded cytoplasm
   const types = [
-    { n: 34, s: [8, 11], geo: blobGeometry([{ p: [0, 0, 0], r: 1.2, c: '#f08a5a' }, { p: [1.1, 0.5, 0.3], r: 1, c: '#f39a66' }, { p: [-0.9, 0.7, 0], r: 1, c: '#ea7d52' }, { p: [0.3, -1.0, 0.5], r: 0.9, c: '#f5a774' }, { p: [-0.6, -0.6, -0.8], r: 0.9, c: '#ee8c5c' }, { p: [0.6, 0.2, -1.0], r: 0.9, c: '#f08a5a' }, { p: [-1.2, -0.3, 0.6], r: 0.8, c: '#f6b07a' }], 1) },
+    { n: 22, s: [8, 11], geo: blobGeometry([{ p: [0, 0, 0], r: 1.2, c: '#f08a5a' }, { p: [1.1, 0.5, 0.3], r: 1, c: '#f39a66' }, { p: [-0.9, 0.7, 0], r: 1, c: '#ea7d52' }, { p: [0.3, -1.0, 0.5], r: 0.9, c: '#f5a774' }, { p: [-0.6, -0.6, -0.8], r: 0.9, c: '#ee8c5c' }, { p: [0.6, 0.2, -1.0], r: 0.9, c: '#f08a5a' }, { p: [-1.2, -0.3, 0.6], r: 0.8, c: '#f6b07a' }], 1) },
     { n: 90, s: [3, 5], geo: blobGeometry([{ p: [0, 0, 0], r: 1, c: '#f2c14e' }, { p: [1, 0.3, 0], r: 0.8, c: '#f5cf6a' }, { p: [-0.6, 0.8, 0.3], r: 0.75, c: '#e8b23e' }], 1) },
     { n: 90, s: [3, 5], geo: blobGeometry([{ p: [0, 0, 0], r: 1, c: '#e48ab8' }, { p: [0.9, -0.4, 0.2], r: 0.8, c: '#ec9cc4' }, { p: [-0.5, 0.8, -0.3], r: 0.8, c: '#d878aa' }], 1) },
     { n: 70, s: [2, 3], geo: blobGeometry([{ p: [-1, 0, 0], r: 0.6, c: '#c26fc8' }, { p: [0, 0.6, 0], r: 0.6, c: '#d186d6' }, { p: [1, 0, 0], r: 0.6, c: '#b862be' }, { p: [0, -0.7, 0.2], r: 0.5, c: '#d89ade' }], 1) },
@@ -94,7 +94,7 @@ export function createInside() {
   for (const T of types) {
     T.mesh = inkedInstanced(T.geo, toonMaterial({ vertexColors: true }), T.n, { width: 0.6 });
     scene.add(T.mesh);
-    T.items = Array.from({ length: T.n }, () => ({ p: new THREE.Vector3(rand(AREA.x0 - 60, AREA.x1 + 60), rand(AREA.y0 - 20, AREA.y1), rand(-60, 6)), v: new THREE.Vector3(), q: new THREE.Quaternion().random(), s: rand(...T.s) }));
+    T.items = Array.from({ length: T.n }, () => ({ p: new THREE.Vector3(rand(AREA.x0 - 60, AREA.x1 + 60), rand(AREA.y0 - 20, AREA.y1), T.s[0] > 6 ? rand(-75, -24) : rand(-60, 4)), v: new THREE.Vector3(), q: new THREE.Quaternion().random(), s: rand(...T.s) }));
   }
 
   // the phage DNA: a double helix of beads along a rope of nodes
@@ -154,8 +154,8 @@ export function createInside() {
       addEnzyme('re', { detect: 90, speed: 22, label: 'Restriction enzyme', start: 0.35 });
       addEnzyme('cas', { detect: host.crispr ? 170 : 45, speed: host.crispr ? 27 : 13, label: host.crispr ? 'CRISPR complex (matching spacer)' : 'CRISPR complex (no matching spacer)' });
       if (host.crispr) addEnzyme('cas', { detect: 150, speed: 24, label: 'CRISPR complex (matching spacer)' });
-      enzymes[0].s = 0.62; // never on top of the pore at the start
-      for (const e of enzymes) { e.pos.copy(e.strand.curve.getPointAt(e.s)); if (e.pos.distanceTo(PORE) < 90) e.pos.y -= 50; }
+      // a calm start: they begin far from the pore and only sense you after a few seconds
+      enzymes.forEach((e, i) => { e.s = [0.12, 0.85, 0.7][i]; e.pos.copy(e.strand.curve.getPointAt(e.s)); e.cool = 4 + i * 1.5; });
       for (const h of hostDna) for (const s of h.strands) s.visible = true;
       camera.position.set(0, 10, 190);
     },
@@ -250,7 +250,7 @@ export function createInside() {
           it.p.addScaledVector(it.v, dt);
           if (it.p.y > 46) it.p.y = 46;
           if (it.p.y < -170) it.p.y += 210; if (it.p.x < -260) it.p.x += 520; if (it.p.x > 260) it.p.x -= 520;
-          it.p.z = Math.max(-70, Math.min(8, it.p.z));
+          it.p.z = it.s > 6 ? Math.max(-80, Math.min(-22, it.p.z)) : Math.max(-70, Math.min(4, it.p.z));
           _m.compose(it.p, it.q, _s.setScalar(it.s));
           T.mesh.setMatrixAt(i, _m);
         }

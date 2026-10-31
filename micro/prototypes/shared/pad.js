@@ -2,6 +2,16 @@
 // mapping), with a keyboard fallback so every prototype also works without
 // one. Poll once per frame before reading.
 //
+//   createPad()                              first connected controller + keyboard (as always)
+//   createPad({ index: 1 })                  only gamepad 1 (no keyboard)
+//   createPad({ index: 0, keyboard: true })  gamepad 0 plus the keyboard
+//   createPad({ index: null, keyboard: true }) the keyboard alone, until `pad.index = n`
+//
+// A per-device pad's `index` can be reassigned (shared/players.js does this
+// when player 1 picks up a controller). `anyConnected` is true while any
+// controller at all is connected, whichever pad this is. listGamepads() lists
+// the connected controllers.
+//
 // Keyboard: left stick WASD, right stick arrow keys, A Space, B Shift,
 // X E, Y R, LB Q, RB F, LT Z, RT X, View Tab, Menu Esc, LS click C,
 // RS click V, d-pad 1 2 3 4 (up, down, left, right).
@@ -25,20 +35,36 @@ function stick(x, y) {
   return { x: x * k, y: y * k, m: Math.min(1, m * k) };
 }
 
-export function createPad() {
+/** The connected controllers: [{ index, id, gamepad }], in index order. */
+export function listGamepads() {
+  const out = [];
+  let all = [];
+  try { all = navigator.getGamepads ? navigator.getGamepads() : []; } catch { /* blocked by permissions policy */ }
+  for (const g of all || []) if (g && g.connected) out.push({ index: g.index, id: g.id, gamepad: g });
+  return out;
+}
+
+export function createPad(opts) {
+  // No options: the original behaviour (first connected pad, plus keyboard).
+  const perDevice = !!opts && ('index' in opts || 'keyboard' in opts);
+  let index = perDevice ? (opts.index ?? null) : null;
+  const useKeys = perDevice ? !!opts.keyboard : true;
   const keys = new Set();
-  addEventListener('keydown', (e) => {
-    keys.add(e.code);
-    if (e.code === 'Tab' || e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
-  });
-  addEventListener('keyup', (e) => keys.delete(e.code));
-  addEventListener('blur', () => keys.clear());
+  if (useKeys) {
+    addEventListener('keydown', (e) => {
+      keys.add(e.code);
+      if (e.code === 'Tab' || e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
+    });
+    addEventListener('keyup', (e) => keys.delete(e.code));
+    addEventListener('blur', () => keys.clear());
+  }
+  let any = false;
 
   let gp = null;
   let now = new Array(17).fill(0);
   let prev = now.slice();
   let axes = [0, 0, 0, 0];
-  let kind = 'keyboard';
+  let kind = useKeys ? 'keyboard' : 'controller';
 
   const key = (codes) => codes.some((c) => keys.has(c));
   const kAxis = (neg, pos) => (keys.has(pos) ? 1 : 0) - (keys.has(neg) ? 1 : 0);
@@ -48,9 +74,23 @@ export function createPad() {
     /** 'controller' once a pad has been used, otherwise 'keyboard'. */
     get kind() { return kind; },
     get connected() { return !!gp; },
+    /** True while any controller is connected (not only this pad's). */
+    get anyConnected() { return any; },
+    /** Per-device pads: the gamepad index read (null: none). Default pads: the one in use. */
+    get index() { return perDevice ? index : (gp ? gp.index : null); },
+    set index(n) { if (perDevice) index = n ?? null; },
+    /** Whether this pad reads the keyboard. */
+    get keyboard() { return useKeys; },
     poll() {
       gp = null;
-      for (const g of navigator.getGamepads ? navigator.getGamepads() : []) if (g && g.connected) { gp = g; break; }
+      any = false;
+      let list = [];
+      try { list = navigator.getGamepads ? navigator.getGamepads() : []; } catch { /* blocked */ }
+      for (const g of list || []) {
+        if (!g || !g.connected) continue;
+        any = true;
+        if (perDevice ? g.index === index : !gp) gp = g;
+      }
       prev = now;
       now = new Array(17).fill(0);
       axes = [0, 0, 0, 0];
@@ -59,6 +99,7 @@ export function createPad() {
         axes = [gp.axes[0] || 0, gp.axes[1] || 0, gp.axes[2] || 0, gp.axes[3] || 0];
         if (now.some((v) => v > 0.5) || axes.some((a) => Math.abs(a) > 0.4)) kind = 'controller';
       }
+      if (!useKeys) return;
       for (const [b, codes] of Object.entries(KEYS)) if (key(codes)) { now[b] = 1; kind = 'keyboard'; }
       const kl = [kAxis('KeyA', 'KeyD'), kAxis('KeyW', 'KeyS')];
       const kr = [kAxis('ArrowLeft', 'ArrowRight'), kAxis('ArrowUp', 'ArrowDown')];

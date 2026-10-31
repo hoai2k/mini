@@ -12,13 +12,27 @@
 // Browsers only allow sound after a user gesture; the first key, click, touch
 // or controller button unlocks it (the pad is polled by the prototype, so call
 // audio.unlock() when any pad button is pressed).
+//
+// audio.pause() / audio.resume() suspend and resume the whole AudioContext
+// (the game pauses its sound with its simulation). audio.setMaster({on,
+// volume}) is the game's master switch on top of the Sound effects feature.
+// Inside the Micro Zoom shell (embed.js) these follow the shell's `pause`,
+// `resume` and `sound` messages by themselves, and window focus is left to
+// the shell (focus moves between the shell and the frame; the shell pauses
+// when the window loses it), so only a hidden tab silences the page here.
 import { SOUNDS } from './audio-list.js';
+import { embed } from './embed.js';
 
 const base = new URL('../', import.meta.url);
 
 export function createAudio(ids = Object.keys(SOUNDS)) {
   let ctx = null, master = null, ambBus = null, sfxBus = null;
   let enabled = true, ambience = true;
+  let paused = embed.active && embed.paused;
+  let masterOn = embed.active ? embed.soundOn : true;
+  let masterVol = embed.active ? embed.volume : 1;
+  const level = () => (enabled && masterOn && !away ? 0.9 * masterVol : 0);
+  const isAway = () => document.hidden || (!embed.active && !document.hasFocus());
   const buffers = new Map(); // id -> Promise<AudioBuffer[]>
   const loops = new Set();
 
@@ -28,12 +42,13 @@ export function createAudio(ids = Object.keys(SOUNDS)) {
     if (!AC) return null;
     ctx = new AC();
     master = ctx.createGain();
-    master.gain.value = enabled && !(document.hidden || !document.hasFocus()) ? 0.9 : 0;
+    master.gain.value = level();
     master.connect(ctx.destination);
     sfxBus = ctx.createGain(); sfxBus.connect(master);
     ambBus = ctx.createGain(); ambBus.gain.value = ambience ? 1 : 0; ambBus.connect(master);
     for (const id of ids) load(id);
     for (const l of loops) l._start();
+    if (paused) ctx.suspend().catch(() => {});
     return ctx;
   }
 
@@ -54,18 +69,18 @@ export function createAudio(ids = Object.keys(SOUNDS)) {
 
   const unlock = () => {
     if (!ensure()) return;
-    if (ctx.state === 'suspended' && !(document.hidden || !document.hasFocus())) ctx.resume().catch(() => {});
+    if (ctx.state === 'suspended' && !paused && !isAway()) ctx.resume().catch(() => {});
   };
   for (const ev of ['keydown', 'pointerdown', 'touchstart']) addEventListener(ev, unlock, { passive: true });
 
   // Silent whenever the tab is hidden or the window loses focus; back on return.
-  let away = document.hidden || !document.hasFocus();
+  let away = isAway();
   const updateAway = () => {
-    away = document.hidden || !document.hasFocus();
+    away = isAway();
     if (!master) return;
-    master.gain.setTargetAtTime(enabled && !away ? 0.9 : 0, ctx.currentTime, 0.05);
-    if (away && ctx.state === 'running') ctx.suspend().catch(() => {});
-    else if (!away && ctx.state === 'suspended') ctx.resume().catch(() => {});
+    master.gain.setTargetAtTime(level(), ctx.currentTime, 0.05);
+    if ((away || paused) && ctx.state === 'running') ctx.suspend().catch(() => {});
+    else if (!away && !paused && ctx.state === 'suspended') ctx.resume().catch(() => {});
   };
   document.addEventListener('visibilitychange', updateAway);
   addEventListener('blur', updateAway);
@@ -75,6 +90,18 @@ export function createAudio(ids = Object.keys(SOUNDS)) {
   const api = {
     /** Call when a controller button is pressed (gamepads don't fire DOM events). */
     unlock,
+    /** Suspend all sound (the game is paused). */
+    pause() { paused = true; updateAway(); },
+    /** Resume after pause(); also unlocks if a gesture already allowed it. */
+    resume() { paused = false; unlock(); updateAway(); },
+    get paused() { return paused; },
+    /** The game's master switch and volume (0..1), on top of the Sound effects feature. */
+    setMaster({ on, volume } = {}) {
+      if (typeof on === 'boolean') masterOn = on;
+      if (typeof volume === 'number') masterVol = Math.max(0, Math.min(1, volume));
+      if (masterOn && !paused) unlock();
+      updateAway();
+    },
     get ready() { return !!ctx && ctx.state === 'running'; },
     /** Play a one-shot. Returns nothing; silent if not loaded or disabled. */
     play(id, { volume = 1, rate = 1, pan = 0, delay = 0 } = {}) {
@@ -134,11 +161,16 @@ export function createAudio(ids = Object.keys(SOUNDS)) {
     addToFeatures(features) {
       features.add({ id: 'sound', group: 'Controls', label: 'Sound effects',
         about: 'Nature-documentary foley generated with ElevenLabs (micro/design/sound-effects.md). Nothing is audible at these scales; these are what a wildlife film would put on the scene.',
-        on: true, onChange: (v) => { enabled = v; if (master) master.gain.setTargetAtTime(v && !away ? 0.9 : 0, ctx.currentTime, 0.05); } });
+        on: true, onChange: (v) => { enabled = v; if (master) master.gain.setTargetAtTime(level(), ctx.currentTime, 0.05); } });
       features.add({ id: 'ambience', group: 'Controls', label: 'Ambience',
         about: 'The looping background bed of the habitat.',
         on: true, onChange: (v) => { ambience = v; if (ambBus) ambBus.gain.setTargetAtTime(v ? 1 : 0, ctx.currentTime, 0.2); } });
     },
   };
+  if (embed.active) {
+    embed.on('pause', () => api.pause());
+    embed.on('resume', () => api.resume());
+    embed.on('sound', (d) => api.setMaster(d));
+  }
   return api;
 }

@@ -176,7 +176,6 @@ function resetLevel() {
   world.reset();
   P.pos.copy(START); P.vel.set(0, 0, 0); P.bvel.set(0, 0, 0); P.gust.set(0, 0, 0); P.angVel.set(0, 0, 0);
   P.q.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0.5);
-  view.zoom = 1;
   Object.assign(P, { mode: 'drift', foldTarget: 0, fold: 0, integrity: 1, host: null, canCommit: false, bound: 0, commitT: 0, kind: null, cutBy: null, burstT: 0, fade: 0, contract: 0, star: 0, shortOut: 0, dna: 1, dark: 0, crack: 0, scale: 1 });
   releaseAnchors();
   P.stuckTip.fill(null);
@@ -560,7 +559,7 @@ let last = performance.now();
 let blocked = false;
 function frame(now) {
   requestAnimationFrame(frame);
-  const dt = Math.min(debug.maxDt || 0.05, (now - last) / 1000);
+  const dt = debug.pause ? 0 : Math.min(debug.maxDt || 0.05, (now - last) / 1000);
   last = now;
   t += dt;
   goodsellShared.uTime.value = t;
@@ -645,7 +644,7 @@ function frame(now) {
       }
       updateAmoeba(dt);
     }
-    world.update(dt, t, view.target, centreOf(new THREE.Vector3()));
+    world.update(dt, t, view.target, centreOf(new THREE.Vector3()), camera.position.z);
   }
   if (c.active) captureAnim(c.phase, c.t, dt);
 
@@ -662,7 +661,8 @@ function frame(now) {
   t4.update(dt, t);
 
   // camera
-  if (look.m > 0) { view.yaw = clamp(view.yaw + look.yaw * 1.4 * dt, -1.1, 1.1); view.pitch = clamp(view.pitch + look.pitch * 1.1 * dt, -0.75, 0.75); }
+  if (P.mode === 'commit') { view.yaw *= Math.exp(-dt * 2); view.pitch += (0.1 - view.pitch) * (1 - Math.exp(-dt * 2)); }
+  else if (look.m > 0) { view.yaw = clamp(view.yaw + look.yaw * 1.4 * dt, -1.1, 1.1); view.pitch = clamp(view.pitch + look.pitch * 1.1 * dt, -0.75, 0.75); }
   else { view.yaw *= Math.exp(-dt * 0.4); view.pitch *= Math.exp(-dt * 0.4); }
   view.dist += ((P.mode === 'commit' ? Math.min(ZOOMS[view.zoom], 75) : ZOOMS[view.zoom]) - view.dist) * (1 - Math.exp(-dt * 2));
   if (where === 'outside') {
