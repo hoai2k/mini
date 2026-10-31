@@ -45,7 +45,7 @@ CAST = {
     'aurora': ('aurora-stand', {'': (105, 58, 152, 110), '-tinted': (108, 55, 152, 106)},
                ['aurora-point', 'aurora-glide-a', 'aurora-glide-b'], 45),
     'witch': ('witch-hooded', {'': (55, 60, 97, 115), '-tinted': (25, 68, 72, 120)},
-              ['witch-cloud', 'witch-swoop', 'witch-storm', 'witch-barrel', 'witch-cast', 'witch-recoil'], 100),
+              ['witch-cloud', 'witch-swoop', 'witch-storm', 'witch-barrel', 'witch-barrel-anger-a', 'witch-barrel-anger-b', 'witch-cast', 'witch-recoil'], 100),
     # her disguise, the fair lady (and in her moon boat)
     'witch-fair': ('witch-stand', {'': (80, 35, 125, 95)}, ['witch-stand-idle-b', 'witch-stand-idle-c', 'witch-moonboat'], 30),
     'demon-red': ('demon-red', {'': (125, 88, 165, 145), '-tinted': (110, 88, 150, 140)}, ['demon-red-carry'], 45),
@@ -65,9 +65,18 @@ CAST = {
 # pose; looked at on the sheets, every sprite at one person height.
 # Measured brow to chin against the reference at native scale, 30 Oct 2026.
 BY_EYE = {
-    # Raised arms confuse the full-head template. Brow-to-chin comparison
-    # on celebration-heads.jpg: her tinted jump keeps the standing face size.
-    'azurine-jump-tinted': 1.0,
+    # Face comparison in barrel-defiance/witch-heads.jpg; the arm gesture
+    # confuses the template. Both frames preserve exactly the same head.
+    'witch-barrel-anger-a': 1.16,
+    'witch-barrel-anger-b': 1.16,
+    'witch-barrel-anger-a-tinted': 1.2,
+    'witch-barrel-anger-b-tinted': 1.2,
+
+    # Compact celebration pose: same painted crown-to-hem height as standing,
+    # with face and palette checked on the v2 review sheet.
+    'azurine-jump': 1.17895,
+    'azurine-jump-tinted': 1.10526,
+
     # F25, 31 Oct 2026: the raised staff/arm and slipped hood confuse the
     # face template. Compared brow to chin in the prepared sprites and
     # checked at one person height on the review sheet.

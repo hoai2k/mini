@@ -9,7 +9,7 @@ import { FILM, LEGACY, FILM_CAST } from '../src/theme.js';
 import prologue, { GIFTS, FAIRIES, AZURINE_X, RAMPART, ARMS, HAND, NEAR_HAND, LANTERNS, T as PRO_T } from '../src/acts/prologue.js';
 import act2, { FAIRY_AT, FILM_DIVE, RIDE } from '../src/acts/act2.js';
 import act3, { PASSAGE } from '../src/acts/act3.js';
-import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DUEL, DIVE, APOTH, FILM_CLIFF, TOWER_WINDOW, duelReach, weddingGuests, guestHop, CELEBRATION } from '../src/acts/act5film.js';
+import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DUEL, DIVE, APOTH, FILM_CLIFF, TOWER_WINDOW, duelReach, weddingGuests, guestHop, CELEBRATION, AURORA, auroraFacing } from '../src/acts/act5film.js';
 import { CLIMB, terrainAt } from '../src/acts/climb.js';
 import { CLIMB_MAPS } from '../src/acts/climb-map.js';
 import act4 from '../src/acts/act4.js';
@@ -426,6 +426,7 @@ test('Act VI: out on the cliff, push the barrel over, walk the wedding street an
 test("Act VI: the witch's last stand: her fire costs a lantern, X strikes, three blows beat her, Aurora's barrel traps her and rolls without a fight", () => {
   const st = actBurning.create({ seed: 4, carry: {}, from: { scene: 3 } });
   assert.ok(st.duel && !st.barrel, 'she fights before she hides');
+  st.w.x = AURORA.shieldX + 80; // ahead of Aurora's protection, in the line of fire
   const lanterns = st.lanterns;
   run(actBurning, st, 8, () => ({}), (s) => s.lanterns < lanterns);
   assert.equal(st.lanterns, lanterns - 1, 'standing still, her fire reaches him');
@@ -450,6 +451,28 @@ test("Act VI: the witch's last stand: her fire costs a lantern, X strikes, three
   const x0 = s2.barrel.x;
   run(actBurning, s2, 10, () => ({ moveX: 1 }), (s) => s.phase !== 'barrel');
   assert.ok(s2.phase === 'wedding' || s2.barrel?.fallT != null || s2.barrel.x > x0, 'he rolls it to the edge');
+});
+
+test('Act VI: Aurora faces the prince and turns incoming fire into harmless, temporary smoke', () => {
+  const st = actBurning.create({ from: { scene: 3 } });
+  st.w.x = AURORA.x - 35;
+  assert.equal(auroraFacing(st), -1);
+  st.duel.next = 99;
+  st.duel.bolts = [{ x: AURORA.shieldX + 2 }];
+  const lanterns = st.lanterns;
+  actBurning.step(st, DT);
+  assert.equal(st.duel.bolts.length, 0);
+  assert.equal(st.lanterns, lanterns);
+  assert.equal(st.smoke.length, 1);
+  assert.ok(st.events.some(e => e.type === 'auroraQuenches'));
+  run(actBurning, st, AURORA.smokeLife + 0.1);
+  assert.equal(st.smoke.length, 0);
+  assert.equal(st.lanterns, lanterns, 'smoke cannot cost a lantern');
+  st.w.x = AURORA.shieldX + 80;
+  assert.equal(auroraFacing(st), 1);
+  st.duel.bolts = [{ x: st.w.x + 10 }];
+  actBurning.step(st, DT);
+  assert.equal(st.lanterns, lanterns - 1, 'fire ahead of her still needs to be leapt');
 });
 
 test('Act VI: victory sounds once after the witch disappears, never during defeat, trapping or falling', () => {
@@ -483,7 +506,7 @@ test('Act VI: victory sounds once after the witch disappears, never during defea
   }
 });
 
-test('Act VI: the empty cliff holds for the complete flourish, then fades before the wedding', () => {
+test('Act VI: the empty cliff fades with the last chord, then the wedding fades in gradually', () => {
   const st = actBurning.create({ from: { scene: 3 } });
   st.duel = null;
   st.barrel = { x: BARREL.edge, fallT: FILM_T.barrelFall - DT / 2, rot: 0 };
@@ -498,10 +521,22 @@ test('Act VI: the empty cliff holds for the complete flourish, then fades before
   run(actBurning, st, FILM_T.victoryFade / 2 + 0.1);
   assert.equal(st.phase, 'wedding');
   assert.ok(actBurning.fade(st) > 0.8, 'wedding starts behind black and fades in');
+  assert.ok(FILM_T.victory < 3.5 && FILM_T.victory + FILM_T.victoryFade < 5.2, 'fade follows the audible final chord, before the silent MP3 tail');
+  assert.ok(FILM_T.weddingFade > 2.5);
+});
+
+test('Act VI: the wedding stays black and still for its musical lead, then reveals gradually', () => {
+  const st = actBurning.create({from:{scene:4}}), x=st.w.x;
+  run(actBurning,st,FILM_T.weddingLead-0.1,()=>({moveX:1,a:true}));
+  assert.equal(st.w.x,x);assert.equal(st.w.on,true);
+  assert.equal(actBurning.fade(st),1);
+  st.phaseT=FILM_T.weddingLead+FILM_T.weddingFade/2;
+  assert.ok(Math.abs(actBurning.fade(st)-0.5)<1e-9);
 });
 
 test('Act VI: celebratory jumps lift the couple together and ripple through guests by distance', () => {
   const st = actBurning.create({ carry: { sleepers: 4 }, from: { scene: 4 } });
+  st.phaseT = FILM_T.weddingLead;
   assert.ok(weddingGuests(st).every(([id]) => guestHop(st, id) === 0));
   actBurning.step(st, DT, { a: true, aHeld: true });
   assert.equal(st.w.on, false); assert.equal(st.az.on, false);
@@ -520,6 +555,7 @@ test('Act VI: celebratory jumps lift the couple together and ripple through gues
 
 test('Act VI: walking across the final tableau never ends it; jump beneath Aurora to ascend', () => {
   const st = actBurning.create({ from: { scene: 4 } });
+  st.phaseT = FILM_T.weddingLead;
   st.w.x = 900; actBurning.step(st, DT);
   assert.equal(st.phase, 'apotheosis');
   run(actBurning, st, 3, () => ({ moveX: 1 }));

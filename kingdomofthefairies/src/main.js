@@ -520,7 +520,7 @@ function currentView() {
     curtainCall: S.mode === 'curtaincall' ? Math.min(1, S.modeT / 1.4) : 0,
     scene: S.mode === 'playbill' ? drawPlaybill : S.mode === 'curtaincall' ? drawCurtainCall : null,
     cam: S.act && S.state && camera.view.z > 1 ? camera.view : null,
-    fade: FILM_ED && S.state?.phase === 'finale' ? finaleFrame(S.state.phaseT).fade : S.act?.fade?.(S.state) || 0,
+    fade: S.mode === 'play' ? (FILM_ED && S.state?.phase === 'finale' ? finaleFrame(S.state.phaseT).fade : S.act?.fade?.(S.state) || 0) : 0,
   };
 }
 
@@ -592,6 +592,12 @@ function update(dt, i) {
   if (S.mode === 'title') updateLoadbar();
   const mood = musicMood();
   if (mood === 'song') audio.returnToSong(); else audio.setMood(mood);
+  if (FILM_ED && S.state?.phase === 'wedding' && !S.state.weddingMusicStarted) {
+    // On a slow connection, keep black until the actual wedding recording
+    // starts; its musical lead must precede the reveal, not run during loading.
+    S.state.phaseT = 0;
+    if (audio.nowPlaying()?.id === 'period-wedding' || audio.periodStates().includes('period-wedding:failed')) S.state.weddingMusicStarted = true;
+  }
   audio.setMusicLevel(FILM_ED && S.state?.phase === 'victory' ? 0 : FILM_ED && S.state?.phase === 'finale' ? finaleFrame(S.state.phaseT).music : 1);
   // The score and the sea play throughout, as before. Optionally (?crackle=on)
   // the score waits for play and an old record's crackle fills the menus (the

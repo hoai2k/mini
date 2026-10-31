@@ -5049,6 +5049,46 @@
       ],
       "anchor": "bottom centre",
       "edition": "film"
+    },
+    "witch-barrel-anger-a": {
+      "status": "delivered",
+      "file": "witch-barrel-anger-a.webp",
+      "size": [
+        400,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "witch-barrel-anger-b": {
+      "status": "delivered",
+      "file": "witch-barrel-anger-b.webp",
+      "size": [
+        400,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "witch-barrel-anger-a-tinted": {
+      "status": "delivered",
+      "file": "witch-barrel-anger-a-tinted.webp",
+      "size": [
+        400,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "witch-barrel-anger-b-tinted": {
+      "status": "delivered",
+      "file": "witch-barrel-anger-b-tinted.webp",
+      "size": [
+        400,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
     }
   },
   "audio": {

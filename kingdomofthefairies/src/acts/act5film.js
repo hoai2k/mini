@@ -129,8 +129,9 @@ export const FILM_CLIFF = [
 ];
 export const FILM_CLIFF_HALF = FILM_CLIFF.findIndex((h) => h.x === 420 && h.y === 965);
 
-// Cut-scene lengths, seconds.
-export const FILM_T = { dive: 3.8, window: 3.6, iris: 1.6, barrelFall: 2.4, victory: 7.15, victoryFade: 1.2, weddingFade: 1.0, wedding: 7.5, apotheosis: 8.5, defeat: 1.8, splash: 1.0, rise: 3.2 };
+// Cut-scene lengths, seconds. Victory fades with the final chord, not the
+// MP3’s near-silent tail (the audible decay begins at about 3.45 seconds).
+export const FILM_T = { dive: 3.8, window: 3.6, iris: 1.6, barrelFall: 2.4, victory: 3.45, victoryFade: 1.65, weddingFade: 2.8, weddingLead: 1.2, wedding: 7.5, apotheosis: 8.5, defeat: 1.8, splash: 1.0, rise: 3.2 };
 
 // The walking scenes between the climbs (all stage px, feet at `y`): the
 // clifftop he dives from, the cliff he rolls the witch's barrel over, the
@@ -140,6 +141,8 @@ export const DIVE = { y: 372, x0: 170, edge: 360, start: 210 };          // coas
 export const BARREL = {                                                  // cliff-whirlpool's ledge
   y: 412, x0: 150, edge: 728, start: 230, at: 470, hw: 40, push: 150, knock: 320,
 };
+export const AURORA = { x: 250, height: 200, shieldX: 308, smokeLife: 1.3 };
+export const auroraFacing = st => (st.w?.x ?? BARREL.start) >= AURORA.x ? 1 : -1;
 // The witch's last stand on that ledge: she winds up (warn), then hurls a
 // bolt of fire along the ground (leap it, A), or blasts him back if he lingers
 // at her side; the sword (X) swings, and three blows that reach her beat her.
@@ -382,11 +385,11 @@ export const actBurning = {
   action: 'A: leap',
   scenes: BURNING_SCENES,
   mood: (st) => (['wedding', 'apotheosis', 'finale', 'iris'].includes(st.phase) ? 'wedding' : 'storm'),
-  touchLive: (st) => (['house', 'quay', 'wedding', 'apotheosis'].includes(st.phase) && st.riseT == null) || (st.phase === 'barrel' && st.barrel?.fallT == null),
+  touchLive: (st) => (['house', 'quay', 'apotheosis'].includes(st.phase) && st.riseT == null) || (st.phase === 'wedding' && st.phaseT >= FILM_T.weddingLead) || (st.phase === 'barrel' && st.barrel?.fallT == null),
   // the second button swings the sword in the witch's last stand
   touchVerbB: (st) => (st.phase === 'barrel' && st.duel && st.duel.state !== 'trap' ? 'Strike' : ''),
   touchVerb: (st) => (st.phase === 'barrel' && st.duel ? 'Leap' : st.phase === 'barrel' ? '' : st.phase === 'house' && st.carry?.stone && !st.stoneThrown ? 'Action' : 'Leap'),
-  fade: st => st?.phase === 'victory' ? clamp((st.phaseT - FILM_T.victory) / FILM_T.victoryFade, 0, 1) : st?.phase === 'wedding' ? clamp(1 - st.phaseT / FILM_T.weddingFade, 0, 1) : 0,
+  fade: st => st?.phase === 'victory' ? clamp((st.phaseT - FILM_T.victory) / FILM_T.victoryFade, 0, 1) : st?.phase === 'wedding' ? clamp(1 - (st.phaseT - FILM_T.weddingLead) / FILM_T.weddingFade, 0, 1) : 0,
   touchHint: 'drag to walk and climb, A to leap',
   touchScheme: (st) => (st.phase === 'barrel' && st.duel ? { mode: 'stick', hint: 'Drag ↔ to walk' } : ['wedding', 'apotheosis'].includes(st.phase) ? { mode: 'swipe', hint: 'Drag ↔ to walk · tap to celebrate' } : (st.phase === 'barrel' && !st.duel) ? { mode: 'swipe', hint: 'Drag ↔ to walk' } : { mode: 'stick', hint: 'Drag to walk · up and down on stairs and ladders' }),
 
@@ -407,6 +410,7 @@ export const actBurning = {
 
   step(st, dt, input = {}) {
     if (!base(st, dt, input)) return;
+    if (st.smoke) st.smoke = st.smoke.filter(puff => (puff.t += dt) < AURORA.smokeLife);
     const cpBefore = st.checkpoint;
     if (st.phase === 'house') stepHouse(st, dt, input);
     else if (st.phase === 'quay') stepQuay(st, dt, input);
@@ -513,6 +517,7 @@ function startBarrel(st) {
   st.w = walker(BARREL.start, BARREL.y);
   st.duel = { x: DUEL.x, hp: DUEL.hp, state: 'idle', t: 0, next: DUEL.idle[1], bolts: [], strikeT: 0 };
   st.barrel = null;
+  st.smoke = [];
 }
 function stepDuel(st, dt, input) {
   const d = st.duel, w = st.w;
@@ -554,9 +559,15 @@ function stepDuel(st, dt, input) {
     }
   }
   // her bolts run along the ground at him: leap them
-  for (const bo of d.bolts) bo.x -= DUEL.bolt * dt;
   d.bolts = d.bolts.filter((bo) => {
-    if (bo.x < BARREL.x0 - 60) return false;
+    bo.x -= DUEL.bolt * dt;
+    // Aurora catches the fire that gets past the prince. Smoke is purely
+    // decorative: the projectile is removed before any further hit test.
+    if (bo.x <= AURORA.shieldX) {
+      st.smoke.push({ x: AURORA.shieldX, y: BARREL.y - 18, t: 0 });
+      st.events.push({ type: 'auroraQuenches', x: AURORA.shieldX, y: BARREL.y - 18 });
+      return false;
+    }
     if (Math.abs(bo.x - w.x) < DUEL.boltR && w.y > BARREL.y - DUEL.boltH) { duelHit(st); return false; }
     return true;
   });
@@ -596,6 +607,7 @@ function stepBarrel(st, dt, input) {
 // castle gate, catching the petals that fall on the way.
 function startWedding(st) {
   setPhase(st, 'wedding');
+  st.weddingMusicStarted = false; // the shell starts the reveal clock when the recording actually plays
   st.events.push({ type: 'wedding' });
   st.checkpoint = { scene: 4, film: true, score: st.score, pearls: st.pearls };
   st.w = walker(WEDDING.start, WEDDING.y);
@@ -612,6 +624,7 @@ function follow(st, dt, gap, jumped = false, held = false, floor = WEDDING.y) {
   if (Math.abs(v) > 20) a.face = Math.sign(v);
 }
 function stepWedding(st, dt, input) {
+  if (st.phaseT < FILM_T.weddingLead) return; // hear the procession over black before revealing it
   const w = st.w;
   const jumped = walk(w, dt, input, { y: WEDDING.y, x0: WEDDING.x0, x1: WEDDING.gate + 40, leap: true, jumpSpeed: CELEBRATION.jump });
   follow(st, dt, WEDDING.follow, jumped, input.aHeld);

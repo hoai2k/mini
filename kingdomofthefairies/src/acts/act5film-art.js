@@ -5,7 +5,7 @@ import { CREDITS, finaleFrame } from '../finale.js';
 // Act V's drawing (act5-art.js); the sea gap, the tower wall, the tower's
 // stone interior, the clifftop and the tableaux are new. Every requested
 // piece of art has a stand-in. Draw only from state and t.
-import { SWIM, TOWER_TOP, TOWER_WINDOW, FILM_T, BARREL, DUEL, DIVE, WEDDING, APOTH, weddingGuests, guestHop } from './act5film.js';
+import { SWIM, TOWER_TOP, TOWER_WINDOW, FILM_T, BARREL, DUEL, DIVE, WEDDING, APOTH, weddingGuests, guestHop, AURORA, auroraFacing } from './act5film.js';
 import { HOUSE, QUAY, T, climberPos } from './act5.js';
 import {
   onEvent as act5Event, cliffScene, holds, climbGuide, climber, rocksWorld, rockWarnings,
@@ -243,6 +243,7 @@ export function drawOverBurning(k, st) {
 }
 
 export function onEventBurning(k, e, st) {
+  if (e.type === 'auroraQuenches') { k.burst(e.x, e.y, '#fff2b0', 8, 'sparkle'); return; }
   if (e.type === 'witchStruck') { k.flash(0.3); k.shake(0.25); k.burst(e.x - 20, BARREL.y - 110, '#fff2b0', 22, 'sparkle'); if (e.hp > 0) k.text(e.hp === 1 ? 'Once more!' : 'A hit!', e.x, BARREL.y - 220); return; }
   if (e.type === 'witchWinds') { k.burst(e.x, BARREL.y - 150, '#b06ad0', 8, 'sparkle'); return; }
   if (e.type === 'witchBolt') { k.burst(e.x - 40, BARREL.y - 20, '#e9a46a', 10, 'streak'); return; }
@@ -387,7 +388,7 @@ function princeOnFoot(k, w, h = 170, celebrating = false) {
 function azurineOnFoot(k, a, y, h = 168) {
   const c = k.c, moving = Math.abs(a.vx || 0) > 20;
   const stride = moving && ['walk-a', 'pass-a', 'walk-b', 'pass-b'].every(pose => k.img('azurine-' + pose));
-  const bob = stride ? 0 : Math.abs(Math.sin(a.walk / 24)) * 4;
+  const bob = !moving || stride ? 0 : Math.abs(Math.sin(a.walk / 24)) * 4;
   const id = a.on === false ? 'azurine-jump' : stride ? walkFrame('azurine', a.walk, 36) : 'azurine-stand';
   if (drawPerson(k, id, a.x, (a.y ?? y) - (a.on === false ? 0 : bob), h, { face: -a.face })) return;
   c.save(); c.translate(a.x, y - bob); c.scale(-a.face, 1); if (!stride) c.rotate(Math.sin(a.walk / 24) * 0.03);
@@ -472,7 +473,7 @@ function duel(k, st, t) {
     const bx = Math.min(d.x, BARREL.edge - 70);
     // Aurora's spell: a ribbon of gold from her hand to the air over the witch
     if (tt < T2.land + 0.2) {
-      const g = clamp(tt / T2.drop, 0, 1), hx = 268, hy = BARREL.y - 190, tx = bx, ty = BARREL.y - 330;
+      const g = clamp(tt / T2.drop, 0, 1), hx = AURORA.x + 64, hy = BARREL.y - 150, tx = bx, ty = BARREL.y - 330;
       c.save();
       for (let i = 0; i <= 24 * g; i++) {
         const f = i / 24, x = hx + (tx - hx) * f, y = hy + (ty - hy) * f - Math.sin(f * Math.PI) * 60 + Math.sin(t * 14 + f * 16) * 6;
@@ -493,7 +494,7 @@ function duel(k, st, t) {
         // landed: it rocks with her inside, then she pokes her head out
         const r = tt - T2.land, rock = Math.sin(r * 22) * 0.08 * Math.max(0, 1 - r / 0.7);
         c.save(); c.translate(bx, BARREL.y); c.rotate(rock);
-        if (r > 0.45) k.asset('witch-barrel', 0, 0, 108, 130);
+        if (r > 0.45) barrelWitch(k, t, w.x < bx);
         else if (!k.asset('barrel-upturned', 0, 0, 108, 130)) emptyBarrel(k);
         c.restore();
       }
@@ -524,13 +525,58 @@ function emptyBarrel(k) {
   c.restore();
 }
 
+// The barrel is anchored on its own base, not the centre of her outstretched
+// arms. Both poses keep the same woodwork and person size while she rants.
+function barrelWitch(k, t, princeOnLeft = true) {
+  const id = 'witch-barrel-anger-' + (Math.floor(t / 0.6) % 2 ? 'b' : 'a');
+  if (drawPerson(k, id, 0, 0, 140, { face: princeOnLeft ? 1 : -1 })) return;
+  const c = k.c;
+  c.save(); c.scale(princeOnLeft ? -1 : 1, 1);
+  if (!k.asset('witch-barrel', 0, 0, 108, 130)) { c.fillStyle = k.col('#7a5a3a'); c.fillRect(-40, -110, 80, 110); }
+  c.restore();
+}
+
+// Aurora turns to the prince and sends a quiet stream of gold to him. Her
+// blessing catches fire at her outstretched protection; the smoke cannot hit.
+function auroraBlessing(k, st, t) {
+  const c = k.c, face = auroraFacing(st), w = st.w;
+  drawPerson(k, 'aurora-point', AURORA.x, BARREL.y + 6, AURORA.height, { face: -face });
+  c.save();
+  for (const puff of st.smoke || []) {
+    const age = puff.t, fade = 1 - age / AURORA.smokeLife;
+    for (let i = 0; i < 5; i++) {
+      const x = puff.x + Math.sin(i * 2.4 + age * 2) * (10 + age * 15);
+      const y = puff.y - age * (30 + i * 7), r = 13 + age * 18;
+      const fog = c.createRadialGradient(x, y, 0, x, y, r);
+      fog.addColorStop(0, '#e2dccf'); fog.addColorStop(1, 'rgba(226,220,207,0)');
+      c.globalAlpha = fade * 0.65; c.fillStyle = fog; k.circle(x, y, r);
+    }
+  }
+  if (w) {
+    const hx = AURORA.x + face * 64, hy = BARREL.y - 150;
+    const tx = w.x, ty = w.y - 80;
+    c.strokeStyle = k.col('#fff2b0'); c.lineWidth = 2; c.globalAlpha = 0.15;
+    c.beginPath(); c.moveTo(hx, hy); c.quadraticCurveTo((hx + tx) / 2, Math.min(hy, ty) - 30, tx, ty); c.stroke();
+    c.shadowColor = '#fff2b0'; c.shadowBlur = 6;
+    for (let i = 0; i < 28; i++) {
+      const f = (t * 0.45 + i / 28) % 1;
+      const x = lerp(hx, tx, f), y = lerp(hy, ty, f) - Math.sin(f * Math.PI) * 30;
+      c.globalAlpha = Math.sin(f * Math.PI) * (0.4 + 0.25 * Math.sin(t * 7 + i));
+      c.fillStyle = k.col(i % 4 ? '#fff2b0' : '#ffffff'); k.star(x, y, 3 + i % 3);
+    }
+    c.globalAlpha = 0.22; c.strokeStyle = k.col('#fff2b0');
+    c.beginPath(); c.ellipse(w.x, w.y - 70, 36, 76, 0, 0, Math.PI * 2); c.stroke();
+  }
+  c.restore();
+}
+
 // Act VI: the witch's barrel on the cliff over the whirlpool.
 function barrelScene(k, st, t) {
   const c = k.c, b = st.barrel, w = st.w;
   if (!k.asset('cliff-whirlpool', 640, 720, 1280, 720)) { c.fillStyle = k.col('#1c1630'); c.fillRect(0, 0, 1280, 720); c.fillStyle = k.col('#7a6a5a'); c.fillRect(BARREL.x0, BARREL.y, BARREL.edge - BARREL.x0, 300); }
   // the cloth paints its own whirlpool (centre ~ x 1000, y 610); the cut-out only without it
   if (!k.img('cliff-whirlpool')) { c.save(); c.translate(1040, 640); c.scale(1 + 0.03 * Math.sin(t * 2), 1); k.asset('whirlpool', 0, 60, 420, 136); c.restore(); }
-  if (!k.asset('aurora-point', 250, BARREL.y + 6, 150, 212)) { c.fillStyle = k.col('#f4ead2'); k.circle(250, BARREL.y - 120, 16); }
+  auroraBlessing(k, st, t);
   if (st.duel && w) return duel(k, st, t);
   if (!b || !w) return;
   const fallK = b.fallT == null ? 0 : clamp(b.fallT / FILM_T.barrelFall, 0, 1);
@@ -538,7 +584,7 @@ function barrelScene(k, st, t) {
   let x = b.x, y = BARREL.y, rot = b.rot * 0.15;
   if (fallK > 0) { const f = easeInOut(fallK); x = lerp(b.x, 1000, f); y = BARREL.y + f * f * 200; rot = f * 6; }
   c.save(); c.translate(x, y); c.rotate(rot); c.globalAlpha = 1 - clamp((fallK - 0.8) / 0.2, 0, 1);
-  if (!k.asset('witch-barrel', 0, 0, 108, 130)) { c.fillStyle = k.col('#7a5a3a'); c.fillRect(-40, -110, 80, 110); }
+  barrelWitch(k, t, w.x < b.x);
   c.restore();
   // the prince: shoulder to it when pushing, else on foot
   if (st.pushing && w.on && w.knockT <= 0 && k.img('prince-push')) {
@@ -550,7 +596,7 @@ function barrelScene(k, st, t) {
     c.beginPath(); c.moveTo(BARREL.edge - 14, BARREL.y - 170); c.lineTo(BARREL.edge + 14, BARREL.y - 170); c.lineTo(BARREL.edge, BARREL.y - 148); c.closePath(); c.fill();
     c.fillRect(BARREL.edge - 2, BARREL.y - 140, 4, 140); c.restore();
   }
-  if (fallK === 0) hint(k, 'She hides in her barrel: walk into it and push it over the edge');
+  if (fallK === 0) hint(k, 'She still threatens you! Push her barrel over the edge');
 }
 
 // The wedding street: the court lines the way; he walks Azurine to the gate.

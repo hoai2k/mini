@@ -1,7 +1,8 @@
 # Victory punctuation and wedding celebration
 
 31 October 2026. Generated using the built-in imagegen tool. Native selected
-PNGs are preserved in `source/`; the game consumes `assets/azurine-jump.webp`
+First-pass PNGs are preserved in `source/`; corrected compact, palette-matched
+v2 sources and prompts are in `../barrel-defiance/`. The game consumes `assets/azurine-jump.webp`
 and `assets/azurine-jump-tinted.webp`. Both have real alpha transparency.
 `design/source/prepare_celebration.py` trims transparent margins, resizes and
 bottom-centres each delivery on a 300 × 500 canvas without redrawing it.
@@ -14,10 +15,11 @@ guest cut-outs hop in a wave, ordered by distance from the prince at takeoff;
 only rescued crew attend. Repeated player jumps can start overlapping waves.
 
 After the witch and barrel have entirely vanished, the empty cliff holds
-for 7.15 seconds: the complete 7.001-second stinger at its original pitch.
-The accompanying score is lowered to zero for this punctuation. A 1.2-second
-fade to black follows, then the wedding fades in over one second with its
-own recording. The final tableau can be explored indefinitely; only a jump
+for the stinger at its original pitch. The screen fade begins 3.45 seconds
+into its final chord and lasts 1.65 seconds, following the audible decay
+instead of waiting for the MP3’s silent tail. The wedding recording starts
+over black; after a 1.2-second musical lead, the picture fades in over
+2.8 seconds. Audio loading cannot consume that musical lead. The final tableau can be explored indefinitely; only a jump
 beneath Aurora starts the ascent and rolling credits. Touch, keyboard and
 controller all use their existing leap input, with a persistent prompt in
 the light.
@@ -46,6 +48,8 @@ stinger playback, music levels, the wedding track, both sprite looks, real
 keyboard controls and the final prompt. `qa/finale-browser.mjs` checks the
 complete wedding/credits score, coordinated fade and playbill return.
 
-The screenshots and `review.json` beside this file were captured through the
+The screenshots and `review.json` beside this file retain the first-pass
+review. Current v2 screenshots, timing checks and prompts are in
+[`../barrel-defiance/`](../barrel-defiance/README.md), captured through the
 production renderer. Sprite geometry and person sizes are also covered by
 `design/sprite-audit.md` and `design/person-sizes.md`.

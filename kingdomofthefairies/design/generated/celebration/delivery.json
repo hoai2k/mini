@@ -11,7 +11,7 @@
         0,
         255
       ],
-      "sha256": "861284ab929926fe393cf65209e05edd78d544134125f95ec0725f58d019a2e2"
+      "sha256": "63ba8a416f2cc47005792d1e570519466b5981f810666d9c20774568bfee3784"
     },
     {
       "file": "kingdomofthefairies/assets/azurine-jump-tinted.webp",
@@ -23,11 +23,12 @@
         0,
         255
       ],
-      "sha256": "2bdaf4f18538e867398fc9f297a6bd5edccea96e6d0f7fdd12cad5aa6e9dd546"
+      "sha256": "4ed359219998e643e9b65cb550e8e46fe90b275b1af46272d4aac82036ed1302"
     }
   ],
   "victoryStingerDuration": 7.000816,
-  "victoryHold": 7.15,
-  "fadeOut": 1.2,
-  "weddingFadeIn": 1.0
+  "fadeOut": 1.65,
+  "weddingFadeIn": 2.8,
+  "victoryFadeStart": 3.45,
+  "weddingMusicLead": 1.2
 }

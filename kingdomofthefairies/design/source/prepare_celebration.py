@@ -5,7 +5,7 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[2]
 for suffix in ('', '-tinted'):
     aid = 'azurine-jump' + suffix
-    image = Image.open(ROOT / 'design/generated/celebration/source' / f'{aid}.png').convert('RGBA')
+    image = Image.open(ROOT / 'design/generated/barrel-defiance/source' / f'{aid}-v2.png').convert('RGBA')
     bounds = image.getchannel('A').point(lambda value: 255 if value > 40 else 0).getbbox()
     image = image.crop(bounds)
     image.thumbnail((300, 500), Image.Resampling.LANCZOS)

@@ -2,7 +2,7 @@
 // standing height as painted in it (art px), measured by the head against
 // the character's reference sprite. Draw with drawPerson (src/pose.js) so
 // every sprite of a character comes out at one person size.
-// Inputs fingerprint 6afaddbfc6f84da0 (person_sizes.py --check).
+// Inputs fingerprint 529e9112185f1c29 (person_sizes.py --check).
 export const PERSON = {
   'prince-stand': { who: 'prince-armed', px: 360 },
   'prince-strike': { who: 'prince-armed', px: 209 },
@@ -18,7 +18,7 @@ export const PERSON = {
   'azurine-pass-a': { who: 'azurine', px: 372 },
   'azurine-pass-b': { who: 'azurine', px: 372 },
   'azurine-swoon': { who: 'azurine', px: 486 },
-  'azurine-jump': { who: 'azurine', px: 410 },
+  'azurine-jump': { who: 'azurine', px: 448 },
   'azurine-asleep': { who: 'azurine', px: 365 },
   'azurine-window': { who: 'azurine', px: 570 },
   'azurine-stand-tinted': { who: 'azurine', px: 380 },
@@ -27,7 +27,7 @@ export const PERSON = {
   'azurine-pass-a-tinted': { who: 'azurine', px: 380 },
   'azurine-pass-b-tinted': { who: 'azurine', px: 388 },
   'azurine-swoon-tinted': { who: 'azurine', px: 486 },
-  'azurine-jump-tinted': { who: 'azurine', px: 380 },
+  'azurine-jump-tinted': { who: 'azurine', px: 420 },
   'azurine-asleep-tinted': { who: 'azurine', px: 380 },
   'azurine-window-tinted': { who: 'azurine', px: 570 },
   'aurora-stand': { who: 'aurora', px: 420 },
@@ -43,6 +43,8 @@ export const PERSON = {
   'witch-swoop': { who: 'witch', px: 290 },
   'witch-storm': { who: 'witch', px: 327 },
   'witch-barrel': { who: 'witch', px: 327 },
+  'witch-barrel-anger-a': { who: 'witch', px: 421 },
+  'witch-barrel-anger-b': { who: 'witch', px: 421 },
   'witch-cast': { who: 'witch', px: 218 },
   'witch-recoil': { who: 'witch', px: 327 },
   'witch-hooded-tinted': { who: 'witch', px: 364 },
@@ -50,6 +52,8 @@ export const PERSON = {
   'witch-swoop-tinted': { who: 'witch', px: 291 },
   'witch-storm-tinted': { who: 'witch', px: 328 },
   'witch-barrel-tinted': { who: 'witch', px: 328 },
+  'witch-barrel-anger-a-tinted': { who: 'witch', px: 437 },
+  'witch-barrel-anger-b-tinted': { who: 'witch', px: 437 },
   'witch-cast-tinted': { who: 'witch', px: 262 },
   'witch-recoil-tinted': { who: 'witch', px: 328 },
   'witch-stand': { who: 'witch-fair', px: 420 },

@@ -552,8 +552,15 @@ GROUPS.append(("The court guards seize the prince", "Connected capture pairs for
 
 GROUPS.append(("Celebratory wedding leap", "Azurine joins the prince's dancing leap during the wedding and the final tableau. Match her standing face and costume in each look, at one person size.", [
     (f'azurine-jump{t}', f'Azurine jumping for joy{" (tinted)" if t else ""}', 300, 500, 'bottom centre', TINTED if t else SPRITE,
-     f'Princess Azurine exactly as in azurine-stand{t}.webp (attach it), facing left in a joyful dancing leap, both arms lifted out, one knee raised and the other leg extended down, gown flowing. Match the raised-arm celebration of prince-court-leap{t}.webp. Same face, hair, costume, colours and head size as her standing reference; whole figure in frame. Transparent background, no floor, shadow or props.', None)
+     f'Princess Azurine exactly as in azurine-stand{t}.webp (attach it), facing left in a compact celebratory hop, arms open at shoulder height, hands no higher than her crown, knees modestly bent together beneath her gown. Preserve the exact standing crown-to-hem height, face, body proportions and muted colour values. No extended leg, brightening, extra-long skirt or exaggerated flowing train. Full figure on genuine transparent alpha, no floor, shadow, glow or props.', None)
     for t in ('', '-tinted')
+]))
+
+
+GROUPS.append(("The witch rants from the barrel", "Two furious pantomime poses facing the prince to the left. The barrel stays registered at its base while the witch points and shakes her fists. Both art looks; the player can push her into the sea while she gestures.", [
+    (f'witch-barrel-anger-{pose}{t}', f'Witch raging in the barrel, pose {pose.upper()}{" (tinted)" if t else ""}', 400, 360, 'bottom centre', TINTED if t else SPRITE,
+     f'The same elderly witch and iron-hooped barrel as witch-barrel{t}.webp, now facing LEFT toward the prince, snarling and shouting defiantly. ' + ('One bony arm points accusingly left, the other shakes a raised fist.' if pose == 'a' else 'The pointing arm bends into a clenched fist shaken left in front of her chest; the other fist rises higher beside her hood. Preserve pose A barrel, head and torso pixel positions.') + ' Same teal wool hood, white hair, wrinkled hooked-nose face, wood staves, hoops and palette. Full figure in frame on genuine transparent alpha; no floor, shadow, halo, scenery or text. Barrel base centred at the bottom; identical barrel size between frames.', None)
+    for pose in ('a', 'b') for t in ('', '-tinted')
 ]))
 
 

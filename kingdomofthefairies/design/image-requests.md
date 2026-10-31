@@ -92,9 +92,9 @@ and the production art for the film edition (F1–F4) after them.
 
 ## Production art for the film edition
 
-Requested 11 October 2026: 394 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
+Requested 11 October 2026: 398 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 394 of 394 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 398 of 398 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -3042,13 +3042,48 @@ Azurine joins the prince's dancing leap during the wedding and the final tableau
 
 300 × 500 px, anchor bottom centre.
 
-> Princess Azurine exactly as in azurine-stand.webp (attach it), facing left in a joyful dancing leap, both arms lifted out, one knee raised and the other leg extended down, gown flowing. Match the raised-arm celebration of prince-court-leap.webp. Same face, hair, costume, colours and head size as her standing reference; whole figure in frame. Transparent background, no floor, shadow or props. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+> Princess Azurine exactly as in azurine-stand.webp (attach it), facing left in a compact celebratory hop, arms open at shoulder height, hands no higher than her crown, knees modestly bent together beneath her gown. Preserve the exact standing crown-to-hem height, face, body proportions and muted colour values. No extended leg, brightening, extra-long skirt or exaggerated flowing train. Full figure on genuine transparent alpha, no floor, shadow, glow or props. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
 #### `azurine-jump-tinted` — Azurine jumping for joy (tinted)
 
 300 × 500 px, anchor bottom centre.
 
-> Princess Azurine exactly as in azurine-stand-tinted.webp (attach it), facing left in a joyful dancing leap, both arms lifted out, one knee raised and the other leg extended down, gown flowing. Match the raised-arm celebration of prince-court-leap-tinted.webp. Same face, hair, costume, colours and head size as her standing reference; whole figure in frame. Transparent background, no floor, shadow or props. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+> Princess Azurine exactly as in azurine-stand-tinted.webp (attach it), facing left in a compact celebratory hop, arms open at shoulder height, hands no higher than her crown, knees modestly bent together beneath her gown. Preserve the exact standing crown-to-hem height, face, body proportions and muted colour values. No extended leg, brightening, extra-long skirt or exaggerated flowing train. Full figure on genuine transparent alpha, no floor, shadow, glow or props. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+### F29. The witch rants from the barrel
+
+Two furious pantomime poses facing the prince to the left. The barrel stays registered at its base while the witch points and shakes her fists. Both art looks; the player can push her into the sea while she gestures.
+
+| Id | Size | Anchor | Replaces | Delivery |
+| --- | --- | --- | --- | --- |
+| `witch-barrel-anger-a` | 400 × 360 | bottom centre | new | [delivered](../assets/witch-barrel-anger-a.webp) |
+| `witch-barrel-anger-a-tinted` | 400 × 360 | bottom centre | new | [delivered](../assets/witch-barrel-anger-a-tinted.webp) |
+| `witch-barrel-anger-b` | 400 × 360 | bottom centre | new | [delivered](../assets/witch-barrel-anger-b.webp) |
+| `witch-barrel-anger-b-tinted` | 400 × 360 | bottom centre | new | [delivered](../assets/witch-barrel-anger-b-tinted.webp) |
+
+#### `witch-barrel-anger-a` — Witch raging in the barrel, pose A
+
+400 × 360 px, anchor bottom centre.
+
+> The same elderly witch and iron-hooped barrel as witch-barrel.webp, now facing LEFT toward the prince, snarling and shouting defiantly. One bony arm points accusingly left, the other shakes a raised fist. Same teal wool hood, white hair, wrinkled hooked-nose face, wood staves, hoops and palette. Full figure in frame on genuine transparent alpha; no floor, shadow, halo, scenery or text. Barrel base centred at the bottom; identical barrel size between frames. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `witch-barrel-anger-a-tinted` — Witch raging in the barrel, pose A (tinted)
+
+400 × 360 px, anchor bottom centre.
+
+> The same elderly witch and iron-hooped barrel as witch-barrel-tinted.webp, now facing LEFT toward the prince, snarling and shouting defiantly. One bony arm points accusingly left, the other shakes a raised fist. Same teal wool hood, white hair, wrinkled hooked-nose face, wood staves, hoops and palette. Full figure in frame on genuine transparent alpha; no floor, shadow, halo, scenery or text. Barrel base centred at the bottom; identical barrel size between frames. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `witch-barrel-anger-b` — Witch raging in the barrel, pose B
+
+400 × 360 px, anchor bottom centre.
+
+> The same elderly witch and iron-hooped barrel as witch-barrel.webp, now facing LEFT toward the prince, snarling and shouting defiantly. The pointing arm bends into a clenched fist shaken left in front of her chest; the other fist rises higher beside her hood. Preserve pose A barrel, head and torso pixel positions. Same teal wool hood, white hair, wrinkled hooked-nose face, wood staves, hoops and palette. Full figure in frame on genuine transparent alpha; no floor, shadow, halo, scenery or text. Barrel base centred at the bottom; identical barrel size between frames. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `witch-barrel-anger-b-tinted` — Witch raging in the barrel, pose B (tinted)
+
+400 × 360 px, anchor bottom centre.
+
+> The same elderly witch and iron-hooped barrel as witch-barrel-tinted.webp, now facing LEFT toward the prince, snarling and shouting defiantly. The pointing arm bends into a clenched fist shaken left in front of her chest; the other fist rises higher beside her hood. Preserve pose A barrel, head and torso pixel positions. Same teal wool hood, white hair, wrinkled hooked-nose face, wood staves, hoops and palette. Full figure in frame on genuine transparent alpha; no floor, shadow, halo, scenery or text. Barrel base centred at the bottom; identical barrel size between frames. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
 <!-- FILM ASSETS END -->
 
