@@ -158,9 +158,9 @@ export function createInside() {
       S.tipVel.set(0, -10, 0);
       for (const e of enzymes) scene.remove(e.g);
       enzymes.length = 0;
-      addEnzyme('re', { detect: 90, speed: 22, label: 'Restriction enzyme', start: 0.35 });
-      addEnzyme('cas', { detect: host.crispr ? 170 : 45, speed: host.crispr ? 27 : 13, label: host.crispr ? 'CRISPR complex (matching spacer)' : 'CRISPR complex (no matching spacer)' });
-      if (host.crispr) addEnzyme('cas', { detect: 150, speed: 24, label: 'CRISPR complex (matching spacer)' });
+      addEnzyme('re', { detect: 90, speed: 19, label: 'Restriction enzyme' });
+      addEnzyme('cas', { detect: host.crispr ? 180 : 45, speed: host.crispr ? 31 : 13, label: host.crispr ? 'CRISPR complex (matching spacer)' : 'CRISPR complex (no matching spacer)' });
+      if (host.crispr) addEnzyme('cas', { detect: 160, speed: 28, label: 'CRISPR complex (matching spacer)' });
       // a calm start: they begin far from the pore and only sense you after a few seconds
       enzymes.forEach((e, i) => { e.s = [0.12, 0.85, 0.7][i]; e.pos.copy(e.strand.curve.getPointAt(e.s)); e.cool = 4 + i * 1.5; });
       for (const h of hostDna) for (const s of h.strands) s.visible = true;

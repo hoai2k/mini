@@ -14,7 +14,7 @@ export const CHAIN_CONST = {
   capGrid: 6400,          // the lawn's capitula spacing
   T1: [-900, -700],       // the wet leaf axil with the tun
   T2W1: [-1600, -580],    // where the film runs down a leaf into the pool (frame 1)
-  patch: [300, 180],      // the biofilm patch (frame 4, the Paramecium's)
+  patch: [1580, 0],       // the biofilm patch on a leaf (frame 4, the Paramecium's)
   host: [0, -0.62],       // the host cell's centre (frame 6)
   hostR: 0.5, hostL: 1.0, // radius and half-length of its axis (µm)
 };
@@ -23,7 +23,7 @@ export const CHAIN_CONST = {
 export const IDS = ['springtail', 'mite', 'tardigrade', 'amoeba', 'paramecium', 'bacterium', 'phage'];
 
 /** Origin of frame k in frame k-1. */
-export const ORIG = [null, [0, 0], CHAIN_CONST.T1, [-900, 150], [380, 220], CHAIN_CONST.patch, [22, 9]];
+export const ORIG = [null, [0, 0], CHAIN_CONST.T1, [-1500, 300], [-300, 250], CHAIN_CONST.patch, [22, 9]];
 
 /** Global (frame 1) position of each frame's origin. */
 export const G = (() => {
@@ -56,7 +56,7 @@ export const WORLDS = [
     start: [0, 0], path: [[30, 20], [60, 40]], destR: 8, stepSound: null },
   { id: 'paramecium', name: 'The hollow pool', short: 'Pool', field: 900, look: 'bright', instrument: '20× objective, brightfield',
     amb: 'paramecium/amb-pool', creature: 'Paramecium bursaria, 120 µm', radius: 90, speed: 420, stride: 0,
-    start: [0, 0], path: [[-140, 100], [60, 280], [185, 225]], destR: 18, stepSound: null },
+    start: [0, 0], path: [[400, 90], [1000, 60], [1465, 45]], destR: 18, stepSound: null },
   { id: 'bacterium', name: 'The biofilm on the leaf', short: 'Biofilm', field: 90, look: 'phase', instrument: '100× oil, 1000×, 90 µm camera crop',
     amb: 'bacterium/amb-sediment', creature: 'Magnetotactic spirillum, 3 µm', radius: 4, speed: 40, stride: 0,
     start: [0, 0], path: [[-14, 10], [6, 16], [19.5, 6.6]], destR: 1.2, stepSound: null },

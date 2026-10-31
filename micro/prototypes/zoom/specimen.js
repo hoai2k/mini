@@ -576,14 +576,14 @@ void amoeba(vec2 p, vec4 cr, vec4 cb, inout S s) {
   float ch = 42.0 * smoothstep(0.0, 70.0, depth);
   float endo = smoothstep(8.0, 22.0, depth);   // the granular endoplasm, inside a clear rim
   float opd = 0.02 * ch;
-  vec3 ab = ch * vec3(0.0040, 0.0046, 0.0068);
+  vec3 ab = ch * vec3(0.0075, 0.0085, 0.0120);
   float lf = 1.0 - smoothstep(2.0, 5.0, uPx);
   vec2 gid = floor(q / 6.0);
   vec2 gc = (gid + 0.5 + (hash22(gid + 9.0) - 0.5) * 0.6) * 6.0 + 1.2 * vec2(sin(t * 1.3 + gid.x), cos(t * 1.1 + gid.y));
   vec2 gt = thin(length(q - gc), 1.3);
   float gran = endo * step(hash12(gid + 3.0), 0.6);
   opd += mix(0.08 * endo, gt.x * 0.08 * gran, lf);
-  ab += mix(vec3(0.12, 0.13, 0.16) * endo, gt.x * gran * vec3(0.14, 0.15, 0.18), lf);
+  ab += mix(vec3(0.20, 0.22, 0.27) * endo, gt.x * gran * vec3(0.24, 0.26, 0.31), lf);
   float nuc = smoothstep(26.0, 22.0, length(q - vec2(-25.0, 12.0)));
   opd += 0.35 * nuc; ab += nuc * vec3(0.04, 0.05, 0.07);
   float cvr = 16.0 + 4.0 * sin(t * 0.8);
