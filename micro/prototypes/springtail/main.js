@@ -177,7 +177,8 @@ function placeCamera(dt) {
     const m = capMouth();
     if (cap.kind !== 'sundew') {
       capSpan = m.distanceTo(cap.mid.set(cap.x0, 0.25, cap.z0));
-      frameAt.copy(m).add(cap.mid).multiplyScalar(0.5);
+      // between you and the mouth, leaning toward the predator's body so its head and forebody are in frame
+      frameAt.copy(m).add(cap.mid).multiplyScalar(0.5).lerp(capBody(), 0.3);
       const ax = Math.atan2(m.z - cap.z0, m.x - cap.x0);
       const side = Math.abs(wrapA(ax + Math.PI / 2 - rig.yaw)) < Math.abs(wrapA(ax - Math.PI / 2 - rig.yaw)) ? ax + Math.PI / 2 : ax - Math.PI / 2;
       rig.yaw += wrapA(side - rig.yaw) * (dt ? 1 - Math.exp(-dt * 2) : 1);
@@ -245,7 +246,7 @@ const isHungry = (h) => (pace.mode === 'Never' ? false : pace.mode === 'Always' 
 function resetHunger() { hunger.stenus.reset(pace.grace); hunger.strider.reset(pace.grace + 15); }
 const cap = { kind: null, x0: 0, y0: 0, z0: 0, h0: 0, leaf: null, phase: null, mid: new THREE.Vector3() };
 // how close the lens frames each catch (field width, mm) and from how high
-const CAP_VIEW = { stenus: { hfw: 11, pitch: 0.42 }, strider: { hfw: 15, pitch: 0.5 }, sundew: { hfw: 7, pitch: 0.75 } };
+const CAP_VIEW = { stenus: { hfw: 12, pitch: 0.45 }, strider: { hfw: 16, pitch: 0.55 }, sundew: { hfw: 7, pitch: 0.75 } };
 const CAP_TEXT = {
   stenus: { by: 'Stenus', how: 'harpooned you with its sticky labium, reeled you in and ate you',
     phases: { strike: 'Harpooned by Stenus!', hold: 'Reeled in…', eat: 'Stenus is eating you', eaten: 'Eaten' } },
@@ -261,6 +262,10 @@ function capMouth() {
   if (cap.kind === 'stenus') return stenus.mouthPos();
   if (cap.kind === 'strider') return strider.mouthPos();
   return new THREE.Vector3(cap.x0, cap.y0, cap.z0);
+}
+function capBody() {
+  const s = cap.kind === 'stenus' ? stenus.st : strider.st;
+  return new THREE.Vector3(s.x, 0.4, s.z);
 }
 /** A predator has you: control stops, and the whole catch is shown. */
 function caught(kind) {
@@ -285,7 +290,6 @@ function animateCapture(c, dt) {
     if (c.phase === 'hold') { rumble(300, 0.5, 0.7); if (cap.kind === 'strider') audio.play('springtail/raindrop', { volume: 0.25, rate: 1.8 }); }
     if (c.phase === 'eat') { audio.play('springtail/eat', { volume: 1, rate: cap.kind === 'stenus' ? 0.7 : 0.55 }); rumble(600, 0.6, 0.3); }
     if (c.phase === 'eaten') audio.play('springtail/eat', { volume: 0.7, rate: 0.5 });
-    if (c.phase !== 'eaten') hud.toast(CAP_TEXT[cap.kind].phases[c.phase], 1400);
   }
   // the mandibles' rhythm, heard while eating
   if (c.phase === 'eat' && cap.kind === 'stenus' && Math.floor(simT * 2.4) !== Math.floor((simT - dt) * 2.4)) audio.play('springtail/eat', { volume: 0.5, rate: 0.8 + Math.random() * 0.2 });
@@ -710,7 +714,7 @@ function stepWorld(dt) {
     audio.play('springtail/raindrop', { volume: Math.max(0.12, Math.min(0.9, 4 / (d + 3))), rate: 0.92 + Math.random() * 0.16, pan: Math.max(-1, Math.min(1, (e.x - P.x) / 25)) });
     if (d < 6) rumble(250, Math.min(1, 3 / d), Math.min(1, 2 / d));
     if (!alive) continue;
-    if (d < e.r * 1.15 && P.mode !== 'air') die('Swamped by a raindrop');
+    if (d < e.r * 0.95 && P.mode !== 'air') die('Swamped by a raindrop');
     else if (d < e.r * 3 && P.mode !== 'air' && P.mode !== 'stuck') {
       // thrown out of the crater
       const ax = P.x - e.x, az = P.z - e.z;

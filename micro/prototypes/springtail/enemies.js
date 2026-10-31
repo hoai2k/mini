@@ -140,6 +140,8 @@ export function createStenus(scene) {
     let targetA = st.a, targetV = 0;
     switch (st.state) {
       case 'patrol': {
+        // hungry, it works its patrol over toward where you are
+        if (hungry && P.alive) { const k = Math.min(1, dt * 0.05); st.ox += (P.x - ROUTE[st.wp][0] * 0.3 - st.ox) * k; st.oz += (P.z - ROUTE[st.wp][1] * 0.3 - st.oz) * k; }
         const wx = ROUTE[st.wp][0] + st.ox, wz = ROUTE[st.wp][1] + st.oz;
         if (Math.hypot(wx - st.x, wz - st.z) < 2) st.wp = (st.wp + 1) % ROUTE.length;
         targetA = Math.atan2(wz - st.z, wx - st.x);
@@ -419,6 +421,8 @@ export function createStrider(scene) {
       if (d < 22 * r.strength && ctx.player.alive) { st.target = { x: r.x, z: r.z }; st.interest = 4; st.state = 'hunt'; ev.push('heard'); }
     }
     st.interest -= dt;
+    // hungry, its idle rowing drifts toward your part of the pool
+    if (hungry && ctx.player.alive) { const k = Math.min(1, dt * 0.05); st.hx += (ctx.player.x - st.hx) * k; st.hz += (ctx.player.z - st.hz) * k; }
     if (st.interest <= 0 && st.state === 'hunt') { st.state = 'idle'; st.target = null; ev.push('lost'); }
     const P = ctx.player;
     let goal = null;
@@ -547,7 +551,7 @@ export function createRain(scene) {
     /** During the calm opening drops land around you, not on you. */
     calm: false,
     /** Schedule a drop at x, z; it lands after `warn` seconds. */
-    spawn(x, z, warn = 1.6) {
+    spawn(x, z, warn = 2.0) {
       const m = new THREE.Mesh(dropGeo, dropMat);
       m.visible = false;
       m.frustumCulled = false;
@@ -562,7 +566,8 @@ export function createRain(scene) {
         if (api.timer <= 0) {
           api.timer = api.every * (0.6 + Math.random() * 0.8);
           const P = ctx.player;
-          const a = Math.random() * Math.PI * 2, r = api.calm ? 9 + Math.random() * 10 : 1 + Math.random() * 6;
+          // about half the drops come down near you, the rest farther off (and none on you in the calm)
+          const a = Math.random() * Math.PI * 2, r = api.calm ? 9 + Math.random() * 10 : Math.random() < 0.5 ? 1 + Math.random() * 6 : 7 + Math.random() * 9;
           api.spawn(P.x + Math.cos(a) * r + (P.vx || 0) * 0.8, P.z + Math.sin(a) * r + (P.vz || 0) * 0.8);
         }
       }

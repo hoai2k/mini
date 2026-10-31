@@ -55,6 +55,8 @@ export function createWorld() {
   const r = rng(51);
   const W = WORLD;
   const opts = { grazers: true, phages: true, hunters: true, amoeba: true, npcRun: true, brownian: true, field: 20 };
+  // which predators are hungry right now (main.js runs their hunger: shared/predation.js)
+  const hunt = { phage: true, bdello: true, amoeba: true };
   const slab = { amp: 4, seed: 1.3 };
   const surfaceY = (x) => W.slabY + slabEdge(x, slab.amp, slab.seed);
 
@@ -147,7 +149,7 @@ export function createWorld() {
     out.x = 0; out.y = 0;
     if (!opts.grazers) return out;
     for (const g of grazers) {
-      if (g.contract > 0) continue;
+      if (g.contract > 0 || g.feeding === false) continue; // the feeding current is off while it rests
       const P = g.pose;
       const dx = P.mouth.x - x, dy = P.mouth.y - y;
       const d = Math.hypot(dx, dy) + 1e-6;
@@ -191,7 +193,7 @@ export function createWorld() {
   }
 
   const world = {
-    opts, grains, specks, eps, film, cells, phages, patches, grazers, amoeba, slab, surfaceY,
+    opts, hunt, grains, specks, eps, film, cells, phages, patches, grazers, amoeba, slab, surfaceY,
     oxygen, food, eat, insideAmoeba, pushOutOfGrains, grazerPose,
     flowAt(x, y) { const f = grazerFlow(x, y, { x: 0, y: 0 }); return f; },
     /** Field direction (unit) and strength in µT. North points into the sediment (−y). */
@@ -209,7 +211,7 @@ export function createWorld() {
       // the amoeba creeps toward the player when near (≈1.4 µm/s), otherwise wanders
       if (opts.amoeba) {
         const dx = player.x - amoeba.x, dy = player.y - amoeba.y, d = Math.hypot(dx, dy);
-        if (d < 90 && player.alive) {
+        if (d < 90 && player.alive && hunt.amoeba) {
           const nAng = Math.atan2(-dx, dy); // turn the edge's outward normal (local +y) toward the player
           amoeba.ang += wrapA(nAng - amoeba.ang) * Math.min(1, dt * 0.15);
           amoeba.x += (dx / d) * amoeba.speed * dt; amoeba.y += (dy / d) * amoeba.speed * dt;
@@ -256,7 +258,7 @@ export function createWorld() {
   function eatenByGrazer(p) {
     if (!opts.grazers) return false;
     for (const g of grazers) {
-      if (g.contract > 0) continue;
+      if (g.contract > 0 || g.feeding === false) continue;
       const P = g.pose;
       if ((p.x - P.mouth.x) ** 2 + (p.y - P.mouth.y) ** 2 < 9) return true;
     }

@@ -13,11 +13,12 @@
 // - A nip back from the box mite making it recoil is a game rule.
 import * as THREE from '../shared/vendor/three.module.min.js';
 
-const TOUCH = 560;        // µm: senses the prey by touch / near contact
+const TOUCH = 480;        // µm (centre to centre): senses the prey by touch / near contact
 const VIBRATION = 950;    // µm: senses a scrambling prey
 const LOSE = 1500;
-const SPEED = 900;        // µm/s hunting (the player walks 720, scrambles 1300; game speeds)
-const STRIKE = 250;       // µm from its chelicerae to the prey's body centre
+const SPEED = 600;        // µm/s hunting (the 0.35 mm player walks ~420, hurries ~590, scrambles ~750; game speeds)
+const SCRAMBLE = 600;     // µm/s: prey moving faster than this is felt from VIBRATION away
+const STRIKE = 200;       // µm from its chelicerae to the prey's body centre
 const STRIKE_EVERY = 1.2;
 
 export function createPredatorAI(pred, half) {
@@ -25,8 +26,11 @@ export function createPredatorAI(pred, half) {
     state: 'wander', t: 0, cool: 0, recoil: 0, tries: 0, bored: 0, ang: 0.6, dist: 9999,
     reset(x, z) { pred.place(x, z, 2.6); ai.state = 'wander'; ai.cool = 2; ai.tries = 0; ai.bored = 4; },
     /**
-     * prey: { mite, closed (bool), speed }. nip: the prey bit at it this frame.
-     * Returns { input for pred.update, events: ['hunt', 'legHit', 'blocked', 'givesUp', 'recoil', 'lost'] }.
+     * prey: { mite, closed (bool), speed, hungry }. nip: the prey bit at it this frame.
+     * Only a hungry predator (shared/predation.js) hunts: hungry, it wanders
+     * toward the prey (it can smell and feel a moss cushion's worth of mite);
+     * resting, it wanders and ignores even a touch.
+     * Returns { input for pred.update, events: ['hunt', 'legHit', 'blocked', 'givesUp', 'recoil', 'lost', 'sated'] }.
      */
     step(dt, prey, nip) {
       const ev = [];
@@ -44,11 +48,15 @@ export function createPredatorAI(pred, half) {
       switch (ai.state) {
         case 'wander': {
           ai.ang += (Math.sin(ai.t * 0.41) + Math.sin(ai.t * 0.97 + 2)) * 0.7 * dt;
+          if (prey.hungry !== false && d < 3000) {
+            const want = Math.atan2(them.z - me.z, them.x - me.x);
+            ai.ang += Math.atan2(Math.sin(want - ai.ang), Math.cos(want - ai.ang)) * Math.min(1, dt * 0.5);
+          }
           if (Math.hypot(me.x, me.z) > half * 0.8) ai.ang = Math.atan2(-me.z, -me.x);
           dir.set(Math.cos(ai.ang), 0, Math.sin(ai.ang));
           mag = 0.5; maxSpeed = SPEED * 0.6;
-          const sensed = d < TOUCH || (d < VIBRATION && prey.speed > 1050); // a scramble, not a walk
-          if (sensed && ai.bored <= 0) { ai.state = 'hunt'; ev.push('hunt'); }
+          const sensed = d < TOUCH || (d < VIBRATION && prey.speed > SCRAMBLE); // a scramble, not a walk
+          if (sensed && ai.bored <= 0 && prey.hungry !== false) { ai.state = 'hunt'; ev.push('hunt'); }
           break;
         }
         case 'hunt': {
@@ -56,6 +64,7 @@ export function createPredatorAI(pred, half) {
           dir.y = 0; dir.normalize();
           mag = 1;
           if (d > LOSE) { ai.state = 'wander'; ev.push('lost'); break; }
+          if (prey.hungry === false) { ai.state = 'wander'; ai.bored = 4; ai.ang += Math.PI; ev.push('sated'); break; }
           if (mouthD < STRIKE + 60) mag = 0.25; // close: feel about with leg I
           if (mouthD < STRIKE && ai.cool <= 0) {
             ai.cool = STRIKE_EVERY;

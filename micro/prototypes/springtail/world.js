@@ -402,7 +402,7 @@ function buildSundews(group, rnd, sundewTex) {
         const active = Math.abs(l.curl - before) > 1e-5 || l.target || l.grip > 0;
         if (l.close !== l.closeW) {
           const c = l.close;
-          l.blade.scale.set(l.r * (1 - 0.32 * c), l.r * (1 + 3.2 * c), l.r * (1 - 0.32 * c));
+          l.blade.scale.set(l.r * (1 - 0.35 * c), l.r * (1 + 1.3 * c), l.r * (1 - 0.35 * c));
           l.closeW = c;
         }
         for (const t of l.tent) {

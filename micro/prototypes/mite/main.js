@@ -4,6 +4,7 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 import { createPad } from '../shared/pad.js';
 import { createControls, createDash, hudControls, addInvertY } from '../shared/controls.js';
 import { createPredatorAI } from './predator.js';
+import { createHunger, createCapture } from '../shared/predation.js';
 import { mountHud } from '../shared/hud.js';
 import { createSem, shared, MODES, CLS } from './sem.js';
 import { semTextures } from './textures.js';
@@ -41,23 +42,27 @@ const sem = createSem(renderer, tex.backdrop);
 const world = buildWorld(tex);
 scene.add(world.group);
 
-const mite = createMite(scene, world.colliders, { cls: CLS.CUTICLE, tex });
+// The box mite is drawn at about 0.6 mm (mite.js) and placed at 0.58 of that:
+// ~0.35 mm long, the size of a small phthiracarid (the Level 1 spec asks for
+// ~270-390 µm). Its stride, hop and speeds shrink with it; the moss does not.
+const MITE_SCALE = 0.58;
+const mite = createMite(scene, world.colliders, { cls: CLS.CUTICLE, tex, scale: MITE_SCALE });
 mite.place(0, 0, 0.3);
-const npc = createMite(scene, world.colliders, { cls: CLS.NPC, tex });
+const npc = createMite(scene, world.colliders, { cls: CLS.NPC, tex, scale: MITE_SCALE });
 npc.place(-950, 820, 2.2);
 // The predator: a parasitid (Mesostigmata), pale, long-legged, hunting by touch.
 const pred = createMite(scene, world.colliders, { cls: CLS.NPC, tex, anat: PRED });
 const predAI = createPredatorAI(pred, HALF);
-predAI.reset(1150, -650);
+predAI.reset(1150, -650); // ~1.3 mm off: it starts well away from you
 
 const pad = createPad();
 const ctl = createControls(pad);
 const dash = createDash({ duration: 0.6, cooldown: 2.2 });
-// Walking speeds (µm/s): the default walk is twice the old hurry pace.
-const WALK = 720, DASH = 1300;
+// Walking speeds (µm/s, world): scaled with the body (720 and 1300 at 0.6 mm).
+const WALK = Math.round(720 * MITE_SCALE), DASH = Math.round(1300 * MITE_SCALE);
 const hud = mountHud({
   title: 'Mite · SEM',
-  sub: 'A box mite (Phthiracaridae), about 0.6 mm long, in a moss cushion, imaged like a scanning electron micrograph. A predatory mite hunts here.',
+  sub: 'A box mite (Phthiracaridae), about 0.35 mm long, in a moss cushion, imaged like a scanning electron micrograph. A predatory mite hunts here.',
   controls: hudControls({
     move: 'Walk (relative to the view); climbs grains, stems and flakes, pushes through blades',
     camera: 'Orbit the specimen (up looks up)',
@@ -71,7 +76,7 @@ const hud = mountHud({
     zoom: 'Magnification steps',
     extra: [['LS click', 'Observer: data bar and scan lines']],
   }),
-  note: 'A live mite walking in an SEM is a deliberate fiction: real specimens are dried and gold-coated in a vacuum. The mag and scale bar are true to the field of view. Speeds are a game stretch: the walk (~0.7 mm/s) is several times a real oribatid\'s, and box mites do not jump (zetorchestid oribatids do).',
+  note: 'A live mite walking in an SEM is a deliberate fiction: real specimens are dried and gold-coated in a vacuum. The mag and scale bar are true to the field of view. Speeds are a game stretch: the walk (~0.42 mm/s) is a few times a real oribatid\'s, and box mites do not jump (zetorchestid oribatids do).',
 });
 
 // SEM data bar (observer mode)
@@ -80,8 +85,9 @@ bar.style.cssText = 'position:fixed;left:0;right:0;bottom:0;height:34px;backgrou
 document.body.appendChild(bar);
 let observer = false;
 
-// Starts zoomed out (HFW 2.4 mm, ~53x) so the moss around the mite reads.
-const rig = { yaw: -0.6, pitch: 0.62, hfw: 2400, target: mite.center.clone() };
+// Starts at HFW 1.6 mm (~79x): the 0.35 mm mite is about a fifth of the
+// field, with the moss around it in view.
+const rig = { yaw: -0.6, pitch: 0.62, hfw: 1600, target: mite.center.clone() };
 const camFwd = new THREE.Vector3(), camRight = new THREE.Vector3();
 
 let renderScale = 1, dynRes = true, slowEma = 16, scaleT = 0;
@@ -102,7 +108,11 @@ function placeCamera(dt) {
   const tanH = Math.tan(THREE.MathUtils.degToRad(VFOV) / 2) * camera.aspect;
   const d = rig.hfw / (2 * tanH);
   const k = dt ? 1 - Math.exp(-dt / 0.25) : 1;
-  rig.target.lerp(mite.center, k);
+  // a catch is framed whole: you and the predator
+  if (capture.active) {
+    rig.target.lerp(_ct.copy(mite.center).lerp(pred.center, 0.45), k);
+    rig.hfw += (Math.max(rig.hfw, 1300) - rig.hfw) * k;
+  } else rig.target.lerp(mite.center, k);
   const cp = Math.cos(rig.pitch);
   camera.position.set(rig.target.x + Math.cos(rig.yaw) * cp * d, rig.target.y + Math.sin(rig.pitch) * d, rig.target.z + Math.sin(rig.yaw) * cp * d);
   camera.lookAt(rig.target);
@@ -135,11 +145,11 @@ function npcInput(dt) {
   const c = npc.center;
   if (Math.hypot(c.x, c.z) > HALF * 0.75) ai.ang = Math.atan2(-c.z, -c.x);
   const dist = c.distanceTo(mite.center);
-  if (dist < 420 && ai.scared <= 0 && npc.mode === 'walk') ai.scared = 3 + Math.random() * 2;
+  if (dist < 300 && ai.scared <= 0 && npc.mode === 'walk') ai.scared = 3 + Math.random() * 2;
   ai.scared -= dt;
   ai.pause = (ai.pause + dt) % 14;
   const moving = ai.pause < 10;
-  return { dir: new THREE.Vector3(Math.cos(ai.ang), 0, Math.sin(ai.ang)), mag: moving ? 0.6 : 0, maxSpeed: 180, hold: ai.scared > 0 };
+  return { dir: new THREE.Vector3(Math.cos(ai.ang), 0, Math.sin(ai.ang)), mag: moving ? 0.6 : 0, maxSpeed: 180 * MITE_SCALE, hold: ai.scared > 0 };
 }
 
 // ---------- features panel ----------
@@ -240,16 +250,22 @@ F({ id: 'foliage', group: 'Simulation', label: 'Bending blades and hyphae', on: 
   about: 'Every thin moss leaf is a bendable blade (one tip offset with a spring back to rest, offset = d·u²) and every hypha a slack thread fixed at both ends (d·sin πu). Bodies push their centre lines out of the way, a mite standing on a blade bends it down, and they spring back. Only rods near a mite are simulated; their vertices and colliders are rewritten on the CPU (shared/techniques/mite-foliage.js).',
   onChange: (v) => { world.foliage.cfg.on = v; if (!v) world.foliage.reset(); } });
 F({ id: 'speed', group: 'Simulation', label: 'Game walking speed', fixed: true,
-  about: 'Walking is ~720 µm/s (LB slow ~360, RB hurry ~1 mm/s): twice the old hurry pace, so the moss can be crossed in good time. Real oribatids walk a few hundred µm/s at most; this is a game stretch. Strides lengthen up to 1.5x with speed and the gait phase runs on distance, so the feet stay planted.' });
+  about: `Walking is ~${WALK} µm/s (LB slow ~${WALK / 2}, RB hurry ~${Math.round(WALK * 1.4)}), scaled with the 0.35 mm body: about 1.2 body lengths a second. Real oribatids walk a few hundred µm/s at most; this is a game stretch. Strides lengthen up to 1.5x with speed and the gait phase runs on distance, so the feet stay planted.` });
 F({ id: 'scramble', group: 'Simulation', label: 'Scramble (B)', fixed: true,
-  about: '0.6 s at up to ~1.3 mm/s, recharging over 2.2 s. The gait phase runs on distance, so the legs speed up with it and the feet stay planted. A stretch: box mites are slow, steady walkers.' });
+  about: `0.6 s at up to ~${DASH} µm/s, recharging over 2.2 s. The gait phase runs on distance, so the legs speed up with it and the feet stay planted. A stretch: box mites are slow, steady walkers.` });
 F({ id: 'jump', group: 'Simulation', label: 'Jump (A), borrowed from jumping oribatids', fixed: true,
-  about: `A ${Math.round(JUMP.crouch * 1000)} ms crouch, then a ballistic hop (~${Math.round(JUMP.vy ** 2 / 5200)} µm high, ~0.5 mm long; more from a run), landing on the floor, a grain, a flake or a blade (which takes the landing and bends); ${JUMP.cool} s before the next. Box mites do not jump, but some oribatids do: Zetorchestes with enlarged hind legs and a catch mechanism (Krisper 1990), and the ptychoid Indotritia, a box-mite relative, jumps backwards with its forelegs (Wauthy et al. 1998). Borrowed here as a forward hop.` });
+  about: `A ${Math.round(JUMP.crouch * 1000)} ms crouch, then a ballistic hop (~${Math.round(MITE_SCALE * JUMP.vy ** 2 / 5200)} µm high, ~0.3 mm long; more from a run; scaled with the body), landing on the floor, a grain, a flake or a blade (which takes the landing and bends); ${JUMP.cool} s before the next. Box mites do not jump, but some oribatids do: Zetorchestes with enlarged hind legs and a catch mechanism (Krisper 1990), and the ptychoid Indotritia, a box-mite relative, jumps backwards with its forelegs (Wauthy et al. 1998). Borrowed here as a forward hop.` });
 F({ id: 'bite', group: 'Simulation', label: 'Bite and graze (X)', fixed: true,
   about: 'The rostrum dips and the chelicerae work. In reach of the mouth: fungal spores (eaten) and hyphal branch tips (nibbled; they regrow), the box mite\'s real food. At the predator: a nip that makes it back off for 1.5 s (a game rule).' });
 F({ id: 'predator', group: 'Simulation', label: 'Predatory mite (Parasitidae)', on: true,
-  about: 'A pale, flattened gamasid ~0.8 mm long with long legs, leg I held up as a feeler. It wanders until it touches you or feels you scramble close by, then runs you down at ~0.9 mm/s (faster than your walk, slower than your scramble; all game speeds). It strikes at legs first: three grabs and you are caught. Closed up (Y), you are a smooth capsule it cannot grip; it gives up after three tries (adult ptychoid mites are nearly immune: Peschel et al. 2006).',
+  about: 'A pale, flattened gamasid ~0.8 mm long with long legs, leg I held up as a feeler. More than twice your length. After a calm opening it is hungry only some of the time (see Threats); hungry, it searches toward you, and when it touches you or feels you scramble close by it runs you down at ~0.6 mm/s (faster than your walk, slower than your scramble; all game speeds). Resting, it wanders and ignores you. It strikes at legs: on the third grab it holds on, pulls you in and eats you (the whole catch is shown); close up (Y) while it holds you and its grip slips off. Closed up (Y), you are a smooth capsule it cannot grip; it gives up after three tries (adult ptychoid mites are nearly immune: Peschel et al. 2006).',
   onChange: (v) => { predOn = v; pred.setVisible(v); } });
+F({ id: 'grace', group: 'Simulation', label: 'Calm opening', choices: ['45 s', '20 s', '90 s', 'Off'], value: '45 s',
+  about: 'How long after a start (and after each restart) before the predatory mite gets hungry. It starts ~1.3 mm away and wanders meanwhile, ignoring you even if it bumps into you. shared/predation.js.',
+  onChange: (v) => { pace.grace = v === 'Off' ? 0 : parseFloat(v); hunger.reset(pace.grace); } });
+F({ id: 'hunger', group: 'Simulation', label: 'Predator hunger', choices: ['Comes and goes', 'Always', 'Never'], value: 'Comes and goes',
+  about: 'Comes and goes: after the calm opening it is hungry for ~18-32 s at a time, then rests (45-75 s after eating you, 15-30 s after you slip free, lose it or it gives up on your capsule); only a hungry predator searches toward you and hunts. Always: hungry from the end of the calm opening on. Never: it never hunts (for exploring and testing).',
+  onChange: (v) => (pace.mode = v) });
 F({ id: 'camwalk', group: 'Controls', label: 'Camera-relative walking', fixed: true,
   about: 'LS walks relative to the view; the mite turns toward the stick at a limited rate and walks forward (it does not strafe).' });
 F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true,
@@ -294,6 +310,93 @@ function renderView(dt) {
   else looks.paramecium({ mode: bmode.par, time, opdK: 0.35 });
 }
 
+// ---------- threats: pacing and being eaten (shared/predation.js) ----------
+// A calm opening, then hunger that comes and goes; only a hungry predator
+// hunts. Its third grab holds on: strike (it seizes a leg), hold (it pulls you
+// in; close up, Y, and the grip slips off), eat (its chelicerae work at the
+// soft body by the legs, which go limp and fold), then the Eaten card.
+const PRED_START = [1150, -650];
+const pace = { grace: 45, mode: 'Comes and goes' };
+const hunger = createHunger({ grace: pace.grace });
+const isHungry = () => (pace.mode === 'Never' ? false : pace.mode === 'Always' ? hunger.state !== 'grace' : hunger.hungry);
+const capture = createCapture({ onRestart: () => resetLevel() });
+const cap = { phase: null, c0: new THREE.Vector3(), q0: new THREE.Quaternion(), leg: 0, heldOnce: false, t: 0 };
+const _ct = new THREE.Vector3(), _cm = new THREE.Vector3(), _cf = new THREE.Vector3(), _cq = new THREE.Quaternion();
+let capPad = null;
+function resetLevel() {
+  capture.reset();
+  cap.phase = null;
+  mite.place(0, 0, 0.3);
+  predAI.reset(...PRED_START);
+  pred.st.chel = 0;
+  play.hurt = 0; play.stun = 0;
+  hunger.reset(pace.grace);
+}
+function startCapture() {
+  if (capture.active) return;
+  const mouth = pred.mouth(_cm);
+  let best = 0, bd = Infinity;
+  for (let i = 0; i < 8; i++) { const d = mite.footW(i, _ct).distanceTo(mouth); if (d < bd) { bd = d; best = i; } }
+  Object.assign(cap, { phase: null, leg: best, heldOnce: false, t: 0 });
+  cap.c0.copy(mite.center); cap.q0.copy(mite.quat);
+  play.caught++; play.hurt = 0; play.stun = 0;
+  capture.start({ by: 'The predatory mite', how: 'seized a leg, pulled you in and ate you' });
+  audio.play('mite/predator', { volume: 1, rate: 0.9 });
+  if (rumbleOn) pad.rumble(400, 0.9, 1);
+}
+/** Pose the box mite and the predator for the current phase; false if you slipped free. */
+function animateCapture(c, dt) {
+  const ease = (x) => x * x * (3 - 2 * x);
+  cap.t += dt;
+  if (cap.heldOnce && mite.mode !== 'held') {
+    // closed up in time: a smooth capsule, nothing to grip
+    capture.reset();
+    cap.phase = null;
+    pred.st.chel = 0;
+    predAI.state = 'wander'; predAI.bored = 14; predAI.ang += Math.PI;
+    if (hunger.hungry) hunger.missed();
+    hud.toast('Closed up in time: its chelicerae slip off the capsule and it gives up', 2600);
+    if (rumbleOn) pad.rumble(160, 0.3, 0.6);
+    return false;
+  }
+  if (c.phase !== cap.phase) {
+    cap.phase = c.phase;
+    if (c.phase === 'hold') audio.play('mite/predator', { volume: 0.8, rate: 1.2 });
+    if (c.phase === 'eat') { hunger.fed(); audio.play('mite/bite', { volume: 1, rate: 0.7 }); if (rumbleOn) pad.rumble(500, 0.6, 0.3); }
+  }
+  const u = c.t, T = cap.t;
+  const mouth = pred.mouth(_cm);
+  _cf.set(1, 0, 0).applyQuaternion(pred.quat).setY(0).normalize();
+  const half = mite.size.z;
+  // where the body ends up: against the chelicerae, at the same height
+  const end = _ct.copy(mouth).addScaledVector(_cf, half * 0.9);
+  end.y = cap.c0.y;
+  const center = new THREE.Vector3();
+  let flail = 1, limp = 0, escape = true;
+  _cq.copy(cap.q0);
+  if (c.phase === 'strike') {
+    pred.st.chel = ease(Math.min(1, u / 0.35));
+    center.copy(cap.c0).lerp(end, 0.12 * ease(u));
+  } else if (c.phase === 'hold') {
+    pred.st.chel = 1 - 0.3 * ease(u);
+    center.copy(cap.c0).lerp(end, 0.12 + 0.88 * ease(u));
+    center.y += Math.sin(T * 17) * 6;
+  } else {
+    escape = false;
+    const e = c.phase === 'eat' ? ease(u) : 1;
+    pred.st.chel = c.phase === 'eat' ? 0.5 + 0.5 * Math.sin(T * 13) : 0.35 + 0.2 * Math.sin(T * 4);
+    flail = c.phase === 'eat' ? Math.max(0, 1 - 1.6 * u) : 0;
+    limp = e;
+    center.copy(end).addScaledVector(_cf, 6 * Math.sin(T * 13) * (c.phase === 'eat' ? 1 : 0.3));
+    center.y -= mite.anat.stand * mite.scale * 0.35 * e;
+    // it sags onto its side as the legs give way
+    _cq.premultiply(new THREE.Quaternion().setFromAxisAngle(_cf, 0.3 * e));
+  }
+  mite.held(center, _cq, { flail, limp, seizeLeg: cap.leg, seize: pred.mouth(_ct), escape });
+  cap.heldOnce = true;
+  return true;
+}
+
 let speedMul = 1;
 // Player state: legs grabbed by the predator (3 = caught), stun after a grab, grazing.
 const play = { hurt: 0, stun: 0, grazed: 0, caught: 0, nip: false, heal: 0 };
@@ -304,7 +407,7 @@ function biteNow() {
   const m = mite.mouth(new THREE.Vector3());
   // A nip at the predator's legs or body?
   if (predOn && pred.center.distanceTo(m) < 330) { play.nip = true; audio.play('mite/bite', { volume: 1, rate: 0.85 }); return; }
-  let best = null, bd = 150;
+  let best = null, bd = 110;
   for (const f of world.food) {
     if (f.left <= 0) continue;
     const p = f.kind === 'hypha' ? world.foliage.offsetAt(f.rod, f.u, _fp).add(f.p) : f.p;
@@ -319,9 +422,9 @@ function biteNow() {
   if (rumbleOn) pad.rumble(60, 0.25, 0.1);
 }
 function bodyOf(m) {
-  return { center: _bc.set(...m.anat.noto.c).applyQuaternion(m.quat).add(m.center).clone(), quat: m.quat,
+  return { center: _bc.set(...m.anat.noto.c).multiplyScalar(m.scale).applyQuaternion(m.quat).add(m.center).clone(), quat: m.quat,
     radii: [m.radii[0] * 1.2 + 30, m.radii[1] * 1.15 + 30, m.radii[2] * 1.45 + 30], // legs splay; + half a blade width
-    load: m.ground && m.ground.entry && m.ground.entry.rod, weight: m.anat.kind === 'pred' ? 13000 : 16000,
+    load: m.ground && m.ground.entry && m.ground.entry.rod, weight: m.anat.kind === 'pred' ? 13000 : 16000 * m.scale ** 3,
     loadU: m.ground && m.ground.entry && m.ground.entry.rod ? Math.min(1, Math.max(0, m.ground.point.clone().sub(m.ground.entry.rod.base).dot(m.ground.entry.rod.axis) / m.ground.entry.rod.len)) : 0.7 };
 }
 // ---------- sound ----------
@@ -366,16 +469,24 @@ function tick(dt, input) {
   if (play.hurt > 0 && (play.heal += dt) > 20) { play.hurt--; play.heal = 0; }
   for (const f of world.food) if (f.kind === 'hypha' && f.left <= 0 && (f.t -= dt) <= 0) f.left = 1;
   if (play.stun > 0) input = { ...input, mag: 0 };
+  const cs = capture.update(dt, capPad);
+  if (cs.active) { input = { ...input, mag: 0 }; animateCapture(cs, dt); }
+  else if (predOn) hunger.update(dt);
   // Blades and hyphae move first (pushed and loaded by where the mites were),
   // so each mite then settles on, and clears, the surfaces as they are now.
   world.foliage.update(dt, [mite, ...(npcOn ? [npc] : []), ...(predOn ? [pred] : [])].map(bodyOf));
   const ev = mite.update(dt, input);
   soundTick(dt, ev);
   if (npcOn) npc.update(dt, npcInput(dt));
-  if (predOn) {
-    const r = predAI.step(dt, { mite, closed: closedNow(), speed: mite.speed }, play.nip);
+  if (predOn && capture.active) {
+    // the predator stands over its catch, turned to it
+    const to = _ct.subVectors(mite.center, pred.center).setY(0);
+    pred.update(dt, { dir: to.lengthSq() > 1 ? to.normalize().clone() : new THREE.Vector3(), mag: 0.02, maxSpeed: 40, hold: false, accel: 0.2 });
+  } else if (predOn) {
+    const r = predAI.step(dt, { mite, closed: closedNow(), speed: mite.speed, hungry: isHungry() }, play.nip);
     pred.update(dt, r.input);
     for (const e of r.events) {
+      if ((e === 'givesUp' || e === 'lost') && hunger.hungry) hunger.missed();
       if (e === 'hunt') audio.play('mite/predator', { volume: 0.9 });
       if (e === 'legHit') audio.play('mite/predator', { volume: 0.6, rate: 1.25 });
       if (e === 'hunt') hud.toast('A predatory mite has touched you: scramble (B), jump (A), close up (Y) or nip it (X)', 2600);
@@ -385,11 +496,8 @@ function tick(dt, input) {
       else if (e === 'legHit') {
         play.hurt++; play.stun = 0.7; play.heal = 0;
         if (rumbleOn) pad.rumble(260, 0.8, 0.9);
-        if (play.hurt >= 3) {
-          play.caught++; play.hurt = 0;
-          hud.toast('Caught by the predator. Back to the start.', 2600);
-          mite.place(0, 0, 0.3); predAI.reset(1150, -650);
-        } else hud.toast(`It grabbed a leg (${play.hurt}/3): get away!`);
+        if (play.hurt >= 3) startCapture();
+        else hud.toast(`It grabbed a leg (${play.hurt}/3): get away!`);
       }
     }
   }
@@ -400,18 +508,20 @@ function tick(dt, input) {
 function readInput(dt) {
   pad.poll();
   unlockOnPad();
-  if (features.update()) return { dir: new THREE.Vector3(), mag: 0, maxSpeed: 0, hold: false };
+  const menu = features.update();
+  capPad = menu ? null : pad;
+  if (menu) return { dir: new THREE.Vector3(), mag: 0, maxSpeed: 0, hold: false };
   hud.update(pad);
   // RS: orbit; pitch by intent (up looks up: the camera swings down).
   const lk = ctl.look();
   rig.yaw += lk.yaw * 1.8 * dt;
   rig.pitch = THREE.MathUtils.clamp(rig.pitch - lk.pitch * 1.2 * dt, 0.18, 1.5);
   const zoom = ctl.analog();
-  rig.hfw = THREE.MathUtils.clamp(rig.hfw * Math.exp(-zoom * 1.3 * dt), 260, 4200);
+  rig.hfw = THREE.MathUtils.clamp(rig.hfw * Math.exp(-zoom * 1.3 * dt), 160, 4200);
   const look = ctl.lookStep();
   if (look) { features.set('look', LOOKS[(sem.mode + look + LOOKS.length) % LOOKS.length]); hud.toast(MODES[sem.mode]); }
   const zs = ctl.zoomStep();
-  if (zs) { rig.hfw = THREE.MathUtils.clamp(rig.hfw / (zs > 0 ? 1.5 : 1 / 1.5), 260, 4200); hud.toast(`mag ${(127000 / rig.hfw).toFixed(0)}x`); }
+  if (zs) { rig.hfw = THREE.MathUtils.clamp(rig.hfw / (zs > 0 ? 1.5 : 1 / 1.5), 160, 4200); hud.toast(`mag ${(127000 / rig.hfw).toFixed(0)}x`); }
   if (ctl.stickClick.left.pressed()) { features.set('observer', !observer); hud.toast(observer ? 'Observer mode' : 'Observer mode off'); }
   if (ctl.attack.pressed()) biteNow();
   const sec = ctl.secondary();
@@ -439,12 +549,28 @@ function react(ev) {
   }
 }
 
+// What the predator is doing, always on screen when it matters.
+const banner = document.createElement('div');
+banner.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:6;padding:6px 14px;border-radius:999px;font:600 13px system-ui,-apple-system,"Segoe UI",sans-serif;color:#fff;pointer-events:none;white-space:nowrap;display:none';
+document.body.appendChild(banner);
+const CAP_LINES = { strike: 'Seized by a leg! Close up (Y) to slip free', hold: 'Being pulled in: close up (Y)!', eat: 'The predatory mite is eating you' };
+function updateBanner() {
+  let txt = '', hot = true;
+  if (capture.active) txt = CAP_LINES[capture.phase] || '';
+  else if (predOn && predAI.state === 'hunt') txt = `A predatory mite is hunting you${play.hurt ? ` (legs grabbed ${play.hurt}/3)` : ''}`;
+  else if (predOn && isHungry()) { txt = 'The predatory mite is hungry'; hot = false; }
+  banner.style.display = txt ? 'block' : 'none';
+  banner.textContent = txt;
+  banner.style.background = hot ? 'rgba(150,30,20,.8)' : 'rgba(10,12,16,.6)';
+}
+
 let frames = 0, statT = 0;
 function updateText(d) {
+  updateBanner();
   const mag = 127000 / rig.hfw; // relative to a 127 mm (Polaroid 4x5) reference image width
   const st = mite.mode === 'air' ? 'jumping' : mite.mode === 'crouch' ? 'crouching to jump' : mite.mode === 'walk' ? (dash.active ? `SCRAMBLE ${mite.speed.toFixed(0)} µm/s` : mite.st.climbing > 0.2 ? `climbing ${mite.speed.toFixed(0)} µm/s` : mite.speed > 5 ? `walking ${mite.speed.toFixed(0)} µm/s` : 'standing') : mite.mode === 'closed' ? 'closed (ptychoid)' : mite.mode;
   const fol = world.foliage.stats;
-  const pst = predOn ? `predator ${predAI.state === 'hunt' ? 'HUNTING' : predAI.state === 'recoil' ? 'recoiling' : 'wandering'} ${predAI.dist.toFixed(0)} µm` : '';
+  const pst = predOn ? `predator ${capture.active ? `CAPTURE ${capture.phase}` : predAI.state === 'hunt' ? 'HUNTING' : predAI.state === 'recoil' ? 'recoiling' : 'wandering'} ${predAI.dist.toFixed(0)} µm · ${hunger.state} ${hunger.left.toFixed(0)} s` : '';
   const info = renderer.info.render;
   hud.stats(`${MODES[sem.mode]}${renderScale < 1 ? `  (res ${(renderScale * 100).toFixed(0)}%)` : ''}\nHFW ${rig.hfw.toFixed(0)} µm   mag ${mag.toFixed(0)}x\n${st}\n${dash.text()}   legs grabbed ${play.hurt}/3   grazed ${play.grazed}\n${pst}\nblades bending ${fol.moving}   pen ${mite.st.pen.toFixed(0)} µm\n${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
   if (observer) {
@@ -455,10 +581,33 @@ function updateText(d) {
   }
 }
 
-let last = performance.now();
+let last = performance.now(), simTime = 0;
 const api = {
   scene, camera, renderer, sem, world, mite, npc, pred, predAI, play, dash, rig, features, cfg: CFG, paused: false,
   tick(dt, input = { dir: new THREE.Vector3(), mag: 0, maxSpeed: WALK, hold: false }) { return tick(dt, input); },
+  hunger, capture, pace, resetLevel,
+  get time() { return simTime; },
+  /** Testing: one fixed step with the left stick at (x, y) in world x/z (null: hands off); hold: Y. */
+  testStep(dt = 1 / 30, stick = null, hold = false) {
+    simTime += dt;
+    const m = stick ? Math.min(1, Math.hypot(stick.x, stick.y)) : 0;
+    tick(dt, { dir: new THREE.Vector3(stick ? stick.x : 0, 0, stick ? stick.y : 0).normalize(), mag: m, maxSpeed: WALK, hold, accel: 0.18 });
+  },
+  pacing() {
+    const d = pred.center.distanceTo(mite.center);
+    return { approach: capture.active || predAI.state === 'hunt', captured: capture.active, phase: capture.phase, kind: 'predator',
+      hunger: { predator: hunger.state }, states: { predator: predAI.state }, dist: { predator: Math.round(d) }, mode: mite.mode };
+  },
+  /** Testing: the predator seizes you right now (the whole catch plays). */
+  forceCapture() {
+    if (capture.active) return;
+    if (mite.mode !== 'walk') mite.place(mite.center.x, mite.center.z, 0.3);
+    const a = 0.3 + Math.PI / 2, c = mite.center;
+    const x = c.x + Math.cos(a) * 560, z = c.z - Math.sin(a) * 560;
+    pred.place(x, z, Math.atan2(-(c.z - z), c.x - x));
+    predAI.state = 'hunt';
+    startCapture();
+  },
   render(dt = 1 / 60) { const d = placeCamera(0); renderView(dt); updateText(d); },
   isolate(on) { world.group.visible = !on; npc.setVisible(!on); pred.setVisible(!on && predOn); },
   setMode(m) { sem.setMode(m); sem.skipScan(); },
@@ -483,6 +632,7 @@ function frame() {
   last = now;
   if (api.paused) return;
   const input = readInput(dt);
+  simTime += dt;
   react(tick(dt, input));
   if (gpuBusy()) return;
   const raw = now - lastSubmit;

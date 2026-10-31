@@ -84,29 +84,30 @@ export function createGame(world, swimmer) {
 
     // --- grazers: the feeding current carries you into the oral funnel ---
     if (world.opts.grazers && !s.inside) {
-      let inMouth = false;
+      let inMouth = null;
       for (const g of world.grazers) {
-        if (g.contract > 0) continue;
+        if (g.contract > 0 || g.feeding === false) continue; // a resting grazer's current is off
         const P = g.pose;
         const d = Math.hypot(s.x - P.mouth.x, s.y - P.mouth.y);
-        if (d < 3.2) inMouth = true;
+        if (d < 3.2) inMouth = g;
         // touching the bell makes it contract (mechanosensitive), sometimes
         const c = { x: P.ox - P.up.x * g.R * 0.95, y: P.oy - P.up.y * g.R * 0.95 };
         if (Math.hypot(s.x - c.x, s.y - c.y) < g.R * 0.98 && d > 6 && r() < dt * 0.6) { g.contract = 3; g.ext = 0; ev.contracted = true; }
       }
       if (inMouth) { s.captureT += dt; if (s.captureT < dt * 1.5) ev.captured = true; } else s.captureT = Math.max(0, s.captureT - dt * 2);
-      if (s.captureT > 0.9) swimmer.end('Eaten by a peritrich: swept into the oral funnel and packed into a food vacuole.');
+      if (s.captureT > 0.9 && inMouth) { catchBy('grazer', inMouth, ev); return; }
     }
 
     // --- the amoeba's edge: stay inside it and you are engulfed ---
     const inside = world.insideAmoeba(s.x, s.y, t);
     if (inside > 1) { s.engulfT += dt; if (s.engulfT < dt * 1.5) ev.engulfing = true; } else s.engulfT = Math.max(0, s.engulfT - dt);
-    if (s.engulfT > 1.4) swimmer.end('Engulfed by the amoeba: closed into a phagosome.');
+    if (s.engulfT > 1.4) { catchBy('amoeba', world.amoeba, ev); return; }
 
     // --- phages: stick on contact, reversibly at first ---
     if (world.opts.phages && !s.inside) {
       const ca = Math.cos(s.a), sa = Math.sin(s.a);
-      for (const p of world.phages) {
+      // phages adsorb only while the phage pressure is on (main.js: a lysis cloud drifts by, then thins)
+      if (world.hunt.phage) for (const p of world.phages) {
         if (p.stuck) continue;
         if (Math.abs(p.x - s.x) > 3 || Math.abs(p.y - s.y) > 3) continue;
         const [d, u] = segDist(p.x, p.y, s.x, s.y, s.a, sp.L);
@@ -128,7 +129,7 @@ export function createGame(world, swimmer) {
           s.phages.splice(i, 1); ev.shed = (ev.shed || 0) + 1; continue;
         }
         if (!ph.irreversible && ph.t > 3) { ph.irreversible = true; ev.irreversible = true; }
-        if (ph.irreversible && ph.t > 5) { swimmer.end('A phage injected its DNA: the lytic cycle has begun. This cell will burst into new phages.'); break; }
+        if (ph.irreversible && ph.t > 5) { catchBy('phage', ph, ev); return; }
         // ride along on the cell
         ph.p.x = s.x + Math.cos(s.a) * ph.u + ph.side * -Math.sin(s.a) * (sp.r + 0.05);
         ph.p.y = s.y + Math.sin(s.a) * ph.u + ph.side * Math.cos(s.a) * (sp.r + 0.05);
@@ -136,7 +137,7 @@ export function createGame(world, swimmer) {
     }
 
     // --- Bdellovibrio hunting the magnetotactic player ---
-    if (mtb && world.opts.hunters && !s.attacker) {
+    if (mtb && world.opts.hunters && world.hunt.bdello && !s.attacker) {
       for (const c of world.cells) {
         if (c.kind !== 'bdello' || c.prey || c.hidden > 0 || c.cooldown > 0) continue;
         if (Math.abs(c.x - s.x) > 3 || Math.abs(c.y - s.y) > 3) continue;
@@ -150,9 +151,12 @@ export function createGame(world, swimmer) {
       c.prey.x = s.x; c.prey.y = s.y; c.prey.a = s.a;
       c.attachT = 0; // the player's struggle is handled here, not in the NPC's own clock
       c.x = s.x + Math.cos(s.a) * sp.L * 0.35; c.y = s.y + Math.sin(s.a) * sp.L * 0.35;
-      if (s.attackT > 2.2) swimmer.end('Bdellovibrio bored in: you are now a bdelloplast, a round shell it will eat from inside.');
+      if (s.attackT > 2.2) catchBy('bdello', c, ev);
     }
   }
+
+  /** A predator has you: stop control and let main.js play the catch. */
+  function catchBy(kind, who, ev) { if (swimmer.caught(kind, who)) ev.caught = { kind, who }; }
 
   function nearestPrey(x, y, reach) {
     let best = null, bd = reach;
@@ -169,5 +173,5 @@ export function createGame(world, swimmer) {
     return best;
   }
 
-  return { opts, update, nearestPrey };
+  return { opts, update, nearestPrey, catchBy };
 }

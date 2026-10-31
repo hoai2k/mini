@@ -1,4 +1,10 @@
-// A box mite (Phthiracaridae, Oribatida), about 0.6 mm long, in µm.
+// A box mite (Phthiracaridae, Oribatida), in µm. The anatomy below is drawn
+// at about 0.6 mm; createMite's `scale` sizes a mite in the world (the player
+// and the other box mite use ~0.58, about 0.35 mm long). Everything inside
+// createMite (the body, legs, gait, stride, hop and the speeds passed in)
+// runs in the anatomy's own units and is converted at the boundary: positions
+// out are world µm, speeds in are world µm/s, and the moss is cast against at
+// its true size, so a smaller mite meets a relatively bigger world.
 //
 // Anatomy (built from parts, not traced):
 // - Notogaster: one laterally compressed, egg-shaped dorsal shield with a
@@ -26,7 +32,7 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { buildSdfMesh, sd, combine } from '../shared/sdf.js';
 import { gMaterial } from './sem.js';
-import { HALF, floorH, floorN } from './world.js';
+import { HALF as WORLD_HALF, floorH as worldFloorH, floorN as worldFloorN } from './world.js';
 import { GAITS, legOffset, gaitTriggers, swingTarget, twoBoneIK } from '../shared/techniques/mite-gait.js';
 
 /** Live switches, shared by every mite (the feature panel edits it). */
@@ -341,8 +347,29 @@ function support(c, r, d, out) {
  * @param {object} colliders world colliders (cast(origin, dir, far))
  * @param {{cls:number, tex:object, name?:string}} opts
  */
-export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT }) {
+/** The world's colliders seen from a mite drawn `k` times its anatomy's size. */
+function scaledColliders(c, k) {
+  const o = new THREE.Vector3();
+  return {
+    cast(origin, dir, far, skipFloor, skip) {
+      const h = c.cast(o.copy(origin).multiplyScalar(k), dir, far * k, skipFloor, skip);
+      return h && { ...h, point: h.point.clone().divideScalar(k), dist: h.dist / k };
+    },
+  };
+}
+
+export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT, scale = 1 }) {
   const AN = anat;
+  const k = scale;
+  // the mite's own frame: 1 unit = k world µm
+  const root = new THREE.Group();
+  root.scale.setScalar(k);
+  scene.add(root);
+  root.updateMatrixWorld(true);
+  if (k !== 1) colliders = scaledColliders(colliders, k);
+  const floorH = (x, z) => worldFloorH(x * k, z * k) / k;
+  const floorN = (x, z, out) => worldFloorN(x * k, z * k, out);
+  const HALF = WORLD_HALF / k;
   const G = AN.kind === 'pred' ? predGeometry() : geometry();
   const cut = gMaterial({ cls, tex: tex.cuticle, map: 'tri', scale: 150, bump: 1.6, objSpace: true });
   const legMat = gMaterial({ cls });
@@ -358,7 +385,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
   aspis.add(setaeMeshes[0], setaeMeshes[1]);
   body.add(aspis);
   body.add(setaeMeshes[2]);
-  scene.add(body);
+  root.add(body);
   noto.frustumCulled = false;
 
   // legs: instanced in world space, 4 segments + tarsus + claw + setae per leg
@@ -368,7 +395,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
   // leg setae: [segment index (1 fe, 2 ge, 3 ti, 4 ta), position along, azimuth, length]
   const LS = [[1, 0.35, 0.5, 30], [1, 0.7, 2.6, 26], [2, 0.6, 1.4, 24], [3, 0.4, 0.3, 30], [3, 0.75, 2.9, 28], [4, 0.2, 0.8, 26], [4, 0.45, 2.2, 30], [4, 0.7, 1.2, 34], [4, 0.85, 3.6, 22]];
   const setIM = new THREE.InstancedMesh(G.seta, thinMat, 8 * LS.length + 1);
-  for (const im of [segIM, tarIM, clawIM, setIM]) { im.frustumCulled = false; scene.add(im); }
+  for (const im of [segIM, tarIM, clawIM, setIM]) { im.frustumCulled = false; root.add(im); }
 
   const legs = [];
   for (let k = 0; k < 4; k++) for (const side of [-1, 1]) {
@@ -396,6 +423,8 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
     q0: new THREE.Quaternion(), c0: V3(), h0: 0, lastLand: 0,
     jumpCool: 0, crouch: 0, airT: 0, squash: 0,
     biteT: 0, time: 0, pen: 0, climbing: 0, groundHit: null, lift: 0, liftT: 0, stuck: 0, drop: 0,
+    // held by a predator (mode 'held'): legs flail, then go limp and fold; one leg may be gripped
+    flail: 0, limp: 0, seizeLeg: -1, seize: V3(), chel: 0, canEscape: true,
   };
   const events = [];
 
@@ -428,6 +457,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
     st.up.set(0, 1, 0);
     st.fwd.set(Math.cos(yaw), 0, -Math.sin(yaw));
     st.mode = 'walk'; st.retract = 0; st.aspis = 0; st.speed = 0; st.crouch = 0; st.squash = 0; st.jumpCool = 0; st.vel.set(0, 0, 0);
+    st.flail = 0; st.limp = 0; st.seizeLeg = -1; st.chel = 0;
     // settle onto whatever is there
     for (let i = 0; i < 4; i++) settleBody(1 / 30, true);
     plantAll();
@@ -758,9 +788,19 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
     // X: a bite. The box mite dips its rostrum and works the chelicerae; the
     // predator thrusts its chelicerae forward.
     const bk = st.biteT > 0 ? Math.sin(Math.PI * (1 - st.biteT / 0.28)) : 0;
-    if (AN.kind === 'pred') aspis.position.set(AN.hinge[0] + 26 * bk, AN.hinge[1], AN.hinge[2]);
+    if (AN.kind === 'pred') aspis.position.set(AN.hinge[0] + 26 * Math.max(bk, st.chel), AN.hinge[1], AN.hinge[2]);
     else aspis.rotation.z -= 0.2 * bk;
 
+    // held: the feet hang from the body, kicking (flail), then limp and folded;
+    // a gripped leg is pulled out to the predator's chelicerae
+    if (st.mode === 'held') {
+      for (const L of legs) {
+        const fl = st.flail, ph = st.time * 15 + L.k * 1.9 + L.side * 0.8;
+        L.foot.copy(toWorld(_al.set(L.rest.x * 0.85 + 60 * fl * Math.sin(ph), -AN.stand * 0.7 + 80 * fl * Math.sin(ph * 1.3 + 1), L.rest.z * (0.9 + 0.15 * fl * Math.sin(ph * 0.7))), center, q));
+      }
+      if (st.seizeLeg >= 0) legs[st.seizeLeg].foot.copy(st.seize);
+      st.retract = 0.82 * st.limp;
+    }
     // legs
     const rc = st.retract;
     const hide = rc > 0.97;
@@ -779,7 +819,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
           const s = L.side, t = st.time;
           F = toWorld(V3(L.rest.x + 40 * Math.sin(t * 6.1 + s) - 60 * (1 - Math.min(1, st.speed / 200)), L.rest.y + 40 * Math.sin(t * 4.3 + 2 * s) - 90, L.rest.z + 30 * Math.sin(t * 5.2 + s)), center, q);
         }
-        if (rc > 0) F = L.foot.clone().lerp(toWorld(V3(L.hip.x - 30, L.hip.y + 20, L.hip.z * 0.4), center, q), sstep(0, 1, rc));
+        if (rc > 0 && i !== (st.mode === 'held' ? st.seizeLeg : -1)) F = L.foot.clone().lerp(toWorld(V3(L.hip.x - 30, L.hip.y + 20, L.hip.z * 0.4), center, q), sstep(0, 1, rc));
         const seg = L.seg.map((s) => s * shrink), rad = L.rad.map((s) => s * (1 - 0.3 * rc));
         const L1 = seg[1] + seg[2], L2 = seg[3] + seg[4];
         // trochanter: out from the hip, toward the foot, tilted up
@@ -826,6 +866,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
 
   function update(dt, input) {
     events.length = 0;
+    if (k !== 1 && input.maxSpeed) input = { ...input, maxSpeed: input.maxSpeed / k };
     if (!(dt > 0)) return events;
     st.time += dt;
     st.biteT = Math.max(0, st.biteT - dt);
@@ -838,7 +879,15 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
       st.speed *= Math.exp(-dt / 0.05);
       if (st.t >= JUMP.crouch) launch();
     } else if (st.mode === 'air') air(dt);
-    else if (st.mode === 'walk') {
+    else if (st.mode === 'held') {
+      // closing up (ptychoidy) while held: the grip slips off the capsule
+      if (hold && st.canEscape) {
+        st.mode = 'closing'; st.t = 0; st.speed = 0; st.seizeLeg = -1; st.flail = 0;
+        const q = basisQ(st.fwd, st.up);
+        const dl = st.up.clone().negate().applyQuaternion(q.clone().invert());
+        st.h0 = Math.abs(support(AN.noto.c, AN.noto.r, dl, new THREE.Vector3()).dot(dl));
+      }
+    } else if (st.mode === 'walk') {
       if (hold) {
         st.mode = 'closing'; st.t = 0; st.speed = 0;
         const q = basisQ(st.fwd, st.up);
@@ -891,9 +940,35 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
     return events;
   }
 
-  const _mouth = new THREE.Vector3();
+  const _mouth = new THREE.Vector3(), _cw = new THREE.Vector3(), _sz = new THREE.Vector3();
   return {
-    body, update, place, legs, st, anat: AN, clearance,
+    body, update, legs, st, anat: AN, clearance, scale: k, root,
+    /** Stand at (x, z) world µm, facing yaw. */
+    place(x, z, yaw = 0) { place(x / k, z / k, yaw); },
+    /**
+     * Held by a predator: the body is placed by the caller (center in world µm,
+     * quaternion), legs flail (0..1) or go limp and fold (limp 0..1), and leg
+     * `seizeLeg` (or -1) is held at `seize` (world µm). Hold Y (input.hold in
+     * update) while not yet limp to close up and drop out of the grip.
+     */
+    held(centerW, q, { flail = 1, limp = 0, seizeLeg = -1, seize = null, escape = true } = {}) {
+      if (st.mode !== 'held' && st.mode !== 'walk' && st.mode !== 'crouch' && st.mode !== 'air') return false;
+      st.mode = 'held';
+      st.center.copy(centerW).divideScalar(k); st.q.copy(q);
+      st.up.set(0, 1, 0);
+      st.fwd.set(1, 0, 0).applyQuaternion(q).setY(0);
+      if (st.fwd.lengthSq() < 1e-6) st.fwd.set(1, 0, 0);
+      st.fwd.normalize();
+      st.pos.copy(st.center).addScaledVector(st.up, -AN.stand);
+      st.flail = flail; st.limp = limp; st.seizeLeg = seizeLeg; st.canEscape = escape;
+      if (seize) st.seize.copy(seize).divideScalar(k);
+      st.speed = 0; st.crouch = 0;
+      return true;
+    },
+    /** World position of a leg's foot. */
+    footW(i, out = new THREE.Vector3()) { return out.copy(legs[i].foot).multiplyScalar(k); },
+    /** Size in world µm of this mite's body half-axes. */
+    get size() { return _sz.set(...AN.noto.r).multiplyScalar(k); },
     /** Where the chelicerae close, in world space. */
     mouth(out = _mouth) {
       body.updateMatrixWorld();
@@ -908,12 +983,18 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
     /** Start a bite (the animation; the caller decides what it hits). */
     bite() { if (st.biteT > 0.05) return false; st.biteT = 0.28; return true; },
     get quat() { return st.q; },
-    get radii() { return AN.noto.r; },
-    /** The surface under the body (a collider hit with .kind and .entry), or null. */
-    get ground() { return st.mode === 'walk' || st.mode === 'crouch' ? st.groundHit : null; },
-    get center() { return st.center; },
+    /** Body half-axes in world µm. */
+    get radii() { return AN.noto.r.map((r) => r * k); },
+    /** The surface under the body (a collider hit with .kind and .entry, point in world µm), or null. */
+    get ground() {
+      const g = st.mode === 'walk' || st.mode === 'crouch' ? st.groundHit : null;
+      return g && k !== 1 ? { ...g, point: g.point.clone().multiplyScalar(k) } : g;
+    },
+    /** Body centre, world µm. */
+    get center() { return k === 1 ? st.center : _cw.copy(st.center).multiplyScalar(k); },
     get mode() { return st.mode; },
-    get speed() { return st.speed; },
+    /** Speed, world µm/s. */
+    get speed() { return st.speed * k; },
     meshes: [body, segIM, tarIM, clawIM, setIM],
     setVisible(v) { for (const m of [body, segIM, tarIM, clawIM, setIM]) m.visible = v; },
   };

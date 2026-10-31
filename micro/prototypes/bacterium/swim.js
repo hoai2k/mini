@@ -44,6 +44,7 @@ export function createSwimmer(world) {
     growth: 0, stress: 0, energy: 1, prey: 0, phages: [], attacker: null, attackT: 0,
     boring: null, boreT: 0, inside: null, insideT: 0, divideT: 0, won: false,
     engulfT: 0, captureT: 0, dashOn: false, signal: 0, memory: 0, util: 0, food: 0, o2: 0,
+    caught: null, // { kind: 'grazer'|'amoeba'|'phage'|'bdello', who } while main.js plays the catch
   };
   const opts = { steer: true, bias: true, spontaneous: false, brownian: true, rotDiff: true, lowRe: true, beat: 1 };
 
@@ -54,10 +55,13 @@ export function createSwimmer(world) {
       x: mtb ? -20 : 30, y: mtb ? 32 : 45, a: -Math.PI / 2 + (mtb ? 0 : 0.6), sense: 1, mode: 'run', tumbleT: 0, flick: 0,
       speed: 0, vx: 0, vy: 0, alive: true, over: null, overT: 0, growth: 0, stress: 0, energy: 1, prey: 0, phages: [],
       attacker: null, attackT: 0, boring: null, boreT: 0, inside: null, insideT: 0, divideT: 0, won: false, engulfT: 0, captureT: 0,
+      caught: null, catchAnim: null, shedFlagellum: null,
     });
   }
 
   function end(reason) { if (!s.alive) return; s.alive = false; s.over = reason; s.overT = 0; s.mode = 'over'; }
+  /** Caught by a predator: control stops and main.js plays the catch (shared/predation.js). */
+  function caught(kind, who) { if (!s.alive) return false; s.alive = false; s.caught = { kind, who }; s.over = null; s.overT = 0; s.mode = 'caught'; s.vx = s.vy = 0; return true; }
 
   /** A tumble: heading randomised (E. coli's 68° distribution), optionally biased toward the stick. */
   function tumble(bias) {
@@ -198,5 +202,5 @@ export function createSwimmer(world) {
     s.inBand = s.o2 >= lo && s.o2 <= hi;
   }
 
-  return { state: s, opts, STEER, reset, tumble, reverse, dash, end, step };
+  return { state: s, opts, STEER, reset, tumble, reverse, dash, end, caught, step };
 }
