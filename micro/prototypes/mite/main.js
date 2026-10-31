@@ -1193,7 +1193,7 @@ const api = {
     predAI.state = 'hunt'; predAI.cool = 0.3; predAI.t2 = 0; predAI.bored = 0;
   },
   /** Testing: calm the predator again (wandering, grooming). */
-  calm() { pace.mode = 'Never'; predAI.state = 'wander'; predAI.rear = 0; },
+  calm() { pace.mode = 'Never'; predAI.reset(...PRED_START); predAI.rear = 0; },
   /** Testing: what player `slot` is doing. */
   me(slot = 0) { const P = pls[slot] || P1; return { act: P.play.act || null, nips: P.play.nips || 0, grazed: P.play.grazed, mode: P.mite.mode, hurt: P.play.hurt }; },
   /** Testing: put a spore right in front of player `slot`'s mouth. */

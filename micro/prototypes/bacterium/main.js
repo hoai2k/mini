@@ -453,13 +453,13 @@ function runBoss(dt) {
   if (!B.awake) { B.update(dt, 'stalk', 0); gaugeEl.style.display = 'none'; return; }
   const inVortex = (P) => fightable(P) && dist(P) < B.pullR;
   // a tumble just before or during the pull breaks free (the pull is long: the window is the whole pull)
-  if (B.fight.state === 'strike' && B.state !== 'strike') B.strikeAt = t;
   // (counted for whoever tumbled in the vortex, even once the tumble has kicked them out of it)
   for (const P of roster) if (inVortex(P) && P.blockT > 0) P.vortexTumbleAt = P.tumbleAt;
   const blocking = roster.some((P) => P.vortexTumbleAt !== undefined && (B.fight.state === 'strike' ? P.vortexTumbleAt > (B.strikeAt ?? t) - 0.35 : P.blockT > 0));
   const f = B.fight.update(dt, { near: nd < B.wakeR, inReach: nd < B.pullR, facing: true, blocking });
   if (f.state === 'windup' && B.state !== 'windup') bossInfo.log.push({ ev: 'tell', t });
-  if (f.state === 'strike' && B.state !== 'strike') bossInfo.log.push({ ev: 'pull', t });
+  if (f.state === 'strike' && !B.inStrike) { B.inStrike = true; B.strikeAt = t; bossInfo.log.push({ ev: 'pull', t }); }
+  else if (f.state !== 'strike') B.inStrike = false;
   B.phase2 = f.interest < 0.5;
   // the catch: drawn to the mouth (at any time; the pull makes it likely)
   let caught = false;
