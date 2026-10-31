@@ -32,9 +32,10 @@
 //      centroid along s_i), otherwise held at that distance and eased onto the
 //      region's centroid. The raw shift is s_i - d_i (px): exactly zero while
 //      every player is inside their rho. Each player's shift becomes their own
-//      camera offset (step 6); players within ~20% of the short side of each
-//      other blend offsets, so a close group shares a view, and its views are
-//      already identical when they join.
+//      camera offset (step 6); players within ~12% of the short side of each
+//      other share one offset (blending out to ~26%, closed over chains), so a
+//      close group shares a view, and its views are already identical when
+//      they join.
 //   4. Merged or split, with hysteresis on E = max |s_i| / rho_i: the screen
 //      splits when E passes `splitAt` (1.12) and merges again only at E <= 1,
 //      where every raw shift is already zero. On splitting, the shifts ease in
@@ -471,7 +472,7 @@ export function createSplitScreen(renderer, opts = {}) {
     const bw = [];
     for (let i = 0; i < n; i++) {
       bw.push([]);
-      for (let j = 0; j < n; j++) bw[i][j] = i === j ? 1 : 1 - smooth(mergeBlend * 0.35 * m, mergeBlend * m, Math.hypot(S[i].x - S[j].x, S[i].y - S[j].y));
+      for (let j = 0; j < n; j++) bw[i][j] = i === j ? 1 : 1 - smooth(mergeBlend * 0.6 * m, mergeBlend * 1.3 * m, Math.hypot(S[i].x - S[j].x, S[i].y - S[j].y));
     }
     for (let k = 0; k < n; k++) for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) bw[i][j] = Math.max(bw[i][j], Math.min(bw[i][k], bw[k][j]));
     const off = [];

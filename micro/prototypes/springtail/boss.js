@@ -43,7 +43,14 @@ export function createWolfSpider(scene, { post, home }) {
   const legMat = litMaterial({ surface: 's.albedo = vec3(0.12, 0.08, 0.045) * (0.8 + 0.4 * mNoise(vWorld.xz * 12.0)); s.rough = 0.5; s.sheen = 0.15; s.sheenCol = vec3(0.45, 0.38, 0.3);' });
   const ell = (mat, p, r) => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 28, 18), mat); m.scale.set(...r); m.position.set(...p); m.frustumCulled = false; group.add(m); return m; };
   const ceph = ell(bodyMat, [0.9, 0, 0], [1.25, 0.55, 0.92]);
-  const abd = ell(bodyMat, [-1.65, 0.05, 0], [1.55, 0.72, 1.02]);
+  // the abdomen: the same olive-brown, no pale bands (those run along the carapace only)
+  const abdMat = litMaterial({ surface: `
+    float n = mNoise(vLocal.xz * 7.0), hair = mNoise(vWorld.xz * 60.0 + vWorld.y * 40.0);
+    vec3 c = mix(vec3(0.04, 0.036, 0.018), vec3(0.085, 0.072, 0.035), n);
+    c *= 1.0 - 0.35 * smoothstep(0.35, 0.0, abs(vLocal.z)) * step(0.3, vLocal.y); // a darker median mark
+    s.N = normalize(s.N + vec3(hair - 0.5, 0.0, mNoise(vWorld.zx * 60.0) - 0.5) * 0.45);
+    s.albedo = c * (0.85 + 0.3 * hair); s.rough = 0.92; s.f0 = 0.012; s.sheen = 0.18; s.sheenCol = vec3(0.28, 0.26, 0.15);` });
+  const abd = ell(abdMat, [-1.65, 0.05, 0], [1.55, 0.72, 1.02]);
   const eyes = [[2.0, 0.35, 0.18], [2.0, 0.35, -0.18], [1.85, 0.5, 0.32], [1.85, 0.5, -0.32], [1.6, 0.6, 0.22], [1.6, 0.6, -0.22]].map((p, i) => ell(eyeMat, p, i < 2 ? [0.1, 0.1, 0.1] : [0.13, 0.13, 0.13]));
   const fangs = [-1, 1].map((s) => ell(bodyMat, [2.1, -0.25, s * 0.25], [0.28, 0.42, 0.2]));
   const parts = [ceph, abd, ...eyes, ...fangs];

@@ -25,6 +25,7 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPrefer
 renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 renderer.autoClear = false;
 const DPR = Math.min(window.devicePixelRatio || 1, 1.5);
+const PR = Number(new URLSearchParams(location.search).get('pr')) || 0; // testing override: a fixed pixel ratio, no dynamic resolution
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(10, 16 / 9, 4, 2600);
 const macro = createMacro(renderer);
@@ -291,10 +292,10 @@ function groupCentre(list) {
 
 // splitK: a split screen renders the macro chain once per view, so each view
 // renders at a lower resolution (the views are smaller anyway)
-let renderScale = 1, dynRes = true, slowEma = 16, scaleT = 0, splitK = 1;
+let renderScale = 1, dynRes = !PR, slowEma = 16, scaleT = 0, splitK = 1;
 function resize() {
   const w = innerWidth, h = innerHeight;
-  renderer.setPixelRatio(DPR * renderScale * splitK);
+  renderer.setPixelRatio(PR || DPR * renderScale * splitK);
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
@@ -480,7 +481,7 @@ F({ id: 'velvet', group: 'Rendering', label: 'Velvety cuticle', fixed: true,
   about: 'Slate blue-black dorsum, reddish-brown venter and legs, fine granules as noise bump with frosty specks, a blue-grey sheen at grazing angles, dark furrows where two body rings meet (from the sdf.js part weights), glossy black eye patches. Checked against photographs of Podura.' });
 F({ id: 'grain', group: 'Rendering', label: 'Sensor grain', on: true, about: 'A faint per-frame noise, like a high-ISO macro shot.', onChange: (v) => (macro.options.grain = v ? 0.012 : 0) });
 F({ id: 'dynres', group: 'Rendering', label: 'Dynamic resolution', on: true,
-  about: 'Drops the render resolution while frames are slow, climbs back when they are fast.', onChange: (v) => { dynRes = v; if (!v && renderScale !== 1) { renderScale = 1; resize(); } } });
+  about: 'Drops the render resolution while frames are slow, climbs back when they are fast.', onChange: (v) => { dynRes = v && !PR; if (!v && renderScale !== 1) { renderScale = 1; resize(); } } });
 F({ id: 'look', group: 'Optics', label: 'Look (D-pad left/right)', choices: MACRO_LOOKS.map((l) => l.name), value: MACRO_LOOKS[0].name,
   about: 'Low sun: daylight with glints and backlit moss. Overcast: soft sky light, no glints. Stereo microscope: a ring light round the objective, a round field stop, and ~4x the depth of field (stereo microscopes work at low aperture).',
   onChange: (v) => { rig.look = MACRO_LOOKS.findIndex((l) => l.name === v); lookDef = applyLook(rig.look); } });
