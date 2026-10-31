@@ -211,15 +211,17 @@ Promise.all(WORLDS.map((w) => loadImage(cardArt(w)))).then((imgs) => {
 });
 {
   const logo = delivered('MP-G01');
-  if (logo) { const img = $('#logo-img'); img.src = logo; img.alt = 'Micro Zoom'; img.hidden = false; $('#logo-text').classList.add('visually-hidden'); }
+  if (logo) {
+    const img = $('#logo-img'); img.src = logo; img.alt = 'Micro Zoom'; img.hidden = false;
+    $('#logo-text').classList.add('visually-hidden');
+    $('.vernier').hidden = true; // the logo carries its own engraved rule
+  }
   const key = delivered('MP-G02');
   if (key) loadImage(key).then((img) => img && titleBg.setKeyArt?.(img));
   const menuBg = delivered('MP-G03');
   if (menuBg) { const el = $('.menu-bg'); el.style.backgroundImage = `url(${menuBg})`; el.classList.add('art'); }
   const paper = delivered('MP-G05');
   if (paper) document.documentElement.style.setProperty('--paper', `url(${paper})`);
-  const icon = delivered('MP-G06');
-  if (icon) $('link[rel="icon"]').href = icon;
 }
 
 function pressStart() {
@@ -236,7 +238,7 @@ const cardsEl = $('#cards');
 function buildCards() {
   const frame = delivered('MP-G04');
   cardsEl.innerHTML = WORLDS.map((w, i) => `
-    <div class="wcard${frame ? ' framed' : ''}" role="option" data-i="${i}" tabindex="-1" aria-label="${w.name}: ${w.creature}">
+    <div class="wcard${frame ? ' framed' : ''}" role="option" data-i="${i}" tabindex="-1" aria-label="${w.name}: ${w.creature}"><div class="lift">
       <div class="face">
         <div class="art" style="background-image:url('${cardArt(w)}')"><span class="no">No. ${ROMAN[i]}</span><span class="stamp"></span></div>
         <div class="body">
@@ -252,8 +254,8 @@ function buildCards() {
           <p class="line">${w.line}</p>
         </div>
       </div>
-      ${frame ? `<div class="frame" style="background-image:url('${frame}')"></div>` : ''}
-    </div>`).join('');
+      ${frame ? `<div class="frame" style="border-image-source:url('${frame}')"></div>` : ''}
+    </div></div>`).join('');
   for (const c of $$('.wcard', cardsEl)) {
     c.addEventListener('click', () => {
       const i = +c.dataset.i;
@@ -284,7 +286,7 @@ function layoutCards() {
     const rot = -Math.sign(d) * Math.min(ad, 2) * 16;
     const sc = ad ? 0.86 : 1.04;
     c.style.transform = `translate3d(${x}px, 0, ${z}px) rotateY(${rot}deg) scale(${sc})`;
-    c.style.opacity = ad > 3 ? '0' : String(1 - ad * 0.16);
+    c.style.opacity = ad > 3 ? '0' : '1';
     c.style.filter = ad ? `brightness(${1 - ad * 0.14}) saturate(${1 - ad * 0.15})` : 'none';
     c.style.zIndex = String(10 - ad);
     c.classList.toggle('sel', ad === 0);
@@ -294,7 +296,13 @@ function layoutCards() {
   $('.menu-bg').style.transform = `translate3d(${(3 - S.sel) * 10}px, 0, 0) scale(1.02)`;
   $('#menu').style.setProperty('--world', w.accent);
   const cur = $('.scale-rule .cursor');
-  if (cur) { cur.style.left = `${scalePos(w.fieldMm)}%`; cur.querySelector('span').innerHTML = `${w.name} · field ${unitSafe(fmtField(w.fieldMm))}`; }
+  if (cur) {
+    const pos = scalePos(w.fieldMm);
+    cur.style.left = `${pos}%`;
+    const lab = cur.querySelector('span');
+    lab.style.transform = pos < 15 ? 'translateX(-12px)' : pos > 85 ? 'translateX(calc(-100% + 12px))' : '';
+    lab.innerHTML = `${w.name} · field ${unitSafe(fmtField(w.fieldMm))}`;
+  }
   $$('.scale-rule .wm').forEach((m, i) => m.classList.toggle('on', i === S.sel));
 }
 const LOG_MAX = Math.log10(60), LOG_MIN = Math.log10(0.0006);
@@ -350,7 +358,7 @@ function fillIntro(w) {
     + `<div><dt>Body</dt><dd>${w.body}</dd></div><div><dt>Look</dt><dd style="font-size:.9rem">${w.look}</dd></div>`;
   $('#intro-goal').textContent = w.goal;
   $('#intro-fwd').textContent = w.forward ? `${w.forward} Reach it to zoom in to ${WORLDS[i + 1].name}.` : 'This is the end of the chain: nothing smaller is alive.';
-  $('#intro-back').textContent = w.back || 'None: this is the top of the chain.';
+  $('#intro-back').innerHTML = w.back ? w.back.replace('press Y', `press ${glyph('Y')}`) : 'None: this is the top of the chain.';
   $('#intro-facts').innerHTML = w.facts.map((f) => `<li>${f}</li>`).join('');
   renderIntroControls();
   $('.intro-art').style.backgroundImage = `url('${introArt(w)}')`;
@@ -857,7 +865,7 @@ let lastT = performance.now();
 let lastMode = glyphMode();
 function refreshAllGlyphs() {
   refreshGlyphs(document.body, 'menu');
-  if (S.screen === 'intro') renderIntroControls();
+  if (S.screen === 'intro') fillIntro(WORLDS[S.sel]);
   if (S.modals.includes('instructions')) renderInstructions();
   if (S.controlsShown) renderControlsCard();
   if (S.near) showPrompt(S.near);

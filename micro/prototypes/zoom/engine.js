@@ -68,7 +68,7 @@ export function createEngine({ canvas, size = () => [innerWidth, innerHeight], a
     renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.25));
     renderer.setSize(Math.max(1, w), Math.max(1, h), false);
     renderer.getDrawingBufferSize(dbuf);
-    zo.resize(dbuf.x, dbuf.y, SOFTWARE ? Math.min(opts.scale, 0.35) : opts.scale);
+    zo.resize(dbuf.x, dbuf.y, SOFTWARE && !opts.noCap ? Math.min(opts.scale, 0.35) : opts.scale);
   }
   resize();
 

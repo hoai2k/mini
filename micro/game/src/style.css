@@ -37,6 +37,7 @@ button { font: inherit; color: inherit; }
 
 /* Engraved small caps: data labels, eyebrows. */
 .eyebrow { display: flex; align-items: center; gap: 12px; margin: 0 0 6px; font: 600 .78rem/1 var(--sans); letter-spacing: .26em; text-transform: uppercase; color: var(--brass-hi); }
+.eyebrow span { white-space: nowrap; }
 .eyebrow i { flex: 0 0 48px; height: 1px; background: linear-gradient(90deg, transparent, var(--brass), transparent); }
 .eyebrow.small { font-size: .68rem; letter-spacing: .22em; }
 .paper .eyebrow { color: var(--brass-lo); }
@@ -122,17 +123,24 @@ button { font: inherit; color: inherit; }
 .carousel { position: absolute; left: 0; right: 0; top: 50%; height: min(560px, 74vh); transform: translateY(-55%); perspective: 1400px; perspective-origin: 50% 46%; }
 .wcard { --w: clamp(220px, 25vw, 300px); position: absolute; left: 50%; top: 50%; width: var(--w); margin-left: calc(var(--w) / -2); transform-style: preserve-3d;
   cursor: pointer; transition: transform .6s cubic-bezier(.2, .75, .2, 1), opacity .5s, filter .5s; will-change: transform; outline: none; }
-.wcard .face { position: relative; transform: translateY(-50%); border-radius: 10px; overflow: hidden; color: var(--paper-ink);
+.wcard .lift { position: relative; transform: translateY(-50%); }
+.wcard .face { position: relative; border-radius: 10px; overflow: hidden; color: var(--paper-ink);
   background: var(--paper); background-color: var(--ivory);
   box-shadow: 0 0 0 1px #6e5222, 0 0 0 3px var(--brass), 0 0 0 4px #4f3a14, 0 22px 48px rgba(0, 0, 0, .55); transition: box-shadow .3s; }
-.wcard.framed .face { box-shadow: 0 22px 48px rgba(0, 0, 0, .55); }
-.wcard .frame { position: absolute; inset: -6%; pointer-events: none; background-size: 100% 100%; z-index: 3; }
+.wcard.framed .no { top: 20px; left: 20px; }
+.wcard.framed .stamp { top: 20px; right: 20px; }
+.wcard.framed .body { padding-bottom: 22px; }
+.wcard.framed .face { box-shadow: 0 22px 48px rgba(0, 0, 0, .55); border-radius: 14px; }
+/* MP-G04, the brass bezel, as a nine-slice over the card. */
+.wcard .frame { position: absolute; inset: -19px -19px -24px; pointer-events: none; z-index: 3;
+  border-style: solid; border-width: 40px 40px 52px; border-image-slice: 120 120 170 fill; border-image-repeat: stretch; }
+.wcard.framed.sel .face { box-shadow: 0 0 0 10px rgba(240, 210, 140, .16), 0 30px 70px rgba(0, 0, 0, .65); }
 .wcard.sel .face { box-shadow: 0 0 0 1px #6e5222, 0 0 0 3px var(--brass-hi), 0 0 0 4px #4f3a14, 0 0 0 8px rgba(240, 210, 140, .22), 0 30px 70px rgba(0, 0, 0, .65); }
 .wcard .art { position: relative; aspect-ratio: 4 / 3; background-size: cover; background-position: center; border-bottom: 1px solid var(--brass-lo); }
 .wcard .art::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0, 0, 0, .45)); }
-.wcard .no { position: absolute; top: 10px; left: 10px; z-index: 2; font: 600 .66rem/1 var(--sans); letter-spacing: .2em; color: var(--ivory); text-transform: uppercase;
+.wcard .no { position: absolute; top: 12px; left: 12px; z-index: 2; font: 600 .66rem/1 var(--sans); letter-spacing: .2em; color: var(--ivory); text-transform: uppercase;
   background: rgba(14, 24, 18, .72); padding: 5px 8px; border-radius: 3px; border: 1px solid rgba(200, 155, 71, .6); }
-.wcard .stamp { position: absolute; top: 10px; right: 10px; z-index: 2; font: 700 .6rem/1 var(--sans); letter-spacing: .18em; text-transform: uppercase;
+.wcard .stamp { position: absolute; top: 12px; right: 12px; z-index: 2; font: 700 .6rem/1 var(--sans); letter-spacing: .18em; text-transform: uppercase;
   padding: 5px 7px; border-radius: 3px; color: #fff3e0; background: var(--oxblood); transform: rotate(3deg); box-shadow: 0 2px 6px rgba(0,0,0,.4); }
 .wcard .stamp.new { background: rgba(14, 24, 18, .72); color: var(--brass-hi); border: 1px solid rgba(200, 155, 71, .6); transform: none; }
 .wcard .stamp.far { background: var(--green-2); }
@@ -159,7 +167,7 @@ button { font: inherit; color: inherit; }
 .scale-rule .wm.on { background: var(--brass-hi); }
 .scale-rule .cursor { position: absolute; top: -2px; width: 0; transition: left .6s cubic-bezier(.2, .75, .2, 1); }
 .scale-rule .cursor::before { content: ''; position: absolute; left: -7px; top: 0; border: 7px solid transparent; border-top: 10px solid var(--brass-hi); filter: drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
-.scale-rule .cursor span { position: absolute; bottom: 14px; left: 0; transform: translateX(-50%); font: 600 .7rem/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--ivory); white-space: nowrap; }
+.scale-rule .cursor > span { position: absolute; bottom: 14px; left: 0; transform: translateX(-50%); font: 600 .7rem/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--ivory); white-space: nowrap; }
 .scale-rule .end { position: absolute; top: 34px; font: 600 .6rem/1 var(--sans); letter-spacing: .2em; text-transform: uppercase; color: rgba(243, 234, 211, .45); }
 .menu-hint { position: absolute; left: var(--gutter); bottom: max(26px, env(safe-area-inset-bottom)); margin: 0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; z-index: 2; }
 
@@ -251,8 +259,8 @@ button { font: inherit; color: inherit; }
 .tr-caption h2 { margin: 0; font: 600 clamp(1.6rem, 3.4vw, 2.4rem)/1.05 var(--serif); color: var(--ivory); }
 .tr-readout { position: absolute; left: 50%; bottom: max(26px, env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; gap: 0; border: 1px solid var(--brass); border-radius: 4px;
   background: rgba(10, 16, 12, .72); font: 600 .8rem/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--ivory); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.tr-readout span { padding: 9px 14px; min-width: 9.5em; text-align: center; }
-.tr-readout span + span { border-left: 1px solid rgba(200, 155, 71, .5); }
+.tr-readout > span { padding: 9px 14px; min-width: 9.5em; text-align: center; }
+.tr-readout > span + span { border-left: 1px solid rgba(200, 155, 71, .5); }
 
 /* ------------------------------------------------------------------ modals */
 .modal { position: absolute; inset: 0; z-index: 25; display: grid; place-items: center; padding: 16px; background: rgba(6, 11, 8, .55); backdrop-filter: blur(5px) saturate(.8); animation: fadeIn .25s both; }
@@ -315,7 +323,10 @@ button { font: inherit; color: inherit; }
   .intro-panel { padding: 20px 18px; }
   .scale-rule .lab:nth-of-type(even) { display: none; }
   .menu-hint { display: none; }
-  .tr-readout span { min-width: 0; }
+  .tr-readout > span { min-width: 0; }
+  .eyebrow { letter-spacing: .14em; gap: 8px; }
+  .eyebrow i { flex-basis: 18px; }
+  .intro-panel { top: 30vh; }
 }
 @media (max-height: 560px) {
   .wcard .line, .wcard .look { display: none; }

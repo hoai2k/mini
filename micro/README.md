@@ -1,7 +1,13 @@
 # Micro
 
-Video games where you play as microscopic creatures. Still at the research and
-prototype stage.
+Video games where you play as microscopic creatures.
+
+- [`game/`](game/README.md) is **Micro Zoom**, the game: a title screen, a
+  world-select tray and an intro for each world, then the worlds themselves
+  (the prototypes below, hosted in a frame), with a zoom transition when you
+  reach a world's forward landmark or its backdoor. Published at
+  https://hoai2k.github.io/mini/micro/ in the prototype archive, behind the
+  invite gate.
 
 - [`research/`](research/) is a cited research atlas of four scale bands
   (mites, water-film animals, large protists, small cells), their habitats,
@@ -41,4 +47,8 @@ python3 micro/design/source/build_audio.py --check
 
 ```bash
 node micro/prototypes/check.mjs
+```
+
+```bash
+node micro/game/check.mjs
 ```

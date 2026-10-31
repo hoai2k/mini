@@ -45,3 +45,25 @@ alone: the body flows in and absorbs it). Holding LT or RT turns the body
 stick into a second pseudopod beside the first, for encircling prey. LB/RB
 spread out / push harder. The classic two-pseudopod scheme is a Features
 choice. It still uses A to dash, X to eat and D-pad ←→ for the look.
+
+## Multiplayer
+
+Up to four players share the screen (`shared/players.js`).
+
+- **Player 1** plays on the keyboard (WASD and the keys in `shared/pad.js`)
+  and on the first controller that presses a button or moves a stick.
+- **Players 2-4 join** by pressing any button on another controller, at any
+  time: in a menu (the menu shows that they joined) or during play (a "Player
+  N joined" toast). A controller that is unplugged leaves its player waiting
+  for a few seconds; plugging it back in resumes them.
+- **Instructions:** the controls list shows controller buttons whenever any
+  controller is connected, and switches the moment one connects. Keyboard keys
+  appear only while no controller is connected at all (each chip's hover title
+  gives the other one).
+- **Split screen** (`shared/splitscreen.js`): together, players share one
+  view; as they separate the screen splits LEGO-style along a brass hairline
+  that turns with their direction, and merges back seamlessly when they meet.
+- **Landmarks** (`shared/landmark.js`): near the edge of each view, a brass
+  chevron points to the next stage and a hollow ring to the way back.
+
+`split-demo/` is the test bed for all of this.

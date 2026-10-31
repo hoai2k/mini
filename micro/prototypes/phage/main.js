@@ -271,7 +271,15 @@ function updateDrift(dt, inp) {
   } else P.angVel.multiplyScalar(Math.exp(-dt * 2));
   const mv = _w.copy(P.vel).add(P.gust);
   const sp = mv.length();
-  if (sp > 4) {
+  // close to a cell with the fibres out, they catch the water near it and swing the baseplate round to face it
+  const near = world.nearestHost(centreOf(new THREE.Vector3()));
+  const facing = near.host && near.d < 45 && P.fold < 0.5;
+  if (facing) {
+    const ax = axisOf(new THREE.Vector3());
+    world.sdHost(near.host, P.pos, _s);
+    const k = (1 - near.d / 45) * 3.0;
+    P.angVel.addScaledVector(new THREE.Vector3().crossVectors(ax, _s), dt * k);
+  } else if (sp > 4) {
     const ax = axisOf(_n);
     const tq = new THREE.Vector3().crossVectors(ax, mv.normalize());
     P.angVel.addScaledVector(tq, dt * Math.min(1, sp / 25) * 3.2);
@@ -284,7 +292,7 @@ function updateDrift(dt, inp) {
   for (const h of world.hosts) {
     if (h.burst) continue;
     const sd = world.sdHost(h, c, _n);
-    if (sd < 11) { P.pos.addScaledVector(_n, 11 - sd); const vn = P.vel.dot(_n); if (vn < 0) P.vel.addScaledVector(_n, -vn); P.gust.addScaledVector(_n, -Math.min(0, P.gust.dot(_n))); }
+    if (sd < 11) { if (sd < 9) P.angVel.add(new THREE.Vector3(gauss(), gauss(), gauss()).multiplyScalar(0.4 * dt * 10)); P.pos.addScaledVector(_n, 11 - sd); const vn = P.vel.dot(_n); if (vn < 0) P.vel.addScaledVector(_n, -vn); P.gust.addScaledVector(_n, -Math.min(0, P.gust.dot(_n))); }
   }
   const sa = world.sdAmoeba(c);
   if (sa < 12) P.pos.addScaledVector(_n.subVectors(c, world.amoeba.center).normalize(), 12 - sa);
@@ -295,8 +303,10 @@ function updateDrift(dt, inp) {
     for (let f = 0; f < 6; f++) {
       const tip = t4.tip(f);
       if (world.sdClay(tip) < 1.6) { enterClay(); return; }
-      const { host, d } = world.nearestHost(tip);
-      if (host && d < 1.8) {
+      const knee = t4.fibres[f].nodes[T4.KNEE];
+      const a = world.nearestHost(tip), b = world.nearestHost(knee);
+      const { host, d } = a.d < b.d ? a : b;
+      if (host && d < 2.2) {
         if (host.wrong) {
           world.sdHost(host, tip, _n);
           P.gust.addScaledVector(_n, 18);

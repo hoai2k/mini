@@ -166,7 +166,7 @@ void lawn(vec2 p, inout S s) {
     // the pool floor far below: fine sediment, a faint mottle in transmitted light
     if (uPx < 12.0) {
       float fl = fbm(p / 55.0 + 3.0);
-      s.ab += vec3(0.05, 0.07, 0.10) * fl + vec3(0.25, 0.32, 0.45) * smoothstep(0.72, 0.8, vnoise(p / 7.0)) * (1.0 - smoothstep(2.0, 6.0, uPx));
+      s.ab += vec3(0.04, 0.055, 0.08) * fl + vec3(0.12, 0.16, 0.22) * smoothstep(0.7, 0.85, vnoise(p / 9.0)) * (1.0 - smoothstep(0.8, 2.5, uPx));
     }
   } else {
     float n = fbm(p / 300.0);
@@ -576,14 +576,14 @@ void amoeba(vec2 p, vec4 cr, vec4 cb, inout S s) {
   float ch = 42.0 * smoothstep(0.0, 70.0, depth);
   float endo = smoothstep(8.0, 22.0, depth);   // the granular endoplasm, inside a clear rim
   float opd = 0.02 * ch;
-  vec3 ab = ch * vec3(0.0016, 0.0019, 0.0030);
+  vec3 ab = ch * vec3(0.0040, 0.0046, 0.0068);
   float lf = 1.0 - smoothstep(2.0, 5.0, uPx);
   vec2 gid = floor(q / 6.0);
   vec2 gc = (gid + 0.5 + (hash22(gid + 9.0) - 0.5) * 0.6) * 6.0 + 1.2 * vec2(sin(t * 1.3 + gid.x), cos(t * 1.1 + gid.y));
   vec2 gt = thin(length(q - gc), 1.3);
   float gran = endo * step(hash12(gid + 3.0), 0.6);
-  opd += mix(0.06 * endo, gt.x * 0.06 * gran, lf);
-  ab += mix(vec3(0.05, 0.06, 0.08) * endo, gt.x * gran * vec3(0.06, 0.07, 0.09), lf);
+  opd += mix(0.08 * endo, gt.x * 0.08 * gran, lf);
+  ab += mix(vec3(0.12, 0.13, 0.16) * endo, gt.x * gran * vec3(0.14, 0.15, 0.18), lf);
   float nuc = smoothstep(26.0, 22.0, length(q - vec2(-25.0, 12.0)));
   opd += 0.35 * nuc; ab += nuc * vec3(0.04, 0.05, 0.07);
   float cvr = 16.0 + 4.0 * sin(t * 0.8);
@@ -630,7 +630,7 @@ void paramecium(vec2 p, vec4 cr, vec4 cb, inout S s) {
   float has = step(hash12(cid + 7.0), 0.78) * step(rho, 0.93);
   vec2 ct = thin(length(cq - cc), 2.6);
   float chl = has * ct.y;
-  ab += mix(vec3(0.22, 0.06, 0.25) * 0.55, chl * ct.x * vec3(0.15, 0.04, 0.17), lf);
+  ab += mix(vec3(0.30, 0.08, 0.34), chl * ct.x * vec3(0.15, 0.04, 0.17), lf);
   opd += lf * 0.012 * ct.x * has;
   // contractile vacuoles (pulsing, clear), macronucleus, food vacuoles
   for (int k = -1; k <= 1; k += 2) {

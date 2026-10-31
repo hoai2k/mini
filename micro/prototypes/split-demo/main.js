@@ -38,11 +38,12 @@ function groundTexture() {
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
   // Cells like a plant epidermis: blobs with dark walls.
   for (let i = 0; i < 90; i++) {
-    const x = rnd() * 512, y = rnd() * 512, r = 26 + rnd() * 30;
+    const x = rnd() * 512, y = rnd() * 512, r = 26 + rnd() * 30, ry = r * (0.7 + rnd() * 0.3), rot = rnd() * 3;
+    const fill = `hsl(${95 + rnd() * 30}, ${18 + rnd() * 14}%, ${40 + rnd() * 14}%)`;
     for (const dx of [-512, 0, 512]) for (const dy of [-512, 0, 512]) {
       g.beginPath();
-      g.ellipse(x + dx, y + dy, r, r * (0.7 + rnd() * 0.3), rnd() * 3, 0, Math.PI * 2);
-      g.fillStyle = `hsl(${95 + rnd() * 30}, ${18 + rnd() * 14}%, ${40 + rnd() * 14}%)`;
+      g.ellipse(x + dx, y + dy, r, ry, rot, 0, Math.PI * 2);
+      g.fillStyle = fill;
       g.fill();
       g.lineWidth = 3; g.strokeStyle = 'rgba(30,40,28,.55)'; g.stroke();
     }
@@ -186,7 +187,7 @@ function placeCamera(dt, snap = false) {
   let cam;
   if (camMode === 'top') {
     cam = ortho;
-    const hh = rig.dist * 0.75, hw = hh * (innerWidth / innerHeight);
+    const hh = rig.dist * 0.5, hw = hh * (innerWidth / innerHeight);
     Object.assign(ortho, { left: -hw, right: hw, top: hh, bottom: -hh });
     ortho.position.set(rig.focus.x, 80, rig.focus.z);
     ortho.up.set(Math.sin(rig.yaw), 0, -Math.cos(rig.yaw));

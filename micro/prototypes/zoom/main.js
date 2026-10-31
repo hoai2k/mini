@@ -46,7 +46,7 @@ const hud = mountHud({
 });
 
 // ---------------------------------------------------------------- features
-const opts = { ...DEFAULT_OPTS };
+const opts = { ...DEFAULT_OPTS, noCap: params.get('hq') === '1' };
 let eng = null;
 const features = createFeatures({ key: 'zoom', pad });
 const strategyChoices = STRAT_IDS.map((s) => STRAT_NAMES[s]);
