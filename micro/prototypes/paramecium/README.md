@@ -7,6 +7,25 @@ the hunters: *Didinium*, which harpoons you on contact, and *Amoeba
 proteus*, a slow giant on the slide that cups you in its pseudopods.
 Published in the prototype archive at `micro/prototypes/paramecium/`.
 
+## Movement and camera
+
+LS supplies both analog swimming speed and camera-relative direction; RT is
+optional. Forward drives into the view, left/right turns the creature toward
+that side, and release stops active propulsion. The resting camera framing
+does not pitch the creature into the floor. RS orbits the camera and helps aim
+swimming; after release a 0.45 s hold lets the view settle before it eases
+behind the creature’s heading. LB/RB still dive/rise. The camera follows the
+helix axis, without following the body’s roll. In microscope view LS also
+propels and aims relative to the stage; RS moves the stage.
+
+This uses the camera-relative movement idea in Cambrian’s
+`src/sim/game-actor.ts` and the manual-look hold/follow behaviour in
+`src/render/engine.ts`, adapted to this board’s coordinate system.
+
+```bash
+node --test micro/prototypes/shared/swim-control.test.mjs
+```
+
 ## Landmarks (the Micro Zoom chain)
 
 World 5 of the game (`micro/game/`), between the amoeba and the bacterium.
@@ -115,7 +134,7 @@ circle indicators round your creature; the previous feel was good." So:
   (Y switches to the microscope), top speed is 1.4 mm/s again (it was
   1 mm/s, and only 0.62 mm/s in shade), the drop is 650 µm deep again (it
   was 300 µm), and the chase camera sits at the same distance in body
-  lengths as before. Turning in the chase view is as it was; in the
+  lengths as before. LS now drives as well as turns in the chase view; in the
   microscope view it is 40 % quicker.
 - **Nothing is drawn round your cell:** no outline, heading tick, dash ring
   or gulp ring. Hunters in view are left to the image (their rings are a
@@ -269,13 +288,13 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 
 | Xbox | Keyboard | Action |
 | --- | --- | --- |
-| LS | WASD | Steer, relative to the view (microscope: point where to go; chase: yaw and pitch) |
-| RS | Arrows | Orbit the chase camera (up looks up; Features: Invert camera Y) or move the stage (microscope) |
+| LS | WASD | Swim at analog speed and turn relative to the view; forward drives, left/right turns. Release to stop active propulsion |
+| RS | Arrows | Orbit and aim swimming; after release, follow the creature heading (up looks up; Features: Invert camera Y). Microscope: move the stage |
 | **A** | Space | **Dash**: a ciliary sprint toward the stick (a quick pivot, then up to 3.2 mm/s for 0.32 s), recharging in 1.8 s (slower in shade); rumble. While held: struggle |
 | **X** | E | **Eat**: an oral gulp pulls up to three prey within ≈70 µm of the front of the cell into the groove; each swells into a food vacuole at the cytostome, pinches off and rides the cyclosis round the cell while the cell bulges. **At a hunter you face (within ≈260 µm): fight back**: the cell rams it, thrashing, and stings it with a short jab of trichocysts from the patch facing it (no charge spent, 0.8 s cooldown). Held: struggle |
 | **B** | Shift | **Defend** (the shared defend button): with a hunter close, **fire trichocysts** at it (3 charges, one back every 9 s) while the cilia reverse and back you off, still facing it. Facing it as it strikes, this **blocks** the strike. Held: breaks you free. With no hunter near: the avoidance reaction (reverse, pivot, swim off) |
 | Y | R | Chase camera (default) / microscope view. On the amoeba's floor (the backdoor): back to the amoeba |
-| LT / RT | Z / X | LT slow feeding beat (hover; draws bacteria into the groove) · RT beat cilia: swim. Speed follows the trigger at once; release it and the cell stops (no gliding) |
+| LT / RT | Z / X | LT slow feeding beat (hover; draws bacteria into the groove) · RT optional forward swim. LS already drives; release movement and active propulsion stops (no gliding) |
 | LB / RB | Q / F | Dive / rise |
 | D-pad ←→ | 3 / 4 | Microscope technique (switches a borrowed look off) |
 | D-pad ↑↓ | 1 / 2 | Objective 10× / 20× / 40× (chase camera: distance) |

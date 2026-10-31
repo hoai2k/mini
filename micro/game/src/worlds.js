@@ -72,7 +72,7 @@ export const WORLDS = [
     goal: 'Eat six prey, keep your algae in the light, and fight off Didinium and the giant amoeba: watch for the wind-up, then block or sting back.',
     forward: 'A biofilm patch on a submerged leaf: rods and dots that read only as texture.',
     back: 'The amoeba’s slow pseudopod reaching in from the edge: dwell there and press Y to rise to the pool floor.',
-    controls: [['LS', 'Swim'], ['RS', 'Camera'], ['A', 'Ciliary sprint'], ['X', 'Eat · at a hunter: ram and sting'], ['B', 'Defend: trichocysts, back off (blocks a strike)'], ['Y', 'Microscope view'], ['D-pad ↑↓', 'Objective']],
+    controls: [['LS', 'Swim forward · turn left/right'], ['RS', 'Camera · aim swimming'], ['A', 'Ciliary sprint'], ['X', 'Eat · at a hunter: ram and sting'], ['B', 'Defend: trichocysts, back off (blocks a strike)'], ['Y', 'Microscope view'], ['D-pad ↑↓', 'Objective']],
     facts: [
       'Its cilia beat in waves that run across the cell like wind over wheat.',
       'P. bursaria carries hundreds of Chlorella algae that feed it in the light.',

@@ -1,6 +1,6 @@
 // How the Paramecium moves. Low Reynolds number (S15): there is no coasting.
 // Speed follows the ciliary beat within a few hundredths of a second, so the
-// cell stops the moment the trigger is released, though the water around it
+// cell stops the moment the movement stick is released, though the water around it
 // still carries it. It swims along a left-handed helix while rolling about its
 // long axis, oral groove toward the helix axis; the camera follows the axis.
 //
@@ -14,6 +14,7 @@
 // Dash (A): a ciliary sprint in the stick direction: escape swimming reaches
 // several mm/s for a fraction of a second.
 import * as THREE from '../shared/vendor/three.module.min.js';
+import { swimIntent, wrapAngle } from '../shared/swim-control.js';
 import { LENGTH, MOUTH, WIDTH, SPECIES_ID } from './cell.js';
 import { DROP_R, DEPTH } from './world.js';
 import { lowRe, helixPose } from '../shared/techniques/paramecium-squirmer.js';
@@ -38,7 +39,7 @@ const approach = (a, b, max) => a + Math.max(-max, Math.min(max, b - a));
 export function createSwimmer(cell, world) {
   const s = {
     axis: new THREE.Vector3(-150, DEPTH * 0.55, 60),
-    yaw: 0.25, pitch: 0,
+    yaw: -0.6, pitch: 0,
     speed: 0, phi: 0, rh: 0, tilt: 0,
     beatPhase: 0, freq: 1, reverse: 1, amp: 0.6, oral: 0.3, feed: 0,
     mode: 'swim', // swim | avoid | captured | dead
@@ -131,8 +132,14 @@ export function createSwimmer(cell, world) {
           const tp = inp.rise * 0.75;
           s.pitch = approach(s.pitch, tp, (inp.rise ? 1.6 : 0.8) * dt);
         } else {
-          s.yaw -= st.x * turn * dt;
-          s.pitch = Math.max(-1.25, Math.min(1.25, s.pitch - st.y * turn * 0.8 * dt + inp.rise * 1.2 * dt));
+          const intent = swimIntent(st, inp.camYaw, inp.camPitch || 0);
+          // RT remains an optional forward drive; LS alone supplies both aim and thrust.
+          if (intent.thrust > 0 || inp.thrust > 0) {
+            const yaw = intent.thrust > 0 ? intent.yaw : inp.camYaw;
+            s.yaw += Math.max(-turn * dt, Math.min(turn * dt, wrapAngle(yaw - s.yaw)));
+          }
+          const pitch = Math.max(-1.1, Math.min(1.1, (intent.thrust > 0 ? intent.pitch : 0) + inp.rise * 0.85));
+          s.pitch = approach(s.pitch, pitch, 1.8 * dt);
         }
         if (inp.avoid) {
           const sd = inp.view === 'scope' && st.m > 0.3 ? fwdOf(api.stickYaw(st, inp.camYaw), 0) : null;

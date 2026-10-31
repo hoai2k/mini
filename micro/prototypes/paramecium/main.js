@@ -17,6 +17,7 @@ import { createOptics, MODES, MODE_NAMES, shared, standInPlate } from './optics.
 import { createCell, LENGTH, WIDTH, SPECIES, SPECIES_ID, FEATURE_KEY } from './cell.js';
 import { createWorld, DEPTH } from './world.js';
 import { createSwimmer, VMAX, DASH_V, DASH_T, BODY_R } from './swim.js';
+import { swimIntent, swimLookPitch, followYaw } from '../shared/swim-control.js';
 import { createEncounters } from './encounters.js';
 import { createPrey } from './prey.js';
 import { createProteus } from './proteus.js';
@@ -58,13 +59,13 @@ const hud = mountHud({
     ? `${SP.latin}, ${LENGTH} µm, green with symbiotic Chlorella, in a pond drop under the microscope. Eat, stay in the light, outswim the hunters.`
     : `${SP.latin}, ${LENGTH} µm, in a pond drop under the microscope. Eat and outswim the hunters.`,
   controls: hudControls({
-    move: 'Steer (relative to the view)',
-    camera: 'Orbit the camera (microscope: move the stage)',
+    move: 'Swim: LS forward drives, left/right turns relative to the camera; release to stop',
+    camera: 'Orbit and aim your swim; released, the camera follows your heading (microscope: move the stage)',
     dash: 'Dash: ciliary sprint where the stick points',
     attack: 'Eat: a gulp draws prey into the oral groove. At a hunter: fight back (ram it and sting with a jab of trichocysts)',
     defend: 'Defend: fire trichocysts at a hunter and back off (facing it, this blocks a strike); held: break free. Elsewhere: avoidance reaction',
     special: 'Chase camera / microscope view. On the amoeba\'s floor: back to the amoeba',
-    analog: 'LT slow feeding beat · RT swim (no gliding)',
+    analog: 'LT slow feeding beat · RT optional forward swim (LS already drives)',
     secondary: 'Dive / rise',
     look: 'Microscope technique',
     zoom: 'Objective (chase camera: distance)',
@@ -137,12 +138,13 @@ const OBJECTIVES = [ // field of view (FN 18) and a labelled, exaggerated depth 
 ];
 const DOFS = { strong: 'Strong (only your layer sharp)', mild: 'Mild', off: 'Off' };
 const PLATES = { dim: 'Dimmed and blurred', full: 'Full', off: 'Off' };
-const START_ORBIT = { yaw: -0.85, pitch: -0.25 }; // look down toward the biofilm, up and right
+const START_ORBIT = { yaw: 0, pitch: -0.25 }; // look down toward the biofilm, up and right
 const view = {
   fieldStop: true, smoothHelix: true, mode: 0, kind: 'chase', obj: 1, dist: 120 + 310 * (LENGTH / 230), orbitYaw: START_ORBIT.yaw, orbitPitch: START_ORBIT.pitch,
   stage: new THREE.Vector2(), camAxis: new THREE.Vector3().copy(swimmer.state.axis), camYaw: swimmer.state.yaw, camPitch: 0,
   focusY: swimmer.state.axis.y, scopeYaw: swimmer.state.yaw, turnView: true, lead: new THREE.Vector3(), dof: 'mild', plate: 'dim',
   focusPull: 0, focusPullY: 0, // a contact pulls fine focus to what you touched, briefly
+  lookHold: 0, // hold manual RS framing briefly before following the body
   pull: 0, // being eaten: 0..1, the camera pulls back to frame the hunter
   groupDist: 0, // multiplayer: the chase camera backs off as the group spreads (then the screen splits)
 };
@@ -218,13 +220,13 @@ function updateCameras(dt, s, steer, grp) {
   view.groupDist += ((grp.multi ? Math.min(view.dist * 1.2, grp.spread * 0.55) : 0) - view.groupDist) * (1 - Math.exp(-dt * 2));
   if (view.kind === 'chase') {
     // follow the helix axis and the travel heading, not the rolling body
-    const dy = Math.atan2(Math.sin(s.yaw - view.camYaw), Math.cos(s.yaw - view.camYaw));
-    view.camYaw += dy * (1 - Math.exp(-dt * 3.5));
-    view.camPitch += (s.pitch - view.camPitch) * (1 - Math.exp(-dt * 3));
+    const heading = !view.smoothHelix && !grp.multi ? Math.atan2(-s.T.z, s.T.x) : s.yaw;
+    const headingPitch = !view.smoothHelix && !grp.multi ? Math.asin(Math.max(-1, Math.min(1, s.T.y))) : s.pitch;
+    view.camYaw = followYaw(view.camYaw, heading, dt, view.lookHold);
+    view.camPitch += (headingPitch - view.camPitch) * (1 - Math.exp(-dt * 3));
     const yaw = view.camYaw + view.orbitYaw, pitch = Math.max(-1.3, Math.min(1.3, view.camPitch * 0.35 + view.orbitPitch));
     const back = new THREE.Vector3(Math.cos(pitch) * Math.cos(yaw), Math.sin(pitch), -Math.cos(pitch) * Math.sin(yaw));
     const target = debug.inspect ? s.center : view.camAxis;
-    if (!view.smoothHelix && !grp.multi) { view.camYaw = Math.atan2(-s.T.z, s.T.x); view.camPitch = Math.asin(Math.max(-1, Math.min(1, s.T.y))); }
     const dist = (view.dist + view.groupDist) * (1 + 1.6 * view.pull);
     chase.position.copy(target).addScaledVector(back, -dist).addScaledVector(new THREE.Vector3(0, 1, 0), dist * 0.18);
     chase.position.y = Math.max(8, Math.min(DEPTH + 300, chase.position.y));
@@ -287,7 +289,7 @@ features.add({ id: 'look', group: 'Optics', label: 'Microscope technique (D-pad 
   about: 'How the image is formed from the optical-path, scatter and absorption buffers: darkfield (zero order removed), positive phase contrast (dark where the path is long), brightfield (absorption plus a defocus term: the default, because the green Chlorella make P. bursaria the clearest thing in the field), DIC (shear derivative of the path) or a hypothetical lit view.',
   onChange: (v) => { view.mode = MODES.findIndex((m) => MODE_NAMES[m] === v); } });
 features.add({ id: 'view', group: 'Optics', label: 'Camera (Y)', choices: [VIEW_NAMES.chase, VIEW_NAMES.scope], value: VIEW_NAMES.chase,
-  about: 'Chase (default, as before the readability rework): a hypothetical camera in the water that follows the helix axis; LS yaws and pitches. Microscope: orthographic and top-down; the stage keeps your cell centred, a little behind the direction you swim, fine focus tracks your depth and jumps to anything you touch.',
+  about: 'Chase (default, as before the readability rework): a hypothetical camera in the water that follows the helix axis. LS drives and turns relative to the view; RS orbits and aims swimming, then the camera eases behind you when released. Microscope: orthographic and top-down; the stage keeps your cell centred, a little behind the direction you swim, fine focus tracks your depth and jumps to anything you touch.',
   onChange: (v) => { view.kind = v === VIEW_NAMES.chase ? 'chase' : 'scope'; view.stage.set(0, 0); } });
 features.add({ id: 'turnView', group: 'Optics', label: 'Microscope view turns with your heading', on: true,
   about: 'The view slowly turns so you swim up the screen, following the helix axis and the heading, never the roll; it holds still while you steer sideways. Off: north stays up (like a real stage).',
@@ -347,7 +349,7 @@ features.add({ id: 'cv', group: 'Body', label: 'Contractile vacuole cycle', on: 
 features.add({ id: 'nuclei', group: 'Body', label: 'Macronucleus and micronucleus', on: true, about: 'Ellipsoidal macronucleus mid-body with the small micronucleus beside it; low contrast, as in life.', onChange: (on) => { cell.macro.visible = on; cell.micro.visible = on; } });
 // Motion
 features.add({ id: 'lowre', group: 'Motion', label: 'Low Reynolds number (no coasting)', on: true,
-  about: 'Speed follows the ciliary beat with a 35 ms lag, so the cell stops when the trigger is released. Off: a 1.4 s glide, like a fish; physically wrong at this scale, here for comparison.', onChange: (on) => { swimmer.opts.lowRe = on; } });
+  about: 'Speed follows the ciliary beat with a 35 ms lag, so the cell stops when the movement stick is released. Off: a 1.4 s glide, like a fish; physically wrong at this scale, here for comparison.', onChange: (on) => { swimmer.opts.lowRe = on; } });
 features.add({ id: 'helix', group: 'Motion', label: 'Helical path and roll', on: true,
   about: 'A left-handed helix (radius and pitch scaled from the 29 µm and 850 µm measured in P. caudatum), one roll per turn, oral side toward the axis. Off: straight, with a slow roll.', onChange: (on) => { swimmer.opts.helix = on; } });
 features.add({ id: 'smooth', group: 'Motion', label: 'Camera follows the helix axis', on: true,
@@ -407,7 +409,7 @@ cell.group.traverse((o) => cellMeshes.add(o));
 
 addInvertY(features);
 features.add({ id: 'pad', group: 'Controls', label: 'Shared control scheme (CONTROLS.md)', fixed: true,
-  about: 'LS steer, RS orbit/stage, A dash, X eat (trichocysts on contact), B avoidance reaction, Y chase/microscope, LT feed, RT swim, LB/RB dive/rise, D-pad ←→ technique, D-pad ↑↓ objective, View panel, Menu features. Keyboard fallbacks in shared/pad.js.' });
+  about: 'LS swim and turn, RS orbit/aim swim (released: follow heading) or move stage, A dash, X eat (trichocysts on contact), B avoidance reaction, Y chase/microscope, LT feed, RT optional forward swim, LB/RB dive/rise, D-pad ←→ technique, D-pad ↑↓ objective, View panel, Menu features. Keyboard fallbacks in shared/pad.js.' });
 
 /** The look on screen, including a borrowed one. */
 function lookName() {
@@ -648,7 +650,7 @@ function doDash(P, ls) {
   if (s.mode === 'captured') return; // A struggles instead
   if (!P.dash.ready) { if (P === P1) hud.toast('Dash recharging', 700); return; }
   let yaw = null;
-  if (ls.m > 0.3) yaw = view.kind === 'scope' ? P.swimmer.stickYaw(ls, view.scopeYaw) : s.yaw - ls.x * 1.2;
+  if (ls.m > 0.3) yaw = view.kind === 'scope' ? P.swimmer.stickYaw(ls, view.scopeYaw) : swimIntent(ls, view.camYaw + view.orbitYaw).yaw;
   if (P.swimmer.dash(yaw)) { audio.play('paramecium/dash', { volume: 0.9 }); P.dash.trigger(); P.dashFx = 0.45; P.pad.rumble(180, 0.6, 0.9); }
 }
 
@@ -1007,9 +1009,10 @@ function tick(dt, forced = false) {
     P.gulpT = Math.max(0, P.gulpT - dt); P.gulpCool = Math.max(0, P.gulpCool - dt); P.dashFx = Math.max(0, P.dashFx - dt);
     const isP1 = P === P1;
     const inp = {
-      thrust: isP1 && debug.inspect ? 0.5 : live && !P.waiting ? Math.max(I.rt, isP1 ? debug.thrust : 0) : isP1 ? debug.thrust : 0,
+      thrust: isP1 && debug.inspect ? 0.5 : live && !P.waiting ? Math.max(Math.min(1, Math.hypot(lsP.x, lsP.y)), I.rt, isP1 ? debug.thrust : 0) : isP1 ? debug.thrust : 0,
       hover: Math.max(live ? I.lt : 0, P.gulpT > 0 ? 1 : 0), steer: live ? lsP : isP1 ? debug.steer : NO_INPUT.ls, rise: live ? I.rise : 0,
-      view: view.kind, camYaw: view.scopeYaw, vmaxK: 1, // shade slows the dash recharge only, never your swimming
+      view: view.kind, camYaw: view.kind === 'scope' ? view.scopeYaw : view.camYaw + view.orbitYaw,
+      camPitch: swimLookPitch(view.orbitPitch), vmaxK: 1, // shade slows the dash recharge only, never your swimming
       avoid: false, struggle: live && I.dashP && sP.mode === 'captured', // B is handled by defend()
     };
     const ev = {};
@@ -1148,11 +1151,12 @@ function frame(now) {
   if (view.kind === 'chase') {
     // orbit: look() pitch +1 means look up (the camera swings lower), Invert Y honoured
     const lk = blocked ? { yaw: 0, pitch: 0, m: 0 } : ctl.look();
-    view.orbitYaw -= lk.yaw * 2.2 * dt;
+    if (lk.m > 0.01) { view.lookHold = 0.45; view.camYaw -= lk.yaw * 2.2 * dt; }
+    else view.lookHold = Math.max(0, view.lookHold - dt);
     view.orbitPitch = Math.max(-1.2, Math.min(1.2, view.orbitPitch + lk.pitch * 1.6 * dt));
     // being caught by the amoeba: the camera rises to look down into the cup and the vacuole
     const pitch0 = capture.active && cap.th === amoeba ? -0.85 : START_ORBIT.pitch;
-    if (rs.m === 0 && !debug.inspect) { const k = 1 - Math.exp(-dt * (capture.active ? 2 : 0.6)); view.orbitYaw += (START_ORBIT.yaw - view.orbitYaw) * k; view.orbitPitch += (pitch0 - view.orbitPitch) * k; }
+    if (rs.m === 0 && view.lookHold === 0 && !debug.inspect) { const k = 1 - Math.exp(-dt * (capture.active ? 2 : 0.6)); view.orbitYaw += (START_ORBIT.yaw - view.orbitYaw) * k; view.orbitPitch += (pitch0 - view.orbitPitch) * k; }
   } else {
     const half = OBJECTIVES[view.obj].field / 2;
     view.stage.x = Math.max(-half, Math.min(half, view.stage.x + rs.x * half * dt));
