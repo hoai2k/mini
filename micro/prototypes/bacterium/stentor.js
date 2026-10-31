@@ -23,11 +23,11 @@
 import { WORLD } from './world.js';
 
 export const STENTOR = {
-  mouth: { x: 292, y: 12 }, // off the right edge of the field: the oral pouch
+  mouth: { x: 292, y: 40 }, // off the right edge of the field: the oral pouch
   discR: 112, // the oral disc's radius: its rim (and the membranelles) reaches into the field
   pullR: 175, // the vortex reaches this far from the mouth
   catchR: 96, // drawn this close to the mouth, you are swept in
-  foot: { x: 196, y: WORLD.slabY + 6 }, // the holdfast on the biofilm
+  foot: { x: 204, y: WORLD.slabY + 6 }, // the holdfast on the biofilm
   wakeR: 230,
 };
 

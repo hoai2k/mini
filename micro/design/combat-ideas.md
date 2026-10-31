@@ -248,6 +248,171 @@ Use the real numbers:
 - Make each later bump work less well, because *Stentor* habituates. The player
   can't stand at the foot and spam it.
 
+### Lead a swarm (the owner's idea, designed as a feature)
+
+The owner's idea:
+
+> "leading a swarm would also be a great gameplay dynamic, for bacteria
+> collecting a swarm to battle with (by going around and finding and touching
+> allies) might be super cool"
+
+This is the strongest idea in the document. It gathers ideas 1–3 above
+(quorum shield, too big to eat, the coordinated escape run) into one system.
+
+#### The real basis
+
+| Fact | Label | Source |
+| --- | --- | --- |
+| **Quorum sensing:** cells release a signal molecule. When its concentration passes a threshold, which happens only when enough cells are close together, they switch on group behaviour such as toxin production. A quorum-sensing mutant made no toxin until the signal was added back. | [Observed] | C19 |
+| **Microcolonies resist grazers.** In *Pseudomonas aeruginosa* biofilms facing a surface-feeding flagellate, the cells formed grazing-resistant microcolonies. Biofilms grown without the predator did not. Quorum-sensing mutants made fewer and smaller microcolonies, and cells without flagella made none. | [Observed] | C28 |
+| **Mature biofilms poison grazers.** Older wild-type biofilms were acutely toxic to the flagellate, and quorum sensing drove those lethal factors. Microcolonies protect best early on. Toxins in mature biofilms work against a wider range of predators. | [Observed] | C28 |
+| **Swarming motility:** on surfaces, bacteria move as a dense group. The leading edge is made of **rafts** of aligned, heavily flagellated cells. Swarming needs more flagella, contact between cells and a surfactant. It starts only after a lag that depends on cell density, and the lag disappears if actively swarming cells are used. Swarms also tolerate antibiotics better than single cells, through their collective motion. | [Observed] | C29 |
+| **A ball of cells that swims as one:** multicellular magnetotactic prokaryotes (*Ca.* Magnetoglobus) are aggregates of cells whose flagella beat in coordination. They make sudden, coordinated escape runs along field lines. This is the closest real match to a magnetotactic hero leading a swarm. | [Observed] | C20 |
+| **Wolf-pack hunting** is real in *Myxococcus xanthus*. Groups of cells move together onto a prey colony and kill it from outside with antibiotics. When they reach the prey they synchronise their reversals ("rippling"), which keeps the pack on the prey patch. | [Observed] for *Myxococcus*; [Departure] for the hero | C30 |
+| ***Bdellovibrio* hunts alone** and has no such behaviour. It readily attacks biofilms: dense prey suits it. | Lone hunting [Observed]; biofilm attack [Observed] but not re-checked here | S93, C31 |
+
+**What departs from biology:** real bacteria don't follow a leader. Quorum
+sensing is a density switch, not a call to gather. Gathering through
+chemotaxis towards the signal is **[Unverified]** for these cells. "The player
+leads the swarm" is therefore the core **[Departure]**, and the game should say
+so plainly.
+
+#### The design
+
+**1. Recruiting (touch, plus a signal that snowballs).**
+
+- Solitary kin cells drift in the sediment: dim, the same colour as you,
+  wandering.
+- **Touch one (X bind) to recruit it.** It lights up and joins the flock.
+- Your swarm carries a **signal cloud**: a soft halo whose radius grows with
+  the swarm's size. Kin inside the halo turn and drift towards you, so
+  recruiting gets easier as you grow. At first you hunt for each cell; later,
+  stragglers come to you.
+- Show the **quorum gauge** as a brass ring that fills with density, not just
+  head count. A spread-out swarm of 20 cells is below quorum. A tight swarm of
+  12 is above it. Holding the group together is the skill.
+- Only kin answer (your colour). Other bacteria are scenery, food for grazers,
+  or rival swarms [Proposal; signal specificity is simplified].
+
+**2. Shape and movement (a flock).**
+
+- Members follow boids rules: separation (no overlap), alignment (match the
+  heading of their neighbours), cohesion (stay with the group), plus a pull
+  towards the leader (you).
+- LS steers the leader and the flock follows with a slight lag, so turns sweep
+  round like a school of fish.
+- Packing depends on size:
+  - **Loose cloud** (under 8 cells): members swirl round you.
+  - **Raft** (8–20): members line up in short parallel rows behind you, the
+    real swarming-edge rafts. A raft is steadier and slower to turn.
+  - **Ball** (20 or more, magnetotactic hero only): a tight sphere, like a
+    multicellular magnetotactic prokaryote. It swims along the field line by
+    itself (RS nudges the field direction) and turns slowly.
+- **B (reverse)** reverses the whole flock along its heading, as the real
+  magnetotactic reversal does.
+- **A (escape run)**, from the raft size up: a dash that only goes off at full
+  strength if the members are aligned. A neat flock gets a long run and a
+  scattered one a weak one. In co-op, every leader presses A within a short
+  window for the combined run (idea 3 above).
+
+**3. What the swarm can do, by size (thresholds are stand-ins).**
+
+| Size or state | Ability | Real basis | Label |
+| --- | --- | --- | --- |
+| 5 or more | **Slime shield.** A thin halo of slime round the flock. A grazer's bite on the swarm takes a member from the edge, not you. You are in the middle. | Biofilm matrix (EPS) and microcolony protection [C28] | Matrix as a shield [Proposal]; members dying in your place [Departure] |
+| 8 or more, in raft shape | **Vortex-proof raft.** *Stentor*'s pull drags a raft but can't swallow it. Holding B while caught anchors the raft (members grip the surface), and the vortex strips only edge members. A lone cell is pulled straight in. | Too big to swallow [S96]; microcolonies resist grazers [C28] | [Observed] principle; anchoring as a button [Proposal] |
+| Quorum gauge full | **Toxin burst (Y).** A purple shock ring. Grazers inside it recoil and retreat, losing all interest; small flagellates die. The charge builds only while the swarm **settles**: it holds still on a surface with B held for a few seconds, the "mature biofilm". The swarm then chooses between moving and arming. One burst empties the charge. | Quorum-gated toxins of mature biofilms [C19, C28] | [Observed] for *Chromobacterium* and *Pseudomonas*; **[Departure]** for a magnetotactic hero, so give it to a kin strain or label it |
+| 12 or more | **Overwhelm a patch.** Sweep the flock over a nutrient patch (the oxic band, a lump of detritus) to claim it: members spread out over it, and rival cells and small grazers are pushed off. Feeding there makes members divide (see "Losses and regrowth" below). In a *Myxococcus* side chapter, the pack swarms a prey colony and holds it with rippling (rhythmic B presses keep the pack on the patch). | Swarming over surfaces [C29]; wolf-pack predation [C30] | Patch claiming [Proposal]; prey swarming [Departure] for the hero, [Observed] for *Myxococcus* |
+
+**4. Battles with the swarm.**
+
+- **Surface-feeding flagellates** (small grazers) nibble the edges, taking
+  one cell at a time. A raft or ball shrugs them off, and a toxin burst kills
+  them. This is the real experiment in C28, so it should be the first fight
+  the player has with a swarm.
+- **Ciliates and amoebae**: ciliates pull with feeding currents and amoebae
+  engulf from the surface. A raft resists the current. An amoeba is slow, so
+  the swarm simply moves on.
+- ***Stentor* (the boss)**:
+  - **Phase 1:** the vortex pulls in stragglers. Keep the flock tight and in
+    raft shape, and anchor (B) at each pulse.
+  - **Phase 2:** settle in the lee of a sediment grain to charge the toxin,
+    while edge members are stripped.
+  - **Phase 3:** fire the burst at the mouth, or bump the foot. Either makes
+    *Stentor* contract (10–20 ms). Its long re-extension is the window to run
+    the flock past to the host cell.
+  - **Habituation:** a second bump works less well, so the toxin is the
+    reliable key.
+  - Contraction in response to a chemical is **[Unverified]**. The real
+    trigger in C23 is touch, so label the toxin's effect.
+- ***Bdellovibrio*** is the swarm's **counter-enemy**: it loves dense prey.
+  It darts into the flock and picks off a member from inside, and a tight
+  ball makes that easier. The answer is a reverse, or scattering (hold B
+  longer to loosen the flock). The swarm is the answer to grazers, and
+  scattering is the answer to the predatory bacterium. This is true to
+  biology and keeps the swarm from being the answer to everything.
+
+**5. Losses and regrowth.**
+
+- **Members are your health.** Each lost member dims and drifts off, or is
+  eaten on screen (a small version of the catch sequence).
+- If the leader is caught while the swarm has 5 or more members, control
+  passes to the nearest member, a short "new leader" flash [Departure], and
+  the swarm loses a few cells in the confusion. Below 5, the swarm scatters to
+  solitary kin, and you respawn alone to recruit again.
+- **Regrowth by division:** members feeding on a claimed patch divide. One
+  cell becomes two, with a visible pinch in the middle. Real division takes
+  hours, so it is compressed to seconds [Departure, labelled]. A ball might
+  split as a whole into two balls [Unverified for *Magnetoglobus*]: in co-op,
+  it can be offered as "split the swarm".
+
+**6. Multiplayer.**
+
+- **Each player leads a swarm**, in their own kin colour. When halos overlap,
+  a solitary cell joins whoever touches it first. There is no stealing of
+  members in co-op; versus play can allow it.
+- **Merging:** leaders touch and both hold X. The flocks blend into one swarm
+  with joint leadership: it follows the average of the leaders' sticks, and a
+  leader who pulls away hard drags a share of it along. A merged swarm reaches
+  quorum and the ball shape sooner, and its synchronised escape run is the
+  strongest move in the level.
+- **Splitting:** hold B and pull apart. Members go to the nearer leader.
+- **Roles:** one swarm settles and charges the toxin while another lures
+  *Stentor*'s pull, then they swap. Co-op split screen already splits along
+  the direction between players, which suits two flocks.
+
+**Scores**, on the same scale as the tables above:
+
+| Part | Fun | Fidelity | Cost | Score |
+| --- | --- | --- | --- | --- |
+| Core (recruit by touch, flock, raft as a block, members as health) | 3 | 2 | 2 | 12 |
+| With the quorum toxin and division | 3 | 2 | 1 | 6 |
+
+The formula underrates the swarm, because it is a level-defining system
+rather than a tweak. It absorbs the 27-point "too big to eat" and the
+18-point escape run. It is the top recommendation below.
+
+**Build order:**
+
+1. Flock and recruit (boids plus touch).
+2. Members as health, and raft blocking against the vortex.
+3. Flagellate grazers as the first enemies.
+4. Quorum gauge and toxin.
+5. Division.
+6. Merging in multiplayer.
+7. The *Stentor* rework.
+
+#### Does swarm-leading transfer to other worlds?
+
+| World | Version | Fidelity | Verdict |
+| --- | --- | --- | --- |
+| Phage | **Your burst is your swarm.** A burst releases about 100 phages, or about 1,000 under lysis inhibition [C27]. They become your lives, drifting out by Brownian motion, and you pick which one to follow next. Co-infection and multiplicity reactivation are the phage's real form of strength in numbers. You can't lead, because there is no motor. | High, with no leader | **Yes**: a natural fit for the phage's "odds" design |
+| Box mite | Shepherding the juvenile (idea 3 there) is herding on a small scale. A crowd of adults closing round juveniles is plausible, but not documented. | Medium | Keep it small, one to three juveniles |
+| Tardigrade | Gathering wandering tardigrades into a clump before the film dries (the huddle tun) [C9]. | Medium: the benefit is real, the gathering is not | Yes, as a short herding objective |
+| Springtail | Leading a mass of *Podura* across the film to confuse a strider [C2]. | Low: the protective effect is unverified | Only as a labelled departure |
+| *Paramecium* | Leading cells into a weak-acid ring [C18]. | Low | No; it doesn't make a fight |
+| Amoeba | — | — | No: amoebae are solitary |
+
 ---
 
 ## 6. T4-like phage

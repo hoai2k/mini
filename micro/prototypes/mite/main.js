@@ -11,9 +11,9 @@ import { createControls, createDash, hudControls, addInvertY } from '../shared/c
 import { createPredatorAI } from './predator.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { mountHud } from '../shared/hud.js';
-import { createSem, shared, MODES, CLS } from './sem.js';
+import { createSem, shared, MODES, CLS, gMaterial } from './sem.js';
 import { semTextures } from './textures.js';
-import { buildWorld, HALF } from './world.js';
+import { buildWorld, HALF, floorH } from './world.js';
 import { createMite, CFG, PRED, JUMP } from './mite.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
@@ -139,10 +139,11 @@ function placeCamera(dt) {
     // close in side-on to the catch: your body and the predator's chelicerae in frame;
     // once it eats, pull back and follow the predator with its meal
     const follow = ['eat', 'follow', 'fadeOut'].includes(capture.phase);
-    rig.target.lerp(follow ? _ct.copy(pred.center) : _ct.copy(mite.center).lerp(pred.center, 0.18), k);
+    const capC = cap.byBoss ? boss.center : pred.center;
+    rig.target.lerp(follow ? _ct.copy(capC) : _ct.copy(mite.center).lerp(capC, 0.18), k);
     const kc = dt ? 1 - Math.exp(-dt / 0.6) : 1;
     rig.hfw += ((follow ? 2000 : 1000) - rig.hfw) * kc;
-    const ax = Math.atan2(pred.center.z - mite.center.z, pred.center.x - mite.center.x);
+    const ax = Math.atan2(capC.z - mite.center.z, capC.x - mite.center.x);
     const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
     const side = Math.abs(wrap(ax + Math.PI / 2 - rig.yaw)) < Math.abs(wrap(ax - Math.PI / 2 - rig.yaw)) ? ax + Math.PI / 2 : ax - Math.PI / 2;
     rig.yaw += wrap(side - rig.yaw) * kc;
@@ -255,6 +256,7 @@ function resetLevel() {
   mite.place(0, 0, 0.3);
   recs().forEach((P, i) => { if (P.mite !== mite) { P.mite.place(Math.cos(i * 2.1) * 260, Math.sin(i * 2.1) * 260, 0.3); P.play.hurt = 0; P.play.stun = 0; } });
   predAI.reset(...PRED_START);
+  boss.reset();
   pred.st.chel = 0;
   play.hurt = 0; play.stun = 0;
   hunger.reset(pace.grace);
@@ -519,8 +521,12 @@ const closedNow = () => mite.mode === 'closed' || (mite.mode === 'closing' && mi
 function biteNow() {
   if (mite.mode !== 'walk' || play.act) return;
   const m = mite.mouth(new THREE.Vector3());
+  if (!capture.active && boss.bitePoints().some((p) => p.distanceTo(m) < 520)) {
+    Object.assign(play, { act: 'fight', actT: 0, actDur: 0.6, snapped: false, foe: 'boss' });
+    return;
+  }
   if (predOn && !capture.active && pred.center.distanceTo(m) < 600) {
-    Object.assign(play, { act: 'fight', actT: 0, actDur: 0.6, snapped: false });
+    Object.assign(play, { act: 'fight', actT: 0, actDur: 0.6, snapped: false, foe: 'pred' });
     return;
   }
   let best = null, bd = 130;
@@ -556,7 +562,8 @@ function stepAct(dt) {
   const m = mite.mouth(new THREE.Vector3());
   if (play.act === 'fight') {
     // turn square to it, rear (0-0.45), lunge and snap (0.45-0.7)
-    const to = _ct.subVectors(pred.center, mite.center).setY(0).normalize();
+    const foeC = play.foe === 'boss' ? boss.center : pred.center;
+    const to = _ct.subVectors(foeC, mite.center).setY(0).normalize();
     mite.st.fwd.lerp(to, Math.min(1, dt * 10)).setY(0).normalize();
     const rear = u < 0.45 ? Math.sin((u / 0.45) * Math.PI / 2) : Math.max(0, 1 - (u - 0.45) / 0.15);
     const lunge = u < 0.45 ? 0 : Math.sin(Math.min(1, (u - 0.45) / 0.4) * Math.PI);
@@ -565,7 +572,13 @@ function stepAct(dt) {
       play.snapped = true;
       mite.bite();
       audio.play('mite/bite', { volume: 1, rate: 0.85 });
-      if (predOn && !capture.active && pred.center.distanceTo(m) < 700) {
+      if (play.foe === 'boss' && !capture.active && boss.bitePoints().some((p) => p.distanceTo(m) < 640)) {
+        play.nips = (play.nips || 0) + 1;
+        if (rumbleOn) padOf().rumble(140, 0.5, 0.4);
+        const open = boss.open;
+        const gone = boss.bitten(1, cur.slot);
+        hud.toast(gone ? 'The pseudoscorpion has had enough: it backs into the moss' : `Bit ${open ? 'a pincer joint' : 'its pincer'}! It flinches`, 1500);
+      } else if (play.foe !== 'boss' && predOn && !capture.active && pred.center.distanceTo(m) < 700) {
         play.nips = (play.nips || 0) + 1;
         if (rumbleOn) padOf().rumble(140, 0.5, 0.4);
         wearDown('bite');
@@ -872,6 +885,8 @@ function tick(dt, inputs) {
     if (play.stun > 0) input = { ...input, mag: 0 };
     if (cs.active && cap.who === P) input = { ...input, mag: 0 };
     const ev = mite.update(dt, input);
+    if (play.dive && (ev.includes('land') || ev.includes('impact') || mite.mode === 'walk')) diveImpact();
+    if (play.rebound > 0 && (play.rebound -= dt) <= 0) mite.st.fwd.negate();
     soundTick(dt, ev);
     evs[P.slot] = ev;
   });
@@ -926,6 +941,24 @@ function tick(dt, inputs) {
   // each player's act (bite, eat, fight), and the last safe spot
   for (const P of recs()) withRec(P, () => { stepAct(dt); if (!held(P) && pred.center.distanceTo(mite.center) > 1200 && mite.mode === 'walk' && (P.safeT = (P.safeT || 0) + dt) > 1) { P.safeT = 0; P.safe = mite.center.clone(); } });
   for (const P of recs()) P.play.nip = false;
+  // the boss (boss.js): dormant before the axil until someone comes near after the calm opening
+  if (!(capture.active && cap.byBoss)) {
+    const bctx = { awake: pace.grace === 0 || hunger.state !== 'grace', players: recs().map((P) => {
+      const c = P.mite.center, f = new THREE.Vector3(1, 0, 0).applyQuaternion(P.mite.quat).setY(0).normalize();
+      const to = new THREE.Vector3(boss.st.x - c.x, 0, boss.st.z - c.z).normalize();
+      return { slot: P.slot, x: c.x, z: c.z, center: c.clone(), alive: !held(P), closed: withRec(P, closedNow), airborne: P.mite.airborne, facing: f.dot(to) > 0.5 };
+    }) };
+    for (const e of boss.update(dt, bctx)) {
+      const P = e.slot !== undefined ? pls[e.slot] : null;
+      if (e.type === 'wake') hud.toast('A pseudoscorpion lies in wait before the water! Watch for its pincers held open and still', 3000);
+      else if (e.type === 'tell') { for (const Q of recs()) if (Q.mite.center.distanceTo(boss.center) < 2600) withRec(Q, () => { if (rumbleOn) padOf().rumble(200, 0.12, 0); }); }
+      else if (['snap', 'sweep', 'step'].includes(e.type)) audio.play('mite/predator', { volume: 0.8, rate: 0.7 });
+      else if (e.type === 'grab' && P) withRec(P, () => startBossCapture());
+      else if (e.type === 'survived') hud.toast('Closed up: the pincer closes on a smooth capsule', 1600);
+      else if (e.type === 'miss') hud.toast('It missed: bite its pincer joints (X) while it recovers', 1500);
+      else if (e.type === 'retreat') hud.toast('The pseudoscorpion backs into the moss: the way is open', 2600);
+    }
+  }
   checkLandmarks();
   return evs;
 }
@@ -1011,7 +1044,10 @@ document.body.appendChild(banner);
 const CAP_LINES = { strike: 'Seized by a leg! Close up (B) to slip free', hold: 'Being pulled in: close up (B)!', eat: 'The predatory mite is eating you', follow: 'Eaten', fadeOut: 'Eaten', fadeIn: '' };
 function updateBanner() {
   let txt = '', hot = true;
-  if (capture.active) txt = CAP_LINES[capture.phase] || '';
+  gauge.style.display = boss.engaged ? 'flex' : 'none';
+  gauge.querySelector('i').style.width = `${(boss.resolve * 100).toFixed(0)}%`;
+  if (capture.active) txt = cap.byBoss && ['strike', 'hold'].includes(capture.phase) ? 'In its pincer! Close up (B), or scramble out (RT) now' : CAP_LINES[capture.phase] || '';
+  else if (boss.attacking) txt = boss.st.state === 'tell' ? 'Pincers open and still: get out of reach, or close up (B)' : 'It snaps!';
   else if (predOn && predAI.attacking) txt = 'It rears to strike! Close up (B), or jump (A)';
   else if (predOn && predAI.state === 'retreat') { txt = 'The predatory mite is running off'; hot = false; }
   else if (predOn && predAI.state === 'hunt') txt = `A predatory mite is hunting you${play.hurt ? ` (legs grabbed ${play.hurt}/3)` : ''}`;
@@ -1032,7 +1068,7 @@ const _vc = new THREE.Vector3();
 function drawFrame(dt) {
   // a caught player's view follows the predator with its meal
   const eating = capture.active && ['eat', 'follow', 'fadeOut'].includes(capture.phase);
-  split.update(recs().map((P) => ({ slot: P.slot, position: (eating && cap.who === P ? pred.center : P.mite.center).clone() })), { camera }, dt);
+  split.update(recs().map((P) => ({ slot: P.slot, position: (eating && cap.who === P ? (cap.byBoss ? boss.center : pred.center) : P.mite.center).clone() })), { camera }, dt);
   const k = split.views.length > 2 ? 0.55 : split.views.length > 1 ? 0.7 : 1;
   if (k !== splitK) { splitK = k; resize(); }
   const one = split.views.length === 1;
@@ -1118,7 +1154,14 @@ const api = {
     if (!multi()) rig.target.copy(P.mite.center);
     return true;
   },
-  fight, fightLog,
+  fight, fightLog, boss,
+  /** Testing: player `slot` near the boss's post, the calm over: it wakes. */
+  bossFight(slot = 0) { const P = pls[slot] || P1; pace.mode = 'Always'; hunger.reset(0); hunger.update(0.01); boss.reset(); predAI.reset(...PRED_START); pace.mode = 'Never'; const b = boss.post; P.mite.place(b.x + b.ux * 1100, b.z + b.uz * 1100, Math.atan2(b.uz, -b.ux)); rig.target.copy(P.mite.center); hunger.reset(0); hunger.update(0.01); },
+  /** Testing: face the boss's nearest pincer joint, within bite reach. */
+  bossBite(slot = 0) { const P = pls[slot] || P1; const j = boss.bitePoints()[0]; if (!j) return; const c = P.mite.center; const v = new THREE.Vector3(c.x - j.x, 0, c.z - j.z).normalize(); P.mite.place(j.x + v.x * 330, j.z + v.z * 330, Math.atan2(v.z, -v.x)); },
+  impact(slot = 0) { const P = pls[slot] || P1; return { last: P.play.lastImpact || null, pounces: P.play.pounces || 0, mode: P.mite.mode, dive: !!P.play.dive, stam: P.play.stam, scr: !!P.play.scr }; },
+  /** Testing: jump player `slot` toward (x, z) (it faces there first). */
+  jumpAt(slot, x, z) { const P = pls[slot] || P1; const c = P.mite.center; P.mite.place(c.x, c.z, Math.atan2(-(z - c.z), x - c.x)); P.mite.jump(); },
   /** Testing: the predator comes for player `slot`, head to head, hungry and hunting (it winds up next). */
   setFoe(_k, slot = 0) {
     const P = pls[slot] || P1;

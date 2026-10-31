@@ -195,7 +195,7 @@ export function createDrawer(world) {
     // the oral disc's rim: a giant-cell edge facing the field (left)
     S.edge(M.x - R, M.y, Math.PI / 2, R * 2.1, 140, 2.5, 6.1, blue);
     // the body: from below the disc down to the foot on the biofilm
-    const fx = B.foot.x, fy = B.foot.y, bx = M.x - R * 0.3, by = M.y - R * 0.9;
+    const fx = B.foot.x, fy = B.foot.y, bx = M.x - R * 0.4, by = M.y - R * 0.85;
     const bodyA = Math.atan2(fy - by, fx - bx), bodyL = Math.hypot(fx - bx, fy - by);
     S.edge((fx + bx) / 2 - Math.sin(bodyA) * 6, (fy + by) / 2 + Math.cos(bodyA) * 6, bodyA + Math.PI, bodyL * (1 - 0.3 * c), 60, 2, 2.2, blue);
     // stentorin stripes: rows of blue granules along the body
