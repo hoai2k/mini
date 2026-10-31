@@ -25,6 +25,14 @@ export const ASSETS = {
     "file": "assets/cards/bacterium.webp",
     "status": "delivered"
   },
+  "MP-U07": {
+    "file": "assets/cards/phage.webp",
+    "status": "requested"
+  },
+  "MP-U08": {
+    "file": "assets/cards/zoom.webp",
+    "status": "requested"
+  },
   "MP-M01": {
     "file": "assets/mite/sem-moss-leaf.webp",
     "status": "delivered"
@@ -116,6 +124,18 @@ export const ASSETS = {
   "MP-B04": {
     "file": "assets/bacterium/magnetosomes.webp",
     "status": "delivered"
+  },
+  "MP-V01": {
+    "file": "assets/phage/envelope.webp",
+    "status": "requested"
+  },
+  "MP-V02": {
+    "file": "assets/phage/water.webp",
+    "status": "requested"
+  },
+  "MP-V03": {
+    "file": "assets/phage/envelope-section.webp",
+    "status": "requested"
   },
   "MP-R01": {
     "file": "assets/reference-sheets/springtail.webp",
