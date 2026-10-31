@@ -497,6 +497,21 @@ GROUPS.append(
 )
 
 
+# Play-testing, 31 October 2026: the Dark Pools' falling stalactites were
+# drawn as plain shapes and looked out of place against the painted cavern.
+GROUPS.append(
+    ('Falling stalactites in the dark pools', 'Requested 31 October 2026: in the cavern route (Act IV, the Dark Pools) stalactites hang over the walk, shiver when the prince comes near and fall, shattering on the rock. They are drawn as flat grey triangles meanwhile; each should look painted into the cavern cloth (cavern.webp, attach it).', [
+        (f'cavern-stalactite{t}', f'A hanging stalactite{" (tinted)" if t else ""}', 120, 280, 'top centre (where it hangs from the ceiling)', TINTED if t else SPRITE,
+         'One long stalactite of pink and grey cavern rock exactly in the painting style and colours of cavern.webp (attach it): a lump of the cavern ceiling across the top of the canvas, about 110 px wide and 40 px deep, and from its middle the stalactite tapering down to a sharp, wet point at the bottom edge, about 48 px wide at its root, ridged and banded, a drop of water at its tip. Centred. Nothing but the rock: no background, no glow.', None)
+        for t in ('', '-tinted')
+    ] + [
+        (f'cavern-stalactite-broken{t}', f'A shattered stalactite on the rock{" (tinted)" if t else ""}', 180, 60, 'bottom centre (on the ground)', TINTED if t else SPRITE,
+         'The same stalactite (cavern-stalactite.webp, attach it) fallen and shattered on the cavern floor: four or five broken lengths and shards of the pink and grey rock in a low heap, its point snapped off, a little grit, in the painting style of cavern.webp. Seen from the front; the lowest pieces on the bottom edge. Nothing but the rock: no floor, no shadow.', None)
+        for t in ('', '-tinted')
+    ]),
+)
+
+
 def ids():
     return [a for _, _, items in GROUPS for a in items]
 
