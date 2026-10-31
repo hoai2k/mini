@@ -1,4 +1,5 @@
 import { walkFrame } from '../walking.js';
+import { CREDITS, finaleFrame } from '../finale.js';
 // Drawing for the film edition's Act V and Act VI (act5film.js). The climbs,
 // the burning interior's floors, connectors and hazards, and the carry reuse
 // Act V's drawing (act5-art.js); the sea gap, the tower wall, the tower's
@@ -235,6 +236,7 @@ export function drawBurning(k, st, t) {
 }
 
 export function drawOverBurning(k, st) {
+  if (st.phase === 'finale') rollingCredits(k, st.phaseT);
   if (st.defeatT != null) k.wash('#2a1424', 0.55 * clamp(st.defeatT / FILM_T.defeat, 0, 1));
   if (st.phase === 'iris') k.iris(640, 300, 760 * (1 - easeInOut(st.phaseT / FILM_T.iris)));
   if (st.status === 'won') k.iris(640, 300, 0);
@@ -251,7 +253,7 @@ export function onEventBurning(k, e, st) {
   if (e.type === 'swordSwing') return;
   if (e.type === 'barrelFall') { k.flash(0.5); k.shake(0.6); k.burst(1000, 610, '#eef3ea', 40, 'drop'); k.text('Into the whirlpool!', 640, 240, true); return; }
   if (e.type === 'petal') { k.burst(e.x, e.y, '#f3c6dc', 8, 'sparkle'); return; }
-  if (e.type === 'ascend') { k.flash(0.6); k.burst(640, 480, '#fff2b0', 50, 'sparkle'); return; }
+  if (e.type === 'ascend') { k.flash(0.6); k.burst(640, 480, '#fff2b0', 120, 'sparkle'); return; }
   if (e.type === 'witchReturns') { k.flash(0.4); return; }
   if (e.type === 'shutterSmash') { k.burst(HOUSE.shutterX, HOUSE.shutterY, '#fff2b0', 22, 'sparkle'); k.text("Aurora's lamp!", HOUSE.shutterX, HOUSE.shutterY - 90, true); return; }
   if (e.type === 'stoneThrow') { k.text("Aurora's lamp!", st.p.x, st.p.y - 130); return; }
@@ -593,7 +595,41 @@ function apotheosis(k, st, t) {
   princeOnFoot(k, w, 166);
   c.restore();
   if (st.riseT == null && st.phaseT < 7) hint(k, 'Walk with Azurine into the light beneath Aurora');
-  if (rise > 0) card(k, 'The Kingdom of the Fairies', 'The end', clamp(st.riseT - 1, 0, 1));
+  if (rise > 0) celebrationSparkles(k, st.phaseT);
+  if (rise > 0 && st.phase !== 'finale') card(k, 'The Kingdom of the Fairies', 'The end', clamp(st.riseT - 1, 0, 1));
+}
+
+function celebrationSparkles(k, time) {
+  const c = k.c;
+  c.save(); c.shadowColor = '#fff2b0'; c.shadowBlur = 5;
+  for (let i = 0; i < 72; i++) {
+    const p = ((time * (0.09 + (i % 5) * 0.008) + i * 0.618) % 1 + 1) % 1;
+    const x = 155 + ((i * 137) % 970) + Math.sin(time * 1.4 + i) * 14;
+    const y = 650 - p * 540;
+    c.globalAlpha = Math.sin(p * Math.PI) * (0.45 + 0.5 * Math.abs(Math.sin(time * 3 + i)));
+    c.fillStyle = k.col(i % 3 ? '#fff2b0' : '#ffffff');
+    k.star(x, y, 1.5 + (i % 4) * 0.8);
+  }
+  c.restore();
+}
+
+function rollingCredits(k, time) {
+  const f = finaleFrame(time);
+  if (f.roll <= 0 || f.roll >= 1) return;
+  const c = k.c;
+  c.save(); c.beginPath(); c.rect(140, 100, 1000, 530); c.clip();
+  c.fillStyle = `rgba(22,9,19,${0.6 * Math.min(1, f.roll * 15, (1 - f.roll) * 15)})`;
+  c.fillRect(140, 100, 1000, 530);
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.shadowColor = '#150b12'; c.shadowBlur = 8;
+  for (const line of CREDITS) {
+    const y = f.creditsY + line.y;
+    c.globalAlpha = clamp(Math.min((y - 100) / 55, (630 - y) / 55), 0, 1);
+    c.fillStyle = k.col(line.title ? '#f3c6dc' : '#fff2d9');
+    c.font = `${line.title ? '' : '600 '}${line.size}px ${line.title ? 'Yesteryear, cursive' : '"Josefin Sans", sans-serif'}`;
+    c.fillText(line.text, 640, y);
+  }
+  c.restore();
 }
 
 export { T, easeOut };

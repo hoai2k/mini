@@ -26,9 +26,13 @@ and delivered as the period pieces.
 | `period-harmonium` | Harmonium and piano: slow, enchanted | Grotto, whale (`deep`) | 1–3 min | delivered |
 | `period-tender` | Solo pianist: slow salon romance | Cliff, endings, playbill (`tender`) | 1–3 min | delivered |
 | `victoryStinger` | Café-concert ensemble: heroic victory flourish | Once, when the prince beats the witch (Act VI) | about 7 s | delivered (generated, ElevenLabs Music) |
-| `period-wedding` | Café-concert ensemble: victorious royal wedding march into a jubilant grand waltz | The wedding street and the apotheosis (`wedding`) | 2–3 min | **requested** |
+| `period-wedding` | Café-concert ensemble: victorious royal wedding march into a jubilant grand waltz | The wedding street and the apotheosis (`wedding`) | 1:59 | delivered — “Procession Royale” |
 
-## Requested
+## Wedding delivery, 31 October 2026
+
+“Procession Royale” was supplied by the user and installed as `assets/audio/period-wedding.mp3`, normalized to -12.23 LUFS (measured true peak -1.20 dBTP after MP3 encoding). The original file in Downloads is unchanged. The wedding recording continues through the ascent and closing credits; the final eight-second scene fade also fades the score.
+
+## Original wedding brief
 
 - **`period-wedding`.** A small 1900s Parisian café-concert ensemble (violin,
   cornet, clarinet, cello and piano), playing as grandly as it can, for the
@@ -42,10 +46,7 @@ and delivered as the period pieces.
   small hall. About 76 BPM. Instrumental, no drums, no synths, no modern
   harmony.
 
-  Save it as `assets/audio/period-wedding.mp3` (or drop it in `intake/`);
-  normalise it to about -12 LUFS like the others and set its manifest entry
-  (`audio.period['period-wedding']`, mood `wedding`) to delivered. Until then
-  the wedding plays `period-band` (the `revel` march).
+  Delivered as `assets/audio/period-wedding.mp3`, mood `wedding`.
 
 ## Delivered
 

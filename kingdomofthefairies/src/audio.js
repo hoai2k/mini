@@ -28,6 +28,7 @@ export function createAudio() {
   const sfxBuf = {};
   let sfxLoading = null;
   const vol = { music: 0.7, sfx: 0.8 };
+  let musicLevel = 1;
   // The Sound button, and whether the page is away (hidden or unfocused).
   let soundOn = true, away = false;
 
@@ -72,7 +73,7 @@ export function createAudio() {
   function apply() {
     if (!ac) return;
     master.gain.setTargetAtTime(soundOn && !away ? 1 : 0, ac.currentTime, 0.04);
-    music.gain.value = vol.music * 0.55;
+    music.gain.value = vol.music * 0.55 * musicLevel;
     sfx.gain.value = vol.sfx * 0.8;
   }
 
@@ -422,6 +423,16 @@ export function createAudio() {
     // Register delivered effects ({ name: url }); decoded on the first gesture.
     setSfx(urls) { sfxUrls = { ...urls }; if (ac) loadSfx(); },
     setVolumes(m, s) { vol.music = m; vol.sfx = s; apply(); },
+    // The finale uses its game clock, so pausing also pauses the long fade.
+    // This separate multiplier preserves the player's music-volume setting.
+    setMusicLevel(level) {
+      level = Math.max(0, Math.min(1, level));
+      if (level === musicLevel) return;
+      const returning = level > musicLevel;
+      musicLevel = level;
+      if (ac) music.gain.setTargetAtTime(vol.music * 0.55 * level, ac.currentTime, returning ? 0.8 : 0.04);
+    },
+    musicLevel: () => musicLevel,
     setSound(on) { soundOn = on; apply(); },
     // For checks: what the master is aimed at.
     state() { return { sound: soundOn, away, master: soundOn && !away ? 1 : 0 }; },

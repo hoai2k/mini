@@ -383,6 +383,11 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     if (fx.texts.length) { ctx.save(); camApply(ctx); floatingTexts(ctx); ctx.restore(); camOn = false; }
     if (view.card) drawCard(ctx, view.card, t);
     filmLook(ctx, film, t, grain);
+    // The closing fade covers both print passes, credits and film grain.
+    if (view.fade > 0) {
+      ctx.save(); ctx.fillStyle = `rgba(0,0,0,${Math.min(1, view.fade)})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.restore();
+    }
   }
 
   // ------------------------------------------------------------ scene

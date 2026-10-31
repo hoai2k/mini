@@ -6,6 +6,7 @@ import { loadSave, writeSave, carryInto, recordResult } from './save.js';
 import { editorWanted, openEditor } from './editor.js';
 import { createRenderer, loadAssets, richText, setTouchNames } from './art.js';
 import { createAudio } from './audio.js';
+import { finaleFrame } from './finale.js';
 import { createInput } from './input.js';
 import { createTouch, isTouchDevice } from './touch.js';
 import { createFit } from './fit.js';
@@ -519,6 +520,7 @@ function currentView() {
     curtainCall: S.mode === 'curtaincall' ? Math.min(1, S.modeT / 1.4) : 0,
     scene: S.mode === 'playbill' ? drawPlaybill : S.mode === 'curtaincall' ? drawCurtainCall : null,
     cam: S.act && S.state && camera.view.z > 1 ? camera.view : null,
+    fade: FILM_ED && S.state?.phase === 'finale' ? finaleFrame(S.state.phaseT).fade : 0,
   };
 }
 
@@ -590,6 +592,7 @@ function update(dt, i) {
   if (S.mode === 'title') updateLoadbar();
   const mood = musicMood();
   if (mood === 'song') audio.returnToSong(); else audio.setMood(mood);
+  audio.setMusicLevel(FILM_ED && S.state?.phase === 'finale' ? finaleFrame(S.state.phaseT).music : 1);
   // The score and the sea play throughout, as before. Optionally (?crackle=on)
   // the score waits for play and an old record's crackle fills the menus (the
   // title, playbill, act cards, pause and dialogs); not in Widow's Bay.
@@ -712,6 +715,14 @@ function actWon() {
   save.scenes = { ...(save.scenes || {}), [slot]: (S.act.scenes?.length || 1) - 1 };
   recordResult(save, slot, S.state.result || {}, ACTS.length);
   if (S.actIndex + 1 < ACTS.length) return beginAct(S.actIndex + 1);
+  // The film finale has already held the wedding score, rolled its credits
+  // and faded to black. Do not replace it with the older six-second call.
+  if (FILM_ED) {
+    // Stop the silent wedding source before restoring the menu mix, so it
+    // cannot swell back up during the crossfade to the playbill's score.
+    audio.stopMusic(); showPlaybill(); audio.setMood('tender'); audio.startMusic();
+    return;
+  }
   // The whole play is done: curtain call, then the playbill.
   S.mode = 'curtaincall'; S.modeT = 0; S.act = null; S.state = null; S.curtainTarget = 1;
   audio.play('done');
@@ -719,6 +730,13 @@ function actWon() {
 }
 
 function handleEvent(e) {
+  // Reaching the light completes the game even if the player closes the
+  // page during the credits. The later actWon call is idempotent.
+  if (FILM_ED && e.type === 'finale') {
+    const slot = S.actIndex + 1;
+    save.scenes = { ...(save.scenes || {}), [slot]: S.act.scenes.length - 1 };
+    recordResult(save, slot, { keepsakes: {}, score: S.state.score, pearls: S.state.pearls, ending: 'wedding' }, ACTS.length);
+  }
   // an event may name its own sound and loudness (e.sound, e.gain)
   audio.play(e.sound || e.type, e.gain ?? 1);
   renderer.onEvent(e, currentView());

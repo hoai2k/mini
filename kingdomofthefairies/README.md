@@ -61,6 +61,11 @@ acts. The first four keep their stage machinery and rules, recast:
    along the wedding street to the gate, and into the light of the apotheosis.
    Every scene is played: nothing is timed to the beat or shown as a still.
 
+The final ascent opens a 45-second closing sequence: five seconds of sparkling
+celebration, a 30-second bottom-to-top credit roll, an eight-second fade of the
+scene and music together, and a brief black hold. “Procession Royale” continues
+from the wedding through the credits. Completion is saved before the roll.
+
 The film cast, props and sets use the delivered production art; anything still
 requested is drawn by an interim cut-out from the planning sheets (`assets/interim/`, `assets/tableaux/`, made by
 `design/source/cut_planning.py`) until the production requests arrive.
@@ -148,7 +153,7 @@ fills the title, playbill, act cards and pause with an old record's crackle
 (`sfx/record.mp3` from `build_sfx.py`, with a synthesized fallback in
 `src/audio.js`). It is off by default; Widow's Bay never uses it.
 
-[Music](design/music.md) describes the five delivered period tracks and their
+[Music](design/music.md) describes the six delivered period tracks and their
 scene moods. New effects use `design/source/build_sfx.py`; its key comes from
 `ELEVENLABS_API_KEY` and must never be committed.
 

@@ -22,8 +22,9 @@ for (const [search, edition] of [['', 'film'], ['?qa', 'film'], ['?widowsbay', '
   assert.equal(!!result.slots['band-trio'], legacy);
   assert.equal(Object.keys(result.slots).some(id => id.startsWith('band-')), legacy);
   assert.equal(result.slots.logo.file, legacy ? 'logo.webp' : 'fairies-title.webp');
-  // five delivered period pieces (the wedding song is requested: music-requests.md)
-  assert.equal(Object.values(result.audio.period).filter((v) => v.status === 'delivered').length, 5);
+  // The supplied wedding recording joins the five existing period pieces.
+  assert.equal(Object.values(result.audio.period).filter((v) => v.status === 'delivered').length, 6);
+  assert.deepEqual(result.audio.period['period-wedding'].moods, ['wedding']);
   assert.ok(result.slots['sailor-stand']);
   // film-only slots stay out of the query edition; interim cut-outs load in the film edition
   assert.equal(Object.values(result.slots).some((sl) => sl.edition === 'film'), !legacy);

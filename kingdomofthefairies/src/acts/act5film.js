@@ -18,6 +18,7 @@ import act5, {
 import { createWall, stepWall, jolt } from './climb.js';
 import { clamp, lerp } from './shared.js';
 import * as art from './act5film-art.js';
+import { finaleFrame } from '../finale.js';
 
 // ---------------------------------------------------------------- the swim
 // World x along the sea gap, from the foot of the cliff (0) to the tower's
@@ -367,9 +368,7 @@ export const actBurning = {
   sub: 'The witch’s demons set the tower alight.\nClimb to Azurine and carry her out before it falls.',
   action: 'A: leap',
   scenes: BURNING_SCENES,
-  // the wedding has its own song (period-wedding); until it is delivered the
-  // shell plays the revel march for it
-  mood: (st) => (st.phase === 'wedding' || st.phase === 'apotheosis' || st.phase === 'iris' ? 'wedding' : 'storm'),
+  mood: (st) => (['wedding', 'apotheosis', 'finale', 'iris'].includes(st.phase) ? 'wedding' : 'storm'),
   touchLive: (st) => ['house', 'quay'].includes(st.phase) || (st.phase === 'barrel' && st.barrel?.fallT == null),
   // the second button swings the sword in the witch's last stand
   touchVerbB: (st) => (st.phase === 'barrel' && st.duel && st.duel.state !== 'trap' ? 'Strike' : ''),
@@ -400,6 +399,7 @@ export const actBurning = {
     else if (st.phase === 'barrel') { if (!st.barrel && !st.duel) startBarrel(st); stepBarrel(st, dt, input); }
     else if (st.phase === 'wedding') stepWedding(st, dt, input);
     else if (st.phase === 'apotheosis') stepApotheosis(st, dt, input);
+    else if (st.phase === 'finale' && finaleFrame(st.phaseT).done) winFilm(st, { ending: 'wedding' });
     else if (st.phase === 'iris' && st.phaseT >= FILM_T.iris) winFilm(st, { ending: 'wedding' });
     // Act V's house checkpoints are numbered as its own scenes; renumber.
     if (st.checkpoint && st.checkpoint !== cpBefore && !st.checkpoint.film) {
@@ -434,6 +434,7 @@ export const actBurning = {
     if (e.type === 'wedding') return 'The wedding. Walk Azurine along the street to the castle gate; catch the falling petals.';
     if (e.type === 'apotheosis') return 'Walk with Azurine to the light beneath Aurora.';
     if (e.type === 'ascend') return 'The Kingdom of the Fairies.';
+    if (e.type === 'finale') return 'The end. Credits: principal game designer Hoai Nguyen; after Le Royaume des fées by Georges Méliès; wedding theme, Procession Royale. Thank you for playing.';
     return null;
   },
 
@@ -609,7 +610,7 @@ function stepApotheosis(st, dt, input) {
   const w = st.w;
   if (st.riseT != null) {
     st.riseT += dt;
-    if (st.riseT >= FILM_T.rise) setPhase(st, 'iris');
+    if (st.riseT >= FILM_T.rise) { setPhase(st, 'finale'); st.events.push({ type: 'finale' }); }
     return;
   }
   walk(w, dt, input, { y: APOTH.y, x0: APOTH.x0, x1: APOTH.x1 });

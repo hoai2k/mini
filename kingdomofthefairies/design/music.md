@@ -15,10 +15,14 @@ original score for the silent film. Keep the existing stage-foley effects.
 | `period-harmonium` | Sea and Grotto Waltz: harmonium/piano, 2:05, C minor | Grotto and whale (`deep`) |
 | `period-storm` | The Shipwreck: piano agitato, 2:00, C minor | Wreck, storm and fire |
 | `period-tender` | Tender Evening: salon romance, 3:00, D minor/F major | Cliff, endings and playbill |
+| `period-wedding` | Procession Royale: supplied recording, 1:59 | Wedding, apotheosis and rolling credits (`wedding`) |
 
 Files are in `assets/audio/`, with delivery metadata in `assets/manifest.json`.
-The prompts, and the pieces still requested (the wedding song), are in
+The prompts and delivery notes are in
 [music-requests.md](music-requests.md).
+The wedding recording continues without a restart as the credits roll. The
+final tableau and music share an eight-second fade; pausing freezes that
+closing clock. The menu score returns softly after the black hold.
 The scene mood chooses a ready recording and crossfades when needed. Recordings
 load sequentially after audio unlock; playback starts with the first ready
 piece and follows the current mood as more pieces arrive. A failed piece is

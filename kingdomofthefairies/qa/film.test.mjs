@@ -14,6 +14,7 @@ import { CLIMB, terrainAt } from '../src/acts/climb.js';
 import { CLIMB_MAPS } from '../src/acts/climb-map.js';
 import act4 from '../src/acts/act4.js';
 import { createCavern, stepCavern, surfaces, EXIT_X } from '../src/acts/act4cavern.js';
+import { FINALE_END } from '../src/finale.js';
 import { HOOKS } from '../src/acts/act4.js';
 
 let n = 0;
@@ -410,6 +411,10 @@ test('Act VI: out on the cliff, push the barrel over, walk the wedding street an
   run(actBurning, st, 20, () => ({ moveX: 1 }), (s) => s.phase !== 'wedding');
   assert.equal(st.phase, 'apotheosis');
   run(actBurning, st, 20, (s) => ({ moveX: s.w.x < APOTH.mark + 35 ? 1 : 0 }));
+  assert.equal(st.phase, 'finale', 'the final tableau holds for the rolling credits');
+  assert.equal(st.status, 'play', 'the ending is not cut short by the old iris');
+  assert.equal(actBurning.mood(st), 'wedding');
+  run(actBurning, st, FINALE_END + 1);
   assert.equal(st.status, 'won', st.phase);
   assert.equal(st.result.ending, 'wedding');
 });
