@@ -11,6 +11,7 @@ import { drawPose, CREW_OF } from '../pose.js';
 import { drawMovement, whalePose } from './sailor-motion.js';
 import { walkPose } from '../walking.js';
 import { cavernScene, cavernOver, cavernEvent } from './act4cavern-art.js';
+import { camX as cavernCamX } from './act4cavern.js';
 
 const REV = [
   { id: 'reveller-yellow', col: '#e3c13b' },
@@ -26,6 +27,14 @@ export function draw(k, st, t) {
   if (st.phase === 'shore' || st.phase === 'iris' || st.status === 'won') return shoreScene(k, st, t);
   belly(k, st, t);
   if (st.phase === 'throat') k.wash('#fff4dc', 0.92 * easeInOut(st.phaseT / OUTRO.throat));
+}
+
+// The mobile camera's focus (src/camera.js): the player's middle, stage px.
+export function focus(st) {
+  if (st.cv) { const s = st.cv.s; return { x: s.x - cavernCamX(st.cv), y: s.y - 60 }; }
+  const s = st.s, cam = st.cam, x = s.x - cam.x - PIVOT.x, y = s.y - 60 - cam.y - PIVOT.y;
+  const co = Math.cos(st.tilt || 0), si = Math.sin(st.tilt || 0);
+  return { x: PIVOT.x + x * co - y * si, y: PIVOT.y + x * si + y * co };
 }
 
 export function drawOver(k, st) {

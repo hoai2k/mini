@@ -311,7 +311,7 @@ export const actTower = {
     return null;
   },
 
-  draw: art.drawTower, drawOver: art.drawOverTower, onEvent: art.onEventTower,
+  focus: art.focusTower, draw: art.drawTower, drawOver: art.drawOverTower, onEvent: art.onEventTower,
 };
 
 function lostText(st) {
@@ -437,7 +437,7 @@ export const actBurning = {
     return null;
   },
 
-  draw: art.drawBurning, drawOver: art.drawOverBurning, onEvent: art.onEventBurning,
+  focus: art.focusBurning, draw: art.drawBurning, drawOver: art.drawOverBurning, onEvent: art.onEventBurning,
 };
 
 // ---------------------------------------------------------------- walking scenes

@@ -36,6 +36,8 @@ export default {
   step(state, dt, input),            // dt ≤ 0.05 s
   hud(state) → spec | null,
   announce(event) → string | null,   // optional: screen-reader line
+  focus(state) → { x, y } | null,    // optional: the player's middle on the stage,
+                                     // for the mobile camera (src/camera.js); null = whole stage
   draw(kit, state, t),               // the stage, inside the frame
   drawOver(kit, state, t),           // optional: over frame and HUD (irises)
   onEvent(kit, event, state),        // optional: particles, flashes
@@ -171,7 +173,14 @@ x 150–1130, y 60–650. The floor band below 650 carries the HUD.
 | `kit.burst(x, y, hex, n)`, `kit.text(str, x, y, big?)` | particles and floating text (call from `onEvent`, never from `draw`) |
 | `kit.flash(v)`, `kit.shake(v)` | screen flash and shake (from `onEvent`) |
 | `kit.wash(hex, alpha)` | a tint over the whole stage, such as the pink shore or the red fire |
-| `kit.iris(x, y, r)` | black everywhere outside a circle |
+| `kit.iris(x, y, r)` | black everywhere outside a circle (stage coordinates, mapped through the mobile camera) |
+| `kit.flat(f)` | run `f()` fixed to the screen rather than the zoomed stage: for instructions or gauges an act paints at set places from `draw` |
+
+**The mobile camera.** On phones the shell zooms `draw` (and particles and
+`kit.text`) toward `focus(state)` while the scene is in the player's hands
+(`touchLive`). The frame, HUD, `drawOver` and `k.over` captions are not
+zoomed. Anything in `draw` that belongs at a fixed place on the screen goes
+through `kit.flat`.
 
 **Art.** Use the art ids from `design/image-requests.md` Part C, at the
 sizes given there halved (requests are at 2× stage pixels). Every id gets a

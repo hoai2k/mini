@@ -4,6 +4,7 @@ import { drawPose, CREW_OF } from '../pose.js';
 // of new art has a procedural stand-in until its file is delivered (ids are
 // in design/image-requests.md, Part C2).
 import { LANTERNS, ENDING, SPOTS } from './act1.js';
+import { ROWS, rowPos } from '../board.js';
 import { clamp, easeOut, easeInOut, beatPhase } from './shared.js';
 
 // The deck set as delivered (drawn 1280x500 with its foot at the deck line,
@@ -44,6 +45,14 @@ export function draw(k, st, t) {
   }
   if (ph === 'wreck') return wreck(k, st, pt, t);
   if (ph === 'sink' || ph === 'iris') return sinking(k, st, ph === 'sink' ? pt : ENDING.sink + pt, t);
+}
+
+// The mobile camera's focus (src/camera.js): the player's middle, stage px.
+export function focus(st) {
+  if (st.phase !== 'voyage') return null;
+  const s = st.board.ship, rp = rowPos(s), r0 = Math.floor(rp), r1 = Math.min(2, r0 + 1), f = rp - r0;
+  const y = ROWS[r0].y + (ROWS[r1].y - ROWS[r0].y) * f, scale = ROWS[r0].scale + (ROWS[r1].scale - ROWS[r0].scale) * f;
+  return { x: s.x, y: y - 70 * scale };
 }
 
 export function drawOver(k, st) {

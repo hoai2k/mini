@@ -193,6 +193,20 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   // loaded (FILM_CAST in theme.js, plus the act's own `cast`).
   let cast = {};
   const overQueue = [];
+  // The mobile camera (main.js): { z, x, y } zooms the act's stage z times
+  // about stage point (x, y). Only the act's own drawing, its particles and
+  // floating texts go through it; the frame, curtains, HUD, captions, cards
+  // and drawOver stay where they are. null or z = 1 is the whole stage.
+  let cam = null, camOn = false, camBase = null;
+  const camActive = () => !!cam && cam.z > 1.0005;
+  function camApply(c) {
+    camOn = camActive();
+    if (!camOn) return;
+    camBase = c.getTransform();
+    c.translate(640, 360); c.scale(cam.z, cam.z); c.translate(-cam.x, -cam.y);
+  }
+  // Stage point (x, y) as it shows through the camera.
+  const camPoint = (x, y) => (camActive() ? { x: 640 + (x - cam.x) * cam.z, y: 360 + (y - cam.y) * cam.z, s: cam.z } : { x, y, s: 1 });
   // The prince's walk: the delivered walk-a/walk-b pairs barely move the legs
   // (and the court pair changes costume), so walking uses the matched stride
   // frames (image requests F10) when delivered, and until then alternates
@@ -324,6 +338,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
 
   // view = { board, curtain(0 closed..1 open), card, film: 'full'|'gentle'|'off', t }
   function render(view) {
+    cam = view.cam || null;
     extraAnimations = view.extraAnimations === true;
     tinted = view.tinted === true;
     const { t, film } = view;
@@ -365,7 +380,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     ctx.restore();
 
     if (fx.flash > 0) { ctx.fillStyle = `rgba(255,250,230,${fx.flash * 0.55})`; ctx.fillRect(0, 0, 1280, 720); }
-    if (fx.texts.length) floatingTexts(ctx);
+    if (fx.texts.length) { ctx.save(); camApply(ctx); floatingTexts(ctx); ctx.restore(); camOn = false; }
     if (view.card) drawCard(ctx, view.card, t);
     filmLook(ctx, film, t, grain);
   }
@@ -378,10 +393,13 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     const t = view.t, st = view.state, act = view.act;
     cast = FILM ? { ...FILM_CAST, ...(act?.cast || {}) } : PARTIAL ? PARTIAL_CAST : {};
     kit.c = c; kit.t = t;
+    c.save();
+    if (!view.scene && act && st) camApply(c);
     if (view.scene) view.scene(kit, t); // shell scenes: playbill, curtain call
     else if (act && st) act.draw(kit, st, t);
     else { backdrop(c, null, t); for (let r = 0; r < 3; r++) waves(c, r, t * 60, t); }
     particles(c);
+    c.restore(); camOn = false;
     const spec = act && st && view.hud && act.hud ? act.hud(st) : null;
     if (img('proscenium')) { proscenium(c, view.curtain, spec?.wind, t); footlights(c, t); }
     else { footlights(c, t); proscenium(c, view.curtain, spec?.wind, t); }
@@ -1184,9 +1202,13 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     flash: (v = 1) => { fx.flash = Math.max(fx.flash, v); },
     shake: (v = 0.4) => { fx.shake = Math.max(fx.shake, v); },
     // A wash over the whole stage (for scene tints, whiteouts and the deep).
+    // Draw f() fixed to the screen, not the zoomed stage: instructions and
+    // gauges an act paints at set places while the mobile camera is in.
+    flat(f) { if (!camOn) return f(); const c = kit.c; c.save(); c.setTransform(camBase); f(); c.restore(); },
     wash: (hex, alpha) => { kit.c.save(); kit.c.globalAlpha = alpha; kit.c.fillStyle = P.c(hex); kit.c.fillRect(0, 0, 1280, 720); kit.c.restore(); },
     // An iris closing on (x, y): radius r (0 = black).
-    iris: (x, y, r) => { const c = kit.c; c.save(); c.fillStyle = '#000'; c.beginPath(); c.rect(0, 0, 1280, 720); c.arc(x, y, Math.max(0, r), 0, Math.PI * 2, true); c.fill('evenodd'); c.restore(); },
+    // Drawn over the frame, so a point on the stage goes through the camera.
+    iris: (x, y, r) => { const q = camPoint(x, y); x = q.x; y = q.y; r *= q.s; const c = kit.c; c.save(); c.fillStyle = '#000'; c.beginPath(); c.rect(0, 0, 1280, 720); c.arc(x, y, Math.max(0, r), 0, Math.PI * 2, true); c.fill('evenodd'); c.restore(); },
   };
 
   return {

@@ -171,7 +171,7 @@ export default {
     return null;
   },
 
-  draw: art.draw, drawOver: art.drawOver, onEvent: art.onEvent,
+  focus: art.focus, draw: art.draw, drawOver: art.drawOver, onEvent: art.onEvent,
 };
 
 // Walking (and leaping, where `leap`): the floor at the scene's height, or

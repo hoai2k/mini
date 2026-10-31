@@ -276,7 +276,7 @@ export default {
     return null;
   },
 
-  draw: art.draw, drawOver: art.drawOver, onEvent: art.onEvent,
+  focus: art.focus, draw: art.draw, drawOver: art.drawOver, onEvent: art.onEvent,
 };
 
 function setStatus(st, s) { st.status = s; st.statusT = 0; if (s === 'lost') { st.lostTitle = 'Swallowed\nWhole'; st.lostSub = 'The whale keeps what it takes.'; } }

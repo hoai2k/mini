@@ -291,7 +291,7 @@ export default {
     }
   },
 
-  draw: art.draw, drawOver: art.drawOver, onEvent: art.onEvent,
+  focus: art.focus, draw: art.draw, drawOver: art.drawOver, onEvent: art.onEvent,
 };
 
 // ---------------------------------------------------------------- opening

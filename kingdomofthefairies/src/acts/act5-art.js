@@ -71,7 +71,13 @@ export function onEvent(k, e, st) {
 // Cliff world (y up from the shore) to the stage.
 const sy = (st, wy) => 640 + st.camY - wy;
 function cliffScreen(st, x, wy) { return { x, y: sy(st, wy) }; }
-function playerScreen(st) {
+// The mobile camera's focus (src/camera.js): the player's middle, stage px.
+export function focus(st) {
+  const q = playerScreen(st);
+  return { x: q.x, y: q.y - (st.phase === 'cliff' || st.phase === 'storm' ? 40 : 70) };
+}
+
+export function playerScreen(st) {
   if (st.phase === 'cliff' || st.phase === 'storm') { const p = climberPos(st); return { x: p.x, y: sy(st, p.y) }; }
   return { x: st.p.x, y: st.p.y };
 }

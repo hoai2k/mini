@@ -5,7 +5,7 @@ import { walkFrame } from '../walking.js';
 // stone interior, the clifftop and the tableaux are new. Every requested
 // piece of art has a stand-in. Draw only from state and t.
 import { SWIM, TOWER_TOP, TOWER_WINDOW, FILM_T, BARREL, DUEL, DIVE, WEDDING, APOTH } from './act5film.js';
-import { HOUSE, QUAY, T } from './act5.js';
+import { HOUSE, QUAY, T, climberPos } from './act5.js';
 import {
   onEvent as act5Event, cliffScene, holds, climbGuide, climber, rocksWorld, rockWarnings,
   connector, flames, hazards, player, rubble, beloved,
@@ -28,6 +28,17 @@ export function drawTower(k, st, t) {
   towerScene(k, st, t);
   card(k, 'Her Window', 'Azurine is held inside', cardAlpha(pt, FILM_T.window + 9));
 }
+
+// The mobile camera's focus (src/camera.js): the player's middle, stage px.
+// The sea gap, where the witch swoops across the stage and Aurora's light
+// drives her off, plays on the whole stage, as do the window and the scenes
+// between.
+export function focusTower(st) {
+  if (st.phase === 'cliff' || st.phase === 'tower') { const p = climberPos(st); return { x: p.x, y: 640 + st.camY - p.y - 40 }; }
+  if (st.phase === 'dive') return st.w && !st.dv ? { x: st.w.x, y: st.w.y - 70 } : null;
+  return null;
+}
+export const focusBurning = (st) => (st.p ? { x: st.p.x, y: st.p.y - 75 } : null);
 
 export function drawOverTower(k, st) {
   if (st.defeatT != null) k.wash('#2a1424', 0.55 * clamp(st.defeatT / FILM_T.defeat, 0, 1));
@@ -123,7 +134,8 @@ function swimScene(k, st, t) {
   c.globalAlpha = 0.5 + 0.1 * under;   // under, he shows as a dim shape through it
   if (!(painted && cloth())) { c.fillStyle = k.col('#1d3b44'); c.fillRect(250, SURFACE, 350, 720 - SURFACE); }
   c.restore();
-  // how far to the tower
+  // how far to the tower (fixed to the screen through the mobile camera)
+  (k.flat || ((g) => g()))(() => {
   c.save(); c.globalAlpha = 0.85; c.fillStyle = k.col('#2a1424'); c.beginPath(); c.roundRect(440, 96, 400, 14, 7); c.fill();
   c.fillStyle = k.col('#d9b34a'); c.beginPath(); c.roundRect(442, 98, 396 * f, 10, 5); c.fill(); c.restore();
   if (st.phaseT < 6) {
@@ -132,6 +144,7 @@ function swimScene(k, st, t) {
     richText(c, 'Swim right for the tower · [A] dives under her swoop', 640, 150, { px: 18, mode: k.inputMode || 'key', col: k.col });
     c.restore();
   }
+  });
 }
 
 function towerSilhouette(k, x, base, s, t) {
