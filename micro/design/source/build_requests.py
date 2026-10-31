@@ -425,7 +425,7 @@ GROUPS = [
         "intro": "Images for the phage prototype (Level 6): no light microscope can see a phage, so the level is a Goodsell-style molecular illustration grounded in cryo-EM shapes. The phage and host are built in code; these give the surfaces and the crowded water.",
         "items": [
             {
-                "id": "MP-V01", "name": "Outer membrane surface (top view)",
+                "id": "MP-V01", "status": "delivered", "name": "Outer membrane surface (top view)",
                 "file": "assets/phage/envelope.webp", "size": "2048 x 2048, opaque, tileable",
                 "used": "The host cell's surface the phage lands on and walks across.",
                 "standin": "Procedural lipopolysaccharide brush and protein dots.",
@@ -433,7 +433,7 @@ GROUPS = [
                 "prompt": f"{TILE} {MOLECULAR} The outer surface of a Gram-negative bacterium seen from above at about 200 nm across: a dense lawn of lipopolysaccharide chains like a soft brush, with the trimeric pores of outer-membrane proteins (porins such as OmpC) scattered through it as rounded triangular clusters, and a few longer O-antigen chains. Muted, warm, evenly lit. {SCIENCE}",
             },
             {
-                "id": "MP-V02", "name": "Crowded water (backdrop)",
+                "id": "MP-V02", "status": "delivered", "name": "Crowded water (backdrop)",
                 "file": "assets/phage/water.webp", "size": "2560 x 1440, opaque",
                 "used": "The far backdrop of the water the phage drifts through.",
                 "standin": "A soft gradient with procedural molecule dots.",
@@ -441,7 +441,7 @@ GROUPS = [
                 "prompt": f"{MOLECULAR} Water crowded with small dissolved molecules and a few humic particles seen at about 1 µm across, softly out of focus, with depth fading into a pale blue-green haze; no cells and no phages, an even, calm backdrop. {SCIENCE}",
             },
             {
-                "id": "MP-V03", "name": "Envelope cross-section",
+                "id": "MP-V03", "status": "delivered", "name": "Envelope cross-section",
                 "file": "assets/phage/envelope-section.webp", "size": "2560 x 1080, opaque",
                 "used": "The cutaway shown when the tail tube pierces the envelope and the DNA enters.",
                 "standin": "Procedural layered bands.",

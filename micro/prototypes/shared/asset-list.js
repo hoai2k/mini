@@ -127,15 +127,15 @@ export const ASSETS = {
   },
   "MP-V01": {
     "file": "assets/phage/envelope.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-V02": {
     "file": "assets/phage/water.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-V03": {
     "file": "assets/phage/envelope-section.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R01": {
     "file": "assets/reference-sheets/springtail.webp",

@@ -1668,6 +1668,138 @@
     }
   },
   {
+    "id": "MP-V01",
+    "name": "Outer membrane surface (top view)",
+    "file": "assets/phage/envelope.webp",
+    "size": "2048 x 2048, opaque, tileable",
+    "used": "The host cell's surface the phage lands on and walks across.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE finished square 1:1 seamless environment texture. Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Molecular-illustration look in the manner of David Goodsell's watercolours: flat, softly outlined shapes with no lighting effects, every protein and nucleic acid drawn at true relative size, crowded as real cytoplasm and water are, a restrained palette (warm pinks and oranges for proteins, purples for nucleic acid, pale yellows and greens for membranes and polysaccharide). Electron microscopes and models show this scale; a light microscope cannot. The outer surface of a Gram-negative bacterium seen from above at about 200 nm across: a dense lawn of lipopolysaccharide chains like a soft brush, with the trimeric pores of outer-membrane proteins (porins such as OmpC) scattered through it as rounded triangular clusters, and a few longer O-antigen chains. Muted, warm, evenly lit. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nReference roles: the supplied T4 electron micrograph is scale/ultrastructure context only. It is NOT a request to depict a phage here. Any bacterial or biofilm micrograph is context for packing only, NOT colour or rendering style. Render exclusively as a FLAT softly outlined molecular WATERCOLOUR illustration, all colours explanatory, no cast shadows, shiny surfaces or perspective lighting. Show ONLY the bacterium's outer surface from vertically straight ABOVE: a DENSE irregular lawn of small pale yellow/green LPS sugar chains, many softly outlined warm protein shapes, interspersed trimeric porin pores as rounded triangular clusters of THREE subunits with small central channels. Repeated porins at varied positions, uniform density and colour distribution across the whole square. A few longer O-antigen chains. Every edge continues across the opposite edge. NO side section or horizontal membrane bands, NO visible whole bacterium, NO phage, NO single dominant central feature, NO large empty gap, NO border or vignette. No red/green fluorescence glow. Scale target200nm field; porin proteins small compared with field, aboutseveralnm, not giant tissue cells. No text, labels, scale bars, UI or watermark.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Molecular-illustration look in the manner of David Goodsell's watercolours: flat, softly outlined shapes with no lighting effects, every protein and nucleic acid drawn at true relative size, crowded as real cytoplasm and water are, a restrained palette (warm pinks and oranges for proteins, purples for nucleic acid, pale yellows and greens for membranes and polysaccharide). Electron microscopes and models show this scale; a light microscope cannot. The outer surface of a Gram-negative bacterium seen from above at about 200 nm across: a dense lawn of lipopolysaccharide chains like a soft brush, with the trimeric pores of outer-membrane proteins (porins such as OmpC) scattered through it as rounded triangular clusters, and a few longer O-antigen chains. Muted, warm, evenly lit. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-7332ce2a-e235-4a0c-ad14-277d2ec47387.png",
+    "input_images": [
+      "research/assets/references/production/phage-t4.jpg",
+      "research/assets/references/production/biofilm-fluorescence.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "34ccc2bd90935191bf4b53692fae649fe18d33a4ebb8b26d24c6d80c7ff7c40f",
+    "export": "LANCZOS sizing; opposing-edge strips quilted with the approved conventional seam-correction workflow; WebP quality 92.",
+    "references": [
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      },
+      {
+        "id": "biofilm-fluorescence",
+        "local": "assets/references/production/biofilm-fluorescence.png",
+        "author": "Schwarz, Michael (ORCID: 0009-0002-1414-3291)",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:NFDI4BIOIMAGE_Calendar_March_2025_-_image_march.png"
+      }
+    ],
+    "mood_boards": [],
+    "seam_metrics_before": {
+      "horizontal_join": 28.077,
+      "vertical_join": 22.885,
+      "interior_horizontal": 8.718,
+      "interior_vertical": 8.214
+    },
+    "seam_metrics_after": {
+      "horizontal_join": 8.568,
+      "vertical_join": 7.218,
+      "interior_horizontal": 7.156,
+      "interior_vertical": 6.724
+    }
+  },
+  {
+    "id": "MP-V02",
+    "name": "Crowded water (backdrop)",
+    "file": "assets/phage/water.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "The far backdrop of the water the phage drifts through.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE finished landscape16:9 game backdrop. Molecular-illustration look in the manner of David Goodsell's watercolours: flat, softly outlined shapes with no lighting effects, every protein and nucleic acid drawn at true relative size, crowded as real cytoplasm and water are, a restrained palette (warm pinks and oranges for proteins, purples for nucleic acid, pale yellows and greens for membranes and polysaccharide). Electron microscopes and models show this scale; a light microscope cannot. Water crowded with small dissolved molecules and a few humic particles seen at about 1 µm across, softly out of focus, with depth fading into a pale blue-green haze; no cells and no phages, an even, calm backdrop. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nReference roles: the supplied T4 electron micrograph is scale/ultrastructure context only. It is NOT a request to depict a phage here. Any bacterial or biofilm micrograph is context for packing only, NOT colour or rendering style. Render exclusively as a FLAT softly outlined molecular WATERCOLOUR illustration, all colours explanatory, no cast shadows, shiny surfaces or perspective lighting. ONLY calm water with numerous small dissolved molecular silhouettes and a few irregular humic particles, NO membranes, bacteria, cells, phages or virus outlines. Soft pale blue-green background with muted pink, ochre, lavender and pale green small molecular shapes. Many smaller molecules, a few slightly larger humic clusters. Softly out of focus toward the far depth; illustration remains essentially flat, no dramatic lighting, beams, stars or black outer space. Evenly distributed quiet forms without focal hero object; use subtle outlines and restrained contrast for a far backdrop. No text, labels, scale bars, UI or watermark.",
+    "requested_prompt": "Molecular-illustration look in the manner of David Goodsell's watercolours: flat, softly outlined shapes with no lighting effects, every protein and nucleic acid drawn at true relative size, crowded as real cytoplasm and water are, a restrained palette (warm pinks and oranges for proteins, purples for nucleic acid, pale yellows and greens for membranes and polysaccharide). Electron microscopes and models show this scale; a light microscope cannot. Water crowded with small dissolved molecules and a few humic particles seen at about 1 µm across, softly out of focus, with depth fading into a pale blue-green haze; no cells and no phages, an even, calm backdrop. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-72f8e3e1-d435-4d88-89ca-b3e35ae5411b.png",
+    "input_images": [
+      "research/assets/references/production/phage-t4.jpg"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "d083ef7f7a10e4bb51d42d0e95544fbc551d6e67201d1e43f5778e42431dbb86",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-V03",
+    "name": "Envelope cross-section",
+    "file": "assets/phage/envelope-section.webp",
+    "size": "2560 x 1080, opaque",
+    "used": "The cutaway shown when the tail tube pierces the envelope and the DNA enters.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE finished ultrawide64:27 horizontal cutaway plate. Molecular-illustration look in the manner of David Goodsell's watercolours: flat, softly outlined shapes with no lighting effects, every protein and nucleic acid drawn at true relative size, crowded as real cytoplasm and water are, a restrained palette (warm pinks and oranges for proteins, purples for nucleic acid, pale yellows and greens for membranes and polysaccharide). Electron microscopes and models show this scale; a light microscope cannot. A horizontal cross-section through a Gram-negative cell envelope about 400 nm wide: from top to bottom, water, the outer membrane with lipopolysaccharide chains and porins, the periplasm with a thin peptidoglycan mesh, the inner membrane with embedded proteins, and crowded cytoplasm with ribosomes and a DNA strand. Layers horizontal and continuous across the image. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nReference roles: the supplied T4 electron micrograph is scale/ultrastructure context only. It is NOT a request to depict a phage here. Any bacterial or biofilm micrograph is context for packing only, NOT colour or rendering style. Render exclusively as a FLAT softly outlined molecular WATERCOLOUR illustration, all colours explanatory, no cast shadows, shiny surfaces or perspective lighting. CRITICAL topology: exactly TWO distinct continuous lipid-bilayer membrane bands across the image. Top-to-bottom: (1) water with dissolved molecules; (2) OUTER membrane, with LPS carbohydrate chains pointing upward into water and trimeric porin proteins spanning this bilayer; (3) open PERIPLASM containing ONE thin peptidoglycan mesh sheet, NOT another membrane; (4) INNER membrane with embedded proteins; (5) crowded CYTOPLASM with ribosomes and a purple DNA strand at bottom. Membrane layers horizontally continuous and gently irregular but never broken, folded or branched. Each membrane is a bilayer (two lipid head rows and hydrocarbon tails between), not two separate membrane bands. Clearly visible periplasm space between the two bilayers. No labels or arrows. NO phage, injection tube, cutout hole, or third membrane. Wide horizontal64:27 composition. No text, labels, scale bars, UI or watermark.",
+    "requested_prompt": "Molecular-illustration look in the manner of David Goodsell's watercolours: flat, softly outlined shapes with no lighting effects, every protein and nucleic acid drawn at true relative size, crowded as real cytoplasm and water are, a restrained palette (warm pinks and oranges for proteins, purples for nucleic acid, pale yellows and greens for membranes and polysaccharide). Electron microscopes and models show this scale; a light microscope cannot. A horizontal cross-section through a Gram-negative cell envelope about 400 nm wide: from top to bottom, water, the outer membrane with lipopolysaccharide chains and porins, the periplasm with a thin peptidoglycan mesh, the inner membrane with embedded proteins, and crowded cytoplasm with ribosomes and a DNA strand. Layers horizontal and continuous across the image. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-d327b7f7-da1d-48be-afe9-f383fe15cce3.png",
+    "input_images": [
+      "research/assets/references/production/phage-t4.jpg",
+      "research/assets/references/production/magnetotactic.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1926,
+      816
+    ],
+    "width": 2560,
+    "height": 1080,
+    "sha256": "8e71ea62a9d51518eeb71f13ea23d6796dddd64cdedb58a7397b8dcc4ceede70",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      },
+      {
+        "id": "magnetotactic",
+        "local": "assets/references/production/magnetotactic.png",
+        "author": "Caulobacter subvibrioides (Diskussion)",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
     "id": "MP-R01",
     "name": "Water springtail (Podura aquatica)",
     "file": "assets/reference-sheets/springtail.webp",
