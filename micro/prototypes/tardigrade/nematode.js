@@ -277,7 +277,6 @@ export class Nematode {
         }
       }
       part.mesh.geometry.attributes.position.needsUpdate = true;
-      part.mesh.geometry.computeBoundingSphere();
     }
     // the tooth: in the buccal cavity, bared forward in the attack
     this.tooth.position.copy(pts[0]).addScaledVector(fr[0], -0.05 + 0.16 * this.bare);

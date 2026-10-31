@@ -132,6 +132,8 @@ export class Chaos {
       else { this.state = 'dormant'; this.fight.reset(); this.restUntil = this.t + 60; }
     }
     if (this.state === 'dormant' && this.restUntil && this.t < this.restUntil) { /* resting after a defeat */ }
+    // asleep and nobody near: it does not move (and costs nothing)
+    if (this.state === 'dormant' && td > WAKE * 1.3) { this.placeNuclei(); return ev; }
     b.step(adt, input, col);
     b.grid.build(b.x, b.y, N);
     b.untangle();

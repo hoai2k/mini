@@ -67,7 +67,7 @@ const FOLLOW_PHASES = [['strike', 0.45], ['hold', 1.0], ['eat', 2.2], ['follow',
  *   update(dt, pad) -> { active, phase, t, fade } where fade is the black
  *   overlay's opacity (drawn by this module) and t is 0..1 within the phase.
  */
-export function createCapture({ onRestart, onRespawn, restartButton = 0, card: useCard = false } = {}) {
+export function createCapture({ onRestart, onRespawn, restartButton = 0, card: useCard = false, fade: useFade = true } = {}) {
   const PHASES = useCard ? CARD_PHASES : FOLLOW_PHASES;
   let i = -1, t = 0, info = null;
   const card = document.createElement('div');
@@ -88,6 +88,12 @@ export function createCapture({ onRestart, onRespawn, restartButton = 0, card: u
     get active() { return i >= 0; },
     /** The Eaten card element (card mode). */
     get card() { return card; },
+    /** The full-screen fade element; pass { fade: false } (e.g. in multiplayer,
+     *  where only one view should fade) and draw your own per-view fade from
+     *  the returned `fade` value instead. */
+    get veil() { return veil; },
+    /** Turn the full-screen fade on or off at run time (players joining or leaving). */
+    setFade(on) { useFade = !!on; if (!on) veil.style.opacity = '0'; },
     get phase() { return i >= 0 ? PHASES[i][0] : null; },
     /** Start the sequence. `by`: the predator's name; `how`: a short description. */
     start(opts = {}) {
@@ -110,7 +116,7 @@ export function createCapture({ onRestart, onRespawn, restartButton = 0, card: u
       if (name === 'fadeOut') fade = k;
       else if (name === 'fadeIn') fade = 1 - k;
       if (name === 'fadeOut' && k > 0.5) caption.style.opacity = '0';
-      veil.style.opacity = String(fade);
+      veil.style.opacity = String(useFade ? fade : 0);
       if (name === 'eaten') {
         if (card.style.display === 'none') {
           card.innerHTML = `<div style="font-size:18px;font-weight:650;margin-bottom:4px">Eaten</div>`

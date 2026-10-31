@@ -27,7 +27,7 @@ Keyboard fallbacks are in `shared/pad.js`.
 | Mite | **Jump** (A; borrowed from jumping oribatids such as *Zetorchestes*); scramble on held RT | Bite with the chelicerae (graze hyphae and spores; nip back) | Ptychoidy (close up) |
 | Tardigrade | Scramble (costs water and energy) | Pierce with the stylets | Brace (grip hard) |
 | Amoeba | Surge (A): pseudopods shoot out and the cell flows after them | Close the food cup (X) | Let go or egest (B) |
-| Paramecium | Trichocyst burst or ciliary sprint | Feed (oral current) | Avoidance reaction (reverse) |
+| Paramecium | Ciliary sprint | Feed (oral gulp); at a hunter, ram and sting | Trichocyst burst and back off (blocks a strike when facing it) |
 | Bacterium | Sprint run (all flagella bundled) | Attach / bore (Bdellovibrio) or bind | Tumble |
 
 **B is defend in every world** (the amoeba may differ). The mite jumps on A and
