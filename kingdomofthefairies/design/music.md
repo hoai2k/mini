@@ -17,6 +17,8 @@ original score for the silent film. Keep the existing stage-foley effects.
 | `period-tender` | Tender Evening: salon romance, 3:00, D minor/F major | Cliff, endings and playbill |
 
 Files are in `assets/audio/`, with delivery metadata in `assets/manifest.json`.
+The prompts, and the pieces still requested (the wedding song), are in
+[music-requests.md](music-requests.md).
 The scene mood chooses a ready recording and crossfades when needed. Recordings
 load sequentially after audio unlock; playback starts with the first ready
 piece and follows the current mood as more pieces arrive. A failed piece is

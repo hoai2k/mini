@@ -180,6 +180,7 @@ html.touch, html.touch body { touch-action: none; overscroll-behavior: none; -we
 #touch { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
 #touch[hidden] { display: none; }
 #touch:not(.playing) > * { display: none; }
+#touch.menu-pause:not(.playing) > .tbtn-pause { display: block; }
 .stick-zone { position: absolute; left: 0; top: 0; bottom: 0; width: 50%; pointer-events: auto; touch-action: none; }
 .stick-base {
   position: absolute; left: max(110px, calc(env(safe-area-inset-left) + 90px)); top: 70%;
