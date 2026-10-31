@@ -111,7 +111,7 @@ let observer = false;
 
 // Starts at HFW 1.6 mm (~79x): the 0.35 mm mite is about a fifth of the
 // field, with the moss around it in view.
-const rig = { yaw: -0.6, pitch: 0.62, hfw: 1600, target: mite.center.clone() };
+const rig = { yaw: -0.6 - Math.PI / 6, pitch: 0.62, hfw: 1600, target: mite.center.clone() };
 const camFwd = new THREE.Vector3(), camRight = new THREE.Vector3();
 
 let renderScale = 1, dynRes = !PR, slowEma = 16, scaleT = 0, splitK = 1;

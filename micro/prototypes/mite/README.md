@@ -15,7 +15,7 @@ The walkable patch is a bounded 4 × 4 mm square (`world.js`, `HALF = 2000`),
 with the body kept slightly inside its edges by the walker. The rendered
 floor extends to 8.4 × 8.4 mm to fill the camera view, so it looks like open
 ground beyond the movement limit. Walking up from the initial view reaches
-that invisible boundary in roughly seven seconds; it is not a terrain collider.
+that invisible boundary within several seconds; it is not a terrain collider.
 
 ## Controls (Xbox controller; keyboard in brackets)
 
@@ -49,7 +49,7 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
 Both are built into the moss (`landmarks.js`) and drawn by the SEM like
 everything else.
 
-- **Forward: the wet leaf axil** (design §1.6), straight ahead of the start
+- **Forward: the wet leaf axil** (design §1.6), up and right in the start
   view, ~1.8 mm off (`FORWARD`, toward −x, +z). A moss stem 1.5 mm tall with
   its lowest leaf arching out and down to the floor; in the angle between them
   a smooth lens of water, and lying in it a tardigrade tun, a wrinkled barrel
@@ -64,8 +64,8 @@ everything else.
   when no controller is connected). There **Y goes back**
   (`embed.landmark('back')`) instead of closing up; anywhere else Y still
   closes up, and a mite held by the predator can still close up there.
-- **Edge arrows** (`shared/landmark.js`): a brass chevron toward the water,
-  a ring toward the springtail, near the edge of each view.
+- **Landmark sun** (`shared/landmark.js`): a brass sun shows the water's
+  bearing near the edge of each view. Orbiting changes its screen direction.
 - The predatory mite now starts to the side of the way on (`PRED_START`).
 
 ## Multiplayer

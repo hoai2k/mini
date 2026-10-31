@@ -42,10 +42,12 @@ const renderScale = soft ? 0.6 : 1;
 const inside = createInside();
 function resize() {
   const pr = Math.min(devicePixelRatio || 1, 1.5) * renderScale;
-  const w = Math.max(2, Math.floor(innerWidth * pr)), h = Math.max(2, Math.floor(innerHeight * pr));
-  renderer.setPixelRatio(1);
+  // Keep split-screen projections in CSS pixels, independently of render resolution.
+  const w = innerWidth, h = innerHeight;
+  renderer.setPixelRatio(pr);
   renderer.setSize(w, h, false);
-  post.resize(w, h);
+  const buffer = renderer.getDrawingBufferSize(new THREE.Vector2());
+  post.resize(buffer.x, buffer.y);
   camera.aspect = inside.camera.aspect = w / h;
   camera.updateProjectionMatrix(); inside.camera.updateProjectionMatrix();
 }
@@ -122,7 +124,8 @@ for (const h of world.hosts) h.mat.userData = { std: h.mat.uniforms.uMap.value }
 let waterColor = '#bcd3ea';
 
 // --- phage state ---
-const START = new THREE.Vector3(-60, 30, 0);
+// Clear water below and left of Host A; keep the surface/UV direction upright.
+const START = new THREE.Vector3(-170, -210, 0);
 const newP = () => ({
   pos: START.clone(), vel: new THREE.Vector3(), bvel: new THREE.Vector3(), gust: new THREE.Vector3(),
   q: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0.5), angVel: new THREE.Vector3(),
@@ -1002,7 +1005,7 @@ Object.assign(debug, {
 Object.defineProperty(debug, 'fight', { get: () => ({ state: fightState, interest: fight.interest }) });
 window.__micro = {
   get P() { return team[0].P; }, get t4() { return team[0].t4; }, get capture() { return team[0].capture; },
-  team, players, split, world, inside, view, debug, features, hunger, post, get t() { return t; },
+  team, players, split, world, inside, camera, view, debug, features, hunger, post, get t() { return t; },
   get nearBack() { return nearBack; }, get where() { return members().some((m) => m.P.mode === 'inside') ? 'inside' : 'outside'; },
 };
 // the roster: from the shell (embed), or P1 alone; joins keep coming during play

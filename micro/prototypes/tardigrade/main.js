@@ -166,7 +166,8 @@ if (SOFTWARE) mic.setQuality(PR ? 2 : 0);
 // Starts at 12.5× (10× with the 1.25× Optovar: 1.6× the 20× field) so the
 // leaf, the film and the surroundings read while the animal stays readable;
 // D-pad down steps out to 10×, up in to 20× and 40×.
-const view = { yaw: -0.35, pitch: 1.18, obj: 1, manualFocusT: 99, focus: 0, mode: 0, labels: false, target: new THREE.Vector3(), claws: 1, internals: true, sway: true };
+const startBearing = places.forward.clone().sub(walker.dispPos);
+const view = { yaw: Math.atan2(startBearing.x, startBearing.z) + Math.PI + Math.PI / 6, pitch: 1.18, obj: 1, manualFocusT: 99, focus: 0, mode: 0, labels: false, target: new THREE.Vector3(), claws: 1, internals: true, sway: true };
 view.target.copy(walker.dispPos);
 
 function applyMode(m) {

@@ -37,7 +37,7 @@ export function createSwimmer(world) {
   const r = rng(7);
   const s = {
     sp: SPECIES.mtb, species: 'mtb',
-    x: 0, y: 30, a: -Math.PI / 2, sense: 1, // a: swimming direction; sense +1 = moment leads (north-seeking run)
+    x: 0, y: -20, a: -Math.PI / 2, sense: 1, // a: swimming direction; sense +1 = moment leads (north-seeking run)
     mode: 'run', tumbleT: 0, tumbleFrom: 0, tumbleTo: 0, flick: 0,
     speed: 0, vx: 0, vy: 0, bodyPhase: 0, flPhase: 0,
     alive: true, over: null, overT: 0,
@@ -52,7 +52,8 @@ export function createSwimmer(world) {
     s.species = species; s.sp = SPECIES[species];
     const mtb = species === 'mtb';
     Object.assign(s, {
-      x: mtb ? -20 : 30, y: mtb ? 32 : 45, a: -Math.PI / 2 + (mtb ? 0 : 0.6), sense: 1, mode: 'run', tumbleT: 0, flick: 0,
+      // The fixed microscope axes stay upright; begin below the host landmark.
+      x: mtb ? -20 : 30, y: mtb ? -20 : 0, a: -Math.PI / 2 + (mtb ? 0 : 0.6), sense: 1, mode: 'run', tumbleT: 0, flick: 0,
       speed: 0, vx: 0, vy: 0, alive: true, over: null, overT: 0, growth: 0, stress: 0, energy: 1, prey: 0, phages: [],
       attacker: null, attackT: 0, boring: null, boreT: 0, inside: null, insideT: 0, divideT: 0, won: false, engulfT: 0, captureT: 0,
       caught: null, catchAnim: null, shedFlagellum: null, cause: null, warning: null,

@@ -137,8 +137,9 @@ const OBJECTIVES = [ // field of view (FN 18) and a labelled, exaggerated depth 
 ];
 const DOFS = { strong: 'Strong (only your layer sharp)', mild: 'Mild', off: 'Off' };
 const PLATES = { dim: 'Dimmed and blurred', full: 'Full', off: 'Off' };
+const START_ORBIT = { yaw: -0.85, pitch: -0.25 }; // look down toward the biofilm, up and right
 const view = {
-  fieldStop: true, smoothHelix: true, mode: 0, kind: 'chase', obj: 1, dist: 120 + 310 * (LENGTH / 230), orbitYaw: 0.5, orbitPitch: 0.4,
+  fieldStop: true, smoothHelix: true, mode: 0, kind: 'chase', obj: 1, dist: 120 + 310 * (LENGTH / 230), orbitYaw: START_ORBIT.yaw, orbitPitch: START_ORBIT.pitch,
   stage: new THREE.Vector2(), camAxis: new THREE.Vector3().copy(swimmer.state.axis), camYaw: swimmer.state.yaw, camPitch: 0,
   focusY: swimmer.state.axis.y, scopeYaw: swimmer.state.yaw, turnView: true, lead: new THREE.Vector3(), dof: 'mild', plate: 'dim',
   focusPull: 0, focusPullY: 0, // a contact pulls fine focus to what you touched, briefly
@@ -1150,8 +1151,8 @@ function frame(now) {
     view.orbitYaw -= lk.yaw * 2.2 * dt;
     view.orbitPitch = Math.max(-1.2, Math.min(1.2, view.orbitPitch + lk.pitch * 1.6 * dt));
     // being caught by the amoeba: the camera rises to look down into the cup and the vacuole
-    const pitch0 = capture.active && cap.th === amoeba ? -0.85 : 0.4;
-    if (rs.m === 0 && !debug.inspect) { const k = 1 - Math.exp(-dt * (capture.active ? 2 : 0.6)); view.orbitYaw += (0.5 - view.orbitYaw) * k; view.orbitPitch += (pitch0 - view.orbitPitch) * k; }
+    const pitch0 = capture.active && cap.th === amoeba ? -0.85 : START_ORBIT.pitch;
+    if (rs.m === 0 && !debug.inspect) { const k = 1 - Math.exp(-dt * (capture.active ? 2 : 0.6)); view.orbitYaw += (START_ORBIT.yaw - view.orbitYaw) * k; view.orbitPitch += (pitch0 - view.orbitPitch) * k; }
   } else {
     const half = OBJECTIVES[view.obj].field / 2;
     view.stage.x = Math.max(-half, Math.min(half, view.stage.x + rs.x * half * dt));
