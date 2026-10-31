@@ -7,10 +7,17 @@ Features, to the predator ***Bdellovibrio bacteriovorus*** (1 µm), which rams
 a prey cell, bores into its periplasm and eats it from inside. Published in
 the prototype archive at `micro/prototypes/bacterium/`.
 
-The core verb is honest **run and tumble**. A bacterium cannot steer. It runs
-straight, rotational Brownian motion slowly bends its course, and it tumbles
-into a new random direction. Chemotaxis is only a choice of *when* to tumble,
-and here the player makes that choice.
+**You steer with LS; let go and the water has you.** A real bacterium cannot
+steer: it runs straight, rotational Brownian motion slowly bends its course,
+and it tumbles into a new random direction, so chemotaxis is only a choice of
+*when* to tumble. Steering is therefore a labelled game assist (the owner's
+call: the player leads, the world pushes back). While the stick is held, the
+cell turns toward it, fast but not instantly, and swims at a speed set by the
+tilt; Brownian jitter is reduced but still shows, and the magnetic torque
+still pulls gently toward the field line. Release the stick and the cell keeps
+running at cruise speed wherever rotational and translational Brownian
+motion, the ambient flow, the grazers' feeding currents and the field turn
+it. Honest run and tumble (no steering) is a Features choice.
 
 ## Controls
 
@@ -18,11 +25,11 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 
 | Xbox | Keyboard | Action |
 | --- | --- | --- |
-| LS | WASD | Tumble bias: a labelled assist. The next tumble leans toward the stick. Set Features → Tumble bias → Honest and the stick does nothing |
+| LS | WASD | **Steer** (a labelled assist): the body turns toward the stick (up to ~5.5 rad/s) and swims at 35–100 % of cruise speed by the tilt. Released: you keep running at 70 % and drift with Brownian motion, flow and the field. Tumbles (B) also lean toward the stick. Features → LS steering → *Tumble bias only* or *Honest: no steering* |
 | RS | Arrows | Move the stage (the view drifts back to your cell) |
 | **A** | Space | **Sprint run**: every flagellum at full motor speed (spirillum 95 µm/s, Bdellovibrio 160 µm/s), 0.6 s, recharging (HUD `dash` meter). It also shakes off loosely bound phages and an attaching Bdellovibrio |
 | **X** | E | **Feed / attack**. Magnetotactic: hold to take up food in a patch. Bdellovibrio: press while touching a Gram-negative rod to attach and bore in |
-| B | Shift | **Tumble** (the "defend" slot): stop, turn to a random new heading (E. coli's distribution, mean 68°), run on. For Bdellovibrio it is a reverse plus a flick |
+| B | Shift | **Tumble** (the "defend" slot, an evasive move): stop, turn to a random new heading (E. coli's distribution, mean 68°), run on. For Bdellovibrio it is a reverse plus a flick. While you hold LS, the stick turns you back afterwards |
 | Y | R | Data overlay: oxygen, food, field lines and feeding currents, marked on screen as data, not optics |
 | LT / RT | Z / X | Fine focus down / up (it drifts back to your cell's plane unless switched off) |
 | LB / RB | Q / F | **Reverse the run**: the other pole leads. For the magnetotactic cell, this is how it swims back the other way along the field line |
@@ -109,6 +116,13 @@ sediment surface sits in the same focal plane as the water.
   field you swim. Only a **reversal** (LB/RB) does. That is **magneto-
   aerotaxis**: the field gives the axis, the oxygen sense picks the
   direction. The field can be set to a bar magnet (200 µT) or cancelled.
+- **Steering (LS, the assist)**: the heading turns toward the stick at
+  min(7·Δθ, 5.5) rad/s, so a U-turn takes about half a second; speed is
+  35–100 % of the run speed by the tilt (A still sprints). While steering,
+  rotational diffusion is cut to 35 % of its σ, translational to 55 %, and
+  the magnetic torque to 60 % (in the Earth's field it bends a held course by
+  a few degrees; a bar magnet fights back hard). Released: run at 70 % with
+  full Brownian motion, flow and torque.
 - **Tumbles**: angle from E. coli's distribution (mean 68°, Berg & Brown
   1972), 0.1–0.3 s. The **assist** draws eight angles from that distribution
   and keeps the nearest to the stick: still random, but leaning.
@@ -168,7 +182,8 @@ mixed:
   the corner brackets that mark your cell (a game marker, not optics).
 - **Rendering**: the instanced distance-field specimen; the shared optical
   field (fixed, explained).
-- **Motion**: tumble bias (assist / honest); spontaneous tumbles (off / real
+- **Motion**: LS steering (steer, the default / tumble bias only / honest:
+  no steering); spontaneous tumbles (off / real
   motor clock); rotational and translational Brownian motion; low Reynolds
   number; flagellar rotation speed shown.
 - **Simulation**: magnetic field (Earth 20 µT / bar magnet / cancelled); oxygen
@@ -207,6 +222,9 @@ page runs before the request list has them), with procedural stand-ins:
 
 ## Departures, labelled
 
+- **Steering with the stick** (the default): a bacterium cannot choose its
+  heading; it can only choose when to tumble or reverse. Features → LS
+  steering → Honest restores that.
 - **Time compression**: attachment to entry takes minutes in life, 2.5 s here;
   growth inside the bdelloplast takes 3–4 h, 4 s here. Phage binding is
   reversible for ~3 s, then injection follows 2 s later (minutes in life).

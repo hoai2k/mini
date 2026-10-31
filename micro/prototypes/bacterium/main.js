@@ -1,4 +1,4 @@
-// Bacterium prototype (Level 5 of the Zoom Chain): run and tumble as a
+// Bacterium prototype (Level 5 of the Zoom Chain): steer (LS) or run and tumble as a
 // magnetotactic spirillum, or as the predator Bdellovibrio, in bog sediment
 // at 1000×, at the limit of the light microscope. See README.md.
 import * as THREE from '../shared/vendor/three.module.min.js';
@@ -24,13 +24,13 @@ const pad = createPad();
 const ctl = createControls(pad);
 const hud = mountHud({
   title: 'Bacterium',
-  sub: 'A magnetotactic spirillum, 3 µm long, in bog sediment at 1000× (or the predator Bdellovibrio). A bacterium cannot steer: it runs, and chooses when to tumble.',
+  sub: 'A magnetotactic spirillum, 3 µm long, in bog sediment at 1000× (or the predator Bdellovibrio). Steer with the stick; let go and Brownian motion, flow and the field push you about.',
   controls: hudControls({
-    move: 'Tumble bias (assist: the next tumble leans toward the stick)',
+    move: 'Steer: the cell turns toward the stick and swims (speed from the tilt). Let go: you drift at the mercy of the water',
     camera: 'Move the stage',
     dash: 'Sprint run: every flagellum at full motor speed (recharges)',
     attack: 'Hold: take up food · Bdellovibrio: attach and bore into prey',
-    defend: 'Tumble: stop and turn to a random new heading',
+    defend: 'Tumble: a quick random turn (evade); it leans toward the stick',
     special: 'Data overlay: oxygen, food, field lines (data, not optics)',
     analog: 'Fine focus down / up',
     secondary: 'Reverse the run: the other pole leads (back along the field)',
@@ -129,9 +129,10 @@ features.add({ id: 'shapes', group: 'Rendering', label: 'Instanced 2D distance-f
   about: 'Every cell, filament, phage, grain and giant-cell edge is a quad whose fragment shader computes its true cross-section chord (2√(r²−d²)) and adds optical path, scatter, stain and absorbance into float buffers. Sub-pixel parts are widened with their total kept.' });
 features.add({ id: 'field', group: 'Rendering', label: 'Shared optical field', fixed: true, about: 'The buffers are adapters.js\'s optical field plus a fluorescence attachment, so the borrowed looks read the same specimen.' });
 // Motion
-features.add({ id: 'bias', group: 'Motion', label: 'Tumble bias (LS)', choices: ['Assist: lean toward the stick', 'Honest: fully random'], value: 'Assist: lean toward the stick',
-  about: 'A real cell cannot choose its new heading. The assist draws eight tumble angles from the real distribution and keeps the one nearest the stick: still random, but leaning. Honest: the stick does nothing; only WHEN you tumble matters.',
-  onChange: (v) => { swimmer.opts.bias = v.startsWith('Assist'); } });
+const STEER_MODES = ['Steer: the cell follows the stick', 'Tumble bias only: the stick leans each tumble', 'Honest: no steering'];
+features.add({ id: 'bias', group: 'Motion', label: 'LS steering', choices: STEER_MODES, value: STEER_MODES[0],
+  about: 'A real bacterium cannot steer: it runs, and chooses only WHEN to tumble. Steer (a labelled game assist, the default): while the stick is held the body turns toward it, fast but not instantly (up to ~5 rad/s), and swims at a speed set by the tilt; rotational and translational Brownian motion are cut to about a third and a half but still show, and the magnetic torque still pulls (gently) toward the field line. Let go and the cell keeps running at cruise speed wherever Brownian motion, the flow, the grazers\' currents and the field turn it. Tumble bias only: the stick does nothing but lean each tumble (B): eight angles from the real distribution, the nearest kept. Honest: no steering at all; the stick does nothing.',
+  onChange: (v) => { swimmer.opts.steer = v === STEER_MODES[0]; swimmer.opts.bias = v !== STEER_MODES[2]; } });
 features.add({ id: 'spont', group: 'Motion', label: 'Spontaneous tumbles', choices: ['Off: you are the chemotaxis network', 'Real motor clock'], value: 'Off: you are the chemotaxis network',
   about: 'Real motors switch on their own (E. coli about once a second). With the clock on, tumbles come by themselves and are suppressed while things are getting better, as the Che network does: chemotaxis without a pilot.',
   onChange: (v) => { swimmer.opts.spontaneous = v.startsWith('Real'); } });
@@ -154,7 +155,7 @@ features.add({ id: 'phages', group: 'World', label: 'Phages', on: true, about: '
 features.add({ id: 'hunters', group: 'World', label: 'Bdellovibrio hunters', on: true, about: 'Three predators hunting Gram-negative prey, making bdelloplasts. One may hit you: dash or tumble at once to shake it off before it bores in.', onChange: (on) => { world.opts.hunters = on; } });
 features.add({ id: 'npc', group: 'World', label: 'Other bacteria swim', on: true, about: 'E. coli-like rods run and tumble at 18–28 µm/s; other magnetotactic cells swim along the field and reverse by the oxygen sense. Off: everything sits still (Brownian only).', onChange: (on) => { world.opts.npcRun = on; } });
 features.add({ id: 'scenery', group: 'World', label: 'Biofilm, EPS, clay, detritus', fixed: true, about: 'An EPS-rich biofilm of attached rods and cocci over clay and silt grains larger than you; matrix strands; decaying detritus flakes at the heart of each food patch.' });
-features.add({ id: 'pad', group: 'Controls', label: 'Shared control scheme', fixed: true, about: 'LS tumble bias, RS stage, A sprint, X feed/attach, B tumble, Y data, LT/RT focus, LB/RB reverse, D-pad ←→ look, ↑↓ field, Menu features, View panel.' });
+features.add({ id: 'pad', group: 'Controls', label: 'Shared control scheme', fixed: true, about: 'LS steer (released: drift), RS stage, A sprint, X feed/attach, B tumble, Y data, LT/RT focus, LB/RB reverse, D-pad ←→ look, ↑↓ field, Menu features, View panel.' });
 // Borrowed (default off), also reachable from the look cycle.
 const borrow = borrowedSwitches(features);
 const bmode = { dic: 0 };
@@ -201,7 +202,7 @@ const debug = {
   species(s) { features.set('species', SPECIES_NAMES[s]); },
   phageOnMe() { const p = world.newPhage(S.x, S.y); p.z = 0; world.phages.push(p); const ph = { p, u: (Math.random() - 0.5) * S.sp.L * 0.6, side: 1, t: 0, irreversible: false, shed: false }; p.stuck = ph; S.phages.push(ph); },
   nearGrazer(i = 0, d = 14) { const P = world.grazers[i].pose; debug.teleport(P.mouth.x + P.up.x * d, P.mouth.y + P.up.y * d, Math.atan2(-P.up.y, -P.up.x)); },
-  step(n = 1, dt = 1 / 60, inp = {}) { for (let i = 0; i < n; i++) tick(dt, { attack: !!inp.attack, attackPressed: !!inp.attack && i === 0 }); },
+  step(n = 1, dt = 1 / 60, inp = {}) { for (let i = 0; i < n; i++) tick(dt, { attack: !!inp.attack, attackPressed: !!inp.attack && i === 0, steer: inp.steer || null }); },
 };
 
 function doDash() {
@@ -262,9 +263,11 @@ function frame(now) {
   blocked = features.update();
   if (!blocked) hud.update(pad);
   const live = !blocked;
-  const inp = { attack: false, attackPressed: false, focusing: false };
+  const inp = { attack: false, attackPressed: false, focusing: false, steer: null };
   if (live) {
     const ls = ctl.move();
+    // the stick in world axes (screen up = world +y, toward the air)
+    if (ls.m > 0) inp.steer = { x: ls.x, y: -ls.y, m: Math.min(1, ls.m) };
     if (S.alive) {
       if (ctl.defend.pressed()) {
         const bias = swimmer.opts.bias && ls.m > 0.3 ? { x: ls.x, y: -ls.y } : null;
@@ -375,14 +378,14 @@ function stats() {
   const feel = S.signal > 0.08 ? '↑ getting better: keep running' : S.signal < -0.08 ? '↓ getting worse: tumble?' : '· no change';
   const lines = [
     `${sp.short} · ${lookName} · focus ${view.focus >= 0 ? '+' : ''}${view.focus.toFixed(1)} µm`,
-    `speed ${Math.round(S.speed).toString().padStart(3)} µm/s · ${(S.speed / sp.L).toFixed(0)} body lengths/s · ${S.mode === 'tumble' ? 'TUMBLE' : S.boring ? 'BORING IN' : S.inside ? 'INSIDE PREY' : dash.active ? 'SPRINT' : 'run'}`,
+    `speed ${Math.round(S.speed).toString().padStart(3)} µm/s · ${(S.speed / sp.L).toFixed(0)} body lengths/s · ${S.mode === 'tumble' ? 'TUMBLE' : S.boring ? 'BORING IN' : S.inside ? 'INSIDE PREY' : dash.active ? 'SPRINT' : 'run'}${S.mode === 'run' && !S.boring && !S.inside ? (S.steering ? ' · steering (LS)' : swimmer.opts.steer ? ' · adrift: Brownian, flow, field' : '') : ''}`,
     `O₂ ${S.o2 < 1 ? S.o2.toFixed(2) : S.o2.toFixed(1)} % air sat. (wants ${sp.o2[0]}–${sp.o2[1] > 50 ? 'any higher' : sp.o2[1] + ' %'}) ${S.inBand ? '✓ in band' : ''}`,
     `senses: ${feel}`,
     S.species === 'mtb'
       ? `growth ${'█'.repeat(Math.round(S.growth * 10))}${'░'.repeat(10 - Math.round(S.growth * 10))} · food ${S.food.toFixed(2)}${S.feeding ? ' (uptake)' : ''} · O₂ stress ${Math.round(S.stress * 100)} %`
       : `prey ${S.prey}/${GOAL_PREY} · energy ${Math.round(S.energy * 100)} %${S.boring ? ` · boring ${Math.min(100, Math.round((S.boreT / 2.5) * 100))} %` : ''}`,
     `${dash.text()} · phages on you ${S.phages.length}${S.phages.some((p) => p.irreversible) ? ' (IRREVERSIBLE)' : ''}${S.attacker ? ' · BDELLOVIBRIO ATTACHED' : ''}`,
-    S.species === 'mtb' ? `field ${world.opts.field} µT, mB/kT ≈ ${(S.mB || 0).toFixed(1)} · running ${S.sense > 0 ? 'north (down the field)' : 'south (up the field)'}` : `run ${sp.v} µm/s, sprint ${sp.dash} µm/s`,
+    S.species === 'mtb' ? `field ${world.opts.field} µT, mB/kT ≈ ${(S.mB || 0).toFixed(1)} (a gentle pull to the field line; steer against it) · running ${S.sense > 0 ? 'north (down the field)' : 'south (up the field)'}` : `run ${sp.v} µm/s, sprint ${sp.dash} µm/s`,
     `${Math.round(fps)} fps · ${shapes.count} shapes`,
   ];
   hud.stats(lines.join('\n'));

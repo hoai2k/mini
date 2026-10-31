@@ -1,7 +1,10 @@
-// The player's cell: run-and-tumble at low Reynolds number. A bacterium
-// cannot steer. It runs straight while rotational Brownian motion slowly
-// turns it, and it tumbles (or reverses) into a new, random direction.
-// Chemotaxis is only a choice of WHEN to tumble; the player makes that choice.
+// The player's cell at low Reynolds number. By default the stick steers it
+// (a labelled game assist: a real bacterium cannot steer): while LS is held
+// the body turns toward the stick at a finite rate and swims at a speed set by
+// the stick. Let go and the cell is at the mercy of its world: it keeps
+// running while rotational and translational Brownian motion, flow, grazers'
+// currents and the magnetic torque push it about. B still tumbles into a new,
+// random direction. The honest mode (no steering) is plain run and tumble.
 import { oxygen, gauss, rng, tumbleAngle, WORLD } from './world.js';
 
 // Two protagonists. Numbers and their sources are in README.md.
@@ -42,7 +45,7 @@ export function createSwimmer(world) {
     boring: null, boreT: 0, inside: null, insideT: 0, divideT: 0, won: false,
     engulfT: 0, captureT: 0, dashOn: false, signal: 0, memory: 0, util: 0, food: 0, o2: 0,
   };
-  const opts = { bias: true, spontaneous: false, brownian: true, rotDiff: true, lowRe: true, beat: 1 };
+  const opts = { steer: true, bias: true, spontaneous: false, brownian: true, rotDiff: true, lowRe: true, beat: 1 };
 
   function reset(species = s.species) {
     s.species = species; s.sp = SPECIES[species];
@@ -102,8 +105,15 @@ export function createSwimmer(world) {
     return true;
   }
 
+  // Steering (the assist): max body turn rate (rad/s) and the gain toward the stick.
+  const STEER = { maxTurn: 5.5, gain: 7, rotNoise: 0.35, transNoise: 0.55, magnet: 0.6, cruise: 0.7 };
+
   function step(dt, t, inp, ev) {
     const sp = s.sp;
+    // inp.steer: {x, y, m} in world axes (y up), m 0..1; absent or m 0 = released
+    const st = inp.steer;
+    const steering = !!(opts.steer && st && st.m > 0.15 && s.mode === 'run' && !s.boring && !s.inside && s.alive);
+    s.steering = steering;
     s.flPhase += dt * 20 * opts.beat;
     if (!s.alive) { s.overT += dt; s.speed = 0; return; }
     const sq = Math.sqrt(dt);
@@ -115,7 +125,11 @@ export function createSwimmer(world) {
       const e = k * k * (3 - 2 * k);
       s.a = s.tumbleFrom + (s.tumbleTo - s.tumbleFrom) * e;
       if (s.tumbleT <= 0) { s.mode = 'run'; s.flick = 0; }
-    } else if (s.mode === 'run') thrust = inp.dashActive ? sp.dash : sp.v;
+    } else if (s.mode === 'run') {
+      // steering: speed from the stick; released: keeps running at cruise speed (the honest mode: full speed)
+      const k = steering ? 0.35 + 0.65 * Math.min(1, st.m) : opts.steer ? STEER.cruise : 1;
+      thrust = inp.dashActive ? sp.dash : sp.v * k;
+    }
     if (s.boring || s.inside) thrust = 0;
     // in the EPS of the biofilm everything is slower (a viscous, polymer-rich matrix)
     const inFilm = s.y < world.surfaceY(s.x) + 1;
@@ -123,7 +137,15 @@ export function createSwimmer(world) {
     s.bodyPhase += dt * (thrust / 1.6) * 6.28 * 0.5;
 
     // rotational Brownian motion: σ = √(2 D_r dt)
-    if (opts.rotDiff && s.mode === 'run') s.a += Math.sqrt(2 * sp.Dr) * sq * gauss(r);
+    // (reduced but still visible while steering, so the cell still jitters like a microbe)
+    if (opts.rotDiff && s.mode === 'run') s.a += Math.sqrt(2 * sp.Dr) * sq * gauss(r) * (steering ? STEER.rotNoise : 1);
+    // the stick: turn the body toward it at a fast but finite rate (it has a body; it is not a cursor)
+    if (steering) {
+      const want = Math.atan2(st.y, st.x);
+      const d = Math.atan2(Math.sin(want - s.a), Math.cos(want - s.a));
+      const w = Math.max(-STEER.maxTurn, Math.min(STEER.maxTurn, d * STEER.gain));
+      s.a += w * dt;
+    }
     // the magnetosome chain: torque m × B turns the cell's moment toward the field
     if (sp.magnet) {
       const B = world.field;
@@ -131,7 +153,7 @@ export function createSwimmer(world) {
       const bAng = Math.atan2(B.y, B.x);
       const ratio = (sp.moment * B.uT * 1e-6) / kT; // mB / kT
       const rate = ratio * sp.Dr; // 1/τ = mB / f_r = (mB/kT)·D_r
-      const turn = -Math.sin(mAng - bAng) * rate * dt;
+      const turn = -Math.sin(mAng - bAng) * rate * dt * (steering ? STEER.magnet : 1);
       s.a += turn;
       if (s.mode === 'tumble') { s.tumbleFrom += turn; s.tumbleTo += turn; }
       s.mB = ratio;
@@ -146,7 +168,7 @@ export function createSwimmer(world) {
     const lag = opts.lowRe ? 1 : 1 - Math.exp(-dt / 1.0);
     const tvx = Math.cos(s.a) * thrust, tvy = Math.sin(s.a) * thrust;
     s.vx += (tvx - s.vx) * lag; s.vy += (tvy - s.vy) * lag;
-    const br = opts.brownian ? Math.sqrt(2 * sp.Dt) * sq : 0;
+    const br = opts.brownian ? Math.sqrt(2 * sp.Dt) * sq * (steering ? STEER.transNoise : 1) : 0;
     if (!s.inside && !s.boring) {
       s.x += (s.vx + f.x) * dt + br * gauss(r);
       s.y += (s.vy + f.y) * dt + br * gauss(r);
@@ -176,5 +198,5 @@ export function createSwimmer(world) {
     s.inBand = s.o2 >= lo && s.o2 <= hi;
   }
 
-  return { state: s, opts, reset, tumble, reverse, dash, end, step };
+  return { state: s, opts, STEER, reset, tumble, reverse, dash, end, step };
 }
