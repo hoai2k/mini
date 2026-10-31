@@ -267,7 +267,7 @@ export default {
     return null;
   },
 
-  draw: art.draw, drawOver: art.drawOver, onEvent: art.onEvent,
+  focus: art.focus, draw: art.draw, drawOver: art.drawOver, onEvent: art.onEvent,
 };
 
 // ---------------------------------------------------------------- shared

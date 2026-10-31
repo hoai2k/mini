@@ -31,6 +31,13 @@ export function draw(k, st, t) {
   grotto(k, st, t);
 }
 
+// The mobile camera's focus (src/camera.js): the player's middle, stage px.
+export function focus(st) {
+  if (st.phase === 'ride') return { x: boatX(st), y: rowY(st) - 70 };
+  const s = st.sailor;
+  return s ? { x: s.x, y: sy(st, s.y) } : null;
+}
+
 export function drawOver(k, st) {
   const ph = st.phase, pt = st.phaseT;
   if (ph === 'swim' || ph === 'offer' || ph === 'choice') airGauge(k, st);

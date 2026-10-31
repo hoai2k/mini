@@ -9,6 +9,7 @@ import { createAudio } from './audio.js';
 import { createInput } from './input.js';
 import { createTouch, isTouchDevice } from './touch.js';
 import { createFit } from './fit.js';
+import { createCamera } from './camera.js';
 import { createChrome, requestFullscreen, exitFullscreen, fullscreenElement } from './chrome.js';
 
 const $ = (s) => document.querySelector(s);
@@ -30,9 +31,10 @@ const chrome = createChrome({ touch: TOUCH, isPlaying: () => S.mode === 'play' &
 const SETTINGS_KEY = STORAGE_PREFIX + '.settings.v1';
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // Touch devices start on the gentler film look (lighter on a phone's GPU and battery).
-const settings = { sound: true, period: true, music: 7, sfx: 8, film: reduced || matchMedia('(pointer: coarse)').matches ? 'gentle' : 'full', vibration: true, extraAnimations: false };
+const settings = { sound: true, period: true, music: 7, sfx: 8, mobileCamera: true, film: reduced || matchMedia('(pointer: coarse)').matches ? 'gentle' : 'full', vibration: true, extraAnimations: false };
 try { Object.assign(settings, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch { /* storage unavailable */ }
 settings.extraAnimations = settings.extraAnimations === true;
+settings.mobileCamera = settings.mobileCamera !== false;
 // The film edition's cast look: the hand-tinted alternates by default, or the
 // first art (design/character-audit.md). `cast` replaces the earlier
 // `castLook`, so the new default reaches everyone; ?look= overrides it.
@@ -51,6 +53,7 @@ function syncSettingsUI() {
     else if (k === 'sound') el.querySelector('span').textContent = settings.sound ? 'On' : 'Off';
     else if (k === 'period') el.querySelector('span').textContent = settings.period ? 'On' : 'Off';
     else if (k === 'extraAnimations') el.querySelector('span').textContent = settings.extraAnimations ? 'On' : 'Off';
+    else if (k === 'mobileCamera') el.querySelector('span').textContent = settings.mobileCamera ? 'Follow' : 'Whole stage';
     else if (k === 'castLook') el.querySelector('span').textContent = settings.cast === 'tinted' ? 'Tinted' : 'Original';
   }
   audio.setVolumes(settings.music / 10, settings.sfx / 10);
@@ -80,6 +83,7 @@ for (const el of document.querySelectorAll('#settings [data-key]')) {
     if (k === 'sound') settings.sound = !settings.sound;
     if (k === 'vibration') settings.vibration = !settings.vibration;
     if (k === 'extraAnimations') settings.extraAnimations = !settings.extraAnimations;
+    if (k === 'mobileCamera') settings.mobileCamera = !settings.mobileCamera;
     if (k === 'castLook') settings.cast = settings.cast === 'tinted' ? 'original' : 'tinted';
     if (k === 'period') { settings.period = !settings.period; audio.setPeriodOn(settings.period); }
     syncSettingsUI(); saveSettings(); audio.play('ui');
@@ -208,7 +212,7 @@ function carryFor(i) {
 // Starts act i from the top, or `from` a scene ({ scene }) or a checkpoint
 // the act made earlier (src/acts/CONTRACT.md, "Scenes and checkpoints").
 function beginAct(i, from = null) {
-  renderer.clearFx();
+  renderer.clearFx(); camera.reset();
   S.actIndex = i; S.act = ACTS[i];
   S.state = S.act.create({ seed: (Math.random() * 2 ** 31) | 0, carry: carryFor(i), from: from ? { ...from } : null });
   S.checkpoint = S.state.checkpoint ? JSON.parse(JSON.stringify(S.state.checkpoint)) : null;
@@ -496,6 +500,7 @@ function frame(now) {
   if (!(S.paused && S.mode === 'play')) S.t += dt;
   const i = input.poll(dt);
   update(dt, i);
+  if (!(S.paused && S.mode === 'play')) updateCamera(dt);
   const view = currentView();
   renderer.tick(S.paused ? 0 : dt, view);
   // Paused in play, the last frame holds still under the menu (the film
@@ -513,7 +518,31 @@ function currentView() {
     hud: S.mode === 'play' || S.mode === 'over',
     curtainCall: S.mode === 'curtaincall' ? Math.min(1, S.modeT / 1.4) : 0,
     scene: S.mode === 'playbill' ? drawPlaybill : S.mode === 'curtaincall' ? drawCurtainCall : null,
+    cam: S.act && S.state && camera.view.z > 1 ? camera.view : null,
   };
+}
+
+// ---------------------------------------------------------------- camera
+// On a phone the camera eases in toward the player while he has the scene in
+// hand, and out to the whole stage for the rest (src/camera.js). Desktops and
+// tablets never zoom; Settings > Mobile camera turns it off. ?camera=phone
+// tries it on any screen (QA), ?camera=off turns it off.
+const camera = createCamera();
+const CAM_PARAM = params.get('camera');
+const smallScreen = () => CAM_PARAM === 'phone' || (TOUCH && Math.min(innerWidth, innerHeight) <= 600);
+function syncCameraSetting() { const b = document.querySelector('[data-key="mobileCamera"]'); if (b) b.hidden = !smallScreen(); }
+addEventListener('resize', syncCameraSetting);
+syncCameraSetting();
+function updateCamera(dt) {
+  const st = S.state;
+  const live = S.mode === 'play' && !!st && S.curtain > 0.9 && touchLive();
+  let focus = null;
+  try { focus = live && S.act.focus ? S.act.focus(st) : null; } catch { focus = null; }
+  if (focus && !(Number.isFinite(focus.x) && Number.isFinite(focus.y))) focus = null;
+  camera.update(dt, {
+    enabled: settings.mobileCamera && CAM_PARAM !== 'off' && smallScreen(),
+    live, focus, scene: `${S.actIndex}:${st?.phase}:${st?.tf ? 'tf' + st.tf.set : ''}`,
+  });
 }
 
 function updateLoadbar() {
@@ -910,4 +939,4 @@ $('#start').focus({ preventScroll: true });
 requestAnimationFrame(frame);
 
 // QA hook: ?qa exposes the shell state to browser smoke tests.
-if (new URLSearchParams(location.search).has('qa')) window.__widowsBay = window.__kingdomOfTheFairies = { S, settings, audio, get assets() { return assets; } };
+if (new URLSearchParams(location.search).has('qa')) window.__widowsBay = window.__kingdomOfTheFairies = { S, settings, audio, camera, get assets() { return assets; } };

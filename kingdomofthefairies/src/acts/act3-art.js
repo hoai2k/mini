@@ -89,7 +89,7 @@ function transformation(k, st, t) {
   c.save(); c.globalAlpha = 0.25 + 0.15 * Math.sin(t * 3); c.fillStyle = k.col('#fff2b0'); c.beginPath(); c.ellipse(P.exit + 40, P.y - 90, 40, 110, 0, 0, Math.PI * 2); c.fill(); c.restore();
   if (f.x > P.guards[P.guards.length - 1].x) prompt(k, f.got.length ? `Pearls ${f.got.length} of ${P.pearls.length}` : 'Leap with [A] for the pearls', 900, 230, '#f3c6dc');
   if (f.fade === 0) card(k, TNAMES[f.set], TSUBS[f.set].replace(/\[(\w)\]/g, '$1'), Math.min(1, clamp((f.t - 0.2) / 0.5, 0, 1)) * (f.t > 4.5 ? clamp((5.2 - f.t) / 0.7, 0, 1) : 1), { y: 92 });
-  if (f.fade === 0 && f.t > 4.5) prompt(k, TSUBS[f.set], 640, 150, '#f3c6dc');
+  if (f.fade === 0 && f.t > 4.5) (k.flat || ((g) => g()))(() => prompt(k, TSUBS[f.set], 640, 150, '#f3c6dc'));
   if (f.fade > 0) k.wash('#000000', Math.sin(Math.PI * f.fade / P.fade));
 }
 // A short instruction on a plum label (button glyphs from [A], [X]).
@@ -498,6 +498,13 @@ function guardStandin(k) {
   c.fillRect(22, -222, 25, 4);
   for (const dx of [22, 32, 43]) c.fillRect(dx, -238, 4, 16);
   c.fillStyle = k.col('#efd7c4'); k.circle(34, -120, 6);
+}
+
+// The mobile camera's focus (src/camera.js): the player's middle, stage px.
+export function focus(st) {
+  if (st.tf) return { x: st.tf.x, y: PASSAGE.y - 110 };
+  const p = st.p;
+  return { x: p.x, y: rowY(p) - 90 * rowScale(p) };
 }
 
 function player(k, st, t) {

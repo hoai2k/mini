@@ -104,6 +104,15 @@ This is a static canvas 2D / Web Audio page, with no build step.
   when the song is absent; the rubato period recordings do not drive it.
 - `src/main.js`, `input.js`, `touch.js`, `fit.js` and `chrome.js` handle the shell,
   controllers, keyboard, landscape touch controls, fitting and fullscreen.
+- `src/camera.js` is the mobile camera. On a phone (a touch screen no more
+  than 600 CSS px on its short side) it eases in 1.3x toward the player
+  once he has had a scene in hand for a moment, follows him, and eases back
+  out to the whole stage for each scene's opening and close, cutscenes, the
+  witch's and Aurora's passes (the sea gap stays whole) and endings. Only the
+  act's stage is zoomed: the frame, HUD, captions, cards, menus and touch
+  controls stay put. Desktops and tablets never zoom; Settings › Mobile
+  camera (shown only on phones) turns it off. `?camera=phone` tries it on any
+  screen, `?camera=off` turns it off.
 
 Use arrows/WASD to move and Space/Z/J to act. Touch uses swipes for rows and a
 floating stick for swimming/climbing. The game includes per-act instructions,

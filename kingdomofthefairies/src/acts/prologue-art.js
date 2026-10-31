@@ -41,6 +41,9 @@ const CAPTIONS = {
   armoury: ['The Arming', 'Take up the helmet, shield and enchanted sword she gives you'],
 };
 
+// The mobile camera's focus (src/camera.js): the player's middle, stage px.
+export const focus = (st) => ({ x: st.p.x - camX(st), y: st.p.y - 115 });
+
 export function draw(k, st, t) {
   const sc = sceneOf(st.phase);
   if (sc === 0) courtScene(k, st, t);
@@ -51,7 +54,7 @@ export function draw(k, st, t) {
   if (cap) card(k, cap[0], cap[1], Math.min(1, clamp((st.phaseT - 0.3) / 0.5, 0, 1), ['court', 'rampart', 'armoury', 'bind'].includes(st.phase) ? clamp((4.5 - st.phaseT) / 0.6, 0, 1) : st.phase === 'curse' ? clamp((ABDUCT.swoon - st.phaseT) / 0.4, 0, 1) : 1));
   // armed, and Aurora gone: now to the ship
   if (st.phase === 'knighted' && st.phaseT >= T.risen) card(k, 'The Arming', 'Now to your ship', Math.min(1, clamp((st.phaseT - T.risen) / 0.5, 0, 1), clamp((T.risen + 4 - st.phaseT) / 0.6, 0, 1)));
-  skipHint(k, st);
+  k.flat ? k.flat(() => skipHint(k, st)) : skipHint(k, st);
   if (st.fade > 0) k.wash('#000000', st.fade);
 }
 
