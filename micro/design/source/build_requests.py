@@ -463,7 +463,7 @@ GROUPS = [
         "intro": "Art for the full game (micro/game/): title screen, menu, cards and the intro screen of each world. Until they arrive the game draws its own stand-ins in the same style.",
         "items": [
             {
-                "id": "MP-G01", "name": "Micro Zoom logo",
+                "id": "MP-G01", "status": "delivered", "name": "Micro Zoom logo",
                 "file": "assets/game/logo.png", "size": "1600 x 640, transparent",
                 "used": "The title screen, the pause menu header and the library card.",
                 "standin": "The words MICRO ZOOM set in the game's display font.",
@@ -487,7 +487,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} A naturalist's laboratory bench seen from above, softly out of focus: dark green baize, a brass microscope stage edge, glass slides with hand-written specimen labels, an engraved brass scale rule, a magnifying glass, sepia field notes with ink sketches of mites and tardigrades. The centre is dark and calm so a row of cards can sit over it. Full-bleed 16:9, no legible text.",
             },
             {
-                "id": "MP-G04", "name": "Card frame",
+                "id": "MP-G04", "status": "delivered", "name": "Card frame",
                 "file": "assets/game/card-frame.png", "size": "1024 x 1400, transparent",
                 "used": "The frame around each world card on the select screen (stretched as a 9-slice).",
                 "standin": "A CSS brass border with engraved corner marks.",
@@ -503,7 +503,7 @@ GROUPS = [
                 "prompt": f"{TILE} Aged ivory laboratory paper with a fine even fibre texture, a very faint pale-green engraved millimetre grid and the slightest foxing, light and calm so dark text reads on it. No stains in one spot, no text.",
             },
             {
-                "id": "MP-G06", "name": "App icon",
+                "id": "MP-G06", "status": "delivered", "name": "App icon",
                 "file": "assets/game/icon.png", "size": "1024 x 1024, transparent",
                 "used": "Browser tab and home-screen icon.",
                 "standin": "A drawn brass objective ring.",

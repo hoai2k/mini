@@ -139,7 +139,7 @@ export const ASSETS = {
   },
   "MP-G01": {
     "file": "assets/game/logo.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G02": {
     "file": "assets/game/title.webp",
@@ -151,7 +151,7 @@ export const ASSETS = {
   },
   "MP-G04": {
     "file": "assets/game/card-frame.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G05": {
     "file": "assets/game/paper.webp",
@@ -159,7 +159,7 @@ export const ASSETS = {
   },
   "MP-G06": {
     "file": "assets/game/icon.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G07": {
     "file": "assets/game/intro-springtail.webp",

@@ -1800,6 +1800,115 @@
     "mood_boards": []
   },
   {
+    "id": "MP-G01",
+    "name": "Micro Zoom logo",
+    "file": "assets/game/logo.png",
+    "size": "1600 x 640, transparent",
+    "used": "The title screen, the pause menu header and the library card.",
+    "prompt": "Use case: logo-brand. Asset type: ONE finished transparent PNG game asset. Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A game title logo: the words \"MICRO ZOOM\" in capitals, spelled exactly M-I-C-R-O Z-O-O-M, in an elegant engraved serif with brass inlay and a thin ink outline, the O of ZOOM drawn as a microscope objective lens seen end-on with concentric brass rings and a tiny tardigrade silhouette inside. A fine engraved scale rule underlines the words. Wide landscape composition, even margins, no other text, no watermark. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nShared visual vocabulary: finely engraved antique BRASS, dark ink-green and warm ivory accents, Victorian naturalist cabinet, precise restrained ornament. REAL alpha transparency, not a painted checkerboard, no magenta fallback. Output wide5:2. The ONLY text is MICRO ZOOM, exactly these nine letters with one space. Set it on ONE HORIZONTAL LINE with generous clear alpha margin on all sides. Keep all letters readable and evenly spaced. Replace the FIRST O in ZOOM with a brass objective ring containing a tiny eight-legged tardigrade silhouette, preserving the O silhouette; the second O remains an engraved serif O. One thin engraved scale rule below, tiny ticks with NO numerals. No subtitle, badge, banner, extra text or background. Supplied organisms are anatomy references only, do not paste their photographic surroundings.",
+    "requested_prompt": "Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A game title logo: the words \"MICRO ZOOM\" in capitals, spelled exactly M-I-C-R-O Z-O-O-M, in an elegant engraved serif with brass inlay and a thin ink outline, the O of ZOOM drawn as a microscope objective lens seen end-on with concentric brass rings and a tiny tardigrade silhouette inside. A fine engraved scale rule underlines the words. Wide landscape composition, even margins, no other text, no watermark. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-d72f7587-4f11-419d-83ec-970688fc3136.png",
+    "input_images": [
+      "research/assets/references/springtail-swarm.jpg",
+      "research/assets/references/tardigrade-light.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1983,
+      793
+    ],
+    "width": 1600,
+    "height": 640,
+    "sha256": "f681d18c1a2d4b01fe10ccb750c8493bde66286cb0e3dde81d3e84c4b42fb2fa",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "springtail-swarm",
+        "local": "assets/references/springtail-swarm.jpg",
+        "author": "Philippe  Garcelon",
+        "license": "CC BY 2.0",
+        "license_url": "https://creativecommons.org/licenses/by/2.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Podura_aquatica_-_1.jpg"
+      },
+      {
+        "id": "tardigrade-light",
+        "local": "assets/references/tardigrade-light.png",
+        "author": "Dorathyexplorer",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-G04",
+    "name": "Card frame",
+    "file": "assets/game/card-frame.png",
+    "size": "1024 x 1400, transparent",
+    "used": "The frame around each world card on the select screen (stretched as a 9-slice).",
+    "prompt": "Use case: ui-mockup. Asset type: ONE finished transparent PNG game asset. Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. An empty portrait frame for a specimen card: a thin polished brass bezel with engraved corner ornaments and a small vernier scale along the bottom edge, like the mount of a microscope slide; the inside is completely empty and transparent; even line weights so it can be stretched as a nine-slice. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nShared visual vocabulary: finely engraved antique BRASS, dark ink-green and warm ivory accents, Victorian naturalist cabinet, precise restrained ornament. REAL alpha transparency, not a painted checkerboard, no magenta fallback. Output portrait aspect1024:1400. This is an EMPTY FUNCTIONAL NINE-SLICE CARD FRAME, viewed straight-on with no perspective. Thin brass border around perimeter, equal-width left/right borders, restrained corner engraving contained entirely within the corner regions, small vernier ticks along bottom only without numbers. Large EMPTY TRANSPARENT rectangular opening, absolutely no image, paper, blur, shadow or glass fill in the centre. Transparent outside the frame as well. Maintain safe blank alpha margin outside all ornament so no corners crop. Do not depict a specimen, words, numeral, drop shadow or background.",
+    "requested_prompt": "Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. An empty portrait frame for a specimen card: a thin polished brass bezel with engraved corner ornaments and a small vernier scale along the bottom edge, like the mount of a microscope slide; the inside is completely empty and transparent; even line weights so it can be stretched as a nine-slice. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-56214898-90b9-4c28-9857-1977c0bf02ca.png",
+    "input_images": [],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1073,
+      1466
+    ],
+    "width": 1024,
+    "height": 1400,
+    "sha256": "4557a8ea69526994fc99d8b5214fb60994648ce4ee9295a75fc5e9635b957eb7",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-G06",
+    "name": "App icon",
+    "file": "assets/game/icon.png",
+    "size": "1024 x 1024, transparent",
+    "used": "Browser tab and home-screen icon.",
+    "prompt": "Use case: ui-mockup. Asset type: ONE finished transparent PNG game asset. Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. An app icon: a brass microscope objective seen end-on, concentric brass and black rings around a glowing round field of view that holds a small plump tardigrade in soft DIC grey-green; on a rounded-square tile of deep ink green. Bold and readable at 48 px. The rounded square fills the frame with transparent corners. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nShared visual vocabulary: finely engraved antique BRASS, dark ink-green and warm ivory accents, Victorian naturalist cabinet, precise restrained ornament. REAL alpha transparency, not a painted checkerboard, no magenta fallback. Output square1:1. ONE rounded-square deep ink-green app tile with clear transparent OUTSIDE CORNERS; large concentric brass objective ring dominates tile. Inside ring a simple grey-green DIC-like silhouette of a plump tardigrade with FOUR PAIRS of stubby legs, last pair rearward. High silhouette contrast, keep detail sparse so recognizable at48px. No lettering or numbers, no separate inset panels, no extra animals, no science-fiction glow; the field of view may be softly luminous like transmitted microscope illumination.",
+    "requested_prompt": "Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. An app icon: a brass microscope objective seen end-on, concentric brass and black rings around a glowing round field of view that holds a small plump tardigrade in soft DIC grey-green; on a rounded-square tile of deep ink green. Bold and readable at 48 px. The rounded square fills the frame with transparent corners. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-677bba66-f4dc-4900-8e9f-276b79c8b124.png",
+    "input_images": [
+      "research/assets/references/tardigrade-light.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 1024,
+    "height": 1024,
+    "sha256": "ee848469a065b3a2ca905275593ead3ce0f47b7ad905260472e3c2ba26929389",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "tardigrade-light",
+        "local": "assets/references/tardigrade-light.png",
+        "author": "Dorathyexplorer",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
     "id": "MP-R01",
     "name": "Water springtail (Podura aquatica)",
     "file": "assets/reference-sheets/springtail.webp",
