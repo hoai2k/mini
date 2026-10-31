@@ -63,9 +63,12 @@ export function createEncounters(scene, world, cell) {
 
   // --- Didinium ---
   const opts = { didinium: true, homing: true };
-  function updateDidinia(dt, t, swimmer, ev) {
-    const s = swimmer.state;
+  // `who` is the player's swimmer, or (local multiplayer) a function d => swimmer
+  // that picks the player each Didinium goes for (main.js: the one it holds, else the nearest).
+  function updateDidinia(dt, t, who, ev) {
     for (const d of world.didinia) {
+      const swimmer = typeof who === 'function' ? who(d) : who;
+      const s = swimmer.state;
       d.group.visible = opts.didinium;
       if (!opts.didinium) { if (s.captor === d) swimmer.release(); continue; }
       d.stun = Math.max(0, (d.stun || 0) - dt);
@@ -135,7 +138,7 @@ export function createEncounters(scene, world, cell) {
         const k = Math.max(0, Math.min(1, c.clone().sub(s.axisA).dot(ab) / ab.lengthSq()));
         seg.copy(s.axisA).addScaledVector(ab, k);
         if (seg.distanceTo(c) < 30) {
-          if (swimmer.capture(d)) ev.captured = true;
+          if (swimmer.capture(d)) { ev.captured = true; (ev.captures || (ev.captures = [])).push(swimmer); }
         }
       }
     }

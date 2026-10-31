@@ -74,24 +74,31 @@ export function createPrey(scene) {
     /** Items within `reach` µm of p, nearest first. */
     near(p, reach) { return items.filter((it) => it.alive && !it.pull && it.pos.distanceTo(p) < reach).sort((a, b) => a.pos.distanceTo(p) - b.pos.distanceTo(p)); },
     nearest(p) { let b = null, bd = Infinity; for (const it of items) if (it.alive && !it.pull) { const d = it.pos.distanceTo(p); if (d < bd) { bd = d; b = it; } } return b; },
-    /** Start pulling an item toward the mouth (the gulp). */
-    gulp(it) { it.pull = 0.0001; },
+    /** Start pulling an item toward the mouth (the gulp); `by`: the player gulping (multiplayer). */
+    gulp(it, by = null) { it.pull = 0.0001; it.by = by; },
     /**
      * @returns {{eaten: object[]}} items swallowed this frame
      */
-    update(dt, t, player, flowAt) {
-      const c = player.center;
-      if (!started) { for (const it of items) place(it, c, false); started = true; }
+    update(dt, t, who, flowAt) {
+      // one player, or (local multiplayer) a list: the box travels with each of them;
+      // an item belongs to the nearest player and is respawned round one of them
+      const list = Array.isArray(who) ? who.filter((p) => p) : [who];
+      const nearestTo = (pos) => { let b = list[0], bd = Infinity; for (const p of list) { const d = Math.hypot(pos.x - p.center.x, pos.z - p.center.z); if (d < bd) { bd = d; b = p; } } return b; };
+      let spawnAt = 0;
+      const spawnC = () => list[(spawnAt++) % list.length].center;
+      if (!started) { for (const it of items) place(it, spawnC(), false); started = true; }
       const eaten = [];
       for (const it of items) {
-        if (!it.alive) { place(it, c, true); continue; }
-        if (Math.hypot(it.pos.x - c.x, it.pos.z - c.z) > BOX * 1.15) { place(it, c, true); continue; }
+        if (!it.alive) { place(it, spawnC(), true); continue; }
+        const player = it.pull > 0 && it.by && list.includes(it.by) ? it.by : nearestTo(it.pos);
+        const c = player.center;
+        if (Math.hypot(it.pos.x - c.x, it.pos.z - c.z) > BOX * 1.15) { place(it, spawnC(), true); continue; }
         const f = flowAt(it.pos, t, tmp).clone();
         if (it.pull > 0) {
           // drawn into the oral groove by the gulp
           it.pull += dt;
           it.pos.lerp(player.mouth, 1 - Math.exp(-dt * 9));
-          if (it.pull > 0.4 || it.pos.distanceTo(player.mouth) < 6) { it.alive = false; eaten.push(it); }
+          if (it.pull > 0.4 || it.pos.distanceTo(player.mouth) < 6) { it.alive = false; it.eatenBy = player; it.by = null; eaten.push(it); }
           continue;
         }
         if (it.kind === 'chilomonas') {

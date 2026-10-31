@@ -1,8 +1,11 @@
 // Tardigrade: climbing moss-leaf cell walls with your claws while the water
 // film dries ("The Drying"). Seen through a DIC microscope.
 import * as THREE from '../shared/vendor/three.module.min.js';
-import { createPad } from '../shared/pad.js';
-import { createControls, createDash, hudControls, addInvertY } from '../shared/controls.js';
+import { createDash, hudControls, addInvertY } from '../shared/controls.js';
+import { createPlayers } from '../shared/players.js';
+import { createSplitScreen } from '../shared/splitscreen.js';
+import { createLandmarks } from '../shared/landmark.js';
+import { embed } from '../shared/embed.js';
 import { mountHud } from '../shared/hud.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
@@ -17,6 +20,7 @@ import { Predator } from './predator.js';
 import { createCapture } from '../shared/predation.js';
 import { wireAssets } from './textures.js';
 import { LEAF_FX } from './materials.js';
+import { Landmarks } from './landmarks.js';
 
 const MODES = ['DIC (Nomarski)', 'Brightfield', 'Lit (hypothetical)'];
 // The second entry is the 10× objective behind a 1.25× intermediate
@@ -52,8 +56,23 @@ sun.position.set(4, 10, 3);
 for (const l of [hemi, sun]) { l.layers.enableAll(); scene.add(l); }
 scene.add(sun.target);
 
-const pad = createPad();
-const ctl = createControls(pad);
+// Local multiplayer (shared/players.js): player 1 on the keyboard and the
+// first controller; players 2-4 join with any button on another controller,
+// at any time. Each is their own tardigrade; the screen splits LEGO-style
+// (shared/splitscreen.js) when they walk apart.
+const animals = []; // one per player: { p, slot, creature, walker, life, dash, ... }
+const players = createPlayers({
+  max: 4,
+  onJoin: (p) => {
+    embed.join(p.slot, p.color, p.name);
+    addAnimal(p);
+    hud.toast(`Player ${p.slot + 1} joined`);
+  },
+  onLeave: (p) => { embed.leave(p.slot); removeAnimal(p.slot); hud.toast(`Player ${p.slot + 1} left`); },
+  onChange: (list) => hud && hud.players(list),
+});
+const pad = players.pad(0);
+const ctl = players.controls(0);
 const hud = mountHud({
   title: 'Tardigrade · The Drying',
   sub: 'A ~350 µm eutardigrade gripping moss-leaf cell walls in a drying water film, stalked by a Milnesium. Differential interference contrast (DIC) look.',
@@ -70,7 +89,7 @@ const hud = mountHud({
     zoom: 'Magnification 10× / 12.5× / 20× / 40×',
     extra: [['LS click', 'Refocus on the animal'], ['RS click', 'New day (test)']],
   }),
-  note: '1 s = 4 min of the day (240×; change it in Features). Walking and feeding are real time: up to ~225 µm/s, at the fast end of the measured range; the scramble (~400 µm/s) is a stretch. Claws drawn 1.6× longer, ~3× thicker than true. DIC relief is optical path, not height.',
+  note: 'Head right and down to the tip of the Sphagnum leaf, where the film meets the pool (the brass chevron), to zoom in to the pool floor; the leaf axil at the stem, left (the ring), is the way back up: Y there. Other controllers join with any button. 1 s = 4 min of the day (240×; change it in Features). Walking and feeding are real time: up to ~225 µm/s, at the fast end of the measured range; the scramble (~400 µm/s) is a stretch. Claws drawn 1.6× longer, ~3× thicker than true. DIC relief is optical path, not height.',
 });
 
 const toast = (t, ms) => hud.toast(t, ms);
@@ -78,36 +97,62 @@ const world = new World(scene);
 const assets = wireAssets(world);
 const particles = new Particles(scene, assets.atlas);
 const creature = new Creature(scene);
+/** A faint tint of the player's colour in the cuticle (multiplayer only), so each animal is recognisable. */
+const CUTICLE = creature.body.userData.opt.uniforms.uAbs.value.clone();
+function tintCreature(c, color, on) {
+  const u = c.body.userData.opt.uniforms.uAbs.value.copy(CUTICLE);
+  if (!on) return;
+  const col = new THREE.Color(color);
+  u.add(new THREE.Vector3(-Math.log(Math.max(0.05, col.r)), -Math.log(Math.max(0.05, col.g)), -Math.log(Math.max(0.05, col.b))).multiplyScalar(0.35));
+}
 let rumbleOn = true;
 const rumble = (ms, w, s) => { if (rumbleOn) pad.rumble(ms, w, s); };
-let catchBudget = 0;
 const audio = createAudio(['tardigrade/amb-film', 'tardigrade/step', 'tardigrade/dash', 'tardigrade/bite', 'tardigrade/tun', 'tardigrade/revive', 'tardigrade/rain', 'tardigrade/milnesium']);
 audio.loop('tardigrade/amb-film', { volume: 0.6 });
 const snd = { t: 0, lastStep: -1, side: 1, state: 'active', feeding: false, rain: false };
 /** Gamepads fire no DOM events: unlock sound on any pad button. */
 function unlockOnPad() {
-  if (pad.kind !== 'controller') return;
-  for (let b = 0; b < 16; b++) if (pad.value(b) > 0.5) { audio.unlock(); return; }
+  for (const a of animals) {
+    if (a.pad.kind !== 'controller') continue;
+    for (let b = 0; b < 16; b++) if (a.pad.value(b) > 0.5) { audio.unlock(); return; }
+  }
 }
-/** A claw hooks a wall: a footfall, at most ~8 a second, alternating sides. */
-function footstep(q = 0.5) {
-  if (snd.t - snd.lastStep < 0.13) return;
-  snd.lastStep = snd.t; snd.side = -snd.side;
-  audio.play('tardigrade/step', { volume: 0.3 + 0.15 * Math.random() + 0.1 * q, rate: 0.9 + Math.random() * 0.25, pan: 0.3 * snd.side });
+/** A claw hooks a wall: a footfall, at most ~8 a second, alternating sides (per animal). */
+function footstep(a, q = 0.5) {
+  if (snd.t - a.lastStep < 0.13) return;
+  a.lastStep = snd.t; a.side = -a.side;
+  audio.play('tardigrade/step', { volume: (0.3 + 0.15 * Math.random() + 0.1 * q) * (a.slot ? 0.7 : 1), rate: 0.9 + Math.random() * 0.25, pan: 0.3 * a.side });
 }
-const walker = new Walker(world, creature, {
-  catch(q, big) {
-    if (big) { rumble(180, 0.35, 0.6); footstep(1); return; }
-    footstep(q);
-    if (catchBudget <= 0) { rumble(45, 0.04, 0.12 + 0.12 * q); catchBudget = 0.12; }
-  },
-  slip() { toast('Losing grip! Hold A to brace'); rumble(400, 0.5, 0.2); },
-  fall(t) { toast(t, 2600); rumble(300, 0.6, 0.8); },
-  transfer(t) { toast(t); rumble(120, 0.15, 0.3); },
+/** Toasts about one animal name the player when more than one is playing. */
+const who = (a) => (players.count > 1 ? `${a.p.name}: ` : '');
+function walkerEvents(a) {
+  const rb = (ms, w, s) => { if (rumbleOn) a.pad.rumble(ms, w, s); };
+  return {
+    catch(q, big) {
+      if (big) { rb(180, 0.35, 0.6); footstep(a, 1); return; }
+      footstep(a, q);
+      if (a.catchBudget <= 0) { rb(45, 0.04, 0.12 + 0.12 * q); a.catchBudget = 0.12; }
+    },
+    slip() { toast(`${who(a)}Losing grip! Hold B to brace`); rb(400, 0.5, 0.2); },
+    fall(t) { toast(who(a) + t, 2600); rb(300, 0.6, 0.8); },
+    transfer(t) { toast(who(a) + t); rb(120, 0.15, 0.3); },
+  };
+}
+const p1 = { p: players.get(0), slot: 0, pad, ctl, creature, lastStep: -1, side: 1, catchBudget: 0, state: 'active' };
+const walker = new Walker(world, creature, walkerEvents(p1));
+const lifeEvents = (a) => ({
+  toast: (t, ms) => toast(who(a) + t, ms),
+  rumble: (ms, w, s) => { if (rumbleOn) a.pad.rumble(ms, w, s); },
+  newDay: () => { predator.reset(); endCapture(); for (const b of animals) if (b !== a) { b.life.respawn(0.5); spawnNear(b, a); } },
+  // Local multiplayer: a dead animal (a tun that did not wake) comes back beside a teammate.
+  restart: (life) => { if (players.count > 1) respawnNear(a); else life.newDay(); },
 });
-const life = new Life(world, walker, creature, { toast, rumble, newDay: () => { predator.reset(); endCapture(); } });
+const life = new Life(world, walker, creature, lifeEvents(p1));
 const predator = new Predator(scene, world, { toast, rumble });
 const dash = createDash({ duration: 0.9, cooldown: 2.6 });
+Object.assign(p1, { walker, life, dash, particles: null });
+animals.push(p1);
+const places = new Landmarks(scene, world);
 const mic = new DicMicroscope(renderer, scene, camera, { layers: [LAYER_SUBSTRATE, LAYER_SPECIMEN], backdrop: assets.backdrop });
 if (SOFTWARE) mic.setQuality(PR ? 2 : 0);
 
@@ -164,7 +209,7 @@ F({ id: 'artwalls', group: 'World', label: 'Footholds read from the delivered mi
 F({ id: 'particles', group: 'World', label: 'Drifting bacteria and detritus', on: true, about: 'Point sprites from a 4×4 atlas (MP-T04 stand-in) in Brownian drift; they stop where the film has gone.', onChange: (v) => (particles.points.visible = v) });
 F({ id: 'sdf', group: 'Body', label: 'SDF body from anatomical parts', fixed: true,
   about: 'Head, four trunk regions with cuticle folds, eight lobopod legs (IV terminal, backwards), meshed once with surface nets; buccal tube, stylets, pharyngeal bulb with placoids, eyespots, midgut, gonad and storage cells as separate meshes inside.' });
-F({ id: 'internals', group: 'Body', label: 'Internal anatomy visible', on: true, about: 'Show the organs through the translucent cuticle.', onChange: (v) => { view.internals = v; for (const r of creature.internals) r.mesh.visible = v; } });
+F({ id: 'internals', group: 'Body', label: 'Internal anatomy visible', on: true, about: 'Show the organs through the translucent cuticle.', onChange: (v) => { view.internals = v; for (const a of animals) for (const r of a.creature.internals) r.mesh.visible = v; } });
 F({ id: 'claws', group: 'Body', label: 'Claw size', choices: ['Enhanced (1.6× long, ~3× thick)', 'True size'], value: 'Enhanced (1.6× long, ~3× thick)',
   about: 'Real claws are ~10 µm: barely a few pixels at 20×. Enhanced so the grip reads.', onChange: (v) => (view.claws = v.startsWith('True') ? 0.62 : 1) });
 F({ id: 'rig', group: 'Body', label: 'Part rig on the CPU', fixed: true,
@@ -260,12 +305,91 @@ function resize() {
 addEventListener('resize', resize);
 resize();
 
+
+// ---------------------------------------------------------------- players
+const split = createSplitScreen(renderer, { renderScale: SOFTWARE ? 1 : 0.75 });
+const marks = createLandmarks();
+const BACK_LABEL = 'Back to the mite';
+
+/** Testing and the roster: every joined player has an animal, and only they do. */
+function syncAnimals() {
+  for (const p of players.list) {
+    const a = animals.find((b) => b.slot === p.slot);
+    if (a) a.p = p; else addAnimal(p);
+  }
+  for (const a of animals.slice()) if (!players.get(a.slot)) removeAnimal(a.slot);
+  retint();
+}
+function retint() { for (const a of animals) tintCreature(a.creature, a.p.color, animals.length > 1); }
+
+function addAnimal(p) {
+  if (animals.some((a) => a.slot === p.slot)) return;
+  const c = new Creature(scene);
+  const a = { p, slot: p.slot, pad: players.pad(p.slot), ctl: players.controls(p.slot), creature: c, lastStep: -1, side: 1, catchBudget: 0, state: 'active', feeding: false };
+  a.walker = new Walker(world, c, walkerEvents(a));
+  a.life = new Life(world, a.walker, c, lifeEvents(a), { clock: false, day: life });
+  a.life.opts = life.opts; // the Features switches (desiccation, revival risk) are shared
+  a.dash = createDash({ duration: 0.9, cooldown: 2.6 });
+  a.particles = new Particles(scene, assets.atlas, 220);
+  c.group.traverse((o) => { if (o.userData && o.userData.opt) o.material = view.mode === 2 ? o.userData.lit : o.userData.opt; });
+  a.particles.points.material = view.mode === 2 ? a.particles.litMat : a.particles.optMat;
+  for (const r of c.internals) r.mesh.visible = view.internals;
+  animals.push(a);
+  animals.sort((x, y) => x.slot - y.slot);
+  const mate = teammate(a);
+  if (mate) spawnNear(a, mate);
+  retint();
+}
+
+function removeAnimal(slot) {
+  const i = animals.findIndex((a) => a.slot === slot);
+  if (i <= 0) return; // player 1 always stays
+  const a = animals[i];
+  if (captive === a) { endCapture(); predator.state = 'wander'; predator.bored = 8; }
+  scene.remove(a.creature.group);
+  scene.remove(a.particles.points);
+  animals.splice(i, 1);
+  retint();
+}
+
+/** The nearest other animal that is up and about (else any other). */
+function teammate(a) {
+  const others = animals.filter((b) => b !== a);
+  const up = others.filter((b) => b.life.state === 'active' && b !== captive);
+  const pool = up.length ? up : others;
+  let best = null, bd = Infinity;
+  for (const b of pool) { const d = b.walker.dispPos.distanceTo(a.walker.dispPos); if (d < bd) { bd = d; best = b; } }
+  return best;
+}
+
+/** Put an animal on the leaf beside a teammate, a body length behind and to one side. */
+function spawnNear(a, mate) {
+  const w = mate.walker, L = w.leaf;
+  const s = a.slot % 2 ? 1 : -1;
+  const u = THREE.MathUtils.clamp(w.u - w.hu * 1.6 + s * w.hv * 1.2, 1.2, L.len - 1.2);
+  const lim = Math.max(0, L.hwAt(u) - 0.9);
+  const v = THREE.MathUtils.clamp(w.v - w.hv * 1.6 - s * w.hu * 1.2, -lim, lim);
+  a.walker.spawn(L, w.side, u, v, w.hu, w.hv);
+  a.creature.group.visible = true;
+}
+
+/** Multiplayer: after being eaten (or a tun that did not wake) the animal comes back beside a teammate. */
+function respawnNear(a) {
+  a.life.respawn();
+  a.dash = createDash({ duration: 0.9, cooldown: 2.6 });
+  const mate = teammate(a);
+  if (mate) spawnNear(a, mate); else a.walker.spawn(world.leaves[0], 1, 6.5, 0.6, 1, 0);
+  toast(`${a.p.name} wakes again${mate ? ` beside ${mate.p.name}` : ''}`, 2400);
+}
+
 // ---------------------------------------------------------------- being eaten
 // A bite that empties your reserves is the catch (shared/predation.js): strike
 // (the mouth tube and stylets lunge onto you), hold (it grips: you writhe),
 // eat (you are drawn in through the mouth and pharynx, swallowed whole, and
-// lie in its gut), then the Eaten card; A starts a new day.
+// lie in its gut), then the Eaten card; A starts a new day. In multiplayer the
+// caught player sees the whole sequence, then wakes beside a teammate (no card).
 const capture = createCapture({ onRestart: () => life.newDay() });
+let captive = null;
 const cap = { phase: null, m0: new THREE.Matrix4(), feet0: [], t: 0 };
 const _p0 = new THREE.Vector3(), _q0 = new THREE.Quaternion(), _s0 = new THREE.Vector3();
 const _p1 = new THREE.Vector3(), _q1 = new THREE.Quaternion(), _s1 = new THREE.Vector3();
@@ -274,29 +398,36 @@ const capBanner = document.createElement('div');
 capBanner.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:6;padding:6px 14px;border-radius:999px;font:600 13px system-ui,-apple-system,"Segoe UI",sans-serif;color:#fff;pointer-events:none;white-space:nowrap;display:none';
 document.body.appendChild(capBanner);
 const CAP_LINES = { strike: 'Milnesium strikes: its mouth tube is on you!', hold: 'Gripped by the stylets…', eat: 'Milnesium is swallowing you whole' };
-function startCapture() {
+function startCapture(a = p1) {
   if (capture.active) return;
-  life.state = 'caught'; life.feeding = null; life.tun = 0; creature.pose.tun = 0;
+  captive = a;
+  const L = a.life;
+  L.state = 'caught'; L.feeding = null; L.tun = 0; a.creature.pose.tun = 0;
   Object.assign(cap, { phase: null, t: 0 });
-  cap.m0.copy(walker.matrix);
-  cap.feet0 = creature.pose.feet.map((f) => f.clone());
+  cap.m0.copy(a.walker.matrix);
+  cap.feet0 = a.creature.pose.feet.map((f) => f.clone());
   capture.start({ by: 'Milnesium', how: 'gripped you with its stylets and swallowed you whole' });
   audio.play('tardigrade/milnesium', { volume: 1, rate: 0.9 });
-  rumble(500, 0.9, 1);
+  if (rumbleOn) a.pad.rumble(500, 0.9, 1);
+  embed.captured({ by: 'Milnesium', player: a.slot });
 }
 function endCapture() {
   capture.reset();
   cap.phase = null;
+  if (captive) captive.creature.group.visible = true;
   creature.group.visible = true;
+  captive = null;
 }
-/** The player's body during the catch, placed relative to Milnesium's mouth. */
+/** The caught player's body during the catch, placed relative to Milnesium's mouth. */
 function animateCapture(c, dt) {
+  const a = captive || p1;
+  const cr = a.creature;
   const ease = (x) => x * x * (3 - 2 * x);
   cap.t += dt;
   if (c.phase !== cap.phase) {
     cap.phase = c.phase;
-    if (c.phase === 'hold') { audio.play('tardigrade/bite', { volume: 1, rate: 0.7 }); rumble(300, 0.5, 0.6); }
-    if (c.phase === 'eat') { audio.play('tardigrade/milnesium', { volume: 0.8, rate: 0.7 }); rumble(700, 0.6, 0.3); }
+    if (c.phase === 'hold') { audio.play('tardigrade/bite', { volume: 1, rate: 0.7 }); if (rumbleOn) a.pad.rumble(300, 0.5, 0.6); }
+    if (c.phase === 'eat') { audio.play('tardigrade/milnesium', { volume: 0.8, rate: 0.7 }); if (rumbleOn) a.pad.rumble(700, 0.6, 0.3); }
   }
   predator.captureStep(c.phase, c.t, dt);
   const PM = predator.creature.group.matrix; // Milnesium's body space (scaled 1.5×), with its lunge
@@ -326,48 +457,91 @@ function animateCapture(c, dt) {
       _M.compose(_p0.lerp(_p1, k), _q0.slerp(_q1, k), _s0.lerp(_s1, k));
     }
   }
-  creature.group.matrix.copy(_M);
-  creature.group.matrixWorldNeedsUpdate = true;
-  creature.group.visible = true;
+  cr.group.matrix.copy(_M);
+  cr.group.matrixWorldNeedsUpdate = true;
+  cr.group.visible = true;
   // writhing legs, then still
-  creature.pose.feet.forEach((f, i) => {
+  cr.pose.feet.forEach((f, i) => {
     const f0 = cap.feet0[i];
     if (!f0) return;
     const ph = T * 13 + i * 1.7;
     f.set(f0.x + Math.sin(ph) * 0.3 * flail, f0.y + (0.25 + 0.25 * Math.sin(ph * 1.3)) * flail, f0.z + Math.cos(ph) * 0.2 * flail);
   });
-  creature.pose.tun = squeeze;
-  creature.pose.stylet = 0;
-  creature.deformAll();
+  cr.pose.tun = squeeze;
+  cr.pose.stylet = 0;
+  cr.deformAll();
 }
 
+// ---------------------------------------------------------------- landmarks
+// Reaching the pool tip posts the forward landmark (once per visit); in the
+// leaf axil a quiet "Y: back to the mite" prompt shows (the shell's, or this
+// page's own when standalone) and Y there posts the back landmark.
+const promptEl = document.createElement('div');
+promptEl.style.cssText = 'position:fixed;left:50%;bottom:9vh;transform:translateX(-50%);z-index:7;padding:6px 14px;border-radius:999px;background:rgba(18,16,10,.62);color:#efe3c2;border:1px solid rgba(201,163,90,.55);font:600 13px system-ui,-apple-system,"Segoe UI",sans-serif;pointer-events:none;white-space:nowrap;display:none';
+document.body.appendChild(promptEl);
+const lm = { fwdLatch: false, near: false, log: [] };
+function setNear(on) {
+  if (on === lm.near) return;
+  lm.near = on;
+  embed.near('back', on, BACK_LABEL);
+  lm.log.push({ type: 'near', on });
+  const kb = !players.hasController;
+  promptEl.innerHTML = `<b style="display:inline-block;min-width:18px;padding:0 5px;margin-right:6px;border-radius:${kb ? '5px' : '50%'};background:${kb ? '#3a3426' : '#c9a33a'};color:${kb ? '#efe3c2' : '#1a1508'};text-align:center">${kb ? 'R' : 'Y'}</b>${BACK_LABEL}`;
+  promptEl.style.display = on && !embed.active ? 'block' : 'none';
+}
+function fireLandmark(kind, a) {
+  lm.log.push({ type: 'landmark', kind, slot: a.slot });
+  embed.landmark(kind, { player: a.slot });
+}
+
+// ---------------------------------------------------------------- loop
 let last = performance.now();
 let time = 0;
 const dirV = new THREE.Vector3(), right = new THREE.Vector3(), upS = new THREE.Vector3();
 applyMode(view.mode);
 
 let capPad = null;
+const ZERO = { x: 0, y: 0, m: 0 };
+const IDLE = { P: () => false, D: () => false, dashPressed: false, ls: ZERO };
+function inputOf(a, inMenu) {
+  if (inMenu || a.p.waiting) return IDLE;
+  return { P: (b) => a.pad.pressed(b), D: (b) => a.pad.down(b), dashPressed: a.ctl.dash.pressed(), ls: a.ctl.move() };
+}
+
 const api = window.__micro = { SOFTWARE, scene, camera, renderer, world, walker, creature, life, mic, view, features, applyMode, pad, predator, dash, capture, paused: false,
+  players, animals, split, marks, places, landmarks: lm,
   get time() { return time; },
   /** Testing: one fixed step with the left stick at (x, y) on screen (null: hands off). */
   testStep(dt = 1 / 30, stick = null) {
     const none = () => false;
-    step(dt, { P: none, D: none, dashPressed: false, ls: stick ? { x: stick.x, y: stick.y, m: Math.min(1, Math.hypot(stick.x, stick.y)) } : { x: 0, y: 0, m: 0 } });
+    step(dt, { P: none, D: none, dashPressed: false, ls: stick ? { x: stick.x, y: stick.y, m: Math.min(1, Math.hypot(stick.x, stick.y)) } : ZERO });
   },
   render(dt = 1 / 30) { renderView(dt); readout(); },
   pacing() {
     return { approach: capture.active || predator.state === 'approach' || predator.state === 'stalk', captured: capture.active, phase: capture.phase, kind: 'milnesium',
-      hunger: { milnesium: predator.hunger.state }, states: { milnesium: predator.state }, dist: { milnesium: Math.round(predator.dist * 100) }, mode: life.state };
+      hunger: { milnesium: predator.hunger.state }, states: { milnesium: predator.state }, dist: { milnesium: Math.round(predator.dist * 100) }, mode: life.state,
+      target: predator.target ?? 0, captive: captive ? captive.slot : null };
   },
-  /** Testing: Milnesium catches you now (the full sequence plays). */
-  forceCapture() {
-    if (capture.active || life.state !== 'active') return;
+  /** Testing: Milnesium catches player `slot` now (the full sequence plays). */
+  forceCapture(slot = 0) {
+    const a = animals.find((b) => b.slot === slot) || p1;
+    if (capture.active || a.life.state !== 'active') return;
     // bring it round to face you, mouth at your head
-    const w = predator.walker;
-    w.spawn(walker.leaf, walker.side, walker.u + 3.2, walker.v, -1, 0);
+    const w = predator.walker, aw = a.walker;
+    w.spawn(aw.leaf, aw.side, aw.u + 3.2, aw.v, -1, 0);
     predator.dist = 3;
-    startCapture();
+    startCapture(a);
   },
+  /** Testing: put player `slot` in a landmark zone ('forward' or 'back'). */
+  teleport(kind, slot = 0) {
+    const a = animals.find((b) => b.slot === slot) || p1;
+    const [L, side, u, v, hu, hv] = places.spot(kind);
+    a.walker.spawn(L, side, u, v, hu, hv);
+    if (kind === 'forward') lm.fwdLatch = false;
+  },
+  /** Testing: place player `slot` at (u, v) on a leaf index. */
+  place(slot, leaf, u, v, side = 1) { const a = animals.find((b) => b.slot === slot); if (a) a.walker.spawn(world.leaves[leaf], side, u, v, 1, 0); },
+  get layout() { return split.layout; },
 };
 
 function frame() {
@@ -376,14 +550,13 @@ function frame() {
   last = now;
   const dt = Math.min(view.dtMax || 0.05, rawDt);
   if (view.mode !== 2 && !SOFTWARE) mic.autoQuality(rawDt);
-  pad.poll();
+  players.poll();
   unlockOnPad();
   const inMenu = features.update();
-  capPad = inMenu ? null : pad;
+  capPad = inMenu ? null : (captive ? captive.pad : pad);
   hud.update(pad);
   const B = pad.BTN;
   const P = (b) => !inMenu && pad.pressed(b);
-  const D = (b) => !inMenu && pad.down(b);
 
   const look = inMenu ? 0 : ctl.lookStep();
   if (look) { const m = (view.mode + look + 3) % 3; features.set('look', MODES[m]); toast(MODES[m]); }
@@ -394,10 +567,12 @@ function frame() {
   if (P(B.RS)) { life.newDay(); toast('A new day: 05:00, dew-soaked'); }
   if (P(B.LB)) features.set('labels', !view.labels);
   if (P(B.LS)) { view.focus = 0; toast('Refocused on the animal'); }
-  // RS: yaw, and pitch by intent (up = look up: the camera swings down).
-  const lk = inMenu ? { yaw: 0, pitch: 0 } : ctl.look();
-  view.yaw -= lk.yaw * dt * 1.6;
-  view.pitch = THREE.MathUtils.clamp(view.pitch - lk.pitch * dt * 1.2, 0.35, 1.52);
+  // RS: yaw, and pitch by intent (up = look up: the camera swings down). Any player turns the shared view.
+  let yaw = 0, pitch = 0;
+  if (!inMenu) for (const a of animals) { if (a.p.waiting) continue; const lk = a.ctl.look(); yaw += lk.yaw; pitch += lk.pitch; }
+  yaw = THREE.MathUtils.clamp(yaw, -1, 1); pitch = THREE.MathUtils.clamp(pitch, -1, 1);
+  view.yaw -= yaw * dt * 1.6;
+  view.pitch = THREE.MathUtils.clamp(view.pitch - pitch * dt * 1.2, 0.35, 1.52);
   const fin = inMenu ? 0 : ctl.analog();
   view.focus = THREE.MathUtils.clamp(view.focus - fin * dt * 0.8, -3, 3);
   // Auto-focus: the focal plane follows the animal (focus 0 is its mid-depth).
@@ -406,111 +581,170 @@ function frame() {
   view.manualFocusT = Math.abs(fin) > 0.05 ? 0 : view.manualFocusT + dt;
   if (view.autoFocus !== false && view.manualFocusT > 4 && (walker.speed > 0.05 || view.manualFocusT > 8)) view.focus *= Math.exp(-dt / 0.6);
 
-  const G = { P, D, dashPressed: !inMenu && ctl.dash.pressed(), ls: inMenu ? { x: 0, y: 0, m: 0 } : ctl.move() };
+  const G = inputOf(p1, inMenu);
+  G.others = {};
+  for (const a of animals) if (a !== p1) G.others[a.slot] = inputOf(a, inMenu);
   if (!api.paused) step(dt, G);
   renderView(dt);
   readout();
   requestAnimationFrame(frame);
 }
 
-/** One step of the simulation. G: { P(b), D(b) (pressed, down), dashPressed, ls: stick }. */
-function step(dt, G) {
-  const { P, D } = G;
-  const B = pad.BTN;
-  time += dt;
-  catchBudget -= dt;
-  snd.t += dt;
-  const cs = capture.update(dt, capPad);
-  // A: the scramble.
-  dash.update(dt);
-  if (G.dashPressed && life.state === 'active') {
-    if (life.frozen || walker.slipping) { /* curled, feeding or sliding: no scramble */ }
-    else if (life.energy < 0.04) toast('Too weak to scramble: feed first');
-    else if (dash.trigger()) {
-      audio.play('tardigrade/dash', { volume: 0.9 });
-      life.desic = Math.min(1, life.desic + 0.035);
-      life.energy = Math.max(0, life.energy - 0.02);
-      rumble(160, 0.25, 0.55);
-    }
-  }
+/** Milnesium hunts one player at a time: the nearest one up and about, held unless another is clearly nearer. */
+function chooseTarget() {
+  const cands = animals.filter((a) => a.life.state !== 'caught');
+  if (!cands.length) return null;
+  const up = cands.filter((a) => a.life.state === 'active');
+  const pool = up.length ? up : cands;
+  const me = predator.walker.dispPos;
+  const cur = pool.find((a) => a.slot === predator.target);
+  let best = cur || pool[0], bd = best.walker.dispPos.distanceTo(me) * (cur ? 0.75 : 1);
+  for (const a of pool) { const d = a.walker.dispPos.distanceTo(me); if (d < bd) { bd = d; best = a; } }
+  predator.target = best.slot;
+  return best;
+}
 
-  // Camera-relative crawl direction.
-  const ls = G.ls;
-  right.setFromMatrixColumn(camera.matrixWorld, 0);
-  upS.setFromMatrixColumn(camera.matrixWorld, 1);
-  dirV.set(0, 0, 0).addScaledVector(right, ls.x).addScaledVector(upS, -ls.y);
-  const film = life.filmHere();
-  const filmF = film < 0.03 ? 0.3 : (0.4 + 0.6 * THREE.MathUtils.smoothstep(film, 0.03, 0.3)) * (film > 1.1 ? 0.7 : 1);
-  const dashing = dash.active && !life.frozen;
-  if (dashing && ls.m < 0.2) dirV.copy(walker.forward); // no stick: scramble straight ahead
-  walker.update(dt, { dir: dirV, mag: dashing ? Math.max(ls.m, 1) : ls.m, brace: D(B.B), frozen: life.frozen, film: filmF, energy: life.energy, tun: life.tun > 0.02, dash: dashing });
-  if (!view.sway) { creature.pose.sway = 0; creature.pose.surge = 0; creature.pose.bob = 0; }
-  // X: a jab at a Milnesium whose head is at your mouth takes priority over feeding.
-  const xPressed = P(B.X);
-  const myMouth = creature.anchorWorld('buccal tube + stylets', new THREE.Vector3());
-  const pev = cs.active ? [] : predator.update(dt, { walker, life, mouth: myMouth }, xPressed && life.state === 'active' && !life.feeding);
+/** One step of the simulation. G: player 1's { P(b), D(b) (pressed, down), dashPressed, ls: stick }, G.others[slot] the others'. */
+function step(dt, G) {
+  time += dt;
+  snd.t += dt;
+  places.update(dt);
+  let cs = capture.update(dt, capPad);
+  // Multiplayer: no Eaten card; the caught player wakes beside a teammate.
+  if (cs.active && cs.phase === 'eaten' && animals.length > 1 && captive) {
+    const a = captive;
+    endCapture();
+    Object.assign(predator, { state: 'wander', bored: 12, lunge: 0 });
+    respawnNear(a);
+    cs = { active: false, phase: null, t: 0 };
+  }
+  const inputs = new Map(animals.map((a) => [a, a === p1 ? G : (G.others && G.others[a.slot]) || IDLE]));
+  let backNear = false;
+  for (const a of animals) {
+    const g = inputs.get(a);
+    const w = a.walker, L = a.life;
+    a.catchBudget -= dt;
+    // A: the scramble.
+    a.dash.update(dt);
+    if (g.dashPressed && L.state === 'active') {
+      if (L.frozen || w.slipping) { /* curled, feeding or sliding: no scramble */ }
+      else if (L.energy < 0.04) toast(`${who(a)}Too weak to scramble: feed first`);
+      else if (a.dash.trigger()) {
+        audio.play('tardigrade/dash', { volume: 0.9 });
+        L.desic = Math.min(1, L.desic + 0.035);
+        L.energy = Math.max(0, L.energy - 0.02);
+        if (rumbleOn) a.pad.rumble(160, 0.25, 0.55);
+      }
+    }
+    // Camera-relative crawl direction.
+    const ls = g.ls;
+    right.setFromMatrixColumn(camera.matrixWorld, 0);
+    upS.setFromMatrixColumn(camera.matrixWorld, 1);
+    dirV.set(0, 0, 0).addScaledVector(right, ls.x).addScaledVector(upS, -ls.y);
+    const film = L.filmHere();
+    const filmF = film < 0.03 ? 0.3 : (0.4 + 0.6 * THREE.MathUtils.smoothstep(film, 0.03, 0.3)) * (film > 1.1 ? 0.7 : 1);
+    const dashing = a.dash.active && !L.frozen;
+    if (dashing && ls.m < 0.2) dirV.copy(w.forward); // no stick: scramble straight ahead
+    w.update(dt, { dir: dirV, mag: dashing ? Math.max(ls.m, 1) : ls.m, brace: g.D(BTN_B), frozen: L.frozen, film: filmF, energy: L.energy, tun: L.tun > 0.02, dash: dashing });
+    a.mouth = a.creature.anchorWorld('buccal tube + stylets', a.mouth || new THREE.Vector3());
+    // The landmarks: the pool tip (forward) and the axil (the backdoor, where Y goes back).
+    const up = L.state === 'active' && a !== captive;
+    a.atBack = up && places.atBack(w);
+    if (a.atBack) backNear = true;
+    if (up && places.atForward(w) && !lm.fwdLatch) { lm.fwdLatch = true; fireLandmark('forward', a); toast(`${who(a)}The pool: the film meets open water`, 2400); }
+  }
+  if (lm.fwdLatch && !animals.some((a) => places.atForward(a.walker))) lm.fwdLatch = false;
+  setNear(backNear);
+
+  // Milnesium hunts one of you.
+  const target = cs.active ? null : chooseTarget();
+  const tg = target ? inputs.get(target) : IDLE;
+  const xT = tg.P(BTN_X);
+  const pev = !target ? [] : predator.update(dt, { walker: target.walker, life: target.life, mouth: target.mouth }, xT && target.life.state === 'active' && !target.life.feeding);
   const jabbed = pev.includes('recoil');
-  life.update(dt, { yDown: D(B.Y), yPressed: P(B.Y), bitePressed: xPressed && !jabbed, aPressed: P(B.A), moving: walker.speed });
-  // life-state transitions: the tun, the revival, rain, a stylet bite
-  if (life.state !== snd.state) {
-    if (life.state === 'tun') audio.play('tardigrade/tun');
-    else if (life.state === 'revive') audio.play('tardigrade/revive');
-    snd.state = life.state;
+
+  for (const a of animals) {
+    const g = inputs.get(a), L = a.life;
+    // In the backdoor zone Y means "go back", not "curl into a tun".
+    const yBack = a.atBack && g.P(BTN_Y);
+    if (yBack) { fireLandmark('back', a); toast(`${who(a)}Back up to the moss canopy`); }
+    L.update(dt, { yDown: !a.atBack && g.D(BTN_Y), yPressed: !a.atBack && g.P(BTN_Y), bitePressed: g.P(BTN_X) && !(a === target && jabbed), aPressed: g.P(BTN_A), moving: a.walker.speed });
+    // life-state transitions: the tun, the revival, a stylet bite
+    if (L.state !== a.state) {
+      if (L.state === 'tun') audio.play('tardigrade/tun');
+      else if (L.state === 'revive') audio.play('tardigrade/revive');
+      a.state = L.state;
+    }
+    const feeding = !!L.feeding;
+    if (feeding && !a.feeding) audio.play('tardigrade/bite', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
+    a.feeding = feeding;
   }
   const raining = life.rainT > 0;
   if (raining && !snd.rain) audio.play('tardigrade/rain', { volume: 0.8 });
   snd.rain = raining;
-  const feeding = !!life.feeding;
-  if (feeding && !snd.feeding) audio.play('tardigrade/bite', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
-  snd.feeding = feeding;
   for (const e of pev) {
+    const a = target, L = a.life;
+    const rb = (ms, w, s) => { if (rumbleOn) a.pad.rumble(ms, w, s); };
     if (e === 'bite' || e === 'tunBite') audio.play('tardigrade/milnesium', { volume: e === 'bite' ? 1 : 0.6 });
     else if (e === 'stalk') audio.play('tardigrade/milnesium', { volume: 0.45, rate: 0.85 });
     else if (e === 'hunt') audio.play('tardigrade/milnesium', { volume: 0.25, rate: 0.75 });
     else if (e === 'recoil') audio.play('tardigrade/bite', { volume: 1, rate: 0.85 });
-    if (e === 'recoil') { toast('Stylets into its head: the Milnesium backs off'); rumble(220, 0.5, 0.4); creature.pose.stylet = 1; }
-    else if (e === 'stalk') toast('A Milnesium has your scent: scramble (A), jab (X) or tun (Y)', 2600);
+    if (e === 'recoil') { toast(`${who(a)}Stylets into its head: the Milnesium backs off`); rb(220, 0.5, 0.4); a.creature.pose.stylet = 1; }
+    else if (e === 'stalk') toast(`${who(a)}A Milnesium has your scent: scramble (A), jab (X) or tun (Y)`, 2600);
     else if (e === 'hunt') toast('Something large is moving in the film…', 2600);
-    else if (e === 'tunBite') { toast('The Milnesium mouths your tun but cannot get it in'); rumble(120, 0.2, 0.3); }
+    else if (e === 'tunBite') { toast(`${who(a)}The Milnesium mouths your tun but cannot get it in`); rb(120, 0.2, 0.3); }
     else if (e === 'givesUp') toast('The Milnesium gives up on the tun and wanders off');
     else if (e === 'bite') {
-      life.energy = Math.max(0, life.energy - 0.2);
-      life.feeding = null;
-      walker.speed = 0;
-      rumble(300, 0.8, 0.9);
-      if (life.energy <= 0.001) startCapture();
-      else toast(`Milnesium bites! Reserves ${Math.round(life.energy * 100)}%. It lets go and backs off, for now`, 2600);
+      L.energy = Math.max(0, L.energy - 0.2);
+      L.feeding = null;
+      a.walker.speed = 0;
+      rb(300, 0.8, 0.9);
+      if (L.energy <= 0.001) startCapture(a);
+      else toast(`${who(a)}Milnesium bites! Reserves ${Math.round(L.energy * 100)}%. It lets go and backs off, for now`, 2600);
     }
   }
 
-  // Creature rig.
-  if (cs.active) animateCapture(cs, dt);
-  else {
-    creature.group.matrix.copy(walker.matrix);
-    creature.group.matrixWorldNeedsUpdate = true;
-    creature.deformAll();
+  // Creature rigs.
+  for (const a of animals) {
+    const c = a.creature;
+    if (cs.active && a === captive) animateCapture(cs, dt);
+    else {
+      if (!view.sway) { c.pose.sway = 0; c.pose.surge = 0; c.pose.bob = 0; }
+      c.group.matrix.copy(a.walker.matrix);
+      c.group.matrixWorldNeedsUpdate = true;
+      c.deformAll();
+    }
+    if (view.claws !== 1) for (const cl of c.claws) { const s = view.claws; cl.matrix.multiply(new THREE.Matrix4().makeScale(s, s, s)); }
+    if (view.mode === 2 || borrow.id === 'semMite') c.refreshNormals();
+    const pt = a.particles || particles;
+    if (a.particles) a.particles.points.visible = particles.points.visible;
+    pt.update(dt, a.walker.dispPos, a.walker.leaf, a.walker.side, world);
   }
-  if (view.claws !== 1) for (const c of creature.claws) { const s = view.claws; c.matrix.multiply(new THREE.Matrix4().makeScale(s, s, s)); }
-  if (view.mode === 2 || borrow.id === 'semMite') creature.refreshNormals();
-  particles.update(dt, walker.dispPos, walker.leaf, walker.side, world);
 }
+const BTN_A = 0, BTN_B = 1, BTN_X = 2, BTN_Y = 3;
 
-const _ct = new THREE.Vector3();
+const _ct = new THREE.Vector3(), _c2 = new THREE.Vector3();
+/** Where an animal is drawn (its walker, or Milnesium's mouth while it is being swallowed). */
+const shownAt = (a, out) => (captive === a && capture.active ? out.setFromMatrixPosition(a.creature.group.matrix) : out.copy(a.walker.dispPos));
 function renderView(dt) {
-  // Camera orbit on the animal (on you and Milnesium together during a catch).
+  // Camera orbit on the animals (on you and Milnesium together during a solo catch).
   const ob = OBJECTIVES[view.obj];
+  const solo = animals.length === 1;
   // a catch is framed closer (about the 20× field): you and Milnesium's head
-  const field = capture.active ? Math.min(ob.field, 9) : ob.field;
+  const field = capture.active && solo ? Math.min(ob.field, 9) : ob.field;
   const dist = field / 2 / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / Math.max(1, camera.aspect) * 1.0;
   view.dist = THREE.MathUtils.lerp(view.dist || dist, dist, 1 - Math.exp(-dt * 4));
-  const aim = capture.active ? _ct.copy(walker.dispPos).lerp(predator.walker.dispPos, 0.5) : walker.dispPos;
+  let aim;
+  if (capture.active && solo) aim = _ct.copy(walker.dispPos).lerp(predator.walker.dispPos, 0.5);
+  else { aim = _ct.set(0, 0, 0); for (const a of animals) aim.add(shownAt(a, _c2)); aim.multiplyScalar(1 / animals.length); }
   view.target.lerp(aim, 1 - Math.exp(-dt * 3));
   camera.position.set(
     view.target.x + view.dist * Math.cos(view.pitch) * Math.sin(view.yaw),
     view.target.y + view.dist * Math.sin(view.pitch),
     view.target.z + view.dist * Math.cos(view.pitch) * Math.cos(view.yaw),
   );
-  if (view.fixed) { // turnaround shots (testing): orbit in the animal's own frame
+  camera.up.set(0, 1, 0);
+  if (view.fixed && solo) { // turnaround shots (testing): orbit in the animal's own frame
     const { yaw, pitch } = view.fixed;
     const off = new THREE.Vector3(Math.cos(pitch) * Math.sin(yaw), Math.sin(pitch), Math.cos(pitch) * Math.cos(yaw)).multiplyScalar(view.fixed.dist || 9);
     view.target.copy(walker.dispPos);
@@ -521,44 +755,99 @@ function renderView(dt) {
   camera.updateMatrixWorld();
   sun.target.position.copy(view.target);
 
-  // Render.
-  const H = renderer.getDrawingBufferSize(new THREE.Vector2()).y;
-  const ref = camera.position.distanceTo(walker.dispPos);
-  const pxPerUnit = H / (2 * ref * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
-  for (const m of [particles.optMat]) m.uniforms.uPx.value = H / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+  // Split screen (one view, straight to the screen, while together).
+  const list = animals.map((a) => ({ slot: a.slot, position: shownAt(a, a.shown || (a.shown = new THREE.Vector3())) }));
+  split.update(list, { camera }, dt);
+  const L = split.layout;
   // The lit look swaps in ordinary materials, so the optical buffers would be empty.
   if (borrow.id && borrow.id !== 'semMite' && view.mode === 2) features.set(borrow.id, false);
-  const micP = { ref, focus: view.focus, cocPerUnit: ob.coc, dof: ob.dof, pxPerUnit, time, backOff: new THREE.Vector3(view.yaw * 0.15, view.pitch * 0.1, 1) };
-  if (borrow.id === 'semMite') {
-    looks.semScene(scene, camera, { dt, umPerUnit: 100, cls: (o) => (bodyMeshes.has(o) ? CLS.CUTICLE : leafMeshes.has(o) ? CLS.LEAF : CLS.LITTER) });
-  } else if (borrow.id) {
-    // Optical-path units are scene units (100 µm): ×100 gives µm of path.
-    const { a, b } = mic.render({ ...micP, buffersOnly: true });
-    looks.fieldFromBuffers(a.width, a.height, { a: { opd: a.textures[0], abs: a.textures[1] }, b: { opd: b.textures[0], abs: b.textures[1] }, opdK: 100, absK: 1 });
-    if (borrow.id === 'opticsAmoeba') looks.amoeba({ mode: bmode.amoeba, focus: 0.6, time, umPerPx: 100 / pxPerUnit, phaseK: 0.3, odK: 1 });
-    else looks.paramecium({ mode: bmode.par, time, opdK: 0.5, absK: 1 });
-  } else if (view.mode === 2) renderer.render(scene, camera);
-  else mic.render(micP);
+  if (L.views.length <= 1) split.withView(0, camera, () => drawView(L.views[0], null, dt));
+  else {
+    for (const v of L.views) split.withView(v.index, camera, () => drawView(v, split.target(v.index), dt));
+    // The microscope composite is already display-ready: no second encoding when the regions are drawn.
+    const cs = renderer.outputColorSpace;
+    if (view.mode !== 2) renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+    split.compose();
+    renderer.outputColorSpace = cs;
+  }
 
-  // Labels.
+  // Labels (player 1's animal, as its view shows it).
   labelBox.style.display = view.labels ? '' : 'none';
   if (view.labels) {
+    const vi = Math.max(0, L.regions.find((r) => r.slot === 0)?.view ?? 0);
     const v = new THREE.Vector3();
     for (const { name, d } of labelEls) {
-      creature.anchorWorld(name, v).project(camera);
-      d.style.left = `${(v.x * 0.5 + 0.5) * innerWidth}px`;
-      d.style.top = `${(-v.y * 0.5 + 0.5) * innerHeight}px`;
+      const q = split.project(vi, creature.anchorWorld(name, v));
+      d.style.left = `${q.x}px`;
+      d.style.top = `${q.y}px`;
     }
   }
 
+  // Edge arrows (shared/landmark.js) and, with more than one player, a ring in each player's colour.
+  marks.begin();
+  marks.drawSplit(split, places.forward, { kind: 'forward', label: 'Pool', range: 30 });
+  marks.drawSplit(split, places.back, { kind: 'backdoor', label: 'Moss', range: 30 });
+  if (animals.length > 1) drawRings(L);
+}
+
+function drawRings(L) {
+  const cv = marks.canvas, g = cv.getContext('2d');
+  const k = cv.width / (cv.clientWidth || innerWidth);
+  g.save();
+  g.setTransform(k, 0, 0, k, 0, 0);
+  const px = innerHeight / (2 * view.dist * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+  for (const a of animals) {
+    const reg = L.regions.find((r) => r.slot === a.slot);
+    if (!reg) continue;
+    const q = split.project(reg.view, a.shown);
+    g.save();
+    if (L.views.length > 1) { g.beginPath(); reg.polygon.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.clip(); }
+    g.globalAlpha = a.life.state === 'active' ? 0.6 : 0.3;
+    g.strokeStyle = a.p.color; g.lineWidth = 1.5;
+    g.beginPath(); g.ellipse(q.x, q.y, 2.3 * px, 1.6 * px, 0, 0, Math.PI * 2); g.stroke();
+    g.globalAlpha = 0.85; g.fillStyle = a.p.color; g.font = '600 11px system-ui,sans-serif'; g.textAlign = 'center';
+    g.fillText(a.p.name, q.x, q.y - 1.6 * px - 6);
+    g.restore();
+  }
+  g.restore();
+}
+
+function drawView(v, target, dt) {
+  const members = v && v.slots && v.slots.length ? animals.filter((a) => v.slots.includes(a.slot)) : [p1];
+  const at = new THREE.Vector3();
+  for (const a of members) at.add(a.shown || a.walker.dispPos);
+  at.multiplyScalar(1 / members.length);
+  if (!members.length || (capture.active && animals.length === 1)) at.copy(walker.dispPos);
+  const ob = OBJECTIVES[view.obj];
+  const H = renderer.getDrawingBufferSize(new THREE.Vector2()).y;
+  const ref = camera.position.distanceTo(at);
+  const pxPerUnit = H / (2 * ref * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+  for (const m of [particles.optMat, ...animals.filter((a) => a.particles).map((a) => a.particles.optMat)]) m.uniforms.uPx.value = H / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+  const micP = { ref, focus: view.focus, cocPerUnit: ob.coc, dof: ob.dof, pxPerUnit, time, backOff: new THREE.Vector3(view.yaw * 0.15, view.pitch * 0.1, 1), target };
+  if (borrow.id && !target) {
+    if (borrow.id === 'semMite') {
+      looks.semScene(scene, camera, { dt, umPerUnit: 100, cls: (o) => (bodyMeshes.has(o) ? CLS.CUTICLE : leafMeshes.has(o) ? CLS.LEAF : CLS.LITTER) });
+    } else {
+      // Optical-path units are scene units (100 µm): ×100 gives µm of path.
+      const { a, b } = mic.render({ ...micP, buffersOnly: true });
+      looks.fieldFromBuffers(a.width, a.height, { a: { opd: a.textures[0], abs: a.textures[1] }, b: { opd: b.textures[0], abs: b.textures[1] }, opdK: 100, absK: 1 });
+      if (borrow.id === 'opticsAmoeba') looks.amoeba({ mode: bmode.amoeba, focus: 0.6, time, umPerPx: 100 / pxPerUnit, phaseK: 0.3, odK: 1 });
+      else looks.paramecium({ mode: bmode.par, time, opdK: 0.5, absK: 1 });
+    }
+  } else if (view.mode === 2) {
+    renderer.setRenderTarget(target);
+    renderer.render(scene, camera);
+    renderer.setRenderTarget(null);
+  } else mic.render(micP);
 }
 
 function readout() {
   // What Milnesium is up to, on screen whenever it matters.
   let bt = '', hot = true;
-  if (capture.active) bt = CAP_LINES[capture.phase] || '';
-  else if (predator.on && predator.state === 'stalk') bt = 'A Milnesium is stalking you';
-  else if (predator.on && predator.state === 'approach') { bt = 'A Milnesium is closing in'; hot = false; }
+  const tName = animals.length > 1 ? (animals.find((a) => a.slot === predator.target)?.p.name || '') : '';
+  if (capture.active) bt = (animals.length > 1 && captive ? `${captive.p.name}: ` : '') + (CAP_LINES[capture.phase] || '');
+  else if (predator.on && predator.state === 'stalk') bt = tName ? `A Milnesium is stalking ${tName}` : 'A Milnesium is stalking you';
+  else if (predator.on && predator.state === 'approach') { bt = tName ? `A Milnesium is closing in on ${tName}` : 'A Milnesium is closing in'; hot = false; }
   capBanner.style.display = bt ? 'block' : 'none';
   capBanner.textContent = bt;
   capBanner.style.background = hot ? 'rgba(150,30,20,.8)' : 'rgba(10,12,16,.6)';
@@ -569,6 +858,7 @@ function readout() {
     tun: 'tun (dry: waits for rain; wet: Y to wake)', skip: 'tun · time passing…', revive: 'rehydrating…', dead: life.energy <= 0.001 ? 'eaten' : 'did not wake' }[life.state];
   const planted = walker.feet.filter((f) => f.state === 'stance' && f.grip > 0.5).length;
   const bar = (x) => '█'.repeat(Math.round(x * 10)).padEnd(10, '·');
+  const L = split.layout;
   hud.stats([
     `${life.clock}   (${life.compression ? life.compression + '×' : 'paused'})`,
     `${ob.name}  ${MODES[view.mode].split(' ')[0]}  focus ${view.focus >= 0 ? '+' : ''}${Math.round(-view.focus * 100)} µm`,
@@ -581,6 +871,12 @@ function readout() {
     walker.candidate ? `reach    ${walker.candidate.M.name}${walker.candidate.bridged ? ' (film bridge)' : ''}` : '',
     `${dash.active ? 'SCRAMBLE' : dash.text()}   ${Math.round(walker.speed * 100)} µm/s`,
     predator.on ? `Milnesium ${predator.state === 'capture' ? 'eating you' : predator.state === 'wander' ? (predator.firstHunt ? 'browsing far off' : 'keeping off') : predator.state === 'recoil' ? 'backing off' : predator.state === 'approach' ? 'closing in' : 'stalking'} · ${Math.round(predator.dist * 100)} µm${predator.thinFilm ? ' · film too thin for it' : ''} · ${predator.hunger.state} ${Math.round(predator.hunger.left)} s` : '',
+    animals.length > 1 ? `players  ${animals.map((a) => `${a.p.name} ${a.life.state}${a.p.waiting ? ' (waiting)' : ''}`).join(' · ')} · views ${L.views.length}` : '',
   ].filter(Boolean).join('\n'));
 }
+
+// The shell's roster (players who joined in the menus), then joins during play.
+if (embed.players) { players.fromJSON(embed.players); syncAnimals(); }
+embed.on('players', (r) => { players.fromJSON(r); syncAnimals(); });
+hud.players(players.list);
 requestAnimationFrame(frame);

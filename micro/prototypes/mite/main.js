@@ -1,7 +1,11 @@
 // Mite prototype: a box mite walking through a moss cushion, imaged as if in
 // a scanning electron microscope. Units are µm throughout.
 import * as THREE from '../shared/vendor/three.module.min.js';
-import { createPad } from '../shared/pad.js';
+import { embed } from '../shared/embed.js';
+import { createPlayers, PLAYER_COLORS } from '../shared/players.js';
+import { createSplitScreen } from '../shared/splitscreen.js';
+import { createLandmarks } from '../shared/landmark.js';
+import { createLandmarkProps, FORWARD, BACKDOOR } from './landmarks.js';
 import { createControls, createDash, hudControls, addInvertY } from '../shared/controls.js';
 import { createPredatorAI } from './predator.js';
 import { createHunger, createCapture } from '../shared/predation.js';
@@ -41,23 +45,36 @@ tex = semTextures((k, t) => swapTex(k, t));
 const sem = createSem(renderer, tex.backdrop);
 const world = buildWorld(tex);
 scene.add(world.group);
+const props = createLandmarkProps(world, tex);
+scene.add(props.group);
 
 // The box mite is drawn at about 0.6 mm (mite.js) and placed at 0.58 of that:
 // ~0.35 mm long, the size of a small phthiracarid (the Level 1 spec asks for
 // ~270-390 µm). Its stride, hop and speeds shrink with it; the moss does not.
 const MITE_SCALE = 0.58;
-const mite = createMite(scene, world.colliders, { cls: CLS.CUTICLE, tex, scale: MITE_SCALE });
+let mite = createMite(scene, world.colliders, { cls: CLS.CUTICLE, tex, scale: MITE_SCALE });
 mite.place(0, 0, 0.3);
 const npc = createMite(scene, world.colliders, { cls: CLS.NPC, tex, scale: MITE_SCALE });
 npc.place(-950, 820, 2.2);
 // The predator: a parasitid (Mesostigmata), pale, long-legged, hunting by touch.
 const pred = createMite(scene, world.colliders, { cls: CLS.NPC, tex, anat: PRED });
 const predAI = createPredatorAI(pred, HALF);
-predAI.reset(1150, -650); // ~1.3 mm off: it starts well away from you
+predAI.reset(900, 1250); // ~1.5 mm off, to the side of the way on: it starts well away from you
 
-const pad = createPad();
-const ctl = createControls(pad);
-const dash = createDash({ duration: 0.6, cooldown: 2.2 });
+// Local multiplayer (shared/players.js): each player is a box mite of their
+// own, with their own dash, wounds and sounds (a record, see makeRec).
+// Code that acts on "the" player uses `mite`, `play`, `dash` and `snd`, which
+// point at the record being stepped (withRec), and at player 1's otherwise.
+const joins = [];
+const players = createPlayers({
+  max: 4,
+  onJoin: (p) => { joins.push({ slot: p.slot, padIndex: p.padIndex }); syncPlayers(); hud.toast(`Player ${p.slot + 1} joined`); embed.join(p.slot, p.color, p.name); },
+  onLeave: (p) => { syncPlayers(); hud.toast(`Player ${p.slot + 1} left`); embed.leave(p.slot); },
+  onChange: (list) => hud && hud.players(list),
+});
+const pad = players.pad(0);
+const ctl = players.controls(0);
+let dash = createDash({ duration: 0.6, cooldown: 2.2 });
 // Walking speeds (µm/s, world): scaled with the body (720 and 1300 at 0.6 mm).
 const WALK = Math.round(720 * MITE_SCALE), DASH = Math.round(1300 * MITE_SCALE);
 const hud = mountHud({
@@ -90,10 +107,10 @@ let observer = false;
 const rig = { yaw: -0.6, pitch: 0.62, hfw: 1600, target: mite.center.clone() };
 const camFwd = new THREE.Vector3(), camRight = new THREE.Vector3();
 
-let renderScale = 1, dynRes = true, slowEma = 16, scaleT = 0;
+let renderScale = 1, dynRes = true, slowEma = 16, scaleT = 0, splitK = 1;
 function resize() {
   const w = innerWidth, h = innerHeight;
-  renderer.setPixelRatio(DPR * renderScale);
+  renderer.setPixelRatio(DPR * renderScale * splitK);
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
@@ -106,10 +123,16 @@ resize();
 const cutKeep = new Set();
 function placeCamera(dt) {
   const tanH = Math.tan(THREE.MathUtils.degToRad(VFOV) / 2) * camera.aspect;
-  const d = rig.hfw / (2 * tanH);
+  // several players: frame the group, a little wider as it spreads (the split screen takes over when they part)
+  const mp = multi();
+  const gc = mp ? groupCentre(recs()) : null;
+  const want = mp ? rig.hfw * (1 + Math.min(0.6, (gc.spread / rig.hfw) * 0.7)) : rig.hfw;
+  rig.viewHfw = rig.viewHfw === undefined || !dt ? want : rig.viewHfw + (want - rig.viewHfw) * (1 - Math.exp(-dt / 0.4));
+  const d = rig.viewHfw / (2 * tanH);
   const k = dt ? 1 - Math.exp(-dt / 0.25) : 1;
-  // a catch is framed whole: you and the predator
-  if (capture.active) {
+  // a catch is framed whole: you and the predator (alone; with company the camera keeps the group)
+  if (mp) rig.target.lerp(gc.c, k);
+  else if (capture.active) {
     // close in side-on to the catch: your body and the predator's chelicerae in frame
     rig.target.lerp(_ct.copy(mite.center).lerp(pred.center, 0.18), k);
     const kc = dt ? 1 - Math.exp(-dt / 0.6) : 1;
@@ -131,10 +154,20 @@ function placeCamera(dt) {
   shared.uCutR.value = 380 + rig.hfw * 0.06;
   // Per-object cutaway: dissolve only the flakes, leaves and stems actually
   // between the camera and the mite, whole, never what it stands on.
-  const g = mite.ground && mite.ground.entry;
-  cutKeep.clear(); if (g && g.cutId) cutKeep.add(g.cutId);
+  cutKeep.clear();
+  for (const P of recs()) { const g = P.mite.ground && P.mite.ground.entry; if (g && g.cutId) cutKeep.add(g.cutId); }
   world.cut.update(dt, camera.position, rig.target, { radius: 340, margin: 110, keep: cutKeep });
   return d;
+}
+
+/** Centre of the players' mites and their spread (largest distance from it, µm). */
+function groupCentre(list) {
+  const c = new THREE.Vector3();
+  for (const P of list) c.add(P.mite.center);
+  c.divideScalar(list.length);
+  let spread = 0;
+  for (const P of list) spread = Math.max(spread, Math.hypot(P.mite.center.x - c.x, P.mite.center.z - c.z));
+  return { c, spread };
 }
 
 function niceScale(hfw) {
@@ -151,7 +184,8 @@ function npcInput(dt) {
   ai.ang += (Math.sin(ai.t * 0.37) + Math.sin(ai.t * 0.83 + 1)) * 0.5 * dt;
   const c = npc.center;
   if (Math.hypot(c.x, c.z) > HALF * 0.75) ai.ang = Math.atan2(-c.z, -c.x);
-  const dist = c.distanceTo(mite.center);
+  let dist = Infinity;
+  for (const P of recs()) dist = Math.min(dist, c.distanceTo(P.mite.center));
   if (dist < 300 && ai.scared <= 0 && npc.mode === 'walk') ai.scared = 3 + Math.random() * 2;
   ai.scared -= dt;
   ai.pause = (ai.pause + dt) % 14;
@@ -164,7 +198,7 @@ function npcInput(dt) {
 // hunts. Its third grab holds on: strike (it seizes a leg), hold (it pulls you
 // in; close up, Y, and the grip slips off), eat (its chelicerae work at the
 // soft body by the legs, which go limp and fold), then the Eaten card.
-const PRED_START = [1150, -650];
+const PRED_START = [900, 1250];
 const pace = { grace: 45, mode: 'Comes and goes' };
 const hunger = createHunger({ grace: pace.grace });
 const isHungry = () => (pace.mode === 'Never' ? false : pace.mode === 'Always' ? hunger.state !== 'grace' : hunger.hungry);
@@ -176,6 +210,7 @@ function resetLevel() {
   capture.reset();
   cap.phase = null;
   mite.place(0, 0, 0.3);
+  recs().forEach((P, i) => { if (P.mite !== mite) { P.mite.place(Math.cos(i * 2.1) * 260, Math.sin(i * 2.1) * 260, 0.3); P.play.hurt = 0; P.play.stun = 0; } });
   predAI.reset(...PRED_START);
   pred.st.chel = 0;
   play.hurt = 0; play.stun = 0;
@@ -186,12 +221,14 @@ function startCapture() {
   const mouth = pred.mouth(_cm);
   let best = 0, bd = Infinity;
   for (let i = 0; i < 8; i++) { const d = mite.footW(i, _ct).distanceTo(mouth); if (d < bd) { bd = d; best = i; } }
-  Object.assign(cap, { phase: null, leg: best, heldOnce: false, t: 0 });
+  Object.assign(cap, { phase: null, leg: best, heldOnce: false, t: 0, who: cur });
   cap.c0.copy(mite.center); cap.q0.copy(mite.quat);
   play.caught++; play.hurt = 0; play.stun = 0;
   capture.start({ by: 'The predatory mite', how: 'seized a leg, pulled you in and ate you' });
+  embed.captured({ by: 'predator', player: cur.slot });
+  if (multi()) hud.toast(`Player ${cur.slot + 1} is seized by a leg: close up (Y)!`, 2200);
   audio.play('mite/predator', { volume: 1, rate: 0.9 });
-  if (rumbleOn) pad.rumble(400, 0.9, 1);
+  if (rumbleOn) padOf().rumble(400, 0.9, 1);
 }
 /** Pose the box mite and the predator for the current phase; false if you slipped free. */
 function animateCapture(c, dt) {
@@ -205,13 +242,13 @@ function animateCapture(c, dt) {
     predAI.state = 'wander'; predAI.bored = 14; predAI.ang += Math.PI;
     if (hunger.hungry) hunger.missed();
     hud.toast('Closed up in time: its chelicerae slip off the capsule and it gives up', 2600);
-    if (rumbleOn) pad.rumble(160, 0.3, 0.6);
+    if (rumbleOn) padOf().rumble(160, 0.3, 0.6);
     return false;
   }
   if (c.phase !== cap.phase) {
     cap.phase = c.phase;
     if (c.phase === 'hold') audio.play('mite/predator', { volume: 0.8, rate: 1.2 });
-    if (c.phase === 'eat') { hunger.fed(); audio.play('mite/bite', { volume: 1, rate: 0.7 }); if (rumbleOn) pad.rumble(500, 0.6, 0.3); }
+    if (c.phase === 'eat') { hunger.fed(); audio.play('mite/bite', { volume: 1, rate: 0.7 }); if (rumbleOn) padOf().rumble(500, 0.6, 0.3); }
   }
   const u = c.t, T = cap.t;
   const mouth = pred.mouth(_cm);
@@ -252,11 +289,6 @@ const features = createFeatures({ key: 'mite', pad });
 const audio = createAudio(['mite/amb-moss', 'mite/step', 'mite/dash', 'mite/close', 'mite/open', 'mite/bite', 'mite/blade', 'mite/predator']);
 audio.addToFeatures(features);
 audio.loop('mite/amb-moss', { volume: 0.6 });
-/** Gamepads fire no DOM events: unlock sound on any pad button. */
-function unlockOnPad() {
-  if (pad.kind !== 'controller') return;
-  for (let b = 0; b < 16; b++) if (pad.value(b) > 0.5) { audio.unlock(); return; }
-}
 const LOOKS = ['SE', 'BSE', 'False colour'];
 let npcOn = true, rumbleOn = true, predOn = true;
 const F = (o) => features.add(o);
@@ -405,9 +437,8 @@ function renderView(dt) {
   else looks.paramecium({ mode: bmode.par, time, opdK: 0.35 });
 }
 
-let speedMul = 1;
 // Player state: legs grabbed by the predator (3 = caught), stun after a grab, grazing.
-const play = { hurt: 0, stun: 0, grazed: 0, caught: 0, nip: false, heal: 0 };
+let play = { hurt: 0, stun: 0, grazed: 0, caught: 0, nip: false, heal: 0 };
 const _fp = new THREE.Vector3(), _bc = new THREE.Vector3();
 const closedNow = () => mite.mode === 'closed' || (mite.mode === 'closing' && mite.st.retract > 0.5) || (mite.mode === 'opening' && mite.st.aspis > 0.5);
 function biteNow() {
@@ -427,7 +458,7 @@ function biteNow() {
   play.grazed++;
   if (best.kind === 'spore') { best.left = 0; world.eatSpore(best); hud.toast(`Ate a fungal spore (${play.grazed} grazed)`); }
   else { best.left = 0; best.t = 25; hud.toast(`Nibbled a hyphal tip (${play.grazed} grazed)`); }
-  if (rumbleOn) pad.rumble(60, 0.25, 0.1);
+  if (rumbleOn) padOf().rumble(60, 0.25, 0.1);
 }
 function bodyOf(m) {
   return { center: _bc.set(...m.anat.noto.c).multiplyScalar(m.scale).applyQuaternion(m.quat).add(m.center).clone(), quat: m.quat,
@@ -436,7 +467,7 @@ function bodyOf(m) {
     loadU: m.ground && m.ground.entry && m.ground.entry.rod ? Math.min(1, Math.max(0, m.ground.point.clone().sub(m.ground.entry.rod.base).dot(m.ground.entry.rod.axis) / m.ground.entry.rod.len)) : 0.7 };
 }
 // ---------- sound ----------
-const snd = { t: 0, lastStep: -1, side: 1, lastBlade: -1, mode: 'walk', bladeNear: new Set() };
+let snd = { t: 0, lastStep: -1, side: 1, lastBlade: -1, mode: 'walk', bladeNear: new Set() };
 function soundTick(dt, ev) {
   snd.t += dt;
   if (mite.mode !== snd.mode) {
@@ -471,58 +502,185 @@ function soundTick(dt, ev) {
     }
   }
 }
-function tick(dt, input) {
-  dash.update(dt);
-  play.stun = Math.max(0, play.stun - dt);
-  if (play.hurt > 0 && (play.heal += dt) > 20) { play.hurt--; play.heal = 0; }
+// ---------- players ----------
+const P1 = { slot: 0, color: PLAYER_COLORS[0], mite, play, dash, snd, speedMul: 1 };
+const pls = [P1];
+const recs = () => pls.filter(Boolean);
+const multi = () => recs().length > 1;
+let cur = P1;
+/** Run fn with `mite`, `play`, `dash`, `snd` pointing at player record P. */
+function withRec(P, fn) {
+  const saved = [cur, mite, play, dash, snd];
+  cur = P; mite = P.mite; play = P.play; dash = P.dash; snd = P.snd;
+  try { return fn(); } finally { [cur, mite, play, dash, snd] = saved; }
+}
+/** The pad of the player being stepped (rumble goes to their controller). */
+const padOf = () => players.pad(cur.slot);
+const held = (P) => P.mite.mode === 'held' || (capture.active && cap.who === P);
+/** A box mite for a player who joined (or came in with the shell's roster), beside the others. */
+function makeRec(p) {
+  const m = createMite(scene, world.colliders, { cls: CLS.CUTICLE, tex, scale: MITE_SCALE });
+  const near = recs().filter((q) => !held(q));
+  const c = near.length ? groupCentre(near).c : new THREE.Vector3();
+  const a = p.slot * 2.1;
+  m.place(c.x + Math.cos(a) * 260, c.z + Math.sin(a) * 260, rig.yaw + Math.PI);
+  return { slot: p.slot, color: p.color, mite: m, play: { hurt: 0, stun: 0, grazed: 0, caught: 0, nip: false, heal: 0 },
+    dash: createDash({ duration: 0.6, cooldown: 2.2 }), snd: { t: 0, lastStep: -1, side: 1, lastBlade: -1, mode: 'walk', bladeNear: new Set() }, speedMul: 1 };
+}
+/** Keep one mite per joined player. */
+function syncPlayers() {
+  const want = new Set(players.list.map((p) => p.slot));
+  for (const p of players.list) if (!pls[p.slot]) pls[p.slot] = makeRec(p);
+  for (let s = 1; s < pls.length; s++) {
+    const P = pls[s];
+    if (!P || want.has(s)) continue;
+    if (cap.who === P) { capture.reset(); cap.phase = null; cap.who = null; pred.st.chel = 0; }
+    for (const m of P.mite.meshes) m.visible = false;
+    P.mite.root.removeFromParent();
+    pls[s] = null;
+  }
+}
+/** Multiplayer: an eaten player comes back beside a teammate. */
+function respawnNear(P) {
+  const mates = recs().filter((q) => q !== P && !held(q));
+  const c = mates.length ? mates[0].mite.center : new THREE.Vector3();
+  const a = Math.random() * Math.PI * 2;
+  P.mite.place(c.x + Math.cos(a) * 280, c.z + Math.sin(a) * 280, a + Math.PI);
+  P.play.hurt = 0; P.play.stun = 0; P.play.heal = 0;
+}
+
+// ---------- landmarks ----------
+// Forward (FORWARD, landmarks.js): any player reaching the water in the leaf
+// axil zooms into the tardigrade's world; in the game the others follow
+// through the transition. Backdoor (BACKDOOR): dwell in front of the giant
+// springtail's head and Y (here, instead of closing up) rises to the bog surface.
+const lm = { fired: false, near: false, log: [] };
+const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+const atBack = (P) => !held(P) && flat(P.mite.center, props.back) < BACKDOOR.dwell;
+const backPrompt = document.createElement('div');
+backPrompt.style.cssText = 'position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:6;padding:6px 14px;border-radius:999px;background:rgba(10,12,16,.6);color:#e8e8e8;font:600 13px system-ui,-apple-system,"Segoe UI",sans-serif;pointer-events:none;white-space:nowrap;display:none';
+document.body.appendChild(backPrompt);
+function goBack(P) {
+  lm.log.push({ kind: 'back', slot: P.slot, t: +simTime.toFixed(2) });
+  embed.landmark('back', { player: P.slot });
+}
+function checkLandmarks() {
+  let at = null, nearF = false, nearB = false, dmin = Infinity;
+  for (const P of recs()) {
+    if (held(P)) continue;
+    const c = P.mite.center;
+    const d = flat(c, FORWARD);
+    dmin = Math.min(dmin, d);
+    if (d < FORWARD.reach && Math.abs(c.y - props.forward.y) < 450) at = P;
+    if (d < FORWARD.reach + 250) nearF = true;
+    if (atBack(P)) nearB = true;
+  }
+  props.update(simTime, dmin);
+  if (at && !lm.fired) {
+    lm.fired = true;
+    lm.log.push({ kind: 'forward', slot: at.slot, t: +simTime.toFixed(2) });
+    withRec(at, () => { if (rumbleOn) padOf().rumble(200, 0.3, 0.3); });
+    embed.landmark('forward', { player: at.slot });
+  }
+  if (!nearF) lm.fired = false;
+  if (nearB !== lm.near) {
+    lm.near = nearB;
+    embed.near('back', nearB, 'Rise to the bog surface');
+    // standalone: our own quiet prompt (in the game the shell shows it)
+    if (!embed.active) {
+      backPrompt.style.display = nearB ? 'block' : 'none';
+      backPrompt.textContent = `${hud.glyphs === 'keyboard' ? 'R' : 'Y'}: back to the bog surface`;
+    }
+  }
+}
+
+function tick(dt, inputs) {
   for (const f of world.food) if (f.kind === 'hypha' && f.left <= 0 && (f.t -= dt) <= 0) f.left = 1;
-  if (play.stun > 0) input = { ...input, mag: 0 };
-  const cs = capture.update(dt, capPad);
-  if (cs.active) { input = { ...input, mag: 0 }; animateCapture(cs, dt); }
+  // the catch: the victim's own pad restarts (alone) or closes up
+  const who = capture.active && cap.who ? cap.who : P1;
+  let cs = withRec(who, () => capture.update(dt, capPad ? players.pad(who.slot) : null));
+  if (cs.active && cs.phase === 'eaten' && multi()) {
+    // multiplayer: no Eaten card; the player comes back beside a teammate
+    capture.reset(); cap.phase = null; cap.who = null; pred.st.chel = 0;
+    predAI.state = 'wander'; predAI.bored = 10; predAI.ang += Math.PI;
+    respawnNear(who);
+    hud.toast(`Player ${who.slot + 1} was eaten, and is back beside a teammate`, 2400);
+    cs = { active: false };
+  }
+  if (cs.active) withRec(who, () => animateCapture(cs, dt));
   else if (predOn) hunger.update(dt);
   // Blades and hyphae move first (pushed and loaded by where the mites were),
   // so each mite then settles on, and clears, the surfaces as they are now.
-  world.foliage.update(dt, [mite, ...(npcOn ? [npc] : []), ...(predOn ? [pred] : [])].map(bodyOf));
-  const ev = mite.update(dt, input);
-  soundTick(dt, ev);
+  world.foliage.update(dt, [...recs().map((P) => P.mite), ...(npcOn ? [npc] : []), ...(predOn ? [pred] : [])].map(bodyOf));
+  const evs = [];
+  for (const P of recs()) withRec(P, () => {
+    dash.update(dt);
+    play.stun = Math.max(0, play.stun - dt);
+    if (play.hurt > 0 && (play.heal += dt) > 20) { play.hurt--; play.heal = 0; }
+    let input = (inputs && inputs[P.slot]) || { dir: new THREE.Vector3(), mag: 0, maxSpeed: WALK, hold: false };
+    if (play.stun > 0) input = { ...input, mag: 0 };
+    if (cs.active && cap.who === P) input = { ...input, mag: 0 };
+    const ev = mite.update(dt, input);
+    soundTick(dt, ev);
+    evs[P.slot] = ev;
+  });
   if (npcOn) npc.update(dt, npcInput(dt));
-  if (predOn && capture.active) {
+  const nip = recs().some((P) => P.play.nip);
+  if (predOn && capture.active && cap.who) {
     // the predator stands over its catch, turned to it
-    const to = _ct.subVectors(mite.center, pred.center).setY(0);
+    const to = _ct.subVectors(cap.who.mite.center, pred.center).setY(0);
     pred.update(dt, { dir: to.lengthSq() > 1 ? to.normalize().clone() : new THREE.Vector3(), mag: 0.02, maxSpeed: 40, hold: false, accel: 0.2 });
   } else if (predOn) {
-    const r = predAI.step(dt, { mite, closed: closedNow(), speed: mite.speed, hungry: isHungry() }, play.nip);
-    pred.update(dt, r.input);
-    for (const e of r.events) {
-      if ((e === 'givesUp' || e === 'lost') && hunger.hungry) hunger.missed();
-      if (e === 'hunt') audio.play('mite/predator', { volume: 0.9 });
-      if (e === 'legHit') audio.play('mite/predator', { volume: 0.6, rate: 1.25 });
-      if (e === 'hunt') hud.toast('A predatory mite has touched you: scramble (B), jump (A), close up (Y) or nip it (X)', 2600);
-      else if (e === 'recoil') { hud.toast('Nipped: the predator recoils'); if (rumbleOn) pad.rumble(120, 0.4, 0.3); }
-      else if (e === 'blocked') { hud.toast('Its chelicerae slide off the closed capsule'); if (rumbleOn) pad.rumble(90, 0.2, 0.35); }
-      else if (e === 'givesUp') hud.toast('The predator gives up on the closed capsule');
-      else if (e === 'legHit') {
-        play.hurt++; play.stun = 0.7; play.heal = 0;
-        if (rumbleOn) pad.rumble(260, 0.8, 0.9);
-        if (play.hurt >= 3) startCapture();
-        else hud.toast(`It grabbed a leg (${play.hurt}/3): get away!`);
+    // it goes for the nearest player
+    let prey = P1, bd = Infinity;
+    for (const P of recs()) { const d = P.mite.center.distanceTo(pred.center); if (d < bd) { bd = d; prey = P; } }
+    withRec(prey, () => {
+      const r = predAI.step(dt, { mite, closed: closedNow(), speed: mite.speed, hungry: isHungry() }, nip);
+      pred.update(dt, r.input);
+      const who = multi() ? `Player ${cur.slot + 1}: ` : '';
+      for (const e of r.events) {
+        if ((e === 'givesUp' || e === 'lost') && hunger.hungry) hunger.missed();
+        if (e === 'hunt') audio.play('mite/predator', { volume: 0.9 });
+        if (e === 'legHit') audio.play('mite/predator', { volume: 0.6, rate: 1.25 });
+        if (e === 'hunt') hud.toast(`${who}A predatory mite has touched you: scramble (B), jump (A), close up (Y) or nip it (X)`, 2600);
+        else if (e === 'recoil') { hud.toast('Nipped: the predator recoils'); if (rumbleOn) padOf().rumble(120, 0.4, 0.3); }
+        else if (e === 'blocked') { hud.toast('Its chelicerae slide off the closed capsule'); if (rumbleOn) padOf().rumble(90, 0.2, 0.35); }
+        else if (e === 'givesUp') hud.toast('The predator gives up on the closed capsule');
+        else if (e === 'legHit') {
+          play.hurt++; play.stun = 0.7; play.heal = 0;
+          if (rumbleOn) padOf().rumble(260, 0.8, 0.9);
+          if (play.hurt >= 3) startCapture();
+          else hud.toast(`${who}It grabbed a leg (${play.hurt}/3): get away!`);
+        }
       }
-    }
+    });
   }
-  play.nip = false;
-  return ev;
+  for (const P of recs()) P.play.nip = false;
+  checkLandmarks();
+  return evs;
 }
 
+function unlockAny() {
+  for (const p of players.active) {
+    const pp = players.pad(p.slot);
+    if (pp.kind !== 'controller') continue;
+    for (let b = 0; b < 16; b++) if (pp.value(b) > 0.5) { audio.unlock(); return; }
+  }
+}
+/** Every player's input this frame, by slot (player 1 also drives the camera and the imaging). */
 function readInput(dt) {
-  pad.poll();
-  unlockOnPad();
+  players.poll(); // the roster and every player's pad (do not also poll the pads)
+  syncPlayers();
+  unlockAny();
   const menu = features.update();
-  capPad = menu ? null : pad;
-  if (menu) return { dir: new THREE.Vector3(), mag: 0, maxSpeed: 0, hold: false };
+  capPad = !menu;
+  if (menu) return [];
   hud.update(pad);
-  // RS: orbit; pitch by intent (up looks up: the camera swings down).
+  // RS: orbit (any player turns it); pitch by intent (up looks up: the camera swings down).
+  let yaw = 0;
+  for (const p of players.active) yaw += players.controls(p.slot).look().yaw;
+  rig.yaw += THREE.MathUtils.clamp(yaw, -1, 1) * 1.8 * dt;
   const lk = ctl.look();
-  rig.yaw += lk.yaw * 1.8 * dt;
   rig.pitch = THREE.MathUtils.clamp(rig.pitch - lk.pitch * 1.2 * dt, 0.18, 1.5);
   const zoom = ctl.analog();
   rig.hfw = THREE.MathUtils.clamp(rig.hfw * Math.exp(-zoom * 1.3 * dt), 160, 4200);
@@ -531,29 +689,46 @@ function readInput(dt) {
   const zs = ctl.zoomStep();
   if (zs) { rig.hfw = THREE.MathUtils.clamp(rig.hfw / (zs > 0 ? 1.5 : 1 / 1.5), 160, 4200); hud.toast(`mag ${(127000 / rig.hfw).toFixed(0)}x`); }
   if (ctl.stickClick.left.pressed()) { features.set('observer', !observer); hud.toast(observer ? 'Observer mode' : 'Observer mode off'); }
-  if (ctl.attack.pressed()) biteNow();
-  const sec = ctl.secondary();
-  speedMul = sec < 0 ? 0.5 : sec > 0 ? 1.4 : 1;
-  const ls = ctl.move();
   camFwd.set(-Math.cos(rig.yaw), 0, -Math.sin(rig.yaw));
   camRight.set(-camFwd.z, 0, camFwd.x);
+  const out = [];
+  for (const p of players.active) {
+    const P = pls[p.slot];
+    if (P) out[p.slot] = withRec(P, () => inputFor(players.controls(p.slot)));
+  }
+  return out;
+}
+/** One player's walking input from their controls (`mite` etc. are theirs). */
+function inputFor(c) {
+  if (c.attack.pressed()) biteNow();
+  const sec = c.secondary();
+  const speedMul = sec < 0 ? 0.5 : sec > 0 ? 1.4 : 1;
+  const ls = c.move();
   const dir = camFwd.clone().multiplyScalar(-ls.y).addScaledVector(camRight, ls.x);
-  // A: jump. B: the scramble. Y (held): close up.
-  if (ctl.dash.pressed() && play.stun <= 0 && mite.jump()) { if (rumbleOn) pad.rumble(90, 0.25, 0.4); }
-  if (ctl.defend.pressed() && mite.mode === 'walk' && play.stun <= 0 && dash.trigger()) { audio.play('mite/dash', { volume: 0.9 }); if (rumbleOn) pad.rumble(140, 0.3, 0.5); }
+  // A: jump. B: the scramble. Y (held): close up; at the backdoor, Y goes back instead.
+  if (c.dash.pressed() && play.stun <= 0 && mite.jump()) { if (rumbleOn) padOf().rumble(90, 0.25, 0.4); }
+  if (c.defend.pressed() && mite.mode === 'walk' && play.stun <= 0 && dash.trigger()) { audio.play('mite/dash', { volume: 0.9 }); if (rumbleOn) padOf().rumble(140, 0.3, 0.5); }
+  let hold = c.special.down();
+  if (atBack(cur) && mite.mode === 'walk') {
+    hold = false;
+    if (c.special.pressed()) goBack(cur);
+  }
   const dashing = dash.active && mite.mode === 'walk';
   if (dashing && ls.m < 0.2) dir.set(1, 0, 0).applyQuaternion(mite.quat).setY(0); // no stick: straight ahead
-  return { dir: dir.lengthSq() > 0 ? dir.normalize() : dir, mag: dashing ? 1 : ls.m, maxSpeed: dashing ? DASH : WALK * speedMul * (1 - 0.15 * play.hurt), accel: dashing ? 0.05 : 0.18, hold: ctl.special.down() };
+  return { dir: dir.lengthSq() > 0 ? dir.normalize() : dir, mag: dashing ? 1 : ls.m, maxSpeed: dashing ? DASH : WALK * speedMul * (1 - 0.15 * play.hurt), accel: dashing ? 0.05 : 0.18, hold };
 }
 
-function react(ev) {
+function react(evs) {
   if (!rumbleOn) return;
+  for (const P of recs()) withRec(P, () => react1(evs[P.slot] || []));
+}
+function react1(ev) {
   for (const e of ev) {
-    if (e === 'step') pad.rumble(25, 0.08, 0);
-    else if (e === 'closed') { pad.rumble(140, 0.35, 0.7); }
-    else if (e === 'opened') pad.rumble(70, 0.2, 0.1);
-    else if (e === 'impact') pad.rumble(110, 0.4, 0.5);
-    else if (e === 'land') pad.rumble(70, 0.25, 0.3);
+    if (e === 'step') padOf().rumble(25, 0.08, 0);
+    else if (e === 'closed') { padOf().rumble(140, 0.35, 0.7); }
+    else if (e === 'opened') padOf().rumble(70, 0.2, 0.1);
+    else if (e === 'impact') padOf().rumble(110, 0.4, 0.5);
+    else if (e === 'land') padOf().rumble(70, 0.25, 0.3);
   }
 }
 
@@ -573,6 +748,59 @@ function updateBanner() {
 }
 
 let frames = 0, statT = 0;
+// ---------- split screen and the edge arrows ----------
+// The SEM composite (and a borrowed look) ends on the screen, so the split
+// copies each view from it (capture). Split views render at a lower
+// resolution (splitK), the composite costs per pixel.
+const split = createSplitScreen(renderer, { capture: true });
+const marks = createLandmarks();
+const _vc = new THREE.Vector3();
+function drawFrame(dt) {
+  split.update(recs().map((P) => ({ slot: P.slot, position: P.mite.center.clone() })), { camera }, dt);
+  const k = split.views.length > 1 ? 0.7 : 1;
+  if (k !== splitK) { splitK = k; resize(); }
+  const one = split.views.length === 1;
+  const cut0 = shared.uCutP.value.clone();
+  split.render(camera, (view) => {
+    if (!one) {
+      // the cutaway clears the way to this view's own players
+      _vc.set(0, 0, 0);
+      let n = 0;
+      for (const s of view.slots) if (pls[s]) { _vc.add(pls[s].mite.center); n++; }
+      if (n) shared.uCutP.value.copy(_vc.divideScalar(n)).applyMatrix4(camera.matrixWorldInverse);
+    }
+    renderView(dt);
+  });
+  shared.uCutP.value.copy(cut0);
+  marks.begin();
+  marks.drawSplit(split, props.forward, { kind: 'forward', label: 'Water', range: 4000 });
+  marks.drawSplit(split, props.back, { kind: 'backdoor', label: 'Up', range: 4000 });
+  // players' colours: a faint ring round each mite (with company only)
+  if (multi()) {
+    const ctx = marks.canvas.getContext('2d');
+    ctx.save();
+    ctx.setTransform(Math.min(window.devicePixelRatio || 1, 2), 0, 0, Math.min(window.devicePixelRatio || 1, 2), 0, 0);
+    const pxPerUm = innerWidth / rig.viewHfw;
+    for (const v of split.layout.views) {
+      for (const s of v.slots) {
+        const P = pls[s];
+        if (!P) continue;
+        const pr = split.project(v.index, P.mite.center);
+        if (pr.behind) continue;
+        const r = Math.max(14, 260 * pxPerUm);
+        ctx.globalAlpha = 0.55;
+        ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.5)';
+        ctx.beginPath(); ctx.ellipse(pr.x, pr.y + r * 0.25, r, r * 0.45, 0, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 0.8;
+        ctx.lineWidth = 1.5; ctx.strokeStyle = P.color;
+        ctx.stroke();
+        ctx.font = '600 10px system-ui, sans-serif'; ctx.fillStyle = P.color; ctx.textAlign = 'center';
+        ctx.fillText(`P${s + 1}`, pr.x, pr.y + r * 0.25 + r * 0.45 + 12);
+      }
+    }
+    ctx.restore();
+  }
+}
 function updateText(d) {
   updateBanner();
   const mag = 127000 / rig.hfw; // relative to a 127 mm (Polaroid 4x5) reference image width
@@ -592,23 +820,44 @@ function updateText(d) {
 let last = performance.now(), simTime = 0;
 const api = {
   scene, camera, renderer, sem, world, mite, npc, pred, predAI, play, dash, rig, features, cfg: CFG, paused: false,
-  tick(dt, input = { dir: new THREE.Vector3(), mag: 0, maxSpeed: WALK, hold: false }) { return tick(dt, input); },
+  tick(dt, input = { dir: new THREE.Vector3(), mag: 0, maxSpeed: WALK, hold: false }) { return tick(dt, [input])[0]; },
   hunger, capture, pace, resetLevel,
   get time() { return simTime; },
   /** Testing: one fixed step with the left stick at (x, y) in world x/z (null: hands off); hold: Y. */
   testStep(dt = 1 / 30, stick = null, hold = false) {
     simTime += dt;
     const m = stick ? Math.min(1, Math.hypot(stick.x, stick.y)) : 0;
-    tick(dt, { dir: new THREE.Vector3(stick ? stick.x : 0, 0, stick ? stick.y : 0).normalize(), mag: m, maxSpeed: WALK, hold, accel: 0.18 });
+    tick(dt, [{ dir: new THREE.Vector3(stick ? stick.x : 0, 0, stick ? stick.y : 0).normalize(), mag: m, maxSpeed: WALK, hold, accel: 0.18 }]);
   },
+  // ---- multiplayer and landmarks (Playwright drives these)
+  players, split, marks, joins, landmarks: { forward: FORWARD, back: BACKDOOR, forwardAt: props.forward, backAt: props.back }, landmarkLog: lm.log, props,
+  get frames() { return frames; },
+  get layout() { return split.layout; },
+  recs: () => recs().map((P) => ({ slot: P.slot, x: Math.round(P.mite.center.x), z: Math.round(P.mite.center.z), mode: P.mite.mode, hurt: P.play.hurt })),
+  /** Put a player's mite at (x, z) µm and snap the camera. */
+  teleport(slot, x, z, yaw = rig.yaw + Math.PI) {
+    const P = pls[slot];
+    if (!P) return false;
+    P.mite.place(x, z, yaw);
+    if (!multi()) rig.target.copy(P.mite.center);
+    return true;
+  },
+  /** Run n render passes (camera and split screen) without stepping the simulation. */
+  settle(n = 30) { for (let i = 0; i < n; i++) { placeCamera(1 / 30); drawFrame(1 / 30); } },
+  /** Is anyone dwelling on the backdoor (the prompt is up)? */
+  get nearBack() { return lm.near; },
   pacing() {
     const d = pred.center.distanceTo(mite.center);
     return { approach: capture.active || predAI.state === 'hunt', captured: capture.active, phase: capture.phase, kind: 'predator',
       hunger: { predator: hunger.state }, states: { predator: predAI.state }, dist: { predator: Math.round(d) }, mode: mite.mode, pen: Math.round(mite.st.pen * mite.scale) };
   },
   /** Testing: the predator seizes you right now (the whole catch plays). */
-  forceCapture() {
+  forceCapture(slot = 0) {
     if (capture.active) return;
+    const P = pls[slot] || P1;
+    withRec(P, () => api._force());
+  },
+  _force() {
     if (mite.mode !== 'walk') mite.place(mite.center.x, mite.center.z, 0.3);
     const a = 0.3 + Math.PI / 2, c = mite.center;
     const x = c.x + Math.cos(a) * 560, z = c.z - Math.sin(a) * 560;
@@ -616,11 +865,18 @@ const api = {
     predAI.state = 'hunt';
     startCapture();
   },
-  render(dt = 1 / 60) { const d = placeCamera(0); renderView(dt); updateText(d); },
+  render(dt = 1 / 60) { const d = placeCamera(0); drawFrame(dt); updateText(d); },
   isolate(on) { world.group.visible = !on; npc.setVisible(!on); pred.setVisible(!on && predOn); },
   setMode(m) { sem.setMode(m); sem.skipScan(); },
 };
 window.__micro = api;
+
+// The shell's roster (players who joined in the menus come along); joins
+// during play are polled here and reported back to it.
+if (embed.players) players.fromJSON(embed.players);
+embed.on('players', (r) => { players.fromJSON(r); syncPlayers(); });
+syncPlayers();
+hud.players(players.list);
 
 // Never queue a frame while the last one is still on the GPU (a slow GPU
 // would otherwise build a backlog and lag seconds behind the controls).
@@ -639,6 +895,7 @@ function frame() {
   const dt = Math.min((now - last) / 1000, 1 / 30);
   last = now;
   if (api.paused) return;
+  frames++;
   const input = readInput(dt);
   simTime += dt;
   react(tick(dt, input));
@@ -653,10 +910,10 @@ function frame() {
     else if (slowEma < 20 && renderScale < 1 && scaleT > 2500) { renderScale = Math.min(1, renderScale * 1.15); resize(); scaleT = 0; }
   }
   const d = placeCamera(dt);
-  renderView(dt);
+  drawFrame(dt);
   fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
   gl.flush();
-  frames++; statT += dt;
+  statT += dt;
   if (statT > 0.25) { updateText(d); statT = 0; }
 }
 frame();

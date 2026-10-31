@@ -76,7 +76,7 @@ const FRAG = /* glsl */`
 ${NOISE}
 uniform vec3 uColor; uniform vec3 uFogColor; uniform float uFogNear; uniform float uFogFar; uniform float uDepthOn;
 uniform float uOpacity; uniform float uDark; uniform vec3 uDarkColor; uniform float uMottle; uniform float uEmissive;
-uniform sampler2D uMap; uniform float uUseMap; uniform vec2 uMapRepeat;
+uniform sampler2D uMap; uniform float uUseMap; uniform vec2 uMapRepeat; uniform vec2 uMapOffset;
 varying vec3 vN; varying vec3 vView; varying vec3 vWorld; varying vec3 vCol; varying vec2 vUv; varying float vDepth;
 void main(){
   #include <clipping_planes_fragment>
@@ -87,7 +87,7 @@ void main(){
   float shade = smoothstep(-0.35, 0.85, d);
   float rim = pow(1.0 - abs(dot(n, v)), 2.2);
   vec3 base = uColor * vCol;
-  if (uUseMap > 0.5) base *= texture2D(uMap, vUv * uMapRepeat).rgb * 1.15;
+  if (uUseMap > 0.5) base *= texture2D(uMap, vUv * uMapRepeat + uMapOffset).rgb * 1.15;
   base = mix(base, uDarkColor, uDark);
   vec3 col = base * (0.74 + 0.30 * shade) * (1.0 - 0.22 * rim);
   col += base * uEmissive;
@@ -160,6 +160,7 @@ export function toonMaterial(o = {}) {
       uMap: { value: o.map || null },
       uUseMap: { value: o.map ? 1 : 0 },
       uMapRepeat: { value: new THREE.Vector2(...(o.mapRepeat || [1, 1])) },
+      uMapOffset: { value: new THREE.Vector2(...(o.mapOffset || [0, 0])) },
     },
     vertexShader: VERT,
     fragmentShader: FRAG,
@@ -169,9 +170,10 @@ export function toonMaterial(o = {}) {
     side: o.side ?? THREE.FrontSide,
     clipping: !!o.clip,
   });
-  mat.setMap = (tex, repeat) => {
+  mat.setMap = (tex, repeat, offset) => {
     mat.uniforms.uMap.value = tex; mat.uniforms.uUseMap.value = tex ? 1 : 0;
     if (repeat) mat.uniforms.uMapRepeat.value.set(...repeat);
+    mat.uniforms.uMapOffset.value.set(...(offset || [0, 0]));
   };
   return mat;
 }
@@ -304,7 +306,7 @@ void main(){
   } else {
     // Goodsell watercolour: pale water with washes, paper grain, wet edges
     vec3 bg = uWater;
-    if (uUseBg > 0.5) bg = texture2D(tBg, vUv * vec2(uRes.x / uRes.y, 1.0) * 1.2 + uBgOff).rgb;
+    if (uUseBg > 0.5) bg = texture2D(tBg, (vUv - 0.5) * 0.84 + 0.5 + clamp(uBgOff, vec2(-0.07), vec2(0.07))).rgb * 1.06;
     else {
       float w = fbm(vUv * vec2(uRes.x / uRes.y, 1.0) * 2.5 + uBgOff * 1.0);
       bg = uWater * (0.92 + 0.14 * w);

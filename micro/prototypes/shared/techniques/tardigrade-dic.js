@@ -43,6 +43,8 @@
 //                of rendering the scene; layer B is left empty
 //     buffersOnly optional: stop after the defocus blur and return { a, b } (the
 //                blurred 2-texture targets) instead of composing an image
+//     target     optional: compose into this render target instead of the screen
+//                (a split-screen view, see shared/splitscreen.js)
 //   Options (live): mic.mode 0 DIC / 1 brightfield; mic.opts = { dof, grain, vignette, fringes,
 //     backdrop, shear (nm), bias (nm), angle (shear direction, radians) }.
 //   Performance: mic.setQuality(0..3), or mic.autoQuality(dt) every frame.
@@ -326,7 +328,7 @@ export class DicMicroscope {
     cu.uGrain.value = o.grain ? 1 : 0; cu.uVignette.value = o.vignette ? 1 : 0;
     cu.uFringes.value = o.fringes ? 1 : 0; cu.uBackdrop.value = o.backdrop ? 1 : 0;
     this.fsMesh.material = this.compMat;
-    r.setRenderTarget(null);
+    r.setRenderTarget(p.target || null);
     r.setClearColor(prevClear, prevA);
     r.render(this.fsScene, this.fsCam);
   }

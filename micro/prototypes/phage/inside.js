@@ -149,7 +149,11 @@ export function createInside() {
   const api = {
     scene, camera, S, enzymes,
     /** The envelope section art (MP-V03), or null for the procedural stand-in. */
-    setSection(tex) { secMat.setMap(tex || secStandIn, [1, 1]); },
+    setSection(tex) {
+      // the delivered plate runs from water through the envelope into cytoplasm: show its envelope rows (12-70 % down)
+      if (tex) { section.scale.y = 2.02; section.position.y = 52 + 52; secMat.setMap(tex, [1, 0.58], [0, 0.30]); }
+      else { section.scale.y = 1; section.position.y = 52 + 26; secMat.setMap(secStandIn, [1, 1]); }
+    },
     /** Begin the phase for a host ({ crispr: bool }). */
     start(host) {
       S.host = host; S.done = false; S.progress = 0; S.feed = 0; S.cutAt = -1; S.frag = []; S.surge = 0; S.t = 0;

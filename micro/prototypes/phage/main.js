@@ -108,11 +108,18 @@ const opts = { drive: true, brownian: true, tumble: true, uv: true, amoeba: true
 
 function applyArt() {
   const use = view.art;
-  for (const h of world.hosts) h.mat.setMap(use && art.envelope ? art.envelope : h.mat.userData?.std || h.mat.uniforms.uMap.value, use && art.envelope ? [4, 2] : [6, 3]);
+  const env = use && art.envelope;
+  for (const h of world.hosts) {
+    h.mat.setMap(env ? art.envelope : h.mat.userData.std, env ? [3, 1.5] : [6, 3]);
+    // the painted envelope carries its own colour; the wrong host keeps a dull tint so it reads apart
+    h.mat.uniforms.uColor.value.set(env ? (h.wrong ? '#c9b48a' : '#ffffff') : h.color);
+  }
   post.setBackdrop(use ? art.water : null);
+  waterColor = use && art.water ? '#a7c2bc' : '#bcd3ea';
   inside.setSection(use ? art.section : null);
 }
 for (const h of world.hosts) h.mat.userData = { std: h.mat.uniforms.uMap.value };
+let waterColor = '#bcd3ea';
 
 // --- phage state ---
 const START = new THREE.Vector3(-60, 30, 0);
@@ -180,7 +187,7 @@ features.add({ id: 'capsid', group: 'Rendering', label: 'Capsid', choices: ['Cut
 features.add({ id: 'ink', group: 'Rendering', label: 'Ink outlines', on: true, about: 'An inverted-hull outline around every molecule, fading with depth, as in a Goodsell painting.', onChange: (on) => { goodsellShared.uInkOn.value = on ? 1 : 0; } });
 features.add({ id: 'depth', group: 'Rendering', label: 'Depth by desaturation', on: true, about: 'Far things fade toward the water colour and lose saturation (Goodsell\'s depth cue) instead of getting smaller and darker.', onChange: (on) => { goodsellShared.uDepthOn.value = on ? 1 : 0; } });
 features.add({ id: 'art', group: 'Rendering', label: 'Delivered art (MP-V01/V02/V03)', on: true,
-  about: 'The envelope surface (MP-V01), water backdrop (MP-V02) and envelope section (MP-V03) when delivered; procedural watercolour stand-ins until then (they are not yet delivered).',
+  about: 'The envelope surface (MP-V01) on the hosts, the water backdrop (MP-V02) behind the scene and the envelope section (MP-V03) above the cytoplasm inside the host. Off: the procedural watercolour stand-ins.',
   onChange: (on) => { view.art = on; applyArt(); } });
 features.add({ id: 'model', group: 'Body', label: 'T4 from its anatomy', fixed: true,
   about: 'Prolate icosahedral head 120 × 86 nm studded with capsomers; collar and fibritin whiskers; a 23-ring sheath (98 nm) that contracts to 42 nm and fattens, exposing the inner tube; a hexagonal baseplate that opens into a star; six kinked long fibres of 160 nm simulated as chains, and six short fibres under the plate [S98, S99].' });
@@ -807,13 +814,15 @@ function frame(now) {
     camera.lookAt(view.target);
     camera.updateMatrixWorld();
     goodsellShared.uFogNear.value = dist * 0.8; goodsellShared.uFogFar.value = dist + 300;
-    post.uniforms.uWater.value.set('#bcd3ea');
+    post.uniforms.uWater.value.set(waterColor);
+    goodsellShared.uFogColor.value.set(waterColor);
     post.uniforms.uUv.value = opts.uv && !debug.iso ? 0.9 : 0;
     post.uniforms.uBgOff.value.set(view.target.x * 0.0006, view.target.y * 0.0006);
   } else {
     inside.frame(dt, look, insideOwner && insideOwner.c.active && insideOwner.P.kind === 'cut' ? 85 : ZOOMS[view.zoom] * 1.05 + 40);
     goodsellShared.uFogNear.value = 150; goodsellShared.uFogFar.value = 360;
     post.uniforms.uWater.value.set('#efc4a0');
+    goodsellShared.uFogColor.value.set('#efc4a0');
     post.uniforms.uUv.value = 0;
   }
   post.uniforms.uLook.value = view.look;

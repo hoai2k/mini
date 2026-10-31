@@ -418,7 +418,15 @@ export function createWorld(scene) {
      * @param {object} player { center, axisA, axisB, T, U (velocity), mouth, feed, alive }
      * @returns {{eaten:number}}
      */
-    update(dt, t, player) {
+    update(dt, t, who) {
+      // one player, or (local multiplayer) a list of them: the bacteria box follows
+      // their middle and each one's swimming and feeding currents act on it
+      const list = Array.isArray(who) ? who.filter((p) => p) : [who];
+      const player = list[0];
+      let mx = 0, mz = 0;
+      for (const p of list) { mx += p.center.x; mz += p.center.z; }
+      mx /= list.length; mz /= list.length;
+      const eatenBy = list.map(() => 0);
       // Vorticella
       const sp = stalks.attrs.iP.array;
       vorticellas.forEach((v, i) => {
@@ -453,8 +461,7 @@ export function createWorld(scene) {
       // Bacteria: ambient flow + their own swimming + the flow the Paramecium
       // makes (a neutral squirmer's dipole: carried ahead at the poles, swept
       // back along the sides) + the feeding current into the oral groove.
-      const px = player.center.x, pz = player.center.z;
-      const U = player.U;
+      const px = mx, pz = mz;
       let eaten = 0;
       const arr = bAttr.array;
       const q = v1, f = v2;
@@ -470,13 +477,16 @@ export function createWorld(scene) {
           if (sp0 > 0) { const a = Math.random() * 6.28, e = Math.random() - 0.5; bVel[i * 3] = Math.cos(a) * sp0; bVel[i * 3 + 1] = e * sp0; bVel[i * 3 + 2] = Math.sin(a) * sp0; }
         }
         if (opts.tumble) { f.x += bVel[i * 3]; f.y += bVel[i * 3 + 1]; f.z += bVel[i * 3 + 2]; }
-        const dx = q.x - player.center.x, dy = q.y - player.center.y, dz = q.z - player.center.z;
-        const d2 = dx * dx + dy * dy + dz * dz;
-        if (player.alive && d2 < 300 * 300) {
-          if (opts.squirmer) squirmerFlow(q, player.axisA, player.axisB, U, 32, f);
-          // feeding current toward the cytostome
-          const md = opts.feeding ? sink(q, player.mouth, 40 + 420 * player.feed, 90 + 110 * player.feed, f) : q.distanceTo(player.mouth);
-          if (md < 7 + 3 * player.feed) { eaten++; arr[o + 1] = -1e4; }
+        for (let k = 0; k < list.length; k++) {
+          const pl = list[k];
+          const dx = q.x - pl.center.x, dy = q.y - pl.center.y, dz = q.z - pl.center.z;
+          const d2 = dx * dx + dy * dy + dz * dz;
+          if (pl.alive && d2 < 300 * 300) {
+            if (opts.squirmer) squirmerFlow(q, pl.axisA, pl.axisB, pl.U, 32, f);
+            // feeding current toward the cytostome
+            const md = opts.feeding ? sink(q, pl.mouth, 40 + 420 * pl.feed, 90 + 110 * pl.feed, f) : q.distanceTo(pl.mouth);
+            if (md < 7 + 3 * pl.feed && arr[o + 1] > -1000) { eaten++; eatenBy[k]++; arr[o + 1] = -1e4; }
+          }
         }
         // Vorticella feeding currents
         if (opts.feeding) for (const v of vorticellas) {
@@ -496,7 +506,8 @@ export function createWorld(scene) {
         arr[o] = nx; arr[o + 1] = ny; arr[o + 2] = nz;
       }
       bAttr.needsUpdate = true;
-      return { eaten };
+      void player;
+      return { eaten, eatenBy };
     },
   };
   return api;

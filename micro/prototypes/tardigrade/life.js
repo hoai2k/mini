@@ -18,8 +18,16 @@ export const COMPRESSIONS = { '240× (a day in 6 min)': 240, '60× (a day in 24 
 const TUN_FORM = 4.0, TUN_FORM_HASTY = 1.6, SKIP_TIME = 6.5, REVIVE_TIME = 7.0;
 
 export class Life {
-  constructor(world, walker, creature, events) {
+  /**
+   * opts.clock (default true): this animal's Life runs the day (the clock,
+   * the drying, rain, the skip ahead in a dry tun). In local multiplayer only
+   * player 1's does; the others share its day (`day` is that Life) and keep
+   * only their own water, reserves, feeding and tun.
+   */
+  constructor(world, walker, creature, events, opts = {}) {
     Object.assign(this, { world, walker, creature, events });
+    this.ownsClock = opts.clock !== false;
+    this.day0 = opts.day || null;
     this.compression = 240;
     this.opts = { desiccation: true, risk: true };
     this.newDay(true);
@@ -27,6 +35,7 @@ export class Life {
   }
 
   newDay(first = false) {
+    if (!this.ownsClock) { this.respawn(first ? 0.7 : 0.5); return; }
     this.hour = 5; this.day = first ? 1 : this.day + 1;
     this.world.setDry(-0.1);
     this.rainT = 0;
@@ -37,6 +46,12 @@ export class Life {
     this.feeding = null;
     this.creature.pose.tun = 0;
     if (!first) { this.world.reseed(); this.walker.spawn(this.world.leaves[0], 1, 6.5, 0.6, 1, 0); this.events.newDay?.(); }
+  }
+
+  /** A fresh animal with the day left as it is (local multiplayer: after being eaten, or a tun that did not wake). */
+  respawn(energy = 0.6) {
+    Object.assign(this, { desic: 0, energy: Math.max(this.energy || 0, energy), state: 'active', tun: 0, hasty: false, tunHold: 0, feeding: null, rainT: 0 });
+    this.creature.pose.tun = 0;
   }
 
   rain() {
@@ -50,6 +65,7 @@ export class Life {
   }
 
   get clock() {
+    if (!this.ownsClock && this.day0) return this.day0.clock;
     const h = Math.floor(this.hour % 24), m = Math.floor((this.hour % 1) * 60);
     return `day ${this.day + Math.floor(this.hour / 24)}  ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
   }
@@ -83,7 +99,7 @@ export class Life {
     }
     switch (this.state) {
       case 'active': {
-        this.advanceDry((dt * this.compression) / 3600);
+        if (this.ownsClock) this.advanceDry((dt * this.compression) / 3600);
         const h = this.filmHere();
         if (this.opts.desiccation) {
           if (h < 0.03) this.desic += dt / 22;
@@ -101,9 +117,10 @@ export class Life {
       }
       case 'tun': {
         this.tunT += dt;
-        this.advanceDry((dt * this.compression) / 3600);
+        if (this.ownsClock) this.advanceDry((dt * this.compression) / 3600);
         const dry = this.filmHere() < 0.05;
-        if (dry && this.tunT > 1.2) {
+        // Only the clock's owner skips ahead; another player's dry tun waits for rain.
+        if (dry && this.tunT > 1.2 && this.ownsClock) {
           this.state = 'skip'; this.skipT = 0; this.skipDays = 1 + Math.floor(Math.random() * 3);
           this.skipFrom = this.hour; this.chance = this.reviveChance(this.skipDays);
           this.skipTo = (Math.floor(this.hour / 24) + this.skipDays) * 24 + 14 + Math.random() * 6;
@@ -144,7 +161,7 @@ export class Life {
         break;
       }
       case 'dead':
-        if (input.aPressed) this.newDay();
+        if (input.aPressed) { if (this.events.restart) this.events.restart(this); else this.newDay(); }
         break;
     }
     P.tun = this.tun;

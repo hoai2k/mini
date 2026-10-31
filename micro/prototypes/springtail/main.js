@@ -1149,9 +1149,12 @@ const api = {
     if (!P) return false;
     if (game.phase !== 'play') newGame();
     resetBody(P, x, z);
-    rig.target.set(x, P.y + 0.25, z);
+    const g = groupCentre(recs());
+    rig.target.set(g.x, g.y + 0.25, g.z);
     return true;
   },
+  /** Run n render passes (camera and split screen) without stepping the simulation. */
+  settle(n = 30) { for (let i = 0; i < n; i++) render(1 / 30); },
   /** Testing: is a predator coming for you, and how hungry is each. */
   pacing() {
     const S = stenus.st, R = strider.st;

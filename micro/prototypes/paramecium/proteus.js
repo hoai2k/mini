@@ -136,6 +136,7 @@ export function createProteus(scene, start = new THREE.Vector3(-760, 0, -520)) {
 
     // creep: toward the player when it senses it, otherwise wander
     if (held) { /* it holds still while it closes round you */ } else if (hunting) a.heading += angleWrap(bear - a.heading) * Math.min(1, dt * 0.6);
+    else if (a.home && Math.hypot(a.home.x - a.pos.x, a.home.z - a.pos.z) > a.homeR) a.heading += angleWrap(Math.atan2(a.home.z - a.pos.z, a.home.x - a.pos.x) - a.heading) * Math.min(1, dt * 0.4);
     else a.heading += Math.sin(t * 0.13) * dt * 0.15;
     const v = held ? 0 : a.stun > 0 ? -25 : a.sated > 0 ? 6 : CREEP;
     a.pos.x += Math.cos(a.heading) * v * dt; a.pos.z += Math.sin(a.heading) * v * dt;
@@ -203,6 +204,8 @@ export function createProteus(scene, start = new THREE.Vector3(-760, 0, -520)) {
     tmp.set(0, Math.max(0, p.y - H0 * 2), Math.max(0, d - r));
     return tmp.length();
   };
+  /** Optional: the patch of slide it keeps to when not hunting (null: it roams). */
+  a.home = null; a.homeR = 260;
   a.recoil = () => { a.stun = 4; a.cup = 0; for (const p of pods) p.target = 0; };
   void DEPTH;
   return a;

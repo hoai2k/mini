@@ -171,6 +171,8 @@ export class World {
           bridge = Math.max(bridge, Math.pow(Math.max(0, 1 - gap / 1.3), 2));
         }
         cap += 1.15 * bridge;
+        // The Sphagnum leaf's tip dips into the hollow pool (landmarks.js): open water there.
+        if (L.kind === 'sphagnum') cap += 1.6 * THREE.MathUtils.smoothstep(t, 0.72, 0.86);
         L.cap[j * FL + i] = cap;
         L.filmData[j * FL + i] = Math.max(0, Math.min(255, Math.round(((cap + 0.5) / 2.5) * 255)));
       }
