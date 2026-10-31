@@ -512,6 +512,25 @@ GROUPS.append(
 )
 
 
+# Play-testing, 31 October 2026: the witch's last attack becomes a fight on
+# the clifftop before she hides in her barrel.
+GROUPS.append(
+    ("The witch's last stand", "Requested 31 October 2026: in Act VI the witch now fights the prince on the clifftop over the whirlpool. She hurls fire along the ground at him and he strikes her with the enchanted sword; after three blows she shrinks into her barrel and he pushes it over. Meanwhile the game draws her standing (witch-hooded) and the prince standing with a quick lunge.", [
+        (f'prince-strike{t}', f'Prince striking with the sword{" (tinted)" if t else ""}', 300, 360, 'bottom centre', TINTED if t else SPRITE,
+         f'Prince Bel-Azor in his armour exactly as in prince-stand{t}.webp (attach it): the same face, helmet and plume, cloak, shield and colours, at the same scale. Lunging forward to the RIGHT and striking with the enchanted sword (the glowing blade of keepsake-sword.webp), sword arm fully extended, shield arm back, front knee bent, back leg straight. {POSE}', None)
+        for t in ('', '-tinted')
+    ] + [
+        (f'witch-{pose}{t}', f'The witch {name}{" (tinted)" if t else ""}', 260, 400, 'bottom centre', TINTED if t else SPRITE,
+         f'{WITCH_FILM}, exactly as in witch-hooded{t}.webp (attach it): the same face, hooded robe, staff and colours, at the same scale (her standing figure the same height). {desc} Feet on the bottom edge. Nothing but the figure: no ground, fire or shadow (the game adds them).', None)
+        for pose, name, desc in (
+            ('cast', 'hurling fire', 'Facing LEFT, flinging her free hand forward and down to hurl a bolt of fire along the ground, staff raised high behind her, robe flaring, a wicked grin.'),
+            ('recoil', 'recoiling from a blow', 'Facing LEFT, reeling backward from a sword blow, arms flung up, staff tilting away, hood slipping, her face twisted in fury and pain.'),
+        )
+        for t in ('', '-tinted')
+    ]),
+)
+
+
 def ids():
     return [a for _, _, items in GROUPS for a in items]
 
