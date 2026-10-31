@@ -198,7 +198,7 @@ Sound design for a nature documentary about the microscopic world, like a BBC wi
 ### tardigrade/bite
 
 ```text
-Sound design for a nature documentary about the microscopic world, like a BBC wildlife film: rich, organic, hyper-real cinematic foley, natural and warm, never electronic or mechanical. A tiny wet pop and a short sucking slurp, like piercing a grape skin with a needle and sipping. Extremely close-miked, tiny, intimate, detailed. No music, no narration, no voices, no speech.
+Sound design for a nature documentary about the microscopic world, like a BBC wildlife film: rich, organic, hyper-real cinematic foley, natural and warm, never electronic or mechanical. A tiny crisp puncture: a needle-sharp click piercing a taut cell wall, then a small tight pop. Sharp, percussive, not a lick or slurp. Extremely close-miked, tiny, intimate, detailed. No music, no narration, no voices, no speech.
 ```
 
 ### tardigrade/tun

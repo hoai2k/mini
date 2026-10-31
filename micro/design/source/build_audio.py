@@ -101,7 +101,7 @@ SOUNDS = [
     S("tardigrade/dash", "oneshot", 1.0, "A (dash): the scramble.",
       "A hurried patter of soft squishy little steps underwater, clumsy and quick. " + CLOSE),
     S("tardigrade/bite", "oneshot", 0.6, "X: stylets pierce a cell.",
-      "A tiny wet pop and a short sucking slurp, like piercing a grape skin with a needle and sipping. " + CLOSE, variants=2),
+      "A tiny crisp puncture: a needle-sharp click piercing a taut cell wall, then a small tight pop. Sharp, percussive, not a lick or slurp. " + CLOSE, variants=2),
     S("tardigrade/tun", "oneshot", 2.5, "Y: drying into a tun.",
       "A slow shrinking dry crinkle and a soft deflating sigh, like a damp leaf curling up as it dries. " + CLOSE),
     S("tardigrade/revive", "oneshot", 2.5, "Rehydrating out of the tun.",

@@ -22,6 +22,20 @@
 //     extra: [['LS click', 'Refocus']] }) });
 import { BTN } from './pad.js';
 
+// Camera pitch convention for every prototype: RS up looks up (the camera
+// swings down towards the horizon), RS down looks down, like most third-person
+// games. "Invert Y" flips it; the choice is shared by all prototypes.
+const INVERT_KEY = 'micro.invertY';
+let invertY = false;
+try { invertY = localStorage.getItem(INVERT_KEY) === '1'; } catch { /* private mode */ }
+
+/** Add the shared Invert Y switch to a prototype's feature panel. */
+export function addInvertY(features) {
+  features.add({ id: 'invertY', group: 'Controls', label: 'Invert camera Y',
+    about: 'Off: right stick up looks up (the camera swings down). On: right stick up looks down. Shared by every prototype.',
+    on: invertY, onChange: (v) => { invertY = !!v; try { localStorage.setItem(INVERT_KEY, invertY ? '1' : '0'); } catch { /* private mode */ } } });
+}
+
 function button(pad, b) {
   return {
     pressed: () => pad.pressed(b),
@@ -35,6 +49,12 @@ export function createControls(pad) {
   return {
     move: () => pad.ls(),
     camera: () => pad.rs(),
+    /**
+     * The camera stick by intent: yaw -1..1 (right = orbit right) and pitch
+     * -1..1 where +1 means look up (camera lower), honouring Invert Y.
+     * Orbit cameras should use this rather than camera().
+     */
+    look: () => { const r = pad.rs(); const up = -r.y; return { yaw: r.x, pitch: invertY ? -up : up, m: r.m }; },
     dash: button(pad, BTN.A),
     attack: button(pad, BTN.X),
     defend: button(pad, BTN.B),
