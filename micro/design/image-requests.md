@@ -2,7 +2,7 @@
 
 Concept references for the [glowing return journey plan](super-gene-return.html) and [Phage visual-style plan](phage-visual-style.html). These are future-design references, separate from the delivered prototype assets listed in [the prototype ledger](../image-requests.md).
 
-0 requested, 6 delivered.
+7 requested, 7 delivered.
 
 Generated with the built-in image_gen tool. Exact prompts and delivery metadata are also saved in [the manifest](generated/super-gene-return/manifest.json).
 
@@ -119,4 +119,137 @@ Scene: a spacious readable view through a crowded bacterial cytoplasm. The inner
 Visual style: realistic textured translucent biological materials, watery blue-teal surroundings, delicate warm white-gold glow on the entering genome, restrained luminous scattering, cinematic 3D false-light microscopy. Match the exterior reference's naturalistic materials and palette. Not watercolour, not pen and ink, not cartoon or a textbook schematic.
 Depth of field: reasonably large depth of field, with the entering genome, adjacent molecular obstacles and the membrane entry region all clearly readable together. Only distant layers soften gently; no extreme bokeh and no narrow macro focal plane.
 Constraints: no text, no UI, no labels, no explanatory gene icons, no magic symbols, no whole bacteriophage body inside the cell, no celebration or explosion. This is a visual-style reference for ordinary inside-cell play.
+```
+
+## Infinite title zoom plates
+
+Dedicated plates for the [continuous title zoom](title-zoom.html). The last plate nests the exact opening plate; the renderer closes the cycle.
+
+### TZ-01 · Springtail on a bog pool
+
+Status: delivered.
+[View runtime image](../prototypes/assets/game/title-zoom/springtail-bog.webp) · [Original PNG](generated/title-zoom/springtail-bog.png) · 1254 × 1254.
+Source: `micro/design/generated/title-zoom/springtail-bog.png`
+Runtime file: `micro/prototypes/assets/game/title-zoom/springtail-bog.webp`
+
+Prompt:
+
+```text
+Use case: stylized-concept.
+Asset type: square 1:1 photographic game title infinite-zoom background plate, no text or interface.
+Composition: a coherent full-bleed natural environment at one magnification, seen nearly straight into the scene. Keep the exact centre a small, softly lit natural water pocket or soft low-detail translucent area; this is where the game will composite the next magnification. Put the main identifiable creature off-centre but within the central two-thirds, with surrounding habitat across the whole square. Do not draw a picture inset, portal, frame, ring, hole, miniature scene, arrows or any border. This is one continuous realistic-looking scene, not a contact sheet.
+Lighting: naturalistic microscopic or macro illumination appropriate to the subject. No organism emits light, no luminous outlining, no super-gene or supernatural effects. No captions, logos, scale bars, labels or watermarks.
+Scene: An ordinary dark water springtail, with segmented body, six little legs and two antennae, on the water meniscus of a bog pool. Sphagnum moss and a few sundew tips surround the pool. A small clean water pocket is centred among the textures, with the springtail beside it. Realistic macro-lens photography, tiny wet hairs and water reflections, softly defocused distant moss; natural green, peat brown and reflected cool blue water. No fingertip or person.
+```
+
+### TZ-02 · Mite among wet moss
+
+Status: requested.
+Source: `micro/design/generated/title-zoom/mite-moss.png`
+Runtime file: `micro/prototypes/assets/game/title-zoom/mite-moss.webp`
+
+Prompt:
+
+```text
+Use case: stylized-concept.
+Asset type: square 1:1 photographic game title infinite-zoom background plate, no text or interface.
+Composition: a coherent full-bleed natural environment at one magnification, seen nearly straight into the scene. Keep the exact centre a small, softly lit natural water pocket or soft low-detail translucent area; this is where the game will composite the next magnification. Put the main identifiable creature off-centre but within the central two-thirds, with surrounding habitat across the whole square. Do not draw a picture inset, portal, frame, ring, hole, miniature scene, arrows or any border. This is one continuous realistic-looking scene, not a contact sheet.
+Lighting: naturalistic microscopic or macro illumination appropriate to the subject. No organism emits light, no luminous outlining, no super-gene or supernatural effects. No captions, logos, scale bars, labels or watermarks.
+Scene: An ordinary tiny box mite in wet moss litter, with its rounded armoured cuticle and eight legs clearly readable beside a central drop of water in a moss-leaf axil. Humus grains, fungal threads and a leaf edge reveal the smaller scale. Realistic reflected-light microscopic photography with fine SEM-like surface detail, subdued moss greens and charcoal chitin; keep enough habitat in focus to understand the environment.
+```
+
+### TZ-03 · Tardigrade in the water film
+
+Status: requested.
+Source: `micro/design/generated/title-zoom/tardigrade-film.png`
+Runtime file: `micro/prototypes/assets/game/title-zoom/tardigrade-film.webp`
+
+Prompt:
+
+```text
+Use case: stylized-concept.
+Asset type: square 1:1 photographic game title infinite-zoom background plate, no text or interface.
+Composition: a coherent full-bleed natural environment at one magnification, seen nearly straight into the scene. Keep the exact centre a small, softly lit natural water pocket or soft low-detail translucent area; this is where the game will composite the next magnification. Put the main identifiable creature off-centre but within the central two-thirds, with surrounding habitat across the whole square. Do not draw a picture inset, portal, frame, ring, hole, miniature scene, arrows or any border. This is one continuous realistic-looking scene, not a contact sheet.
+Lighting: naturalistic microscopic or macro illumination appropriate to the subject. No organism emits light, no luminous outlining, no super-gene or supernatural effects. No captions, logos, scale bars, labels or watermarks.
+Scene: A translucent ordinary tardigrade with eight short clawed legs crawling across a moss leaf under a thin water film. Leaf cells and the meniscus form the environment. Keep a clear water pocket in the exact centre and place the animal next to it. Realistic transmitted-light microscopy with mild DIC-like edge relief, green-gold leaf cells, cool clear water, readable internal detail, no glow.
+```
+
+### TZ-04 · Amoeba and pond-water cells
+
+Status: requested.
+Source: `micro/design/generated/title-zoom/amoeba-water.png`
+Runtime file: `micro/prototypes/assets/game/title-zoom/amoeba-water.webp`
+
+Prompt:
+
+```text
+Use case: stylized-concept.
+Asset type: square 1:1 photographic game title infinite-zoom background plate, no text or interface.
+Composition: a coherent full-bleed natural environment at one magnification, seen nearly straight into the scene. Keep the exact centre a small, softly lit natural water pocket or soft low-detail translucent area; this is where the game will composite the next magnification. Put the main identifiable creature off-centre but within the central two-thirds, with surrounding habitat across the whole square. Do not draw a picture inset, portal, frame, ring, hole, miniature scene, arrows or any border. This is one continuous realistic-looking scene, not a contact sheet.
+Lighting: naturalistic microscopic or macro illumination appropriate to the subject. No organism emits light, no luminous outlining, no super-gene or supernatural effects. No captions, logos, scale bars, labels or watermarks.
+Scene: An ordinary translucent Amoeba proteus with broad lobed pseudopods, a textured membrane, cytoplasmic granules and a few vacuoles in a realistic pond-water field. Fine algae and small organic particles surround it. The amoeba lies beside rather than across the exact centre, leaving a clear watery pocket there. Photorealistic microscopic rendering with soft transmitted light, restrained cream-green and blue water colours, no emission or glow.
+```
+
+### TZ-05 · Paramecium in a pond drop
+
+Status: requested.
+Source: `micro/design/generated/title-zoom/paramecium-drop.png`
+Runtime file: `micro/prototypes/assets/game/title-zoom/paramecium-drop.webp`
+
+Prompt:
+
+```text
+Use case: stylized-concept.
+Asset type: square 1:1 photographic game title infinite-zoom background plate, no text or interface.
+Composition: a coherent full-bleed natural environment at one magnification, seen nearly straight into the scene. Keep the exact centre a small, softly lit natural water pocket or soft low-detail translucent area; this is where the game will composite the next magnification. Put the main identifiable creature off-centre but within the central two-thirds, with surrounding habitat across the whole square. Do not draw a picture inset, portal, frame, ring, hole, miniature scene, arrows or any border. This is one continuous realistic-looking scene, not a contact sheet.
+Lighting: naturalistic microscopic or macro illumination appropriate to the subject. No organism emits light, no luminous outlining, no super-gene or supernatural effects. No captions, logos, scale bars, labels or watermarks.
+Scene: An ordinary translucent slipper-shaped paramecium with short fine cilia swims among leaf debris and tiny bacterial dots in a pond-water drop. Show the whole cell beside a central clear water pocket, with subtle internal structure and realistic cilia. Photorealistic microscopic transmitted-light rendering, blue-green water and muted warm biological material. Broad enough depth of field to read the cell and its nearby environment; no glow.
+```
+
+### TZ-06 · Bacterial cells and a host surface
+
+Status: requested.
+Source: `micro/design/generated/title-zoom/bacterial-host.png`
+Runtime file: `micro/prototypes/assets/game/title-zoom/bacterial-host.webp`
+
+Prompt:
+
+```text
+Use case: stylized-concept.
+Asset type: square 1:1 photographic game title infinite-zoom background plate, no text or interface.
+Composition: a coherent full-bleed natural environment at one magnification, seen nearly straight into the scene. Keep the exact centre a small, softly lit natural water pocket or soft low-detail translucent area; this is where the game will composite the next magnification. Put the main identifiable creature off-centre but within the central two-thirds, with surrounding habitat across the whole square. Do not draw a picture inset, portal, frame, ring, hole, miniature scene, arrows or any border. This is one continuous realistic-looking scene, not a contact sheet.
+Lighting: naturalistic microscopic or macro illumination appropriate to the subject. No organism emits light, no luminous outlining, no super-gene or supernatural effects. No captions, logos, scale bars, labels or watermarks.
+Scene: Several ordinary bacterial cells in a watery microscopic field, including a large rod-shaped host cell with a convincingly textured translucent membrane and tiny receptor proteins. Keep the exact centre a soft clear water pocket beside the host surface. Realistic microscopic false-light 3D rendering: wet blue-teal membranes, natural pale protein material and tiny suspended particles; broad readable depth of field. No cartoon linework, no emissive organisms, no bright glowing edges.
+```
+
+### TZ-07 · Normal phage in the updated environment
+
+Status: requested.
+Source: `micro/design/generated/title-zoom/phage-normal.png`
+Runtime file: `micro/prototypes/assets/game/title-zoom/phage-normal.webp`
+
+Prompt:
+
+```text
+Use case: stylized-concept.
+Asset type: square 1:1 photographic game title infinite-zoom background plate, no text or interface.
+Composition: a coherent full-bleed natural environment at one magnification, seen nearly straight into the scene. Keep the exact centre a small, softly lit natural water pocket or soft low-detail translucent area; this is where the game will composite the next magnification. Put the main identifiable creature off-centre but within the central two-thirds, with surrounding habitat across the whole square. Do not draw a picture inset, portal, frame, ring, hole, miniature scene, arrows or any border. This is one continuous realistic-looking scene, not a contact sheet.
+Lighting: naturalistic microscopic or macro illumination appropriate to the subject. No organism emits light, no luminous outlining, no super-gene or supernatural effects. No captions, logos, scale bars, labels or watermarks.
+Scene: An ordinary T4-shaped bacteriophage approaches a bacterial host surface. Show its faceted capsid, tail sheath, baseplate and slender tail fibres as solid non-emissive biological structures in pale ivory, soft grey and muted protein colours. The host membrane is realistically textured blue-teal and watery, with receptor proteins and suspended molecules. Match a cinematic realistic microscopic false-light environment rather than a hand-drawn Goodsell illustration. Use a reasonably large depth of field: the phage, host surface and surrounding molecules are readable together. Place the phage and cell beside a small centred clear water pocket. The phage must NOT glow: no gold emission, no luminous outline, no fluorescent bloom or power effect.
+```
+
+### TZ-08 · Water bridge back into the bog
+
+Status: requested.
+Source: `micro/design/generated/title-zoom/water-return.png`
+Runtime file: `micro/prototypes/assets/game/title-zoom/water-return.webp`
+
+Prompt:
+
+```text
+Use case: stylized-concept.
+Asset type: square 1:1 photographic game title infinite-zoom background plate, no text or interface.
+Composition: a coherent full-bleed natural environment at one magnification, seen nearly straight into the scene. Keep the exact centre a small, softly lit natural water pocket or soft low-detail translucent area; this is where the game will composite the next magnification. Put the main identifiable creature off-centre but within the central two-thirds, with surrounding habitat across the whole square. Do not draw a picture inset, portal, frame, ring, hole, miniature scene, arrows or any border. This is one continuous realistic-looking scene, not a contact sheet.
+Lighting: naturalistic microscopic or macro illumination appropriate to the subject. No organism emits light, no luminous outlining, no super-gene or supernatural effects. No captions, logos, scale bars, labels or watermarks.
+Scene: A realistic microscopic water-and-meniscus field that can visually bridge back into a bog pool. Fine translucent suspended particles and softly curved watery textures surround an exact-centre pocket of calm refracted light. Muted blue-teal water transitions gently into soft moss-green and warm peat-brown reflections around that pocket. The scene is almost abstract water texture but visibly organic and natural. Broad depth of field, no creature, no planet, no cosmos, no glowing molecule, no artificial portal or inset landscape. The game itself will nest the opening bog image in this field.
 ```
