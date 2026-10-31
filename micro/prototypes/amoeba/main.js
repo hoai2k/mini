@@ -16,7 +16,7 @@ import { squirmerFlow } from '../shared/techniques/paramecium-squirmer.js';
 import { buildWorld, worldColliders, addResidue, wetMountCanvas, cytoplasmCanvas, meanColor, trapCapsules } from './world.js';
 import { View } from './render.js';
 import { rng, TAU, clamp } from './util.js';
-import { createHunger, createCapture } from '../shared/predation.js';
+import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { createPlayers } from '../shared/players.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
 import { createLandmarks } from '../shared/landmark.js';
@@ -163,7 +163,16 @@ const GROW_S = 25;
 const pacing = { grace: 45, cycles: true, t0: 0, firstHungry: null, firstThreat: null, firstCatch: null };
 const fungus = createHunger({ grace: pacing.grace, hungry: [30, 50], restFed: [50, 80], restMissed: [20, 35] });
 const trapList = () => world.obstacles.filter((o) => o.type === 'trap' && !o.haustorium);
-for (const o of trapList()) { o.grow = 0; o.active = 0; }
+// Each trap hypha fights readably (shared/predation.js createFight): while the
+// fungus is hungry and a membrane comes near, the hypha winds up (it curls and
+// its adhesive knobs swell and shimmer: the tell), then snaps shut; only then
+// is it sticky (o.grip). Stiffening (hold B) as it snaps makes it slide off
+// (a block); a pseudopod jab (X) engulfs and cuts its tip (bite back). Enough
+// and the hypha withdraws for a while (retreat).
+for (const o of trapList()) {
+  o.grow = 0; o.active = 0; o.grip = 0; o.wind = 0;
+  o.fight = createFight({ windup: 1.1, strike: 0.3, recoverT: 2.4, repelT: 2.0, retreatT: 16, facingRate: 0, blockHit: 0.35, biteHit: 0.4 });
+}
 // Haustoria: the fungus's feeding hyphae, grown into the cell when it catches you.
 const makeHaustoria = () => [0, 1, 2].map((k) => {
   const o = { type: 'trap', haustorium: true, x: 0, y: 0, ang: 0, L: 80, W: 5, layer: 'focus', seed: 0.3 + k * 0.2, grow: 0, active: 0, hidden: true, collide: { capsules: [], circles: [] } };
@@ -177,22 +186,82 @@ function updateFungus(dt) {
   const awake = fungus.state !== 'grace';
   const sticky = fungusOn() || cells.some((c) => c.caught.active);
   for (const o of trapList()) {
-    if (awake) o.grow = Math.min(1, o.grow + dt / GROW_S);
+    const st = o.fight.state;
+    if (st === 'retreat') o.grow = Math.max(0.3, o.grow - dt / 4); // withdrawn
+    else if (awake) o.grow = Math.min(1, o.grow + dt / GROW_S);
     o.active = clamp(o.active + (sticky ? 1 : -1) * dt / 2, 0, 1);
+    trapFight(o, dt, sticky && S.traps && !o.hidden && o.grow > 0.05);
   }
   const t = S.time - pacing.t0;
   if (pacing.firstHungry === null && S.traps && sticky && trapList().some((o) => o.grow > 0.02)) pacing.firstHungry = t;
   if (pacing.firstThreat === null && C.stuckN > 0) pacing.firstThreat = t;
 }
+/** The grown part of a hypha as a segment, and the nearest player membrane to it. */
+function trapSeg(o) {
+  const c = Math.cos(o.ang), s = Math.sin(o.ang), h = o.L / 2, g = o.grow ?? 1;
+  const ax = o.x - c * h, ay = o.y - s * h;
+  return [ax, ay, ax + c * o.L * g, ay + s * o.L * g];
+}
+function nearestToTrap(o) {
+  const [ax, ay, bx, by] = trapSeg(o);
+  const ex = bx - ax, ey = by - ay, l2 = ex * ex + ey * ey || 1;
+  let best = null;
+  for (const c of cells) {
+    const b = c.body;
+    for (let i = 0; i < N; i += 2) {
+      const t = clamp(((b.x[i] - ax) * ex + (b.y[i] - ay) * ey) / l2, 0, 1);
+      const d = Math.hypot(b.x[i] - ax - ex * t, b.y[i] - ay - ey * t) - o.W / 2;
+      if (!best || d < best.d) best = { d, cell: c, x: ax + ex * t, y: ay + ey * t };
+    }
+  }
+  return best;
+}
+function trapFight(o, dt, armed) {
+  o.grip = Math.max(0, o.grip - dt);
+  if (!armed) { if (o.fight.state !== 'retreat') o.fight.reset(); o.grip = 0; o.wind = Math.max(0, o.wind - dt * 2); return; }
+  const n = nearestToTrap(o);
+  o.near = n;
+  const blocking = !!n && n.cell.s.defend > 0.5;
+  const f = o.fight.update(dt, { near: !!n && n.d < 220, inReach: !!n && n.d < 40, facing: true, blocking });
+  o.wind = f.state === 'windup' ? f.t : f.state === 'strike' ? 1 : Math.max(0, o.wind - dt * 2);
+  if (f.state === 'windup' && f.t < 0.05 && n) { const k = cur; use(n.cell); hud.toast(`${who()}A trap hypha curls, its knobs swelling: stiffen (hold B) or cut it (X)`, 2200); rumble(120, 0.25, 0); use(k); }
+  if (f.hit && n) { o.grip = 7; const k = cur; use(n.cell); hud.toast(`${who()}The hypha snaps shut on the membrane`); rumble(250, 0.4, 0.6); use(k); }
+  if (f.blocked && n) { o.grip = 0; const k = cur; use(n.cell); hud.toast(`${who()}Stiffened: the hypha slides off the membrane (trap resolve ${Math.round(o.fight.interest * 100)}%)`); rumble(200, 0.5, 0.3); use(k); }
+  if (f.retreated) { o.grip = 0; hud.toast('The fungus gives up on you: the hypha withdraws', 2400); }
+}
+/** X at a trap hypha: a fast pseudopod jab engulfs its tip and cuts it (bite back). */
+function cutHypha(o, n) {
+  C.jab = { t: 0.45, x: n.x, y: n.y };
+  o.grow = Math.max(0.2, o.grow - 0.28);
+  o.grip = 0;
+  C.stuckT = 0;
+  const gone = o.fight.bitten();
+  audio.play('amoeba/engulf', { volume: 0.8, rate: 1.3 });
+  rumble(220, 0.4, 0.4);
+  hud.toast(`${who()}Pseudopod jab: you engulf the hypha tip and cut it off${gone ? '. The fungus withdraws' : ` (trap resolve ${Math.round(o.fight.interest * 100)}%)`}`, 2400);
+}
+/** The trap threatening this cell most (winding up, striking or gripping), within reach of a jab. */
+function threatTrap(c) {
+  let best = null;
+  for (const o of trapList()) {
+    if (!o.near || o.near.cell !== c || o.grow < 0.05 || o.hidden) continue;
+    if (o.near.d > 90) continue;
+    if (!best || o.near.d < best.near.d) best = o;
+  }
+  return best;
+}
 function resetFungus() {
   fungus.reset(pacing.grace);
-  for (const o of trapList()) { o.grow = 0; o.active = 0; }
+  for (const o of trapList()) { o.grow = 0; o.active = 0; o.grip = 0; o.wind = 0; o.fight.reset(); }
   for (const c of cells) for (const h of c.haustoria) { h.hidden = true; h.grow = 0; }
   pacing.t0 = S.time; pacing.firstHungry = null; pacing.firstThreat = null; pacing.firstCatch = null;
 }
 
 // --- caught by the fungus: strike → hold → eat → the Eaten card -------------------
-let caught = createCapture({ onRestart: () => restartCell() });
+// No card: the camera pulls back over the fungus as it drains you, holds there a
+// couple of seconds, fades, and you come back (beside a teammate, or alone at
+// a spot away from the traps).
+let caught = createCapture({ onRespawn: () => captureRespawn(cells[0]) });
 let FC = { pts: [], A0: 0, phase: null };
 const CATCH_TEXT = {
   strike: 'Haustoria pierce the membrane! Surge (A) to tear free',
@@ -236,14 +305,8 @@ function stepCatch(dt) {
     return;
   }
   const c = caught.update(dt, pad);
-  if (!c.active) return;
-  // Multiplayer: no Eaten card; the drained player comes back beside a teammate.
-  if (c.phase === 'eaten' && cells.length > 1) {
-    caught.reset(false); FC.phase = null; C.drain = 0;
-    for (const h of haustoria) { h.hidden = true; h.grow = 0; }
-    respawnCell(cur);
-    return;
-  }
+  if (!c.active) { FC.phase = null; return; }
+  if (c.phase === 'fadeIn') { FC.phase = c.phase; C.drain = 0; return; }
   if (c.phase !== FC.phase) {
     FC.phase = c.phase;
     if (c.phase === 'eat') { fungus.fed(); audio.play('amoeba/digest', { volume: 1, rate: 0.7 }); rumble(700, 0.5, 0.8); }
@@ -258,7 +321,32 @@ function stepCatch(dt) {
     body.A0 = FC.A0 * (1 - 0.45 * e); // the cell shrivels as it is sucked dry
   }
 }
-/** After the Eaten card: a fresh cell where the old one was; the fungus starts over. */
+/** The end of a catch (the screen is black): a fresh amoeba, beside a teammate or alone at a safe spot. */
+function captureRespawn(c) {
+  const k = cur;
+  use(c);
+  FC.phase = null; C.drain = 0;
+  for (const h of haustoria) { h.hidden = true; h.grow = 0; }
+  for (const o of trapList()) { o.grip = 0; o.fight.reset(); }
+  if (cells.length > 1) respawnCell(c);
+  else {
+    // the start spot furthest from every trap hypha
+    const spots = [[0, 0], [900, -520], [-760, 640], [320, 980], [-300, -900]];
+    let best = spots[0], bd = -1;
+    for (const [x, y] of spots) {
+      const d = Math.min(...trapList().map((o) => Math.hypot(o.x - x, o.y - y)));
+      if (d > bd) { bd = d; best = [x, y]; }
+    }
+    c.s = Object.assign(newCellState(), { eaten: c.s.eaten });
+    c.R.pod = c.R.body = null; c.R.latch.clear();
+    makeBody(c, best[0], best[1]);
+    S.camX = best[0]; S.camY = best[1];
+    resetFungus();
+    hud.toast('A fresh amoeba, away from the traps. The fungus will grow back', 3000);
+  }
+  use(k === c ? c : k || cells[0]);
+}
+/** After the Eaten card (card mode only): a fresh cell where the old one was; the fungus starts over. */
 function restartCell() {
   FC.phase = null;
   body.A0 = C.A0init; C.drain = 0; C.bitten = 0; C.stuckT = 0; C.stuckN = 0; C.eaten = 0;
@@ -811,7 +899,8 @@ function stickToTraps(dt, traps) {
       const t = clamp(((x - c.ax) * ex + (y - c.ay) * ey) / l2, 0, 1);
       if (Math.hypot(x - c.ax - ex * t, y - c.ay - ey * t) < c.r) {
         n++; stuckIdx.push(i);
-        if (!free) { body.x[i] = trapX[i] + (x - trapX[i]) * 0.08; body.y[i] = trapY[i] + (y - trapY[i]) * 0.08; }
+        const keep = C.defend > 0.5 ? 0.55 : 0.08; // stiffened, it peels away
+        if (!free) { body.x[i] = trapX[i] + (x - trapX[i]) * keep; body.y[i] = trapY[i] + (y - trapY[i]) * keep; }
         break;
       }
     }
@@ -849,7 +938,17 @@ function simStep(dt) {
     use(c);
     const input = readInput();
     // Surge: ease the pseudopod boost in and out over the dash.
-    const sk = surge.active ? 1 + (SURGE - 1) * Math.sin(Math.PI * Math.min(1, 1 - surge.phase)) ** 0.6 : 1;
+    let sk = surge.active ? 1 + (SURGE - 1) * Math.sin(Math.PI * Math.min(1, 1 - surge.phase)) ** 0.6 : 1;
+    // Defend (B held near a trap): the cell stiffens and draws its pseudopods in.
+    C.defend = clamp((C.defend || 0) + ((C.defendHeld && !caught.active) ? 1 : -1) * dt * 6, 0, 1);
+    if (C.defend > 0.5) { input.pods = [NONE, NONE]; input.body = null; }
+    // Attack (X at a hypha): a fast pseudopod jab at the cut.
+    if (C.jab && C.jab.t > 0) {
+      C.jab.t -= dt;
+      const dx = C.jab.x - body.cx, dy = C.jab.y - body.cy, l = Math.hypot(dx, dy) || 1;
+      input.pods = [{ m: 1, dx: dx / l, dy: dy / l }, input.pods[1] || NONE];
+      sk = Math.max(sk, SURGE);
+    }
     body.opts.boost = sk; C.surgeK = sk;
     stepCatch(dt);
     if (traps.length) { trapX.set(body.x); trapY.set(body.y); }
@@ -915,9 +1014,10 @@ function firstCell(p) {
 function addCell(p) {
   if (cells.some((c) => c.slot === p.slot)) return;
   const c = { p, slot: p.slot, pad: players.pad(p.slot), ctl: players.controls(p.slot), surge: createDash({ duration: 0.9, cooldown: 2.4 }),
-    caught: createCapture({ onRestart: () => restartCell() }), FC: { pts: [], A0: 0, phase: null },
+    caught: null, FC: { pts: [], A0: 0, phase: null },
     R: { pod: null, body: null, latch: new Set(), branch: false, last: null }, trapX: new Float64Array(N), trapY: new Float64Array(N),
     haustoria: makeHaustoria(), s: newCellState() };
+  c.caught = createCapture({ onRespawn: () => captureRespawn(c) });
   const [x, y] = spotBeside(c);
   makeBody(c, x, y);
   cells.push(c);
@@ -1209,8 +1309,18 @@ function frame(now) {
       use(c);
       const fight = !caught.active || FC.phase === 'strike' || FC.phase === 'hold';
       if (fight && pressed(BTN.A) && surge.trigger()) { audio.play('amoeba/boost', { volume: 0.9 }); rumble(220, 0.3, 0.5); if (C.stuckN && !caught.active) hud.toast(`${who()}Surge: torn free of the trap`); }
-      if (!caught.active && pressed(BTN.X)) { if (!C.closing) tryClose(); }
-      if (!caught.active && pressed(BTN.B)) { if (C.closing) cancelClose('Let go: the cup opens'); else egest(); }
+      const threat = caught.active ? null : threatTrap(c);
+      if (!caught.active && pressed(BTN.X) && !C.closing) {
+        // at a hypha (and no cup ready to close): cut it; otherwise close the cup
+        if (threat && !(C.cand && C.cand.cup.wrap >= CUP_WRAP)) cutHypha(threat, threat.near);
+        else tryClose();
+      }
+      if (!caught.active && pressed(BTN.B)) {
+        if (threat || C.stuckN) C.defendMode = true;
+        else if (C.closing) cancelClose('Let go: the cup opens'); else egest();
+      }
+      if (!pad.down(BTN.B)) C.defendMode = false;
+      C.defendHeld = C.defendMode && pad.down(BTN.B);
       // Y: on the backdoor (the leaf tip), go back up; elsewhere player 1's labels.
       if (pressed(BTN.Y)) {
         if (c.atBack && !caught.active) { lm.log.push({ type: 'landmark', kind: 'back', slot: c.slot }); hud.toast(`${who()}Back up to the water film`); embed.landmark('back', { player: c.slot }); }
@@ -1241,9 +1351,11 @@ function frame(now) {
   // (with several players: their centroid; the split screen takes it from there).
   // once eaten, the view slides so the shrivelled cell sits above the Eaten card
   const solo = cells.length === 1;
-  const lift = solo && caught.active && FC.phase === 'eaten' ? OBJECTIVES[S.objective].field * 0.16 : 0;
+  const lift = 0;
   let tx, ty;
-  if (solo) { tx = body.cx + body.fx * 60 * Math.min(1, body.fm); ty = body.cy + body.fy * 60 * Math.min(1, body.fm) - lift; }
+  const watching = solo && caught.active && ['eat', 'follow', 'fadeOut'].includes(FC.phase) && FC.pts[0];
+  if (watching) { tx = (body.cx + FC.pts[0].x) / 2; ty = (body.cy + FC.pts[0].y) / 2; }
+  else if (solo) { tx = body.cx + body.fx * 60 * Math.min(1, body.fm); ty = body.cy + body.fy * 60 * Math.min(1, body.fm) - lift; }
   else { tx = 0; ty = 0; for (const c of cells) { tx += c.body.cx; ty += c.body.cy; } tx /= cells.length; ty /= cells.length; }
   S.camX += (tx - S.camX) * Math.min(1, dtReal * 0.8);
   S.camY += (ty - S.camY) * Math.min(1, dtReal * 0.8);
@@ -1272,7 +1384,13 @@ function frame(now) {
 }
 
 /** The field (µm across the screen). */
-const fieldWidth = () => OBJECTIVES[S.objective].field * (innerWidth > innerHeight ? 1 : 0.6);
+// while you are drained the view pulls back (eased) to show the fungus at work
+const pull = { k: 1 };
+const fieldWidth = () => {
+  const want = cells.length === 1 && caught.active && ['eat', 'follow', 'fadeOut'].includes(FC.phase) ? 1.45 : 1;
+  pull.k += (want - pull.k) * 0.04;
+  return OBJECTIVES[S.objective].field * (innerWidth > innerHeight ? 1 : 0.6) * pull.k;
+};
 /** Draw every view (one, straight to the screen, while the players are together), then the overlays. */
 function renderAll(dt) {
   const fieldW = fieldWidth();
@@ -1417,6 +1535,11 @@ window.__micro = {
     for (const p of body.pods) { p.s = 0; p.target = 0; p.active = false; p.ret = 0; }
     body.grid.build(body.x, body.y, N);
   },
+  traps: trapList,
+  /** Test hook: player `slot` holds B (defend) or lets go. */
+  defend(on = true, slot = 0) { const c = cellOf(slot); c.s.defendHeld = on; c.s.defendMode = on; },
+  /** Test hook: player `slot` presses X at the nearest threatening trap hypha (cuts it). Returns whether it could. */
+  cut(slot = 0) { const c = cellOf(slot); const o = threatTrap(c); if (!o) return false; use(c); cutHypha(o, o.near); use(cells[0]); return true; },
   /** Test hook: a fresh amoeba for player `slot` centred at (x, y) µm. */
   place(slot, x, y) { const c = cellOf(slot); makeBody(c, x, y); use(cells[0]); if (cells.length === 1) { S.camX = x; S.camY = y; } },
   /** Test hook: put player `slot` at the forward landmark (the P. bursaria) or the backdoor (the leaf tip). */

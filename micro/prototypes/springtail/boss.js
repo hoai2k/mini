@@ -70,7 +70,7 @@ export function createWolfSpider(scene, { post, home }) {
 
   const st = { x: post.x, z: post.z, a: post.a, y: 1.3, v: 0, state: 'dormant', t: 0, crouch: 0, raise: 0, reach: 0, gait: 0,
     aimX: 0, aimZ: 0, from: null, target: null, burst: 0, chew: 0, lastAggr: null, aggrT: 0, cool: 1.5, hop: 0 };
-  const fight = createFight({ biteHit: 0.12, facingRate: 0.012, regain: 0.01 });
+  const fight = createFight({ biteHit: 0.09, facingRate: 0.012, regain: 0.01 });
   const fang = () => new THREE.Vector3(st.x + Math.cos(st.a) * 2.3, 0.4, st.z + Math.sin(st.a) * 2.3);
   const go = (s) => { st.state = s; st.t = 0; };
 
@@ -262,8 +262,9 @@ export function createWolfSpider(scene, { post, home }) {
     nipped(power = 1, slot = 0) {
       if (st.state === 'gone' || st.state === 'retreat' || st.state === 'capture') return false;
       if (st.state === 'dormant') { go('stalk'); }
+      // a hit is worth at most two nips (so it takes about three good rounds)
       let gone = false;
-      for (let i = 0; i < power * 2; i++) gone = fight.bitten() || gone;
+      for (let i = 0; i < Math.min(2, power) * 2; i++) gone = fight.bitten() || gone;
       st.lastAggr = slot; st.aggrT = 8;
       st.cool = Math.max(st.cool, 1.2);
       go('flinch');

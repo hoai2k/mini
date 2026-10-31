@@ -211,6 +211,7 @@ export class View {
       uCell: { value: o.cell || 100 }, uPitch: { value: o.pitch || 40 }, uStrands: { value: o.strands || 1 },
       uGirdle: { value: o.girdle || 0 }, uResidue: { value: o.residue ? 1 : 0 },
       uGrow: { value: o.grow ?? 1 }, uActive: { value: o.active ?? 1 }, uKnobs: { value: o.haustorium ? 0 : 1 },
+      uWind: { value: 0 }, uGrip: { value: 0 },
     };
     m = new THREE.Mesh(this.quadGeo, propertyMaterial({ vertexShader: QUAD_VS, fragmentShader: fs, uniforms: u }));
     m.scale.set(size.x, size.y, 1);
@@ -395,7 +396,11 @@ export class View {
       m.position.set(ob.x, ob.y, 0);
       m.rotation.z = ob.ang;
       m.material.uniforms.uPx.value = this.px;
-      if (ob.type === 'trap') { m.material.uniforms.uGrow.value = ob.grow ?? 1; m.material.uniforms.uActive.value = ob.active ?? 1; m.material.uniforms.uL.value = ob.L; }
+      if (ob.type === 'trap') {
+        const u = m.material.uniforms;
+        u.uGrow.value = ob.grow ?? 1; u.uActive.value = ob.active ?? 1; u.uL.value = ob.L;
+        u.uWind.value = ob.wind || 0; u.uGrip.value = ob.grip > 0 ? 1 : 0;
+      }
     }
     if (this.photo) {
       const [l, bt, w, h] = this.view;

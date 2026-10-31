@@ -163,6 +163,7 @@ export function createDrawer(world) {
     // stretch, as in the catch); its long tail fibres splay as they catch the wall (the wind-up)
     if (W.opts.phages) for (const p of W.phages) if (p.homing) homingPhage(S, p, t);
     if (W.landmarks) landmarks(S, t, W.landmarks);
+    if (W.stentor) stentor(S, t, W.stentor);
     // one player or a list of them (local multiplayer: every cell is drawn alike; main.js marks each in its colour)
     for (const p of Array.isArray(player) ? player : [player]) drawPlayer(S, t, p);
   }
@@ -177,6 +178,50 @@ export function createDrawer(world) {
     for (const k of [-1, -0.35, 0.35, 1]) {
       const fa = a + k * (0.25 + 1.05 * sp) + Math.sin(t * 9 + k * 3) * 0.08 * (1 - sp);
       S.strand(p.x, p.y, fa, 0.42 + 0.1 * sp, 0.012, 0.02, 0.2, { ...pmat, dn: 0.4, scat: 10 });
+    }
+  }
+
+  // --- the boss: Stentor coeruleus (stentor.js; main.js runs it) ---
+  // Partly off-frame: the rim of its oral disc with the membranelle band
+  // beating round it, the vortex of specks drawn into the mouth (brighter in
+  // the tell), the striped blue body tapering down to its foot on the biofilm.
+  const stR = rng(707);
+  const vortex = Array.from({ length: 90 }, () => ({ a: stR() * 6.283, r: stR(), v: 0.4 + stR() * 0.8, sz: 0.25 + stR() * 0.5 }));
+  const stripes = Array.from({ length: 220 }, () => ({ u: stR(), v: stR() * 2 - 1 }));
+  function stentor(S, t, B) {
+    const M = B.mouth, c = B.contract;
+    const R = B.discR * (1 - 0.45 * c); // contracted: the disc pulls in
+    const blue = { dn: 0.03, scat: 0.12, fl: [0.06 * chan.memb, 0, 0], memb: 1, ab: [0.014, 0.006, 0.002], z: 0.2 };
+    // the oral disc's rim: a giant-cell edge facing the field (left)
+    S.edge(M.x - R, M.y, Math.PI / 2, R * 2.1, 140, 2.5, 6.1, blue);
+    // the body: from below the disc down to the foot on the biofilm
+    const fx = B.foot.x, fy = B.foot.y, bx = M.x - R * 0.3, by = M.y - R * 0.9;
+    const bodyA = Math.atan2(fy - by, fx - bx), bodyL = Math.hypot(fx - bx, fy - by);
+    S.edge((fx + bx) / 2 - Math.sin(bodyA) * 6, (fy + by) / 2 + Math.cos(bodyA) * 6, bodyA + Math.PI, bodyL * (1 - 0.3 * c), 60, 2, 2.2, blue);
+    // stentorin stripes: rows of blue granules along the body
+    for (const g of stripes) {
+      const x = bx + (fx - bx) * g.u * (1 - 0.3 * c) + Math.sin(bodyA) * (g.v * 18 + 10) * (1 - 0.4 * g.u), y = by + (fy - by) * g.u * (1 - 0.3 * c) - Math.cos(bodyA) * (g.v * 18 + 10) * (1 - 0.4 * g.u);
+      S.disc(x, y, 0.45, { dn: 0.05, scat: 0.4, ab: [0.05, 0.02, 0.004], z: 0.1 });
+    }
+    // the foot: a holdfast of fine threads on the biofilm
+    for (let i = 0; i < 7; i++) S.strand(fx, fy, -Math.PI / 2 + (i - 3) * 0.3, 5 + (i % 3), 0.15, 0.4, 3, { dn: 0.04, scat: 0.6, fl: [0.3 * chan.memb, 0, 0], memb: 1, z: 0 });
+    // the membranelle band round the disc: long compound cilia beating in a wave (faster in the tell)
+    const n = 40;
+    for (let i = 0; i < n; i++) {
+      const a = Math.PI * (0.55 + 0.9 * (i / (n - 1)));
+      const x = M.x + Math.cos(a) * R, y = M.y + Math.sin(a) * R;
+      const beat = Math.sin(B.phase * 2 - i * 0.5);
+      const ang = a + Math.PI * 0.5 + 0.55 * beat * (1 - c);
+      S.strand(x, y, ang, (16 + 3 * beat) * (1 - 0.7 * c), 0.35, 0.6, 14, { dn: 0.05, scat: 1.4 + 2.5 * B.glow, fl: [0.6 * chan.memb, 0, 0], memb: 1, z: 0.1, phase: B.phase + i });
+    }
+    // the vortex: specks spiralling into the mouth, brighter and faster as it winds up
+    if (B.flowK > 0.05) for (const p of vortex) {
+      p.r -= 0.0025 * p.v * B.flowK * (1 - c);
+      p.a += 0.012 * p.v * B.flowK / Math.max(0.2, p.r) * (1 - c);
+      if (p.r < 0.1) { p.r = 1; p.a = stR() * 6.283; }
+      const rr = B.catchR * 0.4 + p.r * (B.pullR - B.catchR * 0.4);
+      const x = M.x + Math.cos(p.a) * rr, y = M.y + Math.sin(p.a) * rr;
+      S.disc(x, y, p.sz, { dn: 0.06, scat: 0.6 + 4 * B.glow, fl: [0.02, 0.05 + 0.3 * B.glow, 0.02], ab: [0.01, 0.01, 0.012], z: 0 });
     }
   }
 

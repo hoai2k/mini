@@ -432,7 +432,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     // acting (set each frame with act()): rear 0..1 (forebody up), lunge 0..1
     // (body thrust forward), hold: a point leg I reaches for (food held to the
     // mouth), holdK 0..1
-    rear: 0, lunge: 0, hold: V3(), holdK: 0,
+    rear: 0, lunge: 0, hold: V3(), holdK: 0, lean: 0,
   };
   const events = [];
 
@@ -516,12 +516,13 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       if (d.lengthSq() > 1e-6) {
         d.normalize();
         const ang = Math.atan2(new THREE.Vector3().crossVectors(st.fwd, d).dot(st.up), st.fwd.dot(d));
-        const rate = 1.5 + 1.2 * clamp(1 - st.speed / 200, 0, 1); // turns tighter when slow
+        const rate = (1.5 + 1.2 * clamp(1 - st.speed / 200, 0, 1)) * (input.turnK || 1); // turns tighter when slow (and in a scramble)
         turn = clamp(ang, -rate * dt, rate * dt);
         want = input.maxSpeed * input.mag * sstep(-0.15, 0.75, Math.cos(ang));
       }
     }
     st.speed += (want - st.speed) * (1 - Math.exp(-dt / (input.accel || 0.18)));
+    st.lean += ((input.lean || 0) - st.lean) * (1 - Math.exp(-dt / 0.1));
     st.omega = turn / dt;
     st.fwd.applyAxisAngle(st.up, turn).normalize();
 
@@ -765,6 +766,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       q = basisQ(st.fwd, st.up);
       q.multiply(new THREE.Quaternion().setFromAxisAngle(V3(1, 0, 0), sway));
       if (st.rear > 0) q.multiply(new THREE.Quaternion().setFromAxisAngle(V3(0, 0, 1), 0.42 * st.rear));
+      if (st.lean > 0.01) q.multiply(new THREE.Quaternion().setFromAxisAngle(V3(0, 0, 1), -0.14 * st.lean)); // the scramble: nose down, driving
       st.lift += (st.liftT - st.lift) * (st.liftT > st.lift ? 0.5 : 0.08);
       st.squash = Math.max(0, st.squash - dt * 4);
       let h = AN.stand + bob + st.lift - 75 * st.crouch - 55 * Math.sin(Math.PI * Math.min(1, 1 - st.squash)) * (st.squash > 0 ? 1 : 0);
@@ -998,6 +1000,17 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       st.rear = rear; st.lunge = lunge; st.holdK = hold ? holdK : 0;
       if (hold) st.hold.copy(hold).divideScalar(k);
     },
+    /** In the air: dive at a world point (the pounce-bite), arriving in ~0.2 s. False if not airborne. */
+    dive(targetW) {
+      if (st.mode !== 'air') return false;
+      const t = targetW.clone().divideScalar(k);
+      const T = 0.2;
+      st.vel.x = (t.x - st.center.x) / T; st.vel.z = (t.z - st.center.z) / T;
+      st.vel.y = Math.min(st.vel.y, (t.y + AN.stand - st.center.y) / T - 0.5 * GRAV * T);
+      if (st.vel.y > -950) st.vel.y = -950;
+      return true;
+    },
+    get airborne() { return st.mode === 'air' || st.mode === 'crouch'; },
     /** Start a bite (the animation; the caller decides what it hits). */
     bite() { if (st.biteT > 0.05) return false; st.biteT = 0.28; return true; },
     get quat() { return st.q; },

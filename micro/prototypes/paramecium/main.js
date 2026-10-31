@@ -707,7 +707,7 @@ function stepCapture(P, dt) {
     step = (dt - use) / len;
   }
   const c = P.capture.update(step);
-  if (!c.active) return null; // over: respawnPlayer has run
+  if (!c.active || !C.th) return null; // over, or respawned this frame (respawnPlayer has run)
   if (c.phase !== C.phase) {
     C.phase = c.phase;
     if (c.phase === 'eat') {

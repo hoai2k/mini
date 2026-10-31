@@ -6,6 +6,7 @@ import { createPlayers, PLAYER_COLORS } from '../shared/players.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
 import { createLandmarks } from '../shared/landmark.js';
 import { createLandmarkProps, FORWARD, BACKDOOR } from './landmarks.js';
+import { createPseudoscorpion } from './boss.js';
 import { createControls, createDash, hudControls, addInvertY } from '../shared/controls.js';
 import { createPredatorAI } from './predator.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
@@ -47,6 +48,9 @@ const world = buildWorld(tex);
 scene.add(world.group);
 const props = createLandmarkProps(world, tex);
 scene.add(props.group);
+// The boss: a pseudoscorpion lying in wait before the leaf axil (boss.js); worn down, it backs into the moss to the side.
+const BOSS_POST = (() => { const L = Math.hypot(FORWARD.x, FORWARD.z), ux = -FORWARD.x / L, uz = -FORWARD.z / L; return { x: FORWARD.x + ux * 900, z: FORWARD.z + uz * 900, a: Math.atan2(uz, ux), ux, uz }; })();
+const boss = createPseudoscorpion(scene, tex, { post: BOSS_POST, home: { x: BOSS_POST.x + BOSS_POST.uz * 1300, z: BOSS_POST.z - BOSS_POST.ux * 1300 } });
 
 // The box mite is drawn at about 0.6 mm (mite.js) and placed at 0.58 of that:
 // ~0.35 mm long, the size of a small phthiracarid (the Level 1 spec asks for
@@ -76,7 +80,7 @@ const pad = players.pad(0);
 const ctl = players.controls(0);
 let dash = createDash({ duration: 0.6, cooldown: 2.2 });
 // Walking speeds (µm/s, world): scaled with the body (720 and 1300 at 0.6 mm).
-const WALK = Math.round(720 * MITE_SCALE), DASH = Math.round(1300 * MITE_SCALE);
+const WALK = Math.round(720 * MITE_SCALE), DASH = Math.round(WALK * 2.1); // the scramble: ~2x the walk
 const hud = mountHud({
   title: 'Mite · SEM',
   sub: 'A box mite (Phthiracaridae), about 0.35 mm long, in a moss cushion, imaged like a scanning electron micrograph. A predatory mite hunts here.',
@@ -211,6 +215,7 @@ const cap = { phase: null, c0: new THREE.Vector3(), q0: new THREE.Quaternion(), 
 function afterCatch() {
   const P = cap.who || P1;
   P.mite.setVisible(true);
+  if (cap.byBoss) { boss.release(); cap.byBoss = false; }
   pred.st.chel = 0;
   predAI.state = 'wander'; predAI.bored = 14; predAI.ang += Math.PI; predAI.rear = 0;
   fight.reset();
@@ -273,6 +278,23 @@ function animateCapture(c, dt) {
   const ease = (x) => x * x * (3 - 2 * x);
   cap.t += dt;
   if (c.phase === 'fadeIn') return true; // already back (afterCatch)
+  if (cap.byBoss) {
+    if (['follow', 'fadeOut'].includes(c.phase)) { mite.setVisible(false); boss.captureStep('follow', c.t, dt); return true; }
+    if (cap.heldOnce && mite.mode !== 'held') {
+      // closed up in the pincer: the venom tooth cannot get through, it lets go
+      capture.reset(); cap.phase = null; cap.byBoss = false;
+      boss.st.state = 'recover'; boss.st.t = 0; boss.fight.bitten();
+      hud.toast('Closed up: its venom tooth cannot get through the capsule, and it lets go', 2400);
+      return false;
+    }
+    if (c.phase !== cap.phase) { cap.phase = c.phase; if (c.phase === 'eat') { audio.play('mite/bite', { volume: 1, rate: 0.6 }); if (rumbleOn) padOf().rumble(500, 0.6, 0.3); } }
+    const at = boss.captureStep(c.phase, c.t, dt);
+    const e = c.phase === 'eat' ? c.t : 0;
+    mite.held(at, cap.q0, { flail: c.phase === 'eat' ? Math.max(0, 1 - 1.6 * c.t) : 1, limp: e, seizeLeg: -1, escape: c.phase !== 'eat' });
+    cap.heldOnce = true;
+    if (c.phase === 'eat' && c.t > 0.9) mite.setVisible(false);
+    return true;
+  }
   if (c.phase === 'follow' || c.phase === 'fadeOut') {
     // swallowed: the predator carries on, chelicerae still working, and the camera follows it
     mite.setVisible(false);
@@ -702,7 +724,126 @@ function checkLandmarks() {
   }
 }
 
+// ---------- the scramble's stamina, its dust, the pounce-bite ----------
+const stamText = (pl) => { const n = Math.round((pl.stam ?? 1) * 5); return 'scramble ' + '■'.repeat(n) + '□'.repeat(5 - n); };
+// dust kicked up by a scramble: a few humus crumbs that fly back and settle (SEM-drawn, like everything)
+const DUST = 48;
+const dust = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0), gMaterial({ cls: CLS.LITTER }), DUST);
+dust.frustumCulled = false;
+scene.add(dust);
+const dustP = Array.from({ length: DUST }, () => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), t: 9, r: 8 }));
+let dustI = 0;
+function kickDust(m, n = 2) {
+  const back = new THREE.Vector3(-1, 0, 0).applyQuaternion(m.quat).setY(0).normalize();
+  for (let i = 0; i < n; i++) {
+    const d = dustP[dustI++ % DUST];
+    d.p.copy(m.center).addScaledVector(back, 110).add(new THREE.Vector3((Math.random() - 0.5) * 120, -70, (Math.random() - 0.5) * 120));
+    d.v.copy(back).multiplyScalar(300 + Math.random() * 300).add(new THREE.Vector3((Math.random() - 0.5) * 200, 250 + Math.random() * 250, (Math.random() - 0.5) * 200));
+    d.t = 0; d.r = 5 + Math.random() * 9;
+  }
+}
+const _dm = new THREE.Matrix4(), _dq = new THREE.Quaternion(), _ds = new THREE.Vector3();
+function stepDust(dt) {
+  for (let i = 0; i < DUST; i++) {
+    const d = dustP[i];
+    d.t += dt;
+    if (d.t < 0.7) { d.v.y -= 1800 * dt; d.p.addScaledVector(d.v, dt); }
+    const s = d.t < 0.7 ? d.r * (1 - d.t / 0.7) : 0;
+    _dm.compose(d.p, _dq, _ds.set(s, s, s));
+    dust.setMatrixAt(i, _dm);
+  }
+  dust.instanceMatrix.needsUpdate = true;
+}
+/** Enemy points a pounce-bite can land on: [{ p, foe: 'pred' | 'boss' }]. */
+function pounceTargets() {
+  const out = [];
+  if (predOn && !(capture.active && !cap.byBoss)) { out.push({ p: pred.center.clone(), foe: 'pred' }); out.push({ p: pred.mouth(new THREE.Vector3()).clone(), foe: 'pred' }); }
+  for (const p of boss.bitePoints()) out.push({ p, foe: 'boss' });
+  return out;
+}
+/** X in the air: dive at the nearest enemy point within reach ahead (aim assist), or straight down (a clear miss). */
+function startDive() {
+  if (play.dive) return;
+  const c = mite.center, f = new THREE.Vector3(1, 0, 0).applyQuaternion(mite.quat).setY(0).normalize();
+  let best = null, bs = Infinity;
+  for (const t of pounceTargets()) {
+    const v = t.p.clone().sub(c).setY(0), d = v.length();
+    if (d > 800) continue;
+    const off = d > 1 ? Math.acos(Math.max(-1, Math.min(1, v.divideScalar(d).dot(f)))) : 0;
+    if (off > 1.1) continue;
+    const sc = d * (1 + off);
+    if (sc < bs) { bs = sc; best = t; }
+  }
+  const at = best ? best.p.clone() : c.clone().addScaledVector(f, 120);
+  at.y = Math.max(at.y, floorH(at.x, at.z));
+  if (mite.dive(at)) { play.dive = { target: best, at }; if (rumbleOn) padOf().rumble(80, 0.2, 0.2); }
+}
+let hitPause = 0;
+/** The dive lands: a strong bite if the target is still there, a squash, a rebound; or a clear miss. */
+function diveImpact() {
+  const d = play.dive;
+  play.dive = null;
+  play.lastImpact = { t: simTime, hit: false };
+  const t = d.target;
+  if (t) {
+    const near = (t.foe === 'boss' ? boss.bitePoints() : [pred.center, pred.mouth(new THREE.Vector3())]).some((p) => p.distanceTo(mite.center) < 380);
+    if (near) {
+      play.lastImpact.hit = true; play.pounces = (play.pounces || 0) + 1;
+      hitPause = 0.12;
+      if (rumbleOn) padOf().rumble(260, 0.9, 0.7);
+      audio.play('mite/bite', { volume: 1, rate: 0.75 });
+      mite.bite();
+      kickDust(mite, 8);
+      if (t.foe === 'boss') { const gone = boss.bitten(2, cur.slot); hud.toast(gone ? 'Pounce-bite! The pseudoscorpion backs into the moss' : 'Pounce-bite on its pincer!', 1300); }
+      else { wearDown('bite'); if (predAI.state !== 'retreat') wearDown('bite'); hud.toast('Pounce-bite on the predatory mite!', 1200); }
+      // rebound: a little hop back
+      mite.st.fwd.negate(); mite.jump(); play.rebound = 0.25;
+      return;
+    }
+  }
+  hud.toast('Missed!', 900);
+  kickDust(mite, 4);
+}
+/** A grab's strike window: a scramble (RT) breaks out of it. */
+function dashOut(P) {
+  capture.reset(); cap.phase = null; cap.heldOnce = false;
+  const away = cap.byBoss ? boss.center : pred.center;
+  const c = P.mite.center, v = c.clone().sub(away).setY(0).normalize();
+  P.mite.setVisible(true);
+  P.mite.place(c.x + v.x * 260, c.z + v.z * 260, Math.atan2(-v.z, v.x));
+  P.play.scr = true; P.play.stam = Math.max(0, (P.play.stam ?? 1) - 0.4); P.play.hurt = Math.max(0, P.play.hurt - 1);
+  if (cap.byBoss) { boss.st.state = 'recover'; boss.st.t = 0; boss.fight.bitten(); } else { pred.st.chel = 0; predAI.repel(); fight.bitten(); }
+  cap.byBoss = false;
+  withRec(P, () => { if (rumbleOn) padOf().rumble(200, 0.6, 0.6); kickDust(P.mite, 10); });
+  hud.toast('Dashed out of its grip!', 1500);
+}
+/** The pseudoscorpion's grab: a catch like the predator's (createCapture), with its own pose. */
+function startBossCapture() {
+  if (capture.active) return;
+  Object.assign(cap, { phase: null, leg: 0, heldOnce: false, t: 0, who: cur, byBoss: true });
+  cap.c0.copy(mite.center); cap.q0.copy(mite.quat);
+  play.caught++; play.stun = 0;
+  capture.start({ by: 'The pseudoscorpion', how: 'seized you in its pincer, venomed you and ate you' });
+  embed.captured({ by: 'boss', player: cur.slot });
+  audio.play('mite/predator', { volume: 1, rate: 0.6 });
+  if (rumbleOn) padOf().rumble(400, 0.9, 1);
+}
+// the boss's resolve: a quiet brass gauge, shown while it is engaged
+const gauge = document.createElement('div');
+gauge.style.cssText = 'position:fixed;left:50%;top:48px;transform:translateX(-50%);display:none;align-items:center;gap:10px;color:#e9d9a8;font:600 11px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;text-shadow:0 1px 2px #000a;pointer-events:none;z-index:6';
+gauge.innerHTML = '<span>Pseudoscorpion</span><span style="width:180px;height:5px;border:1px solid #b8913f;background:rgba(20,16,8,.45);border-radius:3px;overflow:hidden"><i style="display:block;height:100%;width:100%;background:linear-gradient(90deg,#8a6a2c,#d8b268);transition:width .25s"></i></span>';
+document.body.appendChild(gauge);
+
 function tick(dt, inputs) {
+  if (hitPause > 0) { hitPause -= dt; dt *= 0.06; }
+  stepDust(dt);
+  // stamina, the scramble's dust
+  for (const P of recs()) {
+    const pl = P.play;
+    if (pl.stam === undefined) pl.stam = 1;
+    if (pl.scr) { pl.stam = Math.max(0, pl.stam - dt / 1.6); if (Math.random() < dt * 30) kickDust(P.mite, 1); }
+    else pl.stam = Math.min(1, pl.stam + dt / 2.8);
+  }
   for (const f of world.food) if (f.kind === 'hypha' && f.left <= 0 && (f.t -= dt) <= 0) f.left = 1;
   // the catch: the victim's own pad restarts (alone) or closes up
   const who = capture.active && cap.who ? cap.who : P1;
@@ -715,6 +856,8 @@ function tick(dt, inputs) {
     hud.toast(`Player ${who.slot + 1} was eaten, and is back beside a teammate`, 2400);
     cs = { active: false };
   }
+  // the strike window: a scramble (RT, with stamina) breaks out of the grip
+  if (cs.active && cs.phase === 'strike' && capPad && players.pad(who.slot).rt() > 0.4 && (who.play.stam ?? 1) > 0.3) { dashOut(who); cs = { active: false }; }
   if (cs.active) withRec(who, () => animateCapture(cs, dt));
   else if (predOn) hunger.update(dt);
   // Blades and hyphae move first (pushed and loaded by where the mites were),
@@ -734,7 +877,7 @@ function tick(dt, inputs) {
   });
   if (npcOn) npc.update(dt, npcInput(dt));
   const nip = recs().some((P) => P.play.nip);
-  if (predOn && capture.active && cap.who) {
+  if (predOn && capture.active && cap.who && !cap.byBoss) {
     if (['follow', 'fadeOut', 'fadeIn'].includes(capture.phase)) {
       // its meal swallowed, it walks on (the camera follows)
       const f = _ct.set(1, 0, 0).applyQuaternion(pred.quat).setY(0).normalize().clone();
@@ -826,19 +969,25 @@ function readInput(dt) {
 }
 /** One player's walking input from their controls (`mite` etc. are theirs). */
 function inputFor(c) {
-  if (c.attack.pressed()) biteNow();
+  if (c.attack.pressed() && !mite.airborne) biteNow();
   const sec = c.secondary();
   const speedMul = sec < 0 ? 0.5 : sec > 0 ? 1.4 : 1;
   const ls = c.move();
   const dir = camFwd.clone().multiplyScalar(-ls.y).addScaledVector(camRight, ls.x);
   // A: jump. RT (held): the scramble. B (held): close up (defend). Y at the backdoor: go back.
   if (c.dash.pressed() && play.stun <= 0 && mite.jump()) { if (rumbleOn) padOf().rumble(90, 0.25, 0.4); }
-  if (c.rt() > 0.5 && mite.mode === 'walk' && play.stun <= 0 && dash.ready && dash.trigger()) { audio.play('mite/dash', { volume: 0.9 }); if (rumbleOn) padOf().rumble(140, 0.3, 0.5); }
+  // the scramble: held RT, on a stamina meter (empties in ~1.6 s, refills in ~2.8 s)
+  if (play.stam === undefined) play.stam = 1;
+  const want = c.rt() > 0.4 && mite.mode === 'walk' && play.stun <= 0 && !play.act;
+  if (want && !play.scr && play.stam > 0.15) { play.scr = true; audio.play('mite/dash', { volume: 0.9 }); if (rumbleOn) padOf().rumble(140, 0.3, 0.5); }
+  if (!want || play.stam <= 0) play.scr = false;
+  // X in the air: the pounce-bite
+  if (c.attack.pressed() && mite.airborne) startDive();
   const hold = c.defend.down();
   if (atBack(cur) && mite.mode === 'walk' && c.special.pressed()) goBack(cur);
-  const dashing = dash.active && mite.mode === 'walk';
+  const dashing = play.scr && mite.mode === 'walk';
   if (dashing && ls.m < 0.2) dir.set(1, 0, 0).applyQuaternion(mite.quat).setY(0); // no stick: straight ahead
-  return { dir: dir.lengthSq() > 0 ? dir.normalize() : dir, mag: dashing ? 1 : ls.m, maxSpeed: dashing ? DASH : WALK * speedMul * (1 - 0.15 * play.hurt), accel: dashing ? 0.05 : 0.18, hold };
+  return { dir: dir.lengthSq() > 0 ? dir.normalize() : dir, mag: dashing ? 1 : ls.m, maxSpeed: dashing ? DASH : WALK * speedMul * (1 - 0.15 * play.hurt), accel: dashing ? 0.07 : 0.18, turnK: dashing ? 2.4 : 1, lean: dashing ? 1 : 0, hold };
 }
 
 function react(evs) {
@@ -931,11 +1080,11 @@ function drawFrame(dt) {
 function updateText(d) {
   updateBanner();
   const mag = 127000 / rig.hfw; // relative to a 127 mm (Polaroid 4x5) reference image width
-  const st = mite.mode === 'air' ? 'jumping' : mite.mode === 'crouch' ? 'crouching to jump' : mite.mode === 'walk' ? (dash.active ? `SCRAMBLE ${mite.speed.toFixed(0)} µm/s` : mite.st.climbing > 0.2 ? `climbing ${mite.speed.toFixed(0)} µm/s` : mite.speed > 5 ? `walking ${mite.speed.toFixed(0)} µm/s` : 'standing') : mite.mode === 'closed' ? 'closed (ptychoid)' : mite.mode;
+  const st = mite.mode === 'air' ? 'jumping' : mite.mode === 'crouch' ? 'crouching to jump' : mite.mode === 'walk' ? (play.scr ? `SCRAMBLE ${mite.speed.toFixed(0)} µm/s` : mite.st.climbing > 0.2 ? `climbing ${mite.speed.toFixed(0)} µm/s` : mite.speed > 5 ? `walking ${mite.speed.toFixed(0)} µm/s` : 'standing') : mite.mode === 'closed' ? 'closed (ptychoid)' : mite.mode;
   const fol = world.foliage.stats;
   const pst = predOn ? `predator ${capture.active ? `CAPTURE ${capture.phase}` : predAI.state === 'hunt' ? 'HUNTING' : predAI.state === 'recoil' ? 'recoiling' : 'wandering'} ${predAI.dist.toFixed(0)} µm · ${hunger.state} ${hunger.left.toFixed(0)} s` : '';
   const info = renderer.info.render;
-  hud.stats(`${MODES[sem.mode]}${renderScale < 1 ? `  (res ${(renderScale * 100).toFixed(0)}%)` : ''}\nHFW ${rig.hfw.toFixed(0)} µm   mag ${mag.toFixed(0)}x\n${st}\n${dash.text()}   legs grabbed ${play.hurt}/3   grazed ${play.grazed}\n${pst}\nblades bending ${fol.moving}   pen ${mite.st.pen.toFixed(0)} µm\n${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
+  hud.stats(`${MODES[sem.mode]}${renderScale < 1 ? `  (res ${(renderScale * 100).toFixed(0)}%)` : ''}\nHFW ${rig.hfw.toFixed(0)} µm   mag ${mag.toFixed(0)}x\n${st}\n${stamText(play)}   legs grabbed ${play.hurt}/3   grazed ${play.grazed}\n${pst}\nblades bending ${fol.moving}   pen ${mite.st.pen.toFixed(0)} µm\n${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
   if (observer) {
     const sb = niceScale(rig.hfw);
     const px = (sb / rig.hfw) * innerWidth;

@@ -350,12 +350,14 @@ void main() {
 // sticky (1) or dormant (0, small and pale). uKnobs 0: a haustorium (no knobs).
 export const TRAP_FS = /* glsl */ `
 ${COMMON}
-uniform float uL, uW, uSeed, uPx, uDim, uGrow, uActive, uKnobs;
+uniform float uL, uW, uSeed, uPx, uDim, uGrow, uActive, uKnobs, uWind, uGrip;
 varying vec2 vL;
 void main() {
   vec2 p = vL;
   float r = uW * 0.5;
   float tipX = -uL * 0.5 + uGrow * uL;
+  // the wind-up: the hypha curls towards its tip (and the knobs swell, below)
+  p.y -= uWind * 10. * sin((p.x - tipX) * 0.04) * smoothstep(-uL * 0.5, tipX, p.x);
   if (uGrow < 0.002 || p.x > tipX + r) discard;
   float hl = uL * 0.5 - r;
   float dx = max(max(-p.x - hl, p.x - min(hl, tipX - r)), 0.);
@@ -370,11 +372,15 @@ void main() {
   float q = (p.x + uSeed * 91.) / 26.;
   float side = mod(floor(q), 2.) * 2. - 1.;
   vec2 kc = vec2((floor(q) + 0.5) * 26. - uSeed * 91., side * (r + 3.5));
-  float kd = length(p - kc) - (1.6 + 1.6 * uActive);
+  float kd = length(p - kc) - (1.6 + 1.6 * uActive + 2.4 * uWind);
   float onH = step(abs(p.x), uL * 0.5 - 4.) * step(p.x, tipX - 4.) * uKnobs;
   float knob = (1. - smoothstep(-wpx, wpx, kd)) * onH;
   ph += knob * (0.2 + 0.25 * uActive) + 0.2 * uActive * exp(-kd * kd / 1.5) * onH;
   vec3 od = (h * (1. + 1.5 * (1. - uKnobs)) + knob * (0.5 + 0.5 * uActive)) * vec3(0.03, 0.035, 0.05);
+  // a sticky shimmer on the swelling knobs; gripping, the hypha darkens
+  ph += uWind * knob * (0.25 + 0.25 * sin(p.x * 0.9 + uSeed * 40.));
+  ph += uWind * 0.18 * exp(-sd * sd / 6.) * onH;
+  od += uGrip * body * vec3(0.08, 0.1, 0.16) + uWind * knob * vec3(0.04, 0.06, 0.12);
   gl_FragColor = vec4(ph, od) * uDim;
 }`;
 

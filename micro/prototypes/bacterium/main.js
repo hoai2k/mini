@@ -345,10 +345,10 @@ function runFights(dt) {
     if (!P.phage && fightable(P) && world.opts.phages && world.hunt.phage) {
       P.phageCool = (P.phageCool ?? 3) - dt;
       if (P.phageCool <= 0) {
-        P.phageCool = 6 + Math.random() * 5;
+        P.phageCool = 0.5;
         let best = null, bd = 18;
         for (const p of world.phages) { if (p.stuck || p.anim || p.homing) continue; const q = Math.hypot(p.x - S.x, p.y - S.y); if (q < bd) { bd = q; best = p; } }
-        if (best) { best.homing = true; best.splay = 0; P.phage = { p: best, fight: createFight({ windup: 0.75, strike: 0.25, recoverT: 1, repelT: 1, retreatT: 2.5, facingRate: 0, blockHit: 1, biteHit: 1 }) }; }
+        if (best) { P.phageCool = 6 + Math.random() * 5; best.homing = true; best.splay = 0; P.phage = { p: best, fight: createFight({ windup: 0.75, strike: 0.25, recoverT: 1, repelT: 1, retreatT: 2.5, facingRate: 0, blockHit: 1, biteHit: 1 }) }; }
       }
     }
     if (P.phage) {
@@ -381,10 +381,10 @@ function runFights(dt) {
     if (!P.bdello && fightable(P) && S.species === 'mtb' && world.opts.hunters && world.hunt.bdello && !S.attacker) {
       P.bdelloCool = (P.bdelloCool ?? 2) - dt;
       if (P.bdelloCool <= 0) {
-        P.bdelloCool = 3;
+        P.bdelloCool = 0.5;
         let best = null, bd = 30;
         for (const c of world.cells) { if (c.kind !== 'bdello' || c.prey || c.hidden > 0 || c.cooldown > 0 || c.stalking) continue; const q = Math.hypot(c.x - S.x, c.y - S.y); if (q < bd) { bd = q; best = c; } }
-        if (best) { best.stalking = P; best.cooldown = 99; P.bdello = { c: best, fight: createFight({ windup: 0.85, strike: 0.3, recoverT: 1.2, repelT: 1.3, retreatT: 4, facingRate: 0, blockHit: 0.5, biteHit: 0.4 }) }; }
+        if (best) { P.bdelloCool = 3; best.stalking = P; best.cooldown = 99; P.bdello = { c: best, fight: createFight({ windup: 0.85, strike: 0.3, recoverT: 1.2, repelT: 1.3, retreatT: 4, facingRate: 0, blockHit: 0.5, biteHit: 0.4 }) }; }
       }
     }
     if (P.bdello) {
