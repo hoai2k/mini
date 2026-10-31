@@ -26,10 +26,14 @@
 //   4. Players whose shifts agree within 1.5 px share one view (one render).
 //      All in one view with no shift: `merged`, and the world renders straight
 //      to the screen exactly as it did without split screen.
-//   5. Each view's shift becomes a camera offset in world units: the camera
-//      slides parallel to its image plane, scaled at the depth of that view's
-//      players (perspective) or by the zoom (orthographic). Orbit, chase and
-//      top-down cameras all work: the camera keeps its orientation and lens.
+//   5. Each view's shift becomes a camera offset in world units. By default
+//      the camera slides along the ground plane (opts.up, +y) by exactly the
+//      amount that puts its players at their displayed points (a ray-plane
+//      intersection), so every view keeps the shared camera's height, angle
+//      and lens over its own player, as the LEGO games do. With opts.up null
+//      (or a camera grazing the ground) it slides parallel to its image plane
+//      instead, scaled at the players' depth (perspective) or by the zoom
+//      (orthographic): right for chase cameras and free-swimming 3D worlds.
 //
 // Use (three.js world):
 //   import { createSplitScreen } from '../shared/splitscreen.js';
@@ -63,7 +67,7 @@
 // API
 //   createSplitScreen(renderer, { renderScale = 1, capture = false,
 //     divider = { color: '#c9a35a', width: 1.25, shadow: 'rgba(16,12,6,0.45)' },
-//     mergeBlend = 0.2, minArea }) -> split
+//     mergeBlend = 0.2, minArea, up = [0, 1, 0] | null }) -> split
 //   split.update(players, shared, dt = 1/60) -> layout
 //     players: [{ slot, position: {x,y,z} }]  (1-4)
 //     shared:  { camera }  or  { center: {x,y}, pxPerUnit, yUp = true }
@@ -153,6 +157,11 @@ export function createSplitScreen(renderer, opts = {}) {
     divider = {},
     mergeBlend = 0.2,
   } = opts;
+  // Camera offsets slide along the ground plane (normal `up`) by default, so
+  // each view keeps the shared camera's height and angle over its player (as
+  // in the LEGO games); null slides in the image plane instead (chase cams,
+  // free-floating 3D swimmers).
+  const groundUp = opts.up === null ? null : new THREE.Vector3(...(opts.up || [0, 1, 0])).normalize();
   let renderScale = opts.renderScale ?? 1;
   const minAreaOpt = opts.minArea;
   const dividerColor = cssColor(divider.color || '#c9a35a', 0.9);
@@ -331,7 +340,19 @@ export function createSplitScreen(renderer, opts = {}) {
       const c = members.length;
       sx /= c; sy /= c;
       if (Math.hypot(sx, sy) < 0.75) { sx = 0; sy = 0; }
-      views.push({ index: views.length, slots: members.map((j) => players[j].slot ?? j), members, shift: { x: sx, y: sy }, offset: offsetFor(sx, sy, px / c, py / c) });
+      let offset;
+      if (sx === 0 && sy === 0) offset = zeroOffset();
+      else {
+        // Each member: the camera move that puts them at their displayed point.
+        offset = null;
+        for (const j of members) {
+          const o = groundOffset(players[j].position, S[j].x - sx, S[j].y - sy);
+          if (!o) { offset = null; break; }
+          offset = offset ? offset.add(o) : o;
+        }
+        offset = offset ? offset.multiplyScalar(1 / c) : offsetFor(sx, sy, px / c, py / c);
+      }
+      views.push({ index: views.length, slots: members.map((j) => players[j].slot ?? j), members, shift: { x: sx, y: sy }, offset });
     }
     for (let i = 0; i < n; i++) {
       regions.push({ slot: players[i].slot ?? i, view: viewOf[i], polygon: cells[i].map(toAbs), centroid: toAbs(geo[i].c), anchor: toAbs(disp[i]), area: geo[i].area });
@@ -360,6 +381,24 @@ export function createSplitScreen(renderer, opts = {}) {
   }
 
   function zeroOffset() { return mode && mode.camera ? new THREE.Vector3() : { x: 0, y: 0 }; }
+
+  // The camera translation T, along the ground, that shows world point P at
+  // screen point (dx, dy) (px from the centre): the shared camera sees P - T
+  // there, so P - T is where the ray through (dx, dy) meets P's ground plane.
+  const ray = new THREE.Ray(), o3 = new THREE.Vector3(), d3 = new THREE.Vector3(), plane = new THREE.Plane();
+  function groundOffset(P, dx, dy) {
+    if (!mode.camera || !groundUp) return null;
+    const c = mode.camera;
+    const nx = dx / (W / 2), ny = -dy / (H / 2);
+    o3.set(nx, ny, -1).unproject(c);
+    d3.set(nx, ny, 1).unproject(c).sub(o3).normalize();
+    if (Math.abs(d3.dot(groundUp)) < 0.12) return null; // grazing: the image plane is safer
+    ray.set(o3, d3);
+    plane.setFromNormalAndCoplanarPoint(groundUp, tmp.set(P.x, P.y, P.z));
+    const X = ray.intersectPlane(plane, new THREE.Vector3());
+    if (!X) return null;
+    return new THREE.Vector3(P.x, P.y, P.z).sub(X);
+  }
 
   function offsetFor(sx, sy, ppuX, ppuY) {
     if (mode.camera) {

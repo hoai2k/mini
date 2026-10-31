@@ -101,6 +101,7 @@ function applyArt() {
   const use = view.art;
   for (const h of world.hosts) h.mat.setMap(use && art.envelope ? art.envelope : h.mat.userData?.std || h.mat.uniforms.uMap.value, use && art.envelope ? [4, 2] : [6, 3]);
   post.setBackdrop(use ? art.water : null);
+  inside.setSection(use ? art.section : null);
 }
 for (const h of world.hosts) h.mat.userData = { std: h.mat.uniforms.uMap.value };
 
@@ -265,7 +266,7 @@ function updateDrift(dt, inp) {
   P.pos.x = clamp(P.pos.x, BOUNDS.x0, BOUNDS.x1); P.pos.y = clamp(P.pos.y, BOUNDS.y0, BOUNDS.y1); P.pos.z = clamp(P.pos.z, BOUNDS.z0, BOUNDS.z1);
   // slow tumbling, and the head leads when moving so the fibres trail like weed
   if (opts.tumble) {
-    P.angVel.multiplyScalar(Math.exp(-dt / 1.6));
+    P.angVel.multiplyScalar(Math.exp(-dt / 0.9));
     P.angVel.x += gauss() * 0.45 * Math.sqrt(dt); P.angVel.y += gauss() * 0.45 * Math.sqrt(dt); P.angVel.z += gauss() * 0.45 * Math.sqrt(dt);
   } else P.angVel.multiplyScalar(Math.exp(-dt * 2));
   const mv = _w.copy(P.vel).add(P.gust);
@@ -273,9 +274,10 @@ function updateDrift(dt, inp) {
   if (sp > 4) {
     const ax = axisOf(_n);
     const tq = new THREE.Vector3().crossVectors(ax, mv.normalize());
-    P.angVel.addScaledVector(tq, dt * Math.min(1, sp / 25) * 2.2);
+    P.angVel.addScaledVector(tq, dt * Math.min(1, sp / 25) * 3.2);
   }
-  P.angVel.z += 0; // (kept in 3D: the phage turns in depth too)
+  // it turns in depth too, but drifts back toward side-on so you can read it (part of the slowed-tumbling departure)
+  { const ax = axisOf(_n); const flat = _w.set(ax.x, ax.y, 0); if (flat.lengthSq() > 1e-4) P.angVel.addScaledVector(new THREE.Vector3().crossVectors(ax, flat.normalize()), dt * 0.9); }
   integrateRotation(dt);
   // solids
   const c = centreOf(_v);

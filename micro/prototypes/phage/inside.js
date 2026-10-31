@@ -49,7 +49,8 @@ export function createInside() {
   const S = { nodes: [], prev: [], tipVel: new THREE.Vector3(), feed: 0, progress: 0, host: null, surge: 0, done: false, cutAt: -1, frag: [], t: 0 };
 
   // the envelope section along the top
-  const secMat = toonMaterial({ color: '#ffffff', map: proceduralSection(), mapRepeat: [1, 1], mottle: 0.12 });
+  const secStandIn = proceduralSection();
+  const secMat = toonMaterial({ color: '#ffffff', map: secStandIn, mapRepeat: [1, 1], mottle: 0.12 });
   const section = new THREE.Mesh(new THREE.PlaneGeometry(420, 52), secMat);
   section.position.set(0, 52 + 26, -8);
   scene.add(section);
@@ -147,6 +148,8 @@ export function createInside() {
 
   const api = {
     scene, camera, S, enzymes,
+    /** The envelope section art (MP-V03), or null for the procedural stand-in. */
+    setSection(tex) { secMat.setMap(tex || secStandIn, [1, 1]); },
     /** Begin the phase for a host ({ crispr: bool }). */
     start(host) {
       S.host = host; S.done = false; S.progress = 0; S.feed = 0; S.cutAt = -1; S.frag = []; S.surge = 0; S.t = 0;

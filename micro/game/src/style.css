@@ -29,6 +29,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--deep);
 #app { position: fixed; inset: 0; overflow: hidden; }
 button { font: inherit; color: inherit; }
 [hidden] { display: none !important; }
+.u { text-transform: none; }
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .screen { position: absolute; inset: 0; }
 .muted { color: var(--muted); }
@@ -71,6 +72,7 @@ button { font: inherit; color: inherit; }
   animation: pulse 2.4s ease-in-out infinite; transition: background .2s, transform .15s, color .2s; display: inline-flex; align-items: center; gap: 10px; }
 .press-start:hover, .press-start.focus, .press-start:focus-visible { background: rgba(200, 155, 71, .22); color: #fff8e4; outline: none; }
 .press-start:active { transform: scale(.97); background: rgba(200, 155, 71, .4); }
+.press-start .g { letter-spacing: .02em; }
 .press-start.small { font-size: 1.1rem; letter-spacing: .18em; padding: 12px 22px; animation: none; }
 @keyframes pulse { 0%, 100% { opacity: 1; box-shadow: inset 0 0 0 3px rgba(12,22,16,.6), inset 0 0 0 4px rgba(200,155,71,.35), 0 0 0 0 rgba(200,155,71,0); }
   50% { opacity: .82; box-shadow: inset 0 0 0 3px rgba(12,22,16,.6), inset 0 0 0 4px rgba(200,155,71,.6), 0 0 34px 2px rgba(200,155,71,.28); } }
@@ -117,7 +119,7 @@ button { font: inherit; color: inherit; }
 .screen-head { position: absolute; top: max(18px, env(safe-area-inset-top)); left: var(--gutter); right: var(--gutter); display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; z-index: 2; }
 .screen-head h2 { margin: 0; font: 600 clamp(1.7rem, 3.6vw, 2.6rem)/1.05 var(--serif); color: var(--ivory); letter-spacing: .01em; }
 .screen-head .players-row { margin: 4px 0 0; justify-content: flex-end; }
-.carousel { position: absolute; left: 0; right: 0; top: 50%; height: min(560px, 74vh); transform: translateY(-52%); perspective: 1400px; perspective-origin: 50% 46%; }
+.carousel { position: absolute; left: 0; right: 0; top: 50%; height: min(560px, 74vh); transform: translateY(-55%); perspective: 1400px; perspective-origin: 50% 46%; }
 .wcard { --w: clamp(220px, 25vw, 300px); position: absolute; left: 50%; top: 50%; width: var(--w); margin-left: calc(var(--w) / -2); transform-style: preserve-3d;
   cursor: pointer; transition: transform .6s cubic-bezier(.2, .75, .2, 1), opacity .5s, filter .5s; will-change: transform; outline: none; }
 .wcard .face { position: relative; transform: translateY(-50%); border-radius: 10px; overflow: hidden; color: var(--paper-ink);
@@ -242,7 +244,9 @@ button { font: inherit; color: inherit; }
 .transition canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .tr-ring { position: absolute; left: 50%; top: 50%; width: 140vmax; height: 140vmax; transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none;
   box-shadow: 0 0 0 100vmax rgba(5, 8, 6, .0), inset 0 0 120px 40px rgba(0, 0, 0, .55); }
-.tr-caption { position: absolute; top: max(22px, env(safe-area-inset-top)); left: 0; right: 0; text-align: center; text-shadow: 0 2px 12px rgba(0,0,0,.8); }
+.tr-caption, .tr-readout { z-index: 2; }
+.tr-caption { position: absolute; top: 0; left: 0; right: 0; padding: max(22px, env(safe-area-inset-top)) 16px 46px; text-align: center; text-shadow: 0 2px 12px rgba(0,0,0,.8);
+  background: linear-gradient(rgba(5, 8, 6, .82), rgba(5, 8, 6, .45) 60%, transparent); }
 .tr-caption .eyebrow { justify-content: center; }
 .tr-caption h2 { margin: 0; font: 600 clamp(1.6rem, 3.4vw, 2.4rem)/1.05 var(--serif); color: var(--ivory); }
 .tr-readout { position: absolute; left: 50%; bottom: max(26px, env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; gap: 0; border: 1px solid var(--brass); border-radius: 4px;
@@ -291,6 +295,8 @@ button { font: inherit; color: inherit; }
 .pad-diagram svg { width: 100%; height: auto; max-height: 280px; }
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
 .corner-buttons[data-group="corner-pause"] { z-index: 26; }
+/* A dialog opened from the pause menu replaces it on screen. */
+#pause:has(~ .modal.dialog:not([hidden])) .panel { visibility: hidden; }
 
 /* Toasts: a player joining, landmarks. */
 .toasts { position: absolute; left: 50%; top: max(18px, env(safe-area-inset-top)); transform: translateX(-50%); z-index: 40; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }

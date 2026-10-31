@@ -45,14 +45,14 @@ const tab = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 const errors = [];
 // shared/players.js is being written in parallel; until it exists the shell
 // uses its stub and the module fetch 404s, which is expected.
-const expected = (t) => /favicon|shared\/players\.js|fonts\.g(oogleapis|static)/.test(t);
+const expected = (t) => /favicon|shared\/players\.js|zoom\/player\.js|fonts\.g(oogleapis|static)/.test(t);
 tab.on('console', (m) => m.type() === 'error' && !expected(m.text()) && !/Failed to load resource: the server responded with a status of 404/.test(m.text()) && errors.push(m.text()));
-tab.on('pageerror', (e) => errors.push(String(e)));
+tab.on('pageerror', (e) => errors.push(String(e.stack || e)));
 tab.on('requestfailed', (r) => !expected(r.url()) && errors.push(`request failed: ${r.url()}`));
 tab.on('response', (r) => r.status() >= 400 && !expected(r.url()) && errors.push(`${r.status()} ${r.url()}`));
 
 const state = () => tab.evaluate(() => window.__game.state());
-const shot = (name) => tab.screenshot({ path: join(shots, `microzoom-${name}.png`) });
+const shot = (name) => tab.screenshot({ path: join(shots, `microzoom-${name}.png`), timeout: 90000 });
 async function until(fn, ms = 30000, what = 'condition') {
   const t0 = Date.now();
   while (Date.now() - t0 < ms) { if (await fn(await state())) return; await tab.waitForTimeout(150); }
@@ -118,9 +118,17 @@ try {
   await tab.waitForTimeout(800);
   step('resume');
 
+  // Stills of the specimen zoom (the real transitions below run too fast for
+  // software rendering to screenshot reliably).
+  for (const [a, b, dir, p, name] of [['springtail', 'mite', 'in', 0.55, '7-transition-in'], ['mite', 'tardigrade', 'in', 0.5, '7b-handoff'], ['bacterium', 'phage', 'in', 0.35, '7c-transition-phage'], ['tardigrade', 'mite', 'out', 0.6, '7d-transition-out']]) {
+    await tab.evaluate(([a, b, dir, p]) => window.__game.previewTransition(a, b, dir, p), [a, b, dir, p]);
+    await shot(name);
+  }
+  await tab.evaluate(() => window.__game.hideTransition());
+  step('transition stills');
+
   await tab.evaluate(() => { window.__game.forceLandmark('forward'); });
-  await until((s) => s.transitioning && +s.transitionProgress >= 0.45, 20000, 'transition halfway');
-  await shot('7-transition-in');
+  await until((s) => s.transitioning, 5000, 'transition to start');
   await until((s) => s.world === 'mite' && !s.loading && !s.transitioning, 45000, 'mite');
   await tab.waitForTimeout(1500);
   await shot('8-mite-controls');
@@ -129,10 +137,10 @@ try {
   step('forward landmark → mite (controls card shown)');
 
   await tab.evaluate(() => { window.__game.forceLandmark('back'); });
-  await until((s) => s.transitioning && +s.transitionProgress >= 0.45, 20000, 'back transition halfway');
-  await shot('9-transition-out');
+  await until((s) => s.transitioning, 5000, 'back transition to start');
   await until((s) => s.world === 'springtail' && !s.loading && !s.transitioning, 45000, 'back to springtail');
   await tab.waitForTimeout(1200);
+  await shot('9-back-springtail');
   step('back landmark → springtail');
   const fin = await state();
   if (fin.progress.furthest < 1) throw new Error('furthest world not recorded');

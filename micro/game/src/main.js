@@ -8,7 +8,7 @@ import { PROTO, cardArt, introArt, delivered, loadImage } from './art.js';
 import { createInput } from './input.js';
 import { createSound } from './sound.js';
 import { createTitleBg } from './title-bg.js';
-import { createTransitions, fmtField, fmtMag } from './transition.js';
+import { createTransitions, fmtField, fmtMag, unitSafe } from './transition.js';
 import { loadRoster } from './players.js';
 import { listen, send } from './bus.js';
 import { glyph, glyphMode, refreshGlyphs, controlRows } from './glyphs.js';
@@ -294,7 +294,7 @@ function layoutCards() {
   $('.menu-bg').style.transform = `translate3d(${(3 - S.sel) * 10}px, 0, 0) scale(1.02)`;
   $('#menu').style.setProperty('--world', w.accent);
   const cur = $('.scale-rule .cursor');
-  if (cur) { cur.style.left = `${scalePos(w.fieldMm)}%`; cur.querySelector('span').textContent = `${w.name} · field ${fmtField(w.fieldMm)}`; }
+  if (cur) { cur.style.left = `${scalePos(w.fieldMm)}%`; cur.querySelector('span').innerHTML = `${w.name} · field ${unitSafe(fmtField(w.fieldMm))}`; }
   $$('.scale-rule .wm').forEach((m, i) => m.classList.toggle('on', i === S.sel));
 }
 const LOG_MAX = Math.log10(60), LOG_MIN = Math.log10(0.0006);
@@ -302,7 +302,7 @@ const scalePos = (mm) => ((LOG_MAX - Math.log10(mm)) / (LOG_MAX - LOG_MIN)) * 10
 function buildScaleRule() {
   const el = $('#scale-rule');
   let html = '<div class="bar"></div>';
-  const labels = { 1: '1 cm', 0: '1 mm', '-1': '100 µm', '-2': '10 µm', '-3': '1 µm' };
+  const labels = { 1: '1 cm', 0: '1 mm', '-1': '100 <span class="u">µm</span>', '-2': '10 <span class="u">µm</span>', '-3': '1 <span class="u">µm</span>' };
   for (let e = 1; e >= -3; e--) {
     for (let k = 1; k < 10; k++) {
       const mm = k * 10 ** e;
@@ -916,6 +916,8 @@ window.__game = {
   openModal,
   closeModal,
   forceLandmark: (kind) => landmark(kind),
+  previewTransition: (a, b, dir, p) => transitions.preview(WORLDS.find((w) => w.id === a), WORLDS.find((w) => w.id === b), dir, p),
+  hideTransition: () => transitions.hide(),
   near: (kind, on = true) => showPrompt(on ? { kind } : null),
   toggleControls,
   fmt: { fmtField, fmtMag },

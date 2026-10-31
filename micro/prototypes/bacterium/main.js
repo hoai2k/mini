@@ -93,7 +93,7 @@ function updatePressure(dt) {
   world.hunt.amoeba = isHungry(amoebaH);
   // a phage cloud: a nearby infected cell bursts, and its phages drift your way
   if (world.hunt.phage && !phageWas && world.opts.phages && S.alive) {
-    const a = Math.random() * 6.28, d = 14 + Math.random() * 8;
+    const a = Math.random() * 6.28, d = 24 + Math.random() * 10;
     world.addPatch(S.x + Math.cos(a) * d, Math.max(world.surfaceY(S.x) + 6, S.y + Math.sin(a) * d), true);
     hud.toast('A cell nearby has burst: a cloud of phages drifts in. Keep moving, shake off any that stick (A / B)', 3200);
   }
@@ -359,7 +359,7 @@ function tick(dt, inp) {
   game.update(dt, t, inp, ev);
   if (ev.caught) startCatch(ev.caught);
   stepCatch(dt);
-  if (pacing.firstThreat === null && S.alive && (S.flow > 15 || S.phages.length || S.attacker || world.insideAmoeba(S.x, S.y, t) > -3)) pacing.firstThreat = t - pacing.t0;
+  if (pacing.firstThreat === null && S.alive && (S.flow > 15 || S.phages.length || S.attacker || world.insideAmoeba(S.x, S.y, t) > 0)) pacing.firstThreat = t - pacing.t0;
   // focus drifts back to the cell's plane
   if (view.focusFollows && !inp.focusing) view.focus *= Math.exp(-dt * 1.5);
   // camera: the stage follows the cell

@@ -1,6 +1,10 @@
 // World-to-world transitions: playTransition(from, to, dir) → Promise.
 //
-// 'microscope' style plays the zoom-transitions prototype embedded
+// 'microscope' style plays the zoom-transitions prototype. First choice is its
+// reusable module, prototypes/zoom/player.js (createTransitionPlayer({
+// container, audio }) → { play(from, to, {dir}), skip(), dispose() }, world
+// ids as in worlds.js), drawn into this layer. Failing that, the page itself
+// embedded
 // (prototypes/zoom/?embed=1&from=<id>&to=<id>&dir=in|out). It must declare
 // embed.provide('transition'), play on `resume` and post `done`; until it
 // does, the shell falls back (once per session it probes, then remembers) to
@@ -27,6 +31,8 @@ export function fmtField(mm) {
   if (um >= 1) return `${um >= 100 ? um.toFixed(0) : um >= 10 ? um.toFixed(0) : um.toFixed(1)} µm`;
   return `${(um * 1000).toFixed(0)} nm`;
 }
+/** Keep µ lower case under text-transform: uppercase (else it becomes a capital Mu). */
+export const unitSafe = (s) => s.replace(/µm/g, '<span class="u">µm</span>');
 export function fmtMag(mm) {
   const m = 180 / mm;
   if (m < 10) return `${m.toFixed(1)}×`;
@@ -42,6 +48,19 @@ export function createTransitions({ layer, sound, protoBase, reduced }) {
   const fieldEl = layer.querySelector('.tr-field');
   const magEl = layer.querySelector('.tr-mag');
   let playerKnown = null; // null: not probed yet; true/false after the first try
+  let modulePlayer;        // undefined: not tried; null: not available
+  async function getModulePlayer() {
+    if (modulePlayer !== undefined) return modulePlayer;
+    try {
+      const mod = await import(new URL('zoom/player.js', protoBase).href);
+      const box = document.createElement('div');
+      box.className = 'tr-player';
+      box.style.cssText = 'position:absolute;inset:0;z-index:0';
+      layer.appendChild(box);
+      modulePlayer = { box, player: mod.createTransitionPlayer({ container: box }) };
+    } catch { modulePlayer = null; }
+    return modulePlayer;
+  }
 
   function size() {
     const dpr = Math.min(devicePixelRatio || 1, 1.5);
@@ -95,10 +114,10 @@ export function createTransitions({ layer, sound, protoBase, reduced }) {
     }
     const R = Math.min(400, Math.max(1.6, A.fieldMm / B.fieldMm));
     const z = Math.pow(R, p);
-    g.save();
-    if (g.filter !== undefined) g.filter = `blur(${(Math.max(0, p - 0.35) * 9).toFixed(1)}px)`;
     drawCover(outer, cx, cy, D / 2, D * z);
-    g.restore();
+    // The outer world falls out of focus and into shadow as the stop closes in.
+    const dim = smooth((p - 0.3) / 0.6) * 0.55;
+    if (dim > 0) { g.fillStyle = `rgba(4,7,5,${dim})`; g.fillRect(0, 0, w, h); }
     const r = (D / 2 / R) * z * 1.02;
     const a = smooth(p / 0.25);
     // Darken outside the next field: the eye goes to the spot.
@@ -136,7 +155,7 @@ export function createTransitions({ layer, sound, protoBase, reduced }) {
         const p = zoomIn ? e : 1 - e;
         render(outer, inner, A, B, p, handoff, view);
         const f = A.fieldMm * Math.pow(B.fieldMm / A.fieldMm, handoff ? p : p);
-        fieldEl.textContent = `Field ${fmtField(f)}`;
+        fieldEl.innerHTML = `Field ${unitSafe(fmtField(f))}`;
         magEl.textContent = `${fmtMag(f)}`;
         layer.dataset.progress = u.toFixed(2);
         if (u < 1) requestAnimationFrame(step); else resolve();
@@ -173,11 +192,45 @@ export function createTransitions({ layer, sound, protoBase, reduced }) {
   }
 
   return {
+    /** Draw one still frame of the specimen zoom at progress p (tests, screenshots). */
+    async preview(from, to, dir, p) {
+      const zoomIn = dir === 'in';
+      const A = zoomIn ? from : to, B = zoomIn ? to : from;
+      const [outer, inner] = await Promise.all([loadImage(cardArt(A)), loadImage(cardArt(B))]);
+      layer.hidden = false;
+      const handoff = HANDOFF.has(`${A.id}>${B.id}`);
+      dirEl.textContent = handoff ? 'Changing the light' : zoomIn ? 'Zooming in' : 'Zooming out';
+      titleEl.textContent = `${from.name} → ${to.name}`;
+      const q = zoomIn ? p : 1 - p;
+      render(outer, inner, A, B, q, handoff, size());
+      const f = A.fieldMm * Math.pow(B.fieldMm / A.fieldMm, q);
+      fieldEl.innerHTML = `Field ${unitSafe(fmtField(f))}`;
+      magEl.textContent = fmtMag(f);
+    },
     /** Play the transition from one world to another; dir 'in' (forward) or 'out' (back). */
     async playTransition(from, to, dir, { style = 'microscope' } = {}) {
       layer.hidden = false;
       layer.dataset.progress = '0';
       try {
+        if (style === 'microscope') {
+          const mp = await getModulePlayer();
+          if (mp) {
+            mp.box.hidden = false;
+            let tick = 0;
+            const read = () => {
+              try {
+                const r = mp.player.readout?.();
+                if (r) { fieldEl.innerHTML = `Field ${unitSafe(String(r.field ?? ''))}`; magEl.textContent = String(r.mag ?? ''); }
+              } catch { /* readout is optional */ }
+              tick = requestAnimationFrame(read);
+            };
+            dirEl.textContent = dir === 'in' ? 'Zooming in' : 'Zooming out';
+            titleEl.textContent = `${from.name} → ${to.name}`;
+            read();
+            const guard = setTimeout(() => mp.player.skip?.(), 25000);
+            try { await mp.player.play(from.id, to.id, { dir }); return; } catch (e) { console.error('[micro zoom] zoom player failed; using the specimen zoom', e); } finally { clearTimeout(guard); cancelAnimationFrame(tick); mp.box.hidden = true; }
+          }
+        }
         if (style === 'microscope' && playerKnown !== false) {
           // Hold the first frame of the specimen zoom while the player loads.
           const ok = await microscope(from, to, dir);

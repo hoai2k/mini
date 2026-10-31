@@ -69,7 +69,7 @@ The predators use the shared `shared/predation.js` (`createHunger`,
   - *Grazers:* the feeding current (and the beating wreath) is on for
     20–35 s, then off.
   - *Phages:* each phage spell starts with a nearby infected cell bursting
-    14–22 µm from you, releasing a cloud of about 35 phages (a toast says
+    24–34 µm from you, releasing a cloud of about 35 phages (a toast says
     so); for 20–30 s phages that touch you adsorb, then the cloud thins and
     they no longer stick.
   - *Bdellovibrio* hunt you (ram on contact) for 18–32 s at a time; shaking

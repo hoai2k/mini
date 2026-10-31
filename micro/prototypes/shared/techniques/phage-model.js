@@ -140,7 +140,7 @@ export function createT4({ clip = true } = {}) {
   const dnaIndexCount = dnaGeo.index.count;
   head.add(dna);
   // cracks (UV damage)
-  const crackMat = toonMaterial({ color: '#1a0f0a', clip });
+  const crackMat = toonMaterial({ color: '#ffd9a8', clip });
   const cracks = [];
   for (let k = 0; k < 5; k++) {
     const pts = [];

@@ -262,7 +262,9 @@ function render(dt, snap = false) {
   hud.stats(`players ${players.count} · views ${L.views.length}${L.merged ? ' (merged)' : ''} · scale ${Math.round(split.renderScale * 100)}%`);
 }
 
+let frames = 0;
 function frame(now) {
+  frames++;
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   step(dt);
@@ -274,6 +276,7 @@ requestAnimationFrame(frame);
 // Test hooks (Playwright drives these; harmless otherwise).
 window.__splitDemo = {
   players, split, joins, leaves, hud,
+  get frames() { return frames; },
   get layout() { return split.layout; },
   positions: () => players.list.map((p) => (bodies[p.slot] ? bodies[p.slot].mesh.position.toArray() : null)),
   /** Place players: [[x, z], ...] by slot; snaps the camera. */

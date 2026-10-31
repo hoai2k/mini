@@ -25,9 +25,9 @@ precision highp float;
 in vec2 vUv;
 uniform vec2 uCenter, uHalf;
 uniform float uPx, uTime, uHBase;
-uniform vec2 uOff[6];
-uniform vec4 uCr[6];   // x, y, heading, gait phase (native frame)
-uniform vec4 uCrB[6];  // state, visible, base height, extra
+uniform vec2 uOff[7];
+uniform vec4 uCr[7];   // x, y, heading, gait phase (native frame)
+uniform vec4 uCrB[7];  // state, visible, base height, extra
 uniform vec4 uLayers;  // lawn, algae, bacteria, host
 uniform vec3 uBgAlb;
 uniform vec4 uMisc;    // x host swell, y springtail ripple time, z leaf top height near the biofilm
@@ -41,8 +41,8 @@ const float CAPR = ${CHAIN_CONST.capR.toFixed(1)};
 const float GRID = ${CHAIN_CONST.capGrid.toFixed(1)};
 const vec2 T1 = ${v2(CHAIN_CONST.T1)};      // frame 1: the wet axil (the tun)
 const vec2 T2W1 = ${v2(CHAIN_CONST.T2W1)};  // frame 1: the leaf tip in the pool
-const vec2 T3W3 = ${v2(CHAIN_CONST.T3W3)};  // frame 3: the biofilm patch
-const vec2 HOST = ${v2(CHAIN_CONST.host)};  // frame 5: the host cell's centre
+const vec2 T3W3 = ${v2(CHAIN_CONST.patch)};  // frame 4: the biofilm patch
+const vec2 HOST = ${v2(CHAIN_CONST.host)};  // frame 6: the host cell's centre
 const float HOSTR = ${CHAIN_CONST.hostR.toFixed(4)};
 const float HOSTL = ${CHAIN_CONST.hostL.toFixed(4)};
 
@@ -163,6 +163,11 @@ void lawn(vec2 p, inout S s) {
     rip = 9.0 * sin(dsp / 85.0 - uMisc.y * 7.0) * exp(-dsp / 1600.0) * smoothstep(250.0, 500.0, dsp)
         + 3.0 * (fbm(p / 900.0 + uTime * 0.05) - 0.5);
     s.h = rip; s.alb = vec3(0.032, 0.024, 0.014); s.gloss = 1.0; s.cov = 0.0;
+    // the pool floor far below: fine sediment, a faint mottle in transmitted light
+    if (uPx < 12.0) {
+      float fl = fbm(p / 55.0 + 3.0);
+      s.ab += vec3(0.05, 0.07, 0.10) * fl + vec3(0.25, 0.32, 0.45) * smoothstep(0.72, 0.8, vnoise(p / 7.0)) * (1.0 - smoothstep(2.0, 6.0, uPx));
+    }
   } else {
     float n = fbm(p / 300.0);
     s.h = 150.0 + 220.0 * n; s.alb = vec3(0.05, 0.06, 0.03) * (0.6 + n); s.gloss = 0.05; s.cov = 1.0;
@@ -213,7 +218,7 @@ void lawn(vec2 p, inout S s) {
   s.gloss = max(s.gloss, wet * 0.9);
 }
 
-// ---------- algae and detritus in the pool (frame 3, µm) ----------
+// ---------- algae and detritus in the pool (frame 4, µm) ----------
 void algae(vec2 p, inout S s) {
   const float G = 230.0;
   vec2 i0 = floor(p / G);
@@ -273,7 +278,7 @@ void algae(vec2 p, inout S s) {
   }
 }
 
-// ---------- the biofilm on the leaf (frame 4, µm) ----------
+// ---------- the biofilm on the leaf (frame 5, µm) ----------
 float patchAt(vec2 p) { return 0.82 * smoothstep(150.0, 45.0, length(p) * (0.8 + 0.5 * fbm(p / 60.0))) + 0.05; }
 void bacteria(vec2 p, inout S s) {
   float pa = patchAt(p);
@@ -321,7 +326,7 @@ void bacteria(vec2 p, inout S s) {
   }
 }
 
-// ---------- the host cell and its phages (frame 5, µm) ----------
+// ---------- the host cell and its phages (frame 6, µm) ----------
 void phageShape(vec2 q, float spin, inout S s, float hl) {
   // T4-like: prolate head 110 × 85 nm on a 100 nm contractile tail, baseplate and fibres
   vec2 hq = q - vec2(0.0, 0.16);
@@ -399,7 +404,7 @@ void hostCell(vec2 p, inout S s) {
 }
 
 // ---------- creatures (native frames) ----------
-// 0 springtail · 1 mite · 2 tardigrade (tun → active) · 3 Paramecium · 4 spirillum · 5 phage
+// 0 springtail · 1 mite · 2 tardigrade (tun → active) · 3 amoeba · 4 Paramecium · 5 spirillum · 6 phage
 void springtail(vec2 p, vec4 cr, vec4 cb, inout S s) {
   vec2 q = rot(-cr.z) * (p - cr.xy);
   if (length(q) > 1400.0) return;
@@ -543,6 +548,56 @@ void tardigrade(vec2 p, vec4 cr, vec4 cb, inout S s) {
   optic(s, opd * m, ab * m, 0.0);
 }
 
+
+float smin(float a, float b, float k) { float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0); return mix(b, a, h) - k * h * (1.0 - h); }
+void amoeba(vec2 p, vec4 cr, vec4 cb, inout S s) {
+  // Amoeba proteus, ~450 µm: a granular body flowing into blunt pseudopods, a
+  // clear ectoplasm rim, a nucleus, a contractile vacuole and food vacuoles
+  vec2 q = rot(-cr.z) * (p - cr.xy);
+  if (length(q) > 340.0) return;
+  float t = cr.w;
+  float d = sdEll(q - vec2(-10.0, 0.0), vec2(140.0, 95.0));
+  for (int i = 0; i < 6; i++) {
+    float fi = float(i);
+    float ang = i == 0 ? 0.0 : i == 1 ? 0.75 : i == 2 ? -0.8 : i == 3 ? 1.9 : i == 4 ? -2.1 : 3.14159;
+    float len = (i == 0 ? 210.0 : i == 5 ? 115.0 : 165.0 - 18.0 * fi) * (0.78 + 0.22 * sin(t * (0.9 + 0.17 * fi) + fi * 1.7));
+    float r = i == 5 ? 34.0 : 38.0 - 2.0 * fi;
+    vec2 dir = vec2(cos(ang), sin(ang));
+    vec2 bend = vec2(-dir.y, dir.x) * 22.0 * sin(t * 0.6 + fi);
+    float dp = min(sdSeg(q, dir * 50.0, dir * len * 0.55 + bend * 0.5), sdSeg(q, dir * len * 0.55 + bend * 0.5, dir * len + bend)) - r * (1.0 - 0.25 * smoothstep(0.0, len, dot(q, dir)));
+    d = smin(d, dp, 45.0);
+  }
+  // the uroid: a knobbly tail
+  d = smin(d, length(q - vec2(-150.0, 0.0)) - 30.0 - 6.0 * sin(atan(q.y, q.x + 150.0) * 7.0), 25.0);
+  d += 5.0 * (vnoise(q / 28.0 + t * 0.2) - 0.5);
+  float m = cover(d);
+  if (m <= 0.0) return;
+  float depth = clamp(-d, 0.0, 200.0);
+  float ch = 42.0 * smoothstep(0.0, 70.0, depth);
+  float endo = smoothstep(8.0, 22.0, depth);   // the granular endoplasm, inside a clear rim
+  float opd = 0.02 * ch;
+  vec3 ab = ch * vec3(0.0016, 0.0019, 0.0030);
+  float lf = 1.0 - smoothstep(2.0, 5.0, uPx);
+  vec2 gid = floor(q / 6.0);
+  vec2 gc = (gid + 0.5 + (hash22(gid + 9.0) - 0.5) * 0.6) * 6.0 + 1.2 * vec2(sin(t * 1.3 + gid.x), cos(t * 1.1 + gid.y));
+  vec2 gt = thin(length(q - gc), 1.3);
+  float gran = endo * step(hash12(gid + 3.0), 0.6);
+  opd += mix(0.06 * endo, gt.x * 0.06 * gran, lf);
+  ab += mix(vec3(0.05, 0.06, 0.08) * endo, gt.x * gran * vec3(0.06, 0.07, 0.09), lf);
+  float nuc = smoothstep(26.0, 22.0, length(q - vec2(-25.0, 12.0)));
+  opd += 0.35 * nuc; ab += nuc * vec3(0.04, 0.05, 0.07);
+  float cvr = 16.0 + 4.0 * sin(t * 0.8);
+  float cv = smoothstep(cvr, cvr - 2.0, length(q - vec2(-118.0, -24.0)));
+  opd -= 0.5 * cv; ab *= 1.0 - 0.8 * cv;
+  for (int k = 0; k < 3; k++) {
+    vec2 fc = vec2(30.0 - 40.0 * float(k), -30.0 + 28.0 * float(k));
+    float fv = smoothstep(11.0, 9.0, length(q - fc));
+    ab += fv * (k == 1 ? vec3(0.35, 0.12, 0.4) : vec3(0.25, 0.32, 0.45));
+  }
+  put(s, m, cb.z + ch * 0.5, mix(vec3(0.72, 0.70, 0.62), vec3(0.58, 0.56, 0.48), endo), 0.5);
+  optic(s, opd * m, ab * m, 0.0);
+}
+
 void paramecium(vec2 p, vec4 cr, vec4 cb, inout S s) {
   vec2 q = rot(-cr.z) * (p - cr.xy);
   if (length(q) > 90.0) return;
@@ -637,15 +692,17 @@ void main() {
   s.opd = 0.0; s.scat = 0.0; s.h = 0.0; s.cov = 0.0; s.ab = vec3(0.0); s.fl = 0.0; s.alb = uBgAlb; s.gloss = 0.0;
   if (uLayers.x > 0.5) lawn(p - uOff[1], s);
   else s.h = uMisc.z;
-  if (uLayers.y > 0.5) algae(p - uOff[3], s);
-  if (uLayers.z > 0.5) bacteria(p - uOff[4], s);
-  if (uLayers.w > 0.5) hostCell(p - uOff[5], s);
+  if (uLayers.y > 0.5) algae(p - uOff[4], s);
+  if (uLayers.z > 0.5) bacteria(p - uOff[5], s);
+  if (uLayers.w > 0.5) hostCell(p - uOff[6], s);
+  // the amoeba crawls on the pool floor, under everything else
+  if (uCrB[3].y > 0.5) amoeba(p - uOff[3], uCr[3], uCrB[3], s);
   if (uCrB[1].y > 0.5) mite(p - uOff[1], uCr[1], uCrB[1], s);
   if (uCrB[0].y > 0.5) springtail(p - uOff[0], uCr[0], uCrB[0], s);
   if (uCrB[2].y > 0.5) tardigrade(p - uOff[2], uCr[2], uCrB[2], s);
-  if (uCrB[3].y > 0.5) paramecium(p - uOff[3], uCr[3], uCrB[3], s);
-  if (uCrB[4].y > 0.5) spirillum(p - uOff[4], uCr[4], uCrB[4], s);
-  if (uCrB[5].y > 0.5) phage(p - uOff[5], uCr[5], uCrB[5], s);
+  if (uCrB[4].y > 0.5) paramecium(p - uOff[4], uCr[4], uCrB[4], s);
+  if (uCrB[5].y > 0.5) spirillum(p - uOff[5], uCr[5], uCrB[5], s);
+  if (uCrB[6].y > 0.5) phage(p - uOff[6], uCr[6], uCrB[6], s);
   o0 = vec4(s.opd, s.scat, s.h - uHBase, s.cov);
   o1 = vec4(s.ab, s.fl);
   o2 = vec4(s.alb, s.gloss);
