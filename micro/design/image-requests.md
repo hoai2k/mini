@@ -2,7 +2,7 @@
 
 Concept references for the [glowing return journey plan](super-gene-return.html) and [Phage visual-style plan](phage-visual-style.html). These are future-design references, separate from the delivered prototype assets listed in [the prototype ledger](../image-requests.md).
 
-4 requested, 10 delivered.
+2 requested, 12 delivered.
 
 Generated with the built-in image_gen tool. Exact prompts and delivery metadata are also saved in [the manifest](generated/super-gene-return/manifest.json).
 
@@ -178,7 +178,8 @@ Scene: A translucent ordinary tardigrade with eight short clawed legs crawling a
 
 ### TZ-04 · Amoeba and pond-water cells
 
-Status: requested.
+Status: delivered.
+[View runtime image](../prototypes/assets/game/title-zoom/amoeba-water.webp) · [Original PNG](generated/title-zoom/amoeba-water.png) · 1254 × 1254.
 Source: `micro/design/generated/title-zoom/amoeba-water.png`
 Runtime file: `micro/prototypes/assets/game/title-zoom/amoeba-water.webp`
 
@@ -194,7 +195,8 @@ Scene: An ordinary translucent Amoeba proteus with broad lobed pseudopods, a tex
 
 ### TZ-05 · Paramecium in a pond drop
 
-Status: requested.
+Status: delivered.
+[View runtime image](../prototypes/assets/game/title-zoom/paramecium-drop.webp) · [Original PNG](generated/title-zoom/paramecium-drop.png) · 1254 × 1254.
 Source: `micro/design/generated/title-zoom/paramecium-drop.png`
 Runtime file: `micro/prototypes/assets/game/title-zoom/paramecium-drop.webp`
 
