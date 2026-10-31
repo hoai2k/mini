@@ -296,7 +296,8 @@ let menuKey = '';
 
 function statusText() {
   const T = TRANSITIONS[S.k], W = WORLDS[world()];
-  const strat = STRATEGIES[opts.strategy].name;
+  const handoffName = { first: 'Look first, then the revival', during: 'Look while it revives', cross: 'Crossfade while it revives', cut: 'Cut mid-revival' };
+  const strat = S.k === 2 && S.tl ? handoffName[S.tl.strategy] : STRATEGIES[opts.strategy].name;
   if (S.phase === 'end') return `${W.short}: ${W.creature}. End of the chain · B zoom back out · Y replay`;
   if (S.phase === 'approach') {
     const w = S.k - 1;
@@ -305,7 +306,7 @@ function statusText() {
     return `${W.short}: ${WORLDS[w].creature}. ${d < WORLDS[w].destR * 3 ? 'A: zoom' : `Go to the destination (${fmtLen(d, 2)} away)`} · ${strat}`;
   }
   const st = S.st;
-  const seg = S.hold ? 'scrubbing (A resumes)' : S.dir < 0 ? 'zooming out' : st.segment === 'highlight' ? 'highlight · A: zoom now' : st.segment === 'zoom' ? 'zooming' : st.segment === 'look' ? 'changing the look' : 'arrived';
+  const seg = S.hold ? 'scrubbing (A resumes)' : S.dir < 0 ? (isHandoff() ? 'reversing' : 'zooming out') : st.segment === 'highlight' ? 'the next frame · A: zoom now' : st.segment === 'zoom' ? (isHandoff() ? 'hand-off: the tun revives' : 'zooming') : st.segment === 'look' ? 'changing the look' : 'arrived';
   return `${T.title} · ${strat} · ${seg} · zoom ${(st.zoom * 100).toFixed(0)}% · look ${(st.look * 100).toFixed(0)}%`;
 }
 

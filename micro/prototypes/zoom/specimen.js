@@ -437,7 +437,9 @@ void springtail(vec2 p, vec4 cr, vec4 cb, inout S s) {
 }
 
 void mite(vec2 p, vec4 cr, vec4 cb, inout S s) {
-  vec2 q = rot(-cr.z) * (p - cr.xy);
+  // modelled at 0.6 mm, drawn at 0.58: a ~0.35 mm box mite
+  const float MS = 0.58;
+  vec2 q = rot(-cr.z) * (p - cr.xy) / MS;
   if (length(q) > 700.0) return;
   float base = cb.z;
   // eight legs, tetrapod gait (alternating groups, a small back-to-front lag)
@@ -452,9 +454,9 @@ void mite(vec2 p, vec4 cr, vec4 cb, inout S s) {
     vec2 foot = knee + vec2(cos(a0 + side * 0.35), sin(a0 + side * 0.35)) * 175.0;
     float d1 = sdSeg(q, hip, knee) - 19.0, d2 = sdSeg(q, knee, foot) - 13.0;
     float dl = min(d1, d2);
-    float ml = cover(dl);
+    float ml = cover(dl * MS);
     if (ml > 0.0) {
-      float hk = d1 < d2 ? base + 150.0 : base + 150.0 - 140.0 * clamp(dot(q - knee, foot - knee) / dot(foot - knee, foot - knee), 0.0, 1.0);
+      float hk = base + MS * (d1 < d2 ? 150.0 : 150.0 - 140.0 * clamp(dot(q - knee, foot - knee) / dot(foot - knee, foot - knee), 0.0, 1.0));
       put(s, ml, hk, vec3(0.20, 0.09, 0.05), 0.7);
       optic(s, 0.0, vec3(5.0) * ml, 0.0);
     }
@@ -462,11 +464,11 @@ void mite(vec2 p, vec4 cr, vec4 cb, inout S s) {
   vec2 e = q;
   float d = sdEll(e, vec2(300.0 - 40.0 * smoothstep(0.0, 300.0, e.x), 215.0));
   float da = sdEll(q - vec2(270.0, 0.0), vec2(120.0, 105.0));
-  float m = cover(min(d, da));
+  float m = cover(min(d, da) * MS);
   if (m <= 0.0) return;
   float rho = d < da ? length(e / vec2(300.0, 215.0)) : length((q - vec2(270.0, 0.0)) / vec2(120.0, 105.0)) ;
   float hz = d < da ? 280.0 : 170.0;
-  float h = base + hz * sqrt(max(1.0 - rho * rho, 0.0)) + 3.0 * vnoise(q / 12.0) * (1.0 - smoothstep(2.0, 6.0, uPx));
+  float h = base + MS * (hz * sqrt(max(1.0 - rho * rho, 0.0)) + 3.0 * vnoise(q / 12.0) * (1.0 - smoothstep(2.0, 6.0, uPx)));
   vec3 alb = vec3(0.19, 0.075, 0.035) * (0.85 + 0.3 * vnoise(q / 60.0));
   put(s, m, h, alb, 0.85);
   s.ab = mix(s.ab, vec3(5.0), m);
@@ -477,27 +479,30 @@ void tardigrade(vec2 p, vec4 cr, vec4 cb, inout S s) {
   if (length(q) > 260.0) return;
   float st = clamp(cb.x, 0.0, 1.0);
   float base = cb.z;
-  float L = mix(110.0, 350.0, st), W = mix(78.0, 116.0, st);
+  // revival in stages: water soaks in (wet), the legs evert (lg), the body lengthens (ln)
+  float wet = smoothstep(0.0, 0.4, st), lg = smoothstep(0.15, 0.5, st), ln = smoothstep(0.4, 0.85, st);
+  // the tun is ~38 % shorter than the active animal, folded and plump (S73)
+  float L = mix(215.0, 350.0, ln), W = mix(104.0, 116.0, ln);
   // legs: four pairs, everted as it rehydrates
-  if (st > 0.12) {
+  if (lg > 0.02) {
     for (int k = 0; k < 4; k++) for (int sd = -1; sd <= 1; sd += 2) {
       float side = float(sd);
       float ph = fract(cr.w + (mod(float(k) + (side > 0.0 ? 0.0 : 1.0), 2.0)) * 0.5);
-      float sw = sin(ph * 2.0 * PI) * 14.0 * st * cb.w;
+      float sw = sin(ph * 2.0 * PI) * 14.0 * lg * cb.w;
       vec2 a, b;
-      if (k < 3) { float x = (0.26 - 0.2 * float(k)) * L; a = vec2(x, side * W * 0.38); b = vec2(x + sw, side * (W * 0.5 + 38.0 * st)); }
-      else { a = vec2(-0.42 * L, side * 22.0); b = vec2(-0.5 * L - 34.0 * st, side * (36.0 + sw * 0.5)); }
-      float dl = sdSeg(q, a, b) - 15.0 * st;
+      if (k < 3) { float x = (0.26 - 0.2 * float(k)) * L; a = vec2(x, side * W * 0.38); b = vec2(x + sw, side * (W * 0.5 + 38.0 * lg)); }
+      else { a = vec2(-0.42 * L, side * 22.0); b = vec2(-0.5 * L - 34.0 * lg, side * (36.0 + sw * 0.5)); }
+      float dl = sdSeg(q, a, b) - 15.0 * lg;
       float ml = cover(dl);
       if (ml > 0.0) {
-        float ch = 2.0 * sqrt(max(225.0 * st * st - pow(sdSeg(q, a, b), 2.0), 0.0));
+        float ch = 2.0 * sqrt(max(225.0 * lg * lg - pow(sdSeg(q, a, b), 2.0), 0.0));
         put(s, ml, base + 30.0 + ch * 0.4, vec3(0.78, 0.70, 0.56), 0.4);
         optic(s, 0.035 * ch * ml, ch * ml * vec3(0.002, 0.003, 0.006), 0.0);
       }
       // claws: dark hooks at the tip
       vec2 dir = normalize(b - a);
       for (int c = -1; c <= 1; c += 2) {
-        vec2 tip = b + (dir + vec2(-dir.y, dir.x) * float(c) * 0.6) * 11.0 * st;
+        vec2 tip = b + (dir + vec2(-dir.y, dir.x) * float(c) * 0.6) * 11.0 * lg;
         vec2 t = thin(sdSeg(q, b, tip), 1.2);
         put(s, t.y, base + 20.0, vec3(0.25, 0.2, 0.15), 0.2);
         optic(s, 0.1 * t.x * t.y, vec3(1.2) * t.y, 0.0);
@@ -505,21 +510,23 @@ void tardigrade(vec2 p, vec4 cr, vec4 cb, inout S s) {
     }
   }
   vec2 e = q;
-  float wy = W * 0.5 * (1.0 - 0.18 * smoothstep(0.2, 0.5, e.x / L)) * (1.0 - 0.06 * st * sin(e.x / L * 9.0 * PI) );
+  float wy = W * 0.5 * (1.0 - 0.18 * ln * smoothstep(0.2, 0.5, e.x / L)) * (1.0 - 0.06 * ln * sin(e.x / L * 9.0 * PI));
   float d = sdEll(e, vec2(L * 0.5, wy));
   float m = cover(d);
   if (m <= 0.0) return;
   float rho = length(e / vec2(L * 0.5, wy));
   float H = W * 0.8;
   float ch = H * sqrt(max(1.0 - rho * rho, 0.0));
-  float wr = (1.0 - st) * (4.0 * sin(q.x / 6.5 + 1.3 * sin(q.y / 9.0)) + 3.0 * vnoise(q / 8.0));
-  vec3 alb = mix(vec3(0.62, 0.43, 0.20), vec3(0.80, 0.72, 0.58), st);
-  put(s, m, base + ch * 0.5 + wr, alb, 0.45);
-  float opd = 0.035 * ch + 0.04 * wr;
-  vec3 ab = ch * mix(vec3(0.012, 0.022, 0.045), vec3(0.0015, 0.0025, 0.005), st);
+  // water soaks in from the rim: the folds fill and the body darkens, then clears as it swells
+  float wl = smoothstep(1.0 - wet * 1.3, 1.25 - wet * 1.3, rho);
+  float wr = (1.0 - ln) * (1.0 - 0.6 * wl) * (5.0 * sin(q.x / 6.5 + 1.3 * sin(q.y / 9.0)) + 3.0 * vnoise(q / 8.0));
+  vec3 alb = mix(mix(vec3(0.62, 0.43, 0.20), vec3(0.36, 0.30, 0.20), wl), vec3(0.80, 0.72, 0.58), ln);
+  put(s, m, base + ch * 0.5 + wr, alb, mix(0.25, 0.85, wl * (1.0 - 0.5 * ln)));
+  float opd = 0.035 * ch + 0.04 * wr + 0.012 * ch * wl * (1.0 - ln);
+  vec3 ab = ch * mix(mix(vec3(0.010, 0.018, 0.038), vec3(0.016, 0.020, 0.030), wl), vec3(0.0015, 0.0025, 0.005), ln);
   // insides (resolved when active): gut, pharynx bulb, buccal tube, eyespots, storage cells
   float lf = 1.0 - smoothstep(3.0, 7.0, uPx);
-  float gut = smoothstep(1.0, 0.85, length((q - vec2(-0.05 * L, 0.0)) / vec2(0.3 * L, 0.27 * W))) * st;
+  float gut = smoothstep(1.0, 0.85, length((q - vec2(-0.05 * L, 0.0)) / vec2(0.3 * L, 0.27 * W))) * mix(0.5, 1.0, ln);
   ab += gut * vec3(0.30, 0.22, 0.45);
   float bulb = smoothstep(1.0, 0.8, length(q - vec2(0.32 * L, 0.0)) / (17.0 * st + 0.01)) * st * lf;
   opd += 0.7 * bulb;

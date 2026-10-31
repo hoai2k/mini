@@ -58,7 +58,7 @@ export function createCatchFx(scene, world, amoeba) {
   const vac = new THREE.Mesh(new THREE.SphereGeometry(1, 40, 24), volumeMaterial({ dn: -0.006, scatter: 1.2, absorb: [0.0003, 0.0003, 0.0004], centred: true, rimPow: 1.3 }));
   vac.visible = false; vac.frustumCulled = false;
   scene.add(vac);
-  const DARK = new THREE.Vector3(0.0075, 0.0068, 0.0046); // digestion: the contents go brown-grey
+  const DARK = new THREE.Vector3(0.011, 0.0098, 0.0066); // digestion: the contents go brown-grey
 
   const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
   const qIn = new THREE.Quaternion();
@@ -89,7 +89,7 @@ export function createCatchFx(scene, world, amoeba) {
     },
     /** The amoeba's eat phase: the vacuole forms round you and is drawn into the cell. */
     eatAmoeba(e, from, fromQ) {
-      const form = sstep(0, 0.35, e), pull = sstep(0.2, 0.9, e), dark = sstep(0.45, 1, e);
+      const form = sstep(0, 0.3, e), pull = sstep(0.2, 0.9, e), dark = sstep(0.3, 0.95, e);
       const inside = tmp.set(amoeba.pos.x, amoeba.H * 0.9, amoeba.pos.z);
       tmp2.subVectors(from, inside).setY(0);
       const d = tmp2.length() || 1;
