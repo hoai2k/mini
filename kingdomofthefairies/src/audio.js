@@ -241,10 +241,13 @@ export function createAudio() {
   }
 
   // Choose the period track for the current mood (avoiding an immediate repeat).
+  // A mood whose own piece has not been delivered borrows another's.
+  const STAND_IN = { wedding: 'revel' };
+  const fits = (p, m) => p.moods.includes(m) || (STAND_IN[m] && !periods.some((q) => q.moods.includes(m)) && p.moods.includes(STAND_IN[m]));
   function pick() {
     const ready = periods.filter((p) => p.state === 'ready');
     if (!ready.length) return null;
-    const fit = ready.filter((p) => p.moods.includes(mood));
+    const fit = ready.filter((p) => fits(p, mood));
     const pool = (fit.length ? fit : ready);
     return pool.find((p) => p.id !== lastPeriod) || pool[0];
   }
@@ -266,7 +269,7 @@ export function createAudio() {
     // what suits the scene now (the title's tender piece), so the music
     // doesn't open on one piece and switch to another as soon as it arrives.
     if (!ac) return;
-    const p = periods.find((q) => q.state === 'idle' && q.moods.includes(mood)) || periods.find((q) => q.state === 'idle');
+    const p = periods.find((q) => q.state === 'idle' && fits(q, mood)) || periods.find((q) => q.state === 'idle');
     if (!p) return;
     p.state = 'loading';
     decode(p.url).then((b) => { p.buffer = b; p.state = 'ready'; })
@@ -278,9 +281,9 @@ export function createAudio() {
         // still on its way (wait for it rather than open on another). A
         // piece that doesn't suit the scene gives way to one that does with
         // the usual crossfade.
-        const fitting = periods.some((q) => q.moods.includes(mood) && (q.state === 'idle' || q.state === 'loading'));
-        if (!LEGACY && playing && !now && (p.moods.includes(mood) || !fitting)) next();
-        else if (!LEGACY && playing && now?.kind === 'period' && !now.moods.includes(mood) && p.state === 'ready' && p.moods.includes(mood)) next(FADE);
+        const fitting = periods.some((q) => fits(q, mood) && (q.state === 'idle' || q.state === 'loading'));
+        if (!LEGACY && playing && !now && (fits(p, mood) || !fitting)) next();
+        else if (!LEGACY && playing && now?.kind === 'period' && !fits(now, mood) && p.state === 'ready' && fits(p, mood)) next(FADE);
         loadPeriods();
       });
   }
@@ -371,8 +374,8 @@ export function createAudio() {
     setMood(m) {
       if (m === mood) return;
       mood = m;
-      if (!ac || !playing || now?.kind !== 'period' || now.moods.includes(m)) return;
-      const p = periods.find((q) => q.state === 'ready' && q.moods.includes(m));
+      if (!ac || !playing || now?.kind !== 'period' || fits(now, m)) return;
+      const p = periods.find((q) => q.state === 'ready' && fits(q, m));
       if (p) playPeriod(p, FADE);
     },
     // The pageant and curtain call bring the band's song back.

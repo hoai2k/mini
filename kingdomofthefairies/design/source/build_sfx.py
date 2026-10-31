@@ -34,6 +34,10 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 OUT = os.path.join(ROOT, 'assets', 'sfx')
 MANIFEST = os.path.join(ROOT, 'assets', 'manifest.json')
 API = 'https://api.elevenlabs.io/v1/sound-generation'
+# Short musical stingers come from the music API (its prompts keep the period
+# accompaniment's style: design/music-requests.md); processed like the rest.
+MUSIC_API = 'https://api.elevenlabs.io/v1/music'
+MUSIC = {'victoryStinger'}
 
 RAW = os.path.join(ROOT, 'design', 'source', 'sfx-raw')
 
@@ -295,6 +299,13 @@ SFX = {
                      'Water parting, a harp glissando and a low tuned bell.'),
     'witchCackle': (2.2, 0.6, False,
                     "An old crone's wicked cackling laugh, a stage witch, harsh and mocking, a little reverb; no wind."),
+    'victoryStinger': (7.0, 0.5, False,
+                       'A short heroic victory flourish for a 1903 French silent fairy-tale film, played live by a small '
+                       '1900s Parisian café-concert ensemble (cornet, clarinet, violin, cello and piano): the cornet sounds '
+                       'a bright rising fanfare call, the violin and clarinet answer with a quick triumphant run, the piano '
+                       'rolls a full chord, and all end together on a bold, held F major chord that rings and fades. Belle '
+                       'Époque light music, theatrical and a little brassy, recorded in a small hall. About 76 BPM. '
+                       'Instrumental, no drums, no synths, no modern harmony.'),
     'witchClaim': (2.0, 0.5, False,
                    "A woman's soft laugh over a magical shimmer."),
     'lampLit': (2.0, 0.5, False,
@@ -311,6 +322,14 @@ SFX = {
 
 
 def generate(key, sid, seconds, influence, loop):
+    if sid in MUSIC:
+        req = urllib.request.Request(MUSIC_API, data=json.dumps({'prompt': SFX[sid][3], 'music_length_ms': int(seconds * 1000)}).encode(),
+                                     method='POST', headers={'xi-api-key': key, 'Content-Type': 'application/json', 'Accept': 'audio/mpeg'})
+        try:
+            with urllib.request.urlopen(req, timeout=180) as r:
+                return r.read()
+        except urllib.error.HTTPError as e:
+            raise SystemExit(f'{sid}: HTTP {e.code} {e.read()[:300]!r}')
     # The API accepts 0.5-30 s; shorter effects are trimmed in processing.
     body = {'text': SFX[sid][3], 'duration_seconds': max(0.5, seconds), 'prompt_influence': influence}
     if loop:

@@ -232,8 +232,10 @@ export function onEventBurning(k, e, st) {
   if (e.type === 'witchWinds') { k.burst(e.x, BARREL.y - 150, '#b06ad0', 8, 'sparkle'); return; }
   if (e.type === 'witchBolt') { k.burst(e.x - 40, BARREL.y - 20, '#e9a46a', 10, 'streak'); return; }
   if (e.type === 'witchBlast') { k.shake(0.4); k.flash(0.25); k.burst(e.x + 20, BARREL.y - 80, '#b06ad0', 18, 'streak'); return; }
-  if (e.type === 'witchHides') { k.flash(0.5); k.burst(e.x, BARREL.y - 120, '#5f3a6a', 34, 'smoke'); k.text('Beaten!', e.x, BARREL.y - 230, true); return; }
-  if (e.type === 'witchInBarrel') { k.burst(st?.barrel?.x ?? 600, BARREL.y - 60, '#5f3a6a', 20, 'smoke'); return; }
+  if (e.type === 'witchBeaten') { k.flash(0.4); k.text('Beaten!', e.x, BARREL.y - 230, true); return; }
+  if (e.type === 'auroraCasts') { k.burst(268, BARREL.y - 190, '#fff2b0', 24, 'sparkle'); return; }
+  if (e.type === 'barrelDrop') { k.shake(0.5); k.burst(e.x, BARREL.y - 10, '#d8c8a8', 26, 'smoke'); k.burst(e.x, BARREL.y - 60, '#fff2b0', 16, 'sparkle'); return; }
+  if (e.type === 'swordSwing') return;
   if (e.type === 'barrelFall') { k.flash(0.5); k.shake(0.6); k.burst(1000, 610, '#eef3ea', 40, 'drop'); k.text('Into the whirlpool!', 640, 240, true); return; }
   if (e.type === 'petal') { k.burst(e.x, e.y, '#f3c6dc', 8, 'sparkle'); return; }
   if (e.type === 'ascend') { k.flash(0.6); k.burst(640, 480, '#fff2b0', 50, 'sparkle'); return; }
@@ -435,23 +437,51 @@ function duel(k, st, t) {
   // or shrinking into smoke as she hides in her barrel
   const warn = d.state === 'warn' ? d.t / DUEL.warn : 0;
   const reel = d.state === 'reel' ? 1 - d.t / DUEL.reel : 0;
-  const hide = d.state === 'hide' ? clamp(d.t / DUEL.hide, 0, 1) : 0;
+  const T2 = DUEL.trap, trap = d.state === 'trap', tt = trap ? d.t : 0;
   if (warn > 0) { c.save(); c.globalAlpha = 0.25 + 0.35 * warn + 0.1 * Math.sin(t * 20); c.fillStyle = k.col('#b06ad0'); k.circle(d.x, BARREL.y - 110, 70 + 20 * warn); c.restore(); }
   const id = d.state === 'reel' && k.img('witch-recoil') ? 'witch-recoil' : d.state === 'warn' && k.img('witch-cast') ? 'witch-cast' : 'witch-hooded';
-  c.save(); c.translate(d.x, BARREL.y);
-  c.rotate(0.25 * reel * (id === 'witch-hooded' ? 1 : 0));
-  c.scale(1 - 0.8 * hide, 1 - 0.8 * hide); c.globalAlpha = 1 - hide * hide;
-  if (reel > 0.6) { c.save(); c.globalAlpha = 0.6; c.fillStyle = '#ffffff'; k.circle(0, -90, 50); c.restore(); }
-  if (!drawPerson(k, id, 0, 0, H, { t })) { c.fillStyle = k.col('#2f5a50'); c.fillRect(-26, -H, 52, H); }
-  c.restore();
-  if (hide > 0.5) {   // the barrel she has hidden in, appearing in her smoke
-    c.save(); c.globalAlpha = (hide - 0.5) * 2; c.translate(Math.min(d.x, BARREL.edge - 70), BARREL.y);
-    if (!k.asset('witch-barrel', 0, 0, 108, 130)) { c.fillStyle = k.col('#7a5a3a'); c.fillRect(-40, -110, 80, 110); }
+  // until Aurora's barrel lands over her (beaten, she cowers)
+  if (!trap || tt < T2.land) {
+    c.save(); c.translate(d.x, BARREL.y);
+    c.rotate(0.25 * reel * (id === 'witch-hooded' ? 1 : 0) + (trap ? 0.12 * Math.sin(t * 30) : 0));
+    if (reel > 0.6) { c.save(); c.globalAlpha = 0.6; c.fillStyle = '#ffffff'; k.circle(0, -90, 50); c.restore(); }
+    if (!drawPerson(k, trap && k.img('witch-recoil') ? 'witch-recoil' : id, 0, 0, H, { t })) { c.fillStyle = k.col('#2f5a50'); c.fillRect(-26, -H, 52, H); }
     c.restore();
   }
-  // the prince: lunging as he strikes, else on foot
+  if (trap) {
+    const bx = Math.min(d.x, BARREL.edge - 70);
+    // Aurora's spell: a ribbon of gold from her hand to the air over the witch
+    if (tt < T2.land + 0.2) {
+      const g = clamp(tt / T2.drop, 0, 1), hx = 268, hy = BARREL.y - 190, tx = bx, ty = BARREL.y - 330;
+      c.save();
+      for (let i = 0; i <= 24 * g; i++) {
+        const f = i / 24, x = hx + (tx - hx) * f, y = hy + (ty - hy) * f - Math.sin(f * Math.PI) * 60 + Math.sin(t * 14 + f * 16) * 6;
+        c.globalAlpha = (0.5 + 0.5 * Math.sin(t * 20 + i)) * (1 - clamp((tt - T2.land) / 0.2, 0, 1)); c.fillStyle = k.col(i % 3 ? '#fff2b0' : '#ffffff'); k.circle(x, y, 4);
+      }
+      c.restore();
+    }
+    // the barrel: forms over her, upside down, drops onto her and shuts her in
+    if (tt >= T2.drop) {
+      const f = clamp((tt - T2.drop) / (T2.land - T2.drop), 0, 1);
+      if (tt < T2.land) {
+        const y = BARREL.y - 330 + 330 * f * f;
+        c.save(); c.globalAlpha = Math.min(1, (tt - T2.drop) / 0.12); c.translate(bx, y);
+        if (k.img('barrel-upturned')) k.asset('barrel-upturned', 0, 0, 108, 130);
+        else emptyBarrel(k);
+        c.restore();
+      } else {
+        // landed: it rocks with her inside, then she pokes her head out
+        const r = tt - T2.land, rock = Math.sin(r * 22) * 0.08 * Math.max(0, 1 - r / 0.7);
+        c.save(); c.translate(bx, BARREL.y); c.rotate(rock);
+        if (r > 0.45) k.asset('witch-barrel', 0, 0, 108, 130);
+        else if (!k.asset('barrel-upturned', 0, 0, 108, 130)) emptyBarrel(k);
+        c.restore();
+      }
+    }
+  }
+  // the prince: lunging as he swings the sword, else on foot
   if (w.strikeT > 0) {
-    const f = w.strikeT / 0.3;
+    const f = w.strikeT / DUEL.swing;
     if (!(k.img('prince-strike') && drawPerson(k, 'prince-strike', w.x + 10 * f, w.y, H))) {
       c.save(); c.translate(w.x + 14 * f, w.y); c.rotate(0.15 * f); princeOnFoot(k, { ...w, x: 0, y: 0, vx: 0 }, H); c.restore();
       // the enchanted sword's blow
@@ -460,8 +490,17 @@ function duel(k, st, t) {
     }
   } else princeOnFoot(k, w, H);
   // her strength left, as three marks over her
-  for (let i = 0; i < DUEL.hp; i++) { c.fillStyle = k.col(i < d.hp ? '#b06ad0' : '#3a2a40'); k.circle(d.x - 24 + i * 24, BARREL.y - H - 40, 7); }
-  if (st.phaseT < 7) hint(k, '[A] leaps her fire · [A] beside her strikes with the sword');
+  if (!trap) for (let i = 0; i < DUEL.hp; i++) { c.fillStyle = k.col(i < d.hp ? '#b06ad0' : '#3a2a40'); k.circle(d.x - 24 + i * 24, BARREL.y - H - 40, 7); }
+  if (st.phaseT < 7 && !trap) hint(k, '[A] leaps her fire · [X] strikes with the sword');
+}
+
+// Until barrel-upturned (F26) is delivered: the barrel body of witch-barrel
+// (its art rows 92-240, below her), turned upside down, its foot on (0, 0).
+function emptyBarrel(k) {
+  const c = k.c, s = 108 / 200, h = 148 * s;
+  c.save(); c.scale(1, -1);
+  k.assetCrop('witch-barrel', 0, 92, 200, 148, -54, 0, 108, h);
+  c.restore();
 }
 
 // Act VI: the witch's barrel on the cliff over the whirlpool.
