@@ -52,7 +52,7 @@ const PHASES = [['strike', 0.45], ['hold', 1.0], ['eat', 1.8], ['eaten', Infinit
 export function createCapture({ onRestart, restartButton = 0 } = {}) {
   let i = -1, t = 0, info = null;
   const card = document.createElement('div');
-  card.style.cssText = 'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:30;display:none;'
+  card.style.cssText = 'position:fixed;left:50%;bottom:9vh;transform:translateX(-50%);z-index:30;display:none;'
     + 'background:rgba(10,12,16,.82);color:#eef1f4;padding:18px 22px;border-radius:12px;text-align:center;'
     + 'font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;max-width:min(420px,calc(100vw - 32px))';
   document.body.appendChild(card);
