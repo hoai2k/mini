@@ -28,3 +28,10 @@ canvas.view { display: block; width: 100vw; height: 100vh; touch-action: none; }
 .hud-toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: var(--hud-bg); padding: 8px 14px;
   border-radius: 999px; font-size: 13px; opacity: 0; transition: opacity .3s; pointer-events: none; }
 .hud-toast.show { opacity: 1; }
+
+/* Embedded developer panels share the game's quiet brass scrollbars. */
+.micro-embed * { scrollbar-width: thin; scrollbar-color: rgba(200,155,71,.5) transparent; }
+.micro-embed ::-webkit-scrollbar { width: 7px; height: 7px; }
+.micro-embed ::-webkit-scrollbar-track, .micro-embed ::-webkit-scrollbar-corner { background: transparent; }
+.micro-embed ::-webkit-scrollbar-thumb { background: rgba(200,155,71,.5); border: 2px solid transparent; background-clip: padding-box; border-radius: 8px; }
+.micro-embed ::-webkit-scrollbar-thumb:hover { background-color: rgba(200,155,71,.75); }

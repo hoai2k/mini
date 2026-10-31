@@ -53,9 +53,13 @@ beside `<site>/micro/prototypes/`, so the same relative path holds (only
   been visited. A brass log-scale rule along the bottom marks each world's
   field, with a cursor on the focused one. Every world can be chosen.
 - **Intro.** Choosing a card zooms it to fill the screen and becomes the
-  world's intro: the plate (MP-G07–G13, or the card art), the data, the goal,
+  world's intro when its image is decoded: the plate (MP-G07–G13), the data, the goal,
   the forward landmark and the backdoor, the controls and field notes. "Press
-  A to begin".
+  A to begin". Pending artwork shows a spinner rather than a temporary image.
+  The selected world loads behind the intro at full viewport size, paused
+  and without sound or input. Begin reuses that frame; a ready world opens
+  immediately, while an unfinished load retains the loading screen. Going
+  back to the tray discards the preload.
 - **Play.** The world in an iframe (`../prototypes/<world>/?embed=1`), a brass
   plaque (bottom right) with the world and its magnification, a controls-card
   button and a pause button. The controls card is the shell's own (in the

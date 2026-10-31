@@ -61,6 +61,7 @@ export function createTitleBg(canvas, { images, keyArt = null, reduced = false }
       g.drawImage(keyArt, cx - keyArt.width * k / 2, h / 2 - keyArt.height * k / 2, keyArt.width * k, keyArt.height * k);
       return;
     }
+    if (!images.length) return; // final art is still loading; never draw empty objective rings
     const base = Math.hypot(w, h) * 0.62;
     const f = (t * SPEED) / STEP;
     const i0 = Math.floor(f), frac = f - i0;
@@ -101,7 +102,8 @@ export function createTitleBg(canvas, { images, keyArt = null, reduced = false }
   return {
     start() { if (running) return; running = true; canvas.hidden = false; last = performance.now(); raf = requestAnimationFrame(frame); },
     stop() { running = false; cancelAnimationFrame(raf); canvas.hidden = true; },
-    setKeyArt(img) { keyArt = img; },
+    setKeyArt(img) { keyArt = img; if (running) draw(); },
+    setImages(imgs) { images = imgs; if (running) draw(); },
     /** For tests and screenshots: jump the zoom to a time. */
     seek(sec) { t = sec; draw(); },
   };

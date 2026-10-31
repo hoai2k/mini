@@ -85,10 +85,14 @@ try {
   await until((s) => s.screen === 'intro', 5000, 'intro');
   await tab.waitForTimeout(1300);
   await shot('3-intro');
+  await until((s) => s.preloading === 'springtail' && s.preloadReady, 120000, 'world to preload during intro');
+  await tab.evaluate(() => { window.__introFrame = document.querySelector('#frame-host iframe'); });
   step('intro');
 
   await tab.keyboard.press('Enter');
   await until((s) => s.screen === 'play' && !s.loading, 120000, 'springtail to load');
+  const reused = await tab.evaluate(() => document.querySelector('#frame-host iframe') === window.__introFrame && document.querySelector('#veil').hidden);
+  if (!reused) throw new Error('Begin must reuse the prepared world without a loading veil');
   await tab.waitForTimeout(2500);
   await tab.evaluate(() => window.__game.toggleControls());
   await tab.waitForTimeout(700);

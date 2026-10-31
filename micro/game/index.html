@@ -20,15 +20,17 @@
 </head>
 <body>
   <div id="app">
+    <div id="frame-host" aria-hidden="true" inert></div>
     <canvas id="title-bg" aria-hidden="true"></canvas>
 
     <!-- Title -->
     <section id="title" class="screen" aria-labelledby="logo-text">
+      <div id="title-art-loading" class="art-loading" role="status" aria-label="Loading artwork"></div>
       <div class="title-block">
         <p class="eyebrow"><span>Seven worlds</span><i></i><span>1.5 mm to 0.2 <span class="u">µm</span></span></p>
         <img id="logo-img" alt="" hidden>
-        <h1 id="logo-text" class="logo-type"><span class="w1">Micro</span><span class="w2">Z<span class="lens" aria-hidden="true"></span><span class="lens" aria-hidden="true"></span>m</span><span class="visually-hidden">Micro Zoom</span></h1>
-        <div class="vernier" aria-hidden="true"></div>
+        <h1 id="logo-text" class="logo-type visually-hidden"><span class="w1">Micro</span><span class="w2">Z<span class="lens" aria-hidden="true"></span><span class="lens" aria-hidden="true"></span>m</span><span class="visually-hidden">Micro Zoom</span></h1>
+        <div class="vernier" aria-hidden="true" hidden></div>
         <button id="press-start" class="press-start" data-nav data-action="start">Press Start</button>
         <p class="hint title-hint">Move left stick for options</p>
         <div class="players-row" aria-live="polite"></div>
@@ -81,7 +83,6 @@
 
     <!-- Play -->
     <section id="play" class="screen" hidden aria-label="Play">
-      <div id="frame-host"></div>
       <div class="play-hud">
         <div class="plaque" id="plaque"><span class="no"></span><span class="nm"></span><span class="mg"></span></div>
         <div class="hud-buttons">

@@ -16,8 +16,8 @@ export function delivered(id) {
 
 const cache = new Map();
 
-// A stand-in plate for a world: its two tints, soft out-of-focus discs and,
-// for the phage (whose card is not delivered yet), an inked T4 silhouette.
+// A plate used only for cards that have no delivered asset in the manifest.
+// This is never used while a delivered image is loading or after it fails.
 function drawStandIn(world, w = 900, h = 600) {
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
@@ -81,12 +81,42 @@ export function introArt(world) {
   return delivered(world.intro) || cardArt(world);
 }
 
-/** Preload an image; resolves to the element, or null on failure. */
+const images = new Map();
+
+/** A decoded image already in memory, or null while it loads. */
+export function readyImage(src) { return images.get(src)?.image || null; }
+
+/** Preload and decode once; resolves to the element, or null on failure. */
 export function loadImage(src) {
-  return new Promise((resolve) => {
+  if (images.has(src)) return images.get(src).promise;
+  const entry = { image: null, promise: null };
+  entry.promise = new Promise((resolve) => {
     const img = new Image();
-    img.onload = () => resolve(img);
+    img.onload = async () => {
+      try { await img.decode(); } catch { resolve(null); return; }
+      entry.image = img;
+      resolve(img);
+    };
     img.onerror = () => { console.error(`[micro zoom] image failed to load: ${src.slice(0, 80)}`); resolve(null); };
     img.src = src;
   });
+  images.set(src, entry);
+  return entry.promise;
+}
+
+/** Reveal only the requested decoded artwork; ignore superseded loads. */
+export function showArtwork(el, src) {
+  el.dataset.artSrc = src;
+  el.style.backgroundImage = '';
+  el.classList.remove('art-ready', 'art-error');
+  el.classList.add('art-loading');
+  const reveal = (img) => {
+    if (el.dataset.artSrc !== src) return;
+    el.classList.remove('art-loading');
+    el.classList.add(img ? 'art-ready' : 'art-error');
+    if (img) el.style.backgroundImage = `url('${src}')`;
+  };
+  const img = readyImage(src);
+  if (img) reveal(img);
+  else loadImage(src).then(reveal);
 }

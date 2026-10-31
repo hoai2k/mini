@@ -4,7 +4,7 @@
 // Landmarks in a world play a zoom transition to the next world (forward) or
 // back up to the previous one (the backdoor). See ../README.md.
 import { WORLDS } from './worlds.js';
-import { PROTO, cardArt, introArt, delivered, loadImage } from './art.js';
+import { PROTO, cardArt, introArt, delivered, loadImage, readyImage, showArtwork } from './art.js';
 import { createInput } from './input.js';
 import { createSound } from './sound.js';
 import { createTitleBg } from './title-bg.js';
@@ -127,6 +127,8 @@ const rosterLive = () => S.screen !== 'play' || S.paused;
 // ---------------------------------------------------------------- screens
 function show(screen) {
   S.screen = screen;
+  host.inert = screen !== 'play';
+  host.setAttribute('aria-hidden', String(screen !== 'play'));
   for (const id of ['title', 'menu', 'intro', 'play']) $(`#${id}`).hidden = id !== screen;
   if (screen === 'title' || screen === 'menu') sound.drone(true); else sound.drone(false);
   if (screen === 'title') titleBg.start(); else titleBg.stop();
@@ -201,27 +203,30 @@ function moveFocus(dir) {
 
 // ---------------------------------------------------------------- title
 const titleBg = createTitleBg($('#title-bg'), { images: [], reduced: reduced() });
-Promise.all(WORLDS.map((w) => loadImage(cardArt(w)))).then((imgs) => {
-  const fresh = createTitleBg($('#title-bg'), { images: imgs.filter(Boolean), reduced: reduced() });
-  const wasOn = S.screen === 'title';
-  titleBg.stop();
-  Object.assign(titleBg, fresh);
-  if (!wasOn) titleBg.stop();
-  if (S.screen === 'title') titleBg.start();
-});
 {
-  const logo = delivered('MP-G01');
-  if (logo) {
-    const img = $('#logo-img'); img.src = logo; img.alt = 'Micro Zoom'; img.hidden = false;
-    $('#logo-text').classList.add('visually-hidden');
-    $('.vernier').hidden = true; // the logo carries its own engraved rule
-  }
   const key = delivered('MP-G02');
-  if (key) loadImage(key).then((img) => img && titleBg.setKeyArt?.(img));
+  const logo = delivered('MP-G01');
+  const background = key
+    ? loadImage(key).then((img) => { if (img) titleBg.setKeyArt(img); return !!img; })
+    : Promise.all(WORLDS.map((w) => loadImage(cardArt(w)))).then((imgs) => {
+      titleBg.setImages(imgs.filter(Boolean)); return imgs.some(Boolean);
+    });
+  const logoReady = logo ? loadImage(logo).then((img) => {
+    if (img) { const el = $('#logo-img'); el.src = img.src; el.alt = 'Micro Zoom'; el.hidden = false; }
+    return !!img;
+  }) : Promise.resolve().then(() => {
+    $('#logo-text').classList.remove('visually-hidden'); $('.vernier').hidden = false; return true;
+  });
+  Promise.all([background, logoReady]).then((ok) => {
+    const loader = $('#title-art-loading');
+    loader.classList.remove('art-loading');
+    loader.hidden = ok.every(Boolean);
+    if (!loader.hidden) { loader.classList.add('art-error'); loader.setAttribute('aria-label', 'Artwork unavailable'); }
+  });
   const menuBg = delivered('MP-G03');
-  if (menuBg) { const el = $('.menu-bg'); el.style.backgroundImage = `url(${menuBg})`; el.classList.add('art'); }
+  if (menuBg) { const el = $('.menu-bg'); showArtwork(el, menuBg); el.classList.add('art'); }
   const paper = delivered('MP-G05');
-  if (paper) document.documentElement.style.setProperty('--paper', `url(${paper})`);
+  if (paper) loadImage(paper).then((img) => img && document.documentElement.style.setProperty('--paper', `url(${paper})`));
 }
 
 function pressStart() {
@@ -240,7 +245,7 @@ function buildCards() {
   cardsEl.innerHTML = WORLDS.map((w, i) => `
     <div class="wcard${frame ? ' framed' : ''}" role="option" data-i="${i}" tabindex="-1" aria-label="${w.name}: ${w.creature}"><div class="lift">
       <div class="face">
-        <div class="art" style="background-image:url('${cardArt(w)}')"><span class="no">No. ${ROMAN[i]}</span><span class="stamp"></span></div>
+        <div class="art"><span class="no">No. ${ROMAN[i]}</span><span class="stamp"></span></div>
         <div class="body">
           <p class="look">${w.look}</p>
           <h3>${w.name}</h3>
@@ -257,6 +262,7 @@ function buildCards() {
       ${frame ? `<div class="frame" style="border-image-source:url('${frame}')"></div>` : ''}
     </div></div>`).join('');
   for (const c of $$('.wcard', cardsEl)) {
+    showArtwork($('.art', c), cardArt(WORLDS[+c.dataset.i]));
     c.addEventListener('click', () => {
       const i = +c.dataset.i;
       if (i === S.sel) openIntro(); else selectCard(i);
@@ -329,10 +335,12 @@ function selectCard(i, silent) {
   if (n === S.sel) return;
   S.sel = n;
   if (!silent) sound.tick();
+  loadImage(introArt(WORLDS[n]));
   layoutCards();
 }
 function focusCards() { S.menuFocus = 'cards'; setFocus($(`.wcard[data-i="${S.sel}"]`)); }
 function goMenu() {
+  clearPreload();
   closeAllModals();
   show('menu');
   updateStamps();
@@ -361,7 +369,7 @@ function fillIntro(w) {
   $('#intro-back').innerHTML = w.back ? w.back.replace('press Y', `press ${glyph('Y')}`) : 'None: this is the top of the chain.';
   $('#intro-facts').innerHTML = w.facts.map((f) => `<li>${f}</li>`).join('');
   renderIntroControls();
-  $('.intro-art').style.backgroundImage = `url('${introArt(w)}')`;
+  showArtwork($('.intro-art'), introArt(w));
 }
 function renderIntroControls() {
   const w = WORLDS[S.sel];
@@ -372,8 +380,9 @@ async function openIntro() {
   const w = WORLDS[S.sel];
   sound.select();
   fillIntro(w);
+  preloadWorld(S.sel);
   const card = $(`.wcard[data-i="${S.sel}"] .art`);
-  if (card && !reduced()) {
+  if (card && readyImage(introArt(w)) && !reduced()) {
     const r = card.getBoundingClientRect();
     const z = document.createElement('div');
     z.className = 'zoomer';
@@ -396,7 +405,41 @@ async function openIntro() {
 // ---------------------------------------------------------------- play
 const host = $('#frame-host');
 let unlisten = () => {};
+let preloaded = null;
 function worldUrl(w) { return new URL(`${w.id}/?embed=1`, PROTO).href; }
+
+function makeWorldFrame(w) {
+  const f = document.createElement('iframe');
+  f.title = `${w.name}: ${w.creature}`;
+  f.allow = 'autoplay; fullscreen; gamepad';
+  f.src = worldUrl(w);
+  host.appendChild(f);
+  return f;
+}
+
+function clearPreload() {
+  if (!preloaded) return;
+  preloaded.unlisten();
+  preloaded.frame.remove();
+  preloaded = null;
+}
+
+function preloadWorld(i) {
+  if (preloaded?.i === i) return;
+  clearPreload();
+  const frame = makeWorldFrame(WORLDS[i]);
+  const p = preloaded = { i, frame, ready: false, hud: null };
+  p.unlisten = listen(frame.contentWindow, (m) => {
+    if (preloaded !== p) return;
+    if (m.type === 'hud') p.hud = m;
+    if (m.type === 'ready') {
+      p.ready = true;
+      send(frame, 'sound', { on: false, volume: 0 });
+    }
+  });
+  // embed=1 runs its first two frames, then holds until Begin sends resume.
+  // The host stays viewport-sized behind the intro, so WebGL can initialise.
+}
 
 function loadWorld(i, { first }) {
   const w = WORLDS[i];
@@ -412,17 +455,20 @@ function loadWorld(i, { first }) {
   $('#plaque .nm').textContent = w.name;
   $('#plaque .mg').textContent = `${w.mag} · ${w.field}`;
   const veil = $('#veil');
-  veil.hidden = false; veil.classList.remove('fade');
+  const warm = preloaded?.i === i ? preloaded : null;
+  veil.hidden = !!warm?.ready; veil.classList.remove('fade');
   veil.querySelector('p').textContent = 'Preparing the slide…';
   unlisten();
   if (S.frame) S.frame.remove();
-  const f = document.createElement('iframe');
-  f.title = `${w.name}: ${w.creature}`;
-  f.allow = 'autoplay; fullscreen; gamepad';
-  f.src = worldUrl(w);
-  host.appendChild(f);
+  let f;
+  if (warm) {
+    warm.unlisten();
+    preloaded = null;
+    f = warm.frame; // Keep the browsing context; moving/recreating it would reload the world.
+  } else { clearPreload(); f = makeWorldFrame(w); }
   S.frame = f;
   unlisten = listen(f.contentWindow, (m) => onWorldMessage(m, f));
+  if (warm?.hud) onWorldMessage(warm.hud, f);
   if (!progress.visited.includes(w.id)) progress.visited.push(w.id);
   progress.furthest = Math.max(progress.furthest, i);
   saveProgress();
@@ -430,18 +476,23 @@ function loadWorld(i, { first }) {
   S.pendingCard = showCard;
   clearTimeout(S.loadTimer);
   S.loadTimer = setTimeout(() => { if (S.loading && S.frame === f) veil.querySelector('p').textContent = 'This slide is taking a while to load…'; }, 15000);
-  return new Promise((resolve) => { S.onReady = resolve; });
+  const ready = new Promise((resolve) => { S.onReady = resolve; });
+  if (warm?.ready) worldReady(f);
+  return ready;
 }
 
 async function worldReady(f) {
   if (S.frame !== f || !S.loading) return;
   S.loading = false;
+  clearTimeout(S.loadTimer);
   send(f, 'sound', { on: sound.on, volume: sound.volume });
   send(f, 'settings', { invertY });
   send(f, 'players', { roster: roster.toJSON() });
   const veil = $('#veil');
-  veil.classList.add('fade');
-  setTimeout(() => { if (!S.loading) veil.hidden = true; }, 520);
+  if (!veil.hidden) {
+    veil.classList.add('fade');
+    setTimeout(() => { if (!S.loading && S.frame === f) veil.hidden = true; }, 520);
+  }
   S.onReady?.();
   S.onReady = null;
   if (S.pendingCard) showControlsCard(8);
@@ -454,7 +505,7 @@ async function worldReady(f) {
 async function resumeFrame() {
   const t0 = performance.now();
   while (input.anyHeld() && performance.now() - t0 < 1200) await sleep(30);
-  if (S.paused || S.transitioning || S.loading) return;
+  if (S.screen !== 'play' || S.paused || S.transitioning || S.loading) return;
   send(S.frame, 'players', { roster: roster.toJSON() });
   send(S.frame, 'resume');
   S.resumedAt = performance.now();
@@ -530,6 +581,8 @@ function restartWorld() {
   loadWorld(S.world, { first: false });
 }
 function leavePlay(to) {
+  clearPreload();
+  clearTimeout(S.loadTimer);
   unlisten();
   if (S.frame) { S.frame.remove(); S.frame = null; }
   S.paused = false; S.loading = false;
@@ -907,6 +960,7 @@ document.addEventListener('fullscreenchange', () => { if (S.modals.includes('set
 
 // ---------------------------------------------------------------- start
 buildCards();
+loadImage(introArt(WORLDS[S.sel]));
 show('title');
 renderPlayers();
 requestAnimationFrame(loop);
@@ -914,6 +968,7 @@ requestAnimationFrame(loop);
 // Test hooks (used by check.mjs; harmless in play).
 window.__game = {
   state: () => ({ screen: S.screen, modals: [...S.modals], sel: S.sel, world: WORLDS[S.world].id, paused: S.paused, loading: S.loading,
+    preloading: preloaded ? WORLDS[preloaded.i].id : null, preloadReady: !!preloaded?.ready,
     transitioning: S.transitioning, controlsShown: S.controlsShown, board: S.board, sound: sound.on, players: roster.list.length, stubRoster: !!roster.stub,
     progress: { ...progress }, transitionProgress: $('#transition').dataset.progress }),
   pressStart,

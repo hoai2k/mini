@@ -19,12 +19,14 @@
   --sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --gutter: max(16px, env(safe-area-inset-left));
   --brass-grad: linear-gradient(180deg, #f6dc9a 0%, #d3a650 38%, #9c7631 62%, #e2bd6c 100%);
-  --paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .38 0 0 0 0 .22 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"),
-    repeating-linear-gradient(0deg, transparent 0 23px, rgba(90, 120, 80, .07) 23px 24px),
-    repeating-linear-gradient(90deg, transparent 0 23px, rgba(90, 120, 80, .07) 23px 24px),
-    radial-gradient(ellipse at 30% 20%, #f8f1de, #efe3c6 70%, #e6d6b2);
+  --paper: none; /* applied after decoding the delivered paper */
 }
-* { box-sizing: border-box; }
+* { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: rgba(125, 95, 38, .48) transparent; }
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(125, 95, 38, .48); border: 2px solid transparent; background-clip: padding-box; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background-color: rgba(125, 95, 38, .7); }
+.intro-panel, .panel, .controls-card, .scroll { scrollbar-gutter: stable; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: var(--deep); color: var(--ivory); font: 16px/1.45 var(--sans); }
 #app { position: fixed; inset: 0; overflow: hidden; }
 button { font: inherit; color: inherit; }
@@ -216,7 +218,8 @@ button { font: inherit; color: inherit; }
   box-shadow: 0 0 0 3px var(--brass), 0 30px 80px rgba(0,0,0,.6); transform-origin: 0 0; }
 
 /* ------------------------------------------------------------------ play */
-#play { background: #000; }
+#play { background: transparent; pointer-events: none; }
+#play > * { pointer-events: auto; }
 #frame-host, #frame-host iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
 #frame-host iframe { transition: opacity .5s; }
 .play-hud { position: absolute; bottom: max(12px, env(safe-area-inset-bottom)); right: max(12px, env(safe-area-inset-right)); display: flex; flex-direction: column; align-items: flex-end; gap: 8px; z-index: 6; pointer-events: none; }
@@ -245,6 +248,13 @@ button { font: inherit; color: inherit; }
 .objective-spin { width: 84px; height: 84px; border-radius: 50%; border: 2px solid var(--brass);
   background: repeating-conic-gradient(from 0deg, var(--brass) 0 1.2deg, transparent 1.2deg 10deg); -webkit-mask: radial-gradient(circle, transparent 0 58%, #000 59%); mask: radial-gradient(circle, transparent 0 58%, #000 59%);
   animation: spin 4s linear infinite; }
+.art-loading::before { content: ''; position: absolute; left: calc(50% - 18px); top: calc(50% - 18px); width: 36px; height: 36px; border: 2px solid rgba(200,155,71,.2); border-top-color: var(--brass-hi); border-radius: 50%; animation: spin 1.4s linear infinite; z-index: 2; }
+.art-error::before { content: 'Artwork unavailable'; position: absolute; inset: 0; display: grid; place-items: center; color: var(--brass-hi); font: italic 1rem var(--serif); }
+#title-art-loading { position: absolute; inset: 0; pointer-events: none; }
+#title-art-loading::before { top: 85%; }
+.intro-art.art-loading { animation: none; }
+.intro-art.art-loading::before { left: calc(75% - 18px); }
+.menu-bg.art .grid, .menu-bg.art .glow { display: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ------------------------------------------------------------------ transition */
@@ -327,6 +337,9 @@ button { font: inherit; color: inherit; }
   .eyebrow { letter-spacing: .14em; gap: 8px; }
   .eyebrow i { flex-basis: 18px; }
   .intro-panel { top: 30vh; }
+  .intro-panel .eyebrow { flex-wrap: wrap; }
+  .intro-panel .eyebrow span { white-space: normal; }
+  .intro-art.art-loading::before { left: calc(50% - 18px); top: calc(15% - 18px); }
 }
 @media (max-height: 560px) {
   .wcard .line, .wcard .look { display: none; }
@@ -334,6 +347,7 @@ button { font: inherit; color: inherit; }
 }
 @media (prefers-reduced-motion: reduce) {
   .press-start, .landmark-prompt, .intro-art, .objective-spin { animation: none; }
+  .art-loading::before { animation: none; }
 }
 
 /* Legibility over the delivered photographic art (menu MP-G03, title MP-G02):
