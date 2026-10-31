@@ -568,9 +568,12 @@ function resume() {
   restoreScreenFocus();
   if (!S.loading) resumeFrame();
 }
-function confirmThen(title, text, fn) {
+function confirmThen(title, text, fn, { cancel = 'Stay', ok = 'Leave' } = {}) {
   $('#confirm-title').textContent = title;
   $('#confirm-text').textContent = text;
+  $('#confirm-text').hidden = !text;
+  $('#confirm [data-action="cancel"]').textContent = cancel;
+  $('#confirm [data-action="ok"]').textContent = ok;
   S.confirmFn = fn;
   openModal('confirm');
 }
@@ -601,7 +604,7 @@ async function landmark(kind) {
     send(S.frame, 'pause');
     S.paused = true;
     sound.setPaused(true);
-    confirmThen('The end of the light', 'Below the phage nothing is alive to play. Choose another world to explore, or stay here.', () => leavePlay('menu'));
+    confirmThen('Work in progress', '', () => leavePlay('menu'), { cancel: 'Continue playing Phage', ok: 'Return to menu' });
     return;
   }
   const next = kind === 'forward' ? i + 1 : i - 1;
@@ -630,7 +633,7 @@ function showPrompt(m) {
   const i = S.world;
   const label = m.label || (m.kind === 'back'
     ? (i > 0 ? `Rise to the ${WORLDS[i - 1].name}` : 'The top of the chain')
-    : (i < WORLDS.length - 1 ? `Zoom in to the ${WORLDS[i + 1].name}` : 'The end of the light'));
+    : (i < WORLDS.length - 1 ? `Zoom in to the ${WORLDS[i + 1].name}` : 'Work in progress'));
   el.innerHTML = (m.kind === 'back' ? glyph('Y') + ' ' : '→ ') + label;
   el.hidden = false;
 }

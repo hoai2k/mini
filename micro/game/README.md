@@ -183,5 +183,7 @@ No world posts landmarks yet. For each world (in its own folder):
 - Keyboard input goes to whichever frame has focus. During play the world has
   it (Esc and Tab reach the shell as `menu` and `view`); clicking the shell's
   buttons hands focus back to the world.
-- Still stand-ins: MP-G02 (title art), MP-G03 (menu background), MP-G05
-  (paper), MP-G07–G13 (world intros, the card art is used).
+
+## Future progression
+
+The [glowing return journey plan](../design/super-gene-return.html) records the proposed Phage clear, reverse journey and fingertip ending, with generated references. Its sequence is not implemented; the current Phage ending offers “Work in progress”, return to menu, or continued Phage play.
