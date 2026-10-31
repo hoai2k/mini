@@ -419,7 +419,7 @@ Not borrowed:
 ## Art
 
 Procedural stand-ins are used until the images in
-`micro/design/image-requests.md` are delivered; `shared/assets.js` switches
+`micro/image-requests.md` are delivered; `shared/assets.js` switches
 automatically: MP-P01 (darkfield plate), MP-P02 (phase plate), MP-P03
 (pellicle, sampled as the kinety pattern).
 

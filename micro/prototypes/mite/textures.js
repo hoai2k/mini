@@ -1,5 +1,5 @@
 // Procedural stand-ins for the requested SEM textures (MP-M01..MP-M04 in
-// micro/design/image-requests.md). Each is a greyscale height-like image: the
+// micro/image-requests.md). Each is a greyscale height-like image: the
 // G-buffer pass reads its luminance as surface relief, so a delivered SEM
 // micrograph (bright ridges, dark pits) drops in through the same path.
 // `semTextures()` resolves every slot to the delivered file when its status is

@@ -7,8 +7,8 @@ Edit the data in this file, then run:
     python3 micro/design/source/build_requests.py --check  # verify up to date
 
 Outputs:
-    micro/design/image-requests.md          the open requests (status `requested`)
-    micro/design/image-requests-history.md  every delivered request, for the record
+    micro/image-requests.md                 the open requests (status `requested`)
+    micro/image-requests-history.md         every delivered request, for the record
     micro/prototypes/shared/asset-list.js   what the prototypes load
 
 Statuses:
@@ -32,8 +32,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]  # micro/
-DOC = ROOT / "design" / "image-requests.md"
-HISTORY = ROOT / "design" / "image-requests-history.md"
+DOC = ROOT / "image-requests.md"
+HISTORY = ROOT / "image-requests-history.md"
 ASSET_LIST = ROOT / "prototypes" / "shared" / "asset-list.js"
 MANIFEST = ROOT / "research" / "assets" / "references" / "manifest.json"
 
@@ -119,6 +119,14 @@ TURNAROUND = (
     "Natural colours as the organism really looks (for cells, as in a stained or brightfield "
     "preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing "
     "invented. It serves as a measuring tape and a paint source."
+)
+
+
+GAMEUI = (
+    "Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern "
+    "editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, "
+    "specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. "
+    "Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry."
 )
 
 
@@ -451,6 +459,116 @@ GROUPS = [
         ],
     },
     {
+        "title": "Round 4: Micro Zoom game UI and world intros",
+        "intro": "Art for the full game (micro/game/): title screen, menu, cards and the intro screen of each world. Until they arrive the game draws its own stand-ins in the same style.",
+        "items": [
+            {
+                "id": "MP-G01", "name": "Micro Zoom logo",
+                "file": "assets/game/logo.png", "size": "1600 x 640, transparent",
+                "used": "The title screen, the pause menu header and the library card.",
+                "standin": "The words MICRO ZOOM set in the game's display font.",
+                "refs": ref("springtail-swarm", "tardigrade-light"),
+                "prompt": f"{GAMEUI} A game title logo: the words \"MICRO ZOOM\" in capitals, spelled exactly M-I-C-R-O Z-O-O-M, in an elegant engraved serif with brass inlay and a thin ink outline, the O of ZOOM drawn as a microscope objective lens seen end-on with concentric brass rings and a tiny tardigrade silhouette inside. A fine engraved scale rule underlines the words. Wide landscape composition, even margins, no other text, no watermark. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+            },
+            {
+                "id": "MP-G02", "name": "Title screen key art",
+                "file": "assets/game/title.webp", "size": "2560 x 1440, opaque",
+                "used": "Full-screen behind the title (Press Start).",
+                "standin": "A slow procedural zoom through the worlds' colours.",
+                "refs": ref("springtail-swarm", "moss", "tardigrade-light", "paramecium", "phage-t4"),
+                "prompt": f"{GAMEUI} Key art: a brass microscope's objective lens hangs above a single drop of bog water on a glass slide; inside the drop, nested like a spiral of shrinking worlds, a water springtail on the surface film, a mite among moss leaves, a tardigrade gripping a leaf cell, an amoeba, a green Paramecium, rod bacteria and a tiny bacteriophage at the centre, each painted in its own microscope look (macro photo, electron micrograph, DIC, brightfield, phase contrast, molecular illustration). Warm lamplight, deep green shadows. Keep the upper-middle third calm for the logo and the bottom third quiet for the Press Start line. Full-bleed 16:9, no text.",
+            },
+            {
+                "id": "MP-G03", "name": "Menu background",
+                "file": "assets/game/menu.webp", "size": "2560 x 1440, opaque",
+                "used": "Behind the world-select cards.",
+                "standin": "A dark green-to-ink gradient with a faint engraved grid.",
+                "refs": ref("moss"),
+                "prompt": f"{GAMEUI} A naturalist's laboratory bench seen from above, softly out of focus: dark green baize, a brass microscope stage edge, glass slides with hand-written specimen labels, an engraved brass scale rule, a magnifying glass, sepia field notes with ink sketches of mites and tardigrades. The centre is dark and calm so a row of cards can sit over it. Full-bleed 16:9, no legible text.",
+            },
+            {
+                "id": "MP-G04", "name": "Card frame",
+                "file": "assets/game/card-frame.png", "size": "1024 x 1400, transparent",
+                "used": "The frame around each world card on the select screen (stretched as a 9-slice).",
+                "standin": "A CSS brass border with engraved corner marks.",
+                "refs": ref("moss"),
+                "prompt": f"{GAMEUI} An empty portrait frame for a specimen card: a thin polished brass bezel with engraved corner ornaments and a small vernier scale along the bottom edge, like the mount of a microscope slide; the inside is completely empty and transparent; even line weights so it can be stretched as a nine-slice. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+            },
+            {
+                "id": "MP-G05", "name": "Paper panel texture",
+                "file": "assets/game/paper.webp", "size": "1024 x 1024, opaque, tileable",
+                "used": "Panels: the intro text, the pause menu, settings and the controls card.",
+                "standin": "A flat warm ivory with procedural grain.",
+                "refs": ref("moss"),
+                "prompt": f"{TILE} Aged ivory laboratory paper with a fine even fibre texture, a very faint pale-green engraved millimetre grid and the slightest foxing, light and calm so dark text reads on it. No stains in one spot, no text.",
+            },
+            {
+                "id": "MP-G06", "name": "App icon",
+                "file": "assets/game/icon.png", "size": "1024 x 1024, transparent",
+                "used": "Browser tab and home-screen icon.",
+                "standin": "A drawn brass objective ring.",
+                "refs": ref("tardigrade-light"),
+                "prompt": f"{GAMEUI} An app icon: a brass microscope objective seen end-on, concentric brass and black rings around a glowing round field of view that holds a small plump tardigrade in soft DIC grey-green; on a rounded-square tile of deep ink green. Bold and readable at 48 px. The rounded square fills the frame with transparent corners. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+            },
+            {
+                "id": "MP-G07", "name": "World intro: Bog surface (springtail)",
+                "file": "assets/game/intro-springtail.webp", "size": "2560 x 1440, opaque",
+                "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
+                "standin": "The world's launcher card, enlarged and blurred.",
+                "refs": ref("springtail-swarm", "sundew", "bog-pool"),
+                "prompt": f"{GAMEUI} A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing macro photograph at about 2:1, natural daylight, very shallow depth of field: a blue-black water springtail (Podura aquatica) standing on the dimpled water film of a bog pool, Sphagnum islands and a sundew in soft focus behind. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
+            },
+            {
+                "id": "MP-G08", "name": "World intro: Moss canopy (mite)",
+                "file": "assets/game/intro-mite.webp", "size": "2560 x 1440, opaque",
+                "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
+                "standin": "The world's launcher card, enlarged and blurred.",
+                "refs": ref("mite", "moss", "tardigrade-sem"),
+                "prompt": f"{GAMEUI} A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing scanning electron micrograph look, greyscale: a small armoured box mite among towering Sphagnum leaves and fungal hyphae, deep focus. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
+            },
+            {
+                "id": "MP-G09", "name": "World intro: Water film (tardigrade)",
+                "file": "assets/game/intro-tardigrade.webp", "size": "2560 x 1440, opaque",
+                "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
+                "standin": "The world's launcher card, enlarged and blurred.",
+                "refs": ref("tardigrade-light", "moss", "milnesium"),
+                "prompt": f"{GAMEUI} A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing differential interference contrast microscope look: a plump tardigrade gripping the cell walls of a moss leaf under a thin water film, chloroplasts in the cells, a Milnesium as a soft blur in the distance. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
+            },
+            {
+                "id": "MP-G10", "name": "World intro: Pool floor (amoeba)",
+                "file": "assets/game/intro-amoeba.webp", "size": "2560 x 1440, opaque",
+                "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
+                "standin": "The world's launcher card, enlarged and blurred.",
+                "refs": ref("amoeba", "spirogyra", "paramecium"),
+                "prompt": f"{GAMEUI} A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing brightfield microscope look: Amoeba proteus with broad pseudopods curving round a small ciliate on the slide, Spirogyra filaments out of focus behind. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
+            },
+            {
+                "id": "MP-G11", "name": "World intro: Hollow pool (Paramecium)",
+                "file": "assets/game/intro-paramecium.webp", "size": "2560 x 1440, opaque",
+                "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
+                "standin": "The world's launcher card, enlarged and blurred.",
+                "refs": ref("paramecium-bursaria", "didinium", "vorticella"),
+                "prompt": f"{GAMEUI} A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing brightfield microscope look: a green Paramecium bursaria full of Chlorella swimming in a bog pool, a barrel-shaped Didinium approaching, stalked Vorticella in the background. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
+            },
+            {
+                "id": "MP-G12", "name": "World intro: Sediment (bacterium)",
+                "file": "assets/game/intro-bacterium.webp", "size": "2560 x 1440, opaque",
+                "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
+                "standin": "The world's launcher card, enlarged and blurred.",
+                "refs": ref("magnetotactic", "biofilm-fluorescence", "biofilm-sem"),
+                "prompt": f"{GAMEUI} A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing phase-contrast microscope look at 1000x: a magnetotactic spirillum with a chain of magnetosomes among rods and cocci on a biofilm, the edge of a ciliate's mouth looming. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
+            },
+            {
+                "id": "MP-G13", "name": "World intro: Host surface (phage)",
+                "file": "assets/game/intro-phage.webp", "size": "2560 x 1440, opaque",
+                "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
+                "standin": "The world's launcher card, enlarged and blurred.",
+                "refs": ref("phage-t4", "magnetotactic", "biofilm-sem"),
+                "prompt": f"{GAMEUI} A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing molecular illustration in the manner of David Goodsell's watercolours: a T4-like bacteriophage landing on the lipopolysaccharide surface of a bacterium, crowded water with small molecules around it. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
+            },
+        ],
+    },
+    {
         "title": "Model reference sheets",
         "intro": "One orthographic turnaround sheet per creature or enemy that will be built as a 3D model in code. Each shows the same individual from the side, top, front and three-quarter view on plain grey at one scale: a measuring tape for proportions and a paint source for colours, the method that worked for the sibling Wobblers project. Check every sheet against its reference photographs before modelling from it; where the sheet and the photographs disagree, the photographs win.",
         "items": [
@@ -629,7 +747,7 @@ def document(history: bool = False) -> str:
             "# Micro prototypes: image request history",
             "",
             "Every image request that has been delivered, with its prompt and reference images, for the record. "
-            "Open requests are in [`image-requests.md`](image-requests.md). Generated from `source/build_requests.py`; "
+            "Open requests are in [`image-requests.md`](image-requests.md). Generated from `design/source/build_requests.py`; "
             "a request moves here when its status is set to `delivered`.",
             "",
             f"{done} delivered.",
@@ -640,7 +758,7 @@ def document(history: bool = False) -> str:
         "# Micro prototypes: image requests",
         "",
         "Open artwork requests for the prototypes in `micro/prototypes/`. Delivered requests are kept in "
-        "[`image-requests-history.md`](image-requests-history.md). Generated from `source/build_requests.py`; edit the data there and rerun it, which also rewrites `micro/prototypes/shared/asset-list.js`.",
+        "[`image-requests-history.md`](image-requests-history.md). Generated from `design/source/build_requests.py`; edit the data there and rerun it, which also rewrites `micro/prototypes/shared/asset-list.js`.",
         "",
         "## How to use this list",
         "",
@@ -679,10 +797,10 @@ def document(history: bool = False) -> str:
                     out.append(f"  - `{rid}`: reference photograph still being collected for the atlas")
                     continue
                 out.append(
-                    f"  - [{r['note']}](../research/{r['local']}) · {r['author']}, {r['license']} · [source]({r['source']})"
+                    f"  - [{r['note']}](research/{r['local']}) · {r['author']}, {r['license']} · [source]({r['source']})"
                 )
             for c in i.get("concepts", []):
-                out.append(f"  - Concept board (mood only): [`{c}`](../research/assets/concepts/{c})")
+                out.append(f"  - Concept board (mood only): [`{c}`](research/assets/concepts/{c})")
             out += ["", "```text", i["prompt"], "```", ""]
     return "\n".join(out)
 
@@ -692,7 +810,7 @@ def missing_links(doc: str) -> list[str]:
     import re
 
     found = []
-    for target in re.findall(r"\]\((\.\./[^)]+)\)", doc):
+    for target in re.findall(r"\]\(((?!https?:)[^)#]+)\)", doc):
         if not (DOC.parent / target).resolve().exists():
             found.append(target)
     return sorted(set(found))
