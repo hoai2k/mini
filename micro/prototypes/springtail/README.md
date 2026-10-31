@@ -31,7 +31,7 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | --- | --- |
 | LS (WASD) | Walk on the film, relative to the view. Slow and a bit slippery: you coast |
 | RS (arrows) | Orbit the camera. Up looks up (the camera swings down toward the horizon), down looks down, in either view; Features → Invert camera Y flips it (shared by every prototype) |
-| **A** (Space) | **Furcula jump.** Hold to cock it (a tap is a short hop, ~0.7 s of hold is a full jump), release to fire. Aim with LS (no stick: straight ahead). Released at an enemy in range (near the aim line), the jump is aimed and ends in a pounce-bite. The furcula re-cocks for 0.9 s after landing. When stuck in sundew glue, mash A to tear free; on your back, tap A to flick upright |
+| **A** (Space) | **Furcula jump.** Tap to hop; hold and release for distance (~0.7 s for a full jump). Aim with LS (no stick: straight ahead). Tap again during a jump to hop immediately on landing, or hold in the air to prepare a charged jump. The furcula re-cocks in 0.08 s, including during flight, so normal landings have no extra cooldown. Released at an enemy in range, the jump becomes a pounce-bite. When stuck in sundew glue, mash A to tear free; on your back, tap A to flick upright |
 | **X** (E) | Three moves, by what is in front of your head: **eat** (food: the head goes down on a grain, the mouthparts work and the grain shrinks away, 0.7 s a bite); **fight** (a predator's leg in reach: rear up, then snap: a nip that staggers it); **attack** (nothing in reach: a lunge-nip). **In the air: the pounce-bite** (see Fighting back) |
 | **B** (Shift) | Hold: **hunker, the defend button.** Pressed flat with the collophore: facing a predator, it blocks its strike; waves cannot flip you, and a still, hunkered springtail makes no ripples for the strider to feel. You cannot move |
 | Y (R) | Camera: top-down, and back to the low view you had (RS also brings it down) |
@@ -66,9 +66,10 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   fires once, and again only after everyone has left it. Standalone,
   `embed.js` shows its toast instead of a transition.
 - **No backdoor:** this is the top of the Zoom Chain.
-- **Edge arrow** (`shared/landmark.js`): a brass chevron near the edge of
-  each view points to the capitulum while it is off screen; on screen, two
-  faint corner ticks mark it.
+- **Landmark sun** (`shared/landmark.js`): a bright brass sun near the edge of
+  each view indicates the capitulum's bearing without text; on screen, the
+  same sun marks it. The starting camera places the bank up and to the right;
+  orbiting the camera changes its apparent direction.
 
 ## Multiplayer
 
@@ -182,11 +183,13 @@ Predators follow the shared pacing in `shared/predation.js`:
   - A sundew is a trap, not a predator: stuck, its tentacles curl over you
     while you mash A. If they close first, **strike**: every tentacle folds
     over you; **hold**: wrapped in glue, struggling weaker; **eat**: the leaf
-    blade cups and closes round you and you sink into it; **eaten**
-    (digested).
+    blade cups round you while the body smoothly turns white and dissolves.
+    The empty leaf remains in view for a second, then the view fades out and
+    fades back in at respawn. Mashing A before the tentacles close still
+    tears you free.
 
-  Then press A: a life is lost and you start again (with the calm opening),
-  or a new game starts after the last life.
+  After a capture, a life is lost and the view fades back in at respawn
+  (with the calm opening), or a new game starts after the last life.
 - Raindrops stay hazards: a direct hit swamps you (now only within ~0.95 of
   the drop's radius, with a 2 s shadow warning, and only about half the drops
   aim near you); near misses throw you out of the crater.

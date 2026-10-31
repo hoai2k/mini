@@ -83,7 +83,13 @@ function furculaParts() {
 }
 
 const SURFACE = /* glsl */ `
+uniform float uDigestWhite, uDigestDissolve;
 void surface(inout Surf s) {
+  // Coverage fade: scene alpha stores optical depth, so ordinary material
+  // transparency cannot be used here. Fine screen-door coverage dissolves
+  // smoothly through the same depth-of-field pass as the rest of the animal.
+  float coverage = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453);
+  if (uDigestDissolve > 0.0 && coverage < uDigestDissolve) discard;
   int pid = int(vPart + 0.5);
   vec3 lp = vLocal;
   float dorsal = smoothstep(0.09, 0.25, lp.y);
@@ -119,7 +125,8 @@ void surface(inout Surf s) {
     float e = dot(q, q);
     if (e < 1.0) { col = vec3(0.004, 0.004, 0.006); s.rough = 0.18; s.f0 = 0.05; s.sheen = 0.1; }
   }
-  s.albedo = col;
+  s.albedo = mix(col, vec3(0.92), uDigestWhite);
+  s.emit += vec3(0.25) * uDigestWhite;
 }`;
 
 /**
@@ -128,7 +135,7 @@ void surface(inout Surf s) {
  */
 export function createSpringtail({ share = null } = {}) {
   const group = new THREE.Group();
-  const mat = litMaterial({ surface: SURFACE, skin: BONES });
+  const mat = litMaterial({ surface: SURFACE, skin: BONES, uniforms: { uDigestWhite: { value: 0 }, uDigestDissolve: { value: 0 } } });
   // the field's own casterShadow would shadow the animal by itself; skip casters on it
   const body = new THREE.Mesh(share ? share.body.geometry : buildSdfMesh(bodyParts(), { min: [-0.86, -0.06, -0.42], max: [0.98, 0.5, 0.42], cell: 0.0125 }), mat);
   const furc = new THREE.Mesh(share ? share.furc.geometry : buildSdfMesh(furculaParts(), { min: [-0.58, -0.03, -0.12], max: [0.14, 0.12, 0.12], cell: 0.0105 }), mat);

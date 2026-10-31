@@ -2,15 +2,14 @@
 // way back (backdoor) are, drawn near the edge of each player's view when the
 // landmark is off screen.
 //
-//   forward   a small brass chevron (with a fainter one behind it)
+//   forward   a brass sun showing the landmark's bearing, without text
 //   backdoor  a hollow ring with a tiny tick on the side it lies
 //
 // Off screen: the mark sits just inside the view's region, on the line from
 // the player (the region's anchor) towards the landmark, turned to point at
 // it, and fades with distance (opacity from `nearAlpha` at distance 0 to
-// `farAlpha` at `range`). A label (a few letters) or an icon (one character,
-// or an image) can sit beside it. On screen: a gentle marker by default
-// (`onScreen: 'marker'`: two faint corner ticks for forward, a faint ring
+// `farAlpha` at `range`). Forward marks are always icon-only. On screen:
+// a gentle marker by default (`onScreen: 'marker'`: a sun for forward, a ring
 // for backdoor), or nothing (`onScreen: 'none'`) when the world draws the
 // landmark itself.
 //
@@ -32,7 +31,7 @@
 //   marks.begin()                         clear (and resize) the overlay; once per frame
 //   marks.draw({ position, project, kind = 'forward', region = null, anchor = null,
 //     label = '', icon = null, distance = null, range = Infinity, onScreen = 'marker',
-//     color, nearAlpha = 0.72, farAlpha = 0.28 })
+//     color, nearAlpha = 0.95, farAlpha = 0.7 })
 //       project(position) -> { x, y, behind } CSS px; region: polygon(s) [[x,y],...] or
 //       [[[x,y],...], ...] (default the whole screen); anchor: [x,y] (default the region's
 //       centre). Returns { x, y, angle, onScreen } or null.
@@ -88,12 +87,17 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
       path(); stroke(1.5, color, alpha);
       return;
     }
-    const s = size * 0.5;
-    const chev = (dx) => { ctx.beginPath(); ctx.moveTo(dx - s * 0.7, -s); ctx.lineTo(dx + s * 0.35, 0); ctx.lineTo(dx - s * 0.7, s); };
-    chev(-s * 0.95); stroke(3.4, shadow, alpha * 0.45);
-    chev(-s * 0.95); stroke(1.5, color, alpha * 0.45);
-    chev(0); stroke(4, shadow, alpha * 0.8);
-    chev(0); stroke(2, color, alpha);
+    const r = size * 0.26;
+    const sun = () => {
+      ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2);
+      for (let i = 0; i < 8; i++) {
+        const a = i * Math.PI / 4;
+        ctx.moveTo(Math.cos(a) * r * 1.55, Math.sin(a) * r * 1.55);
+        ctx.lineTo(Math.cos(a) * size * 0.65, Math.sin(a) * size * 0.65);
+      }
+    };
+    sun(); stroke(5, shadow, alpha);
+    sun(); stroke(2.4, color, alpha);
   }
 
   function marker(kind, x, y, color, shadow, alpha) {
@@ -105,19 +109,14 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
       ctx.globalAlpha = alpha * 0.6; ctx.lineWidth = 3; ctx.strokeStyle = shadow; ctx.stroke();
       ctx.globalAlpha = alpha; ctx.lineWidth = 1.2; ctx.strokeStyle = color; ctx.stroke();
     } else {
-      for (const sx of [-1, 1]) {
-        ctx.beginPath(); ctx.moveTo(sx * 13, -6); ctx.lineTo(sx * 13, -13); ctx.lineTo(sx * 6, -13);
-        ctx.moveTo(sx * 13, 6); ctx.lineTo(sx * 13, 13); ctx.lineTo(sx * 6, 13);
-        ctx.globalAlpha = alpha * 0.6; ctx.lineWidth = 3; ctx.strokeStyle = shadow; ctx.stroke();
-        ctx.globalAlpha = alpha; ctx.lineWidth = 1.3; ctx.strokeStyle = color; ctx.stroke();
-      }
+      shapes(kind, color, shadow, alpha, 20);
     }
     ctx.restore();
   }
 
   function draw({ position, project, kind = 'forward', region = null, anchor = null, label = '', icon = null,
-    distance = null, range = Infinity, onScreen = 'marker', color, nearAlpha = 0.72, farAlpha = 0.28, size = 14 }) {
-    // Owner's call: only the way forward gets an edge arrow. The backdoor is a
+    distance = null, range = Infinity, onScreen = 'marker', color, nearAlpha = 0.95, farAlpha = 0.7, size = 20 }) {
+    // Owner's call: only the way forward gets an edge icon. The backdoor is a
     // quiet optional landmark found by exploring (its "Y: back" prompt still
     // shows when a player dwells on it). Set SHOW_BACKDOOR to bring it back.
     if (kind === 'backdoor' && !SHOW_BACKDOOR) return null;
@@ -153,7 +152,7 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
     ctx.clip();
 
     if (!pr.behind && insetInside(pr.x, pr.y, 6)) {
-      if (onScreen === 'marker') marker(kind, pr.x, pr.y, col, st.shadow, alpha * 0.55);
+      if (onScreen === 'marker') marker(kind, pr.x, pr.y, col, st.shadow, alpha);
       ctx.restore();
       return { x: pr.x, y: pr.y, angle: 0, onScreen: true };
     }
@@ -184,7 +183,7 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
     ctx.rotate(angle);
     shapes(kind, col, st.shadow, alpha, size);
     ctx.restore();
-    if (label || icon) {
+    if (kind !== 'forward' && (label || icon)) {
       // Beside the mark, on the side towards the middle of the view.
       const lx = x - dx * (size + 4), ly = y - dy * (size + 4);
       ctx.globalAlpha = alpha * 0.9;

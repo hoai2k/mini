@@ -17,6 +17,8 @@ import { buildWorld, inPool, poolE, mossTop, islandEdge, ISLANDS, POOL_GLSL, SHO
 import { createLandmarkProps } from './landmarks.js';
 import { createWolfSpider } from './boss.js';
 import { createSpringtail } from './springtail.js';
+import { updateJumpInput, takeQueuedJump } from './jump-input.js';
+import { SUNDEW_PHASES, digestion } from './sundew-digestion.js';
 import { createStenus, createStrider, createRain } from './enemies.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
 
@@ -70,9 +72,9 @@ art('MP-S05', { repeat: false }).then((t) => t && rain.setSprite(t));
 const START = { x: -8, z: 2 };
 let pl = {
   x: START.x, z: START.z, y: 0, vx: 0, vz: 0, heading: Math.PI / 2, mode: 'film',
-  charge: 0, charging: false, cock: 1, hunker: 0, eatT: 0, flipT: 0, roll: 0, pitch: 0, bend: 0, furc: 0,
+  charge: 0, charging: false, queuedJump: null, cock: 1, hunker: 0, eatT: 0, flipT: 0, roll: 0, pitch: 0, bend: 0, furc: 0,
   air: null, leaf: null, struggle: 0, deadT: 0, cause: '', walk: 0, lives: 3, food: 0, moved: 0, landPulse: 0, onIsland: false,
-  scale: 1, sy: 1, flailK: 0,
+  scale: 1, sy: 1, flailK: 0, digestWhite: 0, dissolve: 0,
 };
 // Local multiplayer (shared/players.js): every player is a springtail of
 // their own (this record is player 1's; others are made by makeRec). Code
@@ -109,7 +111,7 @@ const hud = mountHud({
   controls: hudControls({
     move: 'Walk on the film (slow, slippery)',
     camera: 'Orbit',
-    dash: 'Furcula jump: hold to cock (hop to full), release; aim with LS. Released at an enemy in range: a pounce-bite',
+    dash: 'Tap to hop; hold and release for distance; aim with LS. Tap again in the air to jump on landing. At an enemy: a pounce-bite',
     attack: 'Graze pollen, spores and algae; at a predator, rear up and nip it; in the air, a pounce-bite (dive and nip)',
     defend: 'Hold: hunker (defend). Facing a predator, it blocks the strike; waves cannot flip you',
     special: 'Camera: top-down / back to your low view',
@@ -178,7 +180,7 @@ const APERTURES = [2.8, 4, 5.6, 8, 11, 16, 22];
 // the low view you had. (It used to be two modes, and in top-down RS pitch
 // was ignored, so the camera stuck overhead until Y was pressed again.)
 const PITCH_MIN = 0.1, PITCH_MAX = 1.5, PITCH_TOP = 1.5, PITCH_LOW = 0.42;
-const rig = { yaw: Math.PI, pitch: PITCH_LOW, wantPitch: PITCH_LOW, pitchLow: PITCH_LOW, get mode() { return this.wantPitch > 1.05 ? 'top' : 'low'; }, zi: 1, ai: 4, focusOff: 0, target: new THREE.Vector3(START.x, 0.25, START.z), look: 0, lens: null, dofK: 1, aim: null };
+const rig = { yaw: Math.PI - Math.PI / 6, pitch: PITCH_LOW, wantPitch: PITCH_LOW, pitchLow: PITCH_LOW, get mode() { return this.wantPitch > 1.05 ? 'top' : 'low'; }, zi: 1, ai: 4, focusOff: 0, target: new THREE.Vector3(START.x, 0.25, START.z), look: 0, lens: null, dofK: 1, aim: null };
 let lookDef = applyLook(0);
 /** Where the jump being cocked, or the one in flight, will come down (x, y, z), or null. */
 function landingPoint() {
@@ -325,7 +327,7 @@ const CAP_TEXT = {
   strider: { by: 'The water strider', how: 'seized you in its forelegs and sucked you dry',
     phases: { strike: 'Grabbed by a strider!', hold: 'Lifted to its beak…', eat: 'Being sucked dry', follow: 'Eaten', fadeOut: 'Eaten', fadeIn: 'Back again' } },
   sundew: { by: 'The sundew', how: 'wrapped you in its tentacles and closed its leaf over you',
-    phases: { strike: 'The tentacles close!', hold: 'Wrapped in glue…', eat: 'The leaf folds over you', follow: 'Digested', fadeOut: 'Digested', fadeIn: 'Back again' } },
+    phases: { strike: 'The tentacles close!', hold: 'Wrapped in glue…', eat: 'Dissolving…', follow: 'Digested', fadeOut: 'Digested', fadeIn: 'Back again' } },
 };
 const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 // A catch plays out (strike, hold, eat), the camera pulls back and follows the
@@ -411,7 +413,7 @@ function caught(kind) {
   if (hunger[kind]) hunger[kind].fed();
   const t = CAP_TEXT[kind];
   const left = !solo ? `. ${P === P1 ? 'You' : `Player ${P.slot + 1}`} will come back beside a teammate` : '';
-  capture.start({ by: t.by, how: t.how + left });
+  capture.start({ by: t.by, how: t.how + left, ...(kind === 'sundew' ? { phases: SUNDEW_PHASES } : {}) });
   hud.toast(solo ? t.phases.strike : `Player ${P.slot + 1}: ${t.phases.strike}`, 1500);
   embed.captured({ by: kind, player: P.slot });
   rumbleFor(P, 450, 0.8, 1);
@@ -436,19 +438,20 @@ function animateCapture(c, dt) {
   else o = sundewStep(phase, c.t, dt);
   P.x = o.x; P.y = o.y; P.z = o.z; P.heading = o.heading; P.pitch = o.pitch; P.roll = o.roll;
   P.scale = o.scale; P.sy = o.sy ?? 1; P.flailK = o.flail;
+  P.digestWhite = o.white || 0; P.dissolve = o.dissolve || 0;
 }
 /** The sundew's catch: tentacles fold over you, the glue holds, the blade cups and closes. */
 function sundewStep(phase, u, dt) {
   const leaf = cap.leaf, ease = (x) => x * x * (3 - 2 * x);
-  const out = { x: cap.x0, y: cap.y0, z: cap.z0, heading: cap.h0 + Math.sin(simT * 9) * 0.15, pitch: 0, roll: 0, scale: 1, flail: 1 };
+  const out = { x: cap.x0, y: cap.y0, z: cap.z0, heading: cap.h0 + Math.sin(simT * 9) * 0.15, pitch: 0, roll: 0, scale: 1, flail: 1, ...digestion(phase, u) };
   if (!leaf) return out;
   if (phase === 'strike') { leaf.grip = ease(u); leaf.close = 0; out.roll = Math.sin(simT * 16) * 0.3; }
   else if (phase === 'hold') { leaf.grip = 1; leaf.close = 0.25 * ease(u); out.flail = 1 - 0.5 * u; out.roll = Math.sin(simT * 12) * 0.25 * (1 - u); out.y -= 0.06 * u; }
   else if (phase === 'eat') {
     const e = ease(u);
     leaf.grip = 1; leaf.close = 0.25 + 0.75 * e;
-    out.flail = 0.5 * (1 - u); out.scale = 1 - 0.6 * e; out.y -= 0.06 + 0.12 * e;
-  } else { leaf.grip = 1; leaf.close = 1; out.scale = 0; out.flail = 0; }
+    out.flail = 0.5 * (1 - u); out.y -= 0.06 + 0.12 * e;
+  } else { leaf.grip = 1; leaf.close = 1; out.flail = 0; out.y -= 0.18; }
   leaf.target = new THREE.Vector3(out.x, out.y + 0.15 * out.scale, out.z);
   return out;
 }
@@ -673,8 +676,9 @@ function die(cause) {
 
 /** Put a springtail down, fresh, at (x, z). */
 function resetBody(P, x, z) {
-  P.x = x; P.z = z; P.vx = P.vz = 0; P.mode = 'film'; P.air = null; P.cock = 1; P.roll = 0; P.pitch = 0; P.charging = false; P.charge = 0;
+  P.x = x; P.z = z; P.vx = P.vz = 0; P.mode = 'film'; P.air = null; P.cock = 1; P.roll = 0; P.pitch = 0; P.charging = false; P.charge = 0; P.queuedJump = null;
   P.bend = 0; P.furc = 0; P.leaf = null; P.struggle = 0; P.scale = 1; P.sy = 1; P.flailK = 0; P.heading = Math.PI / 2; P.hunker = 0; P.eatT = 0; P.deadT = 0;
+  P.digestWhite = 0; P.dissolve = 0;
   P.act = null; P.actT = 0; P.eatFood = null;
   const g = groundAt(x, z);
   P.y = g.y; P.mode = modeFor(g.kind);
@@ -754,7 +758,6 @@ function landAt(g) {
 
 function stepPlayer(dt, inp) {
   const P = pl;
-  P.cock = Math.min(1, P.cock + (P.mode === 'air' ? 0 : dt / 0.9));
   P.furc += ((P.mode === 'air' ? (P.air && P.air.t / P.air.T > 0.55 ? 0.6 : 1) : P.cock < 1 ? 1 - P.cock : 0) - P.furc) * Math.min(1, dt * (P.mode === 'air' ? 30 : 6));
   P.landPulse = Math.max(0, P.landPulse - dt * 2.5);
   P.eatT = Math.max(0, P.eatT - dt);
@@ -763,6 +766,8 @@ function stepPlayer(dt, inp) {
   const dir = camF.clone().multiplyScalar(-inp.move.y).addScaledVector(camR, inp.move.x);
   const mag = Math.min(1, inp.move.m);
   if (dir.lengthSq() > 0) dir.normalize();
+  const jumpAim = mag > 0.25 ? dir : { x: Math.cos(P.heading), z: Math.sin(P.heading) };
+  updateJumpInput(P, inp, dt, { x: jumpAim.x, z: jumpAim.z });
   P.moved = Math.max(0, P.moved - dt);
 
   if (P.mode === 'caught') return; // posed by animateCapture
@@ -904,16 +909,11 @@ function stepPlayer(dt, inp) {
     P.pitch = Math.max(-0.2, P.pitch);
   }
 
-  // furcula: hold A to cock (a hop when tapped, a full jump at full charge), release to fire
-  if (inp.dashDown && P.cock >= 1 && P.hunker < 0.5) {
-    P.charging = true; P.charge = Math.min(1, P.charge + dt / 0.7);
-    const d = mag > 0.25 ? dir : new THREE.Vector3(Math.cos(P.heading), 0, Math.sin(P.heading));
-    P.aim = { x: d.x, z: d.z };
-  }
-  if (P.charging && !inp.dashDown) {
-    P.charging = false;
-    let d = mag > 0.25 ? dir : new THREE.Vector3(Math.cos(P.heading), 0, Math.sin(P.heading));
-    let power = 0.12 + 0.88 * P.charge;
+  // Release on the ground, or consume the jump prepared during the last arc.
+  const queuedJump = takeQueuedJump(P);
+  if (queuedJump) {
+    let d = new THREE.Vector3(queuedJump.x, 0, queuedJump.z);
+    let power = queuedJump.power;
     // aim assist: an enemy near the aim line, within this jump's reach, becomes the target
     const R = 3 + 33 * power;
     const tgt = pounceTarget(P.x, P.z, d.x, d.z, R * 1.2, 0.45, true);
@@ -1129,6 +1129,8 @@ function setDrop(P) {
 // pose the springtail model from the player state
 function poseTail(t) {
   const P = pl, p = tail.pose;
+  tail.material.uniforms.uDigestWhite.value = P.digestWhite;
+  tail.material.uniforms.uDigestDissolve.value = P.dissolve;
   p.t = t;
   p.walk = P.walk;
   p.stride += ((P.mode === 'film' || P.mode === 'moss') && Math.hypot(P.vx, P.vz) > 0.3 ? 1 : 0) - p.stride;
@@ -1184,7 +1186,7 @@ function updateContacts() {
   // shadow casters
   let n = 0;
   const cast = (x, y, z, r, k) => { if (n < 8) { casters[n].set(x, y, z, r); casterK[n] = k; n++; } };
-  for (const P of recs()) if (P.mode !== 'dead' && P.scale > 0.3) cast(P.x, P.y + 0.25 * P.scale, P.z, 0.3 * P.scale, 0.55);
+  for (const P of recs()) if (P.mode !== 'dead' && P.scale > 0.3 && P.dissolve < 1) cast(P.x, P.y + 0.25 * P.scale, P.z, 0.3 * P.scale, 0.55 * (1 - P.dissolve));
   for (const c of stenus.contacts()) dimples.add(...c);
   if (boss.group.visible) for (const c of boss.contacts()) dimples.add(...c);
   if (strider.group.visible) for (const c of strider.contacts()) dimples.add(...c);

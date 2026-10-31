@@ -68,7 +68,8 @@ const FOLLOW_PHASES = [['strike', 0.45], ['hold', 1.0], ['eat', 2.2], ['follow',
  *   overlay's opacity (drawn by this module) and t is 0..1 within the phase.
  */
 export function createCapture({ onRestart, onRespawn, restartButton = 0, card: useCard = false, fade: useFade = true } = {}) {
-  const PHASES = useCard ? CARD_PHASES : FOLLOW_PHASES;
+  const DEFAULT_PHASES = useCard ? CARD_PHASES : FOLLOW_PHASES;
+  let PHASES = DEFAULT_PHASES;
   let i = -1, t = 0, info = null;
   const card = document.createElement('div');
   card.style.cssText = 'position:fixed;left:50%;bottom:9vh;transform:translateX(-50%);z-index:30;display:none;'
@@ -95,9 +96,10 @@ export function createCapture({ onRestart, onRespawn, restartButton = 0, card: u
     /** Turn the full-screen fade on or off at run time (players joining or leaving). */
     setFade(on) { useFade = !!on; if (!on) veil.style.opacity = '0'; },
     get phase() { return i >= 0 ? PHASES[i][0] : null; },
-    /** Start the sequence. `by`: the predator's name; `how`: a short description. */
+    /** Start the sequence. Optional `phases` overrides this catch's phase timings. */
     start(opts = {}) {
       if (i >= 0) return;
+      PHASES = opts.phases || DEFAULT_PHASES;
       info = opts; i = 0; t = 0;
       if (!useCard && opts.by) { caption.textContent = `${opts.by}${opts.how ? ` ${opts.how}` : ''}`; caption.style.opacity = '1'; }
     },
