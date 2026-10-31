@@ -27,11 +27,11 @@ export const ASSETS = {
   },
   "MP-U07": {
     "file": "assets/cards/phage.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-U08": {
     "file": "assets/cards/zoom.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-M01": {
     "file": "assets/mite/sem-moss-leaf.webp",
@@ -127,19 +127,19 @@ export const ASSETS = {
   },
   "MP-V01": {
     "file": "assets/phage/envelope.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-V02": {
     "file": "assets/phage/water.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-V03": {
     "file": "assets/phage/envelope-section.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G01": {
     "file": "assets/game/logo.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G02": {
     "file": "assets/game/title.webp",
@@ -151,7 +151,7 @@ export const ASSETS = {
   },
   "MP-G04": {
     "file": "assets/game/card-frame.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G05": {
     "file": "assets/game/paper.webp",
@@ -159,7 +159,7 @@ export const ASSETS = {
   },
   "MP-G06": {
     "file": "assets/game/icon.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G07": {
     "file": "assets/game/intro-springtail.webp",

@@ -320,6 +320,111 @@
     ]
   },
   {
+    "id": "MP-U07",
+    "name": "Phage card (molecular illustration)",
+    "file": "assets/cards/phage.webp",
+    "size": "1200 x 800, opaque",
+    "used": "The Phage card on the prototypes page.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE landscape 3:2 launcher card, no UI or text. Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Molecular-illustration look in the manner of David Goodsell's watercolours: flat, softly outlined shapes with no lighting effects, every protein and nucleic acid drawn at true relative size, crowded as real cytoplasm and water are, a restrained palette (warm pinks and oranges for proteins, purples for nucleic acid, pale yellows and greens for membranes and polysaccharide). Electron microscopes and models show this scale; a light microscope cannot. A single T4-like bacteriophage (prolate icosahedral head about 120 by 86 nm, a straight contractile tail sheath, a hexagonal baseplate, six long kinked tail fibres) drifting just above the curved outer membrane of a rod-shaped bacterium, its long fibres reaching down towards lipopolysaccharide chains and outer-membrane proteins on the surface; water crowded with small molecules around it. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nInput images: image1 electron micrograph of T4 is a shape reference only; image2 bacterium micrograph is a shape/scale reference only. Render entirely as a FLAT softly outlined molecular watercolour illustration, not an electron micrograph or a shaded 3D render. Exactly ONE T4-like phage with a prolate faceted head, straight sheath, small baseplate and SIX long kinked tail fibres (three paired attachments, some may overlap in projection); a curved Gram-negative outer membrane below with LPS brush. Keep the LOWER THIRD visually quiet and fairly even, because a title will be overlaid later. No molecular labels, no arrows, no scale bars or watermark. All colours explanatory, no glowing effects. Crisp enough at card size, restrained pink/orange proteins and purple DNA tones with pale green membrane, no hard shadows.",
+    "requested_prompt": "Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Molecular-illustration look in the manner of David Goodsell's watercolours: flat, softly outlined shapes with no lighting effects, every protein and nucleic acid drawn at true relative size, crowded as real cytoplasm and water are, a restrained palette (warm pinks and oranges for proteins, purples for nucleic acid, pale yellows and greens for membranes and polysaccharide). Electron microscopes and models show this scale; a light microscope cannot. A single T4-like bacteriophage (prolate icosahedral head about 120 by 86 nm, a straight contractile tail sheath, a hexagonal baseplate, six long kinked tail fibres) drifting just above the curved outer membrane of a rod-shaped bacterium, its long fibres reaching down towards lipopolysaccharide chains and outer-membrane proteins on the surface; water crowded with small molecules around it. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-0dce6b45-b5a5-40e5-a461-19ea4e9206cd.png",
+    "input_images": [
+      "research/assets/references/production/phage-t4.jpg",
+      "research/assets/references/production/magnetotactic.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1536,
+      1024
+    ],
+    "width": 1200,
+    "height": 800,
+    "sha256": "2e87aacd5fd0ab660a2b67113c94ca811a4ecbb5bf2b8fddfa90ac8b15d41d26",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      },
+      {
+        "id": "magnetotactic",
+        "local": "assets/references/production/magnetotactic.png",
+        "author": "Caulobacter subvibrioides (Diskussion)",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-U08",
+    "name": "Zoom transitions card",
+    "file": "assets/cards/zoom.webp",
+    "size": "1200 x 800, opaque",
+    "used": "The Zoom transitions card on the prototypes page.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE landscape 3:2 launcher card, no UI or text. Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. A single continuous image that zooms into itself: on the left a macro photograph of a blue-black water springtail on a bog pool beside Sphagnum moss; a nested series of thin white rectangular frames leads inward from it, each frame showing the next, smaller world in its own microscope look: a moss leaf with a tardigrade in DIC, then a green Paramecium in brightfield, then rod bacteria in phase contrast at the centre. Clean, elegant, scientifically grounded, no text, no labels, no scale bars, no fantasy creatures.\nInput images: 1 Podura swarm for animal colours, 2 moss leaf microscopy for leaf microstructure, 3 tardigrade for anatomy, 4 Paramecium bursaria for green algal symbionts, 5 Sphagnum capitulum for macro moss form only (no fingers or hands in final). Composition: this is a SINGLE CONTINUOUS RECURSIVE ZOOM, not separate panels or a side-by-side collage. Start with springtail/moss macro scene on the left, then three thin white NESTED rectangular frames step inward toward the right-centre, showing successively a pale DIC tardigrade by leaf, a green slipper-shaped Paramecium bursaria in brightfield, and tiny grey rod bacteria in phase contrast at the smallest centre. The frames describe DIFFERENT SCALES and are never a same-scale ecosystem. Each nested frame reveals the next optical world, with elegant transitions across boundaries. Wide lower third calm with no frames or high contrast details. Match organism proportions from the photographs: springtail six legs, tardigrade four pairs, Paramecium ciliated, bacteria simple unresolved rods. No labels, numerals, scale bars, UI, text, hands, or watermark. Output3:2.",
+    "requested_prompt": "Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. A single continuous image that zooms into itself: on the left a macro photograph of a blue-black water springtail on a bog pool beside Sphagnum moss; a nested series of thin white rectangular frames leads inward from it, each frame showing the next, smaller world in its own microscope look: a moss leaf with a tardigrade in DIC, then a green Paramecium in brightfield, then rod bacteria in phase contrast at the centre. Clean, elegant, scientifically grounded, no text, no labels, no scale bars, no fantasy creatures.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-2a1539e2-f78a-4449-b223-d9f795d6163b.png",
+    "input_images": [
+      "research/assets/references/springtail-swarm.jpg",
+      "research/assets/references/moss.jpg",
+      "research/assets/references/tardigrade-light.png",
+      "research/assets/references/production/paramecium-bursaria.jpg",
+      "research/assets/references/bog-hummock.jpg"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1536,
+      1024
+    ],
+    "width": 1200,
+    "height": 800,
+    "sha256": "08172a9d5b4fc4dd896de86330d74e7cdb21ce48acb770336af6960884071b27",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "springtail-swarm",
+        "local": "assets/references/springtail-swarm.jpg",
+        "author": "Philippe  Garcelon",
+        "license": "CC BY 2.0",
+        "license_url": "https://creativecommons.org/licenses/by/2.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Podura_aquatica_-_1.jpg"
+      },
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      },
+      {
+        "id": "tardigrade-light",
+        "local": "assets/references/tardigrade-light.png",
+        "author": "Dorathyexplorer",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png"
+      },
+      {
+        "id": "paramecium",
+        "local": "assets/references/paramecium.jpg",
+        "author": "MTadey",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
     "id": "MP-M01",
     "name": "SEM moss leaf surface",
     "file": "assets/mite/sem-moss-leaf.webp",
@@ -1561,6 +1666,247 @@
       "interior_horizontal": 1.261,
       "interior_vertical": 1.372
     }
+  },
+  {
+    "id": "MP-V01",
+    "name": "Outer membrane surface (top view)",
+    "file": "assets/phage/envelope.webp",
+    "size": "2048 x 2048, opaque, tileable",
+    "used": "The host cell's surface the phage lands on and walks across.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE finished square 1:1 seamless environment texture. Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Molecular-illustration look in the manner of David Goodsell's watercolours: flat, softly outlined shapes with no lighting effects, every protein and nucleic acid drawn at true relative size, crowded as real cytoplasm and water are, a restrained palette (warm pinks and oranges for proteins, purples for nucleic acid, pale yellows and greens for membranes and polysaccharide). Electron microscopes and models show this scale; a light microscope cannot. The outer surface of a Gram-negative bacterium seen from above at about 200 nm across: a dense lawn of lipopolysaccharide chains like a soft brush, with the trimeric pores of outer-membrane proteins (porins such as OmpC) scattered through it as rounded triangular clusters, and a few longer O-antigen chains. Muted, warm, evenly lit. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nReference roles: the supplied T4 electron micrograph is scale/ultrastructure context only. It is NOT a request to depict a phage here. Any bacterial or biofilm micrograph is context for packing only, NOT colour or rendering style. Render exclusively as a FLAT softly outlined molecular WATERCOLOUR illustration, all colours explanatory, no cast shadows, shiny surfaces or perspective lighting. Show ONLY the bacterium's outer surface from vertically straight ABOVE: a DENSE irregular lawn of small pale yellow/green LPS sugar chains, many softly outlined warm protein shapes, interspersed trimeric porin pores as rounded triangular clusters of THREE subunits with small central channels. Repeated porins at varied positions, uniform density and colour distribution across the whole square. A few longer O-antigen chains. Every edge continues across the opposite edge. NO side section or horizontal membrane bands, NO visible whole bacterium, NO phage, NO single dominant central feature, NO large empty gap, NO border or vignette. No red/green fluorescence glow. Scale target200nm field; porin proteins small compared with field, aboutseveralnm, not giant tissue cells. No text, labels, scale bars, UI or watermark.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Molecular-illustration look in the manner of David Goodsell's watercolours: flat, softly outlined shapes with no lighting effects, every protein and nucleic acid drawn at true relative size, crowded as real cytoplasm and water are, a restrained palette (warm pinks and oranges for proteins, purples for nucleic acid, pale yellows and greens for membranes and polysaccharide). Electron microscopes and models show this scale; a light microscope cannot. The outer surface of a Gram-negative bacterium seen from above at about 200 nm across: a dense lawn of lipopolysaccharide chains like a soft brush, with the trimeric pores of outer-membrane proteins (porins such as OmpC) scattered through it as rounded triangular clusters, and a few longer O-antigen chains. Muted, warm, evenly lit. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-7332ce2a-e235-4a0c-ad14-277d2ec47387.png",
+    "input_images": [
+      "research/assets/references/production/phage-t4.jpg",
+      "research/assets/references/production/biofilm-fluorescence.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "34ccc2bd90935191bf4b53692fae649fe18d33a4ebb8b26d24c6d80c7ff7c40f",
+    "export": "LANCZOS sizing; opposing-edge strips quilted with the approved conventional seam-correction workflow; WebP quality 92.",
+    "references": [
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      },
+      {
+        "id": "biofilm-fluorescence",
+        "local": "assets/references/production/biofilm-fluorescence.png",
+        "author": "Schwarz, Michael (ORCID: 0009-0002-1414-3291)",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:NFDI4BIOIMAGE_Calendar_March_2025_-_image_march.png"
+      }
+    ],
+    "mood_boards": [],
+    "seam_metrics_before": {
+      "horizontal_join": 28.077,
+      "vertical_join": 22.885,
+      "interior_horizontal": 8.718,
+      "interior_vertical": 8.214
+    },
+    "seam_metrics_after": {
+      "horizontal_join": 8.568,
+      "vertical_join": 7.218,
+      "interior_horizontal": 7.156,
+      "interior_vertical": 6.724
+    }
+  },
+  {
+    "id": "MP-V02",
+    "name": "Crowded water (backdrop)",
+    "file": "assets/phage/water.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "The far backdrop of the water the phage drifts through.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE finished landscape16:9 game backdrop. Molecular-illustration look in the manner of David Goodsell's watercolours: flat, softly outlined shapes with no lighting effects, every protein and nucleic acid drawn at true relative size, crowded as real cytoplasm and water are, a restrained palette (warm pinks and oranges for proteins, purples for nucleic acid, pale yellows and greens for membranes and polysaccharide). Electron microscopes and models show this scale; a light microscope cannot. Water crowded with small dissolved molecules and a few humic particles seen at about 1 µm across, softly out of focus, with depth fading into a pale blue-green haze; no cells and no phages, an even, calm backdrop. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nReference roles: the supplied T4 electron micrograph is scale/ultrastructure context only. It is NOT a request to depict a phage here. Any bacterial or biofilm micrograph is context for packing only, NOT colour or rendering style. Render exclusively as a FLAT softly outlined molecular WATERCOLOUR illustration, all colours explanatory, no cast shadows, shiny surfaces or perspective lighting. ONLY calm water with numerous small dissolved molecular silhouettes and a few irregular humic particles, NO membranes, bacteria, cells, phages or virus outlines. Soft pale blue-green background with muted pink, ochre, lavender and pale green small molecular shapes. Many smaller molecules, a few slightly larger humic clusters. Softly out of focus toward the far depth; illustration remains essentially flat, no dramatic lighting, beams, stars or black outer space. Evenly distributed quiet forms without focal hero object; use subtle outlines and restrained contrast for a far backdrop. No text, labels, scale bars, UI or watermark.",
+    "requested_prompt": "Molecular-illustration look in the manner of David Goodsell's watercolours: flat, softly outlined shapes with no lighting effects, every protein and nucleic acid drawn at true relative size, crowded as real cytoplasm and water are, a restrained palette (warm pinks and oranges for proteins, purples for nucleic acid, pale yellows and greens for membranes and polysaccharide). Electron microscopes and models show this scale; a light microscope cannot. Water crowded with small dissolved molecules and a few humic particles seen at about 1 µm across, softly out of focus, with depth fading into a pale blue-green haze; no cells and no phages, an even, calm backdrop. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-72f8e3e1-d435-4d88-89ca-b3e35ae5411b.png",
+    "input_images": [
+      "research/assets/references/production/phage-t4.jpg"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "d083ef7f7a10e4bb51d42d0e95544fbc551d6e67201d1e43f5778e42431dbb86",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-V03",
+    "name": "Envelope cross-section",
+    "file": "assets/phage/envelope-section.webp",
+    "size": "2560 x 1080, opaque",
+    "used": "The cutaway shown when the tail tube pierces the envelope and the DNA enters.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE finished ultrawide64:27 horizontal cutaway plate. Molecular-illustration look in the manner of David Goodsell's watercolours: flat, softly outlined shapes with no lighting effects, every protein and nucleic acid drawn at true relative size, crowded as real cytoplasm and water are, a restrained palette (warm pinks and oranges for proteins, purples for nucleic acid, pale yellows and greens for membranes and polysaccharide). Electron microscopes and models show this scale; a light microscope cannot. A horizontal cross-section through a Gram-negative cell envelope about 400 nm wide: from top to bottom, water, the outer membrane with lipopolysaccharide chains and porins, the periplasm with a thin peptidoglycan mesh, the inner membrane with embedded proteins, and crowded cytoplasm with ribosomes and a DNA strand. Layers horizontal and continuous across the image. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nReference roles: the supplied T4 electron micrograph is scale/ultrastructure context only. It is NOT a request to depict a phage here. Any bacterial or biofilm micrograph is context for packing only, NOT colour or rendering style. Render exclusively as a FLAT softly outlined molecular WATERCOLOUR illustration, all colours explanatory, no cast shadows, shiny surfaces or perspective lighting. CRITICAL topology: exactly TWO distinct continuous lipid-bilayer membrane bands across the image. Top-to-bottom: (1) water with dissolved molecules; (2) OUTER membrane, with LPS carbohydrate chains pointing upward into water and trimeric porin proteins spanning this bilayer; (3) open PERIPLASM containing ONE thin peptidoglycan mesh sheet, NOT another membrane; (4) INNER membrane with embedded proteins; (5) crowded CYTOPLASM with ribosomes and a purple DNA strand at bottom. Membrane layers horizontally continuous and gently irregular but never broken, folded or branched. Each membrane is a bilayer (two lipid head rows and hydrocarbon tails between), not two separate membrane bands. Clearly visible periplasm space between the two bilayers. No labels or arrows. NO phage, injection tube, cutout hole, or third membrane. Wide horizontal64:27 composition. No text, labels, scale bars, UI or watermark.",
+    "requested_prompt": "Molecular-illustration look in the manner of David Goodsell's watercolours: flat, softly outlined shapes with no lighting effects, every protein and nucleic acid drawn at true relative size, crowded as real cytoplasm and water are, a restrained palette (warm pinks and oranges for proteins, purples for nucleic acid, pale yellows and greens for membranes and polysaccharide). Electron microscopes and models show this scale; a light microscope cannot. A horizontal cross-section through a Gram-negative cell envelope about 400 nm wide: from top to bottom, water, the outer membrane with lipopolysaccharide chains and porins, the periplasm with a thin peptidoglycan mesh, the inner membrane with embedded proteins, and crowded cytoplasm with ribosomes and a DNA strand. Layers horizontal and continuous across the image. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-d327b7f7-da1d-48be-afe9-f383fe15cce3.png",
+    "input_images": [
+      "research/assets/references/production/phage-t4.jpg",
+      "research/assets/references/production/magnetotactic.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1926,
+      816
+    ],
+    "width": 2560,
+    "height": 1080,
+    "sha256": "8e71ea62a9d51518eeb71f13ea23d6796dddd64cdedb58a7397b8dcc4ceede70",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      },
+      {
+        "id": "magnetotactic",
+        "local": "assets/references/production/magnetotactic.png",
+        "author": "Caulobacter subvibrioides (Diskussion)",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-G01",
+    "name": "Micro Zoom logo",
+    "file": "assets/game/logo.png",
+    "size": "1600 x 640, transparent",
+    "used": "The title screen, the pause menu header and the library card.",
+    "prompt": "Use case: logo-brand. Asset type: ONE finished transparent PNG game asset. Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A game title logo: the words \"MICRO ZOOM\" in capitals, spelled exactly M-I-C-R-O Z-O-O-M, in an elegant engraved serif with brass inlay and a thin ink outline, the O of ZOOM drawn as a microscope objective lens seen end-on with concentric brass rings and a tiny tardigrade silhouette inside. A fine engraved scale rule underlines the words. Wide landscape composition, even margins, no other text, no watermark. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nShared visual vocabulary: finely engraved antique BRASS, dark ink-green and warm ivory accents, Victorian naturalist cabinet, precise restrained ornament. REAL alpha transparency, not a painted checkerboard, no magenta fallback. Output wide5:2. The ONLY text is MICRO ZOOM, exactly these nine letters with one space. Set it on ONE HORIZONTAL LINE with generous clear alpha margin on all sides. Keep all letters readable and evenly spaced. Replace the FIRST O in ZOOM with a brass objective ring containing a tiny eight-legged tardigrade silhouette, preserving the O silhouette; the second O remains an engraved serif O. One thin engraved scale rule below, tiny ticks with NO numerals. No subtitle, badge, banner, extra text or background. Supplied organisms are anatomy references only, do not paste their photographic surroundings.",
+    "requested_prompt": "Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A game title logo: the words \"MICRO ZOOM\" in capitals, spelled exactly M-I-C-R-O Z-O-O-M, in an elegant engraved serif with brass inlay and a thin ink outline, the O of ZOOM drawn as a microscope objective lens seen end-on with concentric brass rings and a tiny tardigrade silhouette inside. A fine engraved scale rule underlines the words. Wide landscape composition, even margins, no other text, no watermark. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-d72f7587-4f11-419d-83ec-970688fc3136.png",
+    "input_images": [
+      "research/assets/references/springtail-swarm.jpg",
+      "research/assets/references/tardigrade-light.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1983,
+      793
+    ],
+    "width": 1600,
+    "height": 640,
+    "sha256": "f681d18c1a2d4b01fe10ccb750c8493bde66286cb0e3dde81d3e84c4b42fb2fa",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "springtail-swarm",
+        "local": "assets/references/springtail-swarm.jpg",
+        "author": "Philippe  Garcelon",
+        "license": "CC BY 2.0",
+        "license_url": "https://creativecommons.org/licenses/by/2.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Podura_aquatica_-_1.jpg"
+      },
+      {
+        "id": "tardigrade-light",
+        "local": "assets/references/tardigrade-light.png",
+        "author": "Dorathyexplorer",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-G04",
+    "name": "Card frame",
+    "file": "assets/game/card-frame.png",
+    "size": "1024 x 1400, transparent",
+    "used": "The frame around each world card on the select screen (stretched as a 9-slice).",
+    "prompt": "Use case: ui-mockup. Asset type: ONE finished transparent PNG game asset. Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. An empty portrait frame for a specimen card: a thin polished brass bezel with engraved corner ornaments and a small vernier scale along the bottom edge, like the mount of a microscope slide; the inside is completely empty and transparent; even line weights so it can be stretched as a nine-slice. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nShared visual vocabulary: finely engraved antique BRASS, dark ink-green and warm ivory accents, Victorian naturalist cabinet, precise restrained ornament. REAL alpha transparency, not a painted checkerboard, no magenta fallback. Output portrait aspect1024:1400. This is an EMPTY FUNCTIONAL NINE-SLICE CARD FRAME, viewed straight-on with no perspective. Thin brass border around perimeter, equal-width left/right borders, restrained corner engraving contained entirely within the corner regions, small vernier ticks along bottom only without numbers. Large EMPTY TRANSPARENT rectangular opening, absolutely no image, paper, blur, shadow or glass fill in the centre. Transparent outside the frame as well. Maintain safe blank alpha margin outside all ornament so no corners crop. Do not depict a specimen, words, numeral, drop shadow or background.",
+    "requested_prompt": "Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. An empty portrait frame for a specimen card: a thin polished brass bezel with engraved corner ornaments and a small vernier scale along the bottom edge, like the mount of a microscope slide; the inside is completely empty and transparent; even line weights so it can be stretched as a nine-slice. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-56214898-90b9-4c28-9857-1977c0bf02ca.png",
+    "input_images": [],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1073,
+      1466
+    ],
+    "width": 1024,
+    "height": 1400,
+    "sha256": "4557a8ea69526994fc99d8b5214fb60994648ce4ee9295a75fc5e9635b957eb7",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-G06",
+    "name": "App icon",
+    "file": "assets/game/icon.png",
+    "size": "1024 x 1024, transparent",
+    "used": "Browser tab and home-screen icon.",
+    "prompt": "Use case: ui-mockup. Asset type: ONE finished transparent PNG game asset. Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. An app icon: a brass microscope objective seen end-on, concentric brass and black rings around a glowing round field of view that holds a small plump tardigrade in soft DIC grey-green; on a rounded-square tile of deep ink green. Bold and readable at 48 px. The rounded square fills the frame with transparent corners. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nShared visual vocabulary: finely engraved antique BRASS, dark ink-green and warm ivory accents, Victorian naturalist cabinet, precise restrained ornament. REAL alpha transparency, not a painted checkerboard, no magenta fallback. Output square1:1. ONE rounded-square deep ink-green app tile with clear transparent OUTSIDE CORNERS; large concentric brass objective ring dominates tile. Inside ring a simple grey-green DIC-like silhouette of a plump tardigrade with FOUR PAIRS of stubby legs, last pair rearward. High silhouette contrast, keep detail sparse so recognizable at48px. No lettering or numbers, no separate inset panels, no extra animals, no science-fiction glow; the field of view may be softly luminous like transmitted microscope illumination.",
+    "requested_prompt": "Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. An app icon: a brass microscope objective seen end-on, concentric brass and black rings around a glowing round field of view that holds a small plump tardigrade in soft DIC grey-green; on a rounded-square tile of deep ink green. Bold and readable at 48 px. The rounded square fills the frame with transparent corners. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-677bba66-f4dc-4900-8e9f-276b79c8b124.png",
+    "input_images": [
+      "research/assets/references/tardigrade-light.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 1024,
+    "height": 1024,
+    "sha256": "ee848469a065b3a2ca905275593ead3ce0f47b7ad905260472e3c2ba26929389",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "tardigrade-light",
+        "local": "assets/references/tardigrade-light.png",
+        "author": "Dorathyexplorer",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png"
+      }
+    ],
+    "mood_boards": []
   },
   {
     "id": "MP-R01",

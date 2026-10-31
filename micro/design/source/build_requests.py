@@ -191,7 +191,7 @@ GROUPS = [
                 "prompt": f"{CARD} {PHASE} A field of bog-sediment bacteria at 1000x, about 40 µm across: short rods and curved vibrios 1 to 3 µm long, a few swimming with faint motion blur, one curved magnetotactic spirillum near the centre slightly sharper than the rest, loose clumps of cells in a faint matrix, and at one edge the out-of-focus curved margin of a much larger ciliate looming as a soft dark wall with a blurred fringe of cilia. No cell drawn with more detail than the optics allow. {SCIENCE}",
             },
             {
-                "id": "MP-U07", "name": "Phage card (molecular illustration)",
+                "id": "MP-U07", "status": "delivered", "name": "Phage card (molecular illustration)",
                 "file": "assets/cards/phage.webp", "size": "1200 x 800, opaque",
                 "used": "The Phage card on the prototypes page.",
                 "standin": "A teal and amber gradient with the title.",
@@ -199,7 +199,7 @@ GROUPS = [
                 "prompt": f"{CARD} {MOLECULAR} A single T4-like bacteriophage (prolate icosahedral head about 120 by 86 nm, a straight contractile tail sheath, a hexagonal baseplate, six long kinked tail fibres) drifting just above the curved outer membrane of a rod-shaped bacterium, its long fibres reaching down towards lipopolysaccharide chains and outer-membrane proteins on the surface; water crowded with small molecules around it. {SCIENCE}",
             },
             {
-                "id": "MP-U08", "name": "Zoom transitions card",
+                "id": "MP-U08", "status": "delivered", "name": "Zoom transitions card",
                 "file": "assets/cards/zoom.webp", "size": "1200 x 800, opaque",
                 "used": "The Zoom transitions card on the prototypes page.",
                 "standin": "A radial gradient with the title.",
@@ -433,7 +433,7 @@ GROUPS = [
         "intro": "Images for the phage prototype (Level 6): no light microscope can see a phage, so the level is a Goodsell-style molecular illustration grounded in cryo-EM shapes. The phage and host are built in code; these give the surfaces and the crowded water.",
         "items": [
             {
-                "id": "MP-V01", "name": "Outer membrane surface (top view)",
+                "id": "MP-V01", "status": "delivered", "name": "Outer membrane surface (top view)",
                 "file": "assets/phage/envelope.webp", "size": "2048 x 2048, opaque, tileable",
                 "used": "The host cell's surface the phage lands on and walks across.",
                 "standin": "Procedural lipopolysaccharide brush and protein dots.",
@@ -441,7 +441,7 @@ GROUPS = [
                 "prompt": f"{TILE} {MOLECULAR} The outer surface of a Gram-negative bacterium seen from above at about 200 nm across: a dense lawn of lipopolysaccharide chains like a soft brush, with the trimeric pores of outer-membrane proteins (porins such as OmpC) scattered through it as rounded triangular clusters, and a few longer O-antigen chains. Muted, warm, evenly lit. {SCIENCE}",
             },
             {
-                "id": "MP-V02", "name": "Crowded water (backdrop)",
+                "id": "MP-V02", "status": "delivered", "name": "Crowded water (backdrop)",
                 "file": "assets/phage/water.webp", "size": "2560 x 1440, opaque",
                 "used": "The far backdrop of the water the phage drifts through.",
                 "standin": "A soft gradient with procedural molecule dots.",
@@ -449,7 +449,7 @@ GROUPS = [
                 "prompt": f"{MOLECULAR} Water crowded with small dissolved molecules and a few humic particles seen at about 1 µm across, softly out of focus, with depth fading into a pale blue-green haze; no cells and no phages, an even, calm backdrop. {SCIENCE}",
             },
             {
-                "id": "MP-V03", "name": "Envelope cross-section",
+                "id": "MP-V03", "status": "delivered", "name": "Envelope cross-section",
                 "file": "assets/phage/envelope-section.webp", "size": "2560 x 1080, opaque",
                 "used": "The cutaway shown when the tail tube pierces the envelope and the DNA enters.",
                 "standin": "Procedural layered bands.",
@@ -463,7 +463,7 @@ GROUPS = [
         "intro": "Art for the full game (micro/game/): title screen, menu, cards and the intro screen of each world. Until they arrive the game draws its own stand-ins in the same style.",
         "items": [
             {
-                "id": "MP-G01", "name": "Micro Zoom logo",
+                "id": "MP-G01", "status": "delivered", "name": "Micro Zoom logo",
                 "file": "assets/game/logo.png", "size": "1600 x 640, transparent",
                 "used": "The title screen, the pause menu header and the library card.",
                 "standin": "The words MICRO ZOOM set in the game's display font.",
@@ -487,7 +487,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} A naturalist's laboratory bench seen from above, softly out of focus: dark green baize, a brass microscope stage edge, glass slides with hand-written specimen labels, an engraved brass scale rule, a magnifying glass, sepia field notes with ink sketches of mites and tardigrades. The centre is dark and calm so a row of cards can sit over it. Full-bleed 16:9, no legible text.",
             },
             {
-                "id": "MP-G04", "name": "Card frame",
+                "id": "MP-G04", "status": "delivered", "name": "Card frame",
                 "file": "assets/game/card-frame.png", "size": "1024 x 1400, transparent",
                 "used": "The frame around each world card on the select screen (stretched as a 9-slice).",
                 "standin": "A CSS brass border with engraved corner marks.",
@@ -503,7 +503,7 @@ GROUPS = [
                 "prompt": f"{TILE} Aged ivory laboratory paper with a fine even fibre texture, a very faint pale-green engraved millimetre grid and the slightest foxing, light and calm so dark text reads on it. No stains in one spot, no text.",
             },
             {
-                "id": "MP-G06", "name": "App icon",
+                "id": "MP-G06", "status": "delivered", "name": "App icon",
                 "file": "assets/game/icon.png", "size": "1024 x 1024, transparent",
                 "used": "Browser tab and home-screen icon.",
                 "standin": "A drawn brass objective ring.",
