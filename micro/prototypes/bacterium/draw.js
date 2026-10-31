@@ -212,22 +212,23 @@ export function createDrawer(world) {
       const round = ease(Math.min(1, lys / 0.45));
       const burst = Math.max(0, (lys - 0.78) / 0.22);
       const tail = 0.36 * (1 - 0.5 * contract);
-      const pmat = { dn: 0.16, scat: 20, fl: [0, PHAGE * chan.phage * 0.15, 0], z: 0, hk: 1 };
+      // (drawn ×3 and denser than life so it shows in phase contrast too; really ≈60 nm and invisible there)
+      const pmat = { dn: 0.6, scat: 20, fl: [0, PHAGE * chan.phage * 0.15, 0], z: 0, hk: 1 };
       if (lys < 0.3) {
-        S.rod(bx + nx * tail * 0.5, by + ny * tail * 0.5, Math.atan2(ny, nx), tail, 0.03 + 0.02 * contract, pmat);
-        S.disc(bx + nx * (tail + 0.1), by + ny * (tail + 0.1), 0.11, { ...pmat, fl: [0, PHAGE * chan.phage * 0.3 * (1 - 0.6 * inject), 0] });
+        S.rod(bx + nx * tail * 0.5, by + ny * tail * 0.5, Math.atan2(ny, nx), tail, 0.045 + 0.03 * contract, pmat);
+        S.disc(bx + nx * (tail + 0.14), by + ny * (tail + 0.14), 0.17, { ...pmat, fl: [0, PHAGE * chan.phage * 0.3 * (1 - 0.6 * inject), 0] });
       }
       // the DNA: a fluorescent thread uncoiling into the cytoplasm
-      if (inject > 0 && lys < 0.5) S.strand(bx - nx * 0.25 * inject, by - ny * 0.25 * inject, Math.atan2(ny, nx) + Math.PI, 0.5 * inject + 0.05, 0.012, 0.06, 0.25, { dn: 0.05, scat: 4, fl: [0, 120 * chan.phage, 0], z: 0, phase: t * 3 });
+      if (inject > 0 && lys < 0.5) S.strand(bx - nx * 0.25 * inject, by - ny * 0.25 * inject, Math.atan2(ny, nx) + Math.PI, 0.5 * inject + 0.05, 0.03, 0.06, 0.25, { dn: 0.3, scat: 4, fl: [0, 120 * chan.phage, 0], z: 0, phase: t * 3 });
       if (burst <= 0) body(S, s, s.x, s.y, s.a, round, 0.25 * round, flPh, lys < 0.1);
       else S.disc(s.x, s.y, sp.r * 2.1 * (1 + 0.4 * burst), { dn: 0.012 * (1 - burst * 0.6), scat: 0.05, fl: [0.25 * chan.memb * (1 - burst * 0.7), 0, 0], memb: 1, z: 0 });
       // new phages fill the round cell, then fly out when it lyses
       const fill = Math.max(0, Math.min(1, (lys - 0.35) / 0.4));
-      const n = ph === 'eaten' ? 0 : Math.floor(lysisDots.length * fill); // once burst, they are real phages in the water
+      const n = Math.floor(lysisDots.length * fill);
       for (let i = 0; i < n; i++) {
         const d = lysisDots[i];
         const rad = sp.r * 1.7 * d.d * (1 + burst * 7 * d.v);
-        S.disc(s.x + Math.cos(d.a) * rad, s.y + Math.sin(d.a) * rad, 0.06, { dn: 0.16, scat: 18, fl: [0, PHAGE * chan.phage * 0.5, 0], z: 0, hk: 1 });
+        S.disc(s.x + Math.cos(d.a) * rad, s.y + Math.sin(d.a) * rad, 0.1, { dn: 0.5, scat: 18, fl: [0, PHAGE * chan.phage * 0.5, 0], z: 0, hk: 1 });
       }
       return;
     }
@@ -235,6 +236,9 @@ export function createDrawer(world) {
       // it rams, bores in through the wall and the cell rounds into a bdelloplast round it
       const lys = ph === 'eat' ? ease(k) : ph === 'eaten' ? 1 : 0;
       body(S, s, s.x, s.y, s.a, lys, 0.15 * lys, flPh, ph === 'strike');
+      // the predator inside, denser than your cytoplasm so it shows through the wall
+      const B = A.who;
+      if (ph !== 'strike') S.rod(B.x, B.y, B.a, 0.95 * (1 - 0.25 * lys), 0.2, { dn: 0.09, scat: 0.3, fl: [MEMB * chan.memb, 30 * chan.flag, 0], memb: 0.85, ab: [0.03, 0.03, 0.04], curve: 0.7 + 0.8 * lys, z: 0 });
       return;
     }
   }

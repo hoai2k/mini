@@ -99,11 +99,13 @@ fsScene.add(fsMesh);
 const fsCam = new THREE.Camera();
 
 const dbuf = new THREE.Vector2();
+// a software rasteriser (headless checks) draws the specimen at half resolution at most
+const SOFTWARE = (() => { try { const g = renderer.getContext(); return /swiftshader|llvmpipe|software/i.test(String(g.getParameter(g.RENDERER))); } catch { return false; } })();
 function resize() {
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.25));
   renderer.setSize(innerWidth, innerHeight, false);
   renderer.getDrawingBufferSize(dbuf);
-  zo.resize(dbuf.x, dbuf.y, opts.scale);
+  zo.resize(dbuf.x, dbuf.y, SOFTWARE ? Math.min(opts.scale, 0.5) : opts.scale);
 }
 addEventListener('resize', resize);
 resize();

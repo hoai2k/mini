@@ -364,7 +364,9 @@ function tick(dt, inp) {
   if (view.focusFollows && !inp.focusing) view.focus *= Math.exp(-dt * 1.5);
   // camera: the stage follows the cell
   const k = 1 - Math.exp(-dt * 5);
-  view.cx += (S.x - view.cx) * k; view.cy += (S.y - view.cy) * k;
+  // once eaten, the view slides down so your remains sit above the Eaten card
+  const lift = capture.active && cat.phase === 'eaten' ? ZOOMS[view.zoom] * 0.22 : 0;
+  view.cx += (S.x - view.cx) * k; view.cy += (S.y - lift - view.cy) * k;
   // events
   if (ev.phage) { pad.rumble(60, 0.3, 0); if (!msg.phageHint) { msg.phageHint = true; hud.toast('A phage stuck to you! Dash (A) or tumble (B) within 3 s to shake it off', 3200); } else hud.toast('Another phage stuck: shake it off (A / B)'); }
   if (ev.shed) hud.toast(`Shook off ${ev.shed} phage${ev.shed > 1 ? 's' : ''} while the binding was still reversible`);

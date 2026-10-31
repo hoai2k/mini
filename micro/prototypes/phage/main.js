@@ -94,7 +94,7 @@ safeTexture('MP-V03', { repeat: false }).then((t) => { if (t) { art.section = t;
 const LOOKS = ['Goodsell watercolour', 'Cryo-EM greyscale', 'Fluorescence (pseudo-colour)'];
 const LOOK_KEY = ['goodsell', 'cryo', 'fluor'];
 const ZOOMS = [60, 110, 180, 290];
-const view = { look: 0, zoom: 2, yaw: 0, pitch: 0, overlay: false, ink: true, art: true, target: new THREE.Vector3(), dist: 180, iso: null };
+const view = { look: 0, zoom: 1, yaw: 0, pitch: 0, overlay: false, ink: true, art: true, target: new THREE.Vector3(), dist: 180, iso: null };
 const opts = { drive: true, brownian: true, tumble: true, uv: true, amoeba: true };
 
 function applyArt() {
@@ -176,6 +176,7 @@ function resetLevel() {
   world.reset();
   P.pos.copy(START); P.vel.set(0, 0, 0); P.bvel.set(0, 0, 0); P.gust.set(0, 0, 0); P.angVel.set(0, 0, 0);
   P.q.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0.5);
+  view.zoom = 1;
   Object.assign(P, { mode: 'drift', foldTarget: 0, fold: 0, integrity: 1, host: null, canCommit: false, bound: 0, commitT: 0, kind: null, cutBy: null, burstT: 0, fade: 0, contract: 0, star: 0, shortOut: 0, dna: 1, dark: 0, crack: 0, scale: 1 });
   releaseAnchors();
   P.stuckTip.fill(null);

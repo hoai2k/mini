@@ -24,20 +24,20 @@ const UP = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1);
 
 const HOSTS = [
   { id: 'A', name: 'Host A', home: [-30, -150, 0], angle: 0.1, half: 78, r: 38, patches: [[-48, -0.25], [8, 0.35], [52, -0.1]],
-    receptors: 'OmpC + LPS', defence: 'Restriction enzyme; CRISPR with no matching spacer', odds: 0.6, crispr: false, color: '#c9dc8a', lps: '#86c06a' },
+    receptors: 'OmpC + LPS', defence: 'Restriction enzyme; CRISPR with no matching spacer', odds: 0.6, crispr: false, color: '#eef3c4', lps: '#86c06a' },
   { id: 'B', name: 'Host B', home: [300, -130, -4], angle: -0.45, half: 58, r: 36, patches: [[-20, 0.2], [30, -0.3]],
-    receptors: 'OmpC + LPS', defence: 'Restriction enzyme; CRISPR carrying a matching spacer', odds: 0.15, crispr: true, color: '#d6d58a', lps: '#9cc36a' },
+    receptors: 'OmpC + LPS', defence: 'Restriction enzyme; CRISPR carrying a matching spacer', odds: 0.15, crispr: true, color: '#f1efc0', lps: '#9cc36a' },
   { id: 'W', name: 'Wrong host', home: [150, 10, 0], angle: 0.85, half: 46, r: 30, patches: [],
-    receptors: 'none (a Gram-positive: thick wall, no outer membrane, no OmpC)', defence: '—', odds: 0, crispr: false, wrong: true, color: '#c8b98f', lps: '#b6a36a' },
+    receptors: 'none (a Gram-positive: thick wall, no outer membrane, no OmpC)', defence: '—', odds: 0, crispr: false, wrong: true, color: '#ead9b8', lps: '#c9ad78' },
 ];
 
 function proceduralEnvelope() {
   const c = document.createElement('canvas'); c.width = c.height = 256;
   const g = c.getContext('2d');
-  g.fillStyle = '#e9edc6'; g.fillRect(0, 0, 256, 256);
+  g.fillStyle = '#f4f2dc'; g.fillRect(0, 0, 256, 256);
   for (let i = 0; i < 900; i++) {
     const x = Math.random() * 256, y = Math.random() * 256, r = 3 + Math.random() * 3;
-    g.fillStyle = `hsl(${70 + Math.random() * 30},${45 + Math.random() * 20}%,${62 + Math.random() * 14}%)`;
+    g.fillStyle = `hsl(${55 + Math.random() * 40},${40 + Math.random() * 20}%,${74 + Math.random() * 12}%)`;
     g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
   }
   const t = new THREE.CanvasTexture(c);
@@ -60,7 +60,7 @@ export function createWorld(scene) {
     const body = inked(geo, mat, { width: 1.3 });
     g.add(body);
     // LPS forest
-    const nL = Math.round(def.half * def.r * 0.16);
+    const nL = Math.round(def.half * def.r * 0.34);
     const lps = inkedInstanced(lpsGeo, toonMaterial({ color: '#ffffff', mottle: 0.1 }), nL, { width: 0.5 });
     const lc = new THREE.Color(def.lps);
     const host = { ...def, group: g, body, mat, pos: new THREE.Vector3(...def.home), vel: new THREE.Vector3(), ang: def.angle, angVel: 0, patchList: [], rings: [] };

@@ -28,7 +28,7 @@ export const T4 = {
   FIBRE_LEN: 16, FIBRE_NODES: 9, KNEE: 4, RINGS: 23, COLLAR: 0.7, PLATE: 1.0,
 };
 export const T4_COLORS = {
-  capsid: '#6f9be0', capsidDeep: '#4f78c4', vertex: '#7fc79a', dna: '#8a4fc8', collar: '#58b7d8', whisker: '#8fd6cf',
+  capsid: '#6f9be0', capsidDeep: '#4f78c4', vertex: '#7fc79a', dna: '#a77ae0', collar: '#58b7d8', whisker: '#8fd6cf',
   sheath: '#e2bd55', sheath2: '#d3a843', tube: '#a7e0d6', plate: '#e98a3c', plate2: '#f0a649',
   fibre: '#ec8a3a', knee: '#f3c04a', tip: '#d8662c', short: '#f2b25a',
 };
@@ -105,7 +105,7 @@ export function createT4({ clip = true } = {}) {
   const headMat = toonMaterial({ color: T4_COLORS.capsidDeep, clip, side: THREE.DoubleSide, mottle: 0.1 });
   const head = inked(polyGeometry(icos), headMat, { clip });
   const capsMat = toonMaterial({ color: '#ffffff', clip, mottle: 0.12 });
-  const bumpGeo = new THREE.IcosahedronGeometry(0.62, 1);
+  const bumpGeo = new THREE.IcosahedronGeometry(0.7, 1);
   // capsomer beads on each face
   const capPts = [];
   const N = 5;
@@ -121,11 +121,11 @@ export function createT4({ clip = true } = {}) {
     }
   }
   for (const p of V) capPts.push(p.clone().multiplyScalar(1.01));
-  const caps = inkedInstanced(bumpGeo, capsMat, capPts.length, { clip, width: 0.7 });
+  const caps = inkedInstanced(bumpGeo, capsMat, capPts.length, { clip, width: 0.45, color: '#253a6a' });
   const cBlue = new THREE.Color(T4_COLORS.capsid), cGreen = new THREE.Color(T4_COLORS.vertex);
   capPts.forEach((p, i) => {
     let dmin = 1e9; for (const q of V) dmin = Math.min(dmin, p.distanceTo(q));
-    const green = dmin < 2.1;
+    const green = dmin < 1.35;
     _c.copy(green ? cGreen : cBlue).offsetHSL((Math.random() - 0.5) * 0.03, 0, (Math.random() - 0.5) * 0.08);
     caps.setColorAt(i, _c);
     _m.compose(p, _q.identity(), _s.setScalar(green ? 0.95 : 0.8 + Math.random() * 0.2));
@@ -404,7 +404,7 @@ export function createT4({ clip = true } = {}) {
     setCutFrom(camPos) {
       head.getWorldPosition(_p);
       _v.subVectors(camPos, _p).normalize();
-      clipPlanes[0].setFromNormalAndCoplanarPoint(_w.copy(_v).negate(), _p.addScaledVector(_v, 0.6));
+      clipPlanes[0].setFromNormalAndCoplanarPoint(_w.copy(_v).negate(), _p.addScaledVector(_v, 2.4));
     },
     /** Centre of the head in world space. */
     headWorld(out = new THREE.Vector3()) { return head.getWorldPosition(out); },
