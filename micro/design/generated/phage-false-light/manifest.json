@@ -1,0 +1,28 @@
+[
+  {
+    "id": "PFL-01",
+    "file": "phage-seeking-cell.png",
+    "name": "Normal glowing phage seeking a host",
+    "prompt": "Use case: stylized-concept.\nAsset type: realistic microscopic false-light game rendering reference, landscape 16:9.\nPrimary request: one normal T4-shaped bacteriophage, glowing with warm white-gold illumination, is seeking and approaching a bacterial host cell in a watery microscopic environment. This is ordinary Phage-level play, not the future super-phage celebration.\nVisual style: the realistic microscopic false-light treatment of luminous gold phages among textured blue-teal cells: faceted translucent capsid, detailed tail sheath and slender tail fibres, convincing wet organic bacterial membrane, tiny suspended particles and luminous but restrained light scattering. Realistic materials with deliberately hypothetical illumination; cinematic 3D rendering, not hand-drawn or watercolour.\nComposition: show the whole phage approaching a clear receptor region on one host, with the host surface and several surrounding cells spatially readable. Keep the normal phage small relative to its host. No explosion, no swarm celebration.\nDepth of field: reasonably large depth of field. The phage, its fibres, the target cell surface and surrounding molecular environment should remain legible together. Only distant scenery softens slightly. Avoid a tiny focal slice, heavy bokeh or springtail-style extreme macro blur.\nConstraints: no text, no labels, no UI, no DNA icons, no magic symbols, no weapons, no human skin. Let false light and realistic surface detail define the image.",
+    "status": "delivered",
+    "method": "built-in image_gen",
+    "use": "Future visual-style reference only; not a runtime asset.",
+    "style_target": "../super-gene-return/super-phage-burst.png",
+    "width": 1672,
+    "height": 941,
+    "sha256": "ed1d5c8b3a0ec01298e80d965dc6b8600912dee65b5305d351899de032e15360",
+    "source_artifact": "exec-538cce74-3bf5-477e-900e-645970664be9.png",
+    "generated_on": "2026-10-31",
+    "export": "Original generated PNG; no edits or resizing."
+  },
+  {
+    "id": "PFL-02",
+    "file": "phage-inside-cell.png",
+    "name": "Inside-cell false-light view",
+    "prompt": "Use case: stylized-concept.\nAsset type: realistic microscopic false-light reference for the inside-cell portion of a bacteriophage game, landscape 16:9.\nPrimary request: show what the Phage level looks like from inside the host cell as the phage genome enters, using realistic microscopic false light rather than a hand-drawn illustration.\nScene: a spacious readable view through a crowded bacterial cytoplasm. The inner surface of a curved blue-teal bacterial membrane is visible in the middle distance; a phage tail tube reaches through it, releasing a thin luminous warm white-gold DNA thread into the cell. Keep the phage capsid outside the cell; the inside gameplay subject is the entering genome. Surround it with believable ribosomes, proteins and cell material at molecular scale without turning them into labelled diagram symbols.\nVisual style: realistic textured translucent biological materials, watery blue-teal surroundings, delicate warm white-gold glow on the entering genome, restrained luminous scattering, cinematic 3D false-light microscopy. Match the exterior reference's naturalistic materials and palette. Not watercolour, not pen and ink, not cartoon or a textbook schematic.\nDepth of field: reasonably large depth of field, with the entering genome, adjacent molecular obstacles and the membrane entry region all clearly readable together. Only distant layers soften gently; no extreme bokeh and no narrow macro focal plane.\nConstraints: no text, no UI, no labels, no explanatory gene icons, no magic symbols, no whole bacteriophage body inside the cell, no celebration or explosion. This is a visual-style reference for ordinary inside-cell play.",
+    "status": "requested",
+    "method": "built-in image_gen",
+    "use": "Future visual-style reference only; not a runtime asset.",
+    "style_target": "../super-gene-return/super-phage-burst.png"
+  }
+]

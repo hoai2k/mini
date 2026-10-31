@@ -1,8 +1,8 @@
 # Micro design image requests
 
-Concept references for the [glowing return journey plan](super-gene-return.html). These are future-design references, separate from the delivered prototype assets listed in [the prototype ledger](../image-requests.md).
+Concept references for the [glowing return journey plan](super-gene-return.html) and [Phage visual-style plan](phage-visual-style.html). These are future-design references, separate from the delivered prototype assets listed in [the prototype ledger](../image-requests.md).
 
-0 requested, 4 delivered.
+1 requested, 5 delivered.
 
 Generated with the built-in image_gen tool. Exact prompts and delivery metadata are also saved in [the manifest](generated/super-gene-return/manifest.json).
 
@@ -77,4 +77,45 @@ Primary request: a tiny glowing springtail has jumped onto a person's fingertip 
 Scene: an extreme macro-lens view of the pad of a human fingertip with realistic fingerprint ridges, pores and soft natural skin shading. A small dark segmented water springtail, about one to two millimetres long relative to the fingerprint ridges, stands on six little legs with two antennae. Its head touches the skin at the bite. Its plump dark body gives off a luminous cool blue-white glow, and a subtle glow is visibly passing from the contact point into the surrounding fingerprint ridges.
 Style: photorealistic macro 3D cinematic concept art. The creature, bite contact and a small area of skin are in focus; the remainder of the fingertip and hand falls softly out of focus. Wide 16:9 framing. The glow is the only visual explanation of the transfer.
 Constraints: no text, no UI, no labels, no DNA or gene diagrams, no magic symbols, no explanation, no new characters, no visible wound or blood, no oversized monster insect. Keep the fingertip and tiny springtail scale believable.
+```
+
+## Phage false-light style references
+
+See the [visual-style plan](phage-visual-style.html).
+
+### PFL-01 · Normal glowing phage seeking a host
+
+Status: delivered.
+[View image](generated/phage-false-light/phage-seeking-cell.png) · 1672 × 941 · original PNG.
+File: `micro/design/generated/phage-false-light/phage-seeking-cell.png`
+Use: future visual-style reference only; not a runtime game asset.
+
+Prompt:
+
+```text
+Use case: stylized-concept.
+Asset type: realistic microscopic false-light game rendering reference, landscape 16:9.
+Primary request: one normal T4-shaped bacteriophage, glowing with warm white-gold illumination, is seeking and approaching a bacterial host cell in a watery microscopic environment. This is ordinary Phage-level play, not the future super-phage celebration.
+Visual style: the realistic microscopic false-light treatment of luminous gold phages among textured blue-teal cells: faceted translucent capsid, detailed tail sheath and slender tail fibres, convincing wet organic bacterial membrane, tiny suspended particles and luminous but restrained light scattering. Realistic materials with deliberately hypothetical illumination; cinematic 3D rendering, not hand-drawn or watercolour.
+Composition: show the whole phage approaching a clear receptor region on one host, with the host surface and several surrounding cells spatially readable. Keep the normal phage small relative to its host. No explosion, no swarm celebration.
+Depth of field: reasonably large depth of field. The phage, its fibres, the target cell surface and surrounding molecular environment should remain legible together. Only distant scenery softens slightly. Avoid a tiny focal slice, heavy bokeh or springtail-style extreme macro blur.
+Constraints: no text, no labels, no UI, no DNA icons, no magic symbols, no weapons, no human skin. Let false light and realistic surface detail define the image.
+```
+
+### PFL-02 · Inside-cell false-light view
+
+Status: requested.
+File: `micro/design/generated/phage-false-light/phage-inside-cell.png`
+Use: future visual-style reference only; not a runtime game asset.
+
+Prompt:
+
+```text
+Use case: stylized-concept.
+Asset type: realistic microscopic false-light reference for the inside-cell portion of a bacteriophage game, landscape 16:9.
+Primary request: show what the Phage level looks like from inside the host cell as the phage genome enters, using realistic microscopic false light rather than a hand-drawn illustration.
+Scene: a spacious readable view through a crowded bacterial cytoplasm. The inner surface of a curved blue-teal bacterial membrane is visible in the middle distance; a phage tail tube reaches through it, releasing a thin luminous warm white-gold DNA thread into the cell. Keep the phage capsid outside the cell; the inside gameplay subject is the entering genome. Surround it with believable ribosomes, proteins and cell material at molecular scale without turning them into labelled diagram symbols.
+Visual style: realistic textured translucent biological materials, watery blue-teal surroundings, delicate warm white-gold glow on the entering genome, restrained luminous scattering, cinematic 3D false-light microscopy. Match the exterior reference's naturalistic materials and palette. Not watercolour, not pen and ink, not cartoon or a textbook schematic.
+Depth of field: reasonably large depth of field, with the entering genome, adjacent molecular obstacles and the membrane entry region all clearly readable together. Only distant layers soften gently; no extreme bokeh and no narrow macro focal plane.
+Constraints: no text, no UI, no labels, no explanatory gene icons, no magic symbols, no whole bacteriophage body inside the cell, no celebration or explosion. This is a visual-style reference for ordinary inside-cell play.
 ```

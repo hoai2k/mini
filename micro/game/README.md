@@ -187,3 +187,5 @@ No world posts landmarks yet. For each world (in its own folder):
 ## Future progression
 
 The [glowing return journey plan](../design/super-gene-return.html) records the proposed Phage clear, reverse journey and fingertip ending, with generated references. Its sequence is not implemented; the current Phage ending offers “Work in progress”, return to menu, or continued Phage play.
+
+The [Phage visual-style plan](../design/phage-visual-style.html) proposes a realistic microscopic false-light treatment with a reasonably large depth of field for both exterior and inside-cell views.
