@@ -22,6 +22,7 @@ import { createPrey } from './prey.js';
 import { createProteus } from './proteus.js';
 import { createCatchFx, sstep } from './catch.js';
 import { createLandmarks as createDropLandmarks, LANDMARKS } from './landmarks.js';
+import { createBladderwort } from './bladderwort.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
@@ -95,6 +96,8 @@ const optics = createOptics(renderer);
 const contactFx = createContactFx(scene);
 const catchFx = createCatchFx(scene, world, amoeba);
 const drop = createDropLandmarks(scene);
+// the boss: a bladderwort trap guarding the biofilm (bladderwort.js; runBoss below)
+const trap = createBladderwort(scene, world);
 // the Amoeba proteus keeps to its patch of slide (the backdoor) when it is not hunting
 amoeba.home = LANDMARKS.back.pos.clone(); amoeba.homeR = 220;
 
@@ -468,6 +471,7 @@ const CATCH = {
   didinium: { by: 'Didinium', how: 'swallowed you whole', strike: 'Didinium\'s proboscis strikes: toxicysts fire into you!', hold: () => `HELD by Didinium: ${glyph('B')} trichocysts · ${glyph('A')} / ${glyph('X')} struggle`, eat: 'Didinium\'s mouth gapes wide: it swallows you whole', follow: 'Swallowed whole: the Didinium swims off with you inside', fadeOut: '', fadeIn: '' },
   amoeba: { by: 'Amoeba proteus', how: 'closed you into a food vacuole', strike: 'The food cup closes round you!', hold: () => `ENGULFED by the amoeba: ${glyph('B')} trichocysts · ${glyph('A')} / ${glyph('X')} struggle`, eat: 'A food vacuole forms round you and darkens: digestion begins', follow: 'Inside the amoeba: it creeps on, digesting', fadeOut: '', fadeIn: '' },
 };
+CATCH.bladder = { by: 'A bladderwort trap', how: 'sucked you in, and its door shut behind you', strike: 'SUCKED toward the trap door!', hold: () => `Pulled through the door: ${glyph('B')} trichocysts to burst free`, eat: 'The door shuts: you are inside the bladder', follow: 'Inside the bladder: its glands begin to digest you', fadeOut: '', fadeIn: '' };
 const catchText = (k, phase) => { const v = CATCH[k][phase]; return typeof v === 'function' ? v() : v; };
 const roster = [];
 function makePlayer(p, c = null, sw = null) {
@@ -565,13 +569,13 @@ function defend(P) {
   const s = P.swimmer.state;
   if (s.mode === 'dead') return;
   P.blockT = 0.6;
-  const threat = s.mode === 'captured' ? s.captor : nearHunter(P, 320);
+  const threat = s.mode === 'captured' ? s.captor : trap.awake && s.center.distanceTo(trap.door) < trap.pullR * 1.3 ? trap : nearHunter(P, 320);
   if (!threat) { if (P.swimmer.startAvoid(null, null)) audio.play('paramecium/reverse', { volume: 0.8 }); return; }
   fireTrichocysts(P, threat);
 }
 function fireTrichocysts(P, threat) {
   const s = P.swimmer.state;
-  const at = threat === amoeba ? new THREE.Vector3(amoeba.pos.x, s.center.y - 40, amoeba.pos.z) : threat ? threat.pos : null;
+  const at = threat === amoeba ? new THREE.Vector3(amoeba.pos.x, s.center.y - 40, amoeba.pos.z) : threat === trap ? trap.door : threat ? threat.pos : null;
   const held = s.mode === 'captured';
   s.reverse = -1; // the ciliary reversal: you back off, still facing it
   const away = P.swimmer.burst(at);
@@ -665,7 +669,7 @@ function onContact(P, c) {
 // The camera pulls back to watch the hunter swallow you whole, follows it as
 // it swims (or creeps) off with you inside, then fades; you respawn at a safe
 // spot (alone) or beside a teammate (together), and it fades back in.
-const catchKind = (th) => (th === amoeba ? 'amoeba' : 'didinium');
+const catchKind = (th) => (th === amoeba ? 'amoeba' : th === trap ? 'bladder' : 'didinium');
 function startCapture(P, th) {
   if (!th || P.capture.active) return;
   const k = catchKind(th), C = P.cap;
@@ -734,6 +738,14 @@ function stepCapture(P, dt) {
       C.anim.pos.copy(th.pos).addScaledVector(th.dir, -6);
       C.anim.quat.setFromUnitVectors(new THREE.Vector3(1, 0, 0), th.dir.clone().negate());
       C.anim.scale.set(0.56, 0.78, 0.78);
+    } else if (k === 'bladder') {
+      // through the door and into the bladder; the door shuts behind you and the camera holds on it
+      C.anim = C.anim || { pos: new THREE.Vector3(), quat: new THREE.Quaternion(), scale: new THREE.Vector3() };
+      const inside = trap.centre.clone().addScaledVector(trap.dir, 60).setY(trap.centre.y - 40);
+      C.anim.pos.copy(C.from).lerp(inside, sstep(0, 0.7, e));
+      C.anim.quat.copy(C.fromQ);
+      const k2 = 1 - 0.12 * sstep(0.5, 1, e);
+      C.anim.scale.set(k2, k2, k2);
     } else C.anim = k === 'didinium' ? catchFx.eatDidinium(th, e, C.from, C.fromQ) : catchFx.eatAmoeba(e, C.from, C.fromQ);
     s.axis.copy(C.anim.pos); // the camera follows you (and so the hunter)
     return C.anim;
@@ -758,7 +770,7 @@ function respawnPlayer(P) {
     for (let i = 0; i < 16; i++) {
       const a = Math.random() * Math.PI * 2, r = 200 + Math.random() * 900;
       const q = new THREE.Vector3(Math.cos(a) * r, 120 + Math.random() * (DEPTH - 240), Math.sin(a) * r);
-      const d = Math.min(...world.didinia.map((h) => h.pos.distanceTo(q)), Math.hypot(q.x - amoeba.pos.x, q.z - amoeba.pos.z) - amoeba.R);
+      const d = Math.min(...world.didinia.map((h) => h.pos.distanceTo(q)), Math.hypot(q.x - amoeba.pos.x, q.z - amoeba.pos.z) - amoeba.R, q.distanceTo(trap.door) - trap.pullR * 1.5);
       if (d > bd) { bd = d; best = q; }
     }
     s.axis.copy(best);
@@ -834,6 +846,75 @@ function runFights(dt) {
       hud.toast(`${who(T)}Blocked! ${th.label} recoils`, 1600);
     }
     if (f.retreated) { th.hunger.missed(); hud.toast(`${th.label} loses interest and ${isA ? 'creeps' : 'swims'} away`, 2200); }
+  }
+}
+
+// --- the boss: the bladderwort trap guarding the biofilm ---------------------------
+// A shared/predation.js fight with more resolve and three patterns: an aimed
+// pulse when you come near its door (trigger hairs), a pulse on its own every
+// 7–12 s while you are about, and (resolve under half) a wider pull. Its tell:
+// the door quivers and the walls draw in; then the suction pulse pulls in
+// everything near the door; then it resets for 2.4 s with the door shut: dash
+// past then. Each wasted pulse and each trichocyst burst out of its inflow
+// (B) costs it resolve; spent, it hangs full and slack and cannot fire for a
+// while. Dormant until a player comes near after the calm opening.
+trap.fight = createFight({ windup: 1.3, strike: 0.38, recoverT: 2.4, repelT: 1.4, retreatT: 24, facingRate: 0, blockHit: 0.18, biteHit: 0.17 });
+trap.hunger = createHunger({ grace: 0 });
+trap.spontT = 8;
+const gaugeEl = document.createElement('div');
+gaugeEl.style.cssText = 'position:fixed;left:50%;top:64px;transform:translateX(-50%);z-index:3;pointer-events:none;display:none;color:#e6d3a3;font:600 11px/1.2 system-ui,sans-serif;letter-spacing:.04em;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,.7)';
+gaugeEl.innerHTML = '<div class="nm"></div><div style="margin:3px auto 0;width:150px;height:5px;border:1px solid rgba(201,163,90,.85);border-radius:3px;background:rgba(20,16,8,.45)"><i style="display:block;height:100%;background:#c9a35a;border-radius:2px;width:100%"></i></div>';
+document.body.appendChild(gaugeEl);
+const bossInfo = { log: [] };
+function runBoss(dt) {
+  const after = pacing.now - pacing.t0 > pacing.grace;
+  let nd = Infinity;
+  for (const P of liveRoster()) { const s = P.swimmer.state; if (s.mode === 'dead') continue; nd = Math.min(nd, s.center.distanceTo(trap.door)); }
+  if (!trap.awake && (after || bossInfo.force) && nd < trap.wakeR) {
+    trap.awake = true; bossInfo.log.push({ ev: 'wake', t });
+    hud.toast('A bladderwort trap guards the biofilm. Watch its door: when it quivers, get clear; dash past while it resets', 3600);
+  }
+  if (!trap.awake) { trap.update(dt, 'stalk', 0, t); gaugeEl.style.display = 'none'; return; }
+  const pullR = trap.pullR * (trap.phase2 ? 1.3 : 1);
+  // the patterns: an aimed pulse (someone at its trigger hairs) or one on its own
+  trap.spontT -= dt;
+  let fire = nd < 320;
+  if (trap.spontT <= 0 && nd < trap.wakeR) { fire = true; if (trap.fight.state === 'windup') trap.spontT = 7 + Math.random() * 5; }
+  const inflow = (P) => { const s = P.swimmer.state; return !P.waiting && (s.mode === 'swim' || s.mode === 'avoid') && !P.capture.active && s.center.distanceTo(trap.door) < pullR; };
+  const blocking = roster.some((P) => inflow(P) && P.blockT > 0);
+  const f = trap.fight.update(dt, { near: nd < trap.wakeR, inReach: fire, facing: true, blocking });
+  if (f.state === 'windup' && trap.state !== 'windup') bossInfo.log.push({ ev: 'tell', t });
+  trap.phase2 = f.interest < 0.5;
+  let caught = false;
+  if (f.state === 'strike') {
+    if (!trap.pulsed) { trap.pulsed = true; bossInfo.log.push({ ev: 'pulse', t }); contactFx.puff(trap.door, trap.dir, 1.4); for (const P of roster) if (inflow(P)) P.pad.rumble(300, 0.9, 0.9); }
+    for (const P of roster) {
+      if (!inflow(P)) continue;
+      const s = P.swimmer.state;
+      const to = new THREE.Vector3().subVectors(trap.door, s.center);
+      const d = to.length();
+      // the inflow: strongest at the door (a game value; really ≈1 m/s for half a millisecond)
+      s.axis.addScaledVector(to.normalize(), (300 + 2400 * Math.pow(1 - d / pullR, 0.6)) * dt);
+      if (d < 95) { s.safeT = 0; if (P.swimmer.capture(trap)) { startCapture(P, trap); caught = true; bossInfo.log.push({ ev: 'catch', slot: P.slot, t }); } }
+    }
+  } else trap.pulsed = false;
+  if (f.hit && !caught && !roster.some((P) => P.capture.active && P.cap.th === trap)) {
+    // a wasted pulse: it has to reset, and it tires
+    const gone = trap.fight.bitten();
+    bossInfo.log.push({ ev: 'miss', t });
+    if (nd < trap.wakeR && !gone) hud.toast('The trap fired and missed: it is resetting. Dash past now!', 2000);
+  }
+  if (f.blocked) { bossInfo.log.push({ ev: 'blocked', t }); hud.toast('Trichocysts! You burst clear of the inflow', 1800); }
+  if (trap.fight.state === 'retreat' && !trap.spent) { trap.spent = true; bossInfo.log.push({ ev: 'spent', t }); hud.toast('The trap has fired itself out: full and slack, it cannot reset for a while. Slip past to the biofilm!', 3600); }
+  else if (trap.fight.state !== 'retreat') trap.spent = false;
+  trap.fightT = f.t;
+  trap.update(dt, trap.fight.state, f.t, t);
+  // the resolve gauge: quiet, brass, only while someone is near
+  const show = nd < trap.wakeR * 1.3;
+  gaugeEl.style.display = show ? 'block' : 'none';
+  if (show) {
+    gaugeEl.querySelector('.nm').textContent = trap.spent ? 'Bladderwort trap · spent' : `Bladderwort trap${trap.phase2 ? ' · straining' : ''}`;
+    gaugeEl.querySelector('i').style.width = `${Math.round(trap.fight.interest * 100)}%`;
   }
 }
 
@@ -939,6 +1020,7 @@ function tick(dt, forced = false) {
   if (pacing.firstHungry === null && hunters().some((th) => th.hungry)) pacing.firstHungry = t - pacing.t0;
   // the fights: each hunter's wind-up, strike, block, bite back and retreat (shared/predation.js createFight)
   runFights(dt);
+  runBoss(dt);
   // hunters pick a player: the one they hold, else the nearest free one
   const evH = {};
   enc.update(dt, t, (d) => { const T = targetOf(d); d.target = T.swimmer; return T.swimmer; }, evH);
@@ -1160,6 +1242,13 @@ function updateGoal(s) {
   parts.push(`${glyph('A')} dash ${'■'.repeat(n)}${'□'.repeat(5 - n)}`, `${glyph('X')} trichocysts ${'●'.repeat(s.charges)}${'○'.repeat(3 - s.charges)}`);
   // the most urgent thing happening to anyone (named in multiplayer)
   let warn = '';
+  if (trap.awake) {
+    const near = liveRoster().find((P) => P.swimmer.state.center.distanceTo(trap.door) < trap.pullR * 1.3 && !P.capture.active);
+    const st = trap.fight.state;
+    if (near && st === 'windup') warn = `${who(near)}The trap door quivers: get clear of it, or wait for the pulse`;
+    else if (near && st === 'strike') warn = `${who(near)}SUCTION! Dash away (${glyph('A')}) · ${glyph('B')} trichocysts burst you out`;
+    else if (near && (st === 'recover' || st === 'repelled')) warn = `${who(near)}<span style="color:#bfe3a0">The trap is resetting: dash past now!</span>`;
+  }
   for (const P of roster) {
     const sP = P.swimmer.state, C = P.cap;
     let w = '';
@@ -1262,6 +1351,11 @@ function drawViewOverlay(cam, s, proj, anchor, many) {
     }
   }
 
+  // the trap's tell and pulse: a pulsing red ring at its door
+  if (marks.threats && trap.awake && (trap.fight.state === 'windup' || trap.fight.state === 'strike')) {
+    const q = proj(trap.door);
+    if (visible(q)) { g.globalAlpha = 0.35 + 0.5 * (0.5 + 0.5 * Math.sin(t * 18)); g.strokeStyle = '#ff5a46'; g.lineWidth = 2.2; g.beginPath(); g.arc(q.x, q.y, Math.max(16, trap.doorR * 1.3 * pxPerUm), 0, Math.PI * 2); g.stroke(); g.globalAlpha = 1; }
+  }
   // an attack: a pulsing red ring on the toxicyst tip (or round the amoeba's rising arms) while it winds up and strikes
   if (marks.threats) for (const th of threats()) {
     if (!attacking(th)) continue;
@@ -1360,6 +1454,8 @@ const debug = {
   prey(dx, dz, i = 0) { const s = swimmer.state; const it = prey.items[i]; it.pos.set(s.center.x + dx, s.center.y, s.center.z + dz); it.alive = true; it.pull = 0; },
   step(n = 1, dt = 1 / 60) { for (let i = 0; i < n; i++) tick(dt, true); },
   /** Make every hunter hungry now (tests of the fights). */
+  /** Wake the boss now, whatever the calm opening says. */
+  wakeBoss() { bossInfo.force = true; },
   hungry() { for (const th of hunters()) { th.hunger.reset(0.01); th.sated = 0; th.stun = 0; } swimmer.state.safeT = 0; },
   /** Player 1's buttons for tests: 'B' defend, 'X' attack (eat or fight back). */
   press(b, slot = 0) { const P = slotP(slot); if (b === 'B') defend(P); else if (b === 'X') doAttack(P); },
@@ -1408,6 +1504,8 @@ window.__micro = {
   players, split, landmarks: { forward: FWD.pos, back: BACK.pos, log: lm.log, get near() { return lm.near; } },
   get frames() { return frameCount; },
   /** Each hunter's fight: state, progress, interest, what it is doing. */
+  boss: () => ({ awake: trap.awake, state: trap.fight.state, t: +(trap.fightT || 0).toFixed(2), interest: +trap.fight.interest.toFixed(2), phase2: trap.phase2, door: trap.door.toArray(), log: bossInfo.log }),
+  trap,
   fights: () => hunters().map((th) => ({ name: th.label, state: th.fightState, t: +(th.fightT || 0).toFixed(2), interest: +th.fight.interest.toFixed(2), doing: th === amoeba ? amoeba.state : th.state })),
   roster: () => roster.map((P) => { const s = P.swimmer.state; return { slot: P.slot, x: s.center.x, y: s.center.y, z: s.center.z, mode: s.mode, capture: P.capture.active ? P.cap.phase : null, waiting: P.waiting }; }),
 };

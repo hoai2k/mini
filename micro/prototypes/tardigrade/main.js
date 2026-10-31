@@ -21,6 +21,7 @@ import { createCapture } from '../shared/predation.js';
 import { wireAssets } from './textures.js';
 import { LEAF_FX, opticalMaterial, litMaterial } from './materials.js';
 import { Landmarks } from './landmarks.js';
+import { Nematode } from './nematode.js';
 
 const MODES = ['DIC (Nomarski)', 'Brightfield', 'Lit (hypothetical)'];
 // The second entry is the 10× objective behind a 1.25× intermediate
@@ -144,7 +145,7 @@ const walker = new Walker(world, creature, walkerEvents(p1));
 const lifeEvents = (a) => ({
   toast: (t, ms) => toast(who(a) + t, ms),
   rumble: (ms, w, s) => { if (rumbleOn) a.pad.rumble(ms, w, s); },
-  newDay: () => { predator.reset(); endCapture(); for (const b of animals) if (b !== a) { b.life.respawn(0.5); spawnNear(b, a); } },
+  newDay: () => { predator.reset(); boss.reset(); endCapture(); for (const b of animals) if (b !== a) { b.life.respawn(0.5); spawnNear(b, a); } },
   // Local multiplayer: a dead animal (a tun that did not wake) comes back beside a teammate.
   restart: (life) => { if (players.count > 1) respawnNear(a); else life.newDay(); },
   // The food is drawn in through the buccal tube and stays visible inside, fading into the gut.
@@ -156,6 +157,8 @@ const dash = createDash({ duration: 0.9, cooldown: 2.6 });
 Object.assign(p1, { walker, life, dash, particles: null });
 animals.push(p1);
 const places = new Landmarks(scene, world);
+// The boss: Prionchulus, a predatory nematode guarding the Sphagnum leaf on the way to the pool.
+const boss = new Nematode(scene, world);
 const mic = new DicMicroscope(renderer, scene, camera, { layers: [LAYER_SUBSTRATE, LAYER_SPECIMEN], backdrop: assets.backdrop });
 if (SOFTWARE) mic.setQuality(PR ? 2 : 0);
 
@@ -241,6 +244,9 @@ F({ id: 'smooth', group: 'Motion', label: 'Smoothed trunk and camera', on: true,
 F({ id: 'milnesium', group: 'Simulation', label: 'Milnesium (predator)', on: true,
   about: 'A predatory tardigrade 1.5× your size with a wide buccal tube and no placoids. It starts far off on leaf C and browses through the calm opening (40 s); after that it is hungry only some of the time (see Threats), and only hungry does it close in slowly (you see it coming), stalk you within ~650 µm and bite (reserves drain; empty, it grips you and swallows you whole, all of it shown). After a bite it lets go, backs off and rests 45-75 s. Escape: scramble (A), retreat into film too thin for its body (it barely moves below ~3.5 µm of water), jab it with the stylets (X) so it backs off, or tun (Y): it cannot get a tun into its mouth quickly and gives up after three tries. The thin-film refuge, the recoil and the tun giving-up are game rules.',
   onChange: (v) => { predator.on = v; predator.setVisible(v); } });
+F({ id: 'boss', group: 'Simulation', label: 'Prionchulus (the boss)', on: true,
+  about: 'A predatory nematode (~1.3 mm here; adults reach ~2 mm) guarding the Sphagnum leaf on the way to the pool. Dormant until you come near its post after the calm opening. Its tells: coiling into an S (then a forward whip) or rippling fast (then a sideways sweep), tooth bared. Brace (B) facing it to block, jab its head (X) as it recovers, lure it into thin film where it flounders. Worn down (the brass resolve gauge), it slides away into a deep groove for the rest of the day.',
+  onChange: (v) => { boss.on = v; if (!v) boss.group.visible = false; } });
 F({ id: 'grace', group: 'Simulation', label: 'Calm opening', choices: ['40 s', '20 s', '90 s', 'Off'], value: '40 s',
   about: 'How long after a start (and after each new day) Milnesium browses far off on leaf C before it first gets hungry. shared/predation.js.',
   onChange: (v) => { predator.pace.grace = v === 'Off' ? 0 : parseFloat(v); predator.hunger.reset(predator.pace.grace); } });
@@ -400,29 +406,38 @@ const cap = { phase: null, m0: new THREE.Matrix4(), feet0: [], t: 0 };
 const _p0 = new THREE.Vector3(), _q0 = new THREE.Quaternion(), _s0 = new THREE.Vector3();
 const _p1 = new THREE.Vector3(), _q1 = new THREE.Quaternion(), _s1 = new THREE.Vector3();
 const _M = new THREE.Matrix4(), _R = new THREE.Matrix4().makeRotationY(Math.PI), _S = new THREE.Matrix4();
+const gauge = document.createElement('div');
+gauge.style.cssText = 'position:fixed;left:50%;top:50px;transform:translateX(-50%);z-index:6;display:none;align-items:center;gap:8px;padding:3px 10px;border-radius:999px;background:rgba(18,16,10,.55);color:#e8d6a6;font:600 11px system-ui,sans-serif;letter-spacing:.04em;pointer-events:none';
+gauge.innerHTML = '<span>PRIONCHULUS</span><span style="display:block;width:120px;height:5px;border:1px solid #b8913f;border-radius:3px;overflow:hidden"><i style="display:block;height:100%;width:100%;background:#d2a24c"></i></span>';
+document.body.appendChild(gauge);
+const gaugeBar = gauge.querySelector('i');
 const capBanner = document.createElement('div');
 capBanner.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:6;padding:6px 14px;border-radius:999px;font:600 13px system-ui,-apple-system,"Segoe UI",sans-serif;color:#fff;pointer-events:none;white-space:nowrap;display:none';
 document.body.appendChild(capBanner);
+const BOSS_LINES = { strike: 'Prionchulus pins you with its tooth!', hold: 'Held at its mouth…', eat: 'Prionchulus is sucking you dry' };
 const CAP_LINES = { strike: 'Milnesium strikes: its mouth tube is on you!', hold: 'Gripped by the stylets…', eat: 'Milnesium is swallowing you whole' };
-function startCapture(a = p1) {
+let captor = 'milnesium';
+function startCapture(a = p1, by = 'milnesium') {
   if (capture.active) return;
   captive = a;
+  captor = by;
   const L = a.life;
   L.state = 'caught'; L.feeding = null; L.tun = 0; a.creature.pose.tun = 0;
   Object.assign(cap, { phase: null, t: 0 });
   cap.m0.copy(a.walker.matrix);
   cap.feet0 = a.creature.pose.feet.map((f) => f.clone());
-  capture.start({ by: 'Milnesium', how: 'gripped you with its stylets and swallowed you whole' });
+  if (by === 'boss') capture.start({ by: 'Prionchulus', how: 'pinned you with its tooth and sucked you dry' });
+  else capture.start({ by: 'Milnesium', how: 'gripped you with its stylets and swallowed you whole' });
   audio.play('tardigrade/milnesium', { volume: 1, rate: 0.9 });
   if (rumbleOn) a.pad.rumble(500, 0.9, 1);
-  embed.captured({ by: 'Milnesium', player: a.slot });
+  embed.captured({ by: by === 'boss' ? 'Prionchulus' : 'Milnesium', player: a.slot });
 }
 function captureRespawn() {
   const a = captive || p1;
   if (animals.length > 1) respawnNear(a); else respawnSafe(a);
   a.creature.group.visible = true;
-  Object.assign(predator, { state: 'wander', bored: 15, lunge: 0, rear: 0, sated: false });
-  predator.fight.reset();
+  if (captor === 'boss') { boss.state = 'dormant'; boss.fight.reset(); boss.fs = 'stalk'; }
+  else { Object.assign(predator, { state: 'wander', bored: 15, lunge: 0, rear: 0, sated: false }); predator.fight.reset(); }
   if (animals.length === 1) { view.target.copy(a.walker.dispPos); view.dist = undefined; }
 }
 /** Alone: wake on whichever start spot is furthest from Milnesium. */
@@ -445,7 +460,43 @@ function endCapture() {
   captive = null;
 }
 /** The caught player's body during the catch, placed relative to Milnesium's mouth. */
+/** Caught by Prionchulus: pinned at its head by the tooth, drained (deflating), then dragged off. */
+function animateBossCapture(c, dt) {
+  const a = captive || p1;
+  const cr = a.creature;
+  cap.t += dt;
+  boss.captureStep(c.phase, c.t, dt);
+  const h = boss.headW, f = boss.headDir;
+  const fwd = _bc.copy(f).negate();
+  const up = boss.L.N.clone();
+  const z = new THREE.Vector3().crossVectors(fwd, up).normalize();
+  const flail = c.phase === 'strike' || c.phase === 'hold' ? 1 : c.phase === 'eat' ? 1 - c.t : 0;
+  const drained = c.phase === 'eat' ? ease(c.t) : c.phase === 'strike' || c.phase === 'hold' ? 0 : 1;
+  const sc = 1 - 0.3 * drained;
+  _bp.copy(h).addScaledVector(f, 1.55 * sc).addScaledVector(up, Math.sin(cap.t * 11) * 0.03 * flail);
+  _M.makeBasis(fwd, up, z).setPosition(_bp);
+  _M.multiply(_S.makeScale(sc, sc * (1 - 0.25 * drained), sc));
+  if (c.phase === 'strike') {
+    const k = ease(Math.min(1, c.t * 1.5));
+    cap.m0.decompose(_p0, _q0, _s0); _M.decompose(_p1, _q1, _s1);
+    _M.compose(_p0.lerp(_p1, k), _q0.slerp(_q1, k), _s0.lerp(_s1, k));
+  }
+  cr.group.matrix.copy(_M);
+  cr.group.matrixWorldNeedsUpdate = true;
+  cr.group.visible = true;
+  cr.pose.feet.forEach((ft, i) => {
+    const f0 = cap.feet0[i];
+    if (!f0) return;
+    const ph = cap.t * 13 + i * 1.7;
+    ft.set(f0.x + Math.sin(ph) * 0.3 * flail, f0.y + (0.25 + 0.25 * Math.sin(ph * 1.3)) * flail, f0.z + Math.cos(ph) * 0.2 * flail);
+  });
+  cr.pose.tun = 0.65 * drained;
+  cr.pose.stylet = 0;
+  cr.deformAll();
+}
+const _bc = new THREE.Vector3(), _bp = new THREE.Vector3();
 function animateCapture(c, dt) {
+  if (captor === 'boss') { animateBossCapture(c, dt); return; }
   const a = captive || p1;
   const cr = a.creature;
   const ease = (x) => x * x * (3 - 2 * x);
@@ -535,7 +586,7 @@ function inputOf(a, inMenu) {
 }
 
 const api = window.__micro = { SOFTWARE, scene, camera, renderer, world, walker, creature, life, mic, view, features, applyMode, pad, predator, dash, capture, paused: false,
-  players, animals, split, marks, places, landmarks: lm,
+  players, animals, split, marks, places, landmarks: lm, boss, get captor() { return captor; },
   get time() { return time; },
   /** Testing: one fixed step with the left stick at (x, y) on screen (null: hands off). */
   testStep(dt = 1 / 30, stick = null, buttons = {}) {
@@ -559,6 +610,8 @@ const api = window.__micro = { SOFTWARE, scene, camera, renderer, world, walker,
     predator.dist = 3;
     startCapture(a);
   },
+  /** Testing: Prionchulus catches player `slot` now. */
+  forceBossCapture(slot = 0) { const a = animals.find((b) => b.slot === slot) || p1; if (!capture.active) startCapture(a, 'boss'); },
   /** Testing: put player `slot` in a landmark zone ('forward' or 'back'). */
   teleport(kind, slot = 0) {
     const a = animals.find((b) => b.slot === slot) || p1;
@@ -690,6 +743,32 @@ function step(dt, G) {
   const blocking = !!target && tg.D(BTN_B) && target.life.state === 'active';
   const pev = !target ? [] : predator.update(dt, { walker: target.walker, life: target.life, mouth: target.mouth, facing, blocking }, xT && target.life.state === 'active' && !target.life.feeding);
   if (target) { target.facingPredator = facing && predator.state === 'stalk'; }
+
+  // The boss (Prionchulus) fights whoever is nearest.
+  const bossHeld = held && captor === 'boss';
+  const bev = bossHeld ? [] : boss.update(dt, animals.map((a) => {
+    const g = inputs.get(a), up = a.life.state === 'active' && !(held && a === captive);
+    return { a, pos: a.walker.dispPos, mouth: a.mouth, forward: a.walker.forward, active: up, blocking: up && g.D(BTN_B), jab: up && g.P(BTN_X) && !a.life.feeding };
+  }), { calm: predator.hunger.state === 'grace' });
+  for (const { e, a: pr } of bev) {
+    const a = pr ? pr.a : null;
+    const rb = (ms, w, s2) => { if (a && rumbleOn) a.pad.rumble(ms, w, s2); };
+    if (e === 'wake') toast('A predatory nematode, Prionchulus, uncoils across the Sphagnum leaf', 2800);
+    else if (e === 'windupWhip') { toast(`${a ? who(a) : ''}Prionchulus coils into an S, tooth bared: face it and brace (B)!`, 1800); rb(140, 0.3, 0); }
+    else if (e === 'windupThrash') { toast(`${a ? who(a) : ''}Prionchulus thrashes: face it and brace (B)!`, 1800); rb(140, 0.3, 0); }
+    else if (e === 'strike') audio.play('tardigrade/dash', { volume: 0.8, rate: 0.7 });
+    else if (e === 'blocked' && a) { toast(`${who(a)}Braced! Its head glances off your claws (resolve ${Math.round(boss.interest * 100)}%)`); rb(260, 0.6, 0.5); (a.anim ||= {}).shove = 0.3; }
+    else if (e === 'bitten' && a) { a.bossJab = true; toast(`${who(a)}Stylets into its head! (resolve ${Math.round(boss.interest * 100)}%)`); rb(200, 0.5, 0.4); audio.play('tardigrade/bite', { volume: 1, rate: 0.8 }); }
+    else if (e === 'flounder') toast('In the thin film Prionchulus flounders and loses heart', 2000);
+    else if (e === 'retreat') toast('Worn down, Prionchulus slides away into a deep groove between the cells', 3000);
+    else if (e === 'hit' && a) {
+      const L = a.life;
+      L.energy = Math.max(0, L.energy - 0.35); L.feeding = null; a.walker.speed = 0;
+      rb(320, 0.8, 0.9); audio.play('tardigrade/milnesium', { volume: 1, rate: 0.6 });
+      if (L.energy <= 0.001) startCapture(a, 'boss');
+      else toast(`${who(a)}Its tooth stabs you! Reserves ${Math.round(L.energy * 100)}%`, 2400);
+    }
+  }
   const jabbed = pev.includes('recoil');
 
   for (const a of animals) {
@@ -697,13 +776,14 @@ function step(dt, G) {
     // In the backdoor zone Y means "go back", not "curl into a tun".
     const yBack = a.atBack && g.P(BTN_Y);
     if (yBack) { fireLandmark('back', a); toast(`${who(a)}Back up to the moss canopy`); }
-    L.update(dt, { yDown: !a.atBack && g.D(BTN_Y), yPressed: !a.atBack && g.P(BTN_Y), bitePressed: g.P(BTN_X) && !(a === target && jabbed), aPressed: g.P(BTN_A), moving: a.walker.speed });
+    L.update(dt, { yDown: !a.atBack && g.D(BTN_Y), yPressed: !a.atBack && g.P(BTN_Y), bitePressed: g.P(BTN_X) && !(a === target && jabbed) && !a.bossJab, aPressed: g.P(BTN_A), moving: a.walker.speed });
     // life-state transitions: the tun, the revival, a stylet bite
     if (L.state !== a.state) {
       if (L.state === 'tun') audio.play('tardigrade/tun');
       else if (L.state === 'revive') audio.play('tardigrade/revive');
       a.state = L.state;
     }
+    a.bossJab = false;
     const feeding = !!L.feeding;
     if (feeding && !a.feeding) audio.play('tardigrade/bite', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
     a.feeding = feeding;
@@ -880,8 +960,8 @@ function renderView(dt) {
   const dist = field / 2 / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / Math.max(1, camera.aspect) * 1.0;
   view.dist = THREE.MathUtils.lerp(view.dist || dist, dist, 1 - Math.exp(-dt * 4));
   let aim;
-  if (capture.active && solo && following) aim = _ct.copy(predator.walker.dispPos);
-  else if (capture.active && solo && ph !== 'fadeIn') aim = _ct.copy(walker.dispPos).lerp(predator.walker.dispPos, 0.5);
+  if (capture.active && solo && following) aim = captor === 'boss' ? _ct.copy(boss.headW) : _ct.copy(predator.walker.dispPos);
+  else if (capture.active && solo && ph !== 'fadeIn') aim = _ct.copy(walker.dispPos).lerp(captor === 'boss' ? boss.headW : predator.walker.dispPos, 0.5);
   else { aim = _ct.set(0, 0, 0); for (const a of animals) aim.add(shownAt(a, _c2)); aim.multiplyScalar(1 / animals.length); }
   view.target.lerp(aim, 1 - Math.exp(-dt * 3));
   camera.position.set(
@@ -995,12 +1075,17 @@ function readout() {
   // What Milnesium is up to, on screen whenever it matters.
   let bt = '', hot = true;
   const tName = animals.length > 1 ? (animals.find((a) => a.slot === predator.target)?.p.name || '') : '';
-  if (capture.active) bt = (animals.length > 1 && captive ? `${captive.p.name}: ` : '') + (CAP_LINES[capture.phase] || '');
+  if (capture.active) bt = (animals.length > 1 && captive ? `${captive.p.name}: ` : '') + ((captor === 'boss' ? BOSS_LINES : CAP_LINES)[capture.phase] || '');
+  else if (boss.attacking) bt = `Prionchulus ${boss.fs === 'windup' ? (boss.pattern ? 'thrashes' : 'coils into an S') : 'strikes'}! Face it and brace (B)`;
   else if (predator.on && predator.attacking) bt = `${tName ? tName + ': ' : ''}Milnesium ${predator.fstate === 'windup' ? 'rears to strike' : 'lunges'}! Face it and brace (B)`;
   else if (predator.on && predator.state === 'retreat') { bt = 'The Milnesium has lost interest and crawls off'; hot = false; }
   else if (predator.on && predator.state === 'stalk') bt = tName ? `A Milnesium is stalking ${tName}` : 'A Milnesium is stalking you';
   else if (predator.on && predator.state === 'approach') { bt = tName ? `A Milnesium is closing in on ${tName}` : 'A Milnesium is closing in'; hot = false; }
   capBanner.style.display = bt ? 'block' : 'none';
+  // the boss's resolve: a quiet brass gauge while it is awake
+  const showG = boss.awake && !(capture.active && captor === 'boss');
+  gauge.style.display = showG ? 'flex' : 'none';
+  if (showG) gaugeBar.style.width = `${Math.round(boss.interest * 100)}%`;
   capBanner.textContent = bt;
   capBanner.style.background = hot ? 'rgba(150,30,20,.8)' : 'rgba(10,12,16,.6)';
   const film = life.filmHere();

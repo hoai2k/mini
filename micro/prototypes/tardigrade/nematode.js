@@ -73,9 +73,9 @@ export class Nematode {
     this.group = new THREE.Group();
     scene.add(this.group);
     this.parts = [
-      { mesh: mk(tubeGeometry(0, K), { dn: 0.035, absorb: [0.18, 0.22, 0.36] }, { color: 0xe6dcc0, opacity: 0.6 }), from: 0, to: K, k: 1 },
-      { mesh: mk(tubeGeometry(1, 18), { dn: 0.05, absorb: [0.45, 0.55, 0.9] }, { color: 0xc8b48a }), from: 1, to: 18, k: 0.42 },
-      { mesh: mk(tubeGeometry(19, K - 6), { dn: 0.04, absorb: [0.9, 0.85, 0.7] }, { color: 0x8a6a40 }), from: 19, to: K - 6, k: 0.5 },
+      { mesh: mk(tubeGeometry(0, K), { dn: 0.018, absorb: [0.35, 0.42, 0.65] }, { color: 0xe6dcc0, opacity: 0.6 }), from: 0, to: K, k: 1 },
+      { mesh: mk(tubeGeometry(1, 18), { dn: 0.03, absorb: [0.9, 1.05, 1.6] }, { color: 0xc8b48a }), from: 1, to: 18, k: 0.42 },
+      { mesh: mk(tubeGeometry(19, K - 6), { dn: 0.025, absorb: [1.7, 1.7, 1.5] }, { color: 0x8a6a40 }), from: 19, to: K - 6, k: 0.5 },
     ];
     for (const p of this.parts) this.group.add(p.mesh);
     const tg = new THREE.ConeGeometry(0.06, 0.2, 10);
@@ -97,7 +97,7 @@ export class Nematode {
       p.u = u0 - 2.4 * Math.sin(a) * 0.9; p.v = v0 + 2.6 * Math.cos(a) * 0.8 - s * 0.6;
     });
     this.relax();
-    Object.assign(this, { state: 'dormant', t: 0, pattern: 0, fs: 'stalk', ft: 0, coil: 0, ripple: 0, tooth: 0, whip: 0, sink: 0, fade: 1, target: null, swipe: 0, aim: [1, 0], hitT: 0 });
+    Object.assign(this, { state: 'dormant', t: 0, pattern: 1, fs: 'stalk', ft: 0, coil: 0, ripple: 0, bare: 0, whip: 0, sink: 0, fade: 1, target: null, swipe: 0, aim: [1, 0], hitT: 0 });
     this.fight.reset();
     this.group.visible = this.on;
     this.setFade(1);
@@ -177,7 +177,8 @@ export class Nematode {
       if (!calm && near) { this.state = 'fight'; this.fight.reset(); ev.push({ e: 'wake', a: tgt }); }
     } else if (this.state === 'fight') {
       const inReach = !!tgt && td < REACH + 1.4;
-      const facing = !!tgt && _f.subVectors(head, tgt.pos).normalize().dot(tgt.forward) > 0.5;
+      // facing its front (a sweeping head can pass right over you: judge by its neck)
+      const facing = !!tgt && _f.subVectors(this.pointWorld(6, _p), tgt.pos).normalize().dot(tgt.forward) > 0.3;
       const f = this.fight.update(dt, { near: !!tgt && td < 9, inReach, facing, blocking: !!tgt && tgt.blocking });
       // floundering in thin film wears it down (the design's "lure it into thin film"; a game rule)
       if (thin && tgt && td < 9 && f.state === 'stalk') { this._drain = (this._drain || 0) + dt; if (this._drain > 3) { this._drain = 0; this.fight.bitten(); ev.push({ e: 'flounder', a: tgt }); } }
@@ -196,15 +197,15 @@ export class Nematode {
         // the tell: whip = the front coils into an S, head drawn back; thrash = the body ripples fast
         if (this.pattern === 0) { this.coil += (1 - this.coil) * dt * 5; speed = -0.5 * slow; du = this.aim[0]; dv = this.aim[1]; }
         else { this.ripple = 3.2; this.coil += (0.35 - this.coil) * dt * 4; }
-        this.tooth = Math.min(1, this.tooth + dt * 3);
+        this.bare = Math.min(1, this.bare + dt * 3);
       } else if (f.state === 'strike') {
-        this.tooth = 1;
+        this.bare = 1;
         if (this.pattern === 0) { this.coil += (0 - this.coil) * dt * 14; speed = 6.5 * slow; du = this.aim[0]; dv = this.aim[1]; }
         else { this.swipe += dt / 0.42; const s = Math.sin(this.swipe * Math.PI * 2) * 1; speed = 5 * slow; du = this.aim[0] * 0.4 - this.aim[1] * s; dv = this.aim[1] * 0.4 + this.aim[0] * s; }
       } else if (f.state === 'recover' || f.state === 'repelled') {
         this.swipe = 0;
         this.coil += (0 - this.coil) * dt * 2; this.ripple = 0.6;
-        this.tooth = Math.max(0, this.tooth - dt * 2);
+        this.bare = Math.max(0, this.bare - dt * 2);
         if (f.state === 'repelled' && tgt) { const [a, b] = toward(tgt); speed = -1.2; du = a; dv = b; }
       }
       if (f.blocked) ev.push({ e: 'blocked', a: tgt });
@@ -221,7 +222,7 @@ export class Nematode {
       if (f.retreated || this.fight.state === 'retreat') { this.state = 'leaving'; this.t = 0; ev.push({ e: 'retreat', a: tgt }); }
     } else if (this.state === 'leaving') {
       // slides off along the leaf and down into a deep groove between the cells
-      this.coil *= Math.exp(-dt * 2); this.ripple = 1.4; this.tooth = Math.max(0, this.tooth - dt);
+      this.coil *= Math.exp(-dt * 2); this.ripple = 1.4; this.bare = Math.max(0, this.bare - dt);
       speed = 1.4; du = 0.2; dv = this.head.v >= 0 ? 1 : -1;
       if (this.t > 2.2) { this.sink = Math.min(0.9, this.sink + dt * 0.35); this.setFade(Math.max(0, 1 - (this.t - 2.2) / 3)); }
       if (this.t > 5.4) { this.state = 'gone'; this.group.visible = false; ev.push({ e: 'gone' }); }
@@ -234,7 +235,7 @@ export class Nematode {
   /** The capture: holding you at its head, then dragging you off. */
   captureStep(phase, k, dt) {
     this.state = 'fight'; this.fs = 'capture';
-    this.tooth = 1; this.ripple = phase === 'follow' || phase === 'fadeOut' ? 1.2 : 0.4; this.coil *= Math.exp(-dt * 3);
+    this.bare = 1; this.ripple = phase === 'follow' || phase === 'fadeOut' ? 1.2 : 0.4; this.coil *= Math.exp(-dt * 3);
     if (phase === 'follow' || phase === 'fadeOut' || phase === 'fadeIn') {
       const [a, b] = this.dir();
       this.moveHead(a * 0.8 * dt, b * 0.8 * dt);
@@ -279,7 +280,7 @@ export class Nematode {
       part.mesh.geometry.computeBoundingSphere();
     }
     // the tooth: in the buccal cavity, bared forward in the attack
-    this.tooth.position.copy(pts[0]).addScaledVector(fr[0], -0.05 + 0.16 * this.tooth);
+    this.tooth.position.copy(pts[0]).addScaledVector(fr[0], -0.05 + 0.16 * this.bare);
     this.tooth.quaternion.setFromUnitVectors(_x.set(1, 0, 0), fr[0]);
     this.headW = pts[0]; this.headDir = fr[0];
     if (this.parts[0].mesh.material === this.parts[0].mesh.userData.lit) for (const p of this.parts) p.mesh.geometry.computeVertexNormals();

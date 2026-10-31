@@ -166,7 +166,7 @@ export function createWolfSpider(scene, { post, home }) {
         if (st.t > T) {
           st.from = { x: st.x, z: st.z };
           const d = Math.hypot(st.target.x - st.x, st.target.z - st.z);
-          const reach = st.pattern === 'pounce' ? Math.min(20, d - 1.8) : Math.min(8, d + 1.2);
+          const reach = Math.max(0, st.pattern === 'pounce' ? Math.min(20, d - 2.2) : Math.min(8, d - 2.0)); // the fangs end where the target was
           st.aimX = st.x + Math.cos(st.a) * reach; st.aimZ = st.z + Math.sin(st.a) * reach;
           go(st.pattern);
           ev.push({ type: st.pattern });

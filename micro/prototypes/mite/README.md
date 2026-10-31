@@ -21,12 +21,12 @@ up.
 | --- | --- |
 | LS (WASD) | Walk (~420 µm/s), relative to the view. The mite turns toward the stick and walks forward; it climbs grains, flakes and stems and pushes through blades |
 | RS (arrows) | Orbit the specimen. Up looks up (the camera swings down toward the floor), down looks down; Features → Controls → Invert camera Y flips it for every prototype |
-| **A (Space)** | **Jump**: a 0.13 s crouch, then a hop (~0.17 mm high, ~0.35–0.4 mm long) onto the floor, a grain, a flake or a moss blade; 0.45 s after landing before the next. Borrowed from jumping oribatids (see Notes) |
-| **X (E)** | **Bite** with the chelicerae: eat a fungal spore or nibble a hyphal branch tip in reach of the mouth; at the predator, a nip that makes it recoil |
-| **B (Shift)** | **Scramble**: 0.6 s at up to ~0.75 mm/s, recharging over 2.2 s (the `dash` meter in the corner); with no stick, straight ahead |
-| Y (R), hold | Ptychoidy: close into a sealed capsule (the predator cannot grip it); release to reopen. At the backdoor (see Landmarks), Y goes back up to the bog surface instead |
+| **A (Space)** | **Jump**: a 0.13 s crouch, then a hop (~0.17 mm high, ~0.35–0.4 mm long) onto the floor, a grain, a flake or a moss blade (the blade takes the landing and bends); 0.45 s after landing before the next. Borrowed from jumping oribatids (see Notes). **X in the air: the pounce-bite** |
+| **X (E)** | Three moves, by what is in reach: **eat** (a spore or hyphal tip: leg I reaches out and holds it to the mouth while the chelicerae work and it shrinks away, 0.9 s); **fight** (the predator or the pseudoscorpion's pincer: rear up with leg I raised, then lunge and snap); **attack** (nothing in reach: a lunge with the chelicerae) |
+| **B (Shift)**, hold | **Defend: ptychoidy.** Close into a sealed capsule (the predator's strike slides off; a held mite closing up drops out of the grip); release to reopen |
+| **RT (X key)**, hold | **Scramble**: a punchy burst to ~2.1x the walk (~0.88 mm/s), nose down, tight turns, the gait racing (feet still planted) and crumbs kicked up behind; on a stamina meter (`scramble ■■■■■` in the corner: empties in ~1.6 s, refills in ~2.8 s). In a grab's strike window, a scramble breaks out |
+| Y (R) | Observer mode (as LS click). At the backdoor (see Landmarks), Y goes back up to the bog surface |
 | LS click (C) | Observer mode: SEM data bar and raster lines |
-| LT / RT (Z / X) | Lower / higher magnification (HFW 0.16–4.2 mm; starts at 1.6 mm, ~79×, so the mite and the moss around it read) |
 | LB / RB (Q / F) | Walk slowly (~210 µm/s) / hurry (~590 µm/s) |
 | D-pad ← → (3 / 4) | Imaging mode: SE (Everhart-Thornley), BSE (low vacuum), SE false colour |
 | D-pad ↑ ↓ (1 / 2) | Magnification steps (×1.5) |
@@ -86,6 +86,55 @@ game the roster comes in from the shell (`embed.players`).
 - Test hooks on `window.__micro`: `players`, `split`, `layout`, `recs()`,
   `teleport(slot, x, z)`, `settle(n)`, `landmarks`, `landmarkLog`,
   `nearBack`, `joins`, `forceCapture(slot)`.
+
+## Fighting back
+
+Shared rules (`shared/predation.js` `createFight`; B is defend in every world).
+
+- **Calm vs attacking.** A calm predatory mite wanders at an easy pace and
+  stops to groom; hunting, it is fast and turned on you. Before each strike
+  it **rears, leg I and the palps up, the chelicerae open** (0.8 s; the
+  banner says so), then lunges (`predator.js`: wander, hunt, windup, strike,
+  recover, recoil, retreat).
+- **Block:** close up (B): the strike slides off the capsule, it recoils.
+- **Bite back:** X with it in reach: rear up, then lunge and snap. Blocks and
+  bites each take about a third of its interest (facing it close by wears it
+  slowly too); out of interest it runs off and rests.
+- **The pounce-bite (a game stretch):** X while jumping dives at the nearest
+  enemy point ahead (homing as it moves), a strong bite on impact (two bites'
+  worth, a hit-pause, crumbs, a rumble), then a hop back; a mistimed dive is a
+  clear miss.
+- **A grab:** three leg grabs and it holds on (strike, hold, eat: pulled in
+  and swallowed between the chelicerae); scramble (RT) in the strike window,
+  or close up (B) before it eats, to slip free. Eaten, the camera pulls back
+  and follows the predator for a couple of seconds, a fade, and you are back
+  beside a teammate or (alone) at your last safe spot.
+
+## The boss: a pseudoscorpion
+
+`boss.js`; `micro/design/bosses.md`. *Neobisium*-like, ~2.5 mm (seven box
+mites), lying in wait before the wet leaf axil (between the start and the
+water), **dormant** until a player comes within 2.3 mm after the calm
+opening. Built from anatomy (MP-R15 is requested, not delivered): carapace
+with eye spots, a flattened ringed abdomen (no tail), eight legs, long
+pedipalps with chelae (hand, fixed finger, movable finger with the venom
+tooth), long tactile setae.
+
+- **Tell:** the pincers held **open and dead still** (0.9 s; 0.7 s before a
+  sweep). Then one of three attacks: a **snap** straight ahead, a **sweep**
+  of both pincers in from wide, or a **step-in** and snap when you hang back.
+  It keeps its distance at the edge of its reach.
+- **Counters:** stay out of reach; **close up (B)** to survive a grab (the
+  venom tooth cannot get through); **scramble (RT)** out of a grab in its
+  strike window; in its **recovery** (pincers lowered, 1.3 s) bite its pincer
+  joints (X, double) or pounce-bite them. About three good rounds and it
+  **backs into the moss**: the way is open.
+- Its resolve is a quiet brass gauge; the camera widens to keep its pincers
+  in frame. In multiplayer it goes for the nearest player or whoever bit it
+  last. A grab that is not escaped is eaten whole and followed as above.
+- Test hooks: `bossFight(slot)`, `bossBite(slot)`, `boss`, `jumpAt(slot, x, z)`,
+  `impact(slot)`; for the fights `setFoe`, `nudgeFoe`, `calm`, `me`, `feed`,
+  `fightLog`.
 
 ## Why a box mite
 

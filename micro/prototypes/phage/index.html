@@ -21,7 +21,11 @@
     .ph-scale i { display: block; height: 3px; background: #1a1f27; margin-bottom: 3px; box-shadow: 0 0 3px #fff; }
     .ph-prog { position: fixed; left: 50%; top: 44px; transform: translateX(-50%); width: min(360px, calc(100vw - 32px)); background: rgba(10,12,16,.62);
       border-radius: 8px; padding: 5px 10px 7px; font: 12px system-ui, sans-serif; color: #eef1f4; display: none; z-index: 4; }
-    .ph-prog i { display: block; height: 5px; margin-top: 4px; border-radius: 3px; background: linear-gradient(90deg, #b04ad0, #ffd85a); }
+    .ph-prog { background: rgba(28,24,14,.78); border: 1px solid #b8913f; color: #f3e7c4; font: 600 11px/1.3 system-ui, sans-serif; letter-spacing: .03em; }
+    .ph-prog i, .ph-prog b { display: block; height: 4px; margin: 3px 0 5px; border-radius: 2px; background: linear-gradient(90deg, #8a6a2a, #e3c47a); box-shadow: 0 0 0 1px rgba(184,145,63,.35); }
+    .ph-prog b { background: linear-gradient(90deg, #7a3040, #ff6a7a); margin-bottom: 0; }
+    .ph-prog .lock { color: #d9c6a0; font-weight: 500; }
+    .ph-prog.hot { border-color: #ff6a7a; } .ph-prog.hot .lock { color: #ff8a96; }
     .ph-data { position: fixed; transform: translate(-50%, -100%); background: rgba(10,12,16,.72); color: #fff3b0; border-left: 3px solid #ffe14a;
       padding: 3px 8px; border-radius: 4px; font: 11px/1.35 system-ui, sans-serif; pointer-events: none; max-width: 260px; z-index: 3; }
   </style>

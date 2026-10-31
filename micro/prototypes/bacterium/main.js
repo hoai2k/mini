@@ -20,6 +20,7 @@ import { createWorld, oxygenY, segDist, WORLD } from './world.js';
 import { createSwimmer, SPECIES } from './swim.js';
 import { createGame, GOAL_PREY } from './game.js';
 import { createDrawer } from './draw.js';
+import { createStentor } from './stentor.js';
 import { createOverlay } from './overlay.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { createPlayers } from '../shared/players.js';
@@ -82,6 +83,9 @@ const markG = markCv.getContext('2d');
 // --- simulation ---
 const world = createWorld();
 const drawer = createDrawer(world);
+// the boss: Stentor coeruleus, anchored by the host cell (stentor.js; runBoss below)
+const stentor = createStentor();
+world.stentor = stentor;
 const dashFor = (sp) => (sp === 'mtb' ? createDash({ duration: 0.6, cooldown: 3 }) : createDash({ duration: 0.45, cooldown: 2.5 }));
 /** Every player's cell: its own swimmer, rules (game), dash, catch and HUD state. */
 const roster = [];
@@ -183,6 +187,8 @@ function updatePressure(dt) {
 // Solo: the Eaten card and A to start again. Multiplayer: the catch plays out
 // the same, then the player rejoins beside a teammate.
 const CATCH = {
+  stentor: { by: 'Stentor', how: 'swept you into its oral pouch with its vortex', sound: 'bacterium/graze',
+    strike: 'Caught in the vortex: swept round toward the mouth', hold: 'Into the oral pouch, spinning', eat: 'Packed into a food vacuole, carried down into its body' },
   grazer: { by: 'A peritrich', how: 'swept you into its oral funnel and packed you into a food vacuole', sound: 'bacterium/graze',
     strike: 'Caught in the feeding current: drawn into the oral funnel', hold: 'Down the funnel: the oral cilia sweep you deeper', eat: 'Packed into a food vacuole: digestion begins' },
   amoeba: { by: 'The amoeba', how: 'closed you into a phagosome', sound: 'bacterium/graze',
@@ -206,7 +212,7 @@ function startCatch(P, { kind, who }) {
   if (pacing.firstCatch === null) pacing.firstCatch = pacing.now - pacing.t0;
   embed.captured({ by: CATCH[kind].by, player: P.slot });
 }
-const catcherHunger = (cat) => (cat.kind === 'grazer' ? cat.who.hunger : cat.kind === 'phage' ? phageH : cat.kind === 'bdello' ? bdelloH : amoebaH);
+const catcherHunger = (cat) => (cat.kind === 'grazer' || cat.kind === 'stentor' ? cat.who.hunger : cat.kind === 'phage' ? phageH : cat.kind === 'bdello' ? bdelloH : amoebaH);
 const ease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 function stepCatch(P, dt) {
   const S = P.S, cat = P.cat;
@@ -233,6 +239,13 @@ function stepCatch(P, dt) {
     if (c.phase === 'strike') { const q = ease(k); S.x = cat.x0 + (Q.mouth.x - cat.x0) * q; S.y = cat.y0 + (Q.mouth.y - cat.y0) * q; S.a += dt * 7; }
     else if (c.phase === 'hold') { const q = ease(k); S.x = Q.mouth.x + (deep.x - Q.mouth.x) * q; S.y = Q.mouth.y + (deep.y - Q.mouth.y) * q; S.a += dt * 6; }
     else { S.x = deep.x - Q.up.x * R * 0.25 * e + Q.up.y * R * 0.3 * e; S.y = deep.y - Q.up.y * R * 0.25 * e - Q.up.x * R * 0.3 * e; S.a += dt * 2 * (1 - e); }
+  } else if (cat.kind === 'stentor') {
+    // swept round the vortex into the oral pouch, packed into a food vacuole carried down into the body
+    const B = cat.who, M = B.mouth;
+    const a0 = Math.atan2(cat.y0 - M.y, cat.x0 - M.x), r0 = Math.hypot(cat.x0 - M.x, cat.y0 - M.y);
+    if (c.phase === 'strike') { const q = ease(k); const a = a0 + 1.2 * q, r = r0 + (B.catchR * 0.7 - r0) * q; S.x = M.x + Math.cos(a) * r; S.y = M.y + Math.sin(a) * r; S.a += dt * 8; }
+    else if (c.phase === 'hold') { const q = ease(k); const a = a0 + 1.2 + 1.4 * q, r = B.catchR * (0.7 - 0.45 * q); S.x = M.x + Math.cos(a) * r; S.y = M.y + Math.sin(a) * r; S.a += dt * 7; }
+    else { const a = a0 + 2.6, r = B.catchR * 0.25; S.x = M.x + Math.cos(a) * r - 20 * e; S.y = M.y + Math.sin(a) * r - 30 * e; S.a += dt * 2 * (1 - e); }
   } else if (cat.kind === 'amoeba') {
     // the phagosome is drawn in and carried along as the edge creeps on
     const A = cat.who, nx = -Math.sin(A.ang), ny = Math.cos(A.ang);
@@ -273,7 +286,7 @@ function respawnPlayer(P) {
   let best = { x: -20, y: 32 }, bd = -1;
   for (let i = 0; i < 20; i++) {
     const q = { x: WORLD.x0 + 30 + Math.random() * (WORLD.x1 - WORLD.x0 - 60), y: oxygenY(1 + Math.random() * 3) };
-    const d = Math.min(...world.grazers.map((g) => Math.hypot(q.x - g.pose.mouth.x, q.y - g.pose.mouth.y)), Math.hypot(q.x - world.amoeba.x, q.y - world.amoeba.y) - 40);
+    const d = Math.min(...world.grazers.map((g) => Math.hypot(q.x - g.pose.mouth.x, q.y - g.pose.mouth.y)), Math.hypot(q.x - world.amoeba.x, q.y - world.amoeba.y) - 40, Math.hypot(q.x - stentor.mouth.x, q.y - stentor.mouth.y) - stentor.pullR);
     if (d > bd) { bd = d; best = q; }
   }
   P.S.x = best.x; P.S.y = best.y;
@@ -410,6 +423,72 @@ function runFights(dt) {
         c.stalking = null; c.cooldown = 6; c.windup = 0; P.bdello = null;
       }
     }
+  }
+}
+
+// --- the boss: Stentor, anchored by the host cell ---------------------------------
+// A shared/predation.js fight with more resolve and three patterns: the steady
+// vortex (swim against it), the pull (tell: membranelles speed up, the vortex
+// brightens), and (resolve under half) a longer, harder pull. Tumbling (B) at
+// the pull breaks you free; each wasted pull and each bump of its foot costs
+// it resolve; bumping its foot makes it contract in a flash and pause.
+// Worn out, it contracts and stays shut for a while: the host is yours.
+stentor.fight = createFight({ windup: 1.4, strike: 0.9, recoverT: 2.4, repelT: 3.5, retreatT: 22, facingRate: 0, blockHit: 0.16, biteHit: 0.2 });
+stentor.hunger = createHunger({ grace: 0 });
+const gaugeEl = document.createElement('div');
+gaugeEl.style.cssText = 'position:fixed;left:50%;top:56px;transform:translateX(-50%);z-index:20;pointer-events:none;display:none;color:#e6d3a3;font:600 11px/1.2 system-ui,sans-serif;letter-spacing:.04em;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,.7)';
+gaugeEl.innerHTML = '<div class="nm"></div><div style="margin:3px auto 0;width:150px;height:5px;border:1px solid rgba(201,163,90,.85);border-radius:3px;background:rgba(20,16,8,.45)"><i style="display:block;height:100%;background:#c9a35a;border-radius:2px;width:100%"></i></div>';
+document.body.appendChild(gaugeEl);
+const bossInfo = { log: [], footT: 0 };
+function runBoss(dt) {
+  const B = stentor, M = B.mouth;
+  const after = pacing.now - pacing.t0 > pacing.grace;
+  const dist = (P) => Math.hypot(P.S.x - M.x, P.S.y - M.y);
+  let nd = Infinity;
+  for (const P of roster) if (fightable(P)) nd = Math.min(nd, dist(P));
+  if (!B.awake && (after || bossInfo.force) && nd < B.wakeR) {
+    B.awake = true; bossInfo.log.push({ ev: 'wake', t });
+    hud.toast('Stentor, a giant trumpet ciliate, guards the host: ride the edge of its vortex, tumble at the pull, sprint across between pulls', 3800);
+  }
+  if (!B.awake) { B.update(dt, 'stalk', 0); gaugeEl.style.display = 'none'; return; }
+  const inVortex = (P) => fightable(P) && dist(P) < B.pullR;
+  const blocking = roster.some((P) => inVortex(P) && P.blockT > 0);
+  const f = B.fight.update(dt, { near: nd < B.wakeR, inReach: nd < B.pullR, facing: true, blocking });
+  if (f.state === 'windup' && B.state !== 'windup') bossInfo.log.push({ ev: 'tell', t });
+  if (f.state === 'strike' && B.state !== 'strike') bossInfo.log.push({ ev: 'pull', t });
+  B.phase2 = f.interest < 0.5;
+  // the catch: drawn to the mouth (at any time; the pull makes it likely)
+  let caught = false;
+  for (const P of roster) {
+    if (!fightable(P)) continue;
+    if (dist(P) < B.catchR) { const ev = {}; P.game.catchBy('stentor', B, ev); if (ev.caught) { startCatch(P, ev.caught); caught = true; bossInfo.log.push({ ev: 'catch', slot: P.slot, t }); } }
+    // a tumble at the pull breaks you free of it: a kick out of the vortex
+    if (P.kickT > 0) { P.kickT -= dt; const a = Math.atan2(P.S.y - M.y, P.S.x - M.x); P.S.x += Math.cos(a) * 70 * dt; P.S.y += Math.sin(a) * 70 * dt; }
+    // bumping its foot: it contracts in a flash and pauses
+    if (Math.hypot(P.S.x - B.foot.x, P.S.y - B.foot.y) < 9 && bossInfo.footT <= 0 && B.fight.state !== 'retreat') {
+      bossInfo.footT = 4; B.fight.bitten(); bossInfo.log.push({ ev: 'foot', slot: P.slot, t });
+      P.pad.rumble(200, 0.6, 0.6);
+      hud.toast('You bumped its foot: Stentor contracts in a flash and pauses', 2000);
+    }
+  }
+  bossInfo.footT = Math.max(0, bossInfo.footT - dt);
+  if (f.blocked) {
+    for (const P of roster) if (inVortex(P) && P.blockT > 0) P.kickT = 0.6;
+    bossInfo.log.push({ ev: 'blocked', t });
+    hud.toast('Tumbled free of the pull!', 1500);
+  }
+  if (f.hit && !caught) { bossInfo.log.push({ ev: 'miss', t }); B.fight.bitten(); }
+  if (B.fight.state === 'retreat' && !B.spent) { B.spent = true; bossInfo.log.push({ ev: 'spent', t }); hud.toast('Stentor has had enough: it contracts and stays shut. The host is yours!', 3600); }
+  else if (B.fight.state !== 'retreat') B.spent = false;
+  // phase 2: a longer, harder pull
+  B.fightT = f.t;
+  B.update(dt, B.fight.state, f.t);
+  if (B.phase2 && B.fight.state === 'strike') B.flowK = Math.max(B.flowK, 6.5);
+  const show = nd < B.wakeR * 1.25;
+  gaugeEl.style.display = show ? 'block' : 'none';
+  if (show) {
+    gaugeEl.querySelector('.nm').textContent = B.spent ? 'Stentor · contracted' : `Stentor${B.phase2 ? ' · straining' : ''}`;
+    gaugeEl.querySelector('i').style.width = `${Math.round(B.fight.interest * 100)}%`;
   }
 }
 
@@ -615,6 +694,8 @@ const debug = {
   phageOnMe(slot = 0) { const T = (roster.find((Q) => Q.slot === slot) || P1).S; const p = world.newPhage(T.x, T.y); p.z = 0; world.phages.push(p); const ph = { p, u: (Math.random() - 0.5) * T.sp.L * 0.6, side: 1, t: 0, irreversible: false, shed: false }; p.stuck = ph; T.phages.push(ph); },
   nearGrazer(i = 0, d = 14) { const Q = world.grazers[i].pose; debug.teleport(Q.mouth.x + Q.up.x * d, Q.mouth.y + Q.up.y * d, Math.atan2(-Q.up.y, -Q.up.x)); },
   /** Make every predator hungry now (tests of the fights). */
+  /** Wake the boss now, whatever the calm opening says. */
+  wakeBoss() { bossInfo.force = true; },
   hungry() { for (const p of predators()) p.h.reset(0.01); },
   /** A button for a player in tests: 'B' tumble (defend), 'A' sprint. */
   press(b, slot = 0) { const P = roster.find((Q) => Q.slot === slot) || P1; if (b === 'B') { P.blockT = 0.55; P.swimmer.tumble(null); } else if (b === 'A' && P.dash.trigger()) { doDash(P); P.sprintT = 0.55; } },
@@ -656,6 +737,7 @@ function tick(dt, inputs) {
   world.update(dt, t, target);
   // the fights: predators wind up readably before they strike (shared/predation.js createFight)
   runFights(dt);
+  runBoss(dt);
   for (const P of roster) {
     const ev = evs.get(P), inp = inputs[P.slot], S = P.S;
     // uptake: a soft eating sound every ~0.7 s while X feeds, and when a prey is finished
@@ -810,6 +892,12 @@ function warn() {
 /** What is attacking a player right now, for the warning line. */
 function attackText(P) {
   if (!P.S.alive) return null;
+  if (stentor.awake && Math.hypot(P.S.x - stentor.mouth.x, P.S.y - stentor.mouth.y) < stentor.pullR + 15) {
+    const st = stentor.fight.state;
+    if (st === 'windup') return { text: `Stentor's membranelles speed up, its vortex brightens: get to the edge, or tumble (${glyph('B')}) at the pull`, sev: 2.3 };
+    if (st === 'strike') return { text: `Stentor PULLS: tumble (${glyph('B')}) to break free, sprint (${glyph('A')}) out`, sev: 2.6 };
+    if (st === 'recover') return { text: 'Its vortex slackens: sprint across now!', sev: 0.4 };
+  }
   const g = world.grazers.find((q) => q.target === P && (q.fightState === 'windup' || q.fightState === 'strike'));
   if (g) return { text: `A grazer's current is ${g.fightState === 'strike' ? 'SURGING' : 'intensifying'}: tumble (${glyph('B')}) as it pulls, or sprint out (${glyph('A')})`, sev: 2.2 };
   if (P.bdello && /windup|strike/.test(P.bdello.fight.state)) return { text: `Bdellovibrio is lining up to ram you: tumble (${glyph('B')}) at the ram`, sev: 2.1 };
@@ -1004,6 +1092,8 @@ window.__micro = { forceCapture, capture,
   players, split, landmarks: { forward: FWD, back: BACK, log: lm.log, get near() { return lm.near; } },
   get frames() { return frameCount; },
   /** The fights: each grazer's state, and each player's phage and Bdellovibrio stalker. */
+  boss: () => ({ awake: stentor.awake, state: stentor.fight.state, t: +(stentor.fightT || 0).toFixed(2), interest: +stentor.fight.interest.toFixed(2), phase2: stentor.phase2, flowK: +stentor.flowK.toFixed(2), contract: +stentor.contract.toFixed(2), log: bossInfo.log }),
+  stentor,
   fights: () => ({ grazers: world.grazers.map((g) => ({ state: g.fightState, t: +(g.fightT || 0).toFixed(2), interest: +g.fight.interest.toFixed(2), pull: +(g.pull || 1).toFixed(2), target: g.target ? g.target.slot : null })),
     phage: roster.map((P) => (P.phage ? P.phage.fight.state : null)), bdello: roster.map((P) => (P.bdello ? P.bdello.fight.state : null)) }),
   roster: () => roster.map((P) => ({ slot: P.slot, x: P.S.x, y: P.S.y, alive: P.S.alive, mode: P.S.mode, over: P.S.over, cause: P.S.cause, warning: P.S.warning && P.S.warning.text, stress: P.S.stress, energy: P.S.energy, o2: P.S.o2, capture: P.capture.active ? P.cat.phase : null })),

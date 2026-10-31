@@ -283,7 +283,7 @@ export function createDrawer(world) {
   function drawCaught(S, t, s, A) {
     const sp = s.sp, k = A.t, ph = A.phase;
     const flPh = s.flPhase * (opts.slowBeat ? 1 : 5);
-    if (A.kind === 'grazer') {
+    if (A.kind === 'grazer' || A.kind === 'stentor') {
       // swept down the oral funnel, spinning, then packed into a food vacuole that darkens
       const eat = ph === 'eat' ? ease(k) : ph === 'eaten' ? 1 : 0;
       if (eat > 0) S.disc(s.x, s.y, 2.6 - 0.6 * eat, { dn: -0.02 + 0.05 * eat, scat: 0.5, fl: [0.5 * chan.memb, 0, 0], memb: 1, ab: [0.01 + 0.06 * eat, 0.012 + 0.055 * eat, 0.016 + 0.045 * eat], z: 0 });

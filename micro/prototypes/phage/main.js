@@ -260,7 +260,7 @@ function afterCatch(m) {
   const was = cur;
   respawning = true;
   try { respawn(m); } finally { respawning = false; }
-  m.P.kind = null;
+  m.P.kind = null; m.P.camFocus = null;
   if (was) use(was);
 }
 let started = false;
@@ -323,9 +323,13 @@ function captureAnim(phase, t, dt) {
     else if (phase === 'eat') { P.dark = 1; P.crack = t; P.dna = 1 - 0.5 * t; P.foldTarget = 0.6; }
     else { P.dark = 1; P.crack = 1; P.dna = 0.5; P.pos.y += dt * 5; P.pos.x += dt * 3; } // the broken shell drifts on in the light
   } else if (P.kind === 'cut') {
-    if (phase === 'follow' || phase === 'fadeOut') { // the enzyme lets go and slides off along the host DNA
-      const e = P.cutBy; e.closing = null; e.pos.x += dt * 14; e.pos.y -= dt * 4; e.g.position.copy(e.pos);
-    } else inside.cutAnim(P.cutBy, phase, t);
+    const e = P.cutBy;
+    if (e.kind === 'cas' && (phase === 'eat' || phase === 'follow' || phase === 'fadeOut')) {
+      if (phase === 'eat' && t < 0.05) inside.cutAnim(e, 'hold', 1);
+      P.camFocus = inside.chew(e, dt).clone(); // Cas3 chews your DNA back toward the pore: the camera follows it
+    } else if (phase === 'follow' || phase === 'fadeOut') { // the enzyme lets go and slides off along the host DNA
+      e.closing = null; e.pos.x += dt * 14; e.pos.y -= dt * 4; e.g.position.copy(e.pos); P.camFocus = e.pos.clone();
+    } else inside.cutAnim(e, phase, t);
   }
 }
 
@@ -786,7 +790,14 @@ function stepMember(m, dt, insideOwner, where) {
     if (ev.surged) { audio.play('bacterium/sprint', { volume: 0.6, rate: 1.2 }); say('A surge: the strand is pulled in faster (departure).', 1400); }
     if (ev.cut && P.mode === 'inside') {
       P.cutBy = ev.cut;
-      startCapture('cut', ev.cut.kind === 're' ? 'The host\'s restriction enzyme' : 'The host\'s CRISPR complex', ev.cut.kind === 're' ? 'found a recognition site and cut your DNA' : 'matched your DNA to a spacer and cut it');
+      startCapture('cut', ev.cut.kind === 're' ? 'The host\'s restriction enzyme' : 'The CRISPR-Cas complex', ev.cut.kind === 're' ? 'found a recognition site and cut your DNA' : 'matched its guide to your DNA, and Cas3 chewed the strand');
+    }
+    if (ev.nearMiss) { say('Near miss! You pulled your end free before Cas3 could cut; the complex loses some of its grip.', 2200, true); curPad().rumble(120, 0.3, 0.5); audio.play('bacterium/tumble', { volume: 0.6, rate: 1.3 }); }
+    if (ev.retreat) say('The CRISPR complex lets go and drifts off along the host DNA, for now.', 2400, true);
+    if (P.mode === 'inside' && !c.active) {
+      const b = inside.bossLock();
+      if (b && b.state === 'windup' && P.msgT <= 0) { say('Bound! Its guide blazes and Cas3 swings in: pull your end away (LS, A to surge)!', 2000, true); P.msgT = 3; }
+      else if (b && b.match > 0.45 && b.state !== 'windup' && P.msgT <= 0) { say('The guide RNA is glowing: it is matching your DNA. Lead your end away from it.', 2200, true); P.msgT = 4; }
     }
     if (ev.won && P.mode === 'inside') { P.mode = 'burst'; P.burstT = 0; P.burstStarted = false; say('The whole genome is in. Phage genes switch on; the host\'s DNA is broken down…', 3000, true); audio.play('bacterium/eat', { volume: 0.8 }); }
   }
@@ -849,7 +860,11 @@ function frame(now) {
   if (lead.P.mode === 'inside' || lead.P.mode === 'burst') {
     const s = inside.S;
     prog.style.display = where === 'inside' || lead.P.mode === 'inside' ? 'block' : 'none';
-    prog.innerHTML = `<span>Genome in: ${Math.round(s.progress * 169)} of 169 kbp</span><i style="width:${(s.progress * 100).toFixed(1)}%"></i>`;
+    const b = inside.bossLock();
+    const lock = b ? (b.state === 'windup' || b.state === 'strike' ? 1 : b.match) : 0;
+    prog.innerHTML = `<span>Genome in · ${Math.round(s.progress * 169)} of 169 kbp</span><i style="width:${(s.progress * 100).toFixed(1)}%"></i>`
+      + `<span class="lock">CRISPR-Cas match${b && b.state === 'retreat' ? ' · let go' : lock > 0.99 ? ' · BOUND' : ''}</span><b style="width:${(lock * 100).toFixed(0)}%"></b>`;
+    prog.classList.toggle('hot', lock > 0.99);
   } else prog.style.display = 'none';
   // the win: the last world has no next stage, so the burst is the ending
   if (lead.P.mode === 'burst' && lead.P.burstT > 4 && !lead.P.burstSent) {
@@ -896,7 +911,9 @@ function frame(now) {
     post.uniforms.uUv.value = opts.uv && !debug.iso ? 0.9 : 0;
     post.uniforms.uBgOff.value.set(view.target.x * 0.0006, view.target.y * 0.0006);
   } else {
-    inside.frame(dt, look, insideOwner && insideOwner.c.active && insideOwner.P.kind === 'cut' ? 85 : ZOOMS[view.zoom] * 1.05 + 40);
+    const cutting = insideOwner && insideOwner.c.active && insideOwner.P.kind === 'cut';
+    const chewing = cutting && ['eat', 'follow', 'fadeOut'].includes(insideOwner.c.phase);
+    inside.frame(dt, look, chewing ? 140 : cutting ? 85 : ZOOMS[view.zoom] * 1.05 + 40, chewing ? insideOwner.P.camFocus : null);
     goodsellShared.uFogNear.value = 150; goodsellShared.uFogFar.value = 360;
     post.uniforms.uWater.value.set('#efc4a0');
     post.uniforms.uUseBg.value = 0; // the cytoplasm, not the water plate
@@ -980,6 +997,7 @@ Object.assign(debug, {
   look(i) { features.set('look', LOOKS[i]); },
   zoom(i) { view.zoom = i; view.dist = ZOOMS[i]; },
   reset: resetLevel,
+  boss() { const b = inside.bossLock(); return b ? { state: b.state, match: +b.match.toFixed(2), d: +b.pos.distanceTo(inside.tip()).toFixed(1) } : null; },
 });
 Object.defineProperty(debug, 'fight', { get: () => ({ state: fightState, interest: fight.interest }) });
 window.__micro = {

@@ -31,9 +31,9 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | --- | --- |
 | LS (WASD) | Walk on the film, relative to the view. Slow and a bit slippery: you coast |
 | RS (arrows) | Orbit the camera. Up looks up (the camera swings down toward the horizon), down looks down, in either view; Features → Invert camera Y flips it (shared by every prototype) |
-| **A** (Space) | **Furcula jump.** Hold to cock it (a tap is a short hop, ~0.7 s of hold is a full jump), release to fire. Aim with LS (no stick: straight ahead). The furcula re-cocks for 0.9 s after landing. When stuck in sundew glue, mash A to tear free; on your back, tap A to flick upright |
-| **X** (E) | Graze: bite the pollen, spores or algae in front of your head |
-| B (Shift) | Hold: hunker. Pressed flat with the collophore: waves cannot flip you, and a still, hunkered springtail makes no ripples for the strider to feel. You cannot move |
+| **A** (Space) | **Furcula jump.** Hold to cock it (a tap is a short hop, ~0.7 s of hold is a full jump), release to fire. Aim with LS (no stick: straight ahead). Released at an enemy in range (near the aim line), the jump is aimed and ends in a pounce-bite. The furcula re-cocks for 0.9 s after landing. When stuck in sundew glue, mash A to tear free; on your back, tap A to flick upright |
+| **X** (E) | Three moves, by what is in front of your head: **eat** (food: the head goes down on a grain, the mouthparts work and the grain shrinks away, 0.7 s a bite); **fight** (a predator's leg in reach: rear up, then snap: a nip that staggers it); **attack** (nothing in reach: a lunge-nip). **In the air: the pounce-bite** (see Fighting back) |
+| **B** (Shift) | Hold: **hunker, the defend button.** Pressed flat with the collophore: facing a predator, it blocks its strike; waves cannot flip you, and a still, hunkered springtail makes no ripples for the strider to feel. You cannot move |
 | Y (R) | Camera: top-down, and back to the low view you had (RS also brings it down) |
 | LT / RT (Z / X) | Focus pull nearer / farther (an offset from autofocus) |
 | LB / RB (Q / F) | Aperture wider / narrower (f/2.8 to f/22) |
@@ -97,6 +97,61 @@ shell (`embed.players`).
 - Test hooks on `window.__micro`: `players`, `split`, `layout`, `recs()`,
   `teleport(slot, x, z)`, `settle(n)`, `landmark`, `landmarkLog`, `joins`,
   `forceCapture(kind, slot)`.
+
+## Fighting back
+
+Shared rules (`shared/predation.js` `createFight`): every attack is
+telegraphed, and facing a hunting predator, blocking its strike and biting
+back wear its interest down until it retreats (and rests: `hunger.missed()`).
+
+- **Calm vs attacking.** A calm *Stenus* patrols at an easy pace and stops to
+  groom (forelegs over the antennae, head bobbing); hunting, it goes low and
+  fast, locked on you. Its **wind-up** (0.8 s): it rears its forebody, lowers
+  its head, the mandibles gape and the labium cocks; then the harpoon. The
+  strider rows in, stops a body length off and **raises its raptorial
+  forelegs high** (0.7 s), then lunges and snaps them shut. The status bar
+  says *Attacking!* and a toast says what to do.
+- **Block:** face it and hunker (B) as the strike lands: it glances off, the
+  predator staggers back, and its interest falls.
+- **Bite back:** X with its leg in reach (Stenus's foretarsi or head, the
+  strider's forelegs): you rear up and snap. Blocks and nips each take about a
+  third of its interest (facing it close by wears it slowly too); out of
+  interest, Stenus skims away and the strider rows off.
+- **The pounce-bite (a labelled departure).** X while airborne, or a jump
+  released at an enemy in range: the springtail tucks into a dive onto the
+  nearest leg or body under its arc (a short aim assist), nips on impact
+  (worth two nips), squashes, hit-pauses briefly, splashes and rumbles, then
+  rebounds off it. A mistimed dive is a clear miss ("Missed!"). Landing on
+  food takes a whole bite. Real *Podura* graze, and the furcula jump is an
+  escape; a few springtails (*Friesea*) prey on tiny animals, never by
+  leaping.
+- **Caught:** the strike, the hold and the eat play out; then the lens pulls
+  back and follows the predator with its meal for a couple of seconds, a fade,
+  and you are back: beside a teammate, or (alone) at your last safe spot (no
+  lives, no Eaten card).
+
+## The boss: a pond wolf spider
+
+`boss.js`; `micro/design/bosses.md`. *Pirata*, a juvenile ~5 mm (adults are
+6–9 mm: scaled down, labelled), a real bog-pool hunter that runs on the
+water. It sits on guard on the moss tongue at the way on, **dormant** until a
+player comes within 30 mm after the calm opening.
+
+- **Tells:** it **crouches and raises its first two pairs of legs** (0.8 s)
+  before a 7 mm lunge; it feels landing ripples and turns to **pounce** on a
+  fresh landing (a shorter 0.55 s tell).
+- **Counters:** jump clear (a dodged lunge wears it down a little); after
+  each attack it has **overreached**, its front legs splayed out on the film:
+  nip a tarsus (X, double) or pounce-bite it (double again, capped). About
+  three good rounds and it **backs off under the moss**, and the bank is open.
+- Its resolve is a quiet brass gauge at the top while it is engaged. In
+  multiplayer it goes for the nearest player, or whoever bit it last.
+- A catch follows the follow-and-respawn sequence; it carries you off under
+  the moss. Reference sheet MP-R14 is requested, not delivered: built from
+  anatomy (eight long legs, a striped carapace, eye rows, fangs, palps).
+- Test hooks: `bossFight(slot)`, `boss`, `jumpAt(slot, x, z, power)`,
+  `impact(slot)`; and for the fights `setFoe`, `nudgeFoe`, `calm`, `me`,
+  `feed`, `fightLog`.
 
 ## Threats and pacing
 
@@ -421,6 +476,7 @@ may not be in `shared/asset-list.js` yet) and has a procedural stand-in:
 - `springtail.js`: the springtail model, rig and cuticle shader.
 - `world.js`: pool shape and bank, moss islands (and the landmark's tongue),
   Sphagnum, sundews, food, floating debris.
+- `boss.js`: the pond wolf spider boss.
 - `landmarks.js`: the forward landmark's capitula and the moving mite; the
   players' colour rings.
 - `enemies.js`: *Stenus*, the water strider, raindrops.

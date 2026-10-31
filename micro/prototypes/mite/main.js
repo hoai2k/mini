@@ -133,12 +133,12 @@ function placeCamera(dt) {
   let want = mp ? rig.hfw * (1 + Math.min(0.6, (gc.spread / rig.hfw) * 0.7)) : rig.hfw;
   // a boss fight: the lens widens to keep the pseudoscorpion and its pincers in frame
   const bd = boss.engaged ? boss.center.distanceTo(mp ? gc.c : mite.center) : Infinity;
-  if (bd < 3200 && !capture.active) want = Math.min(4200, Math.max(want, bd * 1.5 + 1400));
+  if (bd < 3400 && !capture.active) want = Math.min(4200, Math.max(want, bd * 1.3 + 2600));
   rig.viewHfw = rig.viewHfw === undefined || !dt ? want : rig.viewHfw + (want - rig.viewHfw) * (1 - Math.exp(-dt / 0.4));
   const d = rig.viewHfw / (2 * tanH);
   const k = dt ? 1 - Math.exp(-dt / 0.25) : 1;
   // a catch is framed whole: you and the predator (alone; with company the camera keeps the group)
-  if (bd < 3200 && !capture.active) rig.target.lerp(_ct.copy(mp ? gc.c : mite.center).lerp(boss.center, 0.3), k);
+  if (bd < 3400 && !capture.active) rig.target.lerp(_ct.copy(mp ? gc.c : mite.center).lerp(boss.center, 0.4), k);
   else if (mp) rig.target.lerp(gc.c, k);
   else if (capture.active && capture.phase !== 'fadeIn') {
     // close in side-on to the catch: your body and the predator's chelicerae in frame;
@@ -1062,7 +1062,7 @@ function updateBanner() {
   let txt = '', hot = true;
   gauge.style.display = boss.engaged ? 'flex' : 'none';
   gauge.querySelector('i').style.width = `${(boss.resolve * 100).toFixed(0)}%`;
-  if (capture.active) txt = cap.byBoss && ['strike', 'hold'].includes(capture.phase) ? 'In its pincer! Close up (B), or scramble out (RT) now' : CAP_LINES[capture.phase] || '';
+  if (capture.active) txt = cap.byBoss && ['strike', 'hold'].includes(capture.phase) ? 'In its pincer! Close up (B), or scramble out (RT) now' : cap.byBoss && capture.phase === 'eat' ? 'The pseudoscorpion is eating you' : CAP_LINES[capture.phase] || '';
   else if (boss.attacking) txt = boss.st.state === 'tell' ? 'Pincers open and still: get out of reach, or close up (B)' : 'It snaps!';
   else if (predOn && predAI.attacking) txt = 'It rears to strike! Close up (B), or jump (A)';
   else if (predOn && predAI.state === 'retreat') { txt = 'The predatory mite is running off'; hot = false; }

@@ -165,7 +165,7 @@ export function createWorld() {
     }
     return out;
   }
-  const tmpF = { x: 0, y: 0 };
+  const tmpF = { x: 0, y: 0 }, tmpS = { x: 0, y: 0 };
 
   function food(x, y) {
     let c = 0;
@@ -216,7 +216,12 @@ export function createWorld() {
     landmarks,
     opts, hunt, grains, specks, eps, film, cells, phages, patches, grazers, amoeba, slab, surfaceY,
     oxygen, food, eat, insideAmoeba, pushOutOfGrains, grazerPose,
-    flowAt(x, y) { const f = grazerFlow(x, y, { x: 0, y: 0 }); return f; },
+    flowAt(x, y) {
+      const f = grazerFlow(x, y, { x: 0, y: 0 });
+      // the boss's vortex (main.js sets world.stentor)
+      if (world.stentor) { const v = world.stentor.flow(x, y, tmpS); f.x += v.x; f.y += v.y; }
+      return f;
+    },
     /** Field direction (unit) and strength in µT. North points into the sediment (−y). */
     get field() { return { x: 0.12, y: -0.993, uT: opts.field }; },
     addPatch,

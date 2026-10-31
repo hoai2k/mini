@@ -28,8 +28,8 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | LS | WASD | **Drift** (a labelled departure). Bound to a host: **walk** on the long fibres, one fibre re-planting at a time |
 | RS | Arrows | Orbit the view (it drifts back when released) |
 | **A** | Space | **Dash**: a passing *current gust* in open water, or a *push-off* with the fibres from a surface (both departures; recharging, HUD `dash` meter) |
-| **X** | E | **Commit**: the irreversible bind. Works only with at least three long fibres bound on an OmpC patch of a host; then the short fibres bind, the baseplate opens into a star, the sheath contracts, the tube crosses the envelope and the DNA goes in |
-| B | Shift | **Fibres**: fold them back against the sheath (slip past clay and wrong hosts; also lets go of a host) or extend them (catch receptors, and clay) |
+| **X** | E | **Commit**: the irreversible bind. Works only with at least three long fibres bound on an OmpC patch of a host; then the short fibres bind, the baseplate opens into a star, the sheath contracts, the tube crosses the envelope and the DNA goes in (the phage's attack: a camera close-up and a shake on the sheath snap). **At an amoeba's lobe: a fibre jab** (a departure, below) |
+| B | Shift | **Defend: fold the fibres** back against the sheath and slip: an amoeba's lobe gets no purchase, clay and wrong hosts slide past; also lets go of a host. Press again to extend them (catch receptors, and clay) |
 | Y | R | **At the flagellum (the backdoor)**: back to the sediment (Level 5). Elsewhere: the odds and receptor overlay: receptor patches ringed, each host's receptors, defences and odds of a burst, the UV line, the amoeba's hunger, your distance to the nearest host; inside, each enzyme's sensing range. Marked on screen as data, not optics |
 | D-pad ←→ | 3 / 4 | Look: Goodsell watercolour, cryo-EM greyscale, fluorescence (pseudo-colour) |
 | D-pad ↑↓ | 1 / 2 | Zoom in / out |
@@ -81,32 +81,52 @@ hunt hard, a near dead end). The third cell is the wrong host.
 - **A calm opening.** The amoeba waits at least 45 s (`createHunger`) and the
   UV is only near the top, so you can drift and explore first. The phage
   starts in clear water well below the UV line.
-- **The amoeba's edge** (left): when hungry it reaches a pseudopod toward
-  you, slower than your drift; get away or ride a gust. It gives up after a
-  while. *Amoebae grazing viruses is [Unverified] in the spec.*
+- **The amoeba's edge** (left), fought with the shared `createFight`: when
+  hungry it reaches a pseudopod lobe toward you (stalk), then **rears and
+  curls it** (the wind-up, 1.1 s: the lobe swells and flushes rose, its lips
+  spread wide and quiver, the tip lifts sideways, and the stats say WINDING
+  UP), then lunges (strike). **Fold your fibres (B)** and the strike slips off
+  you (blocked: it staggers back); a **fibre jab (X)** near the lobe makes it
+  recoil and pushes you off; **facing it** (your baseplate end, or the stick,
+  toward it) slowly wears its interest down. Interest at zero: it draws the
+  lobe back and leaves (retreat), and rests. *Amoebae grazing viruses is
+  [Unverified] in the spec.*
 - **UV** (top): your integrity erodes in the UV-bright water; bound to the
   clay platelet you are shielded [S103, S104].
 - **Clay / peat platelet**: extended fibres stick to it [S103]. A trap, but
   a shelter from UV. Fold the fibres (B) to slip free.
 - **The wrong host**: a Gram-positive with no outer membrane and no OmpC. The
   fibres slide off; fold them to pass cleanly.
-- **Inside**: the restriction enzyme and the CRISPR complex slide along the
-  host DNA and, after a short calm, home on your DNA's leading end when they
-  sense it. Lead it away; the strand piles up and feeds more slowly if you
-  just sit by the pore.
+- **Inside: the boss, a CRISPR-Cas complex** (type I: Cascade, the blue Cas7
+  backbone on its red crRNA guide, with Cas3, the amber nuclease-helicase, at
+  one end; `micro/design/bosses.md` [S101]). It **slides along the host DNA
+  scanning**; while your DNA's free end is within its range its match builds,
+  and **its guide RNA glows** brighter (the tell; the brass gauge's lower bar).
+  At a full match it leaves the host DNA and closes in. Reaching your end, it
+  **binds** (the guide blazes, a halo, Cas3 swings in: the wind-up, 1 s), then
+  Cas3 chops. Pull your end away in time (LS, A to surge) and it is a **near
+  miss**: it loses its grip and some interest; three near misses and it lets
+  go and drifts off for a while. Host B's complexes carry a matching spacer
+  (two of them, fast matches); Host A's has a partial match (one, slow). The
+  restriction enzyme is a lesser hazard. Get the whole genome in (the gauge's
+  upper bar) and the host bursts. Lead your end away; the strand piles up and
+  feeds more slowly if you just sit by the pore. **Multiplayer:** only one
+  player can be inside a host at a time, so Cas always targets that strand.
 
-**Being caught always plays a sequence** through `createCapture` (strike,
-hold, eat, then the card; A starts again):
+**Being caught always plays a sequence** through the shared `createCapture`
+(strike, hold, eat, follow, fade out, respawn, fade in; a caption names what
+happened). Solo or not, you drift back in at the start, or beside a teammate
+in multiplayer:
 
-- *Engulfed:* the pseudopod's lips close round you, a food vacuole forms,
-  and you darken and shrink as it draws you into the amoeba (card: "Eaten").
+- *Engulfed:* the lobe's lips close round you and draw you in; the camera
+  pulls back and the amoeba turns translucent so you watch it swallow you
+  whole in a food vacuole, then the camera follows the vacuole as the
+  cytoplasm streams it along the amoeba's edge.
 - *Fried by UV:* a violet flash, the head darkens, cracks open across the
-  capsid and the DNA leaks (card: "Inactivated").
-- *DNA cut:* the enzyme's blades straddle the strand and close, a red flash
-  marks the cut, the cut piece drifts free and is chewed away (card: "Cut").
-
-The shared card always reads "Eaten"; the prototype retitles it for UV and
-cuts.
+  capsid and the DNA leaks; the camera pulls back as the broken shell drifts.
+- *DNA cut:* by Cas3 (the guide holds the strand, Cas3 cuts, a red flash),
+  then the camera follows Cas3 as it chews your DNA back toward the pore; or
+  by the restriction enzyme's blades, which then slide off along the host DNA.
 
 ## Checks
 
@@ -121,7 +141,7 @@ screenshots: `teleport`, `orient`, `isolate` (the phage alone, for
 turnarounds), `cam(yaw, pitch, dist)`, `fold`, `walkOn(hostId, u, phi)`,
 `commit`, `inside(hostId)`, `win`, `capture('amoeba' | 'uv' | 'cut')`,
 `hungry`, `overlay`, `look`, `zoom`, `reset`, `place(slot, x, y)`, plus
-`maxDt` and `pause`. `window.__micro` also exposes `team`, `players`,
+`maxDt` and `pause`; `debug.fight` (the amoeba's fight state and interest) and `debug.boss()` (the CRISPR-Cas state, match, distance). `window.__micro` also exposes `team`, `players`,
 `split`, `nearBack` and `where`.
 
 ## Known issues
@@ -255,6 +275,10 @@ the lysis burst.
   search for a host is compressed (hours at low host density [S100]), and the
   ~25-minute takeover before the burst is compressed to seconds
   **[Unverified here]**.
+- **The fibre jab**: a phage has no weapon and does not fight. Its fibres
+  jabbing an amoeba's membrane so the lobe recoils is a game departure
+  (labelled in the toast). Folded fibres slipping off a membrane is a stretch
+  of the same idea.
 - **Inside rules**: only the leading end can be cut (a game rule; real
   restriction enzymes and CRISPR complexes cut any matching site
   [S101, S102]); burst size (40) is a game number.

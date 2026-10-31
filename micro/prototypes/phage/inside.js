@@ -5,6 +5,7 @@
 // Units here: 1 = 1 nm (ten times closer than outside).
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { toonMaterial, inked, inkedInstanced, blobGeometry, goodsellShared } from '../shared/techniques/phage-goodsell.js';
+import { createFight } from '../shared/predation.js';
 
 const rand = (a, b) => a + Math.random() * (b - a);
 const gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
@@ -122,15 +123,26 @@ export function createInside() {
     g.scale.setScalar(size);
     return { g, jaws };
   }
+  // The boss: a type I CRISPR complex, Cascade (the blue backbone of Cas7 subunits
+  // wrapped along its crRNA, the guide) with Cas3 (the nuclease-helicase, amber)
+  // docked at one end. The guide glows as it nears a match (the tell).
   function cascade() {
     const g = new THREE.Group();
     const body = inked(blobGeometry(Array.from({ length: 9 }, (_, i) => ({ p: [i * 1.25 - 5, Math.sin(i * 0.8) * 0.9, Math.cos(i * 1.1) * 0.5], r: 1.5 + (i % 3) * 0.25, c: i % 2 ? '#6d8fd6' : '#5c7ec8' })), 1), toonMaterial({ vertexColors: true }), { width: 0.8 });
     g.add(body);
-    const rna = inked(blobGeometry(Array.from({ length: 12 }, (_, i) => ({ p: [i * 0.95 - 5.2, 1.6 + Math.sin(i * 0.9) * 0.3, 1.2], r: 0.45, c: '#e8485a' })), 0), toonMaterial({ vertexColors: true }), { width: 0.6 });
+    const rnaMat = toonMaterial({ vertexColors: true });
+    const rna = inked(blobGeometry(Array.from({ length: 12 }, (_, i) => ({ p: [i * 0.95 - 5.2, 1.6 + Math.sin(i * 0.9) * 0.3, 1.2], r: 0.45, c: '#e8485a' })), 0), rnaMat, { width: 0.6 });
     g.add(rna);
+    const halo = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 12), new THREE.MeshBasicMaterial({ color: '#ff6a7a', transparent: true, opacity: 0, depthWrite: false }));
+    halo.scale.set(7, 2.2, 2.2); halo.position.set(0, 1.6, 1.2);
+    g.add(halo);
+    const cas3 = new THREE.Group();
+    cas3.add(inked(blobGeometry([{ p: [0, 0, 0], r: 1.8, c: '#e9a640' }, { p: [1.4, 0.9, 0.3], r: 1.4, c: '#f2bd5a' }, { p: [1.2, -1.0, -0.2], r: 1.3, c: '#d99232' }, { p: [2.4, 0, 0.5], r: 1.0, c: '#f6cf74' }], 1), toonMaterial({ vertexColors: true }), { width: 0.8 }));
+    cas3.position.set(6.4, -0.3, 0.2);
+    g.add(cas3);
     const jaws = [new THREE.Group(), new THREE.Group()];
     g.scale.setScalar(2.6);
-    return { g, jaws, body };
+    return { g, jaws, body, rnaMat, halo, cas3 };
   }
   const enzymes = [];
   function addEnzyme(kind, opts) {
@@ -146,8 +158,55 @@ export function createInside() {
   const spark = new THREE.Mesh(new THREE.OctahedronGeometry(6, 0), new THREE.MeshBasicMaterial({ color: '#ff3048', transparent: true, opacity: 0.85, depthTest: false }));
   spark.visible = false; spark.renderOrder = 11; scene.add(spark);
 
+  const BIND = 13;
+  /** The CRISPR-Cas boss: scan along host DNA, match (the guide glows), bind, Cas3 chops. */
+  function bossStep(e, dt, t, tip, dTip, frozen, ev) {
+    const live = !frozen && !S.done && S.cutAt < 0;
+    // the match builds while it is within sensing range of your free end and fades when you get away
+    if (live && e.cool <= 0 && e.fight.state !== 'retreat' && dTip < e.detect) e.match = Math.min(1, e.match + e.matchRate * dt * (1.4 - dTip / e.detect));
+    else e.match = Math.max(0, e.match - dt * 0.16);
+    const f = live ? e.fight.update(dt, { near: e.match > 0.35, inReach: dTip < BIND, facing: false, blocking: false }) : { state: e.fight.state, t: 0 };
+    e.state = f.state;
+    if (live && e.match > 0.35 && f.state !== 'retreat') {
+      // seeking: it leaves the host DNA and closes on your end; bound (windup), it holds on and Cas3 docks
+      const sp = f.state === 'windup' ? 7 : f.state === 'strike' ? 6 : f.state === 'repelled' ? -12 : e.speed * (0.5 + 0.5 * e.match);
+      _v.subVectors(tip, e.pos).normalize();
+      e.vel.lerp(_v.multiplyScalar(sp), 1 - Math.exp(-dt * (f.state === 'windup' ? 4 : 2)));
+      e.vel.x += gauss() * 4 * Math.sqrt(dt); e.vel.y += gauss() * 4 * Math.sqrt(dt);
+      e.pos.addScaledVector(e.vel, dt);
+      e.pos.z += (0 - e.pos.z) * dt;
+      e.g.rotation.z = Math.atan2(tip.y - e.pos.y, tip.x - e.pos.x) + Math.PI;
+    } else if (!frozen) {
+      // scanning: sliding along the host's own DNA
+      e.s += e.dir * dt * 0.016;
+      if (e.s > 0.98 || e.s < 0.02) e.dir *= -1;
+      _p.copy(e.strand.curve.getPointAt(Math.max(0, Math.min(1, e.s))));
+      e.pos.lerp(_p, 1 - Math.exp(-dt * 1.2));
+      e.g.rotation.z = Math.sin(t * 0.5 + e.s * 10) * 0.3;
+    }
+    if (live && f.hit) ev.cut = e;
+    if (live && !f.hit && f.state === 'recover' && e.prevState === 'strike') { ev.nearMiss = e; e.fight.bitten(); e.match *= 0.5; }
+    if (f.state === 'retreat' && e.prevState !== 'retreat') { ev.retreat = e; e.match = 0; }
+    e.prevState = f.state;
+    // the tell: the guide RNA glows with the match; bound, it blazes and Cas3 swings in
+    const bound = f.state === 'windup' || f.state === 'strike';
+    const glow = bound ? 1 : e.match;
+    e.rnaMat.uniforms.uEmissive.value = glow * 0.9 + (glow > 0.3 ? Math.sin(t * (6 + glow * 10)) * 0.15 * glow : 0);
+    e.halo.material.opacity = glow * 0.35;
+    e.halo.scale.set(7 + glow * 2, 2.2 + glow, 2.2 + glow);
+    e.cas3.position.x = bound ? 6.4 - (f.state === 'strike' ? 2.2 : 1.2 * f.t) : 6.4;
+    e.cas3.rotation.z = f.state === 'strike' ? Math.sin(t * 40) * 0.3 : 0;
+    e.g.position.copy(e.pos);
+  }
+  /** The boss with the strongest lock on you (for the gauge). */
+  function bossLock() {
+    let best = null;
+    for (const e of enzymes) if (e.kind === 'cas' && (!best || (e.state === 'windup' ? 2 : e.match) > (best.state === 'windup' ? 2 : best.match))) best = e;
+    return best;
+  }
+
   const api = {
-    scene, camera, S, enzymes,
+    scene, camera, S, enzymes, bossLock,
     /** The envelope section art (MP-V03), or null for the procedural stand-in. */
     setSection(tex) {
       // the delivered plate runs from water through the envelope into cytoplasm: show its envelope rows (12-70 % down)
@@ -163,8 +222,11 @@ export function createInside() {
       for (const e of enzymes) scene.remove(e.g);
       enzymes.length = 0;
       addEnzyme('re', { detect: 90, speed: 19, label: 'Restriction enzyme' });
-      addEnzyme('cas', { detect: host.crispr ? 180 : 45, speed: host.crispr ? 31 : 13, label: host.crispr ? 'CRISPR complex (matching spacer)' : 'CRISPR complex (no matching spacer)' });
-      if (host.crispr) addEnzyme('cas', { detect: 160, speed: 28, label: 'CRISPR complex (matching spacer)' });
+      // the boss: Cascade + Cas3. A matching spacer (Host B) finds you fast; a partial match (Host A) slowly
+      const casOpts = (m) => ({ detect: m ? 170 : 110, speed: m ? 27 : 20, matchRate: m ? 0.42 : 0.2, label: m ? 'CRISPR-Cas (matching spacer)' : 'CRISPR-Cas (partial match)',
+        match: 0, fight: createFight({ windup: 1.0, strike: 0.35, recoverT: 1.4, repelT: 1.4, retreatT: 6, facingRate: 0, biteHit: 0.34 }) });
+      addEnzyme('cas', casOpts(host.crispr));
+      if (host.crispr) addEnzyme('cas', casOpts(true));
       // a calm start: they begin far from the pore and only sense you after a few seconds
       enzymes.forEach((e, i) => { e.s = [0.12, 0.85, 0.7][i]; e.pos.copy(e.strand.curve.getPointAt(e.s)); e.cool = 4 + i * 1.5; });
       for (const h of hostDna) for (const s of h.strands) s.visible = true;
@@ -231,6 +293,7 @@ export function createInside() {
         e.cool -= dt;
         if (!frozen && e.cool <= 0 && dTip < e.detect && !S.done) e.hunt = Math.min(7, e.hunt + dt); else e.hunt = Math.max(0, e.hunt - dt * 0.5);
         if (e.hunt >= 6.9) { e.cool = 4; e.hunt = 0; }
+        if (e.kind === 'cas') { bossStep(e, dt, t, tip, dTip, frozen, ev); continue; }
         if (e.hunt > 0 && !frozen && !S.done) {
           _v.subVectors(tip, e.pos).normalize();
           e.vel.lerp(_v.multiplyScalar(e.speed), 1 - Math.exp(-dt * 2.2));
@@ -278,7 +341,7 @@ export function createInside() {
         const a = n[i], b = n[i + 1];
         _v.subVectors(b, a); const len = _v.length() || 1; _v.multiplyScalar(1 / len);
         _w.set(-_v.y, _v.x, 0).normalize();
-        const fade = S.frag.includes(i) ? 0 : 1;
+        const fade = S.frag.includes(i) || (S.chewTo != null && i >= S.chewTo && i < S.cutAt) ? 0 : 1;
         for (let j = 0; j < 3; j++) {
           const u = j / 3, ang = (i * 3 + j) * (Math.PI * 2 / 3) + t * 0.3;
           _p.lerpVectors(a, b, u);
@@ -302,9 +365,9 @@ export function createInside() {
       tipGlow.scale.setScalar(1 + Math.sin(t * 5) * 0.12);
     },
     /** Camera: follow the leading end, with RS orbit and a zoom distance. */
-    frame(dt, look, dist) {
+    frame(dt, look, dist, focus = null) {
       const tip = S.nodes[S.nodes.length - 1] || PORE;
-      const target = _p.copy(tip).lerp(PORE, 0.25);
+      const target = focus ? _p.copy(focus) : _p.copy(tip).lerp(PORE, 0.25);
       const yaw = look.yaw * 0.5, pitch = look.pitch * 0.4;
       _v.set(Math.sin(yaw) * Math.cos(pitch), -Math.sin(pitch) + 0.05, Math.cos(yaw) * Math.cos(pitch)).multiplyScalar(dist).add(target);
       camera.position.lerp(_v, 1 - Math.exp(-dt * 3));
@@ -335,7 +398,17 @@ export function createInside() {
         S.fragFade = Math.max(0, 1 - t);
       }
     },
-    reset() { S.cutAt = -1; S.fragFade = 1; S.frag = []; spark.visible = false; for (const e of enzymes) e.closing = null; },
+    /** After a Cas3 cut: Cas3 chews along the strand back toward the pore; returns where it is (for the camera). */
+    chew(e, dt) {
+      const n = S.nodes;
+      S.chewTo = Math.max(1, (S.chewTo ?? S.cutAt) - dt * 14);
+      const k = Math.floor(S.chewTo);
+      e.pos.lerp(n[k], 1 - Math.exp(-dt * 6)); e.g.position.copy(e.pos);
+      e.g.rotation.z = Math.atan2(n[Math.max(0, k - 1)].y - n[k].y, n[Math.max(0, k - 1)].x - n[k].x) + Math.PI;
+      e.cas3.rotation.z = Math.sin(performance.now() * 0.04) * 0.3;
+      return e.pos;
+    },
+    reset() { S.cutAt = -1; S.chewTo = null; for (const e of enzymes) if (e.fight) { e.fight.reset(); e.match = 0; e.prevState = null; } S.fragFade = 1; S.frag = []; spark.visible = false; for (const e of enzymes) e.closing = null; },
     /** Data overlay rings: each enzyme's sensing range. */
     setRadar(on) {
       radar.clear();

@@ -1375,7 +1375,7 @@ const split = createSplitScreen(renderer, { capture: true });
 const marks = createLandmarks();
 // a caught player's view follows the predator with its meal
 const posOf = (P) => {
-  if (P.mode === 'caught' && cap.who === P && (cap.kind === 'stenus' || cap.kind === 'strider') && ['eat', 'follow', 'fadeOut'].includes(cap.phase)) { const b = capBody(); return { x: b.x, y: 0.4, z: b.z }; }
+  if (P.mode === 'caught' && cap.who === P && (cap.kind === 'stenus' || cap.kind === 'strider' || cap.kind === 'boss') && ['eat', 'follow', 'fadeOut'].includes(cap.phase)) { const b = capBody(); return { x: b.x, y: 0.4, z: b.z }; }
   return { x: P.x, y: P.y + 0.25, z: P.z };
 };
 function render(dt) {
