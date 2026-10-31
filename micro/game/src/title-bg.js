@@ -2,7 +2,7 @@
 // the view before it becomes the root, so dropping its parent cannot make a cut.
 import { TITLE_ZOOM, titleZoomLayout } from './title-zoom.js';
 
-export function createTitleBg(canvas, { images = [], keyArt = null, reduced = false } = {}) {
+export function createTitleBg(canvas, { images = [], reduced = false } = {}) {
   const g = canvas.getContext('2d');
   let w = 0, h = 0, dpr = 1, running = false, t = 0, last = 0, raf = 0;
   let plates = [];
@@ -37,14 +37,7 @@ export function createTitleBg(canvas, { images = [], keyArt = null, reduced = fa
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
     g.fillStyle = '#0a120d'; g.fillRect(0, 0, w, h);
-    if (!plates.length) {
-      // Compatibility with a delivered single plate; never a pending-sequence substitute.
-      if (keyArt) {
-        const k = Math.max(w / keyArt.width, h / keyArt.height) * 1.08;
-        g.drawImage(keyArt, (w - keyArt.width * k) / 2, (h - keyArt.height * k) / 2, keyArt.width * k, keyArt.height * k);
-      }
-      return;
-    }
+    if (!plates.length) return;
     g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
     const layout = titleZoomLayout(t, plates.length, w, h);
     for (const layer of layout.layers) {
@@ -59,8 +52,8 @@ export function createTitleBg(canvas, { images = [], keyArt = null, reduced = fa
 
   function frame(now) {
     if (!running || reduced) return;
-    t += Math.min(0.05, (now - last) / 1000 || 0);
-    last = now; draw();
+    if (plates.length) { t += Math.min(0.05, (now - last) / 1000 || 0); draw(); }
+    last = now;
     raf = requestAnimationFrame(frame);
   }
 
@@ -73,8 +66,13 @@ export function createTitleBg(canvas, { images = [], keyArt = null, reduced = fa
       if (!reduced) raf = requestAnimationFrame(frame);
     },
     stop() { running = false; cancelAnimationFrame(raf); canvas.hidden = true; },
-    setKeyArt(img) { keyArt = img; if (running) draw(); },
-    setImages(imgs) { plates = imgs.map(prepare); keyArt = null; if (running) draw(); },
+    setImages(imgs) {
+      const firstLoad = !plates.length;
+      plates = imgs.map(prepare);
+      if (firstLoad) t = 0;
+      last = performance.now();
+      if (running) draw();
+    },
     seek(sec) { t = sec; draw(); },
     state() { return { ...titleZoomLayout(t, plates.length, w, h), time: t, running, reduced }; },
   };

@@ -8,6 +8,7 @@ import { PROTO, cardArt, introArt, delivered, loadImage, readyImage, showArtwork
 import { createInput } from './input.js';
 import { createSound } from './sound.js';
 import { createTitleBg } from './title-bg.js';
+import { TITLE_ZOOM_PLATES } from './title-art.js';
 import { createTransitions, fmtField, fmtMag, unitSafe } from './transition.js';
 import { loadRoster } from './players.js';
 import { listen, send } from './bus.js';
@@ -204,13 +205,12 @@ function moveFocus(dir) {
 // ---------------------------------------------------------------- title
 const titleBg = createTitleBg($('#title-bg'), { images: [], reduced: reduced() });
 {
-  const key = delivered('MP-G02');
   const logo = delivered('MP-G01');
-  const background = key
-    ? loadImage(key).then((img) => { if (img) titleBg.setKeyArt(img); return !!img; })
-    : Promise.all(WORLDS.map((w) => loadImage(cardArt(w)))).then((imgs) => {
-      titleBg.setImages(imgs.filter(Boolean)); return imgs.some(Boolean);
-    });
+  const background = Promise.all(TITLE_ZOOM_PLATES.map(loadImage)).then((imgs) => {
+    if (imgs.some((img) => !img)) return false;
+    titleBg.setImages(imgs);
+    return true;
+  });
   const logoReady = logo ? loadImage(logo).then((img) => {
     if (img) { const el = $('#logo-img'); el.src = img.src; el.alt = 'Micro Zoom'; el.hidden = false; }
     return !!img;
@@ -973,6 +973,7 @@ window.__game = {
     transitioning: S.transitioning, controlsShown: S.controlsShown, board: S.board, sound: sound.on, players: roster.list.length, stubRoster: !!roster.stub,
     progress: { ...progress }, transitionProgress: $('#transition').dataset.progress }),
   pressStart,
+  titleZoom: titleBg,
   select: (i) => selectCard(i, true),
   openIntro,
   begin: beginPlay,

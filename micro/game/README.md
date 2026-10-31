@@ -40,9 +40,14 @@ beside `<site>/micro/prototypes/`, so the same relative path holds (only
 
 ## Screens
 
-- **Title.** The MP-G01 logo over the MP-G02 key art (until it is delivered,
-  a slow zoom through the worlds' plates, each a brass-rimmed field nested in
-  the last). "Press Start" pulses. Any controller button, Enter, Space or a
+- **Title.** The MP-G01 logo over a continuous nested photographic zoom:
+  springtail → mite → tardigrade → amoeba → paramecium → bacterium → normal
+  Phage → water → the identical opening bog scene. Eight dedicated plates
+  form an 80-second cycle, with a fivefold zoom per step and soft compositing.
+  The Phage uses the updated realistic false-light environment without glow.
+  All images decode before the first scene appears; reduced motion holds a
+  composed frame. [Plates and loop design](../design/title-zoom.html).
+  "Press Start" pulses. Any controller button, Enter, Space or a
   click goes to the menu, asks for fullscreen and turns the sound on. Moving
   the left stick enters the corner buttons (Instructions, Settings, Sound,
   Fullscreen).
