@@ -5,7 +5,10 @@
 //    from raindrops, landings and skimming insects, plus a surfactant field
 //    that spreads, decays, damps capillary waves where it lies and pushes
 //    floating things away from it (Marangoni flow). Uploaded each frame as an
-//    RG half-float texture (r = height mm, g = surfactant 0..1).
+//    RG half-float texture (r = height mm, g = surfactant 0..1). The field is
+//    a window that can follow the player (recenter()), so the water itself
+//    can be endless; a sponge layer at the window's rim soaks ripples up
+//    instead of reflecting them.
 //  - Menisci: analytic dimples where things press on the film (feet, a
 //    ventral tube, floating grains). Each contact is (x, z, contact radius,
 //    depth); the profile falls off logarithmically, like the K0 meniscus of a
@@ -17,6 +20,12 @@
 //    rims onto the floor, like a water strider's shadow), and soft shadows of
 //    whatever floats. Writes the springtail-macro depth convention, with the
 //    refracted floor at its apparent depth so the lens blurs it correctly.
+//    For legibility (game, not optics): a boosted Fresnel sky sheen and a
+//    broad sun lobe so the film reads as a glossy sheet, a raised meniscus
+//    rim where the water meets a shore (shoreGlsl), and the player's drop
+//    shadow (springtail-macro's dropShadow) laid on the film itself.
+//  - waterGeometry(): a flat grid, fine in the middle and coarse far out, to
+//    centre under the camera so the water reaches the horizon.
 //
 // HOW TO PLUG IT IN
 //   import { RippleField, waterMaterial, Dimples } from '../shared/techniques/springtail-surface.js';
@@ -26,7 +35,7 @@
 //     waterMaterial({ field, dimples, depthGlsl: 'float poolDepth(vec2 p) { return 3.0; }', floorTex }));
 //   each frame: dimples.clear(); dimples.add(x, z, r, depth) ...; field.step(dt); field.upload();
 //   field.drop(x, z, radius, amount) for an impulse; field.height(x, z), field.slope(x, z),
-//   field.flow(x, z) for gameplay.
+//   field.flow(x, z) for gameplay. field.recenter(x, z) each frame to keep the window on the player.
 // INPUTS: world units in mm, the surface at y = 0, y up. Needs springtail-macro.js.
 import * as THREE from '../vendor/three.module.min.js';
 import { MACRO_GLSL, macroShared } from './springtail-macro.js';
@@ -42,10 +51,17 @@ export class RippleField {
     this.h = new Float32Array(n * n); this.p = new Float32Array(n * n);
     this.s = new Float32Array(n * n); this.s2 = new Float32Array(n * n);
     this.mask = new Uint8Array(n * n);
+    this.inside = inside;
+    this.ox = 0; this.oz = 0; // window centre (world mm)
+    this.origin = { value: new THREE.Vector2(0, 0) };
+    // sponge: extra damping in a rim of cells so ripples die before the edge
+    this.sponge = new Float32Array(n * n);
+    const W = Math.max(4, Math.round(n / 14));
     for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
-      const x = (i + 0.5) * this.dx - size / 2, z = (j + 0.5) * this.dx - size / 2;
-      this.mask[i + j * n] = i > 0 && j > 0 && i < n - 1 && j < n - 1 && inside(x, z) ? 1 : 0;
+      const m = Math.min(i, j, n - 1 - i, n - 1 - j);
+      this.sponge[i + j * n] = m < W ? 0.12 * ((W - m) / W) ** 2 : 0;
     }
+    this.buildMask(0, 0, n);
     this.half = new Uint16Array(n * n * 2);
     this.texture = new THREE.DataTexture(this.half, n, n, THREE.RGFormat, THREE.HalfFloatType);
     this.texture.minFilter = this.texture.magFilter = THREE.LinearFilter;
@@ -57,14 +73,46 @@ export class RippleField {
     this.surfDiffuse = 0.18;
     this.enabled = true;
   }
+  /** Recompute the water mask for rows/columns in the window (all by default). */
+  buildMask() {
+    const { n, size } = this;
+    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+      const x = (i + 0.5) * this.dx - size / 2 + this.ox, z = (j + 0.5) * this.dx - size / 2 + this.oz;
+      this.mask[i + j * n] = i > 0 && j > 0 && i < n - 1 && j < n - 1 && this.inside(x, z) ? 1 : 0;
+    }
+  }
+  /**
+   * Keep the window centred near (x, z): when the point strays more than
+   * `slack` of the window from the centre, shift the fields by whole cells.
+   * Ripples that scroll out are lost; new water comes in calm.
+   */
+  recenter(x, z, slack = 0.12) {
+    const { n, dx } = this;
+    const di = Math.round((x - this.ox) / dx), dj = Math.round((z - this.oz) / dx);
+    if (Math.abs(di) < n * slack && Math.abs(dj) < n * slack) return false;
+    for (const name of ['h', 'p', 's']) {
+      const a = this[name], b = new Float32Array(n * n);
+      for (let j = 0; j < n; j++) {
+        const sj = j + dj;
+        if (sj < 0 || sj >= n) continue;
+        for (let i = 0; i < n; i++) { const si = i + di; if (si >= 0 && si < n) b[i + j * n] = a[si + sj * n]; }
+      }
+      this[name] = b;
+    }
+    this.s2 = new Float32Array(n * n);
+    this.ox += di * dx; this.oz += dj * dx;
+    this.origin.value.set(this.ox, this.oz);
+    this.buildMask();
+    return true;
+  }
   idx(x, z) {
-    const i = Math.floor((x + this.size / 2) / this.dx), j = Math.floor((z + this.size / 2) / this.dx);
+    const i = Math.floor((x - this.ox + this.size / 2) / this.dx), j = Math.floor((z - this.oz + this.size / 2) / this.dx);
     return i < 0 || j < 0 || i >= this.n || j >= this.n ? -1 : i + j * this.n;
   }
   /** Bilinear sample of an array at a world point. */
   sampleArr(a, x, z) {
     const n = this.n;
-    const fx = (x + this.size / 2) / this.dx - 0.5, fz = (z + this.size / 2) / this.dx - 0.5;
+    const fx = (x - this.ox + this.size / 2) / this.dx - 0.5, fz = (z - this.oz + this.size / 2) / this.dx - 0.5;
     const i = Math.floor(fx), j = Math.floor(fz);
     if (i < 0 || j < 0 || i >= n - 1 || j >= n - 1) return 0;
     const tx = fx - i, tz = fz - j, k = i + j * n;
@@ -87,7 +135,7 @@ export class RippleField {
   /** Gaussian push on the surface: negative amount = a depression that rings outward. */
   drop(x, z, radius, amount) {
     const n = this.n, r = Math.max(radius, this.dx);
-    const ci = (x + this.size / 2) / this.dx - 0.5, cj = (z + this.size / 2) / this.dx - 0.5;
+    const ci = (x - this.ox + this.size / 2) / this.dx - 0.5, cj = (z - this.oz + this.size / 2) / this.dx - 0.5;
     const R = Math.ceil((r * 2.2) / this.dx);
     for (let j = Math.max(1, Math.floor(cj - R)); j <= Math.min(n - 2, Math.ceil(cj + R)); j++) {
       for (let i = Math.max(1, Math.floor(ci - R)); i <= Math.min(n - 2, Math.ceil(ci + R)); i++) {
@@ -101,7 +149,7 @@ export class RippleField {
   /** Release surfactant (0..1 concentration added over a radius). */
   release(x, z, radius, amount) {
     const n = this.n;
-    const ci = (x + this.size / 2) / this.dx - 0.5, cj = (z + this.size / 2) / this.dx - 0.5;
+    const ci = (x - this.ox + this.size / 2) / this.dx - 0.5, cj = (z - this.oz + this.size / 2) / this.dx - 0.5;
     const R = Math.ceil((radius * 2) / this.dx);
     for (let j = Math.max(1, Math.floor(cj - R)); j <= Math.min(n - 2, Math.ceil(cj + R)); j++) {
       for (let i = Math.max(1, Math.floor(ci - R)); i <= Math.min(n - 2, Math.ceil(ci + R)); i++) {
@@ -122,13 +170,13 @@ export class RippleField {
     this.surfStep(dt);
   }
   waveStep() {
-    const { n, h, p, s, mask, c2 } = this;
+    const { n, h, p, s, mask, c2, sponge } = this;
     for (let j = 1; j < n - 1; j++) {
       let k = j * n + 1;
       for (let i = 1; i < n - 1; i++, k++) {
         if (!mask[k]) { p[k] = 0; continue; }
         const lap = h[k - 1] + h[k + 1] + h[k - n] + h[k + n] - 4 * h[k];
-        const damp = 1 - (this.damping + s[k] * 0.06);
+        const damp = 1 - (this.damping + s[k] * 0.06 + sponge[k]);
         p[k] = (2 * h[k] - p[k] + c2 * lap) * damp;
       }
     }
@@ -169,8 +217,9 @@ export class Dimples {
     this.scale = 1;
   }
   clear() { this.n = 0; this.uniforms.uDimpleN.value = 0; }
+  /** depth > 0 presses the film down; depth < 0 is a meniscus climbing a wetted object. */
   add(x, z, r, depth) {
-    if (this.n >= this.max || depth <= 0) return;
+    if (this.n >= this.max || !depth) return;
     this.list[this.n++].set(x, z, r, depth * this.scale);
     this.uniforms.uDimpleN.value = this.n;
   }
@@ -217,11 +266,11 @@ float dimpleH(vec2 p) { vec2 g; return dimpleField(p, g); }
 `;
 
 const WATER_VS = /* glsl */ `
-uniform sampler2D uField; uniform float uFieldSize, uRippleK;
+uniform sampler2D uField; uniform float uFieldSize, uRippleK; uniform vec2 uFieldOrigin;
 varying vec3 vWorld;
 void main() {
   vec4 wp = modelMatrix * vec4(position, 1.0);
-  vec2 uv = wp.xz / uFieldSize + 0.5;
+  vec2 uv = (wp.xz - uFieldOrigin) / uFieldSize + 0.5;
   wp.y += texture2D(uField, uv).r * uRippleK;
   vWorld = wp.xyz;
   gl_Position = projectionMatrix * viewMatrix * wp;
@@ -231,12 +280,17 @@ const WATER_FS = /* glsl */ `
 ${MACRO_GLSL}
 ${DIMPLE_GLSL}
 uniform sampler2D uField, uFloor;
-uniform float uFieldSize, uFieldTexel, uRippleK, uFloorScale, uCaustics, uShowSurf, uHasSurfTex;
+uniform float uFieldSize, uFieldTexel, uRippleK, uFloorScale, uCaustics, uShowSurf, uHasSurfTex, uSheen, uMeniscus;
+uniform vec2 uFieldOrigin;
 uniform sampler2D uSurfTex;
 uniform vec3 uAbsorb;
 varying vec3 vWorld;
 POOL_DEPTH
-float rippleH(vec2 p) { return texture2D(uField, p / uFieldSize + 0.5).r * uRippleK; }
+SHORE_DIST
+vec2 fieldUv(vec2 p) { return (p - uFieldOrigin) / uFieldSize + 0.5; }
+float rippleH(vec2 p) { return texture2D(uField, fieldUv(p)).r * uRippleK; }
+// the meniscus climbing a wetted shore: water rises ~uMeniscus mm at the edge
+float shoreH(vec2 p) { float d = shoreDist(p); return d > 3.0 ? 0.0 : uMeniscus * exp(-max(d, 0.0) / 0.32); }
 float totalH(vec2 p) { return rippleH(p) + dimpleH(p); }
 vec3 floorColor(vec2 p) {
   vec3 c = texture2D(uFloor, p * uFloorScale).rgb;
@@ -248,20 +302,25 @@ void main() {
   float e = uFieldTexel;
   vec2 rg = vec2(rippleH(p + vec2(e, 0.0)) - rippleH(p - vec2(e, 0.0)), rippleH(p + vec2(0.0, e)) - rippleH(p - vec2(0.0, e))) / (2.0 * e);
   vec2 dg; float dh = dimpleField(p, dg);
-  vec2 g = rg + dg;
+  float m0 = shoreH(p);
+  vec2 mg = vec2(shoreH(p + vec2(0.05, 0.0)) - shoreH(p - vec2(0.05, 0.0)), shoreH(p + vec2(0.0, 0.05)) - shoreH(p - vec2(0.0, 0.05))) / 0.1;
+  dh += m0;
+  vec2 g = rg + dg + mg;
   vec3 N = normalize(vec3(-g.x, 1.0, -g.y));
   vec3 P = vec3(p.x, vWorld.y + dh, p.y);
   vec3 V = normalize(cameraPosition - P);
-  float surf = texture2D(uField, p / uFieldSize + 0.5).g;
+  float surf = texture2D(uField, fieldUv(p)).g;
   float nv = max(dot(N, V), 0.0);
   float F = 0.02 + 0.98 * pow(1.0 - nv, 5.0);
+  // legibility: a boosted sky sheen so the film reads as a surface, not as the floor
+  F = clamp(F + uSheen * (0.06 + 0.5 * pow(1.0 - nv, 3.0)), 0.0, 1.0);
   // reflection: sky and the bog around, plus the sun as a tiny bright disc
   vec3 R = reflect(-V, N);
   vec3 refl = envSky(R);
   float sunA = max(dot(R, uSunDir), 0.0);
   // a sharp sun disc (glints that bloom into bokeh) and a soft halo
   float sharp = mix(1800.0, 4000.0, surf);
-  refl += uSunCol * (pow(sunA, sharp) * 40.0 + pow(sunA, 120.0) * 0.6);
+  refl += uSunCol * (pow(sunA, sharp) * 40.0 + pow(sunA, 120.0) * 0.6 + pow(sunA, 14.0) * 0.18 * uSheen);
   // refraction to the floor
   vec3 T = refract(-V, N, 1.0 / 1.333);
   float depth = poolDepth(p);
@@ -276,7 +335,7 @@ void main() {
     float lap = (sx + sz - 4.0 * s0) / (e * e);
     c = clamp(1.0 / max(1.0 + lap * depth * 0.25, 0.12), 0.15, 5.0);
   }
-  float shade = casterShadow(vec3(sp.x, 0.0, sp.y));
+  float shade = casterShadow(vec3(sp.x, 0.0, sp.y)) * dropShadow(vec3(fp.x, -depth, fp.y));
   vec3 fcol = floorColor(fp);
   vec3 fl = fcol * (uSunCol * max(uSunDir.y, 0.0) * c * shade * 0.85 + mix(uSkyHor, uSkyTop, 0.5) * 0.35);
   float path = t + depth / max(Ls.y, 0.2) * 0.6;
@@ -284,6 +343,12 @@ void main() {
   vec3 refr = fl * trans + vec3(0.05, 0.035, 0.012) * (1.0 - trans) * (uSkyHor.g + uSunCol.g * 0.2) * 0.25;
   vec3 col = mix(refr, refl, F);
   if (uRing > 0.0) col += uRing * 0.05 * pow(nv, 40.0);
+  // the shore meniscus catches the sky as a bright line, then a wet dark band
+  float sd = shoreDist(p);
+  col += mix(uSkyHor, uSkyTop, 0.4) * 0.35 * uSheen * exp(-max(sd, 0.0) / 0.12);
+  col *= 1.0 - 0.3 * uSheen * smoothstep(0.1, 0.5, sd) * exp(-max(sd, 0.0) / 1.6);
+  // the player's drop shadow on the film itself (a readable cue, not optics)
+  col *= mix(1.0, dropShadow(P), 0.85);
   if (uShowSurf > 0.5) col = mix(col, vec3(0.9, 0.85, 0.2) * (0.3 + uSunCol.g * 0.15), smoothstep(0.02, 0.3, surf) * 0.55);
   // depth for the lens: reflections at the surface, the floor at its apparent depth
   float lr = dot(refl * F, vec3(0.3, 0.5, 0.2)), lt = dot(refr * (1.0 - F), vec3(0.3, 0.5, 0.2));
@@ -298,12 +363,15 @@ void main() {
  * depthGlsl: GLSL defining `float poolDepth(vec2 p)` (mm below the surface).
  * floorTex: the pool floor's colour texture (repeat-wrapped); floorScale: repeats per mm.
  */
-export function waterMaterial({ field, dimples, depthGlsl, floorTex, floorScale = 1 / 24, surfTex = null }) {
+export function waterMaterial({ field, dimples, depthGlsl, shoreGlsl = 'float shoreDist(vec2 p) { return 1e3; }', floorTex, floorScale = 1 / 24, surfTex = null }) {
   const uniforms = {
     ...macroShared,
     ...dimples.uniforms,
     uField: { value: field.texture },
     uFieldSize: { value: field.size },
+    uFieldOrigin: field.origin,
+    uSheen: { value: 1 },
+    uMeniscus: { value: 0.18 },
     uFieldTexel: { value: field.dx },
     uRippleK: { value: 1 },
     uFloor: { value: floorTex },
@@ -312,14 +380,31 @@ export function waterMaterial({ field, dimples, depthGlsl, floorTex, floorScale 
     uShowSurf: { value: 0 },
     uSurfTex: { value: surfTex },
     uHasSurfTex: { value: surfTex ? 1 : 0 },
-    uAbsorb: { value: new THREE.Vector3(0.07, 0.14, 0.32) },
+    uAbsorb: { value: new THREE.Vector3(0.1, 0.19, 0.4) },
   };
   return new THREE.ShaderMaterial({
     uniforms,
     defines: { MAXD: dimples.max },
     vertexShader: WATER_VS,
-    fragmentShader: WATER_FS.replace('POOL_DEPTH', depthGlsl),
+    fragmentShader: WATER_FS.replace('POOL_DEPTH', depthGlsl).replace('SHORE_DIST', shoreGlsl),
   });
+}
+
+/**
+ * A flat water grid on y = 0 centred on the origin: `segs` cells a side,
+ * spaced `fine` mm near the middle and widening to reach `radius` mm, so a
+ * mesh re-centred under the camera every frame carries fine ripples close up
+ * and still reaches the horizon.
+ */
+export function waterGeometry({ segs = 200, fine = 0.45, radius = 900 } = {}) {
+  const g = new THREE.PlaneGeometry(2, 2, segs, segs).rotateX(-Math.PI / 2);
+  const a = (fine * segs) / 2; // mm per unit u at the centre
+  const b = radius - a;
+  const map = (u) => a * u + b * u * u * u * u * u;
+  const p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) { p.setX(i, map(p.getX(i))); p.setZ(i, map(p.getZ(i))); }
+  g.computeBoundingSphere();
+  return g;
 }
 
 /** A procedural peat floor: dark humus, sunken Sphagnum leaves and twigs, sand. */

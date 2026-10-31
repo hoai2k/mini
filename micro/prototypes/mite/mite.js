@@ -17,10 +17,16 @@
 //
 // Thin parts are drawn thicker than life so they survive the screen: legs
 // about 1.3x, setae about 1.6x (3 µm instead of ~2 µm), sensilli 1.5x.
+//
+// Jump (a game borrowing, see the README): jump() crouches for JUMP.crouch s,
+// then launches the body on a ballistic arc (modes 'crouch' and 'air'); it
+// lands on whatever is below, floor, grain or a blade (which takes a kick and
+// bends), and can jump again after JUMP.cool s. Box mites do not do this;
+// zetorchestid oribatids jump with enlarged hind legs.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { buildSdfMesh, sd, combine } from '../shared/sdf.js';
 import { gMaterial } from './sem.js';
-import { HALF, floorH } from './world.js';
+import { HALF, floorH, floorN } from './world.js';
 import { GAITS, legOffset, gaitTriggers, swingTarget, twoBoneIK } from '../shared/techniques/mite-gait.js';
 
 /** Live switches, shared by every mite (the feature panel edits it). */
@@ -31,11 +37,14 @@ const SOFT = new Set(['blade']);
 // Directions (body frame) for the body-clearance rays: around the waist, and up.
 const CLEAR_DIRS = [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [1, 0, 1], [1, 0, -1], [-1, 0, 1], [-1, 0, -1],
   [1, 0.7, 0], [-1, 0.7, 0], [0, 0.7, 1], [0, 0.7, -1], [0, 1, 0]].map(([x, y, z]) => new THREE.Vector3(x, y, z).normalize());
+const _dn = new THREE.Vector3(), _al = new THREE.Vector3();
 const BELLY = [[0, -1, 0], [0.6, -1, 0], [-0.6, -1, 0], [0, -1, 0.6], [0, -1, -0.6]].map(([x, y, z]) => new THREE.Vector3(x, y, z).normalize());
 
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+/** The hop: crouch time (s), launch speeds (µm/s, up and forward), cooldown after landing (s). */
+export const JUMP = { crouch: 0.13, vy: 1250, vh: 700, cool: 0.45 };
 
 export const ANAT = {
   noto: { c: [-70, 0, 0], r: [215, 172, 136] },
@@ -379,12 +388,13 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
 
   // state
   const st = {
-    mode: 'walk', // walk | closing | closed | opening
+    mode: 'walk', // walk | closing | closed | opening | crouch | air
     pos: V3(0, 0, 0), up: V3(0, 1, 0), fwd: V3(1, 0, 0),
     speed: 0, omega: 0, phase: 0, t: 0, retract: 0, aspis: 0,
     center: V3(0, AN.stand, 0), q: new THREE.Quaternion(),
     vel: V3(), angVel: V3(), airborne: false,
     q0: new THREE.Quaternion(), c0: V3(), h0: 0, lastLand: 0,
+    jumpCool: 0, crouch: 0, airT: 0, squash: 0,
     biteT: 0, time: 0, pen: 0, climbing: 0, groundHit: null, lift: 0, liftT: 0, stuck: 0, drop: 0,
   };
   const events = [];
@@ -417,7 +427,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
     st.pos.set(x, floorH(x, z), z);
     st.up.set(0, 1, 0);
     st.fwd.set(Math.cos(yaw), 0, -Math.sin(yaw));
-    st.mode = 'walk'; st.retract = 0; st.aspis = 0; st.speed = 0;
+    st.mode = 'walk'; st.retract = 0; st.aspis = 0; st.speed = 0; st.crouch = 0; st.squash = 0; st.jumpCool = 0; st.vel.set(0, 0, 0);
     // settle onto whatever is there
     for (let i = 0; i < 4; i++) settleBody(1 / 30, true);
     plantAll();
@@ -516,20 +526,22 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
     if (st.pos.y < fy) st.pos.y = fy;
     const moved = st.pos.distanceTo(prev);
 
-    // gait phase advances with distance travelled (and turning), so stride matches speed
+    // gait phase advances with distance travelled (and turning), so stride matches speed;
+    // strides lengthen up to 1.5x at a run, so the legs don't flicker
+    const stride = AN.stride * (1 + 0.5 * clamp((st.speed - 210) / 700, 0, 1));
     let err = 0;
     for (const L of legs) if (!L.swing && !isFeeler(L)) err = Math.max(err, L.foot.distanceTo(restWorld(L, _x)));
     // the front feet are ~330 µm from the centre, so turning sweeps them fast
-    let dphi = (moved + Math.abs(turn) * 330) / AN.stride;
+    let dphi = (moved + Math.abs(turn) * 330) / stride;
     if (dphi < 0.25 * dt && err > 22) dphi = 1.4 * dt; // shuffle feet back under the body when stopped
     const vBody = st.fwd.clone().multiplyScalar(moved / dt);
     const trig = new Set(gaitTriggers(st.phase, dphi, legs));
     for (const L of legs) {
       if (isFeeler(L)) continue;
-      if (!L.swing && (trig.has(L) || L.foot.distanceTo(restWorld(L, _x)) > AN.stride * 1.25)) {
+      if (!L.swing && (trig.has(L) || L.foot.distanceTo(restWorld(L, _x)) > stride * 1.25)) {
         L.swing = true; L.s = 0; L.from.copy(L.foot);
         const sp = Math.max(st.speed, 50);
-        L.dur = clamp(((1 - duty) * AN.stride) / sp, 0.08, 0.3);
+        L.dur = clamp(((1 - duty) * stride) / sp, 0.08, 0.3);
       }
     }
     st.phase += dphi;
@@ -543,7 +555,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
       const rw = restWorld(L, new THREE.Vector3());
       const rel = rw.clone().sub(st.pos);
       const vFoot = vBody.clone().add(new THREE.Vector3().crossVectors(st.up, rel).multiplyScalar(st.omega));
-      const tgt = swingTarget(rw, vFoot, (1 - L.s) * L.dur, duty, AN.stride, vBody.length());
+      const tgt = swingTarget(rw, vFoot, (1 - L.s) * L.dur, duty, stride, vBody.length());
       const h = ground(tgt, st.up, 120, 320);
       if (h) L.to.copy(h.point); else L.to.copy(tgt);
       const e = sstep(0, 1, L.s);
@@ -656,16 +668,67 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
     st.center.z = clamp(st.center.z, -HALF + 150, HALF - 150);
   }
 
+  // The hop: a ballistic arc after the crouch, landing on whatever is below.
+  const WUP = V3(0, 1, 0);
+  function launch() {
+    let h = st.fwd.clone(); h.y = 0;
+    if (h.lengthSq() < 0.05) { h.copy(st.up); h.y = 0; }
+    if (h.lengthSq() < 1e-4) h.set(1, 0, 0);
+    h.normalize();
+    st.vel.copy(h).multiplyScalar(JUMP.vh + 0.5 * st.speed0).addScaledVector(WUP, JUMP.vy).addScaledVector(st.up, 150);
+    st.mode = 'air'; st.airT = 0; st.crouch = 0; st.speed = 0;
+    events.push('jump');
+  }
+  function air(dt) {
+    st.airT += dt;
+    st.vel.y -= GRAV * dt;
+    const hv = V3(st.vel.x, 0, st.vel.z), hl = hv.length();
+    if (hl > 1) {
+      // rigid things ahead (a stem, a grain): bounce off; blades bend away
+      const hit = colliders.cast(st.center, hv.divideScalar(hl), 200 + hl * dt, true, SOFT);
+      if (hit && hit.normal.y < 0.5) { const vn = st.vel.dot(hit.normal); if (vn < 0) st.vel.addScaledVector(hit.normal, -vn * 1.3); }
+    }
+    if (st.vel.y > 0) { const hit = colliders.cast(st.center, WUP, 180 + st.vel.y * dt, true, SOFT); if (hit) st.vel.y = 0; }
+    st.center.addScaledVector(st.vel, dt);
+    st.center.x = clamp(st.center.x, -HALF + 150, HALF - 150);
+    st.center.z = clamp(st.center.z, -HALF + 150, HALF - 150);
+    st.up.lerp(WUP, 1 - Math.exp(-dt / 0.15)).normalize();
+    st.fwd.addScaledVector(st.up, -st.fwd.dot(st.up)).normalize();
+    st.pos.copy(st.center).addScaledVector(st.up, -AN.stand);
+    if (st.vel.y > 0) return;
+    const reach = AN.stand + 8 - st.vel.y * dt;
+    const g = colliders.cast(st.center, _dn.set(0, -1, 0), reach);
+    const fy = floorH(st.center.x, st.center.z);
+    if (!g && st.center.y - AN.stand > fy) return;
+    // touch down
+    st.pos.copy(g ? g.point : V3(st.center.x, fy, st.center.z));
+    const n = g ? g.normal.clone() : floorN(st.center.x, st.center.z);
+    if (n.y < -0.2) { n.y = -0.2; n.normalize(); }
+    st.up.copy(n);
+    st.fwd.addScaledVector(st.up, -st.fwd.dot(st.up)).normalize();
+    if (g && g.entry && g.entry.rod) { g.entry.rod.vel.addScaledVector(WUP, st.vel.y * 0.5); g.entry.rod.awake = true; } // a blade takes the landing
+    if (st.vel.y < -900) events.push('impact');
+    st.squash = clamp(-st.vel.y / 1400, 0.3, 1);
+    st.speed = Math.hypot(st.vel.x, st.vel.z) * 0.35;
+    st.vel.set(0, 0, 0);
+    st.mode = 'walk'; st.jumpCool = JUMP.cool; st.lift = 0; st.liftT = 0;
+    settleBody(dt, true);
+    if (cfg.clear) clearance(true, 60);
+    plantAll();
+    events.push('land');
+  }
+
   // place every part for the current state
   function pose(dt) {
     let q, center;
-    if (st.mode === 'walk' || st.mode === 'closing') {
+    if (st.mode === 'walk' || st.mode === 'closing' || st.mode === 'crouch') {
       const bob = st.mode === 'walk' && cfg.bob ? 2.5 * Math.sin(st.phase * Math.PI * 4) : 0;
       const sway = st.mode === 'walk' && cfg.bob ? 0.02 * Math.sin(st.phase * Math.PI * 2) * Math.min(1, st.speed / 120) : 0;
       q = basisQ(st.fwd, st.up);
       q.multiply(new THREE.Quaternion().setFromAxisAngle(V3(1, 0, 0), sway));
       st.lift += (st.liftT - st.lift) * (st.liftT > st.lift ? 0.5 : 0.08);
-      let h = AN.stand + bob + st.lift;
+      st.squash = Math.max(0, st.squash - dt * 4);
+      let h = AN.stand + bob + st.lift - 75 * st.crouch - 55 * Math.sin(Math.PI * Math.min(1, 1 - st.squash)) * (st.squash > 0 ? 1 : 0);
       if (st.mode === 'closing') h = AN.stand + (st.h0 - AN.stand) * sstep(0.2, 1, st.t);
       center = st.pos.clone().addScaledVector(st.up, h);
       st.center.copy(center); st.q.copy(q);
@@ -674,6 +737,19 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
       q = st.q0.clone().slerp(basisQ(st.fwd, st.up), e);
       center = st.c0.clone().lerp(st.pos.clone().addScaledVector(st.up, AN.stand), sstep(0.15, 0.9, st.t));
       st.center.copy(center); st.q.copy(q);
+    } else if (st.mode === 'air') {
+      // nose up on the way up, down on the way down
+      q = basisQ(st.fwd, st.up);
+      q.multiply(new THREE.Quaternion().setFromAxisAngle(V3(0, 0, 1), clamp(st.vel.y / 3000, -0.3, 0.3)));
+      center = st.center;
+      st.q.copy(q);
+      // legs: hind legs kicked back at take-off, then all reach down for the landing
+      const kick = Math.exp(-st.airT / 0.12);
+      for (const L of legs) {
+        if (isFeeler(L)) continue;
+        const back = L.k === 3 ? -90 * kick : 0;
+        L.foot.copy(toWorld(_al.set(L.rest.x * 0.85 + back, -AN.stand * (0.62 + 0.25 * (1 - kick)), L.rest.z * 0.9), center, q));
+      }
     } else { q = st.q; center = st.center; }
 
     body.position.copy(center);
@@ -754,8 +830,15 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
     st.time += dt;
     st.biteT = Math.max(0, st.biteT - dt);
     st.drop = Math.max(0, st.drop - dt);
+    if (st.mode === 'walk') st.jumpCool = Math.max(0, st.jumpCool - dt);
     const hold = input.hold || st.drop > 0;
-    if (st.mode === 'walk') {
+    if (st.mode === 'crouch') {
+      st.t += dt;
+      st.crouch = sstep(0, 1, st.t / JUMP.crouch);
+      st.speed *= Math.exp(-dt / 0.05);
+      if (st.t >= JUMP.crouch) launch();
+    } else if (st.mode === 'air') air(dt);
+    else if (st.mode === 'walk') {
       if (hold) {
         st.mode = 'closing'; st.t = 0; st.speed = 0;
         const q = basisQ(st.fwd, st.up);
@@ -816,12 +899,18 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT 
       body.updateMatrixWorld();
       return aspis.localToWorld(out.set(...(AN.kind === 'pred' ? [150, -12, 0] : [210, -115, 0])));
     },
+    /** Start a hop (crouch, then launch). False if not walking or still recovering. */
+    jump() {
+      if (st.mode !== 'walk' || st.jumpCool > 0) return false;
+      st.mode = 'crouch'; st.t = 0; st.speed0 = st.speed;
+      return true;
+    },
     /** Start a bite (the animation; the caller decides what it hits). */
     bite() { if (st.biteT > 0.05) return false; st.biteT = 0.28; return true; },
     get quat() { return st.q; },
     get radii() { return AN.noto.r; },
     /** The surface under the body (a collider hit with .kind and .entry), or null. */
-    get ground() { return st.mode === 'walk' ? st.groundHit : null; },
+    get ground() { return st.mode === 'walk' || st.mode === 'crouch' ? st.groundHit : null; },
     get center() { return st.center; },
     get mode() { return st.mode; },
     get speed() { return st.speed; },

@@ -6,7 +6,7 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { pointsMaterial } from './optics.js';
 
-const PER = 18, SLOTS = 4, N = PER * SLOTS;
+const PER = 22, SLOTS = 4, N = PER * SLOTS;
 
 export function createContactFx(scene) {
   const quad = new THREE.PlaneGeometry(2, 2);
@@ -16,7 +16,7 @@ export function createContactFx(scene) {
   const posA = new THREE.InstancedBufferAttribute(iPos, 4), pA = new THREE.InstancedBufferAttribute(iP, 4);
   geo.setAttribute('iPos', posA); geo.setAttribute('iP', pA);
   geo.instanceCount = N;
-  const mesh = new THREE.Mesh(geo, pointsMaterial({ absorb: [0.02, 0.018, 0.012] }));
+  const mesh = new THREE.Mesh(geo, pointsMaterial({ absorb: [0.035, 0.03, 0.02] }));
   mesh.frustumCulled = false;
   scene.add(mesh);
   const parts = Array.from({ length: N }, () => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), life: 0, max: 1, r: 2, seed: Math.random() }));
@@ -37,7 +37,7 @@ export function createContactFx(scene) {
         q.p.copy(p).addScaledVector(n, 3);
         q.v.copy(t1).multiplyScalar(Math.cos(a) * sp).addScaledVector(t2, Math.sin(a) * sp).addScaledVector(n, (20 + Math.random() * 60) * k);
         q.max = q.life = 0.45 + Math.random() * 0.35;
-        q.r = 1.6 + Math.random() * 2.6;
+        q.r = 2 + Math.random() * 3;
       }
       slot = (slot + 1) % SLOTS;
     },
@@ -51,7 +51,7 @@ export function createContactFx(scene) {
         }
         const f = q.life > 0 ? q.life / q.max : 0;
         iPos[i * 4] = q.p.x; iPos[i * 4 + 1] = q.p.y; iPos[i * 4 + 2] = q.p.z;
-        iP[i * 4] = f > 0 ? q.r : 0.0001; iP[i * 4 + 1] = 0.06 * f; iP[i * 4 + 2] = 9 * f; iP[i * 4 + 3] = q.seed;
+        iP[i * 4] = f > 0 ? q.r : 0.0001; iP[i * 4 + 1] = 0.12 * f; iP[i * 4 + 2] = 14 * f; iP[i * 4 + 3] = q.seed;
       }
       posA.needsUpdate = true; pA.needsUpdate = true;
     },

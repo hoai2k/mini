@@ -8,7 +8,7 @@
 // - Attacking an oribatid they go for the legs and soft parts first; a closed
 //   (ptychoid) phthiracarid is a smooth, hard capsule and adults are nearly
 //   immune (feeding trials with Pergamasus: Peschel et al. 2006; the capsule's
-//   strength: Schmelzle & Blüthgen 2019). So: close up (B) and it gives up
+//   strength: Schmelzle & Blüthgen 2019). So: close up (Y) and it gives up
 //   after a few tries.
 // - A nip back from the box mite making it recoil is a game rule.
 import * as THREE from '../shared/vendor/three.module.min.js';
@@ -16,7 +16,7 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 const TOUCH = 560;        // µm: senses the prey by touch / near contact
 const VIBRATION = 950;    // µm: senses a scrambling prey
 const LOSE = 1500;
-const SPEED = 360;        // µm/s hunting (the player walks 210, scrambles 525)
+const SPEED = 900;        // µm/s hunting (the player walks 720, scrambles 1300; game speeds)
 const STRIKE = 250;       // µm from its chelicerae to the prey's body centre
 const STRIKE_EVERY = 1.2;
 
@@ -47,7 +47,7 @@ export function createPredatorAI(pred, half) {
           if (Math.hypot(me.x, me.z) > half * 0.8) ai.ang = Math.atan2(-me.z, -me.x);
           dir.set(Math.cos(ai.ang), 0, Math.sin(ai.ang));
           mag = 0.5; maxSpeed = SPEED * 0.6;
-          const sensed = d < TOUCH || (d < VIBRATION && prey.speed > 260);
+          const sensed = d < TOUCH || (d < VIBRATION && prey.speed > 1050); // a scramble, not a walk
           if (sensed && ai.bored <= 0) { ai.state = 'hunt'; ev.push('hunt'); }
           break;
         }

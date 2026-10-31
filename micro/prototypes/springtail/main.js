@@ -4,13 +4,13 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { createPad } from '../shared/pad.js';
 import { mountHud } from '../shared/hud.js';
-import { createControls, hudControls } from '../shared/controls.js';
+import { createControls, hudControls, addInvertY } from '../shared/controls.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
 import { loadTexture } from '../shared/assets.js';
 import { createMacro, lens, macroShared, applyLook, MACRO_LOOKS } from '../shared/techniques/springtail-macro.js';
-import { RippleField, Dimples, waterMaterial, peatFloorTexture } from '../shared/techniques/springtail-surface.js';
-import { buildWorld, inPool, poolE, mossTop, POOL_GLSL, ISLAND } from './world.js';
+import { RippleField, Dimples, waterMaterial, waterGeometry, peatFloorTexture } from '../shared/techniques/springtail-surface.js';
+import { buildWorld, inPool, poolE, mossTop, islandEdge, POOL_GLSL, SHORE_GLSL, BANK_E } from './world.js';
 import { createSpringtail } from './springtail.js';
 import { createStenus, createStrider, createRain } from './enemies.js';
 
@@ -29,11 +29,14 @@ function art(id, opts) {
 }
 
 // ---------------------------------------------------------------- water
+// The water is the ground everywhere: one wide sheet that follows the camera
+// (fine cells close up, coarse to the horizon), with the ripple simulation an
+// 84 mm window that scrolls with the springtail.
 const field = new RippleField({ size: 84, n: 256, inside: inPool });
-const dimples = new Dimples(64);
+const dimples = new Dimples(96);
 const floorTex = peatFloorTexture();
-const waterMat = waterMaterial({ field, dimples, depthGlsl: POOL_GLSL, floorTex, floorScale: 1 / 22 });
-const water = new THREE.Mesh(new THREE.PlaneGeometry(84, 84, 168, 168).rotateX(-Math.PI / 2), waterMat);
+const waterMat = waterMaterial({ field, dimples, depthGlsl: POOL_GLSL, shoreGlsl: SHORE_GLSL, floorTex, floorScale: 1 / 22 });
+const water = new THREE.Mesh(waterGeometry({ segs: 220, fine: 0.4, radius: 1100 }), waterMat);
 water.frustumCulled = false;
 scene.add(water);
 
@@ -60,7 +63,7 @@ const pl = {
 };
 const GOAL = 8;
 const game = { phase: 'title', t: 0, wonT: 0 };
-const opt = { righting: true, slow: true, uPose: true, menisci: 1, rumble: true, autofocus: true };
+const opt = { righting: true, slow: true, uPose: true, menisci: 1, rumble: true, autofocus: true, jumpFocus: true, dropShadow: true };
 
 const pad = createPad();
 const ctl = createControls(pad);
@@ -73,14 +76,14 @@ const hud = mountHud({
     dash: 'Furcula jump: hold to cock (hop to full), release; aim with LS',
     attack: 'Graze pollen, spores and algae',
     defend: 'Hold: hunker (collophore down; waves cannot flip you)',
-    special: 'Camera: low macro / top-down',
+    special: 'Camera: top-down / back to your low view',
     analog: 'Focus nearer / farther',
     secondary: 'Aperture wider / narrower',
     look: 'Look: low sun, overcast, stereo microscope',
     zoom: 'Magnification 1x, 2x, 3x, 5x',
     extra: [['LS click', 'Autofocus on the springtail']],
   }),
-  note: `Goal: eat ${GOAL} clumps of food, then reach the moss edge. The scale bar is true at the focal plane. Jumps are shown slowed ~6x and half as long as life; ripples run ~5x slower (see Features).`,
+  note: `Goal: eat ${GOAL} clumps of food, then climb onto moss (an island or the bank). The scale bar is true at the focal plane. Jumps are shown slowed ~6x and half as long as life; ripples run ~5x slower (see Features).`,
 });
 
 // ---------------------------------------------------------------- overlay DOM
@@ -123,15 +126,48 @@ function showCard(title, lines) {
 // ---------------------------------------------------------------- camera rig and optics
 const ZOOMS = [1, 2, 3, 5];
 const APERTURES = [2.8, 4, 5.6, 8, 11, 16, 22];
-const rig = { yaw: Math.PI, pitch: 0.45, pitchLow: 0.45, mode: 'low', zi: 1, ai: 4, focusOff: 0, target: new THREE.Vector3(START.x, 0.25, START.z), look: 0, lens: null };
+// Camera pitch: one wanted elevation (wantPitch, radians above the horizon)
+// that RS always moves, in either view. Y jumps it to top-down and back to
+// the low view you had. (It used to be two modes, and in top-down RS pitch
+// was ignored, so the camera stuck overhead until Y was pressed again.)
+const PITCH_MIN = 0.1, PITCH_MAX = 1.5, PITCH_TOP = 1.5, PITCH_LOW = 0.42;
+const rig = { yaw: Math.PI, pitch: PITCH_LOW, wantPitch: PITCH_LOW, pitchLow: PITCH_LOW, get mode() { return this.wantPitch > 1.05 ? 'top' : 'low'; }, zi: 1, ai: 4, focusOff: 0, target: new THREE.Vector3(START.x, 0.25, START.z), look: 0, lens: null, dofK: 1, aim: null };
 let lookDef = applyLook(0);
+/** Where the jump being cocked, or the one in flight, will come down (x, y, z), or null. */
+function landingPoint() {
+  const P = pl;
+  if (P.mode === 'air' && P.air) {
+    const a = P.air;
+    let gy = groundAt(P.x, P.z).y, t = 0;
+    for (let k = 0; k < 3; k++) {
+      // solve y + vy t - g t^2 / 2 = gy for the later root
+      const disc = a.vy * a.vy + 2 * a.g * (P.y - gy);
+      t = disc > 0 ? (a.vy + Math.sqrt(disc)) / a.g : 0;
+      gy = groundAt(P.x + a.vx * t, P.z + a.vz * t).y;
+    }
+    const lx = P.x + a.vx * t, lz = P.z + a.vz * t;
+    return { x: lx, y: gy, z: lz, inBank: poolE(lx, lz) > BANK_E };
+  }
+  if (P.charging && P.aim) {
+    const p = 0.12 + 0.88 * P.charge;
+    const R = 3 + 33 * p;
+    const lx = P.x + P.aim.x * R, lz = P.z + P.aim.z * R;
+    return { x: lx, y: groundAt(lx, lz).y, z: lz };
+  }
+  return null;
+}
 function placeCamera(dt) {
   const L = (rig.lens = lens({ hfw: 36 / ZOOMS[rig.zi], N: APERTURES[rig.ai] }));
   const want = new THREE.Vector3(pl.x, pl.y + 0.25, pl.z);
+  // frame a little toward where a jump will land
+  const land = opt.jumpFocus ? landingPoint() : null;
+  rig.aim = land;
+  const frameAt = want.clone();
+  if (land) frameAt.lerp(new THREE.Vector3(land.x, land.y + 0.25, land.z), 0.3);
   const k = dt ? 1 - Math.exp(-dt * (pl.mode === 'air' ? 3.5 : 6)) : 1;
-  rig.target.lerp(want, k);
-  const wantPitch = rig.mode === 'top' ? 1.5 : rig.pitchLow;
-  rig.pitch += (wantPitch - rig.pitch) * (dt ? 1 - Math.exp(-dt * 5) : 1);
+  rig.target.lerp(frameAt, k);
+  rig.wantPitch = THREE.MathUtils.clamp(rig.wantPitch, PITCH_MIN, PITCH_MAX);
+  rig.pitch += (rig.wantPitch - rig.pitch) * (dt ? 1 - Math.exp(-dt * 5) : 1);
   const cp = Math.cos(rig.pitch);
   camera.position.set(rig.target.x + Math.cos(rig.yaw) * cp * L.s, rig.target.y + Math.sin(rig.pitch) * L.s, rig.target.z + Math.sin(rig.yaw) * cp * L.s);
   camera.up.set(0, 1, 0);
@@ -142,8 +178,20 @@ function placeCamera(dt) {
   camera.near = Math.max(2, L.s - 35);
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
-  const focusD = opt.autofocus ? camera.position.distanceTo(want) : L.s;
-  macroShared.uFocus.value = focusD + rig.focusOff;
+  // the water sheet follows the camera's aim, snapped to whole ripple cells
+  water.position.set(Math.round(rig.target.x / field.dx) * field.dx, 0, Math.round(rig.target.z / field.dx) * field.dx);
+  let focusD = opt.autofocus ? camera.position.distanceTo(want) : L.s;
+  let wantK = 1;
+  if (opt.autofocus && land) {
+    // focus between the springtail and its landing spot, and stop down (in
+    // effect) until both lie inside the depth of field
+    const dT = camera.position.distanceTo(new THREE.Vector3(land.x, land.y + 0.1, land.z));
+    focusD = (focusD + dT) / 2;
+    wantK = THREE.MathUtils.clamp((Math.abs(dT - camera.position.distanceTo(want)) + 0.6) / L.dof, 1, 14);
+  }
+  rig.dofK += (wantK - rig.dofK) * (dt ? 1 - Math.exp(-dt * 6) : 1);
+  rig.focusD = rig.focusD === undefined || !dt ? focusD : rig.focusD + (focusD - rig.focusD) * (1 - Math.exp(-dt * 8));
+  macroShared.uFocus.value = rig.focusD + rig.focusOff;
   return L;
 }
 
@@ -193,6 +241,15 @@ F({ id: 'thinlens', group: 'Optics', label: 'Thin-lens macro camera', fixed: tru
   about: 'A 100 mm macro lens on a 36 mm sensor: magnification m = 36 / field width, subject distance f(1 + 1/m), field of view from the field width, effective aperture N(1 + m), total depth of field 2Nc(1 + m)/m^2 (c = 0.03 mm). At 2x and f/11 that is about 0.5 mm: the springtail is barely in focus end to end.' });
 F({ id: 'autofocus', group: 'Optics', label: 'Autofocus on the springtail', on: true,
   about: 'The focal plane follows the springtail; LT/RT offset it. Off: focus stays at the lens\'s set distance from the orbit centre.', onChange: (v) => (opt.autofocus = v) });
+F({ id: 'jumpFocus', group: 'Optics', label: 'Focus follows the jump', on: true,
+  about: 'While you cock a jump and while you are in the air, the lens racks focus to between you and where you will land, deepens the depth of field until both are acceptably sharp, and the framing leans toward the landing. No marker: the landing spot comes into focus.',
+  onChange: (v) => (opt.jumpFocus = v) });
+F({ id: 'dropShadow', group: 'Rendering', label: 'Drop shadow under the springtail', on: true,
+  about: 'A soft shadow straight below you on whatever is there (water film, moss, a sundew leaf, debris): a contact shadow when you stand, and in a leap it shows your height and the spot you will land on. Not optics but a game cue, alongside the true sun-cast shadow on the pool floor.',
+  onChange: (v) => (opt.dropShadow = v) });
+F({ id: 'sheen', group: 'Rendering', label: 'Legible water film', on: true,
+  about: 'A boosted Fresnel sky sheen and a broad sun lobe so the film reads as a glossy sheet over the darker tea-coloured depths, a raised meniscus with a bright line and a wet dark band where the water meets an island or the bank, and a rising meniscus round each floating piece of debris.',
+  onChange: (v) => { waterMat.uniforms.uSheen.value = v ? 1 : 0; waterMat.uniforms.uMeniscus.value = v ? 0.18 : 0; } });
 F({ id: 'ripples', group: 'Simulation', label: 'Ripple height field', on: true,
   about: 'A 256 x 256 damped wave equation over 84 mm (0.33 mm cells), stepped 240 times a second on the CPU. Raindrops, landings, striders\' strokes and walking beetles push it. Ripples run at ~43 mm/s, ~5x slower than real millimetre capillary waves (~0.23 m/s minimum), so you can see and dodge them. shared/techniques/springtail-surface.js.',
   onChange: (v) => { field.enabled = v; if (!v) field.clear(); } });
@@ -218,6 +275,7 @@ F({ id: 'strider', group: 'World', label: 'Water strider (Gerris)', on: true, on
   about: 'Hears ripples: landings, grazing and struggling bring it rowing over; its strokes send waves that flip an unbraced springtail; its forelegs grab.' });
 F({ id: 'rain', group: 'World', label: 'Rain', choices: ['Sometimes', 'Often', 'Off'], value: 'Sometimes',
   about: 'A drop ~3 mm across (twice your length) is telegraphed by its shadow, falls, craters the film and rings it.', onChange: (v) => { rain.enabled = v !== 'Off'; rain.every = v === 'Often' ? 3.5 : 7; } });
+addInvertY(features);
 F({ id: 'camrel', group: 'Controls', label: 'Camera-relative walking and aiming', fixed: true, about: 'LS walks and aims relative to the view, in both camera modes.' });
 F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true, about: 'A kick when the furcula fires, a tap on landing, a thump for raindrops and being caught.', onChange: (v) => (opt.rumble = v) });
 const rumble = (ms, a, b) => opt.rumble && pad.rumble(ms, a, b);
@@ -226,11 +284,16 @@ const rumble = (ms, a, b) => opt.rumble && pad.rumble(ms, a, b);
 const ripples = [];
 const casters = macroShared.uCasters.value, casterK = macroShared.uCasterK.value;
 const headPos = () => new THREE.Vector3(pl.x + Math.cos(pl.heading) * 0.68, pl.y, pl.z + Math.sin(pl.heading) * 0.68);
+/** What lies under (x, z): moss (an island or the bank), a floating piece of debris, or the water film. */
 const groundAt = (x, z) => {
   const m = mossTop(x, z);
   if (m > -Infinity) return { y: m, kind: 'moss' };
+  const d = world.debris.at(x, z);
+  if (d) return { y: d.top, kind: 'debris', piece: d };
   return { y: field.height(x, z), kind: 'film' };
 };
+/** The player mode for standing on a ground kind: debris is solid footing, like moss. */
+const modeFor = (kind) => (kind === 'film' ? 'film' : 'moss');
 
 function jump(dirX, dirZ, power, { thrown = false } = {}) {
   const p = Math.max(0.12, Math.min(1, power));
@@ -247,7 +310,7 @@ function jump(dirX, dirZ, power, { thrown = false } = {}) {
   pl.cock = 0;
   pl.furc = 1;
   pl.flipT = 0;
-  if (inPool(pl.x, pl.z) && pl.y < 0.5) {
+  if (inPool(pl.x, pl.z) && pl.y < 0.5 && !world.debris.at(pl.x, pl.z)) {
     // the furcula's strike pushes the film down; the collophore lets go
     field.drop(pl.x - (dirX / n) * 0.6, pl.z - (dirZ / n) * 0.6, 0.4, -0.05 - 0.08 * p);
     ripples.push({ x: pl.x, z: pl.z, strength: 0.5 + 0.4 * p });
@@ -290,13 +353,13 @@ function landAt(g) {
   const leaf = world.sundews.leafAt(pl.x, pl.y, pl.z);
   if (leaf && g.kind !== 'moss') return;
   if (!a.upright) { pl.mode = 'flipped'; pl.flipT = 0; pl.roll = Math.PI; rumble(160, 0.4, 0.3); hud.toast('Landed on your back: tap A to flick upright', 1600); }
-  else pl.mode = g.kind === 'moss' ? 'moss' : 'film';
+  else pl.mode = modeFor(g.kind);
   if (g.kind === 'film') {
     audio.play('springtail/land-water', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
     // adhesive landing: the wet collophore grabs the film, no bounce
     field.drop(pl.x, pl.z, 0.45, -0.07);
     ripples.push({ x: pl.x, z: pl.z, strength: 1 });
-  }
+  } else audio.play('springtail/land-water', { volume: 0.3, rate: 1.35 + Math.random() * 0.1 });
   rumble(60, 0.2, 0.05);
 }
 
@@ -360,7 +423,12 @@ function stepPlayer(dt, inp) {
         landAt(g);
       }
     }
-    if (poolE(P.x, P.z) > 1.6) { P.vx = 0; }
+    // the bank is a steep wall of moss: hit it and drop back to the water at its foot
+    if (poolE(P.x, P.z) > BANK_E) {
+      const nx = P.x / Math.hypot(P.x, P.z), nz = P.z / Math.hypot(P.x, P.z);
+      P.x -= nx * 0.3; P.z -= nz * 0.3;
+      a.vx = -nx * 1.5; a.vz = -nz * 1.5;
+    }
     return;
   }
 
@@ -386,8 +454,8 @@ function stepPlayer(dt, inp) {
     if (inp.dashPressed || P.flipT > 3.0) {
       // a flick of the furcula from the back rights it
       P.roll = 0; P.pitch = 0;
-      if (inp.dashPressed && P.cock > 0.3) { P.mode = groundAt(P.x, P.z).kind; jump(Math.cos(P.heading), Math.sin(P.heading), 0.12); }
-      else P.mode = groundAt(P.x, P.z).kind;
+      if (inp.dashPressed && P.cock > 0.3) { P.mode = modeFor(groundAt(P.x, P.z).kind); jump(Math.cos(P.heading), Math.sin(P.heading), 0.12); }
+      else P.mode = modeFor(groundAt(P.x, P.z).kind);
     }
     const fl = inPool(P.x, P.z) ? field.flow(P.x, P.z) : [0, 0];
     P.x += fl[0] * dt; P.z += fl[1] * dt;
@@ -395,16 +463,19 @@ function stepPlayer(dt, inp) {
     return;
   }
 
-  // on the film or on moss
-  const onMoss = mossTop(P.x, P.z) > -Infinity;
-  P.mode = onMoss ? 'moss' : 'film';
+  // on the film, on moss, or riding a piece of debris
+  const here = groundAt(P.x, P.z);
+  const onMoss = here.kind === 'moss';
+  const solid = here.kind !== 'film';
+  P.mode = modeFor(here.kind);
+  if (here.piece) { P.x += here.piece.vx * dt; P.z += here.piece.vz * dt; }
   P.hunker += ((inp.defend ? 1 : 0) - P.hunker) * Math.min(1, dt * 10);
-  const acc = (onMoss ? 7 : 11) * (1 - P.hunker * 0.95);
-  const drag = onMoss ? 6 : 1.9 + P.hunker * 12;
+  const acc = (solid ? 7 : 11) * (1 - P.hunker * 0.95);
+  const drag = solid ? 6 : 1.9 + P.hunker * 12;
   if (P.eatT <= 0) { P.vx += dir.x * mag * acc * dt; P.vz += dir.z * mag * acc * dt; }
   P.vx *= Math.exp(-drag * dt); P.vz *= Math.exp(-drag * dt);
   let fx = 0, fz = 0;
-  if (!onMoss && inPool(P.x, P.z)) {
+  if (!solid && inPool(P.x, P.z)) {
     const fl = field.flow(P.x, P.z);
     const sl = field.slope(P.x, P.z);
     fx = fl[0] * (1 - P.hunker * 0.8) - sl[0] * 30 * (1 - P.hunker); fz = fl[1] * (1 - P.hunker * 0.8) - sl[1] * 30 * (1 - P.hunker);
@@ -413,7 +484,7 @@ function stepPlayer(dt, inp) {
     if (s > 0.2 && P.hunker < 0.5) { P.mode = 'flipped'; P.flipT = 0; P.heading += (Math.random() - 0.5) * 2; rumble(200, 0.5, 0.3); hud.toast('Flipped by a wave! Tap A, or hunker (B) next time', 1700); return; }
   }
   const nx = P.x + (P.vx + fx) * dt, nz = P.z + (P.vz + fz) * dt;
-  if (poolE(nx, nz) < 1.55 && !(Math.hypot(nx - ISLAND.x, nz - ISLAND.z) < ISLAND.r - 0.3 && false)) { P.x = nx; P.z = nz; }
+  if (poolE(nx, nz) < BANK_E) { P.x = nx; P.z = nz; } else { P.vx *= 0.3; P.vz *= 0.3; }
   const sp = Math.hypot(P.vx, P.vz);
   if (sp > 0.4) { const ta = Math.atan2(P.vz, P.vx); P.heading += Math.max(-6 * dt, Math.min(6 * dt, Math.atan2(Math.sin(ta - P.heading), Math.cos(ta - P.heading)))); }
   else if (mag > 0.2) { const ta = Math.atan2(dir.z, dir.x); P.heading += Math.max(-4 * dt, Math.min(4 * dt, Math.atan2(Math.sin(ta - P.heading), Math.cos(ta - P.heading)))); }
@@ -423,7 +494,11 @@ function stepPlayer(dt, inp) {
   P.pitch = 0; P.roll = 0; P.bend += (0 - P.bend) * Math.min(1, dt * 8);
 
   // furcula: hold A to cock (a hop when tapped, a full jump at full charge), release to fire
-  if (inp.dashDown && P.cock >= 1 && P.hunker < 0.5) { P.charging = true; P.charge = Math.min(1, P.charge + dt / 0.7); }
+  if (inp.dashDown && P.cock >= 1 && P.hunker < 0.5) {
+    P.charging = true; P.charge = Math.min(1, P.charge + dt / 0.7);
+    const d = mag > 0.25 ? dir : new THREE.Vector3(Math.cos(P.heading), 0, Math.sin(P.heading));
+    P.aim = { x: d.x, z: d.z };
+  }
   if (P.charging && !inp.dashDown) {
     P.charging = false;
     const d = mag > 0.25 ? dir : new THREE.Vector3(Math.cos(P.heading), 0, Math.sin(P.heading));
@@ -455,15 +530,35 @@ function stepPlayer(dt, inp) {
       }
     }
   }
-  if (game.phase === 'play' && P.food >= GOAL && onMoss && poolE(P.x, P.z) > 0.985) {
+  if (game.phase === 'play' && P.food >= GOAL && onMoss) {
     game.phase = 'won';
-    showCard('Level 0 complete', [`Fed and safe on the Sphagnum, with ${P.lives} li${P.lives === 1 ? 'fe' : 'ves'} to spare.`, 'Next in the Zoom Chain: down into the moss.', '<b>Press A to play again</b>']);
+    showCard('Level 0 complete', [`Fed and safe up on the Sphagnum, with ${P.lives} li${P.lives === 1 ? 'fe' : 'ves'} to spare.`, 'Next in the Zoom Chain: down into the moss.', '<b>Press A to play again</b>']);
   }
+}
+
+/** A point of open water about `r` mm from (x, z), well inside the pool, or null. */
+function nearbyWater(x, z, r, eMax) {
+  for (let k = 0; k < 24; k++) {
+    const a = Math.random() * Math.PI * 2;
+    const cx = x + Math.cos(a) * r, cz = z + Math.sin(a) * r;
+    if (poolE(cx, cz) < eMax && islandEdge(cx, cz).d > 8) return { x: cx, z: cz };
+  }
+  return null;
 }
 
 function stepWorld(dt) {
   const P = pl;
   const alive = P.mode !== 'dead' && game.phase === 'play';
+  // the beetle and the strider keep to the water near you, wherever you go
+  if (Math.hypot(stenus.st.x - P.x, stenus.st.z - P.z) > 70 && stenus.st.state === 'patrol') {
+    const c = nearbyWater(P.x, P.z, 32, 0.8);
+    if (c) stenus.relocate(c.x, c.z);
+  }
+  if (Math.hypot(strider.st.x - P.x, strider.st.z - P.z) > 75 && strider.st.state === 'idle') {
+    const c = nearbyWater(P.x, P.z, 34, 0.85);
+    if (c) strider.relocate(c.x, c.z);
+  }
+  world.debris.update(dt, field, inPool);
   const ctxP = { x: P.x, y: P.mode === 'air' ? P.y : 0, z: P.z, vx: P.air ? P.air.vx : P.vx, vz: P.air ? P.air.vz : P.vz, airborne: P.mode === 'air', hunker: P.hunker > 0.5, moving: (P.moved > 0 && P.hunker < 0.5) || P.mode === 'air' || P.mode === 'stuck' || P.eatT > 0, alive };
   for (const e of stenus.update(dt, { player: ctxP, field, inPool })) {
     if (e === 'caught' && alive) { die('Harpooned by the rove beetle\'s labium'); stenus.st.state = 'hold'; stenus.st.t = 0; setTimeout(() => { if (stenus.st.state === 'hold') stenus.st.state = 'recover'; }, 1800); }
@@ -554,6 +649,12 @@ function updateContacts() {
     if (c.bites <= 0 || c.respawnT > 0) continue;
     if (Math.hypot(c.x - rig.target.x, c.z - rig.target.z) < 30) dimples.add(c.x, c.z, c.type.spread * 0.7, 0.012 * c.bites);
   }
+  world.debris.contacts(rig.target, (x, z, r, d) => dimples.add(x, z, r, d));
+  // the drop shadow: straight down from the springtail onto whatever is below
+  const drop = macroShared.uDrop.value;
+  if (!opt.dropShadow || P.mode === 'dead') { drop.set(0, -99, 0, 0); macroShared.uDropK.value = 0; }
+  else if (P.mode === 'air') { drop.set(P.x, P.y + 0.1, P.z, 0.48); macroShared.uDropK.value = 0.72; }
+  else { drop.set(P.x - Math.cos(P.heading) * 0.05, P.y + 0.06, P.z - Math.sin(P.heading) * 0.05, 0.62); macroShared.uDropK.value = 0.45; }
   // shadow casters
   let n = 0;
   const cast = (x, y, z, r, k) => { if (n < 8) { casters[n].set(x, y, z, r); casterK[n] = k; n++; } };
@@ -571,10 +672,16 @@ function readInput(dt) {
   const idle = { move: { x: 0, y: 0, m: 0 }, dashDown: false, dashPressed: false, attackPressed: false, defend: false };
   if (features.update()) return idle;
   hud.update(pad);
-  const rs = ctl.camera();
-  rig.yaw += rs.x * 1.9 * dt;
-  if (rig.mode === 'low') rig.pitchLow = THREE.MathUtils.clamp((rig.pitchLow) - rs.y * 1.0 * dt, 0.15, 1.2);
-  if (ctl.special.pressed()) { rig.mode = rig.mode === 'low' ? 'top' : 'low'; hud.toast(rig.mode === 'top' ? 'Top-down' : 'Low macro'); }
+  // RS: yaw, and pitch by intent (+1 looks up: the camera swings down toward
+  // the horizon), honouring the shared Invert Y. It works in either view.
+  const look = ctl.look();
+  rig.yaw += look.yaw * 1.9 * dt;
+  rig.wantPitch = THREE.MathUtils.clamp(rig.wantPitch - look.pitch * 1.1 * dt, PITCH_MIN, PITCH_MAX);
+  if (rig.mode === 'low') rig.pitchLow = rig.wantPitch;
+  if (ctl.special.pressed()) {
+    if (rig.mode === 'top') { rig.wantPitch = Math.min(rig.pitchLow, 0.9); hud.toast('Low macro'); }
+    else { rig.pitchLow = rig.wantPitch; rig.wantPitch = PITCH_TOP; hud.toast('Top-down (RS or Y to come back down)'); }
+  }
   const zs = ctl.zoomStep();
   if (zs) { rig.zi = THREE.MathUtils.clamp(rig.zi + zs, 0, ZOOMS.length - 1); hud.toast(`${ZOOMS[rig.zi]}x · field ${(36 / ZOOMS[rig.zi]).toFixed(1)} mm`); }
   const ls = ctl.lookStep();
@@ -608,7 +715,7 @@ function updateText(L) {
   bar.querySelector('.rule').style.width = `${(len / mmPerPx).toFixed(1)}px`;
   bar.querySelector('.lab').textContent = len >= 1 ? `${len} mm` : `${(len * 1000).toFixed(0)} µm`;
   const N = APERTURES[rig.ai];
-  const dof = L.dof / (MACRO_LOOKS[rig.look].dofK > 1 ? 1 / MACRO_LOOKS[rig.look].dofK : 1);
+  const dof = L.dof * MACRO_LOOKS[rig.look].dofK * rig.dofK;
   bar.querySelector('.opt').textContent = `${L.m.toFixed(1)}x · f/${N} (eff. f/${L.Neff.toFixed(0)}) · DOF ${dof.toFixed(2)} mm${rig.focusOff ? ` · focus ${rig.focusOff > 0 ? '+' : ''}${rig.focusOff.toFixed(1)} mm` : ''}`;
   status.querySelector('.food').textContent = `Food ${pl.food}/${GOAL}`;
   status.querySelector('.lives').textContent = '●'.repeat(Math.max(0, pl.lives)) + '○'.repeat(Math.max(0, 3 - pl.lives));
@@ -626,6 +733,7 @@ let simT = 0;
 function step(dt, inp) {
   simT += dt;
   macroShared.uTime.value = simT;
+  field.recenter(pl.x, pl.z);
   if (game.phase === 'play' || game.phase === 'title') stepPlayer(dt, inp);
   stepWorld(dt);
   poseTail(simT);
@@ -635,7 +743,7 @@ function step(dt, inp) {
 function render(dt) {
   const L = placeCamera(dt);
   field.upload();
-  macro.render(scene, camera, { lens: L, look: lookDef });
+  macro.render(scene, camera, { lens: L, look: lookDef, dofK: rig.dofK });
   return L;
 }
 
@@ -644,7 +752,14 @@ const api = {
   step(dt = 1 / 60, inp = { move: { x: 0, y: 0, m: 0 }, dashDown: false, dashPressed: false, attackPressed: false, defend: false }) { step(dt, inp); },
   render(dt = 0) { const L = render(dt); updateText(L); },
   jump, newGame, respawn,
-  setCam(o) { Object.assign(rig, o); },
+  /** Set camera fields; `mode: 'top' | 'low'` and `pitch` set the wanted elevation. */
+  setCam(o) {
+    const { mode, pitch, ...rest } = o;
+    Object.assign(rig, rest);
+    if (pitch !== undefined) rig.wantPitch = rig.pitch = pitch;
+    if (mode === 'top') rig.wantPitch = PITCH_TOP; else if (mode === 'low') rig.wantPitch = rig.pitchLow;
+  },
+  landingPoint,
   /** Hide the moss and sundews (turnaround renders on open water). */
   isolate(on) { world.group.children.forEach((c) => { if (c !== world.sky) c.visible = !on; }); },
 };

@@ -1,11 +1,12 @@
 // Paramecium prototype: Paramecium bursaria (green with symbiotic Chlorella)
-// in a pond drop, seen through a microscope. Eat prey, keep your symbionts in
+// in a pond drop, followed by a chase camera (Y: through the microscope). Eat prey, keep your symbionts in
 // the light, and escape Didinium and a giant Amoeba proteus. See README.md
 // for controls, approach and sources.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { createPad } from '../shared/pad.js';
 import { mountHud } from '../shared/hud.js';
-import { createControls, createDash, hudControls } from '../shared/controls.js';
+import { createControls, createDash, hudControls, addInvertY } from '../shared/controls.js';
+import { createContactFx } from './fx.js';
 import { loadTexture } from '../shared/assets.js';
 import { createOptics, MODES, MODE_NAMES, shared, standInPlate } from './optics.js';
 import { createCell, LENGTH, WIDTH, SPECIES, SPECIES_ID, FEATURE_KEY } from './cell.js';
@@ -35,17 +36,17 @@ const hud = mountHud({
     : `${SP.latin}, ${LENGTH} µm, in a pond drop under the microscope. Eat and outswim the hunters.`,
   controls: hudControls({
     move: 'Steer (relative to the view)',
-    camera: 'Move the stage (chase camera: orbit)',
+    camera: 'Orbit the camera (microscope: move the stage)',
     dash: 'Dash: ciliary sprint where the stick points',
     attack: 'Eat: a gulp pulls nearby prey in. Touching a hunter: fire trichocysts',
     defend: 'Avoidance reaction: back up and turn',
-    special: 'Microscope view / chase camera',
+    special: 'Chase camera / microscope view',
     analog: 'LT slow feeding beat · RT swim (no gliding)',
     secondary: 'Dive / rise',
     look: 'Microscope technique',
     zoom: 'Objective (chase camera: distance)',
   }),
-  note: `Goal: eat ${GOAL} prey (green rings)${GREEN ? ', keep in the light so your Chlorella feed you' : ''}. Red marks a hunter: Didinium (fast, harpoons you on contact) and Amoeba proteus (slow giant on the slide, cups you if you swim low). Scale is honest (µm).`,
+  note: `Goal: eat ${GOAL} prey (bacterial clumps and Chilomonas)${GREEN ? ', keep in the light so your Chlorella feed you' : ''}. Hunters: Didinium (fast, harpoons you on contact; a red arrow at the edge when one closes in from out of view) and Amoeba proteus (slow giant on the slide, cups you if you swim low). You glance off whatever you touch. Scale is honest (µm).`,
 });
 
 // the goal strip: what you are doing, at a glance
@@ -62,6 +63,7 @@ const enc = createEncounters(scene, world, cell);
 const prey = createPrey(scene);
 const amoeba = createProteus(scene);
 const optics = createOptics(renderer);
+const contactFx = createContactFx(scene);
 
 // Delivered art, with procedural stand-ins until it arrives.
 const plates = { darkfield: standInPlate('darkfield'), phase: standInPlate('phase') };
@@ -84,9 +86,10 @@ const OBJECTIVES = [ // field of view (FN 18) and a labelled, exaggerated depth 
 const DOFS = { strong: 'Strong (only your layer sharp)', mild: 'Mild', off: 'Off' };
 const PLATES = { dim: 'Dimmed and blurred', full: 'Full', off: 'Off' };
 const view = {
-  fieldStop: true, smoothHelix: true, mode: 0, kind: 'scope', obj: 1, dist: 300 + 430 * (LENGTH / 230), orbitYaw: 0.5, orbitPitch: 0.4,
+  fieldStop: true, smoothHelix: true, mode: 0, kind: 'chase', obj: 1, dist: 120 + 310 * (LENGTH / 230), orbitYaw: 0.5, orbitPitch: 0.4,
   stage: new THREE.Vector2(), camAxis: new THREE.Vector3().copy(swimmer.state.axis), camYaw: swimmer.state.yaw, camPitch: 0,
-  focusY: swimmer.state.axis.y, scopeYaw: swimmer.state.yaw, turnView: true, lead: new THREE.Vector3(), dof: 'strong', plate: 'dim',
+  focusY: swimmer.state.axis.y, scopeYaw: swimmer.state.yaw, turnView: true, lead: new THREE.Vector3(), dof: 'mild', plate: 'dim',
+  focusPull: 0, focusPullY: 0, // a contact pulls fine focus to what you touched, briefly
 };
 const fwdOf = (yaw, out = new THREE.Vector3()) => out.set(Math.cos(yaw), 0, -Math.sin(yaw));
 const angleWrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
@@ -181,7 +184,9 @@ function updateCameras(dt, s, steer) {
   const want = fwdOf(s.yaw).multiplyScalar(Math.min(o.field * 0.14, Math.max(0, s.speed) * 0.12));
   view.lead.lerp(want, 1 - Math.exp(-dt * 1.5));
   // the stage follows the helix axis (the wobble stays on the cell, not the view); fine focus tracks its depth
-  view.focusY += (s.center.y - view.focusY) * (1 - Math.exp(-dt * 3));
+  view.focusPull = Math.max(0, view.focusPull - dt);
+  const fy = view.focusPull > 0 ? view.focusPullY : s.center.y;
+  view.focusY += (fy - view.focusY) * (1 - Math.exp(-dt * (view.focusPull > 0 ? 14 : 3)));
   const up = fwdOf(view.scopeYaw);
   const right = new THREE.Vector3(Math.sin(view.scopeYaw), 0, Math.cos(view.scopeYaw));
   scope.position.set(view.camAxis.x + view.lead.x, 2000, view.camAxis.z + view.lead.z)
@@ -203,7 +208,7 @@ const VIEW_NAMES = { chase: 'Chase camera', scope: 'Microscope (top-down)' };
 const features = createFeatures({ key: FEATURE_KEY, pad });
 const T = optics.toggles;
 const sw = (u) => (on) => { u.value = on ? 1 : 0; };
-const marks = { halo: true, threats: true, prey: true, light: true };
+const marks = { threats: true, rings: false, prey: true, light: true };
 // Species
 features.add({ id: 'species', group: 'Body', label: 'Species (reloads)', choices: Object.values(SPECIES).map((x) => x.name), value: SP.name,
   about: 'P. bursaria (85–150 µm, S27), the Level 3 protagonist: plump, green with several hundred symbiotic Chlorella 5–6 µm across, gathers on the lit side. P. caudatum (200–260 µm, S07): larger and colourless, no symbionts and no light meter.',
@@ -212,8 +217,8 @@ features.add({ id: 'species', group: 'Body', label: 'Species (reloads)', choices
 features.add({ id: 'look', group: 'Optics', label: 'Microscope technique (D-pad ←→)', choices: MODES.map((m) => MODE_NAMES[m]), value: MODE_NAMES.brightfield,
   about: 'How the image is formed from the optical-path, scatter and absorption buffers: darkfield (zero order removed), positive phase contrast (dark where the path is long), brightfield (absorption plus a defocus term: the default, because the green Chlorella make P. bursaria the clearest thing in the field), DIC (shear derivative of the path) or a hypothetical lit view.',
   onChange: (v) => { view.mode = MODES.findIndex((m) => MODE_NAMES[m] === v); } });
-features.add({ id: 'view', group: 'Optics', label: 'Camera (Y)', choices: [VIEW_NAMES.scope, VIEW_NAMES.chase], value: VIEW_NAMES.scope,
-  about: 'Microscope (default): orthographic and top-down; the stage keeps your cell centred, a little behind the direction you swim, and fine focus tracks your depth. Chase: a hypothetical camera in the water that follows the helix axis.',
+features.add({ id: 'view', group: 'Optics', label: 'Camera (Y)', choices: [VIEW_NAMES.chase, VIEW_NAMES.scope], value: VIEW_NAMES.chase,
+  about: 'Chase (default, as before the readability rework): a hypothetical camera in the water that follows the helix axis; LS yaws and pitches. Microscope: orthographic and top-down; the stage keeps your cell centred, a little behind the direction you swim, fine focus tracks your depth and jumps to anything you touch.',
   onChange: (v) => { view.kind = v === VIEW_NAMES.chase ? 'chase' : 'scope'; view.stage.set(0, 0); } });
 features.add({ id: 'turnView', group: 'Optics', label: 'Microscope view turns with your heading', on: true,
   about: 'The view slowly turns so you swim up the screen, following the helix axis and the heading, never the roll; it holds still while you steer sideways. Off: north stays up (like a real stage).',
@@ -221,9 +226,9 @@ features.add({ id: 'turnView', group: 'Optics', label: 'Microscope view turns wi
 features.add({ id: 'objective', group: 'Optics', label: 'Objective (D-pad ↑↓)', choices: OBJECTIVES.map((o) => o.name), value: '20×',
   about: 'Field of view for an FN 18 eyepiece: 10× 1.8 mm, 20× 0.9 mm (the Level 3 field), 40× 0.45 mm.',
   onChange: (v) => { view.obj = Math.max(0, OBJECTIVES.findIndex((o) => o.name === v)); } });
-features.add({ id: 'dof', group: 'Optics', label: 'Depth of field', choices: Object.values(DOFS), value: DOFS.strong,
-  about: 'Each fragment is split between a sharp and a defocused layer by its distance from the focal plane. Strong: only the layer you swim in is crisp (16 µm sharp, fully blurred by 75 µm at 20×) and far layers fade, so the field is uncluttered. Mild: about twice as deep. Off: everything sharp.',
-  onChange: (v) => { view.dof = Object.keys(DOFS).find((k) => DOFS[k] === v) || 'strong'; shared.uDofOn.value = view.dof === 'off' ? 0 : 1; } });
+features.add({ id: 'dof', group: 'Optics', label: 'Depth of field (microscope)', choices: Object.values(DOFS), value: DOFS.mild,
+  about: 'Each fragment is split between a sharp and a defocused layer by its distance from the focal plane. Mild (default): about 35 µm sharp at 20×, so whatever you can bump into is visible; touching something pulls focus to it. Strong: only the layer you swim in is crisp (16 µm, fully blurred by 75 µm) and far layers fade. Off: everything sharp.',
+  onChange: (v) => { view.dof = Object.keys(DOFS).find((k) => DOFS[k] === v) || 'mild'; shared.uDofOn.value = view.dof === 'off' ? 0 : 1; } });
 features.add({ id: 'plate', group: 'Optics', label: 'Background habitat plate', choices: Object.values(PLATES), value: PLATES.dim,
   about: 'The pond photograph behind the scene in darkfield and phase (MP-P01, MP-P02). Dimmed and blurred (default) keeps it from competing with your cell; Full is the plate as delivered.',
   onChange: (v) => { view.plate = Object.keys(PLATES).find((k) => PLATES[k] === v) || 'dim'; T.plate.value = view.plate === 'off' ? 0 : 1; } });
@@ -235,13 +240,13 @@ features.add({ id: 'chroma', group: 'Optics', label: 'Lateral chromatic softness
 features.add({ id: 'soft', group: 'Optics', label: 'Objective point spread', on: true, about: 'A small blur of every pixel with its neighbours: a light microscope never resolves a hard pixel edge.', onChange: sw(T.soft) });
 features.add({ id: 'grain', group: 'Optics', label: 'Camera noise', on: true, about: 'Per-frame sensor noise, slightly stronger on bright backgrounds.', onChange: sw(T.grain) });
 features.add({ id: 'stop', group: 'Optics', label: 'Eyepiece field stop', on: true, about: 'The round field of view with a black surround in the microscope view.', onChange: (on) => { view.fieldStop = on; } });
-// Game aids (drawn over the image, not part of it)
-features.add({ id: 'outline', group: 'Optics', label: 'Outline round your cell', on: true,
-  about: 'A faint ring round your Paramecium with a tick at the front, so you can always find yourself. Drawn over the image, not part of the microscopy.', onChange: (on) => { marks.halo = on; } });
-features.add({ id: 'threatMarks', group: 'Optics', label: 'Hunter markers', on: true,
-  about: 'Red rings round a hunter that has noticed you, an arrow at the edge of the field when it is out of view, and amber for one that has not.', onChange: (on) => { marks.threats = on; } });
-features.add({ id: 'preyMarks', group: 'Optics', label: 'Prey markers', on: true,
-  about: 'Faint green rings round prey, bright when it is close enough to gulp, and an arrow to the nearest when none is in view.', onChange: (on) => { marks.prey = on; } });
+// Game aids (drawn over the image, not part of it). Nothing is drawn round your own cell.
+features.add({ id: 'threatMarks', group: 'Optics', label: 'Hunter arrow', on: true,
+  about: 'A faint red arrow at the edge of the view, only for a hunter that is closing in on you from out of view. Hunters in view are left to the image.', onChange: (on) => { marks.threats = on; } });
+features.add({ id: 'threatRings', group: 'Optics', label: 'Hunter rings', on: false,
+  about: 'Dashed rings and labels round hunters in view (the rework\'s markers; off by default so the view stays immersive).', onChange: (on) => { marks.rings = on; } });
+features.add({ id: 'preyMarks', group: 'Optics', label: 'Prey cues', on: true,
+  about: 'A small soft ring on prey only when it is in reach of a gulp, and a faint arrow to the nearest prey when none is in view.', onChange: (on) => { marks.prey = on; } });
 features.add({ id: 'lightPool', group: 'Optics', label: 'Light and shade', on: true,
   about: 'Sunlight falls on part of the drop; the rest is shaded (darker, drawn over the image). P. bursaria needs the light for its Chlorella.', onChange: (on) => { marks.light = on; } });
 // Rendering
@@ -282,7 +287,11 @@ features.add({ id: 'beat', group: 'Motion', label: 'Ciliary beat rate', choices:
   about: 'Real cilia beat 15–35 Hz, faster than a 60 Hz display can show without aliasing; the slowed rate lets the strokes and waves be followed.', onChange: (v) => { swimmer.opts.beatScale = v.startsWith('Real') ? 4.5 : 1; } });
 features.add({ id: 'dash', group: 'Motion', label: 'Dash (A): ciliary sprint', fixed: true,
   about: `All cilia beat hard for ${DASH_T} s: up to ${(DASH_V / 1000).toFixed(1)} mm/s toward the stick, after a quick pivot. Escape swimming in Paramecium reaches several mm/s for a moment [the peak and the 1.8 s recharge are game values].` });
-features.add({ id: 'avoid', group: 'Motion', label: 'Avoidance reaction (B, and on contact)', fixed: true, about: 'Ciliary reversal for 0.3 s (backing up), a pivot about the posterior end, then forward on a new heading (S08).' });
+features.add({ id: 'avoid', group: 'Motion', label: 'Avoidance reaction (B)', fixed: true, about: 'Ciliary reversal for 0.3 s (backing up), a pivot about the posterior end, then forward on a new heading (S08).' });
+features.add({ id: 'glance', group: 'Motion', label: 'Glance off obstacles', fixed: true,
+  about: 'Touching anything (a filament, a flake, the slide, the coverslip, the meniscus at the rim of the drop) turns your heading along its surface so you slide past instead of stopping. The contact shows as a puff of specks at the point, a bump of the cell and a rumble; in the microscope view focus jumps to what you touched.' });
+features.add({ id: 'avoidOnContact', group: 'Motion', label: 'Avoidance reaction on hard contact', on: false,
+  about: 'What a real Paramecium does when its front end hits something (S08): back up and turn. Off by default because it takes control away; on, it fires on a hard head-on hit with a filament, flake or cell (never the glass).', onChange: (on) => { swimmer.opts.avoidOnContact = on; } });
 features.add({ id: 'burst', group: 'Motion', label: 'Trichocyst defence (X on contact)', fixed: true, about: 'When a hunter touches or holds you, X fires the trichocysts from the patch facing it: threads shoot out and throw the cell about 100 µm clear, and the hunter recoils (S09). Three charges, one back every 9 s (invented).' });
 // Simulation
 features.add({ id: 'squirmer', group: 'Simulation', label: 'Flow round the swimming cell', on: true,
@@ -320,8 +329,9 @@ features.add({ id: 'opticsAmoebaMode', group: 'Borrowed', label: 'Amoeba method'
 const cellMeshes = new Set();
 cell.group.traverse((o) => cellMeshes.add(o));
 
+addInvertY(features);
 features.add({ id: 'pad', group: 'Controls', label: 'Shared control scheme (CONTROLS.md)', fixed: true,
-  about: 'LS steer, RS stage/orbit, A dash, X eat (trichocysts on contact), B avoidance reaction, Y microscope/chase, LT feed, RT swim, LB/RB dive/rise, D-pad ←→ technique, D-pad ↑↓ objective, View panel, Menu features. Keyboard fallbacks in shared/pad.js.' });
+  about: 'LS steer, RS orbit/stage, A dash, X eat (trichocysts on contact), B avoidance reaction, Y chase/microscope, LT feed, RT swim, LB/RB dive/rise, D-pad ←→ technique, D-pad ↑↓ objective, View panel, Menu features. Keyboard fallbacks in shared/pad.js.' });
 
 /** The look on screen, including a borrowed one. */
 function lookName() {
@@ -372,7 +382,7 @@ function soundTick(dt) {
   }
 }
 const dash = createDash({ duration: DASH_T, cooldown: 1.8 });
-const game = { eaten: 0, round: 1, sun: 1, gulpT: 0, gulpCool: 0, dashFx: 0, deaths: 0, bacteria: 0 };
+const game = { eaten: 0, round: 1, sun: 1, gulpT: 0, gulpCool: 0, dashFx: 0, deaths: 0, bacteria: 0, contacts: 0 };
 const threats = () => [...(enc.opts.didinium ? world.didinia : []), ...(amoeba.opts.on ? [amoeba] : [])];
 const GULP_REACH = Math.max(70, LENGTH * 0.6);
 const gulpCentre = new THREE.Vector3();
@@ -427,6 +437,21 @@ function doDash(ls) {
   if (swimmer.dash(yaw)) { audio.play('paramecium/dash', { volume: 0.9 }); dash.trigger(); game.dashFx = 0.45; pad.rumble(180, 0.6, 0.9); }
 }
 
+/** A contact: show where it happened and what it was; never a silent stop. */
+const taught = new Set();
+function onContact(c) {
+  game.contacts++;
+  if (c.impact < 40) return; // a graze: you just slide on
+  const k = Math.min(1, c.impact / 900);
+  contactFx.puff(c.p, c.n, 0.35 + k);
+  pad.rumble(60 + 90 * k, 0.15 + 0.4 * k, 0.05 + 0.3 * k);
+  if (view.kind === 'scope') { view.focusPull = 0.5; view.focusPullY = c.p.y; }
+  if (c.glass && !taught.has(c.what) && c.impact > 60) {
+    taught.add(c.what);
+    hud.toast(c.what === 'the slide' ? 'The slide: the glass floor of the drop. You glide along it' : c.what === 'the coverslip' ? 'The coverslip: the glass ceiling. You glide along it' : 'The meniscus: the edge of the drop. You slide round it', 2200);
+  }
+}
+
 // --- loop --------------------------------------------------------------------
 let t = 0, last = performance.now(), blocked = false;
 let ls = { x: 0, y: 0, m: 0 };
@@ -449,7 +474,7 @@ function tick(dt, forced = false) {
   const inp = {
     thrust: debug.inspect ? 0.5 : live ? Math.max(ctl.rt(), debug.thrust) : debug.thrust,
     hover: Math.max(live ? ctl.lt() : 0, game.gulpT > 0 ? 1 : 0), steer: live ? ls : debug.steer, rise: live ? ctl.secondary() : 0,
-    view: view.kind, camYaw: view.scopeYaw, vmaxK: 0.62 + 0.38 * game.sun,
+    view: view.kind, camYaw: view.scopeYaw, vmaxK: 1, // shade slows the dash recharge only, never your swimming
     avoid: live && ctl.defend.pressed(), struggle: live && ctl.dash.pressed() && s.mode === 'captured',
   };
   const ev = {};
@@ -480,7 +505,16 @@ function tick(dt, forced = false) {
   cell.group.visible = !dead || s.deadT < 0.4;
   cell.update(dt, { phase: s.beatPhase, amp: s.amp, reverse: s.reverse, oral: s.oral });
 
-  if (ev.hit) { pad.rumble(70, 0.25, 0.1); if (ev.vorticella) hud.toast('Bumped a Vorticella: its stalk coils (and you reverse)'); }
+  if (ev.contact) onContact(ev.contact);
+  if (ev.vorticella) hud.toast('Bumped a Vorticella: its stalk coils');
+  contactFx.update(dt);
+  // the bump: the cell recoils from the contact and squashes a little
+  if (s.bumpT > 0) {
+    const k = Math.sin(Math.PI * (1 - s.bumpT / 0.28));
+    cell.group.position.addScaledVector(s.bumpN, 5 * k * (LENGTH / 120));
+    cell.group.scale.set(1 - 0.1 * k, 1 + 0.05 * k, 1 + 0.05 * k);
+  } else cell.group.scale.set(1, 1, 1);
+  if (s.slow > 0.1) pad.rumble(40, 0.15 * s.slow, 0.05); // the food cup dragging on you
   if (ev.avoid) pad.rumble(50, 0.15, 0);
   if (ev.captured) {
     audio.play('paramecium/held', { volume: 1 });
@@ -515,8 +549,10 @@ function frame(now) {
   }
   const rs = blocked ? { x: 0, y: 0, m: 0 } : ctl.camera();
   if (view.kind === 'chase') {
-    view.orbitYaw -= rs.x * 2.2 * dt;
-    view.orbitPitch = Math.max(-1.2, Math.min(1.2, view.orbitPitch - rs.y * 1.6 * dt));
+    // orbit: look() pitch +1 means look up (the camera swings lower), Invert Y honoured
+    const lk = blocked ? { yaw: 0, pitch: 0, m: 0 } : ctl.look();
+    view.orbitYaw -= lk.yaw * 2.2 * dt;
+    view.orbitPitch = Math.max(-1.2, Math.min(1.2, view.orbitPitch + lk.pitch * 1.6 * dt));
     if (rs.m === 0 && !debug.inspect) { const k = 1 - Math.exp(-dt * 0.6); view.orbitYaw += (0.5 - view.orbitYaw) * k; view.orbitPitch += (0.4 - view.orbitPitch) * k; }
   } else {
     const half = OBJECTIVES[view.obj].field / 2;
@@ -594,7 +630,7 @@ function updateGoal(s) {
   goalEl.style.borderRadius = warn ? '12px' : '999px';
 }
 
-// --- overlay: outline, markers, light and shade --------------------------------
+// --- overlay: subtle cues, light and shade (nothing round your own cell) --------
 const pv = new THREE.Vector3();
 function toScreen(p, cam) {
   pv.copy(p).project(cam);
@@ -638,7 +674,7 @@ function drawOverlay(cam, s) {
     if (!inLight(s.center) && !visible(lc)) edgeArrow(lc, '#ffd25a', 'light');
   }
 
-  // prey
+  // prey: a small soft ring only when in reach of a gulp; a faint arrow when none is in view
   if (marks.prey && s.mode !== 'dead') {
     const gc = updateGulpCentre(s);
     let anyVisible = false;
@@ -647,71 +683,35 @@ function drawOverlay(cam, s) {
       const q = toScreen(it.pos, cam);
       if (!visible(q)) continue;
       anyVisible = true;
-      const d = it.pos.distanceTo(gc);
-      const inReach = d < GULP_REACH;
-      const depthOff = Math.abs(it.pos.y - s.center.y) > 45;
-      const r = Math.max(8, (it.r + 6) * pxPerUm);
-      g.strokeStyle = inReach ? 'rgba(90,230,110,0.95)' : dark ? 'rgba(120,230,140,0.45)' : 'rgba(30,140,50,0.5)';
-      g.lineWidth = inReach ? 2 : 1.2;
-      g.setLineDash(depthOff ? [3, 3] : []);
+      if (it.pos.distanceTo(gc) >= GULP_REACH) continue;
+      const r = Math.max(7, (it.r + 5) * pxPerUm);
+      g.strokeStyle = dark ? 'rgba(150,240,160,0.55)' : 'rgba(40,150,60,0.55)';
+      g.lineWidth = 1.2;
       g.beginPath(); g.arc(q.x, q.y, r, 0, Math.PI * 2); g.stroke();
-      g.setLineDash([]);
     }
-    if (!anyVisible) { const n = prey.nearest(s.center); if (n) edgeArrow(toScreen(n.pos, cam), dark ? '#7fe08a' : '#2f9a45', 'food'); }
+    if (!anyVisible) { const n = prey.nearest(s.center); if (n) edgeArrow(toScreen(n.pos, cam), dark ? 'rgba(127,224,138,0.55)' : 'rgba(47,154,69,0.55)', ''); }
   }
 
-  // hunters
-  if (marks.threats) {
+  // hunters: a faint red arrow only for one closing in from out of view
+  if (marks.threats || marks.rings) {
     for (const th of threats()) {
       const isA = th === amoeba;
       const d = isA ? amoeba.edgeDist(s.center) : th.pos.distanceTo(s.center);
       const hot = hunting(th) || (isA && amoeba.cup > 0);
-      if (!hot && d > 700) continue;
       const centre = isA ? new THREE.Vector3(amoeba.pos.x, amoeba.H, amoeba.pos.z) : th.pos;
       const q = toScreen(centre, cam);
-      const col = hot ? `rgba(255,${isA && amoeba.cup > 0 ? 60 : 90},70,${0.75 + 0.25 * Math.sin(t * 10)})` : 'rgba(255,190,80,0.7)';
-      const label = `${th.label}${hot ? (isA ? (amoeba.cup > 0 ? ' · cupping you!' : ' · coming for you') : th.state === 'feeding' ? ' · has you' : ' · hunting you') : ''}`;
       if (visible(q)) {
+        if (!marks.rings || (!hot && d > 700)) continue;
+        const col = hot ? 'rgba(255,90,70,0.8)' : 'rgba(255,190,80,0.7)';
         const r = isA ? (amoeba.R + 70) * pxPerUm : Math.max(24, 80 * pxPerUm);
-        g.strokeStyle = col; g.lineWidth = hot ? 2.5 : 1.5; g.setLineDash([8, 6]);
+        g.strokeStyle = col; g.lineWidth = 1.5; g.setLineDash([8, 6]);
         g.beginPath(); g.arc(q.x, q.y, r, 0, Math.PI * 2); g.stroke(); g.setLineDash([]);
         g.font = '600 12px system-ui, sans-serif'; g.fillStyle = col; g.textAlign = 'center';
-        g.fillText(label, q.x, Math.min(cssH - 8, q.y + r + 15));
-      } else edgeArrow(q, col, `${th.label} ${Math.round(d)} µm`);
-    }
-  }
-
-  // your cell: a faint outline with a tick at the front
-  if (marks.halo && s.mode !== 'dead') {
-    const c = toScreen(s.center, cam), f = toScreen(pv.copy(s.center).addScaledVector(s.T, HL), cam);
-    const fx = f.x, fy = f.y;
-    const c2 = toScreen(s.center, cam);
-    let ax = fx - c2.x, ay = fy - c2.y;
-    let L = Math.hypot(ax, ay);
-    const scale = pxPerUm;
-    if (L < 1) { ax = 0; ay = -1; L = 1; }
-    const a = Math.atan2(ay, ax);
-    const maj = Math.max(L, HL * scale * 0.5) + 9, min = (WIDTH / 2) * scale + 9;
-    const held = s.mode === 'captured';
-    g.strokeStyle = held ? `rgba(255,80,60,${0.6 + 0.4 * Math.sin(t * 12)})` : dark ? 'rgba(170,235,255,0.6)' : 'rgba(0,70,95,0.55)';
-    g.lineWidth = held ? 2.5 : 1.5;
-    g.beginPath(); g.ellipse(c.x, c.y, maj, Math.min(maj, min), a, 0, Math.PI * 2); g.stroke();
-    // the heading tick
-    g.fillStyle = g.strokeStyle;
-    g.save(); g.translate(c.x + Math.cos(a) * (maj + 3), c.y + Math.sin(a) * (maj + 3)); g.rotate(a);
-    g.beginPath(); g.moveTo(9, 0); g.lineTo(0, -5); g.lineTo(0, 5); g.closePath(); g.fill(); g.restore();
-    // dash: an expanding ring
-    if (game.dashFx > 0) {
-      const k = 1 - game.dashFx / 0.45;
-      g.strokeStyle = dark ? `rgba(200,240,255,${1 - k})` : `rgba(0,90,120,${1 - k})`;
-      g.lineWidth = 2;
-      g.beginPath(); g.ellipse(c.x, c.y, maj * (1 + k * 0.9), Math.min(maj, min) * (1 + k * 0.9), a, 0, Math.PI * 2); g.stroke();
-    }
-    // the gulp reach while feeding
-    if (game.gulpT > 0) {
-      const gc = toScreen(updateGulpCentre(s), cam);
-      g.strokeStyle = 'rgba(90,230,110,0.6)'; g.lineWidth = 1.5; g.setLineDash([4, 4]);
-      g.beginPath(); g.arc(gc.x, gc.y, GULP_REACH * scale, 0, Math.PI * 2); g.stroke(); g.setLineDash([]);
+        g.fillText(th.label, q.x, Math.min(cssH - 8, q.y + r + 15));
+      } else if (marks.threats && hot && s.mode !== 'dead') {
+        const a = 0.35 + 0.45 * Math.max(0, 1 - d / 900);
+        edgeArrow(q, `rgba(255,80,60,${a.toFixed(2)})`, '');
+      }
     }
   }
 }

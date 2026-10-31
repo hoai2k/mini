@@ -7,27 +7,87 @@ the hunters: *Didinium*, which harpoons you on contact, and *Amoeba
 proteus*, a slow giant on the slide that cups you in its pseudopods.
 Published in the prototype archive at `micro/prototypes/paramecium/`.
 
+## What changed after the owner's feedback
+
+"It moves too slow, you often get blocked and it's not clear why; remove the
+circle indicators round your creature; the previous feel was good." So:
+
+- **The pre-rework feel is back:** the chase camera is the default again
+  (Y switches to the microscope), top speed is 1.4 mm/s again (it was
+  1 mm/s, and only 0.62 mm/s in shade), the drop is 650 µm deep again (it
+  was 300 µm), and the chase camera sits at the same distance in body
+  lengths as before. Turning in the chase view is as it was; in the
+  microscope view it is 40 % quicker.
+- **Nothing is drawn round your cell:** no outline, heading tick, dash ring
+  or gulp ring. Hunters in view are left to the image (their rings are a
+  Features switch, off); a faint red arrow at the edge appears only for a
+  hunter closing in from out of view. Prey get a small soft ring only when
+  in reach of a gulp, and a faint arrow when none is in view.
+- **No invisible blocking.** A scripted 30 s swim (full thrust, the stick
+  swept round every 2.5 s, a dash every 4 s; three seeds, each view) counted
+  the frames where the cell was stopped or crawling below 35 % of top speed:
+
+  | | Microscope view | Chase view |
+  | --- | --- | --- |
+  | Before: mean speed | 450 µm/s | 315 µm/s |
+  | Before: blocked | 63–72 % of frames | 95–97 % |
+  | After: mean speed | 1310 µm/s | 1420 µm/s |
+  | After: blocked | 0.2–0.4 % | 0.1 % |
+
+  Before, the causes were: the automatic avoidance reaction (0.75 s of
+  backing up and pivoting) on every contact, most often with the slide and
+  the coverslip, which the 300 µm drop kept the helix brushing (about 60 %
+  of the blocked time in the chase view), then the edge of the drop,
+  Spirogyra and detritus; and being held and eaten by Didinium, which caught
+  the stalled cell. Each is now handled:
+  - **Contacts glance off:** the heading turns along the surface, so the
+    cell slides past a filament, flake or diatom instead of stopping. Each
+    real bump shows where it happened: a puff of specks at the contact
+    point, a small recoil and squash of the cell, and a rumble scaled by the
+    impact. In the microscope view fine focus jumps to what you touched, so
+    an out-of-focus obstacle comes sharp. The real avoidance reaction stays
+    on B, and on hard head-on hits only if switched on (Features).
+  - **The glass is visible and slippery:** sediment marks the slide, dust
+    the underside of the coverslip, and the meniscus at the rim of the drop
+    is a bright refractile wall. Meeting the glass levels you out along it;
+    the first touch of each says what it is.
+  - **The depth band** is gone with the deeper drop; the old position clamp
+    is only a safety net behind the visible boundaries.
+  - **Depth of field** in the microscope view defaults to mild (about
+    35 µm sharp at 20×), so whatever you can bump into is visible.
+  - **Hunters holding you** stays (the Didinium's proboscis and the
+    amoeba's arms are on screen, the goal strip says HELD, and X or A break
+    free); at full speed you now outswim a Didinium. The amoeba's cup, which
+    drags on you, rumbles while it does.
+  - **Shade** now slows only the dash recharge, never your swimming.
+
 ## Playing
 
-- **Where you are:** the default view is the microscope (brightfield, 20×,
-  0.9 mm field), top-down, with the stage keeping your cell centred. The view
-  follows the helix axis (the corkscrew wobble stays on the cell, not the
-  camera), turns slowly with your heading so you swim up the screen, never
-  rolls, and holds still while you steer sideways. A faint outline with a
-  tick at the front marks your cell.
+- **Where you are:** the default view is the chase camera (brightfield): a
+  hypothetical camera in the water behind your cell, following the helix
+  axis, so the corkscrew wobble stays on the cell. LS yaws and pitches; RS
+  orbits. Y switches to the microscope (20×, 0.9 mm field), top-down, with
+  the stage keeping your cell centred; that view turns slowly with your
+  heading so you swim up the screen, never rolls, and holds still while you
+  steer sideways. Nothing is drawn round your cell: the green *Chlorella*
+  make it the clearest thing in the field.
+- **Bumping into things:** you glance off and slide along whatever you
+  touch (filaments, flakes, the slide, the coverslip, the meniscus at the
+  rim). A puff of specks marks the contact, the cell recoils a little and
+  the controller rumbles.
 - **The goal strip** (top centre) shows the round: eat 6 prey, your light
   meter, the dash meter and trichocyst charges, and a red warning line when
   something is hunting you.
-- **Prey** (green rings; bright when in reach of a gulp, dashed when at
-  another depth, an arrow at the edge of the field when none is in view):
+- **Prey** (a small soft green ring when in reach of a gulp, a faint arrow
+  at the edge when none is in view):
   bacterial clumps that drift, and *Chilomonas*, a flagellate that jumps
   away with its ejectisomes when you get close, so it has to be chased.
 - **Light:** sunlight falls on a slowly wandering patch of the drop; the
   rest is shaded (darker). In shade your *Chlorella* stop feeding you: the
-  light meter runs down (≈30 s), and with it your top speed (to 62 %) and the
-  dash recharge (to 45 %). A yellow arrow points back to the light.
-- **Hunters** (red rings when they have noticed you, amber when not, arrows
-  at the edge of the field when out of view): *Didinium* turns on you within
+  light meter runs down (≈30 s), and with it the dash recharge (to 45 %);
+  your swimming speed is never reduced. A yellow arrow points back to the light.
+- **Hunters** (shown by the image itself; a faint red arrow at the edge only
+  when one is closing in from out of view): *Didinium* turns on you within
   ≈480 µm and swims nearly straight at about 1 mm/s; a dash sideways makes it
   overshoot. If its proboscis touches you, you are held and reeled in: X
   fires trichocysts to break free, A struggles for time, otherwise you are
@@ -47,11 +107,11 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | Xbox | Keyboard | Action |
 | --- | --- | --- |
 | LS | WASD | Steer, relative to the view (microscope: point where to go; chase: yaw and pitch) |
-| RS | Arrows | Move the stage (microscope) or orbit the chase camera |
-| **A** | Space | **Dash**: a ciliary sprint toward the stick (a quick pivot, then up to 2.6 mm/s for 0.32 s), recharging in 1.8 s (slower in shade); rumble. While held: struggle |
+| RS | Arrows | Orbit the chase camera (up looks up; Features: Invert camera Y) or move the stage (microscope) |
+| **A** | Space | **Dash**: a ciliary sprint toward the stick (a quick pivot, then up to 3.2 mm/s for 0.32 s), recharging in 1.8 s (slower in shade); rumble. While held: struggle |
 | **X** | E | **Eat**: an oral gulp pulls up to three prey within ≈70 µm of the front of the cell into the groove, each forming a food vacuole. Touching or held by a hunter: **fire trichocysts** at it (3 charges, one back every 9 s) |
-| B | Shift | Avoidance reaction: ciliary reversal, back up, pivot about the posterior, swim off (also fires on any contact) |
-| Y | R | Microscope view (default) / chase camera |
+| B | Shift | Avoidance reaction: ciliary reversal, back up, pivot about the posterior, swim off |
+| Y | R | Chase camera (default) / microscope view |
 | LT / RT | Z / X | LT slow feeding beat (hover; draws bacteria into the groove) · RT beat cilia: swim. Speed follows the trigger at once; release it and the cell stops (no gliding) |
 | LB / RB | Q / F | Dive / rise |
 | D-pad ←→ | 3 / 4 | Microscope technique (switches a borrowed look off) |
@@ -114,20 +174,28 @@ an eighth of the field. *P. caudatum* (230 µm, S07) is a Features choice
 
 - **Low Reynolds number (S15):** speed relaxes to what the beat produces with
   a 35 ms lag. There is no coasting; the ambient drift (about 20 µm/s with
-  eddies) still carries you. Top speed 1000 µm/s for *P. bursaria* (≈8 body
-  lengths/s) and 1400 µm/s for *P. caudatum* (measured 1–1.5 mm/s).
+  eddies) still carries you. Top speed 1400 µm/s for both species, as
+  before the readability rework (*P. caudatum* measured 1–1.5 mm/s; for the
+  smaller *P. bursaria*, ≈12 body lengths/s, it is a stretch).
 - **Helix:** left-handed, one roll per turn, oral side toward the axis, body
   tilted along the path. Radius 29 µm and pitch 850 µm as measured in
   *P. caudatum*, scaled down for the smaller *P. bursaria*.
-- **Steering** comes from asymmetric beating; turn rate 1.7–3.2 rad/s.
+- **Steering** comes from asymmetric beating; turn rate 1.7–3.2 rad/s
+  (microscope view 2.4–4.5 rad/s).
 - **Dash (A):** every cilium beats hard: a pivot of up to 80° toward the
-  stick, then a sprint peaking at 2.6 mm/s (*caudatum* 3 mm/s) that eases off
-  over 0.32 s.
+  stick, then a sprint peaking at 3.2 mm/s that eases off over 0.32 s.
+- **Contact:** the cell is pushed out of whatever it touches and its
+  heading turns along the surface (head-on, it picks a side and keeps it),
+  so it slides past; at the glass it levels out. A hit faster than about
+  60 µm/s into the surface plays a 0.28 s recoil and squash, a puff of
+  specks at the contact point and a rumble.
 - **Avoidance reaction (S08):** the stroke reverses within tens of
   milliseconds, the cell backs up for 0.3 s, then pivots about its posterior
   end for 0.45 s to a new heading (away from what it hit, or toward the
-  stick in the microscope view). Any contact with a filament, flake, diatom,
-  Vorticella, the slide, the coverslip or the edge of the drop sets it off.
+  stick in the microscope view). B sets it off; a hard head-on hit with a
+  filament, flake, diatom or Vorticella does too when Features → Avoidance
+  reaction on hard contact is on (off by default, because it took control
+  away on every bump).
 - **Trichocyst discharge (S09):** about 240 threads 20–40 µm long fire from
   the patch of pellicle facing the hunter and the cell is thrown about 100 µm
   the other way; the hunter recoils.
@@ -136,7 +204,10 @@ an eighth of the field. *P. caudatum* (230 µm, S07) is a Features choice
 
 Kept sparse so your cell is the clearest thing in the field.
 
-- A wet mount 3 mm across and 300 µm deep (slide at y = 0, coverslip above).
+- A wet mount 3 mm across and 650 µm deep (slide at y = 0, coverslip above).
+  The boundaries are drawn: sediment on the slide, 700 dust specks on the
+  underside of the coverslip, and the meniscus at the rim as a refractile
+  wall (Δn 0.33, the air-water step).
 - **Spirogyra:** three filaments 42 µm thick at different depths, with cross
   walls, helical serrated chloroplasts, pyrenoids and nuclei.
 - **Detritus:** 35 flakes, half settled on the slide, plus 900 sediment specks.
@@ -207,10 +278,12 @@ Legibility, so your cell is the clearest thing on screen:
 - **The habitat plate** (darkfield and phase) is shown at 30 % and blurred
   through its mipmaps by default (Features: full or off), and turns with the
   view.
-- **Strong depth of field:** at 20× only 16 µm round the focal plane is
-  sharp and everything is fully defocused by 75 µm; far layers fade out.
-- **Overlays** (drawn over the image, each switchable): your outline, prey
-  and hunter markers with edge-of-field arrows, and the shade outside the
+- **Mild depth of field** in the microscope view (about 35 µm sharp at 20×;
+  Strong: 16 µm), and a contact pulls fine focus to what you touched.
+- **Overlays** (drawn over the image, each switchable), kept few: nothing
+  round your cell; a soft ring on prey in reach and an arrow to the nearest
+  prey when none is in view; a faint arrow for a hunter closing in from out
+  of view (rings round hunters are a switch, off); the shade outside the
   sunlit patch (a multiplied layer).
 
 Performance: the pixel ratio is capped at 1.5, and a GPU fence per frame
@@ -227,14 +300,14 @@ it (for example `?f=-dof,look:DIC (Nomarski)`).
 | Group | Feature | Switch |
 | --- | --- | --- |
 | Optics | Microscope technique (synced with D-pad ←→; default brightfield) | choice |
-| Optics | Camera: microscope (default) or chase (synced with Y) | choice |
+| Optics | Camera: chase (default) or microscope (synced with Y) | choice |
 | Optics | Microscope view turns with your heading (off: north up) | on/off |
 | Optics | Objective 10× / 20× / 40× (synced with D-pad ↑↓) | choice |
-| Optics | Depth of field: strong (default), mild, off | choice |
+| Optics | Depth of field (microscope): mild (default), strong, off | choice |
 | Optics | Phase halo and shade-off | on/off |
 | Optics | Brightfield defocus contrast | on/off |
 | Optics | Background habitat plate: dimmed and blurred (default), full, off | choice |
-| Optics | Outline round your cell; hunter markers; prey markers; light and shade | on/off each |
+| Optics | Hunter arrow (on); hunter rings (off); prey cues (on); light and shade (on) | on/off each |
 | Optics | Lateral chromatic softness, objective point spread, camera noise | on/off each |
 | Optics | Eyepiece field stop | on/off |
 | Rendering | Optical-path buffers; front/back-face chord trick; sub-pixel widening | always |
@@ -246,14 +319,17 @@ it (for example `?f=-dof,look:DIC (Nomarski)`).
 | Motion | Low Reynolds number (off: a 1.4 s glide, for comparison) | on/off |
 | Motion | Helical path and roll; camera follows the helix axis | on/off each |
 | Motion | Ciliary beat rate: slowed (readable) or real | choice |
-| Motion | Dash; avoidance reaction; trichocyst defence | always |
+| Motion | Dash; avoidance reaction (B); glance off obstacles; trichocyst defence | always |
+| Motion | Avoidance reaction on hard contact | on/off, default off |
+| Controls | Invert camera Y (shared by every prototype) | on/off |
 | Simulation | Flow round the swimming cell; feeding currents; ambient drift; bacterial run-and-tumble | on/off each |
 | World | Didinium hunters; Didinium homing; Amoeba proteus; Vorticella stalk contraction | on/off each |
 | World | Spirogyra, detritus, diatoms, prey | always |
 | Borrowed | SEM (mite), tardigrade DIC, amoeba optics, each with its mode | on/off, default off |
 
-Saved state uses the key `paramecium.v2`, so earlier saved settings (which
-defaulted to darkfield and the chase camera) no longer apply.
+Saved state uses the key `paramecium.v3`, so settings saved with the
+readability rework (microscope view and strong depth of field by default) no
+longer apply.
 
 ### Technique modules (for other prototypes)
 
@@ -316,18 +392,21 @@ automatically: MP-P01 (darkfield plate), MP-P02 (phase plate), MP-P03
 - **Depth of field** is deeper than real: 16 µm sharp and fully blurred at
   75 µm at 20×, against about 6 µm in a real 20× objective. With the real
   value the cell itself would be mostly out of focus.
-- **Drop depth** 300 µm (shallow for a hollow pool, deep for a wet mount)
-  so the amoeba on the slide can reach a swimming cell.
+- **Drop depth** 650 µm (deep for a wet mount; a hollow-ground slide) so
+  there is room to swim in three dimensions; the amoeba reaches a cell that
+  swims within about 150 µm of the slide.
+- **Glancing off:** a real Paramecium usually answers a collision with the
+  avoidance reaction; here it slides along instead unless the switch is on.
 - **Cyclosis** runs about five times faster than life; the contractile
   vacuole period (6 s) is within the real range.
 - **Trichocyst recharge** (3 charges, one every 9 s) is invented: re-docking
   new trichocysts takes hours. The ≈100 µm throw is a game value.
 - **Dash:** escape swimming in Paramecium reaches several mm/s for a moment;
-  the 2.6 mm/s peak, the 80° pivot and the 1.8 s recharge are game values.
-  The *P. bursaria* top speed (1 mm/s) is a game value in the range of
+  the 3.2 mm/s peak, the 80° pivot and the 1.8 s recharge are game values.
+  The *P. bursaria* top speed (1.4 mm/s) is a stretch at the top of the
   measured Paramecium speeds.
 - **Light meter:** *P. bursaria* does gather on the lit side and gets sugars
-  from its *Chlorella* (S27), but the drain rate and its effect on speed and
+  from its *Chlorella* (S27), but the drain rate and its effect on the
   dash are invented. The sunlit patch is drawn over the image, not rendered
   by the optics.
 - **Didinium homing** within ≈480 µm and its patrol back toward you are
@@ -350,7 +429,8 @@ automatically: MP-P01 (darkfield plate), MP-P02 (phase plate), MP-P03
 - **Species:** *P. bursaria*, as the Zoom Chain spec recommends for Level 3;
   its shape is drawn from descriptions (S27) rather than measured outlines.
   *P. caudatum* remains as a choice. Dileptus is not in the scene yet.
-- **Overlays** (outline, markers, shade) are game aids, not microscopy.
+- **Overlays** (prey and hunter cues, shade) and the contact puffs are game
+  aids, not microscopy.
 - **Scene composition:** Spirogyra, Vorticella, diatoms, Didinium and
   Amoeba proteus together in one drop is plausible pond water, not a recorded sample.
 

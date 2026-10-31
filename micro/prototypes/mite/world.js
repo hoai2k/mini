@@ -5,7 +5,7 @@
 // pollen. Render geometry is merged per material; walking queries go to a
 // separate set of low-poly colliders plus an analytic floor.
 import * as THREE from '../shared/vendor/three.module.min.js';
-import { gMaterial, CLS } from './sem.js';
+import { gMaterial, CLS, createObjectCut } from './sem.js';
 import { rng, hash } from './textures.js';
 import { createFoliage } from '../shared/techniques/mite-foliage.js';
 
@@ -29,7 +29,13 @@ export function floorN(x, z, out = new THREE.Vector3()) {
   return out.set(floorH(x - e, z) - floorH(x + e, z), 2 * e, floorH(x, z - e) - floorH(x, z + e)).normalize();
 }
 
-/** Merge geometries (position, normal, uv) into one indexed geometry. */
+/** Tag every vertex of a geometry with a per-object cutaway id (see createObjectCut). */
+function tagCut(geo, id) {
+  geo.setAttribute('cutId', new THREE.BufferAttribute(new Float32Array(geo.attributes.position.count).fill(id), 1));
+  return geo;
+}
+
+/** Merge geometries (position, normal, uv, and cutId when they all have it) into one indexed geometry. */
 export function mergeGeos(geos) {
   let nv = 0, ni = 0;
   for (const g of geos) { nv += g.attributes.position.count; ni += g.index ? g.index.count : g.attributes.position.count; }
@@ -49,6 +55,12 @@ export function mergeGeos(geos) {
   m.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   m.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
   m.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  if (geos.every((g) => g.attributes.cutId)) {
+    const cid = new Float32Array(nv);
+    let o = 0;
+    for (const g of geos) { cid.set(g.attributes.cutId.array, o); o += g.attributes.position.count; }
+    m.setAttribute('cutId', new THREE.BufferAttribute(cid, 1));
+  }
   m.setIndex(new THREE.BufferAttribute(idx, 1));
   m.computeBoundingSphere();
   return m;
@@ -222,10 +234,13 @@ export function buildWorld(tex) {
     litter: gMaterial({ cls: CLS.LITTER, tex: tex.litter, map: 'uv', scale: 1, bump: 5, cut: true, side: THREE.DoubleSide }),
     leaf: gMaterial({ cls: CLS.LEAF, tex: tex.leaf, map: 'uv', scale: 1, bump: 2.5, cut: true, side: THREE.DoubleSide }),
     stem: gMaterial({ cls: CLS.STEM, tex: tex.leaf, map: 'uv', scale: 1, bump: 3, cut: true }),
-    hypha: gMaterial({ cls: CLS.HYPHA, thin: 1, cut: true }),
-    spore: gMaterial({ cls: CLS.SPORE, thin: 0, cut: true }),
+    hypha: gMaterial({ cls: CLS.HYPHA, thin: 1 }),
+    spore: gMaterial({ cls: CLS.SPORE, thin: 0 }),
   };
   const mesh = (geo, mat) => { const m = new THREE.Mesh(geo, mat); group.add(m); return m; };
+  // The cutaway works per object (a flake, a stem, a leaf), never slicing one:
+  // cut.update() in the camera code dissolves only what is in front of the mite.
+  const cut = createObjectCut(1024);
 
   // Floor
   const S = HALF * 2 + 4400, NS = 150; // reaches past the walkable square so the view never runs off it
@@ -290,8 +305,9 @@ export function buildWorld(tex) {
       return s;
     };
     const sh = sheet(fn2, 22, 10, 12, (u, v) => [(v - 0.5) * W / 300, u * L / 300], 8, 4);
-    lGeos.push(sh.geo);
-    col.add(sh.col, 'litter');
+    const cid = cut.register([0, 0.25, 0.5, 0.75, 1].map((u) => f(u, 0.5).p).concat([f(0.5, 0), f(0.5, 1)].map((q) => q.p)));
+    lGeos.push(tagCut(sh.geo, cid));
+    col.add(sh.col, 'litter').cutId = cid;
   }
   layers.litter = [mesh(mergeGeos(lGeos), mats.litter)];
 
@@ -318,8 +334,11 @@ export function buildWorld(tex) {
     // tile the stem's leaf-cell texture along its length
     const tuv = tg.attributes.uv;
     for (let i = 0; i < tuv.count; i++) tuv.setXY(i, tuv.getX(i) * H / 140, tuv.getY(i) * rad * 6.28 / 140);
-    stemGeos.push(tg);
-    col.add(new THREE.TubeGeometry(curve, 10, rad, 6, false), 'stem');
+    const shoot = s + 1;
+    const stemId = cut.register(pts, shoot);
+    cut.leader(stemId);
+    stemGeos.push(tagCut(tg, stemId));
+    col.add(new THREE.TubeGeometry(curve, 10, rad, 6, false), 'stem').cutId = stemId;
     stems.push({ x, z, H });
 
     const nLeaves = Math.floor(H / 62);
@@ -376,13 +395,18 @@ export function buildWorld(tex) {
         return { p, n: up.clone().addScaledVector(across, -vv * 0.35).normalize() };
       };
       const sh = sheet(f, 14, 5, 12, (u, v) => [(v * 2 - 1) * halfW(u) / 140 + 0.5, u * len / 140], lowest ? 10 : 6, 3);
-      leafGeos.push(sh.geo);
+      // its midrib as it is now (the tip offset bends it as d·u²)
+      const US = [0, 0.2, 0.4, 0.55, 0.7, 0.85, 1], rest = US.map((u) => bez(u, new THREE.Vector3())), now = rest.map((p) => p.clone());
+      const info = {};
+      const leafId = cut.register(() => { const d = info.rod && info.rod.d; for (let i = 0; i < US.length; i++) { now[i].copy(rest[i]); if (d) now[i].addScaledVector(d, US[i] * US[i]); } return now; }, shoot);
+      leafGeos.push(tagCut(sh.geo, leafId));
       // Every leaf is a thin blade (one cell layer) that bends. The lowest,
       // old leaves that arch out and rest their tips on the floor are much
       // stiffer (they are ramps: they give a little under a mite, no more).
       const e = col.add(sh.col, 'blade');
+      e.cutId = leafId;
       const samples = [0.2, 0.4, 0.55, 0.7, 0.85, 1].map((u) => bez(u, new THREE.Vector3()));
-      bladeInfo.push({ geoIndex: leafGeos.length - 1, base: start.clone(), tip: tip.clone(), samples, entry: e, L, stiff: lowest ? 3.2 : clamp01((560 / L) ** 2 * 1.1) });
+      bladeInfo.push({ geoIndex: leafGeos.length - 1, base: start.clone(), tip: tip.clone(), samples, entry: e, L, stiff: lowest ? 3.2 : clamp01((560 / L) ** 2 * 1.1), info });
     }
   }
   const leafMerged = mergeGeos(leafGeos);
@@ -397,6 +421,7 @@ export function buildWorld(tex) {
         base: b.base, tip: b.tip, samples: b.samples, kind: 'cantilever', stiff: b.stiff,
         col: { geo: b.entry.mesh.geometry, onMove: (c, r) => { b.entry.c.copy(c); b.entry.r = r; } } });
       b.entry.rod = rod;
+      b.info.rod = rod;
     }
   }
 
@@ -516,5 +541,5 @@ export function buildWorld(tex) {
     f.im.setMatrixAt(f.i, m4);
     f.im.instanceMatrix.needsUpdate = true;
   };
-  return { group, colliders: col, grains, stems, mats, topAt, layers, setLayer, foliage, food, eatSpore };
+  return { group, colliders: col, grains, stems, mats, topAt, layers, setLayer, foliage, food, eatSpore, cut };
 }

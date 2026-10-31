@@ -15,7 +15,7 @@ export const SPECIES = {
   bursaria: { name: 'P. bursaria (green, 120 µm)', latin: 'Paramecium bursaria', L: 120, XM: -6, RMAX: 28, pA: 2.6, pP: 2.4, taper: 0.12, FLAT: 0.8, chlorella: 520 },
   caudatum: { name: 'P. caudatum (colourless, 230 µm)', latin: 'Paramecium caudatum', L: 230, XM: -20, RMAX: 31, pA: 3, pP: 1.8, taper: 0.22, FLAT: 0.86, chlorella: 0 },
 };
-export const FEATURE_KEY = 'paramecium.v2';
+export const FEATURE_KEY = 'paramecium.v3'; // v3: chase camera and the old speed by default again
 /** The species chosen in the feature panel (or ?f=species:...), read once at load. */
 function pickSpecies() {
   let v = null;

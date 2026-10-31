@@ -93,7 +93,7 @@ export function createStenus(scene) {
 
   const st = {
     x: -18, z: 8, a: 0.3, v: 0, state: 'patrol', t: 0, reach: 2.2, ext: 0, skimCool: 0, gait: 0, wp: 0, seen: 0,
-    alert: 0, hit: false, tailDown: 0, windup: 0, enabled: true,
+    alert: 0, hit: false, tailDown: 0, windup: 0, enabled: true, ox: 0, oz: 0,
   };
   const ROUTE = [[-18, 8], [-4, 14], [10, 14], [22, -2], [8, -18], [-12, -16], [-24, -2]];
   const hips = [[1.45, 0.48, 0.22], [1.1, 0.45, 0.28], [0.75, 0.45, 0.3]];
@@ -122,7 +122,7 @@ export function createStenus(scene) {
     let targetA = st.a, targetV = 0;
     switch (st.state) {
       case 'patrol': {
-        const [wx, wz] = ROUTE[st.wp];
+        const wx = ROUTE[st.wp][0] + st.ox, wz = ROUTE[st.wp][1] + st.oz;
         if (Math.hypot(wx - st.x, wz - st.z) < 2) st.wp = (st.wp + 1) % ROUTE.length;
         targetA = Math.atan2(wz - st.z, wx - st.x);
         targetV = 6;
@@ -235,7 +235,9 @@ export function createStenus(scene) {
       return c;
     },
     setVisible(v) { group.visible = v; legs.im.visible = v; },
-    reset() { Object.assign(st, { x: -18, z: 8, a: 0.3, v: 0, state: 'patrol', t: 0, ext: 0, skimCool: 2, wp: 0, seen: 0, windup: 0 }); pose(); },
+    reset() { Object.assign(st, { x: -18, z: 8, a: 0.3, v: 0, state: 'patrol', t: 0, ext: 0, skimCool: 2, wp: 0, seen: 0, windup: 0, ox: 0, oz: 0 }); pose(); },
+    /** Move the patrol route (and the beetle, unseen) so it centres on (x, z). */
+    relocate(x, z) { Object.assign(st, { ox: x, oz: z, x: ROUTE[0][0] + x, z: ROUTE[0][1] + z, wp: 1, state: 'patrol', t: 0, skimCool: 2, seen: 0, windup: 0, ext: 0 }); pose(); },
   };
 }
 
@@ -265,7 +267,7 @@ export function createStrider(scene) {
   const legMat = litMaterial({ surface: 's.albedo = vec3(0.07, 0.05, 0.035); s.rough = 0.5; s.sheen = 0.4; s.sheenCol = vec3(0.5);' });
   const legs = segments(18, legMat);
   scene.add(legs.im);
-  const st = { x: 22, z: 12, a: Math.PI, v: 0, vx: 0, vz: 0, stroke: 1, strokeT: 0, state: 'idle', target: null, interest: 0, t: 0, enabled: true, grab: 0 };
+  const st = { x: 22, z: 12, a: Math.PI, v: 0, vx: 0, vz: 0, stroke: 1, strokeT: 0, state: 'idle', target: null, interest: 0, t: 0, enabled: true, grab: 0, hx: 0, hz: 0 };
   const L = {
     fore: { hip: [2.9, 0.75, 0.35], knee: [3.9, 1.7, 1.3], foot: [5.0, 0.4, 1.4] },
     mid: { hip: [1.2, 0.7, 0.5], knee: [2.4, 3.2, 5.0], foot: [-0.5, 0, 10.0], tip: [-4.5, 0, 11.0] },
@@ -326,7 +328,7 @@ export function createStrider(scene) {
       if (Math.hypot(P.x - st.x, P.z - st.z) < 10 && P.alive && P.moving && !P.hunker) st.target = { x: P.x, z: P.z };
       goal = st.target;
       if (Math.hypot(goal.x - st.x - Math.cos(st.a) * 4, goal.z - st.z - Math.sin(st.a) * 4) < 1.5) { st.state = 'idle'; st.target = null; goal = null; }
-    } else if (st.state === 'idle' && st.t % 9 < dt) goal = { x: (Math.random() - 0.5) * 40, z: (Math.random() - 0.5) * 30 }, st.target = goal;
+    } else if (st.state === 'idle' && st.t % 9 < dt) goal = { x: st.hx + (Math.random() - 0.5) * 40, z: st.hz + (Math.random() - 0.5) * 30 }, st.target = goal;
     else goal = st.target;
     if (goal) {
       const ta = Math.atan2(goal.z - st.z, goal.x - st.x);
@@ -360,7 +362,9 @@ export function createStrider(scene) {
   return {
     st, group, update, contacts: () => contacts,
     setVisible(v) { group.visible = v; legs.im.visible = v; },
-    reset() { Object.assign(st, { x: 22, z: 12, a: Math.PI, v: 0, stroke: 1, strokeT: 0, state: 'idle', target: null, interest: 0 }); pose(); },
+    reset() { Object.assign(st, { x: 22, z: 12, a: Math.PI, v: 0, stroke: 1, strokeT: 0, state: 'idle', target: null, interest: 0, hx: 0, hz: 0 }); pose(); },
+    /** Move the strider (unseen) to (x, z) and make that its home water. */
+    relocate(x, z) { Object.assign(st, { x, z, hx: x, hz: z, v: 0, state: 'idle', target: null, interest: 0 }); pose(); },
   };
 }
 

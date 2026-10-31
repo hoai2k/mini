@@ -34,6 +34,10 @@ export const macroShared = {
   // up to 8 soft shadow casters: (x, y, z, radius); y is the caster's height
   uCasters: { value: Array.from({ length: 8 }, () => new THREE.Vector4(0, -99, 0, 0)) },
   uCasterK: { value: Array.from({ length: 8 }, () => 0) },
+  // one "drop shadow" straight down from a point (x, y, z, radius), strength
+  // uDropK: the readable shadow of the player on whatever lies below it
+  uDrop: { value: new THREE.Vector4(0, -99, 0, 0) },
+  uDropK: { value: 0 },
 };
 
 /** Lighting looks: index with the D-pad. dofK scales the aperture for the look. */
@@ -79,6 +83,8 @@ uniform float uRing, uFocus, uTime, uHasBackdrop;
 uniform sampler2D uBackdrop;
 uniform vec4 uCasters[8];
 uniform float uCasterK[8];
+uniform vec4 uDrop;
+uniform float uDropK;
 float mHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float mNoise(vec2 p) {
   vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -118,6 +124,18 @@ float casterShadow(vec3 p) {
     s *= 1.0 - uCasterK[i] * (1.0 - smoothstep(c.w - pen, c.w + pen, d));
   }
   return s;
+}
+// A shadow straight below uDrop.xyz (radius uDrop.w): a readable contact and
+// landing cue that follows any surface under the caster. Points level with or
+// above the caster are untouched (so it never falls on the caster itself).
+float dropShadow(vec3 p) {
+  if (uDrop.w <= 0.0 || uDropK <= 0.0) return 1.0;
+  float dh = uDrop.y - p.y;
+  if (dh < 0.015) return 1.0;
+  float r = uDrop.w * (1.0 + 0.03 * dh);
+  float soft = r * 0.3 + dh * 0.012;
+  float k = uDropK * (0.6 + 0.4 / (1.0 + dh * 0.12)) * smoothstep(0.015, 0.06, dh);
+  return 1.0 - k * (1.0 - smoothstep(r - soft, r + soft, length(p.xz - uDrop.xz)));
 }
 float ggx(vec3 N, vec3 V, vec3 L, float r) {
   vec3 H = normalize(V + L);
@@ -210,7 +228,8 @@ void main() {
   Surf s = surfDefault(N);
   surface(s);
   float sh = ${shadow ? 'casterShadow(vWorld)' : '1.0'};
-  gl_FragColor = macroOut(shadeSurf(s, vWorld, V, sh), vWorld);
+  float ds = ${shadow ? 'dropShadow(vWorld)' : '1.0'};
+  gl_FragColor = macroOut(shadeSurf(s, vWorld, V, sh * ds) * mix(1.0, ds, 0.75), vWorld);
 }`;
   const u = { ...macroShared, ...uniforms };
   const d = { ...defines };

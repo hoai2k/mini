@@ -27,6 +27,12 @@
 // - shared.uCutP / uCutR: a cutaway cylinder (view space) that discards
 //   materials made with { cut: true } between the camera and a target;
 //   shared.uCutOn.value = 0 turns it off. shared.uBumpOn likewise for relief.
+// - Per-object cutaway (optional, preferred): give geometry a float vertex
+//   attribute `cutId` (1..n, one per object: a leaf, a stem, a flake) and
+//   drive createObjectCut(n): each frame it tests every registered object's
+//   centre line against the camera-to-target line and dissolves (dithered,
+//   eased over ~0.2 s) only the objects actually in front of the target, whole.
+//   Vertices with cutId 0 fall back to the cylinder. Objects are never sliced.
 // - Switches (sem.toggles, each 0/1 uniform): secant, edge, shadow, ao,
 //   noise, lines, bump; sem.setMode(0 SE | 1 BSE | 2 false colour); sem.setRaster(on).
 //
@@ -67,12 +73,87 @@ export const shared = {
   uBumpOn: { value: 1 },
   uCutOn: { value: 1 },
   uDepthScale: { value: 1 },
+  // per-object cutaway: fade per cutId (R channel, 0 kept .. 255 gone), its width, on/off
+  uCutFade: { value: null },
+  uCutN: { value: 1 },
+  uCutObj: { value: 0 },
 };
+
+/**
+ * Per-object cutaway. register(points | () => points, group?) returns a cutId
+ * for the object's vertices (a polyline along its centre: a stem's axis, a
+ * leaf's midrib). update(dt, cameraPos, target, { radius, margin, keep })
+ * fades out, as whole objects, those whose centre line passes within `radius`
+ * of the camera-to-target line at least `margin` in front of the target; a
+ * faded group leader (see leader(id)) fades its whole group (a stem takes its
+ * leaves). keep: ids never faded (what the specimen stands on), nor their
+ * group's leader. Sets shared.uCutObj on.
+ */
+export function createObjectCut(max = 2048) {
+  const data = new Uint8Array(max * 4);
+  const tex = new THREE.DataTexture(data, max, 1, THREE.RGBAFormat, THREE.UnsignedByteType);
+  tex.needsUpdate = true;
+  shared.uCutFade.value = tex; shared.uCutN.value = max; shared.uCutObj.value = 1;
+  const objs = [null];
+  const fade = new Float32Array(max), want = new Float32Array(max);
+  const d = new THREE.Vector3(), u = new THREE.Vector3(), w0 = new THREE.Vector3();
+  // shortest distance between segment a-b and the ray segment c + d*t, t in [0, tMax]; returns [dist, t]
+  function segRay(a, b, c, tMax) {
+    u.subVectors(b, a); w0.subVectors(a, c);
+    const A = u.dot(u), B = u.dot(d), C = 1, D = u.dot(w0), E = d.dot(w0);
+    const den = A * C - B * B;
+    let s = den > 1e-9 ? (B * E - C * D) / den : 0;
+    s = Math.max(0, Math.min(1, s));
+    let t = (B * s + E) / C;
+    if (t < 0 || t > tMax) { t = Math.max(0, Math.min(tMax, t)); s = A > 1e-9 ? Math.max(0, Math.min(1, (t * B - D) / A)) : 0; }
+    const px = a.x + u.x * s - c.x - d.x * t, py = a.y + u.y * s - c.y - d.y * t, pz = a.z + u.z * s - c.z - d.z * t;
+    return Math.sqrt(px * px + py * py + pz * pz);
+  }
+  return {
+    tex, fade,
+    register(points, group = 0) { objs.push({ points, group }); return objs.length - 1; },
+    update(dt, cam, target, { radius = 360, margin = 250, keep = null } = {}) {
+      d.subVectors(target, cam);
+      const len = d.length(); d.divideScalar(len);
+      const tMax = len - margin;
+      want.fill(0);
+      const groups = new Set(), keepG = new Set();
+      if (keep) for (const i of keep) if (objs[i] && objs[i].group) keepG.add(objs[i].group);
+      for (let i = 1; i < objs.length; i++) {
+        if (keep && keep.has(i)) continue;
+        const o = objs[i];
+        if (o.leader && keepG.has(o.group)) continue; // the stem of the leaf underfoot stays
+        const pts = typeof o.points === 'function' ? o.points() : o.points;
+        for (let k = 1; k < pts.length; k++) {
+          if (segRay(pts[k - 1], pts[k], cam, tMax) < radius) { want[i] = 1; if (o.group) groups.add(o.group); break; }
+        }
+      }
+      // a group fades whole only when its stem (the object flagged group leader) is in the way
+      for (let i = 1; i < objs.length; i++) if (objs[i].leader && groups.has(objs[i].group) && want[i] > 0) {
+        for (let j = 1; j < objs.length; j++) if (objs[j].group === objs[i].group && !(keep && keep.has(j))) want[j] = 1;
+      }
+      const k = dt > 0 ? 1 - Math.exp(-dt / 0.18) : 1;
+      let changed = false;
+      for (let i = 1; i < objs.length; i++) {
+        const f = fade[i] + (want[i] - fade[i]) * k;
+        fade[i] = Math.abs(f - want[i]) < 0.01 ? want[i] : f;
+        const b = Math.round(fade[i] * 255);
+        if (data[i * 4] !== b) { data[i * 4] = b; changed = true; }
+      }
+      if (changed) tex.needsUpdate = true;
+    },
+    /** Mark an object as its group's leader (a stem): when it is cut, the whole group goes. */
+    leader(id) { objs[id].leader = true; },
+    get count() { return objs.length - 1; },
+  };
+}
 
 const gVert = /* glsl */ `
   varying vec3 vN; varying vec3 vView; varying vec3 vTri; varying vec3 vTriN; varying vec2 vUv;
+  attribute float cutId; varying float vCutId;
   uniform float uObjSpace;
   void main() {
+    vCutId = cutId;
     vec3 p = position; vec3 n = normal;
     #ifdef USE_INSTANCING
       mat3 im = mat3(instanceMatrix);
@@ -95,6 +176,7 @@ const gFrag = /* glsl */ `
   uniform float uCls, uThin, uBump, uScale, uMode, uCut;
   uniform sampler2D uTex;
   uniform vec3 uCutP; uniform float uCutR; uniform float uBumpOn, uCutOn, uDepthScale;
+  varying float vCutId; uniform sampler2D uCutFade; uniform float uCutN, uCutObj;
   float heightAt() {
     if (uMode < 0.5) return 0.0;
     if (uMode < 1.5) return texture2D(uTex, vUv * uScale).r;
@@ -103,7 +185,12 @@ const gFrag = /* glsl */ `
     return texture2D(uTex, q.yz).r * w.x + texture2D(uTex, q.xz).r * w.y + texture2D(uTex, q.xy).r * w.z;
   }
   void main() {
-    if (uCut * uCutOn > 0.5) {
+    if (uCut * uCutOn > 0.5 && uCutObj > 0.5 && vCutId > 0.5) {
+      // per object: dissolve the whole object (dithered while it fades)
+      float f = texture2D(uCutFade, vec2((floor(vCutId + 0.5) + 0.5) / uCutN, 0.5)).r;
+      float ign = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+      if (f > 0.003 && ign < f) discard;
+    } else if (uCut * uCutOn > 0.5) {
       vec3 dir = normalize(uCutP);
       float along = dot(vView, dir);
       float off = length(vView - dir * along);
@@ -134,7 +221,7 @@ const gFrag = /* glsl */ `
  */
 export function gMaterial(o) {
   const mode = o.map === 'uv' ? 1 : o.map === 'tri' ? 2 : 0;
-  return new THREE.ShaderMaterial({
+  const m = new THREE.ShaderMaterial({
     vertexShader: gVert,
     fragmentShader: gFrag,
     side: o.side ?? THREE.FrontSide,
@@ -144,8 +231,11 @@ export function gMaterial(o) {
       uScale: { value: o.scale || 1 }, uBump: { value: o.tex ? (o.bump ?? 2) : 0 },
       uObjSpace: { value: o.objSpace ? 1 : 0 }, uCut: { value: o.cut ? 1 : 0 },
       uCutP: shared.uCutP, uCutR: shared.uCutR, uBumpOn: shared.uBumpOn, uCutOn: shared.uCutOn, uDepthScale: shared.uDepthScale,
+      uCutFade: shared.uCutFade, uCutN: shared.uCutN, uCutObj: shared.uCutObj,
     },
   });
+  m.defaultAttributeValues.cutId = [0]; // geometry without cutIds: the cylinder
+  return m;
 }
 
 const compVert = /* glsl */ `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
