@@ -19,10 +19,24 @@
 //   amoeba-sdfgrid.js: call body.grid.build(body.x, body.y, N) after stepping),
 //   body.cupAround(px, py, reach) / cupContains / seal(cup): food-cup detection and closure,
 //   body.collideCircle(cx, cy, r, share, out), body.blast(x, y, radius, amount).
-//   body.opts: { area, rearWeight, selfContact, idlePods, adhesion } switches (all true by default),
-//   plus speed (1: pseudopod extension rate multiplier) and boost (1: a transient
-//   extra multiplier, e.g. a dash, that also drives the rear contraction harder).
+//   body.opts: { area, rearWeight, selfContact, idlePods, adhesion, untangle, neck } switches
+//   (all true by default), plus speed (1: pseudopod extension rate multiplier) and boost
+//   (1: a transient extra multiplier, e.g. a dash, that also drives the rear contraction harder).
 //   body.flowK: speed × boost, for anything that streams with the pseudopods.
+// Optional, all backward compatible (leave them out for the original behaviour):
+//   input.body: {m, dx, dy}: move the bulk of the cell that way (the rear contracts, the
+//     front flows on, membrane already far out in front, a pseudopod, is left to be caught up
+//     with); body.drive = {x, y, m} for anything that streams with it.
+//   input.pods[k].tip: the membrane node a pseudopod starts from when it activates
+//     (default pickTip()); body.branchTip(dx, dy, pod) picks one beside another pod.
+//   body.podReach(pod): how far a pod's tip stands out beyond the body's radius.
+//   The ring never crosses itself: self-contact keeps nodes off non-adjacent segments
+//   (spatial hash), necks resist thinning (opts.neck), and step() ends with untangle(),
+//   which undoes any move that made two segments cross (call it again after moving
+//   nodes yourself); body.crossings() lists crossing segment pairs.
+//   body.findCut(capsules) / body.pinchAt(i, j, keepX, keepY): a neck thinner than
+//   P.pinchW cut by a capsule splits the ring; the piece holding (keepX, keepY) stays
+//   the cell (resampled to N nodes, area target reset), the other is returned.
 import { SdfGrid } from './amoeba-sdfgrid.js';
 
 const TAU = Math.PI * 2;
@@ -49,7 +63,20 @@ function polygonArea(xs, ys, n) {
   return a * 0.5;
 }
 
+function cross3(ax, ay, bx, by, cx, cy) { return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax); }
+function segsCross(ax, ay, bx, by, cx, cy, dx, dy) {
+  const d1 = cross3(ax, ay, bx, by, cx, cy), d2 = cross3(ax, ay, bx, by, dx, dy);
+  if ((d1 > 0 && d2 > 0) || (d1 < 0 && d2 < 0) || d1 === d2) return false;
+  const d3 = cross3(cx, cy, dx, dy, ax, ay), d4 = cross3(cx, cy, dx, dy, bx, by);
+  return !((d3 > 0 && d4 > 0) || (d3 < 0 && d4 < 0) || d3 === d4);
+}
+function segSegDist(ax, ay, bx, by, cx, cy, dx, dy) {
+  if (segsCross(ax, ay, bx, by, cx, cy, dx, dy)) return 0;
+  return Math.sqrt(Math.min(segDist2(ax, ay, cx, cy, dx, dy), segDist2(bx, by, cx, cy, dx, dy), segDist2(cx, cy, ax, ay, bx, by), segDist2(dx, dy, ax, ay, bx, by)));
+}
+
 export const N = 160;
+const ringDist = (i, j) => { const d = Math.abs(i - j); return d < N - d ? d : N - d; };
 export const P = {
   R0: 172, // µm, radius of the disc with the starting area (≈ 9.3e4 µm²)
   vPro: 44, // µm/s (game time) pseudopod speed parameter at full stick (≈ 30 µm/s net against tension)
@@ -63,6 +90,9 @@ export const P = {
   vClose: 40, // µm/s, rims closing over prey
   vRetract: 9, // µm/s, a released pseudopod drawn back
   vRear: 22, // µm/s, uroid contraction at full drive
+  vBody: 24, // µm/s, the body flowing after a held body stick (× speed)
+  neckW: 26, // µm, a neck thinner than this pushes back (the cytoplasm resists thinning)
+  pinchW: 12, // µm, a neck thinner than this can be cut through
 };
 
 export class Pod {
@@ -102,8 +132,15 @@ export class Body {
     this.spread = 0;
     this.time = 0;
     this.contact = 0; // how much of the membrane pushed against something this step
-    this.opts = { area: true, rearWeight: true, selfContact: true, idlePods: true, adhesion: true, speed: 1, boost: 1 };
+    this.opts = { area: true, rearWeight: true, selfContact: true, idlePods: true, adhesion: true, untangle: true, neck: true, speed: 1, boost: 1 };
     this.flowK = 1;
+    this.drive = { x: 1, y: 0, m: 0 };
+    // Crossing guard: the last ring known not to cross itself, and a segment hash.
+    this.sx = f(); this.sy = f(); this.snapOK = false;
+    this.hStart = new Int32Array(1); this.hItems = new Int32Array(N * 8);
+    this.hBox = new Int32Array(N * 4);
+    this._pairs = [];
+    this.untangled = 0; // moves undone so far (for tests)
   }
 
   get area() { return polygonArea(this.x, this.y, N); }
@@ -152,6 +189,11 @@ export class Body {
    */
   step(dt, input, world) {
     this.time += dt;
+    if (this.opts.untangle) {
+      // Remember this ring as the fallback if it is clean (it is, after untangle()).
+      this.snapOK = this.crossings().length === 0;
+      if (this.snapOK) { this.sx.set(this.x); this.sy.set(this.y); }
+    }
     this.centroid();
     this.normals();
     this.spread += ((input.spread || 0) - this.spread) * Math.min(1, dt * 1.2);
@@ -167,7 +209,7 @@ export class Body {
       if (st && st.m > 0.06) {
         if (!pod.active) {
           pod.active = true;
-          pod.tip = this.pickTip(st.dx, st.dy, pl[1 - k].active ? pl[1 - k].tip : -1);
+          pod.tip = st.tip != null ? st.tip : this.pickTip(st.dx, st.dy, pl[1 - k].active ? pl[1 - k].tip : -1);
           pod.ret = 0;
         }
         pod.dx = st.dx; pod.dy = st.dy;
@@ -272,6 +314,29 @@ export class Body {
       }
       pod.x = x[pod.tip]; pod.y = y[pod.tip];
     }
+    // -- the body following (input.body) ----------------------------------------
+    // The bulk of the cell flows along the body stick: the rear contracts (the
+    // uroid), the front flows on, and the centroid travels. Membrane already far
+    // out in front (a pseudopod) is not pushed on: the body catches up with it,
+    // so a released pseudopod is absorbed and a held one leads.
+    const bd = input.body;
+    this.drive.m = 0;
+    if (bd && bd.m > 0.06) {
+      const ux = bd.dx, uy = bd.dy;
+      const v = P.vBody * bd.m * spd * boost * (1 - 0.6 * this.spread) * (this.closing ? 0.2 : 1);
+      for (let i = 0; i < N; i++) {
+        const c = nx[i] * ux + ny[i] * uy;
+        const reach = (x[i] - this.cx) * ux + (y[i] - this.cy) * uy;
+        const front = Math.max(0, c) ** 0.8 * (1 - smooth(req * 0.9, req * 1.3, reach));
+        const rear = Math.max(0, -c) ** 0.8;
+        const w = front + rear;
+        ddx[i] += ux * v * w * dt; ddy[i] += uy * v * w * dt;
+        G[i] += 0.5 * front * bd.m;
+      }
+      fx += ux * bd.m; fy += uy * bd.m;
+      this.drive.x = ux; this.drive.y = uy; this.drive.m = bd.m * boost;
+    }
+
     const fm = Math.hypot(fx, fy);
     if (fm > 0.05) {
       this.fx += (fx / fm - this.fx) * Math.min(1, dt * 1.5);
@@ -355,7 +420,7 @@ export class Body {
         }
       }
     }
-    if (this.opts.selfContact) this.selfContact();
+    if (this.opts.selfContact) this.selfContact(dt);
 
     // -- area (volume) projection ------------------------------------------------
     this.normals();
@@ -387,6 +452,7 @@ export class Body {
     }
 
     for (let i = 0; i < N; i++) if (this.noSelf[i] > 0) this.noSelf[i] -= dt;
+    this.untangle();
     if (this.zip && this.zip.t > 0.9) this.finishZip();
 
     // -- uroid: the most rearward point, smoothed ------------------------------
@@ -412,23 +478,232 @@ export class Body {
     this.uy += (y[this.ui] - this.uy) * Math.min(1, dt * 2);
   }
 
-  selfContact() {
-    const x = this.x, y = this.y, d0 = P.dMin, d02 = d0 * d0;
+  /**
+   * A uniform grid over the ring's bounding box listing, per cell, every
+   * segment (i, i+1) whose box, grown by `pad`, touches the cell.
+   */
+  hash(pad) {
+    const x = this.x, y = this.y;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (let i = 0; i < N; i++) {
+      if (x[i] < x0) x0 = x[i]; if (x[i] > x1) x1 = x[i];
+      if (y[i] < y0) y0 = y[i]; if (y[i] > y1) y1 = y[i];
+    }
+    x0 -= pad + 1; y0 -= pad + 1; x1 += pad + 1; y1 += pad + 1;
+    let cs = Math.max(20, pad * 1.2), W, H;
+    for (;;) {
+      W = Math.max(1, Math.ceil((x1 - x0) / cs)); H = Math.max(1, Math.ceil((y1 - y0) / cs));
+      if (W * H <= 8192) break;
+      cs *= 1.5;
+    }
+    this.hx0 = x0; this.hy0 = y0; this.hcs = cs; this.hW = W; this.hH = H;
+    if (this.hStart.length < W * H + 1) this.hStart = new Int32Array(W * H + 1);
+    const start = this.hStart, box = this.hBox;
+    start.fill(0, 0, W * H + 1);
+    let total = 0;
+    for (let i = 0; i < N; i++) {
+      const j = (i + 1) % N;
+      const a = clamp(Math.floor((Math.min(x[i], x[j]) - pad - x0) / cs), 0, W - 1);
+      const b = clamp(Math.floor((Math.max(x[i], x[j]) + pad - x0) / cs), 0, W - 1);
+      const c = clamp(Math.floor((Math.min(y[i], y[j]) - pad - y0) / cs), 0, H - 1);
+      const d = clamp(Math.floor((Math.max(y[i], y[j]) + pad - y0) / cs), 0, H - 1);
+      box[i * 4] = a; box[i * 4 + 1] = b; box[i * 4 + 2] = c; box[i * 4 + 3] = d;
+      for (let cy = c; cy <= d; cy++) for (let cx = a; cx <= b; cx++) { start[cy * W + cx + 1]++; total++; }
+    }
+    for (let k = 0; k < W * H; k++) start[k + 1] += start[k];
+    if (this.hItems.length < total) this.hItems = new Int32Array(total * 2);
+    const fill = this.hFill && this.hFill.length >= W * H ? this.hFill : (this.hFill = new Int32Array(W * H * 2));
+    fill.set(start.subarray(0, W * H));
+    for (let i = 0; i < N; i++) {
+      for (let cy = box[i * 4 + 2]; cy <= box[i * 4 + 3]; cy++) {
+        for (let cx = box[i * 4]; cx <= box[i * 4 + 1]; cx++) this.hItems[fill[cy * W + cx]++] = i;
+      }
+    }
+  }
+
+  /** The hash cell holding a point (call hash() first). */
+  cellOf(px, py) {
+    const cx = clamp(Math.floor((px - this.hx0) / this.hcs), 0, this.hW - 1);
+    const cy = clamp(Math.floor((py - this.hy0) / this.hcs), 0, this.hH - 1);
+    return cy * this.hW + cx;
+  }
+
+  /**
+   * Self-contact: every node is kept P.dMin off every segment that is not its
+   * neighbour (nodes alone would let a segment slip between two of them).
+   * Necks: where two stretches of membrane face each other across cytoplasm
+   * closer than P.neckW, they are pushed apart, so the cell resists being
+   * pinched thin (opts.neck).
+   */
+  selfContact(dt = 1 / 60) {
+    const x = this.x, y = this.y, nx = this.nx, ny = this.ny, d0 = P.dMin;
+    const neck = this.opts.neck, nw = P.neckW, kNeck = Math.min(1, dt * 5) * 0.5;
+    this.hash(neck ? nw : d0);
+    const start = this.hStart, items = this.hItems;
     for (let i = 0; i < N; i++) {
       if (this.noSelf[i] > 0) continue;
-      for (let j = i + 5; j < N; j++) {
-        if (i + N - j < 5) continue;
-        if (this.noSelf[j] > 0) continue;
-        const ex = x[j] - x[i], ey = y[j] - y[i];
-        const d2 = ex * ex + ey * ey;
-        if (d2 < d02) {
-          const d = Math.sqrt(d2) || 1e-3;
-          const push = (d0 - d) * 0.5;
-          x[i] -= (ex / d) * push; y[i] -= (ey / d) * push;
-          x[j] += (ex / d) * push; y[j] += (ey / d) * push;
+      const cell = this.cellOf(x[i], y[i]);
+      for (let q = start[cell]; q < start[cell + 1]; q++) {
+        const a = items[q], b = (a + 1) % N;
+        const ra = ringDist(i, a), rb = ringDist(i, b);
+        if (ra < 3 || rb < 3) continue;
+        if (this.noSelf[a] > 0 || this.noSelf[b] > 0) continue;
+        const ex = x[b] - x[a], ey = y[b] - y[a], l2 = ex * ex + ey * ey;
+        const t = clamp(l2 > 1e-9 ? ((x[i] - x[a]) * ex + (y[i] - y[a]) * ey) / l2 : 0, 0, 1);
+        const qx = x[a] + ex * t, qy = y[a] + ey * t;
+        let px = x[i] - qx, py = y[i] - qy;
+        const d2 = px * px + py * py;
+        if (d2 >= nw * nw) continue;
+        const d = Math.sqrt(d2);
+        let push = 0;
+        if (d < d0) push = (d0 - d) * 0.5;
+        else if (neck && Math.min(ra, rb) >= 8) {
+          // A neck: the segment lies on the inner side of node i, and node i on
+          // the inner side of the segment (cytoplasm between them, not water).
+          const sn = l2 > 1e-9 ? 1 / Math.sqrt(l2) : 0;
+          const snx = ey * sn, sny = -ex * sn; // the segment's outward normal
+          if (px * nx[i] + py * ny[i] > 0 && px * snx + py * sny < 0) push = (nw - d) * kNeck * (1 - d / nw);
+        }
+        if (push <= 0) continue;
+        if (d > 1e-6) { px /= d; py /= d; } else { px = -nx[i]; py = -ny[i]; }
+        x[i] += px * push; y[i] += py * push;
+        x[a] -= px * push * (1 - t); y[a] -= py * push * (1 - t);
+        x[b] -= px * push * t; y[b] -= py * push * t;
+      }
+    }
+  }
+
+  /** Pairs [a, b] (a < b) of ring segments (a, a+1) and (b, b+1) that cross. */
+  crossings(out = []) {
+    out.length = 0;
+    const x = this.x, y = this.y;
+    this.hash(0);
+    const start = this.hStart, items = this.hItems, box = this.hBox, W = this.hW;
+    for (let a = 0; a < N; a++) {
+      const a2 = (a + 1) % N;
+      for (let cy = box[a * 4 + 2]; cy <= box[a * 4 + 3]; cy++) {
+        for (let cx = box[a * 4]; cx <= box[a * 4 + 1]; cx++) {
+          const cell = cy * W + cx;
+          for (let q = start[cell]; q < start[cell + 1]; q++) {
+            const b = items[q];
+            if (b <= a + 1 || (b + 1) % N === a) continue;
+            const b2 = (b + 1) % N;
+            if (!segsCross(x[a], y[a], x[a2], y[a2], x[b], y[b], x[b2], y[b2])) continue;
+            let dup = false;
+            for (const p of out) if (p[0] === a && p[1] === b) { dup = true; break; }
+            if (!dup) out.push([a, b]);
+          }
         }
       }
     }
+    return out;
+  }
+
+  /**
+   * Keep the ring simple. Any crossing is undone by putting the nodes of both
+   * segments back where they were at the start of the step (widening the
+   * patch if needed, then the whole ring); with no clean start to go back to
+   * (after a resample) the smaller loop the crossing makes is straightened.
+   */
+  untangle() {
+    if (!this.opts.untangle) return 0;
+    const x = this.x, y = this.y;
+    let fixes = 0;
+    for (let it = 0; it < 9; it++) {
+      const pairs = this.crossings(this._pairs);
+      if (!pairs.length) break;
+      fixes += pairs.length;
+      if (this.snapOK && it < 6) {
+        for (const [a, b] of pairs) {
+          for (let k = -it; k <= it + 1; k++) {
+            const i = (a + k + N) % N, j = (b + k + N) % N;
+            x[i] = this.sx[i]; y[i] = this.sy[i];
+            x[j] = this.sx[j]; y[j] = this.sy[j];
+          }
+        }
+      } else if (this.snapOK && it === 6) {
+        x.set(this.sx); y.set(this.sy);
+      } else {
+        for (const [a, b] of pairs) {
+          let p = a, len = b - a; // nodes a+1..b lie on the loop between the two segments
+          if (len > N - len) { p = b; len = N - len; }
+          const q = (p + len + 1) % N;
+          for (let k = 1; k <= len; k++) {
+            const t = k / (len + 1), i = (p + k) % N;
+            x[i] = x[p] + (x[q] - x[p]) * t; y[i] = y[p] + (y[q] - y[p]) * t;
+          }
+        }
+      }
+    }
+    this.untangled += fixes;
+    return fixes;
+  }
+
+  /**
+   * The thinnest neck (narrower than P.pinchW, cytoplasm on both sides of the
+   * gap) that one of the capsules cuts across: [i, j], or null.
+   */
+  findCut(capsules) {
+    if (!capsules || !capsules.length) return null;
+    const x = this.x, y = this.y, nx = this.nx, ny = this.ny, w = P.pinchW;
+    this.normals();
+    this.hash(w);
+    const start = this.hStart, items = this.hItems;
+    let best = null, bd = w;
+    for (let i = 0; i < N; i++) {
+      const cell = this.cellOf(x[i], y[i]);
+      for (let q = start[cell]; q < start[cell + 1]; q++) {
+        const k = items[q];
+        if (k <= i || ringDist(i, k) < 8) continue;
+        const ex = x[k] - x[i], ey = y[k] - y[i];
+        const d = Math.hypot(ex, ey);
+        if (d >= bd) continue;
+        if (ex * nx[i] + ey * ny[i] >= 0 || -ex * nx[k] - ey * ny[k] >= 0) continue;
+        for (const c of capsules) {
+          if (segSegDist(x[i], y[i], x[k], y[k], c.ax, c.ay, c.bx, c.by) < c.r + 2) { best = [i, k]; bd = d; break; }
+        }
+      }
+    }
+    return best;
+  }
+
+  /**
+   * Cut the ring across nodes i and j. The piece holding (keepX, keepY) stays
+   * the cell (resampled to N nodes; the area target becomes its area); a
+   * pseudopod whose tip was on the other piece becomes a stump at the cut.
+   * Returns the lost piece: { xs, ys, area }.
+   */
+  pinchAt(i, j, keepX, keepY) {
+    const x = this.x, y = this.y;
+    const piece = (from, to) => {
+      const xs = [], ys = [], idx = new Set();
+      for (let m = from; ; m = (m + 1) % N) { xs.push(x[m]); ys.push(y[m]); idx.add(m); if (m === to) break; }
+      return { xs, ys, idx, area: Math.abs(polygonArea(xs, ys, xs.length)) };
+    };
+    const A = piece(i, j), B = piece(j, i);
+    const inA = pointInPolygon(keepX, keepY, A.xs, A.ys, A.xs.length);
+    const inB = pointInPolygon(keepX, keepY, B.xs, B.ys, B.xs.length);
+    const keep = inA && !inB ? A : inB && !inA ? B : A.area >= B.area ? A : B;
+    const lose = keep === A ? B : A;
+    const mx = 0.5 * (x[i] + x[j]), my = 0.5 * (y[i] + y[j]);
+    const tips = this.pods.map((p) => (keep.idx.has(p.tip) ? [x[p.tip], y[p.tip]] : null));
+    this.resampleFrom(keep.xs, keep.ys, keep.xs.length);
+    const nearest = (px, py) => this.nearest(px, py).i;
+    this.pods.forEach((p, k) => {
+      if (tips[k]) { p.tip = nearest(tips[k][0], tips[k][1]); return; }
+      // The cut pseudopod: what is left of it is a stump at the cut.
+      p.tip = nearest(mx, my);
+      p.s = Math.min(p.s, 0.25);
+      p.cut = this.time;
+      if (p.idle) p.life = Math.min(p.life, 1);
+    });
+    this.A0 = Math.abs(this.area) * this.flat;
+    this.closing = null; this.zip = null;
+    this.uroidSet = false;
+    this.noSelf.fill(0);
+    this.snapOK = false;
+    this.centroid();
+    return { xs: lose.xs, ys: lose.ys, area: lose.area };
   }
 
   /**
@@ -521,23 +796,7 @@ export class Body {
     const x = this.x, y = this.y;
     const tips = this.pods.map((p) => [x[p.tip], y[p.tip]]);
     const ux = x[this.ui || 0], uy = y[this.ui || 0];
-    const cum = new Float64Array(N + 1);
-    for (let i = 0; i < N; i++) {
-      const j = (i + 1) % N;
-      cum[i + 1] = cum[i] + Math.hypot(x[j] - x[i], y[j] - y[i]);
-    }
-    const L = cum[N];
-    const ox = Float64Array.from(x), oy = Float64Array.from(y);
-    let seg = 0;
-    for (let k = 0; k < N; k++) {
-      const s = (k / N) * L;
-      while (seg < N - 1 && cum[seg + 1] < s) seg++;
-      const l = cum[seg + 1] - cum[seg] || 1;
-      const t = (s - cum[seg]) / l;
-      const j = (seg + 1) % N;
-      x[k] = ox[seg] + (ox[j] - ox[seg]) * t;
-      y[k] = oy[seg] + (oy[j] - oy[seg]) * t;
-    }
+    this.resampleFrom(Float64Array.from(x), Float64Array.from(y), N);
     const nearest = (px, py) => {
       let b = 0, bv = Infinity;
       for (let i = 0; i < N; i++) { const d = (x[i] - px) ** 2 + (y[i] - py) ** 2; if (d < bv) { bv = d; b = i; } }
@@ -546,6 +805,59 @@ export class Body {
     this.pods.forEach((p, k) => { p.tip = nearest(tips[k][0], tips[k][1]); });
     this.ui = nearest(ux, uy);
     this.noSelf.fill(0.6);
+    // The node numbering changed: the crossing guard's fallback no longer applies.
+    this.snapOK = false;
+    this.untangle();
+  }
+
+  /** Set the ring to N nodes evenly spaced along the closed polyline (ox, oy) of n points. */
+  resampleFrom(ox, oy, n) {
+    const x = this.x, y = this.y;
+    const cum = new Float64Array(n + 1);
+    for (let i = 0; i < n; i++) {
+      const j = (i + 1) % n;
+      cum[i + 1] = cum[i] + Math.hypot(ox[j] - ox[i], oy[j] - oy[i]);
+    }
+    const L = cum[n];
+    let seg = 0;
+    for (let k = 0; k < N; k++) {
+      const s = (k / N) * L;
+      while (seg < n - 1 && cum[seg + 1] < s) seg++;
+      const l = cum[seg + 1] - cum[seg] || 1;
+      const t = (s - cum[seg]) / l;
+      const j = (seg + 1) % n;
+      x[k] = ox[seg] + (ox[j] - ox[seg]) * t;
+      y[k] = oy[seg] + (oy[j] - oy[seg]) * t;
+    }
+  }
+
+  /** How far a pod's tip stands out along its direction beyond the body's radius (µm). */
+  podReach(pod) {
+    return (this.x[pod.tip] - this.cx) * pod.dx + (this.y[pod.tip] - this.cy) * pod.dy - this.req;
+  }
+
+  /**
+   * A start node for a second pseudopod beside `pod`, towards (dx, dy): on the
+   * side the direction points, between minDeg and maxDeg round the centroid
+   * from the first pseudopod, so the two can close round something between them.
+   */
+  branchTip(dx, dy, pod, minDeg = 30, maxDeg = 70) {
+    const x = this.x, y = this.y, cx = this.cx, cy = this.cy;
+    const a0 = Math.atan2(y[pod.tip] - cy, x[pod.tip] - cx);
+    const d = wrapAngle(Math.atan2(dy, dx) - a0);
+    const side = d < 0 ? -1 : 1;
+    const ab = a0 + side * clamp(Math.abs(d), (minDeg * Math.PI) / 180, (maxDeg * Math.PI) / 180);
+    const ux = Math.cos(ab), uy = Math.sin(ab);
+    let best = -1, bv = -Infinity;
+    for (let i = 0; i < N; i++) {
+      if (ringDist(i, pod.tip) < 10) continue;
+      const ex = x[i] - cx, ey = y[i] - cy, r = Math.hypot(ex, ey) || 1;
+      const c = (ex * ux + ey * uy) / r;
+      if (c < Math.cos(0.2)) continue; // within ≈ 11° of the wanted angle
+      const v = r * c;
+      if (v > bv) { bv = v; best = i; }
+    }
+    return best >= 0 ? best : this.pickTip(ux, uy, pod.tip);
   }
 
   /** Minimum distance from a point to the membrane nodes, and the nearest node. */

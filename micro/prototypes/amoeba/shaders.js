@@ -389,3 +389,25 @@ void main() {
   vec3 od = -log(clamp(c / uMean, 0.05, 4.));
   gl_FragColor = vec4(dot(od, vec3(0.2)) * 0.4, od) * uDim;
 }`;
+
+// --- a piece of the cell lost to a pinch-off ----------------------------------
+// It rounds up (the outline is moved by the CPU), turns dark and granular as
+// it dies, and breaks up from the edge inward.
+export const FRAG_FS = /* glsl */ `
+${COMMON}
+uniform vec3 uC;      // centre and equal-area radius, µm
+uniform float uAge;   // 0 when cut off, 1 when gone
+uniform float uSeed;
+varying vec2 vW;
+void main() {
+  float r = distance(vW, uC.xy) / max(uC.z, 1.);
+  float h = max(sqrt(clamp(1. - r * r, 0., 1.)), 0.15) * 0.75;
+  // Disintegration: a ragged front from the rim inward.
+  float n = fbm(vW * 0.06 + uSeed * 17.);
+  float keep = smoothstep(uAge * 1.25 - 0.08, uAge * 1.25 + 0.02, n * 0.8 + (1. - r) * 0.4);
+  float dots = smoothstep(0.62, 0.78, vnoise(vW * 0.45 + uSeed * 9.));
+  float dark = 0.4 + 2.2 * uAge;
+  float phase = h * (0.9 + 0.3 * uAge) + dots * 0.15;
+  vec3 od = h * vec3(0.1, 0.1, 0.14) * dark + dots * vec3(0.25, 0.26, 0.3) * dark;
+  gl_FragColor = vec4(phase, od) * keep;
+}`;

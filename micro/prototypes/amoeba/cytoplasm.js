@@ -61,6 +61,12 @@ export class Cytoplasm {
       const back = 10 * pod.s * w * (1 - core) * (1 - smoothstep(20, 90, m));
       vx -= (ex / m) * back; vy -= (ey / m) * back;
     }
+    if (body.drive && body.drive.m > 0.02) {
+      // The body following: endoplasm streams forward through the core as the
+      // rear contracts, so granules and organelles travel with the cell.
+      const v = 34 * body.drive.m * core * (body.opts.speed || 1);
+      vx += body.drive.x * v; vy += body.drive.y * v;
+    }
     if (body.closing && this.infill !== false) {
       // Filling in: while the cup closes, endoplasm floods toward the mouth of
       // the cup, so the rims fill and thicken as they meet over the prey.
