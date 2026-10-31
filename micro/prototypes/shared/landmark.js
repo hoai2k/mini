@@ -45,6 +45,8 @@ const STYLE = {
   backdoor: { color: '#d9ddd6', shadow: 'rgba(8,10,12,0.55)' },
 };
 
+const SHOW_BACKDOOR = false;
+
 function inPoly(poly, x, y) {
   let c = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
@@ -115,6 +117,10 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
 
   function draw({ position, project, kind = 'forward', region = null, anchor = null, label = '', icon = null,
     distance = null, range = Infinity, onScreen = 'marker', color, nearAlpha = 0.72, farAlpha = 0.28, size = 14 }) {
+    // Owner's call: only the way forward gets an edge arrow. The backdoor is a
+    // quiet optional landmark found by exploring (its "Y: back" prompt still
+    // shows when a player dwells on it). Set SHOW_BACKDOOR to bring it back.
+    if (kind === 'backdoor' && !SHOW_BACKDOOR) return null;
     if (region && (!region.length || !region[0] || !region[0].length)) return null;
     const polys = (!region ? [[[0, 0], [W, 0], [W, H], [0, H]]] : (Array.isArray(region[0][0]) ? region : [region])).filter((p) => p && p.length >= 3);
     if (!polys.length) return null;
