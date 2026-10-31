@@ -92,9 +92,9 @@ and the production art for the film edition (F1–F4) after them.
 
 ## Production art for the film edition
 
-Requested 11 October 2026: 376 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
+Requested 11 October 2026: 380 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 376 of 376 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 376 of 380 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -2888,6 +2888,41 @@ Requested 30 October 2026: at the end of the betrothal court the witch curses Az
 260 × 360 px, anchor bottom centre.
 
 > a demon as in references/film-planning/originals/char-demons.png (attach it): a stage performer in tights with a horned cap, in teal, exactly as in demon-teal-tinted.webp (attach it): the same face, horned cap, tights and colours, at the same scale. Flying, not running: legs trailing behind and below him, body leaning LEFT, both arms raised above his head with the hands open and cupped as if bearing a sleeping princess aloft on them (she is drawn separately, above his hands), his flaming torch tucked through his belt. Lowest point of the figure on the bottom edge. Nothing but the figure: no princess, ground or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+### F24. Falling stalactites in the dark pools
+
+Requested 31 October 2026: in the cavern route (Act IV, the Dark Pools) stalactites hang over the walk, shiver when the prince comes near and fall, shattering on the rock. They are drawn as flat grey triangles meanwhile; each should look painted into the cavern cloth (cavern.webp, attach it).
+
+| Id | Size | Anchor | Replaces | Delivery |
+| --- | --- | --- | --- | --- |
+| `cavern-stalactite` | 120 × 280 | top centre (where it hangs from the ceiling) | new | requested |
+| `cavern-stalactite-tinted` | 120 × 280 | top centre (where it hangs from the ceiling) | new | requested |
+| `cavern-stalactite-broken` | 180 × 60 | bottom centre (on the ground) | new | requested |
+| `cavern-stalactite-broken-tinted` | 180 × 60 | bottom centre (on the ground) | new | requested |
+
+#### `cavern-stalactite` — A hanging stalactite
+
+120 × 280 px, anchor top centre (where it hangs from the ceiling).
+
+> One long stalactite of pink and grey cavern rock exactly in the painting style and colours of cavern.webp (attach it): a lump of the cavern ceiling across the top of the canvas, about 110 px wide and 40 px deep, and from its middle the stalactite tapering down to a sharp, wet point at the bottom edge, about 48 px wide at its root, ridged and banded, a drop of water at its tip. Centred. Nothing but the rock: no background, no glow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `cavern-stalactite-tinted` — A hanging stalactite (tinted)
+
+120 × 280 px, anchor top centre (where it hangs from the ceiling).
+
+> One long stalactite of pink and grey cavern rock exactly in the painting style and colours of cavern.webp (attach it): a lump of the cavern ceiling across the top of the canvas, about 110 px wide and 40 px deep, and from its middle the stalactite tapering down to a sharp, wet point at the bottom edge, about 48 px wide at its root, ridged and banded, a drop of water at its tip. Centred. Nothing but the rock: no background, no glow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `cavern-stalactite-broken` — A shattered stalactite on the rock
+
+180 × 60 px, anchor bottom centre (on the ground).
+
+> The same stalactite (cavern-stalactite.webp, attach it) fallen and shattered on the cavern floor: four or five broken lengths and shards of the pink and grey rock in a low heap, its point snapped off, a little grit, in the painting style of cavern.webp. Seen from the front; the lowest pieces on the bottom edge. Nothing but the rock: no floor, no shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `cavern-stalactite-broken-tinted` — A shattered stalactite on the rock (tinted)
+
+180 × 60 px, anchor bottom centre (on the ground).
+
+> The same stalactite (cavern-stalactite.webp, attach it) fallen and shattered on the cavern floor: four or five broken lengths and shards of the pink and grey rock in a low heap, its point snapped off, a little grit, in the painting style of cavern.webp. Seen from the front; the lowest pieces on the bottom edge. Nothing but the rock: no floor, no shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
 <!-- FILM ASSETS END -->
 
