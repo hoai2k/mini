@@ -19,9 +19,15 @@
     "file": "glowing-springtail.png",
     "name": "Glowing springtail on the final board",
     "prompt": "Use case: stylized-concept.\nAsset type: landscape cinematic game concept reference for the final springtail board of a proposed reverse journey.\nPrimary request: a glowing water springtail is clearly powerful and easily dominates its existing enemies in a realistic-looking microscopic bog environment.\nScene: the water surface among moss and a sundew, viewed through a macro lens at the springtail's scale. A dark segmented Podura-like springtail is the main subject, with six small legs, two antennae and its forked jumping organ folded beneath the abdomen. A predatory Stenus beetle, a water strider and a wolf spider are visible farther away, recoiling or keeping clear of it.\nStyle: realistic macro 3D cinematic concept art with natural water reflections and organic surfaces, soft background depth of field. A clear luminous glow outlines and lights the springtail without hiding its body. The glow alone conveys the increased power; no explanation.\nComposition: wide 16:9, springtail fully readable, enemies secondary but recognisable. No person or fingertip yet.\nConstraints: no text, no UI, no numerical stats, no new enemies, no weapons, no beams, no costume changes, no fantasy armour, no gore.",
-    "status": "requested",
+    "status": "delivered",
     "method": "built-in image_gen",
-    "use": "Design reference only; not loaded by the game."
+    "use": "Design reference only; not loaded by the game.",
+    "width": 1672,
+    "height": 941,
+    "sha256": "85a6b191caa761f9bf477786ae95b7590666790101d73d2a07b6fa93c8d7055e",
+    "source_artifact": "exec-d5747c69-9eda-4f3a-ae32-fde6e5bdb8f9.png",
+    "generated_on": "2026-10-31",
+    "export": "Original generated PNG; no image edits or resizing."
   },
   {
     "id": "SGR-03",
@@ -36,7 +42,7 @@
     "id": "SGR-04",
     "file": "springtail-fingertip-transfer.png",
     "name": "Fingertip transfer ending",
-    "prompt": "Use case: stylized-concept.\nAsset type: landscape cinematic concept reference for the proposed final shot of a microscopic game.\nPrimary request: a tiny glowing springtail has jumped onto a person's fingertip and is biting the skin, transferring its unexplained glowing power to the person.\nScene: an extreme macro-lens view of the pad of a human fingertip with realistic fingerprint ridges, pores and soft natural skin shading. A small dark segmented water springtail, about one to two millimetres long relative to the fingerprint ridges, stands on six little legs with two antennae. Its head touches the skin at the bite. Its body gives off a luminous glow, and a subtle glow is visibly passing from the contact point into the surrounding fingerprint ridges.\nStyle: photorealistic macro 3D cinematic concept art. The creature, bite contact and a small area of skin are in focus; the remainder of the fingertip and hand falls softly out of focus. Wide 16:9 framing. The glow is the only visual explanation of the transfer.\nConstraints: no text, no UI, no labels, no DNA or gene diagrams, no magic symbols, no explanation, no new characters, no visible wound or blood, no oversized monster insect. Keep the fingertip and tiny springtail scale believable.",
+    "prompt": "Use case: stylized-concept.\nAsset type: landscape cinematic concept reference for the proposed final shot of a microscopic game.\nPrimary request: a tiny glowing springtail has jumped onto a person's fingertip and is biting the skin, transferring its unexplained glowing power to the person.\nScene: an extreme macro-lens view of the pad of a human fingertip with realistic fingerprint ridges, pores and soft natural skin shading. A small dark segmented water springtail, about one to two millimetres long relative to the fingerprint ridges, stands on six little legs with two antennae. Its head touches the skin at the bite. Its plump dark body gives off a luminous cool blue-white glow, and a subtle glow is visibly passing from the contact point into the surrounding fingerprint ridges.\nStyle: photorealistic macro 3D cinematic concept art. The creature, bite contact and a small area of skin are in focus; the remainder of the fingertip and hand falls softly out of focus. Wide 16:9 framing. The glow is the only visual explanation of the transfer.\nConstraints: no text, no UI, no labels, no DNA or gene diagrams, no magic symbols, no explanation, no new characters, no visible wound or blood, no oversized monster insect. Keep the fingertip and tiny springtail scale believable.",
     "status": "requested",
     "method": "built-in image_gen",
     "use": "Design reference only; not loaded by the game."

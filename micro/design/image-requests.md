@@ -2,7 +2,7 @@
 
 Concept references for the [glowing return journey plan](super-gene-return.html). These are future-design references, separate from the delivered prototype assets listed in [the prototype ledger](../image-requests.md).
 
-3 requested, 1 delivered.
+2 requested, 2 delivered.
 
 Generated with the built-in image_gen tool. Exact prompts and delivery metadata are also saved in [the manifest](generated/super-gene-return/manifest.json).
 
@@ -27,9 +27,10 @@ Constraints: no text, no UI, no labels, no explanatory genetics graphics, no DNA
 
 ## SGR-02 · Glowing springtail on the final board
 
-Status: requested.
+Status: delivered.
 File: `micro/design/generated/super-gene-return/glowing-springtail.png`
 Use: design reference only; not a runtime game asset.
+[View image](generated/super-gene-return/glowing-springtail.png) · 1672 × 941 · original PNG.
 
 Prompt:
 
@@ -71,7 +72,7 @@ Prompt:
 Use case: stylized-concept.
 Asset type: landscape cinematic concept reference for the proposed final shot of a microscopic game.
 Primary request: a tiny glowing springtail has jumped onto a person's fingertip and is biting the skin, transferring its unexplained glowing power to the person.
-Scene: an extreme macro-lens view of the pad of a human fingertip with realistic fingerprint ridges, pores and soft natural skin shading. A small dark segmented water springtail, about one to two millimetres long relative to the fingerprint ridges, stands on six little legs with two antennae. Its head touches the skin at the bite. Its body gives off a luminous glow, and a subtle glow is visibly passing from the contact point into the surrounding fingerprint ridges.
+Scene: an extreme macro-lens view of the pad of a human fingertip with realistic fingerprint ridges, pores and soft natural skin shading. A small dark segmented water springtail, about one to two millimetres long relative to the fingerprint ridges, stands on six little legs with two antennae. Its head touches the skin at the bite. Its plump dark body gives off a luminous cool blue-white glow, and a subtle glow is visibly passing from the contact point into the surrounding fingerprint ridges.
 Style: photorealistic macro 3D cinematic concept art. The creature, bite contact and a small area of skin are in focus; the remainder of the fingertip and hand falls softly out of focus. Wide 16:9 framing. The glow is the only visual explanation of the transfer.
 Constraints: no text, no UI, no labels, no DNA or gene diagrams, no magic symbols, no explanation, no new characters, no visible wound or blood, no oversized monster insect. Keep the fingertip and tiny springtail scale believable.
 ```
