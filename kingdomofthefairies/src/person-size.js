@@ -2,7 +2,7 @@
 // standing height as painted in it (art px), measured by the head against
 // the character's reference sprite. Draw with drawPerson (src/pose.js) so
 // every sprite of a character comes out at one person size.
-// Inputs fingerprint 29ec06bd66b746f6 (person_sizes.py --check).
+// Inputs fingerprint 6afaddbfc6f84da0 (person_sizes.py --check).
 export const PERSON = {
   'prince-stand': { who: 'prince-armed', px: 360 },
   'prince-strike': { who: 'prince-armed', px: 209 },
@@ -18,6 +18,7 @@ export const PERSON = {
   'azurine-pass-a': { who: 'azurine', px: 372 },
   'azurine-pass-b': { who: 'azurine', px: 372 },
   'azurine-swoon': { who: 'azurine', px: 486 },
+  'azurine-jump': { who: 'azurine', px: 410 },
   'azurine-asleep': { who: 'azurine', px: 365 },
   'azurine-window': { who: 'azurine', px: 570 },
   'azurine-stand-tinted': { who: 'azurine', px: 380 },
@@ -26,6 +27,7 @@ export const PERSON = {
   'azurine-pass-a-tinted': { who: 'azurine', px: 380 },
   'azurine-pass-b-tinted': { who: 'azurine', px: 388 },
   'azurine-swoon-tinted': { who: 'azurine', px: 486 },
+  'azurine-jump-tinted': { who: 'azurine', px: 380 },
   'azurine-asleep-tinted': { who: 'azurine', px: 380 },
   'azurine-window-tinted': { who: 'azurine', px: 570 },
   'aurora-stand': { who: 'aurora', px: 420 },

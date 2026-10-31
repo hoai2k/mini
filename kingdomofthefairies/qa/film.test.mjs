@@ -9,7 +9,7 @@ import { FILM, LEGACY, FILM_CAST } from '../src/theme.js';
 import prologue, { GIFTS, FAIRIES, AZURINE_X, RAMPART, ARMS, HAND, NEAR_HAND, LANTERNS, T as PRO_T } from '../src/acts/prologue.js';
 import act2, { FAIRY_AT, FILM_DIVE, RIDE } from '../src/acts/act2.js';
 import act3, { PASSAGE } from '../src/acts/act3.js';
-import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DUEL, DIVE, APOTH, FILM_CLIFF, TOWER_WINDOW, duelReach } from '../src/acts/act5film.js';
+import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DUEL, DIVE, APOTH, FILM_CLIFF, TOWER_WINDOW, duelReach, weddingGuests, guestHop, CELEBRATION } from '../src/acts/act5film.js';
 import { CLIMB, terrainAt } from '../src/acts/climb.js';
 import { CLIMB_MAPS } from '../src/acts/climb-map.js';
 import act4 from '../src/acts/act4.js';
@@ -408,11 +408,13 @@ test('Act VI: out on the cliff, push the barrel over, walk the wedding street an
     const fire = s.duel.bolts.some((b) => b.x > s.w.x && b.x - s.w.x < 90);
     return { moveX: duelReach(s) ? 0 : 1, a: fire, aHeld: true, x: fresh(duelReach(s) && s.duel.state !== 'reel') };
   }, (s) => s.phase !== 'barrel');
+  assert.equal(st.phase, 'victory');
+  run(actBurning, st, FILM_T.victory + FILM_T.victoryFade + 0.1);
   assert.equal(st.phase, 'wedding', st.phase);
   assert.equal(st.checkpoint.scene, 4);
   run(actBurning, st, 20, () => ({ moveX: 1 }), (s) => s.phase !== 'wedding');
   assert.equal(st.phase, 'apotheosis');
-  run(actBurning, st, 20, (s) => ({ moveX: s.w.x < APOTH.mark + 35 ? 1 : 0 }));
+  run(actBurning, st, 20, (s) => ({ moveX: s.w.x < APOTH.mark ? 1 : 0, a: Math.abs(s.w.x - APOTH.mark) < 20, aHeld: true }));
   assert.equal(st.phase, 'finale', 'the final tableau holds for the rolling credits');
   assert.equal(st.status, 'play', 'the ending is not cut short by the old iris');
   assert.equal(actBurning.mood(st), 'wedding');
@@ -454,7 +456,7 @@ test('Act VI: victory sounds once after the witch disappears, never during defea
   const st = actBurning.create({ seed: 4, carry: {}, from: { scene: 3 } });
   const seen = [];
   let last = false;
-  for (let t = 0; t < 60 && st.phase === 'barrel'; t += DT) {
+  for (let t = 0; t < 60 && ['barrel', 'victory'].includes(st.phase); t += DT) {
     const strike = !!st.duel && duelReach(st) && st.duel.state !== 'reel';
     const input = st.duel ? { moveX: duelReach(st) ? 0 : 1, x: strike && !last } : { moveX: 1 };
     last = strike;
@@ -462,7 +464,7 @@ test('Act VI: victory sounds once after the witch disappears, never during defea
     for (const e of st.events) {
       seen.push(e);
       if (e.sound === 'victoryStinger') {
-        assert.equal(st.phase, 'wedding');
+        assert.equal(st.phase, 'victory');
         assert.ok(st.barrel.fallT >= FILM_T.barrelFall, 'the entire barrel fade has finished');
       }
     }
@@ -474,10 +476,66 @@ test('Act VI: victory sounds once after the witch disappears, never during defea
     assert.ok(seen.filter(e => e.type === type).every(e => !e.sound), 'no early flourish');
   }
   assert.deepEqual(seen.filter(e => e.sound === 'victoryStinger').map(e => e.type), ['witchGone']);
-  run(actBurning, st, 1, () => {
+  for (let i = 0; i < 60; i++) {
+    actBurning.step(st, DT, {});
     assert.ok(!st.events.some(e => e.sound === 'victoryStinger'), 'no repeat in the wedding');
-    return {};
-  });
+    st.events.length = 0;
+  }
+});
+
+test('Act VI: the empty cliff holds for the complete flourish, then fades before the wedding', () => {
+  const st = actBurning.create({ from: { scene: 3 } });
+  st.duel = null;
+  st.barrel = { x: BARREL.edge, fallT: FILM_T.barrelFall - DT / 2, rot: 0 };
+  actBurning.step(st, DT);
+  assert.equal(st.phase, 'victory');
+  assert.equal(actBurning.fade(st), 0);
+  run(actBurning, st, FILM_T.victory - 0.1, () => ({ a: true, moveX: 1 }));
+  assert.equal(st.phase, 'victory', 'input cannot skip the flourish');
+  assert.equal(actBurning.fade(st), 0);
+  st.phaseT = FILM_T.victory + FILM_T.victoryFade / 2;
+  assert.ok(Math.abs(actBurning.fade(st) - 0.5) < 1e-9);
+  run(actBurning, st, FILM_T.victoryFade / 2 + 0.1);
+  assert.equal(st.phase, 'wedding');
+  assert.ok(actBurning.fade(st) > 0.8, 'wedding starts behind black and fades in');
+});
+
+test('Act VI: celebratory jumps lift the couple together and ripple through guests by distance', () => {
+  const st = actBurning.create({ carry: { sleepers: 4 }, from: { scene: 4 } });
+  assert.ok(weddingGuests(st).every(([id]) => guestHop(st, id) === 0));
+  actBurning.step(st, DT, { a: true, aHeld: true });
+  assert.equal(st.w.on, false); assert.equal(st.az.on, false);
+  assert.equal(st.w.y, st.az.y, 'Azurine follows the same leap arc');
+  assert.equal(st.cheers.length, 1);
+  const expected = [...weddingGuests(st)].sort((a,b) => Math.abs(a[1]-st.w.x)-Math.abs(b[1]-st.w.x)).map(([id])=>id);
+  assert.deepEqual(st.cheers[0].order, expected);
+  st.phaseT += CELEBRATION.stagger / 2;
+  assert.ok(guestHop(st, expected[0]) > 0);
+  assert.equal(guestHop(st, expected[1]), 0, 'the next guest has not jumped yet');
+  run(actBurning, st, 3);
+  assert.equal(st.w.on, true); assert.equal(st.az.on, true);
+  assert.equal(st.cheers.length, 0, 'the wave finishes cleanly');
+  assert.ok(actBurning.touchLive(st), 'touch jumping remains available');
+});
+
+test('Act VI: walking across the final tableau never ends it; jump beneath Aurora to ascend', () => {
+  const st = actBurning.create({ from: { scene: 4 } });
+  st.w.x = 900; actBurning.step(st, DT);
+  assert.equal(st.phase, 'apotheosis');
+  run(actBurning, st, 3, () => ({ moveX: 1 }));
+  run(actBurning, st, 5, () => ({ moveX: -1 }));
+  assert.equal(st.riseT, null);
+  actBurning.step(st, DT, { a: true });
+  assert.equal(st.riseT, null, 'jumping away from Aurora is only a celebration');
+  run(actBurning, st, 1);
+  st.w.x = APOTH.mark; st.w.vx = 0;
+  run(actBurning, st, 3);
+  assert.equal(st.riseT, null, 'standing in the light does not trigger the ending');
+  actBurning.step(st, DT, { a: true, aHeld: true });
+  assert.equal(st.riseT, 0);
+  assert.equal(st.w.on, false); assert.equal(st.az.on, false);
+  run(actBurning, st, FILM_T.rise + 0.1);
+  assert.equal(st.phase, 'finale');
 });
 
 test('Act V: from the clifftop he walks to the edge and dives into the sea gap', () => {

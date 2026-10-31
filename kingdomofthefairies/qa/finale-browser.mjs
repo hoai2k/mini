@@ -39,6 +39,7 @@ try {
   await page.evaluate(() => {
     const st = window.__kingdomOfTheFairies.S.state; st.w.x = 675; st.az.x = 605;
   });
+  await page.keyboard.press('Space');
   await page.waitForFunction(() => window.__kingdomOfTheFairies.S.state.phase === 'finale');
   assert.equal(await page.evaluate(async () => (await import('/src/save.js')).loadSave().endings?.wedding), true, 'completion is saved before the credits finish');
   assert.equal(await page.evaluate(() => window.__kingdomOfTheFairies.audio.nowPlaying().id), 'period-wedding');

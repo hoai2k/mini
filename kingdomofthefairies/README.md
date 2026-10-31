@@ -58,7 +58,7 @@ acts. The first four keep their stage machinery and rules, recast:
 6. The Burning Tower: the burning floors, carrying Azurine out, the witch's
    last stand on the clifftop (leap her fire, strike her three times with the
    sword), after which she hides in her barrel and he pushes it over, walking Azurine
-   along the wedding street to the gate, and into the light of the apotheosis.
+   along the wedding street to the gate, jumping for joy with Azurine as the guests cheer in a ripple. Explore the apotheosis freely, then jump into the light beneath Aurora when ready to finish. The witch’s disappearance holds for the victory flourish, then fades before the wedding.
    Every scene is played: nothing is timed to the beat or shown as a still.
 
 The final ascent opens a 45-second closing sequence: five seconds of sparkling

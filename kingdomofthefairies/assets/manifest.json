@@ -5029,6 +5029,26 @@
       ],
       "anchor": "bottom centre",
       "edition": "film"
+    },
+    "azurine-jump": {
+      "status": "delivered",
+      "file": "azurine-jump.webp",
+      "size": [
+        300,
+        500
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "azurine-jump-tinted": {
+      "status": "delivered",
+      "file": "azurine-jump-tinted.webp",
+      "size": [
+        300,
+        500
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
     }
   },
   "audio": {

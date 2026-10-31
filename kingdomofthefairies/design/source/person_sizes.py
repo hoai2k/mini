@@ -41,7 +41,7 @@ CAST = {
     'prince-armed': ('prince-stand', {'': (119, 34, 148, 75), '-tinted': (119, 34, 148, 75)},
                      ['prince-strike', 'prince-caught-lobster', 'prince-caught-human'], 30),
     'azurine': ('azurine-stand', {'': (60, 8, 115, 60), '-tinted': (55, 8, 105, 58)},
-                ['azurine-walk-a', 'azurine-walk-b', 'azurine-pass-a', 'azurine-pass-b', 'azurine-swoon', 'azurine-asleep', 'azurine-window'], 100),
+                ['azurine-walk-a', 'azurine-walk-b', 'azurine-pass-a', 'azurine-pass-b', 'azurine-swoon', 'azurine-jump', 'azurine-asleep', 'azurine-window'], 100),
     'aurora': ('aurora-stand', {'': (105, 58, 152, 110), '-tinted': (108, 55, 152, 106)},
                ['aurora-point', 'aurora-glide-a', 'aurora-glide-b'], 45),
     'witch': ('witch-hooded', {'': (55, 60, 97, 115), '-tinted': (25, 68, 72, 120)},
@@ -65,6 +65,9 @@ CAST = {
 # pose; looked at on the sheets, every sprite at one person height.
 # Measured brow to chin against the reference at native scale, 30 Oct 2026.
 BY_EYE = {
+    # Raised arms confuse the full-head template. Brow-to-chin comparison
+    # on celebration-heads.jpg: her tinted jump keeps the standing face size.
+    'azurine-jump-tinted': 1.0,
     # F25, 31 Oct 2026: the raised staff/arm and slipped hood confuse the
     # face template. Compared brow to chin in the prepared sprites and
     # checked at one person height on the review sheet.

@@ -520,7 +520,7 @@ function currentView() {
     curtainCall: S.mode === 'curtaincall' ? Math.min(1, S.modeT / 1.4) : 0,
     scene: S.mode === 'playbill' ? drawPlaybill : S.mode === 'curtaincall' ? drawCurtainCall : null,
     cam: S.act && S.state && camera.view.z > 1 ? camera.view : null,
-    fade: FILM_ED && S.state?.phase === 'finale' ? finaleFrame(S.state.phaseT).fade : 0,
+    fade: FILM_ED && S.state?.phase === 'finale' ? finaleFrame(S.state.phaseT).fade : S.act?.fade?.(S.state) || 0,
   };
 }
 
@@ -592,7 +592,7 @@ function update(dt, i) {
   if (S.mode === 'title') updateLoadbar();
   const mood = musicMood();
   if (mood === 'song') audio.returnToSong(); else audio.setMood(mood);
-  audio.setMusicLevel(FILM_ED && S.state?.phase === 'finale' ? finaleFrame(S.state.phaseT).music : 1);
+  audio.setMusicLevel(FILM_ED && S.state?.phase === 'victory' ? 0 : FILM_ED && S.state?.phase === 'finale' ? finaleFrame(S.state.phaseT).music : 1);
   // The score and the sea play throughout, as before. Optionally (?crackle=on)
   // the score waits for play and an old record's crackle fills the menus (the
   // title, playbill, act cards, pause and dialogs); not in Widow's Bay.

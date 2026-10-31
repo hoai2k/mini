@@ -130,7 +130,7 @@ export const FILM_CLIFF = [
 export const FILM_CLIFF_HALF = FILM_CLIFF.findIndex((h) => h.x === 420 && h.y === 965);
 
 // Cut-scene lengths, seconds.
-export const FILM_T = { dive: 3.8, window: 3.6, iris: 1.6, barrelFall: 2.4, wedding: 7.5, apotheosis: 8.5, defeat: 1.8, splash: 1.0, rise: 3.2 };
+export const FILM_T = { dive: 3.8, window: 3.6, iris: 1.6, barrelFall: 2.4, victory: 7.15, victoryFade: 1.2, weddingFade: 1.0, wedding: 7.5, apotheosis: 8.5, defeat: 1.8, splash: 1.0, rise: 3.2 };
 
 // The walking scenes between the climbs (all stage px, feet at `y`): the
 // clifftop he dives from, the cliff he rolls the witch's barrel over, the
@@ -154,6 +154,19 @@ export const DUEL = {
 // (each walk starts with its figures in view, clear of the left curtain at ~x 170)
 export const WEDDING = { y: 652, x0: 60, gate: 880, start: 330, follow: 96, petals: 14 };
 export const APOTH = { y: 592, x0: 120, x1: 1160, mark: 640, near: 40, start: 320 };
+export const WEDDING_GUESTS = [
+  ['crew-squire', 250], ['crew-helmsman', 340], ['crew-manatarms', 430], ['crew-bosun', 520],
+  ['fairy-ring', 610], ['fairy-crown', 690], ['fairy-gold', 770], ['king-stand', 990], ['queen-stand', 1080],
+];
+export const CELEBRATION = { jump: 760, stagger: 0.12, guestDuration: 0.65, guestHeight: 32 };
+export const weddingGuests = st => WEDDING_GUESTS.filter((_, i) => i >= 4 || i < Math.min(4, st.sleepersShown || 0));
+export function guestHop(st, id) {
+  return Math.max(0, ...(st.cheers || []).map(wave => {
+    const rank = wave.order.indexOf(id);
+    const t = st.phaseT - wave.at - rank * CELEBRATION.stagger;
+    return rank < 0 || t < 0 || t >= CELEBRATION.guestDuration ? 0 : Math.sin(Math.PI * t / CELEBRATION.guestDuration) * CELEBRATION.guestHeight;
+  }));
+}
 const PRINCE_HW = 18;
 
 const CARRY_DEFAULT = { tea: 0, guitar: false, rose: false, pearl: false, stone: false, sleepers: 0 };
@@ -369,12 +382,13 @@ export const actBurning = {
   action: 'A: leap',
   scenes: BURNING_SCENES,
   mood: (st) => (['wedding', 'apotheosis', 'finale', 'iris'].includes(st.phase) ? 'wedding' : 'storm'),
-  touchLive: (st) => ['house', 'quay'].includes(st.phase) || (st.phase === 'barrel' && st.barrel?.fallT == null),
+  touchLive: (st) => (['house', 'quay', 'wedding', 'apotheosis'].includes(st.phase) && st.riseT == null) || (st.phase === 'barrel' && st.barrel?.fallT == null),
   // the second button swings the sword in the witch's last stand
   touchVerbB: (st) => (st.phase === 'barrel' && st.duel && st.duel.state !== 'trap' ? 'Strike' : ''),
-  touchVerb: (st) => (st.phase === 'barrel' && st.duel ? 'Leap' : ['barrel', 'wedding', 'apotheosis'].includes(st.phase) ? '' : st.phase === 'house' && st.carry?.stone && !st.stoneThrown ? 'Action' : 'Leap'),
+  touchVerb: (st) => (st.phase === 'barrel' && st.duel ? 'Leap' : st.phase === 'barrel' ? '' : st.phase === 'house' && st.carry?.stone && !st.stoneThrown ? 'Action' : 'Leap'),
+  fade: st => st?.phase === 'victory' ? clamp((st.phaseT - FILM_T.victory) / FILM_T.victoryFade, 0, 1) : st?.phase === 'wedding' ? clamp(1 - st.phaseT / FILM_T.weddingFade, 0, 1) : 0,
   touchHint: 'drag to walk and climb, A to leap',
-  touchScheme: (st) => (st.phase === 'barrel' && st.duel ? { mode: 'stick', hint: 'Drag ↔ to walk' } : ['wedding', 'apotheosis'].includes(st.phase) || (st.phase === 'barrel' && !st.duel) ? { mode: 'swipe', hint: 'Drag ↔ to walk' } : { mode: 'stick', hint: 'Drag to walk · up and down on stairs and ladders' }),
+  touchScheme: (st) => (st.phase === 'barrel' && st.duel ? { mode: 'stick', hint: 'Drag ↔ to walk' } : ['wedding', 'apotheosis'].includes(st.phase) ? { mode: 'swipe', hint: 'Drag ↔ to walk · tap to celebrate' } : (st.phase === 'barrel' && !st.duel) ? { mode: 'swipe', hint: 'Drag ↔ to walk' } : { mode: 'stick', hint: 'Drag to walk · up and down on stairs and ladders' }),
 
   create({ seed = 1, carry = {}, from = null } = {}) {
     const k = clamp(from?.scene | 0, 0, BURNING_SCENES.length - 1);
@@ -397,6 +411,7 @@ export const actBurning = {
     if (st.phase === 'house') stepHouse(st, dt, input);
     else if (st.phase === 'quay') stepQuay(st, dt, input);
     else if (st.phase === 'barrel') { if (!st.barrel && !st.duel) startBarrel(st); stepBarrel(st, dt, input); }
+    else if (st.phase === 'victory' && st.phaseT >= FILM_T.victory + FILM_T.victoryFade) startWedding(st);
     else if (st.phase === 'wedding') stepWedding(st, dt, input);
     else if (st.phase === 'apotheosis') stepApotheosis(st, dt, input);
     else if (st.phase === 'finale' && finaleFrame(st.phaseT).done) winFilm(st, { ending: 'wedding' });
@@ -431,8 +446,8 @@ export const actBurning = {
     if (e.type === 'witchBeaten') return 'The witch is beaten. Aurora shuts her in a barrel.';
     if (e.type === 'witchInBarrel') return 'Push the barrel over the cliff.';
     if (e.type === 'barrelFall') return 'Into the whirlpool!';
-    if (e.type === 'wedding') return 'The wedding. Walk Azurine along the street to the castle gate; catch the falling petals.';
-    if (e.type === 'apotheosis') return 'Walk with Azurine to the light beneath Aurora.';
+    if (e.type === 'wedding') return 'The wedding. Walk Azurine to the castle gate; jump to celebrate together and make the guests cheer.';
+    if (e.type === 'apotheosis') return 'Jump into the light beneath Aurora when you are ready.';
     if (e.type === 'ascend') return 'The Kingdom of the Fairies.';
     if (e.type === 'finale') return 'The end. Credits: principal game designer Hoai Nguyen; after Le Royaume des fées by Georges Méliès; wedding theme, Procession Royale. Thank you for playing.';
     return null;
@@ -444,21 +459,27 @@ export const actBurning = {
 // ---------------------------------------------------------------- walking scenes
 // The prince on foot on a flat floor: walk, and (where allowed) leap.
 function walker(x, y) { return { x, y, vx: 0, vy: 0, on: true, face: 1, walk: 0, buffer: 0, knockT: 0, landT: 0 }; }
-function walk(w, dt, input, { y, x0, x1, leap = false, events = null }) {
+function walk(w, dt, input, { y, x0, x1, leap = false, events = null, jumpSpeed = WALK.jump }) {
   let mx = clamp(input.moveX || 0, -1, 1);
   if (w.knockT > 0) { w.knockT -= dt; mx = 0; }
   w.landT = Math.max(0, w.landT - dt);
   if (Math.abs(mx) > 0.15) w.face = Math.sign(mx);
   w.vx += clamp(mx * WALK.speed - w.vx, -WALK.acc * dt, WALK.acc * dt);
+  const jumped = stepJump(w, dt, input, y, leap, events, jumpSpeed);
+  w.x = clamp(w.x + w.vx * dt, x0, x1);
+  if (w.on) w.walk += Math.abs(w.vx) * dt;
+  return jumped;
+}
+function stepJump(w, dt, input, y, leap = true, events = null, jumpSpeed = CELEBRATION.jump) {
   w.buffer = input.a ? WALK.buffer : Math.max(0, w.buffer - dt);
-  if (leap && w.on && w.buffer > 0) { w.vy = -WALK.jump; w.on = false; w.buffer = 0; events?.push({ type: 'leap' }); }
+  const jumped = leap && w.on && w.buffer > 0;
+  if (jumped) { w.vy = -jumpSpeed; w.on = false; w.buffer = 0; events?.push({ type: 'leap' }); }
   if (!w.on) {
     w.vy += (WALK.g + (w.vy < 0 && !input.aHeld ? WALK.cut : 0)) * dt;
     w.y += w.vy * dt;
     if (w.y >= y) { w.y = y; w.vy = 0; w.on = true; w.landT = 0.12; }
   }
-  w.x = clamp(w.x + w.vx * dt, x0, x1);
-  if (w.on) w.walk += Math.abs(w.vx) * dt;
+  return !!jumped;
 }
 
 // Act V: from the cliff top he walks to the edge and dives for the tower
@@ -556,8 +577,8 @@ function stepBarrel(st, dt, input) {
     if (b.fallT >= FILM_T.barrelFall) {
       // The renderer finishes fading the witch and barrel at barrelFall.
       // Celebrate only once she has disappeared entirely into the water.
+      setPhase(st, 'victory');
       st.events.push({ type: 'witchGone', sound: 'victoryStinger' });
-      startWedding(st);
     }
     return;
   }
@@ -578,11 +599,13 @@ function startWedding(st) {
   st.events.push({ type: 'wedding' });
   st.checkpoint = { scene: 4, film: true, score: st.score, pearls: st.pearls };
   st.w = walker(WEDDING.start, WEDDING.y);
-  st.az = { x: WEDDING.start - WEDDING.follow, walk: 0, face: 1 };
+  st.az = walker(WEDDING.start - WEDDING.follow, WEDDING.y);
+  st.cheers = [];
   st.petals = Array.from({ length: WEDDING.petals }, (_, i) => ({ x: 180 + ((i * 263) % 680), y: -40 - i * 70, got: false }));
   st.petalsGot = 0;
 }
-function follow(st, dt, gap) {
+function follow(st, dt, gap, jumped = false, held = false, floor = WEDDING.y) {
+  stepJump(st.az, dt, { a: jumped, aHeld: held }, floor);
   const a = st.az, want = st.w.x - gap * st.w.face, dx = want - a.x;
   const v = clamp(dx * 4, -WALK.speed, WALK.speed);
   a.x += v * dt; a.vx = v; a.walk += Math.abs(v) * dt;
@@ -590,8 +613,10 @@ function follow(st, dt, gap) {
 }
 function stepWedding(st, dt, input) {
   const w = st.w;
-  walk(w, dt, input, { y: WEDDING.y, x0: WEDDING.x0, x1: WEDDING.gate + 40 });
-  follow(st, dt, WEDDING.follow);
+  const jumped = walk(w, dt, input, { y: WEDDING.y, x0: WEDDING.x0, x1: WEDDING.gate + 40, leap: true, jumpSpeed: CELEBRATION.jump });
+  follow(st, dt, WEDDING.follow, jumped, input.aHeld);
+  st.cheers = st.cheers.filter(wave => st.phaseT - wave.at < WEDDING_GUESTS.length * CELEBRATION.stagger + CELEBRATION.guestDuration);
+  if (jumped) st.cheers.push({ at: st.phaseT, order: [...weddingGuests(st)].sort((a, b) => Math.abs(a[1] - w.x) - Math.abs(b[1] - w.x)).map(([id]) => id) });
   for (const p of st.petals) {
     if (p.got) continue;
     p.y += 70 * dt; p.x += Math.sin(st.phaseT * 2 + p.y * 0.02) * 30 * dt;
@@ -607,7 +632,7 @@ function startApotheosis(st) {
   setPhase(st, 'apotheosis');
   st.events.push({ type: 'apotheosis' });
   st.w = walker(APOTH.start, APOTH.y);
-  st.az = { x: APOTH.start - 80, walk: 0, face: 1 };
+  st.az = walker(APOTH.start - 80, APOTH.y);
   st.riseT = null;
 }
 function stepApotheosis(st, dt, input) {
@@ -617,10 +642,10 @@ function stepApotheosis(st, dt, input) {
     if (st.riseT >= FILM_T.rise) { setPhase(st, 'finale'); st.events.push({ type: 'finale' }); }
     return;
   }
-  walk(w, dt, input, { y: APOTH.y, x0: APOTH.x0, x1: APOTH.x1 });
-  follow(st, dt, 70);
+  const jumped = walk(w, dt, input, { y: APOTH.y, x0: APOTH.x0, x1: APOTH.x1, leap: true, jumpSpeed: CELEBRATION.jump });
+  follow(st, dt, 70, jumped, input.aHeld, APOTH.y);
   // both in the light at the centre of the stage
-  if (Math.abs(w.x - APOTH.mark - 35) < APOTH.near && Math.abs(st.az.x - APOTH.mark + 35) < APOTH.near + 30) {
+  if (jumped && Math.abs(w.x - APOTH.mark) < APOTH.near + 35) {
     st.riseT = 0; w.vx = 0; st.events.push({ type: 'ascend' });
   }
 }

@@ -13,7 +13,7 @@ export const BEAT = { bpm: 76.5, period: 60 / 76.5, offset: 0.33 };
 // Mix for recorded effects: frequent ones sit lower. Tonal effects are tuned
 // to F (design/source/build_sfx.py), so they keep their pitch.
 const MIX = { ui: 0.5, row: 0.55, pearl: 0.7, rockWarn: 0.6, wind: 0.8 };
-const TONAL = new Set(['pearl', 'keepsake', 'done', 'arrive', 'ui', 'landho', 'partyHit']);
+const TONAL = new Set(['pearl', 'keepsake', 'done', 'arrive', 'ui', 'landho', 'partyHit', 'victoryStinger']);
 
 export function createAudio() {
   let ac = null, master, music, sfx, sea, playing = false;

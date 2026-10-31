@@ -550,6 +550,13 @@ GROUPS.append(("The court guards seize the prince", "Connected capture pairs for
 ]))
 
 
+GROUPS.append(("Celebratory wedding leap", "Azurine joins the prince's dancing leap during the wedding and the final tableau. Match her standing face and costume in each look, at one person size.", [
+    (f'azurine-jump{t}', f'Azurine jumping for joy{" (tinted)" if t else ""}', 300, 500, 'bottom centre', TINTED if t else SPRITE,
+     f'Princess Azurine exactly as in azurine-stand{t}.webp (attach it), facing left in a joyful dancing leap, both arms lifted out, one knee raised and the other leg extended down, gown flowing. Match the raised-arm celebration of prince-court-leap{t}.webp. Same face, hair, costume, colours and head size as her standing reference; whole figure in frame. Transparent background, no floor, shadow or props.', None)
+    for t in ('', '-tinted')
+]))
+
+
 def ids():
     return [a for _, _, items in GROUPS for a in items]
 
