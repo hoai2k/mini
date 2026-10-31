@@ -84,11 +84,11 @@
       ],
       "bounds": [
         0,
-        103,
+        101,
         300,
         360
       ],
-      "native_sha256": "e04dc5b353dd560c04dafd84395c19928bde819d5b124bba45a12753ded825db",
+      "native_sha256": "5976f43723e2b3be74daafcb3795ddc192c0048a74ccdb4857b0cc1c1e771319",
       "review": "accepted"
     },
     {
@@ -158,12 +158,12 @@
         240
       ],
       "bounds": [
-        8,
-        0,
-        191,
+        34,
+        92,
+        165,
         240
       ],
-      "native_sha256": "8c17c6f4636513262d009628e94b3de578f2b9abd12573c67bd05da6028c707a",
+      "native_sha256": "5f57be0c8c4da921b8ee5ab95720d8cd2b2db2dd2da742ef13fc67a0dfd0eb7e",
       "review": "accepted"
     },
     {
@@ -173,12 +173,12 @@
         240
       ],
       "bounds": [
-        12,
-        0,
-        188,
+        33,
+        92,
+        167,
         240
       ],
-      "native_sha256": "92b8a093147f3f26e8726cc5751871f5e87466159eee06af5ae6eda0596ba10f",
+      "native_sha256": "6c6f4cafca05f37757d87b34734d7f682629f1a42930c71202b579257573999a",
       "review": "accepted"
     }
   ],
@@ -189,6 +189,7 @@
     "partial": "5 suites passed"
   },
   "browser": "36 scenes in each film look; 28 scenes in each older edition; no page errors",
-  "combat_browser": "Both film looks: actual strike, cast, recoil and dropping-barrel draws verified without page errors",
-  "person_sizes": "Reference-head measurements, by-eye witch overrides, review sheets and fingerprint check passed"
+  "combat_browser": "Original/Tinted with Off/Gentle/Full effects: 66 scene captures, scale invariance, barrel handoff and real stalactite lifecycle passed",
+  "person_sizes": "Reference-head measurements, by-eye witch overrides, review sheets and fingerprint check passed",
+  "in_game_review": "progress/in-game-review/README.md"
 }

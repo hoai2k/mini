@@ -118,7 +118,7 @@ export function stepCavern(cv, dt, input, { hit, pearl, events, graceLeft }) {
     else if (d.state === 'fall') {
       d.vy += DROP.g * dt; d.y += d.vy * dt;
       const tip = d.y + DROP.len, floor = surfaceUnder(d.x, 9999);
-      if (graceLeft() <= 0 && Math.abs(s.x - d.x) < DROP.hw + BODY.hw && tip > s.y - BODY.h && d.y < s.y) { hit('stalactite'); d.state = 'broken'; d.landY = s.y; events.push({ type: 'dropShatter', x: d.x, y: s.y - 40 }); }
+      if (graceLeft() <= 0 && Math.abs(s.x - d.x) < DROP.hw + BODY.hw && tip > s.y - BODY.h && d.y < s.y) { hit('stalactite'); d.state = 'broken'; d.landY = floor?.y ?? null; events.push({ type: 'dropShatter', x: d.x, y: s.y - 40 }); }
       else if (floor && tip >= floor.y) { d.state = 'broken'; d.landY = floor.y; events.push({ type: 'dropShatter', x: d.x, y: floor.y }); }
       else if (tip > POOL_Y + 40) { d.state = 'broken'; d.landY = null; events.push({ type: 'poolSplash', x: d.x, y: WATER_Y }); }
     }

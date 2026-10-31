@@ -2,7 +2,7 @@
 // standing height as painted in it (art px), measured by the head against
 // the character's reference sprite. Draw with drawPerson (src/pose.js) so
 // every sprite of a character comes out at one person size.
-// Inputs fingerprint fbf2979ad3f5e631 (person_sizes.py --check).
+// Inputs fingerprint e908a3277f399107 (person_sizes.py --check).
 export const PERSON = {
   'prince-stand': { who: 'prince-armed', px: 360 },
   'prince-strike': { who: 'prince-armed', px: 209 },

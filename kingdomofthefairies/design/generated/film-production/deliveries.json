@@ -1610,35 +1610,47 @@
       ],
       "anchor": "bottom centre (its open mouth)",
       "transparent": true,
-      "prompt": "The witch's barrel exactly as in witch-barrel-tinted.webp (attach it), the same staves, hoops, wood colour and size, but EMPTY and turned UPSIDE DOWN, its open mouth at the bottom (we see a sliver of its dark inside at the rim), the closed lid at the top, a few magical sparkles of Aurora's gold light clinging to it. Seen from the front. The open rim on the bottom edge. Nothing but the barrel: no witch, ground or shadow. Render it like a frame of a hand stencil-coloured 1903 M\u00e9li\u00e8s print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nGenerate exactly one requested asset, no collage or labels. True transparent background. Retain the complete silhouette with a small transparent safety margin; delivery sizing will align the requested anchor.",
-      "references": [
-        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/assets/witch-barrel-tinted.webp"
-      ],
       "edition": "film",
-      "path": "/Users/hoai/.codex/generated_images/01a18d73-0123-72f0-9148-a1319c31802a/exec-28f2ebc4-31e7-4159-84a4-eeecdc585808.png",
-      "generation_id": "exec-28f2ebc4-31e7-4159-84a4-eeecdc585808",
+      "fit_bounds": [
+        33,
+        92,
+        167,
+        240
+      ],
+      "references": [
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/design/generated/film-production/progress/rejected/in-game-barrel-perspective/barrel-upturned-tinted-original.png"
+      ],
+      "prompt": "Correct ONLY the bottom rim perspective in this upside-down barrel image. The camera looks slightly DOWN from above, as established by the closed wooden lid at the top. The bottom is open, but its interior CANNOT be seen as an upward-facing oval from this viewpoint. Remove the broad black oval bowl at the bottom. Instead show the bottom hoop and stave ends as a natural shallow curved lower edge, with ONLY a VERY THIN dark slit immediately under the front lip, no more than 1 percent of barrel height. No oval bowl, no second lid, no visible back rim of the opening. Keep the entire rest of the barrel exactly unchanged: closed lid, body silhouette proportions, wood, hoops, sparkles, photographic hand-tinted style. True transparent background. Complete silhouette.",
+      "path": "/Users/hoai/.codex/generated_images/01a18d73-0123-72f0-9148-a1319c31802a/exec-39837ada-654d-4da6-84ff-d1c4b9e41437.png",
+      "generation_id": "exec-39837ada-654d-4da6-84ff-d1c4b9e41437",
       "method": "built-in imagegen",
       "review": {
         "status": "accepted",
-        "notes": "Reviewed full silhouette, facing, costume/prop identity, transparent composite and prepared dimensions/anchor. Corrected staff grip and framing where needed; character size is calibrated in person-size.js."
+        "notes": "User-marked bottom perspective corrected to a shallow lip; matched to occupied barrel body."
       },
+      "alignment_bounds": [
+        33,
+        92,
+        167,
+        240
+      ],
       "original": "design/generated/film-production/barrel-upturned-tinted-original.png",
       "file": "assets/barrel-upturned-tinted.webp",
       "native_size": [
-        1145,
-        1374
+        1205,
+        1305
       ],
       "source_crop": [
-        129,
-        96,
-        1018,
-        1308
+        120,
+        91,
+        1090,
+        1163
       ],
       "placement": [
-        12,
-        0,
-        176,
-        240
+        33,
+        92,
+        134,
+        148
       ]
     },
     {
@@ -1650,35 +1662,47 @@
       ],
       "anchor": "bottom centre (its open mouth)",
       "transparent": true,
-      "prompt": "The witch's barrel exactly as in witch-barrel.webp (attach it), the same staves, hoops, wood colour and size, but EMPTY and turned UPSIDE DOWN, its open mouth at the bottom (we see a sliver of its dark inside at the rim), the closed lid at the top, a few magical sparkles of Aurora's gold light clinging to it. Seen from the front. The open rim on the bottom edge. Nothing but the barrel: no witch, ground or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nGenerate exactly one requested asset, no collage or labels. True transparent background. Retain the complete silhouette with a small transparent safety margin; delivery sizing will align the requested anchor.",
-      "references": [
-        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/assets/witch-barrel.webp"
-      ],
       "edition": "film",
-      "path": "/Users/hoai/.codex/generated_images/01a18d73-0123-72f0-9148-a1319c31802a/exec-8c32b4a6-16a4-440f-8fb1-a8d454dd5a06.png",
-      "generation_id": "exec-8c32b4a6-16a4-440f-8fb1-a8d454dd5a06",
+      "fit_bounds": [
+        34,
+        92,
+        165,
+        240
+      ],
+      "references": [
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/design/generated/film-production/progress/rejected/in-game-barrel-perspective/barrel-upturned-original.png"
+      ],
+      "prompt": "Correct ONLY the bottom rim perspective in this upside-down barrel image. The camera looks slightly DOWN from above, as established by the closed wooden lid at the top. The bottom is open, but its interior CANNOT be seen as an upward-facing oval from this viewpoint. Remove the broad black oval bowl at the bottom. Instead show the bottom hoop and stave ends as a natural shallow curved lower edge, with ONLY a VERY THIN dark slit immediately under the front lip, no more than 1 percent of barrel height. No oval bowl, no second lid, no visible back rim of the opening. Keep the entire rest of the barrel exactly unchanged: closed lid, body silhouette proportions, wood, hoops, sparkles, painted toy-theatre style. True transparent background. Complete silhouette.",
       "method": "built-in imagegen",
       "review": {
         "status": "accepted",
-        "notes": "Reviewed full silhouette, facing, costume/prop identity, transparent composite and prepared dimensions/anchor. Corrected staff grip and framing where needed; character size is calibrated in person-size.js."
+        "notes": "Bottom perspective corrected to a shallow lip; matched to occupied barrel body."
       },
+      "path": "/Users/hoai/.codex/generated_images/01a18d73-0123-72f0-9148-a1319c31802a/exec-109e90c8-8aca-413d-b769-83f091a3898b.png",
+      "generation_id": "exec-109e90c8-8aca-413d-b769-83f091a3898b",
+      "alignment_bounds": [
+        34,
+        92,
+        165,
+        240
+      ],
       "original": "design/generated/film-production/barrel-upturned-original.png",
       "file": "assets/barrel-upturned.webp",
       "native_size": [
-        1145,
-        1374
+        1205,
+        1305
       ],
       "source_crop": [
-        117,
+        125,
         79,
-        1030,
-        1276
+        1104,
+        1183
       ],
       "placement": [
-        8,
-        0,
-        183,
-        240
+        34,
+        92,
+        131,
+        148
       ]
     },
     {
@@ -10983,25 +11007,25 @@
     },
     {
       "id": "prince-strike-tinted",
-      "title": "Prince striking with the sword (tinted)",
       "size": [
         300,
         360
       ],
       "anchor": "bottom centre",
+      "title": "Prince striking with the sword (tinted)",
       "transparent": true,
-      "prompt": "Create a single sprite of Prince Bel-Azor striking with his sword. Image 1 supplies his identity and TINTED LOOK: soft-focus photographic performer with grey skin, translucent hand-stencil dyes, silver cuirass over azure tunic, crimson cloak, silver plumed helmet and magenta plume, star shield. Image 2 supplies the exact lunge pose and equipment: front knee bent, back leg straight, sword extended RIGHT, entire blade visible, shield behind. KEEP THE SILVER METAL CUIRASS covering his chest and abdomen, as in BOTH references; do not replace it with bare blue cloth. Render in the simple 1903 tinted-photo style of image 1. Full figure isolated on true transparent background; no haze or halo, no floor, no cast shadow, no text. Correct sword hand grip, two arms only. Complete extremities within frame, tiny safety margin. Intended transparent game canvas 300x360, bottom centre anchor.",
-      "references": [
-        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/assets/prince-stand-tinted.webp",
-        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/design/generated/film-production/prince-strike-original.png"
-      ],
       "edition": "film",
-      "path": "/Users/hoai/.codex/generated_images/01a18d73-0123-72f0-9148-a1319c31802a/exec-a3882d58-1263-4bfa-b511-cf9b2d26098c.png",
-      "generation_id": "exec-a3882d58-1263-4bfa-b511-cf9b2d26098c",
+      "references": [
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/design/generated/film-production/progress/superseded-in-game-review/prince-strike-tinted-original.png",
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/assets/prince-stand-tinted.webp"
+      ],
+      "prompt": "Edit Image 1 (the lunging prince) to match the exact simple COSTUME and photographic hand-tinted style in Image 2 (his standing sprite). Keep Image 1's pose, face size, helmet, plume, sword, shield, limbs and silhouette exactly unchanged. Change only his torso and skirt: replace the ornate silver breastplate, gold star and gold fleurs-de-lis decoration with Image 2's plain azure-blue torso and plain azure tunic skirt with simple muted gold belt. Match image 2's soft grey photographic skin, subdued hand-stencil colours and simple stage costume, no new filigree. Keep the wrist and leg armour. Both are the same man in the same costume, only his pose differs. True transparent background; no added glow, floor, shadow or text. Entire extended sword visible.",
+      "path": "/Users/hoai/.codex/generated_images/01a18d73-0123-72f0-9148-a1319c31802a/exec-db98c27d-73df-4bcd-84b0-46b7be4317aa.png",
+      "generation_id": "exec-db98c27d-73df-4bcd-84b0-46b7be4317aa",
       "method": "built-in imagegen",
       "review": {
         "status": "accepted",
-        "notes": "Reviewed full silhouette, facing, costume/prop identity, transparent composite and prepared dimensions/anchor. Corrected staff grip and framing where needed; character size is calibrated in person-size.js."
+        "notes": "Costume matched to tinted standing reference; pose and scale retained."
       },
       "original": "design/generated/film-production/prince-strike-tinted-original.png",
       "file": "assets/prince-strike-tinted.webp",
@@ -11010,16 +11034,16 @@
         1374
       ],
       "source_crop": [
-        3,
-        199,
-        1142,
+        6,
+        195,
+        1141,
         1174
       ],
       "placement": [
         0,
-        103,
+        101,
         300,
-        257
+        259
       ]
     },
     {

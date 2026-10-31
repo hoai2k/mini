@@ -29,7 +29,7 @@ export function cavernScene(k, st, t) {
   pools(k, cx, t);
   for (const f of FLOORS) floor(k, f);
   for (const l of LEDGES) ledge(k, l);
-  for (const d of cv.drops) drop(k, d, t);
+  for (const d of cv.drops) drawStalactite(k, d, t);
   for (const p of cv.pearls) {
     if (p.got) continue;
     const bob = Math.sin(t * 2.4 + p.i) * 4;
@@ -116,8 +116,27 @@ function ledge(k, l) {
 }
 
 // A stalactite: hanging, shivering, falling, or broken on the floor.
-function drop(k, d, t) {
+export function drawStalactite(k, d, t) {
   const c = k.c;
+  const im = k.img('cavern-stalactite');
+  if (im) {
+    const iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height;
+    // The painted ceiling cap stays fixed. Only the spike below it shakes
+    // and falls, keeping its tip at the collision model's y + DROP.len.
+    const cap = ih / 7, scale = DROP.len / ih, w = iw * scale;
+    k.assetCrop('cavern-stalactite', 0, 0, iw, cap, d.x - w / 2, CEIL_Y, w, cap * scale);
+    if (d.state !== 'broken') {
+      const sx = d.state === 'shake' ? Math.sin(t * 60) * 3 : 0;
+      k.assetCrop('cavern-stalactite', 0, cap, iw, ih - cap,
+        d.x + sx - w / 2, d.y + cap * scale, w, (ih - cap) * scale);
+    } else if (d.landY != null) {
+      // Rubble rests on the same surface that stopped the falling tip.
+      if (!k.asset('cavern-stalactite-broken', d.x, d.landY, 60, 20)) {
+        c.fillStyle = k.col('#9b8790'); c.fillRect(d.x - 24, d.landY - 6, 48, 6);
+      }
+    }
+    return;
+  }
   if (d.state === 'broken') {
     if (d.landY == null) return;
     c.fillStyle = k.col('#9b8790');
