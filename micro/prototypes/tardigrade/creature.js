@@ -117,7 +117,7 @@ export class Creature {
     parent.add(this.group);
     this.meshes = [];
     this.pose = {
-      phase: 0, sway: 0, bob: 0, surge: 0, tun: 0, stylet: 0, pump: 0, wrinkle: 0, breath: 0,
+      phase: 0, sway: 0, bob: 0, surge: 0, tun: 0, stylet: 0, pump: 0, wrinkle: 0, breath: 0, gape: 0,
       feet: LEGS.map((L) => L.ground.clone()),
       footN: LEGS.map(() => new THREE.Vector3(0, 1, 0)),
       clawOpen: LEGS.map(() => 0),
@@ -143,7 +143,7 @@ export class Creature {
     ], { min: [1.0, -0.18, -0.06], max: [1.84, 0.04, 0.06], cell: 0.008 }), { dn: 0.09, absorb: [0.3, 0.45, 0.8] }, { color: 0xd8c08a });
     // Mouth ring (peribuccal ring of cuticle).
     I('mouth ring', buildSdfMesh([{ id: 0, sdf: (x, y, z) => Math.hypot(Math.hypot(y + 0.105, z) - 0.07, (x - 1.76) * 1.0) - 0.02 }],
-      { min: [1.68, -0.21, -0.11], max: [1.84, 0.0, 0.11], cell: 0.008 }), { dn: 0.07, absorb: [0.2, 0.3, 0.6] }, { color: 0xd8c08a });
+      { min: [1.68, -0.21, -0.11], max: [1.84, 0.0, 0.11], cell: 0.008 }), { dn: 0.07, absorb: [0.2, 0.3, 0.6] }, { color: 0xd8c08a }, { gape: [1.76, -0.105, 0] });
     this.stylets = I('stylets', buildSdfMesh([
       { id: 0, sdf: sd.roundCone([1.62, -0.095, 0.022], [1.16, -0.05, 0.13], 0.011, 0.016) },
       { id: 0, sdf: sd.roundCone([1.62, -0.095, -0.022], [1.16, -0.05, -0.13], 0.011, 0.016) },
@@ -302,6 +302,8 @@ export class Creature {
       for (let i = 0, n = p.length / 3; i < n; i++) {
         let x = r[3 * i], y = r[3 * i + 1], z = r[3 * i + 2];
         if (rec.slide) x += P.stylet * 0.16;
+        // pose.gape opens the mouth ring (an attack posture)
+        if (rec.gape && P.gape) { const k = 1 + 0.9 * P.gape; y = rec.gape[1] + (y - rec.gape[1]) * k; z *= k; }
         if (rec.pump) {
           const k = 1 + 0.14 * P.pump;
           y = rec.pump[1] + (y - rec.pump[1]) * k; z = rec.pump[2] + (z - rec.pump[2]) * k;

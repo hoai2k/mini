@@ -15,7 +15,7 @@ import { createDash, hudControls, addInvertY } from '../shared/controls.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
 import { loadTexture } from '../shared/assets.js';
-import { createHunger, createCapture } from '../shared/predation.js';
+import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { createPost, goodsellShared, toonMaterial, inkedInstanced } from '../shared/techniques/phage-goodsell.js';
 import { createT4, t4LiteGeometry, T4 } from '../shared/techniques/phage-model.js';
 import { createWorld, uvAt, BOUNDS, UV } from './world.js';
@@ -68,8 +68,8 @@ const hud = mountHud({
     move: 'Drift (a labelled departure: phages have no motor). Bound to a host: walk fibre by fibre',
     camera: 'Orbit the view',
     dash: 'Current gust (departure) · on a surface: push off with the fibres',
-    attack: 'Commit: bind irreversibly, contract the sheath, inject (needs an OmpC patch)',
-    defend: 'Fibres: fold (slip past clay and wrong hosts) / extend (catch receptors)',
+    attack: 'Commit: bind irreversibly, contract the sheath, inject (on an OmpC patch) · at an amoeba lobe: fibre jab (departure)',
+    defend: 'Defend: fold the fibres and slip (the amoeba gets no purchase; past clay and wrong hosts) / extend (catch receptors)',
     special: 'Odds and receptor overlay (data, not optics)',
     look: 'Look: Goodsell watercolour, cryo-EM greyscale, fluorescence',
     zoom: 'Zoom in / out',
@@ -144,7 +144,9 @@ const members = () => team.filter(Boolean);
 const isMulti = () => members().length > 1;
 function makeMember(slot, color) {
   const m = { slot, color, P: newP(), t4: createT4({ clip: true }), dash: createDash({ duration: 0.5, cooldown: 2.4 }),
-    capture: createCapture({ onRestart: () => resetLevel() }), c: { active: false, phase: null, t: 0 } };
+    capture: null, c: { active: false, phase: null, t: 0 }, jab: 0 };
+  // caught: strike, hold, eat (the camera pulls back), follow the predator, fade, respawn, fade in
+  m.capture = createCapture({ onRespawn: () => afterCatch(m) });
   m.t4.addTo(scene);
   m.t4.set({ capsid: capsidMode });
   team[slot] = m;
@@ -247,6 +249,18 @@ function respawn(m) {
   placeAtStart(m, at);
   if (m.P === P) say(`${players.get(m.slot)?.name || 'P' + (m.slot + 1)} drifts back in${mate ? ' beside a teammate' : ''}.`, 2000, true);
 }
+/** The end of a catch (the screen is black): solo or not, the phage drifts back in, beside a teammate if any. */
+function afterCatch(m) {
+  const wasInside = m.P.mode === 'inside' || m.P.kind === 'cut';
+  const am = world.amoeba;
+  if (m.P.kind === 'amoeba') { am.vacuole.visible = false; am.see(1); am.posture(0); }
+  if (wasInside) { inside.reset(); m.P.fade = 0; for (const h of world.hosts) h.locked = false; }
+  fight.reset();
+  const was = cur;
+  respawn(m);
+  m.P.kind = null;
+  if (was) use(was);
+}
 let started = false;
 function resetLevel() {
   world.reset();
@@ -273,12 +287,6 @@ function startCapture(kind, by, how) {
   if (isMulti()) embed.captured({ player: cur.slot, kind });
   audio.play(kind === 'amoeba' ? 'bacterium/graze' : kind === 'cut' ? 'bacterium/tumble' : 'bacterium/eat', { volume: 0.9 });
 }
-const TITLES = { amoeba: 'Eaten', uv: 'Inactivated', cut: 'Cut' };
-function retitleCard() {
-  for (const el of document.body.children) {
-    if (el.style && el.style.zIndex === '30' && el.firstChild && el.firstChild.textContent === 'Eaten' && TITLES[P.kind]) el.firstChild.textContent = TITLES[P.kind];
-  }
-}
 function captureAnim(phase, t, dt) {
   const am = world.amoeba;
   if (P.kind === 'amoeba') {
@@ -289,19 +297,32 @@ function captureAnim(phase, t, dt) {
       am.tip.copy(centreOf(_v)); am.reach = am.tip.distanceTo(am.base);
       world.drawPod(am.reach, am.base, am.tip, 0);
       am.vacuole.visible = true; am.vacuole.position.copy(centreOf(_v)); am.vacuole.scale.setScalar(26 - 6 * t);
-    } else if (phase === 'eat' || phase === 'eaten') {
-      const k = phase === 'eat' ? t : 1;
-      world.drawPod(am.reach * (1 - k), am.base, am.tip.lerp(am.base, dt * 2), 0, k < 0.95);
-      P.pos.lerp(_w.copy(am.base).addScaledVector(_n.subVectors(am.center, am.base).normalize(), 2), dt * 0.8);
-      am.vacuole.visible = true; am.vacuole.position.copy(centreOf(_v)); am.vacuole.scale.setScalar(20 - 6 * k);
-      P.dark = Math.min(1, 0.2 + k); P.scale = 1 - 0.45 * k; P.foldTarget = 1;
+    } else if (phase === 'eat') {
+      // swallowed whole: the lobe draws back in with the vacuole, and we watch through its membrane
+      world.drawPod(am.reach * (1 - t), am.base, am.tip.lerp(am.base, dt * 2), 0, t < 0.95);
+      am.see(1 - 0.5 * t);
+      P.pos.lerp(_w.copy(am.base).addScaledVector(_n.subVectors(am.center, am.base).normalize(), 22), dt * 1.2);
+      am.vacuole.visible = true; am.vacuole.position.copy(centreOf(_v)); am.vacuole.scale.setScalar(20 - 6 * t);
+      P.dark = Math.min(1, 0.2 + t * 0.6); P.scale = 1 - 0.3 * t; P.foldTarget = 1;
+    } else if (phase === 'follow' || phase === 'fadeOut') {
+      // the amoeba moves on: cytoplasm streams the vacuole along its edge while it digests
+      const k = phase === 'follow' ? t : 1;
+      world.drawPod(0, am.base, am.tip, 0, false);
+      am.see(0.5);
+      const inward = _n.subVectors(am.center, am.base).normalize();
+      P.pos.addScaledVector(_w.set(-inward.y, inward.x, 0), -dt * 24).addScaledVector(inward, dt * 4);
+      am.vacuole.visible = true; am.vacuole.position.copy(centreOf(_v)); am.vacuole.scale.setScalar(14 - 4 * k);
+      P.dark = Math.min(1, 0.8 + 0.2 * k); P.scale = 0.7 - 0.25 * k;
     }
   } else if (P.kind === 'uv') {
     if (phase === 'strike') post.uniforms.uFlash.value = (1 - t) * 0.7;
     else if (phase === 'hold') { P.dark = 0.4 + 0.6 * t; }
-    else { const k = phase === 'eat' ? t : 1; P.dark = 1; P.crack = k; P.dna = 1 - 0.5 * k; P.foldTarget = 0.6; }
+    else if (phase === 'eat') { P.dark = 1; P.crack = t; P.dna = 1 - 0.5 * t; P.foldTarget = 0.6; }
+    else { P.dark = 1; P.crack = 1; P.dna = 0.5; P.pos.y += dt * 5; P.pos.x += dt * 3; } // the broken shell drifts on in the light
   } else if (P.kind === 'cut') {
-    inside.cutAnim(P.cutBy, phase, t);
+    if (phase === 'follow' || phase === 'fadeOut') { // the enzyme lets go and slides off along the host DNA
+      const e = P.cutBy; e.closing = null; e.pos.x += dt * 14; e.pos.y -= dt * 4; e.g.position.copy(e.pos);
+    } else inside.cutAnim(P.cutBy, phase, t);
   }
 }
 
@@ -568,33 +589,86 @@ function updateBurst(dt) {
 
 // --- the amoeba ---
 let podGiveUp = 0;
+// The amoeba's fight (shared createFight): it stalks with a lobe, rears and curls it
+// (the wind-up: swollen, flushed, lips spread wide), then lunges. Folded fibres
+// (B) make the strike slip; a fibre jab (X) makes the lobe recoil; facing it with
+// the fibres wears its interest down. At zero it draws the lobe back and leaves.
+const fight = createFight({ windup: 1.1, strike: 0.4, recoverT: 1.0, repelT: 1.2, retreatT: 6 });
+let fightState = 'stalk';
+const REACH = 34;
+/** The lobe's tip and whether `m` can jab it now. */
+function lobeNear(m) {
+  const am = world.amoeba;
+  if (!(am.reach > 2) || !opts.amoeba) return false;
+  const c = m.t4.headWorld(new THREE.Vector3()).lerp(m.P.pos, 0.6);
+  return c.distanceTo(am.tip) < REACH + 14;
+}
+function tryJab(m) {
+  if (!lobeNear(m) || m.jab > 0) return false;
+  m.jab = 0.45;
+  const am = world.amoeba;
+  const away = _v.subVectors(m.P.pos, am.tip).normalize();
+  m.P.gust.addScaledVector(away, 45); // the kick also pushes you off it
+  am.tip.addScaledVector(away, -28);   // and the lobe recoils
+  const gone = fight.bitten();
+  audio.play('bacterium/sprint', { volume: 0.7, rate: 1.4 });
+  curPad().rumble(140, 0.5, 0.4);
+  say(gone ? 'Jabbed again: the amoeba gives up and draws its lobe back.' : 'Fibre jab: the lobe flinches back (a departure: a phage has no weapon).', 2000, true);
+  return true;
+}
 function updateAmoeba(dt) {
   const am = world.amoeba;
   hunger.update(dt);
-  const c = centreOf(_v);
-  const reachable = opts.amoeba && hunger.hungry && (P.mode === 'drift' || P.mode === 'walk' || P.mode === 'clay') && world.sdAmoeba(c) < 260;
+  const c = centreOf(_v).clone();
+  const retreating = fightState === 'retreat';
+  const reachable = opts.amoeba && hunger.hungry && !retreating && outsideModes.includes(P.mode) && world.sdAmoeba(c) < 260;
   if (reachable) {
-    if (am.reach < 2) { am.base.subVectors(c, am.center).normalize().multiplyScalar(am.r - 6).add(am.center); am.tip.copy(am.base); }
+    if (am.reach < 2) { am.base.subVectors(c, am.center).normalize().multiplyScalar(am.r - 6).add(am.center); am.tip.copy(am.base); fight.reset(); }
     const toward = _w.subVectors(c, am.tip);
     const d = toward.length();
-    const sp = 15 + Math.sin(t * 2.1) * 4;
-    am.tip.addScaledVector(toward.normalize(), Math.min(d, sp * dt));
+    toward.normalize();
+    // facing it: your fibres (the baseplate end) point at the lobe, or you push the stick toward it
+    const dirTo = new THREE.Vector3().subVectors(am.tip, P.pos).normalize();
+    const base = axisOf(new THREE.Vector3()).negate();
+    const facing = base.dot(dirTo) > 0.35 || (P.lastStickT > 0 && P.lastStick && P.lastStick.dot(dirTo) > 0.5);
+    const blocking = P.foldTarget > 0.5;
+    const f = fight.update(dt, { near: d < 140, inReach: d < REACH, facing: facing || (blocking && d < REACH), blocking });
+    fightState = f.state;
+    let open = 0.4, posture = 0, standoff = 26, sp = 15 + Math.sin(t * 2.1) * 4;
+    if (f.state === 'stalk') { standoff = 22; }
+    else if (f.state === 'windup') {
+      // rear and curl: hold off, swell, flush, lips wide, the tip lifting sideways
+      standoff = 30; sp = 6; open = 1 + 0.6 * f.t + Math.sin(t * 18) * 0.08; posture = Math.min(1, f.t * 1.5);
+      const side = new THREE.Vector3(-toward.y, toward.x, 0);
+      am.tip.addScaledVector(side, Math.sin(f.t * Math.PI) * 10 * dt);
+    } else if (f.state === 'strike') { standoff = 0; sp = 160; open = 1.6 - f.t * 1.6; posture = 1; }
+    else if (f.state === 'recover') { standoff = 46; sp = 25; open = 0.3; }
+    else if (f.state === 'repelled') { standoff = 80; sp = 70; open = 0; posture = 0; }
+    if (f.blocked) { P.gust.addScaledVector(toward, 40); curPad().rumble(160, 0.4, 0.6); audio.play('bacterium/tumble', { volume: 0.6, rate: 0.8 }); say('Folded and slippery: the lobe slides off you.', 1800, true); }
+    if (f.retreated) { say('The amoeba loses interest and draws its lobe back.', 2200, true); }
+    const goal = d - standoff;
+    am.tip.addScaledVector(toward, Math.sign(goal) * Math.min(Math.abs(goal), sp * dt));
     am.tip.x += Math.sin(t * 1.7) * 0.15; am.tip.y += Math.cos(t * 1.3) * 0.15;
     am.reach = am.tip.distanceTo(am.base);
     if (am.reach > 300) { am.tip.sub(am.base).setLength(300).add(am.base); am.reach = 300; podGiveUp += dt; }
-    if (d > 120) podGiveUp += dt * 0.5;
+    if (d > 140) podGiveUp += dt * 0.5;
     if (podGiveUp > 8) { hunger.missed(); podGiveUp = 0; say('The amoeba gives up for now.', 1800); }
-    world.drawPod(am.reach, am.base, am.tip, clamp(1 - (d - 10) / 60, 0.2, 1));
-    if (d < 10) {
+    am.posture(posture);
+    world.drawPod(am.reach, am.base, am.tip, open);
+    if (f.hit) {
       hunger.fed(); podGiveUp = 0;
-      startCapture('amoeba', 'The amoeba', 'closed a pseudopod round you into a food vacuole');
+      startCapture('amoeba', 'The amoeba', 'closed its lobe round you into a food vacuole');
     }
-    if (d < 70 && P.msgT <= 0) { say('A pseudopod is reaching for you: drift away or ride a gust (A)!', 2200, true); P.msgT = 4; }
+    if (f.state === 'windup' && f.t < 0.15 && P.msgT <= 0) { say('The lobe rears and curls to strike: fold your fibres (B) to slip, or jab it (X)!', 2400, true); P.msgT = 3; }
+    else if (f.state === 'stalk' && d < 90 && P.msgT <= 0) { say('A pseudopod is reaching for you: face it, drift away or ride a gust (A).', 2200, true); P.msgT = 4; }
   } else if (am.reach > 0) {
+    // retreat, or not hungry: draw the lobe back in
     am.reach = Math.max(0, am.reach - 30 * dt);
     if (am.reach > 0) am.tip.copy(am.base).addScaledVector(_w.subVectors(am.tip, am.base).normalize(), am.reach);
-    world.drawPod(am.reach, am.base, am.tip, 0.3, am.reach > 1);
-  }
+    am.posture(0);
+    world.drawPod(am.reach, am.base, am.tip, 0.2, am.reach > 1);
+    if (retreating) { fightState = fight.update(dt, {}).state; if (fightState !== 'retreat') { hunger.missed(); fight.reset(); fightState = 'stalk'; } }
+  } else if (retreating) { fightState = fight.update(dt, {}).state; if (fightState !== 'retreat') { hunger.missed(); fight.reset(); fightState = 'stalk'; } }
 }
 
 // --- overlay labels ---
@@ -653,22 +727,12 @@ function stepMember(m, dt, insideOwner, where) {
   const idle = blocked || !pl || pl.waiting;
   const ls = idle ? ZERO_LS : ctl.move();
   const inp = { stick: null, stickM: 0 };
-  if (ls.m > 0) { inp.stick = stickWorld(ls, new THREE.Vector3()).normalize(); inp.stickM = Math.min(1, ls.m); P.lastStick = inp.stick.clone(); }
+  if (ls.m > 0) { inp.stick = stickWorld(ls, new THREE.Vector3()).normalize(); inp.stickM = Math.min(1, ls.m); P.lastStick = inp.stick.clone(); P.lastStickT = 0.3; }
+  P.lastStickT = (P.lastStickT || 0) - dt;
   const multi = isMulti();
-  const c = capture.update(dt, multi ? null : pad);
+  const c = capture.update(dt, pad);
+  use(m); // (a respawn inside update may have switched members)
   m.c = c;
-  if (c.phase === 'eaten') {
-    if (multi) {
-      // multiplayer: no card; the sequence has played, so back in beside a teammate
-      const wasInside = m === insideOwner;
-      capture.reset(false);
-      if (wasInside) { inside.reset(); P.fade = 0; }
-      respawn(m);
-      m.c = { active: false, phase: null, t: 0 };
-      return;
-    }
-    retitleCard();
-  }
   const frozen = insideOwner && insideOwner !== m; // a teammate is inside a host: wait
   const live = !idle && !c.active && !debug.freeze && !frozen;
   if (!idle) {
@@ -697,8 +761,12 @@ function stepMember(m, dt, insideOwner, where) {
       audio.play('bacterium/sprint', { volume: 0.8 });
       curPad().rumble(120, 0.4, 0.3);
     } else if (ctl.dash.pressed() && P.mode === 'clay') say('Stuck to clay: a gust cannot pull you off. Fold the fibres (B).', 1800, true);
-    if (ctl.attack.pressed()) tryCommit();
+    if (ctl.attack.pressed()) {
+      if (P.mode === 'walk' && P.canCommit) tryCommit();
+      else if (!tryJab(m)) tryCommit();
+    }
   }
+  m.jab = Math.max(0, m.jab - dt);
   if (frozen) return;
   P.fold += (P.foldTarget - P.fold) * (1 - Math.exp(-dt * 2.6));
   const still = { stick: null, stickM: 0 };
@@ -737,7 +805,7 @@ function stepMember(m, dt, insideOwner, where) {
   t4.group.quaternion.copy(P.q);
   t4.group.scale.setScalar(P.scale);
   t4.group.visible = t4.fibreMesh.visible = P.mode !== 'inside' && !(P.mode === 'burst');
-  for (let f = 0; f < 6; f++) t4.fibres[f].reach = P.mode === 'drift' && inp.stick ? 0.25 : 0;
+  for (let f = 0; f < 6; f++) t4.fibres[f].reach = m.jab > 0 ? 1.2 * Math.sin((m.jab / 0.45) * Math.PI) : P.mode === 'drift' && inp.stick ? 0.25 : 0;
   t4.state.sway = P.mode === 'walk' || P.mode === 'commit' ? 0.4 : 1;
   t4.update(dt, t);
 }

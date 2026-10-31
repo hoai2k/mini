@@ -211,6 +211,17 @@ export function createWorld(scene) {
   vacuole.visible = false;
   scene.add(vacuole);
   amoeba.mesh = amBody; amoeba.pod = pod; amoeba.lips = lips; amoeba.vacuole = vacuole;
+  /** See into the amoeba (while it digests you): 1 opaque .. lower = translucent. */
+  amoeba.see = (a) => {
+    const tr = a < 0.99;
+    for (const m of [amoebaMat, amBody.ink.material]) { m.uniforms.uOpacity.value = a; m.transparent = tr; m.depthWrite = !tr; m.needsUpdate = m.transparent !== m.userData.tr; m.userData.tr = tr; }
+    amBody.renderOrder = tr ? 2 : 0;
+  };
+  /** Attack posture: 0 calm .. 1 rearing to strike (the lobe darkens toward a flushed rose). */
+  amoeba.posture = (k) => {
+    podMat.uniforms.uDark.value = k * 0.45;
+  };
+  podMat.uniforms.uDarkColor.value.set('#b0335a');
   world.amoeba = amoeba;
   world.sdAmoeba = (p) => p.distanceTo(amoeba.center) - amoeba.r;
   /** Pseudopod shape: from base toward tip; open 0..1 opens the cup lips. */
@@ -227,7 +238,8 @@ export function createWorld(scene) {
     lips.forEach((l, i) => {
       const s = i ? 1 : -1;
       const a = (0.25 + 0.9 * open) * s;
-      l.position.copy(tip).addScaledVector(side, s * (6 + 4 * open)).addScaledVector(dir, 4);
+      l.position.copy(tip).addScaledVector(side, s * (6 + 4 * open)).addScaledVector(dir, 4 + 3 * Math.max(0, open - 1));
+      l.scale.setScalar(1 + 0.35 * Math.max(0, open - 1));
       l.quaternion.setFromUnitVectors(UP, dir.clone().applyAxisAngle(Z, a));
     });
   };
@@ -343,7 +355,7 @@ export function createWorld(scene) {
       h.pos.set(...h.home); h.ang = h.angle; h.vel.set(0, 0, 0); h.angVel = 0; h.burst = false; h.locked = false;
       h.group.visible = true; h.group.scale.setScalar(1);
     }
-    amoeba.reach = 0; amoeba.cup = 0;
+    amoeba.reach = 0; amoeba.cup = 0; amoeba.see(1); amoeba.posture(0);
     world.drawPod(0, amoeba.base, amoeba.tip, 0, false);
     vacuole.visible = false;
   };
