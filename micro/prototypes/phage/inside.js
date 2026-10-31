@@ -207,6 +207,7 @@ export function createInside() {
 
   const api = {
     scene, camera, S, enzymes, bossLock,
+    renderObjects: { section, dnaBeads, tipGlow, tube, plate },
     /** The envelope section art (MP-V03), or null for the procedural stand-in. */
     setSection(tex) {
       // the delivered plate runs from water through the envelope into cytoplasm: show its envelope rows (12-70 % down)

@@ -395,7 +395,7 @@ export function createT4({ clip = true } = {}) {
   }
 
   const api = {
-    group, fibres, fibreMesh, geom, state, head, headGroup, materials: { headMat, capsMat },
+    group, fibres, fibreMesh, geom, state, head, headGroup, caps, dna, sheath, materials: { headMat, capsMat },
     NODES, SEG,
     addTo(scene) { scene.add(group); scene.add(fibreMesh); },
     /** Colour the sheath (a player colour in multiplayer), or null for T4's own gold. */

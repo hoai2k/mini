@@ -1,5 +1,5 @@
 // Phage prototype (Level 6 of the Zoom Chain): a T4-like tailed phage in bog
-// water, drawn as a Goodsell-style molecular illustration. LS drives a soft,
+// water, with a branch-only false-light renderer and selectable legacy looks. LS drives a soft,
 // wobbly drift (a labelled departure: phages have no motor); Brownian motion,
 // the flow and slow tumbling act on top. Move attachment-fibres first and grab
 // a protruding protein (X): a matching receptor latches and starts injection.
@@ -22,6 +22,7 @@ import { createWorld, uvAt, BOUNDS, UV } from './world.js';
 import { createInside, GENOME_NODES } from './inside.js';
 import { attachmentForward, aimedProtein } from './binding.js';
 import { followYaw } from '../shared/swim-control.js';
+import { createFalseLight } from './false-light.js';
 
 const rand = (a, b) => a + Math.random() * (b - a);
 const gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
@@ -37,10 +38,10 @@ renderer.localClippingEnabled = true;
 renderer.autoClear = false;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(35, 1, 2, 3000);
-const post = createPost(renderer);
+const post = createPost(renderer, { hdr: true });
 const gl = renderer.getContext();
 const soft = /SwiftShader|llvmpipe|Software/i.test(String(gl.getParameter(gl.RENDERER)) + (gl.getExtension('WEBGL_debug_renderer_info') ? gl.getParameter(0x9246) : ''));
-const renderScale = soft ? 0.6 : 1;
+const renderScale = soft ? 0.8 : 1;
 const inside = createInside();
 function resize() {
   const pr = Math.min(devicePixelRatio || 1, 1.5) * renderScale;
@@ -75,7 +76,7 @@ const hud = mountHud({
     attack: 'Grab a protein with the leading fibres: gold three-lobed receptors bind and inject; violet pairs slip off · at an amoeba lobe: fibre jab',
     defend: 'Defend: fold the fibres and slip (the amoeba gets no purchase; past clay and wrong hosts) / extend (grab receptors with X)',
     special: 'Odds and receptor overlay (data, not optics)',
-    look: 'Look: Goodsell watercolour, cryo-EM greyscale, fluorescence',
+    look: 'Look: false-light microscopy, Goodsell watercolour, cryo-EM greyscale, fluorescence',
     zoom: 'Zoom in / out',
     extra: [['Y', 'At the flagellum (backdoor): back to the sediment']],
   }),
@@ -104,8 +105,8 @@ safeTexture('MP-V01').then((t) => { if (t) { art.envelope = t; applyArt(); } });
 safeTexture('MP-V02').then((t) => { if (t) { art.water = t; applyArt(); } });
 safeTexture('MP-V03', { repeat: false }).then((t) => { if (t) { art.section = t; applyArt(); } });
 
-const LOOKS = ['Goodsell watercolour', 'Cryo-EM greyscale', 'Fluorescence (pseudo-colour)'];
-const LOOK_KEY = ['goodsell', 'cryo', 'fluor'];
+const LOOKS = ['False-light microscopy', 'Goodsell watercolour', 'Cryo-EM greyscale', 'Fluorescence (pseudo-colour)'];
+const LOOK_KEY = ['false-light', 'goodsell', 'cryo', 'fluor'];
 const ZOOMS = [60, 110, 180, 290];
 const view = { look: 0, zoom: 1, yaw: 0, pitch: 0, overlay: false, ink: true, art: true, target: new THREE.Vector3(), dist: 180, iso: null, followHeading: 2.95 - Math.PI / 2, lookHold: 0 };
 const opts = { drive: true, brownian: true, tumble: true, uv: true, amoeba: true };
@@ -142,7 +143,7 @@ const hunger = createHunger({ grace: 45 });
 // "current" member through P, t4, dash, capture and ctl; use(m) switches them.
 const team = []; // by slot
 let P = null, dash = null, capture = null, cur = null;
-let capsidMode = 'cutaway';
+let capsidMode = 'translucent';
 function use(m) { cur = m; P = m.P; t4 = m.t4; dash = m.dash; capture = m.capture; ctl = players.controls(m.slot); }
 const curPad = () => players.pad(cur ? cur.slot : 0);
 const members = () => team.filter(Boolean);
@@ -178,7 +179,7 @@ function syncTeam() {
 }
 
 // --- features ---
-const features = createFeatures({ key: 'phage', pad });
+const features = createFeatures({ key: 'phage.false-light-preview', pad });
 const audio = createAudio(['bacterium/amb-sediment', 'bacterium/run', 'bacterium/tumble', 'bacterium/sprint', 'bacterium/eat', 'bacterium/phage', 'bacterium/graze']);
 audio.addToFeatures(features);
 audio.loop('bacterium/amb-sediment', { volume: 0.5 });
@@ -186,9 +187,9 @@ const driftLoop = audio.loop('bacterium/run', { volume: 0 });
 function unlockOnPad() { if (pad.kind !== 'controller') return; for (let b = 0; b < 16; b++) if (pad.value(b) > 0.5) { audio.unlock(); return; } }
 
 features.add({ id: 'look', group: 'Rendering', label: 'Look (D-pad ←→)', choices: LOOKS, value: LOOKS[0],
-  about: 'Goodsell watercolour: crowded, colour-coded molecules with ink outlines, flat soft light and depth by desaturation, after David Goodsell\'s paintings. Cryo-EM greyscale: what cryo-electron tomography really gives (Hu et al. 2015 [S99]): protein density dark on grey, a bright defocus fringe, heavy shot noise. Fluorescence: every protein glowing as if tagged, a pseudo-colour fantasy (no light microscope resolves a phage). All three are illustrations.',
+  about: 'False-light microscopy (branch experiment): textured blue-teal membranes, smooth three-dimensional lighting, warm phage/DNA emission and broad depth of field. Goodsell watercolour: crowded, colour-coded molecules with ink outlines, flat soft light and depth by desaturation, after David Goodsell\'s paintings. Cryo-EM greyscale: what cryo-electron tomography really gives (Hu et al. 2015 [S99]): protein density dark on grey, a bright defocus fringe, heavy shot noise. Fluorescence: every protein glowing as if tagged, a pseudo-colour fantasy (no light microscope resolves a phage). All four use hypothetical visual treatments.',
   onChange: (v) => { view.look = Math.max(0, LOOKS.indexOf(v)); } });
-features.add({ id: 'capsid', group: 'Rendering', label: 'Capsid', choices: ['Cutaway', 'Translucent', 'Solid'], value: 'Cutaway',
+features.add({ id: 'capsid', group: 'Rendering', label: 'Capsid', choices: ['Cutaway', 'Translucent', 'Solid'], value: 'Translucent',
   about: 'Cutaway: the half of the head facing you is clipped away, showing the DNA packed inside as a coaxial spool (~169 kbp, about 57 µm of DNA in a 0.12 µm head [S98]). Translucent: the capsid as a glassy shell. Solid: as it would look from outside.',
   onChange: (v) => { capsidMode = v.toLowerCase(); for (const m of members()) m.t4.set({ capsid: capsidMode }); } });
 features.add({ id: 'ink', group: 'Rendering', label: 'Ink outlines', on: true, about: 'An inverted-hull outline around every molecule, fading with depth, as in a Goodsell painting.', onChange: (on) => { goodsellShared.uInkOn.value = on ? 1 : 0; } });
@@ -758,6 +759,7 @@ function updateOverlay(where) {
 }
 
 // --- frame ---
+const falseLight = createFalseLight({ scene, world, inside, progeny });
 const debug = { freeze: false, iso: false, camOverride: null };
 const split = createSplitScreen(renderer, { capture: true, up: null });
 const marks = createLandmarks();
@@ -886,6 +888,7 @@ function frame(now) {
   const look = { yaw: 0, pitch: 0, m: 0 };
   if (!blocked) for (const m of members()) { const l = players.controls(m.slot).look(); if (l.m > look.m) Object.assign(look, l); }
   for (const m of members()) stepMember(m, dt, insideOwner, where);
+  falseLight.setEnabled(view.look === 0, members());
   insideOwner = owner();
   const lead = members().find((m) => m.P.mode === 'burst') || insideOwner || team[0];
   const solo = !isMulti();
@@ -970,7 +973,7 @@ function frame(now) {
     goodsellShared.uFogColor.value.set('#efc4a0');
     post.uniforms.uUv.value = 0;
   }
-  post.uniforms.uLook.value = view.look;
+  post.uniforms.uLook.value = post.LOOKS[LOOK_KEY[view.look]];
   post.uniforms.uTime.value = t;
   post.uniforms.uFade.value = lead.P.fade;
   const uvDying = members().some((m) => m.c.active && m.P.kind === 'uv');
@@ -1000,7 +1003,7 @@ function frame(now) {
   driftLoop.set({ volume: P.mode === 'drift' ? Math.min(0.25, spd / 200) : 0, rate: 0.6 + spd / 200 });
   const pxPerUnit = innerHeight / (2 * Math.tan((camera.fov * Math.PI) / 360) * (where === 'outside' ? view.dist : inside.camera.position.distanceTo(inside.tip())));
   scaleEl.innerHTML = `<i style="width:${(10 * pxPerUnit).toFixed(0)}px"></i>${where === 'outside' ? '100 nm' : '10 nm'}`;
-  label.textContent = `${LOOKS[view.look]} · an illustration, not a microscope image · time slowed ~20×${opts.drive ? ' · LS drift and gusts are departures' : ''}`;
+  label.textContent = `${LOOKS[view.look]} · hypothetical illumination, not a microscope image · time slowed ~20×${opts.drive ? ' · LS drift and gusts are departures' : ''}`;
   const n5 = (x) => { const k = Math.round(clamp(x, 0, 1) * 5); return '■'.repeat(k) + '□'.repeat(5 - k); };
   const modeName = { drift: 'drifting legs-first', grab: 'grabbing a surface protein', walk: `walking on ${P.host?.name}${P.bound ? ` · ${P.bound} fibres on OmpC` : ''}`, clay: 'stuck on clay (UV shelter)', commit: 'committed: contracting', inside: 'DNA entering the host', burst: 'burst', dead: 'lost' }[P.mode];
   const am = hunger.state === 'grace' ? `calm (${Math.ceil(hunger.left)} s)` : hunger.state === 'hungry' ? ({ stalk: 'HUNGRY: reaching', windup: 'WINDING UP!', strike: 'STRIKING!', recover: 'recovering', repelled: 'repelled', retreat: 'retreating' }[fightState] || 'HUNGRY') + ` · interest ${Math.round(fight.interest * 100)} %` : fightState === 'retreat' ? 'retreating' : 'resting';

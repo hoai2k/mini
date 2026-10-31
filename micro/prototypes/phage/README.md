@@ -1,5 +1,31 @@
 # Phage
 
+## False-light branch experiment
+
+On `codex/phage-false-light-preview`, the default is a real-time false-light look;
+this experiment is awaiting visual validation and is not merged into main.
+[Browser screenshots and comparison](../../design/phage-false-light-preview.html).
+
+The renderer uses an HDR target, smooth multi-directional shading, procedural
+protein-surface normals, higher-resolution membrane relief, cool scattering,
+warm phage/DNA emission and a restrained bloom pass. Capsid facets and small
+capsomer beads sit over a translucent shell. The inside view adds two molecular
+bilayers. Focus is broad: there is no narrow depth-of-field blur.
+The large distant cells are backdrop scenery outside the swimming slab.
+
+D-pad left/right cycles False light → Goodsell → Cryo-EM → Fluorescence.
+Legacy geometry and ink return with the legacy looks. Branch settings use
+`micro.features.phage.false-light-preview`, leaving the main version’s saved
+preferences alone. No new image assets are used as runtime backdrops for false
+light; the screenshots are game renders, not AI images. The title remains as it
+was, including its non-glowing phage plate.
+
+Validation: Chrome WebGL rendered both phases without shader errors; focused
+checks exercise forward movement, camera follow and override, failed protein
+grabs, successful attachment and entry into the host. The comparison looks
+and the game shell are also checked. This is an initial material/lighting pass;
+protein geometry still has less surface detail than the generated references.
+
 Level 6 (optional) of the Zoom Chain, as a playable prototype: be a **T4-like
 tailed bacteriophage** in bog water beside its host bacteria. No light
 microscope can see a phage (a head of ~0.1 µm against a ~0.2 µm resolution
