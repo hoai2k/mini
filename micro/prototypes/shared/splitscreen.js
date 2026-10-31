@@ -85,7 +85,7 @@
 //   createSplitScreen(renderer, { renderScale = 1, capture = false,
 //     divider = { color: '#c9a35a', width: 1.75, shadow: 'rgba(16,12,6,0.5)', soft: 5 },
 //     mergeBlend = 0.2, minArea, up = [0, 1, 0] | null,
-//     splitAt = 1.12, splitIn = 0.35, turnRate = 3 (rad/s) }) -> split
+//     splitAt = 1.12, splitIn = 0.5, turnRate = 3 (rad/s) }) -> split
 //   split.update(players, shared, dt = 1/60) -> layout
 //     players: [{ slot, position: {x,y,z} }]  (1-4)
 //     shared:  { camera }  or  { center: {x,y}, pxPerUnit, yUp = true }
@@ -179,7 +179,7 @@ export function createSplitScreen(renderer, opts = {}) {
     divider = {},
     mergeBlend = 0.2,
     splitAt = 1.12,
-    splitIn = 0.35,
+    splitIn = 0.5,
     turnRate = 3,
   } = opts;
   // Camera offsets slide along the ground plane (normal `up`) by default, so
