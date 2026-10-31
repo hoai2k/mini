@@ -212,14 +212,14 @@ function captureAnim(phase, t, dt) {
     const c = centreOf(_v);
     if (phase === 'strike') { am.tip.lerp(c, 0.2); world.drawPod(am.reach, am.base, am.tip, 1 - t); }
     else if (phase === 'hold') {
-      P.pos.lerp(_w.copy(am.base).addScaledVector(_n.subVectors(am.center, am.base).normalize(), -14), dt * 1.4);
+      P.pos.lerp(_w.copy(am.base).addScaledVector(_n.subVectors(am.center, am.base).normalize(), -16), dt * 1.4);
       am.tip.copy(centreOf(_v)); am.reach = am.tip.distanceTo(am.base);
       world.drawPod(am.reach, am.base, am.tip, 0);
       am.vacuole.visible = true; am.vacuole.position.copy(centreOf(_v)); am.vacuole.scale.setScalar(26 - 6 * t);
     } else if (phase === 'eat' || phase === 'eaten') {
       const k = phase === 'eat' ? t : 1;
       world.drawPod(am.reach * (1 - k), am.base, am.tip.lerp(am.base, dt * 2), 0, k < 0.95);
-      P.pos.lerp(_w.copy(am.base).addScaledVector(_n.subVectors(am.center, am.base).normalize(), 30), dt * 0.8);
+      P.pos.lerp(_w.copy(am.base).addScaledVector(_n.subVectors(am.center, am.base).normalize(), 2), dt * 0.8);
       am.vacuole.visible = true; am.vacuole.position.copy(centreOf(_v)); am.vacuole.scale.setScalar(20 - 6 * k);
       P.dark = Math.min(1, 0.2 + k); P.scale = 1 - 0.45 * k; P.foldTarget = 1;
     }
@@ -682,7 +682,7 @@ function frame(now) {
     post.uniforms.uUv.value = opts.uv && !debug.iso ? 0.9 : 0;
     post.uniforms.uBgOff.value.set(view.target.x * 0.0006, view.target.y * 0.0006);
   } else {
-    inside.frame(dt, look, ZOOMS[view.zoom] * 1.05 + 40);
+    inside.frame(dt, look, c.active && P.kind === 'cut' ? 85 : ZOOMS[view.zoom] * 1.05 + 40);
     goodsellShared.uFogNear.value = 150; goodsellShared.uFogFar.value = 360;
     post.uniforms.uWater.value.set('#efc4a0');
     post.uniforms.uUv.value = 0;

@@ -850,7 +850,7 @@ function toScreen(x, y) {
 function updateOverlay() {
   const dark = S.mode === 2 || S.mode === 3;
   overlay.style.color = dark ? '#eef' : '#1d2228';
-  const c = S.closing ? { prey: S.closing.prey } : S.cand;
+  const c = caught.active ? null : S.closing ? { prey: S.closing.prey } : S.cand;
   if (c) {
     const p = c.prey;
     const [sx, sy] = toScreen(p.x, p.y);
@@ -946,7 +946,9 @@ function frame(now) {
     if (steps === 4) acc = 0;
   }
   // Camera: follow the cell, gently, leading a little in the direction of travel.
-  const tx = body.cx + body.fx * 60 * Math.min(1, body.fm), ty = body.cy + body.fy * 60 * Math.min(1, body.fm);
+  // once eaten, the view slides so the shrivelled cell sits above the Eaten card
+  const lift = caught.active && FC.phase === 'eaten' ? OBJECTIVES[S.objective].field * 0.16 : 0;
+  const tx = body.cx + body.fx * 60 * Math.min(1, body.fm), ty = body.cy + body.fy * 60 * Math.min(1, body.fm) - lift;
   S.camX += (tx - S.camX) * Math.min(1, dtReal * 0.8);
   S.camY += (ty - S.camY) * Math.min(1, dtReal * 0.8);
   view.setView(S.camX, S.camY, OBJECTIVES[S.objective].field * (innerWidth > innerHeight ? 1 : 0.6));

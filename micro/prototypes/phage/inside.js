@@ -106,16 +106,18 @@ export function createInside() {
 
   // enzymes
   function clampEnzyme(color, accent, size) {
+    // a restriction enzyme drawn as two blades that close on the strand like scissors
     const g = new THREE.Group();
-    const jawGeo = blobGeometry([{ p: [0, 0, 0], r: 1.4, c: color }, { p: [1.6, 0.6, 0], r: 1.2, c: color }, { p: [2.8, 0.2, 0.4], r: 1.0, c: accent }, { p: [0.8, 1.6, -0.3], r: 1.1, c: color }, { p: [0.4, -1.1, 0.6], r: 1.0, c: color }], 1);
+    const blade = blobGeometry(Array.from({ length: 6 }, (_, i) => ({ p: [i * 0.75, Math.sin(i * 0.5) * 0.25, 0], r: 1.05 - i * 0.11, c: i === 5 ? accent : color })), 1);
     const jaws = [0, 1].map((i) => {
       const pivot = new THREE.Group();
-      const j = inked(jawGeo, toonMaterial({ vertexColors: true }), { width: 0.8 });
-      j.position.set(-0.6, 1.4, 0);
-      if (i) { pivot.scale.y = -1; }
+      const j = inked(blade, toonMaterial({ vertexColors: true }), { width: 0.8 });
+      j.position.set(0.2, i ? -0.55 : 0.55, i ? -0.25 : 0.25);
       pivot.add(j); g.add(pivot);
       return pivot;
     });
+    const hinge = inked(blobGeometry([{ p: [-0.6, 0, 0], r: 1.25, c: color }, { p: [-1.4, 0.6, 0.3], r: 0.9, c: accent }, { p: [-1.4, -0.6, -0.3], r: 0.9, c: color }], 1), toonMaterial({ vertexColors: true }), { width: 0.8 });
+    g.add(hinge);
     g.scale.setScalar(size);
     return { g, jaws };
   }
@@ -140,6 +142,8 @@ export function createInside() {
     return en;
   }
   const radar = new THREE.Group(); scene.add(radar);
+  const spark = new THREE.Mesh(new THREE.OctahedronGeometry(6, 0), new THREE.MeshBasicMaterial({ color: '#ff3048', transparent: true, opacity: 0.85, depthTest: false }));
+  spark.visible = false; spark.renderOrder = 11; scene.add(spark);
 
   const api = {
     scene, camera, S, enzymes,
@@ -235,7 +239,7 @@ export function createInside() {
         e.g.position.copy(e.pos);
         e.g.rotation.z = Math.sin(t * 0.7 + e.s * 10) * 0.4 + (e.hunt > 0 ? Math.atan2(tip.y - e.pos.y, tip.x - e.pos.x) : 0);
         const open = e.closing != null ? 1 - e.closing : 0.55 + Math.sin(t * 3 + e.s * 9) * 0.15;
-        if (e.kind === 're') { e.jaws[0].rotation.z = open * 0.5; e.jaws[1].rotation.z = -open * 0.5; }
+        if (e.kind === 're') { e.jaws[0].rotation.z = open * 0.55; e.jaws[1].rotation.z = -open * 0.55; }
         if (!frozen && !S.done && S.cutAt < 0 && dTip < (e.kind === 're' ? 9 : 12)) ev.cut = e;
       }
       // the crowd jostles; the rope shoves it aside
@@ -302,20 +306,29 @@ export function createInside() {
     /** The cut sequence: phase 'strike' | 'hold' | 'eat', t 0..1. */
     cutAnim(enzyme, phase, t) {
       const n = S.nodes, tip = n[n.length - 1];
+      if (phase === 'strike' || phase === 'hold') {
+        // the blades straddle the strand just behind the leading end
+        const at = n[Math.max(1, n.length - 6)];
+        _v.subVectors(at, enzyme.pos); const ang = Math.atan2(_v.y, _v.x);
+        _w.set(Math.cos(ang), Math.sin(ang), 0);
+        enzyme.pos.lerp(_p.copy(at).addScaledVector(_w, -8), phase === 'strike' ? 0.2 : 1); enzyme.pos.z = at.z;
+        enzyme.g.position.copy(enzyme.pos); enzyme.g.rotation.z = ang;
+      }
       if (phase === 'strike') {
-        enzyme.pos.lerp(tip, 0.15); enzyme.g.position.copy(enzyme.pos);
         enzyme.closing = Math.min(1, t * 1.6);
-        if (enzyme.kind === 're') { enzyme.jaws[0].rotation.z = (1 - enzyme.closing) * 0.6; enzyme.jaws[1].rotation.z = -(1 - enzyme.closing) * 0.6; }
+        if (enzyme.kind === 're') { enzyme.jaws[0].rotation.z = (1 - enzyme.closing) * 0.7; enzyme.jaws[1].rotation.z = -(1 - enzyme.closing) * 0.7; }
       } else if (phase === 'hold') {
-        if (S.cutAt < 0) S.cutAt = Math.max(2, n.length - 7);
+        if (S.cutAt < 0) { S.cutAt = Math.max(2, n.length - 7); spark.position.copy(n[S.cutAt]); }
+        spark.visible = true; spark.scale.setScalar(1 + t * 1.5); spark.material.opacity = 0.9 * (1 - t); spark.rotation.z = t * 3;
         // the cut piece drifts free; the end recoils
         for (let i = S.cutAt; i < n.length; i++) { n[i].y -= 8 * 0.016; n[i].x += (i - S.cutAt) * 0.04; }
         n[S.cutAt - 1].y += 0.1;
       } else if (phase === 'eat') {
+        spark.visible = false;
         S.fragFade = Math.max(0, 1 - t);
       }
     },
-    reset() { S.cutAt = -1; S.fragFade = 1; S.frag = []; for (const e of enzymes) e.closing = null; },
+    reset() { S.cutAt = -1; S.fragFade = 1; S.frag = []; spark.visible = false; for (const e of enzymes) e.closing = null; },
     /** Data overlay rings: each enzyme's sensing range. */
     setRadar(on) {
       radar.clear();

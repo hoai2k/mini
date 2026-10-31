@@ -322,7 +322,7 @@ void main(){
     float above = smoothstep(uUvLine - 0.25, uUvLine + 0.35, vUv.y);
     float shafts = 0.6 + 0.4 * sin(vUv.x * 23.0 + vUv.y * 6.0 + uTime * 0.4) * sin(vUv.x * 9.0 - uTime * 0.23);
     vec3 uvc = uLook == 1 ? vec3(0.95) : (uLook == 2 ? vec3(0.55, 0.35, 1.0) : vec3(0.93, 0.86, 1.0));
-    col = mix(col, uvc, above * uUv * (0.45 + 0.25 * shafts));
+    col = mix(col, uvc, above * uUv * (0.22 + 0.16 * shafts));
   }
   col = mix(col, uFlashColor, uFlash);
   vec2 q = vUv - 0.5;
