@@ -23,7 +23,7 @@ const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vect
 const UP = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1);
 
 const HOSTS = [
-  { id: 'A', name: 'Host A', home: [-30, -150, 0], angle: 0.1, half: 78, r: 38, patches: [[-48, -0.25], [8, 0.35], [52, -0.1]],
+  { id: 'A', name: 'Host A', home: [-30, -150, 0], angle: 0.1, half: 78, r: 38, patches: [[-48, -0.25], [8, 0.35], [52, -0.1], [-48, Math.PI - 0.25]],
     receptors: 'OmpC + LPS', defence: 'Restriction enzyme; CRISPR with no matching spacer', odds: 0.6, crispr: false, color: '#eef3c4', lps: '#86c06a' },
   { id: 'B', name: 'Host B', home: [300, -130, -4], angle: -0.45, half: 58, r: 36, patches: [[-20, 0.2], [30, -0.3]],
     receptors: 'OmpC + LPS', defence: 'Restriction enzyme; CRISPR carrying a matching spacer', odds: 0.15, crispr: true, color: '#f1efc0', lps: '#9cc36a' },
@@ -47,7 +47,7 @@ function proceduralEnvelope() {
 
 export function createWorld(scene) {
   const envTex = proceduralEnvelope();
-  const world = { hosts: [], molecules: [], t: 0, opts: { hostBrownian: true, crowd: true } };
+  const world = { hosts: [], proteins: [], molecules: [], t: 0, opts: { hostBrownian: true, crowd: true } };
 
   // --- hosts ---
   const lpsGeo = blobGeometry([{ p: [0, 0.6, 0], r: 0.7, c: '#ffffff' }, { p: [0, 1.7, 0], r: 0.65, c: '#ffffff' }, { p: [0.2, 2.8, 0], r: 0.6, c: '#ffffff' }, { p: [0, 3.8, 0.2], r: 0.7, c: '#e8f0c0' }], 0);
@@ -107,6 +107,33 @@ export function createWorld(scene) {
         g.add(ring); host.rings.push(ring);
       }
       g.add(omp);
+    }
+    // Prominent binding targets remain visible without the observer overlay.
+    // Matching trimers have three gold lobes; non-matching proteins have two violet lobes.
+    const sites = [
+      ...def.patches.map(([u, phi]) => ({ u, phi, compatible: true })),
+      ...[[-def.half * 0.8, 2.25], [0, Math.PI], [def.half * 0.65, 2.8], [0, -0.35]]
+        .map(([u, phi]) => ({ u, phi, compatible: false })),
+    ];
+    for (const [i, site] of sites.entries()) {
+      surf(site.u, site.phi, _p, n);
+      const protein = { id: `${def.id}-${i}`, host, compatible: site.compatible,
+        surface: _p.clone(), normal: n.clone(), local: _p.clone().addScaledVector(n, 7) };
+      const model = new THREE.Group(); model.position.copy(protein.surface);
+      model.quaternion.setFromUnitVectors(UP, n);
+      const color = site.compatible ? '#ffd264' : '#aa84cc';
+      const stem = inked(new THREE.CylinderGeometry(0.8, 1.2, 6, 8), toonMaterial({ color }), { width: 0.4 });
+      stem.position.y = 3; model.add(stem);
+      const count = site.compatible ? 3 : 2;
+      for (let lobe = 0; lobe < count; lobe++) {
+        const angle = lobe * Math.PI * 2 / count;
+        const bead = inked(new THREE.IcosahedronGeometry(2.5, 1), toonMaterial({ color }), { width: 0.45 });
+        bead.position.set(Math.cos(angle) * 2.2, 7, Math.sin(angle) * 2.2); model.add(bead);
+        // A dark central socket reinforces the three-lobed shape in greyscale too.
+        const socket = new THREE.Mesh(new THREE.SphereGeometry(0.8, 8, 6), toonMaterial({ color: '#4b4055' }));
+        socket.position.copy(bead.position).add(new THREE.Vector3(0, 1.9, 0)); model.add(socket);
+      }
+      g.add(model); protein.model = model; world.proteins.push(protein);
     }
     g.position.copy(host.pos); g.rotation.z = host.ang;
     scene.add(g);

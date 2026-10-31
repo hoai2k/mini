@@ -1,8 +1,8 @@
 // Phage prototype (Level 6 of the Zoom Chain): a T4-like tailed phage in bog
 // water, drawn as a Goodsell-style molecular illustration. LS drives a soft,
 // wobbly drift (a labelled departure: phages have no motor); Brownian motion,
-// the flow and slow tumbling act on top. Bind a host with the long fibres,
-// walk to an OmpC patch, commit (X): the sheath contracts and the DNA goes in.
+// the flow and slow tumbling act on top. Move attachment-fibres first and grab
+// a protruding protein (X): a matching receptor latches and starts injection.
 // Inside, thread the DNA's leading end past the host's restriction enzyme and
 // CRISPR complex until the whole genome is in. See README.md.
 import * as THREE from '../shared/vendor/three.module.min.js';
@@ -17,9 +17,10 @@ import { createAudio } from '../shared/audio.js';
 import { loadTexture } from '../shared/assets.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { createPost, goodsellShared, toonMaterial, inkedInstanced } from '../shared/techniques/phage-goodsell.js';
-import { createT4, t4LiteGeometry, T4 } from '../shared/techniques/phage-model.js';
+import { createT4, t4LiteGeometry } from '../shared/techniques/phage-model.js';
 import { createWorld, uvAt, BOUNDS, UV } from './world.js';
 import { createInside, GENOME_NODES } from './inside.js';
+import { attachmentForward, aimedProtein } from './binding.js';
 
 const rand = (a, b) => a + Math.random() * (b - a);
 const gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
@@ -67,17 +68,17 @@ const hud = mountHud({
   title: 'Phage',
   sub: 'A T4-like phage, 0.2 µm long, in bog water beside its host bacteria: a molecular illustration, not a microscope image. Drift with LS; let go and Brownian motion has you.',
   controls: hudControls({
-    move: 'Drift (a labelled departure: phages have no motor). Bound to a host: walk fibre by fibre',
+    move: 'Drift with the attachment fibres leading (a labelled departure: phages have no motor)',
     camera: 'Orbit the view',
     dash: 'Current gust (departure) · on a surface: push off with the fibres',
-    attack: 'Commit: bind irreversibly, contract the sheath, inject (on an OmpC patch) · at an amoeba lobe: fibre jab (departure)',
-    defend: 'Defend: fold the fibres and slip (the amoeba gets no purchase; past clay and wrong hosts) / extend (catch receptors)',
+    attack: 'Grab a protein with the leading fibres: gold three-lobed receptors bind and inject; violet pairs slip off · at an amoeba lobe: fibre jab',
+    defend: 'Defend: fold the fibres and slip (the amoeba gets no purchase; past clay and wrong hosts) / extend (grab receptors with X)',
     special: 'Odds and receptor overlay (data, not optics)',
     look: 'Look: Goodsell watercolour, cryo-EM greyscale, fluorescence',
     zoom: 'Zoom in / out',
     extra: [['Y', 'At the flagellum (backdoor): back to the sediment']],
   }),
-  note: 'Time is slowed about 20× (a phage crosses a host cell in ~0.04 s). Goal: find a host with receptors, commit, and get the whole genome in past its defences. Keep below the UV-bright water near the surface. Up to four players: press any button on another controller to join.',
+  note: 'Time is slowed about 20× (a phage crosses a host cell in ~0.04 s). Goal: aim the fibres at a gold three-lobed protein and grab with X; violet pairs slip off. Get the whole genome in past the host’s defences. Keep below the UV-bright water near the surface. Up to four players: press any button on another controller to join.',
 });
 const tag = Object.assign(document.createElement('div'), { className: 'ph-tag', textContent: 'DATA OVERLAY · receptors, defences and odds: data, not optics' });
 const label = Object.assign(document.createElement('div'), { className: 'ph-label' });
@@ -128,11 +129,11 @@ let waterColor = '#bcd3ea';
 const START = new THREE.Vector3(-170, -210, 0);
 const newP = () => ({
   pos: START.clone(), vel: new THREE.Vector3(), bvel: new THREE.Vector3(), gust: new THREE.Vector3(),
-  q: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0.5), angVel: new THREE.Vector3(),
+  q: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 2.2), angVel: new THREE.Vector3(),
   mode: 'drift', foldTarget: 0, fold: 0, integrity: 1, host: null, walkLocal: new THREE.Vector3(), lift: 4,
   anchors: Array(6).fill(null), stepping: -1, stepT: 0, bound: 0, canCommit: false, commitT: 0, commitHost: null,
   clayT: 0, msgT: 0, kind: null, cutBy: null, burstT: 0, fade: 0, contract: 0, star: 0, shortOut: 0, dna: 1, dark: 0, crack: 0, scale: 1,
-  stuckTip: Array(6).fill(null), lastHost: null, inBack: false,
+  stuckTip: Array(6).fill(null), lastHost: null, inBack: false, grab: null, grabCooldown: 0,
 });
 const hunger = createHunger({ grace: 45 });
 
@@ -234,8 +235,8 @@ function placeAtStart(m, at = null) {
   use(m);
   P.pos.copy(at || START).add(at ? _v.set(0, 0, 0) : _v.set(m.slot * 26, (m.slot % 2) * 14, 0));
   P.vel.set(0, 0, 0); P.bvel.set(0, 0, 0); P.gust.set(0, 0, 0); P.angVel.set(0, 0, 0);
-  P.q.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0.5);
-  Object.assign(P, { mode: 'drift', foldTarget: 0, fold: 0, integrity: 1, host: null, canCommit: false, bound: 0, commitT: 0, kind: null, cutBy: null, burstT: 0, fade: 0, contract: 0, star: 0, shortOut: 0, dna: 1, dark: 0, crack: 0, scale: 1 });
+  P.q.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 2.2);
+  Object.assign(P, { mode: 'drift', foldTarget: 0, fold: 0, integrity: 1, host: null, canCommit: false, bound: 0, commitT: 0, kind: null, cutBy: null, burstT: 0, fade: 0, contract: 0, star: 0, shortOut: 0, dna: 1, dark: 0, crack: 0, scale: 1, grab: null, grabCooldown: 0, lift: 4 });
   releaseAnchors();
   P.stuckTip.fill(null);
   t4.set({ contract: 0, star: 0, shortOut: 0, dna: 1, dark: 0, crack: 0 });
@@ -279,7 +280,7 @@ function resetLevel() {
   P.burstSent = false;
   view.target.copy(P.pos);
   // in the game shell its intro has already said this
-  if (!embed.active || started) say('You are a T4-like phage in bog water. Drift with LS; fibres out (B) catch a host. It is calm for now.', 4200, true);
+  if (!embed.active || started) say('You are a T4-like phage in bog water. Drift legs-first with LS. Aim at a gold three-lobed protein and grab (X); violet pairs slip off. It is calm for now.', 4200, true);
   started = true;
 }
 
@@ -336,19 +337,60 @@ function captureAnim(phase, t, dt) {
   }
 }
 
-// --- the commit (irreversible) ---
-function tryCommit() {
-  if (members().some((m) => m !== cur && ['commit', 'inside', 'burst'].includes(m.P.mode))) { say('A teammate is already injecting: wait for them.', 2000, true); return; }
-  if (P.mode === 'walk' && P.canCommit) {
-    P.mode = 'commit'; P.commitT = 0; P.commitHost = P.host; P.host.locked = true;
-    say('Committed: short fibres bind for good, the baseplate opens into a star, the sheath contracts…', 3200, true);
-    audio.play('bacterium/phage', { volume: 0.9 });
-    curPad().rumble(250, 0.3, 0.5);
-    return;
+// --- explicit protein grab, then the existing irreversible injection ---
+function beginCommit() {
+  P.mode = 'commit'; P.commitT = 0; P.commitHost = P.host; P.host.locked = true;
+  say('Receptor fits: fibres latch, the baseplate opens and the sheath injects…', 3200, true);
+  audio.play('bacterium/phage', { volume: 0.9 });
+  curPad().rumble(250, 0.3, 0.5);
+}
+function tryGrab() {
+  if (!['drift', 'walk', 'clay'].includes(P.mode) || P.grabCooldown > 0) return;
+  if (P.foldTarget > 0.5 || P.fold > 0.5) { say('Extend the fibres (B) before grabbing a protein.', 1800, true); return; }
+  if (P.mode === 'clay') { say('Fold the fibres (B) to slip free of the clay first.', 1800, true); return; }
+  // A second player may try a wrong protein, but cannot enter an occupied host phase.
+  const protein = aimedProtein(P.pos, attachmentForward(P.q), world.proteins,
+    (target) => world.toWorld(target.host, target.local));
+  if (!protein) { cur.jab = 0.45; P.grabCooldown = 0.25; say('No protein in reach: aim the leading fibres closer to a protruding protein, then X to grab.', 1800, true); return; }
+  if (protein.compatible && members().some((m) => m !== cur && ['grab', 'commit', 'inside', 'burst'].includes(m.P.mode) && (m.P.mode !== 'grab' || m.P.grab?.protein.compatible))) {
+    say('A teammate is already attaching or injecting: wait for them.', 1800, true); return;
   }
-  if (P.mode === 'walk' && P.host) say('Not here: commitment needs three long fibres bound on an OmpC patch (Y shows the patches).', 2600, true);
-  else if (P.mode === 'clay') say('Stuck on clay: there is nothing to infect. Fold the fibres (B) to slip free.', 2600, true);
-  else if (P.mode === 'drift') say('Nothing to bind: extend the fibres (B) and drift into a host first.', 2400, true);
+  releaseAnchors(); P.host = null; P.canCommit = false;
+  P.grab = { protein, time: 0, from: P.pos.clone(), q: P.q.clone() };
+  P.mode = 'grab'; P.vel.set(0, 0, 0); P.bvel.set(0, 0, 0); P.gust.set(0, 0, 0);
+  audio.play('bacterium/tumble', { volume: 0.35, rate: 1.4 });
+}
+function updateGrab(dt) {
+  const g = P.grab, target = g.protein, h = target.host;
+  g.time += dt;
+  const progress = Math.min(1, g.time / 0.45), ease = progress * progress * (3 - 2 * progress);
+  const normal = world.dirToWorld(h, target.normal);
+  const point = world.toWorld(h, target.surface).addScaledVector(normal, target.compatible ? 4 : 11);
+  P.pos.lerpVectors(g.from, point, ease);
+  P.q.slerpQuaternions(g.q, new THREE.Quaternion().setFromUnitVectors(UP, normal), ease);
+  // The visible fibres converge on the attempted protein before either latching or slipping.
+  const contact = world.toWorld(h, target.local);
+  for (let f = 0; f < 6; f++) t4.fibres[f].anchor = contact.clone().addScaledVector(normal, Math.sin(progress * Math.PI) * 2);
+  if (progress < 1) return;
+  P.grab = null;
+  if (target.compatible) {
+    enterWalk(h);
+    // Pin the feet around the selected receptor rather than requiring an unseen patch count.
+    P.q.setFromUnitVectors(UP, normal);
+    t4.group.position.copy(P.pos); t4.group.quaternion.copy(P.q); t4.group.updateMatrixWorld(true);
+    for (let f = 0; f < 6; f++) {
+      const foot = t4.footTarget(f, t, new THREE.Vector3());
+      world.projectToHost(h, foot, 0.4, foot);
+      P.anchors[f] = world.toLocal(h, foot);
+      t4.fibres[f].anchor = foot;
+    }
+    P.bound = 6; P.canCommit = true; beginCommit();
+  } else {
+    releaseAnchors(); P.mode = 'drift'; P.gust.copy(normal).multiplyScalar(28);
+    P.angVel.set(0, 0, 0.8); P.grabCooldown = 0.25;
+    say('The fibres close, but this protein does not fit: you slip off. Try a gold three-lobed receptor.', 2300, true);
+    audio.play('bacterium/tumble', { volume: 0.65, rate: 0.8 }); curPad().rumble(100, 0.15, 0.25);
+  }
 }
 
 // --- per-mode updates ---
@@ -368,7 +410,7 @@ function updateDrift(dt, inp) {
   P.pos.addScaledVector(P.vel, dt).addScaledVector(P.bvel, dt).addScaledVector(P.gust, dt).addScaledVector(flow, dt);
   P.pos.z += -P.pos.z * dt * 0.6;
   P.pos.x = clamp(P.pos.x, BOUNDS.x0, BOUNDS.x1); P.pos.y = clamp(P.pos.y, BOUNDS.y0, BOUNDS.y1); P.pos.z = clamp(P.pos.z, BOUNDS.z0, BOUNDS.z1);
-  // slow tumbling, and the head leads when moving so the fibres trail like weed
+  // Slow tumbling remains in free water; steering aims the attachment end first.
   if (opts.tumble) {
     P.angVel.multiplyScalar(Math.exp(-dt / 0.9));
     P.angVel.x += gauss() * 0.45 * Math.sqrt(dt); P.angVel.y += gauss() * 0.45 * Math.sqrt(dt); P.angVel.z += gauss() * 0.45 * Math.sqrt(dt);
@@ -377,7 +419,7 @@ function updateDrift(dt, inp) {
   const sp = mv.length();
   // close to a cell with the fibres out, they catch the water near it and swing the baseplate round to face it
   const near = world.nearestHost(centreOf(new THREE.Vector3()));
-  const facing = near.host && near.d < 45 && P.fold < 0.5;
+  const facing = !inp.stick && near.host && near.d < 45 && P.fold < 0.5;
   if (facing) {
     const ax = axisOf(new THREE.Vector3());
     world.sdHost(near.host, P.pos, _s);
@@ -385,12 +427,17 @@ function updateDrift(dt, inp) {
     P.angVel.addScaledVector(new THREE.Vector3().crossVectors(ax, _s), dt * k);
   } else if (sp > 4) {
     const ax = axisOf(_n);
-    const tq = new THREE.Vector3().crossVectors(ax, mv.normalize());
+    const tq = new THREE.Vector3().crossVectors(ax, mv.normalize().negate());
     P.angVel.addScaledVector(tq, dt * Math.min(1, sp / 25) * 3.2);
   }
   // it turns in depth too, but drifts back toward side-on so you can read it (part of the slowed-tumbling departure)
   { const ax = axisOf(_n); const flat = _w.set(ax.x, ax.y, 0); if (flat.lengthSq() > 1e-4) P.angVel.addScaledVector(new THREE.Vector3().crossVectors(ax, flat.normalize()), dt * 0.9); }
   integrateRotation(dt);
+  if (inp.stick && opts.drive) {
+    const aim = new THREE.Quaternion().setFromUnitVectors(UP, inp.stick.clone().negate().normalize());
+    P.q.slerp(aim, 1 - Math.exp(-dt * 7));
+    P.angVel.multiplyScalar(Math.exp(-dt * 7));
+  }
   // solids
   const c = centreOf(_v);
   for (const h of world.hosts) {
@@ -407,16 +454,7 @@ function updateDrift(dt, inp) {
     for (let f = 0; f < 6; f++) {
       const tip = t4.tip(f);
       if (world.sdClay(tip) < 1.6) { enterClay(); return; }
-      const knee = t4.fibres[f].nodes[T4.KNEE];
-      const a = world.nearestHost(tip), b = world.nearestHost(knee);
-      const { host, d } = a.d < b.d ? a : b;
-      if (host && d < 2.2) {
-        if (host.wrong) {
-          world.sdHost(host, tip, _n);
-          P.gust.addScaledVector(_n, 18);
-          if (P.msgT <= 0) { say('No receptor here: a Gram-positive with a thick wall and no OmpC. The fibres slide off.', 2600, true); P.msgT = 3; audio.play('bacterium/tumble', { volume: 0.4 }); }
-        } else { enterWalk(host); return; }
-      }
+      // Cell contact alone never attaches: X explicitly tries the aimed protein.
     }
   }
 }
@@ -434,7 +472,7 @@ function enterWalk(host) {
   P.vel.set(0, 0, 0); P.gust.set(0, 0, 0);
   audio.play('bacterium/phage', { volume: 0.5, rate: 1.2 });
   curPad().rumble(80, 0.3, 0.1);
-  say(`Bound reversibly to ${host.name}'s LPS. Walk with LS to an OmpC patch (Y), then X to commit.`, 3200, true);
+  // Attachment feedback is emitted by the successful protein grab.
 }
 
 function enterClay() {
@@ -764,7 +802,7 @@ function stepMember(m, dt, insideOwner, where) {
     }
     if (ctl.dash.pressed() && dash.ready && (P.mode === 'drift' || P.mode === 'walk')) {
       dash.trigger();
-      const dir = inp.stick ? inp.stick.clone() : axisOf(new THREE.Vector3());
+      const dir = inp.stick ? inp.stick.clone() : attachmentForward(P.q);
       if (P.mode === 'walk') { leaveSurface(true); say('Push-off: the fibres kick you free of the surface (departure).', 1800, true); }
       else { P.gust.addScaledVector(dir, 70); say('A passing current gust carries you (departure: a phage has no motor).', 1800); }
       world.gust(P.pos, dir);
@@ -772,16 +810,17 @@ function stepMember(m, dt, insideOwner, where) {
       curPad().rumble(120, 0.4, 0.3);
     } else if (ctl.dash.pressed() && P.mode === 'clay') say('Stuck to clay: a gust cannot pull you off. Fold the fibres (B).', 1800, true);
     if (ctl.attack.pressed()) {
-      if (P.mode === 'walk' && P.canCommit) tryCommit();
-      else if (!tryJab(m)) tryCommit();
+      if (!tryJab(m)) tryGrab();
     }
   }
   m.jab = Math.max(0, m.jab - dt);
+  P.grabCooldown = Math.max(0, P.grabCooldown - dt);
   if (frozen) return;
   P.fold += (P.foldTarget - P.fold) * (1 - Math.exp(-dt * 2.6));
   const still = { stick: null, stickM: 0 };
   if (!debug.freeze && !c.active) {
     if (P.mode === 'drift') updateDrift(dt, live ? inp : still);
+    else if (P.mode === 'grab') updateGrab(dt);
     else if (P.mode === 'walk') updateWalk(dt, live ? inp : still);
     else if (P.mode === 'clay') updateClay(dt, live ? inp : still);
     else if (P.mode === 'commit') updateCommit(dt);
@@ -822,7 +861,7 @@ function stepMember(m, dt, insideOwner, where) {
   t4.group.quaternion.copy(P.q);
   t4.group.scale.setScalar(P.scale);
   t4.group.visible = t4.fibreMesh.visible = P.mode !== 'inside' && !(P.mode === 'burst');
-  for (let f = 0; f < 6; f++) t4.fibres[f].reach = m.jab > 0 ? 1.2 * Math.sin((m.jab / 0.45) * Math.PI) : P.mode === 'drift' && inp.stick ? 0.25 : 0;
+  for (let f = 0; f < 6; f++) t4.fibres[f].reach = m.jab > 0 ? 1.2 * Math.sin((m.jab / 0.45) * Math.PI) : P.mode === 'grab' ? 0.8 : P.mode === 'drift' && inp.stick ? 0.25 : 0;
   t4.state.sway = P.mode === 'walk' || P.mode === 'commit' ? 0.4 : 1;
   t4.update(dt, t);
 }
@@ -955,7 +994,7 @@ function frame(now) {
   scaleEl.innerHTML = `<i style="width:${(10 * pxPerUnit).toFixed(0)}px"></i>${where === 'outside' ? '100 nm' : '10 nm'}`;
   label.textContent = `${LOOKS[view.look]} · an illustration, not a microscope image · time slowed ~20×${opts.drive ? ' · LS drift and gusts are departures' : ''}`;
   const n5 = (x) => { const k = Math.round(clamp(x, 0, 1) * 5); return '■'.repeat(k) + '□'.repeat(5 - k); };
-  const modeName = { drift: 'drifting', walk: `walking on ${P.host?.name}${P.bound ? ` · ${P.bound} fibres on OmpC` : ''}`, clay: 'stuck on clay (UV shelter)', commit: 'committed: contracting', inside: 'DNA entering the host', burst: 'burst', dead: 'lost' }[P.mode];
+  const modeName = { drift: 'drifting legs-first', grab: 'grabbing a surface protein', walk: `walking on ${P.host?.name}${P.bound ? ` · ${P.bound} fibres on OmpC` : ''}`, clay: 'stuck on clay (UV shelter)', commit: 'committed: contracting', inside: 'DNA entering the host', burst: 'burst', dead: 'lost' }[P.mode];
   const am = hunger.state === 'grace' ? `calm (${Math.ceil(hunger.left)} s)` : hunger.state === 'hungry' ? ({ stalk: 'HUNGRY: reaching', windup: 'WINDING UP!', strike: 'STRIKING!', recover: 'recovering', repelled: 'repelled', retreat: 'retreating' }[fightState] || 'HUNGRY') + ` · interest ${Math.round(fight.interest * 100)} %` : fightState === 'retreat' ? 'retreating' : 'resting';
   const others = isMulti() ? '\n' + members().filter((m) => m.slot).map((m) => `P${m.slot + 1} ${m.P.mode} ${n5(m.P.integrity)}`).join('  ') : '';
   hud.stats(`${modeName}\nfibres ${P.foldTarget > 0.5 ? 'folded' : 'extended'}\nintegrity ${n5(P.integrity)}  ${dash.text()}\nUV ${Math.round(uvAt(centreOf(_v).y) * 100)} %  amoeba ${am}\n${where === 'inside' ? `genome in ${Math.round(inside.S.progress * 100)} %` : `x ${(P.pos.x / 100).toFixed(2)} µm  depth below UV ${Math.max(0, (UV.y0 - centreOf(_v).y) / 100).toFixed(2)} µm`}${others}`);
@@ -983,7 +1022,8 @@ Object.assign(debug, {
     t4.group.position.copy(P.pos); t4.group.quaternion.copy(P.q); t4.resetFibres(t);
     enterWalk(h);
   }),
-  commit: p1(() => { if (P.mode === 'walk') { P.canCommit = true; tryCommit(); } }),
+  grab: p1(tryGrab),
+  commit: p1(() => { if (P.mode === 'walk') beginCommit(); }),
   inside: p1((id = 'A') => { const h = world.hosts.find((x) => x.id === id); P.commitHost = h; P.mode = 'inside'; inside.start(h); inside.setRadar(view.overlay); P.fade = 0; }),
   win: p1(() => { if (P.mode === 'inside') { inside.S.nodes.length = 0; P.mode = 'burst'; P.burstT = 0; P.burstStarted = false; for (let i = 0; i < GENOME_NODES; i++) inside.S.nodes.push(new THREE.Vector3(Math.sin(i * 0.2) * 40, 52 - i * 1.0, 0)); inside.S.prev = inside.S.nodes.map((n) => n.clone()); } }),
   capture: p1((kind, slot = 0) => {

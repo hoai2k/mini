@@ -14,10 +14,9 @@ motor: it diffuses until it touches a receptor [S100]. At the owner's request
 LS still controls the motion, as a labelled departure, and the motion is made
 to feel organic: the stick sets a slow, sluggish drift (about 0.3 µm/s on the
 slowed clock) and on top of it act a smooth Brownian velocity, the ambient
-flow, and slow tumbling that lets the head lead and the long fibres trail
-and sway like weed. Release the stick and only Brownian motion and the flow
-remain. Bound to a host, LS walks the phage across the surface fibre by
-fibre. *Features → LS drift → Honest* turns the open-water drift off.
+flow, and slow tumbling when idle. Steering turns the baseplate and long attachment
+fibres toward the movement direction, with the head following behind. Release the stick and only Brownian motion and the flow
+remain. *Features → LS drift → Honest* turns the open-water drift off.
 
 ## Controls
 
@@ -25,11 +24,11 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 
 | Xbox | Keyboard | Action |
 | --- | --- | --- |
-| LS | WASD | **Drift** (a labelled departure). Bound to a host: **walk** on the long fibres, one fibre re-planting at a time |
+| LS | WASD | **Drift legs-first** (a labelled departure); steer the attachment fibres toward a protein |
 | RS | Arrows | Orbit the view (it drifts back when released) |
 | **A** | Space | **Dash**: a passing *current gust* in open water, or a *push-off* with the fibres from a surface (both departures; recharging, HUD `dash` meter) |
-| **X** | E | **Commit**: the irreversible bind. Works only with at least three long fibres bound on an OmpC patch of a host; then the short fibres bind, the baseplate opens into a star, the sheath contracts, the tube crosses the envelope and the DNA goes in (the phage's attack: a camera close-up and a shake on the sheath snap). **At an amoeba's lobe: a fibre jab** (a departure, below) |
-| B | Shift | **Defend: fold the fibres** back against the sheath and slip: an amoeba's lobe gets no purchase, clay and wrong hosts slide past; also lets go of a host. Press again to extend them (catch receptors, and clay) |
+| **X** | E | **Grab protein**: aim the leading attachment fibres at a protruding protein and press X. The large gold three-lobed receptors fit; violet paired proteins do not. Both can be grabbed: the fibres converge for 0.45 s, then a mismatch slips off with a small recoil and a 0.25 s retry delay. A match latches and automatically starts the existing irreversible attachment: short fibres bind, baseplate opens, sheath contracts and DNA enters (camera close-up and shake on the snap). No automatic cell-contact attachment or hidden three-foot requirement. **At an amoeba's lobe: a fibre jab** (a departure, below) |
+| B | Shift | **Defend: fold the fibres** back against the sheath and slip: an amoeba's lobe gets no purchase, clay and wrong hosts slide past; also lets go of a host. Press again to extend them (ready to grab receptors with X; clay still catches them) |
 | Y | R | **At the flagellum (the backdoor)**: back to the sediment (Level 5). Elsewhere: the odds and receptor overlay: receptor patches ringed, each host's receptors, defences and odds of a burst, the UV line, the amoeba's hunger, your distance to the nearest host; inside, each enzyme's sensing range. Marked on screen as data, not optics |
 | D-pad ←→ | 3 / 4 | Look: Goodsell watercolour, cryo-EM greyscale, fluorescence (pseudo-colour) |
 | D-pad ↑↓ | 1 / 2 | Zoom in / out |
@@ -39,7 +38,7 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 Inside the host, LS steers the DNA's leading end and A is a short *surge* (the
 strand pulled in faster; a departure).
 
-**Goal.** Find a host with receptors, walk to an OmpC patch, commit, and get
+**Goal.** Drift legs-first, grab a gold three-lobed receptor to attach, and get
 the whole genome (169 kbp, shown as a progress bar) into the cell past its
 restriction enzyme and CRISPR complex. Success: the host bursts with 40 new
 phages. The odds overlay says which host is the better bet: Host A (no
@@ -131,6 +130,7 @@ in multiplayer:
 ## Checks
 
 ```bash
+node --test micro/prototypes/phage/binding.test.mjs
 node micro/prototypes/check.mjs phage
 node micro/game/check.mjs
 ```
@@ -139,7 +139,7 @@ The smoke check opens the page in headless Chromium, drives the keyboard and
 fails on any console error. `window.__micro.debug` has hooks for scripted
 screenshots: `teleport`, `orient`, `isolate` (the phage alone, for
 turnarounds), `cam(yaw, pitch, dist)`, `fold`, `walkOn(hostId, u, phi)`,
-`commit`, `inside(hostId)`, `win`, `capture('amoeba' | 'uv' | 'cut')`,
+`grab` (the normal aimed grab), `commit` (bypass from a debug walk), `inside(hostId)`, `win`, `capture('amoeba' | 'uv' | 'cut')`,
 `hungry`, `overlay`, `look`, `zoom`, `reset`, `place(slot, x, y)`, plus
 `maxDt` and `pause`; `debug.fight` (the amoeba's fight state and interest) and `debug.boss()` (the CRISPR-Cas state, match, distance). `window.__micro` also exposes `team`, `players`,
 `split`, `nearBack` and `where`.
@@ -186,10 +186,11 @@ reference sheet and `research/assets/references/production/phage-t4.jpg`:
 - Drift: the stick sets a target velocity the phage eases toward (a 0.7 s
   lag), so it never snaps. Brownian motion is an Ornstein–Uhlenbeck velocity
   (D ≈ 0.2 µm²/s on the slowed clock, from T4's 4 µm²/s [S100]), plus a fine
-  tremble. Rotation is a slow random angular velocity; when moving, a soft
-  torque turns the head to lead so the fibres trail, and another eases the
+  tremble. Rotation is a slow random angular velocity; when moving, steering
+  turns the attachment fibres to lead; a soft torque follows a gust with the
+  same end forward, and another eases the
   phage back toward side-on so it stays readable.
-- Walking: the phage stands on its fibres over the host's surface and
+- Prototype debug walking (`walkOn`): the phage stands on its fibres over the host's surface and
   rocks. Each foot is pinned in the host's own frame (so it rides along as
   the host drifts); when a foot falls behind its ideal place, it lets go and
   swings to a new one, one fibre at a time. The body moves faster while a
@@ -292,3 +293,13 @@ long fibres, surface walk, LPS/OmpC binding, the infection steps), S100
 (diffusion and adsorption: D ≈ 4 µm²/s), S101 (CRISPR-Cas), S102
 (restriction-modification), S103 (phages on clay; clay protects from UV),
 S104 (UV in humic lakes).
+
+### Protein-grab readability
+
+Large surface proteins stand above the small LPS forest without enabling the
+observer overlay. Matching proteins have three gold lobes with dark sockets;
+non-matching proteins have two violet lobes, so shape also distinguishes them
+in cryo-EM greyscale. The aim cone uses the baseplate’s forward direction and
+a short reach; it selects by aim, never by compatibility. The start-facing
+side of Host A has a matching receptor as well as non-matching proteins.
+Colour, size and the explicit player-controlled grab are gameplay cues.
