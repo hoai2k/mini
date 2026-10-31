@@ -171,10 +171,44 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   up, darkens and breaks up over about 4 s, and a pseudopod cut off is left a
   stump. Necks resist thinning, so this almost never happens in play.
 - **Fungal traps.** Three trap hyphae of a zoopagalean fungus (*Stylopage* /
-  *Zoopage* type: thin, septate, with adhesive knobs) lie on the slide.
-  Membrane that touches one sticks (it keeps 8% of each step's motion); a
-  surge tears it free. Stuck for 8 s, a haustorium takes a bite (−7% of the
-  cell's area) and lets go.
+  *Zoopage* type: thin, septate, with adhesive knobs) grow on the slide (see
+  **Threats and pacing**). Membrane that touches a sticky one sticks (it
+  keeps 8% of each step's motion); a surge tears it free. Stuck for 8 s, the
+  fungus catches the cell.
+
+## Threats and pacing
+
+The only threat is the fungus; its pacing and its catch use the shared
+`shared/predation.js` (`createHunger`, `createCapture`), as in the other
+prototypes. The lead-and-follow controls are unchanged.
+
+- **A calm opening.** For the first 45 s (and after every restart) there are
+  no trap hyphae on the slide. Then they grow in from one end over 25 s (the
+  hypha nearest the start grows toward the cell); the stats corner says
+  `absent (calm, … s)`, then `growing …%`.
+- **Hunger comes and goes.** Once grown, the fungus is hungry for 30–50 s:
+  its adhesive knobs are large, dark and sticky. Then it rests, 50–80 s
+  after a catch and 20–35 s after you tear free: the knobs shrink and pale
+  and nothing sticks. The stats corner shows `sticky` or `dormant` with the
+  seconds left, and the labels (Y) mark each hypha.
+- **Stuck** on a sticky hypha, a red line at the top counts down to the
+  haustoria (8 s, as before) and asks for a surge (A).
+- **The catch, shown in full:** **strike** (0.45 s): haustoria (feeding
+  hyphae, drawn without knobs) pierce the membrane where it is glued and grow
+  toward the centre; **hold** (1 s): they reach in and the cytoplasm starts
+  to brown; a surge (A) in the strike or hold still tears the cell free,
+  and the haustoria take a bite (−7% of its area) as before; **eat**
+  (1.8 s): the cytoplasm is drained, darkening and turning brown, and the
+  cell shrivels to 55% of its area (`amoeba/engulf`, then `amoeba/digest`).
+  Then the Eaten card; A starts a fresh cell where the old one was, with a
+  fresh calm opening. The sticks do nothing during the catch, and the red
+  line and the stats corner say why.
+- **Testing:** Features → World → *Calm opening before the traps* (45 s,
+  20 s, 0 s) and *Traps come and go* (off: sticky all the time once grown,
+  the old pacing). `window.__micro.pacing()` reports the time, when the traps
+  first became sticky, the first time the membrane stuck and the first
+  catch; `window.__micro.forceCapture()` lays a grown, sticky hypha across
+  the membrane and starts the catch.
 
 ## Rendering
 
@@ -242,6 +276,8 @@ above are hidden when it is present).
 | Motion | Surge (A) | always |
 | World | Obstacles on the slide, Out-of-focus layer | on |
 | World | Fungal trap hyphae (hazard) | on |
+| World | Calm opening before the traps: 45 s, 20 s, 0 s | 45 s |
+| World | Traps come and go (fungal hunger) | on |
 | Body | Membrane never crosses itself | always |
 | Body | Pinch-off (rare) | on |
 | Controls | Controls: Lead and follow (new), Two pseudopods (classic) | Lead and follow |
@@ -299,7 +335,8 @@ Not borrowed:
 - **Fleeing** ranges and speeds are game values; escape swimming itself is
   real.
 - **The fungal trap** compresses a slow process (adhesion, then a haustorium
-  over minutes to hours) into seconds; the bite is a game rule.
+  over minutes to hours) into seconds; the bite, the fatal drain, the hyphae
+  growing in 25 s and the knobs' sticky and dormant spells are game rules.
 - **Trichocysts** are limited to three bursts per Paramecium; real cells
   carry thousands, but discharge is local, so a grabbed region runs out.
 - **Optics.** The image is computed from a model of phase and absorption,

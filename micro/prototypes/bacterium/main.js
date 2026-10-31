@@ -123,9 +123,10 @@ function startCatch({ kind, who }) {
   pad.rumble(400, 0.7, 0.8);
   if (kind === 'phage') who.p.anim = true;
   // close in so a 3 µm cell (and a ×3 phage) can be followed
-  view.zoom = Math.max(view.zoom, kind === 'phage' || kind === 'bdello' ? 3 : 2);
+  view.zoom = 3;
   if (pacing.firstCatch === null) pacing.firstCatch = pacing.now - pacing.t0;
 }
+const catcherHunger = () => (cat.kind === 'grazer' ? cat.who.hunger : cat.kind === 'phage' ? phageH : cat.kind === 'bdello' ? bdelloH : amoebaH);
 const ease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 function stepCatch(dt) {
   if (!capture.active) return;
@@ -136,7 +137,7 @@ function stepCatch(dt) {
   const k = c.t, e = c.phase === 'eaten' ? 1 : c.phase === 'eat' ? ease(k) : 0;
   if (c.phase !== prev) {
     if (c.phase === 'eat') {
-      (cat.kind === 'grazer' ? cat.who.hunger : cat.kind === 'phage' ? phageH : cat.kind === 'bdello' ? bdelloH : amoebaH).fed();
+      catcherHunger().fed();
       audio.play(cat.kind === 'phage' ? 'bacterium/phage' : 'bacterium/eat', { volume: 0.9, rate: 0.7 });
     }
     if (c.phase === 'hold' && cat.kind === 'bdello') audio.play('bacterium/eat', { volume: 0.8, rate: 1.2 });
@@ -516,7 +517,7 @@ function stats() {
       : `prey ${S.prey}/${GOAL_PREY} · energy ${Math.round(S.energy * 100)} %${S.boring ? ` · boring ${Math.min(100, Math.round((S.boreT / 2.5) * 100))} %` : ''}`,
     `${dash.text()} · phages on you ${S.phages.length}${S.phages.some((p) => p.irreversible) ? ' (IRREVERSIBLE)' : ''}${S.attacker ? ' · BDELLOVIBRIO ATTACHED' : ''}`,
     S.species === 'mtb' ? `field ${world.opts.field} µT, mB/kT ≈ ${(S.mB || 0).toFixed(1)} (gentle pull: steer against it) · running ${S.sense > 0 ? 'north (down the field)' : 'south (up the field)'}` : `run ${sp.v} µm/s, sprint ${sp.dash} µm/s`,
-    `predators: ${predators().map((p) => `${p.name} ${p.on ? hungerText(p.h) : 'off'}`).join(' · ')}`,
+    `predators: ${predators().map((p) => `${p.name} ${!p.on ? 'off' : capture.active && catcherHunger() === p.h ? 'EATING YOU' : hungerText(p.h)}`).join(' · ')}`,
     capture.active ? `CAUGHT by ${CATCH[cat.kind].by.toLowerCase()}: ${cat.phase}` : '',
     `${Math.round(fps)} fps · ${shapes.count} shapes`,
   ];

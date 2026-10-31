@@ -1,6 +1,6 @@
 # Mite · SEM prototype
 
-A box mite (Oribatida: Phthiracaridae), about 0.6 mm long, walks through a
+A box mite (Oribatida: Phthiracaridae), about 0.35 mm long, walks through a
 few square millimetres of moss cushion, imaged as a scanning electron
 micrograph. Built in three.js (`../shared/vendor`), world units are µm.
 
@@ -21,15 +21,15 @@ up.
 
 | Button | Action |
 | --- | --- |
-| LS (WASD) | Walk (~720 µm/s), relative to the view. The mite turns toward the stick and walks forward; it climbs grains, flakes and stems and pushes through blades |
+| LS (WASD) | Walk (~420 µm/s), relative to the view. The mite turns toward the stick and walks forward; it climbs grains, flakes and stems and pushes through blades |
 | RS (arrows) | Orbit the specimen. Up looks up (the camera swings down toward the floor), down looks down; Features → Controls → Invert camera Y flips it for every prototype |
-| **A (Space)** | **Jump**: a 0.13 s crouch, then a hop (~0.3 mm high, ~0.6–0.7 mm long) onto the floor, a grain, a flake or a moss blade; 0.45 s after landing before the next. Borrowed from jumping oribatids (see Notes) |
+| **A (Space)** | **Jump**: a 0.13 s crouch, then a hop (~0.17 mm high, ~0.35–0.4 mm long) onto the floor, a grain, a flake or a moss blade; 0.45 s after landing before the next. Borrowed from jumping oribatids (see Notes) |
 | **X (E)** | **Bite** with the chelicerae: eat a fungal spore or nibble a hyphal branch tip in reach of the mouth; at the predator, a nip that makes it recoil |
-| **B (Shift)** | **Scramble**: 0.6 s at up to ~1.3 mm/s, recharging over 2.2 s (the `dash` meter in the corner); with no stick, straight ahead |
+| **B (Shift)** | **Scramble**: 0.6 s at up to ~0.75 mm/s, recharging over 2.2 s (the `dash` meter in the corner); with no stick, straight ahead |
 | Y (R), hold | Ptychoidy: close into a sealed capsule (the predator cannot grip it); release to reopen |
 | LS click (C) | Observer mode: SEM data bar and raster lines |
-| LT / RT (Z / X) | Lower / higher magnification (HFW 0.26–4.2 mm; starts at 2.4 mm, ~53×, so the moss around the mite reads) |
-| LB / RB (Q / F) | Walk slowly (~360 µm/s) / hurry (~1 mm/s) |
+| LT / RT (Z / X) | Lower / higher magnification (HFW 0.16–4.2 mm; starts at 1.6 mm, ~79×, so the mite and the moss around it read) |
+| LB / RB (Q / F) | Walk slowly (~210 µm/s) / hurry (~590 µm/s) |
 | D-pad ← → (3 / 4) | Imaging mode: SE (Everhart-Thornley), BSE (low vacuum), SE false colour |
 | D-pad ↑ ↓ (1 / 2) | Magnification steps (×1.5) |
 | Menu (Esc) | Features panel: what the prototype does, with switches |
@@ -142,22 +142,64 @@ Built from parts placed by measurements against the reference, never traced:
 - A second box mite wanders with the same walker and closes up when you come
   near.
 
+## Size
+
+The box mite is ~0.35 mm long (the Level 1 spec asks for ~270–390 µm; box
+mites range ~0.3–1 mm). Its anatomy is modelled at ~0.6 mm in `mite.js` and
+placed with `createMite(..., { scale: 0.58 })`: the body, legs, setae,
+stride, hop and speeds all scale together and the gait still runs on distance,
+so the feet stay planted. The moss (blades, stems, grains, hyphae, spores) is
+at its true size, so it is now relatively larger: more of a forest. Collisions
+are cast against the world at its true size (a scaled view of the colliders).
+The predator stays at ~0.8 mm, more than twice your length; the springtail
+(1.5 mm) is ~4× longer, and you are about the tardigrade's size.
+
+## Threats and pacing
+
+The predatory mite follows the shared pacing in `shared/predation.js`:
+
+- **A calm opening.** It starts ~1.3 mm away and for the first 45 s (and
+  again after every restart) it only wanders: even bumping into you, it
+  ignores you.
+- **Hunger comes and goes.** Then it is hungry for ~18–32 s at a time and
+  rests in between: 45–75 s after eating you, 15–30 s after you slip free,
+  lose it, or it gives up on your closed capsule. Hungry, it wanders toward
+  you and hunts on touch or a nearby scramble; resting, it ignores you. A
+  banner at the top says when it is hungry or hunting.
+- **Every catch is shown.** Its first two grabs at your legs stun you
+  briefly; on the third it holds on and the catch plays, the camera closing
+  in side-on with a red banner naming the phase: **strike**, it seizes a leg
+  with its chelicerae; **hold**, it pulls you in and lifts you, legs kicking;
+  **eat**, the chelicerae work at the soft body by the legs, which go limp
+  and fold, and you sag; **eaten**, the Eaten card (A restarts, with the calm
+  opening again).
+- **Closing up still saves you**: hold Y during the strike or the hold and you
+  seal into the capsule, drop out of its grip, and it gives up.
+
+Features → Simulation → **Calm opening** (45 s / 20 s / 90 s / off) and
+**Predator hunger** (comes and goes / always / never) for testing.
+`window.__micro.forceCapture()` plays a catch; `__micro.pacing()` reports
+hunger and state.
+
 ## The predator (`predator.js`, `PRED` in `mite.js`)
 
 A parasitid (Mesostigmata: Parasitidae, *Pergamasus* / *Parasitus* type):
 a pale, flattened oval about 0.8 mm long with one dorsal shield, a
 transverse seam, peritremes and rows of fine setae, a projecting gnathosoma
-with long chelate chelicerae and palps, and long legs. Leg I is held up and
+with long, stout chelate chelicerae (an open chela, the movable digit hooked
+below; brought toward `assets/reference-sheets/predatory-mite-v2.webp`, as
+is the broader shield) and palps, and long legs. Leg I is held up and
 forward as a feeler and taps ahead; legs II–IV walk with the same walker and
 gait as the box mite (createMite with the `PRED` anatomy), so it climbs and
 pushes through blades the same way.
 
-- It wanders until it touches you (~560 µm) or feels you scramble close by
-  (~950 µm), then runs you down at ~0.9 mm/s: faster than your walk, slower
-  than your scramble.
+- Only when hungry (see Threats and pacing): it wanders toward you until it
+  touches you (~480 µm centre to centre) or feels you scramble close by
+  (~950 µm), then runs you down at ~0.6 mm/s: faster than your walk
+  (~0.42 mm/s), slower than your scramble (~0.75 mm/s).
 - It strikes at legs first: each grab stuns you for 0.7 s and slows you 15%;
-  a grabbed leg recovers after 20 s; three grabs and you are caught (back to
-  the start).
+  a grabbed leg recovers after 20 s; the third grab holds on and it eats you
+  (the catch above).
 - Closed up (Y), you are a smooth, hard capsule it cannot grip: it gives up
   after three tries and wanders off for a while. Feeding trials with
   *Pergamasus* found adult box mites nearly immune (Peschel et al. 2006).
@@ -292,6 +334,8 @@ live and persist per browser.
 | Simulation | Jump (A), borrowed from jumping oribatids | always |
 | Simulation | Bite and graze (X) | always |
 | Simulation | Predatory mite (Parasitidae) | on |
+| Simulation | Calm opening: 45 s / 20 s / 90 s / off | 45 s |
+| Simulation | Predator hunger: comes and goes / always / never | comes and goes |
 | World | Moss shoots, mineral grains, litter, hyphae, spores and pollen | on (each; off also removes it from walking) |
 | World | Procedural SEM textures | always |
 | Controls | Camera-relative walking | always |

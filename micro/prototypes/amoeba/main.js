@@ -16,6 +16,7 @@ import { squirmerFlow } from '../shared/techniques/paramecium-squirmer.js';
 import { buildWorld, worldColliders, addResidue, wetMountCanvas, cytoplasmCanvas, meanColor, trapCapsules } from './world.js';
 import { View } from './render.js';
 import { rng, TAU, clamp } from './util.js';
+import { createHunger, createCapture } from '../shared/predation.js';
 
 const MODES = ['Brightfield', 'Phase contrast', 'Darkfield', 'Immersive (hypothetical)'];
 const OBJECTIVES = [{ name: '10×', field: 1800 }, { name: '20×', field: 900 }];
@@ -128,6 +129,115 @@ const S = {
 const R = { pod: null, body: null, latch: new Set(), branch: false, last: null };
 const fragments = [];
 
+// --- the fungal traps' pacing (shared/predation.js) ----------------------------
+// A calm opening: the trap hyphae are absent at first. When the opening ends
+// they grow in from one end over GROW_S seconds. After that the fungus's
+// "hunger" comes and goes: while hungry the adhesive knobs are sticky, while
+// resting they are dormant (small, pale, not sticky). A restart gives a fresh
+// opening and the hyphae grow again.
+const GROW_S = 25;
+const pacing = { grace: 45, cycles: true, t0: 0, firstHungry: null, firstThreat: null, firstCatch: null };
+const fungus = createHunger({ grace: pacing.grace, hungry: [30, 50], restFed: [50, 80], restMissed: [20, 35] });
+const trapList = () => world.obstacles.filter((o) => o.type === 'trap' && !o.haustorium);
+for (const o of trapList()) { o.grow = 0; o.active = 0; }
+// Haustoria: the fungus's feeding hyphae, grown into the cell when it catches you.
+const haustoria = [0, 1, 2].map((k) => {
+  const o = { type: 'trap', haustorium: true, x: 0, y: 0, ang: 0, L: 80, W: 5, layer: 'focus', seed: 0.3 + k * 0.2, grow: 0, active: 0, hidden: true, collide: { capsules: [], circles: [] } };
+  world.obstacles.push(o);
+  return o;
+});
+const fungusOn = () => (pacing.cycles ? fungus.hungry : fungus.state !== 'grace');
+function updateFungus(dt) {
+  fungus.update(dt);
+  const awake = fungus.state !== 'grace';
+  const sticky = fungusOn() || caught.active;
+  for (const o of trapList()) {
+    if (awake) o.grow = Math.min(1, o.grow + dt / GROW_S);
+    o.active = clamp(o.active + (sticky ? 1 : -1) * dt / 2, 0, 1);
+  }
+  const t = S.time - pacing.t0;
+  if (pacing.firstHungry === null && S.traps && sticky && trapList().some((o) => o.grow > 0.02)) pacing.firstHungry = t;
+  if (pacing.firstThreat === null && S.stuckN > 0) pacing.firstThreat = t;
+}
+function resetFungus() {
+  fungus.reset(pacing.grace);
+  for (const o of trapList()) { o.grow = 0; o.active = 0; }
+  for (const h of haustoria) { h.hidden = true; h.grow = 0; }
+  pacing.t0 = S.time; pacing.firstHungry = null; pacing.firstThreat = null; pacing.firstCatch = null;
+}
+
+// --- caught by the fungus: strike → hold → eat → the Eaten card -------------------
+const caught = createCapture({ onRestart: () => restartCell() });
+const FC = { pts: [], A0: 0, phase: null };
+const CATCH_TEXT = {
+  strike: 'Haustoria pierce the membrane! Surge (A) to tear free',
+  hold: 'The fungus starts to drain you: surge (A) NOW',
+  eat: 'Drained: the cytoplasm darkens and the cell shrivels',
+};
+const ease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
+function startCatch(pts) {
+  if (caught.active) return;
+  FC.pts = pts.slice(0, 3); FC.A0 = body.A0; FC.phase = 'strike';
+  caught.start({ by: 'A zoopagalean fungus', how: 'grew haustoria into you and drained your cytoplasm' });
+  if (S.closing) cancelClose();
+  haustoria.forEach((h, k) => { h.hidden = !FC.pts[k]; h.grow = 0; });
+  audio.play('amoeba/engulf', { volume: 1, rate: 0.6 });
+  rumble(500, 0.8, 0.9);
+  if (pacing.firstCatch === null) pacing.firstCatch = S.time - pacing.t0;
+}
+function placeHaustoria(reach) {
+  haustoria.forEach((h, k) => {
+    const p = FC.pts[k];
+    if (!p) return;
+    const dx = body.cx - p.x, dy = body.cy - p.y, d = Math.hypot(dx, dy) || 1;
+    h.L = Math.max(30, d * 0.75);
+    h.ang = Math.atan2(dy, dx);
+    // grown from the hypha (its -x end) toward the cell's centre
+    h.x = p.x + (dx / d) * h.L * 0.5; h.y = p.y + (dy / d) * h.L * 0.5;
+    h.grow = reach * (0.8 + 0.2 * Math.sin(k * 2.1 + 1));
+  });
+}
+function stepCatch(dt) {
+  if (!caught.active) return;
+  if ((FC.phase === 'strike' || FC.phase === 'hold') && surge.active) {
+    // torn free in time: the haustoria take a bite, and the fungus rests a while
+    caught.reset(false); FC.phase = null;
+    body.A0 = FC.A0 * 0.93; S.bitten++; S.stuckT = 0; S.drain = 0;
+    for (const h of haustoria) { h.hidden = true; h.grow = 0; }
+    fungus.missed();
+    hud.toast('Torn free! The haustoria took a bite of the cell (−7%)', 2600);
+    rumble(300, 0.6, 0.6);
+    return;
+  }
+  const c = caught.update(dt, pad);
+  if (!c.active) return;
+  if (c.phase !== FC.phase) {
+    FC.phase = c.phase;
+    if (c.phase === 'eat') { fungus.fed(); audio.play('amoeba/digest', { volume: 1, rate: 0.7 }); rumble(700, 0.5, 0.8); }
+  }
+  const k = c.t;
+  if (c.phase === 'strike') { placeHaustoria(0.55 * ease(k)); S.drain = 0; }
+  else if (c.phase === 'hold') { placeHaustoria(0.55 + 0.45 * ease(k)); S.drain = 0.15 * k; }
+  else {
+    const e = c.phase === 'eat' ? ease(k) : 1;
+    placeHaustoria(1);
+    S.drain = 0.15 + 0.85 * e;
+    body.A0 = FC.A0 * (1 - 0.45 * e); // the cell shrivels as it is sucked dry
+  }
+}
+/** After the Eaten card: a fresh cell where the old one was; the fungus starts over. */
+function restartCell() {
+  FC.phase = null;
+  body.A0 = S.A0init; S.drain = 0; S.bitten = 0; S.stuckT = 0; S.stuckN = 0; S.eaten = 0;
+  if (S.closing) cancelClose();
+  const Rr = Math.sqrt(body.A0 / Math.PI);
+  for (let i = 0; i < N; i++) { const a = (i / N) * TAU; body.x[i] = body.cx + Rr * Math.cos(a); body.y[i] = body.cy + Rr * Math.sin(a); }
+  for (const p of body.pods) { p.s = 0; p.target = 0; p.active = false; p.ret = 0; }
+  body.grid.build(body.x, body.y, N);
+  resetFungus();
+  hud.toast('A fresh amoeba. The fungus is gone for now, but its hyphae will grow back', 3000);
+}
+
 // --- features panel ----------------------------------------------------------
 const features = createFeatures({ key: 'amoeba', pad });
 const F = (o) => features.add(o);
@@ -214,8 +324,15 @@ F({ id: 'flee', group: 'Simulation', label: 'Ciliates flee the membrane', on: tr
   about: 'Tetrahymena, Colpidium and Paramecium sense the approaching membrane (a mechanical and chemical cue) and swim away at about 2.2× their speed for a couple of seconds, so a plain pseudopod rarely catches them: surge (A) to close the gap. Escape swimming is real; the range and speed are game values.',
   onChange: (v) => { S.flee = v; } });
 F({ id: 'traps', group: 'World', label: 'Fungal trap hyphae (hazard)', on: true,
-  about: 'Zoopagalean fungi (Stylopage, Zoopage) catch amoebae on adhesive hyphae, then grow a haustorium into them. Membrane touching a trap hypha sticks (it moves at 8% of its pace); a surge (A) tears it free. Stuck for 8 s, a haustorium takes a bite (−7% of the cell) and lets go. Real predators of amoebae; the timing and the bite are game rules.',
-  onChange: (v) => { S.traps = v; for (const o of world.obstacles) if (o.type === 'trap') o.hidden = !v; } });
+  about: 'Zoopagalean fungi (Stylopage, Zoopage) catch amoebae on adhesive hyphae, then grow haustoria into them. Membrane touching a sticky trap hypha sticks (it moves at 8% of its pace); a surge (A) tears it free. Stuck for 8 s, haustoria pierce the cell: surge in the next 1.5 s to tear free with a bite (−7% of the cell), or it is drained, darkening and shrivelling, and eaten. Real predators of amoebae; the timing, the bite and the drain are game rules.',
+  onChange: (v) => { S.traps = v; for (const o of world.obstacles) if (o.type === 'trap' && !o.haustorium) o.hidden = !v; } });
+const GRACES = ['45 s', '20 s', '0 s (traps from the start)'];
+F({ id: 'grace', group: 'World', label: 'Calm opening before the traps', choices: GRACES, value: GRACES[0],
+  about: 'The trap hyphae are absent for the first 45 s (and after every restart), so you can explore first. Then they grow in from one end over 25 s, and the HUD says so. Shorter openings are for testing.',
+  onChange: (v) => { pacing.grace = parseFloat(v); resetFungus(); } });
+F({ id: 'hunger', group: 'World', label: 'Traps come and go (fungal hunger)', on: true,
+  about: 'Once grown, the fungus is "hungry" for 30–50 s: its adhesive knobs are sticky (large and dark). Then it rests, 50–80 s after a catch and 20–35 s after you tear free: the knobs are dormant (small and pale) and do not stick. Off: once grown they stay sticky (the old pacing).',
+  onChange: (on) => { pacing.cycles = on; } });
 F({ id: 'infill', group: 'Simulation', label: 'Filling in (X)', on: true,
   about: 'While the cup closes, endoplasm floods toward the cup mouth so the rims visibly fill and thicken as they meet over the prey.',
   onChange: (v) => { cyto.infill = v; } });
@@ -315,8 +432,10 @@ function rawInput() {
   const st = (s) => (s.m > 0 ? { m: s.m, dx: s.x / Math.hypot(s.x, s.y), dy: -s.y / Math.hypot(s.x, s.y) } : NONE);
   return { ls: st(ctl.move()), rs: st(ctl.camera()), lt: pad.lt(), rt: pad.rt(), lb: pad.down(BTN.LB) ? 1 : 0, rb: pad.down(BTN.RB) ? 1 : 0, lsc: pad.down(BTN.LS), rsc: pad.down(BTN.RS) };
 }
+const IDLE = { ls: NONE, rs: NONE, lt: 0, rt: 0, lb: 0, rb: 0, lsc: false, rsc: false };
 function readInput() {
-  const r = rawInput();
+  // caught by the fungus: the cell no longer answers the sticks (only a surge, A, in the strike or hold)
+  const r = caught.active ? IDLE : rawInput();
   if (S.scheme === 'classic') {
     const pods = [r.ls, r.rs];
     // A surge with no stick held goes along the cell's heading.
@@ -625,8 +744,10 @@ function updateFragments(dt) {
 
 // Membrane on a trap hypha sticks: it keeps only a little of each step's motion.
 const trapX = new Float64Array(N), trapY = new Float64Array(N);
+const stuckIdx = [];
 function stickToTraps(dt, traps) {
   let n = 0;
+  stuckIdx.length = 0;
   const free = surge.active;
   for (let i = 0; i < N; i++) {
     const x = body.x[i], y = body.y[i];
@@ -634,7 +755,7 @@ function stickToTraps(dt, traps) {
       const ex = c.bx - c.ax, ey = c.by - c.ay, l2 = ex * ex + ey * ey;
       const t = clamp(((x - c.ax) * ex + (y - c.ay) * ey) / l2, 0, 1);
       if (Math.hypot(x - c.ax - ex * t, y - c.ay - ey * t) < c.r) {
-        n++;
+        n++; stuckIdx.push(i);
         if (!free) { body.x[i] = trapX[i] + (x - trapX[i]) * 0.08; body.y[i] = trapY[i] + (y - trapY[i]) * 0.08; }
         break;
       }
@@ -643,11 +764,11 @@ function stickToTraps(dt, traps) {
   if (n && !S.stuckN) { hud.toast('Caught on a fungal trap hypha: surge (A) to tear free'); rumble(250, 0.4, 0.6); }
   S.stuckN = free ? 0 : n;
   S.stuckT = S.stuckN ? S.stuckT + dt : Math.max(0, S.stuckT - dt * 2);
-  if (S.stuckT > 8) {
-    S.stuckT = 0; S.bitten++;
-    body.A0 *= 0.93;
-    hud.toast('A haustorium grows in and takes a bite of the cell (−7%)', 2600);
-    rumble(400, 0.7, 0.9);
+  if (S.stuckT > 8 && !caught.active) {
+    // stuck too long: haustoria grow in where the membrane is glued (the catch sequence)
+    const pts = [];
+    for (let k = 0; k < 3; k++) { const i = stuckIdx[Math.floor(((k + 0.5) / 3) * stuckIdx.length)]; if (i !== undefined) pts.push({ x: body.x[i], y: body.y[i] }); }
+    startCatch(pts);
   }
 }
 
@@ -658,6 +779,8 @@ function simStep(dt) {
   // Surge: ease the pseudopod boost in and out over the dash.
   const sk = surge.active ? 1 + (SURGE - 1) * Math.sin(Math.PI * Math.min(1, 1 - surge.phase)) ** 0.6 : 1;
   body.opts.boost = sk; S.surgeK = sk;
+  updateFungus(dt);
+  stepCatch(dt);
   const traps = S.traps ? trapCapsules(world) : [];
   if (traps.length) { trapX.set(body.x); trapY.set(body.y); }
   body.step(adt, input, col);
@@ -694,6 +817,9 @@ function simStep(dt) {
 const overlay = document.createElement('div');
 overlay.style.cssText = 'position:fixed;inset:0;pointer-events:none;font:12px/1.2 system-ui,sans-serif;color:#1d2228;';
 document.body.appendChild(overlay);
+const warnEl = document.createElement('div');
+warnEl.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);background:rgba(10,12,16,.7);color:#ff8a7a;border-radius:12px;padding:6px 14px;font:600 13px/1.3 system-ui,sans-serif;pointer-events:none;white-space:nowrap;z-index:20;display:none;max-width:calc(100vw - 32px)';
+document.body.appendChild(warnEl);
 const reticle = document.createElement('div');
 reticle.style.cssText = 'position:absolute;border:1.5px dashed rgba(40,60,90,.55);border-radius:50%;display:none;transform:translate(-50%,-50%);';
 const retText = document.createElement('div');
@@ -753,7 +879,7 @@ function updateOverlay() {
     const e = body.nearest(body.cx + 1000 * body.fy, body.cy - 1000 * body.fx);
     label(i++, body.x[e.i], body.y[e.i], 'ectoplasm (clear gel rim)');
     for (const p of prey) if (!p.captured) label(i++, p.x + p.sp.L / 2, p.y, `${p.sp.name} ${p.sp.real.split(',')[0]}`);
-    if (S.traps) for (const o of world.obstacles) if (o.type === 'trap') label(i++, o.x, o.y, 'fungal trap hypha (Zoopagales)');
+    if (S.traps) for (const o of trapList()) if (o.grow > 0.1) label(i++, o.x, o.y, `fungal trap hypha (Zoopagales), ${o.active > 0.5 ? 'sticky' : 'dormant'}`);
     let k = 0;
     for (const o of world.obstacles) {
       if (o.layer !== 'focus' || k > 6) continue;
@@ -781,6 +907,8 @@ for (let i = 0; i < 600; i++) {
   test.input = saved;
 }
 S.camX = body.cx; S.camY = body.cy;
+S.A0init = body.A0;
+resetFungus(); // the warm-up does not use up the calm opening
 
 let last = performance.now();
 let acc = 0;
@@ -795,9 +923,10 @@ function frame(now) {
   const menu = features.update();
   if (!menu) {
     hud.update(pad);
-    if (pressed(BTN.A) && surge.trigger()) { audio.play('amoeba/boost', { volume: 0.9 }); rumble(220, 0.3, 0.5); if (S.stuckN) hud.toast('Surge: torn free of the trap'); }
-    if (pressed(BTN.X)) { if (!S.closing) tryClose(); }
-    if (pressed(BTN.B)) { if (S.closing) cancelClose('Let go: the cup opens'); else egest(); }
+    const fight = !caught.active || FC.phase === 'strike' || FC.phase === 'hold';
+    if (fight && pressed(BTN.A) && surge.trigger()) { audio.play('amoeba/boost', { volume: 0.9 }); rumble(220, 0.3, 0.5); if (S.stuckN && !caught.active) hud.toast('Surge: torn free of the trap'); }
+    if (!caught.active && pressed(BTN.X)) { if (!S.closing) tryClose(); }
+    if (!caught.active && pressed(BTN.B)) { if (S.closing) cancelClose('Let go: the cup opens'); else egest(); }
     const look = ctl.lookStep() || (test.presses.has(BTN.RIGHT) ? 1 : 0);
     if (look) features.set('look', MODES[(S.mode + look + MODES.length) % MODES.length]);
     if (pressed(BTN.Y)) S.labels = !S.labels;
@@ -821,6 +950,9 @@ function frame(now) {
   S.camX += (tx - S.camX) * Math.min(1, dtReal * 0.8);
   S.camY += (ty - S.camY) * Math.min(1, dtReal * 0.8);
   view.setView(S.camX, S.camY, OBJECTIVES[S.objective].field * (innerWidth > innerHeight ? 1 : 0.6));
+  view.bodyMat.uniforms.uDrain.value = S.drain || 0;
+  warnEl.textContent = caught.active ? (FC.phase === 'eaten' ? '' : CATCH_TEXT[FC.phase]) : S.stuckN ? `Stuck on a fungal trap hypha: surge (A) to tear free (haustoria in ${Math.max(0, 8 - S.stuckT).toFixed(1)} s)` : '';
+  warnEl.style.display = warnEl.textContent ? 'block' : 'none';
   view.render({ time: S.time, prey: [...prey, ...ambient], mode: S.mode, focus: S.focus, flags: S.flags, granuleCount: S.granules, buffersOnly: !!borrow.id, fragments });
   if (borrow.id) renderBorrowed(dtReal);
   updateOverlay();
@@ -837,12 +969,20 @@ function frame(now) {
       `${MODES[S.mode]} · ${ob.name} objective, field ${(ob.field / 1000).toFixed(1)} mm · focus ${S.focus >= 0 ? '+' : ''}${S.focus.toFixed(2)}`,
       `Time: amoeba ×${amoebaX} (pseudopods ×${Math.round(amoebaX * (body.opts.speed || 1))}) · swimmers ×${swimX} of real speed`,
       `${surge.active ? `SURGE ×${S.surgeK.toFixed(1)}` : surge.text()}${S.stuckN ? ` · STUCK on a trap ${S.stuckT.toFixed(1)} s` : ''}${S.bitten ? ` · bitten ${S.bitten}` : ''}`,
+      `Fungal traps: ${fungusText()}${caught.active ? ` · CAUGHT: ${FC.phase}` : ''}`,
       `Cell ${Math.round(L)} µm long · ${Math.round(body.A0 / 1000)}×10³ µm² · eaten ${S.eaten}${S.pinches ? ` · pinched off ${S.pinches}` : ''}`,
       `${S.cand ? `Cup: ${Math.round((S.cand.cup.wrap * 180) / Math.PI)}° round ${S.cand.prey.sp.name}` : 'Cup: none'}${S.closing ? ' · closing' : ''}`,
       `${Math.round(S.fps)} fps`,
     ].join('\n'));
   }
   requestAnimationFrame(frame);
+}
+function fungusText() {
+  if (!S.traps) return 'off';
+  const g = trapList()[0]?.grow ?? 0;
+  if (fungus.state === 'grace') return `absent (calm, ${Math.ceil(fungus.left)} s)`;
+  const growing = g < 1 ? `growing ${Math.round(g * 100)}% · ` : '';
+  return `${growing}${fungusOn() ? `sticky${pacing.cycles ? ` ${Math.ceil(fungus.left)} s` : ''}` : `dormant ${Math.ceil(fungus.left)} s`}`;
 }
 function renderBorrowed(dt) {
   const o = view.optics;
@@ -860,7 +1000,23 @@ let renderOnce = false;
 requestAnimationFrame(frame);
 
 // --- headless review ----------------------------------------------------------------
+/** Test hook: lay a grown, sticky trap hypha across the membrane and start the fungus's catch. */
+function forceCapture() {
+  const o = trapList()[0];
+  let best = 0;
+  for (let i = 0; i < N; i++) if (body.x[i] > body.x[best]) best = i;
+  o.x = body.x[best]; o.y = body.y[best]; o.ang = Math.PI / 2 + 0.2;
+  for (const t of trapList()) { t.grow = 1; t.active = 1; }
+  const pts = [-10, 0, 10].map((d) => { const i = (best + d + N) % N; return { x: body.x[i], y: body.y[i] }; });
+  startCatch(pts);
+  S.camX = body.cx; S.camY = body.cy;
+  return caught.phase;
+}
 window.__micro = {
+  forceCapture, capture: caught,
+  pacing: () => ({ t: S.time - pacing.t0, firstHungry: pacing.firstHungry, firstThreat: pacing.firstThreat, firstCatch: pacing.firstCatch, grace: pacing.grace,
+    hunters: [{ name: 'fungus', state: fungus.state, hungry: fungusOn(), left: +fungus.left.toFixed(1), grow: +(trapList()[0]?.grow ?? 0).toFixed(2) }],
+    capture: caught.active ? { phase: FC.phase, by: 'fungus' } : null, mode: caught.active ? 'caught' : S.stuckN ? 'stuck' : 'free', stuckN: S.stuckN }),
   THREE, renderer, camera: view.camera, scene: view.focusScene, scenes: { mask: view.maskScene, focus: view.focusScene, above: view.aboveScene },
   view, body, cyto, prey, world, state: S, features,
   set input(v) { test.input = v; }, get input() { return test.input; },

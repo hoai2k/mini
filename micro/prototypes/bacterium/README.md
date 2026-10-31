@@ -50,7 +50,55 @@ take three prey; the last bdelloplast bursts with five new cells.
 **Ways to lose the run:** too much oxygen (the magnetotactic cell is a
 microaerophile) or too little energy; swept into a grazer's oral funnel; the
 amoeba's edge closing over you; a phage binding irreversibly and injecting;
-(magnetotactic) a Bdellovibrio boring in.
+(magnetotactic) a Bdellovibrio boring in. Each is played out on screen
+before its card (see **Threats and pacing**).
+
+## Threats and pacing
+
+The predators use the shared `shared/predation.js` (`createHunger`,
+`createCapture`), as in the other prototypes.
+
+- **A calm opening.** For the first 45 s of a run (and after every restart)
+  the grazers' feeding currents are off (their oral cilia lie still, folded
+  half in), no phage cloud comes, the Bdellovibrio leave you alone and the
+  amoeba's edge does not creep toward you. They wake one after another: grazer
+  1 at 45 s, phages at 50 s, grazer 2 at 55 s, Bdellovibrio at 57 s, the
+  amoeba at 60 s.
+- **Pressure comes and goes.** Each predator is on for a while, then rests
+  (longer after a catch, shorter after a miss):
+  - *Grazers:* the feeding current (and the beating wreath) is on for
+    20–35 s, then off.
+  - *Phages:* each phage spell starts with a nearby infected cell bursting
+    14–22 µm from you, releasing a cloud of about 35 phages (a toast says
+    so); for 20–30 s phages that touch you adsorb, then the cloud thins and
+    they no longer stick.
+  - *Bdellovibrio* hunt you (ram on contact) for 18–32 s at a time; shaking
+    one off makes them rest a while.
+  - *The amoeba's edge* creeps toward you only while hungry (30–50 s).
+  The stats corner lists each (`calm`, `on`, `off`, with the seconds left).
+- **Every run-ending catch plays a sequence** (strike, hold, eat, then the
+  shared Eaten card; A starts again). Control stops only for it, and a red
+  line at the top says what is happening:
+  - *Grazer:* drawn into the oral funnel, spinning; swept down it by the
+    oral cilia (beating hard); packed into a food vacuole that drifts into
+    the bell and darkens (`bacterium/graze`, then `eat` at a low pitch).
+  - *Amoeba edge:* two lobes of the edge rise either side of you and meet
+    over you; a phagosome closes, is drawn 6 µm in and darkens.
+  - *Phage:* the phage (drawn 3× larger so it reads) contracts its tail
+    sheath, its DNA goes in as a fluorescent thread; the cell rounds up,
+    fills with new phages and bursts (lysis), leaving a ghost and releasing
+    30 new phages into the water (`bacterium/phage`). The view closes in to
+    the 22 µm field.
+  - *Bdellovibrio:* it rams your pole, bores through into the periplasm and
+    you round into a bdelloplast with it curled inside.
+  - Oxygen damage and starvation are not predators: the cell is seen to stop,
+    swell a little, darken and fade before the Run over card.
+- **Testing:** Features → World → *Calm opening* (45 s, 20 s, 0 s) and
+  *Predators come and go* (off: on all the time once the opening ends).
+  `window.__micro.pacing()` reports the run time, the first time a predator
+  was on, the first time one threatened you and the first catch, and each
+  predator's state; `window.__micro.forceCapture('grazer' | 'amoeba' |
+  'phage' | 'bdellovibrio')` starts that catch.
 
 Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A sediment ambience loop and a flagellar-motor run loop whose rate follows your speed; the sprint (A), uptake and finished prey (X), tumbles (B), a phage latching on, and the grazer's feeding current catching you.
 
@@ -189,7 +237,8 @@ mixed:
 - **Simulation**: magnetic field (Earth 20 µT / bar magnet / cancelled); oxygen
   stress.
 - **World**: grazers, amoeba, phages, Bdellovibrio hunters, other bacteria
-  swimming; scenery (fixed).
+  swimming; scenery (fixed); calm opening before the predators (45 s
+  default, 20 s, 0 s); predators come and go (on/off).
 - **Borrowed** (default off, also on the D-pad look cycle): **SEM** from the
   mite (the height buffer through the adapters' `fieldFromBuffers` and
   `semFromField`, with its detector choice) and **DIC** from the tardigrade
@@ -222,6 +271,11 @@ page runs before the request list has them), with procedural stand-ins:
 
 ## Departures, labelled
 
+- **Predator pacing and the catch sequences** are game values: the calm
+  opening, the on/off spells, the phage clouds arriving with a nearby lysis,
+  and catches lasting a few seconds (a lytic cycle takes tens of minutes, a
+  bdelloplast hours). During a phage catch the phage is drawn 3× its 60 nm
+  size and visible in every look.
 - **Steering with the stick** (the default): a bacterium cannot choose its
   heading; it can only choose when to tumble or reverse. Features → LS
   steering → Honest restores that.

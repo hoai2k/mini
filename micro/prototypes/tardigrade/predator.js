@@ -9,19 +9,25 @@
 // Behaviour (game rules, labelled in the README):
 // - It starts far off, on the tip of the steep leaf C, and for the first CALM
 //   seconds it only browses there, so the player can explore first.
-// - Then it hunts: it heads for the player slowly (an approach you can see
+// - After that its hunger comes and goes (shared/predation.js createHunger):
+//   hungry for ~30-45 s (it is slow to close in), then resting (45-75 s after a bite or a meal, 15-30 s
+//   after a jab, losing you or giving up on a tun). Only a hungry one hunts.
+// - Hungry, it hunts: it heads for the player slowly (an approach you can see
 //   coming, a defocused shape at first) and, within SENSE (touch and chemical
 //   cues in the film), stalks at full speed.
 // - Its bigger body needs a thicker film: below FILM_NEED it can barely move,
 //   so a thin film is a refuge (the player can still move in it).
 // - Mouth to body: a bite that drains reserves, after which it lets go and
-//   backs off, sated for a while, before it hunts again. The player can
+//   backs off, sated for a while, before it hunts again. A bite that empties
+//   the reserves is the catch: it grips, and swallows you whole (main.js plays
+//   it through captureStep). The player can
 //   scramble (A) away, jab back with the stylets (X) to make it recoil (it
 //   then keeps its distance too), or tun (Y): it cannot get a tun into its
 //   mouth quickly and gives up after a few tries.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { Creature } from './creature.js';
 import { Walker } from './gait.js';
+import { createHunger } from '../shared/predation.js';
 
 export const SCALE = 1.5;
 const SENSE = 6.5;        // units (100 µm): stalks at full speed within 650 µm
@@ -59,6 +65,10 @@ export class Predator {
     milnesiumLook(this.creature);
     this.walker = new Walker(world, this.creature, { catch() {}, slip() {}, fall() {}, transfer() {} }, { scale: SCALE, maxSpeed: 2.7, gravity: false });
     this.on = true;
+    // pace.mode: 'Comes and goes' | 'Always' | 'Never'; pace.grace: the calm opening (s)
+    this.pace = { mode: 'Comes and goes', grace: CALM };
+    // its slow approach needs a longer hungry spell than the shared default
+    this.hunger = createHunger({ grace: CALM, hungry: [30, 45] });
     this.reset();
   }
 
@@ -66,7 +76,35 @@ export class Predator {
     // Far off: near the tip of the steep leaf C, ~1.4 mm from the player's start.
     const C = this.world.leaves[2];
     this.walker.spawn(C, 1, 10.5, 0.3, 1, 0);
-    Object.assign(this, { state: 'wander', t: 0, cool: 0, recoil: 0, tries: 0, bored: CALM, wanderAng: 0, contact: 0, sated: false, after: 0, firstHunt: true, stuck: 0, lastD: Infinity });
+    Object.assign(this, { state: 'wander', t: 0, cool: 0, recoil: 0, tries: 0, bored: 0, wanderAng: 0, contact: 0, sated: false, after: 0, firstHunt: true, stuck: 0, lastD: Infinity, lunge: 0 });
+    this.hunger.reset(this.pace.grace);
+    this.creature.pose.stylet = 0; this.creature.pose.pump = 0;
+  }
+
+  /** Hungry now (honours the Features pacing switch). */
+  get hungry() {
+    const h = this.hunger, m = this.pace.mode;
+    return m === 'Never' ? false : m === 'Always' ? h.state !== 'grace' : h.hungry;
+  }
+
+  /**
+   * The catch, driven by main.js (shared/predation.js phases): it lunges, mouth
+   * tube and stylets first (strike), grips with the stylets out (hold), then
+   * the pharynx pumps while the prey is drawn in (eat), and it settles (eaten).
+   */
+  captureStep(phase, u, dt) {
+    this.state = 'capture'; this.t += dt;
+    const P = this.creature.pose;
+    if (phase === 'strike') { this.lunge = Math.sin(Math.min(1, u * 1.4) * Math.PI * 0.5) * 0.35; P.stylet = 1; P.pump = 0.3; }
+    else if (phase === 'hold') { this.lunge = 0.35 * (1 - u * 0.6); P.stylet = 1; P.pump = 0.4 + 0.4 * Math.sin(this.t * 9); }
+    else if (phase === 'eat') { this.lunge = 0.14 * (1 - u); P.stylet = 0.6; P.pump = 0.6 + 0.4 * Math.sin(this.t * 14); }
+    else { this.lunge *= Math.exp(-dt * 3); P.stylet = Math.max(0, P.stylet - dt); P.pump = 0.3 + 0.3 * Math.sin(this.t * 4); }
+    const w = this.walker;
+    w.update(dt, { dir: _d.set(0, 0, 0), mag: 0, brace: true, frozen: false, film: 1, energy: 1, tun: false, dash: false });
+    this.creature.group.matrix.copy(w.matrix).multiply(_L.makeTranslation(this.lunge, 0, 0));
+    this.creature.group.matrixWorldNeedsUpdate = true;
+    this.creature.group.updateMatrixWorld(true);
+    this.creature.deformAll();
   }
 
   setVisible(v) { this.creature.group.visible = v; }
@@ -90,6 +128,9 @@ export class Predator {
     const w = this.walker;
     if (!this.on) return ev;
     this.t += dt;
+    this.hunger.update(dt);
+    const hungry = this.hungry;
+    this.creature.pose.pump = Math.max(0, this.creature.pose.pump - dt);
     this.cool = Math.max(0, this.cool - dt);
     const me = w.dispPos, them = prey.walker.dispPos;
     const d = me.distanceTo(them);
@@ -105,6 +146,7 @@ export class Predator {
     this.jabD = jabD;
     if (jab && (jabD < 1.1 * SCALE || this.contact > 0) && this.state !== 'recoil') {
       this.state = 'recoil'; this.recoil = 2.4; this.cool = 2.5; this.after = SHY;
+      if (this.hunger.hungry) this.hunger.missed();
       ev.push('recoil');
     }
 
@@ -118,7 +160,7 @@ export class Predator {
         if (!this.firstHunt && d < SENSE) dir.lerp(_e.subVectors(me, them).normalize(), 0.6).normalize();
         mag = this.firstHunt ? 0.3 : 0.45;
         this.bored = Math.max(0, this.bored - dt);
-        if (this.bored <= 0 && prey.life.state === 'active') {
+        if (hungry && this.bored <= 0 && prey.life.state === 'active') {
           this.state = 'approach'; this.stuck = 0; this.lastD = d;
           if (this.firstHunt) ev.push('hunt');
           this.firstHunt = false;
@@ -134,6 +176,7 @@ export class Predator {
         if (this.stuck > 4) dir.copy(w.leaf.U).multiplyScalar(Math.sign(Math.sin(this.t * 0.2)) || 1);
         if (this.stuck > 9) this.stuck = 0;
         if (prey.life.state !== 'active') { this.state = 'wander'; this.bored = 6; }
+        else if (!hungry) { this.state = 'wander'; ev.push('sated'); }
         else if (d < SENSE) { this.state = 'stalk'; ev.push('stalk'); }
         break;
       }
@@ -141,6 +184,7 @@ export class Predator {
         dir.subVectors(them, me).normalize();
         mag = 1;
         if (prey.life.state !== 'active') { this.state = 'wander'; this.bored = 6; ev.push('lost'); }
+        // once stalking within reach of your scent it sees the hunt through
         else if (d > LOSE) { this.state = 'approach'; ev.push('lost'); }
         if (mouthD < REACH) {
           this.contact += dt;
@@ -150,11 +194,13 @@ export class Predator {
             if (tun) {
               this.tries++;
               ev.push('tunBite');
-              if (this.tries >= 3) { this.state = 'wander'; this.bored = 18; this.tries = 0; this.wanderAng += Math.PI; ev.push('givesUp'); }
+              if (this.tries >= 3) { this.state = 'wander'; this.bored = 18; this.tries = 0; this.wanderAng += Math.PI; if (this.hunger.hungry) this.hunger.missed(); ev.push('givesUp'); }
             } else {
               ev.push('bite');
-              // Lets go and backs off, sated for a while.
+              // Lets go and backs off, sated for a while (main.js turns a
+              // bite that empties your reserves into the full catch).
               this.state = 'recoil'; this.recoil = 2.2; this.after = SATED; this.sated = true; this.contact = 0;
+              this.hunger.fed();
             }
           }
         } else this.contact = 0;
@@ -172,6 +218,7 @@ export class Predator {
     w.update(dt, { dir, mag, brace: false, frozen: false, film, energy: 1, tun: false, dash: this.state === 'recoil' && this.recoil > 1.8 && !this.sated });
     this.creature.group.matrix.copy(w.matrix);
     this.creature.group.matrixWorldNeedsUpdate = true;
+    this.lunge = 0;
     this.creature.pose.stylet = this.state === 'stalk' && mouthD < REACH * 1.4 ? 0.5 + 0.5 * Math.sin(this.t * 7) : Math.max(0, this.creature.pose.stylet - dt * 2);
     this.creature.deformAll();
     this.thinFilm = film < 0.5;
@@ -179,4 +226,5 @@ export class Predator {
     return ev;
   }
 }
+const _L = new THREE.Matrix4();
 const _e = new THREE.Vector3(), _m = new THREE.Vector3(), _d = new THREE.Vector3(), _t = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3();

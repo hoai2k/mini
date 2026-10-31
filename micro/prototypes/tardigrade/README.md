@@ -99,8 +99,9 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   you at under half speed, coming into view from the edge of the field, and
   within ~650 µm stalks at up to ~270 µm/s (faster than your walk, slower
   than your scramble). Its mouth on you is a bite: −20% reserves, and empty,
-  you are eaten. After a bite it lets go, backs off for 2.2 s and keeps its
-  distance for 9 s more before hunting again (it no longer bites every
+  it swallows you (see Threats and pacing). After a bite it lets go, backs
+  off for 2.2 s, keeps its distance and rests 45–75 s before it is hungry
+  again (it no longer bites every
   1.3 s while in contact). Escape by scrambling away, by retreating into
   film too thin for its bigger body (below ~3.5 µm of water it barely moves;
   you still can), by jabbing it with the stylets (X) so it backs off for
@@ -149,6 +150,33 @@ DIC is the main look, implemented as the reusable technique
    compare. On software GL (SwiftShader in headless checks) the page drops to
    a low-resolution path; on real GPUs quality adapts to the frame rate.
 
+## Threats and pacing
+
+*Milnesium* follows the shared pacing in `shared/predation.js`:
+
+- **A calm opening.** It starts far off on the tip of leaf C (~1.4 mm away)
+  and browses there for the first 40 s of each day.
+- **Hunger comes and goes** (`createHunger`): then it is hungry for ~30–45 s
+  at a time (once it is stalking you it sees the hunt through) and rests in between: 45–75 s after a bite, 15–30 s after a jab,
+  after losing you or after giving up on a tun. Only a hungry *Milnesium*
+  closes in, stalks and bites; resting, it browses or keeps off. A banner at
+  the top says when it is closing in or stalking.
+- **Bites drain, the last one is the catch.** Each bite takes 20% of your
+  reserves and it lets go and backs off. A bite that empties them plays the
+  whole catch, framed closer (about the 20× field) on you and its head, with
+  a red banner naming the phase: **strike**, its mouth tube and stylets lunge
+  onto you; **hold**, it grips with the stylets out while you writhe and its
+  pharynx starts to pump; **eat**, you are drawn head first in through the
+  mouth and pharynx, swallowed whole (a real *Milnesium* habit: it swallows
+  small prey whole or sucks them out), and lie curled in its gut, visible
+  through its cuticle; **eaten**, the card. A starts a new day.
+
+Features → Simulation → **Calm opening** (40 s / 20 s / 90 s / off) and
+**Milnesium hunger** (comes and goes / always / never) for testing.
+`window.__micro.forceCapture()` plays the catch; `__micro.pacing()` reports
+hunger and state; `__micro.paused` with `__micro.testStep(dt, stick)` steps
+the simulation by hand.
+
 ## Features (Menu panel)
 
 Rendering: optical look (DIC / brightfield / lit), optical-path buffers
@@ -165,7 +193,8 @@ wave / front-to-back / pairs in step), claws need cell walls, slope load and
 slipping.
 Simulation: time compression (240× / 60× / 1440× / paused), desiccation,
 revival risk, film capacity field (fixed).
-Simulation also has Milnesium (the predator, on).
+Simulation also has Milnesium (the predator, on), the calm opening (40 s /
+20 s / 90 s / off) and Milnesium hunger (comes and goes / always / never).
 Motion also has the scramble (fixed) and smoothed trunk and camera (on; off
 is the old single lag).
 Controls: anatomy labels, rumble (claw catch, slips, scramble, bites),
@@ -224,7 +253,7 @@ Not borrowed:
   scrambling; Nirody et al. measured 79–263 µm/s, so the walk is at the
   fast end and the scramble is a stretch.
 - **Milnesium's rules** are game rules: the calm start, the slow approach,
-  backing off after a bite, the sensing range, its speed, the
+  backing off after a bite, hunger that comes and goes, the sensing range, its speed, the
   −20% bites, the thin-film refuge threshold, backing off after a stylet jab
   (tardigrades do not really fight back this way) and giving up on a tun
   after three tries (a tun's hardness against *Milnesium* is not measured).

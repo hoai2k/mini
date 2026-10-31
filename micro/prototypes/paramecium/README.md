@@ -87,16 +87,57 @@ circle indicators round your creature; the previous feel was good." So:
   light meter runs down (≈30 s), and with it the dash recharge (to 45 %);
   your swimming speed is never reduced. A yellow arrow points back to the light.
 - **Hunters** (shown by the image itself; a faint red arrow at the edge only
-  when one is closing in from out of view): *Didinium* turns on you within
-  ≈480 µm and swims nearly straight at about 1 mm/s; a dash sideways makes it
-  overshoot. If its proboscis touches you, you are held and reeled in: X
-  fires trichocysts to break free, A struggles for time, otherwise you are
-  swallowed in 4 s. *Amoeba proteus* creeps toward you on the slide; swim low
-  near it and two pseudopods flank you into a food cup. The cup fills while
-  you stay between the arms (it also holds you back): dash out, or fire
-  trichocysts. Engulfed, you have 3 s.
+  when one is closing in from out of view): a hungry *Didinium* turns on you
+  within ≈480 µm and swims nearly straight at about 1 mm/s; a dash sideways
+  makes it overshoot. If its proboscis touches you, you are held and reeled
+  in: X fires trichocysts to break free, A or B struggles for time, otherwise
+  you are swallowed. A hungry *Amoeba proteus* creeps toward you on the
+  slide; swim low near it and two pseudopods flank you into a food cup. The
+  cup fills while you stay between the arms (it also holds you back): dash
+  out, or fire trichocysts. See **Threats and pacing** below.
 - Eat 6 prey and the cell divides (the round counter goes up); eaten, the
-  round starts again. Hunters leave you alone for the first 10 s.
+  Eaten card says by what, and A starts the round again.
+
+## Threats and pacing
+
+Hunters use the shared `shared/predation.js` (`createHunger`,
+`createCapture`), so they feel the same as in the other prototypes.
+
+- **A calm opening.** For the first 45 s of a round no hunter is hungry: the
+  Didinia wander and the amoeba creeps, and none comes for you. The second
+  Didinium wakes 12 s after the first and the amoeba 6 s after. Both Didinia
+  start 1.1–1.3 mm away, and after a restart they are put back about 1 mm
+  away, on the far side of the drop. The opening repeats after every
+  restart.
+- **Hunger comes and goes.** Each hunter has its own clock: hungry for
+  18–32 s (the amoeba 25–40 s), then resting, 45–75 s after a meal and
+  15–30 s after a miss (driven off by trichocysts, or it gave up). Only a
+  hungry hunter hunts or catches; a resting Didinium wanders, a resting
+  amoeba creeps. The stats corner shows each one (`calm`, `hungry`,
+  `resting` with the seconds left); the red goal-strip line still warns when
+  one is hunting you.
+- **Being caught is always shown,** never a silent stop:
+  - *Didinium.* **Strike:** the proboscis touches you and its toxicysts fire
+    (a spray of short threads, the `paramecium/didinium` and `held` sounds).
+    **Hold** (3.5 s, as before): you are held fast and reeled in, cilia
+    beating hard; X fires trichocysts if you have any left (you break free
+    and it rests), A or B struggles for a little time. **Eat:** its mouth
+    gapes enormously (a lip ring opening to about twice your width) and you
+    are drawn in front first, squeezed, while its body balloons round you
+    (`gulp` at a low pitch). It really does swallow a Paramecium larger than
+    itself whole.
+  - *Amoeba proteus.* **Strike:** the two arms of the food cup sweep over you
+    and their tips meet. **Hold** (2.5 s): escape is still possible with
+    trichocysts. **Eat:** a food vacuole forms round you, closes and
+    tightens, is drawn into the cell and its contents darken as digestion
+    begins. The chase camera rises to look down into it.
+  - **Eaten card:** what ate you; A restarts the round.
+- **Testing:** Features → World → *Calm opening* (45 s, 20 s or 0 s) and
+  *Hunger comes and goes* (off: once the opening is over they hunt all the
+  time, the old pacing). `window.__micro.pacing()` reports the round time,
+  the first time any hunter was hungry and the first time one hunted you,
+  and each hunter's state; `window.__micro.forceCapture('didinium' |
+  'amoeba')` puts a hunter on you and starts its catch.
 
 Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A pond ambience loop and a ciliary swim loop whose volume and rate follow your speed; the dash (A), the feeding gulp and trichocyst discharge (X), the avoidance reaction (B), Didinium closing in and being held.
 
@@ -324,6 +365,8 @@ it (for example `?f=-dof,look:DIC (Nomarski)`).
 | Controls | Invert camera Y (shared by every prototype) | on/off |
 | Simulation | Flow round the swimming cell; feeding currents; ambient drift; bacterial run-and-tumble | on/off each |
 | World | Didinium hunters; Didinium homing; Amoeba proteus; Vorticella stalk contraction | on/off each |
+| World | Calm opening before the hunters get hungry: 45 s (default), 20 s, 0 s | choice |
+| World | Hunger comes and goes (off: they hunt all the time once the opening ends) | on/off |
 | World | Spirogyra, detritus, diatoms, prey | always |
 | Borrowed | SEM (mite), tardigrade DIC, amoeba optics, each with its mode | on/off, default off |
 
@@ -413,6 +456,10 @@ automatically: MP-P01 (darkfield plate), MP-P02 (phase plate), MP-P03
   invented; Didinium finds prey by collision. Its 1–1.25 mm/s is a game
   value. Whether trichocysts free a Paramecium from Didinium (as they do from
   *Dileptus*, S09) is unverified. Struggling with A to buy time is invented.
+- **Hunger and the catch timing** (the calm opening, hungry and resting
+  spells, a 0.45 s strike, the hold and a 1.8 s swallow) are game values.
+  Didinium's swallow takes minutes in life; the gape is drawn as a lip ring
+  and a stretched oral cone, a simplification of the cytostome widening.
 - **Amoeba proteus** creeps about 10× faster than life (38 µm/s against
   0.5–5 µm/s) and its pseudopods extend about 5× faster, so it is a threat
   within a minute; its food cup reaching 150 µm up into the water from the

@@ -50,6 +50,49 @@ lives, and a furcula meter (cocking, full jump, re-cocking, struggle).
 
 Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A bog ambience loop; the furcula jump (A), landings on the water film and the sticky sundew landing, grazing (X), raindrops (quieter and panned by distance), and the Stenus skim and harpoon strike.
 
+## Threats and pacing
+
+Predators follow the shared pacing in `shared/predation.js`:
+
+- **A calm opening.** For the first 45 s of a game, and again after each
+  lost life, nothing hunts: *Stenus* patrols, the strider rows about its own
+  water, and raindrops land around you (9–19 mm off) rather than on you. Both
+  predators start well away (the beetle's patrol is placed ≥30 mm off, the
+  strider ~40 mm off, on open water). The strider's calm runs 15 s longer.
+- **Hunger comes and goes.** After the calm each predator is hungry for
+  ~18–32 s, then rests: 45–75 s after a meal, 15–30 s after a miss (a
+  *Stenus* strike that finds nothing, a strider that loses your ripples).
+  Only a hungry *Stenus* notices, stalks, skims and strikes; only a hungry
+  strider answers ripples and grabs. A hungry predator also drifts its patrol
+  toward your part of the pool, so it does find you sometimes. The status bar
+  says *Calm*, *Stenus hungry* / *Strider hungry*, or *Hunted!*.
+- **Every catch is shown.** When a predator gets you, control stops and the
+  whole catch plays, the lens swinging side-on and widening to frame you and
+  the predator together, while the status bar turns red and names the phase:
+  - *Stenus*: **strike**, the labium shoots out and its sticky pads hit you;
+    **hold**, it reels you in, twisting, legs and antennae flailing;
+    **eat**, the mandibles work and you shrink into the mouth head first;
+    **eaten**, it chews, and the Eaten card comes up.
+  - The strider: **strike**, the raptorial forelegs snap shut on you;
+    **hold**, it lifts you, kicking, to its rostrum; **eat**, the rostrum
+    pierces and sucks you dry (you shrivel and go still); **eaten**.
+  - A sundew is a trap, not a predator: stuck, its tentacles curl over you
+    while you mash A. If they close first, **strike**: every tentacle folds
+    over you; **hold**: wrapped in glue, struggling weaker; **eat**: the leaf
+    blade cups and closes round you and you sink into it; **eaten**
+    (digested).
+
+  Then press A: a life is lost and you start again (with the calm opening),
+  or a new game starts after the last life.
+- Raindrops stay hazards: a direct hit swamps you (now only within ~0.95 of
+  the drop's radius, with a 2 s shadow warning, and only about half the drops
+  aim near you); near misses throw you out of the crater.
+
+Features → World → **Calm opening** (45 s / 20 s / 90 s / off) and
+**Predator hunger** (comes and goes / always / never) change this for
+testing. `window.__micro.forceCapture('stenus' | 'strider' | 'sundew')` plays
+a catch; `__micro.pacing()` reports hunger and states.
+
 ## Hazards
 
 - **The rove beetle *Stenus comma*** (5 mm, black, huge eyes, a pale spot on
@@ -59,7 +102,8 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   abdomen tip: the Marangoni wake is simulated, calms the ripples under it and
   shoves floating food (and you) aside. In reach, it lowers its head for
   0.45 s (the wind-up, your cue to jump), then shoots its sticky labium ~2 mm.
-  It then needs 1.6 s to recover and 3.5 s before it can skim again.
+  It then needs 1.6 s to recover and 3.5 s before it can skim again. All of
+  this only while it is hungry (see Threats and pacing).
 - **Sundews** (*Drosera rotundifolia*): rosettes on seven of the islands
   near the start, their round leaves held out over the water on one side, each with ~90 red
   glandular tentacles tipped with glue. Land on a leaf and you stick; the
@@ -69,7 +113,7 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   over, and its strokes send waves that flip an unbraced springtail. Its
   forelegs grab. Keep still and hunker and it loses you.
 - **Raindrops** ~3 mm across (twice your length). A shadow grows where one
-  will land (1.6 s); it falls, blasts a crater, throws a crown of droplets
+  will land (2 s); it falls, blasts a crater, throws a crown of droplets
   and rings the pool. A direct hit swamps you; near misses throw you out of
   the crater; the ring waves flip you unless you hunker.
 - **Waves** in general: where the film's slope passes ~0.2 you are flipped
@@ -245,6 +289,8 @@ The **macro photography** look is new to the set:
 | Body | Mid-air U-pose righting | on |
 | Body | Anatomy from SDF parts | always |
 | World | Rove beetle, water strider | on |
+| World | Calm opening: 45 s / 20 s / 90 s / off | 45 s |
+| World | Predator hunger: comes and goes / always / never | comes and goes |
 | World | Rain: sometimes / often / off | sometimes |
 | Controls | Invert camera Y (shared by every prototype) | off |
 | Controls | Camera-relative walking and aiming | always |

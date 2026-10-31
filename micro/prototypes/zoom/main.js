@@ -137,6 +137,8 @@ function resetCreatures(k) {
     c.heading = atDest ? headingTo(toGlobal(j, W.path[Math.max(0, W.path.length - 2)]), destG(j)) : headingTo(c.pos, next);
     c.state = j === 2 ? (k >= 3 ? 1 : 0) : 1;
   }
+  // after the hand-off the mite has wandered off along the leaf (see the hand-off in update)
+  if (k >= 3) { const d1 = destG(1); cr[1].pos = [d1[0] + 0.8 * 320, d1[1] + 0.6 * 320]; cr[1].heading = Math.atan2(0.6, 0.8); }
   if (k >= 6) cr[5].heading = -Math.PI / 2;
 }
 
@@ -523,7 +525,7 @@ function render() {
     u.uCr.value[j].set(c.pos[0] - G[j][0], c.pos[1] - G[j][1], c.heading, c.phase);
     const r = WORLDS[j].radius;
     const vis = r / w > 0.0012 && Math.hypot(c.pos[0] - S.cam[0], c.pos[1] - S.cam[1]) < w * 0.75 + r;
-    const baseH = j === 0 ? 0 : j <= 2 ? groundAt(c.pos) : j === 3 ? groundAt(c.pos) + 60 : leafTop;
+    const baseH = j === 0 ? 0 : j === 1 ? groundAt(c.pos) : j === 2 ? groundAt(c.pos) + 220 : j === 3 ? groundAt(c.pos) + 60 : leafTop;
     u.uCrB.value[j].set(c.state, vis ? 1 : 0, baseH, c.moving);
   }
   u.uLayers.value.set(w > 15 ? 1 : 0, w < 7000 ? 1 : 0, w < 2600 ? 1 : 0, w < 400 ? 1 : 0);

@@ -180,7 +180,7 @@ export function createDrawer(world) {
     if (A.kind === 'grazer') {
       // swept down the oral funnel, spinning, then packed into a food vacuole that darkens
       const eat = ph === 'eat' ? ease(k) : ph === 'eaten' ? 1 : 0;
-      if (eat > 0) S.disc(s.x, s.y, 2.3 - 0.5 * eat, { dn: 0.02 + 0.02 * eat, scat: 0.35, fl: [0.3 * chan.memb, 0, 0], memb: 1, ab: [0.006 + 0.03 * eat, 0.008 + 0.03 * eat, 0.012 + 0.03 * eat], z: 0 });
+      if (eat > 0) S.disc(s.x, s.y, 2.6 - 0.6 * eat, { dn: -0.02 + 0.05 * eat, scat: 0.5, fl: [0.5 * chan.memb, 0, 0], memb: 1, ab: [0.01 + 0.06 * eat, 0.012 + 0.055 * eat, 0.016 + 0.045 * eat], z: 0 });
       body(S, s, s.x, s.y, s.a, 0.25 * eat, 0.8 * eat, flPh, eat < 0.5);
       return;
     }

@@ -14,6 +14,7 @@ import { Creature } from './creature.js';
 import { Walker, GAITS, setGait, setGaitWith } from './gait.js';
 import { Life, COMPRESSIONS } from './life.js';
 import { Predator } from './predator.js';
+import { createCapture } from '../shared/predation.js';
 import { wireAssets } from './textures.js';
 import { LEAF_FX } from './materials.js';
 
@@ -104,7 +105,7 @@ const walker = new Walker(world, creature, {
   fall(t) { toast(t, 2600); rumble(300, 0.6, 0.8); },
   transfer(t) { toast(t); rumble(120, 0.15, 0.3); },
 });
-const life = new Life(world, walker, creature, { toast, rumble, newDay: () => predator.reset() });
+const life = new Life(world, walker, creature, { toast, rumble, newDay: () => { predator.reset(); endCapture(); } });
 const predator = new Predator(scene, world, { toast, rumble });
 const dash = createDash({ duration: 0.9, cooldown: 2.6 });
 const mic = new DicMicroscope(renderer, scene, camera, { layers: [LAYER_SUBSTRATE, LAYER_SPECIMEN], backdrop: assets.backdrop });
@@ -190,8 +191,14 @@ F({ id: 'smooth', group: 'Motion', label: 'Smoothed trunk and camera', on: true,
   about: 'The trunk follows its target through three lags in series, and a change of face (a transfer, the leaf margin, a fall) blends the old pose out over a smootherstep, so position, velocity and acceleration stay continuous. Slipping uses grip hysteresis (slide below 85% of the load for 0.6 s, catch at 75%). Off: the old single lag.',
   onChange: (v) => (walker.opts.smooth = v) });
 F({ id: 'milnesium', group: 'Simulation', label: 'Milnesium (predator)', on: true,
-  about: 'A predatory tardigrade 1.5× your size with a wide buccal tube and no placoids. It starts far off on leaf C and browses for the first 40 s; then it closes in slowly (you see it coming), stalks you within ~650 µm and bites (reserves drain; empty, you are eaten). After a bite it lets go and keeps off for ~11 s. Escape: scramble (A), retreat into film too thin for its body (it barely moves below ~3.5 µm of water), jab it with the stylets (X) so it backs off, or tun (Y): it cannot get a tun into its mouth quickly and gives up after three tries. The thin-film refuge, the recoil and the tun giving-up are game rules.',
+  about: 'A predatory tardigrade 1.5× your size with a wide buccal tube and no placoids. It starts far off on leaf C and browses through the calm opening (40 s); after that it is hungry only some of the time (see Threats), and only hungry does it close in slowly (you see it coming), stalk you within ~650 µm and bite (reserves drain; empty, it grips you and swallows you whole, all of it shown). After a bite it lets go, backs off and rests 45-75 s. Escape: scramble (A), retreat into film too thin for its body (it barely moves below ~3.5 µm of water), jab it with the stylets (X) so it backs off, or tun (Y): it cannot get a tun into its mouth quickly and gives up after three tries. The thin-film refuge, the recoil and the tun giving-up are game rules.',
   onChange: (v) => { predator.on = v; predator.setVisible(v); } });
+F({ id: 'grace', group: 'Simulation', label: 'Calm opening', choices: ['40 s', '20 s', '90 s', 'Off'], value: '40 s',
+  about: 'How long after a start (and after each new day) Milnesium browses far off on leaf C before it first gets hungry. shared/predation.js.',
+  onChange: (v) => { predator.pace.grace = v === 'Off' ? 0 : parseFloat(v); predator.hunger.reset(predator.pace.grace); } });
+F({ id: 'hunger', group: 'Simulation', label: 'Milnesium hunger', choices: ['Comes and goes', 'Always', 'Never'], value: 'Comes and goes',
+  about: 'Comes and goes: after the calm opening it is hungry for ~30-45 s at a time (once stalking it sees the hunt through), then rests (45-75 s after a bite or eating you, 15-30 s after a jab, losing you or giving up on a tun); only a hungry Milnesium closes in, stalks and bites. Always: hungry from the end of the calm opening on. Never: it only browses (for exploring and testing).',
+  onChange: (v) => (predator.pace.mode = v) });
 addInvertY(features);
 F({ id: 'camrel', group: 'Controls', label: 'Camera-relative crawl', fixed: true, about: 'The stick direction on screen is projected onto the leaf the animal is on.' });
 
@@ -253,12 +260,115 @@ function resize() {
 addEventListener('resize', resize);
 resize();
 
+// ---------------------------------------------------------------- being eaten
+// A bite that empties your reserves is the catch (shared/predation.js): strike
+// (the mouth tube and stylets lunge onto you), hold (it grips: you writhe),
+// eat (you are drawn in through the mouth and pharynx, swallowed whole, and
+// lie in its gut), then the Eaten card; A starts a new day.
+const capture = createCapture({ onRestart: () => life.newDay() });
+const cap = { phase: null, m0: new THREE.Matrix4(), feet0: [], t: 0 };
+const _p0 = new THREE.Vector3(), _q0 = new THREE.Quaternion(), _s0 = new THREE.Vector3();
+const _p1 = new THREE.Vector3(), _q1 = new THREE.Quaternion(), _s1 = new THREE.Vector3();
+const _M = new THREE.Matrix4(), _R = new THREE.Matrix4().makeRotationY(Math.PI), _S = new THREE.Matrix4();
+const capBanner = document.createElement('div');
+capBanner.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:6;padding:6px 14px;border-radius:999px;font:600 13px system-ui,-apple-system,"Segoe UI",sans-serif;color:#fff;pointer-events:none;white-space:nowrap;display:none';
+document.body.appendChild(capBanner);
+const CAP_LINES = { strike: 'Milnesium strikes: its mouth tube is on you!', hold: 'Gripped by the stylets…', eat: 'Milnesium is swallowing you whole' };
+function startCapture() {
+  if (capture.active) return;
+  life.state = 'caught'; life.feeding = null; life.tun = 0; creature.pose.tun = 0;
+  Object.assign(cap, { phase: null, t: 0 });
+  cap.m0.copy(walker.matrix);
+  cap.feet0 = creature.pose.feet.map((f) => f.clone());
+  capture.start({ by: 'Milnesium', how: 'gripped you with its stylets and swallowed you whole' });
+  audio.play('tardigrade/milnesium', { volume: 1, rate: 0.9 });
+  rumble(500, 0.9, 1);
+}
+function endCapture() {
+  capture.reset();
+  cap.phase = null;
+  creature.group.visible = true;
+}
+/** The player's body during the catch, placed relative to Milnesium's mouth. */
+function animateCapture(c, dt) {
+  const ease = (x) => x * x * (3 - 2 * x);
+  cap.t += dt;
+  if (c.phase !== cap.phase) {
+    cap.phase = c.phase;
+    if (c.phase === 'hold') { audio.play('tardigrade/bite', { volume: 1, rate: 0.7 }); rumble(300, 0.5, 0.6); }
+    if (c.phase === 'eat') { audio.play('tardigrade/milnesium', { volume: 0.8, rate: 0.7 }); rumble(700, 0.6, 0.3); }
+  }
+  predator.captureStep(c.phase, c.t, dt);
+  const PM = predator.creature.group.matrix; // Milnesium's body space (scaled 1.5×), with its lunge
+  const sp = 1 / 1.5;
+  // the prey in Milnesium's body space: facing it, head at the mouth (x 1.45),
+  // then drawn back through the buccal tube and pharynx (x ~1.0) into the gut
+  const T = cap.t;
+  let x, sc, y = -0.05, flail = 1, squeeze = 0;
+  if (c.phase === 'strike') { x = null; }
+  else if (c.phase === 'hold') { x = 1.45 + 1.75 * sp; sc = 1; flail = 1; }
+  else if (c.phase === 'eat') { const e = ease(c.t); x = 1.45 + 1.75 * sp * (1 - e) - 1.5 * e; sc = 1 - 0.62 * e; flail = 1 - c.t; squeeze = 0.5 * e; y = -0.05 + 0.05 * e; }
+  else { x = -0.2; sc = 0.38; flail = 0; squeeze = 0.5; y = 0.02; }
+  if (x === null) {
+    // struck where it stood: a jolt toward the mouth
+    _M.copy(cap.m0);
+    const mouth = predator.mouth(_p1);
+    cap.m0.decompose(_p0, _q0, _s0);
+    _p0.lerp(mouth, 0.12 * Math.sin(Math.min(1, c.t * 2) * Math.PI * 0.5));
+    _M.compose(_p0, _q0, _s0);
+  } else {
+    _S.makeScale(sc * sp, sc * sp, sc * sp);
+    _M.copy(PM).multiply(new THREE.Matrix4().makeTranslation(x, y, Math.sin(T * 11) * 0.06 * flail)).multiply(_R).multiply(_S);
+    if (c.phase === 'hold') {
+      // pulled in from where it stood
+      const k = ease(Math.min(1, c.t * 1.6));
+      cap.m0.decompose(_p0, _q0, _s0); _M.decompose(_p1, _q1, _s1);
+      _M.compose(_p0.lerp(_p1, k), _q0.slerp(_q1, k), _s0.lerp(_s1, k));
+    }
+  }
+  creature.group.matrix.copy(_M);
+  creature.group.matrixWorldNeedsUpdate = true;
+  creature.group.visible = true;
+  // writhing legs, then still
+  creature.pose.feet.forEach((f, i) => {
+    const f0 = cap.feet0[i];
+    if (!f0) return;
+    const ph = T * 13 + i * 1.7;
+    f.set(f0.x + Math.sin(ph) * 0.3 * flail, f0.y + (0.25 + 0.25 * Math.sin(ph * 1.3)) * flail, f0.z + Math.cos(ph) * 0.2 * flail);
+  });
+  creature.pose.tun = squeeze;
+  creature.pose.stylet = 0;
+  creature.deformAll();
+}
+
 let last = performance.now();
 let time = 0;
 const dirV = new THREE.Vector3(), right = new THREE.Vector3(), upS = new THREE.Vector3();
 applyMode(view.mode);
 
-window.__micro = { SOFTWARE, scene, camera, renderer, world, walker, creature, life, mic, view, features, applyMode, pad, predator, dash };
+let capPad = null;
+const api = window.__micro = { SOFTWARE, scene, camera, renderer, world, walker, creature, life, mic, view, features, applyMode, pad, predator, dash, capture, paused: false,
+  get time() { return time; },
+  /** Testing: one fixed step with the left stick at (x, y) on screen (null: hands off). */
+  testStep(dt = 1 / 30, stick = null) {
+    const none = () => false;
+    step(dt, { P: none, D: none, dashPressed: false, ls: stick ? { x: stick.x, y: stick.y, m: Math.min(1, Math.hypot(stick.x, stick.y)) } : { x: 0, y: 0, m: 0 } });
+  },
+  render(dt = 1 / 30) { renderView(dt); readout(); },
+  pacing() {
+    return { approach: capture.active || predator.state === 'approach' || predator.state === 'stalk', captured: capture.active, phase: capture.phase, kind: 'milnesium',
+      hunger: { milnesium: predator.hunger.state }, states: { milnesium: predator.state }, dist: { milnesium: Math.round(predator.dist * 100) }, mode: life.state };
+  },
+  /** Testing: Milnesium catches you now (the full sequence plays). */
+  forceCapture() {
+    if (capture.active || life.state !== 'active') return;
+    // bring it round to face you, mouth at your head
+    const w = predator.walker;
+    w.spawn(walker.leaf, walker.side, walker.u + 3.2, walker.v, -1, 0);
+    predator.dist = 3;
+    startCapture();
+  },
+};
 
 function frame() {
   const now = performance.now();
@@ -266,12 +376,10 @@ function frame() {
   last = now;
   const dt = Math.min(view.dtMax || 0.05, rawDt);
   if (view.mode !== 2 && !SOFTWARE) mic.autoQuality(rawDt);
-  time += dt;
-  catchBudget -= dt;
   pad.poll();
   unlockOnPad();
-  snd.t += dt;
   const inMenu = features.update();
+  capPad = inMenu ? null : pad;
   hud.update(pad);
   const B = pad.BTN;
   const P = (b) => !inMenu && pad.pressed(b);
@@ -298,9 +406,24 @@ function frame() {
   view.manualFocusT = Math.abs(fin) > 0.05 ? 0 : view.manualFocusT + dt;
   if (view.autoFocus !== false && view.manualFocusT > 4 && (walker.speed > 0.05 || view.manualFocusT > 8)) view.focus *= Math.exp(-dt / 0.6);
 
+  const G = { P, D, dashPressed: !inMenu && ctl.dash.pressed(), ls: inMenu ? { x: 0, y: 0, m: 0 } : ctl.move() };
+  if (!api.paused) step(dt, G);
+  renderView(dt);
+  readout();
+  requestAnimationFrame(frame);
+}
+
+/** One step of the simulation. G: { P(b), D(b) (pressed, down), dashPressed, ls: stick }. */
+function step(dt, G) {
+  const { P, D } = G;
+  const B = pad.BTN;
+  time += dt;
+  catchBudget -= dt;
+  snd.t += dt;
+  const cs = capture.update(dt, capPad);
   // A: the scramble.
   dash.update(dt);
-  if (!inMenu && ctl.dash.pressed() && life.state === 'active') {
+  if (G.dashPressed && life.state === 'active') {
     if (life.frozen || walker.slipping) { /* curled, feeding or sliding: no scramble */ }
     else if (life.energy < 0.04) toast('Too weak to scramble: feed first');
     else if (dash.trigger()) {
@@ -312,7 +435,7 @@ function frame() {
   }
 
   // Camera-relative crawl direction.
-  const ls = inMenu ? { x: 0, y: 0, m: 0 } : ctl.move();
+  const ls = G.ls;
   right.setFromMatrixColumn(camera.matrixWorld, 0);
   upS.setFromMatrixColumn(camera.matrixWorld, 1);
   dirV.set(0, 0, 0).addScaledVector(right, ls.x).addScaledVector(upS, -ls.y);
@@ -325,7 +448,7 @@ function frame() {
   // X: a jab at a Milnesium whose head is at your mouth takes priority over feeding.
   const xPressed = P(B.X);
   const myMouth = creature.anchorWorld('buccal tube + stylets', new THREE.Vector3());
-  const pev = predator.update(dt, { walker, life, mouth: myMouth }, xPressed && life.state === 'active' && !life.feeding);
+  const pev = cs.active ? [] : predator.update(dt, { walker, life, mouth: myMouth }, xPressed && life.state === 'active' && !life.feeding);
   const jabbed = pev.includes('recoil');
   life.update(dt, { yDown: D(B.Y), yPressed: P(B.Y), bitePressed: xPressed && !jabbed, aPressed: P(B.A), moving: walker.speed });
   // life-state transitions: the tun, the revival, rain, a stylet bite
@@ -355,24 +478,33 @@ function frame() {
       life.feeding = null;
       walker.speed = 0;
       rumble(300, 0.8, 0.9);
-      if (life.energy <= 0.001) life.eaten();
+      if (life.energy <= 0.001) startCapture();
       else toast(`Milnesium bites! Reserves ${Math.round(life.energy * 100)}%. It lets go and backs off, for now`, 2600);
     }
   }
 
   // Creature rig.
-  creature.group.matrix.copy(walker.matrix);
-  creature.group.matrixWorldNeedsUpdate = true;
-  creature.deformAll();
+  if (cs.active) animateCapture(cs, dt);
+  else {
+    creature.group.matrix.copy(walker.matrix);
+    creature.group.matrixWorldNeedsUpdate = true;
+    creature.deformAll();
+  }
   if (view.claws !== 1) for (const c of creature.claws) { const s = view.claws; c.matrix.multiply(new THREE.Matrix4().makeScale(s, s, s)); }
   if (view.mode === 2 || borrow.id === 'semMite') creature.refreshNormals();
   particles.update(dt, walker.dispPos, walker.leaf, walker.side, world);
+}
 
-  // Camera orbit on the animal.
+const _ct = new THREE.Vector3();
+function renderView(dt) {
+  // Camera orbit on the animal (on you and Milnesium together during a catch).
   const ob = OBJECTIVES[view.obj];
-  const dist = ob.field / 2 / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / Math.max(1, camera.aspect) * 1.0;
+  // a catch is framed closer (about the 20× field): you and Milnesium's head
+  const field = capture.active ? Math.min(ob.field, 9) : ob.field;
+  const dist = field / 2 / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / Math.max(1, camera.aspect) * 1.0;
   view.dist = THREE.MathUtils.lerp(view.dist || dist, dist, 1 - Math.exp(-dt * 4));
-  view.target.lerp(walker.dispPos, 1 - Math.exp(-dt * 3));
+  const aim = capture.active ? _ct.copy(walker.dispPos).lerp(predator.walker.dispPos, 0.5) : walker.dispPos;
+  view.target.lerp(aim, 1 - Math.exp(-dt * 3));
   camera.position.set(
     view.target.x + view.dist * Math.cos(view.pitch) * Math.sin(view.yaw),
     view.target.y + view.dist * Math.sin(view.pitch),
@@ -419,8 +551,21 @@ function frame() {
     }
   }
 
+}
+
+function readout() {
+  // What Milnesium is up to, on screen whenever it matters.
+  let bt = '', hot = true;
+  if (capture.active) bt = CAP_LINES[capture.phase] || '';
+  else if (predator.on && predator.state === 'stalk') bt = 'A Milnesium is stalking you';
+  else if (predator.on && predator.state === 'approach') { bt = 'A Milnesium is closing in'; hot = false; }
+  capBanner.style.display = bt ? 'block' : 'none';
+  capBanner.textContent = bt;
+  capBanner.style.background = hot ? 'rgba(150,30,20,.8)' : 'rgba(10,12,16,.6)';
+  const film = life.filmHere();
+  const ob = OBJECTIVES[view.obj];
   // Readout.
-  const st = { active: walker.slipping ? 'SLIPPING' : life.feeding ? 'feeding' : life.tun > 0.02 ? 'curling up…' : walker.speed > 0.03 ? 'walking' : 'holding on',
+  const st = { caught: `caught by Milnesium (${capture.phase || ''})`, active: walker.slipping ? 'SLIPPING' : life.feeding ? 'feeding' : life.tun > 0.02 ? 'curling up…' : walker.speed > 0.03 ? 'walking' : 'holding on',
     tun: 'tun (dry: waits for rain; wet: Y to wake)', skip: 'tun · time passing…', revive: 'rehydrating…', dead: life.energy <= 0.001 ? 'eaten' : 'did not wake' }[life.state];
   const planted = walker.feet.filter((f) => f.state === 'stance' && f.grip > 0.5).length;
   const bar = (x) => '█'.repeat(Math.round(x * 10)).padEnd(10, '·');
@@ -435,9 +580,7 @@ function frame() {
     `state    ${st}${life.state === 'skip' || life.state === 'revive' ? ` · revival ~${Math.round(life.chance * 100)}%` : ''}`,
     walker.candidate ? `reach    ${walker.candidate.M.name}${walker.candidate.bridged ? ' (film bridge)' : ''}` : '',
     `${dash.active ? 'SCRAMBLE' : dash.text()}   ${Math.round(walker.speed * 100)} µm/s`,
-    predator.on ? `Milnesium ${predator.state === 'wander' ? (predator.firstHunt ? 'browsing far off' : 'keeping off') : predator.state === 'recoil' ? 'backing off' : predator.state === 'approach' ? 'closing in' : 'stalking'} · ${Math.round(predator.dist * 100)} µm${predator.thinFilm ? ' · film too thin for it' : ''}` : '',
+    predator.on ? `Milnesium ${predator.state === 'capture' ? 'eating you' : predator.state === 'wander' ? (predator.firstHunt ? 'browsing far off' : 'keeping off') : predator.state === 'recoil' ? 'backing off' : predator.state === 'approach' ? 'closing in' : 'stalking'} · ${Math.round(predator.dist * 100)} µm${predator.thinFilm ? ' · film too thin for it' : ''} · ${predator.hunger.state} ${Math.round(predator.hunger.left)} s` : '',
   ].filter(Boolean).join('\n'));
-
-  requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

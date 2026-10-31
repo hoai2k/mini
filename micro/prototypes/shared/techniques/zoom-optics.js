@@ -277,12 +277,14 @@ void main() {
     float inside = 1.0 - step(0.0, outside);
     col *= 1.0 - uDark * (1.0 - inside);
     col = mix(col, vec3(1.0, 0.97, 0.85), 0.5 * uFlash * inside);
-    float line = 1.0 - smoothstep(0.6, 1.6, abs(outside + 1.2));
+    float line = 1.0 - smoothstep(1.2, 2.2, abs(outside + 2.0));       // a 3 px line just inside
+    float halo = (1.0 - smoothstep(1.0, 2.0, abs(outside - 1.0))) * (1.0 - line); // a dark rim just outside
+    col *= 1.0 - 0.6 * halo * uFrame;
     // corner marks just outside, so even a frame a few pixels wide is found
     const float L = 12.0, G = 3.0;
     float cx = min(abs(fc.x - a.x), abs(fc.x - b.x)), cy = min(abs(fc.y - a.y), abs(fc.y - b.y));
     float outY = max(a.y - fc.y, fc.y - b.y), outX = max(a.x - fc.x, fc.x - b.x);
-    float mk = (cx < 1.0 && outY > G && outY < G + L ? 1.0 : 0.0) + (cy < 1.0 && outX > G && outX < G + L ? 1.0 : 0.0);
+    float mk = (cx < 1.5 && outY > G && outY < G + L ? 1.0 : 0.0) + (cy < 1.5 && outX > G && outX < G + L ? 1.0 : 0.0);
     vec3 lc = vec3(1.0, 0.88, 0.42);
     col = mix(col, lc, clamp(line + mk, 0.0, 1.0) * uFrame);
   }

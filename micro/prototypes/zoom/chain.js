@@ -41,7 +41,7 @@ export const WORLDS = [
     start: [-15000, -3000], path: [[-6000, 150], [-1550, 300]], destR: 400, stepSound: null },
   { name: 'A Sphagnum capitulum', short: 'Moss capitulum', field: 1800, look: 'sem', instrument: 'SEM (or stereo microscope), HFW 1.8 mm',
     amb: 'mite/amb-moss', creature: 'Box mite (Oribatida), 0.35 mm', radius: 420, speed: 200, stride: 135,
-    start: [0, 0], path: [[-330, -260], [-640, -500]], destR: 45, stepSound: 'mite/step' },
+    start: [0, 0], path: [[-300, -220], [-560, -420]], destR: 45, stepSound: 'mite/step' },
   { name: 'The water film on a leaf', short: 'Water film', field: 1800, look: 'dic', instrument: '10× objective, DIC (field number 18)',
     amb: 'tardigrade/amb-film', creature: 'Tardigrade, 350 µm', radius: 260, speed: 100, stride: 90,
     start: [0, 0], path: [[-200, 40], [-430, 60]], destR: 30, stepSound: 'tardigrade/step' },
