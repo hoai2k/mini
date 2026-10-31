@@ -372,14 +372,14 @@ document.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click
   if (a === 'instructions') openInstructions();
   if (a === 'scenes') openScenes();
   if (a === 'settings') openDialog($('#settings'));
-  if (a === 'credits') openDialog($('#credits'), $('#credits .scroll'));
+  if (a === 'credits') openDialog($('#credits'), $('#credits .card-x'));
   if (a === 'restart') { closeAllDialogs(); S.paused = false; if (S.act) beginAct(S.actIndex); else showPlaybill(); }
   if (a === 'title') toTitle();
 }));
 $('#start').addEventListener('click', startGame);
 $('#btn-instructions').addEventListener('click', () => { audio.play('ui'); openInstructions(); });
 $('#btn-scenes').addEventListener('click', () => { audio.play('ui'); openScenes(); });
-$('#btn-credits').addEventListener('click', () => { audio.play('ui'); openDialog($('#credits'), $('#credits .scroll')); });
+$('#btn-credits').addEventListener('click', () => { audio.play('ui'); openDialog($('#credits'), $('#credits .card-x')); });
 $('#btn-settings').addEventListener('click', () => { audio.play('ui'); openDialog($('#settings')); });
 $('#btn-sound').addEventListener('click', () => {
   settings.sound = !settings.sound;
