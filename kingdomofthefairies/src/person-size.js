@@ -2,8 +2,12 @@
 // standing height as painted in it (art px), measured by the head against
 // the character's reference sprite. Draw with drawPerson (src/pose.js) so
 // every sprite of a character comes out at one person size.
-// Inputs fingerprint f59167a5cc52be0d (person_sizes.py --check).
+// Inputs fingerprint fbf2979ad3f5e631 (person_sizes.py --check).
 export const PERSON = {
+  'prince-stand': { who: 'prince-armed', px: 360 },
+  'prince-strike': { who: 'prince-armed', px: 209 },
+  'prince-stand-tinted': { who: 'prince-armed', px: 359 },
+  'prince-strike-tinted': { who: 'prince-armed', px: 258 },
   'azurine-stand': { who: 'azurine', px: 380 },
   'azurine-walk-a': { who: 'azurine', px: 372 },
   'azurine-walk-b': { who: 'azurine', px: 372 },
@@ -33,11 +37,15 @@ export const PERSON = {
   'witch-swoop': { who: 'witch', px: 290 },
   'witch-storm': { who: 'witch', px: 327 },
   'witch-barrel': { who: 'witch', px: 327 },
+  'witch-cast': { who: 'witch', px: 218 },
+  'witch-recoil': { who: 'witch', px: 327 },
   'witch-hooded-tinted': { who: 'witch', px: 364 },
   'witch-cloud-tinted': { who: 'witch', px: 364 },
   'witch-swoop-tinted': { who: 'witch', px: 291 },
   'witch-storm-tinted': { who: 'witch', px: 328 },
   'witch-barrel-tinted': { who: 'witch', px: 328 },
+  'witch-cast-tinted': { who: 'witch', px: 262 },
+  'witch-recoil-tinted': { who: 'witch', px: 328 },
   'witch-stand': { who: 'witch-fair', px: 420 },
   'witch-stand-idle-b': { who: 'witch-fair', px: 403 },
   'witch-stand-idle-c': { who: 'witch-fair', px: 420 },
@@ -88,6 +96,7 @@ export const PERSON = {
 
 // Each character's reference sprite (standing).
 export const PERSON_REF = {
+  'prince-armed': 'prince-stand',
   'azurine': 'azurine-stand',
   'aurora': 'aurora-stand',
   'witch': 'witch-hooded',

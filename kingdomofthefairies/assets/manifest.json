@@ -4871,7 +4871,7 @@
       "edition": "film"
     },
     "cavern-stalactite": {
-      "status": "requested",
+      "status": "delivered",
       "file": "cavern-stalactite.webp",
       "size": [
         120,
@@ -4881,7 +4881,7 @@
       "edition": "film"
     },
     "cavern-stalactite-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "cavern-stalactite-tinted.webp",
       "size": [
         120,
@@ -4891,7 +4891,7 @@
       "edition": "film"
     },
     "cavern-stalactite-broken": {
-      "status": "requested",
+      "status": "delivered",
       "file": "cavern-stalactite-broken.webp",
       "size": [
         180,
@@ -4901,7 +4901,7 @@
       "edition": "film"
     },
     "cavern-stalactite-broken-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "cavern-stalactite-broken-tinted.webp",
       "size": [
         180,
@@ -4911,7 +4911,7 @@
       "edition": "film"
     },
     "prince-strike": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-strike.webp",
       "size": [
         300,
@@ -4921,7 +4921,7 @@
       "edition": "film"
     },
     "prince-strike-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-strike-tinted.webp",
       "size": [
         300,
@@ -4931,7 +4931,7 @@
       "edition": "film"
     },
     "witch-cast": {
-      "status": "requested",
+      "status": "delivered",
       "file": "witch-cast.webp",
       "size": [
         260,
@@ -4941,7 +4941,7 @@
       "edition": "film"
     },
     "witch-cast-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "witch-cast-tinted.webp",
       "size": [
         260,
@@ -4951,7 +4951,7 @@
       "edition": "film"
     },
     "witch-recoil": {
-      "status": "requested",
+      "status": "delivered",
       "file": "witch-recoil.webp",
       "size": [
         260,
@@ -4961,7 +4961,7 @@
       "edition": "film"
     },
     "witch-recoil-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "witch-recoil-tinted.webp",
       "size": [
         260,
@@ -4971,7 +4971,7 @@
       "edition": "film"
     },
     "barrel-upturned": {
-      "status": "requested",
+      "status": "delivered",
       "file": "barrel-upturned.webp",
       "size": [
         200,
@@ -4981,7 +4981,7 @@
       "edition": "film"
     },
     "barrel-upturned-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "barrel-upturned-tinted.webp",
       "size": [
         200,

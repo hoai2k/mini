@@ -36,12 +36,16 @@ REPORT = ROOT / 'design' / 'person-sizes.md'
 
 # who: (reference, {look: head box x0, y0, x1, y1}, [sprites], rotation searched)
 CAST = {
+    # The strike is drawn through drawPerson; its extended sword makes the
+    # figure much smaller within its canvas than the standing prince.
+    'prince-armed': ('prince-stand', {'': (119, 34, 148, 75), '-tinted': (119, 34, 148, 75)},
+                     ['prince-strike'], 30),
     'azurine': ('azurine-stand', {'': (60, 8, 115, 60), '-tinted': (55, 8, 105, 58)},
                 ['azurine-walk-a', 'azurine-walk-b', 'azurine-pass-a', 'azurine-pass-b', 'azurine-swoon', 'azurine-asleep', 'azurine-window'], 100),
     'aurora': ('aurora-stand', {'': (105, 58, 152, 110), '-tinted': (108, 55, 152, 106)},
                ['aurora-point', 'aurora-glide-a', 'aurora-glide-b'], 45),
     'witch': ('witch-hooded', {'': (55, 60, 97, 115), '-tinted': (25, 68, 72, 120)},
-              ['witch-cloud', 'witch-swoop', 'witch-storm', 'witch-barrel'], 100),
+              ['witch-cloud', 'witch-swoop', 'witch-storm', 'witch-barrel', 'witch-cast', 'witch-recoil'], 100),
     # her disguise, the fair lady (and in her moon boat)
     'witch-fair': ('witch-stand', {'': (80, 35, 125, 95)}, ['witch-stand-idle-b', 'witch-stand-idle-c', 'witch-moonboat'], 30),
     'demon-red': ('demon-red', {'': (125, 88, 165, 145), '-tinted': (110, 88, 150, 140)}, ['demon-red-carry'], 45),
@@ -61,6 +65,11 @@ CAST = {
 # pose; looked at on the sheets, every sprite at one person height.
 # Measured brow to chin against the reference at native scale, 30 Oct 2026.
 BY_EYE = {
+    # F25, 31 Oct 2026: the raised staff/arm and slipped hood confuse the
+    # face template. Compared brow to chin in the prepared sprites and
+    # checked at one person height on the review sheet.
+    'witch-cast': 0.6, 'witch-cast-tinted': 0.72,
+    'witch-recoil': 0.9, 'witch-recoil-tinted': 0.9,
     # her swoon is painted larger than her standing figure: her face 26-30 px
     # eye to chin, tipped back, against 18-20 standing (the template, thrown
     # by the raised arm, read 0.42-0.48; 1.0 by a glance was wrong, seen in

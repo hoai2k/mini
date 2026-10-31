@@ -94,7 +94,7 @@ and the production art for the film edition (F1–F4) after them.
 
 Requested 11 October 2026: 388 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 376 of 388 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 388 of 388 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -2895,10 +2895,10 @@ Requested 31 October 2026: in the cavern route (Act IV, the Dark Pools) stalacti
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `cavern-stalactite` | 120 × 280 | top centre (where it hangs from the ceiling) | new | requested |
-| `cavern-stalactite-tinted` | 120 × 280 | top centre (where it hangs from the ceiling) | new | requested |
-| `cavern-stalactite-broken` | 180 × 60 | bottom centre (on the ground) | new | requested |
-| `cavern-stalactite-broken-tinted` | 180 × 60 | bottom centre (on the ground) | new | requested |
+| `cavern-stalactite` | 120 × 280 | top centre (where it hangs from the ceiling) | new | [delivered](../assets/cavern-stalactite.webp) |
+| `cavern-stalactite-tinted` | 120 × 280 | top centre (where it hangs from the ceiling) | new | [delivered](../assets/cavern-stalactite-tinted.webp) |
+| `cavern-stalactite-broken` | 180 × 60 | bottom centre (on the ground) | new | [delivered](../assets/cavern-stalactite-broken.webp) |
+| `cavern-stalactite-broken-tinted` | 180 × 60 | bottom centre (on the ground) | new | [delivered](../assets/cavern-stalactite-broken-tinted.webp) |
 
 #### `cavern-stalactite` — A hanging stalactite
 
@@ -2930,12 +2930,12 @@ Requested 31 October 2026: in Act VI the witch now fights the prince on the clif
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `prince-strike` | 300 × 360 | bottom centre | new | requested |
-| `prince-strike-tinted` | 300 × 360 | bottom centre | new | requested |
-| `witch-cast` | 260 × 400 | bottom centre | new | requested |
-| `witch-cast-tinted` | 260 × 400 | bottom centre | new | requested |
-| `witch-recoil` | 260 × 400 | bottom centre | new | requested |
-| `witch-recoil-tinted` | 260 × 400 | bottom centre | new | requested |
+| `prince-strike` | 300 × 360 | bottom centre | new | [delivered](../assets/prince-strike.webp) |
+| `prince-strike-tinted` | 300 × 360 | bottom centre | new | [delivered](../assets/prince-strike-tinted.webp) |
+| `witch-cast` | 260 × 400 | bottom centre | new | [delivered](../assets/witch-cast.webp) |
+| `witch-cast-tinted` | 260 × 400 | bottom centre | new | [delivered](../assets/witch-cast-tinted.webp) |
+| `witch-recoil` | 260 × 400 | bottom centre | new | [delivered](../assets/witch-recoil.webp) |
+| `witch-recoil-tinted` | 260 × 400 | bottom centre | new | [delivered](../assets/witch-recoil-tinted.webp) |
 
 #### `prince-strike` — Prince striking with the sword
 
@@ -2979,8 +2979,8 @@ Requested 31 October 2026: once the prince beats the witch on the clifftop, Auro
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `barrel-upturned` | 200 × 240 | bottom centre (its open mouth) | new | requested |
-| `barrel-upturned-tinted` | 200 × 240 | bottom centre (its open mouth) | new | requested |
+| `barrel-upturned` | 200 × 240 | bottom centre (its open mouth) | new | [delivered](../assets/barrel-upturned.webp) |
+| `barrel-upturned-tinted` | 200 × 240 | bottom centre (its open mouth) | new | [delivered](../assets/barrel-upturned-tinted.webp) |
 
 #### `barrel-upturned` — A barrel falling upside down
 
