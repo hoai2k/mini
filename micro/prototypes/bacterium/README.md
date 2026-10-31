@@ -45,6 +45,42 @@ chevron for the way on, a hollow ring for the way back.
 - Standalone, the page behaves the same and `embed.js` shows a small toast
   in place of the zoom. The stats corner gives both distances.
 
+## The boss: Stentor coeruleus
+
+`stentor.js` (state and vortex), drawn in `draw.js`, run by `runBoss` in
+`main.js` (`shared/predation.js` `createFight`, with more resolve). The giant
+blue trumpet ciliate (1–2 mm) is anchored by its foot to the biofilm beside
+the host cell: at 1000× it is enormous, so only the rim of its oral disc
+with the band of membranelles beating round it looms in from the right edge
+of the field, its striped blue body tapering down to the foot. Its vortex of
+specks spirals into the oral pouch off-frame.
+
+- **Dormant** until a player comes within ≈230 µm of its mouth after the calm
+  opening; then a quiet brass **resolve gauge** shows while anyone is near.
+  Even dormant, a gentle feeding current flows.
+- **The steady vortex:** within ≈175 µm of the mouth a swirling current
+  (≈10–25 µm/s near the host) you can swim against.
+- **Its tell:** the membranelles beat faster and the vortex brightens
+  (1.4 s). **The pull** (0.9 s): a strong draw into the mouth, faster than
+  you sprint near the disc. **Below half resolve** the pull is harder.
+  Drawn within ≈96 µm of the mouth, you are swept in.
+- **Your play:** ride the edge of the vortex; **tumble (B) at the pull** to
+  break free (it kicks you out of the vortex); **sprint across** while the
+  vortex slackens after a pull (2.4 s); **bump its foot** on the biofilm and
+  it contracts in a flash and pauses (3.5 s). Each wasted pull, each tumble
+  free and each bump costs it resolve; worn out, it contracts and stays shut
+  for 22 s: the host is yours.
+- **Swept in:** the follow-and-respawn catch: round the vortex, into the
+  oral pouch, packed into a food vacuole carried down into its body, the
+  camera pulled back to the 90 µm field; then the fade and a respawn away
+  from it (together: beside a teammate).
+- **Departures:** the vortex's reach and strength are game values, and the
+  pulls are a rhythm for play (a real Stentor feeds steadily). Reference
+  sheet MP-R19 is requested, not yet delivered (`shared/asset-list.js`); it
+  is built from anatomy until then.
+- Test hooks: `__micro.boss()` (awake, state, resolve, vortex strength,
+  contraction, a log), `__micro.stentor`, `debug.wakeBoss()`.
+
 ## Multiplayer
 
 Up to four players (`shared/players.js`, see `../CONTROLS.md`): player 1 on

@@ -365,6 +365,8 @@ export class View {
     const nu = cyto.nucleus;
     A[o].set(nu.x, nu.y, nu.r, nu.r * nu.asp); B[o].set(0, nu.ang, 1, 0); o++;
     if (cyto.cv.r > 1) { A[o].set(cyto.cv.x, cyto.cv.y, cyto.cv.r, cyto.cv.r); B[o].set(1, 0, 1, 0); o++; }
+    // more nuclei (the giant Chaos is multinucleate)
+    for (const e of cyto.extraNuclei || []) { if (o >= 10) break; A[o].set(e.x, e.y, e.r, e.r * 0.85); B[o].set(0, 0.4, 1, 0); o++; }
     for (const v of cyto.vacuoles) {
       if (o >= 12) break;
       A[o].set(v.x, v.y, v.rx, v.ry); B[o].set(2, v.ang, 1 - 0.7 * v.digest, 0); o++;

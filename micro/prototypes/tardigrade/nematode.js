@@ -49,10 +49,10 @@ function tubeGeometry(n0, n1) {
   const idx = [];
   for (let i = 0; i < rings - 1; i++) for (let j = 0; j < M; j++) {
     const a = i * M + j, b = i * M + ((j + 1) % M), c = a + M, d = b + M;
-    idx.push(a, c, b, b, c, d);
+    idx.push(a, b, c, b, d, c); // outward-facing (the optical path needs the right winding)
   }
   // close both ends with fans (a closed mesh, so the optical path is the chord)
-  const cap = (ring, flip) => { for (let j = 1; j < M - 1; j++) flip ? idx.push(ring, ring + j + 1, ring + j) : idx.push(ring, ring + j, ring + j + 1); };
+  const cap = (ring, flip) => { for (let j = 1; j < M - 1; j++) flip ? idx.push(ring, ring + j, ring + j + 1) : idx.push(ring, ring + j + 1, ring + j); };
   cap(0, false); cap((rings - 1) * M, true);
   g.setIndex(idx);
   return g;
@@ -195,7 +195,7 @@ export class Nematode {
         this.coil += (0 - this.coil) * dt * 3; this.ripple = 1;
       } else if (f.state === 'windup') {
         // the tell: whip = the front coils into an S, head drawn back; thrash = the body ripples fast
-        if (this.pattern === 0) { this.coil += (1 - this.coil) * dt * 5; speed = -0.5 * slow; du = this.aim[0]; dv = this.aim[1]; }
+        if (this.pattern === 0) { this.coil += (1 - this.coil) * dt * 5; } // (it never backs up head first: the body would fold)
         else { this.ripple = 3.2; this.coil += (0.35 - this.coil) * dt * 4; }
         this.bare = Math.min(1, this.bare + dt * 3);
       } else if (f.state === 'strike') {
@@ -206,7 +206,7 @@ export class Nematode {
         this.swipe = 0;
         this.coil += (0 - this.coil) * dt * 2; this.ripple = 0.6;
         this.bare = Math.max(0, this.bare - dt * 2);
-        if (f.state === 'repelled' && tgt) { const [a, b] = toward(tgt); speed = -1.2; du = a; dv = b; }
+        if (f.state === 'repelled' && tgt) { const [a, b] = toward(tgt); speed = 0.8; du = -b; dv = a; } // it veers off sideways
       }
       if (f.blocked) ev.push({ e: 'blocked', a: tgt });
       if (f.hit && tgt) ev.push({ e: 'hit', a: tgt });

@@ -893,8 +893,10 @@ function runBoss(dt) {
       const s = P.swimmer.state;
       const to = new THREE.Vector3().subVectors(trap.door, s.center);
       const d = to.length();
-      // the inflow: strongest at the door (a game value; really ≈1 m/s for half a millisecond)
-      s.axis.addScaledVector(to.normalize(), (300 + 2400 * Math.pow(1 - d / pullR, 0.6)) * dt);
+      // B in the pulse: the trichocysts push you out of the inflow
+      if (P.blockT > 0) { s.axis.addScaledVector(to.normalize(), -900 * dt); continue; }
+      // the inflow: strongest at the door (a game value; really ≈1 m/s for half a millisecond); a dash out escapes it at the edge
+      s.axis.addScaledVector(to.normalize(), (200 + 1900 * Math.pow(1 - d / pullR, 0.8)) * dt);
       if (d < 95) { s.safeT = 0; if (P.swimmer.capture(trap)) { startCapture(P, trap); caught = true; bossInfo.log.push({ ev: 'catch', slot: P.slot, t }); } }
     }
   } else trap.pulsed = false;

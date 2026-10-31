@@ -33,6 +33,47 @@ hollow ring for the way back.
 - Standalone, the page behaves the same and `embed.js` shows a small toast
   in place of the zoom. The stats corner gives both distances.
 
+## The boss: a bladderwort trap
+
+`bladderwort.js`, run by `runBoss` in `main.js` (`shared/predation.js`
+`createFight`, with more resolve). A *Utricularia* bladder about 0.56 mm long
+hangs off its stem just above the slide, between you and the biofilm, its
+door facing the way you come: trigger hairs and two branched antennae round
+the door, quadrifid glands lining the inside, a few earlier catches in it.
+You glance off its wall.
+
+- **Dormant** until a player comes within ≈0.9 mm of its door after the calm
+  opening (it is a choice to engage). Then a quiet brass **resolve gauge**
+  shows under the goal strip while anyone is near.
+- **Its tell:** after each reset the walls are drawn in (set); before a
+  pulse the door quivers, the trigger hairs twitch and the walls draw in
+  further (1.3 s), with a red ring at the door.
+- **Its attack, three patterns:** an aimed pulse when you come within
+  ≈320 µm of the door (its trigger hairs); a pulse on its own every 7–12 s
+  while you are about (real traps fire spontaneously); and, below half
+  resolve, a wider pull (×1.3). A pulse (0.38 s) springs the walls out,
+  swings the door in and pulls everything within ≈400 µm toward the door,
+  hardest close in. Drawn within ≈95 µm of the door, you are sucked in.
+- **Your play:** read the door; stay out of reach or dash away from the
+  edge of the inflow; **B** in the pulse fires your trichocysts and bursts
+  you out of it (a block). After each pulse it **resets** for 2.4 s with the
+  door shut: that is the moment to dash past. Every wasted pulse and every
+  burst out costs it resolve; spent, it hangs full and slack and cannot
+  fire for 24 s ("Slip past to the biofilm!").
+- **Sucked in:** the follow-and-respawn catch. You are pulled through the
+  door (B can still burst you free), the door shuts, and the camera pulls
+  back and holds on the bladder with you inside; then the fade and a respawn
+  (alone at a safe spot, away from the trap; together beside a teammate).
+- **Multiplayer:** the pulse pulls every player in reach; anyone can wear it
+  down.
+- **Departures:** a real pulse lasts about half a millisecond and pulls from
+  about a millimetre; here it is drawn over a third of a second and pulls
+  from ≈400 µm so it can be read and dodged. Reference sheet MP-R18 is
+  requested, not yet delivered (`shared/asset-list.js`); the trap is built
+  from anatomy until then.
+- Test hooks: `__micro.boss()` (awake, state, resolve, a log of wake, tell,
+  pulse, catch, miss, blocked, spent), `__micro.trap`, `debug.wakeBoss()`.
+
 ## Multiplayer
 
 Up to four players (`shared/players.js`, see `../CONTROLS.md`): player 1 on
