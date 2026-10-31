@@ -60,8 +60,9 @@
 // Sound: shared/audio.js suspends its AudioContext on pause by itself.
 //
 // Page chrome in embed mode: shared/hud.js drops the "All prototypes" link,
-// starts with the controls panel hidden and follows `controls`; shared/
-// features.js hides its tab, posts `menu` on Menu and opens on `features`.
+// starts with the controls panel hidden, omits diagnostic stats and follows
+// `controls`; shared/features.js hides its tab, posts `menu` on Menu and
+// opens on `features`.
 //
 // The zoom player (micro/prototypes/zoom/) is loaded as
 // `zoom/?embed=1&from=<world>&to=<world>&dir=in|out`, calls

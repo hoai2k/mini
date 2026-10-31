@@ -11,6 +11,12 @@ back.
 
 Open `micro/prototypes/mite/` (the invite gate is off on localhost).
 
+The walkable patch is a bounded 4 × 4 mm square (`world.js`, `HALF = 2000`),
+with the body kept slightly inside its edges by the walker. The rendered
+floor extends to 8.4 × 8.4 mm to fill the camera view, so it looks like open
+ground beyond the movement limit. Walking up from the initial view reaches
+that invisible boundary in roughly seven seconds; it is not a terrain collider.
+
 ## Controls (Xbox controller; keyboard in brackets)
 
 The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`),

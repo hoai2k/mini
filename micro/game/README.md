@@ -57,9 +57,11 @@ beside `<site>/micro/prototypes/`, so the same relative path holds (only
   the forward landmark and the backdoor, the controls and field notes. "Press
   A to begin".
 - **Play.** The world in an iframe (`../prototypes/<world>/?embed=1`), a brass
-  plaque (top right) with the world and its magnification, a controls-card
+  plaque (bottom right) with the world and its magnification, a controls-card
   button and a pause button. The controls card is the shell's own (in the
   game's style, filled with the world's live control rows from its HUD).
+  Prototype diagnostic stats stay hidden in the game; standalone prototypes
+  keep their readouts.
   It shows for 8 s at the start of every world after the first (a setting),
   and View or the button toggles it. A prompt shows when the world reports the
   player at a landmark (`near`).

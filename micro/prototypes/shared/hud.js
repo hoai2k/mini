@@ -137,8 +137,12 @@ export function mountHud({ title, sub, controls, note }) {
       playersEl.hidden = !show;
       if (show) playersEl.innerHTML = list.map((p) => `<i class="${p.waiting ? 'waiting' : ''}" style="--pc:${p.color}">${p.name || 'P' + (p.slot + 1)}</i>`).join('');
     },
-    /** Small monospace readout in the corner (scale, speed, state). Pass '' to hide. */
-    stats(text) { stats.hidden = !text; stats.textContent = text; },
+    /** Prototype-only diagnostic readout (scale, speed, state). Pass '' to hide. */
+    stats(text) {
+      const shown = !embed.active && !!text;
+      stats.hidden = !shown;
+      stats.textContent = shown ? text : '';
+    },
     toast(text, ms = 1800) {
       toastEl.textContent = text;
       toastEl.classList.add('show');
