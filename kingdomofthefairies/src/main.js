@@ -549,8 +549,10 @@ function trackInputMode(i) {
   const mode = i.source === 'pad' ? 'pad' : i.source === 'touch' || (TOUCH && !S.keySeen) ? 'touch' : 'key';
   if (mode !== S.inputMode) { S.inputMode = mode; syncTitleHint(); }
   renderer.kit.inputMode = mode; // acts draw button prompts for it (richText)
-  // a phone-sized stage: prompts are drawn larger to stay readable
+  // a phone-sized stage: prompts are drawn larger to stay readable, and on
+  // a touch screen no text is drawn smaller than MIN_TEXT css px
   renderer.kit.compact = canvas.clientWidth < 900;
+  renderer.setMinFont(TOUCH ? MIN_TEXT * 1280 / Math.max(1, canvas.clientWidth) : 0);
   if (S.card?.prompts) { S.card.mode = mode; S.card.prompt = mode === 'touch' ? S.card.prompts.touch : S.card.prompts.other; }
 }
 
@@ -757,6 +759,7 @@ function touchScheme() {
 // playbill; settings, sound and fullscreen at the right throughout. In play on
 // a phone those hide, and a tap at the bottom right shows them for 7 s.
 const ICONS_SHOW = 7;
+const MIN_TEXT = 13;   // css px: the smallest canvas text on a touch screen
 let iconsT = 0;
 const iconsEl = $('#icons');
 iconsEl.classList.toggle('autohide', TOUCH);
@@ -771,7 +774,8 @@ function updateIcons(dt) {
   const inPlay = S.mode === 'play' && !S.paused && !dialogs.length;
   if (iconsT > 0 && inPlay) { iconsT -= dt; if (iconsT <= 0) iconsEl.classList.remove('revealed'); }
   iconsEl.classList.toggle('menu-up', !inPlay);
-  if (!inPlay && TOUCH) iconsEl.classList.add('revealed'); else if (inPlay && iconsT <= 0) iconsEl.classList.remove('revealed');
+  // on a touch screen the option buttons stay shown, in play too
+  if (TOUCH) iconsEl.classList.add('revealed'); else if (inPlay && iconsT <= 0) iconsEl.classList.remove('revealed');
 }
 let lastPortrait = null, lastTouchScene = '', liveT = 0, lastFrameAt = 0;
 function updateTouch() {

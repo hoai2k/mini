@@ -383,3 +383,11 @@ body.booting #title, body.booting #icons, body.booting #touch { visibility: hidd
 }
 @keyframes booting-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { #booting .spinner { animation-duration: 2.4s; } }
+
+/* On a touch screen in play the options stay shown, stacked down the right
+   edge under the pause button, clear of the stick and the bottom hint. */
+html.touch #icons[data-show="play"] .corner-right {
+  bottom: auto; top: calc(max(14px, env(safe-area-inset-top)) + 58px);
+  right: max(16px, calc(env(safe-area-inset-right) + 10px));
+  flex-direction: column; gap: 8px; opacity: .85;
+}

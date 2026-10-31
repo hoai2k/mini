@@ -491,7 +491,8 @@ function duel(k, st, t) {
   } else princeOnFoot(k, w, H);
   // her strength left, as three marks over her
   if (!trap) for (let i = 0; i < DUEL.hp; i++) { c.fillStyle = k.col(i < d.hp ? '#b06ad0' : '#3a2a40'); k.circle(d.x - 24 + i * 24, BARREL.y - H - 40, 7); }
-  if (st.phaseT < 7 && !trap) hint(k, '[A] leaps her fire · [X] strikes with the sword');
+  // on touch the buttons are named Leap and Strike, so they need no line
+  if (st.phaseT < 7 && !trap && k.inputMode !== 'touch') hint(k, '[A] leaps her fire · [X] strikes with the sword');
 }
 
 // Until barrel-upturned (F26) is delivered: the barrel body of witch-barrel

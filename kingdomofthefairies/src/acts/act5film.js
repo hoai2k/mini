@@ -375,7 +375,7 @@ export const actBurning = {
   touchVerbB: (st) => (st.phase === 'barrel' && st.duel && st.duel.state !== 'trap' ? 'Strike' : ''),
   touchVerb: (st) => (st.phase === 'barrel' && st.duel ? 'Leap' : ['barrel', 'wedding', 'apotheosis'].includes(st.phase) ? '' : st.phase === 'house' && st.carry?.stone && !st.stoneThrown ? 'Action' : 'Leap'),
   touchHint: 'drag to walk and climb, A to leap',
-  touchScheme: (st) => (['wedding', 'apotheosis'].includes(st.phase) || (st.phase === 'barrel' && !st.duel) ? { mode: 'swipe', hint: 'Drag ↔ to walk' } : { mode: 'stick', hint: 'Drag to walk · up and down on stairs and ladders' }),
+  touchScheme: (st) => (st.phase === 'barrel' && st.duel ? { mode: 'stick', hint: 'Drag ↔ to walk' } : ['wedding', 'apotheosis'].includes(st.phase) || (st.phase === 'barrel' && !st.duel) ? { mode: 'swipe', hint: 'Drag ↔ to walk' } : { mode: 'stick', hint: 'Drag to walk · up and down on stairs and ladders' }),
 
   create({ seed = 1, carry = {}, from = null } = {}) {
     const k = clamp(from?.scene | 0, 0, BURNING_SCENES.length - 1);
