@@ -136,11 +136,19 @@
     "id": "TZ-08",
     "name": "Water bridge back into the bog",
     "slug": "water-return",
-    "status": "requested",
+    "status": "delivered",
     "source_file": "water-return.png",
     "runtime_file": "assets/game/title-zoom/water-return.webp",
     "prompt": "Use case: stylized-concept.\nAsset type: square 1:1 photographic game title infinite-zoom background plate, no text or interface.\nComposition: a coherent full-bleed natural environment at one magnification, seen nearly straight into the scene. Keep the exact centre a small, softly lit natural water pocket or soft low-detail translucent area; this is where the game will composite the next magnification. Put the main identifiable creature off-centre but within the central two-thirds, with surrounding habitat across the whole square. Do not draw a picture inset, portal, frame, ring, hole, miniature scene, arrows or any border. This is one continuous realistic-looking scene, not a contact sheet.\nLighting: naturalistic microscopic or macro illumination appropriate to the subject. No organism emits light, no luminous outlining, no super-gene or supernatural effects. No captions, logos, scale bars, labels or watermarks.\nScene: A realistic microscopic water-and-meniscus field that can visually bridge back into a bog pool. Fine translucent suspended particles and softly curved watery textures surround an exact-centre pocket of calm refracted light. Muted blue-teal water transitions gently into soft moss-green and warm peat-brown reflections around that pocket. The scene is almost abstract water texture but visibly organic and natural. Broad depth of field, no creature, no planet, no cosmos, no glowing molecule, no artificial portal or inset landscape. The game itself will nest the opening bog image in this field.",
     "method": "built-in image_gen",
-    "use": "Runtime title-zoom plate; no power glow."
+    "use": "Runtime title-zoom plate; no power glow.",
+    "width": 1254,
+    "height": 1254,
+    "source_sha256": "1751f3fa5da66217d3c21e964135e1f87bcdca6cd30df27a7a779f7a8b926eb0",
+    "runtime_sha256": "092455c58017df9548324d5fcb16c9c248b77810982401b0f2198de5c9101740",
+    "runtime_bytes": 474098,
+    "source_artifact": "exec-a01121c9-5604-42ad-9a9c-15c2eb7a269f.png",
+    "generated_on": "2026-10-31",
+    "export": "Runtime WebP quality 92, method 6, original dimensions; no geometric or colour edits. Original generated PNG retained."
   }
 ]

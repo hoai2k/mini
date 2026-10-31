@@ -2,7 +2,7 @@
 
 Concept references for the [glowing return journey plan](super-gene-return.html) and [Phage visual-style plan](phage-visual-style.html). These are future-design references, separate from the delivered prototype assets listed in [the prototype ledger](../image-requests.md).
 
-1 requested, 13 delivered.
+0 requested, 14 delivered.
 
 Generated with the built-in image_gen tool. Exact prompts and delivery metadata are also saved in [the manifest](generated/super-gene-return/manifest.json).
 
@@ -246,7 +246,8 @@ Scene: An ordinary T4-shaped bacteriophage approaches a bacterial host surface. 
 
 ### TZ-08 · Water bridge back into the bog
 
-Status: requested.
+Status: delivered.
+[View runtime image](../prototypes/assets/game/title-zoom/water-return.webp) · [Original PNG](generated/title-zoom/water-return.png) · 1254 × 1254.
 Source: `micro/design/generated/title-zoom/water-return.png`
 Runtime file: `micro/prototypes/assets/game/title-zoom/water-return.webp`
 
