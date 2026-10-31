@@ -98,12 +98,20 @@
     "id": "TZ-06",
     "name": "Bacterial cells and a host surface",
     "slug": "bacterial-host",
-    "status": "requested",
+    "status": "delivered",
     "source_file": "bacterial-host.png",
     "runtime_file": "assets/game/title-zoom/bacterial-host.webp",
     "prompt": "Use case: stylized-concept.\nAsset type: square 1:1 photographic game title infinite-zoom background plate, no text or interface.\nComposition: a coherent full-bleed natural environment at one magnification, seen nearly straight into the scene. Keep the exact centre a small, softly lit natural water pocket or soft low-detail translucent area; this is where the game will composite the next magnification. Put the main identifiable creature off-centre but within the central two-thirds, with surrounding habitat across the whole square. Do not draw a picture inset, portal, frame, ring, hole, miniature scene, arrows or any border. This is one continuous realistic-looking scene, not a contact sheet.\nLighting: naturalistic microscopic or macro illumination appropriate to the subject. No organism emits light, no luminous outlining, no super-gene or supernatural effects. No captions, logos, scale bars, labels or watermarks.\nScene: Several ordinary bacterial cells in a watery microscopic field, including a large rod-shaped host cell with a convincingly textured translucent membrane and tiny receptor proteins. Keep the exact centre a soft clear water pocket beside the host surface. Realistic microscopic false-light 3D rendering: wet blue-teal membranes, natural pale protein material and tiny suspended particles; broad readable depth of field. No cartoon linework, no emissive organisms, no bright glowing edges.",
     "method": "built-in image_gen",
-    "use": "Runtime title-zoom plate; no power glow."
+    "use": "Runtime title-zoom plate; no power glow.",
+    "width": 1254,
+    "height": 1254,
+    "source_sha256": "d8ad437ee81a3d1096bd75b210ca5c9031035c625d88eed4fe56efa1e2c02dd0",
+    "runtime_sha256": "47bfdc7897a4a6f5144423204500ce415d5ef484b21ece7d582817c647c22fd4",
+    "runtime_bytes": 387386,
+    "source_artifact": "exec-693aca21-c921-47d3-a345-10be5475a665.png",
+    "generated_on": "2026-10-31",
+    "export": "Runtime WebP quality 92, method 6, original dimensions; no geometric or colour edits. Original generated PNG retained."
   },
   {
     "id": "TZ-07",

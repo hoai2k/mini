@@ -2,7 +2,7 @@
 
 Concept references for the [glowing return journey plan](super-gene-return.html) and [Phage visual-style plan](phage-visual-style.html). These are future-design references, separate from the delivered prototype assets listed in [the prototype ledger](../image-requests.md).
 
-2 requested, 12 delivered.
+1 requested, 13 delivered.
 
 Generated with the built-in image_gen tool. Exact prompts and delivery metadata are also saved in [the manifest](generated/super-gene-return/manifest.json).
 
@@ -212,7 +212,8 @@ Scene: An ordinary translucent slipper-shaped paramecium with short fine cilia s
 
 ### TZ-06 · Bacterial cells and a host surface
 
-Status: requested.
+Status: delivered.
+[View runtime image](../prototypes/assets/game/title-zoom/bacterial-host.webp) · [Original PNG](generated/title-zoom/bacterial-host.png) · 1254 × 1254.
 Source: `micro/design/generated/title-zoom/bacterial-host.png`
 Runtime file: `micro/prototypes/assets/game/title-zoom/bacterial-host.webp`
 
