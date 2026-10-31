@@ -53,7 +53,13 @@ CREW_POSES = ('sit-up', 'crawl', 'tumble')
 # Sprites no template can read (a sleeping face turned on its side), sized by
 # eye against the standing crewman at the game's drawing scale, 16 Oct 2026:
 # the lying squire is painted about 1.3x his standing size, the man-at-arms\' a little small.
-BY_EYE = {'crew-asleep': 0.77, 'crew-asleep-tinted': 0.72, 'crew-asleep-b': 1.08, 'crew-asleep-b-tinted': 1.2}
+BY_EYE = {'crew-asleep': 0.77, 'crew-asleep-tinted': 0.72, 'crew-asleep-b': 1.08, 'crew-asleep-b-tinted': 1.2,
+          # the prince swimming, by his helmet against prince-stand at the drawing
+          # scale, 31 Oct 2026 (the template misreads the underwater strokes): the
+          # reaching stroke (a) and both underwater strokes are painted smaller
+          'prince-swim-a': 1.163, 'prince-swim-a-tinted': 1.087, 'prince-swim-b': 1.0, 'prince-swim-b-tinted': 1.0,
+          'prince-swim-under-a': 1.16, 'prince-swim-under-b': 1.16,
+          'prince-swim-under-a-tinted': 1.18, 'prince-swim-under-b-tinted': 1.18}
 # Checked by eye against their reference at the game's drawing scale, 30 Oct
 # 2026, and drawn as painted: veils, raised arms and faces on their side throw
 # the head template off (it read 0.5-0.76, or 0.74-1.08 for the sleepers, where
@@ -282,7 +288,7 @@ def audit():
     for pid, f in BY_EYE.items():
         if slots.get(pid, {}).get('status') == 'delivered':
             pose_fit[pid] = f
-            lines.append(f'| `{pid}` | standing crewman, by eye | {1 / f:.2f} | — | drawn × {f:.3f} |')
+            lines.append(f'| `{pid}` | {"prince-stand" if pid.startswith("prince-") else "standing crewman"}, by eye | {1 / f:.2f} | — | drawn × {f:.3f} |')
     for pid, rid in AS_PAINTED.items():
         if slots.get(pid, {}).get('status') == 'delivered':
             lines.append(f'| `{pid}` | `{rid}`, by eye | 1.00 | — | as painted |')

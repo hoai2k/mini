@@ -210,6 +210,14 @@ Head size of each pose against its reference sprite (same look). Beyond 6% the g
 | `crew-asleep-tinted` | standing crewman, by eye | 1.39 | — | drawn × 0.720 |
 | `crew-asleep-b` | standing crewman, by eye | 0.93 | — | drawn × 1.080 |
 | `crew-asleep-b-tinted` | standing crewman, by eye | 0.83 | — | drawn × 1.200 |
+| `prince-swim-a` | prince-stand, by eye | 0.86 | — | drawn × 1.163 |
+| `prince-swim-a-tinted` | prince-stand, by eye | 0.92 | — | drawn × 1.087 |
+| `prince-swim-b` | prince-stand, by eye | 1.00 | — | drawn × 1.000 |
+| `prince-swim-b-tinted` | prince-stand, by eye | 1.00 | — | drawn × 1.000 |
+| `prince-swim-under-a` | prince-stand, by eye | 0.86 | — | drawn × 1.160 |
+| `prince-swim-under-b` | prince-stand, by eye | 0.86 | — | drawn × 1.160 |
+| `prince-swim-under-a-tinted` | prince-stand, by eye | 0.85 | — | drawn × 1.180 |
+| `prince-swim-under-b-tinted` | prince-stand, by eye | 0.85 | — | drawn × 1.180 |
 | `crew-squire-asleep` | `crew-squire`, by eye | 1.00 | — | as painted |
 | `crew-squire-asleep-tinted` | `crew-squire-tinted`, by eye | 1.00 | — | as painted |
 | `crew-bosun-asleep` | `crew-bosun`, by eye | 1.00 | — | as painted |
