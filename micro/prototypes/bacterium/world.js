@@ -131,15 +131,17 @@ export function createWorld() {
   const STALK = 46;
   for (const g of grazers) g.stalk = STALK;
   function grazerPose(g) {
+    // g.lean (main.js, the wind-up): the bell tips its funnel toward its target
+    const ang = g.ang + (g.lean || 0);
     // bell centre on top of the stalk; oral opening points along ang (0 = up)
     const L = g.stalk * (0.35 + 0.65 * g.ext);
-    const sx = g.x + Math.sin(g.ang * 0.6) * L * 0.5;
-    const top = { x: sx + Math.sin(g.ang) * 2, y: g.base + L };
-    const up = { x: -Math.sin(g.ang), y: Math.cos(g.ang) };
+    const sx = g.x + Math.sin(ang * 0.6) * L * 0.5;
+    const top = { x: sx + Math.sin(ang) * 2, y: g.base + L };
+    const up = { x: -Math.sin(ang), y: Math.cos(ang) };
     // shape origin = oral opening; the bell centre is R below it along −up
     const ox = top.x + up.x * g.R * 1.9, oy = top.y + up.y * g.R * 1.9;
     const mouth = { x: ox - up.x * g.R * 0.6, y: oy - up.y * g.R * 0.6 };
-    return { ox, oy, up, top, mouth, ang: g.ang, R: g.R };
+    return { ox, oy, up, top, mouth, ang, R: g.R };
   }
 
   // --- the amoeba's edge, creeping in from the lower right ---
@@ -157,7 +159,8 @@ export function createWorld() {
       // a sink at the oral funnel, strongest in front of the opening (1/r² in this thin layer)
       const cosF = -(dx * P.up.x + dy * P.up.y) / d;
       const front = 0.25 + 0.75 * Math.max(0, cosF);
-      const u = Math.min(260, 60 * (16 / Math.max(d, 4)) ** 2) * front * g.ext;
+      // g.pull (main.js, the fight): the current intensifies in the wind-up and surges in the strike
+      const u = Math.min(260 * (g.pull || 1), 60 * (16 / Math.max(d, 4)) ** 2 * (g.pull || 1)) * front * g.ext;
       out.x += (dx / d) * u; out.y += (dy / d) * u;
     }
     return out;

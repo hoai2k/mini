@@ -17,7 +17,14 @@
 //   cues in the film), stalks at full speed.
 // - Its bigger body needs a thicker film: below FILM_NEED it can barely move,
 //   so a thin film is a refuge (the player can still move in it).
-// - Mouth to body: a bite that drains reserves, after which it lets go and
+// - The fight (shared/predation.js createFight): within reach it does not just
+//   bite. It winds up first, a clear attack posture (it rears its front, the
+//   mouth ring opens wide and the stylets protrude, a pause), then lunges. The
+//   player facing it and bracing (B) blocks the lunge (it staggers back); a
+//   stylet jab (X) into its head bites back. Facing it, blocks and jabs wear
+//   its interest down; at none left it turns and crawls off (retreat), then
+//   rests. Calm (wandering, not hungry) it creeps slowly, mouth closed.
+// - Mouth to body: an unblocked lunge is a bite that drains reserves, after which it lets go and
 //   backs off, sated for a while, before it hunts again. A bite that empties
 //   the reserves is the catch: it grips, and swallows you whole (main.js plays
 //   it through captureStep). The player can
@@ -27,7 +34,7 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { Creature } from './creature.js';
 import { Walker } from './gait.js';
-import { createHunger } from '../shared/predation.js';
+import { createHunger, createFight } from '../shared/predation.js';
 
 export const SCALE = 1.5;
 const SENSE = 6.5;        // units (100 µm): stalks at full speed within 650 µm
@@ -69,6 +76,7 @@ export class Predator {
     this.pace = { mode: 'Comes and goes', grace: CALM };
     // its slow approach needs a longer hungry spell than the shared default
     this.hunger = createHunger({ grace: CALM, hungry: [30, 45] });
+    this.fight = createFight({ windup: 0.9, strike: 0.32, recoverT: 1.0, repelT: 1.2, retreatT: 7 });
     this.reset();
   }
 
@@ -76,8 +84,10 @@ export class Predator {
     // Far off: near the tip of the steep leaf C, ~1.4 mm from the player's start.
     const C = this.world.leaves[2];
     this.walker.spawn(C, 1, 10.5, 0.3, 1, 0);
-    Object.assign(this, { state: 'wander', t: 0, cool: 0, recoil: 0, tries: 0, bored: 0, wanderAng: 0, contact: 0, sated: false, after: 0, firstHunt: true, stuck: 0, lastD: Infinity, lunge: 0 });
+    Object.assign(this, { state: 'wander', t: 0, cool: 0, recoil: 0, tries: 0, bored: 0, wanderAng: 0, contact: 0, sated: false, after: 0, firstHunt: true, stuck: 0, lastD: Infinity, lunge: 0, rear: 0, fstate: 'stalk', ft: 0, retreatT: 0 });
     this.hunger.reset(this.pace.grace);
+    this.fight.reset();
+    this.creature.pose.gape = 0;
     this.creature.pose.stylet = 0; this.creature.pose.pump = 0;
   }
 
@@ -99,13 +109,20 @@ export class Predator {
     else if (phase === 'hold') { this.lunge = 0.35 * (1 - u * 0.6); P.stylet = 1; P.pump = 0.4 + 0.4 * Math.sin(this.t * 9); }
     else if (phase === 'eat') { this.lunge = 0.14 * (1 - u); P.stylet = 0.6; P.pump = 0.6 + 0.4 * Math.sin(this.t * 14); }
     else { this.lunge *= Math.exp(-dt * 3); P.stylet = Math.max(0, P.stylet - dt); P.pump = 0.3 + 0.3 * Math.sin(this.t * 4); }
+    P.gape = phase === 'strike' || phase === 'hold' ? 1 : Math.max(0, P.gape - dt * 1.5);
+    this.rear *= Math.exp(-dt * 4);
     const w = this.walker;
-    w.update(dt, { dir: _d.set(0, 0, 0), mag: 0, brace: true, frozen: false, film: 1, energy: 1, tun: false, dash: false });
+    // follow (and the fade): sated, it crawls slowly on with you inside it
+    const walk = phase === 'follow' || phase === 'fadeOut' || phase === 'fadeIn';
+    w.update(dt, { dir: walk ? _d.copy(w.forward) : _d.set(0, 0, 0), mag: walk ? 0.35 : 0, brace: !walk, frozen: false, film: 1, energy: 1, tun: false, dash: false });
     this.creature.group.matrix.copy(w.matrix).multiply(_L.makeTranslation(this.lunge, 0, 0));
     this.creature.group.matrixWorldNeedsUpdate = true;
     this.creature.group.updateMatrixWorld(true);
     this.creature.deformAll();
   }
+
+  /** Visibly attacking: the wind-up posture or the lunge. */
+  get attacking() { return this.state === 'stalk' && (this.fstate === 'windup' || this.fstate === 'strike'); }
 
   setVisible(v) { this.creature.group.visible = v; }
 
@@ -144,10 +161,13 @@ export class Predator {
     const ax = _a.subVectors(mouth, tail), t = Math.max(0, Math.min(1, _b.subVectors(prey.mouth, tail).dot(ax) / ax.lengthSq()));
     const jabD = _b.copy(tail).addScaledVector(ax, t).distanceTo(prey.mouth);
     this.jabD = jabD;
-    if (jab && (jabD < 1.1 * SCALE || this.contact > 0) && this.state !== 'recoil') {
-      this.state = 'recoil'; this.recoil = 2.4; this.cool = 2.5; this.after = SHY;
-      if (this.hunger.hungry) this.hunger.missed();
+    this.jabbable = jabD < 1.25 * SCALE || this.contact > 0 || mouthD < REACH * 2.2;
+    if (jab && this.jabbable && this.state !== 'recoil' && this.state !== 'retreat') {
+      // bitten back: it staggers; enough and it loses interest and crawls off
+      const gone = this.fight.bitten();
       ev.push('recoil');
+      if (gone) { this.state = 'retreat'; this.retreatT = 7; ev.push('retreat'); }
+      else { this.state = 'recoil'; this.recoil = 1.1; this.cool = 1.2; this.after = 0; this.lunge = -0.25; }
     }
 
     let dir = _d.set(0, 0, 0), mag = 0;
@@ -177,56 +197,86 @@ export class Predator {
         if (this.stuck > 9) this.stuck = 0;
         if (prey.life.state !== 'active') { this.state = 'wander'; this.bored = 6; }
         else if (!hungry) { this.state = 'wander'; ev.push('sated'); }
-        else if (d < SENSE) { this.state = 'stalk'; ev.push('stalk'); }
+        else if (d < SENSE) { this.state = 'stalk'; if (this.fight.interest <= 0.05) this.fight.reset(); ev.push('stalk'); }
         break;
       }
       case 'stalk': {
         dir.subVectors(them, me).normalize();
         mag = 1;
-        if (prey.life.state !== 'active') { this.state = 'wander'; this.bored = 6; ev.push('lost'); }
+        if (prey.life.state !== 'active') { this.state = 'wander'; this.bored = 6; ev.push('lost'); break; }
         // once stalking within reach of your scent it sees the hunt through
-        else if (d > LOSE) { this.state = 'approach'; ev.push('lost'); }
-        // in reach of the mouth, or right on top of you (it overshot or came
-        // alongside: it would otherwise sit on you without ever biting)
-        if (mouthD < REACH || d < 1.0 * SCALE) {
-          this.contact += dt;
-          mag = 0.15;
-          if (this.cool <= 0) {
-            this.cool = BITE_EVERY;
-            if (tun) {
-              this.tries++;
-              ev.push('tunBite');
-              if (this.tries >= 3) { this.state = 'wander'; this.bored = 18; this.tries = 0; this.wanderAng += Math.PI; if (this.hunger.hungry) this.hunger.missed(); ev.push('givesUp'); }
-            } else {
-              ev.push('bite');
-              // Lets go and backs off, sated for a while (main.js turns a
-              // bite that empties your reserves into the full catch).
-              this.state = 'recoil'; this.recoil = 2.2; this.after = SATED; this.sated = true; this.contact = 0;
-              this.hunger.fed();
-            }
+        if (d > LOSE) { this.state = 'approach'; ev.push('lost'); break; }
+        // it stops a little short and winds up: the lunge closes the gap
+        const inReach = mouthD < REACH * 2.1 || d < 1.4 * SCALE;
+        const f = this.fight.update(dt, { near: d < SENSE, inReach, facing: !!prey.facing, blocking: !!prey.blocking });
+        if (f.state !== this.fstate) { if (f.state === 'windup') ev.push('windup'); if (f.state === 'strike') ev.push('strike'); }
+        this.fstate = f.state; this.ft = f.t;
+        if (f.state === 'windup') mag = 0.04;          // it stops, turns to you and rears
+        else if (f.state === 'strike') mag = 0.25;
+        else if (f.state === 'recover') mag = 0.1;
+        else if (f.state === 'repelled') { dir.subVectors(me, them).normalize(); mag = 0.7; }
+        else if (inReach) mag = 0.15;
+        this.contact = inReach ? this.contact + dt : 0;
+        if (f.blocked) ev.push('blocked');
+        if (f.retreated) { this.state = 'retreat'; this.retreatT = 7; ev.push('retreat'); break; }
+        if (f.hit) {
+          if (tun) {
+            this.tries++;
+            ev.push('tunBite');
+            if (this.tries >= 3) { this.state = 'wander'; this.bored = 18; this.tries = 0; this.wanderAng += Math.PI; if (this.hunger.hungry) this.hunger.missed(); ev.push('givesUp'); }
+          } else {
+            ev.push('bite');
+            // Lets go and backs off, sated for a while (main.js turns a
+            // bite that empties your reserves into the full catch).
+            this.state = 'recoil'; this.recoil = 2.2; this.after = SATED; this.sated = true; this.contact = 0;
+            this.hunger.fed();
           }
-        } else this.contact = 0;
+        }
+        break;
+      }
+      case 'retreat': { // lost interest: turns and crawls off, then rests
+        this.retreatT -= dt;
+        dir.subVectors(me, them).normalize();
+        mag = 0.8;
+        if (this.retreatT <= 0) { this.state = 'wander'; this.bored = 20; this.fight.reset(); this.hunger.missed(); this.after = 0; }
         break;
       }
       case 'recoil': {
         this.recoil -= dt;
         dir.subVectors(me, them).normalize();
         mag = this.sated ? 0.6 : 1;
-        if (this.recoil <= 0) { this.state = 'wander'; this.bored = this.after || SHY; this.after = 0; this.sated = false; }
+        if (this.recoil <= 0) {
+          // bitten or blocked but still interested: back into the fight; sated or shy: keep off a while
+          if (!this.sated && this.after === 0 && hungry && this.fight.interest > 0 && prey.life.state === 'active') { this.state = 'stalk'; this.fight.update(0, {}); }
+          else { this.state = 'wander'; this.bored = this.after || SHY; }
+          this.after = 0; this.sated = false;
+        }
         break;
       }
     }
     const film = this.filmFactor();
     w.update(dt, { dir, mag, brace: false, frozen: false, film, energy: 1, tun: false, dash: this.state === 'recoil' && this.recoil > 1.8 && !this.sated });
-    this.creature.group.matrix.copy(w.matrix);
+    // Posture: calm, attacking and beaten are plainly different.
+    const P = this.creature.pose, fs = this.state === 'stalk' ? this.fstate : this.state, k = this.ft;
+    let rear = 0, lunge = 0, gape = 0, stylet = 0;
+    if (fs === 'windup') { const e = Math.min(1, k * 1.6); rear = 0.42 * e; lunge = -0.22 * e; gape = e; stylet = e; }
+    else if (fs === 'strike') { const e = Math.sin(Math.min(1, k) * Math.PI); rear = 0.42 * (1 - k) - 0.12 * e; lunge = -0.22 + 0.85 * Math.min(1, k * 1.8); gape = 1; stylet = 1; if (k > 0.55) lunge = 0.63 - 0.4 * (k - 0.55) / 0.45; }
+    else if (fs === 'recover') { rear = 0; lunge = 0.25 * (1 - k); gape = 0.6 * (1 - k); stylet = 0.6 * (1 - k); }
+    else if (fs === 'repelled' || this.state === 'recoil') { rear = -0.12; lunge = -0.25 + 0.05 * Math.sin(this.t * 30); gape = 0.2; }
+    else if (this.state === 'retreat') { rear = -0.05; }
+    else if (this.state === 'stalk' && mouthD < REACH * 2) { stylet = 0.4 + 0.3 * Math.sin(this.t * 7); gape = 0.25; }
+    const s = 1 - Math.exp(-dt * 14);
+    this.rear += (rear - this.rear) * s;
+    this.lunge += (lunge - this.lunge) * s;
+    P.gape += (gape - P.gape) * s;
+    P.stylet += (stylet - P.stylet) * s;
+    this.creature.group.matrix.copy(w.matrix).multiply(_L.makeTranslation(this.lunge, 0.12 * Math.max(0, this.rear), 0)).multiply(_Rz.makeRotationZ(this.rear));
     this.creature.group.matrixWorldNeedsUpdate = true;
-    this.lunge = 0;
-    this.creature.pose.stylet = this.state === 'stalk' && mouthD < REACH * 1.4 ? 0.5 + 0.5 * Math.sin(this.t * 7) : Math.max(0, this.creature.pose.stylet - dt * 2);
     this.creature.deformAll();
     this.thinFilm = film < 0.5;
     this.dist = d;
     return ev;
   }
 }
-const _L = new THREE.Matrix4();
+const _L = new THREE.Matrix4(), _Rz = new THREE.Matrix4();
 const _e = new THREE.Vector3(), _m = new THREE.Vector3(), _d = new THREE.Vector3(), _t = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3();

@@ -64,9 +64,11 @@ shell's roster comes in with `embed.players`).
 - **Hunters pick a player:** the amoeba's edge creeps toward the nearest
   living cell; a phage cloud bursts beside one of you; grazers, phages and
   Bdellovibrio catch whoever they touch. The warning line names the player.
-- **Caught or spent together:** a catch plays out as alone, and an oxygen or
+- **Caught or spent together:** a catch plays out as alone (strike, hold,
+  eat, follow; only the full-screen fade is left out), and an oxygen or
   starvation death fades out with its cause on screen; then the player
-  rejoins beside a teammate. Alone you get the cards as before.
+  rejoins beside a teammate. Alone a catch respawns you at a safe spot, and
+  an oxygen death shows the Run over card.
 - **Landmarks** fire for any player.
 
 Test hooks: `__micro.players`, `__micro.split`, `__micro.roster()`,
@@ -108,9 +110,9 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | --- | --- | --- |
 | LS | WASD | **Steer** (a labelled assist): the body turns toward the stick (up to ~5.5 rad/s) and swims at 35–100 % of cruise speed by the tilt. Released: you keep running at 70 % and drift with Brownian motion, flow and the field. Tumbles (B) also lean toward the stick. Features → LS steering → *Tumble bias only* or *Honest: no steering* |
 | RS | Arrows | Move the stage (the view drifts back to your cell) |
-| **A** | Space | **Sprint run**: every flagellum at full motor speed (spirillum 95 µm/s, Bdellovibrio 160 µm/s), 0.6 s, recharging (HUD `dash` meter). It also shakes off loosely bound phages and an attaching Bdellovibrio |
-| **X** | E | **Feed / attack**. Magnetotactic: hold to take up food in a patch. Bdellovibrio: press while touching a Gram-negative rod to attach and bore in |
-| B | Shift | **Tumble** (the "defend" slot, an evasive move): stop, turn to a random new heading (E. coli's distribution, mean 68°), run on. For Bdellovibrio it is a reverse plus a flick. While you hold LS, the stick turns you back afterwards |
+| **A** | Space | **Sprint run**: every flagellum at full motor speed (spirillum 95 µm/s, Bdellovibrio 160 µm/s), 0.6 s, recharging (HUD `dash` meter). It also shakes off loosely bound phages and an attaching Bdellovibrio, and sprinting out of a grazer's current wears it down |
+| **X** | E | **Feed / attack**. Magnetotactic: hold to take up food in a patch (the dissolved food glows as it is drawn into the cell). Bdellovibrio: press while touching a Gram-negative rod to attach and bore in (it spins on its pole and a pore opens in the prey's wall) |
+| **B** | Shift | **Defend: tumble** (the shared defend button, an evasive move): stop, turn to a random new heading (E. coli's distribution, mean 68°), run on. For Bdellovibrio it is a reverse plus a flick. While you hold LS, the stick turns you back afterwards. **At the moment a predator strikes** (a grazer's surge, a phage committing, a Bdellovibrio's ram) it evades it |
 | Y | R | Data overlay: oxygen, food, field lines and feeding currents, marked on screen as data, not optics. At the Paramecium (the backdoor): back to the pool |
 | LT / RT | Z / X | Fine focus down / up (it drifts back to your cell's plane unless switched off) |
 | LB / RB | Q / F | **Reverse the run**: the other pole leads. For the magnetotactic cell, this is how it swims back the other way along the field line |
@@ -157,8 +159,32 @@ The predators use the shared `shared/predation.js` (`createHunger`,
     one off makes them rest a while.
   - *The amoeba's edge* creeps toward you only while hungry (30–50 s).
   The stats corner lists each (`calm`, `on`, `off`, with the seconds left).
+- **Wind-ups and fighting back** (`shared/predation.js` `createFight`,
+  `runFights` in `main.js`). A calm predator looks calm; an attacking one
+  winds up visibly (a pulsing red ring marks it too), then strikes. B (the
+  tumble) at the strike evades it; each evasion and each sprint out costs it
+  interest, and out of interest it leaves you alone for a while.
+  - *Grazer:* within ≈45 µm of its funnel it stalks; within ≈24 µm it winds
+    up (1.1 s): its oral cilia beat harder and faster, the funnel tips
+    toward you and the feeding current intensifies (×2.5), then surges
+    (×3.4, 0.5 s). Within 8 µm of the mouth at the end of the surge, you are
+    swept in. Sprinting (A) out of its current wears it down; out of
+    interest it coils back on its stalk and its current stops. (Lingering in
+    the mouth for 2.2 s still gets you swept in.)
+  - *Phage* (in a phage cloud): one homes in on you (a game stretch: phages
+    only diffuse; drawn 3× so it reads), its long tail fibres catch your
+    wall and splay while its baseplate settles (0.75 s), then it commits and
+    binds. A tumble then shakes it off; once bound, it is reversible for
+    3 s as before.
+  - *Bdellovibrio* (hunting the magnetotactic cell): it stalks you, lines up
+    4 µm off, trembling, its leading pole brightening (0.85 s), then rams
+    (0.3 s). Rammed, you have 2.2 s to sprint or tumble it off.
 - **Every run-ending catch plays a sequence** (strike, hold, eat, then the
-  shared Eaten card; A starts again). Control stops only for it, and a red
+  camera pulls back to the 90 µm field and follows the predator for 2 s:
+  the grazer's bell jerks back on its stalk carrying your vacuole, the
+  amoeba's edge creeps on with you inside, the new phages drift off; a
+  caption says what ate you; then a fade and you respawn at a safe spot in
+  the band, away from the funnels and the amoeba). Control stops only for it, and a red
   line at the top says what is happening:
   - *Grazer:* drawn into the oral funnel, spinning; swept down it by the
     oral cilia (beating hard); packed into a food vacuole that drifts into
@@ -168,8 +194,7 @@ The predators use the shared `shared/predation.js` (`createHunger`,
   - *Phage:* the phage (drawn 3× larger so it reads) contracts its tail
     sheath, its DNA goes in as a fluorescent thread; the cell rounds up,
     fills with new phages and bursts (lysis), leaving a ghost and releasing
-    30 new phages into the water (`bacterium/phage`). The view closes in to
-    the 22 µm field.
+    30 new phages into the water (`bacterium/phage`).
   - *Bdellovibrio:* it rams your pole, bores through into the periplasm and
     you round into a bdelloplast with it curled inside.
   - Oxygen damage and starvation are not predators: the cell is seen to stop,

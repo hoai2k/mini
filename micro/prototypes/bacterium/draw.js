@@ -91,7 +91,8 @@ export function createDrawer(world) {
     if (g.contract > 0 && ext < 0.6) return; // cilia folded in while contracted
     // resting (not feeding): the oral cilia lie still, folded half in, and no current flows
     const feeding = g.feeding !== false;
-    const beatK = feeding ? (g.gulping ? 2.2 : 1) : 0;
+    // the attack: cilia beat harder and faster as the current intensifies (g.pull, main.js)
+    const beatK = feeding ? (g.gulping ? 2.2 : 1) * Math.pow(g.pull || 1, 0.8) : 0;
     // the peristomial wreath: oral cilia beating in a metachronal wave (shown slowed)
     const n = 34;
     const w = R * 0.32;
@@ -153,12 +154,30 @@ export function createDrawer(world) {
         else spirillum(S, c.x, c.y, c.a, c.L, c.r, c.amp, c.wl, c.flPhase * 0.4 * c.sense, c.z, c.flPhase * (opts.slowBeat ? 1 : 5), { tumbling: c.tumble > 0 });
       } else if (c.kind === 'bdello') {
         vibrio(S, c.x, c.y, c.a, c.L, c.r, c.curve, c.z, c.flPhase * (opts.slowBeat ? 1 : 5), c.tumble > 0 ? 1 : 0, { flagellum: !c.prey });
+        // lining up to ram (main.js: c.windup): its leading pole sharpens into a bright point
+        if (c.windup > 0) S.disc(c.x + Math.cos(c.a) * c.L * 0.5, c.y + Math.sin(c.a) * c.L * 0.5, 0.12 + 0.12 * c.windup, { dn: 0.12, scat: 2.5, fl: [0.4 * chan.memb, 20 * chan.flag * c.windup, 0], z: c.z, hk: 0.5 });
       }
     }
-    if (W.opts.phages) for (const p of W.phages) if (!p.anim) S.disc(p.x, p.y, 0.03, { dn: 0.15, scat: 18, fl: [0, PHAGE * chan.phage, 0], z: p.stuck ? 0 : p.z, hk: 1 });
+    if (W.opts.phages) for (const p of W.phages) if (!p.anim && !p.homing) S.disc(p.x, p.y, 0.03, { dn: 0.15, scat: 18, fl: [0, PHAGE * chan.phage, 0], z: p.stuck ? 0 : p.z, hk: 1 });
+    // a phage homing in on a player (main.js): drawn 3× and denser so it reads in every look (a labelled
+    // stretch, as in the catch); its long tail fibres splay as they catch the wall (the wind-up)
+    if (W.opts.phages) for (const p of W.phages) if (p.homing) homingPhage(S, p, t);
     if (W.landmarks) landmarks(S, t, W.landmarks);
     // one player or a list of them (local multiplayer: every cell is drawn alike; main.js marks each in its colour)
     for (const p of Array.isArray(player) ? player : [player]) drawPlayer(S, t, p);
+  }
+
+  function homingPhage(S, p, t) {
+    const a = p.dirA ?? 0, ca = Math.cos(a), sa = Math.sin(a);
+    const pmat = { dn: 0.6, scat: 20, fl: [0, PHAGE * chan.phage * 0.15, 0], z: 0, hk: 1 };
+    const tail = 0.36, hx = p.x - ca * (tail + 0.14), hy = p.y - sa * (tail + 0.14);
+    S.disc(hx, hy, 0.17, { ...pmat, fl: [0, PHAGE * chan.phage * 0.3, 0] });
+    S.rod(p.x - ca * tail * 0.5, p.y - sa * tail * 0.5, a, tail, 0.045, pmat);
+    const sp = p.splay || 0;
+    for (const k of [-1, -0.35, 0.35, 1]) {
+      const fa = a + k * (0.25 + 1.05 * sp) + Math.sin(t * 9 + k * 3) * 0.08 * (1 - sp);
+      S.strand(p.x, p.y, fa, 0.42 + 0.1 * sp, 0.012, 0.02, 0.2, { ...pmat, dn: 0.4, scat: 10 });
+    }
   }
 
   // --- the Micro Zoom landmarks (world.js: landmarks) ---
@@ -313,6 +332,12 @@ export function createDrawer(world) {
         }
         return;
       }
+      // feeding: the dissolved food taken up from the patch shows as a soft glow drawn into the cell
+      if (s.feeding) {
+        const pulse = 0.5 + 0.5 * Math.sin(t * 7);
+        S.disc(s.x, s.y, 1.9 + 0.35 * pulse, { dn: -0.006, scat: 0.25, fl: [0.03, 0.12 + 0.06 * pulse, 0.02], z: 0 });
+        for (let i = 0; i < 6; i++) { const ang = i * 1.047 + t * 1.3, rr = 2.4 - ((t * 1.6 + i * 0.37) % 1) * 2; S.disc(s.x + Math.cos(ang) * rr, s.y + Math.sin(ang) * rr, 0.09, { dn: 0.03, scat: 1.5, fl: [0.05, 0.6, 0.05], z: 0 }); }
+      }
       spirillum(S, s.x, s.y, s.a, sp.L, sp.r, sp.amp, sp.wl, s.bodyPhase * s.sense, 0, flPh, { tumbling: s.mode === 'tumble' });
     } else {
       if (s.inside) {
@@ -322,7 +347,13 @@ export function createDrawer(world) {
         S.rod(p.x, p.y, p.a + 0.6, 0.6 + 0.9 * k, 0.15, { dn: 0, scat: 0, fl: [0, 6 * chan.flag, 0], z: 0 });
         return;
       }
-      vibrio(S, s.x, s.y, s.a, sp.L, sp.r, sp.curve, 0, flPh, s.mode === 'tumble' ? Math.sin((1 - s.tumbleT / sp.tumble) * Math.PI) : 0, { flagellum: !s.boring || s.boreT < 1.5 });
+      // boring in: the predator spins on its pole against the prey's wall and a pore opens there
+      const boreA = s.boring ? Math.sin(t * 38) * 0.22 : 0;
+      vibrio(S, s.x, s.y, s.a + boreA, sp.L, sp.r, sp.curve, 0, flPh, s.mode === 'tumble' ? Math.sin((1 - s.tumbleT / sp.tumble) * Math.PI) : 0, { flagellum: !s.boring || s.boreT < 1.5 });
+      if (s.boring) {
+        const k = Math.min(1, s.boreT / 2.5), px = s.x + Math.cos(s.a) * sp.L * 0.5, py = s.y + Math.sin(s.a) * sp.L * 0.5;
+        S.disc(px, py, 0.14 + 0.12 * k + 0.04 * Math.sin(t * 20), { dn: -0.02, scat: 1.2, fl: [0.5 * chan.memb, 30 * chan.flag * k, 0], z: 0 });
+      }
     }
   }
 

@@ -21,7 +21,7 @@ import { createSwimmer, SPECIES } from './swim.js';
 import { createGame, GOAL_PREY } from './game.js';
 import { createDrawer } from './draw.js';
 import { createOverlay } from './overlay.js';
-import { createHunger, createCapture } from '../shared/predation.js';
+import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { createPlayers } from '../shared/players.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
 import { createLandmarks } from '../shared/landmark.js';
@@ -49,9 +49,9 @@ const hud = mountHud({
   controls: hudControls({
     move: 'Steer: the cell turns toward the stick and swims (speed from the tilt). Let go: you drift at the mercy of the water',
     camera: 'Move the stage',
-    dash: 'Sprint run: every flagellum at full motor speed (recharges)',
+    dash: 'Sprint run: every flagellum at full motor speed (recharges). Sprinting out of a grazer\'s current wears it down',
     attack: 'Hold: take up food · Bdellovibrio: attach and bore into prey',
-    defend: 'Tumble: a quick random turn (evade); it leans toward the stick',
+    defend: 'Defend: tumble, a quick random turn that leans toward the stick. At the moment a predator strikes (a grazer\'s surge, a phage landing, a Bdellovibrio\'s ram) it evades',
     special: 'Data overlay: oxygen, food, field lines (data, not optics). At the Paramecium: back to the pool',
     analog: 'Fine focus down / up',
     secondary: 'Reverse the run: the other pole leads (back along the field)',
@@ -90,12 +90,14 @@ function makePlayer(p) {
   const P = {
     slot: p.slot, color: p.color, name: `Player ${p.slot + 1}`, swimmer, S: swimmer.state, game: createGame(world, swimmer),
     dash: dashFor('mtb'), pad: players.pad(p.slot), ctl: players.controls(p.slot),
-    capture: createCapture({ onRestart: () => setSpecies(P1.S.species) }),
+    capture: createCapture({ onRespawn: () => respawnPlayer(P) }),
     cat: { kind: null, who: null, phase: null, t: 0, x0: 0, y0: 0, a0: 0, zoom0: 2, released: false },
-    backT: 0, eatenFor: 0, msg: { phageHint: false },
+    backT: 0, eatenFor: 0, msg: { phageHint: false }, blockT: 0, sprintT: 0, phage: null, bdello: null,
   };
-  // the Eaten card belongs to a solo game; in multiplayer the catch plays out and you rejoin a teammate
-  P.card = document.body.lastElementChild;
+  // the capture's card (unused: the catch follows the predator, then respawns), its veil (the
+  // fade) and caption: in multiplayer one player's fade must not black out everyone's screen
+  P.card = P.capture.card;
+  P.veil = P.card.nextElementSibling;
   return P;
 }
 const P1 = makePlayer(players.get(0));
@@ -119,10 +121,10 @@ function syncRoster() {
     const P = roster[i];
     if (P === P1 || players.get(P.slot)) continue;
     P.capture.reset(false);
-    P.card.remove();
+    P.card.remove(); if (P.veil) { P.veil.nextElementSibling && P.veil.nextElementSibling.remove(); P.veil.remove(); }
     roster.splice(i, 1);
   }
-  for (const P of roster) { const p = players.get(P.slot); P.waiting = !!(p && p.waiting); P.card.style.visibility = multi() ? 'hidden' : ''; }
+  for (const P of roster) { const p = players.get(P.slot); P.waiting = !!(p && p.waiting); if (P.veil) P.veil.style.visibility = multi() ? 'hidden' : ''; }
 }
 /** Put P beside a teammate (a few body lengths away, clear of grains). */
 function placeNear(P, M) {
@@ -201,8 +203,6 @@ function startCatch(P, { kind, who }) {
   audio.play(CATCH[kind].sound, { volume: 1, rate: kind === 'amoeba' ? 0.7 : 1 });
   P.pad.rumble(400, 0.7, 0.8);
   if (kind === 'phage') who.p.anim = true;
-  // close in so a 3 µm cell (and a ×3 phage) can be followed (solo: the view is yours alone)
-  if (!multi()) view.zoom = 3;
   if (pacing.firstCatch === null) pacing.firstCatch = pacing.now - pacing.t0;
   embed.captured({ by: CATCH[kind].by, player: P.slot });
 }
@@ -212,8 +212,11 @@ function stepCatch(P, dt) {
   const S = P.S, cat = P.cat;
   if (!P.capture.active) return;
   const prev = cat.phase;
-  const c = P.capture.update(dt, multi() ? null : P.pad);
-  if (!c.active) return; // restarted
+  const c0 = P.capture.update(dt);
+  if (!c0.active) return; // over: respawnPlayer has run
+  // after the eat the catch follows the predator (follow, fade out, fade in): drawn as 'eaten'
+  const c = { ...c0, phase: AFTER.has(c0.phase) ? 'eaten' : c0.phase };
+  cat.realPhase = c0.phase;
   cat.phase = c.phase; cat.t = c.t;
   const k = c.t, e = c.phase === 'eaten' ? 1 : c.phase === 'eat' ? ease(k) : 0;
   if (c.phase !== prev) {
@@ -231,8 +234,10 @@ function stepCatch(P, dt) {
     else if (c.phase === 'hold') { const q = ease(k); S.x = Q.mouth.x + (deep.x - Q.mouth.x) * q; S.y = Q.mouth.y + (deep.y - Q.mouth.y) * q; S.a += dt * 6; }
     else { S.x = deep.x - Q.up.x * R * 0.25 * e + Q.up.y * R * 0.3 * e; S.y = deep.y - Q.up.y * R * 0.25 * e - Q.up.x * R * 0.3 * e; S.a += dt * 2 * (1 - e); }
   } else if (cat.kind === 'amoeba') {
+    // the phagosome is drawn in and carried along as the edge creeps on
     const A = cat.who, nx = -Math.sin(A.ang), ny = Math.cos(A.ang);
-    S.x = cat.x0 - nx * 6 * e; S.y = cat.y0 - ny * 6 * e;
+    if (cat.ax === undefined) { cat.ax = cat.x0 - A.x; cat.ay = cat.y0 - A.y; }
+    S.x = A.x + cat.ax - nx * 6 * e; S.y = A.y + cat.ay - ny * 6 * e;
   } else if (cat.kind === 'phage') {
     if (c.phase === 'eaten' && !cat.released) {
       // the burst: new phages into the water
@@ -249,11 +254,32 @@ function stepCatch(P, dt) {
     else if (c.phase === 'hold') { const q = ease(k); b.x = pole.x + Math.cos(S.a) * 0.55 * (1 - q) - Math.cos(S.a) * sp.L * 0.35 * q; b.y = pole.y + Math.sin(S.a) * 0.55 * (1 - q) - Math.sin(S.a) * sp.L * 0.35 * q; b.a = S.a + Math.PI; }
     else { b.x = S.x; b.y = S.y; b.a = S.a + Math.PI * 0.5 + e * 1.2; b.L = 1.0 - 0.3 * e; b.curve = 0.7 + 0.8 * e; }
   }
-  // multiplayer: once the catch has been seen through, rejoin beside a teammate
-  if (multi() && c.phase === 'eaten') {
-    P.eatenFor += dt;
-    if (P.eatenFor > 1.4) rejoin(P);
+  // the grazer carries the food vacuole off: its bell contracts on its stalk and re-extends
+  if (cat.kind === 'grazer' && c0.phase === 'follow' && c0.t < 0.05) { cat.who.contract = 1.6; cat.who.ext = 0.4; }
+}
+const AFTER = new Set(['follow', 'fadeOut', 'fadeIn']);
+/** The catch is over (the screen is black): respawn beside a teammate, or (alone) at a safe spot. */
+function respawnPlayer(P) {
+  const cat = P.cat;
+  if (cat.kind === 'grazer' && cat.who) cat.who.gulping = false;
+  if (cat.kind === 'bdello' && cat.who) { const b = cat.who; b.prey = null; b.cooldown = 6; b.L = 1.0; b.curve = 0.7; }
+  cat.kind = null; cat.who = null; cat.phase = null; cat.ax = undefined;
+  P.swimmer.reset(P.S.species);
+  P.dash = dashFor(P.S.species);
+  P.eatenFor = 0; P.phage = null; P.bdello = null;
+  const mates = alive().filter((Q) => Q !== P && !Q.capture.active);
+  if (mates.length) { placeNear(P, mates[0]); hud.toast(`${P.name} is back, beside ${mates[0].name}`); return; }
+  // a safe spot in the band: the candidate furthest from the grazers' funnels and the amoeba's edge
+  let best = { x: -20, y: 32 }, bd = -1;
+  for (let i = 0; i < 20; i++) {
+    const q = { x: WORLD.x0 + 30 + Math.random() * (WORLD.x1 - WORLD.x0 - 60), y: oxygenY(1 + Math.random() * 3) };
+    const d = Math.min(...world.grazers.map((g) => Math.hypot(q.x - g.pose.mouth.x, q.y - g.pose.mouth.y)), Math.hypot(q.x - world.amoeba.x, q.y - world.amoeba.y) - 40);
+    if (d > bd) { bd = d; best = q; }
   }
+  P.S.x = best.x; P.S.y = best.y;
+  world.pushOutOfGrains(P.S, P.S.sp.r + 0.2);
+  if (P === P1) { view.cx = P.S.x; view.cy = P.S.y; }
+  hud.toast(multi() ? `${P.name} is back` : 'A new cell swims into the field, away from the predators', 2400);
 }
 /** Multiplayer: a caught or spent player comes back beside a teammate (solo uses the cards). */
 function rejoin(P) {
@@ -268,6 +294,123 @@ function rejoin(P) {
   const mates = alive().filter((Q) => Q !== P);
   if (mates.length) { placeNear(P, mates[0]); hud.toast(`${P.name} is back, beside ${mates[0].name}`); }
   else { P.S.x = -20; P.S.y = 32; hud.toast(`${P.name} is back`); }
+}
+
+// --- the fights ----------------------------------------------------------------
+// Every predator winds up readably before it strikes (shared/predation.js
+// createFight), and B (the tumble) at the strike evades it:
+//  - a grazer: its oral cilia beat harder and its funnel tips toward you while
+//    the feeding current intensifies (wind-up), then a surge pulls (strike);
+//    caught at the funnel's mouth then, you are swept in. Sprinting out (A)
+//    wears it down; out of interest it coils back on its stalk.
+//  - a phage: it homes in (a game stretch: phages only diffuse), its long tail
+//    fibres catch your wall and its baseplate settles (wind-up), then it
+//    commits (strike) and binds. Tumbling at that moment shakes it off.
+//  - Bdellovibrio (hunting the magnetotactic cell): it stalks you, lines up a
+//    few µm off with a tremble (wind-up), then rams (strike).
+const segTo = (x, y, S) => segDist(x, y, S.x, S.y, S.a, S.sp.L)[0];
+const fightable = (P) => P.S.alive && !P.capture.active && !P.waiting;
+const towards = (a, b, v, dt, o) => { const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1; const m = Math.min(d, v * dt); o.x = a.x + (dx / d) * m; o.y = a.y + (dy / d) * m; return o; };
+const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+for (const g of world.grazers) g.fight = createFight({ windup: 1.1, strike: 0.5, recoverT: 1.2, repelT: 1.6, retreatT: 8, facingRate: 0, blockHit: 0.36, biteHit: 0.3 });
+function runFights(dt) {
+  const who = (P) => (multi() ? `${P.name}: ` : '');
+  for (const P of roster) { P.blockT = Math.max(0, P.blockT - dt); P.sprintT = Math.max(0, P.sprintT - dt); }
+  // grazers
+  for (const g of world.grazers) {
+    const live = world.opts.grazers && g.contract <= 0 && g.feeding !== false;
+    let T = null, d = Infinity;
+    if (live) for (const P of roster) { if (!fightable(P)) continue; const q = Math.hypot(P.S.x - g.pose.mouth.x, P.S.y - g.pose.mouth.y); if (q < d) { d = q; T = P; } }
+    const f = g.fight.update(dt, { near: !!T && d < 45, inReach: !!T && d < 24, facing: !!T && T.blockT > 0, blocking: !!T && T.blockT > 0 });
+    g.fightState = live ? f.state : 'stalk'; g.fightT = f.t; g.target = T;
+    const want = !live ? 1 : f.state === 'windup' ? 1 + 1.5 * f.t : f.state === 'strike' ? 3.4 : f.state === 'repelled' ? 0.2 : f.state === 'retreat' ? 0.1 : 1;
+    g.pull = (g.pull || 1) + (want - (g.pull || 1)) * Math.min(1, dt * (f.state === 'strike' ? 14 : 5));
+    // the funnel tips toward its target as it winds up
+    let lean = 0;
+    if (T && (f.state === 'windup' || f.state === 'strike')) { const up = Math.atan2(g.pose.up.y, g.pose.up.x); lean = Math.max(-0.45, Math.min(0.45, wrapA(Math.atan2(T.S.y - g.pose.mouth.y, T.S.x - g.pose.mouth.x) - up))) * (f.state === 'strike' ? 1 : f.t); }
+    g.lean = (g.lean || 0) + (lean - (g.lean || 0)) * Math.min(1, dt * 4);
+    if (!T) continue;
+    if (T.sprintT > 0 && d < 34 && f.state !== 'retreat') { T.sprintT = 0; const gone = g.fight.bitten(); hud.toast(gone ? `${who(T)}You sprint out of its current: the grazer gives up` : `${who(T)}You sprint against the current: its pull falters`, 1800); }
+    if (f.hit && d < 8) { const ev = {}; T.game.catchBy('grazer', g, ev); if (ev.caught) startCatch(T, ev.caught); }
+    if (f.blocked) { T.pad.rumble(200, 0.6, 0.5); hud.toast(`${who(T)}Tumbled clear: the grazer's surge misses you`, 1800); }
+    // out of interest (worn down by sprints and dodges): it coils back on its stalk and its current stops
+    if (g.fight.state === 'retreat' && !g.retreating) { g.retreating = true; g.contract = 3; g.ext = 0; g.hunger.missed(); hud.toast('The grazer gives up: it coils back on its stalk', 2000); }
+    else if (g.fight.state !== 'retreat') g.retreating = false;
+  }
+  // phages and Bdellovibrio, per player
+  for (const P of roster) {
+    const S = P.S;
+    // --- a phage homing in ---
+    if (P.phage && (!fightable(P) || !world.opts.phages || !world.hunt.phage || P.phage.p.stuck)) { P.phage.p.homing = false; P.phage = null; }
+    if (!P.phage && fightable(P) && world.opts.phages && world.hunt.phage) {
+      P.phageCool = (P.phageCool ?? 3) - dt;
+      if (P.phageCool <= 0) {
+        P.phageCool = 6 + Math.random() * 5;
+        let best = null, bd = 18;
+        for (const p of world.phages) { if (p.stuck || p.anim || p.homing) continue; const q = Math.hypot(p.x - S.x, p.y - S.y); if (q < bd) { bd = q; best = p; } }
+        if (best) { best.homing = true; best.splay = 0; P.phage = { p: best, fight: createFight({ windup: 0.75, strike: 0.25, recoverT: 1, repelT: 1, retreatT: 2.5, facingRate: 0, blockHit: 1, biteHit: 1 }) }; }
+      }
+    }
+    if (P.phage) {
+      const { p, fight } = P.phage;
+      const d = segTo(p.x, p.y, S) - S.sp.r;
+      const f = fight.update(dt, { near: d < 22, inReach: d < 1.5, facing: P.blockT > 0, blocking: P.blockT > 0 });
+      // the nearest point of your wall, and just outside it
+      const ca = Math.cos(S.a), sa = Math.sin(S.a);
+      const u = Math.max(-S.sp.L / 2, Math.min(S.sp.L / 2, (p.x - S.x) * ca + (p.y - S.y) * sa));
+      const qx = S.x + ca * u, qy = S.y + sa * u, nl = Math.hypot(p.x - qx, p.y - qy) || 1;
+      const nx = (p.x - qx) / nl, ny = (p.y - qy) / nl;
+      p.dirA = Math.atan2(-ny, -nx);
+      if (f.state === 'stalk') towards(p, { x: qx + nx * 1.0, y: qy + ny * 1.0 }, 32, dt, p);
+      else if (f.state === 'windup') { p.x = qx + nx * (S.sp.r + 0.55); p.y = qy + ny * (S.sp.r + 0.55); p.splay = f.t; }
+      else if (f.state === 'strike') { p.x = qx + nx * (S.sp.r + 0.55 * (1 - f.t)); p.y = qy + ny * (S.sp.r + 0.55 * (1 - f.t)); p.splay = 1; }
+      else { towards(p, { x: p.x + nx * 5, y: p.y + ny * 5 }, 8, dt, p); p.splay *= Math.exp(-dt * 3); }
+      if (f.hit) {
+        const side = (p.x - S.x) * -sa + (p.y - S.y) * ca > 0 ? 1 : -1;
+        const ph = { p, u, side, t: 0, irreversible: false, shed: false };
+        p.stuck = ph; p.homing = false; S.phages.push(ph); P.phage = null;
+        audio.play('bacterium/phage', { volume: 0.8 }); P.pad.rumble(80, 0.4, 0.1);
+        hud.toast(`${who(P)}A phage has bound to your wall: sprint (${glyph('A')}) or tumble (${glyph('B')}) within 3 s to shake it off`, 2600);
+      } else if (f.blocked || f.retreated || d > 26 || (P.sprintT > 0 && d < 3)) {
+        if (f.blocked || P.sprintT > 0) hud.toast(`${who(P)}Shaken off: the phage's fibres let go`, 1500);
+        p.homing = false; p.splay = 0; p.x += nx * 2; p.y += ny * 2; P.phage = null;
+      }
+    }
+    // --- Bdellovibrio lining up to ram the magnetotactic cell ---
+    if (P.bdello && (!fightable(P) || S.species !== 'mtb' || !world.opts.hunters || !world.hunt.bdello || S.attacker)) { P.bdello.c.stalking = null; P.bdello.c.cooldown = 6; P.bdello = null; }
+    if (!P.bdello && fightable(P) && S.species === 'mtb' && world.opts.hunters && world.hunt.bdello && !S.attacker) {
+      P.bdelloCool = (P.bdelloCool ?? 2) - dt;
+      if (P.bdelloCool <= 0) {
+        P.bdelloCool = 3;
+        let best = null, bd = 30;
+        for (const c of world.cells) { if (c.kind !== 'bdello' || c.prey || c.hidden > 0 || c.cooldown > 0 || c.stalking) continue; const q = Math.hypot(c.x - S.x, c.y - S.y); if (q < bd) { bd = q; best = c; } }
+        if (best) { best.stalking = P; best.cooldown = 99; P.bdello = { c: best, fight: createFight({ windup: 0.85, strike: 0.3, recoverT: 1.2, repelT: 1.3, retreatT: 4, facingRate: 0, blockHit: 0.5, biteHit: 0.4 }) }; }
+      }
+    }
+    if (P.bdello) {
+      const { c, fight } = P.bdello;
+      const d = segTo(c.x, c.y, S) - S.sp.r;
+      const f = fight.update(dt, { near: d < 32, inReach: d < 6, facing: P.blockT > 0, blocking: P.blockT > 0 });
+      const to = Math.atan2(S.y - c.y, S.x - c.x);
+      const off = { x: S.x - Math.cos(to) * (S.sp.L * 0.5 + 4.2), y: S.y - Math.sin(to) * (S.sp.L * 0.5 + 4.2) };
+      c.tumble = 0;
+      if (f.state === 'stalk') { towards(c, off, 85, dt, c); c.a = to; }
+      else if (f.state === 'windup') { towards(c, off, 120, dt, c); c.a = to + Math.sin(t * 46) * 0.12 * f.t; c.flPhase += dt * 30; }
+      else if (f.state === 'strike') { towards(c, S, 170, dt, c); c.a = to; }
+      else if (f.state === 'retreat') { towards(c, { x: c.x - Math.cos(to) * 10, y: c.y - Math.sin(to) * 10 }, 90, dt, c); c.a = to + Math.PI; }
+      else { towards(c, { x: c.x - Math.cos(to) * 4, y: c.y - Math.sin(to) * 4 }, f.state === 'repelled' ? 50 : 15, dt, c); c.a = to; }
+      c.windup = f.state === 'windup' ? f.t : f.state === 'strike' ? 1 : 0;
+      if (f.hit && d < 1.4) {
+        S.attacker = c; c.prey = { x: S.x, y: S.y, a: S.a, L: S.sp.L, isPlayer: true }; c.attachT = 0; S.attackT = 0; c.stalking = null; c.windup = 0; P.bdello = null;
+        P.pad.rumble(300, 0.8, 0.8);
+        hud.toast(`${who(P)}Bdellovibrio has rammed you! Sprint (${glyph('A')}) or tumble (${glyph('B')}) to shake it off`, 2600);
+      } else if (f.blocked || f.retreated || d > 45 || (P.sprintT > 0 && d < 8 && fight.bitten())) {
+        if (f.blocked) { P.pad.rumble(150, 0.5, 0.4); hud.toast(`${who(P)}Tumbled: the Bdellovibrio's ram misses`, 1500); }
+        if (f.retreated || fight.state === 'retreat') bdelloH.missed();
+        c.stalking = null; c.cooldown = 6; c.windup = 0; P.bdello = null;
+      }
+    }
+  }
 }
 
 // --- rendering ---
@@ -291,6 +434,8 @@ safeTexture('MP-B03').then((t) => { if (t) shapes.setTextures({ cil: t }); });
 safeTexture('MP-B04').then((t) => { if (t) shapes.setTextures({ mag: t }); });
 
 const ZOOMS = [180, 90, 45, 22]; // field height in µm: the eyepiece field at 1000×, then camera crops
+/** The field shown: being eaten (alone), the camera pulls back to watch the predator, then follows it. */
+const zoomIdx = () => (!multi() && P1.capture.active && P1.cat.realPhase && /eat|follow|fade/.test(P1.cat.realPhase) ? Math.min(view.zoom, 1) : view.zoom);
 const view = { mark: true, zoom: 2, cx: 0, cy: 30, stage: new THREE.Vector2(), focus: 0, look: 'phase', overlay: false, stop: true, focusFollows: true };
 
 const gl = renderer.getContext();
@@ -469,6 +614,10 @@ const debug = {
   species(s) { features.set('species', SPECIES_NAMES[s]); },
   phageOnMe(slot = 0) { const T = (roster.find((Q) => Q.slot === slot) || P1).S; const p = world.newPhage(T.x, T.y); p.z = 0; world.phages.push(p); const ph = { p, u: (Math.random() - 0.5) * T.sp.L * 0.6, side: 1, t: 0, irreversible: false, shed: false }; p.stuck = ph; T.phages.push(ph); },
   nearGrazer(i = 0, d = 14) { const Q = world.grazers[i].pose; debug.teleport(Q.mouth.x + Q.up.x * d, Q.mouth.y + Q.up.y * d, Math.atan2(-Q.up.y, -Q.up.x)); },
+  /** Make every predator hungry now (tests of the fights). */
+  hungry() { for (const p of predators()) p.h.reset(0.01); },
+  /** A button for a player in tests: 'B' tumble (defend), 'A' sprint. */
+  press(b, slot = 0) { const P = roster.find((Q) => Q.slot === slot) || P1; if (b === 'B') { P.blockT = 0.55; P.swimmer.tumble(null); } else if (b === 'A' && P.dash.trigger()) { doDash(P); P.sprintT = 0.55; } },
   step(n = 1, dt = 1 / 60, inp = {}) { for (let i = 0; i < n; i++) tick(dt, { 0: { attack: !!inp.attack, attackPressed: !!inp.attack && i === 0, steer: inp.steer || null } }); },
 };
 
@@ -505,6 +654,8 @@ function tick(dt, inputs) {
   let target = P1.S, bd = Infinity;
   for (const P of alive()) { const d = Math.hypot(P.S.x - A.x, P.S.y - A.y); if (d < bd) { bd = d; target = P.S; } }
   world.update(dt, t, target);
+  // the fights: predators wind up readably before they strike (shared/predation.js createFight)
+  runFights(dt);
   for (const P of roster) {
     const ev = evs.get(P), inp = inputs[P.slot], S = P.S;
     // uptake: a soft eating sound every ~0.7 s while X feeds, and when a prey is finished
@@ -532,7 +683,7 @@ function tick(dt, inputs) {
     fx = ps.reduce((a, p) => a + p.x, 0) / ps.length; fy = ps.reduce((a, p) => a + p.y, 0) / ps.length;
   }
   // once eaten, the view slides down so your remains sit above the Eaten card
-  const lift = !multi() && capture.active && cat.phase === 'eaten' ? ZOOMS[view.zoom] * 0.22 : 0;
+  const lift = 0;
   view.cx += (fx - view.cx) * k; view.cy += (fy - lift - view.cy) * k;
   landmarkTick(dt);
 }
@@ -565,6 +716,7 @@ function readInput(P, dt) {
   if (ls.m > 0) inp.steer = { x: ls.x, y: -ls.y, m: Math.min(1, ls.m) };
   if (S.alive) {
     if (c.defend.pressed()) {
+      P.blockT = 0.55; // a tumble at a strike evades it
       const bias = P.swimmer.opts.bias && ls.m > 0.3 ? { x: ls.x, y: -ls.y } : null;
       if (P.swimmer.tumble(bias)) {
         audio.play('bacterium/tumble', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
@@ -573,7 +725,7 @@ function readInput(P, dt) {
       }
     }
     if (c.lb.pressed() || c.rb.pressed()) { if (P.swimmer.reverse() && me) hud.toast(S.species === 'mtb' ? (S.sense > 0 ? 'Reversed: swimming north, along the field (down)' : 'Reversed: swimming south, against the field (up)') : 'Reversed'); }
-    if (c.dash.pressed() && P.dash.trigger()) doDash(P);
+    if (c.dash.pressed() && P.dash.trigger()) { doDash(P); P.sprintT = 0.55; }
     inp.attack = c.attack.down();
     inp.attackPressed = c.attack.pressed();
   } else if (me && !multi() && !S.caught && S.overT > 1 && (c.dash.pressed() || c.attack.pressed())) setSpecies(S.species);
@@ -637,6 +789,7 @@ function warn() {
     const S = P.S, who = multi() ? `${P.name}: ` : '';
     let text = '', sev = 0;
     if (P.capture.active && P.cat.phase !== 'eaten') { text = CATCH[P.cat.kind][P.cat.phase]; sev = 3; }
+    else if (attackText(P)) { const a = attackText(P); text = a.text; sev = a.sev; }
     else if (!S.alive && S.over && S.over !== 'won' && !S.caught) { text = `Run over: ${(S.cause || 'the cell has stopped').toLowerCase()}`; sev = 2.5; }
     else if (S.alive && S.warning) {
       const w = S.warning;
@@ -654,6 +807,18 @@ function warn() {
   warnEl.style.display = top.length ? 'block' : 'none';
 }
 
+/** What is attacking a player right now, for the warning line. */
+function attackText(P) {
+  if (!P.S.alive) return null;
+  const g = world.grazers.find((q) => q.target === P && (q.fightState === 'windup' || q.fightState === 'strike'));
+  if (g) return { text: `A grazer's current is ${g.fightState === 'strike' ? 'SURGING' : 'intensifying'}: tumble (${glyph('B')}) as it pulls, or sprint out (${glyph('A')})`, sev: 2.2 };
+  if (P.bdello && /windup|strike/.test(P.bdello.fight.state)) return { text: `Bdellovibrio is lining up to ram you: tumble (${glyph('B')}) at the ram`, sev: 2.1 };
+  if (P.phage && /windup|strike/.test(P.phage.fight.state)) return { text: `A phage's tail fibres have caught your wall: tumble (${glyph('B')}) now`, sev: 2.1 };
+  if (P.bdello && P.bdello.fight.state === 'stalk') return { text: `A Bdellovibrio is stalking you: keep moving, tumble (${glyph('B')}) when it rams`, sev: 1.6 };
+  if (P.phage && P.phage.fight.state === 'stalk') return { text: `A phage is homing in on you: tumble (${glyph('B')}) as it lands`, sev: 1.5 };
+  return null;
+}
+
 function showEnd(S) {
   if (card.classList.contains('show')) return;
   if (S.over === 'won') card.innerHTML = `<h2>Three prey taken</h2><p>The last bdelloplast lyses: five new attack-phase cells swim out. In life this cycle takes three to four hours per prey.</p><p>Press ${glyph('A')} to hunt again.</p>`;
@@ -664,7 +829,7 @@ function showEnd(S) {
 /** Draw the specimen around (cx, cy) to the screen: one view. */
 function drawField(cx, cy, stopOk) {
   const [W, H] = optics.size;
-  const fieldH = ZOOMS[view.zoom];
+  const fieldH = ZOOMS[zoomIdx()];
   const umPerPx = fieldH / H;
   const fieldW = W * umPerPx;
   shapes.setView(cx, cy, fieldW, fieldH, umPerPx, view.focus, t);
@@ -673,7 +838,7 @@ function drawField(cx, cy, stopOk) {
   renderer.clear();
   renderer.render(shapes.scene, shapes.camera);
   const look = currentLookKey();
-  const stopR = stopOk && view.stop && view.zoom === 0 ? 90 / umPerPx : 0;
+  const stopR = stopOk && view.stop && zoomIdx() === 0 ? 90 / umPerPx : 0;
   if (look === 'sem') {
     const f = optics.field.textures;
     looks.fieldFromBuffers(W, H, { a: { opd: f[0], abs: f[2], opdW: [0, 0, 1, 0], scatW: [0, 1, 0, 0] }, opdK: 1, absK: 1, heightK: 1 });
@@ -693,7 +858,7 @@ function drawField(cx, cy, stopOk) {
 
 const posOf = (P) => { const p = P.S.inside || P.S; return { x: p.x, y: p.y, z: 0 }; };
 function render(dt) {
-  const fieldH = ZOOMS[view.zoom];
+  const fieldH = ZOOMS[zoomIdx()];
   const cx = view.cx + view.stage.x, cy = view.cy + view.stage.y;
   shapes.begin();
   drawer.draw(shapes, t, roster.map((P) => P.S), view);
@@ -763,6 +928,14 @@ function drawMarks(L, fieldH) {
       markG.stroke();
       if (multi()) { markG.fillStyle = P.color; markG.font = '600 10px system-ui, sans-serif'; markG.textAlign = 'center'; markG.fillText(`P${P.slot + 1}`, q.x, q.y - hs - 4); }
     }
+    // an attack under way: a pulsing red ring on the predator (a game marker, not optics)
+    const ring = (x, y, r) => { const q = split.project(v.index, { x, y, z: 0 }); markG.globalAlpha = 0.35 + 0.45 * (0.5 + 0.5 * Math.sin(t * 18)); markG.strokeStyle = '#ff5a46'; markG.lineWidth = 2; markG.beginPath(); markG.arc(q.x, q.y, r, 0, Math.PI * 2); markG.stroke(); };
+    for (const g of world.grazers) if (g.fightState === 'windup' || g.fightState === 'strike') ring(g.pose.mouth.x, g.pose.mouth.y, Math.max(16, 7 * cssPerUm));
+    for (const P of roster) {
+      if (P.bdello && /windup|strike/.test(P.bdello.fight.state)) ring(P.bdello.c.x, P.bdello.c.y, Math.max(12, 1.6 * cssPerUm));
+      if (P.phage && /windup|strike/.test(P.phage.fight.state)) ring(P.phage.p.x, P.phage.p.y, Math.max(9, 0.9 * cssPerUm));
+    }
+    markG.globalAlpha = 1;
     markG.restore();
   }
 }
@@ -830,6 +1003,9 @@ window.__micro = { forceCapture, capture,
   // Micro Zoom: players, split screen and landmarks
   players, split, landmarks: { forward: FWD, back: BACK, log: lm.log, get near() { return lm.near; } },
   get frames() { return frameCount; },
+  /** The fights: each grazer's state, and each player's phage and Bdellovibrio stalker. */
+  fights: () => ({ grazers: world.grazers.map((g) => ({ state: g.fightState, t: +(g.fightT || 0).toFixed(2), interest: +g.fight.interest.toFixed(2), pull: +(g.pull || 1).toFixed(2), target: g.target ? g.target.slot : null })),
+    phage: roster.map((P) => (P.phage ? P.phage.fight.state : null)), bdello: roster.map((P) => (P.bdello ? P.bdello.fight.state : null)) }),
   roster: () => roster.map((P) => ({ slot: P.slot, x: P.S.x, y: P.S.y, alive: P.S.alive, mode: P.S.mode, over: P.S.over, cause: P.S.cause, warning: P.S.warning && P.S.warning.text, stress: P.S.stress, energy: P.S.energy, o2: P.S.o2, capture: P.capture.active ? P.cat.phase : null })),
   get warning() { return warnEl.textContent; },
 };

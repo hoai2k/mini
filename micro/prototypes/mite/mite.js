@@ -429,6 +429,10 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     biteT: 0, time: 0, pen: 0, climbing: 0, groundHit: null, lift: 0, liftT: 0, stuck: 0, drop: 0,
     // held by a predator (mode 'held'): legs flail, then go limp and fold; one leg may be gripped
     flail: 0, limp: 0, seizeLeg: -1, seize: V3(), chel: 0, canEscape: true,
+    // acting (set each frame with act()): rear 0..1 (forebody up), lunge 0..1
+    // (body thrust forward), hold: a point leg I reaches for (food held to the
+    // mouth), holdK 0..1
+    rear: 0, lunge: 0, hold: V3(), holdK: 0,
   };
   const events = [];
 
@@ -760,11 +764,13 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       const sway = st.mode === 'walk' && cfg.bob ? 0.02 * Math.sin(st.phase * Math.PI * 2) * Math.min(1, st.speed / 120) : 0;
       q = basisQ(st.fwd, st.up);
       q.multiply(new THREE.Quaternion().setFromAxisAngle(V3(1, 0, 0), sway));
+      if (st.rear > 0) q.multiply(new THREE.Quaternion().setFromAxisAngle(V3(0, 0, 1), 0.42 * st.rear));
       st.lift += (st.liftT - st.lift) * (st.liftT > st.lift ? 0.5 : 0.08);
       st.squash = Math.max(0, st.squash - dt * 4);
       let h = AN.stand + bob + st.lift - 75 * st.crouch - 55 * Math.sin(Math.PI * Math.min(1, 1 - st.squash)) * (st.squash > 0 ? 1 : 0);
       if (st.mode === 'closing') h = AN.stand + (st.h0 - AN.stand) * sstep(0.2, 1, st.t);
-      center = st.pos.clone().addScaledVector(st.up, h);
+      h += 28 * st.rear;
+      center = st.pos.clone().addScaledVector(st.up, h).addScaledVector(st.fwd, 46 * st.lunge);
       st.center.copy(center); st.q.copy(q);
     } else if (st.mode === 'opening') {
       const e = sstep(0, 0.75, st.t);
@@ -818,10 +824,13 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
         const hipL = L.hip.clone().add(V3(-24 * rc, 46 * rc, -L.side * 18 * rc));
         const H = toWorld(hipL, center, q);
         let F = L.foot;
+        // leg I holds food to the mouth (or reaches up in a rear)
+        if (L.k === 0 && st.holdK > 0 && !isFeeler(L)) F = L.foot.clone().lerp(st.hold.clone().addScaledVector(V3(0, 0, 1).applyQuaternion(q), L.side * 28), st.holdK);
+        else if (L.k === 0 && st.rear > 0 && !isFeeler(L)) F = L.foot.clone().lerp(toWorld(V3(L.rest.x + 60, 70, L.rest.z * 0.8), center, q), st.rear);
         if (isFeeler(L)) {
           // leg I as a feeler: held up and forward, tapping ahead
           const s = L.side, t = st.time;
-          F = toWorld(V3(L.rest.x + 40 * Math.sin(t * 6.1 + s) - 60 * (1 - Math.min(1, st.speed / 200)), L.rest.y + 40 * Math.sin(t * 4.3 + 2 * s) - 90, L.rest.z + 30 * Math.sin(t * 5.2 + s)), center, q);
+          F = toWorld(V3(L.rest.x + 40 * Math.sin(t * 6.1 + s) - 60 * (1 - Math.min(1, st.speed / 200)) + 80 * st.rear, L.rest.y + 40 * Math.sin(t * 4.3 + 2 * s) - 90 + 170 * st.rear, L.rest.z + 30 * Math.sin(t * 5.2 + s) + s * 70 * st.rear), center, q);
         }
         if (rc > 0 && i !== (st.mode === 'held' ? st.seizeLeg : -1)) F = L.foot.clone().lerp(toWorld(V3(L.hip.x - 30, L.hip.y + 20, L.hip.z * 0.4), center, q), sstep(0, 1, rc));
         const seg = L.seg.map((s) => s * shrink), rad = L.rad.map((s) => s * (1 - 0.3 * rc));
@@ -983,6 +992,11 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       if (st.mode !== 'walk' || st.jumpCool > 0) return false;
       st.mode = 'crouch'; st.t = 0; st.speed0 = st.speed;
       return true;
+    },
+    /** The acting layer, set each frame: { rear, lunge, hold: world point | null, holdK }. */
+    act({ rear = 0, lunge = 0, hold = null, holdK = 0 } = {}) {
+      st.rear = rear; st.lunge = lunge; st.holdK = hold ? holdK : 0;
+      if (hold) st.hold.copy(hold).divideScalar(k);
     },
     /** Start a bite (the animation; the caller decides what it hits). */
     bite() { if (st.biteT > 0.05) return false; st.biteT = 0.28; return true; },

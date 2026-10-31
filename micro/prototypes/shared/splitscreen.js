@@ -508,7 +508,7 @@ export function createSplitScreen(renderer, opts = {}) {
       for (const p of on) { if (p[0] * tx + p[1] * ty < a[0] * tx + a[1] * ty) a = p; if (p[0] * tx + p[1] * ty > b[0] * tx + b[1] * ty) b = p; }
       if (Math.hypot(a[0] - b[0], a[1] - b[1]) < 1) continue;
       const vi = views[viewOf[i]].shift, vj = views[viewOf[j]].shift;
-      const alpha = smooth(0, 24, Math.hypot(vi.x - vj.x, vi.y - vj.y));
+      const alpha = Math.min(amt, smooth(0, 64, Math.hypot(vi.x - vj.x, vi.y - vj.y)));
       if (alpha > 0.004) edges.push({ a: toAbs(a), b: toAbs(b), alpha, slots: [slotOf(i), slotOf(j)], angle: Math.atan2(ty, tx) });
     }
     const merged = !st.split;

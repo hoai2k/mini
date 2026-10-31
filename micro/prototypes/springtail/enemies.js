@@ -108,7 +108,15 @@ export function createStenus(scene) {
   const st = {
     x: -18, z: 8, a: 0.3, v: 0, state: 'patrol', t: 0, reach: 2.2, ext: 0, skimCool: 0, gait: 0, wp: 0, seen: 0,
     alert: 0, hit: false, tailDown: 0, windup: 0, enabled: true, ox: 0, oz: 0, chew: 0, lift: 0,
+    rear: 0, crouch: 0, groom: 0, groomT: 4, flee: 0,
   };
+  // Readable fighting: calm (patrolling, pausing to groom its antennae),
+  // hunting (low, fast, locked on), the wind-up (it rears its forebody and
+  // lowers its head, the mandibles gape and the labium cocks under the head:
+  // 0.8 s), the strike. A strike that meets a facing, hunkered springtail is
+  // blocked; a block or a nip on its tarsus staggers it back ('repelled'), and
+  // a beetle that has lost interest skims away ('retreat').
+  const WINDUP = 0.8;
   const ROUTE = [[-18, 8], [-4, 14], [10, 14], [22, -2], [8, -18], [-12, -16], [-24, -2]];
   const hips = [[1.45, 0.48, 0.22], [1.1, 0.45, 0.28], [0.75, 0.45, 0.3]];
   const footRest = [[2.3, 0, 1.15], [0.9, 0, 1.5], [-0.7, 0, 1.4]];
@@ -122,7 +130,7 @@ export function createStenus(scene) {
    * Only a hungry beetle (ctx.hungry, see shared/predation.js) notices prey;
    * a resting one patrols past you. Returns events: 'spotted', 'skim',
    * 'windup', 'strike', 'caught', 'miss' (a strike that found nothing), 'sated'
-   * (hunger passed mid-stalk).
+   * (hunger passed mid-stalk), 'blocked' (the strike met a block: player.blocking).
    */
   function update(dt, ctx) {
     const ev = [];
@@ -145,12 +153,15 @@ export function createStenus(scene) {
         const wx = ROUTE[st.wp][0] + st.ox, wz = ROUTE[st.wp][1] + st.oz;
         if (Math.hypot(wx - st.x, wz - st.z) < 2) st.wp = (st.wp + 1) % ROUTE.length;
         targetA = Math.atan2(wz - st.z, wx - st.x);
-        targetV = 6;
+        // calm: an easy pace, stopping now and then to groom (forelegs over the antennae)
+        st.groomT -= dt;
+        if (st.groomT <= 0) { st.groom = 1.6; st.groomT = 6 + Math.random() * 5; }
+        if (st.groom > 0) { st.groom -= dt; targetV = 0; } else targetV = hungry ? 6 : 4.5;
         if (st.seen > 0) { st.state = 'stalk'; st.t = 0; ev.push('spotted'); }
         break;
       }
       case 'stalk': {
-        targetA = toP; targetV = 7;
+        targetA = toP; targetV = 8; st.groom = 0;
         if (!hungry) { st.state = 'patrol'; st.seen = 0; ev.push('sated'); break; }
         if (st.seen <= 0) { st.state = 'patrol'; break; }
         if (headD > 4.5 && st.skimCool <= 0 && ang < 0.35) { st.state = 'skim'; st.t = 0; ev.push('skim'); }
@@ -171,10 +182,27 @@ export function createStenus(scene) {
         break;
       }
       case 'windup': {
-        // head lowers, labium cocked: the telegraph (dodge now)
+        // it rears, the head lowers, the mandibles gape, the labium cocks: the telegraph (jump, or face it and hunker)
         targetA = toP; targetV = 0;
-        st.windup = Math.min(1, st.t / 0.45);
-        if (st.t > 0.45) { st.state = 'strike'; st.t = 0; st.hit = false; ev.push('strike'); }
+        st.windup = Math.min(1, st.t / (WINDUP * 0.6));
+        st.rear = Math.min(1, st.t / (WINDUP * 0.5));
+        st.chew = Math.max(st.chew, 0.9 + 0.1 * Math.sin(st.t * 30));
+        if (st.t > WINDUP) { st.state = 'strike'; st.t = 0; st.hit = false; ev.push('strike'); }
+        break;
+      }
+      case 'repelled': {
+        // staggered: it backs off, forebody up
+        targetA = toP; targetV = -5 * Math.max(0, 1 - st.t);
+        st.rear = Math.max(0, 0.6 - st.t * 0.6);
+        if (st.t > 1.1) { st.state = st.flee > 0 ? 'retreat' : 'stalk'; st.t = 0; }
+        break;
+      }
+      case 'retreat': {
+        // lost interest: it turns and skims off, then patrols elsewhere
+        targetA = Math.atan2(-dz, -dx); targetV = st.t < 1.2 ? 30 : 7;
+        if (st.t < 1.2) { const tx = st.x - Math.cos(st.a) * 2.6, tz = st.z - Math.sin(st.a) * 2.6; if (ctx.inPool(tx, tz)) ctx.field.release(tx, tz, 0.9, 0.06); }
+        st.flee = 0;
+        if (st.t > 6) { st.state = 'patrol'; st.t = 0; st.seen = 0; st.ox = st.x - ROUTE[st.wp][0]; st.oz = st.z - ROUTE[st.wp][1]; ev.push('gaveUp'); }
         break;
       }
       case 'strike': {
@@ -184,7 +212,11 @@ export function createStenus(scene) {
         if (!st.hit && st.ext > 0.6) {
           const tip = labTip();
           const d = Math.hypot(tip.x - P.x, tip.z - P.z);
-          if (d < 0.55 && P.y < 0.9 && P.alive) { st.hit = true; ev.push('caught'); }
+          if (d < 0.75 && P.y < 0.9 && P.alive) {
+            st.hit = true;
+            if (P.blocking) { ev.push('blocked'); st.state = 'repelled'; st.t = 0; st.ext = 0.4; break; }
+            ev.push('caught');
+          }
         }
         if (st.t > 0.42) { if (!st.hit) ev.push('miss'); st.state = 'recover'; st.t = 0; st.windup = 0; st.ext = 0; }
         break;
@@ -199,6 +231,9 @@ export function createStenus(scene) {
     if (st.state === 'capture') { pose(); return ev; }
     if (st.state !== 'strike') st.ext = Math.max(0, st.ext - dt * 4);
     if (st.state !== 'windup' && st.state !== 'strike') st.windup = Math.max(0, st.windup - dt * 3);
+    if (st.state !== 'windup' && st.state !== 'repelled') st.rear = Math.max(0, st.rear - dt * (st.state === 'strike' ? 6 : 3));
+    // low and tense while it hunts; easy while it patrols
+    st.crouch += ((['stalk', 'windup', 'strike', 'skim'].includes(st.state) ? 1 : 0) - st.crouch) * Math.min(1, dt * 4);
     st.chew = Math.max(st.ext > 0.3 ? 0.8 : 0, st.chew - dt * 3);
     st.lift = Math.max(0, st.lift - dt * 2);
     // steer and move
@@ -216,11 +251,13 @@ export function createStenus(scene) {
 
   const pivot = new THREE.Vector3(-0.1, 0.62, 0);
   function pose() {
-    group.position.set(st.x, 0, st.z);
-    group.rotation.set(0, -st.a, 0);
+    group.position.set(st.x, 0.18 * st.rear - 0.05 * st.crouch, st.z);
+    // the wind-up rears the forebody (pitch about the hind legs)
+    group.rotation.set(0, -st.a, 0.2 * st.rear);
     group.updateMatrixWorld(true);
-    // head and thorax dip in the wind-up
-    bones[0].makeRotationZ(-st.windup * 0.12 + st.lift * 0.1);
+    // head and thorax dip in the wind-up; a calm beetle grooms (head bobs)
+    const gr = st.groom > 0 ? Math.sin(st.t * 9) * 0.08 : 0;
+    bones[0].makeRotationZ(-st.windup * 0.22 + st.lift * 0.1 + gr);
     // mandibles open (chew 1) and close (0) about their bases
     mands.forEach((m, k) => { const s = k ? 1 : -1; m.rotation.set(0, -s * (st.chew * 0.75 - 0.15), 0); m.position.y = 0.46 - st.windup * 0.06 + st.lift * 0.08; });
     // abdomen: tail down onto the film while skimming, raised otherwise
@@ -237,9 +274,13 @@ export function createStenus(scene) {
       const ph = (st.gait + ((k + (s > 0 ? 1 : 0)) % 2) * 0.5) % 1;
       const sw = ph < 0.5 ? Math.sin(ph * 2 * Math.PI) : 0;
       const stride = Math.min(1, st.v / 6) * (st.state === 'skim' ? 0 : 1);
-      const fx = footRest[k][0] + (ph < 0.5 ? -0.35 + ph * 1.4 : 0.35 - (ph - 0.5) * 1.4) * stride;
+      let fx = footRest[k][0] + (ph < 0.5 ? -0.35 + ph * 1.4 : 0.35 - (ph - 0.5) * 1.4) * stride;
+      // grooming: the forelegs come up over the antennae in turn
+      const groomUp = k === 0 && st.groom > 0 ? Math.max(0, Math.sin(st.t * 4 + (s > 0 ? Math.PI : 0))) : 0;
+      // rearing: the forelegs reach forward and up
+      if (k === 0) fx += 0.4 * st.rear;
       const hip = new THREE.Vector3(hips[k][0], hips[k][1], s * hips[k][2]).applyMatrix4(group.matrixWorld);
-      const foot = new THREE.Vector3(fx, sw * 0.25 * stride, s * footRest[k][2]).applyMatrix4(group.matrixWorld);
+      const foot = new THREE.Vector3(fx, sw * 0.25 * stride + groomUp * 0.7 + (k === 0 ? 0.25 * st.rear : 0), s * footRest[k][2] * (1 - 0.5 * groomUp)).applyMatrix4(group.matrixWorld);
       const knee = hip.clone().lerp(foot, 0.55);
       knee.y += 0.28;
       tmpV.set(Math.cos(st.a + Math.PI / 2) * s * 0.0, 0, 0);
@@ -254,6 +295,14 @@ export function createStenus(scene) {
   return {
     st, group, legs,
     update, headPos, labTip,
+    /** True while it visibly attacks (wind-up or strike). */
+    get attacking() { return st.state === 'windup' || st.state === 'strike'; },
+    /** A nip on its tarsus (or a blocked strike) staggers it back. */
+    repel() { if (st.state === 'capture' || st.state === 'retreat') return; st.state = 'repelled'; st.t = 0; st.windup = 0; st.ext = 0; st.rear = 0.6; },
+    /** Lost interest: once staggered, it turns and skims away. */
+    retreat() { if (st.state === 'capture') return; if (st.state === 'repelled') st.flee = 1; else { st.state = 'retreat'; st.t = 0; } st.windup = 0; st.ext = 0; },
+    /** Where a nip lands: a foretarsus and the head (x, z). */
+    nipPoints() { const f = Math.cos(st.a), g = Math.sin(st.a), r = -g, q = f; return [[st.x + f * 2.35, st.z + g * 2.35], [st.x + f * 2.3 + r * 1.15, st.z + g * 2.3 + q * 1.15], [st.x + f * 2.3 - r * 1.15, st.z + g * 2.3 - q * 1.15]]; },
     /** Film contacts for the dimple shader: [x, z, r, depth]. */
     contacts() {
       const c = feetW.map((f) => [f.x, f.z, 0.09, 0.09]);
@@ -314,9 +363,10 @@ export function createStenus(scene) {
         out.roll = Math.sin(T * 9) * 0.3 * (1 - u);
         out.flail = 1 - 0.8 * u;
       } else {
-        // eaten: a few slow chews, then still
+        // swallowed: it chews and moves off with its meal (the camera follows)
         st.lift = Math.max(0, st.lift - dt * 0.5);
         st.chew = 0.5 + 0.5 * Math.sin(T * 6) * Math.max(0, 1 - u * 0.4);
+        st.a += 0.25 * dt; st.x += Math.cos(st.a) * 2.2 * dt; st.z += Math.sin(st.a) * 2.2 * dt; st.gait += 2.2 * dt / 1.4;
         out.scale = 0; out.flail = 0;
       }
       st.ext = len / st.reach;
@@ -325,7 +375,9 @@ export function createStenus(scene) {
     },
     /** Where the beetle's mouth is (for the camera). */
     mouthPos() { return new THREE.Vector3(st.x + Math.cos(st.a) * 2.5, 0.4, st.z + Math.sin(st.a) * 2.5); },
-    reset() { Object.assign(st, { x: -18, z: 8, a: 0.3, v: 0, state: 'patrol', t: 0, ext: 0, skimCool: 2, wp: 0, seen: 0, windup: 0, ox: 0, oz: 0, chew: 0, lift: 0 }); pose(); },
+    reset() { Object.assign(st, { x: -18, z: 8, a: 0.3, v: 0, state: 'patrol', t: 0, ext: 0, skimCool: 2, wp: 0, seen: 0, windup: 0, ox: 0, oz: 0, chew: 0, lift: 0, rear: 0, flee: 0, groom: 0 }); pose(); },
+    /** After a meal: back to its patrol from where it is. */
+    release() { st.state = 'patrol'; st.t = 0; st.seen = 0; st.flee = 0; st.ox = st.x - ROUTE[st.wp][0]; st.oz = st.z - ROUTE[st.wp][1]; },
     /** Move the patrol route (and the beetle, unseen) so it centres on (x, z). */
     relocate(x, z) { Object.assign(st, { ox: x, oz: z, x: ROUTE[0][0] + x, z: ROUTE[0][1] + z, wp: 1, state: 'patrol', t: 0, skimCool: 2, seen: 0, windup: 0, ext: 0, chew: 0, lift: 0 }); pose(); },
     /** Where relocate(x, z) would put the beetle. */
@@ -359,7 +411,13 @@ export function createStrider(scene) {
   const legMat = litMaterial({ surface: 's.albedo = vec3(0.07, 0.05, 0.035); s.rough = 0.5; s.sheen = 0.4; s.sheenCol = vec3(0.5);' });
   const legs = segments(18, legMat);
   scene.add(legs.im);
-  const st = { x: 22, z: 12, a: Math.PI, v: 0, vx: 0, vz: 0, stroke: 1, strokeT: 0, state: 'idle', target: null, interest: 0, t: 0, enabled: true, grab: 0, grabL: [4.6, 0.25, 0.3], bob: 0, hx: 0, hz: 0 };
+  const st = { x: 22, z: 12, a: Math.PI, v: 0, vx: 0, vz: 0, stroke: 1, strokeT: 0, state: 'idle', target: null, interest: 0, t: 0, enabled: true, grab: 0, grabL: [4.6, 0.25, 0.3], bob: 0, hx: 0, hz: 0,
+    raise: 0, st2: 'none', t2: 0, flee: 0 };
+  // The attack, readable: a hunting strider rows in, stops a body length off,
+  // raises its raptorial forelegs high and holds them (the wind-up, 0.7 s),
+  // then lunges and snaps them shut (the strike). A facing, hunkered springtail
+  // blocks it; a block or a nip staggers it back; out of interest, it rows away.
+  const WINDUP = 0.7, STRIKE = 0.3;
   const L = {
     fore: { hip: [2.9, 0.75, 0.35], knee: [3.9, 1.7, 1.3], foot: [5.0, 0.4, 1.4] },
     mid: { hip: [1.2, 0.7, 0.5], knee: [2.4, 3.2, 5.0], foot: [-0.5, 0, 10.0], tip: [-4.5, 0, 11.0] },
@@ -382,8 +440,9 @@ export function createStrider(scene) {
       for (const name of ['fore', 'mid', 'hind']) {
         const l = L[name];
         let foot = l.foot, tip = l.tip;
-        // the forelegs (raptorial) close on prey
-        if (name === 'fore' && st.grab > 0) foot = l.foot.map((v, j) => v + (st.grabL[j] - v) * st.grab);
+        // the forelegs (raptorial) close on prey; raised high in the wind-up
+        if (name === 'fore' && st.raise > 0) foot = l.foot.map((v, j) => v + ([4.6, 2.9, 0.9][j] - v) * st.raise);
+        if (name === 'fore' && st.grab > 0) foot = foot.map((v, j) => v + (st.grabL[j] - v) * st.grab);
         if (name === 'mid') {
           const up = lifted ? 0.6 : 0;
           foot = [l.foot[0] - sweep * 3, up, l.foot[2]];
@@ -414,7 +473,8 @@ export function createStrider(scene) {
     st.t += dt;
     if (!st.enabled) return ev;
     if (st.state === 'capture') { st.v = 0; pose(); return ev; }
-    const hungry = ctx.hungry !== false;
+    const hungry = ctx.hungry !== false && st.st2 !== 'retreat';
+    if (st.st2 === 'retreat' && st.t2 < 0.1) { st.state = 'idle'; const P0 = ctx.player; const aw = Math.atan2(st.z - P0.z, st.x - P0.x); st.target = { x: st.x + Math.cos(aw) * 45, z: st.z + Math.sin(aw) * 45 }; st.hx = st.target.x; st.hz = st.target.z; st.strokeT = 9; }
     if (!hungry && st.state === 'hunt') { st.state = 'idle'; st.target = null; st.interest = 0; ev.push('lost'); }
     if (hungry) for (const r of ctx.ripples) {
       const d = Math.hypot(r.x - st.x, r.z - st.z);
@@ -439,7 +499,8 @@ export function createStrider(scene) {
       st.a += Math.max(-2 * dt, Math.min(2 * dt, wrapAngle(ta - st.a)));
       const d = Math.hypot(goal.x - st.x, goal.z - st.z);
       st.strokeT += dt;
-      const period = st.state === 'hunt' ? 0.75 : 1.5;
+      const period = st.state === 'hunt' || st.st2 === 'retreat' ? 0.6 : 1.5;
+      if (st.st2 === 'windup' || st.st2 === 'strike') st.strokeT = 0;
       if (st.strokeT > period && d > 3 && Math.abs(wrapAngle(ta - st.a)) < 0.6) {
         st.strokeT = 0; st.stroke = 0;
         ev.push('stroke');
@@ -457,16 +518,50 @@ export function createStrider(scene) {
     st.v *= Math.exp(-dt * 2.2);
     const nx = st.x + Math.cos(st.a) * st.v * dt, nz = st.z + Math.sin(st.a) * st.v * dt;
     if (ctx.inPool(nx, nz)) { st.x = nx; st.z = nz; } else { st.v *= 0.3; st.a += Math.PI * dt; }
-    // grab with the forelegs
+    // the attack: wind-up (forelegs raised), strike (lunge, snap), recover
     const hx = st.x + Math.cos(st.a) * 4.6, hz = st.z + Math.sin(st.a) * 4.6;
-    if (hungry && P.alive && !P.airborne && !(P.hunker && !P.moving) && Math.hypot(P.x - hx, P.z - hz) < 1.2) ev.push('caught');
+    const pd = Math.hypot(P.x - hx, P.z - hz);
+    st.t2 += dt;
+    if (st.st2 === 'none' && (st.state === 'hunt' || pd < 2.5) && hungry && P.alive && !P.airborne && !(P.hunker && !P.moving) && pd < 3.2) { st.st2 = 'windup'; st.t2 = 0; ev.push('windup'); }
+    if (st.st2 === 'windup') {
+      st.v *= Math.exp(-dt * 8);
+      st.a += Math.max(-3 * dt, Math.min(3 * dt, wrapAngle(Math.atan2(P.z - st.z, P.x - st.x) - st.a)));
+      st.raise = Math.min(1, st.t2 / (WINDUP * 0.5)); st.bob = 0.12 * st.raise;
+      if (st.t2 > WINDUP) { st.st2 = 'strike'; st.t2 = 0; st.v = 9; ev.push('strike'); }
+    } else if (st.st2 === 'strike') {
+      st.raise = Math.max(0, 1 - st.t2 / (STRIKE * 0.6)); st.grab = Math.min(1, st.t2 / STRIKE);
+      if (st.t2 > STRIKE) {
+        st.st2 = 'recover'; st.t2 = 0;
+        if (P.alive && pd < 1.9) {
+          if (P.blocking) { ev.push('blocked'); st.st2 = 'repelled'; st.v = -6; }
+          else ev.push('caught');
+        } else ev.push('miss');
+      }
+    } else if (st.st2 === 'recover' || st.st2 === 'repelled') {
+      st.raise = Math.max(0, st.raise - dt * 3); st.grab = Math.max(0, st.grab - dt * 3); st.bob *= Math.exp(-dt * 4);
+      if (st.t2 > (st.st2 === 'repelled' ? 1.2 : 0.9)) {
+        if (st.flee) { st.flee = 0; api.retreat(); } else { st.st2 = 'none'; st.t2 = 0; }
+      }
+    } else if (st.st2 === 'retreat') {
+      // rows hard away from you, then idles in other water
+      st.raise = Math.max(0, st.raise - dt * 3); st.grab = Math.max(0, st.grab - dt * 3);
+      if (st.t2 > 5) { st.st2 = 'none'; st.state = 'idle'; ev.push('gaveUp'); }
+    } else { st.raise = Math.max(0, st.raise - dt * 3); st.grab = Math.max(0, st.grab - dt * 3); st.bob *= Math.exp(-dt * 4); }
     pose();
     return ev;
   }
-  return {
+  const api = {
     st, group, update, contacts: () => contacts,
+    get attacking() { return st.st2 === 'windup' || st.st2 === 'strike'; },
+    /** A nip (or a blocked strike) staggers it back. */
+    repel() { if (st.state === 'capture') return; st.st2 = 'repelled'; st.t2 = 0; st.v = -6; },
+    /** Lost interest: it rows away. */
+    retreat() { if (st.state === 'capture') return; if (st.st2 === 'repelled') { st.flee = 1; return; } st.st2 = 'retreat'; st.t2 = 0; st.state = 'idle'; },
+    /** Where a nip lands: the raptorial foretarsi (x, z). */
+    nipPoints() { const f = Math.cos(st.a), g = Math.sin(st.a); return [[st.x + f * 4.7 - g * 1.0, st.z + g * 4.7 + f * 1.0], [st.x + f * 4.7 + g * 1.0, st.z + g * 4.7 - f * 1.0], [st.x + f * 4.3, st.z + g * 4.3]]; },
+    release() { st.state = 'idle'; st.st2 = 'none'; st.t2 = 0; st.grab = 0; st.raise = 0; st.target = null; },
     setVisible(v) { group.visible = v; legs.im.visible = v; },
-    reset() { Object.assign(st, { x: 22, z: 12, a: Math.PI, v: 0, stroke: 1, strokeT: 0, state: 'idle', target: null, interest: 0, hx: 0, hz: 0, grab: 0, bob: 0 }); pose(); },
+    reset() { Object.assign(st, { x: 22, z: 12, a: Math.PI, v: 0, stroke: 1, strokeT: 0, state: 'idle', target: null, interest: 0, hx: 0, hz: 0, grab: 0, bob: 0, st2: 'none', raise: 0, flee: 0 }); pose(); },
     /**
      * Drive the catch and return the springtail's pose (see Stenus.captureStep).
      * The raptorial forelegs snap shut on it (strike), lift it, kicking, to the
@@ -504,7 +599,12 @@ export function createStrider(scene) {
         out.roll = Math.sin(T * 14) * 0.25 * (1 - u);
         out.flail = 1 - u;
       } else {
+        // sucked dry: it drops the husk and rows off (the camera follows)
         st.grab = Math.max(0, st.grab - dt * 1.5); st.bob *= Math.exp(-dt * 3);
+        st.strokeT += dt;
+        if (st.strokeT > 1.1) { st.strokeT = 0; st.stroke = 0; }
+        if (st.stroke < 1) { st.stroke = Math.min(1, st.stroke + dt / 0.12); }
+        st.a += 0.2 * dt; st.x += Math.cos(st.a) * 4 * dt; st.z += Math.sin(st.a) * 4 * dt;
         out.scale = 0; out.flail = 0;
       }
       pose();
@@ -513,8 +613,9 @@ export function createStrider(scene) {
     },
     mouthPos() { return new THREE.Vector3(st.x + Math.cos(st.a) * 4.3, 0.5, st.z + Math.sin(st.a) * 4.3); },
     /** Move the strider (unseen) to (x, z) and make that its home water. */
-    relocate(x, z) { Object.assign(st, { x, z, hx: x, hz: z, v: 0, state: 'idle', target: null, interest: 0 }); pose(); },
+    relocate(x, z) { Object.assign(st, { x, z, hx: x, hz: z, v: 0, state: 'idle', target: null, interest: 0, st2: 'none', raise: 0, grab: 0 }); pose(); },
   };
+  return api;
 }
 
 // ---------------------------------------------------------------- raindrops

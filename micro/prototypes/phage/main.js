@@ -239,7 +239,7 @@ function placeAtStart(m, at = null) {
   t4.group.scale.setScalar(1);
   t4.group.position.copy(P.pos); t4.group.quaternion.copy(P.q);
   t4.resetFibres(t);
-  if (capture.active) capture.reset(false);
+  if (capture.active && !respawning) capture.reset(false); // (not from inside the capture's own respawn call)
 }
 /** Multiplayer: a caught player comes back beside a teammate who is still in play. */
 function respawn(m) {
@@ -249,6 +249,7 @@ function respawn(m) {
   placeAtStart(m, at);
   if (m.P === P) say(`${players.get(m.slot)?.name || 'P' + (m.slot + 1)} drifts back in${mate ? ' beside a teammate' : ''}.`, 2000, true);
 }
+let respawning = false;
 /** The end of a catch (the screen is black): solo or not, the phage drifts back in, beside a teammate if any. */
 function afterCatch(m) {
   const wasInside = m.P.mode === 'inside' || m.P.kind === 'cut';
@@ -257,7 +258,8 @@ function afterCatch(m) {
   if (wasInside) { inside.reset(); m.P.fade = 0; for (const h of world.hosts) h.locked = false; }
   fight.reset();
   const was = cur;
-  respawn(m);
+  respawning = true;
+  try { respawn(m); } finally { respawning = false; }
   m.P.kind = null;
   if (was) use(was);
 }
@@ -267,6 +269,7 @@ function resetLevel() {
   for (const m of members()) placeAtStart(m);
   if (team[0]) use(team[0]);
   hunger.reset();
+  fight.reset(); fightState = 'stalk';
   inside.reset();
   progeny.setCount(0);
   card.classList.remove('show');
@@ -868,9 +871,13 @@ function frame(now) {
   if (commitFocus) { view.yaw *= Math.exp(-dt * 2); view.pitch += (0.1 - view.pitch) * (1 - Math.exp(-dt * 2)); }
   else if (look.m > 0) { view.yaw = clamp(view.yaw + look.yaw * 1.4 * dt, -1.1, 1.1); view.pitch = clamp(view.pitch + look.pitch * 1.1 * dt, -0.75, 0.75); }
   else { view.yaw *= Math.exp(-dt * 0.4); view.pitch *= Math.exp(-dt * 0.4); }
-  view.dist += ((commitFocus ? Math.min(ZOOMS[view.zoom], 75) : ZOOMS[view.zoom]) - view.dist) * (1 - Math.exp(-dt * 2));
+  // caught: pull back to watch the predator swallow you, then follow it
+  const watching = solo && team[0].c.active && ['eat', 'follow', 'fadeOut'].includes(team[0].c.phase) && team[0].P.kind !== 'cut';
+  const wantDist = commitFocus ? Math.min(ZOOMS[view.zoom], 75) : watching ? Math.max(ZOOMS[view.zoom], 110) * 2.1 : ZOOMS[view.zoom];
+  view.dist += (wantDist - view.dist) * (1 - Math.exp(-dt * (watching ? 1.2 : 2)));
   const inPlay = members().filter((m) => m.P.mode !== 'inside' && m.P.mode !== 'burst' && m.P.mode !== 'dead');
   const focusPts = (inPlay.length ? inPlay : [team[0]]).map((m) => { use(m); return centreOf(new THREE.Vector3()); });
+  if (watching && team[0].P.kind === 'amoeba') focusPts[0].lerp(world.amoeba.base, 0.35); // frame the amoeba as well as you
   use(lead);
   marks.begin();
   if (where === 'outside') {
@@ -880,6 +887,7 @@ function frame(now) {
     const yaw = o ? o.yaw : view.yaw, pitch = o ? o.pitch : view.pitch, dist = o ? o.dist : view.dist * (lead.P.mode === 'burst' ? 1.6 : 1);
     camera.position.set(Math.sin(yaw) * Math.cos(pitch), -Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch)).multiplyScalar(dist).add(view.target);
     camera.lookAt(view.target);
+    if (commitFocus && P.contract > 0.05 && P.contract < 1.1 && P.commitT < 2.2) { const k = (2.2 - P.commitT) * 0.25; camera.position.x += Math.sin(t * 61) * k; camera.position.y += Math.cos(t * 53) * k; } // the snap
     camera.updateMatrixWorld();
     goodsellShared.uFogNear.value = dist * 0.8; goodsellShared.uFogFar.value = dist + 300;
     post.uniforms.uWater.value.set(waterColor);
@@ -928,7 +936,7 @@ function frame(now) {
   label.textContent = `${LOOKS[view.look]} · an illustration, not a microscope image · time slowed ~20×${opts.drive ? ' · LS drift and gusts are departures' : ''}`;
   const n5 = (x) => { const k = Math.round(clamp(x, 0, 1) * 5); return '■'.repeat(k) + '□'.repeat(5 - k); };
   const modeName = { drift: 'drifting', walk: `walking on ${P.host?.name}${P.bound ? ` · ${P.bound} fibres on OmpC` : ''}`, clay: 'stuck on clay (UV shelter)', commit: 'committed: contracting', inside: 'DNA entering the host', burst: 'burst', dead: 'lost' }[P.mode];
-  const am = hunger.state === 'grace' ? `calm (${Math.ceil(hunger.left)} s)` : hunger.state === 'hungry' ? 'HUNGRY' : 'resting';
+  const am = hunger.state === 'grace' ? `calm (${Math.ceil(hunger.left)} s)` : hunger.state === 'hungry' ? ({ stalk: 'HUNGRY: reaching', windup: 'WINDING UP!', strike: 'STRIKING!', recover: 'recovering', repelled: 'repelled', retreat: 'retreating' }[fightState] || 'HUNGRY') + ` · interest ${Math.round(fight.interest * 100)} %` : fightState === 'retreat' ? 'retreating' : 'resting';
   const others = isMulti() ? '\n' + members().filter((m) => m.slot).map((m) => `P${m.slot + 1} ${m.P.mode} ${n5(m.P.integrity)}`).join('  ') : '';
   hud.stats(`${modeName}\nfibres ${P.foldTarget > 0.5 ? 'folded' : 'extended'}\nintegrity ${n5(P.integrity)}  ${dash.text()}\nUV ${Math.round(uvAt(centreOf(_v).y) * 100)} %  amoeba ${am}\n${where === 'inside' ? `genome in ${Math.round(inside.S.progress * 100)} %` : `x ${(P.pos.x / 100).toFixed(2)} µm  depth below UV ${Math.max(0, (UV.y0 - centreOf(_v).y) / 100).toFixed(2)} µm`}${others}`);
 }
@@ -972,6 +980,7 @@ Object.assign(debug, {
   look(i) { features.set('look', LOOKS[i]); },
   zoom(i) { view.zoom = i; view.dist = ZOOMS[i]; },
   reset: resetLevel,
+  get fight() { return { state: fightState, interest: fight.interest }; },
 });
 window.__micro = {
   get P() { return team[0].P; }, get t4() { return team[0].t4; }, get capture() { return team[0].capture; },

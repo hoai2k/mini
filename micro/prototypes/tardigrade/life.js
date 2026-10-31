@@ -188,13 +188,16 @@ export class Life {
       f.t += dt;
       P.stylet = 0.5 + 0.5 * Math.sin(f.t * 9);
       P.pump = Math.max(0, Math.sin(f.t * 14));
-      if (f.item) f.item.mesh.scale.setScalar(Math.max(0.05, 1 - f.t / f.dur));
-      if (input.bitePressed && f.t > 0.2) { this.feeding = null; return; }
+      // events.swallowed (main.js): the food is drawn in through the buccal tube and
+      // stays visible inside, fading into the gut; without it, it just shrinks.
+      if (f.item && !this.events.swallowed) f.item.mesh.scale.setScalar(Math.max(0.05, 1 - f.t / f.dur));
+      if (input.bitePressed && f.t > 0.2) { this.events.spat?.(f); this.feeding = null; return; }
       if (f.t >= f.dur) {
         this.energy = Math.min(1, this.energy + f.value);
-        this.gutColour.lerp(new THREE.Vector3(...f.gut), 0.45);
+        if (this.events.swallowed) this.events.swallowed(f); // tints the gut as it fades
+        else this.gutColour.lerp(new THREE.Vector3(...f.gut), 0.45);
         if (f.item) {
-          this.world.foodGroup.remove(f.item.mesh);
+          if (!this.events.swallowed) this.world.foodGroup.remove(f.item.mesh);
           this.world.food.splice(this.world.food.indexOf(f.item), 1);
         } else {
           f.leaf.eat(...f.cell);

@@ -55,9 +55,9 @@ shell's roster comes in with `embed.players`).
   on its own players' depth.
 - **Hunters pick a player:** each Didinium and the amoeba go for the player
   they hold, else the nearest free one; the warning line says who is hunted.
-- **Caught together:** the catch plays out as alone (strike, hold, eat),
-  then the player rejoins beside a teammate. Alone you get the Eaten card
-  and A starts the round again.
+- **Caught together:** the catch plays out as alone (strike, hold, eat,
+  follow), then the player rejoins beside a teammate; only the full-screen
+  fade is left out. Alone you respawn at a safe spot.
 - **Landmarks** fire for any player: anyone on the biofilm takes everyone
   on; anyone dwelling on the amoeba's floor can press Y.
 
@@ -148,7 +148,7 @@ circle indicators round your creature; the previous feel was good." So:
   when one is closing in from out of view): a hungry *Didinium* turns on you
   within ≈480 µm and swims nearly straight at about 1 mm/s; a dash sideways
   makes it overshoot. If its proboscis touches you, you are held and reeled
-  in: X fires trichocysts to break free, A or B struggles for time, otherwise
+  in: B fires trichocysts to break free, A or X struggles for time, otherwise
   you are swallowed. A hungry *Amoeba proteus* creeps toward you on the
   slide; swim low near it and two pseudopods flank you into a food cup. The
   cup fills while you stay between the arms (it also holds you back): dash
@@ -174,12 +174,29 @@ Hunters use the shared `shared/predation.js` (`createHunger`,
   amoeba creeps. The stats corner shows each one (`calm`, `hungry`,
   `resting` with the seconds left); the red goal-strip line still warns when
   one is hunting you.
+- **Fighting back** (`shared/predation.js` `createFight`, `runFights` in
+  `main.js`). A hungry hunter close to you **stalks**, then **winds up** in
+  a clear attack posture, then **strikes**:
+  - *Didinium:* calm, it cruises with slow cilia and no tip. Hunting, its
+    girdles beat hard. Winding up (0.95 s), it slows almost to a stop, swings
+    its proboscis onto you, rears back, and the toxicyst battery at the tip
+    swells and reddens (a pulsing red ring marks it too). Then it lunges
+    (0.32 s). If the tip reaches you, you are caught.
+  - *Amoeba proteus:* winding up (1.4 s), it stops creeping, lifts and
+    spreads two arms wide round you; the strike (0.5 s) sweeps them shut.
+    Inside them and low, you are cupped.
+  - **Block:** face it and press B (trichocysts, backing off) as it strikes:
+    it recoils. **Fight back:** X facing it rams and stings it. **Facing**
+    it also wears it down slowly. Each costs it interest; at none it gives up
+    and swims (or creeps) off for a while, then rests. A dash sideways in the
+    wind-up still makes a Didinium miss. The warning line says which is
+    happening ("winding up to strike: face it and B to block").
 - **Being caught is always shown,** never a silent stop:
   - *Didinium.* **Strike:** the proboscis touches you and its toxicysts fire
     (a spray of short threads, the `paramecium/didinium` and `held` sounds).
     **Hold** (3.5 s, as before): you are held fast and reeled in, cilia
-    beating hard; X fires trichocysts if you have any left (you break free
-    and it rests), A or B struggles for a little time. **Eat:** its mouth
+    beating hard; B fires trichocysts if you have any left (you break free
+    and it rests), A or X struggles for a little time. **Eat:** its mouth
     gapes enormously (a lip ring opening to about twice your width) and you
     are drawn in front first, squeezed, while its body balloons round you
     (`gulp` at a low pitch). It really does swallow a Paramecium larger than
@@ -189,7 +206,13 @@ Hunters use the shared `shared/predation.js` (`createHunger`,
     trichocysts. **Eat:** a food vacuole forms round you, closes and
     tightens, is drawn into the cell and its contents darken as digestion
     begins. The chase camera rises to look down into it.
-  - **Eaten card:** what ate you; A restarts the round.
+  - **Follow, fade, respawn** (no card): through the eat the camera pulls
+    back (chase distance ×2.6, microscope field ×1.9) to watch it swallow
+    you whole, then follows it: the Didinium closes its mouth and swims off
+    bulging with you inside; the amoeba creeps on with you in a darkening
+    vacuole. A caption says what ate you. Then a fade, and you respawn: alone
+    at a safe spot (the furthest from every hunter), together beside a
+    teammate (the fade is skipped so it does not black out the others).
 - **Testing:** Features → World → *Calm opening* (45 s, 20 s or 0 s) and
   *Hunger comes and goes* (off: once the opening is over they hunt all the
   time, the old pacing). `window.__micro.pacing()` reports the round time,
@@ -197,7 +220,7 @@ Hunters use the shared `shared/predation.js` (`createHunger`,
   and each hunter's state; `window.__micro.forceCapture('didinium' |
   'amoeba')` puts a hunter on you and starts its catch.
 
-Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A pond ambience loop and a ciliary swim loop whose volume and rate follow your speed; the dash (A), the feeding gulp and trichocyst discharge (X), the avoidance reaction (B), Didinium closing in and being held.
+Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A pond ambience loop and a ciliary swim loop whose volume and rate follow your speed; the dash (A), the feeding gulp and trichocyst discharge (B, and the jab when you fight back with X), the avoidance reaction (B), Didinium closing in and being held.
 
 ## Controls
 
@@ -208,8 +231,8 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | LS | WASD | Steer, relative to the view (microscope: point where to go; chase: yaw and pitch) |
 | RS | Arrows | Orbit the chase camera (up looks up; Features: Invert camera Y) or move the stage (microscope) |
 | **A** | Space | **Dash**: a ciliary sprint toward the stick (a quick pivot, then up to 3.2 mm/s for 0.32 s), recharging in 1.8 s (slower in shade); rumble. While held: struggle |
-| **X** | E | **Eat**: an oral gulp pulls up to three prey within ≈70 µm of the front of the cell into the groove, each forming a food vacuole. Touching or held by a hunter: **fire trichocysts** at it (3 charges, one back every 9 s) |
-| B | Shift | Avoidance reaction: ciliary reversal, back up, pivot about the posterior, swim off |
+| **X** | E | **Eat**: an oral gulp pulls up to three prey within ≈70 µm of the front of the cell into the groove; each swells into a food vacuole at the cytostome, pinches off and rides the cyclosis round the cell while the cell bulges. **At a hunter you face (within ≈260 µm): fight back**: the cell rams it, thrashing, and stings it with a short jab of trichocysts from the patch facing it (no charge spent, 0.8 s cooldown). Held: struggle |
+| **B** | Shift | **Defend** (the shared defend button): with a hunter close, **fire trichocysts** at it (3 charges, one back every 9 s) while the cilia reverse and back you off, still facing it. Facing it as it strikes, this **blocks** the strike. Held: breaks you free. With no hunter near: the avoidance reaction (reverse, pivot, swim off) |
 | Y | R | Chase camera (default) / microscope view. On the amoeba's floor (the backdoor): back to the amoeba |
 | LT / RT | Z / X | LT slow feeding beat (hover; draws bacteria into the groove) · RT beat cilia: swim. Speed follows the trigger at once; release it and the cell stops (no gliding) |
 | LB / RB | Q / F | Dive / rise |

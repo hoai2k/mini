@@ -289,11 +289,13 @@ export function createCell() {
     get foodCount() { return food.length; },
     /** A bacterium (or a few) reached the cytostome; every 10 makes a food vacuole. */
     ingested: 0,
-    ingest(n = 10) {
+    ingest(n = 10, size = 0) {
       api.ingested++;
       if (api.ingested % n === 0) {
         if (food.length >= FV_MAX) food.shift();
-        food.push({ u: -Math.PI / 2, travelled: 0, r: 1, rs: 0.55 + rand() * 0.3, tilt: rand() - 0.5, z: (rand() - 0.5) * 8, age: 0 });
+        // size: a prey item (a clump, a Chilomonas) makes a bigger vacuole that swells at the
+        // cytostome, pinches off and rides the cyclosis round the cell, shrinking as it digests
+        food.push({ u: -Math.PI / 2, travelled: 0, r: 1, rs: 0.55 + rand() * 0.3, tilt: rand() - 0.5, z: (rand() - 0.5) * 8, age: 0, max: size || 0 });
         return true;
       }
       return false;
@@ -343,9 +345,10 @@ export function createCell() {
       for (let i = food.length - 1; i >= 0; i--) {
         const f = food[i];
         f.age += dt;
-        const du = opts.cyclosis ? dt * 0.32 : 0;
+        const du = opts.cyclosis ? dt * (f.max && f.age < 0.6 ? 0.05 : 0.32) : 0;
         f.u -= du; f.travelled += du;
-        f.r = Math.min(4 + (i % 3), f.r + dt * 3);
+        if (f.max) f.r = f.age < 0.6 ? Math.min(f.max, f.r + dt * f.max * 2.5) : Math.max(4, f.max * (1 - 0.45 * Math.min(1, f.travelled / 6)));
+        else f.r = Math.min(4 + (i % 3), f.r + dt * 3);
         if (f.travelled > Math.PI * 2 * 1.3) food.splice(i, 1);
       }
       for (let i = 0; i < FV_MAX; i++) {

@@ -135,10 +135,11 @@ export function createProteus(scene, start = new THREE.Vector3(-760, 0, -520)) {
     a.state = !opts.on ? 'off' : held ? (s.mode === 'dead' ? 'engulfing you' : 'closing the cup') : a.stun > 0 ? 'recoiling' : a.sated > 0 ? 'digesting' : close ? 'cupping' : hunting ? 'creeping toward you' : a.hungry === false ? 'creeping (not hungry)' : 'creeping';
 
     // creep: toward the player when it senses it, otherwise wander
-    if (held) { /* it holds still while it closes round you */ } else if (hunting) a.heading += angleWrap(bear - a.heading) * Math.min(1, dt * 0.6);
+    if (held) { /* it holds still while it closes round you */ } else if (a.fightMode && a.fightState === 'retreat') a.heading += angleWrap(bear + Math.PI - a.heading) * Math.min(1, dt * 0.8);
+    else if (hunting) a.heading += angleWrap(bear - a.heading) * Math.min(1, dt * 0.6);
     else if (a.home && Math.hypot(a.home.x - a.pos.x, a.home.z - a.pos.z) > a.homeR) a.heading += angleWrap(Math.atan2(a.home.z - a.pos.z, a.home.x - a.pos.x) - a.heading) * Math.min(1, dt * 0.4);
     else a.heading += Math.sin(t * 0.13) * dt * 0.15;
-    const v = held ? 0 : a.stun > 0 ? -25 : a.sated > 0 ? 6 : CREEP;
+    const v = held ? (s.mode === 'dead' ? a.followSpeed || 0 : 0) : a.fightMode && a.fightState === 'retreat' ? CREEP * 1.6 : a.fightMode && (a.fightState === 'windup' || a.fightState === 'strike') ? 0 : a.stun > 0 ? -25 : a.sated > 0 ? 6 : CREEP;
     a.pos.x += Math.cos(a.heading) * v * dt; a.pos.z += Math.sin(a.heading) * v * dt;
     const rr = Math.hypot(a.pos.x, a.pos.z);
     if (rr > DROP_R - R0 - 200) { a.pos.x *= (DROP_R - R0 - 200) / rr; a.pos.z *= (DROP_R - R0 - 200) / rr; a.heading += Math.PI * dt; }
@@ -156,6 +157,20 @@ export function createProteus(scene, start = new THREE.Vector3(-760, 0, -520)) {
     } else if (held) {
       // eating: the arms flow back into the body round the new vacuole
       for (const p of pods) { p.target = 30; p.w += (0.5 - p.w) * Math.min(1, dt); }
+    } else if (a.fightMode && (a.fightState === 'repelled' || a.fightState === 'retreat')) {
+      // driven off: the arms flow back in
+      for (const p of pods) { p.target = 15; p.w += (0.45 - p.w) * Math.min(1, dt); }
+    } else if (a.fightMode && close && (a.fightState === 'windup' || a.fightState === 'strike')) {
+      // the attack posture: two arms rise and spread wide round you (wind-up), then sweep shut (the cup)
+      const k = a.fightT || 0;
+      const spread = a.fightState === 'windup' ? 0.55 + 0.45 * k : 1.0 * (1 - k) + 0.06;
+      pods[0].role = pods[1].role = 'arm';
+      const rate = a.fightState === 'strike' ? 14 : 4;
+      pods[0].a += angleWrap(bear + spread - pods[0].a) * Math.min(1, dt * rate);
+      pods[1].a += angleWrap(bear - spread - pods[1].a) * Math.min(1, dt * rate);
+      pods[0].target = pods[1].target = Math.min(380, dist - R0 + 110);
+      pods[0].w = pods[1].w = a.fightState === 'windup' ? 0.36 : 0.3;
+      pods[2].target = 10; pods[3].target = 10;
     } else if (close) {
       const reachTo = Math.min(330, dist - R0 + 60);
       pods[0].role = pods[1].role = 'arm';
@@ -172,7 +187,7 @@ export function createProteus(scene, start = new THREE.Vector3(-760, 0, -520)) {
       pods[3].a += angleWrap(a.heading + Math.PI - pods[3].a) * Math.min(1, dt * 0.5); pods[3].target = 10;
       for (const p of pods) p.w += (0.45 - p.w) * Math.min(1, dt);
     }
-    const rv = held ? REACH_V * 2.5 : REACH_V;
+    const rv = held ? REACH_V * 2.5 : a.fightMode && a.fightState === 'strike' ? REACH_V * 4 : a.fightMode && a.fightState === 'windup' ? REACH_V * 2 : REACH_V;
     for (const p of pods) p.len += Math.max(-rv * dt, Math.min(rv * dt, p.target - p.len));
 
     // the cup: between the arms, inside their reach, low enough
@@ -182,17 +197,28 @@ export function createProteus(scene, start = new THREE.Vector3(-760, 0, -520)) {
       const between = Math.abs(angleWrap(bear - (pods[0].a + pods[1].a) / 2)) < Math.abs(angleWrap(pods[0].a - pods[1].a)) / 2 + 0.08;
       inside = (between && dist < armR + 25) || dist < R0 * 0.9;
     }
-    if (inside) a.cup = Math.min(1, a.cup + dt / (dist < R0 ? 0.7 : 1.6));
-    else a.cup = Math.max(0, a.cup - dt * 0.7);
-    s.slow = Math.max(s.slow * Math.exp(-dt * 4), inside ? 0.5 * a.cup : 0);
-    if (a.cup >= 1 && s.mode === 'swim') {
+    if (a.fightMode) {
+      // the fight decides the catch (main.js): the cup shows the attack for the HUD
+      a.cup = a.fightState === 'windup' ? 0.3 * (a.fightT || 0) : a.fightState === 'strike' ? 0.3 + 0.7 * (a.fightT || 0) : Math.max(0, a.cup - dt);
+      if (!close) a.cup = 0;
+      s.slow = Math.max(s.slow * Math.exp(-dt * 4), inside ? 0.35 * a.cup : 0);
+    } else {
+      if (inside) a.cup = Math.min(1, a.cup + dt / (dist < R0 ? 0.7 : 1.6));
+      else a.cup = Math.max(0, a.cup - dt * 0.7);
+      s.slow = Math.max(s.slow * Math.exp(-dt * 4), inside ? 0.5 * a.cup : 0);
+    }
+    // rising: the body lifts as the arms go up round you
+    const rise = a.fightMode && close && a.fightState === 'windup' ? 0.25 * (a.fightT || 0) : a.fightMode && close && a.fightState === 'strike' ? 0.25 : 0;
+    a.rise = (a.rise || 0) + (rise - (a.rise || 0)) * Math.min(1, dt * 5);
+    if (!a.fightMode && a.cup >= 1 && s.mode === 'swim') {
       a.tip.set(a.pos.x, H0, a.pos.z);
       if (swimmer.capture(a)) { ev.captured = 'amoeba'; a.cup = 0; }
     }
     if (s.captor === a && s.mode === 'captured') a.tip.set(a.pos.x, H0, a.pos.z);
     void flowAt;
 
-    group.position.set(a.pos.x, H0 * 0.92, a.pos.z);
+    group.position.set(a.pos.x, H0 * 0.92 * (1 + (a.rise || 0)), a.pos.z);
+    group.scale.y = 1 + (a.rise || 0) * 1.4;
     nucleus.position.set(Math.cos(a.heading) * -20, 0, Math.sin(a.heading) * -20);
     reshape(t);
     return a.cup;

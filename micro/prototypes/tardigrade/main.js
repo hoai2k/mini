@@ -19,7 +19,7 @@ import { Life, COMPRESSIONS } from './life.js';
 import { Predator } from './predator.js';
 import { createCapture } from '../shared/predation.js';
 import { wireAssets } from './textures.js';
-import { LEAF_FX } from './materials.js';
+import { LEAF_FX, opticalMaterial, litMaterial } from './materials.js';
 import { Landmarks } from './landmarks.js';
 
 const MODES = ['DIC (Nomarski)', 'Brightfield', 'Lit (hypothetical)'];
@@ -81,8 +81,8 @@ const hud = mountHud({
     move: 'Crawl (relative to the view); push into a leaf edge to reach across',
     camera: 'Turn and tilt the view (up looks up)',
     dash: 'Scramble: a burst of fast wave gait (costs water and reserves)',
-    attack: 'Pierce with the stylets: feed, or jab a Milnesium so it backs off',
-    defend: 'Hold: grip hard / brace (slower, won’t slip)',
+    attack: 'Pierce with the stylets: feed, or jab a Milnesium (bite back)',
+    defend: 'Hold: brace. Facing a Milnesium, it blocks the lunge',
     special: 'Hold: curl into a tun (again: wake, if wet)',
     analog: 'Fine focus down / up',
     secondary: 'Anatomy labels / rain (test)',
@@ -147,6 +147,8 @@ const lifeEvents = (a) => ({
   newDay: () => { predator.reset(); endCapture(); for (const b of animals) if (b !== a) { b.life.respawn(0.5); spawnNear(b, a); } },
   // Local multiplayer: a dead animal (a tun that did not wake) comes back beside a teammate.
   restart: (life) => { if (players.count > 1) respawnNear(a); else life.newDay(); },
+  // The food is drawn in through the buccal tube and stays visible inside, fading into the gut.
+  swallowed: (f) => swallowed(a, f),
 });
 const life = new Life(world, walker, creature, lifeEvents(p1));
 const predator = new Predator(scene, world, { toast, rumble });
@@ -389,7 +391,10 @@ function respawnNear(a) {
 // eat (you are drawn in through the mouth and pharynx, swallowed whole, and
 // lie in its gut), then the Eaten card; A starts a new day. In multiplayer the
 // caught player sees the whole sequence, then wakes beside a teammate (no card).
-const capture = createCapture({ onRestart: () => life.newDay() });
+// No card: the camera pulls back to watch Milnesium swallow you whole and
+// follows it for a couple of seconds, then a fade, and you wake again
+// (beside a teammate, or alone at a safe spot away from it).
+const capture = createCapture({ onRespawn: () => captureRespawn() });
 let captive = null;
 const cap = { phase: null, m0: new THREE.Matrix4(), feet0: [], t: 0 };
 const _p0 = new THREE.Vector3(), _q0 = new THREE.Quaternion(), _s0 = new THREE.Vector3();
@@ -411,6 +416,26 @@ function startCapture(a = p1) {
   audio.play('tardigrade/milnesium', { volume: 1, rate: 0.9 });
   if (rumbleOn) a.pad.rumble(500, 0.9, 1);
   embed.captured({ by: 'Milnesium', player: a.slot });
+}
+function captureRespawn() {
+  const a = captive || p1;
+  if (animals.length > 1) respawnNear(a); else respawnSafe(a);
+  a.creature.group.visible = true;
+  Object.assign(predator, { state: 'wander', bored: 15, lunge: 0, rear: 0, sated: false });
+  predator.fight.reset();
+  if (animals.length === 1) { view.target.copy(a.walker.dispPos); view.dist = undefined; }
+}
+/** Alone: wake on whichever start spot is furthest from Milnesium. */
+function respawnSafe(a) {
+  a.life.respawn();
+  a.dash = createDash({ duration: 0.9, cooldown: 2.6 });
+  const SAFE = [[0, 6.5, 0.6], [3, 6, 0], [1, 7, 0], [4, 6, 0]];
+  let best = SAFE[0], bd = -1;
+  for (const sp of SAFE) {
+    const d = world.leaves[sp[0]].toWorld(sp[1], sp[2], 0).distanceTo(predator.walker.dispPos);
+    if (d > bd) { bd = d; best = sp; }
+  }
+  a.walker.spawn(world.leaves[best[0]], 1, best[1], best[2], 1, 0);
 }
 function endCapture() {
   capture.reset();
@@ -513,9 +538,10 @@ const api = window.__micro = { SOFTWARE, scene, camera, renderer, world, walker,
   players, animals, split, marks, places, landmarks: lm,
   get time() { return time; },
   /** Testing: one fixed step with the left stick at (x, y) on screen (null: hands off). */
-  testStep(dt = 1 / 30, stick = null) {
-    const none = () => false;
-    step(dt, { P: none, D: none, dashPressed: false, ls: stick ? { x: stick.x, y: stick.y, m: Math.min(1, Math.hypot(stick.x, stick.y)) } : ZERO });
+  testStep(dt = 1 / 30, stick = null, buttons = {}) {
+    // buttons: { down: [button ids held], pressed: [button ids pressed this step] }
+    const down = new Set(buttons.down || []), pr = new Set(buttons.pressed || []);
+    step(dt, { P: (b) => pr.has(b), D: (b) => down.has(b) || pr.has(b), dashPressed: pr.has(0), ls: stick ? { x: stick.x, y: stick.y, m: Math.min(1, Math.hypot(stick.x, stick.y)) } : ZERO });
   },
   render(dt = 1 / 30) { renderView(dt); readout(); },
   pacing() {
@@ -610,15 +636,10 @@ function step(dt, G) {
   time += dt;
   snd.t += dt;
   places.update(dt);
-  let cs = capture.update(dt, capPad);
-  // Multiplayer: no Eaten card; the caught player wakes beside a teammate.
-  if (cs.active && cs.phase === 'eaten' && animals.length > 1 && captive) {
-    const a = captive;
-    endCapture();
-    Object.assign(predator, { state: 'wander', bored: 12, lunge: 0 });
-    respawnNear(a);
-    cs = { active: false, phase: null, t: 0 };
-  }
+  const cs = capture.update(dt, capPad);
+  if (!cs.active && captive) captive = null;
+  // the caught player is back (after the fade) while the screen fades in
+  const held = cs.active && cs.phase !== 'fadeIn';
   const inputs = new Map(animals.map((a) => [a, a === p1 ? G : (G.others && G.others[a.slot]) || IDLE]));
   let backNear = false;
   for (const a of animals) {
@@ -658,10 +679,17 @@ function step(dt, G) {
   setNear(backNear);
 
   // Milnesium hunts one of you.
-  const target = cs.active ? null : chooseTarget();
+  const target = held ? null : chooseTarget();
   const tg = target ? inputs.get(target) : IDLE;
   const xT = tg.P(BTN_X);
-  const pev = !target ? [] : predator.update(dt, { walker: target.walker, life: target.life, mouth: target.mouth }, xT && target.life.state === 'active' && !target.life.feeding);
+  let facing = false;
+  if (target) {
+    const tw = target.walker;
+    facing = _fd.subVectors(predator.walker.dispPos, tw.dispPos).normalize().dot(tw.forward) > 0.5;
+  }
+  const blocking = !!target && tg.D(BTN_B) && target.life.state === 'active';
+  const pev = !target ? [] : predator.update(dt, { walker: target.walker, life: target.life, mouth: target.mouth, facing, blocking }, xT && target.life.state === 'active' && !target.life.feeding);
+  if (target) { target.facingPredator = facing && predator.state === 'stalk'; }
   const jabbed = pev.includes('recoil');
 
   for (const a of animals) {
@@ -690,13 +718,17 @@ function step(dt, G) {
     else if (e === 'stalk') audio.play('tardigrade/milnesium', { volume: 0.45, rate: 0.85 });
     else if (e === 'hunt') audio.play('tardigrade/milnesium', { volume: 0.25, rate: 0.75 });
     else if (e === 'recoil') audio.play('tardigrade/bite', { volume: 1, rate: 0.85 });
-    if (e === 'recoil') { toast(`${who(a)}Stylets into its head: the Milnesium backs off`); rb(220, 0.5, 0.4); a.creature.pose.stylet = 1; }
+    if (e === 'recoil') { toast(`${who(a)}Stylets into its head! It staggers back (interest ${Math.round(predator.fight.interest * 100)}%)`); rb(220, 0.5, 0.4); (a.anim ||= {}).hit = 0.3; }
+    else if (e === 'windup') { toast(`${who(a)}Milnesium rears to strike! Face it and brace (B), or jab (X)`, 1800); rb(120, 0.3, 0); audio.play('tardigrade/milnesium', { volume: 0.5, rate: 1.2 }); }
+    else if (e === 'strike') audio.play('tardigrade/milnesium', { volume: 0.9, rate: 1.05 });
+    else if (e === 'blocked') { toast(`${who(a)}Blocked! Braced claws hold and you shove its head away`); rb(260, 0.6, 0.5); (a.anim ||= {}).shove = 0.3; audio.play('tardigrade/bite', { volume: 0.7, rate: 0.7 }); }
+    else if (e === 'retreat') toast(`${who(a)}The Milnesium has had enough: it turns and crawls off`, 2600);
     else if (e === 'stalk') toast(`${who(a)}A Milnesium has your scent: scramble (A), jab (X) or tun (Y)`, 2600);
     else if (e === 'hunt') toast('Something large is moving in the film…', 2600);
     else if (e === 'tunBite') { toast(`${who(a)}The Milnesium mouths your tun but cannot get it in`); rb(120, 0.2, 0.3); }
     else if (e === 'givesUp') toast('The Milnesium gives up on the tun and wanders off');
     else if (e === 'bite') {
-      L.energy = Math.max(0, L.energy - 0.2);
+      L.energy = Math.max(0, L.energy - 0.25);
       L.feeding = null;
       a.walker.speed = 0;
       rb(300, 0.8, 0.9);
@@ -708,13 +740,15 @@ function step(dt, G) {
   // Creature rigs.
   for (const a of animals) {
     const c = a.creature;
-    if (cs.active && a === captive) animateCapture(cs, dt);
+    if (held && a === captive) animateCapture(cs, dt);
     else {
       if (!view.sway) { c.pose.sway = 0; c.pose.surge = 0; c.pose.bob = 0; }
-      c.group.matrix.copy(a.walker.matrix);
+      const off = fightPose(a, inputs.get(a), dt);
+      c.group.matrix.copy(a.walker.matrix).multiply(off);
       c.group.matrixWorldNeedsUpdate = true;
       c.deformAll();
     }
+    animateEating(a, dt);
     if (view.claws !== 1) for (const cl of c.claws) { const s = view.claws; cl.matrix.multiply(new THREE.Matrix4().makeScale(s, s, s)); }
     if (view.mode === 2 || borrow.id === 'semMite') c.refreshNormals();
     const pt = a.particles || particles;
@@ -723,6 +757,112 @@ function step(dt, G) {
   }
 }
 const BTN_A = 0, BTN_B = 1, BTN_X = 2, BTN_Y = 3;
+const _fd = new THREE.Vector3(), _off = new THREE.Matrix4(), _rz = new THREE.Matrix4();
+
+/**
+ * The player's own fight moves, layered on the walker's pose:
+ *   attack (X): a stylet jab with a head thrust (also the start of every bite);
+ *   guard (B held): crouched, head drawn in and down, claws braced;
+ *   shove: a blocked lunge, the head butted forward; hit: a jab that landed, a recoil.
+ */
+function fightPose(a, g, dt) {
+  const an = (a.anim ||= {});
+  const c = a.creature, L = a.life;
+  for (const k of ['jab', 'shove', 'hit']) an[k] = Math.max(0, (an[k] || 0) - dt);
+  if (g && g.P(BTN_X) && L.state === 'active') an.jab = 0.34;
+  const guard = g && g.D(BTN_B) && L.state === 'active' ? 1 : 0;
+  an.guard = (an.guard || 0) + (guard - (an.guard || 0)) * (1 - Math.exp(-dt * 12));
+  let dx = -0.07 * an.guard, dy = -0.05 * an.guard, rz = -0.1 * an.guard;
+  if (an.jab > 0) { const e = Math.sin(Math.PI * (1 - an.jab / 0.34)); dx += 0.34 * e; rz -= 0.12 * e; c.pose.stylet = Math.max(c.pose.stylet, e); c.pose.gape = 0.6 * e; }
+  else c.pose.gape = Math.max(0, (c.pose.gape || 0) - dt * 3);
+  if (an.shove > 0) { const e = Math.sin(Math.PI * (1 - an.shove / 0.3)); dx += 0.28 * e; rz += 0.06 * e; }
+  if (an.hit > 0) { const e = Math.sin(Math.PI * (1 - an.hit / 0.3)); dx -= 0.08 * e; }
+  return _off.makeTranslation(dx, dy, 0).multiply(_rz.makeRotationZ(rz));
+}
+
+// ---------------------------------------------------------------- eating
+// The food is drawn to the mouth, through the buccal tube and pharynx and into
+// the gut, visible all the way through the transparent body; there it slowly
+// shrinks and fades, tinting the gut's colour as it goes. A pierced leaf cell
+// becomes a green bolus of chloroplasts that does the same.
+const _lv = new THREE.Vector3(), _w0 = new THREE.Vector3(), _w1 = new THREE.Vector3();
+const ease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
+const bodyPoint = (a, x, y, z, out) => out.set(x, y, z).applyMatrix4(a.creature.group.matrix);
+const MOUTH = [1.82, -0.1, 0], PHARYNX = [0.98, -0.03, 0];
+function chloroBolus() {
+  const m = new THREE.Mesh(new THREE.SphereGeometry(0.075, 14, 10), opticalMaterial({ dn: 0.04, absorb: [2.6, 0.6, 2.9] }));
+  m.userData = { opt: m.material, lit: litMaterial({ color: 0x4f9a3a, roughness: 0.6 }), own: true };
+  if (view.mode === 2) m.material = m.userData.lit;
+  m.layers.set(LAYER_SPECIMEN);
+  m.frustumCulled = false;
+  world.foodGroup.add(m);
+  return m;
+}
+function animateEating(a, dt) {
+  const f = a.life.feeding;
+  // a meal broken off (spat out, a bite, a catch): the food goes back where it was
+  if (a.eat && a.eat.f !== f) {
+    const e = a.eat;
+    if (!e.done) {
+      if (e.f.item) { e.mesh.position.copy(e.home); e.mesh.scale.setScalar(1); }
+      else if (e.mesh) { e.mesh.removeFromParent(); }
+    }
+    a.eat = null;
+  }
+  if (f && !a.eat) {
+    const mesh = f.item ? f.item.mesh : chloroBolus();
+    a.eat = { f, mesh, home: mesh.position.clone() };
+    if (!f.item) bodyPoint(a, ...MOUTH, mesh.position);
+  }
+  if (a.eat && f) {
+    const e = a.eat, k = Math.min(1, f.t / f.dur), m = e.mesh;
+    if (f.item) {
+      if (k < 0.45) { const q = ease(k / 0.45); m.position.copy(e.home).lerp(bodyPoint(a, ...MOUTH, _w0), q); m.scale.setScalar(1 - 0.25 * q); }
+      else { const q = ease((k - 0.45) / 0.55); bodyPoint(a, ...MOUTH, _w0).lerp(bodyPoint(a, ...PHARYNX, _w1), q); m.position.copy(_w0); m.scale.set(0.75 + 0.15 * q, 0.75 - 0.25 * Math.sin(Math.PI * q), 0.75 - 0.25 * Math.sin(Math.PI * q)); }
+    } else {
+      // the cell's contents stream in: a bolus swelling at the mouth, then drawn back
+      if (k < 0.6) { bodyPoint(a, ...MOUTH, m.position); m.scale.setScalar(0.2 + 0.8 * ease(k / 0.6)); }
+      else { const q = ease((k - 0.6) / 0.4); bodyPoint(a, ...MOUTH, _w0).lerp(bodyPoint(a, ...PHARYNX, _w1), q); m.position.copy(_w0); }
+    }
+  }
+  // swallowed meals: into the gut, then fading into its colour mass
+  for (let i = (a.digest || []).length - 1; i >= 0; i--) {
+    const d = a.digest[i];
+    d.t += dt;
+    const m = d.mesh;
+    if (d.t < 1.6) {
+      const q = ease(d.t / 1.6);
+      _lv.set(PHARYNX[0] + (d.to[0] - PHARYNX[0]) * q, PHARYNX[1] + (d.to[1] - PHARYNX[1]) * q, PHARYNX[2] + (d.to[2] - PHARYNX[2]) * q);
+    } else {
+      const q = Math.min(1, (d.t - 1.6) / 7);
+      _lv.set(...d.to);
+      const u = m.userData.opt.uniforms;
+      u.uDn.value = d.dn0 * (1 - q);
+      u.uAbs.value.copy(d.abs0).multiplyScalar(1 - q);
+      m.scale.setScalar(d.s0 * (1 - 0.65 * q));
+      // the gut takes on the colour of what was eaten as it fades
+      a.life.gutColour.lerp(d.gut, 1 - Math.pow(1 - 0.45, dt / 7));
+      if (q >= 1) {
+        m.removeFromParent();
+        if (m.userData.own) { m.geometry.dispose(); m.userData.opt.dispose(); }
+        a.digest.splice(i, 1);
+        continue;
+      }
+    }
+    _lv.y += 0.015 * Math.sin(time * 1.3 + i);
+    bodyPoint(a, _lv.x, _lv.y, _lv.z, m.position);
+  }
+}
+function swallowed(a, f) {
+  const e = a.eat;
+  const mesh = e ? e.mesh : f.item ? f.item.mesh : chloroBolus();
+  if (e) e.done = true;
+  const u = mesh.userData.opt.uniforms;
+  // packed into a food mass in the gut it reads darker before it breaks down
+  u.uAbs.value.multiplyScalar(1.6);
+  (a.digest ||= []).push({ mesh, t: 0, gut: new THREE.Vector3(...f.gut), dn0: u.uDn.value, abs0: u.uAbs.value.clone(), s0: mesh.scale.x,
+    to: [-0.25 + (Math.random() - 0.5) * 0.5, 0.04 + (Math.random() - 0.5) * 0.08, (Math.random() - 0.5) * 0.14] });
+}
 
 const _ct = new THREE.Vector3(), _c2 = new THREE.Vector3();
 /** Where an animal is drawn (its walker, or Milnesium's mouth while it is being swallowed). */
@@ -732,11 +872,15 @@ function renderView(dt) {
   const ob = OBJECTIVES[view.obj];
   const solo = animals.length === 1;
   // a catch is framed closer (about the 20× field): you and Milnesium's head
-  const field = capture.active && solo ? Math.min(ob.field, 9) : ob.field;
+  // eat / follow: the camera pulls back to watch Milnesium swallow you whole, then follows it
+  const ph = capture.active ? capture.phase : null;
+  const following = ph === 'eat' || ph === 'follow' || ph === 'fadeOut';
+  const field = capture.active && solo ? (following ? ob.field * 1.3 : Math.min(ob.field, 9)) : ob.field;
   const dist = field / 2 / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / Math.max(1, camera.aspect) * 1.0;
   view.dist = THREE.MathUtils.lerp(view.dist || dist, dist, 1 - Math.exp(-dt * 4));
   let aim;
-  if (capture.active && solo) aim = _ct.copy(walker.dispPos).lerp(predator.walker.dispPos, 0.5);
+  if (capture.active && solo && following) aim = _ct.copy(predator.walker.dispPos);
+  else if (capture.active && solo && ph !== 'fadeIn') aim = _ct.copy(walker.dispPos).lerp(predator.walker.dispPos, 0.5);
   else { aim = _ct.set(0, 0, 0); for (const a of animals) aim.add(shownAt(a, _c2)); aim.multiplyScalar(1 / animals.length); }
   view.target.lerp(aim, 1 - Math.exp(-dt * 3));
   camera.position.set(
@@ -851,6 +995,8 @@ function readout() {
   let bt = '', hot = true;
   const tName = animals.length > 1 ? (animals.find((a) => a.slot === predator.target)?.p.name || '') : '';
   if (capture.active) bt = (animals.length > 1 && captive ? `${captive.p.name}: ` : '') + (CAP_LINES[capture.phase] || '');
+  else if (predator.on && predator.attacking) bt = `${tName ? tName + ': ' : ''}Milnesium ${predator.fstate === 'windup' ? 'rears to strike' : 'lunges'}! Face it and brace (B)`;
+  else if (predator.on && predator.state === 'retreat') { bt = 'The Milnesium has lost interest and crawls off'; hot = false; }
   else if (predator.on && predator.state === 'stalk') bt = tName ? `A Milnesium is stalking ${tName}` : 'A Milnesium is stalking you';
   else if (predator.on && predator.state === 'approach') { bt = tName ? `A Milnesium is closing in on ${tName}` : 'A Milnesium is closing in'; hot = false; }
   capBanner.style.display = bt ? 'block' : 'none';
@@ -875,7 +1021,7 @@ function readout() {
     `state    ${st}${life.state === 'skip' || life.state === 'revive' ? ` · revival ~${Math.round(life.chance * 100)}%` : ''}`,
     walker.candidate ? `reach    ${walker.candidate.M.name}${walker.candidate.bridged ? ' (film bridge)' : ''}` : '',
     `${dash.active ? 'SCRAMBLE' : dash.text()}   ${Math.round(walker.speed * 100)} µm/s`,
-    predator.on ? `Milnesium ${predator.state === 'capture' ? 'eating you' : predator.state === 'wander' ? (predator.firstHunt ? 'browsing far off' : 'keeping off') : predator.state === 'recoil' ? 'backing off' : predator.state === 'approach' ? 'closing in' : 'stalking'} · ${Math.round(predator.dist * 100)} µm${predator.thinFilm ? ' · film too thin for it' : ''} · ${predator.hunger.state} ${Math.round(predator.hunger.left)} s` : '',
+    predator.on ? `Milnesium ${predator.state === 'capture' ? 'eating you' : predator.state === 'wander' ? (predator.firstHunt ? 'browsing far off' : 'keeping off') : predator.state === 'recoil' ? 'backing off' : predator.state === 'approach' ? 'closing in' : predator.state === 'retreat' ? 'retreating' : `stalking (${predator.fstate})`} · interest ${Math.round(predator.fight.interest * 100)}% · ${Math.round(predator.dist * 100)} µm${predator.thinFilm ? ' · film too thin for it' : ''} · ${predator.hunger.state} ${Math.round(predator.hunger.left)} s` : '',
     animals.length > 1 ? `players  ${animals.map((a) => `${a.p.name} ${a.life.state}${a.p.waiting ? ' (waiting)' : ''}`).join(' · ')} · views ${L.views.length}` : '',
   ].filter(Boolean).join('\n'));
 }

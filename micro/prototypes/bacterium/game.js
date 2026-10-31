@@ -112,7 +112,7 @@ export function createGame(world, swimmer) {
         if (Math.hypot(s.x - c.x, s.y - c.y) < g.R * 0.98 && d > 6 && r() < dt * 0.6) { g.contract = 3; g.ext = 0; ev.contracted = true; }
       }
       if (inMouth) { s.captureT += dt; if (s.captureT < dt * 1.5) ev.captured = true; } else s.captureT = Math.max(0, s.captureT - dt * 2);
-      if (s.captureT > 0.9 && inMouth) { catchBy('grazer', inMouth, ev); return; }
+      if (inMouth && s.captureT > (inMouth.fight ? 2.2 : 0.9)) { catchBy('grazer', inMouth, ev); return; }
     }
 
     // --- the amoeba's edge: stay inside it and you are engulfed ---

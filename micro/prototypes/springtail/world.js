@@ -484,18 +484,19 @@ function buildFood(group, rnd) {
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), s = new THREE.Vector3();
   return {
     clumps, im,
-    respawn(c) { place(c); c.bites = 3; c.vx = c.vz = 0; },
+    respawn(c) { place(c); c.bites = 3; c.chew = 0; c.vx = c.vz = 0; },
     /** Float the grains on the film; hide eaten ones. */
     update(heightAt) {
       for (const c of clumps) {
-        const shown = Math.ceil((c.grains.length * c.bites) / 3);
+        // a bite being eaten (c.chew 0..1) shrinks the clump's last grains away
+        const shown = (c.grains.length * Math.max(0, c.bites - (c.chew || 0))) / 3;
         c.grains.forEach((g, k) => {
           const x = c.x + g.ox, z = c.z + g.oz;
-          const on = k < shown;
+          const on = Math.max(0, Math.min(1, shown - k));
           v.set(x, heightAt(x, z) + g.r * 0.45, z);
           e.set(g.tilt, g.rot + c.spin, 0);
           q.setFromEuler(e);
-          const L = on ? 1 : 0;
+          const L = on;
           s.set(g.r * c.type.stretch * L, g.r * L, g.r * L);
           m4.compose(v, q, s);
           im.setMatrixAt(g.i, m4);
