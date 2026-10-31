@@ -543,7 +543,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing brightfield microscope look: Amoeba proteus with broad pseudopods curving round a small ciliate on the slide, Spirogyra filaments out of focus behind. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
             },
             {
-                "id": "MP-G11", "name": "World intro: Hollow pool (Paramecium)",
+                "id": "MP-G11", "status": "delivered", "name": "World intro: Hollow pool (Paramecium)",
                 "file": "assets/game/intro-paramecium.webp", "size": "2560 x 1440, opaque",
                 "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
                 "standin": "The world's launcher card, enlarged and blurred.",
@@ -551,7 +551,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing brightfield microscope look: a green Paramecium bursaria full of Chlorella swimming in a bog pool, a barrel-shaped Didinium approaching, stalked Vorticella in the background. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
             },
             {
-                "id": "MP-G12", "name": "World intro: Sediment (bacterium)",
+                "id": "MP-G12", "status": "delivered", "name": "World intro: Sediment (bacterium)",
                 "file": "assets/game/intro-bacterium.webp", "size": "2560 x 1440, opaque",
                 "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
                 "standin": "The world's launcher card, enlarged and blurred.",
@@ -559,7 +559,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing phase-contrast microscope look at 1000x: a magnetotactic spirillum with a chain of magnetosomes among rods and cocci on a biofilm, the edge of a ciliate's mouth looming. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
             },
             {
-                "id": "MP-G13", "name": "World intro: Host surface (phage)",
+                "id": "MP-G13", "status": "delivered", "name": "World intro: Host surface (phage)",
                 "file": "assets/game/intro-phage.webp", "size": "2560 x 1440, opaque",
                 "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
                 "standin": "The world's launcher card, enlarged and blurred.",

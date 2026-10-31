@@ -2263,6 +2263,171 @@
     "mood_boards": []
   },
   {
+    "id": "MP-G11",
+    "name": "World intro: Hollow pool (Paramecium)",
+    "file": "assets/game/intro-paramecium.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE wide16:9 world-introduction background plate for Micro Zoom. Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing brightfield microscope look: a green Paramecium bursaria full of Chlorella swimming in a bog pool, a barrel-shaped Didinium approaching, stalked Vorticella in the background. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.\nSERIES LAYOUT: full-bleed dark ink-green natural-history paper; the entire LEFT THIRD remains empty, calm and dark for text. On RIGHT TWO THIRDS one LARGE ROUND viewing window with finely engraved antique BRASS eyepiece ring, unnumbered ticks, restrained copperplate ornament, approximately70% width/50% height centre. Soft rounded field-stop edge. No labels, words, numerals, title, logo, UI, rectangular inset or people. Preserve the modality inside the circle; warm brass outside does not tint monochrome imagery. Inside window a pale transmitted-light BRIGHTFIELD scene: broad slipper-shaped green Paramecium bursaria filled with round Chlorella symbionts and coated in short cilia; a separate approaching Didinium is a small transparent BARREL with a short conical proboscis and exactly TWO ciliary girdles, not hair all over. No faces, eyes, teeth or monster mouth. A few Vorticella on fine stalks soft in the background. Photo1isParamecium anatomy/greenpigment, image2HISTORICAL Didinium drawing for body shape only not drawing style/labels, image3Vorticella background morphology. No SEM relief or fluorescent glow. Export16:9, single continuous scene with blank LEFT THIRD.",
+    "requested_prompt": "Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing brightfield microscope look: a green Paramecium bursaria full of Chlorella swimming in a bog pool, a barrel-shaped Didinium approaching, stalked Vorticella in the background. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-1ba6b730-d003-4076-b43a-e9e4fd20bdfd.png",
+    "input_images": [
+      "research/assets/references/production/paramecium-bursaria.jpg",
+      "research/assets/references/production/didinium.jpg",
+      "research/assets/references/vorticella.jpg"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "13a5ba9a1682b8d2b5a2d5254b277d2308d74cec9512a75a187ed0313f342ded",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "paramecium-bursaria",
+        "local": "assets/references/production/paramecium-bursaria.jpg",
+        "author": "Anatoly Mikhaltsov",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Paramecium_bursaria.jpg"
+      },
+      {
+        "id": "didinium",
+        "local": "assets/references/production/didinium.jpg",
+        "author": "S. O. Mast",
+        "license": "Public domain",
+        "license_url": "",
+        "source": "https://commons.wikimedia.org/wiki/File:Didinium_nasutum_consuming_a_paramecium.jpg"
+      },
+      {
+        "id": "vorticella",
+        "local": "assets/references/vorticella.jpg",
+        "author": "Bwiltz",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Vorticella_1.jpg"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-G12",
+    "name": "World intro: Sediment (bacterium)",
+    "file": "assets/game/intro-bacterium.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
+    "prompt": "Use case: precise-object-edit. Edit the supplied Micro Zoom intro background. Change ONLY the details INSIDE the circular microscope field to respect light-microscope resolution. Remove ALL tiny black beaded chains, individual dark magnetosome dots, and crisp fine flagellar threads from EVERY bacterium, especially the large S-shaped central spirillum and the crossing lower spirilla. These must have SMOOTH optically unresolved grey translucent interiors and soft pale phase halos; NO beads, granules, crystals or segmented internal chains. Remove the tiny bright mesh filaments in the biofilm and replace with a soft unresolved pale-grey matrix haze. Preserve each cell's overall position, helical or rod outline and proportions. Preserve the ciliate oral edge at lower right, the grey phase-contrast appearance, and the layout. Keep the LEFT THIRD dark green background and all its faint engraved ornament, the brass eyepiece rim, its ticks and every external decorative detail UNCHANGED. No new objects, text, labels, colours, arrows, scale bars or crop. ONE wide16:9 image. Nanometre structures are NOT visible through this optical microscope; avoid the electron-micrograph look.",
+    "requested_prompt": "Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing phase-contrast microscope look at 1000x: a magnetotactic spirillum with a chain of magnetosomes among rods and cocci on a biofilm, the edge of a ciliate's mouth looming. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-e225659d-ce82-45cf-b0fe-03420aaf90ae.png",
+    "input_images": [
+      "generated/exec-7039de72-5a05-45c0-ac46-9b3dfd2b5355.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "2831d941a9ddff2ef508de75d8f647e55efd1e2f097028eff7d3d63dded6315f",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "magnetotactic",
+        "local": "assets/references/production/magnetotactic.png",
+        "author": "Caulobacter subvibrioides (Diskussion)",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png"
+      },
+      {
+        "id": "biofilm-fluorescence",
+        "local": "assets/references/production/biofilm-fluorescence.png",
+        "author": "Schwarz, Michael (ORCID: 0009-0002-1414-3291)",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:NFDI4BIOIMAGE_Calendar_March_2025_-_image_march.png"
+      },
+      {
+        "id": "biofilm-sem",
+        "local": "assets/references/biofilm-sem.jpg",
+        "author": "Timo Kohn, Rast, P., Kallscheuer, N., Wiegand, S., Boedeker, C., Jetten, M.S., Jeske, O., Vollmers, J., Kaster, A.K., Rohde, M. and Jogler, M.",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Electron_microscopic_analysis_of_seagrass_biofilms.jpg"
+      }
+    ],
+    "mood_boards": [],
+    "initial_generation": {
+      "tool": "Built-in image_gen",
+      "source_artifact": "exec-7039de72-5a05-45c0-ac46-9b3dfd2b5355.png",
+      "prompt": "Use case: scientific-educational. Asset type: ONE wide16:9 world-introduction background plate for Micro Zoom. Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing phase-contrast microscope look at 1000x: a magnetotactic spirillum with a chain of magnetosomes among rods and cocci on a biofilm, the edge of a ciliate's mouth looming. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.\nSERIES LAYOUT: full-bleed dark ink-green natural-history paper; the entire LEFT THIRD remains empty, calm and dark for text. On RIGHT TWO THIRDS one LARGE ROUND viewing window with finely engraved antique BRASS eyepiece ring, unnumbered ticks, restrained copperplate ornament, approximately70% width/50% height centre. Soft rounded field-stop edge. No labels, words, numerals, title, logo, UI, rectangular inset or people. Preserve the modality inside the circle; warm brass outside does not tint monochrome imagery. Inside window MONOCHROME PHASE CONTRAST at1000x: pale mid-grey background; small dark translucent short rods, cocci and one central gentle helical spirillum with thin bright edge halos. A magnetosome chain can be hinted as a FAINT CONTINUOUS low-contrast internal line, NOT individually resolved crystals or black cubes: 50nm crystals are below light-microscope resolution. A faint soft biofilm matrix below and an out-of-focus ciliate oral edge at one side. Supplied TEM/SEM are shape references ONLY; do not copy their resolved ultrastructure. Supplied red/green fluorescence reference is packing context ONLY; do not copy fluorescence colours. No sharp flagella, no molecular detail or coloured cells. Export16:9, single continuous scene with blank LEFT THIRD.",
+      "input_images": [
+        "research/assets/references/production/magnetotactic.png",
+        "research/assets/references/production/biofilm-fluorescence.png",
+        "research/assets/references/biofilm-sem.jpg"
+      ],
+      "revision_reason": "Remove discrete magnetosome beads and fine filaments so the final plate reflects the requested phase-contrast optical view."
+    }
+  },
+  {
+    "id": "MP-G13",
+    "name": "World intro: Host surface (phage)",
+    "file": "assets/game/intro-phage.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE wide16:9 world-introduction background plate for Micro Zoom. Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing molecular illustration in the manner of David Goodsell's watercolours: a T4-like bacteriophage landing on the lipopolysaccharide surface of a bacterium, crowded water with small molecules around it. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.\nSERIES LAYOUT: full-bleed dark ink-green natural-history paper; the entire LEFT THIRD remains empty, calm and dark for text. On RIGHT TWO THIRDS one LARGE ROUND viewing window with finely engraved antique BRASS eyepiece ring, unnumbered ticks, restrained copperplate ornament, approximately70% width/50% height centre. Soft rounded field-stop edge. No labels, words, numerals, title, logo, UI, rectangular inset or people. Preserve the modality inside the circle; warm brass outside does not tint monochrome imagery. Inside window a FLAT softly outlined MOLECULAR WATERCOLOUR reconstruction: one T4-like phage with a prolate faceted head, straight tail sheath, hexagonal baseplate and SIX long kinked tail fibres just landing on a curving Gram-negative outer membrane densely covered in LPS chains and a few porin proteins. Small dissolved molecules crowd water around it. Muted warm pinks/oranges proteins, purple nucleic acids, pale yellow/green membrane. Not a photorealistic3D render or SEM. The brass round window is a decorative game framing device, not a claim that a light microscope resolves phages. Micrographs are morphology references only. No text, labels, arrows, scales or glowing effects. Export16:9, single continuous scene with blank LEFT THIRD.",
+    "requested_prompt": "Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing molecular illustration in the manner of David Goodsell's watercolours: a T4-like bacteriophage landing on the lipopolysaccharide surface of a bacterium, crowded water with small molecules around it. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-76706209-5b05-41a7-b64b-c94f4e3d2c3e.png",
+    "input_images": [
+      "research/assets/references/production/phage-t4.jpg",
+      "research/assets/references/production/magnetotactic.png",
+      "research/assets/references/biofilm-sem.jpg"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "11cc1d0c398658822e43c1c76990a0cd821b5622797b8fac8cda86e32c274d6d",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      },
+      {
+        "id": "magnetotactic",
+        "local": "assets/references/production/magnetotactic.png",
+        "author": "Caulobacter subvibrioides (Diskussion)",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png"
+      },
+      {
+        "id": "biofilm-sem",
+        "local": "assets/references/biofilm-sem.jpg",
+        "author": "Timo Kohn, Rast, P., Kallscheuer, N., Wiegand, S., Boedeker, C., Jetten, M.S., Jeske, O., Vollmers, J., Kaster, A.K., Rohde, M. and Jogler, M.",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Electron_microscopic_analysis_of_seagrass_biofilms.jpg"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
     "id": "MP-R01",
     "name": "Water springtail (Podura aquatica)",
     "file": "assets/reference-sheets/springtail.webp",

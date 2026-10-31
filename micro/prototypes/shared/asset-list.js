@@ -179,15 +179,15 @@ export const ASSETS = {
   },
   "MP-G11": {
     "file": "assets/game/intro-paramecium.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G12": {
     "file": "assets/game/intro-bacterium.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G13": {
     "file": "assets/game/intro-phage.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R01": {
     "file": "assets/reference-sheets/springtail.webp",
