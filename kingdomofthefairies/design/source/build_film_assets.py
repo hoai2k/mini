@@ -542,6 +542,14 @@ GROUPS.append(
 )
 
 
+# Court stealth and clear physical capture, 31 October 2026.
+GROUPS.append(("The court guards seize the prince", "Connected capture pairs for Hall Doors and Neptune's Court: the same prince visibly restrained by a lobster or human guard. Both original painted and tinted photographic looks; calibrated to the prince's standing head size.", [
+    (f'prince-caught-{guard}{t}', f'Prince caught by the {guard} guard{" (tinted)" if t else ""}', 640, 480, 'bottom centre', TINTED if t else SPRITE,
+     f'Full-body connected capture pair: prince on left, {guard} guard on right firmly gripping his upper arm. Same character costumes as prince-stand{t}.webp and ' + (f'lobster-guard-closed{t}.webp' if guard == 'lobster' else f'seahorse-guard{t}.webp') + '. Prince recoils with bent knees, free hand raised; guard holds own weapon away. All extremities fully framed; transparent background, no scenery, halo or shadow.', None)
+    for guard in ('lobster', 'human') for t in ('', '-tinted')
+]))
+
+
 def ids():
     return [a for _, _, items in GROUPS for a in items]
 

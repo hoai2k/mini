@@ -39,7 +39,7 @@ CAST = {
     # The strike is drawn through drawPerson; its extended sword makes the
     # figure much smaller within its canvas than the standing prince.
     'prince-armed': ('prince-stand', {'': (119, 34, 148, 75), '-tinted': (119, 34, 148, 75)},
-                     ['prince-strike'], 30),
+                     ['prince-strike', 'prince-caught-lobster', 'prince-caught-human'], 30),
     'azurine': ('azurine-stand', {'': (60, 8, 115, 60), '-tinted': (55, 8, 105, 58)},
                 ['azurine-walk-a', 'azurine-walk-b', 'azurine-pass-a', 'azurine-pass-b', 'azurine-swoon', 'azurine-asleep', 'azurine-window'], 100),
     'aurora': ('aurora-stand', {'': (105, 58, 152, 110), '-tinted': (108, 55, 152, 106)},

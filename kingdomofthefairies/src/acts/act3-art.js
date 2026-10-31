@@ -8,7 +8,7 @@ import {
 } from './act3.js';
 import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
 import { FILM } from '../theme.js';
-import { drawPose, personPx } from '../pose.js';
+import { drawPose, drawPerson, personPx } from '../pose.js';
 import { card } from './tableau.js';
 import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
 
@@ -34,8 +34,9 @@ export function draw(k, st, t) {
   const items = [];
   const vis = (x) => Math.abs(x - cam - 640) < 760;
   for (const q of st.pearlsOnFloor) if (!q.got && vis(q.x)) items.push({ y: ROWY[q.row] - 1, f: () => floorPearl(k, q, t) });
-  for (const cr of st.courtiers) if (vis(cr.x)) items.push({ y: ROWY[cr.row], f: () => courtier(k, cr, bob, st) });
-  if (ph !== 'lunge' && ph !== 'iris') items.push({ y: rowY(st.p) - 0.5, f: () => player(k, st, t) });
+  for (const cr of st.courtiers) if (cr !== st.capture?.guard && vis(cr.x)) items.push({ y: ROWY[cr.row], f: () => courtier(k, cr, bob, st) });
+  if (st.capture) items.push({ y: ROWY[st.capture.row], f: () => capture(k, st.capture, ROWY[st.capture.row], 180 * ROWSCALE[st.capture.row]) });
+  else if (ph !== 'lunge' && ph !== 'iris') items.push({ y: rowY(st.p) - 0.5, f: () => player(k, st, t) });
   items.sort((a, b) => a.y - b.y);
   for (const it of items) it.f();
   if (ph === 'play') hiddenCue(k, st, t);
@@ -57,22 +58,23 @@ export function draw(k, st, t) {
 // then the sea flora, dissolving into Neptune's court.
 const TSETS = ['lobster-palace'];
 const TNAMES = ['The Lobster Palace'];
-const TSUBS = ['Hold [X] to bow past the guards · leap with [A] for the pearls'];
+const TSUBS = ['Hold [X] to bow and let each guard pass · leap with [A]'];
 // on touch a tap leaps (there is no Leap button there), so it says tap
-const TSUBS_TOUCH = ['Hold [X] to bow past the guards · tap to leap for the pearls'];
+const TSUBS_TOUCH = ['Hold [X] to bow and let each guard pass · tap to leap'];
 const tsub = (k, i) => (k.inputMode === 'touch' ? TSUBS_TOUCH : TSUBS)[i];
 const BOW_H = 160 * 300 / 360;   // prince-crouch (240 x 300) at the standing pose's scale
 function transformation(k, st, t) {
   const c = k.c, f = st.tf, P = PASSAGE;
   if (!f) return;
   if (!k.asset(TSETS[f.set], 640, 720, 1280, 720)) { c.fillStyle = k.col('#5a3a4a'); c.fillRect(0, 0, 1280, 720); }
-  for (const g of P.guards) {
+  for (const g of f.guards) {
+    if (g === f.capture?.guard) continue;
     const open = guardOpen(g, f), near = Math.abs(f.x - g.x) < P.notice;
-    c.save(); c.translate(g.x, P.y + 4);
+    c.save(); c.translate(g.x, P.y);
     if (!k.asset(open ? 'lobster-guard-open' : 'lobster-guard-closed', 0, 0, 230, 156)) { c.fillStyle = k.col('#c8321e'); c.fillRect(-30, -140, 60, 140); }
     c.restore();
     // coming up on a guard upright: he is about to snap
-    if (near && !open && f.x < g.x && f.knockT <= 0 && f.t > 1) prompt(k, 'Hold [X] to bow', g.x, P.y - 200, '#ffb0a0');
+    if (g.mode === 'approach' && near && !open && f.x < g.x && f.knockT <= 0 && f.t > 1) prompt(k, 'Hold [X] to bow', g.x, P.y - 200, '#ffb0a0');
   }
   P.pearls.forEach(([px, py], i) => {
     if (f.got.includes(i)) return;
@@ -82,19 +84,35 @@ function transformation(k, st, t) {
   });
   // the prince: bowing past the guards, leaping for pearls, else walking
   const moving = Math.abs(f.vx) > 20, step = walkFrame('sailor', f.walk, 34);
-  c.save(); c.translate(f.x, P.y - (f.lift || 0)); c.scale(f.face, 1);
-  if (f.knockT > 0) k.asset('sailor-fall', 0, 0, 98, 160);
-  else if (f.bow && k.img('sailor-crouch')) k.asset('sailor-crouch', 0, Math.sin(f.walk / 14) * 1.5, 98, BOW_H);
-  else if (f.lift > 0 && k.img('sailor-leap')) k.asset('sailor-leap', 0, 0, 98, 160);
-  else if (!k.asset(moving ? step : 'sailor-stand', 0, 0, 98, 160)) { c.fillStyle = k.col('#6f9fc8'); c.fillRect(-14, -120, 28, 120); }
-  c.restore();
+  if (f.capture) capture(k, f.capture, P.y, 160);
+  else {
+    c.save(); c.translate(f.x, P.y - (f.lift || 0)); c.scale(f.face, 1);
+    if (f.knockT > 0) k.asset('sailor-fall', 0, 0, 98, 160);
+    else if (f.bow && k.img('sailor-crouch')) k.asset('sailor-crouch', 0, Math.sin(f.walk / 14) * 1.5, 98, BOW_H);
+    else if (f.lift > 0 && k.img('sailor-leap')) k.asset('sailor-leap', 0, 0, 98, 160);
+    else if (!k.asset(moving ? step : 'sailor-stand', 0, 0, 98, 160)) { c.fillStyle = k.col('#6f9fc8'); c.fillRect(-14, -120, 28, 120); }
+    c.restore();
+  }
   // the way on glows at the right
   c.save(); c.globalAlpha = 0.25 + 0.15 * Math.sin(t * 3); c.fillStyle = k.col('#fff2b0'); c.beginPath(); c.ellipse(P.exit + 40, P.y - 90, 40, 110, 0, 0, Math.PI * 2); c.fill(); c.restore();
-  if (f.x > P.guards[P.guards.length - 1].x) prompt(k, f.got.length ? `Pearls ${f.got.length} of ${P.pearls.length}` : k.inputMode === 'touch' ? 'Tap to leap for the pearls' : 'Leap with [A] for the pearls', 900, 230, '#f3c6dc');
+  if (f.guards.every(g => g.passed)) prompt(k, f.got.length ? `Pearls ${f.got.length} of ${P.pearls.length}` : k.inputMode === 'touch' ? 'Tap to leap for the pearls' : 'Leap with [A] for the pearls', 900, 230, '#f3c6dc');
   if (f.fade === 0) card(k, TNAMES[f.set], tsub(k, f.set).replace(/\[(\w)\]/g, '$1'), Math.min(1, clamp((f.t - 0.2) / 0.5, 0, 1)) * (f.t > 4.5 ? clamp((5.2 - f.t) / 0.7, 0, 1) : 1), { y: 92 });
   if (f.fade === 0 && f.t > 4.5) (k.flat || ((g) => g()))(() => prompt(k, tsub(k, f.set), 640, 150, '#f3c6dc'));
   if (f.fade > 0) k.wash('#000000', Math.sin(Math.PI * f.fade / P.fade));
 }
+function capture(k, grab, y, height) {
+  const id = 'prince-caught-' + grab.kind;
+  const c = k.c;
+  c.save(); c.translate(grab.x, y); c.scale(grab.face, 1);
+  // Measured midpoint of the prince's boots in each 640px delivery.
+  // Keep his feet at the collision position when the pair replaces him.
+  const im = k.img(id), tinted = /-tinted\./.test(im?.src || '');
+  const princeX = grab.kind === 'human' ? 276 : tinted ? 237 : 234;
+  const offset = im ? ((im.naturalWidth || im.width) / 2 - princeX) * height / personPx(k, id) : 0;
+  drawPerson(k, id, offset, 0, height);
+  c.restore();
+}
+
 // A short instruction on a plum label (button glyphs from [A], [X]).
 function prompt(k, text, x, y, col = '#f3c6dc') {
   const c = k.c;
@@ -450,7 +468,12 @@ function courtier(k, cr, bob, st) {
   tab(k, x, y, s);
   const rock = Math.sin(Math.PI * clamp(beatPhase(st.beat) / 0.42, 0, 1)) * 0.05 * cr.dir;
   c.save(); c.translate(x, y); c.rotate(rock); c.scale(s, s);
-  if (cr.kind === 'guard') { if (!k.asset('seahorse-guard', 0, 0, 120, 230)) guardStandin(k); }
+  if (cr.kind === 'guard') {
+    if (FILM && cr.guardType === 'lobster') {
+      c.scale(cr.dir < 0 ? 1 : -1, 1);
+      k.asset(st.p.frozen && Math.abs(st.p.x - cr.x) < PASSAGE.notice ? 'lobster-guard-open' : 'lobster-guard-closed', 0, 0, 230, 156);
+    } else if (!k.asset('seahorse-guard', 0, 0, 120, 230)) guardStandin(k);
+  }
   else if (!k.asset('attendant-' + cr.kind, 0, 0, 110, 210)) attendantStandin(k, cr.kind);
   c.restore();
 }
@@ -524,7 +547,7 @@ function player(k, st, t) {
   c.save();
   if (flicker) c.globalAlpha = 0.45;
   else if (hiddenNow) c.globalAlpha = 0.8;
-  c.translate(p.x, y);
+  c.translate(p.x, y - (p.lift || 0));
   // seized by the collar: the film's prince in his own pose, hauled up a little
   const collared = st.phase === 'caught' && FILM && k.img('prince-collared');
   if (collared) {
@@ -536,6 +559,7 @@ function player(k, st, t) {
   if (st.phase === 'caught') c.rotate(-0.25 * clamp(st.phaseT / 0.5, 0, 1));
   c.scale(s * (p.frozen ? 1 : p.face), s);
   if (p.frozen) { if (!k.asset('sailor-crouch', 0, 0, 120, 150)) sailorBow(k); }
+  else if (FILM && p.jumpT > 0) k.asset('sailor-leap', 0, 0, 110, 180);
   else {
     const stride = walkFrame('sailor', p.walk, 0.2);
     const walking = p.moving && st.phase === 'play';
@@ -661,39 +685,40 @@ function beam(k, st, t) {
   const c = k.c, g = st.gaze;
   if (st.phase !== 'play' && st.phase !== 'caught') return;
   // The cone only shows while the beam sweeps; dark or winding up, the hall is dim.
-  const blind = st.masked || g.phase !== 'sweep';
+  const blind = st.masked || !['sweep', 'fade'].includes(g.phase);
+  const fade = g.phase === 'fade' ? 1 - clamp(g.t / g.dur, 0, 1) : 1;
   const spot = g.lock > 0 || st.phase === 'caught';
-  const light = spot ? '#e0127a' : '#ffe9a8';
+  const light = FILM ? (spot ? '#ff384f' : '#f16a66') : spot ? '#e0127a' : '#ffe9a8';
   c.save();
   // Stage lighting: the hall is dimmed everywhere the gaze is not.
   c.fillStyle = k.col('#140a16'); c.globalAlpha = 0.32;
   c.beginPath(); c.rect(0, 60, 1280, 592);
-  if (!blind) beamPath(c, g.aim, st.cam, false);
+  if (!blind) beamPath(c, g.aim, st.cam, false, g.dir);
   c.fill('evenodd');
   if (!blind) {
     // warm light in the cone and pools on the grooves
     c.fillStyle = k.col(light);
-    c.globalAlpha = spot ? 0.3 : 0.14; beamPath(c, g.aim, st.cam); c.fill();
-    c.globalAlpha = spot ? 0.4 : 0.26;
+    c.globalAlpha = fade * (spot ? 0.3 : FILM ? 0.23 : 0.14); beamPath(c, g.aim, st.cam, true, g.dir); c.fill();
+    c.globalAlpha = fade * (spot ? 0.4 : 0.26);
     for (let r = 0; r < 3; r++) {
-      const b = beamOn(g.aim - st.cam, r);
+      const b = beamOn(g.aim - st.cam, r, g.dir);
       c.beginPath(); c.ellipse(b.cx, ROWY[r], b.hw, 9 * ROWSCALE[r], 0, 0, Math.PI * 2); c.fill();
     }
     // the beam's edge, so its reach reads clearly
-    c.globalAlpha = 0.75; c.strokeStyle = k.col(light); c.lineWidth = 2;
-    beamPath(c, g.aim, st.cam); c.stroke();
+    c.globalAlpha = 0.75 * fade; c.strokeStyle = k.col(light); c.lineWidth = 2;
+    beamPath(c, g.aim, st.cam, true, g.dir); c.stroke();
   }
   // the lantern's eye glows above the dimming
   const lx = backX(LANTERN_BX, st.cam);
-  c.globalAlpha = st.masked || g.phase === 'dark' ? 0.2 : 0.55; c.fillStyle = k.col(light); k.circle(lx + 3, LANTERN_Y, 12);
+  c.globalAlpha = st.masked || g.phase === 'dark' ? 0.2 : 0.55; c.fillStyle = k.col(light); k.circle(lx + 3, FILM ? 300 : LANTERN_Y, 12);
   c.restore();
 }
 
 // The beam's outline: from the lantern's eye down to a long pool across the
 // grooves (the same x band on each, as the rules have it).
-function beamPath(c, aim, cam, fresh = true) {
-  const b0 = beamOn(aim - cam, 0), b2 = beamOn(aim - cam, 2), y0 = ROWY[0] - 12, y2 = ROWY[2] + 30;
-  const lx = backX(LANTERN_BX, cam) + 3, ly = LANTERN_Y;
+function beamPath(c, aim, cam, fresh = true, dir = 1) {
+  const b0 = beamOn(aim - cam, 0, dir), b2 = beamOn(aim - cam, 2, dir), y0 = ROWY[0] - 12, y2 = ROWY[2] + 30;
+  const lx = backX(LANTERN_BX, cam) + 3, ly = FILM ? 300 : LANTERN_Y;
   if (fresh) c.beginPath();
   c.moveTo(lx - 14, ly); c.lineTo(lx + 14, ly);
   c.lineTo(b0.cx + b0.hw, y0); c.lineTo(b2.cx + b2.hw + 3, y2); c.lineTo(b2.cx - b2.hw - 3, y2); c.lineTo(b0.cx - b0.hw, y0);
@@ -710,11 +735,11 @@ function telegraph(k, st, t) {
   c.save();
   // light gathers in the wing the beam will come from
   const gl = c.createLinearGradient(wingIn, 0, wingIn + dir * 300, 0);
-  gl.addColorStop(0, k.col('#fff2c0')); gl.addColorStop(1, 'rgba(0,0,0,0)');
+  gl.addColorStop(0, k.col(FILM ? '#fa8d87' : '#fff2c0')); gl.addColorStop(1, 'rgba(0,0,0,0)');
   c.globalAlpha = 0.45 * clamp(g.t / g.dur, 0, 1) + 0.12; c.fillStyle = gl;
   c.fillRect(Math.min(wingIn, wingIn + dir * 300), 300, 300, 330);
   // and three chevrons, lighting in turn, point the way it will travel
-  c.fillStyle = k.col('#ffd75e'); c.strokeStyle = k.col('#2a1424'); c.lineWidth = 3; c.lineJoin = 'round';
+  c.fillStyle = k.col(FILM ? '#ff7470' : '#ffd75e'); c.strokeStyle = k.col('#2a1424'); c.lineWidth = 3; c.lineJoin = 'round';
   for (let i = 0; i < 3; i++) {
     const x = wingIn + dir * (50 + i * 50), cy = 500;
     c.globalAlpha = show * (((t * 3 - i) % 3 + 3) % 3 < 1.2 ? 1 : 0.4);

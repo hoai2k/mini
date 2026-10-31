@@ -1,5 +1,5 @@
 {
-  "generated": 388,
+  "generated": 392,
   "images": [
     {
       "id": "apotheosis",
@@ -7657,6 +7657,184 @@
         354,
         400
       ]
+    },
+    {
+      "id": "prince-caught-human-tinted",
+      "title": "Prince caught by human guard (tinted)",
+      "size": [
+        640,
+        480
+      ],
+      "anchor": "bottom centre",
+      "transparent": true,
+      "prompt": "Use case: style-transfer. Image 1 is exact capture pose/composition target; image 2 prince tinted-film costume/face reference, image 3 human guard tinted-film costume/face reference. Transform image 1 into the muted 1903 hand-tinted photographic theatre-performer style of images 2 and 3. Preserve connected pair prince LEFT, human seahorse guard RIGHT visibly gripping prince's upper arm with free hand, other hand holding upright gold trident. Prince plain muted blue torso with gold star, red cloak, blue gold-star skirt, silver helmet pink plume; guard red and gold costume seahorse helmet red cape. Match adult head scale between figures. Keep exactly two arms each and visible five-finger grip. Full bodies and COMPLETE trident sharp tip well inside frame with transparent margin all sides. Background truly transparent, no scenery, halo, glow or shadow. No text.",
+      "references": [
+        "prince-caught-human-original.png",
+        "../../../assets/prince-stand-tinted.webp",
+        "../../../assets/seahorse-guard-tinted.webp"
+      ],
+      "edition": "film",
+      "path": "/Users/hoai/.codex/generated_images/01a18d73-0123-72f0-9148-a1319c31802a/exec-a0be751a-0b23-4444-93c2-059db0f90156.png",
+      "generation_id": "exec-a0be751a-0b23-4444-93c2-059db0f90156",
+      "method": "built-in imagegen",
+      "review": {
+        "status": "accepted",
+        "notes": "Connected grip, correct tinted costume, coherent limbs and fully framed trident reviewed; renderer scale review recorded in progress/court-review."
+      },
+      "original": "design/generated/film-production/prince-caught-human-tinted-original.png",
+      "file": "assets/prince-caught-human-tinted.webp",
+      "native_size": [
+        980,
+        1604
+      ],
+      "source_crop": [
+        5,
+        13,
+        980,
+        1485
+      ],
+      "placement": [
+        161,
+        0,
+        318,
+        480
+      ]
+    },
+    {
+      "id": "prince-caught-human",
+      "title": "prince caught human",
+      "size": [
+        640,
+        480
+      ],
+      "anchor": "bottom centre",
+      "transparent": true,
+      "prompt": "Edit this transparent two-character sprite. Keep the prince, guard, connected upper-arm grip, costume and art style exactly unchanged. Pull the view back about 12 percent so both full figures fit with clear empty transparent margin on all four sides. Reconstruct the COMPLETE sharp gold trident tip above the guard: it must end well inside the image, no cropping. Keep all feet, plume and cloak entirely visible. No other changes, no backdrop, halo, glow, ground or shadow; genuine transparency.",
+      "references": [
+        "progress/rejected/court-capture/human-tight-framing.png"
+      ],
+      "edition": "film",
+      "path": "/Users/hoai/.codex/generated_images/01a18d73-0123-72f0-9148-a1319c31802a/exec-0c314392-a3d9-4af5-87eb-6975b3a8f0cd.png",
+      "generation_id": "exec-0c314392-a3d9-4af5-87eb-6975b3a8f0cd",
+      "method": "built-in imagegen",
+      "review": {
+        "status": "accepted",
+        "notes": "Connected upper-arm grip, coherent anatomy, complete extremities, transparent composite and reference costume reviewed; standing head scale checked in real renderer."
+      },
+      "original": "design/generated/film-production/prince-caught-human-original.png",
+      "file": "assets/prince-caught-human.webp",
+      "native_size": [
+        980,
+        1604
+      ],
+      "source_crop": [
+        37,
+        63,
+        956,
+        1444
+      ],
+      "placement": [
+        160,
+        0,
+        319,
+        480
+      ],
+      "source_generation": {
+        "prompt": "Use case: illustration-story. Production transparent game cutout matching these two character references exactly. Reference 1 prince silver cuirass, azure gold-star skirt, crimson cloak and plumed helmet; reference 2 human seahorse guard gold armor, red tunic and cloak, seahorse helmet, moustache, gold trident. Create ONE connected two-character capture pose: prince LEFT, guard RIGHT, same ground baseline and similarly sized adult human heads. Guard's LEFT hand firmly grips prince's upper arm beside shoulder, fingers visibly wrapped over sleeve; guard's other hand holds upright trident away from prince. Prince recoils, bent knees, free arm raised, clearly caught by this guard. Anatomically correct exactly two arms each; no extra hands. Complete full bodies with margin around every tip. Victorian watercolor engraved painted theatre cutout matching reference 1, fine outlines. No injuries. Entire background genuinely alpha transparent including gaps between limbs; NO colored backdrop, glow, halo, shadow, floor or scenery. No text.",
+        "references": [
+          "assets/prince-stand.webp",
+          "assets/seahorse-guard.webp"
+        ]
+      }
+    },
+    {
+      "id": "prince-caught-lobster-tinted",
+      "title": "prince caught lobster tinted",
+      "size": [
+        640,
+        480
+      ],
+      "anchor": "bottom centre",
+      "transparent": true,
+      "prompt": "Use case: style-transfer. Image 1 is the exact pose/composition target: keep prince LEFT held by lobster RIGHT, grip at upper arm, same ground baseline, complete silhouettes. Image 2 defines prince tinted-film identity/costume: plain muted blue torso with gold star, silver helmet with pink plume, short dark beard, red cloak and blue skirt. Image 3 defines tinted lobster guard identity: red lobster shell, seaweed mantle, coral crown and halberd. Render the capture pair as period 1903 hand-tinted photographic theatre performers with muted colors, gray skin, photographic shading and fine film grain matching images 2 and 3, rather than saturated engraved illustration. Exactly two arms on prince, claw closed around his sleeve, other claw holds weapon away. Full bodies, margin around all tips. Genuine transparent background including gaps. No background, halo, glow, shadow, scenery or text.",
+      "references": [
+        "prince-caught-lobster-original.png",
+        "../../../assets/prince-stand-tinted.webp",
+        "../../../assets/lobster-guard-closed-tinted.webp"
+      ],
+      "edition": "film",
+      "path": "/Users/hoai/.codex/generated_images/01a18d73-0123-72f0-9148-a1319c31802a/exec-1282fa5b-91dc-49e6-9014-758771612477.png",
+      "generation_id": "exec-1282fa5b-91dc-49e6-9014-758771612477",
+      "method": "built-in imagegen",
+      "review": {
+        "status": "accepted",
+        "notes": "Connected upper-arm grip, coherent anatomy, complete extremities, transparent composite and reference costume reviewed; standing head scale checked in real renderer."
+      },
+      "original": "design/generated/film-production/prince-caught-lobster-tinted-original.png",
+      "file": "assets/prince-caught-lobster-tinted.webp",
+      "native_size": [
+        1536,
+        1024
+      ],
+      "source_crop": [
+        18,
+        9,
+        1523,
+        998
+      ],
+      "placement": [
+        0,
+        59,
+        640,
+        421
+      ]
+    },
+    {
+      "id": "prince-caught-lobster",
+      "title": "prince caught lobster",
+      "size": [
+        640,
+        480
+      ],
+      "anchor": "bottom centre",
+      "transparent": true,
+      "prompt": "Edit target: this capture sprite. Remove the entire colored background and glow, making a crisp genuinely transparent cutout around the prince and lobster pair. Keep the complete two figures, grip, costume, weapons, proportions and colors unchanged. Transparent gaps between all limbs and around weapons. No backdrop, no halo, no shadow. Add a little empty transparent margin around the complete silhouettes so no tip touches the canvas. Do not draw a checkerboard.",
+      "references": [
+        "progress/rejected/court-capture/lobster-background.png"
+      ],
+      "edition": "film",
+      "path": "/Users/hoai/.codex/generated_images/01a18d73-0123-72f0-9148-a1319c31802a/exec-1118ee26-816b-4f4c-8a41-4f52e2c71f60.png",
+      "generation_id": "exec-1118ee26-816b-4f4c-8a41-4f52e2c71f60",
+      "method": "built-in imagegen",
+      "review": {
+        "status": "accepted",
+        "notes": "Connected upper-arm grip, coherent anatomy, complete extremities, transparent composite and reference costume reviewed; standing head scale checked in real renderer."
+      },
+      "original": "design/generated/film-production/prince-caught-lobster-original.png",
+      "file": "assets/prince-caught-lobster.webp",
+      "native_size": [
+        1536,
+        1024
+      ],
+      "source_crop": [
+        9,
+        10,
+        1519,
+        990
+      ],
+      "placement": [
+        0,
+        65,
+        640,
+        415
+      ],
+      "source_generation": {
+        "prompt": "Use case: illustration-story. Production game sprite, transparent background. Reference 1 defines exactly the prince's face, silver cuirass, blue gold-star skirt, crimson gold-star cloak and plumed helmet; reference 2 defines exactly the crowned red lobster guard with seaweed mantle and halberd. Create ONE connected two-character capture pose, complete full bodies, prince on LEFT and lobster on RIGHT. Lobster firmly closes one claw around the prince's upper arm near his shoulder, visibly grabbing and restraining him; other claw holds its own halberd upright away from prince. Prince recoils with bent knees, free hand raised, boots on same baseline as lobster feet. Clear nonviolent stage pantomime, no injuries. Match the reference painted engraved Victorian theatre cutouts, fine ink contours, watercolor texture. Prince standing size proportional to existing guard (human head to boot about 1.1 times lobster body height excluding weapon). All limbs anatomically coherent, exactly two arms on prince, clearly readable single claw grip. No scenery, text, ground, drop shadow or glow. Genuine transparent background everywhere outside silhouettes. Wide composition with margin around all weapon tips, plume, feet and tail.",
+        "references": [
+          "assets/prince-stand.webp",
+          "assets/lobster-guard-closed.webp"
+        ]
+      }
     },
     {
       "id": "prince-climb-a-tinted",

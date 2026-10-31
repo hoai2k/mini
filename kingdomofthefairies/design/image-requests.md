@@ -92,9 +92,9 @@ and the production art for the film edition (F1–F4) after them.
 
 ## Production art for the film edition
 
-Requested 11 October 2026: 388 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
+Requested 11 October 2026: 392 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 388 of 388 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 392 of 392 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -2993,6 +2993,41 @@ Requested 31 October 2026: once the prince beats the witch on the clifftop, Auro
 200 × 240 px, anchor bottom centre (its open mouth).
 
 > The witch's barrel exactly as in witch-barrel-tinted.webp (attach it), the same staves, hoops, wood colour and size, but EMPTY and turned UPSIDE DOWN, its open mouth at the bottom (we see a sliver of its dark inside at the rim), the closed lid at the top, a few magical sparkles of Aurora's gold light clinging to it. Seen from the front. The open rim on the bottom edge. Nothing but the barrel: no witch, ground or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+### F27. The court guards seize the prince
+
+Connected capture pairs for Hall Doors and Neptune's Court: the same prince visibly restrained by a lobster or human guard. Both original painted and tinted photographic looks; calibrated to the prince's standing head size.
+
+| Id | Size | Anchor | Replaces | Delivery |
+| --- | --- | --- | --- | --- |
+| `prince-caught-lobster` | 640 × 480 | bottom centre | new | [delivered](../assets/prince-caught-lobster.webp) |
+| `prince-caught-lobster-tinted` | 640 × 480 | bottom centre | new | [delivered](../assets/prince-caught-lobster-tinted.webp) |
+| `prince-caught-human` | 640 × 480 | bottom centre | new | [delivered](../assets/prince-caught-human.webp) |
+| `prince-caught-human-tinted` | 640 × 480 | bottom centre | new | [delivered](../assets/prince-caught-human-tinted.webp) |
+
+#### `prince-caught-lobster` — Prince caught by the lobster guard
+
+640 × 480 px, anchor bottom centre.
+
+> Full-body connected capture pair: prince on left, lobster guard on right firmly gripping his upper arm. Same character costumes as prince-stand.webp and lobster-guard-closed.webp. Prince recoils with bent knees, free hand raised; guard holds own weapon away. All extremities fully framed; transparent background, no scenery, halo or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-caught-lobster-tinted` — Prince caught by the lobster guard (tinted)
+
+640 × 480 px, anchor bottom centre.
+
+> Full-body connected capture pair: prince on left, lobster guard on right firmly gripping his upper arm. Same character costumes as prince-stand-tinted.webp and lobster-guard-closed-tinted.webp. Prince recoils with bent knees, free hand raised; guard holds own weapon away. All extremities fully framed; transparent background, no scenery, halo or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-caught-human` — Prince caught by the human guard
+
+640 × 480 px, anchor bottom centre.
+
+> Full-body connected capture pair: prince on left, human guard on right firmly gripping his upper arm. Same character costumes as prince-stand.webp and seahorse-guard.webp. Prince recoils with bent knees, free hand raised; guard holds own weapon away. All extremities fully framed; transparent background, no scenery, halo or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-caught-human-tinted` — Prince caught by the human guard (tinted)
+
+640 × 480 px, anchor bottom centre.
+
+> Full-body connected capture pair: prince on left, human guard on right firmly gripping his upper arm. Same character costumes as prince-stand-tinted.webp and seahorse-guard-tinted.webp. Prince recoils with bent knees, free hand raised; guard holds own weapon away. All extremities fully framed; transparent background, no scenery, halo or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
 <!-- FILM ASSETS END -->
 

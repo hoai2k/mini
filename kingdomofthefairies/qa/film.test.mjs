@@ -261,9 +261,11 @@ test('Act III: he bows past the lobster guards, leaps for the sea-flora pearls, 
   run(act3, st, 40, (s) => {
     if (!s.tf) return {};
     const f = s.tf;
-    if (f.x < PASSAGE.guards[1].x + 60) return { moveX: 1, xHeld: true, beat: (clock += DT) / BEAT };   // bow past the guards
-    const p = PASSAGE.pearls.find(([px], i) => !f.got.includes(i) && px - f.x > 55 && px - f.x < 110);
-    return { moveX: 1, a: !!p && f.lift === 0, beat: (clock += DT) / BEAT };
+    const guard = f.guards.find(g => !g.passed);
+    if (guard && guard.mode !== 'wait' && Math.abs(guard.x - f.x) < 175) return { xHeld: true, beat: (clock += DT) / BEAT };
+    if (guard) return { moveX: 1 };
+    const pearl = PASSAGE.pearls.find((_, i) => !f.got.includes(i));
+    return pearl ? { moveX: Math.abs(pearl[0] - f.x) > 10 ? Math.sign(pearl[0] - f.x) : 0, a: Math.abs(pearl[0] - f.x) < 75 && f.lift === 0 } : { moveX: 1 };
   }, (s) => !s.tf);
   assert.equal(st.tf, null);
   assert.equal(st.pearls, PASSAGE.pearls.length, 'every pearl, by leaping');
@@ -271,10 +273,10 @@ test('Act III: he bows past the lobster guards, leaps for the sea-flora pearls, 
   const s3 = act3.create({ seed: 1, carry: {} });
   run(act3, s3, 3, () => ({ moveX: 1 }), (s) => s.tf.caught > 0);
   assert.equal(s3.tf.caught, 1);
-  assert.ok(s3.tf.x < PASSAGE.guards[0].x);
+  assert.equal(s3.tf.capture.kind, 'lobster');
   // walking under the pearls without leaping takes none
   const s4 = act3.create({ seed: 1, carry: {} });
-  s4.tf.x = PASSAGE.guards[1].x + 60;
+  s4.tf.x = 760; s4.tf.guards.forEach(g => { g.mode = 'parked'; g.passed = true; g.x = g.park; });
   run(act3, s4, 8, () => ({ moveX: 1 }), (s) => !s.tf || s.tf.fade > 0);
   assert.equal(s4.pearls, 0);
   const s2 = act3.create({ seed: 1, carry: {}, from: { scene: 1 } });
@@ -287,7 +289,7 @@ test('Act III court: the courtier he poses behind holds still while he hides', (
   p.row = p.from = c.row; p.x = c.x;
   const x = c.x;
   let beat = 0;
-  for (let i = 0; i < 60 * 8; i++) act3.step(st, 1 / 60, { aHeld: true, beat: (beat += 1 / 60 / 0.784) });
+  for (let i = 0; i < 60 * 8; i++) act3.step(st, 1 / 60, { xHeld: true, beat: (beat += 1 / 60 / 0.784) });
   assert.ok(p.frozen);
   assert.equal(c.x, x, 'his courtier did not step away');
 });

@@ -4989,6 +4989,46 @@
       ],
       "anchor": "bottom centre (its open mouth)",
       "edition": "film"
+    },
+    "prince-caught-lobster": {
+      "status": "delivered",
+      "file": "prince-caught-lobster.webp",
+      "size": [
+        640,
+        480
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-caught-lobster-tinted": {
+      "status": "delivered",
+      "file": "prince-caught-lobster-tinted.webp",
+      "size": [
+        640,
+        480
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-caught-human": {
+      "status": "delivered",
+      "file": "prince-caught-human.webp",
+      "size": [
+        640,
+        480
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-caught-human-tinted": {
+      "status": "delivered",
+      "file": "prince-caught-human-tinted.webp",
+      "size": [
+        640,
+        480
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
     }
   },
   "audio": {

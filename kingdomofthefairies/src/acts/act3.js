@@ -23,13 +23,13 @@ export const PEDESTAL = { row: 0, x: 2700, reach: 46 };
 // Back-wall pieces, in screen x at cam 0 (screen x = BX - cam * PAR). The
 // throne stands on the backcloth's painted dais, which is centred on it.
 // The film edition's opening passage: one walk through the lobster palace,
-// left to right (stage px, feet at y). He bows (hold X, or down) to pass each
-// guard, who opens his claws for a bowing prince and catches one who
-// straightens up before him; beyond them he leaps (A) for the pearls hung
+// left to right (stage px, feet at y). Holding X bows in place while each
+// guard approaches and passes, then waits at the left. Advancing beyond the
+// first encounter releases the second guard. A leaps for the pearls hung
 // above his head among the sea flowers.
 export const PASSAGE = {
-  y: 640, x0: 190, exit: 1190, walk: 250, acc: 2000, fade: 0.6, hw: 18, knock: 300,
-  guards: [{ x: 430 }, { x: 650 }], guardW: 70, notice: 190, bowWalk: 0.45,
+  y: 652, x0: 360, exit: 1190, walk: 250, acc: 2000, fade: 0.6, hw: 18, knock: 300,
+  guards: [{ x: 1140 }, { x: 1240 }], guardW: 70, notice: 190, guardSpeed: 112,
   jump: 760, g: 2000, head: 150,
   // beyond the guards; one leap at a walk carries him ~190 px
   pearls: [[810, 380], [960, 362], [1090, 380]], grab: 44,
@@ -93,8 +93,9 @@ const PEARLS = [[2, 345], [1, 470], [0, 620], [2, 905], [1, 1160], [0, 1380], [2
 // ---------------------------------------------------------------- helpers
 // The beam falls as a long pool of light across all three grooves, a little
 // wider toward the audience. `aim` is the x of its centre.
-export function beamOn(aim, row) {
-  return { cx: aim, hw: [58, 66, 74][row] };
+export function beamOn(aim, row, dir = 1) {
+  const tail = FILM ? [65, 75, 85][row] : 0;
+  return { cx: aim - dir * tail / 2, hw: [58, 66, 74][row] + tail / 2 };
 }
 export const effRow = (p) => (p.rowT < 0.5 ? p.from : p.row);
 export const rowY = (p) => lerp(ROWY[p.from], ROWY[p.row], easeInOut(p.rowT));
@@ -123,11 +124,16 @@ export const fishX = (t) => lerp(1480, -220, t / TUNE.fishDur);
 // Advance the gaze. It stays dark, then winds up (warn: the lantern pulses and
 // an arrow along the floor shows which way it will come), then sweeps: the
 // beam enters from one wing, crosses the whole stage at a steady pace and
-// leaves by the other, so once it has passed you it is gone. Then dark again.
-// The sweep runs in floor x, fixed when the warning starts. `ctx` is
+// leaves by the other. The film eye then returns before fading; legacy
+// lanterns make a single crossing. Film endpoints follow the camera so the
+// full crossing stays visible. `ctx` is
 // { cam, rand } in play and null when predicting (the omens), which can't
 // start a new sweep.
-function stepGaze(g, dt, emit, ctx) {
+export function stepGaze(g, dt, emit, ctx) {
+  // Keep both wings in view even while the panorama follows the prince.
+  if (FILM && ctx && g.phase !== 'dark' && g.cam != null) {
+    const shift = ctx.cam - g.cam; g.from += shift; g.to += shift; g.aim += shift; g.cam = ctx.cam;
+  }
   if (g.lock > 0) { g.lock -= dt; return; }
   g.t += dt;
   if (g.phase === 'dark') {
@@ -135,7 +141,7 @@ function stepGaze(g, dt, emit, ctx) {
       g.dir = ctx.rand() < 0.5 ? 1 : -1;
       const left = ctx.cam - TUNE.margin, right = ctx.cam + 1280 + TUNE.margin;
       g.from = g.dir > 0 ? left : right; g.to = g.dir > 0 ? right : left;
-      g.phase = 'warn'; g.t = 0; g.dur = TUNE.warn;
+      g.phase = 'warn'; g.t = 0; g.dur = TUNE.warn; g.cam = ctx.cam; g.leg = 0;
       if (emit) emit({ type: 'gazeTurn', dir: g.dir });
     }
   } else if (g.phase === 'warn') {
@@ -146,9 +152,14 @@ function stepGaze(g, dt, emit, ctx) {
   } else if (g.phase === 'sweep') {
     g.aim = lerp(g.from, g.to, clamp(g.t / g.dur, 0, 1));
     if (g.t >= g.dur) {
-      g.phase = 'dark'; g.t = 0; g.aim = GAZE_OFF;
-      g.dur = ctx ? TUNE.rest[0] + ctx.rand() * (TUNE.rest[1] - TUNE.rest[0]) : 9;
+      if (FILM && !g.leg) {
+        [g.from, g.to] = [g.to, g.from]; g.dir *= -1; g.leg = 1; g.t = 0;
+      } else if (FILM) { g.phase = 'fade'; g.t = 0; g.dur = 0.7; }
+      else { g.phase = 'dark'; g.t = 0; g.aim = GAZE_OFF; g.dur = ctx ? TUNE.rest[0] + ctx.rand() * (TUNE.rest[1] - TUNE.rest[0]) : 9; }
     }
+  } else if (g.phase === 'fade' && g.t >= g.dur) {
+    g.phase = 'dark'; g.t = 0; g.aim = GAZE_OFF;
+    g.dur = ctx ? TUNE.rest[0] + ctx.rand() * (TUNE.rest[1] - TUNE.rest[0]) : 9;
   }
 }
 
@@ -156,12 +167,12 @@ function stepGaze(g, dt, emit, ctx) {
 // sweeps, toward the wing it will come from while it winds up, else ahead.
 export function gazeLook(st) {
   const g = st.gaze;
-  return g.phase === 'sweep' ? g.aim : g.phase === 'warn' ? g.from : st.cam + 640;
+  return ['sweep', 'fade'].includes(g.phase) ? g.aim : g.phase === 'warn' ? g.from : st.cam + 640;
 }
 
 // Is a point on a groove in the beam, for this aim?
-export function litAt(aim, row, x) {
-  const { cx, hw } = beamOn(aim, row);
+export function litAt(aim, row, x, dir = 1) {
+  const { cx, hw } = beamOn(aim, row, dir);
   return Math.abs(x - cx) < hw;
 }
 
@@ -171,14 +182,18 @@ export default {
   sub: FILM ? "Cross Neptune's hall to his seal of passage.\nThe witch is watching through her scrying eye."
     : "Cross the Sea King's hall to the treasury\nand take her pearl from its pedestal.",
   // Shown as a silent-film intertitle after the act card.
-  intertitle: FILM ? "Hide beside a courtier\nfrom the witch's scrying eye.\n\nNeptune grants you passage:\nwalk up to his seal at the far end of the hall."
+  intertitle: FILM ? "Hold X to bow: lobsters will pass.\nHide beside a courtier from human guards\nand the witch's eye. A jumps up a level.\n\nNeptune grants you passage:\nwalk up to his seal at the far end of the hall."
     : "Hide beside a courtier\nfrom the Sea King's lantern.\n\nTake her pearl from the pedestal\nat the far end of the hall.",
-  action: 'A: hide',
+  action: FILM ? 'X: hide · A: jump' : 'A: hide',
+  ...(FILM ? {
+    touchVerb: () => 'Jump', touchVerbB: () => 'Hide',
+    touchHint: 'Drag to walk · hold X to hide · tap to jump up a level',
+    touchScheme: () => ({ mode: 'swipe', hint: 'Drag ↔ to walk · hold X to hide · tap to jump up', flickUpIsA: true }),
+  } : {}),
   scenes: SCENES,
-  // touch: B held bows past the lobster guards (film passage)
-  needB: (st) => !!(FILM && st.tf),
-  // on touch a tap anywhere is A (hide or take in the court, leap in the
-  // palace), so the A button is not shown
+  // The secondary touch button holds X to bow/hide in both film scenes.
+  needB: () => FILM,
+  // On touch a tap anywhere jumps; the persistent Hide button is held.
   touchTap: (st) => (FILM && st.phase === 'play' ? 'a' : null),
 
   // `from`: null, { scene } (scene select) or a checkpoint this act made
@@ -192,9 +207,13 @@ export default {
       beat: 0, beatN: null, steps: 0, cam: camFor(START.x),
       p: { row: START.row, from: START.row, rowT: 1, x: START.x, face: 1, frozen: false, walk: 0, grace: 0, hidden: false, lit: false },
       lanterns: TUNE.lanterns, score: 0, pearls: 0, taken: false,
-      courtiers: COURTIERS.map((c) => ({ ...c, x0: c.x, x1: c.x })),
+      courtiers: [...COURTIERS, ...(FILM ? [
+        { kind: 'pink', row: 2, x: 1090, a: 940, b: 1370, step: 36, pat: 'SSRR', dir: 1 },
+        { kind: 'guard', row: 2, x: 1540, a: 1150, b: 2100, dir: -1 },
+        ...[0, 1, 2].map(row => ({ kind: 'guard', guardType: 'lobster', row, x: 1220 + row * 90, a: 380, b: 2650, dir: -1 })),
+      ] : [])].map((c) => ({ ...c, x0: c.x, x1: c.x })),
       pearlsOnFloor: PEARLS.map(([row, x]) => ({ row, x, got: false })),
-      sentries: SENTRIES.map((x) => ({ x, open: false })),
+      sentries: FILM ? [] : SENTRIES.map((x) => ({ x, open: false })),
       gaze: { phase: 'dark', t: 0, dur: TUNE.firstDark, aim: GAZE_OFF, from: GAZE_OFF, to: GAZE_OFF, dir: 1, lock: 0 },
       whale: { t: -1, next: TUNE.whaleFirst, warned: false, passes: 0 },
       fish: { t: -1, next: TUNE.whaleFirst + 10 },
@@ -231,7 +250,16 @@ export default {
     st.phaseT += dt;
     const emit = (e) => st.events.push(e);
 
+    if (FILM && st.capture) {
+      st.capture.t += dt;
+      if (st.phase === 'play' && st.capture.t >= 1.15) {
+        st.p.x = clamp(st.p.x - st.capture.face * 115, XMIN, XMAX);
+        st.p.grace = TUNE.grace; st.capture = null;
+      } else if (st.phase === 'caught' && st.phaseT >= TUNE.caught) { st.status = 'lost'; st.statusT = 0; }
+      return;
+    }
     beatMachinery(st, emit);
+    if (FILM) stepCourtPeople(st, dt);
     stepPassers(st, dt, emit);
 
     st.cam += (camFor(st.p.x) - st.cam) * Math.min(1, dt * 3);
@@ -290,7 +318,7 @@ function beatMachinery(st, emit) {
   }
   // Courtiers slide into their step in the first part of each beat.
   const k = easeInOut(ph / 0.42);
-  for (const c of st.courtiers) c.x = lerp(c.x0, c.x1, k);
+  for (const c of st.courtiers) if (!(FILM && (c.kind === 'guard' || c.recoilT > 0))) c.x = lerp(c.x0, c.x1, k);
   // Sentry jaws snap open on the beat (asleep under the rose).
   const open = !st.carry.rose && ph < TUNE.snapOpen && st.phase !== 'turn' && st.phase !== 'lunge' && st.phase !== 'iris';
   for (const s of st.sentries) s.open = open;
@@ -300,6 +328,7 @@ function onBeat(st, n, emit) {
   let stepped = false;
   const p = st.p;
   for (const c of st.courtiers) {
+    if (FILM && (c.kind === 'guard' || c.recoilT > 0)) continue;
     c.x0 = c.x1;
     if (c.pat[((n % c.pat.length) + c.pat.length) % c.pat.length] !== 'S') continue;
     // (film) the courtier he poses behind holds still, so his cover holds
@@ -349,7 +378,7 @@ function stepPassers(st, dt, emit) {
 function play(st, dt, input, emit) {
   const p = st.p, g = st.gaze;
   p.grace = Math.max(0, p.grace - dt);
-  if (p.rowT < 1) p.rowT = Math.min(1, p.rowT + dt / TUNE.rowTween);
+  if (p.rowT < 1 && !(FILM && input.xHeld && !(p.jumpT > 0))) p.rowT = Math.min(1, p.rowT + dt / TUNE.rowTween);
 
   // Take the pearl: walking up to the pedestal at the far right, on any
   // groove, takes it (the act's goal; no button, no waiting). The whale then
@@ -362,13 +391,28 @@ function play(st, dt, input, emit) {
     return;
   }
 
-  // Hide: A strikes a courtier's pose and holds it until you move (or press
-  // A again); holding A keeps it too.
+  // Film: hold X to bow in place; A jumps up a groove. Legacy editions
+  // retain their A pose toggle and directional groove changes.
   const wasFrozen = p.frozen;
   const trying = !!(input.moveX || input.up || input.down);
-  if (input.a) p.pose = !p.pose;
-  if (trying && !input.aHeld) p.pose = false;
-  p.frozen = !!(p.pose || input.aHeld);
+  if (FILM) p.frozen = !!input.xHeld && !(p.jumpT > 0);
+  else {
+    if (input.a) p.pose = !p.pose;
+    if (trying && !input.aHeld) p.pose = false;
+    p.frozen = !!(p.pose || input.aHeld);
+  }
+  if (FILM) {
+    p.jumpT = Math.max(0, (p.jumpT || 0) - dt);
+    p.lift = p.jumpT > 0 ? 65 * Math.sin(Math.PI * (1 - p.jumpT / 0.65)) : 0;
+    if (input.a && !p.frozen && !p.jumpT && p.rowT >= 1) {
+      p.jumpT = 0.65;
+      if (p.row > 0) { p.from = p.row; p.row--; p.rowT = 0; }
+      for (const c of st.courtiers) if (Math.abs(c.row - effRow(p)) <= 1 && Math.abs(c.x - p.x) < 150) {
+        c.recoilT = 0.8; c.recoilDir = Math.sign(c.x - p.x) || c.dir; c.held = false;
+      }
+      emit({ type: 'leap' });
+    }
+  }
   if (p.frozen && !wasFrozen) { st.stats.freezes++; emit({ type: 'freeze' }); }
   if (!p.frozen) p.pose = false;
   p.moving = false;
@@ -402,7 +446,7 @@ function play(st, dt, input, emit) {
   // The gaze.
   stepGaze(g, dt, emit, { cam: st.cam, rand: () => rand(st) });
   p.hidden = p.frozen && st.courtiers.some((c) => c.kind !== 'guard' && c.row === r && Math.abs(c.x - p.x) < TUNE.cover * ROWSCALE[r]);
-  p.lit = !st.masked && litAt(g.aim, r, p.x);
+  p.lit = !st.masked && g.phase === 'sweep' && litAt(g.aim, r, p.x, g.dir);
   if (st.masked) st.stats.maskedTime += dt;
 
   if (p.lit && p.hidden) st.unseenPass = true;
@@ -416,9 +460,14 @@ function play(st, dt, input, emit) {
   // Guards bump; open jaws bite.
   for (const c of st.courtiers) {
     if (c.kind === 'guard' && c.row === r && p.rowT >= 0.35 && Math.abs(c.x - p.x) < 34 * ROWSCALE[r] && p.grace <= 0) {
+      if (FILM && (c.guardType === 'lobster' ? p.frozen : p.hidden)) continue;
       emit({ type: 'guardBump', x: p.x, y: rowY(p) });
-      hit(st, 'guard', emit);
-      p.x = clamp(p.x + (p.x < c.x ? -36 : 36), XMIN, XMAX);
+      if (FILM) {
+        st.capture = { kind: c.guardType || 'human', guard: c, x: p.x, row: r, face: c.x >= p.x ? 1 : -1, t: 0 };
+        p.moving = false; p.lift = 0; p.jumpT = 0;
+      }
+      hit(st, c.guardType === 'lobster' ? 'lobster' : 'guard', emit);
+      if (!FILM) p.x = clamp(p.x + (p.x < c.x ? -36 : 36), XMIN, XMAX);
     }
   }
   if (r === 2) for (const s of st.sentries) {
@@ -431,11 +480,25 @@ function play(st, dt, input, emit) {
     if (!p.lit && !st.masked) {
       const ahead = { ...g };
       stepGaze(ahead, BEAT, null, null);
-      if (litAt(ahead.aim, r, p.x)) st.omens.push({ x: p.x, y: rowY(p) - 175 * ROWSCALE[r], kind: 'gaze' });
+      if (litAt(ahead.aim, r, p.x, ahead.dir)) st.omens.push({ x: p.x, y: rowY(p) - 175 * ROWSCALE[r], kind: 'gaze' });
     }
     const ph = beatPhase(st.beat);
     if (!st.carry.rose && ph >= TUNE.snapOpen && r >= 1) {
       for (const s of st.sentries) if (Math.abs(s.x + SENTRY_HEAD - p.x) < 210) st.omens.push({ x: s.x + SENTRY_HEAD, y: 528, kind: 'sentry' });
+    }
+  }
+}
+
+function stepCourtPeople(st, dt) {
+  for (const c of st.courtiers) {
+    if (c.recoilT > 0) {
+      c.recoilT = Math.max(0, c.recoilT - dt);
+      c.x = clamp(c.x + c.recoilDir * 42 * dt, XMIN, XMAX);
+      c.x0 = c.x1 = c.x;
+    } else if (c.kind === 'guard' && st.phase === 'play') {
+      c.x += c.dir * (c.guardType === 'lobster' ? 76 : 58) * dt;
+      if (c.x < c.a || c.x > c.b) { c.x = clamp(c.x, c.a, c.b); c.dir *= -1; }
+      c.x0 = c.x1 = c.x;
     }
   }
 }
@@ -449,17 +512,20 @@ function hit(st, cause, emit) {
     st.phase = 'caught'; st.phaseT = 0; p.frozen = false;
     st.lostTitle = 'Seized by\nthe Court';
     st.lostSub = cause === 'sentry' ? 'The red sentries do not sleep for strangers.'
-      : cause === 'guard' ? 'The seahorse guard has you by the collar.'
-      : "The Sea King's lantern found you out.";
+      : cause === 'lobster' ? 'Bow and let the lobster guard pass.'
+      : cause === 'guard' ? 'Hide beside a courtier from the human guards.'
+      : FILM ? "Hide beside a courtier from the witch's eye." : "The Sea King's lantern found you out.";
     emit({ type: 'caught' });
   }
 }
 
 
 // ---------------------------------------------------------------- the passage (film)
+// The entry mark leaves room for both passed guards to remain visible at
+// the left, clear of the masking curtain.
 function startPassage(st) {
   st.transform = 0;
-  st.tf = { set: 0, x: 215, vx: 0, face: 1, walk: 0, knockT: 0, fade: 0, got: [], t: 0, bow: false, lift: 0, vy: 0, caught: 0 };
+  st.tf = { set: 0, x: PASSAGE.x0, vx: 0, face: 1, walk: 0, knockT: 0, fade: 0, got: [], t: 0, bow: false, lift: 0, vy: 0, caught: 0, guards: PASSAGE.guards.map((g, i) => ({ ...g, mode: i ? 'wait' : 'approach', park: 240 + i * 100 })) };
 }
 // A guard opens his claws for a bowing prince near him; otherwise they are
 // shut across the way.
@@ -477,22 +543,36 @@ function stepPassage(st, dt, input) {
     }
     return;
   }
+  if (f.capture) {
+    f.capture.t += dt;
+    if (f.capture.t >= 1.15) { f.x = Math.max(P.x0, f.capture.x - 115); f.capture = null; f.knockT = 0.7; }
+    return;
+  }
   f.knockT = Math.max(0, f.knockT - dt);
-  // the palace: bow (X held, or down) to pass the guards, at a shuffle
   const wasBow = f.bow;
   f.bow = f.knockT <= 0 && f.lift === 0 && (!!input.xHeld || (input.moveY || 0) > 0.5);
   if (f.bow && !wasBow) st.events.push({ type: 'bow' });
-  const mx = f.knockT > 0 ? 0 : clamp(input.moveX || 0, -1, 1);
+  const mx = f.knockT > 0 || f.bow ? 0 : clamp(input.moveX || 0, -1, 1);
   if (Math.abs(mx) > 0.15) f.face = Math.sign(mx);
-  f.vx += clamp(mx * P.walk * (f.bow ? P.bowWalk : 1) - f.vx, -P.acc * dt, P.acc * dt);
+  if (f.bow) f.vx = 0;
+  else f.vx += clamp(mx * P.walk - f.vx, -P.acc * dt, P.acc * dt);
   let nx = clamp(f.x + f.vx * dt, P.x0, P.exit + 20);
-  if (f.set === 0) for (const g of P.guards) {
-    const inside = Math.abs(nx - g.x) < P.guardW / 2 + P.hw;
-    if (inside && !f.bow) {
-      // upright before a guard: his claws shut on him and throw him back
-      f.knockT = 0.6; f.vx = 0; f.caught++;
-      nx = g.x - P.guardW / 2 - P.hw - 50;
-      st.events.push({ type: 'clawSnap', x: g.x });
+  for (const [i, g] of f.guards.entries()) {
+    if (g.mode === 'wait') {
+      g.x = Math.max(1080, g.x - P.guardSpeed * dt);
+      const first = f.guards[0];
+      if (first.passed && f.x > first.encounter + 70) g.mode = 'approach';
+    } else if (g.mode !== 'parked') {
+      if (f.bow && Math.abs(f.x - g.x) < P.notice) { g.mode = 'passing'; g.encounter ??= f.x; }
+      g.x -= P.guardSpeed * dt;
+      if (g.mode === 'passing' && g.x < f.x - 75) g.passed = true;
+      if (g.x <= g.park) { g.x = g.park; g.mode = 'parked'; }
+      if (!f.bow && f.knockT <= 0 && Math.abs(nx - g.x) < P.guardW / 2 + P.hw) {
+        f.vx = 0; f.caught++; f.bow = false;
+        f.capture = { kind: 'lobster', guard: g, x: f.x, face: g.x >= f.x ? 1 : -1, t: 0 };
+        st.events.push({ type: 'clawSnap', x: g.x });
+        return;
+      }
     }
   }
   f.x = nx; f.walk += Math.abs(f.vx) * dt;
