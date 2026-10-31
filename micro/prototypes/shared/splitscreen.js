@@ -31,15 +31,17 @@
 //      are near the middle (|s_i| up to rho_i, the distance of their region's
 //      centroid along s_i), otherwise held at that distance and eased onto the
 //      region's centroid. The raw shift is s_i - d_i (px): exactly zero while
-//      every player is inside their rho. Players within ~20% of the short side
-//      of each other blend shifts, so a close group shares a view.
+//      every player is inside their rho. Each player's shift becomes their own
+//      camera offset (step 6); players within ~20% of the short side of each
+//      other blend offsets, so a close group shares a view, and its views are
+//      already identical when they join.
 //   4. Merged or split, with hysteresis on E = max |s_i| / rho_i: the screen
 //      splits when E passes `splitAt` (1.12) and merges again only at E <= 1,
 //      where every raw shift is already zero. On splitting, the shifts ease in
 //      from zero over `splitIn` seconds (no jump); dividers fade with the
 //      difference between the views' shifts. So a merge is continuous: the
 //      offsets reach zero and the dividers vanish on the same frame.
-//   5. Players whose shifts agree (within 1 px, apart again beyond 2 px) share
+//   5. Players whose offsets agree (within 1 px, apart again beyond 2 px) share
 //      one view (one render). While merged there is one view with no shift and
 //      the world renders straight to the screen exactly as without split screen.
 //   6. Each view's shift becomes a camera offset in world units. By default
@@ -299,7 +301,7 @@ export function createSplitScreen(renderer, opts = {}) {
     const e = c.projectionMatrix.elements;
     const [fx, fy] = perspPx(e, 0, 0, -zRef);
     const [px, py] = perspPx(e, tmp.x * t, tmp.y * t, -zRef + (tmp.z + zRef) * t);
-    return { x: fx + (px - fx) / t, y: fy + (py - fy) / t, z: zMin, ppuX: (e[0] / zMin) * W / 2, ppuY: (e[5] / zMin) * H / 2, behind: z < 1e-4 };
+    return { x: fx + (px - fx) / t, y: fy + (py - fy) / t, z: zMin, ppuX: (e[0] / zMin) * W / 2, ppuY: (e[5] / zMin) * H / 2, behind: z < 1e-4, approx: true };
   }
 
   function sizes() {
@@ -450,28 +452,41 @@ export function createSplitScreen(renderer, opts = {}) {
     if (st.split) st.amount = Math.min(1, st.amount + (splitIn > 0 ? dt / splitIn : 1));
     const amt = st.split ? smooth(0, 1, st.amount) : 0;
 
-    // Players close together blend their shifts, so a group shares a view.
-    const m = Math.min(W, H);
-    const shift = [];
+    // Each player's own camera offset (world units) for their eased-in shift;
+    // players close together blend offsets, so a group shares a view. Blending
+    // the offsets rather than the pixel shifts means a group's views are
+    // identical when they join (perspective makes one pixel shift a different
+    // ground move at each player's depth).
+    const own = [];
     for (let i = 0; i < n; i++) {
-      let sx = 0, sy = 0, sw = 0;
+      let rx = raw[i][0] * amt, ry = raw[i][1] * amt;
+      const keep = smooth(0.15, 0.6, Math.hypot(rx, ry)); // a soft dead zone: sub-pixel shifts fade to exactly zero
+      rx *= keep; ry *= keep;
+      own.push(rx || ry ? viewOffset(players, S, [i], rx, ry) : zeroOffset());
+    }
+    const m = Math.min(W, H);
+    const off = [];
+    for (let i = 0; i < n; i++) {
+      const o = zeroOffset();
+      let sw = 0;
       for (let j = 0; j < n; j++) {
         const dd = Math.hypot(S[i].x - S[j].x, S[i].y - S[j].y);
         const w = j === i ? 1 : 1 - smooth(mergeBlend * 0.6 * m, mergeBlend * m, dd);
-        sx += raw[j][0] * w; sy += raw[j][1] * w; sw += w;
+        if (w > 0) { oAdd(o, own[j], w); sw += w; }
       }
-      shift.push([(sx / sw) * amt, (sy / sw) * amt]);
+      off.push(oScale(o, 1 / sw));
     }
-    const disp = S.map((s, i) => [s.x - shift[i][0], s.y - shift[i][1]]);
+    const ppu = (i) => Math.max(1e-6, (S[i].ppuX + S[i].ppuY) / 2);
 
-    // 5. Group players whose shifts agree into views (with hysteresis per pair).
+    // 5. Group players whose offsets agree (within 1 px, apart beyond 2 px) into views.
     const pairKey = (i, j) => `${Math.min(slotOf(i), slotOf(j))}:${Math.max(slotOf(i), slotOf(j))}`;
     for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
-      const dd = Math.hypot(shift[i][0] - shift[j][0], shift[i][1] - shift[j][1]);
+      const dd = oDist(off[i], off[j]) * Math.max(ppu(i), ppu(j));
       if (!st.split || dd < 1) st.together.add(pairKey(i, j));
       else if (dd > 2) st.together.delete(pairKey(i, j));
     }
     const viewOf = new Array(n).fill(-1);
+    const disp = [];
     for (let i = 0; i < n; i++) {
       if (viewOf[i] >= 0) continue;
       const members = [i];
@@ -480,14 +495,18 @@ export function createSplitScreen(renderer, opts = {}) {
         for (let j = 0; j < n; j++) if (viewOf[j] < 0 && st.together.has(pairKey(members[h], j))) { viewOf[j] = views.length; members.push(j); }
       }
       members.sort((a, b) => a - b);
+      let offset = zeroOffset();
+      if (st.split) { for (const j of members) oAdd(offset, off[j], 1); oScale(offset, 1 / members.length); }
+      if (oDist(offset, zeroOffset()) * ppu(i) < 1e-3) offset = zeroOffset();
+      // Where the view shows its players, and its shift in px (the mean of theirs).
       let sx = 0, sy = 0;
-      for (const j of members) { sx += shift[j][0]; sy += shift[j][1]; }
-      const c = members.length;
-      sx /= c; sy /= c;
-      // A soft dead zone: sub-pixel shifts fade to exactly zero without a step.
-      const sl = Math.hypot(sx, sy), keep = smooth(0.15, 0.6, sl);
-      sx *= keep; sy *= keep;
-      const offset = st.split && (sx !== 0 || sy !== 0) ? viewOffset(players, S, members, sx, sy) : zeroOffset();
+      for (const j of members) {
+        const e = S[j].approx ? null : screenOf(players[j].position, offset);
+        disp[j] = e && !e.behind ? [e.x, e.y] : [S[j].x - raw[j][0] * amt, S[j].y - raw[j][1] * amt];
+        sx += S[j].x - disp[j][0]; sy += S[j].y - disp[j][1];
+      }
+      sx /= members.length; sy /= members.length;
+      if (!st.split) { sx = 0; sy = 0; }
       views.push({ index: views.length, slots: members.map((j) => slotOf(j)), members, shift: { x: sx, y: sy }, offset });
     }
     for (let i = 0; i < n; i++) {
@@ -517,6 +536,9 @@ export function createSplitScreen(renderer, opts = {}) {
   }
 
   function zeroOffset() { return mode && mode.camera ? new THREE.Vector3() : { x: 0, y: 0 }; }
+  const oAdd = (a, b, k) => { if (a.isVector3) a.addScaledVector(b, k); else { a.x += b.x * k; a.y += b.y * k; } return a; };
+  const oScale = (a, k) => { if (a.isVector3) a.multiplyScalar(k); else { a.x *= k; a.y *= k; } return a; };
+  const oDist = (a, b) => (a.isVector3 ? a.distanceTo(b) : Math.hypot(a.x - b.x, a.y - b.y));
 
   /** The camera offset of a view showing `members` shifted by (sx, sy) px. */
   function viewOffset(players, S, members, sx, sy) {

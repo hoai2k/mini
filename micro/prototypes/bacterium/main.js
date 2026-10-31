@@ -433,7 +433,7 @@ function runFights(dt) {
 // the pull breaks you free; each wasted pull and each bump of its foot costs
 // it resolve; bumping its foot makes it contract in a flash and pause.
 // Worn out, it contracts and stays shut for a while: the host is yours.
-stentor.fight = createFight({ windup: 1.4, strike: 0.9, recoverT: 2.4, repelT: 3.5, retreatT: 22, facingRate: 0, blockHit: 0.16, biteHit: 0.2 });
+stentor.fight = createFight({ windup: 1.4, strike: 0.9, recoverT: 2.4, repelT: 3.5, retreatT: 22, facingRate: 0, blockHit: 0.16, biteHit: 0.2, regain: 0.008 });
 stentor.hunger = createHunger({ grace: 0 });
 const gaugeEl = document.createElement('div');
 gaugeEl.style.cssText = 'position:fixed;left:50%;top:56px;transform:translateX(-50%);z-index:20;pointer-events:none;display:none;color:#e6d3a3;font:600 11px/1.2 system-ui,sans-serif;letter-spacing:.04em;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,.7)';
@@ -452,7 +452,11 @@ function runBoss(dt) {
   }
   if (!B.awake) { B.update(dt, 'stalk', 0); gaugeEl.style.display = 'none'; return; }
   const inVortex = (P) => fightable(P) && dist(P) < B.pullR;
-  const blocking = roster.some((P) => inVortex(P) && P.blockT > 0);
+  // a tumble just before or during the pull breaks free (the pull is long: the window is the whole pull)
+  if (B.fight.state === 'strike' && B.state !== 'strike') B.strikeAt = t;
+  // (counted for whoever tumbled in the vortex, even once the tumble has kicked them out of it)
+  for (const P of roster) if (inVortex(P) && P.blockT > 0) P.vortexTumbleAt = P.tumbleAt;
+  const blocking = roster.some((P) => P.vortexTumbleAt !== undefined && (B.fight.state === 'strike' ? P.vortexTumbleAt > (B.strikeAt ?? t) - 0.35 : P.blockT > 0));
   const f = B.fight.update(dt, { near: nd < B.wakeR, inReach: nd < B.pullR, facing: true, blocking });
   if (f.state === 'windup' && B.state !== 'windup') bossInfo.log.push({ ev: 'tell', t });
   if (f.state === 'strike' && B.state !== 'strike') bossInfo.log.push({ ev: 'pull', t });
@@ -463,7 +467,8 @@ function runBoss(dt) {
     if (!fightable(P)) continue;
     if (dist(P) < B.catchR) { const ev = {}; P.game.catchBy('stentor', B, ev); if (ev.caught) { startCatch(P, ev.caught); caught = true; bossInfo.log.push({ ev: 'catch', slot: P.slot, t }); } }
     // a tumble at the pull breaks you free of it: a kick out of the vortex
-    if (P.kickT > 0) { P.kickT -= dt; const a = Math.atan2(P.S.y - M.y, P.S.x - M.x); P.S.x += Math.cos(a) * 70 * dt; P.S.y += Math.sin(a) * 70 * dt; }
+    if (B.fight.state === 'strike' && inVortex(P) && P.tumbleAt > (B.strikeAt ?? t) - 0.35 && P.kickedAt !== B.strikeAt) { P.kickedAt = B.strikeAt; P.kickT = 0.7; }
+    if (P.kickT > 0) { P.kickT -= dt; const a = Math.atan2(P.S.y - M.y, P.S.x - M.x); P.S.x += Math.cos(a) * 130 * dt; P.S.y += Math.sin(a) * 130 * dt; }
     // bumping its foot: it contracts in a flash and pauses
     if (Math.hypot(P.S.x - B.foot.x, P.S.y - B.foot.y) < 9 && bossInfo.footT <= 0 && B.fight.state !== 'retreat') {
       bossInfo.footT = 4; B.fight.bitten(); bossInfo.log.push({ ev: 'foot', slot: P.slot, t });
@@ -473,7 +478,7 @@ function runBoss(dt) {
   }
   bossInfo.footT = Math.max(0, bossInfo.footT - dt);
   if (f.blocked) {
-    for (const P of roster) if (inVortex(P) && P.blockT > 0) P.kickT = 0.6;
+    for (const P of roster) if (P.vortexTumbleAt > (B.strikeAt ?? t) - 0.35 && !(P.kickT > 0)) P.kickT = 0.6;
     bossInfo.log.push({ ev: 'blocked', t });
     hud.toast('Tumbled free of the pull!', 1500);
   }
@@ -698,7 +703,7 @@ const debug = {
   wakeBoss() { bossInfo.force = true; },
   hungry() { for (const p of predators()) p.h.reset(0.01); },
   /** A button for a player in tests: 'B' tumble (defend), 'A' sprint. */
-  press(b, slot = 0) { const P = roster.find((Q) => Q.slot === slot) || P1; if (b === 'B') { P.blockT = 0.55; P.swimmer.tumble(null); } else if (b === 'A' && P.dash.trigger()) { doDash(P); P.sprintT = 0.55; } },
+  press(b, slot = 0) { const P = roster.find((Q) => Q.slot === slot) || P1; if (b === 'B') { P.blockT = 0.55; P.tumbleAt = t; P.swimmer.tumble(null); } else if (b === 'A' && P.dash.trigger()) { doDash(P); P.sprintT = 0.55; } },
   step(n = 1, dt = 1 / 60, inp = {}) { for (let i = 0; i < n; i++) tick(dt, { 0: { attack: !!inp.attack, attackPressed: !!inp.attack && i === 0, steer: inp.steer || null } }); },
 };
 
@@ -799,6 +804,7 @@ function readInput(P, dt) {
   if (S.alive) {
     if (c.defend.pressed()) {
       P.blockT = 0.55; // a tumble at a strike evades it
+      P.tumbleAt = t;
       const bias = P.swimmer.opts.bias && ls.m > 0.3 ? { x: ls.x, y: -ls.y } : null;
       if (P.swimmer.tumble(bias)) {
         audio.play('bacterium/tumble', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });

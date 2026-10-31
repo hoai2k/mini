@@ -1089,7 +1089,7 @@ function startEngulf(c) {
   use(k);
 }
 /** X with your membrane round the neck of one of Chaos's arms: pinch it off. Returns true if it cut. */
-function pinchChaos(c, reach = 45) {
+function pinchChaos(c, reach = 70) {
   if (!chaos.on || !chaos.awake) return false;
   const pin = chaos.pincer(c.body, reach);
   if (!pin) return false;
@@ -1535,8 +1535,21 @@ function renderAll(dt) {
   }
   // Warnings: player 1's, else the first player in trouble.
   const warn = (c) => (c.caught.active ? (c.FC.phase === 'eaten' ? '' : CATCH_TEXT[c.FC.phase]) : c.s.stuckN ? `Stuck on a fungal trap hypha: surge (A) to tear free (haustoria in ${Math.max(0, 8 - c.s.stuckT).toFixed(1)} s)` : '');
-  const wc = cells.find((c) => warn(c));
-  warnEl.textContent = wc ? who(wc) + warn(wc) : '';
+  const chaosWarn = (c) => (chaos.attacking && chaos.target && chaos.target.cell === c && !c.caught.active
+    ? (chaos.fs === 'windup' ? 'Chaos raises and spreads its pseudopods: pinch its arms off (X), or get clear!' : chaos.attack % 3 === 0 ? 'Chaos lunges!' : `Its arms are closing round you: pinch them off (X)! ${Math.round((chaos.wrap || 0) * 57)}° of 225°`) : '');
+  const warn0 = warn;
+  const warnAll = (c) => warn0(c) || chaosWarn(c);
+  const wc = cells.find((c) => warnAll(c));
+  warnEl.textContent = wc ? who(wc) + warnAll(wc) : '';
+  // the boss's resolve: a quiet brass gauge while it is awake
+  if (!CH.gauge) {
+    CH.gauge = document.createElement('div');
+    CH.gauge.style.cssText = 'position:fixed;left:50%;top:48px;transform:translateX(-50%);z-index:20;display:none;align-items:center;gap:8px;padding:3px 10px;border-radius:999px;background:rgba(18,16,10,.55);color:#e8d6a6;font:600 11px system-ui,sans-serif;letter-spacing:.04em;pointer-events:none';
+    CH.gauge.innerHTML = '<span>CHAOS</span><span style="display:block;width:120px;height:5px;border:1px solid #b8913f;border-radius:3px;overflow:hidden"><i style="display:block;height:100%;width:100%;background:#d2a24c"></i></span>';
+    document.body.appendChild(CH.gauge);
+  }
+  CH.gauge.style.display = chaos.on && chaos.awake ? 'flex' : 'none';
+  CH.gauge.querySelector('i').style.width = `${Math.round(chaos.interest * 100)}%`;
   warnEl.style.display = warnEl.textContent ? 'block' : 'none';
   updateOverlay();
   marks.begin();
@@ -1648,7 +1661,11 @@ window.__micro = {
     for (const p of body.pods) { p.s = 0; p.target = 0; p.active = false; p.ret = 0; }
     body.grid.build(body.x, body.y, N);
   },
-  traps: trapList,
+  traps: trapList, chaos,
+  /** Test hook: player `slot` presses X round one of Chaos's arms (reach: how close each side must be). */
+  /** Test hook: Chaos engulfs player `slot` now. */
+  engulf: (slot = 0) => startEngulf(cellOf(slot)),
+  pinchChaos: (slot = 0, reach = 70) => { const c = cellOf(slot); use(c); const ok = pinchChaos(c, reach); use(cells[0]); return ok; },
   /** Test hook: player `slot` holds B (defend) or lets go. */
   defend(on = true, slot = 0) { const c = cellOf(slot); c.s.defendHeld = on; c.s.defendMode = on; },
   /** Test hook: player `slot` presses X at the nearest threatening trap hypha (cuts it). Returns whether it could. */

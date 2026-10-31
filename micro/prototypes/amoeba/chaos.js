@@ -4,7 +4,7 @@
 // Paramecium bursaria (the forward landmark).
 //
 // It is the same soft body as the player (shared/techniques/amoeba-softbody.js)
-// at about 2.2x the player's width (~0.8 mm across here; real Chaos reaches
+// at about 1.9x the player's width (~0.65 mm across here; real Chaos reaches
 // 1-5 mm: a labelled departure so it fits the field), slower, with a dozen
 // nuclei and denser cytoplasm.
 //
@@ -26,9 +26,9 @@ import { Cytoplasm } from './cytoplasm.js';
 import { createFight } from '../shared/predation.js';
 
 const TAU = Math.PI * 2;
-export const CHAOS_R = 380;   // µm, radius of the rounded cell
+export const CHAOS_R = 320;   // µm, radius of the rounded cell
 const WAKE = 950;             // a player's centre this close wakes it
-const ARM_W = 11;             // nodes either side of an arm's tip: its neck
+const ARM_W = 7;              // nodes either side of an arm's tip: its neck
 
 export class Chaos {
   constructor(rand, view, x, y) {
@@ -49,7 +49,7 @@ export class Chaos {
     this.cyto.nucleus.r = 18;
     this.cyto.extraNuclei = this.nuclei;
     this.layer = view.addCell(b, this.cyto);
-    this.fight = createFight({ windup: 1.6, strike: 4.2, recoverT: 2.6, repelT: 2.2, retreatT: 18, facingRate: 0, blockHit: 0.1, biteHit: 0.2, regain: 0.01 });
+    this.fight = createFight({ windup: 1.6, strike: 6.5, recoverT: 2.6, repelT: 2.2, retreatT: 18, facingRate: 0, blockHit: 0.1, biteHit: 0.2, regain: 0.01 });
     this.on = true;
     this.reset();
   }
@@ -76,6 +76,7 @@ export class Chaos {
     for (const p of players) { if (!p.active) continue; const d = Math.hypot(p.x - b.cx, p.y - b.cy); if (d < td) { td = d; tgt = p; } }
     this.target = tgt;
     b.opts.boost = 1;
+    b.opts.speed = 0.75;
     if (this.state === 'dormant') {
       if (!calm && tgt && td < WAKE) { this.state = 'fight'; this.fight.reset(); ev.push({ e: 'wake', p: tgt }); }
     } else if (this.state === 'fight') {
@@ -103,17 +104,17 @@ export class Chaos {
             // the cup: two arms to your flanks, then curling round behind you
             const k = f.t, side = tgt.req + 70;
             for (const [n, s] of [[0, 1], [1, -1]]) {
-              const tx = k < 0.45 ? tgt.x - uy * s * side * 1.3 : tgt.x + ux * side * 1.1 - uy * s * side * 0.4;
-              const ty = k < 0.45 ? tgt.y + ux * s * side * 1.3 : tgt.y + uy * side * 1.1 + ux * s * side * 0.4;
+              const tx = k < 0.4 ? tgt.x - ux * side * 0.6 - uy * s * side * 2.0 : tgt.x + ux * side * 1.4 - uy * s * side * 0.3;
+              const ty = k < 0.4 ? tgt.y - uy * side * 0.6 + ux * s * side * 2.0 : tgt.y + uy * side * 1.4 + ux * s * side * 0.3;
               const ax = tx - b.cx, ay = ty - b.cy, al = Math.hypot(ax, ay) || 1;
               input.pods[n] = { m: 1, dx: ax / al, dy: ay / al };
             }
             input.body = { m: 0.35, dx: ux, dy: uy };
-            b.opts.boost = 2.2;
+            b.opts.boost = 2.2; b.opts.speed = 2.4;
             // closed round you: engulfed
             const cup = b.cupAround(tgt.x, tgt.y, tgt.req + 120);
             this.wrap = cup ? cup.wrap : 0;
-            if (cup && cup.wrap > 3.9) { ev.push({ e: 'engulf', p: tgt }); this.fight.update(10, {}); }
+            if (cup && cup.wrap > 3.0) { ev.push({ e: 'engulf', p: tgt }); this.fight.update(10, {}); }
           }
         } else if (f.state === 'repelled') input.body = { m: 0.5, dx: -ux, dy: -uy };
       }
@@ -158,14 +159,14 @@ export class Chaos {
    * on from both sides (within `reach` µm of each side). Returns { i, j } (the
    * neck's ring nodes) or null.
    */
-  pincer(pb, reach = 45) {
+  pincer(pb, reach = 70) {
     const b = this.body;
     let best = null;
     for (const pod of b.pods) {
       if (pod.s < 0.25 || pod.tip == null) continue;
       const i = (pod.tip - ARM_W + N) % N, j = (pod.tip + ARM_W) % N;
       const w = Math.hypot(b.x[i] - b.x[j], b.y[i] - b.y[j]);
-      if (w > 170) continue; // too broad to pinch: that is its body, not an arm
+      if (w > 240) continue; // too broad to pinch: that is its body, not an arm
       const di = pb.nearest(b.x[i], b.y[i]).d, dj = pb.nearest(b.x[j], b.y[j]).d;
       if (di < reach && dj < reach && (!best || di + dj < best.d)) best = { i, j, d: di + dj, w };
     }

@@ -585,6 +585,7 @@ function fireTrichocysts(P, threat) {
     hud.toast(held ? `${who(P)}No trichocysts left: struggle with ${glyph('A')} or ${glyph('X')}!` : `${who(P)}No trichocysts left (they re-dock over time): backing off`);
     return;
   }
+  if (threat === trap) P.trapBurstAt = t; // a burst out of the trap's inflow: its pulse is wasted (a block)
   const n = enc.discharge(s, away.clone().negate(), t, world.flowAt(s.center, t));
   if (held) { if (threat === amoeba) amoeba.recoil(); else if (threat) threat.stun = 3; if (threat && threat.hunger && threat.hunger.hungry) threat.hunger.missed(); }
   P.pad.rumble(240, 0.9, 1.0);
@@ -685,7 +686,8 @@ function startCapture(P, th) {
   }
   audio.play('paramecium/held', { volume: 1 });
   P.pad.rumble(400, 0.6, 0.8);
-  hud.toast(`${who(P)}${k === 'amoeba' ? `The amoeba's food cup closes! ${glyph('B')}: trichocysts · ${glyph('A')} / ${glyph('X')}: struggle` : `Didinium's proboscis has you! ${glyph('B')}: fire trichocysts · ${glyph('A')} / ${glyph('X')}: struggle`}`, 2800);
+  if (k === 'bladder') hud.toast(`${who(P)}Sucked toward the trap door! ${glyph('B')}: trichocysts to burst free`, 2400);
+  else hud.toast(`${who(P)}${k === 'amoeba' ? `The amoeba's food cup closes! ${glyph('B')}: trichocysts · ${glyph('A')} / ${glyph('X')}: struggle` : `Didinium's proboscis has you! ${glyph('B')}: fire trichocysts · ${glyph('A')} / ${glyph('X')}: struggle`}`, 2800);
   embed.captured({ by: CATCH[k].by, player: P.slot });
 }
 const otherCatch = (P) => roster.some((Q) => Q !== P && Q.capture.active);
@@ -858,7 +860,7 @@ function runFights(dt) {
 // past then. Each wasted pulse and each trichocyst burst out of its inflow
 // (B) costs it resolve; spent, it hangs full and slack and cannot fire for a
 // while. Dormant until a player comes near after the calm opening.
-trap.fight = createFight({ windup: 1.3, strike: 0.38, recoverT: 2.4, repelT: 1.4, retreatT: 24, facingRate: 0, blockHit: 0.18, biteHit: 0.17 });
+trap.fight = createFight({ windup: 1.3, strike: 0.38, recoverT: 2.4, repelT: 1.4, retreatT: 24, facingRate: 0, blockHit: 0.18, biteHit: 0.17, regain: 0.008 });
 trap.hunger = createHunger({ grace: 0 });
 trap.spontT = 8;
 const gaugeEl = document.createElement('div');
@@ -881,7 +883,7 @@ function runBoss(dt) {
   let fire = nd < 320;
   if (trap.spontT <= 0 && nd < trap.wakeR) { fire = true; if (trap.fight.state === 'windup') trap.spontT = 7 + Math.random() * 5; }
   const inflow = (P) => { const s = P.swimmer.state; return !P.waiting && (s.mode === 'swim' || s.mode === 'avoid') && !P.capture.active && s.center.distanceTo(trap.door) < pullR; };
-  const blocking = roster.some((P) => inflow(P) && P.blockT > 0);
+  const blocking = roster.some((P) => (inflow(P) && P.blockT > 0) || (P.trapBurstAt !== undefined && t - P.trapBurstAt < 0.9));
   const f = trap.fight.update(dt, { near: nd < trap.wakeR, inReach: fire, facing: true, blocking });
   if (f.state === 'windup' && trap.state !== 'windup') bossInfo.log.push({ ev: 'tell', t });
   trap.phase2 = f.interest < 0.5;
@@ -899,12 +901,19 @@ function runBoss(dt) {
       s.axis.addScaledVector(to.normalize(), (200 + 1900 * Math.pow(1 - d / pullR, 0.8)) * dt);
       if (d < 95) { s.safeT = 0; if (P.swimmer.capture(trap)) { startCapture(P, trap); caught = true; bossInfo.log.push({ ev: 'catch', slot: P.slot, t }); } }
     }
-  } else trap.pulsed = false;
-  if (f.hit && !caught && !roster.some((P) => P.capture.active && P.cap.th === trap)) {
+  }
+  if (f.blocked) trap.blockedPulse = true;
+  if (caught) trap.caughtPulse = true;
+  if (f.state !== 'strike' && trap.pulsed) {
+    // the pulse is over: wasted if it caught no one and no one burst out of it (that counted already)
+    const wasted = !trap.caughtPulse && !trap.blockedPulse && !roster.some((P) => P.capture.active && P.cap.th === trap);
+    trap.pulsed = false; trap.caughtPulse = false; trap.blockedPulse = false;
+    if (wasted) {
     // a wasted pulse: it has to reset, and it tires
     const gone = trap.fight.bitten();
     bossInfo.log.push({ ev: 'miss', t });
     if (nd < trap.wakeR && !gone) hud.toast('The trap fired and missed: it is resetting. Dash past now!', 2000);
+    }
   }
   if (f.blocked) { bossInfo.log.push({ ev: 'blocked', t }); hud.toast('Trichocysts! You burst clear of the inflow', 1800); }
   if (trap.fight.state === 'retreat' && !trap.spent) { trap.spent = true; bossInfo.log.push({ ev: 'spent', t }); hud.toast('The trap has fired itself out: full and slack, it cannot reset for a while. Slip past to the biofilm!', 3600); }
