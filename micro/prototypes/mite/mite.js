@@ -245,7 +245,7 @@ function geometry() {
 // not walk; legs II-IV run a tetrapod-like gait.
 export const PRED = {
   kind: 'pred',
-  noto: { c: [-40, 0, 0], r: [320, 92, 200] },
+  noto: { c: [-40, 0, 0], r: [310, 88, 215] },
   hinge: [262, -26, 0],
   aspisOpen: 0, aspisClosed: 0,
   stand: 215,
@@ -276,19 +276,23 @@ function predGeometry() {
   }
   // peritremes: the long breathing grooves along each side above legs II-IV
   for (const s of [-1, 1]) np.push({ id: 0, op: 'sub', blend: 3, sdf: groove([190, -20, s * 165], [20, -10, s * 192], 5) });
-  const noto = buildSdfMesh(np, { min: [-372, -100, -212], max: [292, 160, 212], cell: 7 });
+  const noto = buildSdfMesh(np, { min: [-372, -100, -228], max: [292, 160, 228], cell: 7 });
   const gp = [
     // basis capituli and tectum
     { id: 2, sdf: sd.ellipsoid([10, 0, 0], [46, 30, 40]) },
-    // long chelate chelicerae projecting forward
-    { id: 3, sdf: sd.mirrorZ(sd.roundCone([0, 8, 12], [118, -6, 11], 13, 8)), blend: 8 },
-    { id: 3, sdf: sd.mirrorZ(sd.roundCone([118, -6, 11], [150, -10, 13], 7, 2.5)), blend: 3 },
-    { id: 3, sdf: sd.mirrorZ(sd.roundCone([112, -14, 11], [146, -20, 10], 5.5, 2)), blend: 3 },
+    // long, stout chelate chelicerae projecting forward (the reference sheet's
+    // most prominent feature): a shaft, then an open chela, the fixed digit
+    // above and the movable digit hooked below
+    { id: 3, sdf: sd.mirrorZ(sd.roundCone([0, 8, 13], [112, -4, 13], 17, 12)), blend: 8 },
+    { id: 3, sdf: sd.mirrorZ(sd.roundCone([110, -2, 13], [150, -4, 15], 10, 3)), blend: 3 },
+    { id: 3, sdf: sd.mirrorZ(sd.roundCone([150, -4, 15], [160, -14, 14], 3, 1.8)), blend: 2 },
+    { id: 3, sdf: sd.mirrorZ(sd.roundCone([106, -14, 13], [142, -26, 12], 8, 2.5)), blend: 3 },
+    { id: 3, sdf: sd.mirrorZ(sd.roundCone([142, -26, 12], [150, -18, 12], 2.5, 1.5)), blend: 2 },
     // palps: five-segmented, held out to the sides
     { id: 4, sdf: sd.mirrorZ(sd.roundCone([10, -14, 32], [64, -26, 52], 10, 8)), blend: 6 },
     { id: 4, sdf: sd.mirrorZ(sd.roundCone([64, -26, 52], [112, -30, 48], 8, 5)), blend: 4 },
   ];
-  const aspis = buildSdfMesh(gp, { min: [-40, -50, -70], max: [162, 44, 70], cell: 4 });
+  const aspis = buildSdfMesh(gp, { min: [-40, -50, -70], max: [172, 44, 70], cell: 4 });
   for (const g of [noto, aspis]) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
   const fN = combine(np);
   const bodySetae = [];

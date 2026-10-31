@@ -110,8 +110,15 @@ function placeCamera(dt) {
   const k = dt ? 1 - Math.exp(-dt / 0.25) : 1;
   // a catch is framed whole: you and the predator
   if (capture.active) {
-    rig.target.lerp(_ct.copy(mite.center).lerp(pred.center, 0.45), k);
-    rig.hfw += (Math.max(rig.hfw, 1300) - rig.hfw) * k;
+    // close in side-on to the catch: your body and the predator's chelicerae in frame
+    rig.target.lerp(_ct.copy(mite.center).lerp(pred.center, 0.3), k);
+    const kc = dt ? 1 - Math.exp(-dt / 0.6) : 1;
+    rig.hfw += (1000 - rig.hfw) * kc;
+    const ax = Math.atan2(pred.center.z - mite.center.z, pred.center.x - mite.center.x);
+    const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+    const side = Math.abs(wrap(ax + Math.PI / 2 - rig.yaw)) < Math.abs(wrap(ax - Math.PI / 2 - rig.yaw)) ? ax + Math.PI / 2 : ax - Math.PI / 2;
+    rig.yaw += wrap(side - rig.yaw) * kc;
+    rig.pitch += (0.42 - rig.pitch) * kc;
   } else rig.target.lerp(mite.center, k);
   const cp = Math.cos(rig.pitch);
   camera.position.set(rig.target.x + Math.cos(rig.yaw) * cp * d, rig.target.y + Math.sin(rig.pitch) * d, rig.target.z + Math.sin(rig.yaw) * cp * d);
@@ -211,8 +218,9 @@ function animateCapture(c, dt) {
   _cf.set(1, 0, 0).applyQuaternion(pred.quat).setY(0).normalize();
   const half = mite.size.z;
   // where the body ends up: against the chelicerae, at the same height
-  const end = _ct.copy(mouth).addScaledVector(_cf, half * 0.9);
-  end.y = cap.c0.y;
+  // held up in the chelicerae, off the ground
+  const end = _ct.copy(mouth).addScaledVector(_cf, half * 0.75);
+  end.y = Math.max(cap.c0.y, mouth.y - 20);
   const center = new THREE.Vector3();
   let flail = 1, limp = 0, escape = true;
   _cq.copy(cap.q0);
@@ -230,7 +238,7 @@ function animateCapture(c, dt) {
     flail = c.phase === 'eat' ? Math.max(0, 1 - 1.6 * u) : 0;
     limp = e;
     center.copy(end).addScaledVector(_cf, 6 * Math.sin(T * 13) * (c.phase === 'eat' ? 1 : 0.3));
-    center.y -= mite.anat.stand * mite.scale * 0.35 * e;
+    center.y -= 12 * e;
     // it sags onto its side as the legs give way
     _cq.premultiply(new THREE.Quaternion().setFromAxisAngle(_cf, 0.3 * e));
   }
