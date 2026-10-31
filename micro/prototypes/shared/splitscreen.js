@@ -174,7 +174,7 @@ export function createSplitScreen(renderer, opts = {}) {
   const cam = new THREE.Camera();
   const regionMeshes = [];
   const lineGeo = new THREE.BufferGeometry();
-  const lineMat = new THREE.ShaderMaterial({ vertexShader: LINE_VERT, fragmentShader: LINE_FRAG, transparent: true, depthTest: false, depthWrite: false });
+  const lineMat = new THREE.ShaderMaterial({ vertexShader: LINE_VERT, fragmentShader: LINE_FRAG, transparent: true, depthTest: false, depthWrite: false, side: THREE.DoubleSide });
   const lineMesh = new THREE.Mesh(lineGeo, lineMat);
   lineMesh.frustumCulled = false;
   lineMesh.renderOrder = 10;
@@ -182,7 +182,7 @@ export function createSplitScreen(renderer, opts = {}) {
 
   function regionMesh(k) {
     if (!regionMeshes[k]) {
-      const mk = (frag) => new THREE.ShaderMaterial({ vertexShader: VERT, fragmentShader: frag, uniforms: { tex: { value: null }, res: { value: new THREE.Vector2() } }, depthTest: false, depthWrite: false });
+      const mk = (frag) => new THREE.ShaderMaterial({ vertexShader: VERT, fragmentShader: frag, uniforms: { tex: { value: null }, res: { value: new THREE.Vector2() } }, depthTest: false, depthWrite: false, side: THREE.DoubleSide });
       const m = new THREE.Mesh(new THREE.BufferGeometry(), mk(FRAG_LINEAR));
       m.userData.mats = { linear: m.material, raw: mk(FRAG_RAW) };
       m.frustumCulled = false;
@@ -203,10 +203,11 @@ export function createSplitScreen(renderer, opts = {}) {
       const ortho = !!c.isOrthographicCamera;
       const z = ortho ? 1 : -tmp.z;
       if (!ortho && z < 1e-4) {
-        // Behind the camera: push it far out in its direction on screen.
+        // Behind the camera: far out on screen, mirrored the way a projection
+        // mirrors it (as Vector3.project does), flagged so callers flip it back.
         const dx = tmp.x || 1e-3, dy = -tmp.y;
         const m = Math.hypot(dx, dy) || 1;
-        return { x: (dx / m) * 1e5, y: (dy / m) * 1e5, z: 1e-4, ppuX: 1, ppuY: 1, behind: true };
+        return { x: (-dx / m) * 1e5, y: (-dy / m) * 1e5, z: 1e-4, ppuX: 1, ppuY: 1, behind: true };
       }
       const nx = (e[0] * tmp.x + e[8] * tmp.z + e[12]) / (ortho ? 1 : z);
       const ny = (e[5] * tmp.y + e[9] * tmp.z + e[13]) / (ortho ? 1 : z);
@@ -229,7 +230,13 @@ export function createSplitScreen(renderer, opts = {}) {
     sizes();
     const n = Math.min(4, players.length);
     const S = [];
-    for (let i = 0; i < n; i++) S.push(screenOf(players[i].position));
+    for (let i = 0; i < n; i++) {
+      const s = screenOf(players[i].position);
+      if (s.behind) { s.x = -s.x; s.y = -s.y; } // un-mirror: the direction is what matters
+      const l = Math.hypot(s.x, s.y), cap = 4 * Math.max(W, H);
+      if (l > cap) { s.x *= cap / l; s.y *= cap / l; }
+      S.push(s);
+    }
     const views = [];
     const regions = [];
     const edges = [];
